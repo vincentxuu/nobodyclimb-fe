@@ -1,0 +1,6 @@
+export { Hero } from './hero'
+export { FeaturedPosts } from './featured-posts'
+export { GymHighlights } from './gym-highlights'
+export { BiographySection } from './biography-section'
+export { GallerySection } from './gallery-section'
+export { AboutSection } from './about-section'
