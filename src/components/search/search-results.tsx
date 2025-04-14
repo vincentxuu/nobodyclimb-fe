@@ -4,6 +4,11 @@ import Link from 'next/link';
 import { useSearchParams, useRouter } from 'next/navigation';
 import { articles } from '@/lib/constants/articles';
 
+// Define the type for the ID mapping
+type IdMappingType = {
+  [key: number]: string;
+};
+
 export default function SearchResults() {
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -49,7 +54,7 @@ export default function SearchResults() {
         // 根據收集到的映射資訊處理 ID
         // 搜尋頁面的 ID 是數字，而 blog 詳細頁面的 ID 是字串
         // 建立映射關係來解決不一致問題
-        const idMapping = {
+        const idMapping: IdMappingType = {
           1: '2', // 確保器介紹 -> 攀岩確保器完整介紹：新手必讀指南
           4: '1', // 初次攀岩就上手 -> 初次攀岩就上手，攀岩新手應該知道的基礎技巧
           5: '10', // 如何選擇適合自己的攀岩鞋 -> 攀岩安全帽選購指南
@@ -121,4 +126,4 @@ export default function SearchResults() {
       })}
     </div>
   );
-} 
+}

@@ -2,7 +2,7 @@
 
 import React, { useState, useRef, useEffect } from "react"
 import { cn } from "@/lib/utils"
-import { motion, AnimatePresence } from "framer-motion"
+import { motion, AnimatePresence, HTMLMotionProps } from "framer-motion"
 import Link from "next/link"
 
 interface PopoverProps {
@@ -101,6 +101,13 @@ const PopoverTrigger: React.FC<PopoverTriggerProps> = ({
 };
 
 // 內容
+// Add type definitions for cloned elements
+type CloneElementType = React.ReactElement<{
+  onClick?: (e: React.MouseEvent) => void;
+  href?: string;
+  children?: React.ReactNode;
+}>;
+
 const PopoverContent = React.forwardRef<HTMLDivElement, PopoverContentProps>(({
   children,
   align = "center",
@@ -212,7 +219,7 @@ const PopoverContent = React.forwardRef<HTMLDivElement, PopoverContentProps>(({
       if (child.type === 'a' || 
           (typeof child.type === 'string' && child.type.toLowerCase() === 'a') || 
           child.type === Link) {
-        return React.cloneElement(child, {
+        return React.cloneElement(child as CloneElementType, {
           onClick: (e: React.MouseEvent) => {
             if (closeOnClick) setOpen(false);
             if (child.props.onClick) child.props.onClick(e);
@@ -221,7 +228,7 @@ const PopoverContent = React.forwardRef<HTMLDivElement, PopoverContentProps>(({
       } 
       // 遞迴處理子元素中的連結
       else if (child.props.children) {
-        return React.cloneElement(child, {
+        return React.cloneElement(child as CloneElementType, {
           children: wrapChildrenWithClickHandler(child.props.children)
         });
       }
@@ -263,7 +270,7 @@ const PopoverContent = React.forwardRef<HTMLDivElement, PopoverContentProps>(({
             "min-w-[8rem] overflow-hidden rounded-md border bg-white p-1 text-popover-foreground shadow-md outline-none",
             className
           )}
-          {...props}
+          {...props as HTMLMotionProps<"div">}
         >
           {wrappedChildren}
         </motion.div>

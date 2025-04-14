@@ -28,7 +28,7 @@ export default function UserMenu({ isDesktop }: UserMenuProps) {
   isAuthenticated = true; // 臨時設置，實際應該使用後端驗證
   
   // 假設用戶數據中有 avatarStyle 屬性，否則使用默認頭像
-  const avatarStyle = user?.avatarStyle || DEFAULT_AVATARS[0];
+  const avatarStyle = user?.avatarStyle ? DEFAULT_AVATARS.find(a => a.id === user.avatarStyle) || DEFAULT_AVATARS[0] : DEFAULT_AVATARS[0];
 
   if (!isDesktop) return null;
 
@@ -47,9 +47,9 @@ export default function UserMenu({ isDesktop }: UserMenuProps) {
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <button className="w-10 h-10 rounded-full overflow-hidden flex items-center justify-center hover:opacity-80 transition-opacity duration-200">
-                {user?.imageUrl ? (
+                {user?.avatar ? (
                   <img 
-                    src={user.imageUrl} 
+                    src={user.avatar} 
                     alt="用戶頭像" 
                     className="w-full h-full object-cover"
                   />

@@ -4,6 +4,7 @@ export interface User {
   username: string
   email: string
   avatar?: string
+  avatarStyle?: string
   bio?: string
   createdAt: Date
   updatedAt?: Date

@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, Suspense } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
@@ -11,7 +11,7 @@ import { Article, ArticleCategory, mockArticles } from '@/mocks/articles';
 import { Breadcrumb } from '@/components/ui/breadcrumb';
 import { motion } from 'framer-motion';
 
-export default function BlogPage() {
+function BlogContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const categoryParam = searchParams.get('category');
@@ -266,5 +266,17 @@ export default function BlogPage() {
         </div>
       </div>
     </motion.div>
+  );
+}
+
+export default function BlogPage() {
+  return (
+    <Suspense fallback={
+      <div className="min-h-screen bg-[#f5f5f5] flex items-center justify-center">
+        Loading...
+      </div>
+    }>
+      <BlogContent />
+    </Suspense>
   );
 }

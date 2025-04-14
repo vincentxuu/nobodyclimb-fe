@@ -10,6 +10,7 @@ interface UpdateUserData {
   username?: string;
   email?: string;
   avatar?: File | string;
+  avatarStyle?: string;
   bio?: string;
   displayName?: string;
   climbingStartYear?: string;

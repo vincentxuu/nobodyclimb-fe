@@ -34,7 +34,7 @@ export default function MobileNav({ isDesktop }: MobileNavProps) {
   isAuthenticated = true; // 臨時設置，實際應該使用後端驗證
   
   // 假設用戶數據中有 avatarStyle 屬性，否則使用默認頭像
-  const avatarStyle = user?.avatarStyle || DEFAULT_AVATARS[0];
+  const avatarStyle = user?.avatarStyle ? DEFAULT_AVATARS.find(a => a.id === user.avatarStyle) || DEFAULT_AVATARS[0] : DEFAULT_AVATARS[0];
   
   const [expandedMenus, setExpandedMenus] = useState<Record<string, boolean>>({})
 
@@ -153,9 +153,9 @@ export default function MobileNav({ isDesktop }: MobileNavProps) {
                   {/* 個人資料區塊 */}
                   <Link href="/profile" className="block">
                     <div className="flex items-center px-4 py-3 hover:bg-gray-50">
-                      {user?.imageUrl ? (
+                      {user?.avatar ? (
                         <img 
-                          src={user.imageUrl} 
+                          src={user.avatar} 
                           alt="用戶頭像" 
                           className="w-10 h-10 rounded-full object-cover"
                         />
@@ -163,7 +163,7 @@ export default function MobileNav({ isDesktop }: MobileNavProps) {
                         generateAvatarElement(avatarStyle, 'w-10 h-10')
                       )}
                       <div className="ml-3">
-                        <div className="font-['Noto_Sans_CJK_TC'] text-base font-medium text-[#1B1A1A]">{user?.name || '使用者名稱'}</div>
+                        <div className="font-['Noto_Sans_CJK_TC'] text-base font-medium text-[#1B1A1A]">{user?.displayName || user?.username || '使用者名稱'}</div>
                         <div className="font-['Noto_Sans_CJK_TC'] text-sm text-[#8E8C8C]">查看個人檔案</div>
                       </div>
                     </div>
