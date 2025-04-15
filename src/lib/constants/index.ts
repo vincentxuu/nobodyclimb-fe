@@ -98,12 +98,12 @@ export const GYM_FACILITIES = [
 export const galleryPhotos = [
   // Add 18+ placeholder images based on Figma structure
   // Row 1
-  { id: 'gal1', src: '/photo/cont-photo-top-left.jpg', alt: 'Climber on outdoor route', location: { country: '台灣', city: '新北市', spot: '龍洞' }, uploadDate: '2024. 01. 15' },
-  { id: 'gal2', src: '/photo/cont-photo-top-right.jpg', alt: 'Climber bouldering indoors', location: { country: '台灣', city: '台北市', spot: '市民岩館' }, uploadDate: '2024. 01. 14' },
-  { id: 'gal3', src: '/photo/cont-photo-mid-left.jpg', alt: 'Climber celebrating at the top', location: { country: '台灣', city: '高雄市', spot: '壽山' }, uploadDate: '2024. 01. 13' },
-  { id: 'gal4', src: '/photo/cont-photo-mid-right.jpg', alt: 'Climbing gear details', location: { country: '台灣', city: '台中市', spot: 'Dapro' }, uploadDate: '2024. 01. 12' },
-  { id: 'gal5', src: '/photo/cont-photo-bottom-left.jpg', alt: 'Scenic view from climbing spot', location: { country: '台灣', city: '花蓮縣', spot: '太魯閣' }, uploadDate: '2024. 01. 11' },
-  { id: 'gal6', src: '/photo/cont-photo-bottom-right.jpg', alt: 'Group of climbers', location: { country: '台灣', city: '新北市', spot: '龍洞' }, uploadDate: '2024. 01. 10' },
+  { id: 'gal1', src: '/photo/cont-photo-top-left.jpeg', alt: 'Climber on outdoor route', location: { country: '台灣', city: '新北市', spot: '龍洞' }, uploadDate: '2024. 01. 15' },
+  { id: 'gal2', src: '/photo/cont-photo-top-right.jpeg', alt: 'Climber bouldering indoors', location: { country: '台灣', city: '台北市', spot: '市民岩館' }, uploadDate: '2024. 01. 14' },
+  { id: 'gal3', src: '/photo/cont-photo-mid-left.jpeg', alt: 'Climber celebrating at the top', location: { country: '台灣', city: '高雄市', spot: '壽山' }, uploadDate: '2024. 01. 13' },
+  { id: 'gal4', src: '/photo/cont-photo-mid-right.jpeg', alt: 'Climbing gear details', location: { country: '台灣', city: '台中市', spot: 'Dapro' }, uploadDate: '2024. 01. 12' },
+  { id: 'gal5', src: '/photo/cont-photo-bottom-left.jpeg', alt: 'Scenic view from climbing spot', location: { country: '台灣', city: '花蓮縣', spot: '太魯閣' }, uploadDate: '2024. 01. 11' },
+  { id: 'gal6', src: '/photo/cont-photo-bottom-right.jpeg', alt: 'Group of climbers', location: { country: '台灣', city: '新北市', spot: '龍洞' }, uploadDate: '2024. 01. 10' },
   // Row 2
   { id: 'gal7', src: '/photo/blog-left.png', alt: 'Climber on steep overhang', location: { country: '台灣', city: '台北市', spot: 'B-plus' }, uploadDate: '2024. 01. 09' },
   { id: 'gal8', src: '/photo/blog-mid-left.jpg', alt: 'Indoor climbing competition', location: { country: '台灣', city: '台中市', spot: '攀吶' }, uploadDate: '2024. 01. 08' },

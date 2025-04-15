@@ -117,7 +117,7 @@ export default function CragListPage() {
     const seasonMatch = selectedSeason === "全部" || crag.seasons.includes(selectedSeason);
     // 由於難度比較複雜，這裡簡化處理
     const difficultyMatch = selectedDifficulty === "全部"; // 實際應用中需要更複雜的邏輯
-    
+
     return regionMatch && typeMatch && seasonMatch && difficultyMatch;
   });
 
@@ -125,9 +125,9 @@ export default function CragListPage() {
     <main className="min-h-screen bg-gray-50 pb-16">
       {/* 頂部橫幅 */}
       <div className="relative h-[40vh] md:h-[50vh] bg-gray-900 overflow-hidden">
-        <PlaceholderImage 
-          text="台灣岩場探索" 
-          bgColor="#242424" 
+        <PlaceholderImage
+          text="台灣岩場探索"
+          bgColor="#242424"
           textColor="#fff"
         />
         <div className="absolute inset-0 bg-gradient-to-b from-transparent to-black opacity-70"></div>
@@ -163,19 +163,19 @@ export default function CragListPage() {
               <Filter size={20} className="mr-2 text-[#1B1A1A]" />
               篩選岩場
             </h2>
-            <button 
+            <button
               className="md:hidden flex items-center text-[#1B1A1A] font-medium px-4 py-2 rounded-md border border-gray-200 hover:bg-gray-50 transition"
               onClick={() => setIsFilterOpen(!isFilterOpen)}
             >
               {isFilterOpen ? "收起篩選" : "展開篩選"}
             </button>
           </div>
-          
+
           <div className={`${isFilterOpen ? 'block' : 'hidden md:block'}`}>
             <div className="space-y-6">
               {/* 地區篩選 */}
               <div className="border-b pb-4">
-                <div 
+                <div
                   className="flex justify-between items-center cursor-pointer"
                   onClick={() => toggleFilter('region')}
                 >
@@ -186,17 +186,16 @@ export default function CragListPage() {
                     <ChevronDown size={18} className="text-gray-500" />
                   )}
                 </div>
-                
+
                 {expandedFilters.region && (
                   <div className="flex flex-wrap gap-2 mt-3">
                     {regions.map((region) => (
                       <button
                         key={region}
-                        className={`px-4 py-1.5 text-sm transition border-b-2 ${
-                          selectedRegion === region
+                        className={`px-4 py-1.5 text-sm transition border-b-2 ${selectedRegion === region
                             ? "border-[#1B1A1A] text-[#1B1A1A] font-medium"
                             : "border-transparent hover:border-gray-300 text-gray-600 hover:text-gray-800"
-                        }`}
+                          }`}
                         onClick={() => setSelectedRegion(region)}
                       >
                         {region}
@@ -208,7 +207,7 @@ export default function CragListPage() {
 
               {/* 岩石類型篩選 */}
               <div className="border-b pb-4">
-                <div 
+                <div
                   className="flex justify-between items-center cursor-pointer"
                   onClick={() => toggleFilter('rockType')}
                 >
@@ -219,17 +218,16 @@ export default function CragListPage() {
                     <ChevronDown size={18} className="text-gray-500" />
                   )}
                 </div>
-                
+
                 {expandedFilters.rockType && (
                   <div className="flex flex-wrap gap-2 mt-3">
                     {rockTypes.map((type) => (
                       <button
                         key={type}
-                        className={`px-4 py-1.5 text-sm transition border-b-2 ${
-                          selectedRockType === type
+                        className={`px-4 py-1.5 text-sm transition border-b-2 ${selectedRockType === type
                             ? "border-[#1B1A1A] text-[#1B1A1A] font-medium"
                             : "border-transparent hover:border-gray-300 text-gray-600 hover:text-gray-800"
-                        }`}
+                          }`}
                         onClick={() => setSelectedRockType(type)}
                       >
                         {type}
@@ -241,7 +239,7 @@ export default function CragListPage() {
 
               {/* 難度範圍篩選 */}
               <div className="border-b pb-4">
-                <div 
+                <div
                   className="flex justify-between items-center cursor-pointer"
                   onClick={() => toggleFilter('difficulty')}
                 >
@@ -252,17 +250,16 @@ export default function CragListPage() {
                     <ChevronDown size={18} className="text-gray-500" />
                   )}
                 </div>
-                
+
                 {expandedFilters.difficulty && (
                   <div className="flex flex-wrap gap-2 mt-3">
                     {difficultyLevels.map((level) => (
                       <button
                         key={level}
-                        className={`px-4 py-1.5 text-sm transition border-b-2 ${
-                          selectedDifficulty === level
+                        className={`px-4 py-1.5 text-sm transition border-b-2 ${selectedDifficulty === level
                             ? "border-[#1B1A1A] text-[#1B1A1A] font-medium"
                             : "border-transparent hover:border-gray-300 text-gray-600 hover:text-gray-800"
-                        }`}
+                          }`}
                         onClick={() => setSelectedDifficulty(level)}
                       >
                         {level}
@@ -274,7 +271,7 @@ export default function CragListPage() {
 
               {/* 季節篩選 */}
               <div>
-                <div 
+                <div
                   className="flex justify-between items-center cursor-pointer"
                   onClick={() => toggleFilter('season')}
                 >
@@ -285,17 +282,16 @@ export default function CragListPage() {
                     <ChevronDown size={18} className="text-gray-500" />
                   )}
                 </div>
-                
+
                 {expandedFilters.season && (
                   <div className="flex flex-wrap gap-2 mt-3">
                     {seasonOptions.map((season) => (
                       <button
                         key={season}
-                        className={`px-4 py-1.5 text-sm transition border-b-2 ${
-                          selectedSeason === season
+                        className={`px-4 py-1.5 text-sm transition border-b-2 ${selectedSeason === season
                             ? "border-[#1B1A1A] text-[#1B1A1A] font-medium"
                             : "border-transparent hover:border-gray-300 text-gray-600 hover:text-gray-800"
-                        }`}
+                          }`}
                         onClick={() => setSelectedSeason(season)}
                       >
                         {season}
@@ -308,7 +304,7 @@ export default function CragListPage() {
 
             {/* 清除篩選按鈕 */}
             <div className="mt-6 text-center">
-              <button 
+              <button
                 className="bg-white border border-gray-300 hover:bg-gray-50 text-[#1B1A1A] font-medium px-4 py-2 rounded-md transition"
                 onClick={() => {
                   setSelectedRegion("全部");
@@ -351,9 +347,9 @@ export default function CragListPage() {
             >
               <Link href={`/crag/${crag.id}`} className="block h-full">
                 <div className="relative h-48 w-full">
-                  <PlaceholderImage 
-                    text={crag.name} 
-                    bgColor="#E0F2FE"
+                  <PlaceholderImage
+                    text={crag.name}
+                    bgColor="#f8fafc"
                   />
                   <div className="absolute top-4 right-4 bg-[#FFE70C] text-black text-xs font-bold px-2.5 py-1 rounded">
                     {crag.type}
@@ -364,7 +360,7 @@ export default function CragListPage() {
                     <h3 className="text-xl font-bold">{crag.name}</h3>
                     <p className="text-gray-500">{crag.englishName}</p>
                   </div>
-                  
+
                   <div className="space-y-3 mb-5">
                     <div className="flex items-center text-gray-700">
                       <MapPin size={16} className="mr-2 text-gray-400" />
@@ -379,7 +375,7 @@ export default function CragListPage() {
                       <span>接近時間: 15-30分鐘</span>
                     </div>
                   </div>
-                  
+
                   <div className="grid grid-cols-2 gap-4 mb-5">
                     <div className="bg-gray-50 p-3 rounded-lg text-center">
                       <p className="text-sm text-gray-500 mb-1">難度範圍</p>
@@ -390,7 +386,7 @@ export default function CragListPage() {
                       <p className="font-medium">{crag.routes}+</p>
                     </div>
                   </div>
-                  
+
                   <button className="w-full bg-[#1B1A1A] hover:bg-black text-white py-2 rounded-md transition font-medium">
                     查看詳情
                   </button>
@@ -399,7 +395,7 @@ export default function CragListPage() {
             </motion.div>
           ))}
         </div>
-        
+
         {/* 無結果提示 */}
         {filteredCrags.length === 0 && (
           <div className="text-center py-16 bg-white rounded-xl shadow-sm my-6">
@@ -410,7 +406,7 @@ export default function CragListPage() {
             </div>
             <p className="text-gray-600 text-xl mb-3">沒有找到符合條件的岩場</p>
             <p className="text-gray-500 mb-6">請嘗試調整篩選條件</p>
-            <button 
+            <button
               className="px-6 py-2 bg-[#1B1A1A] hover:bg-black text-white font-medium rounded-md transition"
               onClick={() => {
                 setSelectedRegion("全部");
@@ -433,7 +429,7 @@ export default function CragListPage() {
           </div>
         )}
       </div>
-      
+
       {/* 使用自定義的回到頂部按鈕，調整顏色 */}
       <div className="fixed bottom-8 right-8 z-40">
         <button
