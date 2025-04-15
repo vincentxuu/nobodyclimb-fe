@@ -19,10 +19,10 @@ export function Hero() {
         backgroundSize: 'cover',
         backgroundPosition: 'center'
       }} />
-      
+
       {/* 內容 */}
       <div className="container relative z-10 mx-auto flex h-full flex-col items-center justify-center px-4 text-center text-white">
-        
+
         <motion.div
           className="max-w-3xl space-y-6 flex flex-col items-center"
           initial={{ opacity: 0, y: 20 }}
@@ -30,32 +30,32 @@ export function Hero() {
           transition={{ duration: 0.7 }}
         >
           <h1 className="mb-2 font-['Glow_Sans_TC'] text-[40px] font-bold tracking-[0.16em] leading-[1.733em]">
-            緣起於一個 Nobody
+            小人物攀岩
           </h1>
-          
+
           <div className="logo-container flex flex-col items-center gap-3">
-            <Image 
-              src="/logo/Nobodylimb-white.svg" 
-              alt="NobodyClimb Logo" 
-              width={140} 
-              height={24}
-              className="mt-2"
+            <Image
+              src="/logo/NobodyClimb.svg"
+              alt="NobodyClimb Logo"
+              width={240}
+              height={240}
+              className="w-[240px] md:w-[280px]" // 響應式大小
             />
           </div>
-          
+
           <p className="mx-auto mt-6 max-w-[503px] font-['Noto_Sans_CJK_TC'] text-[16px] font-normal leading-[150%] text-center px-4 tracking-[0.01em]">
-            希望有更多 Nobody 也一起 Climb，找到交流的地方
+            攀岩像是在牆上跳舞，像是在牆上即興演出，像是在走一條迷宮，起點終點很明確，過程自由發揮，你就是答案。
           </p>
         </motion.div>
       </div>
-      
+
       {/* 向下捲動提示 */}
       <motion.div
         className="absolute bottom-8 left-1/2 -translate-x-1/2"
         initial={{ opacity: 0, y: -10 }}
         animate={{ opacity: 1, y: 0 }}
-        transition={{ 
-          duration: 0.7, 
+        transition={{
+          duration: 0.7,
           delay: 0.5,
           repeat: Infinity,
           repeatType: "reverse",
