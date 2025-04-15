@@ -73,7 +73,7 @@ export function BiographySection() {
           <Link href="/biography">
             <Button 
               variant="outline" 
-              className="h-11 rounded-none border border-[#1B1A1A] px-8 text-base text-[#1B1A1A] hover:bg-[#DBD8D8]"
+              className="h-11 border border-[#1B1A1A] px-8 text-base text-[#1B1A1A] hover:bg-[#DBD8D8]"
             >
               認識更多小人物
             </Button>

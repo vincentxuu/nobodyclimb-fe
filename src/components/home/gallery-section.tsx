@@ -120,7 +120,7 @@ export function GallerySection() {
           <Link href="/photoalbum">
             <Button 
               variant="outline" 
-              className="h-11 rounded-none border border-[#1B1A1A] px-8 text-base text-[#1B1A1A] hover:bg-[#DBD8D8] font-['Noto_Sans_TC'] tracking-[0.02em]"
+              className="h-11 border border-[#1B1A1A] px-8 text-base text-[#1B1A1A] hover:bg-[#DBD8D8] font-['Noto_Sans_TC'] tracking-[0.02em]"
             >
               看更多影像
             </Button>

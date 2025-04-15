@@ -33,7 +33,7 @@ export function AboutSection() {
           <Button 
             variant="secondary" 
             size="lg"
-            className="mt-8 rounded-md"
+            className="mt-8"
           >
             認識小人物
           </Button>
