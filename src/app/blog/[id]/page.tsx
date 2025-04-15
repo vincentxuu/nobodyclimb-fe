@@ -51,7 +51,7 @@ export default function BlogDetail() {
           <Breadcrumb
             items={[
               { label: '首頁', href: '/' },
-              { label: '專欄文章', href: '/blog' },
+              { label: '部落格', href: '/blog' },
               { label: currentArticle.title }
             ]}
           />

@@ -15,7 +15,7 @@ function BlogContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const categoryParam = searchParams.get('category');
-  
+
   // 為URL category參數映射到顯示類別
   const categoryMapping: Record<string, ArticleCategory> = {
     'equipment': '裝備介紹',
@@ -35,7 +35,7 @@ function BlogContent() {
 
   // 根據URL參數設置默認選中的類別
   const defaultCategory = categoryParam ? categoryMapping[categoryParam] ?? '所有文章' : '所有文章';
-  
+
   const [selectedCategory, setSelectedCategory] = useState<ArticleCategory>(defaultCategory);
   const [searchQuery, setSearchQuery] = useState('');
   const [currentSlide, setCurrentSlide] = useState(0);
@@ -44,7 +44,7 @@ function BlogContent() {
   // 處理類別選擇變更
   const handleCategoryChange = (category: ArticleCategory) => {
     setSelectedCategory(category);
-    
+
     // 更新 URL 路徑
     const urlParam = categoryToUrlParam[category];
     if (urlParam) {
@@ -101,7 +101,7 @@ function BlogContent() {
   const filteredArticles = mockArticles.filter(article => {
     const matchesCategory = selectedCategory === '所有文章' || article.category === selectedCategory;
     const matchesSearch = article.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                         article.content.toLowerCase().includes(searchQuery.toLowerCase());
+      article.content.toLowerCase().includes(searchQuery.toLowerCase());
     return matchesCategory && matchesSearch;
   });
 
@@ -114,7 +114,7 @@ function BlogContent() {
       className="min-h-screen bg-[#f5f5f5]"
     >
       {/* Header Section */}
-      <div 
+      <div
         className="relative w-full h-[480px] group"
         onMouseEnter={() => setIsAutoPlaying(false)}
         onMouseLeave={() => setIsAutoPlaying(true)}
@@ -122,9 +122,8 @@ function BlogContent() {
         {featuredArticles.map((article, index) => (
           <div
             key={article.id}
-            className={`absolute inset-0 transition-opacity duration-500 ${
-              index === currentSlide ? 'opacity-100' : 'opacity-0 pointer-events-none'
-            }`}
+            className={`absolute inset-0 transition-opacity duration-500 ${index === currentSlide ? 'opacity-100' : 'opacity-0 pointer-events-none'
+              }`}
           >
             <Link href={`/blog/${article.id}`} className="block relative h-full">
               <Image
@@ -153,11 +152,10 @@ function BlogContent() {
           {featuredArticles.map((_, index) => (
             <button
               key={index}
-              className={`w-2 h-2 rounded-full transition-all ${
-                index === currentSlide 
-                  ? 'bg-white w-6' 
+              className={`w-2 h-2 rounded-full transition-all ${index === currentSlide
+                  ? 'bg-white w-6'
                   : 'bg-white/50'
-              }`}
+                }`}
               onClick={() => setCurrentSlide(index)}
             />
           ))}
@@ -184,7 +182,7 @@ function BlogContent() {
           <Breadcrumb
             items={[
               { label: '首頁', href: '/' },
-              { label: '專欄文章' }
+              { label: '部落格' }
             ]}
           />
         </div>
@@ -197,11 +195,10 @@ function BlogContent() {
               <Button
                 key={category}
                 variant={selectedCategory === category ? 'primary' : 'outline'}
-                className={`rounded-full px-8 ${
-                  selectedCategory === category
-                    ? 'bg-black text-white'
-                    : 'border-gray-300'
-                }`}
+                className={`rounded-full px-8 ${selectedCategory === category
+                    ? 'bg-black text-white hover:bg-gray-800'
+                    : 'border-gray-300 hover:bg-gray-100'
+                  }`}
                 onClick={() => handleCategoryChange(category)}
               >
                 {category}

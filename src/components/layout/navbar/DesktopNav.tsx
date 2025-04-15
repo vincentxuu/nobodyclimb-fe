@@ -13,7 +13,7 @@ const NAV_LINKS = [
   { key: 'crags', text: '岩場', href: '/crag', hasSubmenu: false },
   { key: 'gyms', text: '岩館', href: '/gym', hasSubmenu: false },
   { key: 'gallery', text: '攝影集', href: '/gallery', hasSubmenu: false },
-  { key: 'blog', text: '專欄文章', href: '/blog', hasSubmenu: true },
+  { key: 'blog', text: '部落格', href: '/blog', hasSubmenu: true },
 ]
 
 // 定義專欄子菜單

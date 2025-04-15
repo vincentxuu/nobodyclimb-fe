@@ -53,7 +53,7 @@ export default function SearchFilters() {
 
       <div className="border-b border-[#E5E5E5]">
         <div className="flex">
-          {["全部", "人物誌", "岩場介紹", "專欄文章"].map((tab) => (
+          {["全部", "人物誌", "岩場介紹", "部落格"].map((tab) => (
             <button
               key={tab}
               onClick={() => handleTabChange(tab)}

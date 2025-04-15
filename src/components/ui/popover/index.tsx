@@ -130,10 +130,10 @@ const PopoverContent = React.forwardRef<HTMLDivElement, PopoverContentProps>(({
     
     let left = triggerRect.left; // 預設為觸發器的左側
     
-    // 專欄文章按鈕特別處理
+    // 部落格按鈕特別處理
     const isColumnArticleButton = triggerRef.current.id === 'column-article-button';
     if (isColumnArticleButton) {
-      // 將下拉選單放在「專欄文章」按鈕正下方
+      // 將下拉選單放在「部落格」按鈕正下方
       left = triggerRect.left;
     }
     else if (align === "center") {

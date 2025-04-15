@@ -37,7 +37,7 @@ export const articles: Article[] = [
   {
     id: 4,
     title: "初次攀岩就上手攀岩新手應該知道的三項基礎技巧",
-    category: "專欄文章",
+    category: "部落格",
     date: "2022.08.29",
     description: "攀岩對於初學者來說可能會感到害怕和困難，但掌握基本技巧後，就能享受攀岩的樂趣。本文將介紹三個最重要的基礎技巧：1. 正確的抓握方式 2. 重心轉移 3. 腳步技巧，幫助你開始攀岩之旅。",
     image: "/photo/blog-right.jpeg"
@@ -53,7 +53,7 @@ export const articles: Article[] = [
   {
     id: 6,
     title: "自然岩場安全須知",
-    category: "專欄文章",
+    category: "部落格",
     date: "2022.08.29",
     description: "在自然岩場攀岩比室內岩館更具挑戰性，同時也需要注意更多安全事項。本文將介紹戶外攀岩的必備知識，包括天氣評估、裝備檢查、確保技術等重要安全須知。",
     image: "/photo/cont-photo-mid-right.jpeg"
@@ -78,7 +78,7 @@ export const articles: Article[] = [
   {
     id: 9,
     title: "運動攀登比賽規則解析",
-    category: "專欄文章",
+    category: "部落格",
     date: "2022.08.29",
     description: "想要參加攀岩比賽卻對規則感到困惑？本文將詳細介紹運動攀登比賽的各項規則，包括難度賽、速度賽和抱石賽的評分標準和比賽流程，讓你對賽事有更深入的了解。",
     image: "/photo/cont-photo-bottom-right.jpeg"

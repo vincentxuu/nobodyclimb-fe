@@ -15,10 +15,10 @@ export const NAV_LINKS = [
   { label: '岩場', href: '/crag' },
   { label: '岩館', href: '/gym' },
   { label: '攝影集', href: '/gallery' },
-  { label: '專欄文章', href: '/blog', hasSubmenu: true },
+  { label: '部落格', href: '/blog', hasSubmenu: true },
 ]
 
-// 專欄文章子選單
+// 部落格子選單
 export const COLUMN_SUBMENU = [
   { label: '裝備介紹', href: '/blog?category=equipment' },
   { label: '技巧介紹', href: '/blog?category=technique' },

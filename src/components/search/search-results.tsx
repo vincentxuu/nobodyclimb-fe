@@ -66,7 +66,7 @@ export default function SearchResults() {
         
         switch(article.category) {
           case '裝備介紹':
-          case '專欄文章':
+          case '部落格':
           case '技巧介紹':
           case '技術研究':
           case '比賽介紹':
