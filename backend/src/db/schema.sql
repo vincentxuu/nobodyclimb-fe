@@ -23,8 +23,8 @@ CREATE TABLE IF NOT EXISTS users (
   updated_at TEXT DEFAULT (datetime('now'))
 );
 
-CREATE INDEX idx_users_email ON users(email);
-CREATE INDEX idx_users_username ON users(username);
+CREATE INDEX IF NOT EXISTS idx_users_email ON users(email);
+CREATE INDEX IF NOT EXISTS idx_users_username ON users(username);
 
 CREATE TABLE IF NOT EXISTS refresh_tokens (
   id TEXT PRIMARY KEY,
@@ -35,7 +35,7 @@ CREATE TABLE IF NOT EXISTS refresh_tokens (
   FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
 );
 
-CREATE INDEX idx_refresh_tokens_user ON refresh_tokens(user_id);
+CREATE INDEX IF NOT EXISTS idx_refresh_tokens_user ON refresh_tokens(user_id);
 
 -- ============================================
 -- Blog Posts
@@ -58,10 +58,10 @@ CREATE TABLE IF NOT EXISTS posts (
   FOREIGN KEY (author_id) REFERENCES users(id) ON DELETE CASCADE
 );
 
-CREATE INDEX idx_posts_slug ON posts(slug);
-CREATE INDEX idx_posts_author ON posts(author_id);
-CREATE INDEX idx_posts_status ON posts(status);
-CREATE INDEX idx_posts_featured ON posts(is_featured);
+CREATE INDEX IF NOT EXISTS idx_posts_slug ON posts(slug);
+CREATE INDEX IF NOT EXISTS idx_posts_author ON posts(author_id);
+CREATE INDEX IF NOT EXISTS idx_posts_status ON posts(status);
+CREATE INDEX IF NOT EXISTS idx_posts_featured ON posts(is_featured);
 
 CREATE TABLE IF NOT EXISTS post_tags (
   post_id TEXT NOT NULL,
@@ -70,7 +70,7 @@ CREATE TABLE IF NOT EXISTS post_tags (
   FOREIGN KEY (post_id) REFERENCES posts(id) ON DELETE CASCADE
 );
 
-CREATE INDEX idx_post_tags_tag ON post_tags(tag);
+CREATE INDEX IF NOT EXISTS idx_post_tags_tag ON post_tags(tag);
 
 -- ============================================
 -- Climbing Gyms
@@ -100,9 +100,9 @@ CREATE TABLE IF NOT EXISTS gyms (
   updated_at TEXT DEFAULT (datetime('now'))
 );
 
-CREATE INDEX idx_gyms_slug ON gyms(slug);
-CREATE INDEX idx_gyms_city ON gyms(city);
-CREATE INDEX idx_gyms_featured ON gyms(is_featured);
+CREATE INDEX IF NOT EXISTS idx_gyms_slug ON gyms(slug);
+CREATE INDEX IF NOT EXISTS idx_gyms_city ON gyms(city);
+CREATE INDEX IF NOT EXISTS idx_gyms_featured ON gyms(is_featured);
 
 -- ============================================
 -- Crags (Outdoor Climbing Sites)
@@ -137,9 +137,9 @@ CREATE TABLE IF NOT EXISTS crags (
   updated_at TEXT DEFAULT (datetime('now'))
 );
 
-CREATE INDEX idx_crags_slug ON crags(slug);
-CREATE INDEX idx_crags_region ON crags(region);
-CREATE INDEX idx_crags_featured ON crags(is_featured);
+CREATE INDEX IF NOT EXISTS idx_crags_slug ON crags(slug);
+CREATE INDEX IF NOT EXISTS idx_crags_region ON crags(region);
+CREATE INDEX IF NOT EXISTS idx_crags_featured ON crags(is_featured);
 
 CREATE TABLE IF NOT EXISTS routes (
   id TEXT PRIMARY KEY,
@@ -156,8 +156,8 @@ CREATE TABLE IF NOT EXISTS routes (
   FOREIGN KEY (crag_id) REFERENCES crags(id) ON DELETE CASCADE
 );
 
-CREATE INDEX idx_routes_crag ON routes(crag_id);
-CREATE INDEX idx_routes_grade ON routes(grade);
+CREATE INDEX IF NOT EXISTS idx_routes_crag ON routes(crag_id);
+CREATE INDEX IF NOT EXISTS idx_routes_grade ON routes(grade);
 
 -- ============================================
 -- Galleries
@@ -177,8 +177,8 @@ CREATE TABLE IF NOT EXISTS galleries (
   FOREIGN KEY (author_id) REFERENCES users(id) ON DELETE CASCADE
 );
 
-CREATE INDEX idx_galleries_slug ON galleries(slug);
-CREATE INDEX idx_galleries_author ON galleries(author_id);
+CREATE INDEX IF NOT EXISTS idx_galleries_slug ON galleries(slug);
+CREATE INDEX IF NOT EXISTS idx_galleries_author ON galleries(author_id);
 
 CREATE TABLE IF NOT EXISTS gallery_images (
   id TEXT PRIMARY KEY,
@@ -191,7 +191,7 @@ CREATE TABLE IF NOT EXISTS gallery_images (
   FOREIGN KEY (gallery_id) REFERENCES galleries(id) ON DELETE CASCADE
 );
 
-CREATE INDEX idx_gallery_images_gallery ON gallery_images(gallery_id);
+CREATE INDEX IF NOT EXISTS idx_gallery_images_gallery ON gallery_images(gallery_id);
 
 -- ============================================
 -- Videos
@@ -215,8 +215,8 @@ CREATE TABLE IF NOT EXISTS videos (
   updated_at TEXT DEFAULT (datetime('now'))
 );
 
-CREATE INDEX idx_videos_slug ON videos(slug);
-CREATE INDEX idx_videos_category ON videos(category);
+CREATE INDEX IF NOT EXISTS idx_videos_slug ON videos(slug);
+CREATE INDEX IF NOT EXISTS idx_videos_category ON videos(category);
 
 -- ============================================
 -- Biographies
@@ -239,8 +239,8 @@ CREATE TABLE IF NOT EXISTS biographies (
   FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE SET NULL
 );
 
-CREATE INDEX idx_biographies_slug ON biographies(slug);
-CREATE INDEX idx_biographies_user ON biographies(user_id);
+CREATE INDEX IF NOT EXISTS idx_biographies_slug ON biographies(slug);
+CREATE INDEX IF NOT EXISTS idx_biographies_user ON biographies(user_id);
 
 -- ============================================
 -- Reviews & Comments
@@ -258,8 +258,8 @@ CREATE TABLE IF NOT EXISTS reviews (
   FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
 );
 
-CREATE INDEX idx_reviews_entity ON reviews(entity_type, entity_id);
-CREATE INDEX idx_reviews_user ON reviews(user_id);
+CREATE INDEX IF NOT EXISTS idx_reviews_entity ON reviews(entity_type, entity_id);
+CREATE INDEX IF NOT EXISTS idx_reviews_user ON reviews(user_id);
 
 CREATE TABLE IF NOT EXISTS comments (
   id TEXT PRIMARY KEY,
@@ -274,9 +274,9 @@ CREATE TABLE IF NOT EXISTS comments (
   FOREIGN KEY (parent_id) REFERENCES comments(id) ON DELETE CASCADE
 );
 
-CREATE INDEX idx_comments_entity ON comments(entity_type, entity_id);
-CREATE INDEX idx_comments_user ON comments(user_id);
-CREATE INDEX idx_comments_parent ON comments(parent_id);
+CREATE INDEX IF NOT EXISTS idx_comments_entity ON comments(entity_type, entity_id);
+CREATE INDEX IF NOT EXISTS idx_comments_user ON comments(user_id);
+CREATE INDEX IF NOT EXISTS idx_comments_parent ON comments(parent_id);
 
 -- ============================================
 -- Notifications
@@ -294,5 +294,5 @@ CREATE TABLE IF NOT EXISTS notifications (
   FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
 );
 
-CREATE INDEX idx_notifications_user ON notifications(user_id);
-CREATE INDEX idx_notifications_read ON notifications(is_read);
+CREATE INDEX IF NOT EXISTS idx_notifications_user ON notifications(user_id);
+CREATE INDEX IF NOT EXISTS idx_notifications_read ON notifications(is_read);
