@@ -41,7 +41,7 @@ interface AuthState {
   // 動作
   login: (email: string, password: string) => Promise<{ success: boolean; error?: string }>
   loginWithGoogle: (token: string) => Promise<void>
-  register: (username: string, email: string, password: string) => Promise<void>
+  register: (username: string, email: string, password: string) => Promise<{ success: boolean; error?: string }>
   logout: () => Promise<void>
   updateUser: (userData: UpdateUserData) => Promise<void>
   refreshToken: () => Promise<boolean>
@@ -197,6 +197,8 @@ export const useAuthStore = create<AuthState>()(
             isAuthenticated: true,
             isLoading: false,
           })
+
+          return { success: true }
         } catch (error) {
           // 處理錯誤 - 優先顯示後端回傳的錯誤訊息
           let errorMessage = '註冊過程中發生錯誤'
@@ -214,7 +216,7 @@ export const useAuthStore = create<AuthState>()(
             isLoading: false,
           })
 
-          throw new Error(errorMessage)
+          return { success: false, error: errorMessage }
         }
       },
 
