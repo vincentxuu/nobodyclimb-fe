@@ -126,9 +126,23 @@ export default function BlogDetail() {
     }
   }, [id])
 
+  // 獲取點讚狀態
+  const fetchLikeStatus = useCallback(async () => {
+    try {
+      const response = await postService.getLikeStatus(id)
+      if (response.success && response.data) {
+        setIsLiked(response.data.liked)
+        setLikeCount(response.data.likes)
+      }
+    } catch (err) {
+      console.error('Failed to fetch like status:', err)
+    }
+  }, [id])
+
   useEffect(() => {
     fetchArticle()
-  }, [fetchArticle])
+    fetchLikeStatus()
+  }, [fetchArticle, fetchLikeStatus])
 
   // 處理點讚
   const handleLike = async () => {
