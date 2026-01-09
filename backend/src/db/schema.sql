@@ -231,9 +231,19 @@ CREATE TABLE IF NOT EXISTS biographies (
   bio TEXT,
   avatar_url TEXT,
   cover_image TEXT,
+  -- Climbing-specific fields for persona feature
+  climbing_start_year TEXT,
+  frequent_locations TEXT, -- 平常出沒岩場
+  favorite_route_type TEXT, -- 喜歡的路線型態
+  climbing_reason TEXT, -- 踏上攀岩不歸路的原因
+  climbing_meaning TEXT, -- 攀岩對你來說是什麼樣的存在
+  bucket_list TEXT, -- 在攀岩世界裡，想做的人生清單
+  advice TEXT, -- 對於初踏入攀岩的岩友，留言給他們的一句話
   achievements TEXT, -- JSON array
   social_links TEXT, -- JSON object
   is_featured INTEGER DEFAULT 0,
+  is_public INTEGER DEFAULT 0, -- 是否公開到人物誌
+  published_at TEXT,
   created_at TEXT DEFAULT (datetime('now')),
   updated_at TEXT DEFAULT (datetime('now')),
   FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE SET NULL
@@ -241,6 +251,7 @@ CREATE TABLE IF NOT EXISTS biographies (
 
 CREATE INDEX IF NOT EXISTS idx_biographies_slug ON biographies(slug);
 CREATE INDEX IF NOT EXISTS idx_biographies_user ON biographies(user_id);
+CREATE INDEX IF NOT EXISTS idx_biographies_public ON biographies(is_public);
 
 -- ============================================
 -- Reviews & Comments

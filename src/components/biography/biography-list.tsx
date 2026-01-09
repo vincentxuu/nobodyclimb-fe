@@ -1,19 +1,54 @@
 'use client'
 
-import React from 'react'
+import React, { useEffect, useState, useCallback } from 'react'
 import Image from 'next/image'
 import Link from 'next/link'
 import { motion } from 'framer-motion'
-import { ArrowRightCircle } from 'lucide-react'
-import { Card, CardContent, CardMedia } from '@/components/ui/card'
+import { ArrowRightCircle, Loader2 } from 'lucide-react'
+import { Card, CardContent } from '@/components/ui/card'
+import { biographyService } from '@/lib/api/services'
+import { Biography } from '@/lib/types'
 import { biographyData } from '@/data/biographyData'
+
+// 靜態數據轉換為 Biography 類型
+function mapStaticToBiography(staticPerson: (typeof biographyData)[0]): Biography {
+  return {
+    id: String(staticPerson.id),
+    user_id: null,
+    slug: staticPerson.name.toLowerCase().replace(/\s+/g, '-'),
+    name: staticPerson.name,
+    title: null,
+    bio: null,
+    avatar_url: staticPerson.imageSrc,
+    cover_image: staticPerson.detailImageSrc,
+    climbing_start_year: staticPerson.start,
+    frequent_locations: staticPerson.showUp,
+    favorite_route_type: staticPerson.type,
+    climbing_reason: staticPerson.reason,
+    climbing_meaning: staticPerson.why,
+    bucket_list: staticPerson.list,
+    advice: staticPerson.word,
+    achievements: null,
+    social_links: null,
+    is_featured: 0,
+    is_public: 1,
+    published_at: staticPerson.time,
+    created_at: staticPerson.time,
+    updated_at: staticPerson.time,
+  }
+}
 
 // 卡片組件
 interface BiographyCardProps {
-  person: (typeof biographyData)[0]
+  person: Biography
 }
 
 function BiographyCard({ person }: BiographyCardProps) {
+  const imageUrl = person.avatar_url || '/photo/personleft.jpeg'
+  const climbingYears = person.climbing_start_year
+    ? new Date().getFullYear() - parseInt(person.climbing_start_year)
+    : null
+
   return (
     <motion.div
       initial={{ opacity: 0, y: 20 }}
@@ -25,7 +60,7 @@ function BiographyCard({ person }: BiographyCardProps) {
         <Card className="h-full overflow-hidden transition-shadow duration-300 hover:shadow-md">
           <div className="relative h-[248px] overflow-hidden">
             <Image
-              src={person.imageSrc}
+              src={imageUrl}
               alt={person.name}
               fill
               className="object-cover transition-transform duration-500 hover:scale-105"
@@ -37,8 +72,7 @@ function BiographyCard({ person }: BiographyCardProps) {
               <div>
                 <h3 className="text-2xl font-medium text-[#1B1A1A]">{person.name}</h3>
                 <p className="text-sm text-[#8E8C8C]">
-                  攀岩年資 |{' '}
-                  {person.start ? `${new Date().getFullYear() - parseInt(person.start)}年` : '3年'}
+                  攀岩年資 | {climbingYears ? `${climbingYears}年` : '未知'}
                 </p>
               </div>
               <ArrowRightCircle size={22} className="text-gray-400" />
@@ -46,7 +80,9 @@ function BiographyCard({ person }: BiographyCardProps) {
 
             <div className="space-y-2">
               <h4 className="text-base font-medium text-[#1B1A1A]">攀岩對你來說，是什麼樣的存在</h4>
-              <p className="line-clamp-2 text-sm text-[#1B1A1A]">{person.why}</p>
+              <p className="line-clamp-2 text-sm text-[#1B1A1A]">
+                {person.climbing_meaning || '尚未填寫'}
+              </p>
             </div>
           </CardContent>
         </Card>
@@ -57,29 +93,107 @@ function BiographyCard({ person }: BiographyCardProps) {
 
 interface BiographyListProps {
   searchTerm: string
+  onLoadMore?: () => void
+  onTotalChange?: (total: number, hasMore: boolean) => void
 }
 
-export function BiographyList({ searchTerm }: BiographyListProps) {
-  // 根據搜尋詞篩選人物
-  const filteredBiography = biographyData.filter((person) => {
-    if (!searchTerm) return true
+export function BiographyList({ searchTerm, onTotalChange }: BiographyListProps) {
+  const [biographies, setBiographies] = useState<Biography[]>([])
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
+  const [useStaticData, setUseStaticData] = useState(false)
 
-    const searchLower = searchTerm.toLowerCase()
+  // 從 API 加載數據
+  const loadBiographies = useCallback(async () => {
+    setLoading(true)
+    setError(null)
+
+    try {
+      const response = await biographyService.getBiographies(1, 20, searchTerm || undefined)
+
+      if (response.success && response.data.length > 0) {
+        setBiographies(response.data)
+        setUseStaticData(false)
+        onTotalChange?.(response.pagination.total, response.pagination.page < response.pagination.total_pages)
+      } else {
+        // API 沒有數據，使用靜態數據
+        const staticBiographies = biographyData.map(mapStaticToBiography)
+        const filtered = searchTerm
+          ? staticBiographies.filter((person) => {
+              const searchLower = searchTerm.toLowerCase()
+              return (
+                person.name.toLowerCase().includes(searchLower) ||
+                (person.climbing_meaning?.toLowerCase().includes(searchLower) ?? false) ||
+                (person.climbing_start_year?.toLowerCase().includes(searchLower) ?? false) ||
+                (person.frequent_locations?.toLowerCase().includes(searchLower) ?? false) ||
+                (person.favorite_route_type?.toLowerCase().includes(searchLower) ?? false) ||
+                (person.climbing_reason?.toLowerCase().includes(searchLower) ?? false) ||
+                (person.bucket_list?.toLowerCase().includes(searchLower) ?? false) ||
+                (person.advice?.toLowerCase().includes(searchLower) ?? false)
+              )
+            })
+          : staticBiographies
+        setBiographies(filtered)
+        setUseStaticData(true)
+        onTotalChange?.(filtered.length, false)
+      }
+    } catch (err) {
+      console.error('Failed to load biographies:', err)
+      // API 錯誤時，fallback 到靜態數據
+      const staticBiographies = biographyData.map(mapStaticToBiography)
+      const filtered = searchTerm
+        ? staticBiographies.filter((person) => {
+            const searchLower = searchTerm.toLowerCase()
+            return (
+              person.name.toLowerCase().includes(searchLower) ||
+              (person.climbing_meaning?.toLowerCase().includes(searchLower) ?? false) ||
+              (person.climbing_start_year?.toLowerCase().includes(searchLower) ?? false) ||
+              (person.frequent_locations?.toLowerCase().includes(searchLower) ?? false) ||
+              (person.favorite_route_type?.toLowerCase().includes(searchLower) ?? false) ||
+              (person.climbing_reason?.toLowerCase().includes(searchLower) ?? false) ||
+              (person.bucket_list?.toLowerCase().includes(searchLower) ?? false) ||
+              (person.advice?.toLowerCase().includes(searchLower) ?? false)
+            )
+          })
+        : staticBiographies
+      setBiographies(filtered)
+      setUseStaticData(true)
+      onTotalChange?.(filtered.length, false)
+    } finally {
+      setLoading(false)
+    }
+  }, [searchTerm, onTotalChange])
+
+  // 搜索時重新加載
+  useEffect(() => {
+    const debounceTimer = setTimeout(() => {
+      loadBiographies()
+    }, 300)
+
+    return () => clearTimeout(debounceTimer)
+  }, [loadBiographies])
+
+  if (loading) {
     return (
-      person.name.toLowerCase().includes(searchLower) ||
-      person.why.toLowerCase().includes(searchLower) ||
-      person.start.toLowerCase().includes(searchLower) ||
-      person.showUp.toLowerCase().includes(searchLower) ||
-      person.type.toLowerCase().includes(searchLower) ||
-      person.reason.toLowerCase().includes(searchLower) ||
-      person.list.toLowerCase().includes(searchLower) ||
-      person.word.toLowerCase().includes(searchLower)
+      <div className="flex min-h-[300px] items-center justify-center">
+        <Loader2 className="h-8 w-8 animate-spin text-[#1B1A1A]" />
+      </div>
     )
-  })
+  }
+
+  if (biographies.length === 0) {
+    return (
+      <div className="flex min-h-[300px] flex-col items-center justify-center text-center">
+        <p className="text-lg text-[#6D6C6C]">
+          {searchTerm ? `找不到符合「${searchTerm}」的人物` : '目前沒有人物誌'}
+        </p>
+      </div>
+    )
+  }
 
   return (
     <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
-      {filteredBiography.map((person) => (
+      {biographies.map((person) => (
         <BiographyCard key={person.id} person={person} />
       ))}
     </div>
