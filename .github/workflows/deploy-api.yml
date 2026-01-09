@@ -119,3 +119,23 @@ jobs:
           workingDirectory: backend
           wranglerVersion: "3.114.16"
           command: d1 execute nobodyclimb-db-preview --remote --file=./src/db/schema.sql --config wrangler.toml --env preview
+
+      - name: Run incremental migrations (Production)
+        if: steps.env.outputs.environment == 'production'
+        uses: cloudflare/wrangler-action@v3
+        continue-on-error: true
+        with:
+          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          workingDirectory: backend
+          wranglerVersion: "3.114.16"
+          command: d1 execute nobodyclimb-db --remote --file=./migrations/0001_add_profile_fields.sql --config wrangler.toml --env production
+
+      - name: Run incremental migrations (Preview)
+        if: steps.env.outputs.environment == 'preview'
+        uses: cloudflare/wrangler-action@v3
+        continue-on-error: true
+        with:
+          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          workingDirectory: backend
+          wranglerVersion: "3.114.16"
+          command: d1 execute nobodyclimb-db-preview --remote --file=./migrations/0001_add_profile_fields.sql --config wrangler.toml --env preview
