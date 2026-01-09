@@ -307,3 +307,20 @@ CREATE TABLE IF NOT EXISTS notifications (
 
 CREATE INDEX IF NOT EXISTS idx_notifications_user ON notifications(user_id);
 CREATE INDEX IF NOT EXISTS idx_notifications_read ON notifications(is_read);
+
+-- ============================================
+-- Likes/Favorites
+-- ============================================
+
+CREATE TABLE IF NOT EXISTS likes (
+  id TEXT PRIMARY KEY,
+  user_id TEXT NOT NULL,
+  entity_type TEXT NOT NULL CHECK (entity_type IN ('post', 'gallery', 'video', 'gym', 'crag')),
+  entity_id TEXT NOT NULL,
+  created_at TEXT DEFAULT (datetime('now')),
+  FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
+  UNIQUE(user_id, entity_type, entity_id)
+);
+
+CREATE INDEX IF NOT EXISTS idx_likes_user ON likes(user_id);
+CREATE INDEX IF NOT EXISTS idx_likes_entity ON likes(entity_type, entity_id);

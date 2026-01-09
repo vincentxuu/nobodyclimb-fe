@@ -192,6 +192,16 @@ export const postService = {
   },
 
   /**
+   * 獲取文章點讚狀態
+   */
+  getLikeStatus: async (id: string) => {
+    const response = await apiClient.get<ApiResponse<{ liked: boolean; likes: number }>>(
+      `/posts/${id}/like`
+    )
+    return response.data
+  },
+
+  /**
    * 獲取文章評論
    */
   getComments: async (postId: string) => {
