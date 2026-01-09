@@ -5,21 +5,21 @@ const path = require('path');
  * 合併多個頻道的影片資料到統一的 videos.ts 檔案
  */
 function mergeVideoSources() {
-  // 自動掃描 src/lib/constants/ 目錄中所有 *_videos.ts 檔案
-  const constantsDir = 'src/lib/constants';
+  // 自動掃描 public/data/ 目錄中所有 *_videos.json 檔案
+  const publicDataDir = 'public/data';
   const sourceFiles = [];
-  
+
   // 掃描目錄中的檔案
-  if (fs.existsSync(constantsDir)) {
-    const files = fs.readdirSync(constantsDir);
+  if (fs.existsSync(publicDataDir)) {
+    const files = fs.readdirSync(publicDataDir);
     for (const file of files) {
       // 匹配 *_videos.json 格式，但排除 videos.json（目標檔案）
       if (file.endsWith('_videos.json') && file !== 'videos.json') {
-        sourceFiles.push(path.join(constantsDir, file));
+        sourceFiles.push(path.join(publicDataDir, file));
       }
     }
   }
-  
+
   console.log(`🔍 自動發現 ${sourceFiles.length} 個影片來源檔案:`, sourceFiles.map(f => path.basename(f)));
 
   const outputFile = 'public/data/videos.json';
@@ -101,11 +101,29 @@ function mergeVideoSources() {
   console.log(`   ⭐ 精選影片: ${featuredCount} 部`);
   console.log('');
   console.log(`📁 輸出檔案: ${outputFile}`);
+
+  // 刪除個別頻道檔案以節省空間
+  console.log('');
+  console.log('🧹 清理個別頻道檔案...');
+  let deletedCount = 0;
+  for (const sourceFile of sourceFiles) {
+    try {
+      if (fs.existsSync(sourceFile)) {
+        fs.unlinkSync(sourceFile);
+        console.log(`   ✅ 已刪除: ${path.basename(sourceFile)}`);
+        deletedCount++;
+      }
+    } catch (error) {
+      console.log(`   ⚠️  無法刪除 ${path.basename(sourceFile)}: ${error.message}`);
+    }
+  }
+  console.log(`✅ 已清理 ${deletedCount} 個個別頻道檔案`);
+
   console.log('');
   console.log('💡 提示:');
   console.log('   - 影片已按精選狀態和觀看次數排序');
   console.log('   - ID 已重新分配以避免衝突');
-  console.log('   - 可以在 sourceFiles 陣列中添加更多頻道');
+  console.log('   - 個別頻道檔案已刪除，僅保留統一的 videos.json');
 }
 
 // 如果直接執行此腳本

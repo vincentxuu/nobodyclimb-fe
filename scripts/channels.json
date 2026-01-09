@@ -39,6 +39,70 @@
       "channelId": "@mammut",
       "type": "climbing",
       "featuredThreshold": 15000
+    },
+    {
+      "url": "https://www.youtube.com/@HardIsEasy",
+      "name": "hardiseasy",
+      "displayName": "HardIsEasy",
+      "channelId": "@HardIsEasy",
+      "type": "climbing",
+      "featuredThreshold": 30000
+    },
+    {
+      "url": "https://www.youtube.com/channel/UCIRIbjrEHserQZ6O1Jd9wrg",
+      "name": "channel_UCIRIbjrEHserQZ6O1Jd9wrg",
+      "displayName": "Climbing Channel",
+      "channelId": "UCIRIbjrEHserQZ6O1Jd9wrg",
+      "type": "climbing",
+      "featuredThreshold": 20000
+    },
+    {
+      "url": "https://www.youtube.com/@AdamOndra",
+      "name": "adamondra",
+      "displayName": "Adam Ondra",
+      "channelId": "@AdamOndra",
+      "type": "climbing",
+      "featuredThreshold": 80000
+    },
+    {
+      "url": "https://www.youtube.com/@BlackDiamondEquipmentLtd",
+      "name": "blackdiamond",
+      "displayName": "Black Diamond Equipment",
+      "channelId": "@BlackDiamondEquipmentLtd",
+      "type": "climbing",
+      "featuredThreshold": 30000
+    },
+    {
+      "url": "https://www.youtube.com/@HowNOT2",
+      "name": "hownot2",
+      "displayName": "HowNOT2",
+      "channelId": "@HowNOT2",
+      "type": "climbing",
+      "featuredThreshold": 25000
+    },
+    {
+      "url": "https://www.youtube.com/@magmidt",
+      "name": "magmidt",
+      "displayName": "Magnus Midtbø",
+      "channelId": "@magmidt",
+      "type": "climbing",
+      "featuredThreshold": 100000
+    },
+    {
+      "url": "https://www.youtube.com/@Jonathan_sin88",
+      "name": "jonathan_sin88",
+      "displayName": "Jonathan Sin",
+      "channelId": "@Jonathan_sin88",
+      "type": "climbing",
+      "featuredThreshold": 10000
+    },
+    {
+      "url": "https://www.youtube.com/@tamyclimbingchannel800",
+      "name": "tamyclimbing",
+      "displayName": "Tamy Climbing",
+      "channelId": "@tamyclimbingchannel800",
+      "type": "climbing",
+      "featuredThreshold": 15000
     }
   ]
 }

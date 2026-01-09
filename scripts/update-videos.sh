@@ -106,27 +106,16 @@ main() {
     # 如果至少有一個頻道成功，進行合併
     if [ $successful -gt 0 ]; then
         echo ""
-        echo "🔄 合併所有頻道資料到 videos.ts..."
-        
+        echo "🔄 合併所有頻道資料..."
+
         if node scripts/merge-video-sources.js; then
             echo ""
             echo "🎉 影片資料庫更新完成！"
             echo ""
             echo "📂 檔案位置: public/data/videos.json"
             echo "📊 包含 $successful 個頻道的所有影片資料"
-            
-            # 詢問是否清理個別頻道檔案
-            echo ""
-            read -p "🗑️  是否刪除個別頻道檔案以節省空間？ (y/N): " -n 1 -r
-            echo
-            if [[ $REPLY =~ ^[Yy]$ ]]; then
-                echo "🧹 清理個別頻道檔案..."
-                rm -f src/lib/constants/*_videos.json
-                echo "✅ 清理完成，僅保留統一的 videos.json"
-            else
-                echo "💾 保留所有檔案"
-            fi
-            
+            echo "📝 個別頻道檔案已自動清理"
+
         else
             echo "❌ 合併失敗"
             exit 1

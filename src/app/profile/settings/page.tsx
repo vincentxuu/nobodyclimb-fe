@@ -1,8 +1,7 @@
 'use client'
 
-import React, { useState, useEffect } from 'react'
+import React, { useState } from 'react'
 import ProfilePageLayout from '@/components/profile/layout/ProfilePageLayout'
-import { motion } from 'framer-motion'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
@@ -13,6 +12,8 @@ import {
   DEFAULT_AVATARS,
 } from '@/components/shared/avatar-options'
 import { cn } from '@/lib/utils'
+import { useIsMobile } from '@/lib/hooks/useIsMobile'
+import { useToast } from '@/components/ui/use-toast'
 
 // 初始資料
 const initialUserData = {
@@ -38,22 +39,9 @@ export default function SettingsPage() {
   const [avatar, setAvatar] = useState<File | null>(null)
   const [avatarPreview, setAvatarPreview] = useState<string | null>(null)
   const [useDefaultAvatar, setUseDefaultAvatar] = useState(!avatar)
-  const [isMobile, setIsMobile] = useState(false)
   const [activeTab, setActiveTab] = useState<string>('profile')
-
-  // 檢測是否為手機版
-  useEffect(() => {
-    const checkIfMobile = () => {
-      setIsMobile(window.innerWidth < 768)
-    }
-
-    checkIfMobile()
-
-    window.addEventListener('resize', checkIfMobile)
-    return () => {
-      window.removeEventListener('resize', checkIfMobile)
-    }
-  }, [])
+  const isMobile = useIsMobile()
+  const { toast } = useToast()
 
   // 處理表單變更
   const handleChange = (field: string, value: string) => {
@@ -97,25 +85,91 @@ export default function SettingsPage() {
     setUseDefaultAvatar(true)
   }
 
+  // 驗證電子郵件格式
+  const isValidEmail = (email: string) => {
+    return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)
+  }
+
   // 儲存基本資料
   const handleSaveProfile = () => {
+    // 驗證顯示名稱
+    if (!userData.displayName.trim()) {
+      toast({
+        title: '請輸入顯示名稱',
+        description: '顯示名稱不能為空',
+        variant: 'destructive',
+      })
+      return
+    }
+
+    // 驗證使用者名稱
+    if (!userData.username.trim()) {
+      toast({
+        title: '請輸入使用者名稱',
+        description: '使用者名稱不能為空',
+        variant: 'destructive',
+      })
+      return
+    }
+
+    // 驗證電子郵件格式
+    if (!isValidEmail(userData.email)) {
+      toast({
+        title: '電子郵件格式錯誤',
+        description: '請輸入有效的電子郵件地址',
+        variant: 'destructive',
+      })
+      return
+    }
+
     // 在這裡實現 API 呼叫來保存資料
     console.log('儲存個人資料:', userData)
 
-    // 使用 alert 代替 toast
-    alert('個人資料已更新')
+    toast({
+      title: '儲存成功',
+      description: '個人資料已更新',
+    })
   }
 
   // 更改密碼
   const handleChangePassword = () => {
-    // 簡易驗證
-    if (userData.newPassword !== userData.confirmNewPassword) {
-      alert('密碼不一致：新密碼與確認密碼不一致，請重新輸入')
+    // 驗證目前密碼
+    if (!userData.currentPassword) {
+      toast({
+        title: '請輸入目前密碼',
+        description: '請先輸入您目前的密碼以進行驗證',
+        variant: 'destructive',
+      })
       return
     }
 
+    // 驗證新密碼
+    if (!userData.newPassword) {
+      toast({
+        title: '請輸入新密碼',
+        description: '新密碼不能為空',
+        variant: 'destructive',
+      })
+      return
+    }
+
+    // 驗證密碼一致性
+    if (userData.newPassword !== userData.confirmNewPassword) {
+      toast({
+        title: '密碼不一致',
+        description: '新密碼與確認密碼不一致，請重新輸入',
+        variant: 'destructive',
+      })
+      return
+    }
+
+    // 驗證密碼長度
     if (userData.newPassword.length < 8) {
-      alert('密碼太短：新密碼長度至少為 8 個字元')
+      toast({
+        title: '密碼太短',
+        description: '新密碼長度至少為 8 個字元',
+        variant: 'destructive',
+      })
       return
     }
 
@@ -133,7 +187,10 @@ export default function SettingsPage() {
       confirmNewPassword: '',
     })
 
-    alert('密碼已更新')
+    toast({
+      title: '更新成功',
+      description: '密碼已成功更新',
+    })
   }
 
   // 頭像上傳區元件

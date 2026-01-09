@@ -36,3 +36,10 @@ pnpm-debug.log*
 next-env.d.ts
 
 .wrangler
+
+# scripts data
+scripts/data/*.json
+temp/
+
+# public data - ignore individual channel files, keep merged videos.json
+public/data/*_videos.json

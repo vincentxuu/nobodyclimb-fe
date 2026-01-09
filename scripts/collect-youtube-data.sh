@@ -85,12 +85,16 @@ if [ ! -f "$CONVERT_SCRIPT" ]; then
     exit 1
 fi
 
-JSON_FILE="${OUTPUT_NAME}_videos.json"
-OUTPUT_FILE="src/lib/constants/${OUTPUT_NAME}_videos.json"
+DATA_DIR="scripts/data"
+PUBLIC_DATA_DIR="public/data"
+JSON_FILE="$DATA_DIR/${OUTPUT_NAME}_videos.json"
+OUTPUT_FILE="$PUBLIC_DATA_DIR/${OUTPUT_NAME}_videos.json"
 TEMP_DIR="temp"
 
-# 創建暫存目錄
+# 創建暫存目錄和資料目錄
 mkdir -p "$TEMP_DIR"
+mkdir -p "$DATA_DIR"
+mkdir -p "$PUBLIC_DATA_DIR"
 
 echo ""
 echo "📥 步驟 1: 收集影片資料..."
@@ -130,8 +134,9 @@ fi
 
 echo ""
 echo "🧹 步驟 3: 清理暫存檔案..."
-# 將 JSON 檔案移到根目錄作為備份
-mv "$TEMP_DIR/$JSON_FILE" "$JSON_FILE"
+# 將 JSON 檔案移到 scripts/data 作為備份
+TEMP_JSON="$TEMP_DIR/${OUTPUT_NAME}_videos.json"
+mv "$TEMP_JSON" "$JSON_FILE"
 rmdir "$TEMP_DIR" 2>/dev/null || true
 
 echo ""
