@@ -2,7 +2,9 @@
   "name": "nobodyclimb-fe",
   "main": ".open-next/worker.js",
   "compatibility_date": "2025-01-01",
-  "compatibility_flags": ["nodejs_compat_v2"],
+  "compatibility_flags": [
+    "nodejs_compat_v2"
+  ],
   "account_id": "1ff43f0d4c3ad3bd98ce5ab767546a68",
   "kv_namespaces": [
     {
@@ -13,7 +15,19 @@
   "assets": {
     "directory": ".open-next/assets",
     "binding": "ASSETS",
-    "run_worker_first": true
+    "run_worker_first": [
+      "/_next/data/*",
+      "/api/*",
+      "/auth/*",
+      "/biography/*",
+      "/blog/*",
+      "/crag/*",
+      "/gym/*",
+      "/gallery/*",
+      "/profile/*",
+      "/search/*",
+      "/"
+    ]
   },
   "env": {
     "production": {
