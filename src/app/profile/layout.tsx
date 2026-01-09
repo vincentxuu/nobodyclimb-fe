@@ -31,7 +31,6 @@ export default function ProfileLayout({ children }: { children: React.ReactNode 
   const { isAuthenticated, isLoading } = useAuth()
   const router = useRouter()
   const pathname = usePathname()
-  const [isMobile, setIsMobile] = useState(false)
   const [isPageChanging, setIsPageChanging] = useState(false)
 
   // 設置頁面轉換狀態的函數
@@ -50,23 +49,6 @@ export default function ProfileLayout({ children }: { children: React.ReactNode 
     // 但當 pathname 變化時，此 effect 會觸發
     handleRouteChange()
   }, [pathname, handleRouteChange])
-
-  // 檢測視窗寬度
-  useEffect(() => {
-    const checkIfMobile = () => {
-      setIsMobile(window.innerWidth < 768)
-    }
-
-    // 立即檢查一次
-    checkIfMobile()
-
-    // 監聽視窗大小變化
-    window.addEventListener('resize', checkIfMobile)
-
-    return () => {
-      window.removeEventListener('resize', checkIfMobile)
-    }
-  }, [])
 
   // 檢查使用者是否已登入
   useEffect(() => {
