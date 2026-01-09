@@ -1,12 +1,13 @@
 'use client'
 
-import React, { useState, useEffect } from 'react'
-import { motion } from 'framer-motion'
+import React from 'react'
 import { Button } from '@/components/ui/button'
 import Image from 'next/image'
 import Link from 'next/link'
 import { Bookmark } from 'lucide-react'
 import ProfilePageLayout from '@/components/profile/layout/ProfilePageLayout'
+import { useIsMobile } from '@/lib/hooks/useIsMobile'
+import { useToast } from '@/components/ui/use-toast'
 
 // 暫時性的假資料
 const bookmarksMock = [
@@ -131,27 +132,17 @@ const EmptyState = () => (
 )
 
 export default function BookmarksPage() {
-  const [isMobile, setIsMobile] = useState(false)
-
-  // 檢測是否為手機版
-  useEffect(() => {
-    const checkIfMobile = () => {
-      setIsMobile(window.innerWidth < 768)
-    }
-
-    checkIfMobile()
-
-    window.addEventListener('resize', checkIfMobile)
-    return () => {
-      window.removeEventListener('resize', checkIfMobile)
-    }
-  }, [])
+  const isMobile = useIsMobile()
+  const { toast } = useToast()
 
   // 處理移除收藏
   const handleRemoveBookmark = (id: number) => {
     console.log(`移除收藏: ${id}`)
     // 在實際應用中，這裡會發送API請求來移除收藏
-    alert(`已移除文章 #${id} 的收藏`)
+    toast({
+      title: '已移除收藏',
+      description: '文章已從收藏列表中移除',
+    })
   }
 
   return (

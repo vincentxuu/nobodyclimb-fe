@@ -1,7 +1,7 @@
 'use client'
 
-import React, { useState, useEffect } from 'react'
-import { motion, AnimatePresence } from 'framer-motion'
+import React from 'react'
+import { motion } from 'framer-motion'
 import ProfilePageHeader from './ProfilePageHeader'
 import ProfileDivider from './ProfileDivider'
 import BasicInfoSection from './BasicInfoSection'
@@ -10,25 +10,14 @@ import ClimbingExperienceSection from './ClimbingExperienceSection'
 import PublicSettingSection from './PublicSettingSection'
 import ProfileActionButtons from './ProfileActionButtons'
 import { useProfile } from './ProfileContext'
+import { useIsMobile } from '@/lib/hooks/useIsMobile'
+import { useToast } from '@/components/ui/use-toast'
 
 export default function ProfileContainer() {
   const { profileData, setProfileData, isEditing, setIsEditing } = useProfile()
   const originalData = { ...profileData } // Store the original profile data
-  const [isMobile, setIsMobile] = useState(false)
-
-  // 檢測是否為手機版
-  useEffect(() => {
-    const checkIfMobile = () => {
-      setIsMobile(window.innerWidth < 768)
-    }
-
-    checkIfMobile()
-
-    window.addEventListener('resize', checkIfMobile)
-    return () => {
-      window.removeEventListener('resize', checkIfMobile)
-    }
-  }, [])
+  const isMobile = useIsMobile()
+  const { toast } = useToast()
 
   // 處理表單變更
   const handleChange = (field: string, value: string | boolean) => {
@@ -44,8 +33,10 @@ export default function ProfileContainer() {
     console.log('儲存資料:', profileData)
     setIsEditing(false)
 
-    // 使用 alert 代替 toast
-    alert('資料儲存成功')
+    toast({
+      title: '儲存成功',
+      description: '您的個人資料已成功更新',
+    })
   }
 
   return (
