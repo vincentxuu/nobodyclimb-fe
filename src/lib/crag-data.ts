@@ -4,6 +4,10 @@
  */
 
 import longdongData from '@/data/crags/longdong.json'
+import defulanData from '@/data/crags/defulan.json'
+import guanzilingData from '@/data/crags/guanziling.json'
+import shoushanData from '@/data/crags/shoushan.json'
+import kentingData from '@/data/crags/kenting.json'
 
 // ============ 類型定義 ============
 
@@ -145,8 +149,12 @@ export interface CragFullData {
 // 所有已載入的岩場資料
 const cragsDataMap: Map<string, CragFullData> = new Map()
 
-// 初始化時載入龍洞資料
+// 初始化時載入所有岩場資料
 cragsDataMap.set('longdong', longdongData as CragFullData)
+cragsDataMap.set('defulan', defulanData as CragFullData)
+cragsDataMap.set('guanziling', guanzilingData as CragFullData)
+cragsDataMap.set('shoushan', shoushanData as CragFullData)
+cragsDataMap.set('kenting', kentingData as CragFullData)
 
 // ============ 列表頁用的簡化資料格式 ============
 
@@ -184,55 +192,7 @@ export function getAllCrags(): CragListItem[] {
     })
   })
 
-  // 添加其他尚未有完整 JSON 資料的岩場（依據規劃文件）
-  const additionalCrags: CragListItem[] = [
-    {
-      id: 'defulan',
-      name: '德芙蘭',
-      nameEn: 'Defulan',
-      image: '/images/crag/defulan.jpg',
-      location: '台中市和平區',
-      type: '石灰岩岩場',
-      routes: 80,
-      difficulty: '5.8 - 5.13b',
-      seasons: ['秋', '冬', '春'],
-    },
-    {
-      id: 'guanziling',
-      name: '關子嶺',
-      nameEn: 'Guanziling',
-      image: '/images/crag/guanziling.jpg',
-      location: '台南市白河區',
-      type: '砂岩岩場',
-      routes: 60,
-      difficulty: '5.7 - 5.12a',
-      seasons: ['秋', '冬'],
-    },
-    {
-      id: 'shoushan',
-      name: '壽山',
-      nameEn: 'Shoushan',
-      image: '/images/crag/shoushan.jpg',
-      location: '高雄市鼓山區',
-      type: '石灰岩岩場',
-      routes: 150,
-      difficulty: '5.6 - 5.13a',
-      seasons: ['秋', '冬', '春'],
-    },
-    {
-      id: 'kenting',
-      name: '墾丁',
-      nameEn: 'Kenting',
-      image: '/images/crag/kenting.jpg',
-      location: '屏東縣恆春鎮',
-      type: '珊瑚礁石灰岩',
-      routes: 100,
-      difficulty: '5.7 - 5.12c',
-      seasons: ['秋', '冬', '春'],
-    },
-  ]
-
-  return [...crags, ...additionalCrags]
+  return crags
 }
 
 /**

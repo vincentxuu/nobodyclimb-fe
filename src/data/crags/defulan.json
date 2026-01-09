@@ -1,0 +1,188 @@
+{
+  "crag": {
+    "id": "defulan",
+    "slug": "defulan",
+    "name": "德芙蘭",
+    "nameEn": "Defulan",
+    "location": {
+      "address": "台中市和平區",
+      "addressEn": "Heping District, Taichung City",
+      "region": "中部",
+      "regionEn": "Central Taiwan",
+      "latitude": 24.2833,
+      "longitude": 121.0167
+    },
+    "description": "德芙蘭岩場位於台中和平區，是台灣中部最重要的石灰岩攀岩場地之一。岩場擁有約80條路線，以高品質的石灰岩和多樣化的攀登路線聞名。這裡的岩壁提供了從初學者到高級攀岩者的各種挑戰，特別適合喜歡技術性攀登的攀岩者。",
+    "descriptionEn": "Defulan is located in Heping District, Taichung City, and is one of the most important limestone climbing areas in central Taiwan. The crag features approximately 80 routes, known for high-quality limestone and diverse climbing options. The walls offer challenges for climbers from beginners to advanced levels, particularly suitable for those who enjoy technical climbing.",
+    "videoUrl": "",
+    "images": [
+      "/images/crag/defulan-1.jpg",
+      "/images/crag/defulan-2.jpg",
+      "/images/crag/defulan-3.jpg",
+      "/images/crag/defulan-4.jpg"
+    ],
+    "type": "sport",
+    "rockType": "石灰岩",
+    "rockTypeEn": "Limestone",
+    "routesCount": 80,
+    "difficulty": {
+      "min": "5.8",
+      "max": "5.13b"
+    },
+    "height": {
+      "min": 10,
+      "max": 35,
+      "unit": "m"
+    },
+    "seasons": ["秋", "冬", "春"],
+    "seasonsEn": ["Autumn", "Winter", "Spring"],
+    "access": {
+      "approach": "20-30分鐘徒步",
+      "approachEn": "20-30 minutes hiking",
+      "parking": "路邊停車，空間有限",
+      "parkingEn": "Roadside parking, limited space",
+      "transportation": [
+        {
+          "type": "開車",
+          "description": "從台中市區沿台8線往谷關方向，約1.5小時車程",
+          "descriptionEn": "From Taichung city center, take Provincial Highway 8 towards Guguan, about 1.5 hours drive"
+        },
+        {
+          "type": "公車",
+          "description": "搭乘豐原客運往谷關方向，在德芙蘭站下車",
+          "descriptionEn": "Take Fengyuan Bus towards Guguan, get off at Defulan stop"
+        }
+      ]
+    },
+    "amenities": ["停車場", "溪流", "附近溫泉"],
+    "amenitiesEn": ["Parking", "Stream", "Nearby hot springs"],
+    "featured": true,
+    "rating": 4.5,
+    "status": "published",
+    "createdAt": "2024-01-01T00:00:00Z",
+    "updatedAt": "2025-01-09T00:00:00Z"
+  },
+  "areas": [
+    {
+      "id": "main-wall",
+      "name": "主岩壁",
+      "nameEn": "Main Wall",
+      "description": "德芙蘭最主要的攀登區域，擁有多條經典路線。",
+      "descriptionEn": "The main climbing area of Defulan with many classic routes.",
+      "difficulty": { "min": "5.9", "max": "5.13a" },
+      "image": "/images/crag/defulan-main-wall.jpg",
+      "boltCount": 120,
+      "routesCount": 35
+    },
+    {
+      "id": "beginner-wall",
+      "name": "初學者區",
+      "nameEn": "Beginner Wall",
+      "description": "適合新手練習的區域，路線較為簡單。",
+      "descriptionEn": "An area suitable for beginners with easier routes.",
+      "difficulty": { "min": "5.8", "max": "5.10d" },
+      "image": "/images/crag/defulan-beginner-wall.jpg",
+      "boltCount": 80,
+      "routesCount": 25
+    },
+    {
+      "id": "upper-sector",
+      "name": "上層區",
+      "nameEn": "Upper Sector",
+      "description": "位於較高處的攀登區，視野極佳。",
+      "descriptionEn": "Located at a higher elevation with excellent views.",
+      "difficulty": { "min": "5.10a", "max": "5.13b" },
+      "image": "/images/crag/defulan-upper-sector.jpg",
+      "boltCount": 60,
+      "routesCount": 20
+    }
+  ],
+  "routes": [
+    {
+      "id": "DF001",
+      "areaId": "main-wall",
+      "name": "石灰岩之舞",
+      "nameEn": "Limestone Dance",
+      "grade": "5.11a",
+      "type": "sport",
+      "typeEn": "Sport Climbing",
+      "length": "25m",
+      "description": "德芙蘭經典路線，手感極佳的石灰岩攀登體驗。",
+      "protection": "固定保護點，共12個Bolt",
+      "safetyRating": "●●●",
+      "boltCount": 12,
+      "status": "published"
+    },
+    {
+      "id": "DF002",
+      "areaId": "main-wall",
+      "name": "溪谷微風",
+      "nameEn": "Valley Breeze",
+      "grade": "5.10c",
+      "type": "sport",
+      "typeEn": "Sport Climbing",
+      "length": "20m",
+      "description": "技術性路線，需要良好的腳法。",
+      "protection": "固定保護點，共10個Bolt",
+      "safetyRating": "●●●",
+      "boltCount": 10,
+      "status": "published"
+    },
+    {
+      "id": "DF003",
+      "areaId": "beginner-wall",
+      "name": "初心者",
+      "nameEn": "Beginner's Mind",
+      "grade": "5.8",
+      "type": "sport",
+      "typeEn": "Sport Climbing",
+      "length": "15m",
+      "description": "適合初學者的經典入門路線。",
+      "protection": "固定保護點，共8個Bolt",
+      "safetyRating": "●●●",
+      "boltCount": 8,
+      "status": "published"
+    },
+    {
+      "id": "DF004",
+      "areaId": "upper-sector",
+      "name": "雲端漫步",
+      "nameEn": "Walking on Clouds",
+      "grade": "5.12b",
+      "type": "sport",
+      "typeEn": "Sport Climbing",
+      "length": "30m",
+      "description": "高處的挑戰路線，需要良好的耐力。",
+      "protection": "固定保護點，共15個Bolt",
+      "safetyRating": "●●●",
+      "boltCount": 15,
+      "status": "published"
+    }
+  ],
+  "statistics": {
+    "totalRoutes": 80,
+    "totalBolts": 260,
+    "routesByType": {
+      "sport": 70,
+      "trad": 8,
+      "toprope": 2
+    },
+    "routesByGrade": {
+      "5.8-5.9": 15,
+      "5.10a-5.10d": 30,
+      "5.11a-5.11d": 20,
+      "5.12a-5.12d": 12,
+      "5.13a-5.13b": 3
+    },
+    "boltsByMaterial": {
+      "316-TW": 200,
+      "Ti-ETN": 60
+    }
+  },
+  "metadata": {
+    "version": "1.0.0",
+    "source": "德芙蘭岩場資料庫",
+    "lastUpdated": "2025-01-09",
+    "maintainer": "NobodyClimb Team"
+  }
+}

@@ -1,0 +1,213 @@
+{
+  "crag": {
+    "id": "kenting",
+    "slug": "kenting",
+    "name": "墾丁",
+    "nameEn": "Kenting",
+    "location": {
+      "address": "屏東縣恆春鎮",
+      "addressEn": "Hengchun Township, Pingtung County",
+      "region": "南部",
+      "regionEn": "Southern Taiwan",
+      "latitude": 21.9500,
+      "longitude": 120.8000
+    },
+    "description": "墾丁岩場位於屏東縣恆春鎮，是台灣最南端的攀岩場地。岩場以珊瑚礁石灰岩為主，擁有約100條路線。這裡的岩質獨特，手點多為珊瑚礁特有的鏤空結構，提供了獨特的攀登體驗。結合墾丁的熱帶風情和海濱景色，是攀岩度假的絕佳選擇。",
+    "descriptionEn": "Kenting is located in Hengchun Township, Pingtung County, and is Taiwan's southernmost climbing area. The crag features coral reef limestone with approximately 100 routes. The unique rock quality offers distinctive hollow coral reef handholds, providing a unique climbing experience. Combined with Kenting's tropical atmosphere and coastal scenery, it is an excellent choice for a climbing vacation.",
+    "videoUrl": "",
+    "images": [
+      "/images/crag/kenting-1.jpg",
+      "/images/crag/kenting-2.jpg",
+      "/images/crag/kenting-3.jpg",
+      "/images/crag/kenting-4.jpg"
+    ],
+    "type": "sport",
+    "rockType": "珊瑚礁石灰岩",
+    "rockTypeEn": "Coral Reef Limestone",
+    "routesCount": 100,
+    "difficulty": {
+      "min": "5.7",
+      "max": "5.12c"
+    },
+    "height": {
+      "min": 8,
+      "max": 25,
+      "unit": "m"
+    },
+    "seasons": ["秋", "冬", "春"],
+    "seasonsEn": ["Autumn", "Winter", "Spring"],
+    "access": {
+      "approach": "5-15分鐘徒步",
+      "approachEn": "5-15 minutes hiking",
+      "parking": "路邊停車或附近民宿停車場",
+      "parkingEn": "Roadside parking or nearby guesthouse parking",
+      "transportation": [
+        {
+          "type": "開車",
+          "description": "從高雄市區沿國道3號南下，接台26線往墾丁方向，約2小時車程",
+          "descriptionEn": "From Kaohsiung city, take Freeway 3 south, connect to Provincial Highway 26 towards Kenting, about 2 hours drive"
+        },
+        {
+          "type": "客運",
+          "description": "搭乘墾丁快線從高雄左營站出發，約2小時車程",
+          "descriptionEn": "Take Kenting Express from Kaohsiung Zuoying Station, about 2 hours"
+        }
+      ]
+    },
+    "amenities": ["海灘", "餐廳", "民宿", "便利商店", "衝浪", "浮潛"],
+    "amenitiesEn": ["Beach", "Restaurants", "Guesthouses", "Convenience stores", "Surfing", "Snorkeling"],
+    "featured": true,
+    "rating": 4.4,
+    "status": "published",
+    "createdAt": "2024-01-01T00:00:00Z",
+    "updatedAt": "2025-01-09T00:00:00Z"
+  },
+  "areas": [
+    {
+      "id": "coral-wall",
+      "name": "珊瑚牆",
+      "nameEn": "Coral Wall",
+      "description": "墾丁最具特色的區域，擁有獨特的珊瑚礁岩壁。",
+      "descriptionEn": "The most distinctive area in Kenting with unique coral reef walls.",
+      "difficulty": { "min": "5.8", "max": "5.12a" },
+      "image": "/images/crag/kenting-coral-wall.jpg",
+      "boltCount": 100,
+      "routesCount": 35
+    },
+    {
+      "id": "ocean-view",
+      "name": "海景區",
+      "nameEn": "Ocean View",
+      "description": "可以欣賞太平洋海景的攀登區域。",
+      "descriptionEn": "Climbing area with views of the Pacific Ocean.",
+      "difficulty": { "min": "5.9", "max": "5.12c" },
+      "image": "/images/crag/kenting-ocean-view.jpg",
+      "boltCount": 80,
+      "routesCount": 30
+    },
+    {
+      "id": "tropical-sector",
+      "name": "熱帶區",
+      "nameEn": "Tropical Sector",
+      "description": "被熱帶植物環繞的攀登區域。",
+      "descriptionEn": "Climbing area surrounded by tropical plants.",
+      "difficulty": { "min": "5.7", "max": "5.11d" },
+      "image": "/images/crag/kenting-tropical-sector.jpg",
+      "boltCount": 70,
+      "routesCount": 25
+    },
+    {
+      "id": "sunset-cliff",
+      "name": "夕陽崖",
+      "nameEn": "Sunset Cliff",
+      "description": "面向西方的岩壁，可欣賞壯觀的日落。",
+      "descriptionEn": "West-facing cliff with spectacular sunset views.",
+      "difficulty": { "min": "5.10a", "max": "5.12b" },
+      "image": "/images/crag/kenting-sunset-cliff.jpg",
+      "boltCount": 50,
+      "routesCount": 10
+    }
+  ],
+  "routes": [
+    {
+      "id": "KT001",
+      "areaId": "coral-wall",
+      "name": "珊瑚之夢",
+      "nameEn": "Coral Dream",
+      "grade": "5.10c",
+      "type": "sport",
+      "typeEn": "Sport Climbing",
+      "length": "18m",
+      "description": "墾丁經典路線，體驗獨特的珊瑚礁攀登。",
+      "protection": "固定保護點，共10個Bolt",
+      "safetyRating": "●●●",
+      "boltCount": 10,
+      "status": "published"
+    },
+    {
+      "id": "KT002",
+      "areaId": "coral-wall",
+      "name": "海洋之心",
+      "nameEn": "Heart of the Ocean",
+      "grade": "5.11a",
+      "type": "sport",
+      "typeEn": "Sport Climbing",
+      "length": "20m",
+      "description": "技術性路線，需要精準的手指力量。",
+      "protection": "固定保護點，共11個Bolt",
+      "safetyRating": "●●●",
+      "boltCount": 11,
+      "status": "published"
+    },
+    {
+      "id": "KT003",
+      "areaId": "ocean-view",
+      "name": "太平洋風",
+      "nameEn": "Pacific Wind",
+      "grade": "5.12a",
+      "type": "sport",
+      "typeEn": "Sport Climbing",
+      "length": "22m",
+      "description": "挑戰性路線，可欣賞壯觀海景。",
+      "protection": "固定保護點，共12個Bolt",
+      "safetyRating": "●●●",
+      "boltCount": 12,
+      "status": "published"
+    },
+    {
+      "id": "KT004",
+      "areaId": "tropical-sector",
+      "name": "椰子樹下",
+      "nameEn": "Under the Palms",
+      "grade": "5.9",
+      "type": "sport",
+      "typeEn": "Sport Climbing",
+      "length": "15m",
+      "description": "輕鬆愉快的熱帶風情路線。",
+      "protection": "固定保護點，共8個Bolt",
+      "safetyRating": "●●●",
+      "boltCount": 8,
+      "status": "published"
+    },
+    {
+      "id": "KT005",
+      "areaId": "sunset-cliff",
+      "name": "夕陽西下",
+      "nameEn": "Setting Sun",
+      "grade": "5.11c",
+      "type": "sport",
+      "typeEn": "Sport Climbing",
+      "length": "20m",
+      "description": "在夕陽中完成攀登的浪漫路線。",
+      "protection": "固定保護點，共11個Bolt",
+      "safetyRating": "●●●",
+      "boltCount": 11,
+      "status": "published"
+    }
+  ],
+  "statistics": {
+    "totalRoutes": 100,
+    "totalBolts": 300,
+    "routesByType": {
+      "sport": 95,
+      "trad": 3,
+      "toprope": 2
+    },
+    "routesByGrade": {
+      "5.7-5.9": 25,
+      "5.10a-5.10d": 35,
+      "5.11a-5.11d": 25,
+      "5.12a-5.12c": 15
+    },
+    "boltsByMaterial": {
+      "316-TW": 250,
+      "Ti-ETN": 50
+    }
+  },
+  "metadata": {
+    "version": "1.0.0",
+    "source": "墾丁岩場資料庫",
+    "lastUpdated": "2025-01-09",
+    "maintainer": "NobodyClimb Team"
+  }
+}
