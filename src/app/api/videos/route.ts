@@ -15,9 +15,9 @@ export async function GET(request: NextRequest) {
     const staticFileUrl = `${url.protocol}//${url.host}/data/videos.json`
 
     // Fetch 靜態檔案（適用於所有環境，包括 Workers）
+    // 注意：不使用 next.revalidate，因為它在 Cloudflare Workers 環境中不支持
     const response = await fetch(staticFileUrl, {
-      // 添加快取控制
-      next: { revalidate: 3600 } // 1小時重新驗證
+      cache: 'default'
     })
 
     if (!response.ok) {
