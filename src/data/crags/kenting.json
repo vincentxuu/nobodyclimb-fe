@@ -1,0 +1,320 @@
+{
+  "crag": {
+    "id": "kenting",
+    "slug": "kenting",
+    "name": "墾丁",
+    "nameEn": "Kenting",
+    "location": {
+      "address": "屏東縣恆春鎮船帆石",
+      "addressEn": "Sail Rock, Hengchun Township, Pingtung County",
+      "region": "南部",
+      "regionEn": "Southern Taiwan",
+      "latitude": 21.9301894,
+      "longitude": 120.8265521
+    },
+    "description": "墾丁岩場位於船帆石東北側的海岸林中，是台灣南部重要的運動攀登場地。岩場以珊瑚礁石灰岩為主，擁有94條路線。由於地點較為敏感，請保持低調。岩場內有多個攀登區域，從5.6到5.14a都有路線。最佳攀登季節為10月至隔年4月，夏天請選擇有風的日子前往。",
+    "descriptionEn": "Kenting climbing area is located in the coastal forest northeast of Sail Rock, an important sport climbing destination in southern Taiwan. The crag features coral reef limestone with 94 routes. Please keep a low profile due to the sensitive location. The crag has multiple climbing areas with routes ranging from 5.6 to 5.14a. Best climbing season is October to April. In summer, visit when it's windy.",
+    "videoUrl": "",
+    "images": [
+      "/images/crag/kenting-1.jpg",
+      "/images/crag/kenting-2.jpg",
+      "/images/crag/kenting-3.jpg",
+      "/images/crag/kenting-4.jpg"
+    ],
+    "type": "sport",
+    "rockType": "珊瑚礁石灰岩",
+    "rockTypeEn": "Coral Reef Limestone",
+    "routesCount": 94,
+    "difficulty": {
+      "min": "5.6",
+      "max": "5.14a"
+    },
+    "height": {
+      "min": 7,
+      "max": 21,
+      "unit": "m"
+    },
+    "seasons": ["秋", "冬", "春"],
+    "seasonsEn": ["Autumn", "Winter", "Spring"],
+    "access": {
+      "approach": "8-10分鐘徒步",
+      "approachEn": "8-10 minutes hiking",
+      "parking": "請勿將車輛直接停放於步道入口，需停在較遠處",
+      "parkingEn": "Do not park right in front of the trail entrance, park further away",
+      "transportation": [
+        {
+          "type": "高鐵+客運",
+          "description": "從高鐵左營站搭乘墾丁快線約2小時到小灣站，換乘9188號公車至船帆石站下車",
+          "descriptionEn": "Take Kenting Express from Zuoying HSR Station (2 hours) to Xiaowan, transfer to bus 9188 to Sail Rock"
+        },
+        {
+          "type": "開車",
+          "description": "從高雄市區沿國道3號南下，接台26線往墾丁方向，約2小時車程",
+          "descriptionEn": "From Kaohsiung city, take Freeway 3 south, connect to Provincial Highway 26 towards Kenting, about 2 hours drive"
+        }
+      ]
+    },
+    "amenities": ["7-11便利商店", "船帆石周邊民宿", "墾丁大街餐廳", "恆春鎮機能完善"],
+    "amenitiesEn": ["7-Eleven", "Guesthouses near Sail Rock", "Restaurants at Kenting Main Street", "Full amenities in Hengchun Town"],
+    "featured": true,
+    "rating": 4.5,
+    "status": "published",
+    "createdAt": "2024-01-01T00:00:00Z",
+    "updatedAt": "2025-01-09T00:00:00Z"
+  },
+  "areas": [
+    {
+      "id": "mysterious-forest",
+      "name": "神秘森林",
+      "nameEn": "Mysterious Forest",
+      "description": "入口走進這片生態豐富的神秘森林遇到的第一面牆，下午岩壁開始曬太陽，微外傾，小雨尚可攀爬。",
+      "descriptionEn": "The first wall you encounter when entering this ecologically rich forest. PM sun, slightly overhung, stays dry in light rain.",
+      "difficulty": { "min": "5.10b", "max": "5.11d" },
+      "image": "/images/crag/kenting-mysterious-forest.jpg",
+      "boltCount": 50,
+      "routesCount": 8
+    },
+    {
+      "id": "ancient-wall",
+      "name": "舊牆",
+      "nameEn": "Ancient Wall",
+      "description": "下午曬太陽，手點較銳利。一些龍洞岩場已知最古老的路線。",
+      "descriptionEn": "PM sun, holds are quite sharp. Some of the oldest routes at this crag.",
+      "difficulty": { "min": "5.9", "max": "5.10a" },
+      "image": "/images/crag/kenting-ancient-wall.jpg",
+      "boltCount": 30,
+      "routesCount": 7
+    },
+    {
+      "id": "sunshine-wall",
+      "name": "陽光牆",
+      "nameEn": "Sunshine Wall",
+      "description": "腹地最大最舒服的區域，北中南高手拼路線的熱門區域。岩壁午後曬太陽，微外傾，小雨也可攀爬。冬天吹落山風時風最大的區域。",
+      "descriptionEn": "The most spacious and comfortable area, popular gathering point for climbers. PM sun, slightly overhung, stays dry in light rain. Can be very windy during winter.",
+      "difficulty": { "min": "5.10a", "max": "5.14a" },
+      "image": "/images/crag/kenting-sunshine-wall.jpg",
+      "boltCount": 200,
+      "routesCount": 39
+    },
+    {
+      "id": "dragon-wall",
+      "name": "龍牆",
+      "nameEn": "Dragon Wall",
+      "description": "下午曬太陽，岩壁外傾，下雨也可攀爬，刮超強落山風或下雨時的避風港。各種級數都有，非常熱門的區域。",
+      "descriptionEn": "PM sun, overhung wall that stays dry in the rain. When it's very windy, this is the place to be. Very popular area.",
+      "difficulty": { "min": "5.6", "max": "5.14a" },
+      "image": "/images/crag/kenting-dragon-wall.jpg",
+      "boltCount": 100,
+      "routesCount": 28
+    },
+    {
+      "id": "dark-wall",
+      "name": "暗黑之牆",
+      "nameEn": "Dark Wall",
+      "description": "岩壁被樹林環抱，幾乎整天都有陰影，天氣炎熱時躲避太陽的好岩壁。岩壁外傾，下雨時也可攀爬。",
+      "descriptionEn": "Shady most of the day, sun filtered by trees. Overhung wall stays dry in the rain. Doesn't look nice, but there are some of the best climbs on this wall.",
+      "difficulty": { "min": "5.9", "max": "5.13a" },
+      "image": "/images/crag/kenting-dark-wall.jpg",
+      "boltCount": 50,
+      "routesCount": 12
+    }
+  ],
+  "routes": [
+    {
+      "id": "KT-MF-001",
+      "areaId": "mysterious-forest",
+      "name": "遺落海岸",
+      "nameEn": "Lost Coast",
+      "grade": "5.11a",
+      "type": "sport",
+      "typeEn": "Sport Climbing",
+      "length": "14m",
+      "firstAscent": "Ray",
+      "description": "前半段微外傾，大點大動作，到大裂隙之後路線偏簡單。",
+      "descriptionEn": "Juggy and reachy moves pull through the first session of the rock, then easy moves to the top.",
+      "protection": "5 bolts + anchor",
+      "boltCount": 5,
+      "popularity": 2,
+      "status": "published"
+    },
+    {
+      "id": "KT-MF-002",
+      "areaId": "mysterious-forest",
+      "name": "小精靈",
+      "nameEn": "Kodama",
+      "grade": "5.10b",
+      "type": "sport",
+      "typeEn": "Sport Climbing",
+      "length": "13m",
+      "firstAscent": "Sam",
+      "description": "熱身路線，第一個快扣前有一個小難關，之後全都是大點。",
+      "descriptionEn": "Nice warm up route. Just some tricky moves before the first bolt, then it's all jugs.",
+      "protection": "4 bolts + anchor",
+      "boltCount": 4,
+      "popularity": 2,
+      "status": "published"
+    },
+    {
+      "id": "KT-MF-003",
+      "areaId": "mysterious-forest",
+      "name": "山獸神",
+      "nameEn": "Forest Spirit",
+      "grade": "5.11d",
+      "type": "sport",
+      "typeEn": "Sport Climbing",
+      "length": "16m",
+      "firstAscent": "Sam",
+      "description": "神秘森林最棒且最熱門的路線，整條路線的單動都不難，難度平均且連續。",
+      "descriptionEn": "A great resistance route with nothing too hard, the most popular 5.11 at mystery forest. Pretty sustained, keep pumping and pulling to the top.",
+      "protection": "7 bolts + anchor",
+      "boltCount": 7,
+      "popularity": 3,
+      "status": "published"
+    },
+    {
+      "id": "KT-SW-001",
+      "areaId": "sunshine-wall",
+      "name": "閃電",
+      "nameEn": "Lightning",
+      "grade": "5.12a",
+      "type": "sport",
+      "typeEn": "Sport Climbing",
+      "length": "13m",
+      "firstAscent": "00",
+      "description": "陽光牆的經典路線之一，技巧的岩面攀登風格，非常熱門。難關的手順很重要。",
+      "descriptionEn": "5.12a testpiece. Another crag classic, very nice technical face climbing, don't mess up the sequence.",
+      "protection": "6 bolts + anchor",
+      "boltCount": 6,
+      "popularity": 3,
+      "status": "published"
+    },
+    {
+      "id": "KT-SW-002",
+      "areaId": "sunshine-wall",
+      "name": "望著大海",
+      "nameEn": "Staring at the Sea",
+      "grade": "5.12c",
+      "type": "sport",
+      "typeEn": "Sport Climbing",
+      "length": "16m",
+      "firstAscent": "Sam",
+      "description": "起攀後即是一個抱石難關，之後還有幾個小難關中間隔著好點，很獨特且有趣的路線。攀到頂後別忘了回頭望向大海。",
+      "descriptionEn": "Hard start then a couple of tricky moves split by good holds. Some of the holds are quite sharp. Make sure you stare at the sea when you get to the top.",
+      "protection": "7 bolts + anchor",
+      "boltCount": 7,
+      "popularity": 3,
+      "status": "published"
+    },
+    {
+      "id": "KT-SW-003",
+      "areaId": "sunshine-wall",
+      "name": "看起來我可以",
+      "nameEn": "Looks Like I Can Do It",
+      "grade": "5.11c",
+      "type": "sport",
+      "typeEn": "Sport Climbing",
+      "length": "17m",
+      "firstAscent": "Sam",
+      "description": "陽光牆的經典路線，看起來很簡單，但難關很嚇人。先鋒與跟攀感覺會差很多。",
+      "descriptionEn": "Another crag classic. Looks like an easy route, but the crux is actually pretty intimidating.",
+      "protection": "7 bolts + anchor",
+      "boltCount": 7,
+      "popularity": 3,
+      "status": "published"
+    },
+    {
+      "id": "KT-DW-001",
+      "areaId": "dragon-wall",
+      "name": "龍珠",
+      "nameEn": "Dragon Ball",
+      "grade": "5.12d",
+      "type": "sport",
+      "typeEn": "Sport Climbing",
+      "length": "11m",
+      "firstAscent": "Sam",
+      "description": "龍牆的經典路線，可能是龍牆最熱門的5.12。從右側的大Tufa起攀，到中段大平台約略是個v4-v5的抱石問題，好點稍作休息後緊接著下一個難關。",
+      "descriptionEn": "Crag classic. The start involves a v4-5 boulder problem, after a good rest climbing through another crux.",
+      "protection": "5 bolts + anchor",
+      "boltCount": 5,
+      "popularity": 3,
+      "status": "published"
+    },
+    {
+      "id": "KT-DW-002",
+      "areaId": "dragon-wall",
+      "name": "龍王",
+      "nameEn": "Dragon King",
+      "grade": "5.14a",
+      "type": "sport",
+      "typeEn": "Sport Climbing",
+      "length": "12m",
+      "firstAscent": "Sam",
+      "description": "龍王 aka「咚龍龍龍牆」。從飛龍起攀，向右橫渡攀爬困難的大外傾抱石難關，到大平台之後接龍珠上半段。可能是整面牆最難的路線。",
+      "descriptionEn": "Definitely the king line on dragon wall! Flying dragon join Dragon ball, hard moves one after another, requires a lot of body tension. From the ground to the jug feels like a v10/11 boulder problem.",
+      "protection": "6 bolts + anchor",
+      "boltCount": 6,
+      "popularity": 3,
+      "status": "published"
+    },
+    {
+      "id": "KT-DW-003",
+      "areaId": "dragon-wall",
+      "name": "哇沙米",
+      "nameEn": "Wasabi",
+      "grade": "5.12c",
+      "type": "sport",
+      "typeEn": "Sport Climbing",
+      "length": "10m",
+      "firstAscent": "Sam",
+      "description": "龍牆最棒的5.12之一，短路線，需要爆發力，有點辣、有點嗆。",
+      "descriptionEn": "One of the best routes at Dragon wall, short and powerful, a bit sharp a bit spicy.",
+      "protection": "3 bolts + anchor",
+      "boltCount": 3,
+      "popularity": 3,
+      "status": "published"
+    },
+    {
+      "id": "KT-DAR-001",
+      "areaId": "dark-wall",
+      "name": "暗黑能量",
+      "nameEn": "Dark Energy",
+      "grade": "5.12c",
+      "type": "sport",
+      "typeEn": "Sport Climbing",
+      "length": "12m",
+      "firstAscent": "Sam",
+      "description": "整個岩場最棒的5.12之一！建議使用掛繩竿掛第一個快扣。",
+      "descriptionEn": "One of the best 5.12 routes of the crag! Using a stick clip to clip the first bolt is recommended.",
+      "protection": "5 bolts + anchor",
+      "boltCount": 5,
+      "popularity": 3,
+      "status": "published"
+    }
+  ],
+  "statistics": {
+    "totalRoutes": 94,
+    "totalBolts": 430,
+    "routesByType": {
+      "sport": 90,
+      "trad": 4
+    },
+    "routesByGrade": {
+      "5.6-5.9": 14,
+      "5.10a-5.10d": 24,
+      "5.11a-5.11d": 24,
+      "5.12a-5.12d": 24,
+      "5.13a-5.13d": 6,
+      "5.14a": 2
+    },
+    "boltsByMaterial": {
+      "Stainless Steel": 390,
+      "Titanium": 40
+    }
+  },
+  "metadata": {
+    "version": "1.0.0",
+    "source": "Kenting Climbing Guide",
+    "lastUpdated": "2025-01-09",
+    "maintainer": "NobodyClimb Team"
+  }
+}

@@ -1,0 +1,311 @@
+{
+  "crag": {
+    "id": "defulan",
+    "slug": "defulan",
+    "name": "德芙蘭",
+    "nameEn": "Defulan",
+    "location": {
+      "address": "台中市和平區",
+      "addressEn": "Heping District, Taichung City",
+      "region": "中部",
+      "regionEn": "Central Taiwan",
+      "latitude": 24.2833,
+      "longitude": 121.0167
+    },
+    "description": "德芙蘭岩場位於台中和平區，是台灣中部重要的石灰岩攀岩場地。岩場擁有多個攀登區域，包含運動攀登和傳統攀登路線。這裡的岩壁提供了從5.6到5.12+的各種挑戰，有些區域岩質不穩定常有落石，攀登及確保時請戴岩盔。",
+    "descriptionEn": "Defulan is located in Heping District, Taichung City, and is an important limestone climbing area in central Taiwan. The crag features multiple climbing areas including sport and traditional routes. The walls offer challenges from 5.6 to 5.12+. Some areas have unstable rock with occasional rockfall - please wear a helmet when climbing and belaying.",
+    "videoUrl": "",
+    "images": [
+      "/images/crag/defulan-1.jpg",
+      "/images/crag/defulan-2.jpg",
+      "/images/crag/defulan-3.jpg",
+      "/images/crag/defulan-4.jpg"
+    ],
+    "type": "sport",
+    "rockType": "石灰岩",
+    "rockTypeEn": "Limestone",
+    "routesCount": 58,
+    "difficulty": {
+      "min": "5.6",
+      "max": "5.12b"
+    },
+    "height": {
+      "min": 6,
+      "max": 40,
+      "unit": "m"
+    },
+    "seasons": ["秋", "冬", "春"],
+    "seasonsEn": ["Autumn", "Winter", "Spring"],
+    "access": {
+      "approach": "15-30分鐘徒步",
+      "approachEn": "15-30 minutes hiking",
+      "parking": "路邊停車，空間有限",
+      "parkingEn": "Roadside parking, limited space",
+      "transportation": [
+        {
+          "type": "開車",
+          "description": "從台中市區沿台8線往谷關方向，約1.5小時車程",
+          "descriptionEn": "From Taichung city center, take Provincial Highway 8 towards Guguan, about 1.5 hours drive"
+        }
+      ]
+    },
+    "amenities": ["停車場", "溪流", "附近溫泉"],
+    "amenitiesEn": ["Parking", "Stream", "Nearby hot springs"],
+    "featured": true,
+    "rating": 4.3,
+    "status": "published",
+    "createdAt": "2024-01-01T00:00:00Z",
+    "updatedAt": "2025-01-09T00:00:00Z"
+  },
+  "areas": [
+    {
+      "id": "final-frontier",
+      "name": "終極邊境",
+      "nameEn": "Final Frontier",
+      "description": "德芙蘭重要的攀登區域，有運動攀登和傳統攀登路線。",
+      "descriptionEn": "An important climbing area at Defulan with both sport and traditional routes.",
+      "difficulty": { "min": "5.9", "max": "5.12b" },
+      "image": "/images/crag/defulan-final-frontier.jpg",
+      "boltCount": 40,
+      "routesCount": 8
+    },
+    {
+      "id": "frontier-left",
+      "name": "邊境(左)",
+      "nameEn": "Frontier Left",
+      "description": "路線中間的小平台有許多落葉以及小石頭，請保持溫柔的動作以免傷及下面的朋友，確保的夥伴也要隨時注意上方的狀況。建議配戴岩盔。",
+      "descriptionEn": "The small platform in the middle of the routes has many fallen leaves and small rocks. Please be gentle to avoid injuring belayers below. Helmet recommended.",
+      "difficulty": { "min": "5.8", "max": "5.12b" },
+      "image": "/images/crag/defulan-frontier-left.jpg",
+      "boltCount": 80,
+      "routesCount": 15
+    },
+    {
+      "id": "frontier-right",
+      "name": "邊境(右)",
+      "nameEn": "Frontier Right",
+      "description": "邊境右側區域，包含運動攀登和傳統攀登路線。",
+      "descriptionEn": "Right side of Frontier area with sport and traditional routes.",
+      "difficulty": { "min": "5.9", "max": "5.12b" },
+      "image": "/images/crag/defulan-frontier-right.jpg",
+      "boltCount": 40,
+      "routesCount": 8
+    },
+    {
+      "id": "loftier",
+      "name": "崇高之地",
+      "nameEn": "Loftier",
+      "description": "較高的攀登區域，有多條長路線，最長可達40米。",
+      "descriptionEn": "Higher climbing area with many long routes, up to 40 meters.",
+      "difficulty": { "min": "5.6", "max": "5.12a" },
+      "image": "/images/crag/defulan-loftier.jpg",
+      "boltCount": 100,
+      "routesCount": 15
+    },
+    {
+      "id": "racketeer",
+      "name": "金三角",
+      "nameEn": "Racketeer",
+      "description": "金三角區域，有多條傳統攀登和運動攀登路線。",
+      "descriptionEn": "Racketeer area with multiple trad and sport routes.",
+      "difficulty": { "min": "5.6", "max": "5.10b" },
+      "image": "/images/crag/defulan-racketeer.jpg",
+      "boltCount": 60,
+      "routesCount": 12
+    }
+  ],
+  "routes": [
+    {
+      "id": "DF-FF-001",
+      "areaId": "final-frontier",
+      "name": "健康長壽 繁榮昌盛",
+      "nameEn": "Live Long and Prosper",
+      "grade": "5.10d",
+      "type": "sport",
+      "typeEn": "Sport Climbing",
+      "length": "15m",
+      "firstAscent": "Andrew",
+      "protection": "5 bolts + tree anchor",
+      "boltCount": 5,
+      "status": "published"
+    },
+    {
+      "id": "DF-FF-002",
+      "areaId": "final-frontier",
+      "name": "迎向光明",
+      "nameEn": "See the Light",
+      "grade": "5.11b",
+      "type": "sport",
+      "typeEn": "Sport Climbing",
+      "length": "15m",
+      "firstAscent": "廷倫",
+      "description": "沿著斜裂隙往右上翻上平台，開始進入關卡，需要很穩定的腳部控制才能一次爬完。",
+      "protection": "6 bolts + anchor",
+      "boltCount": 6,
+      "status": "published"
+    },
+    {
+      "id": "DF-FF-003",
+      "areaId": "final-frontier",
+      "name": "小年夜圍爐",
+      "nameEn": "New Year's Eve Reunion",
+      "grade": "5.12b",
+      "type": "sport",
+      "typeEn": "Sport Climbing",
+      "length": "18m",
+      "firstAscent": "廷倫",
+      "description": "起攀有三個版本：左側斜裂隙，中間直上，或右側右手借花果山十三太保。倒數第四bolt處有個極困難的抱石問題，整條路線充滿驚喜。",
+      "protection": "6 bolts + anchor",
+      "boltCount": 6,
+      "status": "published"
+    },
+    {
+      "id": "DF-FL-001",
+      "areaId": "frontier-left",
+      "name": "鐵牛排",
+      "nameEn": "Iron Steak",
+      "grade": "5.8",
+      "type": "sport",
+      "typeEn": "Sport Climbing",
+      "length": "25m",
+      "firstAscent": "Kevin中杰",
+      "protection": "9 bolts + anchor",
+      "boltCount": 9,
+      "status": "published"
+    },
+    {
+      "id": "DF-FL-002",
+      "areaId": "frontier-left",
+      "name": "手槍皮特",
+      "nameEn": "Pistol Pete",
+      "grade": "5.11c",
+      "type": "sport",
+      "typeEn": "Sport Climbing",
+      "length": "25m",
+      "firstAscent": "Kevin Oram",
+      "protection": "11 bolts + anchor",
+      "boltCount": 11,
+      "status": "published"
+    },
+    {
+      "id": "DF-FL-003",
+      "areaId": "frontier-left",
+      "name": "傑克與魔豆",
+      "nameEn": "Jack and The Beanstalk",
+      "grade": "5.12b",
+      "type": "sport",
+      "typeEn": "Sport Climbing",
+      "length": "20m",
+      "firstAscent": "廷倫，閃電，力欣",
+      "protection": "8 bolts + anchor",
+      "boltCount": 8,
+      "status": "published"
+    },
+    {
+      "id": "DF-LO-001",
+      "areaId": "loftier",
+      "name": "圓圓吃烤鴨",
+      "nameEn": "Yuan Yuan Eats Roast Duck",
+      "grade": "5.10d",
+      "type": "sport",
+      "typeEn": "Sport Climbing",
+      "length": "40m",
+      "firstAscent": "廷倫",
+      "protection": "18 bolts + 2 anchors",
+      "boltCount": 18,
+      "status": "published"
+    },
+    {
+      "id": "DF-LO-002",
+      "areaId": "loftier",
+      "name": "灰色軌跡",
+      "nameEn": "Grey Locus",
+      "grade": "5.10c",
+      "type": "sport",
+      "typeEn": "Sport Climbing",
+      "length": "40m",
+      "firstAscent": "廷倫",
+      "protection": "17 bolts + anchor",
+      "boltCount": 17,
+      "status": "published"
+    },
+    {
+      "id": "DF-LO-003",
+      "areaId": "loftier",
+      "name": "月光纜車",
+      "nameEn": "Moonlight Gondola",
+      "grade": "5.11c",
+      "type": "sport",
+      "typeEn": "Sport Climbing",
+      "length": "28m",
+      "firstAscent": "廷倫",
+      "description": "從細小困難裂隙起攀，接上精彩的15米裂隙。",
+      "protection": "11 bolts + anchor",
+      "boltCount": 11,
+      "status": "published"
+    },
+    {
+      "id": "DF-RK-001",
+      "areaId": "racketeer",
+      "name": "黑娜",
+      "nameEn": "Heina",
+      "grade": "5.6",
+      "type": "sport",
+      "typeEn": "Sport Climbing",
+      "firstAscent": "Andra & Kevin中杰",
+      "protection": "8 bolts + anchor",
+      "boltCount": 8,
+      "status": "published"
+    },
+    {
+      "id": "DF-RK-002",
+      "areaId": "racketeer",
+      "name": "地下酒吧",
+      "nameEn": "Speakeasy",
+      "grade": "5.9",
+      "type": "sport",
+      "typeEn": "Sport Climbing",
+      "firstAscent": "Kevin中杰",
+      "protection": "10 bolts + anchor",
+      "boltCount": 10,
+      "status": "published"
+    },
+    {
+      "id": "DF-RK-003",
+      "areaId": "racketeer",
+      "name": "私釀",
+      "nameEn": "Bootlegger",
+      "grade": "5.10b",
+      "type": "sport",
+      "typeEn": "Sport Climbing",
+      "firstAscent": "Kevin中杰",
+      "protection": "9 bolts + anchor",
+      "boltCount": 9,
+      "status": "published"
+    }
+  ],
+  "statistics": {
+    "totalRoutes": 58,
+    "totalBolts": 320,
+    "routesByType": {
+      "sport": 48,
+      "trad": 10
+    },
+    "routesByGrade": {
+      "5.6-5.8": 10,
+      "5.9-5.10d": 25,
+      "5.11a-5.11d": 14,
+      "5.12a-5.12b": 9
+    },
+    "boltsByMaterial": {
+      "Stainless Steel": 280,
+      "Titanium": 40
+    }
+  },
+  "metadata": {
+    "version": "1.0.0",
+    "source": "德芙蘭路線資料",
+    "lastUpdated": "2025-01-09",
+    "maintainer": "NobodyClimb Team"
+  }
+}

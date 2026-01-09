@@ -1,0 +1,223 @@
+{
+  "crag": {
+    "id": "shoushan",
+    "slug": "shoushan",
+    "name": "壽山",
+    "nameEn": "Shoushan",
+    "location": {
+      "address": "高雄市鼓山區壽山",
+      "addressEn": "Shoushan, Gushan District, Kaohsiung City",
+      "region": "南部",
+      "regionEn": "Southern Taiwan",
+      "latitude": 22.6500,
+      "longitude": 120.2667
+    },
+    "description": "壽山岩場位於高雄市鼓山區，是台灣南部最大的天然攀岩場地之一。岩場以珊瑚礁石灰岩為主，擁有超過100條路線。這裡的岩質獨特，手點和腳點豐富，適合各種程度的攀岩者。由於靠近市區，交通便利，是高雄地區攀岩者的首選場地。壽山也是獼猴的棲息地，攀登時常可見到猴群活動。",
+    "descriptionEn": "Shoushan is located in Gushan District, Kaohsiung City, and is one of the largest natural climbing areas in southern Taiwan. The crag features coral reef limestone with over 100 routes. The unique rock quality offers abundant hand and footholds, suitable for climbers of all levels. Due to its proximity to the city and convenient transportation, it is the preferred climbing destination for Kaohsiung area climbers. Shoushan is also home to macaques, and you may encounter monkey troops while climbing.",
+    "videoUrl": "",
+    "images": [
+      "/images/crag/shoushan-1.jpg",
+      "/images/crag/shoushan-2.jpg",
+      "/images/crag/shoushan-3.jpg",
+      "/images/crag/shoushan-4.jpg"
+    ],
+    "type": "sport",
+    "rockType": "珊瑚礁石灰岩",
+    "rockTypeEn": "Coral Reef Limestone",
+    "routesCount": 100,
+    "difficulty": {
+      "min": "5.6",
+      "max": "5.13a"
+    },
+    "height": {
+      "min": 5,
+      "max": 25,
+      "unit": "m"
+    },
+    "seasons": ["秋", "冬", "春"],
+    "seasonsEn": ["Autumn", "Winter", "Spring"],
+    "access": {
+      "approach": "5-20分鐘徒步",
+      "approachEn": "5-20 minutes hiking",
+      "parking": "壽山動物園停車場或路邊停車",
+      "parkingEn": "Shoushan Zoo parking lot or roadside parking",
+      "transportation": [
+        {
+          "type": "捷運",
+          "description": "搭乘高雄捷運橘線至鹽埕埔站，轉乘公車56號至壽山",
+          "descriptionEn": "Take Kaohsiung MRT Orange Line to Yanchengpu Station, transfer to bus 56 to Shoushan"
+        },
+        {
+          "type": "公車",
+          "description": "搭乘公車56號至壽山動物園站下車",
+          "descriptionEn": "Take bus 56 to Shoushan Zoo stop"
+        },
+        {
+          "type": "開車",
+          "description": "從高雄市區沿鼓山路往壽山方向，約15分鐘車程",
+          "descriptionEn": "From Kaohsiung city center, follow Gushan Road towards Shoushan, about 15 minutes drive"
+        }
+      ]
+    },
+    "amenities": ["便利商店", "餐廳", "動物園", "公廁", "停車場"],
+    "amenitiesEn": ["Convenience stores", "Restaurants", "Zoo", "Public restrooms", "Parking"],
+    "featured": true,
+    "rating": 4.4,
+    "status": "published",
+    "createdAt": "2024-01-01T00:00:00Z",
+    "updatedAt": "2025-01-09T00:00:00Z"
+  },
+  "areas": [
+    {
+      "id": "monkey-rock",
+      "name": "猴岩",
+      "nameEn": "Monkey Rock",
+      "description": "壽山最熱門的區域之一，以獼猴命名，常有猴群出沒。",
+      "descriptionEn": "One of the most popular areas in Shoushan, named after the macaques that frequent the area.",
+      "difficulty": { "min": "5.7", "max": "5.12a" },
+      "image": "/images/crag/shoushan-monkey-rock.jpg",
+      "boltCount": 100,
+      "routesCount": 35
+    },
+    {
+      "id": "north-wall",
+      "name": "北壁",
+      "nameEn": "North Wall",
+      "description": "面向北方的岩壁，夏季較為涼爽，有多條高難度路線。",
+      "descriptionEn": "North-facing wall, cooler in summer, with several high-difficulty routes.",
+      "difficulty": { "min": "5.8", "max": "5.13a" },
+      "image": "/images/crag/shoushan-north-wall.jpg",
+      "boltCount": 80,
+      "routesCount": 25
+    },
+    {
+      "id": "beginner-area",
+      "name": "新手區",
+      "nameEn": "Beginner Area",
+      "description": "適合新手練習的區域，路線較為簡單且易於到達。",
+      "descriptionEn": "Area suitable for beginners with easier and accessible routes.",
+      "difficulty": { "min": "5.6", "max": "5.10a" },
+      "image": "/images/crag/shoushan-beginner-area.jpg",
+      "boltCount": 60,
+      "routesCount": 25
+    },
+    {
+      "id": "sunset-sector",
+      "name": "夕陽區",
+      "nameEn": "Sunset Sector",
+      "description": "可以欣賞高雄港夕陽的攀登區域，景色優美。",
+      "descriptionEn": "Climbing area with views of Kaohsiung Harbor sunset, beautiful scenery.",
+      "difficulty": { "min": "5.9", "max": "5.12b" },
+      "image": "/images/crag/shoushan-sunset-sector.jpg",
+      "boltCount": 60,
+      "routesCount": 15
+    }
+  ],
+  "routes": [
+    {
+      "id": "SS-MR-001",
+      "areaId": "monkey-rock",
+      "name": "猴王",
+      "nameEn": "Monkey King",
+      "grade": "5.11a",
+      "type": "sport",
+      "typeEn": "Sport Climbing",
+      "length": "18m",
+      "description": "壽山經典路線，技術性攀登，需要良好的腳法。",
+      "descriptionEn": "Classic Shoushan route, technical climbing requiring good footwork.",
+      "protection": "10 bolts + anchor",
+      "boltCount": 10,
+      "popularity": 3,
+      "status": "published"
+    },
+    {
+      "id": "SS-MR-002",
+      "areaId": "monkey-rock",
+      "name": "香蕉路線",
+      "nameEn": "Banana Route",
+      "grade": "5.9",
+      "type": "sport",
+      "typeEn": "Sport Climbing",
+      "length": "15m",
+      "description": "有趣的攀登路線，動作多變，適合各程度攀岩者。",
+      "descriptionEn": "Fun climbing route with varied moves, suitable for all levels.",
+      "protection": "8 bolts + anchor",
+      "boltCount": 8,
+      "popularity": 2,
+      "status": "published"
+    },
+    {
+      "id": "SS-NW-001",
+      "areaId": "north-wall",
+      "name": "北風",
+      "nameEn": "North Wind",
+      "grade": "5.12b",
+      "type": "sport",
+      "typeEn": "Sport Climbing",
+      "length": "22m",
+      "description": "挑戰性路線，需要良好的耐力和技術。",
+      "descriptionEn": "Challenging route requiring good endurance and technique.",
+      "protection": "12 bolts + anchor",
+      "boltCount": 12,
+      "popularity": 3,
+      "status": "published"
+    },
+    {
+      "id": "SS-BA-001",
+      "areaId": "beginner-area",
+      "name": "第一步",
+      "nameEn": "First Step",
+      "grade": "5.6",
+      "type": "sport",
+      "typeEn": "Sport Climbing",
+      "length": "10m",
+      "description": "適合初學者的入門路線，手點腳點明確。",
+      "descriptionEn": "Beginner-friendly route with clear hand and footholds.",
+      "protection": "6 bolts + anchor",
+      "boltCount": 6,
+      "popularity": 2,
+      "status": "published"
+    },
+    {
+      "id": "SS-SS-001",
+      "areaId": "sunset-sector",
+      "name": "港都夕陽",
+      "nameEn": "Harbor Sunset",
+      "grade": "5.10d",
+      "type": "sport",
+      "typeEn": "Sport Climbing",
+      "length": "20m",
+      "description": "欣賞夕陽的最佳路線，完攀後可俯瞰高雄港。",
+      "descriptionEn": "Best route to enjoy the sunset, overlooking Kaohsiung Harbor after completing.",
+      "protection": "11 bolts + anchor",
+      "boltCount": 11,
+      "popularity": 3,
+      "status": "published"
+    }
+  ],
+  "statistics": {
+    "totalRoutes": 100,
+    "totalBolts": 300,
+    "routesByType": {
+      "sport": 95,
+      "trad": 5
+    },
+    "routesByGrade": {
+      "5.6-5.8": 25,
+      "5.9-5.10d": 40,
+      "5.11a-5.11d": 20,
+      "5.12a-5.12d": 12,
+      "5.13a": 3
+    },
+    "boltsByMaterial": {
+      "Stainless Steel": 270,
+      "Titanium": 30
+    }
+  },
+  "metadata": {
+    "version": "1.0.0",
+    "source": "壽山攀岩路線資料",
+    "lastUpdated": "2025-01-09",
+    "maintainer": "NobodyClimb Team"
+  }
+}
