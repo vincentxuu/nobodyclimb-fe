@@ -1,12 +1,12 @@
 'use client'
 
-import React, { useState, useEffect } from 'react'
-import { motion } from 'framer-motion'
+import React from 'react'
 import { Button } from '@/components/ui/button'
 import { Edit2 } from 'lucide-react'
 import Image from 'next/image'
 import Link from 'next/link'
 import ProfilePageLayout from '@/components/profile/layout/ProfilePageLayout'
+import { useIsMobile } from '@/lib/hooks/useIsMobile'
 
 // 暫時性的假資料
 const articlesMock = [
@@ -133,21 +133,7 @@ const NewArticleButton = () => (
 )
 
 export default function ArticlesPage() {
-  const [isMobile, setIsMobile] = useState(false)
-
-  // 檢測是否為手機版
-  useEffect(() => {
-    const checkIfMobile = () => {
-      setIsMobile(window.innerWidth < 768)
-    }
-
-    checkIfMobile()
-
-    window.addEventListener('resize', checkIfMobile)
-    return () => {
-      window.removeEventListener('resize', checkIfMobile)
-    }
-  }, [])
+  const isMobile = useIsMobile()
 
   return (
     <ProfilePageLayout>

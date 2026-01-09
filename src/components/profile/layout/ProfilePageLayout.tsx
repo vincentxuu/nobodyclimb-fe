@@ -1,6 +1,6 @@
 'use client'
 
-import React, { useState, useEffect } from 'react'
+import React from 'react'
 import { motion } from 'framer-motion'
 import ProfileSidebar from '@/components/ProfileSidebar'
 
@@ -9,21 +9,6 @@ interface ProfilePageLayoutProps {
 }
 
 export default function ProfilePageLayout({ children }: ProfilePageLayoutProps) {
-  const [isMobile, setIsMobile] = useState(false)
-
-  // 檢測是否為手機版
-  useEffect(() => {
-    const checkIfMobile = () => {
-      setIsMobile(window.innerWidth < 768)
-    }
-
-    checkIfMobile()
-
-    window.addEventListener('resize', checkIfMobile)
-    return () => {
-      window.removeEventListener('resize', checkIfMobile)
-    }
-  }, [])
 
   return (
     <div className="container mx-auto max-w-screen-xl px-4 md:px-6">
