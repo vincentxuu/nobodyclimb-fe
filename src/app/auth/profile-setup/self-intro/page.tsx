@@ -8,6 +8,7 @@ import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
 import { PageTransition } from '@/components/shared/page-transition'
 import { useToast } from '@/components/ui/use-toast'
+import { biographyService } from '@/lib/api/services'
 
 interface SelfIntroFormData {
   climbingReason: string
@@ -90,6 +91,26 @@ export default function SelfIntroPage() {
       const result = await updateUser(userData)
 
       if (result.success) {
+        // 同步創建/更新 biography 表
+        try {
+          const biographyData = {
+            name: user?.displayName || user?.username || '匿名岩友',
+            climbing_start_year: user?.climbingStartYear || '',
+            frequent_locations: user?.frequentGym || '',
+            favorite_route_type: user?.favoriteRouteType || '',
+            climbing_reason: formData.climbingReason,
+            climbing_meaning: formData.climbingMeaning,
+            bucket_list: formData.climbingBucketList,
+            advice: formData.messageToBeginners,
+            is_public: formData.isPublic ? 1 : 0,
+          }
+
+          await biographyService.createBiography(biographyData)
+        } catch (biographyError) {
+          // biography 創建失敗不阻擋流程，只記錄錯誤
+          console.error('創建人物誌失敗', biographyError)
+        }
+
         toast({
           title: '自我介紹已更新',
           description: '您的自我介紹已成功更新',
