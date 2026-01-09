@@ -1,4 +1,15 @@
-// 使用者介面
+/**
+ * 類型定義檔案
+ * 此檔案為專案的單一類型定義來源
+ */
+
+// ============================================
+// 使用者相關
+// ============================================
+
+/**
+ * 使用者介面
+ */
 export interface User {
   id: string
   username: string
@@ -20,7 +31,45 @@ export interface User {
   }
 }
 
-// 文章介面
+/**
+ * 後端 User 資料格式 (snake_case)
+ */
+export interface BackendUser {
+  id: string
+  email: string
+  username: string
+  display_name?: string
+  avatar_url?: string
+  bio?: string
+  role: 'user' | 'admin' | 'moderator'
+  is_active?: number
+  email_verified?: number
+  created_at: string
+  updated_at?: string
+}
+
+/**
+ * 將後端 User 格式轉換為前端格式
+ */
+export function mapBackendUserToUser(backendUser: BackendUser): User {
+  return {
+    id: backendUser.id,
+    email: backendUser.email,
+    username: backendUser.username,
+    displayName: backendUser.display_name,
+    avatar: backendUser.avatar_url,
+    bio: backendUser.bio,
+    createdAt: new Date(backendUser.created_at),
+  }
+}
+
+// ============================================
+// 內容相關
+// ============================================
+
+/**
+ * 文章介面
+ */
 export interface Post {
   id: string
   title: string
@@ -39,7 +88,9 @@ export interface Post {
   views: number
 }
 
-// 攀岩館介面
+/**
+ * 攀岩館介面
+ */
 export interface Gym {
   id: string
   name: string
@@ -51,13 +102,13 @@ export interface Gym {
   website?: string
   phone?: string
   openingHours?: {
-    monday: string
-    tuesday: string
-    wednesday: string
-    thursday: string
-    friday: string
-    saturday: string
-    sunday: string
+    monday?: string
+    tuesday?: string
+    wednesday?: string
+    thursday?: string
+    friday?: string
+    saturday?: string
+    sunday?: string
   }
   createdAt: Date
   updatedAt?: Date
@@ -67,12 +118,14 @@ export interface Gym {
   rating: number
 }
 
-// 相簿介面
+/**
+ * 相簿介面
+ */
 export interface Gallery {
   id: string
   title: string
   slug: string
-  description: string
+  description?: string
   coverImage: string
   images: string[]
   createdAt: Date
@@ -83,82 +136,21 @@ export interface Gallery {
   views: number
 }
 
-// 評論介面
+/**
+ * 評論介面
+ */
 export interface Comment {
   id: string
   content: string
   createdAt: Date
-  updatedAt: Date
+  updatedAt?: Date
   authorId: string
   author?: User
   postId?: string
   gymId?: string
   galleryId?: string
   likes: number
-}
-
-// 分頁回應介面
-export interface PaginatedResponse<T> {
-  data: T[]
-  meta: {
-    currentPage: number
-    totalPages: number
-    totalItems: number
-    hasMore: boolean
-  }
-}
-
-// 搜尋參數介面
-export interface SearchParams {
-  query: string
-  type?: 'all' | 'post' | 'gym' | 'gallery' | 'user'
-  tags?: string[]
-  facilities?: string[]
-  sortBy?: 'date' | 'popularity'
-  page?: number
-  limit?: number
-}
-
-// 認證介面
-export interface AuthState {
-  user: User | null
-  isLoggedIn: boolean
-  token: string | null
-  loading: boolean
-  error: string | null
-}
-
-// 登入表單介面
-export interface LoginFormData {
-  email: string
-  password: string
-  remember?: boolean
-}
-
-// 註冊表單介面
-export interface RegisterFormData {
-  username: string
-  email: string
-  password: string
-  confirmPassword: string
-}
-
-// 用戶資料更新表單介面
-export interface UpdateProfileFormData {
-  username?: string
-  email?: string
-  bio?: string
-  currentPassword?: string
-  newPassword?: string
-  confirmNewPassword?: string
-}
-
-// API 回應介面
-export interface ApiResponse<T = any> {
-  success: boolean
-  data: T
-  message?: string
-  error?: string
+  replies?: Comment[]
 }
 
 /**
@@ -256,4 +248,169 @@ export interface Weather {
     icon: string
     precipitation: number
   }>
+}
+
+// ============================================
+// API 相關
+// ============================================
+
+/**
+ * API 回應介面
+ */
+export interface ApiResponse<T = unknown> {
+  success: boolean
+  data?: T
+  message?: string
+  error?: string
+}
+
+/**
+ * 分頁回應介面
+ */
+export interface PaginatedResponse<T> {
+  data: T[]
+  meta: {
+    currentPage: number
+    totalPages: number
+    totalItems: number
+    itemsPerPage: number
+    hasMore?: boolean
+  }
+}
+
+/**
+ * 搜尋參數介面
+ */
+export interface SearchParams {
+  query: string
+  type?: 'all' | 'post' | 'gym' | 'gallery' | 'user'
+  tags?: string[]
+  facilities?: string[]
+  sortBy?: 'date' | 'popularity' | 'latest' | 'popular' | 'rating'
+  page?: number
+  limit?: number
+}
+
+// ============================================
+// 認證相關
+// ============================================
+
+/**
+ * 認證狀態介面
+ */
+export interface AuthState {
+  user: User | null
+  isLoggedIn: boolean
+  token: string | null
+  loading: boolean
+  error: string | null
+}
+
+/**
+ * 後端認證 Token 回應介面
+ */
+export interface AuthTokenResponse {
+  access_token: string
+  refresh_token: string
+  expires_in: number
+}
+
+/**
+ * 後端 Refresh Token 回應介面
+ */
+export interface RefreshTokenResponse {
+  access_token: string
+  expires_in: number
+}
+
+// ============================================
+// 表單相關
+// ============================================
+
+/**
+ * 登入表單介面
+ */
+export interface LoginFormData {
+  email: string
+  password: string
+  remember?: boolean
+}
+
+/**
+ * 註冊表單介面
+ */
+export interface RegisterFormData {
+  username: string
+  email: string
+  password: string
+  confirmPassword: string
+}
+
+/**
+ * 用戶資料更新表單介面
+ */
+export interface UpdateProfileFormData {
+  username?: string
+  email?: string
+  bio?: string
+  currentPassword?: string
+  newPassword?: string
+  confirmNewPassword?: string
+}
+
+/**
+ * 認證 Session 介面
+ */
+export interface AuthSession {
+  user: User
+  expires: string
+}
+
+/**
+ * 認證 Token 介面
+ */
+export interface AuthToken {
+  token: string
+  expiresAt: number
+}
+
+// ============================================
+// 影片相關
+// ============================================
+
+/**
+ * 影片分類
+ */
+export type VideoCategory =
+  | '戶外攀岩'
+  | '室內攀岩'
+  | '競技攀岩'
+  | '抱石'
+  | '教學影片'
+  | '紀錄片'
+  | '裝備評測'
+
+/**
+ * 影片時長分類
+ */
+export type VideoDuration = 'short' | 'medium' | 'long' // <5min, 5-20min, >20min
+
+/**
+ * 影片介面
+ */
+export interface Video {
+  id: string
+  youtubeId: string
+  title: string
+  description: string
+  thumbnailUrl: string
+  channel: string
+  channelId?: string
+  publishedAt: string
+  duration: string // 格式: "MM:SS" 或 "HH:MM:SS"
+  durationCategory: VideoDuration
+  viewCount: string
+  category: VideoCategory
+  tags?: string[]
+  featured?: boolean
 }

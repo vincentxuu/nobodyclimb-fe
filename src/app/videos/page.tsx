@@ -7,7 +7,7 @@ import VideoGrid from '@/components/videos/video-grid'
 import VideoPlayer from '@/components/videos/video-player'
 import VideoFilters from '@/components/videos/video-filters'
 import ChannelFilter from '@/components/videos/channel-filter'
-import type { Video, VideoCategory } from '@/lib/types/video'
+import type { Video, VideoCategory } from '@/lib/types'
 
 const VideosPage: React.FC = () => {
   const [videoList, setVideoList] = useState<Video[]>([])

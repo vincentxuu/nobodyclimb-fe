@@ -1,7 +1,7 @@
 import React from 'react'
 import Image from 'next/image'
 import { Card } from '@/components/ui/card'
-import type { Video } from '@/lib/types/video'
+import type { Video } from '@/lib/types'
 import { Play, Eye } from 'lucide-react'
 
 interface VideoCardProps {

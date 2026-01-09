@@ -1,6 +1,6 @@
 import React from 'react'
 import VideoCard from './video-card'
-import type { Video } from '@/lib/types/video'
+import type { Video } from '@/lib/types'
 
 interface VideoGridProps {
   videos: Video[]
