@@ -1,47 +1,107 @@
 name = "nobodyclimb-api"
+
 main = "src/index.ts"
+
 compatibility_date = "2024-12-01"
+
 compatibility_flags = ["nodejs_compat"]
 
-# D1 Database binding
-[[d1_databases]]
-binding = "DB"
-database_name = "nobodyclimb-db"
-database_id = "placeholder-create-with-wrangler-d1-create"
+account_id = "1ff43f0d4c3ad3bd98ce5ab767546a68"
 
-# KV Namespace for caching
-[[kv_namespaces]]
-binding = "CACHE"
-id = "placeholder-create-with-wrangler-kv-namespace-create"
+ 
 
-# R2 Bucket for file storage
-[[r2_buckets]]
-binding = "STORAGE"
-bucket_name = "nobodyclimb-storage"
+# ============================================
 
-[vars]
-CORS_ORIGIN = "https://nobodyclimb.cc"
+# 測試環境 (Preview)
+
+# ============================================
+
+[env.preview]
+
+name = "nobodyclimb-api-preview"
+
+ 
+
+[env.preview.vars]
+
+CORS_ORIGIN = "http://localhost:3000"
+
 JWT_ISSUER = "nobodyclimb-api"
 
-# Preview environment
-[env.preview]
-name = "nobodyclimb-api-preview"
-vars = { CORS_ORIGIN = "https://preview.nobodyclimb.cc" }
+ 
 
 [[env.preview.d1_databases]]
-binding = "DB"
-database_name = "nobodyclimb-db-preview"
-database_id = "placeholder-preview-db-id"
 
-# Production environment
+binding = "DB"
+
+database_name = "nobodyclimb-db-preview"
+
+database_id = "7957baa8-d9d1-4e18-aaec-de841b4b846c"
+
+ 
+
+[[env.preview.kv_namespaces]]
+
+binding = "CACHE"
+
+id = "396df52e16864a35a3cb7898fcd686e7"
+
+ 
+
+[[env.preview.r2_buckets]]
+
+binding = "STORAGE"
+
+bucket_name = "nobodyclimb-storage-preview"
+
+ 
+
+# ============================================
+
+# 正式環境 (Production)
+
+# ============================================
+
 [env.production]
+
 name = "nobodyclimb-api-production"
-vars = { CORS_ORIGIN = "https://nobodyclimb.cc" }
+
 routes = [
+
   { pattern = "api.nobodyclimb.com/*", zone_name = "nobodyclimb.com" }
+
 ]
 
+ 
+
+[env.production.vars]
+
+CORS_ORIGIN = "https://nobodyclimb.cc"
+
+JWT_ISSUER = "nobodyclimb-api"
+
+ 
+
 [[env.production.d1_databases]]
+
 binding = "DB"
+
 database_name = "nobodyclimb-db"
-database_id = "placeholder-production-db-id"
+
+database_id = "8857a1ac-6e3b-4a2b-8ef4-3e657c0e436d"
+
+ 
+
+[[env.production.kv_namespaces]]
+
+binding = "CACHE"
+
+id = "608d1fb3c4424146abe50ab56e246aca"
+
+ 
+
+[[env.production.r2_buckets]]
+
+binding = "STORAGE"
+
+bucket_name = "nobodyclimb-storage"
