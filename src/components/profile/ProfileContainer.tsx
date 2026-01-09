@@ -1,6 +1,6 @@
 'use client'
 
-import React from 'react'
+import React, { useState } from 'react'
 import { motion } from 'framer-motion'
 import ProfilePageHeader from './ProfilePageHeader'
 import ProfileDivider from './ProfileDivider'
@@ -12,12 +12,14 @@ import ProfileActionButtons from './ProfileActionButtons'
 import { useProfile } from './ProfileContext'
 import { useIsMobile } from '@/lib/hooks/useIsMobile'
 import { useToast } from '@/components/ui/use-toast'
+import { biographyService } from '@/lib/api/services'
 
 export default function ProfileContainer() {
   const { profileData, setProfileData, isEditing, setIsEditing } = useProfile()
   const originalData = { ...profileData } // Store the original profile data
   const isMobile = useIsMobile()
   const { toast } = useToast()
+  const [isSaving, setIsSaving] = useState(false)
 
   // 處理表單變更
   const handleChange = (field: string, value: string | boolean) => {
@@ -28,15 +30,45 @@ export default function ProfileContainer() {
   }
 
   // 處理儲存
-  const handleSave = () => {
-    // 這裡應該會有API呼叫來保存資料
-    console.log('儲存資料:', profileData)
-    setIsEditing(false)
+  const handleSave = async () => {
+    setIsSaving(true)
 
-    toast({
-      title: '儲存成功',
-      description: '您的個人資料已成功更新',
-    })
+    try {
+      // 將前端資料轉換為 API 格式
+      const biographyData = {
+        name: profileData.name,
+        climbing_start_year: profileData.startYear,
+        frequent_locations: profileData.frequentGyms,
+        favorite_route_type: profileData.favoriteRouteType,
+        climbing_reason: profileData.climbingReason,
+        climbing_meaning: profileData.climbingMeaning,
+        bucket_list: profileData.climbingBucketList,
+        advice: profileData.adviceForBeginners,
+        is_public: profileData.isPublic ? 1 : 0,
+      }
+
+      // 呼叫 API 保存資料（createBiography 會自動判斷是新增還是更新）
+      const response = await biographyService.createBiography(biographyData)
+
+      if (response.success) {
+        setIsEditing(false)
+        toast({
+          title: '儲存成功',
+          description: '您的個人資料已成功更新',
+        })
+      } else {
+        throw new Error(response.error || '儲存失敗')
+      }
+    } catch (error) {
+      console.error('儲存失敗:', error)
+      toast({
+        title: '儲存失敗',
+        description: '請稍後再試',
+        variant: 'destructive',
+      })
+    } finally {
+      setIsSaving(false)
+    }
   }
 
   return (
@@ -93,6 +125,7 @@ export default function ProfileContainer() {
               }}
               onSave={handleSave}
               isMobile={isMobile}
+              isLoading={isSaving}
             />
           )}
         </div>
