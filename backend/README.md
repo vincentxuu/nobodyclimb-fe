@@ -43,7 +43,7 @@ backend/
 
 ```bash
 cd backend
-npm install
+pnpm install
 ```
 
 ### 2. 建立 D1 資料庫
@@ -80,16 +80,16 @@ wrangler secret put JWT_SECRET
 
 ```bash
 # 本地開發
-npm run db:migrate
+pnpm db:migrate
 
 # 遠端資料庫
-npm run db:migrate:remote
+pnpm db:migrate:remote
 ```
 
 ### 7. 啟動開發伺服器
 
 ```bash
-npm run dev
+pnpm dev
 ```
 
 ## API 端點
@@ -181,10 +181,10 @@ npm run dev
 
 ```bash
 # 預覽環境
-npm run deploy:preview
+pnpm deploy:preview
 
 # 正式環境
-npm run deploy:production
+pnpm deploy:production
 ```
 
 ## 環境變數
