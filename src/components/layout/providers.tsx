@@ -3,7 +3,9 @@
 import { ReactNode } from 'react'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { ThemeProvider } from 'next-themes'
+import { GoogleOAuthProvider } from '@react-oauth/google'
 import { Toaster } from '@/components/ui/toaster'
+import { GOOGLE_CLIENT_ID } from '@/lib/constants'
 
 interface ProvidersProps {
   children: ReactNode
@@ -22,15 +24,17 @@ const queryClient = new QueryClient({
 
 /**
  * 全局提供者組件
- * 包含React Query、主題提供者等全局上下文
+ * 包含React Query、主題提供者、Google OAuth等全局上下文
  */
 export function Providers({ children }: ProvidersProps) {
   return (
     <QueryClientProvider client={queryClient}>
-      <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
-        {children}
-        <Toaster />
-      </ThemeProvider>
+      <GoogleOAuthProvider clientId={GOOGLE_CLIENT_ID}>
+        <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
+          {children}
+          <Toaster />
+        </ThemeProvider>
+      </GoogleOAuthProvider>
     </QueryClientProvider>
   )
 }

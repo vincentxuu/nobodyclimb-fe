@@ -49,18 +49,12 @@ export function useAuth() {
 
   /**
    * 使用 Google 登入
+   * @param {string} credential - Google OAuth credential (ID token)
    * @returns {Promise<{ success: boolean, error?: string }>} 登入結果
    */
-  const loginWithGoogle = useCallback(async () => {
+  const loginWithGoogle = useCallback(async (credential: string) => {
     try {
-      // 這裡需要處理 Google 登入流程
-      // 在實際應用中，這可能包括打開一個 Google OAuth 窗口
-      // 然後處理回調並將令牌發送到後端
-
-      // 模擬 Google 登入成功後獲取的令牌
-      const mockGoogleToken = 'google-auth-token-' + Date.now()
-
-      await storeLoginWithGoogle(mockGoogleToken)
+      await storeLoginWithGoogle(credential)
       return { success: true }
     } catch (error) {
       return {

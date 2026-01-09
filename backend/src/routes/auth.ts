@@ -1,7 +1,8 @@
 import { Hono } from 'hono';
 import { zValidator } from '@hono/zod-validator';
 import { z } from 'zod';
-import { Env, User } from '../types';
+import * as jose from 'jose';
+import { Env, User, GoogleTokenPayload } from '../types';
 import { generateId } from '../utils/id';
 import {
   authMiddleware,
@@ -14,7 +15,7 @@ import {
 export const authRoutes = new Hono<{ Bindings: Env }>();
 
 // User fields to select (reusable constant for maintainability)
-const USER_SELECT_FIELDS = 'id, email, username, display_name, avatar_url, bio, climbing_start_year, frequent_gym, favorite_route_type, role, created_at';
+const USER_SELECT_FIELDS = 'id, email, username, display_name, avatar_url, bio, climbing_start_year, frequent_gym, favorite_route_type, role, google_id, auth_provider, created_at';
 
 // Validation schemas
 const registerSchema = z.object({
@@ -108,6 +109,18 @@ authRoutes.post('/login', zValidator('json', loginSchema), async (c) => {
         success: false,
         error: 'Unauthorized',
         message: 'Invalid email or password',
+      },
+      401
+    );
+  }
+
+  // Check if user registered with Google (no password)
+  if (!user.password_hash) {
+    return c.json(
+      {
+        success: false,
+        error: 'Unauthorized',
+        message: 'This account uses Google login. Please sign in with Google.',
       },
       401
     );
@@ -318,4 +331,199 @@ authRoutes.post('/logout', authMiddleware, async (c) => {
     success: true,
     message: 'Logged out successfully',
   });
+});
+
+// Google OAuth schema
+const googleAuthSchema = z.object({
+  credential: z.string().min(1),
+});
+
+// POST /auth/google
+authRoutes.post('/google', zValidator('json', googleAuthSchema), async (c) => {
+  const { credential } = c.req.valid('json');
+
+  try {
+    // Decode and verify the Google ID token
+    // Google's public keys for JWT verification
+    const GOOGLE_JWKS = jose.createRemoteJWKSet(
+      new URL('https://www.googleapis.com/oauth2/v3/certs')
+    );
+
+    const { payload } = await jose.jwtVerify(credential, GOOGLE_JWKS, {
+      issuer: ['https://accounts.google.com', 'accounts.google.com'],
+      audience: c.env.GOOGLE_CLIENT_ID,
+    });
+
+    const googlePayload = payload as unknown as GoogleTokenPayload;
+
+    // Validate required fields
+    if (!googlePayload.email || !googlePayload.sub) {
+      return c.json(
+        {
+          success: false,
+          error: 'Invalid Token',
+          message: 'Google token is missing required fields',
+        },
+        400
+      );
+    }
+
+    // Check if email is verified
+    if (!googlePayload.email_verified) {
+      return c.json(
+        {
+          success: false,
+          error: 'Email Not Verified',
+          message: 'Please verify your Google email first',
+        },
+        400
+      );
+    }
+
+    // Look for existing user by google_id first
+    let user = await c.env.DB.prepare(
+      'SELECT * FROM users WHERE google_id = ? AND is_active = 1'
+    )
+      .bind(googlePayload.sub)
+      .first<User>();
+
+    // If not found by google_id, check by email
+    if (!user) {
+      user = await c.env.DB.prepare(
+        'SELECT * FROM users WHERE email = ? AND is_active = 1'
+      )
+        .bind(googlePayload.email)
+        .first<User>();
+
+      if (user) {
+        // User exists with this email but no google_id - link accounts
+        await c.env.DB.prepare(
+          `UPDATE users SET google_id = ?, auth_provider = 'google', email_verified = 1, updated_at = datetime('now') WHERE id = ?`
+        )
+          .bind(googlePayload.sub, user.id)
+          .run();
+
+        // Update avatar if not set
+        if (!user.avatar_url && googlePayload.picture) {
+          await c.env.DB.prepare(
+            `UPDATE users SET avatar_url = ? WHERE id = ?`
+          )
+            .bind(googlePayload.picture, user.id)
+            .run();
+        }
+      }
+    }
+
+    // If still no user, create a new one
+    if (!user) {
+      const id = generateId();
+      // Generate a unique username from email or name
+      const baseUsername = googlePayload.email.split('@')[0].replace(/[^a-zA-Z0-9_]/g, '_');
+      let username = baseUsername;
+      let counter = 1;
+
+      // Ensure username is unique
+      while (true) {
+        const existing = await c.env.DB.prepare(
+          'SELECT id FROM users WHERE username = ?'
+        )
+          .bind(username)
+          .first();
+
+        if (!existing) break;
+        username = `${baseUsername}_${counter}`;
+        counter++;
+      }
+
+      await c.env.DB.prepare(
+        `INSERT INTO users (id, email, username, display_name, avatar_url, google_id, auth_provider, email_verified)
+         VALUES (?, ?, ?, ?, ?, ?, 'google', 1)`
+      )
+        .bind(
+          id,
+          googlePayload.email,
+          username,
+          googlePayload.name || null,
+          googlePayload.picture || null,
+          googlePayload.sub
+        )
+        .run();
+
+      user = await c.env.DB.prepare('SELECT * FROM users WHERE id = ?')
+        .bind(id)
+        .first<User>();
+    }
+
+    if (!user) {
+      return c.json(
+        {
+          success: false,
+          error: 'Server Error',
+          message: 'Failed to create or retrieve user',
+        },
+        500
+      );
+    }
+
+    // Generate tokens
+    const access_token = await generateAccessToken(c.env, {
+      sub: user.id,
+      email: user.email,
+      role: user.role,
+    });
+    const refresh_token = await generateRefreshToken(c.env, { sub: user.id });
+
+    // Store refresh token hash
+    const refresh_token_hash = await hashPassword(refresh_token);
+    const expires_at = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString();
+    await c.env.DB.prepare(
+      `INSERT INTO refresh_tokens (id, user_id, token_hash, expires_at)
+       VALUES (?, ?, ?, ?)`
+    )
+      .bind(generateId(), user.id, refresh_token_hash, expires_at)
+      .run();
+
+    return c.json({
+      success: true,
+      data: {
+        access_token,
+        refresh_token,
+        expires_in: 900, // 15 minutes
+      },
+    });
+  } catch (error) {
+    console.error('Google auth error:', error);
+
+    // Handle specific JWT verification errors
+    if (error instanceof jose.errors.JWTExpired) {
+      return c.json(
+        {
+          success: false,
+          error: 'Token Expired',
+          message: 'Google token has expired, please try again',
+        },
+        401
+      );
+    }
+
+    if (error instanceof jose.errors.JWTClaimValidationFailed) {
+      return c.json(
+        {
+          success: false,
+          error: 'Invalid Token',
+          message: 'Google token validation failed',
+        },
+        401
+      );
+    }
+
+    return c.json(
+      {
+        success: false,
+        error: 'Authentication Failed',
+        message: 'Failed to authenticate with Google',
+      },
+      401
+    );
+  }
 });

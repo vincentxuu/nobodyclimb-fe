@@ -10,6 +10,9 @@ export const AUTH_TOKEN_KEY = 'nobodyclimb-auth-token'
 export const AUTH_REFRESH_TOKEN_KEY = 'nobodyclimb-refresh-token'
 export const AUTH_USER_KEY = 'nobodyclimb-auth-user'
 
+// Google OAuth
+export const GOOGLE_CLIENT_ID = process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID || ''
+
 // 導航連結
 export const NAV_LINKS = [
   { label: '人物誌', href: '/biography' },
