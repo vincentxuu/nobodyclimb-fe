@@ -1,7 +1,7 @@
 {
   "name": "nobodyclimb-fe",
   "main": ".open-next/worker.js",
-  "compatibility_date": "2024-09-23",
+  "compatibility_date": "2025-01-01",
   "compatibility_flags": ["nodejs_compat_v2"],
   "account_id": "1ff43f0d4c3ad3bd98ce5ab767546a68",
   "kv_namespaces": [
