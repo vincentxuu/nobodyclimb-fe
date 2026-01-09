@@ -16,6 +16,7 @@ export const NAV_LINKS = [
   { label: '岩場', href: '/crag' },
   { label: '岩館', href: '/gym' },
   { label: '攝影集', href: '/gallery' },
+  { label: '影片', href: '/videos' },
   { label: '部落格', href: '/blog', hasSubmenu: true },
 ]
 
