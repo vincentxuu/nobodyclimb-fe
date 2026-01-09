@@ -5,15 +5,15 @@
     "name": "關子嶺",
     "nameEn": "Guanziling",
     "location": {
-      "address": "台南市白河區",
-      "addressEn": "Baihe District, Tainan City",
+      "address": "台南市白河區關子嶺",
+      "addressEn": "Guanziling, Baihe District, Tainan City",
       "region": "南部",
       "regionEn": "Southern Taiwan",
       "latitude": 23.3333,
       "longitude": 120.5000
     },
-    "description": "關子嶺岩場位於台南市白河區，是台灣南部著名的砂岩攀岩場地。岩場以其獨特的砂岩地形和溫泉聞名，擁有約60條路線。這裡的岩質提供了良好的摩擦力，適合各種程度的攀岩者，特別是在涼爽的秋冬季節攀登。",
-    "descriptionEn": "Guanziling is located in Baihe District, Tainan City, and is a famous sandstone climbing area in southern Taiwan. The crag is known for its unique sandstone formations and hot springs, featuring approximately 60 routes. The rock quality provides excellent friction, suitable for climbers of all levels, especially during the cool autumn and winter seasons.",
+    "description": "關子嶺岩場位於台南市白河區，是台灣南部著名的砂岩攀岩場地。岩場以其獨特的砂岩地形和知名的泥漿溫泉聞名，擁有多條路線。這裡的岩質提供了良好的摩擦力，適合各種程度的攀岩者，特別是在涼爽的秋冬季節攀登。攀岩後可到附近享受獨特的泥漿溫泉。",
+    "descriptionEn": "Guanziling is located in Baihe District, Tainan City, and is a famous sandstone climbing area in southern Taiwan. The crag is known for its unique sandstone formations and the famous mud hot springs. The rock quality provides excellent friction, suitable for climbers of all levels, especially during the cool autumn and winter seasons. After climbing, enjoy the unique mud hot springs nearby.",
     "videoUrl": "",
     "images": [
       "/images/crag/guanziling-1.jpg",
@@ -24,7 +24,7 @@
     "type": "sport",
     "rockType": "砂岩",
     "rockTypeEn": "Sandstone",
-    "routesCount": 60,
+    "routesCount": 40,
     "difficulty": {
       "min": "5.7",
       "max": "5.12a"
@@ -54,53 +54,53 @@
         }
       ]
     },
-    "amenities": ["溫泉", "餐廳", "民宿", "停車場"],
-    "amenitiesEn": ["Hot springs", "Restaurants", "Guesthouses", "Parking"],
+    "amenities": ["泥漿溫泉", "餐廳", "民宿", "停車場", "便利商店"],
+    "amenitiesEn": ["Mud hot springs", "Restaurants", "Guesthouses", "Parking", "Convenience stores"],
     "featured": true,
-    "rating": 4.3,
+    "rating": 4.2,
     "status": "published",
     "createdAt": "2024-01-01T00:00:00Z",
     "updatedAt": "2025-01-09T00:00:00Z"
   },
   "areas": [
     {
-      "id": "hot-spring-wall",
-      "name": "溫泉岩壁",
-      "nameEn": "Hot Spring Wall",
-      "description": "關子嶺最主要的攀登區域，靠近溫泉區。",
-      "descriptionEn": "The main climbing area of Guanziling, near the hot spring area.",
+      "id": "main-wall",
+      "name": "主岩壁",
+      "nameEn": "Main Wall",
+      "description": "關子嶺主要的攀登區域，擁有多條經典路線。",
+      "descriptionEn": "The main climbing area of Guanziling with many classic routes.",
       "difficulty": { "min": "5.8", "max": "5.11d" },
-      "image": "/images/crag/guanziling-hot-spring-wall.jpg",
-      "boltCount": 80,
-      "routesCount": 30
-    },
-    {
-      "id": "sunset-wall",
-      "name": "夕陽面",
-      "nameEn": "Sunset Wall",
-      "description": "面向西方的岩壁，下午時分陽光充足。",
-      "descriptionEn": "West-facing wall with good afternoon sunlight.",
-      "difficulty": { "min": "5.7", "max": "5.12a" },
-      "image": "/images/crag/guanziling-sunset-wall.jpg",
+      "image": "/images/crag/guanziling-main-wall.jpg",
       "boltCount": 60,
       "routesCount": 20
     },
     {
-      "id": "forest-sector",
-      "name": "森林區",
-      "nameEn": "Forest Sector",
-      "description": "被樹林環繞的攀登區，夏季較為涼爽。",
-      "descriptionEn": "Climbing area surrounded by forest, cooler in summer.",
-      "difficulty": { "min": "5.9", "max": "5.11a" },
-      "image": "/images/crag/guanziling-forest-sector.jpg",
+      "id": "beginner-area",
+      "name": "初學者區",
+      "nameEn": "Beginner Area",
+      "description": "適合新手練習的區域，路線較為簡單。",
+      "descriptionEn": "An area suitable for beginners with easier routes.",
+      "difficulty": { "min": "5.7", "max": "5.10a" },
+      "image": "/images/crag/guanziling-beginner-area.jpg",
       "boltCount": 40,
-      "routesCount": 10
+      "routesCount": 12
+    },
+    {
+      "id": "advanced-sector",
+      "name": "進階區",
+      "nameEn": "Advanced Sector",
+      "description": "較難的攀登區域，適合有經驗的攀岩者。",
+      "descriptionEn": "More challenging area suitable for experienced climbers.",
+      "difficulty": { "min": "5.10b", "max": "5.12a" },
+      "image": "/images/crag/guanziling-advanced-sector.jpg",
+      "boltCount": 30,
+      "routesCount": 8
     }
   ],
   "routes": [
     {
-      "id": "GZ001",
-      "areaId": "hot-spring-wall",
+      "id": "GZ-MW-001",
+      "areaId": "main-wall",
       "name": "溫泉之路",
       "nameEn": "Hot Spring Route",
       "grade": "5.10a",
@@ -108,79 +108,78 @@
       "typeEn": "Sport Climbing",
       "length": "18m",
       "description": "關子嶺經典路線，攀登後可享受溫泉。",
-      "protection": "固定保護點，共9個Bolt",
-      "safetyRating": "●●●",
+      "descriptionEn": "Classic Guanziling route, enjoy hot springs after climbing.",
+      "protection": "9 bolts + anchor",
       "boltCount": 9,
       "status": "published"
     },
     {
-      "id": "GZ002",
-      "areaId": "hot-spring-wall",
+      "id": "GZ-MW-002",
+      "areaId": "main-wall",
       "name": "砂岩摩擦",
       "nameEn": "Sandstone Friction",
       "grade": "5.9",
       "type": "sport",
       "typeEn": "Sport Climbing",
       "length": "15m",
-      "description": "測試腳法的好路線。",
-      "protection": "固定保護點，共8個Bolt",
-      "safetyRating": "●●●",
+      "description": "測試腳法的好路線，砂岩摩擦力極佳。",
+      "descriptionEn": "Great route to test footwork, excellent sandstone friction.",
+      "protection": "8 bolts + anchor",
       "boltCount": 8,
       "status": "published"
     },
     {
-      "id": "GZ003",
-      "areaId": "sunset-wall",
-      "name": "夕陽餘暉",
-      "nameEn": "Sunset Glow",
+      "id": "GZ-BA-001",
+      "areaId": "beginner-area",
+      "name": "泥漿浴",
+      "nameEn": "Mud Bath",
+      "grade": "5.7",
+      "type": "sport",
+      "typeEn": "Sport Climbing",
+      "length": "12m",
+      "description": "適合初學者的入門路線。",
+      "descriptionEn": "Beginner-friendly route.",
+      "protection": "6 bolts + anchor",
+      "boltCount": 6,
+      "status": "published"
+    },
+    {
+      "id": "GZ-AS-001",
+      "areaId": "advanced-sector",
+      "name": "火山岩",
+      "nameEn": "Volcanic Rock",
       "grade": "5.11b",
       "type": "sport",
       "typeEn": "Sport Climbing",
       "length": "20m",
-      "description": "在夕陽下攀登的美麗路線。",
-      "protection": "固定保護點，共10個Bolt",
-      "safetyRating": "●●●",
+      "description": "進階區的經典路線，需要良好的耐力。",
+      "descriptionEn": "Classic route in the advanced sector, requires good endurance.",
+      "protection": "10 bolts + anchor",
       "boltCount": 10,
-      "status": "published"
-    },
-    {
-      "id": "GZ004",
-      "areaId": "forest-sector",
-      "name": "森林之歌",
-      "nameEn": "Forest Song",
-      "grade": "5.10c",
-      "type": "sport",
-      "typeEn": "Sport Climbing",
-      "length": "16m",
-      "description": "在樹林中攀登的寧靜路線。",
-      "protection": "固定保護點，共8個Bolt",
-      "safetyRating": "●●●",
-      "boltCount": 8,
       "status": "published"
     }
   ],
   "statistics": {
-    "totalRoutes": 60,
-    "totalBolts": 180,
+    "totalRoutes": 40,
+    "totalBolts": 130,
     "routesByType": {
-      "sport": 55,
-      "trad": 3,
-      "toprope": 2
+      "sport": 38,
+      "trad": 2
     },
     "routesByGrade": {
-      "5.7-5.9": 20,
-      "5.10a-5.10d": 25,
-      "5.11a-5.11d": 12,
-      "5.12a": 3
+      "5.7-5.9": 15,
+      "5.10a-5.10d": 15,
+      "5.11a-5.11d": 8,
+      "5.12a": 2
     },
     "boltsByMaterial": {
-      "316-TW": 150,
-      "Ti-ETN": 30
+      "Stainless Steel": 120,
+      "Titanium": 10
     }
   },
   "metadata": {
     "version": "1.0.0",
-    "source": "關子嶺岩場資料庫",
+    "source": "關子嶺岩場資料",
     "lastUpdated": "2025-01-09",
     "maintainer": "NobodyClimb Team"
   }
