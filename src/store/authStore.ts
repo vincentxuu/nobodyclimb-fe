@@ -43,7 +43,7 @@ interface AuthState {
   loginWithGoogle: (token: string) => Promise<void>
   register: (username: string, email: string, password: string) => Promise<{ success: boolean; error?: string }>
   logout: () => Promise<void>
-  updateUser: (userData: UpdateUserData) => Promise<void>
+  updateUser: (userData: UpdateUserData) => Promise<{ success: boolean; error?: string }>
   refreshToken: () => Promise<boolean>
   clearError: () => void
   setUser: (user: User | null) => void
@@ -268,7 +268,12 @@ export const useAuthStore = create<AuthState>()(
           )
 
           if (!response.data.success || !response.data.data) {
-            throw new Error(response.data.message || '更新資料失敗')
+            const errorMessage = response.data.message || '更新資料失敗'
+            set({
+              error: errorMessage,
+              isLoading: false,
+            })
+            return { success: false, error: errorMessage }
           }
 
           // 轉換後端 User 格式為前端格式
@@ -278,21 +283,28 @@ export const useAuthStore = create<AuthState>()(
           set({
             user,
             isLoading: false,
+            error: null,
           })
+
+          return { success: true }
         } catch (error) {
-          // 處理錯誤
-          const errorMessage = axios.isAxiosError(error)
-            ? error.response?.data?.message || '更新資料失敗'
-            : error instanceof Error
-              ? error.message
-              : '更新資料過程中發生錯誤'
+          // 處理錯誤 - 優先顯示後端回傳的錯誤訊息
+          let errorMessage = '更新資料過程中發生錯誤'
+
+          if (axios.isAxiosError(error)) {
+            const data = error.response?.data
+            // 後端格式: { success: false, error: "...", message: "..." }
+            errorMessage = data?.message || data?.error || `更新失敗 (${error.response?.status || 'Network Error'})`
+          } else if (error instanceof Error) {
+            errorMessage = error.message
+          }
 
           set({
             error: errorMessage,
             isLoading: false,
           })
 
-          throw new Error(errorMessage)
+          return { success: false, error: errorMessage }
         }
       },
 

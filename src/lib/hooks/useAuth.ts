@@ -79,15 +79,8 @@ export function useAuth() {
    */
   const register = useCallback(
     async (username: string, email: string, password: string) => {
-      try {
-        await storeRegister(username, email, password)
-        return { success: true }
-      } catch (error) {
-        return {
-          success: false,
-          error: error instanceof Error ? error.message : '註冊失敗',
-        }
-      }
+      const result = await storeRegister(username, email, password)
+      return result
     },
     [storeRegister]
   )
@@ -113,15 +106,8 @@ export function useAuth() {
    */
   const updateUser = useCallback(
     async (userData: any) => {
-      try {
-        await storeUpdateUser(userData)
-        return { success: true }
-      } catch (error) {
-        return {
-          success: false,
-          error: error instanceof Error ? error.message : '更新資料失敗',
-        }
-      }
+      const result = await storeUpdateUser(userData)
+      return result
     },
     [storeUpdateUser]
   )
