@@ -1,9 +1,16 @@
 import { create } from 'zustand'
 import { persist } from 'zustand/middleware'
 import axios from 'axios'
-import { User } from '@/lib/types'
+import {
+  User,
+  ApiResponse,
+  AuthTokenResponse,
+  RefreshTokenResponse,
+  BackendUser,
+  mapBackendUserToUser,
+} from '@/lib/types'
 import Cookies from 'js-cookie'
-import { API_BASE_URL, AUTH_TOKEN_KEY } from '@/lib/constants'
+import { API_BASE_URL, AUTH_TOKEN_KEY, AUTH_REFRESH_TOKEN_KEY } from '@/lib/constants'
 
 interface UpdateUserData {
   id?: string
@@ -53,79 +60,56 @@ export const useAuthStore = create<AuthState>()(
 
       login: async (email, password) => {
         set({ isLoading: true, error: null })
-        
-        // 測試帳號驗證
-        const TEST_CREDENTIALS = {
-          email: 'test@nobodyclimb.com',
-          password: 'test1234'
-        }
-        
-        // 檢查是否為測試帳號
-        if (email === TEST_CREDENTIALS.email && password === TEST_CREDENTIALS.password) {
-          // 模擬測試用戶登入
-          const mockUser: User = {
-            id: 'test-user-001',
-            username: 'testuser',
-            email: TEST_CREDENTIALS.email,
-            displayName: '測試用戶',
-            bio: '這是一個測試帳號，用於展示系統功能。',
-            avatar: '/images/person-poto.jpeg',
-            climbingStartYear: '2020',
-            frequentGym: '台北攀岩館',
-            favoriteRouteType: '抱石',
-            socialLinks: {
-              instagram: 'https://instagram.com/nobodyclimb',
-              facebook: 'https://facebook.com/nobodyclimb'
-            },
-            createdAt: new Date(),
-            updatedAt: new Date(),
-          }
-          
-          const mockToken = 'test-token-' + Date.now()
-          
-          // 設置 Cookie
-          Cookies.set(AUTH_TOKEN_KEY, mockToken, { expires: 7 })
-          
-          // 更新狀態
-          set({
-            user: mockUser,
-            token: mockToken,
-            isAuthenticated: true,
-            isLoading: false,
-            error: null,
-          })
-          
-          return { success: true }
-        }
-        
+
         try {
-          // 連接實際後端 API（保留原有邏輯）
-          const response = await axios.post(`${API_BASE_URL}/auth/login`, {
-            email,
-            password,
-          })
+          // Step 1: 呼叫登入 API 取得 tokens
+          const loginResponse = await axios.post<ApiResponse<AuthTokenResponse>>(
+            `${API_BASE_URL}/auth/login`,
+            { email, password }
+          )
 
-          // 從回應中獲取用戶信息和 Token
-          const { user, token } = response.data
+          if (!loginResponse.data.success || !loginResponse.data.data) {
+            throw new Error(loginResponse.data.message || '登入失敗')
+          }
 
-          // 設置 Cookie (如果後端沒有自動設置)
-          Cookies.set(AUTH_TOKEN_KEY, token, { expires: 7 })
+          const { access_token, refresh_token } = loginResponse.data.data
 
-          // 更新狀態
+          // Step 2: 儲存 tokens 到 Cookie
+          // access_token: 15 分鐘 (expires_in 是秒數，這裡用 1 天作為 cookie 過期時間，實際驗證由 JWT 控制)
+          Cookies.set(AUTH_TOKEN_KEY, access_token, { expires: 1 })
+          // refresh_token: 7 天
+          Cookies.set(AUTH_REFRESH_TOKEN_KEY, refresh_token, { expires: 7 })
+
+          // Step 3: 使用 access_token 取得用戶資料
+          const userResponse = await axios.get<ApiResponse<BackendUser>>(
+            `${API_BASE_URL}/auth/me`,
+            { headers: { Authorization: `Bearer ${access_token}` } }
+          )
+
+          if (!userResponse.data.success || !userResponse.data.data) {
+            throw new Error('無法取得用戶資料')
+          }
+
+          // Step 4: 轉換後端 User 格式為前端格式
+          const user = mapBackendUserToUser(userResponse.data.data)
+
+          // Step 5: 更新狀態
           set({
             user,
-            token,
+            token: access_token,
             isAuthenticated: true,
             isLoading: false,
             error: null,
           })
-          
+
           return { success: true }
         } catch (error) {
           // 處理錯誤
           const errorMessage = axios.isAxiosError(error)
             ? error.response?.data?.message || '登入失敗，請檢查您的帳號密碼'
-            : '登入過程中發生錯誤'
+            : error instanceof Error
+              ? error.message
+              : '登入過程中發生錯誤'
 
           set({
             error: errorMessage,
@@ -173,23 +157,39 @@ export const useAuthStore = create<AuthState>()(
       register: async (username, email, password) => {
         set({ isLoading: true, error: null })
         try {
-          // 連接實際後端 API
-          const response = await axios.post(`${API_BASE_URL}/auth/register`, {
-            username,
-            email,
-            password,
-          })
+          // Step 1: 呼叫註冊 API 取得 tokens
+          const registerResponse = await axios.post<ApiResponse<AuthTokenResponse>>(
+            `${API_BASE_URL}/auth/register`,
+            { username, email, password }
+          )
 
-          // 從回應中獲取用戶信息和 Token
-          const { user, token } = response.data
+          if (!registerResponse.data.success || !registerResponse.data.data) {
+            throw new Error(registerResponse.data.message || '註冊失敗')
+          }
 
-          // 設置 Cookie (如果後端沒有自動設置)
-          Cookies.set(AUTH_TOKEN_KEY, token, { expires: 7 })
+          const { access_token, refresh_token } = registerResponse.data.data
 
-          // 更新狀態
+          // Step 2: 儲存 tokens 到 Cookie
+          Cookies.set(AUTH_TOKEN_KEY, access_token, { expires: 1 })
+          Cookies.set(AUTH_REFRESH_TOKEN_KEY, refresh_token, { expires: 7 })
+
+          // Step 3: 使用 access_token 取得用戶資料
+          const userResponse = await axios.get<ApiResponse<BackendUser>>(
+            `${API_BASE_URL}/auth/me`,
+            { headers: { Authorization: `Bearer ${access_token}` } }
+          )
+
+          if (!userResponse.data.success || !userResponse.data.data) {
+            throw new Error('無法取得用戶資料')
+          }
+
+          // Step 4: 轉換後端 User 格式為前端格式
+          const user = mapBackendUserToUser(userResponse.data.data)
+
+          // Step 5: 更新狀態
           set({
             user,
-            token,
+            token: access_token,
             isAuthenticated: true,
             isLoading: false,
           })
@@ -197,7 +197,9 @@ export const useAuthStore = create<AuthState>()(
           // 處理錯誤
           const errorMessage = axios.isAxiosError(error)
             ? error.response?.data?.message || '註冊失敗，該 Email 可能已被使用'
-            : '註冊過程中發生錯誤'
+            : error instanceof Error
+              ? error.message
+              : '註冊過程中發生錯誤'
 
           set({
             error: errorMessage,
@@ -225,6 +227,7 @@ export const useAuthStore = create<AuthState>()(
         } finally {
           // 無論後端請求成功與否，都清除本地狀態
           Cookies.remove(AUTH_TOKEN_KEY)
+          Cookies.remove(AUTH_REFRESH_TOKEN_KEY)
 
           set({
             user: null,
@@ -237,25 +240,29 @@ export const useAuthStore = create<AuthState>()(
       updateUser: async (userData: UpdateUserData) => {
         set({ isLoading: true, error: null })
         try {
-          // 處理檔案上傳情況
-          let formData: FormData | null = null
-          let config: { headers: { 'Content-Type': string } } | undefined
+          const token = get().token
 
-          if (userData.avatar && userData.avatar instanceof File) {
-            formData = new FormData()
-            formData.append('avatar', userData.avatar)
-            config = {
-              headers: {
-                'Content-Type': 'multipart/form-data',
-              },
-            }
+          // 準備更新資料 (轉換為後端格式)
+          const updateData: Record<string, unknown> = {}
+          if (userData.displayName !== undefined) updateData.display_name = userData.displayName
+          if (userData.bio !== undefined) updateData.bio = userData.bio
+          if (userData.avatar && typeof userData.avatar === 'string') {
+            updateData.avatar_url = userData.avatar
           }
 
           // 連接實際後端 API
-          const response = await axios.put(`${API_BASE_URL}/auth/profile`, formData, config)
+          const response = await axios.put<ApiResponse<BackendUser>>(
+            `${API_BASE_URL}/auth/profile`,
+            updateData,
+            { headers: { Authorization: `Bearer ${token}` } }
+          )
 
-          // 從回應中獲取更新後的用戶信息
-          const { user } = response.data
+          if (!response.data.success || !response.data.data) {
+            throw new Error(response.data.message || '更新資料失敗')
+          }
+
+          // 轉換後端 User 格式為前端格式
+          const user = mapBackendUserToUser(response.data.data)
 
           // 更新狀態
           set({
@@ -266,7 +273,9 @@ export const useAuthStore = create<AuthState>()(
           // 處理錯誤
           const errorMessage = axios.isAxiosError(error)
             ? error.response?.data?.message || '更新資料失敗'
-            : '更新資料過程中發生錯誤'
+            : error instanceof Error
+              ? error.message
+              : '更新資料過程中發生錯誤'
 
           set({
             error: errorMessage,
@@ -279,18 +288,42 @@ export const useAuthStore = create<AuthState>()(
 
       refreshToken: async () => {
         try {
+          // 從 Cookie 取得 refresh_token
+          const refreshToken = Cookies.get(AUTH_REFRESH_TOKEN_KEY)
+
+          if (!refreshToken) {
+            throw new Error('No refresh token available')
+          }
+
           // 向後端 API 請求刷新 Token
-          const response = await axios.post(`${API_BASE_URL}/auth/refresh-token`)
+          const response = await axios.post<ApiResponse<RefreshTokenResponse>>(
+            `${API_BASE_URL}/auth/refresh-token`,
+            { refresh_token: refreshToken }
+          )
 
-          // 從回應中獲取新的 Token
-          const { token, user } = response.data
+          if (!response.data.success || !response.data.data) {
+            throw new Error('Token refresh failed')
+          }
 
-          // 設置新的 Cookie
-          Cookies.set(AUTH_TOKEN_KEY, token, { expires: 7 })
+          const { access_token } = response.data.data
+
+          // 設置新的 access_token Cookie
+          Cookies.set(AUTH_TOKEN_KEY, access_token, { expires: 1 })
+
+          // 取得最新的用戶資料
+          const userResponse = await axios.get<ApiResponse<BackendUser>>(
+            `${API_BASE_URL}/auth/me`,
+            { headers: { Authorization: `Bearer ${access_token}` } }
+          )
+
+          let user = get().user
+          if (userResponse.data.success && userResponse.data.data) {
+            user = mapBackendUserToUser(userResponse.data.data)
+          }
 
           // 更新狀態
           set({
-            token,
+            token: access_token,
             user,
             isAuthenticated: true,
           })
@@ -299,6 +332,7 @@ export const useAuthStore = create<AuthState>()(
         } catch (error) {
           // Token 刷新失敗，用戶需要重新登入
           Cookies.remove(AUTH_TOKEN_KEY)
+          Cookies.remove(AUTH_REFRESH_TOKEN_KEY)
 
           set({
             user: null,

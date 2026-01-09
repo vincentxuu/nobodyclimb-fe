@@ -162,6 +162,55 @@ export interface ApiResponse<T = any> {
 }
 
 /**
+ * 後端認證 Token 回應介面
+ */
+export interface AuthTokenResponse {
+  access_token: string
+  refresh_token: string
+  expires_in: number
+}
+
+/**
+ * 後端 Refresh Token 回應介面
+ */
+export interface RefreshTokenResponse {
+  access_token: string
+  expires_in: number
+}
+
+/**
+ * 後端 User 資料格式 (snake_case)
+ */
+export interface BackendUser {
+  id: string
+  email: string
+  username: string
+  display_name?: string
+  avatar_url?: string
+  bio?: string
+  role: 'user' | 'admin' | 'moderator'
+  is_active?: number
+  email_verified?: number
+  created_at: string
+  updated_at?: string
+}
+
+/**
+ * 將後端 User 格式轉換為前端格式
+ */
+export function mapBackendUserToUser(backendUser: BackendUser): User {
+  return {
+    id: backendUser.id,
+    email: backendUser.email,
+    username: backendUser.username,
+    displayName: backendUser.display_name,
+    avatar: backendUser.avatar_url,
+    bio: backendUser.bio,
+    createdAt: new Date(backendUser.created_at),
+  }
+}
+
+/**
  * 人物誌介面
  */
 export interface Biography {

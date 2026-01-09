@@ -1,6 +1,7 @@
 import axios from 'axios'
 import Cookies from 'js-cookie'
-import { API_BASE_URL, AUTH_TOKEN_KEY } from '../constants'
+import { API_BASE_URL, AUTH_TOKEN_KEY, AUTH_REFRESH_TOKEN_KEY } from '../constants'
+import { ApiResponse, RefreshTokenResponse } from '../types'
 
 /**
  * 創建一個 Axios 實例用於 API 請求
@@ -47,19 +48,35 @@ apiClient.interceptors.response.use(
       originalRequest._retry = true
 
       try {
-        // 嘗試刷新 Token
-        const response = await axios.post(`${API_BASE_URL}/auth/refresh-token`)
-        const { token } = response.data
+        // 從 Cookie 取得 refresh_token
+        const refreshToken = Cookies.get(AUTH_REFRESH_TOKEN_KEY)
 
-        // 保存新的 Token
-        Cookies.set(AUTH_TOKEN_KEY, token)
+        if (!refreshToken) {
+          throw new Error('No refresh token available')
+        }
+
+        // 嘗試刷新 Token
+        const response = await axios.post<ApiResponse<RefreshTokenResponse>>(
+          `${API_BASE_URL}/auth/refresh-token`,
+          { refresh_token: refreshToken }
+        )
+
+        if (!response.data.success || !response.data.data) {
+          throw new Error('Token refresh failed')
+        }
+
+        const { access_token } = response.data.data
+
+        // 保存新的 access_token
+        Cookies.set(AUTH_TOKEN_KEY, access_token, { expires: 1 })
 
         // 使用新的 Token 重試原始請求
-        originalRequest.headers.Authorization = `Bearer ${token}`
+        originalRequest.headers.Authorization = `Bearer ${access_token}`
         return apiClient(originalRequest)
       } catch (refreshError) {
         // 刷新 Token 失敗，清除認證資訊
         Cookies.remove(AUTH_TOKEN_KEY)
+        Cookies.remove(AUTH_REFRESH_TOKEN_KEY)
 
         // 如果在瀏覽器環境且不是請求刷新 Token 的請求
         if (typeof window !== 'undefined' && !originalRequest.url.includes('refresh-token')) {
