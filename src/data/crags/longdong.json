@@ -12,8 +12,8 @@
       "latitude": 25.1078,
       "longitude": 121.9188
     },
-    "description": "台灣最知名的海蝕岩場，擁有超過500條攀岩路線，是台灣攀岩運動的發源地之一。龍洞岩場以其獨特的砂岩地形、壯觀的海岸景色和豐富的路線選擇聞名，適合各種程度的攀岩者。",
-    "descriptionEn": "Taiwan's most famous sea cliff climbing area with over 500 routes. Long Dong is one of the birthplaces of rock climbing in Taiwan, known for its unique sandstone formations, spectacular coastal scenery, and diverse route selection suitable for climbers of all levels.",
+    "description": "台灣最知名的海蝕岩場，擁有543條攀岩路線，是台灣攀岩運動的發源地之一。龍洞岩場以其獨特的砂岩地形、壯觀的海岸景色和豐富的路線選擇聞名，適合各種程度的攀岩者。",
+    "descriptionEn": "Taiwan's most famous sea cliff climbing area with 543 routes. Long Dong is one of the birthplaces of rock climbing in Taiwan, known for its unique sandstone formations, spectacular coastal scenery, and diverse route selection suitable for climbers of all levels.",
     "videoUrl": "https://www.youtube.com/embed/dQw4w9WgXcQ",
     "images": [
       "/images/crag/longdong-1.jpg",
@@ -24,7 +24,7 @@
     "type": "sport",
     "rockType": "砂岩",
     "rockTypeEn": "Sandstone",
-    "routesCount": 500,
+    "routesCount": 543,
     "difficulty": {
       "min": "5.4",
       "max": "5.14a"
@@ -683,27 +683,27 @@
     }
   ],
   "statistics": {
-    "totalRoutes": 500,
-    "totalBolts": 1000,
+    "totalRoutes": 543,
+    "totalBolts": 1171,
     "routesByType": {
-      "sport": 150,
-      "trad": 280,
-      "toprope": 50,
-      "boulder": 20
+      "sport": 163,
+      "trad": 304,
+      "toprope": 54,
+      "boulder": 22
     },
     "routesByGrade": {
-      "5.4-5.6": 50,
-      "5.7-5.9": 150,
-      "5.10a-5.10d": 120,
-      "5.11a-5.11d": 100,
-      "5.12a-5.12d": 60,
-      "5.13a-5.13d": 15,
+      "5.4-5.6": 54,
+      "5.7-5.9": 163,
+      "5.10a-5.10d": 130,
+      "5.11a-5.11d": 109,
+      "5.12a-5.12d": 65,
+      "5.13a-5.13d": 17,
       "5.14a+": 5
     },
     "boltsByMaterial": {
-      "316-TW": 500,
-      "316-FX": 50,
-      "Ti-ETN": 200,
+      "316-TW": 600,
+      "316-FX": 71,
+      "Ti-ETN": 250,
       "Ti-U": 150,
       "Ti-TW": 100
     }

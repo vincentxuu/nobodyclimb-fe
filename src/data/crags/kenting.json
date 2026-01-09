@@ -12,8 +12,8 @@
       "latitude": 21.9301894,
       "longitude": 120.8265521
     },
-    "description": "墾丁岩場位於船帆石東北側的海岸林中，是台灣南部重要的運動攀登場地。岩場以珊瑚礁石灰岩為主，擁有超過100條路線。由於地點較為敏感，請保持低調。岩場內有多個攀登區域，從5.6到5.14a都有路線。最佳攀登季節為10月至隔年4月，夏天請選擇有風的日子前往。",
-    "descriptionEn": "Kenting climbing area is located in the coastal forest northeast of Sail Rock, an important sport climbing destination in southern Taiwan. The crag features coral reef limestone with over 100 routes. Please keep a low profile due to the sensitive location. The crag has multiple climbing areas with routes ranging from 5.6 to 5.14a. Best climbing season is October to April. In summer, visit when it's windy.",
+    "description": "墾丁岩場位於船帆石東北側的海岸林中，是台灣南部重要的運動攀登場地。岩場以珊瑚礁石灰岩為主，擁有94條路線。由於地點較為敏感，請保持低調。岩場內有多個攀登區域，從5.6到5.14a都有路線。最佳攀登季節為10月至隔年4月，夏天請選擇有風的日子前往。",
+    "descriptionEn": "Kenting climbing area is located in the coastal forest northeast of Sail Rock, an important sport climbing destination in southern Taiwan. The crag features coral reef limestone with 94 routes. Please keep a low profile due to the sensitive location. The crag has multiple climbing areas with routes ranging from 5.6 to 5.14a. Best climbing season is October to April. In summer, visit when it's windy.",
     "videoUrl": "",
     "images": [
       "/images/crag/kenting-1.jpg",
@@ -24,7 +24,7 @@
     "type": "sport",
     "rockType": "珊瑚礁石灰岩",
     "rockTypeEn": "Coral Reef Limestone",
-    "routesCount": 100,
+    "routesCount": 94,
     "difficulty": {
       "min": "5.6",
       "max": "5.14a"
@@ -292,23 +292,23 @@
     }
   ],
   "statistics": {
-    "totalRoutes": 100,
-    "totalBolts": 500,
+    "totalRoutes": 94,
+    "totalBolts": 430,
     "routesByType": {
-      "sport": 95,
-      "trad": 5
+      "sport": 90,
+      "trad": 4
     },
     "routesByGrade": {
-      "5.6-5.9": 15,
-      "5.10a-5.10d": 25,
-      "5.11a-5.11d": 25,
-      "5.12a-5.12d": 25,
-      "5.13a-5.13d": 8,
+      "5.6-5.9": 14,
+      "5.10a-5.10d": 24,
+      "5.11a-5.11d": 24,
+      "5.12a-5.12d": 24,
+      "5.13a-5.13d": 6,
       "5.14a": 2
     },
     "boltsByMaterial": {
-      "Stainless Steel": 450,
-      "Titanium": 50
+      "Stainless Steel": 390,
+      "Titanium": 40
     }
   },
   "metadata": {

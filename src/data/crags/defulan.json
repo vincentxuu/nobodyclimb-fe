@@ -24,7 +24,7 @@
     "type": "sport",
     "rockType": "石灰岩",
     "rockTypeEn": "Limestone",
-    "routesCount": 50,
+    "routesCount": 58,
     "difficulty": {
       "min": "5.6",
       "max": "5.12b"
@@ -285,17 +285,17 @@
     }
   ],
   "statistics": {
-    "totalRoutes": 50,
+    "totalRoutes": 58,
     "totalBolts": 320,
     "routesByType": {
-      "sport": 40,
+      "sport": 48,
       "trad": 10
     },
     "routesByGrade": {
-      "5.6-5.8": 8,
-      "5.9-5.10d": 22,
-      "5.11a-5.11d": 12,
-      "5.12a-5.12b": 8
+      "5.6-5.8": 10,
+      "5.9-5.10d": 25,
+      "5.11a-5.11d": 14,
+      "5.12a-5.12b": 9
     },
     "boltsByMaterial": {
       "Stainless Steel": 280,
