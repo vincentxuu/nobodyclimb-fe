@@ -1,47 +1,216 @@
 'use client'
 
 import { useParams, useRouter } from 'next/navigation'
-import { mockArticles } from '@/mocks/articles'
+import { useState, useEffect, useCallback } from 'react'
 import Image from 'next/image'
 import Link from 'next/link'
 import { Chip } from '@/components/ui/chip'
 import { Button } from '@/components/ui/button'
-import { ArrowLeft, ArrowRight } from 'lucide-react'
+import { ArrowLeft, ArrowRight, Heart, Eye, Loader2, Share2 } from 'lucide-react'
 import { Breadcrumb } from '@/components/ui/breadcrumb'
+import { CommentSection } from '@/components/blog/CommentSection'
+import { postService } from '@/lib/api/services'
+import { useToast } from '@/components/ui/use-toast'
+import { mockArticles } from '@/mocks/articles'
+
+// 文章類型定義 - 後端返回格式
+interface PostData {
+  id: string
+  author_id: string
+  title: string
+  slug: string
+  excerpt: string | null
+  content: string
+  cover_image: string | null
+  status: 'draft' | 'published' | 'archived'
+  is_featured: number
+  view_count: number
+  published_at: string | null
+  created_at: string
+  updated_at: string
+  tags?: string[]
+  username?: string
+  display_name?: string
+  author_avatar?: string
+}
+
+// 載入狀態元件
+const LoadingState = () => (
+  <div className="flex min-h-screen items-center justify-center bg-[#F5F5F5]">
+    <Loader2 className="h-8 w-8 animate-spin text-[#6D6C6C]" />
+    <span className="ml-2 text-[#6D6C6C]">載入中...</span>
+  </div>
+)
+
+// 錯誤狀態元件
+const ErrorState = ({ message }: { message: string }) => (
+  <div className="flex min-h-screen flex-col items-center justify-center bg-[#F5F5F5]">
+    <p className="mb-4 text-lg text-red-600">{message}</p>
+    <Link href="/blog">
+      <Button className="bg-[#1B1A1A] text-white hover:bg-[#3F3D3D]">返回文章列表</Button>
+    </Link>
+  </div>
+)
 
 export default function BlogDetail() {
   const params = useParams()
   const router = useRouter()
+  const { toast } = useToast()
   const id = params.id as string
 
-  // Find current article
-  const currentArticle = mockArticles.find((article) => article.id === id)
+  const [article, setArticle] = useState<PostData | null>(null)
+  const [isLoading, setIsLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
+  const [isLiked, setIsLiked] = useState(false)
+  const [likeCount, setLikeCount] = useState(0)
+  const [isLiking, setIsLiking] = useState(false)
 
-  if (!currentArticle) {
-    return <div>Article not found</div>
+  // 獲取文章詳情
+  const fetchArticle = useCallback(async () => {
+    setIsLoading(true)
+    setError(null)
+    try {
+      const response = await postService.getPostById(id)
+      if (response.success && response.data) {
+        setArticle(response.data as unknown as PostData)
+      } else {
+        // 如果 API 失敗，嘗試使用 mock 數據
+        const mockArticle = mockArticles.find((a) => a.id === id)
+        if (mockArticle) {
+          setArticle({
+            id: mockArticle.id,
+            author_id: '',
+            title: mockArticle.title,
+            slug: mockArticle.id,
+            excerpt: mockArticle.description || null,
+            content: mockArticle.content,
+            cover_image: mockArticle.imageUrl,
+            status: 'published',
+            is_featured: mockArticle.isFeature ? 1 : 0,
+            view_count: 0,
+            published_at: mockArticle.date,
+            created_at: mockArticle.date,
+            updated_at: mockArticle.date,
+            tags: [mockArticle.category],
+          })
+        } else {
+          setError('找不到文章')
+        }
+      }
+    } catch (err) {
+      console.error('Failed to fetch article:', err)
+      // 嘗試使用 mock 數據
+      const mockArticle = mockArticles.find((a) => a.id === id)
+      if (mockArticle) {
+        setArticle({
+          id: mockArticle.id,
+          author_id: '',
+          title: mockArticle.title,
+          slug: mockArticle.id,
+          excerpt: mockArticle.description || null,
+          content: mockArticle.content,
+          cover_image: mockArticle.imageUrl,
+          status: 'published',
+          is_featured: mockArticle.isFeature ? 1 : 0,
+          view_count: 0,
+          published_at: mockArticle.date,
+          created_at: mockArticle.date,
+          updated_at: mockArticle.date,
+          tags: [mockArticle.category],
+        })
+      } else {
+        setError('無法載入文章')
+      }
+    } finally {
+      setIsLoading(false)
+    }
+  }, [id])
+
+  useEffect(() => {
+    fetchArticle()
+  }, [fetchArticle])
+
+  // 處理點讚
+  const handleLike = async () => {
+    if (isLiking) return
+
+    setIsLiking(true)
+    try {
+      const response = await postService.toggleLike(id)
+      if (response.success && response.data) {
+        setIsLiked(response.data.liked)
+        setLikeCount(response.data.likes)
+        toast({
+          title: response.data.liked ? '已收藏' : '已取消收藏',
+        })
+      }
+    } catch (err) {
+      console.error('Failed to toggle like:', err)
+      // 本地切換狀態
+      setIsLiked(!isLiked)
+      setLikeCount((prev) => (isLiked ? prev - 1 : prev + 1))
+    } finally {
+      setIsLiking(false)
+    }
   }
 
-  // Find previous and next articles
-  const currentIndex = mockArticles.findIndex((article) => article.id === id)
+  // 處理分享
+  const handleShare = async () => {
+    const url = window.location.href
+    if (navigator.share) {
+      try {
+        await navigator.share({
+          title: article?.title,
+          url,
+        })
+      } catch (err) {
+        // 用戶取消分享
+      }
+    } else {
+      // 複製連結
+      await navigator.clipboard.writeText(url)
+      toast({
+        title: '連結已複製',
+        description: '文章連結已複製到剪貼簿',
+      })
+    }
+  }
+
+  if (isLoading) {
+    return <LoadingState />
+  }
+
+  if (error || !article) {
+    return <ErrorState message={error || '找不到文章'} />
+  }
+
+  // 使用 mock 數據獲取上一篇/下一篇
+  const currentIndex = mockArticles.findIndex((a) => a.id === id)
   const prevArticle = currentIndex > 0 ? mockArticles[currentIndex - 1] : null
   const nextArticle = currentIndex < mockArticles.length - 1 ? mockArticles[currentIndex + 1] : null
 
-  // Find exactly 3 related articles (excluding current article)
+  // 獲取相關文章
+  const category = article.tags?.[0] || ''
   const relatedArticles = mockArticles
-    .filter((article) => article.id !== id && article.category === currentArticle.category)
-    .sort(() => Math.random() - 0.5) // Randomly shuffle the articles
+    .filter((a) => a.id !== id && a.category === category)
     .slice(0, 3)
 
-  // If we don't have enough related articles, fill with articles from other categories
+  // 如果相關文章不足3篇，從其他類別補充
   if (relatedArticles.length < 3) {
-    const remainingCount = 3 - relatedArticles.length
     const otherArticles = mockArticles
-      .filter((article) => article.id !== id && article.category !== currentArticle.category)
-      .sort(() => Math.random() - 0.5)
-      .slice(0, remainingCount)
-
+      .filter((a) => a.id !== id && a.category !== category)
+      .slice(0, 3 - relatedArticles.length)
     relatedArticles.push(...otherArticles)
   }
+
+  // 格式化日期
+  const formattedDate = article.published_at
+    ? new Date(article.published_at).toLocaleDateString('zh-TW', {
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric',
+      })
+    : article.created_at
 
   return (
     <div className="min-h-screen bg-[#F5F5F5]">
@@ -52,7 +221,7 @@ export default function BlogDetail() {
             items={[
               { label: '首頁', href: '/' },
               { label: '部落格', href: '/blog' },
-              { label: currentArticle.title },
+              { label: article.title },
             ]}
           />
         </div>
@@ -62,85 +231,88 @@ export default function BlogDetail() {
           <div className="rounded-lg bg-white p-8 lg:p-16">
             {/* Article Header */}
             <div className="mb-8 flex flex-col items-start justify-between gap-4 sm:flex-row">
-              <div>
-                <h1 className="mb-3 text-2xl font-medium sm:text-3xl">{currentArticle.title}</h1>
-                <div className="flex items-center gap-3">
+              <div className="flex-1">
+                <h1 className="mb-3 text-2xl font-medium sm:text-3xl">{article.title}</h1>
+                <div className="flex flex-wrap items-center gap-3">
+                  {article.tags && article.tags.length > 0 && (
+                    <Chip>{article.tags[0]}</Chip>
+                  )}
                   <span className="text-sm text-gray-500">更新日期</span>
-                  <span className="text-sm text-gray-500">{currentArticle.date}</span>
+                  <span className="text-sm text-gray-500">{formattedDate}</span>
+                  <span className="flex items-center gap-1 text-sm text-gray-500">
+                    <Eye size={14} />
+                    {article.view_count}
+                  </span>
                 </div>
               </div>
-              <Button
-                onClick={() => router.push(`/blog/edit/${id}`)}
-                className="w-full bg-[#1B1A1A] text-white hover:bg-[#333] sm:w-auto"
-              >
-                編輯文章
-              </Button>
+              <div className="flex gap-2">
+                <Button
+                  variant="outline"
+                  onClick={handleLike}
+                  disabled={isLiking}
+                  className={`${
+                    isLiked
+                      ? 'border-red-300 bg-red-50 text-red-600'
+                      : 'border-gray-300 text-gray-600 hover:bg-gray-50'
+                  }`}
+                >
+                  <Heart
+                    size={18}
+                    className={`mr-1 ${isLiked ? 'fill-red-600' : ''}`}
+                  />
+                  {likeCount > 0 ? likeCount : '收藏'}
+                </Button>
+                <Button
+                  variant="outline"
+                  onClick={handleShare}
+                  className="border-gray-300 text-gray-600 hover:bg-gray-50"
+                >
+                  <Share2 size={18} className="mr-1" />
+                  分享
+                </Button>
+                <Button
+                  onClick={() => router.push(`/blog/edit/${id}`)}
+                  className="bg-[#1B1A1A] text-white hover:bg-[#333]"
+                >
+                  編輯文章
+                </Button>
+              </div>
             </div>
 
             {/* Main Image */}
-            <div className="relative mb-8 aspect-[16/9]">
-              <Image
-                src={currentArticle.imageUrl}
-                alt={currentArticle.title}
-                fill
-                className="rounded-lg object-cover"
-              />
-            </div>
+            {article.cover_image && (
+              <div className="relative mb-8 aspect-[16/9]">
+                <Image
+                  src={article.cover_image}
+                  alt={article.title}
+                  fill
+                  className="rounded-lg object-cover"
+                />
+              </div>
+            )}
 
             {/* Article Content */}
             <div className="space-y-6">
-              {currentArticle.equipment ? (
-                <>
-                  <section>
-                    <h2 className="mb-1 font-medium text-orange-500">裝備名稱</h2>
-                    <div className="mb-4 h-px bg-gray-200" />
-                    <p className="text-gray-800">{currentArticle.equipment.name}</p>
-                  </section>
-
-                  <section>
-                    <h2 className="mb-1 font-medium text-orange-500">用途說明</h2>
-                    <div className="mb-4 h-px bg-gray-200" />
-                    <p className="text-gray-800">{currentArticle.equipment.usage}</p>
-                  </section>
-
-                  <section>
-                    <h2 className="mb-1 font-medium text-orange-500">常見款式</h2>
-                    <div className="mb-4 h-px bg-gray-200" />
-                    <p className="mb-4 text-gray-800">{currentArticle.equipment.commonTypes}</p>
-                    {currentArticle.images && (
-                      <div className="grid grid-cols-2 gap-2 md:grid-cols-4">
-                        {currentArticle.images.map((image, index) => (
-                          <div key={index} className="relative aspect-square">
-                            <Image
-                              src={image}
-                              alt={`Style ${index + 1}`}
-                              fill
-                              className="rounded object-cover"
-                            />
-                          </div>
-                        ))}
-                      </div>
-                    )}
-                  </section>
-
-                  <section>
-                    <h2 className="mb-1 font-medium text-orange-500">購買方式</h2>
-                    <div className="mb-4 h-px bg-gray-200" />
-                    <p className="text-gray-800">{currentArticle.equipment.purchaseInfo}</p>
-                  </section>
-
-                  <section>
-                    <h2 className="mb-1 font-medium text-orange-500">推薦程度</h2>
-                    <div className="mb-4 h-px bg-gray-200" />
-                    <p className="text-gray-800">{currentArticle.equipment.recommendation}</p>
-                  </section>
-                </>
-              ) : (
+              {article.excerpt && (
                 <section>
-                  <p className="whitespace-pre-wrap text-gray-800">{currentArticle.content}</p>
+                  <p className="text-lg text-gray-600 italic">{article.excerpt}</p>
                 </section>
               )}
+              <section>
+                <p className="whitespace-pre-wrap text-gray-800">{article.content}</p>
+              </section>
             </div>
+
+            {/* Tags */}
+            {article.tags && article.tags.length > 0 && (
+              <div className="mt-8 flex flex-wrap gap-2">
+                {article.tags.map((tag) => (
+                  <Link key={tag} href={`/blog?tag=${encodeURIComponent(tag)}`}>
+                    <Chip className="cursor-pointer hover:bg-gray-200">{tag}</Chip>
+                  </Link>
+                ))}
+              </div>
+            )}
 
             {/* Navigation */}
             <div className="mt-12 flex flex-col justify-between gap-4 sm:flex-row sm:gap-8">
@@ -177,6 +349,9 @@ export default function BlogDetail() {
                 </Link>
               )}
             </div>
+
+            {/* Comment Section */}
+            <CommentSection postId={id} isLoggedIn={false} />
           </div>
 
           {/* Sidebar */}
@@ -185,36 +360,46 @@ export default function BlogDetail() {
             <div>
               <h2 className="mb-4 text-2xl font-medium">文章分類</h2>
               <div className="overflow-hidden rounded-lg bg-white">
-                <Button
-                  variant="ghost"
-                  className="w-full justify-start px-5 py-3 font-medium hover:bg-gray-50"
-                >
-                  所有文章
-                </Button>
-                <Button
-                  variant="ghost"
-                  className="w-full justify-start px-5 py-3 font-medium text-gray-500 hover:bg-gray-50"
-                >
-                  裝備介紹
-                </Button>
-                <Button
-                  variant="ghost"
-                  className="w-full justify-start px-5 py-3 font-medium text-gray-500 hover:bg-gray-50"
-                >
-                  技巧介紹
-                </Button>
-                <Button
-                  variant="ghost"
-                  className="w-full justify-start px-5 py-3 font-medium text-gray-500 hover:bg-gray-50"
-                >
-                  技術研究
-                </Button>
-                <Button
-                  variant="ghost"
-                  className="w-full justify-start px-5 py-3 font-medium text-gray-500 hover:bg-gray-50"
-                >
-                  比賽介紹
-                </Button>
+                <Link href="/blog">
+                  <Button
+                    variant="ghost"
+                    className="w-full justify-start px-5 py-3 font-medium hover:bg-gray-50"
+                  >
+                    所有文章
+                  </Button>
+                </Link>
+                <Link href="/blog?category=equipment">
+                  <Button
+                    variant="ghost"
+                    className="w-full justify-start px-5 py-3 font-medium text-gray-500 hover:bg-gray-50"
+                  >
+                    裝備介紹
+                  </Button>
+                </Link>
+                <Link href="/blog?category=technique">
+                  <Button
+                    variant="ghost"
+                    className="w-full justify-start px-5 py-3 font-medium text-gray-500 hover:bg-gray-50"
+                  >
+                    技巧介紹
+                  </Button>
+                </Link>
+                <Link href="/blog?category=research">
+                  <Button
+                    variant="ghost"
+                    className="w-full justify-start px-5 py-3 font-medium text-gray-500 hover:bg-gray-50"
+                  >
+                    技術研究
+                  </Button>
+                </Link>
+                <Link href="/blog?category=competition">
+                  <Button
+                    variant="ghost"
+                    className="w-full justify-start px-5 py-3 font-medium text-gray-500 hover:bg-gray-50"
+                  >
+                    比賽介紹
+                  </Button>
+                </Link>
               </div>
             </div>
 
@@ -222,16 +407,16 @@ export default function BlogDetail() {
             <div>
               <h2 className="mb-4 text-2xl font-medium">熱門文章</h2>
               <div className="space-y-4">
-                {mockArticles.slice(0, 4).map((article) => (
+                {mockArticles.slice(0, 4).map((popularArticle) => (
                   <Link
-                    key={article.id}
-                    href={`/blog/${article.id}`}
+                    key={popularArticle.id}
+                    href={`/blog/${popularArticle.id}`}
                     className="block rounded-lg border-b border-gray-200 bg-white p-5 transition-colors hover:bg-gray-50"
                   >
-                    <h3 className="mb-2 font-medium">{article.title}</h3>
+                    <h3 className="mb-2 font-medium">{popularArticle.title}</h3>
                     <div className="flex items-center gap-3">
-                      <Chip>{article.category}</Chip>
-                      <span className="text-sm text-gray-500">{article.date}</span>
+                      <Chip>{popularArticle.category}</Chip>
+                      <span className="text-sm text-gray-500">{popularArticle.date}</span>
                     </div>
                   </Link>
                 ))}
@@ -244,23 +429,28 @@ export default function BlogDetail() {
         <div className="mx-auto max-w-[1440px]">
           <h2 className="mb-8 text-2xl font-medium">相關文章</h2>
           <div className="grid grid-cols-1 gap-6 md:grid-cols-3">
-            {relatedArticles.map((article) => (
+            {relatedArticles.map((relatedArticle) => (
               <Link
-                key={article.id}
-                href={`/blog/${article.id}`}
+                key={relatedArticle.id}
+                href={`/blog/${relatedArticle.id}`}
                 className="block overflow-hidden rounded-lg bg-white transition-shadow hover:shadow-lg"
               >
                 <div className="relative aspect-[16/9]">
-                  <Image src={article.imageUrl} alt={article.title} fill className="object-cover" />
+                  <Image
+                    src={relatedArticle.imageUrl}
+                    alt={relatedArticle.title}
+                    fill
+                    className="object-cover"
+                  />
                 </div>
                 <div className="p-6">
-                  <h3 className="mb-2 font-medium">{article.title}</h3>
+                  <h3 className="mb-2 font-medium">{relatedArticle.title}</h3>
                   <div className="mb-2 flex items-center gap-3">
-                    <Chip>{article.category}</Chip>
-                    <span className="text-sm text-gray-500">{article.date}</span>
+                    <Chip>{relatedArticle.category}</Chip>
+                    <span className="text-sm text-gray-500">{relatedArticle.date}</span>
                   </div>
                   <p className="line-clamp-3 text-sm text-gray-500">
-                    {article.description || article.content}
+                    {relatedArticle.description || relatedArticle.content}
                   </p>
                 </div>
               </Link>
