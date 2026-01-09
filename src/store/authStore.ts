@@ -259,6 +259,9 @@ export const useAuthStore = create<AuthState>()(
           if (userData.avatar && typeof userData.avatar === 'string') {
             updateData.avatar_url = userData.avatar
           }
+          if (userData.climbingStartYear !== undefined) updateData.climbing_start_year = userData.climbingStartYear
+          if (userData.frequentGym !== undefined) updateData.frequent_gym = userData.frequentGym
+          if (userData.favoriteRouteType !== undefined) updateData.favorite_route_type = userData.favoriteRouteType
 
           // 連接實際後端 API
           const response = await axios.put<ApiResponse<BackendUser>>(

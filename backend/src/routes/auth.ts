@@ -208,7 +208,7 @@ authRoutes.get('/me', authMiddleware, async (c) => {
   const userId = c.get('userId');
 
   const user = await c.env.DB.prepare(
-    `SELECT id, email, username, display_name, avatar_url, bio, role, created_at
+    `SELECT id, email, username, display_name, avatar_url, bio, climbing_start_year, frequent_gym, favorite_route_type, role, created_at
      FROM users WHERE id = ?`
   )
     .bind(userId)
@@ -238,6 +238,9 @@ authRoutes.put('/profile', authMiddleware, async (c) => {
     display_name?: string;
     bio?: string;
     avatar_url?: string;
+    climbing_start_year?: string;
+    frequent_gym?: string;
+    favorite_route_type?: string;
   }>();
 
   const updates: string[] = [];
@@ -254,6 +257,18 @@ authRoutes.put('/profile', authMiddleware, async (c) => {
   if (body.avatar_url !== undefined) {
     updates.push('avatar_url = ?');
     values.push(body.avatar_url);
+  }
+  if (body.climbing_start_year !== undefined) {
+    updates.push('climbing_start_year = ?');
+    values.push(body.climbing_start_year);
+  }
+  if (body.frequent_gym !== undefined) {
+    updates.push('frequent_gym = ?');
+    values.push(body.frequent_gym);
+  }
+  if (body.favorite_route_type !== undefined) {
+    updates.push('favorite_route_type = ?');
+    values.push(body.favorite_route_type);
   }
 
   if (updates.length === 0) {
@@ -277,7 +292,7 @@ authRoutes.put('/profile', authMiddleware, async (c) => {
     .run();
 
   const user = await c.env.DB.prepare(
-    `SELECT id, email, username, display_name, avatar_url, bio, role, created_at
+    `SELECT id, email, username, display_name, avatar_url, bio, climbing_start_year, frequent_gym, favorite_route_type, role, created_at
      FROM users WHERE id = ?`
   )
     .bind(userId)
