@@ -38,7 +38,7 @@ const nextConfig = {
   
   // 環境變量
   env: {
-    NEXT_PUBLIC_API_URL: process.env.NEXT_PUBLIC_API_URL || 'https://api.nobodyclimb.com',
+    NEXT_PUBLIC_API_URL: process.env.NEXT_PUBLIC_API_URL || 'https://api.nobodyclimb.cc/api/v1',
   },
 }
 
