@@ -13,19 +13,7 @@
   "assets": {
     "directory": ".open-next/assets",
     "binding": "ASSETS",
-    "run_worker_first": [
-      "/_next/data/*",
-      "/api/*",
-      "/auth/*",
-      "/biography/*",
-      "/blog/*",
-      "/crag/*",
-      "/gym/*",
-      "/gallery/*",
-      "/profile/*",
-      "/search/*",
-      "/"
-    ]
+    "run_worker_first": true
   },
   "env": {
     "production": {

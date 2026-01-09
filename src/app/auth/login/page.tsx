@@ -59,11 +59,6 @@ export default function LoginPage() {
           <div className="space-y-2 text-center">
             <h1 className="text-3xl font-bold">歡迎回來</h1>
             <p className="text-muted-foreground">登入您的帳號以繼續</p>
-            <div className="rounded-md bg-blue-50 p-3 text-sm text-blue-700">
-              <p className="font-medium">測試帳號</p>
-              <p>帳號：test@nobodyclimb.com</p>
-              <p>密碼：test1234</p>
-            </div>
           </div>
 
           {error && (

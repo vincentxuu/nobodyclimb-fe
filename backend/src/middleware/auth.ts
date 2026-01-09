@@ -3,16 +3,12 @@ import { createMiddleware } from 'hono/factory';
 import * as jose from 'jose';
 import { Env, JwtPayload } from '../types';
 
-// Development fallback secret (DO NOT use in production!)
-const DEV_JWT_SECRET = 'dev-only-secret-do-not-use-in-production-32chars';
-
-// Get JWT secret with fallback for development
+// Get JWT secret
 function getJwtSecret(env: Env): Uint8Array {
-  const secret = env.JWT_SECRET || DEV_JWT_SECRET;
   if (!env.JWT_SECRET) {
-    console.warn('WARNING: JWT_SECRET not set, using development fallback. DO NOT use in production!');
+    throw new Error('JWT_SECRET is not configured');
   }
-  return new TextEncoder().encode(secret);
+  return new TextEncoder().encode(env.JWT_SECRET);
 }
 
 // Extend Hono context with user info
