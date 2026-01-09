@@ -1,31 +1,49 @@
-import { NextRequest } from 'next/server'
-import fs from 'fs'
-import path from 'path'
+import { NextRequest, NextResponse } from 'next/server'
 
-// 从 public/data 读取静态文件，避免打包进 bundle
-export async function GET(_request: NextRequest) {
+/**
+ * Videos API Route
+ *
+ * 此 API 重定向到靜態 JSON 檔案，以兼容 Cloudflare Workers 環境
+ * Workers 環境中沒有檔案系統存取，因此直接使用 /data/videos.json
+ */
+export async function GET(request: NextRequest) {
   try {
-    // 读取 public/data/videos.json（静态资源，不打包进 bundle）
-    const filePath = path.join(process.cwd(), 'public', 'data', 'videos.json')
-    const fileContent = fs.readFileSync(filePath, 'utf8')
-    const videosData = JSON.parse(fileContent)
+    // 獲取請求的完整 URL
+    const url = new URL(request.url)
 
-    console.log('Loaded videos from public/data/videos.json, count:', videosData.length)
+    // 構建靜態檔案 URL
+    const staticFileUrl = `${url.protocol}//${url.host}/data/videos.json`
 
-    return new Response(JSON.stringify(videosData), {
+    // Fetch 靜態檔案（適用於所有環境，包括 Workers）
+    const response = await fetch(staticFileUrl, {
+      // 添加快取控制
+      next: { revalidate: 3600 } // 1小時重新驗證
+    })
+
+    if (!response.ok) {
+      throw new Error(`Failed to fetch videos: ${response.status}`)
+    }
+
+    const videosData = await response.json() as unknown[]
+
+    console.log('Loaded videos, count:', videosData.length)
+
+    return NextResponse.json(videosData, {
       headers: {
-        'Content-Type': 'application/json',
-        'Cache-Control': 'public, s-maxage=3600, stale-while-revalidate' // 缓存优化
+        'Cache-Control': 'public, s-maxage=3600, stale-while-revalidate',
       }
     })
   } catch (error) {
     console.error('Error loading videos:', error)
-    return new Response(JSON.stringify({
-      error: 'Failed to load videos',
-      details: error instanceof Error ? error.message : String(error)
-    }), {
-      status: 500,
-      headers: { 'Content-Type': 'application/json' }
-    })
+    return NextResponse.json(
+      {
+        error: 'Failed to load videos',
+        details: error instanceof Error ? error.message : String(error),
+        hint: 'Try accessing /data/videos.json directly'
+      },
+      {
+        status: 500,
+      }
+    )
   }
 }

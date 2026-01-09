@@ -6,6 +6,7 @@ import { Input } from '@/components/ui/input'
 import VideoGrid from '@/components/videos/video-grid'
 import VideoPlayer from '@/components/videos/video-player'
 import VideoFilters from '@/components/videos/video-filters'
+import ChannelFilter from '@/components/videos/channel-filter'
 import type { Video, VideoCategory } from '@/lib/types/video'
 
 const VideosPage: React.FC = () => {
@@ -14,13 +15,14 @@ const VideosPage: React.FC = () => {
   const [selectedVideo, setSelectedVideo] = useState<Video | null>(null)
   const [searchQuery, setSearchQuery] = useState('')
   const [selectedCategory, setSelectedCategory] = useState<VideoCategory | 'all'>('all')
+  const [selectedChannel, setSelectedChannel] = useState<string>('all')
   const [visibleCount, setVisibleCount] = useState(12)
 
-  // 從 API 載入影片數據
+  // 從靜態資源載入影片數據（兼容 Cloudflare Workers）
   useEffect(() => {
     const fetchVideos = async () => {
       try {
-        const response = await fetch('/api/videos')
+        const response = await fetch('/data/videos.json')
         if (response.ok) {
           const videos: Video[] = await response.json()
           setVideoList(videos)
@@ -37,6 +39,17 @@ const VideosPage: React.FC = () => {
     fetchVideos()
   }, [])
 
+  // 從影片列表中提取唯一的頻道列表
+  const availableChannels = useMemo(() => {
+    const channelSet = new Set<string>()
+    videoList.forEach((video) => {
+      if (video.channel) {
+        channelSet.add(video.channel)
+      }
+    })
+    return Array.from(channelSet).sort()
+  }, [videoList])
+
   // 篩選和搜尋邏輯
   const filteredVideos = useMemo(() => {
     let filtered = [...videoList]
@@ -44,6 +57,11 @@ const VideosPage: React.FC = () => {
     // 分類篩選
     if (selectedCategory !== 'all') {
       filtered = filtered.filter(video => video.category === selectedCategory)
+    }
+
+    // 頻道篩選
+    if (selectedChannel !== 'all') {
+      filtered = filtered.filter(video => video.channel === selectedChannel)
     }
 
     // 搜尋篩選
@@ -58,7 +76,7 @@ const VideosPage: React.FC = () => {
     }
 
     return filtered
-  }, [videoList, searchQuery, selectedCategory])
+  }, [videoList, searchQuery, selectedCategory, selectedChannel])
 
   // 分頁顯示的影片
   const visibleVideos = filteredVideos.slice(0, visibleCount)
@@ -77,6 +95,11 @@ const VideosPage: React.FC = () => {
 
   const handleCategoryChange = (category: VideoCategory | 'all') => {
     setSelectedCategory(category)
+    setVisibleCount(12) // 重置顯示數量
+  }
+
+  const handleChannelChange = (channel: string) => {
+    setSelectedChannel(channel)
     setVisibleCount(12) // 重置顯示數量
   }
 
@@ -111,20 +134,29 @@ const VideosPage: React.FC = () => {
       </div>
 
       {/* 搜尋和篩選 */}
-      <div className="mb-8 space-y-4 md:flex md:items-center md:justify-between md:space-y-0">
-        <div className="md:w-96">
-          <Input
-            type="text"
-            placeholder="搜尋影片標題、頻道..."
-            value={searchQuery}
-            onChange={handleSearch}
-            className="w-full"
+      <div className="mb-8 space-y-4">
+        <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+          <div className="flex-1 md:max-w-md">
+            <Input
+              type="text"
+              placeholder="搜尋影片標題、頻道..."
+              value={searchQuery}
+              onChange={handleSearch}
+              className="w-full"
+            />
+          </div>
+          <ChannelFilter
+            channels={availableChannels}
+            selectedChannel={selectedChannel}
+            onChannelChange={handleChannelChange}
           />
         </div>
-        <VideoFilters
-          selectedCategory={selectedCategory}
-          onCategoryChange={handleCategoryChange}
-        />
+        <div className="flex justify-center md:justify-end">
+          <VideoFilters
+            selectedCategory={selectedCategory}
+            onCategoryChange={handleCategoryChange}
+          />
+        </div>
       </div>
 
       {/* 搜尋結果提示 */}
