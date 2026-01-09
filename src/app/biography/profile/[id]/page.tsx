@@ -84,7 +84,7 @@ export default function ProfilePage({ params }: ProfilePageProps) {
           // 獲取相鄰人物
           try {
             const adjacentResponse = await biographyService.getAdjacentBiographies(id)
-            if (adjacentResponse.success) {
+            if (adjacentResponse.success && adjacentResponse.data) {
               setAdjacent(adjacentResponse.data)
             }
           } catch {
