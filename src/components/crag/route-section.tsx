@@ -1,6 +1,6 @@
 'use client'
 
-import React, { useState, useMemo } from 'react'
+import React, { useState, useMemo, useEffect } from 'react'
 import { Eye, ExternalLink, X, ChevronLeft, ChevronRight, Info, Filter } from 'lucide-react'
 import * as Dialog from '@radix-ui/react-dialog'
 
@@ -25,15 +25,21 @@ interface RouteType {
 
 interface CragRouteSectionProps {
   routes: RouteType[]
+  initialArea?: string
 }
 
-export const CragRouteSection: React.FC<CragRouteSectionProps> = ({ routes }) => {
+export const CragRouteSection: React.FC<CragRouteSectionProps> = ({ routes, initialArea = 'all' }) => {
   const [selectedRoute, setSelectedRoute] = useState<RouteType | null>(null)
   const [showRouteDetail, setShowRouteDetail] = useState(false)
   const [showPhotos, setShowPhotos] = useState(false)
   const [showTips, setShowTips] = useState(false)
   const [currentPhotoIndex, setCurrentPhotoIndex] = useState(0)
-  const [selectedArea, setSelectedArea] = useState<string>('all')
+  const [selectedArea, setSelectedArea] = useState<string>(initialArea)
+
+  // 當 initialArea 從外部改變時，同步更新 selectedArea
+  useEffect(() => {
+    setSelectedArea(initialArea)
+  }, [initialArea])
 
   // 從路線資料中提取所有分區名稱
   const areaNames = useMemo(() => {

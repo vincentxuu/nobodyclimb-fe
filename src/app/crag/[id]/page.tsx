@@ -37,10 +37,18 @@ import { getCragDetailData } from '@/lib/crag-data'
 export default function CragDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = use(params)
   const [isVisible, setIsVisible] = useState(false)
+  const [activeTab, setActiveTab] = useState('intro')
+  const [selectedAreaFilter, setSelectedAreaFilter] = useState<string>('all')
   const router = useRouter()
 
   // 從資料服務層讀取岩場資料
   const currentCrag = getCragDetailData(id)
+
+  // 處理岩區點擊 - 切換到路線 tab 並設置篩選
+  const handleAreaClick = (areaName: string) => {
+    setSelectedAreaFilter(areaName)
+    setActiveTab('routes')
+  }
 
   // 監聽滾動事件
   useEffect(() => {
@@ -170,7 +178,7 @@ export default function CragDetailPage({ params }: { params: Promise<{ id: strin
 
           {/* 岩場介紹 - 使用標籤頁 */}
           <div className="mb-8">
-            <Tabs.Root defaultValue="intro" className="w-full">
+            <Tabs.Root value={activeTab} onValueChange={setActiveTab} className="w-full">
               <Tabs.List className="mb-6 flex border-b border-gray-200">
                 <Tabs.Trigger
                   value="intro"
@@ -294,11 +302,11 @@ export default function CragDetailPage({ params }: { params: Promise<{ id: strin
               </Tabs.Content>
 
               <Tabs.Content value="areas">
-                <CragAreaSection areas={currentCrag.areas} />
+                <CragAreaSection areas={currentCrag.areas} onAreaClick={handleAreaClick} />
               </Tabs.Content>
 
               <Tabs.Content value="routes">
-                <CragRouteSection routes={currentCrag.routes_details} />
+                <CragRouteSection routes={currentCrag.routes_details} initialArea={selectedAreaFilter} />
               </Tabs.Content>
             </Tabs.Root>
           </div>
