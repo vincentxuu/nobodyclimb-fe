@@ -5,33 +5,20 @@ import { usePathname, useRouter } from 'next/navigation'
 import { ProfileProvider } from '@/components/profile/ProfileContext'
 import { AnimatePresence, motion } from 'framer-motion'
 import MobileNav from './MobileNav'
-
-// 模擬用戶身份驗證檢查 - 在實際環境中，這裡會使用你的認證系統
-const useAuth = () => {
-  const [isAuthenticated, setIsAuthenticated] = useState<boolean | null>(null)
-
-  useEffect(() => {
-    // 這裡簡單模擬一個已登入狀態
-    // 實際應用中，應該檢查 localStorage、cookie 或其他身份驗證狀態
-    const checkAuth = async () => {
-      // 假設用戶已登入 - 在實際應用中，這裡會有真實的身份驗證檢查
-      // 例如：const isLoggedIn = localStorage.getItem('token') !== null;
-      const isLoggedIn = true // 暫時設為 true 以便開發
-
-      setIsAuthenticated(isLoggedIn)
-    }
-
-    checkAuth()
-  }, [])
-
-  return { isAuthenticated, isLoading: isAuthenticated === null }
-}
+import { useAuthStore } from '@/store/authStore'
 
 export default function ProfileLayout({ children }: { children: React.ReactNode }) {
-  const { isAuthenticated, isLoading } = useAuth()
+  const isAuthenticated = useAuthStore((state) => state.isAuthenticated)
+  const isStoreLoading = useAuthStore((state) => state.isLoading)
   const router = useRouter()
   const pathname = usePathname()
   const [isPageChanging, setIsPageChanging] = useState(false)
+  const [isHydrated, setIsHydrated] = useState(false)
+
+  // 處理 Zustand persist hydration
+  useEffect(() => {
+    setIsHydrated(true)
+  }, [])
 
   // 設置頁面轉換狀態的函數
   const handleRouteChange = useCallback(() => {
@@ -50,15 +37,15 @@ export default function ProfileLayout({ children }: { children: React.ReactNode 
     handleRouteChange()
   }, [pathname, handleRouteChange])
 
-  // 檢查使用者是否已登入
+  // 檢查使用者是否已登入（等待 hydration 完成後再檢查）
   useEffect(() => {
-    if (!isLoading && !isAuthenticated) {
+    if (isHydrated && !isStoreLoading && !isAuthenticated) {
       router.push('/auth/login?callbackUrl=' + encodeURIComponent(pathname || '/profile'))
     }
-  }, [isAuthenticated, isLoading, router, pathname])
+  }, [isAuthenticated, isStoreLoading, isHydrated, router, pathname])
 
-  // 如果正在驗證中，顯示載入中
-  if (isLoading) {
+  // 如果還在 hydration 或正在載入中，顯示載入畫面
+  if (!isHydrated || isStoreLoading) {
     return (
       <div className="flex min-h-screen items-center justify-center bg-[#F5F5F5]">
         <AnimatePresence>
