@@ -23,12 +23,19 @@ app.use('*', secureHeaders());
 app.use('*', async (c, next) => {
   const corsMiddleware = cors({
     origin: (origin) => {
+      // 允許沒有 origin 的請求 (如 server-to-server 或同源請求)
+      if (!origin) return c.env.CORS_ORIGIN;
+
       const allowedOrigins = [
         c.env.CORS_ORIGIN,
+        // 支援 www 子網域
+        c.env.CORS_ORIGIN?.replace('https://', 'https://www.'),
         'http://localhost:3000',
         'http://127.0.0.1:3000',
-      ];
-      return allowedOrigins.includes(origin) ? origin : allowedOrigins[0];
+      ].filter(Boolean);
+
+      // 只有在允許列表中的 origin 才回傳，否則拒絕
+      return allowedOrigins.includes(origin) ? origin : null;
     },
     allowMethods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
     allowHeaders: ['Content-Type', 'Authorization'],

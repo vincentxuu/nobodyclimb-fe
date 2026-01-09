@@ -1,5 +1,5 @@
 // API 端點
-export const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'https://api.nobodyclimb.cc'
+export const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'https://api.nobodyclimb.cc/api/v1'
 
 // 分頁默認值
 export const DEFAULT_PAGE = 1

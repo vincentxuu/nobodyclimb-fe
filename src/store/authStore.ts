@@ -1,6 +1,7 @@
 import { create } from 'zustand'
 import { persist } from 'zustand/middleware'
 import axios from 'axios'
+import apiClient from '@/lib/api/client'
 import {
   User,
   ApiResponse,
@@ -250,8 +251,6 @@ export const useAuthStore = create<AuthState>()(
       updateUser: async (userData: UpdateUserData) => {
         set({ isLoading: true, error: null })
         try {
-          const token = get().token
-
           // 準備更新資料 (轉換為後端格式)
           const updateData: Record<string, unknown> = {}
           if (userData.displayName !== undefined) updateData.display_name = userData.displayName
@@ -263,11 +262,10 @@ export const useAuthStore = create<AuthState>()(
           if (userData.frequentGym !== undefined) updateData.frequent_gym = userData.frequentGym
           if (userData.favoriteRouteType !== undefined) updateData.favorite_route_type = userData.favoriteRouteType
 
-          // 連接實際後端 API
-          const response = await axios.put<ApiResponse<BackendUser>>(
-            `${API_BASE_URL}/auth/profile`,
-            updateData,
-            { headers: { Authorization: `Bearer ${token}` } }
+          // 使用 apiClient 以支援自動 token 刷新
+          const response = await apiClient.put<ApiResponse<BackendUser>>(
+            '/auth/profile',
+            updateData
           )
 
           if (!response.data.success || !response.data.data) {
