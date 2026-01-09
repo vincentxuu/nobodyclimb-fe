@@ -47,6 +47,8 @@ export interface CragData {
   location: CragLocation
   description: string
   descriptionEn: string
+  videoUrl?: string
+  images?: string[]
   type: string
   rockType: string
   rockTypeEn: string
@@ -75,6 +77,9 @@ export interface CragArea {
   name: string
   nameEn: string
   description?: string
+  descriptionEn?: string
+  difficulty?: CragDifficulty
+  image?: string
   boltCount: number
   routesCount: number
   sectors?: CragSector[]
@@ -96,12 +101,19 @@ export interface CragRoute {
   firstAscentEn?: string
   firstAscentDate?: string
   description?: string
+  descriptionEn?: string
   protection?: string
   protectionEn?: string
+  tips?: string
+  tipsEn?: string
   safetyRating?: string
   boltCount: number
   boltType?: string
   anchorType?: string
+  popularity?: number
+  views?: number
+  images?: string[]
+  videos?: string[]
   status: string
   lastVerified?: string
   lastUpdated?: string
@@ -341,19 +353,22 @@ export function getCragDetailData(id: string) {
 
   const { crag, areas, routes } = fullData
 
+  // 使用 JSON 中的圖片或生成預設圖片
+  const defaultImages = [
+    `/images/crag/${crag.slug}-1.jpg`,
+    `/images/crag/${crag.slug}-2.jpg`,
+    `/images/crag/${crag.slug}-3.jpg`,
+    `/images/crag/${crag.slug}-4.jpg`,
+  ]
+
   return {
     id: crag.id,
     name: crag.name,
     englishName: crag.nameEn,
     location: crag.location.address,
     description: crag.description,
-    videoUrl: '', // 可以之後添加
-    images: [
-      `/images/crag/${crag.slug}-1.jpg`,
-      `/images/crag/${crag.slug}-2.jpg`,
-      `/images/crag/${crag.slug}-3.jpg`,
-      `/images/crag/${crag.slug}-4.jpg`,
-    ],
+    videoUrl: crag.videoUrl || '',
+    images: crag.images && crag.images.length > 0 ? crag.images : defaultImages,
     type: crag.rockType,
     rockType: crag.rockType,
     routes: crag.routesCount,
@@ -387,9 +402,11 @@ export function getCragDetailData(id: string) {
     areas: areas.map(area => ({
       name: area.name,
       description: area.description || '',
-      difficulty: '', // 可以從路線計算
+      difficulty: area.difficulty
+        ? `${area.difficulty.min} - ${area.difficulty.max}`
+        : '',
       routes: area.routesCount,
-      image: `/images/crag/${crag.slug}-${area.id}.jpg`,
+      image: area.image || `/images/crag/${crag.slug}-${area.id}.jpg`,
     })),
     routes_details: routes.map(route => ({
       id: route.id,
@@ -402,11 +419,11 @@ export function getCragDetailData(id: string) {
       area: route.sector || '',
       description: route.description || '',
       protection: route.protection || '',
-      popularity: 4.5,
-      views: 1000,
-      images: [],
-      videos: [],
-      tips: '',
+      popularity: route.popularity ?? 0,
+      views: route.views ?? 0,
+      images: route.images || [],
+      videos: route.videos || [],
+      tips: route.tips || '',
     })),
   }
 }

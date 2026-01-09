@@ -9,17 +9,7 @@ import { Breadcrumb } from '@/components/ui/breadcrumb'
 import { getAllCrags } from '@/lib/crag-data'
 
 // 從資料服務層讀取岩場資料
-const crags = getAllCrags().map((crag) => ({
-  id: crag.id,
-  name: crag.name,
-  englishName: crag.nameEn,
-  image: crag.image,
-  location: crag.location,
-  type: crag.type,
-  routes: crag.routes,
-  difficulty: crag.difficulty,
-  seasons: crag.seasons,
-}))
+const crags = getAllCrags()
 
 // 區域篩選選項
 const regions = ['全部', '台北', '新北', '桃園', '宜蘭', '花蓮', '台東', '高雄']
@@ -300,7 +290,7 @@ export default function CragListPage() {
                 <div className="p-6">
                   <div className="mb-4">
                     <h3 className="text-xl font-bold">{crag.name}</h3>
-                    <p className="text-gray-500">{crag.englishName}</p>
+                    <p className="text-gray-500">{crag.nameEn}</p>
                   </div>
 
                   <div className="mb-5 space-y-3">

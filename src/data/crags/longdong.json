@@ -14,6 +14,13 @@
     },
     "description": "台灣最知名的海蝕岩場，擁有超過500條攀岩路線，是台灣攀岩運動的發源地之一。龍洞岩場以其獨特的砂岩地形、壯觀的海岸景色和豐富的路線選擇聞名，適合各種程度的攀岩者。",
     "descriptionEn": "Taiwan's most famous sea cliff climbing area with over 500 routes. Long Dong is one of the birthplaces of rock climbing in Taiwan, known for its unique sandstone formations, spectacular coastal scenery, and diverse route selection suitable for climbers of all levels.",
+    "videoUrl": "https://www.youtube.com/embed/dQw4w9WgXcQ",
+    "images": [
+      "/images/crag/longdong-1.jpg",
+      "/images/crag/longdong-2.jpg",
+      "/images/crag/longdong-3.jpg",
+      "/images/crag/longdong-4.jpg"
+    ],
     "type": "sport",
     "rockType": "砂岩",
     "rockTypeEn": "Sandstone",
@@ -66,6 +73,9 @@
       "name": "音樂廳",
       "nameEn": "Music Hall",
       "description": "龍洞最熱門的區域之一，擁有103條路線，包含各種難度的運動攀登和傳統攀登路線。",
+      "descriptionEn": "One of Long Dong's most popular areas with 103 routes, including sport and traditional climbing routes of various difficulties.",
+      "difficulty": { "min": "5.6", "max": "5.13a" },
+      "image": "/images/crag/longdong-music-hall.jpg",
       "boltCount": 153,
       "routesCount": 103,
       "sectors": [
@@ -83,6 +93,9 @@
       "name": "校門口",
       "nameEn": "School Gate",
       "description": "位於龍洞入口處，擁有51條路線，是新手練習的好去處。",
+      "descriptionEn": "Located at the entrance of Long Dong with 51 routes, a great place for beginners to practice.",
+      "difficulty": { "min": "5.8", "max": "5.14a" },
+      "image": "/images/crag/longdong-school-gate.jpg",
       "boltCount": 180,
       "routesCount": 51,
       "sectors": [
@@ -97,6 +110,9 @@
       "name": "大禮堂",
       "nameEn": "Grand Auditorium",
       "description": "擁有龍洞最長的多繩距路線，適合有經驗的攀岩者挑戰。",
+      "descriptionEn": "Home to Long Dong's longest multi-pitch routes, suitable for experienced climbers.",
+      "difficulty": { "min": "5.5", "max": "5.13b" },
+      "image": "/images/crag/longdong-grand-auditorium.jpg",
       "boltCount": 118,
       "routesCount": 43,
       "sectors": [
@@ -113,6 +129,9 @@
       "name": "鐘塔",
       "nameEn": "Clocktower",
       "description": "擁有58條路線，包含經典的傳統攀登路線和海景抱石。",
+      "descriptionEn": "Features 58 routes including classic traditional climbing routes and seaside bouldering.",
+      "difficulty": { "min": "5.6", "max": "5.12d" },
+      "image": "/images/crag/longdong-clocktower.jpg",
       "boltCount": 81,
       "routesCount": 58,
       "sectors": [
@@ -130,6 +149,9 @@
       "name": "第一洞",
       "nameEn": "First Cave",
       "description": "龍洞最早開發的區域，擁有許多經典路線。",
+      "descriptionEn": "The earliest developed area in Long Dong with many classic routes.",
+      "difficulty": { "min": "5.5", "max": "5.12a" },
+      "image": "/images/crag/longdong-first-cave.jpg",
       "boltCount": 150,
       "routesCount": 80
     },
@@ -138,6 +160,9 @@
       "name": "第二洞",
       "nameEn": "Second Cave",
       "description": "擁有多條高難度運動攀登路線，適合進階攀岩者。",
+      "descriptionEn": "Features many high-difficulty sport climbing routes, suitable for advanced climbers.",
+      "difficulty": { "min": "5.9", "max": "5.13a" },
+      "image": "/images/crag/longdong-second-cave.jpg",
       "boltCount": 86,
       "routesCount": 51,
       "sectors": [
@@ -153,6 +178,9 @@
       "name": "後門",
       "nameEn": "Back Door",
       "description": "相對較少人造訪的區域，保有原始的攀岩風貌。",
+      "descriptionEn": "A less frequented area that retains its original climbing character.",
+      "difficulty": { "min": "5.7", "max": "5.11c" },
+      "image": "/images/crag/longdong-back-door.jpg",
       "boltCount": 120,
       "routesCount": 60
     },
@@ -161,6 +189,9 @@
       "name": "長巷",
       "nameEn": "Long Lane",
       "description": "擁有47條路線，包含多條經典的運動攀登路線。",
+      "descriptionEn": "Features 47 routes including many classic sport climbing lines.",
+      "difficulty": { "min": "5.8", "max": "5.12b" },
+      "image": "/images/crag/longdong-long-lane.jpg",
       "boltCount": 183,
       "routesCount": 47,
       "sectors": [
@@ -174,6 +205,9 @@
       "name": "黃金谷",
       "nameEn": "Golden Valley",
       "description": "以其金黃色的岩石著稱，擁有許多高品質的路線。",
+      "descriptionEn": "Known for its golden-colored rock, featuring many high-quality routes.",
+      "difficulty": { "min": "5.7", "max": "5.12c" },
+      "image": "/images/crag/longdong-golden-valley.jpg",
       "boltCount": 100,
       "routesCount": 50
     }
@@ -328,10 +362,24 @@
       "firstAscent": "匿名攀岩者",
       "firstAscentEn": "Anonymous",
       "firstAscentDate": "1988-07",
+      "description": "龍洞最經典的運攀路線之一，路線流暢且動作多變，頂部有一個關鍵的側拉動作需要配合腳步的精準踩點。",
+      "descriptionEn": "One of Long Dong's most classic sport routes. Smooth and varied movements with a crucial sidepull at the top requiring precise footwork.",
       "protection": "固定保護點，共9個Ti-TW Bolt",
+      "protectionEn": "Fixed protection, 9 Ti-TW bolts",
+      "tips": "建議在冬季下午攀爬，陽光不會直射岩壁。中段的側拉動作是關鍵，需要良好的核心穩定性。",
+      "tipsEn": "Best climbed in winter afternoons when the wall is shaded. The sidepull in the middle section is key and requires good core stability.",
       "safetyRating": "●●●",
       "boltCount": 9,
       "boltType": "Ti-TW",
+      "popularity": 4.8,
+      "views": 3450,
+      "images": [
+        "/images/routes/ld367-1.jpg",
+        "/images/routes/ld367-2.jpg"
+      ],
+      "videos": [
+        "https://www.youtube.com/embed/AbCdEfGhIjK"
+      ],
       "status": "updated",
       "lastUpdated": "2017-04-15"
     },
@@ -422,13 +470,28 @@
       "grade": "5.14a",
       "type": "sport",
       "typeEn": "Sport Climbing",
+      "length": "18m",
       "firstAscent": "朴來慶",
       "firstAscentEn": "Yum Yum",
-      "description": "原級數為5.13c/d，但Yuji Hirayama在試過後認為5.14a應會更恰當",
+      "description": "原級數為5.13c/d，但Yuji Hirayama在試過後認為5.14a應會更恰當。龍洞最難的路線之一，需要極強的指力和爆發力。",
+      "descriptionEn": "Originally graded 5.13c/d, but Yuji Hirayama suggested 5.14a after trying it. One of the hardest routes in Long Dong, requiring exceptional finger strength and power.",
       "protection": "固定保護點，共6個Ti-ETN Bolt",
+      "protectionEn": "Fixed protection, 6 Ti-ETN bolts",
+      "tips": "需要充分熱身指力和核心肌群。建議在乾燥涼爽的天氣嘗試，以獲得最佳摩擦力。",
+      "tipsEn": "Requires thorough warm-up of finger strength and core. Best attempted in dry, cool weather for optimal friction.",
       "safetyRating": "●●●",
       "boltCount": 6,
       "boltType": "Ti-ETN",
+      "popularity": 4.5,
+      "views": 2100,
+      "images": [
+        "/images/routes/ld534-1.jpg",
+        "/images/routes/ld534-2.jpg",
+        "/images/routes/ld534-3.jpg"
+      ],
+      "videos": [
+        "https://www.youtube.com/embed/HiJkLmNoPqR"
+      ],
       "status": "updated"
     },
     {
