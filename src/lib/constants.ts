@@ -1,5 +1,5 @@
 // API 端點
-export const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'https://api.nobodyclimb.com'
+export const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'https://api.nobodyclimb.cc'
 
 // 分頁默認值
 export const DEFAULT_PAGE = 1
@@ -155,11 +155,11 @@ export const DEFAULT_SEO = {
   openGraph: {
     type: 'website',
     locale: 'zh_TW',
-    url: 'https://nobodyclimb.com',
+    url: 'https://nobodyclimb.cc',
     site_name: 'NobodyClimb',
     images: [
       {
-        url: 'https://nobodyclimb.com/images/og-image.jpg',
+        url: 'https://nobodyclimb.cc/images/og-image.jpg',
         width: 1200,
         height: 630,
         alt: 'NobodyClimb 攀岩社群平台',
@@ -172,7 +172,7 @@ export const DEFAULT_SEO = {
 export const SOCIAL_LINKS = [
   { label: 'Instagram', href: 'https://instagram.com/nobodyclimb', icon: 'instagram' },
   { label: 'Facebook', href: 'https://facebook.com/nobodyclimb', icon: 'facebook' },
-  { label: 'Mail', href: 'mailto:contact@nobodyclimb.com', icon: 'mail' },
+  { label: 'Mail', href: 'mailto:contact@nobodyclimb.cc', icon: 'mail' },
 ]
 
 // 時間格式
