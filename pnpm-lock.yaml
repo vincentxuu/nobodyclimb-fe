@@ -69,7 +69,7 @@ importers:
         specifier: ^0.542.0
         version: 0.542.0(react@19.2.3)
       next:
-        specifier: ^15.5.2
+        specifier: ^15.5.9
         version: 15.5.9(@babel/core@7.28.5)(react-dom@19.2.3(react@19.2.3))(react@19.2.3)(sass@1.97.2)
       next-themes:
         specifier: ^0.4.6

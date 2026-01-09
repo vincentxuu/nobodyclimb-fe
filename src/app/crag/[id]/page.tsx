@@ -32,209 +32,16 @@ import { CragInfoCard } from '@/components/crag/info-card'
 import { Breadcrumb } from '@/components/ui/breadcrumb'
 import { useRouter } from 'next/navigation'
 import * as Tabs from '@radix-ui/react-tabs'
-
-// 模擬岩場資料
-const cragData = [
-  {
-    id: 1,
-    name: '龍洞',
-    englishName: 'Long Dong',
-    location: '新北市貢寮區',
-    description:
-      '龍洞岩場是台灣最知名的海蝕岩場，擁有超過500條路線，從初學者到高階攀岩者皆能找到適合的路線。岩壁沿著海岸線延伸數公里，擁有多種不同風格的路線，包括裂縫、岩板、垂直壁等。',
-    videoUrl: 'https://www.youtube.com/embed/dQw4w9WgXcQ', // 示例影片，實際使用時請替換為真實的龍洞岩場介紹影片
-    images: [
-      '/images/crag/longdong-1.jpg',
-      '/images/crag/longdong-2.jpg',
-      '/images/crag/longdong-3.jpg',
-      '/images/crag/longdong-4.jpg',
-    ],
-    type: '海蝕岩場',
-    rockType: '砂岩、石灰岩混合',
-    routes: 500,
-    difficulty: '5.6 - 5.13a',
-    height: '5-30m',
-    approach: '15-40分鐘徒步',
-    seasons: ['春', '秋', '冬'],
-    transportation: [
-      {
-        type: '公車',
-        description: '台北市搭乘國光客運1812到福隆站，轉乘台灣好行福隆-龍洞線到龍洞南口站',
-      },
-      { type: '開車', description: '走國道5號下雪山隧道後接台2線濱海公路，往龍洞方向行駛約30分鐘' },
-    ],
-    parking: '岩場附近有多處小型停車場，假日較為擁擠',
-    amenities: ['附近有便利商店', '海邊浴室', '當地餐廳'],
-    geoCoordinates: {
-      latitude: 25.1078,
-      longitude: 121.9188,
-    },
-    weather: {
-      current: {
-        temp: 23,
-        condition: '晴時多雲',
-        precipitation: '10%',
-        wind: '東北風 3級',
-      },
-      forecast: [
-        { day: '今天', high: 24, low: 19, condition: '晴時多雲', precipitation: '10%' },
-        { day: '明天', high: 25, low: 20, condition: '多雲', precipitation: '20%' },
-        { day: '後天', high: 23, low: 18, condition: '陰有雨', precipitation: '60%' },
-      ],
-    },
-    areas: [
-      {
-        name: '第一長岬',
-        description: '龍洞最北側的岩區，有多條中高難度路線，以裂隙攀登為主',
-        difficulty: '5.9 - 5.12',
-        routes: 80,
-        image: '/images/crag/longdong-area1.jpg',
-      },
-      {
-        name: '音樂廳',
-        description: '擁有良好的岩質和各種難度的路線，是初學者的理想場地',
-        difficulty: '5.6 - 5.10',
-        routes: 120,
-        image: '/images/crag/longdong-area2.jpg',
-      },
-      {
-        name: '皇后岩',
-        description: '高度較高，有許多技術性路線，適合有經驗的攀岩者',
-        difficulty: '5.10 - 5.13',
-        routes: 60,
-        image: '/images/crag/longdong-area3.jpg',
-      },
-      {
-        name: '南岬',
-        description: '龍洞最南側的岩區，風景優美，路線多樣',
-        difficulty: '5.7 - 5.11',
-        routes: 90,
-        image: '/images/crag/longdong-area4.jpg',
-      },
-    ],
-    // 新增路線資料
-    routes_details: [
-      {
-        id: 'LD001',
-        name: '海神',
-        englishName: 'Poseidon',
-        grade: '5.11c',
-        length: '25m',
-        type: '運動攀登',
-        firstAscent: '李智強, 2001',
-        area: '第一長岬',
-        description:
-          '這條線路需要良好的體力和耐力，中間有一個關鍵的側拉動作需要配合腳步的精準踩點。頂部有一段輕微的懸空，完攀後視野絕佳。',
-        protection: '固定保護點，頂部有確保站',
-        popularity: 4.5,
-        views: 1245,
-        images: [
-          '/images/routes/poseidon-1.jpg',
-          '/images/routes/poseidon-2.jpg',
-          '/images/routes/poseidon-3.jpg',
-        ],
-        videos: [
-          'https://www.youtube.com/embed/AbCdEfGhIjK',
-          'https://www.youtube.com/embed/LmNoPqRsTuV',
-        ],
-        tips: '攀爬此路線時，建議在上方第三個確保點處多加注意，岩石有些鬆動。最佳攀登時間是冬季下午，陽光不會直射岩壁。攀爬前先熱身足部和手臂，以應對中段的技術性動作。',
-      },
-      {
-        id: 'LD002',
-        name: '藍色海洋',
-        englishName: 'Blue Ocean',
-        grade: '5.9+',
-        length: '18m',
-        type: '傳統攀登',
-        firstAscent: '張明德, 1995',
-        area: '音樂廳',
-        description:
-          '經典的中等難度路線，適合初學傳統攀登的攀岩者。岩壁有良好的裂縫系統，容易放置保護，但需注意頂部風化區域。',
-        protection: '需自備裝備，有裂縫適合放置快掛和機械塞',
-        popularity: 4.8,
-        views: 2345,
-        images: ['/images/routes/blue-ocean-1.jpg', '/images/routes/blue-ocean-2.jpg'],
-        videos: ['https://www.youtube.com/embed/WxYzAbCdEfG'],
-        tips: '攀爬前檢查所有傳統裝備，特別是中小號的機械塞。在第二段裂縫處，建議使用較大尺寸的凸輪。留意頂部的風化區域，靠右側攀爬較為安全。',
-      },
-      {
-        id: 'LD003',
-        name: '雷神',
-        englishName: 'Thor',
-        grade: '5.12b',
-        length: '30m',
-        type: '運動攀登',
-        firstAscent: '劉大偉, 2010',
-        area: '皇后岩',
-        description:
-          '這是龍洞最具挑戰性的路線之一，需要精準的技術動作和爆發力。中段有一個困難的懸垂問題，需要精確的重心控制和強大的指力。',
-        protection: '固定保護點，間距較大',
-        popularity: 4.3,
-        views: 980,
-        images: [
-          '/images/routes/thor-1.jpg',
-          '/images/routes/thor-2.jpg',
-          '/images/routes/thor-3.jpg',
-          '/images/routes/thor-4.jpg',
-        ],
-        videos: [
-          'https://www.youtube.com/embed/HiJkLmNoPqR',
-          'https://www.youtube.com/embed/StUvWxYzAbC',
-        ],
-        tips: '攀爬前需充分熱身指力和核心肌群。中段懸垂處可考慮使用膝蓋卡入技巧。建議只在溫度適中、濕度低的天氣嘗試，以獲得最佳摩擦力。第四個確保點後的休息點是恢復體力的關鍵。',
-      },
-      {
-        id: 'LD004',
-        name: '微風輕拂',
-        englishName: 'Gentle Breeze',
-        grade: '5.7',
-        length: '15m',
-        type: '運動攀登',
-        firstAscent: '陳小華, 1998',
-        area: '音樂廳',
-        description:
-          '完美的入門級路線，握點大且舒適，適合初學者建立信心。全程都有良好的握點和踏點，攀爬流暢且有趣。',
-        protection: '密集的固定保護點，非常安全',
-        popularity: 4.9,
-        views: 3450,
-        images: ['/images/routes/gentle-breeze-1.jpg', '/images/routes/gentle-breeze-2.jpg'],
-        videos: ['https://www.youtube.com/embed/DeFgHiJkLmN'],
-        tips: '適合初學者的第一條戶外路線。保持身體靠近岩壁，善用腿部力量而非手臂。在頂部向左側看，可以欣賞到絕美的海景。適合作為熱身路線，或用於練習確保技術。',
-      },
-      {
-        id: 'LD005',
-        name: '黑色閃電',
-        englishName: 'Black Lightning',
-        grade: '5.10a',
-        length: '22m',
-        type: '運動攀登',
-        firstAscent: '王建國, 2005',
-        area: '南岬',
-        description:
-          '中等難度的路線，特點是中段有一個技術性的橫移，需要良好的平衡感和協調性。風景優美，可以看到整個海灣。',
-        protection: '固定保護點，間距適中',
-        popularity: 4.6,
-        views: 1820,
-        images: [
-          '/images/routes/black-lightning-1.jpg',
-          '/images/routes/black-lightning-2.jpg',
-          '/images/routes/black-lightning-3.jpg',
-        ],
-        videos: [
-          'https://www.youtube.com/embed/oPqRsTuVwXy',
-          'https://www.youtube.com/embed/ZaBcDeFgHiJ',
-        ],
-        tips: '橫移段落是關鍵，保持重心低並尋找小的側拉點。過橫移後不要急著往上，右側有個不明顯但很好的休息點。在乾燥天氣攀爬效果最佳，雨後岩石會變得光滑。',
-      },
-    ],
-  },
-]
+import { getCragDetailData } from '@/lib/crag-data'
 
 export default function CragDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = use(params)
   const [isVisible, setIsVisible] = useState(false)
   const router = useRouter()
-  const cragId = parseInt(id)
+
+  // 從資料服務層讀取岩場資料
+  const currentCrag = getCragDetailData(id)
+
   // 監聽滾動事件
   useEffect(() => {
     const toggleVisibility = () => {
@@ -257,7 +64,6 @@ export default function CragDetailPage({ params }: { params: Promise<{ id: strin
     })
   }
 
-  const currentCrag = cragData.find((crag) => crag.id === cragId)
   if (!currentCrag) {
     return <div>Crag not found</div>
   }

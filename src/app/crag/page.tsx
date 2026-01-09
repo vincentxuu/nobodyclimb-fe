@@ -6,76 +6,10 @@ import Link from 'next/link'
 import { motion } from 'framer-motion'
 import { Filter, MapPin, Calendar, Clock, ChevronUp, ChevronDown } from 'lucide-react'
 import { Breadcrumb } from '@/components/ui/breadcrumb'
+import { getAllCrags } from '@/lib/crag-data'
 
-// 岩場資料（這裡使用模擬資料，實際應用中可能來自API）
-const crags = [
-  {
-    id: 1,
-    name: '龍洞',
-    englishName: 'Long Dong',
-    image: '/images/crag/longdong.jpg',
-    location: '新北市貢寮區',
-    type: '海蝕岩場',
-    routes: 500,
-    difficulty: '5.6 - 5.13a',
-    seasons: ['春', '秋', '冬'],
-  },
-  {
-    id: 2,
-    name: '大砲岩',
-    englishName: 'Cannon Rock',
-    image: '/images/crag/cannon.jpg',
-    location: '新北市景美區',
-    type: '砂岩岩場',
-    routes: 120,
-    difficulty: '5.8 - 5.12c',
-    seasons: ['秋', '冬'],
-  },
-  {
-    id: 3,
-    name: '慈母峰',
-    englishName: 'Queen Peak',
-    image: '/images/crag/queen.jpg',
-    location: '新北市三峽區',
-    type: '砂岩岩場',
-    routes: 80,
-    difficulty: '5.7 - 5.11b',
-    seasons: ['秋', '冬'],
-  },
-  {
-    id: 4,
-    name: '小粗坑',
-    englishName: 'Xiao Cu Keng',
-    image: '/images/crag/xiaocukeng.jpg',
-    location: '新北市新店區',
-    type: '砂岩岩場',
-    routes: 65,
-    difficulty: '5.9 - 5.12a',
-    seasons: ['秋', '冬'],
-  },
-  {
-    id: 5,
-    name: '獅頭山',
-    englishName: 'Lion Head',
-    image: '/images/crag/lionhead.jpg',
-    location: '桃園市龍潭區',
-    type: '砂岩岩場',
-    routes: 45,
-    difficulty: '5.7 - 5.11c',
-    seasons: ['秋', '冬'],
-  },
-  {
-    id: 6,
-    name: '鼻頭角',
-    englishName: 'Bitou Cape',
-    image: '/images/crag/bitou.jpg',
-    location: '新北市瑞芳區',
-    type: '海蝕岩場',
-    routes: 30,
-    difficulty: '5.8 - 5.12a',
-    seasons: ['春', '秋'],
-  },
-]
+// 從資料服務層讀取岩場資料
+const crags = getAllCrags()
 
 // 區域篩選選項
 const regions = ['全部', '台北', '新北', '桃園', '宜蘭', '花蓮', '台東', '高雄']
@@ -356,7 +290,7 @@ export default function CragListPage() {
                 <div className="p-6">
                   <div className="mb-4">
                     <h3 className="text-xl font-bold">{crag.name}</h3>
-                    <p className="text-gray-500">{crag.englishName}</p>
+                    <p className="text-gray-500">{crag.nameEn}</p>
                   </div>
 
                   <div className="mb-5 space-y-3">
