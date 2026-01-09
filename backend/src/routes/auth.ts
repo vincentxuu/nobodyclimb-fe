@@ -13,6 +13,9 @@ import {
 
 export const authRoutes = new Hono<{ Bindings: Env }>();
 
+// User fields to select (reusable constant for maintainability)
+const USER_SELECT_FIELDS = 'id, email, username, display_name, avatar_url, bio, climbing_start_year, frequent_gym, favorite_route_type, role, created_at';
+
 // Validation schemas
 const registerSchema = z.object({
   email: z.string().email(),
@@ -208,8 +211,7 @@ authRoutes.get('/me', authMiddleware, async (c) => {
   const userId = c.get('userId');
 
   const user = await c.env.DB.prepare(
-    `SELECT id, email, username, display_name, avatar_url, bio, climbing_start_year, frequent_gym, favorite_route_type, role, created_at
-     FROM users WHERE id = ?`
+    `SELECT ${USER_SELECT_FIELDS} FROM users WHERE id = ?`
   )
     .bind(userId)
     .first();
@@ -292,8 +294,7 @@ authRoutes.put('/profile', authMiddleware, async (c) => {
     .run();
 
   const user = await c.env.DB.prepare(
-    `SELECT id, email, username, display_name, avatar_url, bio, climbing_start_year, frequent_gym, favorite_route_type, role, created_at
-     FROM users WHERE id = ?`
+    `SELECT ${USER_SELECT_FIELDS} FROM users WHERE id = ?`
   )
     .bind(userId)
     .first();
