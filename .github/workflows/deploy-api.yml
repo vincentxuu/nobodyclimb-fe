@@ -101,6 +101,10 @@ jobs:
           workingDirectory: backend
           wranglerVersion: "3.114.16"
           command: deploy --config wrangler.toml --env ${{ steps.env.outputs.environment }}
+          secrets: |
+            JWT_SECRET
+        env:
+          JWT_SECRET: ${{ secrets.JWT_SECRET }}
 
       - name: Run D1 Migrations (Production)
         if: steps.env.outputs.environment == 'production'

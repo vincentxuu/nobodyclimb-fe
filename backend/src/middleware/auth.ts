@@ -3,6 +3,18 @@ import { createMiddleware } from 'hono/factory';
 import * as jose from 'jose';
 import { Env, JwtPayload } from '../types';
 
+// Development fallback secret (DO NOT use in production!)
+const DEV_JWT_SECRET = 'dev-only-secret-do-not-use-in-production-32chars';
+
+// Get JWT secret with fallback for development
+function getJwtSecret(env: Env): Uint8Array {
+  const secret = env.JWT_SECRET || DEV_JWT_SECRET;
+  if (!env.JWT_SECRET) {
+    console.warn('WARNING: JWT_SECRET not set, using development fallback. DO NOT use in production!');
+  }
+  return new TextEncoder().encode(secret);
+}
+
 // Extend Hono context with user info
 declare module 'hono' {
   interface ContextVariableMap {
@@ -30,7 +42,7 @@ export const authMiddleware = createMiddleware<{ Bindings: Env }>(
     const token = authHeader.substring(7);
 
     try {
-      const secret = new TextEncoder().encode(c.env.JWT_SECRET);
+      const secret = getJwtSecret(c.env);
       const { payload } = await jose.jwtVerify(token, secret, {
         issuer: c.env.JWT_ISSUER,
       });
@@ -115,7 +127,7 @@ export async function generateAccessToken(
   env: Env,
   payload: { sub: string; email: string; role: string }
 ): Promise<string> {
-  const secret = new TextEncoder().encode(env.JWT_SECRET);
+  const secret = getJwtSecret(env);
 
   return await new jose.SignJWT(payload)
     .setProtectedHeader({ alg: 'HS256' })
@@ -129,7 +141,7 @@ export async function generateRefreshToken(
   env: Env,
   payload: { sub: string }
 ): Promise<string> {
-  const secret = new TextEncoder().encode(env.JWT_SECRET);
+  const secret = getJwtSecret(env);
 
   return await new jose.SignJWT(payload)
     .setProtectedHeader({ alg: 'HS256' })
