@@ -147,9 +147,19 @@ export interface Biography {
   bio: string | null;
   avatar_url: string | null;
   cover_image: string | null;
+  // Climbing-specific fields for persona feature
+  climbing_start_year: string | null;
+  frequent_locations: string | null;
+  favorite_route_type: string | null;
+  climbing_reason: string | null;
+  climbing_meaning: string | null;
+  bucket_list: string | null;
+  advice: string | null;
   achievements: string | null;
   social_links: string | null;
   is_featured: number;
+  is_public: number;
+  published_at: string | null;
   created_at: string;
   updated_at: string;
 }

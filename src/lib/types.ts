@@ -164,22 +164,65 @@ export interface Comment {
  */
 export interface Biography {
   id: string
-  userId: string
+  user_id: string | null
   slug: string
   name: string
-  content: string
-  interests: string[]
-  achievements: string[]
-  socialLinks: {
-    instagram?: string
-    facebook?: string
-    twitter?: string
-    website?: string
-  }
-  photoUrl: string
-  featured: boolean
-  createdAt: string
-  updatedAt: string
+  title: string | null
+  bio: string | null
+  avatar_url: string | null
+  cover_image: string | null
+  // 攀岩相關字段
+  climbing_start_year: string | null
+  frequent_locations: string | null
+  favorite_route_type: string | null
+  climbing_reason: string | null
+  climbing_meaning: string | null
+  bucket_list: string | null
+  advice: string | null
+  achievements: string | null
+  social_links: string | null
+  is_featured: number
+  is_public: number
+  published_at: string | null
+  created_at: string
+  updated_at: string
+}
+
+/**
+ * 人物誌相鄰記錄介面（上一篇/下一篇）
+ */
+export interface BiographyAdjacent {
+  previous: {
+    id: string
+    name: string
+    avatar_url: string | null
+  } | null
+  next: {
+    id: string
+    name: string
+    avatar_url: string | null
+  } | null
+}
+
+/**
+ * 創建/更新人物誌請求介面
+ */
+export interface BiographyInput {
+  name: string
+  title?: string
+  bio?: string
+  avatar_url?: string
+  cover_image?: string
+  climbing_start_year?: string
+  frequent_locations?: string
+  favorite_route_type?: string
+  climbing_reason?: string
+  climbing_meaning?: string
+  bucket_list?: string
+  advice?: string
+  achievements?: string
+  social_links?: string
+  is_public?: number
 }
 
 /**

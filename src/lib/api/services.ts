@@ -9,6 +9,8 @@ import {
   ApiResponse,
   SearchParams,
   Biography,
+  BiographyAdjacent,
+  BiographyInput,
   Crag,
   Route,
   Weather,
@@ -424,19 +426,30 @@ export const galleryService = {
 }
 
 /**
+ * 後端人物誌分頁回應介面
+ */
+interface BackendBiographyPaginatedResponse {
+  success: boolean
+  data: Biography[]
+  pagination: {
+    page: number
+    limit: number
+    total: number
+    total_pages: number
+  }
+}
+
+/**
  * 人物誌相關 API 服務
  */
 export const biographyService = {
   /**
    * 獲取人物誌列表
    */
-  getBiographies: async (page = 1, limit = 10) => {
-    const response = await apiClient.get<ApiResponse<PaginatedResponse<Biography>>>(
-      '/biographies',
-      {
-        params: { page, limit },
-      }
-    )
+  getBiographies: async (page = 1, limit = 10, search?: string) => {
+    const response = await apiClient.get<BackendBiographyPaginatedResponse>('/biographies', {
+      params: { page, limit, search },
+    })
     return response.data
   },
 
@@ -444,7 +457,7 @@ export const biographyService = {
    * 獲取個人人物誌
    */
   getMyBiography: async () => {
-    const response = await apiClient.get<ApiResponse<Biography>>('/biographies/me')
+    const response = await apiClient.get<ApiResponse<Biography | null>>('/biographies/me')
     return response.data
   },
 
@@ -467,16 +480,44 @@ export const biographyService = {
   /**
    * 獲取精選人物誌
    */
-  getFeaturedBiographies: async () => {
-    const response = await apiClient.get<ApiResponse<Biography[]>>('/biographies/featured')
+  getFeaturedBiographies: async (limit = 3) => {
+    const response = await apiClient.get<ApiResponse<Biography[]>>('/biographies/featured', {
+      params: { limit },
+    })
+    return response.data
+  },
+
+  /**
+   * 獲取相鄰人物誌（上一篇/下一篇）
+   */
+  getAdjacentBiographies: async (id: string) => {
+    const response = await apiClient.get<ApiResponse<BiographyAdjacent>>(
+      `/biographies/${id}/adjacent`
+    )
+    return response.data
+  },
+
+  /**
+   * 創建人物誌
+   */
+  createBiography: async (biographyData: BiographyInput) => {
+    const response = await apiClient.post<ApiResponse<Biography>>('/biographies', biographyData)
     return response.data
   },
 
   /**
    * 更新個人人物誌
    */
-  updateMyBiography: async (biographyData: Partial<Biography>) => {
+  updateMyBiography: async (biographyData: Partial<BiographyInput>) => {
     const response = await apiClient.put<ApiResponse<Biography>>('/biographies/me', biographyData)
+    return response.data
+  },
+
+  /**
+   * 刪除個人人物誌
+   */
+  deleteMyBiography: async () => {
+    const response = await apiClient.delete<ApiResponse<{ message: string }>>('/biographies/me')
     return response.data
   },
 

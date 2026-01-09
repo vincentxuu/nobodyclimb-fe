@@ -6,6 +6,7 @@ import { Env } from './types';
 
 // Import routes
 import { authRoutes } from './routes/auth';
+import { biographiesRoutes } from './routes/biographies';
 import { cragsRoutes } from './routes/crags';
 import { gymsRoutes } from './routes/gyms';
 import { postsRoutes } from './routes/posts';
@@ -64,6 +65,7 @@ app.get('/health', (c) => {
 const v1 = new Hono<{ Bindings: Env }>();
 
 v1.route('/auth', authRoutes);
+v1.route('/biographies', biographiesRoutes);
 v1.route('/crags', cragsRoutes);
 v1.route('/gyms', gymsRoutes);
 v1.route('/posts', postsRoutes);

@@ -77,7 +77,11 @@ function RelatedArticleCard({ article }: RelatedArticleCardProps) {
   )
 }
 
-export function CardPersonList() {
+interface CardPersonListProps {
+  currentId?: string
+}
+
+export function CardPersonList({ currentId }: CardPersonListProps) {
   return (
     <div className="grid grid-cols-1 gap-6 md:grid-cols-3">
       {relatedArticles.map((article) => (
