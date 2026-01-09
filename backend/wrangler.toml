@@ -1,0 +1,47 @@
+name = "nobodyclimb-api"
+main = "src/index.ts"
+compatibility_date = "2024-12-01"
+compatibility_flags = ["nodejs_compat"]
+
+# D1 Database binding
+[[d1_databases]]
+binding = "DB"
+database_name = "nobodyclimb-db"
+database_id = "placeholder-create-with-wrangler-d1-create"
+
+# KV Namespace for caching
+[[kv_namespaces]]
+binding = "CACHE"
+id = "placeholder-create-with-wrangler-kv-namespace-create"
+
+# R2 Bucket for file storage
+[[r2_buckets]]
+binding = "STORAGE"
+bucket_name = "nobodyclimb-storage"
+
+[vars]
+CORS_ORIGIN = "https://nobodyclimb.cc"
+JWT_ISSUER = "nobodyclimb-api"
+
+# Preview environment
+[env.preview]
+name = "nobodyclimb-api-preview"
+vars = { CORS_ORIGIN = "https://preview.nobodyclimb.cc" }
+
+[[env.preview.d1_databases]]
+binding = "DB"
+database_name = "nobodyclimb-db-preview"
+database_id = "placeholder-preview-db-id"
+
+# Production environment
+[env.production]
+name = "nobodyclimb-api-production"
+vars = { CORS_ORIGIN = "https://nobodyclimb.cc" }
+routes = [
+  { pattern = "api.nobodyclimb.com/*", zone_name = "nobodyclimb.com" }
+]
+
+[[env.production.d1_databases]]
+binding = "DB"
+database_name = "nobodyclimb-db"
+database_id = "placeholder-production-db-id"
