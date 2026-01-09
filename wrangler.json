@@ -47,13 +47,13 @@
         }
       ],
       "vars": {
-        "NEXT_PUBLIC_API_URL": "https://api.nobodyclimb.com"
+        "NEXT_PUBLIC_API_URL": "https://api.nobodyclimb.cc"
       }
     },
     "preview": {
       "name": "nobodyclimb-fe-preview",
       "vars": {
-        "NEXT_PUBLIC_API_URL": "https://api-preview.nobodyclimb.com"
+        "NEXT_PUBLIC_API_URL": "https://api-preview.nobodyclimb.cc"
       }
     }
   }
