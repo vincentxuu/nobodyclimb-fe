@@ -99,7 +99,8 @@ jobs:
         with:
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           workingDirectory: backend
-          environment: ${{ steps.env.outputs.environment }}
+          wranglerVersion: "3.114.16"
+          command: deploy --config wrangler.toml --env ${{ steps.env.outputs.environment }}
 
       - name: Run D1 Migrations (Production)
         if: steps.env.outputs.environment == 'production'
@@ -107,8 +108,8 @@ jobs:
         with:
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           workingDirectory: backend
-          command: d1 execute nobodyclimb-db --remote --file=./src/db/schema.sql
-          environment: production
+          wranglerVersion: "3.114.16"
+          command: d1 execute nobodyclimb-db --remote --file=./src/db/schema.sql --config wrangler.toml --env production
 
       - name: Run D1 Migrations (Preview)
         if: steps.env.outputs.environment == 'preview'
@@ -116,5 +117,5 @@ jobs:
         with:
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           workingDirectory: backend
-          command: d1 execute nobodyclimb-db-preview --remote --file=./src/db/schema.sql
-          environment: preview
+          wranglerVersion: "3.114.16"
+          command: d1 execute nobodyclimb-db-preview --remote --file=./src/db/schema.sql --config wrangler.toml --env preview
