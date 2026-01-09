@@ -68,7 +68,7 @@ name = "nobodyclimb-api-production"
 
 routes = [
 
-  { pattern = "api.nobodyclimb.com/*", zone_name = "nobodyclimb.com" }
+  { pattern = "api.nobodyclimb.cc/*", zone_name = "nobodyclimb.cc" }
 
 ]
 
