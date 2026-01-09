@@ -179,6 +179,8 @@ pnpm dev
 
 ## 部署
 
+### 手動部署
+
 ```bash
 # 預覽環境
 pnpm deploy:preview
@@ -186,6 +188,40 @@ pnpm deploy:preview
 # 正式環境
 pnpm deploy:production
 ```
+
+### CI/CD 自動部署
+
+專案使用 GitHub Actions 自動部署，配置檔案位於 `.github/workflows/deploy-api.yml`。
+
+**觸發條件：**
+- 推送到 `main` 分支且 `backend/` 目錄有變更
+- Pull Request 到 `main` 分支（僅執行 type check）
+- 手動觸發 (workflow_dispatch)
+
+**部署流程：**
+1. 安裝依賴
+2. TypeScript 類型檢查
+3. 部署到 Cloudflare Workers
+4. 執行 D1 資料庫 migration
+
+**設定 GitHub Secrets：**
+
+在 GitHub Repository Settings > Secrets and variables > Actions 中設定：
+
+| Secret | 說明 |
+|--------|------|
+| `CLOUDFLARE_API_TOKEN` | Cloudflare API Token（需要 Workers 和 D1 權限）|
+
+**建立 Cloudflare API Token：**
+
+1. 前往 [Cloudflare Dashboard](https://dash.cloudflare.com/profile/api-tokens)
+2. 點擊 "Create Token"
+3. 選擇 "Edit Cloudflare Workers" 模板
+4. 加入以下權限：
+   - Account > D1 > Edit
+   - Account > Workers KV Storage > Edit
+   - Account > Workers R2 Storage > Edit
+5. 複製 Token 並加入 GitHub Secrets
 
 ## 環境變數
 
