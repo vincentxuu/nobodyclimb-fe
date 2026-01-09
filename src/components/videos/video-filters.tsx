@@ -1,6 +1,6 @@
 import React from 'react'
 import { Button } from '@/components/ui/button'
-import type { VideoCategory } from '@/lib/types/video'
+import type { VideoCategory } from '@/lib/types'
 
 interface VideoFiltersProps {
   selectedCategory: VideoCategory | 'all'
