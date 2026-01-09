@@ -57,7 +57,7 @@ function mapUserToProfileData(user: User | null): ProfileData {
 
 export function ProfileProvider({ children }: { children: ReactNode }) {
   const user = useAuthStore((state) => state.user)
-  const [profileData, setProfileData] = useState<ProfileData>(() => mapUserToProfileData(user))
+  const [profileData, setProfileData] = useState<ProfileData>(initialProfileData)
   const [isEditing, setIsEditing] = useState(false)
   const [isLoading, setIsLoading] = useState(true)
 
