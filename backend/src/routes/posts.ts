@@ -455,3 +455,162 @@ postsRoutes.get('/:id/comments', async (c) => {
     },
   });
 });
+
+// POST /posts/:id/comments - Create a comment for a post
+postsRoutes.post('/:id/comments', authMiddleware, async (c) => {
+  const postId = c.req.param('id');
+  const userId = c.get('userId');
+  const body = await c.req.json<{ content: string; parent_id?: string }>();
+
+  if (!body.content || body.content.trim() === '') {
+    return c.json(
+      {
+        success: false,
+        error: 'Bad Request',
+        message: 'Comment content is required',
+      },
+      400
+    );
+  }
+
+  // Check if post exists
+  const post = await c.env.DB.prepare('SELECT id FROM posts WHERE id = ?')
+    .bind(postId)
+    .first();
+
+  if (!post) {
+    return c.json(
+      {
+        success: false,
+        error: 'Not Found',
+        message: 'Post not found',
+      },
+      404
+    );
+  }
+
+  const id = generateId();
+
+  await c.env.DB.prepare(
+    `INSERT INTO comments (id, user_id, entity_type, entity_id, parent_id, content)
+     VALUES (?, ?, 'post', ?, ?, ?)`
+  )
+    .bind(id, userId, postId, body.parent_id || null, body.content.trim())
+    .run();
+
+  // Get the created comment with user info
+  const comment = await c.env.DB.prepare(
+    `SELECT c.*, u.username, u.display_name, u.avatar_url
+     FROM comments c
+     JOIN users u ON c.user_id = u.id
+     WHERE c.id = ?`
+  )
+    .bind(id)
+    .first();
+
+  return c.json(
+    {
+      success: true,
+      data: comment,
+    },
+    201
+  );
+});
+
+// POST /posts/:id/like - Toggle like/favorite for a post
+postsRoutes.post('/:id/like', authMiddleware, async (c) => {
+  const postId = c.req.param('id');
+  const userId = c.get('userId');
+
+  // Check if post exists
+  const post = await c.env.DB.prepare('SELECT id FROM posts WHERE id = ?')
+    .bind(postId)
+    .first();
+
+  if (!post) {
+    return c.json(
+      {
+        success: false,
+        error: 'Not Found',
+        message: 'Post not found',
+      },
+      404
+    );
+  }
+
+  // Check if already liked
+  const existingLike = await c.env.DB.prepare(
+    `SELECT id FROM likes WHERE user_id = ? AND entity_type = 'post' AND entity_id = ?`
+  )
+    .bind(userId, postId)
+    .first();
+
+  let liked: boolean;
+
+  if (existingLike) {
+    // Unlike - remove the like
+    await c.env.DB.prepare(
+      `DELETE FROM likes WHERE user_id = ? AND entity_type = 'post' AND entity_id = ?`
+    )
+      .bind(userId, postId)
+      .run();
+    liked = false;
+  } else {
+    // Like - add a new like
+    const id = generateId();
+    await c.env.DB.prepare(
+      `INSERT INTO likes (id, user_id, entity_type, entity_id) VALUES (?, ?, 'post', ?)`
+    )
+      .bind(id, userId, postId)
+      .run();
+    liked = true;
+  }
+
+  // Get total like count for this post
+  const likeCount = await c.env.DB.prepare(
+    `SELECT COUNT(*) as count FROM likes WHERE entity_type = 'post' AND entity_id = ?`
+  )
+    .bind(postId)
+    .first<{ count: number }>();
+
+  return c.json({
+    success: true,
+    data: {
+      liked,
+      likes: likeCount?.count || 0,
+    },
+  });
+});
+
+// GET /posts/:id/like - Check if user has liked a post
+postsRoutes.get('/:id/like', optionalAuthMiddleware, async (c) => {
+  const postId = c.req.param('id');
+  const userId = c.get('userId');
+
+  // Get total like count
+  const likeCount = await c.env.DB.prepare(
+    `SELECT COUNT(*) as count FROM likes WHERE entity_type = 'post' AND entity_id = ?`
+  )
+    .bind(postId)
+    .first<{ count: number }>();
+
+  let liked = false;
+
+  if (userId) {
+    // Check if user has liked
+    const existingLike = await c.env.DB.prepare(
+      `SELECT id FROM likes WHERE user_id = ? AND entity_type = 'post' AND entity_id = ?`
+    )
+      .bind(userId, postId)
+      .first();
+    liked = !!existingLike;
+  }
+
+  return c.json({
+    success: true,
+    data: {
+      liked,
+      likes: likeCount?.count || 0,
+    },
+  });
+});
