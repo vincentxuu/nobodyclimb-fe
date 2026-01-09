@@ -94,6 +94,17 @@ jobs:
             echo "environment=preview" >> $GITHUB_OUTPUT
           fi
 
+      - name: Check required secrets
+        env:
+          JWT_SECRET: ${{ secrets.JWT_SECRET }}
+        run: |
+          if [ -z "$JWT_SECRET" ]; then
+            echo "::error::JWT_SECRET is not set. Please add it to the repository secrets."
+            echo "Go to: Settings > Secrets and variables > Actions > New repository secret"
+            exit 1
+          fi
+          echo "✅ Required secrets are configured"
+
       - name: Deploy to Cloudflare Workers
         uses: cloudflare/wrangler-action@v3
         with:
