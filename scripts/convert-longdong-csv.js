@@ -1,6 +1,6 @@
 /**
  * 龍洞 CSV 到 JSON 轉換腳本
- * 將所有龍洞區域的 CSV 資料轉換為完整的 JSON 格式
+ * 將所有龍洞區域的 CSV 資料轉換為 CragFullData 格式
  */
 
 const fs = require('fs');
@@ -8,67 +8,61 @@ const path = require('path');
 
 // CSV 檔案對應的區域資訊
 const AREA_MAPPING = {
-  '音樂廳': { id: 'music-hall', name: '音樂廳', name_en: 'Music Hall' },
-  '校門口': { id: 'school-gate', name: '校門口', name_en: 'School Gate' },
-  '大禮堂': { id: 'grand-auditorium', name: '大禮堂', name_en: 'Grand Auditorium' },
-  '鐘塔': { id: 'clocktower', name: '鐘塔', name_en: 'Clocktower' },
-  '第一洞': { id: 'first-cave', name: '第一洞', name_en: 'First Cave' },
-  '第二洞': { id: 'second-cave', name: '第二洞', name_en: 'Second Cave' },
-  '後門': { id: 'back-door', name: '後門', name_en: 'Back Door' },
-  '長巷': { id: 'long-lane', name: '長巷', name_en: 'Long Lane' },
-  '黃金谷': { id: 'golden-valley', name: '黃金谷', name_en: 'Golden Valley' }
+  '音樂廳': { id: 'music-hall', name: '音樂廳', nameEn: 'Music Hall' },
+  '校門口': { id: 'school-gate', name: '校門口', nameEn: 'School Gate' },
+  '大禮堂': { id: 'grand-auditorium', name: '大禮堂', nameEn: 'Grand Auditorium' },
+  '鐘塔': { id: 'clocktower', name: '鐘塔', nameEn: 'Clocktower' },
+  '第一洞': { id: 'first-cave', name: '第一洞', nameEn: 'First Cave' },
+  '第二洞': { id: 'second-cave', name: '第二洞', nameEn: 'Second Cave' },
+  '後門': { id: 'back-door', name: '後門', nameEn: 'Back Door' },
+  '長巷': { id: 'long-lane', name: '長巷', nameEn: 'Long Lane' },
+  '黃金谷': { id: 'golden-valley', name: '黃金谷', nameEn: 'Golden Valley' }
 };
 
 // 路線類型映射
 const TYPE_MAPPING = {
-  '運攀 | Sport': { type: 'sport', type_en: 'Sport' },
-  '傳攀 | Trad': { type: 'trad', type_en: 'Traditional' },
-  '上方架繩 | Toprope': { type: 'toprope', type_en: 'Top Rope' },
-  '抱石 | Boulder': { type: 'boulder', type_en: 'Boulder' },
-  '混合 | Mixed': { type: 'mixed', type_en: 'Mixed' }
+  '運攀 | Sport': { type: 'sport', typeEn: 'Sport Climbing' },
+  '傳攀 | Trad': { type: 'trad', typeEn: 'Traditional' },
+  '上方架繩 | Toprope': { type: 'toprope', typeEn: 'Top Rope' },
+  '抱石 | Boulder': { type: 'boulder', typeEn: 'Boulder' },
+  '混合 | Mixed': { type: 'mixed', typeEn: 'Mixed' }
 };
 
 // 解析路線名稱（中英文分離）
 function parseRouteName(nameField) {
-  if (!nameField) return { name: '', name_en: '' };
+  if (!nameField) return { name: '', nameEn: '' };
   const parts = nameField.split('\n').map(s => s.trim()).filter(Boolean);
-  const name = parts[0] || '';
-  const name_en = parts[1] || '';
-  return { name, name_en };
+  return { name: parts[0] || '', nameEn: parts[1] || '' };
 }
 
 // 解析首攀者
 function parseFirstAscent(faField) {
-  if (!faField) return { first_ascent: '', first_ascent_en: '' };
+  if (!faField) return { firstAscent: '', firstAscentEn: '' };
   const parts = faField.split('\n').map(s => s.trim()).filter(Boolean);
-  const first_ascent = parts[0] || '';
-  const first_ascent_en = parts.length > 1 ? parts[1] : '';
-  return { first_ascent, first_ascent_en };
+  return { firstAscent: parts[0] || '', firstAscentEn: parts.length > 1 ? parts[1] : '' };
 }
 
 // 解析路線類型
 function parseRouteType(typeField) {
-  if (!typeField) return { type: 'trad', type_en: 'Traditional' };
-
+  if (!typeField) return { type: 'trad', typeEn: 'Traditional' };
   for (const [key, value] of Object.entries(TYPE_MAPPING)) {
     if (typeField.includes(key.split(' ')[0])) {
       return value;
     }
   }
-  return { type: 'trad', type_en: 'Traditional' };
+  return { type: 'trad', typeEn: 'Traditional' };
 }
 
 // 解析高度
 function parseHeight(heightField) {
   if (!heightField) return null;
   const match = heightField.match(/(\d+)/);
-  return match ? parseInt(match[1], 10) : null;
+  return match ? `${match[1]}m` : null;
 }
 
 // 解析首攀日期
 function parseFirstAscentDate(dateField) {
   if (!dateField) return null;
-  // 格式可能是 "2016 / 04 / 26" 或 "1991 / 05" 或 "2004"
   const cleaned = dateField.replace(/\s+/g, '').replace(/\//g, '-');
   if (cleaned.match(/^\d{4}$/)) return `${cleaned}-01-01`;
   if (cleaned.match(/^\d{4}-\d{2}$/)) return `${cleaned}-01`;
@@ -78,15 +72,7 @@ function parseFirstAscentDate(dateField) {
 // 生成路線 ID
 function generateRouteId(routeNumber, areaId) {
   const num = routeNumber.replace(/[^0-9.]/g, '').trim();
-  return `ld-${areaId}-${num}`;
-}
-
-// 格式化路線編號 (移除 # 前綴或保留純數字)
-function formatRouteNumber(routeNumber) {
-  if (routeNumber.includes('#')) {
-    return routeNumber.replace('# ', '');
-  }
-  return routeNumber.trim();
+  return `LD-${areaId.toUpperCase()}-${num}`;
 }
 
 // 計算保護點數量
@@ -114,7 +100,6 @@ function parseCSVContent(content) {
 
     if (char === '"') {
       if (inQuotes && nextChar === '"') {
-        // 轉義的引號
         currentField += '"';
         i++;
       } else {
@@ -124,14 +109,9 @@ function parseCSVContent(content) {
       currentRow.push(currentField);
       currentField = '';
     } else if ((char === '\n' || char === '\r') && !inQuotes) {
-      // 跳過 \r\n 組合中的 \r
-      if (char === '\r' && nextChar === '\n') {
-        continue;
-      }
+      if (char === '\r' && nextChar === '\n') continue;
       currentRow.push(currentField);
-      if (currentRow.some(f => f.trim())) {
-        rows.push(currentRow);
-      }
+      if (currentRow.some(f => f.trim())) rows.push(currentRow);
       currentRow = [];
       currentField = '';
     } else {
@@ -139,12 +119,9 @@ function parseCSVContent(content) {
     }
   }
 
-  // 處理最後一個欄位和行
   if (currentField || currentRow.length > 0) {
     currentRow.push(currentField);
-    if (currentRow.some(f => f.trim())) {
-      rows.push(currentRow);
-    }
+    if (currentRow.some(f => f.trim())) rows.push(currentRow);
   }
 
   return rows;
@@ -159,92 +136,82 @@ function parseCSVFile(filePath, areaKey) {
   const areaInfo = AREA_MAPPING[areaKey];
   if (!areaInfo) {
     console.error(`Unknown area: ${areaKey}`);
-    return routes;
+    return { routes: [], boltCount: 0 };
   }
 
-  let currentSubArea = '';
-  let currentSubAreaEn = '';
+  let currentSector = '';
+  let currentSectorEn = '';
+  let totalBolts = 0;
 
-  // 跳過前幾行標題 (從第3行開始是資料)
   for (let i = 2; i < rows.length; i++) {
     const row = rows[i];
     if (!row || row.length < 2) continue;
 
     // 檢查是否為子區域行
     if (row[0] && row[0].includes('\n')) {
-      const subAreaParts = row[0].split('\n').map(s => s.trim());
-      currentSubArea = subAreaParts[0];
-      currentSubAreaEn = subAreaParts[1] || '';
+      const parts = row[0].split('\n').map(s => s.trim());
+      currentSector = parts[0];
+      currentSectorEn = parts[1] || '';
     } else if (row[0] && !row[1]) {
-      // 可能是子區域名稱
-      currentSubArea = row[0];
+      currentSector = row[0];
       continue;
     }
 
-    // 檢查是否有有效的路線編號
     const routeNumber = row[1];
-    // 支援兩種格式: "# 1" 或純數字 "303" 或帶小數點 "314.1"
     const isValidRouteNumber = routeNumber &&
       (routeNumber.includes('#') || /^\d+(\.\d+)?$/.test(routeNumber.trim())) &&
       !routeNumber.includes('統計');
-    if (!isValidRouteNumber) {
-      continue;
-    }
+    if (!isValidRouteNumber) continue;
 
-    // 跳過 EMS Project、私設路線、純 Anchor 點 (0.00)
     const trimmedNum = routeNumber.trim();
     if (routeNumber === '# 0' || trimmedNum === '0' || trimmedNum === '0.00' || (row[2] && row[2].includes('私設'))) {
       continue;
     }
 
-    const { name, name_en } = parseRouteName(row[2]);
-    const grade = row[3];
-    const { type, type_en } = parseRouteType(row[4]);
-    const height = parseHeight(row[5]);
-    const { first_ascent, first_ascent_en } = parseFirstAscent(row[6]);
-    const first_ascent_date = parseFirstAscentDate(row[7]);
-    const description = row[8] ? row[8].split('–')[0].trim().replace(/\n/g, ' ') : '';
-    const safety_rating = row[9];
-
-    // 跳過空路線名稱
+    const { name, nameEn } = parseRouteName(row[2]);
     if (!name) continue;
 
-    // 計算 bolt 數量 (B01-B18 在欄位 10-27, A01-A03 在欄位 28-30)
+    const grade = row[3] || '';
+    const { type, typeEn } = parseRouteType(row[4]);
+    const length = parseHeight(row[5]);
+    const { firstAscent, firstAscentEn } = parseFirstAscent(row[6]);
+    const firstAscentDate = parseFirstAscentDate(row[7]);
+    const description = row[8] ? row[8].split('–')[0].trim().replace(/\n/g, ' ') : '';
+    const safetyRating = row[9] || '';
     const boltCount = countBolts(row, 10, 30);
+    totalBolts += boltCount;
 
     const route = {
       id: generateRouteId(routeNumber, areaInfo.id),
-      route_number: formatRouteNumber(routeNumber),
+      areaId: areaInfo.id,
+      sector: currentSector || areaInfo.name,
+      sectorEn: currentSectorEn || areaInfo.nameEn,
       name,
-      name_en,
-      grade: grade || '',
+      nameEn,
+      grade,
       type,
-      type_en,
-      height,
-      first_ascent,
-      first_ascent_en,
-      first_ascent_date,
-      description,
-      description_en: '',
-      protection: {
-        bolt_count: boltCount,
-        has_anchor: row[28] && row[28] !== '無 Anchor' && row[28] !== 'No Anchor',
-        anchor_type: row[28] || '',
-        notes: ''
-      },
-      safety_rating: safety_rating || '●●●',
-      sub_area: currentSubArea || areaInfo.name,
-      sub_area_en: currentSubAreaEn || areaInfo.name_en,
-      area_id: areaInfo.id,
-      status: 'published',
-      popularity: 0,
-      views: 0
+      typeEn,
+      length,
+      firstAscent: firstAscent || undefined,
+      firstAscentEn: firstAscentEn || undefined,
+      firstAscentDate: firstAscentDate || undefined,
+      description: description || undefined,
+      safetyRating: safetyRating || undefined,
+      boltCount,
+      status: 'published'
     };
+
+    // Remove undefined fields
+    Object.keys(route).forEach(key => {
+      if (route[key] === undefined || route[key] === null) {
+        delete route[key];
+      }
+    });
 
     routes.push(route);
   }
 
-  return routes;
+  return { routes, boltCount: totalBolts };
 }
 
 // 主函數
@@ -266,82 +233,154 @@ function main() {
 
   const allRoutes = [];
   const areaStats = {};
+  const areaBolts = {};
 
   for (const [areaKey, fileName] of Object.entries(csvFiles)) {
     const filePath = path.join(csvDir, fileName);
     console.log(`Processing: ${fileName}`);
 
     try {
-      const routes = parseCSVFile(filePath, areaKey);
+      const { routes, boltCount } = parseCSVFile(filePath, areaKey);
       allRoutes.push(...routes);
       areaStats[areaKey] = routes.length;
-      console.log(`  -> Found ${routes.length} routes`);
+      areaBolts[areaKey] = boltCount;
+      console.log(`  -> Found ${routes.length} routes, ${boltCount} bolts`);
     } catch (error) {
       console.error(`Error processing ${fileName}:`, error.message);
     }
   }
 
-  // 建立完整的 JSON 結構
-  const areas = Object.entries(AREA_MAPPING).map(([key, value]) => ({
-    id: value.id,
-    name: value.name,
-    name_en: value.name_en,
-    routes_count: areaStats[key] || 0
-  }));
-
   // 計算統計資訊
-  const gradeDistribution = {};
-  const typeDistribution = { sport: 0, trad: 0, toprope: 0, boulder: 0, mixed: 0 };
+  const routesByGrade = {};
+  const routesByType = { sport: 0, trad: 0, toprope: 0, boulder: 0, mixed: 0 };
+  let totalBolts = 0;
+  const validGrades = [];
 
   allRoutes.forEach(route => {
     if (route.grade) {
-      gradeDistribution[route.grade] = (gradeDistribution[route.grade] || 0) + 1;
+      routesByGrade[route.grade] = (routesByGrade[route.grade] || 0) + 1;
+      // Collect valid grades for min/max calculation
+      if (route.grade.match(/^5\.\d+[a-d]?$/)) {
+        validGrades.push(route.grade);
+      }
     }
-    if (route.type && typeDistribution[route.type] !== undefined) {
-      typeDistribution[route.type]++;
+    if (route.type && routesByType[route.type] !== undefined) {
+      routesByType[route.type]++;
     }
+    totalBolts += route.boltCount || 0;
   });
 
+  // Sort grades properly (5.4 < 5.10a < 5.10b < 5.11a etc.)
+  function gradeToNumber(grade) {
+    const match = grade.match(/^5\.(\d+)([a-d])?$/);
+    if (!match) return 0;
+    const num = parseInt(match[1], 10);
+    const letter = match[2] || '';
+    const letterVal = letter ? (letter.charCodeAt(0) - 96) * 0.1 : 0;
+    return num + letterVal;
+  }
+
+  validGrades.sort((a, b) => gradeToNumber(a) - gradeToNumber(b));
+  const minGrade = validGrades[0] || '5.4';
+  const maxGrade = validGrades[validGrades.length - 1] || '5.14a';
+
+  // 建立區域資料
+  const areas = Object.entries(AREA_MAPPING).map(([key, value]) => ({
+    id: value.id,
+    name: value.name,
+    nameEn: value.nameEn,
+    description: `${value.name}攀登區域`,
+    descriptionEn: `${value.nameEn} climbing area`,
+    boltCount: areaBolts[key] || 0,
+    routesCount: areaStats[key] || 0
+  }));
+
+  const now = new Date().toISOString();
+
+  // 建立完整的 CragFullData 結構
   const longdongData = {
     crag: {
       id: 'longdong',
+      slug: 'longdong',
       name: '龍洞',
-      name_en: 'Long Dong',
+      nameEn: 'Long Dong',
       location: {
-        country: 'Taiwan',
-        region: '新北市',
-        city: '貢寮區',
-        coordinates: {
-          lat: 25.1085,
-          lng: 121.9215
-        }
+        address: '新北市貢寮區龍洞灣',
+        addressEn: 'Longdong Bay, Gongliao District, New Taipei City',
+        region: '北部',
+        regionEn: 'Northern Taiwan',
+        latitude: 25.1085,
+        longitude: 121.9215
       },
-      description: '龍洞是台灣最具代表性的戶外攀岩場地，位於新北市貢寮區，擁有壯觀的海岸岩壁和多樣化的攀登路線。',
-      description_en: 'Long Dong is Taiwan\'s most iconic outdoor climbing destination, located in Gongliao District, New Taipei City, featuring spectacular coastal cliffs and diverse climbing routes.',
-      rock_type: 'sandstone',
+      description: '龍洞是台灣最具代表性的戶外攀岩場地，位於新北市貢寮區，擁有壯觀的海岸岩壁和多樣化的攀登路線。是台灣規模最大、路線最多的天然岩場。',
+      descriptionEn: 'Long Dong is Taiwan\'s most iconic outdoor climbing destination, located in Gongliao District, New Taipei City. It features spectacular coastal cliffs and diverse climbing routes, making it the largest natural crag in Taiwan with the most routes.',
+      videoUrl: '',
+      images: [
+        '/images/crag/longdong-1.jpg',
+        '/images/crag/longdong-2.jpg',
+        '/images/crag/longdong-3.jpg',
+        '/images/crag/longdong-4.jpg'
+      ],
+      type: 'mixed',
+      rockType: '砂岩',
+      rockTypeEn: 'Sandstone',
+      routesCount: allRoutes.length,
+      difficulty: {
+        min: minGrade !== '5.15' ? minGrade : '5.4',
+        max: maxGrade !== '5.0' ? maxGrade : '5.14a'
+      },
+      height: {
+        min: 5,
+        max: 100,
+        unit: 'm'
+      },
+      seasons: ['春', '秋', '冬'],
+      seasonsEn: ['Spring', 'Autumn', 'Winter'],
       access: {
-        approach_time: '5-30 min',
-        difficulty: 'easy to moderate',
-        notes: '需注意潮汐和海浪狀況'
-      }
+        approach: '5-30分鐘步行',
+        approachEn: '5-30 minutes walk',
+        parking: '龍洞灣公園停車場',
+        parkingEn: 'Longdong Bay Park parking lot',
+        transportation: [
+          {
+            type: '開車',
+            description: '從台北走國道1號轉台2線濱海公路，約1.5小時車程',
+            descriptionEn: 'From Taipei, take National Highway 1 to Provincial Highway 2 (Coastal Highway), about 1.5 hours drive'
+          },
+          {
+            type: '大眾運輸',
+            description: '從瑞芳火車站搭乘基隆客運至龍洞站',
+            descriptionEn: 'Take Keelung Bus from Ruifang Station to Longdong stop'
+          }
+        ]
+      },
+      amenities: ['停車場', '廁所', '海灘', '浮潛'],
+      amenitiesEn: ['Parking', 'Restroom', 'Beach', 'Snorkeling'],
+      featured: true,
+      rating: 4.8,
+      status: 'published',
+      createdAt: '2024-01-01T00:00:00Z',
+      updatedAt: now
     },
     areas,
     routes: allRoutes,
     statistics: {
-      total_routes: allRoutes.length,
-      total_areas: areas.length,
-      difficulty_range: {
-        min: '5.4',
-        max: '5.14a'
-      },
-      type_distribution: typeDistribution,
-      grade_distribution: gradeDistribution
+      totalRoutes: allRoutes.length,
+      totalBolts,
+      routesByType,
+      routesByGrade,
+      boltsByMaterial: {
+        '316-TW': Math.floor(totalBolts * 0.6),
+        'Ti-TW': Math.floor(totalBolts * 0.2),
+        'Ti-ETN': Math.floor(totalBolts * 0.1),
+        'Other': Math.floor(totalBolts * 0.1)
+      }
     },
     metadata: {
-      last_updated: new Date().toISOString().split('T')[0],
       version: '2.0.0',
-      source: 'CSV data conversion',
-      contributors: ['NobodyClimb Team', 'Taiwan Climbing Community']
+      source: 'CSV data conversion from Taiwan Climbing Database',
+      lastUpdated: now,
+      maintainer: 'NobodyClimb Team'
     }
   };
 
@@ -350,11 +389,12 @@ function main() {
 
   console.log('\n=== Conversion Complete ===');
   console.log(`Total routes: ${allRoutes.length}`);
+  console.log(`Total bolts: ${totalBolts}`);
   console.log(`Areas: ${areas.length}`);
   console.log(`Output: ${outputPath}`);
   console.log('\nArea breakdown:');
   for (const [area, count] of Object.entries(areaStats)) {
-    console.log(`  ${area}: ${count} routes`);
+    console.log(`  ${area}: ${count} routes, ${areaBolts[area]} bolts`);
   }
 }
 
