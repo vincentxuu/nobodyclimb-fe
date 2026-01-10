@@ -204,6 +204,7 @@ export interface Biography {
   advice: string | null
   achievements: string | null
   social_links: string | null
+  gallery_images?: string | null // JSON 格式的圖片資料（可選）
   is_featured: number
   is_public: number
   published_at: string | null
@@ -246,6 +247,7 @@ export interface BiographyInput {
   achievements?: string
   social_links?: string
   is_public?: number
+  gallery_images?: string // JSON 格式的圖片資料
 }
 
 /**

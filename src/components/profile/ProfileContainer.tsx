@@ -1,6 +1,6 @@
 'use client'
 
-import React, { useState } from 'react'
+import React, { useState, useRef } from 'react'
 import { motion } from 'framer-motion'
 import ProfilePageHeader from './ProfilePageHeader'
 import ProfileDivider from './ProfileDivider'
@@ -9,17 +9,25 @@ import ClimbingInfoSection from './ClimbingInfoSection'
 import ClimbingExperienceSection from './ClimbingExperienceSection'
 import PublicSettingSection from './PublicSettingSection'
 import ProfileActionButtons from './ProfileActionButtons'
+import { ProfileImageSection } from './image-gallery'
 import { useProfile } from './ProfileContext'
 import { useIsMobile } from '@/lib/hooks/useIsMobile'
 import { useToast } from '@/components/ui/use-toast'
 import { biographyService } from '@/lib/api/services'
+import { ProfileImage, ImageLayout } from './types'
 
 export default function ProfileContainer() {
   const { profileData, setProfileData, isEditing, setIsEditing } = useProfile()
-  const originalData = { ...profileData } // Store the original profile data
+  const originalDataRef = useRef(profileData)
   const isMobile = useIsMobile()
   const { toast } = useToast()
   const [isSaving, setIsSaving] = useState(false)
+
+  // 當進入編輯模式時，儲存原始資料
+  const handleStartEdit = () => {
+    originalDataRef.current = { ...profileData }
+    setIsEditing(true)
+  }
 
   // 處理表單變更
   const handleChange = (field: string, value: string | boolean) => {
@@ -29,11 +37,86 @@ export default function ProfileContainer() {
     })
   }
 
+  // 處理圖片上傳
+  const handleImageUpload = async (file: File) => {
+    try {
+      const response = await biographyService.uploadImage(file)
+      if (response.success && response.data?.url) {
+        const newImage: ProfileImage = {
+          id: crypto.randomUUID(),
+          url: response.data.url,
+          order: profileData.images.length,
+        }
+        setProfileData({
+          ...profileData,
+          images: [...profileData.images, newImage],
+        })
+        toast({
+          title: '圖片上傳成功',
+        })
+      } else {
+        throw new Error(response.error || '上傳失敗')
+      }
+    } catch (error) {
+      console.error('圖片上傳失敗:', error)
+      toast({
+        title: '圖片上傳失敗',
+        description: '請稍後再試',
+        variant: 'destructive',
+      })
+      throw error
+    }
+  }
+
+  // 處理圖片刪除
+  const handleImageDelete = (id: string) => {
+    const updatedImages = profileData.images
+      .filter((img) => img.id !== id)
+      .map((img, index) => ({ ...img, order: index }))
+    setProfileData({
+      ...profileData,
+      images: updatedImages,
+    })
+  }
+
+  // 處理圖片說明變更
+  const handleCaptionChange = (id: string, caption: string) => {
+    const updatedImages = profileData.images.map((img) =>
+      img.id === id ? { ...img, caption } : img
+    )
+    setProfileData({
+      ...profileData,
+      images: updatedImages,
+    })
+  }
+
+  // 處理排版變更
+  const handleLayoutChange = (layout: ImageLayout) => {
+    setProfileData({
+      ...profileData,
+      imageLayout: layout,
+    })
+  }
+
+  // 處理圖片重新排序
+  const handleReorder = (reorderedImages: ProfileImage[]) => {
+    setProfileData({
+      ...profileData,
+      images: reorderedImages,
+    })
+  }
+
   // 處理儲存
   const handleSave = async () => {
     setIsSaving(true)
 
     try {
+      // 將圖片資料序列化為 JSON
+      const galleryImagesJson = JSON.stringify({
+        images: profileData.images,
+        layout: profileData.imageLayout,
+      })
+
       // 將前端資料轉換為 API 格式
       const biographyData = {
         name: profileData.name,
@@ -45,12 +128,15 @@ export default function ProfileContainer() {
         bucket_list: profileData.climbingBucketList,
         advice: profileData.adviceForBeginners,
         is_public: profileData.isPublic ? 1 : 0,
+        // 圖片資料以 JSON 格式存儲
+        gallery_images: galleryImagesJson,
       }
 
       // 呼叫 API 保存資料（createBiography 會自動判斷是新增還是更新）
       const response = await biographyService.createBiography(biographyData)
 
       if (response.success) {
+        originalDataRef.current = { ...profileData }
         setIsEditing(false)
         toast({
           title: '儲存成功',
@@ -82,7 +168,7 @@ export default function ProfileContainer() {
         <ProfilePageHeader
           title="我的人物誌"
           isEditing={isEditing}
-          onEdit={() => setIsEditing(true)}
+          onEdit={handleStartEdit}
           isMobile={isMobile}
         />
         <div className="space-y-6">
@@ -112,6 +198,18 @@ export default function ProfileContainer() {
             onChange={handleChange}
           />
           <ProfileDivider />
+          <ProfileImageSection
+            images={profileData.images}
+            imageLayout={profileData.imageLayout}
+            isEditing={isEditing}
+            isMobile={isMobile}
+            onImageUpload={handleImageUpload}
+            onImageDelete={handleImageDelete}
+            onCaptionChange={handleCaptionChange}
+            onLayoutChange={handleLayoutChange}
+            onReorder={handleReorder}
+          />
+          {(isEditing || profileData.images.length > 0) && <ProfileDivider />}
           <PublicSettingSection
             isPublic={profileData.isPublic}
             isMobile={isMobile}
@@ -121,7 +219,7 @@ export default function ProfileContainer() {
             <ProfileActionButtons
               onCancel={() => {
                 setIsEditing(false)
-                setProfileData(originalData)
+                setProfileData(originalDataRef.current)
               }}
               onSave={handleSave}
               isMobile={isMobile}
