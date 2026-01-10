@@ -1,6 +1,7 @@
 'use client'
 
 import React, { useState, useMemo, useEffect } from 'react'
+import { Search } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import VideoGrid from '@/components/videos/video-grid'
@@ -134,27 +135,34 @@ const VideosPage: React.FC = () => {
       </div>
 
       {/* 搜尋和篩選 */}
-      <div className="mb-8 space-y-4">
-        <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
-          <div className="flex-1 md:max-w-md">
+      <div className="mb-8 space-y-6">
+        {/* 搜尋框置中 */}
+        <div className="flex justify-center">
+          <div className="relative w-[240px]">
             <Input
               type="text"
               placeholder="搜尋影片標題、頻道..."
               value={searchQuery}
               onChange={handleSearch}
-              className="w-full"
+              className="h-[40px] w-full rounded-[4px] border border-[#1B1A1A] bg-white text-sm font-light placeholder:text-[#6D6C6C] focus:border-transparent focus:outline-none focus:ring-2 focus:ring-[#1B1A1A]"
+            />
+            <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-3">
+              <Search className="h-5 w-5 stroke-[1.5px] text-[#1B1A1A]" />
+            </div>
+          </div>
+        </div>
+        {/* 篩選器 */}
+        <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+          <div className="flex justify-center md:justify-start">
+            <VideoFilters
+              selectedCategory={selectedCategory}
+              onCategoryChange={handleCategoryChange}
             />
           </div>
           <ChannelFilter
             channels={availableChannels}
             selectedChannel={selectedChannel}
             onChannelChange={handleChannelChange}
-          />
-        </div>
-        <div className="flex justify-center md:justify-end">
-          <VideoFilters
-            selectedCategory={selectedCategory}
-            onCategoryChange={handleCategoryChange}
           />
         </div>
       </div>
