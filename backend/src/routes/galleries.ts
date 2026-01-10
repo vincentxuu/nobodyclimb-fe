@@ -252,8 +252,8 @@ galleriesRoutes.post('/upload', authMiddleware, async (c) => {
     },
   });
 
-  // Construct URL (adjust based on your R2 public access configuration)
-  const url = `https://storage.nobodyclimb.com/${filename}`;
+  // Construct URL using environment variable
+  const url = `${c.env.R2_PUBLIC_URL}/${filename}`;
 
   return c.json({
     success: true,

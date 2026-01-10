@@ -16,6 +16,21 @@ interface UploadPhotoDialogProps {
   onSuccess: (photo: GalleryPhoto) => void
 }
 
+// File validation constants
+const VALID_FILE_TYPES = ['image/jpeg', 'image/png', 'image/webp']
+const MAX_FILE_SIZE = 5 * 1024 * 1024 // 5MB
+
+// Validate file and return error message if invalid
+const validateFile = (file: File): string | null => {
+  if (!VALID_FILE_TYPES.includes(file.type)) {
+    return '請上傳 JPG、PNG 或 WebP 格式的圖片'
+  }
+  if (file.size > MAX_FILE_SIZE) {
+    return '圖片大小不能超過 5MB'
+  }
+  return null
+}
+
 const UploadPhotoDialog: React.FC<UploadPhotoDialogProps> = ({
   isOpen,
   onClose,
@@ -30,53 +45,45 @@ const UploadPhotoDialog: React.FC<UploadPhotoDialogProps> = ({
   const [isUploading, setIsUploading] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
-  const handleFileChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
-    const selectedFile = e.target.files?.[0]
-    if (selectedFile) {
-      // Validate file type
-      const validTypes = ['image/jpeg', 'image/png', 'image/webp']
-      if (!validTypes.includes(selectedFile.type)) {
-        setError('請上傳 JPG、PNG 或 WebP 格式的圖片')
-        return
-      }
-      // Validate file size (max 5MB)
-      if (selectedFile.size > 5 * 1024 * 1024) {
-        setError('圖片大小不能超過 5MB')
-        return
-      }
-      setFile(selectedFile)
-      setError(null)
-      // Create preview
-      const reader = new FileReader()
-      reader.onloadend = () => {
-        setPreview(reader.result as string)
-      }
-      reader.readAsDataURL(selectedFile)
+  // Process and validate file, then set state
+  const processFile = useCallback((selectedFile: File) => {
+    const validationError = validateFile(selectedFile)
+    if (validationError) {
+      setError(validationError)
+      return
     }
+
+    setFile(selectedFile)
+    setError(null)
+
+    // Create preview
+    const reader = new FileReader()
+    reader.onloadend = () => {
+      setPreview(reader.result as string)
+    }
+    reader.readAsDataURL(selectedFile)
   }, [])
 
-  const handleDrop = useCallback((e: React.DragEvent<HTMLDivElement>) => {
-    e.preventDefault()
-    const droppedFile = e.dataTransfer.files?.[0]
-    if (droppedFile) {
-      const validTypes = ['image/jpeg', 'image/png', 'image/webp']
-      if (!validTypes.includes(droppedFile.type)) {
-        setError('請上傳 JPG、PNG 或 WebP 格式的圖片')
-        return
+  const handleFileChange = useCallback(
+    (e: React.ChangeEvent<HTMLInputElement>) => {
+      const selectedFile = e.target.files?.[0]
+      if (selectedFile) {
+        processFile(selectedFile)
       }
-      if (droppedFile.size > 5 * 1024 * 1024) {
-        setError('圖片大小不能超過 5MB')
-        return
+    },
+    [processFile]
+  )
+
+  const handleDrop = useCallback(
+    (e: React.DragEvent<HTMLDivElement>) => {
+      e.preventDefault()
+      const droppedFile = e.dataTransfer.files?.[0]
+      if (droppedFile) {
+        processFile(droppedFile)
       }
-      setFile(droppedFile)
-      setError(null)
-      const reader = new FileReader()
-      reader.onloadend = () => {
-        setPreview(reader.result as string)
-      }
-      reader.readAsDataURL(droppedFile)
-    }
-  }, [])
+    },
+    [processFile]
+  )
 
   const handleDragOver = useCallback((e: React.DragEvent<HTMLDivElement>) => {
     e.preventDefault()
