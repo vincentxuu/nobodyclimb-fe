@@ -1075,8 +1075,8 @@
     {
       "id": "SS-SOUTH-FACE-010",
       "areaId": "south-face",
-      "sector": "南面（平台下）",
-      "sectorEn": "South Face (Below Platform)",
+      "sector": "南面",
+      "sectorEn": "South Face",
       "name": "上天梯",
       "nameEn": "Stairway to Heaven",
       "grade": "5.9",
