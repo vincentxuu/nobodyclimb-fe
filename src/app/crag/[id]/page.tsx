@@ -1,6 +1,6 @@
 'use client'
 
-import React, { useState, useEffect, use } from 'react'
+import React, { useState, useEffect, use, useMemo } from 'react'
 import Image from 'next/image'
 import PlaceholderImage from '@/components/ui/placeholder-image'
 import Link from 'next/link'
@@ -43,6 +43,18 @@ export default function CragDetailPage({ params }: { params: Promise<{ id: strin
 
   // 從資料服務層讀取岩場資料
   const currentCrag = getCragDetailData(id)
+
+  // 建立區域名稱到區域 ID 的對照表
+  const areaIdMap = useMemo(() => {
+    if (!currentCrag) return {}
+    return currentCrag.areas.reduce(
+      (acc, area) => {
+        acc[area.name] = area.id
+        return acc
+      },
+      {} as Record<string, string>
+    )
+  }, [currentCrag])
 
   // 處理岩區點擊 - 切換到路線 tab 並設置篩選
   const handleAreaClick = (areaName: string) => {
@@ -302,36 +314,42 @@ export default function CragDetailPage({ params }: { params: Promise<{ id: strin
               </Tabs.Content>
 
               <Tabs.Content value="areas">
-                <CragAreaSection areas={currentCrag.areas} onAreaClick={handleAreaClick} />
+                <CragAreaSection cragId={id} areas={currentCrag.areas} />
               </Tabs.Content>
 
               <Tabs.Content value="routes">
-                <CragRouteSection routes={currentCrag.routes_details} initialArea={selectedAreaFilter} />
+                <CragRouteSection
+                  routes={currentCrag.routes_details}
+                  initialArea={selectedAreaFilter}
+                  cragId={id}
+                  areaIdMap={areaIdMap}
+                />
               </Tabs.Content>
             </Tabs.Root>
           </div>
 
           {/* 使用相關岩場元件來替代上一篇/下一篇功能 */}
           <div className="mt-8 border-t border-gray-200 pt-8">
-            <h2 className="mb-6 text-2xl font-medium">相關岩場</h2>
+            <h2 className="mb-6 text-2xl font-medium">相關岩區</h2>
             <div className="grid grid-cols-1 gap-5 md:grid-cols-3">
               {currentCrag.areas.slice(0, 3).map((area, index) => (
-                <div
-                  key={index}
-                  className="overflow-hidden rounded-lg border border-gray-200 bg-white shadow-sm transition-shadow hover:shadow"
+                <Link
+                  key={area.id || index}
+                  href={`/crag/${id}/area/${area.id}`}
+                  className="group overflow-hidden rounded-lg border border-gray-200 bg-white shadow-sm transition-all hover:border-[#FFE70C] hover:shadow"
                 >
                   <div className="relative h-48">
                     <PlaceholderImage text={area.name} bgColor="#f8f9fa" />
                   </div>
                   <div className="p-4">
-                    <h3 className="text-base font-medium">{area.name}</h3>
+                    <h3 className="text-base font-medium group-hover:text-[#1B1A1A]">{area.name}</h3>
                     <div className="mt-2 flex items-center">
                       <span className="text-sm text-gray-500">
                         {area.difficulty} · {area.routes}條路線
                       </span>
                     </div>
                   </div>
-                </div>
+                </Link>
               ))}
             </div>
           </div>

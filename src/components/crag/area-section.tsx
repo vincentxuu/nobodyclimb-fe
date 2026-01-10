@@ -1,33 +1,34 @@
 'use client'
 
 import React from 'react'
+import Link from 'next/link'
 import PlaceholderImage from '@/components/ui/placeholder-image'
 import { ChevronRight } from 'lucide-react'
 
 interface CragAreaSectionProps {
+  cragId: string
   areas: Array<{
+    id: string
     name: string
     description: string
     difficulty: string
     routes: number
     image?: string
   }>
-  onAreaClick?: (areaName: string) => void
 }
 
-export const CragAreaSection: React.FC<CragAreaSectionProps> = ({ areas, onAreaClick }) => {
+export const CragAreaSection: React.FC<CragAreaSectionProps> = ({ cragId, areas }) => {
   return (
     <div>
       <h2 className="mb-6 border-l-4 border-[#FFE70C] pl-4 text-2xl font-bold">岩區詳情</h2>
-      <p className="mb-6 text-sm text-gray-500">點擊岩區卡片可查看該區的所有路線</p>
+      <p className="mb-6 text-sm text-gray-500">點擊岩區卡片進入岩區詳細介紹頁，查看該區的所有路線</p>
       <div className="space-y-10">
         {areas.map((area, index) => (
-          <div
-            key={index}
+          <Link
+            key={area.id || index}
+            href={`/crag/${cragId}/area/${area.id}`}
             className="group grid cursor-pointer grid-cols-1 gap-6 rounded-lg border border-transparent p-4 transition-all hover:border-[#FFE70C] hover:bg-yellow-50 md:grid-cols-3"
-            onClick={() => onAreaClick?.(area.name)}
-            role="button"
-            aria-label={`查看 ${area.name} 的路線`}
+            aria-label={`查看 ${area.name} 岩區詳情`}
           >
             <div className="relative h-60 overflow-hidden rounded-lg">
               <PlaceholderImage text={`${area.name} 岩區`} bgColor="#E0F2FE" />
@@ -36,7 +37,7 @@ export const CragAreaSection: React.FC<CragAreaSectionProps> = ({ areas, onAreaC
               <div className="mb-3 flex items-center justify-between">
                 <h3 className="text-xl font-bold group-hover:text-[#1B1A1A]">{area.name}</h3>
                 <span className="flex items-center text-sm text-gray-400 transition-colors group-hover:text-[#FFE70C]">
-                  查看路線
+                  查看詳情
                   <ChevronRight size={16} className="ml-1" />
                 </span>
               </div>
@@ -52,7 +53,7 @@ export const CragAreaSection: React.FC<CragAreaSectionProps> = ({ areas, onAreaC
                 </div>
               </div>
             </div>
-          </div>
+          </Link>
         ))}
       </div>
     </div>

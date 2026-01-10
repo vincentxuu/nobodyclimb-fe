@@ -1,6 +1,7 @@
 'use client'
 
 import React, { useState, useMemo, useEffect } from 'react'
+import Link from 'next/link'
 import { Eye, ExternalLink, X, ChevronLeft, ChevronRight, Info, Filter } from 'lucide-react'
 import * as Dialog from '@radix-ui/react-dialog'
 
@@ -13,6 +14,7 @@ interface RouteType {
   type: string
   firstAscent: string
   area: string
+  areaId?: string
   description: string
   protection: string
   popularity: number
@@ -26,9 +28,16 @@ interface RouteType {
 interface CragRouteSectionProps {
   routes: RouteType[]
   initialArea?: string
+  cragId?: string
+  areaIdMap?: Record<string, string>
 }
 
-export const CragRouteSection: React.FC<CragRouteSectionProps> = ({ routes, initialArea = 'all' }) => {
+export const CragRouteSection: React.FC<CragRouteSectionProps> = ({
+  routes,
+  initialArea = 'all',
+  cragId,
+  areaIdMap,
+}) => {
   const [selectedRoute, setSelectedRoute] = useState<RouteType | null>(null)
   const [showRouteDetail, setShowRouteDetail] = useState(false)
   const [showPhotos, setShowPhotos] = useState(false)
@@ -198,7 +207,19 @@ export const CragRouteSection: React.FC<CragRouteSectionProps> = ({ routes, init
                   {route.length}
                 </td>
                 <td className="whitespace-nowrap px-6 py-4 text-sm text-gray-500">{route.type}</td>
-                <td className="whitespace-nowrap px-6 py-4 text-sm text-gray-500">{route.area}</td>
+                <td className="whitespace-nowrap px-6 py-4 text-sm text-gray-500">
+                  {cragId && areaIdMap && areaIdMap[route.area] ? (
+                    <Link
+                      href={`/crag/${cragId}/area/${areaIdMap[route.area]}`}
+                      className="text-gray-600 underline decoration-gray-300 underline-offset-2 transition-colors hover:text-[#1B1A1A] hover:decoration-[#FFE70C]"
+                      onClick={(e) => e.stopPropagation()}
+                    >
+                      {route.area}
+                    </Link>
+                  ) : (
+                    route.area
+                  )}
+                </td>
                 <td className="whitespace-nowrap px-6 py-4 text-sm text-gray-500">
                   <div className="flex items-center">
                     <Eye size={16} className="mr-1 text-gray-400" />
