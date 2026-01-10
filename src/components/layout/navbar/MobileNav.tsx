@@ -62,7 +62,7 @@ export default function MobileNav({ isDesktop }: MobileNavProps) {
         transition={{ duration: 0.3 }}
         className="max-h-[calc(100dvh-var(--navbar-height))] overflow-y-auto overscroll-contain border-t border-gray-200 bg-white shadow-lg lg:hidden"
       >
-        <nav className="mobile-nav-scroll py-4 pb-6">
+        <nav className="mobile-nav-scroll py-4">
           {/* 搜尋框 - 始終顯示在導航選單中 */}
           <div className="mb-4 border-b border-gray-200 px-4 pb-4">
             <form onSubmit={handleSearch} className="relative">
