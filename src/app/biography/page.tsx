@@ -35,15 +35,15 @@ export default function BiographyPage() {
         </div>
 
         <div className="mb-16">
-          <div className="relative mx-auto max-w-[240px]">
-            <input
+          <div className="relative mx-auto w-[240px]">
+            <Input
               type="text"
               placeholder="搜尋人物關鍵字..."
               value={searchTerm}
               onChange={handleSearch}
-              className="h-[40px] w-full rounded-[4px] border border-[#1B1A1A] bg-white px-4 py-3 text-sm font-light placeholder:text-[#6D6C6C] focus:border-transparent focus:outline-none focus:ring-2 focus:ring-[#1B1A1A]"
+              className="h-[40px] w-full rounded-[4px] border border-[#1B1A1A] bg-white text-sm font-light placeholder:text-[#6D6C6C] focus:border-transparent focus:outline-none focus:ring-2 focus:ring-[#1B1A1A]"
             />
-            <div className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2">
+            <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-3">
               <Search className="h-5 w-5 stroke-[1.5px] text-[#1B1A1A]" />
             </div>
           </div>

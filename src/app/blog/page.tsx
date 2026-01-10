@@ -377,9 +377,24 @@ function BlogContent() {
         </div>
 
         {/* Filter Section */}
-        <div className="mb-8 flex flex-col items-center justify-between gap-6 md:flex-row">
+        <div className="mb-8 space-y-6">
+          {/* Search Input - 置中 */}
+          <div className="flex justify-center">
+            <div className="relative w-[240px]">
+              <Input
+                placeholder="搜尋文章關鍵字..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="h-[40px] w-full rounded-[4px] border border-[#1B1A1A] bg-white text-sm font-light placeholder:text-[#6D6C6C] focus:border-transparent focus:outline-none focus:ring-2 focus:ring-[#1B1A1A]"
+              />
+              <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-3">
+                <Search className="h-5 w-5 stroke-[1.5px] text-[#1B1A1A]" />
+              </div>
+            </div>
+          </div>
+
           {/* Categories */}
-          <div className="flex flex-wrap gap-2 md:gap-4">
+          <div className="flex flex-wrap justify-center gap-2 md:gap-4">
             {categories.map((category) => (
               <Button
                 key={category}
@@ -394,19 +409,6 @@ function BlogContent() {
                 {category}
               </Button>
             ))}
-          </div>
-
-          {/* Search Input */}
-          <div className="relative w-[240px]">
-            <Input
-              placeholder="搜尋文章關鍵字..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="h-[40px] w-full rounded-[4px] border border-[#1B1A1A] bg-white text-sm font-light placeholder:text-[#6D6C6C] focus:border-transparent focus:outline-none focus:ring-2 focus:ring-[#1B1A1A]"
-            />
-            <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-3">
-              <Search className="h-5 w-5 stroke-[1.5px] text-[#1B1A1A]" />
-            </div>
           </div>
         </div>
 
