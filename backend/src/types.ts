@@ -6,6 +6,7 @@ export interface Env {
   CORS_ORIGIN: string;
   JWT_ISSUER: string;
   JWT_SECRET: string;
+  R2_PUBLIC_URL: string;
 }
 
 // Database Models

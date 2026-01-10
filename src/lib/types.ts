@@ -166,6 +166,36 @@ export interface Gallery {
 }
 
 /**
+ * 攝影集照片介面（單張照片含上傳者資訊）
+ */
+export interface GalleryPhoto {
+  id: string
+  image_url: string
+  thumbnail_url?: string
+  caption?: string
+  location_country?: string
+  location_city?: string
+  location_spot?: string
+  created_at: string
+  author_id: string
+  username: string
+  display_name?: string
+  author_avatar?: string
+}
+
+/**
+ * 上傳照片請求介面
+ */
+export interface UploadPhotoInput {
+  image_url: string
+  thumbnail_url?: string
+  caption?: string
+  location_country?: string
+  location_city?: string
+  location_spot?: string
+}
+
+/**
  * 評論介面
  */
 export interface Comment {
@@ -204,6 +234,7 @@ export interface Biography {
   advice: string | null
   achievements: string | null
   social_links: string | null
+  gallery_images?: string | null // JSON 格式的圖片資料（可選）
   is_featured: number
   is_public: number
   published_at: string | null
@@ -246,6 +277,7 @@ export interface BiographyInput {
   achievements?: string
   social_links?: string
   is_public?: number
+  gallery_images?: string // JSON 格式的圖片資料
 }
 
 /**
@@ -351,16 +383,31 @@ export interface PaginatedResponse<T> {
 }
 
 /**
+ * 後端分頁資訊介面 (snake_case)
+ */
+export interface PaginationInfo {
+  page: number
+  limit: number
+  total: number
+  total_pages: number
+}
+
+/**
  * 後端分頁回應介面 (snake_case)
  */
 export interface BackendPaginatedResponse<T> {
   data: T[]
-  pagination: {
-    page: number
-    limit: number
-    total: number
-    total_pages: number
-  }
+  pagination: PaginationInfo
+}
+
+/**
+ * 後端文章分頁回應介面
+ * 後端實際返回 { success, data: [...], pagination: {...} }
+ */
+export interface BackendPostPaginatedResponse {
+  success: boolean
+  data: BackendPost[]
+  pagination: PaginationInfo
 }
 
 /**

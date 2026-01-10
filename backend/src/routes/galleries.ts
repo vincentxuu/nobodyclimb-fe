@@ -5,6 +5,262 @@ import { authMiddleware } from '../middleware/auth';
 
 export const galleriesRoutes = new Hono<{ Bindings: Env }>();
 
+// GET /galleries/photos - Get all photos with uploader info (for gallery page)
+galleriesRoutes.get('/photos', async (c) => {
+  const { page, limit, offset } = parsePagination(
+    c.req.query('page'),
+    c.req.query('limit')
+  );
+
+  const countResult = await c.env.DB.prepare(
+    'SELECT COUNT(*) as count FROM gallery_images'
+  ).first<{ count: number }>();
+  const total = countResult?.count || 0;
+
+  const photos = await c.env.DB.prepare(
+    `SELECT
+      gi.id,
+      gi.image_url,
+      gi.thumbnail_url,
+      gi.caption,
+      gi.location_country,
+      gi.location_city,
+      gi.location_spot,
+      gi.created_at,
+      g.author_id,
+      u.username,
+      u.display_name,
+      u.avatar_url as author_avatar
+     FROM gallery_images gi
+     JOIN galleries g ON gi.gallery_id = g.id
+     JOIN users u ON g.author_id = u.id
+     ORDER BY gi.created_at DESC
+     LIMIT ? OFFSET ?`
+  )
+    .bind(limit, offset)
+    .all();
+
+  return c.json({
+    success: true,
+    data: photos.results,
+    pagination: {
+      page,
+      limit,
+      total,
+      total_pages: Math.ceil(total / limit),
+    },
+  });
+});
+
+// POST /galleries/photos - Upload a single photo
+galleriesRoutes.post('/photos', authMiddleware, async (c) => {
+  const userId = c.get('userId');
+  const body = await c.req.json<{
+    image_url: string;
+    thumbnail_url?: string;
+    caption?: string;
+    location_country?: string;
+    location_city?: string;
+    location_spot?: string;
+  }>();
+
+  if (!body.image_url) {
+    return c.json(
+      {
+        success: false,
+        error: 'Bad Request',
+        message: 'image_url is required',
+      },
+      400
+    );
+  }
+
+  // Find or create a default gallery for this user
+  let gallery = await c.env.DB.prepare(
+    "SELECT id FROM galleries WHERE author_id = ? AND title = '我的照片'"
+  )
+    .bind(userId)
+    .first<{ id: string }>();
+
+  if (!gallery) {
+    const galleryId = generateId();
+    await c.env.DB.prepare(
+      `INSERT INTO galleries (id, author_id, title, slug, description)
+       VALUES (?, ?, '我的照片', ?, '個人攝影集')`
+    )
+      .bind(galleryId, userId, `my-photos-${galleryId.substring(0, 8)}`)
+      .run();
+    gallery = { id: galleryId };
+  }
+
+  // Get current max sort_order for this gallery
+  const maxOrder = await c.env.DB.prepare(
+    'SELECT MAX(sort_order) as max_order FROM gallery_images WHERE gallery_id = ?'
+  )
+    .bind(gallery.id)
+    .first<{ max_order: number | null }>();
+
+  const photoId = generateId();
+  const sortOrder = (maxOrder?.max_order ?? -1) + 1;
+
+  await c.env.DB.prepare(
+    `INSERT INTO gallery_images (id, gallery_id, image_url, thumbnail_url, caption, location_country, location_city, location_spot, sort_order)
+     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`
+  )
+    .bind(
+      photoId,
+      gallery.id,
+      body.image_url,
+      body.thumbnail_url || null,
+      body.caption || null,
+      body.location_country || null,
+      body.location_city || null,
+      body.location_spot || null,
+      sortOrder
+    )
+    .run();
+
+  // Get the created photo with author info
+  const photo = await c.env.DB.prepare(
+    `SELECT
+      gi.id,
+      gi.image_url,
+      gi.thumbnail_url,
+      gi.caption,
+      gi.location_country,
+      gi.location_city,
+      gi.location_spot,
+      gi.created_at,
+      g.author_id,
+      u.username,
+      u.display_name,
+      u.avatar_url as author_avatar
+     FROM gallery_images gi
+     JOIN galleries g ON gi.gallery_id = g.id
+     JOIN users u ON g.author_id = u.id
+     WHERE gi.id = ?`
+  )
+    .bind(photoId)
+    .first();
+
+  return c.json(
+    {
+      success: true,
+      data: photo,
+    },
+    201
+  );
+});
+
+// DELETE /galleries/photos/:id - Delete a photo
+galleriesRoutes.delete('/photos/:id', authMiddleware, async (c) => {
+  const userId = c.get('userId');
+  const user = c.get('user');
+  const photoId = c.req.param('id');
+
+  // Check if photo exists and user owns it, and get image_url
+  const photo = await c.env.DB.prepare(
+    `SELECT gi.id, gi.image_url, g.author_id
+     FROM gallery_images gi
+     JOIN galleries g ON gi.gallery_id = g.id
+     WHERE gi.id = ?`
+  )
+    .bind(photoId)
+    .first<{ id: string; image_url: string; author_id: string }>();
+
+  if (!photo) {
+    return c.json(
+      {
+        success: false,
+        error: 'Not Found',
+        message: 'Photo not found',
+      },
+      404
+    );
+  }
+
+  if (photo.author_id !== userId && user.role !== 'admin') {
+    return c.json(
+      {
+        success: false,
+        error: 'Forbidden',
+        message: 'You can only delete your own photos',
+      },
+      403
+    );
+  }
+
+  // Delete from R2 storage
+  if (photo.image_url) {
+    try {
+      const key = new URL(photo.image_url).pathname.substring(1);
+      await c.env.STORAGE.delete(key);
+    } catch (err) {
+      console.error(`Failed to delete R2 object for photo ${photoId}: ${err}`);
+      // Log the error but continue with database deletion
+    }
+  }
+
+  await c.env.DB.prepare('DELETE FROM gallery_images WHERE id = ?')
+    .bind(photoId)
+    .run();
+
+  return c.json({
+    success: true,
+    message: 'Photo deleted successfully',
+  });
+});
+
+// POST /galleries/upload - Upload image to R2 storage
+galleriesRoutes.post('/upload', authMiddleware, async (c) => {
+  const formData = await c.req.formData();
+  const file = formData.get('image') as File | null;
+
+  if (!file) {
+    return c.json(
+      {
+        success: false,
+        error: 'Bad Request',
+        message: 'No image file provided',
+      },
+      400
+    );
+  }
+
+  // Validate file type
+  const allowedTypes = ['image/jpeg', 'image/png', 'image/webp'];
+  if (!allowedTypes.includes(file.type)) {
+    return c.json(
+      {
+        success: false,
+        error: 'Bad Request',
+        message: 'Invalid file type. Only JPEG, PNG, and WebP are allowed.',
+      },
+      400
+    );
+  }
+
+  // Generate unique filename
+  const ext = file.name.split('.').pop() || 'jpg';
+  const filename = `gallery/${generateId()}.${ext}`;
+
+  // Upload to R2
+  const arrayBuffer = await file.arrayBuffer();
+  await c.env.STORAGE.put(filename, arrayBuffer, {
+    httpMetadata: {
+      contentType: file.type,
+    },
+  });
+
+  // Construct URL using environment variable
+  const url = `${c.env.R2_PUBLIC_URL}/${filename}`;
+
+  return c.json({
+    success: true,
+    data: { url },
+  });
+});
+
 // GET /galleries - List all galleries
 galleriesRoutes.get('/', async (c) => {
   const { page, limit, offset } = parsePagination(
