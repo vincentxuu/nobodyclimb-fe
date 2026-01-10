@@ -24,7 +24,7 @@
     "type": "mixed",
     "rockType": "石灰岩",
     "rockTypeEn": "Limestone",
-    "routesCount": 58,
+    "routesCount": 53,
     "difficulty": {
       "min": "5.6",
       "max": "5.12b"
@@ -66,8 +66,8 @@
       "descriptionEn": "An important climbing area at Defulan with both sport and traditional routes.",
       "difficulty": { "min": "5.9", "max": "5.12b" },
       "image": "/images/crag/defulan-final-frontier.jpg",
-      "boltCount": 28,
-      "routesCount": 8
+      "boltCount": 22,
+      "routesCount": 7
     },
     {
       "id": "frontier-left",
@@ -77,8 +77,8 @@
       "descriptionEn": "The small platform in the middle of the routes has many fallen leaves and small rocks. Please be gentle to avoid injuring belayers below. Helmet recommended.",
       "difficulty": { "min": "5.6", "max": "5.12b" },
       "image": "/images/crag/defulan-frontier-left.jpg",
-      "boltCount": 68,
-      "routesCount": 14
+      "boltCount": 60,
+      "routesCount": 13
     },
     {
       "id": "frontier-right",
@@ -99,8 +99,8 @@
       "descriptionEn": "Higher climbing area with many long routes, up to 40 meters.",
       "difficulty": { "min": "5.6", "max": "5.12a" },
       "image": "/images/crag/defulan-loftier.jpg",
-      "boltCount": 136,
-      "routesCount": 16
+      "boltCount": 180,
+      "routesCount": 14
     },
     {
       "id": "racketeer",
@@ -110,8 +110,8 @@
       "descriptionEn": "Racketeer area with multiple trad and sport routes.",
       "difficulty": { "min": "5.6", "max": "5.10b" },
       "image": "/images/crag/defulan-racketeer.jpg",
-      "boltCount": 74,
-      "routesCount": 14
+      "boltCount": 84,
+      "routesCount": 13
     }
   ],
   "routes": [
@@ -913,23 +913,23 @@
     }
   ],
   "statistics": {
-    "totalRoutes": 58,
-    "totalBolts": 329,
+    "totalRoutes": 53,
+    "totalBolts": 369,
     "routesByType": {
-      "sport": 42,
-      "trad": 13,
+      "sport": 38,
+      "trad": 12,
       "mixed": 3
     },
     "routesByGrade": {
-      "5.6-5.8": 11,
-      "5.9-5.10d": 21,
-      "5.11a-5.11d": 17,
+      "5.6-5.8": 10,
+      "5.9-5.10d": 19,
+      "5.11a-5.11d": 15,
       "5.12a-5.12b": 6,
       "TBD": 3
     },
     "boltsByMaterial": {
-      "Stainless Steel": 295,
-      "Other": 34
+      "Stainless Steel": 332,
+      "Other": 37
     }
   },
   "metadata": {
