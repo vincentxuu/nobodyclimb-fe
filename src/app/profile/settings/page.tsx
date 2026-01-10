@@ -1,11 +1,11 @@
 'use client'
 
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import ProfilePageLayout from '@/components/profile/layout/ProfilePageLayout'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
-import { UserCircle, Key, Upload } from 'lucide-react'
+import { UserCircle, Key, Upload, Loader2 } from 'lucide-react'
 import {
   AvatarOptions,
   generateAvatarElement,
@@ -14,16 +14,30 @@ import {
 import { cn } from '@/lib/utils'
 import { useIsMobile } from '@/lib/hooks/useIsMobile'
 import { useToast } from '@/components/ui/use-toast'
+import { authService, userService } from '@/lib/api/services'
+
+// 表單資料類型
+interface UserFormData {
+  username: string
+  email: string
+  displayName: string
+  currentPassword: string
+  newPassword: string
+  confirmNewPassword: string
+  avatarStyle: string
+  avatarUrl?: string
+}
 
 // 初始資料
-const initialUserData = {
-  username: 'nobodyclimb',
-  email: 'nobodyclimb@gmail.com',
-  displayName: '許岩手',
+const initialUserData: UserFormData = {
+  username: '',
+  email: '',
+  displayName: '',
   currentPassword: '',
   newPassword: '',
   confirmNewPassword: '',
   avatarStyle: DEFAULT_AVATARS[0].id,
+  avatarUrl: '',
 }
 
 // 表單欄位元件
@@ -35,13 +49,56 @@ const FormField = ({ label, children }: { label: string; children: React.ReactNo
 )
 
 export default function SettingsPage() {
-  const [userData, setUserData] = useState(initialUserData)
+  const [userData, setUserData] = useState<UserFormData>(initialUserData)
   const [avatar, setAvatar] = useState<File | null>(null)
   const [avatarPreview, setAvatarPreview] = useState<string | null>(null)
-  const [useDefaultAvatar, setUseDefaultAvatar] = useState(!avatar)
+  const [useDefaultAvatar, setUseDefaultAvatar] = useState(true)
   const [activeTab, setActiveTab] = useState<string>('profile')
+  const [isLoading, setIsLoading] = useState(true)
+  const [isSaving, setIsSaving] = useState(false)
+  const [isChangingPassword, setIsChangingPassword] = useState(false)
   const isMobile = useIsMobile()
   const { toast } = useToast()
+
+  // 從後端獲取當前用戶資料
+  useEffect(() => {
+    const fetchUserData = async () => {
+      try {
+        const response = await authService.getCurrentUser()
+        if (response.success && response.data) {
+          const user = response.data
+          setUserData({
+            username: user.username || '',
+            email: user.email || '',
+            displayName: user.displayName || '',
+            currentPassword: '',
+            newPassword: '',
+            confirmNewPassword: '',
+            avatarStyle: user.avatarStyle || DEFAULT_AVATARS[0].id,
+            avatarUrl: user.avatar || '',
+          })
+          // 如果用戶有自訂頭像，則不使用預設頭像
+          if (user.avatar && !user.avatarStyle) {
+            setUseDefaultAvatar(false)
+            setAvatarPreview(user.avatar)
+          } else {
+            setUseDefaultAvatar(true)
+          }
+        }
+      } catch (error) {
+        console.error('獲取用戶資料失敗:', error)
+        toast({
+          title: '載入失敗',
+          description: '無法獲取用戶資料，請重新整理頁面',
+          variant: 'destructive',
+        })
+      } finally {
+        setIsLoading(false)
+      }
+    }
+
+    fetchUserData()
+  }, [])
 
   // 處理表單變更
   const handleChange = (field: string, value: string) => {
@@ -91,7 +148,7 @@ export default function SettingsPage() {
   }
 
   // 儲存基本資料
-  const handleSaveProfile = () => {
+  const handleSaveProfile = async () => {
     // 驗證顯示名稱
     if (!userData.displayName.trim()) {
       toast({
@@ -122,17 +179,74 @@ export default function SettingsPage() {
       return
     }
 
-    // 在這裡實現 API 呼叫來保存資料
-    console.log('儲存個人資料:', userData)
+    try {
+      setIsSaving(true)
+      let avatarUrl = userData.avatarUrl
 
-    toast({
-      title: '儲存成功',
-      description: '個人資料已更新',
-    })
+      // 如果有上傳新頭像，先上傳頭像
+      if (avatar) {
+        const uploadResponse = await userService.uploadAvatar(avatar)
+        if (uploadResponse.success && uploadResponse.data) {
+          avatarUrl = uploadResponse.data.url
+        } else {
+          toast({
+            title: '頭像上傳失敗',
+            description: '無法儲存您的新頭像，個人資料未更新。',
+            variant: 'destructive',
+          })
+          return
+        }
+      }
+
+      // 更新用戶資料
+      const profileData: Record<string, string | undefined> = {
+        username: userData.username,
+        email: userData.email,
+        displayName: userData.displayName,
+      }
+
+      // 設定頭像相關資料
+      if (useDefaultAvatar) {
+        profileData.avatarStyle = userData.avatarStyle
+        profileData.avatar = undefined
+      } else if (avatarUrl) {
+        profileData.avatar = avatarUrl
+        profileData.avatarStyle = undefined
+      }
+
+      const response = await authService.updateProfile(profileData)
+
+      if (response.success) {
+        // 更新本地狀態
+        if (avatarUrl && !useDefaultAvatar) {
+          setUserData((prev) => ({ ...prev, avatarUrl }))
+        }
+        toast({
+          title: '儲存成功',
+          description: '個人資料已更新',
+        })
+      } else {
+        toast({
+          title: '儲存失敗',
+          description: '無法更新個人資料，請稍後再試',
+          variant: 'destructive',
+        })
+      }
+    } catch (error: unknown) {
+      console.error('儲存個人資料失敗:', error)
+      const errorMessage = error instanceof Error ? error.message : '請稍後再試'
+      toast({
+        title: '儲存失敗',
+        description: errorMessage,
+        variant: 'destructive',
+      })
+    } finally {
+      setIsSaving(false)
+    }
   }
 
   // 更改密碼
-  const handleChangePassword = () => {
+  const handleChangePassword = async () => {
     // 驗證目前密碼
     if (!userData.currentPassword) {
       toast({
@@ -173,24 +287,44 @@ export default function SettingsPage() {
       return
     }
 
-    // 在這裡實現 API 呼叫來更新密碼
-    console.log('更新密碼:', {
-      currentPassword: userData.currentPassword,
-      newPassword: userData.newPassword,
-    })
+    try {
+      setIsChangingPassword(true)
+      const response = await authService.changePassword(
+        userData.currentPassword,
+        userData.newPassword
+      )
 
-    // 清空密碼欄位
-    setUserData({
-      ...userData,
-      currentPassword: '',
-      newPassword: '',
-      confirmNewPassword: '',
-    })
+      if (response.success) {
+        // 清空密碼欄位
+        setUserData({
+          ...userData,
+          currentPassword: '',
+          newPassword: '',
+          confirmNewPassword: '',
+        })
 
-    toast({
-      title: '更新成功',
-      description: '密碼已成功更新',
-    })
+        toast({
+          title: '更新成功',
+          description: '密碼已成功更新',
+        })
+      } else {
+        toast({
+          title: '更新失敗',
+          description: '無法更新密碼，請稍後再試',
+          variant: 'destructive',
+        })
+      }
+    } catch (error: unknown) {
+      console.error('更新密碼失敗:', error)
+      const errorMessage = error instanceof Error ? error.message : '目前密碼可能不正確'
+      toast({
+        title: '更新失敗',
+        description: errorMessage,
+        variant: 'destructive',
+      })
+    } finally {
+      setIsChangingPassword(false)
+    }
   }
 
   // 頭像上傳區元件
@@ -278,9 +412,17 @@ export default function SettingsPage() {
       </FormField>
       <Button
         onClick={handleSaveProfile}
+        disabled={isSaving}
         className="mt-4 bg-[#1B1A1A] text-white hover:bg-[#3F3D3D]"
       >
-        儲存變更
+        {isSaving ? (
+          <>
+            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+            儲存中...
+          </>
+        ) : (
+          '儲存變更'
+        )}
       </Button>
     </div>
   )
@@ -312,8 +454,19 @@ export default function SettingsPage() {
           className="border-[#B6B3B3]"
         />
       </FormField>
-      <Button onClick={handleChangePassword} className="bg-[#1B1A1A] text-white hover:bg-[#3F3D3D]">
-        更新密碼
+      <Button
+        onClick={handleChangePassword}
+        disabled={isChangingPassword}
+        className="bg-[#1B1A1A] text-white hover:bg-[#3F3D3D]"
+      >
+        {isChangingPassword ? (
+          <>
+            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+            更新中...
+          </>
+        ) : (
+          '更新密碼'
+        )}
       </Button>
     </div>
   )
@@ -347,6 +500,20 @@ export default function SettingsPage() {
         </div>
       )
     }
+  }
+
+  // 頁面載入中的畫面
+  if (isLoading) {
+    return (
+      <ProfilePageLayout>
+        <div className="flex min-h-[400px] items-center justify-center rounded-sm bg-white">
+          <div className="flex flex-col items-center gap-4">
+            <Loader2 className="h-8 w-8 animate-spin text-[#3F3D3D]" />
+            <p className="text-[#6D6C6C]">載入中...</p>
+          </div>
+        </div>
+      </ProfilePageLayout>
+    )
   }
 
   return (
