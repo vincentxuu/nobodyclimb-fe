@@ -16,6 +16,7 @@ import { ArticleCategory } from '@/mocks/articles'
 import { ProtectedRoute } from '@/components/shared/protected-route'
 import { RichTextEditor, TagSelector, ImageUploader } from '@/components/editor'
 import { postService } from '@/lib/api/services'
+import { sanitizeHtml } from '@/lib/utils/sanitize'
 
 type ArticleStatus = 'draft' | 'published'
 
@@ -86,17 +87,20 @@ function CreateBlogPageContent() {
         .replace(/[^a-z0-9\u4e00-\u9fff]+/g, '-')
         .replace(/^-|-$/g, '')
 
+      // 合併分類和標籤（分類作為第一個標籤）
+      const allTags = category ? [category, ...tags.filter((t) => t !== category)] : tags
+
       const postData = {
         title: title.trim(),
         slug,
-        content,
+        content: sanitizeHtml(content),
         summary: autoSummary,
         coverImage: coverImage || '',
-        tags,
+        tags: allTags,
         status,
       }
 
-      await postService.createPost(postData as never)
+      await postService.createPost(postData)
 
       alert(status === 'published' ? '文章發布成功！' : '草稿儲存成功！')
       router.push('/profile/articles')
@@ -160,7 +164,7 @@ function CreateBlogPageContent() {
             <h1 className="mb-6 text-3xl font-bold text-[#1B1A1A]">{title || '未命名文章'}</h1>
             <div
               className="prose prose-lg max-w-none"
-              dangerouslySetInnerHTML={{ __html: content || '<p>尚無內容</p>' }}
+              dangerouslySetInnerHTML={{ __html: sanitizeHtml(content) || '<p>尚無內容</p>' }}
             />
           </article>
         </main>

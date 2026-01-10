@@ -181,7 +181,9 @@ export const postService = {
    * 創建文章
    */
   createPost: async (
-    postData: Omit<Post, 'id' | 'authorId' | 'createdAt' | 'likes' | 'comments' | 'views'>
+    postData: Omit<Post, 'id' | 'authorId' | 'createdAt' | 'likes' | 'comments' | 'views'> & {
+      status?: 'draft' | 'published'
+    }
   ) => {
     const response = await apiClient.post<ApiResponse<Post>>('/posts', postData)
     return response.data
