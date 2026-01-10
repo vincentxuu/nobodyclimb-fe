@@ -189,6 +189,13 @@ export default function SettingsPage() {
         const uploadResponse = await userService.uploadAvatar(avatar)
         if (uploadResponse.success && uploadResponse.data) {
           avatarUrl = uploadResponse.data.url
+        } else {
+          toast({
+            title: '頭像上傳失敗',
+            description: '無法儲存您的新頭像，個人資料未更新。',
+            variant: 'destructive',
+          })
+          return
         }
       }
 
