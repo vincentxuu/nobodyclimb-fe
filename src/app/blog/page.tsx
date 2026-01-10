@@ -11,22 +11,7 @@ import { Article, ArticleCategory } from '@/mocks/articles'
 import { Breadcrumb } from '@/components/ui/breadcrumb'
 import { motion } from 'framer-motion'
 import { postService } from '@/lib/api/services'
-
-// 後端文章類型
-interface BackendPost {
-  id: string
-  title: string
-  slug: string
-  excerpt: string | null
-  content: string
-  cover_image: string | null
-  status: string
-  is_featured: number
-  view_count: number
-  published_at: string | null
-  created_at: string
-  tags?: string[]
-}
+import { BackendPost } from '@/lib/types'
 
 // 載入狀態元件
 const LoadingState = () => (
@@ -180,9 +165,9 @@ function BlogContent() {
     try {
       const response = await postService.getPosts(pageNum, 9)
       if (response.success && response.data) {
-        const data = response.data as unknown as { data: BackendPost[]; pagination: { total_pages: number } }
+        const { data, pagination } = response.data
         // 將後端數據轉換為前端格式
-        const fetchedArticles: Article[] = (data.data || []).map((post: BackendPost) => ({
+        const fetchedArticles: Article[] = (data || []).map((post) => ({
           id: post.id,
           title: post.title,
           category: (post.tags?.[0] as ArticleCategory) || '技巧介紹',
@@ -200,7 +185,7 @@ function BlogContent() {
         } else {
           setArticles(fetchedArticles)
         }
-        setHasMore(pageNum < (data.pagination?.total_pages || 1))
+        setHasMore(pageNum < (pagination?.total_pages || 1))
       } else {
         if (!append) {
           setArticles([])
@@ -224,8 +209,7 @@ function BlogContent() {
     try {
       const response = await postService.getFeaturedPosts()
       if (response.success && response.data) {
-        const data = response.data as unknown as BackendPost[]
-        const fetchedFeatured: Article[] = data.map((post: BackendPost) => ({
+        const fetchedFeatured: Article[] = response.data.map((post) => ({
           id: post.id,
           title: post.title,
           category: (post.tags?.[0] as ArticleCategory) || '技巧介紹',

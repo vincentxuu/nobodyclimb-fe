@@ -1,6 +1,8 @@
 import apiClient from './client'
 import {
   Post,
+  BackendPost,
+  BackendPaginatedResponse,
   Gym,
   Gallery,
   User,
@@ -125,7 +127,7 @@ export const postService = {
    * 獲取文章列表
    */
   getPosts: async (page = 1, limit = 10, tags?: string[]) => {
-    const response = await apiClient.get<ApiResponse<PaginatedResponse<Post>>>('/posts', {
+    const response = await apiClient.get<ApiResponse<BackendPaginatedResponse<BackendPost>>>('/posts', {
       params: { page, limit, tags: tags?.join(',') },
     })
     return response.data
@@ -135,7 +137,7 @@ export const postService = {
    * 獲取文章詳情（通過ID）
    */
   getPostById: async (id: string) => {
-    const response = await apiClient.get<ApiResponse<Post>>(`/posts/${id}`)
+    const response = await apiClient.get<ApiResponse<BackendPost>>(`/posts/${id}`)
     return response.data
   },
 
@@ -151,7 +153,7 @@ export const postService = {
    * 獲取精選文章
    */
   getFeaturedPosts: async () => {
-    const response = await apiClient.get<ApiResponse<Post[]>>('/posts/featured')
+    const response = await apiClient.get<ApiResponse<BackendPost[]>>('/posts/featured')
     return response.data
   },
 
@@ -159,7 +161,7 @@ export const postService = {
    * 獲取相關文章
    */
   getRelatedPosts: async (id: string, limit = 3) => {
-    const response = await apiClient.get<ApiResponse<Post[]>>(`/posts/${id}/related`, {
+    const response = await apiClient.get<ApiResponse<BackendPost[]>>(`/posts/${id}/related`, {
       params: { limit },
     })
     return response.data
@@ -169,7 +171,7 @@ export const postService = {
    * 獲取熱門文章
    */
   getPopularPosts: async (limit = 5) => {
-    const response = await apiClient.get<ApiResponse<Post[]>>('/posts/popular', {
+    const response = await apiClient.get<ApiResponse<BackendPost[]>>('/posts/popular', {
       params: { limit },
     })
     return response.data

@@ -11,27 +11,7 @@ import { Breadcrumb } from '@/components/ui/breadcrumb'
 import { CommentSection } from '@/components/blog/CommentSection'
 import { postService } from '@/lib/api/services'
 import { useToast } from '@/components/ui/use-toast'
-
-// 文章類型定義 - 後端返回格式
-interface PostData {
-  id: string
-  author_id: string
-  title: string
-  slug: string
-  excerpt: string | null
-  content: string
-  cover_image: string | null
-  status: 'draft' | 'published' | 'archived'
-  is_featured: number
-  view_count: number
-  published_at: string | null
-  created_at: string
-  updated_at: string
-  tags?: string[]
-  username?: string
-  display_name?: string
-  author_avatar?: string
-}
+import { BackendPost } from '@/lib/types'
 
 // 載入狀態元件
 const LoadingState = () => (
@@ -57,14 +37,14 @@ export default function BlogDetail() {
   const { toast } = useToast()
   const id = params.id as string
 
-  const [article, setArticle] = useState<PostData | null>(null)
+  const [article, setArticle] = useState<BackendPost | null>(null)
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [isLiked, setIsLiked] = useState(false)
   const [likeCount, setLikeCount] = useState(0)
   const [isLiking, setIsLiking] = useState(false)
-  const [popularArticles, setPopularArticles] = useState<PostData[]>([])
-  const [relatedArticles, setRelatedArticles] = useState<PostData[]>([])
+  const [popularArticles, setPopularArticles] = useState<BackendPost[]>([])
+  const [relatedArticles, setRelatedArticles] = useState<BackendPost[]>([])
 
   // 獲取文章詳情
   const fetchArticle = useCallback(async () => {
@@ -73,7 +53,7 @@ export default function BlogDetail() {
     try {
       const response = await postService.getPostById(id)
       if (response.success && response.data) {
-        setArticle(response.data as unknown as PostData)
+        setArticle(response.data)
       } else {
         setError('找不到文章')
       }
@@ -103,7 +83,7 @@ export default function BlogDetail() {
     try {
       const response = await postService.getPopularPosts(4)
       if (response.success && response.data) {
-        setPopularArticles(response.data as unknown as PostData[])
+        setPopularArticles(response.data)
       }
     } catch (err) {
       console.error('Failed to fetch popular articles:', err)
@@ -115,7 +95,7 @@ export default function BlogDetail() {
     try {
       const response = await postService.getRelatedPosts(id, 3)
       if (response.success && response.data) {
-        setRelatedArticles(response.data as unknown as PostData[])
+        setRelatedArticles(response.data)
       }
     } catch (err) {
       console.error('Failed to fetch related articles:', err)
