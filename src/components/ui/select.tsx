@@ -82,8 +82,15 @@ const SelectTrigger = ({
         className
       )}
     >
-      {children}
-      <ChevronDown className={cn('h-4 w-4 transition-transform', open && 'rotate-180 transform')} />
+      {React.Children.map(children, (child) => {
+        if (React.isValidElement(child) && child.type === SelectValue) {
+          return React.cloneElement(child as React.ReactElement<SelectValueProps>, {
+            value,
+          })
+        }
+        return child
+      })}
+      <ChevronDown className={cn('h-4 w-4 flex-shrink-0 transition-transform', open && 'rotate-180 transform')} />
     </div>
   )
 }
@@ -91,12 +98,13 @@ const SelectTrigger = ({
 interface SelectValueProps {
   placeholder: string
   children?: React.ReactNode
+  value?: string
 }
 
-const SelectValue = ({ placeholder, children }: SelectValueProps) => {
+const SelectValue = ({ placeholder, children, value }: SelectValueProps) => {
   return (
     <span className="block truncate">
-      {children || <span className="text-[#6D6C6C]">{placeholder}</span>}
+      {value || children || <span className="text-[#6D6C6C]">{placeholder}</span>}
     </span>
   )
 }
