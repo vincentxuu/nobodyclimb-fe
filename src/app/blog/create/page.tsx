@@ -17,6 +17,7 @@ import { ProtectedRoute } from '@/components/shared/protected-route'
 import { RichTextEditor, TagSelector, ImageUploader } from '@/components/editor'
 import { postService } from '@/lib/api/services'
 import { sanitizeHtml } from '@/lib/utils/sanitize'
+import { generateSummary } from '@/lib/utils/article'
 
 type ArticleStatus = 'draft' | 'published'
 
@@ -74,12 +75,7 @@ function CreateBlogPageContent() {
 
     try {
       // 自動產生摘要（如果沒有手動輸入）
-      const autoSummary =
-        summary.trim() ||
-        content
-          .replace(/<[^>]*>/g, '')
-          .substring(0, 150)
-          .trim() + '...'
+      const autoSummary = generateSummary(content, summary)
 
       // 產生 slug
       const slug = title
@@ -100,13 +96,18 @@ function CreateBlogPageContent() {
         status,
       }
 
-      await postService.createPost(postData)
+      const response = await postService.createPost(postData)
 
-      alert(status === 'published' ? '文章發布成功！' : '草稿儲存成功！')
-      router.push('/profile/articles')
+      if (response.success) {
+        alert(status === 'published' ? '文章發布成功！' : '草稿儲存成功！')
+        router.push('/profile/articles')
+      } else {
+        throw new Error(response.message || '發布失敗')
+      }
     } catch (error) {
       console.error('發布文章時出錯:', error)
-      alert('發布文章時出錯，請稍後再試')
+      const errorMessage = error instanceof Error ? error.message : '未知錯誤'
+      alert(`發布文章時出錯：${errorMessage}。請檢查網路連線後再試。`)
     } finally {
       setIsSubmitting(false)
     }
@@ -176,39 +177,41 @@ function CreateBlogPageContent() {
     <div className="min-h-screen bg-[#F5F5F5]">
       {/* 頂部工具列 */}
       <div className="sticky top-0 z-10 border-b bg-white">
-        <div className="mx-auto flex max-w-[1200px] items-center justify-between px-4 py-3">
-          <Button variant="ghost" onClick={handleBack}>
-            <ArrowLeft className="mr-2 h-4 w-4" />
-            返回
+        <div className="mx-auto flex max-w-[1200px] items-center justify-between gap-2 px-4 py-3">
+          <Button variant="ghost" onClick={handleBack} className="flex-shrink-0">
+            <ArrowLeft className="h-4 w-4 md:mr-2" />
+            <span className="hidden md:inline">返回</span>
           </Button>
 
-          <div className="flex gap-2">
+          <div className="flex flex-wrap items-center justify-end gap-2">
             <Button
               type="button"
               variant="outline"
               onClick={() => setShowPreview(true)}
               disabled={isSubmitting}
+              className="h-9 px-2 md:px-4"
             >
-              <Eye className="mr-2 h-4 w-4" />
-              預覽
+              <Eye className="h-4 w-4 md:mr-2" />
+              <span className="hidden sm:inline">預覽</span>
             </Button>
             <Button
               type="button"
               variant="outline"
               onClick={() => handleSubmit('draft')}
               disabled={isSubmitting || isUploading}
+              className="h-9 px-2 md:px-4"
             >
-              <Save className="mr-2 h-4 w-4" />
-              儲存草稿
+              <Save className="h-4 w-4 md:mr-2" />
+              <span className="hidden sm:inline">儲存草稿</span>
             </Button>
             <Button
               type="button"
               onClick={() => handleSubmit('published')}
               disabled={isSubmitting || isUploading}
-              className="bg-[#1B1A1A] text-white hover:bg-[#2B2A2A]"
+              className="h-9 bg-[#1B1A1A] px-2 text-white hover:bg-[#2B2A2A] md:px-4"
             >
-              <Send className="mr-2 h-4 w-4" />
-              發布文章
+              <Send className="h-4 w-4 md:mr-2" />
+              <span className="hidden sm:inline">發布文章</span>
             </Button>
           </div>
         </div>
@@ -288,7 +291,7 @@ function CreateBlogPageContent() {
                 value={summary}
                 onChange={(e) => setSummary(e.target.value)}
                 placeholder="簡短描述文章內容，留空將自動擷取..."
-                className="h-24 w-full resize-none rounded-lg border border-gray-200 p-3 text-sm focus:border-[#1B1A1A] focus:outline-none"
+                className="h-24 w-full resize-none rounded-lg border border-gray-200 bg-white p-3 text-sm text-[#1B1A1A] placeholder:text-gray-400 focus:border-[#1B1A1A] focus:outline-none"
                 maxLength={200}
               />
               <p className="mt-1 text-right text-xs text-gray-400">{summary.length}/200</p>

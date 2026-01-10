@@ -134,6 +134,16 @@ export const postService = {
   },
 
   /**
+   * 獲取當前用戶的文章列表（包含所有狀態：草稿、已發布、已封存）
+   */
+  getMyPosts: async (page = 1, limit = 50, status?: 'draft' | 'published' | 'archived') => {
+    const response = await apiClient.get<ApiResponse<BackendPaginatedResponse<BackendPost>>>('/posts/me', {
+      params: { page, limit, status },
+    })
+    return response.data
+  },
+
+  /**
    * 獲取文章詳情（通過ID）
    */
   getPostById: async (id: string) => {

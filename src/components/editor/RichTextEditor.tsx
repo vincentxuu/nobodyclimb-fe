@@ -78,14 +78,23 @@ export function RichTextEditor({
           min-height: 300px;
           font-size: 16px;
           font-family: inherit;
+          background-color: white;
         }
         .rich-text-editor .ql-editor {
           min-height: 300px;
           line-height: 1.8;
+          color: #1B1A1A;
         }
         .rich-text-editor .ql-editor.ql-blank::before {
           color: #9ca3af;
           font-style: normal;
+          left: 15px;
+          right: 15px;
+          pointer-events: none;
+        }
+        /* 確保有內容時不顯示 placeholder */
+        .rich-text-editor .ql-editor:not(.ql-blank)::before {
+          display: none !important;
         }
         .rich-text-editor .ql-toolbar {
           border-top-left-radius: 8px;
