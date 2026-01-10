@@ -5,6 +5,8 @@ import {
   BackendPaginatedResponse,
   Gym,
   Gallery,
+  GalleryPhoto,
+  UploadPhotoInput,
   User,
   Comment,
   PaginatedResponse,
@@ -383,9 +385,72 @@ export const gymService = {
 }
 
 /**
+ * 照片分頁回應介面
+ */
+interface PhotoPaginatedResponse {
+  success: boolean
+  data: GalleryPhoto[]
+  pagination: {
+    page: number
+    limit: number
+    total: number
+    total_pages: number
+  }
+}
+
+/**
  * 相簿相關 API 服務
  */
 export const galleryService = {
+  /**
+   * 獲取所有照片（含上傳者資訊）
+   */
+  getPhotos: async (page = 1, limit = 18) => {
+    const response = await apiClient.get<PhotoPaginatedResponse>('/galleries/photos', {
+      params: { page, limit },
+    })
+    return response.data
+  },
+
+  /**
+   * 上傳單張照片到攝影集
+   */
+  uploadPhoto: async (photoData: UploadPhotoInput) => {
+    const response = await apiClient.post<ApiResponse<GalleryPhoto>>(
+      '/galleries/photos',
+      photoData
+    )
+    return response.data
+  },
+
+  /**
+   * 刪除照片
+   */
+  deletePhoto: async (id: string) => {
+    const response = await apiClient.delete<ApiResponse<{ message: string }>>(
+      `/galleries/photos/${id}`
+    )
+    return response.data
+  },
+
+  /**
+   * 上傳圖片檔案到儲存空間
+   */
+  uploadImage: async (file: File) => {
+    const formData = new FormData()
+    formData.append('image', file)
+    const response = await apiClient.post<ApiResponse<{ url: string }>>(
+      '/galleries/upload',
+      formData,
+      {
+        headers: {
+          'Content-Type': 'multipart/form-data',
+        },
+      }
+    )
+    return response.data
+  },
+
   /**
    * 獲取相簿列表
    */
@@ -449,7 +514,7 @@ export const galleryService = {
   },
 
   /**
-   * 上傳相簿圖片
+   * 上傳相簿圖片（多張）
    */
   uploadImages: async (files: File[]) => {
     const formData = new FormData()
