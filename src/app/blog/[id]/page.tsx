@@ -75,53 +75,11 @@ export default function BlogDetail() {
       if (response.success && response.data) {
         setArticle(response.data as unknown as PostData)
       } else {
-        // 如果 API 失敗，嘗試使用 mock 數據
-        const mockArticle = mockArticles.find((a) => a.id === id)
-        if (mockArticle) {
-          setArticle({
-            id: mockArticle.id,
-            author_id: '',
-            title: mockArticle.title,
-            slug: mockArticle.id,
-            excerpt: mockArticle.description || null,
-            content: mockArticle.content,
-            cover_image: mockArticle.imageUrl,
-            status: 'published',
-            is_featured: mockArticle.isFeature ? 1 : 0,
-            view_count: 0,
-            published_at: mockArticle.date,
-            created_at: mockArticle.date,
-            updated_at: mockArticle.date,
-            tags: [mockArticle.category],
-          })
-        } else {
-          setError('找不到文章')
-        }
+        setError('找不到文章')
       }
     } catch (err) {
       console.error('Failed to fetch article:', err)
-      // 嘗試使用 mock 數據
-      const mockArticle = mockArticles.find((a) => a.id === id)
-      if (mockArticle) {
-        setArticle({
-          id: mockArticle.id,
-          author_id: '',
-          title: mockArticle.title,
-          slug: mockArticle.id,
-          excerpt: mockArticle.description || null,
-          content: mockArticle.content,
-          cover_image: mockArticle.imageUrl,
-          status: 'published',
-          is_featured: mockArticle.isFeature ? 1 : 0,
-          view_count: 0,
-          published_at: mockArticle.date,
-          created_at: mockArticle.date,
-          updated_at: mockArticle.date,
-          tags: [mockArticle.category],
-        })
-      } else {
-        setError('無法載入文章')
-      }
+      setError('無法載入文章')
     } finally {
       setIsLoading(false)
     }
