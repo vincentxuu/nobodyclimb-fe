@@ -313,25 +313,26 @@ export default function CragDetailPage({ params }: { params: Promise<{ id: strin
 
           {/* 使用相關岩場元件來替代上一篇/下一篇功能 */}
           <div className="mt-8 border-t border-gray-200 pt-8">
-            <h2 className="mb-6 text-2xl font-medium">相關岩場</h2>
+            <h2 className="mb-6 text-2xl font-medium">相關岩區</h2>
             <div className="grid grid-cols-1 gap-5 md:grid-cols-3">
               {currentCrag.areas.slice(0, 3).map((area, index) => (
-                <div
-                  key={index}
-                  className="overflow-hidden rounded-lg border border-gray-200 bg-white shadow-sm transition-shadow hover:shadow"
+                <Link
+                  key={area.id || index}
+                  href={`/crag/${id}/area/${area.id}`}
+                  className="group overflow-hidden rounded-lg border border-gray-200 bg-white shadow-sm transition-all hover:border-[#FFE70C] hover:shadow"
                 >
                   <div className="relative h-48">
                     <PlaceholderImage text={area.name} bgColor="#f8f9fa" />
                   </div>
                   <div className="p-4">
-                    <h3 className="text-base font-medium">{area.name}</h3>
+                    <h3 className="text-base font-medium group-hover:text-[#1B1A1A]">{area.name}</h3>
                     <div className="mt-2 flex items-center">
                       <span className="text-sm text-gray-500">
                         {area.difficulty} · {area.routes}條路線
                       </span>
                     </div>
                   </div>
-                </div>
+                </Link>
               ))}
             </div>
           </div>
