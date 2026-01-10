@@ -11,7 +11,6 @@ import { Breadcrumb } from '@/components/ui/breadcrumb'
 import { CommentSection } from '@/components/blog/CommentSection'
 import { postService } from '@/lib/api/services'
 import { useToast } from '@/components/ui/use-toast'
-import { mockArticles } from '@/mocks/articles'
 
 // 文章類型定義 - 後端返回格式
 interface PostData {
@@ -226,72 +225,11 @@ export default function BlogDetail() {
     return <ErrorState message={error || '找不到文章'} />
   }
 
-  // 使用從 API 獲取的相關文章，如果沒有則使用 mock 數據
-  const displayRelatedArticles = relatedArticles.length > 0
-    ? relatedArticles
-    : (() => {
-        const category = article.tags?.[0] || ''
-        const filtered = mockArticles
-          .filter((a) => a.id !== id && a.category === category)
-          .slice(0, 3)
-        if (filtered.length < 3) {
-          const others = mockArticles
-            .filter((a) => a.id !== id && a.category !== category)
-            .slice(0, 3 - filtered.length)
-          return [...filtered, ...others.map(a => ({
-            id: a.id,
-            author_id: '',
-            title: a.title,
-            slug: a.id,
-            excerpt: a.description || null,
-            content: a.content,
-            cover_image: a.imageUrl,
-            status: 'published' as const,
-            is_featured: a.isFeature ? 1 : 0,
-            view_count: 0,
-            published_at: a.date,
-            created_at: a.date,
-            updated_at: a.date,
-            tags: [a.category],
-          }))]
-        }
-        return filtered.map(a => ({
-          id: a.id,
-          author_id: '',
-          title: a.title,
-          slug: a.id,
-          excerpt: a.description || null,
-          content: a.content,
-          cover_image: a.imageUrl,
-          status: 'published' as const,
-          is_featured: a.isFeature ? 1 : 0,
-          view_count: 0,
-          published_at: a.date,
-          created_at: a.date,
-          updated_at: a.date,
-          tags: [a.category],
-        }))
-      })()
+  // 使用從 API 獲取的相關文章
+  const displayRelatedArticles = relatedArticles
 
-  // 使用從 API 獲取的熱門文章，如果沒有則使用 mock 數據
-  const displayPopularArticles = popularArticles.length > 0
-    ? popularArticles
-    : mockArticles.slice(0, 4).map(a => ({
-        id: a.id,
-        author_id: '',
-        title: a.title,
-        slug: a.id,
-        excerpt: a.description || null,
-        content: a.content,
-        cover_image: a.imageUrl,
-        status: 'published' as const,
-        is_featured: a.isFeature ? 1 : 0,
-        view_count: 0,
-        published_at: a.date,
-        created_at: a.date,
-        updated_at: a.date,
-        tags: [a.category],
-      }))
+  // 使用從 API 獲取的熱門文章
+  const displayPopularArticles = popularArticles
 
   // 格式化日期
   const formattedDate = article.published_at

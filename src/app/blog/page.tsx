@@ -7,7 +7,7 @@ import { useRouter, useSearchParams } from 'next/navigation'
 import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
 import { Search, ChevronLeft, ChevronRight, Loader2, Heart, Eye, FileText } from 'lucide-react'
-import { Article, ArticleCategory, mockArticles } from '@/mocks/articles'
+import { Article, ArticleCategory } from '@/mocks/articles'
 import { Breadcrumb } from '@/components/ui/breadcrumb'
 import { motion } from 'framer-motion'
 import { postService } from '@/lib/api/services'
@@ -198,21 +198,19 @@ function BlogContent() {
         if (append) {
           setArticles((prev) => [...prev, ...fetchedArticles])
         } else {
-          setArticles(fetchedArticles.length > 0 ? fetchedArticles : mockArticles)
+          setArticles(fetchedArticles)
         }
         setHasMore(pageNum < (data.pagination?.total_pages || 1))
       } else {
-        // 使用 mock 數據
         if (!append) {
-          setArticles(mockArticles)
+          setArticles([])
         }
         setHasMore(false)
       }
     } catch (err) {
       console.error('Failed to fetch articles:', err)
-      // 使用 mock 數據作為回退
       if (!append) {
-        setArticles(mockArticles)
+        setArticles([])
       }
       setHasMore(false)
     } finally {
@@ -243,8 +241,6 @@ function BlogContent() {
       }
     } catch (err) {
       console.error('Failed to fetch featured articles:', err)
-      // 使用 mock 數據作為回退
-      setFeaturedArticles(mockArticles.filter((a) => a.isFeature))
     }
   }, [])
 
@@ -263,8 +259,8 @@ function BlogContent() {
     }
   }
 
-  // 使用從 API 獲取的精選文章，如果沒有則使用 mock 數據
-  const displayFeatured = featuredArticles.length > 0 ? featuredArticles : mockArticles.filter((a) => a.isFeature)
+  // 使用從 API 獲取的精選文章
+  const displayFeatured = featuredArticles
 
   const nextSlide = useCallback(() => {
     setCurrentSlide((prev) => (prev + 1) % displayFeatured.length)
@@ -293,8 +289,7 @@ function BlogContent() {
   const categories: ArticleCategory[] = ['所有文章', '裝備介紹', '技巧介紹', '技術研究', '比賽介紹']
 
   // 過濾文章
-  const displayArticles = articles.length > 0 ? articles : mockArticles
-  const filteredArticles = displayArticles.filter((article) => {
+  const filteredArticles = articles.filter((article) => {
     const matchesCategory = selectedCategory === '所有文章' || article.category === selectedCategory
     const matchesSearch =
       !searchQuery ||
