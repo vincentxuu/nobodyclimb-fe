@@ -3,6 +3,7 @@ import {
   Post,
   BackendPost,
   BackendPaginatedResponse,
+  BackendPostPaginatedResponse,
   Gym,
   Gallery,
   User,
@@ -127,7 +128,7 @@ export const postService = {
    * 獲取文章列表
    */
   getPosts: async (page = 1, limit = 10, tags?: string[]) => {
-    const response = await apiClient.get<ApiResponse<BackendPaginatedResponse<BackendPost>>>('/posts', {
+    const response = await apiClient.get<BackendPostPaginatedResponse>('/posts', {
       params: { page, limit, tags: tags?.join(',') },
     })
     return response.data

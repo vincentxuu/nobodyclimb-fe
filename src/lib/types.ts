@@ -366,6 +366,21 @@ export interface BackendPaginatedResponse<T> {
 }
 
 /**
+ * 後端文章分頁回應介面
+ * 後端實際返回 { success, data: [...], pagination: {...} }
+ */
+export interface BackendPostPaginatedResponse {
+  success: boolean
+  data: BackendPost[]
+  pagination: {
+    page: number
+    limit: number
+    total: number
+    total_pages: number
+  }
+}
+
+/**
  * 搜尋參數介面
  */
 export interface SearchParams {
