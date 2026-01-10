@@ -6,7 +6,7 @@ import Link from 'next/link'
 import { motion } from 'framer-motion'
 import { ArrowLeft, ArrowRight, ChevronUp, Loader2 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
-import { CardPersonList } from '@/components/biography/card-person-list'
+import { RecommendedProfiles } from '@/components/biography/recommended-profiles'
 import { biographyData } from '@/data/biographyData'
 import { Breadcrumb } from '@/components/ui/breadcrumb'
 import { biographyService } from '@/lib/api/services'
@@ -315,8 +315,8 @@ export default function ProfilePage({ params }: ProfilePageProps) {
 
       <div className="mt-10 bg-[#dbd8d8] py-10">
         <div className="container mx-auto px-4">
-          <h2 className="mb-8 text-center text-2xl font-medium">相關文章</h2>
-          <CardPersonList currentId={id} />
+          <h2 className="mb-8 text-center text-2xl font-medium">推薦其他人物誌</h2>
+          <RecommendedProfiles currentId={id} />
 
           <div className="mt-10 flex justify-center">
             <Link href="/biography">
