@@ -17,6 +17,7 @@ import { ProtectedRoute } from '@/components/shared/protected-route'
 import { RichTextEditor, TagSelector, ImageUploader } from '@/components/editor'
 import { postService } from '@/lib/api/services'
 import { sanitizeHtml } from '@/lib/utils/sanitize'
+import { generateSummary } from '@/lib/utils/article'
 
 type ArticleStatus = 'draft' | 'published'
 
@@ -74,10 +75,7 @@ function CreateBlogPageContent() {
 
     try {
       // 自動產生摘要（如果沒有手動輸入）
-      const plainTextContent = content.replace(/<[^>]*>/g, '').trim()
-      const autoSummary =
-        summary.trim() ||
-        (plainTextContent.length > 150 ? plainTextContent.substring(0, 150) + '...' : plainTextContent)
+      const autoSummary = generateSummary(content, summary)
 
       // 產生 slug
       const slug = title
