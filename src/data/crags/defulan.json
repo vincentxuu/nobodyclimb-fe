@@ -126,7 +126,7 @@
       "length": "15m",
       "firstAscent": "Andrew",
       "protection": "5 bolts + anchor",
-      "anchor": "樹",
+      "anchorType": "樹",
       "boltCount": 5,
       "status": "published"
     },
@@ -142,7 +142,7 @@
       "firstAscent": "廷倫",
       "description": "沿著斜裂隙往右上翻上平台，開始進入關卡，需要很穩定的腳部控制才能一次爬完。",
       "protection": "6 bolts + anchor",
-      "anchor": "bolts",
+      "anchorType": "bolts",
       "boltCount": 6,
       "status": "published"
     },
@@ -158,7 +158,7 @@
       "firstAscent": "廷倫",
       "description": "起攀有三個版本：左側斜裂隙，中間直上，或右側右手借花果山十三太保。倒數第四bolt處有個極困難的抱石問題，整條路線充滿驚喜。",
       "protection": "6 bolts + anchor",
-      "anchor": "bolts",
+      "anchorType": "bolts",
       "boltCount": 6,
       "status": "published"
     },
@@ -173,7 +173,7 @@
       "length": "20m",
       "firstAscent": "國勝、廷倫、力欣、閃電",
       "protection": "single rack to #3",
-      "anchor": "樹/bolts",
+      "anchorType": "樹/bolts",
       "boltCount": 0,
       "status": "published"
     },
@@ -189,7 +189,7 @@
       "firstAscent": "國勝、廷倫、力欣、閃電",
       "description": "由吹彈可破的裂隙起攀，攀爬沿途沒有明顯的連續裂隙，但都可以找到位置放支點，有趣的支點判斷練習路線。",
       "protection": "single rack to #3",
-      "anchor": "bolts",
+      "anchorType": "bolts",
       "boltCount": 0,
       "status": "published"
     },
@@ -204,7 +204,7 @@
       "length": "20m",
       "firstAscent": "廷倫",
       "description": "起攀有兩個版本：左側寬裂隙以及右側外傾手指裂隙，往右上接到斜裂隙掛到第二個bolt，後續為大點大動作路線。",
-      "anchor": "bolts",
+      "anchorType": "bolts",
       "boltCount": 5,
       "status": "published"
     },
@@ -220,7 +220,7 @@
       "firstAscent": "廷倫、國勝",
       "description": "寬縫路線，如果不用左壁，可以練習到疊手技巧。請別爬，落石多。",
       "protection": "至少#5, #6各一",
-      "anchor": "樹",
+      "anchorType": "樹",
       "boltCount": 0,
       "tips": "請別爬，落石多",
       "status": "published"
@@ -236,7 +236,7 @@
       "length": "25m",
       "firstAscent": "Kevin中杰",
       "protection": "9 bolts + anchor",
-      "anchor": "bolts",
+      "anchorType": "bolts",
       "boltCount": 9,
       "status": "published"
     },
@@ -252,7 +252,7 @@
       "firstAscent": "Kevin中杰",
       "description": "Has a continuation that climbs between the 2 trees to a new anchor (P2+11m).",
       "protection": "single rack to #3 (P2: 8 QD)",
-      "anchor": "bolts",
+      "anchorType": "bolts",
       "boltCount": 0,
       "status": "published"
     },
@@ -267,7 +267,7 @@
       "length": "13m",
       "firstAscent": "Kevin中杰",
       "protection": "4 bolts + anchor",
-      "anchor": "bolts",
+      "anchorType": "bolts",
       "boltCount": 4,
       "status": "published"
     },
@@ -282,7 +282,7 @@
       "length": "25m",
       "firstAscent": "Kevin中杰",
       "protection": "11 bolts + anchor",
-      "anchor": "bolts",
+      "anchorType": "bolts",
       "boltCount": 11,
       "status": "published"
     },
@@ -297,7 +297,7 @@
       "length": "25m",
       "firstAscent": "Kevin Oram",
       "protection": "11 bolts + anchor",
-      "anchor": "bolts",
+      "anchorType": "bolts",
       "boltCount": 11,
       "status": "published"
     },
@@ -313,7 +313,7 @@
       "firstAscent": "廷倫",
       "description": "前三顆跟手槍皮特共用，在倒數第二bolt往左橫渡接上裂隙，最後三米極困難。",
       "protection": "9 bolts + anchor",
-      "anchor": "bolts",
+      "anchorType": "bolts",
       "boltCount": 9,
       "status": "published"
     },
@@ -328,7 +328,7 @@
       "length": "20m",
       "firstAscent": "廷倫、閃電、力欣",
       "protection": "8 bolts + anchor",
-      "anchor": "bolts",
+      "anchorType": "bolts",
       "boltCount": 8,
       "status": "published"
     },
@@ -343,7 +343,7 @@
       "length": "15m",
       "firstAscent": "洪華駿",
       "protection": "需#4, #5",
-      "anchor": "bolts",
+      "anchorType": "bolts",
       "boltCount": 0,
       "status": "published"
     },
@@ -358,7 +358,7 @@
       "length": "15m",
       "firstAscent": "廷倫",
       "protection": "8 bolts + anchor",
-      "anchor": "bolts",
+      "anchorType": "bolts",
       "boltCount": 8,
       "status": "published"
     },
@@ -373,7 +373,7 @@
       "length": "15m",
       "firstAscent": "廷倫",
       "protection": "需小號cam, nut",
-      "anchor": "bolts",
+      "anchorType": "bolts",
       "boltCount": 0,
       "status": "published"
     },
@@ -388,7 +388,7 @@
       "length": "12m",
       "firstAscent": "廷倫",
       "protection": "需小號cam, nut",
-      "anchor": "bolts",
+      "anchorType": "bolts",
       "boltCount": 0,
       "status": "published"
     },
@@ -403,7 +403,7 @@
       "length": "10m",
       "firstAscent": "廷倫、華駿",
       "protection": "需小號cam, nut",
-      "anchor": "bolts",
+      "anchorType": "bolts",
       "boltCount": 0,
       "status": "published"
     },
@@ -417,7 +417,7 @@
       "typeEn": "Traditional",
       "length": "6m",
       "firstAscent": "廷倫、華駿",
-      "anchor": "bolts",
+      "anchorType": "bolts",
       "boltCount": 0,
       "status": "published"
     },
@@ -432,7 +432,7 @@
       "firstAscent": "Andrew, Kevin中杰",
       "description": "Same start as Straight Shooter, then go left.",
       "protection": "6 bolts + anchor",
-      "anchor": "樹/bolt",
+      "anchorType": "樹/bolt",
       "boltCount": 6,
       "status": "published"
     },
@@ -446,7 +446,7 @@
       "typeEn": "Sport Climbing",
       "firstAscent": "Andrew",
       "protection": "6 bolts + anchor",
-      "anchor": "bolts",
+      "anchorType": "bolts",
       "boltCount": 6,
       "status": "published"
     },
@@ -460,7 +460,7 @@
       "typeEn": "Sport Climbing",
       "firstAscent": "Andrew",
       "protection": "5 bolts + anchor",
-      "anchor": "bolts",
+      "anchorType": "bolts",
       "boltCount": 5,
       "status": "published"
     },
@@ -475,7 +475,7 @@
       "length": "11m",
       "firstAscent": "Kevin中杰",
       "protection": "single rack to #2",
-      "anchor": "bolts",
+      "anchorType": "bolts",
       "boltCount": 0,
       "status": "published"
     },
@@ -490,7 +490,7 @@
       "firstAscent": "Kevin中杰",
       "description": "不使用左側的創世紀裂隙，爬岩面。Main left crack (of Genesis) is off, climb middle face.",
       "protection": "4 bolts + anchor",
-      "anchor": "bolts",
+      "anchorType": "bolts",
       "boltCount": 4,
       "status": "published"
     },
@@ -506,7 +506,7 @@
       "firstAscent": "Kevin中杰",
       "description": "左線5.11，右線5.10+。",
       "protection": "2 bolts + anchor",
-      "anchor": "bolts",
+      "anchorType": "bolts",
       "boltCount": 2,
       "status": "published"
     },
@@ -521,7 +521,7 @@
       "length": "40m",
       "firstAscent": "力欣、閃電",
       "protection": "12 bolts + anchor",
-      "anchor": "bolts",
+      "anchorType": "bolts",
       "boltCount": 12,
       "status": "published"
     },
@@ -536,7 +536,7 @@
       "length": "40m",
       "firstAscent": "廷倫",
       "protection": "18 bolts + 2 anchors",
-      "anchor": "bolts",
+      "anchorType": "bolts",
       "boltCount": 18,
       "status": "published"
     },
@@ -551,7 +551,7 @@
       "length": "40m",
       "firstAscent": "廷倫、力欣、閃電",
       "protection": "13 bolts + 2 anchors",
-      "anchor": "bolts",
+      "anchorType": "bolts",
       "boltCount": 13,
       "status": "published"
     },
@@ -566,7 +566,7 @@
       "length": "40m",
       "firstAscent": "廷倫",
       "protection": "17 bolts + anchor",
-      "anchor": "bolts",
+      "anchorType": "bolts",
       "boltCount": 17,
       "status": "published"
     },
@@ -581,7 +581,7 @@
       "length": "28m",
       "firstAscent": "廷倫",
       "protection": "9 bolts + anchor",
-      "anchor": "bolts",
+      "anchorType": "bolts",
       "boltCount": 9,
       "status": "published"
     },
@@ -596,7 +596,7 @@
       "length": "28m",
       "firstAscent": "廷倫",
       "protection": "10 bolts + anchor",
-      "anchor": "bolts",
+      "anchorType": "bolts",
       "boltCount": 10,
       "status": "published"
     },
@@ -612,7 +612,7 @@
       "firstAscent": "廷倫",
       "description": "從細小困難裂隙起攀，接上精彩的15米裂隙。",
       "protection": "11 bolts + anchor",
-      "anchor": "bolts",
+      "anchorType": "bolts",
       "boltCount": 11,
       "status": "published"
     },
@@ -627,7 +627,7 @@
       "firstAscent": "Kevin中杰",
       "description": "Climb the ramp, climbing this route will cross over other routes.",
       "protection": "10 bolts + anchor",
-      "anchor": "bolts",
+      "anchorType": "bolts",
       "boltCount": 10,
       "status": "published"
     },
@@ -642,7 +642,7 @@
       "length": "38m",
       "firstAscent": "Kevin中杰",
       "description": "Hard face route, guessing in 5.12 range.",
-      "anchor": "bolts",
+      "anchorType": "bolts",
       "boltCount": 12,
       "status": "published"
     },
@@ -658,7 +658,7 @@
       "firstAscent": "Kevin中杰",
       "description": "Same start as Xenophobic Gatekeeper, go left variation.",
       "protection": "14 bolts + anchor",
-      "anchor": "bolts",
+      "anchorType": "bolts",
       "boltCount": 14,
       "status": "published"
     },
@@ -674,7 +674,7 @@
       "firstAscent": "Kevin中杰",
       "description": "Climb the crack.",
       "protection": "19 bolts + anchor",
-      "anchor": "bolts",
+      "anchorType": "bolts",
       "boltCount": 19,
       "status": "published"
     },
@@ -690,7 +690,7 @@
       "firstAscent": "Kevin中杰",
       "description": "Climb the face in between the two cracks.",
       "protection": "12 bolts + 1 perma + anchor",
-      "anchor": "bolts",
+      "anchorType": "bolts",
       "boltCount": 13,
       "status": "published"
     },
@@ -706,7 +706,7 @@
       "firstAscent": "Kevin中杰、廷倫",
       "description": "Climb the starting face to the wide fissure/crack.",
       "protection": "12 bolts + anchor",
-      "anchor": "bolts",
+      "anchorType": "bolts",
       "boltCount": 12,
       "status": "published"
     },
@@ -722,7 +722,7 @@
       "firstAscent": "Kevin中杰",
       "description": "Climb the face. Shares bolt #4 with Andrew's route.",
       "protection": "10 bolts + anchor",
-      "anchor": "bolts",
+      "anchorType": "bolts",
       "boltCount": 10,
       "status": "published"
     },
@@ -736,7 +736,7 @@
       "typeEn": "Sport Climbing",
       "firstAscent": "Andra & Kevin中杰",
       "protection": "8 bolts",
-      "anchor": "bolts",
+      "anchorType": "bolts",
       "boltCount": 8,
       "status": "published"
     },
@@ -751,7 +751,7 @@
       "firstAscent": "Kevin中杰",
       "description": "Trad variation of Hooligan's start, then traverse left near the top to Heina's anchor.",
       "protection": ".1 to #3",
-      "anchor": "bolts",
+      "anchorType": "bolts",
       "boltCount": 0,
       "status": "published"
     },
@@ -765,7 +765,7 @@
       "typeEn": "Sport Climbing",
       "firstAscent": "Kevin中杰",
       "protection": "8 bolts + anchor",
-      "anchor": "bolts",
+      "anchorType": "bolts",
       "boltCount": 8,
       "status": "published"
     },
@@ -779,7 +779,7 @@
       "typeEn": "Sport Climbing",
       "firstAscent": "Kevin中杰",
       "protection": "10 bolts + anchor",
-      "anchor": "bolts",
+      "anchorType": "bolts",
       "boltCount": 10,
       "status": "published"
     },
@@ -793,7 +793,7 @@
       "typeEn": "Sport Climbing",
       "firstAscent": "Kevin中杰",
       "protection": "8 bolts + anchor",
-      "anchor": "bolts",
+      "anchorType": "bolts",
       "boltCount": 8,
       "status": "published"
     },
@@ -807,7 +807,7 @@
       "typeEn": "Sport Climbing",
       "firstAscent": "Kevin中杰",
       "protection": "11 bolts + anchor",
-      "anchor": "bolts",
+      "anchorType": "bolts",
       "boltCount": 11,
       "status": "published"
     },
@@ -821,7 +821,7 @@
       "typeEn": "Sport Climbing",
       "firstAscent": "Kevin中杰",
       "protection": "9 bolts + anchor",
-      "anchor": "bolts",
+      "anchorType": "bolts",
       "boltCount": 9,
       "status": "published"
     },
@@ -836,7 +836,7 @@
       "firstAscent": "Kevin中杰",
       "description": "Variation: Start at Loanshark, at the 4th bolt, follow the snake-like feature all the way to Bootlegger's anchor.",
       "protection": "9 bolts + anchor",
-      "anchor": "bolts",
+      "anchorType": "bolts",
       "boltCount": 9,
       "status": "published"
     },
@@ -850,7 +850,7 @@
       "typeEn": "Traditional",
       "firstAscent": "Kevin中杰",
       "description": "Start at fragmented face, stay right of Ficus tree, climb into overhanging dihedrals, then crack above the ledge.",
-      "anchor": "bolts",
+      "anchorType": "bolts",
       "boltCount": 0,
       "status": "published"
     },
@@ -865,7 +865,7 @@
       "firstAscent": "Kevin中杰",
       "description": "Climb the fragments of crack, traverse w 2 bolts, continue to middle (5.6) or topmost anchor (5.7).",
       "protection": "single rack + 2 bolts",
-      "anchor": "bolts",
+      "anchorType": "bolts",
       "boltCount": 2,
       "status": "published"
     },
@@ -880,7 +880,7 @@
       "firstAscent": "Kevin中杰",
       "description": "Climb the face to the 1st anchor. P2: scramble on the ledge, clip some permadraws and finish the face.",
       "protection": "11 bolts + 2 perma + anchor",
-      "anchor": "bolts",
+      "anchorType": "bolts",
       "boltCount": 13,
       "status": "published"
     },
@@ -894,7 +894,7 @@
       "typeEn": "Mixed",
       "firstAscent": "Kevin中杰",
       "description": "Start at dihedral crack, climb onto arete, to blocks, then face above ledge. Has a P2.",
-      "anchor": "bolts, P2 tree",
+      "anchorType": "bolts, P2 tree",
       "boltCount": 3,
       "status": "draft"
     },
