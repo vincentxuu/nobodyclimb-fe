@@ -12,6 +12,7 @@ import { CommentSection } from '@/components/blog/CommentSection'
 import { postService } from '@/lib/api/services'
 import { useToast } from '@/components/ui/use-toast'
 import { BackendPost } from '@/lib/types'
+import { useAuthStore } from '@/store/authStore'
 
 // 載入狀態元件
 const LoadingState = () => (
@@ -36,6 +37,7 @@ export default function BlogDetail() {
   const router = useRouter()
   const { toast } = useToast()
   const id = params.id as string
+  const { isAuthenticated } = useAuthStore()
 
   const [article, setArticle] = useState<BackendPost | null>(null)
   const [isLoading, setIsLoading] = useState(true)
@@ -282,7 +284,7 @@ export default function BlogDetail() {
 
 
             {/* Comment Section */}
-            <CommentSection postId={id} isLoggedIn={false} />
+            <CommentSection postId={id} isLoggedIn={isAuthenticated} />
           </div>
 
           {/* Sidebar */}
