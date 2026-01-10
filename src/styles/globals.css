@@ -147,7 +147,7 @@
 /* 行動版選單滾動優化 */
 @supports (padding-bottom: env(safe-area-inset-bottom)) {
   .mobile-nav-scroll {
-    padding-bottom: calc(1.5rem + env(safe-area-inset-bottom));
+    padding-bottom: calc(theme('spacing.6') + env(safe-area-inset-bottom));
   }
 }
 
