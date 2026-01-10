@@ -11,15 +11,23 @@ import { useToast } from '@/components/ui/use-toast'
 import { userService, postService } from '@/lib/api/services'
 import { BackendPost } from '@/lib/types'
 
+const ITEMS_PER_PAGE = 10
+
 // 頁面標題元件
 interface PageHeaderProps {
   title: string
+  totalCount?: number
   isMobile?: boolean
 }
 
-const PageHeader = ({ title, isMobile }: PageHeaderProps) => (
+const PageHeader = ({ title, totalCount, isMobile }: PageHeaderProps) => (
   <div className="mb-8 flex items-center justify-between">
-    <h1 className={`${isMobile ? 'text-2xl' : 'text-4xl'} font-medium text-[#1B1A1A]`}>{title}</h1>
+    <h1 className={`${isMobile ? 'text-2xl' : 'text-4xl'} font-medium text-[#1B1A1A]`}>
+      {title}
+      {totalCount !== undefined && totalCount > 0 && (
+        <span className="ml-2 text-lg font-normal text-[#6D6C6C]">({totalCount})</span>
+      )}
+    </h1>
   </div>
 )
 
@@ -187,25 +195,75 @@ const EmptyState = () => (
   </div>
 )
 
+// 載入更多按鈕元件
+interface LoadMoreButtonProps {
+  onClick: () => void
+  isLoading: boolean
+  currentCount: number
+  totalCount: number
+}
+
+const LoadMoreButton = ({ onClick, isLoading, currentCount, totalCount }: LoadMoreButtonProps) => (
+  <div className="mt-8 flex flex-col items-center gap-2">
+    <p className="text-sm text-[#6D6C6C]">
+      已顯示 {currentCount} / {totalCount} 篇文章
+    </p>
+    <Button
+      variant="outline"
+      onClick={onClick}
+      disabled={isLoading}
+      className="min-w-[160px] border-[#B6B3B3] text-[#3F3D3D] hover:bg-[#F5F5F5]"
+    >
+      {isLoading ? (
+        <>
+          <Loader2 size={16} className="mr-2 animate-spin" />
+          載入中...
+        </>
+      ) : (
+        '載入更多'
+      )}
+    </Button>
+  </div>
+)
+
 export default function BookmarksPage() {
   const isMobile = useIsMobile()
   const { toast } = useToast()
 
   const [bookmarks, setBookmarks] = useState<BackendPost[]>([])
   const [isLoading, setIsLoading] = useState(true)
+  const [isLoadingMore, setIsLoadingMore] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [removingIds, setRemovingIds] = useState<Set<string>>(new Set())
 
+  // 分頁狀態
+  const [page, setPage] = useState(1)
+  const [hasMore, setHasMore] = useState(true)
+  const [totalCount, setTotalCount] = useState(0)
+
   // 獲取收藏文章
-  const fetchBookmarks = useCallback(async () => {
-    setIsLoading(true)
+  const fetchBookmarks = useCallback(async (pageNum: number, append = false) => {
+    if (append) {
+      setIsLoadingMore(true)
+    } else {
+      setIsLoading(true)
+    }
     setError(null)
+
     try {
-      const response = await userService.getUserLikedPosts(1, 50)
+      const response = await userService.getUserLikedPosts(pageNum, ITEMS_PER_PAGE)
       if (response.success && response.data) {
-        // 後端返回格式: { success, data: BackendPost[], pagination: {...} }
-        // response.data 包含 data 數組和 pagination 對象
-        setBookmarks(response.data.data || [])
+        const { data: posts, pagination } = response.data
+
+        if (append) {
+          setBookmarks((prev) => [...prev, ...(posts || [])])
+        } else {
+          setBookmarks(posts || [])
+        }
+
+        setTotalCount(pagination?.total || 0)
+        setHasMore(pageNum < (pagination?.total_pages || 1))
+        setPage(pageNum)
       } else {
         setError('無法載入收藏文章')
       }
@@ -214,12 +272,28 @@ export default function BookmarksPage() {
       setError('無法載入收藏文章，請稍後再試')
     } finally {
       setIsLoading(false)
+      setIsLoadingMore(false)
     }
   }, [])
 
+  // 初始載入
   useEffect(() => {
-    fetchBookmarks()
+    fetchBookmarks(1)
   }, [fetchBookmarks])
+
+  // 載入更多
+  const handleLoadMore = () => {
+    if (!isLoadingMore && hasMore) {
+      fetchBookmarks(page + 1, true)
+    }
+  }
+
+  // 重試（重新載入第一頁）
+  const handleRetry = () => {
+    setPage(1)
+    setBookmarks([])
+    fetchBookmarks(1)
+  }
 
   // 處理移除收藏
   const handleRemoveBookmark = async (id: string) => {
@@ -227,8 +301,9 @@ export default function BookmarksPage() {
     try {
       const response = await postService.toggleLike(id)
       if (response.success) {
-        // 從列表中移除
+        // 從列表中移除並更新總數
         setBookmarks((prev) => prev.filter((article) => article.id !== id))
+        setTotalCount((prev) => Math.max(0, prev - 1))
         toast({
           title: '已移除收藏',
           description: '文章已從收藏列表中移除',
@@ -259,24 +334,34 @@ export default function BookmarksPage() {
   return (
     <ProfilePageLayout>
       <div className={`bg-white ${isMobile ? 'p-4 md:p-6' : 'p-8 md:p-12'} rounded-sm`}>
-        <PageHeader title="收藏文章" isMobile={isMobile} />
+        <PageHeader title="收藏文章" totalCount={totalCount} isMobile={isMobile} />
 
         {isLoading ? (
           <LoadingState />
         ) : error ? (
-          <ErrorState message={error} onRetry={fetchBookmarks} />
+          <ErrorState message={error} onRetry={handleRetry} />
         ) : bookmarks.length > 0 ? (
-          <div className="space-y-6">
-            {bookmarks.map((article) => (
-              <BookmarkCard
-                key={article.id}
-                article={article}
-                onRemoveBookmark={handleRemoveBookmark}
-                isRemoving={removingIds.has(article.id)}
-                isMobile={isMobile}
+          <>
+            <div className="space-y-6">
+              {bookmarks.map((article) => (
+                <BookmarkCard
+                  key={article.id}
+                  article={article}
+                  onRemoveBookmark={handleRemoveBookmark}
+                  isRemoving={removingIds.has(article.id)}
+                  isMobile={isMobile}
+                />
+              ))}
+            </div>
+            {hasMore && (
+              <LoadMoreButton
+                onClick={handleLoadMore}
+                isLoading={isLoadingMore}
+                currentCount={bookmarks.length}
+                totalCount={totalCount}
               />
-            ))}
-          </div>
+            )}
+          </>
         ) : (
           <EmptyState />
         )}
