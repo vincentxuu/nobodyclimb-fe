@@ -7,26 +7,11 @@ import { useRouter, useSearchParams } from 'next/navigation'
 import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
 import { Search, ChevronLeft, ChevronRight, Loader2, Heart, Eye, FileText } from 'lucide-react'
-import { Article, ArticleCategory, mockArticles } from '@/mocks/articles'
+import { Article, ArticleCategory } from '@/mocks/articles'
 import { Breadcrumb } from '@/components/ui/breadcrumb'
 import { motion } from 'framer-motion'
 import { postService } from '@/lib/api/services'
-
-// 後端文章類型
-interface BackendPost {
-  id: string
-  title: string
-  slug: string
-  excerpt: string | null
-  content: string
-  cover_image: string | null
-  status: string
-  is_featured: number
-  view_count: number
-  published_at: string | null
-  created_at: string
-  tags?: string[]
-}
+import { BackendPost } from '@/lib/types'
 
 // 載入狀態元件
 const LoadingState = () => (
@@ -139,6 +124,7 @@ function BlogContent() {
   const [isAutoPlaying, setIsAutoPlaying] = useState(true)
   const [isLoading, setIsLoading] = useState(true)
   const [articles, setArticles] = useState<Article[]>([])
+  const [featuredArticles, setFeaturedArticles] = useState<Article[]>([])
   const [page, setPage] = useState(1)
   const [hasMore, setHasMore] = useState(true)
   const [isLoadingMore, setIsLoadingMore] = useState(false)
@@ -179,9 +165,9 @@ function BlogContent() {
     try {
       const response = await postService.getPosts(pageNum, 9)
       if (response.success && response.data) {
-        const data = response.data as unknown as { data: BackendPost[]; pagination: { total_pages: number } }
+        const { data, pagination } = response.data
         // 將後端數據轉換為前端格式
-        const fetchedArticles: Article[] = (data.data || []).map((post: BackendPost) => ({
+        const fetchedArticles: Article[] = (data || []).map((post) => ({
           id: post.id,
           title: post.title,
           category: (post.tags?.[0] as ArticleCategory) || '技巧介紹',
@@ -197,21 +183,19 @@ function BlogContent() {
         if (append) {
           setArticles((prev) => [...prev, ...fetchedArticles])
         } else {
-          setArticles(fetchedArticles.length > 0 ? fetchedArticles : mockArticles)
+          setArticles(fetchedArticles)
         }
-        setHasMore(pageNum < (data.pagination?.total_pages || 1))
+        setHasMore(pageNum < (pagination?.total_pages || 1))
       } else {
-        // 使用 mock 數據
         if (!append) {
-          setArticles(mockArticles)
+          setArticles([])
         }
         setHasMore(false)
       }
     } catch (err) {
       console.error('Failed to fetch articles:', err)
-      // 使用 mock 數據作為回退
       if (!append) {
-        setArticles(mockArticles)
+        setArticles([])
       }
       setHasMore(false)
     } finally {
@@ -220,10 +204,35 @@ function BlogContent() {
     }
   }, [])
 
+  // 獲取精選文章
+  const fetchFeaturedArticles = useCallback(async () => {
+    try {
+      const response = await postService.getFeaturedPosts()
+      if (response.success && response.data) {
+        const fetchedFeatured: Article[] = response.data.map((post) => ({
+          id: post.id,
+          title: post.title,
+          category: (post.tags?.[0] as ArticleCategory) || '技巧介紹',
+          date: post.published_at
+            ? new Date(post.published_at).toLocaleDateString('zh-TW')
+            : new Date(post.created_at).toLocaleDateString('zh-TW'),
+          content: post.content,
+          imageUrl: post.cover_image || '/photo/blog-left.jpeg',
+          isFeature: true,
+          description: post.excerpt || undefined,
+        }))
+        setFeaturedArticles(fetchedFeatured)
+      }
+    } catch (err) {
+      console.error('Failed to fetch featured articles:', err)
+    }
+  }, [])
+
   // 初始載入
   useEffect(() => {
     fetchArticles(1)
-  }, [fetchArticles])
+    fetchFeaturedArticles()
+  }, [fetchArticles, fetchFeaturedArticles])
 
   // 載入更多
   const handleLoadMore = () => {
@@ -234,8 +243,8 @@ function BlogContent() {
     }
   }
 
-  const featuredArticles = articles.filter((article) => article.isFeature)
-  const displayFeatured = featuredArticles.length > 0 ? featuredArticles : mockArticles.filter((a) => a.isFeature)
+  // 使用從 API 獲取的精選文章
+  const displayFeatured = featuredArticles
 
   const nextSlide = useCallback(() => {
     setCurrentSlide((prev) => (prev + 1) % displayFeatured.length)
@@ -264,8 +273,7 @@ function BlogContent() {
   const categories: ArticleCategory[] = ['所有文章', '裝備介紹', '技巧介紹', '技術研究', '比賽介紹']
 
   // 過濾文章
-  const displayArticles = articles.length > 0 ? articles : mockArticles
-  const filteredArticles = displayArticles.filter((article) => {
+  const filteredArticles = articles.filter((article) => {
     const matchesCategory = selectedCategory === '所有文章' || article.category === selectedCategory
     const matchesSearch =
       !searchQuery ||

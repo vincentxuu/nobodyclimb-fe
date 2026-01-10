@@ -95,6 +95,29 @@ export interface Post {
 }
 
 /**
+ * 後端文章資料格式 (snake_case)
+ */
+export interface BackendPost {
+  id: string
+  author_id: string
+  title: string
+  slug: string
+  excerpt: string | null
+  content: string
+  cover_image: string | null
+  status: 'draft' | 'published' | 'archived'
+  is_featured: number
+  view_count: number
+  published_at: string | null
+  created_at: string
+  updated_at: string
+  tags?: string[]
+  username?: string
+  display_name?: string
+  author_avatar?: string
+}
+
+/**
  * 攀岩館介面
  */
 export interface Gym {
@@ -324,6 +347,19 @@ export interface PaginatedResponse<T> {
     totalItems: number
     itemsPerPage: number
     hasMore?: boolean
+  }
+}
+
+/**
+ * 後端分頁回應介面 (snake_case)
+ */
+export interface BackendPaginatedResponse<T> {
+  data: T[]
+  pagination: {
+    page: number
+    limit: number
+    total: number
+    total_pages: number
   }
 }
 

@@ -6,33 +6,12 @@ import Image from 'next/image'
 import Link from 'next/link'
 import { Chip } from '@/components/ui/chip'
 import { Button } from '@/components/ui/button'
-import { ArrowLeft, ArrowRight, Heart, Eye, Loader2, Share2 } from 'lucide-react'
+import { Heart, Eye, Loader2, Share2 } from 'lucide-react'
 import { Breadcrumb } from '@/components/ui/breadcrumb'
 import { CommentSection } from '@/components/blog/CommentSection'
 import { postService } from '@/lib/api/services'
 import { useToast } from '@/components/ui/use-toast'
-import { mockArticles } from '@/mocks/articles'
-
-// 文章類型定義 - 後端返回格式
-interface PostData {
-  id: string
-  author_id: string
-  title: string
-  slug: string
-  excerpt: string | null
-  content: string
-  cover_image: string | null
-  status: 'draft' | 'published' | 'archived'
-  is_featured: number
-  view_count: number
-  published_at: string | null
-  created_at: string
-  updated_at: string
-  tags?: string[]
-  username?: string
-  display_name?: string
-  author_avatar?: string
-}
+import { BackendPost } from '@/lib/types'
 
 // 載入狀態元件
 const LoadingState = () => (
@@ -58,12 +37,14 @@ export default function BlogDetail() {
   const { toast } = useToast()
   const id = params.id as string
 
-  const [article, setArticle] = useState<PostData | null>(null)
+  const [article, setArticle] = useState<BackendPost | null>(null)
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [isLiked, setIsLiked] = useState(false)
   const [likeCount, setLikeCount] = useState(0)
   const [isLiking, setIsLiking] = useState(false)
+  const [popularArticles, setPopularArticles] = useState<BackendPost[]>([])
+  const [relatedArticles, setRelatedArticles] = useState<BackendPost[]>([])
 
   // 獲取文章詳情
   const fetchArticle = useCallback(async () => {
@@ -72,55 +53,13 @@ export default function BlogDetail() {
     try {
       const response = await postService.getPostById(id)
       if (response.success && response.data) {
-        setArticle(response.data as unknown as PostData)
+        setArticle(response.data)
       } else {
-        // 如果 API 失敗，嘗試使用 mock 數據
-        const mockArticle = mockArticles.find((a) => a.id === id)
-        if (mockArticle) {
-          setArticle({
-            id: mockArticle.id,
-            author_id: '',
-            title: mockArticle.title,
-            slug: mockArticle.id,
-            excerpt: mockArticle.description || null,
-            content: mockArticle.content,
-            cover_image: mockArticle.imageUrl,
-            status: 'published',
-            is_featured: mockArticle.isFeature ? 1 : 0,
-            view_count: 0,
-            published_at: mockArticle.date,
-            created_at: mockArticle.date,
-            updated_at: mockArticle.date,
-            tags: [mockArticle.category],
-          })
-        } else {
-          setError('找不到文章')
-        }
+        setError('找不到文章')
       }
     } catch (err) {
       console.error('Failed to fetch article:', err)
-      // 嘗試使用 mock 數據
-      const mockArticle = mockArticles.find((a) => a.id === id)
-      if (mockArticle) {
-        setArticle({
-          id: mockArticle.id,
-          author_id: '',
-          title: mockArticle.title,
-          slug: mockArticle.id,
-          excerpt: mockArticle.description || null,
-          content: mockArticle.content,
-          cover_image: mockArticle.imageUrl,
-          status: 'published',
-          is_featured: mockArticle.isFeature ? 1 : 0,
-          view_count: 0,
-          published_at: mockArticle.date,
-          created_at: mockArticle.date,
-          updated_at: mockArticle.date,
-          tags: [mockArticle.category],
-        })
-      } else {
-        setError('無法載入文章')
-      }
+      setError('無法載入文章')
     } finally {
       setIsLoading(false)
     }
@@ -139,10 +78,36 @@ export default function BlogDetail() {
     }
   }, [id])
 
+  // 獲取熱門文章
+  const fetchPopularArticles = useCallback(async () => {
+    try {
+      const response = await postService.getPopularPosts(4)
+      if (response.success && response.data) {
+        setPopularArticles(response.data)
+      }
+    } catch (err) {
+      console.error('Failed to fetch popular articles:', err)
+    }
+  }, [])
+
+  // 獲取相關文章
+  const fetchRelatedArticles = useCallback(async () => {
+    try {
+      const response = await postService.getRelatedPosts(id, 3)
+      if (response.success && response.data) {
+        setRelatedArticles(response.data)
+      }
+    } catch (err) {
+      console.error('Failed to fetch related articles:', err)
+    }
+  }, [id])
+
   useEffect(() => {
     fetchArticle()
     fetchLikeStatus()
-  }, [fetchArticle, fetchLikeStatus])
+    fetchPopularArticles()
+    fetchRelatedArticles()
+  }, [fetchArticle, fetchLikeStatus, fetchPopularArticles, fetchRelatedArticles])
 
   // 處理點讚
   const handleLike = async () => {
@@ -198,24 +163,11 @@ export default function BlogDetail() {
     return <ErrorState message={error || '找不到文章'} />
   }
 
-  // 使用 mock 數據獲取上一篇/下一篇
-  const currentIndex = mockArticles.findIndex((a) => a.id === id)
-  const prevArticle = currentIndex > 0 ? mockArticles[currentIndex - 1] : null
-  const nextArticle = currentIndex < mockArticles.length - 1 ? mockArticles[currentIndex + 1] : null
+  // 使用從 API 獲取的相關文章
+  const displayRelatedArticles = relatedArticles
 
-  // 獲取相關文章
-  const category = article.tags?.[0] || ''
-  const relatedArticles = mockArticles
-    .filter((a) => a.id !== id && a.category === category)
-    .slice(0, 3)
-
-  // 如果相關文章不足3篇，從其他類別補充
-  if (relatedArticles.length < 3) {
-    const otherArticles = mockArticles
-      .filter((a) => a.id !== id && a.category !== category)
-      .slice(0, 3 - relatedArticles.length)
-    relatedArticles.push(...otherArticles)
-  }
+  // 使用從 API 獲取的熱門文章
+  const displayPopularArticles = popularArticles
 
   // 格式化日期
   const formattedDate = article.published_at
@@ -328,41 +280,6 @@ export default function BlogDetail() {
               </div>
             )}
 
-            {/* Navigation */}
-            <div className="mt-12 flex flex-col justify-between gap-4 sm:flex-row sm:gap-8">
-              {prevArticle ? (
-                <Link
-                  href={`/blog/${prevArticle.id}`}
-                  className="flex-1 rounded-lg border border-gray-200 p-6 transition-colors hover:bg-gray-50"
-                >
-                  <div className="mb-2 flex items-center gap-2 text-gray-500">
-                    <ArrowLeft size={16} />
-                    <span>上一篇</span>
-                  </div>
-                  <h3 className="mb-2 font-medium">{prevArticle.title}</h3>
-                  <p className="line-clamp-2 text-sm text-gray-500">
-                    {prevArticle.description || prevArticle.content}
-                  </p>
-                </Link>
-              ) : (
-                <div className="flex-1" />
-              )}
-              {nextArticle && (
-                <Link
-                  href={`/blog/${nextArticle.id}`}
-                  className="flex-1 rounded-lg border border-gray-200 p-6 transition-colors hover:bg-gray-50"
-                >
-                  <div className="mb-2 flex items-center justify-end gap-2 text-gray-500">
-                    <span>下一篇</span>
-                    <ArrowRight size={16} />
-                  </div>
-                  <h3 className="mb-2 font-medium">{nextArticle.title}</h3>
-                  <p className="line-clamp-2 text-sm text-gray-500">
-                    {nextArticle.description || nextArticle.content}
-                  </p>
-                </Link>
-              )}
-            </div>
 
             {/* Comment Section */}
             <CommentSection postId={id} isLoggedIn={false} />
@@ -421,7 +338,7 @@ export default function BlogDetail() {
             <div>
               <h2 className="mb-4 text-2xl font-medium">熱門文章</h2>
               <div className="space-y-4">
-                {mockArticles.slice(0, 4).map((popularArticle) => (
+                {displayPopularArticles.map((popularArticle) => (
                   <Link
                     key={popularArticle.id}
                     href={`/blog/${popularArticle.id}`}
@@ -429,8 +346,12 @@ export default function BlogDetail() {
                   >
                     <h3 className="mb-2 font-medium">{popularArticle.title}</h3>
                     <div className="flex items-center gap-3">
-                      <Chip>{popularArticle.category}</Chip>
-                      <span className="text-sm text-gray-500">{popularArticle.date}</span>
+                      <Chip>{popularArticle.tags?.[0] || '技巧介紹'}</Chip>
+                      <span className="text-sm text-gray-500">
+                        {popularArticle.published_at
+                          ? new Date(popularArticle.published_at).toLocaleDateString('zh-TW')
+                          : ''}
+                      </span>
                     </div>
                   </Link>
                 ))}
@@ -443,7 +364,7 @@ export default function BlogDetail() {
         <div className="mx-auto max-w-[1440px]">
           <h2 className="mb-8 text-2xl font-medium">相關文章</h2>
           <div className="grid grid-cols-1 gap-6 md:grid-cols-3">
-            {relatedArticles.map((relatedArticle) => (
+            {displayRelatedArticles.map((relatedArticle) => (
               <Link
                 key={relatedArticle.id}
                 href={`/blog/${relatedArticle.id}`}
@@ -451,7 +372,7 @@ export default function BlogDetail() {
               >
                 <div className="relative aspect-[16/9]">
                   <Image
-                    src={relatedArticle.imageUrl}
+                    src={relatedArticle.cover_image || '/photo/blog-left.jpeg'}
                     alt={relatedArticle.title}
                     fill
                     className="object-cover"
@@ -460,11 +381,15 @@ export default function BlogDetail() {
                 <div className="p-6">
                   <h3 className="mb-2 font-medium">{relatedArticle.title}</h3>
                   <div className="mb-2 flex items-center gap-3">
-                    <Chip>{relatedArticle.category}</Chip>
-                    <span className="text-sm text-gray-500">{relatedArticle.date}</span>
+                    <Chip>{relatedArticle.tags?.[0] || '技巧介紹'}</Chip>
+                    <span className="text-sm text-gray-500">
+                      {relatedArticle.published_at
+                        ? new Date(relatedArticle.published_at).toLocaleDateString('zh-TW')
+                        : ''}
+                    </span>
                   </div>
                   <p className="line-clamp-3 text-sm text-gray-500">
-                    {relatedArticle.description || relatedArticle.content}
+                    {relatedArticle.excerpt || relatedArticle.content}
                   </p>
                 </div>
               </Link>
