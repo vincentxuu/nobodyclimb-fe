@@ -6,44 +6,17 @@ import Link from 'next/link'
 import { motion } from 'framer-motion'
 import { ArrowLeft, ArrowRight, ChevronUp, Loader2 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
-import { CardPersonList } from '@/components/biography/card-person-list'
+import { RecommendedProfiles } from '@/components/biography/recommended-profiles'
 import { biographyData } from '@/data/biographyData'
 import { Breadcrumb } from '@/components/ui/breadcrumb'
 import { biographyService } from '@/lib/api/services'
 import { Biography, BiographyAdjacent } from '@/lib/types'
+import { mapStaticToBiography } from '@/lib/utils/biography'
 
 interface ProfilePageProps {
   params: Promise<{
     id: string
   }>
-}
-
-// 靜態數據轉換為 Biography 類型
-function mapStaticToBiography(staticPerson: (typeof biographyData)[0]): Biography {
-  return {
-    id: String(staticPerson.id),
-    user_id: null,
-    slug: staticPerson.name.toLowerCase().replace(/\s+/g, '-'),
-    name: staticPerson.name,
-    title: null,
-    bio: null,
-    avatar_url: staticPerson.imageSrc,
-    cover_image: staticPerson.detailImageSrc,
-    climbing_start_year: staticPerson.start,
-    frequent_locations: staticPerson.showUp,
-    favorite_route_type: staticPerson.type,
-    climbing_reason: staticPerson.reason,
-    climbing_meaning: staticPerson.why,
-    bucket_list: staticPerson.list,
-    advice: staticPerson.word,
-    achievements: null,
-    social_links: null,
-    is_featured: 0,
-    is_public: 1,
-    published_at: staticPerson.time,
-    created_at: staticPerson.time,
-    updated_at: staticPerson.time,
-  }
 }
 
 export default function ProfilePage({ params }: ProfilePageProps) {
@@ -315,8 +288,8 @@ export default function ProfilePage({ params }: ProfilePageProps) {
 
       <div className="mt-10 bg-[#dbd8d8] py-10">
         <div className="container mx-auto px-4">
-          <h2 className="mb-8 text-center text-2xl font-medium">相關文章</h2>
-          <CardPersonList currentId={id} />
+          <h2 className="mb-8 text-center text-2xl font-medium">推薦其他人物誌</h2>
+          <RecommendedProfiles currentId={id} />
 
           <div className="mt-10 flex justify-center">
             <Link href="/biography">
