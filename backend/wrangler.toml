@@ -38,6 +38,8 @@ database_name = "nobodyclimb-db-preview"
 
 database_id = "7957baa8-d9d1-4e18-aaec-de841b4b846c"
 
+migrations_dir = "migrations"
+
  
 
 [[env.preview.kv_namespaces]]
@@ -89,6 +91,8 @@ binding = "DB"
 database_name = "nobodyclimb-db"
 
 database_id = "8857a1ac-6e3b-4a2b-8ef4-3e657c0e436d"
+
+migrations_dir = "migrations"
 
  
 
