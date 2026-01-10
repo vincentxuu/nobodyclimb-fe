@@ -1,9 +1,10 @@
 'use client'
 
 import React, { createContext, useContext, useState, ReactNode, useEffect } from 'react'
-import { ProfileData, initialProfileData } from './types'
+import { ProfileData, ProfileImage, ImageLayout, initialProfileData } from './types'
 import { useAuthStore } from '@/store/authStore'
-import { User } from '@/lib/types'
+import { User, Biography } from '@/lib/types'
+import { biographyService } from '@/lib/api/services'
 
 interface ProfileContextType {
   profileData: ProfileData
@@ -14,6 +15,52 @@ interface ProfileContextType {
 }
 
 const ProfileContext = createContext<ProfileContextType | undefined>(undefined)
+
+/**
+ * 解析 gallery_images JSON 字串
+ */
+function parseGalleryImages(galleryImagesJson: string | null | undefined): {
+  images: ProfileImage[]
+  layout: ImageLayout
+} {
+  if (!galleryImagesJson) {
+    return { images: [], layout: 'double' }
+  }
+  try {
+    const parsed = JSON.parse(galleryImagesJson)
+    return {
+      images: Array.isArray(parsed.images) ? parsed.images : [],
+      layout: parsed.layout || 'double',
+    }
+  } catch {
+    return { images: [], layout: 'double' }
+  }
+}
+
+/**
+ * 將 Biography 資料映射到 ProfileData 格式
+ */
+function mapBiographyToProfileData(biography: Biography | null): Partial<ProfileData> {
+  if (!biography) {
+    return {}
+  }
+
+  const { images, layout } = parseGalleryImages(biography.gallery_images)
+
+  return {
+    name: biography.name || '',
+    startYear: biography.climbing_start_year || '',
+    frequentGyms: biography.frequent_locations || '',
+    favoriteRouteType: biography.favorite_route_type || '',
+    climbingReason: biography.climbing_reason || '',
+    climbingMeaning: biography.climbing_meaning || '',
+    climbingBucketList: biography.bucket_list || '',
+    adviceForBeginners: biography.advice || '',
+    isPublic: biography.is_public === 1,
+    images,
+    imageLayout: layout,
+  }
+}
 
 /**
  * 將 authStore 中的 User 資料映射到 ProfileData 格式
@@ -52,6 +99,8 @@ function mapUserToProfileData(user: User | null): ProfileData {
     climbingBucketList: bioData.climbingBucketList || '',
     adviceForBeginners: bioData.messageToBeginners || '',
     isPublic: bioData.isPublic ?? true,
+    images: [],
+    imageLayout: 'double',
   }
 }
 
@@ -61,11 +110,36 @@ export function ProfileProvider({ children }: { children: ReactNode }) {
   const [isEditing, setIsEditing] = useState(false)
   const [isLoading, setIsLoading] = useState(true)
 
-  // 當 authStore 中的 user 變化時，更新 profileData
+  // 當 authStore 中的 user 變化時，更新 profileData 並從 biography API 獲取完整資料
   useEffect(() => {
-    const mappedData = mapUserToProfileData(user)
-    setProfileData(mappedData)
-    setIsLoading(false)
+    const loadProfileData = async () => {
+      setIsLoading(true)
+
+      // 首先從 user 映射基本資料
+      const userMappedData = mapUserToProfileData(user)
+      setProfileData(userMappedData)
+
+      // 如果用戶已登入，嘗試從 biography API 獲取完整資料（包括圖片）
+      if (user) {
+        try {
+          const response = await biographyService.getMyBiography()
+          if (response.success && response.data) {
+            const biographyData = mapBiographyToProfileData(response.data)
+            setProfileData((prev) => ({
+              ...prev,
+              ...biographyData,
+            }))
+          }
+        } catch (error) {
+          console.error('Failed to load biography:', error)
+          // 失敗時保持使用 user 映射的資料
+        }
+      }
+
+      setIsLoading(false)
+    }
+
+    loadProfileData()
   }, [user])
 
   return (
