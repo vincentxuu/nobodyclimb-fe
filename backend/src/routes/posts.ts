@@ -100,20 +100,28 @@ postsRoutes.get('/me', authMiddleware, async (c) => {
     .bind(...params, limit, offset)
     .all();
 
-  // Get tags for each post
-  const postsWithTags = await Promise.all(
-    posts.results.map(async (post) => {
-      const tags = await c.env.DB.prepare(
-        'SELECT tag FROM post_tags WHERE post_id = ?'
-      )
-        .bind(post.id as string)
-        .all<{ tag: string }>();
-      return {
-        ...post,
-        tags: tags.results.map((t) => t.tag),
-      };
-    })
-  );
+  // Get tags for all posts in one query to avoid N+1 problem
+  const postIds = posts.results.map((p) => p.id as string);
+  const tagsMap = new Map<string, string[]>();
+  if (postIds.length > 0) {
+    const placeholders = postIds.map(() => '?').join(',');
+    const tagsResult = await c.env.DB.prepare(
+      `SELECT post_id, tag FROM post_tags WHERE post_id IN (${placeholders})`
+    )
+      .bind(...postIds)
+      .all<{ post_id: string; tag: string }>();
+
+    for (const { post_id, tag } of tagsResult.results ?? []) {
+      if (!tagsMap.has(post_id)) {
+        tagsMap.set(post_id, []);
+      }
+      tagsMap.get(post_id)!.push(tag);
+    }
+  }
+  const postsWithTags = posts.results.map((post) => ({
+    ...post,
+    tags: tagsMap.get(post.id as string) || [],
+  }));
 
   return c.json({
     success: true,
