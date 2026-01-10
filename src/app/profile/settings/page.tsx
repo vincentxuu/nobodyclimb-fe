@@ -64,7 +64,6 @@ export default function SettingsPage() {
   useEffect(() => {
     const fetchUserData = async () => {
       try {
-        setIsLoading(true)
         const response = await authService.getCurrentUser()
         if (response.success && response.data) {
           const user = response.data
@@ -226,6 +225,12 @@ export default function SettingsPage() {
           title: '儲存成功',
           description: '個人資料已更新',
         })
+      } else {
+        toast({
+          title: '儲存失敗',
+          description: '無法更新個人資料，請稍後再試',
+          variant: 'destructive',
+        })
       }
     } catch (error: unknown) {
       console.error('儲存個人資料失敗:', error)
@@ -301,6 +306,12 @@ export default function SettingsPage() {
         toast({
           title: '更新成功',
           description: '密碼已成功更新',
+        })
+      } else {
+        toast({
+          title: '更新失敗',
+          description: '無法更新密碼，請稍後再試',
+          variant: 'destructive',
         })
       }
     } catch (error: unknown) {
