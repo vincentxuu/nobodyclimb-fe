@@ -17,7 +17,7 @@ import { ProtectedRoute } from '@/components/shared/protected-route'
 import { RichTextEditor, TagSelector, ImageUploader } from '@/components/editor'
 import { postService } from '@/lib/api/services'
 
-type ArticleStatus = 'draft' | 'published'
+type ArticleStatus = 'draft' | 'published' | 'archived'
 
 function EditBlogPageContent() {
   const router = useRouter()
