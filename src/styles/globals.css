@@ -144,14 +144,9 @@
   z-index: 99;
 }
 
-/* 行動版選單滾動優化 */
+/* 行動版選單滾動優化 - 支援 iPhone 等有瀏海的裝置 */
 @supports (padding-bottom: env(safe-area-inset-bottom)) {
   .mobile-nav-scroll {
     padding-bottom: calc(theme('spacing.6') + env(safe-area-inset-bottom));
   }
-}
-
-/* 確保行動版滾動順暢 (iOS) */
-.overflow-y-auto {
-  -webkit-overflow-scrolling: touch;
 }
