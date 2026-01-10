@@ -65,6 +65,68 @@ postsRoutes.get('/', async (c) => {
   });
 });
 
+// GET /posts/me - Get current user's posts (all statuses)
+postsRoutes.get('/me', authMiddleware, async (c) => {
+  const userId = c.get('userId');
+  const { page, limit, offset } = parsePagination(
+    c.req.query('page'),
+    c.req.query('limit')
+  );
+  const status = c.req.query('status'); // Optional: filter by specific status
+
+  let whereClause = 'p.author_id = ?';
+  const params: (string | number)[] = [userId];
+
+  if (status && ['draft', 'published', 'archived'].includes(status)) {
+    whereClause += ' AND p.status = ?';
+    params.push(status);
+  }
+
+  const countResult = await c.env.DB.prepare(
+    `SELECT COUNT(*) as count FROM posts p WHERE ${whereClause}`
+  )
+    .bind(...params)
+    .first<{ count: number }>();
+  const total = countResult?.count || 0;
+
+  const posts = await c.env.DB.prepare(
+    `SELECT p.*, u.username, u.display_name, u.avatar_url as author_avatar
+     FROM posts p
+     JOIN users u ON p.author_id = u.id
+     WHERE ${whereClause}
+     ORDER BY p.created_at DESC
+     LIMIT ? OFFSET ?`
+  )
+    .bind(...params, limit, offset)
+    .all();
+
+  // Get tags for each post
+  const postsWithTags = await Promise.all(
+    posts.results.map(async (post) => {
+      const tags = await c.env.DB.prepare(
+        'SELECT tag FROM post_tags WHERE post_id = ?'
+      )
+        .bind(post.id as string)
+        .all<{ tag: string }>();
+      return {
+        ...post,
+        tags: tags.results.map((t) => t.tag),
+      };
+    })
+  );
+
+  return c.json({
+    success: true,
+    data: postsWithTags,
+    pagination: {
+      page,
+      limit,
+      total,
+      total_pages: Math.ceil(total / limit),
+    },
+  });
+});
+
 // GET /posts/featured - Get featured posts
 postsRoutes.get('/featured', async (c) => {
   const limit = parseInt(c.req.query('limit') || '6', 10);
