@@ -192,11 +192,10 @@ export default function ArticlesPage() {
     setIsLoading(true)
     setError(null)
     try {
-      const response = await postService.getPosts(1, 50)
+      const response = await postService.getMyPosts(1, 50)
       if (response.success && response.data) {
-        // 後端返回的數據結構
-        const data = response.data as unknown as { data: Article[] }
-        setArticles(data.data || [])
+        // 後端直接返回文章數組
+        setArticles(response.data as unknown as Article[])
       }
     } catch (err) {
       console.error('Failed to fetch articles:', err)
