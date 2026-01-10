@@ -3,7 +3,7 @@
 import React from 'react'
 import { ImageIcon } from 'lucide-react'
 import ImageUploader from './ImageUploader'
-import ImagePreviewCard from './ImagePreviewCard'
+import SortableImageGrid from './SortableImageGrid'
 import LayoutSelector from './LayoutSelector'
 import ImageGalleryDisplay from './ImageGalleryDisplay'
 import ProfileFormField from '../ProfileFormField'
@@ -18,6 +18,7 @@ interface ProfileImageSectionProps {
   onImageDelete: (id: string) => void
   onCaptionChange: (id: string, caption: string) => void
   onLayoutChange: (layout: ImageLayout) => void
+  onReorder: (images: ProfileImage[]) => void
 }
 
 export default function ProfileImageSection({
@@ -29,6 +30,7 @@ export default function ProfileImageSection({
   onImageDelete,
   onCaptionChange,
   onLayoutChange,
+  onReorder,
 }: ProfileImageSectionProps) {
   const sortedImages = [...images].sort((a, b) => a.order - b.order)
 
@@ -61,26 +63,19 @@ export default function ProfileImageSection({
             disabled={images.length === 0}
           />
 
-          {/* 已上傳的圖片 */}
+          {/* 已上傳的圖片（可拖拽排序） */}
           {sortedImages.length > 0 && (
-            <div
-              className={`grid gap-3 ${
-                imageLayout === 'single'
-                  ? 'grid-cols-1'
-                  : imageLayout === 'double'
-                    ? 'grid-cols-1 sm:grid-cols-2'
-                    : 'grid-cols-2 sm:grid-cols-3'
-              }`}
-            >
-              {sortedImages.map((image) => (
-                <ImagePreviewCard
-                  key={image.id}
-                  image={image}
-                  isEditing={isEditing}
-                  onDelete={onImageDelete}
-                  onCaptionChange={onCaptionChange}
-                />
-              ))}
+            <div>
+              <p className="mb-2 text-xs text-gray-500">
+                拖拽圖片可調整順序
+              </p>
+              <SortableImageGrid
+                images={sortedImages}
+                layout={imageLayout}
+                onReorder={onReorder}
+                onDelete={onImageDelete}
+                onCaptionChange={onCaptionChange}
+              />
             </div>
           )}
 
@@ -88,6 +83,7 @@ export default function ProfileImageSection({
           <ImageUploader
             onUpload={onImageUpload}
             currentCount={images.length}
+            enableCrop={true}
           />
         </div>
       </ProfileFormField>

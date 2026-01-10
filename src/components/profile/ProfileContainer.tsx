@@ -98,6 +98,14 @@ export default function ProfileContainer() {
     })
   }
 
+  // 處理圖片重新排序
+  const handleReorder = (reorderedImages: ProfileImage[]) => {
+    setProfileData({
+      ...profileData,
+      images: reorderedImages,
+    })
+  }
+
   // 處理儲存
   const handleSave = async () => {
     setIsSaving(true)
@@ -199,6 +207,7 @@ export default function ProfileContainer() {
             onImageDelete={handleImageDelete}
             onCaptionChange={handleCaptionChange}
             onLayoutChange={handleLayoutChange}
+            onReorder={handleReorder}
           />
           {(isEditing || profileData.images.length > 0) && <ProfileDivider />}
           <PublicSettingSection
