@@ -166,8 +166,7 @@ function BlogContent() {
       const response = await postService.getPosts(pageNum, 9)
       if (response.success && response.data) {
         // 後端返回 { success, data: [...], pagination }
-        const postsData = response.data
-        const paginationData = response.pagination
+        const { data: postsData, pagination: paginationData } = response
 
         // 將後端數據轉換為前端格式
         const fetchedArticles: Article[] = postsData.map((post) => ({
