@@ -9,34 +9,7 @@ import { Card, CardContent } from '@/components/ui/card'
 import { biographyService } from '@/lib/api/services'
 import { Biography } from '@/lib/types'
 import { biographyData } from '@/data/biographyData'
-
-// 靜態數據轉換為 Biography 類型
-function mapStaticToBiography(staticPerson: (typeof biographyData)[0]): Biography {
-  return {
-    id: String(staticPerson.id),
-    user_id: null,
-    slug: staticPerson.name.toLowerCase().replace(/\s+/g, '-'),
-    name: staticPerson.name,
-    title: null,
-    bio: null,
-    avatar_url: staticPerson.imageSrc,
-    cover_image: staticPerson.detailImageSrc,
-    climbing_start_year: staticPerson.start,
-    frequent_locations: staticPerson.showUp,
-    favorite_route_type: staticPerson.type,
-    climbing_reason: staticPerson.reason,
-    climbing_meaning: staticPerson.why,
-    bucket_list: staticPerson.list,
-    advice: staticPerson.word,
-    achievements: null,
-    social_links: null,
-    is_featured: 0,
-    is_public: 1,
-    published_at: staticPerson.time,
-    created_at: staticPerson.time,
-    updated_at: staticPerson.time,
-  }
-}
+import { mapStaticToBiography, calculateClimbingYears } from '@/lib/utils/biography'
 
 // 卡片組件
 interface BiographyCardProps {
@@ -45,9 +18,7 @@ interface BiographyCardProps {
 
 function BiographyCard({ person }: BiographyCardProps) {
   const imageUrl = person.avatar_url || '/photo/personleft.jpeg'
-  const climbingYears = person.climbing_start_year
-    ? new Date().getFullYear() - parseInt(person.climbing_start_year)
-    : null
+  const climbingYears = calculateClimbingYears(person.climbing_start_year)
 
   return (
     <motion.div
@@ -72,7 +43,7 @@ function BiographyCard({ person }: BiographyCardProps) {
               <div>
                 <h3 className="text-2xl font-medium text-[#1B1A1A]">{person.name}</h3>
                 <p className="text-sm text-[#8E8C8C]">
-                  攀岩年資 | {climbingYears ? `${climbingYears}年` : '未知'}
+                  攀岩年資 | {climbingYears !== null ? `${climbingYears}年` : '未知'}
                 </p>
               </div>
               <ArrowRightCircle size={22} className="text-gray-400" />
