@@ -1,57 +1,15 @@
 'use client'
 
-import React from 'react'
+import React, { useState, useEffect, useCallback } from 'react'
 import { Button } from '@/components/ui/button'
 import Image from 'next/image'
 import Link from 'next/link'
-import { Bookmark } from 'lucide-react'
+import { Bookmark, Loader2 } from 'lucide-react'
 import ProfilePageLayout from '@/components/profile/layout/ProfilePageLayout'
 import { useIsMobile } from '@/lib/hooks/useIsMobile'
 import { useToast } from '@/components/ui/use-toast'
-
-// 暫時性的假資料
-const bookmarksMock = [
-  {
-    id: 101,
-    title: '2024年世界盃攀岩賽事回顧',
-    excerpt: '回顧今年世界盃攀岩賽事的精彩瞬間和最佳選手表現...',
-    coverImage: '/api/placeholder/400/250',
-    createdAt: '2024-02-28',
-    author: '小岩',
-    category: '賽事報導',
-    bookmarkedAt: '2024-03-02',
-  },
-  {
-    id: 102,
-    title: '進階攀岩技巧：如何提升你的攀爬效率',
-    excerpt: '分享一些進階攀岩技巧，幫助你提升攀爬效率和改善體能...',
-    coverImage: '/api/placeholder/400/250',
-    createdAt: '2024-01-15',
-    author: '攀岩專家',
-    category: '技術指導',
-    bookmarkedAt: '2024-01-16',
-  },
-  {
-    id: 103,
-    title: '攀岩與心理健康：如何透過攀岩減輕壓力',
-    excerpt: '探討攀岩如何幫助減輕壓力、增強專注力，以及改善整體心理健康...',
-    coverImage: '/api/placeholder/400/250',
-    createdAt: '2023-12-05',
-    author: '健康攀岩',
-    category: '健康專欄',
-    bookmarkedAt: '2023-12-10',
-  },
-  {
-    id: 104,
-    title: '攀岩訓練計劃：從初學者到中級攀岩者',
-    excerpt: '一套完整的攀岩訓練計劃，幫助初學者逐步提升到中級水平...',
-    coverImage: '/api/placeholder/400/250',
-    createdAt: '2024-01-05',
-    author: '訓練達人',
-    category: '訓練計劃',
-    bookmarkedAt: '2024-01-08',
-  },
-]
+import { userService, postService } from '@/lib/api/services'
+import { BackendPost } from '@/lib/types'
 
 // 頁面標題元件
 interface PageHeaderProps {
@@ -65,45 +23,142 @@ const PageHeader = ({ title, isMobile }: PageHeaderProps) => (
   </div>
 )
 
+// 載入狀態元件
+const LoadingState = () => (
+  <div className="flex items-center justify-center py-12">
+    <Loader2 className="h-8 w-8 animate-spin text-[#6D6C6C]" />
+    <span className="ml-2 text-[#6D6C6C]">載入中...</span>
+  </div>
+)
+
+// 錯誤狀態元件
+const ErrorState = ({ message, onRetry }: { message: string; onRetry: () => void }) => (
+  <div className="py-12 text-center">
+    <p className="mb-4 text-red-600">{message}</p>
+    <Button onClick={onRetry} className="bg-[#1B1A1A] text-white hover:bg-[#3F3D3D]">
+      重試
+    </Button>
+  </div>
+)
+
 // 收藏文章卡片元件
 interface BookmarkCardProps {
-  article: {
-    id: number
-    title: string
-    excerpt: string
-    coverImage: string
-    createdAt: string
-    author: string
-    category: string
-    bookmarkedAt: string
-  }
-  onRemoveBookmark: (id: number) => void
+  article: BackendPost
+  onRemoveBookmark: (id: string) => void
+  isRemoving: boolean
+  isMobile?: boolean
 }
 
-const BookmarkCard = ({ article, onRemoveBookmark }: BookmarkCardProps) => (
-  <div className="rounded-sm border border-[#DBD8D8] p-5">
-    <div className="flex gap-6">
-      <div className="relative h-[120px] w-[200px]">
-        <Image src={article.coverImage} alt={article.title} fill className="object-cover" />
-      </div>
-      <div className="flex-1">
-        <div className="mb-1 flex justify-between">
-          <span className="text-sm text-[#6D6C6C]">
-            {article.category} | 作者：{article.author}
-          </span>
-          <span className="text-sm text-[#6D6C6C]">發布於 {article.createdAt}</span>
+const BookmarkCard = ({ article, onRemoveBookmark, isRemoving, isMobile }: BookmarkCardProps) => {
+  // 格式化日期
+  const formattedDate = article.published_at
+    ? new Date(article.published_at).toLocaleDateString('zh-TW', {
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric',
+      })
+    : new Date(article.created_at).toLocaleDateString('zh-TW', {
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric',
+      })
+
+  // 獲取分類（使用第一個 tag）
+  const category = article.tags?.[0] || '未分類'
+
+  // 獲取作者名稱
+  const authorName = article.display_name || article.username || '匿名'
+
+  if (isMobile) {
+    return (
+      <div className="rounded-sm border border-[#DBD8D8] p-4">
+        {article.cover_image && (
+          <div className="relative mb-3 h-[160px] w-full">
+            <Image
+              src={article.cover_image}
+              alt={article.title}
+              fill
+              className="rounded-sm object-cover"
+            />
+          </div>
+        )}
+        <div className="mb-1 text-sm text-[#6D6C6C]">
+          {category} | 作者：{authorName}
         </div>
-        <h2 className="mb-2 text-xl font-medium">{article.title}</h2>
-        <p className="mb-3 line-clamp-2 text-[#3F3D3D]">{article.excerpt}</p>
-        <div className="flex justify-between">
-          <span className="text-sm text-[#8E8C8C]">收藏於 {article.bookmarkedAt}</span>
-          <div className="flex gap-3">
+        <h2 className="mb-2 text-lg font-medium">{article.title}</h2>
+        <p className="mb-3 line-clamp-2 text-sm text-[#3F3D3D]">
+          {article.excerpt || article.content?.slice(0, 100)}
+        </p>
+        <div className="mb-3 text-xs text-[#8E8C8C]">發布於 {formattedDate}</div>
+        <div className="flex gap-2">
+          <Button
+            variant="outline"
+            size="sm"
+            className="flex flex-1 items-center justify-center gap-1 border-[#B6B3B3] text-[#3F3D3D] hover:bg-[#F5F5F5]"
+            onClick={() => onRemoveBookmark(article.id)}
+            disabled={isRemoving}
+          >
+            {isRemoving ? (
+              <Loader2 size={14} className="animate-spin" />
+            ) : (
+              <Bookmark size={14} />
+            )}
+            移除收藏
+          </Button>
+          <Link href={`/blog/${article.id}`} className="flex-1">
+            <Button
+              variant="outline"
+              size="sm"
+              className="w-full border-[#B6B3B3] text-[#3F3D3D] hover:bg-[#F5F5F5]"
+            >
+              閱讀文章
+            </Button>
+          </Link>
+        </div>
+      </div>
+    )
+  }
+
+  return (
+    <div className="rounded-sm border border-[#DBD8D8] p-5">
+      <div className="flex gap-6">
+        <div className="relative h-[120px] w-[200px] flex-shrink-0">
+          {article.cover_image ? (
+            <Image
+              src={article.cover_image}
+              alt={article.title}
+              fill
+              className="rounded-sm object-cover"
+            />
+          ) : (
+            <div className="flex h-full w-full items-center justify-center rounded-sm bg-gray-100">
+              <span className="text-sm text-gray-400">無封面圖片</span>
+            </div>
+          )}
+        </div>
+        <div className="flex-1">
+          <div className="mb-1 flex justify-between">
+            <span className="text-sm text-[#6D6C6C]">
+              {category} | 作者：{authorName}
+            </span>
+            <span className="text-sm text-[#6D6C6C]">發布於 {formattedDate}</span>
+          </div>
+          <h2 className="mb-2 text-xl font-medium">{article.title}</h2>
+          <p className="mb-3 line-clamp-2 text-[#3F3D3D]">
+            {article.excerpt || article.content?.slice(0, 150)}
+          </p>
+          <div className="flex justify-end gap-3">
             <Button
               variant="outline"
               className="flex items-center gap-1 border-[#B6B3B3] text-[#3F3D3D] hover:bg-[#F5F5F5]"
               onClick={() => onRemoveBookmark(article.id)}
+              disabled={isRemoving}
             >
-              <Bookmark size={16} />
+              {isRemoving ? (
+                <Loader2 size={16} className="animate-spin" />
+              ) : (
+                <Bookmark size={16} />
+              )}
               移除收藏
             </Button>
             <Link href={`/blog/${article.id}`}>
@@ -118,12 +173,13 @@ const BookmarkCard = ({ article, onRemoveBookmark }: BookmarkCardProps) => (
         </div>
       </div>
     </div>
-  </div>
-)
+  )
+}
 
 // 空狀態元件
 const EmptyState = () => (
   <div className="py-12 text-center">
+    <Bookmark size={48} className="mx-auto mb-4 text-[#B6B3B3]" />
     <p className="mb-4 text-[#6D6C6C]">你還沒有收藏任何文章</p>
     <Link href="/blog">
       <Button className="bg-[#1B1A1A] text-white hover:bg-[#3F3D3D]">瀏覽文章專區</Button>
@@ -135,14 +191,69 @@ export default function BookmarksPage() {
   const isMobile = useIsMobile()
   const { toast } = useToast()
 
+  const [bookmarks, setBookmarks] = useState<BackendPost[]>([])
+  const [isLoading, setIsLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
+  const [removingIds, setRemovingIds] = useState<Set<string>>(new Set())
+
+  // 獲取收藏文章
+  const fetchBookmarks = useCallback(async () => {
+    setIsLoading(true)
+    setError(null)
+    try {
+      const response = await userService.getUserLikedPosts(1, 50)
+      if (response.success && response.data) {
+        // 後端返回格式: { success, data: BackendPost[], pagination: {...} }
+        // response.data 包含 data 數組和 pagination 對象
+        setBookmarks(response.data.data || [])
+      } else {
+        setError('無法載入收藏文章')
+      }
+    } catch (err) {
+      console.error('Failed to fetch bookmarks:', err)
+      setError('無法載入收藏文章，請稍後再試')
+    } finally {
+      setIsLoading(false)
+    }
+  }, [])
+
+  useEffect(() => {
+    fetchBookmarks()
+  }, [fetchBookmarks])
+
   // 處理移除收藏
-  const handleRemoveBookmark = (id: number) => {
-    console.log(`移除收藏: ${id}`)
-    // 在實際應用中，這裡會發送API請求來移除收藏
-    toast({
-      title: '已移除收藏',
-      description: '文章已從收藏列表中移除',
-    })
+  const handleRemoveBookmark = async (id: string) => {
+    setRemovingIds((prev) => new Set(prev).add(id))
+    try {
+      const response = await postService.toggleLike(id)
+      if (response.success) {
+        // 從列表中移除
+        setBookmarks((prev) => prev.filter((article) => article.id !== id))
+        toast({
+          title: '已移除收藏',
+          description: '文章已從收藏列表中移除',
+        })
+      } else {
+        toast({
+          title: '操作失敗',
+          description: '無法移除收藏，請稍後再試',
+          variant: 'destructive',
+        })
+      }
+    } catch (err) {
+      console.error('Failed to remove bookmark:', err)
+      toast({
+        title: '操作失敗',
+        description: '無法移除收藏，請稍後再試',
+        variant: 'destructive',
+      })
+    } finally {
+      setRemovingIds((prev) => {
+        const next = new Set(prev)
+        next.delete(id)
+        return next
+      })
+    }
   }
 
   return (
@@ -150,13 +261,19 @@ export default function BookmarksPage() {
       <div className={`bg-white ${isMobile ? 'p-4 md:p-6' : 'p-8 md:p-12'} rounded-sm`}>
         <PageHeader title="收藏文章" isMobile={isMobile} />
 
-        {bookmarksMock.length > 0 ? (
+        {isLoading ? (
+          <LoadingState />
+        ) : error ? (
+          <ErrorState message={error} onRetry={fetchBookmarks} />
+        ) : bookmarks.length > 0 ? (
           <div className="space-y-6">
-            {bookmarksMock.map((article) => (
+            {bookmarks.map((article) => (
               <BookmarkCard
                 key={article.id}
                 article={article}
                 onRemoveBookmark={handleRemoveBookmark}
+                isRemoving={removingIds.has(article.id)}
+                isMobile={isMobile}
               />
             ))}
           </div>
