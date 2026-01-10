@@ -165,9 +165,11 @@ function BlogContent() {
     try {
       const response = await postService.getPosts(pageNum, 9)
       if (response.success && response.data) {
-        const { data, pagination } = response.data
+        // 後端返回 { success, data: [...], pagination }
+        const { data: postsData, pagination: paginationData } = response
+
         // 將後端數據轉換為前端格式
-        const fetchedArticles: Article[] = (data || []).map((post) => ({
+        const fetchedArticles: Article[] = postsData.map((post) => ({
           id: post.id,
           title: post.title,
           category: (post.tags?.[0] as ArticleCategory) || '技巧介紹',
@@ -185,7 +187,7 @@ function BlogContent() {
         } else {
           setArticles(fetchedArticles)
         }
-        setHasMore(pageNum < (pagination?.total_pages || 1))
+        setHasMore(pageNum < (paginationData?.total_pages || 1))
       } else {
         if (!append) {
           setArticles([])
