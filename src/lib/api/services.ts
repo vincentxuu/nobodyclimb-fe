@@ -773,8 +773,8 @@ export const userService = {
    * 獲取用戶收藏的文章
    */
   getUserLikedPosts: async (page = 1, limit = 10) => {
-    const response = await apiClient.get<ApiResponse<PaginatedResponse<Post>>>(
-      '/users/me/liked-posts',
+    const response = await apiClient.get<ApiResponse<BackendPaginatedResponse<BackendPost>>>(
+      '/posts/liked',
       {
         params: { page, limit },
       }

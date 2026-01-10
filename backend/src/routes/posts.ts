@@ -173,6 +173,119 @@ postsRoutes.get('/tags', async (c) => {
   });
 });
 
+// GET /posts/popular - Get popular posts
+postsRoutes.get('/popular', async (c) => {
+  const limit = parseInt(c.req.query('limit') || '5', 10);
+
+  const posts = await c.env.DB.prepare(
+    `SELECT p.*, u.username, u.display_name, u.avatar_url as author_avatar
+     FROM posts p
+     JOIN users u ON p.author_id = u.id
+     WHERE p.status = 'published'
+     ORDER BY p.view_count DESC
+     LIMIT ?`
+  )
+    .bind(limit)
+    .all();
+
+  // Get tags for all posts
+  const postIds = posts.results.map((p) => p.id as string);
+  const tagsMap = new Map<string, string[]>();
+  if (postIds.length > 0) {
+    const placeholders = postIds.map(() => '?').join(',');
+    const tagsResult = await c.env.DB.prepare(
+      `SELECT post_id, tag FROM post_tags WHERE post_id IN (${placeholders})`
+    )
+      .bind(...postIds)
+      .all<{ post_id: string; tag: string }>();
+
+    for (const { post_id, tag } of tagsResult.results ?? []) {
+      if (!tagsMap.has(post_id)) {
+        tagsMap.set(post_id, []);
+      }
+      tagsMap.get(post_id)!.push(tag);
+    }
+  }
+
+  const postsWithTags = posts.results.map((post) => ({
+    ...post,
+    tags: tagsMap.get(post.id as string) || [],
+  }));
+
+  return c.json({
+    success: true,
+    data: postsWithTags,
+  });
+});
+
+// GET /posts/liked - Get current user's liked/bookmarked posts
+postsRoutes.get('/liked', authMiddleware, async (c) => {
+  const userId = c.get('userId');
+  const { page, limit, offset } = parsePagination(
+    c.req.query('page'),
+    c.req.query('limit')
+  );
+
+  // Get total count of liked posts
+  const countResult = await c.env.DB.prepare(
+    `SELECT COUNT(*) as count
+     FROM likes l
+     JOIN posts p ON l.entity_id = p.id
+     WHERE l.user_id = ? AND l.entity_type = 'post' AND p.status = 'published'`
+  )
+    .bind(userId)
+    .first<{ count: number }>();
+  const total = countResult?.count || 0;
+
+  // Get liked posts with pagination
+  const posts = await c.env.DB.prepare(
+    `SELECT p.*, u.username, u.display_name, u.avatar_url as author_avatar, l.created_at as liked_at
+     FROM likes l
+     JOIN posts p ON l.entity_id = p.id
+     JOIN users u ON p.author_id = u.id
+     WHERE l.user_id = ? AND l.entity_type = 'post' AND p.status = 'published'
+     ORDER BY l.created_at DESC
+     LIMIT ? OFFSET ?`
+  )
+    .bind(userId, limit, offset)
+    .all();
+
+  // Get tags for all posts in one query to avoid N+1 problem
+  const postIds = posts.results.map((p) => p.id as string);
+  const tagsMap = new Map<string, string[]>();
+  if (postIds.length > 0) {
+    const placeholders = postIds.map(() => '?').join(',');
+    const tagsResult = await c.env.DB.prepare(
+      `SELECT post_id, tag FROM post_tags WHERE post_id IN (${placeholders})`
+    )
+      .bind(...postIds)
+      .all<{ post_id: string; tag: string }>();
+
+    for (const { post_id, tag } of tagsResult.results ?? []) {
+      if (!tagsMap.has(post_id)) {
+        tagsMap.set(post_id, []);
+      }
+      tagsMap.get(post_id)!.push(tag);
+    }
+  }
+
+  const postsWithTags = posts.results.map((post) => ({
+    ...post,
+    tags: tagsMap.get(post.id as string) || [],
+  }));
+
+  return c.json({
+    success: true,
+    data: postsWithTags,
+    pagination: {
+      page,
+      limit,
+      total,
+      total_pages: Math.ceil(total / limit),
+    },
+  });
+});
+
 // GET /posts/:id - Get post by ID
 postsRoutes.get('/:id', async (c) => {
   const id = c.req.param('id');
