@@ -53,7 +53,8 @@ usersRoutes.post('/upload-avatar', authMiddleware, async (c) => {
   }
 
   // Generate unique filename
-  const ext = file.name.split('.').pop() || 'jpg';
+const extMap = { 'image/jpeg': 'jpg', 'image/png': 'png', 'image/webp': 'webp' };
+const ext = extMap[file.type as keyof typeof extMap];
   const filename = `avatars/${generateId()}.${ext}`;
 
   // Upload to R2
