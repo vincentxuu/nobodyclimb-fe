@@ -42,9 +42,10 @@ interface ArticleCardProps {
   article: Article
   onDelete: (id: string) => void
   isDeleting: boolean
+  isMobile?: boolean
 }
 
-const ArticleCard = ({ article, onDelete, isDeleting }: ArticleCardProps) => {
+const ArticleCard = ({ article, onDelete, isDeleting, isMobile }: ArticleCardProps) => {
   const statusLabel = {
     draft: '草稿',
     published: '已發布',
@@ -57,6 +58,79 @@ const ArticleCard = ({ article, onDelete, isDeleting }: ArticleCardProps) => {
     archived: 'bg-gray-100 text-gray-600',
   }
 
+  // 手機版佈局
+  if (isMobile) {
+    return (
+      <div className="rounded-sm border border-[#DBD8D8] p-4">
+        {article.cover_image && (
+          <div className="relative mb-3 h-[160px] w-full overflow-hidden bg-gray-100">
+            <Image
+              src={article.cover_image}
+              alt={article.title}
+              fill
+              className="object-cover"
+            />
+          </div>
+        )}
+        <div className="mb-2 flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <span
+              className={`rounded px-2 py-0.5 text-xs ${statusColor[article.status]}`}
+            >
+              {statusLabel[article.status]}
+            </span>
+            {article.tags && article.tags.length > 0 && (
+              <span className="text-xs text-[#6D6C6C]">{article.tags[0]}</span>
+            )}
+          </div>
+          <span className="text-xs text-[#6D6C6C]">
+            {new Date(article.created_at).toLocaleDateString('zh-TW')}
+          </span>
+        </div>
+        <h2 className="mb-2 line-clamp-2 text-lg font-medium">{article.title}</h2>
+        <p className="mb-3 line-clamp-2 text-sm text-[#3F3D3D]">
+          {article.excerpt || '無摘要'}
+        </p>
+        <div className="mb-3 flex items-center text-xs text-[#8E8C8C]">
+          <Eye size={12} className="mr-1" />
+          {article.view_count} 次瀏覽
+        </div>
+        <div className="flex gap-2">
+          <Link href={`/blog/edit/${article.id}`} className="flex-1">
+            <Button
+              variant="outline"
+              size="sm"
+              className="w-full border-[#B6B3B3] text-[#3F3D3D] hover:bg-[#F5F5F5]"
+            >
+              <Edit2 size={14} className="mr-1" />
+              編輯
+            </Button>
+          </Link>
+          <Link href={`/blog/${article.id}`} className="flex-1">
+            <Button
+              variant="outline"
+              size="sm"
+              className="w-full border-[#B6B3B3] text-[#3F3D3D] hover:bg-[#F5F5F5]"
+            >
+              查看
+            </Button>
+          </Link>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => onDelete(article.id)}
+            disabled={isDeleting}
+            className="flex-1 border-red-300 text-red-600 hover:bg-red-50"
+          >
+            <Trash2 size={14} className="mr-1" />
+            刪除
+          </Button>
+        </div>
+      </div>
+    )
+  }
+
+  // 桌面版佈局
   return (
     <div className="rounded-sm border border-[#DBD8D8] p-5">
       <div className="flex gap-6">
@@ -264,6 +338,7 @@ export default function ArticlesPage() {
                 article={article}
                 onDelete={handleDeleteClick}
                 isDeleting={isDeleting && articleToDelete === article.id}
+                isMobile={isMobile}
               />
             ))}
           </div>
