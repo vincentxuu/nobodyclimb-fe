@@ -158,15 +158,15 @@ galleriesRoutes.delete('/photos/:id', authMiddleware, async (c) => {
   const user = c.get('user');
   const photoId = c.req.param('id');
 
-  // Check if photo exists and user owns it
+  // Check if photo exists and user owns it, and get image_url
   const photo = await c.env.DB.prepare(
-    `SELECT gi.id, g.author_id
+    `SELECT gi.id, gi.image_url, g.author_id
      FROM gallery_images gi
      JOIN galleries g ON gi.gallery_id = g.id
      WHERE gi.id = ?`
   )
     .bind(photoId)
-    .first<{ id: string; author_id: string }>();
+    .first<{ id: string; image_url: string; author_id: string }>();
 
   if (!photo) {
     return c.json(
@@ -188,6 +188,17 @@ galleriesRoutes.delete('/photos/:id', authMiddleware, async (c) => {
       },
       403
     );
+  }
+
+  // Delete from R2 storage
+  if (photo.image_url) {
+    try {
+      const key = new URL(photo.image_url).pathname.substring(1);
+      await c.env.STORAGE.delete(key);
+    } catch (err) {
+      console.error(`Failed to delete R2 object for photo ${photoId}: ${err}`);
+      // Log the error but continue with database deletion
+    }
   }
 
   await c.env.DB.prepare('DELETE FROM gallery_images WHERE id = ?')
