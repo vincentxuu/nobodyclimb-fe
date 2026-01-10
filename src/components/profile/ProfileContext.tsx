@@ -28,6 +28,9 @@ function parseGalleryImages(galleryImagesJson: string | null | undefined): {
   }
   try {
     const parsed = JSON.parse(galleryImagesJson)
+    if (typeof parsed !== 'object' || parsed === null) {
+      return { images: [], layout: 'double' }
+    }
     return {
       images: Array.isArray(parsed.images) ? parsed.images : [],
       layout: parsed.layout || 'double',

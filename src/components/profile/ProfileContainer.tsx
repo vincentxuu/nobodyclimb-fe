@@ -43,7 +43,7 @@ export default function ProfileContainer() {
       const response = await biographyService.uploadImage(file)
       if (response.success && response.data?.url) {
         const newImage: ProfileImage = {
-          id: `img_${Date.now()}`,
+          id: crypto.randomUUID(),
           url: response.data.url,
           order: profileData.images.length,
         }
