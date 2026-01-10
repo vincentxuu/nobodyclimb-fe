@@ -87,7 +87,7 @@
       "nameEn": "Taiwan Boulder",
       "description": "因前方有一塊台灣形狀的石頭而得名。從集合場步道右轉可到達，高度約9公尺，路線多為純力量型。",
       "descriptionEn": "Named by a Taiwan-shaped rock in front of the boulder. The boulder's height is only about 9 meters, so the routes here are almost pure power style.",
-      "boltCount": 45,
+      "boltCount": 39,
       "routesCount": 9
     },
     {
@@ -96,7 +96,7 @@
       "nameEn": "Mysterious Valley",
       "description": "隱藏在叢林中的岩場，從集合場步行約2分鐘可到達。此區較為潮濕，蚊蟲多，建議攜帶防蚊液。",
       "descriptionEn": "Hidden in the jungle, about 2 minutes walk from Assembling Field. This area is humid with many mosquitoes. Insect repellent is recommended.",
-      "boltCount": 46,
+      "boltCount": 45,
       "routesCount": 10
     },
     {
@@ -105,7 +105,7 @@
       "nameEn": "Doucilin",
       "description": "關子嶺最新開發的區域，路線高度10-13公尺，多為力量耐力型路線。視野極佳，夏季也可攀登。",
       "descriptionEn": "The latest opened area in Guanziling. Route heights range from 10 to 13 meters. Most are power-endurance routes. Great view and climbable even in summer.",
-      "boltCount": 58,
+      "boltCount": 68,
       "routesCount": 10
     },
     {
@@ -839,26 +839,26 @@
   ],
   "statistics": {
     "totalRoutes": 50,
-    "totalBolts": 290,
+    "totalBolts": 293,
     "routesByType": {
       "sport": 46,
       "toprope": 3,
       "boulder": 1
     },
     "routesByGrade": {
-      "5.6": 3,
+      "5.6": 4,
       "5.8": 1,
       "5.10a": 2,
       "5.10b": 4,
-      "5.10c": 4,
-      "5.10d": 4,
+      "5.10c": 5,
+      "5.10d": 3,
       "5.11a": 2,
       "5.11b": 4,
       "5.11c": 1,
       "5.11d": 3,
       "5.12a": 3,
       "5.12b": 4,
-      "5.12c": 4,
+      "5.12c": 5,
       "5.12d": 5,
       "5.13a": 1,
       "5.13b": 1,
@@ -866,7 +866,7 @@
       "V5": 1
     },
     "boltsByMaterial": {
-      "316-TW": 290
+      "316-TW": 293
     }
   },
   "metadata": {
