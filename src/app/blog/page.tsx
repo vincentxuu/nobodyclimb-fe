@@ -12,6 +12,7 @@ import { Breadcrumb } from '@/components/ui/breadcrumb'
 import { motion } from 'framer-motion'
 import { postService } from '@/lib/api/services'
 import { BackendPost } from '@/lib/types'
+import { generateSummary } from '@/lib/utils/article'
 
 // 載入狀態元件
 const LoadingState = () => (
@@ -48,31 +49,44 @@ interface ArticleCardProps {
   article: Article
 }
 
-const ArticleCard = ({ article }: ArticleCardProps) => (
-  <Link
-    href={`/blog/${article.id}`}
-    className="group h-[416px] overflow-hidden rounded-none bg-white transition-shadow hover:shadow-lg"
-  >
-    <div className="relative h-[208px]">
-      <Image src={article.imageUrl} alt={article.title} fill className="object-cover" />
-      {article.isFeature && (
-        <div className="absolute left-3 top-3 rounded bg-orange-500 px-2 py-1 text-xs text-white">
-          精選
+const ArticleCard = ({ article }: ArticleCardProps) => {
+  const hasImage = article.imageUrl && article.imageUrl !== '/photo/blog-left.jpeg'
+
+  return (
+    <Link
+      href={`/blog/${article.id}`}
+      className={`group overflow-hidden rounded-none bg-white transition-shadow hover:shadow-lg ${hasImage ? 'h-[416px]' : 'h-auto'}`}
+    >
+      {hasImage && (
+        <div className="relative h-[208px]">
+          <Image src={article.imageUrl} alt={article.title} fill className="object-cover" />
+          {article.isFeature && (
+            <div className="absolute left-3 top-3 rounded bg-orange-500 px-2 py-1 text-xs text-white">
+              精選
+            </div>
+          )}
         </div>
       )}
-    </div>
-    <div className="flex flex-col gap-3 p-5">
-      <div className="flex items-center gap-3">
-        <span className="rounded bg-[#3F3D3D] px-3 py-1 text-sm text-white">{article.category}</span>
-        <span className="text-sm text-[#6D6C6C]">{article.date}</span>
+      {!hasImage && article.isFeature && (
+        <div className="px-5 pt-5">
+          <span className="rounded bg-orange-500 px-2 py-1 text-xs text-white">
+            精選
+          </span>
+        </div>
+      )}
+      <div className="flex flex-col gap-3 p-5">
+        <div className="flex items-center gap-3">
+          <span className="rounded bg-[#3F3D3D] px-3 py-1 text-sm text-white">{article.category}</span>
+          <span className="text-sm text-[#6D6C6C]">{article.date}</span>
+        </div>
+        <h2 className="line-clamp-2 text-xl font-medium group-hover:text-gray-700">
+          {article.title}
+        </h2>
+        <p className="line-clamp-3 text-sm text-gray-700">{generateSummary(article.content)}</p>
       </div>
-      <h2 className="line-clamp-2 text-xl font-medium group-hover:text-gray-700">
-        {article.title}
-      </h2>
-      <p className="line-clamp-3 text-sm text-gray-700">{article.content}</p>
-    </div>
-  </Link>
-)
+    </Link>
+  )
+}
 
 // 文章卡片骨架屏
 const ArticleCardSkeleton = () => (
