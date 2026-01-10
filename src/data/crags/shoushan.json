@@ -76,7 +76,7 @@
       "descriptionEn": "Advanced area with many classic high-difficulty routes, including the iconic Y2K Business Trip route.",
       "difficulty": { "min": "5.10c", "max": "5.13a" },
       "image": "/images/crag/shoushan-outside-wall.jpg",
-      "boltCount": 72,
+      "boltCount": 92,
       "routesCount": 14
     },
     {
@@ -98,7 +98,7 @@
       "descriptionEn": "North-facing wall on the cement platform with many classic intermediate to advanced routes including A-Xue Route and Fox Hunt.",
       "difficulty": { "min": "5.10a", "max": "5.12c" },
       "image": "/images/crag/shoushan-platform-upper.jpg",
-      "boltCount": 71,
+      "boltCount": 74,
       "routesCount": 14
     },
     {
@@ -109,7 +109,7 @@
       "descriptionEn": "Rock wall below the cement platform, featuring classic routes like Super Saiyan and Galloping into the Forest.",
       "difficulty": { "min": "5.10a", "max": "5.12b" },
       "image": "/images/crag/shoushan-platform-lower.jpg",
-      "boltCount": 58,
+      "boltCount": 75,
       "routesCount": 16
     },
     {
@@ -120,7 +120,7 @@
       "descriptionEn": "Beginner area on the right side of the cement platform, lower difficulty routes suitable for lead climbing practice.",
       "difficulty": { "min": "5.6", "max": "5.10d" },
       "image": "/images/crag/shoushan-south-face.jpg",
-      "boltCount": 37,
+      "boltCount": 43,
       "routesCount": 11
     },
     {
@@ -131,7 +131,7 @@
       "descriptionEn": "Located under the bridge stairs beside the path from Qianguang Road to Qianguang Temple restroom.",
       "difficulty": { "min": "5.10c", "max": "5.10d" },
       "image": "/images/crag/shoushan-under-bridge.jpg",
-      "boltCount": 7,
+      "boltCount": 9,
       "routesCount": 2
     }
   ],
@@ -1135,7 +1135,7 @@
   ],
   "statistics": {
     "totalRoutes": 61,
-    "totalBolts": 310,
+"totalBolts": 317,
     "routesByType": {
       "sport": 61,
       "trad": 0,
@@ -1149,11 +1149,11 @@
       "5.9": 2,
       "5.10a": 5,
       "5.10b": 6,
-      "5.10c": 5,
-      "5.10d": 14,
+      "5.10c": 6,
+      "5.10d": 16,
       "5.11a": 7,
       "5.11b": 4,
-      "5.11d": 4,
+      "5.11d": 3,
       "5.12a": 3,
       "5.12b": 1,
       "5.12c": 2,
@@ -1161,8 +1161,8 @@
       "5.13a": 1
     },
     "boltsByMaterial": {
-      "Stainless Steel Glue-in": 200,
-      "Standard Bolts": 69
+      "Stainless Steel Glue-in": 236,
+      "Standard Bolts": 81
     }
   },
   "metadata": {
