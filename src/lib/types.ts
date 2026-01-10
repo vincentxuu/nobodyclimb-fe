@@ -353,16 +353,21 @@ export interface PaginatedResponse<T> {
 }
 
 /**
+ * 後端分頁資訊介面 (snake_case)
+ */
+export interface PaginationInfo {
+  page: number
+  limit: number
+  total: number
+  total_pages: number
+}
+
+/**
  * 後端分頁回應介面 (snake_case)
  */
 export interface BackendPaginatedResponse<T> {
   data: T[]
-  pagination: {
-    page: number
-    limit: number
-    total: number
-    total_pages: number
-  }
+  pagination: PaginationInfo
 }
 
 /**
@@ -372,12 +377,7 @@ export interface BackendPaginatedResponse<T> {
 export interface BackendPostPaginatedResponse {
   success: boolean
   data: BackendPost[]
-  pagination: {
-    page: number
-    limit: number
-    total: number
-    total_pages: number
-  }
+  pagination: PaginationInfo
 }
 
 /**

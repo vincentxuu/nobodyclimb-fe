@@ -4,6 +4,7 @@ import {
   BackendPost,
   BackendPaginatedResponse,
   BackendPostPaginatedResponse,
+  PaginationInfo,
   Gym,
   Gallery,
   User,
@@ -476,12 +477,7 @@ export const galleryService = {
 interface BackendBiographyPaginatedResponse {
   success: boolean
   data: Biography[]
-  pagination: {
-    page: number
-    limit: number
-    total: number
-    total_pages: number
-  }
+  pagination: PaginationInfo
 }
 
 /**
