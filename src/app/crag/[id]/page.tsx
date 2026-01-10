@@ -302,7 +302,7 @@ export default function CragDetailPage({ params }: { params: Promise<{ id: strin
               </Tabs.Content>
 
               <Tabs.Content value="areas">
-                <CragAreaSection areas={currentCrag.areas} onAreaClick={handleAreaClick} />
+                <CragAreaSection cragId={id} areas={currentCrag.areas} />
               </Tabs.Content>
 
               <Tabs.Content value="routes">

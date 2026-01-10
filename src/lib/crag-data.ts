@@ -249,6 +249,118 @@ export function getRouteById(cragId: string, routeId: string): CragRoute | null 
 }
 
 /**
+ * 根據區域 ID 獲取區域詳情
+ */
+export function getAreaById(cragId: string, areaId: string): CragArea | null {
+  const data = cragsDataMap.get(cragId)
+  if (!data) return null
+  return data.areas.find(area => area.id === areaId) || null
+}
+
+/**
+ * 獲取岩區詳細頁面所需的資料
+ */
+export function getAreaDetailData(cragId: string, areaId: string) {
+  const fullData = getCragById(cragId)
+  if (!fullData) return null
+
+  const area = fullData.areas.find(a => a.id === areaId)
+  if (!area) return null
+
+  const areaRoutes = fullData.routes.filter(route => route.areaId === areaId)
+
+  // 計算該區的難度分佈
+  const gradeDistribution: Record<string, number> = {}
+  areaRoutes.forEach(route => {
+    const grade = route.grade
+    gradeDistribution[grade] = (gradeDistribution[grade] || 0) + 1
+  })
+
+  // 計算難度範圍分組
+  const gradeRanges: Record<string, number> = {
+    '5.6-5.9': 0,
+    '5.10a-5.10d': 0,
+    '5.11a-5.11d': 0,
+    '5.12a-5.12d': 0,
+    '5.13a-5.13d': 0,
+    '5.14+': 0,
+  }
+
+  areaRoutes.forEach(route => {
+    const grade = route.grade
+    if (grade.startsWith('5.6') || grade.startsWith('5.7') || grade.startsWith('5.8') || grade.startsWith('5.9')) {
+      gradeRanges['5.6-5.9']++
+    } else if (grade.startsWith('5.10')) {
+      gradeRanges['5.10a-5.10d']++
+    } else if (grade.startsWith('5.11')) {
+      gradeRanges['5.11a-5.11d']++
+    } else if (grade.startsWith('5.12')) {
+      gradeRanges['5.12a-5.12d']++
+    } else if (grade.startsWith('5.13')) {
+      gradeRanges['5.13a-5.13d']++
+    } else if (grade.startsWith('5.14') || grade.startsWith('5.15')) {
+      gradeRanges['5.14+']++
+    }
+  })
+
+  // 計算路線類型分佈
+  const typeDistribution: Record<string, number> = {}
+  areaRoutes.forEach(route => {
+    const type = route.type
+    typeDistribution[type] = (typeDistribution[type] || 0) + 1
+  })
+
+  return {
+    crag: {
+      id: fullData.crag.id,
+      name: fullData.crag.name,
+      nameEn: fullData.crag.nameEn,
+      slug: fullData.crag.slug,
+    },
+    area: {
+      id: area.id,
+      name: area.name,
+      nameEn: area.nameEn,
+      description: area.description || '',
+      descriptionEn: area.descriptionEn || '',
+      difficulty: area.difficulty
+        ? `${area.difficulty.min} - ${area.difficulty.max}`
+        : '',
+      difficultyMin: area.difficulty?.min || '',
+      difficultyMax: area.difficulty?.max || '',
+      image: area.image || `/images/crag/${fullData.crag.slug}-${area.id}.jpg`,
+      boltCount: area.boltCount,
+      routesCount: area.routesCount,
+      sectors: area.sectors || [],
+    },
+    routes: areaRoutes.map(route => ({
+      id: route.id,
+      name: route.name,
+      englishName: route.nameEn,
+      grade: route.grade,
+      length: route.length || '',
+      type: route.typeEn,
+      firstAscent: route.firstAscent || '',
+      area: route.sector || '',
+      description: route.description || '',
+      protection: route.protection || '',
+      popularity: route.popularity ?? 0,
+      views: route.views ?? 0,
+      images: route.images || [],
+      videos: route.videos || [],
+      tips: route.tips || '',
+    })),
+    statistics: {
+      totalRoutes: areaRoutes.length,
+      totalBolts: area.boltCount,
+      gradeDistribution,
+      gradeRanges,
+      typeDistribution,
+    },
+  }
+}
+
+/**
  * 獲取岩場統計資料
  */
 export function getCragStatistics(cragId: string): CragStatistics | null {
@@ -349,6 +461,7 @@ export function getCragDetailData(id: string) {
       ],
     },
     areas: areas.map(area => ({
+      id: area.id,
       name: area.name,
       description: area.description || '',
       difficulty: area.difficulty
