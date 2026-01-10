@@ -27,13 +27,36 @@ const Select = ({ value, onValueChange, children, disabled }: SelectProps) => {
     }
   }, [])
 
+  // 從 SelectContent 中找到匹配 value 的 SelectItem 的顯示文字
+  const getDisplayText = (currentValue: string): string | undefined => {
+    let displayText: string | undefined
+
+    React.Children.forEach(children, (child) => {
+      if (React.isValidElement(child) && child.type === SelectContent) {
+        React.Children.forEach(child.props.children, (item) => {
+          if (React.isValidElement(item) && item.type === SelectItem) {
+            if (item.props.value === currentValue) {
+              // 取得 SelectItem 的 children 作為顯示文字
+              const itemChildren = item.props.children
+              displayText = typeof itemChildren === 'string' ? itemChildren : currentValue
+            }
+          }
+        })
+      }
+    })
+
+    return displayText
+  }
+
+  const displayText = value ? getDisplayText(value) : undefined
+
   return (
     <div ref={ref} className="relative">
       {React.Children.map(children, (child) => {
         if (React.isValidElement(child) && child.type === SelectTrigger) {
           return React.cloneElement(child as React.ReactElement<any>, {
             onClick: () => !disabled && setOpen(!open),
-            value,
+            displayText,
             open,
             disabled,
           })
@@ -56,7 +79,7 @@ const Select = ({ value, onValueChange, children, disabled }: SelectProps) => {
 
 interface SelectTriggerProps {
   children: React.ReactNode
-  value?: string
+  displayText?: string
   open?: boolean
   onClick?: () => void
   className?: string
@@ -65,7 +88,7 @@ interface SelectTriggerProps {
 
 const SelectTrigger = ({
   children,
-  value,
+  displayText,
   open,
   onClick,
   className,
@@ -82,8 +105,15 @@ const SelectTrigger = ({
         className
       )}
     >
-      {children}
-      <ChevronDown className={cn('h-4 w-4 transition-transform', open && 'rotate-180 transform')} />
+      {React.Children.map(children, (child) => {
+        if (React.isValidElement(child) && child.type === SelectValue) {
+          return React.cloneElement(child as React.ReactElement<SelectValueProps>, {
+            displayText,
+          })
+        }
+        return child
+      })}
+      <ChevronDown className={cn('h-4 w-4 flex-shrink-0 transition-transform', open && 'rotate-180 transform')} />
     </div>
   )
 }
@@ -91,12 +121,13 @@ const SelectTrigger = ({
 interface SelectValueProps {
   placeholder: string
   children?: React.ReactNode
+  displayText?: string
 }
 
-const SelectValue = ({ placeholder, children }: SelectValueProps) => {
+const SelectValue = ({ placeholder, children, displayText }: SelectValueProps) => {
   return (
     <span className="block truncate">
-      {children || <span className="text-[#6D6C6C]">{placeholder}</span>}
+      {displayText || children || <span className="text-[#6D6C6C]">{placeholder}</span>}
     </span>
   )
 }
