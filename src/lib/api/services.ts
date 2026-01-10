@@ -156,6 +156,26 @@ export const postService = {
   },
 
   /**
+   * 獲取相關文章
+   */
+  getRelatedPosts: async (id: string, limit = 3) => {
+    const response = await apiClient.get<ApiResponse<Post[]>>(`/posts/${id}/related`, {
+      params: { limit },
+    })
+    return response.data
+  },
+
+  /**
+   * 獲取熱門文章
+   */
+  getPopularPosts: async (limit = 5) => {
+    const response = await apiClient.get<ApiResponse<Post[]>>('/posts/popular', {
+      params: { limit },
+    })
+    return response.data
+  },
+
+  /**
    * 創建文章
    */
   createPost: async (

@@ -139,6 +139,7 @@ function BlogContent() {
   const [isAutoPlaying, setIsAutoPlaying] = useState(true)
   const [isLoading, setIsLoading] = useState(true)
   const [articles, setArticles] = useState<Article[]>([])
+  const [featuredArticles, setFeaturedArticles] = useState<Article[]>([])
   const [page, setPage] = useState(1)
   const [hasMore, setHasMore] = useState(true)
   const [isLoadingMore, setIsLoadingMore] = useState(false)
@@ -220,10 +221,38 @@ function BlogContent() {
     }
   }, [])
 
+  // 獲取精選文章
+  const fetchFeaturedArticles = useCallback(async () => {
+    try {
+      const response = await postService.getFeaturedPosts()
+      if (response.success && response.data) {
+        const data = response.data as unknown as BackendPost[]
+        const fetchedFeatured: Article[] = data.map((post: BackendPost) => ({
+          id: post.id,
+          title: post.title,
+          category: (post.tags?.[0] as ArticleCategory) || '技巧介紹',
+          date: post.published_at
+            ? new Date(post.published_at).toLocaleDateString('zh-TW')
+            : new Date(post.created_at).toLocaleDateString('zh-TW'),
+          content: post.content,
+          imageUrl: post.cover_image || '/photo/blog-left.jpeg',
+          isFeature: true,
+          description: post.excerpt || undefined,
+        }))
+        setFeaturedArticles(fetchedFeatured)
+      }
+    } catch (err) {
+      console.error('Failed to fetch featured articles:', err)
+      // 使用 mock 數據作為回退
+      setFeaturedArticles(mockArticles.filter((a) => a.isFeature))
+    }
+  }, [])
+
   // 初始載入
   useEffect(() => {
     fetchArticles(1)
-  }, [fetchArticles])
+    fetchFeaturedArticles()
+  }, [fetchArticles, fetchFeaturedArticles])
 
   // 載入更多
   const handleLoadMore = () => {
@@ -234,7 +263,7 @@ function BlogContent() {
     }
   }
 
-  const featuredArticles = articles.filter((article) => article.isFeature)
+  // 使用從 API 獲取的精選文章，如果沒有則使用 mock 數據
   const displayFeatured = featuredArticles.length > 0 ? featuredArticles : mockArticles.filter((a) => a.isFeature)
 
   const nextSlide = useCallback(() => {
