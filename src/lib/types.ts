@@ -166,6 +166,36 @@ export interface Gallery {
 }
 
 /**
+ * 攝影集照片介面（單張照片含上傳者資訊）
+ */
+export interface GalleryPhoto {
+  id: string
+  image_url: string
+  thumbnail_url?: string
+  caption?: string
+  location_country?: string
+  location_city?: string
+  location_spot?: string
+  created_at: string
+  author_id: string
+  username: string
+  display_name?: string
+  author_avatar?: string
+}
+
+/**
+ * 上傳照片請求介面
+ */
+export interface UploadPhotoInput {
+  image_url: string
+  thumbnail_url?: string
+  caption?: string
+  location_country?: string
+  location_city?: string
+  location_spot?: string
+}
+
+/**
  * 評論介面
  */
 export interface Comment {

@@ -28,6 +28,8 @@ CORS_ORIGIN = "http://localhost:3000"
 
 JWT_ISSUER = "nobodyclimb-api"
 
+R2_PUBLIC_URL = "https://storage-preview.nobodyclimb.cc"
+
  
 
 [[env.preview.d1_databases]]
@@ -81,6 +83,8 @@ routes = [
 CORS_ORIGIN = "https://nobodyclimb.cc"
 
 JWT_ISSUER = "nobodyclimb-api"
+
+R2_PUBLIC_URL = "https://storage.nobodyclimb.cc"
 
  
 

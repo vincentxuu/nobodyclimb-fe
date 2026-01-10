@@ -1,9 +1,9 @@
 import React from 'react'
 import Image from 'next/image'
+import Link from 'next/link'
 import { motion, AnimatePresence } from 'framer-motion'
-import { X, ChevronLeft, ChevronRight, MapPin } from 'lucide-react'
+import { X, ChevronLeft, ChevronRight, MapPin, User } from 'lucide-react'
 
-// Placeholder type, sync with page.tsx
 interface GalleryPhoto {
   id: string
   src: string
@@ -13,7 +13,13 @@ interface GalleryPhoto {
     city: string
     spot: string
   }
-  uploadDate?: string // Format like 'YYYY. MM. DD' based on Figma
+  uploadDate?: string
+  author?: {
+    id: string
+    username: string
+    displayName?: string
+    avatar?: string
+  }
 }
 
 interface PhotoPopupProps {
@@ -39,7 +45,7 @@ const PhotoPopup: React.FC<PhotoPopupProps> = ({ photo, onClose, onNext, onPrev 
         animate={{ opacity: 1 }}
         exit={{ opacity: 0 }}
         className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-70 p-4"
-        onClick={onClose} // Close on backdrop click
+        onClick={onClose}
       >
         {/* Content */}
         <motion.div
@@ -47,17 +53,15 @@ const PhotoPopup: React.FC<PhotoPopupProps> = ({ photo, onClose, onNext, onPrev 
           animate={{ scale: 1, opacity: 1 }}
           exit={{ scale: 0.9, opacity: 0 }}
           className="relative flex max-h-[90vh] w-full max-w-4xl flex-col overflow-hidden rounded-lg bg-white md:flex-row"
-          onClick={(e) => e.stopPropagation()} // Prevent closing when clicking inside content
+          onClick={(e) => e.stopPropagation()}
         >
-          {/* Image Container - Simplified: Relative position and width constraints */}
-          {/* Image Container - Relative position and width constraints */}
+          {/* Image Container */}
           <div className="relative flex w-full items-center justify-center overflow-hidden md:w-2/3">
-            {/* Use explicit width/height and object-contain style */}
             <Image
               src={photo.src}
               alt={photo.alt}
-              width={1000} // Provide large intrinsic width
-              height={1500} // Provide large intrinsic height (adjust ratio if needed)
+              width={1000}
+              height={1500}
               style={{
                 objectFit: 'contain',
                 width: 'auto',
@@ -66,32 +70,63 @@ const PhotoPopup: React.FC<PhotoPopupProps> = ({ photo, onClose, onNext, onPrev 
                 maxWidth: '100%',
               }}
               sizes="(max-width: 768px) 90vw, 60vw"
-              priority // Prioritize loading the main popup image
+              priority
             />
           </div>
 
-          {/* Info Panel - Allow vertical scrolling on desktop if content overflows */}
+          {/* Info Panel */}
           <div className="flex w-full flex-col justify-between bg-neutral-800 p-4 text-white md:w-1/3 md:overflow-y-auto">
             <div>
-              {photo.location && (
+              {/* Author Info */}
+              {photo.author && (
+                <Link
+                  href={`/biography/${photo.author.username}`}
+                  className="mb-4 flex items-center gap-3 rounded-lg p-2 transition-colors hover:bg-neutral-700"
+                >
+                  {photo.author.avatar ? (
+                    <Image
+                      src={photo.author.avatar}
+                      alt={photo.author.displayName || photo.author.username}
+                      width={40}
+                      height={40}
+                      className="h-10 w-10 rounded-full object-cover"
+                    />
+                  ) : (
+                    <div className="flex h-10 w-10 items-center justify-center rounded-full bg-neutral-600">
+                      <User size={20} className="text-neutral-300" />
+                    </div>
+                  )}
+                  <div>
+                    <p className="font-medium">
+                      {photo.author.displayName || photo.author.username}
+                    </p>
+                    <p className="text-xs text-neutral-400">@{photo.author.username}</p>
+                  </div>
+                </Link>
+              )}
+
+              {/* Location */}
+              {photo.location && (photo.location.country || photo.location.city || photo.location.spot) && (
                 <div className="mb-3 flex items-center gap-2 text-sm">
                   <MapPin size={16} className="text-neutral-400" />
-                  <span>{photo.location.country}</span>
-                  <span>{photo.location.city}</span>
-                  <span className="font-semibold">{photo.location.spot}</span>
+                  {photo.location.country && <span>{photo.location.country}</span>}
+                  {photo.location.city && <span>{photo.location.city}</span>}
+                  {photo.location.spot && (
+                    <span className="font-semibold">{photo.location.spot}</span>
+                  )}
                 </div>
               )}
+
+              {/* Upload Date */}
               {photo.uploadDate && (
                 <div className="text-xs text-neutral-400">
                   <span className="font-medium text-neutral-300">上傳日期:</span> {photo.uploadDate}
                 </div>
               )}
             </div>
-            {/* Add other details if needed */}
-            <div className="mt-4 text-sm text-neutral-300">
-              {/* Placeholder for description or other info */}
-              {photo.alt}
-            </div>
+
+            {/* Description */}
+            <div className="mt-4 text-sm text-neutral-300">{photo.alt}</div>
           </div>
 
           {/* Close Button */}
