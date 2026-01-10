@@ -6,7 +6,7 @@ import Image from 'next/image'
 import Link from 'next/link'
 import { Chip } from '@/components/ui/chip'
 import { Button } from '@/components/ui/button'
-import { ArrowLeft, ArrowRight, Heart, Eye, Loader2, Share2 } from 'lucide-react'
+import { Heart, Eye, Loader2, Share2 } from 'lucide-react'
 import { Breadcrumb } from '@/components/ui/breadcrumb'
 import { CommentSection } from '@/components/blog/CommentSection'
 import { postService } from '@/lib/api/services'
@@ -342,41 +342,6 @@ export default function BlogDetail() {
               </div>
             )}
 
-            {/* Navigation */}
-            <div className="mt-12 flex flex-col justify-between gap-4 sm:flex-row sm:gap-8">
-              {prevArticle ? (
-                <Link
-                  href={`/blog/${prevArticle.id}`}
-                  className="flex-1 rounded-lg border border-gray-200 p-6 transition-colors hover:bg-gray-50"
-                >
-                  <div className="mb-2 flex items-center gap-2 text-gray-500">
-                    <ArrowLeft size={16} />
-                    <span>上一篇</span>
-                  </div>
-                  <h3 className="mb-2 font-medium">{prevArticle.title}</h3>
-                  <p className="line-clamp-2 text-sm text-gray-500">
-                    {prevArticle.description || prevArticle.content}
-                  </p>
-                </Link>
-              ) : (
-                <div className="flex-1" />
-              )}
-              {nextArticle && (
-                <Link
-                  href={`/blog/${nextArticle.id}`}
-                  className="flex-1 rounded-lg border border-gray-200 p-6 transition-colors hover:bg-gray-50"
-                >
-                  <div className="mb-2 flex items-center justify-end gap-2 text-gray-500">
-                    <span>下一篇</span>
-                    <ArrowRight size={16} />
-                  </div>
-                  <h3 className="mb-2 font-medium">{nextArticle.title}</h3>
-                  <p className="line-clamp-2 text-sm text-gray-500">
-                    {nextArticle.description || nextArticle.content}
-                  </p>
-                </Link>
-              )}
-            </div>
 
             {/* Comment Section */}
             <CommentSection postId={id} isLoggedIn={false} />
