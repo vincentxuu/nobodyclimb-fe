@@ -324,10 +324,14 @@ postsRoutes.get('/:id', async (c) => {
     .bind(id)
     .run();
 
+  // Return with updated view count
+  const currentViewCount = (post.view_count as number) + 1;
+
   return c.json({
     success: true,
     data: {
       ...post,
+      view_count: currentViewCount,
       tags: tags.results.map((t) => t.tag),
     },
   });
@@ -369,10 +373,14 @@ postsRoutes.get('/slug/:slug', async (c) => {
     .bind(post.id as string)
     .run();
 
+  // Return with updated view count
+  const currentViewCount = (post.view_count as number) + 1;
+
   return c.json({
     success: true,
     data: {
       ...post,
+      view_count: currentViewCount,
       tags: tags.results.map((t) => t.tag),
     },
   });

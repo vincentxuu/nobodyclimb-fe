@@ -173,13 +173,14 @@ export default function BlogDetail() {
   const displayPopularArticles = popularArticles
 
   // 格式化日期
-  const formattedDate = article.published_at
-    ? new Date(article.published_at).toLocaleDateString('zh-TW', {
+  const dateToFormat = article.published_at || article.created_at
+  const formattedDate = dateToFormat
+    ? new Date(dateToFormat).toLocaleDateString('zh-TW', {
         year: 'numeric',
         month: 'long',
         day: 'numeric',
       })
-    : article.created_at
+    : ''
 
   return (
     <div className="min-h-screen bg-[#F5F5F5]">
