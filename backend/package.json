@@ -10,8 +10,10 @@
     "deploy:production": "wrangler deploy --env production",
     "db:migrate": "wrangler d1 execute nobodyclimb-db --local --file=./src/db/schema.sql",
     "db:migrate:remote": "wrangler d1 execute nobodyclimb-db --remote --file=./src/db/schema.sql",
-    "db:migrate:preview": "wrangler d1 execute nobodyclimb-db-preview --remote --file=./migrations/0001_add_profile_fields.sql --env preview",
-    "db:migrate:production": "wrangler d1 execute nobodyclimb-db --remote --file=./migrations/0001_add_profile_fields.sql --env production",
+    "db:migrate:preview": "wrangler d1 execute nobodyclimb-db-preview --remote --file=./src/db/migrations/001_add_biography_fields.sql --env preview",
+    "db:migrate:production": "wrangler d1 execute nobodyclimb-db --remote --file=./src/db/migrations/001_add_biography_fields.sql --env production",
+    "db:migrate:profile:preview": "wrangler d1 execute nobodyclimb-db-preview --remote --file=./migrations/0001_add_profile_fields.sql --env preview",
+    "db:migrate:profile:production": "wrangler d1 execute nobodyclimb-db --remote --file=./migrations/0001_add_profile_fields.sql --env production",
     "db:seed": "wrangler d1 execute nobodyclimb-db --local --file=./src/db/seed.sql",
     "cf-typegen": "wrangler types"
   },
