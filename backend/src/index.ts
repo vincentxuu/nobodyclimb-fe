@@ -13,6 +13,7 @@ import { postsRoutes } from './routes/posts';
 import { galleriesRoutes } from './routes/galleries';
 import { videosRoutes } from './routes/videos';
 import { searchRoutes } from './routes/search';
+import { usersRoutes } from './routes/users';
 
 const app = new Hono<{ Bindings: Env }>();
 
@@ -72,6 +73,7 @@ v1.route('/posts', postsRoutes);
 v1.route('/galleries', galleriesRoutes);
 v1.route('/videos', videosRoutes);
 v1.route('/search', searchRoutes);
+v1.route('/users', usersRoutes);
 
 app.route('/api/v1', v1);
 
