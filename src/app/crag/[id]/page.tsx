@@ -1,6 +1,6 @@
 'use client'
 
-import React, { useState, useEffect, use } from 'react'
+import React, { useState, useEffect, use, useMemo } from 'react'
 import Image from 'next/image'
 import PlaceholderImage from '@/components/ui/placeholder-image'
 import Link from 'next/link'
@@ -43,6 +43,18 @@ export default function CragDetailPage({ params }: { params: Promise<{ id: strin
 
   // 從資料服務層讀取岩場資料
   const currentCrag = getCragDetailData(id)
+
+  // 建立區域名稱到區域 ID 的對照表
+  const areaIdMap = useMemo(() => {
+    if (!currentCrag) return {}
+    return currentCrag.areas.reduce(
+      (acc, area) => {
+        acc[area.name] = area.id
+        return acc
+      },
+      {} as Record<string, string>
+    )
+  }, [currentCrag])
 
   // 處理岩區點擊 - 切換到路線 tab 並設置篩選
   const handleAreaClick = (areaName: string) => {
@@ -306,7 +318,12 @@ export default function CragDetailPage({ params }: { params: Promise<{ id: strin
               </Tabs.Content>
 
               <Tabs.Content value="routes">
-                <CragRouteSection routes={currentCrag.routes_details} initialArea={selectedAreaFilter} />
+                <CragRouteSection
+                  routes={currentCrag.routes_details}
+                  initialArea={selectedAreaFilter}
+                  cragId={id}
+                  areaIdMap={areaIdMap}
+                />
               </Tabs.Content>
             </Tabs.Root>
           </div>

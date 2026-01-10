@@ -60,7 +60,7 @@ export default function AreaDetailPage({
     )
   }
 
-  const { crag, area, routes, statistics } = areaData
+  const { crag, area, routes, otherAreas, statistics } = areaData
 
   return (
     <main className="min-h-screen bg-gray-50">
@@ -198,6 +198,36 @@ export default function AreaDetailPage({
           <div className="mt-10 border-t border-gray-200 pt-8">
             <CragRouteSection routes={routes} />
           </div>
+
+          {/* 其他岩區推薦 */}
+          {otherAreas.length > 0 && (
+            <div className="mt-10 border-t border-gray-200 pt-8">
+              <h2 className="mb-6 border-l-4 border-[#FFE70C] pl-4 text-xl font-bold">
+                {crag.name} 其他岩區
+              </h2>
+              <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+                {otherAreas.slice(0, 3).map((otherArea) => (
+                  <Link
+                    key={otherArea.id}
+                    href={`/crag/${crag.id}/area/${otherArea.id}`}
+                    className="group overflow-hidden rounded-lg border border-gray-200 bg-white transition-all hover:border-[#FFE70C] hover:shadow-md"
+                  >
+                    <div className="relative h-32">
+                      <PlaceholderImage text={otherArea.name} bgColor="#f8f9fa" />
+                    </div>
+                    <div className="p-4">
+                      <h3 className="font-medium text-gray-800 group-hover:text-[#1B1A1A]">
+                        {otherArea.name}
+                      </h3>
+                      <p className="mt-1 text-sm text-gray-500">
+                        {otherArea.difficulty} · {otherArea.routesCount} 條路線
+                      </p>
+                    </div>
+                  </Link>
+                ))}
+              </div>
+            </div>
+          )}
         </div>
       </div>
 

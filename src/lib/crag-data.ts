@@ -310,6 +310,18 @@ export function getAreaDetailData(cragId: string, areaId: string) {
     typeDistribution[type] = (typeDistribution[type] || 0) + 1
   })
 
+  // 獲取同一岩場的其他岩區
+  const otherAreas = fullData.areas
+    .filter(a => a.id !== areaId)
+    .map(a => ({
+      id: a.id,
+      name: a.name,
+      nameEn: a.nameEn,
+      difficulty: a.difficulty ? `${a.difficulty.min} - ${a.difficulty.max}` : '',
+      routesCount: a.routesCount,
+      image: a.image || `/images/crag/${fullData.crag.slug}-${a.id}.jpg`,
+    }))
+
   return {
     crag: {
       id: fullData.crag.id,
@@ -350,6 +362,7 @@ export function getAreaDetailData(cragId: string, areaId: string) {
       videos: route.videos || [],
       tips: route.tips || '',
     })),
+    otherAreas,
     statistics: {
       totalRoutes: areaRoutes.length,
       totalBolts: area.boltCount,
@@ -470,22 +483,25 @@ export function getCragDetailData(id: string) {
       routes: area.routesCount,
       image: area.image || `/images/crag/${crag.slug}-${area.id}.jpg`,
     })),
-    routes_details: routes.map(route => ({
-      id: route.id,
-      name: route.name,
-      englishName: route.nameEn,
-      grade: route.grade,
-      length: route.length || '',
-      type: route.typeEn,
-      firstAscent: route.firstAscent || '',
-      area: route.sector || '',
-      description: route.description || '',
-      protection: route.protection || '',
-      popularity: route.popularity ?? 0,
-      views: route.views ?? 0,
-      images: route.images || [],
-      videos: route.videos || [],
-      tips: route.tips || '',
-    })),
+    routes_details: routes.map(route => {
+      const routeArea = areas.find(a => a.id === route.areaId)
+      return {
+        id: route.id,
+        name: route.name,
+        englishName: route.nameEn,
+        grade: route.grade,
+        length: route.length || '',
+        type: route.typeEn,
+        firstAscent: route.firstAscent || '',
+        area: routeArea?.name || route.sector || '',
+        description: route.description || '',
+        protection: route.protection || '',
+        popularity: route.popularity ?? 0,
+        views: route.views ?? 0,
+        images: route.images || [],
+        videos: route.videos || [],
+        tips: route.tips || '',
+      }
+    }),
   }
 }
