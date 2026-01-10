@@ -71,7 +71,7 @@ function ProfileCard({ person }: ProfileCardProps) {
               <div>
                 <h3 className="text-lg font-medium text-[#1B1A1A]">{person.name}</h3>
                 <p className="text-sm text-[#8E8C8C]">
-                  攀岩年資 | {climbingYears ? `${climbingYears}年` : '未知'}
+                  攀岩年資 | {climbingYears !== null ? `${climbingYears}年` : '未知'}
                 </p>
               </div>
               <ArrowRightCircle size={20} className="text-gray-400" />
@@ -113,7 +113,8 @@ export function RecommendedProfiles({ currentId, limit = 3 }: RecommendedProfile
         } else {
           throw new Error('No data from API')
         }
-      } catch {
+      } catch (error) {
+        console.error('Failed to fetch recommended profiles, falling back to static data:', error)
         // API 失敗，使用靜態數據
         const staticProfiles = biographyData
           .filter((p) => String(p.id) !== currentId)
