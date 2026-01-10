@@ -7,6 +7,9 @@
     --font-noto-sans-tc: 'Noto Sans TC', sans-serif;
     --font-allerta-stencil: 'Allerta Stencil', monospace;
 
+    /* 導航欄高度 */
+    --navbar-height: 70px;
+
     --background: 0 0% 100%;
     --foreground: 0 0% 11%;
     /* #1B1A1A */
@@ -145,8 +148,14 @@
 }
 
 /* 行動版選單滾動優化 - 支援 iPhone 等有瀏海的裝置 */
+.mobile-nav-scroll {
+  /* 基礎底部 padding */
+  padding-bottom: theme('spacing.8');
+}
+
 @supports (padding-bottom: env(safe-area-inset-bottom)) {
   .mobile-nav-scroll {
-    padding-bottom: calc(theme('spacing.6') + env(safe-area-inset-bottom));
+    /* 加上 safe area inset 以支援 iPhone 等裝置的底部區域 */
+    padding-bottom: calc(theme('spacing.8') + env(safe-area-inset-bottom));
   }
 }
