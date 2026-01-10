@@ -13,6 +13,7 @@ import { postService } from '@/lib/api/services'
 import { useToast } from '@/components/ui/use-toast'
 import { BackendPost } from '@/lib/types'
 import { useAuthStore } from '@/store/authStore'
+import { sanitizeHtml } from '@/lib/utils/sanitize'
 
 // 載入狀態元件
 const LoadingState = () => (
@@ -266,9 +267,10 @@ export default function BlogDetail() {
                   <p className="text-lg text-gray-600 italic">{article.excerpt}</p>
                 </section>
               )}
-              <section>
-                <p className="whitespace-pre-wrap text-gray-800">{article.content}</p>
-              </section>
+              <section
+                className="blog-content text-gray-800 [&>p]:mb-4 [&>h1]:text-2xl [&>h1]:font-bold [&>h1]:mb-4 [&>h2]:text-xl [&>h2]:font-bold [&>h2]:mb-3 [&>h3]:text-lg [&>h3]:font-semibold [&>h3]:mb-2 [&>ul]:list-disc [&>ul]:ml-6 [&>ul]:mb-4 [&>ol]:list-decimal [&>ol]:ml-6 [&>ol]:mb-4 [&>blockquote]:border-l-4 [&>blockquote]:border-gray-300 [&>blockquote]:pl-4 [&>blockquote]:italic [&>a]:text-blue-600 [&>a]:underline"
+                dangerouslySetInnerHTML={{ __html: sanitizeHtml(article.content) }}
+              />
             </div>
 
             {/* Tags */}
