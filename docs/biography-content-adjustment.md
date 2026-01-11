@@ -93,39 +93,72 @@ interface Biography {
 
 ### 2. BucketListItem 人生清單表
 
+設計原則：**清單為主，進度追蹤為選填功能**
+
 ```typescript
 interface BucketListItem {
   id: string
   biography_id: string
 
-  // 內容
+  // ═══════════════════════════════════════════
+  // 基本內容（必填）
+  // ═══════════════════════════════════════════
   title: string                           // 目標標題
-  description: string | null              // 詳細描述
   category: BucketListCategory            // 分類
 
-  // 目標細節
-  target_grade: string | null             // 目標難度 (5.12a, V6)
-  target_location: string | null          // 目標地點
+  // ═══════════════════════════════════════════
+  // 選填內容
+  // ═══════════════════════════════════════════
+  description: string | null              // 詳細描述
+  target_date: string | null              // 目標日期
 
-  // 時間
-  created_at: string
-  target_date: string | null              // 預計完成
-  completed_at: string | null             // 實際完成
+  // ═══════════════════════════════════════════
+  // 狀態（簡單三態）
+  // ═══════════════════════════════════════════
+  status: BucketListStatus                // active, completed, archived
+  completed_at: string | null             // 完成日期
 
-  // 狀態
-  status: BucketListStatus
-  progress: number                        // 0-100
+  // ═══════════════════════════════════════════
+  // 進度追蹤（選填功能）
+  // ═══════════════════════════════════════════
+  enable_progress: boolean                // 是否開啟進度追蹤，預設 false
+  progress_mode: 'manual' | 'milestone' | null  // 追蹤模式
+  progress: number                        // 手動模式：0-100
+  milestones: Milestone[] | null          // 里程碑模式
 
-  // 完成故事
+  // ═══════════════════════════════════════════
+  // 完成故事（選填）
+  // ═══════════════════════════════════════════
   completion_story: string | null
-  completion_media: string | null         // JSON: 照片/影片
+  completion_media: {                     // 完成媒體證明
+    youtube_videos?: string[]             // YouTube 影片 ID
+    instagram_posts?: string[]            // IG 貼文 shortcode
+    photos?: string[]                     // 上傳的照片
+  } | null
 
+  // ═══════════════════════════════════════════
   // 社群
+  // ═══════════════════════════════════════════
   is_public: boolean
   likes_count: number
   inspired_count: number                  // 被加入清單次數
 
+  // ═══════════════════════════════════════════
+  // 其他
+  // ═══════════════════════════════════════════
   sort_order: number
+  created_at: string
+  updated_at: string
+}
+
+// 里程碑結構
+interface Milestone {
+  id: string
+  title: string                           // 里程碑標題
+  percentage: number                      // 完成後的進度 (20, 40, 60, 80, 100)
+  completed: boolean
+  completed_at: string | null
+  note: string | null                     // 完成時的筆記
 }
 
 type BucketListCategory =
@@ -138,11 +171,34 @@ type BucketListCategory =
   | 'other'              // 其他
 
 type BucketListStatus =
-  | 'planned'            // 計畫中
-  | 'in_progress'        // 進行中
+  | 'active'             // 進行中
   | 'completed'          // 已完成
-  | 'on_hold'            // 暫緩
+  | 'archived'           // 已封存
+
+// 各分類的預設里程碑模板
+const MILESTONE_TEMPLATES = {
+  outdoor_route: ['開始練習相關難度', '到現場嘗試', '完成關鍵動作', '接近完攀', '成功完攀'],
+  indoor_grade: ['開始嘗試', '能爬一半', '卡關鍵動作', '接近完成', '完成'],
+  competition: ['決定參加', '開始訓練', '報名完成', '參賽', '達成目標'],
+  training: ['設定計畫', '開始執行', '進行中', '接近目標', '達成'],
+  adventure: ['開始規劃', '準備中', '出發', '進行中', '完成'],
+  skill: ['開始學習', '基礎掌握', '進階練習', '熟練', '精通'],
+  other: ['開始', '25%', '50%', '75%', '完成']
+}
 ```
+
+### 欄位必填/選填總覽
+
+| 欄位 | 必填 | 選填 | 說明 |
+|-----|:----:|:----:|------|
+| title | ✓ | | 目標標題 |
+| category | ✓ | | 分類 |
+| description | | ✓ | 詳細描述 |
+| target_date | | ✓ | 目標日期 |
+| enable_progress | | ✓ | 開啟進度追蹤 |
+| milestones | | ✓ | 里程碑（開啟追蹤後） |
+| completion_story | | ✓ | 完成故事 |
+| completion_media | | ✓ | 完成媒體證明 |
 
 ### 3. 互動相關表
 
@@ -296,41 +352,44 @@ CREATE INDEX idx_biographies_featured ON biographies(is_featured);
 
 -- ═══════════════════════════════════════════════════════════
 -- 人生清單表
+-- 設計原則：清單為主，進度追蹤為選填
 -- ═══════════════════════════════════════════════════════════
 
 CREATE TABLE bucket_list_items (
   id TEXT PRIMARY KEY,
   biography_id TEXT NOT NULL,
 
-  -- 內容
+  -- 基本內容（必填）
   title TEXT NOT NULL,
-  description TEXT,
   category TEXT DEFAULT 'other',
 
-  -- 目標細節
-  target_grade TEXT,
-  target_location TEXT,
-
-  -- 時間
-  created_at TEXT DEFAULT (datetime('now')),
-  updated_at TEXT DEFAULT (datetime('now')),
+  -- 選填內容
+  description TEXT,
   target_date TEXT,
+
+  -- 狀態（簡單三態：active, completed, archived）
+  status TEXT DEFAULT 'active',
   completed_at TEXT,
 
-  -- 狀態
-  status TEXT DEFAULT 'planned',
-  progress INTEGER DEFAULT 0,
+  -- 進度追蹤（選填功能）
+  enable_progress INTEGER DEFAULT 0,       -- 是否開啟進度追蹤
+  progress_mode TEXT,                       -- manual, milestone
+  progress INTEGER DEFAULT 0,               -- 手動模式：0-100
+  milestones TEXT,                          -- JSON: 里程碑陣列
 
-  -- 完成故事
+  -- 完成故事（選填）
   completion_story TEXT,
-  completion_media TEXT,
+  completion_media TEXT,                    -- JSON: {youtube_videos, instagram_posts, photos}
 
   -- 社群
   is_public INTEGER DEFAULT 1,
   likes_count INTEGER DEFAULT 0,
   inspired_count INTEGER DEFAULT 0,
 
+  -- 其他
   sort_order INTEGER DEFAULT 0,
+  created_at TEXT DEFAULT (datetime('now')),
+  updated_at TEXT DEFAULT (datetime('now')),
 
   FOREIGN KEY (biography_id) REFERENCES biographies(id) ON DELETE CASCADE
 );
@@ -338,7 +397,6 @@ CREATE TABLE bucket_list_items (
 CREATE INDEX idx_bucket_list_biography ON bucket_list_items(biography_id);
 CREATE INDEX idx_bucket_list_status ON bucket_list_items(status);
 CREATE INDEX idx_bucket_list_public ON bucket_list_items(is_public);
-CREATE INDEX idx_bucket_list_location ON bucket_list_items(target_location);
 
 -- ═══════════════════════════════════════════════════════════
 -- 互動表
