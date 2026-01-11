@@ -85,7 +85,7 @@ export default function GymListPage() {
           <div className="mb-6 flex items-center justify-between">
             <h2 className="text-xl font-bold">篩選</h2>
             <button
-              className="flex items-center font-medium text-blue-600 md:hidden"
+              className="flex items-center font-medium text-[#1B1A1A] md:hidden"
               onClick={() => setIsFilterOpen(!isFilterOpen)}
             >
               <Filter size={18} className="mr-1" />
@@ -101,10 +101,10 @@ export default function GymListPage() {
                   {regions.map((region) => (
                     <button
                       key={region}
-                      className={`rounded-lg px-4 py-2.5 text-sm transition ${
+                      className={`border-b-2 px-4 py-1.5 text-sm transition ${
                         selectedRegion === region
-                          ? 'border border-gray-300 bg-white font-medium text-black'
-                          : 'border border-gray-100 bg-gray-50 text-gray-700 hover:bg-gray-100'
+                          ? 'border-[#1B1A1A] font-medium text-[#1B1A1A]'
+                          : 'border-transparent text-gray-600 hover:border-gray-300 hover:text-gray-800'
                       }`}
                       onClick={() => setSelectedRegion(region)}
                     >
@@ -120,10 +120,10 @@ export default function GymListPage() {
                   {gymTypes.map((type) => (
                     <button
                       key={type}
-                      className={`rounded-lg px-4 py-2.5 text-sm transition ${
+                      className={`border-b-2 px-4 py-1.5 text-sm transition ${
                         selectedType === type
-                          ? 'border border-gray-300 bg-white font-medium text-black'
-                          : 'border border-gray-100 bg-gray-50 text-gray-700 hover:bg-gray-100'
+                          ? 'border-[#1B1A1A] font-medium text-[#1B1A1A]'
+                          : 'border-transparent text-gray-600 hover:border-gray-300 hover:text-gray-800'
                       }`}
                       onClick={() => setSelectedType(type)}
                     >
