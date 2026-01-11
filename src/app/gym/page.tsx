@@ -85,7 +85,7 @@ export default function GymListPage() {
           <div className="mb-6 flex items-center justify-between">
             <h2 className="text-xl font-bold">篩選</h2>
             <button
-              className="flex items-center font-medium text-[#1B1A1A] md:hidden"
+              className="flex items-center font-medium text-primary md:hidden"
               onClick={() => setIsFilterOpen(!isFilterOpen)}
             >
               <Filter size={18} className="mr-1" />
