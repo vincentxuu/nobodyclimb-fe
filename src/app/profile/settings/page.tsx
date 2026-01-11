@@ -70,8 +70,7 @@ const AvatarUpload = ({
   onRemoveAvatar,
   onDefaultAvatarChange,
 }: AvatarUploadProps) => {
-  const selectedAvatarStyle =
-    DEFAULT_AVATARS.find((a) => a.id === avatarStyle) || DEFAULT_AVATARS[0]
+  const selectedAvatarStyle = getAvatarStyleById(avatarStyle)
 
   return (
     <div className="flex flex-col items-center gap-3">
