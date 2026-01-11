@@ -3,6 +3,7 @@
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import Image from 'next/image'
+import { ChevronDown } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { useAuthStore } from '@/store/authStore'
 import { generateAvatarElement, DEFAULT_AVATARS } from '@/components/shared/avatar-options'
@@ -38,16 +39,34 @@ export default function UserMenu({ isDesktop }: UserMenuProps) {
     <div className="hidden px-6 lg:block">
       {isAuthenticated ? (
         <div className="flex items-center space-x-4">
-          <Button
-            variant="outline"
-            size="lg"
-            onClick={() => router.push('/blog/create')}
-            className="h-9 w-[120px] rounded-md border border-[#1B1A1A] font-medium text-[#1B1A1A] hover:bg-gray-100/80"
-          >
-            <span className="font-['Noto_Sans_CJK_TC'] text-sm font-medium leading-5 tracking-[0.01em]">
-              發表文章
-            </span>
-          </Button>
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button
+                variant="outline"
+                size="lg"
+                className="h-9 w-[100px] rounded-md border border-[#1B1A1A] font-medium text-[#1B1A1A] hover:bg-gray-100/80"
+              >
+                <span className="font-['Noto_Sans_CJK_TC'] text-sm font-medium leading-5 tracking-[0.01em]">
+                  創作
+                </span>
+                <ChevronDown className="ml-1 h-4 w-4" />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent className="w-[160px] rounded-lg border border-[#EBEAEA] bg-white p-2 shadow-md">
+              <DropdownMenuItem
+                className="cursor-pointer px-4 py-3 font-['Noto_Sans_CJK_TC'] text-sm font-medium leading-5 tracking-[0.01em] text-[#3F3D3D] hover:bg-gray-100"
+                onClick={() => router.push('/blog/create')}
+              >
+                發表文章
+              </DropdownMenuItem>
+              <DropdownMenuItem
+                className="cursor-pointer px-4 py-3 font-['Noto_Sans_CJK_TC'] text-sm font-medium leading-5 tracking-[0.01em] text-[#3F3D3D] hover:bg-gray-100"
+                onClick={() => router.push('/upload')}
+              >
+                上傳照片
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <button className="flex h-10 w-10 items-center justify-center overflow-hidden rounded-full transition-opacity duration-200 hover:opacity-80">
