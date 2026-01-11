@@ -122,7 +122,7 @@ export function getAccessToken(): string | undefined {
       if (stored) {
         const data = JSON.parse(stored)
         // 檢查是否過期
-        if (data.expiresAt > Date.now() && typeof data.token === 'string') {
+        if (data && typeof data.token === 'string' && typeof data.expiresAt === 'number' && data.expiresAt > Date.now()) {
           const localToken: string = data.token
           // 嘗試同步回 cookie (可能下次就能用了)
           if (isCookieAvailable()) {
