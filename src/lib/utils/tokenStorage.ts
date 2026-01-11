@@ -7,6 +7,13 @@
 import Cookies from 'js-cookie'
 import { AUTH_TOKEN_KEY, AUTH_REFRESH_TOKEN_KEY } from '../constants'
 
+// 時間常數
+const ONE_DAY_IN_MS = 24 * 60 * 60 * 1000
+
+// 預設過期時間（天數）
+const DEFAULT_ACCESS_TOKEN_DAYS = 1
+const DEFAULT_REFRESH_TOKEN_DAYS = 7
+
 // localStorage keys (加上前綴以區分)
 const LS_ACCESS_TOKEN_KEY = `ls_${AUTH_TOKEN_KEY}`
 const LS_REFRESH_TOKEN_KEY = `ls_${AUTH_REFRESH_TOKEN_KEY}`
@@ -57,14 +64,14 @@ function getCookieOptions(days: number): Cookies.CookieAttributes {
 }
 
 /**
- * 儲存 access token
+ * 通用 token 儲存函數
  */
-export function setAccessToken(token: string): void {
+function _setToken(token: string, cookieKey: string, lsKey: string, days: number): void {
   // 優先嘗試 cookie
   try {
-    Cookies.set(AUTH_TOKEN_KEY, token, getCookieOptions(1))
+    Cookies.set(cookieKey, token, getCookieOptions(days))
   } catch (e) {
-    console.warn('Failed to set access token in cookie:', e)
+    console.warn(`Failed to set token in cookie (${cookieKey}):`, e)
   }
 
   // 同時儲存到 localStorage 作為備用
@@ -72,38 +79,72 @@ export function setAccessToken(token: string): void {
     try {
       const data = {
         token,
-        expiresAt: Date.now() + 24 * 60 * 60 * 1000, // 1 天
+        expiresAt: Date.now() + days * ONE_DAY_IN_MS,
       }
-      window.localStorage.setItem(LS_ACCESS_TOKEN_KEY, JSON.stringify(data))
+      window.localStorage.setItem(lsKey, JSON.stringify(data))
     } catch (e) {
-      console.warn('Failed to set access token in localStorage:', e)
+      console.warn(`Failed to set token in localStorage (${lsKey}):`, e)
     }
   }
 }
 
 /**
- * 儲存 refresh token
+ * 通用 token 取得函數
+ * 優先從 cookie 取得，若失敗則從 localStorage 取得
  */
-export function setRefreshToken(token: string): void {
-  // 優先嘗試 cookie
-  try {
-    Cookies.set(AUTH_REFRESH_TOKEN_KEY, token, getCookieOptions(7))
-  } catch (e) {
-    console.warn('Failed to set refresh token in cookie:', e)
-  }
+function _getToken(cookieKey: string, lsKey: string, defaultDays: number): string | undefined {
+  // 嘗試從 cookie 取得
+  const cookieToken = Cookies.get(cookieKey)
+  if (cookieToken) return cookieToken
 
-  // 同時儲存到 localStorage 作為備用
+  // Cookie 取不到，嘗試從 localStorage 取得
   if (isLocalStorageAvailable()) {
     try {
-      const data = {
-        token,
-        expiresAt: Date.now() + 7 * 24 * 60 * 60 * 1000, // 7 天
+      const stored = window.localStorage.getItem(lsKey)
+      if (stored) {
+        const data = JSON.parse(stored)
+        // 檢查是否過期且資料格式正確
+        if (
+          data &&
+          typeof data.token === 'string' &&
+          typeof data.expiresAt === 'number' &&
+          data.expiresAt > Date.now()
+        ) {
+          const localToken: string = data.token
+          // 嘗試同步回 cookie (可能下次就能用了)
+          if (isCookieAvailable()) {
+            Cookies.set(cookieKey, localToken, getCookieOptions(defaultDays))
+          }
+          return localToken
+        } else {
+          // 已過期或無效，清除
+          window.localStorage.removeItem(lsKey)
+        }
       }
-      window.localStorage.setItem(LS_REFRESH_TOKEN_KEY, JSON.stringify(data))
     } catch (e) {
-      console.warn('Failed to set refresh token in localStorage:', e)
+      console.warn(`Failed to get token from localStorage (${lsKey}):`, e)
     }
   }
+
+  return undefined
+}
+
+/**
+ * 儲存 access token
+ * @param token - access token
+ * @param days - 過期時間（天數），預設為 1 天
+ */
+export function setAccessToken(token: string, days: number = DEFAULT_ACCESS_TOKEN_DAYS): void {
+  _setToken(token, AUTH_TOKEN_KEY, LS_ACCESS_TOKEN_KEY, days)
+}
+
+/**
+ * 儲存 refresh token
+ * @param token - refresh token
+ * @param days - 過期時間（天數），預設為 7 天
+ */
+export function setRefreshToken(token: string, days: number = DEFAULT_REFRESH_TOKEN_DAYS): void {
+  _setToken(token, AUTH_REFRESH_TOKEN_KEY, LS_REFRESH_TOKEN_KEY, days)
 }
 
 /**
@@ -111,35 +152,7 @@ export function setRefreshToken(token: string): void {
  * 優先從 cookie 取得，若失敗則從 localStorage 取得
  */
 export function getAccessToken(): string | undefined {
-  // 嘗試從 cookie 取得
-  const cookieToken = Cookies.get(AUTH_TOKEN_KEY)
-  if (cookieToken) return cookieToken
-
-  // Cookie 取不到，嘗試從 localStorage 取得
-  if (isLocalStorageAvailable()) {
-    try {
-      const stored = window.localStorage.getItem(LS_ACCESS_TOKEN_KEY)
-      if (stored) {
-        const data = JSON.parse(stored)
-        // 檢查是否過期
-        if (data && typeof data.token === 'string' && typeof data.expiresAt === 'number' && data.expiresAt > Date.now()) {
-          const localToken: string = data.token
-          // 嘗試同步回 cookie (可能下次就能用了)
-          if (isCookieAvailable()) {
-            Cookies.set(AUTH_TOKEN_KEY, localToken, getCookieOptions(1))
-          }
-          return localToken
-        } else {
-          // 已過期，清除
-          window.localStorage.removeItem(LS_ACCESS_TOKEN_KEY)
-        }
-      }
-    } catch (e) {
-      console.warn('Failed to get access token from localStorage:', e)
-    }
-  }
-
-  return undefined
+  return _getToken(AUTH_TOKEN_KEY, LS_ACCESS_TOKEN_KEY, DEFAULT_ACCESS_TOKEN_DAYS)
 }
 
 /**
@@ -147,35 +160,7 @@ export function getAccessToken(): string | undefined {
  * 優先從 cookie 取得，若失敗則從 localStorage 取得
  */
 export function getRefreshToken(): string | undefined {
-  // 嘗試從 cookie 取得
-  const cookieToken = Cookies.get(AUTH_REFRESH_TOKEN_KEY)
-  if (cookieToken) return cookieToken
-
-  // Cookie 取不到，嘗試從 localStorage 取得
-  if (isLocalStorageAvailable()) {
-    try {
-      const stored = window.localStorage.getItem(LS_REFRESH_TOKEN_KEY)
-      if (stored) {
-        const data = JSON.parse(stored)
-        // 檢查是否過期
-        if (data.expiresAt > Date.now() && typeof data.token === 'string') {
-          const localToken: string = data.token
-          // 嘗試同步回 cookie
-          if (isCookieAvailable()) {
-            Cookies.set(AUTH_REFRESH_TOKEN_KEY, localToken, getCookieOptions(7))
-          }
-          return localToken
-        } else {
-          // 已過期或無效，清除
-          window.localStorage.removeItem(LS_REFRESH_TOKEN_KEY)
-        }
-      }
-    } catch (e) {
-      console.warn('Failed to get refresh token from localStorage:', e)
-    }
-  }
-
-  return undefined
+  return _getToken(AUTH_REFRESH_TOKEN_KEY, LS_REFRESH_TOKEN_KEY, DEFAULT_REFRESH_TOKEN_DAYS)
 }
 
 /**
@@ -203,8 +188,17 @@ export function removeTokens(): void {
 
 /**
  * 儲存 tokens (一次儲存 access 和 refresh)
+ * @param accessToken - access token
+ * @param refreshToken - refresh token
+ * @param accessDays - access token 過期時間（天數），預設為 1 天
+ * @param refreshDays - refresh token 過期時間（天數），預設為 7 天
  */
-export function setTokens(accessToken: string, refreshToken: string): void {
-  setAccessToken(accessToken)
-  setRefreshToken(refreshToken)
+export function setTokens(
+  accessToken: string,
+  refreshToken: string,
+  accessDays: number = DEFAULT_ACCESS_TOKEN_DAYS,
+  refreshDays: number = DEFAULT_REFRESH_TOKEN_DAYS
+): void {
+  setAccessToken(accessToken, accessDays)
+  setRefreshToken(refreshToken, refreshDays)
 }

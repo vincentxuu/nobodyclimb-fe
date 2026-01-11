@@ -137,7 +137,8 @@ export const useAuthStore = create<AuthState>()(
           const { user, token: authToken } = response.data
 
           // 設置 token (同時使用 cookie 和 localStorage 以支援 Android WebView)
-          setAccessToken(authToken)
+          // Google 登入沒有 refresh token，所以設置較長的過期時間 (7 天)
+          setAccessToken(authToken, 7)
 
           // 更新狀態
           set({
