@@ -22,12 +22,12 @@ export const DEFAULT_PAGE = 1
  * 導航連結
  */
 export const NAV_LINKS = [
-  { href: '/biography', label: '人物誌', hasSubmenu: false },
-  { href: '/crag', label: '岩場', hasSubmenu: false },
-  { href: '/gym', label: '岩館', hasSubmenu: false },
-  { href: '/gallery', label: '攝影集', hasSubmenu: false },
-  { href: '/videos', label: '影片', hasSubmenu: false },
-  { href: '/blog', label: '部落格', hasSubmenu: true },
+  { href: '/biography', label: '人物誌' },
+  { href: '/crag', label: '岩場' },
+  { href: '/gym', label: '岩館' },
+  { href: '/gallery', label: '攝影集' },
+  { href: '/videos', label: '影片' },
+  { href: '/blog', label: '部落格' },
 ]
 
 /**
@@ -245,12 +245,3 @@ export const galleryPhotos = [
   },
 ]
 
-/**
- * 專欄子選單
- */
-export const COLUMN_SUBMENU = [
-  { href: '/blog?category=equipment', label: '裝備介紹' },
-  { href: '/blog?category=technique', label: '技巧介紹' },
-  { href: '/blog?category=research', label: '技術研究' },
-  { href: '/blog?category=competition', label: '比賽介紹' },
-]
