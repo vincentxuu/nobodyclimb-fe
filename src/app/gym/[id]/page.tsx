@@ -333,13 +333,48 @@ export default function GymDetailPage({ params }: { params: Promise<{ id: string
                   {gym.contact.facebook && (
                     <div className="flex items-center text-gray-600">
                       <span className="mr-2">📘</span>
-                      <span>{gym.contact.facebook}</span>
+                      {gym.contact.facebookUrl ? (
+                        <a
+                          href={gym.contact.facebookUrl}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="text-blue-600 hover:underline"
+                        >
+                          {gym.contact.facebook}
+                        </a>
+                      ) : (
+                        <span>{gym.contact.facebook}</span>
+                      )}
                     </div>
                   )}
                   {gym.contact.instagram && (
                     <div className="flex items-center text-gray-600">
                       <span className="mr-2">📷</span>
-                      <span>@{gym.contact.instagram}</span>
+                      {gym.contact.instagramUrl ? (
+                        <a
+                          href={gym.contact.instagramUrl}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="text-blue-600 hover:underline"
+                        >
+                          @{gym.contact.instagram}
+                        </a>
+                      ) : (
+                        <span>@{gym.contact.instagram}</span>
+                      )}
+                    </div>
+                  )}
+                  {gym.contact.youtube && (
+                    <div className="flex items-center">
+                      <span className="mr-2">🎬</span>
+                      <a
+                        href={gym.contact.youtube}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-blue-600 hover:underline"
+                      >
+                        YouTube 影片介紹
+                      </a>
                     </div>
                   )}
                   {gym.contact.website && (

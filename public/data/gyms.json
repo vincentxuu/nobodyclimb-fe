@@ -39,7 +39,7 @@
         "rental": { "shoes": 100, "harness": 100 }
       },
       "transportation": { "mrt": "捷運中和站步行約10分鐘", "parking": "附近有收費停車場" },
-      "contact": { "phone": "02-2226-2086", "facebook": "原岩攀岩館T-UP Climbing", "instagram": "tupclimbing", "website": "https://www.tupclimbing.com", "line": "@tupclimbing" },
+      "contact": { "phone": "02-8228-2555", "facebook": "原岩攀岩館T-UP Climbing", "facebookUrl": "https://www.facebook.com/tupclimbing", "instagram": "tupclimbing", "instagramUrl": "https://www.instagram.com/tupclimbing/", "website": "https://tupclimbing.tw/", "line": "@tupclimbing", "youtube": "" },
       "notes": "上攀需具備確保證照或完成場館基礎課程。",
       "rating": 4.7,
       "featured": true,
@@ -86,7 +86,7 @@
         "rental": { "shoes": 100 }
       },
       "transportation": { "mrt": "捷運龍山寺站步行約8分鐘", "parking": "附近有收費停車場" },
-      "contact": { "phone": "", "facebook": "原岩攀岩館T-UP Climbing", "instagram": "tupclimbing", "website": "https://www.tupclimbing.com", "line": "@tupclimbing" },
+      "contact": { "phone": "", "facebook": "原岩攀岩館T-UP Climbing", "facebookUrl": "https://www.facebook.com/tupclimbing", "instagram": "tupclimbing", "instagramUrl": "https://www.instagram.com/tupclimbing/", "website": "https://tupclimbing.tw/", "line": "@tupclimbing", "youtube": "" },
       "notes": "",
       "rating": 4.6,
       "featured": false,
@@ -133,7 +133,7 @@
         "rental": { "shoes": 100, "harness": 100 }
       },
       "transportation": { "train": "高鐵桃園站A19出口直達", "parking": "環球購物中心停車場" },
-      "contact": { "phone": "", "facebook": "原岩攀岩館T-UP Climbing", "instagram": "tupclimbing", "website": "https://www.tupclimbing.com", "line": "@tupclimbing" },
+      "contact": { "phone": "", "facebook": "原岩攀岩館T-UP Climbing", "facebookUrl": "https://www.facebook.com/tupclimbing", "instagram": "tupclimbing", "instagramUrl": "https://www.instagram.com/tupclimbing/", "website": "https://tupclimbing.tw/", "line": "@tupclimbing", "youtube": "" },
       "notes": "",
       "rating": 4.6,
       "featured": false,
@@ -180,7 +180,7 @@
         "rental": { "shoes": 100 }
       },
       "transportation": { "mrt": "捷運南港站步行約10分鐘", "parking": "附近有收費停車場" },
-      "contact": { "phone": "", "facebook": "原岩攀岩館T-UP Climbing", "instagram": "tupclimbing", "website": "https://www.tupclimbing.com", "line": "" },
+      "contact": { "phone": "", "facebook": "原岩攀岩館T-UP Climbing", "facebookUrl": "https://www.facebook.com/tupclimbing", "instagram": "tupclimbing", "instagramUrl": "https://www.instagram.com/tupclimbing/", "website": "https://tupclimbing.tw/", "line": "", "youtube": "" },
       "notes": "",
       "rating": 4.5,
       "featured": false,
@@ -227,7 +227,7 @@
         "rental": { "shoes": 100, "harness": 100 }
       },
       "transportation": { "mrt": "捷運七張站步行約10分鐘", "parking": "裕隆城停車場" },
-      "contact": { "phone": "", "facebook": "原岩攀岩館T-UP Climbing", "instagram": "tupclimbing", "website": "https://www.tupclimbing.com", "line": "" },
+      "contact": { "phone": "", "facebook": "原岩攀岩館T-UP Climbing", "facebookUrl": "https://www.facebook.com/tupclimbing", "instagram": "tupclimbing", "instagramUrl": "https://www.instagram.com/tupclimbing/", "website": "https://tupclimbing.tw/", "line": "", "youtube": "" },
       "notes": "",
       "rating": 4.6,
       "featured": false,
@@ -274,7 +274,7 @@
         "rental": { "shoes": 100 }
       },
       "transportation": { "mrt": "捷運明德站步行約5分鐘", "parking": "附近有收費停車場" },
-      "contact": { "phone": "", "facebook": "原岩攀岩館T-UP Climbing", "instagram": "tupclimbing", "website": "https://www.tupclimbing.com", "line": "" },
+      "contact": { "phone": "", "facebook": "原岩攀岩館T-UP Climbing", "facebookUrl": "https://www.facebook.com/tupclimbing", "instagram": "tupclimbing", "instagramUrl": "https://www.instagram.com/tupclimbing/", "website": "https://tupclimbing.tw/", "line": "", "youtube": "" },
       "notes": "",
       "rating": 4.5,
       "featured": false,
@@ -321,7 +321,7 @@
         "rental": { "shoes": 100 }
       },
       "transportation": { "mrt": "捷運頭前庄站四號出口步行2分鐘", "parking": "附近有收費停車場" },
-      "contact": { "phone": "02-8992-8991", "facebook": "MegaSTONE Climbing Gym", "instagram": "", "website": "", "line": "" },
+      "contact": { "phone": "02-8992-8991", "facebook": "MegaSTONE Climbing Gym", "facebookUrl": "https://www.facebook.com/megastoneclimbinggym/", "instagram": "megastoneclimbinggym", "instagramUrl": "https://www.instagram.com/megastoneclimbinggym/", "website": "", "line": "", "youtube": "" },
       "notes": "星光票為當日結束營業前兩小時入場",
       "rating": 4.6,
       "featured": true,
@@ -369,7 +369,7 @@
         "notes": "平日17:00前入場$350"
       },
       "transportation": { "mrt": "捷運南港展覽館站步行約10分鐘", "parking": "附近有收費停車場" },
-      "contact": { "phone": "", "facebook": "Civic Bouldergym Taipei 市民抱石攀岩館", "instagram": "civicbouldergym", "website": "", "line": "" },
+      "contact": { "phone": "02-2788-0615", "facebook": "Civic Bouldergym Taipei 市民抱石攀岩館", "facebookUrl": "https://www.facebook.com/CivicBouldergymTaipei", "instagram": "civic.bouldergym_taipei", "instagramUrl": "https://www.instagram.com/civic.bouldergym_taipei/", "website": "", "line": "", "youtube": "" },
       "notes": "",
       "rating": 4.7,
       "featured": true,
@@ -511,7 +511,7 @@
         "rental": { "shoes": 100 }
       },
       "transportation": { "mrt": "捷運士林站步行約10分鐘", "parking": "附近有收費停車場" },
-      "contact": { "phone": "", "facebook": "紅石攀岩", "instagram": "", "website": "", "line": "" },
+      "contact": { "phone": "02-2883-7591", "facebook": "紅石攀岩 RedRock", "facebookUrl": "https://www.facebook.com/redrocktaiwan", "instagram": "redrock_hc", "instagramUrl": "https://www.instagram.com/redrock_hc/", "website": "", "line": "", "youtube": "" },
       "notes": "",
       "rating": 4.3,
       "featured": false,
@@ -558,7 +558,7 @@
         "rental": { "shoes": 100 }
       },
       "transportation": { "train": "新竹火車站步行約15分鐘", "parking": "附近有收費停車場" },
-      "contact": { "phone": "", "facebook": "紅石攀岩", "instagram": "", "website": "", "line": "" },
+      "contact": { "phone": "02-2883-7591", "facebook": "紅石攀岩 RedRock", "facebookUrl": "https://www.facebook.com/redrocktaiwan", "instagram": "redrock_hc", "instagramUrl": "https://www.instagram.com/redrock_hc/", "website": "", "line": "", "youtube": "" },
       "notes": "",
       "rating": 4.3,
       "featured": false,
@@ -606,7 +606,7 @@
         "notes": "平日上午$250、平日下午$300、平日晚上$350"
       },
       "transportation": { "mrt": "捷運忠孝新生站步行約5分鐘", "parking": "附近有收費停車場" },
-      "contact": { "phone": "", "facebook": "角攀岩館", "instagram": "", "website": "", "line": "" },
+      "contact": { "phone": "", "facebook": "角攀岩館 CORNER Bouldering Gym", "facebookUrl": "https://www.facebook.com/cornerboulderinggym/", "instagram": "corner_bouldering", "instagramUrl": "https://www.instagram.com/corner_bouldering/", "website": "https://www.corner.inc/", "line": "", "youtube": "" },
       "notes": "",
       "rating": 4.5,
       "featured": false,
@@ -653,7 +653,7 @@
         "rental": { "shoes": 100 }
       },
       "transportation": { "mrt": "捷運中山站步行約5分鐘", "parking": "附近有收費停車場" },
-      "contact": { "phone": "", "facebook": "角攀岩館", "instagram": "", "website": "", "line": "" },
+      "contact": { "phone": "", "facebook": "角攀岩館 CORNER Bouldering Gym", "facebookUrl": "https://www.facebook.com/cornerboulderinggym/", "instagram": "corner_bouldering", "instagramUrl": "https://www.instagram.com/corner_bouldering/", "website": "https://www.corner.inc/", "line": "", "youtube": "" },
       "notes": "",
       "rating": 4.5,
       "featured": false,
@@ -796,7 +796,7 @@
         "rental": { "shoes": 50, "harness": 50 }
       },
       "transportation": { "mrt": "捷運石牌站步行約10分鐘", "parking": "運動中心停車場" },
-      "contact": { "phone": "", "facebook": "Camp4攀岩館", "instagram": "", "website": "", "line": "" },
+      "contact": { "phone": "02-2382-0523", "facebook": "Camp4攀岩館", "facebookUrl": "https://www.facebook.com/camp4climbing/", "instagram": "camp4climbinggym", "instagramUrl": "https://www.instagram.com/camp4climbinggym/", "website": "https://www.adventuretaiwan.com/camp4/", "line": "", "youtube": "" },
       "notes": "",
       "rating": 4.1,
       "featured": false,
@@ -843,7 +843,7 @@
         "rental": { "shoes": 100 }
       },
       "transportation": { "mrt": "捷運大橋頭站步行約10分鐘", "parking": "附近有收費停車場" },
-      "contact": { "phone": "", "facebook": "double 8 岩究所", "instagram": "", "website": "", "line": "" },
+      "contact": { "phone": "", "facebook": "double 8 岩究所", "facebookUrl": "https://www.facebook.com/double8y17climbing/", "instagram": "double8_climbing", "instagramUrl": "https://www.instagram.com/double8_climbing/", "website": "https://www.double8.com.tw/", "line": "", "youtube": "" },
       "notes": "採預約制入場",
       "rating": 4.4,
       "featured": false,
@@ -890,7 +890,7 @@
         "rental": { "shoes": 50, "harness": 50 }
       },
       "transportation": { "mrt": "捷運善導寺站步行約3分鐘", "parking": "地下停車場" },
-      "contact": { "phone": "", "facebook": "double 8 岩究所", "instagram": "", "website": "", "line": "" },
+      "contact": { "phone": "", "facebook": "double 8 岩究所", "facebookUrl": "https://www.facebook.com/double8y17climbing/", "instagram": "double8_climbing", "instagramUrl": "https://www.instagram.com/double8_climbing/", "website": "https://www.double8.com.tw/", "line": "", "youtube": "" },
       "notes": "採預約制入場，平日17:00-18:00休息，假日12:00-13:00休息",
       "rating": 4.3,
       "featured": false,
@@ -1033,7 +1033,7 @@
         "notes": "首次需入會費$150"
       },
       "transportation": { "train": "高鐵新竹站轉公車約15分鐘", "parking": "附設停車場" },
-      "contact": { "phone": "", "facebook": "iClimb風城攀岩館", "instagram": "", "website": "https://www.iclimb.com.tw", "line": "" },
+      "contact": { "phone": "03-658-8588", "facebook": "iClimb風城攀岩館", "facebookUrl": "https://www.facebook.com/iclimbcg/", "instagram": "iclimb_shengli", "instagramUrl": "https://www.instagram.com/iclimb_shengli/", "website": "http://www.iclimb.com.tw/", "line": "", "youtube": "" },
       "notes": "",
       "rating": 4.5,
       "featured": false,
@@ -1081,7 +1081,7 @@
         "notes": "離峰票(平日18:00前、假日19:00後)$299，首次需入會費$150"
       },
       "transportation": { "train": "高鐵新竹站轉公車約10分鐘", "parking": "附設停車場" },
-      "contact": { "phone": "", "facebook": "iClimb風城攀岩館", "instagram": "", "website": "https://www.iclimb.com.tw", "line": "" },
+      "contact": { "phone": "03-658-8588", "facebook": "iClimb風城攀岩館", "facebookUrl": "https://www.facebook.com/iclimbcg/", "instagram": "iclimb_shengli", "instagramUrl": "https://www.instagram.com/iclimb_shengli/", "website": "http://www.iclimb.com.tw/", "line": "", "youtube": "" },
       "notes": "",
       "rating": 4.5,
       "featured": false,
@@ -1176,7 +1176,7 @@
         "rental": { "shoes": 100 }
       },
       "transportation": { "mrt": "捷運港墘站步行約10分鐘", "parking": "附近有收費停車場" },
-      "contact": { "phone": "", "facebook": "心流抱石館", "instagram": "", "website": "", "line": "" },
+      "contact": { "phone": "02-2657-6006", "facebook": "心流抱石館 Flow Bouldering", "facebookUrl": "https://www.facebook.com/flowboulderinggym/", "instagram": "flowboulderinggym", "instagramUrl": "https://www.instagram.com/flowboulderinggym/", "website": "", "line": "", "youtube": "" },
       "notes": "2023.04.29開幕",
       "rating": 4.4,
       "featured": false,
@@ -1224,7 +1224,7 @@
         "notes": "採會員制(入會費$300)"
       },
       "transportation": { "bus": "可搭乘公車至永春東七路站", "parking": "附設停車場" },
-      "contact": { "phone": "", "facebook": "Dapro Indoor Climbing", "instagram": "", "website": "", "line": "" },
+      "contact": { "phone": "04-2380-7490", "facebook": "Dapro Indoor Climbing", "facebookUrl": "https://www.facebook.com/daproindoorclimbing/", "instagram": "dapro_indoor_climbing", "instagramUrl": "https://www.instagram.com/dapro_indoor_climbing/", "website": "https://www.daproindoorclimbing.com/", "line": "@dapro", "youtube": "" },
       "notes": "",
       "rating": 4.7,
       "featured": true,
@@ -1271,7 +1271,7 @@
         "rental": { "shoes": 80 }
       },
       "transportation": { "train": "台中火車站轉公車約15分鐘", "parking": "附近有停車場" },
-      "contact": { "phone": "", "facebook": "攀吶進化館", "instagram": "", "website": "", "line": "" },
+      "contact": { "phone": "", "facebook": "攀吶進化館 VB Climbing Gym", "facebookUrl": "https://www.facebook.com/VBclimbinggym/", "instagram": "vb_climbing_gym", "instagramUrl": "https://www.instagram.com/vb_climbing_gym/", "website": "", "line": "", "youtube": "" },
       "notes": "",
       "rating": 4.3,
       "featured": false,
@@ -1318,7 +1318,7 @@
         "rental": { "shoes": 50 }
       },
       "transportation": { "bus": "可搭乘公車至環中路站", "parking": "附近有停車場" },
-      "contact": { "phone": "", "facebook": "B-plus攀岩館", "instagram": "", "website": "", "line": "" },
+      "contact": { "phone": "0933-324-381", "facebook": "B-plus攀岩館", "facebookUrl": "https://www.facebook.com/BplusClimbing/", "instagram": "b_plus_bouldering_gym", "instagramUrl": "https://www.instagram.com/b_plus_bouldering_gym/", "website": "", "line": "", "youtube": "" },
       "notes": "",
       "rating": 4.2,
       "featured": false,
@@ -1365,7 +1365,7 @@
         "rental": { "shoes": 80 }
       },
       "transportation": { "bus": "可搭乘公車至建和路站", "parking": "附近有停車場" },
-      "contact": { "phone": "", "facebook": "B-plus攀岩館", "instagram": "", "website": "", "line": "" },
+      "contact": { "phone": "0933-324-381", "facebook": "B-plus攀岩館", "facebookUrl": "https://www.facebook.com/BplusClimbing/", "instagram": "b_plus_bouldering_gym", "instagramUrl": "https://www.instagram.com/b_plus_bouldering_gym/", "website": "", "line": "", "youtube": "" },
       "notes": "2023.04.01開幕",
       "rating": 4.3,
       "featured": false,
@@ -1506,7 +1506,7 @@
         "rental": { "shoes": 80 }
       },
       "transportation": { "mrt": "高雄捷運巨蛋站步行約15分鐘", "parking": "附近有停車場" },
-      "contact": { "phone": "", "facebook": "抱石基地BCKH", "instagram": "", "website": "", "line": "" },
+      "contact": { "phone": "", "facebook": "抱石基地 Base Camp", "facebookUrl": "https://www.facebook.com/basecampkhh/", "instagram": "basecampkhh", "instagramUrl": "https://www.instagram.com/basecampkhh/", "website": "", "line": "", "youtube": "" },
       "notes": "",
       "rating": 4.4,
       "featured": false,

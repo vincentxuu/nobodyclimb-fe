@@ -61,9 +61,12 @@ export interface GymTransportation {
 export interface GymContact {
   phone: string
   facebook: string
+  facebookUrl?: string
   instagram: string
+  instagramUrl?: string
   website: string
   line: string
+  youtube?: string
 }
 
 export interface GymData {
