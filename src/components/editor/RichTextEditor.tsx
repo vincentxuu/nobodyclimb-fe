@@ -2,12 +2,12 @@
 
 import dynamic from 'next/dynamic'
 import { useMemo } from 'react'
+import 'react-quill-new/dist/quill.snow.css'
 
-// Dynamically import ReactQuill with its CSS
+// Dynamically import ReactQuill
 const ReactQuill = dynamic(
   async () => {
     const { default: RQ } = await import('react-quill-new')
-    await import('react-quill-new/dist/quill.snow.css')
     return RQ
   },
   {
