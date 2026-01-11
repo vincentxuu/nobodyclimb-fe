@@ -152,7 +152,6 @@ const ProfileForm = ({ userData, isSaving, onFieldChange, onSave }: ProfileFormP
     <FormField label="電子郵件">
       <Input
         value={userData.email}
-        onChange={(e) => onFieldChange('email', e.target.value)}
         className="border-[#B6B3B3]"
         disabled
       />
