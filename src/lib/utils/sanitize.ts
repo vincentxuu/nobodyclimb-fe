@@ -1,14 +1,10 @@
-import DOMPurify from 'dompurify'
+import DOMPurify from 'isomorphic-dompurify'
 
 /**
  * 淨化 HTML 內容，防止 XSS 攻擊
+ * 使用 isomorphic-dompurify 支援 SSR 和 CSR
  */
 export function sanitizeHtml(dirty: string): string {
-  if (typeof window === 'undefined') {
-    // SSR 環境下返回空字串，避免錯誤
-    return ''
-  }
-
   return DOMPurify.sanitize(dirty, {
     ALLOWED_TAGS: [
       'p',
