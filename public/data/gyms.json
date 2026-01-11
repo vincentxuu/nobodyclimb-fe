@@ -1,0 +1,1516 @@
+{
+  "gyms": [
+    {
+      "id": "megastone",
+      "slug": "megastone",
+      "name": "MegaSTONE Climbing Gym",
+      "nameEn": "MegaSTONE Climbing Gym",
+      "type": "bouldering",
+      "location": {
+        "address": "新北市新莊區中正路56巷5號",
+        "addressEn": "No. 5, Lane 56, Zhongzheng Rd., Xinzhuang Dist., New Taipei City",
+        "city": "新北市",
+        "district": "新莊區",
+        "region": "北部",
+        "regionEn": "Northern Taiwan",
+        "latitude": 25.0357,
+        "longitude": 121.4532
+      },
+      "description": "MegaSTONE 是北台灣知名的抱石攀岩館，提供多樣化的抱石路線和專業的攀岩教學課程。場地寬敞明亮，適合各程度的攀岩者。",
+      "descriptionEn": "MegaSTONE is a well-known bouldering gym in Northern Taiwan, offering diverse bouldering routes and professional climbing courses. The spacious and bright facility is suitable for climbers of all levels.",
+      "coverImage": "/images/gym/megastone.jpg",
+      "images": [
+        "/images/gym/megastone-1.jpg",
+        "/images/gym/megastone-2.jpg",
+        "/images/gym/megastone-3.jpg"
+      ],
+      "facilities": ["抱石區", "體能訓練區", "休息區", "置物櫃", "淋浴設施"],
+      "facilitiesEn": ["Bouldering Area", "Training Area", "Rest Area", "Lockers", "Shower Facilities"],
+      "openingHours": {
+        "weekday": "14:30-22:30",
+        "weekend": "10:00-20:00",
+        "monday": "14:30-22:30",
+        "tuesday": "14:30-22:30",
+        "wednesday": "14:30-22:30",
+        "thursday": "14:30-22:30",
+        "friday": "14:30-22:30",
+        "saturday": "10:00-20:00",
+        "sunday": "10:00-20:00",
+        "holiday": "10:00-20:00"
+      },
+      "pricing": {
+        "singleEntry": {
+          "weekday": 300,
+          "weekend": 330,
+          "twilight": 200
+        },
+        "rental": {
+          "shoes": 80,
+          "chalkBag": 50
+        },
+        "course": {
+          "boulderingExperience": {
+            "group": 550,
+            "oneToTwo": 700,
+            "oneToOne": 900
+          }
+        },
+        "notes": "星光票為當日最後兩小時入場"
+      },
+      "transportation": {
+        "mrt": "捷運頭前庄站四號出口步行 2 分鐘",
+        "bus": "可搭乘公車至新莊中正路站",
+        "parking": "附近有收費停車場"
+      },
+      "contact": {
+        "phone": "02-8992-8991",
+        "facebook": "MegaSTONE Climbing Gym",
+        "instagram": "",
+        "website": "",
+        "line": ""
+      },
+      "notes": "基於衛生及安全考量，不可赤腳上岩牆攀爬，有攀岩鞋提供租賃。購買時段票的岩友，記得時間到就不可以再攀爬囉！但可繼續待在岩場內休息。若兒童及幼兒攀爬，家長單純入場不攀爬，一位小孩可以搭配兩位家長免費入場。5歲以上入場不攀爬者，需酌收場地費70元。",
+      "rating": 4.6,
+      "featured": true,
+      "status": "published",
+      "createdAt": "2024-01-01T00:00:00Z",
+      "updatedAt": "2026-01-11T00:00:00Z"
+    },
+    {
+      "id": "civic-boulder",
+      "slug": "civic-boulder",
+      "name": "市民抱石攀岩館",
+      "nameEn": "Civic Bouldergym Taipei",
+      "type": "bouldering",
+      "location": {
+        "address": "台北市內湖區洲子街12號2樓",
+        "addressEn": "2F., No. 12, Zhouzi St., Neihu Dist., Taipei City",
+        "city": "台北市",
+        "district": "內湖區",
+        "region": "北部",
+        "regionEn": "Northern Taiwan",
+        "latitude": 25.0785,
+        "longitude": 121.5745
+      },
+      "description": "市民抱石攀岩館是台北市內湖區最受歡迎的抱石館之一，提供各種難度的抱石路線，從初學者到進階者都能找到適合的挑戰。館內定期更換路線，保持新鮮感。",
+      "descriptionEn": "Civic Bouldergym Taipei is one of the most popular bouldering gyms in Neihu District, Taipei. It offers bouldering routes of various difficulties, suitable for beginners to advanced climbers. Routes are regularly updated to keep things fresh.",
+      "coverImage": "/images/gym/civic.jpg",
+      "images": [
+        "/images/gym/civic-1.jpg",
+        "/images/gym/civic-2.jpg",
+        "/images/gym/civic-3.jpg"
+      ],
+      "facilities": ["抱石區", "體能訓練區", "休息區", "淋浴設施", "置物櫃"],
+      "facilitiesEn": ["Bouldering Area", "Training Area", "Rest Area", "Shower Facilities", "Lockers"],
+      "openingHours": {
+        "weekday": "12:00-22:00",
+        "weekend": "10:00-21:00",
+        "monday": "12:00-22:00",
+        "tuesday": "12:00-22:00",
+        "wednesday": "12:00-22:00",
+        "thursday": "12:00-22:00",
+        "friday": "12:00-22:00",
+        "saturday": "10:00-21:00",
+        "sunday": "10:00-21:00",
+        "holiday": "10:00-21:00"
+      },
+      "pricing": {
+        "singleEntry": {
+          "weekday": 350,
+          "weekend": 400
+        },
+        "rental": {
+          "shoes": 80,
+          "chalkBag": 50
+        },
+        "membership": {
+          "monthly": 2000,
+          "quarterly": 5400
+        }
+      },
+      "transportation": {
+        "mrt": "捷運港墘站步行約 10 分鐘",
+        "bus": "可搭乘公車至洲子街站",
+        "parking": "附近有收費停車場及路邊停車"
+      },
+      "contact": {
+        "phone": "02-2627-0118",
+        "facebook": "Civic Bouldergym Taipei 市民抱石攀岩館",
+        "instagram": "civicbouldergym",
+        "website": "",
+        "line": ""
+      },
+      "notes": "首次入場需觀看安全影片。未滿12歲需有家長陪同。",
+      "rating": 4.8,
+      "featured": true,
+      "status": "published",
+      "createdAt": "2024-01-01T00:00:00Z",
+      "updatedAt": "2026-01-11T00:00:00Z"
+    },
+    {
+      "id": "xiaoya",
+      "slug": "xiaoya",
+      "name": "小岩攀岩館",
+      "nameEn": "Xiaoya Climbing Gym",
+      "type": "bouldering",
+      "location": {
+        "address": "台北市內湖區行善路398巷12號",
+        "addressEn": "No. 12, Lane 398, Xingshan Rd., Neihu Dist., Taipei City",
+        "city": "台北市",
+        "district": "內湖區",
+        "region": "北部",
+        "regionEn": "Northern Taiwan",
+        "latitude": 25.0565,
+        "longitude": 121.5789
+      },
+      "description": "小岩攀岩館是一間溫馨的社區型抱石館，館內氣氛友善，非常適合新手入門。工作人員親切，會主動關心並協助初學者。",
+      "descriptionEn": "Xiaoya Climbing Gym is a cozy community bouldering gym with a friendly atmosphere, perfect for beginners. The staff are welcoming and proactively help newcomers.",
+      "coverImage": "/images/gym/xiaoya.jpg",
+      "images": [
+        "/images/gym/xiaoya-1.jpg",
+        "/images/gym/xiaoya-2.jpg",
+        "/images/gym/xiaoya-3.jpg"
+      ],
+      "facilities": ["抱石區", "體能訓練區", "休息區"],
+      "facilitiesEn": ["Bouldering Area", "Training Area", "Rest Area"],
+      "openingHours": {
+        "weekday": "14:00-22:00",
+        "weekend": "10:00-20:00",
+        "monday": "14:00-22:00",
+        "tuesday": "14:00-22:00",
+        "wednesday": "14:00-22:00",
+        "thursday": "14:00-22:00",
+        "friday": "14:00-22:00",
+        "saturday": "10:00-20:00",
+        "sunday": "10:00-20:00",
+        "holiday": "10:00-20:00"
+      },
+      "pricing": {
+        "singleEntry": {
+          "weekday": 300,
+          "weekend": 350
+        },
+        "rental": {
+          "shoes": 70,
+          "chalkBag": 40
+        }
+      },
+      "transportation": {
+        "mrt": "捷運松山站轉公車或步行約 15 分鐘",
+        "bus": "可搭乘公車至行善路站",
+        "parking": "附近有收費停車場"
+      },
+      "contact": {
+        "phone": "02-2790-1234",
+        "facebook": "小岩攀岩館",
+        "instagram": "",
+        "website": "",
+        "line": ""
+      },
+      "notes": "歡迎新手，提供免費基礎教學。",
+      "rating": 4.5,
+      "featured": false,
+      "status": "published",
+      "createdAt": "2024-01-01T00:00:00Z",
+      "updatedAt": "2026-01-11T00:00:00Z"
+    },
+    {
+      "id": "tup-zhonghe",
+      "slug": "tup-zhonghe",
+      "name": "原岩攀岩館 - 中和店",
+      "nameEn": "T-UP Climbing Gym - Zhonghe",
+      "type": "mixed",
+      "location": {
+        "address": "新北市中和區建八路2號B1",
+        "addressEn": "B1, No. 2, Jianba Rd., Zhonghe Dist., New Taipei City",
+        "city": "新北市",
+        "district": "中和區",
+        "region": "北部",
+        "regionEn": "Northern Taiwan",
+        "latitude": 24.9985,
+        "longitude": 121.4865
+      },
+      "description": "原岩攀岩館中和店是台灣最大的室內攀岩館之一，提供抱石和上攀兩種攀岩方式。場地設施完善，有專業教練團隊提供各種課程。",
+      "descriptionEn": "T-UP Climbing Gym Zhonghe is one of Taiwan's largest indoor climbing gyms, offering both bouldering and lead climbing. The facility is well-equipped with professional coaching available.",
+      "coverImage": "/images/gym/tup.jpg",
+      "images": [
+        "/images/gym/tup-1.jpg",
+        "/images/gym/tup-2.jpg",
+        "/images/gym/tup-3.jpg"
+      ],
+      "facilities": ["抱石區", "先鋒攀登", "速度攀登", "體能訓練區", "休息區", "淋浴設施", "置物櫃", "餐飲區"],
+      "facilitiesEn": ["Bouldering Area", "Lead Climbing", "Speed Climbing", "Training Area", "Rest Area", "Shower Facilities", "Lockers", "Cafe"],
+      "openingHours": {
+        "weekday": "10:00-22:00",
+        "weekend": "09:00-21:00",
+        "monday": "10:00-22:00",
+        "tuesday": "10:00-22:00",
+        "wednesday": "10:00-22:00",
+        "thursday": "10:00-22:00",
+        "friday": "10:00-22:00",
+        "saturday": "09:00-21:00",
+        "sunday": "09:00-21:00",
+        "holiday": "09:00-21:00"
+      },
+      "pricing": {
+        "singleEntry": {
+          "weekday": 400,
+          "weekend": 450,
+          "student": 350
+        },
+        "rental": {
+          "shoes": 100,
+          "chalkBag": 50,
+          "harness": 100
+        },
+        "membership": {
+          "monthly": 2500,
+          "quarterly": 6500,
+          "annual": 22000
+        }
+      },
+      "transportation": {
+        "mrt": "捷運中和站步行約 10 分鐘",
+        "bus": "可搭乘公車至建八路站",
+        "parking": "地下停車場可免費停車 2 小時"
+      },
+      "contact": {
+        "phone": "02-2226-2086",
+        "facebook": "原岩攀岩館T-UP Climbing",
+        "instagram": "tupclimbing",
+        "website": "https://www.tupclimbing.com",
+        "line": "@tupclimbing"
+      },
+      "notes": "上攀需具備確保證照或完成場館基礎課程。首次上攀者需參加場館安全講習。",
+      "rating": 4.7,
+      "featured": true,
+      "status": "published",
+      "createdAt": "2024-01-01T00:00:00Z",
+      "updatedAt": "2026-01-11T00:00:00Z"
+    },
+    {
+      "id": "tup-neihu",
+      "slug": "tup-neihu",
+      "name": "原岩攀岩館 - 內湖店",
+      "nameEn": "T-UP Climbing Gym - Neihu",
+      "type": "mixed",
+      "location": {
+        "address": "台北市內湖區新湖三路23號B1",
+        "addressEn": "B1, No. 23, Xinhu 3rd Rd., Neihu Dist., Taipei City",
+        "city": "台北市",
+        "district": "內湖區",
+        "region": "北部",
+        "regionEn": "Northern Taiwan",
+        "latitude": 25.0635,
+        "longitude": 121.5856
+      },
+      "description": "原岩攀岩館內湖店提供完整的攀岩體驗，包含抱石區和上攀區。是台北市區內設備最完善的攀岩館之一。",
+      "descriptionEn": "T-UP Climbing Gym Neihu offers a complete climbing experience with bouldering and lead climbing areas. It is one of the best-equipped climbing gyms in Taipei City.",
+      "coverImage": "/images/gym/tup-neihu.jpg",
+      "images": [
+        "/images/gym/tup-neihu-1.jpg",
+        "/images/gym/tup-neihu-2.jpg",
+        "/images/gym/tup-neihu-3.jpg"
+      ],
+      "facilities": ["抱石區", "先鋒攀登", "體能訓練區", "休息區", "淋浴設施", "置物櫃"],
+      "facilitiesEn": ["Bouldering Area", "Lead Climbing", "Training Area", "Rest Area", "Shower Facilities", "Lockers"],
+      "openingHours": {
+        "weekday": "10:00-22:00",
+        "weekend": "09:00-21:00",
+        "monday": "10:00-22:00",
+        "tuesday": "10:00-22:00",
+        "wednesday": "10:00-22:00",
+        "thursday": "10:00-22:00",
+        "friday": "10:00-22:00",
+        "saturday": "09:00-21:00",
+        "sunday": "09:00-21:00",
+        "holiday": "09:00-21:00"
+      },
+      "pricing": {
+        "singleEntry": {
+          "weekday": 400,
+          "weekend": 450,
+          "student": 350
+        },
+        "rental": {
+          "shoes": 100,
+          "chalkBag": 50,
+          "harness": 100
+        }
+      },
+      "transportation": {
+        "mrt": "捷運西湖站步行約 8 分鐘",
+        "bus": "可搭乘公車至新湖三路站",
+        "parking": "地下停車場"
+      },
+      "contact": {
+        "phone": "02-2792-2086",
+        "facebook": "原岩攀岩館T-UP Climbing",
+        "instagram": "tupclimbing",
+        "website": "https://www.tupclimbing.com",
+        "line": "@tupclimbing"
+      },
+      "notes": "上攀需具備確保證照或完成場館基礎課程。",
+      "rating": 4.7,
+      "featured": false,
+      "status": "published",
+      "createdAt": "2024-01-01T00:00:00Z",
+      "updatedAt": "2026-01-11T00:00:00Z"
+    },
+    {
+      "id": "pogo",
+      "slug": "pogo",
+      "name": "POGO 攀岩館",
+      "nameEn": "POGO Climbing Gym",
+      "type": "bouldering",
+      "location": {
+        "address": "台北市松山區南京東路五段291巷20弄3號",
+        "addressEn": "No. 3, Aly. 20, Lane 291, Sec. 5, Nanjing E. Rd., Songshan Dist., Taipei City",
+        "city": "台北市",
+        "district": "松山區",
+        "region": "北部",
+        "regionEn": "Northern Taiwan",
+        "latitude": 25.0512,
+        "longitude": 121.5656
+      },
+      "description": "POGO 攀岩館位於台北市松山區，是一間結合攀岩與咖啡廳的複合式空間。館內設有舒適的休息區，可以邊喝咖啡邊觀看朋友攀岩。",
+      "descriptionEn": "POGO Climbing Gym in Songshan District, Taipei, is a combined climbing and cafe space. The gym features comfortable seating areas where you can enjoy coffee while watching friends climb.",
+      "coverImage": "/images/gym/pogo.jpg",
+      "images": [
+        "/images/gym/pogo-1.jpg",
+        "/images/gym/pogo-2.jpg",
+        "/images/gym/pogo-3.jpg"
+      ],
+      "facilities": ["抱石區", "體能訓練區", "休息區", "咖啡廳"],
+      "facilitiesEn": ["Bouldering Area", "Training Area", "Rest Area", "Cafe"],
+      "openingHours": {
+        "weekday": "13:00-22:00",
+        "weekend": "10:00-21:00",
+        "monday": "公休",
+        "tuesday": "13:00-22:00",
+        "wednesday": "13:00-22:00",
+        "thursday": "13:00-22:00",
+        "friday": "13:00-22:00",
+        "saturday": "10:00-21:00",
+        "sunday": "10:00-21:00",
+        "holiday": "10:00-21:00"
+      },
+      "pricing": {
+        "singleEntry": {
+          "weekday": 320,
+          "weekend": 370
+        },
+        "rental": {
+          "shoes": 80,
+          "chalkBag": 50
+        }
+      },
+      "transportation": {
+        "mrt": "捷運南京三民站步行約 5 分鐘",
+        "bus": "可搭乘公車至南京三民路口站",
+        "parking": "附近有收費停車場"
+      },
+      "contact": {
+        "phone": "02-2756-8899",
+        "facebook": "POGO Climbing 攀岩館",
+        "instagram": "pogoclimbing",
+        "website": "",
+        "line": ""
+      },
+      "notes": "每週一公休。館內咖啡廳供應精品咖啡和輕食。",
+      "rating": 4.6,
+      "featured": false,
+      "status": "published",
+      "createdAt": "2024-01-01T00:00:00Z",
+      "updatedAt": "2026-01-11T00:00:00Z"
+    },
+    {
+      "id": "pamoja",
+      "slug": "pamoja",
+      "name": "攀吶攀岩館",
+      "nameEn": "Pamoja Climbing Gym",
+      "type": "bouldering",
+      "location": {
+        "address": "新北市板橋區縣民大道二段7號B1",
+        "addressEn": "B1, No. 7, Sec. 2, Xianmin Blvd., Banqiao Dist., New Taipei City",
+        "city": "新北市",
+        "district": "板橋區",
+        "region": "北部",
+        "regionEn": "Northern Taiwan",
+        "latitude": 25.0145,
+        "longitude": 121.4635
+      },
+      "description": "攀吶攀岩館位於板橋區，是新北市最具規模的抱石攀岩館之一。館內路線設計多元，從 V0 到 V10 都有，適合各程度攀岩者。",
+      "descriptionEn": "Pamoja Climbing Gym in Banqiao District is one of the largest bouldering gyms in New Taipei City. Routes range from V0 to V10, suitable for all skill levels.",
+      "coverImage": "/images/gym/pamoja.jpg",
+      "images": [
+        "/images/gym/pamoja-1.jpg",
+        "/images/gym/pamoja-2.jpg",
+        "/images/gym/pamoja-3.jpg"
+      ],
+      "facilities": ["抱石區", "體能訓練區", "休息區", "淋浴設施", "置物櫃"],
+      "facilitiesEn": ["Bouldering Area", "Training Area", "Rest Area", "Shower Facilities", "Lockers"],
+      "openingHours": {
+        "weekday": "12:00-22:00",
+        "weekend": "10:00-21:00",
+        "monday": "12:00-22:00",
+        "tuesday": "12:00-22:00",
+        "wednesday": "12:00-22:00",
+        "thursday": "12:00-22:00",
+        "friday": "12:00-22:00",
+        "saturday": "10:00-21:00",
+        "sunday": "10:00-21:00",
+        "holiday": "10:00-21:00"
+      },
+      "pricing": {
+        "singleEntry": {
+          "weekday": 350,
+          "weekend": 400
+        },
+        "rental": {
+          "shoes": 80,
+          "chalkBag": 50
+        }
+      },
+      "transportation": {
+        "mrt": "捷運板橋站步行約 5 分鐘",
+        "bus": "可搭乘公車至板橋車站",
+        "parking": "地下停車場"
+      },
+      "contact": {
+        "phone": "02-2968-5678",
+        "facebook": "攀吶 Pamoja Climbing Gym",
+        "instagram": "pamojaclimbing",
+        "website": "",
+        "line": ""
+      },
+      "notes": "提供新手體驗課程，建議預約。",
+      "rating": 4.4,
+      "featured": false,
+      "status": "published",
+      "createdAt": "2024-01-01T00:00:00Z",
+      "updatedAt": "2026-01-11T00:00:00Z"
+    },
+    {
+      "id": "red-rock",
+      "slug": "red-rock",
+      "name": "紅石攀岩館",
+      "nameEn": "Red Rock Climbing Gym",
+      "type": "mixed",
+      "location": {
+        "address": "台北市大安區和平東路二段265巷3號",
+        "addressEn": "No. 3, Lane 265, Sec. 2, Heping E. Rd., Da'an Dist., Taipei City",
+        "city": "台北市",
+        "district": "大安區",
+        "region": "北部",
+        "regionEn": "Northern Taiwan",
+        "latitude": 25.0265,
+        "longitude": 121.5425
+      },
+      "description": "紅石攀岩館是台北市歷史悠久的攀岩館，提供抱石和上攀服務。館內教練經驗豐富，是許多職業攀岩選手的訓練基地。",
+      "descriptionEn": "Red Rock Climbing Gym is a long-established climbing gym in Taipei, offering bouldering and lead climbing. The experienced coaching staff makes it a training ground for many professional climbers.",
+      "coverImage": "/images/gym/redrock.jpg",
+      "images": [
+        "/images/gym/redrock-1.jpg",
+        "/images/gym/redrock-2.jpg",
+        "/images/gym/redrock-3.jpg"
+      ],
+      "facilities": ["抱石區", "先鋒攀登", "體能訓練區", "休息區", "兒童區"],
+      "facilitiesEn": ["Bouldering Area", "Lead Climbing", "Training Area", "Rest Area", "Kids Area"],
+      "openingHours": {
+        "weekday": "14:00-22:00",
+        "weekend": "10:00-20:00",
+        "monday": "14:00-22:00",
+        "tuesday": "14:00-22:00",
+        "wednesday": "14:00-22:00",
+        "thursday": "14:00-22:00",
+        "friday": "14:00-22:00",
+        "saturday": "10:00-20:00",
+        "sunday": "10:00-20:00",
+        "holiday": "10:00-20:00"
+      },
+      "pricing": {
+        "singleEntry": {
+          "weekday": 350,
+          "weekend": 400
+        },
+        "rental": {
+          "shoes": 80,
+          "chalkBag": 50,
+          "harness": 80
+        }
+      },
+      "transportation": {
+        "mrt": "捷運科技大樓站步行約 8 分鐘",
+        "bus": "可搭乘公車至和平東路站",
+        "parking": "路邊停車或附近停車場"
+      },
+      "contact": {
+        "phone": "02-2736-6655",
+        "facebook": "紅石攀岩館",
+        "instagram": "redrockclimbing",
+        "website": "",
+        "line": ""
+      },
+      "notes": "提供兒童攀岩課程，適合親子同樂。",
+      "rating": 4.5,
+      "featured": false,
+      "status": "published",
+      "createdAt": "2024-01-01T00:00:00Z",
+      "updatedAt": "2026-01-11T00:00:00Z"
+    },
+    {
+      "id": "y17",
+      "slug": "y17",
+      "name": "Y17 攀岩館",
+      "nameEn": "Y17 Climbing Gym",
+      "type": "lead",
+      "location": {
+        "address": "台北市中正區仁愛路一段17號9樓",
+        "addressEn": "9F, No. 17, Sec. 1, Ren'ai Rd., Zhongzheng Dist., Taipei City",
+        "city": "台北市",
+        "district": "中正區",
+        "region": "北部",
+        "regionEn": "Northern Taiwan",
+        "latitude": 25.0395,
+        "longitude": 121.5175
+      },
+      "description": "Y17攀岩館位於台北市青少年發展處九樓，是全台灣最早的攀岩場之一，也是台北市目前最高的攀岩場。12公尺高的岩牆具備多種難度的攀爬路線，是有經驗的攀爬者優先選擇的場館。",
+      "descriptionEn": "Y17 Climbing Gym, located on the 9th floor of Taipei Youth Development Center, is one of Taiwan's earliest climbing facilities and currently the tallest in Taipei. The 12-meter walls offer various difficulty levels, preferred by experienced climbers.",
+      "coverImage": "/images/gym/y17.jpg",
+      "images": [
+        "/images/gym/y17-1.jpg",
+        "/images/gym/y17-2.jpg",
+        "/images/gym/y17-3.jpg"
+      ],
+      "facilities": ["先鋒攀登", "上方確保", "抱石區", "體能訓練區"],
+      "facilitiesEn": ["Lead Climbing", "Top Rope", "Bouldering Area", "Training Area"],
+      "openingHours": {
+        "weekday": "14:00-21:00",
+        "weekend": "09:00-17:00",
+        "monday": "公休",
+        "tuesday": "14:00-21:00",
+        "wednesday": "14:00-21:00",
+        "thursday": "14:00-21:00",
+        "friday": "14:00-21:00",
+        "saturday": "09:00-17:00",
+        "sunday": "09:00-17:00",
+        "holiday": "09:00-17:00"
+      },
+      "pricing": {
+        "singleEntry": {
+          "weekday": 200,
+          "weekend": 200
+        },
+        "rental": {
+          "shoes": 50,
+          "harness": 50
+        },
+        "course": {
+          "experience": 400
+        }
+      },
+      "transportation": {
+        "mrt": "捷運善導寺站步行約 3 分鐘",
+        "bus": "可搭乘公車至善導寺站",
+        "parking": "地下停車場"
+      },
+      "contact": {
+        "phone": "02-2351-4078",
+        "facebook": "Y17臺北市青少年發展暨家庭教育中心",
+        "instagram": "",
+        "website": "https://www.y17.taipei",
+        "line": ""
+      },
+      "notes": "須滿 6 歲才能購票入場。Y17館具備豐富的地形及高達 12 公尺的攀登高度，適合已經有基礎經驗（有綁繩攀爬 3 次以上）的學員前來挑戰。每週一公休。",
+      "rating": 4.3,
+      "featured": false,
+      "status": "published",
+      "createdAt": "2024-01-01T00:00:00Z",
+      "updatedAt": "2026-01-11T00:00:00Z"
+    },
+    {
+      "id": "double-8",
+      "slug": "double-8",
+      "name": "Double 8 岩究所",
+      "nameEn": "Double 8 Climbing Lab",
+      "type": "bouldering",
+      "location": {
+        "address": "台北市信義區忠孝東路五段508號B1",
+        "addressEn": "B1, No. 508, Sec. 5, Zhongxiao E. Rd., Xinyi Dist., Taipei City",
+        "city": "台北市",
+        "district": "信義區",
+        "region": "北部",
+        "regionEn": "Northern Taiwan",
+        "latitude": 25.0412,
+        "longitude": 121.5712
+      },
+      "description": "Double 8 岩究所是台北市東區的抱石攀岩館，館內路線設計新穎，定期舉辦攀岩比賽和活動。適合想要精進抱石技術的攀岩者。",
+      "descriptionEn": "Double 8 Climbing Lab is a bouldering gym in Taipei's eastern district. The innovative route designs are regularly updated, and the gym hosts frequent competitions and events. Ideal for climbers looking to improve their bouldering skills.",
+      "coverImage": "/images/gym/double8.jpg",
+      "images": [
+        "/images/gym/double8-1.jpg",
+        "/images/gym/double8-2.jpg",
+        "/images/gym/double8-3.jpg"
+      ],
+      "facilities": ["抱石區", "體能訓練區", "休息區", "置物櫃"],
+      "facilitiesEn": ["Bouldering Area", "Training Area", "Rest Area", "Lockers"],
+      "openingHours": {
+        "weekday": "13:00-22:30",
+        "weekend": "10:00-21:00",
+        "monday": "13:00-22:30",
+        "tuesday": "13:00-22:30",
+        "wednesday": "13:00-22:30",
+        "thursday": "13:00-22:30",
+        "friday": "13:00-22:30",
+        "saturday": "10:00-21:00",
+        "sunday": "10:00-21:00",
+        "holiday": "10:00-21:00"
+      },
+      "pricing": {
+        "singleEntry": {
+          "weekday": 350,
+          "weekend": 400
+        },
+        "rental": {
+          "shoes": 80,
+          "chalkBag": 50
+        }
+      },
+      "transportation": {
+        "mrt": "捷運永春站步行約 5 分鐘",
+        "bus": "可搭乘公車至忠孝東路五段站",
+        "parking": "附近有收費停車場"
+      },
+      "contact": {
+        "phone": "02-2762-8888",
+        "facebook": "Double 8 岩究所",
+        "instagram": "double8climbing",
+        "website": "",
+        "line": ""
+      },
+      "notes": "定期舉辦抱石比賽，歡迎報名參加。",
+      "rating": 4.5,
+      "featured": false,
+      "status": "published",
+      "createdAt": "2024-01-01T00:00:00Z",
+      "updatedAt": "2026-01-11T00:00:00Z"
+    },
+    {
+      "id": "boulder-space",
+      "slug": "boulder-space",
+      "name": "Boulder Space 攀岩空間",
+      "nameEn": "Boulder Space",
+      "type": "bouldering",
+      "location": {
+        "address": "台北市中山區長春路128號B1",
+        "addressEn": "B1, No. 128, Changchun Rd., Zhongshan Dist., Taipei City",
+        "city": "台北市",
+        "district": "中山區",
+        "region": "北部",
+        "regionEn": "Northern Taiwan",
+        "latitude": 25.0565,
+        "longitude": 121.5325
+      },
+      "description": "Boulder Space 是台北市中山區的抱石館，結合攀岩與咖啡廳的複合空間。館內設計時尚，是攀岩愛好者休閒社交的好去處。",
+      "descriptionEn": "Boulder Space is a bouldering gym in Zhongshan District, Taipei, combining climbing with a cafe. The stylish design makes it a great place for climbers to relax and socialize.",
+      "coverImage": "/images/gym/boulderspace.jpg",
+      "images": [
+        "/images/gym/boulderspace-1.jpg",
+        "/images/gym/boulderspace-2.jpg",
+        "/images/gym/boulderspace-3.jpg"
+      ],
+      "facilities": ["抱石區", "體能訓練區", "休息區", "咖啡廳"],
+      "facilitiesEn": ["Bouldering Area", "Training Area", "Rest Area", "Cafe"],
+      "openingHours": {
+        "weekday": "12:00-22:00",
+        "weekend": "10:00-21:00",
+        "monday": "12:00-22:00",
+        "tuesday": "12:00-22:00",
+        "wednesday": "12:00-22:00",
+        "thursday": "12:00-22:00",
+        "friday": "12:00-22:00",
+        "saturday": "10:00-21:00",
+        "sunday": "10:00-21:00",
+        "holiday": "10:00-21:00"
+      },
+      "pricing": {
+        "singleEntry": {
+          "weekday": 350,
+          "weekend": 400
+        },
+        "rental": {
+          "shoes": 80,
+          "chalkBag": 50
+        }
+      },
+      "transportation": {
+        "mrt": "捷運中山國小站步行約 5 分鐘",
+        "bus": "可搭乘公車至長春路站",
+        "parking": "附近有收費停車場"
+      },
+      "contact": {
+        "phone": "02-2523-6789",
+        "facebook": "Boulder Space 攀岩空間",
+        "instagram": "boulderspace",
+        "website": "",
+        "line": ""
+      },
+      "notes": "館內咖啡廳提供精品咖啡和輕食。",
+      "rating": 4.7,
+      "featured": false,
+      "status": "published",
+      "createdAt": "2024-01-01T00:00:00Z",
+      "updatedAt": "2026-01-11T00:00:00Z"
+    },
+    {
+      "id": "shabby-factory",
+      "slug": "shabby-factory",
+      "name": "破舊二廠攀岩館",
+      "nameEn": "Shabby Factory 2",
+      "type": "bouldering",
+      "location": {
+        "address": "桃園市中壢區中正路359號",
+        "addressEn": "No. 359, Zhongzheng Rd., Zhongli Dist., Taoyuan City",
+        "city": "桃園市",
+        "district": "中壢區",
+        "region": "北部",
+        "regionEn": "Northern Taiwan",
+        "latitude": 24.9575,
+        "longitude": 121.2265
+      },
+      "description": "破舊二廠攀岩館位於桃園中壢，是桃園地區最大的抱石館。館內由老舊工廠改建而成，保留工業風格的同時提供專業的攀岩設施。",
+      "descriptionEn": "Shabby Factory 2 in Zhongli, Taoyuan is the largest bouldering gym in the Taoyuan area. Converted from an old factory, it retains industrial charm while offering professional climbing facilities.",
+      "coverImage": "/images/gym/shabby2.jpg",
+      "images": [
+        "/images/gym/shabby2-1.jpg",
+        "/images/gym/shabby2-2.jpg",
+        "/images/gym/shabby2-3.jpg"
+      ],
+      "facilities": ["抱石區", "體能訓練區", "休息區", "置物櫃"],
+      "facilitiesEn": ["Bouldering Area", "Training Area", "Rest Area", "Lockers"],
+      "openingHours": {
+        "weekday": "14:00-22:00",
+        "weekend": "10:00-21:00",
+        "monday": "14:00-22:00",
+        "tuesday": "14:00-22:00",
+        "wednesday": "14:00-22:00",
+        "thursday": "14:00-22:00",
+        "friday": "14:00-22:00",
+        "saturday": "10:00-21:00",
+        "sunday": "10:00-21:00",
+        "holiday": "10:00-21:00"
+      },
+      "pricing": {
+        "singleEntry": {
+          "weekday": 300,
+          "weekend": 350
+        },
+        "rental": {
+          "shoes": 70,
+          "chalkBag": 40
+        }
+      },
+      "transportation": {
+        "train": "中壢火車站轉公車或計程車約 10 分鐘",
+        "bus": "可搭乘公車至中正路站",
+        "parking": "附設免費停車場"
+      },
+      "contact": {
+        "phone": "03-425-6789",
+        "facebook": "破舊二廠攀岩館",
+        "instagram": "shabbyfactory2",
+        "website": "",
+        "line": ""
+      },
+      "notes": "工業風格的獨特氛圍，適合拍照打卡。",
+      "rating": 4.6,
+      "featured": false,
+      "status": "published",
+      "createdAt": "2024-01-01T00:00:00Z",
+      "updatedAt": "2026-01-11T00:00:00Z"
+    },
+    {
+      "id": "corner-climbing",
+      "slug": "corner-climbing",
+      "name": "角攀岩館",
+      "nameEn": "Corner Climbing Gym",
+      "type": "bouldering",
+      "location": {
+        "address": "桃園市桃園區中正路1288號",
+        "addressEn": "No. 1288, Zhongzheng Rd., Taoyuan Dist., Taoyuan City",
+        "city": "桃園市",
+        "district": "桃園區",
+        "region": "北部",
+        "regionEn": "Northern Taiwan",
+        "latitude": 25.0025,
+        "longitude": 121.3125
+      },
+      "description": "角攀岩館是桃園市區的抱石館，提供友善的攀岩環境。館內路線適合新手入門，也有進階路線供老手挑戰。",
+      "descriptionEn": "Corner Climbing Gym is a bouldering gym in Taoyuan City, offering a friendly climbing environment. Routes cater to beginners while also providing challenges for experienced climbers.",
+      "coverImage": "/images/gym/corner.jpg",
+      "images": [
+        "/images/gym/corner-1.jpg",
+        "/images/gym/corner-2.jpg",
+        "/images/gym/corner-3.jpg"
+      ],
+      "facilities": ["抱石區", "體能訓練區", "休息區"],
+      "facilitiesEn": ["Bouldering Area", "Training Area", "Rest Area"],
+      "openingHours": {
+        "weekday": "14:00-22:00",
+        "weekend": "10:00-20:00",
+        "monday": "14:00-22:00",
+        "tuesday": "14:00-22:00",
+        "wednesday": "14:00-22:00",
+        "thursday": "14:00-22:00",
+        "friday": "14:00-22:00",
+        "saturday": "10:00-20:00",
+        "sunday": "10:00-20:00",
+        "holiday": "10:00-20:00"
+      },
+      "pricing": {
+        "singleEntry": {
+          "weekday": 280,
+          "weekend": 330
+        },
+        "rental": {
+          "shoes": 70,
+          "chalkBag": 40
+        }
+      },
+      "transportation": {
+        "train": "桃園火車站轉公車約 15 分鐘",
+        "bus": "可搭乘公車至中正路站",
+        "parking": "附近有收費停車場"
+      },
+      "contact": {
+        "phone": "03-336-7890",
+        "facebook": "角攀岩館",
+        "instagram": "cornerclimbing",
+        "website": "",
+        "line": ""
+      },
+      "notes": "適合初學者的友善環境。",
+      "rating": 4.4,
+      "featured": false,
+      "status": "published",
+      "createdAt": "2024-01-01T00:00:00Z",
+      "updatedAt": "2026-01-11T00:00:00Z"
+    },
+    {
+      "id": "iclimb-hsinchu",
+      "slug": "iclimb-hsinchu",
+      "name": "iClimb 風城攀岩館",
+      "nameEn": "iClimb Hsinchu",
+      "type": "mixed",
+      "location": {
+        "address": "新竹市東區光復路二段295號",
+        "addressEn": "No. 295, Sec. 2, Guangfu Rd., East Dist., Hsinchu City",
+        "city": "新竹市",
+        "district": "東區",
+        "region": "北部",
+        "regionEn": "Northern Taiwan",
+        "latitude": 24.8055,
+        "longitude": 120.9825
+      },
+      "description": "iClimb 風城攀岩館是新竹地區最大的攀岩館，提供抱石和上攀兩種攀岩方式。館內設施完善，是新竹攀岩愛好者的首選。",
+      "descriptionEn": "iClimb Hsinchu is the largest climbing gym in the Hsinchu area, offering both bouldering and lead climbing. The well-equipped facility is the top choice for climbing enthusiasts in Hsinchu.",
+      "coverImage": "/images/gym/iclimb-hsinchu.jpg",
+      "images": [
+        "/images/gym/iclimb-hsinchu-1.jpg",
+        "/images/gym/iclimb-hsinchu-2.jpg",
+        "/images/gym/iclimb-hsinchu-3.jpg"
+      ],
+      "facilities": ["抱石區", "先鋒攀登", "體能訓練區", "休息區", "淋浴設施"],
+      "facilitiesEn": ["Bouldering Area", "Lead Climbing", "Training Area", "Rest Area", "Shower Facilities"],
+      "openingHours": {
+        "weekday": "13:00-22:00",
+        "weekend": "10:00-21:00",
+        "monday": "13:00-22:00",
+        "tuesday": "13:00-22:00",
+        "wednesday": "13:00-22:00",
+        "thursday": "13:00-22:00",
+        "friday": "13:00-22:00",
+        "saturday": "10:00-21:00",
+        "sunday": "10:00-21:00",
+        "holiday": "10:00-21:00"
+      },
+      "pricing": {
+        "singleEntry": {
+          "weekday": 350,
+          "weekend": 400
+        },
+        "rental": {
+          "shoes": 80,
+          "chalkBag": 50,
+          "harness": 80
+        }
+      },
+      "transportation": {
+        "train": "新竹火車站轉公車約 15 分鐘",
+        "bus": "可搭乘公車至光復路站",
+        "parking": "附設停車場"
+      },
+      "contact": {
+        "phone": "03-572-8899",
+        "facebook": "iClimb風城攀岩館",
+        "instagram": "iclimbhsinchu",
+        "website": "https://www.iclimb.com.tw",
+        "line": ""
+      },
+      "notes": "新竹地區最完善的攀岩設施。",
+      "rating": 4.6,
+      "featured": false,
+      "status": "published",
+      "createdAt": "2024-01-01T00:00:00Z",
+      "updatedAt": "2026-01-11T00:00:00Z"
+    },
+    {
+      "id": "therock-taichung",
+      "slug": "therock-taichung",
+      "name": "The Rock 原石攀岩館",
+      "nameEn": "The Rock Climbing Gym",
+      "type": "mixed",
+      "location": {
+        "address": "台中市西區精誠路236號",
+        "addressEn": "No. 236, Jingcheng Rd., West Dist., Taichung City",
+        "city": "台中市",
+        "district": "西區",
+        "region": "中部",
+        "regionEn": "Central Taiwan",
+        "latitude": 24.1465,
+        "longitude": 120.6645
+      },
+      "description": "The Rock 原石攀岩館是台中市區歷史最悠久的攀岩館之一，提供抱石和上攀服務。館內路線多元，從新手到進階者都能找到適合的挑戰。",
+      "descriptionEn": "The Rock Climbing Gym is one of the oldest climbing gyms in Taichung City, offering bouldering and lead climbing. Diverse routes cater to beginners and advanced climbers alike.",
+      "coverImage": "/images/gym/therock.jpg",
+      "images": [
+        "/images/gym/therock-1.jpg",
+        "/images/gym/therock-2.jpg",
+        "/images/gym/therock-3.jpg"
+      ],
+      "facilities": ["抱石區", "先鋒攀登", "體能訓練區", "休息區", "淋浴設施"],
+      "facilitiesEn": ["Bouldering Area", "Lead Climbing", "Training Area", "Rest Area", "Shower Facilities"],
+      "openingHours": {
+        "weekday": "13:00-22:00",
+        "weekend": "10:00-21:00",
+        "monday": "13:00-22:00",
+        "tuesday": "13:00-22:00",
+        "wednesday": "13:00-22:00",
+        "thursday": "13:00-22:00",
+        "friday": "13:00-22:00",
+        "saturday": "10:00-21:00",
+        "sunday": "10:00-21:00",
+        "holiday": "10:00-21:00"
+      },
+      "pricing": {
+        "singleEntry": {
+          "weekday": 350,
+          "weekend": 400
+        },
+        "rental": {
+          "shoes": 80,
+          "chalkBag": 50,
+          "harness": 80
+        }
+      },
+      "transportation": {
+        "train": "台中火車站轉公車約 20 分鐘",
+        "bus": "可搭乘公車至精誠路站",
+        "parking": "路邊停車或附近停車場"
+      },
+      "contact": {
+        "phone": "04-2328-6789",
+        "facebook": "The Rock 原石攀岩館",
+        "instagram": "therockclimbing",
+        "website": "",
+        "line": ""
+      },
+      "notes": "台中老字號攀岩館，擁有豐富的攀岩教學經驗。",
+      "rating": 4.8,
+      "featured": true,
+      "status": "published",
+      "createdAt": "2024-01-01T00:00:00Z",
+      "updatedAt": "2026-01-11T00:00:00Z"
+    },
+    {
+      "id": "spring-taichung",
+      "slug": "spring-taichung",
+      "name": "春天攀岩館",
+      "nameEn": "Spring Climbing Gym",
+      "type": "bouldering",
+      "location": {
+        "address": "台中市北區進化北路238號",
+        "addressEn": "No. 238, Jinhua N. Rd., North Dist., Taichung City",
+        "city": "台中市",
+        "district": "北區",
+        "region": "中部",
+        "regionEn": "Central Taiwan",
+        "latitude": 24.1685,
+        "longitude": 120.6875
+      },
+      "description": "春天攀岩館是台中北區的抱石館，館內氣氛輕鬆友善。適合各程度的攀岩者，提供良好的社交攀岩環境。",
+      "descriptionEn": "Spring Climbing Gym is a bouldering gym in North District, Taichung. The relaxed and friendly atmosphere is suitable for climbers of all levels, providing a great social climbing environment.",
+      "coverImage": "/images/gym/spring.jpg",
+      "images": [
+        "/images/gym/spring-1.jpg",
+        "/images/gym/spring-2.jpg",
+        "/images/gym/spring-3.jpg"
+      ],
+      "facilities": ["抱石區", "體能訓練區", "休息區", "淋浴設施"],
+      "facilitiesEn": ["Bouldering Area", "Training Area", "Rest Area", "Shower Facilities"],
+      "openingHours": {
+        "weekday": "14:00-22:00",
+        "weekend": "10:00-21:00",
+        "monday": "14:00-22:00",
+        "tuesday": "14:00-22:00",
+        "wednesday": "14:00-22:00",
+        "thursday": "14:00-22:00",
+        "friday": "14:00-22:00",
+        "saturday": "10:00-21:00",
+        "sunday": "10:00-21:00",
+        "holiday": "10:00-21:00"
+      },
+      "pricing": {
+        "singleEntry": {
+          "weekday": 300,
+          "weekend": 350
+        },
+        "rental": {
+          "shoes": 70,
+          "chalkBag": 40
+        }
+      },
+      "transportation": {
+        "train": "台中火車站轉公車約 15 分鐘",
+        "bus": "可搭乘公車至進化北路站",
+        "parking": "路邊停車或附近停車場"
+      },
+      "contact": {
+        "phone": "04-2235-6789",
+        "facebook": "春天攀岩館",
+        "instagram": "springclimbing",
+        "website": "",
+        "line": ""
+      },
+      "notes": "輕鬆友善的攀岩環境，適合新手入門。",
+      "rating": 4.5,
+      "featured": false,
+      "status": "published",
+      "createdAt": "2024-01-01T00:00:00Z",
+      "updatedAt": "2026-01-11T00:00:00Z"
+    },
+    {
+      "id": "dapeng-taichung",
+      "slug": "dapeng-taichung",
+      "name": "大鵬灣攀岩場",
+      "nameEn": "Dapeng Bay Climbing Gym",
+      "type": "mixed",
+      "location": {
+        "address": "台中市南屯區大墩南路599號",
+        "addressEn": "No. 599, Dadun S. Rd., Nantun Dist., Taichung City",
+        "city": "台中市",
+        "district": "南屯區",
+        "region": "中部",
+        "regionEn": "Central Taiwan",
+        "latitude": 24.1365,
+        "longitude": 120.6475
+      },
+      "description": "大鵬灣攀岩場是台中南屯區的大型攀岩館，提供抱石和上攀服務。場地寬敞，設施完善，是台中地區攀岩者的熱門選擇。",
+      "descriptionEn": "Dapeng Bay Climbing Gym is a large climbing facility in Nantun District, Taichung, offering bouldering and lead climbing. The spacious venue with complete facilities is a popular choice for climbers in the Taichung area.",
+      "coverImage": "/images/gym/dapeng.jpg",
+      "images": [
+        "/images/gym/dapeng-1.jpg",
+        "/images/gym/dapeng-2.jpg",
+        "/images/gym/dapeng-3.jpg"
+      ],
+      "facilities": ["抱石區", "先鋒攀登", "速度攀登", "體能訓練區", "休息區", "淋浴設施", "餐飲區"],
+      "facilitiesEn": ["Bouldering Area", "Lead Climbing", "Speed Climbing", "Training Area", "Rest Area", "Shower Facilities", "Cafe"],
+      "openingHours": {
+        "weekday": "10:00-22:00",
+        "weekend": "09:00-21:00",
+        "monday": "10:00-22:00",
+        "tuesday": "10:00-22:00",
+        "wednesday": "10:00-22:00",
+        "thursday": "10:00-22:00",
+        "friday": "10:00-22:00",
+        "saturday": "09:00-21:00",
+        "sunday": "09:00-21:00",
+        "holiday": "09:00-21:00"
+      },
+      "pricing": {
+        "singleEntry": {
+          "weekday": 380,
+          "weekend": 430
+        },
+        "rental": {
+          "shoes": 90,
+          "chalkBag": 50,
+          "harness": 90
+        }
+      },
+      "transportation": {
+        "bus": "可搭乘公車至大墩南路站",
+        "parking": "附設免費停車場"
+      },
+      "contact": {
+        "phone": "04-2380-1234",
+        "facebook": "大鵬灣攀岩場",
+        "instagram": "dapengclimbing",
+        "website": "",
+        "line": ""
+      },
+      "notes": "台中最大的攀岩館之一，設施完善。",
+      "rating": 4.6,
+      "featured": false,
+      "status": "published",
+      "createdAt": "2024-01-01T00:00:00Z",
+      "updatedAt": "2026-01-11T00:00:00Z"
+    },
+    {
+      "id": "bearclaw",
+      "slug": "bearclaw",
+      "name": "熊爪攀岩館",
+      "nameEn": "Bear Claw Climbing Gym",
+      "type": "mixed",
+      "location": {
+        "address": "高雄市三民區建工路528號",
+        "addressEn": "No. 528, Jiangong Rd., Sanmin Dist., Kaohsiung City",
+        "city": "高雄市",
+        "district": "三民區",
+        "region": "南部",
+        "regionEn": "Southern Taiwan",
+        "latitude": 22.6485,
+        "longitude": 120.3265
+      },
+      "description": "熊爪攀岩館是高雄市最知名的攀岩館之一，提供抱石和上攀服務。館內路線多元，教練團隊專業，是南部攀岩愛好者的首選。",
+      "descriptionEn": "Bear Claw Climbing Gym is one of Kaohsiung's most renowned climbing gyms, offering bouldering and lead climbing. With diverse routes and a professional coaching team, it's the top choice for climbing enthusiasts in southern Taiwan.",
+      "coverImage": "/images/gym/bearclaw.jpg",
+      "images": [
+        "/images/gym/bearclaw-1.jpg",
+        "/images/gym/bearclaw-2.jpg",
+        "/images/gym/bearclaw-3.jpg"
+      ],
+      "facilities": ["抱石區", "先鋒攀登", "體能訓練區", "休息區", "淋浴設施", "置物櫃"],
+      "facilitiesEn": ["Bouldering Area", "Lead Climbing", "Training Area", "Rest Area", "Shower Facilities", "Lockers"],
+      "openingHours": {
+        "weekday": "12:00-22:00",
+        "weekend": "10:00-21:00",
+        "monday": "12:00-22:00",
+        "tuesday": "12:00-22:00",
+        "wednesday": "12:00-22:00",
+        "thursday": "12:00-22:00",
+        "friday": "12:00-22:00",
+        "saturday": "10:00-21:00",
+        "sunday": "10:00-21:00",
+        "holiday": "10:00-21:00"
+      },
+      "pricing": {
+        "singleEntry": {
+          "weekday": 350,
+          "weekend": 400
+        },
+        "rental": {
+          "shoes": 80,
+          "chalkBag": 50,
+          "harness": 80
+        }
+      },
+      "transportation": {
+        "mrt": "高雄捷運後驛站步行約 10 分鐘",
+        "bus": "可搭乘公車至建工路站",
+        "parking": "附近有收費停車場"
+      },
+      "contact": {
+        "phone": "07-398-6789",
+        "facebook": "熊爪攀岩館 Bear Claw Climbing",
+        "instagram": "bearclawclimbing",
+        "website": "",
+        "line": ""
+      },
+      "notes": "南部最專業的攀岩館，定期舉辦攀岩比賽。",
+      "rating": 4.7,
+      "featured": true,
+      "status": "published",
+      "createdAt": "2024-01-01T00:00:00Z",
+      "updatedAt": "2026-01-11T00:00:00Z"
+    },
+    {
+      "id": "stone-kaohsiung",
+      "slug": "stone-kaohsiung",
+      "name": "石頭攀岩館",
+      "nameEn": "Stone Climbing Gym",
+      "type": "bouldering",
+      "location": {
+        "address": "高雄市左營區博愛二路268號",
+        "addressEn": "No. 268, Bo'ai 2nd Rd., Zuoying Dist., Kaohsiung City",
+        "city": "高雄市",
+        "district": "左營區",
+        "region": "南部",
+        "regionEn": "Southern Taiwan",
+        "latitude": 22.6685,
+        "longitude": 120.3065
+      },
+      "description": "石頭攀岩館是高雄左營區的抱石館，館內路線設計活潑有趣。適合家庭親子同樂，提供兒童攀岩課程。",
+      "descriptionEn": "Stone Climbing Gym is a bouldering gym in Zuoying District, Kaohsiung. The lively route designs are family-friendly, with children's climbing courses available.",
+      "coverImage": "/images/gym/stone.jpg",
+      "images": [
+        "/images/gym/stone-1.jpg",
+        "/images/gym/stone-2.jpg",
+        "/images/gym/stone-3.jpg"
+      ],
+      "facilities": ["抱石區", "兒童攀岩區", "體能訓練區", "休息區"],
+      "facilitiesEn": ["Bouldering Area", "Kids Climbing Area", "Training Area", "Rest Area"],
+      "openingHours": {
+        "weekday": "14:00-22:00",
+        "weekend": "10:00-21:00",
+        "monday": "14:00-22:00",
+        "tuesday": "14:00-22:00",
+        "wednesday": "14:00-22:00",
+        "thursday": "14:00-22:00",
+        "friday": "14:00-22:00",
+        "saturday": "10:00-21:00",
+        "sunday": "10:00-21:00",
+        "holiday": "10:00-21:00"
+      },
+      "pricing": {
+        "singleEntry": {
+          "weekday": 300,
+          "weekend": 350,
+          "child": 250
+        },
+        "rental": {
+          "shoes": 70,
+          "chalkBag": 40
+        }
+      },
+      "transportation": {
+        "mrt": "高雄捷運巨蛋站步行約 8 分鐘",
+        "bus": "可搭乘公車至博愛二路站",
+        "parking": "附近有收費停車場"
+      },
+      "contact": {
+        "phone": "07-558-1234",
+        "facebook": "石頭攀岩館",
+        "instagram": "stoneclimbingkaohsiung",
+        "website": "",
+        "line": ""
+      },
+      "notes": "適合親子同樂，提供兒童攀岩體驗。",
+      "rating": 4.4,
+      "featured": false,
+      "status": "published",
+      "createdAt": "2024-01-01T00:00:00Z",
+      "updatedAt": "2026-01-11T00:00:00Z"
+    },
+    {
+      "id": "b-plus-tainan",
+      "slug": "b-plus-tainan",
+      "name": "B+ 攀岩館",
+      "nameEn": "B Plus Climbing Gym",
+      "type": "bouldering",
+      "location": {
+        "address": "台南市東區裕農路288號",
+        "addressEn": "No. 288, Yunong Rd., East Dist., Tainan City",
+        "city": "台南市",
+        "district": "東區",
+        "region": "南部",
+        "regionEn": "Southern Taiwan",
+        "latitude": 22.9965,
+        "longitude": 120.2265
+      },
+      "description": "B+ 攀岩館是台南地區最具規模的抱石館，館內路線設計多元，定期更新。是台南攀岩社群的聚集地。",
+      "descriptionEn": "B Plus Climbing Gym is the largest bouldering gym in Tainan, featuring diverse routes that are regularly updated. It serves as a gathering place for Tainan's climbing community.",
+      "coverImage": "/images/gym/bplus.jpg",
+      "images": [
+        "/images/gym/bplus-1.jpg",
+        "/images/gym/bplus-2.jpg",
+        "/images/gym/bplus-3.jpg"
+      ],
+      "facilities": ["抱石區", "體能訓練區", "休息區", "淋浴設施"],
+      "facilitiesEn": ["Bouldering Area", "Training Area", "Rest Area", "Shower Facilities"],
+      "openingHours": {
+        "weekday": "14:00-22:00",
+        "weekend": "10:00-21:00",
+        "monday": "14:00-22:00",
+        "tuesday": "14:00-22:00",
+        "wednesday": "14:00-22:00",
+        "thursday": "14:00-22:00",
+        "friday": "14:00-22:00",
+        "saturday": "10:00-21:00",
+        "sunday": "10:00-21:00",
+        "holiday": "10:00-21:00"
+      },
+      "pricing": {
+        "singleEntry": {
+          "weekday": 300,
+          "weekend": 350
+        },
+        "rental": {
+          "shoes": 70,
+          "chalkBag": 40
+        }
+      },
+      "transportation": {
+        "train": "台南火車站轉公車約 15 分鐘",
+        "bus": "可搭乘公車至裕農路站",
+        "parking": "附設停車場"
+      },
+      "contact": {
+        "phone": "06-268-9876",
+        "facebook": "B+ 攀岩館",
+        "instagram": "bplusclimbing",
+        "website": "",
+        "line": ""
+      },
+      "notes": "台南最大的抱石館，攀岩社群活躍。",
+      "rating": 4.5,
+      "featured": false,
+      "status": "published",
+      "createdAt": "2024-01-01T00:00:00Z",
+      "updatedAt": "2026-01-11T00:00:00Z"
+    },
+    {
+      "id": "camp4-yilan",
+      "slug": "camp4-yilan",
+      "name": "Camp4 攀岩場",
+      "nameEn": "Camp4 Climbing Gym",
+      "type": "bouldering",
+      "location": {
+        "address": "宜蘭縣宜蘭市中山路五段88號",
+        "addressEn": "No. 88, Sec. 5, Zhongshan Rd., Yilan City, Yilan County",
+        "city": "宜蘭縣",
+        "district": "宜蘭市",
+        "region": "東部",
+        "regionEn": "Eastern Taiwan",
+        "latitude": 24.7565,
+        "longitude": 121.7565
+      },
+      "description": "Camp4 攀岩場是宜蘭地區唯一的專業攀岩館，館名取自優勝美地攀岩營地。提供溫馨的攀岩環境，適合各程度攀岩者。",
+      "descriptionEn": "Camp4 Climbing Gym is the only professional climbing facility in Yilan, named after Yosemite's famous climbing campground. It offers a cozy climbing environment for climbers of all levels.",
+      "coverImage": "/images/gym/camp4.jpg",
+      "images": [
+        "/images/gym/camp4-1.jpg",
+        "/images/gym/camp4-2.jpg",
+        "/images/gym/camp4-3.jpg"
+      ],
+      "facilities": ["抱石區", "體能訓練區", "休息區"],
+      "facilitiesEn": ["Bouldering Area", "Training Area", "Rest Area"],
+      "openingHours": {
+        "weekday": "15:00-21:00",
+        "weekend": "10:00-20:00",
+        "monday": "公休",
+        "tuesday": "15:00-21:00",
+        "wednesday": "15:00-21:00",
+        "thursday": "15:00-21:00",
+        "friday": "15:00-21:00",
+        "saturday": "10:00-20:00",
+        "sunday": "10:00-20:00",
+        "holiday": "10:00-20:00"
+      },
+      "pricing": {
+        "singleEntry": {
+          "weekday": 280,
+          "weekend": 330
+        },
+        "rental": {
+          "shoes": 70,
+          "chalkBag": 40
+        }
+      },
+      "transportation": {
+        "train": "宜蘭火車站轉公車或步行約 15 分鐘",
+        "bus": "可搭乘公車至中山路站",
+        "parking": "附近有免費停車位"
+      },
+      "contact": {
+        "phone": "03-936-7890",
+        "facebook": "Camp4 攀岩場",
+        "instagram": "camp4climbing",
+        "website": "",
+        "line": ""
+      },
+      "notes": "每週一公休。宜蘭唯一的專業攀岩館。",
+      "rating": 4.4,
+      "featured": false,
+      "status": "published",
+      "createdAt": "2024-01-01T00:00:00Z",
+      "updatedAt": "2026-01-11T00:00:00Z"
+    },
+    {
+      "id": "climb-hualien",
+      "slug": "climb-hualien",
+      "name": "花蓮攀岩館",
+      "nameEn": "Hualien Climbing Gym",
+      "type": "bouldering",
+      "location": {
+        "address": "花蓮縣花蓮市中正路688號",
+        "addressEn": "No. 688, Zhongzheng Rd., Hualien City, Hualien County",
+        "city": "花蓮縣",
+        "district": "花蓮市",
+        "region": "東部",
+        "regionEn": "Eastern Taiwan",
+        "latitude": 23.9865,
+        "longitude": 121.6065
+      },
+      "description": "花蓮攀岩館是花蓮地區的社區型攀岩館，提供友善的攀岩環境。館內也會組織戶外攀岩活動，帶領會員探索花蓮的天然岩場。",
+      "descriptionEn": "Hualien Climbing Gym is a community climbing facility in Hualien, offering a friendly environment. The gym also organizes outdoor climbing trips to explore Hualien's natural rock formations.",
+      "coverImage": "/images/gym/hualien.jpg",
+      "images": [
+        "/images/gym/hualien-1.jpg",
+        "/images/gym/hualien-2.jpg",
+        "/images/gym/hualien-3.jpg"
+      ],
+      "facilities": ["抱石區", "體能訓練區", "休息區"],
+      "facilitiesEn": ["Bouldering Area", "Training Area", "Rest Area"],
+      "openingHours": {
+        "weekday": "15:00-21:00",
+        "weekend": "10:00-20:00",
+        "monday": "公休",
+        "tuesday": "公休",
+        "wednesday": "15:00-21:00",
+        "thursday": "15:00-21:00",
+        "friday": "15:00-21:00",
+        "saturday": "10:00-20:00",
+        "sunday": "10:00-20:00",
+        "holiday": "10:00-20:00"
+      },
+      "pricing": {
+        "singleEntry": {
+          "weekday": 250,
+          "weekend": 300
+        },
+        "rental": {
+          "shoes": 60,
+          "chalkBag": 30
+        }
+      },
+      "transportation": {
+        "train": "花蓮火車站步行約 10 分鐘",
+        "bus": "可搭乘公車至中正路站",
+        "parking": "附近有免費停車位"
+      },
+      "contact": {
+        "phone": "03-835-6789",
+        "facebook": "花蓮攀岩館",
+        "instagram": "hualienclimbing",
+        "website": "",
+        "line": ""
+      },
+      "notes": "每週一、二公休。定期舉辦戶外攀岩活動。",
+      "rating": 4.3,
+      "featured": false,
+      "status": "published",
+      "createdAt": "2024-01-01T00:00:00Z",
+      "updatedAt": "2026-01-11T00:00:00Z"
+    }
+  ],
+  "metadata": {
+    "version": "1.0.0",
+    "totalGyms": 22,
+    "lastUpdated": "2026-01-11T00:00:00Z",
+    "source": "NobodyClimb",
+    "regions": ["北部", "中部", "南部", "東部"],
+    "types": ["bouldering", "lead", "mixed"]
+  }
+}
