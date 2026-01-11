@@ -145,7 +145,6 @@ const ProfileForm = ({ userData, isSaving, onFieldChange, onSave }: ProfileFormP
     <FormField label="使用者名稱">
       <Input
         value={userData.username}
-        onChange={(e) => onFieldChange('username', e.target.value)}
         className="border-[#B6B3B3]"
         disabled
       />
