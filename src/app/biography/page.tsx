@@ -6,9 +6,9 @@ import { Search } from 'lucide-react'
 import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
 import { Breadcrumb } from '@/components/ui/breadcrumb'
+import { PageHeader } from '@/components/ui/page-header'
 
 // 匯入頁面組件
-import { BiographyHeader } from '@/components/biography/biography-header'
 import { BiographyList } from '@/components/biography/biography-list'
 
 export default function BiographyPage() {
@@ -26,9 +26,9 @@ export default function BiographyPage() {
       transition={{ duration: 0.5 }}
       className="min-h-screen bg-[#f5f5f5]"
     >
-      <BiographyHeader />
+      <PageHeader title="人物誌" subtitle="記載了 Nobody 們的攀岩小故事" />
 
-      <div className="container mx-auto px-4 py-10">
+      <div className="container mx-auto px-4 py-6">
         {/* Breadcrumb */}
         <div className="mb-8">
           <Breadcrumb items={[{ label: '首頁', href: '/' }, { label: '人物誌' }]} />

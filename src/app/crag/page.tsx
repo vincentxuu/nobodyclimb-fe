@@ -6,6 +6,7 @@ import Link from 'next/link'
 import { motion } from 'framer-motion'
 import { Filter, MapPin, Calendar, Clock, ChevronUp, ChevronDown } from 'lucide-react'
 import { Breadcrumb } from '@/components/ui/breadcrumb'
+import { PageHeader } from '@/components/ui/page-header'
 import { getAllCrags } from '@/lib/crag-data'
 
 // 從資料服務層讀取岩場資料
@@ -62,26 +63,13 @@ export default function CragListPage() {
   })
 
   return (
-    <main className="min-h-screen bg-gray-50 pb-16">
-      {/* 頂部橫幅 */}
-      <div className="relative h-[40vh] overflow-hidden bg-gray-900 md:h-[50vh]">
-        <PlaceholderImage text="台灣岩場探索" bgColor="#242424" textColor="#fff" />
-        <div className="absolute inset-0 bg-gradient-to-b from-transparent to-black opacity-70"></div>
-        <div className="container absolute bottom-0 left-0 right-0 mx-auto p-8 text-white">
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.5 }}
-          >
-            <h1 className="mb-4 text-4xl font-bold md:text-5xl">探索岩場</h1>
-            <p className="max-w-3xl text-lg opacity-90 md:text-xl">
-              發現台灣各地最佳攀岩地點，從海蝕岩場到山區砂岩，適合各級攀岩者的完美岩點。
-            </p>
-          </motion.div>
-        </div>
-      </div>
+    <main className="min-h-screen bg-[#f5f5f5] pb-16">
+      <PageHeader
+        title="探索岩場"
+        subtitle="發現台灣各地最佳攀岩地點，從海蝕岩場到山區砂岩，適合各級攀岩者的完美岩點"
+      />
 
-      <div className="container mx-auto px-4 py-8">
+      <div className="container mx-auto px-4 py-6">
         {/* Breadcrumb */}
         <div className="mb-8">
           <Breadcrumb items={[{ label: '首頁', href: '/' }, { label: '岩場' }]} />
