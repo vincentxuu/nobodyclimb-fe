@@ -476,7 +476,7 @@ export default function GymDetailPage({ params }: { params: Promise<{ id: string
               <div className="mt-4 grid gap-4 md:grid-cols-2 lg:grid-cols-3">
                 {gym.unboxingReviews.map((review, index) => (
                   <a
-                    key={index}
+                    key={review.url}
                     href={review.url}
                     target="_blank"
                     rel="noopener noreferrer"
