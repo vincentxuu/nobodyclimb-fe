@@ -2,6 +2,7 @@ import { Hono } from 'hono';
 import { Env, Post } from '../types';
 import { parsePagination, generateId, generateSlug } from '../utils/id';
 import { authMiddleware, optionalAuthMiddleware } from '../middleware/auth';
+import { trackAndUpdateViewCount } from '../utils/viewTracker';
 
 export const postsRoutes = new Hono<{ Bindings: Env }>();
 
@@ -317,17 +318,21 @@ postsRoutes.get('/:id', async (c) => {
     .bind(id)
     .all<{ tag: string }>();
 
-  // Increment view count
-  await c.env.DB.prepare(
-    'UPDATE posts SET view_count = view_count + 1 WHERE id = ?'
-  )
-    .bind(id)
-    .run();
+  // Track unique view (only increment if not viewed by this IP in 24h)
+  const viewCount = await trackAndUpdateViewCount(
+    c.env.DB,
+    c.env.CACHE,
+    c.req.raw,
+    'post',
+    id,
+    post.view_count as number
+  );
 
   return c.json({
     success: true,
     data: {
       ...post,
+      view_count: viewCount,
       tags: tags.results.map((t) => t.tag),
     },
   });
@@ -363,16 +368,21 @@ postsRoutes.get('/slug/:slug', async (c) => {
     .bind(post.id as string)
     .all<{ tag: string }>();
 
-  await c.env.DB.prepare(
-    'UPDATE posts SET view_count = view_count + 1 WHERE id = ?'
-  )
-    .bind(post.id as string)
-    .run();
+  // Track unique view (only increment if not viewed by this IP in 24h)
+  const viewCount = await trackAndUpdateViewCount(
+    c.env.DB,
+    c.env.CACHE,
+    c.req.raw,
+    'post',
+    post.id as string,
+    post.view_count as number
+  );
 
   return c.json({
     success: true,
     data: {
       ...post,
+      view_count: viewCount,
       tags: tags.results.map((t) => t.tag),
     },
   });

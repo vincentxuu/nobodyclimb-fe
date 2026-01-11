@@ -2,16 +2,23 @@
 
 import dynamic from 'next/dynamic'
 import { useMemo } from 'react'
-import 'react-quill-new/dist/quill.snow.css'
 
-const ReactQuill = dynamic(() => import('react-quill-new'), {
-  ssr: false,
-  loading: () => (
-    <div className="flex h-[300px] items-center justify-center rounded-lg border border-[#E5E5E5] bg-gray-50">
-      <span className="text-gray-400">載入編輯器中...</span>
-    </div>
-  ),
-})
+// Dynamically import ReactQuill with its CSS
+const ReactQuill = dynamic(
+  async () => {
+    const { default: RQ } = await import('react-quill-new')
+    await import('react-quill-new/dist/quill.snow.css')
+    return RQ
+  },
+  {
+    ssr: false,
+    loading: () => (
+      <div className="flex h-[300px] items-center justify-center rounded-lg border border-[#E5E5E5] bg-gray-50">
+        <span className="text-gray-400">載入編輯器中...</span>
+      </div>
+    ),
+  }
+)
 
 interface RichTextEditorProps {
   value: string
@@ -83,7 +90,7 @@ export function RichTextEditor({
         .rich-text-editor .ql-editor {
           min-height: 300px;
           line-height: 1.8;
-          color: #1B1A1A;
+          color: #1b1a1a;
         }
         .rich-text-editor .ql-editor.ql-blank::before {
           color: #9ca3af;

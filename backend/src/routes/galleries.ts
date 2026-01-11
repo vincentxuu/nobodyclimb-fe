@@ -2,6 +2,7 @@ import { Hono } from 'hono';
 import { Env, Gallery } from '../types';
 import { parsePagination, generateId, generateSlug } from '../utils/id';
 import { authMiddleware } from '../middleware/auth';
+import { trackAndUpdateViewCount } from '../utils/viewTracker';
 
 export const galleriesRoutes = new Hono<{ Bindings: Env }>();
 
@@ -357,17 +358,21 @@ galleriesRoutes.get('/:id', async (c) => {
     .bind(id)
     .all();
 
-  // Increment view count
-  await c.env.DB.prepare(
-    'UPDATE galleries SET view_count = view_count + 1 WHERE id = ?'
-  )
-    .bind(id)
-    .run();
+  // Track unique view (only increment if not viewed by this IP in 24h)
+  const viewCount = await trackAndUpdateViewCount(
+    c.env.DB,
+    c.env.CACHE,
+    c.req.raw,
+    'gallery',
+    id,
+    gallery.view_count as number
+  );
 
   return c.json({
     success: true,
     data: {
       ...gallery,
+      view_count: viewCount,
       images: images.results,
     },
   });
@@ -403,16 +408,21 @@ galleriesRoutes.get('/slug/:slug', async (c) => {
     .bind(gallery.id as string)
     .all();
 
-  await c.env.DB.prepare(
-    'UPDATE galleries SET view_count = view_count + 1 WHERE id = ?'
-  )
-    .bind(gallery.id as string)
-    .run();
+  // Track unique view (only increment if not viewed by this IP in 24h)
+  const viewCount = await trackAndUpdateViewCount(
+    c.env.DB,
+    c.env.CACHE,
+    c.req.raw,
+    'gallery',
+    gallery.id as string,
+    gallery.view_count as number
+  );
 
   return c.json({
     success: true,
     data: {
       ...gallery,
+      view_count: viewCount,
       images: images.results,
     },
   });
