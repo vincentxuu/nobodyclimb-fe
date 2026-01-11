@@ -1,6 +1,6 @@
 'use client'
 
-import React, { useState, useCallback } from 'react'
+import React, { useState, useCallback, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { motion } from 'framer-motion'
 import { Upload, MapPin, Loader2, CheckCircle, ImageIcon } from 'lucide-react'
@@ -34,12 +34,19 @@ export default function UploadPage() {
   const [file, setFile] = useState<File | null>(null)
   const [preview, setPreview] = useState<string | null>(null)
   const [caption, setCaption] = useState('')
-  const [locationCountry, setLocationCountry] = useState('')
-  const [locationCity, setLocationCity] = useState('')
-  const [locationSpot, setLocationSpot] = useState('')
+  const [location, setLocation] = useState({ country: '', city: '', spot: '' })
   const [isUploading, setIsUploading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [isSuccess, setIsSuccess] = useState(false)
+
+  // Cleanup object URL when preview changes or component unmounts
+  useEffect(() => {
+    return () => {
+      if (preview) {
+        URL.revokeObjectURL(preview)
+      }
+    }
+  }, [preview])
 
   // Process and validate file, then set state
   const processFile = useCallback((selectedFile: File) => {
@@ -49,16 +56,18 @@ export default function UploadPage() {
       return
     }
 
+    // Revoke previous object URL if exists
+    if (preview) {
+      URL.revokeObjectURL(preview)
+    }
+
     setFile(selectedFile)
     setError(null)
 
-    // Create preview
-    const reader = new FileReader()
-    reader.onloadend = () => {
-      setPreview(reader.result as string)
-    }
-    reader.readAsDataURL(selectedFile)
-  }, [])
+    // Create preview using object URL (more efficient than FileReader)
+    const objectUrl = URL.createObjectURL(selectedFile)
+    setPreview(objectUrl)
+  }, [preview])
 
   const handleFileChange = useCallback(
     (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -85,16 +94,21 @@ export default function UploadPage() {
     e.preventDefault()
   }, [])
 
-  const resetForm = useCallback(() => {
+  const clearPreview = useCallback(() => {
+    if (preview) {
+      URL.revokeObjectURL(preview)
+    }
     setFile(null)
     setPreview(null)
+  }, [preview])
+
+  const resetForm = useCallback(() => {
+    clearPreview()
     setCaption('')
-    setLocationCountry('')
-    setLocationCity('')
-    setLocationSpot('')
+    setLocation({ country: '', city: '', spot: '' })
     setError(null)
     setIsSuccess(false)
-  }, [])
+  }, [clearPreview])
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -117,9 +131,9 @@ export default function UploadPage() {
       const photoResult = await galleryService.uploadPhoto({
         image_url: uploadResult.data.url,
         caption: caption || undefined,
-        location_country: locationCountry || undefined,
-        location_city: locationCity || undefined,
-        location_spot: locationSpot || undefined,
+        location_country: location.country || undefined,
+        location_city: location.city || undefined,
+        location_spot: location.spot || undefined,
       })
 
       if (!photoResult.success || !photoResult.data) {
@@ -222,8 +236,7 @@ export default function UploadPage() {
                     type="button"
                     onClick={(e) => {
                       e.stopPropagation()
-                      setFile(null)
-                      setPreview(null)
+                      clearPreview()
                     }}
                     className="absolute right-3 top-3 rounded-full bg-black/50 px-3 py-1.5 text-sm text-white hover:bg-black/70"
                   >
@@ -271,20 +284,20 @@ export default function UploadPage() {
               <div className="grid grid-cols-3 gap-3">
                 <Input
                   placeholder="國家"
-                  value={locationCountry}
-                  onChange={(e) => setLocationCountry(e.target.value)}
+                  value={location.country}
+                  onChange={(e) => setLocation((prev) => ({ ...prev, country: e.target.value }))}
                   disabled={isUploading}
                 />
                 <Input
                   placeholder="城市"
-                  value={locationCity}
-                  onChange={(e) => setLocationCity(e.target.value)}
+                  value={location.city}
+                  onChange={(e) => setLocation((prev) => ({ ...prev, city: e.target.value }))}
                   disabled={isUploading}
                 />
                 <Input
                   placeholder="地點"
-                  value={locationSpot}
-                  onChange={(e) => setLocationSpot(e.target.value)}
+                  value={location.spot}
+                  onChange={(e) => setLocation((prev) => ({ ...prev, spot: e.target.value }))}
                   disabled={isUploading}
                 />
               </div>
