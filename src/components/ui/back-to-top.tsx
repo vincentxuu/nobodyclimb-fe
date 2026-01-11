@@ -34,7 +34,7 @@ export const BackToTop: React.FC = () => {
       {isVisible && (
         <button
           onClick={scrollToTop}
-          className="fixed bottom-8 right-8 z-40 rounded-full bg-[#1B1A1A] p-3 text-white shadow-lg transition-all duration-300 hover:bg-black"
+          className="fixed bottom-8 right-8 z-40 rounded-full bg-primary p-3 text-white shadow-lg transition-all duration-300 hover:bg-black"
           aria-label="回到頂部"
         >
           <ChevronUp size={24} />
