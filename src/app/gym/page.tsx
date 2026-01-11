@@ -1,9 +1,9 @@
 'use client'
 
-import React, { useState, useEffect, useMemo } from 'react'
+import React, { useState, useEffect } from 'react'
 import Link from 'next/link'
 import { motion } from 'framer-motion'
-import { MapPin, Filter, Loader2 } from 'lucide-react'
+import { MapPin, Filter, Loader2, Star } from 'lucide-react'
 import BackToTop from '@/components/ui/back-to-top'
 import PlaceholderImage from '@/components/ui/placeholder-image'
 import { Breadcrumb } from '@/components/ui/breadcrumb'
@@ -193,7 +193,10 @@ export default function GymListPage() {
                           {gym.typeLabel}
                         </span>
                         {gym.rating > 0 && (
-                          <span className="text-sm text-yellow-500">★ {gym.rating.toFixed(1)}</span>
+                          <span className="flex items-center gap-1 text-sm text-yellow-500">
+                            <Star size={14} fill="currentColor" />
+                            {gym.rating.toFixed(1)}
+                          </span>
                         )}
                       </div>
                     </div>

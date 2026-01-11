@@ -69,6 +69,13 @@ export interface GymContact {
   youtube?: string
 }
 
+export interface GymUnboxingReview {
+  type: 'facebook' | 'instagram' | 'youtube'
+  title: string
+  url: string
+  thumbnail?: string
+}
+
 export interface GymData {
   id: string
   slug: string
@@ -86,6 +93,7 @@ export interface GymData {
   pricing: GymPricing
   transportation: GymTransportation
   contact: GymContact
+  unboxingReviews?: GymUnboxingReview[]
   notes: string
   rating: number
   featured: boolean
@@ -159,6 +167,7 @@ export interface GymDetailData {
   pricing: GymPricing
   transportation: GymTransportation
   contact: GymContact
+  unboxingReviews?: GymUnboxingReview[]
   notes: string
   rating: number
   featured: boolean
@@ -258,6 +267,7 @@ function toGymDetailData(gym: GymData): GymDetailData {
     pricing: gym.pricing,
     transportation: gym.transportation,
     contact: gym.contact,
+    unboxingReviews: gym.unboxingReviews,
     notes: gym.notes,
     rating: gym.rating,
     featured: gym.featured,

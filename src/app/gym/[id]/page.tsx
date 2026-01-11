@@ -3,7 +3,23 @@
 import React, { useState, useEffect, use } from 'react'
 import Link from 'next/link'
 import { motion } from 'framer-motion'
-import { MapPin, ArrowLeft, Clock, Phone, CloudRain, ChevronUp, Loader2, ExternalLink } from 'lucide-react'
+import {
+  MapPin,
+  ArrowLeft,
+  Phone,
+  ChevronUp,
+  Loader2,
+  ExternalLink,
+  Star,
+  TrainFront,
+  TramFront,
+  Bus,
+  ParkingCircle,
+  Facebook,
+  Instagram,
+  Youtube,
+  MessageCircle,
+} from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import PlaceholderImage from '@/components/ui/placeholder-image'
 import { Breadcrumb } from '@/components/ui/breadcrumb'
@@ -229,7 +245,10 @@ export default function GymDetailPage({ params }: { params: Promise<{ id: string
           {/* 評分和設施 */}
           <div className="mb-8 flex flex-wrap items-center gap-4">
             {gym.rating > 0 && (
-              <span className="text-lg text-yellow-500">★ {gym.rating.toFixed(1)}</span>
+              <span className="flex items-center gap-1 text-lg text-yellow-500">
+                <Star size={18} fill="currentColor" />
+                {gym.rating.toFixed(1)}
+              </span>
             )}
             <div className="flex flex-wrap gap-2">
               {gym.facilities.map((facility, index) => (
@@ -288,12 +307,47 @@ export default function GymDetailPage({ params }: { params: Promise<{ id: string
                     <MapPin size={16} className="mr-2 text-gray-500" />
                     <p className="text-base text-gray-500">{gym.location.address}</p>
                   </div>
-                  <div className="space-y-1 text-base">
-                    {gym.transportation.mrt && <p>🚇 {gym.transportation.mrt}</p>}
-                    {gym.transportation.train && <p>🚃 {gym.transportation.train}</p>}
-                    {gym.transportation.bus && <p>🚌 {gym.transportation.bus}</p>}
-                    {gym.transportation.parking && <p>🅿️ {gym.transportation.parking}</p>}
+                  <div className="space-y-2 text-base">
+                    {gym.transportation.mrt && (
+                      <p className="flex items-center gap-2">
+                        <TramFront size={16} className="text-gray-500" />
+                        <span>{gym.transportation.mrt}</span>
+                      </p>
+                    )}
+                    {gym.transportation.train && (
+                      <p className="flex items-center gap-2">
+                        <TrainFront size={16} className="text-gray-500" />
+                        <span>{gym.transportation.train}</span>
+                      </p>
+                    )}
+                    {gym.transportation.bus && (
+                      <p className="flex items-center gap-2">
+                        <Bus size={16} className="text-gray-500" />
+                        <span>{gym.transportation.bus}</span>
+                      </p>
+                    )}
+                    {gym.transportation.parking && (
+                      <p className="flex items-center gap-2">
+                        <ParkingCircle size={16} className="text-gray-500" />
+                        <span>{gym.transportation.parking}</span>
+                      </p>
+                    )}
                   </div>
+                  {/* Google Map */}
+                  {gym.location.latitude && gym.location.longitude && (
+                    <div className="mt-4 overflow-hidden rounded-lg">
+                      <iframe
+                        src={`https://www.google.com/maps?q=${gym.location.latitude},${gym.location.longitude}&z=16&output=embed`}
+                        width="100%"
+                        height="200"
+                        style={{ border: 0 }}
+                        allowFullScreen
+                        loading="lazy"
+                        referrerPolicy="no-referrer-when-downgrade"
+                        title={`${gym.name} 地圖`}
+                      />
+                    </div>
+                  )}
                 </div>
               </div>
 
@@ -332,7 +386,7 @@ export default function GymDetailPage({ params }: { params: Promise<{ id: string
                   )}
                   {gym.contact.facebook && (
                     <div className="flex items-center text-gray-600">
-                      <span className="mr-2">📘</span>
+                      <Facebook size={16} className="mr-2 text-gray-500" />
                       {gym.contact.facebookUrl ? (
                         <a
                           href={gym.contact.facebookUrl}
@@ -349,7 +403,7 @@ export default function GymDetailPage({ params }: { params: Promise<{ id: string
                   )}
                   {gym.contact.instagram && (
                     <div className="flex items-center text-gray-600">
-                      <span className="mr-2">📷</span>
+                      <Instagram size={16} className="mr-2 text-gray-500" />
                       {gym.contact.instagramUrl ? (
                         <a
                           href={gym.contact.instagramUrl}
@@ -366,7 +420,7 @@ export default function GymDetailPage({ params }: { params: Promise<{ id: string
                   )}
                   {gym.contact.youtube && (
                     <div className="flex items-center">
-                      <span className="mr-2">🎬</span>
+                      <Youtube size={16} className="mr-2 text-gray-500" />
                       <a
                         href={gym.contact.youtube}
                         target="_blank"
@@ -392,7 +446,7 @@ export default function GymDetailPage({ params }: { params: Promise<{ id: string
                   )}
                   {gym.contact.line && (
                     <div className="flex items-center text-gray-600">
-                      <span className="mr-2">💬</span>
+                      <MessageCircle size={16} className="mr-2 text-gray-500" />
                       <span>LINE: {gym.contact.line}</span>
                     </div>
                   )}
@@ -409,6 +463,50 @@ export default function GymDetailPage({ params }: { params: Promise<{ id: string
                 <div className="h-px w-full bg-gray-200"></div>
               </div>
               <div className="mt-4 whitespace-pre-line text-base">{gym.notes}</div>
+            </div>
+          )}
+
+          {/* 開箱介紹 */}
+          {gym.unboxingReviews && gym.unboxingReviews.length > 0 && (
+            <div className="mb-10">
+              <div className="mb-1">
+                <h2 className="text-lg font-medium text-orange-500">開箱介紹</h2>
+                <div className="h-px w-full bg-gray-200"></div>
+              </div>
+              <div className="mt-4 grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+                {gym.unboxingReviews.map((review, index) => (
+                  <a
+                    key={index}
+                    href={review.url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="group flex items-start gap-3 rounded-lg border border-gray-200 p-4 transition hover:border-orange-300 hover:bg-orange-50"
+                  >
+                    <div className="flex-shrink-0">
+                      {review.type === 'facebook' && (
+                        <Facebook size={24} className="text-blue-600" />
+                      )}
+                      {review.type === 'instagram' && (
+                        <Instagram size={24} className="text-pink-600" />
+                      )}
+                      {review.type === 'youtube' && (
+                        <Youtube size={24} className="text-red-600" />
+                      )}
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm font-medium text-gray-900 group-hover:text-orange-600 line-clamp-2">
+                        {review.title}
+                      </p>
+                      <p className="mt-1 text-xs text-gray-500">
+                        {review.type === 'facebook' && 'Facebook 貼文'}
+                        {review.type === 'instagram' && 'Instagram 貼文'}
+                        {review.type === 'youtube' && 'YouTube 影片'}
+                      </p>
+                    </div>
+                    <ExternalLink size={14} className="flex-shrink-0 text-gray-400 group-hover:text-orange-500" />
+                  </a>
+                ))}
+              </div>
             </div>
           )}
 

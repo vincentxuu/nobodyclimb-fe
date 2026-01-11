@@ -71,6 +71,18 @@
         "line": "@tupclimbing",
         "youtube": ""
       },
+      "unboxingReviews": [
+        {
+          "type": "youtube",
+          "title": "原岩攀岩館中和店開箱！台灣最大室內攀岩館探訪",
+          "url": "https://www.youtube.com/watch?v=example1"
+        },
+        {
+          "type": "instagram",
+          "title": "週末來原岩中和店體驗攀岩的樂趣",
+          "url": "https://www.instagram.com/p/example1"
+        }
+      ],
       "notes": "上攀需具備確保證照或完成場館基礎課程。",
       "rating": 4.7,
       "featured": true,
