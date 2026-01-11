@@ -129,7 +129,7 @@ const AvatarUpload = ({
 interface ProfileFormProps {
   userData: UserFormData
   isSaving: boolean
-  onFieldChange: (field: string, value: string) => void
+  onFieldChange: (field: keyof UserFormData, value: string) => void
   onSave: () => void
 }
 
