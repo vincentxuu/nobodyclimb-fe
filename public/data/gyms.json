@@ -20,11 +20,23 @@
       "descriptionEn": "T-UP Climbing Gym Zhonghe is one of Taiwan's largest indoor climbing gyms, offering professional lead climbing services.",
       "coverImage": "/images/gym/tup-zhonghe.jpg",
       "images": [],
-      "facilities": ["先鋒攀登", "速度攀登", "體能訓練區", "休息區", "淋浴設施", "置物櫃"],
-      "facilitiesEn": ["Lead Climbing", "Speed Climbing", "Training Area", "Rest Area", "Shower Facilities", "Lockers"],
+      "facilities": [
+        "先鋒攀登",
+        "速度攀登",
+        "體能訓練區",
+        "休息區",
+        "淋浴設施",
+        "置物櫃"
+      ],
+      "facilitiesEn": [
+        "Lead Climbing",
+        "Speed Climbing",
+        "Training Area",
+        "Rest Area",
+        "Shower Facilities",
+        "Lockers"
+      ],
       "openingHours": {
-        "weekday": "12:00-23:00",
-        "weekend": "09:00-22:00",
         "monday": "12:00-23:00",
         "tuesday": "12:00-23:00",
         "wednesday": "12:00-23:00",
@@ -35,11 +47,30 @@
         "holiday": "09:00-22:00"
       },
       "pricing": {
-        "singleEntry": { "weekday": 500, "weekend": 550, "twilight": 320 },
-        "rental": { "shoes": 100, "harness": 100 }
+        "singleEntry": {
+          "weekday": 500,
+          "weekend": 550,
+          "twilight": 320
+        },
+        "rental": {
+          "shoes": 100,
+          "harness": 100
+        }
       },
-      "transportation": { "mrt": "捷運中和站步行約10分鐘", "parking": "附近有收費停車場" },
-      "contact": { "phone": "02-8228-2555", "facebook": "原岩攀岩館T-UP Climbing", "facebookUrl": "https://www.facebook.com/tupclimbing", "instagram": "tupclimbing", "instagramUrl": "https://www.instagram.com/tupclimbing/", "website": "https://tupclimbing.tw/", "line": "@tupclimbing", "youtube": "" },
+      "transportation": {
+        "mrt": "捷運中和站步行約10分鐘",
+        "parking": "附近有收費停車場"
+      },
+      "contact": {
+        "phone": "02-8228-2555",
+        "facebook": "原岩攀岩館T-UP Climbing",
+        "facebookUrl": "https://www.facebook.com/tupclimbing",
+        "instagram": "tupclimbing",
+        "instagramUrl": "https://www.instagram.com/tupclimbing/",
+        "website": "https://tupclimbing.tw/",
+        "line": "@tupclimbing",
+        "youtube": ""
+      },
       "notes": "上攀需具備確保證照或完成場館基礎課程。",
       "rating": 4.7,
       "featured": true,
@@ -67,11 +98,19 @@
       "descriptionEn": "T-UP Climbing Gym Wanhua is a professional bouldering gym offering diverse routes.",
       "coverImage": "/images/gym/tup-wanhua.jpg",
       "images": [],
-      "facilities": ["抱石區", "體能訓練區", "休息區", "淋浴設施"],
-      "facilitiesEn": ["Bouldering Area", "Training Area", "Rest Area", "Shower Facilities"],
+      "facilities": [
+        "抱石區",
+        "體能訓練區",
+        "休息區",
+        "淋浴設施"
+      ],
+      "facilitiesEn": [
+        "Bouldering Area",
+        "Training Area",
+        "Rest Area",
+        "Shower Facilities"
+      ],
       "openingHours": {
-        "weekday": "10:00-23:00",
-        "weekend": "09:00-21:00",
         "monday": "10:00-23:00",
         "tuesday": "10:00-23:00",
         "wednesday": "10:00-23:00",
@@ -82,11 +121,29 @@
         "holiday": "09:00-21:00"
       },
       "pricing": {
-        "singleEntry": { "weekday": 450, "weekend": 500, "twilight": 320 },
-        "rental": { "shoes": 100 }
+        "singleEntry": {
+          "weekday": 450,
+          "weekend": 500,
+          "twilight": 320
+        },
+        "rental": {
+          "shoes": 100
+        }
       },
-      "transportation": { "mrt": "捷運龍山寺站步行約8分鐘", "parking": "附近有收費停車場" },
-      "contact": { "phone": "", "facebook": "原岩攀岩館T-UP Climbing", "facebookUrl": "https://www.facebook.com/tupclimbing", "instagram": "tupclimbing", "instagramUrl": "https://www.instagram.com/tupclimbing/", "website": "https://tupclimbing.tw/", "line": "@tupclimbing", "youtube": "" },
+      "transportation": {
+        "mrt": "捷運龍山寺站步行約8分鐘",
+        "parking": "附近有收費停車場"
+      },
+      "contact": {
+        "phone": "",
+        "facebook": "原岩攀岩館T-UP Climbing",
+        "facebookUrl": "https://www.facebook.com/tupclimbing",
+        "instagram": "tupclimbing",
+        "instagramUrl": "https://www.instagram.com/tupclimbing/",
+        "website": "https://tupclimbing.tw/",
+        "line": "@tupclimbing",
+        "youtube": ""
+      },
       "notes": "",
       "rating": 4.6,
       "featured": false,
@@ -114,11 +171,19 @@
       "descriptionEn": "T-UP Climbing Gym A19 is located in Global Mall, offering both bouldering and lead climbing.",
       "coverImage": "/images/gym/tup-a19.jpg",
       "images": [],
-      "facilities": ["抱石區", "先鋒攀登", "體能訓練區", "休息區"],
-      "facilitiesEn": ["Bouldering Area", "Lead Climbing", "Training Area", "Rest Area"],
+      "facilities": [
+        "抱石區",
+        "先鋒攀登",
+        "體能訓練區",
+        "休息區"
+      ],
+      "facilitiesEn": [
+        "Bouldering Area",
+        "Lead Climbing",
+        "Training Area",
+        "Rest Area"
+      ],
       "openingHours": {
-        "weekday": "11:00-23:00",
-        "weekend": "11:00-22:00",
         "monday": "11:00-23:00",
         "tuesday": "11:00-23:00",
         "wednesday": "11:00-23:00",
@@ -129,11 +194,30 @@
         "holiday": "11:00-22:00"
       },
       "pricing": {
-        "singleEntry": { "weekday": 500, "weekend": 550, "twilight": 300 },
-        "rental": { "shoes": 100, "harness": 100 }
+        "singleEntry": {
+          "weekday": 500,
+          "weekend": 550,
+          "twilight": 300
+        },
+        "rental": {
+          "shoes": 100,
+          "harness": 100
+        }
       },
-      "transportation": { "train": "高鐵桃園站A19出口直達", "parking": "環球購物中心停車場" },
-      "contact": { "phone": "", "facebook": "原岩攀岩館T-UP Climbing", "facebookUrl": "https://www.facebook.com/tupclimbing", "instagram": "tupclimbing", "instagramUrl": "https://www.instagram.com/tupclimbing/", "website": "https://tupclimbing.tw/", "line": "@tupclimbing", "youtube": "" },
+      "transportation": {
+        "train": "高鐵桃園站A19出口直達",
+        "parking": "環球購物中心停車場"
+      },
+      "contact": {
+        "phone": "",
+        "facebook": "原岩攀岩館T-UP Climbing",
+        "facebookUrl": "https://www.facebook.com/tupclimbing",
+        "instagram": "tupclimbing",
+        "instagramUrl": "https://www.instagram.com/tupclimbing/",
+        "website": "https://tupclimbing.tw/",
+        "line": "@tupclimbing",
+        "youtube": ""
+      },
       "notes": "",
       "rating": 4.6,
       "featured": false,
@@ -161,11 +245,17 @@
       "descriptionEn": "T-UP Climbing Gym Nangang offers professional bouldering services.",
       "coverImage": "/images/gym/tup-nangang.jpg",
       "images": [],
-      "facilities": ["抱石區", "體能訓練區", "休息區"],
-      "facilitiesEn": ["Bouldering Area", "Training Area", "Rest Area"],
+      "facilities": [
+        "抱石區",
+        "體能訓練區",
+        "休息區"
+      ],
+      "facilitiesEn": [
+        "Bouldering Area",
+        "Training Area",
+        "Rest Area"
+      ],
       "openingHours": {
-        "weekday": "12:00-23:00",
-        "weekend": "09:00-21:00",
         "monday": "12:00-23:00",
         "tuesday": "12:00-23:00",
         "wednesday": "12:00-23:00",
@@ -176,11 +266,29 @@
         "holiday": "09:00-21:00"
       },
       "pricing": {
-        "singleEntry": { "weekday": 450, "weekend": 450, "twilight": 300 },
-        "rental": { "shoes": 100 }
+        "singleEntry": {
+          "weekday": 450,
+          "weekend": 450,
+          "twilight": 300
+        },
+        "rental": {
+          "shoes": 100
+        }
       },
-      "transportation": { "mrt": "捷運南港站步行約10分鐘", "parking": "附近有收費停車場" },
-      "contact": { "phone": "", "facebook": "原岩攀岩館T-UP Climbing", "facebookUrl": "https://www.facebook.com/tupclimbing", "instagram": "tupclimbing", "instagramUrl": "https://www.instagram.com/tupclimbing/", "website": "https://tupclimbing.tw/", "line": "", "youtube": "" },
+      "transportation": {
+        "mrt": "捷運南港站步行約10分鐘",
+        "parking": "附近有收費停車場"
+      },
+      "contact": {
+        "phone": "",
+        "facebook": "原岩攀岩館T-UP Climbing",
+        "facebookUrl": "https://www.facebook.com/tupclimbing",
+        "instagram": "tupclimbing",
+        "instagramUrl": "https://www.instagram.com/tupclimbing/",
+        "website": "https://tupclimbing.tw/",
+        "line": "",
+        "youtube": ""
+      },
       "notes": "",
       "rating": 4.5,
       "featured": false,
@@ -208,11 +316,19 @@
       "descriptionEn": "T-UP Climbing Gym Xindian is located in Yulon City, offering both bouldering and lead climbing.",
       "coverImage": "/images/gym/tup-xindian.jpg",
       "images": [],
-      "facilities": ["抱石區", "先鋒攀登", "體能訓練區", "休息區"],
-      "facilitiesEn": ["Bouldering Area", "Lead Climbing", "Training Area", "Rest Area"],
+      "facilities": [
+        "抱石區",
+        "先鋒攀登",
+        "體能訓練區",
+        "休息區"
+      ],
+      "facilitiesEn": [
+        "Bouldering Area",
+        "Lead Climbing",
+        "Training Area",
+        "Rest Area"
+      ],
       "openingHours": {
-        "weekday": "11:00-23:00",
-        "weekend": "11:00-21:30",
         "monday": "11:00-23:00",
         "tuesday": "11:00-23:00",
         "wednesday": "11:00-23:00",
@@ -223,11 +339,30 @@
         "holiday": "11:00-21:30"
       },
       "pricing": {
-        "singleEntry": { "weekday": 500, "weekend": 550, "twilight": 300 },
-        "rental": { "shoes": 100, "harness": 100 }
+        "singleEntry": {
+          "weekday": 500,
+          "weekend": 550,
+          "twilight": 300
+        },
+        "rental": {
+          "shoes": 100,
+          "harness": 100
+        }
       },
-      "transportation": { "mrt": "捷運七張站步行約10分鐘", "parking": "裕隆城停車場" },
-      "contact": { "phone": "", "facebook": "原岩攀岩館T-UP Climbing", "facebookUrl": "https://www.facebook.com/tupclimbing", "instagram": "tupclimbing", "instagramUrl": "https://www.instagram.com/tupclimbing/", "website": "https://tupclimbing.tw/", "line": "", "youtube": "" },
+      "transportation": {
+        "mrt": "捷運七張站步行約10分鐘",
+        "parking": "裕隆城停車場"
+      },
+      "contact": {
+        "phone": "",
+        "facebook": "原岩攀岩館T-UP Climbing",
+        "facebookUrl": "https://www.facebook.com/tupclimbing",
+        "instagram": "tupclimbing",
+        "instagramUrl": "https://www.instagram.com/tupclimbing/",
+        "website": "https://tupclimbing.tw/",
+        "line": "",
+        "youtube": ""
+      },
       "notes": "",
       "rating": 4.6,
       "featured": false,
@@ -255,11 +390,17 @@
       "descriptionEn": "T-UP Climbing Gym Mingde offers professional bouldering services.",
       "coverImage": "/images/gym/tup-mingde.jpg",
       "images": [],
-      "facilities": ["抱石區", "體能訓練區", "休息區"],
-      "facilitiesEn": ["Bouldering Area", "Training Area", "Rest Area"],
+      "facilities": [
+        "抱石區",
+        "體能訓練區",
+        "休息區"
+      ],
+      "facilitiesEn": [
+        "Bouldering Area",
+        "Training Area",
+        "Rest Area"
+      ],
       "openingHours": {
-        "weekday": "12:00-23:00",
-        "weekend": "10:00-22:00",
         "monday": "12:00-23:00",
         "tuesday": "12:00-23:00",
         "wednesday": "12:00-23:00",
@@ -270,11 +411,29 @@
         "holiday": "10:00-22:00"
       },
       "pricing": {
-        "singleEntry": { "weekday": 500, "weekend": 550, "twilight": 320 },
-        "rental": { "shoes": 100 }
+        "singleEntry": {
+          "weekday": 500,
+          "weekend": 550,
+          "twilight": 320
+        },
+        "rental": {
+          "shoes": 100
+        }
       },
-      "transportation": { "mrt": "捷運明德站步行約5分鐘", "parking": "附近有收費停車場" },
-      "contact": { "phone": "", "facebook": "原岩攀岩館T-UP Climbing", "facebookUrl": "https://www.facebook.com/tupclimbing", "instagram": "tupclimbing", "instagramUrl": "https://www.instagram.com/tupclimbing/", "website": "https://tupclimbing.tw/", "line": "", "youtube": "" },
+      "transportation": {
+        "mrt": "捷運明德站步行約5分鐘",
+        "parking": "附近有收費停車場"
+      },
+      "contact": {
+        "phone": "",
+        "facebook": "原岩攀岩館T-UP Climbing",
+        "facebookUrl": "https://www.facebook.com/tupclimbing",
+        "instagram": "tupclimbing",
+        "instagramUrl": "https://www.instagram.com/tupclimbing/",
+        "website": "https://tupclimbing.tw/",
+        "line": "",
+        "youtube": ""
+      },
       "notes": "",
       "rating": 4.5,
       "featured": false,
@@ -302,11 +461,19 @@
       "descriptionEn": "MegaSTONE is a well-known bouldering gym in Northern Taiwan.",
       "coverImage": "/images/gym/megastone.jpg",
       "images": [],
-      "facilities": ["抱石區", "體能訓練區", "休息區", "置物櫃"],
-      "facilitiesEn": ["Bouldering Area", "Training Area", "Rest Area", "Lockers"],
+      "facilities": [
+        "抱石區",
+        "體能訓練區",
+        "休息區",
+        "置物櫃"
+      ],
+      "facilitiesEn": [
+        "Bouldering Area",
+        "Training Area",
+        "Rest Area",
+        "Lockers"
+      ],
       "openingHours": {
-        "weekday": "14:30-22:30",
-        "weekend": "10:00-20:00",
         "monday": "14:30-22:30",
         "tuesday": "14:30-22:30",
         "wednesday": "14:30-22:30",
@@ -317,11 +484,29 @@
         "holiday": "10:00-20:00"
       },
       "pricing": {
-        "singleEntry": { "weekday": 360, "weekend": 400, "twilight": 240 },
-        "rental": { "shoes": 100 }
+        "singleEntry": {
+          "weekday": 360,
+          "weekend": 400,
+          "twilight": 240
+        },
+        "rental": {
+          "shoes": 100
+        }
       },
-      "transportation": { "mrt": "捷運頭前庄站四號出口步行2分鐘", "parking": "附近有收費停車場" },
-      "contact": { "phone": "02-8992-8991", "facebook": "MegaSTONE Climbing Gym", "facebookUrl": "https://www.facebook.com/megastoneclimbinggym/", "instagram": "megastoneclimbinggym", "instagramUrl": "https://www.instagram.com/megastoneclimbinggym/", "website": "", "line": "", "youtube": "" },
+      "transportation": {
+        "mrt": "捷運頭前庄站四號出口步行2分鐘",
+        "parking": "附近有收費停車場"
+      },
+      "contact": {
+        "phone": "02-8992-8991",
+        "facebook": "MegaSTONE Climbing Gym",
+        "facebookUrl": "https://www.facebook.com/megastoneclimbinggym/",
+        "instagram": "megastoneclimbinggym",
+        "instagramUrl": "https://www.instagram.com/megastoneclimbinggym/",
+        "website": "",
+        "line": "",
+        "youtube": ""
+      },
       "notes": "星光票為當日結束營業前兩小時入場",
       "rating": 4.6,
       "featured": true,
@@ -349,11 +534,21 @@
       "descriptionEn": "Civic Bouldergym Taipei is one of the most popular bouldering gyms in Nangang District.",
       "coverImage": "/images/gym/civic.jpg",
       "images": [],
-      "facilities": ["抱石區", "體能訓練區", "休息區", "淋浴設施", "置物櫃"],
-      "facilitiesEn": ["Bouldering Area", "Training Area", "Rest Area", "Shower Facilities", "Lockers"],
+      "facilities": [
+        "抱石區",
+        "體能訓練區",
+        "休息區",
+        "淋浴設施",
+        "置物櫃"
+      ],
+      "facilitiesEn": [
+        "Bouldering Area",
+        "Training Area",
+        "Rest Area",
+        "Shower Facilities",
+        "Lockers"
+      ],
       "openingHours": {
-        "weekday": "10:00-22:30",
-        "weekend": "10:00-20:30",
         "monday": "10:00-22:30",
         "tuesday": "10:00-22:30",
         "wednesday": "10:00-22:30",
@@ -364,12 +559,30 @@
         "holiday": "10:00-20:30"
       },
       "pricing": {
-        "singleEntry": { "weekday": 400, "weekend": 400, "twilight": 250 },
-        "rental": { "shoes": 100 },
+        "singleEntry": {
+          "weekday": 400,
+          "weekend": 400,
+          "twilight": 250
+        },
+        "rental": {
+          "shoes": 100
+        },
         "notes": "平日17:00前入場$350"
       },
-      "transportation": { "mrt": "捷運南港展覽館站步行約10分鐘", "parking": "附近有收費停車場" },
-      "contact": { "phone": "02-2788-0615", "facebook": "Civic Bouldergym Taipei 市民抱石攀岩館", "facebookUrl": "https://www.facebook.com/CivicBouldergymTaipei", "instagram": "civic.bouldergym_taipei", "instagramUrl": "https://www.instagram.com/civic.bouldergym_taipei/", "website": "", "line": "", "youtube": "" },
+      "transportation": {
+        "mrt": "捷運南港展覽館站步行約10分鐘",
+        "parking": "附近有收費停車場"
+      },
+      "contact": {
+        "phone": "02-2788-0615",
+        "facebook": "Civic Bouldergym Taipei 市民抱石攀岩館",
+        "facebookUrl": "https://www.facebook.com/CivicBouldergymTaipei",
+        "instagram": "civic.bouldergym_taipei",
+        "instagramUrl": "https://www.instagram.com/civic.bouldergym_taipei/",
+        "website": "",
+        "line": "",
+        "youtube": ""
+      },
       "notes": "",
       "rating": 4.7,
       "featured": true,
@@ -397,11 +610,17 @@
       "descriptionEn": "Kirin Climbing Gym offers affordable bouldering experience.",
       "coverImage": "/images/gym/kirin.jpg",
       "images": [],
-      "facilities": ["抱石區", "體能訓練區", "休息區"],
-      "facilitiesEn": ["Bouldering Area", "Training Area", "Rest Area"],
+      "facilities": [
+        "抱石區",
+        "體能訓練區",
+        "休息區"
+      ],
+      "facilitiesEn": [
+        "Bouldering Area",
+        "Training Area",
+        "Rest Area"
+      ],
       "openingHours": {
-        "weekday": "14:00-22:30",
-        "weekend": "10:00-20:00",
         "monday": "14:00-22:30",
         "tuesday": "14:00-22:30",
         "wednesday": "14:00-22:30",
@@ -412,12 +631,26 @@
         "holiday": "10:00-20:00"
       },
       "pricing": {
-        "singleEntry": { "weekday": 300, "weekend": 300 },
-        "rental": { "shoes": 100 },
+        "singleEntry": {
+          "weekday": 300,
+          "weekend": 300
+        },
+        "rental": {
+          "shoes": 100
+        },
         "notes": "平日離峰(18:00前)$220"
       },
-      "transportation": { "mrt": "捷運南港展覽館站步行約5分鐘", "parking": "附近有收費停車場" },
-      "contact": { "phone": "", "facebook": "奇岩攀岩館", "instagram": "", "website": "", "line": "" },
+      "transportation": {
+        "mrt": "捷運南港展覽館站步行約5分鐘",
+        "parking": "附近有收費停車場"
+      },
+      "contact": {
+        "phone": "",
+        "facebook": "奇岩攀岩館",
+        "instagram": "",
+        "website": "",
+        "line": ""
+      },
       "notes": "",
       "rating": 4.4,
       "featured": false,
@@ -445,11 +678,17 @@
       "descriptionEn": "The Little Rock Tianmu is a cozy community bouldering gym.",
       "coverImage": "/images/gym/little-rock.jpg",
       "images": [],
-      "facilities": ["抱石區", "體能訓練區", "休息區"],
-      "facilitiesEn": ["Bouldering Area", "Training Area", "Rest Area"],
+      "facilities": [
+        "抱石區",
+        "體能訓練區",
+        "休息區"
+      ],
+      "facilitiesEn": [
+        "Bouldering Area",
+        "Training Area",
+        "Rest Area"
+      ],
       "openingHours": {
-        "weekday": "14:00-22:00",
-        "weekend": "10:00-19:00",
         "monday": "14:00-22:00",
         "tuesday": "14:00-22:00",
         "wednesday": "14:00-22:00",
@@ -460,11 +699,26 @@
         "holiday": "10:00-19:00"
       },
       "pricing": {
-        "singleEntry": { "weekday": 330, "weekend": 330, "twilight": 250 },
-        "rental": { "shoes": 100 }
+        "singleEntry": {
+          "weekday": 330,
+          "weekend": 330,
+          "twilight": 250
+        },
+        "rental": {
+          "shoes": 100
+        }
       },
-      "transportation": { "mrt": "捷運芝山站轉公車", "parking": "附近有收費停車場" },
-      "contact": { "phone": "", "facebook": "小岩館", "instagram": "", "website": "", "line": "" },
+      "transportation": {
+        "mrt": "捷運芝山站轉公車",
+        "parking": "附近有收費停車場"
+      },
+      "contact": {
+        "phone": "",
+        "facebook": "小岩館",
+        "instagram": "",
+        "website": "",
+        "line": ""
+      },
       "notes": "",
       "rating": 4.5,
       "featured": false,
@@ -492,11 +746,17 @@
       "descriptionEn": "RedRock Climbing Shilin offers affordable bouldering experience.",
       "coverImage": "/images/gym/redrock-shilin.jpg",
       "images": [],
-      "facilities": ["抱石區", "體能訓練區", "休息區"],
-      "facilitiesEn": ["Bouldering Area", "Training Area", "Rest Area"],
+      "facilities": [
+        "抱石區",
+        "體能訓練區",
+        "休息區"
+      ],
+      "facilitiesEn": [
+        "Bouldering Area",
+        "Training Area",
+        "Rest Area"
+      ],
       "openingHours": {
-        "weekday": "15:00-23:00",
-        "weekend": "09:00-18:00",
         "monday": "15:00-23:00",
         "tuesday": "15:00-23:00",
         "wednesday": "15:00-23:00",
@@ -507,11 +767,28 @@
         "holiday": "09:00-18:00"
       },
       "pricing": {
-        "singleEntry": { "weekday": 300, "weekend": 300 },
-        "rental": { "shoes": 100 }
+        "singleEntry": {
+          "weekday": 300,
+          "weekend": 300
+        },
+        "rental": {
+          "shoes": 100
+        }
       },
-      "transportation": { "mrt": "捷運士林站步行約10分鐘", "parking": "附近有收費停車場" },
-      "contact": { "phone": "02-2883-7591", "facebook": "紅石攀岩 RedRock", "facebookUrl": "https://www.facebook.com/redrocktaiwan", "instagram": "redrock_hc", "instagramUrl": "https://www.instagram.com/redrock_hc/", "website": "", "line": "", "youtube": "" },
+      "transportation": {
+        "mrt": "捷運士林站步行約10分鐘",
+        "parking": "附近有收費停車場"
+      },
+      "contact": {
+        "phone": "02-2883-7591",
+        "facebook": "紅石攀岩 RedRock",
+        "facebookUrl": "https://www.facebook.com/redrocktaiwan",
+        "instagram": "redrock_hc",
+        "instagramUrl": "https://www.instagram.com/redrock_hc/",
+        "website": "",
+        "line": "",
+        "youtube": ""
+      },
       "notes": "",
       "rating": 4.3,
       "featured": false,
@@ -539,11 +816,17 @@
       "descriptionEn": "RedRock Climbing Hsinchu offers affordable bouldering experience.",
       "coverImage": "/images/gym/redrock-hsinchu.jpg",
       "images": [],
-      "facilities": ["抱石區", "體能訓練區", "休息區"],
-      "facilitiesEn": ["Bouldering Area", "Training Area", "Rest Area"],
+      "facilities": [
+        "抱石區",
+        "體能訓練區",
+        "休息區"
+      ],
+      "facilitiesEn": [
+        "Bouldering Area",
+        "Training Area",
+        "Rest Area"
+      ],
       "openingHours": {
-        "weekday": "15:00-23:00",
-        "weekend": "09:00-20:00",
         "monday": "15:00-23:00",
         "tuesday": "15:00-23:00",
         "wednesday": "15:00-23:00",
@@ -554,11 +837,28 @@
         "holiday": "09:00-20:00"
       },
       "pricing": {
-        "singleEntry": { "weekday": 300, "weekend": 300 },
-        "rental": { "shoes": 100 }
+        "singleEntry": {
+          "weekday": 300,
+          "weekend": 300
+        },
+        "rental": {
+          "shoes": 100
+        }
       },
-      "transportation": { "train": "新竹火車站步行約15分鐘", "parking": "附近有收費停車場" },
-      "contact": { "phone": "02-2883-7591", "facebook": "紅石攀岩 RedRock", "facebookUrl": "https://www.facebook.com/redrocktaiwan", "instagram": "redrock_hc", "instagramUrl": "https://www.instagram.com/redrock_hc/", "website": "", "line": "", "youtube": "" },
+      "transportation": {
+        "train": "新竹火車站步行約15分鐘",
+        "parking": "附近有收費停車場"
+      },
+      "contact": {
+        "phone": "02-2883-7591",
+        "facebook": "紅石攀岩 RedRock",
+        "facebookUrl": "https://www.facebook.com/redrocktaiwan",
+        "instagram": "redrock_hc",
+        "instagramUrl": "https://www.instagram.com/redrock_hc/",
+        "website": "",
+        "line": "",
+        "youtube": ""
+      },
       "notes": "",
       "rating": 4.3,
       "featured": false,
@@ -586,11 +886,17 @@
       "descriptionEn": "CORNER Bouldering Gym Huashan is located near Huashan Creative Park.",
       "coverImage": "/images/gym/corner-huashan.jpg",
       "images": [],
-      "facilities": ["抱石區", "體能訓練區", "休息區"],
-      "facilitiesEn": ["Bouldering Area", "Training Area", "Rest Area"],
+      "facilities": [
+        "抱石區",
+        "體能訓練區",
+        "休息區"
+      ],
+      "facilitiesEn": [
+        "Bouldering Area",
+        "Training Area",
+        "Rest Area"
+      ],
       "openingHours": {
-        "weekday": "10:00-23:00",
-        "weekend": "09:00-21:00",
         "monday": "10:00-23:00",
         "tuesday": "10:00-23:00",
         "wednesday": "10:00-23:00",
@@ -601,12 +907,30 @@
         "holiday": "09:00-21:00"
       },
       "pricing": {
-        "singleEntry": { "weekday": 350, "weekend": 350, "twilight": 250 },
-        "rental": { "shoes": 100 },
+        "singleEntry": {
+          "weekday": 350,
+          "weekend": 350,
+          "twilight": 250
+        },
+        "rental": {
+          "shoes": 100
+        },
         "notes": "平日上午$250、平日下午$300、平日晚上$350"
       },
-      "transportation": { "mrt": "捷運忠孝新生站步行約5分鐘", "parking": "附近有收費停車場" },
-      "contact": { "phone": "", "facebook": "角攀岩館 CORNER Bouldering Gym", "facebookUrl": "https://www.facebook.com/cornerboulderinggym/", "instagram": "corner_bouldering", "instagramUrl": "https://www.instagram.com/corner_bouldering/", "website": "https://www.corner.inc/", "line": "", "youtube": "" },
+      "transportation": {
+        "mrt": "捷運忠孝新生站步行約5分鐘",
+        "parking": "附近有收費停車場"
+      },
+      "contact": {
+        "phone": "",
+        "facebook": "角攀岩館 CORNER Bouldering Gym",
+        "facebookUrl": "https://www.facebook.com/cornerboulderinggym/",
+        "instagram": "corner_bouldering",
+        "instagramUrl": "https://www.instagram.com/corner_bouldering/",
+        "website": "https://www.corner.inc/",
+        "line": "",
+        "youtube": ""
+      },
       "notes": "",
       "rating": 4.5,
       "featured": false,
@@ -634,11 +958,17 @@
       "descriptionEn": "CORNER Bouldering Gym Zhongshan is located on Zhongshan N. Rd.",
       "coverImage": "/images/gym/corner-zhongshan.jpg",
       "images": [],
-      "facilities": ["抱石區", "體能訓練區", "休息區"],
-      "facilitiesEn": ["Bouldering Area", "Training Area", "Rest Area"],
+      "facilities": [
+        "抱石區",
+        "體能訓練區",
+        "休息區"
+      ],
+      "facilitiesEn": [
+        "Bouldering Area",
+        "Training Area",
+        "Rest Area"
+      ],
       "openingHours": {
-        "weekday": "10:00-23:00",
-        "weekend": "09:00-21:00",
         "monday": "10:00-23:00",
         "tuesday": "10:00-23:00",
         "wednesday": "10:00-23:00",
@@ -649,11 +979,29 @@
         "holiday": "09:00-21:00"
       },
       "pricing": {
-        "singleEntry": { "weekday": 350, "weekend": 350, "twilight": 250 },
-        "rental": { "shoes": 100 }
+        "singleEntry": {
+          "weekday": 350,
+          "weekend": 350,
+          "twilight": 250
+        },
+        "rental": {
+          "shoes": 100
+        }
       },
-      "transportation": { "mrt": "捷運中山站步行約5分鐘", "parking": "附近有收費停車場" },
-      "contact": { "phone": "", "facebook": "角攀岩館 CORNER Bouldering Gym", "facebookUrl": "https://www.facebook.com/cornerboulderinggym/", "instagram": "corner_bouldering", "instagramUrl": "https://www.instagram.com/corner_bouldering/", "website": "https://www.corner.inc/", "line": "", "youtube": "" },
+      "transportation": {
+        "mrt": "捷運中山站步行約5分鐘",
+        "parking": "附近有收費停車場"
+      },
+      "contact": {
+        "phone": "",
+        "facebook": "角攀岩館 CORNER Bouldering Gym",
+        "facebookUrl": "https://www.facebook.com/cornerboulderinggym/",
+        "instagram": "corner_bouldering",
+        "instagramUrl": "https://www.instagram.com/corner_bouldering/",
+        "website": "https://www.corner.inc/",
+        "line": "",
+        "youtube": ""
+      },
       "notes": "",
       "rating": 4.5,
       "featured": false,
@@ -681,11 +1029,17 @@
       "descriptionEn": "Neihu Sports Center offers affordable climbing services.",
       "coverImage": "/images/gym/neihu-sport.jpg",
       "images": [],
-      "facilities": ["抱石區", "先鋒攀登", "上方確保"],
-      "facilitiesEn": ["Bouldering Area", "Lead Climbing", "Top Rope"],
+      "facilities": [
+        "抱石區",
+        "先鋒攀登",
+        "上方確保"
+      ],
+      "facilitiesEn": [
+        "Bouldering Area",
+        "Lead Climbing",
+        "Top Rope"
+      ],
       "openingHours": {
-        "weekday": "09:00-22:00",
-        "weekend": "09:00-22:00",
         "monday": "09:00-22:00",
         "tuesday": "09:00-22:00",
         "wednesday": "09:00-22:00",
@@ -696,14 +1050,29 @@
         "holiday": "09:00-22:00"
       },
       "pricing": {
-        "singleEntry": { "weekday": 200, "weekend": 200 },
-        "rental": { "shoes": 50, "harness": 50 },
+        "singleEntry": {
+          "weekday": 200,
+          "weekend": 200
+        },
+        "rental": {
+          "shoes": 50,
+          "harness": 50
+        },
         "notes": "抱石區$50/hr"
       },
-      "transportation": { "mrt": "捷運港墘站步行約10分鐘", "parking": "運動中心停車場" },
-      "contact": { "phone": "", "facebook": "", "instagram": "", "website": "", "line": "" },
+      "transportation": {
+        "mrt": "捷運港墘站步行約10分鐘",
+        "parking": "運動中心停車場"
+      },
+      "contact": {
+        "phone": "",
+        "facebook": "",
+        "instagram": "",
+        "website": "",
+        "line": ""
+      },
       "notes": "",
-      "rating": 4.0,
+      "rating": 4,
       "featured": false,
       "status": "published",
       "createdAt": "2024-01-01T00:00:00Z",
@@ -729,11 +1098,15 @@
       "descriptionEn": "TitoRock Yonghe offers bouldering and lead climbing.",
       "coverImage": "/images/gym/titorock-yonghe.jpg",
       "images": [],
-      "facilities": ["抱石區", "先鋒攀登"],
-      "facilitiesEn": ["Bouldering Area", "Lead Climbing"],
+      "facilities": [
+        "抱石區",
+        "先鋒攀登"
+      ],
+      "facilitiesEn": [
+        "Bouldering Area",
+        "Lead Climbing"
+      ],
       "openingHours": {
-        "weekday": "13:00-22:00",
-        "weekend": "09:00-22:00",
         "monday": "13:00-22:00",
         "tuesday": "13:00-22:00",
         "wednesday": "13:00-22:00",
@@ -744,12 +1117,26 @@
         "holiday": "09:00-22:00"
       },
       "pricing": {
-        "singleEntry": { "weekday": 200, "weekend": 250 },
-        "rental": { "shoes": 100 },
+        "singleEntry": {
+          "weekday": 200,
+          "weekend": 250
+        },
+        "rental": {
+          "shoes": 100
+        },
         "notes": "計時制：尖峰$80/hr、離峰$50/hr"
       },
-      "transportation": { "mrt": "捷運頂溪站步行約10分鐘", "parking": "運動中心停車場" },
-      "contact": { "phone": "", "facebook": "趣攀岩", "instagram": "", "website": "", "line": "" },
+      "transportation": {
+        "mrt": "捷運頂溪站步行約10分鐘",
+        "parking": "運動中心停車場"
+      },
+      "contact": {
+        "phone": "",
+        "facebook": "趣攀岩",
+        "instagram": "",
+        "website": "",
+        "line": ""
+      },
       "notes": "平日17:00-18:00休息",
       "rating": 4.2,
       "featured": false,
@@ -777,11 +1164,15 @@
       "descriptionEn": "Camp4 Climbing Gym Beitou offers lead climbing.",
       "coverImage": "/images/gym/camp4-beitou.jpg",
       "images": [],
-      "facilities": ["先鋒攀登", "上方確保"],
-      "facilitiesEn": ["Lead Climbing", "Top Rope"],
+      "facilities": [
+        "先鋒攀登",
+        "上方確保"
+      ],
+      "facilitiesEn": [
+        "Lead Climbing",
+        "Top Rope"
+      ],
       "openingHours": {
-        "weekday": "13:00-21:30",
-        "weekend": "09:00-18:00",
         "monday": "13:00-21:30",
         "tuesday": "13:00-21:30",
         "wednesday": "13:00-21:30",
@@ -792,11 +1183,29 @@
         "holiday": "09:00-18:00"
       },
       "pricing": {
-        "singleEntry": { "weekday": 160, "weekend": 160 },
-        "rental": { "shoes": 50, "harness": 50 }
+        "singleEntry": {
+          "weekday": 160,
+          "weekend": 160
+        },
+        "rental": {
+          "shoes": 50,
+          "harness": 50
+        }
       },
-      "transportation": { "mrt": "捷運石牌站步行約10分鐘", "parking": "運動中心停車場" },
-      "contact": { "phone": "02-2382-0523", "facebook": "Camp4攀岩館", "facebookUrl": "https://www.facebook.com/camp4climbing/", "instagram": "camp4climbinggym", "instagramUrl": "https://www.instagram.com/camp4climbinggym/", "website": "https://www.adventuretaiwan.com/camp4/", "line": "", "youtube": "" },
+      "transportation": {
+        "mrt": "捷運石牌站步行約10分鐘",
+        "parking": "運動中心停車場"
+      },
+      "contact": {
+        "phone": "02-2382-0523",
+        "facebook": "Camp4攀岩館",
+        "facebookUrl": "https://www.facebook.com/camp4climbing/",
+        "instagram": "camp4climbinggym",
+        "instagramUrl": "https://www.instagram.com/camp4climbinggym/",
+        "website": "https://www.adventuretaiwan.com/camp4/",
+        "line": "",
+        "youtube": ""
+      },
       "notes": "",
       "rating": 4.1,
       "featured": false,
@@ -824,11 +1233,17 @@
       "descriptionEn": "Double 8 Climbing Lab is located in Dadaocheng, reservation required.",
       "coverImage": "/images/gym/double8-dihua.jpg",
       "images": [],
-      "facilities": ["抱石區", "先鋒攀登", "體能訓練區"],
-      "facilitiesEn": ["Bouldering Area", "Lead Climbing", "Training Area"],
+      "facilities": [
+        "抱石區",
+        "先鋒攀登",
+        "體能訓練區"
+      ],
+      "facilitiesEn": [
+        "Bouldering Area",
+        "Lead Climbing",
+        "Training Area"
+      ],
       "openingHours": {
-        "weekday": "13:30-22:00",
-        "weekend": "10:00-19:00",
         "monday": "13:30-22:00",
         "tuesday": "13:30-22:00",
         "wednesday": "13:30-22:00",
@@ -839,11 +1254,28 @@
         "holiday": "10:00-19:00"
       },
       "pricing": {
-        "singleEntry": { "weekday": 250, "weekend": 280 },
-        "rental": { "shoes": 100 }
+        "singleEntry": {
+          "weekday": 250,
+          "weekend": 280
+        },
+        "rental": {
+          "shoes": 100
+        }
       },
-      "transportation": { "mrt": "捷運大橋頭站步行約10分鐘", "parking": "附近有收費停車場" },
-      "contact": { "phone": "", "facebook": "double 8 岩究所", "facebookUrl": "https://www.facebook.com/double8y17climbing/", "instagram": "double8_climbing", "instagramUrl": "https://www.instagram.com/double8_climbing/", "website": "https://www.double8.com.tw/", "line": "", "youtube": "" },
+      "transportation": {
+        "mrt": "捷運大橋頭站步行約10分鐘",
+        "parking": "附近有收費停車場"
+      },
+      "contact": {
+        "phone": "",
+        "facebook": "double 8 岩究所",
+        "facebookUrl": "https://www.facebook.com/double8y17climbing/",
+        "instagram": "double8_climbing",
+        "instagramUrl": "https://www.instagram.com/double8_climbing/",
+        "website": "https://www.double8.com.tw/",
+        "line": "",
+        "youtube": ""
+      },
       "notes": "採預約制入場",
       "rating": 4.4,
       "featured": false,
@@ -871,11 +1303,15 @@
       "descriptionEn": "Double 8 Y17 is located at Youth Development Center, reservation required.",
       "coverImage": "/images/gym/double8-y17.jpg",
       "images": [],
-      "facilities": ["先鋒攀登", "上方確保"],
-      "facilitiesEn": ["Lead Climbing", "Top Rope"],
+      "facilities": [
+        "先鋒攀登",
+        "上方確保"
+      ],
+      "facilitiesEn": [
+        "Lead Climbing",
+        "Top Rope"
+      ],
       "openingHours": {
-        "weekday": "13:00-21:30",
-        "weekend": "10:00-18:30",
         "monday": "13:00-21:30",
         "tuesday": "13:00-21:30",
         "wednesday": "13:00-21:30",
@@ -886,11 +1322,29 @@
         "holiday": "10:00-18:30"
       },
       "pricing": {
-        "singleEntry": { "weekday": 250, "weekend": 280 },
-        "rental": { "shoes": 50, "harness": 50 }
+        "singleEntry": {
+          "weekday": 250,
+          "weekend": 280
+        },
+        "rental": {
+          "shoes": 50,
+          "harness": 50
+        }
       },
-      "transportation": { "mrt": "捷運善導寺站步行約3分鐘", "parking": "地下停車場" },
-      "contact": { "phone": "", "facebook": "double 8 岩究所", "facebookUrl": "https://www.facebook.com/double8y17climbing/", "instagram": "double8_climbing", "instagramUrl": "https://www.instagram.com/double8_climbing/", "website": "https://www.double8.com.tw/", "line": "", "youtube": "" },
+      "transportation": {
+        "mrt": "捷運善導寺站步行約3分鐘",
+        "parking": "地下停車場"
+      },
+      "contact": {
+        "phone": "",
+        "facebook": "double 8 岩究所",
+        "facebookUrl": "https://www.facebook.com/double8y17climbing/",
+        "instagram": "double8_climbing",
+        "instagramUrl": "https://www.instagram.com/double8_climbing/",
+        "website": "https://www.double8.com.tw/",
+        "line": "",
+        "youtube": ""
+      },
       "notes": "採預約制入場，平日17:00-18:00休息，假日12:00-13:00休息",
       "rating": 4.3,
       "featured": false,
@@ -918,11 +1372,19 @@
       "descriptionEn": "Passion Climbing Gym offers bouldering and lead climbing.",
       "coverImage": "/images/gym/passion.jpg",
       "images": [],
-      "facilities": ["抱石區", "先鋒攀登", "體能訓練區", "休息區"],
-      "facilitiesEn": ["Bouldering Area", "Lead Climbing", "Training Area", "Rest Area"],
+      "facilities": [
+        "抱石區",
+        "先鋒攀登",
+        "體能訓練區",
+        "休息區"
+      ],
+      "facilitiesEn": [
+        "Bouldering Area",
+        "Lead Climbing",
+        "Training Area",
+        "Rest Area"
+      ],
       "openingHours": {
-        "weekday": "15:00-23:00",
-        "weekend": "10:00-21:00",
         "monday": "公休",
         "tuesday": "15:00-23:00",
         "wednesday": "15:00-23:00",
@@ -933,11 +1395,27 @@
         "holiday": "10:00-21:00"
       },
       "pricing": {
-        "singleEntry": { "weekday": 320, "weekend": 350, "twilight": 250 },
-        "rental": { "shoes": 100, "harness": 80 }
+        "singleEntry": {
+          "weekday": 320,
+          "weekend": 350,
+          "twilight": 250
+        },
+        "rental": {
+          "shoes": 100,
+          "harness": 80
+        }
       },
-      "transportation": { "train": "桃園火車站轉公車約15分鐘", "parking": "附近有停車場" },
-      "contact": { "phone": "", "facebook": "爬森攀岩館", "instagram": "", "website": "", "line": "" },
+      "transportation": {
+        "train": "桃園火車站轉公車約15分鐘",
+        "parking": "附近有停車場"
+      },
+      "contact": {
+        "phone": "",
+        "facebook": "爬森攀岩館",
+        "instagram": "",
+        "website": "",
+        "line": ""
+      },
       "notes": "當月壽星可免費入場一次",
       "rating": 4.4,
       "featured": false,
@@ -965,11 +1443,17 @@
       "descriptionEn": "Thousand Hands offers professional bouldering services.",
       "coverImage": "/images/gym/thousand-hands.jpg",
       "images": [],
-      "facilities": ["抱石區", "體能訓練區", "休息區"],
-      "facilitiesEn": ["Bouldering Area", "Training Area", "Rest Area"],
+      "facilities": [
+        "抱石區",
+        "體能訓練區",
+        "休息區"
+      ],
+      "facilitiesEn": [
+        "Bouldering Area",
+        "Training Area",
+        "Rest Area"
+      ],
       "openingHours": {
-        "weekday": "14:00-22:00",
-        "weekend": "10:00-19:00",
         "monday": "14:00-22:00",
         "tuesday": "14:00-22:00",
         "wednesday": "14:00-22:00",
@@ -980,12 +1464,27 @@
         "holiday": "10:00-19:00"
       },
       "pricing": {
-        "singleEntry": { "weekday": 320, "weekend": 350, "twilight": 200 },
-        "rental": { "shoes": 100 },
+        "singleEntry": {
+          "weekday": 320,
+          "weekend": 350,
+          "twilight": 200
+        },
+        "rental": {
+          "shoes": 100
+        },
         "notes": "平日16:00前入場$280"
       },
-      "transportation": { "train": "桃園火車站轉公車約10分鐘", "parking": "附近有停車場" },
-      "contact": { "phone": "", "facebook": "千手抱石", "instagram": "", "website": "", "line": "" },
+      "transportation": {
+        "train": "桃園火車站轉公車約10分鐘",
+        "parking": "附近有停車場"
+      },
+      "contact": {
+        "phone": "",
+        "facebook": "千手抱石",
+        "instagram": "",
+        "website": "",
+        "line": ""
+      },
       "notes": "",
       "rating": 4.4,
       "featured": false,
@@ -1013,11 +1512,19 @@
       "descriptionEn": "iClimb Hsinchu Chenggong offers bouldering and lead climbing.",
       "coverImage": "/images/gym/iclimb-chenggong.jpg",
       "images": [],
-      "facilities": ["抱石區", "先鋒攀登", "體能訓練區", "休息區"],
-      "facilitiesEn": ["Bouldering Area", "Lead Climbing", "Training Area", "Rest Area"],
+      "facilities": [
+        "抱石區",
+        "先鋒攀登",
+        "體能訓練區",
+        "休息區"
+      ],
+      "facilitiesEn": [
+        "Bouldering Area",
+        "Lead Climbing",
+        "Training Area",
+        "Rest Area"
+      ],
       "openingHours": {
-        "weekday": "14:00-23:00",
-        "weekend": "09:00-18:00",
         "monday": "14:00-23:00",
         "tuesday": "14:00-23:00",
         "wednesday": "10:00-22:30",
@@ -1028,12 +1535,30 @@
         "holiday": "09:00-18:00"
       },
       "pricing": {
-        "singleEntry": { "weekday": 320, "weekend": 320 },
-        "rental": { "shoes": 100, "harness": 80 },
+        "singleEntry": {
+          "weekday": 320,
+          "weekend": 320
+        },
+        "rental": {
+          "shoes": 100,
+          "harness": 80
+        },
         "notes": "首次需入會費$150"
       },
-      "transportation": { "train": "高鐵新竹站轉公車約15分鐘", "parking": "附設停車場" },
-      "contact": { "phone": "03-658-8588", "facebook": "iClimb風城攀岩館", "facebookUrl": "https://www.facebook.com/iclimbcg/", "instagram": "iclimb_shengli", "instagramUrl": "https://www.instagram.com/iclimb_shengli/", "website": "http://www.iclimb.com.tw/", "line": "", "youtube": "" },
+      "transportation": {
+        "train": "高鐵新竹站轉公車約15分鐘",
+        "parking": "附設停車場"
+      },
+      "contact": {
+        "phone": "03-658-8588",
+        "facebook": "iClimb風城攀岩館",
+        "facebookUrl": "https://www.facebook.com/iclimbcg/",
+        "instagram": "iclimb_shengli",
+        "instagramUrl": "https://www.instagram.com/iclimb_shengli/",
+        "website": "http://www.iclimb.com.tw/",
+        "line": "",
+        "youtube": ""
+      },
       "notes": "",
       "rating": 4.5,
       "featured": false,
@@ -1061,11 +1586,17 @@
       "descriptionEn": "iClimb Hsinchu Shengli offers bouldering services.",
       "coverImage": "/images/gym/iclimb-shengli.jpg",
       "images": [],
-      "facilities": ["抱石區", "體能訓練區", "休息區"],
-      "facilitiesEn": ["Bouldering Area", "Training Area", "Rest Area"],
+      "facilities": [
+        "抱石區",
+        "體能訓練區",
+        "休息區"
+      ],
+      "facilitiesEn": [
+        "Bouldering Area",
+        "Training Area",
+        "Rest Area"
+      ],
       "openingHours": {
-        "weekday": "14:00-23:00",
-        "weekend": "09:00-21:00",
         "monday": "14:00-23:00",
         "tuesday": "14:00-23:00",
         "wednesday": "14:00-23:00",
@@ -1076,12 +1607,29 @@
         "holiday": "09:00-21:00"
       },
       "pricing": {
-        "singleEntry": { "weekday": 350, "weekend": 380 },
-        "rental": { "shoes": 100 },
+        "singleEntry": {
+          "weekday": 350,
+          "weekend": 380
+        },
+        "rental": {
+          "shoes": 100
+        },
         "notes": "離峰票(平日18:00前、假日19:00後)$299，首次需入會費$150"
       },
-      "transportation": { "train": "高鐵新竹站轉公車約10分鐘", "parking": "附設停車場" },
-      "contact": { "phone": "03-658-8588", "facebook": "iClimb風城攀岩館", "facebookUrl": "https://www.facebook.com/iclimbcg/", "instagram": "iclimb_shengli", "instagramUrl": "https://www.instagram.com/iclimb_shengli/", "website": "http://www.iclimb.com.tw/", "line": "", "youtube": "" },
+      "transportation": {
+        "train": "高鐵新竹站轉公車約10分鐘",
+        "parking": "附設停車場"
+      },
+      "contact": {
+        "phone": "03-658-8588",
+        "facebook": "iClimb風城攀岩館",
+        "facebookUrl": "https://www.facebook.com/iclimbcg/",
+        "instagram": "iclimb_shengli",
+        "instagramUrl": "https://www.instagram.com/iclimb_shengli/",
+        "website": "http://www.iclimb.com.tw/",
+        "line": "",
+        "youtube": ""
+      },
       "notes": "",
       "rating": 4.5,
       "featured": false,
@@ -1109,11 +1657,17 @@
       "descriptionEn": "BABO PAPAK offers bouldering services.",
       "coverImage": "/images/gym/babo-papak.jpg",
       "images": [],
-      "facilities": ["抱石區", "體能訓練區", "休息區"],
-      "facilitiesEn": ["Bouldering Area", "Training Area", "Rest Area"],
+      "facilities": [
+        "抱石區",
+        "體能訓練區",
+        "休息區"
+      ],
+      "facilitiesEn": [
+        "Bouldering Area",
+        "Training Area",
+        "Rest Area"
+      ],
       "openingHours": {
-        "weekday": "13:30-23:00",
-        "weekend": "09:30-19:00",
         "monday": "13:30-23:00",
         "tuesday": "13:30-23:00",
         "wednesday": "13:30-23:00",
@@ -1124,12 +1678,26 @@
         "holiday": "09:30-19:00"
       },
       "pricing": {
-        "singleEntry": { "weekday": 320, "weekend": 320 },
-        "rental": { "shoes": 80 },
+        "singleEntry": {
+          "weekday": 320,
+          "weekend": 320
+        },
+        "rental": {
+          "shoes": 80
+        },
         "notes": "平日離峰票(13:30-18:00)$250"
       },
-      "transportation": { "train": "新竹火車站步行約10分鐘", "parking": "附近有停車場" },
-      "contact": { "phone": "", "facebook": "BABO PAPAK", "instagram": "", "website": "", "line": "" },
+      "transportation": {
+        "train": "新竹火車站步行約10分鐘",
+        "parking": "附近有停車場"
+      },
+      "contact": {
+        "phone": "",
+        "facebook": "BABO PAPAK",
+        "instagram": "",
+        "website": "",
+        "line": ""
+      },
       "notes": "",
       "rating": 4.3,
       "featured": false,
@@ -1157,11 +1725,17 @@
       "descriptionEn": "Flow Bouldering Gym (formerly Little Rock Neihu) offers bouldering services.",
       "coverImage": "/images/gym/flow-boulder.jpg",
       "images": [],
-      "facilities": ["抱石區", "體能訓練區", "休息區"],
-      "facilitiesEn": ["Bouldering Area", "Training Area", "Rest Area"],
+      "facilities": [
+        "抱石區",
+        "體能訓練區",
+        "休息區"
+      ],
+      "facilitiesEn": [
+        "Bouldering Area",
+        "Training Area",
+        "Rest Area"
+      ],
       "openingHours": {
-        "weekday": "12:00-23:00",
-        "weekend": "10:00-19:00",
         "monday": "12:00-23:00",
         "tuesday": "12:00-23:00",
         "wednesday": "12:00-23:00",
@@ -1172,11 +1746,29 @@
         "holiday": "10:00-19:00"
       },
       "pricing": {
-        "singleEntry": { "weekday": 350, "weekend": 350, "twilight": 300 },
-        "rental": { "shoes": 100 }
+        "singleEntry": {
+          "weekday": 350,
+          "weekend": 350,
+          "twilight": 300
+        },
+        "rental": {
+          "shoes": 100
+        }
       },
-      "transportation": { "mrt": "捷運港墘站步行約10分鐘", "parking": "附近有收費停車場" },
-      "contact": { "phone": "02-2657-6006", "facebook": "心流抱石館 Flow Bouldering", "facebookUrl": "https://www.facebook.com/flowboulderinggym/", "instagram": "flowboulderinggym", "instagramUrl": "https://www.instagram.com/flowboulderinggym/", "website": "", "line": "", "youtube": "" },
+      "transportation": {
+        "mrt": "捷運港墘站步行約10分鐘",
+        "parking": "附近有收費停車場"
+      },
+      "contact": {
+        "phone": "02-2657-6006",
+        "facebook": "心流抱石館 Flow Bouldering",
+        "facebookUrl": "https://www.facebook.com/flowboulderinggym/",
+        "instagram": "flowboulderinggym",
+        "instagramUrl": "https://www.instagram.com/flowboulderinggym/",
+        "website": "",
+        "line": "",
+        "youtube": ""
+      },
       "notes": "2023.04.29開幕",
       "rating": 4.4,
       "featured": false,
@@ -1204,11 +1796,23 @@
       "descriptionEn": "Dapro Indoor Climbing is the largest climbing gym in Taichung.",
       "coverImage": "/images/gym/dapro.jpg",
       "images": [],
-      "facilities": ["抱石區", "先鋒攀登", "速度攀登", "體能訓練區", "休息區", "淋浴設施"],
-      "facilitiesEn": ["Bouldering Area", "Lead Climbing", "Speed Climbing", "Training Area", "Rest Area", "Shower"],
+      "facilities": [
+        "抱石區",
+        "先鋒攀登",
+        "速度攀登",
+        "體能訓練區",
+        "休息區",
+        "淋浴設施"
+      ],
+      "facilitiesEn": [
+        "Bouldering Area",
+        "Lead Climbing",
+        "Speed Climbing",
+        "Training Area",
+        "Rest Area",
+        "Shower"
+      ],
       "openingHours": {
-        "weekday": "13:00-23:00",
-        "weekend": "10:00-20:00",
         "monday": "13:00-23:00",
         "tuesday": "13:00-23:00",
         "wednesday": "13:00-23:00",
@@ -1219,12 +1823,31 @@
         "holiday": "10:00-20:00"
       },
       "pricing": {
-        "singleEntry": { "weekday": 450, "weekend": 450, "twilight": 380 },
-        "rental": { "shoes": 100, "harness": 100 },
+        "singleEntry": {
+          "weekday": 450,
+          "weekend": 450,
+          "twilight": 380
+        },
+        "rental": {
+          "shoes": 100,
+          "harness": 100
+        },
         "notes": "採會員制(入會費$300)"
       },
-      "transportation": { "bus": "可搭乘公車至永春東七路站", "parking": "附設停車場" },
-      "contact": { "phone": "04-2380-7490", "facebook": "Dapro Indoor Climbing", "facebookUrl": "https://www.facebook.com/daproindoorclimbing/", "instagram": "dapro_indoor_climbing", "instagramUrl": "https://www.instagram.com/dapro_indoor_climbing/", "website": "https://www.daproindoorclimbing.com/", "line": "@dapro", "youtube": "" },
+      "transportation": {
+        "bus": "可搭乘公車至永春東七路站",
+        "parking": "附設停車場"
+      },
+      "contact": {
+        "phone": "04-2380-7490",
+        "facebook": "Dapro Indoor Climbing",
+        "facebookUrl": "https://www.facebook.com/daproindoorclimbing/",
+        "instagram": "dapro_indoor_climbing",
+        "instagramUrl": "https://www.instagram.com/dapro_indoor_climbing/",
+        "website": "https://www.daproindoorclimbing.com/",
+        "line": "@dapro",
+        "youtube": ""
+      },
       "notes": "",
       "rating": 4.7,
       "featured": true,
@@ -1252,11 +1875,17 @@
       "descriptionEn": "VB Climbing Gym offers affordable bouldering services.",
       "coverImage": "/images/gym/vb-taichung.jpg",
       "images": [],
-      "facilities": ["抱石區", "體能訓練區", "休息區"],
-      "facilitiesEn": ["Bouldering Area", "Training Area", "Rest Area"],
+      "facilities": [
+        "抱石區",
+        "體能訓練區",
+        "休息區"
+      ],
+      "facilitiesEn": [
+        "Bouldering Area",
+        "Training Area",
+        "Rest Area"
+      ],
       "openingHours": {
-        "weekday": "15:00-23:00",
-        "weekend": "11:00-20:00",
         "monday": "18:00-23:00",
         "tuesday": "18:00-23:00",
         "wednesday": "15:00-23:00",
@@ -1267,11 +1896,28 @@
         "holiday": "11:00-20:00"
       },
       "pricing": {
-        "singleEntry": { "weekday": 300, "weekend": 300 },
-        "rental": { "shoes": 80 }
+        "singleEntry": {
+          "weekday": 300,
+          "weekend": 300
+        },
+        "rental": {
+          "shoes": 80
+        }
       },
-      "transportation": { "train": "台中火車站轉公車約15分鐘", "parking": "附近有停車場" },
-      "contact": { "phone": "", "facebook": "攀吶進化館 VB Climbing Gym", "facebookUrl": "https://www.facebook.com/VBclimbinggym/", "instagram": "vb_climbing_gym", "instagramUrl": "https://www.instagram.com/vb_climbing_gym/", "website": "", "line": "", "youtube": "" },
+      "transportation": {
+        "train": "台中火車站轉公車約15分鐘",
+        "parking": "附近有停車場"
+      },
+      "contact": {
+        "phone": "",
+        "facebook": "攀吶進化館 VB Climbing Gym",
+        "facebookUrl": "https://www.facebook.com/VBclimbinggym/",
+        "instagram": "vb_climbing_gym",
+        "instagramUrl": "https://www.instagram.com/vb_climbing_gym/",
+        "website": "",
+        "line": "",
+        "youtube": ""
+      },
       "notes": "",
       "rating": 4.3,
       "featured": false,
@@ -1299,11 +1945,17 @@
       "descriptionEn": "B-plus Climbing Gym offers affordable bouldering services.",
       "coverImage": "/images/gym/bplus.jpg",
       "images": [],
-      "facilities": ["抱石區", "體能訓練區", "休息區"],
-      "facilitiesEn": ["Bouldering Area", "Training Area", "Rest Area"],
+      "facilities": [
+        "抱石區",
+        "體能訓練區",
+        "休息區"
+      ],
+      "facilitiesEn": [
+        "Bouldering Area",
+        "Training Area",
+        "Rest Area"
+      ],
       "openingHours": {
-        "weekday": "18:00-23:00",
-        "weekend": "13:00-19:00",
         "monday": "公休",
         "tuesday": "18:00-23:00",
         "wednesday": "18:00-23:00",
@@ -1314,11 +1966,28 @@
         "holiday": "13:00-19:00"
       },
       "pricing": {
-        "singleEntry": { "weekday": 250, "weekend": 250 },
-        "rental": { "shoes": 50 }
+        "singleEntry": {
+          "weekday": 250,
+          "weekend": 250
+        },
+        "rental": {
+          "shoes": 50
+        }
       },
-      "transportation": { "bus": "可搭乘公車至環中路站", "parking": "附近有停車場" },
-      "contact": { "phone": "0933-324-381", "facebook": "B-plus攀岩館", "facebookUrl": "https://www.facebook.com/BplusClimbing/", "instagram": "b_plus_bouldering_gym", "instagramUrl": "https://www.instagram.com/b_plus_bouldering_gym/", "website": "", "line": "", "youtube": "" },
+      "transportation": {
+        "bus": "可搭乘公車至環中路站",
+        "parking": "附近有停車場"
+      },
+      "contact": {
+        "phone": "0933-324-381",
+        "facebook": "B-plus攀岩館",
+        "facebookUrl": "https://www.facebook.com/BplusClimbing/",
+        "instagram": "b_plus_bouldering_gym",
+        "instagramUrl": "https://www.instagram.com/b_plus_bouldering_gym/",
+        "website": "",
+        "line": "",
+        "youtube": ""
+      },
       "notes": "",
       "rating": 4.2,
       "featured": false,
@@ -1346,11 +2015,17 @@
       "descriptionEn": "B-plus Climbing Gym Taiyuan opened in April 2023.",
       "coverImage": "/images/gym/bplus-taiyuan.jpg",
       "images": [],
-      "facilities": ["抱石區", "體能訓練區", "休息區"],
-      "facilitiesEn": ["Bouldering Area", "Training Area", "Rest Area"],
+      "facilities": [
+        "抱石區",
+        "體能訓練區",
+        "休息區"
+      ],
+      "facilitiesEn": [
+        "Bouldering Area",
+        "Training Area",
+        "Rest Area"
+      ],
       "openingHours": {
-        "weekday": "14:00-22:00",
-        "weekend": "10:00-19:00",
         "monday": "14:00-22:00",
         "tuesday": "14:00-22:00",
         "wednesday": "14:00-22:00",
@@ -1361,11 +2036,28 @@
         "holiday": "10:00-19:00"
       },
       "pricing": {
-        "singleEntry": { "weekday": 350, "weekend": 350 },
-        "rental": { "shoes": 80 }
+        "singleEntry": {
+          "weekday": 350,
+          "weekend": 350
+        },
+        "rental": {
+          "shoes": 80
+        }
       },
-      "transportation": { "bus": "可搭乘公車至建和路站", "parking": "附近有停車場" },
-      "contact": { "phone": "0933-324-381", "facebook": "B-plus攀岩館", "facebookUrl": "https://www.facebook.com/BplusClimbing/", "instagram": "b_plus_bouldering_gym", "instagramUrl": "https://www.instagram.com/b_plus_bouldering_gym/", "website": "", "line": "", "youtube": "" },
+      "transportation": {
+        "bus": "可搭乘公車至建和路站",
+        "parking": "附近有停車場"
+      },
+      "contact": {
+        "phone": "0933-324-381",
+        "facebook": "B-plus攀岩館",
+        "facebookUrl": "https://www.facebook.com/BplusClimbing/",
+        "instagram": "b_plus_bouldering_gym",
+        "instagramUrl": "https://www.instagram.com/b_plus_bouldering_gym/",
+        "website": "",
+        "line": "",
+        "youtube": ""
+      },
       "notes": "2023.04.01開幕",
       "rating": 4.3,
       "featured": false,
@@ -1393,11 +2085,19 @@
       "descriptionEn": "Shabby Factory offers bouldering and lead climbing.",
       "coverImage": "/images/gym/shabby-factory.jpg",
       "images": [],
-      "facilities": ["抱石區", "先鋒攀登", "體能訓練區", "休息區"],
-      "facilitiesEn": ["Bouldering Area", "Lead Climbing", "Training Area", "Rest Area"],
+      "facilities": [
+        "抱石區",
+        "先鋒攀登",
+        "體能訓練區",
+        "休息區"
+      ],
+      "facilitiesEn": [
+        "Bouldering Area",
+        "Lead Climbing",
+        "Training Area",
+        "Rest Area"
+      ],
       "openingHours": {
-        "weekday": "14:00-22:00",
-        "weekend": "09:30-18:00",
         "monday": "14:00-22:00",
         "tuesday": "14:00-22:00",
         "wednesday": "14:00-22:00",
@@ -1408,11 +2108,25 @@
         "holiday": "09:30-18:00"
       },
       "pricing": {
-        "singleEntry": { "weekday": 280, "weekend": 280 },
-        "rental": { "shoes": 50 }
+        "singleEntry": {
+          "weekday": 280,
+          "weekend": 280
+        },
+        "rental": {
+          "shoes": 50
+        }
       },
-      "transportation": { "train": "員林火車站步行約15分鐘", "parking": "附設停車場" },
-      "contact": { "phone": "", "facebook": "破舊工廠", "instagram": "", "website": "", "line": "" },
+      "transportation": {
+        "train": "員林火車站步行約15分鐘",
+        "parking": "附設停車場"
+      },
+      "contact": {
+        "phone": "",
+        "facebook": "破舊工廠",
+        "instagram": "",
+        "website": "",
+        "line": ""
+      },
       "notes": "",
       "rating": 4.4,
       "featured": false,
@@ -1440,11 +2154,17 @@
       "descriptionEn": "High Fun Gym offers bouldering services.",
       "coverImage": "/images/gym/highfun.jpg",
       "images": [],
-      "facilities": ["抱石區", "體能訓練區", "休息區"],
-      "facilitiesEn": ["Bouldering Area", "Training Area", "Rest Area"],
+      "facilities": [
+        "抱石區",
+        "體能訓練區",
+        "休息區"
+      ],
+      "facilitiesEn": [
+        "Bouldering Area",
+        "Training Area",
+        "Rest Area"
+      ],
       "openingHours": {
-        "weekday": "14:00-22:00",
-        "weekend": "10:00-18:00",
         "monday": "公休",
         "tuesday": "14:00-22:00",
         "wednesday": "14:00-22:00",
@@ -1455,11 +2175,25 @@
         "holiday": "10:00-18:00"
       },
       "pricing": {
-        "singleEntry": { "weekday": 300, "weekend": 300 },
-        "rental": { "shoes": 80 }
+        "singleEntry": {
+          "weekday": 300,
+          "weekend": 300
+        },
+        "rental": {
+          "shoes": 80
+        }
       },
-      "transportation": { "train": "台南火車站轉公車約15分鐘", "parking": "附近有停車場" },
-      "contact": { "phone": "", "facebook": "High Fun嗨翻", "instagram": "", "website": "", "line": "" },
+      "transportation": {
+        "train": "台南火車站轉公車約15分鐘",
+        "parking": "附近有停車場"
+      },
+      "contact": {
+        "phone": "",
+        "facebook": "High Fun嗨翻",
+        "instagram": "",
+        "website": "",
+        "line": ""
+      },
       "notes": "",
       "rating": 4.2,
       "featured": false,
@@ -1487,11 +2221,17 @@
       "descriptionEn": "BCKH Bouldering Base offers professional bouldering services.",
       "coverImage": "/images/gym/bckh.jpg",
       "images": [],
-      "facilities": ["抱石區", "體能訓練區", "休息區"],
-      "facilitiesEn": ["Bouldering Area", "Training Area", "Rest Area"],
+      "facilities": [
+        "抱石區",
+        "體能訓練區",
+        "休息區"
+      ],
+      "facilitiesEn": [
+        "Bouldering Area",
+        "Training Area",
+        "Rest Area"
+      ],
       "openingHours": {
-        "weekday": "14:00-22:30",
-        "weekend": "10:00-19:00",
         "monday": "14:00-22:30",
         "tuesday": "14:00-22:30",
         "wednesday": "公休",
@@ -1502,11 +2242,29 @@
         "holiday": "10:00-19:00"
       },
       "pricing": {
-        "singleEntry": { "weekday": 280, "weekend": 280, "twilight": 200 },
-        "rental": { "shoes": 80 }
+        "singleEntry": {
+          "weekday": 280,
+          "weekend": 280,
+          "twilight": 200
+        },
+        "rental": {
+          "shoes": 80
+        }
       },
-      "transportation": { "mrt": "高雄捷運巨蛋站步行約15分鐘", "parking": "附近有停車場" },
-      "contact": { "phone": "", "facebook": "抱石基地 Base Camp", "facebookUrl": "https://www.facebook.com/basecampkhh/", "instagram": "basecampkhh", "instagramUrl": "https://www.instagram.com/basecampkhh/", "website": "", "line": "", "youtube": "" },
+      "transportation": {
+        "mrt": "高雄捷運巨蛋站步行約15分鐘",
+        "parking": "附近有停車場"
+      },
+      "contact": {
+        "phone": "",
+        "facebook": "抱石基地 Base Camp",
+        "facebookUrl": "https://www.facebook.com/basecampkhh/",
+        "instagram": "basecampkhh",
+        "instagramUrl": "https://www.instagram.com/basecampkhh/",
+        "website": "",
+        "line": "",
+        "youtube": ""
+      },
       "notes": "",
       "rating": 4.4,
       "featured": false,
@@ -1534,11 +2292,19 @@
       "descriptionEn": "Boulder Space Zuoying is located in Global Mall, offering bouldering and lead climbing.",
       "coverImage": "/images/gym/boulder-space.jpg",
       "images": [],
-      "facilities": ["抱石區", "先鋒攀登", "體能訓練區", "休息區"],
-      "facilitiesEn": ["Bouldering Area", "Lead Climbing", "Training Area", "Rest Area"],
+      "facilities": [
+        "抱石區",
+        "先鋒攀登",
+        "體能訓練區",
+        "休息區"
+      ],
+      "facilitiesEn": [
+        "Bouldering Area",
+        "Lead Climbing",
+        "Training Area",
+        "Rest Area"
+      ],
       "openingHours": {
-        "weekday": "11:00-22:00",
-        "weekend": "11:00-22:00",
         "monday": "11:00-22:00",
         "tuesday": "11:00-22:00",
         "wednesday": "11:00-22:00",
@@ -1549,11 +2315,26 @@
         "holiday": "11:00-22:00"
       },
       "pricing": {
-        "singleEntry": { "weekday": 320, "weekend": 320, "twilight": 230 },
-        "rental": { "shoes": 80 }
+        "singleEntry": {
+          "weekday": 320,
+          "weekend": 320,
+          "twilight": 230
+        },
+        "rental": {
+          "shoes": 80
+        }
       },
-      "transportation": { "train": "高鐵左營站直達", "parking": "環球百貨停車場" },
-      "contact": { "phone": "", "facebook": "Boulder Space圓石空間", "instagram": "", "website": "", "line": "" },
+      "transportation": {
+        "train": "高鐵左營站直達",
+        "parking": "環球百貨停車場"
+      },
+      "contact": {
+        "phone": "",
+        "facebook": "Boulder Space圓石空間",
+        "instagram": "",
+        "website": "",
+        "line": ""
+      },
       "notes": "",
       "rating": 4.5,
       "featured": true,
@@ -1581,11 +2362,17 @@
       "descriptionEn": "B-TOPIA Climbing Gym offers bouldering services.",
       "coverImage": "/images/gym/btopia.jpg",
       "images": [],
-      "facilities": ["抱石區", "體能訓練區", "休息區"],
-      "facilitiesEn": ["Bouldering Area", "Training Area", "Rest Area"],
+      "facilities": [
+        "抱石區",
+        "體能訓練區",
+        "休息區"
+      ],
+      "facilitiesEn": [
+        "Bouldering Area",
+        "Training Area",
+        "Rest Area"
+      ],
       "openingHours": {
-        "weekday": "15:00-23:00",
-        "weekend": "10:00-19:00",
         "monday": "15:00-23:00",
         "tuesday": "15:00-23:00",
         "wednesday": "15:00-23:00",
@@ -1596,11 +2383,26 @@
         "holiday": "10:00-19:00"
       },
       "pricing": {
-        "singleEntry": { "weekday": 330, "weekend": 330, "twilight": 230 },
-        "rental": { "shoes": 80 }
+        "singleEntry": {
+          "weekday": 330,
+          "weekend": 330,
+          "twilight": 230
+        },
+        "rental": {
+          "shoes": 80
+        }
       },
-      "transportation": { "mrt": "高雄捷運草衙站步行約10分鐘", "parking": "附近有停車場" },
-      "contact": { "phone": "", "facebook": "B-TOPIA攀岩館", "instagram": "", "website": "", "line": "" },
+      "transportation": {
+        "mrt": "高雄捷運草衙站步行約10分鐘",
+        "parking": "附近有停車場"
+      },
+      "contact": {
+        "phone": "",
+        "facebook": "B-TOPIA攀岩館",
+        "instagram": "",
+        "website": "",
+        "line": ""
+      },
       "notes": "",
       "rating": 4.3,
       "featured": false,
@@ -1628,11 +2430,17 @@
       "descriptionEn": "Jiutao Climbing Gym Yilan is a professional climbing facility in Yilan.",
       "coverImage": "/images/gym/jiutao-yilan.jpg",
       "images": [],
-      "facilities": ["抱石區", "體能訓練區", "休息區"],
-      "facilitiesEn": ["Bouldering Area", "Training Area", "Rest Area"],
+      "facilities": [
+        "抱石區",
+        "體能訓練區",
+        "休息區"
+      ],
+      "facilitiesEn": [
+        "Bouldering Area",
+        "Training Area",
+        "Rest Area"
+      ],
       "openingHours": {
-        "weekday": "13:00-22:00",
-        "weekend": "13:00-22:00",
         "monday": "13:00-22:00",
         "tuesday": "13:00-22:00",
         "wednesday": "13:00-22:00",
@@ -1643,11 +2451,25 @@
         "holiday": "13:00-22:00"
       },
       "pricing": {
-        "singleEntry": { "weekday": 300, "weekend": 300 },
-        "rental": { "shoes": 80 }
+        "singleEntry": {
+          "weekday": 300,
+          "weekend": 300
+        },
+        "rental": {
+          "shoes": 80
+        }
       },
-      "transportation": { "train": "宜蘭火車站步行約15分鐘", "parking": "附近有停車位" },
-      "contact": { "phone": "", "facebook": "久淘攀岩館", "instagram": "", "website": "", "line": "" },
+      "transportation": {
+        "train": "宜蘭火車站步行約15分鐘",
+        "parking": "附近有停車位"
+      },
+      "contact": {
+        "phone": "",
+        "facebook": "久淘攀岩館",
+        "instagram": "",
+        "website": "",
+        "line": ""
+      },
       "notes": "",
       "rating": 4.3,
       "featured": false,
@@ -1675,11 +2497,17 @@
       "descriptionEn": "Wuyan Bouldering Gym offers bouldering services.",
       "coverImage": "/images/gym/wuyan.jpg",
       "images": [],
-      "facilities": ["抱石區", "體能訓練區", "休息區"],
-      "facilitiesEn": ["Bouldering Area", "Training Area", "Rest Area"],
+      "facilities": [
+        "抱石區",
+        "體能訓練區",
+        "休息區"
+      ],
+      "facilitiesEn": [
+        "Bouldering Area",
+        "Training Area",
+        "Rest Area"
+      ],
       "openingHours": {
-        "weekday": "13:00-21:00",
-        "weekend": "10:00-22:00",
         "monday": "公休",
         "tuesday": "13:00-21:00",
         "wednesday": "13:00-21:00",
@@ -1690,11 +2518,25 @@
         "holiday": "10:00-22:00"
       },
       "pricing": {
-        "singleEntry": { "weekday": 250, "weekend": 250 },
-        "rental": { "shoes": 50 }
+        "singleEntry": {
+          "weekday": 250,
+          "weekend": 250
+        },
+        "rental": {
+          "shoes": 50
+        }
       },
-      "transportation": { "train": "羅東火車站轉計程車約15分鐘", "parking": "附設停車場" },
-      "contact": { "phone": "", "facebook": "舞岩抱石攀岩館", "instagram": "", "website": "", "line": "" },
+      "transportation": {
+        "train": "羅東火車站轉計程車約15分鐘",
+        "parking": "附設停車場"
+      },
+      "contact": {
+        "phone": "",
+        "facebook": "舞岩抱石攀岩館",
+        "instagram": "",
+        "website": "",
+        "line": ""
+      },
       "notes": "",
       "rating": 4.2,
       "featured": false,
@@ -1722,11 +2564,17 @@
       "descriptionEn": "Xiaowo Activity Space offers bouldering and lead climbing.",
       "coverImage": "/images/gym/xiaowo.jpg",
       "images": [],
-      "facilities": ["抱石區", "先鋒攀登", "休息區"],
-      "facilitiesEn": ["Bouldering Area", "Lead Climbing", "Rest Area"],
+      "facilities": [
+        "抱石區",
+        "先鋒攀登",
+        "休息區"
+      ],
+      "facilitiesEn": [
+        "Bouldering Area",
+        "Lead Climbing",
+        "Rest Area"
+      ],
       "openingHours": {
-        "weekday": "17:30-23:00",
-        "weekend": "16:30-21:00",
         "monday": "17:30-23:00",
         "tuesday": "17:30-23:00",
         "wednesday": "17:30-23:00",
@@ -1737,11 +2585,25 @@
         "holiday": "16:30-21:00"
       },
       "pricing": {
-        "singleEntry": { "weekday": 250, "weekend": 250 },
-        "rental": { "shoes": 50 }
+        "singleEntry": {
+          "weekday": 250,
+          "weekend": 250
+        },
+        "rental": {
+          "shoes": 50
+        }
       },
-      "transportation": { "train": "花蓮火車站轉計程車約10分鐘", "parking": "附近有停車位" },
-      "contact": { "phone": "", "facebook": "小窩活動共享空間", "instagram": "", "website": "", "line": "" },
+      "transportation": {
+        "train": "花蓮火車站轉計程車約10分鐘",
+        "parking": "附近有停車位"
+      },
+      "contact": {
+        "phone": "",
+        "facebook": "小窩活動共享空間",
+        "instagram": "",
+        "website": "",
+        "line": ""
+      },
       "notes": "其餘時段5人以上可預約",
       "rating": 4.1,
       "featured": false,
@@ -1769,11 +2631,15 @@
       "descriptionEn": "Hejiang Climbing is a climbing gym in Taitung, reservation required.",
       "coverImage": "/images/gym/hejiang.jpg",
       "images": [],
-      "facilities": ["抱石區", "休息區"],
-      "facilitiesEn": ["Bouldering Area", "Rest Area"],
+      "facilities": [
+        "抱石區",
+        "休息區"
+      ],
+      "facilitiesEn": [
+        "Bouldering Area",
+        "Rest Area"
+      ],
       "openingHours": {
-        "weekday": "10:00-21:00",
-        "weekend": "10:00-21:00",
         "monday": "10:00-21:00",
         "tuesday": "10:00-21:00",
         "wednesday": "10:00-21:00",
@@ -1784,13 +2650,27 @@
         "holiday": "10:00-21:00"
       },
       "pricing": {
-        "singleEntry": { "weekday": 250, "weekend": 250 },
-        "rental": { "shoes": 50 }
+        "singleEntry": {
+          "weekday": 250,
+          "weekend": 250
+        },
+        "rental": {
+          "shoes": 50
+        }
       },
-      "transportation": { "train": "台東火車站轉計程車約10分鐘", "parking": "附近有停車位" },
-      "contact": { "phone": "", "facebook": "禾匠攀岩", "instagram": "", "website": "", "line": "" },
+      "transportation": {
+        "train": "台東火車站轉計程車約10分鐘",
+        "parking": "附近有停車位"
+      },
+      "contact": {
+        "phone": "",
+        "facebook": "禾匠攀岩",
+        "instagram": "",
+        "website": "",
+        "line": ""
+      },
       "notes": "預約制",
-      "rating": 4.0,
+      "rating": 4,
       "featured": false,
       "status": "published",
       "createdAt": "2024-01-01T00:00:00Z",
@@ -1802,7 +2682,16 @@
     "totalGyms": 45,
     "lastUpdated": "2026-01-11T00:00:00Z",
     "source": "NobodyClimb",
-    "regions": ["北部", "中部", "南部", "東部"],
-    "types": ["bouldering", "lead", "mixed"]
+    "regions": [
+      "北部",
+      "中部",
+      "南部",
+      "東部"
+    ],
+    "types": [
+      "bouldering",
+      "lead",
+      "mixed"
+    ]
   }
 }

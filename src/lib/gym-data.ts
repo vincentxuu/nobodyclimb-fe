@@ -147,8 +147,6 @@ export interface GymDetailData {
   images: string[]
   facilities: string[]
   openingHours: {
-    weekday: string
-    weekend: string
     monday: string
     tuesday: string
     wednesday: string
@@ -390,25 +388,21 @@ export async function getRelatedGyms(
     return []
   }
 
-  // 優先選同城市，其次同地區
+  // 優先選同城市，其次同地區，最後按評分排序
   const relatedGyms = data.gyms
     .filter((g) => g.id !== currentGymId)
     .sort((a, b) => {
-      // 同城市優先
-      if (a.location.city === currentGym.location.city && b.location.city !== currentGym.location.city) {
-        return -1
-      }
-      if (b.location.city === currentGym.location.city && a.location.city !== currentGym.location.city) {
-        return 1
-      }
-      // 同地區次之
-      if (a.location.region === currentGym.location.region && b.location.region !== currentGym.location.region) {
-        return -1
-      }
-      if (b.location.region === currentGym.location.region && a.location.region !== currentGym.location.region) {
-        return 1
-      }
-      // 按評分排序
+      // 排序優先級: 1. 同城市 2. 同地區 3. 評分
+      const cityScore =
+        Number(b.location.city === currentGym.location.city) -
+        Number(a.location.city === currentGym.location.city)
+      if (cityScore !== 0) return cityScore
+
+      const regionScore =
+        Number(b.location.region === currentGym.location.region) -
+        Number(a.location.region === currentGym.location.region)
+      if (regionScore !== 0) return regionScore
+
       return b.rating - a.rating
     })
     .slice(0, limit)
