@@ -1,8 +1,7 @@
 'use client'
 
 import dynamic from 'next/dynamic'
-import { useMemo } from 'react'
-import 'react-quill-new/dist/quill.snow.css'
+import { useMemo, useEffect } from 'react'
 
 // Dynamically import ReactQuill
 const ReactQuill = dynamic(
@@ -33,6 +32,11 @@ export function RichTextEditor({
   placeholder = '請輸入文章內容...',
   className = '',
 }: RichTextEditorProps) {
+  // 動態載入 CSS，避免 SSR 時出錯
+  useEffect(() => {
+    import('react-quill-new/dist/quill.snow.css')
+  }, [])
+
   const modules = useMemo(
     () => ({
       toolbar: {
