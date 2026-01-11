@@ -8,12 +8,15 @@ export interface InputProps extends React.InputHTMLAttributes<HTMLInputElement> 
   device?: 'desktop' | 'mobile'
   textStatus?: 'placeholder' | 'filled'
   variant?: 'default' | 'outline'
+  /** 套用到外層 wrapper div 的樣式 */
+  wrapperClassName?: string
 }
 
 const Input = React.forwardRef<HTMLInputElement, InputProps>(
   (
     {
       className,
+      wrapperClassName,
       state = 'default',
       leftIcon,
       rightIcon,
@@ -69,9 +72,9 @@ const Input = React.forwardRef<HTMLInputElement, InputProps>(
     }
 
     return (
-      <div className={cn('relative', className)}>
+      <div className={cn('relative', wrapperClassName)}>
         {leftIcon && <div className="absolute left-3 top-1/2 -translate-y-1/2">{leftIcon}</div>}
-        <input className={cn(baseClasses)} ref={ref} disabled={state === 'disabled'} {...props} />
+        <input className={cn(baseClasses, className)} ref={ref} disabled={state === 'disabled'} {...props} />
         {rightIcon && <div className="absolute right-3 top-1/2 -translate-y-1/2">{rightIcon}</div>}
       </div>
     )
