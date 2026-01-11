@@ -4,7 +4,7 @@ import { useState } from 'react'
 import { usePathname, useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { motion, AnimatePresence } from 'framer-motion'
-import { ChevronDown, Search, FileText, Bookmark, Settings, LogOut } from 'lucide-react'
+import { ChevronDown, Search, FileText, Bookmark, Settings, LogOut, ImageIcon } from 'lucide-react'
 import { NAV_LINKS, COLUMN_SUBMENU } from '@/lib/constants'
 import { useUIStore } from '@/store/uiStore'
 import { useAuthStore } from '@/store/authStore'
@@ -171,10 +171,21 @@ export default function MobileNav({ isDesktop }: MobileNavProps) {
                     <Link
                       href="/blog/create"
                       className="flex items-center px-4 py-3 hover:bg-gray-50"
+                      onClick={closeNavbar}
                     >
                       <FileText className="h-5 w-5 text-[#3F3D3D]" />
                       <span className="ml-3 font-['Noto_Sans_CJK_TC'] text-sm font-medium text-[#3F3D3D]">
                         發表文章
+                      </span>
+                    </Link>
+                    <Link
+                      href="/upload"
+                      className="flex items-center px-4 py-3 hover:bg-gray-50"
+                      onClick={closeNavbar}
+                    >
+                      <ImageIcon className="h-5 w-5 text-[#3F3D3D]" />
+                      <span className="ml-3 font-['Noto_Sans_CJK_TC'] text-sm font-medium text-[#3F3D3D]">
+                        上傳照片
                       </span>
                     </Link>
                     <Link
