@@ -281,12 +281,12 @@ export default function SettingsPage() {
     fetchUserData()
   }, [])
 
-  // 處理表單變更
+  // 處理表單變更 - 使用 functional update 避免 closure 問題
   const handleChange = (field: string, value: string) => {
-    setUserData({
-      ...userData,
+    setUserData((prev) => ({
+      ...prev,
       [field]: value,
-    })
+    }))
   }
 
   // 處理頭像上傳
@@ -307,10 +307,10 @@ export default function SettingsPage() {
 
   // 處理預設頭像選擇
   const handleDefaultAvatarChange = (avatarId: string) => {
-    setUserData({
-      ...userData,
+    setUserData((prev) => ({
+      ...prev,
       avatarStyle: avatarId,
-    })
+    }))
     setUseDefaultAvatar(true)
     setAvatar(null)
     setAvatarPreview(null)
@@ -446,12 +446,12 @@ export default function SettingsPage() {
 
       if (response.success) {
         // 清空密碼欄位
-        setUserData({
-          ...userData,
+        setUserData((prev) => ({
+          ...prev,
           currentPassword: '',
           newPassword: '',
           confirmNewPassword: '',
-        })
+        }))
 
         toast({
           title: '更新成功',
@@ -480,51 +480,6 @@ export default function SettingsPage() {
   // 切換標籤頁
   const handleTabChange = (tab: string) => {
     setActiveTab(tab)
-  }
-
-  // 顯示當前活動的內容
-  const renderContent = () => {
-    if (activeTab === 'profile') {
-      return (
-        <div className="space-y-6">
-          <div className={`grid grid-cols-1 ${isMobile ? '' : 'md:grid-cols-2'} gap-8`}>
-            {/* 左側頭像上傳 */}
-            <AvatarUpload
-              isMobile={isMobile}
-              avatarPreview={avatarPreview}
-              useDefaultAvatar={useDefaultAvatar}
-              avatarStyle={userData.avatarStyle}
-              avatar={avatar}
-              onAvatarChange={handleAvatarChange}
-              onRemoveAvatar={handleRemoveAvatar}
-              onDefaultAvatarChange={handleDefaultAvatarChange}
-            />
-
-            {/* 右側基本資料 */}
-            <ProfileForm
-              userData={userData}
-              isSaving={isSaving}
-              onFieldChange={handleChange}
-              onSave={handleSaveProfile}
-            />
-          </div>
-        </div>
-      )
-    } else {
-      return (
-        <div className="space-y-8">
-          <div className={`rounded-sm border border-[#DBD8D8] ${isMobile ? 'p-4' : 'p-6'}`}>
-            <h2 className={`${isMobile ? 'text-lg' : 'text-xl'} mb-4 font-medium`}>修改密碼</h2>
-            <PasswordForm
-              userData={userData}
-              isChangingPassword={isChangingPassword}
-              onFieldChange={handleChange}
-              onChangePassword={handleChangePassword}
-            />
-          </div>
-        </div>
-      )
-    }
   }
 
   // 頁面載入中的畫面
@@ -581,7 +536,43 @@ export default function SettingsPage() {
         </div>
 
         {/* 內容區域 */}
-        {renderContent()}
+        {activeTab === 'profile' ? (
+          <div className="space-y-6">
+            <div className={`grid grid-cols-1 ${isMobile ? '' : 'md:grid-cols-2'} gap-8`}>
+              {/* 左側頭像上傳 */}
+              <AvatarUpload
+                isMobile={isMobile}
+                avatarPreview={avatarPreview}
+                useDefaultAvatar={useDefaultAvatar}
+                avatarStyle={userData.avatarStyle}
+                avatar={avatar}
+                onAvatarChange={handleAvatarChange}
+                onRemoveAvatar={handleRemoveAvatar}
+                onDefaultAvatarChange={handleDefaultAvatarChange}
+              />
+
+              {/* 右側基本資料 */}
+              <ProfileForm
+                userData={userData}
+                isSaving={isSaving}
+                onFieldChange={handleChange}
+                onSave={handleSaveProfile}
+              />
+            </div>
+          </div>
+        ) : (
+          <div className="space-y-8">
+            <div className={`rounded-sm border border-[#DBD8D8] ${isMobile ? 'p-4' : 'p-6'}`}>
+              <h2 className={`${isMobile ? 'text-lg' : 'text-xl'} mb-4 font-medium`}>修改密碼</h2>
+              <PasswordForm
+                userData={userData}
+                isChangingPassword={isChangingPassword}
+                onFieldChange={handleChange}
+                onChangePassword={handleChangePassword}
+              />
+            </div>
+          </div>
+        )}
       </div>
     </ProfilePageLayout>
   )
