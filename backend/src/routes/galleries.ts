@@ -2,7 +2,7 @@ import { Hono } from 'hono';
 import { Env, Gallery } from '../types';
 import { parsePagination, generateId, generateSlug } from '../utils/id';
 import { authMiddleware } from '../middleware/auth';
-import { trackUniqueView, getClientIP } from '../utils/viewTracker';
+import { trackAndUpdateViewCount } from '../utils/viewTracker';
 
 export const galleriesRoutes = new Hono<{ Bindings: Env }>();
 
@@ -359,24 +359,20 @@ galleriesRoutes.get('/:id', async (c) => {
     .all();
 
   // Track unique view (only increment if not viewed by this IP in 24h)
-  const clientIP = getClientIP(c.req.raw);
-  const isUniqueView = await trackUniqueView(c.env.CACHE, 'gallery', id, clientIP);
-
-  let currentViewCount = gallery.view_count as number;
-  if (isUniqueView) {
-    await c.env.DB.prepare(
-      'UPDATE galleries SET view_count = view_count + 1 WHERE id = ?'
-    )
-      .bind(id)
-      .run();
-    currentViewCount += 1;
-  }
+  const viewCount = await trackAndUpdateViewCount(
+    c.env.DB,
+    c.env.CACHE,
+    c.req.raw,
+    'gallery',
+    id,
+    gallery.view_count as number
+  );
 
   return c.json({
     success: true,
     data: {
       ...gallery,
-      view_count: currentViewCount,
+      view_count: viewCount,
       images: images.results,
     },
   });
@@ -413,24 +409,20 @@ galleriesRoutes.get('/slug/:slug', async (c) => {
     .all();
 
   // Track unique view (only increment if not viewed by this IP in 24h)
-  const clientIP = getClientIP(c.req.raw);
-  const isUniqueView = await trackUniqueView(c.env.CACHE, 'gallery', gallery.id as string, clientIP);
-
-  let currentViewCount = gallery.view_count as number;
-  if (isUniqueView) {
-    await c.env.DB.prepare(
-      'UPDATE galleries SET view_count = view_count + 1 WHERE id = ?'
-    )
-      .bind(gallery.id as string)
-      .run();
-    currentViewCount += 1;
-  }
+  const viewCount = await trackAndUpdateViewCount(
+    c.env.DB,
+    c.env.CACHE,
+    c.req.raw,
+    'gallery',
+    gallery.id as string,
+    gallery.view_count as number
+  );
 
   return c.json({
     success: true,
     data: {
       ...gallery,
-      view_count: currentViewCount,
+      view_count: viewCount,
       images: images.results,
     },
   });

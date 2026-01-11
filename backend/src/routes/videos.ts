@@ -2,7 +2,7 @@ import { Hono } from 'hono';
 import { Env, Video } from '../types';
 import { parsePagination, generateId, generateSlug } from '../utils/id';
 import { authMiddleware, adminMiddleware } from '../middleware/auth';
-import { trackUniqueView, getClientIP } from '../utils/viewTracker';
+import { trackAndUpdateViewCount } from '../utils/viewTracker';
 
 export const videosRoutes = new Hono<{ Bindings: Env }>();
 
@@ -114,24 +114,20 @@ videosRoutes.get('/:id', async (c) => {
   }
 
   // Track unique view (only increment if not viewed by this IP in 24h)
-  const clientIP = getClientIP(c.req.raw);
-  const isUniqueView = await trackUniqueView(c.env.CACHE, 'video', id, clientIP);
-
-  let currentViewCount = video.view_count;
-  if (isUniqueView) {
-    await c.env.DB.prepare(
-      'UPDATE videos SET view_count = view_count + 1 WHERE id = ?'
-    )
-      .bind(id)
-      .run();
-    currentViewCount += 1;
-  }
+  const viewCount = await trackAndUpdateViewCount(
+    c.env.DB,
+    c.env.CACHE,
+    c.req.raw,
+    'video',
+    id,
+    video.view_count
+  );
 
   return c.json({
     success: true,
     data: {
       ...video,
-      view_count: currentViewCount,
+      view_count: viewCount,
       tags: video.tags ? JSON.parse(video.tags) : [],
     },
   });
@@ -157,24 +153,20 @@ videosRoutes.get('/slug/:slug', async (c) => {
   }
 
   // Track unique view (only increment if not viewed by this IP in 24h)
-  const clientIP = getClientIP(c.req.raw);
-  const isUniqueView = await trackUniqueView(c.env.CACHE, 'video', video.id, clientIP);
-
-  let currentViewCount = video.view_count;
-  if (isUniqueView) {
-    await c.env.DB.prepare(
-      'UPDATE videos SET view_count = view_count + 1 WHERE id = ?'
-    )
-      .bind(video.id)
-      .run();
-    currentViewCount += 1;
-  }
+  const viewCount = await trackAndUpdateViewCount(
+    c.env.DB,
+    c.env.CACHE,
+    c.req.raw,
+    'video',
+    video.id,
+    video.view_count
+  );
 
   return c.json({
     success: true,
     data: {
       ...video,
-      view_count: currentViewCount,
+      view_count: viewCount,
       tags: video.tags ? JSON.parse(video.tags) : [],
     },
   });

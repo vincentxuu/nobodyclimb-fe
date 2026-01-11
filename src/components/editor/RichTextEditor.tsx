@@ -1,8 +1,7 @@
 'use client'
 
 import dynamic from 'next/dynamic'
-import { useMemo } from 'react'
-import 'react-quill-new/dist/quill.snow.css'
+import { useMemo, useEffect, useState } from 'react'
 
 const ReactQuill = dynamic(() => import('react-quill-new'), {
   ssr: false,
@@ -26,6 +25,15 @@ export function RichTextEditor({
   placeholder = '請輸入文章內容...',
   className = '',
 }: RichTextEditorProps) {
+  const [isClient, setIsClient] = useState(false)
+
+  // Only load CSS on client side
+  useEffect(() => {
+    // eslint-disable-next-line @typescript-eslint/no-require-imports
+    require('react-quill-new/dist/quill.snow.css')
+    setIsClient(true)
+  }, [])
+
   const modules = useMemo(
     () => ({
       toolbar: {
@@ -62,6 +70,14 @@ export function RichTextEditor({
     'link',
     'image',
   ]
+
+  if (!isClient) {
+    return (
+      <div className="flex h-[300px] items-center justify-center rounded-lg border border-[#E5E5E5] bg-gray-50">
+        <span className="text-gray-400">載入編輯器中...</span>
+      </div>
+    )
+  }
 
   return (
     <div className={`rich-text-editor ${className}`}>

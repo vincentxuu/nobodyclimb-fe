@@ -2,7 +2,7 @@ import { Hono } from 'hono';
 import { Env, Post } from '../types';
 import { parsePagination, generateId, generateSlug } from '../utils/id';
 import { authMiddleware, optionalAuthMiddleware } from '../middleware/auth';
-import { trackUniqueView, getClientIP } from '../utils/viewTracker';
+import { trackAndUpdateViewCount } from '../utils/viewTracker';
 
 export const postsRoutes = new Hono<{ Bindings: Env }>();
 
@@ -319,24 +319,20 @@ postsRoutes.get('/:id', async (c) => {
     .all<{ tag: string }>();
 
   // Track unique view (only increment if not viewed by this IP in 24h)
-  const clientIP = getClientIP(c.req.raw);
-  const isUniqueView = await trackUniqueView(c.env.CACHE, 'post', id, clientIP);
-
-  let currentViewCount = post.view_count as number;
-  if (isUniqueView) {
-    await c.env.DB.prepare(
-      'UPDATE posts SET view_count = view_count + 1 WHERE id = ?'
-    )
-      .bind(id)
-      .run();
-    currentViewCount += 1;
-  }
+  const viewCount = await trackAndUpdateViewCount(
+    c.env.DB,
+    c.env.CACHE,
+    c.req.raw,
+    'post',
+    id,
+    post.view_count as number
+  );
 
   return c.json({
     success: true,
     data: {
       ...post,
-      view_count: currentViewCount,
+      view_count: viewCount,
       tags: tags.results.map((t) => t.tag),
     },
   });
@@ -373,24 +369,20 @@ postsRoutes.get('/slug/:slug', async (c) => {
     .all<{ tag: string }>();
 
   // Track unique view (only increment if not viewed by this IP in 24h)
-  const clientIP = getClientIP(c.req.raw);
-  const isUniqueView = await trackUniqueView(c.env.CACHE, 'post', post.id as string, clientIP);
-
-  let currentViewCount = post.view_count as number;
-  if (isUniqueView) {
-    await c.env.DB.prepare(
-      'UPDATE posts SET view_count = view_count + 1 WHERE id = ?'
-    )
-      .bind(post.id as string)
-      .run();
-    currentViewCount += 1;
-  }
+  const viewCount = await trackAndUpdateViewCount(
+    c.env.DB,
+    c.env.CACHE,
+    c.req.raw,
+    'post',
+    post.id as string,
+    post.view_count as number
+  );
 
   return c.json({
     success: true,
     data: {
       ...post,
-      view_count: currentViewCount,
+      view_count: viewCount,
       tags: tags.results.map((t) => t.tag),
     },
   });
