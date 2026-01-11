@@ -17,16 +17,9 @@ export const NAV_LINKS = [
   { label: '岩館', href: '/gym' },
   { label: '攝影集', href: '/gallery' },
   { label: '影片', href: '/videos' },
-  { label: '部落格', href: '/blog', hasSubmenu: true },
+  { label: '部落格', href: '/blog' },
 ]
 
-// 部落格子選單
-export const COLUMN_SUBMENU = [
-  { label: '裝備介紹', href: '/blog?category=equipment' },
-  { label: '技巧介紹', href: '/blog?category=technique' },
-  { label: '技術研究', href: '/blog?category=research' },
-  { label: '比賽介紹', href: '/blog?category=competition' },
-]
 
 // 路由路徑
 export const ROUTES = {
