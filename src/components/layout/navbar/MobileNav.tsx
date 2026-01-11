@@ -1,9 +1,9 @@
 'use client'
 
-import { usePathname, useRouter } from 'next/navigation'
+import { usePathname } from 'next/navigation'
 import Link from 'next/link'
 import { motion, AnimatePresence } from 'framer-motion'
-import { Search, FileText, Bookmark, Settings, LogOut, ImageIcon } from 'lucide-react'
+import { FileText, Bookmark, Settings, LogOut, ImageIcon } from 'lucide-react'
 import { NAV_LINKS } from '@/lib/constants'
 import { useUIStore } from '@/store/uiStore'
 import { useAuthStore } from '@/store/authStore'
@@ -17,29 +17,16 @@ interface MobileNavProps {
 /**
  * 行動版導航組件
  * 只在手機版且導航欄打開時顯示
- * 顯示搜尋框和導航選單
  */
 export default function MobileNav({ isDesktop }: MobileNavProps) {
-  const router = useRouter()
   const pathname = usePathname()
-  const { isNavbarOpen, closeNavbar, searchQuery, setSearchQuery, closeSearch } = useUIStore()
+  const { isNavbarOpen, closeNavbar } = useUIStore()
   const { isAuthenticated, logout, user } = useAuthStore()
 
   // 假設用戶數據中有 avatarStyle 屬性，否則使用默認頭像
   const avatarStyle = user?.avatarStyle
     ? DEFAULT_AVATARS.find((a) => a.id === user.avatarStyle) || DEFAULT_AVATARS[0]
     : DEFAULT_AVATARS[0]
-
-
-  // 處理搜尋提交
-  const handleSearch = (e: React.FormEvent) => {
-    e.preventDefault()
-    if (searchQuery.trim()) {
-      closeSearch()
-      closeNavbar()
-      router.push(`/search?q=${encodeURIComponent(searchQuery.trim())}`)
-    }
-  }
 
   if (isDesktop || !isNavbarOpen) return null
 
@@ -53,23 +40,6 @@ export default function MobileNav({ isDesktop }: MobileNavProps) {
         className="max-h-[calc(100dvh-var(--navbar-height))] overflow-y-auto overscroll-contain border-t border-gray-200 bg-white shadow-lg lg:hidden"
       >
         <nav className="mobile-nav-scroll py-4">
-          {/* 搜尋框 - 始終顯示在導航選單中 */}
-          <div className="mb-4 border-b border-gray-200 px-4 pb-4">
-            <form onSubmit={handleSearch} className="relative">
-              <input
-                type="text"
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                placeholder="請輸入關鍵字"
-                className="h-[40px] w-full rounded-[4px] bg-[#F5F5F5] px-4 py-3 font-['Noto_Sans_CJK_TC'] text-base font-normal leading-6 tracking-[0.01em] placeholder:text-[#B6B3B3] focus:outline-none"
-                autoFocus
-              />
-              <button type="submit" className="absolute right-3 top-1/2 -translate-y-1/2 transform">
-                <Search className="h-5 w-5 stroke-[1.5px] text-[#1B1A1A]" />
-              </button>
-            </form>
-          </div>
-
           {/* 導航選單 */}
           <ul className="space-y-6 px-4">
             {NAV_LINKS.map((link) => (

@@ -11,8 +11,6 @@ import { useMediaQuery } from '@/lib/hooks/useMediaQuery'
 import Logo from './navbar/Logo'
 import DesktopNav from './navbar/DesktopNav'
 import MobileMenuButton from './navbar/MobileMenuButton'
-import SearchBar from './navbar/SearchBar'
-import DesktopSearchBar from './navbar/DesktopSearchBar'
 import UserMenu from './navbar/UserMenu'
 import MobileNav from './navbar/MobileNav'
 // 移除 LanguageSwitcher
@@ -76,17 +74,6 @@ export function Navbar() {
 
         {/* 右側功能區 */}
         <div className="flex items-center">
-          {/* 搜尋功能區 - 提供相對定位容器 */}
-          <div className="relative mr-4">
-            {/* 只在桌面版顯示搜尋按鈕 */}
-            {isDesktop && <SearchBar isDesktop={isDesktop} />}
-            <DesktopSearchBar />
-          </div>
-          {/* 移除語言切換器
-          <div className="mr-4">
-            <LanguageSwitcher />
-          </div>
-          */}
           <UserMenu isDesktop={isDesktop} />
           <MobileMenuButton isDesktop={isDesktop} />
         </div>
