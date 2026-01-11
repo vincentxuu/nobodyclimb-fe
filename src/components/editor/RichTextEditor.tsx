@@ -1,6 +1,24 @@
 'use client'
 
-import { useMemo, useState, useEffect, ComponentType } from 'react'
+import dynamic from 'next/dynamic'
+import { useMemo } from 'react'
+
+// Dynamically import ReactQuill with its CSS
+const ReactQuill = dynamic(
+  async () => {
+    const { default: RQ } = await import('react-quill-new')
+    await import('react-quill-new/dist/quill.snow.css')
+    return RQ
+  },
+  {
+    ssr: false,
+    loading: () => (
+      <div className="flex h-[300px] items-center justify-center rounded-lg border border-[#E5E5E5] bg-gray-50">
+        <span className="text-gray-400">載入編輯器中...</span>
+      </div>
+    ),
+  }
+)
 
 interface RichTextEditorProps {
   value: string
@@ -9,36 +27,12 @@ interface RichTextEditorProps {
   className?: string
 }
 
-// Loading placeholder
-function EditorPlaceholder() {
-  return (
-    <div className="flex h-[300px] items-center justify-center rounded-lg border border-[#E5E5E5] bg-gray-50">
-      <span className="text-gray-400">載入編輯器中...</span>
-    </div>
-  )
-}
-
 export function RichTextEditor({
   value,
   onChange,
   placeholder = '請輸入文章內容...',
   className = '',
 }: RichTextEditorProps) {
-  // 完全在 client-side 載入 ReactQuill，避免 build-time 分析
-  const [QuillComponent, setQuillComponent] = useState<ComponentType<any> | null>(null)
-
-  useEffect(() => {
-    let mounted = true
-    import('react-quill-new').then((mod) => {
-      if (mounted) {
-        setQuillComponent(() => mod.default)
-      }
-    })
-    return () => {
-      mounted = false
-    }
-  }, [])
-
   const modules = useMemo(
     () => ({
       toolbar: {
@@ -76,14 +70,9 @@ export function RichTextEditor({
     'image',
   ]
 
-  // 尚未載入時顯示 placeholder
-  if (!QuillComponent) {
-    return <EditorPlaceholder />
-  }
-
   return (
     <div className={`rich-text-editor ${className}`}>
-      <QuillComponent
+      <ReactQuill
         theme="snow"
         value={value}
         onChange={onChange}

@@ -1,8 +1,5 @@
 'use client'
 
-// 強制動態渲染，避免 SSR 預渲染時 react-quill 出錯
-export const dynamic = 'force-dynamic'
-
 import { useState, useEffect } from 'react'
 import { useParams, useRouter } from 'next/navigation'
 import { Button } from '@/components/ui/button'

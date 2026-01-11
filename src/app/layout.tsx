@@ -32,12 +32,6 @@ export function generateMetadata() {
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html suppressHydrationWarning className={`${notoSansTC.variable} ${allertaStencil.variable}`}>
-      <head>
-        <link
-          rel="stylesheet"
-          href="https://cdn.jsdelivr.net/npm/quill@2.0.2/dist/quill.snow.css"
-        />
-      </head>
       <body suppressHydrationWarning className={notoSansTC.className}>
         <Providers>
           <AuthInitializer />

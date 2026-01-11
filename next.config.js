@@ -2,9 +2,6 @@
 const nextConfig = {
   reactStrictMode: true,
 
-  // 排除 react-quill-new 從 server-side bundling，避免 SSR 預渲染錯誤
-  serverExternalPackages: ['react-quill-new', 'quill'],
-
   images: {
     remotePatterns: [
       {
