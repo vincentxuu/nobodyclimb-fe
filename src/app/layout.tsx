@@ -1,5 +1,4 @@
 import '@/styles/globals.css'
-import 'react-quill-new/dist/quill.snow.css'
 import React from 'react'
 import { Inter, Noto_Sans_TC, Allerta_Stencil } from 'next/font/google'
 import { Providers } from '@/components/layout/providers'
@@ -33,6 +32,12 @@ export function generateMetadata() {
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html suppressHydrationWarning className={`${notoSansTC.variable} ${allertaStencil.variable}`}>
+      <head>
+        <link
+          rel="stylesheet"
+          href="https://cdn.jsdelivr.net/npm/quill@2.0.2/dist/quill.snow.css"
+        />
+      </head>
       <body suppressHydrationWarning className={notoSansTC.className}>
         <Providers>
           <AuthInitializer />
