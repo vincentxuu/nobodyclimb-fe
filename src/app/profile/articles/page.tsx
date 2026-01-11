@@ -6,7 +6,6 @@ import { Edit2, Trash2, Eye, Loader2 } from 'lucide-react'
 import Image from 'next/image'
 import Link from 'next/link'
 import ProfilePageLayout from '@/components/profile/layout/ProfilePageLayout'
-import { useIsMobile } from '@/lib/hooks/useIsMobile'
 import { ConfirmDialog } from '@/components/ui/confirm-dialog'
 import { postService } from '@/lib/api/services'
 import { useToast } from '@/components/ui/use-toast'
@@ -27,12 +26,11 @@ interface Article {
 interface PageHeaderProps {
   title: string
   actionButton?: React.ReactNode
-  isMobile?: boolean
 }
 
-const PageHeader = ({ title, actionButton, isMobile }: PageHeaderProps) => (
+const PageHeader = ({ title, actionButton }: PageHeaderProps) => (
   <div className="mb-8 flex items-center justify-between">
-    <h1 className={`${isMobile ? 'text-2xl' : 'text-4xl'} font-medium text-[#1B1A1A]`}>{title}</h1>
+    <h1 className="text-2xl font-medium text-[#1B1A1A] md:text-4xl">{title}</h1>
     {actionButton}
   </div>
 )
@@ -42,10 +40,9 @@ interface ArticleCardProps {
   article: Article
   onDelete: (id: string) => void
   isDeleting: boolean
-  isMobile?: boolean
 }
 
-const ArticleCard = ({ article, onDelete, isDeleting, isMobile }: ArticleCardProps) => {
+const ArticleCard = ({ article, onDelete, isDeleting }: ArticleCardProps) => {
   const statusLabel = {
     draft: '草稿',
     published: '已發布',
@@ -58,83 +55,11 @@ const ArticleCard = ({ article, onDelete, isDeleting, isMobile }: ArticleCardPro
     archived: 'bg-gray-100 text-gray-600',
   }
 
-  // 手機版佈局
-  if (isMobile) {
-    return (
-      <div className="rounded-sm border border-[#DBD8D8] p-4">
-        {article.cover_image && (
-          <div className="relative mb-3 h-[160px] w-full overflow-hidden bg-gray-100">
-            <Image
-              src={article.cover_image}
-              alt={article.title}
-              fill
-              className="object-cover"
-            />
-          </div>
-        )}
-        <div className="mb-2 flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <span
-              className={`rounded px-2 py-0.5 text-xs ${statusColor[article.status]}`}
-            >
-              {statusLabel[article.status]}
-            </span>
-            {article.tags && article.tags.length > 0 && (
-              <span className="text-xs text-[#6D6C6C]">{article.tags[0]}</span>
-            )}
-          </div>
-          <span className="text-xs text-[#6D6C6C]">
-            {new Date(article.created_at).toLocaleDateString('zh-TW')}
-          </span>
-        </div>
-        <h2 className="mb-2 line-clamp-2 text-lg font-medium">{article.title}</h2>
-        <p className="mb-3 line-clamp-2 text-sm text-[#3F3D3D]">
-          {article.excerpt || '無摘要'}
-        </p>
-        <div className="mb-3 flex items-center text-xs text-[#8E8C8C]">
-          <Eye size={12} className="mr-1" />
-          {article.view_count} 次瀏覽
-        </div>
-        <div className="flex gap-2">
-          <Link href={`/blog/edit/${article.id}`} className="flex-1">
-            <Button
-              variant="outline"
-              size="sm"
-              className="w-full border-[#B6B3B3] text-[#3F3D3D] hover:bg-[#F5F5F5]"
-            >
-              <Edit2 size={14} className="mr-1" />
-              編輯
-            </Button>
-          </Link>
-          <Link href={`/blog/${article.id}`} className="flex-1">
-            <Button
-              variant="outline"
-              size="sm"
-              className="w-full border-[#B6B3B3] text-[#3F3D3D] hover:bg-[#F5F5F5]"
-            >
-              查看
-            </Button>
-          </Link>
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => onDelete(article.id)}
-            disabled={isDeleting}
-            className="flex-1 border-red-300 text-red-600 hover:bg-red-50"
-          >
-            <Trash2 size={14} className="mr-1" />
-            刪除
-          </Button>
-        </div>
-      </div>
-    )
-  }
-
-  // 桌面版佈局
   return (
-    <div className="rounded-sm border border-[#DBD8D8] p-5">
-      <div className="flex gap-6">
-        <div className="relative h-[120px] w-[200px] flex-shrink-0 overflow-hidden bg-gray-100">
+    <div className="rounded-sm border border-[#DBD8D8] p-4 md:p-5">
+      <div className="flex flex-col gap-3 md:flex-row md:gap-6">
+        {/* 封面圖片區域 */}
+        <div className="relative h-[160px] w-full flex-shrink-0 overflow-hidden bg-gray-100 md:h-[120px] md:w-[200px]">
           {article.cover_image ? (
             <Image
               src={article.cover_image}
@@ -148,8 +73,11 @@ const ArticleCard = ({ article, onDelete, isDeleting, isMobile }: ArticleCardPro
             </div>
           )}
         </div>
+
+        {/* 文章內容區域 */}
         <div className="flex flex-1 flex-col">
-          <div className="mb-1 flex items-center justify-between">
+          {/* 狀態和日期 */}
+          <div className="mb-1 flex items-center justify-between md:mb-1">
             <div className="flex items-center gap-2">
               <span
                 className={`rounded px-2 py-0.5 text-xs ${statusColor[article.status]}`}
@@ -157,40 +85,46 @@ const ArticleCard = ({ article, onDelete, isDeleting, isMobile }: ArticleCardPro
                 {statusLabel[article.status]}
               </span>
               {article.tags && article.tags.length > 0 && (
-                <span className="text-sm text-[#6D6C6C]">{article.tags[0]}</span>
+                <span className="text-xs text-[#6D6C6C] md:text-sm">{article.tags[0]}</span>
               )}
             </div>
-            <span className="text-sm text-[#6D6C6C]">
+            <span className="text-xs text-[#6D6C6C] md:text-sm">
               {new Date(article.created_at).toLocaleDateString('zh-TW')}
             </span>
           </div>
-          <h2 className="mb-2 line-clamp-1 text-xl font-medium">{article.title}</h2>
-          <p className="mb-3 line-clamp-2 flex-1 text-[#3F3D3D]">
+
+          {/* 標題 */}
+          <h2 className="mb-2 line-clamp-2 text-lg font-medium md:line-clamp-1 md:text-xl">
+            {article.title}
+          </h2>
+
+          {/* 摘要 */}
+          <p className="mb-3 line-clamp-2 text-sm text-[#3F3D3D] md:flex-1 md:text-base">
             {article.excerpt || '無摘要'}
           </p>
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-4 text-sm text-[#8E8C8C]">
-              <span className="flex items-center gap-1">
-                <Eye size={14} />
-                {article.view_count}
-              </span>
+
+          {/* 統計和操作按鈕 */}
+          <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between md:gap-0">
+            <div className="flex items-center text-xs text-[#8E8C8C] md:text-sm">
+              <Eye size={14} className="mr-1" />
+              {article.view_count} 次瀏覽
             </div>
             <div className="flex gap-2">
-              <Link href={`/blog/edit/${article.id}`}>
+              <Link href={`/blog/edit/${article.id}`} className="flex-1 md:flex-none">
                 <Button
                   variant="outline"
                   size="sm"
-                  className="border-[#B6B3B3] text-[#3F3D3D] hover:bg-[#F5F5F5]"
+                  className="w-full border-[#B6B3B3] text-[#3F3D3D] hover:bg-[#F5F5F5] md:w-auto"
                 >
                   <Edit2 size={14} className="mr-1" />
                   編輯
                 </Button>
               </Link>
-              <Link href={`/blog/${article.id}`}>
+              <Link href={`/blog/${article.id}`} className="flex-1 md:flex-none">
                 <Button
                   variant="outline"
                   size="sm"
-                  className="border-[#B6B3B3] text-[#3F3D3D] hover:bg-[#F5F5F5]"
+                  className="w-full border-[#B6B3B3] text-[#3F3D3D] hover:bg-[#F5F5F5] md:w-auto"
                 >
                   查看
                 </Button>
@@ -200,7 +134,7 @@ const ArticleCard = ({ article, onDelete, isDeleting, isMobile }: ArticleCardPro
                 size="sm"
                 onClick={() => onDelete(article.id)}
                 disabled={isDeleting}
-                className="border-red-300 text-red-600 hover:bg-red-50"
+                className="flex-1 border-red-300 text-red-600 hover:bg-red-50 md:flex-none"
               >
                 <Trash2 size={14} className="mr-1" />
                 刪除
@@ -252,7 +186,6 @@ const NewArticleButton = () => (
 )
 
 export default function ArticlesPage() {
-  const isMobile = useIsMobile()
   const { toast } = useToast()
   const [articles, setArticles] = useState<Article[]>([])
   const [isLoading, setIsLoading] = useState(true)
@@ -323,22 +256,21 @@ export default function ArticlesPage() {
 
   return (
     <ProfilePageLayout>
-      <div className={`bg-white ${isMobile ? 'p-4 md:p-6' : 'p-8 md:p-12'} rounded-sm`}>
-        <PageHeader title="我的文章" actionButton={<NewArticleButton />} isMobile={isMobile} />
+      <div className="rounded-sm bg-white p-4 md:p-8 lg:p-12">
+        <PageHeader title="我的文章" actionButton={<NewArticleButton />} />
 
         {isLoading ? (
           <LoadingState />
         ) : error ? (
           <ErrorState message={error} onRetry={fetchArticles} />
         ) : articles.length > 0 ? (
-          <div className="space-y-6">
+          <div className="space-y-4 md:space-y-6">
             {articles.map((article) => (
               <ArticleCard
                 key={article.id}
                 article={article}
                 onDelete={handleDeleteClick}
                 isDeleting={isDeleting && articleToDelete === article.id}
-                isMobile={isMobile}
               />
             ))}
           </div>
