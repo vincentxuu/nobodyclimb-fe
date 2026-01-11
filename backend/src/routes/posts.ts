@@ -2,6 +2,7 @@ import { Hono } from 'hono';
 import { Env, Post } from '../types';
 import { parsePagination, generateId, generateSlug } from '../utils/id';
 import { authMiddleware, optionalAuthMiddleware } from '../middleware/auth';
+import { trackUniqueView, getClientIP } from '../utils/viewTracker';
 
 export const postsRoutes = new Hono<{ Bindings: Env }>();
 
@@ -317,15 +318,19 @@ postsRoutes.get('/:id', async (c) => {
     .bind(id)
     .all<{ tag: string }>();
 
-  // Increment view count
-  await c.env.DB.prepare(
-    'UPDATE posts SET view_count = view_count + 1 WHERE id = ?'
-  )
-    .bind(id)
-    .run();
+  // Track unique view (only increment if not viewed by this IP in 24h)
+  const clientIP = getClientIP(c.req.raw);
+  const isUniqueView = await trackUniqueView(c.env.CACHE, 'post', id, clientIP);
 
-  // Return with updated view count
-  const currentViewCount = (post.view_count as number) + 1;
+  let currentViewCount = post.view_count as number;
+  if (isUniqueView) {
+    await c.env.DB.prepare(
+      'UPDATE posts SET view_count = view_count + 1 WHERE id = ?'
+    )
+      .bind(id)
+      .run();
+    currentViewCount += 1;
+  }
 
   return c.json({
     success: true,
@@ -367,14 +372,19 @@ postsRoutes.get('/slug/:slug', async (c) => {
     .bind(post.id as string)
     .all<{ tag: string }>();
 
-  await c.env.DB.prepare(
-    'UPDATE posts SET view_count = view_count + 1 WHERE id = ?'
-  )
-    .bind(post.id as string)
-    .run();
+  // Track unique view (only increment if not viewed by this IP in 24h)
+  const clientIP = getClientIP(c.req.raw);
+  const isUniqueView = await trackUniqueView(c.env.CACHE, 'post', post.id as string, clientIP);
 
-  // Return with updated view count
-  const currentViewCount = (post.view_count as number) + 1;
+  let currentViewCount = post.view_count as number;
+  if (isUniqueView) {
+    await c.env.DB.prepare(
+      'UPDATE posts SET view_count = view_count + 1 WHERE id = ?'
+    )
+      .bind(post.id as string)
+      .run();
+    currentViewCount += 1;
+  }
 
   return c.json({
     success: true,
