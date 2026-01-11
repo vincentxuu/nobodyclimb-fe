@@ -9,6 +9,7 @@ import { UserCircle, Key, Upload, Loader2 } from 'lucide-react'
 import {
   AvatarOptions,
   generateAvatarElement,
+  getAvatarStyleById,
   DEFAULT_AVATARS,
 } from '@/components/shared/avatar-options'
 import { cn } from '@/lib/utils'

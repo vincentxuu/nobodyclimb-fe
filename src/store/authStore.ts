@@ -10,8 +10,13 @@ import {
   BackendUser,
   mapBackendUserToUser,
 } from '@/lib/types'
-import Cookies from 'js-cookie'
-import { API_BASE_URL, AUTH_TOKEN_KEY, AUTH_REFRESH_TOKEN_KEY } from '@/lib/constants'
+import { API_BASE_URL } from '@/lib/constants'
+import {
+  setTokens,
+  setAccessToken,
+  getRefreshToken,
+  removeTokens,
+} from '@/lib/utils/tokenStorage'
 
 interface UpdateUserData {
   id?: string
@@ -75,11 +80,8 @@ export const useAuthStore = create<AuthState>()(
 
           const { access_token, refresh_token } = loginResponse.data.data
 
-          // Step 2: 儲存 tokens 到 Cookie
-          // access_token: 15 分鐘 (expires_in 是秒數，這裡用 1 天作為 cookie 過期時間，實際驗證由 JWT 控制)
-          Cookies.set(AUTH_TOKEN_KEY, access_token, { expires: 1 })
-          // refresh_token: 7 天
-          Cookies.set(AUTH_REFRESH_TOKEN_KEY, refresh_token, { expires: 7 })
+          // Step 2: 儲存 tokens (同時使用 cookie 和 localStorage 以支援 Android WebView)
+          setTokens(access_token, refresh_token)
 
           // Step 3: 使用 access_token 取得用戶資料
           const userResponse = await axios.get<ApiResponse<BackendUser>>(
@@ -134,8 +136,9 @@ export const useAuthStore = create<AuthState>()(
           // 從回應中獲取用戶信息和 Token
           const { user, token: authToken } = response.data
 
-          // 設置 Cookie (如果後端沒有自動設置)
-          Cookies.set(AUTH_TOKEN_KEY, authToken, { expires: 7 })
+          // 設置 token (同時使用 cookie 和 localStorage 以支援 Android WebView)
+          // Google 登入沒有 refresh token，所以設置較長的過期時間 (7 天)
+          setAccessToken(authToken, 7)
 
           // 更新狀態
           set({
@@ -174,9 +177,8 @@ export const useAuthStore = create<AuthState>()(
 
           const { access_token, refresh_token } = registerResponse.data.data
 
-          // Step 2: 儲存 tokens 到 Cookie
-          Cookies.set(AUTH_TOKEN_KEY, access_token, { expires: 1 })
-          Cookies.set(AUTH_REFRESH_TOKEN_KEY, refresh_token, { expires: 7 })
+          // Step 2: 儲存 tokens (同時使用 cookie 和 localStorage 以支援 Android WebView)
+          setTokens(access_token, refresh_token)
 
           // Step 3: 使用 access_token 取得用戶資料
           const userResponse = await axios.get<ApiResponse<BackendUser>>(
@@ -236,9 +238,8 @@ export const useAuthStore = create<AuthState>()(
         } catch (error) {
           console.error('登出通知後端失敗:', error)
         } finally {
-          // 無論後端請求成功與否，都清除本地狀態
-          Cookies.remove(AUTH_TOKEN_KEY)
-          Cookies.remove(AUTH_REFRESH_TOKEN_KEY)
+          // 無論後端請求成功與否，都清除本地狀態 (同時清除 cookie 和 localStorage)
+          removeTokens()
 
           set({
             user: null,
@@ -311,8 +312,8 @@ export const useAuthStore = create<AuthState>()(
 
       refreshToken: async () => {
         try {
-          // 從 Cookie 取得 refresh_token
-          const refreshToken = Cookies.get(AUTH_REFRESH_TOKEN_KEY)
+          // 從 cookie 或 localStorage 取得 refresh_token
+          const refreshToken = getRefreshToken()
 
           if (!refreshToken) {
             throw new Error('No refresh token available')
@@ -330,8 +331,8 @@ export const useAuthStore = create<AuthState>()(
 
           const { access_token } = response.data.data
 
-          // 設置新的 access_token Cookie
-          Cookies.set(AUTH_TOKEN_KEY, access_token, { expires: 1 })
+          // 設置新的 access_token (同時使用 cookie 和 localStorage)
+          setAccessToken(access_token)
 
           // 取得最新的用戶資料
           const userResponse = await axios.get<ApiResponse<BackendUser>>(
@@ -353,9 +354,8 @@ export const useAuthStore = create<AuthState>()(
 
           return true
         } catch (error) {
-          // Token 刷新失敗，用戶需要重新登入
-          Cookies.remove(AUTH_TOKEN_KEY)
-          Cookies.remove(AUTH_REFRESH_TOKEN_KEY)
+          // Token 刷新失敗，用戶需要重新登入 (清除 cookie 和 localStorage)
+          removeTokens()
 
           set({
             user: null,
