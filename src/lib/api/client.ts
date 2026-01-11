@@ -1,7 +1,12 @@
 import axios from 'axios'
-import Cookies from 'js-cookie'
-import { API_BASE_URL, AUTH_TOKEN_KEY, AUTH_REFRESH_TOKEN_KEY } from '../constants'
+import { API_BASE_URL } from '../constants'
 import { ApiResponse, RefreshTokenResponse } from '../types'
+import {
+  getAccessToken,
+  getRefreshToken,
+  setAccessToken,
+  removeTokens,
+} from '../utils/tokenStorage'
 
 /**
  * 創建一個 Axios 實例用於 API 請求
@@ -16,10 +21,11 @@ const apiClient = axios.create({
 /**
  * 請求攔截器
  * 在每個請求前自動添加認證 Token
+ * 支援從 cookie 或 localStorage 取得 token (解決 Android WebView 問題)
  */
 apiClient.interceptors.request.use(
   (config) => {
-    const token = Cookies.get(AUTH_TOKEN_KEY)
+    const token = getAccessToken()
 
     if (token) {
       config.headers.Authorization = `Bearer ${token}`
@@ -48,8 +54,8 @@ apiClient.interceptors.response.use(
       originalRequest._retry = true
 
       try {
-        // 從 Cookie 取得 refresh_token
-        const refreshToken = Cookies.get(AUTH_REFRESH_TOKEN_KEY)
+        // 從 cookie 或 localStorage 取得 refresh_token
+        const refreshToken = getRefreshToken()
 
         if (!refreshToken) {
           throw new Error('No refresh token available')
@@ -67,16 +73,15 @@ apiClient.interceptors.response.use(
 
         const { access_token } = response.data.data
 
-        // 保存新的 access_token
-        Cookies.set(AUTH_TOKEN_KEY, access_token, { expires: 1 })
+        // 保存新的 access_token (同時儲存到 cookie 和 localStorage)
+        setAccessToken(access_token)
 
         // 使用新的 Token 重試原始請求
         originalRequest.headers.Authorization = `Bearer ${access_token}`
         return apiClient(originalRequest)
       } catch (refreshError) {
-        // 刷新 Token 失敗，清除認證資訊
-        Cookies.remove(AUTH_TOKEN_KEY)
-        Cookies.remove(AUTH_REFRESH_TOKEN_KEY)
+        // 刷新 Token 失敗，清除認證資訊 (同時清除 cookie 和 localStorage)
+        removeTokens()
 
         // 如果在瀏覽器環境且不是請求刷新 Token 的請求
         if (typeof window !== 'undefined' && !originalRequest.url.includes('refresh-token')) {
