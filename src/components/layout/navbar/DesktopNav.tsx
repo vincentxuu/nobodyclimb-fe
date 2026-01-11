@@ -2,16 +2,7 @@
 
 import { usePathname } from 'next/navigation'
 import Link from 'next/link'
-
-// 定義導航鏈接 - 修正順序與 constants.ts 保持一致
-const NAV_LINKS = [
-  { key: 'biography', text: '人物誌', href: '/biography' },
-  { key: 'crags', text: '岩場', href: '/crag' },
-  { key: 'gyms', text: '岩館', href: '/gym' },
-  { key: 'gallery', text: '攝影集', href: '/gallery' },
-  { key: 'videos', text: '影片', href: '/videos' },
-  { key: 'blog', text: '部落格', href: '/blog' },
-]
+import { NAV_LINKS } from '@/lib/constants'
 
 /**
  * 桌面版導航組件
@@ -34,7 +25,7 @@ export default function DesktopNav() {
                   <span className="absolute -bottom-2 left-0 h-0.5 w-full bg-[#1B1A1A]"></span>
                 )}
                 <span className="absolute -bottom-2 left-0 h-0.5 w-0 bg-[#1B1A1A] transition-all duration-300 group-hover:w-full"></span>
-                {link.text}
+                {link.label}
               </span>
             </Link>
           </li>
