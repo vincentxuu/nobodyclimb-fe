@@ -48,6 +48,187 @@ const FormField = ({ label, children }: { label: string; children: React.ReactNo
   </div>
 )
 
+// 頭像上傳區元件 - 移到外部避免重新渲染
+interface AvatarUploadProps {
+  isMobile: boolean
+  avatarPreview: string | null
+  useDefaultAvatar: boolean
+  avatarStyle: string
+  avatar: File | null
+  onAvatarChange: (e: React.ChangeEvent<HTMLInputElement>) => void
+  onRemoveAvatar: () => void
+  onDefaultAvatarChange: (avatarId: string) => void
+}
+
+const AvatarUpload = ({
+  isMobile,
+  avatarPreview,
+  useDefaultAvatar,
+  avatarStyle,
+  avatar,
+  onAvatarChange,
+  onRemoveAvatar,
+  onDefaultAvatarChange,
+}: AvatarUploadProps) => {
+  const selectedAvatarStyle = getAvatarStyleById(avatarStyle)
+
+  return (
+    <div className="flex flex-col items-center gap-3">
+      <div
+        className={`${isMobile ? 'h-28 w-28' : 'h-40 w-40'} flex items-center justify-center overflow-hidden rounded-full bg-[#EBEAEA]`}
+      >
+        {avatarPreview ? (
+          <img src={avatarPreview} alt="頭像預覽" className="h-full w-full object-cover" />
+        ) : useDefaultAvatar ? (
+          generateAvatarElement(selectedAvatarStyle, isMobile ? 'w-28 h-28' : 'w-40 h-40')
+        ) : (
+          <UserCircle size={isMobile ? 80 : 120} className="text-[#3F3D3D]" />
+        )}
+      </div>
+
+      <div className="flex gap-2">
+        <label
+          htmlFor="avatar-upload"
+          className={`cursor-pointer ${isMobile ? 'px-3 py-1.5 text-sm' : 'px-4 py-2'} flex items-center gap-1.5 rounded-sm border border-[#B6B3B3] text-[#3F3D3D] hover:bg-[#F5F5F5]`}
+        >
+          <Upload size={isMobile ? 14 : 16} />
+          上傳頭像
+          <input
+            id="avatar-upload"
+            type="file"
+            accept="image/*"
+            className="hidden"
+            onChange={onAvatarChange}
+          />
+        </label>
+
+        {(avatar || avatarPreview) && (
+          <Button
+            variant="outline"
+            className="border-[#B6B3B3] text-sm text-[#D94A4A]"
+            onClick={onRemoveAvatar}
+          >
+            移除
+          </Button>
+        )}
+      </div>
+
+      <p className="text-xs text-[#8E8C8C]">建議上傳寬高比為 1:1 的圖片</p>
+
+      <div className="mt-2 w-full">
+        <h3 className={`${isMobile ? 'text-sm' : 'text-base'} mb-2 font-medium`}>預設頭像</h3>
+        <div className="rounded-md border border-[#EBEAEA]">
+          <AvatarOptions value={avatarStyle} onChange={onDefaultAvatarChange} />
+        </div>
+      </div>
+    </div>
+  )
+}
+
+// 個人資料表單元件 - 移到外部避免重新渲染
+interface ProfileFormProps {
+  userData: UserFormData
+  isSaving: boolean
+  onFieldChange: (field: keyof UserFormData, value: string) => void
+  onSave: () => void
+}
+
+const ProfileForm = ({ userData, isSaving, onFieldChange, onSave }: ProfileFormProps) => (
+  <div className="space-y-4">
+    <FormField label="顯示名稱">
+      <Input
+        value={userData.displayName}
+        onChange={(e) => onFieldChange('displayName', e.target.value)}
+        className="border-[#B6B3B3]"
+      />
+    </FormField>
+    <FormField label="使用者名稱">
+      <Input
+        value={userData.username}
+        className="border-[#B6B3B3]"
+        disabled
+      />
+    </FormField>
+    <FormField label="電子郵件">
+      <Input
+        value={userData.email}
+        className="border-[#B6B3B3]"
+        disabled
+      />
+    </FormField>
+    <Button
+      onClick={onSave}
+      disabled={isSaving}
+      className="mt-4 bg-[#1B1A1A] text-white hover:bg-[#3F3D3D]"
+    >
+      {isSaving ? (
+        <>
+          <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+          儲存中...
+        </>
+      ) : (
+        '儲存變更'
+      )}
+    </Button>
+  </div>
+)
+
+// 密碼變更表單元件 - 移到外部避免重新渲染
+interface PasswordFormProps {
+  userData: UserFormData
+  isChangingPassword: boolean
+  onFieldChange: (field: string, value: string) => void
+  onChangePassword: () => void
+}
+
+const PasswordForm = ({
+  userData,
+  isChangingPassword,
+  onFieldChange,
+  onChangePassword,
+}: PasswordFormProps) => (
+  <div className="space-y-4">
+    <FormField label="目前密碼">
+      <Input
+        type="password"
+        value={userData.currentPassword}
+        onChange={(e) => onFieldChange('currentPassword', e.target.value)}
+        className="border-[#B6B3B3]"
+      />
+    </FormField>
+    <FormField label="新密碼">
+      <Input
+        type="password"
+        value={userData.newPassword}
+        onChange={(e) => onFieldChange('newPassword', e.target.value)}
+        className="border-[#B6B3B3]"
+      />
+    </FormField>
+    <FormField label="確認新密碼">
+      <Input
+        type="password"
+        value={userData.confirmNewPassword}
+        onChange={(e) => onFieldChange('confirmNewPassword', e.target.value)}
+        className="border-[#B6B3B3]"
+      />
+    </FormField>
+    <Button
+      onClick={onChangePassword}
+      disabled={isChangingPassword}
+      className="bg-[#1B1A1A] text-white hover:bg-[#3F3D3D]"
+    >
+      {isChangingPassword ? (
+        <>
+          <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+          更新中...
+        </>
+      ) : (
+        '更新密碼'
+      )}
+    </Button>
+  </div>
+)
+
 export default function SettingsPage() {
   const [userData, setUserData] = useState<UserFormData>(initialUserData)
   const [avatar, setAvatar] = useState<File | null>(null)
@@ -142,11 +323,6 @@ export default function SettingsPage() {
     setUseDefaultAvatar(true)
   }
 
-  // 驗證電子郵件格式
-  const isValidEmail = (email: string) => {
-    return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)
-  }
-
   // 儲存基本資料
   const handleSaveProfile = async () => {
     // 驗證顯示名稱
@@ -154,26 +330,6 @@ export default function SettingsPage() {
       toast({
         title: '請輸入顯示名稱',
         description: '顯示名稱不能為空',
-        variant: 'destructive',
-      })
-      return
-    }
-
-    // 驗證使用者名稱
-    if (!userData.username.trim()) {
-      toast({
-        title: '請輸入使用者名稱',
-        description: '使用者名稱不能為空',
-        variant: 'destructive',
-      })
-      return
-    }
-
-    // 驗證電子郵件格式
-    if (!isValidEmail(userData.email)) {
-      toast({
-        title: '電子郵件格式錯誤',
-        description: '請輸入有效的電子郵件地址',
         variant: 'destructive',
       })
       return
@@ -198,20 +354,14 @@ export default function SettingsPage() {
         }
       }
 
-      // 更新用戶資料
+      // 更新用戶資料 - 使用後端 API 期望的 snake_case 欄位名稱
       const profileData: Record<string, string | undefined> = {
-        username: userData.username,
-        email: userData.email,
-        displayName: userData.displayName,
+        display_name: userData.displayName,
       }
 
       // 設定頭像相關資料
-      if (useDefaultAvatar) {
-        profileData.avatarStyle = userData.avatarStyle
-        profileData.avatar = undefined
-      } else if (avatarUrl) {
-        profileData.avatar = avatarUrl
-        profileData.avatarStyle = undefined
+      if (avatarUrl && !useDefaultAvatar) {
+        profileData.avatar_url = avatarUrl
       }
 
       const response = await authService.updateProfile(profileData)
@@ -327,150 +477,6 @@ export default function SettingsPage() {
     }
   }
 
-  // 頭像上傳區元件
-  const AvatarUpload = () => {
-    // 獲取選中的預設頭像樣式
-    const selectedAvatarStyle =
-      DEFAULT_AVATARS.find((a) => a.id === userData.avatarStyle) || DEFAULT_AVATARS[0]
-
-    return (
-      <div className="flex flex-col items-center gap-3">
-        <div
-          className={`${isMobile ? 'h-28 w-28' : 'h-40 w-40'} flex items-center justify-center overflow-hidden rounded-full bg-[#EBEAEA]`}
-        >
-          {avatarPreview ? (
-            <img src={avatarPreview} alt="頭像預覽" className="h-full w-full object-cover" />
-          ) : useDefaultAvatar ? (
-            generateAvatarElement(selectedAvatarStyle, isMobile ? 'w-28 h-28' : 'w-40 h-40')
-          ) : (
-            <UserCircle size={isMobile ? 80 : 120} className="text-[#3F3D3D]" />
-          )}
-        </div>
-
-        <div className="flex gap-2">
-          <label
-            htmlFor="avatar-upload"
-            className={`cursor-pointer ${isMobile ? 'px-3 py-1.5 text-sm' : 'px-4 py-2'} flex items-center gap-1.5 rounded-sm border border-[#B6B3B3] text-[#3F3D3D] hover:bg-[#F5F5F5]`}
-          >
-            <Upload size={isMobile ? 14 : 16} />
-            上傳頭像
-            <input
-              id="avatar-upload"
-              type="file"
-              accept="image/*"
-              className="hidden"
-              onChange={handleAvatarChange}
-            />
-          </label>
-
-          {(avatar || avatarPreview) && (
-            <Button
-              variant="outline"
-              className="border-[#B6B3B3] text-sm text-[#D94A4A]"
-              onClick={handleRemoveAvatar}
-            >
-              移除
-            </Button>
-          )}
-        </div>
-
-        <p className="text-xs text-[#8E8C8C]">建議上傳寬高比為 1:1 的圖片</p>
-
-        <div className="mt-2 w-full">
-          <h3 className={`${isMobile ? 'text-sm' : 'text-base'} mb-2 font-medium`}>預設頭像</h3>
-          <div className="rounded-md border border-[#EBEAEA]">
-            <AvatarOptions value={userData.avatarStyle} onChange={handleDefaultAvatarChange} />
-          </div>
-        </div>
-      </div>
-    )
-  }
-
-  // 個人資料表單元件
-  const ProfileForm = () => (
-    <div className="space-y-4">
-      <FormField label="顯示名稱">
-        <Input
-          value={userData.displayName}
-          onChange={(e) => handleChange('displayName', e.target.value)}
-          className="border-[#B6B3B3]"
-        />
-      </FormField>
-      <FormField label="使用者名稱">
-        <Input
-          value={userData.username}
-          onChange={(e) => handleChange('username', e.target.value)}
-          className="border-[#B6B3B3]"
-        />
-      </FormField>
-      <FormField label="電子郵件">
-        <Input
-          value={userData.email}
-          onChange={(e) => handleChange('email', e.target.value)}
-          className="border-[#B6B3B3]"
-        />
-      </FormField>
-      <Button
-        onClick={handleSaveProfile}
-        disabled={isSaving}
-        className="mt-4 bg-[#1B1A1A] text-white hover:bg-[#3F3D3D]"
-      >
-        {isSaving ? (
-          <>
-            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-            儲存中...
-          </>
-        ) : (
-          '儲存變更'
-        )}
-      </Button>
-    </div>
-  )
-
-  // 密碼變更表單元件
-  const PasswordForm = () => (
-    <div className="space-y-4">
-      <FormField label="目前密碼">
-        <Input
-          type="password"
-          value={userData.currentPassword}
-          onChange={(e) => handleChange('currentPassword', e.target.value)}
-          className="border-[#B6B3B3]"
-        />
-      </FormField>
-      <FormField label="新密碼">
-        <Input
-          type="password"
-          value={userData.newPassword}
-          onChange={(e) => handleChange('newPassword', e.target.value)}
-          className="border-[#B6B3B3]"
-        />
-      </FormField>
-      <FormField label="確認新密碼">
-        <Input
-          type="password"
-          value={userData.confirmNewPassword}
-          onChange={(e) => handleChange('confirmNewPassword', e.target.value)}
-          className="border-[#B6B3B3]"
-        />
-      </FormField>
-      <Button
-        onClick={handleChangePassword}
-        disabled={isChangingPassword}
-        className="bg-[#1B1A1A] text-white hover:bg-[#3F3D3D]"
-      >
-        {isChangingPassword ? (
-          <>
-            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-            更新中...
-          </>
-        ) : (
-          '更新密碼'
-        )}
-      </Button>
-    </div>
-  )
-
   // 切換標籤頁
   const handleTabChange = (tab: string) => {
     setActiveTab(tab)
@@ -483,10 +489,24 @@ export default function SettingsPage() {
         <div className="space-y-6">
           <div className={`grid grid-cols-1 ${isMobile ? '' : 'md:grid-cols-2'} gap-8`}>
             {/* 左側頭像上傳 */}
-            <AvatarUpload />
+            <AvatarUpload
+              isMobile={isMobile}
+              avatarPreview={avatarPreview}
+              useDefaultAvatar={useDefaultAvatar}
+              avatarStyle={userData.avatarStyle}
+              avatar={avatar}
+              onAvatarChange={handleAvatarChange}
+              onRemoveAvatar={handleRemoveAvatar}
+              onDefaultAvatarChange={handleDefaultAvatarChange}
+            />
 
             {/* 右側基本資料 */}
-            <ProfileForm />
+            <ProfileForm
+              userData={userData}
+              isSaving={isSaving}
+              onFieldChange={handleChange}
+              onSave={handleSaveProfile}
+            />
           </div>
         </div>
       )
@@ -495,7 +515,12 @@ export default function SettingsPage() {
         <div className="space-y-8">
           <div className={`rounded-sm border border-[#DBD8D8] ${isMobile ? 'p-4' : 'p-6'}`}>
             <h2 className={`${isMobile ? 'text-lg' : 'text-xl'} mb-4 font-medium`}>修改密碼</h2>
-            <PasswordForm />
+            <PasswordForm
+              userData={userData}
+              isChangingPassword={isChangingPassword}
+              onFieldChange={handleChange}
+              onChangePassword={handleChangePassword}
+            />
           </div>
         </div>
       )
