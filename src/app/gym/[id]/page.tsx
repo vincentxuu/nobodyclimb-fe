@@ -31,6 +31,22 @@ import {
   type GymListItem,
 } from '@/lib/gym-data'
 
+// 開箱介紹類型對應的圖標和標籤
+const reviewTypeConfig = {
+  facebook: {
+    icon: <Facebook size={24} className="text-blue-600" />,
+    label: 'Facebook 貼文',
+  },
+  instagram: {
+    icon: <Instagram size={24} className="text-pink-600" />,
+    label: 'Instagram 貼文',
+  },
+  youtube: {
+    icon: <Youtube size={24} className="text-red-600" />,
+    label: 'YouTube 影片',
+  },
+} as const
+
 export default function GymDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = use(params)
   const [showBackToTop, setShowBackToTop] = useState(false)
@@ -483,24 +499,14 @@ export default function GymDetailPage({ params }: { params: Promise<{ id: string
                     className="group flex items-start gap-3 rounded-lg border border-gray-200 p-4 transition hover:border-orange-300 hover:bg-orange-50"
                   >
                     <div className="flex-shrink-0">
-                      {review.type === 'facebook' && (
-                        <Facebook size={24} className="text-blue-600" />
-                      )}
-                      {review.type === 'instagram' && (
-                        <Instagram size={24} className="text-pink-600" />
-                      )}
-                      {review.type === 'youtube' && (
-                        <Youtube size={24} className="text-red-600" />
-                      )}
+                      {reviewTypeConfig[review.type].icon}
                     </div>
                     <div className="flex-1 min-w-0">
                       <p className="text-sm font-medium text-gray-900 group-hover:text-orange-600 line-clamp-2">
                         {review.title}
                       </p>
                       <p className="mt-1 text-xs text-gray-500">
-                        {review.type === 'facebook' && 'Facebook 貼文'}
-                        {review.type === 'instagram' && 'Instagram 貼文'}
-                        {review.type === 'youtube' && 'YouTube 影片'}
+                        {reviewTypeConfig[review.type].label}
                       </p>
                     </div>
                     <ExternalLink size={14} className="flex-shrink-0 text-gray-400 group-hover:text-orange-500" />
