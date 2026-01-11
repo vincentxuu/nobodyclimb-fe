@@ -4,7 +4,6 @@ import { useState, useEffect, useCallback, Suspense } from 'react'
 import Image from 'next/image'
 import Link from 'next/link'
 import { useRouter, useSearchParams } from 'next/navigation'
-import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
 import { Search, ChevronLeft, ChevronRight, Loader2, Heart, Eye, FileText } from 'lucide-react'
 import { Article, ArticleCategory } from '@/mocks/articles'
@@ -379,13 +378,14 @@ function BlogContent() {
         {/* Filter Section */}
         <div className="mb-8 space-y-6">
           {/* Search Input - 置中 */}
-          <div className="flex justify-center">
-            <div className="relative w-[240px]">
-              <Input
+          <div className="flex justify-center px-4 md:px-0">
+            <div className="relative w-full max-w-[240px]">
+              <input
+                type="text"
                 placeholder="搜尋文章關鍵字..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="h-[40px] w-full rounded-[4px] border border-[#1B1A1A] bg-white text-sm font-light placeholder:text-[#6D6C6C] focus:border-transparent focus:outline-none focus:ring-2 focus:ring-[#1B1A1A]"
+                className="h-[40px] w-full rounded-[4px] border border-[#1B1A1A] bg-white px-3 pr-10 text-sm font-light text-[#1B1A1A] placeholder:text-[#6D6C6C] focus:outline-none focus:ring-2 focus:ring-[#1B1A1A]"
               />
               <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-3">
                 <Search className="h-5 w-5 stroke-[1.5px] text-[#1B1A1A]" />
