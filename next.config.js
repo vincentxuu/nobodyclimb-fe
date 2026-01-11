@@ -2,6 +2,9 @@
 const nextConfig = {
   reactStrictMode: true,
 
+  // 排除這些套件從 server-side bundling，避免 jsdom 的 CSS 路徑問題
+  serverExternalPackages: ['jsdom', 'isomorphic-dompurify'],
+
   images: {
     remotePatterns: [
       {
