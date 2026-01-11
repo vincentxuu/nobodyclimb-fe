@@ -1,4 +1,5 @@
 import '@/styles/globals.css'
+import 'react-quill-new/dist/quill.snow.css'
 import React from 'react'
 import { Inter, Noto_Sans_TC, Allerta_Stencil } from 'next/font/google'
 import { Providers } from '@/components/layout/providers'
