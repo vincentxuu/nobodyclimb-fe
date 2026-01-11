@@ -19,7 +19,7 @@ export default function ProfilePageLayout({ children }: ProfilePageLayoutProps) 
         </div>
 
         {/* 主要內容區域 */}
-        <div className="mt-16 flex-1 md:mt-0">
+        <div className="flex-1">
           <motion.div
             className="w-full flex-1"
             initial={{ opacity: 0 }}

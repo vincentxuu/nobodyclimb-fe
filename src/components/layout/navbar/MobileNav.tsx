@@ -1,11 +1,10 @@
 'use client'
 
-import { useState } from 'react'
 import { usePathname, useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { motion, AnimatePresence } from 'framer-motion'
-import { ChevronDown, Search, FileText, Bookmark, Settings, LogOut, ImageIcon } from 'lucide-react'
-import { NAV_LINKS, COLUMN_SUBMENU } from '@/lib/constants'
+import { Search, FileText, Bookmark, Settings, LogOut, ImageIcon } from 'lucide-react'
+import { NAV_LINKS } from '@/lib/constants'
 import { useUIStore } from '@/store/uiStore'
 import { useAuthStore } from '@/store/authStore'
 import { Button } from '@/components/ui/button'
@@ -31,15 +30,6 @@ export default function MobileNav({ isDesktop }: MobileNavProps) {
     ? DEFAULT_AVATARS.find((a) => a.id === user.avatarStyle) || DEFAULT_AVATARS[0]
     : DEFAULT_AVATARS[0]
 
-  const [expandedMenus, setExpandedMenus] = useState<Record<string, boolean>>({})
-
-  // 處理子選單展開/收起
-  const toggleSubmenu = (href: string) => {
-    setExpandedMenus((prev) => ({
-      ...prev,
-      [href]: !prev[href],
-    }))
-  }
 
   // 處理搜尋提交
   const handleSearch = (e: React.FormEvent) => {
@@ -84,59 +74,13 @@ export default function MobileNav({ isDesktop }: MobileNavProps) {
           <ul className="space-y-6 px-4">
             {NAV_LINKS.map((link) => (
               <li key={link.href}>
-                {link.hasSubmenu ? (
-                  <div className="space-y-2">
-                    <button
-                      onClick={() => toggleSubmenu(link.href)}
-                      className="flex w-full items-center justify-between"
-                    >
-                      <span className="font-['Noto_Sans_TC'] text-base font-medium leading-6 tracking-[0.02em] text-[#1B1A1A]">
-                        {link.label}
-                      </span>
-                      <ChevronDown
-                        className={`h-4 w-4 transition-transform duration-200 ${
-                          expandedMenus[link.href] ? 'rotate-180 transform' : ''
-                        }`}
-                      />
-                    </button>
-                    <AnimatePresence>
-                      {expandedMenus[link.href] && (
-                        <motion.ul
-                          initial={{ opacity: 0, height: 0 }}
-                          animate={{ opacity: 1, height: 'auto' }}
-                          exit={{ opacity: 0, height: 0 }}
-                          transition={{ duration: 0.2 }}
-                          className="space-y-2 overflow-hidden pl-4"
-                        >
-                          {COLUMN_SUBMENU.map((subItem) => (
-                            <motion.li
-                              key={subItem.href}
-                              initial={{ x: -10, opacity: 0 }}
-                              animate={{ x: 0, opacity: 1 }}
-                              transition={{ duration: 0.2 }}
-                            >
-                              <Link
-                                href={subItem.href}
-                                className="block py-2 text-sm font-medium text-[#3F3D3D] hover:text-[#8E8C8C]"
-                                onClick={closeNavbar}
-                              >
-                                {subItem.label}
-                              </Link>
-                            </motion.li>
-                          ))}
-                        </motion.ul>
-                      )}
-                    </AnimatePresence>
-                  </div>
-                ) : (
-                  <Link
-                    href={link.href}
-                    className={`block py-1 font-['Noto_Sans_TC'] text-base font-medium leading-6 tracking-[0.02em] hover:text-[#8E8C8C] ${pathname === link.href ? 'text-[#8E8C8C]' : 'text-[#1B1A1A]'} `}
-                    onClick={closeNavbar}
-                  >
-                    {link.label}
-                  </Link>
-                )}
+                <Link
+                  href={link.href}
+                  className={`block py-1 font-['Noto_Sans_TC'] text-base font-medium leading-6 tracking-[0.02em] hover:text-[#8E8C8C] ${pathname.startsWith(link.href) ? 'text-[#8E8C8C]' : 'text-[#1B1A1A]'} `}
+                  onClick={closeNavbar}
+                >
+                  {link.label}
+                </Link>
               </li>
             ))}
 
