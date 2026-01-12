@@ -13,9 +13,6 @@ import { getAllCrags } from '@/lib/crag-data'
 // 從資料服務層讀取岩場資料
 const crags = getAllCrags()
 
-// 區域篩選選項
-const regions = ['全部', '台北', '新北', '桃園', '宜蘭', '花蓮', '台東', '高雄']
-
 // 岩石類型篩選選項
 const rockTypes = ['全部', '砂岩', '石灰岩', '海蝕岩', '花崗岩']
 
@@ -32,20 +29,18 @@ const difficultyLevels = [
 const seasonOptions = ['全部', '春', '夏', '秋', '冬']
 
 export default function CragListPage() {
-  const [selectedRegion, setSelectedRegion] = useState('全部')
   const [selectedRockType, setSelectedRockType] = useState('全部')
   const [selectedDifficulty, setSelectedDifficulty] = useState('全部')
   const [selectedSeason, setSelectedSeason] = useState('全部')
   const [isFilterOpen, setIsFilterOpen] = useState(false)
   const [expandedFilters, setExpandedFilters] = useState({
-    region: true,
     rockType: true,
     difficulty: false,
     season: false,
   })
 
   // 切換篩選展開狀態
-  const toggleFilter = (filter: 'region' | 'rockType' | 'difficulty' | 'season') => {
+  const toggleFilter = (filter: 'rockType' | 'difficulty' | 'season') => {
     setExpandedFilters({
       ...expandedFilters,
       [filter]: !expandedFilters[filter],
@@ -54,13 +49,12 @@ export default function CragListPage() {
 
   // 篩選岩場
   const filteredCrags = crags.filter((crag) => {
-    const regionMatch = selectedRegion === '全部' || crag.location.includes(selectedRegion)
     const typeMatch = selectedRockType === '全部' || crag.type.includes(selectedRockType)
     const seasonMatch = selectedSeason === '全部' || crag.seasons.includes(selectedSeason)
     // 由於難度比較複雜，這裡簡化處理
     const difficultyMatch = selectedDifficulty === '全部' // 實際應用中需要更複雜的邏輯
 
-    return regionMatch && typeMatch && seasonMatch && difficultyMatch
+    return typeMatch && seasonMatch && difficultyMatch
   })
 
   return (
@@ -93,39 +87,6 @@ export default function CragListPage() {
 
           <div className={`${isFilterOpen ? 'block' : 'hidden md:block'}`}>
             <div className="space-y-6">
-              {/* 地區篩選 */}
-              <div className="border-b pb-4">
-                <div
-                  className="flex cursor-pointer items-center justify-between"
-                  onClick={() => toggleFilter('region')}
-                >
-                  <h3 className="font-medium text-gray-800">地區</h3>
-                  {expandedFilters.region ? (
-                    <ChevronUp size={18} className="text-gray-500" />
-                  ) : (
-                    <ChevronDown size={18} className="text-gray-500" />
-                  )}
-                </div>
-
-                {expandedFilters.region && (
-                  <div className="mt-3 flex flex-wrap gap-2">
-                    {regions.map((region) => (
-                      <button
-                        key={region}
-                        className={`border-b-2 px-4 py-1.5 text-sm transition ${
-                          selectedRegion === region
-                            ? 'border-[#1B1A1A] font-medium text-[#1B1A1A]'
-                            : 'border-transparent text-gray-600 hover:border-gray-300 hover:text-gray-800'
-                        }`}
-                        onClick={() => setSelectedRegion(region)}
-                      >
-                        {region}
-                      </button>
-                    ))}
-                  </div>
-                )}
-              </div>
-
               {/* 岩石類型篩選 */}
               <div className="border-b pb-4">
                 <div
@@ -231,7 +192,6 @@ export default function CragListPage() {
               <button
                 className="rounded-md border border-gray-300 bg-white px-4 py-2 font-medium text-[#1B1A1A] transition hover:bg-gray-50"
                 onClick={() => {
-                  setSelectedRegion('全部')
                   setSelectedRockType('全部')
                   setSelectedDifficulty('全部')
                   setSelectedSeason('全部')
@@ -330,7 +290,6 @@ export default function CragListPage() {
             <button
               className="rounded-md bg-[#1B1A1A] px-6 py-2 font-medium text-white transition hover:bg-black"
               onClick={() => {
-                setSelectedRegion('全部')
                 setSelectedRockType('全部')
                 setSelectedDifficulty('全部')
                 setSelectedSeason('全部')
