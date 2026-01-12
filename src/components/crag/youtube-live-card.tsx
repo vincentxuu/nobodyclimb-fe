@@ -6,11 +6,13 @@ import { Youtube, ExternalLink } from 'lucide-react'
 interface YouTubeLiveCardProps {
   videoId: string
   title?: string
+  description?: string
 }
 
 export const YouTubeLiveCard: React.FC<YouTubeLiveCardProps> = ({
   videoId,
   title = '即時影像',
+  description,
 }) => {
   const youtubeUrl = `https://www.youtube.com/watch?v=${videoId}`
 
@@ -42,9 +44,11 @@ export const YouTubeLiveCard: React.FC<YouTubeLiveCardProps> = ({
         />
       </div>
 
-      <p className="mt-3 text-sm text-gray-500">
-        龍洞岩場周邊即時影像，可了解當地天氣與海況
-      </p>
+      {description && (
+        <p className="mt-3 text-sm text-gray-500">
+          {description}
+        </p>
+      )}
     </div>
   )
 }

@@ -1,6 +1,6 @@
 'use client'
 
-import React, { useState, useEffect } from 'react'
+import React, { useState, useEffect, useCallback } from 'react'
 import { Camera, ExternalLink, Loader2, AlertCircle, RefreshCw } from 'lucide-react'
 
 interface CameraData {
@@ -11,6 +11,12 @@ interface CameraData {
   latitude: number
   longitude: number
   direction?: string
+}
+
+interface ApiResponse {
+  success: boolean
+  data?: CameraData[]
+  error?: string
 }
 
 interface TrafficCamerasCardProps {
@@ -27,7 +33,7 @@ export const TrafficCamerasCard: React.FC<TrafficCamerasCardProps> = ({
   const [error, setError] = useState<string | null>(null)
   const [selectedCamera, setSelectedCamera] = useState<CameraData | null>(null)
 
-  const fetchCameras = async () => {
+  const fetchCameras = useCallback(async () => {
     setLoading(true)
     setError(null)
 
@@ -38,18 +44,13 @@ export const TrafficCamerasCard: React.FC<TrafficCamerasCardProps> = ({
         throw new Error('無法取得攝影機資料')
       }
 
-      const data = (await response.json()) as
-        | CameraData[]
-        | { success: boolean; data?: CameraData[]; error?: string }
+      const apiResponse = (await response.json()) as ApiResponse
 
-      if (typeof data === 'object' && 'success' in data && data.success === false) {
-        throw new Error(data.error || '無法取得攝影機資料')
+      if (!apiResponse.success) {
+        throw new Error(apiResponse.error || '無法取得攝影機資料')
       }
 
-      // 處理 API 回傳的資料格式
-      const cameraList: CameraData[] = Array.isArray(data)
-        ? data
-        : (data as { data?: CameraData[] }).data || []
+      const cameraList = apiResponse.data || []
       setCameras(cameraList.slice(0, 6)) // 最多顯示 6 個攝影機
 
       if (cameraList.length > 0) {
@@ -60,11 +61,11 @@ export const TrafficCamerasCard: React.FC<TrafficCamerasCardProps> = ({
     } finally {
       setLoading(false)
     }
-  }
+  }, [latitude, longitude])
 
   useEffect(() => {
     fetchCameras()
-  }, [latitude, longitude])
+  }, [fetchCameras])
 
   if (loading) {
     return (

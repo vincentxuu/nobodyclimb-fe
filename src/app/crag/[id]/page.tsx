@@ -314,8 +314,8 @@ export default function CragDetailPage({ params }: { params: Promise<{ id: strin
                   </div>
                 </div>
 
-                {/* 即時路況與影像 - 僅龍洞岩場顯示 */}
-                {id === 'longdong' && (
+                {/* 即時路況與影像 - 根據資料欄位決定是否顯示 */}
+                {currentCrag.liveVideoId && (
                   <div className="mb-6">
                     <div className="mb-1">
                       <h2 className="text-lg font-medium text-orange-500">即時路況與影像</h2>
@@ -327,8 +327,9 @@ export default function CragDetailPage({ params }: { params: Promise<{ id: strin
                         longitude={currentCrag.geoCoordinates.longitude}
                       />
                       <YouTubeLiveCard
-                        videoId="8-xSAfWwh10"
-                        title="龍洞即時影像"
+                        videoId={currentCrag.liveVideoId}
+                        title={currentCrag.liveVideoTitle}
+                        description={currentCrag.liveVideoDescription}
                       />
                     </div>
                   </div>
