@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect, useCallback } from 'react'
 import { Camera, ExternalLink, Loader2, AlertCircle } from 'lucide-react'
+import { API_BASE_URL } from '@/lib/constants'
 
 interface CameraData {
   camid: string
@@ -32,21 +33,20 @@ export const TrafficCamerasCard: React.FC<TrafficCamerasCardProps> = ({
     setServiceMessage(null)
 
     try {
-      // 直接從瀏覽器呼叫 1968 API（繞過伺服器端代理避免被阻擋）
-      const apiUrl = `https://www.1968services.tw/query-cam-list-by-coordinate/${latitude}/${longitude}`
+      // 透過後端代理呼叫 1968 API（避免 CORS 問題）
+      const apiUrl = `${API_BASE_URL}/traffic/cameras?lat=${latitude}&lon=${longitude}`
       const response = await fetch(apiUrl)
 
       if (!response.ok) {
         throw new Error('無法取得攝影機資料')
       }
 
-      // 嘗試解析 JSON（1968 API 的 content-type 可能是 text/html 但實際內容是 JSON）
-      let cameraList: CameraData[]
-      try {
-        cameraList = (await response.json()) as CameraData[]
-      } catch {
-        throw new Error('API 回傳格式錯誤')
+      const result = await response.json()
+      if (!result.success || !result.data) {
+        throw new Error(result.message || 'API 回傳格式錯誤')
       }
+
+      const cameraList = result.data as CameraData[]
       setCameras(cameraList.slice(0, 6)) // 最多顯示 6 個攝影機
 
       if (cameraList.length > 0) {
