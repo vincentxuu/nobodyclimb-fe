@@ -406,6 +406,27 @@ export interface Weather {
 }
 
 /**
+ * 衛星雲圖類型
+ */
+export type SatelliteImageType = 'visible' | 'infrared' | 'trueColor' | 'enhanced'
+
+/**
+ * 衛星雲圖區域
+ */
+export type SatelliteImageArea = 'taiwan' | 'eastAsia' | 'global'
+
+/**
+ * 衛星雲圖資訊
+ */
+export interface SatelliteImageInfo {
+  type: SatelliteImageType
+  area: SatelliteImageArea
+  url: string
+  label: string
+  updatedAt: string
+}
+
+/**
  * 舊版天氣資訊介面（用於相容性）
  * @deprecated 使用 Weather 介面替代
  */
