@@ -309,6 +309,9 @@ async function fetchTaiwanForecast(
   }
 }
 
+// 預報天數常數
+const FORECAST_DAYS = 7;
+
 // 解析 CWA API 回傳的天氣資料
 function parseWeatherData(
   locationData: CwaLocationWeather,
@@ -333,7 +336,8 @@ function parseWeatherData(
   const forecast: WeatherData['forecast'] = [];
   const timeSlots = elements['Wx'] || elements['WeatherDescription'] || [];
 
-  for (let i = 1; i < Math.min(timeSlots.length, 7); i++) {
+  // 取得未來預報資料
+  for (let i = 1; i < Math.min(timeSlots.length, FORECAST_DAYS + 1); i++) {
     const slot = timeSlots[i];
     const minTempSlot = elements['MinT']?.[i];
     const maxTempSlot = elements['MaxT']?.[i];

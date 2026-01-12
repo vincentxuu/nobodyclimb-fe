@@ -49,6 +49,30 @@ export interface WeatherData {
   }>;
 }
 
+// 衛星雲圖類型
+export type SatelliteImageType = 'visible' | 'infrared' | 'trueColor' | 'enhanced';
+export type SatelliteImageArea = 'taiwan' | 'eastAsia' | 'global';
+
+export interface SatelliteImageInfo {
+  type: SatelliteImageType;
+  area: SatelliteImageArea;
+  url: string;
+  label: string;
+  updatedAt: string;
+}
+
+// 雷達回波類型
+export type RadarImageType = 'composite' | 'rain';
+export type RadarImageArea = 'taiwan' | 'north' | 'south';
+
+export interface RadarImageInfo {
+  type: RadarImageType;
+  area: RadarImageArea;
+  url: string;
+  label: string;
+  updatedAt: string;
+}
+
 // Database Models
 export interface User {
   id: string;
