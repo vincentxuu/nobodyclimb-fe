@@ -27,21 +27,6 @@ export default function CragListPage() {
           <Breadcrumb items={[{ label: '首頁', href: '/' }, { label: '岩場' }]} />
         </div>
 
-        {/* 搜尋結果 */}
-        <div className="mb-6 flex items-center justify-between">
-          <p className="text-gray-600">
-            找到 <span className="font-medium text-gray-900">{crags.length}</span> 個岩場
-          </p>
-          <div className="flex items-center space-x-4">
-            <select className="rounded-md border border-gray-200 bg-white p-2 text-sm text-gray-600">
-              <option value="recommend">推薦排序</option>
-              <option value="name">名稱排序</option>
-              <option value="routes-high">路線數量 (高到低)</option>
-              <option value="routes-low">路線數量 (低到高)</option>
-            </select>
-          </div>
-        </div>
-
         {/* 岩場列表 */}
         <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
           {crags.map((crag) => (

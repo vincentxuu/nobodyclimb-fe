@@ -1,6 +1,6 @@
 'use client'
 
-import React, { useEffect, useState } from 'react'
+import React, { useEffect, useMemo, useState } from 'react'
 import { Cloud, Droplets, ThermometerSun, Loader2, AlertCircle } from 'lucide-react'
 import { weatherService } from '@/lib/api/services'
 import { Weather } from '@/lib/types'
@@ -14,8 +14,11 @@ interface WeatherDisplayProps {
   className?: string
 }
 
-// 預報天數常數
-const FORECAST_DAYS = 7
+// 預報時段數常數（7天 × 2時段）
+const FORECAST_PERIODS = 14
+
+// 星期常數
+const WEEKDAYS = ['週日', '週一', '週二', '週三', '週四', '週五', '週六']
 
 // 格式化數值顯示，null 時顯示 "--"
 function formatTemp(value: number | null): string {
@@ -36,22 +39,26 @@ function getWeatherColor(condition: string | null): string {
   return 'text-gray-600'
 }
 
-// 格式化日期顯示
-function formatForecastDate(dateString: string): string {
+// 格式化日期顯示（含早晚時段）
+function formatForecastDate(
+  dateString: string,
+  index: number,
+  todayStr: string,
+  tomorrowStr: string
+): string {
   const date = new Date(dateString)
-  const today = new Date()
-  const tomorrow = new Date(today)
-  tomorrow.setDate(tomorrow.getDate() + 1)
+  const period = index % 2 === 0 ? '早' : '晚'
 
-  if (date.toDateString() === today.toDateString()) {
-    return '今天'
-  }
-  if (date.toDateString() === tomorrow.toDateString()) {
-    return '明天'
+  let dayLabel: string
+  if (date.toDateString() === todayStr) {
+    dayLabel = '今天'
+  } else if (date.toDateString() === tomorrowStr) {
+    dayLabel = '明天'
+  } else {
+    dayLabel = WEEKDAYS[date.getDay()]
   }
 
-  const weekdays = ['週日', '週一', '週二', '週三', '週四', '週五', '週六']
-  return weekdays[date.getDay()]
+  return `${dayLabel}${period}`
 }
 
 // 格式化天氣狀況顯示
@@ -74,6 +81,17 @@ export function WeatherDisplay({
   const [weather, setWeather] = useState<Weather | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
+
+  // 預先計算今天和明天的日期字串，避免在每次迭代中重複計算
+  const { todayStr, tomorrowStr } = useMemo(() => {
+    const today = new Date()
+    const tomorrow = new Date(today)
+    tomorrow.setDate(tomorrow.getDate() + 1)
+    return {
+      todayStr: today.toDateString(),
+      tomorrowStr: tomorrow.toDateString(),
+    }
+  }, [])
 
   useEffect(() => {
     const fetchWeather = async () => {
@@ -180,13 +198,13 @@ export function WeatherDisplay({
         <div className="border-t border-gray-200 pt-4">
           <h4 className="mb-3 text-sm font-medium text-gray-700">未來七天天氣</h4>
           <div className="grid grid-cols-4 gap-2 sm:grid-cols-7">
-            {weather.forecast.slice(0, FORECAST_DAYS).map((day) => (
+            {weather.forecast.slice(0, FORECAST_PERIODS).map((day, index) => (
               <div
-                key={day.date}
+                key={`${day.date}-${index}`}
                 className="rounded-lg bg-white p-2 text-center"
               >
                 <p className="text-xs font-medium text-gray-600">
-                  {formatForecastDate(day.date)}
+                  {formatForecastDate(day.date, index, todayStr, tomorrowStr)}
                 </p>
                 <p className={`my-1 text-xs ${getWeatherColor(day.condition)}`}>
                   {formatCondition(day.condition, 4)}
