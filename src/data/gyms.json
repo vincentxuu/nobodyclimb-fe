@@ -2651,10 +2651,10 @@
       "slug": "highfun-rende",
       "name": "嗨翻攀岩館 仁德店",
       "nameEn": "High Fun Rende",
-      "type": "bouldering",
+      "type": "mixed",
       "location": {
-        "address": "台南市仁德區",
-        "addressEn": "Rende Dist., Tainan City",
+        "address": "台南市仁德區文心路80號",
+        "addressEn": "No. 80, Wenxin Rd., Rende Dist., Tainan City",
         "city": "台南市",
         "district": "仁德區",
         "region": "南部",
@@ -2662,27 +2662,29 @@
         "latitude": 22.9722,
         "longitude": 120.2267
       },
-      "description": "嗨翻攀岩館仁德店提供抱石服務。",
-      "descriptionEn": "High Fun Rende offers bouldering services.",
+      "description": "嗨翻攀岩館仁德店是嗨翻綜合體能館的分店，提供上攀和抱石服務。",
+      "descriptionEn": "High Fun Rende is a branch of High Fun Gym, offering lead climbing and bouldering services.",
       "coverImage": "/images/gym/highfun-rende.jpg",
       "images": [],
       "facilities": [
+        "先鋒攀登",
         "抱石區",
         "休息區"
       ],
       "facilitiesEn": [
+        "Lead Climbing",
         "Bouldering Area",
         "Rest Area"
       ],
       "openingHours": {
-        "monday": "請洽詢",
-        "tuesday": "請洽詢",
-        "wednesday": "請洽詢",
-        "thursday": "請洽詢",
-        "friday": "請洽詢",
-        "saturday": "請洽詢",
-        "sunday": "請洽詢",
-        "holiday": "請洽詢"
+        "monday": "14:00-22:00",
+        "tuesday": "14:00-22:00",
+        "wednesday": "公休",
+        "thursday": "14:00-22:00",
+        "friday": "14:00-22:00",
+        "saturday": "10:00-18:00",
+        "sunday": "10:00-18:00",
+        "holiday": "10:00-18:00"
       },
       "pricing": {
         "singleEntry": {
@@ -2694,18 +2696,18 @@
         }
       },
       "transportation": {
-        "parking": "請洽詢"
+        "parking": "附近有停車位"
       },
       "contact": {
-        "phone": "",
+        "phone": "06-2797386",
         "facebook": "High Fun 嗨翻攀岩館 仁德店",
         "facebookUrl": "https://www.facebook.com/High-Fun-%E5%97%A8%E7%BF%BB%E6%94%80%E5%B2%A9%E9%A4%A8-%E4%BB%81%E5%BE%B7%E5%BA%97-61564168141285/",
         "instagram": "highfun_rende",
         "instagramUrl": "https://www.instagram.com/highfun_rende/",
-        "website": "",
+        "website": "https://highfun2017.com/",
         "line": ""
       },
-      "notes": "",
+      "notes": "星期三公休",
       "rating": 0,
       "featured": false,
       "status": "published",
