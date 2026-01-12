@@ -195,7 +195,7 @@ interface Crag {
   images: string[]
   videoUrl?: string               // 介紹影片
 
-  // 岩區
+  // 區域
   areas: Area[]
 
   // 路線詳情
@@ -257,7 +257,7 @@ Crag (岩場)
 │   ├── name, location, type
 │   └── description, statistics
 │
-├── Areas (岩區)
+├── Areas (區域)
 │   ├── Area 1
 │   ├── Area 2
 │   └── Area N

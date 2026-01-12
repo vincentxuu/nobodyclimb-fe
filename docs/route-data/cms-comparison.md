@@ -30,18 +30,21 @@
 ### 資料結構範例
 
 **Sheet 1: 路線基本資訊**
+
 | route_id | name | english_name | grade | length | type | area | description | protection | tips |
 |----------|------|--------------|-------|--------|------|------|-------------|------------|------|
 | LD001 | 海神 | Poseidon | 5.11c | 25m | 運動攀登 | 第一長岬 | 這條線路需要... | 固定保護點 | 攀爬此路線時... |
 | LD002 | 藍色海洋 | Blue Ocean | 5.9+ | 18m | 傳統攀登 | 音樂廳 | 經典的中等難度... | 需自備裝備 | 攀爬前檢查... |
 
 **Sheet 2: 路線影片**
+
 | route_id | video_order | source | url | title | description |
 |----------|-------------|--------|-----|-------|-------------|
-| LD001 | 1 | youtube | https://youtube.com/... | 首攀影片 | 展示關鍵動作 |
-| LD001 | 2 | instagram | https://instagram.com/p/... | 攀登示範 | ... |
+| LD001 | 1 | youtube | <https://youtube.com/>... | 首攀影片 | 展示關鍵動作 |
+| LD001 | 2 | instagram | <https://instagram.com/p/>... | 攀登示範 | ... |
 
 **Sheet 3: 路線圖片**
+
 | route_id | image_order | url | caption |
 |----------|-------------|-----|---------|
 | LD001 | 1 | https://... | 起攀段 |
@@ -234,6 +237,7 @@ export default {
 如果選擇 Google Sheets，建議：
 
 1. **使用資料驗證**
+
    ```
    - 難度欄位：下拉選單（5.6, 5.7, ..., 5.15d）
    - 類型欄位：下拉選單（運動攀登、傳統攀登、抱石、混合）
@@ -249,6 +253,7 @@ export default {
    - 無效資料標黃
 
 4. **定期匯出備份**
+
    ```bash
    # 每天自動匯出 CSV
    0 2 * * * node scripts/export-from-sheets.js
@@ -276,7 +281,7 @@ export default {
 | 難度 | Select | 5.11c |
 | 長度 | Text | 25m |
 | 類型 | Select | 運動攀登 |
-| 區域 | Relation | → 岩區 Database |
+| 區域 | Relation | → 區域 Database |
 | 描述 | Rich Text | （支援 Markdown）|
 | 保護裝備 | Rich Text | 固定保護點... |
 | 攀登攻略 | Rich Text | 攀爬此路線時... |
@@ -579,6 +584,7 @@ export async function GET(request: Request) {
    - 檢視者：唯讀
 
 4. **API 快取策略**
+
    ```typescript
    // 使用 Cloudflare KV 快取
    const cacheKey = `notion_routes_${cragId}`
@@ -1197,12 +1203,14 @@ export default async function CragDetailPage({ params }) {
 **推薦**: **Google Sheets** ⭐⭐⭐
 
 **理由**:
+
 - ✅ 完全免費
 - ✅ 所有人都會用
 - ✅ 5 分鐘開始編輯
 - ⚠️ 接受資料品質較弱
 
 **實施建議**:
+
 1. 使用資料驗證（下拉選單）
 2. 建立編輯範本
 3. 定期匯出備份
@@ -1215,6 +1223,7 @@ export default async function CragDetailPage({ params }) {
 **推薦**: **Notion** ⭐⭐⭐⭐
 
 **理由**:
+
 - ✅ 優雅的編輯體驗
 - ✅ 圖片直接上傳
 - ✅ Markdown 支援
@@ -1222,6 +1231,7 @@ export default async function CragDetailPage({ params }) {
 - ⚠️ 需要付費 ($8/人)
 
 **實施建議**:
+
 1. 設計 Database 架構（路線、影片分開）
 2. 建立範本
 3. 使用 Status 工作流程
@@ -1234,6 +1244,7 @@ export default async function CragDetailPage({ params }) {
 **推薦**: **Strapi** ⭐⭐⭐⭐⭐
 
 **理由**:
+
 - ✅ 強大的資料驗證
 - ✅ 完整的多媒體管理
 - ✅ 自主掌控資料
@@ -1242,6 +1253,7 @@ export default async function CragDetailPage({ params }) {
 - ⚠️ 需要 1-2 天初期設定
 
 **實施建議**:
+
 1. 部署到 Railway（最簡單）
 2. 圖片上傳到 Cloudflare R2
 3. 設定角色權限
@@ -1293,12 +1305,14 @@ export default async function CragDetailPage({ params }) {
 **推薦**: **Notion** ⭐⭐⭐⭐
 
 **理由**:
+
 - 學習曲線低於 Strapi
 - 圖片、影片管理比 Google Sheets 好太多
 - 編輯體驗優雅
 - 即時協作
 
 **妥協點**:
+
 - 需要付費
 - 多個影片需要用 Relation（稍微複雜）
 - API 有限制（需快取）
@@ -1329,17 +1343,20 @@ export default async function CragDetailPage({ params }) {
 ### 選擇 Strapi 的話
 
 **Week 1: 設定與部署**
+
 - Day 1-2: 部署 Strapi 到 Railway
 - Day 3-4: 設計 Content Types
 - Day 5: 設定 Cloudflare R2
 - Day 6-7: 權限與角色設定
 
 **Week 2: 資料遷移與整合**
+
 - Day 1-3: 遷移現有路線資料
 - Day 4-5: Frontend API 整合
 - Day 6-7: 測試與調整
 
 **Week 3: 培訓與上線**
+
 - Day 1-2: 編輯者培訓
 - Day 3-5: 試運行
 - Day 6-7: 正式上線
@@ -1347,12 +1364,14 @@ export default async function CragDetailPage({ params }) {
 ### 選擇 Notion 的話
 
 **Week 1: 設定**
+
 - Day 1: 建立 Workspace
 - Day 2-3: 設計 Database
 - Day 4: 建立範本
 - Day 5-7: API 整合與快取
 
 **Week 2: 上線**
+
 - Day 1-2: 資料遷移
 - Day 3-4: 測試
 - Day 5-7: 培訓與上線

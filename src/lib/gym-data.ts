@@ -3,6 +3,8 @@
  * 負責讀取和處理岩館 JSON 資料
  */
 
+import gymsJsonData from '@/data/gyms.json'
+
 // ============ 類型定義 ============
 
 export interface GymLocation {
@@ -17,8 +19,6 @@ export interface GymLocation {
 }
 
 export interface GymOpeningHours {
-  weekday: string
-  weekend: string
   monday: string
   tuesday: string
   wednesday: string
@@ -174,34 +174,13 @@ export interface GymDetailData {
   updatedAt: string
 }
 
-// ============ 資料快取 ============
-
-let cachedGymsData: GymsJsonData | null = null
-
 // ============ 資料載入函數 ============
 
 /**
- * 載入岩館 JSON 資料（客戶端用）
+ * 載入岩館 JSON 資料（使用靜態 import）
  */
-export async function loadGymsData(): Promise<GymsJsonData> {
-  if (cachedGymsData) {
-    return cachedGymsData
-  }
-
-  const response = await fetch('/data/gyms.json')
-  if (!response.ok) {
-    throw new Error('Failed to load gyms data')
-  }
-
-  cachedGymsData = await response.json()
-  return cachedGymsData!
-}
-
-/**
- * 清除快取（用於強制重新載入）
- */
-export function clearGymsCache(): void {
-  cachedGymsData = null
+export function loadGymsData(): GymsJsonData {
+  return gymsJsonData as unknown as GymsJsonData
 }
 
 // ============ 輔助函數 ============
@@ -280,16 +259,16 @@ function toGymDetailData(gym: GymData): GymDetailData {
 /**
  * 獲取所有岩館列表（簡化格式）
  */
-export async function getAllGyms(): Promise<GymListItem[]> {
-  const data = await loadGymsData()
+export function getAllGyms(): GymListItem[] {
+  const data = loadGymsData()
   return data.gyms.map(toGymListItem)
 }
 
 /**
  * 根據 ID 獲取岩館詳細資料
  */
-export async function getGymById(id: string): Promise<GymDetailData | null> {
-  const data = await loadGymsData()
+export function getGymById(id: string): GymDetailData | null {
+  const data = loadGymsData()
   const gym = data.gyms.find((g) => g.id === id)
   return gym ? toGymDetailData(gym) : null
 }
@@ -297,8 +276,8 @@ export async function getGymById(id: string): Promise<GymDetailData | null> {
 /**
  * 根據 slug 獲取岩館詳細資料
  */
-export async function getGymBySlug(slug: string): Promise<GymDetailData | null> {
-  const data = await loadGymsData()
+export function getGymBySlug(slug: string): GymDetailData | null {
+  const data = loadGymsData()
   const gym = data.gyms.find((g) => g.slug === slug)
   return gym ? toGymDetailData(gym) : null
 }
@@ -306,37 +285,37 @@ export async function getGymBySlug(slug: string): Promise<GymDetailData | null> 
 /**
  * 獲取精選岩館
  */
-export async function getFeaturedGyms(): Promise<GymListItem[]> {
-  const data = await loadGymsData()
+export function getFeaturedGyms(): GymListItem[] {
+  const data = loadGymsData()
   return data.gyms.filter((g) => g.featured).map(toGymListItem)
 }
 
 /**
  * 根據地區獲取岩館
  */
-export async function getGymsByRegion(region: string): Promise<GymListItem[]> {
-  const data = await loadGymsData()
+export function getGymsByRegion(region: string): GymListItem[] {
+  const data = loadGymsData()
   return data.gyms.filter((g) => g.location.region === region).map(toGymListItem)
 }
 
 /**
  * 根據類型獲取岩館
  */
-export async function getGymsByType(type: 'bouldering' | 'lead' | 'mixed'): Promise<GymListItem[]> {
-  const data = await loadGymsData()
+export function getGymsByType(type: 'bouldering' | 'lead' | 'mixed'): GymListItem[] {
+  const data = loadGymsData()
   return data.gyms.filter((g) => g.type === type).map(toGymListItem)
 }
 
 /**
  * 搜尋岩館
  */
-export async function searchGyms(options: {
+export function searchGyms(options: {
   query?: string
   region?: string
   type?: string
   city?: string
-}): Promise<GymListItem[]> {
-  const data = await loadGymsData()
+}): GymListItem[] {
+  const data = loadGymsData()
   let gyms = data.gyms
 
   // 搜尋關鍵字
@@ -354,17 +333,11 @@ export async function searchGyms(options: {
 
   // 地區篩選
   if (options.region && options.region !== '所有地區') {
-    if (options.region === '大台北') {
-      gyms = gyms.filter(
-        (gym) => gym.location.city === '台北市' || gym.location.city === '新北市'
-      )
-    } else {
-      gyms = gyms.filter(
-        (gym) =>
-          gym.location.city.includes(options.region!) ||
-          gym.location.region === options.region
-      )
-    }
+    gyms = gyms.filter(
+      (gym) =>
+        gym.location.city.includes(options.region!) ||
+        gym.location.region === options.region
+    )
   }
 
   // 類型篩選
@@ -387,11 +360,11 @@ export async function searchGyms(options: {
 /**
  * 獲取相關岩館（同地區的其他岩館）
  */
-export async function getRelatedGyms(
+export function getRelatedGyms(
   currentGymId: string,
   limit: number = 3
-): Promise<GymListItem[]> {
-  const data = await loadGymsData()
+): GymListItem[] {
+  const data = loadGymsData()
   const currentGym = data.gyms.find((g) => g.id === currentGymId)
 
   if (!currentGym) {
@@ -423,11 +396,11 @@ export async function getRelatedGyms(
 /**
  * 獲取上一個和下一個岩館（用於導航）
  */
-export async function getAdjacentGyms(currentGymId: string): Promise<{
+export function getAdjacentGyms(currentGymId: string): {
   prev: GymListItem | null
   next: GymListItem | null
-}> {
-  const data = await loadGymsData()
+} {
+  const data = loadGymsData()
   const currentIndex = data.gyms.findIndex((g) => g.id === currentGymId)
 
   if (currentIndex === -1) {
@@ -446,16 +419,16 @@ export async function getAdjacentGyms(currentGymId: string): Promise<{
 /**
  * 獲取所有地區列表
  */
-export async function getAllRegions(): Promise<string[]> {
-  const data = await loadGymsData()
+export function getAllRegions(): string[] {
+  const data = loadGymsData()
   return data.metadata.regions
 }
 
 /**
  * 獲取所有城市列表
  */
-export async function getAllCities(): Promise<string[]> {
-  const data = await loadGymsData()
+export function getAllCities(): string[] {
+  const data = loadGymsData()
   const cities = new Set(data.gyms.map((g) => g.location.city))
   return Array.from(cities).sort()
 }
@@ -463,7 +436,7 @@ export async function getAllCities(): Promise<string[]> {
 /**
  * 獲取元資料
  */
-export async function getGymsMetadata(): Promise<GymsJsonData['metadata']> {
-  const data = await loadGymsData()
+export function getGymsMetadata(): GymsJsonData['metadata'] {
+  const data = loadGymsData()
   return data.metadata
 }

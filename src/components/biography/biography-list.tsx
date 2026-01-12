@@ -8,8 +8,7 @@ import { ArrowRightCircle, Loader2 } from 'lucide-react'
 import { Card, CardContent } from '@/components/ui/card'
 import { biographyService } from '@/lib/api/services'
 import { Biography } from '@/lib/types'
-import { biographyData } from '@/data/biographyData'
-import { mapStaticToBiography, calculateClimbingYears } from '@/lib/utils/biography'
+import { calculateClimbingYears } from '@/lib/utils/biography'
 
 // 卡片組件
 interface BiographyCardProps {
@@ -72,8 +71,7 @@ interface BiographyListProps {
 export function BiographyList({ searchTerm, onTotalChange }: BiographyListProps) {
   const [biographies, setBiographies] = useState<Biography[]>([])
   const [loading, setLoading] = useState(true)
-  const [, setError] = useState<string | null>(null)
-  const [, setUseStaticData] = useState(false)
+  const [error, setError] = useState<string | null>(null)
 
   // 從 API 加載數據
   const loadBiographies = useCallback(async () => {
@@ -83,54 +81,19 @@ export function BiographyList({ searchTerm, onTotalChange }: BiographyListProps)
     try {
       const response = await biographyService.getBiographies(1, 20, searchTerm || undefined)
 
-      if (response.success && response.data.length > 0) {
+      if (response.success) {
         setBiographies(response.data)
-        setUseStaticData(false)
         onTotalChange?.(response.pagination.total, response.pagination.page < response.pagination.total_pages)
       } else {
-        // API 沒有數據，使用靜態數據
-        const staticBiographies = biographyData.map(mapStaticToBiography)
-        const filtered = searchTerm
-          ? staticBiographies.filter((person) => {
-              const searchLower = searchTerm.toLowerCase()
-              return (
-                person.name.toLowerCase().includes(searchLower) ||
-                (person.climbing_meaning?.toLowerCase().includes(searchLower) ?? false) ||
-                (person.climbing_start_year?.toLowerCase().includes(searchLower) ?? false) ||
-                (person.frequent_locations?.toLowerCase().includes(searchLower) ?? false) ||
-                (person.favorite_route_type?.toLowerCase().includes(searchLower) ?? false) ||
-                (person.climbing_reason?.toLowerCase().includes(searchLower) ?? false) ||
-                (person.bucket_list?.toLowerCase().includes(searchLower) ?? false) ||
-                (person.advice?.toLowerCase().includes(searchLower) ?? false)
-              )
-            })
-          : staticBiographies
-        setBiographies(filtered)
-        setUseStaticData(true)
-        onTotalChange?.(filtered.length, false)
+        setError('無法載入人物誌資料')
+        setBiographies([])
+        onTotalChange?.(0, false)
       }
     } catch (err) {
       console.error('Failed to load biographies:', err)
-      // API 錯誤時，fallback 到靜態數據
-      const staticBiographies = biographyData.map(mapStaticToBiography)
-      const filtered = searchTerm
-        ? staticBiographies.filter((person) => {
-            const searchLower = searchTerm.toLowerCase()
-            return (
-              person.name.toLowerCase().includes(searchLower) ||
-              (person.climbing_meaning?.toLowerCase().includes(searchLower) ?? false) ||
-              (person.climbing_start_year?.toLowerCase().includes(searchLower) ?? false) ||
-              (person.frequent_locations?.toLowerCase().includes(searchLower) ?? false) ||
-              (person.favorite_route_type?.toLowerCase().includes(searchLower) ?? false) ||
-              (person.climbing_reason?.toLowerCase().includes(searchLower) ?? false) ||
-              (person.bucket_list?.toLowerCase().includes(searchLower) ?? false) ||
-              (person.advice?.toLowerCase().includes(searchLower) ?? false)
-            )
-          })
-        : staticBiographies
-      setBiographies(filtered)
-      setUseStaticData(true)
-      onTotalChange?.(filtered.length, false)
+      setError('載入人物誌時發生錯誤')
+      setBiographies([])
+      onTotalChange?.(0, false)
     } finally {
       setLoading(false)
     }
@@ -149,6 +112,14 @@ export function BiographyList({ searchTerm, onTotalChange }: BiographyListProps)
     return (
       <div className="flex min-h-[300px] items-center justify-center">
         <Loader2 className="h-8 w-8 animate-spin text-[#1B1A1A]" />
+      </div>
+    )
+  }
+
+  if (error) {
+    return (
+      <div className="flex min-h-[300px] flex-col items-center justify-center text-center">
+        <p className="text-lg text-red-600">{error}</p>
       </div>
     )
   }

@@ -19,7 +19,7 @@ export default function AreaDetailPage({
 }) {
   const { id: cragId, areaId } = use(params)
 
-  // 從資料服務層讀取岩區資料
+  // 從資料服務層讀取區域資料
   const areaData = getAreaDetailData(cragId, areaId)
 
   if (!areaData) {
@@ -27,8 +27,8 @@ export default function AreaDetailPage({
       <main className="min-h-screen bg-gray-50">
         <div className="container mx-auto px-4 pt-20">
           <div className="rounded-lg bg-white p-8 text-center shadow-sm">
-            <h1 className="text-2xl font-bold text-gray-800">找不到岩區</h1>
-            <p className="mt-2 text-gray-600">該岩區不存在或已被移除</p>
+            <h1 className="text-2xl font-bold text-gray-800">找不到區域</h1>
+            <p className="mt-2 text-gray-600">該區域不存在或已被移除</p>
             <Link href={`/crag/${cragId}`}>
               <Button className="mt-4">返回岩場</Button>
             </Link>
@@ -77,18 +77,18 @@ export default function AreaDetailPage({
 
         {/* 主要內容區 */}
         <div className="mb-12 mt-4 rounded-lg bg-white p-8 shadow-sm">
-          {/* 岩區標題圖片 */}
+          {/* 區域標題圖片 */}
           <div className="mb-8">
             <div className="relative h-64 w-full overflow-hidden rounded-lg md:h-80">
               <PlaceholderImage
-                text={`${area.name} 岩區`}
+                text={`${area.name} 區域`}
                 bgColor="#2d3748"
                 textColor="#fff"
               />
             </div>
           </div>
 
-          {/* 岩區標題與基本資訊 */}
+          {/* 區域標題與基本資訊 */}
           <div className="mb-8">
             <div className="flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
               <div>
@@ -126,10 +126,10 @@ export default function AreaDetailPage({
             </div>
           </div>
 
-          {/* 岩區介紹 */}
+          {/* 區域介紹 */}
           <div className="mb-8">
             <h2 className="mb-4 border-l-4 border-[#FFE70C] pl-4 text-xl font-bold">
-              岩區介紹
+              區域介紹
             </h2>
             <p className="leading-relaxed text-gray-700">
               {area.description || '暫無介紹'}
@@ -177,11 +177,11 @@ export default function AreaDetailPage({
             <CragRouteSection routes={routes} />
           </div>
 
-          {/* 其他岩區推薦 */}
+          {/* 其他區域推薦 */}
           {otherAreas.length > 0 && (
             <div className="mt-10 border-t border-gray-200 pt-8">
               <h2 className="mb-6 border-l-4 border-[#FFE70C] pl-4 text-xl font-bold">
-                {crag.name} 其他岩區
+                {crag.name} 其他區域
               </h2>
               <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
                 {otherAreas.slice(0, 3).map((otherArea) => (
