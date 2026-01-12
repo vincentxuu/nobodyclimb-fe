@@ -58,7 +58,7 @@
         }
       },
       "transportation": {
-        "mrt": "捷運中和站步行約10分鐘",
+        "mrt": "環狀線捷運中原站步行約5分鐘",
         "parking": "附近有收費停車場"
       },
       "contact": {
@@ -533,8 +533,8 @@
       "nameEn": "Civic Bouldergym Taipei",
       "type": "bouldering",
       "location": {
-        "address": "台北市南港區市民大道八段548號",
-        "addressEn": "No. 548, Sec. 8, Civic Blvd., Nangang Dist., Taipei City",
+        "address": "台北市南港區市民大道八段552號",
+        "addressEn": "No. 552, Sec. 8, Civic Blvd., Nangang Dist., Taipei City",
         "city": "台北市",
         "district": "南港區",
         "region": "北部",

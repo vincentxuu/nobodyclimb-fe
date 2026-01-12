@@ -347,17 +347,29 @@ export default function GymDetailPage({ params }: { params: Promise<{ id: string
                   </div>
                   {/* Google Map */}
                   {gym.location.latitude && gym.location.longitude && (
-                    <div className="mt-4 overflow-hidden rounded-lg">
-                      <iframe
-                        src={`https://www.google.com/maps?q=${gym.location.latitude},${gym.location.longitude}&z=16&output=embed`}
-                        width="100%"
-                        height="200"
-                        style={{ border: 0 }}
-                        allowFullScreen
-                        loading="lazy"
-                        referrerPolicy="no-referrer-when-downgrade"
-                        title={`${gym.name} 地圖`}
-                      />
+                    <div className="mt-4">
+                      <a
+                        href={`https://www.google.com/maps/search/?api=1&query=${gym.location.latitude},${gym.location.longitude}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="mb-2 inline-flex items-center gap-1 text-sm text-blue-600 hover:underline"
+                      >
+                        <MapPin size={14} />
+                        在 Google Maps 開啟
+                        <ExternalLink size={12} />
+                      </a>
+                      <div className="overflow-hidden rounded-lg">
+                        <iframe
+                          src={`https://www.google.com/maps?q=${gym.location.latitude},${gym.location.longitude}&z=16&output=embed`}
+                          width="100%"
+                          height="200"
+                          style={{ border: 0 }}
+                          allowFullScreen
+                          loading="lazy"
+                          referrerPolicy="no-referrer-when-downgrade"
+                          title={`${gym.name} 地圖`}
+                        />
+                      </div>
                     </div>
                   )}
                 </div>
