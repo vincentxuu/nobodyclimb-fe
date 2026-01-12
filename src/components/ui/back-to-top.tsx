@@ -35,7 +35,7 @@ export const BackToTop: React.FC = () => {
       {isVisible && (
         <motion.button
           onClick={scrollToTop}
-          className="fixed bottom-6 right-4 z-40 rounded-full bg-white p-2 shadow-md hover:bg-gray-200 md:bottom-10 md:right-8 md:p-3"
+          className="fixed bottom-6 right-4 z-40 rounded-full bg-[#1B1A1A] p-2 text-white shadow-lg transition-colors hover:bg-black md:bottom-10 md:right-8 md:p-3"
           initial={{ opacity: 0, scale: 0.8 }}
           animate={{ opacity: 1, scale: 1 }}
           exit={{ opacity: 0, scale: 0.8 }}
