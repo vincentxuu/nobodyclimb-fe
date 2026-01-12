@@ -121,7 +121,7 @@ weatherRoutes.get('/satellite', async (c) => {
   const type = c.req.query('type') as SatelliteImageType | undefined;
   const area = c.req.query('area') as SatelliteImageArea | undefined;
 
-  const images = getSatelliteImages(type, area);
+  const images = await getSatelliteImages(type, area);
 
   return c.json({
     success: true,

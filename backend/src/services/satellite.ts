@@ -2,7 +2,7 @@ import { SatelliteImageInfo, SatelliteImageType, SatelliteImageArea, RadarImageI
 
 // 中央氣象署衛星雲圖 URL 配置
 // 圖片 URL 格式：https://www.cwa.gov.tw/Data/satellite/{folder}/{filename}.jpg
-// 備註：這些 URL 會定期更新，每 10 分鐘一次
+// 目前圖片檔名包含時間戳，需先讀取 Observe_sat.js 才能取得最新檔案
 
 interface SatelliteUrlConfig {
   folder: string;
@@ -81,25 +81,87 @@ const SATELLITE_URL_CONFIG: Record<SatelliteImageArea, Record<SatelliteImageType
 };
 
 const CWA_SATELLITE_BASE = 'https://www.cwa.gov.tw/Data/satellite';
+const CWA_SATELLITE_SCRIPT_URL = 'https://www.cwa.gov.tw/Data/js/obs_img/Observe_sat.js';
+
+const SATELLITE_TAB_MAP: Record<SatelliteImageType, string> = {
+  visible: 'Tab0',
+  infrared: 'Tab1',
+  enhanced: 'Tab2',
+  trueColor: 'Tab4',
+};
+
+const SATELLITE_AREA_MAP: Record<SatelliteImageArea, string> = {
+  global: 'Area0',
+  eastAsia: 'Area1',
+  taiwan: 'Area2',
+};
+
+async function fetchSatelliteScript(): Promise<string | null> {
+  try {
+    const response = await fetch(CWA_SATELLITE_SCRIPT_URL, {
+      headers: {
+        'User-Agent': 'NobodyClimb/1.0 (Weather Service)',
+        'Accept': 'application/javascript,text/plain,*/*',
+        'Referer': 'https://www.cwa.gov.tw/',
+      },
+    });
+
+    if (!response.ok) {
+      console.error(`Failed to fetch satellite script: ${response.status} ${response.statusText}`);
+      return null;
+    }
+
+    return await response.text();
+  } catch (error) {
+    console.error('Error fetching satellite script:', error);
+    return null;
+  }
+}
+
+function extractLatestSatellitePath(
+  script: string,
+  tab: string,
+  area: string
+): { path: string; text: string } | null {
+  const pattern = new RegExp(
+    `'${tab}':\\{[\\s\\S]*?'${area}':\\{[\\s\\S]*?'size0':\\{[\\s\\S]*?'C':\\{[\\s\\S]*?0:\\{\"img\":'([^']+)',\\s*'text':'([^']+)'`,
+    'm'
+  );
+  const match = script.match(pattern);
+
+  if (!match) {
+    return null;
+  }
+
+  return { path: match[1], text: match[2] };
+}
 
 /**
  * 取得衛星雲圖資訊列表
  */
-export function getSatelliteImages(
+export async function getSatelliteImages(
   type?: SatelliteImageType,
   area?: SatelliteImageArea
-): SatelliteImageInfo[] {
+): Promise<SatelliteImageInfo[]> {
   const results: SatelliteImageInfo[] = [];
   const areas: SatelliteImageArea[] = area ? [area] : ['taiwan', 'eastAsia', 'global'];
   const types: SatelliteImageType[] = type ? [type] : ['visible', 'infrared', 'trueColor', 'enhanced'];
+  const script = await fetchSatelliteScript();
 
   for (const a of areas) {
     for (const t of types) {
       const config = SATELLITE_URL_CONFIG[a][t];
+      const tab = SATELLITE_TAB_MAP[t];
+      const areaKey = SATELLITE_AREA_MAP[a];
+      const latest = script ? extractLatestSatellitePath(script, tab, areaKey) : null;
+      const url = latest
+        ? `${CWA_SATELLITE_BASE}/${latest.path}`
+        : `${CWA_SATELLITE_BASE}/${config.folder}/${config.filename}.jpg`;
+
       results.push({
         type: t,
         area: a,
-        url: `${CWA_SATELLITE_BASE}/${config.folder}/${config.filename}.jpg`,
+        url,
         label: config.label,
         updatedAt: new Date().toISOString(),
       });
@@ -118,13 +180,19 @@ export async function getSatelliteImageProxy(
   area: SatelliteImageArea
 ): Promise<ArrayBuffer | null> {
   const config = SATELLITE_URL_CONFIG[area]?.[type];
+  const tab = SATELLITE_TAB_MAP[type];
+  const areaKey = SATELLITE_AREA_MAP[area];
 
   if (!config) {
     console.error(`Invalid satellite image config: type=${type}, area=${area}`);
     return null;
   }
 
-  const url = `${CWA_SATELLITE_BASE}/${config.folder}/${config.filename}.jpg`;
+  const script = await fetchSatelliteScript();
+  const latest = script ? extractLatestSatellitePath(script, tab, areaKey) : null;
+  const url = latest
+    ? `${CWA_SATELLITE_BASE}/${latest.path}`
+    : `${CWA_SATELLITE_BASE}/${config.folder}/${config.filename}.jpg`;
 
   try {
     console.log(`Fetching satellite image: ${url}`);
