@@ -4,6 +4,8 @@ import React, { useState, useEffect, useCallback } from 'react'
 import { Camera, ExternalLink, Loader2, AlertCircle } from 'lucide-react'
 import { API_BASE_URL } from '@/lib/constants'
 
+const MAX_CAMERAS_TO_SHOW = 6
+
 interface CameraData {
   camid: string
   camname: string
@@ -51,7 +53,7 @@ export const TrafficCamerasCard: React.FC<TrafficCamerasCardProps> = ({
       }
 
       const cameraList = result.data
-      setCameras(cameraList.slice(0, 6)) // 最多顯示 6 個攝影機
+      setCameras(cameraList.slice(0, MAX_CAMERAS_TO_SHOW))
 
       if (cameraList.length > 0) {
         setSelectedCamera(cameraList[0])

@@ -1,17 +1,9 @@
 import { Hono } from 'hono';
-import { Env } from '../types';
+import { Env, CameraData } from '../types';
 
 export const trafficRoutes = new Hono<{ Bindings: Env }>();
 
-interface CameraData {
-  camid: string;
-  camname: string;
-  camuri: string;
-  location: string;
-  latitude: number;
-  longitude: number;
-  direction?: string;
-}
+const TRAFFIC_API_BASE_URL = 'https://www.1968services.tw';
 
 // GET /traffic/cameras - 根據經緯度獲取附近路況攝影機
 trafficRoutes.get('/cameras', async (c) => {
@@ -45,7 +37,7 @@ trafficRoutes.get('/cameras', async (c) => {
 
   try {
     // 代理請求到 1968 路況服務
-    const apiUrl = `https://www.1968services.tw/query-cam-list-by-coordinate/${latitude}/${longitude}`;
+    const apiUrl = `${TRAFFIC_API_BASE_URL}/query-cam-list-by-coordinate/${latitude}/${longitude}`;
     const response = await fetch(apiUrl, {
       headers: {
         'User-Agent': 'NobodyClimb/1.0',
