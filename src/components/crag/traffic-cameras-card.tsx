@@ -5,7 +5,7 @@ import { Camera, ExternalLink, Loader2, AlertCircle } from 'lucide-react'
 import { API_BASE_URL } from '@/lib/constants'
 
 const MAX_CAMERAS_TO_SHOW = 6
-const TRAFFIC_CAMERA_SERVICE_URL = 'https://1968.freeway.gov.tw/roadcctv'
+const TRAFFIC_CAMERA_SERVICE_URL = 'https://www.1968services.tw/'
 
 interface CameraData {
   camid: string
@@ -135,7 +135,7 @@ export const TrafficCamerasCard: React.FC<TrafficCamerasCardProps> = ({
       {selectedCamera && (
         <div className="mb-4">
           <a
-            href={TRAFFIC_CAMERA_SERVICE_URL}
+            href={`${TRAFFIC_CAMERA_SERVICE_URL}cam/${selectedCamera.camid}`}
             target="_blank"
             rel="noopener noreferrer"
             className="group relative block aspect-video w-full overflow-hidden rounded-lg bg-gray-900"
@@ -162,7 +162,7 @@ export const TrafficCamerasCard: React.FC<TrafficCamerasCardProps> = ({
               {selectedCamera.direction && ` - ${selectedCamera.direction}`}
             </p>
             <a
-              href={TRAFFIC_CAMERA_SERVICE_URL}
+              href={`${TRAFFIC_CAMERA_SERVICE_URL}cam/${selectedCamera.camid}`}
               target="_blank"
               rel="noopener noreferrer"
               className="flex items-center gap-1 text-xs text-blue-500 hover:text-blue-700"
@@ -201,7 +201,7 @@ export const TrafficCamerasCard: React.FC<TrafficCamerasCardProps> = ({
               />
             </button>
             <a
-              href={TRAFFIC_CAMERA_SERVICE_URL}
+              href={`${TRAFFIC_CAMERA_SERVICE_URL}cam/${camera.camid}`}
               target="_blank"
               rel="noopener noreferrer"
               className="block truncate bg-gray-100 px-2 py-1 text-xs text-gray-600 hover:bg-gray-200 hover:text-blue-600"
