@@ -129,6 +129,8 @@ export default function CragDetailPage({ params }: { params: Promise<{ id: strin
               latitude={currentCrag.geoCoordinates.latitude}
               longitude={currentCrag.geoCoordinates.longitude}
               showForecast={true}
+              showSatellite={true}
+              showRadar={true}
             />
           </div>
 
@@ -225,15 +227,30 @@ export default function CragDetailPage({ params }: { params: Promise<{ id: strin
                       </div>
                     </div>
 
-                    {/* 已從展示的地圖肉移到這裡 */}
+                    {/* 岩場位置地圖 */}
                     <div className="mb-6">
                       <div className="mb-1">
                         <h2 className="text-lg font-medium text-orange-500">岩場位置</h2>
                         <div className="h-px w-full bg-gray-200"></div>
                       </div>
-                      <div className="mt-4 flex h-48 items-center justify-center rounded-lg bg-gray-200">
-                        <PlaceholderImage text="岩場地圖" bgColor="#e5e7eb" textColor="#6b7280" />
-                      </div>
+                      {currentCrag.geoCoordinates.latitude && currentCrag.geoCoordinates.longitude ? (
+                        <div className="mt-4 overflow-hidden rounded-lg">
+                          <iframe
+                            src={`https://www.google.com/maps?q=${currentCrag.geoCoordinates.latitude},${currentCrag.geoCoordinates.longitude}&z=15&output=embed`}
+                            width="100%"
+                            height="250"
+                            style={{ border: 0 }}
+                            allowFullScreen
+                            loading="lazy"
+                            referrerPolicy="no-referrer-when-downgrade"
+                            title={`${currentCrag.name} 地圖`}
+                          />
+                        </div>
+                      ) : (
+                        <div className="mt-4 flex h-48 items-center justify-center rounded-lg bg-gray-200">
+                          <span className="text-gray-500">地圖資訊不可用</span>
+                        </div>
+                      )}
                     </div>
                   </div>
                 </div>

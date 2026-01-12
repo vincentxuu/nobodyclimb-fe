@@ -267,8 +267,9 @@ export default function GymDetailPage({ params }: { params: Promise<{ id: string
                 location={`${gym.location.city}${gym.location.district || ''}`}
                 latitude={gym.location.latitude}
                 longitude={gym.location.longitude}
-                showForecast={false}
-                compact={false}
+                showForecast={true}
+                showSatellite={true}
+                showRadar={true}
               />
             </div>
           </div>
