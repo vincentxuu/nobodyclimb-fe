@@ -2,7 +2,7 @@ import { Hono } from 'hono';
 import { zValidator } from '@hono/zod-validator';
 import { z } from 'zod';
 import * as jose from 'jose';
-import { Env, User, GoogleTokenPayload } from '../types';
+import { Env, User } from '../types';
 import { generateId } from '../utils/id';
 import {
   authMiddleware,
@@ -13,6 +13,11 @@ import {
 } from '../middleware/auth';
 
 export const authRoutes = new Hono<{ Bindings: Env }>();
+
+// Create the JWKS client once at module level to enable caching
+const GOOGLE_JWKS = jose.createRemoteJWKSet(
+  new URL('https://www.googleapis.com/oauth2/v3/certs')
+);
 
 // User fields to select (reusable constant for maintainability)
 const USER_SELECT_FIELDS = 'id, email, username, display_name, avatar_url, bio, climbing_start_year, frequent_gym, favorite_route_type, role, google_id, auth_provider, created_at';
@@ -338,26 +343,36 @@ const googleAuthSchema = z.object({
   credential: z.string().min(1),
 });
 
+// Google token payload validation schema
+const googleTokenPayloadSchema = z.object({
+  iss: z.string(),
+  azp: z.string(),
+  aud: z.string(),
+  sub: z.string(),
+  email: z.string().email(),
+  email_verified: z.boolean(),
+  name: z.string().optional(),
+  picture: z.string().url().optional(),
+  given_name: z.string().optional(),
+  family_name: z.string().optional(),
+  iat: z.number(),
+  exp: z.number(),
+});
+
 // POST /auth/google
 authRoutes.post('/google', zValidator('json', googleAuthSchema), async (c) => {
   const { credential } = c.req.valid('json');
 
   try {
-    // Decode and verify the Google ID token
-    // Google's public keys for JWT verification
-    const GOOGLE_JWKS = jose.createRemoteJWKSet(
-      new URL('https://www.googleapis.com/oauth2/v3/certs')
-    );
-
+    // Decode and verify the Google ID token using module-level JWKS
     const { payload } = await jose.jwtVerify(credential, GOOGLE_JWKS, {
       issuer: ['https://accounts.google.com', 'accounts.google.com'],
       audience: c.env.GOOGLE_CLIENT_ID,
     });
 
-    const googlePayload = payload as unknown as GoogleTokenPayload;
-
-    // Validate required fields
-    if (!googlePayload.email || !googlePayload.sub) {
+    // Validate payload using Zod schema for type safety
+    const parseResult = googleTokenPayloadSchema.safeParse(payload);
+    if (!parseResult.success) {
       return c.json(
         {
           success: false,
@@ -367,6 +382,8 @@ authRoutes.post('/google', zValidator('json', googleAuthSchema), async (c) => {
         400
       );
     }
+
+    const googlePayload = parseResult.data;
 
     // Check if email is verified
     if (!googlePayload.email_verified) {
@@ -397,42 +414,50 @@ authRoutes.post('/google', zValidator('json', googleAuthSchema), async (c) => {
 
       if (user) {
         // User exists with this email but no google_id - link accounts
+        // Combine updates into a single query for efficiency
+        const updates: string[] = [
+          "google_id = ?",
+          "auth_provider = 'google'",
+          "email_verified = 1",
+          "updated_at = datetime('now')",
+        ];
+        const bindings: (string | number | null)[] = [googlePayload.sub];
+
+        if (!user.avatar_url && googlePayload.picture) {
+          updates.push("avatar_url = ?");
+          bindings.push(googlePayload.picture);
+        }
+
         await c.env.DB.prepare(
-          `UPDATE users SET google_id = ?, auth_provider = 'google', email_verified = 1, updated_at = datetime('now') WHERE id = ?`
+          `UPDATE users SET ${updates.join(', ')} WHERE id = ?`
         )
-          .bind(googlePayload.sub, user.id)
+          .bind(...bindings, user.id)
           .run();
 
-        // Update avatar if not set
-        if (!user.avatar_url && googlePayload.picture) {
-          await c.env.DB.prepare(
-            `UPDATE users SET avatar_url = ? WHERE id = ?`
-          )
-            .bind(googlePayload.picture, user.id)
-            .run();
-        }
+        // Re-fetch the user to get the updated data and ensure consistency
+        user = await c.env.DB.prepare('SELECT * FROM users WHERE id = ?')
+          .bind(user.id)
+          .first<User>();
       }
     }
 
     // If still no user, create a new one
     if (!user) {
       const id = generateId();
-      // Generate a unique username from email or name
+      // Generate a unique username from email
       const baseUsername = googlePayload.email.split('@')[0].replace(/[^a-zA-Z0-9_]/g, '_');
       let username = baseUsername;
-      let counter = 1;
 
-      // Ensure username is unique
-      while (true) {
-        const existing = await c.env.DB.prepare(
-          'SELECT id FROM users WHERE username = ?'
-        )
-          .bind(username)
-          .first();
+      // To avoid race conditions, check for username existence once
+      // If it exists, append a portion of the unique user ID to ensure uniqueness
+      const existingUser = await c.env.DB.prepare(
+        'SELECT id FROM users WHERE username = ?'
+      )
+        .bind(username)
+        .first();
 
-        if (!existing) break;
-        username = `${baseUsername}_${counter}`;
-        counter++;
+      if (existingUser) {
+        username = `${baseUsername}_${id.substring(0, 8)}`;
       }
 
       await c.env.DB.prepare(
