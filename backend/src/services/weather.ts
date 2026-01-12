@@ -1,4 +1,4 @@
-import { Env, WeatherData, CwaLocationWeather } from '../types';
+import { Env, WeatherData, CwaLocationWeather, CwaWeatherElement } from '../types';
 
 // 中央氣象署 API 端點
 const CWA_API_BASE = 'https://opendata.cwa.gov.tw/api/v1/rest/datastore';
