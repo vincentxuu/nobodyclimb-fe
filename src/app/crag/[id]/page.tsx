@@ -1,6 +1,6 @@
 'use client'
 
-import React, { useState, useEffect, use, useMemo } from 'react'
+import React, { useState, use, useMemo } from 'react'
 import Image from 'next/image'
 import PlaceholderImage from '@/components/ui/placeholder-image'
 import Link from 'next/link'
@@ -15,7 +15,6 @@ import {
   Info,
   Clock,
   Heart,
-  ChevronUp,
   Youtube,
   Facebook,
   Twitter,
@@ -23,6 +22,7 @@ import {
 } from 'lucide-react'
 import { motion } from 'framer-motion'
 import { Button } from '@/components/ui/button'
+import BackToTop from '@/components/ui/back-to-top'
 import { CragIntroSection } from '@/components/crag/intro-section'
 import { CragAreaSection } from '@/components/crag/area-section'
 import { CragRouteSection } from '@/components/crag/route-section'
@@ -36,7 +36,6 @@ import { getCragDetailData } from '@/lib/crag-data'
 
 export default function CragDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = use(params)
-  const [isVisible, setIsVisible] = useState(false)
   const [activeTab, setActiveTab] = useState('intro')
   const [selectedAreaFilter, setSelectedAreaFilter] = useState<string>('all')
   const router = useRouter()
@@ -60,28 +59,6 @@ export default function CragDetailPage({ params }: { params: Promise<{ id: strin
   const handleAreaClick = (areaName: string) => {
     setSelectedAreaFilter(areaName)
     setActiveTab('routes')
-  }
-
-  // 監聽滾動事件
-  useEffect(() => {
-    const toggleVisibility = () => {
-      if (window.scrollY > 300) {
-        setIsVisible(true)
-      } else {
-        setIsVisible(false)
-      }
-    }
-
-    window.addEventListener('scroll', toggleVisibility)
-    return () => window.removeEventListener('scroll', toggleVisibility)
-  }, [])
-
-  // 回到頂部
-  const scrollToTop = () => {
-    window.scrollTo({
-      top: 0,
-      behavior: 'smooth',
-    })
   }
 
   if (!currentCrag) {
@@ -357,15 +334,7 @@ export default function CragDetailPage({ params }: { params: Promise<{ id: strin
       </div>
 
       {/* 回到頂部按鈕 */}
-      {isVisible && (
-        <button
-          onClick={scrollToTop}
-          className="fixed bottom-6 right-4 z-40 rounded-full bg-[#1B1A1A] p-2 text-white shadow-lg transition-all duration-300 hover:bg-black md:bottom-10 md:right-8 md:p-3"
-          aria-label="回到頂部"
-        >
-          <ChevronUp size={20} className="md:h-6 md:w-6" />
-        </button>
-      )}
+      <BackToTop />
     </main>
   )
 }

@@ -2,6 +2,7 @@
 
 import Image from 'next/image'
 import { motion } from 'framer-motion'
+import { ArrowDown } from 'lucide-react'
 import { WeatherInfo } from '@/components/layout/weather'
 
 /**
@@ -66,18 +67,7 @@ export function Hero() {
           repeatDelay: 0.5,
         }}
       >
-        <svg
-          width="24"
-          height="24"
-          viewBox="0 0 24 24"
-          fill="none"
-          stroke="white"
-          strokeWidth="2"
-          strokeLinecap="round"
-          strokeLinejoin="round"
-        >
-          <path d="M12 5v14M19 12l-7 7-7-7" />
-        </svg>
+        <ArrowDown className="h-6 w-6 text-white" />
       </motion.div>
     </div>
   )
