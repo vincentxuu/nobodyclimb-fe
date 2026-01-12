@@ -1,7 +1,7 @@
 'use client'
 
 import React from 'react'
-import { Facebook, Twitter, Youtube, Car, MapPin, Info } from 'lucide-react'
+import { Car, MapPin, Info } from 'lucide-react'
 
 interface Transportation {
   type: string
@@ -74,20 +74,6 @@ export const CragIntroSection: React.FC<CragIntroSectionProps> = ({ cragData }) 
             allowFullScreen
             className="h-[400px] w-full"
           ></iframe>
-        </div>
-        <div className="mt-4 flex justify-end space-x-4">
-          <button className="flex items-center text-gray-700 hover:text-[#1B1A1A]">
-            <Facebook size={18} className="mr-1" />
-            分享
-          </button>
-          <button className="flex items-center text-gray-700 hover:text-[#1B1A1A]">
-            <Twitter size={18} className="mr-1" />
-            推文
-          </button>
-          <button className="flex items-center text-gray-700 hover:text-[#1B1A1A]">
-            <Youtube size={18} className="mr-1" />
-            YouTube
-          </button>
         </div>
       </div>
 
