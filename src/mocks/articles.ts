@@ -1,4 +1,4 @@
-export type ArticleCategory = '所有文章' | '裝備介紹' | '技巧介紹' | '技術研究' | '比賽介紹'
+export type ArticleCategory = '所有文章' | '裝備介紹' | '技巧介紹' | '技術研究' | '比賽介紹' | '傷害防護'
 
 export interface Article {
   id: string

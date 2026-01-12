@@ -116,6 +116,7 @@ function BlogContent() {
     technique: '技巧介紹',
     research: '技術研究',
     competition: '比賽介紹',
+    injury: '傷害防護',
   }
 
   // 類別和 URL 參數的反向映射
@@ -125,6 +126,7 @@ function BlogContent() {
     技巧介紹: 'technique',
     技術研究: 'research',
     比賽介紹: 'competition',
+    傷害防護: 'injury',
   }
 
   // 根據URL參數設置默認選中的類別
@@ -286,7 +288,7 @@ function BlogContent() {
     }
   }, [isAutoPlaying, nextSlide, displayFeatured.length])
 
-  const categories: ArticleCategory[] = ['所有文章', '裝備介紹', '技巧介紹', '技術研究', '比賽介紹']
+  const categories: ArticleCategory[] = ['所有文章', '裝備介紹', '技巧介紹', '技術研究', '比賽介紹', '傷害防護']
 
   // 過濾文章
   const filteredArticles = articles.filter((article) => {
