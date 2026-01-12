@@ -13,6 +13,8 @@ interface LoadingSpinnerProps {
   className?: string
   /** 是否顯示在按鈕中 (帶有 mr-2) */
   inline?: boolean
+  /** 是否為全頁面載入（置中顯示） */
+  fullPage?: boolean
 }
 
 const sizeMap = {
@@ -31,8 +33,9 @@ export function LoadingSpinner({
   text,
   className,
   inline = false,
+  fullPage = false,
 }: LoadingSpinnerProps) {
-  return (
+  const content = (
     <div className={cn('flex items-center justify-center', className)}>
       <Loader2
         className={cn(
@@ -44,6 +47,16 @@ export function LoadingSpinner({
       {text && <span className="ml-2 text-muted-foreground">{text}</span>}
     </div>
   )
+
+  if (fullPage) {
+    return (
+      <div className="flex min-h-[400px] items-center justify-center">
+        {content}
+      </div>
+    )
+  }
+
+  return content
 }
 
 /**
