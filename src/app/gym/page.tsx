@@ -10,21 +10,16 @@ import { Breadcrumb } from '@/components/ui/breadcrumb'
 import { PageHeader } from '@/components/ui/page-header'
 import { searchGyms, type GymListItem } from '@/lib/gym-data'
 
-// 區域篩選選項
+// 區域篩選選項（僅保留有岩館的地區）
 const regions = [
   '所有地區',
   '大台北',
   '桃園',
   '新竹',
-  '苗栗',
   '台中',
   '彰化',
-  '南投',
-  '雲林',
-  '嘉義',
   '台南',
   '高雄',
-  '屏東',
   '宜蘭',
   '花蓮',
   '台東',
