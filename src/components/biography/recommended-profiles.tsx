@@ -8,8 +8,7 @@ import { ArrowRightCircle, Loader2 } from 'lucide-react'
 import { Card, CardContent } from '@/components/ui/card'
 import { biographyService } from '@/lib/api/services'
 import { Biography } from '@/lib/types'
-import { biographyData } from '@/data/biographyData'
-import { mapStaticToBiography, calculateClimbingYears } from '@/lib/utils/biography'
+import { calculateClimbingYears } from '@/lib/utils/biography'
 
 interface ProfileCardProps {
   person: Biography
@@ -66,32 +65,31 @@ interface RecommendedProfilesProps {
 export function RecommendedProfiles({ currentId, limit = 3 }: RecommendedProfilesProps) {
   const [profiles, setProfiles] = useState<Biography[]>([])
   const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
 
   useEffect(() => {
     const loadProfiles = async () => {
       setLoading(true)
+      setError(null)
 
       try {
-        // 嘗試從 API 獲取人物誌列表
+        // 從 API 獲取人物誌列表
         const response = await biographyService.getBiographies(1, limit + 1)
 
-        if (response.success && response.data.length > 0) {
+        if (response.success) {
           // 排除當前人物誌，取得推薦列表
           const filtered = response.data
             .filter((p) => p.id !== currentId)
             .slice(0, limit)
           setProfiles(filtered)
         } else {
-          throw new Error('No data from API')
+          setError('無法載入推薦人物誌')
+          setProfiles([])
         }
-      } catch (error) {
-        console.error('Failed to fetch recommended profiles, falling back to static data:', error)
-        // API 失敗，使用靜態數據
-        const staticProfiles = biographyData
-          .filter((p) => String(p.id) !== currentId)
-          .slice(0, limit)
-          .map(mapStaticToBiography)
-        setProfiles(staticProfiles)
+      } catch (err) {
+        console.error('Failed to fetch recommended profiles:', err)
+        setError('載入推薦人物誌時發生錯誤')
+        setProfiles([])
       } finally {
         setLoading(false)
       }
@@ -108,7 +106,7 @@ export function RecommendedProfiles({ currentId, limit = 3 }: RecommendedProfile
     )
   }
 
-  if (profiles.length === 0) {
+  if (error || profiles.length === 0) {
     return null
   }
 

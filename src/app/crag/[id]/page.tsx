@@ -146,7 +146,7 @@ export default function CragDetailPage({ params }: { params: Promise<{ id: strin
                   value="areas"
                   className="relative px-8 py-3 text-sm font-medium text-gray-500 outline-none transition-colors hover:text-gray-700 data-[state=active]:font-semibold data-[state=active]:text-[#1B1A1A] data-[state=active]:after:absolute data-[state=active]:after:bottom-0 data-[state=active]:after:left-0 data-[state=active]:after:right-0 data-[state=active]:after:h-0.5 data-[state=active]:after:rounded-t-full data-[state=active]:after:bg-[#FFE70C]"
                 >
-                  岩區詳情
+                  區域詳情
                 </Tabs.Trigger>
                 <Tabs.Trigger
                   value="routes"
@@ -253,10 +253,10 @@ export default function CragDetailPage({ params }: { params: Promise<{ id: strin
                   </div>
                 </div>
 
-                {/* 山場設施 */}
+                {/* 岩場設施 */}
                 <div className="mb-6">
                   <div className="mb-1">
-                    <h2 className="text-lg font-medium text-orange-500">山場設施</h2>
+                    <h2 className="text-lg font-medium text-orange-500">岩場設施</h2>
                     <div className="h-px w-full bg-gray-200"></div>
                   </div>
                   <div className="mt-4 flex flex-wrap gap-2">
@@ -310,7 +310,7 @@ export default function CragDetailPage({ params }: { params: Promise<{ id: strin
 
           {/* 使用相關岩場元件來替代上一篇/下一篇功能 */}
           <div className="mt-8 border-t border-gray-200 pt-8">
-            <h2 className="mb-6 text-2xl font-medium">相關岩區</h2>
+            <h2 className="mb-6 text-2xl font-medium">相關區域</h2>
             <div className="grid grid-cols-1 gap-5 md:grid-cols-3">
               {currentCrag.areas.slice(0, 3).map((area, index) => (
                 <Link

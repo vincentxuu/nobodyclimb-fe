@@ -8,11 +8,9 @@ import { ArrowLeft, ArrowRight, Loader2 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import BackToTop from '@/components/ui/back-to-top'
 import { RecommendedProfiles } from '@/components/biography/recommended-profiles'
-import { biographyData } from '@/data/biographyData'
 import { Breadcrumb } from '@/components/ui/breadcrumb'
 import { biographyService } from '@/lib/api/services'
 import { Biography, BiographyAdjacent } from '@/lib/types'
-import { mapStaticToBiography } from '@/lib/utils/biography'
 
 interface ProfilePageProps {
   params: Promise<{
@@ -26,13 +24,13 @@ export default function ProfilePage({ params }: ProfilePageProps) {
   const [adjacent, setAdjacent] = useState<BiographyAdjacent | null>(null)
   const [loading, setLoading] = useState(true)
 
-  // 從 API 或靜態數據加載人物資料
+  // 從 API 加載人物資料
   useEffect(() => {
     const loadPerson = async () => {
       setLoading(true)
 
       try {
-        // 嘗試從 API 獲取
+        // 從 API 獲取
         const response = await biographyService.getBiographyById(id)
 
         if (response.success && response.data) {
@@ -44,37 +42,16 @@ export default function ProfilePage({ params }: ProfilePageProps) {
             if (adjacentResponse.success && adjacentResponse.data) {
               setAdjacent(adjacentResponse.data)
             }
-          } catch {
+          } catch (err) {
+            console.error('Failed to load adjacent biographies:', err)
             // 相鄰人物獲取失敗不影響主要內容
           }
         } else {
-          throw new Error('No data from API')
-        }
-      } catch {
-        // API 失敗，使用靜態數據
-        const personId = parseInt(id)
-        const staticPerson = biographyData.find((p) => p.id === personId)
-
-        if (staticPerson) {
-          setPerson(mapStaticToBiography(staticPerson))
-
-          // 設置靜態數據的上一篇/下一篇
-          const prevId = personId > 1 ? personId - 1 : biographyData.length
-          const nextId = personId < biographyData.length ? personId + 1 : 1
-          const prevPerson = biographyData.find((p) => p.id === prevId)
-          const nextPerson = biographyData.find((p) => p.id === nextId)
-
-          setAdjacent({
-            previous: prevPerson
-              ? { id: String(prevPerson.id), name: prevPerson.name, avatar_url: prevPerson.imageSrc }
-              : null,
-            next: nextPerson
-              ? { id: String(nextPerson.id), name: nextPerson.name, avatar_url: nextPerson.imageSrc }
-              : null,
-          })
-        } else {
           setPerson(null)
         }
+      } catch (err) {
+        console.error('Failed to load biography:', err)
+        setPerson(null)
       } finally {
         setLoading(false)
       }
