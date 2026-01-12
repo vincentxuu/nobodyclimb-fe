@@ -13,4 +13,6 @@ ALTER TABLE users ADD COLUMN auth_provider TEXT DEFAULT 'local';
 -- Note: password_hash is already nullable in the updated schema
 
 -- Create UNIQUE index for google_id to enforce uniqueness and enable fast lookups
-CREATE UNIQUE INDEX IF NOT EXISTS idx_users_google_id ON users(google_id);
+-- Drop any existing non-unique index first to ensure idempotency
+DROP INDEX IF EXISTS idx_users_google_id;
+CREATE UNIQUE INDEX idx_users_google_id ON users(google_id);
