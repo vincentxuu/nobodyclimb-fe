@@ -61,34 +61,28 @@ export default function GymDetailPage({ params }: { params: Promise<{ id: string
 
   // 載入岩館資料
   useEffect(() => {
-    const fetchGymData = async () => {
-      try {
-        setLoading(true)
-        setError(null)
+    try {
+      setLoading(true)
+      setError(null)
 
-        const [gymData, adjacent, related] = await Promise.all([
-          getGymById(id),
-          getAdjacentGyms(id),
-          getRelatedGyms(id, 3),
-        ])
+      const gymData = getGymById(id)
+      const adjacent = getAdjacentGyms(id)
+      const related = getRelatedGyms(id, 3)
 
-        if (!gymData) {
-          setError('找不到這間岩館')
-          return
-        }
-
-        setGym(gymData)
-        setAdjacentGyms(adjacent)
-        setRelatedGyms(related)
-      } catch (err) {
-        console.error('Error fetching gym data:', err)
-        setError('無法載入岩館資料，請稍後再試')
-      } finally {
-        setLoading(false)
+      if (!gymData) {
+        setError('找不到這間岩館')
+        return
       }
-    }
 
-    fetchGymData()
+      setGym(gymData)
+      setAdjacentGyms(adjacent)
+      setRelatedGyms(related)
+    } catch (err) {
+      console.error('Error fetching gym data:', err)
+      setError('無法載入岩館資料，請稍後再試')
+    } finally {
+      setLoading(false)
+    }
   }, [id])
 
   // 格式化營業時間顯示

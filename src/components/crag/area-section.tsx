@@ -20,18 +20,18 @@ interface CragAreaSectionProps {
 export const CragAreaSection: React.FC<CragAreaSectionProps> = ({ cragId, areas }) => {
   return (
     <div>
-      <h2 className="mb-6 border-l-4 border-[#FFE70C] pl-4 text-2xl font-bold">岩區詳情</h2>
-      <p className="mb-6 text-sm text-gray-500">點擊岩區卡片進入岩區詳細介紹頁，查看該區的所有路線</p>
+      <h2 className="mb-6 border-l-4 border-[#FFE70C] pl-4 text-2xl font-bold">區域詳情</h2>
+      <p className="mb-6 text-sm text-gray-500">點擊區域卡片進入區域詳細介紹頁，查看該區的所有路線</p>
       <div className="space-y-10">
         {areas.map((area, index) => (
           <Link
             key={area.id || index}
             href={`/crag/${cragId}/area/${area.id}`}
             className="group grid cursor-pointer grid-cols-1 gap-6 rounded-lg border border-transparent p-4 transition-all hover:border-[#FFE70C] hover:bg-yellow-50 md:grid-cols-3"
-            aria-label={`查看 ${area.name} 岩區詳情`}
+            aria-label={`查看 ${area.name} 區域詳情`}
           >
             <div className="relative h-60 overflow-hidden rounded-lg">
-              <PlaceholderImage text={`${area.name} 岩區`} bgColor="#E0F2FE" />
+              <PlaceholderImage text={`${area.name} 區域`} bgColor="#E0F2FE" />
             </div>
             <div className="md:col-span-2">
               <div className="mb-3 flex items-center justify-between">

@@ -263,7 +263,7 @@ export function getAreaById(cragId: string, areaId: string): CragArea | null {
 }
 
 /**
- * 獲取岩區詳細頁面所需的資料
+ * 獲取區域詳細頁面所需的資料
  */
 export function getAreaDetailData(cragId: string, areaId: string) {
   const fullData = getCragById(cragId)
@@ -315,7 +315,7 @@ export function getAreaDetailData(cragId: string, areaId: string) {
     typeDistribution[type] = (typeDistribution[type] || 0) + 1
   })
 
-  // 獲取同一岩場的其他岩區
+  // 獲取同一岩場的其他區域
   const otherAreas = fullData.areas
     .filter(a => a.id !== areaId)
     .map(a => ({

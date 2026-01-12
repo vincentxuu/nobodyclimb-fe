@@ -43,24 +43,20 @@ export default function GymListPage() {
 
   // 載入岩館資料
   useEffect(() => {
-    const fetchGyms = async () => {
-      try {
-        setLoading(true)
-        setError(null)
-        const data = await searchGyms({
-          region: selectedRegion,
-          type: selectedType,
-        })
-        setGyms(data)
-      } catch (err) {
-        console.error('Error fetching gyms:', err)
-        setError('無法載入岩館資料，請稍後再試')
-      } finally {
-        setLoading(false)
-      }
+    try {
+      setLoading(true)
+      setError(null)
+      const data = searchGyms({
+        region: selectedRegion,
+        type: selectedType,
+      })
+      setGyms(data)
+    } catch (err) {
+      console.error('Error fetching gyms:', err)
+      setError('無法載入岩館資料，請稍後再試')
+    } finally {
+      setLoading(false)
     }
-
-    fetchGyms()
   }, [selectedRegion, selectedType])
 
   return (

@@ -147,7 +147,7 @@
         "parking": "附近有收費停車場"
       },
       "contact": {
-        "phone": "",
+        "phone": "02-2308-8250",
         "facebook": "原岩攀岩館T-UP Climbing",
         "facebookUrl": "https://www.facebook.com/tupclimbing",
         "instagram": "tupclimbing",
@@ -170,7 +170,7 @@
       "nameEn": "T-Up Climbing Gym A19",
       "type": "mixed",
       "location": {
-        "address": "桃園市中壢區高鐵南路二段352號 Global Mall環球購物中心4樓",
+        "address": "桃園市中壢區高鐵南路二段352號 (Global Mall環球購物中心4樓)",
         "addressEn": "4F, Global Mall, No. 352, Sec. 2, Gaotie S. Rd., Zhongli Dist., Taoyuan City",
         "city": "桃園市",
         "district": "中壢區",
@@ -221,7 +221,7 @@
         "parking": "環球購物中心停車場"
       },
       "contact": {
-        "phone": "",
+        "phone": "03-287-6850",
         "facebook": "原岩攀岩館T-UP Climbing",
         "facebookUrl": "https://www.facebook.com/tupclimbing",
         "instagram": "tupclimbing",
@@ -292,13 +292,13 @@
         "parking": "附近有收費停車場"
       },
       "contact": {
-        "phone": "",
+        "phone": "02-2651-9555",
         "facebook": "原岩攀岩館T-UP Climbing",
         "facebookUrl": "https://www.facebook.com/tupclimbing",
         "instagram": "tupclimbing",
         "instagramUrl": "https://www.instagram.com/tupclimbing/",
         "website": "https://tupclimbing.tw/",
-        "line": "",
+        "line": "@tupclimbing",
         "youtube": ""
       },
       "notes": "",
@@ -315,7 +315,7 @@
       "nameEn": "T-Up Climbing Gym Xindian",
       "type": "mixed",
       "location": {
-        "address": "新北市新店區中興路三段70號7樓(裕隆城）",
+        "address": "231新北市新店區中興路三段70號 (裕隆城7樓)",
         "addressEn": "7F, No. 70, Sec. 3, Zhongxing Rd., Xindian Dist., New Taipei City",
         "city": "新北市",
         "district": "新店區",
@@ -366,13 +366,13 @@
         "parking": "裕隆城停車場"
       },
       "contact": {
-        "phone": "",
+        "phone": "02-8914-7755",
         "facebook": "原岩攀岩館T-UP Climbing",
         "facebookUrl": "https://www.facebook.com/tupclimbing",
         "instagram": "tupclimbing",
         "instagramUrl": "https://www.instagram.com/tupclimbing/",
         "website": "https://tupclimbing.tw/",
-        "line": "",
+        "line": "@tupclimbing",
         "youtube": ""
       },
       "notes": "",
@@ -437,13 +437,13 @@
         "parking": "附近有收費停車場"
       },
       "contact": {
-        "phone": "",
+        "phone": "02-2821-9988",
         "facebook": "原岩攀岩館T-UP Climbing",
         "facebookUrl": "https://www.facebook.com/tupclimbing",
         "instagram": "tupclimbing",
         "instagramUrl": "https://www.instagram.com/tupclimbing/",
         "website": "https://tupclimbing.tw/",
-        "line": "",
+        "line": "@tupclimbing",
         "youtube": ""
       },
       "notes": "",
@@ -657,11 +657,14 @@
         "parking": "附近有收費停車場"
       },
       "contact": {
-        "phone": "",
+        "phone": "02-2651-8875",
         "facebook": "奇岩攀岩館",
-        "instagram": "",
-        "website": "",
-        "line": ""
+        "facebookUrl": "https://www.facebook.com/KirinClimbingGym/",
+        "instagram": "kirin_climbing_gym",
+        "instagramUrl": "https://www.instagram.com/kirin_climbing_gym/",
+        "website": "https://www.kirinclimbing.com.tw/",
+        "line": "",
+        "email": "[email protected]"
       },
       "notes": "",
       "rating": 4.4,
@@ -725,9 +728,11 @@
         "parking": "附近有收費停車場"
       },
       "contact": {
-        "phone": "",
-        "facebook": "小岩館",
-        "instagram": "",
+        "phone": "02-2834-7217",
+        "facebook": "小岩館 The Little Rock",
+        "facebookUrl": "https://www.facebook.com/thelittlerock.tianmu.2017/",
+        "instagram": "thelittlerock.tianmu",
+        "instagramUrl": "https://www.instagram.com/thelittlerock.tianmu/",
         "website": "",
         "line": ""
       },
@@ -934,12 +939,12 @@
         "parking": "附近有收費停車場"
       },
       "contact": {
-        "phone": "",
+        "phone": "02-2563-3749",
         "facebook": "角攀岩館 CORNER Bouldering Gym",
-        "facebookUrl": "https://www.facebook.com/cornerboulderinggym/",
+        "facebookUrl": "https://www.facebook.com/corner.bouldering/",
         "instagram": "corner_bouldering",
         "instagramUrl": "https://www.instagram.com/corner_bouldering/",
-        "website": "https://www.corner.inc/",
+        "website": "",
         "line": "",
         "youtube": ""
       },
@@ -1005,12 +1010,12 @@
         "parking": "附近有收費停車場"
       },
       "contact": {
-        "phone": "",
+        "phone": "02-2521-8233",
         "facebook": "角攀岩館 CORNER Bouldering Gym",
-        "facebookUrl": "https://www.facebook.com/cornerboulderinggym/",
+        "facebookUrl": "https://www.facebook.com/corner.bouldering/",
         "instagram": "corner_bouldering",
         "instagramUrl": "https://www.instagram.com/corner_bouldering/",
-        "website": "https://www.corner.inc/",
+        "website": "",
         "line": "",
         "youtube": ""
       },
@@ -1077,11 +1082,13 @@
         "parking": "運動中心停車場"
       },
       "contact": {
-        "phone": "",
-        "facebook": "",
-        "instagram": "",
-        "website": "",
-        "line": ""
+        "phone": "02-2656-0052",
+        "facebook": "climbing.nh",
+        "facebookUrl": "https://www.facebook.com/climbing.nh/",
+        "instagram": "climbing.nh",
+        "instagramUrl": "https://www.instagram.com/climbing.nh/",
+        "website": "https://www.outdoor-taiwan.com/rock_center/pages/news.php",
+        "email": "climbing.nh@gmail.com"
       },
       "notes": "",
       "rating": 4,
@@ -1143,11 +1150,13 @@
         "parking": "運動中心停車場"
       },
       "contact": {
-        "phone": "",
+        "phone": "0905-657-107",
         "facebook": "趣攀岩",
+        "facebookUrl": "",
         "instagram": "",
-        "website": "",
-        "line": ""
+        "instagramUrl": "",
+        "website": "https://www.titohiking.com.tw/titorock-climbing/",
+        "line": "@titorock"
       },
       "notes": "平日17:00-18:00休息",
       "rating": 4.2,
@@ -1279,13 +1288,13 @@
         "parking": "附近有收費停車場"
       },
       "contact": {
-        "phone": "",
+        "phone": "02-2550-8081",
         "facebook": "double 8 岩究所",
         "facebookUrl": "https://www.facebook.com/double8y17climbing/",
         "instagram": "double8_climbing",
         "instagramUrl": "https://www.instagram.com/double8_climbing/",
         "website": "https://www.double8.com.tw/",
-        "line": "",
+        "line": "@xns1334s",
         "youtube": ""
       },
       "notes": "採預約制入場",
@@ -1348,7 +1357,7 @@
         "parking": "地下停車場"
       },
       "contact": {
-        "phone": "",
+        "phone": "02-2351-4078",
         "facebook": "double 8 岩究所",
         "facebookUrl": "https://www.facebook.com/double8y17climbing/",
         "instagram": "double8_climbing",
@@ -1422,9 +1431,11 @@
         "parking": "附近有停車場"
       },
       "contact": {
-        "phone": "",
+        "phone": "03-357-8966",
         "facebook": "爬森攀岩館",
-        "instagram": "",
+        "facebookUrl": "",
+        "instagram": "passionclimbing.gym",
+        "instagramUrl": "https://www.instagram.com/passionclimbing.gym/",
         "website": "",
         "line": ""
       },
@@ -1491,11 +1502,14 @@
         "parking": "附近有停車場"
       },
       "contact": {
-        "phone": "",
+        "phone": "03-370-2870",
         "facebook": "千手抱石",
+        "facebookUrl": "",
         "instagram": "",
-        "website": "",
-        "line": ""
+        "instagramUrl": "",
+        "website": "https://cavebouldering.com/",
+        "line": "",
+        "email": "[email protected]"
       },
       "notes": "",
       "rating": 4.4,
@@ -1706,7 +1720,9 @@
       "contact": {
         "phone": "",
         "facebook": "BABO PAPAK",
-        "instagram": "",
+        "facebookUrl": "",
+        "instagram": "babopapak",
+        "instagramUrl": "https://www.instagram.com/babopapak/",
         "website": "",
         "line": ""
       },
@@ -1921,7 +1937,7 @@
         "parking": "附近有停車場"
       },
       "contact": {
-        "phone": "",
+        "phone": "0905-852-021",
         "facebook": "攀吶進化館 VB Climbing Gym",
         "facebookUrl": "https://www.facebook.com/VBclimbinggym/",
         "instagram": "vb_climbing_gym",
@@ -2133,9 +2149,11 @@
         "parking": "附設停車場"
       },
       "contact": {
-        "phone": "",
+        "phone": "04-8334106",
         "facebook": "破舊工廠",
-        "instagram": "",
+        "facebookUrl": "",
+        "instagram": "shabbyfactory2",
+        "instagramUrl": "https://www.instagram.com/shabbyfactory2/",
         "website": "",
         "line": ""
       },
@@ -2200,10 +2218,12 @@
         "parking": "附近有停車場"
       },
       "contact": {
-        "phone": "",
+        "phone": "06-3584339",
         "facebook": "High Fun嗨翻",
-        "instagram": "",
-        "website": "",
+        "facebookUrl": "",
+        "instagram": "highfun2017",
+        "instagramUrl": "https://www.instagram.com/highfun2017/",
+        "website": "https://highfun2017.com/",
         "line": ""
       },
       "notes": "",
@@ -2268,7 +2288,7 @@
         "parking": "附近有停車場"
       },
       "contact": {
-        "phone": "",
+        "phone": "0910-439-361",
         "facebook": "抱石基地 Base Camp",
         "facebookUrl": "https://www.facebook.com/basecampkhh/",
         "instagram": "basecampkhh",
@@ -2343,8 +2363,10 @@
       "contact": {
         "phone": "",
         "facebook": "Boulder Space圓石空間",
-        "instagram": "",
-        "website": "",
+        "facebookUrl": "",
+        "instagram": "boulder_space2",
+        "instagramUrl": "https://www.instagram.com/boulder_space2/",
+        "website": "https://boulderspace2.com/",
         "line": ""
       },
       "notes": "",
@@ -2409,9 +2431,11 @@
         "parking": "附近有停車場"
       },
       "contact": {
-        "phone": "",
+        "phone": "07-334-5510",
         "facebook": "B-TOPIA攀岩館",
-        "instagram": "",
+        "facebookUrl": "",
+        "instagram": "btopia_kaohsiung",
+        "instagramUrl": "https://www.instagram.com/btopia_kaohsiung/",
         "website": "",
         "line": ""
       },
@@ -2476,9 +2500,11 @@
         "parking": "附近有停車位"
       },
       "contact": {
-        "phone": "",
+        "phone": "0986-567-929",
         "facebook": "久淘攀岩館",
-        "instagram": "",
+        "facebookUrl": "",
+        "instagram": "jioutauboulderinggym",
+        "instagramUrl": "https://www.instagram.com/jioutauboulderinggym/",
         "website": "",
         "line": ""
       },
@@ -2545,7 +2571,9 @@
       "contact": {
         "phone": "",
         "facebook": "舞岩抱石攀岩館",
+        "facebookUrl": "",
         "instagram": "",
+        "instagramUrl": "",
         "website": "",
         "line": ""
       },
@@ -2612,7 +2640,9 @@
       "contact": {
         "phone": "",
         "facebook": "小窩活動共享空間",
-        "instagram": "",
+        "facebookUrl": "",
+        "instagram": "wooclimbing_space",
+        "instagramUrl": "https://www.instagram.com/wooclimbing_space/",
         "website": "",
         "line": ""
       },
@@ -2677,7 +2707,9 @@
       "contact": {
         "phone": "",
         "facebook": "禾匠攀岩",
+        "facebookUrl": "",
         "instagram": "",
+        "instagramUrl": "",
         "website": "",
         "line": ""
       },
