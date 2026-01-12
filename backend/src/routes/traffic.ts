@@ -1,25 +1,30 @@
 import { Hono } from 'hono';
+import * as cheerio from 'cheerio';
 import { Env, CameraData } from '../types';
 
 export const trafficRoutes = new Hono<{ Bindings: Env }>();
 
 const TRAFFIC_API_BASE_URL = 'https://www.1968services.tw';
 
-// 從 HTML 回應中解析攝影機資料
+// 從 HTML 回應中解析攝影機資料（使用 cheerio 解析 HTML）
 function parseCamerasFromHtml(html: string): CameraData[] {
+  const $ = cheerio.load(html);
   const cameras: CameraData[] = [];
 
-  // 匹配攝影機區塊的正則表達式
-  // 格式: <a href="/cam/{camid}">...<div>描述</div><img src="..." data-src="...">
-  const cameraBlockRegex =
-    /<a href="\/cam\/([^"]+)"[^>]*>[\s\S]*?<div[^>]*>([^<]+)<\/div>[\s\S]*?<img[^>]*data-src="([^"]+)"[^>]*src="([^"]+)"[^>]*>/g;
+  // 選取所有攝影機連結
+  $('a[href^="/cam/"]').each((_, el) => {
+    const a = $(el);
+    const href = a.attr('href');
+    const camid = href?.split('/')[2];
 
-  let match;
-  while ((match = cameraBlockRegex.exec(html)) !== null) {
-    const camid = match[1];
-    const description = match[2].trim();
-    const liveUri = match[3]; // data-src 是即時影像
-    const cachedUri = match[4]; // src 是快取影像
+    if (!camid) return;
+
+    // 取得描述文字和圖片 URL
+    const description = a.find('div').first().text().trim();
+    const img = a.find('img');
+    const cachedUri = img.attr('src');
+
+    if (!description || !cachedUri) return;
 
     // 從描述中解析名稱和距離
     // 格式: "台2線  87K+543(順樁) 距離0.2公里 氣溫17.7度"
@@ -31,12 +36,12 @@ function parseCamerasFromHtml(html: string): CameraData[] {
       camname: nameMatch ? nameMatch[1].trim() : description,
       camuri: cachedUri, // 使用快取圖片，較穩定
       location: description,
-      latitude: 0, // HTML 中沒有經緯度資訊
-      longitude: 0,
+      latitude: null, // HTML 中沒有經緯度資訊
+      longitude: null,
       direction: undefined,
       distance: distanceMatch ? parseFloat(distanceMatch[1]) : undefined,
     });
-  }
+  });
 
   return cameras;
 }
@@ -105,7 +110,10 @@ trafficRoutes.get('/cameras', async (c) => {
       try {
         cameraList = JSON.parse(responseText) as CameraData[];
       } catch (parseError) {
-        console.error('Failed to parse 1968 API JSON response:', parseError);
+        console.error('Failed to parse 1968 API JSON response:', {
+          error: parseError instanceof Error ? parseError.message : String(parseError),
+          responsePreview: responseText.substring(0, 200),
+        });
         return c.json(
           {
             success: false,

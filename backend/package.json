@@ -24,6 +24,7 @@
   },
   "dependencies": {
     "@hono/zod-validator": "^0.7.6",
+    "cheerio": "^1.1.2",
     "hono": "^4.6.0",
     "jose": "^5.9.0",
     "zod": "^4.3.5"
