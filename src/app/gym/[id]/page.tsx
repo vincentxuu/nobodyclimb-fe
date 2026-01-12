@@ -7,7 +7,6 @@ import {
   MapPin,
   ArrowLeft,
   Phone,
-  ChevronUp,
   Loader2,
   ExternalLink,
   Star,
@@ -21,6 +20,7 @@ import {
   MessageCircle,
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
+import BackToTop from '@/components/ui/back-to-top'
 import PlaceholderImage from '@/components/ui/placeholder-image'
 import { Breadcrumb } from '@/components/ui/breadcrumb'
 import {
@@ -49,7 +49,6 @@ const reviewTypeConfig = {
 
 export default function GymDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = use(params)
-  const [showBackToTop, setShowBackToTop] = useState(false)
   const [gym, setGym] = useState<GymDetailData | null>(null)
   const [adjacentGyms, setAdjacentGyms] = useState<{ prev: GymListItem | null; next: GymListItem | null }>({
     prev: null,
@@ -90,28 +89,6 @@ export default function GymDetailPage({ params }: { params: Promise<{ id: string
 
     fetchGymData()
   }, [id])
-
-  // 監聽滾動事件
-  useEffect(() => {
-    const toggleVisibility = () => {
-      if (window.scrollY > 300) {
-        setShowBackToTop(true)
-      } else {
-        setShowBackToTop(false)
-      }
-    }
-
-    window.addEventListener('scroll', toggleVisibility)
-    return () => window.removeEventListener('scroll', toggleVisibility)
-  }, [])
-
-  // 回到頂部
-  const scrollToTop = () => {
-    window.scrollTo({
-      top: 0,
-      behavior: 'smooth',
-    })
-  }
 
   // 格式化營業時間顯示
   const formatOpeningHours = (hours: GymDetailData['openingHours']) => {
@@ -599,18 +576,7 @@ export default function GymDetailPage({ params }: { params: Promise<{ id: string
       </div>
 
       {/* 回到頂部按鈕 */}
-      {showBackToTop && (
-        <motion.button
-          className="fixed bottom-6 right-4 z-20 rounded-full bg-white p-2 shadow-md hover:bg-gray-200 md:bottom-10 md:right-8 md:p-3"
-          onClick={scrollToTop}
-          initial={{ opacity: 0, scale: 0.8 }}
-          animate={{ opacity: 1, scale: 1 }}
-          transition={{ duration: 0.3 }}
-          aria-label="回到頂部"
-        >
-          <ChevronUp size={20} className="md:h-6 md:w-6" />
-        </motion.button>
-      )}
+      <BackToTop />
     </main>
   )
 }

@@ -4,8 +4,9 @@ import React, { useState, useEffect, use } from 'react'
 import Image from 'next/image'
 import Link from 'next/link'
 import { motion } from 'framer-motion'
-import { ArrowLeft, ArrowRight, ChevronUp, Loader2 } from 'lucide-react'
+import { ArrowLeft, ArrowRight, Loader2 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
+import BackToTop from '@/components/ui/back-to-top'
 import { RecommendedProfiles } from '@/components/biography/recommended-profiles'
 import { biographyData } from '@/data/biographyData'
 import { Breadcrumb } from '@/components/ui/breadcrumb'
@@ -21,25 +22,10 @@ interface ProfilePageProps {
 
 export default function ProfilePage({ params }: ProfilePageProps) {
   const { id } = use(params)
-  const [showBackToTop, setShowBackToTop] = useState(false)
   const [person, setPerson] = useState<Biography | null>(null)
   const [adjacent, setAdjacent] = useState<BiographyAdjacent | null>(null)
   const [loading, setLoading] = useState(true)
   const [useStaticData, setUseStaticData] = useState(false)
-
-  // 監聽滾動事件，決定是否顯示回到頂部按鈕
-  useEffect(() => {
-    const handleScroll = () => {
-      if (window.scrollY > 300) {
-        setShowBackToTop(true)
-      } else {
-        setShowBackToTop(false)
-      }
-    }
-
-    window.addEventListener('scroll', handleScroll)
-    return () => window.removeEventListener('scroll', handleScroll)
-  }, [])
 
   // 從 API 或靜態數據加載人物資料
   useEffect(() => {
@@ -99,14 +85,6 @@ export default function ProfilePage({ params }: ProfilePageProps) {
 
     loadPerson()
   }, [id])
-
-  // 回到頂部函數
-  const scrollToTop = () => {
-    window.scrollTo({
-      top: 0,
-      behavior: 'smooth',
-    })
-  }
 
   if (loading) {
     return (
@@ -305,18 +283,7 @@ export default function ProfilePage({ params }: ProfilePageProps) {
       </div>
 
       {/* 回到頂部按鈕 */}
-      {showBackToTop && (
-        <motion.button
-          className="fixed bottom-6 right-4 z-20 rounded-full bg-white p-2 shadow-md hover:bg-[#dbd8d8] md:bottom-10 md:right-8 md:p-3"
-          onClick={scrollToTop}
-          initial={{ opacity: 0, scale: 0.8 }}
-          animate={{ opacity: 1, scale: 1 }}
-          transition={{ duration: 0.3 }}
-          aria-label="回到頂部"
-        >
-          <ChevronUp size={20} className="md:h-6 md:w-6" />
-        </motion.button>
-      )}
+      <BackToTop />
     </div>
   )
 }

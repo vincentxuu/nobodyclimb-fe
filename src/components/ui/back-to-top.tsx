@@ -1,6 +1,7 @@
 'use client'
 
 import React, { useState, useEffect } from 'react'
+import { motion, AnimatePresence } from 'framer-motion'
 import { ChevronUp } from 'lucide-react'
 
 export const BackToTop: React.FC = () => {
@@ -30,17 +31,21 @@ export const BackToTop: React.FC = () => {
   }
 
   return (
-    <>
+    <AnimatePresence>
       {isVisible && (
-        <button
+        <motion.button
           onClick={scrollToTop}
-          className="fixed bottom-8 right-8 z-40 rounded-full bg-primary p-3 text-white shadow-lg transition-all duration-300 hover:bg-black"
+          className="fixed bottom-6 right-4 z-40 rounded-full bg-white p-2 shadow-md hover:bg-gray-200 md:bottom-10 md:right-8 md:p-3"
+          initial={{ opacity: 0, scale: 0.8 }}
+          animate={{ opacity: 1, scale: 1 }}
+          exit={{ opacity: 0, scale: 0.8 }}
+          transition={{ duration: 0.3 }}
           aria-label="回到頂部"
         >
-          <ChevronUp size={24} />
-        </button>
+          <ChevronUp className="h-5 w-5 md:h-6 md:w-6" />
+        </motion.button>
       )}
-    </>
+    </AnimatePresence>
   )
 }
 
