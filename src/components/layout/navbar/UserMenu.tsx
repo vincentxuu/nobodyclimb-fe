@@ -2,11 +2,11 @@
 
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
-import Image from 'next/image'
 import { ChevronDown } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { useAuthStore } from '@/store/authStore'
 import { generateAvatarElement, DEFAULT_AVATARS } from '@/components/shared/avatar-options'
+import { AvatarWithFallback } from '@/components/ui/avatar-with-fallback'
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -70,18 +70,16 @@ export default function UserMenu({ isDesktop }: UserMenuProps) {
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <button className="flex h-10 w-10 items-center justify-center overflow-hidden rounded-full transition-opacity duration-200 hover:opacity-80">
-                {user?.avatar ? (
-                  <Image 
-                    src={user.avatar} 
-                    alt="用戶頭像" 
-                    width={40} 
-                    height={40}
-                    className="object-cover rounded-full"
-                    unoptimized={user.avatar.startsWith('http')}
-                  />
-                ) : (
-                  generateAvatarElement(avatarStyle, 'w-10 h-10')
-                )}
+                <AvatarWithFallback
+                  src={user?.avatar}
+                  alt="用戶頭像"
+                  size="w-10 h-10"
+                  fallback={
+                    <div role="img" aria-label="用戶頭像">
+                      {generateAvatarElement(avatarStyle, 'w-10 h-10')}
+                    </div>
+                  }
+                />
               </button>
             </DropdownMenuTrigger>
             <DropdownMenuContent className="w-[200px] rounded-lg border border-[#EBEAEA] bg-white p-2 shadow-md">
