@@ -2645,12 +2645,78 @@
       "status": "published",
       "createdAt": "2024-01-01T00:00:00Z",
       "updatedAt": "2026-01-11T00:00:00Z"
+    },
+    {
+      "id": "highfun-rende",
+      "slug": "highfun-rende",
+      "name": "嗨翻攀岩館 仁德店",
+      "nameEn": "High Fun Rende",
+      "type": "bouldering",
+      "location": {
+        "address": "台南市仁德區",
+        "addressEn": "Rende Dist., Tainan City",
+        "city": "台南市",
+        "district": "仁德區",
+        "region": "南部",
+        "regionEn": "Southern Taiwan",
+        "latitude": 22.9722,
+        "longitude": 120.2267
+      },
+      "description": "嗨翻攀岩館仁德店提供抱石服務。",
+      "descriptionEn": "High Fun Rende offers bouldering services.",
+      "coverImage": "/images/gym/highfun-rende.jpg",
+      "images": [],
+      "facilities": [
+        "抱石區",
+        "休息區"
+      ],
+      "facilitiesEn": [
+        "Bouldering Area",
+        "Rest Area"
+      ],
+      "openingHours": {
+        "monday": "請洽詢",
+        "tuesday": "請洽詢",
+        "wednesday": "請洽詢",
+        "thursday": "請洽詢",
+        "friday": "請洽詢",
+        "saturday": "請洽詢",
+        "sunday": "請洽詢",
+        "holiday": "請洽詢"
+      },
+      "pricing": {
+        "singleEntry": {
+          "weekday": 0,
+          "weekend": 0
+        },
+        "rental": {
+          "shoes": 0
+        }
+      },
+      "transportation": {
+        "parking": "請洽詢"
+      },
+      "contact": {
+        "phone": "",
+        "facebook": "High Fun 嗨翻攀岩館 仁德店",
+        "facebookUrl": "https://www.facebook.com/High-Fun-%E5%97%A8%E7%BF%BB%E6%94%80%E5%B2%A9%E9%A4%A8-%E4%BB%81%E5%BE%B7%E5%BA%97-61564168141285/",
+        "instagram": "highfun_rende",
+        "instagramUrl": "https://www.instagram.com/highfun_rende/",
+        "website": "",
+        "line": ""
+      },
+      "notes": "",
+      "rating": 0,
+      "featured": false,
+      "status": "published",
+      "createdAt": "2026-01-12T00:00:00Z",
+      "updatedAt": "2026-01-12T00:00:00Z"
     }
   ],
   "metadata": {
     "version": "2.0.0",
-    "totalGyms": 45,
-    "lastUpdated": "2026-01-11T00:00:00Z",
+    "totalGyms": 39,
+    "lastUpdated": "2026-01-12T00:00:00Z",
     "source": "NobodyClimb",
     "regions": [
       "北部",
