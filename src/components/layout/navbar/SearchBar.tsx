@@ -3,15 +3,11 @@
 import { Search } from 'lucide-react'
 import { useUIStore } from '@/store/uiStore'
 
-interface SearchBarProps {
-  isDesktop: boolean
-}
-
 /**
  * 搜尋按鈕組件
  * 只在桌面版顯示，點擊後打開搜尋框
  */
-export default function SearchBar({ isDesktop }: SearchBarProps) {
+export default function SearchBar() {
   const { toggleSearch } = useUIStore()
 
   return (

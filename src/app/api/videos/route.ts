@@ -26,8 +26,6 @@ export async function GET(request: NextRequest) {
 
     const videosData = await response.json() as unknown[]
 
-    console.log('Loaded videos, count:', videosData.length)
-
     return NextResponse.json(videosData, {
       headers: {
         'Cache-Control': 'public, s-maxage=3600, stale-while-revalidate',

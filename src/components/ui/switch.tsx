@@ -4,7 +4,8 @@ import { cn } from '@/lib/utils'
 // 創建一個自定義的 Switch 組件，不依賴 Radix UI
 interface SwitchProps extends React.InputHTMLAttributes<HTMLInputElement> {
   checked?: boolean
-  onCheckedChange?: (checked: boolean) => void
+  // eslint-disable-next-line no-unused-vars
+  onCheckedChange?: (_checked: boolean) => void
 }
 
 const Switch = React.forwardRef<HTMLInputElement, SwitchProps>(

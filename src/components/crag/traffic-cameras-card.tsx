@@ -138,6 +138,7 @@ export const TrafficCamerasCard: React.FC<TrafficCamerasCardProps> = ({
       {selectedCamera && (
         <div className="mb-4">
           <div className="relative aspect-video w-full overflow-hidden rounded-lg bg-gray-900">
+            {/* eslint-disable-next-line @next/next/no-img-element */}
             <img
               src={selectedCamera.camuri}
               alt={selectedCamera.camname}
@@ -168,6 +169,7 @@ export const TrafficCamerasCard: React.FC<TrafficCamerasCardProps> = ({
             }`}
           >
             <div className="relative aspect-video w-full bg-gray-800">
+              {/* eslint-disable-next-line @next/next/no-img-element */}
               <img
                 src={camera.camuri}
                 alt={camera.camname}

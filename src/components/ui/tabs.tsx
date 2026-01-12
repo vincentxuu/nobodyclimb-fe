@@ -4,6 +4,7 @@ import { cn } from '@/lib/utils'
 // 簡化的 Tabs 實現，不依賴 Radix UI
 interface TabsContextValue {
   activeTab: string
+  // eslint-disable-next-line no-unused-vars
   setActiveTab: (value: string) => void
 }
 
@@ -12,7 +13,8 @@ const TabsContext = React.createContext<TabsContextValue | undefined>(undefined)
 interface TabsProps {
   defaultValue?: string
   value?: string
-  onValueChange?: (value: string) => void
+  // eslint-disable-next-line no-unused-vars
+  onValueChange?: (_value: string) => void
   children: React.ReactNode
   className?: string
 }

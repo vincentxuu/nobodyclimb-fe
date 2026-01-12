@@ -52,7 +52,8 @@ const ErrorState = ({ message, onRetry }: { message: string; onRetry: () => void
 // 收藏文章卡片元件
 interface BookmarkCardProps {
   article: BackendPost
-  onRemoveBookmark: (id: string) => void
+  // eslint-disable-next-line no-unused-vars
+  onRemoveBookmark: (_id: string) => void
   isRemoving: boolean
   isMobile?: boolean
 }

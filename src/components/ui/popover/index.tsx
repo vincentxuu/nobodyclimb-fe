@@ -1,6 +1,6 @@
 'use client'
 
-import React, { useState, useRef, useEffect } from 'react'
+import React, { useState, useRef, useEffect, useCallback } from 'react'
 import { cn } from '@/lib/utils'
 import { motion, AnimatePresence, HTMLMotionProps } from 'framer-motion'
 import Link from 'next/link'
@@ -8,6 +8,7 @@ import Link from 'next/link'
 interface PopoverProps {
   children: React.ReactNode
   open?: boolean
+  // eslint-disable-next-line no-unused-vars
   onOpenChange?: (open: boolean) => void
   closeOnClick?: boolean
 }
@@ -21,12 +22,14 @@ interface PopoverContentProps extends React.HTMLAttributes<HTMLDivElement> {
   children: React.ReactNode
   align?: 'start' | 'center' | 'end'
   sideOffset?: number
+  // eslint-disable-next-line no-unused-vars
   ref?: React.RefObject<HTMLDivElement> | ((node: HTMLDivElement | null) => void)
 }
 
 // 簡易版彈出菜單根元素
 interface PopoverContextType {
   open: boolean
+  // eslint-disable-next-line no-unused-vars
   setOpen: (value: boolean | ((prev: boolean) => boolean)) => void
   triggerRef: React.RefObject<HTMLElement | null>
   closeOnClick?: boolean
@@ -51,7 +54,8 @@ const Popover = ({
   const isControlled = controlledOpen !== undefined
   const open = isControlled ? controlledOpen : uncontrolledOpen
 
-  const setOpen = (value: boolean | ((prev: boolean) => boolean)) => {
+  // eslint-disable-next-line no-unused-vars
+  const setOpen = (value: boolean | ((_prev: boolean) => boolean)) => {
     if (!isControlled) {
       setUncontrolledOpen(value)
     }
@@ -104,6 +108,7 @@ const PopoverTrigger: React.FC<PopoverTriggerProps> = ({ children, asChild = fal
 // 內容
 // Add type definitions for cloned elements
 type CloneElementType = React.ReactElement<{
+  // eslint-disable-next-line no-unused-vars
   onClick?: (e: React.MouseEvent) => void
   href?: string
   children?: React.ReactNode
@@ -116,7 +121,7 @@ const PopoverContent = React.forwardRef<HTMLDivElement, PopoverContentProps>(
     const [position, setPosition] = useState({ top: 0, left: 0 })
 
     // 計算位置
-    const calcPosition = () => {
+    const calcPosition = useCallback(() => {
       if (!triggerRef.current || !contentRef.current) {
         return { top: 0, left: 0 }
       }
@@ -151,14 +156,14 @@ const PopoverContent = React.forwardRef<HTMLDivElement, PopoverContentProps>(
       const top = triggerRect.bottom + sideOffset + 5 // 增加額外的垂直空間，避開跟底線重疊
 
       return { top, left }
-    }
+    }, [align, sideOffset, triggerRef])
 
     useEffect(() => {
       // 當內容顯示時，計算位置
       if (open && contentRef.current) {
         setPosition(calcPosition())
       }
-    }, [open])
+    }, [open, calcPosition])
 
     useEffect(() => {
       // 重新計算位置（為了解決初始寬度計算問題）
@@ -181,7 +186,7 @@ const PopoverContent = React.forwardRef<HTMLDivElement, PopoverContentProps>(
         window.removeEventListener('resize', handleResize)
         clearTimeout(timer)
       }
-    }, [open])
+    }, [open, calcPosition])
 
     useEffect(() => {
       // 點擊外部關閉
@@ -217,10 +222,12 @@ const PopoverContent = React.forwardRef<HTMLDivElement, PopoverContentProps>(
           child.type === Link
         ) {
           return React.cloneElement(child as CloneElementType, {
-            onClick: (e: React.MouseEvent) => {
+            // eslint-disable-next-line no-unused-vars
+            onClick: (_e: React.MouseEvent) => {
               if (closeOnClick) setOpen(false)
               if (React.isValidElement(child) && child.props && typeof child.props === 'object' && 'onClick' in child.props && child.props.onClick) {
-                (child.props.onClick as (e: React.MouseEvent) => void)(e)
+                // eslint-disable-next-line no-unused-vars
+                (child.props.onClick as ((_e: React.MouseEvent) => void))(_e)
               }
             },
           })

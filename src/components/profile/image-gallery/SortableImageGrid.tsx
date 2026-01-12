@@ -22,9 +22,12 @@ import { ProfileImage, ImageLayout } from '../types'
 interface SortableImageGridProps {
   images: ProfileImage[]
   layout: ImageLayout
-  onReorder: (images: ProfileImage[]) => void
-  onDelete: (id: string) => void
-  onCaptionChange: (id: string, caption: string) => void
+  // eslint-disable-next-line no-unused-vars
+  onReorder: (_images: ProfileImage[]) => void
+  // eslint-disable-next-line no-unused-vars
+  onDelete: (_id: string) => void
+  // eslint-disable-next-line no-unused-vars
+  onCaptionChange: (_id: string, _caption: string) => void
 }
 
 export default function SortableImageGrid({

@@ -71,7 +71,8 @@ const CommentForm = ({
   isSubmitting,
   isLoggedIn,
 }: {
-  onSubmit: (content: string) => Promise<void>
+  // eslint-disable-next-line no-unused-vars
+  onSubmit: (_content: string) => Promise<void>
   isSubmitting: boolean
   isLoggedIn: boolean
 }) => {

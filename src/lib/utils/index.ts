@@ -48,14 +48,17 @@ export function generateId(): string {
  * @param {number} ms - 延遲時間，單位毫秒
  * @returns {Function} 防抖處理後的函數
  */
+// eslint-disable-next-line no-unused-vars
 export function debounce<T extends (...args: any[]) => any>(
   fn: T,
   ms = 300
+  // eslint-disable-next-line no-unused-vars
 ): (...args: Parameters<T>) => void {
   let timeoutId: ReturnType<typeof setTimeout>
-  return function (this: any, ...args: Parameters<T>) {
+  // eslint-disable-next-line no-unused-vars
+  return function (this: any, ..._args: Parameters<T>) {
     clearTimeout(timeoutId)
-    timeoutId = setTimeout(() => fn.apply(this, args), ms)
+    timeoutId = setTimeout(() => fn.apply(this, _args), ms)
   }
 }
 

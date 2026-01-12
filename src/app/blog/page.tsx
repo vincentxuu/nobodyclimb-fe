@@ -14,17 +14,6 @@ import { postService } from '@/lib/api/services'
 import { PostCategory, POST_CATEGORIES, getCategoryLabel } from '@/lib/types'
 import { generateSummary } from '@/lib/utils/article'
 
-// 分類顯示名稱（包含「所有文章」）
-type DisplayCategory = '所有文章' | string
-
-// 載入狀態元件
-const LoadingState = () => (
-  <div className="flex min-h-[400px] items-center justify-center">
-    <Loader2 className="h-8 w-8 animate-spin text-[#6D6C6C]" />
-    <span className="ml-2 text-[#6D6C6C]">載入文章中...</span>
-  </div>
-)
-
 // 空狀態元件
 const EmptyState = ({ searchQuery, category }: { searchQuery: string; category: string }) => (
   <div className="flex min-h-[400px] flex-col items-center justify-center py-12">

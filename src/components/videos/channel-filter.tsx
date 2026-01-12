@@ -10,7 +10,8 @@ import {
 interface ChannelFilterProps {
   channels: string[]
   selectedChannel: string
-  onChannelChange: (channel: string) => void
+  // eslint-disable-next-line no-unused-vars
+  onChannelChange: (_channel: string) => void
 }
 
 const ChannelFilter: React.FC<ChannelFilterProps> = ({

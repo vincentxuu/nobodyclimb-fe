@@ -3,7 +3,6 @@
 import {
   Hero,
   FeaturedPosts,
-  GymHighlights,
   BiographySection,
   GallerySection,
   AboutSection,

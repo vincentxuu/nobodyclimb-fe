@@ -9,7 +9,8 @@ interface UseInfiniteScrollProps {
   /** 是否正在加載 */
   isLoading: boolean
   /** 頁面變更時的回調函數 */
-  onLoadMore: (page: number) => void
+  // eslint-disable-next-line no-unused-vars
+  onLoadMore: (_page: number) => void
   /** 觀察者選項 */
   options?: IntersectionObserverInit
   /** 初始頁碼，默認為1 */
@@ -51,7 +52,8 @@ export function useInfiniteScroll({
 
   useEffect(() => {
     // 檢查目標元素和IntersectionObserver API的可用性
-    if (!targetRef?.current || typeof IntersectionObserver !== 'function') {
+    const target = targetRef?.current
+    if (!target || typeof IntersectionObserver !== 'function') {
       return
     }
 
@@ -64,13 +66,11 @@ export function useInfiniteScroll({
     }, options)
 
     // 開始觀察目標元素
-    observer.observe(targetRef.current)
+    observer.observe(target)
 
     // 清理函數
     return () => {
-      if (targetRef.current) {
-        observer.unobserve(targetRef.current)
-      }
+      observer.unobserve(target)
       observer.disconnect()
     }
   }, [targetRef, options, loadMore])

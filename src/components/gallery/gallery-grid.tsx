@@ -22,7 +22,8 @@ interface GalleryPhoto {
 
 interface GalleryGridProps {
   photos: GalleryPhoto[]
-  onPhotoClick: (photo: GalleryPhoto, index: number) => void
+  // eslint-disable-next-line no-unused-vars
+  onPhotoClick: (_photo: GalleryPhoto, _index: number) => void
 }
 
 const GalleryGrid: React.FC<GalleryGridProps> = ({ photos, onPhotoClick }) => {

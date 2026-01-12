@@ -6,8 +6,10 @@ import { Button } from '@/components/ui/button'
 
 interface ImageUploaderProps {
   value: string | null
-  onChange: (value: string | null) => void
-  onFileSelect?: (file: File) => void
+  // eslint-disable-next-line no-unused-vars
+  onChange: (_value: string | null) => void
+  // eslint-disable-next-line no-unused-vars
+  onFileSelect?: (_file: File) => void
   uploading?: boolean
   className?: string
 }
@@ -114,6 +116,7 @@ export function ImageUploader({
         // 有圖片時顯示預覽
         <div className="relative">
           <div className="relative h-[200px] overflow-hidden rounded-lg border border-gray-200">
+            {/* eslint-disable-next-line @next/next/no-img-element */}
             <img src={previewUrl} alt="封面預覽" className="h-full w-full object-cover" />
             {uploading && (
               <div className="absolute inset-0 flex items-center justify-center bg-black/50">

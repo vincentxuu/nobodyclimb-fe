@@ -5,7 +5,8 @@ import { ImageLayout } from '../types'
 
 interface LayoutSelectorProps {
   value: ImageLayout
-  onChange: (layout: ImageLayout) => void
+  // eslint-disable-next-line no-unused-vars
+  onChange: (_layout: ImageLayout) => void
   disabled?: boolean
 }
 

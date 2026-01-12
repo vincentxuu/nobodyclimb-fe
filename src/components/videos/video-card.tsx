@@ -6,7 +6,8 @@ import { Play, Eye } from 'lucide-react'
 
 interface VideoCardProps {
   video: Video
-  onClick: (video: Video) => void
+  // eslint-disable-next-line no-unused-vars
+  onClick: (_video: Video) => void
 }
 
 const VideoCard: React.FC<VideoCardProps> = ({ video, onClick }) => {

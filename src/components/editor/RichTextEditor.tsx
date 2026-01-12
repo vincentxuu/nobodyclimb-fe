@@ -15,7 +15,8 @@ const ReactQuill = dynamic(() => import('react-quill-new'), {
 
 interface RichTextEditorProps {
   value: string
-  onChange: (content: string) => void
+  // eslint-disable-next-line no-unused-vars
+  onChange: (_content: string) => void
   placeholder?: string
   className?: string
 }

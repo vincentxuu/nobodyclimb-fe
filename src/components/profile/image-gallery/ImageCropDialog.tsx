@@ -8,7 +8,8 @@ import { Button } from '@/components/ui/button'
 
 interface ImageCropDialogProps {
   imageSrc: string
-  onCropComplete: (croppedImage: Blob) => void
+  // eslint-disable-next-line no-unused-vars
+  onCropComplete: (_croppedImage: Blob) => void
   onCancel: () => void
   aspectRatio?: number
 }

@@ -14,11 +14,16 @@ interface ProfileImageSectionProps {
   imageLayout: ImageLayout
   isEditing: boolean
   isMobile: boolean
-  onImageUpload: (file: File) => Promise<void>
-  onImageDelete: (id: string) => void
-  onCaptionChange: (id: string, caption: string) => void
-  onLayoutChange: (layout: ImageLayout) => void
-  onReorder: (images: ProfileImage[]) => void
+  // eslint-disable-next-line no-unused-vars
+  onImageUpload: (_file: File) => Promise<void>
+  // eslint-disable-next-line no-unused-vars
+  onImageDelete: (_id: string) => void
+  // eslint-disable-next-line no-unused-vars
+  onCaptionChange: (_id: string, _caption: string) => void
+  // eslint-disable-next-line no-unused-vars
+  onLayoutChange: (_layout: ImageLayout) => void
+  // eslint-disable-next-line no-unused-vars
+  onReorder: (_images: ProfileImage[]) => void
 }
 
 export default function ProfileImageSection({

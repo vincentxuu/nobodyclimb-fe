@@ -6,7 +6,8 @@ import { Input } from '@/components/ui/input'
 
 interface SearchInputProps {
   value: string
-  onChange: (e: React.ChangeEvent<HTMLInputElement>) => void
+  // eslint-disable-next-line no-unused-vars
+  onChange: (_e: React.ChangeEvent<HTMLInputElement>) => void
   placeholder?: string
   className?: string
 }

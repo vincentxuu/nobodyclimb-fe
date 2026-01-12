@@ -20,6 +20,7 @@ interface InstagramEmbedSDKProps {
 
 // 擴展 Window 介面以包含 instgrm
 declare global {
+  // eslint-disable-next-line no-unused-vars
   interface Window {
     instgrm?: {
       Embeds: {

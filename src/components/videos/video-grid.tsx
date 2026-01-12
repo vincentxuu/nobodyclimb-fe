@@ -4,7 +4,8 @@ import type { Video } from '@/lib/types'
 
 interface VideoGridProps {
   videos: Video[]
-  onVideoClick: (video: Video) => void
+  // eslint-disable-next-line no-unused-vars
+  onVideoClick: (_video: Video) => void
 }
 
 const VideoGrid: React.FC<VideoGridProps> = ({ videos, onVideoClick }) => {
