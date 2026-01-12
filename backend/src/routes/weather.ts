@@ -7,6 +7,18 @@ export const weatherRoutes = new Hono<{ Bindings: Env }>();
 
 // 中介軟體：檢查 CWA API Key 是否設定
 weatherRoutes.use('*', async (c, next) => {
+  const path = c.req.path;
+  const isPublicImageRoute =
+    path.endsWith('/weather/satellite') ||
+    path.endsWith('/weather/satellite/image') ||
+    path.endsWith('/weather/radar') ||
+    path.endsWith('/weather/radar/image');
+
+  if (isPublicImageRoute) {
+    await next();
+    return;
+  }
+
   if (!c.env.CWA_API_KEY) {
     console.error('CWA_API_KEY is not configured');
     return c.json(
