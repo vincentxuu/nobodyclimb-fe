@@ -13,13 +13,6 @@ interface CameraData {
   direction?: string
 }
 
-interface ApiResponse {
-  success: boolean
-  data?: CameraData[]
-  error?: string
-  message?: string
-}
-
 interface TrafficCamerasCardProps {
   latitude: number
   longitude: number
@@ -41,31 +34,30 @@ export const TrafficCamerasCard: React.FC<TrafficCamerasCardProps> = ({
     setServiceMessage(null)
 
     try {
-      const response = await fetch(`/api/traffic-cameras?lat=${latitude}&lng=${longitude}`)
+      // 直接從瀏覽器呼叫 1968 API（繞過伺服器端代理避免被阻擋）
+      const apiUrl = `https://www.1968services.tw/query-cam-list-by-coordinate/${latitude}/${longitude}`
+      const response = await fetch(apiUrl)
 
       if (!response.ok) {
         throw new Error('無法取得攝影機資料')
       }
 
-      const apiResponse = (await response.json()) as ApiResponse
-
-      if (!apiResponse.success) {
-        throw new Error(apiResponse.error || '無法取得攝影機資料')
+      // 檢查回應是否為 JSON
+      const contentType = response.headers.get('content-type') || ''
+      if (!contentType.includes('application/json')) {
+        throw new Error('API 回傳格式錯誤')
       }
 
-      const cameraList = apiResponse.data || []
+      const cameraList = (await response.json()) as CameraData[]
       setCameras(cameraList.slice(0, 6)) // 最多顯示 6 個攝影機
-
-      // 儲存服務訊息（用於顯示服務暫時無法使用等提示）
-      if (apiResponse.message) {
-        setServiceMessage(apiResponse.message)
-      }
 
       if (cameraList.length > 0) {
         setSelectedCamera(cameraList[0])
       }
     } catch (err) {
-      setError(err instanceof Error ? err.message : '載入失敗')
+      console.error('Failed to fetch traffic cameras:', err)
+      // 發生錯誤時設置服務訊息而非錯誤（更友善的使用者體驗）
+      setServiceMessage('路況攝影機服務暫時無法使用')
     } finally {
       setLoading(false)
     }
