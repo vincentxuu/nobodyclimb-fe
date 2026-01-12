@@ -98,6 +98,7 @@ jobs:
         env:
           JWT_SECRET: ${{ secrets.JWT_SECRET }}
           CWA_API_KEY: ${{ secrets.CWA_API_KEY }}
+          GOOGLE_CLIENT_ID: ${{ secrets.GOOGLE_CLIENT_ID }}
         run: |
           if [ -z "$JWT_SECRET" ]; then
             echo "::error::JWT_SECRET is not set. Please add it to the repository secrets."
@@ -106,6 +107,10 @@ jobs:
           fi
           if [ -z "$CWA_API_KEY" ]; then
             echo "::warning::CWA_API_KEY is not set. Weather API will not work."
+            echo "Go to: Settings > Secrets and variables > Actions > New repository secret"
+          fi
+          if [ -z "$GOOGLE_CLIENT_ID" ]; then
+            echo "::warning::GOOGLE_CLIENT_ID is not set. Google OAuth will not work."
             echo "Go to: Settings > Secrets and variables > Actions > New repository secret"
           fi
           echo "✅ Required secrets are configured"
@@ -127,9 +132,13 @@ jobs:
           if [ -n "$CWA_API_KEY" ]; then
             echo "$CWA_API_KEY" | npx wrangler secret put CWA_API_KEY --config wrangler.toml --env ${{ steps.env.outputs.environment }}
           fi
+          if [ -n "$GOOGLE_CLIENT_ID" ]; then
+            echo "$GOOGLE_CLIENT_ID" | npx wrangler secret put GOOGLE_CLIENT_ID --config wrangler.toml --env ${{ steps.env.outputs.environment }}
+          fi
         env:
           JWT_SECRET: ${{ secrets.JWT_SECRET }}
           CWA_API_KEY: ${{ secrets.CWA_API_KEY }}
+          GOOGLE_CLIENT_ID: ${{ secrets.GOOGLE_CLIENT_ID }}
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
 
       - name: Apply D1 Migrations (Production)
