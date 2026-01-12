@@ -4,9 +4,9 @@ import { useState, useEffect, useCallback, Suspense } from 'react'
 import Image from 'next/image'
 import Link from 'next/link'
 import { useRouter, useSearchParams } from 'next/navigation'
-import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
-import { Search, ChevronLeft, ChevronRight, Loader2, FileText } from 'lucide-react'
+import { SearchInput } from '@/components/ui/search-input'
+import { ChevronLeft, ChevronRight, Loader2, FileText } from 'lucide-react'
 import { Article, ArticleCategory } from '@/mocks/articles'
 import { Breadcrumb } from '@/components/ui/breadcrumb'
 import { motion } from 'framer-motion'
@@ -379,17 +379,11 @@ function BlogContent() {
         {/* Filter Section */}
         <div className="mb-8 space-y-6">
           {/* Search Input - 置中 */}
-          <div className="flex justify-center px-4 md:px-0">
-            <Input
-              type="text"
-              placeholder="搜尋文章關鍵字..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              rightIcon={<Search className="h-5 w-5 stroke-[1.5px] text-[#1B1A1A]" />}
-              wrapperClassName="w-full max-w-[240px]"
-              className="h-[40px] rounded-[4px] border-[#1B1A1A] bg-white font-light text-[#1B1A1A] placeholder:text-[#6D6C6C] focus:ring-2 focus:ring-[#1B1A1A]"
-            />
-          </div>
+          <SearchInput
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            placeholder="搜尋文章關鍵字..."
+          />
 
           {/* Categories */}
           <div className="flex flex-wrap justify-center gap-2 md:gap-4">

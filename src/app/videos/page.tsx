@@ -1,10 +1,9 @@
 'use client'
 
 import React, { useState, useMemo, useEffect } from 'react'
-import { Search } from 'lucide-react'
-import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
 import { PageHeader } from '@/components/ui/page-header'
+import { SearchInput } from '@/components/ui/search-input'
 import VideoGrid from '@/components/videos/video-grid'
 import VideoPlayer from '@/components/videos/video-player'
 import VideoFilters from '@/components/videos/video-filters'
@@ -128,17 +127,11 @@ const VideosPage: React.FC = () => {
             {/* 搜尋和篩選 */}
             <div className="mb-8 space-y-6">
               {/* 搜尋框置中 */}
-              <div className="flex justify-center px-4 md:px-0">
-                <Input
-                  type="text"
-                  placeholder="搜尋影片標題、頻道..."
-                  value={searchQuery}
-                  onChange={handleSearch}
-                  rightIcon={<Search className="h-5 w-5 stroke-[1.5px] text-text-main" />}
-                  wrapperClassName="w-full max-w-[240px]"
-                  className="h-[40px] rounded-[4px] border-text-main bg-white font-light text-text-main placeholder:text-text-subtle focus:ring-2 focus:ring-text-main"
-                />
-              </div>
+              <SearchInput
+                value={searchQuery}
+                onChange={handleSearch}
+                placeholder="搜尋影片標題、頻道..."
+              />
               {/* 篩選器 */}
               <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
                 <div className="flex justify-center md:justify-start">
