@@ -132,6 +132,14 @@ export const POST_CATEGORIES: { value: PostCategory; label: string }[] = [
 ]
 
 /**
+ * 根據分類值取得顯示標籤
+ */
+export const getCategoryLabel = (value: PostCategory | null | undefined): string => {
+  if (!value) return ''
+  return POST_CATEGORIES.find((c) => c.value === value)?.label || value
+}
+
+/**
  * 後端文章資料格式 (snake_case)
  */
 export interface BackendPost {

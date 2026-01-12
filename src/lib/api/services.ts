@@ -34,7 +34,7 @@ interface CreatePostData {
   coverImage?: string
   category?: PostCategory
   tags?: string[]
-  status?: 'draft' | 'published'
+  status?: 'draft' | 'published' | 'archived'
 }
 
 /**

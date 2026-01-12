@@ -12,7 +12,7 @@ import {
   SelectValue,
 } from '@/components/ui/select'
 import { Send, Save, ArrowLeft, Eye } from 'lucide-react'
-import { PostCategory, POST_CATEGORIES } from '@/lib/types'
+import { PostCategory, POST_CATEGORIES, getCategoryLabel } from '@/lib/types'
 import { ProtectedRoute } from '@/components/shared/protected-route'
 import { RichTextEditor, TagSelector, ImageUploader } from '@/components/editor'
 import { postService } from '@/lib/api/services'
@@ -32,11 +32,6 @@ function CreateBlogPageContent() {
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [isUploading, setIsUploading] = useState(false)
   const [showPreview, setShowPreview] = useState(false)
-
-  // 取得分類顯示名稱
-  const getCategoryLabel = (value: PostCategory) => {
-    return POST_CATEGORIES.find((c) => c.value === value)?.label || value
-  }
 
   // 處理封面圖片選擇
   const handleCoverFileSelect = async (file: File) => {

@@ -11,17 +11,11 @@ import { Article } from '@/mocks/articles'
 import { Breadcrumb } from '@/components/ui/breadcrumb'
 import { motion } from 'framer-motion'
 import { postService } from '@/lib/api/services'
-import { PostCategory, POST_CATEGORIES } from '@/lib/types'
+import { PostCategory, POST_CATEGORIES, getCategoryLabel } from '@/lib/types'
 import { generateSummary } from '@/lib/utils/article'
 
 // 分類顯示名稱（包含「所有文章」）
 type DisplayCategory = '所有文章' | string
-
-// 取得分類顯示名稱
-const getCategoryLabel = (value: PostCategory | null | undefined): string => {
-  if (!value) return ''
-  return POST_CATEGORIES.find((c) => c.value === value)?.label || value
-}
 
 // 載入狀態元件
 const LoadingState = () => (

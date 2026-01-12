@@ -12,7 +12,7 @@ import {
   SelectValue,
 } from '@/components/ui/select'
 import { Send, Save, ArrowLeft, Eye, Loader2 } from 'lucide-react'
-import { PostCategory, POST_CATEGORIES } from '@/lib/types'
+import { PostCategory, POST_CATEGORIES, getCategoryLabel } from '@/lib/types'
 import { ProtectedRoute } from '@/components/shared/protected-route'
 import { RichTextEditor, TagSelector, ImageUploader } from '@/components/editor'
 import { postService } from '@/lib/api/services'
@@ -37,11 +37,6 @@ function EditBlogPageContent() {
   const [isUploading, setIsUploading] = useState(false)
   const [isLoading, setIsLoading] = useState(true)
   const [showPreview, setShowPreview] = useState(false)
-
-  // 取得分類顯示名稱
-  const getCategoryLabel = (value: PostCategory) => {
-    return POST_CATEGORIES.find((c) => c.value === value)?.label || value
-  }
 
   // 載入文章資料
   useEffect(() => {
