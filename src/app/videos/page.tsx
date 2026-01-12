@@ -4,6 +4,7 @@ import React, { useState, useMemo, useEffect } from 'react'
 import { Search } from 'lucide-react'
 import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
+import { PageHeader } from '@/components/ui/page-header'
 import VideoGrid from '@/components/videos/video-grid'
 import VideoPlayer from '@/components/videos/video-player'
 import VideoFilters from '@/components/videos/video-filters'
@@ -111,11 +112,14 @@ const VideosPage: React.FC = () => {
 
   if (loading) {
     return (
-      <div className="container mx-auto px-4 py-8 md:py-16">
-        <div className="flex items-center justify-center py-16">
-          <div className="text-center">
-            <div className="mb-4 h-8 w-8 animate-spin rounded-full border-4 border-neutral-300 border-t-neutral-600 mx-auto"></div>
-            <p className="text-neutral-500">載入影片資料中...</p>
+      <div className="min-h-screen bg-[#f5f5f5]">
+        <PageHeader title="攀岩影片精選" subtitle="探索精彩的攀岩影片" />
+        <div className="container mx-auto px-4 py-6">
+          <div className="flex items-center justify-center py-16">
+            <div className="text-center">
+              <div className="mx-auto mb-4 h-8 w-8 animate-spin rounded-full border-4 border-neutral-300 border-t-neutral-600"></div>
+              <p className="text-neutral-500">載入影片資料中...</p>
+            </div>
           </div>
         </div>
       </div>
@@ -123,17 +127,10 @@ const VideosPage: React.FC = () => {
   }
 
   return (
-    <div className="container mx-auto px-4 py-8 md:py-16">
-      {/* 頁面標題 */}
-      <div className="mb-8 text-center md:mb-12">
-        <h1 className="mb-2 text-3xl font-medium text-neutral-800 md:text-4xl">
-          攀岩影片精選
-        </h1>
-        <p className="text-base text-neutral-500 md:text-lg">
-          探索精彩的攀岩影片
-        </p>
-      </div>
+    <div className="min-h-screen bg-[#f5f5f5]">
+      <PageHeader title="攀岩影片精選" subtitle="探索精彩的攀岩影片" />
 
+      <div className="container mx-auto px-4 py-6">
       {/* 搜尋和篩選 */}
       <div className="mb-8 space-y-6">
         {/* 搜尋框置中 */}
@@ -201,6 +198,7 @@ const VideosPage: React.FC = () => {
       {selectedVideo && (
         <VideoPlayer video={selectedVideo} onClose={handleClosePlayer} />
       )}
+      </div>
     </div>
   )
 }

@@ -4,6 +4,7 @@ import React, { useState, useEffect, useCallback } from 'react'
 import GalleryGrid from '@/components/gallery/gallery-grid'
 import PhotoPopup from '@/components/gallery/photo-popup'
 import { Button } from '@/components/ui/button'
+import { PageHeader } from '@/components/ui/page-header'
 import { Loader2 } from 'lucide-react'
 import { galleryService } from '@/lib/api/services'
 import { GalleryPhoto } from '@/lib/types'
@@ -135,11 +136,10 @@ const GalleryPage: React.FC = () => {
   }
 
   return (
-    <div className="container mx-auto px-4 py-8 md:py-16">
-      <div className="mb-8 text-center md:mb-12">
-        <h1 className="mb-2 text-3xl font-medium text-neutral-800 md:text-4xl">攝影集</h1>
-        <p className="text-base text-neutral-500 md:text-lg">欣賞小人物們攀岩的英姿</p>
-      </div>
+    <div className="min-h-screen bg-[#f5f5f5]">
+      <PageHeader title="攝影集" subtitle="欣賞小人物們攀岩的英姿" />
+
+      <div className="container mx-auto px-4 py-6">
 
       {/* Loading State */}
       {isLoading && (
@@ -196,6 +196,7 @@ const GalleryPage: React.FC = () => {
           onPrev={showPrevPhoto}
         />
       )}
+      </div>
     </div>
   )
 }
