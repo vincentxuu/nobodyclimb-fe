@@ -55,9 +55,11 @@ function extractCity(location: string): string | null {
 
 // 從鄉鎮市區提取區域名稱
 function extractDistrict(location: string): string | null {
-  // 匹配「XX區」、「XX市」、「XX鄉」、「XX鎮」的模式
+  // 匹配「XX區」、「XX鄉」、「XX鎮」的模式
+  // 注意：不匹配「XX市」，因為那是縣市名稱（如「新北市」），不是鄉鎮區
+  // 縣轄市（如「板橋市」已改制為「板橋區」）也不需要匹配
   const patterns = [
-    /([^\s縣市]+[區鄉鎮市])/,
+    /([^\s縣市]+[區鄉鎮])/,
   ];
 
   for (const pattern of patterns) {
