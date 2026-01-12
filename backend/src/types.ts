@@ -256,9 +256,10 @@ export interface CameraData {
   camname: string;
   camuri: string;
   location: string;
-  latitude: number;
-  longitude: number;
+  latitude: number | null; // HTML 解析時可能無法取得經緯度
+  longitude: number | null;
   direction?: string;
+  distance?: number; // 距離（公里）
 }
 
 // API Response Types
