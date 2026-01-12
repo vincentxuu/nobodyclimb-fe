@@ -129,6 +129,8 @@ export default function CragDetailPage({ params }: { params: Promise<{ id: strin
               latitude={currentCrag.geoCoordinates.latitude}
               longitude={currentCrag.geoCoordinates.longitude}
               showForecast={true}
+              showSatellite={true}
+              showRadar={true}
             />
           </div>
 
