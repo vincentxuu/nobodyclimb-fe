@@ -181,7 +181,8 @@ export interface CragListItem {
 export function getAllCrags(): CragListItem[] {
   const crags: CragListItem[] = []
 
-  cragsDataMap.forEach((data, key) => {
+  // eslint-disable-next-line no-unused-vars
+  cragsDataMap.forEach((data, _key) => {
     crags.push({
       id: data.crag.id,
       name: data.crag.name,
@@ -209,7 +210,8 @@ export function getCragById(id: string): CragFullData | null {
  * 根據 slug 獲取岩場完整資料
  */
 export function getCragBySlug(slug: string): CragFullData | null {
-  for (const [key, data] of cragsDataMap) {
+  // eslint-disable-next-line no-unused-vars
+  for (const [_key, data] of cragsDataMap) {
     if (data.crag.slug === slug) {
       return data
     }
@@ -466,8 +468,8 @@ export function getCragDetailData(id: string) {
       latitude: crag.location.latitude,
       longitude: crag.location.longitude,
     },
-    // 天氣查詢用的位置資訊
-    weatherLocation: crag.location.region || crag.location.address,
+    // 天氣查詢用的位置資訊（優先使用地址，包含完整的縣市區域資訊）
+    weatherLocation: crag.location.address || crag.location.region,
     areas: areas.map(area => ({
       id: area.id,
       name: area.name,

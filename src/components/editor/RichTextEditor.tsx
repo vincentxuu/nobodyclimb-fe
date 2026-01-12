@@ -1,7 +1,7 @@
 'use client'
 
 import dynamic from 'next/dynamic'
-import { useMemo } from 'react'
+import { useMemo, useEffect } from 'react'
 
 // Dynamically import ReactQuill (CSS 透過 layout.tsx CDN 載入)
 const ReactQuill = dynamic(() => import('react-quill-new'), {
@@ -15,10 +15,64 @@ const ReactQuill = dynamic(() => import('react-quill-new'), {
 
 interface RichTextEditorProps {
   value: string
-  onChange: (content: string) => void
+  // eslint-disable-next-line no-unused-vars
+  onChange: (_content: string) => void
   placeholder?: string
   className?: string
 }
+
+const editorStyles = `
+  .rich-text-editor .ql-container {
+    min-height: 300px;
+    font-size: 16px;
+    font-family: inherit;
+    background-color: white;
+  }
+  .rich-text-editor .ql-editor {
+    min-height: 300px;
+    line-height: 1.8;
+    color: #1b1a1a;
+  }
+  .rich-text-editor .ql-editor.ql-blank::before {
+    color: #9ca3af;
+    font-style: normal;
+    left: 15px;
+    right: 15px;
+    pointer-events: none;
+  }
+  .rich-text-editor .ql-editor:not(.ql-blank)::before {
+    display: none !important;
+  }
+  .rich-text-editor .ql-toolbar {
+    border-top-left-radius: 8px;
+    border-top-right-radius: 8px;
+    background-color: #f9fafb;
+    border-color: #e5e7eb;
+  }
+  .rich-text-editor .ql-container {
+    border-bottom-left-radius: 8px;
+    border-bottom-right-radius: 8px;
+    border-color: #e5e7eb;
+  }
+  .rich-text-editor .ql-editor img {
+    max-width: 100%;
+    height: auto;
+    border-radius: 8px;
+  }
+  .rich-text-editor .ql-editor blockquote {
+    border-left: 4px solid #e5e7eb;
+    padding-left: 16px;
+    margin: 16px 0;
+    color: #6b7280;
+  }
+  .rich-text-editor .ql-editor pre.ql-syntax {
+    background-color: #1f2937;
+    color: #f9fafb;
+    border-radius: 8px;
+    padding: 16px;
+    overflow-x: auto;
+  }
+`
 
 export function RichTextEditor({
   value,
@@ -26,6 +80,17 @@ export function RichTextEditor({
   placeholder = '請輸入文章內容...',
   className = '',
 }: RichTextEditorProps) {
+  // Inject global styles for the editor
+  useEffect(() => {
+    const styleId = 'rich-text-editor-styles'
+    if (!document.getElementById(styleId)) {
+      const style = document.createElement('style')
+      style.id = styleId
+      style.textContent = editorStyles
+      document.head.appendChild(style)
+    }
+  }, [])
+
   const modules = useMemo(
     () => ({
       toolbar: {
@@ -73,59 +138,6 @@ export function RichTextEditor({
         formats={formats}
         placeholder={placeholder}
       />
-      <style jsx global>{`
-        .rich-text-editor .ql-container {
-          min-height: 300px;
-          font-size: 16px;
-          font-family: inherit;
-          background-color: white;
-        }
-        .rich-text-editor .ql-editor {
-          min-height: 300px;
-          line-height: 1.8;
-          color: #1b1a1a;
-        }
-        .rich-text-editor .ql-editor.ql-blank::before {
-          color: #9ca3af;
-          font-style: normal;
-          left: 15px;
-          right: 15px;
-          pointer-events: none;
-        }
-        /* 確保有內容時不顯示 placeholder */
-        .rich-text-editor .ql-editor:not(.ql-blank)::before {
-          display: none !important;
-        }
-        .rich-text-editor .ql-toolbar {
-          border-top-left-radius: 8px;
-          border-top-right-radius: 8px;
-          background-color: #f9fafb;
-          border-color: #e5e7eb;
-        }
-        .rich-text-editor .ql-container {
-          border-bottom-left-radius: 8px;
-          border-bottom-right-radius: 8px;
-          border-color: #e5e7eb;
-        }
-        .rich-text-editor .ql-editor img {
-          max-width: 100%;
-          height: auto;
-          border-radius: 8px;
-        }
-        .rich-text-editor .ql-editor blockquote {
-          border-left: 4px solid #e5e7eb;
-          padding-left: 16px;
-          margin: 16px 0;
-          color: #6b7280;
-        }
-        .rich-text-editor .ql-editor pre.ql-syntax {
-          background-color: #1f2937;
-          color: #f9fafb;
-          border-radius: 8px;
-          padding: 16px;
-          overflow-x: auto;
-        }
-      `}</style>
     </div>
   )
 }

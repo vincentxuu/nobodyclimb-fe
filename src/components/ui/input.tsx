@@ -20,7 +20,8 @@ const Input = React.forwardRef<HTMLInputElement, InputProps>(
       state = 'default',
       leftIcon,
       rightIcon,
-      device = 'desktop',
+      // eslint-disable-next-line no-unused-vars
+      device: _device = 'desktop',
       textStatus = 'placeholder',
       variant = 'default',
       ...props

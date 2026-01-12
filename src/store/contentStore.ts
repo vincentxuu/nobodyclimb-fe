@@ -1,5 +1,5 @@
 import { create } from 'zustand'
-import { Post, Gym, Gallery, PaginatedResponse, SearchParams } from '@/lib/types'
+import { Post, Gym, Gallery, SearchParams } from '@/lib/types'
 import { DEFAULT_PAGE, DEFAULT_PAGE_SIZE } from '@/lib/constants'
 
 interface ContentState {
@@ -48,23 +48,33 @@ interface ContentState {
   searchError: string | null
 
   // 動作 - 文章
+  // eslint-disable-next-line no-unused-vars
   fetchPosts: (page?: number, limit?: number, tags?: string[]) => Promise<void>
+  // eslint-disable-next-line no-unused-vars
   fetchPostById: (id: string) => Promise<void>
+  // eslint-disable-next-line no-unused-vars
   fetchPostBySlug: (slug: string) => Promise<void>
   fetchFeaturedPosts: () => Promise<void>
 
   // 動作 - 攀岩館
+  // eslint-disable-next-line no-unused-vars
   fetchGyms: (page?: number, limit?: number, facilities?: string[]) => Promise<void>
+  // eslint-disable-next-line no-unused-vars
   fetchGymById: (id: string) => Promise<void>
+  // eslint-disable-next-line no-unused-vars
   fetchGymBySlug: (slug: string) => Promise<void>
   fetchFeaturedGyms: () => Promise<void>
 
   // 動作 - 相簿
+  // eslint-disable-next-line no-unused-vars
   fetchGalleries: (page?: number, limit?: number) => Promise<void>
+  // eslint-disable-next-line no-unused-vars
   fetchGalleryById: (id: string) => Promise<void>
+  // eslint-disable-next-line no-unused-vars
   fetchGalleryBySlug: (slug: string) => Promise<void>
 
   // 動作 - 搜尋
+  // eslint-disable-next-line no-unused-vars
   search: (params: SearchParams) => Promise<void>
   clearSearch: () => void
 }
@@ -115,7 +125,8 @@ export const useContentStore = create<ContentState>((set, get) => ({
   searchError: null,
 
   // 文章相關動作
-  fetchPosts: async (page = DEFAULT_PAGE, limit = DEFAULT_PAGE_SIZE, tags = []) => {
+  // eslint-disable-next-line no-unused-vars
+  fetchPosts: async (page = DEFAULT_PAGE, limit = DEFAULT_PAGE_SIZE, _tags = []) => {
     set({ postsLoading: true, postsError: null })
     try {
       // 實際專案需串接API
@@ -266,7 +277,8 @@ export const useContentStore = create<ContentState>((set, get) => ({
   },
 
   // 攀岩館相關動作
-  fetchGyms: async (page = DEFAULT_PAGE, limit = DEFAULT_PAGE_SIZE, facilities = []) => {
+  // eslint-disable-next-line no-unused-vars
+  fetchGyms: async (page = DEFAULT_PAGE, limit = DEFAULT_PAGE_SIZE, _facilities = []) => {
     set({ gymsLoading: true, gymsError: null })
     try {
       // 實際專案中需串接API

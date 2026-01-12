@@ -3,7 +3,6 @@
 import React, { useState, useEffect, useCallback } from 'react'
 import GalleryGrid from '@/components/gallery/gallery-grid'
 import PhotoPopup from '@/components/gallery/photo-popup'
-import { Button } from '@/components/ui/button'
 import { PageHeader } from '@/components/ui/page-header'
 import { LoadingSpinner } from '@/components/ui/loading-spinner'
 import { LoadMoreButton } from '@/components/ui/load-more-button'

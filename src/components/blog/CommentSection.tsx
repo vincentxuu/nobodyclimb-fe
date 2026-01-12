@@ -6,7 +6,7 @@ import { Textarea } from '@/components/ui/textarea'
 import { Loader2, MessageCircle, User } from 'lucide-react'
 import { postService } from '@/lib/api/services'
 import { useToast } from '@/components/ui/use-toast'
-import Image from 'next/image'
+import { AvatarWithFallback } from '@/components/ui/avatar-with-fallback'
 
 // 評論類型定義
 interface CommentData {
@@ -39,18 +39,20 @@ const CommentItem = ({ comment }: { comment: CommentData }) => {
     <div className="flex gap-4 border-b border-gray-100 py-4 last:border-b-0">
       {/* Avatar */}
       <div className="relative h-10 w-10 flex-shrink-0 overflow-hidden rounded-full bg-gray-200">
-        {comment.avatar_url ? (
-          <Image
-            src={comment.avatar_url}
-            alt={displayName}
-            fill
-            className="object-cover"
-          />
-        ) : (
-          <div className="flex h-full w-full items-center justify-center">
-            <User size={20} className="text-gray-400" />
-          </div>
-        )}
+        <AvatarWithFallback
+          src={comment.avatar_url}
+          alt={displayName}
+          size="h-10 w-10"
+          fallback={
+            <div
+              role="img"
+              aria-label={displayName}
+              className="flex h-full w-full items-center justify-center"
+            >
+              <User size={20} className="text-gray-400" />
+            </div>
+          }
+        />
       </div>
 
       {/* Content */}
@@ -71,7 +73,8 @@ const CommentForm = ({
   isSubmitting,
   isLoggedIn,
 }: {
-  onSubmit: (content: string) => Promise<void>
+  // eslint-disable-next-line no-unused-vars
+  onSubmit: (_content: string) => Promise<void>
   isSubmitting: boolean
   isLoggedIn: boolean
 }) => {

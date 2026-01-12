@@ -7,7 +7,8 @@ import { Switch } from '@/components/ui/switch'
 interface PublicSettingSectionProps {
   isPublic: boolean
   isMobile: boolean
-  onChange: (field: string, value: string | boolean) => void
+  // eslint-disable-next-line no-unused-vars
+  onChange: (_field: string, _value: string | boolean) => void
 }
 
 export default function PublicSettingSection({

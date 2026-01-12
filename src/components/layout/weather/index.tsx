@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState } from 'react'
 import { Cloud } from 'lucide-react'
 
 interface WeatherData {
@@ -11,7 +11,7 @@ interface WeatherData {
 }
 
 export function WeatherInfo() {
-  const [weather, setWeather] = useState<WeatherData>({
+  const [weather] = useState<WeatherData>({
     location: '臺北市',
     temperature: 16,
     condition: '陰短暫雨 稍有寒意',

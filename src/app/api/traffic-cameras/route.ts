@@ -48,7 +48,30 @@ export async function GET(request: NextRequest) {
     })
 
     if (!response.ok) {
-      throw new Error(`1968 API responded with status: ${response.status}`)
+      console.error(`1968 API responded with status: ${response.status}`)
+      // 外部 API 不可用時，回傳空資料而非錯誤
+      return NextResponse.json(
+        { success: true, data: [], message: '路況攝影機服務暫時無法使用' },
+        {
+          headers: {
+            'Cache-Control': 'public, s-maxage=60, stale-while-revalidate=30',
+          },
+        }
+      )
+    }
+
+    // 檢查回應內容類型，避免解析 HTML 為 JSON
+    const contentType = response.headers.get('content-type') || ''
+    if (!contentType.includes('application/json')) {
+      console.error(`1968 API returned non-JSON content: ${contentType}`)
+      return NextResponse.json(
+        { success: true, data: [], message: '路況攝影機服務暫時無法使用' },
+        {
+          headers: {
+            'Cache-Control': 'public, s-maxage=60, stale-while-revalidate=30',
+          },
+        }
+      )
     }
 
     const data = await response.json() as CameraListResponse
@@ -60,14 +83,17 @@ export async function GET(request: NextRequest) {
     })
   } catch (error) {
     console.error('Error fetching traffic cameras:', error)
+    // 發生錯誤時回傳空資料，提供更好的使用者體驗
     return NextResponse.json(
       {
-        success: false,
-        error: 'Failed to fetch traffic cameras',
-        details: error instanceof Error ? error.message : String(error),
+        success: true,
+        data: [],
+        message: '路況攝影機服務暫時無法使用',
       },
       {
-        status: 500,
+        headers: {
+          'Cache-Control': 'public, s-maxage=60, stale-while-revalidate=30',
+        },
       }
     )
   }

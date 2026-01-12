@@ -1,7 +1,7 @@
 'use client'
 
 import React from 'react'
-import { ImageIcon } from 'lucide-react'
+import { ImageIcon, ImagePlus } from 'lucide-react'
 import ImageUploader from './ImageUploader'
 import SortableImageGrid from './SortableImageGrid'
 import LayoutSelector from './LayoutSelector'
@@ -14,11 +14,16 @@ interface ProfileImageSectionProps {
   imageLayout: ImageLayout
   isEditing: boolean
   isMobile: boolean
-  onImageUpload: (file: File) => Promise<void>
-  onImageDelete: (id: string) => void
-  onCaptionChange: (id: string, caption: string) => void
-  onLayoutChange: (layout: ImageLayout) => void
-  onReorder: (images: ProfileImage[]) => void
+  // eslint-disable-next-line no-unused-vars
+  onImageUpload: (_file: File) => Promise<void>
+  // eslint-disable-next-line no-unused-vars
+  onImageDelete: (_id: string) => void
+  // eslint-disable-next-line no-unused-vars
+  onCaptionChange: (_id: string, _caption: string) => void
+  // eslint-disable-next-line no-unused-vars
+  onLayoutChange: (_layout: ImageLayout) => void
+  // eslint-disable-next-line no-unused-vars
+  onReorder: (_images: ProfileImage[]) => void
 }
 
 export default function ProfileImageSection({
@@ -36,8 +41,22 @@ export default function ProfileImageSection({
 
   // 查看模式
   if (!isEditing) {
+    // 沒有圖片時顯示提示區塊
     if (images.length === 0) {
-      return null // 沒有圖片時不顯示這個區塊
+      return (
+        <div className="space-y-3">
+          <div className="flex items-center gap-2">
+            <ImageIcon className="h-5 w-5 text-gray-500" />
+            <h3 className="text-base font-medium text-gray-700 md:text-lg">我的攀岩照片</h3>
+          </div>
+          <div className="flex flex-col items-center justify-center rounded-lg border-2 border-dashed border-gray-200 bg-gray-50 px-4 py-8 text-center">
+            <ImagePlus className="mb-2 h-10 w-10 text-gray-400" />
+            <p className="text-sm text-gray-500">
+              點擊右上角「編輯資料」按鈕來上傳您的攀岩照片
+            </p>
+          </div>
+        </div>
+      )
     }
 
     return (

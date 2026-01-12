@@ -1,6 +1,6 @@
 import '@/styles/globals.css'
 import React from 'react'
-import { Inter, Noto_Sans_TC, Allerta_Stencil } from 'next/font/google'
+import { Noto_Sans_TC, Allerta_Stencil } from 'next/font/google'
 import { Providers } from '@/components/layout/providers'
 import { Navbar } from '@/components/layout/navbar'
 import { Footer } from '@/components/layout/footer'

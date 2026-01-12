@@ -65,14 +65,15 @@ function BiographyCard({ person }: BiographyCardProps) {
 interface BiographyListProps {
   searchTerm: string
   onLoadMore?: () => void
-  onTotalChange?: (total: number, hasMore: boolean) => void
+  // eslint-disable-next-line no-unused-vars
+  onTotalChange?: (_total: number, _hasMore: boolean) => void
 }
 
 export function BiographyList({ searchTerm, onTotalChange }: BiographyListProps) {
   const [biographies, setBiographies] = useState<Biography[]>([])
   const [loading, setLoading] = useState(true)
-  const [error, setError] = useState<string | null>(null)
-  const [useStaticData, setUseStaticData] = useState(false)
+  const [, setError] = useState<string | null>(null)
+  const [, setUseStaticData] = useState(false)
 
   // 從 API 加載數據
   const loadBiographies = useCallback(async () => {

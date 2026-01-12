@@ -4,6 +4,7 @@ import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { Eye, EyeOff, Mail, Lock, ArrowRight, LogIn } from 'lucide-react'
+import { GoogleLogin, CredentialResponse } from '@react-oauth/google'
 import { useAuth } from '@/lib/hooks/useAuth'
 import { Button } from '@/components/ui/button'
 import { PageTransition } from '@/components/shared/page-transition'
@@ -41,15 +42,31 @@ export default function LoginPage() {
     }
   }
 
-  // 處理Google登入
-  const handleGoogleLogin = async () => {
+  // 處理Google登入成功
+  const handleGoogleSuccess = async (credentialResponse: CredentialResponse) => {
     try {
-      await loginWithGoogle()
-      // 重定向已在 loginWithGoogle 中處理
+      if (!credentialResponse.credential) {
+        setError('無法取得 Google 認證資訊')
+        return
+      }
+
+      const result = await loginWithGoogle(credentialResponse.credential)
+      if (result.success) {
+        setTimeout(() => {
+          router.push('/')
+        }, 100)
+      } else {
+        setError(result.error || 'Google 登入失敗')
+      }
     } catch (err) {
       console.error('Google登入失敗', err)
       setError('Google登入過程中發生錯誤')
     }
+  }
+
+  // 處理Google登入失敗
+  const handleGoogleError = () => {
+    setError('Google 登入失敗，請稍後再試')
   }
 
   return (
@@ -132,23 +149,18 @@ export default function LoginPage() {
               <div className="flex-grow border-t border-border"></div>
             </div>
 
-            <Button
-              type="button"
-              variant="outline"
-              className="w-full"
-              onClick={handleGoogleLogin}
-              disabled={loading}
-            >
-              <svg
-                className="mr-2 h-4 w-4"
-                xmlns="http://www.w3.org/2000/svg"
-                viewBox="0 0 24 24"
-                fill="currentColor"
-              >
-                <path d="M12.48 10.92v3.28h7.84c-.24 1.84-.853 3.187-1.787 4.133-1.147 1.147-2.933 2.4-6.053 2.4-4.827 0-8.6-3.893-8.6-8.72s3.773-8.72 8.6-8.72c2.6 0 4.507 1.027 5.907 2.347l2.307-2.307C18.747 1.44 16.133 0 12.48 0 5.867 0 .307 5.387.307 12s5.56 12 12.173 12c3.573 0 6.267-1.173 8.373-3.36 2.16-2.16 2.84-5.213 2.84-7.667 0-.76-.053-1.467-.173-2.053H12.48z" />
-              </svg>
-              使用 Google 登入
-            </Button>
+            <div className="flex justify-center">
+              <GoogleLogin
+                onSuccess={handleGoogleSuccess}
+                onError={handleGoogleError}
+                useOneTap
+                theme="outline"
+                size="large"
+                width="100%"
+                text="signin_with"
+                shape="rectangular"
+              />
+            </div>
 
             <div className="text-center text-sm">
               <span className="text-muted-foreground">還沒有帳號？</span>{' '}

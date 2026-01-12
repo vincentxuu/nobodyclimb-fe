@@ -56,9 +56,11 @@ interface AvatarUploadProps {
   useDefaultAvatar: boolean
   avatarStyle: string
   avatar: File | null
-  onAvatarChange: (e: React.ChangeEvent<HTMLInputElement>) => void
+  // eslint-disable-next-line no-unused-vars
+  onAvatarChange: (_e: React.ChangeEvent<HTMLInputElement>) => void
   onRemoveAvatar: () => void
-  onDefaultAvatarChange: (avatarId: string) => void
+  // eslint-disable-next-line no-unused-vars
+  onDefaultAvatarChange: (_avatarId: string) => void
 }
 
 const AvatarUpload = ({
@@ -79,6 +81,7 @@ const AvatarUpload = ({
         className={`${isMobile ? 'h-28 w-28' : 'h-40 w-40'} flex items-center justify-center overflow-hidden rounded-full bg-[#EBEAEA]`}
       >
         {avatarPreview ? (
+          /* eslint-disable-next-line @next/next/no-img-element */
           <img src={avatarPreview} alt="頭像預覽" className="h-full w-full object-cover" />
         ) : useDefaultAvatar ? (
           generateAvatarElement(selectedAvatarStyle, isMobile ? 'w-28 h-28' : 'w-40 h-40')
@@ -130,7 +133,8 @@ const AvatarUpload = ({
 interface ProfileFormProps {
   userData: UserFormData
   isSaving: boolean
-  onFieldChange: (field: keyof UserFormData, value: string) => void
+  // eslint-disable-next-line no-unused-vars
+  onFieldChange: (_field: keyof UserFormData, _value: string) => void
   onSave: () => void
 }
 
@@ -178,7 +182,8 @@ const ProfileForm = ({ userData, isSaving, onFieldChange, onSave }: ProfileFormP
 interface PasswordFormProps {
   userData: UserFormData
   isChangingPassword: boolean
-  onFieldChange: (field: string, value: string) => void
+  // eslint-disable-next-line no-unused-vars
+  onFieldChange: (_field: string, _value: string) => void
   onChangePassword: () => void
 }
 
@@ -280,7 +285,7 @@ export default function SettingsPage() {
     }
 
     fetchUserData()
-  }, [])
+  }, [toast])
 
   // 處理表單變更 - 使用 functional update 避免 closure 問題
   const handleChange = (field: string, value: string) => {

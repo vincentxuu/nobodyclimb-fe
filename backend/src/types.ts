@@ -8,6 +8,7 @@ export interface Env {
   JWT_SECRET: string;
   R2_PUBLIC_URL: string;
   CWA_API_KEY: string; // 中央氣象署 API 授權碼
+  GOOGLE_CLIENT_ID: string;
 }
 
 // Weather API Types
@@ -53,15 +54,37 @@ export interface User {
   id: string;
   email: string;
   username: string;
-  password_hash: string;
+  password_hash: string | null;
   display_name: string | null;
   avatar_url: string | null;
   bio: string | null;
   role: 'user' | 'admin' | 'moderator';
   is_active: number;
   email_verified: number;
+  google_id: string | null;
+  auth_provider: 'local' | 'google';
   created_at: string;
   updated_at: string;
+}
+
+// Google OAuth Types
+export interface GoogleAuthRequest {
+  credential: string;
+}
+
+export interface GoogleTokenPayload {
+  iss: string;
+  azp: string;
+  aud: string;
+  sub: string;
+  email: string;
+  email_verified: boolean;
+  name?: string;
+  picture?: string;
+  given_name?: string;
+  family_name?: string;
+  iat: number;
+  exp: number;
 }
 
 export interface Post {
@@ -225,6 +248,18 @@ export interface Comment {
   content: string;
   created_at: string;
   updated_at: string;
+}
+
+// Traffic Camera Types (1968 路況服務)
+export interface CameraData {
+  camid: string;
+  camname: string;
+  camuri: string;
+  location: string;
+  latitude: number | null; // HTML 解析時可能無法取得經緯度
+  longitude: number | null;
+  direction?: string;
+  distance?: number; // 距離（公里）
 }
 
 // API Response Types

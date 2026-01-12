@@ -9,7 +9,8 @@ interface BasicInfoSectionProps {
   name: string
   isEditing: boolean
   isMobile: boolean
-  onChange: (field: string, value: string | boolean) => void
+  // eslint-disable-next-line no-unused-vars
+  onChange: (_field: string, _value: string | boolean) => void
 }
 
 export default function BasicInfoSection({

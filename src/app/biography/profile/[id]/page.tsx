@@ -25,7 +25,6 @@ export default function ProfilePage({ params }: ProfilePageProps) {
   const [person, setPerson] = useState<Biography | null>(null)
   const [adjacent, setAdjacent] = useState<BiographyAdjacent | null>(null)
   const [loading, setLoading] = useState(true)
-  const [useStaticData, setUseStaticData] = useState(false)
 
   // 從 API 或靜態數據加載人物資料
   useEffect(() => {
@@ -38,7 +37,6 @@ export default function ProfilePage({ params }: ProfilePageProps) {
 
         if (response.success && response.data) {
           setPerson(response.data)
-          setUseStaticData(false)
 
           // 獲取相鄰人物
           try {
@@ -59,7 +57,6 @@ export default function ProfilePage({ params }: ProfilePageProps) {
 
         if (staticPerson) {
           setPerson(mapStaticToBiography(staticPerson))
-          setUseStaticData(true)
 
           // 設置靜態數據的上一篇/下一篇
           const prevId = personId > 1 ? personId - 1 : biographyData.length

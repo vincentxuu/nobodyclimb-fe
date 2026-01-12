@@ -7,7 +7,8 @@ import { Button } from '@/components/ui/button'
 
 interface TagSelectorProps {
   tags: string[]
-  onChange: (newTags: string[]) => void
+  // eslint-disable-next-line no-unused-vars
+  onChange: (_newTags: string[]) => void
   placeholder?: string
   maxTags?: number
   suggestions?: string[]

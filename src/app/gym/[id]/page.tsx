@@ -485,7 +485,7 @@ export default function GymDetailPage({ params }: { params: Promise<{ id: string
                 <div className="h-px w-full bg-gray-200"></div>
               </div>
               <div className="mt-4 grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-                {gym.unboxingReviews.map((review, index) => (
+                {gym.unboxingReviews.map((review) => (
                   <a
                     key={review.url}
                     href={review.url}

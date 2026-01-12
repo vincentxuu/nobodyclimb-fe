@@ -1,7 +1,7 @@
 import React from 'react'
 import Image from 'next/image'
 import Link from 'next/link'
-import { useSearchParams, useRouter } from 'next/navigation'
+import { useSearchParams } from 'next/navigation'
 import { Search, MapPin } from 'lucide-react'
 import { articles } from '@/lib/constants/articles'
 
@@ -11,7 +11,6 @@ type IdMappingType = {
 }
 
 export default function SearchResults() {
-  const router = useRouter()
   const searchParams = useSearchParams()
 
   const type = searchParams.get('type') || '全部'

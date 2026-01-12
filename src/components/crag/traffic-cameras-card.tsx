@@ -1,7 +1,10 @@
 'use client'
 
 import React, { useState, useEffect, useCallback } from 'react'
-import { Camera, ExternalLink, Loader2, AlertCircle, RefreshCw } from 'lucide-react'
+import { Camera, ExternalLink, Loader2, AlertCircle } from 'lucide-react'
+import { API_BASE_URL } from '@/lib/constants'
+
+const MAX_CAMERAS_TO_SHOW = 6
 
 interface CameraData {
   camid: string
@@ -11,12 +14,6 @@ interface CameraData {
   latitude: number
   longitude: number
   direction?: string
-}
-
-interface ApiResponse {
-  success: boolean
-  data?: CameraData[]
-  error?: string
 }
 
 interface TrafficCamerasCardProps {
@@ -30,34 +27,41 @@ export const TrafficCamerasCard: React.FC<TrafficCamerasCardProps> = ({
 }) => {
   const [cameras, setCameras] = useState<CameraData[]>([])
   const [loading, setLoading] = useState(true)
-  const [error, setError] = useState<string | null>(null)
   const [selectedCamera, setSelectedCamera] = useState<CameraData | null>(null)
+  const [serviceMessage, setServiceMessage] = useState<string | null>(null)
 
   const fetchCameras = useCallback(async () => {
     setLoading(true)
-    setError(null)
+    setServiceMessage(null)
 
     try {
-      const response = await fetch(`/api/traffic-cameras?lat=${latitude}&lng=${longitude}`)
+      // 透過後端代理呼叫 1968 API（避免 CORS 問題）
+      const apiUrl = `${API_BASE_URL}/traffic/cameras?lat=${latitude}&lon=${longitude}`
+      const response = await fetch(apiUrl)
 
       if (!response.ok) {
         throw new Error('無法取得攝影機資料')
       }
 
-      const apiResponse = (await response.json()) as ApiResponse
-
-      if (!apiResponse.success) {
-        throw new Error(apiResponse.error || '無法取得攝影機資料')
+      const result = (await response.json()) as {
+        success: boolean
+        data?: CameraData[]
+        message?: string
+      }
+      if (!result.success || !result.data) {
+        throw new Error(result.message || 'API 回傳格式錯誤')
       }
 
-      const cameraList = apiResponse.data || []
-      setCameras(cameraList.slice(0, 6)) // 最多顯示 6 個攝影機
+      const cameraList = result.data
+      setCameras(cameraList.slice(0, MAX_CAMERAS_TO_SHOW))
 
       if (cameraList.length > 0) {
         setSelectedCamera(cameraList[0])
       }
     } catch (err) {
-      setError(err instanceof Error ? err.message : '載入失敗')
+      console.error('Failed to fetch traffic cameras:', err)
+      // 發生錯誤時設置服務訊息而非錯誤（更友善的使用者體驗）
+      setServiceMessage('路況攝影機服務暫時無法使用')
     } finally {
       setLoading(false)
     }
@@ -82,7 +86,7 @@ export const TrafficCamerasCard: React.FC<TrafficCamerasCardProps> = ({
     )
   }
 
-  if (error) {
+  if (cameras.length === 0) {
     return (
       <div className="rounded-lg bg-white p-6 shadow-md">
         <h3 className="mb-4 flex items-center text-xl font-bold">
@@ -91,27 +95,19 @@ export const TrafficCamerasCard: React.FC<TrafficCamerasCardProps> = ({
         </h3>
         <div className="flex flex-col items-center justify-center py-8 text-center">
           <AlertCircle className="mb-2 h-8 w-8 text-gray-400" />
-          <p className="mb-4 text-gray-500">{error}</p>
-          <button
-            onClick={fetchCameras}
-            className="flex items-center gap-2 rounded-lg bg-gray-100 px-4 py-2 text-sm text-gray-600 hover:bg-gray-200"
+          <p className="mb-2 text-gray-500">
+            {serviceMessage || '附近沒有可用的路況攝影機'}
+          </p>
+          <a
+            href="https://www.1968.gov.tw/"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="mt-2 flex items-center gap-1 text-sm text-blue-500 hover:text-blue-700"
           >
-            <RefreshCw size={16} />
-            重試
-          </button>
+            前往 1968 路況服務查看
+            <ExternalLink size={14} />
+          </a>
         </div>
-      </div>
-    )
-  }
-
-  if (cameras.length === 0) {
-    return (
-      <div className="rounded-lg bg-white p-6 shadow-md">
-        <h3 className="mb-4 flex items-center text-xl font-bold">
-          <Camera size={20} className="mr-2 text-[#1B1A1A]" />
-          即時路況攝影機
-        </h3>
-        <p className="py-8 text-center text-gray-500">附近沒有可用的路況攝影機</p>
       </div>
     )
   }
@@ -138,6 +134,7 @@ export const TrafficCamerasCard: React.FC<TrafficCamerasCardProps> = ({
       {selectedCamera && (
         <div className="mb-4">
           <div className="relative aspect-video w-full overflow-hidden rounded-lg bg-gray-900">
+            {/* eslint-disable-next-line @next/next/no-img-element */}
             <img
               src={selectedCamera.camuri}
               alt={selectedCamera.camname}
@@ -168,6 +165,7 @@ export const TrafficCamerasCard: React.FC<TrafficCamerasCardProps> = ({
             }`}
           >
             <div className="relative aspect-video w-full bg-gray-800">
+              {/* eslint-disable-next-line @next/next/no-img-element */}
               <img
                 src={camera.camuri}
                 alt={camera.camname}

@@ -23,6 +23,7 @@ export interface User {
   climbingStartYear?: string
   frequentGym?: string
   favoriteRouteType?: string
+  authProvider?: 'local' | 'google'
   socialLinks?: {
     instagram?: string
     facebook?: string
@@ -47,6 +48,8 @@ export interface BackendUser {
   role: 'user' | 'admin' | 'moderator'
   is_active?: number
   email_verified?: number
+  google_id?: string
+  auth_provider?: 'local' | 'google'
   created_at: string
   updated_at?: string
 }
@@ -65,6 +68,7 @@ export function mapBackendUserToUser(backendUser: BackendUser): User {
     climbingStartYear: backendUser.climbing_start_year,
     frequentGym: backendUser.frequent_gym,
     favoriteRouteType: backendUser.favorite_route_type,
+    authProvider: backendUser.auth_provider,
     createdAt: new Date(backendUser.created_at),
   }
 }

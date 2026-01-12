@@ -423,6 +423,7 @@ export default function UploadPage() {
                         key={fileItem.id}
                         className="relative aspect-square rounded-md overflow-hidden group"
                       >
+                        {/* eslint-disable-next-line @next/next/no-img-element */}
                         <img
                           src={fileItem.preview}
                           alt="Preview"

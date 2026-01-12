@@ -3,7 +3,6 @@
 import Image from 'next/image'
 import { motion } from 'framer-motion'
 import { ArrowDown } from 'lucide-react'
-import { WeatherInfo } from '@/components/layout/weather'
 
 /**
  * 首頁英雄區組件

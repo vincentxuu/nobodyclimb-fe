@@ -1,6 +1,5 @@
 'use client'
 
-import Link from 'next/link'
 import Image from 'next/image'
 import { Facebook, Instagram, Mail } from 'lucide-react'
 import { SOCIAL_LINKS } from '@/lib/constants'

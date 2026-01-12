@@ -5,7 +5,8 @@ import { ChevronDown } from 'lucide-react'
 // All interfaces defined at the top
 interface SelectProps {
   value: string
-  onValueChange: (value: string) => void
+  // eslint-disable-next-line no-unused-vars
+  onValueChange: (_value: string) => void
   children: React.ReactNode
   disabled?: boolean
 }
@@ -27,7 +28,8 @@ interface SelectValueProps {
 
 interface SelectContentProps {
   children: React.ReactNode
-  onValueChange?: (value: string) => void
+  // eslint-disable-next-line no-unused-vars
+  onValueChange?: (_value: string) => void
   onClose?: () => void
   className?: string
 }
@@ -35,7 +37,8 @@ interface SelectContentProps {
 interface SelectItemProps {
   value: string
   children: React.ReactNode
-  onSelect?: (value: string) => void
+  // eslint-disable-next-line no-unused-vars
+  onSelect?: (_value: string) => void
   className?: string
 }
 

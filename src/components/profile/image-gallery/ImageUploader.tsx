@@ -7,7 +7,8 @@ import { compressImage, validateImageType, readImageAsDataURL } from './imageUti
 import ImageCropDialog from './ImageCropDialog'
 
 interface ImageUploaderProps {
-  onUpload: (file: File) => Promise<void>
+  // eslint-disable-next-line no-unused-vars
+  onUpload: (_file: File) => Promise<void>
   disabled?: boolean
   currentCount: number
   enableCrop?: boolean
