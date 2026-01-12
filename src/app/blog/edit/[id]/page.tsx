@@ -12,7 +12,7 @@ import {
   SelectValue,
 } from '@/components/ui/select'
 import { Send, Save, ArrowLeft, Eye, Loader2 } from 'lucide-react'
-import { ArticleCategory } from '@/mocks/articles'
+import { PostCategory, POST_CATEGORIES, getCategoryLabel } from '@/lib/types'
 import { ProtectedRoute } from '@/components/shared/protected-route'
 import { RichTextEditor, TagSelector, ImageUploader } from '@/components/editor'
 import { postService } from '@/lib/api/services'
@@ -28,7 +28,7 @@ function EditBlogPageContent() {
 
   const [title, setTitle] = useState('')
   const [content, setContent] = useState('')
-  const [category, setCategory] = useState<ArticleCategory | ''>('')
+  const [category, setCategory] = useState<PostCategory | ''>('')
   const [tags, setTags] = useState<string[]>([])
   const [coverImage, setCoverImage] = useState<string | null>(null)
   const [summary, setSummary] = useState('')
@@ -38,13 +38,8 @@ function EditBlogPageContent() {
   const [isLoading, setIsLoading] = useState(true)
   const [showPreview, setShowPreview] = useState(false)
 
-  // 分類選項
-  const categoryOptions: ArticleCategory[] = ['裝備介紹', '技巧介紹', '技術研究', '比賽介紹']
-
   // 載入文章資料
   useEffect(() => {
-    const categories: ArticleCategory[] = ['裝備介紹', '技巧介紹', '技術研究', '比賽介紹']
-
     const loadArticle = async () => {
       try {
         const response = await postService.getPostById(id)
@@ -63,12 +58,9 @@ function EditBlogPageContent() {
         setTags(article.tags || [])
         setStatus(article.status)
 
-        // 嘗試匹配分類（如果有的話）
-        const matchedCategory = categories.find(
-          (cat) => article.tags?.includes(cat) || article.title.includes(cat)
-        )
-        if (matchedCategory) {
-          setCategory(matchedCategory)
+        // 設定分類
+        if (article.category) {
+          setCategory(article.category)
         }
 
         setIsLoading(false)
@@ -118,15 +110,13 @@ function EditBlogPageContent() {
       // 自動產生摘要（如果沒有手動輸入）
       const autoSummary = generateSummary(content, summary)
 
-      // 合併分類和標籤（分類作為第一個標籤）
-      const allTags = category ? [category, ...tags.filter((t) => t !== category)] : tags
-
       const postData = {
         title: title.trim(),
         content: sanitizeHtml(content),
         summary: autoSummary,
         coverImage: coverImage || '',
-        tags: allTags,
+        category: category || undefined,
+        tags,
         status: newStatus,
       }
 
@@ -189,7 +179,7 @@ function EditBlogPageContent() {
             <div className="mb-4 flex flex-wrap gap-2">
               {category && (
                 <span className="rounded-full bg-[#1B1A1A] px-3 py-1 text-sm text-white">
-                  {category}
+                  {getCategoryLabel(category)}
                 </span>
               )}
               {tags.map((tag) => (
@@ -304,15 +294,15 @@ function EditBlogPageContent() {
               <label className="mb-3 block text-lg font-medium text-[#3F3D3D]">文章分類</label>
               <Select
                 value={category}
-                onValueChange={(value) => setCategory(value as ArticleCategory)}
+                onValueChange={(value) => setCategory(value as PostCategory)}
               >
                 <SelectTrigger className="h-12">
                   <SelectValue placeholder="請選擇分類" />
                 </SelectTrigger>
                 <SelectContent>
-                  {categoryOptions.map((option) => (
-                    <SelectItem key={option} value={option}>
-                      {option}
+                  {POST_CATEGORIES.map((option) => (
+                    <SelectItem key={option.value} value={option.value}>
+                      {option.label}
                     </SelectItem>
                   ))}
                 </SelectContent>
