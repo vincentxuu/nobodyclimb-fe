@@ -134,9 +134,9 @@ const VideosPage: React.FC = () => {
                   placeholder="搜尋影片標題、頻道..."
                   value={searchQuery}
                   onChange={handleSearch}
-                  rightIcon={<Search className="h-5 w-5 stroke-[1.5px] text-[#1B1A1A]" />}
+                  rightIcon={<Search className="h-5 w-5 stroke-[1.5px] text-text-main" />}
                   wrapperClassName="w-full max-w-[240px]"
-                  className="h-[40px] rounded-[4px] border-[#1B1A1A] bg-white font-light text-[#1B1A1A] placeholder:text-[#6D6C6C] focus:ring-2 focus:ring-[#1B1A1A]"
+                  className="h-[40px] rounded-[4px] border-text-main bg-white font-light text-text-main placeholder:text-text-subtle focus:ring-2 focus:ring-text-main"
                 />
               </div>
               {/* 篩選器 */}

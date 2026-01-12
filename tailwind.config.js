@@ -27,6 +27,7 @@ module.exports = {
         background: 'hsl(var(--background))',
         foreground: 'hsl(var(--foreground))',
         // 頁面級別顏色
+        'page-bg': '#f5f5f5',
         'page-content-bg': '#f5f5f5',
         'text-main': '#1B1A1A',
         'text-subtle': '#6D6C6C',
