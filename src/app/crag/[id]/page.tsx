@@ -29,6 +29,8 @@ import { CragRouteSection } from '@/components/crag/route-section'
 import { CragWeatherCard } from '@/components/crag/weather-card'
 import { CragMapCard } from '@/components/crag/map-card'
 import { CragInfoCard } from '@/components/crag/info-card'
+import { TrafficCamerasCard } from '@/components/crag/traffic-cameras-card'
+import { YouTubeLiveCard } from '@/components/crag/youtube-live-card'
 import { Breadcrumb } from '@/components/ui/breadcrumb'
 import { useRouter } from 'next/navigation'
 import * as Tabs from '@radix-ui/react-tabs'
@@ -311,6 +313,26 @@ export default function CragDetailPage({ params }: { params: Promise<{ id: strin
                     ))}
                   </div>
                 </div>
+
+                {/* 即時路況與影像 - 僅龍洞岩場顯示 */}
+                {id === 'longdong' && (
+                  <div className="mb-6">
+                    <div className="mb-1">
+                      <h2 className="text-lg font-medium text-orange-500">即時路況與影像</h2>
+                      <div className="h-px w-full bg-gray-200"></div>
+                    </div>
+                    <div className="mt-4 grid grid-cols-1 gap-6 lg:grid-cols-2">
+                      <TrafficCamerasCard
+                        latitude={currentCrag.geoCoordinates.latitude}
+                        longitude={currentCrag.geoCoordinates.longitude}
+                      />
+                      <YouTubeLiveCard
+                        videoId="8-xSAfWwh10"
+                        title="龍洞即時影像"
+                      />
+                    </div>
+                  </div>
+                )}
               </Tabs.Content>
 
               <Tabs.Content value="areas">
