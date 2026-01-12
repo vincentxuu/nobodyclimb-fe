@@ -222,16 +222,21 @@ function getCityByCoordinates(latitude: number, longitude: number): string {
   // 南部: 22.5 < lat < 23.5
   // 東部: lon > 121.2
 
-  // 東北角海岸特殊處理（龍洞、貢寮、瑞芳等地）
-  // 新北市與宜蘭縣的分界大約在緯度 25.0 附近（雪山隧道北口）
-  // 龍洞 (25.1085, 121.9215) 屬於新北市貢寮區
-  if (longitude > 121.5 && latitude > 25.0) {
-    // 東北角：新北市貢寮、瑞芳、基隆一帶
-    return longitude > 121.7 ? '新北市' : '基隆市';
+  // 北部（緯度 > 25）
+  if (latitude > 25) {
+    // 東北角海岸特殊處理（龍洞、貢寮、瑞芳等地）
+    // 新北市與宜蘭縣的分界大約在緯度 25.0 附近（雪山隧道北口）
+    // 龍洞 (25.1085, 121.9215) 屬於新北市貢寮區
+    if (longitude > 121.5) {
+      // 東北角：新北市貢寮、瑞芳、基隆一帶
+      return longitude > 121.7 ? '新北市' : '基隆市';
+    }
+    // 其他北部區域
+    return longitude < 121.5 ? '新北市' : '基隆市';
   }
 
   // 宜蘭縣：東部，緯度在 24-25 之間
-  if (longitude > 121.2 && latitude >= 24 && latitude <= 25.0) {
+  if (longitude > 121.2 && latitude >= 24) {
     return '宜蘭縣';
   }
 
@@ -240,22 +245,23 @@ function getCityByCoordinates(latitude: number, longitude: number): string {
     return latitude > 23 ? '花蓮縣' : '台東縣';
   }
 
-  // 北部
-  if (latitude > 25) {
-    return longitude < 121.5 ? '新北市' : '基隆市';
-  }
+  // 中北部
   if (latitude > 24.5) {
     return longitude < 121 ? '桃園市' : '台北市';
   }
   if (latitude > 24) {
     return longitude < 120.8 ? '苗栗縣' : '新竹縣';
   }
+
+  // 中部
   if (latitude > 23.5) {
     return longitude < 120.6 ? '彰化縣' : '台中市';
   }
   if (latitude > 23) {
     return longitude < 120.5 ? '嘉義縣' : '雲林縣';
   }
+
+  // 南部
   if (latitude > 22.5) {
     return longitude < 120.3 ? '台南市' : '高雄市';
   }

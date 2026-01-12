@@ -1,7 +1,7 @@
 'use client'
 
 import React, { useState, useEffect, useCallback } from 'react'
-import { Camera, ExternalLink, Loader2, AlertCircle, RefreshCw } from 'lucide-react'
+import { Camera, ExternalLink, Loader2, AlertCircle } from 'lucide-react'
 
 interface CameraData {
   camid: string
@@ -24,13 +24,11 @@ export const TrafficCamerasCard: React.FC<TrafficCamerasCardProps> = ({
 }) => {
   const [cameras, setCameras] = useState<CameraData[]>([])
   const [loading, setLoading] = useState(true)
-  const [error, setError] = useState<string | null>(null)
   const [selectedCamera, setSelectedCamera] = useState<CameraData | null>(null)
   const [serviceMessage, setServiceMessage] = useState<string | null>(null)
 
   const fetchCameras = useCallback(async () => {
     setLoading(true)
-    setError(null)
     setServiceMessage(null)
 
     try {
@@ -77,28 +75,6 @@ export const TrafficCamerasCard: React.FC<TrafficCamerasCardProps> = ({
         <div className="flex items-center justify-center py-12">
           <Loader2 className="h-8 w-8 animate-spin text-gray-400" />
           <span className="ml-2 text-gray-500">載入中...</span>
-        </div>
-      </div>
-    )
-  }
-
-  if (error) {
-    return (
-      <div className="rounded-lg bg-white p-6 shadow-md">
-        <h3 className="mb-4 flex items-center text-xl font-bold">
-          <Camera size={20} className="mr-2 text-[#1B1A1A]" />
-          即時路況攝影機
-        </h3>
-        <div className="flex flex-col items-center justify-center py-8 text-center">
-          <AlertCircle className="mb-2 h-8 w-8 text-gray-400" />
-          <p className="mb-4 text-gray-500">{error}</p>
-          <button
-            onClick={fetchCameras}
-            className="flex items-center gap-2 rounded-lg bg-gray-100 px-4 py-2 text-sm text-gray-600 hover:bg-gray-200"
-          >
-            <RefreshCw size={16} />
-            重試
-          </button>
         </div>
       </div>
     )
