@@ -175,9 +175,9 @@ export function WeatherDisplay({
       {/* 天氣預報 */}
       {showForecast && weather.forecast.length > 0 && (
         <div className="border-t border-gray-200 pt-4">
-          <h4 className="mb-3 text-sm font-medium text-gray-700">未來天氣</h4>
-          <div className="grid grid-cols-3 gap-2 sm:grid-cols-6">
-            {weather.forecast.slice(0, 6).map((day) => (
+          <h4 className="mb-3 text-sm font-medium text-gray-700">未來七天天氣</h4>
+          <div className="grid grid-cols-4 gap-2 sm:grid-cols-7">
+            {weather.forecast.slice(0, 7).map((day) => (
               <div
                 key={day.date}
                 className="rounded-lg bg-white p-2 text-center"

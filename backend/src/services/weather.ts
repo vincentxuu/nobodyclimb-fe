@@ -333,7 +333,8 @@ function parseWeatherData(
   const forecast: WeatherData['forecast'] = [];
   const timeSlots = elements['Wx'] || elements['WeatherDescription'] || [];
 
-  for (let i = 1; i < Math.min(timeSlots.length, 7); i++) {
+  // 取得未來 7 天的預報資料
+  for (let i = 1; i < Math.min(timeSlots.length, 8); i++) {
     const slot = timeSlots[i];
     const minTempSlot = elements['MinT']?.[i];
     const maxTempSlot = elements['MaxT']?.[i];
