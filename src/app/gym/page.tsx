@@ -64,7 +64,7 @@ export default function GymListPage() {
   }, [selectedRegion, selectedType])
 
   return (
-    <main className="min-h-screen bg-[#f5f5f5]">
+    <main className="min-h-screen bg-page-content-bg">
       <PageHeader title="岩館介紹" subtitle="探索台灣各式各樣有趣的岩館" />
 
       <div className="container mx-auto px-4 py-6">

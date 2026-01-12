@@ -63,7 +63,7 @@ export default function CragListPage() {
   })
 
   return (
-    <main className="min-h-screen bg-[#f5f5f5] pb-16">
+    <main className="min-h-screen bg-page-content-bg pb-16">
       <PageHeader
         title="探索岩場"
         subtitle="發現台灣各地最佳攀岩地點，從海蝕岩場到山區砂岩，適合各級攀岩者的完美岩點"

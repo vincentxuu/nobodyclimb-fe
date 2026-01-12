@@ -4,7 +4,10 @@ import React, { useState, useEffect, useCallback } from 'react'
 import GalleryGrid from '@/components/gallery/gallery-grid'
 import PhotoPopup from '@/components/gallery/photo-popup'
 import { Button } from '@/components/ui/button'
-import { Loader2 } from 'lucide-react'
+import { PageHeader } from '@/components/ui/page-header'
+import { LoadingSpinner } from '@/components/ui/loading-spinner'
+import { LoadMoreButton } from '@/components/ui/load-more-button'
+import { EmptyState } from '@/components/ui/empty-state'
 import { galleryService } from '@/lib/api/services'
 import { GalleryPhoto } from '@/lib/types'
 
@@ -135,34 +138,28 @@ const GalleryPage: React.FC = () => {
   }
 
   return (
-    <div className="container mx-auto px-4 py-8 md:py-16">
-      <div className="mb-8 text-center md:mb-12">
-        <h1 className="mb-2 text-3xl font-medium text-neutral-800 md:text-4xl">攝影集</h1>
-        <p className="text-base text-neutral-500 md:text-lg">欣賞小人物們攀岩的英姿</p>
-      </div>
+    <div className="min-h-screen bg-page-content-bg">
+      <PageHeader title="攝影集" subtitle="欣賞小人物們攀岩的英姿" />
+
+      <div className="container mx-auto px-4 py-6">
 
       {/* Loading State */}
-      {isLoading && (
-        <div className="flex min-h-[400px] items-center justify-center">
-          <Loader2 className="h-8 w-8 animate-spin text-neutral-400" />
-        </div>
-      )}
+      {isLoading && <LoadingSpinner fullPage />}
 
       {/* Error State */}
       {error && !isLoading && (
-        <div className="flex min-h-[400px] flex-col items-center justify-center">
-          <p className="mb-4 text-neutral-500">{error}</p>
-          <Button variant="outline" onClick={() => fetchPhotos(1)}>
-            重新載入
-          </Button>
-        </div>
+        <EmptyState
+          icon="image"
+          title="載入失敗"
+          description={error}
+          actionText="重新載入"
+          onAction={() => fetchPhotos(1)}
+        />
       )}
 
       {/* Empty State */}
       {!isLoading && !error && photos.length === 0 && (
-        <div className="flex min-h-[400px] flex-col items-center justify-center">
-          <p className="text-neutral-500">目前還沒有照片</p>
-        </div>
+        <EmptyState icon="image" title="目前還沒有照片" />
       )}
 
       {/* Photos Grid */}
@@ -170,20 +167,12 @@ const GalleryPage: React.FC = () => {
         <>
           <GalleryGrid photos={photos} onPhotoClick={openPopup} />
 
-          {hasMore && (
-            <div className="mt-8 text-center md:mt-12">
-              <Button variant="outline" onClick={loadMorePhotos} disabled={isLoadingMore}>
-                {isLoadingMore ? (
-                  <>
-                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                    載入中...
-                  </>
-                ) : (
-                  '看更多'
-                )}
-              </Button>
-            </div>
-          )}
+          <LoadMoreButton
+            onClick={loadMorePhotos}
+            loading={isLoadingMore}
+            hasMore={hasMore}
+            noMoreText="已顯示所有照片"
+          />
         </>
       )}
 
@@ -196,6 +185,7 @@ const GalleryPage: React.FC = () => {
           onPrev={showPrevPhoto}
         />
       )}
+      </div>
     </div>
   )
 }
