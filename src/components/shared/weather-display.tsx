@@ -14,8 +14,8 @@ interface WeatherDisplayProps {
   className?: string
 }
 
-// 預報天數常數
-const FORECAST_DAYS = 7
+// 預報時段數常數（7天 × 2時段）
+const FORECAST_PERIODS = 14
 
 // 格式化數值顯示，null 時顯示 "--"
 function formatTemp(value: number | null): string {
@@ -36,22 +36,26 @@ function getWeatherColor(condition: string | null): string {
   return 'text-gray-600'
 }
 
-// 格式化日期顯示
-function formatForecastDate(dateString: string): string {
+// 格式化日期顯示（含早晚時段）
+function formatForecastDate(dateString: string, index: number): string {
   const date = new Date(dateString)
   const today = new Date()
   const tomorrow = new Date(today)
   tomorrow.setDate(tomorrow.getDate() + 1)
 
+  const period = index % 2 === 0 ? '早' : '晚'
+
+  let dayLabel: string
   if (date.toDateString() === today.toDateString()) {
-    return '今天'
-  }
-  if (date.toDateString() === tomorrow.toDateString()) {
-    return '明天'
+    dayLabel = '今天'
+  } else if (date.toDateString() === tomorrow.toDateString()) {
+    dayLabel = '明天'
+  } else {
+    const weekdays = ['週日', '週一', '週二', '週三', '週四', '週五', '週六']
+    dayLabel = weekdays[date.getDay()]
   }
 
-  const weekdays = ['週日', '週一', '週二', '週三', '週四', '週五', '週六']
-  return weekdays[date.getDay()]
+  return `${dayLabel}${period}`
 }
 
 // 格式化天氣狀況顯示
@@ -61,27 +65,6 @@ function formatCondition(condition: string | null, maxLength?: number): string {
     return condition.slice(0, maxLength)
   }
   return condition
-}
-
-// 去重預報資料（每天只保留一筆）
-function deduplicateForecast(
-  forecast: Array<{
-    date: string
-    minTemp: number | null
-    maxTemp: number | null
-    condition: string | null
-    precipitation: number | null
-  }>
-) {
-  const seen = new Set<string>()
-  return forecast.filter((day) => {
-    const dateKey = day.date.split('T')[0] // 取日期部分
-    if (seen.has(dateKey)) {
-      return false
-    }
-    seen.add(dateKey)
-    return true
-  })
 }
 
 export function WeatherDisplay({
@@ -201,13 +184,13 @@ export function WeatherDisplay({
         <div className="border-t border-gray-200 pt-4">
           <h4 className="mb-3 text-sm font-medium text-gray-700">未來七天天氣</h4>
           <div className="grid grid-cols-4 gap-2 sm:grid-cols-7">
-            {deduplicateForecast(weather.forecast).slice(0, FORECAST_DAYS).map((day) => (
+            {weather.forecast.slice(0, FORECAST_PERIODS).map((day, index) => (
               <div
-                key={day.date}
+                key={`${day.date}-${index}`}
                 className="rounded-lg bg-white p-2 text-center"
               >
                 <p className="text-xs font-medium text-gray-600">
-                  {formatForecastDate(day.date)}
+                  {formatForecastDate(day.date, index)}
                 </p>
                 <p className={`my-1 text-xs ${getWeatherColor(day.condition)}`}>
                   {formatCondition(day.condition, 4)}
