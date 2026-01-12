@@ -5,14 +5,14 @@ import { SatelliteImageInfo, SatelliteImageType, SatelliteImageArea, RadarImageI
 // 時間戳格式：YYYYMMDDHHMM（向下取整到最近的 10 分鐘）
 
 /**
- * 計算最近的衛星圖片時間戳
- * 衛星圖片每 10 分鐘更新一次，取 UTC+8 時間向下取整到最近的 10 分鐘
- * 由於圖片處理需要時間，減去 20 分鐘以確保圖片已發布
+ * 計算圖片時間戳的通用函數
+ * @param offsetMinutes 延遲分鐘數（用於確保圖片已發布）
+ * @returns YYYYMMDDHHMM 格式的時間戳
  */
-function getLatestSatelliteTimestamp(): string {
+function getLatestImageTimestamp(offsetMinutes: number): string {
   const now = new Date();
-  // 計算台灣時間（UTC+8），減去 20 分鐘
-  const taiwanMs = now.getTime() + (8 * 60 - 20) * 60 * 1000;
+  // 計算台灣時間（UTC+8），減去指定的延遲分鐘數
+  const taiwanMs = now.getTime() + (8 * 60 - offsetMinutes) * 60 * 1000;
   const taiwanTime = new Date(taiwanMs);
 
   // 向下取整到最近的 10 分鐘
@@ -28,26 +28,19 @@ function getLatestSatelliteTimestamp(): string {
 }
 
 /**
+ * 計算最近的衛星圖片時間戳
+ * 衛星圖片每 10 分鐘更新一次，減去 20 分鐘以確保圖片已發布
+ */
+function getLatestSatelliteTimestamp(): string {
+  return getLatestImageTimestamp(20);
+}
+
+/**
  * 計算最近的雷達圖片時間戳
- * 雷達圖片每 10 分鐘更新一次，取 UTC+8 時間向下取整到最近的 10 分鐘
- * 由於圖片處理需要時間，減去 10 分鐘以確保圖片已發布
+ * 雷達圖片每 10 分鐘更新一次，減去 10 分鐘以確保圖片已發布
  */
 function getLatestRadarTimestamp(): string {
-  const now = new Date();
-  // 計算台灣時間（UTC+8），減去 10 分鐘
-  const taiwanMs = now.getTime() + (8 * 60 - 10) * 60 * 1000;
-  const taiwanTime = new Date(taiwanMs);
-
-  // 向下取整到最近的 10 分鐘
-  const minutes = Math.floor(taiwanTime.getUTCMinutes() / 10) * 10;
-
-  const year = taiwanTime.getUTCFullYear();
-  const month = String(taiwanTime.getUTCMonth() + 1).padStart(2, '0');
-  const day = String(taiwanTime.getUTCDate()).padStart(2, '0');
-  const hour = String(taiwanTime.getUTCHours()).padStart(2, '0');
-  const min = String(minutes).padStart(2, '0');
-
-  return `${year}${month}${day}${hour}${min}`;
+  return getLatestImageTimestamp(10);
 }
 
 interface SatelliteUrlConfig {
@@ -252,12 +245,7 @@ export async function getSatelliteImageProxy(
   if (!latest) {
     // 往前嘗試 10 分鐘和 20 分鐘的時間戳
     for (let i = 1; i <= 2; i++) {
-      const now = new Date();
-      // 計算台灣時間（UTC+8），減去 (20 + i * 10) 分鐘
-      const taiwanMs = now.getTime() + (8 * 60 - 20 - i * 10) * 60 * 1000;
-      const taiwanTime = new Date(taiwanMs);
-      const minutes = Math.floor(taiwanTime.getUTCMinutes() / 10) * 10;
-      const olderTimestamp = `${taiwanTime.getUTCFullYear()}${String(taiwanTime.getUTCMonth() + 1).padStart(2, '0')}${String(taiwanTime.getUTCDate()).padStart(2, '0')}${String(taiwanTime.getUTCHours()).padStart(2, '0')}${String(minutes).padStart(2, '0')}`;
+      const olderTimestamp = getLatestImageTimestamp(20 + i * 10);
       urlsToTry.push(`${CWA_SATELLITE_BASE}/${config.folder}/${config.filename}-${olderTimestamp}.jpg`);
     }
   }
@@ -381,12 +369,7 @@ export async function getRadarImageProxy(
   // 嘗試多個時間戳（往前最多 3 個時段）
   const urlsToTry: string[] = [];
   for (let i = 0; i <= 2; i++) {
-    const now = new Date();
-    // 計算台灣時間（UTC+8），減去 (10 + i * 10) 分鐘
-    const taiwanMs = now.getTime() + (8 * 60 - 10 - i * 10) * 60 * 1000;
-    const taiwanTime = new Date(taiwanMs);
-    const minutes = Math.floor(taiwanTime.getUTCMinutes() / 10) * 10;
-    const ts = `${taiwanTime.getUTCFullYear()}${String(taiwanTime.getUTCMonth() + 1).padStart(2, '0')}${String(taiwanTime.getUTCDate()).padStart(2, '0')}${String(taiwanTime.getUTCHours()).padStart(2, '0')}${String(minutes).padStart(2, '0')}`;
+    const ts = getLatestImageTimestamp(10 + i * 10);
     urlsToTry.push(`${CWA_RADAR_BASE}/${config.filename}-${ts}.png`);
   }
 
