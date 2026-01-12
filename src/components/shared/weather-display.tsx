@@ -79,7 +79,12 @@ export function WeatherDisplay({
         setError(null)
 
         let response
-        if (latitude && longitude) {
+        // 優先使用地址字串（若包含區域資訊如「區」、「鄉」、「鎮」）
+        // 因為地址字串通常包含更精確的縣市區域資訊
+        const hasDistrictInfo = location && /[區鄉鎮]/.test(location)
+        if (hasDistrictInfo) {
+          response = await weatherService.getWeatherByLocation(location)
+        } else if (latitude && longitude) {
           response = await weatherService.getWeatherByCoordinates(latitude, longitude)
         } else {
           response = await weatherService.getWeatherByLocation(location)

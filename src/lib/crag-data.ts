@@ -468,8 +468,8 @@ export function getCragDetailData(id: string) {
       latitude: crag.location.latitude,
       longitude: crag.location.longitude,
     },
-    // 天氣查詢用的位置資訊
-    weatherLocation: crag.location.region || crag.location.address,
+    // 天氣查詢用的位置資訊（優先使用地址，包含完整的縣市區域資訊）
+    weatherLocation: crag.location.address || crag.location.region,
     areas: areas.map(area => ({
       id: area.id,
       name: area.name,
