@@ -56,7 +56,11 @@ const GalleryGrid: React.FC<GalleryGridProps> = ({ photos, onPhotoClick }) => {
                   alt={photo.author.displayName || photo.author.username}
                   size="h-6 w-6"
                   fallback={
-                    <div className="flex h-6 w-6 items-center justify-center rounded-full bg-neutral-600 text-xs text-white">
+                    <div
+                      role="img"
+                      aria-label={photo.author.displayName || photo.author.username}
+                      className="flex h-6 w-6 items-center justify-center rounded-full bg-neutral-600 text-xs text-white"
+                    >
                       {(photo.author.displayName || photo.author.username).charAt(0).toUpperCase()}
                     </div>
                   }

@@ -44,7 +44,11 @@ const CommentItem = ({ comment }: { comment: CommentData }) => {
           alt={displayName}
           size="h-10 w-10"
           fallback={
-            <div className="flex h-full w-full items-center justify-center">
+            <div
+              role="img"
+              aria-label={displayName}
+              className="flex h-full w-full items-center justify-center"
+            >
               <User size={20} className="text-gray-400" />
             </div>
           }

@@ -74,7 +74,11 @@ export default function UserMenu({ isDesktop }: UserMenuProps) {
                   src={user?.avatar}
                   alt="用戶頭像"
                   size="w-10 h-10"
-                  fallback={generateAvatarElement(avatarStyle, 'w-10 h-10')}
+                  fallback={
+                    <div role="img" aria-label="用戶頭像">
+                      {generateAvatarElement(avatarStyle, 'w-10 h-10')}
+                    </div>
+                  }
                 />
               </button>
             </DropdownMenuTrigger>

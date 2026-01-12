@@ -71,7 +71,11 @@ const ProfileSidebar = () => {
             src={avatarUrl}
             alt={displayName}
             size="h-24 w-24"
-            fallback={<UserCircle className="h-20 w-20 text-[#3F3D3D]" />}
+            fallback={
+              <div role="img" aria-label={displayName}>
+                <UserCircle className="h-20 w-20 text-[#3F3D3D]" />
+              </div>
+            }
           />
         </div>
         <h2 className="mb-1 text-[16px] font-medium text-[#1B1A1A]">{displayName}</h2>

@@ -89,7 +89,11 @@ const PhotoPopup: React.FC<PhotoPopupProps> = ({ photo, onClose, onNext, onPrev 
                     alt={photo.author.displayName || photo.author.username}
                     size="h-10 w-10"
                     fallback={
-                      <div className="flex h-10 w-10 items-center justify-center rounded-full bg-neutral-600">
+                      <div
+                        role="img"
+                        aria-label={photo.author.displayName || photo.author.username}
+                        className="flex h-10 w-10 items-center justify-center rounded-full bg-neutral-600"
+                      >
                         <User size={20} className="text-neutral-300" />
                       </div>
                     }
