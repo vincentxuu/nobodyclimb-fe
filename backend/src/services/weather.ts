@@ -162,7 +162,16 @@ export async function getWeatherByLocation(
       // 若縣市級 API 失敗，嘗試使用全台預報作為備援
       if (datasetId !== TAIWAN_FORECAST_CODE) {
         console.log('Falling back to Taiwan-wide forecast');
-        return fetchTaiwanForecast(env, city || '台灣');
+        const fallbackData = await fetchTaiwanForecast(env, city || '台灣');
+        if (fallbackData) {
+          try {
+            // 將備援資料存入快取
+            await env.CACHE.put(cacheKey, JSON.stringify(fallbackData), { expirationTtl: 1800 });
+          } catch (cacheWriteError) {
+            console.error('Weather cache write error on fallback:', cacheWriteError);
+          }
+        }
+        return fallbackData;
       }
       return null;
     }
@@ -212,7 +221,16 @@ export async function getWeatherByLocation(
       // 2. 若縣市級查詢失敗，改用全台預報
       if (datasetId !== TAIWAN_FORECAST_CODE) {
         console.log('Falling back to Taiwan-wide forecast');
-        return fetchTaiwanForecast(env, city || '台灣');
+        const fallbackData = await fetchTaiwanForecast(env, city || '台灣');
+        if (fallbackData) {
+          try {
+            // 將備援資料存入快取
+            await env.CACHE.put(cacheKey, JSON.stringify(fallbackData), { expirationTtl: 1800 });
+          } catch (cacheWriteError) {
+            console.error('Weather cache write error on fallback:', cacheWriteError);
+          }
+        }
+        return fallbackData;
       }
 
       return null;
