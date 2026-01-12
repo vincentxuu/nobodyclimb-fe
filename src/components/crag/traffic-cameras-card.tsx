@@ -5,6 +5,7 @@ import { Camera, ExternalLink, Loader2, AlertCircle } from 'lucide-react'
 import { API_BASE_URL } from '@/lib/constants'
 
 const MAX_CAMERAS_TO_SHOW = 6
+const TRAFFIC_CAMERA_SERVICE_URL = 'https://1968.freeway.gov.tw/roadcctv'
 
 interface CameraData {
   camid: string
@@ -99,7 +100,7 @@ export const TrafficCamerasCard: React.FC<TrafficCamerasCardProps> = ({
             {serviceMessage || '附近沒有可用的路況攝影機'}
           </p>
           <a
-            href="https://1968.freeway.gov.tw/roadcctv"
+            href={TRAFFIC_CAMERA_SERVICE_URL}
             target="_blank"
             rel="noopener noreferrer"
             className="mt-2 flex items-center gap-1 text-sm text-blue-500 hover:text-blue-700"
@@ -120,7 +121,7 @@ export const TrafficCamerasCard: React.FC<TrafficCamerasCardProps> = ({
           即時路況攝影機
         </h3>
         <a
-          href="https://1968.freeway.gov.tw/roadcctv"
+          href={TRAFFIC_CAMERA_SERVICE_URL}
           target="_blank"
           rel="noopener noreferrer"
           className="flex items-center gap-1 text-sm text-gray-500 hover:text-gray-700"
@@ -134,7 +135,7 @@ export const TrafficCamerasCard: React.FC<TrafficCamerasCardProps> = ({
       {selectedCamera && (
         <div className="mb-4">
           <a
-            href={`https://1968.freeway.gov.tw/roadcctv`}
+            href={TRAFFIC_CAMERA_SERVICE_URL}
             target="_blank"
             rel="noopener noreferrer"
             className="group relative block aspect-video w-full overflow-hidden rounded-lg bg-gray-900"
@@ -161,7 +162,7 @@ export const TrafficCamerasCard: React.FC<TrafficCamerasCardProps> = ({
               {selectedCamera.direction && ` - ${selectedCamera.direction}`}
             </p>
             <a
-              href={`https://1968.freeway.gov.tw/roadcctv`}
+              href={TRAFFIC_CAMERA_SERVICE_URL}
               target="_blank"
               rel="noopener noreferrer"
               className="flex items-center gap-1 text-xs text-blue-500 hover:text-blue-700"
@@ -200,7 +201,7 @@ export const TrafficCamerasCard: React.FC<TrafficCamerasCardProps> = ({
               />
             </button>
             <a
-              href={`https://1968.freeway.gov.tw/roadcctv`}
+              href={TRAFFIC_CAMERA_SERVICE_URL}
               target="_blank"
               rel="noopener noreferrer"
               className="block truncate bg-gray-100 px-2 py-1 text-xs text-gray-600 hover:bg-gray-200 hover:text-blue-600"
