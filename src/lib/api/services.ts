@@ -920,3 +920,28 @@ export const userService = {
     return response.data
   },
 }
+
+/**
+ * 天氣相關 API 服務
+ */
+export const weatherService = {
+  /**
+   * 根據地點名稱獲取天氣資訊
+   */
+  getWeatherByLocation: async (location: string) => {
+    const response = await apiClient.get<ApiResponse<Weather>>('/weather', {
+      params: { location },
+    })
+    return response.data
+  },
+
+  /**
+   * 根據經緯度獲取天氣資訊
+   */
+  getWeatherByCoordinates: async (latitude: number, longitude: number) => {
+    const response = await apiClient.get<ApiResponse<Weather>>('/weather/coordinates', {
+      params: { lat: latitude, lon: longitude },
+    })
+    return response.data
+  },
+}

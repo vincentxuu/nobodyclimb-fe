@@ -1,9 +1,9 @@
 'use client'
 
+import { useState, useEffect } from 'react'
 import { usePathname } from 'next/navigation'
 import Link from 'next/link'
 import { motion, AnimatePresence } from 'framer-motion'
-import { FileText, Bookmark, Settings, LogOut, ImageIcon } from 'lucide-react'
 import { NAV_LINKS } from '@/lib/constants'
 import { useUIStore } from '@/store/uiStore'
 import { useAuthStore } from '@/store/authStore'
@@ -22,11 +22,20 @@ export default function MobileNav({ isDesktop }: MobileNavProps) {
   const pathname = usePathname()
   const { isNavbarOpen, closeNavbar } = useUIStore()
   const { isAuthenticated, logout, user } = useAuthStore()
+  const [avatarError, setAvatarError] = useState(false)
+
+  // 當用戶頭像 URL 變更時重置錯誤狀態
+  useEffect(() => {
+    setAvatarError(false)
+  }, [user?.avatar])
 
   // 假設用戶數據中有 avatarStyle 屬性，否則使用默認頭像
   const avatarStyle = user?.avatarStyle
     ? DEFAULT_AVATARS.find((a) => a.id === user.avatarStyle) || DEFAULT_AVATARS[0]
     : DEFAULT_AVATARS[0]
+
+  // 檢查是否有有效的頭像 URL
+  const hasValidAvatar = user?.avatar && user.avatar.trim() !== '' && !avatarError
 
   if (isDesktop || !isNavbarOpen) return null
 
@@ -60,12 +69,13 @@ export default function MobileNav({ isDesktop }: MobileNavProps) {
                   {/* 個人資料區塊 */}
                   <Link href="/profile" className="block">
                     <div className="flex items-center px-4 py-3 hover:bg-gray-50">
-                      {user?.avatar ? (
+                      {hasValidAvatar ? (
                         /* eslint-disable-next-line @next/next/no-img-element */
                         <img
                           src={user.avatar}
                           alt="用戶頭像"
                           className="h-10 w-10 rounded-full object-cover"
+                          onError={() => setAvatarError(true)}
                         />
                       ) : (
                         generateAvatarElement(avatarStyle, 'w-10 h-10')
@@ -85,39 +95,35 @@ export default function MobileNav({ isDesktop }: MobileNavProps) {
                   <div className="border-t border-[#EBEAEA] py-2">
                     <Link
                       href="/blog/create"
-                      className="flex items-center px-4 py-3 hover:bg-gray-50"
+                      className="block px-4 py-3 hover:bg-gray-50"
                       onClick={closeNavbar}
                     >
-                      <FileText className="h-5 w-5 text-[#3F3D3D]" />
-                      <span className="ml-3 font-['Noto_Sans_CJK_TC'] text-sm font-medium text-[#3F3D3D]">
+                      <span className="font-['Noto_Sans_CJK_TC'] text-sm font-medium text-[#3F3D3D]">
                         發表文章
                       </span>
                     </Link>
                     <Link
                       href="/upload"
-                      className="flex items-center px-4 py-3 hover:bg-gray-50"
+                      className="block px-4 py-3 hover:bg-gray-50"
                       onClick={closeNavbar}
                     >
-                      <ImageIcon className="h-5 w-5 text-[#3F3D3D]" />
-                      <span className="ml-3 font-['Noto_Sans_CJK_TC'] text-sm font-medium text-[#3F3D3D]">
+                      <span className="font-['Noto_Sans_CJK_TC'] text-sm font-medium text-[#3F3D3D]">
                         上傳照片
                       </span>
                     </Link>
                     <Link
                       href="/profile/articles"
-                      className="flex items-center px-4 py-3 hover:bg-gray-50"
+                      className="block px-4 py-3 hover:bg-gray-50"
                     >
-                      <FileText className="h-5 w-5 text-[#3F3D3D]" />
-                      <span className="ml-3 font-['Noto_Sans_CJK_TC'] text-sm font-medium text-[#3F3D3D]">
+                      <span className="font-['Noto_Sans_CJK_TC'] text-sm font-medium text-[#3F3D3D]">
                         我的文章
                       </span>
                     </Link>
                     <Link
                       href="/profile/bookmarks"
-                      className="flex items-center px-4 py-3 hover:bg-gray-50"
+                      className="block px-4 py-3 hover:bg-gray-50"
                     >
-                      <Bookmark className="h-5 w-5 text-[#3F3D3D]" />
-                      <span className="ml-3 font-['Noto_Sans_CJK_TC'] text-sm font-medium text-[#3F3D3D]">
+                      <span className="font-['Noto_Sans_CJK_TC'] text-sm font-medium text-[#3F3D3D]">
                         我的收藏
                       </span>
                     </Link>
@@ -127,19 +133,17 @@ export default function MobileNav({ isDesktop }: MobileNavProps) {
                   <div className="border-t border-[#EBEAEA]">
                     <Link
                       href="/profile/settings"
-                      className="flex items-center px-4 py-3 hover:bg-gray-50"
+                      className="block px-4 py-3 hover:bg-gray-50"
                     >
-                      <Settings className="h-5 w-5 text-[#3F3D3D]" />
-                      <span className="ml-3 font-['Noto_Sans_CJK_TC'] text-sm font-medium text-[#3F3D3D]">
+                      <span className="font-['Noto_Sans_CJK_TC'] text-sm font-medium text-[#3F3D3D]">
                         帳號設定
                       </span>
                     </Link>
                     <button
                       onClick={() => logout()}
-                      className="flex w-full items-center px-4 py-3 text-[#D94A4A] hover:bg-gray-50"
+                      className="block w-full px-4 py-3 text-left hover:bg-gray-50"
                     >
-                      <LogOut className="h-5 w-5" />
-                      <span className="ml-3 font-['Noto_Sans_CJK_TC'] text-sm font-medium">
+                      <span className="font-['Noto_Sans_CJK_TC'] text-sm font-medium text-[#D94A4A]">
                         登出
                       </span>
                     </button>

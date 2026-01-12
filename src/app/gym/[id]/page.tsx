@@ -23,6 +23,7 @@ import { Button } from '@/components/ui/button'
 import BackToTop from '@/components/ui/back-to-top'
 import PlaceholderImage from '@/components/ui/placeholder-image'
 import { Breadcrumb } from '@/components/ui/breadcrumb'
+import { WeatherDisplay } from '@/components/shared/weather-display'
 import {
   getGymById,
   getAdjacentGyms,
@@ -252,6 +253,23 @@ export default function GymDetailPage({ params }: { params: Promise<{ id: string
                   {facility}
                 </span>
               ))}
+            </div>
+          </div>
+
+          {/* 天氣資訊 */}
+          <div className="mb-8">
+            <div className="mb-1">
+              <h2 className="text-lg font-medium text-orange-500">即時天氣</h2>
+              <div className="h-px w-full bg-gray-200"></div>
+            </div>
+            <div className="mt-4">
+              <WeatherDisplay
+                location={`${gym.location.city}${gym.location.district || ''}`}
+                latitude={gym.location.latitude}
+                longitude={gym.location.longitude}
+                showForecast={false}
+                compact={false}
+              />
             </div>
           </div>
 

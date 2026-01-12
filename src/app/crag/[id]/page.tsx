@@ -3,12 +3,17 @@
 import React, { useState, use, useMemo } from 'react'
 import PlaceholderImage from '@/components/ui/placeholder-image'
 import Link from 'next/link'
-import { ArrowLeft, MapPin, Cloud, Heart } from 'lucide-react'
+import {
+  ArrowLeft,
+  MapPin,
+  Heart,
+} from 'lucide-react'
 import { motion } from 'framer-motion'
 import { Button } from '@/components/ui/button'
 import BackToTop from '@/components/ui/back-to-top'
 import { CragAreaSection } from '@/components/crag/area-section'
 import { CragRouteSection } from '@/components/crag/route-section'
+import { WeatherDisplay } from '@/components/shared/weather-display'
 import { TrafficCamerasCard } from '@/components/crag/traffic-cameras-card'
 import { YouTubeLiveCard } from '@/components/crag/youtube-live-card'
 import { Breadcrumb } from '@/components/ui/breadcrumb'
@@ -118,25 +123,13 @@ export default function CragDetailPage({ params }: { params: Promise<{ id: strin
           </div>
 
           {/* 天氣資訊 */}
-          <div className="mb-8 inline-block rounded-lg bg-gray-100 p-6">
-            <div className="flex items-center gap-2">
-              <div className="flex items-center gap-1">
-                <span className="text-2xl font-medium text-gray-700">
-                  {currentCrag.weather.current.temp}°C
-                </span>
-              </div>
-              <div>
-                <p className="text-xs text-gray-700">{currentCrag.location}</p>
-                <p className="text-xs text-gray-700">{currentCrag.weather.current.condition}</p>
-              </div>
-            </div>
-            <div className="mt-1 flex items-center">
-              <Cloud size={14} className="mr-1 text-gray-700" />
-              <span className="text-xs text-gray-700">
-                降雨機率: {currentCrag.weather.current.precipitation}
-              </span>
-              <span className="ml-2 text-xs text-gray-700">{currentCrag.weather.current.wind}</span>
-            </div>
+          <div className="mb-8">
+            <WeatherDisplay
+              location={currentCrag.weatherLocation}
+              latitude={currentCrag.geoCoordinates.latitude}
+              longitude={currentCrag.geoCoordinates.longitude}
+              showForecast={true}
+            />
           </div>
 
           {/* 岩場介紹 - 使用標籤頁 */}
