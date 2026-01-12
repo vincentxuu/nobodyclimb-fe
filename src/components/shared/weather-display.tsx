@@ -63,6 +63,27 @@ function formatCondition(condition: string | null, maxLength?: number): string {
   return condition
 }
 
+// 去重預報資料（每天只保留一筆）
+function deduplicateForecast(
+  forecast: Array<{
+    date: string
+    minTemp: number | null
+    maxTemp: number | null
+    condition: string | null
+    precipitation: number | null
+  }>
+) {
+  const seen = new Set<string>()
+  return forecast.filter((day) => {
+    const dateKey = day.date.split('T')[0] // 取日期部分
+    if (seen.has(dateKey)) {
+      return false
+    }
+    seen.add(dateKey)
+    return true
+  })
+}
+
 export function WeatherDisplay({
   location,
   latitude,
@@ -180,7 +201,7 @@ export function WeatherDisplay({
         <div className="border-t border-gray-200 pt-4">
           <h4 className="mb-3 text-sm font-medium text-gray-700">未來七天天氣</h4>
           <div className="grid grid-cols-4 gap-2 sm:grid-cols-7">
-            {weather.forecast.slice(0, FORECAST_DAYS).map((day) => (
+            {deduplicateForecast(weather.forecast).slice(0, FORECAST_DAYS).map((day) => (
               <div
                 key={day.date}
                 className="rounded-lg bg-white p-2 text-center"
