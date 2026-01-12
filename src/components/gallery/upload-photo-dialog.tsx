@@ -1,6 +1,6 @@
 'use client'
 
-import React, { useState, useCallback } from 'react'
+import React, { useState, useCallback, useEffect, useRef } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { X, Upload, MapPin, Loader2, CheckCircle, AlertCircle } from 'lucide-react'
 import { Button } from '@/components/ui/button'
@@ -50,6 +50,7 @@ const UploadPhotoDialog: React.FC<UploadPhotoDialogProps> = ({
   onSuccess,
 }) => {
   const [files, setFiles] = useState<FileWithPreview[]>([])
+  const filesRef = useRef<FileWithPreview[]>([])
   const [caption, setCaption] = useState('')
   const [locationCountry, setLocationCountry] = useState('')
   const [locationCity, setLocationCity] = useState('')
@@ -57,6 +58,18 @@ const UploadPhotoDialog: React.FC<UploadPhotoDialogProps> = ({
   const [isUploading, setIsUploading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [uploadStatuses, setUploadStatuses] = useState<UploadStatus[]>([])
+
+  // Keep filesRef in sync with files state
+  useEffect(() => {
+    filesRef.current = files
+  }, [files])
+
+  // Cleanup preview URLs on unmount to prevent memory leaks
+  useEffect(() => {
+    return () => {
+      filesRef.current.forEach((f) => URL.revokeObjectURL(f.preview))
+    }
+  }, [])
 
   // Process and validate files, then set state
   const processFiles = useCallback((selectedFiles: FileList | File[]) => {
@@ -76,7 +89,7 @@ const UploadPhotoDialog: React.FC<UploadPhotoDialogProps> = ({
       if (validationError) {
         errors.push(validationError)
       } else {
-        const id = `${Date.now()}-${Math.random().toString(36).substring(2, 9)}`
+        const id = crypto.randomUUID()
         validFiles.push({
           file,
           preview: URL.createObjectURL(file),
