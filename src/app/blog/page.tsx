@@ -112,20 +112,36 @@ function BlogContent() {
 
   // 為URL category參數映射到顯示類別
   const categoryMapping: Record<string, ArticleCategory> = {
-    equipment: '裝備介紹',
-    technique: '技巧介紹',
-    research: '技術研究',
-    competition: '比賽介紹',
+    beginner: '新手入門',
+    news: '新聞動態',
+    gear: '裝備評測',
+    skills: '技巧教學',
+    training: '訓練計畫',
+    routes: '路線攻略',
+    crags: '岩場體驗',
+    gyms: '岩館評測',
+    travel: '攀岩旅遊',
+    competition: '賽事報導',
+    events: '活動紀錄',
+    community: '社群資源',
     injury: '傷害防護',
   }
 
   // 類別和 URL 參數的反向映射
   const categoryToUrlParam: Record<ArticleCategory, string | null> = {
     所有文章: null,
-    裝備介紹: 'equipment',
-    技巧介紹: 'technique',
-    技術研究: 'research',
-    比賽介紹: 'competition',
+    新手入門: 'beginner',
+    新聞動態: 'news',
+    裝備評測: 'gear',
+    技巧教學: 'skills',
+    訓練計畫: 'training',
+    路線攻略: 'routes',
+    岩場體驗: 'crags',
+    岩館評測: 'gyms',
+    攀岩旅遊: 'travel',
+    賽事報導: 'competition',
+    活動紀錄: 'events',
+    社群資源: 'community',
     傷害防護: 'injury',
   }
 
@@ -288,7 +304,22 @@ function BlogContent() {
     }
   }, [isAutoPlaying, nextSlide, displayFeatured.length])
 
-  const categories: ArticleCategory[] = ['所有文章', '裝備介紹', '技巧介紹', '技術研究', '比賽介紹', '傷害防護']
+  const categories: ArticleCategory[] = [
+    '所有文章',
+    '新手入門',
+    '新聞動態',
+    '裝備評測',
+    '技巧教學',
+    '訓練計畫',
+    '路線攻略',
+    '岩場體驗',
+    '岩館評測',
+    '攀岩旅遊',
+    '賽事報導',
+    '活動紀錄',
+    '社群資源',
+    '傷害防護',
+  ]
 
   // 過濾文章
   const filteredArticles = articles.filter((article) => {
