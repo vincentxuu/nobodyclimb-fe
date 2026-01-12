@@ -7,37 +7,8 @@ import { motion } from 'framer-motion'
 import { ArrowRightCircle, Loader2 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
-import { biographyData } from '@/data/biographyData'
 import { biographyService } from '@/lib/api/services'
 import { Biography } from '@/lib/types'
-
-// 靜態數據轉換為 Biography 類型
-function mapStaticToBiography(staticPerson: (typeof biographyData)[0]): Biography {
-  return {
-    id: String(staticPerson.id),
-    user_id: null,
-    slug: staticPerson.name.toLowerCase().replace(/\s+/g, '-'),
-    name: staticPerson.name,
-    title: null,
-    bio: null,
-    avatar_url: staticPerson.imageSrc,
-    cover_image: staticPerson.detailImageSrc,
-    climbing_start_year: staticPerson.start,
-    frequent_locations: staticPerson.showUp,
-    favorite_route_type: staticPerson.type,
-    climbing_reason: staticPerson.reason,
-    climbing_meaning: staticPerson.why,
-    bucket_list: staticPerson.list,
-    advice: staticPerson.word,
-    achievements: null,
-    social_links: null,
-    is_featured: 0,
-    is_public: 1,
-    published_at: staticPerson.time,
-    created_at: staticPerson.time,
-    updated_at: staticPerson.time,
-  }
-}
 
 function ClimberCard({ person }: { person: Biography }) {
   const imageUrl = person.avatar_url || '/photo/personleft.jpeg'
@@ -90,22 +61,24 @@ function ClimberCard({ person }: { person: Biography }) {
 export function BiographySection() {
   const [biographies, setBiographies] = useState<Biography[]>([])
   const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
 
   useEffect(() => {
     const loadBiographies = async () => {
       try {
-        // 嘗試從 API 獲取精選人物誌
+        // 從 API 獲取精選人物誌
         const response = await biographyService.getFeaturedBiographies(3)
 
-        if (response.success && response.data && response.data.length > 0) {
-          setBiographies(response.data)
+        if (response.success) {
+          setBiographies(response.data || [])
         } else {
-          // API 沒有數據，使用靜態數據
-          setBiographies(biographyData.slice(0, 3).map(mapStaticToBiography))
+          setError('無法載入人物誌')
+          setBiographies([])
         }
-      } catch {
-        // API 錯誤，使用靜態數據
-        setBiographies(biographyData.slice(0, 3).map(mapStaticToBiography))
+      } catch (err) {
+        console.error('Failed to load biographies:', err)
+        setError('載入人物誌時發生錯誤')
+        setBiographies([])
       } finally {
         setLoading(false)
       }
@@ -125,6 +98,14 @@ export function BiographySection() {
         {loading ? (
           <div className="flex min-h-[300px] items-center justify-center">
             <Loader2 className="h-8 w-8 animate-spin text-[#1B1A1A]" />
+          </div>
+        ) : error ? (
+          <div className="flex min-h-[300px] items-center justify-center">
+            <p className="text-lg text-red-600">{error}</p>
+          </div>
+        ) : biographies.length === 0 ? (
+          <div className="flex min-h-[300px] items-center justify-center">
+            <p className="text-lg text-[#6D6C6C]">目前沒有精選人物誌</p>
           </div>
         ) : (
           <div className="mt-8 grid grid-cols-1 gap-6 md:grid-cols-3">
