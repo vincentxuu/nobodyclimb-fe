@@ -17,6 +17,7 @@ interface ApiResponse {
   success: boolean
   data?: CameraData[]
   error?: string
+  message?: string
 }
 
 interface TrafficCamerasCardProps {
@@ -32,10 +33,12 @@ export const TrafficCamerasCard: React.FC<TrafficCamerasCardProps> = ({
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [selectedCamera, setSelectedCamera] = useState<CameraData | null>(null)
+  const [serviceMessage, setServiceMessage] = useState<string | null>(null)
 
   const fetchCameras = useCallback(async () => {
     setLoading(true)
     setError(null)
+    setServiceMessage(null)
 
     try {
       const response = await fetch(`/api/traffic-cameras?lat=${latitude}&lng=${longitude}`)
@@ -52,6 +55,11 @@ export const TrafficCamerasCard: React.FC<TrafficCamerasCardProps> = ({
 
       const cameraList = apiResponse.data || []
       setCameras(cameraList.slice(0, 6)) // 最多顯示 6 個攝影機
+
+      // 儲存服務訊息（用於顯示服務暫時無法使用等提示）
+      if (apiResponse.message) {
+        setServiceMessage(apiResponse.message)
+      }
 
       if (cameraList.length > 0) {
         setSelectedCamera(cameraList[0])
@@ -111,7 +119,21 @@ export const TrafficCamerasCard: React.FC<TrafficCamerasCardProps> = ({
           <Camera size={20} className="mr-2 text-[#1B1A1A]" />
           即時路況攝影機
         </h3>
-        <p className="py-8 text-center text-gray-500">附近沒有可用的路況攝影機</p>
+        <div className="flex flex-col items-center justify-center py-8 text-center">
+          <AlertCircle className="mb-2 h-8 w-8 text-gray-400" />
+          <p className="mb-2 text-gray-500">
+            {serviceMessage || '附近沒有可用的路況攝影機'}
+          </p>
+          <a
+            href="https://www.1968.gov.tw/"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="mt-2 flex items-center gap-1 text-sm text-blue-500 hover:text-blue-700"
+          >
+            前往 1968 路況服務查看
+            <ExternalLink size={14} />
+          </a>
+        </div>
       </div>
     )
   }
