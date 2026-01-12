@@ -88,15 +88,24 @@ export async function getWeatherByLocation(
   const datasetId = city ? LOCATION_CODES[city] : TAIWAN_FORECAST_CODE;
   const displayCity = city || '台灣';
 
+  console.log(`Weather request: location="${location}", city="${city || 'null'}", district="${district || 'null'}", datasetId="${datasetId}"`);
+
   // 先檢查快取
   const cacheKey = `weather:${displayCity}:${district || 'all'}`;
-  const cached = await env.CACHE.get(cacheKey);
-  if (cached) {
-    try {
-      return JSON.parse(cached) as WeatherData;
-    } catch {
-      // 快取資料無效，繼續獲取新資料
+  try {
+    const cached = await env.CACHE.get(cacheKey);
+    if (cached) {
+      try {
+        console.log(`Weather cache hit: ${cacheKey}`);
+        return JSON.parse(cached) as WeatherData;
+      } catch {
+        console.warn(`Weather cache parse error for key: ${cacheKey}`);
+        // 快取資料無效，繼續獲取新資料
+      }
     }
+  } catch (cacheError) {
+    console.error('Weather cache read error:', cacheError);
+    // 快取讀取失敗，繼續獲取新資料
   }
 
   try {
@@ -107,13 +116,15 @@ export async function getWeatherByLocation(
       url.searchParams.set('locationName', district);
     }
 
+    console.log(`Fetching CWA API: ${datasetId}`);
     const response = await fetch(url.toString());
     if (!response.ok) {
-      console.error(`CWA API error: ${response.status}`);
+      console.error(`CWA API error: ${response.status} ${response.statusText}`);
       return null;
     }
 
-    const data = await response.json() as {
+    const responseText = await response.text();
+    let data: {
       success: string;
       records: {
         locations?: Array<{
@@ -123,14 +134,25 @@ export async function getWeatherByLocation(
       };
     };
 
+    try {
+      data = JSON.parse(responseText);
+    } catch (parseError) {
+      console.error('CWA API response parse error:', {
+        error: parseError instanceof Error ? parseError.message : String(parseError),
+        responsePreview: responseText.substring(0, 200),
+      });
+      return null;
+    }
+
     if (data.success !== 'true') {
-      console.error('CWA API returned unsuccessful response');
+      console.error('CWA API returned unsuccessful response:', data.success);
       return null;
     }
 
     // 解析天氣資料
     const locations = data.records.locations?.[0]?.location || data.records.location || [];
     if (locations.length === 0) {
+      console.warn(`No weather data found for: ${displayCity} ${district || ''}`);
       return null;
     }
 
@@ -138,9 +160,14 @@ export async function getWeatherByLocation(
     const weatherData = parseWeatherData(locationData, displayCity, district);
 
     // 快取 30 分鐘
-    await env.CACHE.put(cacheKey, JSON.stringify(weatherData), {
-      expirationTtl: 1800,
-    });
+    try {
+      await env.CACHE.put(cacheKey, JSON.stringify(weatherData), {
+        expirationTtl: 1800,
+      });
+    } catch (cacheWriteError) {
+      console.error('Weather cache write error:', cacheWriteError);
+      // 快取寫入失敗不影響回傳結果
+    }
 
     return weatherData;
   } catch (error) {
@@ -209,6 +236,7 @@ export async function getWeatherByCoordinates(
 ): Promise<WeatherData | null> {
   // 根據經緯度判斷大約在哪個縣市
   const city = getCityByCoordinates(latitude, longitude);
+  console.log(`Coordinates (${latitude}, ${longitude}) mapped to city: ${city}`);
   return getWeatherByLocation(env, city);
 }
 

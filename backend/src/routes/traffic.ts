@@ -59,10 +59,33 @@ trafficRoutes.get('/cameras', async (c) => {
 
     // 嘗試解析 JSON（1968 API 的 content-type 可能是 text/html 但實際內容是 JSON）
     let cameraList: CameraData[];
+    const responseText = await response.text();
+
     try {
-      cameraList = (await response.json()) as CameraData[];
-    } catch {
-      console.error('Failed to parse 1968 API response as JSON');
+      cameraList = JSON.parse(responseText) as CameraData[];
+    } catch (parseError) {
+      // 記錄詳細錯誤資訊以便診斷
+      const contentType = response.headers.get('content-type') || 'unknown';
+      const preview = responseText.substring(0, 500);
+      console.error('Failed to parse 1968 API response as JSON:', {
+        contentType,
+        status: response.status,
+        responsePreview: preview,
+        error: parseError instanceof Error ? parseError.message : String(parseError),
+      });
+      return c.json(
+        {
+          success: false,
+          error: 'Service Error',
+          message: 'API 回傳格式錯誤',
+        },
+        502
+      );
+    }
+
+    // 驗證回傳的是陣列
+    if (!Array.isArray(cameraList)) {
+      console.error('1968 API response is not an array:', typeof cameraList);
       return c.json(
         {
           success: false,
