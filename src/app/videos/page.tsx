@@ -1,9 +1,11 @@
 'use client'
 
 import React, { useState, useMemo, useEffect } from 'react'
-import { Button } from '@/components/ui/button'
 import { PageHeader } from '@/components/ui/page-header'
 import { SearchInput } from '@/components/ui/search-input'
+import { LoadingSpinner } from '@/components/ui/loading-spinner'
+import { LoadMoreButton } from '@/components/ui/load-more-button'
+import { EmptyState } from '@/components/ui/empty-state'
 import VideoGrid from '@/components/videos/video-grid'
 import VideoPlayer from '@/components/videos/video-player'
 import VideoFilters from '@/components/videos/video-filters'
@@ -116,12 +118,7 @@ const VideosPage: React.FC = () => {
       <div className="container mx-auto px-4 py-6">
         {/* Loading State */}
         {loading ? (
-          <div className="flex items-center justify-center py-16">
-            <div className="text-center">
-              <div className="mx-auto mb-4 h-8 w-8 animate-spin rounded-full border-4 border-neutral-300 border-t-neutral-600"></div>
-              <p className="text-neutral-500">載入影片資料中...</p>
-            </div>
-          </div>
+          <LoadingSpinner text="載入影片資料中..." fullPage />
         ) : (
           <>
             {/* 搜尋和篩選 */}
@@ -159,26 +156,30 @@ const VideosPage: React.FC = () => {
             <VideoGrid videos={visibleVideos} onVideoClick={handleVideoClick} />
 
             {/* 載入更多按鈕 */}
-            {visibleVideos.length < filteredVideos.length && (
-              <div className="mt-8 text-center md:mt-12">
-                <Button variant="outline" onClick={handleLoadMore}>
-                  載入更多影片
-                </Button>
-              </div>
+            {filteredVideos.length > 0 && (
+              <LoadMoreButton
+                onClick={handleLoadMore}
+                hasMore={visibleVideos.length < filteredVideos.length}
+                text="載入更多影片"
+                noMoreText="已顯示所有影片"
+              />
             )}
 
             {/* 無搜尋結果提示 */}
             {filteredVideos.length === 0 && videoList.length > 0 && (
-              <div className="py-16 text-center">
-                <p className="text-neutral-500">沒有找到相關影片</p>
-              </div>
+              <EmptyState
+                icon="search"
+                title="沒有找到相關影片"
+                description="請嘗試其他搜尋關鍵字或篩選條件"
+              />
             )}
 
             {/* 無影片資料提示 */}
             {videoList.length === 0 && (
-              <div className="py-16 text-center">
-                <p className="text-neutral-500">目前沒有影片資料</p>
-              </div>
+              <EmptyState
+                icon="video"
+                title="目前沒有影片資料"
+              />
             )}
 
             {/* 影片播放器彈窗 */}
