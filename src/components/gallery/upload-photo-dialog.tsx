@@ -182,13 +182,13 @@ const UploadPhotoDialog: React.FC<UploadPhotoDialogProps> = ({
           throw new Error('圖片上傳失敗')
         }
 
-        // Step 2: Create photo record with metadata (only first photo gets location/caption)
+        // Step 2: Create photo record with metadata
         const photoResult = await galleryService.uploadPhoto({
           image_url: uploadResult.data.url,
-          caption: i === 0 ? (caption || undefined) : undefined,
-          location_country: i === 0 ? (locationCountry || undefined) : undefined,
-          location_city: i === 0 ? (locationCity || undefined) : undefined,
-          location_spot: i === 0 ? (locationSpot || undefined) : undefined,
+          caption: caption || undefined,
+          location_country: locationCountry || undefined,
+          location_city: locationCity || undefined,
+          location_spot: locationSpot || undefined,
         })
 
         if (!photoResult.success || !photoResult.data) {
@@ -405,7 +405,7 @@ const UploadPhotoDialog: React.FC<UploadPhotoDialogProps> = ({
             {/* Caption */}
             <div className="mb-4">
               <Label htmlFor="caption" className="mb-1.5 block text-sm font-medium">
-                說明（選填，僅套用至第一張）
+                說明（選填，套用至所有照片）
               </Label>
               <Textarea
                 id="caption"
@@ -422,7 +422,7 @@ const UploadPhotoDialog: React.FC<UploadPhotoDialogProps> = ({
             <div className="mb-4">
               <Label className="mb-1.5 flex items-center gap-1.5 text-sm font-medium">
                 <MapPin size={14} />
-                拍攝地點（選填，僅套用至第一張）
+                拍攝地點（選填，套用至所有照片）
               </Label>
               <div className="grid grid-cols-3 gap-2">
                 <Input
