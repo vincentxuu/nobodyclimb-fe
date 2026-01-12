@@ -518,8 +518,8 @@ async function fetchCityForecast(
   }
 }
 
-// 預報天數常數
-const FORECAST_DAYS = 7;
+// 預報時段數常數（7天 × 2時段 = 14）
+const FORECAST_PERIODS = 14;
 
 // 解析 CWA API 回傳的天氣資料
 function parseWeatherData(
@@ -546,8 +546,8 @@ function parseWeatherData(
   const forecast: WeatherData['forecast'] = [];
   const timeSlots = elements['Wx'] || elements['WeatherDescription'] || [];
 
-  // 取得未來預報資料
-  for (let i = 1; i < Math.min(timeSlots.length, FORECAST_DAYS + 1); i++) {
+  // 取得未來預報資料（跳過第一個時段，因為是目前天氣）
+  for (let i = 1; i < Math.min(timeSlots.length, FORECAST_PERIODS + 1); i++) {
     const slot = timeSlots[i];
     const minTempSlot = elements['MinT']?.[i];
     const maxTempSlot = elements['MaxT']?.[i];
