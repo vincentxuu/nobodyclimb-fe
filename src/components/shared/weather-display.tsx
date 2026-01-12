@@ -14,8 +14,18 @@ interface WeatherDisplayProps {
   className?: string
 }
 
+// 格式化數值顯示，null 時顯示 "--"
+function formatTemp(value: number | null): string {
+  return value !== null ? `${value}` : '--'
+}
+
+function formatPercent(value: number | null): string {
+  return value !== null ? `${value}%` : '--%'
+}
+
 // 根據天氣狀況選擇圖標顏色
-function getWeatherColor(condition: string): string {
+function getWeatherColor(condition: string | null): string {
+  if (!condition) return 'text-gray-600'
   if (condition.includes('晴')) return 'text-yellow-500'
   if (condition.includes('雨')) return 'text-blue-500'
   if (condition.includes('陰') || condition.includes('雲')) return 'text-gray-500'
@@ -39,6 +49,15 @@ function formatForecastDate(dateString: string): string {
 
   const weekdays = ['週日', '週一', '週二', '週三', '週四', '週五', '週六']
   return weekdays[date.getDay()]
+}
+
+// 格式化天氣狀況顯示
+function formatCondition(condition: string | null, maxLength?: number): string {
+  if (!condition) return '未知'
+  if (maxLength && condition.length > maxLength) {
+    return condition.slice(0, maxLength)
+  }
+  return condition
 }
 
 export function WeatherDisplay({
@@ -105,12 +124,12 @@ export function WeatherDisplay({
     return (
       <div className={`inline-flex items-center gap-2 rounded-lg bg-gray-100 px-4 py-2 ${className}`}>
         <Cloud className={`h-5 w-5 ${getWeatherColor(weather.condition)}`} />
-        <span className="text-lg font-medium">{weather.temperature}°C</span>
+        <span className="text-lg font-medium">{formatTemp(weather.temperature)}°C</span>
         <div className="border-l border-gray-300 pl-2">
-          <span className="text-sm text-gray-600">{weather.condition}</span>
+          <span className="text-sm text-gray-600">{formatCondition(weather.condition)}</span>
           <div className="flex items-center text-xs text-gray-500">
             <Droplets className="mr-1 h-3 w-3" />
-            {weather.precipitation}%
+            {formatPercent(weather.precipitation)}
           </div>
         </div>
       </div>
@@ -126,20 +145,20 @@ export function WeatherDisplay({
             <Cloud className="h-6 w-6" />
           </div>
           <div>
-            <p className="text-2xl font-semibold">{weather.temperature}°C</p>
+            <p className="text-2xl font-semibold">{formatTemp(weather.temperature)}°C</p>
             <p className="text-sm text-gray-600">{weather.location}</p>
           </div>
         </div>
         <div className="text-right">
-          <p className="font-medium text-gray-700">{weather.condition}</p>
+          <p className="font-medium text-gray-700">{formatCondition(weather.condition)}</p>
           <div className="flex items-center justify-end gap-3 text-sm text-gray-500">
             <span className="flex items-center">
               <ThermometerSun className="mr-1 h-4 w-4" />
-              {weather.minTemp}° / {weather.maxTemp}°
+              {formatTemp(weather.minTemp)}° / {formatTemp(weather.maxTemp)}°
             </span>
             <span className="flex items-center">
               <Droplets className="mr-1 h-4 w-4" />
-              {weather.precipitation}%
+              {formatPercent(weather.precipitation)}
             </span>
           </div>
           {weather.comfort && (
@@ -153,23 +172,23 @@ export function WeatherDisplay({
         <div className="border-t border-gray-200 pt-4">
           <h4 className="mb-3 text-sm font-medium text-gray-700">未來天氣</h4>
           <div className="grid grid-cols-3 gap-2 sm:grid-cols-6">
-            {weather.forecast.slice(0, 6).map((day, index) => (
+            {weather.forecast.slice(0, 6).map((day) => (
               <div
-                key={index}
+                key={day.date}
                 className="rounded-lg bg-white p-2 text-center"
               >
                 <p className="text-xs font-medium text-gray-600">
                   {formatForecastDate(day.date)}
                 </p>
                 <p className={`my-1 text-xs ${getWeatherColor(day.condition)}`}>
-                  {day.condition.length > 4 ? day.condition.slice(0, 4) : day.condition}
+                  {formatCondition(day.condition, 4)}
                 </p>
                 <p className="text-sm font-medium">
-                  {day.minTemp}° / {day.maxTemp}°
+                  {formatTemp(day.minTemp)}° / {formatTemp(day.maxTemp)}°
                 </p>
                 <p className="flex items-center justify-center text-xs text-blue-500">
                   <Droplets className="mr-0.5 h-3 w-3" />
-                  {day.precipitation}%
+                  {formatPercent(day.precipitation)}
                 </p>
               </div>
             ))}

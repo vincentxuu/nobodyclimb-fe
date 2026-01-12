@@ -384,20 +384,20 @@ export interface Route {
  */
 export interface Weather {
   location: string
-  temperature: number
-  minTemp: number
-  maxTemp: number
-  condition: string
-  precipitation: number // 降雨機率 %
-  humidity?: number
-  comfort?: string
+  temperature: number | null
+  minTemp: number | null
+  maxTemp: number | null
+  condition: string | null
+  precipitation: number | null // 降雨機率 %
+  humidity?: number | null
+  comfort?: string | null
   updatedAt: string
   forecast: Array<{
     date: string
-    minTemp: number
-    maxTemp: number
-    condition: string
-    precipitation: number
+    minTemp: number | null
+    maxTemp: number | null
+    condition: string | null
+    precipitation: number | null
   }>
 }
 

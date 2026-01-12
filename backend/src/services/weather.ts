@@ -42,15 +42,15 @@ const LOCATION_CODES: Record<string, string> = {
 const TAIWAN_FORECAST_CODE = 'F-C0032-001';
 
 // 從地址或區域名稱提取縣市名稱
-function extractCity(location: string): string {
+function extractCity(location: string): string | null {
   // 嘗試匹配縣市名稱
   for (const city of Object.keys(LOCATION_CODES)) {
     if (location.includes(city)) {
       return city;
     }
   }
-  // 預設回傳台北市
-  return '台北市';
+  // 找不到匹配的縣市則回傳 null
+  return null;
 }
 
 // 從鄉鎮市區提取區域名稱
@@ -69,6 +69,13 @@ function extractDistrict(location: string): string | null {
   return null;
 }
 
+// 安全地解析數值，無法解析時回傳 null
+function parseNumber(value: string | undefined): number | null {
+  if (!value) return null;
+  const num = parseInt(value, 10);
+  return isNaN(num) ? null : num;
+}
+
 // 獲取天氣預報資料
 export async function getWeatherByLocation(
   env: Env,
@@ -76,10 +83,13 @@ export async function getWeatherByLocation(
 ): Promise<WeatherData | null> {
   const city = extractCity(location);
   const district = extractDistrict(location);
-  const datasetId = LOCATION_CODES[city] || TAIWAN_FORECAST_CODE;
+
+  // 若無法識別縣市，使用全台灣預報；若有識別到縣市，使用縣市預報
+  const datasetId = city ? LOCATION_CODES[city] : TAIWAN_FORECAST_CODE;
+  const displayCity = city || '台灣';
 
   // 先檢查快取
-  const cacheKey = `weather:${city}:${district || 'all'}`;
+  const cacheKey = `weather:${displayCity}:${district || 'all'}`;
   const cached = await env.CACHE.get(cacheKey);
   if (cached) {
     try {
@@ -93,7 +103,7 @@ export async function getWeatherByLocation(
     const url = new URL(`${CWA_API_BASE}/${datasetId}`);
     url.searchParams.set('Authorization', env.CWA_API_KEY);
     url.searchParams.set('format', 'JSON');
-    if (district) {
+    if (district && city) {
       url.searchParams.set('locationName', district);
     }
 
@@ -125,7 +135,7 @@ export async function getWeatherByLocation(
     }
 
     const locationData = locations[0];
-    const weatherData = parseWeatherData(locationData, city, district);
+    const weatherData = parseWeatherData(locationData, displayCity, district);
 
     // 快取 30 分鐘
     await env.CACHE.put(cacheKey, JSON.stringify(weatherData), {
@@ -171,21 +181,21 @@ function parseWeatherData(
 
     forecast.push({
       date: slot.startTime,
-      minTemp: parseInt(minTempSlot?.parameter?.parameterName || '0', 10),
-      maxTemp: parseInt(maxTempSlot?.parameter?.parameterName || '0', 10),
-      condition: slot.parameter?.parameterName || '未知',
-      precipitation: parseInt(popSlot?.parameter?.parameterName || '0', 10),
+      minTemp: parseNumber(minTempSlot?.parameter?.parameterName),
+      maxTemp: parseNumber(maxTempSlot?.parameter?.parameterName),
+      condition: slot.parameter?.parameterName || null,
+      precipitation: parseNumber(popSlot?.parameter?.parameterName),
     });
   }
 
   return {
     location: district ? `${city}${district}` : city,
-    temperature: parseInt(currentTemp?.parameter?.parameterName || '0', 10),
-    minTemp: parseInt(minTemp?.parameter?.parameterName || '0', 10),
-    maxTemp: parseInt(maxTemp?.parameter?.parameterName || '0', 10),
-    condition: currentTime?.parameter?.parameterName || '未知',
-    precipitation: parseInt(pop?.parameter?.parameterName || '0', 10),
-    comfort: comfort?.parameter?.parameterName,
+    temperature: parseNumber(currentTemp?.parameter?.parameterName),
+    minTemp: parseNumber(minTemp?.parameter?.parameterName),
+    maxTemp: parseNumber(maxTemp?.parameter?.parameterName),
+    condition: currentTime?.parameter?.parameterName || null,
+    precipitation: parseNumber(pop?.parameter?.parameterName),
+    comfort: comfort?.parameter?.parameterName || null,
     updatedAt: new Date().toISOString(),
     forecast,
   };
@@ -203,6 +213,8 @@ export async function getWeatherByCoordinates(
 }
 
 // 簡易的經緯度對應縣市判斷
+// 注意：這是一個簡化實作，在縣市交界處可能不夠準確
+// 未來可考慮使用反向地理編碼 API 或本地 GeoJSON 資料來提高準確性
 function getCityByCoordinates(latitude: number, longitude: number): string {
   // 台灣大致座標範圍
   // 北部: lat > 24.5

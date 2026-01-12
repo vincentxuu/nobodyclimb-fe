@@ -4,6 +4,22 @@ import { getWeatherByLocation, getWeatherByCoordinates } from '../services/weath
 
 export const weatherRoutes = new Hono<{ Bindings: Env }>();
 
+// 中介軟體：檢查 CWA API Key 是否設定
+weatherRoutes.use('*', async (c, next) => {
+  if (!c.env.CWA_API_KEY) {
+    console.error('CWA_API_KEY is not configured');
+    return c.json(
+      {
+        success: false,
+        error: 'Service Unavailable',
+        message: 'Weather service is not configured',
+      },
+      503
+    );
+  }
+  await next();
+});
+
 // GET /weather - 根據地點名稱獲取天氣
 weatherRoutes.get('/', async (c) => {
   const location = c.req.query('location');
@@ -16,19 +32,6 @@ weatherRoutes.get('/', async (c) => {
         message: 'Location parameter is required',
       },
       400
-    );
-  }
-
-  // 檢查 API Key 是否設定
-  if (!c.env.CWA_API_KEY) {
-    console.error('CWA_API_KEY is not configured');
-    return c.json(
-      {
-        success: false,
-        error: 'Service Unavailable',
-        message: 'Weather service is not configured',
-      },
-      503
     );
   }
 
@@ -78,19 +81,6 @@ weatherRoutes.get('/coordinates', async (c) => {
         message: 'Invalid latitude or longitude values',
       },
       400
-    );
-  }
-
-  // 檢查 API Key 是否設定
-  if (!c.env.CWA_API_KEY) {
-    console.error('CWA_API_KEY is not configured');
-    return c.json(
-      {
-        success: false,
-        error: 'Service Unavailable',
-        message: 'Weather service is not configured',
-      },
-      503
     );
   }
 
