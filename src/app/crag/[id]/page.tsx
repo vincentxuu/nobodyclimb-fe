@@ -3,11 +3,7 @@
 import React, { useState, use, useMemo } from 'react'
 import PlaceholderImage from '@/components/ui/placeholder-image'
 import Link from 'next/link'
-import {
-  ArrowLeft,
-  MapPin,
-  Heart,
-} from 'lucide-react'
+import { ArrowLeft, MapPin } from 'lucide-react'
 import { motion } from 'framer-motion'
 import { Button } from '@/components/ui/button'
 import BackToTop from '@/components/ui/back-to-top'
@@ -102,23 +98,12 @@ export default function CragDetailPage({ params }: { params: Promise<{ id: strin
           </div>
 
           {/* 標題與位置 */}
-          <div className="mb-8 flex items-start justify-between">
-            <div>
-              <h1 className="text-3xl font-medium">{currentCrag.name}</h1>
-              <p className="mb-2 text-lg text-gray-600">{currentCrag.englishName}</p>
-              <div className="flex items-center text-gray-500">
-                <MapPin size={16} className="mr-1" />
-                <span>{currentCrag.location}</span>
-              </div>
-            </div>
-            <div className="flex gap-2">
-              <button className="flex items-center rounded-full bg-[#FFE70C] px-4 py-2 font-medium text-[#1B1A1A] transition-colors hover:bg-yellow-400">
-                <Heart size={18} className="mr-2" />
-                收藏岩場
-              </button>
-              <button className="flex items-center rounded-full border border-gray-200 bg-white px-4 py-2 font-medium text-[#1B1A1A] transition-colors hover:bg-gray-100">
-                分享
-              </button>
+          <div className="mb-8">
+            <h1 className="text-3xl font-medium">{currentCrag.name}</h1>
+            <p className="mb-2 text-lg text-gray-600">{currentCrag.englishName}</p>
+            <div className="flex items-center text-gray-500">
+              <MapPin size={16} className="mr-1" />
+              <span>{currentCrag.location}</span>
             </div>
           </div>
 
