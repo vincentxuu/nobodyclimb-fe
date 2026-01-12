@@ -21,13 +21,14 @@ interface UploadPhotoDialogProps {
 const VALID_FILE_TYPES = ['image/jpeg', 'image/png', 'image/webp']
 const MAX_FILE_SIZE = 500 * 1024 // 500KB
 const MAX_FILE_COUNT = 20
+const MAX_IMAGE_DIMENSION = 1920
 
 interface FileWithPreview {
   file: File
   preview: string
   id: string
-  originalSize?: number // 追蹤原始大小（用於顯示壓縮資訊）
-  wasCompressed?: boolean // 標記是否被壓縮過
+  originalSize?: number
+  wasCompressed?: boolean
 }
 
 interface UploadStatus {
@@ -51,8 +52,8 @@ const compressImageFile = async (file: File): Promise<{ file: File; wasCompresse
   }
 
   const options = {
-    maxSizeMB: MAX_FILE_SIZE / (1024 * 1024), // 500KB = 0.488MB
-    maxWidthOrHeight: 1920,
+    maxSizeMB: MAX_FILE_SIZE / (1024 * 1024),
+    maxWidthOrHeight: MAX_IMAGE_DIMENSION,
     useWebWorker: true,
     fileType: file.type as 'image/jpeg' | 'image/png' | 'image/webp',
   }
@@ -82,6 +83,10 @@ const UploadPhotoDialog: React.FC<UploadPhotoDialogProps> = ({
   const [compressProgress, setCompressProgress] = useState<{ current: number; total: number } | null>(null)
   const [error, setError] = useState<string | null>(null)
   const [uploadStatuses, setUploadStatuses] = useState<UploadStatus[]>([])
+
+  // Derived state: calculate counts from uploadStatuses
+  const successCount = uploadStatuses.filter((s) => s.status === 'success').length
+  const uploadingCount = uploadStatuses.filter((s) => s.status === 'uploading').length
 
   // Keep filesRef in sync with files state
   useEffect(() => {
@@ -227,26 +232,15 @@ const UploadPhotoDialog: React.FC<UploadPhotoDialogProps> = ({
     setIsUploading(true)
     setError(null)
 
-    // Initialize upload statuses
+    // Initialize all statuses as uploading (parallel upload)
     const initialStatuses: UploadStatus[] = files.map((f) => ({
       id: f.id,
-      status: 'pending',
+      status: 'uploading',
     }))
     setUploadStatuses(initialStatuses)
 
-    let successCount = 0
-    let lastSuccessPhoto: GalleryPhoto | null = null
-
-    for (let i = 0; i < files.length; i++) {
-      const fileItem = files[i]
-
-      // Update status to uploading
-      setUploadStatuses((prev) =>
-        prev.map((s) =>
-          s.id === fileItem.id ? { ...s, status: 'uploading' } : s
-        )
-      )
-
+    // Parallel upload using Promise.all
+    const uploadPromises = files.map(async (fileItem) => {
       try {
         // Step 1: Upload the image file to storage
         const uploadResult = await galleryService.uploadImage(fileItem.file)
@@ -274,11 +268,10 @@ const UploadPhotoDialog: React.FC<UploadPhotoDialogProps> = ({
           )
         )
 
-        successCount++
-        lastSuccessPhoto = photoResult.data
-
         // Call onSuccess for each uploaded photo
         onSuccess(photoResult.data)
+
+        return { status: 'success' as const, photo: photoResult.data }
       } catch (err) {
         // Update status to error
         setUploadStatuses((prev) =>
@@ -288,18 +281,22 @@ const UploadPhotoDialog: React.FC<UploadPhotoDialogProps> = ({
               : s
           )
         )
+        return { status: 'error' as const }
       }
-    }
+    })
+
+    const results = await Promise.all(uploadPromises)
+    const successfulUploads = results.filter((r) => r.status === 'success').length
 
     setIsUploading(false)
 
     // If all uploads succeeded, close dialog
-    if (successCount === files.length) {
+    if (successfulUploads === files.length) {
       resetForm()
       onClose()
-    } else if (successCount > 0) {
+    } else if (successfulUploads > 0) {
       // Some succeeded, some failed - show message
-      setError(`${successCount} 張照片上傳成功，${files.length - successCount} 張失敗`)
+      setError(`${successfulUploads} 張照片上傳成功，${files.length - successfulUploads} 張失敗`)
     } else {
       setError('所有照片上傳失敗，請稍後再試')
     }
@@ -313,9 +310,6 @@ const UploadPhotoDialog: React.FC<UploadPhotoDialogProps> = ({
   }
 
   if (!isOpen) return null
-
-  const uploadedCount = uploadStatuses.filter((s) => s.status === 'success').length
-  const uploadingIndex = uploadStatuses.findIndex((s) => s.status === 'uploading')
 
   return (
     <AnimatePresence>
@@ -493,14 +487,14 @@ const UploadPhotoDialog: React.FC<UploadPhotoDialogProps> = ({
                 <div className="flex items-center gap-2 text-sm text-blue-700">
                   <Loader2 className="h-4 w-4 animate-spin" />
                   <span>
-                    正在上傳... ({uploadedCount + 1}/{files.length})
+                    正在上傳 {uploadingCount} 張照片...（已完成 {successCount}/{files.length}）
                   </span>
                 </div>
                 <div className="mt-2 h-2 bg-blue-200 rounded-full overflow-hidden">
                   <div
                     className="h-full bg-blue-500 transition-all duration-300"
                     style={{
-                      width: `${((uploadedCount + (uploadingIndex >= 0 ? 0.5 : 0)) / files.length) * 100}%`,
+                      width: `${(successCount / files.length) * 100}%`,
                     }}
                   />
                 </div>

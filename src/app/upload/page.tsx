@@ -2,7 +2,7 @@
 
 import React, { useState, useCallback, useEffect, useRef } from 'react'
 import { useRouter } from 'next/navigation'
-import { motion, AnimatePresence } from 'framer-motion'
+import { motion } from 'framer-motion'
 import { Upload, MapPin, Loader2, CheckCircle, ImageIcon, X, AlertCircle } from 'lucide-react'
 import imageCompression from 'browser-image-compression'
 import { Button } from '@/components/ui/button'
@@ -17,6 +17,7 @@ import Link from 'next/link'
 const VALID_FILE_TYPES = ['image/jpeg', 'image/png', 'image/webp']
 const MAX_FILE_SIZE = 500 * 1024 // 500KB
 const MAX_FILE_COUNT = 20
+const MAX_IMAGE_DIMENSION = 1920
 
 interface FileWithPreview {
   file: File
@@ -48,7 +49,7 @@ const compressImageFile = async (file: File): Promise<{ file: File; wasCompresse
 
   const options = {
     maxSizeMB: MAX_FILE_SIZE / (1024 * 1024),
-    maxWidthOrHeight: 1920,
+    maxWidthOrHeight: MAX_IMAGE_DIMENSION,
     useWebWorker: true,
     fileType: file.type as 'image/jpeg' | 'image/png' | 'image/webp',
   }
@@ -75,7 +76,10 @@ export default function UploadPage() {
   const [compressProgress, setCompressProgress] = useState<{ current: number; total: number } | null>(null)
   const [error, setError] = useState<string | null>(null)
   const [uploadStatuses, setUploadStatuses] = useState<UploadStatus[]>([])
-  const [successCount, setSuccessCount] = useState(0)
+
+  // Derived state: calculate success count from uploadStatuses
+  const successCount = uploadStatuses.filter((s) => s.status === 'success').length
+  const uploadingCount = uploadStatuses.filter((s) => s.status === 'uploading').length
 
   // Keep filesRef in sync
   useEffect(() => {
@@ -202,7 +206,6 @@ export default function UploadPage() {
     setLocation({ country: '', city: '', spot: '' })
     setError(null)
     setUploadStatuses([])
-    setSuccessCount(0)
   }, [files])
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -215,23 +218,15 @@ export default function UploadPage() {
     setIsUploading(true)
     setError(null)
 
+    // Initialize all statuses as uploading (parallel upload)
     const initialStatuses: UploadStatus[] = files.map((f) => ({
       id: f.id,
-      status: 'pending',
+      status: 'uploading',
     }))
     setUploadStatuses(initialStatuses)
 
-    let uploaded = 0
-
-    for (let i = 0; i < files.length; i++) {
-      const fileItem = files[i]
-
-      setUploadStatuses((prev) =>
-        prev.map((s) =>
-          s.id === fileItem.id ? { ...s, status: 'uploading' } : s
-        )
-      )
-
+    // Parallel upload using Promise.all
+    const uploadPromises = files.map(async (fileItem) => {
       try {
         const uploadResult = await galleryService.uploadImage(fileItem.file)
         if (!uploadResult.success || !uploadResult.data?.url) {
@@ -255,8 +250,7 @@ export default function UploadPage() {
             s.id === fileItem.id ? { ...s, status: 'success' } : s
           )
         )
-        uploaded++
-        setSuccessCount(uploaded)
+        return { status: 'success' as const }
       } catch (err) {
         setUploadStatuses((prev) =>
           prev.map((s) =>
@@ -265,16 +259,18 @@ export default function UploadPage() {
               : s
           )
         )
+        return { status: 'error' as const }
       }
-    }
+    })
+
+    const results = await Promise.all(uploadPromises)
+    const successfulUploads = results.filter((r) => r.status === 'success').length
 
     setIsUploading(false)
 
-    if (uploaded === files.length) {
-      // All success - show success screen
-    } else if (uploaded > 0) {
-      setError(`${uploaded} 張照片上傳成功，${files.length - uploaded} 張失敗`)
-    } else {
+    if (successfulUploads > 0 && successfulUploads < files.length) {
+      setError(`${successfulUploads} 張照片上傳成功，${files.length - successfulUploads} 張失敗`)
+    } else if (successfulUploads === 0 && files.length > 0) {
       setError('所有照片上傳失敗，請稍後再試')
     }
   }
@@ -331,9 +327,6 @@ export default function UploadPage() {
       </div>
     )
   }
-
-  const uploadedCount = uploadStatuses.filter((s) => s.status === 'success').length
-  const uploadingIndex = uploadStatuses.findIndex((s) => s.status === 'uploading')
 
   return (
     <div className="min-h-screen bg-neutral-50 pt-20 pb-12">
@@ -497,14 +490,14 @@ export default function UploadPage() {
                 <div className="flex items-center gap-2 text-sm text-blue-700">
                   <Loader2 className="h-4 w-4 animate-spin" />
                   <span>
-                    正在上傳... ({uploadedCount + 1}/{files.length})
+                    正在上傳 {uploadingCount} 張照片...（已完成 {successCount}/{files.length}）
                   </span>
                 </div>
                 <div className="mt-2 h-2 bg-blue-200 rounded-full overflow-hidden">
                   <div
                     className="h-full bg-blue-500 transition-all duration-300"
                     style={{
-                      width: `${((uploadedCount + (uploadingIndex >= 0 ? 0.5 : 0)) / files.length) * 100}%`,
+                      width: `${(successCount / files.length) * 100}%`,
                     }}
                   />
                 </div>
