@@ -22,8 +22,8 @@
       "/images/crag/defulan-4.jpg"
     ],
     "type": "mixed",
-    "rockType": "石灰岩",
-    "rockTypeEn": "Limestone",
+    "rockType": "石英質砂岩",
+    "rockTypeEn": "Quartzite Sandstone",
     "routesCount": 53,
     "difficulty": {
       "min": "5.6",
@@ -34,8 +34,16 @@
       "max": 40,
       "unit": "m"
     },
-    "seasons": ["秋", "冬", "春"],
-    "seasonsEn": ["Autumn", "Winter", "Spring"],
+    "seasons": [
+      "秋",
+      "冬",
+      "春"
+    ],
+    "seasonsEn": [
+      "Autumn",
+      "Winter",
+      "Spring"
+    ],
     "access": {
       "approach": "15-30分鐘徒步",
       "approachEn": "15-30 minutes hiking",
@@ -49,8 +57,16 @@
         }
       ]
     },
-    "amenities": ["停車場", "溪流", "附近溫泉"],
-    "amenitiesEn": ["Parking", "Stream", "Nearby hot springs"],
+    "amenities": [
+      "停車場",
+      "溪流",
+      "附近溫泉"
+    ],
+    "amenitiesEn": [
+      "Parking",
+      "Stream",
+      "Nearby hot springs"
+    ],
     "featured": true,
     "rating": 4.3,
     "status": "published",
@@ -64,7 +80,10 @@
       "nameEn": "Final Frontier",
       "description": "德芙蘭重要的攀登區域，有運動攀登和傳統攀登路線。",
       "descriptionEn": "An important climbing area at Defulan with both sport and traditional routes.",
-      "difficulty": { "min": "5.9", "max": "5.12b" },
+      "difficulty": {
+        "min": "5.9",
+        "max": "5.12b"
+      },
       "image": "/images/crag/defulan-final-frontier.jpg",
       "boltCount": 22,
       "routesCount": 7
@@ -75,7 +94,10 @@
       "nameEn": "Frontier Left",
       "description": "路線中間的小平台有許多落葉以及小石頭，請保持溫柔的動作以免傷及下面的朋友，確保的夥伴也要隨時注意上方的狀況。建議配戴岩盔。",
       "descriptionEn": "The small platform in the middle of the routes has many fallen leaves and small rocks. Please be gentle to avoid injuring belayers below. Helmet recommended.",
-      "difficulty": { "min": "5.6", "max": "5.12b" },
+      "difficulty": {
+        "min": "5.6",
+        "max": "5.12b"
+      },
       "image": "/images/crag/defulan-frontier-left.jpg",
       "boltCount": 60,
       "routesCount": 13
@@ -86,7 +108,10 @@
       "nameEn": "Frontier Right",
       "description": "邊境右側區域，包含運動攀登和傳統攀登路線。",
       "descriptionEn": "Right side of Frontier area with sport and traditional routes.",
-      "difficulty": { "min": "5.9", "max": "5.12b" },
+      "difficulty": {
+        "min": "5.9",
+        "max": "5.12b"
+      },
       "image": "/images/crag/defulan-frontier-right.jpg",
       "boltCount": 23,
       "routesCount": 6
@@ -97,7 +122,10 @@
       "nameEn": "Loftier",
       "description": "較高的攀登區域，有多條長路線，最長可達40米。",
       "descriptionEn": "Higher climbing area with many long routes, up to 40 meters.",
-      "difficulty": { "min": "5.6", "max": "5.12a" },
+      "difficulty": {
+        "min": "5.6",
+        "max": "5.12a"
+      },
       "image": "/images/crag/defulan-loftier.jpg",
       "boltCount": 180,
       "routesCount": 14
@@ -108,7 +136,10 @@
       "nameEn": "Racketeer",
       "description": "金三角區域，有多條傳統攀登和運動攀登路線。",
       "descriptionEn": "Racketeer area with multiple trad and sport routes.",
-      "difficulty": { "min": "5.6", "max": "5.10b" },
+      "difficulty": {
+        "min": "5.6",
+        "max": "5.10b"
+      },
       "image": "/images/crag/defulan-racketeer.jpg",
       "boltCount": 84,
       "routesCount": 13

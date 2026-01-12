@@ -34,8 +34,16 @@
       "max": 18,
       "unit": "m"
     },
-    "seasons": ["秋", "冬", "春"],
-    "seasonsEn": ["Autumn", "Winter", "Spring"],
+    "seasons": [
+      "秋",
+      "冬",
+      "春"
+    ],
+    "seasonsEn": [
+      "Autumn",
+      "Winter",
+      "Spring"
+    ],
     "access": {
       "approach": "10-15分鐘徒步",
       "approachEn": "10-15 minutes hiking",
@@ -54,8 +62,20 @@
         }
       ]
     },
-    "amenities": ["泥漿溫泉", "餐廳", "民宿", "停車場", "便利商店"],
-    "amenitiesEn": ["Mud hot springs", "Restaurants", "Guesthouses", "Parking", "Convenience stores"],
+    "amenities": [
+      "泥漿溫泉",
+      "餐廳",
+      "民宿",
+      "停車場",
+      "便利商店"
+    ],
+    "amenitiesEn": [
+      "Mud hot springs",
+      "Restaurants",
+      "Guesthouses",
+      "Parking",
+      "Convenience stores"
+    ],
     "featured": true,
     "rating": 4.2,
     "status": "published",
@@ -73,15 +93,6 @@
       "routesCount": 8
     },
     {
-      "id": "assembling-field",
-      "name": "集合場",
-      "nameEn": "Assembling Field",
-      "description": "從終極岩步行約60公尺可到達，路線難度較為平均，「天天天藍」及「美人照鏡」為經典路線。",
-      "descriptionEn": "About 60 meters walk from Ultimate Wall. Routes here are simpler but still interesting. 'The Blue Sky' and 'The Beauty with a Mirror' are classic routes.",
-      "boltCount": 47,
-      "routesCount": 10
-    },
-    {
       "id": "taiwan-boulder",
       "name": "蓬萊島",
       "nameEn": "Taiwan Boulder",
@@ -89,6 +100,24 @@
       "descriptionEn": "Named by a Taiwan-shaped rock in front of the boulder. The boulder's height is only about 9 meters, so the routes here are almost pure power style.",
       "boltCount": 39,
       "routesCount": 9
+    },
+    {
+      "id": "flying-boulder",
+      "name": "飛來石",
+      "nameEn": "Flying Boulder",
+      "description": "進入木棧道即可看到，目前有3條Top-Rope路線，右側岩角及大外傾面尚待開發。",
+      "descriptionEn": "Visible when entering the wood railing. There are 3 established top-roping routes. The right arete and big overhanging face are still to be developed.",
+      "boltCount": 6,
+      "routesCount": 3
+    },
+    {
+      "id": "assembling-field",
+      "name": "集合場",
+      "nameEn": "Assembling Field",
+      "description": "從終極岩步行約60公尺可到達，路線難度較為平均，「天天天藍」及「美人照鏡」為經典路線。",
+      "descriptionEn": "About 60 meters walk from Ultimate Wall. Routes here are simpler but still interesting. 'The Blue Sky' and 'The Beauty with a Mirror' are classic routes.",
+      "boltCount": 47,
+      "routesCount": 10
     },
     {
       "id": "mysterious-valley",
@@ -107,15 +136,6 @@
       "descriptionEn": "The latest opened area in Guanziling. Route heights range from 10 to 13 meters. Most are power-endurance routes. Great view and climbable even in summer.",
       "boltCount": 68,
       "routesCount": 10
-    },
-    {
-      "id": "flying-boulder",
-      "name": "飛來石",
-      "nameEn": "Flying Boulder",
-      "description": "進入木棧道即可看到，目前有3條Top-Rope路線，右側岩角及大外傾面尚待開發。",
-      "descriptionEn": "Visible when entering the wood railing. There are 3 established top-roping routes. The right arete and big overhanging face are still to be developed.",
-      "boltCount": 6,
-      "routesCount": 3
     }
   ],
   "routes": [
@@ -153,7 +173,7 @@
     {
       "id": "GZ-ULTIMATE-003",
       "areaId": "ultimate-wall",
-      "name": "一棵榕樹下",
+      "name": "小樹",
       "nameEn": "Under the Banyan",
       "grade": "5.11b",
       "type": "sport",
@@ -312,8 +332,8 @@
     {
       "id": "GZ-ASSEMBLING-006",
       "areaId": "assembling-field",
-      "name": "蜘蛛網",
-      "nameEn": "The Spider Web",
+      "name": "魔腦",
+      "nameEn": "The Fiend Brain",
       "grade": "5.11b",
       "type": "sport",
       "typeEn": "Sport Climbing",
@@ -679,14 +699,14 @@
     {
       "id": "GZ-DOUCILIN-003",
       "areaId": "doucilin",
-      "name": "Yuji's Project",
-      "nameEn": "Yuji's Project",
-      "grade": "5.14a",
+      "name": "毒領風騷",
+      "nameEn": "Clueless",
+      "grade": "5.13d",
       "type": "sport",
       "typeEn": "Sport Climbing",
       "length": "12m",
-      "firstAscent": "Yuji",
-      "firstAscentEn": "Yuji",
+      "firstAscent": "周俊明",
+      "firstAscentEn": "周俊明",
       "description": "路線均勻，極度力量耐力型路線。單一動作難度不超過 V5，但你無法找到一個休息點。",
       "boltCount": 9,
       "status": "published"

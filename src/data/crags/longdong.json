@@ -85,15 +85,6 @@
   },
   "areas": [
     {
-      "id": "music-hall",
-      "name": "音樂廳",
-      "nameEn": "Music Hall",
-      "description": "音樂廳攀登區域",
-      "descriptionEn": "Music Hall climbing area",
-      "boltCount": 149,
-      "routesCount": 103
-    },
-    {
       "id": "school-gate",
       "name": "校門口",
       "nameEn": "School Gate",
@@ -103,15 +94,6 @@
       "routesCount": 51
     },
     {
-      "id": "grand-auditorium",
-      "name": "大禮堂",
-      "nameEn": "Grand Auditorium",
-      "description": "大禮堂攀登區域",
-      "descriptionEn": "Grand Auditorium climbing area",
-      "boltCount": 116,
-      "routesCount": 42
-    },
-    {
       "id": "clocktower",
       "name": "鐘塔",
       "nameEn": "Clocktower",
@@ -119,6 +101,33 @@
       "descriptionEn": "Clocktower climbing area",
       "boltCount": 69,
       "routesCount": 54
+    },
+    {
+      "id": "long-lane",
+      "name": "長巷",
+      "nameEn": "Long Lane",
+      "description": "長巷攀登區域",
+      "descriptionEn": "Long Lane climbing area",
+      "boltCount": 183,
+      "routesCount": 47
+    },
+    {
+      "id": "music-hall",
+      "name": "音樂廳",
+      "nameEn": "Music Hall",
+      "description": "音樂廳攀登區域",
+      "descriptionEn": "Music Hall climbing area",
+      "boltCount": 149,
+      "routesCount": 103
+    },
+    {
+      "id": "grand-auditorium",
+      "name": "大禮堂",
+      "nameEn": "Grand Auditorium",
+      "description": "大禮堂攀登區域",
+      "descriptionEn": "Grand Auditorium climbing area",
+      "boltCount": 116,
+      "routesCount": 42
     },
     {
       "id": "first-cave",
@@ -139,24 +148,6 @@
       "routesCount": 46
     },
     {
-      "id": "back-door",
-      "name": "後門",
-      "nameEn": "Back Door",
-      "description": "後門攀登區域",
-      "descriptionEn": "Back Door climbing area",
-      "boltCount": 435,
-      "routesCount": 105
-    },
-    {
-      "id": "long-lane",
-      "name": "長巷",
-      "nameEn": "Long Lane",
-      "description": "長巷攀登區域",
-      "descriptionEn": "Long Lane climbing area",
-      "boltCount": 183,
-      "routesCount": 47
-    },
-    {
       "id": "golden-valley",
       "name": "黃金谷",
       "nameEn": "Golden Valley",
@@ -164,6 +155,15 @@
       "descriptionEn": "Golden Valley climbing area",
       "boltCount": 284,
       "routesCount": 100
+    },
+    {
+      "id": "back-door",
+      "name": "後門",
+      "nameEn": "Back Door",
+      "description": "後門攀登區域",
+      "descriptionEn": "Back Door climbing area",
+      "boltCount": 435,
+      "routesCount": 105
     }
   ],
   "routes": [
