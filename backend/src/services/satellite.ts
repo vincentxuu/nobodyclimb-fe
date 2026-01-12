@@ -1,8 +1,54 @@
 import { SatelliteImageInfo, SatelliteImageType, SatelliteImageArea, RadarImageInfo, RadarImageType, RadarImageArea } from '../types';
 
 // 中央氣象署衛星雲圖 URL 配置
-// 圖片 URL 格式：https://www.cwa.gov.tw/Data/satellite/{folder}/{filename}.jpg
-// 目前圖片檔名包含時間戳，需先讀取 Observe_sat.js 才能取得最新檔案
+// 圖片 URL 格式：https://www.cwa.gov.tw/Data/satellite/{folder}/{filename}-{timestamp}.jpg
+// 時間戳格式：YYYYMMDDHHMM（向下取整到最近的 10 分鐘）
+
+/**
+ * 計算最近的衛星圖片時間戳
+ * 衛星圖片每 10 分鐘更新一次，取 UTC+8 時間向下取整到最近的 10 分鐘
+ * 由於圖片處理需要時間，減去 20 分鐘以確保圖片已發布
+ */
+function getLatestSatelliteTimestamp(): string {
+  const now = new Date();
+  // 轉換為台灣時間 (UTC+8)
+  const taiwanTime = new Date(now.getTime() + 8 * 60 * 60 * 1000);
+  // 減去 20 分鐘以確保圖片已發布
+  taiwanTime.setMinutes(taiwanTime.getMinutes() - 20);
+  // 向下取整到最近的 10 分鐘
+  const minutes = Math.floor(taiwanTime.getUTCMinutes() / 10) * 10;
+
+  const year = taiwanTime.getUTCFullYear();
+  const month = String(taiwanTime.getUTCMonth() + 1).padStart(2, '0');
+  const day = String(taiwanTime.getUTCDate()).padStart(2, '0');
+  const hour = String(taiwanTime.getUTCHours()).padStart(2, '0');
+  const min = String(minutes).padStart(2, '0');
+
+  return `${year}${month}${day}${hour}${min}`;
+}
+
+/**
+ * 計算最近的雷達圖片時間戳
+ * 雷達圖片每 10 分鐘更新一次，取 UTC+8 時間向下取整到最近的 10 分鐘
+ * 由於圖片處理需要時間，減去 10 分鐘以確保圖片已發布
+ */
+function getLatestRadarTimestamp(): string {
+  const now = new Date();
+  // 轉換為台灣時間 (UTC+8)
+  const taiwanTime = new Date(now.getTime() + 8 * 60 * 60 * 1000);
+  // 減去 10 分鐘以確保圖片已發布
+  taiwanTime.setMinutes(taiwanTime.getMinutes() - 10);
+  // 向下取整到最近的 10 分鐘
+  const minutes = Math.floor(taiwanTime.getUTCMinutes() / 10) * 10;
+
+  const year = taiwanTime.getUTCFullYear();
+  const month = String(taiwanTime.getUTCMonth() + 1).padStart(2, '0');
+  const day = String(taiwanTime.getUTCDate()).padStart(2, '0');
+  const hour = String(taiwanTime.getUTCHours()).padStart(2, '0');
+  const min = String(minutes).padStart(2, '0');
+
+  return `${year}${month}${day}${hour}${min}`;
+}
 
 interface SatelliteUrlConfig {
   folder: string;
@@ -100,9 +146,11 @@ async function fetchSatelliteScript(): Promise<string | null> {
   try {
     const response = await fetch(CWA_SATELLITE_SCRIPT_URL, {
       headers: {
-        'User-Agent': 'NobodyClimb/1.0 (Weather Service)',
-        'Accept': 'application/javascript,text/plain,*/*',
-        'Referer': 'https://www.cwa.gov.tw/',
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+        'Accept': 'application/javascript,text/javascript,*/*;q=0.9',
+        'Accept-Language': 'zh-TW,zh;q=0.9,en;q=0.8',
+        'Referer': 'https://www.cwa.gov.tw/V8/C/W/OBS_Sat.html',
+        'Origin': 'https://www.cwa.gov.tw',
       },
     });
 
@@ -147,6 +195,7 @@ export async function getSatelliteImages(
   const areas: SatelliteImageArea[] = area ? [area] : ['taiwan', 'eastAsia', 'global'];
   const types: SatelliteImageType[] = type ? [type] : ['visible', 'infrared', 'trueColor', 'enhanced'];
   const script = await fetchSatelliteScript();
+  const timestamp = getLatestSatelliteTimestamp();
 
   for (const a of areas) {
     for (const t of types) {
@@ -154,9 +203,10 @@ export async function getSatelliteImages(
       const tab = SATELLITE_TAB_MAP[t];
       const areaKey = SATELLITE_AREA_MAP[a];
       const latest = script ? extractLatestSatellitePath(script, tab, areaKey) : null;
+      // 使用腳本解析的路徑，或使用計算出的時間戳作為 fallback
       const url = latest
         ? `${CWA_SATELLITE_BASE}/${latest.path}`
-        : `${CWA_SATELLITE_BASE}/${config.folder}/${config.filename}.jpg`;
+        : `${CWA_SATELLITE_BASE}/${config.folder}/${config.filename}-${timestamp}.jpg`;
 
       results.push({
         type: t,
@@ -190,31 +240,51 @@ export async function getSatelliteImageProxy(
 
   const script = await fetchSatelliteScript();
   const latest = script ? extractLatestSatellitePath(script, tab, areaKey) : null;
+  const timestamp = getLatestSatelliteTimestamp();
+
+  // 使用腳本解析的路徑，或使用計算出的時間戳作為 fallback
   const url = latest
     ? `${CWA_SATELLITE_BASE}/${latest.path}`
-    : `${CWA_SATELLITE_BASE}/${config.folder}/${config.filename}.jpg`;
+    : `${CWA_SATELLITE_BASE}/${config.folder}/${config.filename}-${timestamp}.jpg`;
 
-  try {
-    console.log(`Fetching satellite image: ${url}`);
-
-    const response = await fetch(url, {
-      headers: {
-        'User-Agent': 'NobodyClimb/1.0 (Weather Service)',
-        'Accept': 'image/jpeg,image/png,image/*',
-        'Referer': 'https://www.cwa.gov.tw/',
-      },
-    });
-
-    if (!response.ok) {
-      console.error(`Failed to fetch satellite image: ${response.status} ${response.statusText}`);
-      return null;
+  // 如果 URL 解析失敗，嘗試多個時間戳（往前最多 3 個時段）
+  const urlsToTry = [url];
+  if (!latest) {
+    // 往前嘗試 10 分鐘和 20 分鐘的時間戳
+    for (let i = 1; i <= 2; i++) {
+      const olderTime = new Date();
+      olderTime.setMinutes(olderTime.getMinutes() - (20 + i * 10));
+      const taiwanTime = new Date(olderTime.getTime() + 8 * 60 * 60 * 1000);
+      const minutes = Math.floor(taiwanTime.getUTCMinutes() / 10) * 10;
+      const olderTimestamp = `${taiwanTime.getUTCFullYear()}${String(taiwanTime.getUTCMonth() + 1).padStart(2, '0')}${String(taiwanTime.getUTCDate()).padStart(2, '0')}${String(taiwanTime.getUTCHours()).padStart(2, '0')}${String(minutes).padStart(2, '0')}`;
+      urlsToTry.push(`${CWA_SATELLITE_BASE}/${config.folder}/${config.filename}-${olderTimestamp}.jpg`);
     }
-
-    return await response.arrayBuffer();
-  } catch (error) {
-    console.error('Error fetching satellite image:', error);
-    return null;
   }
+
+  for (const tryUrl of urlsToTry) {
+    try {
+      console.log(`Fetching satellite image: ${tryUrl}`);
+
+      const response = await fetch(tryUrl, {
+        headers: {
+          'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+          'Accept': 'image/jpeg,image/png,image/webp,image/*,*/*;q=0.8',
+          'Accept-Language': 'zh-TW,zh;q=0.9,en;q=0.8',
+          'Referer': 'https://www.cwa.gov.tw/V8/C/W/OBS_Sat.html',
+        },
+      });
+
+      if (response.ok) {
+        return await response.arrayBuffer();
+      }
+
+      console.error(`Failed to fetch satellite image: ${response.status} ${response.statusText} (URL: ${tryUrl})`);
+    } catch (error) {
+      console.error(`Error fetching satellite image from ${tryUrl}:`, error);
+    }
+  }
+
+  return null;
 }
 
 // ============================================
@@ -273,14 +343,16 @@ export function getRadarImages(
   const results: RadarImageInfo[] = [];
   const areas: RadarImageArea[] = area ? [area] : ['taiwan', 'north', 'south'];
   const types: RadarImageType[] = type ? [type] : ['composite', 'rain'];
+  const timestamp = getLatestRadarTimestamp();
 
   for (const a of areas) {
     for (const t of types) {
       const config = RADAR_URL_CONFIG[a][t];
+      // 雷達圖片 URL 格式：{filename}-{timestamp}.png
       results.push({
         type: t,
         area: a,
-        url: `${CWA_RADAR_BASE}/${config.filename}.png`,
+        url: `${CWA_RADAR_BASE}/${config.filename}-${timestamp}.png`,
         label: config.label,
         updatedAt: new Date().toISOString(),
       });
@@ -305,27 +377,39 @@ export async function getRadarImageProxy(
     return null;
   }
 
-  const url = `${CWA_RADAR_BASE}/${config.filename}.png`;
-
-  try {
-    console.log(`Fetching radar image: ${url}`);
-
-    const response = await fetch(url, {
-      headers: {
-        'User-Agent': 'NobodyClimb/1.0 (Weather Service)',
-        'Accept': 'image/png,image/jpeg,image/*',
-        'Referer': 'https://www.cwa.gov.tw/',
-      },
-    });
-
-    if (!response.ok) {
-      console.error(`Failed to fetch radar image: ${response.status} ${response.statusText}`);
-      return null;
-    }
-
-    return await response.arrayBuffer();
-  } catch (error) {
-    console.error('Error fetching radar image:', error);
-    return null;
+  // 嘗試多個時間戳（往前最多 3 個時段）
+  const urlsToTry: string[] = [];
+  for (let i = 0; i <= 2; i++) {
+    const time = new Date();
+    time.setMinutes(time.getMinutes() - (10 + i * 10));
+    const taiwanTime = new Date(time.getTime() + 8 * 60 * 60 * 1000);
+    const minutes = Math.floor(taiwanTime.getUTCMinutes() / 10) * 10;
+    const ts = `${taiwanTime.getUTCFullYear()}${String(taiwanTime.getUTCMonth() + 1).padStart(2, '0')}${String(taiwanTime.getUTCDate()).padStart(2, '0')}${String(taiwanTime.getUTCHours()).padStart(2, '0')}${String(minutes).padStart(2, '0')}`;
+    urlsToTry.push(`${CWA_RADAR_BASE}/${config.filename}-${ts}.png`);
   }
+
+  for (const tryUrl of urlsToTry) {
+    try {
+      console.log(`Fetching radar image: ${tryUrl}`);
+
+      const response = await fetch(tryUrl, {
+        headers: {
+          'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+          'Accept': 'image/png,image/jpeg,image/webp,image/*,*/*;q=0.8',
+          'Accept-Language': 'zh-TW,zh;q=0.9,en;q=0.8',
+          'Referer': 'https://www.cwa.gov.tw/V8/C/W/OBS_Radar.html',
+        },
+      });
+
+      if (response.ok) {
+        return await response.arrayBuffer();
+      }
+
+      console.error(`Failed to fetch radar image: ${response.status} ${response.statusText} (URL: ${tryUrl})`);
+    } catch (error) {
+      console.error(`Error fetching radar image from ${tryUrl}:`, error);
+    }
+  }
+
+  return null;
 }
