@@ -7,6 +7,7 @@ import { MapPin, Filter, Loader2, Star } from 'lucide-react'
 import BackToTop from '@/components/ui/back-to-top'
 import PlaceholderImage from '@/components/ui/placeholder-image'
 import { Breadcrumb } from '@/components/ui/breadcrumb'
+import { PageHeader } from '@/components/ui/page-header'
 import { searchGyms, type GymListItem } from '@/lib/gym-data'
 
 // 區域篩選選項
@@ -63,16 +64,8 @@ export default function GymListPage() {
   }, [selectedRegion, selectedType])
 
   return (
-    <main className="min-h-screen bg-gray-50">
-      {/* 頂部橫幅 */}
-      <div className="relative h-[30vh] overflow-hidden bg-gray-800 md:h-[40vh]">
-        <PlaceholderImage text="台灣攀岩館" bgColor="#1f2937" textColor="#f9fafb" />
-        <div className="absolute inset-0 bg-gradient-to-b from-transparent to-black opacity-60"></div>
-        <div className="container absolute bottom-0 left-0 right-0 mx-auto p-8 text-white">
-          <h1 className="mb-4 text-4xl font-medium md:text-5xl">岩館介紹</h1>
-          <p className="max-w-3xl text-base md:text-lg">探索台灣各式各樣有趣的岩館</p>
-        </div>
-      </div>
+    <main className="min-h-screen bg-[#f5f5f5]">
+      <PageHeader title="岩館介紹" subtitle="探索台灣各式各樣有趣的岩館" />
 
       <div className="container mx-auto px-4 py-6">
         {/* Breadcrumb */}
