@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { usePathname } from 'next/navigation'
 import Link from 'next/link'
 import { motion, AnimatePresence } from 'framer-motion'
@@ -23,6 +23,11 @@ export default function MobileNav({ isDesktop }: MobileNavProps) {
   const { isNavbarOpen, closeNavbar } = useUIStore()
   const { isAuthenticated, logout, user } = useAuthStore()
   const [avatarError, setAvatarError] = useState(false)
+
+  // 當用戶頭像 URL 變更時重置錯誤狀態
+  useEffect(() => {
+    setAvatarError(false)
+  }, [user?.avatar])
 
   // 假設用戶數據中有 avatarStyle 屬性，否則使用默認頭像
   const avatarStyle = user?.avatarStyle
