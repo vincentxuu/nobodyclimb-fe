@@ -45,6 +45,9 @@ const RADAR_AREAS: { value: RadarImageArea; label: string }[] = [
   { value: 'south', label: '南部' },
 ]
 
+// 預報天數常數
+const FORECAST_DAYS = 7
+
 // 格式化數值顯示，null 時顯示 "--"
 function formatTemp(value: number | null): string {
   return value !== null ? `${value}` : '--'
@@ -224,7 +227,7 @@ export function WeatherDisplay({
         <div className="border-t border-gray-200 pt-4">
           <h4 className="mb-3 text-sm font-medium text-gray-700">未來七天天氣</h4>
           <div className="grid grid-cols-4 gap-2 sm:grid-cols-7">
-            {weather.forecast.slice(0, 7).map((day) => (
+            {weather.forecast.slice(0, FORECAST_DAYS).map((day) => (
               <div
                 key={day.date}
                 className="rounded-lg bg-white p-2 text-center"
