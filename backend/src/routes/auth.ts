@@ -363,6 +363,19 @@ const googleTokenPayloadSchema = z.object({
 authRoutes.post('/google', zValidator('json', googleAuthSchema), async (c) => {
   const { credential } = c.req.valid('json');
 
+  // Validate GOOGLE_CLIENT_ID is configured
+  if (!c.env.GOOGLE_CLIENT_ID) {
+    console.error('GOOGLE_CLIENT_ID environment variable is not configured');
+    return c.json(
+      {
+        success: false,
+        error: 'Configuration Error',
+        message: 'Google OAuth is not properly configured',
+      },
+      500
+    );
+  }
+
   try {
     // Decode and verify the Google ID token using module-level JWKS
     const { payload } = await jose.jwtVerify(credential, GOOGLE_JWKS, {
@@ -517,7 +530,14 @@ authRoutes.post('/google', zValidator('json', googleAuthSchema), async (c) => {
       },
     });
   } catch (error) {
-    console.error('Google auth error:', error);
+    // Log error details for debugging
+    const errorMessage = error instanceof Error ? error.message : String(error);
+    const errorName = error instanceof Error ? error.constructor.name : 'Unknown';
+    console.error('Google auth error:', {
+      name: errorName,
+      message: errorMessage,
+      googleClientId: c.env.GOOGLE_CLIENT_ID ? 'configured' : 'missing',
+    });
 
     // Handle specific JWT verification errors
     if (error instanceof jose.errors.JWTExpired) {
@@ -532,11 +552,53 @@ authRoutes.post('/google', zValidator('json', googleAuthSchema), async (c) => {
     }
 
     if (error instanceof jose.errors.JWTClaimValidationFailed) {
+      // Provide more specific error message for audience mismatch
+      const claim = (error as jose.errors.JWTClaimValidationFailed).claim;
+      console.error('JWT claim validation failed:', { claim, reason: error.reason });
       return c.json(
         {
           success: false,
           error: 'Invalid Token',
-          message: 'Google token validation failed',
+          message: claim === 'aud'
+            ? 'Google token audience mismatch - please check client configuration'
+            : 'Google token validation failed',
+        },
+        401
+      );
+    }
+
+    // Handle JWKS-related errors (network/key issues)
+    if (error instanceof jose.errors.JWKSNoMatchingKey) {
+      console.error('No matching JWK found for token signature');
+      return c.json(
+        {
+          success: false,
+          error: 'Token Verification Failed',
+          message: 'Unable to verify Google token signature',
+        },
+        401
+      );
+    }
+
+    if (error instanceof jose.errors.JWKSTimeout) {
+      console.error('Timeout fetching Google JWKS');
+      return c.json(
+        {
+          success: false,
+          error: 'Service Unavailable',
+          message: 'Unable to verify token, please try again',
+        },
+        503
+      );
+    }
+
+    if (error instanceof jose.errors.JWSSignatureVerificationFailed) {
+      console.error('JWT signature verification failed');
+      return c.json(
+        {
+          success: false,
+          error: 'Invalid Signature',
+          message: 'Google token signature verification failed',
         },
         401
       );
