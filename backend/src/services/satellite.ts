@@ -7,9 +7,10 @@ import { SatelliteImageInfo, SatelliteImageType, SatelliteImageArea, RadarImageI
 /**
  * 計算圖片時間戳的通用函數
  * @param offsetMinutes 延遲分鐘數（用於確保圖片已發布）
- * @returns YYYYMMDDHHMM 格式的時間戳
+ * @param format 時間戳格式：'12' 為 YYYYMMDDHHMM，'10' 為 YYYYMMDDHH
+ * @returns 指定格式的時間戳
  */
-function getLatestImageTimestamp(offsetMinutes: number): string {
+function getLatestImageTimestamp(offsetMinutes: number, format: '10' | '12' = '12'): string {
   const now = new Date();
   // 計算台灣時間（UTC+8），減去指定的延遲分鐘數
   const taiwanMs = now.getTime() + (8 * 60 - offsetMinutes) * 60 * 1000;
@@ -24,7 +25,8 @@ function getLatestImageTimestamp(offsetMinutes: number): string {
   const hour = String(taiwanTime.getUTCHours()).padStart(2, '0');
   const min = String(minutes).padStart(2, '0');
 
-  return `${year}${month}${day}${hour}${min}`;
+  // 10 位數格式 YYYYMMDDHH，12 位數格式 YYYYMMDDHHMM
+  return format === '10' ? `${year}${month}${day}${hour}` : `${year}${month}${day}${hour}${min}`;
 }
 
 /**
@@ -233,21 +235,40 @@ export async function getSatelliteImageProxy(
 
   const script = await fetchSatelliteScript();
   const latest = script ? extractLatestSatellitePath(script, tab, areaKey) : null;
-  const timestamp = getLatestSatelliteTimestamp();
 
-  // 使用腳本解析的路徑，或使用計算出的時間戳作為 fallback
-  const url = latest
-    ? `${CWA_SATELLITE_BASE}/${latest.path}`
-    : `${CWA_SATELLITE_BASE}/${config.folder}/${config.filename}-${timestamp}.jpg`;
-
-  // 如果 URL 解析失敗，嘗試多個時間戳（往前最多 3 個時段）
-  const urlsToTry = [url];
-  if (!latest) {
-    // 往前嘗試 10 分鐘和 20 分鐘的時間戳
-    for (let i = 1; i <= 2; i++) {
-      const olderTimestamp = getLatestImageTimestamp(20 + i * 10);
-      urlsToTry.push(`${CWA_SATELLITE_BASE}/${config.folder}/${config.filename}-${olderTimestamp}.jpg`);
+  // 如果從腳本解析成功，直接使用該路徑
+  if (latest) {
+    const url = `${CWA_SATELLITE_BASE}/${latest.path}`;
+    try {
+      console.log(`Fetching satellite image from script: ${url}`);
+      const response = await fetch(url, {
+        headers: {
+          'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+          'Accept': 'image/jpeg,image/png,image/webp,image/*,*/*;q=0.8',
+          'Accept-Language': 'zh-TW,zh;q=0.9,en;q=0.8',
+          'Referer': 'https://www.cwa.gov.tw/V8/C/W/OBS_Sat.html',
+        },
+      });
+      if (response.ok) {
+        return await response.arrayBuffer();
+      }
+    } catch (error) {
+      console.error(`Error fetching satellite image from script path:`, error);
     }
+  }
+
+  // Fallback：嘗試多個時間戳格式和時段
+  // 先嘗試 10 位數格式 (YYYYMMDDHH)，再嘗試 12 位數格式 (YYYYMMDDHHMM)
+  const urlsToTry: string[] = [];
+  for (let i = 0; i <= 2; i++) {
+    const offset = 20 + i * 10;
+    // 優先嘗試 10 位數格式
+    urlsToTry.push(`${CWA_SATELLITE_BASE}/${config.folder}/${config.filename}-${getLatestImageTimestamp(offset, '10')}.jpg`);
+  }
+  for (let i = 0; i <= 2; i++) {
+    const offset = 20 + i * 10;
+    // 再嘗試 12 位數格式
+    urlsToTry.push(`${CWA_SATELLITE_BASE}/${config.folder}/${config.filename}-${getLatestImageTimestamp(offset, '12')}.jpg`);
   }
 
   for (const tryUrl of urlsToTry) {
@@ -366,11 +387,18 @@ export async function getRadarImageProxy(
     return null;
   }
 
-  // 嘗試多個時間戳（往前最多 3 個時段）
+  // 嘗試多個時間戳格式和時段
+  // 先嘗試 12 位數格式 (YYYYMMDDHHMM)，再嘗試 10 位數格式 (YYYYMMDDHH)
   const urlsToTry: string[] = [];
   for (let i = 0; i <= 2; i++) {
-    const ts = getLatestImageTimestamp(10 + i * 10);
-    urlsToTry.push(`${CWA_RADAR_BASE}/${config.filename}-${ts}.png`);
+    const offset = 10 + i * 10;
+    // 優先嘗試 12 位數格式（雷達更新較頻繁）
+    urlsToTry.push(`${CWA_RADAR_BASE}/${config.filename}-${getLatestImageTimestamp(offset, '12')}.png`);
+  }
+  for (let i = 0; i <= 2; i++) {
+    const offset = 10 + i * 10;
+    // 再嘗試 10 位數格式
+    urlsToTry.push(`${CWA_RADAR_BASE}/${config.filename}-${getLatestImageTimestamp(offset, '10')}.png`);
   }
 
   for (const tryUrl of urlsToTry) {
