@@ -250,6 +250,17 @@ export interface Comment {
   updated_at: string;
 }
 
+// Traffic Camera Types (1968 路況服務)
+export interface CameraData {
+  camid: string;
+  camname: string;
+  camuri: string;
+  location: string;
+  latitude: number;
+  longitude: number;
+  direction?: string;
+}
+
 // API Response Types
 export interface ApiResponse<T> {
   success: boolean;
