@@ -1,6 +1,6 @@
 'use client'
 
-import React, { useState, useEffect, use, useMemo } from 'react'
+import React, { useState, use, useMemo } from 'react'
 import Image from 'next/image'
 import PlaceholderImage from '@/components/ui/placeholder-image'
 import Link from 'next/link'
@@ -8,13 +8,15 @@ import {
   ArrowLeft,
   MapPin,
   Heart,
-  ChevronUp,
 } from 'lucide-react'
 import { motion } from 'framer-motion'
 import { Button } from '@/components/ui/button'
+import BackToTop from '@/components/ui/back-to-top'
 import { CragAreaSection } from '@/components/crag/area-section'
 import { CragRouteSection } from '@/components/crag/route-section'
 import { WeatherDisplay } from '@/components/shared/weather-display'
+import { TrafficCamerasCard } from '@/components/crag/traffic-cameras-card'
+import { YouTubeLiveCard } from '@/components/crag/youtube-live-card'
 import { Breadcrumb } from '@/components/ui/breadcrumb'
 import { useRouter } from 'next/navigation'
 import * as Tabs from '@radix-ui/react-tabs'
@@ -22,7 +24,6 @@ import { getCragDetailData } from '@/lib/crag-data'
 
 export default function CragDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = use(params)
-  const [isVisible, setIsVisible] = useState(false)
   const [activeTab, setActiveTab] = useState('intro')
   const [selectedAreaFilter, setSelectedAreaFilter] = useState<string>('all')
   const router = useRouter()
@@ -46,28 +47,6 @@ export default function CragDetailPage({ params }: { params: Promise<{ id: strin
   const handleAreaClick = (areaName: string) => {
     setSelectedAreaFilter(areaName)
     setActiveTab('routes')
-  }
-
-  // 監聽滾動事件
-  useEffect(() => {
-    const toggleVisibility = () => {
-      if (window.scrollY > 300) {
-        setIsVisible(true)
-      } else {
-        setIsVisible(false)
-      }
-    }
-
-    window.addEventListener('scroll', toggleVisibility)
-    return () => window.removeEventListener('scroll', toggleVisibility)
-  }, [])
-
-  // 回到頂部
-  const scrollToTop = () => {
-    window.scrollTo({
-      top: 0,
-      behavior: 'smooth',
-    })
   }
 
   if (!currentCrag) {
@@ -285,6 +264,27 @@ export default function CragDetailPage({ params }: { params: Promise<{ id: strin
                     ))}
                   </div>
                 </div>
+
+                {/* 即時路況與影像 - 根據資料欄位決定是否顯示 */}
+                {currentCrag.liveVideoId && (
+                  <div className="mb-6">
+                    <div className="mb-1">
+                      <h2 className="text-lg font-medium text-orange-500">即時路況與影像</h2>
+                      <div className="h-px w-full bg-gray-200"></div>
+                    </div>
+                    <div className="mt-4 grid grid-cols-1 gap-6 lg:grid-cols-2">
+                      <TrafficCamerasCard
+                        latitude={currentCrag.geoCoordinates.latitude}
+                        longitude={currentCrag.geoCoordinates.longitude}
+                      />
+                      <YouTubeLiveCard
+                        videoId={currentCrag.liveVideoId}
+                        title={currentCrag.liveVideoTitle}
+                        description={currentCrag.liveVideoDescription}
+                      />
+                    </div>
+                  </div>
+                )}
               </Tabs.Content>
 
               <Tabs.Content value="areas">
@@ -331,15 +331,7 @@ export default function CragDetailPage({ params }: { params: Promise<{ id: strin
       </div>
 
       {/* 回到頂部按鈕 */}
-      {isVisible && (
-        <button
-          onClick={scrollToTop}
-          className="fixed bottom-6 right-4 z-40 rounded-full bg-[#1B1A1A] p-2 text-white shadow-lg transition-all duration-300 hover:bg-black md:bottom-10 md:right-8 md:p-3"
-          aria-label="回到頂部"
-        >
-          <ChevronUp size={20} className="md:h-6 md:w-6" />
-        </button>
-      )}
+      <BackToTop />
     </main>
   )
 }

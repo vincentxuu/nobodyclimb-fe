@@ -2,6 +2,7 @@ import React from 'react'
 import Image from 'next/image'
 import Link from 'next/link'
 import { useSearchParams, useRouter } from 'next/navigation'
+import { Search, MapPin } from 'lucide-react'
 import { articles } from '@/lib/constants/articles'
 
 // Define the type for the ID mapping
@@ -29,15 +30,9 @@ export default function SearchResults() {
     return (
       <div className="py-12 text-center">
         <div className="mb-6">
-          <Image
-            src="/icon/icon_search.svg"
-            width={48}
-            height={48}
-            alt="no results"
-            className="mx-auto"
-          />
+          <Search className="mx-auto h-12 w-12 text-muted-foreground" />
         </div>
-        <p className="text-xl font-medium text-[#B6B3B3]">搜尋不到任何結果</p>
+        <p className="text-xl font-medium text-muted-foreground">搜尋不到任何結果</p>
       </div>
     )
   }
@@ -101,20 +96,20 @@ export default function SearchResults() {
                 />
               </div>
               <div className="flex flex-1 flex-col">
-                <h2 className="mb-3 text-[26px] font-medium text-[#1B1A1A]">{article.title}</h2>
+                <h2 className="mb-3 text-[26px] font-medium text-foreground">{article.title}</h2>
                 <div className="mb-3 flex items-center gap-3">
-                  <span className="rounded bg-[#3F3D3D] px-3 py-1 text-sm text-white">
+                  <span className="rounded bg-foreground px-3 py-1 text-sm text-white">
                     {article.category}
                   </span>
-                  <span className="text-sm text-[#6D6C6C]">{article.date}</span>
+                  <span className="text-sm text-muted-foreground">{article.date}</span>
                   {article.location && (
                     <div className="flex items-center gap-1">
-                      <Image src="/icon/pin-alt.svg" width={16} height={16} alt="location" />
-                      <span className="text-sm text-[#6D6C6C]">{article.location}</span>
+                      <MapPin className="h-4 w-4 text-muted-foreground" />
+                      <span className="text-sm text-muted-foreground">{article.location}</span>
                     </div>
                   )}
                 </div>
-                <p className="line-clamp-3 text-base text-[#1B1A1A]">{article.description}</p>
+                <p className="line-clamp-3 text-base text-foreground">{article.description}</p>
               </div>
             </div>
           </Link>

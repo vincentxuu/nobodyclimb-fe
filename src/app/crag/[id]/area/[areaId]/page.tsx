@@ -1,10 +1,11 @@
 'use client'
 
-import React, { useState, useEffect, use } from 'react'
+import React, { use } from 'react'
 import Link from 'next/link'
-import { ArrowLeft, MapPin, ChevronUp, Mountain, Route as RouteIcon } from 'lucide-react'
+import { ArrowLeft, MapPin, Mountain, Route as RouteIcon } from 'lucide-react'
 import { motion } from 'framer-motion'
 import { Button } from '@/components/ui/button'
+import BackToTop from '@/components/ui/back-to-top'
 import { Breadcrumb } from '@/components/ui/breadcrumb'
 import { CragRouteSection } from '@/components/crag/route-section'
 import { GradeDistributionChart } from '@/components/crag/grade-distribution-chart'
@@ -17,32 +18,9 @@ export default function AreaDetailPage({
   params: Promise<{ id: string; areaId: string }>
 }) {
   const { id: cragId, areaId } = use(params)
-  const [isVisible, setIsVisible] = useState(false)
 
   // 從資料服務層讀取岩區資料
   const areaData = getAreaDetailData(cragId, areaId)
-
-  // 監聽滾動事件
-  useEffect(() => {
-    const toggleVisibility = () => {
-      if (window.scrollY > 300) {
-        setIsVisible(true)
-      } else {
-        setIsVisible(false)
-      }
-    }
-
-    window.addEventListener('scroll', toggleVisibility)
-    return () => window.removeEventListener('scroll', toggleVisibility)
-  }, [])
-
-  // 回到頂部
-  const scrollToTop = () => {
-    window.scrollTo({
-      top: 0,
-      behavior: 'smooth',
-    })
-  }
 
   if (!areaData) {
     return (
@@ -232,15 +210,7 @@ export default function AreaDetailPage({
       </div>
 
       {/* 回到頂部按鈕 */}
-      {isVisible && (
-        <button
-          onClick={scrollToTop}
-          className="fixed bottom-6 right-4 z-40 rounded-full bg-[#1B1A1A] p-2 text-white shadow-lg transition-all duration-300 hover:bg-black md:bottom-10 md:right-8 md:p-3"
-          aria-label="回到頂部"
-        >
-          <ChevronUp size={20} className="md:h-6 md:w-6" />
-        </button>
-      )}
+      <BackToTop />
     </main>
   )
 }

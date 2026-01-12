@@ -52,6 +52,9 @@ export interface CragData {
   description: string
   descriptionEn: string
   videoUrl?: string
+  liveVideoId?: string
+  liveVideoTitle?: string
+  liveVideoDescription?: string
   images?: string[]
   type: string
   rockType: string
@@ -442,6 +445,9 @@ export function getCragDetailData(id: string) {
     location: crag.location.address,
     description: crag.description,
     videoUrl: crag.videoUrl || '',
+    liveVideoId: crag.liveVideoId,
+    liveVideoTitle: crag.liveVideoTitle,
+    liveVideoDescription: crag.liveVideoDescription,
     images: crag.images && crag.images.length > 0 ? crag.images : defaultImages,
     type: crag.rockType,
     rockType: crag.rockType,

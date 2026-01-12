@@ -7,6 +7,7 @@ import { motion } from 'framer-motion'
 import { Filter, MapPin, Calendar, Clock, ChevronUp, ChevronDown } from 'lucide-react'
 import { Breadcrumb } from '@/components/ui/breadcrumb'
 import { PageHeader } from '@/components/ui/page-header'
+import BackToTop from '@/components/ui/back-to-top'
 import { getAllCrags } from '@/lib/crag-data'
 
 // 從資料服務層讀取岩場資料
@@ -350,16 +351,8 @@ export default function CragListPage() {
         )}
       </div>
 
-      {/* 使用自定義的回到頂部按鈕，調整顏色 */}
-      <div className="fixed bottom-8 right-8 z-40">
-        <button
-          onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
-          className="rounded-full bg-[#1B1A1A] p-3 text-white shadow-lg transition-all duration-300 hover:bg-black"
-          aria-label="回到頂部"
-        >
-          <ChevronUp size={24} />
-        </button>
-      </div>
+      {/* 回到頂部按鈕 */}
+      <BackToTop />
     </main>
   )
 }
