@@ -4,6 +4,7 @@ import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { Eye, EyeOff, Mail, Lock, User, ArrowLeft, UserPlus } from 'lucide-react'
+import { GoogleLogin, CredentialResponse } from '@react-oauth/google'
 import { useAuth } from '@/lib/hooks/useAuth'
 import { Button } from '@/components/ui/button'
 import { PageTransition } from '@/components/shared/page-transition'
@@ -13,7 +14,7 @@ import { PageTransition } from '@/components/shared/page-transition'
  */
 export default function RegisterPage() {
   const router = useRouter()
-  const { register, loading } = useAuth()
+  const { register, loginWithGoogle, loading } = useAuth()
 
   const [username, setUsername] = useState('')
   const [email, setEmail] = useState('')
@@ -21,6 +22,33 @@ export default function RegisterPage() {
   const [confirmPassword, setConfirmPassword] = useState('')
   const [showPassword, setShowPassword] = useState(false)
   const [error, setError] = useState('')
+
+  // 處理Google註冊/登入成功
+  const handleGoogleSuccess = async (credentialResponse: CredentialResponse) => {
+    try {
+      if (!credentialResponse.credential) {
+        setError('無法取得 Google 認證資訊')
+        return
+      }
+
+      const result = await loginWithGoogle(credentialResponse.credential)
+      if (result.success) {
+        setTimeout(() => {
+          router.push('/')
+        }, 100)
+      } else {
+        setError(result.error || 'Google 註冊失敗')
+      }
+    } catch (err) {
+      console.error('Google註冊失敗', err)
+      setError('Google註冊過程中發生錯誤')
+    }
+  }
+
+  // 處理Google登入失敗
+  const handleGoogleError = () => {
+    setError('Google 註冊失敗，請稍後再試')
+  }
 
   // 處理表單提交
   const handleSubmit = async (e: React.FormEvent) => {
@@ -151,6 +179,18 @@ export default function RegisterPage() {
               <div className="flex-grow border-t border-border"></div>
               <div className="mx-4 text-xs text-muted-foreground">或</div>
               <div className="flex-grow border-t border-border"></div>
+            </div>
+
+            <div className="flex justify-center">
+              <GoogleLogin
+                onSuccess={handleGoogleSuccess}
+                onError={handleGoogleError}
+                theme="outline"
+                size="large"
+                width="100%"
+                text="signup_with"
+                shape="rectangular"
+              />
             </div>
 
             <div className="text-center text-sm">

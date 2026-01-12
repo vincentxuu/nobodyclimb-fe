@@ -30,6 +30,8 @@ jobs:
 
       - name: Build for Cloudflare
         run: pnpm run build:cf
+        env:
+          NEXT_PUBLIC_GOOGLE_CLIENT_ID: ${{ secrets.GOOGLE_CLIENT_ID }}
 
       - name: Deploy to Cloudflare Workers
         uses: cloudflare/wrangler-action@v3

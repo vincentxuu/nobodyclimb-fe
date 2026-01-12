@@ -9,7 +9,7 @@ CREATE TABLE IF NOT EXISTS users (
   id TEXT PRIMARY KEY,
   email TEXT UNIQUE NOT NULL,
   username TEXT UNIQUE NOT NULL,
-  password_hash TEXT NOT NULL,
+  password_hash TEXT,
   display_name TEXT,
   avatar_url TEXT,
   bio TEXT,
@@ -19,9 +19,13 @@ CREATE TABLE IF NOT EXISTS users (
   role TEXT DEFAULT 'user' CHECK (role IN ('user', 'admin', 'moderator')),
   is_active INTEGER DEFAULT 1,
   email_verified INTEGER DEFAULT 0,
+  google_id TEXT UNIQUE,
+  auth_provider TEXT DEFAULT 'local' CHECK (auth_provider IN ('local', 'google')),
   created_at TEXT DEFAULT (datetime('now')),
   updated_at TEXT DEFAULT (datetime('now'))
 );
+
+CREATE INDEX IF NOT EXISTS idx_users_google_id ON users(google_id);
 
 CREATE INDEX IF NOT EXISTS idx_users_email ON users(email);
 CREATE INDEX IF NOT EXISTS idx_users_username ON users(username);

@@ -132,31 +132,55 @@ export const useAuthStore = create<AuthState>()(
         }
       },
 
-      loginWithGoogle: async (token) => {
+      loginWithGoogle: async (credential) => {
         set({ isLoading: true, error: null })
         try {
-          // 向後端 API 發送 Google 令牌
-          const response = await axios.post(`${API_BASE_URL}/auth/google`, { token })
+          // 向後端 API 發送 Google credential (ID token)
+          const loginResponse = await axios.post<ApiResponse<AuthTokenResponse>>(
+            `${API_BASE_URL}/auth/google`,
+            { credential }
+          )
 
-          // 從回應中獲取用戶信息和 Token
-          const { user, token: authToken } = response.data
+          if (!loginResponse.data.success || !loginResponse.data.data) {
+            throw new Error(loginResponse.data.message || 'Google 登入失敗')
+          }
 
-          // 設置 token (同時使用 cookie 和 localStorage 以支援 Android WebView)
-          // Google 登入沒有 refresh token，所以設置較長的過期時間 (7 天)
-          setAccessToken(authToken, 7)
+          const { access_token, refresh_token } = loginResponse.data.data
+
+          // 儲存 tokens (同時使用 cookie 和 localStorage 以支援 Android WebView)
+          setTokens(access_token, refresh_token)
+
+          // 使用 access_token 取得用戶資料
+          const userResponse = await axios.get<ApiResponse<BackendUser>>(
+            `${API_BASE_URL}/auth/me`,
+            { headers: { Authorization: `Bearer ${access_token}` } }
+          )
+
+          if (!userResponse.data.success || !userResponse.data.data) {
+            throw new Error('無法取得用戶資料')
+          }
+
+          // 轉換後端 User 格式為前端格式
+          const user = mapBackendUserToUser(userResponse.data.data)
 
           // 更新狀態
           set({
             user,
-            token: authToken,
+            token: access_token,
             isAuthenticated: true,
             isLoading: false,
+            error: null,
           })
         } catch (error) {
           // 處理錯誤
-          const errorMessage = axios.isAxiosError(error)
-            ? error.response?.data?.message || 'Google 登入失敗'
-            : 'Google 登入過程中發生錯誤'
+          let errorMessage = 'Google 登入過程中發生錯誤'
+
+          if (axios.isAxiosError(error)) {
+            const data = error.response?.data
+            errorMessage = data?.message || data?.error || `Google 登入失敗 (${error.response?.status || 'Network Error'})`
+          } else if (error instanceof Error) {
+            errorMessage = error.message
+          }
 
           set({
             error: errorMessage,
