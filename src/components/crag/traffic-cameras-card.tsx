@@ -5,6 +5,7 @@ import { Camera, ExternalLink, Loader2, AlertCircle } from 'lucide-react'
 import { API_BASE_URL } from '@/lib/constants'
 
 const MAX_CAMERAS_TO_SHOW = 6
+const TRAFFIC_CAMERA_SERVICE_URL = 'https://1968.freeway.gov.tw/roadcctv'
 
 interface CameraData {
   camid: string
@@ -99,7 +100,7 @@ export const TrafficCamerasCard: React.FC<TrafficCamerasCardProps> = ({
             {serviceMessage || '附近沒有可用的路況攝影機'}
           </p>
           <a
-            href="https://www.1968.gov.tw/"
+            href={TRAFFIC_CAMERA_SERVICE_URL}
             target="_blank"
             rel="noopener noreferrer"
             className="mt-2 flex items-center gap-1 text-sm text-blue-500 hover:text-blue-700"
@@ -120,7 +121,7 @@ export const TrafficCamerasCard: React.FC<TrafficCamerasCardProps> = ({
           即時路況攝影機
         </h3>
         <a
-          href="https://www.1968.gov.tw/"
+          href={TRAFFIC_CAMERA_SERVICE_URL}
           target="_blank"
           rel="noopener noreferrer"
           className="flex items-center gap-1 text-sm text-gray-500 hover:text-gray-700"
@@ -133,38 +134,61 @@ export const TrafficCamerasCard: React.FC<TrafficCamerasCardProps> = ({
       {/* 選中的攝影機影像 */}
       {selectedCamera && (
         <div className="mb-4">
-          <div className="relative aspect-video w-full overflow-hidden rounded-lg bg-gray-900">
+          <a
+            href={TRAFFIC_CAMERA_SERVICE_URL}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="group relative block aspect-video w-full overflow-hidden rounded-lg bg-gray-900"
+          >
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img
               src={selectedCamera.camuri}
               alt={selectedCamera.camname}
-              className="h-full w-full object-cover"
+              className="h-full w-full object-cover transition-opacity group-hover:opacity-80"
               onError={(e) => {
                 const target = e.target as HTMLImageElement
-                target.src = 'data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" width="400" height="300"%3E%3Crect fill="%23333" width="400" height="300"/%3E%3Ctext fill="%23999" font-family="sans-serif" font-size="14" x="50%25" y="50%25" text-anchor="middle"%3E無法載入影像%3C/text%3E%3C/svg%3E'
+                target.src = 'data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" width="400" height="300"%3E%3Crect fill="%23333" width="400" height="300"/%3E%3Ctext fill="%23999" font-family="sans-serif" font-size="14" x="50%25" y="50%25" text-anchor="middle"%3E點擊前往 1968 查看%3C/text%3E%3C/svg%3E'
               }}
             />
+            <div className="absolute inset-0 flex items-center justify-center bg-black/0 transition-colors group-hover:bg-black/30">
+              <span className="rounded-full bg-white/90 px-3 py-1 text-sm font-medium text-gray-800 opacity-0 transition-opacity group-hover:opacity-100">
+                點擊查看即時影像
+              </span>
+            </div>
+          </a>
+          <div className="mt-2 flex items-center justify-between">
+            <p className="text-sm text-gray-600">
+              {selectedCamera.camname}
+              {selectedCamera.direction && ` - ${selectedCamera.direction}`}
+            </p>
+            <a
+              href={TRAFFIC_CAMERA_SERVICE_URL}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="flex items-center gap-1 text-xs text-blue-500 hover:text-blue-700"
+            >
+              前往 1968 查看
+              <ExternalLink size={12} />
+            </a>
           </div>
-          <p className="mt-2 text-sm text-gray-600">
-            {selectedCamera.camname}
-            {selectedCamera.direction && ` - ${selectedCamera.direction}`}
-          </p>
         </div>
       )}
 
       {/* 攝影機列表 */}
       <div className="grid grid-cols-3 gap-2">
         {cameras.map((camera) => (
-          <button
+          <div
             key={camera.camid}
-            onClick={() => setSelectedCamera(camera)}
             className={`overflow-hidden rounded-lg border-2 transition-all ${
               selectedCamera?.camid === camera.camid
                 ? 'border-[#FFE70C]'
                 : 'border-transparent hover:border-gray-300'
             }`}
           >
-            <div className="relative aspect-video w-full bg-gray-800">
+            <button
+              onClick={() => setSelectedCamera(camera)}
+              className="relative aspect-video w-full bg-gray-800"
+            >
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img
                 src={camera.camuri}
@@ -172,14 +196,20 @@ export const TrafficCamerasCard: React.FC<TrafficCamerasCardProps> = ({
                 className="h-full w-full object-cover"
                 onError={(e) => {
                   const target = e.target as HTMLImageElement
-                  target.src = 'data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" width="200" height="150"%3E%3Crect fill="%23333" width="200" height="150"/%3E%3Ctext fill="%23666" font-family="sans-serif" font-size="12" x="50%25" y="50%25" text-anchor="middle"%3E無影像%3C/text%3E%3C/svg%3E'
+                  target.src = 'data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" width="200" height="150"%3E%3Crect fill="%23333" width="200" height="150"/%3E%3Ctext fill="%23666" font-family="sans-serif" font-size="10" x="50%25" y="50%25" text-anchor="middle"%3E點擊選取%3C/text%3E%3C/svg%3E'
                 }}
               />
-            </div>
-            <p className="truncate bg-gray-100 px-2 py-1 text-xs text-gray-600">
+            </button>
+            <a
+              href={TRAFFIC_CAMERA_SERVICE_URL}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="block truncate bg-gray-100 px-2 py-1 text-xs text-gray-600 hover:bg-gray-200 hover:text-blue-600"
+              title={`前往 1968 查看 ${camera.camname}`}
+            >
               {camera.camname}
-            </p>
-          </button>
+            </a>
+          </div>
         ))}
       </div>
     </div>

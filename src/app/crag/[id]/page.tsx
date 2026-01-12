@@ -271,26 +271,26 @@ export default function CragDetailPage({ params }: { params: Promise<{ id: strin
                   </div>
                 </div>
 
-                {/* 即時路況與影像 - 根據資料欄位決定是否顯示 */}
-                {currentCrag.liveVideoId && (
-                  <div className="mb-6">
-                    <div className="mb-1">
-                      <h2 className="text-lg font-medium text-orange-500">即時路況與影像</h2>
-                      <div className="h-px w-full bg-gray-200"></div>
-                    </div>
-                    <div className="mt-4 grid grid-cols-1 gap-6 lg:grid-cols-2">
-                      <TrafficCamerasCard
-                        latitude={currentCrag.geoCoordinates.latitude}
-                        longitude={currentCrag.geoCoordinates.longitude}
-                      />
+                {/* 即時路況與影像 - 路況攝影機基於經緯度，YouTube 直播需要有 liveVideoId */}
+                <div className="mb-6">
+                  <div className="mb-1">
+                    <h2 className="text-lg font-medium text-orange-500">即時路況與影像</h2>
+                    <div className="h-px w-full bg-gray-200"></div>
+                  </div>
+                  <div className={`mt-4 grid grid-cols-1 gap-6 ${currentCrag.liveVideoId ? 'lg:grid-cols-2' : ''}`}>
+                    <TrafficCamerasCard
+                      latitude={currentCrag.geoCoordinates.latitude}
+                      longitude={currentCrag.geoCoordinates.longitude}
+                    />
+                    {currentCrag.liveVideoId && (
                       <YouTubeLiveCard
                         videoId={currentCrag.liveVideoId}
                         title={currentCrag.liveVideoTitle}
                         description={currentCrag.liveVideoDescription}
                       />
-                    </div>
+                    )}
                   </div>
-                )}
+                </div>
               </Tabs.Content>
 
               <Tabs.Content value="areas">
