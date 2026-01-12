@@ -101,6 +101,31 @@ function extractDistrict(location: string): string | null {
   return null;
 }
 
+function normalizeLocationName(value: string): string {
+  return value.replace('臺', '台').replace(/\s+/g, '');
+}
+
+function findLocationByDistrict(
+  locations: CwaLocationWeather[],
+  district: string | null
+): CwaLocationWeather | null {
+  if (!district) return null;
+  const normalizedDistrict = normalizeLocationName(district);
+  const exactMatch = locations.find(
+    location => normalizeLocationName(location.locationName) === normalizedDistrict
+  );
+  if (exactMatch) return exactMatch;
+
+  const trimmedDistrict = normalizedDistrict.replace(/[區鄉鎮市]$/, '');
+  return (
+    locations.find(
+      location =>
+        normalizeLocationName(location.locationName).replace(/[區鄉鎮市]$/, '') ===
+        trimmedDistrict
+    ) || null
+  );
+}
+
 // 安全地解析數值，無法解析時回傳 null
 function parseNumber(value: string | undefined): number | null {
   if (!value) return null;
@@ -211,6 +236,19 @@ export async function getWeatherByLocation(
     if (locations.length === 0) {
       console.warn(`No weather data found for: ${displayCity} ${district || ''}`);
 
+      // 針對指定區域查不到資料時，改用縣市資料並自行匹配區域名稱
+      if (city && district) {
+        const fallbackData = await fetchCityForecast(env, datasetId, displayCity, district, location);
+        if (fallbackData) {
+          try {
+            await env.CACHE.put(cacheKey, JSON.stringify(fallbackData), { expirationTtl: 1800 });
+          } catch (cacheWriteError) {
+            console.error('Weather cache write error on city fallback:', cacheWriteError);
+          }
+        }
+        return fallbackData;
+      }
+
       // 備援策略：
       // 1. 若查詢特定區域失敗，嘗試使用預設區域
       if (city && !useDefaultDistrict && !district) {
@@ -236,7 +274,15 @@ export async function getWeatherByLocation(
       return null;
     }
 
-    const locationData = locations[0];
+    let locationData = locations[0];
+    if (district) {
+      const matched = findLocationByDistrict(locations, district);
+      if (matched) {
+        locationData = matched;
+      } else {
+        console.warn(`No district match found in city data: city="${displayCity}", district="${district}"`);
+      }
+    }
     // 從 API 回傳的資料中取得實際的區域名稱
     const actualDistrict = locationData.locationName || district;
     // 傳入原始地址以保留完整的地點名稱
@@ -308,6 +354,60 @@ async function fetchTaiwanForecast(
     return weatherData;
   } catch (error) {
     console.error('Failed to fetch Taiwan forecast:', error);
+    return null;
+  }
+}
+
+// 使用縣市資料並自行匹配區域名稱（避免 locationName 過濾失敗只回 36 小時預報）
+async function fetchCityForecast(
+  env: Env,
+  datasetId: string,
+  displayCity: string,
+  district: string,
+  originalLocation?: string
+): Promise<WeatherData | null> {
+  try {
+    const url = new URL(`${CWA_API_BASE}/${datasetId}`);
+    url.searchParams.set('Authorization', env.CWA_API_KEY);
+    url.searchParams.set('format', 'JSON');
+
+    console.log(`Fetching city forecast without locationName: ${datasetId}`);
+    const response = await fetch(url.toString());
+    if (!response.ok) {
+      console.error(`City forecast API error: ${response.status} ${response.statusText}`);
+      return null;
+    }
+
+    const data = (await response.json()) as {
+      success: string;
+      records: {
+        locations?: Array<{
+          location: CwaLocationWeather[];
+        }>;
+        location?: CwaLocationWeather[];
+      };
+    };
+
+    if (data.success !== 'true') {
+      console.error('City forecast API returned unsuccessful response');
+      return null;
+    }
+
+    const locations = data.records.locations?.[0]?.location || data.records.location || [];
+    if (locations.length === 0) {
+      console.warn('No city forecast data found');
+      return null;
+    }
+
+    const matchedLocation = findLocationByDistrict(locations, district);
+    if (!matchedLocation) {
+      console.warn(`No district match found in city forecast: city="${displayCity}", district="${district}"`);
+      return null;
+    }
+    const actualDistrict = matchedLocation.locationName || district;
+    return parseWeatherData(matchedLocation, displayCity, actualDistrict, originalLocation);
+  } catch (error) {
+    console.error('Failed to fetch city forecast:', error);
     return null;
   }
 }
