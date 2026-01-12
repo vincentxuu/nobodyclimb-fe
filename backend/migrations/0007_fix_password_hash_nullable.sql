@@ -2,6 +2,11 @@
 -- Date: 2026-01-12
 -- Issue: SQLite doesn't support ALTER COLUMN, so we need to recreate the table
 
+-- Disable foreign key checks for safe table recreation
+PRAGMA foreign_keys=off;
+
+BEGIN TRANSACTION;
+
 -- Step 1: Create new table with password_hash as nullable
 CREATE TABLE IF NOT EXISTS users_new (
   id TEXT PRIMARY KEY,
@@ -14,8 +19,8 @@ CREATE TABLE IF NOT EXISTS users_new (
   role TEXT DEFAULT 'user' CHECK (role IN ('user', 'admin', 'moderator')),
   is_active INTEGER DEFAULT 1,
   email_verified INTEGER DEFAULT 0,
-  google_id TEXT,
-  auth_provider TEXT DEFAULT 'local',
+  google_id TEXT UNIQUE,
+  auth_provider TEXT DEFAULT 'local' CHECK (auth_provider IN ('local', 'google')),
   created_at TEXT DEFAULT (datetime('now')),
   updated_at TEXT DEFAULT (datetime('now')),
   climbing_start_year TEXT,
@@ -41,7 +46,11 @@ DROP TABLE users;
 -- Step 4: Rename new table to users
 ALTER TABLE users_new RENAME TO users;
 
--- Step 5: Recreate indexes
+-- Step 5: Recreate indexes (google_id UNIQUE is already in table definition)
 CREATE INDEX IF NOT EXISTS idx_users_email ON users(email);
 CREATE INDEX IF NOT EXISTS idx_users_username ON users(username);
-CREATE UNIQUE INDEX IF NOT EXISTS idx_users_google_id ON users(google_id);
+
+COMMIT;
+
+-- Re-enable foreign key checks
+PRAGMA foreign_keys=on;
