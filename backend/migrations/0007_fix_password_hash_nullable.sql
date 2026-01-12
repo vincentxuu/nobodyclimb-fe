@@ -1,11 +1,10 @@
 -- Migration: Make password_hash nullable for OAuth users
 -- Date: 2026-01-12
 -- Issue: SQLite doesn't support ALTER COLUMN, so we need to recreate the table
+-- Note: D1 automatically wraps migrations in transactions, so we don't use BEGIN/COMMIT
 
 -- Disable foreign key checks for safe table recreation
 PRAGMA foreign_keys=off;
-
-BEGIN TRANSACTION;
 
 -- Step 1: Create new table with password_hash as nullable
 CREATE TABLE IF NOT EXISTS users_new (
@@ -49,8 +48,6 @@ ALTER TABLE users_new RENAME TO users;
 -- Step 5: Recreate indexes (google_id UNIQUE is already in table definition)
 CREATE INDEX IF NOT EXISTS idx_users_email ON users(email);
 CREATE INDEX IF NOT EXISTS idx_users_username ON users(username);
-
-COMMIT;
 
 -- Re-enable foreign key checks
 PRAGMA foreign_keys=on;

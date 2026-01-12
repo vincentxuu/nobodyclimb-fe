@@ -120,7 +120,7 @@ jobs:
         with:
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           workingDirectory: backend
-          wranglerVersion: "3.114.16"
+          wranglerVersion: "4"
           command: deploy --config wrangler.toml --env ${{ steps.env.outputs.environment }}
         env:
           JWT_SECRET: ${{ secrets.JWT_SECRET }}
@@ -147,7 +147,7 @@ jobs:
         with:
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           workingDirectory: backend
-          wranglerVersion: "3.114.16"
+          wranglerVersion: "4"
           command: d1 migrations apply nobodyclimb-db --remote --config wrangler.toml --env production
 
       - name: Apply D1 Migrations (Preview)
@@ -156,5 +156,5 @@ jobs:
         with:
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           workingDirectory: backend
-          wranglerVersion: "3.114.16"
+          wranglerVersion: "4"
           command: d1 migrations apply nobodyclimb-db-preview --remote --config wrangler.toml --env preview
