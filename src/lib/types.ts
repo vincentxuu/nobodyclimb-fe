@@ -95,6 +95,51 @@ export interface Post {
 }
 
 /**
+ * 文章分類 (URL 參數值)
+ */
+export type PostCategory =
+  | 'beginner'
+  | 'news'
+  | 'gear'
+  | 'skills'
+  | 'training'
+  | 'routes'
+  | 'crags'
+  | 'gyms'
+  | 'travel'
+  | 'competition'
+  | 'events'
+  | 'community'
+  | 'injury'
+
+/**
+ * 文章分類選項（含顯示名稱）
+ */
+export const POST_CATEGORIES: { value: PostCategory; label: string }[] = [
+  { value: 'beginner', label: '新手入門' },
+  { value: 'news', label: '新聞動態' },
+  { value: 'gear', label: '裝備分享' },
+  { value: 'skills', label: '技巧分享' },
+  { value: 'training', label: '訓練計畫' },
+  { value: 'routes', label: '路線攻略' },
+  { value: 'crags', label: '岩場開箱' },
+  { value: 'gyms', label: '岩館開箱' },
+  { value: 'travel', label: '攀岩旅遊' },
+  { value: 'competition', label: '賽事介紹' },
+  { value: 'events', label: '活動介紹' },
+  { value: 'community', label: '社群資源' },
+  { value: 'injury', label: '傷害防護' },
+]
+
+/**
+ * 根據分類值取得顯示標籤
+ */
+export const getCategoryLabel = (value: PostCategory | null | undefined): string => {
+  if (!value) return ''
+  return POST_CATEGORIES.find((c) => c.value === value)?.label || value
+}
+
+/**
  * 後端文章資料格式 (snake_case)
  */
 export interface BackendPost {
@@ -105,6 +150,7 @@ export interface BackendPost {
   excerpt: string | null
   content: string
   cover_image: string | null
+  category: PostCategory | null
   status: 'draft' | 'published' | 'archived'
   is_featured: number
   view_count: number

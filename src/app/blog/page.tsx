@@ -7,12 +7,15 @@ import { useRouter, useSearchParams } from 'next/navigation'
 import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
 import { Search, ChevronLeft, ChevronRight, Loader2, FileText } from 'lucide-react'
-import { Article, ArticleCategory } from '@/mocks/articles'
+import { Article } from '@/mocks/articles'
 import { Breadcrumb } from '@/components/ui/breadcrumb'
 import { motion } from 'framer-motion'
 import { postService } from '@/lib/api/services'
-import { BackendPost } from '@/lib/types'
+import { PostCategory, POST_CATEGORIES, getCategoryLabel } from '@/lib/types'
 import { generateSummary } from '@/lib/utils/article'
+
+// 分類顯示名稱（包含「所有文章」）
+type DisplayCategory = '所有文章' | string
 
 // 載入狀態元件
 const LoadingState = () => (
@@ -107,32 +110,11 @@ const ArticleCardSkeleton = () => (
 function BlogContent() {
   const router = useRouter()
   const searchParams = useSearchParams()
-  const categoryParam = searchParams.get('category')
+  const categoryParam = searchParams.get('category') as PostCategory | null
   const tagParam = searchParams.get('tag')
 
-  // 為URL category參數映射到顯示類別
-  const categoryMapping: Record<string, ArticleCategory> = {
-    equipment: '裝備介紹',
-    technique: '技巧介紹',
-    research: '技術研究',
-    competition: '比賽介紹',
-  }
-
-  // 類別和 URL 參數的反向映射
-  const categoryToUrlParam: Record<ArticleCategory, string | null> = {
-    所有文章: null,
-    裝備介紹: 'equipment',
-    技巧介紹: 'technique',
-    技術研究: 'research',
-    比賽介紹: 'competition',
-  }
-
-  // 根據URL參數設置默認選中的類別
-  const defaultCategory = categoryParam
-    ? (categoryMapping[categoryParam] ?? '所有文章')
-    : '所有文章'
-
-  const [selectedCategory, setSelectedCategory] = useState<ArticleCategory>(defaultCategory)
+  // 根據 URL 參數設置默認選中的類別（URL 參數或 null 表示「所有文章」）
+  const [selectedCategory, setSelectedCategory] = useState<PostCategory | null>(categoryParam)
   const [searchQuery, setSearchQuery] = useState('')
   const [currentSlide, setCurrentSlide] = useState(0)
   const [isAutoPlaying, setIsAutoPlaying] = useState(true)
@@ -144,28 +126,22 @@ function BlogContent() {
   const [isLoadingMore, setIsLoadingMore] = useState(false)
 
   // 處理類別選擇變更
-  const handleCategoryChange = (category: ArticleCategory) => {
+  const handleCategoryChange = (category: PostCategory | null) => {
     setSelectedCategory(category)
     setPage(1)
     setHasMore(true)
 
     // 更新 URL 路徑
-    const urlParam = categoryToUrlParam[category]
-    if (urlParam) {
-      router.push(`/blog?category=${urlParam}`)
+    if (category) {
+      router.push(`/blog?category=${category}`)
     } else {
       router.push('/blog')
     }
   }
 
-  // 同步URL參數和選定類別
+  // 同步 URL 參數和選定類別
   useEffect(() => {
-    if (categoryParam) {
-      const mappedCategory = categoryMapping[categoryParam]
-      if (mappedCategory && mappedCategory !== selectedCategory) {
-        setSelectedCategory(mappedCategory)
-      }
-    }
+    setSelectedCategory(categoryParam)
   }, [categoryParam])
 
   // 獲取文章列表
@@ -186,7 +162,7 @@ function BlogContent() {
         const fetchedArticles: Article[] = postsData.map((post) => ({
           id: post.id,
           title: post.title,
-          category: (post.tags?.[0] as ArticleCategory) || '技巧介紹',
+          category: getCategoryLabel(post.category) || '未分類',
           date: post.published_at
             ? new Date(post.published_at).toLocaleDateString('zh-TW')
             : new Date(post.created_at).toLocaleDateString('zh-TW'),
@@ -228,7 +204,7 @@ function BlogContent() {
         const fetchedFeatured: Article[] = response.data.map((post) => ({
           id: post.id,
           title: post.title,
-          category: (post.tags?.[0] as ArticleCategory) || '技巧介紹',
+          category: getCategoryLabel(post.category) || '未分類',
           date: post.published_at
             ? new Date(post.published_at).toLocaleDateString('zh-TW')
             : new Date(post.created_at).toLocaleDateString('zh-TW'),
@@ -286,11 +262,16 @@ function BlogContent() {
     }
   }, [isAutoPlaying, nextSlide, displayFeatured.length])
 
-  const categories: ArticleCategory[] = ['所有文章', '裝備介紹', '技巧介紹', '技術研究', '比賽介紹']
+  // 分類按鈕列表（含「所有文章」）
+  const categoryButtons: { value: PostCategory | null; label: string }[] = [
+    { value: null, label: '所有文章' },
+    ...POST_CATEGORIES,
+  ]
 
   // 過濾文章
   const filteredArticles = articles.filter((article) => {
-    const matchesCategory = selectedCategory === '所有文章' || article.category === selectedCategory
+    const selectedLabel = selectedCategory ? getCategoryLabel(selectedCategory) : null
+    const matchesCategory = !selectedCategory || article.category === selectedLabel
     const matchesSearch =
       !searchQuery ||
       article.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -298,6 +279,12 @@ function BlogContent() {
     const matchesTag = !tagParam || article.category === tagParam
     return matchesCategory && matchesSearch && matchesTag
   })
+
+  // 取得當前選中分類的顯示名稱
+  const getSelectedCategoryLabel = (): string => {
+    if (!selectedCategory) return '所有文章'
+    return getCategoryLabel(selectedCategory)
+  }
 
   return (
     <motion.div
@@ -393,18 +380,18 @@ function BlogContent() {
 
           {/* Categories */}
           <div className="flex flex-wrap justify-center gap-2 md:gap-4">
-            {categories.map((category) => (
+            {categoryButtons.map((cat) => (
               <Button
-                key={category}
-                variant={selectedCategory === category ? 'primary' : 'outline'}
+                key={cat.value || 'all'}
+                variant={selectedCategory === cat.value ? 'primary' : 'outline'}
                 className={`rounded-full px-8 ${
-                  selectedCategory === category
+                  selectedCategory === cat.value
                     ? 'bg-black text-white hover:bg-gray-800'
                     : 'border-gray-300 hover:bg-gray-100'
                 }`}
-                onClick={() => handleCategoryChange(category)}
+                onClick={() => handleCategoryChange(cat.value)}
               >
-                {category}
+                {cat.label}
               </Button>
             ))}
           </div>
@@ -418,7 +405,7 @@ function BlogContent() {
             ))}
           </div>
         ) : filteredArticles.length === 0 ? (
-          <EmptyState searchQuery={searchQuery} category={selectedCategory} />
+          <EmptyState searchQuery={searchQuery} category={getSelectedCategoryLabel()} />
         ) : (
           <>
             <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3">

@@ -33,6 +33,7 @@ export interface Post {
   excerpt: string | null;
   content: string;
   cover_image: string | null;
+  category: string | null;
   status: 'draft' | 'published' | 'archived';
   is_featured: number;
   view_count: number;
