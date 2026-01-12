@@ -159,6 +159,7 @@ weatherRoutes.get('/satellite/image', async (c) => {
   }
 
   // 設定適當的 headers
+  c.header('Cross-Origin-Resource-Policy', 'cross-origin');
   c.header('Content-Type', 'image/jpeg');
   c.header('Cache-Control', 'public, max-age=600'); // 快取 10 分鐘
 
@@ -208,6 +209,7 @@ weatherRoutes.get('/radar/image', async (c) => {
   }
 
   // 設定適當的 headers
+  c.header('Cross-Origin-Resource-Policy', 'cross-origin');
   c.header('Content-Type', 'image/png');
   c.header('Cache-Control', 'public, max-age=300'); // 快取 5 分鐘（雷達更新較頻繁）
 
