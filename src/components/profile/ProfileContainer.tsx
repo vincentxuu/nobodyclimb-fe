@@ -209,7 +209,7 @@ export default function ProfileContainer() {
             onLayoutChange={handleLayoutChange}
             onReorder={handleReorder}
           />
-          {(isEditing || profileData.images.length > 0) && <ProfileDivider />}
+          <ProfileDivider />
           <PublicSettingSection
             isPublic={profileData.isPublic}
             isMobile={isMobile}
