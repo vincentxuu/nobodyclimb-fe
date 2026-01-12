@@ -305,7 +305,7 @@ function BlogContent() {
       animate={{ opacity: 1, y: 0 }}
       exit={{ opacity: 0, y: -20 }}
       transition={{ duration: 0.5 }}
-      className="min-h-screen bg-[#f5f5f5]"
+      className="min-h-screen bg-page-content-bg"
     >
       {/* Header Section - Featured Carousel */}
       {displayFeatured.length > 0 && (
@@ -460,7 +460,7 @@ export default function BlogPage() {
   return (
     <Suspense
       fallback={
-        <div className="flex min-h-screen items-center justify-center bg-[#f5f5f5]">
+        <div className="flex min-h-screen items-center justify-center bg-page-content-bg">
           <Loader2 className="h-8 w-8 animate-spin text-[#6D6C6C]" />
           <span className="ml-2 text-[#6D6C6C]">載入中...</span>
         </div>

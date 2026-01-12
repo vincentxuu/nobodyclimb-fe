@@ -24,7 +24,7 @@ export default function BiographyPage() {
       animate={{ opacity: 1, y: 0 }}
       exit={{ opacity: 0, y: -20 }}
       transition={{ duration: 0.5 }}
-      className="min-h-screen bg-[#f5f5f5]"
+      className="min-h-screen bg-page-content-bg"
     >
       <PageHeader title="人物誌" subtitle="記載了 Nobody 們的攀岩小故事" />
 

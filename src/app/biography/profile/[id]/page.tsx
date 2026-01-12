@@ -110,7 +110,7 @@ export default function ProfilePage({ params }: ProfilePageProps) {
 
   if (loading) {
     return (
-      <div className="flex min-h-screen items-center justify-center bg-[#f5f5f5]">
+      <div className="flex min-h-screen items-center justify-center bg-page-content-bg">
         <Loader2 className="h-8 w-8 animate-spin text-[#1B1A1A]" />
       </div>
     )
@@ -146,7 +146,7 @@ export default function ProfilePage({ params }: ProfilePageProps) {
       : '未知日期'
 
   return (
-    <div className="min-h-screen bg-[#f5f5f5]">
+    <div className="min-h-screen bg-page-content-bg">
       <div className="container relative mx-auto px-4 pb-4 pt-20">
         <div className="mb-8">
           <Breadcrumb
@@ -157,7 +157,7 @@ export default function ProfilePage({ params }: ProfilePageProps) {
             ]}
           />
         </div>
-        <div className="sticky left-0 top-0 z-30 mb-4 flex w-full items-center justify-between bg-[#f5f5f5] py-3">
+        <div className="sticky left-0 top-0 z-30 mb-4 flex w-full items-center justify-between bg-page-content-bg py-3">
           <motion.div
             className="w-fit"
             initial={{ opacity: 0, x: -20 }}
