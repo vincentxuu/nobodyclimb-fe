@@ -40,13 +40,13 @@ export const TrafficCamerasCard: React.FC<TrafficCamerasCardProps> = ({
         throw new Error('無法取得攝影機資料')
       }
 
-      // 檢查回應是否為 JSON
-      const contentType = response.headers.get('content-type') || ''
-      if (!contentType.includes('application/json')) {
+      // 嘗試解析 JSON（1968 API 的 content-type 可能是 text/html 但實際內容是 JSON）
+      let cameraList: CameraData[]
+      try {
+        cameraList = (await response.json()) as CameraData[]
+      } catch {
         throw new Error('API 回傳格式錯誤')
       }
-
-      const cameraList = (await response.json()) as CameraData[]
       setCameras(cameraList.slice(0, 6)) // 最多顯示 6 個攝影機
 
       if (cameraList.length > 0) {
