@@ -136,7 +136,7 @@ const GalleryPage: React.FC = () => {
   }
 
   return (
-    <div className="min-h-screen bg-[#f5f5f5]">
+    <div className="min-h-screen bg-page-content-bg">
       <PageHeader title="攝影集" subtitle="欣賞小人物們攀岩的英姿" />
 
       <div className="container mx-auto px-4 py-6">
