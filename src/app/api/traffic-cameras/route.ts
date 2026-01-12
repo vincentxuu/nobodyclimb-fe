@@ -28,6 +28,14 @@ export async function GET(request: NextRequest) {
     const lat = searchParams.get('lat') || '25.1056'
     const lng = searchParams.get('lng') || '121.92'
 
+    // 驗證 lat/lng 參數是否為有效數字
+    if (isNaN(parseFloat(lat)) || isNaN(parseFloat(lng))) {
+      return NextResponse.json(
+        { success: false, error: 'Invalid lat/lng parameters' },
+        { status: 400 }
+      )
+    }
+
     const apiUrl = `https://www.1968services.tw/query-cam-list-by-coordinate/${lat}/${lng}`
 
     const response = await fetch(apiUrl, {
