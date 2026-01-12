@@ -14,19 +14,29 @@ postsRoutes.get('/', async (c) => {
   );
   const status = c.req.query('status') || 'published';
   const tag = c.req.query('tag');
+  const category = c.req.query('category');
   const featured = c.req.query('featured');
 
-  let whereClause = 'status = ?';
+  let whereClause = 'p.status = ?';
   const params: (string | number)[] = [status];
 
   if (featured === 'true') {
-    whereClause += ' AND is_featured = 1';
+    whereClause += ' AND p.is_featured = 1';
   }
 
-  const countResult = await c.env.DB.prepare(
-    `SELECT COUNT(*) as count FROM posts WHERE ${whereClause}`
-  )
-    .bind(...params)
+  if (category) {
+    whereClause += ' AND p.category = ?';
+    params.push(category);
+  }
+
+  let countQuery = `SELECT COUNT(*) as count FROM posts p WHERE ${whereClause}`;
+
+  if (tag) {
+    countQuery = `SELECT COUNT(DISTINCT p.id) as count FROM posts p JOIN post_tags pt ON p.id = pt.post_id WHERE ${whereClause} AND pt.tag = ?`;
+  }
+
+  const countResult = await c.env.DB.prepare(countQuery)
+    .bind(...params, ...(tag ? [tag] : []))
     .first<{ count: number }>();
   const total = countResult?.count || 0;
 
@@ -411,8 +421,8 @@ postsRoutes.post('/', authMiddleware, async (c) => {
 
   await c.env.DB.prepare(
     `INSERT INTO posts (
-      id, author_id, title, slug, excerpt, content, cover_image, status, is_featured, published_at
-    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
+      id, author_id, title, slug, excerpt, content, cover_image, category, status, is_featured, published_at
+    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
   )
     .bind(
       id,
@@ -422,6 +432,7 @@ postsRoutes.post('/', authMiddleware, async (c) => {
       body.excerpt || null,
       body.content,
       body.cover_image || null,
+      body.category || null,
       body.status || 'draft',
       body.is_featured || 0,
       body.status === 'published' ? new Date().toISOString() : null
@@ -499,6 +510,7 @@ postsRoutes.put('/:id', authMiddleware, async (c) => {
     'excerpt',
     'content',
     'cover_image',
+    'category',
     'status',
     'is_featured',
   ];

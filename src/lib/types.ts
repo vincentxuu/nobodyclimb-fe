@@ -95,6 +95,43 @@ export interface Post {
 }
 
 /**
+ * 文章分類 (URL 參數值)
+ */
+export type PostCategory =
+  | 'beginner'
+  | 'news'
+  | 'gear'
+  | 'skills'
+  | 'training'
+  | 'routes'
+  | 'crags'
+  | 'gyms'
+  | 'travel'
+  | 'competition'
+  | 'events'
+  | 'community'
+  | 'injury'
+
+/**
+ * 文章分類選項（含顯示名稱）
+ */
+export const POST_CATEGORIES: { value: PostCategory; label: string }[] = [
+  { value: 'beginner', label: '新手入門' },
+  { value: 'news', label: '新聞動態' },
+  { value: 'gear', label: '裝備評測' },
+  { value: 'skills', label: '技巧教學' },
+  { value: 'training', label: '訓練計畫' },
+  { value: 'routes', label: '路線攻略' },
+  { value: 'crags', label: '岩場體驗' },
+  { value: 'gyms', label: '岩館評測' },
+  { value: 'travel', label: '攀岩旅遊' },
+  { value: 'competition', label: '賽事報導' },
+  { value: 'events', label: '活動紀錄' },
+  { value: 'community', label: '社群資源' },
+  { value: 'injury', label: '傷害防護' },
+]
+
+/**
  * 後端文章資料格式 (snake_case)
  */
 export interface BackendPost {
@@ -105,6 +142,7 @@ export interface BackendPost {
   excerpt: string | null
   content: string
   cover_image: string | null
+  category: PostCategory | null
   status: 'draft' | 'published' | 'archived'
   is_featured: number
   view_count: number

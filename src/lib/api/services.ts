@@ -1,6 +1,7 @@
 import apiClient from './client'
 import {
   Post,
+  PostCategory,
   BackendPost,
   BackendPaginatedResponse,
   BackendPostPaginatedResponse,
@@ -21,6 +22,20 @@ import {
   Route,
   Weather,
 } from '@/lib/types'
+
+/**
+ * 建立/更新文章請求資料
+ */
+interface CreatePostData {
+  title: string
+  slug: string
+  content: string
+  summary?: string
+  coverImage?: string
+  category?: PostCategory
+  tags?: string[]
+  status?: 'draft' | 'published'
+}
 
 /**
  * 認證相關 API 服務
@@ -194,20 +209,37 @@ export const postService = {
   /**
    * 創建文章
    */
-  createPost: async (
-    postData: Omit<Post, 'id' | 'authorId' | 'createdAt' | 'likes' | 'comments' | 'views'> & {
-      status?: 'draft' | 'published'
+  createPost: async (postData: CreatePostData) => {
+    // 轉換欄位名稱為後端格式
+    const backendData = {
+      title: postData.title,
+      slug: postData.slug,
+      content: postData.content,
+      excerpt: postData.summary,
+      cover_image: postData.coverImage,
+      category: postData.category,
+      tags: postData.tags,
+      status: postData.status,
     }
-  ) => {
-    const response = await apiClient.post<ApiResponse<Post>>('/posts', postData)
+    const response = await apiClient.post<ApiResponse<BackendPost>>('/posts', backendData)
     return response.data
   },
 
   /**
    * 更新文章
    */
-  updatePost: async (id: string, postData: Partial<Post>) => {
-    const response = await apiClient.put<ApiResponse<Post>>(`/posts/${id}`, postData)
+  updatePost: async (id: string, postData: Partial<CreatePostData>) => {
+    // 轉換欄位名稱為後端格式
+    const backendData: Record<string, unknown> = {}
+    if (postData.title !== undefined) backendData.title = postData.title
+    if (postData.content !== undefined) backendData.content = postData.content
+    if (postData.summary !== undefined) backendData.excerpt = postData.summary
+    if (postData.coverImage !== undefined) backendData.cover_image = postData.coverImage
+    if (postData.category !== undefined) backendData.category = postData.category
+    if (postData.tags !== undefined) backendData.tags = postData.tags
+    if (postData.status !== undefined) backendData.status = postData.status
+
+    const response = await apiClient.put<ApiResponse<BackendPost>>(`/posts/${id}`, backendData)
     return response.data
   },
 

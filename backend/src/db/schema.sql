@@ -49,6 +49,7 @@ CREATE TABLE IF NOT EXISTS posts (
   excerpt TEXT,
   content TEXT NOT NULL,
   cover_image TEXT,
+  category TEXT,
   status TEXT DEFAULT 'draft' CHECK (status IN ('draft', 'published', 'archived')),
   is_featured INTEGER DEFAULT 0,
   view_count INTEGER DEFAULT 0,
@@ -62,6 +63,7 @@ CREATE INDEX IF NOT EXISTS idx_posts_slug ON posts(slug);
 CREATE INDEX IF NOT EXISTS idx_posts_author ON posts(author_id);
 CREATE INDEX IF NOT EXISTS idx_posts_status ON posts(status);
 CREATE INDEX IF NOT EXISTS idx_posts_featured ON posts(is_featured);
+CREATE INDEX IF NOT EXISTS idx_posts_category ON posts(category);
 
 CREATE TABLE IF NOT EXISTS post_tags (
   post_id TEXT NOT NULL,
