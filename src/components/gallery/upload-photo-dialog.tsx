@@ -2,7 +2,7 @@
 
 import React, { useState, useCallback } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-import { X, Upload, MapPin, Loader2 } from 'lucide-react'
+import { X, Upload, MapPin, Loader2, CheckCircle, AlertCircle } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
@@ -18,7 +18,20 @@ interface UploadPhotoDialogProps {
 
 // File validation constants
 const VALID_FILE_TYPES = ['image/jpeg', 'image/png', 'image/webp']
-const MAX_FILE_SIZE = 5 * 1024 * 1024 // 5MB
+const MAX_FILE_SIZE = 500 * 1024 // 500KB
+const MAX_FILE_COUNT = 20
+
+interface FileWithPreview {
+  file: File
+  preview: string
+  id: string
+}
+
+interface UploadStatus {
+  id: string
+  status: 'pending' | 'uploading' | 'success' | 'error'
+  error?: string
+}
 
 // Validate file and return error message if invalid
 const validateFile = (file: File): string | null => {
@@ -26,7 +39,7 @@ const validateFile = (file: File): string | null => {
     return '請上傳 JPG、PNG 或 WebP 格式的圖片'
   }
   if (file.size > MAX_FILE_SIZE) {
-    return '圖片大小不能超過 5MB'
+    return `圖片 "${file.name}" 大小超過 500KB`
   }
   return null
 }
@@ -36,72 +49,105 @@ const UploadPhotoDialog: React.FC<UploadPhotoDialogProps> = ({
   onClose,
   onSuccess,
 }) => {
-  const [file, setFile] = useState<File | null>(null)
-  const [preview, setPreview] = useState<string | null>(null)
+  const [files, setFiles] = useState<FileWithPreview[]>([])
   const [caption, setCaption] = useState('')
   const [locationCountry, setLocationCountry] = useState('')
   const [locationCity, setLocationCity] = useState('')
   const [locationSpot, setLocationSpot] = useState('')
   const [isUploading, setIsUploading] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const [uploadStatuses, setUploadStatuses] = useState<UploadStatus[]>([])
 
-  // Process and validate file, then set state
-  const processFile = useCallback((selectedFile: File) => {
-    const validationError = validateFile(selectedFile)
-    if (validationError) {
-      setError(validationError)
+  // Process and validate files, then set state
+  const processFiles = useCallback((selectedFiles: FileList | File[]) => {
+    const fileArray = Array.from(selectedFiles)
+
+    // Check total count limit
+    if (files.length + fileArray.length > MAX_FILE_COUNT) {
+      setError(`最多只能上傳 ${MAX_FILE_COUNT} 張照片`)
       return
     }
 
-    setFile(selectedFile)
-    setError(null)
+    const validFiles: FileWithPreview[] = []
+    const errors: string[] = []
 
-    // Create preview
-    const reader = new FileReader()
-    reader.onloadend = () => {
-      setPreview(reader.result as string)
+    fileArray.forEach((file) => {
+      const validationError = validateFile(file)
+      if (validationError) {
+        errors.push(validationError)
+      } else {
+        const id = `${Date.now()}-${Math.random().toString(36).substring(2, 9)}`
+        validFiles.push({
+          file,
+          preview: URL.createObjectURL(file),
+          id,
+        })
+      }
+    })
+
+    if (errors.length > 0) {
+      setError(errors.join('\n'))
+    } else {
+      setError(null)
     }
-    reader.readAsDataURL(selectedFile)
-  }, [])
+
+    if (validFiles.length > 0) {
+      setFiles((prev) => [...prev, ...validFiles])
+    }
+  }, [files.length])
 
   const handleFileChange = useCallback(
     (e: React.ChangeEvent<HTMLInputElement>) => {
-      const selectedFile = e.target.files?.[0]
-      if (selectedFile) {
-        processFile(selectedFile)
+      const selectedFiles = e.target.files
+      if (selectedFiles && selectedFiles.length > 0) {
+        processFiles(selectedFiles)
       }
+      // Reset input value to allow selecting the same files again
+      e.target.value = ''
     },
-    [processFile]
+    [processFiles]
   )
 
   const handleDrop = useCallback(
     (e: React.DragEvent<HTMLDivElement>) => {
       e.preventDefault()
-      const droppedFile = e.dataTransfer.files?.[0]
-      if (droppedFile) {
-        processFile(droppedFile)
+      const droppedFiles = e.dataTransfer.files
+      if (droppedFiles && droppedFiles.length > 0) {
+        processFiles(droppedFiles)
       }
     },
-    [processFile]
+    [processFiles]
   )
 
   const handleDragOver = useCallback((e: React.DragEvent<HTMLDivElement>) => {
     e.preventDefault()
   }, [])
 
+  const removeFile = useCallback((id: string) => {
+    setFiles((prev) => {
+      const file = prev.find((f) => f.id === id)
+      if (file) {
+        URL.revokeObjectURL(file.preview)
+      }
+      return prev.filter((f) => f.id !== id)
+    })
+  }, [])
+
   const resetForm = useCallback(() => {
-    setFile(null)
-    setPreview(null)
+    // Cleanup preview URLs
+    files.forEach((f) => URL.revokeObjectURL(f.preview))
+    setFiles([])
     setCaption('')
     setLocationCountry('')
     setLocationCity('')
     setLocationSpot('')
     setError(null)
-  }, [])
+    setUploadStatuses([])
+  }, [files])
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    if (!file) {
+    if (files.length === 0) {
       setError('請選擇要上傳的圖片')
       return
     }
@@ -109,33 +155,81 @@ const UploadPhotoDialog: React.FC<UploadPhotoDialogProps> = ({
     setIsUploading(true)
     setError(null)
 
-    try {
-      // Step 1: Upload the image file to storage
-      const uploadResult = await galleryService.uploadImage(file)
-      if (!uploadResult.success || !uploadResult.data?.url) {
-        throw new Error('圖片上傳失敗')
+    // Initialize upload statuses
+    const initialStatuses: UploadStatus[] = files.map((f) => ({
+      id: f.id,
+      status: 'pending',
+    }))
+    setUploadStatuses(initialStatuses)
+
+    let successCount = 0
+    let lastSuccessPhoto: GalleryPhoto | null = null
+
+    for (let i = 0; i < files.length; i++) {
+      const fileItem = files[i]
+
+      // Update status to uploading
+      setUploadStatuses((prev) =>
+        prev.map((s) =>
+          s.id === fileItem.id ? { ...s, status: 'uploading' } : s
+        )
+      )
+
+      try {
+        // Step 1: Upload the image file to storage
+        const uploadResult = await galleryService.uploadImage(fileItem.file)
+        if (!uploadResult.success || !uploadResult.data?.url) {
+          throw new Error('圖片上傳失敗')
+        }
+
+        // Step 2: Create photo record with metadata (only first photo gets location/caption)
+        const photoResult = await galleryService.uploadPhoto({
+          image_url: uploadResult.data.url,
+          caption: i === 0 ? (caption || undefined) : undefined,
+          location_country: i === 0 ? (locationCountry || undefined) : undefined,
+          location_city: i === 0 ? (locationCity || undefined) : undefined,
+          location_spot: i === 0 ? (locationSpot || undefined) : undefined,
+        })
+
+        if (!photoResult.success || !photoResult.data) {
+          throw new Error('照片資料儲存失敗')
+        }
+
+        // Update status to success
+        setUploadStatuses((prev) =>
+          prev.map((s) =>
+            s.id === fileItem.id ? { ...s, status: 'success' } : s
+          )
+        )
+
+        successCount++
+        lastSuccessPhoto = photoResult.data
+
+        // Call onSuccess for each uploaded photo
+        onSuccess(photoResult.data)
+      } catch (err) {
+        // Update status to error
+        setUploadStatuses((prev) =>
+          prev.map((s) =>
+            s.id === fileItem.id
+              ? { ...s, status: 'error', error: err instanceof Error ? err.message : '上傳失敗' }
+              : s
+          )
+        )
       }
+    }
 
-      // Step 2: Create photo record with metadata
-      const photoResult = await galleryService.uploadPhoto({
-        image_url: uploadResult.data.url,
-        caption: caption || undefined,
-        location_country: locationCountry || undefined,
-        location_city: locationCity || undefined,
-        location_spot: locationSpot || undefined,
-      })
+    setIsUploading(false)
 
-      if (!photoResult.success || !photoResult.data) {
-        throw new Error('照片資料儲存失敗')
-      }
-
-      onSuccess(photoResult.data)
+    // If all uploads succeeded, close dialog
+    if (successCount === files.length) {
       resetForm()
       onClose()
-    } catch (err) {
-      setError(err instanceof Error ? err.message : '上傳失敗，請稍後再試')
-    } finally {
-      setIsUploading(false)
+    } else if (successCount > 0) {
+      // Some succeeded, some failed - show message
+      setError(`${successCount} 張照片上傳成功，${files.length - successCount} 張失敗`)
+    } else {
+      setError('所有照片上傳失敗，請稍後再試')
     }
   }
 
@@ -147,6 +241,9 @@ const UploadPhotoDialog: React.FC<UploadPhotoDialogProps> = ({
   }
 
   if (!isOpen) return null
+
+  const uploadedCount = uploadStatuses.filter((s) => s.status === 'success').length
+  const uploadingIndex = uploadStatuses.findIndex((s) => s.status === 'uploading')
 
   return (
     <AnimatePresence>
@@ -161,11 +258,11 @@ const UploadPhotoDialog: React.FC<UploadPhotoDialogProps> = ({
           initial={{ scale: 0.9, opacity: 0 }}
           animate={{ scale: 1, opacity: 1 }}
           exit={{ scale: 0.9, opacity: 0 }}
-          className="relative w-full max-w-lg overflow-hidden rounded-lg bg-white"
+          className="relative w-full max-w-2xl max-h-[90vh] overflow-hidden rounded-lg bg-white flex flex-col"
           onClick={(e) => e.stopPropagation()}
         >
           {/* Header */}
-          <div className="flex items-center justify-between border-b px-6 py-4">
+          <div className="flex items-center justify-between border-b px-6 py-4 flex-shrink-0">
             <h2 className="text-lg font-semibold text-neutral-800">上傳照片</h2>
             <button
               onClick={handleClose}
@@ -177,57 +274,138 @@ const UploadPhotoDialog: React.FC<UploadPhotoDialogProps> = ({
           </div>
 
           {/* Content */}
-          <form onSubmit={handleSubmit} className="p-6">
+          <form onSubmit={handleSubmit} className="p-6 overflow-y-auto flex-1">
             {/* Image Upload Area */}
             <div
-              className={`mb-4 flex min-h-[200px] cursor-pointer flex-col items-center justify-center rounded-lg border-2 border-dashed transition-colors ${
-                preview
-                  ? 'border-transparent'
+              className={`mb-4 flex min-h-[120px] cursor-pointer flex-col items-center justify-center rounded-lg border-2 border-dashed transition-colors ${
+                files.length > 0
+                  ? 'border-neutral-200 bg-neutral-50'
                   : 'border-neutral-300 hover:border-neutral-400'
               }`}
               onDrop={handleDrop}
               onDragOver={handleDragOver}
               onClick={() => document.getElementById('photo-input')?.click()}
             >
-              {preview ? (
-                <div className="relative aspect-[4/3] w-full overflow-hidden rounded-lg">
-                  <img
-                    src={preview}
-                    alt="Preview"
-                    className="h-full w-full object-cover"
-                  />
-                  <button
-                    type="button"
-                    onClick={(e) => {
-                      e.stopPropagation()
-                      setFile(null)
-                      setPreview(null)
-                    }}
-                    className="absolute right-2 top-2 rounded-full bg-black bg-opacity-50 p-1 text-white hover:bg-opacity-75"
-                  >
-                    <X size={16} />
-                  </button>
-                </div>
-              ) : (
-                <>
-                  <Upload size={40} className="mb-2 text-neutral-400" />
-                  <p className="text-sm text-neutral-600">拖曳照片到這裡，或點擊選擇</p>
-                  <p className="mt-1 text-xs text-neutral-400">支援 JPG、PNG、WebP（最大 5MB）</p>
-                </>
-              )}
+              <Upload size={32} className="mb-2 text-neutral-400" />
+              <p className="text-sm text-neutral-600">拖曳照片到這裡，或點擊選擇</p>
+              <p className="mt-1 text-xs text-neutral-400">
+                支援 JPG、PNG、WebP（每張最大 500KB，最多 {MAX_FILE_COUNT} 張）
+              </p>
               <input
                 id="photo-input"
                 type="file"
                 accept="image/jpeg,image/png,image/webp"
+                multiple
                 onChange={handleFileChange}
                 className="hidden"
               />
             </div>
 
+            {/* Selected Files Preview */}
+            {files.length > 0 && (
+              <div className="mb-4">
+                <div className="flex items-center justify-between mb-2">
+                  <Label className="text-sm font-medium">
+                    已選擇 {files.length} 張照片
+                  </Label>
+                  {!isUploading && (
+                    <button
+                      type="button"
+                      onClick={() => {
+                        files.forEach((f) => URL.revokeObjectURL(f.preview))
+                        setFiles([])
+                      }}
+                      className="text-xs text-red-500 hover:text-red-600"
+                    >
+                      清除全部
+                    </button>
+                  )}
+                </div>
+                <div className="grid grid-cols-4 sm:grid-cols-5 gap-2 max-h-[200px] overflow-y-auto p-1">
+                  {files.map((fileItem) => {
+                    const status = uploadStatuses.find((s) => s.id === fileItem.id)
+                    return (
+                      <div
+                        key={fileItem.id}
+                        className="relative aspect-square rounded-md overflow-hidden group"
+                      >
+                        <img
+                          src={fileItem.preview}
+                          alt="Preview"
+                          className="h-full w-full object-cover"
+                        />
+                        {/* Overlay for upload status */}
+                        {status && (
+                          <div
+                            className={`absolute inset-0 flex items-center justify-center ${
+                              status.status === 'uploading'
+                                ? 'bg-black bg-opacity-50'
+                                : status.status === 'success'
+                                ? 'bg-green-500 bg-opacity-50'
+                                : status.status === 'error'
+                                ? 'bg-red-500 bg-opacity-50'
+                                : ''
+                            }`}
+                          >
+                            {status.status === 'uploading' && (
+                              <Loader2 className="h-6 w-6 animate-spin text-white" />
+                            )}
+                            {status.status === 'success' && (
+                              <CheckCircle className="h-6 w-6 text-white" />
+                            )}
+                            {status.status === 'error' && (
+                              <AlertCircle className="h-6 w-6 text-white" />
+                            )}
+                          </div>
+                        )}
+                        {/* Remove button (only show when not uploading) */}
+                        {!isUploading && (
+                          <button
+                            type="button"
+                            onClick={(e) => {
+                              e.stopPropagation()
+                              removeFile(fileItem.id)
+                            }}
+                            className="absolute right-1 top-1 rounded-full bg-black bg-opacity-50 p-1 text-white opacity-0 group-hover:opacity-100 transition-opacity hover:bg-opacity-75"
+                          >
+                            <X size={12} />
+                          </button>
+                        )}
+                        {/* File size indicator */}
+                        <div className="absolute bottom-0 left-0 right-0 bg-black bg-opacity-50 px-1 py-0.5 text-xs text-white text-center">
+                          {(fileItem.file.size / 1024).toFixed(0)}KB
+                        </div>
+                      </div>
+                    )
+                  })}
+                </div>
+              </div>
+            )}
+
+            {/* Upload Progress */}
+            {isUploading && (
+              <div className="mb-4 rounded-md bg-blue-50 px-3 py-2">
+                <div className="flex items-center gap-2 text-sm text-blue-700">
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                  <span>
+                    正在上傳... ({uploadedCount + 1}/{files.length})
+                  </span>
+                </div>
+                <div className="mt-2 h-2 bg-blue-200 rounded-full overflow-hidden">
+                  <div
+                    className="h-full bg-blue-500 transition-all duration-300"
+                    style={{
+                      width: `${((uploadedCount + (uploadingIndex >= 0 ? 0.5 : 0)) / files.length) * 100}%`,
+                    }}
+                  />
+                </div>
+              </div>
+            )}
+
             {/* Caption */}
             <div className="mb-4">
               <Label htmlFor="caption" className="mb-1.5 block text-sm font-medium">
-                說明（選填）
+                說明（選填，僅套用至第一張）
               </Label>
               <Textarea
                 id="caption"
@@ -244,7 +422,7 @@ const UploadPhotoDialog: React.FC<UploadPhotoDialogProps> = ({
             <div className="mb-4">
               <Label className="mb-1.5 flex items-center gap-1.5 text-sm font-medium">
                 <MapPin size={14} />
-                拍攝地點（選填）
+                拍攝地點（選填，僅套用至第一張）
               </Label>
               <div className="grid grid-cols-3 gap-2">
                 <Input
@@ -270,7 +448,7 @@ const UploadPhotoDialog: React.FC<UploadPhotoDialogProps> = ({
 
             {/* Error Message */}
             {error && (
-              <div className="mb-4 rounded-md bg-red-50 px-3 py-2 text-sm text-red-600">
+              <div className="mb-4 rounded-md bg-red-50 px-3 py-2 text-sm text-red-600 whitespace-pre-line">
                 {error}
               </div>
             )}
@@ -279,13 +457,15 @@ const UploadPhotoDialog: React.FC<UploadPhotoDialogProps> = ({
             <Button
               type="submit"
               className="w-full"
-              disabled={!file || isUploading}
+              disabled={files.length === 0 || isUploading}
             >
               {isUploading ? (
                 <>
                   <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                   上傳中...
                 </>
+              ) : files.length > 0 ? (
+                `上傳 ${files.length} 張照片`
               ) : (
                 '上傳照片'
               )}
