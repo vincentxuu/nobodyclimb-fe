@@ -41,12 +41,16 @@ export const TrafficCamerasCard: React.FC<TrafficCamerasCardProps> = ({
         throw new Error('無法取得攝影機資料')
       }
 
-      const result = await response.json()
+      const result = (await response.json()) as {
+        success: boolean
+        data?: CameraData[]
+        message?: string
+      }
       if (!result.success || !result.data) {
         throw new Error(result.message || 'API 回傳格式錯誤')
       }
 
-      const cameraList = result.data as CameraData[]
+      const cameraList = result.data
       setCameras(cameraList.slice(0, 6)) // 最多顯示 6 個攝影機
 
       if (cameraList.length > 0) {
