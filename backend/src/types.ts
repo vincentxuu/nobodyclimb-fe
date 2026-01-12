@@ -259,6 +259,7 @@ export interface CameraData {
   latitude: number;
   longitude: number;
   direction?: string;
+  distance?: number; // 距離（公里）
 }
 
 // API Response Types
