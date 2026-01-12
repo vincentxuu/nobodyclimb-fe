@@ -268,8 +268,6 @@ export default function GymDetailPage({ params }: { params: Promise<{ id: string
                 latitude={gym.location.latitude}
                 longitude={gym.location.longitude}
                 showForecast={true}
-                showSatellite={true}
-                showRadar={true}
               />
             </div>
           </div>

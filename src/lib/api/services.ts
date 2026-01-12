@@ -21,12 +21,6 @@ import {
   Crag,
   Route,
   Weather,
-  SatelliteImageInfo,
-  SatelliteImageType,
-  SatelliteImageArea,
-  RadarImageInfo,
-  RadarImageType,
-  RadarImageArea,
 } from '@/lib/types'
 
 /**
@@ -949,41 +943,5 @@ export const weatherService = {
       params: { lat: latitude, lon: longitude },
     })
     return response.data
-  },
-
-  /**
-   * 獲取衛星雲圖資訊列表
-   */
-  getSatelliteImages: async (type?: SatelliteImageType, area?: SatelliteImageArea) => {
-    const response = await apiClient.get<ApiResponse<SatelliteImageInfo[]>>('/weather/satellite', {
-      params: { type, area },
-    })
-    return response.data
-  },
-
-  /**
-   * 獲取衛星雲圖圖片 URL（透過後端代理）
-   */
-  getSatelliteImageUrl: (type: SatelliteImageType, area: SatelliteImageArea) => {
-    const baseUrl = process.env.NEXT_PUBLIC_API_URL || 'https://api.nobodyclimb.cc/api/v1'
-    return `${baseUrl}/weather/satellite/image?type=${type}&area=${area}`
-  },
-
-  /**
-   * 獲取雷達回波資訊列表
-   */
-  getRadarImages: async (type?: RadarImageType, area?: RadarImageArea) => {
-    const response = await apiClient.get<ApiResponse<RadarImageInfo[]>>('/weather/radar', {
-      params: { type, area },
-    })
-    return response.data
-  },
-
-  /**
-   * 獲取雷達回波圖片 URL（透過後端代理）
-   */
-  getRadarImageUrl: (type: RadarImageType, area: RadarImageArea) => {
-    const baseUrl = process.env.NEXT_PUBLIC_API_URL || 'https://api.nobodyclimb.cc/api/v1'
-    return `${baseUrl}/weather/radar/image?type=${type}&area=${area}`
   },
 }

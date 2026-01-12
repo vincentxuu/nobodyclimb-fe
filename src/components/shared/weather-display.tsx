@@ -1,10 +1,9 @@
 'use client'
 
 import React, { useEffect, useState } from 'react'
-import Image from 'next/image'
-import { Cloud, Droplets, ThermometerSun, Loader2, AlertCircle, Satellite, Radio, ChevronDown, ChevronUp } from 'lucide-react'
+import { Cloud, Droplets, ThermometerSun, Loader2, AlertCircle } from 'lucide-react'
 import { weatherService } from '@/lib/api/services'
-import { Weather, SatelliteImageType, SatelliteImageArea, RadarImageType, RadarImageArea } from '@/lib/types'
+import { Weather } from '@/lib/types'
 
 interface WeatherDisplayProps {
   location: string
@@ -12,38 +11,8 @@ interface WeatherDisplayProps {
   longitude?: number
   compact?: boolean
   showForecast?: boolean
-  showSatellite?: boolean
-  showRadar?: boolean
   className?: string
 }
-
-// 衛星雲圖類型選項
-const SATELLITE_TYPES: { value: SatelliteImageType; label: string }[] = [
-  { value: 'trueColor', label: '真彩色' },
-  { value: 'infrared', label: '紅外線' },
-  { value: 'visible', label: '可見光' },
-  { value: 'enhanced', label: '色調強化' },
-]
-
-// 衛星雲圖區域選項
-const SATELLITE_AREAS: { value: SatelliteImageArea; label: string }[] = [
-  { value: 'taiwan', label: '台灣' },
-  { value: 'eastAsia', label: '東亞' },
-  { value: 'global', label: '全球' },
-]
-
-// 雷達回波類型選項
-const RADAR_TYPES: { value: RadarImageType; label: string }[] = [
-  { value: 'composite', label: '雷達回波' },
-  { value: 'rain', label: '降雨雷達' },
-]
-
-// 雷達回波區域選項
-const RADAR_AREAS: { value: RadarImageArea; label: string }[] = [
-  { value: 'taiwan', label: '全台' },
-  { value: 'north', label: '北部' },
-  { value: 'south', label: '南部' },
-]
 
 // 預報天數常數
 const FORECAST_DAYS = 7
@@ -100,27 +69,11 @@ export function WeatherDisplay({
   longitude,
   compact = false,
   showForecast = true,
-  showSatellite = false,
-  showRadar = false,
   className = '',
 }: WeatherDisplayProps) {
   const [weather, setWeather] = useState<Weather | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
-
-  // 衛星雲圖狀態
-  const [satelliteExpanded, setSatelliteExpanded] = useState(false)
-  const [satelliteType, setSatelliteType] = useState<SatelliteImageType>('trueColor')
-  const [satelliteArea, setSatelliteArea] = useState<SatelliteImageArea>('taiwan')
-  const [satelliteLoading, setSatelliteLoading] = useState(false)
-  const [satelliteError, setSatelliteError] = useState(false)
-
-  // 雷達回波狀態
-  const [radarExpanded, setRadarExpanded] = useState(false)
-  const [radarType, setRadarType] = useState<RadarImageType>('composite')
-  const [radarArea, setRadarArea] = useState<RadarImageArea>('taiwan')
-  const [radarLoading, setRadarLoading] = useState(false)
-  const [radarError, setRadarError] = useState(false)
 
   useEffect(() => {
     const fetchWeather = async () => {
@@ -251,195 +204,6 @@ export function WeatherDisplay({
         </div>
       )}
 
-      {/* 衛星雲圖 */}
-      {showSatellite && (
-        <div className="border-t border-gray-200 pt-4">
-          <button
-            onClick={() => setSatelliteExpanded(!satelliteExpanded)}
-            className="flex w-full items-center justify-between text-sm font-medium text-gray-700 hover:text-gray-900"
-          >
-            <span className="flex items-center gap-2">
-              <Satellite className="h-4 w-4" />
-              衛星雲圖
-            </span>
-            {satelliteExpanded ? (
-              <ChevronUp className="h-4 w-4" />
-            ) : (
-              <ChevronDown className="h-4 w-4" />
-            )}
-          </button>
-
-          {satelliteExpanded && (
-            <div className="mt-3 space-y-3">
-              {/* 選項 */}
-              <div className="flex flex-wrap gap-2">
-                <div className="flex items-center gap-1">
-                  <span className="text-xs text-gray-500">類型:</span>
-                  <select
-                    value={satelliteType}
-                    onChange={(e) => {
-                      setSatelliteType(e.target.value as SatelliteImageType)
-                      setSatelliteError(false)
-                    }}
-                    className="rounded border border-gray-300 bg-white px-2 py-1 text-xs"
-                  >
-                    {SATELLITE_TYPES.map((type) => (
-                      <option key={type.value} value={type.value}>
-                        {type.label}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-                <div className="flex items-center gap-1">
-                  <span className="text-xs text-gray-500">區域:</span>
-                  <select
-                    value={satelliteArea}
-                    onChange={(e) => {
-                      setSatelliteArea(e.target.value as SatelliteImageArea)
-                      setSatelliteError(false)
-                    }}
-                    className="rounded border border-gray-300 bg-white px-2 py-1 text-xs"
-                  >
-                    {SATELLITE_AREAS.map((area) => (
-                      <option key={area.value} value={area.value}>
-                        {area.label}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-              </div>
-
-              {/* 圖片 */}
-              <div className="relative aspect-square w-full overflow-hidden rounded-lg bg-gray-200">
-                {satelliteLoading && (
-                  <div className="absolute inset-0 flex items-center justify-center">
-                    <Loader2 className="h-8 w-8 animate-spin text-gray-400" />
-                  </div>
-                )}
-                {satelliteError ? (
-                  <div className="absolute inset-0 flex flex-col items-center justify-center text-gray-500">
-                    <AlertCircle className="h-8 w-8 text-gray-400" />
-                    <p className="mt-2 text-sm">無法載入衛星雲圖</p>
-                  </div>
-                ) : (
-                  <Image
-                    src={weatherService.getSatelliteImageUrl(satelliteType, satelliteArea)}
-                    alt={`${SATELLITE_AREAS.find(a => a.value === satelliteArea)?.label || ''}${SATELLITE_TYPES.find(t => t.value === satelliteType)?.label || ''}衛星雲圖`}
-                    fill
-                    className="object-contain"
-                    onLoadStart={() => setSatelliteLoading(true)}
-                    onLoad={() => setSatelliteLoading(false)}
-                    onError={() => {
-                      setSatelliteLoading(false)
-                      setSatelliteError(true)
-                    }}
-                    unoptimized
-                  />
-                )}
-              </div>
-
-              <p className="text-center text-xs text-gray-500">
-                資料來源：中央氣象署
-              </p>
-            </div>
-          )}
-        </div>
-      )}
-
-      {/* 雷達回波 */}
-      {showRadar && (
-        <div className="border-t border-gray-200 pt-4">
-          <button
-            onClick={() => setRadarExpanded(!radarExpanded)}
-            className="flex w-full items-center justify-between text-sm font-medium text-gray-700 hover:text-gray-900"
-          >
-            <span className="flex items-center gap-2">
-              <Radio className="h-4 w-4" />
-              雷達回波
-            </span>
-            {radarExpanded ? (
-              <ChevronUp className="h-4 w-4" />
-            ) : (
-              <ChevronDown className="h-4 w-4" />
-            )}
-          </button>
-
-          {radarExpanded && (
-            <div className="mt-3 space-y-3">
-              {/* 選項 */}
-              <div className="flex flex-wrap gap-2">
-                <div className="flex items-center gap-1">
-                  <span className="text-xs text-gray-500">類型:</span>
-                  <select
-                    value={radarType}
-                    onChange={(e) => {
-                      setRadarType(e.target.value as RadarImageType)
-                      setRadarError(false)
-                    }}
-                    className="rounded border border-gray-300 bg-white px-2 py-1 text-xs"
-                  >
-                    {RADAR_TYPES.map((type) => (
-                      <option key={type.value} value={type.value}>
-                        {type.label}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-                <div className="flex items-center gap-1">
-                  <span className="text-xs text-gray-500">區域:</span>
-                  <select
-                    value={radarArea}
-                    onChange={(e) => {
-                      setRadarArea(e.target.value as RadarImageArea)
-                      setRadarError(false)
-                    }}
-                    className="rounded border border-gray-300 bg-white px-2 py-1 text-xs"
-                  >
-                    {RADAR_AREAS.map((area) => (
-                      <option key={area.value} value={area.value}>
-                        {area.label}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-              </div>
-
-              {/* 圖片 */}
-              <div className="relative aspect-square w-full overflow-hidden rounded-lg bg-gray-200">
-                {radarLoading && (
-                  <div className="absolute inset-0 flex items-center justify-center">
-                    <Loader2 className="h-8 w-8 animate-spin text-gray-400" />
-                  </div>
-                )}
-                {radarError ? (
-                  <div className="absolute inset-0 flex flex-col items-center justify-center text-gray-500">
-                    <AlertCircle className="h-8 w-8 text-gray-400" />
-                    <p className="mt-2 text-sm">無法載入雷達回波</p>
-                  </div>
-                ) : (
-                  <Image
-                    src={weatherService.getRadarImageUrl(radarType, radarArea)}
-                    alt={`${RADAR_AREAS.find(a => a.value === radarArea)?.label || ''}${RADAR_TYPES.find(t => t.value === radarType)?.label || ''}`}
-                    fill
-                    className="object-contain"
-                    onLoadStart={() => setRadarLoading(true)}
-                    onLoad={() => setRadarLoading(false)}
-                    onError={() => {
-                      setRadarLoading(false)
-                      setRadarError(true)
-                    }}
-                    unoptimized
-                  />
-                )}
-              </div>
-
-              <p className="text-center text-xs text-gray-500">
-                資料來源：中央氣象署（每 10 分鐘更新）
-              </p>
-            </div>
-          )}
-        </div>
-      )}
     </div>
   )
 }
