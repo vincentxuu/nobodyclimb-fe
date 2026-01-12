@@ -1,21 +1,27 @@
-# NobodyClimb - 攀岩社群前端專案
+# NobodyClimb - 攀岩社群平台
 
-這是 NobodyClimb 攀岩社群的前端專案，使用 Next.js 15 框架建構，並支援 Cloudflare 部署。
+NobodyClimb 是一個完整的攀岩社群平台，包含前端與後端系統，均部署於 Cloudflare Workers。
 
 ## 專案概述
 
 NobodyClimb 是一個專為攀岩愛好者打造的平台，提供攀岩場地資訊、攀岩路線、個人檔案、部落格、相片集、YouTube 影片瀏覽等功能，幫助攀岩愛好者分享經驗、尋找攀岩場地、交流技巧。
 
+### 系統架構
+
+- **前端**: Next.js 15 + React 19 應用程式，部署於 Cloudflare Workers
+- **後端**: Hono 框架 API，部署於 Cloudflare Workers，使用 D1 資料庫
+
 ## 技術棧
 
-- **框架**: Next.js 15.5 (React 19)
+### 前端
+
+- **框架**: Next.js 15.5 (App Router) + React 19
 - **語言**: TypeScript 5.9
 - **樣式**: TailwindCSS 3.4 + Tailwind Animate
-- **狀態管理**: Zustand 4.5
+- **狀態管理**: Zustand 4.5 (全域)、TanStack Query 5.85 (伺服器狀態)
 - **表單處理**: React Hook Form 7.62 + Zod 3.25
-- **UI元件**: 自定義UI元件 + Radix UI 系列
+- **UI元件**: Radix UI primitives + 自定義元件
 - **HTTP客戶端**: Axios 1.11
-- **資料獲取**: TanStack Query 5.85 (React Query)
 - **動畫**: Framer Motion 12.23
 - **主題管理**: Next Themes 0.4
 - **工具函式**: Class Variance Authority + clsx + Tailwind Merge
@@ -24,14 +30,17 @@ NobodyClimb 是一個專為攀岩愛好者打造的平台，提供攀岩場地�
 - **圖標**: Lucide React 0.542
 - **測試**: Jest 29.7 + React Testing Library 16.3
 - **程式碼格式化**: Prettier 3.6 + ESLint 8.57
+- **部署**: Cloudflare Workers (OpenNext.js 適配器 1.6.5)
 
-## 部署平台
+### 後端
 
-- **Cloudflare**: 使用 OpenNext.js Cloudflare 適配器
-- **工具**: Wrangler CLI 4.30
-- **配置**: 支援 Cloudflare Workers 和 KV 存儲
-- **圖片優化**: 支援 YouTube 縮圖和多種圖片來源
-- **效能優化**: 啟用圖片快取和優化
+- **運行環境**: Cloudflare Workers
+- **框架**: Hono (輕量級 Web 框架)
+- **資料庫**: Cloudflare D1 (SQLite)
+- **儲存**: Cloudflare R2 (檔案儲存)
+- **快取**: Cloudflare KV
+- **認證**: JWT (jose 函式庫)
+- **部署工具**: Wrangler CLI
 
 ## 專案結構
 
@@ -89,6 +98,16 @@ nobodyclimb-fe/
 │   ├── images/                 # 圖片資源
 │   ├── logo/                   # 品牌標誌
 │   └── photo/                  # 相片資源
+├── backend/                    # Cloudflare Workers API
+│   ├── src/
+│   │   ├── index.ts            # 主要進入點和路由
+│   │   ├── types.ts            # TypeScript 型別
+│   │   ├── db/                 # 資料庫結構定義
+│   │   ├── middleware/         # 認證中介軟體
+│   │   ├── routes/             # API 路由處理器
+│   │   └── utils/              # 工具函式
+│   ├── migrations/             # D1 資料庫遷移
+│   └── wrangler.toml           # Cloudflare Workers 配置
 ├── scripts/                    # 工具腳本
 │   ├── channels.json           # YouTube 頻道配置
 │   ├── collect-youtube-data.sh # YouTube 資料收集腳本
@@ -99,7 +118,7 @@ nobodyclimb-fe/
 ├── next.config.js              # Next.js 配置
 ├── open-next.config.ts         # OpenNext Cloudflare 配置
 ├── tailwind.config.js          # TailwindCSS 配置
-├── wrangler.json               # Cloudflare Wrangler 配置
+├── wrangler.json               # 前端 Cloudflare Wrangler 配置
 └── package.json                # 專案依賴
 ```
 
@@ -182,9 +201,9 @@ npm run dev
 
 ## 指令說明
 
-### 開發相關
+### 前端開發相關
 
-- `pnpm dev` - 啟動開發伺服器 (支援 React 19)
+- `pnpm dev` - 啟動開發伺服器 (localhost:3000)
 - `pnpm build` - 建構生產版本
 - `pnpm start` - 啟動生產伺服器
 - `pnpm lint` - 執行 ESLint 程式碼檢查
@@ -192,21 +211,23 @@ npm run dev
 - `pnpm format` - 使用 Prettier 格式化程式碼
 - `pnpm format:check` - 檢查程式碼格式
 
-### Cloudflare 部署相關
+### 前端 Cloudflare 部署
 
 - `pnpm build:cf` - 建構 Cloudflare 版本
-- `pnpm preview` - 預覽 Cloudflare 建構
-- `pnpm deploy` - 部署到 Cloudflare (預設環境)
-- `pnpm cf-typegen` - 生成 Cloudflare 環境型別
-
-### 環境特定部署
-
-- `wrangler deploy` - 部署到預設環境
 - `wrangler deploy --env production` - 部署到生產環境 (nobodyclimb.cc)
 - `wrangler deploy --env preview` - 部署到預覽環境
-- `wrangler preview` - 本地預覽部署
 - `wrangler tail --env production` - 查看生產環境日誌
-- `wrangler tail --env preview` - 查看預覽環境日誌
+
+### 後端開發相關
+
+```bash
+cd backend                      # 切換到後端目錄
+pnpm dev                        # 啟動本地開發伺服器
+pnpm db:migrate                 # 執行本地資料庫遷移
+pnpm db:migrate:remote          # 執行遠端 D1 資料庫遷移
+pnpm deploy:preview             # 部署到預覽環境
+pnpm deploy:production          # 部署到生產環境
+```
 
 ### YouTube 資料處理
 
@@ -216,66 +237,86 @@ npm run dev
 
 ## 部署說明
 
-本專案支援 Cloudflare Workers 部署，配置了多個環境以支援不同的部署需求。
+本專案前後端均部署於 Cloudflare Workers，配置了多個環境以支援不同的部署需求。
 
 ### 環境配置
 
-專案配置了以下環境：
+#### 前端 (Frontend)
 
-#### 生產環境 (Production)
+**生產環境 (Production)**
 
 - **域名**: nobodyclimb.cc, <www.nobodyclimb.cc>
 - **Worker 名稱**: nobodyclimb-fe-production
 - **部署指令**: `wrangler deploy --env production`
 
-#### 預覽環境 (Preview)
+**預覽環境 (Preview)**
 
 - **Worker 名稱**: nobodyclimb-fe-preview
 - **部署指令**: `wrangler deploy --env preview`
 
+**KV 綁定**: `VIDEOS` (用於未來影片資料儲存)
+
+#### 後端 (Backend)
+
+**生產環境 (Production)**
+
+- **域名**: api.nobodyclimb.cc
+- **Worker 名稱**: nobodyclimb-api-production
+- **D1 資料庫**: nobodyclimb-db
+- **R2 儲存**: nobodyclimb-storage
+- **部署指令**: `cd backend && pnpm deploy:production`
+
+**預覽環境 (Preview)**
+
+- **Worker 名稱**: nobodyclimb-api-preview
+- **D1 資料庫**: nobodyclimb-db-preview
+- **R2 儲存**: nobodyclimb-storage-preview
+- **部署指令**: `cd backend && pnpm deploy:preview`
+
 #### 開發環境 (Development)
 
-- **本地開發**: `pnpm dev`
-- **本地預覽**: `wrangler preview`
+- **前端**: `pnpm dev` (localhost:3000)
+- **後端**: `cd backend && pnpm dev`
 
 ### 快速部署步驟
 
-1. **前置準備**
+#### 前端部署
 
-   ```bash
-   # 安裝依賴
-   pnpm install
-   
-   # 登入 Cloudflare
-   wrangler login
-   ```
+```bash
+# 1. 安裝依賴
+pnpm install
 
-2. **建構專案**
+# 2. 登入 Cloudflare
+wrangler login
 
-   ```bash
-   # 建構 Cloudflare 版本
-   pnpm build:cf
-   ```
+# 3. 建構專案
+pnpm build:cf
 
-3. **部署到指定環境**
+# 4. 部署到生產環境
+wrangler deploy --env production
 
-   ```bash
-   # 部署到生產環境
-   wrangler deploy --env production
-   
-   # 或部署到預覽環境
-   wrangler deploy --env preview
-   ```
+# 5. 查看日誌
+wrangler tail --env production
+```
 
-4. **監控部署**
+#### 後端部署
 
-   ```bash
-   # 查看生產環境日誌
-   wrangler tail --env production
-   
-   # 查看預覽環境日誌
-   wrangler tail --env preview
-   ```
+```bash
+# 1. 切換到後端目錄
+cd backend
+
+# 2. 安裝依賴
+pnpm install
+
+# 3. 設定 JWT Secret (僅首次)
+wrangler secret put JWT_SECRET --env production
+
+# 4. 執行資料庫遷移
+pnpm db:migrate:remote
+
+# 5. 部署到生產環境
+pnpm deploy:production
+```
 
 ### KV 存儲配置
 
@@ -345,20 +386,42 @@ wrangler kv:key list --binding=VIDEOS
 - 使用 Tailwind CSS 3.4 進行樣式設計
 - 採用 React 19 Hooks 和函數式元件
 - 使用現代化的 Next.js 15 App Router 結構
+- 所有程式碼和註解使用繁體中文
 
-### 狀態管理
+### 前端架構模式
 
-- 使用 Zustand 4.5 進行全域狀態管理
-- 使用 TanStack Query 5.85 處理伺服器狀態和快取
-- 使用 React Hook Form 7.62 + Zod 3.25 處理表單狀態和驗證
+#### 狀態管理
 
-### 檔案組織
+- **Zustand stores** (`src/store/`): 全域客戶端狀態 (auth, UI, content)
+- **TanStack Query**: 伺服器狀態快取和資料獲取
+- **React Hook Form + Zod**: 表單狀態和驗證
 
-- 按功能模組組織元件
-- 共用元件放在 `components/shared/` 和 `components/ui/`
-- 型別定義集中在 `lib/types/`
-- 工具函式放在 `lib/utils/`
-- API 相關邏輯統一在 `lib/api/`
+#### API 通信
+
+- Axios 客戶端位於 `src/lib/api/client.ts`，包含:
+  - 請求攔截器: 自動從 cookies 添加 JWT token
+  - 回應攔截器: 處理 401 錯誤時自動刷新 token
+- 基礎 URL: `https://api.nobodyclimb.cc/api/v1` (可透過 `NEXT_PUBLIC_API_URL` 配置)
+- 認證 tokens 使用 `js-cookie` 儲存在 cookies 中
+
+#### 元件組織
+
+- 功能按領域分組 (例如: `components/crag/`, `components/profile/`)
+- 共用元件在 `components/shared/`
+- 基礎 UI 元件 (Radix UI 包裝) 在 `components/ui/`
+- 使用 `@/` 路徑別名進行匯入 (例如: `import { Button } from '@/components/ui/button'`)
+
+### 後端架構模式
+
+- RESTful API，路由處理器在 `backend/src/routes/`
+- JWT 認證中介軟體
+- D1 資料庫，SQLite schema 在 `backend/src/db/schema.sql`
+- Cloudflare 綁定: DB (D1), CACHE (KV), STORAGE (R2)
+
+### TypeScript 路徑別名
+
+- `@/*` 對應到 `src/*` (配置於 `tsconfig.json`)
+- 後端從前端 TypeScript 配置中排除
 
 ### 圖片處理
 
@@ -366,6 +429,24 @@ wrangler kv:key list --binding=VIDEOS
 - 支援 YouTube 縮圖和多種圖片來源
 - 啟用 AVIF 和 WebP 格式支援
 - 配置多種裝置尺寸優化
+
+## CI/CD
+
+本專案使用 GitHub Actions 進行自動化部署：
+
+- `.github/workflows/deploy.yml` - 前端部署工作流程
+- `.github/workflows/deploy-api.yml` - 後端 API 部署工作流程
+  - 監聽 `backend/` 目錄變更時觸發
+  - 自動執行 D1 資料庫遷移
+  - 需要 `CLOUDFLARE_API_TOKEN` secret
+
+## 重要提示
+
+- 前端使用 React 19 和 Next.js 15，需要 Node.js 18+
+- 目前使用 `public/data/` 中的靜態 JSON 檔案存儲影片資料 (KV 整合規劃中)
+- 後端需要 Cloudflare 帳號和正確的綁定設定
+- JWT secret 必須透過 `wrangler secret put JWT_SECRET` 為後端配置
+- 所有程式碼、註解和文件均使用繁體中文
 
 ## 貢獻指南
 
@@ -377,11 +458,21 @@ wrangler kv:key list --binding=VIDEOS
 
 ---
 
-### 聯絡資訊
+## 聯絡資訊
 
 - **網站**: [nobodyclimb.cc](https://nobodyclimb.cc)
-- **官方網站**: [www.nobodyclimb.cc](https://www.nobodyclimb.cc)
+- **API**: [api.nobodyclimb.cc](https://api.nobodyclimb.cc)
 - **開發團隊**: NobodyClimb Team
+
+## 專案特色
+
+- 完整的前後端分離架構
+- 全部部署於 Cloudflare Workers，享受全球 CDN 加速
+- 使用 D1 資料庫和 R2 儲存，零冷啟動時間
+- React 19 + Next.js 15 最新技術棧
+- 完整的認證系統和權限管理
+- 響應式設計，支援各種裝置
+- 繁體中文介面和內容
 
 ---
 
