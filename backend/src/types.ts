@@ -7,6 +7,45 @@ export interface Env {
   JWT_ISSUER: string;
   JWT_SECRET: string;
   R2_PUBLIC_URL: string;
+  CWA_API_KEY: string; // 中央氣象署 API 授權碼
+}
+
+// Weather API Types
+export interface CwaWeatherElement {
+  elementName: string;
+  time: Array<{
+    startTime: string;
+    endTime: string;
+    parameter: {
+      parameterName: string;
+      parameterValue?: string;
+      parameterUnit?: string;
+    };
+  }>;
+}
+
+export interface CwaLocationWeather {
+  locationName: string;
+  weatherElement: CwaWeatherElement[];
+}
+
+export interface WeatherData {
+  location: string;
+  temperature: number;
+  minTemp: number;
+  maxTemp: number;
+  condition: string;
+  precipitation: number; // 降雨機率 %
+  humidity?: number;
+  comfort?: string;
+  updatedAt: string;
+  forecast: Array<{
+    date: string;
+    minTemp: number;
+    maxTemp: number;
+    condition: string;
+    precipitation: number;
+  }>;
 }
 
 // Database Models

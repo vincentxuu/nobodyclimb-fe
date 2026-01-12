@@ -380,9 +380,32 @@ export interface Route {
 }
 
 /**
- * 天氣資訊介面
+ * 天氣資訊介面（後端 API 回應格式）
  */
 export interface Weather {
+  location: string
+  temperature: number
+  minTemp: number
+  maxTemp: number
+  condition: string
+  precipitation: number // 降雨機率 %
+  humidity?: number
+  comfort?: string
+  updatedAt: string
+  forecast: Array<{
+    date: string
+    minTemp: number
+    maxTemp: number
+    condition: string
+    precipitation: number
+  }>
+}
+
+/**
+ * 舊版天氣資訊介面（用於相容性）
+ * @deprecated 使用 Weather 介面替代
+ */
+export interface LegacyWeather {
   current: {
     temperature: number
     humidity: number

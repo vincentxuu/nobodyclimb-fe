@@ -7,28 +7,14 @@ import Link from 'next/link'
 import {
   ArrowLeft,
   MapPin,
-  Calendar,
-  ThermometerSun,
-  Cloud,
-  Umbrella,
-  Car,
-  Info,
-  Clock,
   Heart,
   ChevronUp,
-  Youtube,
-  Facebook,
-  Twitter,
-  Eye,
 } from 'lucide-react'
 import { motion } from 'framer-motion'
 import { Button } from '@/components/ui/button'
-import { CragIntroSection } from '@/components/crag/intro-section'
 import { CragAreaSection } from '@/components/crag/area-section'
 import { CragRouteSection } from '@/components/crag/route-section'
-import { CragWeatherCard } from '@/components/crag/weather-card'
-import { CragMapCard } from '@/components/crag/map-card'
-import { CragInfoCard } from '@/components/crag/info-card'
+import { WeatherDisplay } from '@/components/shared/weather-display'
 import { Breadcrumb } from '@/components/ui/breadcrumb'
 import { useRouter } from 'next/navigation'
 import * as Tabs from '@radix-ui/react-tabs'
@@ -167,25 +153,13 @@ export default function CragDetailPage({ params }: { params: Promise<{ id: strin
           </div>
 
           {/* 天氣資訊 */}
-          <div className="mb-8 inline-block rounded-lg bg-gray-100 p-6">
-            <div className="flex items-center gap-2">
-              <div className="flex items-center gap-1">
-                <span className="text-2xl font-medium text-gray-700">
-                  {currentCrag.weather.current.temp}°C
-                </span>
-              </div>
-              <div>
-                <p className="text-xs text-gray-700">{currentCrag.location}</p>
-                <p className="text-xs text-gray-700">{currentCrag.weather.current.condition}</p>
-              </div>
-            </div>
-            <div className="mt-1 flex items-center">
-              <Cloud size={14} className="mr-1 text-gray-700" />
-              <span className="text-xs text-gray-700">
-                降雨機率: {currentCrag.weather.current.precipitation}
-              </span>
-              <span className="ml-2 text-xs text-gray-700">{currentCrag.weather.current.wind}</span>
-            </div>
+          <div className="mb-8">
+            <WeatherDisplay
+              location={currentCrag.weatherLocation}
+              latitude={currentCrag.geoCoordinates.latitude}
+              longitude={currentCrag.geoCoordinates.longitude}
+              showForecast={true}
+            />
           </div>
 
           {/* 岩場介紹 - 使用標籤頁 */}

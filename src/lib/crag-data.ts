@@ -460,19 +460,8 @@ export function getCragDetailData(id: string) {
       latitude: crag.location.latitude,
       longitude: crag.location.longitude,
     },
-    weather: {
-      current: {
-        temp: 23,
-        condition: '晴時多雲',
-        precipitation: '10%',
-        wind: '東北風 3級',
-      },
-      forecast: [
-        { day: '今天', high: 24, low: 19, condition: '晴時多雲', precipitation: '10%' },
-        { day: '明天', high: 25, low: 20, condition: '多雲', precipitation: '20%' },
-        { day: '後天', high: 23, low: 18, condition: '陰有雨', precipitation: '60%' },
-      ],
-    },
+    // 天氣查詢用的位置資訊
+    weatherLocation: crag.location.region || crag.location.address,
     areas: areas.map(area => ({
       id: area.id,
       name: area.name,
