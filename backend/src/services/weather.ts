@@ -112,18 +112,118 @@ function findLocationByDistrict(
   if (!district) return null;
   const normalizedDistrict = normalizeLocationName(district);
   const exactMatch = locations.find(
-    location => normalizeLocationName(location.locationName) === normalizedDistrict
+    location => {
+      const name = (location as any).locationName || (location as any).LocationName || '';
+      return normalizeLocationName(name) === normalizedDistrict;
+    }
   );
   if (exactMatch) return exactMatch;
 
   const trimmedDistrict = normalizedDistrict.replace(/[區鄉鎮市]$/, '');
   return (
     locations.find(
-      location =>
-        normalizeLocationName(location.locationName).replace(/[區鄉鎮市]$/, '') ===
-        trimmedDistrict
+      location => {
+        const name = (location as any).locationName || (location as any).LocationName || '';
+        return normalizeLocationName(name).replace(/[區鄉鎮市]$/, '') === trimmedDistrict;
+      }
     ) || null
   );
+}
+
+function normalizeElementName(value: string): string {
+  return normalizeLocationName(value).replace(/\s+/g, '');
+}
+
+function extractLocationsFromRecords(data: {
+  records?: {
+    locations?: Array<{ location?: CwaLocationWeather[] }>;
+    location?: CwaLocationWeather[];
+    Locations?: Array<{ Location?: CwaLocationWeather[] }>;
+    Location?: CwaLocationWeather[];
+  };
+}): CwaLocationWeather[] {
+  const records = data.records || {};
+  const upperLocations = records.Locations?.[0]?.Location || [];
+  const lowerLocations = records.locations?.[0]?.location || [];
+  const upperLocation = records.Location || [];
+  const lowerLocation = records.location || [];
+  return upperLocations.length
+    ? upperLocations
+    : lowerLocations.length
+      ? lowerLocations
+      : upperLocation.length
+        ? upperLocation
+        : lowerLocation;
+}
+
+function extractElementValue(valueObj: Record<string, string>, key: string): string | null {
+  if (key in valueObj) return valueObj[key] ?? null;
+  const firstKey = Object.keys(valueObj)[0];
+  return firstKey ? valueObj[firstKey] : null;
+}
+
+function buildLegacyElement(
+  element: any,
+  targetName: string,
+  valueKey: string
+): CwaWeatherElement | null {
+  const timeList = element.Time || element.time || [];
+  if (!Array.isArray(timeList) || timeList.length === 0) return null;
+
+  const time = timeList.map((slot: any) => {
+    const valueObj = (slot.ElementValue || slot.elementValue || [])[0] || {};
+    const value = extractElementValue(valueObj, valueKey);
+    return {
+      startTime: slot.StartTime || slot.startTime,
+      endTime: slot.EndTime || slot.endTime,
+      parameter: {
+        parameterName: value ?? '',
+      },
+    };
+  });
+
+  return {
+    elementName: targetName,
+    time,
+  };
+}
+
+function normalizeLocationData(locationData: any): CwaLocationWeather {
+  const locationName = locationData.locationName || locationData.LocationName || '';
+  const weatherElement = locationData.weatherElement || locationData.WeatherElement || [];
+  if (!Array.isArray(weatherElement) || weatherElement.length === 0) {
+    return { locationName, weatherElement: [] };
+  }
+
+  const hasLegacyShape = typeof weatherElement[0]?.elementName === 'string';
+  if (hasLegacyShape) {
+    return { locationName, weatherElement };
+  }
+
+  const mapping = [
+    { names: ['天氣現象', 'Weather'], target: 'Wx', key: 'Weather' },
+    { names: ['天氣預報綜合描述', 'WeatherDescription'], target: 'WeatherDescription', key: 'WeatherDescription' },
+    { names: ['平均溫度', 'Temperature'], target: 'T', key: 'Temperature' },
+    { names: ['最高溫度', 'MaxTemperature'], target: 'MaxT', key: 'MaxTemperature' },
+    { names: ['最低溫度', 'MinTemperature'], target: 'MinT', key: 'MinTemperature' },
+    { names: ['12小時降雨機率', 'ProbabilityOfPrecipitation'], target: 'PoP12h', key: 'ProbabilityOfPrecipitation' },
+    { names: ['最大舒適度指數', '最大舒適度指數描述', 'MaxComfortIndexDescription'], target: 'CI', key: 'MaxComfortIndexDescription' },
+    { names: ['最小舒適度指數', '最小舒適度指數描述', 'MinComfortIndexDescription'], target: 'CI', key: 'MinComfortIndexDescription' },
+  ];
+
+  const normalizedElements: CwaWeatherElement[] = [];
+  for (const map of mapping) {
+    const element = weatherElement.find((entry: any) =>
+      map.names.some(name => normalizeElementName(entry.ElementName || entry.elementName || '') === normalizeElementName(name))
+    );
+    if (!element) continue;
+    const legacy = buildLegacyElement(element, map.target, map.key);
+    if (legacy) {
+      normalizedElements.push(legacy);
+    }
+  }
+
+  return { locationName, weatherElement: normalizedElements };
 }
 
 // 安全地解析數值，無法解析時回傳 null
@@ -177,6 +277,7 @@ export async function getWeatherByLocation(
     url.searchParams.set('Authorization', env.CWA_API_KEY);
     url.searchParams.set('format', 'JSON');
     if (district && city) {
+      url.searchParams.set('LocationName', district);
       url.searchParams.set('locationName', district);
     }
 
@@ -205,10 +306,10 @@ export async function getWeatherByLocation(
     let data: {
       success: string;
       records: {
-        locations?: Array<{
-          location: CwaLocationWeather[];
-        }>;
+        locations?: Array<{ location?: CwaLocationWeather[] }>;
         location?: CwaLocationWeather[];
+        Locations?: Array<{ Location?: CwaLocationWeather[] }>;
+        Location?: CwaLocationWeather[];
       };
     };
 
@@ -228,7 +329,7 @@ export async function getWeatherByLocation(
     }
 
     // 解析天氣資料
-    const locations = data.records.locations?.[0]?.location || data.records.location || [];
+    const locations = extractLocationsFromRecords(data);
 
     // 加入除錯資訊
     console.log(`CWA API response: success=${data.success}, locations count=${locations.length}`);
@@ -284,9 +385,10 @@ export async function getWeatherByLocation(
       }
     }
     // 從 API 回傳的資料中取得實際的區域名稱
-    const actualDistrict = locationData.locationName || district;
+    const normalizedLocationData = normalizeLocationData(locationData);
+    const actualDistrict = normalizedLocationData.locationName || district;
     // 傳入原始地址以保留完整的地點名稱
-    const weatherData = parseWeatherData(locationData, displayCity, actualDistrict, location);
+    const weatherData = parseWeatherData(normalizedLocationData, displayCity, actualDistrict, location);
 
     // 快取 30 分鐘
     try {
@@ -332,7 +434,10 @@ async function fetchTaiwanForecast(
     const data = await response.json() as {
       success: string;
       records: {
+        locations?: Array<{ location?: CwaLocationWeather[] }>;
         location?: CwaLocationWeather[];
+        Locations?: Array<{ Location?: CwaLocationWeather[] }>;
+        Location?: CwaLocationWeather[];
       };
     };
 
@@ -341,13 +446,13 @@ async function fetchTaiwanForecast(
       return null;
     }
 
-    const locations = data.records.location || [];
+    const locations = extractLocationsFromRecords(data);
     if (locations.length === 0) {
       console.warn('No Taiwan forecast data found');
       return null;
     }
 
-    const locationData = locations[0];
+    const locationData = normalizeLocationData(locations[0]);
     // 傳入原始地址以保留完整的地點名稱
     const weatherData = parseWeatherData(locationData, locationData.locationName || displayCity, null, originalLocation);
 
@@ -381,10 +486,10 @@ async function fetchCityForecast(
     const data = (await response.json()) as {
       success: string;
       records: {
-        locations?: Array<{
-          location: CwaLocationWeather[];
-        }>;
+        locations?: Array<{ location?: CwaLocationWeather[] }>;
         location?: CwaLocationWeather[];
+        Locations?: Array<{ Location?: CwaLocationWeather[] }>;
+        Location?: CwaLocationWeather[];
       };
     };
 
@@ -393,7 +498,7 @@ async function fetchCityForecast(
       return null;
     }
 
-    const locations = data.records.locations?.[0]?.location || data.records.location || [];
+    const locations = extractLocationsFromRecords(data);
     if (locations.length === 0) {
       console.warn('No city forecast data found');
       return null;
@@ -404,8 +509,9 @@ async function fetchCityForecast(
       console.warn(`No district match found in city forecast: city="${displayCity}", district="${district}"`);
       return null;
     }
-    const actualDistrict = matchedLocation.locationName || district;
-    return parseWeatherData(matchedLocation, displayCity, actualDistrict, originalLocation);
+    const normalizedLocation = normalizeLocationData(matchedLocation);
+    const actualDistrict = normalizedLocation.locationName || district;
+    return parseWeatherData(normalizedLocation, displayCity, actualDistrict, originalLocation);
   } catch (error) {
     console.error('Failed to fetch city forecast:', error);
     return null;
