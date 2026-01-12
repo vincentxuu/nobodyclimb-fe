@@ -14,7 +14,8 @@ import { GalleryPhoto } from '@/lib/types'
 interface UploadPhotoDialogProps {
   isOpen: boolean
   onClose: () => void
-  onSuccess: (photo: GalleryPhoto) => void
+  // eslint-disable-next-line no-unused-vars
+  onSuccess: (_photo: GalleryPhoto) => void
 }
 
 // File validation constants
@@ -420,6 +421,7 @@ const UploadPhotoDialog: React.FC<UploadPhotoDialogProps> = ({
                         key={fileItem.id}
                         className="relative aspect-square rounded-md overflow-hidden group"
                       >
+                        {/* eslint-disable-next-line @next/next/no-img-element */}
                         <img
                           src={fileItem.preview}
                           alt="Preview"

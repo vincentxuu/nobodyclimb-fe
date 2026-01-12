@@ -4,7 +4,8 @@ import type { VideoCategory } from '@/lib/types'
 
 interface VideoFiltersProps {
   selectedCategory: VideoCategory | 'all'
-  onCategoryChange: (category: VideoCategory | 'all') => void
+  // eslint-disable-next-line no-unused-vars
+  onCategoryChange: (_category: VideoCategory | 'all') => void
 }
 
 const VideoFilters: React.FC<VideoFiltersProps> = ({ 

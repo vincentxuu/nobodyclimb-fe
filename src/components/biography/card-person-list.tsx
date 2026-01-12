@@ -81,7 +81,8 @@ interface CardPersonListProps {
   currentId?: string
 }
 
-export function CardPersonList({ currentId }: CardPersonListProps) {
+// eslint-disable-next-line no-unused-vars
+export function CardPersonList({ currentId: _currentId }: CardPersonListProps) {
   return (
     <div className="grid grid-cols-1 gap-6 md:grid-cols-3">
       {relatedArticles.map((article) => (

@@ -136,6 +136,7 @@ function CreateBlogPageContent() {
         <main className="mx-auto max-w-[930px] px-4 py-8">
           <article className="bg-white p-6 md:p-10">
             {coverImage && (
+              /* eslint-disable-next-line @next/next/no-img-element */
               <img
                 src={coverImage}
                 alt={title}

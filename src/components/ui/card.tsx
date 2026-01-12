@@ -9,7 +9,8 @@ interface CardProps extends React.HTMLAttributes<HTMLDivElement> {
 }
 
 const Card = React.forwardRef<HTMLDivElement, CardProps>(
-  ({ className, type = 'normal', state = 'normal', device = 'desktop', ...props }, ref) => (
+  // eslint-disable-next-line no-unused-vars
+  ({ className, type = 'normal', state = 'normal', device: _device = 'desktop', ...props }, ref) => (
     <div
       ref={ref}
       className={cn(
@@ -62,7 +63,8 @@ interface CardTitleProps extends React.HTMLAttributes<HTMLDivElement> {
 
 const CardTitle = React.forwardRef<HTMLDivElement, CardTitleProps>(
   (
-    { className, title, subtitle, experience, type = 'normal', showArrow = false, ...props },
+    // eslint-disable-next-line no-unused-vars
+    { className, title, subtitle: _subtitle, experience, type: _type = 'normal', showArrow = false, ...props },
     ref
   ) => (
     <div ref={ref} className={cn('mb-3 flex items-center justify-between', className)} {...props}>

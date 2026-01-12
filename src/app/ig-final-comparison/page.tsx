@@ -1,6 +1,5 @@
 'use client'
 
-import { useEffect } from 'react'
 import InstagramEmbed from '@/components/instagram/instagram-embed'
 import InstagramEmbedSDK from '@/components/instagram/instagram-embed-sdk'
 

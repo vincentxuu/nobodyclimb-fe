@@ -40,7 +40,8 @@ export default function InstagramEmbed({
   url,
   width = 540,
   height = 700,
-  captioned = true,
+  // eslint-disable-next-line no-unused-vars
+  captioned: _captioned = true,
   className = ''
 }: InstagramEmbedProps) {
   const [isLoading, setIsLoading] = useState(true)
@@ -61,11 +62,14 @@ export default function InstagramEmbed({
     setIsLoading(true)
     setHasError(false)
 
-    // 設定載入超時
+    // 設定載入超時 - 使用 functional update 避免依賴 isLoading
     const timeout = setTimeout(() => {
-      if (isLoading) {
-        setIsLoading(false)
-      }
+      setIsLoading((current) => {
+        if (current) {
+          return false
+        }
+        return current
+      })
     }, 5000)
 
     return () => clearTimeout(timeout)

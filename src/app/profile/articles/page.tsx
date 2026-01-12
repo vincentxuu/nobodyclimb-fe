@@ -38,7 +38,8 @@ const PageHeader = ({ title, actionButton }: PageHeaderProps) => (
 // 文章卡片元件
 interface ArticleCardProps {
   article: Article
-  onDelete: (id: string) => void
+  // eslint-disable-next-line no-unused-vars
+  onDelete: (_id: string) => void
   isDeleting: boolean
 }
 

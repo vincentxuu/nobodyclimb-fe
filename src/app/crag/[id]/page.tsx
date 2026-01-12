@@ -1,7 +1,6 @@
 'use client'
 
 import React, { useState, use, useMemo } from 'react'
-import Image from 'next/image'
 import PlaceholderImage from '@/components/ui/placeholder-image'
 import Link from 'next/link'
 import {
@@ -18,15 +17,13 @@ import { WeatherDisplay } from '@/components/shared/weather-display'
 import { TrafficCamerasCard } from '@/components/crag/traffic-cameras-card'
 import { YouTubeLiveCard } from '@/components/crag/youtube-live-card'
 import { Breadcrumb } from '@/components/ui/breadcrumb'
-import { useRouter } from 'next/navigation'
 import * as Tabs from '@radix-ui/react-tabs'
 import { getCragDetailData } from '@/lib/crag-data'
 
 export default function CragDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = use(params)
   const [activeTab, setActiveTab] = useState('intro')
-  const [selectedAreaFilter, setSelectedAreaFilter] = useState<string>('all')
-  const router = useRouter()
+  const [selectedAreaFilter] = useState<string>('all')
 
   // 從資料服務層讀取岩場資料
   const currentCrag = getCragDetailData(id)
@@ -42,12 +39,6 @@ export default function CragDetailPage({ params }: { params: Promise<{ id: strin
       {} as Record<string, string>
     )
   }, [currentCrag])
-
-  // 處理岩區點擊 - 切換到路線 tab 並設置篩選
-  const handleAreaClick = (areaName: string) => {
-    setSelectedAreaFilter(areaName)
-    setActiveTab('routes')
-  }
 
   if (!currentCrag) {
     return <div>Crag not found</div>

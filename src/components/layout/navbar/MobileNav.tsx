@@ -70,6 +70,7 @@ export default function MobileNav({ isDesktop }: MobileNavProps) {
                   <Link href="/profile" className="block">
                     <div className="flex items-center px-4 py-3 hover:bg-gray-50">
                       {hasValidAvatar ? (
+                        /* eslint-disable-next-line @next/next/no-img-element */
                         <img
                           src={user.avatar}
                           alt="用戶頭像"

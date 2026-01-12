@@ -7,6 +7,7 @@ interface UIState {
   scrollProgress: number
   searchQuery: string
   // 動作
+  // eslint-disable-next-line no-unused-vars
   setTheme: (theme: 'light' | 'dark' | 'system') => void
   toggleNavbar: () => void
   openNavbar: () => void
@@ -15,7 +16,9 @@ interface UIState {
   openSearch: () => void
   closeSearch: () => void
   openNavbarWithSearch: () => void
+  // eslint-disable-next-line no-unused-vars
   setSearchQuery: (query: string) => void
+  // eslint-disable-next-line no-unused-vars
   setScrollProgress: (progress: number) => void
 }
 

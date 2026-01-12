@@ -164,6 +164,7 @@ export default function BasicInfoPage() {
           <div className="flex flex-col items-center space-y-4">
             <div className="relative h-24 w-24 overflow-hidden rounded-full bg-gray-100">
               {avatarPreview ? (
+                /* eslint-disable-next-line @next/next/no-img-element */
                 <img src={avatarPreview} alt="頭像預覽" className="h-full w-full object-cover" />
               ) : (
                 <div className="flex h-full w-full items-center justify-center text-gray-400">

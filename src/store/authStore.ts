@@ -45,13 +45,18 @@ interface AuthState {
   error: string | null
 
   // 動作
+  // eslint-disable-next-line no-unused-vars
   login: (email: string, password: string) => Promise<{ success: boolean; error?: string }>
+  // eslint-disable-next-line no-unused-vars
   loginWithGoogle: (token: string) => Promise<void>
+  // eslint-disable-next-line no-unused-vars
   register: (username: string, email: string, password: string) => Promise<{ success: boolean; error?: string }>
   logout: () => Promise<void>
+  // eslint-disable-next-line no-unused-vars
   updateUser: (userData: UpdateUserData) => Promise<{ success: boolean; error?: string }>
   refreshToken: () => Promise<boolean>
   clearError: () => void
+  // eslint-disable-next-line no-unused-vars
   setUser: (user: User | null) => void
 }
 

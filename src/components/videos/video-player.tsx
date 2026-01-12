@@ -1,7 +1,6 @@
 import React, { useEffect } from 'react'
 import type { Video } from '@/lib/types'
 import { X, ExternalLink } from 'lucide-react'
-import { Button } from '@/components/ui/button'
 
 interface VideoPlayerProps {
   video: Video
