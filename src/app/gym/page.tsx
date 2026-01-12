@@ -13,7 +13,8 @@ import { searchGyms, type GymListItem } from '@/lib/gym-data'
 // 區域篩選選項（僅保留有岩館的地區）
 const regions = [
   '所有地區',
-  '大台北',
+  '台北',
+  '新北',
   '桃園',
   '新竹',
   '台中',

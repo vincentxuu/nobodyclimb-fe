@@ -333,17 +333,11 @@ export function searchGyms(options: {
 
   // 地區篩選
   if (options.region && options.region !== '所有地區') {
-    if (options.region === '大台北') {
-      gyms = gyms.filter(
-        (gym) => gym.location.city === '台北市' || gym.location.city === '新北市'
-      )
-    } else {
-      gyms = gyms.filter(
-        (gym) =>
-          gym.location.city.includes(options.region!) ||
-          gym.location.region === options.region
-      )
-    }
+    gyms = gyms.filter(
+      (gym) =>
+        gym.location.city.includes(options.region!) ||
+        gym.location.region === options.region
+    )
   }
 
   // 類型篩選
