@@ -3,6 +3,7 @@ import Image from 'next/image'
 import Link from 'next/link'
 import { motion, AnimatePresence } from 'framer-motion'
 import { X, ChevronLeft, ChevronRight, MapPin, User } from 'lucide-react'
+import { AvatarWithFallback } from '@/components/ui/avatar-with-fallback'
 
 interface GalleryPhoto {
   id: string
@@ -83,19 +84,16 @@ const PhotoPopup: React.FC<PhotoPopupProps> = ({ photo, onClose, onNext, onPrev 
                   href={`/biography/${photo.author.username}`}
                   className="mb-4 flex items-center gap-3 rounded-lg p-2 transition-colors hover:bg-neutral-700"
                 >
-                  {photo.author.avatar ? (
-                    <Image
-                      src={photo.author.avatar}
-                      alt={photo.author.displayName || photo.author.username}
-                      width={40}
-                      height={40}
-                      className="h-10 w-10 rounded-full object-cover"
-                    />
-                  ) : (
-                    <div className="flex h-10 w-10 items-center justify-center rounded-full bg-neutral-600">
-                      <User size={20} className="text-neutral-300" />
-                    </div>
-                  )}
+                  <AvatarWithFallback
+                    src={photo.author.avatar}
+                    alt={photo.author.displayName || photo.author.username}
+                    size="h-10 w-10"
+                    fallback={
+                      <div className="flex h-10 w-10 items-center justify-center rounded-full bg-neutral-600">
+                        <User size={20} className="text-neutral-300" />
+                      </div>
+                    }
+                  />
                   <div>
                     <p className="font-medium">
                       {photo.author.displayName || photo.author.username}

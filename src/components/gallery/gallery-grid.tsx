@@ -2,6 +2,7 @@ import React from 'react'
 import Image from 'next/image'
 import { motion } from 'framer-motion'
 import { MapPin } from 'lucide-react'
+import { AvatarWithFallback } from '@/components/ui/avatar-with-fallback'
 
 interface GalleryPhoto {
   id: string
@@ -50,19 +51,16 @@ const GalleryGrid: React.FC<GalleryGridProps> = ({ photos, onPhotoClick }) => {
             {/* Author info at top */}
             {photo.author && (
               <div className="flex items-center gap-2">
-                {photo.author.avatar ? (
-                  <Image
-                    src={photo.author.avatar}
-                    alt={photo.author.displayName || photo.author.username}
-                    width={24}
-                    height={24}
-                    className="h-6 w-6 rounded-full object-cover"
-                  />
-                ) : (
-                  <div className="flex h-6 w-6 items-center justify-center rounded-full bg-neutral-600 text-xs text-white">
-                    {(photo.author.displayName || photo.author.username).charAt(0).toUpperCase()}
-                  </div>
-                )}
+                <AvatarWithFallback
+                  src={photo.author.avatar}
+                  alt={photo.author.displayName || photo.author.username}
+                  size="h-6 w-6"
+                  fallback={
+                    <div className="flex h-6 w-6 items-center justify-center rounded-full bg-neutral-600 text-xs text-white">
+                      {(photo.author.displayName || photo.author.username).charAt(0).toUpperCase()}
+                    </div>
+                  }
+                />
                 <span className="text-xs text-white md:text-sm">
                   {photo.author.displayName || photo.author.username}
                 </span>

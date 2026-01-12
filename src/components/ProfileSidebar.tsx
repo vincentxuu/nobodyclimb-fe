@@ -5,7 +5,7 @@ import { useRouter, usePathname } from 'next/navigation'
 import { motion } from 'framer-motion'
 import { useCallback } from 'react'
 import { useAuthStore } from '@/store/authStore'
-import Image from 'next/image'
+import { AvatarWithFallback } from '@/components/ui/avatar-with-fallback'
 
 interface MenuItem {
   name: string
@@ -67,17 +67,12 @@ const ProfileSidebar = () => {
       {/* User Card */}
       <div className="flex flex-col items-center p-6">
         <div className="mb-4 flex h-24 w-24 items-center justify-center overflow-hidden rounded-full bg-[#F5F5F5]">
-          {avatarUrl ? (
-            <Image
-              src={avatarUrl}
-              alt={displayName}
-              width={96}
-              height={96}
-              className="h-full w-full object-cover"
-            />
-          ) : (
-            <UserCircle className="h-20 w-20 text-[#3F3D3D]" />
-          )}
+          <AvatarWithFallback
+            src={avatarUrl}
+            alt={displayName}
+            size="h-24 w-24"
+            fallback={<UserCircle className="h-20 w-20 text-[#3F3D3D]" />}
+          />
         </div>
         <h2 className="mb-1 text-[16px] font-medium text-[#1B1A1A]">{displayName}</h2>
         <p className="text-[14px] font-light text-[#8E8C8C]">{email}</p>
