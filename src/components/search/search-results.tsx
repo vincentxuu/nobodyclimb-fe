@@ -2,6 +2,7 @@ import React from 'react'
 import Image from 'next/image'
 import Link from 'next/link'
 import { useSearchParams, useRouter } from 'next/navigation'
+import { Search, MapPin } from 'lucide-react'
 import { articles } from '@/lib/constants/articles'
 
 // Define the type for the ID mapping
@@ -29,13 +30,7 @@ export default function SearchResults() {
     return (
       <div className="py-12 text-center">
         <div className="mb-6">
-          <Image
-            src="/icon/icon_search.svg"
-            width={48}
-            height={48}
-            alt="no results"
-            className="mx-auto"
-          />
+          <Search className="mx-auto h-12 w-12 text-[#B6B3B3]" />
         </div>
         <p className="text-xl font-medium text-[#B6B3B3]">搜尋不到任何結果</p>
       </div>
@@ -109,7 +104,7 @@ export default function SearchResults() {
                   <span className="text-sm text-[#6D6C6C]">{article.date}</span>
                   {article.location && (
                     <div className="flex items-center gap-1">
-                      <Image src="/icon/pin-alt.svg" width={16} height={16} alt="location" />
+                      <MapPin className="h-4 w-4 text-[#6D6C6C]" />
                       <span className="text-sm text-[#6D6C6C]">{article.location}</span>
                     </div>
                   )}
