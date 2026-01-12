@@ -162,7 +162,7 @@ export async function getWeatherByLocation(
       // 若縣市級 API 失敗，嘗試使用全台預報作為備援
       if (datasetId !== TAIWAN_FORECAST_CODE) {
         console.log('Falling back to Taiwan-wide forecast');
-        const fallbackData = await fetchTaiwanForecast(env, city || '台灣');
+        const fallbackData = await fetchTaiwanForecast(env, city || '台灣', location);
         if (fallbackData) {
           try {
             // 將備援資料存入快取
@@ -221,7 +221,7 @@ export async function getWeatherByLocation(
       // 2. 若縣市級查詢失敗，改用全台預報
       if (datasetId !== TAIWAN_FORECAST_CODE) {
         console.log('Falling back to Taiwan-wide forecast');
-        const fallbackData = await fetchTaiwanForecast(env, city || '台灣');
+        const fallbackData = await fetchTaiwanForecast(env, city || '台灣', location);
         if (fallbackData) {
           try {
             // 將備援資料存入快取
@@ -239,7 +239,8 @@ export async function getWeatherByLocation(
     const locationData = locations[0];
     // 從 API 回傳的資料中取得實際的區域名稱
     const actualDistrict = locationData.locationName || district;
-    const weatherData = parseWeatherData(locationData, displayCity, actualDistrict);
+    // 傳入原始地址以保留完整的地點名稱
+    const weatherData = parseWeatherData(locationData, displayCity, actualDistrict, location);
 
     // 快取 30 分鐘
     try {
@@ -261,7 +262,8 @@ export async function getWeatherByLocation(
 // 獲取全台灣預報作為備援
 async function fetchTaiwanForecast(
   env: Env,
-  displayCity: string
+  displayCity: string,
+  originalLocation?: string
 ): Promise<WeatherData | null> {
   try {
     const url = new URL(`${CWA_API_BASE}/${TAIWAN_FORECAST_CODE}`);
@@ -300,7 +302,8 @@ async function fetchTaiwanForecast(
     }
 
     const locationData = locations[0];
-    const weatherData = parseWeatherData(locationData, locationData.locationName || displayCity, null);
+    // 傳入原始地址以保留完整的地點名稱
+    const weatherData = parseWeatherData(locationData, locationData.locationName || displayCity, null, originalLocation);
 
     return weatherData;
   } catch (error) {
@@ -316,7 +319,8 @@ const FORECAST_DAYS = 7;
 function parseWeatherData(
   locationData: CwaLocationWeather,
   city: string,
-  district: string | null
+  district: string | null,
+  originalLocation?: string
 ): WeatherData {
   const elements: Record<string, CwaWeatherElement['time']> = {};
 
@@ -352,8 +356,12 @@ function parseWeatherData(
     });
   }
 
+  // 優先使用原始地址，保留完整的地點名稱（如「新北市貢寮區龍洞灣」）
+  // 若無原始地址，則使用縣市+區域的組合
+  const displayLocation = originalLocation || (district ? `${city}${district}` : city);
+
   return {
-    location: district ? `${city}${district}` : city,
+    location: displayLocation,
     temperature: parseNumber(currentTemp?.parameter?.parameterName),
     minTemp: parseNumber(minTemp?.parameter?.parameterName),
     maxTemp: parseNumber(maxTemp?.parameter?.parameterName),
