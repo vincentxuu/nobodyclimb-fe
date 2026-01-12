@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useEffect, ReactNode } from 'react'
+import Image from 'next/image'
 
 interface AvatarWithFallbackProps {
   src?: string | null
@@ -12,6 +13,7 @@ interface AvatarWithFallbackProps {
 
 /**
  * 可處理圖片載入失敗的頭像組件
+ * 使用 Next.js Image 進行圖片優化
  * 當圖片無法載入時會自動顯示 fallback 內容
  */
 export function AvatarWithFallback({
@@ -36,12 +38,16 @@ export function AvatarWithFallback({
   }
 
   return (
-    /* eslint-disable-next-line @next/next/no-img-element */
-    <img
-      src={src}
-      alt={alt}
-      className={`${size} rounded-full object-cover ${className}`}
-      onError={() => setHasError(true)}
-    />
+    <div className={`relative ${size} overflow-hidden rounded-full ${className}`}>
+      <Image
+        src={src}
+        alt={alt}
+        fill
+        className="object-cover"
+        sizes="96px"
+        onError={() => setHasError(true)}
+        unoptimized={src.startsWith('http')}
+      />
+    </div>
   )
 }
