@@ -1,4 +1,4 @@
-import { SatelliteImageInfo, SatelliteImageType, SatelliteImageArea } from '../types';
+import { SatelliteImageInfo, SatelliteImageType, SatelliteImageArea, RadarImageInfo, RadarImageType, RadarImageArea } from '../types';
 
 // 中央氣象署衛星雲圖 URL 配置
 // 圖片 URL 格式：https://www.cwa.gov.tw/Data/satellite/{folder}/{filename}.jpg
@@ -145,6 +145,119 @@ export async function getSatelliteImageProxy(
     return await response.arrayBuffer();
   } catch (error) {
     console.error('Error fetching satellite image:', error);
+    return null;
+  }
+}
+
+// ============================================
+// 雷達回波功能
+// ============================================
+
+// 雷達回波 URL 配置
+interface RadarUrlConfig {
+  filename: string;
+  label: string;
+}
+
+// 雷達回波 URL 對應表
+const RADAR_URL_CONFIG: Record<RadarImageArea, Record<RadarImageType, RadarUrlConfig>> = {
+  taiwan: {
+    composite: {
+      filename: 'CV1_TW_1000_forPreview',
+      label: '台灣雷達回波',
+    },
+    rain: {
+      filename: 'CV1_TW_3600',
+      label: '台灣降雨雷達',
+    },
+  },
+  north: {
+    composite: {
+      filename: 'CV1_NW_1000_forPreview',
+      label: '北部雷達回波',
+    },
+    rain: {
+      filename: 'CV1_NW_3600',
+      label: '北部降雨雷達',
+    },
+  },
+  south: {
+    composite: {
+      filename: 'CV1_SW_1000_forPreview',
+      label: '南部雷達回波',
+    },
+    rain: {
+      filename: 'CV1_SW_3600',
+      label: '南部降雨雷達',
+    },
+  },
+};
+
+const CWA_RADAR_BASE = 'https://www.cwa.gov.tw/Data/radar';
+
+/**
+ * 取得雷達回波資訊列表
+ */
+export function getRadarImages(
+  type?: RadarImageType,
+  area?: RadarImageArea
+): RadarImageInfo[] {
+  const results: RadarImageInfo[] = [];
+  const areas: RadarImageArea[] = area ? [area] : ['taiwan', 'north', 'south'];
+  const types: RadarImageType[] = type ? [type] : ['composite', 'rain'];
+
+  for (const a of areas) {
+    for (const t of types) {
+      const config = RADAR_URL_CONFIG[a][t];
+      results.push({
+        type: t,
+        area: a,
+        url: `${CWA_RADAR_BASE}/${config.filename}.png`,
+        label: config.label,
+        updatedAt: new Date().toISOString(),
+      });
+    }
+  }
+
+  return results;
+}
+
+/**
+ * 代理獲取雷達回波圖片
+ * 用於避免 CORS 問題
+ */
+export async function getRadarImageProxy(
+  type: RadarImageType,
+  area: RadarImageArea
+): Promise<ArrayBuffer | null> {
+  const config = RADAR_URL_CONFIG[area]?.[type];
+
+  if (!config) {
+    console.error(`Invalid radar image config: type=${type}, area=${area}`);
+    return null;
+  }
+
+  const url = `${CWA_RADAR_BASE}/${config.filename}.png`;
+
+  try {
+    console.log(`Fetching radar image: ${url}`);
+
+    const response = await fetch(url, {
+      headers: {
+        'User-Agent': 'NobodyClimb/1.0 (Weather Service)',
+        'Accept': 'image/png,image/jpeg,image/*',
+        'Referer': 'https://www.cwa.gov.tw/',
+      },
+    });
+
+    if (!response.ok) {
+      console.error(`Failed to fetch radar image: ${response.status} ${response.statusText}`);
+      return null;
+    }
+
+    return await response.arrayBuffer();
+  } catch (error) {
+    console.error('Error fetching radar image:', error);
     return null;
   }
 }

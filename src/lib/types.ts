@@ -427,6 +427,27 @@ export interface SatelliteImageInfo {
 }
 
 /**
+ * 雷達回波類型
+ */
+export type RadarImageType = 'composite' | 'rain'
+
+/**
+ * 雷達回波區域
+ */
+export type RadarImageArea = 'taiwan' | 'north' | 'south'
+
+/**
+ * 雷達回波資訊
+ */
+export interface RadarImageInfo {
+  type: RadarImageType
+  area: RadarImageArea
+  url: string
+  label: string
+  updatedAt: string
+}
+
+/**
  * 舊版天氣資訊介面（用於相容性）
  * @deprecated 使用 Weather 介面替代
  */

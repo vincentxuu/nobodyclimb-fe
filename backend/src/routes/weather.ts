@@ -1,7 +1,7 @@
 import { Hono } from 'hono';
-import { Env, SatelliteImageInfo, SatelliteImageType, SatelliteImageArea } from '../types';
+import { Env, SatelliteImageType, SatelliteImageArea, RadarImageType, RadarImageArea } from '../types';
 import { getWeatherByLocation, getWeatherByCoordinates } from '../services/weather';
-import { getSatelliteImages, getSatelliteImageProxy } from '../services/satellite';
+import { getSatelliteImages, getSatelliteImageProxy, getRadarImages, getRadarImageProxy } from '../services/satellite';
 
 export const weatherRoutes = new Hono<{ Bindings: Env }>();
 
@@ -149,6 +149,55 @@ weatherRoutes.get('/satellite/image', async (c) => {
   // 設定適當的 headers
   c.header('Content-Type', 'image/jpeg');
   c.header('Cache-Control', 'public, max-age=600'); // 快取 10 分鐘
+
+  return c.body(imageData);
+});
+
+// GET /weather/radar - 取得雷達回波資訊
+weatherRoutes.get('/radar', async (c) => {
+  const type = c.req.query('type') as RadarImageType | undefined;
+  const area = c.req.query('area') as RadarImageArea | undefined;
+
+  const images = getRadarImages(type, area);
+
+  return c.json({
+    success: true,
+    data: images,
+  });
+});
+
+// GET /weather/radar/image - 代理雷達回波圖片（避免 CORS 問題）
+weatherRoutes.get('/radar/image', async (c) => {
+  const type = c.req.query('type') as RadarImageType;
+  const area = c.req.query('area') as RadarImageArea;
+
+  if (!type || !area) {
+    return c.json(
+      {
+        success: false,
+        error: 'Bad Request',
+        message: 'Type and area parameters are required',
+      },
+      400
+    );
+  }
+
+  const imageData = await getRadarImageProxy(type, area);
+
+  if (!imageData) {
+    return c.json(
+      {
+        success: false,
+        error: 'Not Found',
+        message: 'Radar image not available',
+      },
+      404
+    );
+  }
+
+  // 設定適當的 headers
+  c.header('Content-Type', 'image/png');
+  c.header('Cache-Control', 'public, max-age=300'); // 快取 5 分鐘（雷達更新較頻繁）
 
   return c.body(imageData);
 });
