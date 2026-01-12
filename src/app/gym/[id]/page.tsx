@@ -346,10 +346,10 @@ export default function GymDetailPage({ params }: { params: Promise<{ id: string
                     )}
                   </div>
                   {/* Google Map */}
-                  {gym.location.latitude && gym.location.longitude && (
+                  {gym.location.address && (
                     <div className="mt-4">
                       <a
-                        href={`https://www.google.com/maps/search/?api=1&query=${gym.location.latitude},${gym.location.longitude}`}
+                        href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(gym.location.address)}`}
                         target="_blank"
                         rel="noopener noreferrer"
                         className="mb-2 inline-flex items-center gap-1 text-sm text-blue-600 hover:underline"
@@ -360,7 +360,7 @@ export default function GymDetailPage({ params }: { params: Promise<{ id: string
                       </a>
                       <div className="overflow-hidden rounded-lg">
                         <iframe
-                          src={`https://www.google.com/maps?q=${gym.location.latitude},${gym.location.longitude}&z=16&output=embed`}
+                          src={`https://www.google.com/maps?q=${encodeURIComponent(gym.location.address)}&z=16&output=embed`}
                           width="100%"
                           height="200"
                           style={{ border: 0 }}
