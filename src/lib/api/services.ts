@@ -32,6 +32,9 @@ import {
   BiographyInstagram,
   BiographyInstagramRelationType,
   InstagramMediaType,
+  LocationStat,
+  LocationDetail,
+  CountryStat,
 } from '@/lib/types'
 
 /**
@@ -824,6 +827,41 @@ export const biographyService = {
         }>
       > & { pagination: { total: number; limit: number; offset: number } }
     >(`/biographies/${id}/following`, { params: { limit, offset } })
+    return response.data
+  },
+}
+
+/**
+ * 攀岩足跡探索 API 服務
+ */
+export const climbingLocationService = {
+  /**
+   * 獲取所有攀岩地點（含訪客統計）
+   */
+  getLocations: async (options?: { country?: string; limit?: number; offset?: number }) => {
+    const response = await apiClient.get<
+      ApiResponse<LocationStat[]> & { pagination: { total: number; limit: number; offset: number } }
+    >('/biographies/explore/locations', { params: options })
+    return response.data
+  },
+
+  /**
+   * 獲取特定地點詳情（含所有訪客）
+   */
+  getLocationDetail: async (locationName: string) => {
+    const response = await apiClient.get<ApiResponse<LocationDetail>>(
+      `/biographies/explore/locations/${encodeURIComponent(locationName)}`
+    )
+    return response.data
+  },
+
+  /**
+   * 獲取所有國家統計
+   */
+  getCountries: async () => {
+    const response = await apiClient.get<ApiResponse<CountryStat[]>>(
+      '/biographies/explore/countries'
+    )
     return response.data
   },
 }

@@ -400,6 +400,47 @@ export interface ClimbingLocation {
 }
 
 /**
+ * 地點探索 - 地點統計
+ */
+export interface LocationStat {
+  location: string
+  country: string
+  visitor_count: number
+  visitors: Array<{
+    biography_id: string
+    name: string
+    avatar_url: string | null
+    visit_year: string | null
+  }>
+}
+
+/**
+ * 地點探索 - 地點詳情
+ */
+export interface LocationDetail {
+  location: string
+  country: string
+  visitor_count: number
+  visitors: Array<{
+    biography_id: string
+    biography_name: string
+    biography_slug: string
+    avatar_url: string | null
+    visit_year: string | null
+    notes: string | null
+  }>
+}
+
+/**
+ * 地點探索 - 國家統計
+ */
+export interface CountryStat {
+  country: string
+  location_count: number
+  visitor_count: number
+}
+
+/**
  * 人生清單分類
  */
 export type BucketListCategory =
