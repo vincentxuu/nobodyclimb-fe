@@ -11,7 +11,7 @@ import { cn } from '@/lib/utils'
 interface FollowButtonProps {
   biographyId: string
   initialFollowing?: boolean
-  onFollowChange?: (isFollowing: boolean) => void
+  onFollowChange?: (_isFollowing: boolean) => void
   className?: string
   size?: 'sm' | 'default' | 'lg'
 }

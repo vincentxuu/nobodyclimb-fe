@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { Loader2, ListTodo, CheckCircle2, Circle, Filter } from 'lucide-react'
 import { bucketListService } from '@/lib/api/services'
 import { BucketListCard } from './bucket-list-card'
@@ -24,11 +24,7 @@ export function BucketListSection({
   const [isLoading, setIsLoading] = useState(true)
   const [filter, setFilter] = useState<FilterStatus>('all')
 
-  useEffect(() => {
-    loadItems()
-  }, [biographyId])
-
-  const loadItems = async () => {
+  const loadItems = useCallback(async () => {
     setIsLoading(true)
     try {
       const response = await bucketListService.getBucketList(biographyId)
@@ -40,7 +36,11 @@ export function BucketListSection({
     } finally {
       setIsLoading(false)
     }
-  }
+  }, [biographyId])
+
+  useEffect(() => {
+    loadItems()
+  }, [loadItems])
 
   const filteredItems = items.filter((item) => {
     if (filter === 'all') return true

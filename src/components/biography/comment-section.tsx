@@ -1,26 +1,16 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { MessageCircle, Send, Trash2, Loader2 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Textarea } from '@/components/ui/textarea'
 import { bucketListService } from '@/lib/api/services'
 import { useAuthStore } from '@/store/authStore'
 import { useRouter } from 'next/navigation'
+import { BucketListComment } from '@/lib/types'
 import { cn } from '@/lib/utils'
 import { formatDistanceToNow } from 'date-fns'
 import { zhTW } from 'date-fns/locale'
-
-interface Comment {
-  id: string
-  bucket_list_item_id: string
-  user_id: string
-  content: string
-  created_at: string
-  username: string
-  display_name: string | null
-  avatar_url: string | null
-}
 
 interface CommentSectionProps {
   itemId: string
@@ -33,7 +23,7 @@ export function CommentSection({
   initialCount = 0,
   className,
 }: CommentSectionProps) {
-  const [comments, setComments] = useState<Comment[]>([])
+  const [comments, setComments] = useState<BucketListComment[]>([])
   const [isLoading, setIsLoading] = useState(false)
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [isOpen, setIsOpen] = useState(false)
@@ -42,13 +32,7 @@ export function CommentSection({
   const { isAuthenticated, user } = useAuthStore()
   const router = useRouter()
 
-  useEffect(() => {
-    if (isOpen) {
-      loadComments()
-    }
-  }, [isOpen, itemId])
-
-  const loadComments = async () => {
+  const loadComments = useCallback(async () => {
     setIsLoading(true)
     try {
       const response = await bucketListService.getComments(itemId)
@@ -61,7 +45,13 @@ export function CommentSection({
     } finally {
       setIsLoading(false)
     }
-  }
+  }, [itemId])
+
+  useEffect(() => {
+    if (isOpen) {
+      loadComments()
+    }
+  }, [isOpen, loadComments])
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -76,7 +66,7 @@ export function CommentSection({
     try {
       const response = await bucketListService.addComment(itemId, content.trim())
       if (response.success && response.data) {
-        setComments([response.data as Comment, ...comments])
+        setComments([response.data, ...comments])
         setContent('')
         setCount((prev) => prev + 1)
       }
@@ -106,6 +96,10 @@ export function CommentSection({
     } catch {
       return dateString
     }
+  }
+
+  const getDisplayName = (comment: BucketListComment) => {
+    return comment.display_name || comment.username || '匿名用戶'
   }
 
   return (
@@ -169,21 +163,22 @@ export function CommentSection({
                 <div key={comment.id} className="flex gap-3">
                   <div className="w-8 h-8 rounded-full bg-gray-200 flex-shrink-0 overflow-hidden">
                     {comment.avatar_url ? (
+                      // eslint-disable-next-line @next/next/no-img-element
                       <img
                         src={comment.avatar_url}
-                        alt={comment.display_name || comment.username}
+                        alt={getDisplayName(comment)}
                         className="w-full h-full object-cover"
                       />
                     ) : (
                       <div className="w-full h-full flex items-center justify-center text-gray-500 text-sm">
-                        {(comment.display_name || comment.username).charAt(0).toUpperCase()}
+                        {getDisplayName(comment).charAt(0).toUpperCase()}
                       </div>
                     )}
                   </div>
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2">
                       <span className="font-medium text-sm">
-                        {comment.display_name || comment.username}
+                        {getDisplayName(comment)}
                       </span>
                       <span className="text-xs text-gray-400">
                         {formatTime(comment.created_at)}

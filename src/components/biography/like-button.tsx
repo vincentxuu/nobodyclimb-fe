@@ -12,7 +12,7 @@ interface LikeButtonProps {
   itemId: string
   initialLiked?: boolean
   initialCount?: number
-  onLikeChange?: (isLiked: boolean, count: number) => void
+  onLikeChange?: (_isLiked: boolean, _count: number) => void
   className?: string
   showCount?: boolean
   variant?: 'button' | 'icon'

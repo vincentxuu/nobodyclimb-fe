@@ -12,7 +12,7 @@ interface ReferenceButtonProps {
   itemId: string
   initialReferenced?: boolean
   initialCount?: number
-  onReferenceChange?: (isReferenced: boolean, count: number) => void
+  onReferenceChange?: (_isReferenced: boolean, _count: number) => void
   className?: string
   showCount?: boolean
   variant?: 'button' | 'icon'

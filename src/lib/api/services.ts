@@ -989,6 +989,26 @@ export const bucketListService = {
   },
 
   /**
+   * 加入我的清單（參考）- 別名
+   */
+  addReference: async (id: string) => {
+    const response = await apiClient.post<ApiResponse<BucketListItem>>(
+      `/bucket-list/${id}/reference`
+    )
+    return response.data
+  },
+
+  /**
+   * 取消參考
+   */
+  cancelReference: async (id: string) => {
+    const response = await apiClient.delete<ApiResponse<{ message: string }>>(
+      `/bucket-list/${id}/reference`
+    )
+    return response.data
+  },
+
+  /**
    * 獲取參考者列表
    */
   getReferences: async (id: string) => {

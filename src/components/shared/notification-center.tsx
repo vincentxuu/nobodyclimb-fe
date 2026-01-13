@@ -81,10 +81,11 @@ export function NotificationCenter({ className }: NotificationCenterProps) {
     try {
       const response = await notificationService.getNotifications(pageNum, 10)
       if (response.success && response.data) {
+        const newData = response.data
         if (append) {
-          setNotifications((prev) => [...prev, ...response.data])
+          setNotifications((prev) => [...prev, ...newData])
         } else {
-          setNotifications(response.data)
+          setNotifications(newData)
         }
         setHasMore(response.pagination.page < response.pagination.total_pages)
       }
