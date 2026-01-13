@@ -42,12 +42,13 @@ function getWeatherColor(condition: string | null): string {
 // 格式化日期顯示（含早晚時段）
 function formatForecastDate(
   dateString: string,
-  index: number,
   todayStr: string,
   tomorrowStr: string
 ): string {
   const date = new Date(dateString)
-  const period = index % 2 === 0 ? '早' : '晚'
+  // 根據實際時間判斷早晚：06:00 為早，18:00 為晚
+  const hour = date.getHours()
+  const period = hour < 12 ? '早' : '晚'
 
   let dayLabel: string
   if (date.toDateString() === todayStr) {
@@ -204,7 +205,7 @@ export function WeatherDisplay({
                 className="rounded-lg bg-white p-2 text-center"
               >
                 <p className="text-xs font-medium text-gray-600">
-                  {formatForecastDate(day.date, index, todayStr, tomorrowStr)}
+                  {formatForecastDate(day.date, todayStr, tomorrowStr)}
                 </p>
                 <p className={`my-1 text-xs ${getWeatherColor(day.condition)}`}>
                   {formatCondition(day.condition, 4)}
