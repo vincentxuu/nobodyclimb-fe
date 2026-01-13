@@ -5,35 +5,8 @@ import { MapPin, Target, Calendar, CheckCircle, Circle, ChevronDown, ChevronUp }
 import { LikeButton } from './like-button'
 import { ReferenceButton } from './reference-button'
 import { CommentSection } from './comment-section'
+import { BucketListItem } from '@/lib/types'
 import { cn } from '@/lib/utils'
-
-interface BucketListItem {
-  id: string
-  biography_id: string
-  title: string
-  category: string
-  description: string | null
-  target_grade: string | null
-  target_location: string | null
-  target_date: string | null
-  status: 'active' | 'completed' | 'archived'
-  enable_progress: number
-  progress_mode: string | null
-  progress: number
-  milestones: string | null
-  completion_story: string | null
-  psychological_insights: string | null
-  technical_insights: string | null
-  completion_media: string | null
-  completed_at: string | null
-  likes_count: number
-  comments_count: number
-  inspired_count: number
-  is_public: number
-  sort_order: number
-  created_at: string
-  updated_at: string
-}
 
 interface BucketListCardProps {
   item: BucketListItem
@@ -161,7 +134,7 @@ export function BucketListCard({ item, isOwner = false, className }: BucketListC
             <p className="text-sm text-gray-600 mt-2">{item.description}</p>
           )}
 
-          {item.enable_progress === 1 && !isCompleted && (
+          {item.enable_progress && !isCompleted && (
             <div className="mt-3">
               <div className="flex items-center justify-between text-xs text-gray-500 mb-1">
                 <span>進度</span>

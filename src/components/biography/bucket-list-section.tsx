@@ -2,38 +2,10 @@
 
 import { useState, useEffect } from 'react'
 import { Loader2, ListTodo, CheckCircle2, Circle, Filter } from 'lucide-react'
-import { Button } from '@/components/ui/button'
 import { bucketListService } from '@/lib/api/services'
 import { BucketListCard } from './bucket-list-card'
+import { BucketListItem } from '@/lib/types'
 import { cn } from '@/lib/utils'
-
-interface BucketListItem {
-  id: string
-  biography_id: string
-  title: string
-  category: string
-  description: string | null
-  target_grade: string | null
-  target_location: string | null
-  target_date: string | null
-  status: 'active' | 'completed' | 'archived'
-  enable_progress: number
-  progress_mode: string | null
-  progress: number
-  milestones: string | null
-  completion_story: string | null
-  psychological_insights: string | null
-  technical_insights: string | null
-  completion_media: string | null
-  completed_at: string | null
-  likes_count: number
-  comments_count: number
-  inspired_count: number
-  is_public: number
-  sort_order: number
-  created_at: string
-  updated_at: string
-}
 
 interface BucketListSectionProps {
   biographyId: string
@@ -61,7 +33,7 @@ export function BucketListSection({
     try {
       const response = await bucketListService.getBucketList(biographyId)
       if (response.success && response.data) {
-        setItems(response.data as BucketListItem[])
+        setItems(response.data)
       }
     } catch (error) {
       console.error('Failed to load bucket list:', error)
