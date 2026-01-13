@@ -932,6 +932,75 @@ export const bucketListService = {
     )
     return response.data
   },
+
+  /**
+   * 探索：取得熱門地點
+   */
+  getPopularLocations: async (limit = 20, country?: string) => {
+    const response = await apiClient.get<
+      ApiResponse<
+        Array<{
+          location: string
+          item_count: number
+          user_count: number
+          completed_count: number
+        }>
+      >
+    >('/bucket-list/explore/locations', { params: { limit, country } })
+    return response.data
+  },
+
+  /**
+   * 探索：取得地點詳情
+   */
+  getLocationDetails: async (location: string, limit = 10) => {
+    const response = await apiClient.get<
+      ApiResponse<{
+        location: string
+        stats: { total_items: number; total_users: number; completed_count: number }
+        items: BucketListItem[]
+        visitors: Array<{
+          id: string
+          name: string
+          avatar_url: string | null
+          slug: string
+          completed_at: string
+        }>
+      }>
+    >(`/bucket-list/explore/locations/${encodeURIComponent(location)}`, { params: { limit } })
+    return response.data
+  },
+
+  /**
+   * 探索：取得攀岩足跡地點（從人物誌）
+   */
+  getClimbingFootprints: async (limit = 20, country?: 'taiwan' | 'overseas') => {
+    const response = await apiClient.get<
+      ApiResponse<
+        Array<{
+          location: string
+          country: string
+          visitors: Array<{
+            id: string
+            name: string
+            avatar_url: string | null
+            slug: string
+          }>
+        }>
+      >
+    >('/bucket-list/explore/climbing-footprints', { params: { limit, country } })
+    return response.data
+  },
+
+  /**
+   * 取消參考（從我的清單中移除）
+   */
+  cancelReference: async (id: string) => {
+    const response = await apiClient.delete<ApiResponse<{ message: string }>>(
+      `/bucket-list/${id}/reference`
+    )
+    return response.data
+  },
 }
 
 /**

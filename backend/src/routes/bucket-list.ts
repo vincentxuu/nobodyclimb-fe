@@ -95,6 +95,181 @@ bucketListRoutes.get('/explore/by-location/:location', async (c) => {
   });
 });
 
+// GET /bucket-list/explore/locations - Get popular climbing locations from bucket list
+bucketListRoutes.get('/explore/locations', async (c) => {
+  const limit = parseInt(c.req.query('limit') || '20', 10);
+  const country = c.req.query('country'); // Optional country filter
+
+  // Get locations from bucket list items (target_location field)
+  let query = `
+    SELECT
+      bli.target_location as location,
+      COUNT(DISTINCT bli.id) as item_count,
+      COUNT(DISTINCT bli.biography_id) as user_count,
+      SUM(CASE WHEN bli.status = 'completed' THEN 1 ELSE 0 END) as completed_count
+    FROM bucket_list_items bli
+    JOIN biographies b ON bli.biography_id = b.id
+    WHERE bli.target_location IS NOT NULL
+      AND bli.target_location != ''
+      AND bli.is_public = 1
+      AND b.is_public = 1
+  `;
+
+  const params: (string | number)[] = [];
+
+  if (country) {
+    query += ` AND bli.target_location LIKE ?`;
+    params.push(`%${country}%`);
+  }
+
+  query += `
+    GROUP BY bli.target_location
+    ORDER BY user_count DESC, completed_count DESC
+    LIMIT ?
+  `;
+  params.push(limit);
+
+  const locations = await c.env.DB.prepare(query).bind(...params).all();
+
+  return c.json({
+    success: true,
+    data: locations.results,
+  });
+});
+
+// GET /bucket-list/explore/locations/:location - Get location details
+bucketListRoutes.get('/explore/locations/:location', async (c) => {
+  const location = decodeURIComponent(c.req.param('location'));
+  const limit = parseInt(c.req.query('limit') || '10', 10);
+
+  // Get items for this location
+  const items = await c.env.DB.prepare(
+    `SELECT bli.*, b.name as author_name, b.avatar_url as author_avatar, b.slug as author_slug
+     FROM bucket_list_items bli
+     JOIN biographies b ON bli.biography_id = b.id
+     WHERE bli.target_location = ? AND bli.is_public = 1 AND b.is_public = 1
+     ORDER BY bli.status = 'completed' DESC, bli.likes_count DESC, bli.created_at DESC
+     LIMIT ?`
+  )
+    .bind(location, limit)
+    .all();
+
+  // Get statistics for this location
+  const stats = await c.env.DB.prepare(
+    `SELECT
+      COUNT(DISTINCT bli.id) as total_items,
+      COUNT(DISTINCT bli.biography_id) as total_users,
+      SUM(CASE WHEN bli.status = 'completed' THEN 1 ELSE 0 END) as completed_count
+     FROM bucket_list_items bli
+     JOIN biographies b ON bli.biography_id = b.id
+     WHERE bli.target_location = ? AND bli.is_public = 1 AND b.is_public = 1`
+  )
+    .bind(location)
+    .first<{ total_items: number; total_users: number; completed_count: number }>();
+
+  // Get users who have visited (completed) this location
+  const visitors = await c.env.DB.prepare(
+    `SELECT DISTINCT b.id, b.name, b.avatar_url, b.slug, bli.completed_at
+     FROM bucket_list_items bli
+     JOIN biographies b ON bli.biography_id = b.id
+     WHERE bli.target_location = ?
+       AND bli.status = 'completed'
+       AND bli.is_public = 1
+       AND b.is_public = 1
+     ORDER BY bli.completed_at DESC
+     LIMIT 10`
+  )
+    .bind(location)
+    .all();
+
+  return c.json({
+    success: true,
+    data: {
+      location,
+      stats: stats || { total_items: 0, total_users: 0, completed_count: 0 },
+      items: items.results,
+      visitors: visitors.results,
+    },
+  });
+});
+
+// GET /bucket-list/explore/climbing-footprints - Get climbing locations from biographies
+bucketListRoutes.get('/explore/climbing-footprints', async (c) => {
+  const limit = parseInt(c.req.query('limit') || '20', 10);
+  const country = c.req.query('country'); // 'taiwan' or 'overseas'
+
+  // Get biographies with climbing_locations
+  const biographies = await c.env.DB.prepare(
+    `SELECT id, name, avatar_url, slug, climbing_locations
+     FROM biographies
+     WHERE climbing_locations IS NOT NULL
+       AND climbing_locations != ''
+       AND climbing_locations != '[]'
+       AND is_public = 1
+     ORDER BY updated_at DESC
+     LIMIT ?`
+  )
+    .bind(limit * 2) // Get more to ensure we have enough after filtering
+    .all();
+
+  // Parse and aggregate locations
+  const locationMap = new Map<string, {
+    location: string;
+    country: string;
+    visitors: Array<{ id: string; name: string; avatar_url: string | null; slug: string }>;
+  }>();
+
+  for (const bio of biographies.results as Array<{ id: string; name: string; avatar_url: string | null; slug: string; climbing_locations: string }>) {
+    try {
+      const locations = JSON.parse(bio.climbing_locations || '[]') as Array<{
+        location: string;
+        country: string;
+        is_public?: boolean;
+      }>;
+
+      for (const loc of locations) {
+        if (!loc.location || (loc.is_public === false)) continue;
+
+        // Filter by country if specified
+        const isTaiwan = loc.country === '台灣' || loc.country === 'Taiwan' || loc.country === 'TW';
+        if (country === 'taiwan' && !isTaiwan) continue;
+        if (country === 'overseas' && isTaiwan) continue;
+
+        const key = `${loc.location}|${loc.country}`;
+        if (!locationMap.has(key)) {
+          locationMap.set(key, {
+            location: loc.location,
+            country: loc.country,
+            visitors: [],
+          });
+        }
+
+        const existing = locationMap.get(key)!;
+        if (!existing.visitors.some(v => v.id === bio.id)) {
+          existing.visitors.push({
+            id: bio.id,
+            name: bio.name,
+            avatar_url: bio.avatar_url,
+            slug: bio.slug,
+          });
+        }
+      }
+    } catch {
+      // Skip invalid JSON
+    }
+  }
+
+  // Convert to array and sort by visitor count
+  const result = Array.from(locationMap.values())
+    .sort((a, b) => b.visitors.length - a.visitors.length)
+    .slice(0, limit);
+
+  return c.json({
+    success: true,
+    data: result,
+  });
+});
+
 // ═══════════════════════════════════════════════════════════
 // 人生清單項目 CRUD
 // ═══════════════════════════════════════════════════════════
