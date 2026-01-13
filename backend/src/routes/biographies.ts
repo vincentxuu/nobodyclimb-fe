@@ -236,7 +236,7 @@ biographiesRoutes.post('/', authMiddleware, async (c) => {
         .bind(existing.id)
         .first<{ published_at: string | null; is_public: number }>();
 
-      if (!currentBio?.published_at && Number(currentBio?.is_public) !== 1) {
+      if (currentBio && !currentBio.published_at && Number(currentBio.is_public) !== 1) {
         updates.push('published_at = ?');
         values.push(new Date().toISOString());
       }
