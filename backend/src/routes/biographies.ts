@@ -653,34 +653,18 @@ biographiesRoutes.put('/:id/view', optionalAuthMiddleware, async (c) => {
     .bind(id)
     .run();
 
-  // Track individual user view for explorer badge
+  // Track individual user view for explorer badge (atomic UPSERT to avoid race conditions)
   if (userId) {
-    const existingView = await c.env.DB.prepare(
-      'SELECT id FROM biography_views WHERE user_id = ? AND biography_id = ?'
+    const viewId = generateId();
+    await c.env.DB.prepare(
+      `INSERT INTO biography_views (id, user_id, biography_id, view_count, first_viewed_at, last_viewed_at)
+       VALUES (?, ?, ?, 1, datetime('now'), datetime('now'))
+       ON CONFLICT(user_id, biography_id) DO UPDATE SET
+         view_count = view_count + 1,
+         last_viewed_at = datetime('now')`
     )
-      .bind(userId, id)
-      .first<{ id: string }>();
-
-    if (existingView) {
-      // Update existing view record
-      await c.env.DB.prepare(
-        `UPDATE biography_views
-         SET view_count = view_count + 1,
-             last_viewed_at = datetime('now')
-         WHERE id = ?`
-      )
-        .bind(existingView.id)
-        .run();
-    } else {
-      // Create new view record
-      const viewId = generateId();
-      await c.env.DB.prepare(
-        `INSERT INTO biography_views (id, user_id, biography_id, view_count, first_viewed_at, last_viewed_at)
-         VALUES (?, ?, ?, 1, datetime('now'), datetime('now'))`
-      )
-        .bind(viewId, userId, id)
-        .run();
-    }
+      .bind(viewId, userId, id)
+      .run();
   }
 
   return c.json({

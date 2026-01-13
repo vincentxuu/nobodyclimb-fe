@@ -17,6 +17,47 @@ const PROMPT_CONFIG = {
   maxDismissCount: 5,            // 跳過超過5次不再推
 };
 
+// 進階故事欄位定義（模組級別，供所有 handler 共用）
+const ADVANCED_STORY_FIELDS = [
+  { field: 'memorable_moment', category: 'growth' },
+  { field: 'biggest_challenge', category: 'growth' },
+  { field: 'breakthrough_story', category: 'growth' },
+  { field: 'first_outdoor', category: 'growth' },
+  { field: 'first_grade', category: 'growth' },
+  { field: 'frustrating_climb', category: 'growth' },
+  { field: 'fear_management', category: 'psychology' },
+  { field: 'climbing_lesson', category: 'psychology' },
+  { field: 'failure_perspective', category: 'psychology' },
+  { field: 'flow_moment', category: 'psychology' },
+  { field: 'life_balance', category: 'psychology' },
+  { field: 'unexpected_gain', category: 'psychology' },
+  { field: 'climbing_mentor', category: 'community' },
+  { field: 'climbing_partner', category: 'community' },
+  { field: 'funny_moment', category: 'community' },
+  { field: 'favorite_spot', category: 'community' },
+  { field: 'advice_to_group', category: 'community' },
+  { field: 'climbing_space', category: 'community' },
+  { field: 'injury_recovery', category: 'practical' },
+  { field: 'memorable_route', category: 'practical' },
+  { field: 'training_method', category: 'practical' },
+  { field: 'effective_practice', category: 'practical' },
+  { field: 'technique_tip', category: 'practical' },
+  { field: 'gear_choice', category: 'practical' },
+  { field: 'dream_climb', category: 'dreams' },
+  { field: 'climbing_trip', category: 'dreams' },
+  { field: 'bucket_list_story', category: 'dreams' },
+  { field: 'climbing_goal', category: 'dreams' },
+  { field: 'climbing_style', category: 'dreams' },
+  { field: 'climbing_inspiration', category: 'dreams' },
+  { field: 'life_outside_climbing', category: 'life' },
+] as const;
+
+/** 根據欄位名稱取得分類 */
+function getFieldCategory(field: string): string {
+  const fieldInfo = ADVANCED_STORY_FIELDS.find(f => f.field === field);
+  return fieldInfo?.category ?? 'unknown';
+}
+
 // GET /story-prompts/should-prompt - Check if user should be shown a prompt
 storyPromptsRoutes.get('/should-prompt', authMiddleware, async (c) => {
   const userId = c.get('userId');
@@ -112,43 +153,8 @@ storyPromptsRoutes.get('/next', authMiddleware, async (c) => {
     }, 404);
   }
 
-  // Define all advanced story fields with categories
-  const advancedFields = [
-    { field: 'memorable_moment', category: 'growth' },
-    { field: 'biggest_challenge', category: 'growth' },
-    { field: 'breakthrough_story', category: 'growth' },
-    { field: 'first_outdoor', category: 'growth' },
-    { field: 'first_grade', category: 'growth' },
-    { field: 'frustrating_climb', category: 'growth' },
-    { field: 'fear_management', category: 'psychology' },
-    { field: 'climbing_lesson', category: 'psychology' },
-    { field: 'failure_perspective', category: 'psychology' },
-    { field: 'flow_moment', category: 'psychology' },
-    { field: 'life_balance', category: 'psychology' },
-    { field: 'unexpected_gain', category: 'psychology' },
-    { field: 'climbing_mentor', category: 'community' },
-    { field: 'climbing_partner', category: 'community' },
-    { field: 'funny_moment', category: 'community' },
-    { field: 'favorite_spot', category: 'community' },
-    { field: 'advice_to_group', category: 'community' },
-    { field: 'climbing_space', category: 'community' },
-    { field: 'injury_recovery', category: 'practical' },
-    { field: 'memorable_route', category: 'practical' },
-    { field: 'training_method', category: 'practical' },
-    { field: 'effective_practice', category: 'practical' },
-    { field: 'technique_tip', category: 'practical' },
-    { field: 'gear_choice', category: 'practical' },
-    { field: 'dream_climb', category: 'dreams' },
-    { field: 'climbing_trip', category: 'dreams' },
-    { field: 'bucket_list_story', category: 'dreams' },
-    { field: 'climbing_goal', category: 'dreams' },
-    { field: 'climbing_style', category: 'dreams' },
-    { field: 'climbing_inspiration', category: 'dreams' },
-    { field: 'life_outside_climbing', category: 'life' },
-  ];
-
-  // Find unfilled fields
-  const unfilledFields = advancedFields.filter(
+  // Find unfilled fields using module-level constant
+  const unfilledFields = ADVANCED_STORY_FIELDS.filter(
     (f) => !biography[f.field as keyof typeof biography] ||
            String(biography[f.field as keyof typeof biography]).trim() === ''
   );
@@ -202,7 +208,7 @@ storyPromptsRoutes.get('/next', authMiddleware, async (c) => {
   }
 
   // Select based on strategy
-  let selected: typeof advancedFields[0];
+  let selected: typeof ADVANCED_STORY_FIELDS[number];
 
   switch (strategy) {
     case 'easy_first': {
@@ -229,28 +235,16 @@ storyPromptsRoutes.get('/next', authMiddleware, async (c) => {
       selected = availableFields[Math.floor(Math.random() * availableFields.length)];
   }
 
-  // Record prompt
-  const existingPrompt = await c.env.DB.prepare(
-    'SELECT id FROM story_prompts WHERE biography_id = ? AND field_name = ?'
+  // Record prompt (atomic UPSERT to avoid race conditions)
+  const promptId = generateId();
+  await c.env.DB.prepare(
+    `INSERT INTO story_prompts (id, user_id, biography_id, field_name, category, prompted_at)
+     VALUES (?, ?, ?, ?, ?, datetime('now'))
+     ON CONFLICT(biography_id, field_name) DO UPDATE SET
+       prompted_at = datetime('now')`
   )
-    .bind(biography.id, selected.field)
-    .first<{ id: string }>();
-
-  if (existingPrompt) {
-    await c.env.DB.prepare(
-      `UPDATE story_prompts SET prompted_at = datetime('now') WHERE id = ?`
-    )
-      .bind(existingPrompt.id)
-      .run();
-  } else {
-    const promptId = generateId();
-    await c.env.DB.prepare(
-      `INSERT INTO story_prompts (id, user_id, biography_id, field_name, category, prompted_at)
-       VALUES (?, ?, ?, ?, ?, datetime('now'))`
-    )
-      .bind(promptId, userId, biography.id, selected.field, selected.category)
-      .run();
-  }
+    .bind(promptId, userId, biography.id, selected.field, selected.category)
+    .run();
 
   return c.json({
     success: true,
@@ -281,30 +275,19 @@ storyPromptsRoutes.post('/:field/dismiss', authMiddleware, async (c) => {
     }, 404);
   }
 
-  const existing = await c.env.DB.prepare(
-    'SELECT id, dismissed_count FROM story_prompts WHERE biography_id = ? AND field_name = ?'
-  )
-    .bind(biography.id, field)
-    .first<{ id: string; dismissed_count: number }>();
+  // Atomic UPSERT to avoid race conditions and use proper category
+  const category = getFieldCategory(field);
+  const promptId = generateId();
 
-  if (existing) {
-    await c.env.DB.prepare(
-      `UPDATE story_prompts
-       SET dismissed_count = dismissed_count + 1,
-           last_dismissed_at = datetime('now')
-       WHERE id = ?`
-    )
-      .bind(existing.id)
-      .run();
-  } else {
-    const promptId = generateId();
-    await c.env.DB.prepare(
-      `INSERT INTO story_prompts (id, user_id, biography_id, field_name, category, dismissed_count, last_dismissed_at)
-       VALUES (?, ?, ?, ?, 'unknown', 1, datetime('now'))`
-    )
-      .bind(promptId, userId, biography.id, field)
-      .run();
-  }
+  await c.env.DB.prepare(
+    `INSERT INTO story_prompts (id, user_id, biography_id, field_name, category, dismissed_count, last_dismissed_at)
+     VALUES (?, ?, ?, ?, ?, 1, datetime('now'))
+     ON CONFLICT(biography_id, field_name) DO UPDATE SET
+       dismissed_count = dismissed_count + 1,
+       last_dismissed_at = datetime('now')`
+  )
+    .bind(promptId, userId, biography.id, field, category)
+    .run();
 
   return c.json({
     success: true,
@@ -331,27 +314,18 @@ storyPromptsRoutes.post('/:field/complete', authMiddleware, async (c) => {
     }, 404);
   }
 
-  const existing = await c.env.DB.prepare(
-    'SELECT id FROM story_prompts WHERE biography_id = ? AND field_name = ?'
-  )
-    .bind(biography.id, field)
-    .first<{ id: string }>();
+  // Atomic UPSERT to avoid race conditions and use proper category
+  const category = getFieldCategory(field);
+  const promptId = generateId();
 
-  if (existing) {
-    await c.env.DB.prepare(
-      `UPDATE story_prompts SET completed_at = datetime('now') WHERE id = ?`
-    )
-      .bind(existing.id)
-      .run();
-  } else {
-    const promptId = generateId();
-    await c.env.DB.prepare(
-      `INSERT INTO story_prompts (id, user_id, biography_id, field_name, category, completed_at)
-       VALUES (?, ?, ?, ?, 'unknown', datetime('now'))`
-    )
-      .bind(promptId, userId, biography.id, field)
-      .run();
-  }
+  await c.env.DB.prepare(
+    `INSERT INTO story_prompts (id, user_id, biography_id, field_name, category, completed_at)
+     VALUES (?, ?, ?, ?, ?, datetime('now'))
+     ON CONFLICT(biography_id, field_name) DO UPDATE SET
+       completed_at = datetime('now')`
+  )
+    .bind(promptId, userId, biography.id, field, category)
+    .run();
 
   return c.json({
     success: true,
