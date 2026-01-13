@@ -499,7 +499,7 @@ VALUES (
 <h3>基本資訊</h3>
 <ul>
 <li><strong>位置</strong>：台北市北投區（陽明山國家公園內）</li>
-<li><strong>岩質</strong>：安山岩及軟質�ite</li>
+<li><strong>岩質</strong>：安山岩</li>
 <li><strong>開放狀態</strong>：2019年11月重新開放</li>
 </ul>
 
