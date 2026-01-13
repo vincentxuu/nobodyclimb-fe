@@ -1,7 +1,7 @@
 'use client'
 
 import React from 'react'
-import { UserCircle, FileText, Bookmark, Settings } from 'lucide-react'
+import { UserCircle, FileText, Bookmark, Settings, Image as ImageIcon } from 'lucide-react'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { motion } from 'framer-motion'
@@ -23,6 +23,11 @@ const menuItems: MenuItem[] = [
     name: '我的文章',
     href: '/profile/articles',
     icon: FileText,
+  },
+  {
+    name: '我的照片',
+    href: '/profile/photos',
+    icon: ImageIcon,
   },
   {
     name: '收藏文章',
