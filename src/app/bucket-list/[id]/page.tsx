@@ -1,7 +1,7 @@
 'use client'
 
 import React, { use } from 'react'
-import { useQuery } from '@tanstack/react-query'
+import { useQuery, useQueryClient } from '@tanstack/react-query'
 import Link from 'next/link'
 import { motion } from 'framer-motion'
 import {
@@ -54,18 +54,14 @@ interface BucketListDetailPageProps {
 
 export default function BucketListDetailPage({ params }: BucketListDetailPageProps) {
   const { id } = use(params)
+  const queryClient = useQueryClient()
+  const [commentText, setCommentText] = React.useState('')
+  const [isSubmittingComment, setIsSubmittingComment] = React.useState(false)
 
-  // 獲取目標詳情 - 使用探索 API 獲取單一項目
-  // 注意：這裡使用 trending API 只是示範，實際需要新增單一項目 API
+  // 獲取目標詳情
   const { data: itemData, isLoading: isItemLoading, error } = useQuery({
     queryKey: ['bucket-list-item', id],
-    queryFn: async () => {
-      // TODO: 實際應該使用 getBucketListItem(id) API
-      // 目前先返回模擬數據或從 trending 中找到
-      const trending = await bucketListService.getTrending(50)
-      const item = trending.data?.find((i) => i.id === id)
-      return { data: item }
-    },
+    queryFn: () => bucketListService.getBucketListItem(id),
   })
 
   const item = itemData?.data
@@ -80,13 +76,30 @@ export default function BucketListDetailPage({ params }: BucketListDetailPagePro
   const biography = biographyData?.data
 
   // 獲取留言
-  const { data: commentsData } = useQuery({
+  const { data: commentsData, refetch: refetchComments } = useQuery({
     queryKey: ['bucket-list-comments', id],
     queryFn: () => bucketListService.getComments(id),
     enabled: !!id,
   })
 
   const comments = commentsData?.data || []
+
+  // 提交留言
+  const handleSubmitComment = async () => {
+    if (!commentText.trim()) return
+
+    setIsSubmittingComment(true)
+    try {
+      await bucketListService.addComment(id, commentText.trim())
+      setCommentText('')
+      refetchComments()
+      queryClient.invalidateQueries({ queryKey: ['bucket-list-item', id] })
+    } catch (err) {
+      console.error('Failed to add comment:', err)
+    } finally {
+      setIsSubmittingComment(false)
+    }
+  }
 
   if (isItemLoading) {
     return (
@@ -113,9 +126,9 @@ export default function BucketListDetailPage({ params }: BucketListDetailPagePro
   const CategoryIcon = category.icon
   const isCompleted = item.status === 'completed'
 
-  // 計算進度
+  // 計算進度（防止除以零）
   const displayProgress = item.enable_progress
-    ? item.progress_mode === 'milestone' && item.milestones
+    ? item.progress_mode === 'milestone' && item.milestones && item.milestones.length > 0
       ? Math.round(
           (item.milestones.filter((m) => m.completed).length / item.milestones.length) * 100
         )
@@ -396,15 +409,24 @@ export default function BucketListDetailPage({ params }: BucketListDetailPagePro
               </div>
             )}
 
-            {/* 留言輸入框（需登入） */}
+            {/* 留言輸入框 */}
             <div className="mt-6">
               <textarea
+                value={commentText}
+                onChange={(e) => setCommentText(e.target.value)}
                 placeholder="分享你的想法..."
                 className="w-full rounded-lg border px-4 py-3 text-sm focus:border-[#FAF40A] focus:outline-none"
                 rows={3}
+                disabled={isSubmittingComment}
               />
               <div className="mt-2 flex justify-end">
-                <Button size="sm">發表留言</Button>
+                <Button
+                  size="sm"
+                  onClick={handleSubmitComment}
+                  disabled={!commentText.trim() || isSubmittingComment}
+                >
+                  {isSubmittingComment ? '發表中...' : '發表留言'}
+                </Button>
               </div>
             </div>
           </div>

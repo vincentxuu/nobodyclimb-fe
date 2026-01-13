@@ -815,6 +815,16 @@ export const bucketListService = {
   },
 
   /**
+   * 獲取單一人生清單項目
+   */
+  getBucketListItem: async (id: string) => {
+    const response = await apiClient.get<ApiResponse<BucketListItem>>(
+      `/bucket-list/item/${id}`
+    )
+    return response.data
+  },
+
+  /**
    * 新增人生清單項目
    */
   createItem: async (data: BucketListItemInput) => {

@@ -16,14 +16,14 @@ const menuItems = [
     icon: Target,
   },
   {
-    name: '照片',
-    href: '/profile/photos',
-    icon: ImageIcon,
-  },
-  {
     name: '文章',
     href: '/profile/articles',
     icon: FileText,
+  },
+  {
+    name: '收藏',
+    href: '/profile/bookmarks',
+    icon: Bookmark,
   },
   {
     name: '設定',

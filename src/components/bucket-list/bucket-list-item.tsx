@@ -92,10 +92,10 @@ export function BucketListItemCard({
     return () => document.removeEventListener('mousedown', handleClickOutside)
   }, [])
 
-  // 計算進度
+  // 計算進度（防止除以零）
   const displayProgress = React.useMemo(() => {
     if (!item.enable_progress) return null
-    if (item.progress_mode === 'milestone' && item.milestones) {
+    if (item.progress_mode === 'milestone' && item.milestones && item.milestones.length > 0) {
       const completed = item.milestones.filter((m) => m.completed).length
       return Math.round((completed / item.milestones.length) * 100)
     }

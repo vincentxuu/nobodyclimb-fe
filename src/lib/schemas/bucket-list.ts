@@ -1,6 +1,30 @@
 import { z } from 'zod'
 
 /**
+ * YouTube 影片 ID 驗證 (11 個英數字元)
+ */
+const youtubeVideoIdSchema = z
+  .string()
+  .regex(/^[a-zA-Z0-9_-]{11}$/, '無效的 YouTube 影片 ID')
+
+/**
+ * Instagram shortcode 驗證 (英數字元，通常 11 個字元但可能更長)
+ */
+const instagramShortcodeSchema = z
+  .string()
+  .regex(/^[a-zA-Z0-9_-]{10,}$/, '無效的 Instagram shortcode')
+
+/**
+ * 日期格式驗證 (YYYY-MM-DD 或空字串)
+ */
+const dateStringSchema = z
+  .string()
+  .refine(
+    (val) => !val || /^\d{4}-\d{2}-\d{2}$/.test(val),
+    '日期格式必須為 YYYY-MM-DD'
+  )
+
+/**
  * 人生清單分類列舉
  */
 export const bucketListCategorySchema = z.enum([
@@ -35,7 +59,7 @@ export const bucketListItemInputSchema = z.object({
   description: z.string().max(1000, '描述不能超過 1000 字').optional(),
   target_grade: z.string().max(50, '目標難度不能超過 50 字').optional(),
   target_location: z.string().max(100, '目標地點不能超過 100 字').optional(),
-  target_date: z.string().optional(),
+  target_date: dateStringSchema.optional(),
   status: z.enum(['active', 'completed', 'archived']).optional().default('active'),
   enable_progress: z.boolean().optional().default(false),
   progress_mode: z.enum(['manual', 'milestone']).nullable().optional(),
@@ -54,9 +78,9 @@ export const bucketListCompleteSchema = z.object({
   technical_insights: z.string().max(2000, '技術層面心得不能超過 2000 字').optional(),
   completion_media: z
     .object({
-      youtube_videos: z.array(z.string()).optional(),
-      instagram_posts: z.array(z.string()).optional(),
-      photos: z.array(z.string()).optional(),
+      youtube_videos: z.array(youtubeVideoIdSchema).optional(),
+      instagram_posts: z.array(instagramShortcodeSchema).optional(),
+      photos: z.array(z.string().url('無效的照片網址')).optional(),
     })
     .optional(),
 })
