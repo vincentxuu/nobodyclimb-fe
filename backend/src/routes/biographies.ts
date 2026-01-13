@@ -599,3 +599,249 @@ biographiesRoutes.put('/:id/view', async (c) => {
     message: 'View recorded',
   });
 });
+
+// ═══════════════════════════════════════════════════════════
+// 追蹤系統
+// ═══════════════════════════════════════════════════════════
+
+// POST /biographies/:id/follow - Follow a biography
+biographiesRoutes.post('/:id/follow', authMiddleware, async (c) => {
+  const userId = c.get('userId');
+  const id = c.req.param('id');
+
+  // Check if biography exists and is public
+  const biography = await c.env.DB.prepare(
+    'SELECT id, user_id FROM biographies WHERE id = ? AND is_public = 1'
+  )
+    .bind(id)
+    .first<{ id: string; user_id: string }>();
+
+  if (!biography) {
+    return c.json(
+      {
+        success: false,
+        error: 'Not Found',
+        message: 'Biography not found',
+      },
+      404
+    );
+  }
+
+  // Cannot follow yourself
+  if (biography.user_id === userId) {
+    return c.json(
+      {
+        success: false,
+        error: 'Bad Request',
+        message: 'Cannot follow yourself',
+      },
+      400
+    );
+  }
+
+  // Check if already following
+  const existing = await c.env.DB.prepare(
+    'SELECT id FROM follows WHERE follower_id = ? AND following_id = ?'
+  )
+    .bind(userId, biography.user_id)
+    .first<{ id: string }>();
+
+  if (existing) {
+    return c.json(
+      {
+        success: false,
+        error: 'Conflict',
+        message: 'Already following',
+      },
+      409
+    );
+  }
+
+  const followId = generateId();
+
+  await c.env.DB.prepare(
+    'INSERT INTO follows (id, follower_id, following_id) VALUES (?, ?, ?)'
+  )
+    .bind(followId, userId, biography.user_id)
+    .run();
+
+  // Update follower count
+  await c.env.DB.prepare(
+    'UPDATE biographies SET follower_count = COALESCE(follower_count, 0) + 1 WHERE id = ?'
+  )
+    .bind(id)
+    .run();
+
+  return c.json({
+    success: true,
+    message: 'Followed successfully',
+  });
+});
+
+// DELETE /biographies/:id/follow - Unfollow a biography
+biographiesRoutes.delete('/:id/follow', authMiddleware, async (c) => {
+  const userId = c.get('userId');
+  const id = c.req.param('id');
+
+  // Get biography's user_id
+  const biography = await c.env.DB.prepare(
+    'SELECT user_id FROM biographies WHERE id = ?'
+  )
+    .bind(id)
+    .first<{ user_id: string }>();
+
+  if (!biography) {
+    return c.json(
+      {
+        success: false,
+        error: 'Not Found',
+        message: 'Biography not found',
+      },
+      404
+    );
+  }
+
+  // Check if following exists
+  const existing = await c.env.DB.prepare(
+    'SELECT id FROM follows WHERE follower_id = ? AND following_id = ?'
+  )
+    .bind(userId, biography.user_id)
+    .first<{ id: string }>();
+
+  if (!existing) {
+    return c.json(
+      {
+        success: false,
+        error: 'Not Found',
+        message: 'Not following',
+      },
+      404
+    );
+  }
+
+  await c.env.DB.prepare(
+    'DELETE FROM follows WHERE follower_id = ? AND following_id = ?'
+  )
+    .bind(userId, biography.user_id)
+    .run();
+
+  // Update follower count
+  await c.env.DB.prepare(
+    'UPDATE biographies SET follower_count = CASE WHEN follower_count > 0 THEN follower_count - 1 ELSE 0 END WHERE id = ?'
+  )
+    .bind(id)
+    .run();
+
+  return c.json({
+    success: true,
+    message: 'Unfollowed successfully',
+  });
+});
+
+// GET /biographies/:id/followers - Get followers of a biography
+biographiesRoutes.get('/:id/followers', async (c) => {
+  const id = c.req.param('id');
+  const limit = parseInt(c.req.query('limit') || '20', 10);
+  const offset = parseInt(c.req.query('offset') || '0', 10);
+
+  // Get biography's user_id
+  const biography = await c.env.DB.prepare(
+    'SELECT user_id FROM biographies WHERE id = ? AND is_public = 1'
+  )
+    .bind(id)
+    .first<{ user_id: string }>();
+
+  if (!biography) {
+    return c.json(
+      {
+        success: false,
+        error: 'Not Found',
+        message: 'Biography not found',
+      },
+      404
+    );
+  }
+
+  const followers = await c.env.DB.prepare(
+    `SELECT f.id, f.created_at, u.id as user_id, u.username, u.display_name, u.avatar_url,
+            b.id as biography_id, b.name as biography_name, b.slug as biography_slug
+     FROM follows f
+     JOIN users u ON f.follower_id = u.id
+     LEFT JOIN biographies b ON b.user_id = u.id AND b.is_public = 1
+     WHERE f.following_id = ?
+     ORDER BY f.created_at DESC
+     LIMIT ? OFFSET ?`
+  )
+    .bind(biography.user_id, limit, offset)
+    .all();
+
+  const countResult = await c.env.DB.prepare(
+    'SELECT COUNT(*) as count FROM follows WHERE following_id = ?'
+  )
+    .bind(biography.user_id)
+    .first<{ count: number }>();
+
+  return c.json({
+    success: true,
+    data: followers.results,
+    pagination: {
+      total: countResult?.count || 0,
+      limit,
+      offset,
+    },
+  });
+});
+
+// GET /biographies/:id/following - Get who the biography owner is following
+biographiesRoutes.get('/:id/following', async (c) => {
+  const id = c.req.param('id');
+  const limit = parseInt(c.req.query('limit') || '20', 10);
+  const offset = parseInt(c.req.query('offset') || '0', 10);
+
+  // Get biography's user_id
+  const biography = await c.env.DB.prepare(
+    'SELECT user_id FROM biographies WHERE id = ? AND is_public = 1'
+  )
+    .bind(id)
+    .first<{ user_id: string }>();
+
+  if (!biography) {
+    return c.json(
+      {
+        success: false,
+        error: 'Not Found',
+        message: 'Biography not found',
+      },
+      404
+    );
+  }
+
+  const following = await c.env.DB.prepare(
+    `SELECT f.id, f.created_at, u.id as user_id, u.username, u.display_name, u.avatar_url,
+            b.id as biography_id, b.name as biography_name, b.slug as biography_slug, b.avatar_url as biography_avatar
+     FROM follows f
+     JOIN users u ON f.following_id = u.id
+     LEFT JOIN biographies b ON b.user_id = u.id AND b.is_public = 1
+     WHERE f.follower_id = ?
+     ORDER BY f.created_at DESC
+     LIMIT ? OFFSET ?`
+  )
+    .bind(biography.user_id, limit, offset)
+    .all();
+
+  const countResult = await c.env.DB.prepare(
+    'SELECT COUNT(*) as count FROM follows WHERE follower_id = ?'
+  )
+    .bind(biography.user_id)
+    .first<{ count: number }>();
+
+  return c.json({
+    success: true,
+    data: following.results,
+    pagination: {
+      total: countResult?.count || 0,
+      limit,
+      offset,
+    },
+  });
+});

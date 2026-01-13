@@ -847,6 +847,67 @@ bucketListRoutes.post('/:id/reference', authMiddleware, async (c) => {
   );
 });
 
+// DELETE /bucket-list/:id/reference - Remove item from my list (cancel reference)
+bucketListRoutes.delete('/:id/reference', authMiddleware, async (c) => {
+  const userId = c.get('userId');
+  const id = c.req.param('id');
+
+  // Get user's biography
+  const biography = await c.env.DB.prepare(
+    'SELECT id FROM biographies WHERE user_id = ?'
+  )
+    .bind(userId)
+    .first<{ id: string }>();
+
+  if (!biography) {
+    return c.json(
+      {
+        success: false,
+        error: 'Not Found',
+        message: 'Biography not found',
+      },
+      404
+    );
+  }
+
+  // Check if reference exists
+  const reference = await c.env.DB.prepare(
+    'SELECT id FROM bucket_list_references WHERE source_item_id = ? AND target_biography_id = ?'
+  )
+    .bind(id, biography.id)
+    .first<{ id: string }>();
+
+  if (!reference) {
+    return c.json(
+      {
+        success: false,
+        error: 'Not Found',
+        message: 'Reference not found',
+      },
+      404
+    );
+  }
+
+  // Delete the reference
+  await c.env.DB.prepare(
+    'DELETE FROM bucket_list_references WHERE source_item_id = ? AND target_biography_id = ?'
+  )
+    .bind(id, biography.id)
+    .run();
+
+  // Update inspired count on source item
+  await c.env.DB.prepare(
+    'UPDATE bucket_list_items SET inspired_count = CASE WHEN inspired_count > 0 THEN inspired_count - 1 ELSE 0 END WHERE id = ?'
+  )
+    .bind(id)
+    .run();
+
+  return c.json({
+    success: true,
+    message: 'Reference removed successfully',
+  });
+});
+
 // GET /bucket-list/:id/references - Get who referenced this item
 bucketListRoutes.get('/:id/references', async (c) => {
   const id = c.req.param('id');
