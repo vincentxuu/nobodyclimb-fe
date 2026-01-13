@@ -1,10 +1,39 @@
 import { Hono } from 'hono';
+import { D1Database } from '@cloudflare/workers-types';
 import { Env, Gallery } from '../types';
 import { parsePagination, generateId, generateSlug } from '../utils/id';
 import { authMiddleware } from '../middleware/auth';
 import { trackAndUpdateViewCount } from '../utils/viewTracker';
 
 export const galleriesRoutes = new Hono<{ Bindings: Env }>();
+
+// SQL query for photo details with author info - reusable across endpoints
+const PHOTO_DETAIL_SQL = `
+  SELECT
+    gi.id,
+    gi.image_url,
+    gi.thumbnail_url,
+    gi.caption,
+    gi.location_country,
+    gi.location_city,
+    gi.location_spot,
+    gi.created_at,
+    g.author_id,
+    u.username,
+    u.display_name,
+    u.avatar_url as author_avatar
+  FROM gallery_images gi
+  JOIN galleries g ON gi.gallery_id = g.id
+  JOIN users u ON g.author_id = u.id
+`;
+
+// Helper function to get photo details by ID
+const getPhotoById = async (db: D1Database, photoId: string) => {
+  return db
+    .prepare(`${PHOTO_DETAIL_SQL} WHERE gi.id = ?`)
+    .bind(photoId)
+    .first();
+};
 
 // GET /galleries/photos - Get all photos with uploader info (for gallery page)
 galleriesRoutes.get('/photos', async (c) => {
@@ -13,37 +42,19 @@ galleriesRoutes.get('/photos', async (c) => {
     c.req.query('limit')
   );
 
-  const countResult = await c.env.DB.prepare(
-    'SELECT COUNT(*) as count FROM gallery_images'
-  ).first<{ count: number }>();
-  const total = countResult?.count || 0;
+  // Use batch to run count and data queries in parallel
+  const [countResult, photosResult] = await c.env.DB.batch([
+    c.env.DB.prepare('SELECT COUNT(*) as count FROM gallery_images'),
+    c.env.DB.prepare(
+      `${PHOTO_DETAIL_SQL} ORDER BY gi.created_at DESC LIMIT ? OFFSET ?`
+    ).bind(limit, offset),
+  ]);
 
-  const photos = await c.env.DB.prepare(
-    `SELECT
-      gi.id,
-      gi.image_url,
-      gi.thumbnail_url,
-      gi.caption,
-      gi.location_country,
-      gi.location_city,
-      gi.location_spot,
-      gi.created_at,
-      g.author_id,
-      u.username,
-      u.display_name,
-      u.avatar_url as author_avatar
-     FROM gallery_images gi
-     JOIN galleries g ON gi.gallery_id = g.id
-     JOIN users u ON g.author_id = u.id
-     ORDER BY gi.created_at DESC
-     LIMIT ? OFFSET ?`
-  )
-    .bind(limit, offset)
-    .all();
+  const total = (countResult.results[0] as { count: number })?.count || 0;
 
   return c.json({
     success: true,
-    data: photos.results,
+    data: photosResult.results,
     pagination: {
       page,
       limit,
@@ -122,27 +133,7 @@ galleriesRoutes.post('/photos', authMiddleware, async (c) => {
     .run();
 
   // Get the created photo with author info
-  const photo = await c.env.DB.prepare(
-    `SELECT
-      gi.id,
-      gi.image_url,
-      gi.thumbnail_url,
-      gi.caption,
-      gi.location_country,
-      gi.location_city,
-      gi.location_spot,
-      gi.created_at,
-      g.author_id,
-      u.username,
-      u.display_name,
-      u.avatar_url as author_avatar
-     FROM gallery_images gi
-     JOIN galleries g ON gi.gallery_id = g.id
-     JOIN users u ON g.author_id = u.id
-     WHERE gi.id = ?`
-  )
-    .bind(photoId)
-    .first();
+  const photo = await getPhotoById(c.env.DB, photoId);
 
   return c.json(
     {
@@ -151,6 +142,134 @@ galleriesRoutes.post('/photos', authMiddleware, async (c) => {
     },
     201
   );
+});
+
+// GET /galleries/photos/me - Get current user's photos
+galleriesRoutes.get('/photos/me', authMiddleware, async (c) => {
+  const userId = c.get('userId');
+  const { page, limit, offset } = parsePagination(
+    c.req.query('page'),
+    c.req.query('limit')
+  );
+
+  // Use batch to run count and data queries in parallel
+  const [countResult, photosResult] = await c.env.DB.batch([
+    c.env.DB.prepare(
+      `SELECT COUNT(*) as count
+       FROM gallery_images gi
+       JOIN galleries g ON gi.gallery_id = g.id
+       WHERE g.author_id = ?`
+    ).bind(userId),
+    c.env.DB.prepare(
+      `${PHOTO_DETAIL_SQL} WHERE g.author_id = ? ORDER BY gi.created_at DESC LIMIT ? OFFSET ?`
+    ).bind(userId, limit, offset),
+  ]);
+
+  const total = (countResult.results[0] as { count: number })?.count || 0;
+
+  return c.json({
+    success: true,
+    data: photosResult.results,
+    pagination: {
+      page,
+      limit,
+      total,
+      total_pages: Math.ceil(total / limit),
+    },
+  });
+});
+
+// PUT /galleries/photos/:id - Update a photo's metadata
+galleriesRoutes.put('/photos/:id', authMiddleware, async (c) => {
+  const userId = c.get('userId');
+  const user = c.get('user');
+  const photoId = c.req.param('id');
+  const body = await c.req.json<{
+    caption?: string;
+    location_country?: string;
+    location_city?: string;
+    location_spot?: string;
+  }>();
+
+  // Check if photo exists and user owns it
+  const photo = await c.env.DB.prepare(
+    `SELECT gi.id, g.author_id
+     FROM gallery_images gi
+     JOIN galleries g ON gi.gallery_id = g.id
+     WHERE gi.id = ?`
+  )
+    .bind(photoId)
+    .first<{ id: string; author_id: string }>();
+
+  if (!photo) {
+    return c.json(
+      {
+        success: false,
+        error: 'Not Found',
+        message: 'Photo not found',
+      },
+      404
+    );
+  }
+
+  if (photo.author_id !== userId && user.role !== 'admin') {
+    return c.json(
+      {
+        success: false,
+        error: 'Forbidden',
+        message: 'You can only edit your own photos',
+      },
+      403
+    );
+  }
+
+  // Build update query
+  const updates: string[] = [];
+  const values: (string | null)[] = [];
+
+  if (body.caption !== undefined) {
+    updates.push('caption = ?');
+    values.push(body.caption || null);
+  }
+  if (body.location_country !== undefined) {
+    updates.push('location_country = ?');
+    values.push(body.location_country || null);
+  }
+  if (body.location_city !== undefined) {
+    updates.push('location_city = ?');
+    values.push(body.location_city || null);
+  }
+  if (body.location_spot !== undefined) {
+    updates.push('location_spot = ?');
+    values.push(body.location_spot || null);
+  }
+
+  if (updates.length === 0) {
+    return c.json(
+      {
+        success: false,
+        error: 'Bad Request',
+        message: 'No fields to update',
+      },
+      400
+    );
+  }
+
+  values.push(photoId);
+
+  await c.env.DB.prepare(
+    `UPDATE gallery_images SET ${updates.join(', ')} WHERE id = ?`
+  )
+    .bind(...values)
+    .run();
+
+  // Get updated photo with author info
+  const updatedPhoto = await getPhotoById(c.env.DB, photoId);
+
+  return c.json({
+    success: true,
+    data: updatedPhoto,
+  });
 });
 
 // DELETE /galleries/photos/:id - Delete a photo
