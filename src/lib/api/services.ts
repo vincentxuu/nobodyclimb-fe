@@ -468,6 +468,35 @@ export const galleryService = {
   },
 
   /**
+   * 獲取當前用戶的照片列表
+   */
+  getMyPhotos: async (page = 1, limit = 18) => {
+    const response = await apiClient.get<PhotoPaginatedResponse>('/galleries/photos/me', {
+      params: { page, limit },
+    })
+    return response.data
+  },
+
+  /**
+   * 更新照片資訊
+   */
+  updatePhoto: async (
+    id: string,
+    photoData: {
+      caption?: string
+      location_country?: string
+      location_city?: string
+      location_spot?: string
+    }
+  ) => {
+    const response = await apiClient.put<ApiResponse<GalleryPhoto>>(
+      `/galleries/photos/${id}`,
+      photoData
+    )
+    return response.data
+  },
+
+  /**
    * 上傳圖片檔案到儲存空間
    */
   uploadImage: async (file: File) => {
