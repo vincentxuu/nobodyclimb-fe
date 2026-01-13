@@ -30,6 +30,15 @@ import {
   SelectValue,
 } from '@/components/ui/select'
 import { BiographyInput } from '@/lib/types'
+import { generateUniqueId } from '@/lib/utils/biography-ui'
+
+/**
+ * 帶 ID 的列表項目
+ */
+interface ListItem {
+  id: string
+  value: string
+}
 
 /**
  * 攀登方式選項
@@ -83,7 +92,7 @@ function generateYearOptions(): string[] {
 
 interface BiographyWizardProps {
   initialData?: Partial<BiographyInput>
-  onSave: (data: Partial<BiographyInput>) => Promise<void>
+  onSave: (_formData: Partial<BiographyInput>) => Promise<void>
   onCancel?: () => void
   onComplete?: () => void
   mode?: 'create' | 'edit'
@@ -107,16 +116,29 @@ export function BiographyWizard({
   const [currentStep, setCurrentStep] = useState<WizardStep>(1)
   const [formData, setFormData] = useState<Partial<BiographyInput>>(initialData)
   const [isSaving, setIsSaving] = useState(false)
+  const [error, setError] = useState<string | null>(null)
   const [locationInput, setLocationInput] = useState('')
   const [bucketListInput, setBucketListInput] = useState('')
 
-  const yearOptions = useMemo(() => generateYearOptions(), [])
+  // 帶 ID 的地點列表
+  const [locationItems, setLocationItems] = useState<ListItem[]>(() => {
+    if (!initialData.frequent_locations) return []
+    return initialData.frequent_locations
+      .split(',')
+      .filter((l) => l.trim())
+      .map((value) => ({ id: generateUniqueId(), value: value.trim() }))
+  })
 
-  // 解析地點為陣列
-  const locations = useMemo(() => {
-    if (!formData.frequent_locations) return []
-    return formData.frequent_locations.split(',').filter((l) => l.trim())
-  }, [formData.frequent_locations])
+  // 帶 ID 的人生清單
+  const [bucketListItems, setBucketListItems] = useState<ListItem[]>(() => {
+    if (!initialData.bucket_list_story) return []
+    return initialData.bucket_list_story
+      .split('\n')
+      .filter((item) => item.trim())
+      .map((value) => ({ id: generateUniqueId(), value: value.trim() }))
+  })
+
+  const yearOptions = useMemo(() => generateYearOptions(), [])
 
   // 解析路線類型
   const selectedRouteTypes = useMemo(() => {
@@ -124,33 +146,47 @@ export function BiographyWizard({
     return formData.favorite_route_type.split(',').filter((t) => t.trim())
   }, [formData.favorite_route_type])
 
-  // 解析人生清單（簡易版，用於快速新增）
-  const bucketList = useMemo(() => {
-    if (!formData.bucket_list_story) return []
-    // 簡易解析：按換行分隔
-    return formData.bucket_list_story.split('\n').filter((item) => item.trim())
-  }, [formData.bucket_list_story])
-
   // 更新表單資料
   const updateFormData = useCallback((field: keyof BiographyInput, value: string | null) => {
     setFormData((prev) => ({ ...prev, [field]: value }))
   }, [])
 
+  // 同步地點到 formData
+  const syncLocations = useCallback(
+    (items: ListItem[]) => {
+      const locationString = items.map((item) => item.value).join(',')
+      updateFormData('frequent_locations', locationString || null)
+    },
+    [updateFormData]
+  )
+
+  // 同步人生清單到 formData
+  const syncBucketList = useCallback(
+    (items: ListItem[]) => {
+      const bucketString = items.map((item) => item.value).join('\n')
+      updateFormData('bucket_list_story', bucketString || null)
+    },
+    [updateFormData]
+  )
+
   // 新增地點
   const handleAddLocation = useCallback(() => {
     if (!locationInput.trim()) return
-    const newLocations = [...locations, locationInput.trim()]
-    updateFormData('frequent_locations', newLocations.join(','))
+    const newItem: ListItem = { id: generateUniqueId(), value: locationInput.trim() }
+    const newItems = [...locationItems, newItem]
+    setLocationItems(newItems)
+    syncLocations(newItems)
     setLocationInput('')
-  }, [locationInput, locations, updateFormData])
+  }, [locationInput, locationItems, syncLocations])
 
   // 移除地點
   const handleRemoveLocation = useCallback(
-    (index: number) => {
-      const newLocations = locations.filter((_, i) => i !== index)
-      updateFormData('frequent_locations', newLocations.join(','))
+    (id: string) => {
+      const newItems = locationItems.filter((item) => item.id !== id)
+      setLocationItems(newItems)
+      syncLocations(newItems)
     },
-    [locations, updateFormData]
+    [locationItems, syncLocations]
   )
 
   // 切換路線類型
@@ -167,23 +203,27 @@ export function BiographyWizard({
   // 新增人生清單項目
   const handleAddBucketListItem = useCallback(() => {
     if (!bucketListInput.trim()) return
-    const newList = [...bucketList, bucketListInput.trim()]
-    updateFormData('bucket_list_story', newList.join('\n'))
+    const newItem: ListItem = { id: generateUniqueId(), value: bucketListInput.trim() }
+    const newItems = [...bucketListItems, newItem]
+    setBucketListItems(newItems)
+    syncBucketList(newItems)
     setBucketListInput('')
-  }, [bucketListInput, bucketList, updateFormData])
+  }, [bucketListInput, bucketListItems, syncBucketList])
 
   // 移除人生清單項目
   const handleRemoveBucketListItem = useCallback(
-    (index: number) => {
-      const newList = bucketList.filter((_, i) => i !== index)
-      updateFormData('bucket_list_story', newList.join('\n'))
+    (id: string) => {
+      const newItems = bucketListItems.filter((item) => item.id !== id)
+      setBucketListItems(newItems)
+      syncBucketList(newItems)
     },
-    [bucketList, updateFormData]
+    [bucketListItems, syncBucketList]
   )
 
   // 儲存並進入下一步
   const handleNext = useCallback(async () => {
     setIsSaving(true)
+    setError(null)
     try {
       await onSave(formData)
       if (currentStep < 3) {
@@ -191,8 +231,9 @@ export function BiographyWizard({
       } else {
         onComplete?.()
       }
-    } catch (error) {
-      console.error('Failed to save:', error)
+    } catch (err) {
+      console.error('Failed to save:', err)
+      setError('儲存失敗，請稍後再試')
     } finally {
       setIsSaving(false)
     }
@@ -261,6 +302,13 @@ export function BiographyWizard({
         <h2 className="text-2xl font-bold text-gray-900">{stepTitles[currentStep].title}</h2>
         <p className="mt-2 text-gray-500">{stepTitles[currentStep].subtitle}</p>
       </div>
+
+      {/* 錯誤提示 */}
+      {error && (
+        <div className="mb-4 rounded-lg bg-red-50 p-4 text-center">
+          <p className="text-sm text-red-600">{error}</p>
+        </div>
+      )}
 
       {/* 步驟內容 */}
       <AnimatePresence mode="wait">
@@ -337,15 +385,15 @@ export function BiographyWizard({
                   平常出沒的地方
                 </Label>
                 <div className="mb-2 flex flex-wrap gap-2">
-                  {locations.map((location, index) => (
+                  {locationItems.map((item) => (
                     <span
-                      key={index}
+                      key={item.id}
                       className="flex items-center gap-1 rounded-full bg-gray-100 px-3 py-1 text-sm"
                     >
-                      {location}
+                      {item.value}
                       <button
                         type="button"
-                        onClick={() => handleRemoveLocation(index)}
+                        onClick={() => handleRemoveLocation(item.id)}
                         className="ml-1 text-gray-400 hover:text-gray-600"
                       >
                         <X className="h-3 w-3" />
@@ -514,15 +562,15 @@ export function BiographyWizard({
 
                 {/* 已新增的目標 */}
                 <div className="mb-4 space-y-2">
-                  {bucketList.map((item, index) => (
+                  {bucketListItems.map((item) => (
                     <div
-                      key={index}
+                      key={item.id}
                       className="flex items-center justify-between rounded-lg bg-gray-50 px-4 py-3"
                     >
-                      <span className="text-sm text-gray-700">{item}</span>
+                      <span className="text-sm text-gray-700">{item.value}</span>
                       <button
                         type="button"
-                        onClick={() => handleRemoveBucketListItem(index)}
+                        onClick={() => handleRemoveBucketListItem(item.id)}
                         className="text-gray-400 hover:text-gray-600"
                       >
                         <X className="h-4 w-4" />

@@ -2,105 +2,10 @@
 
 import React from 'react'
 import { motion } from 'framer-motion'
-import {
-  TrendingUp,
-  Brain,
-  Users,
-  Lightbulb,
-  Compass,
-  Heart,
-  Star,
-  Mountain,
-  TreePine,
-  Trophy,
-  CloudRain,
-  Shield,
-  RefreshCw,
-  Waves,
-  Scale,
-  Gift,
-  UserCheck,
-  Smile,
-  MapPin,
-  MessageSquare,
-  Building,
-  HeartPulse,
-  Route,
-  Dumbbell,
-  Target,
-  Wrench,
-  Backpack,
-  Cloud,
-  Plane,
-  CheckCircle,
-  Flag,
-  Layers,
-  Video,
-  Palette,
-  Sparkles,
-  MessageCircle,
-  BookOpen,
-} from 'lucide-react'
-import { StoryQuestion, StoryCategoryInfo, STORY_CATEGORIES } from '@/lib/constants/biography-stories'
+import { BookOpen } from 'lucide-react'
+import { StoryQuestion } from '@/lib/constants/biography-stories'
 import { cn } from '@/lib/utils'
-
-/**
- * 圖標映射表
- */
-const ICON_MAP: Record<string, React.ComponentType<{ className?: string }>> = {
-  TrendingUp,
-  Brain,
-  Users,
-  Lightbulb,
-  Compass,
-  Heart,
-  Star,
-  Mountain,
-  TreePine,
-  Trophy,
-  CloudRain,
-  Shield,
-  RefreshCw,
-  Waves,
-  Scale,
-  Gift,
-  UserCheck,
-  Smile,
-  MapPin,
-  MessageSquare,
-  Building,
-  HeartPulse,
-  Route,
-  Dumbbell,
-  Target,
-  Wrench,
-  Backpack,
-  Cloud,
-  Plane,
-  CheckCircle,
-  Flag,
-  Layers,
-  Video,
-  Palette,
-  Sparkles,
-  MessageCircle,
-  BookOpen,
-}
-
-/**
- * 取得圖標組件
- */
-function getIcon(iconName?: string): React.ComponentType<{ className?: string }> {
-  if (!iconName) return BookOpen
-  return ICON_MAP[iconName] || BookOpen
-}
-
-/**
- * 取得分類資訊
- */
-function getCategoryInfo(categoryId: string): StoryCategoryInfo | undefined {
-  return STORY_CATEGORIES.find((c) => c.id === categoryId)
-}
+import { getStoryIcon, getCategoryInfo } from '@/lib/utils/biography-ui'
 
 interface StoryCardProps {
   question: StoryQuestion
@@ -123,7 +28,7 @@ export function StoryCard({
   className,
   delay = 0,
 }: StoryCardProps) {
-  const Icon = getIcon(question.icon)
+  const Icon = getStoryIcon(question.icon)
   const categoryInfo = getCategoryInfo(question.category)
 
   if (variant === 'compact') {
@@ -306,7 +211,7 @@ export function StoryCategorySection({
   className,
 }: StoryCategorySectionProps) {
   const categoryInfo = getCategoryInfo(categoryId)
-  const CategoryIcon = categoryInfo ? getIcon(categoryInfo.icon) : BookOpen
+  const CategoryIcon = categoryInfo ? getStoryIcon(categoryInfo.icon) : BookOpen
 
   if (stories.length === 0) return null
 

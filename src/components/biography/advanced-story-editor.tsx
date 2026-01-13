@@ -2,92 +2,23 @@
 
 import React, { useState, useCallback } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-import {
-  TrendingUp,
-  Brain,
-  Users,
-  Lightbulb,
-  Compass,
-  Heart,
-  ChevronLeft,
-  ChevronRight,
-  Check,
-  X,
-  Save,
-  Loader2,
-  BookOpen,
-  Star,
-  Mountain,
-  TreePine,
-  Trophy,
-  CloudRain,
-  Shield,
-  RefreshCw,
-  Waves,
-  Scale,
-  Gift,
-  UserCheck,
-  Smile,
-  MapPin,
-  MessageSquare,
-  Building,
-  HeartPulse,
-  Route,
-  Dumbbell,
-  Target,
-  Wrench,
-  Backpack,
-  Cloud,
-  Plane,
-  CheckCircle,
-  Flag,
-  Layers,
-  Video,
-  Palette,
-  Sparkles,
-  MessageCircle,
-} from 'lucide-react'
+import { Check, X, Save, Loader2, CheckCircle } from 'lucide-react'
 import {
   StoryCategory,
   StoryQuestion,
   STORY_CATEGORIES,
-  ADVANCED_STORY_QUESTIONS,
   getQuestionsByCategory,
   calculateStoryProgress,
 } from '@/lib/constants/biography-stories'
 import { cn } from '@/lib/utils'
 import { Button } from '@/components/ui/button'
 import { Textarea } from '@/components/ui/textarea'
-
-/**
- * 圖標映射
- */
-const ICON_MAP: Record<string, React.ComponentType<{ className?: string }>> = {
-  TrendingUp, Brain, Users, Lightbulb, Compass, Heart, Star, Mountain,
-  TreePine, Trophy, CloudRain, Shield, RefreshCw, Waves, Scale, Gift,
-  UserCheck, Smile, MapPin, MessageSquare, Building, HeartPulse, Route,
-  Dumbbell, Target, Wrench, Backpack, Cloud, Plane, CheckCircle, Flag,
-  Layers, Video, Palette, Sparkles, MessageCircle, BookOpen,
-}
-
-const CATEGORY_ICONS: Record<StoryCategory, React.ComponentType<{ className?: string }>> = {
-  growth: TrendingUp,
-  psychology: Brain,
-  community: Users,
-  practical: Lightbulb,
-  dreams: Compass,
-  life: Heart,
-}
-
-function getIcon(iconName?: string): React.ComponentType<{ className?: string }> {
-  if (!iconName) return BookOpen
-  return ICON_MAP[iconName] || BookOpen
-}
+import { getStoryIcon, CATEGORY_ICONS } from '@/lib/utils/biography-ui'
 
 interface AdvancedStoryEditorProps {
   biography: Record<string, unknown>
-  onSave: (field: string, value: string) => Promise<void>
-  onSaveAll?: (data: Record<string, string>) => Promise<void>
+  onSave: (_field: string, _value: string) => Promise<void>
+  onSaveAll?: (_changes: Record<string, string>) => Promise<void>
   onClose?: () => void
   initialCategory?: StoryCategory
   className?: string
@@ -110,6 +41,7 @@ export function AdvancedStoryEditor({
   const [editValue, setEditValue] = useState('')
   const [isSaving, setIsSaving] = useState(false)
   const [pendingChanges, setPendingChanges] = useState<Record<string, string>>({})
+  const [error, setError] = useState<string | null>(null)
 
   const questions = getQuestionsByCategory(activeCategory)
   const progress = calculateStoryProgress(biography)
@@ -120,12 +52,14 @@ export function AdvancedStoryEditor({
     const currentValue = (biography[question.field] as string) || ''
     setEditingField(question.field)
     setEditValue(pendingChanges[question.field] ?? currentValue)
+    setError(null)
   }, [biography, pendingChanges])
 
   // 取消編輯
   const handleCancelEdit = useCallback(() => {
     setEditingField(null)
     setEditValue('')
+    setError(null)
   }, [])
 
   // 儲存單一欄位
@@ -133,6 +67,7 @@ export function AdvancedStoryEditor({
     if (!editingField) return
 
     setIsSaving(true)
+    setError(null)
     try {
       await onSave(editingField, editValue)
       setPendingChanges((prev) => {
@@ -142,8 +77,9 @@ export function AdvancedStoryEditor({
       })
       setEditingField(null)
       setEditValue('')
-    } catch (error) {
-      console.error('Failed to save:', error)
+    } catch (err) {
+      console.error('Failed to save:', err)
+      setError('儲存失敗，請稍後再試')
     } finally {
       setIsSaving(false)
     }
@@ -165,11 +101,13 @@ export function AdvancedStoryEditor({
     if (!onSaveAll || Object.keys(pendingChanges).length === 0) return
 
     setIsSaving(true)
+    setError(null)
     try {
       await onSaveAll(pendingChanges)
       setPendingChanges({})
-    } catch (error) {
-      console.error('Failed to save all:', error)
+    } catch (err) {
+      console.error('Failed to save all:', err)
+      setError('儲存失敗，請稍後再試')
     } finally {
       setIsSaving(false)
     }
@@ -220,6 +158,13 @@ export function AdvancedStoryEditor({
           )}
         </div>
       </div>
+
+      {/* 錯誤提示 */}
+      {error && (
+        <div className="border-b border-red-100 bg-red-50 px-6 py-3">
+          <p className="text-sm text-red-600">{error}</p>
+        </div>
+      )}
 
       {/* 分類導航 */}
       <div className="border-b border-gray-100 px-6 py-3">
@@ -272,7 +217,7 @@ export function AdvancedStoryEditor({
       <div className="flex-1 overflow-y-auto px-6 py-4">
         <div className="space-y-4">
           {questions.map((question) => {
-            const Icon = getIcon(question.icon)
+            const Icon = getStoryIcon(question.icon)
             const isEditing = editingField === question.field
             const content = getDisplayValue(question.field)
             const hasPendingChange = question.field in pendingChanges
@@ -390,7 +335,7 @@ export function AdvancedStoryEditor({
 interface SingleStoryEditorProps {
   question: StoryQuestion
   value: string
-  onChange: (value: string) => void
+  onChange: (_value: string) => void
   onSave: () => Promise<void>
   onCancel: () => void
   isSaving?: boolean
@@ -410,7 +355,7 @@ export function SingleStoryEditor({
   isSaving = false,
   className,
 }: SingleStoryEditorProps) {
-  const Icon = getIcon(question.icon)
+  const Icon = getStoryIcon(question.icon)
   const categoryInfo = STORY_CATEGORIES.find((c) => c.id === question.category)
 
   return (

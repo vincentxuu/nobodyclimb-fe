@@ -2,41 +2,20 @@
 
 import React from 'react'
 import { motion } from 'framer-motion'
-import {
-  TrendingUp,
-  Brain,
-  Users,
-  Lightbulb,
-  Compass,
-  Heart,
-  CheckCircle,
-  ChevronRight,
-} from 'lucide-react'
+import { CheckCircle, ChevronRight } from 'lucide-react'
 import {
   StoryCategory,
   STORY_CATEGORIES,
   calculateStoryProgress,
-  ADVANCED_STORY_QUESTIONS,
 } from '@/lib/constants/biography-stories'
 import { cn } from '@/lib/utils'
 import { Button } from '@/components/ui/button'
-
-/**
- * 分類圖標映射
- */
-const CATEGORY_ICONS: Record<StoryCategory, React.ComponentType<{ className?: string }>> = {
-  growth: TrendingUp,
-  psychology: Brain,
-  community: Users,
-  practical: Lightbulb,
-  dreams: Compass,
-  life: Heart,
-}
+import { CATEGORY_ICONS } from '@/lib/utils/biography-ui'
 
 interface StoryProgressProps {
   biography: Record<string, unknown>
   onEditClick?: () => void
-  onCategoryClick?: (category: StoryCategory) => void
+  onCategoryClick?: (_selectedCategory: StoryCategory) => void
   variant?: 'default' | 'compact' | 'detailed'
   className?: string
 }

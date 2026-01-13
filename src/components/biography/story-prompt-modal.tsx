@@ -2,54 +2,10 @@
 
 import React, { useState, useCallback, useEffect, useMemo } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-import {
-  X,
-  MessageCircle,
-  Info,
-  BarChart,
-  Loader2,
-  ChevronRight,
-  Users,
-  Star,
-  TrendingUp,
-  Brain,
-  Lightbulb,
-  Compass,
-  Heart,
-  BookOpen,
-  Mountain,
-  TreePine,
-  Trophy,
-  CloudRain,
-  Shield,
-  RefreshCw,
-  Waves,
-  Scale,
-  Gift,
-  UserCheck,
-  Smile,
-  MapPin,
-  MessageSquare,
-  Building,
-  HeartPulse,
-  Route,
-  Dumbbell,
-  Target,
-  Wrench,
-  Backpack,
-  Cloud,
-  Plane,
-  CheckCircle,
-  Flag,
-  Layers,
-  Video,
-  Palette,
-  Sparkles,
-} from 'lucide-react'
+import { X, MessageCircle, Info, BarChart, Loader2, ChevronRight, Users } from 'lucide-react'
 import {
   StoryQuestion,
   StoryCategory,
-  STORY_CATEGORIES,
   ADVANCED_STORY_QUESTIONS,
   getUnfilledQuestions,
   calculateStoryProgress,
@@ -57,22 +13,7 @@ import {
 import { cn } from '@/lib/utils'
 import { Button } from '@/components/ui/button'
 import { Textarea } from '@/components/ui/textarea'
-
-/**
- * 圖標映射
- */
-const ICON_MAP: Record<string, React.ComponentType<{ className?: string }>> = {
-  TrendingUp, Brain, Users, Lightbulb, Compass, Heart, Star, Mountain,
-  TreePine, Trophy, CloudRain, Shield, RefreshCw, Waves, Scale, Gift,
-  UserCheck, Smile, MapPin, MessageSquare, Building, HeartPulse, Route,
-  Dumbbell, Target, Wrench, Backpack, Cloud, Plane, CheckCircle, Flag,
-  Layers, Video, Palette, Sparkles, MessageCircle, BookOpen,
-}
-
-function getIcon(iconName?: string): React.ComponentType<{ className?: string }> {
-  if (!iconName) return BookOpen
-  return ICON_MAP[iconName] || BookOpen
-}
+import { getStoryIcon, getCategoryInfo } from '@/lib/utils/biography-ui'
 
 /**
  * 推題策略類型
@@ -101,7 +42,7 @@ function selectNextPrompt(
       return questions[Math.floor(Math.random() * questions.length)]
 
     case 'category_rotate': {
-      // 按分類輪替
+      // 按分類優先順序選擇
       const categoryOrder: StoryCategory[] = [
         'growth',
         'psychology',
@@ -116,7 +57,8 @@ function selectNextPrompt(
           return catQuestions[Math.floor(Math.random() * catQuestions.length)]
         }
       }
-      return questions[0]
+      // 備用：隨機選擇
+      return questions[Math.floor(Math.random() * questions.length)]
     }
 
     case 'easy_first': {
@@ -157,7 +99,8 @@ function selectNextPrompt(
       if (targetQuestions.length > 0) {
         return targetQuestions[Math.floor(Math.random() * targetQuestions.length)]
       }
-      return questions[0]
+      // 備用：隨機選擇
+      return questions[Math.floor(Math.random() * questions.length)]
     }
 
     default:
@@ -170,8 +113,8 @@ interface StoryPromptModalProps {
   userName?: string
   isOpen: boolean
   onClose: () => void
-  onSave: (field: string, value: string) => Promise<void>
-  onSkip?: (field: string) => void
+  onSave: (_storyField: string, _storyValue: string) => Promise<void>
+  onSkip?: (_skippedField: string) => void
   strategy?: PromptStrategy
   lastPromptedField?: string
 }
@@ -193,10 +136,11 @@ export function StoryPromptModal({
   const [currentQuestion, setCurrentQuestion] = useState<StoryQuestion | null>(null)
   const [value, setValue] = useState('')
   const [isSaving, setIsSaving] = useState(false)
+  const [error, setError] = useState<string | null>(null)
   const [showExamples, setShowExamples] = useState(false)
 
   // 計算進度
-  const progress = useMemo(() => calculateStoryProgress(biography), [biography])
+  const storyProgress = useMemo(() => calculateStoryProgress(biography), [biography])
 
   // 取得未填寫的問題並選擇一個推薦
   useEffect(() => {
@@ -205,36 +149,39 @@ export function StoryPromptModal({
       const nextQuestion = selectNextPrompt(unfilled, strategy, lastPromptedField)
       setCurrentQuestion(nextQuestion)
       setValue('')
+      setError(null)
     }
   }, [isOpen, biography, strategy, lastPromptedField])
 
   // 取得分類資訊
   const categoryInfo = useMemo(() => {
     if (!currentQuestion) return null
-    return STORY_CATEGORIES.find((c) => c.id === currentQuestion.category)
+    return getCategoryInfo(currentQuestion.category)
   }, [currentQuestion])
 
   // 計算當前分類進度
   const categoryProgress = useMemo(() => {
     if (!currentQuestion || !categoryInfo) return null
-    const catProgress = progress.byCategory[currentQuestion.category]
+    const catProgress = storyProgress.byCategory[currentQuestion.category]
     const total = ADVANCED_STORY_QUESTIONS.filter(
       (q) => q.category === currentQuestion.category
     ).length
     const filled = total - catProgress.total + catProgress.completed
     return { filled, total }
-  }, [currentQuestion, categoryInfo, progress])
+  }, [currentQuestion, categoryInfo, storyProgress])
 
   // 儲存
   const handleSave = useCallback(async () => {
     if (!currentQuestion || !value.trim()) return
 
     setIsSaving(true)
+    setError(null)
     try {
       await onSave(currentQuestion.field, value.trim())
       onClose()
-    } catch (error) {
-      console.error('Failed to save:', error)
+    } catch (err) {
+      console.error('Failed to save:', err)
+      setError('儲存失敗，請稍後再試')
     } finally {
       setIsSaving(false)
     }
@@ -262,7 +209,7 @@ export function StoryPromptModal({
 
   if (!currentQuestion) return null
 
-  const Icon = getIcon(currentQuestion.icon)
+  const Icon = getStoryIcon(currentQuestion.icon)
 
   return (
     <AnimatePresence>
@@ -329,6 +276,13 @@ export function StoryPromptModal({
 
                 {/* 字數 */}
                 <div className="mt-2 text-right text-xs text-gray-400">{value.length} 字</div>
+
+                {/* 錯誤提示 */}
+                {error && (
+                  <div className="mt-2 rounded-lg bg-red-50 px-3 py-2 text-sm text-red-600">
+                    {error}
+                  </div>
+                )}
               </div>
 
               {/* 進度資訊 */}
@@ -345,7 +299,7 @@ export function StoryPromptModal({
                 <div className="flex items-center gap-1">
                   <BarChart className="h-3.5 w-3.5" />
                   <span>
-                    已完成 {progress.completed}/{progress.total} 個故事（{progress.percentage}%）
+                    已完成 {storyProgress.completed}/{storyProgress.total} 個故事（{storyProgress.percentage}%）
                   </span>
                 </div>
               </div>
@@ -439,7 +393,6 @@ interface StoryPromptBadgeProps {
 }
 
 export function StoryPromptBadge({ biography, onClick, className }: StoryPromptBadgeProps) {
-  const progress = calculateStoryProgress(biography)
   const unfilled = getUnfilledQuestions(biography)
 
   if (unfilled.length === 0) return null

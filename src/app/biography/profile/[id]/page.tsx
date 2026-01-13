@@ -29,7 +29,6 @@ import { Biography, BiographyAdjacent } from '@/lib/types'
 import {
   STORY_CATEGORIES,
   ADVANCED_STORY_QUESTIONS,
-  getQuestionByField,
   calculateStoryProgress,
   StoryCategory,
 } from '@/lib/constants/biography-stories'
@@ -98,7 +97,7 @@ function BasicInfoSection({ person }: { person: Biography }) {
               <div className="mt-1 flex flex-wrap gap-1">
                 {locations.map((loc, i) => (
                   <span
-                    key={i}
+                    key={`${loc.trim()}-${i}`}
                     className="rounded-full bg-white px-2 py-0.5 text-sm text-gray-700 shadow-sm"
                   >
                     {loc.trim()}
@@ -120,7 +119,7 @@ function BasicInfoSection({ person }: { person: Biography }) {
               <div className="mt-1 flex flex-wrap gap-1">
                 {routeTypes.map((type, i) => (
                   <span
-                    key={i}
+                    key={`${type.trim()}-${i}`}
                     className="rounded-full bg-white px-2 py-0.5 text-sm text-gray-700 shadow-sm"
                   >
                     {type.trim()}
