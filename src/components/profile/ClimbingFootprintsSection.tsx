@@ -68,7 +68,7 @@ export default function ClimbingFootprintsSection({
                   <div className={`flex flex-wrap gap-2 ${isMobile ? '' : 'pl-7'}`}>
                     {locs.map((loc, idx) => (
                       <span
-                        key={`${loc.location}-${idx}`}
+                        key={`${loc.country}-${loc.location}-${idx}`}
                         className="inline-flex items-center rounded-full bg-white px-3 py-1 text-sm text-gray-700"
                       >
                         {loc.location}

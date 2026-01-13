@@ -124,7 +124,7 @@ export default function ProfileContainer() {
 
       // 立即儲存到後端
       try {
-        await biographyService.updateBiography({ [field]: value })
+        await biographyService.updateMyBiography({ [field]: value })
         toast({ title: '故事已儲存' })
       } catch {
         toast({ title: '儲存失敗', variant: 'destructive' })
@@ -148,7 +148,7 @@ export default function ProfileContainer() {
 
       // 儲存到後端
       try {
-        await biographyService.updateBiography(changes)
+        await biographyService.updateMyBiography(changes)
         toast({ title: '所有故事已儲存' })
       } catch {
         toast({ title: '儲存失敗', variant: 'destructive' })
@@ -191,7 +191,7 @@ export default function ProfileContainer() {
         favorite_route_type: profileData.favoriteRouteType,
         climbing_origin: profileData.climbingReason,
         climbing_meaning: profileData.climbingMeaning,
-        bucket_list_story: profileData.climbingBucketList,
+        climbing_bucket_list: profileData.climbingBucketList,
         advice_to_self: profileData.adviceForBeginners,
         // 進階故事
         ...profileData.advancedStories,

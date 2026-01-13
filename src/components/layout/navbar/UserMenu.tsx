@@ -19,6 +19,13 @@ interface UserMenuProps {
   isDesktop: boolean
 }
 
+// 共用的選單項目樣式
+const menuItemBaseClass =
+  "cursor-pointer font-['Noto_Sans_CJK_TC'] text-sm font-medium leading-5 tracking-[0.01em] hover:bg-gray-100"
+const createMenuItemClass = `${menuItemBaseClass} px-4 py-3 text-[#3F3D3D]`
+const userMenuItemClass = `${menuItemBaseClass} px-8 py-3 text-[#3F3D3D]`
+const logoutMenuItemClass = `${menuItemBaseClass} px-8 py-3 text-[#D94A4A]`
+
 /**
  * 用戶選單組件
  * 只在桌面版顯示，提供用戶相關選項
@@ -54,13 +61,13 @@ export default function UserMenu({ isDesktop }: UserMenuProps) {
             </DropdownMenuTrigger>
             <DropdownMenuContent className="w-[160px] rounded-lg border border-[#EBEAEA] bg-white p-2 shadow-md">
               <DropdownMenuItem
-                className="cursor-pointer px-4 py-3 font-['Noto_Sans_CJK_TC'] text-sm font-medium leading-5 tracking-[0.01em] text-[#3F3D3D] hover:bg-gray-100"
+                className={createMenuItemClass}
                 onClick={() => router.push('/blog/create')}
               >
                 發表文章
               </DropdownMenuItem>
               <DropdownMenuItem
-                className="cursor-pointer px-4 py-3 font-['Noto_Sans_CJK_TC'] text-sm font-medium leading-5 tracking-[0.01em] text-[#3F3D3D] hover:bg-gray-100"
+                className={createMenuItemClass}
                 onClick={() => router.push('/upload')}
               >
                 上傳照片
@@ -84,44 +91,44 @@ export default function UserMenu({ isDesktop }: UserMenuProps) {
             </DropdownMenuTrigger>
             <DropdownMenuContent className="w-[200px] rounded-lg border border-[#EBEAEA] bg-white p-2 shadow-md">
               <DropdownMenuItem
-                className="cursor-pointer px-8 py-3 font-['Noto_Sans_CJK_TC'] text-sm font-medium leading-5 tracking-[0.01em] text-[#3F3D3D] hover:bg-gray-100"
+                className={userMenuItemClass}
                 onClick={() => router.push('/profile')}
               >
                 我的人物誌
               </DropdownMenuItem>
               <DropdownMenuItem
-                className="cursor-pointer px-8 py-3 font-['Noto_Sans_CJK_TC'] text-sm font-medium leading-5 tracking-[0.01em] text-[#3F3D3D] hover:bg-gray-100"
+                className={userMenuItemClass}
                 onClick={() => router.push('/profile/bucket-list')}
               >
                 人生清單
               </DropdownMenuItem>
               <DropdownMenuItem
-                className="cursor-pointer px-8 py-3 font-['Noto_Sans_CJK_TC'] text-sm font-medium leading-5 tracking-[0.01em] text-[#3F3D3D] hover:bg-gray-100"
+                className={userMenuItemClass}
                 onClick={() => router.push('/profile/photos')}
               >
                 我的照片
               </DropdownMenuItem>
               <DropdownMenuItem
-                className="cursor-pointer px-8 py-3 font-['Noto_Sans_CJK_TC'] text-sm font-medium leading-5 tracking-[0.01em] text-[#3F3D3D] hover:bg-gray-100"
+                className={userMenuItemClass}
                 onClick={() => router.push('/profile/articles')}
               >
                 我的文章
               </DropdownMenuItem>
               <DropdownMenuItem
-                className="cursor-pointer px-8 py-3 font-['Noto_Sans_CJK_TC'] text-sm font-medium leading-5 tracking-[0.01em] text-[#3F3D3D] hover:bg-gray-100"
+                className={userMenuItemClass}
                 onClick={() => router.push('/profile/bookmarks')}
               >
                 我的收藏
               </DropdownMenuItem>
               <DropdownMenuSeparator className="my-1 bg-[#EBEAEA]" />
               <DropdownMenuItem
-                className="cursor-pointer px-8 py-3 font-['Noto_Sans_CJK_TC'] text-sm font-medium leading-5 tracking-[0.01em] text-[#3F3D3D] hover:bg-gray-100"
+                className={userMenuItemClass}
                 onClick={() => router.push('/profile/settings')}
               >
                 帳號設定
               </DropdownMenuItem>
               <DropdownMenuItem
-                className="cursor-pointer px-8 py-3 font-['Noto_Sans_CJK_TC'] text-sm font-medium leading-5 tracking-[0.01em] text-[#D94A4A] hover:bg-gray-100"
+                className={logoutMenuItemClass}
                 onClick={() => logout()}
               >
                 登出
