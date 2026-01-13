@@ -4,7 +4,7 @@
  */
 
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
-import { apiClient } from '@/lib/api/client'
+import apiClient from '@/lib/api/client'
 import { BIOGRAPHY_ENDPOINTS } from '@/lib/api/endpoints'
 import type {
   BiographyStats,

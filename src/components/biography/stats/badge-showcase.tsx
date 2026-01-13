@@ -2,7 +2,7 @@
 
 import { useState } from 'react'
 import { cn } from '@/lib/utils'
-import { BadgeCard, BadgeGrid } from './badge-card'
+import { BadgeGrid } from './badge-card'
 import { BadgeIcon } from './badge-icon'
 import {
   BADGES,

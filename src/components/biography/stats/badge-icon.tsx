@@ -1,7 +1,7 @@
 'use client'
 
 import { cn } from '@/lib/utils'
-import { type BadgeDefinition, BADGES, getBadgeById } from '@/lib/constants/badges'
+import { type BadgeDefinition, getBadgeById } from '@/lib/constants/badges'
 
 interface BadgeIconProps {
   badge: BadgeDefinition | string
