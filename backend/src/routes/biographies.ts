@@ -851,3 +851,216 @@ biographiesRoutes.get('/:id/following', async (c) => {
     },
   });
 });
+
+// ═══════════════════════════════════════════════════════════
+// 攀岩足跡探索 API
+// ═══════════════════════════════════════════════════════════
+
+interface ClimbingLocation {
+  location: string;
+  country: string;
+  visit_year: string | null;
+  notes: string | null;
+  photos: string[] | null;
+  is_public: boolean;
+}
+
+interface LocationStat {
+  location: string;
+  country: string;
+  visitor_count: number;
+  visitors: Array<{
+    biography_id: string;
+    name: string;
+    avatar_url: string | null;
+    visit_year: string | null;
+  }>;
+}
+
+// GET /biographies/explore/locations - Get all climbing locations with visitor stats
+biographiesRoutes.get('/explore/locations', async (c) => {
+  const country = c.req.query('country');
+  const limit = parseInt(c.req.query('limit') || '20', 10);
+  const offset = parseInt(c.req.query('offset') || '0', 10);
+
+  // Get all public biographies with climbing_locations
+  const biographies = await c.env.DB.prepare(
+    `SELECT id, name, avatar_url, climbing_locations
+     FROM biographies
+     WHERE is_public = 1 AND climbing_locations IS NOT NULL AND climbing_locations != '[]'`
+  ).all<{ id: string; name: string; avatar_url: string | null; climbing_locations: string }>();
+
+  // Aggregate locations
+  const locationMap = new Map<string, LocationStat>();
+
+  for (const bio of biographies.results || []) {
+    try {
+      const locations: ClimbingLocation[] = JSON.parse(bio.climbing_locations || '[]');
+      for (const loc of locations) {
+        if (!loc.is_public) continue;
+        if (country && loc.country !== country) continue;
+
+        const key = `${loc.location}|${loc.country}`;
+        if (!locationMap.has(key)) {
+          locationMap.set(key, {
+            location: loc.location,
+            country: loc.country,
+            visitor_count: 0,
+            visitors: [],
+          });
+        }
+
+        const stat = locationMap.get(key)!;
+        stat.visitor_count++;
+        stat.visitors.push({
+          biography_id: bio.id,
+          name: bio.name,
+          avatar_url: bio.avatar_url,
+          visit_year: loc.visit_year,
+        });
+      }
+    } catch {
+      // Skip invalid JSON
+    }
+  }
+
+  // Sort by visitor count and paginate
+  const allLocations = Array.from(locationMap.values())
+    .sort((a, b) => b.visitor_count - a.visitor_count);
+
+  const total = allLocations.length;
+  const paginatedLocations = allLocations.slice(offset, offset + limit);
+
+  return c.json({
+    success: true,
+    data: paginatedLocations,
+    pagination: {
+      total,
+      limit,
+      offset,
+    },
+  });
+});
+
+// GET /biographies/explore/locations/:name - Get location details with all visitors
+biographiesRoutes.get('/explore/locations/:name', async (c) => {
+  const locationName = decodeURIComponent(c.req.param('name'));
+
+  // Get all public biographies with climbing_locations
+  const biographies = await c.env.DB.prepare(
+    `SELECT id, name, slug, avatar_url, climbing_locations
+     FROM biographies
+     WHERE is_public = 1 AND climbing_locations IS NOT NULL AND climbing_locations != '[]'`
+  ).all<{
+    id: string;
+    name: string;
+    slug: string;
+    avatar_url: string | null;
+    climbing_locations: string;
+  }>();
+
+  const visitors: Array<{
+    biography_id: string;
+    biography_name: string;
+    biography_slug: string;
+    avatar_url: string | null;
+    visit_year: string | null;
+    notes: string | null;
+  }> = [];
+
+  let locationCountry = '';
+
+  for (const bio of biographies.results || []) {
+    try {
+      const locations: ClimbingLocation[] = JSON.parse(bio.climbing_locations || '[]');
+      for (const loc of locations) {
+        if (!loc.is_public) continue;
+        if (loc.location === locationName) {
+          locationCountry = loc.country;
+          visitors.push({
+            biography_id: bio.id,
+            biography_name: bio.name,
+            biography_slug: bio.slug,
+            avatar_url: bio.avatar_url,
+            visit_year: loc.visit_year,
+            notes: loc.notes,
+          });
+        }
+      }
+    } catch {
+      // Skip invalid JSON
+    }
+  }
+
+  if (visitors.length === 0) {
+    return c.json(
+      {
+        success: false,
+        error: 'Not Found',
+        message: 'Location not found or no visitors',
+      },
+      404
+    );
+  }
+
+  return c.json({
+    success: true,
+    data: {
+      location: locationName,
+      country: locationCountry,
+      visitor_count: visitors.length,
+      visitors,
+    },
+  });
+});
+
+// GET /biographies/explore/countries - Get list of countries with location counts
+biographiesRoutes.get('/explore/countries', async (c) => {
+  // Get all public biographies with climbing_locations
+  const biographies = await c.env.DB.prepare(
+    `SELECT climbing_locations
+     FROM biographies
+     WHERE is_public = 1 AND climbing_locations IS NOT NULL AND climbing_locations != '[]'`
+  ).all<{ climbing_locations: string }>();
+
+  // Use Set to track unique locations per country across all biographies
+  const countryLocationSets = new Map<string, Set<string>>();
+  const countryVisitorCounts = new Map<string, number>();
+
+  for (const bio of biographies.results || []) {
+    try {
+      const locations: ClimbingLocation[] = JSON.parse(bio.climbing_locations || '[]');
+
+      for (const loc of locations) {
+        if (!loc.is_public) continue;
+
+        // Track unique locations per country
+        if (!countryLocationSets.has(loc.country)) {
+          countryLocationSets.set(loc.country, new Set());
+        }
+        countryLocationSets.get(loc.country)!.add(loc.location);
+
+        // Count visitors (each location visit counts)
+        countryVisitorCounts.set(
+          loc.country,
+          (countryVisitorCounts.get(loc.country) || 0) + 1
+        );
+      }
+    } catch {
+      // Skip invalid JSON
+    }
+  }
+
+  const countries = Array.from(countryLocationSets.entries())
+    .map(([country, locationSet]) => ({
+      country,
+      location_count: locationSet.size,
+      visitor_count: countryVisitorCounts.get(country) || 0,
+    }))
+    .sort((a, b) => b.visitor_count - a.visitor_count);
+
+  return c.json({
+    success: true,
+    data: countries,
+  });
+});
