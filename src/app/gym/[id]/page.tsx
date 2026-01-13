@@ -183,7 +183,7 @@ export default function GymDetailPage({ params }: { params: Promise<{ id: string
                 className="flex items-center gap-2 bg-white shadow-sm hover:bg-gray-200"
               >
                 <ArrowLeft size={16} />
-                <span>岩場介紹</span>
+                <span>岩館介紹</span>
               </Button>
             </Link>
           </motion.div>
@@ -558,16 +558,16 @@ export default function GymDetailPage({ params }: { params: Promise<{ id: string
           </div>
         </div>
 
-        {/* 其他岩場 */}
+        {/* 其他岩館 */}
         {relatedGyms.length > 0 && (
           <div className="mb-12">
             <div className="mb-6 flex items-center justify-between">
-              <h2 className="text-2xl font-medium">其他岩場</h2>
+              <h2 className="text-2xl font-medium">其他岩館</h2>
               <Link
                 href="/gym"
                 className="rounded border border-gray-800 px-8 py-2 text-gray-800 transition hover:bg-gray-100"
               >
-                更多岩場
+                更多岩館
               </Link>
             </div>
 
