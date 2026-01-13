@@ -388,7 +388,7 @@ export interface BiographyAdjacent {
 }
 
 /**
- * 攀岩足跡地點
+ * 攀岩足跡地點 (JSON 格式，用於 biography.climbing_locations)
  */
 export interface ClimbingLocation {
   location: string // 地點名稱
@@ -397,6 +397,59 @@ export interface ClimbingLocation {
   notes: string | null // 心得筆記
   photos: string[] | null // 照片
   is_public: boolean // 是否公開
+}
+
+/**
+ * 攀岩足跡地點 (正規化表格)
+ */
+export interface ClimbingLocationRecord {
+  id: string
+  biography_id: string
+  location: string // 地點名稱
+  country: string // 國家
+  visit_year: string | null // 造訪年份
+  notes: string | null // 心得筆記
+  photos: string[] | null // 照片
+  is_public: boolean // 是否公開
+  sort_order: number
+  created_at: string
+  updated_at: string
+}
+
+/**
+ * 故事推題記錄
+ */
+export interface StoryPrompt {
+  id: string
+  user_id: string
+  biography_id: string
+  field_name: string // 欄位名稱
+  category: string // 分類
+  prompted_at: string // 推題時間
+  completed_at: string | null // 完成時間
+  dismissed_count: number // 跳過次數
+  last_dismissed_at: string | null // 最後跳過時間
+}
+
+/**
+ * 故事推題進度統計
+ */
+export interface StoryPromptStats {
+  total_prompted: number
+  total_completed: number
+  permanently_dismissed: number
+}
+
+/**
+ * 人物誌瀏覽記錄
+ */
+export interface BiographyView {
+  id: string
+  user_id: string
+  biography_id: string
+  view_count: number
+  first_viewed_at: string
+  last_viewed_at: string
 }
 
 /**
