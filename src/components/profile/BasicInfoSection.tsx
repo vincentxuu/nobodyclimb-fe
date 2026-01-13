@@ -21,7 +21,7 @@ export default function BasicInfoSection({
 }: BasicInfoSectionProps) {
   return (
     <div className="space-y-4">
-      <ProfileFormField label="名稱" isMobile={isMobile}>
+      <ProfileFormField label="暱稱" isMobile={isMobile}>
         {isEditing ? (
           <Input
             value={name}
