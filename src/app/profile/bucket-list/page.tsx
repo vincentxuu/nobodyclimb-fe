@@ -61,10 +61,10 @@ export default function BucketListPage() {
       queryClient.invalidateQueries({ queryKey: ['bucket-list'] })
       setShowForm(false)
       setShowQuickAdd(false)
-      toast({ title: '目標已新增', variant: 'success' })
+      toast({ title: '目標已新增', variant: 'default' })
     },
     onError: () => {
-      toast({ title: '新增失敗，請稍後再試', variant: 'error' })
+      toast({ title: '新增失敗，請稍後再試', variant: 'destructive' })
     },
   })
 
@@ -75,10 +75,10 @@ export default function BucketListPage() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['bucket-list'] })
       setEditingItem(null)
-      toast({ title: '目標已更新', variant: 'success' })
+      toast({ title: '目標已更新', variant: 'default' })
     },
     onError: () => {
-      toast({ title: '更新失敗，請稍後再試', variant: 'error' })
+      toast({ title: '更新失敗，請稍後再試', variant: 'destructive' })
     },
   })
 
@@ -87,10 +87,10 @@ export default function BucketListPage() {
     mutationFn: (id: string) => bucketListService.deleteItem(id),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['bucket-list'] })
-      toast({ title: '目標已刪除', variant: 'success' })
+      toast({ title: '目標已刪除', variant: 'default' })
     },
     onError: () => {
-      toast({ title: '刪除失敗，請稍後再試', variant: 'error' })
+      toast({ title: '刪除失敗，請稍後再試', variant: 'destructive' })
     },
   })
 
@@ -101,10 +101,10 @@ export default function BucketListPage() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['bucket-list'] })
       setCompletingItem(null)
-      toast({ title: '恭喜完成目標！', variant: 'success' })
+      toast({ title: '恭喜完成目標！', variant: 'default' })
     },
     onError: () => {
-      toast({ title: '更新失敗，請稍後再試', variant: 'error' })
+      toast({ title: '更新失敗，請稍後再試', variant: 'destructive' })
     },
   })
 
@@ -157,7 +157,7 @@ export default function BucketListPage() {
 
   const handleQuickAdd = useCallback(
     (title: string) => {
-      createMutation.mutate({ title, category: 'other' })
+      createMutation.mutate({ title, category: 'other' } as BucketListItemInputSchema)
     },
     [createMutation]
   )
