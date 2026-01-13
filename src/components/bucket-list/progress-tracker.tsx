@@ -13,8 +13,8 @@ interface ProgressTrackerProps {
   size?: 'sm' | 'md' | 'lg'
   className?: string
   editable?: boolean
-  onProgressChange?: (progress: number) => void
-  onMilestoneToggle?: (milestoneId: string, completed: boolean) => void
+  onProgressChange?: (progress: number) => void  // eslint-disable-line no-unused-vars
+  onMilestoneToggle?: (milestoneId: string, completed: boolean) => void  // eslint-disable-line no-unused-vars
 }
 
 /**

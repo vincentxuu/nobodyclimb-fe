@@ -29,7 +29,7 @@ import { Breadcrumb } from '@/components/ui/breadcrumb'
 import { ProgressTracker, ProgressBar } from '@/components/bucket-list'
 import { bucketListService, biographyService } from '@/lib/api/services'
 import { cn } from '@/lib/utils'
-import type { BucketListItem, BucketListCategory, Biography } from '@/lib/types'
+import type { BucketListCategory } from '@/lib/types'
 
 // 分類圖標和標籤映射
 const categoryConfig: Record<

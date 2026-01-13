@@ -14,7 +14,7 @@ import type { BucketListItem } from '@/lib/types'
 
 interface BucketListCompletionFormProps {
   item: BucketListItem
-  onSubmit: (data: BucketListCompleteSchema) => void
+  onSubmit: (data: BucketListCompleteSchema) => void  // eslint-disable-line no-unused-vars
   onCancel: () => void
   isLoading?: boolean
   className?: string

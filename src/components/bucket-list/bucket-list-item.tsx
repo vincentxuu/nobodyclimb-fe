@@ -40,6 +40,7 @@ const categoryConfig: Record<
   other: { icon: Target, label: '其他', color: 'bg-gray-100 text-gray-700' },
 }
 
+/* eslint-disable no-unused-vars */
 interface BucketListItemCardProps {
   item: BucketListItem
   variant?: 'default' | 'compact' | 'expanded'
@@ -54,6 +55,7 @@ interface BucketListItemCardProps {
   onClick?: (item: BucketListItem) => void
   className?: string
 }
+/* eslint-enable no-unused-vars */
 
 /**
  * 人生清單項目卡片
@@ -315,6 +317,7 @@ export function BucketListItemCard({
   )
 }
 
+/* eslint-disable no-unused-vars */
 interface BucketListSectionProps {
   title: string
   items: BucketListItem[]
@@ -330,6 +333,7 @@ interface BucketListSectionProps {
   onClick?: (item: BucketListItem) => void
   className?: string
 }
+/* eslint-enable no-unused-vars */
 
 /**
  * 人生清單區塊（含標題和項目列表）

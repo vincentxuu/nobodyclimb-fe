@@ -16,7 +16,7 @@ import { BUCKET_LIST_CATEGORIES, type BucketListItem, type Milestone } from '@/l
 
 interface BucketListFormProps {
   item?: BucketListItem | null
-  onSubmit: (data: BucketListItemInputSchema) => void
+  onSubmit: (data: BucketListItemInputSchema) => void  // eslint-disable-line no-unused-vars
   onCancel: () => void
   isLoading?: boolean
   className?: string
@@ -357,7 +357,7 @@ export function QuickAddForm({
   isLoading = false,
   className,
 }: {
-  onSubmit: (title: string) => void
+  onSubmit: (title: string) => void  // eslint-disable-line no-unused-vars
   onCancel: () => void
   isLoading?: boolean
   className?: string

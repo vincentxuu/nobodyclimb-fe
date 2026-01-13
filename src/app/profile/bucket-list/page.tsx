@@ -18,8 +18,9 @@ import {
 } from '@/components/bucket-list'
 import { biographyService, bucketListService } from '@/lib/api/services'
 import type { BucketListItem, BucketListCategory } from '@/lib/types'
+import { BUCKET_LIST_CATEGORIES } from '@/lib/types'
 import type { BucketListItemInputSchema, BucketListCompleteSchema } from '@/lib/schemas/bucket-list'
-import { useToast } from '@/components/ui/toast'
+import { useToast } from '@/components/ui/use-toast'
 
 type TabValue = 'all' | 'active' | 'completed' | 'archived'
 
@@ -50,7 +51,8 @@ export default function BucketListPage() {
     enabled: !!biography?.id,
   })
 
-  const bucketList = bucketListData?.data || []
+  // 穩定化 bucketList 引用，避免 useMemo 依賴問題
+  const bucketList = useMemo(() => bucketListData?.data ?? [], [bucketListData?.data])
 
   // 新增項目
   const createMutation = useMutation({
@@ -253,17 +255,22 @@ export default function BucketListPage() {
                 <TabsTrigger value="archived">已封存 ({stats.archived})</TabsTrigger>
               </TabsList>
 
-              {/* 分類篩選 - 未來可擴充 */}
-              <button
-                type="button"
-                className="hidden items-center gap-1 rounded px-2 py-1 text-sm text-gray-500 hover:bg-gray-100 sm:flex"
-                onClick={() => {
-                  // TODO: 實作分類篩選下拉選單
-                }}
-              >
-                <Filter className="h-4 w-4" />
-                篩選
-              </button>
+              {/* 分類篩選 */}
+              <div className="relative hidden sm:block">
+                <select
+                  value={categoryFilter}
+                  onChange={(e) => setCategoryFilter(e.target.value as BucketListCategory | 'all')}
+                  className="flex items-center gap-1 rounded border border-gray-200 bg-white px-2 py-1 pr-7 text-sm text-gray-600 hover:bg-gray-50 focus:outline-none focus:ring-1 focus:ring-gray-300"
+                >
+                  <option value="all">全部分類</option>
+                  {BUCKET_LIST_CATEGORIES.map((cat) => (
+                    <option key={cat.value} value={cat.value}>
+                      {cat.label}
+                    </option>
+                  ))}
+                </select>
+                <Filter className="pointer-events-none absolute right-2 top-1/2 h-3 w-3 -translate-y-1/2 text-gray-400" />
+              </div>
             </div>
 
             <TabsContent value={activeTab} className="p-4">

@@ -2,7 +2,7 @@
 
 import React, { useCallback } from 'react'
 import { useRouter, usePathname } from 'next/navigation'
-import { UserCircle, FileText, Bookmark, Settings, Image as ImageIcon, Target } from 'lucide-react'
+import { UserCircle, FileText, Bookmark, Settings, Target } from 'lucide-react'
 
 const menuItems = [
   {
