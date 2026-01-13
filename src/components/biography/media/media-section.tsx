@@ -1,7 +1,7 @@
 'use client'
 
 import React, { useState, useEffect, useCallback } from 'react'
-import { Youtube, Instagram, Plus, Settings, ChevronRight } from 'lucide-react'
+import { Youtube, Instagram, Plus, ChevronRight } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { mediaService } from '@/lib/api/services'
 import { BiographyVideo, BiographyInstagram } from '@/lib/types'
@@ -127,7 +127,7 @@ export function MediaSection({
                   />
                   {/* Relation type badge */}
                   <div className="absolute left-2 top-2 flex items-center gap-1">
-                    {video.is_featured === 1 && (
+                    {video.is_featured && (
                       <span className="rounded bg-yellow-500 px-1.5 py-0.5 text-xs font-medium text-white">
                         精選
                       </span>
@@ -218,7 +218,7 @@ export function MediaSection({
                   />
                   {/* Relation type badge */}
                   <div className="absolute left-2 top-2 flex items-center gap-1">
-                    {post.is_featured === 1 && (
+                    {post.is_featured && (
                       <span className="rounded bg-yellow-500 px-1.5 py-0.5 text-xs font-medium text-white">
                         精選
                       </span>

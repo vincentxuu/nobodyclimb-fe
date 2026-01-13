@@ -1,7 +1,7 @@
 'use client'
 
 import React, { useState, useCallback } from 'react'
-import { Youtube, Instagram, Plus, Loader2, X, Star, Trash2 } from 'lucide-react'
+import { Youtube, Instagram, Loader2, X, Star, Trash2 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { mediaService } from '@/lib/api/services'
 import { BiographyVideo, BiographyInstagram, BiographyVideoRelationType, BiographyInstagramRelationType } from '@/lib/types'
@@ -230,6 +230,7 @@ export function AddMediaDialog({
           <div className="mb-4 rounded-lg border border-gray-200 p-3">
             <div className="flex gap-3">
               {preview.thumbnail && (
+                // eslint-disable-next-line @next/next/no-img-element
                 <img
                   src={preview.thumbnail}
                   alt="Preview"

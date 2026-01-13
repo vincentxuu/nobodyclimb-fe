@@ -20,16 +20,12 @@ interface InstagramEmbedProps {
  */
 export function InstagramEmbed({
   shortcode,
-  caption,
-  thumbnailUrl,
-  mediaType,
   className,
 }: InstagramEmbedProps) {
   const [embedLoaded, setEmbedLoaded] = useState(false)
   const containerRef = useRef<HTMLDivElement>(null)
 
   const instagramUrl = `https://www.instagram.com/p/${shortcode}/`
-  const embedUrl = `https://www.instagram.com/p/${shortcode}/embed/`
 
   useEffect(() => {
     // Load Instagram embed script if not already loaded
