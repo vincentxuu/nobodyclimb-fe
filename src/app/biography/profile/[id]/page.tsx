@@ -28,6 +28,7 @@ import { Breadcrumb } from '@/components/ui/breadcrumb'
 import { FollowButton } from '@/components/biography/follow-button'
 import { BucketListSection } from '@/components/biography/bucket-list-section'
 import { BiographyBucketList } from '@/components/bucket-list'
+import { MediaSection } from '@/components/biography/media'
 import { biographyService } from '@/lib/api/services'
 import { Biography, BiographyAdjacent } from '@/lib/types'
 import { useAuthStore } from '@/store/authStore'
@@ -479,6 +480,9 @@ export default function ProfilePage({ params }: ProfilePageProps) {
             <BiographyBucketList biographyId={person.id} />
 
             <StorySection title="給剛開始攀岩的自己" content={person.advice_to_self} />
+
+            {/* 媒體整合區塊 */}
+            <MediaSection biographyId={id} isOwner={isOwner} className="mt-8 border-t border-[#dbd8d8] pt-8" />
           </div>
 
           {/* 第三層：進階故事 */}
