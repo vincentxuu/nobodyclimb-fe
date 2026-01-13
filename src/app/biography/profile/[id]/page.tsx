@@ -4,13 +4,16 @@ import React, { useState, useEffect, use } from 'react'
 import Image from 'next/image'
 import Link from 'next/link'
 import { motion } from 'framer-motion'
-import { ArrowLeft, ArrowRight, Loader2 } from 'lucide-react'
+import { ArrowLeft, ArrowRight, Loader2, Eye, Heart, Users } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import BackToTop from '@/components/ui/back-to-top'
 import { RecommendedProfiles } from '@/components/biography/recommended-profiles'
 import { Breadcrumb } from '@/components/ui/breadcrumb'
+import { FollowButton } from '@/components/biography/follow-button'
+import { BucketListSection } from '@/components/biography/bucket-list-section'
 import { biographyService } from '@/lib/api/services'
 import { Biography, BiographyAdjacent } from '@/lib/types'
+import { useAuthStore } from '@/store/authStore'
 
 interface ProfilePageProps {
   params: Promise<{
@@ -23,6 +26,9 @@ export default function ProfilePage({ params }: ProfilePageProps) {
   const [person, setPerson] = useState<Biography | null>(null)
   const [adjacent, setAdjacent] = useState<BiographyAdjacent | null>(null)
   const [loading, setLoading] = useState(true)
+  const [followerCount, setFollowerCount] = useState(0)
+  const { user } = useAuthStore()
+  const isOwner = user?.id === person?.user_id
 
   // 從 API 加載人物資料
   useEffect(() => {
@@ -35,6 +41,7 @@ export default function ProfilePage({ params }: ProfilePageProps) {
 
         if (response.success && response.data) {
           setPerson(response.data)
+          setFollowerCount(response.data.follower_count || 0)
 
           // 獲取相鄰人物
           try {
@@ -134,8 +141,34 @@ export default function ProfilePage({ params }: ProfilePageProps) {
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5 }}
         >
-          <h1 className="mb-2 text-3xl font-medium text-[#1B1A1A]">攀岩小人物—{person.name}</h1>
-          <p className="mb-6 text-sm text-gray-500">更新日期 {publishedDate}</p>
+          <div className="flex items-start justify-between gap-4 mb-6">
+            <div>
+              <h1 className="mb-2 text-3xl font-medium text-[#1B1A1A]">攀岩小人物—{person.name}</h1>
+              <p className="text-sm text-gray-500">更新日期 {publishedDate}</p>
+              <div className="flex items-center gap-4 mt-2 text-sm text-gray-500">
+                <span className="inline-flex items-center gap-1">
+                  <Eye className="h-4 w-4" />
+                  {person.total_views || 0} 次瀏覽
+                </span>
+                <span className="inline-flex items-center gap-1">
+                  <Heart className="h-4 w-4" />
+                  {person.total_likes || 0} 個讚
+                </span>
+                <span className="inline-flex items-center gap-1">
+                  <Users className="h-4 w-4" />
+                  {followerCount} 追蹤者
+                </span>
+              </div>
+            </div>
+            {!isOwner && person.id && (
+              <FollowButton
+                biographyId={person.id}
+                onFollowChange={(isFollowing) => {
+                  setFollowerCount((prev) => (isFollowing ? prev + 1 : Math.max(0, prev - 1)))
+                }}
+              />
+            )}
+          </div>
 
           <div className="relative mb-8 h-[360px] overflow-hidden">
             <Image src={imageUrl} alt={person.name} fill className="object-cover" />
@@ -195,7 +228,10 @@ export default function ProfilePage({ params }: ProfilePageProps) {
                   className="object-cover"
                 />
               </div>
-              <p className="text-base text-[#1B1A1A]">{person.bucket_list_story || '尚未填寫'}</p>
+              {person.bucket_list_story && (
+                <p className="text-base text-[#1B1A1A] mb-6">{person.bucket_list_story}</p>
+              )}
+              <BucketListSection biographyId={person.id} isOwner={isOwner} />
             </div>
 
             <div>
