@@ -558,7 +558,7 @@ export default function GymDetailPage({ params }: { params: Promise<{ id: string
           </div>
         </div>
 
-        {/* 其他岩場 */}
+        {/* 其他岩館 */}
         {relatedGyms.length > 0 && (
           <div className="mb-12">
             <div className="mb-6 flex items-center justify-between">
