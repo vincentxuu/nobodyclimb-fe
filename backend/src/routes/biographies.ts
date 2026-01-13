@@ -22,24 +22,16 @@ biographiesRoutes.get('/', async (c) => {
   }
 
   if (search) {
-    whereClause += ` AND (
-      name LIKE ? OR
-      frequent_locations LIKE ? OR
-      favorite_route_type LIKE ? OR
-      climbing_origin LIKE ? OR
-      climbing_meaning LIKE ? OR
-      advice_to_self LIKE ? OR
-      memorable_moment LIKE ? OR
-      biggest_challenge LIKE ? OR
-      breakthrough_story LIKE ? OR
-      dream_climb LIKE ? OR
-      climbing_goal LIKE ?
-    )`;
+    const searchFields = [
+      'name', 'frequent_locations', 'favorite_route_type',
+      'climbing_origin', 'climbing_meaning', 'advice_to_self',
+      'memorable_moment', 'biggest_challenge', 'breakthrough_story',
+      'dream_climb', 'climbing_goal',
+    ];
+    const searchConditions = searchFields.map((field) => `${field} LIKE ?`).join(' OR ');
+    whereClause += ` AND (${searchConditions})`;
     const searchPattern = `%${search}%`;
-    // Push search pattern for each field in the OR clause
-    for (let i = 0; i < 11; i++) {
-      params.push(searchPattern);
-    }
+    searchFields.forEach(() => params.push(searchPattern));
   }
 
   const countResult = await c.env.DB.prepare(

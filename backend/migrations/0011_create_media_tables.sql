@@ -8,10 +8,10 @@ CREATE TABLE IF NOT EXISTS biography_videos (
   id TEXT PRIMARY KEY,
   biography_id TEXT NOT NULL,
   video_id TEXT NOT NULL,
-  relation_type TEXT NOT NULL,  -- own_content, featured_in, mentioned, recommended, completion_proof
+  relation_type TEXT NOT NULL CHECK (relation_type IN ('own_content', 'featured_in', 'mentioned', 'recommended', 'completion_proof')),
   is_featured INTEGER DEFAULT 0,
   display_order INTEGER DEFAULT 0,
-  created_at TEXT DEFAULT (datetime('now')),
+  created_at TEXT NOT NULL DEFAULT (datetime('now')),
 
   FOREIGN KEY (biography_id) REFERENCES biographies(id) ON DELETE CASCADE,
   UNIQUE(biography_id, video_id)
@@ -27,15 +27,15 @@ CREATE TABLE IF NOT EXISTS biography_instagrams (
   biography_id TEXT NOT NULL,
   instagram_url TEXT NOT NULL,
   instagram_shortcode TEXT NOT NULL,
-  media_type TEXT,  -- IMAGE, VIDEO, CAROUSEL, REEL
+  media_type TEXT CHECK (media_type IS NULL OR media_type IN ('IMAGE', 'VIDEO', 'CAROUSEL', 'REEL')),
   thumbnail_url TEXT,
   caption TEXT,
   posted_at TEXT,
-  relation_type TEXT NOT NULL,  -- own_post, tagged, mentioned, completion_proof
+  relation_type TEXT NOT NULL CHECK (relation_type IN ('own_post', 'tagged', 'mentioned', 'completion_proof')),
   is_featured INTEGER DEFAULT 0,
   display_order INTEGER DEFAULT 0,
-  created_at TEXT DEFAULT (datetime('now')),
-  updated_at TEXT DEFAULT (datetime('now')),
+  created_at TEXT NOT NULL DEFAULT (datetime('now')),
+  updated_at TEXT NOT NULL DEFAULT (datetime('now')),
 
   FOREIGN KEY (biography_id) REFERENCES biographies(id) ON DELETE CASCADE,
   UNIQUE(biography_id, instagram_shortcode)

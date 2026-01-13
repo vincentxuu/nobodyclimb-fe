@@ -459,13 +459,30 @@ bucketListRoutes.put('/:id/milestone', authMiddleware, async (c) => {
     );
   }
 
-  const milestones = item.milestones ? JSON.parse(item.milestones) : [];
-  const milestoneId = body.milestone_id;
-  const completed = body.completed;
-  const note = body.note;
+  let milestones: Array<{ id: string; completed: boolean; completed_at: string | null; note: string | null }> = [];
+  try {
+    milestones = item.milestones ? JSON.parse(item.milestones) : [];
+  } catch {
+    milestones = [];
+  }
+
+  const milestoneId = body.milestone_id as string | undefined;
+  const completed = body.completed as boolean | undefined;
+  const note = body.note as string | undefined;
+
+  if (!milestoneId || typeof milestoneId !== 'string') {
+    return c.json(
+      {
+        success: false,
+        error: 'Bad Request',
+        message: 'milestone_id is required',
+      },
+      400
+    );
+  }
 
   // Update the specific milestone
-  const updatedMilestones = milestones.map((m: { id: string; completed: boolean; completed_at: string | null; note: string | null }) => {
+  const updatedMilestones = milestones.map((m) => {
     if (m.id === milestoneId) {
       return {
         ...m,

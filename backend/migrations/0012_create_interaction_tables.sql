@@ -8,7 +8,7 @@ CREATE TABLE IF NOT EXISTS bucket_list_likes (
   id TEXT PRIMARY KEY,
   bucket_list_item_id TEXT NOT NULL,
   user_id TEXT NOT NULL,
-  created_at TEXT DEFAULT (datetime('now')),
+  created_at TEXT NOT NULL DEFAULT (datetime('now')),
 
   FOREIGN KEY (bucket_list_item_id) REFERENCES bucket_list_items(id) ON DELETE CASCADE,
   FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
@@ -24,7 +24,7 @@ CREATE TABLE IF NOT EXISTS bucket_list_comments (
   bucket_list_item_id TEXT NOT NULL,
   user_id TEXT NOT NULL,
   content TEXT NOT NULL,
-  created_at TEXT DEFAULT (datetime('now')),
+  created_at TEXT NOT NULL DEFAULT (datetime('now')),
 
   FOREIGN KEY (bucket_list_item_id) REFERENCES bucket_list_items(id) ON DELETE CASCADE,
   FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
@@ -39,7 +39,7 @@ CREATE TABLE IF NOT EXISTS bucket_list_references (
   id TEXT PRIMARY KEY,
   source_item_id TEXT NOT NULL,
   target_biography_id TEXT NOT NULL,
-  created_at TEXT DEFAULT (datetime('now')),
+  created_at TEXT NOT NULL DEFAULT (datetime('now')),
 
   FOREIGN KEY (source_item_id) REFERENCES bucket_list_items(id) ON DELETE CASCADE,
   FOREIGN KEY (target_biography_id) REFERENCES biographies(id) ON DELETE CASCADE,
@@ -54,7 +54,7 @@ CREATE TABLE IF NOT EXISTS follows (
   id TEXT PRIMARY KEY,
   follower_id TEXT NOT NULL,
   following_id TEXT NOT NULL,
-  created_at TEXT DEFAULT (datetime('now')),
+  created_at TEXT NOT NULL DEFAULT (datetime('now')),
 
   FOREIGN KEY (follower_id) REFERENCES users(id) ON DELETE CASCADE,
   FOREIGN KEY (following_id) REFERENCES users(id) ON DELETE CASCADE,
@@ -68,13 +68,13 @@ CREATE INDEX IF NOT EXISTS idx_follows_following ON follows(following_id);
 CREATE TABLE IF NOT EXISTS notifications (
   id TEXT PRIMARY KEY,
   user_id TEXT NOT NULL,
-  type TEXT NOT NULL,  -- goal_completed, goal_liked, goal_commented, goal_referenced, new_follower, story_featured
+  type TEXT NOT NULL CHECK (type IN ('goal_completed', 'goal_liked', 'goal_commented', 'goal_referenced', 'new_follower', 'story_featured')),
   actor_id TEXT,
   target_id TEXT,
   title TEXT NOT NULL,
   message TEXT NOT NULL,
-  is_read INTEGER DEFAULT 0,
-  created_at TEXT DEFAULT (datetime('now')),
+  is_read INTEGER NOT NULL DEFAULT 0,
+  created_at TEXT NOT NULL DEFAULT (datetime('now')),
 
   FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
 );
