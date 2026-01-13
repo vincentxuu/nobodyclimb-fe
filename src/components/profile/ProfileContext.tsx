@@ -59,7 +59,7 @@ function mapBiographyToProfileData(biography: Biography | null): Partial<Profile
     climbingMeaning: biography.climbing_meaning || '',
     climbingBucketList: biography.bucket_list || '',
     adviceForBeginners: biography.advice || '',
-    isPublic: biography.is_public === 1,
+    isPublic: Number(biography.is_public) === 1,
     images,
     imageLayout: layout,
   }
