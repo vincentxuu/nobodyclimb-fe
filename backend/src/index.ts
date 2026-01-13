@@ -19,6 +19,8 @@ import { trafficRoutes } from './routes/traffic';
 import { bucketListRoutes } from './routes/bucket-list';
 import { notificationsRoutes } from './routes/notifications';
 import { mediaRoutes } from './routes/media';
+import { storyPromptsRoutes } from './routes/story-prompts';
+import { climbingLocationsRoutes } from './routes/climbing-locations';
 
 const app = new Hono<{ Bindings: Env }>();
 
@@ -84,6 +86,8 @@ v1.route('/traffic', trafficRoutes);
 v1.route('/bucket-list', bucketListRoutes);
 v1.route('/notifications', notificationsRoutes);
 v1.route('/media', mediaRoutes);
+v1.route('/story-prompts', storyPromptsRoutes);
+v1.route('/climbing-locations', climbingLocationsRoutes);
 
 app.route('/api/v1', v1);
 

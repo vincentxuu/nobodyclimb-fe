@@ -35,6 +35,9 @@ import {
   LocationStat,
   LocationDetail,
   CountryStat,
+  ClimbingLocationRecord,
+  StoryPrompt,
+  StoryPromptStats,
 } from '@/lib/types'
 
 /**
@@ -836,7 +839,7 @@ export const biographyService = {
  */
 export const climbingLocationService = {
   /**
-   * 獲取所有攀岩地點（含訪客統計）
+   * 獲取所有攀岩地點（含訪客統計）- 舊 API (from biographies JSON)
    */
   getLocations: async (options?: { country?: string; limit?: number; offset?: number }) => {
     const response = await apiClient.get<
@@ -846,7 +849,7 @@ export const climbingLocationService = {
   },
 
   /**
-   * 獲取特定地點詳情（含所有訪客）
+   * 獲取特定地點詳情（含所有訪客）- 舊 API
    */
   getLocationDetail: async (locationName: string) => {
     const response = await apiClient.get<ApiResponse<LocationDetail>>(
@@ -856,12 +859,197 @@ export const climbingLocationService = {
   },
 
   /**
-   * 獲取所有國家統計
+   * 獲取所有國家統計 - 舊 API
    */
   getCountries: async () => {
     const response = await apiClient.get<ApiResponse<CountryStat[]>>(
       '/biographies/explore/countries'
     )
+    return response.data
+  },
+
+  // ═══════════════════════════════════════════════════════════
+  // 正規化表格 API (新)
+  // ═══════════════════════════════════════════════════════════
+
+  /**
+   * 獲取當前用戶的攀岩足跡
+   */
+  getMyLocations: async () => {
+    const response = await apiClient.get<ApiResponse<ClimbingLocationRecord[]>>(
+      '/climbing-locations'
+    )
+    return response.data
+  },
+
+  /**
+   * 獲取某人物誌的公開攀岩足跡
+   */
+  getBiographyLocations: async (biographyId: string) => {
+    const response = await apiClient.get<ApiResponse<ClimbingLocationRecord[]>>(
+      `/climbing-locations/biography/${biographyId}`
+    )
+    return response.data
+  },
+
+  /**
+   * 新增攀岩足跡
+   */
+  createLocation: async (data: {
+    location: string
+    country: string
+    visit_year?: string
+    notes?: string
+    photos?: string[]
+    is_public?: boolean
+  }) => {
+    const response = await apiClient.post<ApiResponse<ClimbingLocationRecord>>(
+      '/climbing-locations',
+      data
+    )
+    return response.data
+  },
+
+  /**
+   * 更新攀岩足跡
+   */
+  updateLocation: async (
+    id: string,
+    data: {
+      location?: string
+      country?: string
+      visit_year?: string | null
+      notes?: string | null
+      photos?: string[] | null
+      is_public?: boolean
+      sort_order?: number
+    }
+  ) => {
+    const response = await apiClient.put<ApiResponse<ClimbingLocationRecord>>(
+      `/climbing-locations/${id}`,
+      data
+    )
+    return response.data
+  },
+
+  /**
+   * 刪除攀岩足跡
+   */
+  deleteLocation: async (id: string) => {
+    const response = await apiClient.delete<ApiResponse<{ message: string }>>(
+      `/climbing-locations/${id}`
+    )
+    return response.data
+  },
+
+  /**
+   * 重新排序攀岩足跡
+   */
+  reorderLocations: async (order: string[]) => {
+    const response = await apiClient.put<ApiResponse<{ message: string }>>(
+      '/climbing-locations/reorder',
+      { order }
+    )
+    return response.data
+  },
+
+  /**
+   * 遷移 JSON 資料到正規化表格
+   */
+  migrateLocations: async () => {
+    const response = await apiClient.post<ApiResponse<{ migrated: number }>>(
+      '/climbing-locations/migrate'
+    )
+    return response.data
+  },
+
+  /**
+   * 探索攀岩地點（正規化表格）
+   */
+  exploreLocations: async (options?: { country?: string; limit?: number; offset?: number }) => {
+    const response = await apiClient.get<
+      ApiResponse<Array<{ location: string; country: string; visitor_count: number }>> & {
+        pagination: { total: number; limit: number; offset: number }
+      }
+    >('/climbing-locations/explore', { params: options })
+    return response.data
+  },
+
+  /**
+   * 探索特定地點（正規化表格）
+   */
+  exploreLocation: async (locationName: string) => {
+    const response = await apiClient.get<ApiResponse<LocationDetail>>(
+      `/climbing-locations/explore/${encodeURIComponent(locationName)}`
+    )
+    return response.data
+  },
+
+  /**
+   * 獲取國家統計（正規化表格）
+   */
+  exploreCountries: async () => {
+    const response = await apiClient.get<ApiResponse<CountryStat[]>>(
+      '/climbing-locations/explore/countries'
+    )
+    return response.data
+  },
+}
+
+/**
+ * 故事推題 API 服務
+ */
+export const storyPromptService = {
+  /**
+   * 檢查是否應該顯示推題
+   */
+  shouldPrompt: async () => {
+    const response = await apiClient.get<
+      ApiResponse<{ should_prompt: boolean; reason: string }>
+    >('/story-prompts/should-prompt')
+    return response.data
+  },
+
+  /**
+   * 獲取下一個推薦的故事問題
+   */
+  getNextPrompt: async (strategy?: 'random' | 'easy_first' | 'category_rotate') => {
+    const response = await apiClient.get<
+      ApiResponse<{ field: string; category: string; remaining_count: number } | null>
+    >('/story-prompts/next', { params: { strategy } })
+    return response.data
+  },
+
+  /**
+   * 記錄跳過
+   */
+  dismissPrompt: async (field: string) => {
+    const response = await apiClient.post<ApiResponse<{ message: string }>>(
+      `/story-prompts/${field}/dismiss`
+    )
+    return response.data
+  },
+
+  /**
+   * 記錄完成
+   */
+  completePrompt: async (field: string) => {
+    const response = await apiClient.post<ApiResponse<{ message: string }>>(
+      `/story-prompts/${field}/complete`
+    )
+    return response.data
+  },
+
+  /**
+   * 獲取推題進度
+   */
+  getProgress: async () => {
+    const response = await apiClient.get<
+      ApiResponse<{
+        prompts: StoryPrompt[]
+        stats: StoryPromptStats
+      } | null>
+    >('/story-prompts/progress')
     return response.data
   },
 }

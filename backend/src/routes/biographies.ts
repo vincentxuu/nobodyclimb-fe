@@ -625,8 +625,9 @@ biographiesRoutes.get('/:id/stats', async (c) => {
 });
 
 // PUT /biographies/:id/view - Record a view
-biographiesRoutes.put('/:id/view', async (c) => {
+biographiesRoutes.put('/:id/view', optionalAuthMiddleware, async (c) => {
   const id = c.req.param('id');
+  const userId = c.get('userId'); // May be undefined if not authenticated
 
   const biography = await c.env.DB.prepare(
     'SELECT id FROM biographies WHERE id = ? AND is_public = 1'
@@ -651,6 +652,36 @@ biographiesRoutes.put('/:id/view', async (c) => {
   )
     .bind(id)
     .run();
+
+  // Track individual user view for explorer badge
+  if (userId) {
+    const existingView = await c.env.DB.prepare(
+      'SELECT id FROM biography_views WHERE user_id = ? AND biography_id = ?'
+    )
+      .bind(userId, id)
+      .first<{ id: string }>();
+
+    if (existingView) {
+      // Update existing view record
+      await c.env.DB.prepare(
+        `UPDATE biography_views
+         SET view_count = view_count + 1,
+             last_viewed_at = datetime('now')
+         WHERE id = ?`
+      )
+        .bind(existingView.id)
+        .run();
+    } else {
+      // Create new view record
+      const viewId = generateId();
+      await c.env.DB.prepare(
+        `INSERT INTO biography_views (id, user_id, biography_id, view_count, first_viewed_at, last_viewed_at)
+         VALUES (?, ?, ?, 1, datetime('now'), datetime('now'))`
+      )
+        .bind(viewId, userId, id)
+        .run();
+    }
+  }
 
   return c.json({
     success: true,
@@ -1234,6 +1265,13 @@ biographiesRoutes.get('/:id/badges', async (c) => {
     }
   }
 
+  // Get biographies viewed count (for explorer badge)
+  const viewedCount = await c.env.DB.prepare(
+    'SELECT COUNT(DISTINCT biography_id) as count FROM biography_views WHERE user_id = ?'
+  )
+    .bind(biography.user_id)
+    .first<{ count: number }>();
+
   // Get unlocked badges from database
   const unlockedBadges = await c.env.DB.prepare(
     'SELECT * FROM user_badges WHERE user_id = ?'
@@ -1277,7 +1315,7 @@ biographiesRoutes.get('/:id/badges', async (c) => {
         currentValue = commentsCount?.count || 0;
         break;
       case 'read_20_biographies':
-        currentValue = 0; // TODO: Track biography views
+        currentValue = viewedCount?.count || 0;
         break;
       case 'add_5_locations':
         currentValue = locationsCount;
