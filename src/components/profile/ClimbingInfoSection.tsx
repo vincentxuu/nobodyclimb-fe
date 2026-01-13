@@ -1,7 +1,6 @@
 'use client'
 
-import React from 'react'
-import { Input } from '@/components/ui/input'
+import React, { useMemo, useCallback } from 'react'
 import {
   Select,
   SelectContent,
@@ -9,8 +8,10 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
+import { TagInput, stringToTags, tagsToString } from '@/components/ui/tag-input'
 import ProfileFormField from './ProfileFormField'
 import ProfileTextDisplay from './ProfileTextDisplay'
+import { RouteTypeSelector, stringToRouteTypes, routeTypesToString } from './RouteTypeSelector'
 
 // 產生年份選項
 const currentYear = new Date().getFullYear()
@@ -34,6 +35,26 @@ export default function ClimbingInfoSection({
   isMobile,
   onChange,
 }: ClimbingInfoSectionProps) {
+  // 將字串轉換為標籤陣列
+  const locationTags = useMemo(() => stringToTags(frequentGyms), [frequentGyms])
+  const routeTypes = useMemo(() => stringToRouteTypes(favoriteRouteType), [favoriteRouteType])
+
+  // 處理地點標籤變更
+  const handleLocationChange = useCallback(
+    (tags: string[]) => {
+      onChange('frequentGyms', tagsToString(tags))
+    },
+    [onChange]
+  )
+
+  // 處理路線型態變更
+  const handleRouteTypeChange = useCallback(
+    (types: string[]) => {
+      onChange('favoriteRouteType', routeTypesToString(types))
+    },
+    [onChange]
+  )
+
   return (
     <div className="space-y-4">
       <ProfileFormField label="哪一年開始攀岩" isMobile={isMobile}>
@@ -55,27 +76,29 @@ export default function ClimbingInfoSection({
         )}
       </ProfileFormField>
 
-      <ProfileFormField label="平常出沒的地方" isMobile={isMobile}>
+      <ProfileFormField
+        label="平常出沒的地方"
+        hint={isEditing ? '輸入後按 Enter 新增' : undefined}
+        isMobile={isMobile}
+      >
         {isEditing ? (
-          <Input
-            value={frequentGyms}
-            onChange={(e) => onChange('frequentGyms', e.target.value)}
-            className="border-[#B6B3B3] text-sm md:text-base"
-            placeholder="ex. 小岩攀岩館、龍洞"
+          <TagInput
+            value={locationTags}
+            onChange={handleLocationChange}
+            placeholder="輸入地點名稱，按 Enter 新增"
           />
         ) : (
           <ProfileTextDisplay text={frequentGyms} isMobile={isMobile} />
         )}
       </ProfileFormField>
 
-      <ProfileFormField label="喜歡的路線型態" isMobile={isMobile}>
+      <ProfileFormField
+        label="喜歡的路線型態"
+        hint={isEditing ? '可複選' : undefined}
+        isMobile={isMobile}
+      >
         {isEditing ? (
-          <Input
-            value={favoriteRouteType}
-            onChange={(e) => onChange('favoriteRouteType', e.target.value)}
-            className="border-[#B6B3B3] text-sm md:text-base"
-            placeholder="ex. 長路線"
-          />
+          <RouteTypeSelector value={routeTypes} onChange={handleRouteTypeChange} />
         ) : (
           <ProfileTextDisplay text={favoriteRouteType} isMobile={isMobile} />
         )}
