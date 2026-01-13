@@ -1,0 +1,602 @@
+'use client'
+
+import React, { useState, useCallback, useMemo } from 'react'
+import { motion, AnimatePresence } from 'framer-motion'
+import {
+  ChevronLeft,
+  ChevronRight,
+  Check,
+  Camera,
+  Calendar,
+  MapPin,
+  Heart,
+  Sparkles,
+  MessageCircle,
+  Plus,
+  X,
+  Loader2,
+  BookOpen,
+} from 'lucide-react'
+import { cn } from '@/lib/utils'
+import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
+import { Textarea } from '@/components/ui/textarea'
+import { Label } from '@/components/ui/label'
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select'
+import { BiographyInput } from '@/lib/types'
+
+/**
+ * 攀登方式選項
+ */
+const CLIMBING_METHODS = [
+  '抱石',
+  '運動攀登',
+  '頂繩攀登',
+  '速度攀登',
+  '傳統攀登',
+]
+
+/**
+ * 地形型態選項
+ */
+const TERRAIN_TYPES = [
+  '平板岩',
+  '垂直岩壁',
+  '外傾岩壁',
+  '屋簷',
+  '裂隙',
+  '稜線',
+  '壁面',
+  '煙囪',
+]
+
+/**
+ * 動作風格選項
+ */
+const MOVEMENT_STYLES = [
+  '動態路線',
+  '跑酷風格',
+  '協調性',
+  '靜態',
+  '技術性',
+  '力量型',
+  '耐力型',
+]
+
+/**
+ * 生成年份選項 (從當前年往前 50 年)
+ */
+function generateYearOptions(): string[] {
+  const currentYear = new Date().getFullYear()
+  const years: string[] = []
+  for (let year = currentYear; year >= currentYear - 50; year--) {
+    years.push(year.toString())
+  }
+  return years
+}
+
+interface BiographyWizardProps {
+  initialData?: Partial<BiographyInput>
+  onSave: (data: Partial<BiographyInput>) => Promise<void>
+  onCancel?: () => void
+  onComplete?: () => void
+  mode?: 'create' | 'edit'
+  className?: string
+}
+
+type WizardStep = 1 | 2 | 3
+
+/**
+ * 人物誌填寫精靈
+ * 三階段引導式填寫流程
+ */
+export function BiographyWizard({
+  initialData = {},
+  onSave,
+  onCancel,
+  onComplete,
+  mode = 'create',
+  className,
+}: BiographyWizardProps) {
+  const [currentStep, setCurrentStep] = useState<WizardStep>(1)
+  const [formData, setFormData] = useState<Partial<BiographyInput>>(initialData)
+  const [isSaving, setIsSaving] = useState(false)
+  const [locationInput, setLocationInput] = useState('')
+  const [bucketListInput, setBucketListInput] = useState('')
+
+  const yearOptions = useMemo(() => generateYearOptions(), [])
+
+  // 解析地點為陣列
+  const locations = useMemo(() => {
+    if (!formData.frequent_locations) return []
+    return formData.frequent_locations.split(',').filter((l) => l.trim())
+  }, [formData.frequent_locations])
+
+  // 解析路線類型
+  const selectedRouteTypes = useMemo(() => {
+    if (!formData.favorite_route_type) return []
+    return formData.favorite_route_type.split(',').filter((t) => t.trim())
+  }, [formData.favorite_route_type])
+
+  // 解析人生清單（簡易版，用於快速新增）
+  const bucketList = useMemo(() => {
+    if (!formData.bucket_list_story) return []
+    // 簡易解析：按換行分隔
+    return formData.bucket_list_story.split('\n').filter((item) => item.trim())
+  }, [formData.bucket_list_story])
+
+  // 更新表單資料
+  const updateFormData = useCallback((field: keyof BiographyInput, value: string | null) => {
+    setFormData((prev) => ({ ...prev, [field]: value }))
+  }, [])
+
+  // 新增地點
+  const handleAddLocation = useCallback(() => {
+    if (!locationInput.trim()) return
+    const newLocations = [...locations, locationInput.trim()]
+    updateFormData('frequent_locations', newLocations.join(','))
+    setLocationInput('')
+  }, [locationInput, locations, updateFormData])
+
+  // 移除地點
+  const handleRemoveLocation = useCallback(
+    (index: number) => {
+      const newLocations = locations.filter((_, i) => i !== index)
+      updateFormData('frequent_locations', newLocations.join(','))
+    },
+    [locations, updateFormData]
+  )
+
+  // 切換路線類型
+  const handleToggleRouteType = useCallback(
+    (type: string) => {
+      const newTypes = selectedRouteTypes.includes(type)
+        ? selectedRouteTypes.filter((t) => t !== type)
+        : [...selectedRouteTypes, type]
+      updateFormData('favorite_route_type', newTypes.join(','))
+    },
+    [selectedRouteTypes, updateFormData]
+  )
+
+  // 新增人生清單項目
+  const handleAddBucketListItem = useCallback(() => {
+    if (!bucketListInput.trim()) return
+    const newList = [...bucketList, bucketListInput.trim()]
+    updateFormData('bucket_list_story', newList.join('\n'))
+    setBucketListInput('')
+  }, [bucketListInput, bucketList, updateFormData])
+
+  // 移除人生清單項目
+  const handleRemoveBucketListItem = useCallback(
+    (index: number) => {
+      const newList = bucketList.filter((_, i) => i !== index)
+      updateFormData('bucket_list_story', newList.join('\n'))
+    },
+    [bucketList, updateFormData]
+  )
+
+  // 儲存並進入下一步
+  const handleNext = useCallback(async () => {
+    setIsSaving(true)
+    try {
+      await onSave(formData)
+      if (currentStep < 3) {
+        setCurrentStep((prev) => (prev + 1) as WizardStep)
+      } else {
+        onComplete?.()
+      }
+    } catch (error) {
+      console.error('Failed to save:', error)
+    } finally {
+      setIsSaving(false)
+    }
+  }, [formData, currentStep, onSave, onComplete])
+
+  // 返回上一步
+  const handlePrev = useCallback(() => {
+    if (currentStep > 1) {
+      setCurrentStep((prev) => (prev - 1) as WizardStep)
+    }
+  }, [currentStep])
+
+  // 跳過此步驟
+  const handleSkip = useCallback(() => {
+    if (currentStep < 3) {
+      setCurrentStep((prev) => (prev + 1) as WizardStep)
+    } else {
+      onComplete?.()
+    }
+  }, [currentStep, onComplete])
+
+  // 步驟指示器
+  const StepIndicator = () => (
+    <div className="mb-8 flex items-center justify-center">
+      {[1, 2, 3].map((step) => (
+        <React.Fragment key={step}>
+          <div
+            className={cn(
+              'flex h-10 w-10 items-center justify-center rounded-full text-sm font-medium transition-colors',
+              currentStep === step
+                ? 'bg-gray-900 text-white'
+                : currentStep > step
+                  ? 'bg-green-500 text-white'
+                  : 'bg-gray-200 text-gray-500'
+            )}
+          >
+            {currentStep > step ? <Check className="h-5 w-5" /> : step}
+          </div>
+          {step < 3 && (
+            <div
+              className={cn(
+                'mx-2 h-1 w-16 rounded-full transition-colors',
+                currentStep > step ? 'bg-green-500' : 'bg-gray-200'
+              )}
+            />
+          )}
+        </React.Fragment>
+      ))}
+    </div>
+  )
+
+  // 步驟標題
+  const stepTitles: Record<WizardStep, { title: string; subtitle: string }> = {
+    1: { title: '基本資訊', subtitle: '設定你的人物誌' },
+    2: { title: '你的攀岩故事', subtitle: '這部分會讓你的人物誌更有溫度' },
+    3: { title: '人生清單', subtitle: '在攀岩世界裡，你想完成的目標有什麼？' },
+  }
+
+  return (
+    <div className={cn('mx-auto max-w-2xl', className)}>
+      {/* 步驟指示器 */}
+      <StepIndicator />
+
+      {/* 步驟標題 */}
+      <div className="mb-8 text-center">
+        <h2 className="text-2xl font-bold text-gray-900">{stepTitles[currentStep].title}</h2>
+        <p className="mt-2 text-gray-500">{stepTitles[currentStep].subtitle}</p>
+      </div>
+
+      {/* 步驟內容 */}
+      <AnimatePresence mode="wait">
+        <motion.div
+          key={currentStep}
+          initial={{ opacity: 0, x: 20 }}
+          animate={{ opacity: 1, x: 0 }}
+          exit={{ opacity: 0, x: -20 }}
+          transition={{ duration: 0.3 }}
+          className="rounded-xl bg-white p-6 shadow-sm"
+        >
+          {/* 步驟 1: 基本資訊 */}
+          {currentStep === 1 && (
+            <div className="space-y-6">
+              {/* 頭像上傳 (簡化版，只顯示預覽) */}
+              <div>
+                <Label className="mb-2 block text-sm font-medium">頭像</Label>
+                <div className="flex items-center gap-4">
+                  <div className="flex h-20 w-20 items-center justify-center rounded-full bg-gray-100">
+                    {formData.avatar_url ? (
+                      <img
+                        src={formData.avatar_url}
+                        alt="頭像"
+                        className="h-full w-full rounded-full object-cover"
+                      />
+                    ) : (
+                      <Camera className="h-8 w-8 text-gray-400" />
+                    )}
+                  </div>
+                  <p className="text-sm text-gray-500">可稍後在個人資料頁面設定</p>
+                </div>
+              </div>
+
+              {/* 暱稱 */}
+              <div>
+                <Label htmlFor="name" className="mb-2 block text-sm font-medium">
+                  你的暱稱
+                </Label>
+                <Input
+                  id="name"
+                  value={formData.name || ''}
+                  onChange={(e) => updateFormData('name', e.target.value)}
+                  placeholder="輸入你的暱稱"
+                />
+              </div>
+
+              {/* 開始攀岩年份 */}
+              <div>
+                <Label className="mb-2 flex items-center gap-2 text-sm font-medium">
+                  <Calendar className="h-4 w-4" />
+                  哪一年開始攀岩
+                </Label>
+                <Select
+                  value={formData.climbing_start_year || ''}
+                  onValueChange={(value) => updateFormData('climbing_start_year', value)}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="選擇年份" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {yearOptions.map((year) => (
+                      <SelectItem key={year} value={year}>
+                        {year}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+
+              {/* 常出沒地點 */}
+              <div>
+                <Label className="mb-2 flex items-center gap-2 text-sm font-medium">
+                  <MapPin className="h-4 w-4" />
+                  平常出沒的地方
+                </Label>
+                <div className="mb-2 flex flex-wrap gap-2">
+                  {locations.map((location, index) => (
+                    <span
+                      key={index}
+                      className="flex items-center gap-1 rounded-full bg-gray-100 px-3 py-1 text-sm"
+                    >
+                      {location}
+                      <button
+                        type="button"
+                        onClick={() => handleRemoveLocation(index)}
+                        className="ml-1 text-gray-400 hover:text-gray-600"
+                      >
+                        <X className="h-3 w-3" />
+                      </button>
+                    </span>
+                  ))}
+                </div>
+                <div className="flex gap-2">
+                  <Input
+                    value={locationInput}
+                    onChange={(e) => setLocationInput(e.target.value)}
+                    placeholder="輸入地點後按 Enter 或點擊新增"
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter') {
+                        e.preventDefault()
+                        handleAddLocation()
+                      }
+                    }}
+                  />
+                  <Button type="button" variant="outline" onClick={handleAddLocation}>
+                    <Plus className="h-4 w-4" />
+                  </Button>
+                </div>
+              </div>
+
+              {/* 喜歡的路線型態 */}
+              <div>
+                <Label className="mb-3 block text-sm font-medium">喜歡的路線型態（可複選）</Label>
+
+                {/* 攀登方式 */}
+                <div className="mb-3">
+                  <p className="mb-2 text-xs text-gray-500">攀登方式</p>
+                  <div className="flex flex-wrap gap-2">
+                    {CLIMBING_METHODS.map((method) => (
+                      <button
+                        key={method}
+                        type="button"
+                        onClick={() => handleToggleRouteType(method)}
+                        className={cn(
+                          'rounded-full px-3 py-1 text-sm transition-colors',
+                          selectedRouteTypes.includes(method)
+                            ? 'bg-gray-900 text-white'
+                            : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                        )}
+                      >
+                        {method}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                {/* 地形型態 */}
+                <div className="mb-3">
+                  <p className="mb-2 text-xs text-gray-500">地形型態</p>
+                  <div className="flex flex-wrap gap-2">
+                    {TERRAIN_TYPES.map((type) => (
+                      <button
+                        key={type}
+                        type="button"
+                        onClick={() => handleToggleRouteType(type)}
+                        className={cn(
+                          'rounded-full px-3 py-1 text-sm transition-colors',
+                          selectedRouteTypes.includes(type)
+                            ? 'bg-gray-900 text-white'
+                            : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                        )}
+                      >
+                        {type}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                {/* 動作風格 */}
+                <div>
+                  <p className="mb-2 text-xs text-gray-500">動作風格</p>
+                  <div className="flex flex-wrap gap-2">
+                    {MOVEMENT_STYLES.map((style) => (
+                      <button
+                        key={style}
+                        type="button"
+                        onClick={() => handleToggleRouteType(style)}
+                        className={cn(
+                          'rounded-full px-3 py-1 text-sm transition-colors',
+                          selectedRouteTypes.includes(style)
+                            ? 'bg-gray-900 text-white'
+                            : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                        )}
+                      >
+                        {style}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* 步驟 2: 核心故事 */}
+          {currentStep === 2 && (
+            <div className="space-y-6">
+              {/* 你與攀岩的相遇 */}
+              <div>
+                <Label className="mb-2 flex items-center gap-2 text-sm font-medium">
+                  <Sparkles className="h-4 w-4 text-yellow-500" />
+                  你與攀岩的相遇
+                </Label>
+                <p className="mb-2 text-xs text-gray-500">
+                  描述第一次接觸攀岩的情景，是什麼讓你想繼續？
+                </p>
+                <Textarea
+                  value={formData.climbing_origin || ''}
+                  onChange={(e) => updateFormData('climbing_origin', e.target.value)}
+                  placeholder="那年某天，我第一次踏進岩館..."
+                  className="min-h-[120px]"
+                />
+              </div>
+
+              {/* 攀岩對你來說是什麼 */}
+              <div>
+                <Label className="mb-2 flex items-center gap-2 text-sm font-medium">
+                  <Heart className="h-4 w-4 text-pink-500" />
+                  攀岩對你來說是什麼
+                </Label>
+                <p className="mb-2 text-xs text-gray-500">
+                  攀岩在你生活中扮演什麼角色？帶給你什麼？
+                </p>
+                <Textarea
+                  value={formData.climbing_meaning || ''}
+                  onChange={(e) => updateFormData('climbing_meaning', e.target.value)}
+                  placeholder="攀岩對我來說，是..."
+                  className="min-h-[120px]"
+                />
+              </div>
+
+              {/* 給剛開始攀岩的自己 */}
+              <div>
+                <Label className="mb-2 flex items-center gap-2 text-sm font-medium">
+                  <MessageCircle className="h-4 w-4 text-blue-500" />
+                  給剛開始攀岩的自己
+                </Label>
+                <p className="mb-2 text-xs text-gray-500">
+                  如果能回到起點，你會對自己說什麼？
+                </p>
+                <Textarea
+                  value={formData.advice_to_self || ''}
+                  onChange={(e) => updateFormData('advice_to_self', e.target.value)}
+                  placeholder="如果能回到那時候，我想說..."
+                  className="min-h-[120px]"
+                />
+              </div>
+            </div>
+          )}
+
+          {/* 步驟 3: 人生清單 */}
+          {currentStep === 3 && (
+            <div className="space-y-6">
+              <div>
+                <Label className="mb-2 flex items-center gap-2 text-sm font-medium">
+                  <BookOpen className="h-4 w-4 text-orange-500" />
+                  快速新增目標
+                </Label>
+                <p className="mb-3 text-xs text-gray-500">
+                  輸入你想達成的攀岩目標，之後可以在人生清單詳細編輯
+                </p>
+
+                {/* 已新增的目標 */}
+                <div className="mb-4 space-y-2">
+                  {bucketList.map((item, index) => (
+                    <div
+                      key={index}
+                      className="flex items-center justify-between rounded-lg bg-gray-50 px-4 py-3"
+                    >
+                      <span className="text-sm text-gray-700">{item}</span>
+                      <button
+                        type="button"
+                        onClick={() => handleRemoveBucketListItem(index)}
+                        className="text-gray-400 hover:text-gray-600"
+                      >
+                        <X className="h-4 w-4" />
+                      </button>
+                    </div>
+                  ))}
+                </div>
+
+                {/* 新增輸入 */}
+                <div className="flex gap-2">
+                  <Input
+                    value={bucketListInput}
+                    onChange={(e) => setBucketListInput(e.target.value)}
+                    placeholder="例如：完攀龍洞校門口、抱石 V6..."
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter') {
+                        e.preventDefault()
+                        handleAddBucketListItem()
+                      }
+                    }}
+                  />
+                  <Button type="button" variant="outline" onClick={handleAddBucketListItem}>
+                    <Plus className="h-4 w-4" />
+                  </Button>
+                </div>
+
+                <p className="mt-4 text-center text-xs text-gray-400">
+                  之後可以隨時回來詳細編輯每個目標
+                </p>
+              </div>
+            </div>
+          )}
+        </motion.div>
+      </AnimatePresence>
+
+      {/* 導航按鈕 */}
+      <div className="mt-6 flex items-center justify-between">
+        <div>
+          {currentStep > 1 ? (
+            <Button variant="ghost" onClick={handlePrev}>
+              <ChevronLeft className="mr-2 h-4 w-4" />
+              上一步
+            </Button>
+          ) : onCancel ? (
+            <Button variant="ghost" onClick={onCancel}>
+              取消
+            </Button>
+          ) : (
+            <div />
+          )}
+        </div>
+        <div className="flex items-center gap-2">
+          <Button variant="ghost" onClick={handleSkip}>
+            跳過，稍後再填
+          </Button>
+          <Button onClick={handleNext} disabled={isSaving}>
+            {isSaving && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+            {currentStep === 3 ? (
+              mode === 'create' ? (
+                '完成並發布人物誌'
+              ) : (
+                '儲存'
+              )
+            ) : (
+              <>
+                下一步
+                <ChevronRight className="ml-2 h-4 w-4" />
+              </>
+            )}
+          </Button>
+        </div>
+      </div>
+    </div>
+  )
+}
+
+export default BiographyWizard
