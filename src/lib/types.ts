@@ -285,8 +285,8 @@ export interface Biography {
   achievements: string | null
   social_links: string | null
   gallery_images?: string | null // JSON 格式的圖片資料（可選）
-  is_featured: number
-  is_public: number
+  is_featured: number | string // D1 可能回傳字串
+  is_public: number | string // D1 可能回傳字串
   published_at: string | null
   created_at: string
   updated_at: string
