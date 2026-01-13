@@ -17,8 +17,6 @@ import {
   Lightbulb,
   Compass,
   Heart,
-  ChevronDown,
-  ChevronUp,
   Eye,
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
@@ -174,11 +172,9 @@ function StorySection({
 }
 
 /**
- * 進階故事分類區塊
+ * 進階故事分類區塊 - 直接顯示所有故事
  */
 function AdvancedStoriesSection({ person }: { person: Biography }) {
-  const [expandedCategories, setExpandedCategories] = useState<Set<StoryCategory>>(new Set())
-
   // 整理有內容的進階故事
   const storiesByCategory = useMemo(() => {
     const result: Record<StoryCategory, Array<{ field: string; title: string; content: string }>> =
@@ -210,73 +206,46 @@ function AdvancedStoriesSection({ person }: { person: Biography }) {
     return STORY_CATEGORIES.filter((cat) => storiesByCategory[cat.id].length > 0)
   }, [storiesByCategory])
 
-  const toggleCategory = (categoryId: StoryCategory) => {
-    setExpandedCategories((prev) => {
-      const next = new Set(prev)
-      if (next.has(categoryId)) {
-        next.delete(categoryId)
-      } else {
-        next.add(categoryId)
-      }
-      return next
-    })
-  }
-
   if (categoriesWithContent.length === 0) return null
 
   return (
     <div className="mt-12 border-t border-gray-200 pt-8">
       <h2 className="mb-6 text-xl font-semibold text-gray-900">更多故事</h2>
-      <div className="space-y-4">
+      <div className="space-y-8">
         {categoriesWithContent.map((category) => {
           const Icon = CATEGORY_ICONS[category.id]
           const stories = storiesByCategory[category.id]
-          const isExpanded = expandedCategories.has(category.id)
 
           return (
-            <div key={category.id} className="rounded-xl border border-gray-100 bg-white">
-              <button
-                className="flex w-full items-center justify-between p-4 text-left"
-                onClick={() => toggleCategory(category.id)}
-              >
-                <div className="flex items-center gap-3">
-                  <div className={cn('rounded-full p-2', 'bg-gray-100')}>
-                    <Icon className={cn('h-5 w-5', category.color)} />
-                  </div>
-                  <div>
-                    <h3 className="font-medium text-gray-900">{category.name}</h3>
-                    <p className="text-sm text-gray-500">{stories.length} 則故事</p>
-                  </div>
+            <div key={category.id}>
+              {/* 分類標題 */}
+              <div className="mb-4 flex items-center gap-3">
+                <div className={cn('rounded-full p-2', 'bg-gray-100')}>
+                  <Icon className={cn('h-5 w-5', category.color)} />
                 </div>
-                {isExpanded ? (
-                  <ChevronUp className="h-5 w-5 text-gray-400" />
-                ) : (
-                  <ChevronDown className="h-5 w-5 text-gray-400" />
-                )}
-              </button>
+                <h3 className="font-medium text-gray-900">{category.name}</h3>
+              </div>
 
-              {isExpanded && (
-                <motion.div
-                  initial={{ opacity: 0, height: 0 }}
-                  animate={{ opacity: 1, height: 'auto' }}
-                  exit={{ opacity: 0, height: 0 }}
-                  className="border-t border-gray-100"
-                >
-                  <div className="space-y-6 p-4">
-                    {stories.map((story, index) => (
-                      <div
-                        key={story.field}
-                        className={cn(index > 0 && 'border-t border-gray-50 pt-6')}
-                      >
-                        <h4 className="mb-2 font-medium text-gray-800">{story.title}</h4>
-                        <p className="whitespace-pre-wrap text-sm leading-relaxed text-gray-600">
-                          {story.content}
-                        </p>
-                      </div>
-                    ))}
-                  </div>
-                </motion.div>
-              )}
+              {/* 故事內容直接展開 */}
+              <div className="space-y-6 pl-12">
+                {stories.map((story, index) => (
+                  <motion.div
+                    key={story.field}
+                    className={cn(
+                      'border-b border-gray-100 pb-6',
+                      index === stories.length - 1 && 'border-b-0 pb-0'
+                    )}
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.4, delay: index * 0.1 }}
+                  >
+                    <h4 className="mb-2 text-lg font-medium text-gray-800">{story.title}</h4>
+                    <p className="whitespace-pre-wrap text-base leading-relaxed text-gray-600">
+                      {story.content}
+                    </p>
+                  </motion.div>
+                ))}
+              </div>
             </div>
           )
         })}
@@ -499,8 +468,8 @@ export default function ProfilePage({ params }: ProfilePageProps) {
               }
             })()}
 
-            {/* 媒體整合區塊 */}
-            <MediaSection biographyId={id} isOwner={isOwner} className="mt-8 border-t border-[#dbd8d8] pt-8" />
+            {/* 媒體區塊（唯讀，無新增/編輯功能） */}
+            <MediaSection biographyId={id} isOwner={false} className="mt-8 border-t border-[#dbd8d8] pt-8" />
           </div>
 
           {/* 第三層：進階故事 */}
