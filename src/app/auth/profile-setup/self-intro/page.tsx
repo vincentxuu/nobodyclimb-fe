@@ -98,10 +98,10 @@ export default function SelfIntroPage() {
             climbing_start_year: user?.climbingStartYear || '',
             frequent_locations: user?.frequentGym || '',
             favorite_route_type: user?.favoriteRouteType || '',
-            climbing_reason: formData.climbingReason,
+            climbing_origin: formData.climbingReason,
             climbing_meaning: formData.climbingMeaning,
-            bucket_list: formData.climbingBucketList,
-            advice: formData.messageToBeginners,
+            bucket_list_story: formData.climbingBucketList,
+            advice_to_self: formData.messageToBeginners,
             is_public: formData.isPublic ? 1 : 0,
           }
 

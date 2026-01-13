@@ -171,9 +171,9 @@ export default function ProfilePage({ params }: ProfilePageProps) {
 
             <div>
               <h2 className="mb-4 border-b border-[#dbd8d8] pb-2 text-xl font-medium">
-                踏上攀岩不歸路的原因
+                你與攀岩的相遇
               </h2>
-              <p className="text-base text-[#1B1A1A]">{person.climbing_reason || '尚未填寫'}</p>
+              <p className="text-base text-[#1B1A1A]">{person.climbing_origin || '尚未填寫'}</p>
             </div>
 
             <div>
@@ -195,14 +195,14 @@ export default function ProfilePage({ params }: ProfilePageProps) {
                   className="object-cover"
                 />
               </div>
-              <p className="text-base text-[#1B1A1A]">{person.bucket_list || '尚未填寫'}</p>
+              <p className="text-base text-[#1B1A1A]">{person.bucket_list_story || '尚未填寫'}</p>
             </div>
 
             <div>
               <h2 className="mb-4 border-b border-[#dbd8d8] pb-2 text-xl font-medium">
-                對於初踏入攀岩的岩友，留言給他們的一句話
+                給剛開始攀岩的自己
               </h2>
-              <p className="text-base text-[#1B1A1A]">{person.advice || '尚未填寫'}</p>
+              <p className="text-base text-[#1B1A1A]">{person.advice_to_self || '尚未填寫'}</p>
             </div>
           </div>
 
