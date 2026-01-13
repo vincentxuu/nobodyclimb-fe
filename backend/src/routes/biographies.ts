@@ -236,7 +236,7 @@ biographiesRoutes.post('/', authMiddleware, async (c) => {
         .bind(existing.id)
         .first<{ published_at: string | null; is_public: number }>();
 
-      if (!currentBio?.published_at && currentBio?.is_public !== 1) {
+      if (!currentBio?.published_at && Number(currentBio?.is_public) !== 1) {
         updates.push('published_at = ?');
         values.push(new Date().toISOString());
       }
@@ -374,7 +374,7 @@ biographiesRoutes.put('/me', authMiddleware, async (c) => {
   }
 
   // Set published_at when going public for first time
-  if (body.is_public === 1 && !existing.published_at && existing.is_public !== 1) {
+  if (body.is_public === 1 && !existing.published_at && Number(existing.is_public) !== 1) {
     updates.push('published_at = ?');
     values.push(new Date().toISOString());
   }
