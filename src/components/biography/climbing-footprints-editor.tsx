@@ -7,31 +7,7 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
 import { ClimbingLocation } from '@/lib/types'
-
-// 常見攀岩國家列表
-const COMMON_COUNTRIES = [
-  '台灣',
-  '泰國',
-  '越南',
-  '中國',
-  '日本',
-  '韓國',
-  '美國',
-  '西班牙',
-  '法國',
-  '義大利',
-  '希臘',
-  '土耳其',
-  '馬來西亞',
-  '印尼',
-  '菲律賓',
-  '澳洲',
-  '紐西蘭',
-  '英國',
-  '德國',
-  '瑞士',
-  '其他',
-]
+import { getCountryFlag, COMMON_COUNTRIES } from '@/lib/utils/country'
 
 interface ClimbingFootprintsEditorProps {
   locations: ClimbingLocation[]
@@ -102,31 +78,9 @@ export function ClimbingFootprintsEditor({
     onChange(newLocations)
   }
 
-  // 取得國旗 emoji（簡易版，只處理常見國家）
-  const getCountryFlag = (country: string) => {
-    const flagMap: Record<string, string> = {
-      台灣: '🇹🇼',
-      泰國: '🇹🇭',
-      越南: '🇻🇳',
-      中國: '🇨🇳',
-      日本: '🇯🇵',
-      韓國: '🇰🇷',
-      美國: '🇺🇸',
-      西班牙: '🇪🇸',
-      法國: '🇫🇷',
-      義大利: '🇮🇹',
-      希臘: '🇬🇷',
-      土耳其: '🇹🇷',
-      馬來西亞: '🇲🇾',
-      印尼: '🇮🇩',
-      菲律賓: '🇵🇭',
-      澳洲: '🇦🇺',
-      紐西蘭: '🇳🇿',
-      英國: '🇬🇧',
-      德國: '🇩🇪',
-      瑞士: '🇨🇭',
-    }
-    return flagMap[country] || '🌍'
+  // 生成唯一 key（使用地點+國家組合）
+  const getLocationKey = (loc: ClimbingLocation, index: number) => {
+    return `${loc.location}|${loc.country}|${index}`
   }
 
   return (
@@ -143,7 +97,7 @@ export function ClimbingFootprintsEditor({
           <AnimatePresence>
             {locations.map((loc, index) => (
               <motion.div
-                key={`${loc.location}-${index}`}
+                key={getLocationKey(loc, index)}
                 initial={{ opacity: 0, y: -10 }}
                 animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0, y: -10 }}

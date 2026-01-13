@@ -9,33 +9,7 @@ import { Button } from '@/components/ui/button'
 import { Breadcrumb } from '@/components/ui/breadcrumb'
 import { climbingLocationService } from '@/lib/api/services'
 import { LocationDetail } from '@/lib/types'
-
-// 取得國旗 emoji
-const getCountryFlag = (country: string) => {
-  const flagMap: Record<string, string> = {
-    台灣: '🇹🇼',
-    泰國: '🇹🇭',
-    越南: '🇻🇳',
-    中國: '🇨🇳',
-    日本: '🇯🇵',
-    韓國: '🇰🇷',
-    美國: '🇺🇸',
-    西班牙: '🇪🇸',
-    法國: '🇫🇷',
-    義大利: '🇮🇹',
-    希臘: '🇬🇷',
-    土耳其: '🇹🇷',
-    馬來西亞: '🇲🇾',
-    印尼: '🇮🇩',
-    菲律賓: '🇵🇭',
-    澳洲: '🇦🇺',
-    紐西蘭: '🇳🇿',
-    英國: '🇬🇧',
-    德國: '🇩🇪',
-    瑞士: '🇨🇭',
-  }
-  return flagMap[country] || '🌍'
-}
+import { getCountryFlag } from '@/lib/utils/country'
 
 interface LocationDetailPageProps {
   params: Promise<{

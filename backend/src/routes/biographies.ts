@@ -1023,35 +1023,27 @@ biographiesRoutes.get('/explore/countries', async (c) => {
      WHERE is_public = 1 AND climbing_locations IS NOT NULL AND climbing_locations != '[]'`
   ).all<{ climbing_locations: string }>();
 
-  const countryMap = new Map<string, { location_count: number; visitor_count: number }>();
+  // Use Set to track unique locations per country across all biographies
+  const countryLocationSets = new Map<string, Set<string>>();
+  const countryVisitorCounts = new Map<string, number>();
 
   for (const bio of biographies.results || []) {
     try {
       const locations: ClimbingLocation[] = JSON.parse(bio.climbing_locations || '[]');
-      const countryLocations = new Map<string, Set<string>>();
 
       for (const loc of locations) {
         if (!loc.is_public) continue;
 
-        if (!countryLocations.has(loc.country)) {
-          countryLocations.set(loc.country, new Set());
+        // Track unique locations per country
+        if (!countryLocationSets.has(loc.country)) {
+          countryLocationSets.set(loc.country, new Set());
         }
-        countryLocations.get(loc.country)!.add(loc.location);
+        countryLocationSets.get(loc.country)!.add(loc.location);
 
-        if (!countryMap.has(loc.country)) {
-          countryMap.set(loc.country, { location_count: 0, visitor_count: 0 });
-        }
-        countryMap.get(loc.country)!.visitor_count++;
-      }
-
-      // Count unique locations per country
-      for (const [country, locs] of countryLocations) {
-        if (!countryMap.has(country)) {
-          countryMap.set(country, { location_count: 0, visitor_count: 0 });
-        }
-        countryMap.get(country)!.location_count = Math.max(
-          countryMap.get(country)!.location_count,
-          locs.size
+        // Count visitors (each location visit counts)
+        countryVisitorCounts.set(
+          loc.country,
+          (countryVisitorCounts.get(loc.country) || 0) + 1
         );
       }
     } catch {
@@ -1059,11 +1051,11 @@ biographiesRoutes.get('/explore/countries', async (c) => {
     }
   }
 
-  const countries = Array.from(countryMap.entries())
-    .map(([country, stats]) => ({
+  const countries = Array.from(countryLocationSets.entries())
+    .map(([country, locationSet]) => ({
       country,
-      location_count: stats.location_count,
-      visitor_count: stats.visitor_count,
+      location_count: locationSet.size,
+      visitor_count: countryVisitorCounts.get(country) || 0,
     }))
     .sort((a, b) => b.visitor_count - a.visitor_count);
 

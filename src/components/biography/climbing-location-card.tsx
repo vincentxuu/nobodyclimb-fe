@@ -5,33 +5,7 @@ import Link from 'next/link'
 import { motion } from 'framer-motion'
 import { MapPin, Users, Calendar } from 'lucide-react'
 import { ClimbingLocation, LocationStat } from '@/lib/types'
-
-// 取得國旗 emoji
-const getCountryFlag = (country: string) => {
-  const flagMap: Record<string, string> = {
-    台灣: '🇹🇼',
-    泰國: '🇹🇭',
-    越南: '🇻🇳',
-    中國: '🇨🇳',
-    日本: '🇯🇵',
-    韓國: '🇰🇷',
-    美國: '🇺🇸',
-    西班牙: '🇪🇸',
-    法國: '🇫🇷',
-    義大利: '🇮🇹',
-    希臘: '🇬🇷',
-    土耳其: '🇹🇷',
-    馬來西亞: '🇲🇾',
-    印尼: '🇮🇩',
-    菲律賓: '🇵🇭',
-    澳洲: '🇦🇺',
-    紐西蘭: '🇳🇿',
-    英國: '🇬🇧',
-    德國: '🇩🇪',
-    瑞士: '🇨🇭',
-  }
-  return flagMap[country] || '🌍'
-}
+import { getCountryFlag } from '@/lib/utils/country'
 
 interface ClimbingLocationCardProps {
   location: ClimbingLocation
@@ -107,7 +81,11 @@ export function ClimbingLocationList({
 
       <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
         {displayLocations.map((location, index) => (
-          <ClimbingLocationCard key={`${location.location}-${index}`} location={location} index={index} />
+          <ClimbingLocationCard
+            key={`${location.location}|${location.country}`}
+            location={location}
+            index={index}
+          />
         ))}
       </div>
 

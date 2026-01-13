@@ -2,7 +2,6 @@
 
 import React, { useState, useEffect } from 'react'
 import Link from 'next/link'
-import { motion } from 'framer-motion'
 import { MapPin, Globe, Users, Loader2, Search, ArrowLeft } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -18,6 +17,7 @@ export default function ExploreLocationsPage() {
   const [searchQuery, setSearchQuery] = useState('')
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
+  const [totalLocations, setTotalLocations] = useState(0)
 
   // 載入國家列表
   useEffect(() => {
@@ -46,6 +46,8 @@ export default function ExploreLocationsPage() {
         })
         if (response.success && response.data) {
           setLocations(response.data)
+          // Use pagination total from API response
+          setTotalLocations(response.pagination?.total || response.data.length)
         }
       } catch (err) {
         console.error('Failed to fetch locations:', err)
@@ -64,9 +66,9 @@ export default function ExploreLocationsPage() {
       loc.country.toLowerCase().includes(searchQuery.toLowerCase())
   )
 
-  // 統計數據
-  const totalLocations = locations.length
-  const totalVisitors = locations.reduce((sum, loc) => sum + loc.visitor_count, 0)
+  // 統計數據（從 API 回傳的國家統計計算）
+  const totalCountries = countries.length
+  const totalVisitors = countries.reduce((sum, c) => sum + c.visitor_count, 0)
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -104,7 +106,7 @@ export default function ExploreLocationsPage() {
             <div className="flex items-center gap-2 text-gray-600">
               <Globe className="h-5 w-5 text-emerald-500" />
               <span>
-                <strong className="text-gray-900">{countries.length}</strong> 個國家
+                <strong className="text-gray-900">{totalCountries}</strong> 個國家
               </span>
             </div>
             <div className="flex items-center gap-2 text-gray-600">
@@ -219,7 +221,7 @@ export default function ExploreLocationsPage() {
               <div className="grid gap-4 sm:grid-cols-2">
                 {filteredLocations.map((location, index) => (
                   <LocationExploreCard
-                    key={`${location.location}-${location.country}`}
+                    key={`${location.location}|${location.country}`}
                     location={location}
                     index={index}
                   />
