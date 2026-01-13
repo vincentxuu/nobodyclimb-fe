@@ -1121,16 +1121,6 @@ export const bucketListService = {
     >('/bucket-list/explore/climbing-footprints', { params: { limit, country } })
     return response.data
   },
-
-  /**
-   * 取消參考（從我的清單中移除）
-   */
-  cancelReference: async (id: string) => {
-    const response = await apiClient.delete<ApiResponse<{ message: string }>>(
-      `/bucket-list/${id}/reference`
-    )
-    return response.data
-  },
 }
 
 /**
