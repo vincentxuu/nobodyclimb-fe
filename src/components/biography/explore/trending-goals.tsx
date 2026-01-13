@@ -4,7 +4,7 @@ import React, { useEffect, useState, useCallback } from 'react'
 import Image from 'next/image'
 import Link from 'next/link'
 import { motion } from 'framer-motion'
-import { Flame, Users, Target, MapPin, Plus, Mountain, Home, Loader2 } from 'lucide-react'
+import { Flame, Users, Target, MapPin, Plus, Mountain, Home, Loader2, Check } from 'lucide-react'
 import { Card, CardContent } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { bucketListService } from '@/lib/api/services'
@@ -26,6 +26,8 @@ export function TrendingGoals({ searchTerm, filter }: TrendingGoalsProps) {
   const [items, setItems] = useState<TrendingItem[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
+  const [addedItems, setAddedItems] = useState<Set<string>>(new Set())
+  const [addingItems, setAddingItems] = useState<Set<string>>(new Set())
   const { isAuthenticated } = useAuthStore()
 
   const loadTrendingItems = useCallback(async () => {
@@ -83,12 +85,29 @@ export function TrendingGoals({ searchTerm, filter }: TrendingGoalsProps) {
       return
     }
 
+    // 設置為正在加入狀態
+    setAddingItems((prev) => new Set(prev).add(itemId))
+
     try {
       await bucketListService.referenceItem(itemId)
-      // 更新 UI 或顯示成功訊息
-      loadTrendingItems()
+      // 成功後標記為已加入，並更新項目的 inspired_count
+      setAddedItems((prev) => new Set(prev).add(itemId))
+      setItems((prev) =>
+        prev.map((item) =>
+          item.id === itemId
+            ? { ...item, inspired_count: (item.inspired_count || 0) + 1 }
+            : item
+        )
+      )
     } catch (err) {
       console.error('Failed to add to list:', err)
+    } finally {
+      // 移除正在加入狀態
+      setAddingItems((prev) => {
+        const newSet = new Set(prev)
+        newSet.delete(itemId)
+        return newSet
+      })
     }
   }
 
@@ -205,15 +224,34 @@ export function TrendingGoals({ searchTerm, filter }: TrendingGoalsProps) {
                       )}
                     </div>
 
-                    {/* 加入按鈕 */}
+                    {/* 加入按鈕 - 即時 UI 反饋 */}
                     <Button
-                      variant="outline"
+                      variant={addedItems.has(item.id) ? 'primary' : 'outline'}
                       size="sm"
-                      className="ml-4 flex items-center gap-1"
+                      className={`ml-4 flex items-center gap-1 ${
+                        addedItems.has(item.id)
+                          ? 'bg-green-600 text-white hover:bg-green-700'
+                          : ''
+                      }`}
                       onClick={() => handleAddToList(item.id)}
+                      disabled={addingItems.has(item.id) || addedItems.has(item.id)}
                     >
-                      <Plus className="h-4 w-4" />
-                      加入我的清單
+                      {addingItems.has(item.id) ? (
+                        <>
+                          <Loader2 className="h-4 w-4 animate-spin" />
+                          加入中...
+                        </>
+                      ) : addedItems.has(item.id) ? (
+                        <>
+                          <Check className="h-4 w-4" />
+                          已加入
+                        </>
+                      ) : (
+                        <>
+                          <Plus className="h-4 w-4" />
+                          加入我的清單
+                        </>
+                      )}
                     </Button>
                   </div>
                 </CardContent>

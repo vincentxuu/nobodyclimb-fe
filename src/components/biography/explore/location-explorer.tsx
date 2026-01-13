@@ -31,11 +31,13 @@ export function LocationExplorer() {
   const [overseasLocations, setOverseasLocations] = useState<LocationData[]>([])
   const [bucketListLocations, setBucketListLocations] = useState<BucketListLocation[]>([])
   const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
   const [activeTab, setActiveTab] = useState<'taiwan' | 'overseas' | 'bucket'>('taiwan')
 
   useEffect(() => {
     const loadLocations = async () => {
       setLoading(true)
+      setError(null)
       try {
         // 並行載入各種地點資料
         const [taiwanRes, overseasRes, bucketRes] = await Promise.all([
@@ -55,6 +57,7 @@ export function LocationExplorer() {
         }
       } catch (err) {
         console.error('Failed to load locations:', err)
+        setError('載入地點資料時發生錯誤，請稍後再試')
       } finally {
         setLoading(false)
       }
@@ -142,6 +145,13 @@ export function LocationExplorer() {
     return (
       <div className="flex min-h-[200px] items-center justify-center">
         <Loader2 className="h-8 w-8 animate-spin text-[#1B1A1A]" />
+      </div>
+    )
+  }
+
+  if (error) {
+    return (
+      <div className="flex min-h-[200px] items-center justify-center text-red-500">{error}
       </div>
     )
   }

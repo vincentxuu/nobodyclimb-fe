@@ -83,22 +83,16 @@ export function CategoryExplorer() {
     const loadCategoryCounts = async () => {
       setLoading(true)
       try {
-        // 為每個分類獲取數量
-        const counts: CategoryCount[] = []
-        for (const cat of BUCKET_LIST_CATEGORIES) {
-          try {
-            const response = await bucketListService.getByCategory(cat.value, 1)
-            if (response.success && response.data) {
-              counts.push({
-                category: cat.value,
-                count: response.data.length,
-              })
-            }
-          } catch {
-            counts.push({ category: cat.value, count: 0 })
-          }
+        // 使用單一 API 呼叫獲取所有分類數量（解決 N+1 問題）
+        const response = await bucketListService.getCategoryCounts()
+        if (response.success && response.data) {
+          setCategoryCounts(
+            response.data.map((item) => ({
+              category: item.category as BucketListCategory,
+              count: item.count,
+            }))
+          )
         }
-        setCategoryCounts(counts)
       } catch (err) {
         console.error('Failed to load category counts:', err)
       } finally {

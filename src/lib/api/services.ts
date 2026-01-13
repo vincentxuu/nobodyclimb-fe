@@ -934,6 +934,16 @@ export const bucketListService = {
   },
 
   /**
+   * 探索：取得所有分類的數量統計（解決 N+1 問題）
+   */
+  getCategoryCounts: async () => {
+    const response = await apiClient.get<
+      ApiResponse<Array<{ category: string; count: number }>>
+    >('/bucket-list/explore/category-counts')
+    return response.data
+  },
+
+  /**
    * 探索：取得熱門地點
    */
   getPopularLocations: async (limit = 20, country?: string) => {

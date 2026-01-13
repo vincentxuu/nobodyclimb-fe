@@ -73,6 +73,24 @@ bucketListRoutes.get('/explore/by-category/:category', async (c) => {
   });
 });
 
+// GET /bucket-list/explore/category-counts - Get counts for all categories (solves N+1 problem)
+bucketListRoutes.get('/explore/category-counts', async (c) => {
+  const counts = await c.env.DB.prepare(
+    `SELECT
+      bli.category,
+      COUNT(*) as count
+     FROM bucket_list_items bli
+     JOIN biographies b ON bli.biography_id = b.id
+     WHERE bli.is_public = 1 AND b.is_public = 1
+     GROUP BY bli.category`
+  ).all();
+
+  return c.json({
+    success: true,
+    data: counts.results,
+  });
+});
+
 // GET /bucket-list/explore/by-location/:location - Get items by location
 bucketListRoutes.get('/explore/by-location/:location', async (c) => {
   const location = c.req.param('location');
@@ -230,8 +248,9 @@ bucketListRoutes.get('/explore/climbing-footprints', async (c) => {
       for (const loc of locations) {
         if (!loc.location || (loc.is_public === false)) continue;
 
-        // Filter by country if specified
-        const isTaiwan = loc.country === '台灣' || loc.country === 'Taiwan' || loc.country === 'TW';
+        // Filter by country if specified - normalize to lowercase for robust comparison
+        const normalizedCountry = (loc.country || '').toLowerCase();
+        const isTaiwan = ['台灣', 'taiwan', 'tw'].includes(normalizedCountry);
         if (country === 'taiwan' && !isTaiwan) continue;
         if (country === 'overseas' && isTaiwan) continue;
 
@@ -254,8 +273,9 @@ bucketListRoutes.get('/explore/climbing-footprints', async (c) => {
           });
         }
       }
-    } catch {
-      // Skip invalid JSON
+    } catch (e) {
+      // Skip invalid JSON, but log the error for debugging purposes
+      console.error(`Failed to parse climbing_locations for biography ${bio.id}:`, e);
     }
   }
 
