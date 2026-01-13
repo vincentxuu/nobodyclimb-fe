@@ -40,12 +40,12 @@
       ],
       "routes": [
         {
-          "pattern": "nobodyclimb.cc",
-          "custom_domain": true
+          "pattern": "nobodyclimb.cc/*",
+          "zone_name": "nobodyclimb.cc"
         },
         {
-          "pattern": "www.nobodyclimb.cc",
-          "custom_domain": true
+          "pattern": "www.nobodyclimb.cc/*",
+          "zone_name": "nobodyclimb.cc"
         }
       ],
       "vars": {
