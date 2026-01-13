@@ -5,16 +5,25 @@ import { Label } from '@/components/ui/label'
 
 interface ProfileFormFieldProps {
   label: string
+  hint?: string
   children: React.ReactNode
   isMobile: boolean
 }
 
-export default function ProfileFormField({ label, children, isMobile }: ProfileFormFieldProps) {
+export default function ProfileFormField({
+  label,
+  hint,
+  children,
+  isMobile,
+}: ProfileFormFieldProps) {
   return (
     <div className="w-full space-y-2">
-      <Label className={`font-medium text-[#3F3D3D] ${isMobile ? 'text-sm' : 'text-base'}`}>
-        {label}
-      </Label>
+      <div>
+        <Label className={`font-medium text-[#3F3D3D] ${isMobile ? 'text-sm' : 'text-base'}`}>
+          {label}
+        </Label>
+        {hint && <p className="mt-1 text-xs text-gray-500">{hint}</p>}
+      </div>
       {children}
     </div>
   )

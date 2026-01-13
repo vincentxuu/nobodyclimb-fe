@@ -191,7 +191,6 @@ export default function ProfileContainer() {
           <ClimbingExperienceSection
             climbingReason={profileData.climbingReason}
             climbingMeaning={profileData.climbingMeaning}
-            climbingBucketList={profileData.climbingBucketList}
             adviceForBeginners={profileData.adviceForBeginners}
             isEditing={isEditing}
             isMobile={isMobile}
