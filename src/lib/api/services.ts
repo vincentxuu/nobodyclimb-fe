@@ -27,6 +27,11 @@ import {
   Crag,
   Route,
   Weather,
+  BiographyVideo,
+  BiographyVideoRelationType,
+  BiographyInstagram,
+  BiographyInstagramRelationType,
+  InstagramMediaType,
 } from '@/lib/types'
 
 /**
@@ -1469,6 +1474,184 @@ export const notificationService = {
    */
   deleteAllNotifications: async () => {
     const response = await apiClient.delete<ApiResponse<{ message: string }>>('/notifications')
+    return response.data
+  },
+}
+
+/**
+ * 媒體整合相關 API 服務
+ */
+export const mediaService = {
+  // ═══════════════════════════════════════════════════════════
+  // YouTube 影片
+  // ═══════════════════════════════════════════════════════════
+
+  /**
+   * 獲取人物誌的 YouTube 影片列表
+   */
+  getBiographyVideos: async (biographyId: string, featured?: boolean) => {
+    const response = await apiClient.get<ApiResponse<BiographyVideo[]>>(
+      `/media/biographies/${biographyId}/videos`,
+      { params: featured !== undefined ? { featured } : undefined }
+    )
+    return response.data
+  },
+
+  /**
+   * 新增 YouTube 影片關聯
+   */
+  addVideo: async (data: {
+    video_id: string
+    relation_type?: BiographyVideoRelationType
+    is_featured?: boolean
+    display_order?: number
+  }) => {
+    const response = await apiClient.post<ApiResponse<BiographyVideo>>(
+      '/media/biographies/me/videos',
+      data
+    )
+    return response.data
+  },
+
+  /**
+   * 更新 YouTube 影片關聯
+   */
+  updateVideo: async (
+    id: string,
+    data: {
+      relation_type?: BiographyVideoRelationType
+      is_featured?: boolean
+      display_order?: number
+    }
+  ) => {
+    const response = await apiClient.put<ApiResponse<BiographyVideo>>(
+      `/media/biographies/me/videos/${id}`,
+      data
+    )
+    return response.data
+  },
+
+  /**
+   * 刪除 YouTube 影片關聯
+   */
+  deleteVideo: async (id: string) => {
+    const response = await apiClient.delete<ApiResponse<{ message: string }>>(
+      `/media/biographies/me/videos/${id}`
+    )
+    return response.data
+  },
+
+  // ═══════════════════════════════════════════════════════════
+  // Instagram 貼文
+  // ═══════════════════════════════════════════════════════════
+
+  /**
+   * 獲取人物誌的 Instagram 貼文列表
+   */
+  getBiographyInstagrams: async (biographyId: string, featured?: boolean) => {
+    const response = await apiClient.get<ApiResponse<BiographyInstagram[]>>(
+      `/media/biographies/${biographyId}/instagrams`,
+      { params: featured !== undefined ? { featured } : undefined }
+    )
+    return response.data
+  },
+
+  /**
+   * 新增 Instagram 貼文關聯
+   */
+  addInstagram: async (data: {
+    instagram_url: string
+    instagram_shortcode: string
+    media_type?: InstagramMediaType
+    thumbnail_url?: string
+    caption?: string
+    posted_at?: string
+    relation_type?: BiographyInstagramRelationType
+    is_featured?: boolean
+    display_order?: number
+  }) => {
+    const response = await apiClient.post<ApiResponse<BiographyInstagram>>(
+      '/media/biographies/me/instagrams',
+      data
+    )
+    return response.data
+  },
+
+  /**
+   * 更新 Instagram 貼文關聯
+   */
+  updateInstagram: async (
+    id: string,
+    data: {
+      media_type?: InstagramMediaType
+      thumbnail_url?: string
+      caption?: string
+      posted_at?: string
+      relation_type?: BiographyInstagramRelationType
+      is_featured?: boolean
+      display_order?: number
+    }
+  ) => {
+    const response = await apiClient.put<ApiResponse<BiographyInstagram>>(
+      `/media/biographies/me/instagrams/${id}`,
+      data
+    )
+    return response.data
+  },
+
+  /**
+   * 刪除 Instagram 貼文關聯
+   */
+  deleteInstagram: async (id: string) => {
+    const response = await apiClient.delete<ApiResponse<{ message: string }>>(
+      `/media/biographies/me/instagrams/${id}`
+    )
+    return response.data
+  },
+
+  // ═══════════════════════════════════════════════════════════
+  // 資訊抓取
+  // ═══════════════════════════════════════════════════════════
+
+  /**
+   * 抓取 YouTube 影片資訊
+   */
+  fetchYoutubeInfo: async (url: string) => {
+    const response = await apiClient.get<
+      ApiResponse<{
+        video_id: string
+        title: string
+        channel_name: string
+        channel_url: string
+        thumbnail_url: string
+        thumbnails: {
+          default: string
+          medium: string
+          high: string
+          maxres: string
+        }
+        embed_url: string
+        watch_url: string
+      }>
+    >('/media/utils/youtube-info', { params: { url } })
+    return response.data
+  },
+
+  /**
+   * 抓取 Instagram 貼文資訊
+   */
+  fetchInstagramInfo: async (url: string) => {
+    const response = await apiClient.get<
+      ApiResponse<{
+        shortcode: string
+        instagram_url: string
+        embed_url: string
+        media_type: InstagramMediaType | null
+        thumbnail_url: string | null
+        caption: string | null
+        posted_at: string | null
+      }>
+    >('/media/utils/instagram-info', { params: { url } })
     return response.data
   },
 }

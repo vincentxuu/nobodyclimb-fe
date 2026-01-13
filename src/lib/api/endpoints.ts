@@ -90,3 +90,18 @@ export const CRAG_ENDPOINTS = {
   REVIEWS: (id: string) => `/crags/${id}/reviews`,
   WEATHER: (id: string) => `/crags/${id}/weather`,
 }
+
+// 媒體整合相關
+export const MEDIA_ENDPOINTS = {
+  // YouTube 影片
+  BIOGRAPHY_VIDEOS: (biographyId: string) => `/media/biographies/${biographyId}/videos`,
+  MY_VIDEOS: '/media/biographies/me/videos',
+  MY_VIDEO_BY_ID: (id: string) => `/media/biographies/me/videos/${id}`,
+  // Instagram 貼文
+  BIOGRAPHY_INSTAGRAMS: (biographyId: string) => `/media/biographies/${biographyId}/instagrams`,
+  MY_INSTAGRAMS: '/media/biographies/me/instagrams',
+  MY_INSTAGRAM_BY_ID: (id: string) => `/media/biographies/me/instagrams/${id}`,
+  // 資訊抓取
+  YOUTUBE_INFO: '/media/utils/youtube-info',
+  INSTAGRAM_INFO: '/media/utils/instagram-info',
+}
