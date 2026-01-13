@@ -1074,6 +1074,19 @@ export interface Video {
 // ============================================
 
 /**
+ * 故事欄位數量常數
+ * 與後端 biographies.ts 保持同步
+ */
+export const STORY_FIELD_COUNTS = {
+  /** 核心故事數量 (climbing_origin, climbing_meaning, advice_to_self) */
+  CORE: 3,
+  /** 進階故事數量 */
+  ADVANCED: 31,
+  /** 總故事數量 */
+  TOTAL: 34,
+} as const
+
+/**
  * 人物誌統計數據
  */
 export interface BiographyStats {
@@ -1154,7 +1167,7 @@ export interface LeaderboardItem {
 /**
  * 排行榜類型
  */
-export type LeaderboardType = 'goals_completed' | 'stories_shared' | 'followers' | 'likes_received'
+export type LeaderboardType = 'goals_completed' | 'followers' | 'likes_received'
 
 /**
  * 活動時間線項目

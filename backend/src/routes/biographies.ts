@@ -4,6 +4,35 @@ import { parsePagination, generateId, generateSlug } from '../utils/id';
 import { authMiddleware, optionalAuthMiddleware } from '../middleware/auth';
 import { createNotification } from './notifications';
 
+// ═══════════════════════════════════════════════════════════
+// 共用常數 - 故事欄位定義
+// ═══════════════════════════════════════════════════════════
+
+/** 核心故事欄位 (3 題) */
+const CORE_STORY_FIELDS = ['climbing_origin', 'climbing_meaning', 'advice_to_self'] as const;
+
+/** 進階故事欄位 (31 題) */
+const ADVANCED_STORY_FIELDS = [
+  'memorable_moment', 'biggest_challenge', 'breakthrough_story', 'first_outdoor', 'first_grade', 'frustrating_climb',
+  'fear_management', 'climbing_lesson', 'failure_perspective', 'flow_moment', 'life_balance', 'unexpected_gain',
+  'climbing_mentor', 'climbing_partner', 'funny_moment', 'favorite_spot', 'advice_to_group', 'climbing_space',
+  'injury_recovery', 'memorable_route', 'training_method', 'effective_practice', 'technique_tip', 'gear_choice',
+  'dream_climb', 'climbing_trip', 'bucket_list_story', 'climbing_goal', 'climbing_style', 'climbing_inspiration',
+  'life_outside_climbing',
+] as const;
+
+/** 所有故事欄位 */
+const ALL_STORY_FIELDS = [...CORE_STORY_FIELDS, ...ADVANCED_STORY_FIELDS] as const;
+
+/** 台灣地區名稱（用於判斷是否為國際地點） */
+const LOCAL_COUNTRY_NAMES = ['台灣', '臺灣', 'taiwan'];
+
+/** 判斷是否為國際地點 */
+function isInternationalLocation(country: string | undefined): boolean {
+  if (!country) return false;
+  return !LOCAL_COUNTRY_NAMES.includes(country.trim().toLowerCase());
+}
+
 export const biographiesRoutes = new Hono<{ Bindings: Env }>();
 
 // GET /biographies - List all public biographies
@@ -554,21 +583,11 @@ biographiesRoutes.get('/:id/stats', async (c) => {
     .bind(biography.user_id)
     .first<{ count: number }>();
 
-  // Calculate story completion
-  const coreStoryFields = ['climbing_origin', 'climbing_meaning', 'advice_to_self'];
-  const advancedStoryFields = [
-    'memorable_moment', 'biggest_challenge', 'breakthrough_story', 'first_outdoor', 'first_grade', 'frustrating_climb',
-    'fear_management', 'climbing_lesson', 'failure_perspective', 'flow_moment', 'life_balance', 'unexpected_gain',
-    'climbing_mentor', 'climbing_partner', 'funny_moment', 'favorite_spot', 'advice_to_group', 'climbing_space',
-    'injury_recovery', 'memorable_route', 'training_method', 'effective_practice', 'technique_tip', 'gear_choice',
-    'dream_climb', 'climbing_trip', 'bucket_list_story', 'climbing_goal', 'climbing_style', 'climbing_inspiration',
-    'life_outside_climbing',
-  ];
-
-  const coreCompleted = coreStoryFields.filter(
+  // Calculate story completion using shared constants
+  const coreCompleted = CORE_STORY_FIELDS.filter(
     (field) => biography[field as keyof Biography] && String(biography[field as keyof Biography]).trim() !== ''
   ).length;
-  const advancedCompleted = advancedStoryFields.filter(
+  const advancedCompleted = ADVANCED_STORY_FIELDS.filter(
     (field) => biography[field as keyof Biography] && String(biography[field as keyof Biography]).trim() !== ''
   ).length;
 
@@ -1169,17 +1188,8 @@ biographiesRoutes.get('/:id/badges', async (c) => {
     );
   }
 
-  // Calculate story count
-  const storyFields = [
-    'climbing_origin', 'climbing_meaning', 'advice_to_self',
-    'memorable_moment', 'biggest_challenge', 'breakthrough_story', 'first_outdoor', 'first_grade', 'frustrating_climb',
-    'fear_management', 'climbing_lesson', 'failure_perspective', 'flow_moment', 'life_balance', 'unexpected_gain',
-    'climbing_mentor', 'climbing_partner', 'funny_moment', 'favorite_spot', 'advice_to_group', 'climbing_space',
-    'injury_recovery', 'memorable_route', 'training_method', 'effective_practice', 'technique_tip', 'gear_choice',
-    'dream_climb', 'climbing_trip', 'bucket_list_story', 'climbing_goal', 'climbing_style', 'climbing_inspiration',
-    'life_outside_climbing',
-  ];
-  const storyCount = storyFields.filter(
+  // Calculate story count using shared constants
+  const storyCount = ALL_STORY_FIELDS.filter(
     (field) => biography[field as keyof Biography] && String(biography[field as keyof Biography]).trim() !== ''
   ).length;
 
@@ -1216,7 +1226,7 @@ biographiesRoutes.get('/:id/badges', async (c) => {
       if (Array.isArray(locations)) {
         locationsCount = locations.length;
         internationalCount = locations.filter(
-          (loc: { country?: string }) => loc.country && loc.country !== '台灣' && loc.country !== 'Taiwan'
+          (loc: { country?: string }) => isInternationalLocation(loc.country)
         ).length;
       }
     } catch {
@@ -1233,6 +1243,11 @@ biographiesRoutes.get('/:id/badges', async (c) => {
 
   const unlockedBadgeIds = new Set(
     (unlockedBadges.results || []).map((b: { badge_id?: string }) => b.badge_id)
+  );
+
+  // Create a Map for O(1) lookup of unlocked_at dates
+  const unlockedBadgesMap = new Map(
+    (unlockedBadges.results || []).map((b: { badge_id?: string; unlocked_at?: string }) => [b.badge_id, b.unlocked_at])
   );
 
   // Calculate progress for each badge
@@ -1281,9 +1296,7 @@ biographiesRoutes.get('/:id/badges', async (c) => {
       target_value: def.threshold,
       progress,
       unlocked,
-      unlocked_at: unlocked
-        ? (unlockedBadges.results || []).find((b: { badge_id?: string }) => b.badge_id === badgeId)?.unlocked_at || null
-        : null,
+      unlocked_at: unlocked ? (unlockedBadgesMap.get(badgeId) || null) : null,
     };
   });
 
@@ -1315,14 +1328,12 @@ biographiesRoutes.get('/community/stats', async (c) => {
     FROM bucket_list_items WHERE is_public = 1`
   ).first<{ total: number; completed: number }>();
 
-  // Total stories (count non-empty story fields)
-  // This is an approximation - counting biographies with at least one story
+  // Total stories (count biographies with at least one story field filled)
+  // Generate WHERE clause dynamically from ALL_STORY_FIELDS
+  const storyFieldConditions = ALL_STORY_FIELDS.map(field => `${field} IS NOT NULL`).join(' OR ');
   const storiesCount = await c.env.DB.prepare(
     `SELECT COUNT(*) as count FROM biographies
-     WHERE is_public = 1 AND (
-       climbing_origin IS NOT NULL OR climbing_meaning IS NOT NULL OR advice_to_self IS NOT NULL
-       OR memorable_moment IS NOT NULL OR biggest_challenge IS NOT NULL
-     )`
+     WHERE is_public = 1 AND (${storyFieldConditions})`
   ).first<{ count: number }>();
 
   // Active users this week
@@ -1366,7 +1377,6 @@ biographiesRoutes.get('/leaderboard/:type', async (c) => {
   const limit = parseInt(c.req.query('limit') || '10', 10);
 
   let query = '';
-  let orderBy = '';
 
   switch (type) {
     case 'goals_completed':

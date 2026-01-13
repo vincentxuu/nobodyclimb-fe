@@ -7,18 +7,13 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import apiClient from '@/lib/api/client'
 import { BIOGRAPHY_ENDPOINTS } from '@/lib/api/endpoints'
 import type {
+  ApiResponse,
   BiographyStats,
   CommunityStats,
   UserBadgesResponse,
   LeaderboardItem,
   LeaderboardType,
 } from '@/lib/types'
-
-interface ApiResponse<T> {
-  success: boolean
-  data: T
-  error?: string
-}
 
 // ═══════════════════════════════════════════════════════════
 // 個人統計

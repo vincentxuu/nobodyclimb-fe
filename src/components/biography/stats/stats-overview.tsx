@@ -2,7 +2,7 @@
 
 import { cn } from '@/lib/utils'
 import { CircularProgress, ProgressBar, StatCard } from './progress-chart'
-import type { BiographyStats } from '@/lib/types'
+import { STORY_FIELD_COUNTS, type BiographyStats } from '@/lib/types'
 import { Eye, Heart, Users, Target, BookOpen, MapPin } from 'lucide-react'
 
 interface StatsOverviewProps {
@@ -11,12 +11,9 @@ interface StatsOverviewProps {
 }
 
 export function StatsOverview({ stats, className }: StatsOverviewProps) {
-  // 計算故事完成度
-  const totalCoreStories = 3 // 核心故事共 3 題
-  const totalAdvancedStories = 31 // 進階故事共 31 題
+  // 計算故事完成度 - 使用共用常數
   const storyCompletionRate =
-    ((stats.stories.core_completed + stats.stories.advanced_completed) /
-      (totalCoreStories + totalAdvancedStories)) *
+    ((stats.stories.core_completed + stats.stories.advanced_completed) / STORY_FIELD_COUNTS.TOTAL) *
     100
 
   // 計算目標完成率
@@ -81,14 +78,14 @@ export function StatsOverview({ stats, className }: StatsOverviewProps) {
             <div className="flex-1 space-y-3">
               <ProgressBar
                 value={stats.stories.core_completed}
-                max={totalCoreStories}
+                max={STORY_FIELD_COUNTS.CORE}
                 label="核心故事"
                 showLabel
                 color="bg-orange-500"
               />
               <ProgressBar
                 value={stats.stories.advanced_completed}
-                max={totalAdvancedStories}
+                max={STORY_FIELD_COUNTS.ADVANCED}
                 label="進階故事"
                 showLabel
                 color="bg-orange-300"
