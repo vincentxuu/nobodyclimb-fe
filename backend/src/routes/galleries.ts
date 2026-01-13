@@ -250,6 +250,7 @@ galleriesRoutes.post('/upload', authMiddleware, async (c) => {
   await c.env.STORAGE.put(filename, arrayBuffer, {
     httpMetadata: {
       contentType: file.type,
+      cacheControl: 'public, max-age=31536000, immutable',
     },
   });
 

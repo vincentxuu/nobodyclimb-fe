@@ -62,6 +62,7 @@ const ext = extMap[file.type as keyof typeof extMap];
   await c.env.STORAGE.put(filename, arrayBuffer, {
     httpMetadata: {
       contentType: file.type,
+      cacheControl: 'public, max-age=31536000, immutable',
     },
   });
 

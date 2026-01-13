@@ -42,9 +42,13 @@ const GalleryGrid: React.FC<GalleryGridProps> = ({ photos, onPhotoClick }) => {
             src={photo.src}
             alt={photo.alt}
             fill
-            sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+            sizes="(max-width: 768px) 50vw, (max-width: 1200px) 33vw, 25vw"
             className="object-cover transition-transform duration-300 group-hover:scale-110"
-            priority={index < 12}
+            loading={index < 6 ? 'eager' : 'lazy'}
+            priority={index < 3}
+            quality={75}
+            placeholder="blur"
+            blurDataURL="data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNDAwIiBoZWlnaHQ9IjYwMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iNDAwIiBoZWlnaHQ9IjYwMCIgZmlsbD0iI2UwZTBlMCIvPjwvc3ZnPg=="
           />
           {/* Hover effect with location and author info */}
           <div className="absolute inset-0 flex flex-col justify-between bg-black bg-opacity-0 p-2 opacity-0 transition-opacity duration-300 group-hover:bg-opacity-40 group-hover:opacity-100 md:p-3">

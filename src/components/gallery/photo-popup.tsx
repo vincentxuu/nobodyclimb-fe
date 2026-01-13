@@ -71,7 +71,8 @@ const PhotoPopup: React.FC<PhotoPopupProps> = ({ photo, onClose, onNext, onPrev 
                 maxWidth: '100%',
               }}
               sizes="(max-width: 768px) 90vw, 60vw"
-              priority
+              quality={85}
+              loading="eager"
             />
           </div>
 
