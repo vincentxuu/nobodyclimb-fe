@@ -3,6 +3,7 @@
 import React, { useState, useEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { X, MapPin, Loader2 } from 'lucide-react'
+import Image from 'next/image'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
@@ -51,10 +52,10 @@ const PhotoEditDialog: React.FC<PhotoEditDialogProps> = ({
 
     try {
       const response = await galleryService.updatePhoto(photo.id, {
-        caption: caption || undefined,
-        location_country: locationCountry || undefined,
-        location_city: locationCity || undefined,
-        location_spot: locationSpot || undefined,
+        caption,
+        location_country: locationCountry,
+        location_city: locationCity,
+        location_spot: locationSpot,
       })
 
       if (response.success && response.data) {
@@ -112,11 +113,12 @@ const PhotoEditDialog: React.FC<PhotoEditDialogProps> = ({
             {/* Photo Preview */}
             <div className="mb-4">
               <div className="relative aspect-video w-full overflow-hidden rounded-lg bg-neutral-100">
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img
+                <Image
                   src={photo.image_url}
                   alt={photo.caption || '照片'}
-                  className="h-full w-full object-contain"
+                  fill
+                  className="object-contain"
+                  sizes="(max-width: 768px) 100vw, 50vw"
                 />
               </div>
             </div>

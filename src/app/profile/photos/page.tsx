@@ -149,11 +149,16 @@ const UploadButton = ({ onClick }: UploadButtonProps) => (
   </Button>
 )
 
+const PHOTOS_PER_PAGE = 20
+
 export default function PhotosPage() {
   const { toast } = useToast()
   const [photos, setPhotos] = useState<GalleryPhoto[]>([])
   const [isLoading, setIsLoading] = useState(true)
+  const [isLoadingMore, setIsLoadingMore] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const [currentPage, setCurrentPage] = useState(1)
+  const [totalPages, setTotalPages] = useState(1)
 
   // 刪除對話框狀態
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false)
@@ -168,25 +173,43 @@ export default function PhotosPage() {
   const [uploadDialogOpen, setUploadDialogOpen] = useState(false)
 
   // 獲取用戶照片列表
-  const fetchPhotos = useCallback(async () => {
-    setIsLoading(true)
+  const fetchPhotos = useCallback(async (page = 1, append = false) => {
+    if (page === 1) {
+      setIsLoading(true)
+    } else {
+      setIsLoadingMore(true)
+    }
     setError(null)
     try {
-      const response = await galleryService.getMyPhotos(1, 100)
+      const response = await galleryService.getMyPhotos(page, PHOTOS_PER_PAGE)
       if (response.success && response.data) {
-        setPhotos(response.data)
+        if (append) {
+          setPhotos((prev) => [...prev, ...response.data])
+        } else {
+          setPhotos(response.data)
+        }
+        setCurrentPage(response.pagination.page)
+        setTotalPages(response.pagination.total_pages)
       }
     } catch (err) {
       console.error('Failed to fetch photos:', err)
       setError('無法載入照片列表，請稍後再試')
     } finally {
       setIsLoading(false)
+      setIsLoadingMore(false)
     }
   }, [])
 
   useEffect(() => {
     fetchPhotos()
   }, [fetchPhotos])
+
+  // 載入更多照片
+  const handleLoadMore = () => {
+    if (currentPage < totalPages && !isLoadingMore) {
+      fetchPhotos(currentPage + 1, true)
+    }
+  }
 
   // 處理編輯
   const handleEditClick = (photo: GalleryPhoto) => {
@@ -269,19 +292,41 @@ export default function PhotosPage() {
         {isLoading ? (
           <LoadingState />
         ) : error ? (
-          <ErrorState message={error} onRetry={fetchPhotos} />
+          <ErrorState message={error} onRetry={() => fetchPhotos()} />
         ) : photos.length > 0 ? (
-          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-            {photos.map((photo) => (
-              <PhotoCard
-                key={photo.id}
-                photo={photo}
-                onEdit={handleEditClick}
-                onDelete={handleDeleteClick}
-                isDeleting={isDeleting && photoToDelete === photo.id}
-              />
-            ))}
-          </div>
+          <>
+            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+              {photos.map((photo) => (
+                <PhotoCard
+                  key={photo.id}
+                  photo={photo}
+                  onEdit={handleEditClick}
+                  onDelete={handleDeleteClick}
+                  isDeleting={isDeleting && photoToDelete === photo.id}
+                />
+              ))}
+            </div>
+            {/* 載入更多按鈕 */}
+            {currentPage < totalPages && (
+              <div className="mt-8 flex justify-center">
+                <Button
+                  variant="outline"
+                  onClick={handleLoadMore}
+                  disabled={isLoadingMore}
+                  className="border-[#B6B3B3] text-[#3F3D3D] hover:bg-[#F5F5F5]"
+                >
+                  {isLoadingMore ? (
+                    <>
+                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                      載入中...
+                    </>
+                  ) : (
+                    '載入更多'
+                  )}
+                </Button>
+              </div>
+            )}
+          </>
         ) : (
           <EmptyState onUpload={handleUploadClick} />
         )}
