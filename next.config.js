@@ -25,6 +25,10 @@ const nextConfig = {
       },
       {
         protocol: 'https',
+        hostname: 'storage.nobodyclimb.cc',
+      },
+      {
+        protocol: 'https',
         hostname: 'i.ytimg.com',
       },
       {
@@ -38,8 +42,10 @@ const nextConfig = {
     minimumCacheTTL: 86400,
     unoptimized: false, // 啟用圖片優化
   },
-  
-  // 環境變量
+
+  // 環境變量會從 wrangler.json 或 .env.local 讀取
+  // 生產環境: https://api.nobodyclimb.cc/api/v1
+  // 開發環境: http://localhost:8000/api
   env: {
     NEXT_PUBLIC_API_URL: process.env.NEXT_PUBLIC_API_URL || 'https://api.nobodyclimb.cc/api/v1',
   },

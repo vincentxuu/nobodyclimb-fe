@@ -2,14 +2,15 @@
  * 網站相關常數
  */
 export const SITE_NAME = 'NobodyClimb'
-export const SITE_URL = 'https://nobodyclimb.com'
+export const SITE_URL = 'https://nobodyclimb.cc'
 export const SITE_DESCRIPTION =
   '專注於攀岩社群的網站，提供攀岩愛好者分享經驗、尋找攀岩地點及交流的平台'
 
 /**
  * API 相關常數
  */
-export const API_URL = process.env.NEXT_PUBLIC_API_URL || 'https://api.nobodyclimb.com'
+export const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'https://api.nobodyclimb.cc/api/v1'
+export const API_URL = API_BASE_URL // 保留向後兼容
 export const API_TIMEOUT = 10000 // 10 seconds
 
 /**
