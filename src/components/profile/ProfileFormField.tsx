@@ -19,7 +19,7 @@ export default function ProfileFormField({
   return (
     <div className="w-full space-y-2">
       <div>
-        <Label className={`font-medium text-[#3F3D3D] ${isMobile ? 'text-sm' : 'text-base'}`}>
+        <Label className={`font-medium text-strong ${isMobile ? 'text-sm' : 'text-base'}`}>
           {label}
         </Label>
         {hint && <p className="mt-1 text-xs text-gray-500">{hint}</p>}
