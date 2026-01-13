@@ -7,7 +7,7 @@
  *   1. Login to get an access token:
  *      curl -X POST https://api.nobodyclimb.cc/api/v1/auth/login \
  *        -H "Content-Type: application/json" \
- *        -d '{"email":"vincentxu@gmail.com","password":"YOUR_PASSWORD"}'
+ *        -d '{"email":"user@example.com","password":"YOUR_PASSWORD"}'
  *
  *   2. Run this script with the token:
  *      ACCESS_TOKEN=your_token node scripts/upload-gallery-images-api.js
@@ -20,7 +20,10 @@ const http = require('http');
 
 const API_BASE = process.env.API_BASE || 'https://api.nobodyclimb.cc/api/v1';
 const ACCESS_TOKEN = process.env.ACCESS_TOKEN;
-const IMAGES_DIR = path.join(__dirname, '..', 'public', 'images', 'gallery');
+
+// Use script directory for portable paths
+const SCRIPT_DIR = __dirname;
+const IMAGES_DIR = path.join(SCRIPT_DIR, '..', 'public', 'images', 'gallery');
 
 if (!ACCESS_TOKEN) {
     console.error('Error: ACCESS_TOKEN environment variable is required');
@@ -30,7 +33,7 @@ if (!ACCESS_TOKEN) {
     console.error('To get a token, login via API:');
     console.error('  curl -X POST https://api.nobodyclimb.cc/api/v1/auth/login \\');
     console.error('    -H "Content-Type: application/json" \\');
-    console.error('    -d \'{"email":"vincentxu@gmail.com","password":"YOUR_PASSWORD"}\'');
+    console.error('    -d \'{"email":"user@example.com","password":"YOUR_PASSWORD"}\'');
     process.exit(1);
 }
 
@@ -51,8 +54,8 @@ async function makeRequest(url, options = {}) {
             res.on('end', () => {
                 try {
                     resolve({ status: res.statusCode, data: JSON.parse(data) });
-                } catch {
-                    resolve({ status: res.statusCode, data });
+                } catch (e) {
+                    reject(new Error(`Failed to parse JSON response (status ${res.statusCode}): ${data.substring(0, 200)}`));
                 }
             });
         });
@@ -69,17 +72,18 @@ async function makeRequest(url, options = {}) {
 
 async function uploadImage(filePath) {
     const fileName = path.basename(filePath);
-    const fileContent = fs.readFileSync(filePath);
+    const fileStream = fs.createReadStream(filePath);
+    const fileStats = fs.statSync(filePath);
 
     const boundary = '----FormBoundary' + Math.random().toString(36).substring(2);
 
-    const formData = Buffer.concat([
-        Buffer.from(`--${boundary}\r\n`),
-        Buffer.from(`Content-Disposition: form-data; name="image"; filename="${fileName}"\r\n`),
-        Buffer.from(`Content-Type: image/jpeg\r\n\r\n`),
-        fileContent,
-        Buffer.from(`\r\n--${boundary}--\r\n`)
-    ]);
+    // Build multipart form data
+    const header = Buffer.from(
+        `--${boundary}\r\n` +
+        `Content-Disposition: form-data; name="image"; filename="${fileName}"\r\n` +
+        `Content-Type: image/jpeg\r\n\r\n`
+    );
+    const footer = Buffer.from(`\r\n--${boundary}--\r\n`);
 
     return new Promise((resolve, reject) => {
         const urlObj = new URL(`${API_BASE}/galleries/upload`);
@@ -90,7 +94,7 @@ async function uploadImage(filePath) {
             headers: {
                 'Authorization': `Bearer ${ACCESS_TOKEN}`,
                 'Content-Type': `multipart/form-data; boundary=${boundary}`,
-                'Content-Length': formData.length
+                'Content-Length': header.length + fileStats.size + footer.length
             }
         }, (res) => {
             let data = '';
@@ -98,15 +102,24 @@ async function uploadImage(filePath) {
             res.on('end', () => {
                 try {
                     resolve({ status: res.statusCode, data: JSON.parse(data) });
-                } catch {
-                    resolve({ status: res.statusCode, data });
+                } catch (e) {
+                    reject(new Error(`Failed to parse JSON response (status ${res.statusCode}): ${data.substring(0, 200)}`));
                 }
             });
         });
 
         req.on('error', reject);
-        req.write(formData);
-        req.end();
+
+        // Write header
+        req.write(header);
+
+        // Stream file content
+        fileStream.on('data', chunk => req.write(chunk));
+        fileStream.on('end', () => {
+            req.write(footer);
+            req.end();
+        });
+        fileStream.on('error', reject);
     });
 }
 
@@ -158,7 +171,12 @@ async function main() {
             // Step 2: Create photo record
             const photoResult = await createPhotoRecord(imageUrl, file);
 
-            if (photoResult.status !== 201 || !photoResult.data.success) {
+            if (photoResult.status !== 201 && photoResult.status !== 200) {
+                console.error(`  Failed to create record: ${JSON.stringify(photoResult.data)}`);
+                continue;
+            }
+
+            if (!photoResult.data.success) {
                 console.error(`  Failed to create record: ${JSON.stringify(photoResult.data)}`);
                 continue;
             }

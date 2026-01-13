@@ -1,32 +1,38 @@
 #!/bin/bash
 
 # Upload gallery images to R2 and create database records
-# Usage: CLOUDFLARE_API_TOKEN=your_token ./scripts/upload-gallery-images.sh [preview|production]
+# Usage: CLOUDFLARE_API_TOKEN=your_token USER_ID=user_id ./scripts/upload-gallery-images.sh [preview|production]
 #
-# Required environment variable:
+# Required environment variables:
 #   CLOUDFLARE_API_TOKEN - Cloudflare API token with R2 and D1 permissions
+#   USER_ID - The user ID to associate with the uploaded images
 #
 # Example:
-#   CLOUDFLARE_API_TOKEN=xxxx ./scripts/upload-gallery-images.sh production
+#   CLOUDFLARE_API_TOKEN=xxxx USER_ID=abc123 ./scripts/upload-gallery-images.sh production
 
 set -e
 
-# Check for required environment variable
+# Get script directory for portable paths
+SCRIPT_DIR=$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" &> /dev/null && pwd)
+BACKEND_DIR="${SCRIPT_DIR}/../backend"
+IMAGES_DIR="${SCRIPT_DIR}/../public/images/gallery"
+
+# Check for required environment variables
 if [ -z "$CLOUDFLARE_API_TOKEN" ]; then
     echo "Error: CLOUDFLARE_API_TOKEN environment variable is required"
     echo ""
-    echo "Usage: CLOUDFLARE_API_TOKEN=your_token ./scripts/upload-gallery-images.sh [preview|production]"
+    echo "Usage: CLOUDFLARE_API_TOKEN=your_token USER_ID=user_id ./scripts/upload-gallery-images.sh [preview|production]"
     echo ""
     echo "Get a token from: https://dash.cloudflare.com/profile/api-tokens"
     echo "Required permissions: Account > D1 > Edit, Account > R2 > Edit"
     exit 1
 fi
 
+USER_ID=${USER_ID:?Error: USER_ID environment variable is required.}
+
 ENV=${1:-production}
-USER_ID="996bf611399e5ee8594a478909dd4db9"
 GALLERY_TITLE="我的照片"
 GALLERY_DESC="個人攝影集"
-BACKEND_DIR="/home/user/nobodyclimb-fe/backend"
 
 if [ "$ENV" = "production" ]; then
     R2_BUCKET="nobodyclimb-storage"
@@ -42,11 +48,12 @@ echo "Uploading gallery images to $ENV environment..."
 echo "R2 Bucket: $R2_BUCKET"
 echo "Database: $DB_NAME"
 echo "User ID: $USER_ID"
+echo "Images Directory: $IMAGES_DIR"
 echo ""
 
-# Generate unique IDs
+# Generate unique IDs using openssl for portability
 generate_id() {
-    cat /dev/urandom | tr -dc 'a-f0-9' | fold -w 32 | head -n 1
+    openssl rand -hex 16
 }
 
 # Run wrangler from backend directory
@@ -54,20 +61,26 @@ run_wrangler() {
     (cd "$BACKEND_DIR" && pnpm exec wrangler "$@")
 }
 
-# First, check if user has a gallery, if not create one
-GALLERY_ID=$(generate_id)
-GALLERY_SLUG="my-photos-${GALLERY_ID:0:8}"
+# Check if user already has a gallery with this title
+echo "Checking for existing gallery..."
+EXISTING_GALLERY=$(run_wrangler d1 execute $DB_NAME --env $ENV --remote --command "SELECT id FROM galleries WHERE author_id = '$USER_ID' AND title = '$GALLERY_TITLE' LIMIT 1;" --json 2>/dev/null | grep -o '"id":"[^"]*"' | head -1 | cut -d'"' -f4 || echo "")
 
-echo "Creating gallery with ID: $GALLERY_ID"
+if [ -n "$EXISTING_GALLERY" ]; then
+    GALLERY_ID="$EXISTING_GALLERY"
+    echo "Found existing gallery with ID: $GALLERY_ID"
+else
+    GALLERY_ID=$(generate_id)
+    GALLERY_SLUG="my-photos-${GALLERY_ID:0:8}"
+    echo "Creating new gallery with ID: $GALLERY_ID"
 
-# Create the gallery in D1 (using --remote to access remote database)
-run_wrangler d1 execute $DB_NAME --env $ENV --remote --command "INSERT OR IGNORE INTO galleries (id, author_id, title, slug, description) VALUES ('$GALLERY_ID', '$USER_ID', '$GALLERY_TITLE', '$GALLERY_SLUG', '$GALLERY_DESC');"
+    # Create the gallery in D1 (using --remote to access remote database)
+    run_wrangler d1 execute $DB_NAME --env $ENV --remote --command "INSERT INTO galleries (id, author_id, title, slug, description) VALUES ('$GALLERY_ID', '$USER_ID', '$GALLERY_TITLE', '$GALLERY_SLUG', '$GALLERY_DESC');"
+    echo "Gallery created successfully!"
+fi
 
-echo "Gallery created successfully!"
 echo ""
 
 # Upload each image
-IMAGES_DIR="/home/user/nobodyclimb-fe/public/images/gallery"
 SORT_ORDER=0
 
 for img in "$IMAGES_DIR"/gallery-*.jpg; do
