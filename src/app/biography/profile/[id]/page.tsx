@@ -9,6 +9,7 @@ import { Button } from '@/components/ui/button'
 import BackToTop from '@/components/ui/back-to-top'
 import { RecommendedProfiles } from '@/components/biography/recommended-profiles'
 import { Breadcrumb } from '@/components/ui/breadcrumb'
+import { BiographyBucketList } from '@/components/bucket-list'
 import { biographyService } from '@/lib/api/services'
 import { Biography, BiographyAdjacent } from '@/lib/types'
 
@@ -195,7 +196,12 @@ export default function ProfilePage({ params }: ProfilePageProps) {
                   className="object-cover"
                 />
               </div>
-              <p className="text-base text-[#1B1A1A]">{person.bucket_list_story || '尚未填寫'}</p>
+              {/* 人生清單故事文字（舊有內容） */}
+              {person.bucket_list_story && (
+                <p className="mb-6 text-base text-[#1B1A1A]">{person.bucket_list_story}</p>
+              )}
+              {/* 結構化人生清單 */}
+              <BiographyBucketList biographyId={person.id} />
             </div>
 
             <div>

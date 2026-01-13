@@ -2,31 +2,31 @@
 
 import React, { useCallback } from 'react'
 import { useRouter, usePathname } from 'next/navigation'
-import { UserCircle, FileText, Bookmark, Settings, Image as ImageIcon } from 'lucide-react'
+import { UserCircle, FileText, Bookmark, Settings, Target } from 'lucide-react'
 
 const menuItems = [
   {
-    name: '我的人物誌',
+    name: '人物誌',
     href: '/profile',
     icon: UserCircle,
   },
   {
-    name: '我的照片',
-    href: '/profile/photos',
-    icon: ImageIcon,
+    name: '清單',
+    href: '/profile/bucket-list',
+    icon: Target,
   },
   {
-    name: '我的文章',
+    name: '文章',
     href: '/profile/articles',
     icon: FileText,
   },
   {
-    name: '收藏文章',
+    name: '收藏',
     href: '/profile/bookmarks',
     icon: Bookmark,
   },
   {
-    name: '帳號設定',
+    name: '設定',
     href: '/profile/settings',
     icon: Settings,
   },
