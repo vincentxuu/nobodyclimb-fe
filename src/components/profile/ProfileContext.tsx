@@ -1,9 +1,16 @@
 'use client'
 
 import React, { createContext, useContext, useState, ReactNode, useEffect } from 'react'
-import { ProfileData, ProfileImage, ImageLayout, initialProfileData } from './types'
+import {
+  ProfileData,
+  ProfileImage,
+  ImageLayout,
+  AdvancedStories,
+  initialProfileData,
+  initialAdvancedStories,
+} from './types'
 import { useAuthStore } from '@/store/authStore'
-import { User, Biography } from '@/lib/types'
+import { User, Biography, ClimbingLocation } from '@/lib/types'
 import { biographyService } from '@/lib/api/services'
 
 interface ProfileContextType {
@@ -41,6 +48,21 @@ function parseGalleryImages(galleryImagesJson: string | null | undefined): {
 }
 
 /**
+ * 解析 climbing_locations JSON 字串
+ */
+function parseClimbingLocations(locationsJson: string | null | undefined): ClimbingLocation[] {
+  if (!locationsJson) {
+    return []
+  }
+  try {
+    const parsed = JSON.parse(locationsJson)
+    return Array.isArray(parsed) ? parsed : []
+  } catch {
+    return []
+  }
+}
+
+/**
  * 將 Biography 資料映射到 ProfileData 格式
  */
 function mapBiographyToProfileData(biography: Biography | null): Partial<ProfileData> {
@@ -49,8 +71,51 @@ function mapBiographyToProfileData(biography: Biography | null): Partial<Profile
   }
 
   const { images, layout } = parseGalleryImages(biography.gallery_images)
+  const climbingLocations = parseClimbingLocations(biography.climbing_locations)
+
+  // 映射進階故事
+  const advancedStories: AdvancedStories = {
+    // A. 成長與突破
+    memorable_moment: biography.memorable_moment || '',
+    biggest_challenge: biography.biggest_challenge || '',
+    breakthrough_story: biography.breakthrough_story || '',
+    first_outdoor: biography.first_outdoor || '',
+    first_grade: biography.first_grade || '',
+    frustrating_climb: biography.frustrating_climb || '',
+    // B. 心理與哲學
+    fear_management: biography.fear_management || '',
+    climbing_lesson: biography.climbing_lesson || '',
+    failure_perspective: biography.failure_perspective || '',
+    flow_moment: biography.flow_moment || '',
+    life_balance: biography.life_balance || '',
+    unexpected_gain: biography.unexpected_gain || '',
+    // C. 社群與連結
+    climbing_mentor: biography.climbing_mentor || '',
+    climbing_partner: biography.climbing_partner || '',
+    funny_moment: biography.funny_moment || '',
+    favorite_spot: biography.favorite_spot || '',
+    advice_to_group: biography.advice_to_group || '',
+    climbing_space: biography.climbing_space || '',
+    // D. 實用分享
+    injury_recovery: biography.injury_recovery || '',
+    memorable_route: biography.memorable_route || '',
+    training_method: biography.training_method || '',
+    effective_practice: biography.effective_practice || '',
+    technique_tip: biography.technique_tip || '',
+    gear_choice: biography.gear_choice || '',
+    // E. 夢想與探索
+    dream_climb: biography.dream_climb || '',
+    climbing_trip: biography.climbing_trip || '',
+    bucket_list_story: biography.bucket_list_story || '',
+    climbing_goal: biography.climbing_goal || '',
+    climbing_style: biography.climbing_style || '',
+    climbing_inspiration: biography.climbing_inspiration || '',
+    // F. 生活整合
+    life_outside_climbing: biography.life_outside_climbing || '',
+  }
 
   return {
+    biographyId: biography.id || null,
     name: biography.name || '',
     startYear: biography.climbing_start_year || '',
     frequentGyms: biography.frequent_locations || '',
@@ -59,6 +124,8 @@ function mapBiographyToProfileData(biography: Biography | null): Partial<Profile
     climbingMeaning: biography.climbing_meaning || '',
     climbingBucketList: biography.bucket_list_story || '',
     adviceForBeginners: biography.advice_to_self || '',
+    advancedStories,
+    climbingLocations,
     isPublic: Number(biography.is_public) === 1,
     images,
     imageLayout: layout,
@@ -93,6 +160,7 @@ function mapUserToProfileData(user: User | null): ProfileData {
   }
 
   return {
+    biographyId: null,
     name: user.displayName || user.username || '',
     startYear: user.climbingStartYear || '',
     frequentGyms: user.frequentGym || '',
@@ -101,6 +169,8 @@ function mapUserToProfileData(user: User | null): ProfileData {
     climbingMeaning: bioData.climbingMeaning || '',
     climbingBucketList: bioData.climbingBucketList || '',
     adviceForBeginners: bioData.messageToBeginners || '',
+    advancedStories: initialAdvancedStories,
+    climbingLocations: [],
     isPublic: bioData.isPublic ?? true,
     images: [],
     imageLayout: 'double',

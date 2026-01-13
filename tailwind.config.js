@@ -31,6 +31,9 @@ module.exports = {
         'page-content-bg': '#f5f5f5',
         'text-main': '#1B1A1A',
         'text-subtle': '#6D6C6C',
+        // 表單相關顏色
+        strong: '#3F3D3D', // 用於標籤文字: text-strong
+        subtle: '#B6B3B3', // 用於邊框: border-subtle
         primary: {
           DEFAULT: 'hsl(var(--primary))',
           foreground: 'hsl(var(--primary-foreground))',

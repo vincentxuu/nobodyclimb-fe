@@ -91,15 +91,15 @@ export default function MobileNav({ isDesktop }: MobileNavProps) {
                     </div>
                   </Link>
 
-                  {/* 主要功能區 */}
+                  {/* 主要功能區 - 與桌面版用戶選單一致 */}
                   <div className="border-t border-[#EBEAEA] py-2">
                     <Link
-                      href="/blog/create"
+                      href="/profile/bucket-list"
                       className="block px-4 py-3 hover:bg-gray-50"
                       onClick={closeNavbar}
                     >
                       <span className="font-['Noto_Sans_CJK_TC'] text-sm font-medium text-[#3F3D3D]">
-                        發表文章
+                        人生清單
                       </span>
                     </Link>
                     <Link
@@ -123,6 +123,7 @@ export default function MobileNav({ isDesktop }: MobileNavProps) {
                     <Link
                       href="/profile/bookmarks"
                       className="block px-4 py-3 hover:bg-gray-50"
+                      onClick={closeNavbar}
                     >
                       <span className="font-['Noto_Sans_CJK_TC'] text-sm font-medium text-[#3F3D3D]">
                         我的收藏
