@@ -6,6 +6,96 @@ import { authMiddleware, optionalAuthMiddleware } from '../middleware/auth';
 export const bucketListRoutes = new Hono<{ Bindings: Env }>();
 
 // ═══════════════════════════════════════════════════════════
+// 探索功能 (MUST be defined before /:biographyId to avoid route conflicts)
+// ═══════════════════════════════════════════════════════════
+
+// GET /bucket-list/explore/trending - Get trending bucket list items
+bucketListRoutes.get('/explore/trending', async (c) => {
+  const limit = parseInt(c.req.query('limit') || '10', 10);
+
+  const items = await c.env.DB.prepare(
+    `SELECT bli.*, b.name as author_name, b.avatar_url as author_avatar, b.slug as author_slug
+     FROM bucket_list_items bli
+     JOIN biographies b ON bli.biography_id = b.id
+     WHERE bli.is_public = 1 AND b.is_public = 1
+     ORDER BY (bli.likes_count + bli.inspired_count * 2) DESC, bli.created_at DESC
+     LIMIT ?`
+  )
+    .bind(limit)
+    .all();
+
+  return c.json({
+    success: true,
+    data: items.results,
+  });
+});
+
+// GET /bucket-list/explore/recent-completed - Get recently completed items
+bucketListRoutes.get('/explore/recent-completed', async (c) => {
+  const limit = parseInt(c.req.query('limit') || '10', 10);
+
+  const items = await c.env.DB.prepare(
+    `SELECT bli.*, b.name as author_name, b.avatar_url as author_avatar, b.slug as author_slug
+     FROM bucket_list_items bli
+     JOIN biographies b ON bli.biography_id = b.id
+     WHERE bli.status = 'completed' AND bli.is_public = 1 AND b.is_public = 1
+     ORDER BY bli.completed_at DESC
+     LIMIT ?`
+  )
+    .bind(limit)
+    .all();
+
+  return c.json({
+    success: true,
+    data: items.results,
+  });
+});
+
+// GET /bucket-list/explore/by-category/:category - Get items by category
+bucketListRoutes.get('/explore/by-category/:category', async (c) => {
+  const category = c.req.param('category');
+  const limit = parseInt(c.req.query('limit') || '20', 10);
+
+  const items = await c.env.DB.prepare(
+    `SELECT bli.*, b.name as author_name, b.avatar_url as author_avatar, b.slug as author_slug
+     FROM bucket_list_items bli
+     JOIN biographies b ON bli.biography_id = b.id
+     WHERE bli.category = ? AND bli.is_public = 1 AND b.is_public = 1
+     ORDER BY bli.likes_count DESC, bli.created_at DESC
+     LIMIT ?`
+  )
+    .bind(category, limit)
+    .all();
+
+  return c.json({
+    success: true,
+    data: items.results,
+  });
+});
+
+// GET /bucket-list/explore/by-location/:location - Get items by location
+bucketListRoutes.get('/explore/by-location/:location', async (c) => {
+  const location = c.req.param('location');
+  const limit = parseInt(c.req.query('limit') || '20', 10);
+
+  const items = await c.env.DB.prepare(
+    `SELECT bli.*, b.name as author_name, b.avatar_url as author_avatar, b.slug as author_slug
+     FROM bucket_list_items bli
+     JOIN biographies b ON bli.biography_id = b.id
+     WHERE bli.target_location LIKE ? AND bli.is_public = 1 AND b.is_public = 1
+     ORDER BY bli.likes_count DESC, bli.created_at DESC
+     LIMIT ?`
+  )
+    .bind(`%${location}%`, limit)
+    .all();
+
+  return c.json({
+    success: true,
+    data: items.results,
+  });
+});
+
+// ═══════════════════════════════════════════════════════════
 // 人生清單項目 CRUD
 // ═══════════════════════════════════════════════════════════
 
@@ -411,96 +501,6 @@ bucketListRoutes.put('/:id/milestone', authMiddleware, async (c) => {
 });
 
 // ═══════════════════════════════════════════════════════════
-// 探索功能
-// ═══════════════════════════════════════════════════════════
-
-// GET /bucket-list/explore/trending - Get trending bucket list items
-bucketListRoutes.get('/explore/trending', async (c) => {
-  const limit = parseInt(c.req.query('limit') || '10', 10);
-
-  const items = await c.env.DB.prepare(
-    `SELECT bli.*, b.name as author_name, b.avatar_url as author_avatar, b.slug as author_slug
-     FROM bucket_list_items bli
-     JOIN biographies b ON bli.biography_id = b.id
-     WHERE bli.is_public = 1 AND b.is_public = 1
-     ORDER BY (bli.likes_count + bli.inspired_count * 2) DESC, bli.created_at DESC
-     LIMIT ?`
-  )
-    .bind(limit)
-    .all();
-
-  return c.json({
-    success: true,
-    data: items.results,
-  });
-});
-
-// GET /bucket-list/explore/recent-completed - Get recently completed items
-bucketListRoutes.get('/explore/recent-completed', async (c) => {
-  const limit = parseInt(c.req.query('limit') || '10', 10);
-
-  const items = await c.env.DB.prepare(
-    `SELECT bli.*, b.name as author_name, b.avatar_url as author_avatar, b.slug as author_slug
-     FROM bucket_list_items bli
-     JOIN biographies b ON bli.biography_id = b.id
-     WHERE bli.status = 'completed' AND bli.is_public = 1 AND b.is_public = 1
-     ORDER BY bli.completed_at DESC
-     LIMIT ?`
-  )
-    .bind(limit)
-    .all();
-
-  return c.json({
-    success: true,
-    data: items.results,
-  });
-});
-
-// GET /bucket-list/explore/by-category/:category - Get items by category
-bucketListRoutes.get('/explore/by-category/:category', async (c) => {
-  const category = c.req.param('category');
-  const limit = parseInt(c.req.query('limit') || '20', 10);
-
-  const items = await c.env.DB.prepare(
-    `SELECT bli.*, b.name as author_name, b.avatar_url as author_avatar, b.slug as author_slug
-     FROM bucket_list_items bli
-     JOIN biographies b ON bli.biography_id = b.id
-     WHERE bli.category = ? AND bli.is_public = 1 AND b.is_public = 1
-     ORDER BY bli.likes_count DESC, bli.created_at DESC
-     LIMIT ?`
-  )
-    .bind(category, limit)
-    .all();
-
-  return c.json({
-    success: true,
-    data: items.results,
-  });
-});
-
-// GET /bucket-list/explore/by-location/:location - Get items by location
-bucketListRoutes.get('/explore/by-location/:location', async (c) => {
-  const location = c.req.param('location');
-  const limit = parseInt(c.req.query('limit') || '20', 10);
-
-  const items = await c.env.DB.prepare(
-    `SELECT bli.*, b.name as author_name, b.avatar_url as author_avatar, b.slug as author_slug
-     FROM bucket_list_items bli
-     JOIN biographies b ON bli.biography_id = b.id
-     WHERE bli.target_location LIKE ? AND bli.is_public = 1 AND b.is_public = 1
-     ORDER BY bli.likes_count DESC, bli.created_at DESC
-     LIMIT ?`
-  )
-    .bind(`%${location}%`, limit)
-    .all();
-
-  return c.json({
-    success: true,
-    data: items.results,
-  });
-});
-
-// ═══════════════════════════════════════════════════════════
 // 互動功能
 // ═══════════════════════════════════════════════════════════
 
@@ -596,7 +596,7 @@ bucketListRoutes.delete('/:id/like', authMiddleware, async (c) => {
 
   // Update likes count
   await c.env.DB.prepare(
-    'UPDATE bucket_list_items SET likes_count = MAX(0, likes_count - 1) WHERE id = ?'
+    'UPDATE bucket_list_items SET likes_count = CASE WHEN likes_count > 0 THEN likes_count - 1 ELSE 0 END WHERE id = ?'
   )
     .bind(id)
     .run();
@@ -725,7 +725,7 @@ bucketListRoutes.delete('/comments/:id', authMiddleware, async (c) => {
 
   // Update comments count
   await c.env.DB.prepare(
-    'UPDATE bucket_list_items SET comments_count = MAX(0, comments_count - 1) WHERE id = ?'
+    'UPDATE bucket_list_items SET comments_count = CASE WHEN comments_count > 0 THEN comments_count - 1 ELSE 0 END WHERE id = ?'
   )
     .bind(comment.bucket_list_item_id)
     .run();
