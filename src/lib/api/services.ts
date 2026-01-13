@@ -736,6 +736,64 @@ export const biographyService = {
     )
     return response.data
   },
+
+  /**
+   * 追蹤人物誌
+   */
+  followBiography: async (id: string) => {
+    const response = await apiClient.post<ApiResponse<{ message: string }>>(
+      `/biographies/${id}/follow`
+    )
+    return response.data
+  },
+
+  /**
+   * 取消追蹤人物誌
+   */
+  unfollowBiography: async (id: string) => {
+    const response = await apiClient.delete<ApiResponse<{ message: string }>>(
+      `/biographies/${id}/follow`
+    )
+    return response.data
+  },
+
+  /**
+   * 獲取追蹤者列表
+   */
+  getFollowers: async (id: string, limit = 20, offset = 0) => {
+    const response = await apiClient.get<
+      ApiResponse<{
+        followers: Array<{
+          id: string
+          follower_id: string
+          follower_name: string
+          follower_avatar: string | null
+          followed_at: string
+        }>
+        total: number
+      }>
+    >(`/biographies/${id}/followers`, { params: { limit, offset } })
+    return response.data
+  },
+
+  /**
+   * 獲取追蹤中列表
+   */
+  getFollowing: async (id: string, limit = 20, offset = 0) => {
+    const response = await apiClient.get<
+      ApiResponse<{
+        following: Array<{
+          id: string
+          following_id: string
+          following_name: string
+          following_avatar: string | null
+          followed_at: string
+        }>
+        total: number
+      }>
+    >(`/biographies/${id}/following`, { params: { limit, offset } })
+    return response.data
+  },
 }
 
 /**
