@@ -55,13 +55,13 @@ export default function ClimbingInfoSection({
         )}
       </ProfileFormField>
 
-      <ProfileFormField label="平常出沒岩場" isMobile={isMobile}>
+      <ProfileFormField label="平常出沒的地方" isMobile={isMobile}>
         {isEditing ? (
           <Input
             value={frequentGyms}
             onChange={(e) => onChange('frequentGyms', e.target.value)}
             className="border-[#B6B3B3] text-sm md:text-base"
-            placeholder="ex. 小岩攀岩館"
+            placeholder="ex. 小岩攀岩館、龍洞"
           />
         ) : (
           <ProfileTextDisplay text={frequentGyms} isMobile={isMobile} />
