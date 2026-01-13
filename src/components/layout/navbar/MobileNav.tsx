@@ -103,15 +103,6 @@ export default function MobileNav({ isDesktop }: MobileNavProps) {
                       </span>
                     </Link>
                     <Link
-                      href="/upload"
-                      className="block px-4 py-3 hover:bg-gray-50"
-                      onClick={closeNavbar}
-                    >
-                      <span className="font-['Noto_Sans_CJK_TC'] text-sm font-medium text-[#3F3D3D]">
-                        上傳照片
-                      </span>
-                    </Link>
-                    <Link
                       href="/profile/photos"
                       className="block px-4 py-3 hover:bg-gray-50"
                       onClick={closeNavbar}

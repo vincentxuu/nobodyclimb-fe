@@ -2,18 +2,13 @@
 
 import React, { useCallback } from 'react'
 import { useRouter, usePathname } from 'next/navigation'
-import { UserCircle, FileText, Bookmark, Settings, ImagePlus, Image as ImageIcon } from 'lucide-react'
+import { UserCircle, FileText, Bookmark, Settings, Image as ImageIcon } from 'lucide-react'
 
 const menuItems = [
   {
     name: '我的人物誌',
     href: '/profile',
     icon: UserCircle,
-  },
-  {
-    name: '上傳照片',
-    href: '/upload',
-    icon: ImagePlus,
   },
   {
     name: '我的照片',
