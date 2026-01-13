@@ -748,9 +748,29 @@ export const biographyService = {
   },
 
   /**
+   * 追蹤人物誌（別名）
+   */
+  followBiography: async (id: string) => {
+    const response = await apiClient.post<ApiResponse<{ message: string }>>(
+      `/biographies/${id}/follow`
+    )
+    return response.data
+  },
+
+  /**
    * 取消追蹤人物誌
    */
   unfollow: async (id: string) => {
+    const response = await apiClient.delete<ApiResponse<{ message: string }>>(
+      `/biographies/${id}/follow`
+    )
+    return response.data
+  },
+
+  /**
+   * 取消追蹤人物誌（別名）
+   */
+  unfollowBiography: async (id: string) => {
     const response = await apiClient.delete<ApiResponse<{ message: string }>>(
       `/biographies/${id}/follow`
     )
@@ -817,6 +837,16 @@ export const bucketListService = {
     const response = await apiClient.get<ApiResponse<BucketListItem[]>>(
       `/bucket-list/${biographyId}`,
       { params: options }
+    )
+    return response.data
+  },
+
+  /**
+   * 獲取單一人生清單項目
+   */
+  getBucketListItem: async (id: string) => {
+    const response = await apiClient.get<ApiResponse<BucketListItem>>(
+      `/bucket-list/item/${id}`
     )
     return response.data
   },
