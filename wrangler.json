@@ -41,11 +41,13 @@
       "routes": [
         {
           "pattern": "nobodyclimb.cc",
-          "custom_domain": true
+          "custom_domain": true,
+          "override_existing_dns_record": true
         },
         {
           "pattern": "www.nobodyclimb.cc",
-          "custom_domain": true
+          "custom_domain": true,
+          "override_existing_dns_record": true
         }
       ],
       "vars": {
