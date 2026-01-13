@@ -736,6 +736,71 @@ export const biographyService = {
     )
     return response.data
   },
+
+  /**
+   * 追蹤人物誌
+   */
+  follow: async (id: string) => {
+    const response = await apiClient.post<ApiResponse<{ message: string }>>(
+      `/biographies/${id}/follow`
+    )
+    return response.data
+  },
+
+  /**
+   * 取消追蹤人物誌
+   */
+  unfollow: async (id: string) => {
+    const response = await apiClient.delete<ApiResponse<{ message: string }>>(
+      `/biographies/${id}/follow`
+    )
+    return response.data
+  },
+
+  /**
+   * 獲取追蹤者列表
+   */
+  getFollowers: async (id: string, limit = 20, offset = 0) => {
+    const response = await apiClient.get<
+      ApiResponse<
+        Array<{
+          id: string
+          created_at: string
+          user_id: string
+          username: string
+          display_name: string | null
+          avatar_url: string | null
+          biography_id: string | null
+          biography_name: string | null
+          biography_slug: string | null
+        }>
+      > & { pagination: { total: number; limit: number; offset: number } }
+    >(`/biographies/${id}/followers`, { params: { limit, offset } })
+    return response.data
+  },
+
+  /**
+   * 獲取追蹤中列表
+   */
+  getFollowing: async (id: string, limit = 20, offset = 0) => {
+    const response = await apiClient.get<
+      ApiResponse<
+        Array<{
+          id: string
+          created_at: string
+          user_id: string
+          username: string
+          display_name: string | null
+          avatar_url: string | null
+          biography_id: string | null
+          biography_name: string | null
+          biography_slug: string | null
+          biography_avatar: string | null
+        }>
+      > & { pagination: { total: number; limit: number; offset: number } }
+    >(`/biographies/${id}/following`, { params: { limit, offset } })
+    return response.data
+  },
 }
 
 /**
@@ -1198,6 +1263,83 @@ export const weatherService = {
     const response = await apiClient.get<ApiResponse<Weather>>('/weather/coordinates', {
       params: { lat: latitude, lon: longitude },
     })
+    return response.data
+  },
+}
+
+/**
+ * 通知相關 API 服務
+ */
+export const notificationService = {
+  /**
+   * 獲取通知列表
+   */
+  getNotifications: async (page = 1, limit = 20, unreadOnly = false) => {
+    const response = await apiClient.get<
+      ApiResponse<
+        Array<{
+          id: string
+          user_id: string
+          type: string
+          actor_id: string | null
+          target_id: string | null
+          title: string
+          message: string
+          is_read: number
+          created_at: string
+          actor_name?: string
+          actor_avatar?: string
+        }>
+      > & { pagination: { page: number; limit: number; total: number; total_pages: number } }
+    >('/notifications', { params: { page, limit, unread: unreadOnly ? 'true' : undefined } })
+    return response.data
+  },
+
+  /**
+   * 獲取未讀通知數量
+   */
+  getUnreadCount: async () => {
+    const response = await apiClient.get<ApiResponse<{ count: number }>>(
+      '/notifications/unread-count'
+    )
+    return response.data
+  },
+
+  /**
+   * 標記通知為已讀
+   */
+  markAsRead: async (id: string) => {
+    const response = await apiClient.put<ApiResponse<{ message: string }>>(
+      `/notifications/${id}/read`
+    )
+    return response.data
+  },
+
+  /**
+   * 標記全部通知為已讀
+   */
+  markAllAsRead: async () => {
+    const response = await apiClient.put<ApiResponse<{ message: string }>>(
+      '/notifications/read-all'
+    )
+    return response.data
+  },
+
+  /**
+   * 刪除通知
+   */
+  deleteNotification: async (id: string) => {
+    const response = await apiClient.delete<ApiResponse<{ message: string }>>(
+      `/notifications/${id}`
+    )
+    return response.data
+  },
+
+  /**
+   * 刪除全部通知
+   */
+  deleteAllNotifications: async () => {
+    const response = await apiClient.delete<ApiResponse<{ message: string }>>('/notifications')
     return response.data
   },
 }
