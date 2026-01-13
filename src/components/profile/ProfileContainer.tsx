@@ -123,10 +123,10 @@ export default function ProfileContainer() {
         climbing_start_year: profileData.startYear,
         frequent_locations: profileData.frequentGyms,
         favorite_route_type: profileData.favoriteRouteType,
-        climbing_reason: profileData.climbingReason,
+        climbing_origin: profileData.climbingReason,
         climbing_meaning: profileData.climbingMeaning,
-        bucket_list: profileData.climbingBucketList,
-        advice: profileData.adviceForBeginners,
+        bucket_list_story: profileData.climbingBucketList,
+        advice_to_self: profileData.adviceForBeginners,
         is_public: profileData.isPublic ? 1 : 0,
         // 圖片資料以 JSON 格式存儲
         gallery_images: galleryImagesJson,

@@ -16,6 +16,7 @@ import { searchRoutes } from './routes/search';
 import { usersRoutes } from './routes/users';
 import { weatherRoutes } from './routes/weather';
 import { trafficRoutes } from './routes/traffic';
+import { bucketListRoutes } from './routes/bucket-list';
 
 const app = new Hono<{ Bindings: Env }>();
 
@@ -78,6 +79,7 @@ v1.route('/search', searchRoutes);
 v1.route('/users', usersRoutes);
 v1.route('/weather', weatherRoutes);
 v1.route('/traffic', trafficRoutes);
+v1.route('/bucket-list', bucketListRoutes);
 
 app.route('/api/v1', v1);
 

@@ -22,25 +22,16 @@ biographiesRoutes.get('/', async (c) => {
   }
 
   if (search) {
-    whereClause += ` AND (
-      name LIKE ? OR
-      frequent_locations LIKE ? OR
-      favorite_route_type LIKE ? OR
-      climbing_reason LIKE ? OR
-      climbing_meaning LIKE ? OR
-      bucket_list LIKE ? OR
-      advice LIKE ?
-    )`;
+    const searchFields = [
+      'name', 'frequent_locations', 'favorite_route_type',
+      'climbing_origin', 'climbing_meaning', 'advice_to_self',
+      'memorable_moment', 'biggest_challenge', 'breakthrough_story',
+      'dream_climb', 'climbing_goal',
+    ];
+    const searchConditions = searchFields.map((field) => `${field} LIKE ?`).join(' OR ');
+    whereClause += ` AND (${searchConditions})`;
     const searchPattern = `%${search}%`;
-    params.push(
-      searchPattern,
-      searchPattern,
-      searchPattern,
-      searchPattern,
-      searchPattern,
-      searchPattern,
-      searchPattern
-    );
+    searchFields.forEach(() => params.push(searchPattern));
   }
 
   const countResult = await c.env.DB.prepare(
@@ -195,23 +186,37 @@ biographiesRoutes.post('/', authMiddleware, async (c) => {
     const updates: string[] = [];
     const values: (string | number | null)[] = [];
 
+    // All biography fields including new advanced story fields
     const fields = [
-      'name',
-      'title',
-      'bio',
-      'avatar_url',
-      'cover_image',
-      'climbing_start_year',
-      'frequent_locations',
-      'favorite_route_type',
-      'climbing_reason',
-      'climbing_meaning',
-      'bucket_list',
-      'advice',
-      'achievements',
-      'social_links',
-      'is_featured',
-      'is_public',
+      // Basic info
+      'name', 'title', 'bio', 'avatar_url', 'cover_image',
+      // Level 1: Basic climbing info
+      'climbing_start_year', 'frequent_locations', 'favorite_route_type',
+      // Level 2: Core stories
+      'climbing_origin', 'climbing_meaning', 'advice_to_self',
+      // Level 3A: Growth & Breakthrough
+      'memorable_moment', 'biggest_challenge', 'breakthrough_story',
+      'first_outdoor', 'first_grade', 'frustrating_climb',
+      // Level 3B: Psychology & Philosophy
+      'fear_management', 'climbing_lesson', 'failure_perspective',
+      'flow_moment', 'life_balance', 'unexpected_gain',
+      // Level 3C: Community & Connection
+      'climbing_mentor', 'climbing_partner', 'funny_moment',
+      'favorite_spot', 'advice_to_group', 'climbing_space',
+      // Level 3D: Practical Sharing
+      'injury_recovery', 'memorable_route', 'training_method',
+      'effective_practice', 'technique_tip', 'gear_choice',
+      // Level 3E: Dreams & Exploration
+      'dream_climb', 'climbing_trip', 'bucket_list_story',
+      'climbing_goal', 'climbing_style', 'climbing_inspiration',
+      // Level 3F: Life Integration
+      'life_outside_climbing',
+      // Climbing locations
+      'climbing_locations',
+      // Media & Social
+      'gallery_images', 'social_links', 'youtube_channel_id', 'featured_video_id',
+      // Status
+      'achievements', 'is_featured', 'is_public',
     ];
 
     for (const field of fields) {
@@ -273,9 +278,9 @@ biographiesRoutes.post('/', authMiddleware, async (c) => {
     `INSERT INTO biographies (
       id, user_id, name, slug, title, bio, avatar_url, cover_image,
       climbing_start_year, frequent_locations, favorite_route_type,
-      climbing_reason, climbing_meaning, bucket_list, advice,
+      climbing_origin, climbing_meaning, advice_to_self,
       achievements, social_links, is_featured, is_public, published_at
-    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
+    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
   )
     .bind(
       id,
@@ -289,10 +294,9 @@ biographiesRoutes.post('/', authMiddleware, async (c) => {
       body.climbing_start_year || null,
       body.frequent_locations || null,
       body.favorite_route_type || null,
-      body.climbing_reason || null,
+      body.climbing_origin || null,
       body.climbing_meaning || null,
-      body.bucket_list || null,
-      body.advice || null,
+      body.advice_to_self || null,
       body.achievements || null,
       body.social_links || null,
       body.is_featured || 0,
@@ -341,22 +345,37 @@ biographiesRoutes.put('/me', authMiddleware, async (c) => {
   const updates: string[] = [];
   const values: (string | number | null)[] = [];
 
+  // All biography fields including new advanced story fields
   const fields = [
-    'name',
-    'title',
-    'bio',
-    'avatar_url',
-    'cover_image',
-    'climbing_start_year',
-    'frequent_locations',
-    'favorite_route_type',
-    'climbing_reason',
-    'climbing_meaning',
-    'bucket_list',
-    'advice',
-    'achievements',
-    'social_links',
-    'is_public',
+    // Basic info
+    'name', 'title', 'bio', 'avatar_url', 'cover_image',
+    // Level 1: Basic climbing info
+    'climbing_start_year', 'frequent_locations', 'favorite_route_type',
+    // Level 2: Core stories
+    'climbing_origin', 'climbing_meaning', 'advice_to_self',
+    // Level 3A: Growth & Breakthrough
+    'memorable_moment', 'biggest_challenge', 'breakthrough_story',
+    'first_outdoor', 'first_grade', 'frustrating_climb',
+    // Level 3B: Psychology & Philosophy
+    'fear_management', 'climbing_lesson', 'failure_perspective',
+    'flow_moment', 'life_balance', 'unexpected_gain',
+    // Level 3C: Community & Connection
+    'climbing_mentor', 'climbing_partner', 'funny_moment',
+    'favorite_spot', 'advice_to_group', 'climbing_space',
+    // Level 3D: Practical Sharing
+    'injury_recovery', 'memorable_route', 'training_method',
+    'effective_practice', 'technique_tip', 'gear_choice',
+    // Level 3E: Dreams & Exploration
+    'dream_climb', 'climbing_trip', 'bucket_list_story',
+    'climbing_goal', 'climbing_style', 'climbing_inspiration',
+    // Level 3F: Life Integration
+    'life_outside_climbing',
+    // Climbing locations
+    'climbing_locations',
+    // Media & Social
+    'gallery_images', 'social_links', 'youtube_channel_id', 'featured_video_id',
+    // Status
+    'achievements', 'is_public',
   ];
 
   for (const field of fields) {
@@ -483,6 +502,333 @@ biographiesRoutes.get('/:id/adjacent', async (c) => {
     data: {
       previous,
       next,
+    },
+  });
+});
+
+// GET /biographies/:id/stats - Get biography statistics
+biographiesRoutes.get('/:id/stats', async (c) => {
+  const id = c.req.param('id');
+
+  const biography = await c.env.DB.prepare(
+    'SELECT id, total_likes, total_views, follower_count FROM biographies WHERE id = ? AND is_public = 1'
+  )
+    .bind(id)
+    .first<{ id: string; total_likes: number; total_views: number; follower_count: number }>();
+
+  if (!biography) {
+    return c.json(
+      {
+        success: false,
+        error: 'Not Found',
+        message: 'Biography not found',
+      },
+      404
+    );
+  }
+
+  // Count bucket list items
+  const bucketListStats = await c.env.DB.prepare(
+    `SELECT
+      COUNT(*) as total,
+      SUM(CASE WHEN status = 'active' THEN 1 ELSE 0 END) as active,
+      SUM(CASE WHEN status = 'completed' THEN 1 ELSE 0 END) as completed
+    FROM bucket_list_items WHERE biography_id = ? AND is_public = 1`
+  )
+    .bind(id)
+    .first<{ total: number; active: number; completed: number }>();
+
+  return c.json({
+    success: true,
+    data: {
+      total_likes: biography.total_likes || 0,
+      total_views: biography.total_views || 0,
+      follower_count: biography.follower_count || 0,
+      bucket_list: {
+        total: bucketListStats?.total || 0,
+        active: bucketListStats?.active || 0,
+        completed: bucketListStats?.completed || 0,
+      },
+    },
+  });
+});
+
+// PUT /biographies/:id/view - Record a view
+biographiesRoutes.put('/:id/view', async (c) => {
+  const id = c.req.param('id');
+
+  const biography = await c.env.DB.prepare(
+    'SELECT id FROM biographies WHERE id = ? AND is_public = 1'
+  )
+    .bind(id)
+    .first<{ id: string }>();
+
+  if (!biography) {
+    return c.json(
+      {
+        success: false,
+        error: 'Not Found',
+        message: 'Biography not found',
+      },
+      404
+    );
+  }
+
+  // Increment view count
+  await c.env.DB.prepare(
+    'UPDATE biographies SET total_views = COALESCE(total_views, 0) + 1 WHERE id = ?'
+  )
+    .bind(id)
+    .run();
+
+  return c.json({
+    success: true,
+    message: 'View recorded',
+  });
+});
+
+// ═══════════════════════════════════════════════════════════
+// 追蹤系統
+// ═══════════════════════════════════════════════════════════
+
+// POST /biographies/:id/follow - Follow a biography
+biographiesRoutes.post('/:id/follow', authMiddleware, async (c) => {
+  const userId = c.get('userId');
+  const id = c.req.param('id');
+
+  // Check if biography exists and is public
+  const biography = await c.env.DB.prepare(
+    'SELECT id, user_id FROM biographies WHERE id = ? AND is_public = 1'
+  )
+    .bind(id)
+    .first<{ id: string; user_id: string }>();
+
+  if (!biography) {
+    return c.json(
+      {
+        success: false,
+        error: 'Not Found',
+        message: 'Biography not found',
+      },
+      404
+    );
+  }
+
+  // Cannot follow yourself
+  if (biography.user_id === userId) {
+    return c.json(
+      {
+        success: false,
+        error: 'Bad Request',
+        message: 'Cannot follow yourself',
+      },
+      400
+    );
+  }
+
+  // Check if already following
+  const existing = await c.env.DB.prepare(
+    'SELECT id FROM follows WHERE follower_id = ? AND following_id = ?'
+  )
+    .bind(userId, biography.user_id)
+    .first<{ id: string }>();
+
+  if (existing) {
+    return c.json(
+      {
+        success: false,
+        error: 'Conflict',
+        message: 'Already following',
+      },
+      409
+    );
+  }
+
+  const followId = generateId();
+
+  await c.env.DB.prepare(
+    'INSERT INTO follows (id, follower_id, following_id) VALUES (?, ?, ?)'
+  )
+    .bind(followId, userId, biography.user_id)
+    .run();
+
+  // Update follower count
+  await c.env.DB.prepare(
+    'UPDATE biographies SET follower_count = COALESCE(follower_count, 0) + 1 WHERE id = ?'
+  )
+    .bind(id)
+    .run();
+
+  return c.json({
+    success: true,
+    message: 'Followed successfully',
+  });
+});
+
+// DELETE /biographies/:id/follow - Unfollow a biography
+biographiesRoutes.delete('/:id/follow', authMiddleware, async (c) => {
+  const userId = c.get('userId');
+  const id = c.req.param('id');
+
+  // Get biography's user_id
+  const biography = await c.env.DB.prepare(
+    'SELECT user_id FROM biographies WHERE id = ?'
+  )
+    .bind(id)
+    .first<{ user_id: string }>();
+
+  if (!biography) {
+    return c.json(
+      {
+        success: false,
+        error: 'Not Found',
+        message: 'Biography not found',
+      },
+      404
+    );
+  }
+
+  // Check if following exists
+  const existing = await c.env.DB.prepare(
+    'SELECT id FROM follows WHERE follower_id = ? AND following_id = ?'
+  )
+    .bind(userId, biography.user_id)
+    .first<{ id: string }>();
+
+  if (!existing) {
+    return c.json(
+      {
+        success: false,
+        error: 'Not Found',
+        message: 'Not following',
+      },
+      404
+    );
+  }
+
+  await c.env.DB.prepare(
+    'DELETE FROM follows WHERE follower_id = ? AND following_id = ?'
+  )
+    .bind(userId, biography.user_id)
+    .run();
+
+  // Update follower count
+  await c.env.DB.prepare(
+    'UPDATE biographies SET follower_count = CASE WHEN follower_count > 0 THEN follower_count - 1 ELSE 0 END WHERE id = ?'
+  )
+    .bind(id)
+    .run();
+
+  return c.json({
+    success: true,
+    message: 'Unfollowed successfully',
+  });
+});
+
+// GET /biographies/:id/followers - Get followers of a biography
+biographiesRoutes.get('/:id/followers', async (c) => {
+  const id = c.req.param('id');
+  const limit = parseInt(c.req.query('limit') || '20', 10);
+  const offset = parseInt(c.req.query('offset') || '0', 10);
+
+  // Get biography's user_id
+  const biography = await c.env.DB.prepare(
+    'SELECT user_id FROM biographies WHERE id = ? AND is_public = 1'
+  )
+    .bind(id)
+    .first<{ user_id: string }>();
+
+  if (!biography) {
+    return c.json(
+      {
+        success: false,
+        error: 'Not Found',
+        message: 'Biography not found',
+      },
+      404
+    );
+  }
+
+  const followers = await c.env.DB.prepare(
+    `SELECT f.id, f.created_at, u.id as user_id, u.username, u.display_name, u.avatar_url,
+            b.id as biography_id, b.name as biography_name, b.slug as biography_slug
+     FROM follows f
+     JOIN users u ON f.follower_id = u.id
+     LEFT JOIN biographies b ON b.user_id = u.id AND b.is_public = 1
+     WHERE f.following_id = ?
+     ORDER BY f.created_at DESC
+     LIMIT ? OFFSET ?`
+  )
+    .bind(biography.user_id, limit, offset)
+    .all();
+
+  const countResult = await c.env.DB.prepare(
+    'SELECT COUNT(*) as count FROM follows WHERE following_id = ?'
+  )
+    .bind(biography.user_id)
+    .first<{ count: number }>();
+
+  return c.json({
+    success: true,
+    data: followers.results,
+    pagination: {
+      total: countResult?.count || 0,
+      limit,
+      offset,
+    },
+  });
+});
+
+// GET /biographies/:id/following - Get who the biography owner is following
+biographiesRoutes.get('/:id/following', async (c) => {
+  const id = c.req.param('id');
+  const limit = parseInt(c.req.query('limit') || '20', 10);
+  const offset = parseInt(c.req.query('offset') || '0', 10);
+
+  // Get biography's user_id
+  const biography = await c.env.DB.prepare(
+    'SELECT user_id FROM biographies WHERE id = ? AND is_public = 1'
+  )
+    .bind(id)
+    .first<{ user_id: string }>();
+
+  if (!biography) {
+    return c.json(
+      {
+        success: false,
+        error: 'Not Found',
+        message: 'Biography not found',
+      },
+      404
+    );
+  }
+
+  const following = await c.env.DB.prepare(
+    `SELECT f.id, f.created_at, u.id as user_id, u.username, u.display_name, u.avatar_url,
+            b.id as biography_id, b.name as biography_name, b.slug as biography_slug, b.avatar_url as biography_avatar
+     FROM follows f
+     JOIN users u ON f.following_id = u.id
+     LEFT JOIN biographies b ON b.user_id = u.id AND b.is_public = 1
+     WHERE f.follower_id = ?
+     ORDER BY f.created_at DESC
+     LIMIT ? OFFSET ?`
+  )
+    .bind(biography.user_id, limit, offset)
+    .all();
+
+  const countResult = await c.env.DB.prepare(
+    'SELECT COUNT(*) as count FROM follows WHERE follower_id = ?'
+  )
+    .bind(biography.user_id)
+    .first<{ count: number }>();
+
+  return c.json({
+    success: true,
+    data: following.results,
+    pagination: {
+      total: countResult?.count || 0,
+      limit,
+      offset,
     },
   });
 });
