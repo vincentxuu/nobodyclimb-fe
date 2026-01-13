@@ -1,3 +1,5 @@
+import { ClimbingLocation } from '@/lib/types'
+
 /**
  * 人物誌圖片
  */
@@ -13,15 +15,67 @@ export interface ProfileImage {
  */
 export type ImageLayout = 'single' | 'double' | 'grid'
 
+/**
+ * 進階故事資料
+ */
+export interface AdvancedStories {
+  // A. 成長與突破
+  memorable_moment: string
+  biggest_challenge: string
+  breakthrough_story: string
+  first_outdoor: string
+  first_grade: string
+  frustrating_climb: string
+  // B. 心理與哲學
+  fear_management: string
+  climbing_lesson: string
+  failure_perspective: string
+  flow_moment: string
+  life_balance: string
+  unexpected_gain: string
+  // C. 社群與連結
+  climbing_mentor: string
+  climbing_partner: string
+  funny_moment: string
+  favorite_spot: string
+  advice_to_group: string
+  climbing_space: string
+  // D. 實用分享
+  injury_recovery: string
+  memorable_route: string
+  training_method: string
+  effective_practice: string
+  technique_tip: string
+  gear_choice: string
+  // E. 夢想與探索
+  dream_climb: string
+  climbing_trip: string
+  bucket_list_story: string
+  climbing_goal: string
+  climbing_style: string
+  climbing_inspiration: string
+  // F. 生活整合
+  life_outside_climbing: string
+}
+
 export interface ProfileData {
+  // 人物誌 ID（用於媒體整合）
+  biographyId: string | null
+  // 基本資訊
   name: string
   startYear: string
   frequentGyms: string
   favoriteRouteType: string
+  // 核心故事
   climbingReason: string
   climbingMeaning: string
   climbingBucketList: string
   adviceForBeginners: string
+  // 進階故事
+  advancedStories: AdvancedStories
+  // 攀岩足跡
+  climbingLocations: ClimbingLocation[]
+  // 設定
   isPublic: boolean
   // 圖片相關
   images: ProfileImage[]
@@ -37,8 +91,50 @@ export const IMAGE_CONSTRAINTS = {
   acceptedExtensions: '.jpg,.jpeg,.png,.webp',
 }
 
+// 初始進階故事資料
+export const initialAdvancedStories: AdvancedStories = {
+  // A. 成長與突破
+  memorable_moment: '',
+  biggest_challenge: '',
+  breakthrough_story: '',
+  first_outdoor: '',
+  first_grade: '',
+  frustrating_climb: '',
+  // B. 心理與哲學
+  fear_management: '',
+  climbing_lesson: '',
+  failure_perspective: '',
+  flow_moment: '',
+  life_balance: '',
+  unexpected_gain: '',
+  // C. 社群與連結
+  climbing_mentor: '',
+  climbing_partner: '',
+  funny_moment: '',
+  favorite_spot: '',
+  advice_to_group: '',
+  climbing_space: '',
+  // D. 實用分享
+  injury_recovery: '',
+  memorable_route: '',
+  training_method: '',
+  effective_practice: '',
+  technique_tip: '',
+  gear_choice: '',
+  // E. 夢想與探索
+  dream_climb: '',
+  climbing_trip: '',
+  bucket_list_story: '',
+  climbing_goal: '',
+  climbing_style: '',
+  climbing_inspiration: '',
+  // F. 生活整合
+  life_outside_climbing: '',
+}
+
 // 初始資料
 export const initialProfileData: ProfileData = {
+  biographyId: null,
   name: '許岩手',
   startYear: '2020',
   frequentGyms: '小岩攀岩館',
@@ -49,6 +145,8 @@ export const initialProfileData: ProfileData = {
   climbingBucketList:
     '想要挑戰世界各地的著名岩場，特別是泰國的Tonsai和美國的Yosemite。希望能在攀岩世界中不斷進步，挑戰更高難度的路線。',
   adviceForBeginners: '享受其中是最重要的事！',
+  advancedStories: initialAdvancedStories,
+  climbingLocations: [],
   isPublic: true,
   images: [],
   imageLayout: 'double',

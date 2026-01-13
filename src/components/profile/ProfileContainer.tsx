@@ -1,12 +1,15 @@
 'use client'
 
-import React, { useState, useRef } from 'react'
+import React, { useState, useRef, useCallback } from 'react'
 import { motion } from 'framer-motion'
 import ProfilePageHeader from './ProfilePageHeader'
 import ProfileDivider from './ProfileDivider'
 import BasicInfoSection from './BasicInfoSection'
 import ClimbingInfoSection from './ClimbingInfoSection'
 import ClimbingExperienceSection from './ClimbingExperienceSection'
+import AdvancedStoriesSection from './AdvancedStoriesSection'
+import ClimbingFootprintsSection from './ClimbingFootprintsSection'
+import MediaIntegrationSection from './MediaIntegrationSection'
 import PublicSettingSection from './PublicSettingSection'
 import ProfileActionButtons from './ProfileActionButtons'
 import { ProfileImageSection } from './image-gallery'
@@ -14,7 +17,8 @@ import { useProfile } from './ProfileContext'
 import { useIsMobile } from '@/lib/hooks/useIsMobile'
 import { useToast } from '@/components/ui/use-toast'
 import { biographyService } from '@/lib/api/services'
-import { ProfileImage, ImageLayout } from './types'
+import { ProfileImage, ImageLayout, AdvancedStories } from './types'
+import { ClimbingLocation } from '@/lib/types'
 
 export default function ProfileContainer() {
   const { profileData, setProfileData, isEditing, setIsEditing } = useProfile()
@@ -106,6 +110,65 @@ export default function ProfileContainer() {
     })
   }
 
+  // 處理進階故事單一欄位儲存
+  const handleAdvancedStorySave = useCallback(
+    async (field: string, value: string) => {
+      // 更新本地狀態
+      setProfileData((prev) => ({
+        ...prev,
+        advancedStories: {
+          ...prev.advancedStories,
+          [field]: value,
+        },
+      }))
+
+      // 立即儲存到後端
+      try {
+        await biographyService.updateBiography({ [field]: value })
+        toast({ title: '故事已儲存' })
+      } catch {
+        toast({ title: '儲存失敗', variant: 'destructive' })
+        throw new Error('儲存失敗')
+      }
+    },
+    [setProfileData, toast]
+  )
+
+  // 處理進階故事批量儲存
+  const handleAdvancedStorySaveAll = useCallback(
+    async (changes: Record<string, string>) => {
+      // 更新本地狀態
+      setProfileData((prev) => ({
+        ...prev,
+        advancedStories: {
+          ...prev.advancedStories,
+          ...changes,
+        } as AdvancedStories,
+      }))
+
+      // 儲存到後端
+      try {
+        await biographyService.updateBiography(changes)
+        toast({ title: '所有故事已儲存' })
+      } catch {
+        toast({ title: '儲存失敗', variant: 'destructive' })
+        throw new Error('儲存失敗')
+      }
+    },
+    [setProfileData, toast]
+  )
+
+  // 處理攀岩足跡變更
+  const handleClimbingLocationsChange = useCallback(
+    (locations: ClimbingLocation[]) => {
+      setProfileData((prev) => ({
+        ...prev,
+        climbingLocations: locations,
+      }))
+    },
+    [setProfileData]
+  )
+
   // 處理儲存
   const handleSave = async () => {
     setIsSaving(true)
@@ -117,6 +180,9 @@ export default function ProfileContainer() {
         layout: profileData.imageLayout,
       })
 
+      // 序列化攀岩足跡
+      const climbingLocationsJson = JSON.stringify(profileData.climbingLocations)
+
       // 將前端資料轉換為 API 格式
       const biographyData = {
         name: profileData.name,
@@ -127,6 +193,10 @@ export default function ProfileContainer() {
         climbing_meaning: profileData.climbingMeaning,
         bucket_list_story: profileData.climbingBucketList,
         advice_to_self: profileData.adviceForBeginners,
+        // 進階故事
+        ...profileData.advancedStories,
+        // 攀岩足跡
+        climbing_locations: climbingLocationsJson,
         is_public: profileData.isPublic ? 1 : 0,
         // 圖片資料以 JSON 格式存儲
         gallery_images: galleryImagesJson,
@@ -207,6 +277,27 @@ export default function ProfileContainer() {
             onCaptionChange={handleCaptionChange}
             onLayoutChange={handleLayoutChange}
             onReorder={handleReorder}
+          />
+          <ProfileDivider />
+          <AdvancedStoriesSection
+            biography={profileData.advancedStories as unknown as Record<string, unknown>}
+            isEditing={isEditing}
+            isMobile={isMobile}
+            onSave={handleAdvancedStorySave}
+            onSaveAll={handleAdvancedStorySaveAll}
+          />
+          <ProfileDivider />
+          <ClimbingFootprintsSection
+            locations={profileData.climbingLocations}
+            isEditing={isEditing}
+            isMobile={isMobile}
+            onChange={handleClimbingLocationsChange}
+          />
+          <ProfileDivider />
+          <MediaIntegrationSection
+            biographyId={profileData.biographyId}
+            isEditing={isEditing}
+            isMobile={isMobile}
           />
           <ProfileDivider />
           <PublicSettingSection
