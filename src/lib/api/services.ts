@@ -18,6 +18,12 @@ import {
   Biography,
   BiographyAdjacent,
   BiographyInput,
+  BucketListItem,
+  BucketListItemInput,
+  BucketListCompleteInput,
+  BucketListComment,
+  BucketListReference,
+  Milestone,
   Crag,
   Route,
   Weather,
@@ -673,6 +679,227 @@ export const biographyService = {
           'Content-Type': 'multipart/form-data',
         },
       }
+    )
+    return response.data
+  },
+
+  /**
+   * 獲取人物誌統計資料
+   */
+  getBiographyStats: async (id: string) => {
+    const response = await apiClient.get<
+      ApiResponse<{
+        total_likes: number
+        total_views: number
+        follower_count: number
+        bucket_list: { total: number; active: number; completed: number }
+      }>
+    >(`/biographies/${id}/stats`)
+    return response.data
+  },
+
+  /**
+   * 記錄人物誌瀏覽
+   */
+  recordView: async (id: string) => {
+    const response = await apiClient.put<ApiResponse<{ message: string }>>(
+      `/biographies/${id}/view`
+    )
+    return response.data
+  },
+}
+
+/**
+ * 人生清單相關 API 服務
+ */
+export const bucketListService = {
+  /**
+   * 獲取人物誌的人生清單
+   */
+  getBucketList: async (
+    biographyId: string,
+    options?: { status?: string; category?: string }
+  ) => {
+    const response = await apiClient.get<ApiResponse<BucketListItem[]>>(
+      `/bucket-list/${biographyId}`,
+      { params: options }
+    )
+    return response.data
+  },
+
+  /**
+   * 新增人生清單項目
+   */
+  createItem: async (data: BucketListItemInput) => {
+    const response = await apiClient.post<ApiResponse<BucketListItem>>('/bucket-list', data)
+    return response.data
+  },
+
+  /**
+   * 更新人生清單項目
+   */
+  updateItem: async (id: string, data: Partial<BucketListItemInput>) => {
+    const response = await apiClient.put<ApiResponse<BucketListItem>>(`/bucket-list/${id}`, data)
+    return response.data
+  },
+
+  /**
+   * 刪除人生清單項目
+   */
+  deleteItem: async (id: string) => {
+    const response = await apiClient.delete<ApiResponse<{ message: string }>>(
+      `/bucket-list/${id}`
+    )
+    return response.data
+  },
+
+  /**
+   * 標記完成
+   */
+  completeItem: async (id: string, data: BucketListCompleteInput) => {
+    const response = await apiClient.put<ApiResponse<BucketListItem>>(
+      `/bucket-list/${id}/complete`,
+      data
+    )
+    return response.data
+  },
+
+  /**
+   * 更新進度
+   */
+  updateProgress: async (id: string, progress: number) => {
+    const response = await apiClient.put<ApiResponse<{ progress: number }>>(
+      `/bucket-list/${id}/progress`,
+      { progress }
+    )
+    return response.data
+  },
+
+  /**
+   * 更新里程碑
+   */
+  updateMilestone: async (
+    id: string,
+    milestoneId: string,
+    data: { completed?: boolean; note?: string }
+  ) => {
+    const response = await apiClient.put<
+      ApiResponse<{ milestones: Milestone[]; progress: number }>
+    >(`/bucket-list/${id}/milestone`, { milestone_id: milestoneId, ...data })
+    return response.data
+  },
+
+  /**
+   * 探索：熱門目標
+   */
+  getTrending: async (limit = 10) => {
+    const response = await apiClient.get<ApiResponse<BucketListItem[]>>(
+      '/bucket-list/explore/trending',
+      { params: { limit } }
+    )
+    return response.data
+  },
+
+  /**
+   * 探索：最新完成
+   */
+  getRecentCompleted: async (limit = 10) => {
+    const response = await apiClient.get<ApiResponse<BucketListItem[]>>(
+      '/bucket-list/explore/recent-completed',
+      { params: { limit } }
+    )
+    return response.data
+  },
+
+  /**
+   * 探索：按分類
+   */
+  getByCategory: async (category: string, limit = 20) => {
+    const response = await apiClient.get<ApiResponse<BucketListItem[]>>(
+      `/bucket-list/explore/by-category/${category}`,
+      { params: { limit } }
+    )
+    return response.data
+  },
+
+  /**
+   * 探索：按地點
+   */
+  getByLocation: async (location: string, limit = 20) => {
+    const response = await apiClient.get<ApiResponse<BucketListItem[]>>(
+      `/bucket-list/explore/by-location/${encodeURIComponent(location)}`,
+      { params: { limit } }
+    )
+    return response.data
+  },
+
+  /**
+   * 按讚
+   */
+  likeItem: async (id: string) => {
+    const response = await apiClient.post<ApiResponse<{ message: string }>>(
+      `/bucket-list/${id}/like`
+    )
+    return response.data
+  },
+
+  /**
+   * 取消按讚
+   */
+  unlikeItem: async (id: string) => {
+    const response = await apiClient.delete<ApiResponse<{ message: string }>>(
+      `/bucket-list/${id}/like`
+    )
+    return response.data
+  },
+
+  /**
+   * 獲取留言
+   */
+  getComments: async (id: string) => {
+    const response = await apiClient.get<ApiResponse<BucketListComment[]>>(
+      `/bucket-list/${id}/comments`
+    )
+    return response.data
+  },
+
+  /**
+   * 新增留言
+   */
+  addComment: async (id: string, content: string) => {
+    const response = await apiClient.post<ApiResponse<BucketListComment>>(
+      `/bucket-list/${id}/comments`,
+      { content }
+    )
+    return response.data
+  },
+
+  /**
+   * 刪除留言
+   */
+  deleteComment: async (commentId: string) => {
+    const response = await apiClient.delete<ApiResponse<{ message: string }>>(
+      `/bucket-list/comments/${commentId}`
+    )
+    return response.data
+  },
+
+  /**
+   * 加入我的清單（參考）
+   */
+  referenceItem: async (id: string) => {
+    const response = await apiClient.post<ApiResponse<BucketListItem>>(
+      `/bucket-list/${id}/reference`
+    )
+    return response.data
+  },
+
+  /**
+   * 獲取參考者列表
+   */
+  getReferences: async (id: string) => {
+    const response = await apiClient.get<ApiResponse<BucketListReference[]>>(
+      `/bucket-list/${id}/references`
     )
     return response.data
   },

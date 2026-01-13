@@ -264,6 +264,10 @@ export interface Comment {
 
 /**
  * 人物誌介面
+ * 三層式設計：
+ * - 第一層：基本資訊（必填）
+ * - 第二層：核心故事（強烈建議）
+ * - 第三層：進階故事（選填 30 題）
  */
 export interface Biography {
   id: string
@@ -274,22 +278,105 @@ export interface Biography {
   bio: string | null
   avatar_url: string | null
   cover_image: string | null
-  // 攀岩相關字段
-  climbing_start_year: string | null
-  frequent_locations: string | null
-  favorite_route_type: string | null
-  climbing_reason: string | null
-  climbing_meaning: string | null
-  bucket_list: string | null
-  advice: string | null
-  achievements: string | null
-  social_links: string | null
+
+  // ═══════════════════════════════════════════
+  // 第一層：攀岩基本資訊（必填）
+  // ═══════════════════════════════════════════
+  climbing_start_year: string | null // 哪一年開始攀岩
+  frequent_locations: string | null // 平常出沒的地方 (逗號分隔)
+  favorite_route_type: string | null // 喜歡的路線型態 (抱石/先鋒/速度/傳攀)
+
+  // ═══════════════════════════════════════════
+  // 第二層：核心故事（強烈建議填寫）
+  // ═══════════════════════════════════════════
+  climbing_origin: string | null // 你與攀岩的相遇 (原 climbing_reason)
+  climbing_meaning: string | null // 攀岩對你來說是什麼
+  advice_to_self: string | null // 給剛開始攀岩的自己 (原 advice)
+
+  // ═══════════════════════════════════════════
+  // 第三層：進階故事（選填 30 題）
+  // ═══════════════════════════════════════════
+
+  // A. 成長與突破（6題）
+  memorable_moment: string | null // 最難忘的攀登經歷
+  biggest_challenge: string | null // 遇到的最大挑戰與如何面對
+  breakthrough_story: string | null // 最大的突破經歷
+  first_outdoor: string | null // 第一次戶外攀岩的經歷
+  first_grade: string | null // 第一次完攀某個難度的感覺
+  frustrating_climb: string | null // 最挫折的一次攀登經歷
+
+  // B. 心理與哲學（6題）
+  fear_management: string | null // 如何克服攀岩中的恐懼
+  climbing_lesson: string | null // 攀岩教會你最重要的一件事
+  failure_perspective: string | null // 攀岩如何改變你看待失敗
+  flow_moment: string | null // 在岩壁上的心流時刻
+  life_balance: string | null // 攀岩與生活的平衡
+  unexpected_gain: string | null // 攀岩帶給你的意外收穫
+
+  // C. 社群與連結（6題）
+  climbing_mentor: string | null // 攀岩路上的貴人
+  climbing_partner: string | null // 最喜歡的攀岩夥伴與故事
+  funny_moment: string | null // 攀岩時最尷尬或搞笑的時刻
+  favorite_spot: string | null // 最推薦的攀岩地點與原因
+  advice_to_group: string | null // 想對某個族群說的話
+  climbing_space: string | null // 最難忘的岩館或攀岩空間
+
+  // D. 實用分享（6題）
+  injury_recovery: string | null // 一次受傷經歷與從中學到的事
+  memorable_route: string | null // 最想分享的一次攀登經驗
+  training_method: string | null // 你的訓練方式與心得
+  effective_practice: string | null // 對你最有效的練習方法
+  technique_tip: string | null // 一個對你很有幫助的技巧
+  gear_choice: string | null // 攀岩裝備的選擇心得
+
+  // E. 夢想與探索（6題）
+  dream_climb: string | null // 夢想中的攀登
+  climbing_trip: string | null // 一次特別的攀岩旅行
+  bucket_list_story: string | null // 完成人生清單中某個目標的故事
+  climbing_goal: string | null // 目前最想達成的攀岩目標
+  climbing_style: string | null // 最吸引你的攀岩風格
+  climbing_inspiration: string | null // 啟發你的攀岩者或影片
+
+  // F. 生活整合（1題）
+  life_outside_climbing: string | null // 除了攀岩，還讓我著迷的事
+
+  // ═══════════════════════════════════════════
+  // 攀岩足跡
+  // ═══════════════════════════════════════════
+  climbing_locations: string | null // JSON array of ClimbingLocation
+
+  // ═══════════════════════════════════════════
+  // 媒體與社群
+  // ═══════════════════════════════════════════
   gallery_images?: string | null // JSON 格式的圖片資料（可選）
+  social_links: string | null // JSON object
+  youtube_channel_id: string | null // YT 頻道 ID
+  featured_video_id: string | null // 精選影片 ID
+
+  // ═══════════════════════════════════════════
+  // 狀態
+  // ═══════════════════════════════════════════
+  achievements: string | null
   is_featured: number | string // D1 可能回傳字串
   is_public: number | string // D1 可能回傳字串
   published_at: string | null
   created_at: string
   updated_at: string
+
+  // ═══════════════════════════════════════════
+  // 統計
+  // ═══════════════════════════════════════════
+  total_likes: number
+  total_views: number
+  follower_count: number
+
+  // Legacy fields (for backward compatibility)
+  /** @deprecated 使用 climbing_origin */
+  climbing_reason?: string | null
+  /** @deprecated 使用 advice_to_self */
+  advice?: string | null
+  /** @deprecated 使用結構化的 BucketListItem */
+  bucket_list?: string | null
 }
 
 /**
@@ -309,6 +396,280 @@ export interface BiographyAdjacent {
 }
 
 /**
+ * 攀岩足跡地點
+ */
+export interface ClimbingLocation {
+  location: string // 地點名稱
+  country: string // 國家
+  visit_year: string | null // 造訪年份
+  notes: string | null // 心得筆記
+  photos: string[] | null // 照片
+  is_public: boolean // 是否公開
+}
+
+/**
+ * 人生清單分類
+ */
+export type BucketListCategory =
+  | 'outdoor_route' // 戶外路線
+  | 'indoor_grade' // 室內難度
+  | 'competition' // 比賽目標
+  | 'training' // 訓練目標
+  | 'adventure' // 冒險挑戰（如海外攀岩）
+  | 'skill' // 技能學習
+  | 'injury_recovery' // 受傷復原
+  | 'other' // 其他
+
+/**
+ * 人生清單分類選項
+ */
+export const BUCKET_LIST_CATEGORIES: { value: BucketListCategory; label: string }[] = [
+  { value: 'outdoor_route', label: '戶外路線' },
+  { value: 'indoor_grade', label: '室內難度' },
+  { value: 'competition', label: '比賽目標' },
+  { value: 'training', label: '訓練目標' },
+  { value: 'adventure', label: '冒險挑戰' },
+  { value: 'skill', label: '技能學習' },
+  { value: 'injury_recovery', label: '受傷復原' },
+  { value: 'other', label: '其他' },
+]
+
+/**
+ * 里程碑
+ */
+export interface Milestone {
+  id: string
+  title: string
+  percentage: number // 20, 40, 60, 80, 100
+  completed: boolean
+  completed_at: string | null
+  note: string | null
+}
+
+/**
+ * 人生清單項目
+ */
+export interface BucketListItem {
+  id: string
+  biography_id: string
+
+  // 基本內容（必填）
+  title: string // 目標標題
+  category: BucketListCategory
+
+  // 選填內容
+  description: string | null // 詳細描述
+  target_grade: string | null // 目標難度
+  target_location: string | null // 目標地點
+  target_date: string | null // 預計完成日期
+
+  // 狀態（簡單三態）
+  status: 'active' | 'completed' | 'archived'
+  completed_at: string | null
+
+  // 進度追蹤（選填功能）
+  enable_progress: boolean // 是否開啟進度追蹤
+  progress_mode: 'manual' | 'milestone' | null
+  progress: number // 手動模式：0-100
+  milestones: Milestone[] | null // 里程碑模式
+
+  // 完成故事（選填）- 對應社群需求的「路線心得」
+  completion_story: string | null
+  psychological_insights: string | null // 心理層面的感想
+  technical_insights: string | null // 技術層面的心得
+  completion_media: {
+    youtube_videos?: string[] // YouTube 影片 ID
+    instagram_posts?: string[] // IG 貼文 shortcode
+    photos?: string[] // 照片
+  } | null
+
+  // 社群
+  is_public: boolean
+  likes_count: number
+  inspired_count: number // 被加入清單次數
+  comments_count: number
+
+  // 其他
+  sort_order: number
+  created_at: string
+  updated_at: string
+}
+
+/**
+ * 創建人生清單項目請求
+ */
+export interface BucketListItemInput {
+  title: string
+  category?: BucketListCategory
+  description?: string
+  target_grade?: string
+  target_location?: string
+  target_date?: string
+  status?: 'active' | 'completed' | 'archived'
+  enable_progress?: boolean
+  progress_mode?: 'manual' | 'milestone' | null
+  progress?: number
+  milestones?: Milestone[]
+  is_public?: boolean
+  sort_order?: number
+}
+
+/**
+ * 完成人生清單目標請求
+ */
+export interface BucketListCompleteInput {
+  completion_story?: string
+  psychological_insights?: string
+  technical_insights?: string
+  completion_media?: {
+    youtube_videos?: string[]
+    instagram_posts?: string[]
+    photos?: string[]
+  }
+}
+
+/**
+ * YouTube 影片關聯類型
+ */
+export type BiographyVideoRelationType =
+  | 'own_content' // 自己的內容
+  | 'featured_in' // 被報導
+  | 'mentioned' // 被提及
+  | 'recommended' // 推薦
+  | 'completion_proof' // 完成證明
+
+/**
+ * YouTube 影片關聯
+ */
+export interface BiographyVideo {
+  id: string
+  biography_id: string
+  video_id: string // YouTube video ID
+  relation_type: BiographyVideoRelationType
+  is_featured: boolean
+  display_order: number
+  created_at: string
+}
+
+/**
+ * Instagram 媒體類型
+ */
+export type InstagramMediaType = 'IMAGE' | 'VIDEO' | 'CAROUSEL' | 'REEL'
+
+/**
+ * Instagram 關聯類型
+ */
+export type BiographyInstagramRelationType =
+  | 'own_post' // 自己的貼文
+  | 'tagged' // 被標記
+  | 'mentioned' // 被提及
+  | 'completion_proof' // 完成證明
+
+/**
+ * Instagram 貼文關聯
+ */
+export interface BiographyInstagram {
+  id: string
+  biography_id: string
+  instagram_url: string
+  instagram_shortcode: string
+  media_type: InstagramMediaType | null
+  thumbnail_url: string | null
+  caption: string | null
+  posted_at: string | null
+  relation_type: BiographyInstagramRelationType
+  is_featured: boolean
+  display_order: number
+  created_at: string
+  updated_at: string
+}
+
+/**
+ * 社群連結
+ */
+export interface BiographySocialLinks {
+  instagram?: string // IG 用戶名
+  youtube_channel?: string // YT 頻道 ID/handle
+  facebook?: string
+  threads?: string
+  website?: string
+}
+
+/**
+ * 人生清單按讚
+ */
+export interface BucketListLike {
+  id: string
+  bucket_list_item_id: string
+  user_id: string
+  created_at: string
+}
+
+/**
+ * 人生清單留言
+ */
+export interface BucketListComment {
+  id: string
+  bucket_list_item_id: string
+  user_id: string
+  content: string
+  created_at: string
+  // 關聯的用戶資訊（查詢時 join）
+  username?: string
+  display_name?: string
+  avatar_url?: string
+}
+
+/**
+ * 目標參考（我也想做）
+ */
+export interface BucketListReference {
+  id: string
+  source_item_id: string // 原始目標
+  target_biography_id: string // 參考者
+  created_at: string
+}
+
+/**
+ * 追蹤關係
+ */
+export interface Follow {
+  id: string
+  follower_id: string
+  following_id: string
+  created_at: string
+}
+
+/**
+ * 通知類型
+ */
+export type NotificationType =
+  | 'goal_completed'
+  | 'goal_liked'
+  | 'goal_commented'
+  | 'goal_referenced'
+  | 'new_follower'
+  | 'story_featured'
+
+/**
+ * 通知
+ */
+export interface Notification {
+  id: string
+  user_id: string
+  type: NotificationType
+  actor_id: string | null
+  target_id: string | null
+  title: string
+  message: string
+  is_read: boolean
+  created_at: string
+  // 關聯的 actor 資訊（查詢時 join）
+  actor_name?: string
+  actor_avatar?: string
+}
+
+/**
  * 創建/更新人物誌請求介面
  */
 export interface BiographyInput {
@@ -317,17 +678,80 @@ export interface BiographyInput {
   bio?: string
   avatar_url?: string
   cover_image?: string
+
+  // 第一層：基本資訊
   climbing_start_year?: string
   frequent_locations?: string
   favorite_route_type?: string
-  climbing_reason?: string
+
+  // 第二層：核心故事
+  climbing_origin?: string
   climbing_meaning?: string
-  bucket_list?: string
-  advice?: string
+  advice_to_self?: string
+
+  // 第三層：進階故事 - A. 成長與突破
+  memorable_moment?: string
+  biggest_challenge?: string
+  breakthrough_story?: string
+  first_outdoor?: string
+  first_grade?: string
+  frustrating_climb?: string
+
+  // 第三層：進階故事 - B. 心理與哲學
+  fear_management?: string
+  climbing_lesson?: string
+  failure_perspective?: string
+  flow_moment?: string
+  life_balance?: string
+  unexpected_gain?: string
+
+  // 第三層：進階故事 - C. 社群與連結
+  climbing_mentor?: string
+  climbing_partner?: string
+  funny_moment?: string
+  favorite_spot?: string
+  advice_to_group?: string
+  climbing_space?: string
+
+  // 第三層：進階故事 - D. 實用分享
+  injury_recovery?: string
+  memorable_route?: string
+  training_method?: string
+  effective_practice?: string
+  technique_tip?: string
+  gear_choice?: string
+
+  // 第三層：進階故事 - E. 夢想與探索
+  dream_climb?: string
+  climbing_trip?: string
+  bucket_list_story?: string
+  climbing_goal?: string
+  climbing_style?: string
+  climbing_inspiration?: string
+
+  // 第三層：進階故事 - F. 生活整合
+  life_outside_climbing?: string
+
+  // 攀岩足跡
+  climbing_locations?: string // JSON
+
+  // 媒體與社群
+  gallery_images?: string // JSON
+  social_links?: string // JSON
+  youtube_channel_id?: string
+  featured_video_id?: string
+
+  // 狀態
   achievements?: string
-  social_links?: string
   is_public?: number
-  gallery_images?: string // JSON 格式的圖片資料
+
+  // Legacy fields
+  /** @deprecated 使用 climbing_origin */
+  climbing_reason?: string
+  /** @deprecated 使用 advice_to_self */
+  advice?: string
+  /** @deprecated 使用結構化的 BucketListItem */
+  bucket_list?: string
 }
 
 /**
