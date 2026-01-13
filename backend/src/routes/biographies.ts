@@ -511,10 +511,18 @@ biographiesRoutes.get('/:id/stats', async (c) => {
   const id = c.req.param('id');
 
   const biography = await c.env.DB.prepare(
-    'SELECT id, total_likes, total_views, follower_count FROM biographies WHERE id = ? AND is_public = 1'
+    `SELECT id, user_id, total_likes, total_views, follower_count,
+      climbing_origin, climbing_meaning, advice_to_self,
+      memorable_moment, biggest_challenge, breakthrough_story, first_outdoor, first_grade, frustrating_climb,
+      fear_management, climbing_lesson, failure_perspective, flow_moment, life_balance, unexpected_gain,
+      climbing_mentor, climbing_partner, funny_moment, favorite_spot, advice_to_group, climbing_space,
+      injury_recovery, memorable_route, training_method, effective_practice, technique_tip, gear_choice,
+      dream_climb, climbing_trip, bucket_list_story, climbing_goal, climbing_style, climbing_inspiration,
+      life_outside_climbing, climbing_locations
+    FROM biographies WHERE id = ? AND is_public = 1`
   )
     .bind(id)
-    .first<{ id: string; total_likes: number; total_views: number; follower_count: number }>();
+    .first<Biography>();
 
   if (!biography) {
     return c.json(
@@ -538,17 +546,60 @@ biographiesRoutes.get('/:id/stats', async (c) => {
     .bind(id)
     .first<{ total: number; active: number; completed: number }>();
 
+  // Count following
+  const followingCount = await c.env.DB.prepare(
+    'SELECT COUNT(*) as count FROM follows WHERE follower_id = ?'
+  )
+    .bind(biography.user_id)
+    .first<{ count: number }>();
+
+  // Calculate story completion
+  const coreStoryFields = ['climbing_origin', 'climbing_meaning', 'advice_to_self'];
+  const advancedStoryFields = [
+    'memorable_moment', 'biggest_challenge', 'breakthrough_story', 'first_outdoor', 'first_grade', 'frustrating_climb',
+    'fear_management', 'climbing_lesson', 'failure_perspective', 'flow_moment', 'life_balance', 'unexpected_gain',
+    'climbing_mentor', 'climbing_partner', 'funny_moment', 'favorite_spot', 'advice_to_group', 'climbing_space',
+    'injury_recovery', 'memorable_route', 'training_method', 'effective_practice', 'technique_tip', 'gear_choice',
+    'dream_climb', 'climbing_trip', 'bucket_list_story', 'climbing_goal', 'climbing_style', 'climbing_inspiration',
+    'life_outside_climbing',
+  ];
+
+  const coreCompleted = coreStoryFields.filter(
+    (field) => biography[field as keyof Biography] && String(biography[field as keyof Biography]).trim() !== ''
+  ).length;
+  const advancedCompleted = advancedStoryFields.filter(
+    (field) => biography[field as keyof Biography] && String(biography[field as keyof Biography]).trim() !== ''
+  ).length;
+
+  // Count climbing locations
+  let locationsCount = 0;
+  if (biography.climbing_locations) {
+    try {
+      const locations = JSON.parse(biography.climbing_locations as string);
+      locationsCount = Array.isArray(locations) ? locations.length : 0;
+    } catch {
+      locationsCount = 0;
+    }
+  }
+
   return c.json({
     success: true,
     data: {
       total_likes: biography.total_likes || 0,
       total_views: biography.total_views || 0,
       follower_count: biography.follower_count || 0,
+      following_count: followingCount?.count || 0,
       bucket_list: {
         total: bucketListStats?.total || 0,
         active: bucketListStats?.active || 0,
         completed: bucketListStats?.completed || 0,
       },
+      stories: {
+        total: coreCompleted + advancedCompleted,
+        core_completed: coreCompleted,
+        advanced_completed: advancedCompleted,
+      },
+      locations_count: locationsCount,
     },
   });
 });
@@ -830,5 +881,319 @@ biographiesRoutes.get('/:id/following', async (c) => {
       limit,
       offset,
     },
+  });
+});
+
+// ═══════════════════════════════════════════════════════════
+// 徽章系統
+// ═══════════════════════════════════════════════════════════
+
+// 徽章定義
+const BADGE_DEFINITIONS = {
+  // 故事分享
+  story_beginner: { requirement: 'complete_first_story', threshold: 1 },
+  story_writer: { requirement: 'complete_5_stories', threshold: 5 },
+  inspirator: { requirement: 'story_encouraged_10_times', threshold: 10 },
+  trending: { requirement: 'story_50_likes', threshold: 50 },
+  // 目標追蹤
+  goal_setter: { requirement: 'create_first_goal', threshold: 1 },
+  achiever: { requirement: 'complete_first_goal', threshold: 1 },
+  consistent: { requirement: 'complete_3_goals', threshold: 3 },
+  // 社群互動
+  supportive: { requirement: 'give_50_likes', threshold: 50 },
+  conversationalist: { requirement: 'post_20_comments', threshold: 20 },
+  explorer: { requirement: 'read_20_biographies', threshold: 20 },
+  // 攀岩足跡
+  traveler: { requirement: 'add_5_locations', threshold: 5 },
+  international: { requirement: 'add_3_international_locations', threshold: 3 },
+};
+
+// GET /biographies/:id/badges - Get user's badges and progress
+biographiesRoutes.get('/:id/badges', async (c) => {
+  const id = c.req.param('id');
+
+  const biography = await c.env.DB.prepare(
+    `SELECT id, user_id, total_likes, climbing_locations,
+      climbing_origin, climbing_meaning, advice_to_self,
+      memorable_moment, biggest_challenge, breakthrough_story, first_outdoor, first_grade, frustrating_climb,
+      fear_management, climbing_lesson, failure_perspective, flow_moment, life_balance, unexpected_gain,
+      climbing_mentor, climbing_partner, funny_moment, favorite_spot, advice_to_group, climbing_space,
+      injury_recovery, memorable_route, training_method, effective_practice, technique_tip, gear_choice,
+      dream_climb, climbing_trip, bucket_list_story, climbing_goal, climbing_style, climbing_inspiration,
+      life_outside_climbing
+    FROM biographies WHERE id = ? AND is_public = 1`
+  )
+    .bind(id)
+    .first<Biography>();
+
+  if (!biography) {
+    return c.json(
+      {
+        success: false,
+        error: 'Not Found',
+        message: 'Biography not found',
+      },
+      404
+    );
+  }
+
+  // Calculate story count
+  const storyFields = [
+    'climbing_origin', 'climbing_meaning', 'advice_to_self',
+    'memorable_moment', 'biggest_challenge', 'breakthrough_story', 'first_outdoor', 'first_grade', 'frustrating_climb',
+    'fear_management', 'climbing_lesson', 'failure_perspective', 'flow_moment', 'life_balance', 'unexpected_gain',
+    'climbing_mentor', 'climbing_partner', 'funny_moment', 'favorite_spot', 'advice_to_group', 'climbing_space',
+    'injury_recovery', 'memorable_route', 'training_method', 'effective_practice', 'technique_tip', 'gear_choice',
+    'dream_climb', 'climbing_trip', 'bucket_list_story', 'climbing_goal', 'climbing_style', 'climbing_inspiration',
+    'life_outside_climbing',
+  ];
+  const storyCount = storyFields.filter(
+    (field) => biography[field as keyof Biography] && String(biography[field as keyof Biography]).trim() !== ''
+  ).length;
+
+  // Get bucket list stats
+  const bucketListStats = await c.env.DB.prepare(
+    `SELECT
+      COUNT(*) as total,
+      SUM(CASE WHEN status = 'completed' THEN 1 ELSE 0 END) as completed
+    FROM bucket_list_items WHERE biography_id = ?`
+  )
+    .bind(id)
+    .first<{ total: number; completed: number }>();
+
+  // Get likes given count
+  const likesGiven = await c.env.DB.prepare(
+    'SELECT COUNT(*) as count FROM bucket_list_likes WHERE user_id = ?'
+  )
+    .bind(biography.user_id)
+    .first<{ count: number }>();
+
+  // Get comments count
+  const commentsCount = await c.env.DB.prepare(
+    'SELECT COUNT(*) as count FROM bucket_list_comments WHERE user_id = ?'
+  )
+    .bind(biography.user_id)
+    .first<{ count: number }>();
+
+  // Count climbing locations
+  let locationsCount = 0;
+  let internationalCount = 0;
+  if (biography.climbing_locations) {
+    try {
+      const locations = JSON.parse(biography.climbing_locations as string);
+      if (Array.isArray(locations)) {
+        locationsCount = locations.length;
+        internationalCount = locations.filter(
+          (loc: { country?: string }) => loc.country && loc.country !== '台灣' && loc.country !== 'Taiwan'
+        ).length;
+      }
+    } catch {
+      // ignore parse errors
+    }
+  }
+
+  // Get unlocked badges from database
+  const unlockedBadges = await c.env.DB.prepare(
+    'SELECT * FROM user_badges WHERE user_id = ?'
+  )
+    .bind(biography.user_id)
+    .all();
+
+  const unlockedBadgeIds = new Set(
+    (unlockedBadges.results || []).map((b: { badge_id?: string }) => b.badge_id)
+  );
+
+  // Calculate progress for each badge
+  const badgeProgress = Object.entries(BADGE_DEFINITIONS).map(([badgeId, def]) => {
+    let currentValue = 0;
+
+    switch (def.requirement) {
+      case 'complete_first_story':
+      case 'complete_5_stories':
+        currentValue = storyCount;
+        break;
+      case 'story_encouraged_10_times':
+      case 'story_50_likes':
+        currentValue = biography.total_likes || 0;
+        break;
+      case 'create_first_goal':
+        currentValue = bucketListStats?.total || 0;
+        break;
+      case 'complete_first_goal':
+      case 'complete_3_goals':
+        currentValue = bucketListStats?.completed || 0;
+        break;
+      case 'give_50_likes':
+        currentValue = likesGiven?.count || 0;
+        break;
+      case 'post_20_comments':
+        currentValue = commentsCount?.count || 0;
+        break;
+      case 'read_20_biographies':
+        currentValue = 0; // TODO: Track biography views
+        break;
+      case 'add_5_locations':
+        currentValue = locationsCount;
+        break;
+      case 'add_3_international_locations':
+        currentValue = internationalCount;
+        break;
+    }
+
+    const progress = Math.min(100, Math.round((currentValue / def.threshold) * 100));
+    const unlocked = unlockedBadgeIds.has(badgeId) || currentValue >= def.threshold;
+
+    return {
+      badge_id: badgeId,
+      current_value: currentValue,
+      target_value: def.threshold,
+      progress,
+      unlocked,
+      unlocked_at: unlocked
+        ? (unlockedBadges.results || []).find((b: { badge_id?: string }) => b.badge_id === badgeId)?.unlocked_at || null
+        : null,
+    };
+  });
+
+  return c.json({
+    success: true,
+    data: {
+      unlocked: (unlockedBadges.results || []) as Array<{ id: string; user_id: string; badge_id: string; unlocked_at: string }>,
+      progress: badgeProgress,
+    },
+  });
+});
+
+// ═══════════════════════════════════════════════════════════
+// 社群統計
+// ═══════════════════════════════════════════════════════════
+
+// GET /biographies/community/stats - Get community statistics
+biographiesRoutes.get('/community/stats', async (c) => {
+  // Total biographies
+  const totalBiographies = await c.env.DB.prepare(
+    'SELECT COUNT(*) as count FROM biographies WHERE is_public = 1'
+  ).first<{ count: number }>();
+
+  // Total goals and completed goals
+  const goalStats = await c.env.DB.prepare(
+    `SELECT
+      COUNT(*) as total,
+      SUM(CASE WHEN status = 'completed' THEN 1 ELSE 0 END) as completed
+    FROM bucket_list_items WHERE is_public = 1`
+  ).first<{ total: number; completed: number }>();
+
+  // Total stories (count non-empty story fields)
+  // This is an approximation - counting biographies with at least one story
+  const storiesCount = await c.env.DB.prepare(
+    `SELECT COUNT(*) as count FROM biographies
+     WHERE is_public = 1 AND (
+       climbing_origin IS NOT NULL OR climbing_meaning IS NOT NULL OR advice_to_self IS NOT NULL
+       OR memorable_moment IS NOT NULL OR biggest_challenge IS NOT NULL
+     )`
+  ).first<{ count: number }>();
+
+  // Active users this week
+  const oneWeekAgo = new Date();
+  oneWeekAgo.setDate(oneWeekAgo.getDate() - 7);
+  const activeUsers = await c.env.DB.prepare(
+    'SELECT COUNT(DISTINCT user_id) as count FROM biographies WHERE updated_at > ?'
+  )
+    .bind(oneWeekAgo.toISOString())
+    .first<{ count: number }>();
+
+  // Trending categories (bucket list categories)
+  const trendingCategories = await c.env.DB.prepare(
+    `SELECT category, COUNT(*) as count
+     FROM bucket_list_items
+     WHERE is_public = 1 AND category IS NOT NULL
+     GROUP BY category
+     ORDER BY count DESC
+     LIMIT 5`
+  ).all();
+
+  return c.json({
+    success: true,
+    data: {
+      total_biographies: totalBiographies?.count || 0,
+      total_goals: goalStats?.total || 0,
+      completed_goals: goalStats?.completed || 0,
+      total_stories: storiesCount?.count || 0,
+      active_users_this_week: activeUsers?.count || 0,
+      trending_categories: (trendingCategories.results || []).map((cat: { category?: string; count?: number }) => ({
+        category: cat.category,
+        count: cat.count,
+      })),
+    },
+  });
+});
+
+// GET /biographies/leaderboard/:type - Get leaderboard
+biographiesRoutes.get('/leaderboard/:type', async (c) => {
+  const type = c.req.param('type');
+  const limit = parseInt(c.req.query('limit') || '10', 10);
+
+  let query = '';
+  let orderBy = '';
+
+  switch (type) {
+    case 'goals_completed':
+      query = `
+        SELECT b.id as biography_id, b.name, b.avatar_url, COUNT(bl.id) as value
+        FROM biographies b
+        LEFT JOIN bucket_list_items bl ON bl.biography_id = b.id AND bl.status = 'completed'
+        WHERE b.is_public = 1
+        GROUP BY b.id
+        ORDER BY value DESC
+        LIMIT ?
+      `;
+      break;
+    case 'followers':
+      query = `
+        SELECT id as biography_id, name, avatar_url, follower_count as value
+        FROM biographies
+        WHERE is_public = 1
+        ORDER BY follower_count DESC
+        LIMIT ?
+      `;
+      break;
+    case 'likes_received':
+      query = `
+        SELECT id as biography_id, name, avatar_url, total_likes as value
+        FROM biographies
+        WHERE is_public = 1
+        ORDER BY total_likes DESC
+        LIMIT ?
+      `;
+      break;
+    default:
+      return c.json(
+        {
+          success: false,
+          error: 'Bad Request',
+          message: 'Invalid leaderboard type',
+        },
+        400
+      );
+  }
+
+  const results = await c.env.DB.prepare(query).bind(limit).all();
+
+  const leaderboard = (results.results || []).map((item: {
+    biography_id?: string;
+    name?: string;
+    avatar_url?: string | null;
+    value?: number;
+  }, index: number) => ({
+    rank: index + 1,
+    biography_id: item.biography_id,
+    name: item.name,
+    avatar_url: item.avatar_url,
+    value: item.value || 0,
+  }));
+
+  return c.json({
+    success: true,
+    data: leaderboard,
   });
 });
