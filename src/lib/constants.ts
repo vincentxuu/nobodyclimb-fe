@@ -168,8 +168,6 @@ export const DEFAULT_SEO = {
 
 // 社群媒體連結
 export const SOCIAL_LINKS = [
-  { label: 'Instagram', href: 'https://instagram.com/nobodyclimb', icon: 'instagram' },
-  { label: 'Facebook', href: 'https://facebook.com/nobodyclimb', icon: 'facebook' },
   { label: 'Mail', href: 'mailto:contact@nobodyclimb.cc', icon: 'mail' },
 ]
 

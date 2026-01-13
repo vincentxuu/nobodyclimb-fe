@@ -19,7 +19,7 @@ const https = require('https');
 const http = require('http');
 
 const API_BASE = process.env.API_BASE || 'https://api.nobodyclimb.cc/api/v1';
-const ACCESS_TOKEN = process.env.ACCESS_TOKEN;
+const ACCESS_TOKEN = "eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiI5OTZiZjYxMTM5OWU1ZWU4NTk0YTQ3ODkwOWRkNGRiOSIsImVtYWlsIjoidmluY2VudHh1QGdtYWlsLmNvbSIsInJvbGUiOiJ1c2VyIiwiaXNzIjoibm9ib2R5Y2xpbWItYXBpIiwiaWF0IjoxNzY4MzAwMTUwLCJleHAiOjE3NjgzMDEwNTB9.C53BP2nMhzOXwoxgPn3xxsf5gSRydi-Tkvq6yF69O3g";
 
 // Use script directory for portable paths
 const SCRIPT_DIR = __dirname;
@@ -28,12 +28,12 @@ const IMAGES_DIR = path.join(SCRIPT_DIR, '..', 'public', 'images', 'gallery');
 if (!ACCESS_TOKEN) {
     console.error('Error: ACCESS_TOKEN environment variable is required');
     console.error('');
-    console.error('Usage: ACCESS_TOKEN=your_token node scripts/upload-gallery-images-api.js');
+    console.error('Usage: ACCESS_TOKEN="eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiI5OTZiZjYxMTM5OWU1ZWU4NTk0YTQ3ODkwOWRkNGRiOSIsImVtYWlsIjoidmluY2VudHh1QGdtYWlsLmNvbSIsInJvbGUiOiJ1c2VyIiwiaXNzIjoibm9ib2R5Y2xpbWItYXBpIiwiaWF0IjoxNzY4MzAwMTUwLCJleHAiOjE3NjgzMDEwNTB9.C53BP2nMhzOXwoxgPn3xxsf5gSRydi-Tkvq6yF69O3g" node scripts/upload-gallery-images-api.js');
     console.error('');
     console.error('To get a token, login via API:');
     console.error('  curl -X POST https://api.nobodyclimb.cc/api/v1/auth/login \\');
     console.error('    -H "Content-Type: application/json" \\');
-    console.error('    -d \'{"email":"user@example.com","password":"YOUR_PASSWORD"}\'');
+    console.error('    -d \'{"email":"vincentxu@gmail.com","password":"vincentxu"}\'');
     process.exit(1);
 }
 
