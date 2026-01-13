@@ -2,6 +2,7 @@ import { Hono } from 'hono';
 import { Env } from '../types';
 import { generateId } from '../utils/id';
 import { authMiddleware, optionalAuthMiddleware } from '../middleware/auth';
+import { createNotification } from './notifications';
 
 export const bucketListRoutes = new Hono<{ Bindings: Env }>();
 
@@ -73,6 +74,24 @@ bucketListRoutes.get('/explore/by-category/:category', async (c) => {
   });
 });
 
+// GET /bucket-list/explore/category-counts - Get counts for all categories (solves N+1 problem)
+bucketListRoutes.get('/explore/category-counts', async (c) => {
+  const counts = await c.env.DB.prepare(
+    `SELECT
+      bli.category,
+      COUNT(*) as count
+     FROM bucket_list_items bli
+     JOIN biographies b ON bli.biography_id = b.id
+     WHERE bli.is_public = 1 AND b.is_public = 1
+     GROUP BY bli.category`
+  ).all();
+
+  return c.json({
+    success: true,
+    data: counts.results,
+  });
+});
+
 // GET /bucket-list/explore/by-location/:location - Get items by location
 bucketListRoutes.get('/explore/by-location/:location', async (c) => {
   const location = c.req.param('location');
@@ -92,6 +111,183 @@ bucketListRoutes.get('/explore/by-location/:location', async (c) => {
   return c.json({
     success: true,
     data: items.results,
+  });
+});
+
+// GET /bucket-list/explore/locations - Get popular climbing locations from bucket list
+bucketListRoutes.get('/explore/locations', async (c) => {
+  const limit = parseInt(c.req.query('limit') || '20', 10);
+  const country = c.req.query('country'); // Optional country filter
+
+  // Get locations from bucket list items (target_location field)
+  let query = `
+    SELECT
+      bli.target_location as location,
+      COUNT(DISTINCT bli.id) as item_count,
+      COUNT(DISTINCT bli.biography_id) as user_count,
+      SUM(CASE WHEN bli.status = 'completed' THEN 1 ELSE 0 END) as completed_count
+    FROM bucket_list_items bli
+    JOIN biographies b ON bli.biography_id = b.id
+    WHERE bli.target_location IS NOT NULL
+      AND bli.target_location != ''
+      AND bli.is_public = 1
+      AND b.is_public = 1
+  `;
+
+  const params: (string | number)[] = [];
+
+  if (country) {
+    query += ` AND bli.target_location LIKE ?`;
+    params.push(`%${country}%`);
+  }
+
+  query += `
+    GROUP BY bli.target_location
+    ORDER BY user_count DESC, completed_count DESC
+    LIMIT ?
+  `;
+  params.push(limit);
+
+  const locations = await c.env.DB.prepare(query).bind(...params).all();
+
+  return c.json({
+    success: true,
+    data: locations.results,
+  });
+});
+
+// GET /bucket-list/explore/locations/:location - Get location details
+bucketListRoutes.get('/explore/locations/:location', async (c) => {
+  const location = decodeURIComponent(c.req.param('location'));
+  const limit = parseInt(c.req.query('limit') || '10', 10);
+
+  // Get items for this location
+  const items = await c.env.DB.prepare(
+    `SELECT bli.*, b.name as author_name, b.avatar_url as author_avatar, b.slug as author_slug
+     FROM bucket_list_items bli
+     JOIN biographies b ON bli.biography_id = b.id
+     WHERE bli.target_location = ? AND bli.is_public = 1 AND b.is_public = 1
+     ORDER BY bli.status = 'completed' DESC, bli.likes_count DESC, bli.created_at DESC
+     LIMIT ?`
+  )
+    .bind(location, limit)
+    .all();
+
+  // Get statistics for this location
+  const stats = await c.env.DB.prepare(
+    `SELECT
+      COUNT(DISTINCT bli.id) as total_items,
+      COUNT(DISTINCT bli.biography_id) as total_users,
+      SUM(CASE WHEN bli.status = 'completed' THEN 1 ELSE 0 END) as completed_count
+     FROM bucket_list_items bli
+     JOIN biographies b ON bli.biography_id = b.id
+     WHERE bli.target_location = ? AND bli.is_public = 1 AND b.is_public = 1`
+  )
+    .bind(location)
+    .first<{ total_items: number; total_users: number; completed_count: number }>();
+
+  // Get users who have visited (completed) this location
+  const visitors = await c.env.DB.prepare(
+    `SELECT DISTINCT b.id, b.name, b.avatar_url, b.slug, bli.completed_at
+     FROM bucket_list_items bli
+     JOIN biographies b ON bli.biography_id = b.id
+     WHERE bli.target_location = ?
+       AND bli.status = 'completed'
+       AND bli.is_public = 1
+       AND b.is_public = 1
+     ORDER BY bli.completed_at DESC
+     LIMIT 10`
+  )
+    .bind(location)
+    .all();
+
+  return c.json({
+    success: true,
+    data: {
+      location,
+      stats: stats || { total_items: 0, total_users: 0, completed_count: 0 },
+      items: items.results,
+      visitors: visitors.results,
+    },
+  });
+});
+
+// GET /bucket-list/explore/climbing-footprints - Get climbing locations from biographies
+bucketListRoutes.get('/explore/climbing-footprints', async (c) => {
+  const limit = parseInt(c.req.query('limit') || '20', 10);
+  const country = c.req.query('country'); // 'taiwan' or 'overseas'
+
+  // Get biographies with climbing_locations
+  const biographies = await c.env.DB.prepare(
+    `SELECT id, name, avatar_url, slug, climbing_locations
+     FROM biographies
+     WHERE climbing_locations IS NOT NULL
+       AND climbing_locations != ''
+       AND climbing_locations != '[]'
+       AND is_public = 1
+     ORDER BY updated_at DESC
+     LIMIT ?`
+  )
+    .bind(limit * 2) // Get more to ensure we have enough after filtering
+    .all();
+
+  // Parse and aggregate locations
+  const locationMap = new Map<string, {
+    location: string;
+    country: string;
+    visitors: Array<{ id: string; name: string; avatar_url: string | null; slug: string }>;
+  }>();
+
+  for (const bio of biographies.results as Array<{ id: string; name: string; avatar_url: string | null; slug: string; climbing_locations: string }>) {
+    try {
+      const locations = JSON.parse(bio.climbing_locations || '[]') as Array<{
+        location: string;
+        country: string;
+        is_public?: boolean;
+      }>;
+
+      for (const loc of locations) {
+        if (!loc.location || (loc.is_public === false)) continue;
+
+        // Filter by country if specified - normalize to lowercase for robust comparison
+        const normalizedCountry = (loc.country || '').toLowerCase();
+        const isTaiwan = ['台灣', 'taiwan', 'tw'].includes(normalizedCountry);
+        if (country === 'taiwan' && !isTaiwan) continue;
+        if (country === 'overseas' && isTaiwan) continue;
+
+        const key = `${loc.location}|${loc.country}`;
+        if (!locationMap.has(key)) {
+          locationMap.set(key, {
+            location: loc.location,
+            country: loc.country,
+            visitors: [],
+          });
+        }
+
+        const existing = locationMap.get(key)!;
+        if (!existing.visitors.some(v => v.id === bio.id)) {
+          existing.visitors.push({
+            id: bio.id,
+            name: bio.name,
+            avatar_url: bio.avatar_url,
+            slug: bio.slug,
+          });
+        }
+      }
+    } catch (e) {
+      // Skip invalid JSON, but log the error for debugging purposes
+      console.error(`Failed to parse climbing_locations for biography ${bio.id}:`, e);
+    }
+  }
+
+  // Convert to array and sort by visitor count
+  const result = Array.from(locationMap.values())
+    .sort((a, b) => b.visitors.length - a.visitors.length)
+    .slice(0, limit);
+
+  return c.json({
+    success: true,
+    data: result,
   });
 });
 
@@ -526,12 +722,15 @@ bucketListRoutes.post('/:id/like', authMiddleware, async (c) => {
   const userId = c.get('userId');
   const id = c.req.param('id');
 
-  // Check if item exists and is public
+  // Check if item exists and is public, get owner info
   const item = await c.env.DB.prepare(
-    'SELECT id FROM bucket_list_items WHERE id = ? AND is_public = 1'
+    `SELECT bli.id, bli.title, bli.biography_id, b.user_id as owner_id
+     FROM bucket_list_items bli
+     JOIN biographies b ON bli.biography_id = b.id
+     WHERE bli.id = ? AND bli.is_public = 1`
   )
     .bind(id)
-    .first<{ id: string }>();
+    .first<{ id: string; title: string; biography_id: string; owner_id: string }>();
 
   if (!item) {
     return c.json(
@@ -576,6 +775,26 @@ bucketListRoutes.post('/:id/like', authMiddleware, async (c) => {
   )
     .bind(id)
     .run();
+
+  // Create notification for owner (if not liking own item)
+  if (item.owner_id && item.owner_id !== userId) {
+    const liker = await c.env.DB.prepare(
+      'SELECT display_name, username FROM users WHERE id = ?'
+    )
+      .bind(userId)
+      .first<{ display_name: string | null; username: string }>();
+
+    const likerName = liker?.display_name || liker?.username || '有人';
+
+    await createNotification(c.env.DB, {
+      userId: item.owner_id,
+      type: 'goal_liked',
+      actorId: userId,
+      targetId: id,
+      title: '有人按讚你的目標',
+      message: `${likerName} 按讚了你的目標「${item.title}」`,
+    });
+  }
 
   return c.json({
     success: true,
@@ -661,12 +880,15 @@ bucketListRoutes.post('/:id/comments', authMiddleware, async (c) => {
     );
   }
 
-  // Check if item exists and is public
+  // Check if item exists and is public, get owner info
   const item = await c.env.DB.prepare(
-    'SELECT id FROM bucket_list_items WHERE id = ? AND is_public = 1'
+    `SELECT bli.id, bli.title, bli.biography_id, b.user_id as owner_id
+     FROM bucket_list_items bli
+     JOIN biographies b ON bli.biography_id = b.id
+     WHERE bli.id = ? AND bli.is_public = 1`
   )
     .bind(id)
-    .first<{ id: string }>();
+    .first<{ id: string; title: string; biography_id: string; owner_id: string }>();
 
   if (!item) {
     return c.json(
@@ -703,6 +925,26 @@ bucketListRoutes.post('/:id/comments', authMiddleware, async (c) => {
   )
     .bind(commentId)
     .first();
+
+  // Create notification for owner (if not commenting on own item)
+  if (item.owner_id && item.owner_id !== userId) {
+    const commenter = await c.env.DB.prepare(
+      'SELECT display_name, username FROM users WHERE id = ?'
+    )
+      .bind(userId)
+      .first<{ display_name: string | null; username: string }>();
+
+    const commenterName = commenter?.display_name || commenter?.username || '有人';
+
+    await createNotification(c.env.DB, {
+      userId: item.owner_id,
+      type: 'goal_commented',
+      actorId: userId,
+      targetId: id,
+      title: '有人留言你的目標',
+      message: `${commenterName} 在你的目標「${item.title}」留言`,
+    });
+  }
 
   return c.json(
     {
@@ -776,14 +1018,14 @@ bucketListRoutes.post('/:id/reference', authMiddleware, async (c) => {
     );
   }
 
-  // Get source item
+  // Get source item with owner info
   const sourceItem = await c.env.DB.prepare(
-    `SELECT bli.*, b.id as source_biography_id FROM bucket_list_items bli
+    `SELECT bli.*, b.id as source_biography_id, b.user_id as owner_id FROM bucket_list_items bli
      JOIN biographies b ON bli.biography_id = b.id
      WHERE bli.id = ? AND bli.is_public = 1`
   )
     .bind(id)
-    .first<{ id: string; title: string; category: string; description: string; target_grade: string; target_location: string; source_biography_id: string }>();
+    .first<{ id: string; title: string; category: string; description: string; target_grade: string; target_location: string; source_biography_id: string; owner_id: string }>();
 
   if (!sourceItem) {
     return c.json(
@@ -853,6 +1095,26 @@ bucketListRoutes.post('/:id/reference', authMiddleware, async (c) => {
   )
     .bind(newItemId)
     .first();
+
+  // Create notification for owner (if not referencing own item)
+  if (sourceItem.owner_id && sourceItem.owner_id !== userId) {
+    const referencer = await c.env.DB.prepare(
+      'SELECT display_name, username FROM users WHERE id = ?'
+    )
+      .bind(userId)
+      .first<{ display_name: string | null; username: string }>();
+
+    const referencerName = referencer?.display_name || referencer?.username || '有人';
+
+    await createNotification(c.env.DB, {
+      userId: sourceItem.owner_id,
+      type: 'goal_referenced',
+      actorId: userId,
+      targetId: id,
+      title: '有人也想達成你的目標',
+      message: `${referencerName} 把你的目標「${sourceItem.title}」加入了他的清單`,
+    });
+  }
 
   return c.json(
     {

@@ -27,6 +27,11 @@ import {
   Crag,
   Route,
   Weather,
+  BiographyVideo,
+  BiographyVideoRelationType,
+  BiographyInstagram,
+  BiographyInstagramRelationType,
+  InstagramMediaType,
 } from '@/lib/types'
 
 /**
@@ -736,6 +741,91 @@ export const biographyService = {
     )
     return response.data
   },
+
+  /**
+   * 追蹤人物誌
+   */
+  follow: async (id: string) => {
+    const response = await apiClient.post<ApiResponse<{ message: string }>>(
+      `/biographies/${id}/follow`
+    )
+    return response.data
+  },
+
+  /**
+   * 追蹤人物誌（別名）
+   */
+  followBiography: async (id: string) => {
+    const response = await apiClient.post<ApiResponse<{ message: string }>>(
+      `/biographies/${id}/follow`
+    )
+    return response.data
+  },
+
+  /**
+   * 取消追蹤人物誌
+   */
+  unfollow: async (id: string) => {
+    const response = await apiClient.delete<ApiResponse<{ message: string }>>(
+      `/biographies/${id}/follow`
+    )
+    return response.data
+  },
+
+  /**
+   * 取消追蹤人物誌（別名）
+   */
+  unfollowBiography: async (id: string) => {
+    const response = await apiClient.delete<ApiResponse<{ message: string }>>(
+      `/biographies/${id}/follow`
+    )
+    return response.data
+  },
+
+  /**
+   * 獲取追蹤者列表
+   */
+  getFollowers: async (id: string, limit = 20, offset = 0) => {
+    const response = await apiClient.get<
+      ApiResponse<
+        Array<{
+          id: string
+          created_at: string
+          user_id: string
+          username: string
+          display_name: string | null
+          avatar_url: string | null
+          biography_id: string | null
+          biography_name: string | null
+          biography_slug: string | null
+        }>
+      > & { pagination: { total: number; limit: number; offset: number } }
+    >(`/biographies/${id}/followers`, { params: { limit, offset } })
+    return response.data
+  },
+
+  /**
+   * 獲取追蹤中列表
+   */
+  getFollowing: async (id: string, limit = 20, offset = 0) => {
+    const response = await apiClient.get<
+      ApiResponse<
+        Array<{
+          id: string
+          created_at: string
+          user_id: string
+          username: string
+          display_name: string | null
+          avatar_url: string | null
+          biography_id: string | null
+          biography_name: string | null
+          biography_slug: string | null
+          biography_avatar: string | null
+        }>
+      > & { pagination: { total: number; limit: number; offset: number } }
+    >(`/biographies/${id}/following`, { params: { limit, offset } })
+    return response.data
+  },
 }
 
 /**
@@ -752,6 +842,16 @@ export const bucketListService = {
     const response = await apiClient.get<ApiResponse<BucketListItem[]>>(
       `/bucket-list/${biographyId}`,
       { params: options }
+    )
+    return response.data
+  },
+
+  /**
+   * 獲取單一人生清單項目
+   */
+  getBucketListItem: async (id: string) => {
+    const response = await apiClient.get<ApiResponse<BucketListItem>>(
+      `/bucket-list/item/${id}`
     )
     return response.data
   },
@@ -924,12 +1024,101 @@ export const bucketListService = {
   },
 
   /**
+   * 加入我的清單（參考）- 別名
+   */
+  addReference: async (id: string) => {
+    const response = await apiClient.post<ApiResponse<BucketListItem>>(
+      `/bucket-list/${id}/reference`
+    )
+    return response.data
+  },
+
+  /**
+   * 取消參考
+   */
+  cancelReference: async (id: string) => {
+    const response = await apiClient.delete<ApiResponse<{ message: string }>>(
+      `/bucket-list/${id}/reference`
+    )
+    return response.data
+  },
+
+  /**
    * 獲取參考者列表
    */
   getReferences: async (id: string) => {
     const response = await apiClient.get<ApiResponse<BucketListReference[]>>(
       `/bucket-list/${id}/references`
     )
+    return response.data
+  },
+
+  /**
+   * 探索：取得所有分類的數量統計（解決 N+1 問題）
+   */
+  getCategoryCounts: async () => {
+    const response = await apiClient.get<
+      ApiResponse<Array<{ category: string; count: number }>>
+    >('/bucket-list/explore/category-counts')
+    return response.data
+  },
+
+  /**
+   * 探索：取得熱門地點
+   */
+  getPopularLocations: async (limit = 20, country?: string) => {
+    const response = await apiClient.get<
+      ApiResponse<
+        Array<{
+          location: string
+          item_count: number
+          user_count: number
+          completed_count: number
+        }>
+      >
+    >('/bucket-list/explore/locations', { params: { limit, country } })
+    return response.data
+  },
+
+  /**
+   * 探索：取得地點詳情
+   */
+  getLocationDetails: async (location: string, limit = 10) => {
+    const response = await apiClient.get<
+      ApiResponse<{
+        location: string
+        stats: { total_items: number; total_users: number; completed_count: number }
+        items: BucketListItem[]
+        visitors: Array<{
+          id: string
+          name: string
+          avatar_url: string | null
+          slug: string
+          completed_at: string
+        }>
+      }>
+    >(`/bucket-list/explore/locations/${encodeURIComponent(location)}`, { params: { limit } })
+    return response.data
+  },
+
+  /**
+   * 探索：取得攀岩足跡地點（從人物誌）
+   */
+  getClimbingFootprints: async (limit = 20, country?: 'taiwan' | 'overseas') => {
+    const response = await apiClient.get<
+      ApiResponse<
+        Array<{
+          location: string
+          country: string
+          visitors: Array<{
+            id: string
+            name: string
+            avatar_url: string | null
+            slug: string
+          }>
+        }>
+      >
+    >('/bucket-list/explore/climbing-footprints', { params: { limit, country } })
     return response.data
   },
 }
@@ -1198,6 +1387,261 @@ export const weatherService = {
     const response = await apiClient.get<ApiResponse<Weather>>('/weather/coordinates', {
       params: { lat: latitude, lon: longitude },
     })
+    return response.data
+  },
+}
+
+/**
+ * 通知相關 API 服務
+ */
+export const notificationService = {
+  /**
+   * 獲取通知列表
+   */
+  getNotifications: async (page = 1, limit = 20, unreadOnly = false) => {
+    const response = await apiClient.get<
+      ApiResponse<
+        Array<{
+          id: string
+          user_id: string
+          type: string
+          actor_id: string | null
+          target_id: string | null
+          title: string
+          message: string
+          is_read: number
+          created_at: string
+          actor_name?: string
+          actor_avatar?: string
+        }>
+      > & { pagination: { page: number; limit: number; total: number; total_pages: number } }
+    >('/notifications', { params: { page, limit, unread: unreadOnly ? 'true' : undefined } })
+    return response.data
+  },
+
+  /**
+   * 獲取未讀通知數量
+   */
+  getUnreadCount: async () => {
+    const response = await apiClient.get<ApiResponse<{ count: number }>>(
+      '/notifications/unread-count'
+    )
+    return response.data
+  },
+
+  /**
+   * 標記通知為已讀
+   */
+  markAsRead: async (id: string) => {
+    const response = await apiClient.put<ApiResponse<{ message: string }>>(
+      `/notifications/${id}/read`
+    )
+    return response.data
+  },
+
+  /**
+   * 標記全部通知為已讀
+   */
+  markAllAsRead: async () => {
+    const response = await apiClient.put<ApiResponse<{ message: string }>>(
+      '/notifications/read-all'
+    )
+    return response.data
+  },
+
+  /**
+   * 刪除通知
+   */
+  deleteNotification: async (id: string) => {
+    const response = await apiClient.delete<ApiResponse<{ message: string }>>(
+      `/notifications/${id}`
+    )
+    return response.data
+  },
+
+  /**
+   * 刪除全部通知
+   */
+  deleteAllNotifications: async () => {
+    const response = await apiClient.delete<ApiResponse<{ message: string }>>('/notifications')
+    return response.data
+  },
+}
+
+/**
+ * 媒體整合相關 API 服務
+ */
+export const mediaService = {
+  // ═══════════════════════════════════════════════════════════
+  // YouTube 影片
+  // ═══════════════════════════════════════════════════════════
+
+  /**
+   * 獲取人物誌的 YouTube 影片列表
+   */
+  getBiographyVideos: async (biographyId: string, featured?: boolean) => {
+    const response = await apiClient.get<ApiResponse<BiographyVideo[]>>(
+      `/media/biographies/${biographyId}/videos`,
+      { params: featured !== undefined ? { featured } : undefined }
+    )
+    return response.data
+  },
+
+  /**
+   * 新增 YouTube 影片關聯
+   */
+  addVideo: async (data: {
+    video_id: string
+    relation_type?: BiographyVideoRelationType
+    is_featured?: boolean
+    display_order?: number
+  }) => {
+    const response = await apiClient.post<ApiResponse<BiographyVideo>>(
+      '/media/biographies/me/videos',
+      data
+    )
+    return response.data
+  },
+
+  /**
+   * 更新 YouTube 影片關聯
+   */
+  updateVideo: async (
+    id: string,
+    data: {
+      relation_type?: BiographyVideoRelationType
+      is_featured?: boolean
+      display_order?: number
+    }
+  ) => {
+    const response = await apiClient.put<ApiResponse<BiographyVideo>>(
+      `/media/biographies/me/videos/${id}`,
+      data
+    )
+    return response.data
+  },
+
+  /**
+   * 刪除 YouTube 影片關聯
+   */
+  deleteVideo: async (id: string) => {
+    const response = await apiClient.delete<ApiResponse<{ message: string }>>(
+      `/media/biographies/me/videos/${id}`
+    )
+    return response.data
+  },
+
+  // ═══════════════════════════════════════════════════════════
+  // Instagram 貼文
+  // ═══════════════════════════════════════════════════════════
+
+  /**
+   * 獲取人物誌的 Instagram 貼文列表
+   */
+  getBiographyInstagrams: async (biographyId: string, featured?: boolean) => {
+    const response = await apiClient.get<ApiResponse<BiographyInstagram[]>>(
+      `/media/biographies/${biographyId}/instagrams`,
+      { params: featured !== undefined ? { featured } : undefined }
+    )
+    return response.data
+  },
+
+  /**
+   * 新增 Instagram 貼文關聯
+   */
+  addInstagram: async (data: {
+    instagram_url: string
+    instagram_shortcode: string
+    media_type?: InstagramMediaType
+    thumbnail_url?: string
+    caption?: string
+    posted_at?: string
+    relation_type?: BiographyInstagramRelationType
+    is_featured?: boolean
+    display_order?: number
+  }) => {
+    const response = await apiClient.post<ApiResponse<BiographyInstagram>>(
+      '/media/biographies/me/instagrams',
+      data
+    )
+    return response.data
+  },
+
+  /**
+   * 更新 Instagram 貼文關聯
+   */
+  updateInstagram: async (
+    id: string,
+    data: {
+      media_type?: InstagramMediaType
+      thumbnail_url?: string
+      caption?: string
+      posted_at?: string
+      relation_type?: BiographyInstagramRelationType
+      is_featured?: boolean
+      display_order?: number
+    }
+  ) => {
+    const response = await apiClient.put<ApiResponse<BiographyInstagram>>(
+      `/media/biographies/me/instagrams/${id}`,
+      data
+    )
+    return response.data
+  },
+
+  /**
+   * 刪除 Instagram 貼文關聯
+   */
+  deleteInstagram: async (id: string) => {
+    const response = await apiClient.delete<ApiResponse<{ message: string }>>(
+      `/media/biographies/me/instagrams/${id}`
+    )
+    return response.data
+  },
+
+  // ═══════════════════════════════════════════════════════════
+  // 資訊抓取
+  // ═══════════════════════════════════════════════════════════
+
+  /**
+   * 抓取 YouTube 影片資訊
+   */
+  fetchYoutubeInfo: async (url: string) => {
+    const response = await apiClient.get<
+      ApiResponse<{
+        video_id: string
+        title: string
+        channel_name: string
+        channel_url: string
+        thumbnail_url: string
+        thumbnails: {
+          default: string
+          medium: string
+          high: string
+          maxres: string
+        }
+        embed_url: string
+        watch_url: string
+      }>
+    >('/media/utils/youtube-info', { params: { url } })
+    return response.data
+  },
+
+  /**
+   * 抓取 Instagram 貼文資訊
+   */
+  fetchInstagramInfo: async (url: string) => {
+    const response = await apiClient.get<
+      ApiResponse<{
+        shortcode: string
+        instagram_url: string
+        embed_url: string
+        media_type: InstagramMediaType | null
+        thumbnail_url: string | null
+        caption: string | null
+        posted_at: string | null
+      }>
+    >('/media/utils/instagram-info', { params: { url } })
     return response.data
   },
 }

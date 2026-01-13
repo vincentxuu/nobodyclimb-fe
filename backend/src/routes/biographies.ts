@@ -2,6 +2,7 @@ import { Hono } from 'hono';
 import { Env, Biography } from '../types';
 import { parsePagination, generateId, generateSlug } from '../utils/id';
 import { authMiddleware, optionalAuthMiddleware } from '../middleware/auth';
+import { createNotification } from './notifications';
 
 export const biographiesRoutes = new Hono<{ Bindings: Env }>();
 
@@ -709,6 +710,24 @@ biographiesRoutes.post('/:id/follow', authMiddleware, async (c) => {
   )
     .bind(id)
     .run();
+
+  // Create notification for the followed user
+  const follower = await c.env.DB.prepare(
+    'SELECT display_name, username FROM users WHERE id = ?'
+  )
+    .bind(userId)
+    .first<{ display_name: string | null; username: string }>();
+
+  const followerName = follower?.display_name || follower?.username || '有人';
+
+  await createNotification(c.env.DB, {
+    userId: biography.user_id,
+    type: 'new_follower',
+    actorId: userId,
+    targetId: id,
+    title: '有人追蹤了你',
+    message: `${followerName} 開始追蹤你了`,
+  });
 
   return c.json({
     success: true,
