@@ -30,14 +30,14 @@ export function ReferenceButton({
   const [isReferenced, setIsReferenced] = useState(initialReferenced)
   const [count, setCount] = useState(initialCount)
   const [isLoading, setIsLoading] = useState(false)
-  const { isLoggedIn } = useAuthStore()
+  const { isAuthenticated } = useAuthStore()
   const router = useRouter()
 
   const handleClick = async (e: React.MouseEvent) => {
     e.stopPropagation()
     e.preventDefault()
 
-    if (!isLoggedIn) {
+    if (!isAuthenticated) {
       router.push('/auth/login')
       return
     }

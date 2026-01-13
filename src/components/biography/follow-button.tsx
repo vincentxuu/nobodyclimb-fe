@@ -25,11 +25,11 @@ export function FollowButton({
 }: FollowButtonProps) {
   const [isFollowing, setIsFollowing] = useState(initialFollowing)
   const [isLoading, setIsLoading] = useState(false)
-  const { isLoggedIn } = useAuthStore()
+  const { isAuthenticated } = useAuthStore()
   const router = useRouter()
 
   const handleClick = async () => {
-    if (!isLoggedIn) {
+    if (!isAuthenticated) {
       router.push('/auth/login')
       return
     }
