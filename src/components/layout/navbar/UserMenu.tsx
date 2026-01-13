@@ -91,6 +91,18 @@ export default function UserMenu({ isDesktop }: UserMenuProps) {
               </DropdownMenuItem>
               <DropdownMenuItem
                 className="cursor-pointer px-8 py-3 font-['Noto_Sans_CJK_TC'] text-sm font-medium leading-5 tracking-[0.01em] text-[#3F3D3D] hover:bg-gray-100"
+                onClick={() => router.push('/profile/bucket-list')}
+              >
+                人生清單
+              </DropdownMenuItem>
+              <DropdownMenuItem
+                className="cursor-pointer px-8 py-3 font-['Noto_Sans_CJK_TC'] text-sm font-medium leading-5 tracking-[0.01em] text-[#3F3D3D] hover:bg-gray-100"
+                onClick={() => router.push('/profile/photos')}
+              >
+                我的照片
+              </DropdownMenuItem>
+              <DropdownMenuItem
+                className="cursor-pointer px-8 py-3 font-['Noto_Sans_CJK_TC'] text-sm font-medium leading-5 tracking-[0.01em] text-[#3F3D3D] hover:bg-gray-100"
                 onClick={() => router.push('/profile/articles')}
               >
                 我的文章

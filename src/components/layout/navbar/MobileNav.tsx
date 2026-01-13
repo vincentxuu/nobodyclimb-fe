@@ -103,6 +103,15 @@ export default function MobileNav({ isDesktop }: MobileNavProps) {
                       </span>
                     </Link>
                     <Link
+                      href="/profile/bucket-list"
+                      className="block px-4 py-3 hover:bg-gray-50"
+                      onClick={closeNavbar}
+                    >
+                      <span className="font-['Noto_Sans_CJK_TC'] text-sm font-medium text-[#3F3D3D]">
+                        人生清單
+                      </span>
+                    </Link>
+                    <Link
                       href="/profile/photos"
                       className="block px-4 py-3 hover:bg-gray-50"
                       onClick={closeNavbar}
@@ -123,6 +132,7 @@ export default function MobileNav({ isDesktop }: MobileNavProps) {
                     <Link
                       href="/profile/bookmarks"
                       className="block px-4 py-3 hover:bg-gray-50"
+                      onClick={closeNavbar}
                     >
                       <span className="font-['Noto_Sans_CJK_TC'] text-sm font-medium text-[#3F3D3D]">
                         我的收藏
