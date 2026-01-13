@@ -58,14 +58,6 @@ ALTER TABLE biographies ADD COLUMN total_likes INTEGER DEFAULT 0;
 ALTER TABLE biographies ADD COLUMN total_views INTEGER DEFAULT 0;
 ALTER TABLE biographies ADD COLUMN follower_count INTEGER DEFAULT 0;
 
--- 重命名現有欄位（使用新表方式處理 - SQLite 不直接支援 RENAME COLUMN）
--- 為了向後相容，保留原欄位，新增映射欄位
+-- 核心故事欄位（取代舊的 climbing_reason 和 advice）
 ALTER TABLE biographies ADD COLUMN climbing_origin TEXT;
 ALTER TABLE biographies ADD COLUMN advice_to_self TEXT;
-
--- 將舊欄位資料複製到新欄位
-UPDATE biographies SET climbing_origin = climbing_reason WHERE climbing_reason IS NOT NULL;
-UPDATE biographies SET advice_to_self = advice WHERE advice IS NOT NULL;
-
--- 注意：保留 climbing_reason 和 advice 欄位以維持向後相容
--- 新程式碼應使用 climbing_origin 和 advice_to_self

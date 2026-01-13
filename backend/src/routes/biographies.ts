@@ -223,10 +223,8 @@ biographiesRoutes.post('/', authMiddleware, async (c) => {
       'climbing_locations',
       // Media & Social
       'gallery_images', 'social_links', 'youtube_channel_id', 'featured_video_id',
-      // Status & Legacy
+      // Status
       'achievements', 'is_featured', 'is_public',
-      // Legacy fields (backward compatibility)
-      'climbing_reason', 'advice', 'bucket_list',
     ];
 
     for (const field of fields) {
@@ -288,9 +286,9 @@ biographiesRoutes.post('/', authMiddleware, async (c) => {
     `INSERT INTO biographies (
       id, user_id, name, slug, title, bio, avatar_url, cover_image,
       climbing_start_year, frequent_locations, favorite_route_type,
-      climbing_reason, climbing_meaning, bucket_list, advice,
+      climbing_origin, climbing_meaning, advice_to_self,
       achievements, social_links, is_featured, is_public, published_at
-    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
+    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
   )
     .bind(
       id,
@@ -304,10 +302,9 @@ biographiesRoutes.post('/', authMiddleware, async (c) => {
       body.climbing_start_year || null,
       body.frequent_locations || null,
       body.favorite_route_type || null,
-      body.climbing_reason || null,
+      body.climbing_origin || null,
       body.climbing_meaning || null,
-      body.bucket_list || null,
-      body.advice || null,
+      body.advice_to_self || null,
       body.achievements || null,
       body.social_links || null,
       body.is_featured || 0,
@@ -387,8 +384,6 @@ biographiesRoutes.put('/me', authMiddleware, async (c) => {
     'gallery_images', 'social_links', 'youtube_channel_id', 'featured_video_id',
     // Status
     'achievements', 'is_public',
-    // Legacy fields (backward compatibility)
-    'climbing_reason', 'advice', 'bucket_list',
   ];
 
   for (const field of fields) {

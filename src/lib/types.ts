@@ -369,14 +369,6 @@ export interface Biography {
   total_likes: number
   total_views: number
   follower_count: number
-
-  // Legacy fields (for backward compatibility)
-  /** @deprecated 使用 climbing_origin */
-  climbing_reason?: string | null
-  /** @deprecated 使用 advice_to_self */
-  advice?: string | null
-  /** @deprecated 使用結構化的 BucketListItem */
-  bucket_list?: string | null
 }
 
 /**
@@ -744,14 +736,6 @@ export interface BiographyInput {
   // 狀態
   achievements?: string
   is_public?: number
-
-  // Legacy fields
-  /** @deprecated 使用 climbing_origin */
-  climbing_reason?: string
-  /** @deprecated 使用 advice_to_self */
-  advice?: string
-  /** @deprecated 使用結構化的 BucketListItem */
-  bucket_list?: string
 }
 
 /**
