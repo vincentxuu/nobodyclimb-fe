@@ -2,6 +2,7 @@ import { Hono } from 'hono';
 import { Env } from '../types';
 import { generateId } from '../utils/id';
 import { authMiddleware, optionalAuthMiddleware } from '../middleware/auth';
+import { createNotification } from './notifications';
 
 export const bucketListRoutes = new Hono<{ Bindings: Env }>();
 
@@ -526,12 +527,15 @@ bucketListRoutes.post('/:id/like', authMiddleware, async (c) => {
   const userId = c.get('userId');
   const id = c.req.param('id');
 
-  // Check if item exists and is public
+  // Check if item exists and is public, get owner info
   const item = await c.env.DB.prepare(
-    'SELECT id FROM bucket_list_items WHERE id = ? AND is_public = 1'
+    `SELECT bli.id, bli.title, bli.biography_id, b.user_id as owner_id
+     FROM bucket_list_items bli
+     JOIN biographies b ON bli.biography_id = b.id
+     WHERE bli.id = ? AND bli.is_public = 1`
   )
     .bind(id)
-    .first<{ id: string }>();
+    .first<{ id: string; title: string; biography_id: string; owner_id: string }>();
 
   if (!item) {
     return c.json(
@@ -576,6 +580,26 @@ bucketListRoutes.post('/:id/like', authMiddleware, async (c) => {
   )
     .bind(id)
     .run();
+
+  // Create notification for owner (if not liking own item)
+  if (item.owner_id && item.owner_id !== userId) {
+    const liker = await c.env.DB.prepare(
+      'SELECT display_name, username FROM users WHERE id = ?'
+    )
+      .bind(userId)
+      .first<{ display_name: string | null; username: string }>();
+
+    const likerName = liker?.display_name || liker?.username || '有人';
+
+    await createNotification(c.env.DB, {
+      userId: item.owner_id,
+      type: 'goal_liked',
+      actorId: userId,
+      targetId: id,
+      title: '有人按讚你的目標',
+      message: `${likerName} 按讚了你的目標「${item.title}」`,
+    });
+  }
 
   return c.json({
     success: true,
@@ -661,12 +685,15 @@ bucketListRoutes.post('/:id/comments', authMiddleware, async (c) => {
     );
   }
 
-  // Check if item exists and is public
+  // Check if item exists and is public, get owner info
   const item = await c.env.DB.prepare(
-    'SELECT id FROM bucket_list_items WHERE id = ? AND is_public = 1'
+    `SELECT bli.id, bli.title, bli.biography_id, b.user_id as owner_id
+     FROM bucket_list_items bli
+     JOIN biographies b ON bli.biography_id = b.id
+     WHERE bli.id = ? AND bli.is_public = 1`
   )
     .bind(id)
-    .first<{ id: string }>();
+    .first<{ id: string; title: string; biography_id: string; owner_id: string }>();
 
   if (!item) {
     return c.json(
@@ -703,6 +730,26 @@ bucketListRoutes.post('/:id/comments', authMiddleware, async (c) => {
   )
     .bind(commentId)
     .first();
+
+  // Create notification for owner (if not commenting on own item)
+  if (item.owner_id && item.owner_id !== userId) {
+    const commenter = await c.env.DB.prepare(
+      'SELECT display_name, username FROM users WHERE id = ?'
+    )
+      .bind(userId)
+      .first<{ display_name: string | null; username: string }>();
+
+    const commenterName = commenter?.display_name || commenter?.username || '有人';
+
+    await createNotification(c.env.DB, {
+      userId: item.owner_id,
+      type: 'goal_commented',
+      actorId: userId,
+      targetId: id,
+      title: '有人留言你的目標',
+      message: `${commenterName} 在你的目標「${item.title}」留言`,
+    });
+  }
 
   return c.json(
     {
@@ -776,14 +823,14 @@ bucketListRoutes.post('/:id/reference', authMiddleware, async (c) => {
     );
   }
 
-  // Get source item
+  // Get source item with owner info
   const sourceItem = await c.env.DB.prepare(
-    `SELECT bli.*, b.id as source_biography_id FROM bucket_list_items bli
+    `SELECT bli.*, b.id as source_biography_id, b.user_id as owner_id FROM bucket_list_items bli
      JOIN biographies b ON bli.biography_id = b.id
      WHERE bli.id = ? AND bli.is_public = 1`
   )
     .bind(id)
-    .first<{ id: string; title: string; category: string; description: string; target_grade: string; target_location: string; source_biography_id: string }>();
+    .first<{ id: string; title: string; category: string; description: string; target_grade: string; target_location: string; source_biography_id: string; owner_id: string }>();
 
   if (!sourceItem) {
     return c.json(
@@ -853,6 +900,26 @@ bucketListRoutes.post('/:id/reference', authMiddleware, async (c) => {
   )
     .bind(newItemId)
     .first();
+
+  // Create notification for owner (if not referencing own item)
+  if (sourceItem.owner_id && sourceItem.owner_id !== userId) {
+    const referencer = await c.env.DB.prepare(
+      'SELECT display_name, username FROM users WHERE id = ?'
+    )
+      .bind(userId)
+      .first<{ display_name: string | null; username: string }>();
+
+    const referencerName = referencer?.display_name || referencer?.username || '有人';
+
+    await createNotification(c.env.DB, {
+      userId: sourceItem.owner_id,
+      type: 'goal_referenced',
+      actorId: userId,
+      targetId: id,
+      title: '有人也想達成你的目標',
+      message: `${referencerName} 把你的目標「${sourceItem.title}」加入了他的清單`,
+    });
+  }
 
   return c.json(
     {
