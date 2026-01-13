@@ -384,7 +384,7 @@ export default function BucketListDetailPage({ params }: BucketListDetailPagePro
                   <div key={comment.id} className="rounded-lg bg-gray-50 p-4">
                     <div className="flex items-center gap-2">
                       <span className="font-medium text-[#1B1A1A]">
-                        {comment.user_name || '匿名用戶'}
+                        {comment.display_name || comment.username || '匿名用戶'}
                       </span>
                       <span className="text-xs text-gray-400">
                         {new Date(comment.created_at).toLocaleDateString('zh-TW')}
