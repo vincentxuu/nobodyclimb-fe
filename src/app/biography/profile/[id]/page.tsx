@@ -24,6 +24,7 @@ import { Button } from '@/components/ui/button'
 import BackToTop from '@/components/ui/back-to-top'
 import { RecommendedProfiles } from '@/components/biography/recommended-profiles'
 import { Breadcrumb } from '@/components/ui/breadcrumb'
+import { BiographyBucketList } from '@/components/bucket-list'
 import { biographyService } from '@/lib/api/services'
 import { Biography, BiographyAdjacent } from '@/lib/types'
 import {
@@ -437,6 +438,9 @@ export default function ProfilePage({ params }: ProfilePageProps) {
                 </p>
               </div>
             )}
+
+            {/* 結構化人生清單 */}
+            <BiographyBucketList biographyId={person.id} />
 
             <StorySection title="給剛開始攀岩的自己" content={person.advice_to_self} />
           </div>
