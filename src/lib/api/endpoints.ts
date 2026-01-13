@@ -77,6 +77,16 @@ export const BIOGRAPHY_ENDPOINTS = {
   BIOGRAPHY_BY_SLUG: (slug: string) => `/biographies/slug/${slug}`,
   FEATURED_BIOGRAPHIES: '/biographies/featured',
   MY_BIOGRAPHY: '/biographies/me',
+  // 統計與徽章 (Phase 8)
+  STATS: (id: string) => `/biographies/${id}/stats`,
+  BADGES: (id: string) => `/biographies/${id}/badges`,
+  RECORD_VIEW: (id: string) => `/biographies/${id}/view`,
+  COMMUNITY_STATS: '/biographies/community/stats',
+  LEADERBOARD: (type: string) => `/biographies/leaderboard/${type}`,
+  // 追蹤系統
+  FOLLOW: (id: string) => `/biographies/${id}/follow`,
+  FOLLOWERS: (id: string) => `/biographies/${id}/followers`,
+  FOLLOWING: (id: string) => `/biographies/${id}/following`,
 }
 
 // 岩場相關
