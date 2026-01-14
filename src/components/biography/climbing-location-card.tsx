@@ -70,7 +70,7 @@ export function ClimbingLocationList({
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between">
-        <h3 className="flex items-center gap-2 text-lg font-medium text-[#1B1A1A]">
+        <h3 className="flex items-center gap-2 text-lg font-medium text-text-main">
           <MapPin className="h-5 w-5" />
           攀岩足跡
         </h3>
