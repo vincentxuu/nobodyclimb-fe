@@ -249,24 +249,15 @@ export interface RouteSearchItem {
  * 獲取所有岩場的所有路線（用於搜尋）
  */
 export function getAllRoutes(): RouteSearchItem[] {
-  const allRoutes: RouteSearchItem[] = []
-
-  cragsDataMap.forEach((data) => {
-    const cragId = data.crag.id
-    const cragName = data.crag.name
-
-    data.routes.forEach((route) => {
-      const area = data.areas.find((a) => a.id === route.areaId)
-      allRoutes.push({
-        route,
-        cragId,
-        cragName,
-        areaName: area?.name || '',
-      })
-    })
+  return [...cragsDataMap.values()].flatMap((data) => {
+    const areaIdToNameMap = new Map(data.areas.map((area) => [area.id, area.name]))
+    return data.routes.map((route) => ({
+      route,
+      cragId: data.crag.id,
+      cragName: data.crag.name,
+      areaName: areaIdToNameMap.get(route.areaId) || '',
+    }))
   })
-
-  return allRoutes
 }
 
 /**

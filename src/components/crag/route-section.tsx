@@ -67,8 +67,8 @@ export const CragRouteSection: React.FC<CragRouteSectionProps> = ({
     }
 
     // 再根據搜尋字串篩選
-    if (searchQuery.trim()) {
-      const query = searchQuery.toLowerCase().trim()
+    const query = searchQuery.trim().toLowerCase()
+    if (query) {
       result = result.filter(
         (route) =>
           route.name.toLowerCase().includes(query) ||
