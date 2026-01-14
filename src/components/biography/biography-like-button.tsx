@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { Heart, Loader2 } from 'lucide-react'
+import { Mountain, Loader2 } from 'lucide-react'
 import { biographyService } from '@/lib/api/services'
 import { useAuthStore } from '@/store/authStore'
 import { useRouter } from 'next/navigation'
@@ -81,15 +81,15 @@ export function BiographyLikeButton({
       onClick={handleClick}
       disabled={isLoading}
       className={cn(
-        'inline-flex items-center gap-1 text-sm text-gray-500 hover:text-red-500 transition-colors',
-        isLiked && 'text-red-500',
+        'inline-flex items-center gap-1 text-sm text-gray-500 hover:text-emerald-600 transition-colors',
+        isLiked && 'text-emerald-600',
         className
       )}
     >
       {isLoading ? (
         <Loader2 className="h-4 w-4 animate-spin" />
       ) : (
-        <Heart className={cn('h-4 w-4', isLiked && 'fill-current')} />
+        <Mountain className={cn('h-4 w-4', isLiked && 'fill-current')} />
       )}
       {showCount && <span>{count} 個讚</span>}
     </button>
