@@ -82,7 +82,7 @@ export function StoryPromptWrapper() {
 
   return (
     <StoryPromptModal
-      biography={biography as unknown as Record<string, unknown>}
+      biography={biography as Record<string, unknown>}
       userName={user?.displayName || user?.username || '你'}
       isOpen={isStoryPromptOpen}
       onClose={handleClose}
