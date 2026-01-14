@@ -57,7 +57,6 @@ export default function BucketListPage() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['bucket-list'] })
       setShowForm(false)
-      setShowQuickAdd(false)
       toast({ title: '目標已新增', variant: 'default' })
     },
     onError: () => {
