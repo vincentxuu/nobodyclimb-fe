@@ -9,7 +9,6 @@ import ClimbingInfoSection from './ClimbingInfoSection'
 import ClimbingExperienceSection from './ClimbingExperienceSection'
 import AdvancedStoriesSection from './AdvancedStoriesSection'
 import ClimbingFootprintsSection from './ClimbingFootprintsSection'
-import MediaIntegrationSection from './MediaIntegrationSection'
 import PublicSettingSection from './PublicSettingSection'
 import ProfileActionButtons from './ProfileActionButtons'
 import { ProfileImageSection } from './image-gallery'
@@ -292,12 +291,6 @@ export default function ProfileContainer() {
             isEditing={isEditing}
             isMobile={isMobile}
             onChange={handleClimbingLocationsChange}
-          />
-          <ProfileDivider />
-          <MediaIntegrationSection
-            biographyId={profileData.biographyId}
-            isEditing={isEditing}
-            isMobile={isMobile}
           />
           <ProfileDivider />
           <PublicSettingSection
