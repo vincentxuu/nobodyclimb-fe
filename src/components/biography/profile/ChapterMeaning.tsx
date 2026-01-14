@@ -16,7 +16,7 @@ export function ChapterMeaning({ person }: ChapterMeaningProps) {
 
   return (
     <motion.section
-      className="my-16 bg-gradient-to-br from-yellow-50 to-amber-50 px-8 py-20"
+      className="my-16 bg-gradient-to-br from-brand-accent/10 to-brand-light px-8 py-20"
       initial={{ opacity: 0, scale: 0.95 }}
       whileInView={{ opacity: 1, scale: 1 }}
       viewport={{ once: true }}
