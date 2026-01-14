@@ -263,6 +263,13 @@ export default function ProfileContainer() {
             onChange={handleChange}
           />
           <ProfileDivider />
+          <SocialLinksSection
+            socialLinks={profileData.socialLinks}
+            isEditing={isEditing}
+            isMobile={isMobile}
+            onChange={handleChange}
+          />
+          <ProfileDivider />
           <ClimbingExperienceSection
             climbingReason={profileData.climbingReason}
             climbingMeaning={profileData.climbingMeaning}
@@ -270,18 +277,6 @@ export default function ProfileContainer() {
             isEditing={isEditing}
             isMobile={isMobile}
             onChange={handleChange}
-          />
-          <ProfileDivider />
-          <ProfileImageSection
-            images={profileData.images}
-            imageLayout={profileData.imageLayout}
-            isEditing={isEditing}
-            isMobile={isMobile}
-            onImageUpload={handleImageUpload}
-            onImageDelete={handleImageDelete}
-            onCaptionChange={handleCaptionChange}
-            onLayoutChange={handleLayoutChange}
-            onReorder={handleReorder}
           />
           <ProfileDivider />
           <AdvancedStoriesSection
@@ -299,11 +294,16 @@ export default function ProfileContainer() {
             onChange={handleClimbingLocationsChange}
           />
           <ProfileDivider />
-          <SocialLinksSection
-            socialLinks={profileData.socialLinks}
+          <ProfileImageSection
+            images={profileData.images}
+            imageLayout={profileData.imageLayout}
             isEditing={isEditing}
             isMobile={isMobile}
-            onChange={handleChange}
+            onImageUpload={handleImageUpload}
+            onImageDelete={handleImageDelete}
+            onCaptionChange={handleCaptionChange}
+            onLayoutChange={handleLayoutChange}
+            onReorder={handleReorder}
           />
           <ProfileDivider />
           <PublicSettingSection
