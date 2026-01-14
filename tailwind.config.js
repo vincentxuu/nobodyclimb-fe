@@ -34,6 +34,14 @@ module.exports = {
         // 表單相關顏色
         strong: '#3F3D3D', // 用於標籤文字: text-strong
         subtle: '#B6B3B3', // 用於邊框: border-subtle
+        // 品牌顏色
+        brand: {
+          dark: '#1B1A1A', // 主色調深色
+          'dark-hover': '#3F3D3D', // 深色 hover
+          light: '#dbd8d8', // 淺灰色背景
+          accent: '#FFE70C', // 黃色強調色
+          'accent-light': '#FAF40A', // 黃色亮色版
+        },
         primary: {
           DEFAULT: 'hsl(var(--primary))',
           foreground: 'hsl(var(--primary-foreground))',

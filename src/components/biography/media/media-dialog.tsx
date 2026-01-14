@@ -269,7 +269,7 @@ export function AddMediaDialog({
               <select
                 value={relationType}
                 onChange={(e) => setRelationType(e.target.value)}
-                className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none"
+                className="w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 focus:border-blue-500 focus:outline-none"
               >
                 {relationTypeOptions.map((option) => (
                   <option key={option.value} value={option.value}>
@@ -286,9 +286,9 @@ export function AddMediaDialog({
                   type="checkbox"
                   checked={isFeatured}
                   onChange={(e) => setIsFeatured(e.target.checked)}
-                  className="rounded border-gray-300"
+                  className="rounded border-gray-300 bg-white accent-blue-600"
                 />
-                <Star className="h-4 w-4 text-yellow-500" />
+                <Star className="h-4 w-4 text-brand-accent" />
                 <span className="text-sm">設為精選</span>
               </label>
             </div>
@@ -299,14 +299,14 @@ export function AddMediaDialog({
         <div className="flex justify-end gap-2">
           <button
             onClick={handleClose}
-            className="rounded-lg border border-gray-300 px-4 py-2 text-sm hover:bg-gray-50"
+            className="rounded-lg border border-brand-dark px-4 py-2 text-sm text-brand-dark hover:bg-brand-light"
           >
             取消
           </button>
           <button
             onClick={handleSubmit}
             disabled={!preview || loading}
-            className="rounded-lg bg-blue-600 px-4 py-2 text-sm text-white hover:bg-blue-700 disabled:opacity-50"
+            className="rounded-lg bg-brand-dark px-4 py-2 text-sm text-white hover:bg-brand-dark-hover disabled:opacity-50"
           >
             {loading ? (
               <Loader2 className="h-4 w-4 animate-spin" />
@@ -384,8 +384,8 @@ export function MediaItemActions({
         className={cn(
           'rounded p-1.5 transition-colors',
           item.is_featured
-            ? 'bg-yellow-100 text-yellow-600'
-            : 'text-gray-400 hover:bg-gray-100 hover:text-yellow-600'
+            ? 'bg-brand-accent/20 text-brand-accent'
+            : 'text-gray-400 hover:bg-gray-100 hover:text-brand-accent'
         )}
         title={item.is_featured ? '取消精選' : '設為精選'}
       >

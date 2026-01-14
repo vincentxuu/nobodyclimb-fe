@@ -205,7 +205,7 @@ export function ClimbingFootprintsEditor({
                 <select
                   value={formData.country}
                   onChange={(e) => setFormData({ ...formData, country: e.target.value })}
-                  className="w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm focus:border-gray-500 focus:outline-none"
+                  className="w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 focus:border-gray-500 focus:outline-none"
                   disabled={disabled}
                 >
                   {COMMON_COUNTRIES.map((country) => (
@@ -254,7 +254,7 @@ export function ClimbingFootprintsEditor({
                   id="is_public"
                   checked={formData.is_public}
                   onChange={(e) => setFormData({ ...formData, is_public: e.target.checked })}
-                  className="h-4 w-4 rounded border-gray-300"
+                  className="h-4 w-4 rounded border-gray-300 bg-white accent-brand-dark"
                   disabled={disabled}
                 />
                 <label htmlFor="is_public" className="text-sm">
