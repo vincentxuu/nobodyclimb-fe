@@ -1,7 +1,7 @@
 'use client'
 
 import React, { useState } from 'react'
-import { BookOpen, ChevronRight, Check } from 'lucide-react'
+import { ChevronRight, Check } from 'lucide-react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { Button } from '@/components/ui/button'
 import { AdvancedStoryEditor } from '@/components/biography/advanced-story-editor'
@@ -28,15 +28,11 @@ export default function AdvancedStoriesSection({
 
   return (
     <div className="space-y-4">
-      {/* Section Header */}
+      {/* Progress Info */}
       <div className="flex items-center justify-between">
-        <div className="flex items-center gap-2">
-          <BookOpen className="h-5 w-5 text-text-subtle" />
-          <h3 className="text-[16px] font-medium text-strong">進階故事</h3>
-          <span className="rounded-full bg-gray-100 px-2 py-0.5 text-xs text-gray-600">
-            {progress.completed}/{progress.total}
-          </span>
-        </div>
+        <span className="rounded-full bg-gray-100 px-2 py-0.5 text-xs text-gray-600">
+          {progress.completed}/{progress.total}
+        </span>
         {isEditing && (
           <Button
             variant="ghost"

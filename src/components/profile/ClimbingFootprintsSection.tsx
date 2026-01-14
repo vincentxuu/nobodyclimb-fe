@@ -1,7 +1,7 @@
 'use client'
 
 import React from 'react'
-import { MapPin, Globe } from 'lucide-react'
+import { Globe } from 'lucide-react'
 import { ClimbingFootprintsEditor } from '@/components/biography/climbing-footprints-editor'
 import { ClimbingLocation } from '@/lib/types'
 import { getCountryFlag } from '@/lib/utils/country'
@@ -37,16 +37,12 @@ export default function ClimbingFootprintsSection({
 
   return (
     <div className="space-y-4">
-      {/* Section Header */}
-      <div className="flex items-center gap-2">
-        <MapPin className="h-5 w-5 text-text-subtle" />
-        <h3 className="text-[16px] font-medium text-strong">攀岩足跡</h3>
-        {totalLocations > 0 && (
-          <span className="rounded-full bg-gray-100 px-2 py-0.5 text-xs text-gray-600">
-            {countryCount} 國 · {totalLocations} 地點
-          </span>
-        )}
-      </div>
+      {/* Stats Badge */}
+      {totalLocations > 0 && (
+        <span className="inline-block rounded-full bg-gray-100 px-2 py-0.5 text-xs text-gray-600">
+          {countryCount} 國 · {totalLocations} 地點
+        </span>
+      )}
 
       {/* Display Mode */}
       {!isEditing && (
