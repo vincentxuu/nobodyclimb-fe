@@ -1347,8 +1347,9 @@ biographiesRoutes.get('/community/stats', async (c) => {
         data: JSON.parse(cached),
       });
     }
-  } catch {
+  } catch (e) {
     // Cache miss or error, continue to fetch from DB
+    console.error(`Cache read error for ${cacheKey}:`, e);
   }
 
   // Total biographies
@@ -1406,8 +1407,9 @@ biographiesRoutes.get('/community/stats', async (c) => {
   // Cache the result for 5 minutes
   try {
     await c.env.CACHE.put(cacheKey, JSON.stringify(statsData), { expirationTtl: 300 });
-  } catch {
+  } catch (e) {
     // Cache write failure is non-critical
+    console.error(`Cache write error for ${cacheKey}:`, e);
   }
 
   return c.json({
@@ -1431,8 +1433,9 @@ biographiesRoutes.get('/leaderboard/:type', async (c) => {
         data: JSON.parse(cached),
       });
     }
-  } catch {
+  } catch (e) {
     // Cache miss or error, continue to fetch from DB
+    console.error(`Cache read error for ${cacheKey}:`, e);
   }
 
   let query = '';
@@ -1496,8 +1499,9 @@ biographiesRoutes.get('/leaderboard/:type', async (c) => {
   // Cache the result for 5 minutes
   try {
     await c.env.CACHE.put(cacheKey, JSON.stringify(leaderboard), { expirationTtl: 300 });
-  } catch {
+  } catch (e) {
     // Cache write failure is non-critical
+    console.error(`Cache write error for ${cacheKey}:`, e);
   }
 
   return c.json({

@@ -1,6 +1,7 @@
 'use client'
 
 import React from 'react'
+import { useRouter } from 'next/navigation'
 import { useQuery } from '@tanstack/react-query'
 import { motion } from 'framer-motion'
 import { BarChart3, Award, Trophy, TrendingUp } from 'lucide-react'
@@ -13,6 +14,7 @@ import { useBiographyStats, useBiographyBadges } from '@/lib/hooks/useBiographyS
 import { biographyService } from '@/lib/api/services'
 
 export default function StatsPage() {
+  const router = useRouter()
   // 獲取我的人物誌
   const { data: biographyData, isLoading: isBiographyLoading } = useQuery({
     queryKey: ['my-biography'],
@@ -48,7 +50,7 @@ export default function StatsPage() {
             title="尚未建立人物誌"
             description="請先建立你的人物誌，才能查看統計數據"
             action={
-              <Button onClick={() => (window.location.href = '/profile')}>
+              <Button onClick={() => router.push('/profile')}>
                 建立人物誌
               </Button>
             }
