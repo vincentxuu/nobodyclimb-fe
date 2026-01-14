@@ -2,7 +2,7 @@
 
 import React, { useState, useMemo, useEffect } from 'react'
 import Link from 'next/link'
-import { Eye, ExternalLink, X, ChevronLeft, ChevronRight, Info, Filter, Search } from 'lucide-react'
+import { Eye, ExternalLink, X, ChevronLeft, ChevronRight, Info, Filter } from 'lucide-react'
 import * as Dialog from '@radix-ui/react-dialog'
 
 interface RouteType {
@@ -30,6 +30,7 @@ interface CragRouteSectionProps {
   initialArea?: string
   cragId?: string
   areaIdMap?: Record<string, string>
+  searchQuery?: string
 }
 
 export const CragRouteSection: React.FC<CragRouteSectionProps> = ({
@@ -37,6 +38,7 @@ export const CragRouteSection: React.FC<CragRouteSectionProps> = ({
   initialArea = 'all',
   cragId,
   areaIdMap,
+  searchQuery = '',
 }) => {
   const [selectedRoute, setSelectedRoute] = useState<RouteType | null>(null)
   const [showRouteDetail, setShowRouteDetail] = useState(false)
@@ -44,7 +46,6 @@ export const CragRouteSection: React.FC<CragRouteSectionProps> = ({
   const [showTips, setShowTips] = useState(false)
   const [currentPhotoIndex, setCurrentPhotoIndex] = useState(0)
   const [selectedArea, setSelectedArea] = useState<string>(initialArea)
-  const [searchQuery, setSearchQuery] = useState('')
 
   // 當 initialArea 從外部改變時，同步更新 selectedArea
   useEffect(() => {
@@ -97,28 +98,8 @@ export const CragRouteSection: React.FC<CragRouteSectionProps> = ({
           <Info size={20} />
         </div>
         <p className="text-sm text-[#1B1A1A]">
-          搜尋或選擇分區來篩選路線，點擊「查看詳情」按鈕可查看路線完整資訊。
+          選擇分區來篩選路線，點擊「查看詳情」按鈕可查看路線完整資訊。
         </p>
-      </div>
-
-      {/* 路線搜尋框 */}
-      <div className="mb-6">
-        <div className="relative">
-          <Search className="absolute left-4 top-1/2 h-5 w-5 -translate-y-1/2 text-gray-400" />
-          <input
-            type="text"
-            placeholder="輸入路線名稱、難度(如 5.10a)或類型(如 Sport)..."
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full rounded-lg border border-gray-200 bg-white py-3 pl-12 pr-4 text-base outline-none transition-colors placeholder:text-gray-400 focus:border-[#FFE70C] focus:ring-2 focus:ring-[#FFE70C]/20"
-          />
-        </div>
-        {searchQuery && (
-          <p className="mt-2 text-sm text-gray-600">
-            搜尋「<span className="font-medium text-[#1B1A1A]">{searchQuery}</span>」
-            找到 <span className="font-medium text-[#1B1A1A]">{filteredRoutes.length}</span> 條路線
-          </p>
-        )}
       </div>
 
       {/* 分區篩選 */}
