@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { UserPlus, UserMinus, Loader2 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { biographyService } from '@/lib/api/services'
@@ -25,8 +25,29 @@ export function FollowButton({
 }: FollowButtonProps) {
   const [isFollowing, setIsFollowing] = useState(initialFollowing)
   const [isLoading, setIsLoading] = useState(false)
+  const [hasFetched, setHasFetched] = useState(false)
   const { isAuthenticated } = useAuthStore()
   const router = useRouter()
+
+  // Fetch initial follow status when component mounts
+  useEffect(() => {
+    if (hasFetched) return
+
+    const fetchFollowStatus = async () => {
+      try {
+        const response = await biographyService.getFollowStatus(biographyId)
+        if (response.success && response.data) {
+          setIsFollowing(response.data.following)
+        }
+      } catch (error) {
+        console.error('Failed to fetch follow status:', error)
+      } finally {
+        setHasFetched(true)
+      }
+    }
+
+    fetchFollowStatus()
+  }, [biographyId, hasFetched])
 
   const handleClick = async () => {
     if (!isAuthenticated) {

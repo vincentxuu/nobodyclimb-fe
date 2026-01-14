@@ -769,6 +769,63 @@ biographiesRoutes.post('/:id/follow', authMiddleware, async (c) => {
   });
 });
 
+// GET /biographies/:id/follow - Check follow status
+biographiesRoutes.get('/:id/follow', async (c) => {
+  const id = c.req.param('id');
+
+  // Get biography's user_id and follower_count
+  const biography = await c.env.DB.prepare(
+    'SELECT user_id, follower_count FROM biographies WHERE id = ?'
+  )
+    .bind(id)
+    .first<{ user_id: string; follower_count: number }>();
+
+  if (!biography) {
+    return c.json(
+      {
+        success: false,
+        error: 'Not Found',
+        message: 'Biography not found',
+      },
+      404
+    );
+  }
+
+  // Check if user is authenticated
+  const authHeader = c.req.header('Authorization');
+  let following = false;
+
+  if (authHeader?.startsWith('Bearer ')) {
+    const token = authHeader.slice(7);
+    try {
+      const { jwtVerify } = await import('jose');
+      const secret = new TextEncoder().encode(c.env.JWT_SECRET);
+      const { payload } = await jwtVerify(token, secret);
+      const userId = payload.sub as string;
+
+      if (userId) {
+        const existing = await c.env.DB.prepare(
+          'SELECT id FROM follows WHERE follower_id = ? AND following_id = ?'
+        )
+          .bind(userId, biography.user_id)
+          .first<{ id: string }>();
+
+        following = !!existing;
+      }
+    } catch {
+      // Invalid token, treat as not authenticated
+    }
+  }
+
+  return c.json({
+    success: true,
+    data: {
+      following,
+      followers: biography.follower_count || 0,
+    },
+  });
+});
+
 // DELETE /biographies/:id/follow - Unfollow a biography
 biographiesRoutes.delete('/:id/follow', authMiddleware, async (c) => {
   const userId = c.get('userId');

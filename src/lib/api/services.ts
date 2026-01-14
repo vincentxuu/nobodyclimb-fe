@@ -809,6 +809,16 @@ export const biographyService = {
   },
 
   /**
+   * 獲取追蹤狀態
+   */
+  getFollowStatus: async (id: string) => {
+    const response = await apiClient.get<ApiResponse<{ following: boolean; followers: number }>>(
+      `/biographies/${id}/follow`
+    )
+    return response.data
+  },
+
+  /**
    * 獲取追蹤者列表
    */
   getFollowers: async (id: string, limit = 20, offset = 0) => {
