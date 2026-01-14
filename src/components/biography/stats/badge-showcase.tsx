@@ -7,6 +7,7 @@ import { BadgeIcon } from './badge-icon'
 import {
   BADGES,
   BADGE_CATEGORIES,
+  BADGE_COLORS,
   getBadgesByCategory,
   type BadgeCategory,
 } from '@/lib/constants/badges'
@@ -108,7 +109,13 @@ export function BadgeShowcase({ badgeProgress, className }: BadgeShowcaseProps) 
 
       {/* 下一個可解鎖提示 */}
       {unlockedCount < totalCount && (
-        <div className="p-4 bg-brand-accent/10 rounded-xl border border-brand-accent/30">
+        <div
+          className={cn(
+            'p-4 rounded-xl border',
+            BADGE_COLORS.unlocked.bg,
+            BADGE_COLORS.unlocked.border
+          )}
+        >
           <h3 className="text-sm font-semibold text-text-main mb-2">即將解鎖</h3>
           <div className="flex flex-wrap gap-4">
             {badgeProgress

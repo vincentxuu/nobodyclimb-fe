@@ -1,7 +1,7 @@
 'use client'
 
 import { cn } from '@/lib/utils'
-import { type BadgeDefinition, getBadgeById } from '@/lib/constants/badges'
+import { type BadgeDefinition, getBadgeById, BADGE_COLORS } from '@/lib/constants/badges'
 
 interface BadgeIconProps {
   badge: BadgeDefinition | string
@@ -39,24 +39,23 @@ export function BadgeIcon({
   }
 
   const Icon = badgeData.icon
+  const colors = unlocked ? BADGE_COLORS.unlocked : BADGE_COLORS.locked
 
   return (
     <div
       className={cn(
         'relative inline-flex items-center justify-center rounded-full transition-all',
         sizeClasses[size],
-        unlocked ? badgeData.bgColor : 'bg-gray-200',
-        unlocked ? '' : 'grayscale opacity-50',
+        colors.bg,
+        unlocked ? '' : 'opacity-60',
         className
       )}
       title={showTooltip ? `${badgeData.name}: ${badgeData.description}` : undefined}
     >
-      <Icon
-        className={cn(iconSizeClasses[size], unlocked ? badgeData.color : 'text-gray-400')}
-      />
+      <Icon className={cn(iconSizeClasses[size], colors.icon)} />
       {!unlocked && (
         <div className="absolute inset-0 flex items-center justify-center">
-          <div className="w-full h-full rounded-full bg-gray-400/30" />
+          <div className="w-full h-full rounded-full bg-brand-light/30" />
         </div>
       )}
     </div>
@@ -95,7 +94,7 @@ export function BadgeList({
       {remainingCount > 0 && (
         <div
           className={cn(
-            'flex items-center justify-center rounded-full bg-gray-100 text-gray-500 text-sm font-medium',
+            'flex items-center justify-center rounded-full bg-brand-light text-text-subtle text-sm font-medium',
             sizeClasses[size]
           )}
         >
