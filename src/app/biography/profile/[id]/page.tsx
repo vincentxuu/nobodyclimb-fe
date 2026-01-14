@@ -29,7 +29,6 @@ import { RecommendedProfiles } from '@/components/biography/recommended-profiles
 import { Breadcrumb } from '@/components/ui/breadcrumb'
 import { FollowButton } from '@/components/biography/follow-button'
 import { BiographyLikeButton } from '@/components/biography/biography-like-button'
-import { BucketListSection } from '@/components/biography/bucket-list-section'
 import { BiographyBucketList } from '@/components/bucket-list'
 import { MediaSection } from '@/components/biography/media'
 import { ClimbingLocationList } from '@/components/biography/climbing-location-card'
@@ -559,10 +558,8 @@ export default function ProfilePage({ params }: ProfilePageProps) {
                 </p>
               </>
             )}
-            {/* 社群互動人生清單 */}
-            <BucketListSection biographyId={person.id} isOwner={isOwner} />
             {/* 結構化人生清單 */}
-            <BiographyBucketList biographyId={person.id} className="mt-6" />
+            <BiographyBucketList biographyId={person.id} />
           </div>
 
           {/* 攀岩足跡區塊 */}
@@ -572,10 +569,6 @@ export default function ProfilePage({ params }: ProfilePageProps) {
               if (locations.length > 0) {
                 return (
                   <div className="mb-6 rounded-xl bg-gray-50 p-6">
-                    <h2 className="mb-4 flex items-center gap-2 text-lg font-semibold text-gray-900">
-                      <MapPin className="h-5 w-5 text-[#1B1A1A]" />
-                      攀岩足跡
-                    </h2>
                     <ClimbingLocationList locations={locations} maxDisplay={6} />
                   </div>
                 )
