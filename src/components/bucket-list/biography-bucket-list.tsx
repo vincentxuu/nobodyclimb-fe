@@ -72,7 +72,7 @@ export function BiographyBucketList({ biographyId, className }: BiographyBucketL
       {completedItems.length > 0 && (
         <div>
           <h3 className="mb-4 flex items-center gap-2 text-lg font-medium text-[#1B1A1A]">
-            <Check className="h-5 w-5 text-green-500" />
+            <Check className="h-5 w-5 text-brand-dark" />
             已完成 ({completedItems.length})
           </h3>
           <div className="space-y-3">

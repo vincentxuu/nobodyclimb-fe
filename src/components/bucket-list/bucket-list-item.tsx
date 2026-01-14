@@ -25,19 +25,19 @@ import { LikeButton } from '@/components/biography/like-button'
 import { ReferenceButton } from '@/components/biography/reference-button'
 import { CommentSection } from '@/components/biography/comment-section'
 
-// 分類圖標和標籤映射
+// 分類圖標和標籤映射 - 使用專案統一色系
 const categoryConfig: Record<
   BucketListCategory,
   { icon: React.ElementType; label: string; color: string }
 > = {
-  outdoor_route: { icon: Mountain, label: '戶外路線', color: 'bg-green-100 text-green-700' },
-  indoor_grade: { icon: Home, label: '室內難度', color: 'bg-blue-100 text-blue-700' },
-  competition: { icon: Trophy, label: '比賽目標', color: 'bg-yellow-100 text-yellow-700' },
-  training: { icon: Dumbbell, label: '訓練目標', color: 'bg-purple-100 text-purple-700' },
-  adventure: { icon: Plane, label: '冒險挑戰', color: 'bg-orange-100 text-orange-700' },
-  skill: { icon: Award, label: '技能學習', color: 'bg-pink-100 text-pink-700' },
-  injury_recovery: { icon: Activity, label: '受傷復原', color: 'bg-red-100 text-red-700' },
-  other: { icon: Target, label: '其他', color: 'bg-gray-100 text-gray-700' },
+  outdoor_route: { icon: Mountain, label: '戶外路線', color: 'bg-gray-100 text-brand-dark' },
+  indoor_grade: { icon: Home, label: '室內難度', color: 'bg-gray-100 text-brand-dark' },
+  competition: { icon: Trophy, label: '比賽目標', color: 'bg-gray-100 text-brand-dark' },
+  training: { icon: Dumbbell, label: '訓練目標', color: 'bg-gray-100 text-brand-dark' },
+  adventure: { icon: Plane, label: '冒險挑戰', color: 'bg-gray-100 text-brand-dark' },
+  skill: { icon: Award, label: '技能學習', color: 'bg-gray-100 text-brand-dark' },
+  injury_recovery: { icon: Activity, label: '受傷復原', color: 'bg-gray-100 text-brand-dark' },
+  other: { icon: Target, label: '其他', color: 'bg-gray-100 text-brand-dark' },
 }
 
 /* eslint-disable no-unused-vars */

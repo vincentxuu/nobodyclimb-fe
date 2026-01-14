@@ -99,8 +99,14 @@ export function TrendingGoals({ searchTerm, filter }: TrendingGoalsProps) {
             : item
         )
       )
-    } catch (err) {
-      console.error('Failed to add to list:', err)
+    } catch (err: unknown) {
+      // 如果是 409 表示已經加入過，直接標記為已加入
+      const error = err as { response?: { status?: number } }
+      if (error?.response?.status === 409) {
+        setAddedItems((prev) => new Set(prev).add(itemId))
+      } else {
+        console.error('Failed to add to list:', err)
+      }
     } finally {
       // 移除正在加入狀態
       setAddingItems((prev) => {
@@ -140,7 +146,7 @@ export function TrendingGoals({ searchTerm, filter }: TrendingGoalsProps) {
     <div>
       {/* 標題 */}
       <div className="mb-6 flex items-center gap-2">
-        <Flame className="h-6 w-6 text-orange-500" />
+        <Flame className="h-6 w-6 text-brand-dark" />
         <h2 className="text-xl font-bold text-[#1B1A1A]">本週熱門目標</h2>
       </div>
 
@@ -163,7 +169,7 @@ export function TrendingGoals({ searchTerm, filter }: TrendingGoalsProps) {
                     <div className="flex-1">
                       {/* 排名與標題 */}
                       <div className="mb-2 flex items-center gap-3">
-                        <span className="flex h-8 w-8 items-center justify-center rounded-full bg-orange-100 text-sm font-bold text-orange-600">
+                        <span className="flex h-8 w-8 items-center justify-center rounded-full bg-brand-accent text-sm font-bold text-brand-dark">
                           {index + 1}
                         </span>
                         <div className="flex-1">
@@ -230,7 +236,7 @@ export function TrendingGoals({ searchTerm, filter }: TrendingGoalsProps) {
                       size="sm"
                       className={`ml-4 flex items-center gap-1 ${
                         addedItems.has(item.id)
-                          ? 'bg-green-600 text-white hover:bg-green-700'
+                          ? 'bg-brand-dark text-white hover:bg-brand-dark-hover'
                           : ''
                       }`}
                       onClick={() => handleAddToList(item.id)}
