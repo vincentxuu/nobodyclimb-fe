@@ -50,7 +50,7 @@ export function ChapterAdvice({ person }: ChapterAdviceProps) {
         </div>
 
         {/* 內容框 - 像是一張便條紙 */}
-        <div className="relative rounded-2xl bg-white p-8 shadow-lg">
+        <div className="relative rounded-lg bg-white p-8 shadow-lg">
           {/* 頂部裝飾線 */}
           <div className="absolute -top-1 left-8 h-2 w-16 rounded-full bg-brand-accent" />
 

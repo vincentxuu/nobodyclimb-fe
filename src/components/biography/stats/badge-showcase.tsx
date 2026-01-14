@@ -111,7 +111,7 @@ export function BadgeShowcase({ badgeProgress, className }: BadgeShowcaseProps) 
       {unlockedCount < totalCount && (
         <div
           className={cn(
-            'p-4 rounded-xl border',
+            'p-4 rounded-lg border',
             BADGE_COLORS.unlocked.bg,
             BADGE_COLORS.unlocked.border
           )}

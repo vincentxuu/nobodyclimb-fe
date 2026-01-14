@@ -78,7 +78,7 @@ export function CompleteStoriesSection({ person, isOwner }: CompleteStoriesSecti
               whileInView={{ opacity: 1, x: 0 }}
               viewport={{ once: true, margin: '-50px' }}
               transition={{ delay: index * 0.05 }}
-              className="w-80 flex-shrink-0 snap-start rounded-xl bg-white p-6 shadow-sm"
+              className="w-80 flex-shrink-0 snap-start rounded-lg bg-white p-6 shadow-sm"
             >
               {/* 分類標籤 */}
               <div className={cn(
@@ -112,7 +112,7 @@ export function CompleteStoriesSection({ person, isOwner }: CompleteStoriesSecti
               className="w-80 flex-shrink-0 snap-start"
             >
               <Link href={`/profile/edit#${story.field}`} className="block h-full">
-                <div className="group flex h-full min-h-[240px] cursor-pointer flex-col items-center justify-center rounded-xl border-2 border-dashed border-gray-300 p-6 text-center transition-colors hover:border-brand-accent">
+                <div className="group flex h-full min-h-[240px] cursor-pointer flex-col items-center justify-center rounded-lg border-2 border-dashed border-gray-300 p-6 text-center transition-colors hover:border-brand-accent">
                   <div className="mb-3 flex h-10 w-10 items-center justify-center rounded-full bg-gray-100 text-gray-400 transition-colors group-hover:bg-yellow-100 group-hover:text-yellow-600">
                     <Plus className="h-5 w-5" />
                   </div>

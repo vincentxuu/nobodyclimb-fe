@@ -334,7 +334,7 @@ export default function UploadPage() {
         <motion.div
           initial={{ y: 20, opacity: 0 }}
           animate={{ y: 0, opacity: 1 }}
-          className="overflow-hidden rounded-xl bg-white shadow-sm"
+          className="overflow-hidden rounded-lg bg-white shadow-sm"
         >
           {/* Header */}
           <div className="border-b px-6 py-5">

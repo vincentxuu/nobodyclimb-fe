@@ -249,7 +249,7 @@ export function StoryPromptModal({
             {/* 內容 */}
             <div className="px-6 py-5">
               {/* 問題卡片 */}
-              <div className="mb-4 rounded-xl border border-gray-100 bg-gray-50 p-4">
+              <div className="mb-4 rounded-lg border border-gray-100 bg-gray-50 p-4">
                 <div className="mb-3 flex items-start gap-3">
                   <div
                     className={cn(

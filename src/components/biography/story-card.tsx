@@ -55,7 +55,7 @@ export function StoryCard({
     return (
       <motion.div
         className={cn(
-          'overflow-hidden rounded-xl border-2 border-gray-100 bg-gradient-to-br from-white to-gray-50 shadow-lg',
+          'overflow-hidden rounded-lg border-2 border-gray-100 bg-gradient-to-br from-white to-gray-50 shadow-lg',
           className
         )}
         initial={{ opacity: 0, y: 20 }}

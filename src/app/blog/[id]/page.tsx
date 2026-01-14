@@ -28,7 +28,7 @@ const ErrorState = ({ message }: { message: string }) => (
   <div className="flex min-h-screen flex-col items-center justify-center bg-[#F5F5F5]">
     <p className="mb-4 text-lg text-red-600">{message}</p>
     <Link href="/blog">
-      <Button className="bg-[#1B1A1A] text-white hover:bg-[#3F3D3D]">返回文章列表</Button>
+      <Button className="bg-brand-dark text-white hover:bg-brand-dark-hover">返回文章列表</Button>
     </Link>
   </div>
 )
@@ -240,7 +240,7 @@ export default function BlogDetail() {
                 </Button>
                 <Button
                   onClick={() => router.push(`/blog/edit/${id}`)}
-                  className="bg-[#1B1A1A] text-white hover:bg-[#333]"
+                  className="bg-brand-dark text-white hover:bg-brand-dark-hover"
                 >
                   編輯文章
                 </Button>

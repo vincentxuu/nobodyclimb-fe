@@ -93,7 +93,7 @@ export default function CommunityStatsPage() {
         <div className="mt-12 grid grid-cols-1 gap-4 md:grid-cols-2">
           <Link
             href="/biography/explore"
-            className="rounded-xl border border-gray-200 bg-white p-6 transition-shadow hover:shadow-md"
+            className="rounded-lg border border-gray-200 bg-white p-6 transition-shadow hover:shadow-md"
           >
             <h3 className="text-lg font-semibold text-gray-900">探索攀岩故事</h3>
             <p className="mt-2 text-sm text-gray-500">
@@ -102,7 +102,7 @@ export default function CommunityStatsPage() {
           </Link>
           <Link
             href="/biography"
-            className="rounded-xl border border-gray-200 bg-white p-6 transition-shadow hover:shadow-md"
+            className="rounded-lg border border-gray-200 bg-white p-6 transition-shadow hover:shadow-md"
           >
             <h3 className="text-lg font-semibold text-gray-900">瀏覽人物誌</h3>
             <p className="mt-2 text-sm text-gray-500">

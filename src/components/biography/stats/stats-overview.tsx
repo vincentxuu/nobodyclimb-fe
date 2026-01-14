@@ -67,7 +67,7 @@ export function StatsOverview({ stats, className }: StatsOverviewProps) {
       {/* 進度圖表 */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         {/* 故事完成度 */}
-        <div className="p-6 bg-white rounded-xl border border-subtle/50 shadow-sm">
+        <div className="p-6 bg-white rounded-lg border border-subtle/50 shadow-sm">
           <h3 className="text-lg font-semibold text-text-main mb-4">故事完成度</h3>
           <div className="flex items-center gap-8">
             <CircularProgress
@@ -95,7 +95,7 @@ export function StatsOverview({ stats, className }: StatsOverviewProps) {
         </div>
 
         {/* 目標達成率 */}
-        <div className="p-6 bg-white rounded-xl border border-subtle/50 shadow-sm">
+        <div className="p-6 bg-white rounded-lg border border-subtle/50 shadow-sm">
           <h3 className="text-lg font-semibold text-text-main mb-4">目標達成率</h3>
           <div className="flex items-center gap-8">
             <CircularProgress
@@ -128,7 +128,7 @@ export function StatsOverview({ stats, className }: StatsOverviewProps) {
       </div>
 
       {/* 社群互動 */}
-      <div className="p-6 bg-white rounded-xl border border-subtle/50 shadow-sm">
+      <div className="p-6 bg-white rounded-lg border border-subtle/50 shadow-sm">
         <h3 className="text-lg font-semibold text-text-main mb-4">社群互動</h3>
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
           <div className="text-center p-4 bg-brand-accent/20 rounded-lg">

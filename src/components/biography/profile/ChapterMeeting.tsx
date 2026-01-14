@@ -45,7 +45,7 @@ export function ChapterMeeting({ person }: ChapterMeetingProps) {
             whileInView={{ opacity: 1, x: 0 }}
             viewport={{ once: true }}
           >
-            <div className="sticky top-24 overflow-hidden rounded-2xl shadow-lg">
+            <div className="sticky top-24 overflow-hidden rounded-lg shadow-lg">
               <div className="relative aspect-[4/5]">
                 <Image
                   src={imageUrl}

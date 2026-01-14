@@ -179,7 +179,7 @@ function EditBlogPageContent() {
             )}
             <div className="mb-4 flex flex-wrap gap-2">
               {category && (
-                <span className="rounded-full bg-[#1B1A1A] px-3 py-1 text-sm text-white">
+                <span className="rounded-full bg-brand-dark px-3 py-1 text-sm text-white">
                   {getCategoryLabel(category)}
                 </span>
               )}
@@ -192,7 +192,7 @@ function EditBlogPageContent() {
                 </span>
               ))}
             </div>
-            <h1 className="mb-6 text-3xl font-bold text-[#1B1A1A]">{title || '未命名文章'}</h1>
+            <h1 className="mb-6 text-3xl font-bold text-brand-dark">{title || '未命名文章'}</h1>
             <div
               className="prose prose-lg max-w-none"
               dangerouslySetInnerHTML={{ __html: sanitizeHtml(content) || '<p>尚無內容</p>' }}
@@ -243,7 +243,7 @@ function EditBlogPageContent() {
               type="button"
               onClick={() => handleSubmit('published')}
               disabled={isSubmitting || isUploading}
-              className="h-9 bg-[#1B1A1A] px-2 text-white hover:bg-[#2B2A2A] md:px-4"
+              className="h-9 bg-brand-dark px-2 text-white hover:bg-brand-dark-hover md:px-4"
             >
               <Send className="h-4 w-4 md:mr-2" />
               <span className="hidden sm:inline">{status === 'published' ? '更新文章' : '發布文章'}</span>
@@ -268,7 +268,7 @@ function EditBlogPageContent() {
 
             {/* 內容編輯器 */}
             <div className="bg-white p-6">
-              <label className="mb-3 block text-lg font-medium text-[#3F3D3D]">文章內容</label>
+              <label className="mb-3 block text-lg font-medium text-strong">文章內容</label>
               <RichTextEditor
                 value={content}
                 onChange={setContent}
@@ -281,7 +281,7 @@ function EditBlogPageContent() {
           <div className="space-y-6">
             {/* 封面圖片 */}
             <div className="bg-white p-6">
-              <label className="mb-3 block text-lg font-medium text-[#3F3D3D]">封面圖片</label>
+              <label className="mb-3 block text-lg font-medium text-strong">封面圖片</label>
               <ImageUploader
                 value={coverImage}
                 onChange={setCoverImage}
@@ -292,7 +292,7 @@ function EditBlogPageContent() {
 
             {/* 分類 */}
             <div className="bg-white p-6">
-              <label className="mb-3 block text-lg font-medium text-[#3F3D3D]">文章分類</label>
+              <label className="mb-3 block text-lg font-medium text-strong">文章分類</label>
               <Select
                 value={category}
                 onValueChange={(value) => setCategory(value as PostCategory)}
@@ -312,13 +312,13 @@ function EditBlogPageContent() {
 
             {/* 標籤 */}
             <div className="bg-white p-6">
-              <label className="mb-3 block text-lg font-medium text-[#3F3D3D]">文章標籤</label>
+              <label className="mb-3 block text-lg font-medium text-strong">文章標籤</label>
               <TagSelector tags={tags} onChange={setTags} maxTags={5} />
             </div>
 
             {/* 摘要 */}
             <div className="bg-white p-6">
-              <label className="mb-3 block text-lg font-medium text-[#3F3D3D]">
+              <label className="mb-3 block text-lg font-medium text-strong">
                 文章摘要
                 <span className="ml-2 text-sm font-normal text-gray-400">(選填)</span>
               </label>
@@ -326,7 +326,7 @@ function EditBlogPageContent() {
                 value={summary}
                 onChange={(e) => setSummary(e.target.value)}
                 placeholder="簡短描述文章內容，留空將自動擷取..."
-                className="h-24 w-full resize-none rounded-lg border border-gray-200 bg-white p-3 text-sm text-[#1B1A1A] placeholder:text-gray-400 focus:border-[#1B1A1A] focus:outline-none"
+                className="h-24 w-full resize-none rounded-lg border border-gray-200 bg-white p-3 text-sm text-brand-dark placeholder:text-gray-400 focus:border-brand-dark focus:outline-none"
                 maxLength={200}
               />
               <p className="mt-1 text-right text-xs text-gray-400">{summary.length}/200</p>

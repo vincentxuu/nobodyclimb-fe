@@ -79,7 +79,7 @@ function FilledStoryCard({
       layout
       id={`story-${question.field}`}
       className={cn(
-        'rounded-xl bg-white p-6 shadow-sm transition-all duration-200',
+        'rounded-lg bg-white p-6 shadow-sm transition-all duration-200',
         isEditing
           ? 'border-2 border-brand-accent shadow-lg'
           : 'border border-gray-200 hover:border-brand-accent/50 hover:shadow-md cursor-pointer'
@@ -165,7 +165,7 @@ function EmptyStoryCard({
   return (
     <motion.div
       className={cn(
-        'cursor-pointer rounded-xl bg-white p-6 transition-all duration-200',
+        'cursor-pointer rounded-lg bg-white p-6 transition-all duration-200',
         'border-2 border-dashed border-gray-300',
         'hover:border-brand-accent hover:bg-brand-accent/5'
       )}

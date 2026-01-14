@@ -63,19 +63,35 @@ export function BiographySection() {
   useEffect(() => {
     const loadBiographies = async () => {
       try {
-        // 從 API 獲取精選人物誌
-        const response = await biographyService.getFeaturedBiographies(3)
+        // 先嘗試獲取精選人物誌
+        const featuredResponse = await biographyService.getFeaturedBiographies(3)
 
-        if (response.success) {
-          setBiographies(response.data || [])
+        if (featuredResponse.success && featuredResponse.data && featuredResponse.data.length > 0) {
+          setBiographies(featuredResponse.data)
         } else {
-          setError('無法載入人物誌')
-          setBiographies([])
+          // 如果沒有精選人物誌，改用一般的人物誌列表
+          const response = await biographyService.getBiographies(1, 3)
+          if (response.success && response.data) {
+            setBiographies(response.data)
+          } else {
+            setBiographies([])
+          }
         }
       } catch (err) {
         console.error('Failed to load biographies:', err)
-        setError('載入人物誌時發生錯誤')
-        setBiographies([])
+        // 嘗試備用方案
+        try {
+          const response = await biographyService.getBiographies(1, 3)
+          if (response.success && response.data) {
+            setBiographies(response.data)
+          } else {
+            setError('載入人物誌時發生錯誤')
+            setBiographies([])
+          }
+        } catch {
+          setError('載入人物誌時發生錯誤')
+          setBiographies([])
+        }
       } finally {
         setLoading(false)
       }
@@ -88,7 +104,7 @@ export function BiographySection() {
     <section className="border-t border-[#D2D2D2] py-16 md:py-20">
       <div className="container mx-auto px-4">
         <div className="mb-8 text-center">
-          <h2 className="text-[40px] font-bold text-[#1B1A1A]">人物誌</h2>
+          <h2 className="text-3xl font-bold text-[#1B1A1A] md:text-[40px]">熱門人物誌</h2>
           <p className="mt-4 text-base text-[#6D6C6C]">認識這些熱愛攀岩的小人物們</p>
         </div>
 

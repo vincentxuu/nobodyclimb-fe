@@ -98,7 +98,7 @@ export function FeaturedStoriesSection({ person }: FeaturedStoriesSectionProps) 
               whileInView={{ opacity: 1, x: 0 }}
               viewport={{ once: true }}
               transition={{ delay: index * 0.05 }}
-              className="w-80 flex-shrink-0 snap-center rounded-xl bg-white p-6 shadow-sm"
+              className="w-80 flex-shrink-0 snap-center rounded-lg bg-white p-6 shadow-sm"
             >
               {/* 分類標籤 */}
               <div className={cn(

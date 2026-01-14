@@ -57,7 +57,7 @@ export function StoryProgress({
 
   if (variant === 'detailed') {
     return (
-      <div className={cn('rounded-xl bg-white p-6 shadow-sm', className)}>
+      <div className={cn('rounded-lg bg-white p-6 shadow-sm', className)}>
         {/* 總體進度 */}
         <div className="mb-6">
           <div className="mb-2 flex items-center justify-between">

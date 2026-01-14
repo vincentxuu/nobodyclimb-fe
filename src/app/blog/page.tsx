@@ -18,7 +18,7 @@ import { generateSummary } from '@/lib/utils/article'
 const EmptyState = ({ searchQuery, category }: { searchQuery: string; category: string }) => (
   <div className="flex min-h-[400px] flex-col items-center justify-center py-12">
     <FileText className="mb-4 h-16 w-16 text-gray-300" />
-    <h3 className="mb-2 text-xl font-medium text-[#1B1A1A]">
+    <h3 className="mb-2 text-xl font-medium text-brand-dark">
       {searchQuery ? '找不到符合的文章' : '目前沒有文章'}
     </h3>
     <p className="mb-4 text-[#6D6C6C]">
@@ -29,7 +29,7 @@ const EmptyState = ({ searchQuery, category }: { searchQuery: string; category: 
           : '成為第一個發表文章的人吧！'}
     </p>
     {searchQuery && (
-      <Button variant="outline" className="border-[#1B1A1A] text-[#1B1A1A]">
+      <Button variant="outline" className="border-brand-dark text-brand-dark">
         清除搜尋
       </Button>
     )}
@@ -47,13 +47,13 @@ const ArticleCard = ({ article }: ArticleCardProps) => {
   return (
     <Link
       href={`/blog/${article.id}`}
-      className={`group overflow-hidden rounded-none bg-white transition-shadow hover:shadow-lg ${hasImage ? 'h-[416px]' : 'h-auto'}`}
+      className={`group overflow-hidden rounded-lg bg-white transition-shadow hover:shadow-lg ${hasImage ? 'h-[416px]' : 'h-auto'}`}
     >
       {hasImage && (
         <div className="relative h-[208px]">
           <Image src={article.imageUrl} alt={article.title} fill className="object-cover" />
           {article.isFeature && (
-            <div className="absolute left-3 top-3 rounded bg-orange-500 px-2 py-1 text-xs text-white">
+            <div className="absolute left-3 top-3 rounded bg-brand-accent px-2 py-1 text-xs font-medium text-brand-dark">
               精選
             </div>
           )}
@@ -61,14 +61,14 @@ const ArticleCard = ({ article }: ArticleCardProps) => {
       )}
       {!hasImage && article.isFeature && (
         <div className="px-5 pt-5">
-          <span className="rounded bg-orange-500 px-2 py-1 text-xs text-white">
+          <span className="rounded bg-brand-accent px-2 py-1 text-xs font-medium text-brand-dark">
             精選
           </span>
         </div>
       )}
       <div className="flex flex-col gap-3 p-5">
         <div className="flex items-center gap-3">
-          <span className="rounded bg-[#3F3D3D] px-3 py-1 text-sm text-white">{article.category}</span>
+          <span className="rounded bg-brand-dark px-3 py-1 text-sm text-white">{article.category}</span>
           <span className="text-sm text-[#6D6C6C]">{article.date}</span>
         </div>
         <h2 className="line-clamp-2 text-xl font-medium group-hover:text-gray-700">
@@ -82,7 +82,7 @@ const ArticleCard = ({ article }: ArticleCardProps) => {
 
 // 文章卡片骨架屏
 const ArticleCardSkeleton = () => (
-  <div className="h-[416px] animate-pulse overflow-hidden rounded-none bg-white">
+  <div className="h-[416px] animate-pulse overflow-hidden rounded-lg bg-white">
     <div className="h-[208px] bg-gray-200" />
     <div className="flex flex-col gap-3 p-5">
       <div className="flex items-center gap-3">
@@ -308,7 +308,7 @@ function BlogContent() {
                 <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
                 <div className="absolute bottom-12 left-12 text-white">
                   <div className="mb-4 flex items-center gap-3">
-                    <span className="rounded bg-[#3F3D3D] px-3 py-1 text-sm">{article.category}</span>
+                    <span className="rounded bg-brand-dark px-3 py-1 text-sm">{article.category}</span>
                     <span className="text-sm">{article.date}</span>
                   </div>
                   <h1 className="max-w-[800px] text-4xl font-medium">{article.title}</h1>
@@ -369,7 +369,7 @@ function BlogContent() {
                 variant={selectedCategory === cat.value ? 'primary' : 'outline'}
                 className={`rounded-full px-8 ${
                   selectedCategory === cat.value
-                    ? 'bg-black text-white hover:bg-gray-800'
+                    ? 'bg-brand-dark text-white hover:bg-brand-dark-hover'
                     : 'border-gray-300 hover:bg-gray-100'
                 }`}
                 onClick={() => handleCategoryChange(cat.value)}
@@ -404,7 +404,7 @@ function BlogContent() {
                   variant="outline"
                   onClick={handleLoadMore}
                   disabled={isLoadingMore}
-                  className="h-11 border border-[#1B1A1A] px-8 text-[#1B1A1A] hover:bg-[#dbd8d8] hover:text-[#1B1A1A]"
+                  className="h-11 border border-brand-dark px-8 text-brand-dark hover:bg-brand-light hover:text-brand-dark"
                 >
                   {isLoadingMore ? (
                     <>

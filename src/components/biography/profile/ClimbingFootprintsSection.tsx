@@ -64,7 +64,7 @@ export function ClimbingFootprintsSection({ person }: ClimbingFootprintsSectionP
               transition={{ delay: index * 0.1 }}
               viewport={{ once: true }}
             >
-              <div className="group relative cursor-pointer overflow-hidden rounded-2xl bg-white shadow-sm transition-shadow hover:shadow-xl">
+              <div className="group relative cursor-pointer overflow-hidden rounded-lg bg-white shadow-sm transition-shadow hover:shadow-xl">
                 {/* 照片 */}
                 <div className="relative h-48 overflow-hidden bg-gray-200">
                   {location.photos && location.photos.length > 0 ? (

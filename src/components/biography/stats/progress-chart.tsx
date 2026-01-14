@@ -137,7 +137,7 @@ export function StatCard({ value, label, icon, trend, color, className }: StatCa
   return (
     <div
       className={cn(
-        'flex flex-col p-4 rounded-xl bg-white border border-subtle/50 shadow-sm',
+        'flex flex-col p-4 rounded-lg bg-white border border-subtle/50 shadow-sm',
         className
       )}
     >

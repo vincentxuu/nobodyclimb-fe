@@ -32,7 +32,7 @@ export default function CragListPage() {
           {crags.map((crag) => (
             <motion.div
               key={crag.id}
-              className="overflow-hidden rounded-xl bg-white shadow-md transition hover:shadow-lg"
+              className="overflow-hidden rounded-lg bg-white shadow-md transition hover:shadow-lg"
               whileHover={{ y: -5 }}
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}

@@ -54,7 +54,7 @@ export function QuickFactsSection({ person }: QuickFactsSectionProps) {
               viewport={{ once: true }}
               transition={{ delay: index * 0.1 }}
               whileHover={{ y: -4 }}
-              className="rounded-2xl bg-gray-50 p-6 text-center shadow-sm transition-shadow hover:shadow-md"
+              className="rounded-lg bg-gray-50 p-6 text-center shadow-sm transition-shadow hover:shadow-md"
             >
               {/* Icon */}
               <div className="mb-3 flex justify-center">

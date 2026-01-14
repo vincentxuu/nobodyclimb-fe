@@ -150,6 +150,11 @@ export interface CragFullData {
   }
 }
 
+// ============ 常數定義 ============
+
+// 岩場備用圖片（當實際圖片不存在時使用）
+const CRAG_FALLBACK_IMAGE = '/photo/climbspot-photo.jpeg'
+
 // ============ 資料存儲 ============
 
 // 所有已載入的岩場資料
@@ -190,7 +195,7 @@ export function getAllCrags(): CragListItem[] {
       id: data.crag.id,
       name: data.crag.name,
       nameEn: data.crag.nameEn,
-      image: `/images/crag/${data.crag.slug}.jpg`,
+      image: CRAG_FALLBACK_IMAGE,
       location: data.crag.location.address,
       type: data.crag.rockType,
       routes: data.crag.routesCount,
@@ -352,7 +357,7 @@ export function getAreaDetailData(cragId: string, areaId: string) {
       nameEn: a.nameEn,
       difficulty: a.difficulty ? `${a.difficulty.min} - ${a.difficulty.max}` : '',
       routesCount: a.routesCount,
-      image: a.image || `/images/crag/${fullData.crag.slug}-${a.id}.jpg`,
+      image: CRAG_FALLBACK_IMAGE,
     }))
 
   return {
@@ -373,7 +378,7 @@ export function getAreaDetailData(cragId: string, areaId: string) {
         : '',
       difficultyMin: area.difficulty?.min || '',
       difficultyMax: area.difficulty?.max || '',
-      image: area.image || `/images/crag/${fullData.crag.slug}-${area.id}.jpg`,
+      image: CRAG_FALLBACK_IMAGE,
       boltCount: area.boltCount,
       routesCount: area.routesCount,
       sectors: area.sectors || [],
@@ -462,13 +467,8 @@ export function getCragDetailData(id: string) {
 
   const { crag, areas, routes } = fullData
 
-  // 使用 JSON 中的圖片或生成預設圖片
-  const defaultImages = [
-    `/images/crag/${crag.slug}-1.jpg`,
-    `/images/crag/${crag.slug}-2.jpg`,
-    `/images/crag/${crag.slug}-3.jpg`,
-    `/images/crag/${crag.slug}-4.jpg`,
-  ]
+  // 使用 JSON 中的圖片或使用備用圖片
+  const defaultImages = [CRAG_FALLBACK_IMAGE]
 
   return {
     id: crag.id,
@@ -480,7 +480,7 @@ export function getCragDetailData(id: string) {
     liveVideoId: crag.liveVideoId,
     liveVideoTitle: crag.liveVideoTitle,
     liveVideoDescription: crag.liveVideoDescription,
-    images: crag.images && crag.images.length > 0 ? crag.images : defaultImages,
+    images: defaultImages,
     type: crag.rockType,
     rockType: crag.rockType,
     routes: crag.routesCount,
@@ -508,7 +508,7 @@ export function getCragDetailData(id: string) {
         ? `${area.difficulty.min} - ${area.difficulty.max}`
         : '',
       routes: area.routesCount,
-      image: area.image || `/images/crag/${crag.slug}-${area.id}.jpg`,
+      image: CRAG_FALLBACK_IMAGE,
     })),
     routes_details: routes.map(route => {
       const routeArea = areas.find(a => a.id === route.areaId)

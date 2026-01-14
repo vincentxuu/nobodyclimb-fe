@@ -26,7 +26,7 @@ export function BadgeCard({ badge, progress, className }: BadgeCardProps) {
   return (
     <div
       className={cn(
-        'relative flex flex-col items-center p-4 rounded-xl border transition-all',
+        'relative flex flex-col items-center p-4 rounded-lg border transition-all',
         isUnlocked
           ? `bg-white ${BADGE_COLORS.unlocked.border} shadow-sm`
           : `bg-page-bg ${BADGE_COLORS.locked.border}`,
