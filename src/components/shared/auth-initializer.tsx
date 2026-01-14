@@ -121,8 +121,23 @@ export function AuthInitializer() {
     checkAuthStatus()
   }, [isAuthenticated, pathname, refreshToken, router, setUser, checkStoryPrompt])
 
-  // 當用戶已經是登入狀態時（從 persist 恢復），也檢查故事推薦
+  // 追蹤前一次的認證狀態，用於偵測登入事件
+  const prevIsAuthenticated = useRef(isAuthenticated)
+
+  // 當用戶登入時（isAuthenticated 從 false 變成 true），檢查故事推薦
   useEffect(() => {
+    // 偵測登入事件：從未認證變成已認證
+    const justLoggedIn = isAuthenticated && !prevIsAuthenticated.current
+
+    if (justLoggedIn) {
+      // 重置檢查標記，允許重新檢查故事推薦
+      hasCheckedStoryPrompt.current = false
+    }
+
+    // 更新前一次狀態
+    prevIsAuthenticated.current = isAuthenticated
+
+    // 如果已認證且尚未檢查過，執行檢查
     if (isAuthenticated && !hasCheckedStoryPrompt.current) {
       checkStoryPrompt()
     }

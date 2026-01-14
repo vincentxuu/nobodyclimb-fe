@@ -11,10 +11,10 @@ export const storyPromptsRoutes = new Hono<{ Bindings: Env }>();
 
 // 推題頻率設定
 const PROMPT_CONFIG = {
-  minDaysBetweenPrompts: 1,      // 最少間隔1天
-  maxPromptsPerWeek: 3,          // 每週最多推3次
-  cooldownAfterDismiss: 7,       // 跳過後7天內不再推同一題
-  maxDismissCount: 5,            // 跳過超過5次不再推
+  minDaysBetweenPrompts: 0,      // 不限制間隔，每次登入都可推題
+  maxPromptsPerWeek: 14,         // 每週最多推14次（每天2次）
+  cooldownAfterDismiss: 1,       // 跳過後1天就可再推同一題
+  maxDismissCount: 10,           // 跳過超過10次才不再推
 };
 
 // 進階故事欄位定義（模組級別，供所有 handler 共用）
