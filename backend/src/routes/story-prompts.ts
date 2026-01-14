@@ -72,7 +72,7 @@ storyPromptsRoutes.get('/should-prompt', authMiddleware, async (c) => {
   if (!biography) {
     return c.json({
       success: true,
-      data: { should_prompt: false, reason: 'no_biography' },
+      data: { should_prompt: false, reason: 'no_biography', message: '尚未建立人物誌' },
     });
   }
 
@@ -114,14 +114,11 @@ storyPromptsRoutes.get('/should-prompt', authMiddleware, async (c) => {
     });
   }
 
-  // Random 50% chance to show prompt (avoid being too aggressive)
-  const shouldShow = Math.random() > 0.5;
-
   return c.json({
     success: true,
     data: {
-      should_prompt: shouldShow,
-      reason: shouldShow ? 'eligible' : 'random_skip',
+      should_prompt: true,
+      reason: 'eligible',
     },
   });
 });

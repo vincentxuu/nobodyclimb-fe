@@ -9,9 +9,13 @@ import { AUTH_TOKEN_KEY, AUTH_REFRESH_TOKEN_KEY } from '@/lib/constants'
 import apiClient from '@/lib/api/client'
 import { ApiResponse, BackendUser, mapBackendUserToUser } from '@/lib/types'
 import { storyPromptService } from '@/lib/api/services'
+import { toast } from '@/components/ui/use-toast'
 
 /** 故事推薦彈窗顯示延遲時間（毫秒） */
 const STORY_PROMPT_SHOW_DELAY = 1500
+
+/** 建立人物誌提示的 localStorage key */
+const BIOGRAPHY_PROMPT_KEY = 'nobodyclimb_biography_prompt_shown'
 
 /**
  * 認證初始化組件
@@ -38,6 +42,19 @@ export function AuthInitializer() {
         setTimeout(() => {
           openStoryPrompt()
         }, STORY_PROMPT_SHOW_DELAY)
+      } else if (response.success && response.data?.reason === 'no_biography') {
+        // 用戶沒有建立人物誌，顯示提示鼓勵建立
+        // 檢查是否已經顯示過（每次 session 只顯示一次）
+        const hasShown = sessionStorage.getItem(BIOGRAPHY_PROMPT_KEY)
+        if (!hasShown) {
+          sessionStorage.setItem(BIOGRAPHY_PROMPT_KEY, 'true')
+          setTimeout(() => {
+            toast({
+              title: '歡迎加入 NobodyClimb！',
+              description: '建立你的人物誌，讓更多岩友認識你吧！',
+            })
+          }, STORY_PROMPT_SHOW_DELAY)
+        }
       }
     } catch (error) {
       console.error('檢查故事推薦失敗:', error)
