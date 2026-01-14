@@ -3,7 +3,7 @@
 import React, { useState, use, useMemo } from 'react'
 import PlaceholderImage from '@/components/ui/placeholder-image'
 import Link from 'next/link'
-import { ArrowLeft, MapPin } from 'lucide-react'
+import { ArrowLeft, MapPin, Search } from 'lucide-react'
 import { motion } from 'framer-motion'
 import { Button } from '@/components/ui/button'
 import BackToTop from '@/components/ui/back-to-top'
@@ -20,6 +20,7 @@ export default function CragDetailPage({ params }: { params: Promise<{ id: strin
   const { id } = use(params)
   const [activeTab, setActiveTab] = useState('intro')
   const [selectedAreaFilter] = useState<string>('all')
+  const [searchQuery, setSearchQuery] = useState('')
 
   // 從資料服務層讀取岩場資料
   const currentCrag = getCragDetailData(id)
@@ -104,6 +105,20 @@ export default function CragDetailPage({ params }: { params: Promise<{ id: strin
             <div className="flex items-center text-gray-500">
               <MapPin size={16} className="mr-1" />
               <span>{currentCrag.location}</span>
+            </div>
+          </div>
+
+          {/* 路線搜尋框 - 放在 tabs 上方讓使用者第一眼就能看到 */}
+          <div className="mb-6">
+            <div className="relative">
+              <Search className="absolute left-4 top-1/2 h-5 w-5 -translate-y-1/2 text-gray-400" />
+              <input
+                type="text"
+                placeholder="搜尋路線：輸入路線名稱、難度(如 5.10a)或類型(如 Sport)..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="w-full rounded-lg border border-gray-200 bg-white py-3 pl-12 pr-4 text-base outline-none transition-colors placeholder:text-gray-400 focus:border-[#FFE70C] focus:ring-2 focus:ring-[#FFE70C]/20"
+              />
             </div>
           </div>
 
@@ -294,6 +309,7 @@ export default function CragDetailPage({ params }: { params: Promise<{ id: strin
                   initialArea={selectedAreaFilter}
                   cragId={id}
                   areaIdMap={areaIdMap}
+                  searchQuery={searchQuery}
                 />
               </Tabs.Content>
             </Tabs.Root>
