@@ -369,6 +369,7 @@ export interface Biography {
   total_likes: number
   total_views: number
   follower_count: number
+  comment_count: number
 }
 
 /**

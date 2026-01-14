@@ -88,8 +88,8 @@ export interface ProfileData {
   // 設定
   isPublic: boolean
   // 圖片相關
-  images: ProfileImage[]
-  imageLayout: ImageLayout
+  avatarUrl: string | null // 人物誌頭像
+  coverImageUrl: string | null // 人物誌封面照片
 }
 
 // 圖片限制常數
@@ -165,6 +165,6 @@ export const initialProfileData: ProfileData = {
   climbingLocations: [],
   socialLinks: initialSocialLinks,
   isPublic: true,
-  images: [],
-  imageLayout: 'double',
+  avatarUrl: null,
+  coverImageUrl: null,
 }

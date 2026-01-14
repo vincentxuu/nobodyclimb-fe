@@ -181,7 +181,7 @@ export async function createNotification(
   db: D1Database,
   data: {
     userId: string;
-    type: 'goal_completed' | 'goal_liked' | 'goal_commented' | 'goal_referenced' | 'new_follower' | 'story_featured';
+    type: 'goal_completed' | 'goal_liked' | 'goal_commented' | 'goal_referenced' | 'new_follower' | 'story_featured' | 'biography_commented';
     actorId?: string;
     targetId?: string;
     title: string;

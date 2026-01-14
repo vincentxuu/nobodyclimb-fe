@@ -8,6 +8,7 @@ import { GoogleLogin, CredentialResponse } from '@react-oauth/google'
 import { useAuth } from '@/lib/hooks/useAuth'
 import { Button } from '@/components/ui/button'
 import { PageTransition } from '@/components/shared/page-transition'
+import { GOOGLE_CLIENT_ID } from '@/lib/constants'
 
 /**
  * 註冊頁面組件
@@ -175,23 +176,27 @@ export default function RegisterPage() {
               </Button>
             </form>
 
-            <div className="relative flex items-center">
-              <div className="flex-grow border-t border-border"></div>
-              <div className="mx-4 text-xs text-muted-foreground">或</div>
-              <div className="flex-grow border-t border-border"></div>
-            </div>
+            {GOOGLE_CLIENT_ID && (
+              <>
+                <div className="relative flex items-center">
+                  <div className="flex-grow border-t border-border"></div>
+                  <div className="mx-4 text-xs text-muted-foreground">或</div>
+                  <div className="flex-grow border-t border-border"></div>
+                </div>
 
-            <div className="flex justify-center">
-              <GoogleLogin
-                onSuccess={handleGoogleSuccess}
-                onError={handleGoogleError}
-                theme="outline"
-                size="large"
-                width="100%"
-                text="signup_with"
-                shape="rectangular"
-              />
-            </div>
+                <div className="flex justify-center">
+                  <GoogleLogin
+                    onSuccess={handleGoogleSuccess}
+                    onError={handleGoogleError}
+                    theme="outline"
+                    size="large"
+                    width="100%"
+                    text="signup_with"
+                    shape="rectangular"
+                  />
+                </div>
+              </>
+            )}
 
             <div className="text-center text-sm">
               <span className="text-muted-foreground">已經有帳號？</span>{' '}

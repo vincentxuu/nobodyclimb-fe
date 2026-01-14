@@ -862,6 +862,56 @@ export const biographyService = {
     >(`/biographies/${id}/following`, { params: { limit, offset } })
     return response.data
   },
+
+  /**
+   * 獲取人物誌評論
+   */
+  getComments: async (biographyId: string) => {
+    const response = await apiClient.get<
+      ApiResponse<
+        Array<{
+          id: string
+          biography_id: string
+          user_id: string
+          username: string
+          display_name: string | null
+          avatar_url: string | null
+          content: string
+          created_at: string
+        }>
+      >
+    >(`/biographies/${biographyId}/comments`)
+    return response.data
+  },
+
+  /**
+   * 新增人物誌評論
+   */
+  addComment: async (biographyId: string, content: string) => {
+    const response = await apiClient.post<
+      ApiResponse<{
+        id: string
+        biography_id: string
+        user_id: string
+        username: string
+        display_name: string | null
+        avatar_url: string | null
+        content: string
+        created_at: string
+      }>
+    >(`/biographies/${biographyId}/comments`, { content })
+    return response.data
+  },
+
+  /**
+   * 刪除人物誌評論
+   */
+  deleteComment: async (commentId: string) => {
+    const response = await apiClient.delete<ApiResponse<{ message: string }>>(
+      `/biographies/comments/${commentId}`
+    )
+    return response.data
+  },
 }
 
 /**

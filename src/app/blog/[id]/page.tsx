@@ -221,8 +221,8 @@ export default function BlogDetail() {
                   onClick={handleLike}
                   disabled={isLiking}
                   className={`${isLiked
-                      ? 'border-red-300 bg-red-50 text-red-600'
-                      : 'border-gray-300 text-gray-600 hover:bg-gray-50'
+                    ? 'border-red-300 bg-red-50 text-red-600'
+                    : 'border-gray-300 text-gray-600 hover:bg-gray-50'
                     }`}
                 >
                   <Mountain
@@ -237,7 +237,6 @@ export default function BlogDetail() {
                   className="border-gray-300 text-gray-600 hover:bg-gray-50"
                 >
                   <Share2 size={18} className="mr-1" />
-                  分享
                 </Button>
                 <Button
                   onClick={() => router.push(`/blog/edit/${id}`)}

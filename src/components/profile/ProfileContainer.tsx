@@ -12,12 +12,12 @@ import ClimbingFootprintsSection from './ClimbingFootprintsSection'
 import SocialLinksSection from './SocialLinksSection'
 import PublicSettingSection from './PublicSettingSection'
 import ProfileActionButtons from './ProfileActionButtons'
-import { ProfileImageSection } from './image-gallery'
+import BiographyAvatarSection from './BiographyAvatarSection'
 import { useProfile } from './ProfileContext'
 import { useIsMobile } from '@/lib/hooks/useIsMobile'
 import { useToast } from '@/components/ui/use-toast'
 import { biographyService } from '@/lib/api/services'
-import { ProfileImage, ImageLayout, AdvancedStories, SocialLinks } from './types'
+import { AdvancedStories, SocialLinks } from './types'
 import { ClimbingLocation } from '@/lib/types'
 
 export default function ProfileContainer() {
@@ -41,30 +41,25 @@ export default function ProfileContainer() {
     })
   }
 
-  // 處理圖片上傳
-  const handleImageUpload = async (file: File) => {
+  // 處理頭像上傳
+  const handleAvatarUpload = async (file: File) => {
     try {
       const response = await biographyService.uploadImage(file)
       if (response.success && response.data?.url) {
-        const newImage: ProfileImage = {
-          id: crypto.randomUUID(),
-          url: response.data.url,
-          order: profileData.images.length,
-        }
         setProfileData({
           ...profileData,
-          images: [...profileData.images, newImage],
+          avatarUrl: response.data.url,
         })
         toast({
-          title: '圖片上傳成功',
+          title: '頭像上傳成功',
         })
       } else {
         throw new Error(response.error || '上傳失敗')
       }
     } catch (error) {
-      console.error('圖片上傳失敗:', error)
+      console.error('頭像上傳失敗:', error)
       toast({
-        title: '圖片上傳失敗',
+        title: '頭像上傳失敗',
         description: '請稍後再試',
         variant: 'destructive',
       })
@@ -72,43 +67,48 @@ export default function ProfileContainer() {
     }
   }
 
-  // 處理圖片刪除
-  const handleImageDelete = (id: string) => {
-    const updatedImages = profileData.images
-      .filter((img) => img.id !== id)
-      .map((img, index) => ({ ...img, order: index }))
+  // 處理封面照片上傳
+  const handleCoverImageUpload = async (file: File) => {
+    try {
+      const response = await biographyService.uploadImage(file)
+      if (response.success && response.data?.url) {
+        setProfileData({
+          ...profileData,
+          coverImageUrl: response.data.url,
+        })
+        toast({
+          title: '封面照片上傳成功',
+        })
+      } else {
+        throw new Error(response.error || '上傳失敗')
+      }
+    } catch (error) {
+      console.error('封面照片上傳失敗:', error)
+      toast({
+        title: '封面照片上傳失敗',
+        description: '請稍後再試',
+        variant: 'destructive',
+      })
+      throw error
+    }
+  }
+
+  // 處理頭像刪除
+  const handleAvatarDelete = () => {
     setProfileData({
       ...profileData,
-      images: updatedImages,
+      avatarUrl: null,
     })
   }
 
-  // 處理圖片說明變更
-  const handleCaptionChange = (id: string, caption: string) => {
-    const updatedImages = profileData.images.map((img) =>
-      img.id === id ? { ...img, caption } : img
-    )
+  // 處理封面照片刪除
+  const handleCoverImageDelete = () => {
     setProfileData({
       ...profileData,
-      images: updatedImages,
+      coverImageUrl: null,
     })
   }
 
-  // 處理排版變更
-  const handleLayoutChange = (layout: ImageLayout) => {
-    setProfileData({
-      ...profileData,
-      imageLayout: layout,
-    })
-  }
-
-  // 處理圖片重新排序
-  const handleReorder = (reorderedImages: ProfileImage[]) => {
-    setProfileData({
-      ...profileData,
-      images: reorderedImages,
-    })
-  }
 
   // 處理進階故事單一欄位儲存
   const handleAdvancedStorySave = useCallback(
@@ -174,12 +174,6 @@ export default function ProfileContainer() {
     setIsSaving(true)
 
     try {
-      // 將圖片資料序列化為 JSON
-      const galleryImagesJson = JSON.stringify({
-        images: profileData.images,
-        layout: profileData.imageLayout,
-      })
-
       // 序列化攀岩足跡
       const climbingLocationsJson = JSON.stringify(profileData.climbingLocations)
 
@@ -189,6 +183,8 @@ export default function ProfileContainer() {
       // 將前端資料轉換為 API 格式
       const biographyData = {
         name: profileData.name,
+        avatar_url: profileData.avatarUrl,
+        cover_image: profileData.coverImageUrl,
         climbing_start_year: profileData.startYear,
         frequent_locations: profileData.frequentGyms,
         favorite_route_type: profileData.favoriteRouteType,
@@ -203,8 +199,6 @@ export default function ProfileContainer() {
         // 社群連結
         social_links: socialLinksJson,
         is_public: profileData.isPublic ? 1 : 0,
-        // 圖片資料以 JSON 格式存儲
-        gallery_images: galleryImagesJson,
       }
 
       // 呼叫 API 保存資料（createBiography 會自動判斷是新增還是更新）
@@ -247,6 +241,17 @@ export default function ProfileContainer() {
           isMobile={isMobile}
         />
         <div className="space-y-6">
+          <BiographyAvatarSection
+            avatarUrl={profileData.avatarUrl}
+            coverImageUrl={profileData.coverImageUrl}
+            isEditing={isEditing}
+            isMobile={isMobile}
+            onAvatarUpload={handleAvatarUpload}
+            onCoverImageUpload={handleCoverImageUpload}
+            onAvatarDelete={handleAvatarDelete}
+            onCoverImageDelete={handleCoverImageDelete}
+          />
+          <ProfileDivider />
           <BasicInfoSection
             name={profileData.name}
             isEditing={isEditing}
@@ -292,18 +297,6 @@ export default function ProfileContainer() {
             isEditing={isEditing}
             isMobile={isMobile}
             onChange={handleClimbingLocationsChange}
-          />
-          <ProfileDivider />
-          <ProfileImageSection
-            images={profileData.images}
-            imageLayout={profileData.imageLayout}
-            isEditing={isEditing}
-            isMobile={isMobile}
-            onImageUpload={handleImageUpload}
-            onImageDelete={handleImageDelete}
-            onCaptionChange={handleCaptionChange}
-            onLayoutChange={handleLayoutChange}
-            onReorder={handleReorder}
           />
           <ProfileDivider />
           <PublicSettingSection

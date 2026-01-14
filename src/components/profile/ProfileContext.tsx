@@ -3,8 +3,6 @@
 import React, { createContext, useContext, useState, ReactNode, useEffect } from 'react'
 import {
   ProfileData,
-  ProfileImage,
-  ImageLayout,
   AdvancedStories,
   SocialLinks,
   initialProfileData,
@@ -24,30 +22,6 @@ interface ProfileContextType {
 }
 
 const ProfileContext = createContext<ProfileContextType | undefined>(undefined)
-
-/**
- * 解析 gallery_images JSON 字串
- */
-function parseGalleryImages(galleryImagesJson: string | null | undefined): {
-  images: ProfileImage[]
-  layout: ImageLayout
-} {
-  if (!galleryImagesJson) {
-    return { images: [], layout: 'double' }
-  }
-  try {
-    const parsed = JSON.parse(galleryImagesJson)
-    if (typeof parsed !== 'object' || parsed === null) {
-      return { images: [], layout: 'double' }
-    }
-    return {
-      images: Array.isArray(parsed.images) ? parsed.images : [],
-      layout: parsed.layout || 'double',
-    }
-  } catch {
-    return { images: [], layout: 'double' }
-  }
-}
 
 /**
  * 解析 climbing_locations JSON 字串
@@ -90,7 +64,6 @@ function mapBiographyToProfileData(biography: Biography | null): Partial<Profile
     return {}
   }
 
-  const { images, layout } = parseGalleryImages(biography.gallery_images)
   const climbingLocations = parseClimbingLocations(biography.climbing_locations)
   const socialLinks = parseSocialLinks(biography.social_links)
 
@@ -149,8 +122,8 @@ function mapBiographyToProfileData(biography: Biography | null): Partial<Profile
     climbingLocations,
     socialLinks,
     isPublic: Number(biography.is_public) === 1,
-    images,
-    imageLayout: layout,
+    avatarUrl: biography.avatar_url || null,
+    coverImageUrl: biography.cover_image || null,
   }
 }
 
@@ -195,8 +168,8 @@ function mapUserToProfileData(user: User | null): ProfileData {
     climbingLocations: [],
     socialLinks: initialSocialLinks,
     isPublic: bioData.isPublic ?? true,
-    images: [],
-    imageLayout: 'double',
+    avatarUrl: user.avatar || null,
+    coverImageUrl: null,
   }
 }
 

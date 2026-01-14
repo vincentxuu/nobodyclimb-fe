@@ -72,9 +72,11 @@ biographiesRoutes.get('/', async (c) => {
   const total = countResult?.count || 0;
 
   const biographies = await c.env.DB.prepare(
-    `SELECT * FROM biographies
+    `SELECT b.*, COALESCE(b.avatar_url, u.avatar_url) as avatar_url
+     FROM biographies b
+     LEFT JOIN users u ON b.user_id = u.id
      WHERE ${whereClause}
-     ORDER BY is_featured DESC, published_at DESC, created_at DESC
+     ORDER BY b.is_featured DESC, b.published_at DESC, b.created_at DESC
      LIMIT ? OFFSET ?`
   )
     .bind(...params, limit, offset)
@@ -97,9 +99,11 @@ biographiesRoutes.get('/featured', async (c) => {
   const limit = parseInt(c.req.query('limit') || '3', 10);
 
   const biographies = await c.env.DB.prepare(
-    `SELECT * FROM biographies
-     WHERE is_public = 1 AND is_featured = 1
-     ORDER BY published_at DESC, created_at DESC
+    `SELECT b.*, COALESCE(b.avatar_url, u.avatar_url) as avatar_url
+     FROM biographies b
+     LEFT JOIN users u ON b.user_id = u.id
+     WHERE b.is_public = 1 AND b.is_featured = 1
+     ORDER BY b.published_at DESC, b.created_at DESC
      LIMIT ?`
   )
     .bind(limit)
@@ -984,15 +988,6 @@ biographiesRoutes.get('/:id/following', async (c) => {
 // 攀岩足跡探索 API
 // ═══════════════════════════════════════════════════════════
 
-interface ClimbingLocation {
-  location: string;
-  country: string;
-  visit_year: string | null;
-  notes: string | null;
-  photos: string[] | null;
-  is_public: boolean;
-}
-
 interface LocationStat {
   location: string;
   country: string;
@@ -1688,5 +1683,212 @@ biographiesRoutes.get('/:id/like', optionalAuthMiddleware, async (c) => {
       liked,
       likes: likeCount?.count || 0,
     },
+  });
+});
+
+// ═══════════════════════════════════════════════════════════
+// Comments
+// ═══════════════════════════════════════════════════════════
+
+// GET /biographies/:id/comments - Get biography comments
+biographiesRoutes.get('/:id/comments', async (c) => {
+  const biographyId = c.req.param('id');
+
+  const comments = await c.env.DB.prepare(
+    `SELECT
+      c.id,
+      c.entity_id as biography_id,
+      c.user_id,
+      u.username,
+      u.display_name,
+      u.avatar_url,
+      c.content,
+      c.created_at
+    FROM comments c
+    JOIN users u ON c.user_id = u.id
+    WHERE c.entity_type = 'biography' AND c.entity_id = ?
+    ORDER BY c.created_at DESC`
+  )
+    .bind(biographyId)
+    .all();
+
+  return c.json({
+    success: true,
+    data: comments.results || [],
+  });
+});
+
+// POST /biographies/:id/comments - Add a comment to biography
+biographiesRoutes.post('/:id/comments', authMiddleware, async (c) => {
+  const biographyId = c.req.param('id');
+  const userId = c.get('userId');
+  const { content } = await c.req.json<{ content: string }>();
+
+  if (!content || !content.trim()) {
+    return c.json(
+      {
+        success: false,
+        error: 'Bad Request',
+        message: 'Comment content is required',
+      },
+      400
+    );
+  }
+
+  // Check if biography exists
+  const biography = await c.env.DB.prepare(
+    'SELECT id, user_id FROM biographies WHERE id = ?'
+  )
+    .bind(biographyId)
+    .first<{ id: string; user_id: string }>();
+
+  if (!biography) {
+    return c.json(
+      {
+        success: false,
+        error: 'Not Found',
+        message: 'Biography not found',
+      },
+      404
+    );
+  }
+
+  const commentId = generateId();
+  const now = new Date().toISOString();
+
+  await c.env.DB.prepare(
+    `INSERT INTO comments (id, user_id, entity_type, entity_id, content, created_at, updated_at)
+     VALUES (?, ?, 'biography', ?, ?, ?, ?)`
+  )
+    .bind(commentId, userId, biographyId, content.trim(), now, now)
+    .run();
+
+  // Get user info for response
+  const user = await c.env.DB.prepare(
+    'SELECT username, display_name, avatar_url FROM users WHERE id = ?'
+  )
+    .bind(userId)
+    .first<{ username: string; display_name: string | null; avatar_url: string | null }>();
+
+  // Create notification for biography owner (if not commenting on own biography)
+  if (biography.user_id && biography.user_id !== userId) {
+    await createNotification(c.env.DB, {
+      userId: biography.user_id,
+      type: 'biography_commented',
+      actorId: userId,
+      targetId: biographyId,
+      title: '新留言',
+      message: `${user?.display_name || user?.username || '某位用戶'} 在你的人物誌留言了`,
+    });
+  }
+
+  return c.json({
+    success: true,
+    data: {
+      id: commentId,
+      biography_id: biographyId,
+      user_id: userId,
+      username: user?.username || '',
+      display_name: user?.display_name,
+      avatar_url: user?.avatar_url,
+      content: content.trim(),
+      created_at: now,
+    },
+  });
+});
+
+// DELETE /biographies/comments/:id - Delete a comment
+biographiesRoutes.delete('/comments/:id', authMiddleware, async (c) => {
+  const commentId = c.req.param('id');
+  const userId = c.get('userId');
+
+  const comment = await c.env.DB.prepare(
+    'SELECT id, user_id FROM comments WHERE id = ? AND entity_type = ?'
+  )
+    .bind(commentId, 'biography')
+    .first<{ id: string; user_id: string }>();
+
+  if (!comment) {
+    return c.json(
+      {
+        success: false,
+        error: 'Not Found',
+        message: 'Comment not found',
+      },
+      404
+    );
+  }
+
+  if (comment.user_id !== userId) {
+    return c.json(
+      {
+        success: false,
+        error: 'Forbidden',
+        message: 'You can only delete your own comments',
+      },
+      403
+    );
+  }
+
+  await c.env.DB.prepare('DELETE FROM comments WHERE id = ?')
+    .bind(commentId)
+    .run();
+
+  return c.json({
+    success: true,
+    data: {
+      message: 'Comment deleted successfully',
+    },
+  });
+});
+
+// POST /biographies/upload-image - Upload image to R2 storage
+biographiesRoutes.post('/upload-image', authMiddleware, async (c) => {
+  const formData = await c.req.formData();
+  const file = formData.get('image') as File | null;
+
+  if (!file) {
+    return c.json(
+      {
+        success: false,
+        error: 'Bad Request',
+        message: 'No image file provided',
+      },
+      400
+    );
+  }
+
+  // Validate file type
+  const allowedTypes = ['image/jpeg', 'image/png', 'image/webp'];
+  if (!allowedTypes.includes(file.type)) {
+    return c.json(
+      {
+        success: false,
+        error: 'Bad Request',
+        message: 'Invalid file type. Only JPEG, PNG, and WebP are allowed.',
+      },
+      400
+    );
+  }
+
+  // Generate unique filename
+  const ext = file.name.split('.').pop() || 'jpg';
+  const filename = `biography/${generateId()}.${ext}`;
+
+  // Upload to R2
+  const arrayBuffer = await file.arrayBuffer();
+  await c.env.STORAGE.put(filename, arrayBuffer, {
+    httpMetadata: {
+      contentType: file.type,
+      cacheControl: 'public, max-age=31536000, immutable',
+    },
+  });
+
+  // Construct URL using environment variable
+  const url = `${c.env.R2_PUBLIC_URL}/${filename}`;
+
+  return c.json({
+    success: true,
+    data: { url },
   });
 });

@@ -133,7 +133,7 @@ export function CommentSection({
         className="inline-flex items-center gap-1 text-sm text-gray-500 hover:text-gray-700 transition-colors"
       >
         <MessageCircle className="h-4 w-4" />
-        <span>{count} 則留言</span>
+        <span>{count} </span>
       </button>
 
       {isOpen && (

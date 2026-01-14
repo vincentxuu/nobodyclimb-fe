@@ -16,7 +16,7 @@ interface BiographyCardProps {
 }
 
 function BiographyCard({ person }: BiographyCardProps) {
-  const imageUrl = person.avatar_url || '/photo/personleft.jpeg'
+  const imageUrl = person.avatar_url || '/photo/blog-right.jpg'
   const climbingYears = calculateClimbingYears(person.climbing_start_year)
 
   return (

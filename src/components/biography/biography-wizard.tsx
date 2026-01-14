@@ -16,6 +16,7 @@ import {
   X,
   Loader2,
   BookOpen,
+  Upload,
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { Button } from '@/components/ui/button'
@@ -31,6 +32,8 @@ import {
 } from '@/components/ui/select'
 import { BiographyInput } from '@/lib/types'
 import { generateUniqueId } from '@/lib/utils/biography-ui'
+import { userService } from '@/lib/api/services'
+import { useToast } from '@/components/ui/use-toast'
 
 /**
  * 帶 ID 的列表項目
@@ -113,12 +116,17 @@ export function BiographyWizard({
   mode = 'create',
   className,
 }: BiographyWizardProps) {
+  const { toast } = useToast()
   const [currentStep, setCurrentStep] = useState<WizardStep>(1)
   const [formData, setFormData] = useState<Partial<BiographyInput>>(initialData)
   const [isSaving, setIsSaving] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [locationInput, setLocationInput] = useState('')
   const [bucketListInput, setBucketListInput] = useState('')
+  const [avatarPreview, setAvatarPreview] = useState<string | null>(
+    initialData.avatar_url || null
+  )
+  const [isUploadingAvatar, setIsUploadingAvatar] = useState(false)
 
   // 帶 ID 的地點列表
   const [locationItems, setLocationItems] = useState<ListItem[]>(() => {
@@ -150,6 +158,70 @@ export function BiographyWizard({
   const updateFormData = useCallback((field: keyof BiographyInput, value: string | null) => {
     setFormData((prev) => ({ ...prev, [field]: value }))
   }, [])
+
+  // 處理頭像上傳
+  const handleAvatarChange = useCallback(
+    async (e: React.ChangeEvent<HTMLInputElement>) => {
+      const file = e.target.files?.[0]
+      if (!file) return
+
+      // 檢查檔案類型
+      if (!file.type.startsWith('image/')) {
+        toast({
+          title: '檔案格式錯誤',
+          description: '請上傳圖片檔案',
+          variant: 'destructive',
+        })
+        return
+      }
+
+      // 檢查檔案大小 (限制 5MB)
+      if (file.size > 5 * 1024 * 1024) {
+        toast({
+          title: '檔案太大',
+          description: '圖片大小不能超過 5MB',
+          variant: 'destructive',
+        })
+        return
+      }
+
+      try {
+        setIsUploadingAvatar(true)
+
+        // 先顯示預覽
+        const reader = new FileReader()
+        reader.onload = (event) => {
+          setAvatarPreview((event.target?.result as string) || null)
+        }
+        reader.readAsDataURL(file)
+
+        // 上傳檔案
+        const response = await userService.uploadAvatar(file)
+
+        if (response.success && response.data?.url) {
+          updateFormData('avatar_url', response.data.url)
+          toast({
+            title: '上傳成功',
+            description: '頭像已更新',
+          })
+        } else {
+          throw new Error('上傳失敗')
+        }
+      } catch (error) {
+        console.error('Failed to upload avatar:', error)
+        toast({
+          title: '上傳失敗',
+          description: '頭像上傳時發生錯誤，請稍後再試',
+          variant: 'destructive',
+        })
+        // 恢復原本的預覽
+        setAvatarPreview(formData.avatar_url || null)
+      } finally {
+        setIsUploadingAvatar(false)
+      }
+    },
+    [formData.avatar_url, toast, updateFormData]
+  )
 
   // 同步地點到 formData
   const syncLocations = useCallback(
@@ -323,22 +395,51 @@ export function BiographyWizard({
           {/* 步驟 1: 基本資訊 */}
           {currentStep === 1 && (
             <div className="space-y-6">
-              {/* 頭像上傳 (簡化版，只顯示預覽) */}
+              {/* 頭像上傳 */}
               <div>
-                <Label className="mb-2 block text-sm font-medium">頭像</Label>
+                <Label className="mb-2 block text-sm font-medium">
+                  頭像 <span className="text-xs text-gray-400">（選填）</span>
+                </Label>
                 <div className="flex items-center gap-4">
-                  <div className="flex h-20 w-20 items-center justify-center rounded-full bg-gray-100">
-                    {formData.avatar_url ? (
-                      <img
-                        src={formData.avatar_url}
-                        alt="頭像"
-                        className="h-full w-full rounded-full object-cover"
-                      />
-                    ) : (
-                      <Camera className="h-8 w-8 text-gray-400" />
+                  <div className="relative">
+                    <div className="flex h-20 w-20 items-center justify-center overflow-hidden rounded-full bg-gray-100">
+                      {avatarPreview ? (
+                        <img
+                          src={avatarPreview}
+                          alt="頭像"
+                          className="h-full w-full object-cover"
+                        />
+                      ) : (
+                        <Camera className="h-8 w-8 text-gray-400" />
+                      )}
+                    </div>
+                    {isUploadingAvatar && (
+                      <div className="absolute inset-0 flex items-center justify-center rounded-full bg-black bg-opacity-50">
+                        <Loader2 className="h-6 w-6 animate-spin text-white" />
+                      </div>
                     )}
                   </div>
-                  <p className="text-sm text-gray-500">可稍後在個人資料頁面設定</p>
+                  <div>
+                    <label
+                      className={cn(
+                        'flex cursor-pointer items-center gap-2 rounded-lg border border-gray-300 px-4 py-2 text-sm transition-colors hover:bg-gray-50',
+                        isUploadingAvatar && 'cursor-not-allowed opacity-50'
+                      )}
+                    >
+                      <input
+                        type="file"
+                        accept="image/*"
+                        className="hidden"
+                        onChange={handleAvatarChange}
+                        disabled={isUploadingAvatar}
+                      />
+                      <Upload className="h-4 w-4" />
+                      {isUploadingAvatar ? '上傳中...' : '上傳照片'}
+                    </label>
+                    <p className="mt-1 text-xs text-gray-500">
+                      支援 JPG、PNG 格式，最大 5MB
+                    </p>
+                  </div>
                 </div>
               </div>
 

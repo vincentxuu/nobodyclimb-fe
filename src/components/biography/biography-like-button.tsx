@@ -91,7 +91,7 @@ export function BiographyLikeButton({
       ) : (
         <Mountain className={cn('h-4 w-4', isLiked && 'fill-current')} />
       )}
-      {showCount && <span>{count} 個讚</span>}
+      {showCount && <span>{count}</span>}
     </button>
   )
 }
