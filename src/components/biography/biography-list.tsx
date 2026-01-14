@@ -4,7 +4,7 @@ import React, { useEffect, useState, useCallback } from 'react'
 import Image from 'next/image'
 import Link from 'next/link'
 import { motion } from 'framer-motion'
-import { ArrowRightCircle, Loader2 } from 'lucide-react'
+import { ArrowRightCircle, Loader2, User } from 'lucide-react'
 import { Card, CardContent } from '@/components/ui/card'
 import { biographyService } from '@/lib/api/services'
 import { Biography } from '@/lib/types'
@@ -16,7 +16,6 @@ interface BiographyCardProps {
 }
 
 function BiographyCard({ person }: BiographyCardProps) {
-  const imageUrl = person.avatar_url || '/photo/personleft.jpeg'
   const climbingYears = calculateClimbingYears(person.climbing_start_year)
 
   return (
@@ -29,12 +28,18 @@ function BiographyCard({ person }: BiographyCardProps) {
       <Link href={`/biography/profile/${person.id}`} className="block h-full">
         <Card className="h-full overflow-hidden transition-shadow duration-300 hover:shadow-md">
           <div className="relative h-[248px] overflow-hidden">
-            <Image
-              src={imageUrl}
-              alt={person.name}
-              fill
-              className="object-cover transition-transform duration-500 hover:scale-105"
-            />
+            {person.avatar_url ? (
+              <Image
+                src={person.avatar_url}
+                alt={person.name}
+                fill
+                className="object-cover transition-transform duration-500 hover:scale-105"
+              />
+            ) : (
+              <div className="flex h-full w-full items-center justify-center bg-[#E8E6E3]">
+                <User size={64} className="text-[#8E8C8C]" />
+              </div>
+            )}
           </div>
 
           <CardContent className="p-5">
