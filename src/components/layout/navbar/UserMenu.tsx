@@ -36,17 +36,17 @@ export default function UserMenu() {
     : DEFAULT_AVATARS[0]
 
   return (
-    <div className="flex shrink-0 items-center px-4 lg:px-6">
+    <div className="flex shrink-0 items-center px-2 md:px-4 lg:px-6">
       {isAuthenticated ? (
-        <div className="flex items-center space-x-2 lg:space-x-4">
+        <div className="flex items-center space-x-1.5 md:space-x-2 lg:space-x-4">
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <Button
                 variant="outline"
                 size="sm"
-                className="h-8 rounded-md border border-[#1B1A1A] px-3 font-medium text-[#1B1A1A] hover:bg-gray-100/80 lg:h-9 lg:px-4"
+                className="h-7 rounded-md border border-[#1B1A1A] px-2 font-medium text-[#1B1A1A] hover:bg-gray-100/80 md:h-8 md:px-3 lg:h-9 lg:px-4"
               >
-                <span className="font-['Noto_Sans_CJK_TC'] text-sm font-medium leading-5 tracking-[0.01em]">
+                <span className="font-['Noto_Sans_CJK_TC'] text-xs font-medium leading-5 tracking-[0.01em] md:text-sm">
                   創作
                 </span>
               </Button>
@@ -68,14 +68,14 @@ export default function UserMenu() {
           </DropdownMenu>
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <button className="flex h-8 w-8 items-center justify-center overflow-hidden rounded-full transition-opacity duration-200 hover:opacity-80 lg:h-10 lg:w-10">
+              <button className="flex h-7 w-7 items-center justify-center overflow-hidden rounded-full transition-opacity duration-200 hover:opacity-80 md:h-8 md:w-8 lg:h-10 lg:w-10">
                 <AvatarWithFallback
                   src={user?.avatar}
                   alt="用戶頭像"
-                  size="w-8 h-8 lg:w-10 lg:h-10"
+                  size="w-7 h-7 md:w-8 md:h-8 lg:w-10 lg:h-10"
                   fallback={
                     <div role="img" aria-label="用戶頭像">
-                      {generateAvatarElement(avatarStyle, 'w-8 h-8 lg:w-10 lg:h-10')}
+                      {generateAvatarElement(avatarStyle, 'w-7 h-7 md:w-8 md:h-8 lg:w-10 lg:h-10')}
                     </div>
                   }
                 />
@@ -133,9 +133,9 @@ export default function UserMenu() {
           <Button
             variant="outline"
             size="sm"
-            className="h-8 rounded-md border border-[#1B1A1A] px-3 font-medium text-[#1B1A1A] hover:bg-gray-100/80 lg:h-9 lg:px-4"
+            className="h-7 rounded-md border border-[#1B1A1A] px-2 font-medium text-[#1B1A1A] hover:bg-gray-100/80 md:h-8 md:px-3 lg:h-9 lg:px-4"
           >
-            <span className="font-['Noto_Sans_CJK_TC'] text-sm font-medium leading-5 tracking-[0.01em]">
+            <span className="font-['Noto_Sans_CJK_TC'] text-xs font-medium leading-5 tracking-[0.01em] md:text-sm">
               登入
             </span>
           </Button>
