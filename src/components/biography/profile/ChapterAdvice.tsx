@@ -33,7 +33,7 @@ export function ChapterAdvice({ person }: ChapterAdviceProps) {
 
   return (
     <motion.section
-      className="my-16 bg-gradient-to-br from-blue-50 to-indigo-50 px-8 py-20"
+      className="my-16 bg-gradient-to-br from-brand-light to-gray-100 px-8 py-20"
       initial={{ opacity: 0, y: 20 }}
       whileInView={{ opacity: 1, y: 0 }}
       viewport={{ once: true }}
@@ -41,7 +41,7 @@ export function ChapterAdvice({ person }: ChapterAdviceProps) {
       <div className="mx-auto max-w-2xl">
         {/* 章節標題 */}
         <div className="mb-8 text-center">
-          <span className="mb-2 inline-block text-sm font-medium uppercase tracking-wider text-blue-500">
+          <span className="mb-2 inline-block text-sm font-medium uppercase tracking-wider text-brand-dark">
             Chapter 4
           </span>
           <h2 className="text-2xl font-semibold text-gray-900">

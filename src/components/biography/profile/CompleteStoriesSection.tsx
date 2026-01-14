@@ -14,14 +14,14 @@ interface CompleteStoriesSectionProps {
   isOwner: boolean
 }
 
-// 分類顏色映射
+// 分類顏色映射 - 使用品牌色系
 const CATEGORY_COLORS: Record<StoryCategory, { bg: string; text: string }> = {
-  growth: { bg: 'bg-amber-100', text: 'text-amber-700' },
-  psychology: { bg: 'bg-purple-100', text: 'text-purple-700' },
-  community: { bg: 'bg-blue-100', text: 'text-blue-700' },
-  practical: { bg: 'bg-green-100', text: 'text-green-700' },
-  dreams: { bg: 'bg-pink-100', text: 'text-pink-700' },
-  life: { bg: 'bg-teal-100', text: 'text-teal-700' },
+  growth: { bg: 'bg-brand-accent/20', text: 'text-brand-dark' },
+  psychology: { bg: 'bg-brand-light', text: 'text-brand-dark' },
+  community: { bg: 'bg-brand-accent/20', text: 'text-brand-dark' },
+  practical: { bg: 'bg-brand-light', text: 'text-brand-dark' },
+  dreams: { bg: 'bg-brand-accent/20', text: 'text-brand-dark' },
+  life: { bg: 'bg-brand-light', text: 'text-brand-dark' },
 }
 
 /**
