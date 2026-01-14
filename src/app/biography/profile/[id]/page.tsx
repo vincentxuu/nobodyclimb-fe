@@ -8,8 +8,6 @@ import { Button } from '@/components/ui/button'
 import BackToTop from '@/components/ui/back-to-top'
 import { RecommendedProfiles } from '@/components/biography/recommended-profiles'
 import { Breadcrumb } from '@/components/ui/breadcrumb'
-import { BucketListSection } from '@/components/biography/bucket-list-section'
-import { BiographyBucketList } from '@/components/bucket-list'
 import { biographyService } from '@/lib/api/services'
 import { Biography, BiographyAdjacent } from '@/lib/types'
 import { useAuthStore } from '@/store/authStore'
@@ -21,6 +19,7 @@ import {
   ChapterMeeting,
   ChapterMeaning,
   QuickFactsSection,
+  ChapterBucketList,
   ClimbingFootprintsSection,
   CompleteStoriesSection,
   ChapterAdvice,
@@ -160,35 +159,7 @@ export default function ProfilePage({ params }: ProfilePageProps) {
       <QuickFactsSection person={person} />
 
       {/* 6. Chapter 3: 人生清單 */}
-      {(person.bucket_list_story || person.id) && (
-        <section className="bg-white py-16">
-          <div className="container mx-auto max-w-5xl px-4">
-            <div className="mb-8">
-              <span className="text-sm font-medium uppercase tracking-wider text-brand-accent">
-                Chapter 3
-              </span>
-              <h2 className="mt-2 text-3xl font-bold text-gray-900">
-                攀岩人生清單
-              </h2>
-            </div>
-
-            {/* 人生清單故事描述 */}
-            {person.bucket_list_story && (
-              <p className="mb-8 text-lg leading-relaxed text-gray-700">
-                {person.bucket_list_story}
-              </p>
-            )}
-
-            {/* 社群互動人生清單 */}
-            <BucketListSection biographyId={person.id} isOwner={isOwner} />
-
-            {/* 結構化人生清單 */}
-            <div className="mt-8">
-              <BiographyBucketList biographyId={person.id} />
-            </div>
-          </div>
-        </section>
-      )}
+      <ChapterBucketList person={person} isOwner={isOwner} />
 
       {/* 7. Gallery: 攀岩足跡地圖 */}
       <ClimbingFootprintsSection person={person} />

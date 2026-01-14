@@ -1,5 +1,6 @@
 'use client'
 
+import { useMemo } from 'react'
 import { motion } from 'framer-motion'
 import { Biography } from '@/lib/types'
 
@@ -14,10 +15,21 @@ interface ChapterAdviceProps {
 export function ChapterAdvice({ person }: ChapterAdviceProps) {
   if (!person.advice_to_self) return null
 
-  const today = new Date().toLocaleDateString('zh-TW', {
-    year: 'numeric',
-    month: '2-digit'
-  })
+  // 使用人物誌的更新日期或發布日期
+  const displayDate = useMemo(() => {
+    const dateStr = person.updated_at || person.published_at || person.created_at
+    if (!dateStr) return null
+
+    try {
+      return new Date(dateStr).toLocaleDateString('zh-TW', {
+        year: 'numeric',
+        month: '2-digit',
+        day: '2-digit'
+      })
+    } catch {
+      return null
+    }
+  }, [person.updated_at, person.published_at, person.created_at])
 
   return (
     <motion.section
@@ -49,7 +61,7 @@ export function ChapterAdvice({ person }: ChapterAdviceProps) {
           {/* 簽名 */}
           <div className="mt-6 text-right text-gray-600">
             <p className="font-medium">— {person.name}</p>
-            <p className="text-sm">{today}</p>
+            {displayDate && <p className="text-sm">{displayDate}</p>}
           </div>
         </div>
       </div>

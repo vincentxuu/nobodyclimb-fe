@@ -1,8 +1,9 @@
 'use client'
 
 import { useMemo, useState } from 'react'
+import Link from 'next/link'
 import { motion } from 'framer-motion'
-import { ChevronRight } from 'lucide-react'
+import { ChevronRight, Plus } from 'lucide-react'
 import { Biography } from '@/lib/types'
 import { ADVANCED_STORY_QUESTIONS, STORY_CATEGORIES, StoryCategory } from '@/lib/constants/biography-stories'
 import { cn } from '@/lib/utils'
@@ -132,15 +133,20 @@ export function CompleteStoriesSection({ person, isOwner }: CompleteStoriesSecti
                 viewport={{ once: true }}
                 transition={{ delay: (filledStories.length + index) * 0.05 }}
               >
-                <div className="group flex h-full cursor-pointer flex-col items-center justify-center rounded-xl border-2 border-dashed border-gray-300 p-6 text-center transition-colors hover:border-brand-accent">
-                  <div className="mb-3 rounded bg-gray-200 px-2 py-1 text-xs text-gray-500 transition-colors group-hover:bg-yellow-100 group-hover:text-yellow-600">
-                    {getCategoryName(story.category)}
+                <Link href={`/profile/edit#${story.field}`} className="block h-full">
+                  <div className="group flex h-full cursor-pointer flex-col items-center justify-center rounded-xl border-2 border-dashed border-gray-300 p-6 text-center transition-colors hover:border-brand-accent">
+                    <div className="mb-3 flex h-10 w-10 items-center justify-center rounded-full bg-gray-100 text-gray-400 transition-colors group-hover:bg-yellow-100 group-hover:text-yellow-600">
+                      <Plus className="h-5 w-5" />
+                    </div>
+                    <div className="mb-2 rounded bg-gray-200 px-2 py-1 text-xs text-gray-500 transition-colors group-hover:bg-yellow-100 group-hover:text-yellow-600">
+                      {getCategoryName(story.category)}
+                    </div>
+                    <h3 className="mb-2 font-medium text-gray-500 transition-colors group-hover:text-gray-700">
+                      {story.title}
+                    </h3>
+                    <p className="text-sm text-gray-400">點擊新增故事</p>
                   </div>
-                  <h3 className="mb-2 font-medium text-gray-500 transition-colors group-hover:text-gray-700">
-                    {story.title}
-                  </h3>
-                  <p className="text-sm text-gray-400">點擊新增故事</p>
-                </div>
+                </Link>
               </motion.div>
             ))}
           </div>
