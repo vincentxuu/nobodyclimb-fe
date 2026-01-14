@@ -9,6 +9,8 @@ import { useAuthStore } from '@/store/authStore'
 import { useRouter } from 'next/navigation'
 import { BucketListComment } from '@/lib/types'
 import { cn } from '@/lib/utils'
+import { useToast } from '@/components/ui/use-toast'
+import { AxiosError } from 'axios'
 import { formatDistanceToNow } from 'date-fns'
 import { zhTW } from 'date-fns/locale'
 
@@ -31,6 +33,7 @@ export function CommentSection({
   const [count, setCount] = useState(initialCount)
   const { isAuthenticated, user } = useAuthStore()
   const router = useRouter()
+  const { toast } = useToast()
 
   const loadComments = useCallback(async () => {
     setIsLoading(true)
@@ -42,10 +45,17 @@ export function CommentSection({
       }
     } catch (error) {
       console.error('Failed to load comments:', error)
+      const axiosError = error as AxiosError<{ message?: string }>
+      const errorMessage = axiosError.response?.data?.message || '無法載入留言，請稍後再試'
+      toast({
+        title: '載入失敗',
+        description: errorMessage,
+        variant: 'destructive',
+      })
     } finally {
       setIsLoading(false)
     }
-  }, [itemId])
+  }, [itemId, toast])
 
   useEffect(() => {
     if (isOpen) {
@@ -72,6 +82,13 @@ export function CommentSection({
       }
     } catch (error) {
       console.error('Failed to add comment:', error)
+      const axiosError = error as AxiosError<{ message?: string }>
+      const errorMessage = axiosError.response?.data?.message || '留言失敗，請稍後再試'
+      toast({
+        title: '留言失敗',
+        description: errorMessage,
+        variant: 'destructive',
+      })
     } finally {
       setIsSubmitting(false)
     }
@@ -84,6 +101,13 @@ export function CommentSection({
       setCount((prev) => Math.max(0, prev - 1))
     } catch (error) {
       console.error('Failed to delete comment:', error)
+      const axiosError = error as AxiosError<{ message?: string }>
+      const errorMessage = axiosError.response?.data?.message || '刪除留言失敗，請稍後再試'
+      toast({
+        title: '刪除失敗',
+        description: errorMessage,
+        variant: 'destructive',
+      })
     }
   }
 
