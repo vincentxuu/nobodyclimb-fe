@@ -40,25 +40,22 @@ export function StoryPromptWrapper() {
 
   // 儲存故事
   const handleSave = useCallback(async (storyField: string, storyValue: string) => {
-    if (!biography) return
-
-    try {
-      // 更新人物誌資料
-      await biographyService.updateMyBiography({
-        [storyField]: storyValue,
-      })
-
-      // 記錄完成
-      await storyPromptService.completePrompt(storyField)
-
-      // 更新本地狀態
-      setBiography((prev) =>
-        prev ? { ...prev, [storyField]: storyValue } : null
-      )
-    } catch (error) {
-      console.error('儲存故事失敗:', error)
-      throw error
+    if (!biography) {
+      throw new Error('尚未載入人物誌資料，請稍後再試')
     }
+
+    // 更新人物誌資料
+    await biographyService.updateMyBiography({
+      [storyField]: storyValue,
+    })
+
+    // 記錄完成
+    await storyPromptService.completePrompt(storyField)
+
+    // 更新本地狀態
+    setBiography((prev) =>
+      prev ? { ...prev, [storyField]: storyValue } : null
+    )
   }, [biography])
 
   // 跳過
