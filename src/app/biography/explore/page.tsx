@@ -2,6 +2,8 @@
 
 import React, { useState } from 'react'
 import { motion } from 'framer-motion'
+import Link from 'next/link'
+import { BarChart3 } from 'lucide-react'
 import { Breadcrumb } from '@/components/ui/breadcrumb'
 import { PageHeader } from '@/components/ui/page-header'
 import { SearchInput } from '@/components/ui/search-input'
@@ -40,7 +42,7 @@ export default function ExplorePage() {
 
       <div className="container mx-auto px-4 py-6">
         {/* Breadcrumb */}
-        <div className="mb-8">
+        <div className="mb-8 flex items-center justify-between">
           <Breadcrumb
             items={[
               { label: '首頁', href: '/' },
@@ -48,6 +50,13 @@ export default function ExplorePage() {
               { label: '探索' },
             ]}
           />
+          <Link
+            href="/biography/community"
+            className="flex items-center gap-2 rounded-lg bg-white px-4 py-2 text-sm font-medium text-gray-700 shadow-sm transition-colors hover:bg-gray-50"
+          >
+            <BarChart3 className="h-4 w-4" />
+            社群統計
+          </Link>
         </div>
 
         {/* 搜尋與篩選 */}

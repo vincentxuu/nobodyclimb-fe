@@ -2,7 +2,7 @@
 
 import React, { useCallback, useState, useRef, useEffect } from 'react'
 import { useRouter, usePathname } from 'next/navigation'
-import { UserCircle, FileText, Bookmark, Settings, Target, Image, MoreHorizontal } from 'lucide-react'
+import { UserCircle, FileText, Bookmark, Settings, Target, Image, MoreHorizontal, BarChart3 } from 'lucide-react'
 
 // 主要導航項目（顯示在導航列上）
 const mainMenuItems = [
@@ -30,6 +30,11 @@ const mainMenuItems = [
 
 // 更多選單項目
 const moreMenuItems = [
+  {
+    name: '成就',
+    href: '/profile/stats',
+    icon: BarChart3,
+  },
   {
     name: '收藏',
     href: '/profile/bookmarks',
