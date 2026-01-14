@@ -29,38 +29,38 @@ export function StatsOverview({ stats, className }: StatsOverviewProps) {
         <StatCard
           value={stats.total_views}
           label="瀏覽次數"
-          icon={<Eye className="w-5 h-5 text-blue-500" />}
-          color="bg-blue-100"
+          icon={<Eye className="w-5 h-5 text-brand-dark" />}
+          color="bg-brand-light"
         />
         <StatCard
           value={stats.total_likes}
           label="收到的讚"
-          icon={<Heart className="w-5 h-5 text-pink-500" />}
-          color="bg-pink-100"
+          icon={<Heart className="w-5 h-5 text-brand-dark" />}
+          color="bg-brand-accent/20"
         />
         <StatCard
           value={stats.follower_count}
           label="追蹤者"
-          icon={<Users className="w-5 h-5 text-purple-500" />}
-          color="bg-purple-100"
+          icon={<Users className="w-5 h-5 text-brand-dark" />}
+          color="bg-brand-light"
         />
         <StatCard
           value={stats.bucket_list.completed}
           label="完成目標"
-          icon={<Target className="w-5 h-5 text-green-500" />}
-          color="bg-green-100"
+          icon={<Target className="w-5 h-5 text-brand-dark" />}
+          color="bg-brand-accent/20"
         />
         <StatCard
           value={stats.stories.total}
           label="已分享故事"
-          icon={<BookOpen className="w-5 h-5 text-orange-500" />}
-          color="bg-orange-100"
+          icon={<BookOpen className="w-5 h-5 text-brand-dark" />}
+          color="bg-brand-light"
         />
         <StatCard
           value={stats.locations_count}
           label="攀岩足跡"
-          icon={<MapPin className="w-5 h-5 text-teal-500" />}
-          color="bg-teal-100"
+          icon={<MapPin className="w-5 h-5 text-brand-dark" />}
+          color="bg-brand-accent/20"
         />
       </div>
 
@@ -73,7 +73,7 @@ export function StatsOverview({ stats, className }: StatsOverviewProps) {
             <CircularProgress
               value={storyCompletionRate}
               size="lg"
-              color="stroke-orange-500"
+              color="stroke-brand-accent"
             />
             <div className="flex-1 space-y-3">
               <ProgressBar
@@ -81,14 +81,14 @@ export function StatsOverview({ stats, className }: StatsOverviewProps) {
                 max={STORY_FIELD_COUNTS.CORE}
                 label="核心故事"
                 showLabel
-                color="bg-orange-500"
+                color="bg-brand-accent"
               />
               <ProgressBar
                 value={stats.stories.advanced_completed}
                 max={STORY_FIELD_COUNTS.ADVANCED}
                 label="進階故事"
                 showLabel
-                color="bg-orange-300"
+                color="bg-brand-accent/60"
               />
             </div>
           </div>
@@ -101,24 +101,24 @@ export function StatsOverview({ stats, className }: StatsOverviewProps) {
             <CircularProgress
               value={goalCompletionRate}
               size="lg"
-              color="stroke-green-500"
+              color="stroke-brand-dark"
             />
             <div className="flex-1 space-y-3">
-              <div className="flex justify-between items-center p-3 bg-green-50 rounded-lg">
+              <div className="flex justify-between items-center p-3 bg-brand-accent/20 rounded-lg">
                 <span className="text-sm text-gray-600">已完成</span>
-                <span className="text-lg font-semibold text-green-600">
+                <span className="text-lg font-semibold text-brand-dark">
                   {stats.bucket_list.completed}
                 </span>
               </div>
-              <div className="flex justify-between items-center p-3 bg-yellow-50 rounded-lg">
+              <div className="flex justify-between items-center p-3 bg-brand-light rounded-lg">
                 <span className="text-sm text-gray-600">進行中</span>
-                <span className="text-lg font-semibold text-yellow-600">
+                <span className="text-lg font-semibold text-brand-dark">
                   {stats.bucket_list.active}
                 </span>
               </div>
               <div className="flex justify-between items-center p-3 bg-gray-50 rounded-lg">
                 <span className="text-sm text-gray-600">總計</span>
-                <span className="text-lg font-semibold text-gray-600">
+                <span className="text-lg font-semibold text-brand-dark">
                   {stats.bucket_list.total}
                 </span>
               </div>
@@ -131,20 +131,20 @@ export function StatsOverview({ stats, className }: StatsOverviewProps) {
       <div className="p-6 bg-white rounded-xl border border-gray-100 shadow-sm">
         <h3 className="text-lg font-semibold text-gray-900 mb-4">社群互動</h3>
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-          <div className="text-center p-4 bg-gray-50 rounded-lg">
-            <p className="text-2xl font-bold text-purple-600">{stats.follower_count}</p>
+          <div className="text-center p-4 bg-brand-accent/20 rounded-lg">
+            <p className="text-2xl font-bold text-brand-dark">{stats.follower_count}</p>
             <p className="text-sm text-gray-500">追蹤者</p>
           </div>
-          <div className="text-center p-4 bg-gray-50 rounded-lg">
-            <p className="text-2xl font-bold text-blue-600">{stats.following_count}</p>
+          <div className="text-center p-4 bg-brand-light rounded-lg">
+            <p className="text-2xl font-bold text-brand-dark">{stats.following_count}</p>
             <p className="text-sm text-gray-500">追蹤中</p>
           </div>
-          <div className="text-center p-4 bg-gray-50 rounded-lg">
-            <p className="text-2xl font-bold text-pink-600">{stats.total_likes}</p>
+          <div className="text-center p-4 bg-brand-accent/20 rounded-lg">
+            <p className="text-2xl font-bold text-brand-dark">{stats.total_likes}</p>
             <p className="text-sm text-gray-500">收到的讚</p>
           </div>
-          <div className="text-center p-4 bg-gray-50 rounded-lg">
-            <p className="text-2xl font-bold text-gray-600">{stats.total_views}</p>
+          <div className="text-center p-4 bg-brand-light rounded-lg">
+            <p className="text-2xl font-bold text-brand-dark">{stats.total_views}</p>
             <p className="text-sm text-gray-500">瀏覽次數</p>
           </div>
         </div>
