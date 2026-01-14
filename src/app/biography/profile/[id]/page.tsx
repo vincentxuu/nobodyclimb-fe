@@ -68,18 +68,18 @@ function BasicInfoSection({ person }: { person: Biography }) {
   const routeTypes = person.favorite_route_type?.split(',').filter((t) => t.trim()) || []
 
   return (
-    <div className="mb-8 rounded-xl bg-gray-50 p-6">
-      <h2 className="mb-4 flex items-center gap-2 text-lg font-semibold text-gray-900">
-        <Layers className="h-5 w-5 text-gray-500" />
+    <div className="mb-4 rounded-xl bg-gray-50 p-4 md:mb-8 md:p-6">
+      <h2 className="mb-3 flex items-center gap-2 text-base font-semibold text-gray-900 md:mb-4 md:text-lg">
+        <Layers className="h-4 w-4 text-gray-500 md:h-5 md:w-5" />
         基本資訊
       </h2>
-      <div className="grid gap-4 md:grid-cols-3">
+      <div className="grid gap-3 md:grid-cols-3 md:gap-4">
         {/* 攀岩年資 */}
-        <div className="flex items-start gap-3">
-          <Calendar className="mt-0.5 h-5 w-5 flex-shrink-0 text-gray-400" />
+        <div className="flex items-start gap-2 md:gap-3">
+          <Calendar className="mt-0.5 h-4 w-4 flex-shrink-0 text-gray-400 md:h-5 md:w-5" />
           <div>
-            <p className="text-sm text-gray-500">開始攀岩</p>
-            <p className="font-medium text-gray-900">
+            <p className="text-xs text-gray-500 md:text-sm">開始攀岩</p>
+            <p className="text-sm font-medium text-gray-900 md:text-base">
               {person.climbing_start_year ? (
                 <>
                   {person.climbing_start_year} 年
@@ -95,45 +95,45 @@ function BasicInfoSection({ person }: { person: Biography }) {
         </div>
 
         {/* 常出沒地點 */}
-        <div className="flex items-start gap-3">
-          <MapPin className="mt-0.5 h-5 w-5 flex-shrink-0 text-gray-400" />
+        <div className="flex items-start gap-2 md:gap-3">
+          <MapPin className="mt-0.5 h-4 w-4 flex-shrink-0 text-gray-400 md:h-5 md:w-5" />
           <div>
-            <p className="text-sm text-gray-500">平常出沒</p>
+            <p className="text-xs text-gray-500 md:text-sm">平常出沒</p>
             {locations.length > 0 ? (
               <div className="mt-1 flex flex-wrap gap-1">
                 {locations.map((loc, i) => (
                   <span
                     key={`${loc.trim()}-${i}`}
-                    className="rounded-full bg-white px-2 py-0.5 text-sm text-gray-700 shadow-sm"
+                    className="rounded-full bg-white px-2 py-0.5 text-xs text-gray-700 shadow-sm md:text-sm"
                   >
                     {loc.trim()}
                   </span>
                 ))}
               </div>
             ) : (
-              <p className="font-medium text-gray-900">尚未填寫</p>
+              <p className="text-sm font-medium text-gray-900 md:text-base">尚未填寫</p>
             )}
           </div>
         </div>
 
         {/* 路線型態 */}
-        <div className="flex items-start gap-3">
-          <Layers className="mt-0.5 h-5 w-5 flex-shrink-0 text-gray-400" />
+        <div className="flex items-start gap-2 md:gap-3">
+          <Layers className="mt-0.5 h-4 w-4 flex-shrink-0 text-gray-400 md:h-5 md:w-5" />
           <div>
-            <p className="text-sm text-gray-500">喜歡的路線</p>
+            <p className="text-xs text-gray-500 md:text-sm">喜歡的路線</p>
             {routeTypes.length > 0 ? (
               <div className="mt-1 flex flex-wrap gap-1">
                 {routeTypes.map((type, i) => (
                   <span
                     key={`${type.trim()}-${i}`}
-                    className="rounded-full bg-white px-2 py-0.5 text-sm text-gray-700 shadow-sm"
+                    className="rounded-full bg-white px-2 py-0.5 text-xs text-gray-700 shadow-sm md:text-sm"
                   >
                     {type.trim()}
                   </span>
                 ))}
               </div>
             ) : (
-              <p className="font-medium text-gray-900">尚未填寫</p>
+              <p className="text-sm font-medium text-gray-900 md:text-base">尚未填寫</p>
             )}
           </div>
         </div>
@@ -375,17 +375,19 @@ export default function ProfilePage({ params }: ProfilePageProps) {
 
   return (
     <div className="min-h-screen bg-page-content-bg">
-      <div className="container relative mx-auto px-4 pb-4 pt-20">
-        <div className="mb-8">
+      <div className="container relative mx-auto px-4 pb-4 pt-4 md:pt-20">
+        {/* 麵包屑導航 - 手機版隱藏 */}
+        <div className="mb-4 md:mb-8">
           <Breadcrumb
             items={[
               { label: '首頁', href: '/' },
               { label: '人物誌', href: '/biography' },
               { label: person.name },
             ]}
+            hideOnMobile
           />
         </div>
-        <div className="sticky left-0 top-0 z-30 mb-4 flex w-full items-center justify-between bg-page-content-bg py-3">
+        <div className="sticky left-0 top-0 z-30 mb-2 flex w-full items-center justify-between bg-page-content-bg py-2 md:mb-4 md:py-3">
           <motion.div
             className="w-fit"
             initial={{ opacity: 0, x: -20 }}
@@ -405,27 +407,27 @@ export default function ProfilePage({ params }: ProfilePageProps) {
         </div>
 
         <motion.div
-          className="mx-auto mt-8 max-w-3xl bg-white p-6 md:p-10"
+          className="mx-auto mt-2 max-w-3xl bg-white p-4 md:mt-8 md:p-10"
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5 }}
         >
           {/* 標題、統計與追蹤按鈕 */}
-          <div className="mb-6 flex items-start justify-between gap-4">
+          <div className="mb-4 flex flex-col gap-3 md:mb-6 md:flex-row md:items-start md:justify-between md:gap-4">
             <div>
-              <h1 className="mb-2 text-3xl font-medium text-[#1B1A1A]">攀岩小人物—{person.name}</h1>
-              <p className="text-sm text-gray-500">更新日期 {publishedDate}</p>
-              <div className="mt-2 flex items-center gap-4 text-sm text-gray-500">
+              <h1 className="mb-1 text-xl font-medium text-[#1B1A1A] md:mb-2 md:text-3xl">攀岩小人物—{person.name}</h1>
+              <p className="text-xs text-gray-500 md:text-sm">更新日期 {publishedDate}</p>
+              <div className="mt-2 flex flex-wrap items-center gap-3 text-xs text-gray-500 md:gap-4 md:text-sm">
                 <span className="inline-flex items-center gap-1">
-                  <Eye className="h-4 w-4" />
+                  <Eye className="h-3 w-3 md:h-4 md:w-4" />
                   {person.total_views || 0} 次瀏覽
                 </span>
                 <span className="inline-flex items-center gap-1">
-                  <Heart className="h-4 w-4" />
+                  <Heart className="h-3 w-3 md:h-4 md:w-4" />
                   {person.total_likes || 0} 個讚
                 </span>
                 <span className="inline-flex items-center gap-1">
-                  <Users className="h-4 w-4" />
+                  <Users className="h-3 w-3 md:h-4 md:w-4" />
                   {followerCount} 追蹤者
                 </span>
               </div>
@@ -441,7 +443,7 @@ export default function ProfilePage({ params }: ProfilePageProps) {
           </div>
 
           {/* 大頭照 */}
-          <div className="relative mb-8 h-[360px] overflow-hidden rounded-lg">
+          <div className="relative mb-4 h-[240px] overflow-hidden rounded-lg md:mb-8 md:h-[360px]">
             <Image src={imageUrl} alt={person.name} fill className="object-cover" />
           </div>
 
@@ -456,11 +458,11 @@ export default function ProfilePage({ params }: ProfilePageProps) {
 
             {/* 人生清單區塊（含封面圖） */}
             {person.bucket_list_story && (
-              <div className="border-b border-gray-100 pb-8">
-                <h2 className="mb-4 text-xl font-medium text-[#1B1A1A]">
+              <div className="border-b border-gray-100 pb-6 md:pb-8">
+                <h2 className="mb-3 text-lg font-medium text-[#1B1A1A] md:mb-4 md:text-xl">
                   在攀岩世界裡，想做的人生清單有什麼
                 </h2>
-                <div className="relative mb-4 h-[360px] overflow-hidden rounded-lg">
+                <div className="relative mb-3 h-[200px] overflow-hidden rounded-lg md:mb-4 md:h-[360px]">
                   <Image
                     src={coverImageUrl}
                     alt={`${person.name} 人生清單`}
@@ -468,7 +470,7 @@ export default function ProfilePage({ params }: ProfilePageProps) {
                     className="object-cover"
                   />
                 </div>
-                <p className="mb-6 whitespace-pre-wrap text-base leading-relaxed text-[#1B1A1A]">
+                <p className="mb-4 whitespace-pre-wrap text-sm leading-relaxed text-[#1B1A1A] md:mb-6 md:text-base">
                   {person.bucket_list_story}
                 </p>
                 {/* 社群互動人生清單 */}

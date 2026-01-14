@@ -27,25 +27,25 @@ export default function BiographyPage() {
     >
       <PageHeader title="人物誌" subtitle="記載了 Nobody 們的攀岩小故事" />
 
-      <div className="container mx-auto px-4 py-6">
-        {/* Breadcrumb */}
-        <div className="mb-8">
-          <Breadcrumb items={[{ label: '首頁', href: '/' }, { label: '人物誌' }]} />
+      <div className="container mx-auto px-4 py-4 md:py-6">
+        {/* Breadcrumb - 手機版隱藏 */}
+        <div className="mb-4 md:mb-8">
+          <Breadcrumb items={[{ label: '首頁', href: '/' }, { label: '人物誌' }]} hideOnMobile />
         </div>
 
         <SearchInput
           value={searchTerm}
           onChange={handleSearch}
           placeholder="搜尋人物關鍵字..."
-          className="mb-16"
+          className="mb-6 md:mb-16"
         />
 
         <BiographyList searchTerm={searchTerm} />
 
-        <div className="mb-16 mt-10 flex justify-center">
+        <div className="mb-10 mt-6 flex justify-center md:mb-16 md:mt-10">
           <Button
             variant="outline"
-            className="h-11 border border-[#1B1A1A] px-8 text-[#1B1A1A] hover:bg-[#dbd8d8] hover:text-[#1B1A1A]"
+            className="h-10 border border-[#1B1A1A] px-6 text-[#1B1A1A] hover:bg-[#dbd8d8] hover:text-[#1B1A1A] md:h-11 md:px-8"
           >
             看更多
           </Button>
