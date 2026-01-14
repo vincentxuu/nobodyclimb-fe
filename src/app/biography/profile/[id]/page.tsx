@@ -24,6 +24,7 @@ import BackToTop from '@/components/ui/back-to-top'
 import { RecommendedProfiles } from '@/components/biography/recommended-profiles'
 import { Breadcrumb } from '@/components/ui/breadcrumb'
 import { FollowButton } from '@/components/biography/follow-button'
+import { BiographyLikeButton } from '@/components/biography/biography-like-button'
 import { BucketListSection } from '@/components/biography/bucket-list-section'
 import { BiographyBucketList } from '@/components/bucket-list'
 import { MediaSection } from '@/components/biography/media'
@@ -279,6 +280,15 @@ export default function ProfilePage({ params }: ProfilePageProps) {
     loadPerson()
   }, [id])
 
+  // 記錄瀏覽次數
+  useEffect(() => {
+    if (id) {
+      biographyService.recordView(id).catch((err) => {
+        console.error('Failed to record view:', err)
+      })
+    }
+  }, [id])
+
   // 計算故事進度
   const storyProgress = useMemo(() => {
     if (!person) return null
@@ -369,10 +379,12 @@ export default function ProfilePage({ params }: ProfilePageProps) {
                   <Eye className="h-4 w-4" />
                   {person.total_views || 0} 次瀏覽
                 </span>
-                <span className="inline-flex items-center gap-1">
-                  <Heart className="h-4 w-4" />
-                  {person.total_likes || 0} 個讚
-                </span>
+                {person.id && (
+                  <BiographyLikeButton
+                    biographyId={person.id}
+                    initialCount={person.total_likes || 0}
+                  />
+                )}
                 <span className="inline-flex items-center gap-1">
                   <Users className="h-4 w-4" />
                   {followerCount} 追蹤者

@@ -87,6 +87,8 @@ export const BIOGRAPHY_ENDPOINTS = {
   FOLLOW: (id: string) => `/biographies/${id}/follow`,
   FOLLOWERS: (id: string) => `/biographies/${id}/followers`,
   FOLLOWING: (id: string) => `/biographies/${id}/following`,
+  // 按讚系統
+  LIKE: (id: string) => `/biographies/${id}/like`,
 }
 
 // 岩場相關

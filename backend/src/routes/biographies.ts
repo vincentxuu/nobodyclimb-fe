@@ -1461,3 +1461,128 @@ biographiesRoutes.get('/leaderboard/:type', async (c) => {
     data: leaderboard,
   });
 });
+
+// ═══════════════════════════════════════════════════════════
+// 按讚功能 (Like/Unlike)
+// ═══════════════════════════════════════════════════════════
+
+// POST /biographies/:id/like - Toggle like for a biography
+biographiesRoutes.post('/:id/like', authMiddleware, async (c) => {
+  const biographyId = c.req.param('id');
+  const userId = c.get('userId');
+
+  // Check if biography exists
+  const biography = await c.env.DB.prepare('SELECT id, user_id FROM biographies WHERE id = ?')
+    .bind(biographyId)
+    .first<{ id: string; user_id: string }>();
+
+  if (!biography) {
+    return c.json(
+      {
+        success: false,
+        error: 'Not Found',
+        message: 'Biography not found',
+      },
+      404
+    );
+  }
+
+  // Check if already liked
+  const existingLike = await c.env.DB.prepare(
+    'SELECT id FROM biography_likes WHERE user_id = ? AND biography_id = ?'
+  )
+    .bind(userId, biographyId)
+    .first();
+
+  let liked: boolean;
+
+  if (existingLike) {
+    // Unlike - remove the like
+    await c.env.DB.prepare(
+      'DELETE FROM biography_likes WHERE user_id = ? AND biography_id = ?'
+    )
+      .bind(userId, biographyId)
+      .run();
+    liked = false;
+  } else {
+    // Like - add a new like
+    const id = generateId();
+    await c.env.DB.prepare(
+      'INSERT INTO biography_likes (id, user_id, biography_id) VALUES (?, ?, ?)'
+    )
+      .bind(id, userId, biographyId)
+      .run();
+    liked = true;
+
+    // Send notification to biography owner (if not liking own biography)
+    if (biography.user_id && biography.user_id !== userId) {
+      try {
+        await createNotification(c.env.DB, {
+          userId: biography.user_id,
+          type: 'goal_liked',
+          actorId: userId,
+          targetId: biographyId,
+          title: '有人喜歡你的人物誌',
+          message: '有人對你的人物誌按讚了！',
+        });
+      } catch (err) {
+        console.error('Failed to create notification:', err);
+      }
+    }
+  }
+
+  // Get total like count
+  const likeCount = await c.env.DB.prepare(
+    'SELECT COUNT(*) as count FROM biography_likes WHERE biography_id = ?'
+  )
+    .bind(biographyId)
+    .first<{ count: number }>();
+
+  // Update total_likes on biography
+  await c.env.DB.prepare(
+    'UPDATE biographies SET total_likes = ? WHERE id = ?'
+  )
+    .bind(likeCount?.count || 0, biographyId)
+    .run();
+
+  return c.json({
+    success: true,
+    data: {
+      liked,
+      likes: likeCount?.count || 0,
+    },
+  });
+});
+
+// GET /biographies/:id/like - Check if user has liked a biography
+biographiesRoutes.get('/:id/like', optionalAuthMiddleware, async (c) => {
+  const biographyId = c.req.param('id');
+  const userId = c.get('userId');
+
+  // Get total like count
+  const likeCount = await c.env.DB.prepare(
+    'SELECT COUNT(*) as count FROM biography_likes WHERE biography_id = ?'
+  )
+    .bind(biographyId)
+    .first<{ count: number }>();
+
+  let liked = false;
+
+  if (userId) {
+    // Check if user has liked
+    const existingLike = await c.env.DB.prepare(
+      'SELECT id FROM biography_likes WHERE user_id = ? AND biography_id = ?'
+    )
+      .bind(userId, biographyId)
+      .first();
+    liked = !!existingLike;
+  }
+
+  return c.json({
+    success: true,
+    data: {
+      liked,
+      likes: likeCount?.count || 0,
+    },
+  });
+});
