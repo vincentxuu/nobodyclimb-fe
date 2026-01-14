@@ -412,6 +412,9 @@ export default function ProfilePage({ params }: ProfilePageProps) {
             </div>
           )}
 
+          {/* 進階故事（緊接在攀岩故事下方） */}
+          <AdvancedStoriesSection person={person} />
+
           {/* 人生清單區塊 */}
           {person.bucket_list_story && (
             <div className="mb-6 rounded-xl bg-gray-50 p-6">
@@ -460,9 +463,6 @@ export default function ProfilePage({ params }: ProfilePageProps) {
 
           {/* 媒體區塊 */}
           <MediaSection biographyId={id} isOwner={false} className="mb-6 rounded-xl bg-gray-50 p-6" />
-
-          {/* 第三層：進階故事 */}
-          <AdvancedStoriesSection person={person} />
 
           {/* 上下篇導航 */}
           <div className="mb-6 mt-12 flex justify-between">
