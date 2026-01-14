@@ -1,6 +1,14 @@
 import { ClimbingLocation } from '@/lib/types'
 
 /**
+ * 社群連結
+ */
+export interface SocialLinks {
+  instagram: string
+  youtube_channel: string
+}
+
+/**
  * 人物誌圖片
  */
 export interface ProfileImage {
@@ -75,6 +83,8 @@ export interface ProfileData {
   advancedStories: AdvancedStories
   // 攀岩足跡
   climbingLocations: ClimbingLocation[]
+  // 社群連結
+  socialLinks: SocialLinks
   // 設定
   isPublic: boolean
   // 圖片相關
@@ -132,6 +142,12 @@ export const initialAdvancedStories: AdvancedStories = {
   life_outside_climbing: '',
 }
 
+// 初始社群連結
+export const initialSocialLinks: SocialLinks = {
+  instagram: '',
+  youtube_channel: '',
+}
+
 // 初始資料
 export const initialProfileData: ProfileData = {
   biographyId: null,
@@ -147,6 +163,7 @@ export const initialProfileData: ProfileData = {
   adviceForBeginners: '享受其中是最重要的事！',
   advancedStories: initialAdvancedStories,
   climbingLocations: [],
+  socialLinks: initialSocialLinks,
   isPublic: true,
   images: [],
   imageLayout: 'double',
