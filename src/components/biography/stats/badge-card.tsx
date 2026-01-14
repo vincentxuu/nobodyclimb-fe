@@ -27,8 +27,8 @@ export function BadgeCard({ badge, progress, className }: BadgeCardProps) {
       className={cn(
         'relative flex flex-col items-center p-4 rounded-xl border transition-all',
         isUnlocked
-          ? 'bg-white border-gray-200 shadow-sm'
-          : 'bg-gray-50 border-gray-100',
+          ? 'bg-white border-subtle shadow-sm'
+          : 'bg-page-bg border-subtle/50',
         className
       )}
     >
@@ -36,11 +36,11 @@ export function BadgeCard({ badge, progress, className }: BadgeCardProps) {
       <div
         className={cn(
           'relative flex items-center justify-center w-16 h-16 rounded-full mb-3',
-          isUnlocked ? badgeData.bgColor : 'bg-gray-200'
+          isUnlocked ? badgeData.bgColor : 'bg-brand-light'
         )}
       >
         <Icon
-          className={cn('w-8 h-8', isUnlocked ? badgeData.color : 'text-gray-400')}
+          className={cn('w-8 h-8', isUnlocked ? badgeData.color : 'text-subtle')}
         />
         {isUnlocked && (
           <div className="absolute -bottom-1 -right-1 w-6 h-6 bg-green-500 rounded-full flex items-center justify-center">
@@ -53,25 +53,25 @@ export function BadgeCard({ badge, progress, className }: BadgeCardProps) {
       <h4
         className={cn(
           'text-sm font-semibold text-center mb-1',
-          isUnlocked ? 'text-gray-900' : 'text-gray-500'
+          isUnlocked ? 'text-text-main' : 'text-text-subtle'
         )}
       >
         {badgeData.name}
       </h4>
 
       {/* 徽章描述 */}
-      <p className="text-xs text-gray-500 text-center mb-3">{badgeData.description}</p>
+      <p className="text-xs text-text-subtle text-center mb-3">{badgeData.description}</p>
 
       {/* 進度條 */}
       {!isUnlocked && progress && (
         <div className="w-full">
-          <div className="flex justify-between text-xs text-gray-500 mb-1">
+          <div className="flex justify-between text-xs text-text-subtle mb-1">
             <span>進度</span>
             <span>
               {progress.current_value}/{progress.target_value}
             </span>
           </div>
-          <div className="w-full h-2 bg-gray-200 rounded-full overflow-hidden">
+          <div className="w-full h-2 bg-brand-light rounded-full overflow-hidden">
             <div
               className={cn('h-full rounded-full transition-all', badgeData.bgColor)}
               style={{ width: `${progressPercent}%` }}
@@ -82,7 +82,7 @@ export function BadgeCard({ badge, progress, className }: BadgeCardProps) {
 
       {/* 解鎖時間 */}
       {isUnlocked && progress?.unlocked_at && (
-        <p className="text-xs text-gray-400 mt-2">
+        <p className="text-xs text-subtle mt-2">
           {new Date(progress.unlocked_at).toLocaleDateString('zh-TW')} 解鎖
         </p>
       )}
