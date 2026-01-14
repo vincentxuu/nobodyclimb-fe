@@ -236,6 +236,31 @@ export function getCragRoutes(cragId: string): CragRoute[] {
 }
 
 /**
+ * 路線搜尋結果項目（包含岩場資訊）
+ */
+export interface RouteSearchItem {
+  route: CragRoute
+  cragId: string
+  cragName: string
+  areaName: string
+}
+
+/**
+ * 獲取所有岩場的所有路線（用於搜尋）
+ */
+export function getAllRoutes(): RouteSearchItem[] {
+  return [...cragsDataMap.values()].flatMap((data) => {
+    const areaIdToNameMap = new Map(data.areas.map((area) => [area.id, area.name]))
+    return data.routes.map((route) => ({
+      route,
+      cragId: data.crag.id,
+      cragName: data.crag.name,
+      areaName: areaIdToNameMap.get(route.areaId) || '',
+    }))
+  })
+}
+
+/**
  * 根據區域 ID 獲取該區域的路線
  */
 export function getRoutesByArea(cragId: string, areaId: string): CragRoute[] {
