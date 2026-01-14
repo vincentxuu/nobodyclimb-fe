@@ -416,29 +416,31 @@ export default function ProfilePage({ params }: ProfilePageProps) {
           <AdvancedStoriesSection person={person} />
 
           {/* 人生清單區塊 */}
-          {person.bucket_list_story && (
-            <div className="mb-6 rounded-xl bg-gray-50 p-6">
-              <h2 className="mb-4 flex items-center gap-2 text-lg font-semibold text-gray-900">
-                <Compass className="h-5 w-5 text-[#1B1A1A]" />
-                攀岩人生清單
-              </h2>
-              <div className="relative mb-4 h-[280px] overflow-hidden rounded-lg">
-                <Image
-                  src={coverImageUrl}
-                  alt={`${person.name} 人生清單`}
-                  fill
-                  className="object-cover"
-                />
-              </div>
-              <p className="mb-6 whitespace-pre-wrap text-sm leading-relaxed text-gray-600">
-                {person.bucket_list_story}
-              </p>
-              {/* 社群互動人生清單 */}
-              <BucketListSection biographyId={person.id} isOwner={isOwner} />
-              {/* 結構化人生清單 */}
-              <BiographyBucketList biographyId={person.id} className="mt-6" />
-            </div>
-          )}
+          <div className="mb-6 rounded-xl bg-gray-50 p-6">
+            <h2 className="mb-4 flex items-center gap-2 text-lg font-semibold text-gray-900">
+              <Compass className="h-5 w-5 text-[#1B1A1A]" />
+              攀岩人生清單
+            </h2>
+            {person.bucket_list_story && (
+              <>
+                <div className="relative mb-4 h-[280px] overflow-hidden rounded-lg">
+                  <Image
+                    src={coverImageUrl}
+                    alt={`${person.name} 人生清單`}
+                    fill
+                    className="object-cover"
+                  />
+                </div>
+                <p className="mb-6 whitespace-pre-wrap text-sm leading-relaxed text-gray-600">
+                  {person.bucket_list_story}
+                </p>
+              </>
+            )}
+            {/* 社群互動人生清單 */}
+            <BucketListSection biographyId={person.id} isOwner={isOwner} />
+            {/* 結構化人生清單 */}
+            <BiographyBucketList biographyId={person.id} className="mt-6" />
+          </div>
 
           {/* 攀岩足跡區塊 */}
           {person.climbing_locations && (() => {
