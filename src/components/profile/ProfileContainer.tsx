@@ -2,15 +2,13 @@
 
 import React, { useState, useRef, useCallback } from 'react'
 import { motion } from 'framer-motion'
-import { User, Mountain, Heart, ImageIcon, BookOpen, MapPin, Youtube, Globe } from 'lucide-react'
 import ProfilePageHeader from './ProfilePageHeader'
-import CollapsibleSection from './CollapsibleSection'
+import ProfileDivider from './ProfileDivider'
 import BasicInfoSection from './BasicInfoSection'
 import ClimbingInfoSection from './ClimbingInfoSection'
 import ClimbingExperienceSection from './ClimbingExperienceSection'
 import AdvancedStoriesSection from './AdvancedStoriesSection'
 import ClimbingFootprintsSection from './ClimbingFootprintsSection'
-import MediaIntegrationSection from './MediaIntegrationSection'
 import PublicSettingSection from './PublicSettingSection'
 import ProfileActionButtons from './ProfileActionButtons'
 import { ProfileImageSection } from './image-gallery'
@@ -18,7 +16,7 @@ import { useProfile } from './ProfileContext'
 import { useIsMobile } from '@/lib/hooks/useIsMobile'
 import { useToast } from '@/components/ui/use-toast'
 import { biographyService } from '@/lib/api/services'
-import { ProfileImage, ImageLayout, AdvancedStories, SocialLinks } from './types'
+import { ProfileImage, ImageLayout, AdvancedStories } from './types'
 import { ClimbingLocation } from '@/lib/types'
 
 export default function ProfileContainer() {
@@ -170,20 +168,6 @@ export default function ProfileContainer() {
     [setProfileData]
   )
 
-  // 處理社群連結變更
-  const handleSocialLinksChange = useCallback(
-    (field: keyof SocialLinks, value: string) => {
-      setProfileData((prev) => ({
-        ...prev,
-        socialLinks: {
-          ...prev.socialLinks,
-          [field]: value,
-        },
-      }))
-    },
-    [setProfileData]
-  )
-
   // 處理儲存
   const handleSave = async () => {
     setIsSaving(true)
@@ -197,9 +181,6 @@ export default function ProfileContainer() {
 
       // 序列化攀岩足跡
       const climbingLocationsJson = JSON.stringify(profileData.climbingLocations)
-
-      // 序列化社群連結
-      const socialLinksJson = JSON.stringify(profileData.socialLinks)
 
       // 將前端資料轉換為 API 格式
       const biographyData = {
@@ -215,8 +196,6 @@ export default function ProfileContainer() {
         ...profileData.advancedStories,
         // 攀岩足跡
         climbing_locations: climbingLocationsJson,
-        // 社群連結
-        social_links: socialLinksJson,
         is_public: profileData.isPublic ? 1 : 0,
         // 圖片資料以 JSON 格式存儲
         gallery_images: galleryImagesJson,
@@ -261,113 +240,64 @@ export default function ProfileContainer() {
           onEdit={handleStartEdit}
           isMobile={isMobile}
         />
-        <div className="space-y-4">
-          <CollapsibleSection
-            title="基本資料"
-            icon={<User className="h-5 w-5" />}
-          >
-            <BasicInfoSection
-              name={profileData.name}
-              isEditing={isEditing}
-              isMobile={isMobile}
-              onChange={handleChange}
-            />
-          </CollapsibleSection>
-
-          <CollapsibleSection
-            title="攀岩資訊"
-            icon={<Mountain className="h-5 w-5" />}
-          >
-            <ClimbingInfoSection
-              startYear={profileData.startYear}
-              frequentGyms={profileData.frequentGyms}
-              favoriteRouteType={profileData.favoriteRouteType}
-              isEditing={isEditing}
-              isMobile={isMobile}
-              onChange={handleChange}
-            />
-          </CollapsibleSection>
-
-          <CollapsibleSection
-            title="攀岩故事"
-            icon={<Heart className="h-5 w-5" />}
-          >
-            <ClimbingExperienceSection
-              climbingReason={profileData.climbingReason}
-              climbingMeaning={profileData.climbingMeaning}
-              adviceForBeginners={profileData.adviceForBeginners}
-              isEditing={isEditing}
-              isMobile={isMobile}
-              onChange={handleChange}
-            />
-          </CollapsibleSection>
-
-          <CollapsibleSection
-            title="攀岩照片"
-            icon={<ImageIcon className="h-5 w-5" />}
-          >
-            <ProfileImageSection
-              images={profileData.images}
-              imageLayout={profileData.imageLayout}
-              isEditing={isEditing}
-              isMobile={isMobile}
-              onImageUpload={handleImageUpload}
-              onImageDelete={handleImageDelete}
-              onCaptionChange={handleCaptionChange}
-              onLayoutChange={handleLayoutChange}
-              onReorder={handleReorder}
-            />
-          </CollapsibleSection>
-
-          <CollapsibleSection
-            title="進階故事"
-            icon={<BookOpen className="h-5 w-5" />}
-          >
-            <AdvancedStoriesSection
-              biography={profileData.advancedStories as unknown as Record<string, unknown>}
-              isEditing={isEditing}
-              isMobile={isMobile}
-              onSave={handleAdvancedStorySave}
-              onSaveAll={handleAdvancedStorySaveAll}
-            />
-          </CollapsibleSection>
-
-          <CollapsibleSection
-            title="攀岩足跡"
-            icon={<MapPin className="h-5 w-5" />}
-          >
-            <ClimbingFootprintsSection
-              locations={profileData.climbingLocations}
-              isEditing={isEditing}
-              isMobile={isMobile}
-              onChange={handleClimbingLocationsChange}
-            />
-          </CollapsibleSection>
-
-          <CollapsibleSection
-            title="影片與社群媒體"
-            icon={<Youtube className="h-5 w-5" />}
-          >
-            <MediaIntegrationSection
-              biographyId={profileData.biographyId}
-              isEditing={isEditing}
-              isMobile={isMobile}
-              socialLinks={profileData.socialLinks}
-              onSocialLinksChange={handleSocialLinksChange}
-            />
-          </CollapsibleSection>
-
-          <CollapsibleSection
-            title="公開設定"
-            icon={<Globe className="h-5 w-5" />}
-          >
-            <PublicSettingSection
-              isPublic={profileData.isPublic}
-              isMobile={isMobile}
-              onChange={handleChange}
-            />
-          </CollapsibleSection>
-
+        <div className="space-y-6">
+          <BasicInfoSection
+            name={profileData.name}
+            isEditing={isEditing}
+            isMobile={isMobile}
+            onChange={handleChange}
+          />
+          <ProfileDivider />
+          <ClimbingInfoSection
+            startYear={profileData.startYear}
+            frequentGyms={profileData.frequentGyms}
+            favoriteRouteType={profileData.favoriteRouteType}
+            isEditing={isEditing}
+            isMobile={isMobile}
+            onChange={handleChange}
+          />
+          <ProfileDivider />
+          <ClimbingExperienceSection
+            climbingReason={profileData.climbingReason}
+            climbingMeaning={profileData.climbingMeaning}
+            adviceForBeginners={profileData.adviceForBeginners}
+            isEditing={isEditing}
+            isMobile={isMobile}
+            onChange={handleChange}
+          />
+          <ProfileDivider />
+          <ProfileImageSection
+            images={profileData.images}
+            imageLayout={profileData.imageLayout}
+            isEditing={isEditing}
+            isMobile={isMobile}
+            onImageUpload={handleImageUpload}
+            onImageDelete={handleImageDelete}
+            onCaptionChange={handleCaptionChange}
+            onLayoutChange={handleLayoutChange}
+            onReorder={handleReorder}
+          />
+          <ProfileDivider />
+          <AdvancedStoriesSection
+            biography={profileData.advancedStories as unknown as Record<string, unknown>}
+            isEditing={isEditing}
+            isMobile={isMobile}
+            onSave={handleAdvancedStorySave}
+            onSaveAll={handleAdvancedStorySaveAll}
+          />
+          <ProfileDivider />
+          <ClimbingFootprintsSection
+            locations={profileData.climbingLocations}
+            isEditing={isEditing}
+            isMobile={isMobile}
+            onChange={handleClimbingLocationsChange}
+          />
+          <ProfileDivider />
+          <PublicSettingSection
+            isPublic={profileData.isPublic}
+            isMobile={isMobile}
+            onChange={handleChange}
+          />
           {isEditing && (
             <ProfileActionButtons
               onCancel={() => {
