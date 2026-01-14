@@ -1,7 +1,7 @@
 'use client'
 
 import { cn } from '@/lib/utils'
-import { type BadgeDefinition, getBadgeById } from '@/lib/constants/badges'
+import { type BadgeDefinition, getBadgeById, BADGE_COLORS } from '@/lib/constants/badges'
 import type { BadgeProgress } from '@/lib/types'
 import { Check } from 'lucide-react'
 
@@ -21,14 +21,15 @@ export function BadgeCard({ badge, progress, className }: BadgeCardProps) {
   const Icon = badgeData.icon
   const isUnlocked = progress?.unlocked ?? false
   const progressPercent = progress?.progress ?? 0
+  const colors = isUnlocked ? BADGE_COLORS.unlocked : BADGE_COLORS.locked
 
   return (
     <div
       className={cn(
         'relative flex flex-col items-center p-4 rounded-xl border transition-all',
         isUnlocked
-          ? 'bg-white border-subtle shadow-sm'
-          : 'bg-page-bg border-subtle/50',
+          ? `bg-white ${BADGE_COLORS.unlocked.border} shadow-sm`
+          : `bg-page-bg ${BADGE_COLORS.locked.border}`,
         className
       )}
     >
@@ -36,15 +37,18 @@ export function BadgeCard({ badge, progress, className }: BadgeCardProps) {
       <div
         className={cn(
           'relative flex items-center justify-center w-16 h-16 rounded-full mb-3',
-          isUnlocked ? badgeData.bgColor : 'bg-brand-light'
+          colors.bg
         )}
       >
-        <Icon
-          className={cn('w-8 h-8', isUnlocked ? badgeData.color : 'text-subtle')}
-        />
+        <Icon className={cn('w-8 h-8', colors.icon)} />
         {isUnlocked && (
-          <div className="absolute -bottom-1 -right-1 w-6 h-6 bg-green-500 rounded-full flex items-center justify-center">
-            <Check className="w-4 h-4 text-white" />
+          <div
+            className={cn(
+              'absolute -bottom-1 -right-1 w-6 h-6 rounded-full flex items-center justify-center',
+              BADGE_COLORS.indicator.bg
+            )}
+          >
+            <Check className={cn('w-4 h-4', BADGE_COLORS.indicator.icon)} />
           </div>
         )}
       </div>
@@ -71,9 +75,9 @@ export function BadgeCard({ badge, progress, className }: BadgeCardProps) {
               {progress.current_value}/{progress.target_value}
             </span>
           </div>
-          <div className="w-full h-2 bg-brand-light rounded-full overflow-hidden">
+          <div className={cn('w-full h-2 rounded-full overflow-hidden', BADGE_COLORS.progress.bg)}>
             <div
-              className={cn('h-full rounded-full transition-all', badgeData.bgColor)}
+              className={cn('h-full rounded-full transition-all', BADGE_COLORS.progress.fill)}
               style={{ width: `${progressPercent}%` }}
             />
           </div>
