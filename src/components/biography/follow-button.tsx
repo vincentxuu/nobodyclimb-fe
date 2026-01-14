@@ -25,14 +25,11 @@ export function FollowButton({
 }: FollowButtonProps) {
   const [isFollowing, setIsFollowing] = useState(initialFollowing)
   const [isLoading, setIsLoading] = useState(false)
-  const [hasFetched, setHasFetched] = useState(false)
   const { isAuthenticated } = useAuthStore()
   const router = useRouter()
 
-  // Fetch initial follow status when component mounts
+  // Fetch follow status when component mounts or biographyId changes
   useEffect(() => {
-    if (hasFetched) return
-
     const fetchFollowStatus = async () => {
       try {
         const response = await biographyService.getFollowStatus(biographyId)
@@ -41,13 +38,11 @@ export function FollowButton({
         }
       } catch (error) {
         console.error('Failed to fetch follow status:', error)
-      } finally {
-        setHasFetched(true)
       }
     }
 
     fetchFollowStatus()
-  }, [biographyId, hasFetched])
+  }, [biographyId])
 
   const handleClick = async () => {
     if (!isAuthenticated) {

@@ -770,8 +770,9 @@ biographiesRoutes.post('/:id/follow', authMiddleware, async (c) => {
 });
 
 // GET /biographies/:id/follow - Check follow status
-biographiesRoutes.get('/:id/follow', async (c) => {
+biographiesRoutes.get('/:id/follow', optionalAuthMiddleware, async (c) => {
   const id = c.req.param('id');
+  const userId = c.get('userId');
 
   // Get biography's user_id and follower_count
   const biography = await c.env.DB.prepare(
@@ -791,30 +792,15 @@ biographiesRoutes.get('/:id/follow', async (c) => {
     );
   }
 
-  // Check if user is authenticated
-  const authHeader = c.req.header('Authorization');
   let following = false;
+  if (userId) {
+    const existing = await c.env.DB.prepare(
+      'SELECT id FROM follows WHERE follower_id = ? AND following_id = ?'
+    )
+      .bind(userId, biography.user_id)
+      .first<{ id: string }>();
 
-  if (authHeader?.startsWith('Bearer ')) {
-    const token = authHeader.slice(7);
-    try {
-      const { jwtVerify } = await import('jose');
-      const secret = new TextEncoder().encode(c.env.JWT_SECRET);
-      const { payload } = await jwtVerify(token, secret);
-      const userId = payload.sub as string;
-
-      if (userId) {
-        const existing = await c.env.DB.prepare(
-          'SELECT id FROM follows WHERE follower_id = ? AND following_id = ?'
-        )
-          .bind(userId, biography.user_id)
-          .first<{ id: string }>();
-
-        following = !!existing;
-      }
-    } catch {
-      // Invalid token, treat as not authenticated
-    }
+    following = !!existing;
   }
 
   return c.json({
