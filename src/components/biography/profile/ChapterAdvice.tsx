@@ -13,9 +13,7 @@ interface ChapterAdviceProps {
  * 信件/便條紙風格設計
  */
 export function ChapterAdvice({ person }: ChapterAdviceProps) {
-  if (!person.advice_to_self) return null
-
-  // 使用人物誌的更新日期或發布日期
+  // 使用人物誌的更新日期或發布日期（Hooks 必須在條件判斷之前）
   const displayDate = useMemo(() => {
     const dateStr = person.updated_at || person.published_at || person.created_at
     if (!dateStr) return null
@@ -30,6 +28,8 @@ export function ChapterAdvice({ person }: ChapterAdviceProps) {
       return null
     }
   }, [person.updated_at, person.published_at, person.created_at])
+
+  if (!person.advice_to_self) return null
 
   return (
     <motion.section
