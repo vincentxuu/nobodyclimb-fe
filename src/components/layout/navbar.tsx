@@ -1,29 +1,19 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-// 使用 Next.js 原生的路由函數
-import { usePathname } from 'next/navigation'
-import { useUIStore } from '@/store/uiStore'
 import { motion, useScroll, useSpring } from 'framer-motion'
-import { useMediaQuery } from '@/lib/hooks/useMediaQuery'
 
 // 導入導航組件
 import Logo from './navbar/Logo'
-import DesktopNav from './navbar/DesktopNav'
-import MobileMenuButton from './navbar/MobileMenuButton'
+import UnifiedNav from './navbar/UnifiedNav'
 import UserMenu from './navbar/UserMenu'
-import MobileNav from './navbar/MobileNav'
-// 移除 LanguageSwitcher
-// import { LanguageSwitcher } from '@/components/shared/language-switcher'
 
 /**
  * 主導航欄組件
  * 整合所有導航相關子組件，提供完整的網站導航功能
+ * 手機和桌機統一設計，手機版使用水平滑動導航
  */
 export function Navbar() {
-  const pathname = usePathname()
-  const { closeNavbar } = useUIStore()
-  const isDesktop = useMediaQuery('(min-width: 1024px)')
   const [isScrolled, setIsScrolled] = useState(false)
   const { scrollYProgress } = useScroll()
   const scaleX = useSpring(scrollYProgress, {
@@ -48,11 +38,6 @@ export function Navbar() {
     }
   }, [])
 
-  // 路由變更時關閉導航欄
-  useEffect(() => {
-    closeNavbar()
-  }, [pathname, closeNavbar])
-
   return (
     <header
       className={`fixed left-0 right-0 top-0 z-[999] transition-all duration-300 ${
@@ -65,22 +50,16 @@ export function Navbar() {
         style={{ scaleX }}
       />
 
-      <div className="flex items-center justify-between">
+      <div className="flex items-center">
         {/* Logo 區域 */}
         <Logo />
 
-        {/* 中間導航區域 - 只在桌面版顯示 */}
-        <DesktopNav />
+        {/* 統一導航區域 - 手機可滑動，桌機居中 */}
+        <UnifiedNav />
 
-        {/* 右側功能區 */}
-        <div className="flex items-center">
-          <UserMenu isDesktop={isDesktop} />
-          <MobileMenuButton isDesktop={isDesktop} />
-        </div>
+        {/* 右側功能區 - 手機桌機統一 */}
+        <UserMenu />
       </div>
-
-      {/* 行動版導航菜單 */}
-      <MobileNav isDesktop={isDesktop} />
     </header>
   )
 }
