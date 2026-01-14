@@ -13,11 +13,12 @@ interface BreadcrumbItem {
 interface BreadcrumbProps {
   items: BreadcrumbItem[]
   className?: string
+  hideOnMobile?: boolean
 }
 
-export function Breadcrumb({ items, className }: BreadcrumbProps) {
+export function Breadcrumb({ items, className, hideOnMobile = false }: BreadcrumbProps) {
   return (
-    <nav className={cn('flex items-center space-x-2', className)}>
+    <nav className={cn('flex items-center space-x-2', hideOnMobile && 'hidden md:flex', className)}>
       {items.map((item, index) => (
         <React.Fragment key={item.label}>
           {index > 0 && <ChevronRight className="h-4 w-4 text-[#8E8C8C]" />}

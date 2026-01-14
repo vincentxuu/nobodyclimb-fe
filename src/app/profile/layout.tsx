@@ -66,14 +66,14 @@ export default function ProfileLayout({ children }: { children: React.ReactNode 
   // 已登入時顯示內容，並使用 ProfileProvider
   return (
     <ProfileProvider>
-      <div className="min-h-screen bg-[#F5F5F5] pb-16 md:pb-0">
-        {/* 手機版導航列 */}
-        <div className="sticky top-0 z-50 block md:hidden">
+      <div className="min-h-screen bg-[#F5F5F5] pb-20 md:pb-0">
+        {/* 頁面內容區域 */}
+        <div className="pt-2 md:py-6">{!isPageChanging && children}</div>
+
+        {/* 手機版底部導航列 - 固定在螢幕底部 */}
+        <div className="fixed bottom-0 left-0 right-0 z-50 block md:hidden">
           <MobileNav />
         </div>
-
-        {/* 頁面內容區域 - 增加手機版 padding */}
-        <div className="pt-2 md:py-6">{!isPageChanging && children}</div>
       </div>
     </ProfileProvider>
   )

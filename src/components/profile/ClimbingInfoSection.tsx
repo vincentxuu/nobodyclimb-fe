@@ -88,7 +88,7 @@ export default function ClimbingInfoSection({
             placeholder="輸入地點名稱，按 Enter 新增"
           />
         ) : (
-          <ProfileTextDisplay text={frequentGyms} isMobile={isMobile} />
+          <ProfileTextDisplay text={frequentGyms} isMobile={isMobile} asTags />
         )}
       </ProfileFormField>
 
@@ -100,7 +100,7 @@ export default function ClimbingInfoSection({
         {isEditing ? (
           <RouteTypeSelector value={routeTypes} onChange={handleRouteTypeChange} />
         ) : (
-          <ProfileTextDisplay text={favoriteRouteType} isMobile={isMobile} />
+          <ProfileTextDisplay text={favoriteRouteType} isMobile={isMobile} asTags />
         )}
       </ProfileFormField>
     </div>

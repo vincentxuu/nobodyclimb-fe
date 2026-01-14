@@ -79,8 +79,8 @@ export default function MobileNav() {
   const isMoreActive = moreMenuItems.some((item) => pathname === item.href)
 
   return (
-    <nav className="w-full bg-white shadow-md">
-      <div className="flex w-full items-center justify-between px-4 py-3">
+    <nav className="w-full border-t border-gray-200 bg-white shadow-[0_-2px_10px_rgba(0,0,0,0.05)]">
+      <div className="flex w-full items-center justify-around px-2 py-2">
         {mainMenuItems.map((item) => {
           const isActive = pathname === item.href
           return (

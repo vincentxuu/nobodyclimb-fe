@@ -11,20 +11,20 @@ export default function Logo() {
   const router = useRouter()
 
   return (
-    <div className="flex h-[70px] items-center bg-[#FFE70C] px-6">
+    <div className="flex h-14 items-center bg-[#FFE70C] px-3 md:h-[70px] md:px-6">
       <div
         className="flex cursor-pointer items-center"
         onClick={() => router.push('/')}
         role="button"
         aria-label="前往首頁"
       >
-        <Image 
-          src="/logo/Nobodylimb-black.svg" 
-          alt="NobodyClimb Logo" 
-          width={120} 
+        <Image
+          src="/logo/Nobodylimb-black.svg"
+          alt="NobodyClimb Logo"
+          width={120}
           height={32}
           priority
-          className="h-8 w-auto" 
+          className="h-6 w-auto md:h-8"
         />
       </div>
     </div>
