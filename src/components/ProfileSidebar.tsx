@@ -1,6 +1,6 @@
 'use client'
 
-import { UserCircle, FileText, Bookmark, Settings, Image as ImageIcon, Target } from 'lucide-react'
+import { UserCircle, FileText, Bookmark, Settings, Image as ImageIcon, Target, BarChart3 } from 'lucide-react'
 import { useRouter, usePathname } from 'next/navigation'
 import { motion } from 'framer-motion'
 import { useCallback } from 'react'
@@ -23,6 +23,11 @@ const menuItems: MenuItem[] = [
     name: '人生清單',
     href: '/profile/bucket-list',
     icon: Target,
+  },
+  {
+    name: '我的成就',
+    href: '/profile/stats',
+    icon: BarChart3,
   },
   {
     name: '我的文章',

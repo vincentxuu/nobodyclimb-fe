@@ -1337,6 +1337,21 @@ biographiesRoutes.get('/:id/badges', async (c) => {
 
 // GET /biographies/community/stats - Get community statistics
 biographiesRoutes.get('/community/stats', async (c) => {
+  // Check cache first
+  const cacheKey = 'community:stats';
+  try {
+    const cached = await c.env.CACHE.get(cacheKey);
+    if (cached) {
+      return c.json({
+        success: true,
+        data: JSON.parse(cached),
+      });
+    }
+  } catch (e) {
+    // Cache miss or error, continue to fetch from DB
+    console.error(`Cache read error for ${cacheKey}:`, e);
+  }
+
   // Total biographies
   const totalBiographies = await c.env.DB.prepare(
     'SELECT COUNT(*) as count FROM biographies WHERE is_public = 1'
@@ -1377,19 +1392,29 @@ biographiesRoutes.get('/community/stats', async (c) => {
      LIMIT 5`
   ).all();
 
+  const statsData = {
+    total_biographies: totalBiographies?.count || 0,
+    total_goals: goalStats?.total || 0,
+    completed_goals: goalStats?.completed || 0,
+    total_stories: storiesCount?.count || 0,
+    active_users_this_week: activeUsers?.count || 0,
+    trending_categories: (trendingCategories.results || []).map((cat: { category?: string; count?: number }) => ({
+      category: cat.category,
+      count: cat.count,
+    })),
+  };
+
+  // Cache the result for 5 minutes
+  try {
+    await c.env.CACHE.put(cacheKey, JSON.stringify(statsData), { expirationTtl: 300 });
+  } catch (e) {
+    // Cache write failure is non-critical
+    console.error(`Cache write error for ${cacheKey}:`, e);
+  }
+
   return c.json({
     success: true,
-    data: {
-      total_biographies: totalBiographies?.count || 0,
-      total_goals: goalStats?.total || 0,
-      completed_goals: goalStats?.completed || 0,
-      total_stories: storiesCount?.count || 0,
-      active_users_this_week: activeUsers?.count || 0,
-      trending_categories: (trendingCategories.results || []).map((cat: { category?: string; count?: number }) => ({
-        category: cat.category,
-        count: cat.count,
-      })),
-    },
+    data: statsData,
   });
 });
 
@@ -1397,6 +1422,21 @@ biographiesRoutes.get('/community/stats', async (c) => {
 biographiesRoutes.get('/leaderboard/:type', async (c) => {
   const type = c.req.param('type');
   const limit = parseInt(c.req.query('limit') || '10', 10);
+
+  // Check cache first
+  const cacheKey = `leaderboard:${type}:${limit}`;
+  try {
+    const cached = await c.env.CACHE.get(cacheKey);
+    if (cached) {
+      return c.json({
+        success: true,
+        data: JSON.parse(cached),
+      });
+    }
+  } catch (e) {
+    // Cache miss or error, continue to fetch from DB
+    console.error(`Cache read error for ${cacheKey}:`, e);
+  }
 
   let query = '';
 
@@ -1455,6 +1495,14 @@ biographiesRoutes.get('/leaderboard/:type', async (c) => {
     avatar_url: item.avatar_url,
     value: item.value || 0,
   }));
+
+  // Cache the result for 5 minutes
+  try {
+    await c.env.CACHE.put(cacheKey, JSON.stringify(leaderboard), { expirationTtl: 300 });
+  } catch (e) {
+    // Cache write failure is non-critical
+    console.error(`Cache write error for ${cacheKey}:`, e);
+  }
 
   return c.json({
     success: true,
