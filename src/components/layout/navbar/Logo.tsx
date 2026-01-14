@@ -11,7 +11,7 @@ export default function Logo() {
   const router = useRouter()
 
   return (
-    <div className="flex h-14 items-center bg-[#FFE70C] px-3 md:h-[70px] md:px-6">
+    <div className="flex h-full items-center bg-[#FFE70C] px-3 md:px-6">
       <div
         className="flex cursor-pointer items-center"
         onClick={() => router.push('/')}

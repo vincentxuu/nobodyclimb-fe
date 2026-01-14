@@ -36,7 +36,7 @@ export default function UserMenu() {
     : DEFAULT_AVATARS[0]
 
   return (
-    <div className="flex shrink-0 items-center px-2 md:px-4 lg:px-6">
+    <div className="flex h-full shrink-0 items-center pl-2 pr-2 md:pl-4 md:pr-4 lg:pl-6 lg:pr-6">
       {isAuthenticated ? (
         <div className="flex items-center space-x-1.5 md:space-x-2 lg:space-x-4">
           <DropdownMenu>

@@ -7,6 +7,7 @@ import { motion, useScroll, useSpring } from 'framer-motion'
 import Logo from './navbar/Logo'
 import UnifiedNav from './navbar/UnifiedNav'
 import UserMenu from './navbar/UserMenu'
+import MobileMenu from './navbar/MobileMenu'
 
 /**
  * 主導航欄組件
@@ -40,7 +41,7 @@ export function Navbar() {
 
   return (
     <header
-      className={`fixed left-0 right-0 top-0 z-[999] transition-all duration-300 ${
+      className={`fixed left-0 right-0 top-0 z-[999] h-14 md:h-[70px] transition-all duration-300 ${
         isScrolled ? 'bg-white/95 shadow-sm backdrop-blur-sm' : 'bg-white backdrop-blur-sm'
       }`}
     >
@@ -50,15 +51,24 @@ export function Navbar() {
         style={{ scaleX }}
       />
 
-      <div className="flex items-center">
+      <div className="flex h-full w-full items-stretch">
         {/* Logo 區域 */}
         <Logo />
 
-        {/* 統一導航區域 - 手機可滑動，桌機居中 */}
-        <UnifiedNav />
+        {/* 統一導航區域 - 僅桌機版顯示 */}
+        <div className="hidden md:flex md:flex-1">
+          <UnifiedNav />
+        </div>
 
-        {/* 右側功能區 - 手機桌機統一 */}
-        <UserMenu />
+        {/* 右側功能區 - 桌機版顯示 UserMenu */}
+        <div className="hidden md:flex">
+          <UserMenu />
+        </div>
+
+        {/* 手機版選單按鈕 - 僅在手機版顯示 */}
+        <div className="ml-auto flex items-center pr-2 md:hidden">
+          <MobileMenu />
+        </div>
       </div>
     </header>
   )

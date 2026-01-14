@@ -14,13 +14,13 @@ export default function UnifiedNav() {
   const scrollRef = useRef<HTMLDivElement>(null)
 
   return (
-    <nav className="relative flex-1 overflow-hidden">
+    <nav className="relative flex h-full flex-1 items-center overflow-hidden">
       {/* 右側漸層提示 - 手機版顯示，提示可滑動 */}
       <div className="pointer-events-none absolute right-0 top-0 z-10 h-full w-8 bg-gradient-to-l from-white to-transparent md:hidden" />
 
       <div
         ref={scrollRef}
-        className="scrollbar-hide flex items-center gap-4 overflow-x-auto px-2 md:gap-6 md:px-4 lg:justify-center lg:gap-12 lg:px-0"
+        className="scrollbar-hide flex h-full w-full items-center justify-center gap-6 md:gap-8 lg:gap-12"
       >
         {NAV_LINKS.map((link) => (
           <Link
