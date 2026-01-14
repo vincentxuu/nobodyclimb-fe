@@ -107,12 +107,18 @@ export const CragRouteSection: React.FC<CragRouteSectionProps> = ({
           <Search className="absolute left-4 top-1/2 h-5 w-5 -translate-y-1/2 text-gray-400" />
           <input
             type="text"
-            placeholder="搜尋路線名稱、難度或類型..."
+            placeholder="輸入路線名稱、難度(如 5.10a)或類型(如 Sport)..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             className="w-full rounded-lg border border-gray-200 bg-white py-3 pl-12 pr-4 text-base outline-none transition-colors placeholder:text-gray-400 focus:border-[#FFE70C] focus:ring-2 focus:ring-[#FFE70C]/20"
           />
         </div>
+        {searchQuery && (
+          <p className="mt-2 text-sm text-gray-600">
+            搜尋「<span className="font-medium text-[#1B1A1A]">{searchQuery}</span>」
+            找到 <span className="font-medium text-[#1B1A1A]">{filteredRoutes.length}</span> 條路線
+          </p>
+        )}
       </div>
 
       {/* 分區篩選 */}
