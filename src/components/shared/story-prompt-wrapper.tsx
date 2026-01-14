@@ -92,5 +92,3 @@ export function StoryPromptWrapper() {
     />
   )
 }
-
-export default StoryPromptWrapper

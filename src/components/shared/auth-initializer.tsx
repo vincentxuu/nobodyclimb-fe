@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useRef } from 'react'
+import { useEffect, useRef, useCallback } from 'react'
 import { usePathname, useRouter } from 'next/navigation'
 import { useAuthStore } from '@/store/authStore'
 import { useUIStore } from '@/store/uiStore'
@@ -9,6 +9,9 @@ import { AUTH_TOKEN_KEY, AUTH_REFRESH_TOKEN_KEY } from '@/lib/constants'
 import apiClient from '@/lib/api/client'
 import { ApiResponse, BackendUser, mapBackendUserToUser } from '@/lib/types'
 import { storyPromptService } from '@/lib/api/services'
+
+/** 故事推薦彈窗顯示延遲時間（毫秒） */
+const STORY_PROMPT_SHOW_DELAY = 1500
 
 /**
  * 認證初始化組件
@@ -23,7 +26,7 @@ export function AuthInitializer() {
   const hasCheckedStoryPrompt = useRef(false)
 
   // 檢查是否應該顯示故事推薦彈窗
-  const checkStoryPrompt = async () => {
+  const checkStoryPrompt = useCallback(async () => {
     // 避免重複檢查
     if (hasCheckedStoryPrompt.current) return
     hasCheckedStoryPrompt.current = true
@@ -34,12 +37,12 @@ export function AuthInitializer() {
         // 延遲一點顯示彈窗，讓用戶先看到頁面
         setTimeout(() => {
           openStoryPrompt()
-        }, 1500)
+        }, STORY_PROMPT_SHOW_DELAY)
       }
     } catch (error) {
       console.error('檢查故事推薦失敗:', error)
     }
-  }
+  }, [openStoryPrompt])
 
   // 在組件掛載時檢查認證狀態
   useEffect(() => {
@@ -99,16 +102,14 @@ export function AuthInitializer() {
     }
 
     checkAuthStatus()
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [isAuthenticated, pathname, refreshToken, router, setUser])
+  }, [isAuthenticated, pathname, refreshToken, router, setUser, checkStoryPrompt])
 
   // 當用戶已經是登入狀態時（從 persist 恢復），也檢查故事推薦
   useEffect(() => {
     if (isAuthenticated && !hasCheckedStoryPrompt.current) {
       checkStoryPrompt()
     }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [isAuthenticated])
+  }, [isAuthenticated, checkStoryPrompt])
 
   // 此組件不渲染任何內容
   return null
