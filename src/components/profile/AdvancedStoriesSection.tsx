@@ -62,7 +62,7 @@ export default function AdvancedStoriesSection({
           {/* Progress Bar */}
           <div className="mb-4 h-2 overflow-hidden rounded-full bg-gray-200">
             <motion.div
-              className="h-full rounded-full bg-green-500"
+              className="h-full rounded-full bg-[#FFE70C]"
               initial={{ width: 0 }}
               animate={{ width: `${progress.percentage}%` }}
               transition={{ duration: 0.5 }}
@@ -81,7 +81,7 @@ export default function AdvancedStoriesSection({
                   className="flex items-center gap-2 rounded-md bg-white px-3 py-2"
                 >
                   {isComplete ? (
-                    <Check className="h-4 w-4 text-green-500" />
+                    <Check className="h-4 w-4 text-[#FFE70C]" />
                   ) : (
                     <Icon className={`h-4 w-4 ${category.color}`} />
                   )}
