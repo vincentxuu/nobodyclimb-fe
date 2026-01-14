@@ -13,8 +13,6 @@ import {
   BucketListItemCard,
   BucketListForm,
   BucketListCompletionForm,
-  QuickAddForm,
-  AddBucketListButton,
 } from '@/components/bucket-list'
 import { biographyService, bucketListService } from '@/lib/api/services'
 import type { BucketListItem, BucketListCategory } from '@/lib/types'
@@ -31,7 +29,6 @@ export default function BucketListPage() {
   // 狀態
   const [activeTab, setActiveTab] = useState<TabValue>('all')
   const [showForm, setShowForm] = useState(false)
-  const [showQuickAdd, setShowQuickAdd] = useState(false)
   const [editingItem, setEditingItem] = useState<BucketListItem | null>(null)
   const [completingItem, setCompletingItem] = useState<BucketListItem | null>(null)
   const [categoryFilter, setCategoryFilter] = useState<BucketListCategory | 'all'>('all')
@@ -153,13 +150,6 @@ export default function BucketListPage() {
       }
     },
     [editingItem, createMutation, updateMutation]
-  )
-
-  const handleQuickAdd = useCallback(
-    (title: string) => {
-      createMutation.mutate({ title, category: 'other' } as BucketListItemInputSchema)
-    },
-    [createMutation]
   )
 
   const handleComplete = useCallback((item: BucketListItem) => {
@@ -311,17 +301,6 @@ export default function BucketListPage() {
                       </motion.div>
                     ))}
                   </AnimatePresence>
-
-                  {/* 快速新增區 */}
-                  {showQuickAdd ? (
-                    <QuickAddForm
-                      onSubmit={handleQuickAdd}
-                      onCancel={() => setShowQuickAdd(false)}
-                      isLoading={createMutation.isPending}
-                    />
-                  ) : (
-                    <AddBucketListButton onClick={() => setShowQuickAdd(true)} />
-                  )}
                 </div>
               )}
             </TabsContent>
