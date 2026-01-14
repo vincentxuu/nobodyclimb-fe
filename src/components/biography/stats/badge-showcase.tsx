@@ -46,8 +46,8 @@ export function BadgeShowcase({ badgeProgress, className }: BadgeShowcaseProps) 
       {/* 頭部統計 */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
-          <h2 className="text-xl font-bold text-gray-900">徽章收藏</h2>
-          <p className="text-sm text-gray-500">
+          <h2 className="text-xl font-bold text-text-main">徽章收藏</h2>
+          <p className="text-sm text-text-subtle">
             已解鎖 {unlockedCount}/{totalCount} 個徽章
           </p>
         </div>
@@ -61,7 +61,7 @@ export function BadgeShowcase({ badgeProgress, className }: BadgeShowcaseProps) 
               <BadgeIcon key={p.badge_id} badge={p.badge_id} size="sm" showTooltip />
             ))}
           {unlockedCount > 5 && (
-            <div className="w-8 h-8 flex items-center justify-center rounded-full bg-gray-100 text-xs text-gray-500 font-medium">
+            <div className="w-8 h-8 flex items-center justify-center rounded-full bg-brand-light text-xs text-text-subtle font-medium">
               +{unlockedCount - 5}
             </div>
           )}
@@ -75,8 +75,8 @@ export function BadgeShowcase({ badgeProgress, className }: BadgeShowcaseProps) 
           className={cn(
             'px-4 py-2 rounded-full text-sm font-medium transition-colors',
             selectedCategory === 'all'
-              ? 'bg-gray-900 text-white'
-              : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+              ? 'bg-brand-dark text-white'
+              : 'bg-brand-light text-strong hover:bg-subtle'
           )}
         >
           全部
@@ -88,8 +88,8 @@ export function BadgeShowcase({ badgeProgress, className }: BadgeShowcaseProps) 
             className={cn(
               'px-4 py-2 rounded-full text-sm font-medium transition-colors',
               selectedCategory === category
-                ? 'bg-gray-900 text-white'
-                : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                ? 'bg-brand-dark text-white'
+                : 'bg-brand-light text-strong hover:bg-subtle'
             )}
           >
             {BADGE_CATEGORIES[category]}
@@ -108,8 +108,8 @@ export function BadgeShowcase({ badgeProgress, className }: BadgeShowcaseProps) 
 
       {/* 下一個可解鎖提示 */}
       {unlockedCount < totalCount && (
-        <div className="p-4 bg-gradient-to-r from-yellow-50 to-orange-50 rounded-xl border border-yellow-100">
-          <h3 className="text-sm font-semibold text-gray-900 mb-2">即將解鎖</h3>
+        <div className="p-4 bg-brand-accent/10 rounded-xl border border-brand-accent/30">
+          <h3 className="text-sm font-semibold text-text-main mb-2">即將解鎖</h3>
           <div className="flex flex-wrap gap-4">
             {badgeProgress
               .filter((p) => !p.unlocked && p.progress >= 50)
@@ -122,8 +122,8 @@ export function BadgeShowcase({ badgeProgress, className }: BadgeShowcaseProps) 
                   <div key={p.badge_id} className="flex items-center gap-3">
                     <BadgeIcon badge={p.badge_id} size="sm" unlocked={false} />
                     <div>
-                      <p className="text-sm font-medium text-gray-900">{badge.name}</p>
-                      <p className="text-xs text-gray-500">
+                      <p className="text-sm font-medium text-text-main">{badge.name}</p>
+                      <p className="text-xs text-text-subtle">
                         {p.current_value}/{p.target_value} ({p.progress}%)
                       </p>
                     </div>
@@ -154,7 +154,7 @@ export function CompactBadgeDisplay({
 
   if (unlockedBadges.length === 0) {
     return (
-      <div className={cn('text-sm text-gray-500', className)}>尚未解鎖任何徽章</div>
+      <div className={cn('text-sm text-text-subtle', className)}>尚未解鎖任何徽章</div>
     )
   }
 
@@ -164,7 +164,7 @@ export function CompactBadgeDisplay({
         <BadgeIcon key={p.badge_id} badge={p.badge_id} size="sm" showTooltip />
       ))}
       {remainingCount > 0 && (
-        <span className="text-sm text-gray-500">+{remainingCount}</span>
+        <span className="text-sm text-text-subtle">+{remainingCount}</span>
       )}
     </div>
   )

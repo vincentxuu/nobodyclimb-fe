@@ -46,7 +46,7 @@ export default function StatsPage() {
       <ProfilePageLayout>
         <div className="rounded-lg bg-white p-8">
           <EmptyState
-            icon={<BarChart3 className="h-12 w-12 text-gray-400" />}
+            icon={<BarChart3 className="h-12 w-12 text-subtle" />}
             title="尚未建立人物誌"
             description="請先建立你的人物誌，才能查看統計數據"
             action={
@@ -70,7 +70,7 @@ export default function StatsPage() {
         {/* 頁面標題 */}
         <div>
           <h1 className="text-2xl font-bold text-[#1B1A1A]">我的成就</h1>
-          <p className="mt-1 text-sm text-gray-500">
+          <p className="mt-1 text-sm text-text-subtle">
             查看你的攀岩統計數據與徽章收藏
           </p>
         </div>
@@ -109,7 +109,7 @@ export default function StatsPage() {
           animate={{ opacity: 1, y: 0 }}
           className="rounded-lg bg-white p-6"
         >
-          <h2 className="mb-6 flex items-center gap-2 text-lg font-semibold text-gray-900">
+          <h2 className="mb-6 flex items-center gap-2 text-lg font-semibold text-text-main">
             <BarChart3 className="h-5 w-5 text-brand-dark" />
             詳細統計
           </h2>
@@ -121,7 +121,7 @@ export default function StatsPage() {
             <StatsOverview stats={stats} />
           ) : (
             <EmptyState
-              icon={<BarChart3 className="h-12 w-12 text-gray-400" />}
+              icon={<BarChart3 className="h-12 w-12 text-subtle" />}
               title="無法載入統計數據"
               description="請稍後再試"
             />
@@ -135,7 +135,7 @@ export default function StatsPage() {
           transition={{ delay: 0.1 }}
           className="rounded-lg bg-white p-6"
         >
-          <h2 className="mb-6 flex items-center gap-2 text-lg font-semibold text-gray-900">
+          <h2 className="mb-6 flex items-center gap-2 text-lg font-semibold text-text-main">
             <Award className="h-5 w-5 text-brand-dark" />
             徽章收藏
           </h2>
@@ -147,7 +147,7 @@ export default function StatsPage() {
             <BadgeShowcase badgeProgress={badgesData.progress} />
           ) : (
             <EmptyState
-              icon={<Award className="h-12 w-12 text-gray-400" />}
+              icon={<Award className="h-12 w-12 text-subtle" />}
               title="無法載入徽章數據"
               description="請稍後再試"
             />
@@ -174,9 +174,9 @@ function SummaryCard({
     <div className={`rounded-lg ${color} p-4`}>
       <div className="mb-2 flex items-center gap-2">
         {icon}
-        <span className="text-sm text-gray-600">{label}</span>
+        <span className="text-sm text-strong">{label}</span>
       </div>
-      <p className="text-2xl font-bold text-gray-900">{value}</p>
+      <p className="text-2xl font-bold text-text-main">{value}</p>
     </div>
   )
 }

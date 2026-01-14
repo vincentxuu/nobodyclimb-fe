@@ -25,7 +25,7 @@ export function CircularProgress({
   size = 'md',
   strokeWidth = 8,
   color = 'stroke-primary',
-  bgColor = 'stroke-gray-200',
+  bgColor = 'stroke-brand-light',
   showValue = true,
   label,
   className,
@@ -62,10 +62,10 @@ export function CircularProgress({
       </svg>
       {showValue && (
         <div className="absolute inset-0 flex items-center justify-center">
-          <span className="text-lg font-semibold text-gray-900">{Math.round(value)}%</span>
+          <span className="text-lg font-semibold text-text-main">{Math.round(value)}%</span>
         </div>
       )}
-      {label && <span className="mt-2 text-sm text-gray-600">{label}</span>}
+      {label && <span className="mt-2 text-sm text-strong">{label}</span>}
     </div>
   )
 }
@@ -91,7 +91,7 @@ export function ProgressBar({
   value,
   max = 100,
   color = 'bg-primary',
-  bgColor = 'bg-gray-200',
+  bgColor = 'bg-brand-light',
   showLabel = false,
   label,
   size = 'md',
@@ -103,9 +103,9 @@ export function ProgressBar({
     <div className={cn('w-full', className)}>
       {(showLabel || label) && (
         <div className="flex justify-between text-sm mb-1">
-          {label && <span className="text-gray-600">{label}</span>}
+          {label && <span className="text-strong">{label}</span>}
           {showLabel && (
-            <span className="text-gray-500">
+            <span className="text-text-subtle">
               {value}/{max}
             </span>
           )}
@@ -137,13 +137,13 @@ export function StatCard({ value, label, icon, trend, color, className }: StatCa
   return (
     <div
       className={cn(
-        'flex flex-col p-4 rounded-xl bg-white border border-gray-100 shadow-sm',
+        'flex flex-col p-4 rounded-xl bg-white border border-subtle/50 shadow-sm',
         className
       )}
     >
       <div className="flex items-center justify-between mb-2">
         {icon && (
-          <div className={cn('p-2 rounded-lg', color || 'bg-gray-100')}>{icon}</div>
+          <div className={cn('p-2 rounded-lg', color || 'bg-brand-light')}>{icon}</div>
         )}
         {trend && (
           <span
@@ -157,8 +157,8 @@ export function StatCard({ value, label, icon, trend, color, className }: StatCa
           </span>
         )}
       </div>
-      <p className="text-2xl font-bold text-gray-900">{value}</p>
-      <p className="text-sm text-gray-500">{label}</p>
+      <p className="text-2xl font-bold text-text-main">{value}</p>
+      <p className="text-sm text-text-subtle">{label}</p>
     </div>
   )
 }
@@ -192,7 +192,7 @@ export function BarChart({
           return (
             <div key={index} className="flex flex-col items-center gap-1">
               {showValues && (
-                <span className="text-xs text-gray-500">{item.value}</span>
+                <span className="text-xs text-text-subtle">{item.value}</span>
               )}
               <div
                 className={cn(
@@ -201,7 +201,7 @@ export function BarChart({
                 )}
                 style={{ height: `${height}%`, minHeight: item.value > 0 ? '4px' : '0' }}
               />
-              <span className="text-xs text-gray-600 mt-1">{item.label}</span>
+              <span className="text-xs text-strong mt-1">{item.label}</span>
             </div>
           )
         })}
@@ -213,8 +213,8 @@ export function BarChart({
     <div className={cn('flex flex-col gap-3', className)}>
       {data.map((item, index) => (
         <div key={index} className="flex items-center gap-3">
-          <span className="text-sm text-gray-600 w-20 truncate">{item.label}</span>
-          <div className="flex-1 h-4 bg-gray-200 rounded-full overflow-hidden">
+          <span className="text-sm text-strong w-20 truncate">{item.label}</span>
+          <div className="flex-1 h-4 bg-brand-light rounded-full overflow-hidden">
             <div
               className={cn(
                 'h-full rounded-full transition-all duration-500',
@@ -223,7 +223,7 @@ export function BarChart({
               style={{ width: max > 0 ? `${(item.value / max) * 100}%` : '0%' }}
             />
           </div>
-          {showValues && <span className="text-sm text-gray-500 w-10 text-right">{item.value}</span>}
+          {showValues && <span className="text-sm text-text-subtle w-10 text-right">{item.value}</span>}
         </div>
       ))}
     </div>
