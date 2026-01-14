@@ -283,7 +283,7 @@ export function BucketListItemCard({
                 />
               )}
             </div>
-            <div className="mt-2">
+            <div className="mt-2" onClick={(e) => e.stopPropagation()}>
               <CommentSection
                 itemId={item.id}
                 initialCount={item.comments_count || 0}
