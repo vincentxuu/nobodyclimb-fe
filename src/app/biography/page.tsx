@@ -1,6 +1,6 @@
 'use client'
 
-import React, { useState } from 'react'
+import React, { useState, useCallback } from 'react'
 import { motion } from 'framer-motion'
 import { Button } from '@/components/ui/button'
 import { Breadcrumb } from '@/components/ui/breadcrumb'
@@ -12,9 +12,25 @@ import { BiographyList } from '@/components/biography/biography-list'
 
 export default function BiographyPage() {
   const [searchTerm, setSearchTerm] = useState('')
+  const [hasMore, setHasMore] = useState(false)
+  const [loadMoreFn, setLoadMoreFn] = useState<(() => void) | null>(null)
 
   const handleSearch = (e: React.ChangeEvent<HTMLInputElement>) => {
     setSearchTerm(e.target.value)
+  }
+
+  const handleTotalChange = useCallback((_total: number, hasMoreData: boolean) => {
+    setHasMore(hasMoreData)
+  }, [])
+
+  const handleLoadMoreChange = useCallback((loadMore: () => void) => {
+    setLoadMoreFn(() => loadMore)
+  }, [])
+
+  const handleLoadMore = () => {
+    if (loadMoreFn) {
+      loadMoreFn()
+    }
   }
 
   return (
@@ -40,16 +56,23 @@ export default function BiographyPage() {
           className="mb-6 md:mb-16"
         />
 
-        <BiographyList searchTerm={searchTerm} />
+        <BiographyList
+          searchTerm={searchTerm}
+          onTotalChange={handleTotalChange}
+          onLoadMoreChange={handleLoadMoreChange}
+        />
 
-        <div className="mb-10 mt-6 flex justify-center md:mb-16 md:mt-10">
-          <Button
-            variant="outline"
-            className="h-10 border border-[#1B1A1A] px-6 text-[#1B1A1A] hover:bg-[#dbd8d8] hover:text-[#1B1A1A] md:h-11 md:px-8"
-          >
-            看更多
-          </Button>
-        </div>
+        {hasMore && (
+          <div className="mb-10 mt-6 flex justify-center md:mb-16 md:mt-10">
+            <Button
+              variant="outline"
+              onClick={handleLoadMore}
+              className="h-10 border border-[#1B1A1A] px-6 text-[#1B1A1A] hover:bg-[#dbd8d8] hover:text-[#1B1A1A] md:h-11 md:px-8"
+            >
+              看更多
+            </Button>
+          </div>
+        )}
       </div>
     </motion.div>
   )

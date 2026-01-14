@@ -18,8 +18,8 @@ interface ShareButtonProps {
   title?: string
   description?: string
   className?: string
-  variant?: 'default' | 'outline' | 'ghost' | 'icon'
-  size?: 'default' | 'sm' | 'lg' | 'icon'
+  variant?: 'primary' | 'secondary' | 'destructive' | 'outline' | 'ghost' | 'link'
+  size?: 'default' | 'sm' | 'md' | 'lg' | 'icon'
 }
 
 /**

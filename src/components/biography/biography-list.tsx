@@ -5,7 +5,6 @@ import Link from 'next/link'
 import { motion } from 'framer-motion'
 import { ArrowRightCircle, Loader2 } from 'lucide-react'
 import { Card, CardContent } from '@/components/ui/card'
-import { AvatarImage } from '@/components/shared/avatar-image'
 import { biographyService } from '@/lib/api/services'
 import { Biography } from '@/lib/types'
 import { calculateClimbingYears } from '@/lib/utils/biography'
@@ -27,29 +26,27 @@ function BiographyCard({ person }: BiographyCardProps) {
     >
       <Link href={`/biography/profile/${person.id}`} className="block h-full">
         <Card className="h-full overflow-hidden transition-shadow duration-300 hover:shadow-md">
-          <AvatarImage
-            avatarUrl={person.avatar_url}
-            altText={person.name}
-            iconSize={64}
-            containerClassName="h-[248px]"
-          />
-
-          <CardContent className="p-5">
-            <div className="mb-4 flex items-center justify-between">
-              <div>
-                <h3 className="text-2xl font-medium text-[#1B1A1A]">{person.name}</h3>
-                <p className="text-sm text-[#8E8C8C]">
-                  攀岩年資 | {climbingYears !== null ? `${climbingYears}年` : '未知'}
-                </p>
-              </div>
-              <ArrowRightCircle size={22} className="text-gray-400" />
+          <CardContent className="p-6">
+            <div className="mb-4 space-y-3">
+              {person.climbing_meaning ? (
+                <div className="relative">
+                  <p className="line-clamp-2 text-base font-medium leading-relaxed text-[#1B1A1A]">
+                    &ldquo;{person.climbing_meaning}&rdquo;
+                  </p>
+                </div>
+              ) : (
+                <p className="text-sm italic text-[#8E8C8C]">尚未分享故事</p>
+              )}
             </div>
 
-            <div className="space-y-2">
-              <h4 className="text-base font-medium text-[#1B1A1A]">攀岩對你來說，是什麼樣的存在</h4>
-              <p className="line-clamp-2 text-sm text-[#1B1A1A]">
-                {person.climbing_meaning || '尚未填寫'}
-              </p>
+            <div className="flex items-center justify-between border-t border-gray-100 pt-3">
+              <div className="flex-1">
+                <h3 className="text-sm font-medium text-[#1B1A1A]">{person.name}</h3>
+                <p className="text-xs text-[#8E8C8C]">
+                  攀岩 {climbingYears !== null ? `${climbingYears}年` : '年資未知'}
+                </p>
+              </div>
+              <ArrowRightCircle size={18} className="flex-shrink-0 text-gray-400" />
             </div>
           </CardContent>
         </Card>
@@ -63,47 +60,79 @@ interface BiographyListProps {
   onLoadMore?: () => void
   // eslint-disable-next-line no-unused-vars
   onTotalChange?: (_total: number, _hasMore: boolean) => void
+  // eslint-disable-next-line no-unused-vars
+  onLoadMoreChange?: (_loadMore: () => void) => void
 }
 
-export function BiographyList({ searchTerm, onTotalChange }: BiographyListProps) {
+export function BiographyList({ searchTerm, onTotalChange, onLoadMoreChange }: BiographyListProps) {
   const [biographies, setBiographies] = useState<Biography[]>([])
   const [loading, setLoading] = useState(true)
+  const [loadingMore, setLoadingMore] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const [currentPage, setCurrentPage] = useState(1)
+  const [hasMore, setHasMore] = useState(false)
 
   // 從 API 加載數據
-  const loadBiographies = useCallback(async () => {
-    setLoading(true)
+  const loadBiographies = useCallback(async (page: number, append: boolean = false) => {
+    if (append) {
+      setLoadingMore(true)
+    } else {
+      setLoading(true)
+    }
     setError(null)
 
     try {
-      const response = await biographyService.getBiographies(1, 20, searchTerm || undefined)
+      const response = await biographyService.getBiographies(page, 20, searchTerm || undefined)
 
       if (response.success) {
-        setBiographies(response.data)
-        onTotalChange?.(response.pagination.total, response.pagination.page < response.pagination.total_pages)
+        setBiographies(prev => append ? [...prev, ...response.data] : response.data)
+        const hasMoreData = response.pagination.page < response.pagination.total_pages
+        setHasMore(hasMoreData)
+        setCurrentPage(page)
+        onTotalChange?.(response.pagination.total, hasMoreData)
       } else {
         setError('無法載入人物誌資料')
-        setBiographies([])
+        if (!append) {
+          setBiographies([])
+        }
+        setHasMore(false)
         onTotalChange?.(0, false)
       }
     } catch (err) {
       console.error('Failed to load biographies:', err)
       setError('載入人物誌時發生錯誤')
-      setBiographies([])
+      if (!append) {
+        setBiographies([])
+      }
+      setHasMore(false)
       onTotalChange?.(0, false)
     } finally {
       setLoading(false)
+      setLoadingMore(false)
     }
   }, [searchTerm, onTotalChange])
+
+  // 加載更多
+  const loadMore = useCallback(() => {
+    if (!loadingMore && hasMore) {
+      loadBiographies(currentPage + 1, true)
+    }
+  }, [currentPage, hasMore, loadingMore, loadBiographies])
+
+  // 將 loadMore 函數傳遞給父組件
+  useEffect(() => {
+    onLoadMoreChange?.(loadMore)
+  }, [loadMore, onLoadMoreChange])
 
   // 搜索時重新加載
   useEffect(() => {
     const debounceTimer = setTimeout(() => {
-      loadBiographies()
+      setCurrentPage(1)
+      loadBiographies(1, false)
     }, 300)
 
     return () => clearTimeout(debounceTimer)
-  }, [loadBiographies])
+  }, [searchTerm, loadBiographies])
 
   if (loading) {
     return (
@@ -132,10 +161,17 @@ export function BiographyList({ searchTerm, onTotalChange }: BiographyListProps)
   }
 
   return (
-    <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
-      {biographies.map((person) => (
-        <BiographyCard key={person.id} person={person} />
-      ))}
-    </div>
+    <>
+      <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
+        {biographies.map((person) => (
+          <BiographyCard key={person.id} person={person} />
+        ))}
+      </div>
+      {loadingMore && (
+        <div className="mt-6 flex items-center justify-center">
+          <Loader2 className="h-6 w-6 animate-spin text-[#1B1A1A]" />
+        </div>
+      )}
+    </>
   )
 }

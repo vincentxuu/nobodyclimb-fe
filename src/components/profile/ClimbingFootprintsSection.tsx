@@ -2,6 +2,7 @@
 
 import React from 'react'
 import { Globe } from 'lucide-react'
+import { Label } from '@/components/ui/label'
 import { ClimbingFootprintsEditor } from '@/components/biography/climbing-footprints-editor'
 import { ClimbingLocation } from '@/lib/types'
 import { getCountryFlag } from '@/lib/utils/country'
@@ -37,6 +38,13 @@ export default function ClimbingFootprintsSection({
 
   return (
     <div className="space-y-4">
+      {/* Section Title */}
+      <div>
+        <Label className={`font-medium text-strong ${isMobile ? 'text-sm' : 'text-base'}`}>
+          攀岩足跡
+        </Label>
+        <p className="mt-1 text-xs text-gray-500">記錄你去過的攀岩地點和旅程</p>
+      </div>
       {/* Stats Badge */}
       {totalLocations > 0 && (
         <span className="inline-block rounded-full bg-gray-100 px-2 py-0.5 text-xs text-gray-600">

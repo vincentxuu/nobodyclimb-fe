@@ -46,42 +46,42 @@ export const STORY_CATEGORIES: StoryCategoryInfo[] = [
     name: '成長與突破',
     description: '紀錄攀岩路上的重要時刻',
     icon: 'TrendingUp',
-    color: 'text-[#1B1A1A]',
+    color: 'text-brand-dark',
   },
   {
     id: 'psychology',
     name: '心理與哲學',
     description: '探索攀岩帶來的內在轉變',
     icon: 'Brain',
-    color: 'text-[#1B1A1A]',
+    color: 'text-brand-dark',
   },
   {
     id: 'community',
     name: '社群與連結',
     description: '分享與岩友們的故事',
     icon: 'Users',
-    color: 'text-[#1B1A1A]',
+    color: 'text-brand-dark',
   },
   {
     id: 'practical',
     name: '實用分享',
     description: '傳承實用的經驗與技巧',
     icon: 'Lightbulb',
-    color: 'text-[#1B1A1A]',
+    color: 'text-brand-dark',
   },
   {
     id: 'dreams',
     name: '夢想與探索',
     description: '描繪攀岩的夢想藍圖',
     icon: 'Compass',
-    color: 'text-[#1B1A1A]',
+    color: 'text-brand-dark',
   },
   {
     id: 'life',
     name: '生活整合',
     description: '攀岩之外的你',
     icon: 'Mountain',
-    color: 'text-[#1B1A1A]',
+    color: 'text-brand-dark',
   },
 ]
 
@@ -491,4 +491,38 @@ export function getFilledQuestions(biography: Record<string, unknown>): StoryQue
     const value = biography[question.field]
     return value && typeof value === 'string' && value.trim().length > 0
   })
+}
+
+/**
+ * 將故事按分類分組，並分開已填寫和未填寫
+ */
+export function groupStoriesByCategory(
+  biography: Record<string, unknown>
+): {
+  filled: Map<StoryCategory, StoryQuestion[]>
+  unfilled: StoryQuestion[]
+} {
+  const filled = new Map<StoryCategory, StoryQuestion[]>()
+  const unfilled: StoryQuestion[] = []
+
+  // 初始化所有分類
+  STORY_CATEGORIES.forEach((cat) => {
+    filled.set(cat.id, [])
+  })
+
+  // 分類故事
+  ADVANCED_STORY_QUESTIONS.forEach((question) => {
+    const value = biography[question.field]
+    const hasContent = value && typeof value === 'string' && value.trim().length > 0
+
+    if (hasContent) {
+      const categoryQuestions = filled.get(question.category) || []
+      categoryQuestions.push(question)
+      filled.set(question.category, categoryQuestions)
+    } else {
+      unfilled.push(question)
+    }
+  })
+
+  return { filled, unfilled }
 }

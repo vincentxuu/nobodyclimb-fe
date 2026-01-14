@@ -4,6 +4,7 @@ import React, { useState } from 'react'
 import { ChevronRight, Check } from 'lucide-react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { Button } from '@/components/ui/button'
+import { Label } from '@/components/ui/label'
 import { AdvancedStoryEditor } from '@/components/biography/advanced-story-editor'
 import { calculateStoryProgress, STORY_CATEGORIES } from '@/lib/constants/biography-stories'
 import { CATEGORY_ICONS } from '@/lib/utils/biography-ui'
@@ -28,6 +29,13 @@ export default function AdvancedStoriesSection({
 
   return (
     <div className="space-y-4">
+      {/* Section Title */}
+      <div>
+        <Label className={`font-medium text-strong ${isMobile ? 'text-sm' : 'text-base'}`}>
+          小故事
+        </Label>
+        <p className="mt-1 text-xs text-gray-500">記錄你的攀岩故事與成長歷程</p>
+      </div>
       {/* Progress Info */}
       <div className="flex items-center justify-between">
         <span className="rounded-full bg-gray-100 px-2 py-0.5 text-xs text-gray-600">
@@ -108,13 +116,12 @@ export default function AdvancedStoriesSection({
             exit={{ opacity: 0, height: 0 }}
             className="overflow-hidden"
           >
-            <div className="rounded-lg border border-gray-200">
+            <div className="rounded-lg border border-gray-200 shadow-sm">
               <AdvancedStoryEditor
                 biography={biography}
                 onSave={onSave}
-                onSaveAll={onSaveAll}
                 onClose={() => setIsExpanded(false)}
-                className="max-h-[600px]"
+                className="max-h-[70vh]"
               />
             </div>
           </motion.div>

@@ -183,8 +183,8 @@ export default function ProfileContainer() {
       // 將前端資料轉換為 API 格式
       const biographyData = {
         name: profileData.name,
-        avatar_url: profileData.avatarUrl,
-        cover_image: profileData.coverImageUrl,
+        avatar_url: profileData.avatarUrl || undefined,
+        cover_image: profileData.coverImageUrl || undefined,
         climbing_start_year: profileData.startYear,
         frequent_locations: profileData.frequentGyms,
         favorite_route_type: profileData.favoriteRouteType,

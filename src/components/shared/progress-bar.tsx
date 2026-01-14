@@ -9,9 +9,11 @@ import { useUIStore } from '@/store/uiStore'
  * 顯示使用者在頁面上的滾動進度
  */
 export function ProgressBar() {
-  const { scrollProgress, setScrollProgress } = useUIStore()
+  const scrollProgress = useUIStore((state) => state.scrollProgress)
 
   useEffect(() => {
+    const setScrollProgress = useUIStore.getState().setScrollProgress
+
     // 計算滾動進度
     const handleScroll = () => {
       const winScroll = document.body.scrollTop || document.documentElement.scrollTop
@@ -25,7 +27,7 @@ export function ProgressBar() {
     return () => {
       window.removeEventListener('scroll', handleScroll)
     }
-  }, [setScrollProgress])
+  }, [])
 
   return (
     <motion.div
