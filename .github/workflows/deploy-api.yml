@@ -143,18 +143,50 @@ jobs:
 
       - name: Apply D1 Migrations (Production)
         if: steps.env.outputs.environment == 'production'
-        uses: cloudflare/wrangler-action@v3
-        with:
-          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
-          workingDirectory: backend
-          wranglerVersion: "4"
-          command: d1 migrations apply nobodyclimb-db --remote --config wrangler.toml --env production
+        working-directory: backend
+        run: |
+          max_attempts=3
+          attempt=1
+          while [ $attempt -le $max_attempts ]; do
+            echo "Attempt $attempt of $max_attempts..."
+            if npx wrangler d1 migrations apply nobodyclimb-db --remote --config wrangler.toml --env production; then
+              echo "✅ Migrations applied successfully"
+              exit 0
+            else
+              if [ $attempt -lt $max_attempts ]; then
+                echo "⚠️ Migration failed, waiting 10 seconds before retry..."
+                sleep 10
+              else
+                echo "❌ Migration failed after $max_attempts attempts"
+                exit 1
+              fi
+            fi
+            attempt=$((attempt + 1))
+          done
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
 
       - name: Apply D1 Migrations (Preview)
         if: steps.env.outputs.environment == 'preview'
-        uses: cloudflare/wrangler-action@v3
-        with:
-          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
-          workingDirectory: backend
-          wranglerVersion: "4"
-          command: d1 migrations apply nobodyclimb-db-preview --remote --config wrangler.toml --env preview
+        working-directory: backend
+        run: |
+          max_attempts=3
+          attempt=1
+          while [ $attempt -le $max_attempts ]; do
+            echo "Attempt $attempt of $max_attempts..."
+            if npx wrangler d1 migrations apply nobodyclimb-db-preview --remote --config wrangler.toml --env preview; then
+              echo "✅ Migrations applied successfully"
+              exit 0
+            else
+              if [ $attempt -lt $max_attempts ]; then
+                echo "⚠️ Migration failed, waiting 10 seconds before retry..."
+                sleep 10
+              else
+                echo "❌ Migration failed after $max_attempts attempts"
+                exit 1
+              fi
+            fi
+            attempt=$((attempt + 1))
+          done
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
