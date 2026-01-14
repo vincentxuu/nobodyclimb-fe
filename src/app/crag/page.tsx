@@ -1,10 +1,10 @@
 'use client'
 
-import React from 'react'
+import React, { useState, useMemo } from 'react'
 import PlaceholderImage from '@/components/ui/placeholder-image'
 import Link from 'next/link'
 import { motion } from 'framer-motion'
-import { MapPin, Calendar, Clock } from 'lucide-react'
+import { MapPin, Calendar, Clock, Search } from 'lucide-react'
 import { Breadcrumb } from '@/components/ui/breadcrumb'
 import { PageHeader } from '@/components/ui/page-header'
 import BackToTop from '@/components/ui/back-to-top'
@@ -14,6 +14,21 @@ import { getAllCrags } from '@/lib/crag-data'
 const crags = getAllCrags()
 
 export default function CragListPage() {
+  const [searchQuery, setSearchQuery] = useState('')
+
+  // 根據搜尋字串過濾岩場
+  const filteredCrags = useMemo(() => {
+    if (!searchQuery.trim()) return crags
+    const query = searchQuery.toLowerCase().trim()
+    return crags.filter(
+      (crag) =>
+        crag.name.toLowerCase().includes(query) ||
+        crag.nameEn.toLowerCase().includes(query) ||
+        crag.location.toLowerCase().includes(query) ||
+        crag.type.toLowerCase().includes(query)
+    )
+  }, [searchQuery])
+
   return (
     <main className="min-h-screen bg-page-content-bg pb-16">
       <PageHeader
@@ -27,9 +42,28 @@ export default function CragListPage() {
           <Breadcrumb items={[{ label: '首頁', href: '/' }, { label: '岩場' }]} />
         </div>
 
+        {/* 搜尋框 */}
+        <div className="mb-8">
+          <div className="relative">
+            <Search className="absolute left-4 top-1/2 h-5 w-5 -translate-y-1/2 text-gray-400" />
+            <input
+              type="text"
+              placeholder="搜尋岩場名稱、地點或類型..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="w-full rounded-lg border border-gray-200 bg-white py-3 pl-12 pr-4 text-base outline-none transition-colors placeholder:text-gray-400 focus:border-[#FFE70C] focus:ring-2 focus:ring-[#FFE70C]/20"
+            />
+          </div>
+          {searchQuery && (
+            <p className="mt-2 text-sm text-gray-500">
+              找到 {filteredCrags.length} 個岩場
+            </p>
+          )}
+        </div>
+
         {/* 岩場列表 */}
         <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
-          {crags.map((crag) => (
+          {filteredCrags.map((crag) => (
             <motion.div
               key={crag.id}
               className="overflow-hidden rounded-xl bg-white shadow-md transition hover:shadow-lg"
@@ -87,7 +121,7 @@ export default function CragListPage() {
         </div>
 
         {/* 加載更多按鈕 */}
-        {crags.length > 0 && (
+        {filteredCrags.length > 0 && (
           <div className="mt-12 text-center">
             <button className="rounded-md border border-gray-300 bg-white px-8 py-3 font-medium text-[#1B1A1A] transition hover:bg-gray-50">
               載入更多岩場
