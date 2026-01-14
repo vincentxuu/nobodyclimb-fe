@@ -9,6 +9,7 @@ import ClimbingInfoSection from './ClimbingInfoSection'
 import ClimbingExperienceSection from './ClimbingExperienceSection'
 import AdvancedStoriesSection from './AdvancedStoriesSection'
 import ClimbingFootprintsSection from './ClimbingFootprintsSection'
+import SocialLinksSection from './SocialLinksSection'
 import PublicSettingSection from './PublicSettingSection'
 import ProfileActionButtons from './ProfileActionButtons'
 import { ProfileImageSection } from './image-gallery'
@@ -16,7 +17,7 @@ import { useProfile } from './ProfileContext'
 import { useIsMobile } from '@/lib/hooks/useIsMobile'
 import { useToast } from '@/components/ui/use-toast'
 import { biographyService } from '@/lib/api/services'
-import { ProfileImage, ImageLayout, AdvancedStories } from './types'
+import { ProfileImage, ImageLayout, AdvancedStories, SocialLinks } from './types'
 import { ClimbingLocation } from '@/lib/types'
 
 export default function ProfileContainer() {
@@ -33,7 +34,7 @@ export default function ProfileContainer() {
   }
 
   // 處理表單變更
-  const handleChange = (field: string, value: string | boolean) => {
+  const handleChange = (field: string, value: string | boolean | SocialLinks) => {
     setProfileData({
       ...profileData,
       [field]: value,
@@ -182,6 +183,9 @@ export default function ProfileContainer() {
       // 序列化攀岩足跡
       const climbingLocationsJson = JSON.stringify(profileData.climbingLocations)
 
+      // 序列化社群連結
+      const socialLinksJson = JSON.stringify(profileData.socialLinks)
+
       // 將前端資料轉換為 API 格式
       const biographyData = {
         name: profileData.name,
@@ -196,6 +200,8 @@ export default function ProfileContainer() {
         ...profileData.advancedStories,
         // 攀岩足跡
         climbing_locations: climbingLocationsJson,
+        // 社群連結
+        social_links: socialLinksJson,
         is_public: profileData.isPublic ? 1 : 0,
         // 圖片資料以 JSON 格式存儲
         gallery_images: galleryImagesJson,
@@ -257,6 +263,13 @@ export default function ProfileContainer() {
             onChange={handleChange}
           />
           <ProfileDivider />
+          <SocialLinksSection
+            socialLinks={profileData.socialLinks}
+            isEditing={isEditing}
+            isMobile={isMobile}
+            onChange={handleChange}
+          />
+          <ProfileDivider />
           <ClimbingExperienceSection
             climbingReason={profileData.climbingReason}
             climbingMeaning={profileData.climbingMeaning}
@@ -264,18 +277,6 @@ export default function ProfileContainer() {
             isEditing={isEditing}
             isMobile={isMobile}
             onChange={handleChange}
-          />
-          <ProfileDivider />
-          <ProfileImageSection
-            images={profileData.images}
-            imageLayout={profileData.imageLayout}
-            isEditing={isEditing}
-            isMobile={isMobile}
-            onImageUpload={handleImageUpload}
-            onImageDelete={handleImageDelete}
-            onCaptionChange={handleCaptionChange}
-            onLayoutChange={handleLayoutChange}
-            onReorder={handleReorder}
           />
           <ProfileDivider />
           <AdvancedStoriesSection
@@ -291,6 +292,18 @@ export default function ProfileContainer() {
             isEditing={isEditing}
             isMobile={isMobile}
             onChange={handleClimbingLocationsChange}
+          />
+          <ProfileDivider />
+          <ProfileImageSection
+            images={profileData.images}
+            imageLayout={profileData.imageLayout}
+            isEditing={isEditing}
+            isMobile={isMobile}
+            onImageUpload={handleImageUpload}
+            onImageDelete={handleImageDelete}
+            onCaptionChange={handleCaptionChange}
+            onLayoutChange={handleLayoutChange}
+            onReorder={handleReorder}
           />
           <ProfileDivider />
           <PublicSettingSection
