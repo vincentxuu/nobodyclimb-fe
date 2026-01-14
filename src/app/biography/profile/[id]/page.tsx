@@ -18,10 +18,6 @@ import {
   Compass,
   Heart,
   Eye,
-  BarChart3,
-  Award,
-  ChevronUp,
-  ChevronDown,
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import BackToTop from '@/components/ui/back-to-top'
@@ -33,8 +29,6 @@ import { BucketListSection } from '@/components/biography/bucket-list-section'
 import { BiographyBucketList } from '@/components/bucket-list'
 import { MediaSection } from '@/components/biography/media'
 import { ClimbingLocationList } from '@/components/biography/climbing-location-card'
-import { StatsOverview, BadgeShowcase, CompactBadgeDisplay } from '@/components/biography/stats'
-import { useBiographyStats, useBiographyBadges } from '@/lib/hooks/useBiographyStats'
 import { biographyService } from '@/lib/api/services'
 import { Biography, BiographyAdjacent, ClimbingLocation } from '@/lib/types'
 import { useAuthStore } from '@/store/authStore'
@@ -246,14 +240,8 @@ export default function ProfilePage({ params }: ProfilePageProps) {
   const [adjacent, setAdjacent] = useState<BiographyAdjacent | null>(null)
   const [loading, setLoading] = useState(true)
   const [followerCount, setFollowerCount] = useState(0)
-  const [showStats, setShowStats] = useState(false)
-  const [showBadges, setShowBadges] = useState(false)
   const { user } = useAuthStore()
   const isOwner = user?.id === person?.user_id
-
-  // 獲取統計和徽章數據
-  const { data: stats, isLoading: statsLoading } = useBiographyStats(person?.id)
-  const { data: badgesData, isLoading: badgesLoading } = useBiographyBadges(person?.id)
 
   // 從 API 加載人物資料
   useEffect(() => {
@@ -420,105 +408,6 @@ export default function ProfilePage({ params }: ProfilePageProps) {
 
           {/* 第一層：基本資訊 */}
           <BasicInfoSection person={person} />
-
-          {/* 統計數據區塊 */}
-          <div className="mb-8 rounded-xl border border-gray-100 bg-white">
-            <button
-              className="flex w-full items-center justify-between p-4 text-left"
-              onClick={() => setShowStats(!showStats)}
-            >
-              <div className="flex items-center gap-3">
-                <div className="rounded-full bg-brand-light p-2">
-                  <BarChart3 className="h-5 w-5 text-brand-dark" />
-                </div>
-                <div>
-                  <h3 className="font-medium text-gray-900">統計數據</h3>
-                  <p className="text-sm text-gray-500">
-                    {person.total_views || 0} 瀏覽 · {person.total_likes || 0} 讚 · {followerCount} 追蹤者
-                  </p>
-                </div>
-              </div>
-              {showStats ? (
-                <ChevronUp className="h-5 w-5 text-gray-400" />
-              ) : (
-                <ChevronDown className="h-5 w-5 text-gray-400" />
-              )}
-            </button>
-
-            {showStats && (
-              <motion.div
-                initial={{ opacity: 0, height: 0 }}
-                animate={{ opacity: 1, height: 'auto' }}
-                exit={{ opacity: 0, height: 0 }}
-                className="border-t border-gray-100"
-              >
-                <div className="p-4">
-                  {statsLoading ? (
-                    <div className="flex items-center justify-center py-8">
-                      <Loader2 className="h-6 w-6 animate-spin text-gray-400" />
-                    </div>
-                  ) : stats ? (
-                    <StatsOverview stats={stats} />
-                  ) : (
-                    <p className="py-4 text-center text-sm text-gray-500">無法載入統計數據</p>
-                  )}
-                </div>
-              </motion.div>
-            )}
-          </div>
-
-          {/* 徽章收藏區塊 */}
-          <div className="mb-8 rounded-xl border border-gray-100 bg-white">
-            <button
-              className="flex w-full items-center justify-between p-4 text-left"
-              onClick={() => setShowBadges(!showBadges)}
-            >
-              <div className="flex items-center gap-3">
-                <div className="rounded-full bg-brand-accent/20 p-2">
-                  <Award className="h-5 w-5 text-brand-dark" />
-                </div>
-                <div>
-                  <h3 className="font-medium text-gray-900">徽章收藏</h3>
-                  <p className="text-sm text-gray-500">
-                    {badgesData?.progress
-                      ? `已解鎖 ${badgesData.progress.filter((b) => b.unlocked).length} 個徽章`
-                      : '查看成就徽章'}
-                  </p>
-                </div>
-              </div>
-              <div className="flex items-center gap-3">
-                {!showBadges && badgesData?.progress && (
-                  <CompactBadgeDisplay badgeProgress={badgesData.progress} maxDisplay={4} />
-                )}
-                {showBadges ? (
-                  <ChevronUp className="h-5 w-5 text-gray-400" />
-                ) : (
-                  <ChevronDown className="h-5 w-5 text-gray-400" />
-                )}
-              </div>
-            </button>
-
-            {showBadges && (
-              <motion.div
-                initial={{ opacity: 0, height: 0 }}
-                animate={{ opacity: 1, height: 'auto' }}
-                exit={{ opacity: 0, height: 0 }}
-                className="border-t border-gray-100"
-              >
-                <div className="p-4">
-                  {badgesLoading ? (
-                    <div className="flex items-center justify-center py-8">
-                      <Loader2 className="h-6 w-6 animate-spin text-gray-400" />
-                    </div>
-                  ) : badgesData?.progress ? (
-                    <BadgeShowcase badgeProgress={badgesData.progress} />
-                  ) : (
-                    <p className="py-4 text-center text-sm text-gray-500">無法載入徽章數據</p>
-                  )}
-                </div>
-              </motion.div>
-            )}
-          </div>
 
           {/* 第二層：核心故事區塊 */}
           {(person.climbing_origin || person.climbing_meaning || person.advice_to_self) && (

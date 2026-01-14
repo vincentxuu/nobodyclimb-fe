@@ -78,28 +78,28 @@ export default function StatsPage() {
         {/* 摘要卡片 */}
         <div className="grid grid-cols-2 gap-4 sm:grid-cols-4">
           <SummaryCard
-            icon={<TrendingUp className="h-5 w-5 text-blue-500" />}
+            icon={<TrendingUp className="h-5 w-5 text-brand-dark" />}
             label="總瀏覽數"
             value={stats?.total_views ?? 0}
-            color="bg-blue-100"
+            color="bg-brand-light"
           />
           <SummaryCard
-            icon={<Award className="h-5 w-5 text-pink-500" />}
+            icon={<Award className="h-5 w-5 text-brand-dark" />}
             label="收到的讚"
             value={stats?.total_likes ?? 0}
-            color="bg-pink-100"
+            color="bg-brand-light"
           />
           <SummaryCard
-            icon={<Trophy className="h-5 w-5 text-yellow-500" />}
+            icon={<Trophy className="h-5 w-5 text-brand-dark" />}
             label="已解鎖徽章"
             value={`${unlockedBadges}/${totalBadges}`}
-            color="bg-yellow-100"
+            color="bg-brand-accent/20"
           />
           <SummaryCard
-            icon={<BarChart3 className="h-5 w-5 text-green-500" />}
+            icon={<BarChart3 className="h-5 w-5 text-brand-dark" />}
             label="完成目標"
             value={stats?.bucket_list?.completed ?? 0}
-            color="bg-green-100"
+            color="bg-brand-light"
           />
         </div>
 
@@ -110,7 +110,7 @@ export default function StatsPage() {
           className="rounded-lg bg-white p-6"
         >
           <h2 className="mb-6 flex items-center gap-2 text-lg font-semibold text-gray-900">
-            <BarChart3 className="h-5 w-5 text-blue-600" />
+            <BarChart3 className="h-5 w-5 text-brand-dark" />
             詳細統計
           </h2>
           {statsLoading ? (
@@ -136,7 +136,7 @@ export default function StatsPage() {
           className="rounded-lg bg-white p-6"
         >
           <h2 className="mb-6 flex items-center gap-2 text-lg font-semibold text-gray-900">
-            <Award className="h-5 w-5 text-yellow-600" />
+            <Award className="h-5 w-5 text-brand-dark" />
             徽章收藏
           </h2>
           {badgesLoading ? (
