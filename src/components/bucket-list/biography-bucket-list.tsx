@@ -8,6 +8,9 @@ import { bucketListService } from '@/lib/api/services'
 import type { BucketListItem } from '@/lib/types'
 import { BucketListItemCard } from './bucket-list-item'
 import { LoadingSpinner } from '@/components/ui/loading-spinner'
+import { LikeButton } from '@/components/biography/like-button'
+import { ReferenceButton } from '@/components/biography/reference-button'
+import { CommentSection } from '@/components/biography/comment-section'
 
 interface BiographyBucketListProps {
   biographyId: string
@@ -59,8 +62,9 @@ export function BiographyBucketList({ biographyId, className }: BiographyBucketL
               <div key={item.id} className="w-96 flex-shrink-0 snap-center">
                 <BucketListItemCard
                   item={item}
-                  variant="default"
+                  variant="expanded"
                   showActions={false}
+                  isOwner={false}
                 />
               </div>
             ))}
@@ -113,10 +117,10 @@ function CompletedBucketListCard({ item }: { item: BucketListItem }) {
           )}
 
           {/* 完成日期 */}
-          {item.completion_date && (
+          {item.completed_at && (
             <div className="flex items-center gap-2 text-xs text-text-subtle">
               <CheckCircle2 className="h-3.5 w-3.5" />
-              <span>完成於 {new Date(item.completion_date).toLocaleDateString('zh-TW')}</span>
+              <span>完成於 {new Date(item.completed_at).toLocaleDateString('zh-TW')}</span>
             </div>
           )}
         </div>
@@ -183,6 +187,30 @@ function CompletedBucketListCard({ item }: { item: BucketListItem }) {
               </button>
             </div>
           )}
+        </div>
+      )}
+
+      {/* 互動功能區 - 按讚、參考、留言 */}
+      {item.is_public && (
+        <div className="border-t border-brand-accent/20 bg-white p-4">
+          <div className="flex items-center gap-4">
+            <LikeButton
+              itemId={item.id}
+              initialCount={item.likes_count || 0}
+              variant="icon"
+            />
+            <ReferenceButton
+              itemId={item.id}
+              initialCount={item.inspired_count || 0}
+              variant="icon"
+            />
+          </div>
+          <div className="mt-3">
+            <CommentSection
+              itemId={item.id}
+              initialCount={item.comments_count || 0}
+            />
+          </div>
         </div>
       )}
     </div>
