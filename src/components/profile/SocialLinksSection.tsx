@@ -52,6 +52,13 @@ export default function SocialLinksSection({
               <Input
                 value={socialLinks.instagram}
                 onChange={(e) => handleFieldChange('instagram', e.target.value)}
+                onBlur={(e) => {
+                  const currentValue = e.target.value;
+                  const username = currentValue.split('/').filter(Boolean).pop() || '';
+                  if (username !== currentValue) {
+                    handleFieldChange('instagram', username);
+                  }
+                }}
                 placeholder="your_username"
                 className="border-[#B6B3B3] text-sm md:text-base"
               />
