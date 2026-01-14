@@ -116,7 +116,13 @@ export default function CragDetailPage({ params }: { params: Promise<{ id: strin
                 type="text"
                 placeholder="搜尋路線：輸入路線名稱、難度(如 5.10a)或類型(如 Sport)..."
                 value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
+                onChange={(e) => {
+                  setSearchQuery(e.target.value)
+                  // 當使用者輸入搜尋文字時，自動切換到路線資訊分頁
+                  if (e.target.value.trim()) {
+                    setActiveTab('routes')
+                  }
+                }}
                 className="w-full rounded-lg border border-gray-200 bg-white py-3 pl-12 pr-4 text-base outline-none transition-colors placeholder:text-gray-400 focus:border-[#FFE70C] focus:ring-2 focus:ring-[#FFE70C]/20"
               />
             </div>
