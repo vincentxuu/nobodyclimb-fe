@@ -6,8 +6,10 @@ import {
   ProfileImage,
   ImageLayout,
   AdvancedStories,
+  SocialLinks,
   initialProfileData,
   initialAdvancedStories,
+  initialSocialLinks,
 } from './types'
 import { useAuthStore } from '@/store/authStore'
 import { User, Biography, ClimbingLocation } from '@/lib/types'
@@ -63,6 +65,24 @@ function parseClimbingLocations(locationsJson: string | null | undefined): Climb
 }
 
 /**
+ * 解析 social_links JSON 字串
+ */
+function parseSocialLinks(socialLinksJson: string | null | undefined): SocialLinks {
+  if (!socialLinksJson) {
+    return initialSocialLinks
+  }
+  try {
+    const parsed = JSON.parse(socialLinksJson)
+    return {
+      instagram: parsed.instagram || '',
+      youtube_channel: parsed.youtube_channel || '',
+    }
+  } catch {
+    return initialSocialLinks
+  }
+}
+
+/**
  * 將 Biography 資料映射到 ProfileData 格式
  */
 function mapBiographyToProfileData(biography: Biography | null): Partial<ProfileData> {
@@ -72,6 +92,7 @@ function mapBiographyToProfileData(biography: Biography | null): Partial<Profile
 
   const { images, layout } = parseGalleryImages(biography.gallery_images)
   const climbingLocations = parseClimbingLocations(biography.climbing_locations)
+  const socialLinks = parseSocialLinks(biography.social_links)
 
   // 映射進階故事
   const advancedStories: AdvancedStories = {
@@ -126,6 +147,7 @@ function mapBiographyToProfileData(biography: Biography | null): Partial<Profile
     adviceForBeginners: biography.advice_to_self || '',
     advancedStories,
     climbingLocations,
+    socialLinks,
     isPublic: Number(biography.is_public) === 1,
     images,
     imageLayout: layout,
@@ -171,6 +193,7 @@ function mapUserToProfileData(user: User | null): ProfileData {
     adviceForBeginners: bioData.messageToBeginners || '',
     advancedStories: initialAdvancedStories,
     climbingLocations: [],
+    socialLinks: initialSocialLinks,
     isPublic: bioData.isPublic ?? true,
     images: [],
     imageLayout: 'double',
