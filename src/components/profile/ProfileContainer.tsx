@@ -18,7 +18,7 @@ import { useProfile } from './ProfileContext'
 import { useIsMobile } from '@/lib/hooks/useIsMobile'
 import { useToast } from '@/components/ui/use-toast'
 import { biographyService } from '@/lib/api/services'
-import { ProfileImage, ImageLayout, AdvancedStories } from './types'
+import { ProfileImage, ImageLayout, AdvancedStories, SocialLinks } from './types'
 import { ClimbingLocation } from '@/lib/types'
 
 export default function ProfileContainer() {
@@ -170,6 +170,20 @@ export default function ProfileContainer() {
     [setProfileData]
   )
 
+  // 處理社群連結變更
+  const handleSocialLinksChange = useCallback(
+    (field: keyof SocialLinks, value: string) => {
+      setProfileData((prev) => ({
+        ...prev,
+        socialLinks: {
+          ...prev.socialLinks,
+          [field]: value,
+        },
+      }))
+    },
+    [setProfileData]
+  )
+
   // 處理儲存
   const handleSave = async () => {
     setIsSaving(true)
@@ -183,6 +197,9 @@ export default function ProfileContainer() {
 
       // 序列化攀岩足跡
       const climbingLocationsJson = JSON.stringify(profileData.climbingLocations)
+
+      // 序列化社群連結
+      const socialLinksJson = JSON.stringify(profileData.socialLinks)
 
       // 將前端資料轉換為 API 格式
       const biographyData = {
@@ -198,6 +215,8 @@ export default function ProfileContainer() {
         ...profileData.advancedStories,
         // 攀岩足跡
         climbing_locations: climbingLocationsJson,
+        // 社群連結
+        social_links: socialLinksJson,
         is_public: profileData.isPublic ? 1 : 0,
         // 圖片資料以 JSON 格式存儲
         gallery_images: galleryImagesJson,
@@ -333,6 +352,8 @@ export default function ProfileContainer() {
               biographyId={profileData.biographyId}
               isEditing={isEditing}
               isMobile={isMobile}
+              socialLinks={profileData.socialLinks}
+              onSocialLinksChange={handleSocialLinksChange}
             />
           </CollapsibleSection>
 
