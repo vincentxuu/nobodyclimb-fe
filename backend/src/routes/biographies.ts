@@ -1011,53 +1011,100 @@ biographiesRoutes.get('/explore/locations', async (c) => {
   const limit = parseInt(c.req.query('limit') || '20', 10);
   const offset = parseInt(c.req.query('offset') || '0', 10);
 
-  // Get all public biographies with climbing_locations
-  const biographies = await c.env.DB.prepare(
-    `SELECT id, name, avatar_url, climbing_locations
-     FROM biographies
-     WHERE is_public = 1 AND climbing_locations IS NOT NULL AND climbing_locations != '[]'`
-  ).all<{ id: string; name: string; avatar_url: string | null; climbing_locations: string }>();
+  // Use normalized climbing_locations table with efficient SQL aggregation
+  const countryFilter = country ? 'AND cl.country = ?' : '';
 
-  // Aggregate locations
-  const locationMap = new Map<string, LocationStat>();
+  // Get total count first
+  const countQuery = `
+    SELECT COUNT(DISTINCT cl.location || '|' || cl.country) as total
+    FROM climbing_locations cl
+    JOIN biographies b ON b.id = cl.biography_id AND b.is_public = 1
+    WHERE cl.is_public = 1 ${countryFilter}
+  `;
 
-  for (const bio of biographies.results || []) {
-    try {
-      const locations: ClimbingLocation[] = JSON.parse(bio.climbing_locations || '[]');
-      for (const loc of locations) {
-        if (!loc.is_public) continue;
-        if (country && loc.country !== country) continue;
+  const countStmt = c.env.DB.prepare(countQuery);
+  const countResult = await (country ? countStmt.bind(country) : countStmt).first<{ total: number }>();
+  const total = countResult?.total || 0;
 
-        const key = `${loc.location}|${loc.country}`;
-        if (!locationMap.has(key)) {
-          locationMap.set(key, {
-            location: loc.location,
-            country: loc.country,
-            visitor_count: 0,
-            visitors: [],
-          });
-        }
+  // Get paginated locations with visitor counts
+  const locationsQuery = `
+    SELECT
+      cl.location,
+      cl.country,
+      COUNT(DISTINCT cl.biography_id) as visitor_count
+    FROM climbing_locations cl
+    JOIN biographies b ON b.id = cl.biography_id AND b.is_public = 1
+    WHERE cl.is_public = 1 ${countryFilter}
+    GROUP BY cl.location, cl.country
+    ORDER BY visitor_count DESC, cl.location ASC
+    LIMIT ? OFFSET ?
+  `;
 
-        const stat = locationMap.get(key)!;
-        stat.visitor_count++;
-        stat.visitors.push({
-          biography_id: bio.id,
-          name: bio.name,
-          avatar_url: bio.avatar_url,
-          visit_year: loc.visit_year,
-        });
+  type LocationQueryResult = {
+    location: string;
+    country: string;
+    visitor_count: number;
+  };
+
+  const locationsStmt = c.env.DB.prepare(locationsQuery);
+  const boundLocationsStmt = country
+    ? locationsStmt.bind(country, limit, offset)
+    : locationsStmt.bind(limit, offset);
+  const locationsResult = await boundLocationsStmt.all<LocationQueryResult>();
+
+  const locations = locationsResult.results || [];
+  let paginatedLocations: LocationStat[] = [];
+
+  // Fetch all visitors in a single query to avoid N+1 problem
+  if (locations.length > 0) {
+    const locationConditions = locations.map(() => '(cl.location = ? AND cl.country = ?)').join(' OR ');
+    const visitorParams = locations.flatMap((loc) => [loc.location, loc.country]);
+
+    const visitorsResult = await c.env.DB.prepare(
+      `SELECT
+        cl.biography_id,
+        b.name,
+        b.avatar_url,
+        cl.visit_year,
+        cl.location,
+        cl.country
+      FROM climbing_locations cl
+      JOIN biographies b ON b.id = cl.biography_id AND b.is_public = 1
+      WHERE cl.is_public = 1 AND (${locationConditions})
+      ORDER BY cl.visit_year DESC NULLS LAST`
+    )
+      .bind(...visitorParams)
+      .all<{
+        biography_id: string;
+        name: string;
+        avatar_url: string | null;
+        visit_year: string | null;
+        location: string;
+        country: string;
+      }>();
+
+    // Group visitors by location
+    const visitorsByLocation = new Map<string, LocationStat['visitors']>();
+    for (const visitor of visitorsResult.results || []) {
+      const key = `${visitor.location}|${visitor.country}`;
+      if (!visitorsByLocation.has(key)) {
+        visitorsByLocation.set(key, []);
       }
-    } catch {
-      // Skip invalid JSON
+      visitorsByLocation.get(key)!.push({
+        biography_id: visitor.biography_id,
+        name: visitor.name,
+        avatar_url: visitor.avatar_url,
+        visit_year: visitor.visit_year,
+      });
     }
+
+    paginatedLocations = locations.map((loc) => ({
+      location: loc.location,
+      country: loc.country,
+      visitor_count: loc.visitor_count,
+      visitors: visitorsByLocation.get(`${loc.location}|${loc.country}`) || [],
+    }));
   }
-
-  // Sort by visitor count and paginate
-  const allLocations = Array.from(locationMap.values())
-    .sort((a, b) => b.visitor_count - a.visitor_count);
-
-  const total = allLocations.length;
-  const paginatedLocations = allLocations.slice(offset, offset + limit);
 
   return c.json({
     success: true,
@@ -1074,51 +1121,33 @@ biographiesRoutes.get('/explore/locations', async (c) => {
 biographiesRoutes.get('/explore/locations/:name', async (c) => {
   const locationName = decodeURIComponent(c.req.param('name'));
 
-  // Get all public biographies with climbing_locations
-  const biographies = await c.env.DB.prepare(
-    `SELECT id, name, slug, avatar_url, climbing_locations
-     FROM biographies
-     WHERE is_public = 1 AND climbing_locations IS NOT NULL AND climbing_locations != '[]'`
-  ).all<{
-    id: string;
-    name: string;
-    slug: string;
-    avatar_url: string | null;
-    climbing_locations: string;
-  }>();
+  // Use normalized climbing_locations table with efficient SQL query
+  const visitorsResult = await c.env.DB.prepare(
+    `SELECT
+      cl.biography_id,
+      b.name as biography_name,
+      b.slug as biography_slug,
+      b.avatar_url,
+      cl.country,
+      cl.visit_year,
+      cl.notes
+    FROM climbing_locations cl
+    JOIN biographies b ON b.id = cl.biography_id AND b.is_public = 1
+    WHERE cl.location = ? AND cl.is_public = 1
+    ORDER BY cl.visit_year DESC NULLS LAST`
+  )
+    .bind(locationName)
+    .all<{
+      biography_id: string;
+      biography_name: string;
+      biography_slug: string;
+      avatar_url: string | null;
+      country: string;
+      visit_year: string | null;
+      notes: string | null;
+    }>();
 
-  const visitors: Array<{
-    biography_id: string;
-    biography_name: string;
-    biography_slug: string;
-    avatar_url: string | null;
-    visit_year: string | null;
-    notes: string | null;
-  }> = [];
-
-  let locationCountry = '';
-
-  for (const bio of biographies.results || []) {
-    try {
-      const locations: ClimbingLocation[] = JSON.parse(bio.climbing_locations || '[]');
-      for (const loc of locations) {
-        if (!loc.is_public) continue;
-        if (loc.location === locationName) {
-          locationCountry = loc.country;
-          visitors.push({
-            biography_id: bio.id,
-            biography_name: bio.name,
-            biography_slug: bio.slug,
-            avatar_url: bio.avatar_url,
-            visit_year: loc.visit_year,
-            notes: loc.notes,
-          });
-        }
-      }
-    } catch {
-      // Skip invalid JSON
-    }
-  }
+  const visitors = visitorsResult.results || [];
 
   if (visitors.length === 0) {
     return c.json(
@@ -1131,65 +1160,49 @@ biographiesRoutes.get('/explore/locations/:name', async (c) => {
     );
   }
 
+  // Get country from first result
+  const locationCountry = visitors[0].country;
+
   return c.json({
     success: true,
     data: {
       location: locationName,
       country: locationCountry,
       visitor_count: visitors.length,
-      visitors,
+      visitors: visitors.map((v) => ({
+        biography_id: v.biography_id,
+        biography_name: v.biography_name,
+        biography_slug: v.biography_slug,
+        avatar_url: v.avatar_url,
+        visit_year: v.visit_year,
+        notes: v.notes,
+      })),
     },
   });
 });
 
 // GET /biographies/explore/countries - Get list of countries with location counts
 biographiesRoutes.get('/explore/countries', async (c) => {
-  // Get all public biographies with climbing_locations
-  const biographies = await c.env.DB.prepare(
-    `SELECT climbing_locations
-     FROM biographies
-     WHERE is_public = 1 AND climbing_locations IS NOT NULL AND climbing_locations != '[]'`
-  ).all<{ climbing_locations: string }>();
-
-  // Use Set to track unique locations per country across all biographies
-  const countryLocationSets = new Map<string, Set<string>>();
-  const countryVisitorCounts = new Map<string, number>();
-
-  for (const bio of biographies.results || []) {
-    try {
-      const locations: ClimbingLocation[] = JSON.parse(bio.climbing_locations || '[]');
-
-      for (const loc of locations) {
-        if (!loc.is_public) continue;
-
-        // Track unique locations per country
-        if (!countryLocationSets.has(loc.country)) {
-          countryLocationSets.set(loc.country, new Set());
-        }
-        countryLocationSets.get(loc.country)!.add(loc.location);
-
-        // Count visitors (each location visit counts)
-        countryVisitorCounts.set(
-          loc.country,
-          (countryVisitorCounts.get(loc.country) || 0) + 1
-        );
-      }
-    } catch {
-      // Skip invalid JSON
-    }
-  }
-
-  const countries = Array.from(countryLocationSets.entries())
-    .map(([country, locationSet]) => ({
-      country,
-      location_count: locationSet.size,
-      visitor_count: countryVisitorCounts.get(country) || 0,
-    }))
-    .sort((a, b) => b.visitor_count - a.visitor_count);
+  // Use normalized climbing_locations table with efficient SQL aggregation
+  const countriesResult = await c.env.DB.prepare(
+    `SELECT
+      cl.country,
+      COUNT(DISTINCT cl.location) as location_count,
+      COUNT(*) as visitor_count
+    FROM climbing_locations cl
+    JOIN biographies b ON b.id = cl.biography_id AND b.is_public = 1
+    WHERE cl.is_public = 1
+    GROUP BY cl.country
+    ORDER BY visitor_count DESC, cl.country ASC`
+  ).all<{
+    country: string;
+    location_count: number;
+    visitor_count: number;
+  }>();
 
   return c.json({
     success: true,
-    data: countries,
+    data: countriesResult.results || [],
   });
 });
 
