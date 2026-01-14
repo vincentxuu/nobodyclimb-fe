@@ -1,11 +1,11 @@
 'use client'
 
 import React, { useEffect, useState, useCallback } from 'react'
-import Image from 'next/image'
 import Link from 'next/link'
 import { motion } from 'framer-motion'
-import { ArrowRightCircle, Loader2, User } from 'lucide-react'
+import { ArrowRightCircle, Loader2 } from 'lucide-react'
 import { Card, CardContent } from '@/components/ui/card'
+import { AvatarImage } from '@/components/shared/avatar-image'
 import { biographyService } from '@/lib/api/services'
 import { Biography } from '@/lib/types'
 import { calculateClimbingYears } from '@/lib/utils/biography'
@@ -27,20 +27,12 @@ function BiographyCard({ person }: BiographyCardProps) {
     >
       <Link href={`/biography/profile/${person.id}`} className="block h-full">
         <Card className="h-full overflow-hidden transition-shadow duration-300 hover:shadow-md">
-          <div className="relative h-[248px] overflow-hidden">
-            {person.avatar_url ? (
-              <Image
-                src={person.avatar_url}
-                alt={person.name}
-                fill
-                className="object-cover transition-transform duration-500 hover:scale-105"
-              />
-            ) : (
-              <div className="flex h-full w-full items-center justify-center bg-[#E8E6E3]">
-                <User size={64} className="text-[#8E8C8C]" />
-              </div>
-            )}
-          </div>
+          <AvatarImage
+            avatarUrl={person.avatar_url}
+            altText={person.name}
+            iconSize={64}
+            containerClassName="h-[248px]"
+          />
 
           <CardContent className="p-5">
             <div className="mb-4 flex items-center justify-between">
