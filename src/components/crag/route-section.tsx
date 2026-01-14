@@ -2,7 +2,7 @@
 
 import React, { useState, useMemo, useEffect } from 'react'
 import Link from 'next/link'
-import { Eye, ExternalLink, X, ChevronLeft, ChevronRight, Info, Filter } from 'lucide-react'
+import { Eye, ExternalLink, X, ChevronLeft, ChevronRight, Info, Filter, Instagram, Youtube } from 'lucide-react'
 import * as Dialog from '@radix-ui/react-dialog'
 
 interface RouteType {
@@ -23,6 +23,9 @@ interface RouteType {
   images?: string[]
   videos?: string[]
   tips?: string
+  // 社群媒體連結
+  instagramPosts?: string[]
+  youtubeVideos?: string[]
 }
 
 interface CragRouteSectionProps {
@@ -31,6 +34,35 @@ interface CragRouteSectionProps {
   cragId?: string
   areaIdMap?: Record<string, string>
   searchQuery?: string
+}
+
+// 將 YouTube URL 轉換為嵌入 URL
+function getYoutubeEmbedUrl(url: string): string {
+  // 如果已經是嵌入格式，直接返回
+  if (url.includes('youtube.com/embed/')) {
+    return url
+  }
+
+  // 處理 youtu.be 短連結
+  const shortMatch = url.match(/youtu\.be\/([a-zA-Z0-9_-]+)/)
+  if (shortMatch) {
+    return `https://www.youtube.com/embed/${shortMatch[1]}`
+  }
+
+  // 處理標準 YouTube 連結
+  const standardMatch = url.match(/youtube\.com\/watch\?v=([a-zA-Z0-9_-]+)/)
+  if (standardMatch) {
+    return `https://www.youtube.com/embed/${standardMatch[1]}`
+  }
+
+  // 如果無法解析，返回原始 URL
+  return url
+}
+
+// 從 Instagram URL 提取貼文 ID
+function getInstagramPostId(url: string): string | null {
+  const match = url.match(/instagram\.com\/(?:p|reel)\/([a-zA-Z0-9_-]+)/)
+  return match ? match[1] : null
 }
 
 export const CragRouteSection: React.FC<CragRouteSectionProps> = ({
@@ -361,6 +393,70 @@ export const CragRouteSection: React.FC<CragRouteSectionProps> = ({
                     </div>
                   )}
 
+                  {/* YouTube 影片 (如果有) */}
+                  {selectedRoute.youtubeVideos && selectedRoute.youtubeVideos.length > 0 && (
+                    <div className="mb-6">
+                      <h4 className="mb-2 flex items-center border-l-2 border-[#FFE70C] pl-2 font-medium text-gray-800">
+                        <Youtube size={18} className="mr-2 text-red-600" />
+                        YouTube 影片
+                      </h4>
+                      <div className="space-y-4">
+                        {selectedRoute.youtubeVideos.map((videoUrl, index) => (
+                          <div key={index} className="aspect-video w-full">
+                            <iframe
+                              src={getYoutubeEmbedUrl(videoUrl)}
+                              className="h-full w-full rounded-lg"
+                              title={`${selectedRoute.name} YouTube 影片 ${index + 1}`}
+                              frameBorder="0"
+                              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                              allowFullScreen
+                            ></iframe>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Instagram 貼文 (如果有) */}
+                  {selectedRoute.instagramPosts && selectedRoute.instagramPosts.length > 0 && (
+                    <div className="mb-6">
+                      <h4 className="mb-2 flex items-center border-l-2 border-[#FFE70C] pl-2 font-medium text-gray-800">
+                        <Instagram size={18} className="mr-2 text-pink-600" />
+                        Instagram 貼文
+                      </h4>
+                      <div className="space-y-4">
+                        {selectedRoute.instagramPosts.map((postUrl, index) => {
+                          const postId = getInstagramPostId(postUrl)
+                          return (
+                            <div key={index} className="overflow-hidden rounded-lg border border-gray-200">
+                              {postId ? (
+                                <iframe
+                                  src={`https://www.instagram.com/p/${postId}/embed`}
+                                  className="h-[500px] w-full"
+                                  title={`${selectedRoute.name} Instagram 貼文 ${index + 1}`}
+                                  frameBorder="0"
+                                  scrolling="no"
+                                  allowFullScreen
+                                ></iframe>
+                              ) : (
+                                <a
+                                  href={postUrl}
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  className="flex items-center justify-center p-4 text-pink-600 hover:text-pink-700"
+                                >
+                                  <Instagram size={20} className="mr-2" />
+                                  查看 Instagram 貼文
+                                  <ExternalLink size={14} className="ml-1" />
+                                </a>
+                              )}
+                            </div>
+                          )
+                        })}
+                      </div>
+                    </div>
+                  )}
+
                   <div className="flex flex-wrap justify-end gap-3">
                     <button
                       className="flex items-center rounded-md bg-gray-200 px-4 py-2 text-[#1B1A1A] transition hover:bg-gray-300 disabled:cursor-not-allowed disabled:opacity-50"
@@ -373,7 +469,12 @@ export const CragRouteSection: React.FC<CragRouteSectionProps> = ({
                     <button
                       className="flex items-center rounded-md bg-[#1B1A1A] px-4 py-2 text-white transition hover:bg-black disabled:cursor-not-allowed disabled:opacity-50"
                       onClick={() => setShowTips(true)}
-                      disabled={!selectedRoute?.tips && !(selectedRoute?.videos && selectedRoute.videos.length > 0)}
+                      disabled={
+                        !selectedRoute?.tips &&
+                        !(selectedRoute?.videos && selectedRoute.videos.length > 0) &&
+                        !(selectedRoute?.youtubeVideos && selectedRoute.youtubeVideos.length > 0) &&
+                        !(selectedRoute?.instagramPosts && selectedRoute.instagramPosts.length > 0)
+                      }
                     >
                       <ExternalLink size={16} className="mr-2" />
                       攻略與影片
@@ -490,7 +591,7 @@ export const CragRouteSection: React.FC<CragRouteSectionProps> = ({
                   </h3>
 
                   {selectedRoute.videos && selectedRoute.videos.length > 0 ? (
-                    <div className="space-y-6">
+                    <div className="mb-6 space-y-6">
                       {selectedRoute.videos.map((videoUrl, index) => (
                         <div key={index} className="aspect-video w-full">
                           <iframe
@@ -505,7 +606,71 @@ export const CragRouteSection: React.FC<CragRouteSectionProps> = ({
                       ))}
                     </div>
                   ) : (
-                    <div className="py-8 text-center text-gray-500">暫無攀登影片</div>
+                    <div className="mb-6 py-4 text-center text-gray-500">暫無攀登影片</div>
+                  )}
+
+                  {/* YouTube 影片 */}
+                  {selectedRoute.youtubeVideos && selectedRoute.youtubeVideos.length > 0 && (
+                    <>
+                      <h3 className="mb-4 flex items-center border-l-4 border-[#FFE70C] pl-3 text-xl font-bold">
+                        <Youtube size={20} className="mr-2 text-red-600" />
+                        YouTube 影片
+                      </h3>
+                      <div className="mb-6 space-y-6">
+                        {selectedRoute.youtubeVideos.map((videoUrl, index) => (
+                          <div key={index} className="aspect-video w-full">
+                            <iframe
+                              src={getYoutubeEmbedUrl(videoUrl)}
+                              className="h-full w-full rounded-lg"
+                              title={`${selectedRoute.name} YouTube 影片 ${index + 1}`}
+                              frameBorder="0"
+                              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                              allowFullScreen
+                            ></iframe>
+                          </div>
+                        ))}
+                      </div>
+                    </>
+                  )}
+
+                  {/* Instagram 貼文 */}
+                  {selectedRoute.instagramPosts && selectedRoute.instagramPosts.length > 0 && (
+                    <>
+                      <h3 className="mb-4 flex items-center border-l-4 border-[#FFE70C] pl-3 text-xl font-bold">
+                        <Instagram size={20} className="mr-2 text-pink-600" />
+                        Instagram 貼文
+                      </h3>
+                      <div className="space-y-6">
+                        {selectedRoute.instagramPosts.map((postUrl, index) => {
+                          const postId = getInstagramPostId(postUrl)
+                          return (
+                            <div key={index} className="overflow-hidden rounded-lg border border-gray-200">
+                              {postId ? (
+                                <iframe
+                                  src={`https://www.instagram.com/p/${postId}/embed`}
+                                  className="h-[500px] w-full"
+                                  title={`${selectedRoute.name} Instagram 貼文 ${index + 1}`}
+                                  frameBorder="0"
+                                  scrolling="no"
+                                  allowFullScreen
+                                ></iframe>
+                              ) : (
+                                <a
+                                  href={postUrl}
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  className="flex items-center justify-center p-4 text-pink-600 hover:text-pink-700"
+                                >
+                                  <Instagram size={20} className="mr-2" />
+                                  查看 Instagram 貼文
+                                  <ExternalLink size={14} className="ml-1" />
+                                </a>
+                              )}
+                            </div>
+                          )
+                        })}
+                      </div>
+                    </>
                   )}
                 </div>
               </div>
