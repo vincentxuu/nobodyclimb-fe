@@ -6,6 +6,8 @@ interface UIState {
   isSearchOpen: boolean
   scrollProgress: number
   searchQuery: string
+  // 故事推薦彈窗
+  isStoryPromptOpen: boolean
   // 動作
   // eslint-disable-next-line no-unused-vars
   setTheme: (theme: 'light' | 'dark' | 'system') => void
@@ -20,6 +22,9 @@ interface UIState {
   setSearchQuery: (query: string) => void
   // eslint-disable-next-line no-unused-vars
   setScrollProgress: (progress: number) => void
+  // 故事推薦彈窗動作
+  openStoryPrompt: () => void
+  closeStoryPrompt: () => void
 }
 
 /**
@@ -32,6 +37,7 @@ export const useUIStore = create<UIState>((set) => ({
   isSearchOpen: false,
   scrollProgress: 0,
   searchQuery: '',
+  isStoryPromptOpen: false,
 
   setTheme: (theme) => set({ theme }),
 
@@ -61,4 +67,8 @@ export const useUIStore = create<UIState>((set) => ({
   setSearchQuery: (query) => set({ searchQuery: query }),
 
   setScrollProgress: (progress) => set({ scrollProgress: progress }),
+
+  openStoryPrompt: () => set({ isStoryPromptOpen: true }),
+
+  closeStoryPrompt: () => set({ isStoryPromptOpen: false }),
 }))
