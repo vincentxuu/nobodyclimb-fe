@@ -2,7 +2,7 @@
 
 import * as React from 'react'
 import { useQuery } from '@tanstack/react-query'
-import { Target, Check } from 'lucide-react'
+import { Check, CheckCircle2 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { bucketListService } from '@/lib/api/services'
 import type { BucketListItem } from '@/lib/types'
@@ -52,17 +52,17 @@ export function BiographyBucketList({ biographyId, className }: BiographyBucketL
       {activeItems.length > 0 && (
         <div>
           <h3 className="mb-4 flex items-center gap-2 text-lg font-medium text-[#1B1A1A]">
-            <Target className="h-5 w-5" />
             進行中 ({activeItems.length})
           </h3>
-          <div className="space-y-3">
+          <div className="flex gap-4 overflow-x-auto pb-4 snap-x snap-mandatory">
             {activeItems.map((item) => (
-              <BucketListItemCard
-                key={item.id}
-                item={item}
-                variant="default"
-                showActions={false}
-              />
+              <div key={item.id} className="w-96 flex-shrink-0 snap-center">
+                <BucketListItemCard
+                  item={item}
+                  variant="default"
+                  showActions={false}
+                />
+              </div>
             ))}
           </div>
         </div>
@@ -72,12 +72,13 @@ export function BiographyBucketList({ biographyId, className }: BiographyBucketL
       {completedItems.length > 0 && (
         <div>
           <h3 className="mb-4 flex items-center gap-2 text-lg font-medium text-[#1B1A1A]">
-            <Check className="h-5 w-5 text-brand-dark" />
             已完成 ({completedItems.length})
           </h3>
-          <div className="space-y-3">
+          <div className="flex gap-4 overflow-x-auto pb-4 snap-x snap-mandatory">
             {completedItems.map((item) => (
-              <CompletedBucketListCard key={item.id} item={item} />
+              <div key={item.id} className="w-96 flex-shrink-0 snap-center">
+                <CompletedBucketListCard item={item} />
+              </div>
             ))}
           </div>
         </div>
@@ -96,31 +97,54 @@ function CompletedBucketListCard({ item }: { item: BucketListItem }) {
     item.completion_story || item.psychological_insights || item.technical_insights
 
   return (
-    <div className="rounded-lg border border-[#FAF40A] bg-yellow-50/30">
-      <BucketListItemCard
-        item={item}
-        variant="default"
-        showActions={false}
-        className="border-0 bg-transparent shadow-none"
-      />
+    <div className="group h-full overflow-hidden rounded-xl border border-brand-accent/30 bg-white shadow-sm transition-all hover:shadow-md hover:border-brand-accent/50">
+      {/* 完成標記與主要內容 */}
+      <div className="relative bg-brand-accent/5 p-6">
+        {/* 完成勾勾角標 */}
+        <div className="absolute right-4 top-4 flex h-8 w-8 items-center justify-center rounded-full bg-brand-accent">
+          <Check className="h-5 w-5 text-brand-dark" />
+        </div>
 
-      {/* 完成故事展開 */}
+        {/* 目標內容 */}
+        <div className="pr-10">
+          <h4 className="mb-2 text-lg font-semibold text-brand-dark">{item.title}</h4>
+          {item.description && (
+            <p className="mb-3 text-sm text-text-subtle line-clamp-2">{item.description}</p>
+          )}
+
+          {/* 完成日期 */}
+          {item.completion_date && (
+            <div className="flex items-center gap-2 text-xs text-text-subtle">
+              <CheckCircle2 className="h-3.5 w-3.5" />
+              <span>完成於 {new Date(item.completion_date).toLocaleDateString('zh-TW')}</span>
+            </div>
+          )}
+        </div>
+      </div>
+
+      {/* 完成故事展開區 */}
       {hasCompletionStory && (
-        <div className="border-t border-[#FAF40A]/50 p-4">
+        <div className="border-t border-brand-accent/20">
           {!expanded ? (
             <button
               type="button"
               onClick={() => setExpanded(true)}
-              className="text-sm text-[#1B1A1A] hover:underline"
+              className="w-full bg-white p-4 text-left text-sm font-medium text-brand-dark transition-colors hover:bg-brand-light"
             >
-              查看完成故事 →
+              <span className="flex items-center justify-between">
+                查看完成故事
+                <span className="text-text-subtle">→</span>
+              </span>
             </button>
           ) : (
-            <div className="space-y-4">
+            <div className="space-y-4 bg-white p-4">
               {item.completion_story && (
                 <div>
-                  <h4 className="text-sm font-medium text-[#1B1A1A]">完成故事</h4>
-                  <p className="mt-1 text-sm text-gray-600 whitespace-pre-line">
+                  <h5 className="mb-2 flex items-center gap-2 text-sm font-semibold text-brand-dark">
+                    <span className="h-1.5 w-1.5 rounded-full bg-brand-accent"></span>
+                    完成故事
+                  </h5>
+                  <p className="text-sm leading-relaxed text-text-main whitespace-pre-line">
                     {item.completion_story}
                   </p>
                 </div>
@@ -128,8 +152,11 @@ function CompletedBucketListCard({ item }: { item: BucketListItem }) {
 
               {item.psychological_insights && (
                 <div>
-                  <h4 className="text-sm font-medium text-[#1B1A1A]">💭 心理層面</h4>
-                  <p className="mt-1 text-sm text-gray-600 whitespace-pre-line">
+                  <h5 className="mb-2 flex items-center gap-2 text-sm font-semibold text-brand-dark">
+                    <span className="h-1.5 w-1.5 rounded-full bg-brand-accent"></span>
+                    心理層面
+                  </h5>
+                  <p className="text-sm leading-relaxed text-text-main whitespace-pre-line">
                     {item.psychological_insights}
                   </p>
                 </div>
@@ -137,8 +164,11 @@ function CompletedBucketListCard({ item }: { item: BucketListItem }) {
 
               {item.technical_insights && (
                 <div>
-                  <h4 className="text-sm font-medium text-[#1B1A1A]">🧗 技術層面</h4>
-                  <p className="mt-1 text-sm text-gray-600 whitespace-pre-line">
+                  <h5 className="mb-2 flex items-center gap-2 text-sm font-semibold text-brand-dark">
+                    <span className="h-1.5 w-1.5 rounded-full bg-brand-accent"></span>
+                    技術層面
+                  </h5>
+                  <p className="text-sm leading-relaxed text-text-main whitespace-pre-line">
                     {item.technical_insights}
                   </p>
                 </div>
@@ -147,9 +177,9 @@ function CompletedBucketListCard({ item }: { item: BucketListItem }) {
               <button
                 type="button"
                 onClick={() => setExpanded(false)}
-                className="text-sm text-gray-500 hover:underline"
+                className="text-sm text-text-subtle transition-colors hover:text-brand-dark"
               >
-                收起
+                收起 ↑
               </button>
             </div>
           )}

@@ -3,7 +3,7 @@
 import { useState, useEffect, useCallback } from 'react'
 import {
   Bell,
-  Heart,
+  Mountain,
   MessageCircle,
   UserPlus,
   Sparkles,
@@ -39,7 +39,7 @@ interface NotificationCenterProps {
 }
 
 const notificationIcons: Record<string, React.ElementType> = {
-  goal_liked: Heart,
+  goal_liked: Mountain,
   goal_commented: MessageCircle,
   goal_referenced: Sparkles,
   new_follower: UserPlus,

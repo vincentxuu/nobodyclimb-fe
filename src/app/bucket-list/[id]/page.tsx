@@ -9,11 +9,11 @@ import {
   Target,
   MapPin,
   Calendar,
-  Heart,
+  Mountain,
   MessageCircle,
   Link as LinkIcon,
   Check,
-  Mountain,
+  Tent,
   Home,
   Trophy,
   Dumbbell,
@@ -36,7 +36,7 @@ const categoryConfig: Record<
   BucketListCategory,
   { icon: React.ElementType; label: string; color: string }
 > = {
-  outdoor_route: { icon: Mountain, label: '戶外路線', color: 'bg-green-100 text-green-700' },
+  outdoor_route: { icon: Tent, label: '戶外路線', color: 'bg-green-100 text-green-700' },
   indoor_grade: { icon: Home, label: '室內難度', color: 'bg-blue-100 text-blue-700' },
   competition: { icon: Trophy, label: '比賽目標', color: 'bg-yellow-100 text-yellow-700' },
   training: { icon: Dumbbell, label: '訓練目標', color: 'bg-purple-100 text-purple-700' },
@@ -130,8 +130,8 @@ export default function BucketListDetailPage({ params }: BucketListDetailPagePro
   const displayProgress = item.enable_progress
     ? item.progress_mode === 'milestone' && item.milestones && item.milestones.length > 0
       ? Math.round(
-          (item.milestones.filter((m) => m.completed).length / item.milestones.length) * 100
-        )
+        (item.milestones.filter((m) => m.completed).length / item.milestones.length) * 100
+      )
       : item.progress
     : null
 
@@ -369,7 +369,7 @@ export default function BucketListDetailPage({ params }: BucketListDetailPagePro
           <div className="border-t px-6 py-4">
             <div className="flex items-center gap-6">
               <button className="flex items-center gap-1.5 text-gray-500 hover:text-red-500">
-                <Heart className="h-5 w-5" />
+                <Mountain className="h-5 w-5" />
                 <span>{item.likes_count || 0}</span>
               </button>
               <button className="flex items-center gap-1.5 text-gray-500 hover:text-blue-500">

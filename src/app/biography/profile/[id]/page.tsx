@@ -164,7 +164,7 @@ export default function ProfilePage({ params }: ProfilePageProps) {
       {/* 7. Gallery: 攀岩足跡地圖 */}
       <ClimbingFootprintsSection person={person} />
 
-      {/* 8. 更多故事（完整版） */}
+      {/* 8. 小故事（完整版） */}
       <CompleteStoriesSection person={person} isOwner={isOwner} />
 
       {/* 9. Chapter 4: 給新手的話 */}

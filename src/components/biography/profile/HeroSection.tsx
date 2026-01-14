@@ -44,7 +44,7 @@ export function HeroSection({ person, followerCount, isOwner, onFollowChange }: 
               {person.name}
             </h1>
             <p className="text-base text-text-subtle">
-              {person.title || '攀岩者'}
+              {person.title}
             </p>
             {/* 社群連結 */}
             <CompactSocialLinks socialLinks={socialLinks} className="mt-3" />

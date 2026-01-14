@@ -6,7 +6,7 @@ import Image from 'next/image'
 import Link from 'next/link'
 import { Chip } from '@/components/ui/chip'
 import { Button } from '@/components/ui/button'
-import { Heart, Eye, Loader2, Share2 } from 'lucide-react'
+import { Mountain, Eye, Loader2, Share2 } from 'lucide-react'
 import { Breadcrumb } from '@/components/ui/breadcrumb'
 import { CommentSection } from '@/components/blog/CommentSection'
 import { postService } from '@/lib/api/services'
@@ -176,10 +176,10 @@ export default function BlogDetail() {
   const dateToFormat = article.published_at || article.created_at
   const formattedDate = dateToFormat
     ? new Date(dateToFormat).toLocaleDateString('zh-TW', {
-        year: 'numeric',
-        month: 'long',
-        day: 'numeric',
-      })
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric',
+    })
     : ''
 
   return (
@@ -220,13 +220,12 @@ export default function BlogDetail() {
                   variant="outline"
                   onClick={handleLike}
                   disabled={isLiking}
-                  className={`${
-                    isLiked
+                  className={`${isLiked
                       ? 'border-red-300 bg-red-50 text-red-600'
                       : 'border-gray-300 text-gray-600 hover:bg-gray-50'
-                  }`}
+                    }`}
                 >
-                  <Heart
+                  <Mountain
                     size={18}
                     className={`mr-1 ${isLiked ? 'fill-red-600' : ''}`}
                   />

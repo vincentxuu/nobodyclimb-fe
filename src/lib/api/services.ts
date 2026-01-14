@@ -1085,6 +1085,33 @@ export const storyPromptService = {
 }
 
 /**
+ * 解析 BucketListItem 中的 JSON 字串欄位
+ */
+function parseBucketListItem(item: BucketListItem): BucketListItem {
+  const parsed = { ...item }
+
+  // 解析 milestones
+  if (typeof parsed.milestones === 'string') {
+    try {
+      parsed.milestones = JSON.parse(parsed.milestones)
+    } catch {
+      parsed.milestones = null
+    }
+  }
+
+  // 解析 completion_media
+  if (typeof parsed.completion_media === 'string') {
+    try {
+      parsed.completion_media = JSON.parse(parsed.completion_media)
+    } catch {
+      parsed.completion_media = null
+    }
+  }
+
+  return parsed
+}
+
+/**
  * 人生清單相關 API 服務
  */
 export const bucketListService = {
@@ -1099,6 +1126,10 @@ export const bucketListService = {
       `/bucket-list/${biographyId}`,
       { params: options }
     )
+    // 解析 JSON 欄位
+    if (response.data.data) {
+      response.data.data = response.data.data.map(parseBucketListItem)
+    }
     return response.data
   },
 
@@ -1109,6 +1140,10 @@ export const bucketListService = {
     const response = await apiClient.get<ApiResponse<BucketListItem>>(
       `/bucket-list/item/${id}`
     )
+    // 解析 JSON 欄位
+    if (response.data.data) {
+      response.data.data = parseBucketListItem(response.data.data)
+    }
     return response.data
   },
 
@@ -1117,6 +1152,9 @@ export const bucketListService = {
    */
   createItem: async (data: BucketListItemInput) => {
     const response = await apiClient.post<ApiResponse<BucketListItem>>('/bucket-list', data)
+    if (response.data.data) {
+      response.data.data = parseBucketListItem(response.data.data)
+    }
     return response.data
   },
 
@@ -1125,6 +1163,9 @@ export const bucketListService = {
    */
   updateItem: async (id: string, data: Partial<BucketListItemInput>) => {
     const response = await apiClient.put<ApiResponse<BucketListItem>>(`/bucket-list/${id}`, data)
+    if (response.data.data) {
+      response.data.data = parseBucketListItem(response.data.data)
+    }
     return response.data
   },
 
@@ -1146,6 +1187,9 @@ export const bucketListService = {
       `/bucket-list/${id}/complete`,
       data
     )
+    if (response.data.data) {
+      response.data.data = parseBucketListItem(response.data.data)
+    }
     return response.data
   },
 
@@ -1182,6 +1226,9 @@ export const bucketListService = {
       '/bucket-list/explore/trending',
       { params: { limit } }
     )
+    if (response.data.data) {
+      response.data.data = response.data.data.map(parseBucketListItem)
+    }
     return response.data
   },
 
@@ -1193,6 +1240,9 @@ export const bucketListService = {
       '/bucket-list/explore/recent-completed',
       { params: { limit } }
     )
+    if (response.data.data) {
+      response.data.data = response.data.data.map(parseBucketListItem)
+    }
     return response.data
   },
 
@@ -1204,6 +1254,9 @@ export const bucketListService = {
       `/bucket-list/explore/by-category/${category}`,
       { params: { limit } }
     )
+    if (response.data.data) {
+      response.data.data = response.data.data.map(parseBucketListItem)
+    }
     return response.data
   },
 
@@ -1215,6 +1268,9 @@ export const bucketListService = {
       `/bucket-list/explore/by-location/${encodeURIComponent(location)}`,
       { params: { limit } }
     )
+    if (response.data.data) {
+      response.data.data = response.data.data.map(parseBucketListItem)
+    }
     return response.data
   },
 

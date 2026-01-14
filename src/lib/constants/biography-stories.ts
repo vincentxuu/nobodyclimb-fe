@@ -80,7 +80,7 @@ export const STORY_CATEGORIES: StoryCategoryInfo[] = [
     id: 'life',
     name: '生活整合',
     description: '攀岩之外的你',
-    icon: 'Heart',
+    icon: 'Mountain',
     color: 'text-[#1B1A1A]',
   },
 ]
@@ -103,7 +103,7 @@ export const CORE_STORY_QUESTIONS: StoryQuestion[] = [
     title: '攀岩對你來說是什麼',
     subtitle: '攀岩在你生活中扮演什麼角色？帶給你什麼？',
     placeholder: '攀岩對我來說，是...',
-    icon: 'Heart',
+    icon: 'Mountain',
   },
   {
     field: 'advice_to_self',
@@ -240,7 +240,7 @@ export const COMMUNITY_QUESTIONS: StoryQuestion[] = [
     category: 'community',
     title: '最喜歡的攀岩夥伴與故事',
     subtitle: '分享一個特別的岩友以及你們之間的故事',
-    placeholder: '我和我的岩伴...',
+    placeholder: '我和我的繩伴...',
     icon: 'Users',
   },
   {
@@ -287,7 +287,7 @@ export const PRACTICAL_QUESTIONS: StoryQuestion[] = [
     title: '一次受傷經歷與從中學到的事',
     subtitle: '描述一次具體的受傷經歷、復原過程，以及這次經驗帶給你的收穫與啟發',
     placeholder: '那次受傷讓我學到...',
-    icon: 'HeartPulse',
+    icon: 'MountainPulse',
   },
   {
     field: 'memorable_route',

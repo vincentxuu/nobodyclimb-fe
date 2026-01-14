@@ -9,7 +9,7 @@ import {
   Camera,
   Calendar,
   MapPin,
-  Heart,
+  Mountain,
   Sparkles,
   MessageCircle,
   Plus,
@@ -355,6 +355,22 @@ export function BiographyWizard({
                 />
               </div>
 
+              {/* 個人標籤 */}
+              <div>
+                <Label htmlFor="title" className="mb-2 block text-sm font-medium">
+                  個人標籤 <span className="text-xs text-gray-400">（選填）</span>
+                </Label>
+                <Input
+                  id="title"
+                  value={formData.title || ''}
+                  onChange={(e) => updateFormData('title', e.target.value)}
+                  placeholder="例如：專業攀岩者、業餘愛好者、攀岩教練"
+                />
+                <p className="mt-1 text-xs text-gray-500">
+                  一句話描述你在攀岩界的身份或定位
+                </p>
+              </div>
+
               {/* 開始攀岩年份 */}
               <div>
                 <Label className="mb-2 flex items-center gap-2 text-sm font-medium">
@@ -515,7 +531,7 @@ export function BiographyWizard({
               {/* 攀岩對你來說是什麼 */}
               <div>
                 <Label className="mb-2 flex items-center gap-2 text-sm font-medium">
-                  <Heart className="h-4 w-4 text-pink-500" />
+                  <Mountain className="h-4 w-4 text-pink-500" />
                   攀岩對你來說是什麼
                 </Label>
                 <p className="mb-2 text-xs text-gray-500">

@@ -5,7 +5,6 @@ import Link from 'next/link'
 import { motion } from 'framer-motion'
 import {
   Lightbulb,
-  Heart,
   Mountain,
   Target,
   Dumbbell,
@@ -35,7 +34,7 @@ const categoryConfig: Record<
   training: { icon: Dumbbell, color: 'text-purple-600', bgColor: 'bg-purple-100' },
   adventure: { icon: Plane, color: 'text-orange-600', bgColor: 'bg-orange-100' },
   skill: { icon: BookOpen, color: 'text-indigo-600', bgColor: 'bg-indigo-100' },
-  injury_recovery: { icon: Heart, color: 'text-red-600', bgColor: 'bg-red-100' },
+  injury_recovery: { icon: Mountain, color: 'text-red-600', bgColor: 'bg-red-100' },
   other: { icon: Lightbulb, color: 'text-gray-600', bgColor: 'bg-gray-100' },
 }
 
@@ -45,7 +44,7 @@ const experienceTopics = [
     id: 'fear',
     title: '克服恐懼經驗',
     description: '分享如何面對和克服攀岩中的恐懼',
-    icon: Heart,
+    icon: Mountain,
     color: 'text-pink-600',
     bgColor: 'bg-pink-100',
   },
@@ -53,7 +52,7 @@ const experienceTopics = [
     id: 'recovery',
     title: '受傷復原故事',
     description: '受傷後的復健與重返岩壁的歷程',
-    icon: Heart,
+    icon: Mountain,
     color: 'text-red-600',
     bgColor: 'bg-red-100',
   },

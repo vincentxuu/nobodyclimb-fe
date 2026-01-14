@@ -70,7 +70,7 @@ export function ClimbingLocationList({
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between">
-        <h3 className="flex items-center gap-2 text-lg font-medium text-text-main">
+        <h3 className="flex items-center gap-2 text-2xl font-medium text-text-main">
           <MapPin className="h-5 w-5" />
           攀岩足跡
         </h3>
@@ -195,11 +195,10 @@ export function CountryCard({
   return (
     <button
       onClick={onClick}
-      className={`flex items-center gap-2 rounded-lg border px-3 py-2 text-left transition-all ${
-        isSelected
+      className={`flex items-center gap-2 rounded-lg border px-3 py-2 text-left transition-all ${isSelected
           ? 'border-emerald-500 bg-emerald-50 text-emerald-700'
           : 'border-gray-200 bg-white hover:border-gray-300 hover:bg-gray-50'
-      }`}
+        }`}
     >
       <span className="text-xl">{getCountryFlag(country)}</span>
       <div>

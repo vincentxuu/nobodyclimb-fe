@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import { Heart, Loader2 } from 'lucide-react'
+import { Mountain, Loader2 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { bucketListService } from '@/lib/api/services'
 import { useAuthStore } from '@/store/authStore'
@@ -88,7 +88,7 @@ export function LikeButton({
         {isLoading ? (
           <Loader2 className="h-4 w-4 animate-spin" />
         ) : (
-          <Heart
+          <Mountain
             className={cn('h-4 w-4', isLiked && 'fill-current')}
           />
         )}
@@ -112,7 +112,7 @@ export function LikeButton({
       {isLoading ? (
         <Loader2 className="h-4 w-4 animate-spin" />
       ) : (
-        <Heart className={cn('h-4 w-4', isLiked && 'fill-current')} />
+        <Mountain className={cn('h-4 w-4', isLiked && 'fill-current')} />
       )}
       {showCount && count}
     </Button>

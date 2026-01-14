@@ -3,7 +3,7 @@
 import { cn } from '@/lib/utils'
 import { CircularProgress, ProgressBar, StatCard } from './progress-chart'
 import { STORY_FIELD_COUNTS, type BiographyStats } from '@/lib/types'
-import { Eye, Heart, Users, Target, BookOpen, MapPin } from 'lucide-react'
+import { Eye, Mountain, Users, Target, BookOpen, MapPin } from 'lucide-react'
 
 interface StatsOverviewProps {
   stats: BiographyStats
@@ -35,7 +35,7 @@ export function StatsOverview({ stats, className }: StatsOverviewProps) {
         <StatCard
           value={stats.total_likes}
           label="收到的讚"
-          icon={<Heart className="w-5 h-5 text-brand-dark" />}
+          icon={<Mountain className="w-5 h-5 text-brand-dark" />}
           color="bg-brand-accent/20"
         />
         <StatCard

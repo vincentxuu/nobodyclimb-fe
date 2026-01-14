@@ -6,12 +6,11 @@ import Link from 'next/link'
 import { motion } from 'framer-motion'
 import {
   Sparkles,
-  Heart,
+  Mountain,
   MessageCircle,
   Link as LinkIcon,
   Clock,
   Brain,
-  Mountain,
   ChevronRight,
   Loader2,
 } from 'lucide-react'
@@ -219,7 +218,7 @@ export function RecentCompletedStories({ searchTerm, filter }: RecentCompletedSt
                   <div className="flex items-center justify-between border-t pt-4">
                     <div className="flex items-center gap-4 text-sm text-gray-500">
                       <span className="flex items-center gap-1">
-                        <Heart className="h-4 w-4" />
+                        <Mountain className="h-4 w-4" />
                         {item.likes_count || 0}
                       </span>
                       <span className="flex items-center gap-1">

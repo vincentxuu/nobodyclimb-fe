@@ -65,7 +65,7 @@ export function ProgressTracker({
         <div className={cn('relative w-full rounded-full bg-gray-200', sizes.bar)}>
           <div
             className={cn(
-              'absolute left-0 top-0 rounded-full bg-[#FAF40A] transition-all duration-300',
+              'absolute left-0 top-0 rounded-full bg-brand-accent/70 transition-all duration-300',
               sizes.bar
             )}
             style={{ width: `${Math.min(100, Math.max(0, progress))}%` }}
@@ -92,11 +92,21 @@ export function ProgressTracker({
   }
 
   // Milestone mode
-  if (!milestones || milestones.length === 0) {
+  // 解析 milestones（防禦性檢查）
+  let parsedMilestones = milestones
+  if (typeof parsedMilestones === 'string') {
+    try {
+      parsedMilestones = JSON.parse(parsedMilestones)
+    } catch {
+      parsedMilestones = null
+    }
+  }
+
+  if (!parsedMilestones || !Array.isArray(parsedMilestones) || parsedMilestones.length === 0) {
     return null
   }
 
-  const sortedMilestones = [...milestones].sort((a, b) => a.percentage - b.percentage)
+  const sortedMilestones = [...parsedMilestones].sort((a, b) => a.percentage - b.percentage)
 
   return (
     <div className={cn('w-full', className)}>
@@ -108,7 +118,7 @@ export function ProgressTracker({
         {/* 已完成的進度線 */}
         <div
           className={cn(
-            'absolute left-0 top-1/2 -translate-y-1/2 rounded-full bg-[#FAF40A] transition-all duration-300',
+            'absolute left-0 top-1/2 -translate-y-1/2 rounded-full bg-brand-accent/70 transition-all duration-300',
             sizes.bar
           )}
           style={{ width: `${progress}%` }}
@@ -128,7 +138,7 @@ export function ProgressTracker({
                   'relative z-10 flex items-center justify-center rounded-full border-2 transition-all',
                   sizes.milestone,
                   isCompleted
-                    ? 'border-[#1B1A1A] bg-[#FAF40A] text-[#1B1A1A]'
+                    ? 'border-[#1B1A1A] bg-brand-accent/70 text-[#1B1A1A]'
                     : 'border-gray-300 bg-white text-gray-300',
                   editable && 'cursor-pointer hover:border-[#1B1A1A]'
                 )}
@@ -192,7 +202,7 @@ export function ProgressBar({
     <div className={cn('w-full', className)}>
       <div className={cn('relative w-full overflow-hidden rounded-full bg-gray-200', heightClasses[size])}>
         <div
-          className="absolute left-0 top-0 h-full rounded-full bg-[#FAF40A] transition-all duration-300"
+          className="absolute left-0 top-0 h-full rounded-full bg-brand-accent/70 transition-all duration-300"
           style={{ width: `${Math.min(100, Math.max(0, progress))}%` }}
         />
       </div>

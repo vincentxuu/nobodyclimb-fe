@@ -72,11 +72,9 @@ export function BucketListSection({
       <div className="flex items-center justify-between mb-4">
         <div className="flex items-center gap-4">
           <div className="flex items-center gap-1 text-sm text-gray-500">
-            <Circle className="h-4 w-4" />
             <span>{activeCount} 進行中</span>
           </div>
           <div className="flex items-center gap-1 text-sm text-green-600">
-            <CheckCircle2 className="h-4 w-4" />
             <span>{completedCount} 已完成</span>
           </div>
         </div>

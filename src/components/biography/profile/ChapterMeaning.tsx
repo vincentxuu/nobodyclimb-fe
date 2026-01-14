@@ -23,7 +23,7 @@ export function ChapterMeaning({ person }: ChapterMeaningProps) {
     >
       <div className="mx-auto max-w-3xl text-center">
         {/* 章節標題 */}
-        <span className="mb-4 inline-block text-sm font-medium uppercase tracking-wider text-brand-accent">
+        <span className="mb-4 inline-block text-sm font-medium uppercase tracking-wider bg-brand-accent">
           Chapter 2
         </span>
         <h2 className="mb-8 text-2xl font-semibold text-gray-900">
@@ -32,13 +32,13 @@ export function ChapterMeaning({ person }: ChapterMeaningProps) {
 
         {/* 引言框 */}
         <blockquote className="relative">
-          <span className="absolute -left-4 -top-4 text-6xl text-brand-accent/30">
+          <span className="absolute -left-4 -top-4 text-6xl bg-brand-accent/30">
             &ldquo;
           </span>
           <p className="px-8 text-xl italic leading-relaxed text-gray-800">
             {person.climbing_meaning}
           </p>
-          <span className="absolute -bottom-8 -right-4 text-6xl text-brand-accent/30">
+          <span className="absolute -bottom-8 -right-4 text-6xl bg-brand-accent/30">
             &rdquo;
           </span>
         </blockquote>

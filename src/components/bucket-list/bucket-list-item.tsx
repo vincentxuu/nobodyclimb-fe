@@ -9,7 +9,7 @@ import {
   Trash2,
   Check,
   MoreVertical,
-  Mountain,
+  Tent,
   Home,
   Trophy,
   Dumbbell,
@@ -30,7 +30,7 @@ const categoryConfig: Record<
   BucketListCategory,
   { icon: React.ElementType; label: string; color: string }
 > = {
-  outdoor_route: { icon: Mountain, label: '戶外路線', color: 'bg-gray-100 text-brand-dark' },
+  outdoor_route: { icon: Tent, label: '戶外路線', color: 'bg-gray-100 text-brand-dark' },
   indoor_grade: { icon: Home, label: '室內難度', color: 'bg-gray-100 text-brand-dark' },
   competition: { icon: Trophy, label: '比賽目標', color: 'bg-gray-100 text-brand-dark' },
   training: { icon: Dumbbell, label: '訓練目標', color: 'bg-gray-100 text-brand-dark' },
@@ -91,9 +91,20 @@ export function BucketListItemCard({
   // 計算進度（防止除以零）
   const displayProgress = React.useMemo(() => {
     if (!item.enable_progress) return null
-    if (item.progress_mode === 'milestone' && item.milestones && item.milestones.length > 0) {
-      const completed = item.milestones.filter((m) => m.completed).length
-      return Math.round((completed / item.milestones.length) * 100)
+
+    // 解析 milestones（如果是字串則解析，否則直接使用）
+    let milestones = item.milestones
+    if (typeof milestones === 'string') {
+      try {
+        milestones = JSON.parse(milestones)
+      } catch {
+        milestones = null
+      }
+    }
+
+    if (item.progress_mode === 'milestone' && milestones && Array.isArray(milestones) && milestones.length > 0) {
+      const completed = milestones.filter((m) => m.completed).length
+      return Math.round((completed / milestones.length) * 100)
     }
     return item.progress
   }, [item])
@@ -102,7 +113,7 @@ export function BucketListItemCard({
     <div
       className={cn(
         'group relative overflow-hidden rounded-lg border bg-white transition-shadow hover:shadow-md',
-        isCompleted && 'border-[#FAF40A] bg-yellow-50/30',
+        isCompleted && 'border-brand-accent/50 bg-brand-accent/5',
         isArchived && 'opacity-60',
         onClick && 'cursor-pointer',
         className
@@ -129,7 +140,7 @@ export function BucketListItemCard({
               className={cn(
                 'mt-2 font-medium text-[#1B1A1A] line-clamp-2',
                 variant === 'compact' ? 'text-sm' : 'text-base',
-                isCompleted && 'line-through decoration-[#FAF40A] decoration-2'
+                isCompleted && 'line-through decoration-brand-accent/60 decoration-2'
               )}
             >
               {item.title}
@@ -163,7 +174,7 @@ export function BucketListItemCard({
           {/* Status & Actions */}
           <div className="flex items-center gap-2">
             {isCompleted && (
-              <span className="flex items-center gap-1 rounded-full bg-[#FAF40A] px-2 py-0.5 text-xs font-medium text-[#1B1A1A]">
+              <span className="flex items-center gap-1 rounded-full bg-brand-accent/70 px-2 py-0.5 text-xs font-medium text-brand-dark">
                 <Check className="h-3 w-3" />
                 已完成
               </span>
@@ -253,8 +264,8 @@ export function BucketListItemCard({
 
         {/* Completion Story Preview */}
         {isCompleted && item.completion_story && variant === 'expanded' && (
-          <div className="mt-3 rounded-md bg-yellow-50 p-3">
-            <p className="text-sm font-medium text-[#1B1A1A]">完成故事</p>
+          <div className="mt-3 rounded-md bg-brand-accent/10 p-3">
+            <p className="text-sm font-medium text-brand-dark">完成故事</p>
             <p className="mt-1 text-sm text-gray-600 line-clamp-2">{item.completion_story}</p>
           </div>
         )}

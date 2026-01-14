@@ -61,10 +61,10 @@ export function ChapterBucketList({ person, isOwner }: ChapterBucketListProps) {
     <section className="bg-white py-16">
       <div className="container mx-auto max-w-5xl px-4">
         <div className="mb-8">
-          <span className="text-sm font-medium uppercase tracking-wider text-brand-accent">
+          <span className="text-sm font-medium uppercase tracking-wider bg-brand-accent">
             Chapter 3
           </span>
-          <h2 className="mt-2 text-3xl font-bold text-gray-900">
+          <h2 className="mt-2 text-2xl font-bold text-gray-900">
             攀岩人生清單
           </h2>
         </div>
@@ -75,10 +75,6 @@ export function ChapterBucketList({ person, isOwner }: ChapterBucketListProps) {
             {person.bucket_list_story}
           </p>
         )}
-
-        {/* 社群互動人生清單 */}
-        <BucketListSection biographyId={person.id} isOwner={isOwner} />
-
         {/* 結構化人生清單 */}
         <div className="mt-8">
           <BiographyBucketList biographyId={person.id} />
