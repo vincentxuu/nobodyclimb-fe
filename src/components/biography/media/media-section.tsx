@@ -1,12 +1,11 @@
 'use client'
 
 import React, { useState, useEffect, useCallback } from 'react'
-import { Youtube, Instagram, Plus, ChevronRight } from 'lucide-react'
+import { Youtube, Plus, ChevronRight } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { mediaService } from '@/lib/api/services'
-import { BiographyVideo, BiographyInstagram } from '@/lib/types'
+import { BiographyVideo } from '@/lib/types'
 import { YouTubeVideoCard } from './youtube-embed'
-import { InstagramCard } from './instagram-embed'
 import { AddMediaDialog, MediaItemActions } from './media-dialog'
 
 interface MediaSectionProps {
@@ -17,7 +16,7 @@ interface MediaSectionProps {
 
 /**
  * 媒體區塊組件
- * 展示人物誌的 YouTube 影片和 Instagram 貼文
+ * 展示人物誌的 YouTube 影片
  */
 export function MediaSection({
   biographyId,
@@ -25,24 +24,16 @@ export function MediaSection({
   className,
 }: MediaSectionProps) {
   const [videos, setVideos] = useState<BiographyVideo[]>([])
-  const [instagrams, setInstagrams] = useState<BiographyInstagram[]>([])
   const [loading, setLoading] = useState(true)
   const [showAllVideos, setShowAllVideos] = useState(false)
-  const [showAllInstagrams, setShowAllInstagrams] = useState(false)
-  const [addDialogType, setAddDialogType] = useState<'youtube' | 'instagram' | null>(null)
+  const [addDialogOpen, setAddDialogOpen] = useState(false)
 
   const fetchMedia = useCallback(async () => {
     try {
-      const [videosRes, instagramsRes] = await Promise.all([
-        mediaService.getBiographyVideos(biographyId),
-        mediaService.getBiographyInstagrams(biographyId),
-      ])
+      const videosRes = await mediaService.getBiographyVideos(biographyId)
 
       if (videosRes.success) {
         setVideos(videosRes.data || [])
-      }
-      if (instagramsRes.success) {
-        setInstagrams(instagramsRes.data || [])
       }
     } catch {
       // Handle error silently
@@ -56,9 +47,6 @@ export function MediaSection({
   }, [fetchMedia])
 
   const displayedVideos = showAllVideos ? videos : videos.slice(0, 3)
-  const displayedInstagrams = showAllInstagrams ? instagrams : instagrams.slice(0, 4)
-
-  const hasMedia = videos.length > 0 || instagrams.length > 0
 
   if (loading) {
     return (
@@ -73,7 +61,7 @@ export function MediaSection({
     )
   }
 
-  if (!hasMedia && !isOwner) {
+  if (videos.length === 0 && !isOwner) {
     return null
   }
 
@@ -93,7 +81,7 @@ export function MediaSection({
           </div>
           {isOwner && (
             <button
-              onClick={() => setAddDialogType('youtube')}
+              onClick={() => setAddDialogOpen(true)}
               className="flex items-center gap-1 rounded-lg bg-gray-100 px-3 py-1.5 text-sm text-gray-700 hover:bg-gray-200"
             >
               <Plus className="h-4 w-4" />
@@ -108,7 +96,7 @@ export function MediaSection({
             <p className="text-sm">尚未新增任何影片</p>
             {isOwner && (
               <button
-                onClick={() => setAddDialogType('youtube')}
+                onClick={() => setAddDialogOpen(true)}
                 className="mt-3 flex items-center gap-1 text-sm text-blue-600 hover:underline"
               >
                 <Plus className="h-4 w-4" />
@@ -168,102 +156,12 @@ export function MediaSection({
         )}
       </div>
 
-      {/* Instagram Posts Section */}
-      <div>
-        <div className="mb-4 flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <Instagram className="h-5 w-5 text-pink-600" />
-            <h3 className="text-lg font-semibold">Instagram 貼文</h3>
-            {instagrams.length > 0 && (
-              <span className="rounded-full bg-gray-100 px-2 py-0.5 text-xs text-gray-600">
-                {instagrams.length}
-              </span>
-            )}
-          </div>
-          {isOwner && (
-            <button
-              onClick={() => setAddDialogType('instagram')}
-              className="flex items-center gap-1 rounded-lg bg-gray-100 px-3 py-1.5 text-sm text-gray-700 hover:bg-gray-200"
-            >
-              <Plus className="h-4 w-4" />
-              新增貼文
-            </button>
-          )}
-        </div>
-
-        {instagrams.length === 0 ? (
-          <div className="flex flex-col items-center justify-center rounded-lg border-2 border-dashed border-gray-200 py-8 text-gray-500">
-            <Instagram className="mb-2 h-8 w-8" />
-            <p className="text-sm">尚未新增任何貼文</p>
-            {isOwner && (
-              <button
-                onClick={() => setAddDialogType('instagram')}
-                className="mt-3 flex items-center gap-1 text-sm text-blue-600 hover:underline"
-              >
-                <Plus className="h-4 w-4" />
-                新增第一則貼文
-              </button>
-            )}
-          </div>
-        ) : (
-          <>
-            <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4">
-              {displayedInstagrams.map((post) => (
-                <div key={post.id} className="group relative">
-                  <InstagramCard
-                    shortcode={post.instagram_shortcode}
-                    caption={post.caption}
-                    thumbnailUrl={post.thumbnail_url}
-                    mediaType={post.media_type}
-                  />
-                  {/* Relation type badge */}
-                  <div className="absolute left-2 top-2 flex items-center gap-1">
-                    {post.is_featured && (
-                      <span className="rounded bg-yellow-500 px-1.5 py-0.5 text-xs font-medium text-white">
-                        精選
-                      </span>
-                    )}
-                  </div>
-                  {/* Actions for owner */}
-                  {isOwner && (
-                    <div className="absolute right-2 top-2 opacity-0 transition-opacity group-hover:opacity-100">
-                      <MediaItemActions
-                        item={post}
-                        type="instagram"
-                        onUpdate={fetchMedia}
-                        onDelete={fetchMedia}
-                      />
-                    </div>
-                  )}
-                </div>
-              ))}
-            </div>
-            {instagrams.length > 4 && (
-              <button
-                onClick={() => setShowAllInstagrams(!showAllInstagrams)}
-                className="mt-4 flex items-center gap-1 text-sm text-blue-600 hover:underline"
-              >
-                {showAllInstagrams
-                  ? '收起'
-                  : `查看全部 ${instagrams.length} 則貼文`}
-                <ChevronRight
-                  className={cn(
-                    'h-4 w-4 transition-transform',
-                    showAllInstagrams && 'rotate-90'
-                  )}
-                />
-              </button>
-            )}
-          </>
-        )}
-      </div>
-
       {/* Add Media Dialog */}
-      {addDialogType && (
+      {addDialogOpen && (
         <AddMediaDialog
-          type={addDialogType}
+          type="youtube"
           isOpen={true}
-          onClose={() => setAddDialogType(null)}
+          onClose={() => setAddDialogOpen(false)}
           onSuccess={fetchMedia}
         />
       )}
@@ -273,7 +171,7 @@ export function MediaSection({
 
 /**
  * 精選媒體區塊
- * 只展示精選的媒體
+ * 只展示精選的 YouTube 影片
  */
 interface FeaturedMediaProps {
   biographyId: string
@@ -282,22 +180,15 @@ interface FeaturedMediaProps {
 
 export function FeaturedMedia({ biographyId, className }: FeaturedMediaProps) {
   const [videos, setVideos] = useState<BiographyVideo[]>([])
-  const [instagrams, setInstagrams] = useState<BiographyInstagram[]>([])
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
     const fetchFeatured = async () => {
       try {
-        const [videosRes, instagramsRes] = await Promise.all([
-          mediaService.getBiographyVideos(biographyId, true),
-          mediaService.getBiographyInstagrams(biographyId, true),
-        ])
+        const videosRes = await mediaService.getBiographyVideos(biographyId, true)
 
         if (videosRes.success) {
           setVideos(videosRes.data || [])
-        }
-        if (instagramsRes.success) {
-          setInstagrams(instagramsRes.data || [])
         }
       } catch {
         // Handle error silently
@@ -309,13 +200,13 @@ export function FeaturedMedia({ biographyId, className }: FeaturedMediaProps) {
     fetchFeatured()
   }, [biographyId])
 
-  if (loading || (videos.length === 0 && instagrams.length === 0)) {
+  if (loading || videos.length === 0) {
     return null
   }
 
   return (
     <div className={cn('space-y-4', className)}>
-      <h3 className="text-lg font-semibold">精選媒體</h3>
+      <h3 className="text-lg font-semibold">精選影片</h3>
 
       {/* Featured Video */}
       {videos.length > 0 && (
@@ -324,21 +215,6 @@ export function FeaturedMedia({ biographyId, className }: FeaturedMediaProps) {
           thumbnail="high"
           className="max-w-2xl"
         />
-      )}
-
-      {/* Featured Instagrams */}
-      {instagrams.length > 0 && (
-        <div className="grid grid-cols-2 gap-4 sm:grid-cols-4">
-          {instagrams.slice(0, 4).map((post) => (
-            <InstagramCard
-              key={post.id}
-              shortcode={post.instagram_shortcode}
-              caption={post.caption}
-              thumbnailUrl={post.thumbnail_url}
-              mediaType={post.media_type}
-            />
-          ))}
-        </div>
       )}
     </div>
   )
@@ -352,8 +228,6 @@ function getRelationTypeLabel(type: string): string {
     mentioned: '被提及',
     recommended: '推薦',
     completion_proof: '完攀證明',
-    own_post: '自己的貼文',
-    tagged: '被標記',
   }
   return labels[type] || type
 }

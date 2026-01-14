@@ -29,7 +29,8 @@ import { BiographyBucketList } from '@/components/bucket-list'
 import { MediaSection } from '@/components/biography/media'
 import { ClimbingLocationList } from '@/components/biography/climbing-location-card'
 import { biographyService } from '@/lib/api/services'
-import { Biography, BiographyAdjacent, ClimbingLocation } from '@/lib/types'
+import { Biography, BiographyAdjacent, ClimbingLocation, BiographySocialLinks } from '@/lib/types'
+import { SocialLinksSection } from '@/components/biography/social-links'
 import { useAuthStore } from '@/store/authStore'
 import {
   STORY_CATEGORIES,
@@ -389,6 +390,15 @@ export default function ProfilePage({ params }: ProfilePageProps) {
                   {followerCount} 追蹤者
                 </span>
               </div>
+              {/* 社群連結 */}
+              {person.social_links && (() => {
+                try {
+                  const socialLinks: BiographySocialLinks = JSON.parse(person.social_links)
+                  return <SocialLinksSection socialLinks={socialLinks} className="mt-3" />
+                } catch {
+                  return null
+                }
+              })()}
             </div>
             {!isOwner && person.id && (
               <FollowButton

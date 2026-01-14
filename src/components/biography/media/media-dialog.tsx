@@ -1,25 +1,23 @@
 'use client'
 
 import React, { useState, useCallback } from 'react'
-import { Youtube, Instagram, Loader2, X, Star, Trash2 } from 'lucide-react'
+import { Youtube, Loader2, X, Star, Trash2 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { mediaService } from '@/lib/api/services'
-import { BiographyVideo, BiographyInstagram, BiographyVideoRelationType, BiographyInstagramRelationType } from '@/lib/types'
+import { BiographyVideo, BiographyVideoRelationType } from '@/lib/types'
 import { extractYoutubeVideoId } from './youtube-embed'
-import { extractInstagramShortcode } from './instagram-embed'
 
 interface AddMediaDialogProps {
-  type: 'youtube' | 'instagram'
+  type: 'youtube'
   isOpen: boolean
   onClose: () => void
   onSuccess: () => void
 }
 
 /**
- * 新增媒體對話框
+ * 新增 YouTube 影片對話框
  */
 export function AddMediaDialog({
-  type,
   isOpen,
   onClose,
   onSuccess,
@@ -32,20 +30,17 @@ export function AddMediaDialog({
     thumbnail?: string
     channelName?: string
     videoId?: string
-    shortcode?: string
   } | null>(null)
-  const [relationType, setRelationType] = useState<string>(
-    type === 'youtube' ? 'own_content' : 'own_post'
-  )
+  const [relationType, setRelationType] = useState<string>('own_content')
   const [isFeatured, setIsFeatured] = useState(false)
 
   const resetForm = useCallback(() => {
     setUrl('')
     setError(null)
     setPreview(null)
-    setRelationType(type === 'youtube' ? 'own_content' : 'own_post')
+    setRelationType('own_content')
     setIsFeatured(false)
-  }, [type])
+  }, [])
 
   const handleClose = useCallback(() => {
     resetForm()
@@ -56,81 +51,49 @@ export function AddMediaDialog({
     setError(null)
     setPreview(null)
 
-    if (type === 'youtube') {
-      const videoId = extractYoutubeVideoId(url)
-      if (!videoId) {
-        setError('請輸入有效的 YouTube 網址')
-        return
-      }
+    const videoId = extractYoutubeVideoId(url)
+    if (!videoId) {
+      setError('請輸入有效的 YouTube 網址')
+      return
+    }
 
-      setLoading(true)
-      try {
-        const response = await mediaService.fetchYoutubeInfo(url)
-        if (response.success && response.data) {
-          setPreview({
-            videoId: response.data.video_id,
-            title: response.data.title,
-            thumbnail: response.data.thumbnails.high,
-            channelName: response.data.channel_name,
-          })
-        }
-      } catch {
-        setError('無法取得影片資訊，請確認網址是否正確')
-      } finally {
-        setLoading(false)
+    setLoading(true)
+    try {
+      const response = await mediaService.fetchYoutubeInfo(url)
+      if (response.success && response.data) {
+        setPreview({
+          videoId: response.data.video_id,
+          title: response.data.title,
+          thumbnail: response.data.thumbnails.high,
+          channelName: response.data.channel_name,
+        })
       }
-    } else {
-      const shortcode = extractInstagramShortcode(url)
-      if (!shortcode) {
-        setError('請輸入有效的 Instagram 網址')
-        return
-      }
-
-      setLoading(true)
-      try {
-        const response = await mediaService.fetchInstagramInfo(url)
-        if (response.success && response.data) {
-          setPreview({
-            shortcode: response.data.shortcode,
-            thumbnail: response.data.thumbnail_url || undefined,
-          })
-        }
-      } catch {
-        setError('無法取得貼文資訊，請確認網址是否正確')
-      } finally {
-        setLoading(false)
-      }
+    } catch {
+      setError('無法取得影片資訊，請確認網址是否正確')
+    } finally {
+      setLoading(false)
     }
   }
 
   const handleSubmit = async () => {
-    if (!preview) return
+    if (!preview || !preview.videoId) return
 
     setLoading(true)
     setError(null)
 
     try {
-      if (type === 'youtube' && preview.videoId) {
-        await mediaService.addVideo({
-          video_id: preview.videoId,
-          relation_type: relationType as BiographyVideoRelationType,
-          is_featured: isFeatured,
-        })
-      } else if (type === 'instagram' && preview.shortcode) {
-        await mediaService.addInstagram({
-          instagram_url: url,
-          instagram_shortcode: preview.shortcode,
-          relation_type: relationType as BiographyInstagramRelationType,
-          is_featured: isFeatured,
-        })
-      }
+      await mediaService.addVideo({
+        video_id: preview.videoId,
+        relation_type: relationType as BiographyVideoRelationType,
+        is_featured: isFeatured,
+      })
 
       onSuccess()
       handleClose()
     } catch (err: unknown) {
       const error = err as { response?: { data?: { message?: string } } }
       if (error.response?.data?.message?.includes('already')) {
-        setError('此媒體已新增過')
+        setError('此影片已新增過')
       } else {
         setError('新增失敗，請稍後再試')
       }
@@ -141,21 +104,13 @@ export function AddMediaDialog({
 
   if (!isOpen) return null
 
-  const relationTypeOptions =
-    type === 'youtube'
-      ? [
-          { value: 'own_content', label: '自己的內容' },
-          { value: 'featured_in', label: '出現在此影片' },
-          { value: 'mentioned', label: '被提及' },
-          { value: 'recommended', label: '推薦' },
-          { value: 'completion_proof', label: '完攀證明' },
-        ]
-      : [
-          { value: 'own_post', label: '自己的貼文' },
-          { value: 'tagged', label: '被標記' },
-          { value: 'mentioned', label: '被提及' },
-          { value: 'completion_proof', label: '完攀證明' },
-        ]
+  const relationTypeOptions = [
+    { value: 'own_content', label: '自己的內容' },
+    { value: 'featured_in', label: '出現在此影片' },
+    { value: 'mentioned', label: '被提及' },
+    { value: 'recommended', label: '推薦' },
+    { value: 'completion_proof', label: '完攀證明' },
+  ]
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center">
@@ -170,14 +125,8 @@ export function AddMediaDialog({
         {/* Header */}
         <div className="mb-4 flex items-center justify-between">
           <div className="flex items-center gap-2">
-            {type === 'youtube' ? (
-              <Youtube className="h-5 w-5 text-red-600" />
-            ) : (
-              <Instagram className="h-5 w-5 text-pink-600" />
-            )}
-            <h3 className="text-lg font-semibold">
-              新增 {type === 'youtube' ? 'YouTube 影片' : 'Instagram 貼文'}
-            </h3>
+            <Youtube className="h-5 w-5 text-red-600" />
+            <h3 className="text-lg font-semibold">新增 YouTube 影片</h3>
           </div>
           <button
             onClick={handleClose}
@@ -190,18 +139,14 @@ export function AddMediaDialog({
         {/* URL Input */}
         <div className="mb-4">
           <label className="mb-1 block text-sm font-medium text-gray-700">
-            {type === 'youtube' ? 'YouTube 網址' : 'Instagram 網址'}
+            YouTube 網址
           </label>
           <div className="flex gap-2">
             <input
               type="url"
               value={url}
               onChange={(e) => setUrl(e.target.value)}
-              placeholder={
-                type === 'youtube'
-                  ? 'https://www.youtube.com/watch?v=...'
-                  : 'https://www.instagram.com/p/...'
-              }
+              placeholder="https://www.youtube.com/watch?v=..."
               className="flex-1 rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none"
             />
             <button
@@ -246,11 +191,6 @@ export function AddMediaDialog({
                 {preview.channelName && (
                   <p className="mt-1 text-xs text-gray-500">
                     {preview.channelName}
-                  </p>
-                )}
-                {!preview.title && preview.shortcode && (
-                  <p className="text-sm text-gray-600">
-                    Instagram 貼文: {preview.shortcode}
                   </p>
                 )}
               </div>
@@ -321,18 +261,17 @@ export function AddMediaDialog({
 }
 
 /**
- * 媒體項目操作選單
+ * YouTube 影片操作選單
  */
 interface MediaItemActionsProps {
-  item: BiographyVideo | BiographyInstagram
-  type: 'youtube' | 'instagram'
+  item: BiographyVideo
+  type: 'youtube'
   onUpdate: () => void
   onDelete: () => void
 }
 
 export function MediaItemActions({
   item,
-  type,
   onUpdate,
   onDelete,
 }: MediaItemActionsProps) {
@@ -341,15 +280,9 @@ export function MediaItemActions({
   const handleToggleFeatured = async () => {
     setLoading(true)
     try {
-      if (type === 'youtube') {
-        await mediaService.updateVideo(item.id, {
-          is_featured: !item.is_featured,
-        })
-      } else {
-        await mediaService.updateInstagram(item.id, {
-          is_featured: !item.is_featured,
-        })
-      }
+      await mediaService.updateVideo(item.id, {
+        is_featured: !item.is_featured,
+      })
       onUpdate()
     } catch {
       // Handle error silently
@@ -359,15 +292,11 @@ export function MediaItemActions({
   }
 
   const handleDelete = async () => {
-    if (!confirm('確定要移除此媒體嗎？')) return
+    if (!confirm('確定要移除此影片嗎？')) return
 
     setLoading(true)
     try {
-      if (type === 'youtube') {
-        await mediaService.deleteVideo(item.id)
-      } else {
-        await mediaService.deleteInstagram(item.id)
-      }
+      await mediaService.deleteVideo(item.id)
       onDelete()
     } catch {
       // Handle error silently
