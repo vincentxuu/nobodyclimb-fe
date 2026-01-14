@@ -31,18 +31,50 @@ export type BadgeLevel = 'bronze' | 'silver' | 'gold'
 
 /**
  * 徽章定義
+ *
+ * 顏色系統說明：
+ * - 所有徽章統一使用專案品牌色系
+ * - 已解鎖狀態：bg-brand-accent/20（淺黃背景）+ text-brand-dark（深色圖標）
+ * - 未解鎖狀態：bg-brand-light（淺灰背景）+ text-subtle（灰色圖標）
+ * - 解鎖指示器：bg-brand-accent（黃色）+ text-brand-dark（深色勾選）
  */
 export interface BadgeDefinition {
   id: string
   name: string
   description: string
   icon: LucideIcon
-  color: string // Tailwind color class
-  bgColor: string // Tailwind background color class
   category: BadgeCategory
   requirement: string
   threshold?: number
 }
+
+/**
+ * 徽章統一顏色配置 - 遵循專案品牌色系
+ */
+export const BADGE_COLORS = {
+  // 已解鎖狀態
+  unlocked: {
+    bg: 'bg-brand-accent/20', // 淺黃色背景
+    icon: 'text-brand-dark', // 深色圖標
+    border: 'border-brand-accent', // 黃色邊框
+  },
+  // 未解鎖狀態
+  locked: {
+    bg: 'bg-brand-light', // 淺灰色背景
+    icon: 'text-subtle', // 灰色圖標
+    border: 'border-subtle/50', // 淺灰邊框
+  },
+  // 解鎖指示器（勾選標記）
+  indicator: {
+    bg: 'bg-brand-accent', // 黃色背景
+    icon: 'text-brand-dark', // 深色勾選
+  },
+  // 進度條
+  progress: {
+    bg: 'bg-brand-light', // 進度條背景
+    fill: 'bg-brand-accent', // 進度條填充
+  },
+} as const
 
 /**
  * 使用者徽章狀態
@@ -68,6 +100,7 @@ export const BADGE_CATEGORIES: Record<BadgeCategory, string> = {
 
 /**
  * 徽章定義列表
+ * 所有徽章統一使用 BADGE_COLORS 定義的專案品牌色系
  */
 export const BADGES: Record<string, BadgeDefinition> = {
   // ═══════════════════════════════════════════
@@ -78,8 +111,6 @@ export const BADGES: Record<string, BadgeDefinition> = {
     name: '故事新芽',
     description: '完成第一篇故事',
     icon: Sprout,
-    color: 'text-green-500',
-    bgColor: 'bg-green-100',
     category: 'story',
     requirement: 'complete_first_story',
     threshold: 1,
@@ -89,8 +120,6 @@ export const BADGES: Record<string, BadgeDefinition> = {
     name: '故事達人',
     description: '完成 5 個進階故事',
     icon: Edit3,
-    color: 'text-blue-500',
-    bgColor: 'bg-blue-100',
     category: 'story',
     requirement: 'complete_5_stories',
     threshold: 5,
@@ -100,8 +129,6 @@ export const BADGES: Record<string, BadgeDefinition> = {
     name: '啟發者',
     description: '故事被 10 人標記「受到鼓勵」',
     icon: Sparkles,
-    color: 'text-purple-500',
-    bgColor: 'bg-purple-100',
     category: 'story',
     requirement: 'story_encouraged_10_times',
     threshold: 10,
@@ -111,8 +138,6 @@ export const BADGES: Record<string, BadgeDefinition> = {
     name: '熱門故事',
     description: '單篇故事獲得 50 讚',
     icon: Flame,
-    color: 'text-orange-500',
-    bgColor: 'bg-orange-100',
     category: 'story',
     requirement: 'story_50_likes',
     threshold: 50,
@@ -126,8 +151,6 @@ export const BADGES: Record<string, BadgeDefinition> = {
     name: '目標設定者',
     description: '設定第一個目標',
     icon: Target,
-    color: 'text-red-500',
-    bgColor: 'bg-red-100',
     category: 'goal',
     requirement: 'create_first_goal',
     threshold: 1,
@@ -137,8 +160,6 @@ export const BADGES: Record<string, BadgeDefinition> = {
     name: '成就達成',
     description: '完成第一個目標',
     icon: Award,
-    color: 'text-yellow-500',
-    bgColor: 'bg-yellow-100',
     category: 'goal',
     requirement: 'complete_first_goal',
     threshold: 1,
@@ -148,8 +169,6 @@ export const BADGES: Record<string, BadgeDefinition> = {
     name: '堅持者',
     description: '完成 3 個目標',
     icon: Trophy,
-    color: 'text-indigo-500',
-    bgColor: 'bg-indigo-100',
     category: 'goal',
     requirement: 'complete_3_goals',
     threshold: 3,
@@ -163,8 +182,6 @@ export const BADGES: Record<string, BadgeDefinition> = {
     name: '鼓勵大使',
     description: '給出 50 個讚',
     icon: Heart,
-    color: 'text-pink-500',
-    bgColor: 'bg-pink-100',
     category: 'social',
     requirement: 'give_50_likes',
     threshold: 50,
@@ -174,8 +191,6 @@ export const BADGES: Record<string, BadgeDefinition> = {
     name: '對話者',
     description: '留言 20 則',
     icon: MessageCircle,
-    color: 'text-teal-500',
-    bgColor: 'bg-teal-100',
     category: 'social',
     requirement: 'post_20_comments',
     threshold: 20,
@@ -185,8 +200,6 @@ export const BADGES: Record<string, BadgeDefinition> = {
     name: '好奇寶寶',
     description: '閱讀 20 篇人物誌',
     icon: Eye,
-    color: 'text-cyan-500',
-    bgColor: 'bg-cyan-100',
     category: 'social',
     requirement: 'read_20_biographies',
     threshold: 20,
@@ -200,8 +213,6 @@ export const BADGES: Record<string, BadgeDefinition> = {
     name: '攀岩旅行者',
     description: '記錄 5 個攀岩地點',
     icon: Globe,
-    color: 'text-emerald-500',
-    bgColor: 'bg-emerald-100',
     category: 'footprint',
     requirement: 'add_5_locations',
     threshold: 5,
@@ -211,8 +222,6 @@ export const BADGES: Record<string, BadgeDefinition> = {
     name: '國際攀岩者',
     description: '記錄 3 個海外攀岩地點',
     icon: Plane,
-    color: 'text-sky-500',
-    bgColor: 'bg-sky-100',
     category: 'footprint',
     requirement: 'add_3_international_locations',
     threshold: 3,
