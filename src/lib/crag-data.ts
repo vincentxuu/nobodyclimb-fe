@@ -121,6 +121,9 @@ export interface CragRoute {
   views?: number
   images?: string[]
   videos?: string[]
+  // 社群媒體連結
+  instagramPosts?: string[]
+  youtubeVideos?: string[]
   status: string
   lastVerified?: string
   lastUpdated?: string
@@ -391,6 +394,8 @@ export function getAreaDetailData(cragId: string, areaId: string) {
       images: route.images || [],
       videos: route.videos || [],
       tips: route.tips || '',
+      instagramPosts: route.instagramPosts || [],
+      youtubeVideos: route.youtubeVideos || [],
     })),
     otherAreas,
     statistics: {
@@ -523,6 +528,8 @@ export function getCragDetailData(id: string) {
         images: route.images || [],
         videos: route.videos || [],
         tips: route.tips || '',
+        instagramPosts: route.instagramPosts || [],
+        youtubeVideos: route.youtubeVideos || [],
       }
     }),
   }
