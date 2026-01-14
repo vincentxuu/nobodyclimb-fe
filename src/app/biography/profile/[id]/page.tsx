@@ -17,8 +17,6 @@ import {
   Lightbulb,
   Compass,
   Heart,
-  ChevronDown,
-  ChevronUp,
   Eye,
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
@@ -144,41 +142,29 @@ function BasicInfoSection({ person }: { person: Biography }) {
 }
 
 /**
- * 故事區塊組件
+ * 單一故事項目（用於區塊內）
  */
-function StorySection({
+function StoryItem({
   title,
   content,
-  icon: Icon,
 }: {
   title: string
   content: string | null
-  icon?: React.ComponentType<{ className?: string }>
 }) {
   if (!content) return null
 
   return (
-    <motion.div
-      className="border-b border-gray-100 pb-8"
-      initial={{ opacity: 0, y: 10 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.4 }}
-    >
-      <h2 className="mb-4 flex items-center gap-2 text-xl font-medium text-[#1B1A1A]">
-        {Icon && <Icon className="h-5 w-5 text-gray-500" />}
-        {title}
-      </h2>
-      <p className="whitespace-pre-wrap text-base leading-relaxed text-[#1B1A1A]">{content}</p>
-    </motion.div>
+    <div className="border-b border-gray-100 pb-6 last:border-b-0 last:pb-0">
+      <h3 className="mb-2 text-base font-medium text-[#1B1A1A]">{title}</h3>
+      <p className="whitespace-pre-wrap text-sm leading-relaxed text-gray-600">{content}</p>
+    </div>
   )
 }
 
 /**
- * 進階故事分類區塊
+ * 進階故事分類區塊 - 直接顯示所有故事
  */
 function AdvancedStoriesSection({ person }: { person: Biography }) {
-  const [expandedCategories, setExpandedCategories] = useState<Set<StoryCategory>>(new Set())
-
   // 整理有內容的進階故事
   const storiesByCategory = useMemo(() => {
     const result: Record<StoryCategory, Array<{ field: string; title: string; content: string }>> =
@@ -210,77 +196,39 @@ function AdvancedStoriesSection({ person }: { person: Biography }) {
     return STORY_CATEGORIES.filter((cat) => storiesByCategory[cat.id].length > 0)
   }, [storiesByCategory])
 
-  const toggleCategory = (categoryId: StoryCategory) => {
-    setExpandedCategories((prev) => {
-      const next = new Set(prev)
-      if (next.has(categoryId)) {
-        next.delete(categoryId)
-      } else {
-        next.add(categoryId)
-      }
-      return next
-    })
-  }
-
   if (categoriesWithContent.length === 0) return null
 
   return (
-    <div className="mt-12 border-t border-gray-200 pt-8">
-      <h2 className="mb-6 text-xl font-semibold text-gray-900">更多故事</h2>
-      <div className="space-y-4">
-        {categoriesWithContent.map((category) => {
-          const Icon = CATEGORY_ICONS[category.id]
-          const stories = storiesByCategory[category.id]
-          const isExpanded = expandedCategories.has(category.id)
+    <div className="space-y-6">
+      {categoriesWithContent.map((category) => {
+        const Icon = CATEGORY_ICONS[category.id]
+        const stories = storiesByCategory[category.id]
 
-          return (
-            <div key={category.id} className="rounded-xl border border-gray-100 bg-white">
-              <button
-                className="flex w-full items-center justify-between p-4 text-left"
-                onClick={() => toggleCategory(category.id)}
-              >
-                <div className="flex items-center gap-3">
-                  <div className={cn('rounded-full p-2', 'bg-gray-100')}>
-                    <Icon className={cn('h-5 w-5', category.color)} />
-                  </div>
-                  <div>
-                    <h3 className="font-medium text-gray-900">{category.name}</h3>
-                    <p className="text-sm text-gray-500">{stories.length} 則故事</p>
-                  </div>
-                </div>
-                {isExpanded ? (
-                  <ChevronUp className="h-5 w-5 text-gray-400" />
-                ) : (
-                  <ChevronDown className="h-5 w-5 text-gray-400" />
-                )}
-              </button>
+        return (
+          <div key={category.id} className="rounded-xl bg-gray-50 p-6">
+            {/* 分類標題 */}
+            <h2 className="mb-4 flex items-center gap-2 text-lg font-semibold text-gray-900">
+              <Icon className={cn('h-5 w-5', category.color)} />
+              {category.name}
+            </h2>
 
-              {isExpanded && (
-                <motion.div
-                  initial={{ opacity: 0, height: 0 }}
-                  animate={{ opacity: 1, height: 'auto' }}
-                  exit={{ opacity: 0, height: 0 }}
-                  className="border-t border-gray-100"
+            {/* 故事內容 */}
+            <div className="space-y-4">
+              {stories.map((story) => (
+                <div
+                  key={story.field}
+                  className="border-b border-gray-200 pb-4 last:border-b-0 last:pb-0"
                 >
-                  <div className="space-y-6 p-4">
-                    {stories.map((story, index) => (
-                      <div
-                        key={story.field}
-                        className={cn(index > 0 && 'border-t border-gray-50 pt-6')}
-                      >
-                        <h4 className="mb-2 font-medium text-gray-800">{story.title}</h4>
-                        <p className="whitespace-pre-wrap text-sm leading-relaxed text-gray-600">
-                          {story.content}
-                        </p>
-                      </div>
-                    ))}
-                  </div>
-                </motion.div>
-              )}
+                  <h3 className="mb-2 text-base font-medium text-[#1B1A1A]">{story.title}</h3>
+                  <p className="whitespace-pre-wrap text-sm leading-relaxed text-gray-600">
+                    {story.content}
+                  </p>
+                </div>
+              ))}
             </div>
-          )
-        })}
-      </div>
+          </div>
+        )
+      })}
     </div>
   )
 }
@@ -449,71 +397,72 @@ export default function ProfilePage({ params }: ProfilePageProps) {
           {/* 第一層：基本資訊 */}
           <BasicInfoSection person={person} />
 
-          {/* 第二層：核心故事 */}
-          <div className="space-y-8">
-            <StorySection title="你與攀岩的相遇" content={person.climbing_origin} />
-
-            <StorySection title="攀岩對你來說，是什麼樣的存在" content={person.climbing_meaning} />
-
-            {/* 人生清單區塊（含封面圖） */}
-            {person.bucket_list_story && (
-              <div className="border-b border-gray-100 pb-8">
-                <h2 className="mb-4 text-xl font-medium text-[#1B1A1A]">
-                  在攀岩世界裡，想做的人生清單有什麼
-                </h2>
-                <div className="relative mb-4 h-[360px] overflow-hidden rounded-lg">
-                  <Image
-                    src={coverImageUrl}
-                    alt={`${person.name} 人生清單`}
-                    fill
-                    className="object-cover"
-                  />
-                </div>
-                <p className="mb-6 whitespace-pre-wrap text-base leading-relaxed text-[#1B1A1A]">
-                  {person.bucket_list_story}
-                </p>
-                {/* 社群互動人生清單 */}
-                <BucketListSection biographyId={person.id} isOwner={isOwner} />
+          {/* 第二層：核心故事區塊 */}
+          {(person.climbing_origin || person.climbing_meaning || person.advice_to_self) && (
+            <div className="mb-6 rounded-xl bg-gray-50 p-6">
+              <h2 className="mb-4 flex items-center gap-2 text-lg font-semibold text-gray-900">
+                <Heart className="h-5 w-5 text-[#1B1A1A]" />
+                攀岩故事
+              </h2>
+              <div className="space-y-4">
+                <StoryItem title="你與攀岩的相遇" content={person.climbing_origin} />
+                <StoryItem title="攀岩對你來說，是什麼樣的存在" content={person.climbing_meaning} />
+                <StoryItem title="給剛開始攀岩的自己" content={person.advice_to_self} />
               </div>
-            )}
-
-            {/* 結構化人生清單 */}
-            <BiographyBucketList biographyId={person.id} />
-
-            <StorySection title="給剛開始攀岩的自己" content={person.advice_to_self} />
-
-            {/* 攀岩足跡 */}
-            {person.climbing_locations && (() => {
-              try {
-                const locations: ClimbingLocation[] = JSON.parse(person.climbing_locations)
-                if (locations.length > 0) {
-                  return (
-                    <div className="mt-8 rounded-lg bg-gray-50 p-6">
-                      <ClimbingLocationList locations={locations} maxDisplay={6} />
-                    </div>
-                  )
-                }
-                return null
-              } catch {
-                return null
-              }
-            })()}
-
-            {/* 媒體整合區塊 */}
-            <MediaSection biographyId={id} isOwner={isOwner} className="mt-8 border-t border-[#dbd8d8] pt-8" />
-          </div>
-
-          {/* 第三層：進階故事 */}
-          <AdvancedStoriesSection person={person} />
-
-          {/* 故事進度指示（如果有進階故事） */}
-          {storyProgress && storyProgress.completed > 0 && (
-            <div className="mt-8 rounded-lg bg-gray-50 p-4 text-center">
-              <p className="text-sm text-gray-500">
-                {person.name} 已分享 {storyProgress.completed} 則進階故事
-              </p>
             </div>
           )}
+
+          {/* 進階故事（緊接在攀岩故事下方） */}
+          <AdvancedStoriesSection person={person} />
+
+          {/* 人生清單區塊 */}
+          {person.bucket_list_story && (
+            <div className="mb-6 rounded-xl bg-gray-50 p-6">
+              <h2 className="mb-4 flex items-center gap-2 text-lg font-semibold text-gray-900">
+                <Compass className="h-5 w-5 text-[#1B1A1A]" />
+                攀岩人生清單
+              </h2>
+              <div className="relative mb-4 h-[280px] overflow-hidden rounded-lg">
+                <Image
+                  src={coverImageUrl}
+                  alt={`${person.name} 人生清單`}
+                  fill
+                  className="object-cover"
+                />
+              </div>
+              <p className="mb-6 whitespace-pre-wrap text-sm leading-relaxed text-gray-600">
+                {person.bucket_list_story}
+              </p>
+              {/* 社群互動人生清單 */}
+              <BucketListSection biographyId={person.id} isOwner={isOwner} />
+              {/* 結構化人生清單 */}
+              <BiographyBucketList biographyId={person.id} className="mt-6" />
+            </div>
+          )}
+
+          {/* 攀岩足跡區塊 */}
+          {person.climbing_locations && (() => {
+            try {
+              const locations: ClimbingLocation[] = JSON.parse(person.climbing_locations)
+              if (locations.length > 0) {
+                return (
+                  <div className="mb-6 rounded-xl bg-gray-50 p-6">
+                    <h2 className="mb-4 flex items-center gap-2 text-lg font-semibold text-gray-900">
+                      <MapPin className="h-5 w-5 text-[#1B1A1A]" />
+                      攀岩足跡
+                    </h2>
+                    <ClimbingLocationList locations={locations} maxDisplay={6} />
+                  </div>
+                )
+              }
+              return null
+            } catch {
+              return null
+            }
+          })()}
+
+          {/* 媒體區塊 */}
+          <MediaSection biographyId={id} isOwner={false} className="mb-6 rounded-xl bg-gray-50 p-6" />
 
           {/* 上下篇導航 */}
           <div className="mb-6 mt-12 flex justify-between">
