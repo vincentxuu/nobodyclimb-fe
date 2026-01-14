@@ -1,17 +1,16 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import Image from 'next/image'
 import Link from 'next/link'
 import { motion } from 'framer-motion'
 import { ArrowRightCircle, Loader2 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
+import { AvatarImage } from '@/components/shared/avatar-image'
 import { biographyService } from '@/lib/api/services'
 import { Biography } from '@/lib/types'
 
 function ClimberCard({ person }: { person: Biography }) {
-  const imageUrl = person.avatar_url || '/photo/personleft.jpeg'
   const climbingYears = person.climbing_start_year
     ? new Date().getFullYear() - parseInt(person.climbing_start_year)
     : null
@@ -25,14 +24,12 @@ function ClimberCard({ person }: { person: Biography }) {
     >
       <Link href={`/biography/profile/${person.id}`} className="block h-full">
         <Card className="h-full overflow-hidden transition-shadow duration-300 hover:shadow-md">
-          <div className="relative h-[248px] overflow-hidden">
-            <Image
-              src={imageUrl}
-              alt={person.name}
-              fill
-              className="object-cover transition-transform duration-500 hover:scale-105"
-            />
-          </div>
+          <AvatarImage
+            avatarUrl={person.avatar_url}
+            altText={person.name}
+            iconSize={64}
+            containerClassName="h-[248px]"
+          />
 
           <CardContent className="p-5">
             <div className="mb-4 flex items-center justify-between">
