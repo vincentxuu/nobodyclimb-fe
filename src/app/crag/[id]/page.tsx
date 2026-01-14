@@ -107,16 +107,6 @@ export default function CragDetailPage({ params }: { params: Promise<{ id: strin
             </div>
           </div>
 
-          {/* 天氣資訊 */}
-          <div className="mb-8">
-            <WeatherDisplay
-              location={currentCrag.weatherLocation}
-              latitude={currentCrag.geoCoordinates.latitude}
-              longitude={currentCrag.geoCoordinates.longitude}
-              showForecast={true}
-            />
-          </div>
-
           {/* 岩場介紹 - 使用標籤頁 */}
           <div className="mb-8">
             <Tabs.Root value={activeTab} onValueChange={setActiveTab} className="w-full">
@@ -253,6 +243,22 @@ export default function CragDetailPage({ params }: { params: Promise<{ id: strin
                         {item}
                       </span>
                     ))}
+                  </div>
+                </div>
+
+                {/* 天氣預報資訊 */}
+                <div className="mb-6">
+                  <div className="mb-1">
+                    <h2 className="text-lg font-medium text-orange-500">天氣預報</h2>
+                    <div className="h-px w-full bg-gray-200"></div>
+                  </div>
+                  <div className="mt-4">
+                    <WeatherDisplay
+                      location={currentCrag.weatherLocation}
+                      latitude={currentCrag.geoCoordinates.latitude}
+                      longitude={currentCrag.geoCoordinates.longitude}
+                      showForecast={true}
+                    />
                   </div>
                 </div>
 
