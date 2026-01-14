@@ -78,9 +78,11 @@ export function ClimbingFootprintsEditor({
     onChange(newLocations)
   }
 
-  // 生成唯一 key（使用地點+國家組合）
+  // 生成唯一 key（使用所有欄位組合，避免使用 index 以確保動畫穩定）
   const getLocationKey = (loc: ClimbingLocation, index: number) => {
-    return `${loc.location}|${loc.country}|${index}`
+    // 使用所有欄位組合來生成 key，index 作為最後手段區分完全相同的項目
+    const notesHash = loc.notes ? loc.notes.length.toString() : '0'
+    return `loc-${loc.location}-${loc.country}-${loc.visit_year || 'na'}-${notesHash}-${loc.is_public}-${index}`
   }
 
   return (
@@ -94,13 +96,13 @@ export function ClimbingFootprintsEditor({
             <p className="text-sm">點擊下方按鈕新增你去過的攀岩地點</p>
           </div>
         ) : (
-          <AnimatePresence>
+          <div className="space-y-2">
             {locations.map((loc, index) => (
               <motion.div
                 key={getLocationKey(loc, index)}
-                initial={{ opacity: 0, y: -10 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: -10 }}
+                initial={{ opacity: 0, scale: 0.95 }}
+                animate={{ opacity: 1, scale: 1 }}
+                transition={{ duration: 0.2, delay: index * 0.05 }}
                 className="flex items-center justify-between rounded-lg border bg-white p-3"
               >
                 <div className="flex items-center gap-3">
@@ -158,7 +160,7 @@ export function ClimbingFootprintsEditor({
                 </div>
               </motion.div>
             ))}
-          </AnimatePresence>
+          </div>
         )}
       </div>
 
@@ -203,7 +205,7 @@ export function ClimbingFootprintsEditor({
                 <select
                   value={formData.country}
                   onChange={(e) => setFormData({ ...formData, country: e.target.value })}
-                  className="w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm focus:border-gray-500 focus:outline-none"
+                  className="w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 focus:border-gray-500 focus:outline-none"
                   disabled={disabled}
                 >
                   {COMMON_COUNTRIES.map((country) => (
@@ -252,7 +254,7 @@ export function ClimbingFootprintsEditor({
                   id="is_public"
                   checked={formData.is_public}
                   onChange={(e) => setFormData({ ...formData, is_public: e.target.checked })}
-                  className="h-4 w-4 rounded border-gray-300"
+                  className="h-4 w-4 rounded border-gray-300 bg-white accent-brand-dark"
                   disabled={disabled}
                 />
                 <label htmlFor="is_public" className="text-sm">

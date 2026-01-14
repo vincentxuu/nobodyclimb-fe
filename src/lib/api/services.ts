@@ -789,6 +789,36 @@ export const biographyService = {
   },
 
   /**
+   * 切換按讚狀態（按讚/取消按讚）
+   */
+  toggleLike: async (id: string) => {
+    const response = await apiClient.post<ApiResponse<{ liked: boolean; likes: number }>>(
+      `/biographies/${id}/like`
+    )
+    return response.data
+  },
+
+  /**
+   * 獲取按讚狀態
+   */
+  getLikeStatus: async (id: string) => {
+    const response = await apiClient.get<ApiResponse<{ liked: boolean; likes: number }>>(
+      `/biographies/${id}/like`
+    )
+    return response.data
+  },
+
+  /**
+   * 獲取追蹤狀態
+   */
+  getFollowStatus: async (id: string) => {
+    const response = await apiClient.get<ApiResponse<{ following: boolean; followers: number }>>(
+      `/biographies/${id}/follow`
+    )
+    return response.data
+  },
+
+  /**
    * 獲取追蹤者列表
    */
   getFollowers: async (id: string, limit = 20, offset = 0) => {

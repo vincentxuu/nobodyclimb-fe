@@ -7,6 +7,8 @@ import { bucketListService } from '@/lib/api/services'
 import { useAuthStore } from '@/store/authStore'
 import { useRouter } from 'next/navigation'
 import { cn } from '@/lib/utils'
+import { useToast } from '@/components/ui/use-toast'
+import { AxiosError } from 'axios'
 
 interface ReferenceButtonProps {
   itemId: string
@@ -32,6 +34,7 @@ export function ReferenceButton({
   const [isLoading, setIsLoading] = useState(false)
   const { isAuthenticated } = useAuthStore()
   const router = useRouter()
+  const { toast } = useToast()
 
   const handleClick = async (e: React.MouseEvent) => {
     e.stopPropagation()
@@ -59,6 +62,13 @@ export function ReferenceButton({
       }
     } catch (error) {
       console.error('Failed to toggle reference:', error)
+      const axiosError = error as AxiosError<{ message?: string }>
+      const errorMessage = axiosError.response?.data?.message || '操作失敗，請稍後再試'
+      toast({
+        title: '操作失敗',
+        description: errorMessage,
+        variant: 'destructive',
+      })
     } finally {
       setIsLoading(false)
     }

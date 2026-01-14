@@ -1,12 +1,11 @@
 'use client'
 
 import React from 'react'
-import { ImageIcon, ImagePlus } from 'lucide-react'
+import { ImagePlus } from 'lucide-react'
 import ImageUploader from './ImageUploader'
 import SortableImageGrid from './SortableImageGrid'
 import LayoutSelector from './LayoutSelector'
 import ImageGalleryDisplay from './ImageGalleryDisplay'
-import ProfileFormField from '../ProfileFormField'
 import { ProfileImage, ImageLayout } from '../types'
 
 interface ProfileImageSectionProps {
@@ -44,68 +43,48 @@ export default function ProfileImageSection({
     // 沒有圖片時顯示提示區塊
     if (images.length === 0) {
       return (
-        <div className="space-y-3">
-          <div className="flex items-center gap-2">
-            <ImageIcon className="h-5 w-5 text-gray-500" />
-            <h3 className="text-base font-medium text-gray-700 md:text-lg">我的攀岩照片</h3>
-          </div>
-          <div className="flex flex-col items-center justify-center rounded-lg border-2 border-dashed border-gray-200 bg-gray-50 px-4 py-8 text-center">
-            <ImagePlus className="mb-2 h-10 w-10 text-gray-400" />
-            <p className="text-sm text-gray-500">
-              點擊右上角「編輯資料」按鈕來上傳您的攀岩照片
-            </p>
-          </div>
+        <div className="flex flex-col items-center justify-center rounded-lg border-2 border-dashed border-gray-200 bg-gray-50 px-4 py-8 text-center">
+          <ImagePlus className="mb-2 h-10 w-10 text-gray-400" />
+          <p className="text-sm text-gray-500">
+            點擊右上角「編輯資料」按鈕來上傳您的攀岩照片
+          </p>
         </div>
       )
     }
 
-    return (
-      <div className="space-y-3">
-        <div className="flex items-center gap-2">
-          <ImageIcon className="h-5 w-5 text-gray-500" />
-          <h3 className="text-base font-medium text-gray-700 md:text-lg">我的攀岩照片</h3>
-        </div>
-        <ImageGalleryDisplay images={images} layout={imageLayout} />
-      </div>
-    )
+    return <ImageGalleryDisplay images={images} layout={imageLayout} />
   }
 
   // 編輯模式
   return (
     <div className="space-y-4">
-      <ProfileFormField label="我的攀岩照片" isMobile={isMobile}>
-        <div className="space-y-4">
-          {/* 排版選擇 */}
-          <LayoutSelector
-            value={imageLayout}
-            onChange={onLayoutChange}
-            disabled={images.length === 0}
-          />
+      {/* 排版選擇 */}
+      <LayoutSelector
+        value={imageLayout}
+        onChange={onLayoutChange}
+        disabled={images.length === 0}
+      />
 
-          {/* 已上傳的圖片（可拖拽排序） */}
-          {sortedImages.length > 0 && (
-            <div>
-              <p className="mb-2 text-xs text-gray-500">
-                拖拽圖片可調整順序
-              </p>
-              <SortableImageGrid
-                images={sortedImages}
-                layout={imageLayout}
-                onReorder={onReorder}
-                onDelete={onImageDelete}
-                onCaptionChange={onCaptionChange}
-              />
-            </div>
-          )}
-
-          {/* 上傳區域 */}
-          <ImageUploader
-            onUpload={onImageUpload}
-            currentCount={images.length}
-            enableCrop={true}
+      {/* 已上傳的圖片（可拖拽排序） */}
+      {sortedImages.length > 0 && (
+        <div>
+          <p className="mb-2 text-xs text-gray-500">拖拽圖片可調整順序</p>
+          <SortableImageGrid
+            images={sortedImages}
+            layout={imageLayout}
+            onReorder={onReorder}
+            onDelete={onImageDelete}
+            onCaptionChange={onCaptionChange}
           />
         </div>
-      </ProfileFormField>
+      )}
+
+      {/* 上傳區域 */}
+      <ImageUploader
+        onUpload={onImageUpload}
+        currentCount={images.length}
+        enableCrop={true}
+      />
     </div>
   )
 }

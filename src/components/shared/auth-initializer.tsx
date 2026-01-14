@@ -1,12 +1,17 @@
 'use client'
 
-import { useEffect } from 'react'
+import { useEffect, useRef, useCallback } from 'react'
 import { usePathname, useRouter } from 'next/navigation'
 import { useAuthStore } from '@/store/authStore'
+import { useUIStore } from '@/store/uiStore'
 import Cookies from 'js-cookie'
 import { AUTH_TOKEN_KEY, AUTH_REFRESH_TOKEN_KEY } from '@/lib/constants'
 import apiClient from '@/lib/api/client'
 import { ApiResponse, BackendUser, mapBackendUserToUser } from '@/lib/types'
+import { storyPromptService } from '@/lib/api/services'
+
+/** 故事推薦彈窗顯示延遲時間（毫秒） */
+const STORY_PROMPT_SHOW_DELAY = 1500
 
 /**
  * 認證初始化組件
@@ -14,8 +19,30 @@ import { ApiResponse, BackendUser, mapBackendUserToUser } from '@/lib/types'
  */
 export function AuthInitializer() {
   const { refreshToken, isAuthenticated, setUser } = useAuthStore()
+  const { openStoryPrompt } = useUIStore()
   const pathname = usePathname()
   const router = useRouter()
+  // 追蹤是否已經檢查過故事推薦
+  const hasCheckedStoryPrompt = useRef(false)
+
+  // 檢查是否應該顯示故事推薦彈窗
+  const checkStoryPrompt = useCallback(async () => {
+    // 避免重複檢查
+    if (hasCheckedStoryPrompt.current) return
+    hasCheckedStoryPrompt.current = true
+
+    try {
+      const response = await storyPromptService.shouldPrompt()
+      if (response.success && response.data?.should_prompt) {
+        // 延遲一點顯示彈窗，讓用戶先看到頁面
+        setTimeout(() => {
+          openStoryPrompt()
+        }, STORY_PROMPT_SHOW_DELAY)
+      }
+    } catch (error) {
+      console.error('檢查故事推薦失敗:', error)
+    }
+  }, [openStoryPrompt])
 
   // 在組件掛載時檢查認證狀態
   useEffect(() => {
@@ -36,6 +63,9 @@ export function AuthInitializer() {
 
             // 同時更新 token 到 store
             useAuthStore.setState({ token: accessToken })
+
+            // 認證成功後檢查故事推薦
+            checkStoryPrompt()
           } else {
             throw new Error('Failed to get user data')
           }
@@ -44,9 +74,10 @@ export function AuthInitializer() {
           if (refreshTokenValue) {
             const refreshed = await refreshToken()
 
-            // 如果刷新失敗，且當前不是在登入頁，重定向到登入頁
-            if (
-              !refreshed &&
+            if (refreshed) {
+              // Token 刷新成功後也檢查故事推薦
+              checkStoryPrompt()
+            } else if (
               !pathname.startsWith('/auth/login') &&
               !pathname.startsWith('/auth/register')
             ) {
@@ -71,7 +102,14 @@ export function AuthInitializer() {
     }
 
     checkAuthStatus()
-  }, [isAuthenticated, pathname, refreshToken, router, setUser])
+  }, [isAuthenticated, pathname, refreshToken, router, setUser, checkStoryPrompt])
+
+  // 當用戶已經是登入狀態時（從 persist 恢復），也檢查故事推薦
+  useEffect(() => {
+    if (isAuthenticated && !hasCheckedStoryPrompt.current) {
+      checkStoryPrompt()
+    }
+  }, [isAuthenticated, checkStoryPrompt])
 
   // 此組件不渲染任何內容
   return null

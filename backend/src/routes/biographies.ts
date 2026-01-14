@@ -769,6 +769,49 @@ biographiesRoutes.post('/:id/follow', authMiddleware, async (c) => {
   });
 });
 
+// GET /biographies/:id/follow - Check follow status
+biographiesRoutes.get('/:id/follow', optionalAuthMiddleware, async (c) => {
+  const id = c.req.param('id');
+  const userId = c.get('userId');
+
+  // Get biography's user_id and follower_count
+  const biography = await c.env.DB.prepare(
+    'SELECT user_id, follower_count FROM biographies WHERE id = ?'
+  )
+    .bind(id)
+    .first<{ user_id: string; follower_count: number }>();
+
+  if (!biography) {
+    return c.json(
+      {
+        success: false,
+        error: 'Not Found',
+        message: 'Biography not found',
+      },
+      404
+    );
+  }
+
+  let following = false;
+  if (userId) {
+    const existing = await c.env.DB.prepare(
+      'SELECT id FROM follows WHERE follower_id = ? AND following_id = ?'
+    )
+      .bind(userId, biography.user_id)
+      .first<{ id: string }>();
+
+    following = !!existing;
+  }
+
+  return c.json({
+    success: true,
+    data: {
+      following,
+      followers: biography.follower_count || 0,
+    },
+  });
+});
+
 // DELETE /biographies/:id/follow - Unfollow a biography
 biographiesRoutes.delete('/:id/follow', authMiddleware, async (c) => {
   const userId = c.get('userId');
@@ -1337,6 +1380,21 @@ biographiesRoutes.get('/:id/badges', async (c) => {
 
 // GET /biographies/community/stats - Get community statistics
 biographiesRoutes.get('/community/stats', async (c) => {
+  // Check cache first
+  const cacheKey = 'community:stats';
+  try {
+    const cached = await c.env.CACHE.get(cacheKey);
+    if (cached) {
+      return c.json({
+        success: true,
+        data: JSON.parse(cached),
+      });
+    }
+  } catch (e) {
+    // Cache miss or error, continue to fetch from DB
+    console.error(`Cache read error for ${cacheKey}:`, e);
+  }
+
   // Total biographies
   const totalBiographies = await c.env.DB.prepare(
     'SELECT COUNT(*) as count FROM biographies WHERE is_public = 1'
@@ -1377,19 +1435,29 @@ biographiesRoutes.get('/community/stats', async (c) => {
      LIMIT 5`
   ).all();
 
+  const statsData = {
+    total_biographies: totalBiographies?.count || 0,
+    total_goals: goalStats?.total || 0,
+    completed_goals: goalStats?.completed || 0,
+    total_stories: storiesCount?.count || 0,
+    active_users_this_week: activeUsers?.count || 0,
+    trending_categories: (trendingCategories.results || []).map((cat: { category?: string; count?: number }) => ({
+      category: cat.category,
+      count: cat.count,
+    })),
+  };
+
+  // Cache the result for 5 minutes
+  try {
+    await c.env.CACHE.put(cacheKey, JSON.stringify(statsData), { expirationTtl: 300 });
+  } catch (e) {
+    // Cache write failure is non-critical
+    console.error(`Cache write error for ${cacheKey}:`, e);
+  }
+
   return c.json({
     success: true,
-    data: {
-      total_biographies: totalBiographies?.count || 0,
-      total_goals: goalStats?.total || 0,
-      completed_goals: goalStats?.completed || 0,
-      total_stories: storiesCount?.count || 0,
-      active_users_this_week: activeUsers?.count || 0,
-      trending_categories: (trendingCategories.results || []).map((cat: { category?: string; count?: number }) => ({
-        category: cat.category,
-        count: cat.count,
-      })),
-    },
+    data: statsData,
   });
 });
 
@@ -1397,6 +1465,21 @@ biographiesRoutes.get('/community/stats', async (c) => {
 biographiesRoutes.get('/leaderboard/:type', async (c) => {
   const type = c.req.param('type');
   const limit = parseInt(c.req.query('limit') || '10', 10);
+
+  // Check cache first
+  const cacheKey = `leaderboard:${type}:${limit}`;
+  try {
+    const cached = await c.env.CACHE.get(cacheKey);
+    if (cached) {
+      return c.json({
+        success: true,
+        data: JSON.parse(cached),
+      });
+    }
+  } catch (e) {
+    // Cache miss or error, continue to fetch from DB
+    console.error(`Cache read error for ${cacheKey}:`, e);
+  }
 
   let query = '';
 
@@ -1456,8 +1539,141 @@ biographiesRoutes.get('/leaderboard/:type', async (c) => {
     value: item.value || 0,
   }));
 
+  // Cache the result for 5 minutes
+  try {
+    await c.env.CACHE.put(cacheKey, JSON.stringify(leaderboard), { expirationTtl: 300 });
+  } catch (e) {
+    // Cache write failure is non-critical
+    console.error(`Cache write error for ${cacheKey}:`, e);
+  }
+
   return c.json({
     success: true,
     data: leaderboard,
+  });
+});
+
+// ═══════════════════════════════════════════════════════════
+// 按讚功能 (Like/Unlike)
+// ═══════════════════════════════════════════════════════════
+
+// POST /biographies/:id/like - Toggle like for a biography
+biographiesRoutes.post('/:id/like', authMiddleware, async (c) => {
+  const biographyId = c.req.param('id');
+  const userId = c.get('userId');
+
+  // Check if biography exists
+  const biography = await c.env.DB.prepare('SELECT id, user_id FROM biographies WHERE id = ?')
+    .bind(biographyId)
+    .first<{ id: string; user_id: string }>();
+
+  if (!biography) {
+    return c.json(
+      {
+        success: false,
+        error: 'Not Found',
+        message: 'Biography not found',
+      },
+      404
+    );
+  }
+
+  // Check if already liked
+  const existingLike = await c.env.DB.prepare(
+    'SELECT id FROM biography_likes WHERE user_id = ? AND biography_id = ?'
+  )
+    .bind(userId, biographyId)
+    .first();
+
+  let liked: boolean;
+
+  if (existingLike) {
+    // Unlike - remove the like
+    await c.env.DB.prepare(
+      'DELETE FROM biography_likes WHERE user_id = ? AND biography_id = ?'
+    )
+      .bind(userId, biographyId)
+      .run();
+    liked = false;
+  } else {
+    // Like - add a new like
+    const id = generateId();
+    await c.env.DB.prepare(
+      'INSERT INTO biography_likes (id, user_id, biography_id) VALUES (?, ?, ?)'
+    )
+      .bind(id, userId, biographyId)
+      .run();
+    liked = true;
+
+    // Send notification to biography owner (if not liking own biography)
+    if (biography.user_id && biography.user_id !== userId) {
+      try {
+        await createNotification(c.env.DB, {
+          userId: biography.user_id,
+          type: 'goal_liked',
+          actorId: userId,
+          targetId: biographyId,
+          title: '有人喜歡你的人物誌',
+          message: '有人對你的人物誌按讚了！',
+        });
+      } catch (err) {
+        console.error('Failed to create notification:', err);
+      }
+    }
+  }
+
+  // Get total like count
+  const likeCount = await c.env.DB.prepare(
+    'SELECT COUNT(*) as count FROM biography_likes WHERE biography_id = ?'
+  )
+    .bind(biographyId)
+    .first<{ count: number }>();
+
+  // Update total_likes on biography
+  await c.env.DB.prepare(
+    'UPDATE biographies SET total_likes = ? WHERE id = ?'
+  )
+    .bind(likeCount?.count || 0, biographyId)
+    .run();
+
+  return c.json({
+    success: true,
+    data: {
+      liked,
+      likes: likeCount?.count || 0,
+    },
+  });
+});
+
+// GET /biographies/:id/like - Check if user has liked a biography
+biographiesRoutes.get('/:id/like', optionalAuthMiddleware, async (c) => {
+  const biographyId = c.req.param('id');
+  const userId = c.get('userId');
+
+  // Get total like count
+  const likeCount = await c.env.DB.prepare(
+    'SELECT COUNT(*) as count FROM biography_likes WHERE biography_id = ?'
+  )
+    .bind(biographyId)
+    .first<{ count: number }>();
+
+  let liked = false;
+
+  if (userId) {
+    // Check if user has liked
+    const existingLike = await c.env.DB.prepare(
+      'SELECT id FROM biography_likes WHERE user_id = ? AND biography_id = ?'
+    )
+      .bind(userId, biographyId)
+      .first();
+    liked = !!existingLike;
+  }
+
+  return c.json({
+    success: true,
+    data: {
+      liked,
+      likes: likeCount?.count || 0,
+    },
   });
 });

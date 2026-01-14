@@ -1,7 +1,7 @@
 'use client'
 
 import React, { useState } from 'react'
-import { BookOpen, ChevronRight, Check } from 'lucide-react'
+import { ChevronRight, Check } from 'lucide-react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { Button } from '@/components/ui/button'
 import { AdvancedStoryEditor } from '@/components/biography/advanced-story-editor'
@@ -28,15 +28,11 @@ export default function AdvancedStoriesSection({
 
   return (
     <div className="space-y-4">
-      {/* Section Header */}
+      {/* Progress Info */}
       <div className="flex items-center justify-between">
-        <div className="flex items-center gap-2">
-          <BookOpen className="h-5 w-5 text-text-subtle" />
-          <h3 className="text-[16px] font-medium text-strong">進階故事</h3>
-          <span className="rounded-full bg-gray-100 px-2 py-0.5 text-xs text-gray-600">
-            {progress.completed}/{progress.total}
-          </span>
-        </div>
+        <span className="rounded-full bg-gray-100 px-2 py-0.5 text-xs text-gray-600">
+          {progress.completed}/{progress.total}
+        </span>
         {isEditing && (
           <Button
             variant="ghost"
@@ -62,7 +58,7 @@ export default function AdvancedStoriesSection({
           {/* Progress Bar */}
           <div className="mb-4 h-2 overflow-hidden rounded-full bg-gray-200">
             <motion.div
-              className="h-full rounded-full bg-green-500"
+              className="h-full rounded-full bg-brand-accent"
               initial={{ width: 0 }}
               animate={{ width: `${progress.percentage}%` }}
               transition={{ duration: 0.5 }}
@@ -81,7 +77,7 @@ export default function AdvancedStoriesSection({
                   className="flex items-center gap-2 rounded-md bg-white px-3 py-2"
                 >
                   {isComplete ? (
-                    <Check className="h-4 w-4 text-green-500" />
+                    <Check className="h-4 w-4 text-brand-accent" />
                   ) : (
                     <Icon className={`h-4 w-4 ${category.color}`} />
                   )}

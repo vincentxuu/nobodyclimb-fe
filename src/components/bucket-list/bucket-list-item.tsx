@@ -5,9 +5,6 @@ import {
   Target,
   MapPin,
   Calendar,
-  Heart,
-  MessageCircle,
-  Link as LinkIcon,
   Edit,
   Trash2,
   Check,
@@ -24,6 +21,9 @@ import { cn } from '@/lib/utils'
 import type { BucketListItem, BucketListCategory } from '@/lib/types'
 import { ProgressBar, ProgressTracker } from './progress-tracker'
 import { Button } from '@/components/ui/button'
+import { LikeButton } from '@/components/biography/like-button'
+import { ReferenceButton } from '@/components/biography/reference-button'
+import { CommentSection } from '@/components/biography/comment-section'
 
 // 分類圖標和標籤映射
 const categoryConfig: Record<
@@ -49,9 +49,6 @@ interface BucketListItemCardProps {
   onEdit?: (item: BucketListItem) => void
   onDelete?: (item: BucketListItem) => void
   onComplete?: (item: BucketListItem) => void
-  onLike?: (item: BucketListItem) => void
-  onComment?: (item: BucketListItem) => void
-  onReference?: (item: BucketListItem) => void
   onClick?: (item: BucketListItem) => void
   className?: string
 }
@@ -68,9 +65,6 @@ export function BucketListItemCard({
   onEdit,
   onDelete,
   onComplete,
-  onLike,
-  onComment,
-  onReference,
   onClick,
   className,
 }: BucketListItemCardProps) {
@@ -272,44 +266,29 @@ export function BucketListItemCard({
           </p>
         )}
 
-        {/* Social Stats */}
+        {/* Social Stats - Using real interactive components */}
         {item.is_public && variant !== 'compact' && (
-          <div className="mt-3 flex items-center gap-4 border-t pt-3 text-sm text-gray-500">
-            <button
-              type="button"
-              onClick={(e) => {
-                e.stopPropagation()
-                onLike?.(item)
-              }}
-              className="flex items-center gap-1 hover:text-red-500"
-            >
-              <Heart className="h-4 w-4" />
-              {item.likes_count || 0}
-            </button>
-            <button
-              type="button"
-              onClick={(e) => {
-                e.stopPropagation()
-                onComment?.(item)
-              }}
-              className="flex items-center gap-1 hover:text-blue-500"
-            >
-              <MessageCircle className="h-4 w-4" />
-              {item.comments_count || 0}
-            </button>
-            {!isOwner && (
-              <button
-                type="button"
-                onClick={(e) => {
-                  e.stopPropagation()
-                  onReference?.(item)
-                }}
-                className="flex items-center gap-1 hover:text-green-500"
-              >
-                <LinkIcon className="h-4 w-4" />
-                {item.inspired_count || 0} 人也想做
-              </button>
-            )}
+          <div className="mt-3 border-t pt-3">
+            <div className="flex items-center gap-4">
+              <LikeButton
+                itemId={item.id}
+                initialCount={item.likes_count || 0}
+                variant="icon"
+              />
+              {!isOwner && (
+                <ReferenceButton
+                  itemId={item.id}
+                  initialCount={item.inspired_count || 0}
+                  variant="icon"
+                />
+              )}
+            </div>
+            <div className="mt-2" onClick={(e) => e.stopPropagation()}>
+              <CommentSection
+                itemId={item.id}
+                initialCount={item.comments_count || 0}
+              />
+            </div>
           </div>
         )}
       </div>
@@ -327,9 +306,6 @@ interface BucketListSectionProps {
   onEdit?: (item: BucketListItem) => void
   onDelete?: (item: BucketListItem) => void
   onComplete?: (item: BucketListItem) => void
-  onLike?: (item: BucketListItem) => void
-  onComment?: (item: BucketListItem) => void
-  onReference?: (item: BucketListItem) => void
   onClick?: (item: BucketListItem) => void
   className?: string
 }
@@ -347,9 +323,6 @@ export function BucketListSection({
   onEdit,
   onDelete,
   onComplete,
-  onLike,
-  onComment,
-  onReference,
   onClick,
   className,
 }: BucketListSectionProps) {
@@ -374,9 +347,6 @@ export function BucketListSection({
               onEdit={onEdit}
               onDelete={onDelete}
               onComplete={onComplete}
-              onLike={onLike}
-              onComment={onComment}
-              onReference={onReference}
               onClick={onClick}
             />
           ))}
