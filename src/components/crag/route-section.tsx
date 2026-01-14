@@ -2,7 +2,7 @@
 
 import React, { useState, useMemo, useEffect } from 'react'
 import Link from 'next/link'
-import { Eye, ExternalLink, X, ChevronLeft, ChevronRight, Info, Filter } from 'lucide-react'
+import { Eye, ExternalLink, X, ChevronLeft, ChevronRight, Info, Filter, Search } from 'lucide-react'
 import * as Dialog from '@radix-ui/react-dialog'
 
 interface RouteType {
@@ -44,6 +44,7 @@ export const CragRouteSection: React.FC<CragRouteSectionProps> = ({
   const [showTips, setShowTips] = useState(false)
   const [currentPhotoIndex, setCurrentPhotoIndex] = useState(0)
   const [selectedArea, setSelectedArea] = useState<string>(initialArea)
+  const [searchQuery, setSearchQuery] = useState('')
 
   // 當 initialArea 從外部改變時，同步更新 selectedArea
   useEffect(() => {
@@ -56,13 +57,29 @@ export const CragRouteSection: React.FC<CragRouteSectionProps> = ({
     return uniqueAreas.sort()
   }, [routes])
 
-  // 根據選擇的分區篩選路線
+  // 根據搜尋字串和選擇的分區篩選路線
   const filteredRoutes = useMemo(() => {
-    if (selectedArea === 'all') {
-      return routes
+    let result = routes
+
+    // 先根據區域篩選
+    if (selectedArea !== 'all') {
+      result = result.filter((route) => route.area === selectedArea)
     }
-    return routes.filter((route) => route.area === selectedArea)
-  }, [routes, selectedArea])
+
+    // 再根據搜尋字串篩選
+    if (searchQuery.trim()) {
+      const query = searchQuery.toLowerCase().trim()
+      result = result.filter(
+        (route) =>
+          route.name.toLowerCase().includes(query) ||
+          route.englishName.toLowerCase().includes(query) ||
+          route.grade.toLowerCase().includes(query) ||
+          route.type.toLowerCase().includes(query)
+      )
+    }
+
+    return result
+  }, [routes, selectedArea, searchQuery])
 
   // 路線點擊處理 - 改為打開彈窗
   const handleRouteClick = (route: RouteType) => {
@@ -80,8 +97,22 @@ export const CragRouteSection: React.FC<CragRouteSectionProps> = ({
           <Info size={20} />
         </div>
         <p className="text-sm text-[#1B1A1A]">
-          選擇分區來篩選路線，點擊「查看詳情」按鈕可查看路線完整資訊。
+          搜尋或選擇分區來篩選路線，點擊「查看詳情」按鈕可查看路線完整資訊。
         </p>
+      </div>
+
+      {/* 路線搜尋框 */}
+      <div className="mb-6">
+        <div className="relative">
+          <Search className="absolute left-4 top-1/2 h-5 w-5 -translate-y-1/2 text-gray-400" />
+          <input
+            type="text"
+            placeholder="搜尋路線名稱、難度或類型..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            className="w-full rounded-lg border border-gray-200 bg-white py-3 pl-12 pr-4 text-base outline-none transition-colors placeholder:text-gray-400 focus:border-[#FFE70C] focus:ring-2 focus:ring-[#FFE70C]/20"
+          />
+        </div>
       </div>
 
       {/* 分區篩選 */}
