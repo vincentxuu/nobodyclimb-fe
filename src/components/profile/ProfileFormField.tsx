@@ -4,7 +4,7 @@ import React from 'react'
 import { Label } from '@/components/ui/label'
 
 interface ProfileFormFieldProps {
-  label: string
+  label: React.ReactNode
   hint?: string
   children: React.ReactNode
   isMobile: boolean
