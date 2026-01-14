@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect, useCallback } from 'react'
-import { Loader2, ListTodo, CheckCircle2, Circle, Filter } from 'lucide-react'
+import { Loader2, ListTodo, Filter } from 'lucide-react'
 import { bucketListService } from '@/lib/api/services'
 import { BucketListCard } from './bucket-list-card'
 import { BucketListItem } from '@/lib/types'

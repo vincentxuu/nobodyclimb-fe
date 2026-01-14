@@ -183,6 +183,7 @@ export default function ProfileContainer() {
       // 將前端資料轉換為 API 格式
       const biographyData = {
         name: profileData.name,
+        title: profileData.title || undefined,
         avatar_url: profileData.avatarUrl || undefined,
         cover_image: profileData.coverImageUrl || undefined,
         climbing_start_year: profileData.startYear,
@@ -254,6 +255,7 @@ export default function ProfileContainer() {
           <ProfileDivider />
           <BasicInfoSection
             name={profileData.name}
+            title={profileData.title}
             isEditing={isEditing}
             isMobile={isMobile}
             onChange={handleChange}

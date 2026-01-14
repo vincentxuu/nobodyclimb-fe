@@ -121,6 +121,7 @@ export default function BiographyAvatarSection({
           {/* 頭像顯示 */}
           <div className="relative h-24 w-24 flex-shrink-0 overflow-hidden rounded-full border-2 border-gray-200 bg-gray-100">
             {avatarUrl ? (
+              // eslint-disable-next-line @next/next/no-img-element
               <img src={avatarUrl} alt="頭像" className="h-full w-full object-cover" />
             ) : (
               <div className="flex h-full w-full items-center justify-center text-gray-400">
@@ -171,6 +172,7 @@ export default function BiographyAvatarSection({
           <div className="relative aspect-[21/9] w-full overflow-hidden rounded-lg border-2 border-dashed border-gray-300 bg-gray-100">
             {coverImageUrl ? (
               <>
+                {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img
                   src={coverImageUrl}
                   alt="封面照片"

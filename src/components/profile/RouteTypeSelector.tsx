@@ -21,7 +21,7 @@ const ROUTE_TYPE_CATEGORIES = [
 
 interface RouteTypeSelectorProps {
   value: string[]
-  onChange: (types: string[]) => void
+  onChange: (_types: string[]) => void
   disabled?: boolean
   className?: string
 }

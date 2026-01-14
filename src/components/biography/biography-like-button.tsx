@@ -11,7 +11,7 @@ interface BiographyLikeButtonProps {
   biographyId: string
   initialLiked?: boolean
   initialCount?: number
-  onLikeChange?: (isLiked: boolean, count: number) => void
+  onLikeChange?: (_isLiked: boolean, _count: number) => void
   className?: string
   showCount?: boolean
 }

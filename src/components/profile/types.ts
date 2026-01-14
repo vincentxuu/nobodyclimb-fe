@@ -71,6 +71,7 @@ export interface ProfileData {
   biographyId: string | null
   // 基本資訊
   name: string
+  title: string
   startYear: string
   frequentGyms: string
   favoriteRouteType: string
@@ -152,6 +153,7 @@ export const initialSocialLinks: SocialLinks = {
 export const initialProfileData: ProfileData = {
   biographyId: null,
   name: '許岩手',
+  title: '',
   startYear: '2020',
   frequentGyms: '小岩攀岩館',
   favoriteRouteType: '長路線',

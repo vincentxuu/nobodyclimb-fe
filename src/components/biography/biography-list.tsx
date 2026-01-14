@@ -2,8 +2,9 @@
 
 import React, { useEffect, useState, useCallback } from 'react'
 import Link from 'next/link'
+import Image from 'next/image'
 import { motion } from 'framer-motion'
-import { ArrowRightCircle, Loader2 } from 'lucide-react'
+import { ArrowRightCircle, Loader2, User } from 'lucide-react'
 import { Card, CardContent } from '@/components/ui/card'
 import { biographyService } from '@/lib/api/services'
 import { Biography } from '@/lib/types'
@@ -25,12 +26,12 @@ function BiographyCard({ person }: BiographyCardProps) {
       className="h-full"
     >
       <Link href={`/biography/profile/${person.id}`} className="block h-full">
-        <Card className="h-full overflow-hidden transition-shadow duration-300 hover:shadow-md">
+        <Card className="h-full overflow-hidden rounded-lg transition-shadow duration-300 hover:shadow-md">
           <CardContent className="p-6">
             <div className="mb-4 space-y-3">
               {person.climbing_meaning ? (
                 <div className="relative">
-                  <p className="line-clamp-2 text-base font-medium leading-relaxed text-[#1B1A1A]">
+                  <p className="line-clamp-3 text-base font-medium leading-relaxed text-[#1B1A1A]">
                     &ldquo;{person.climbing_meaning}&rdquo;
                   </p>
                 </div>
@@ -40,11 +41,28 @@ function BiographyCard({ person }: BiographyCardProps) {
             </div>
 
             <div className="flex items-center justify-between border-t border-gray-100 pt-3">
-              <div className="flex-1">
-                <h3 className="text-sm font-medium text-[#1B1A1A]">{person.name}</h3>
-                <p className="text-xs text-[#8E8C8C]">
-                  攀岩 {climbingYears !== null ? `${climbingYears}年` : '年資未知'}
-                </p>
+              <div className="flex items-center gap-3">
+                <div className="relative h-10 w-10 flex-shrink-0 overflow-hidden rounded-full bg-gray-100">
+                  {person.avatar_url ? (
+                    <Image
+                      src={person.avatar_url}
+                      alt={person.name}
+                      fill
+                      className="object-cover"
+                      sizes="40px"
+                    />
+                  ) : (
+                    <div className="flex h-full w-full items-center justify-center">
+                      <User size={20} className="text-gray-400" />
+                    </div>
+                  )}
+                </div>
+                <div className="flex-1">
+                  <h3 className="text-sm font-medium text-[#1B1A1A]">{person.name}</h3>
+                  <p className="text-xs text-[#8E8C8C]">
+                    攀岩 {climbingYears !== null ? `${climbingYears}年` : '年資未知'}
+                  </p>
+                </div>
               </div>
               <ArrowRightCircle size={18} className="flex-shrink-0 text-gray-400" />
             </div>

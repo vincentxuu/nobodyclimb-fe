@@ -7,6 +7,7 @@ import ProfileTextDisplay from './ProfileTextDisplay'
 
 interface BasicInfoSectionProps {
   name: string
+  title: string
   isEditing: boolean
   isMobile: boolean
   // eslint-disable-next-line no-unused-vars
@@ -15,6 +16,7 @@ interface BasicInfoSectionProps {
 
 export default function BasicInfoSection({
   name,
+  title,
   isEditing,
   isMobile,
   onChange,
@@ -30,6 +32,18 @@ export default function BasicInfoSection({
           />
         ) : (
           <ProfileTextDisplay text={name} isMobile={isMobile} />
+        )}
+      </ProfileFormField>
+      <ProfileFormField label="一句話形容自己" isMobile={isMobile}>
+        {isEditing ? (
+          <Input
+            value={title}
+            onChange={(e) => onChange('title', e.target.value)}
+            placeholder="例如：抱石愛好者"
+            className="border-[#B6B3B3] text-sm md:text-base"
+          />
+        ) : (
+          <ProfileTextDisplay text={title || '未設定'} isMobile={isMobile} />
         )}
       </ProfileFormField>
     </div>

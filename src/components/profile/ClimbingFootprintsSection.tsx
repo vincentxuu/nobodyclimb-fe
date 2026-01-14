@@ -11,7 +11,7 @@ interface ClimbingFootprintsSectionProps {
   locations: ClimbingLocation[]
   isEditing: boolean
   isMobile: boolean
-  onChange: (locations: ClimbingLocation[]) => void
+  onChange: (_locations: ClimbingLocation[]) => void
 }
 
 export default function ClimbingFootprintsSection({

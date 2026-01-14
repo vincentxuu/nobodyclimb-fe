@@ -111,6 +111,7 @@ function mapBiographyToProfileData(biography: Biography | null): Partial<Profile
   return {
     biographyId: biography.id || null,
     name: biography.name || '',
+    title: biography.title || '',
     startYear: biography.climbing_start_year || '',
     frequentGyms: biography.frequent_locations || '',
     favoriteRouteType: biography.favorite_route_type || '',
@@ -157,6 +158,7 @@ function mapUserToProfileData(user: User | null): ProfileData {
   return {
     biographyId: null,
     name: user.displayName || user.username || '',
+    title: '',
     startYear: user.climbingStartYear || '',
     frequentGyms: user.frequentGym || '',
     favoriteRouteType: user.favoriteRouteType || '',

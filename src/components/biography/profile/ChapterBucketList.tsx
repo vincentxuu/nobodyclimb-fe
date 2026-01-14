@@ -4,7 +4,6 @@ import { useState, useEffect, useCallback } from 'react'
 import { Loader2 } from 'lucide-react'
 import { Biography, BucketListItem } from '@/lib/types'
 import { bucketListService } from '@/lib/api/services'
-import { BucketListSection } from '../bucket-list-section'
 import { BiographyBucketList } from '@/components/bucket-list'
 
 interface ChapterBucketListProps {

@@ -2,7 +2,7 @@
 
 import { useMemo, useState } from 'react'
 import { motion } from 'framer-motion'
-import { Eye, Mountain, Users, MessageCircle } from 'lucide-react'
+import { Eye, Users, MessageCircle } from 'lucide-react'
 import { Biography, BiographySocialLinks } from '@/lib/types'
 import { FollowButton } from '../follow-button'
 import { CompactSocialLinks } from '../social-links'
@@ -14,7 +14,7 @@ interface HeroSectionProps {
   person: Biography
   followerCount: number
   isOwner: boolean
-  onFollowChange?: (isFollowing: boolean) => void
+  onFollowChange?: (_isFollowing: boolean) => void
 }
 
 /**

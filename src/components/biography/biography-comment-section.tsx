@@ -30,7 +30,7 @@ interface BiographyCommentSectionProps {
   className?: string
   defaultOpen?: boolean
   isEmbedded?: boolean
-  onCountChange?: (count: number) => void
+  onCountChange?: (_count: number) => void
 }
 
 /**

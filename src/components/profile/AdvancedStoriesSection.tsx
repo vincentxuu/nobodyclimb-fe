@@ -13,8 +13,8 @@ interface AdvancedStoriesSectionProps {
   biography: Record<string, unknown>
   isEditing: boolean
   isMobile: boolean
-  onSave: (field: string, value: string) => Promise<void>
-  onSaveAll?: (changes: Record<string, string>) => Promise<void>
+  onSave: (_field: string, _value: string) => Promise<void>
+  onSaveAll?: (_changes: Record<string, string>) => Promise<void>
 }
 
 export default function AdvancedStoriesSection({
@@ -22,7 +22,6 @@ export default function AdvancedStoriesSection({
   isEditing,
   isMobile,
   onSave,
-  onSaveAll,
 }: AdvancedStoriesSectionProps) {
   const [isExpanded, setIsExpanded] = useState(false)
   const progress = calculateStoryProgress(biography)

@@ -142,6 +142,7 @@ export function LocationExploreCard({ location, index = 0 }: LocationExploreCard
                   style={{ zIndex: 4 - i }}
                 >
                   {visitor.avatar_url ? (
+                    // eslint-disable-next-line @next/next/no-img-element
                     <img
                       src={visitor.avatar_url}
                       alt={visitor.name}

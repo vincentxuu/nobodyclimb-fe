@@ -404,6 +404,7 @@ export function BiographyWizard({
                   <div className="relative">
                     <div className="flex h-20 w-20 items-center justify-center overflow-hidden rounded-full bg-gray-100">
                       {avatarPreview ? (
+                        // eslint-disable-next-line @next/next/no-img-element
                         <img
                           src={avatarPreview}
                           alt="頭像"

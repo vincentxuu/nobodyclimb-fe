@@ -70,7 +70,7 @@ function FilledStoryCard({
   onStartEdit: () => void
   onSave: () => Promise<void>
   onCancel: () => void
-  onEditValueChange: (value: string) => void
+  onEditValueChange: (_value: string) => void
 }) {
   const Icon = getStoryIcon(question.icon)
 
@@ -198,7 +198,7 @@ function UnfilledStoriesSection({
   questions: StoryQuestion[]
   isExpanded: boolean
   onToggle: () => void
-  onStartEdit: (question: StoryQuestion) => void
+  onStartEdit: (_question: StoryQuestion) => void
 }) {
   if (questions.length === 0) return null
 

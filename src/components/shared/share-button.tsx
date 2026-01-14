@@ -41,7 +41,6 @@ export function ShareButton({
   const shareUrl = url || (typeof window !== 'undefined' ? window.location.href : '')
   const encodedUrl = encodeURIComponent(shareUrl)
   const encodedTitle = encodeURIComponent(title)
-  const encodedDescription = encodeURIComponent(description)
 
   const handleCopyLink = async () => {
     try {

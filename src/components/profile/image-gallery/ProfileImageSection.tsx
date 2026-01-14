@@ -29,7 +29,6 @@ export default function ProfileImageSection({
   images,
   imageLayout,
   isEditing,
-  isMobile,
   onImageUpload,
   onImageDelete,
   onCaptionChange,

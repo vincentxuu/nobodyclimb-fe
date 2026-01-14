@@ -11,7 +11,7 @@ import { getCountryFlag, COMMON_COUNTRIES } from '@/lib/utils/country'
 
 interface ClimbingFootprintsEditorProps {
   locations: ClimbingLocation[]
-  onChange: (locations: ClimbingLocation[]) => void
+  onChange: (_locations: ClimbingLocation[]) => void
   disabled?: boolean
 }
 
