@@ -1,9 +1,11 @@
 'use client'
 
+import { useMemo } from 'react'
 import { motion } from 'framer-motion'
 import { Eye, Mountain, Users } from 'lucide-react'
-import { Biography } from '@/lib/types'
+import { Biography, BiographySocialLinks } from '@/lib/types'
 import { FollowButton } from '../follow-button'
+import { CompactSocialLinks } from '../social-links'
 
 interface HeroSectionProps {
   person: Biography
@@ -17,6 +19,16 @@ interface HeroSectionProps {
  * 純文字設計，不依賴照片，快速進入內容
  */
 export function HeroSection({ person, followerCount, isOwner, onFollowChange }: HeroSectionProps) {
+  // 解析社群連結
+  const socialLinks = useMemo<BiographySocialLinks | null>(() => {
+    if (!person.social_links) return null
+    try {
+      return JSON.parse(person.social_links)
+    } catch {
+      return null
+    }
+  }, [person.social_links])
+
   return (
     <div className="border-b border-gray-200 bg-white">
       <div className="container mx-auto max-w-5xl px-4 py-8">
@@ -34,6 +46,8 @@ export function HeroSection({ person, followerCount, isOwner, onFollowChange }: 
             <p className="text-base text-text-subtle">
               {person.title || '攀岩者'}
             </p>
+            {/* 社群連結 */}
+            <CompactSocialLinks socialLinks={socialLinks} className="mt-3" />
           </div>
 
           {/* 右側：追蹤按鈕與統計 */}
