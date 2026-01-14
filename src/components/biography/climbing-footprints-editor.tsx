@@ -252,7 +252,7 @@ export function ClimbingFootprintsEditor({
                   id="is_public"
                   checked={formData.is_public}
                   onChange={(e) => setFormData({ ...formData, is_public: e.target.checked })}
-                  className="h-4 w-4 rounded border-gray-300 bg-white accent-[#1B1A1A]"
+                  className="h-4 w-4 rounded border-gray-300 bg-white accent-brand-dark"
                   disabled={disabled}
                 />
                 <label htmlFor="is_public" className="text-sm">

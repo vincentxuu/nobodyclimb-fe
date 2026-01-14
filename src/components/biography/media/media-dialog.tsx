@@ -288,7 +288,7 @@ export function AddMediaDialog({
                   onChange={(e) => setIsFeatured(e.target.checked)}
                   className="rounded border-gray-300 bg-white accent-blue-600"
                 />
-                <Star className="h-4 w-4 text-[#FFE70C]" />
+                <Star className="h-4 w-4 text-brand-accent" />
                 <span className="text-sm">設為精選</span>
               </label>
             </div>
@@ -299,14 +299,14 @@ export function AddMediaDialog({
         <div className="flex justify-end gap-2">
           <button
             onClick={handleClose}
-            className="rounded-lg border border-[#1B1A1A] px-4 py-2 text-sm text-[#1B1A1A] hover:bg-[#dbd8d8]"
+            className="rounded-lg border border-brand-dark px-4 py-2 text-sm text-brand-dark hover:bg-brand-light"
           >
             取消
           </button>
           <button
             onClick={handleSubmit}
             disabled={!preview || loading}
-            className="rounded-lg bg-[#1B1A1A] px-4 py-2 text-sm text-white hover:bg-[#3F3D3D] disabled:opacity-50"
+            className="rounded-lg bg-brand-dark px-4 py-2 text-sm text-white hover:bg-brand-dark-hover disabled:opacity-50"
           >
             {loading ? (
               <Loader2 className="h-4 w-4 animate-spin" />
@@ -384,8 +384,8 @@ export function MediaItemActions({
         className={cn(
           'rounded p-1.5 transition-colors',
           item.is_featured
-            ? 'bg-[#FFE70C]/20 text-[#FFE70C]'
-            : 'text-gray-400 hover:bg-gray-100 hover:text-[#FFE70C]'
+            ? 'bg-brand-accent/20 text-brand-accent'
+            : 'text-gray-400 hover:bg-gray-100 hover:text-brand-accent'
         )}
         title={item.is_featured ? '取消精選' : '設為精選'}
       >

@@ -44,7 +44,7 @@ export function StoryProgress({
         </div>
         <div className="h-2 overflow-hidden rounded-full bg-gray-100">
           <motion.div
-            className="h-full rounded-full bg-[#FFE70C]"
+            className="h-full rounded-full bg-brand-accent"
             initial={{ width: 0 }}
             animate={{ width: `${progress.percentage}%` }}
             transition={{ duration: 0.5, ease: 'easeOut' }}
@@ -77,7 +77,7 @@ export function StoryProgress({
           </div>
           <div className="h-3 overflow-hidden rounded-full bg-gray-100">
             <motion.div
-              className="h-full rounded-full bg-[#FFE70C]"
+              className="h-full rounded-full bg-brand-accent"
               initial={{ width: 0 }}
               animate={{ width: `${progress.percentage}%` }}
               transition={{ duration: 0.8, ease: 'easeOut' }}
@@ -112,11 +112,11 @@ export function StoryProgress({
                 <div
                   className={cn(
                     'flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-full',
-                    isComplete ? 'bg-[#FFE70C]/20' : 'bg-gray-100'
+                    isComplete ? 'bg-brand-accent/20' : 'bg-gray-100'
                   )}
                 >
                   {isComplete ? (
-                    <CheckCircle className="h-5 w-5 text-[#FFE70C]" />
+                    <CheckCircle className="h-5 w-5 text-brand-accent" />
                   ) : (
                     <Icon className={cn('h-5 w-5', category.color)} />
                   )}
@@ -133,7 +133,7 @@ export function StoryProgress({
                       className={cn(
                         'h-full rounded-full',
                         isComplete
-                          ? 'bg-[#FFE70C]'
+                          ? 'bg-brand-accent'
                           : percentage > 0
                             ? 'bg-gradient-to-r from-gray-300 to-gray-400'
                             : 'bg-gray-200'
@@ -174,7 +174,7 @@ export function StoryProgress({
       {/* 進度條 */}
       <div className="mb-4 h-2 overflow-hidden rounded-full bg-gray-100">
         <motion.div
-          className="h-full rounded-full bg-[#FFE70C]"
+          className="h-full rounded-full bg-brand-accent"
           initial={{ width: 0 }}
           animate={{ width: `${progress.percentage}%` }}
           transition={{ duration: 0.6, ease: 'easeOut' }}
@@ -195,7 +195,7 @@ export function StoryProgress({
               className={cn(
                 'flex items-center gap-1.5 rounded-full px-2.5 py-1',
                 isComplete
-                  ? 'bg-[#FFE70C]/20 text-[#1B1A1A]'
+                  ? 'bg-brand-accent/20 text-brand-dark'
                   : hasProgress
                     ? 'bg-gray-100 text-gray-700'
                     : 'bg-gray-50 text-gray-400'
@@ -295,7 +295,7 @@ export function CategoryQuickStats({ biography, className }: CategoryQuickStatsP
             className={cn(
               'flex h-6 w-6 items-center justify-center rounded-full',
               isComplete
-                ? 'bg-[#FFE70C]/20'
+                ? 'bg-brand-accent/20'
                 : hasProgress
                   ? 'bg-yellow-50'
                   : 'bg-gray-50'
@@ -303,7 +303,7 @@ export function CategoryQuickStats({ biography, className }: CategoryQuickStatsP
             title={`${category.name}: ${categoryProgress.completed}/${categoryProgress.total}`}
           >
             {isComplete ? (
-              <CheckCircle className="h-3.5 w-3.5 text-[#FFE70C]" />
+              <CheckCircle className="h-3.5 w-3.5 text-brand-accent" />
             ) : (
               <Icon
                 className={cn(
