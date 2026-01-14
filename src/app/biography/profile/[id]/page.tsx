@@ -428,8 +428,8 @@ export default function ProfilePage({ params }: ProfilePageProps) {
               onClick={() => setShowStats(!showStats)}
             >
               <div className="flex items-center gap-3">
-                <div className="rounded-full bg-blue-100 p-2">
-                  <BarChart3 className="h-5 w-5 text-blue-600" />
+                <div className="rounded-full bg-brand-light p-2">
+                  <BarChart3 className="h-5 w-5 text-brand-dark" />
                 </div>
                 <div>
                   <h3 className="font-medium text-gray-900">統計數據</h3>
@@ -474,8 +474,8 @@ export default function ProfilePage({ params }: ProfilePageProps) {
               onClick={() => setShowBadges(!showBadges)}
             >
               <div className="flex items-center gap-3">
-                <div className="rounded-full bg-yellow-100 p-2">
-                  <Award className="h-5 w-5 text-yellow-600" />
+                <div className="rounded-full bg-brand-accent/20 p-2">
+                  <Award className="h-5 w-5 text-brand-dark" />
                 </div>
                 <div>
                   <h3 className="font-medium text-gray-900">徽章收藏</h3>
