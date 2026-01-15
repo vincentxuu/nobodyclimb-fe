@@ -23,7 +23,7 @@ function ClimberCard({ person }: { person: Biography }) {
       className="h-full"
     >
       <Link href={`/biography/profile/${person.id}`} className="block h-full">
-        <Card className="h-full overflow-hidden rounded-lg transition-shadow duration-300 hover:shadow-md">
+        <Card className="h-full overflow-hidden rounded-lg border border-gray-200 bg-white shadow-sm transition-shadow duration-300 hover:shadow-md">
           <CardContent className="p-6">
             <div className="mb-4 space-y-3">
               {person.climbing_meaning ? (

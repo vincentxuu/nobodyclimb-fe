@@ -4,7 +4,8 @@ import { useState, useEffect } from 'react'
 import Image from 'next/image'
 import Link from 'next/link'
 import { motion } from 'framer-motion'
-import { FileText, User, Video, Loader2 } from 'lucide-react'
+import { ArrowRightCircle, FileText, User, Video, Loader2 } from 'lucide-react'
+import { Card, CardContent } from '@/components/ui/card'
 import { postService, biographyService } from '@/lib/api/services'
 import { BackendPost, Biography, getCategoryLabel } from '@/lib/types'
 import type { Video as VideoType } from '@/lib/types'
@@ -22,9 +23,67 @@ interface ContentItem {
   date: string
   link: string
   meta?: string
+  avatarUrl?: string | null
 }
 
-// 內容卡片組件
+// 人物誌卡片組件（與列表頁相同樣式）
+function BiographyCard({ item, index }: { item: ContentItem; index: number }) {
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.5, delay: index * 0.1 }}
+      className="h-full"
+    >
+      <Link href={item.link} className="block h-full">
+        <Card className="h-full overflow-hidden rounded-lg border border-gray-200 bg-white shadow-sm transition-shadow duration-300 hover:shadow-md">
+          <CardContent className="p-6">
+            <div className="mb-4 space-y-3">
+              {item.excerpt ? (
+                <div className="relative">
+                  <p className="line-clamp-3 text-base font-medium leading-relaxed text-[#1B1A1A]">
+                    &ldquo;{item.excerpt}&rdquo;
+                  </p>
+                </div>
+              ) : (
+                <p className="text-sm italic text-[#8E8C8C]">尚未分享故事</p>
+              )}
+            </div>
+
+            <div className="flex items-center justify-between border-t border-gray-100 pt-3">
+              <div className="flex items-center gap-3">
+                <div className="relative h-10 w-10 flex-shrink-0 overflow-hidden rounded-full bg-gray-100">
+                  {item.avatarUrl ? (
+                    <Image
+                      src={item.avatarUrl}
+                      alt={item.title}
+                      fill
+                      className="object-cover"
+                      sizes="40px"
+                    />
+                  ) : (
+                    <div className="flex h-full w-full items-center justify-center">
+                      <User size={20} className="text-gray-400" />
+                    </div>
+                  )}
+                </div>
+                <div className="flex-1">
+                  <h3 className="text-sm font-medium text-[#1B1A1A]">{item.title}</h3>
+                  <p className="text-xs text-[#8E8C8C]">
+                    {item.meta || '年資未知'}
+                  </p>
+                </div>
+              </div>
+              <ArrowRightCircle size={18} className="flex-shrink-0 text-gray-400" />
+            </div>
+          </CardContent>
+        </Card>
+      </Link>
+    </motion.div>
+  )
+}
+
+// 內容卡片組件（文章、影片用）
 function ContentCard({ item, index }: { item: ContentItem; index: number }) {
   const typeIcons = {
     article: <FileText className="h-4 w-4" />,
@@ -42,6 +101,11 @@ function ContentCard({ item, index }: { item: ContentItem; index: number }) {
     article: 'bg-brand-dark',
     biography: 'bg-brand-dark',
     video: 'bg-brand-dark',
+  }
+
+  // 人物誌使用專屬卡片樣式
+  if (item.type === 'biography') {
+    return <BiographyCard item={item} index={index} />
   }
 
   return (
@@ -142,13 +206,14 @@ export function LatestContentSection() {
               id: bio.id,
               type: 'biography',
               title: bio.name,
-              thumbnail: bio.avatar_url || null,
-              excerpt: bio.climbing_meaning || '探索這位攀岩者的故事',
+              thumbnail: null,
+              excerpt: bio.climbing_meaning || '',
               date: bio.created_at
                 ? new Date(bio.created_at).toLocaleDateString('zh-TW')
                 : '',
               link: `/biography/profile/${bio.id}`,
               meta: climbingYears ? `攀岩 ${climbingYears} 年` : undefined,
+              avatarUrl: bio.avatar_url,
             })
           })
         }
