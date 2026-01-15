@@ -7,6 +7,7 @@ import { Footer } from '@/components/layout/footer'
 import { ProgressBar } from '@/components/shared/progress-bar'
 import { AuthInitializer } from '@/components/shared/auth-initializer'
 import { StoryPromptWrapper } from '@/components/shared/story-prompt-wrapper'
+import { Analytics } from '@/components/shared/analytics'
 
 const notoSansTC = Noto_Sans_TC({
   weight: ['300', '400', '500', '700'],
@@ -41,6 +42,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         />
       </head>
       <body suppressHydrationWarning className={notoSansTC.className}>
+        <Analytics />
         <Providers>
           <AuthInitializer />
           <StoryPromptWrapper />
