@@ -235,60 +235,45 @@ export default function BlogDetail() {
                   )}
                   <span className="text-sm text-gray-500">更新日期</span>
                   <span className="text-sm text-gray-500">{formattedDate}</span>
-                  <span className="flex items-center gap-1 text-sm text-gray-500">
-                    <Eye size={14} />
+                </div>
+                <div className="flex items-center gap-4 text-sm text-gray-500">
+                  <span className="flex items-center gap-1">
+                    <Eye size={16} />
                     {article.view_count}
                   </span>
+                  <button
+                    onClick={handleLike}
+                    disabled={isLiking}
+                    className={`flex items-center gap-1 ${isLiked ? 'text-emerald-600' : 'text-gray-500 hover:text-gray-700'}`}
+                  >
+                    <Mountain size={16} className={isLiked ? 'fill-emerald-600' : ''} />
+                    {likeCount > 0 && likeCount}
+                  </button>
+                  <button
+                    onClick={handleBookmark}
+                    disabled={isBookmarking}
+                    className={`flex items-center gap-1 ${isBookmarked ? 'text-amber-600' : 'text-gray-500 hover:text-gray-700'}`}
+                  >
+                    <Bookmark size={16} className={isBookmarked ? 'fill-amber-600' : ''} />
+                    {bookmarkCount > 0 && bookmarkCount}
+                  </button>
+                  <ShareButton
+                    title={`${article.title} - NobodyClimb`}
+                    description={article.excerpt || ''}
+                    variant="ghost"
+                    className="h-auto p-0 text-gray-500 hover:bg-transparent hover:text-gray-700"
+                    iconSize={16}
+                  />
                 </div>
               </div>
-              <div className="flex gap-2">
-                {/* 按讚按鈕 */}
+              {isAuthor && (
                 <Button
-                  variant="ghost"
-                  onClick={handleLike}
-                  disabled={isLiking}
-                  className={`${isLiked
-                    ? 'text-emerald-600 hover:bg-emerald-50'
-                    : 'text-gray-600 hover:bg-gray-50'
-                    }`}
+                  onClick={() => router.push(`/blog/edit/${id}`)}
+                  className="bg-brand-dark text-white hover:bg-brand-dark-hover"
                 >
-                  <Mountain
-                    size={18}
-                    className={`mr-1 ${isLiked ? 'fill-emerald-600' : ''}`}
-                  />
-                  {likeCount > 0 ? likeCount : '讚'}
+                  編輯文章
                 </Button>
-                {/* 收藏按鈕 */}
-                <Button
-                  variant="ghost"
-                  onClick={handleBookmark}
-                  disabled={isBookmarking}
-                  className={`${isBookmarked
-                    ? 'text-amber-600 hover:bg-amber-50'
-                    : 'text-gray-600 hover:bg-gray-50'
-                    }`}
-                >
-                  <Bookmark
-                    size={18}
-                    className={`mr-1 ${isBookmarked ? 'fill-amber-600' : ''}`}
-                  />
-                  {bookmarkCount > 0 ? bookmarkCount : '收藏'}
-                </Button>
-                <ShareButton
-                  title={`${article.title} - NobodyClimb`}
-                  description={article.excerpt || ''}
-                  variant="ghost"
-                  className="text-gray-600 hover:bg-gray-50"
-                />
-                {isAuthor && (
-                  <Button
-                    onClick={() => router.push(`/blog/edit/${id}`)}
-                    className="bg-brand-dark text-white hover:bg-brand-dark-hover"
-                  >
-                    編輯文章
-                  </Button>
-                )}
-              </div>
+              )}
             </div>
 
             {/* Main Image */}

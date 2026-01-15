@@ -20,6 +20,7 @@ interface ShareButtonProps {
   className?: string
   variant?: 'primary' | 'secondary' | 'destructive' | 'outline' | 'ghost' | 'link'
   size?: 'default' | 'sm' | 'md' | 'lg' | 'icon'
+  iconSize?: number
 }
 
 /**
@@ -33,6 +34,7 @@ export function ShareButton({
   className,
   variant = 'ghost',
   size = 'sm',
+  iconSize,
 }: ShareButtonProps) {
   const [copied, setCopied] = useState(false)
   const { toast } = useToast()
@@ -102,7 +104,7 @@ export function ShareButton({
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
         <Button variant={variant} size={size} className={cn('gap-2', className)}>
-          <Share className="h-4 w-4" />
+          <Share size={iconSize || 16} />
           {size !== 'icon'}
         </Button>
       </DropdownMenuTrigger>
