@@ -170,9 +170,8 @@ function mapUserToProfileData(user: User | null): ProfileData {
     climbingLocations: [],
     socialLinks: initialSocialLinks,
     isPublic: bioData.isPublic ?? true,
-    // 不使用 Google 頭像作為人物誌頭像的預設值
-    // 人物誌頭像應該由用戶自行上傳
-    avatarUrl: null,
+    // 使用 Google 頭像作為人物誌頭像的備用
+    avatarUrl: user.avatar || null,
     coverImageUrl: null,
   }
 }
