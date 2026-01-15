@@ -19,11 +19,11 @@ export default function ExploreLocationsPage() {
   const [error, setError] = useState<string | null>(null)
   const [totalLocations, setTotalLocations] = useState(0)
 
-  // 載入國家列表
+  // 載入國家列表（使用正規化表格 API）
   useEffect(() => {
     const fetchCountries = async () => {
       try {
-        const response = await climbingLocationService.getCountries()
+        const response = await climbingLocationService.exploreCountries()
         if (response.success && response.data) {
           setCountries(response.data)
         }
@@ -34,18 +34,18 @@ export default function ExploreLocationsPage() {
     fetchCountries()
   }, [])
 
-  // 載入地點列表
+  // 載入地點列表（使用正規化表格 API）
   useEffect(() => {
     const fetchLocations = async () => {
       setLoading(true)
       setError(null)
       try {
-        const response = await climbingLocationService.getLocations({
+        const response = await climbingLocationService.exploreLocations({
           country: selectedCountry || undefined,
           limit: 50,
         })
         if (response.success && response.data) {
-          setLocations(response.data)
+          setLocations(response.data as LocationStat[])
           // Use pagination total from API response
           setTotalLocations(response.pagination?.total || response.data.length)
         }
