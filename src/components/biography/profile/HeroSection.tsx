@@ -42,20 +42,6 @@ export function HeroSection({ person, followerCount, isOwner, onFollowChange }: 
 
   return (
     <div className="border-b border-gray-200 bg-white">
-      {/* 封面圖 */}
-      {person.cover_image && (
-        <div className="relative aspect-[21/9] w-full overflow-hidden bg-gray-100">
-          <Image
-            src={person.cover_image}
-            alt={`${person.name} 的封面照片`}
-            fill
-            className="object-cover"
-            sizes="100vw"
-            priority
-          />
-        </div>
-      )}
-
       <div className="container relative mx-auto max-w-5xl px-4 py-8">
         <motion.div
           initial={{ opacity: 0, y: 10 }}
