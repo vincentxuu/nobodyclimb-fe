@@ -70,10 +70,11 @@ export function HeroSection({ person, followerCount, isOwner, onFollowChange }: 
               {person.avatar_url ? (
                 <Image
                   src={person.avatar_url}
-                  alt={person.name}
+                  alt={`${person.name} 的頭像`}
                   fill
                   className="object-cover"
                   sizes="96px"
+                  priority
                 />
               ) : (
                 <div className="flex h-full w-full items-center justify-center text-gray-400">
