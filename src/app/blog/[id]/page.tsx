@@ -73,13 +73,26 @@ export default function BlogDetail() {
     }
   }, [id])
 
-  // 獲取收藏狀態
-  const fetchBookmarkStatus = useCallback(async () => {
+  // 獲取按讚狀態
+  const fetchLikeStatus = useCallback(async () => {
     try {
       const response = await postService.getLikeStatus(id)
       if (response.success && response.data) {
-        setIsBookmarked(response.data.liked)
-        setBookmarkCount(response.data.likes)
+        setIsLiked(response.data.liked)
+        setLikeCount(response.data.likes)
+      }
+    } catch (err) {
+      console.error('Failed to fetch like status:', err)
+    }
+  }, [id])
+
+  // 獲取收藏狀態
+  const fetchBookmarkStatus = useCallback(async () => {
+    try {
+      const response = await postService.getBookmarkStatus(id)
+      if (response.success && response.data) {
+        setIsBookmarked(response.data.bookmarked)
+        setBookmarkCount(response.data.bookmarks)
       }
     } catch (err) {
       console.error('Failed to fetch bookmark status:', err)
@@ -112,22 +125,33 @@ export default function BlogDetail() {
 
   useEffect(() => {
     fetchArticle()
+    fetchLikeStatus()
     fetchBookmarkStatus()
     fetchPopularArticles()
     fetchRelatedArticles()
-  }, [fetchArticle, fetchBookmarkStatus, fetchPopularArticles, fetchRelatedArticles])
+  }, [fetchArticle, fetchLikeStatus, fetchBookmarkStatus, fetchPopularArticles, fetchRelatedArticles])
 
   // 處理按讚
-  const handleLike = () => {
+  const handleLike = async () => {
     if (isLiking) return
     setIsLiking(true)
-    // 本地狀態切換（未來可接入後端 API）
-    setIsLiked(!isLiked)
-    setLikeCount((prev) => (isLiked ? prev - 1 : prev + 1))
-    toast({
-      title: isLiked ? '已取消按讚' : '已按讚',
-    })
-    setIsLiking(false)
+    try {
+      const response = await postService.toggleLike(id)
+      if (response.success && response.data) {
+        setIsLiked(response.data.liked)
+        setLikeCount(response.data.likes)
+        toast({
+          title: response.data.liked ? '已按讚' : '已取消按讚',
+        })
+      }
+    } catch (err) {
+      console.error('Failed to toggle like:', err)
+      // 本地切換狀態
+      setIsLiked(!isLiked)
+      setLikeCount((prev) => (isLiked ? prev - 1 : prev + 1))
+    } finally {
+      setIsLiking(false)
+    }
   }
 
   // 處理收藏
@@ -136,12 +160,12 @@ export default function BlogDetail() {
 
     setIsBookmarking(true)
     try {
-      const response = await postService.toggleLike(id)
+      const response = await postService.toggleBookmark(id)
       if (response.success && response.data) {
-        setIsBookmarked(response.data.liked)
-        setBookmarkCount(response.data.likes)
+        setIsBookmarked(response.data.bookmarked)
+        setBookmarkCount(response.data.bookmarks)
         toast({
-          title: response.data.liked ? '已收藏' : '已取消收藏',
+          title: response.data.bookmarked ? '已收藏' : '已取消收藏',
         })
       }
     } catch (err) {
