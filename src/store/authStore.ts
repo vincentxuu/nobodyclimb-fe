@@ -42,9 +42,11 @@ interface AuthState {
   token: string | null
   isAuthenticated: boolean
   isLoading: boolean
+  isInitialized: boolean // 認證初始化是否完成
   error: string | null
 
   // 動作
+  setInitialized: () => void
   // eslint-disable-next-line no-unused-vars
   login: (email: string, password: string) => Promise<{ success: boolean; error?: string }>
   // eslint-disable-next-line no-unused-vars
@@ -67,7 +69,10 @@ export const useAuthStore = create<AuthState>()(
       token: null,
       isAuthenticated: false,
       isLoading: false,
+      isInitialized: false,
       error: null,
+
+      setInitialized: () => set({ isInitialized: true }),
 
       login: async (email, password) => {
         set({ isLoading: true, error: null })
