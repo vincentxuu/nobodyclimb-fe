@@ -32,6 +32,10 @@ jobs:
         run: pnpm run build:cf
         env:
           NEXT_PUBLIC_GOOGLE_CLIENT_ID: ${{ secrets.GOOGLE_CLIENT_ID }}
+          NEXT_PUBLIC_GA_ID: ${{ secrets.GA_ID }}
+          NEXT_PUBLIC_CLARITY_ID: ${{ secrets.CLARITY_ID }}
+          NEXT_PUBLIC_POSTHOG_KEY: ${{ secrets.POSTHOG_KEY }}
+          NEXT_PUBLIC_POSTHOG_HOST: ${{ vars.POSTHOG_HOST }}
 
       - name: Deploy to Cloudflare Workers
         uses: cloudflare/wrangler-action@v3
