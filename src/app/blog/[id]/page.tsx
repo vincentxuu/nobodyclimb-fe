@@ -1,6 +1,6 @@
 import type { Metadata } from 'next'
 import BlogDetailClient from './BlogDetailClient'
-import { SITE_URL, SITE_NAME, OG_IMAGE, API_BASE_URL } from '@/lib/constants'
+import { SITE_URL, SITE_NAME, SITE_LOGO, OG_IMAGE, API_BASE_URL } from '@/lib/constants'
 
 // 獲取文章資料用於 SEO
 async function getPost(id: string) {
@@ -48,7 +48,7 @@ function generateArticleJsonLd(post: {
       url: SITE_URL,
       logo: {
         '@type': 'ImageObject',
-        url: `${SITE_URL}/logo/Nobodylimb-black.png`,
+        url: `${SITE_URL}${SITE_LOGO}`,
       },
     },
     datePublished: post.published_at,
