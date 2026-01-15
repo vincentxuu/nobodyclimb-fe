@@ -298,7 +298,7 @@ export const CragRouteSection: React.FC<CragRouteSectionProps> = ({
       <Dialog.Root open={showRouteDetail} onOpenChange={setShowRouteDetail}>
         <Dialog.Portal>
           <Dialog.Overlay className="fixed inset-0 z-50 bg-black/70" />
-          <Dialog.Content className="fixed left-1/2 top-1/2 z-50 max-h-[90vh] w-[95vw] max-w-2xl -translate-x-1/2 -translate-y-1/2 overflow-auto rounded-lg bg-white shadow-xl">
+          <Dialog.Content className="fixed left-1/2 top-1/2 z-50 max-h-[85vh] w-[95vw] max-w-2xl -translate-x-1/2 -translate-y-1/2 overflow-auto rounded-lg bg-white shadow-xl sm:max-h-[90vh]">
             {selectedRoute && (
               <>
                 <div className="sticky top-0 z-10 flex items-center justify-between border-b bg-white p-4">
@@ -492,8 +492,8 @@ export const CragRouteSection: React.FC<CragRouteSectionProps> = ({
         <Dialog.Root open={showPhotos} onOpenChange={setShowPhotos}>
           <Dialog.Portal>
             <Dialog.Overlay className="fixed inset-0 z-[60] bg-black/70" />
-            <Dialog.Content className="fixed inset-0 z-[60] flex items-center justify-center p-4">
-              <div className="max-h-[90vh] w-full max-w-3xl overflow-hidden rounded-lg bg-white shadow-xl">
+            <Dialog.Content className="fixed inset-0 z-[60] flex items-center justify-center p-2 sm:p-4">
+              <div className="max-h-[85vh] w-full max-w-3xl overflow-hidden rounded-lg bg-white shadow-xl sm:max-h-[90vh]">
                 <div className="flex items-center justify-between border-b p-4">
                   <Dialog.Title className="text-lg font-bold text-[#1B1A1A]">
                     {selectedRoute.name} 路線照片
@@ -567,8 +567,8 @@ export const CragRouteSection: React.FC<CragRouteSectionProps> = ({
         <Dialog.Root open={showTips} onOpenChange={setShowTips}>
           <Dialog.Portal>
             <Dialog.Overlay className="fixed inset-0 z-[60] bg-black/70" />
-            <Dialog.Content className="fixed inset-0 z-[60] flex items-center justify-center p-4">
-              <div className="max-h-[90vh] w-full max-w-3xl overflow-auto rounded-lg bg-white shadow-xl">
+            <Dialog.Content className="fixed inset-0 z-[60] flex items-center justify-center p-2 sm:p-4">
+              <div className="max-h-[85vh] w-full max-w-3xl overflow-auto rounded-lg bg-white shadow-xl sm:max-h-[90vh]">
                 <div className="flex items-center justify-between border-b p-4">
                   <Dialog.Title className="text-lg font-bold text-[#1B1A1A]">
                     {selectedRoute.name} 攀登攻略

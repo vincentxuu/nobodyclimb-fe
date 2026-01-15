@@ -226,7 +226,7 @@ export function StoryPromptModal({
 
           {/* 彈窗 */}
           <motion.div
-            className="fixed inset-x-4 top-1/2 z-50 mx-auto max-w-lg -translate-y-1/2 overflow-hidden rounded-2xl bg-white shadow-2xl"
+            className="fixed inset-x-4 top-1/2 z-50 mx-auto max-h-[85vh] max-w-lg -translate-y-1/2 overflow-auto rounded-2xl bg-white shadow-2xl sm:max-h-[90vh]"
             initial={{ opacity: 0, scale: 0.95, y: '-45%' }}
             animate={{ opacity: 1, scale: 1, y: '-50%' }}
             exit={{ opacity: 0, scale: 0.95, y: '-45%' }}
