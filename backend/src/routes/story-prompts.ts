@@ -11,8 +11,8 @@ export const storyPromptsRoutes = new Hono<{ Bindings: Env }>();
 
 // 推題頻率設定
 const PROMPT_CONFIG = {
-  minDaysBetweenPrompts: 0,      // 不限制間隔，每次登入都可推題
-  maxPromptsPerWeek: 14,         // 每週最多推14次（每天2次）
+  minHoursBetweenPrompts: 12,    // 至少間隔12小時才推題
+  maxPromptsPerWeek: 14,         // 每週最多推14次
   cooldownAfterDismiss: 1,       // 跳過後1天就可再推同一題
   maxDismissCount: 10,           // 跳過超過10次才不再推
 };
@@ -86,10 +86,10 @@ storyPromptsRoutes.get('/should-prompt', authMiddleware, async (c) => {
     .first<{ prompted_at: string }>();
 
   if (lastPrompt) {
-    const daysSinceLastPrompt = Math.floor(
-      (Date.now() - new Date(lastPrompt.prompted_at).getTime()) / (1000 * 60 * 60 * 24)
+    const hoursSinceLastPrompt = Math.floor(
+      (Date.now() - new Date(lastPrompt.prompted_at).getTime()) / (1000 * 60 * 60)
     );
-    if (daysSinceLastPrompt < PROMPT_CONFIG.minDaysBetweenPrompts) {
+    if (hoursSinceLastPrompt < PROMPT_CONFIG.minHoursBetweenPrompts) {
       return c.json({
         success: true,
         data: { should_prompt: false, reason: 'too_soon' },
