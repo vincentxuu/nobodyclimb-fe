@@ -722,68 +722,105 @@ postsRoutes.post('/:id/comments', authMiddleware, async (c) => {
   );
 });
 
+// ============================================
+// 按讚/收藏共用輔助函數
+// ============================================
+
+type ActionTable = 'likes' | 'bookmarks';
+type ActionType = 'liked' | 'bookmarked';
+
+interface ToggleActionResult {
+  success: boolean;
+  data?: { [key: string]: boolean | number };
+  error?: string;
+  message?: string;
+}
+
+/**
+ * 切換按讚/收藏狀態的共用邏輯
+ */
+async function toggleAction(
+  db: D1Database,
+  table: ActionTable,
+  entityType: string,
+  entityId: string,
+  userId: string
+): Promise<{ toggled: boolean; count: number }> {
+  const existing = await db
+    .prepare(`SELECT id FROM ${table} WHERE user_id = ? AND entity_type = ? AND entity_id = ?`)
+    .bind(userId, entityType, entityId)
+    .first();
+
+  let toggled: boolean;
+
+  if (existing) {
+    await db
+      .prepare(`DELETE FROM ${table} WHERE user_id = ? AND entity_type = ? AND entity_id = ?`)
+      .bind(userId, entityType, entityId)
+      .run();
+    toggled = false;
+  } else {
+    const id = generateId();
+    await db
+      .prepare(`INSERT INTO ${table} (id, user_id, entity_type, entity_id) VALUES (?, ?, ?, ?)`)
+      .bind(id, userId, entityType, entityId)
+      .run();
+    toggled = true;
+  }
+
+  const countResult = await db
+    .prepare(`SELECT COUNT(*) as count FROM ${table} WHERE entity_type = ? AND entity_id = ?`)
+    .bind(entityType, entityId)
+    .first<{ count: number }>();
+
+  return { toggled, count: countResult?.count || 0 };
+}
+
+/**
+ * 獲取按讚/收藏狀態的共用邏輯
+ */
+async function getActionStatus(
+  db: D1Database,
+  table: ActionTable,
+  entityType: string,
+  entityId: string,
+  userId: string | null
+): Promise<{ hasAction: boolean; count: number }> {
+  const countResult = await db
+    .prepare(`SELECT COUNT(*) as count FROM ${table} WHERE entity_type = ? AND entity_id = ?`)
+    .bind(entityType, entityId)
+    .first<{ count: number }>();
+
+  let hasAction = false;
+  if (userId) {
+    const existing = await db
+      .prepare(`SELECT id FROM ${table} WHERE user_id = ? AND entity_type = ? AND entity_id = ?`)
+      .bind(userId, entityType, entityId)
+      .first();
+    hasAction = !!existing;
+  }
+
+  return { hasAction, count: countResult?.count || 0 };
+}
+
 // POST /posts/:id/like - Toggle like for a post (按讚)
 postsRoutes.post('/:id/like', authMiddleware, async (c) => {
   const postId = c.req.param('id');
   const userId = c.get('userId');
 
-  // Check if post exists
   const post = await c.env.DB.prepare('SELECT id FROM posts WHERE id = ?')
     .bind(postId)
     .first();
 
   if (!post) {
-    return c.json(
-      {
-        success: false,
-        error: 'Not Found',
-        message: 'Post not found',
-      },
-      404
-    );
+    return c.json({ success: false, error: 'Not Found', message: 'Post not found' }, 404);
   }
 
-  // Check if already liked
-  const existingLike = await c.env.DB.prepare(
-    `SELECT id FROM likes WHERE user_id = ? AND entity_type = 'post' AND entity_id = ?`
-  )
-    .bind(userId, postId)
-    .first();
-
-  let liked: boolean;
-
-  if (existingLike) {
-    // Unlike - remove the like
-    await c.env.DB.prepare(
-      `DELETE FROM likes WHERE user_id = ? AND entity_type = 'post' AND entity_id = ?`
-    )
-      .bind(userId, postId)
-      .run();
-    liked = false;
-  } else {
-    // Like - add a new like
-    const id = generateId();
-    await c.env.DB.prepare(
-      `INSERT INTO likes (id, user_id, entity_type, entity_id) VALUES (?, ?, 'post', ?)`
-    )
-      .bind(id, userId, postId)
-      .run();
-    liked = true;
-  }
-
-  // Get total like count for this post
-  const likeCount = await c.env.DB.prepare(
-    `SELECT COUNT(*) as count FROM likes WHERE entity_type = 'post' AND entity_id = ?`
-  )
-    .bind(postId)
-    .first<{ count: number }>();
+  const { toggled, count } = await toggleAction(c.env.DB, 'likes', 'post', postId, userId);
 
   return c.json({
     success: true,
-    data: {
-      liked,
-      likes: likeCount?.count || 0,
-    },
+    data: { liked: toggled, likes: count },
   });
 });
 
@@ -792,31 +829,11 @@ postsRoutes.get('/:id/like', optionalAuthMiddleware, async (c) => {
   const postId = c.req.param('id');
   const userId = c.get('userId');
 
-  // Get total like count
-  const likeCount = await c.env.DB.prepare(
-    `SELECT COUNT(*) as count FROM likes WHERE entity_type = 'post' AND entity_id = ?`
-  )
-    .bind(postId)
-    .first<{ count: number }>();
-
-  let liked = false;
-
-  if (userId) {
-    // Check if user has liked
-    const existingLike = await c.env.DB.prepare(
-      `SELECT id FROM likes WHERE user_id = ? AND entity_type = 'post' AND entity_id = ?`
-    )
-      .bind(userId, postId)
-      .first();
-    liked = !!existingLike;
-  }
+  const { hasAction, count } = await getActionStatus(c.env.DB, 'likes', 'post', postId, userId);
 
   return c.json({
     success: true,
-    data: {
-      liked,
-      likes: likeCount?.count || 0,
-    },
+    data: { liked: hasAction, likes: count },
   });
 });
 
@@ -825,63 +842,19 @@ postsRoutes.post('/:id/bookmark', authMiddleware, async (c) => {
   const postId = c.req.param('id');
   const userId = c.get('userId');
 
-  // Check if post exists
   const post = await c.env.DB.prepare('SELECT id FROM posts WHERE id = ?')
     .bind(postId)
     .first();
 
   if (!post) {
-    return c.json(
-      {
-        success: false,
-        error: 'Not Found',
-        message: 'Post not found',
-      },
-      404
-    );
+    return c.json({ success: false, error: 'Not Found', message: 'Post not found' }, 404);
   }
 
-  // Check if already bookmarked
-  const existingBookmark = await c.env.DB.prepare(
-    `SELECT id FROM bookmarks WHERE user_id = ? AND entity_type = 'post' AND entity_id = ?`
-  )
-    .bind(userId, postId)
-    .first();
-
-  let bookmarked: boolean;
-
-  if (existingBookmark) {
-    // Remove bookmark
-    await c.env.DB.prepare(
-      `DELETE FROM bookmarks WHERE user_id = ? AND entity_type = 'post' AND entity_id = ?`
-    )
-      .bind(userId, postId)
-      .run();
-    bookmarked = false;
-  } else {
-    // Add bookmark
-    const id = generateId();
-    await c.env.DB.prepare(
-      `INSERT INTO bookmarks (id, user_id, entity_type, entity_id) VALUES (?, ?, 'post', ?)`
-    )
-      .bind(id, userId, postId)
-      .run();
-    bookmarked = true;
-  }
-
-  // Get total bookmark count for this post
-  const bookmarkCount = await c.env.DB.prepare(
-    `SELECT COUNT(*) as count FROM bookmarks WHERE entity_type = 'post' AND entity_id = ?`
-  )
-    .bind(postId)
-    .first<{ count: number }>();
+  const { toggled, count } = await toggleAction(c.env.DB, 'bookmarks', 'post', postId, userId);
 
   return c.json({
     success: true,
-    data: {
-      bookmarked,
-      bookmarks: bookmarkCount?.count || 0,
-    },
+    data: { bookmarked: toggled, bookmarks: count },
   });
 });
 
@@ -890,30 +863,10 @@ postsRoutes.get('/:id/bookmark', optionalAuthMiddleware, async (c) => {
   const postId = c.req.param('id');
   const userId = c.get('userId');
 
-  // Get total bookmark count
-  const bookmarkCount = await c.env.DB.prepare(
-    `SELECT COUNT(*) as count FROM bookmarks WHERE entity_type = 'post' AND entity_id = ?`
-  )
-    .bind(postId)
-    .first<{ count: number }>();
-
-  let bookmarked = false;
-
-  if (userId) {
-    // Check if user has bookmarked
-    const existingBookmark = await c.env.DB.prepare(
-      `SELECT id FROM bookmarks WHERE user_id = ? AND entity_type = 'post' AND entity_id = ?`
-    )
-      .bind(userId, postId)
-      .first();
-    bookmarked = !!existingBookmark;
-  }
+  const { hasAction, count } = await getActionStatus(c.env.DB, 'bookmarks', 'post', postId, userId);
 
   return c.json({
     success: true,
-    data: {
-      bookmarked,
-      bookmarks: bookmarkCount?.count || 0,
-    },
+    data: { bookmarked: hasAction, bookmarks: count },
   });
 });

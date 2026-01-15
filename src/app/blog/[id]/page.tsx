@@ -132,56 +132,60 @@ export default function BlogDetail() {
     fetchRelatedArticles()
   }, [fetchArticle, fetchLikeStatus, fetchBookmarkStatus, fetchPopularArticles, fetchRelatedArticles])
 
-  // 處理按讚
-  const handleLike = async () => {
-    if (isLiking) return
-    setIsLiking(true)
-    try {
-      const response = await postService.toggleLike(id)
-      if (response.success && response.data) {
-        setIsLiked(response.data.liked)
-        setLikeCount(response.data.likes)
+  // 通用的切換操作處理函數
+  const createToggleHandler = useCallback(
+    <T extends Record<string, unknown>>(
+      isToggling: boolean,
+      setToggling: (v: boolean) => void,
+      apiCall: () => Promise<{ success: boolean; data?: T }>,
+      onSuccess: (data: T) => void,
+      successMessage: (data: T) => string
+    ) => async () => {
+      if (isToggling) return
+      setToggling(true)
+      try {
+        const response = await apiCall()
+        if (response.success && response.data) {
+          onSuccess(response.data)
+          toast({ title: successMessage(response.data) })
+        }
+      } catch (err) {
+        console.error('Toggle action failed:', err)
         toast({
-          title: response.data.liked ? '已按讚' : '已取消按讚',
+          title: '操作失敗',
+          description: '請稍後再試',
+          variant: 'destructive',
         })
+      } finally {
+        setToggling(false)
       }
-    } catch (err) {
-      console.error('Failed to toggle like:', err)
-      toast({
-        title: '操作失敗',
-        description: '請稍後再試',
-        variant: 'destructive',
-      })
-    } finally {
-      setIsLiking(false)
-    }
-  }
+    },
+    [toast]
+  )
+
+  // 處理按讚
+  const handleLike = createToggleHandler(
+    isLiking,
+    setIsLiking,
+    () => postService.toggleLike(id),
+    (data: { liked: boolean; likes: number }) => {
+      setIsLiked(data.liked)
+      setLikeCount(data.likes)
+    },
+    (data: { liked: boolean }) => (data.liked ? '已按讚' : '已取消按讚')
+  )
 
   // 處理收藏
-  const handleBookmark = async () => {
-    if (isBookmarking) return
-
-    setIsBookmarking(true)
-    try {
-      const response = await postService.toggleBookmark(id)
-      if (response.success && response.data) {
-        setIsBookmarked(response.data.bookmarked)
-        setBookmarkCount(response.data.bookmarks)
-        toast({
-          title: response.data.bookmarked ? '已收藏' : '已取消收藏',
-        })
-      }
-    } catch (err) {
-      console.error('Failed to toggle bookmark:', err)
-      toast({
-        title: '操作失敗',
-        description: '請稍後再試',
-        variant: 'destructive',
-      })
-    } finally {
-      setIsBookmarking(false)
-    }
-  }
+  const handleBookmark = createToggleHandler(
+    isBookmarking,
+    setIsBookmarking,
+    () => postService.toggleBookmark(id),
+    (data: { bookmarked: boolean; bookmarks: number }) => {
+      setIsBookmarked(data.bookmarked)
+      setBookmarkCount(data.bookmarks)
+    },
+    (data: { bookmarked: boolean }) => (data.bookmarked ? '已收藏' : '已取消收藏')
+  )
 
   if (isLoading) {
     return <LoadingState />
