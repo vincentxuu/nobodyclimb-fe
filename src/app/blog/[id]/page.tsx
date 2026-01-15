@@ -2,22 +2,8 @@ import type { Metadata } from 'next'
 import BlogDetailClient from './BlogDetailClient'
 import { SITE_URL, SITE_NAME, SITE_LOGO, OG_IMAGE, API_BASE_URL } from '@/lib/constants'
 
-// 獲取文章資料用於 SEO
-async function getPost(id: string) {
-  try {
-    const res = await fetch(`${API_BASE_URL}/posts/${id}`, {
-      next: { revalidate: 60 }, // 快取 60 秒
-    })
-    if (!res.ok) return null
-    const data = await res.json()
-    return data.success ? data.data : null
-  } catch {
-    return null
-  }
-}
-
-// 生成 Article JSON-LD 結構化數據
-function generateArticleJsonLd(post: {
+// 文章資料類型
+interface PostData {
   title: string
   excerpt?: string
   content?: string
@@ -26,7 +12,30 @@ function generateArticleJsonLd(post: {
   published_at?: string
   updated_at?: string
   tags?: string[]
-}, id: string) {
+}
+
+// API 回應類型
+interface ApiResponse {
+  success: boolean
+  data?: PostData
+}
+
+// 獲取文章資料用於 SEO
+async function getPost(id: string): Promise<PostData | null> {
+  try {
+    const res = await fetch(`${API_BASE_URL}/posts/${id}`, {
+      next: { revalidate: 60 }, // 快取 60 秒
+    })
+    if (!res.ok) return null
+    const data: ApiResponse = await res.json()
+    return data.success ? data.data ?? null : null
+  } catch {
+    return null
+  }
+}
+
+// 生成 Article JSON-LD 結構化數據
+function generateArticleJsonLd(post: PostData, id: string) {
   const description = post.excerpt || post.content?.substring(0, 160).replace(/<[^>]*>/g, '') || ''
   const image = post.cover_image?.startsWith('http')
     ? post.cover_image
