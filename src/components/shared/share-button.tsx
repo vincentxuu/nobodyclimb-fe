@@ -103,9 +103,8 @@ export function ShareButton({
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
-        <Button variant={variant} size={size} className={cn('gap-2', className)}>
+        <Button variant={variant} size={size} className={cn(className)}>
           <Share size={iconSize || 16} />
-          {size !== 'icon'}
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end" className="w-48">
