@@ -3,8 +3,8 @@
 import { useState, useEffect } from 'react'
 import Image from 'next/image'
 import Link from 'next/link'
-import { motion } from 'framer-motion'
-import { MapPin, Mountain, Calendar } from 'lucide-react'
+import { motion, AnimatePresence } from 'framer-motion'
+import { MapPin, Mountain, Calendar, ChevronDown } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { getAllCrags, type CragListItem } from '@/lib/crag-data'
 
@@ -90,11 +90,21 @@ function CragCard({ crag, index }: { crag: CragListItem; index: number }) {
 }
 
 // 台灣地圖組件（SVG 風格）
-function TaiwanMap({ crags }: { crags: CragListItem[] }) {
+export function TaiwanMap({
+  crags,
+  compact = false,
+  clickable = false,
+}: {
+  crags: CragListItem[]
+  compact?: boolean
+  clickable?: boolean
+}) {
   const [hoveredCrag, setHoveredCrag] = useState<string | null>(null)
 
   return (
-    <div className="relative aspect-[437/555] w-full max-w-[240px] overflow-visible">
+    <div
+      className={`relative aspect-[437/555] w-full overflow-visible ${compact ? 'max-w-[120px]' : 'max-w-[240px]'}`}
+    >
       {/* 台灣島輪廓 SVG */}
       <Image
         src="/taiwan.svg"
@@ -110,28 +120,25 @@ function TaiwanMap({ crags }: { crags: CragListItem[] }) {
         const position = cragMapPositions[crag.id]
         if (!position) return null
 
-        return (
-          <div
-            key={crag.id}
-            className="absolute cursor-pointer"
-            style={{ top: position.top, left: position.left }}
-            onMouseEnter={() => setHoveredCrag(crag.id)}
-            onMouseLeave={() => setHoveredCrag(null)}
-          >
+        const markerContent = (
+          <>
             {/* 標記點 */}
             <motion.div
-              className={`relative flex h-6 w-6 items-center justify-center rounded-full ${hoveredCrag === crag.id ? 'bg-brand-accent' : 'bg-brand-dark'
-                }`}
+              className={`relative flex items-center justify-center rounded-full ${
+                compact ? 'h-1.5 w-1.5' : 'h-6 w-6'
+              } ${hoveredCrag === crag.id ? 'bg-brand-accent' : 'bg-brand-dark'}`}
               whileHover={{ scale: 1.2 }}
               transition={{ duration: 0.2 }}
             >
-              <MapPin
-                className={`h-3.5 w-3.5 ${hoveredCrag === crag.id ? 'text-brand-dark' : 'text-white'}`}
-              />
+              {!compact && (
+                <MapPin
+                  className={`h-3.5 w-3.5 ${hoveredCrag === crag.id ? 'text-brand-dark' : 'text-white'}`}
+                />
+              )}
             </motion.div>
 
             {/* 懸停提示 */}
-            {hoveredCrag === crag.id && (
+            {hoveredCrag === crag.id && !compact && (
               <motion.div
                 initial={{ opacity: 0, y: 5 }}
                 animate={{ opacity: 1, y: 0 }}
@@ -141,9 +148,73 @@ function TaiwanMap({ crags }: { crags: CragListItem[] }) {
                 <div className="absolute -top-1 left-1/2 h-2 w-2 -translate-x-1/2 rotate-45 bg-brand-dark" />
               </motion.div>
             )}
+          </>
+        )
+
+        const commonProps = {
+          className: 'absolute cursor-pointer',
+          style: { top: position.top, left: position.left },
+          onMouseEnter: () => setHoveredCrag(crag.id),
+          onMouseLeave: () => setHoveredCrag(null),
+        }
+
+        return clickable ? (
+          <Link key={crag.id} href={`/crag/${crag.id}`} {...commonProps}>
+            {markerContent}
+          </Link>
+        ) : (
+          <div key={crag.id} {...commonProps}>
+            {markerContent}
           </div>
         )
       })}
+    </div>
+  )
+}
+
+// 手機版可展開的迷你地圖
+function ExpandableMap({ crags }: { crags: CragListItem[] }) {
+  const [isExpanded, setIsExpanded] = useState(false)
+
+  return (
+    <div className="mb-6 lg:hidden">
+      <button
+        onClick={() => setIsExpanded(!isExpanded)}
+        className="flex w-full items-center justify-between rounded-xl bg-white p-4 shadow-sm transition-shadow hover:shadow-md"
+      >
+        <div className="flex items-center gap-4">
+          {/* 迷你地圖預覽 */}
+          <div className="relative h-16 w-12 flex-shrink-0">
+            <TaiwanMap crags={crags} compact />
+          </div>
+          <div className="text-left">
+            <p className="font-medium text-[#1B1A1A]">查看岩場分佈</p>
+            <p className="text-sm text-[#6D6C6C]">{crags.length} 個岩場</p>
+          </div>
+        </div>
+        <motion.div
+          animate={{ rotate: isExpanded ? 180 : 0 }}
+          transition={{ duration: 0.2 }}
+        >
+          <ChevronDown className="h-5 w-5 text-[#6D6C6C]" />
+        </motion.div>
+      </button>
+
+      <AnimatePresence>
+        {isExpanded && (
+          <motion.div
+            initial={{ height: 0, opacity: 0 }}
+            animate={{ height: 'auto', opacity: 1 }}
+            exit={{ height: 0, opacity: 0 }}
+            transition={{ duration: 0.3 }}
+            className="overflow-hidden"
+          >
+            <div className="flex justify-center bg-white px-4 pb-6 pt-2">
+              <TaiwanMap crags={crags} />
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   )
 }
@@ -174,6 +245,9 @@ export function ExploreCragSection() {
             <p className="mt-2 text-base text-[#6D6C6C]">發現台灣各地的天然岩場</p>
           </div>
         </div>
+
+        {/* 手機版可展開地圖 */}
+        <ExpandableMap crags={crags} />
 
         {/* 主要內容區 */}
         <div className="grid gap-8 lg:grid-cols-[280px_1fr] lg:gap-12">

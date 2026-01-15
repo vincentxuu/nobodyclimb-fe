@@ -164,7 +164,7 @@ function MissionSection() {
           className="mb-12 text-center"
         >
           <h2 className="text-3xl font-bold text-[#1B1A1A] md:text-4xl">我們的使命</h2>
-          <div className="mx-auto my-4 h-1 w-12 bg-[#1B1A1A]" />
+          <div className="mx-auto my-4 h-1 w-12 bg-brand-accent" />
         </motion.div>
 
         <motion.div

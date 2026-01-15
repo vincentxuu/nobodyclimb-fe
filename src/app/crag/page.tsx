@@ -9,6 +9,7 @@ import { Breadcrumb } from '@/components/ui/breadcrumb'
 import { PageHeader } from '@/components/ui/page-header'
 import BackToTop from '@/components/ui/back-to-top'
 import { getAllCrags } from '@/lib/crag-data'
+import { TaiwanMap } from '@/components/home'
 
 // 從資料服務層讀取岩場資料
 const crags = getAllCrags()
@@ -27,8 +28,28 @@ export default function CragListPage() {
           <Breadcrumb items={[{ label: '首頁', href: '/' }, { label: '岩場' }]} />
         </div>
 
-        {/* 岩場列表 */}
-        <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
+        {/* 手機版地圖 */}
+        <div className="mb-6 rounded-xl bg-white p-4 shadow-sm lg:hidden">
+          <p className="mb-3 text-center text-sm text-[#6D6C6C]">點擊地圖標記前往岩場</p>
+          <div className="flex justify-center">
+            <TaiwanMap crags={crags} clickable />
+          </div>
+        </div>
+
+        {/* 主要內容區 */}
+        <div className="grid gap-8 lg:grid-cols-[280px_1fr]">
+          {/* 桌面版固定地圖 */}
+          <div className="hidden lg:block">
+            <div className="sticky top-24 rounded-xl bg-white p-6 shadow-sm">
+              <h3 className="mb-4 text-center font-medium text-[#1B1A1A]">點擊地圖前往岩場</h3>
+              <div className="flex justify-center">
+                <TaiwanMap crags={crags} clickable />
+              </div>
+            </div>
+          </div>
+
+          {/* 岩場列表 */}
+          <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
           {crags.map((crag) => (
             <motion.div
               key={crag.id}
@@ -84,6 +105,7 @@ export default function CragListPage() {
               </Link>
             </motion.div>
           ))}
+          </div>
         </div>
 
         {/* 加載更多按鈕 */}
