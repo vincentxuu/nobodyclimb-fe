@@ -6,8 +6,9 @@ import Image from 'next/image'
 import Link from 'next/link'
 import { Chip } from '@/components/ui/chip'
 import { Button } from '@/components/ui/button'
-import { Mountain, Eye, Loader2, Share2 } from 'lucide-react'
+import { Mountain, Eye, Loader2, Bookmark } from 'lucide-react'
 import { Breadcrumb } from '@/components/ui/breadcrumb'
+import { ShareButton } from '@/components/shared/share-button'
 import { CommentSection } from '@/components/blog/CommentSection'
 import { postService } from '@/lib/api/services'
 import { useToast } from '@/components/ui/use-toast'
@@ -38,14 +39,19 @@ export default function BlogDetail() {
   const router = useRouter()
   const { toast } = useToast()
   const id = params.id as string
-  const { isAuthenticated } = useAuthStore()
+  const { isAuthenticated, user } = useAuthStore()
 
   const [article, setArticle] = useState<BackendPost | null>(null)
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
+  // 按讚狀態
   const [isLiked, setIsLiked] = useState(false)
   const [likeCount, setLikeCount] = useState(0)
   const [isLiking, setIsLiking] = useState(false)
+  // 收藏狀態
+  const [isBookmarked, setIsBookmarked] = useState(false)
+  const [bookmarkCount, setBookmarkCount] = useState(0)
+  const [isBookmarking, setIsBookmarking] = useState(false)
   const [popularArticles, setPopularArticles] = useState<BackendPost[]>([])
   const [relatedArticles, setRelatedArticles] = useState<BackendPost[]>([])
 
@@ -68,7 +74,7 @@ export default function BlogDetail() {
     }
   }, [id])
 
-  // 獲取點讚狀態
+  // 獲取按讚狀態
   const fetchLikeStatus = useCallback(async () => {
     try {
       const response = await postService.getLikeStatus(id)
@@ -78,6 +84,19 @@ export default function BlogDetail() {
       }
     } catch (err) {
       console.error('Failed to fetch like status:', err)
+    }
+  }, [id])
+
+  // 獲取收藏狀態
+  const fetchBookmarkStatus = useCallback(async () => {
+    try {
+      const response = await postService.getBookmarkStatus(id)
+      if (response.success && response.data) {
+        setIsBookmarked(response.data.bookmarked)
+        setBookmarkCount(response.data.bookmarks)
+      }
+    } catch (err) {
+      console.error('Failed to fetch bookmark status:', err)
     }
   }, [id])
 
@@ -108,55 +127,65 @@ export default function BlogDetail() {
   useEffect(() => {
     fetchArticle()
     fetchLikeStatus()
+    fetchBookmarkStatus()
     fetchPopularArticles()
     fetchRelatedArticles()
-  }, [fetchArticle, fetchLikeStatus, fetchPopularArticles, fetchRelatedArticles])
+  }, [fetchArticle, fetchLikeStatus, fetchBookmarkStatus, fetchPopularArticles, fetchRelatedArticles])
 
-  // 處理點讚
-  const handleLike = async () => {
-    if (isLiking) return
-
-    setIsLiking(true)
-    try {
-      const response = await postService.toggleLike(id)
-      if (response.success && response.data) {
-        setIsLiked(response.data.liked)
-        setLikeCount(response.data.likes)
-        toast({
-          title: response.data.liked ? '已收藏' : '已取消收藏',
-        })
-      }
-    } catch (err) {
-      console.error('Failed to toggle like:', err)
-      // 本地切換狀態
-      setIsLiked(!isLiked)
-      setLikeCount((prev) => (isLiked ? prev - 1 : prev + 1))
-    } finally {
-      setIsLiking(false)
-    }
-  }
-
-  // 處理分享
-  const handleShare = async () => {
-    const url = window.location.href
-    if (navigator.share) {
+  // 通用的切換操作處理函數
+  const createToggleHandler = useCallback(
+    <T extends Record<string, unknown>>(
+      isToggling: boolean,
+      setToggling: (v: boolean) => void,
+      apiCall: () => Promise<{ success: boolean; data?: T }>,
+      onSuccess: (data: T) => void,
+      successMessage: (data: T) => string
+    ) => async () => {
+      if (isToggling) return
+      setToggling(true)
       try {
-        await navigator.share({
-          title: article?.title,
-          url,
-        })
+        const response = await apiCall()
+        if (response.success && response.data) {
+          onSuccess(response.data)
+          toast({ title: successMessage(response.data) })
+        }
       } catch (err) {
-        // 用戶取消分享
+        console.error('Toggle action failed:', err)
+        toast({
+          title: '操作失敗',
+          description: '請稍後再試',
+          variant: 'destructive',
+        })
+      } finally {
+        setToggling(false)
       }
-    } else {
-      // 複製連結
-      await navigator.clipboard.writeText(url)
-      toast({
-        title: '連結已複製',
-        description: '文章連結已複製到剪貼簿',
-      })
-    }
-  }
+    },
+    [toast]
+  )
+
+  // 處理按讚
+  const handleLike = createToggleHandler(
+    isLiking,
+    setIsLiking,
+    () => postService.toggleLike(id),
+    (data: { liked: boolean; likes: number }) => {
+      setIsLiked(data.liked)
+      setLikeCount(data.likes)
+    },
+    (data: { liked: boolean }) => (data.liked ? '已按讚' : '已取消按讚')
+  )
+
+  // 處理收藏
+  const handleBookmark = createToggleHandler(
+    isBookmarking,
+    setIsBookmarking,
+    () => postService.toggleBookmark(id),
+    (data: { bookmarked: boolean; bookmarks: number }) => {
+      setIsBookmarked(data.bookmarked)
+      setBookmarkCount(data.bookmarks)
+    },
+    (data: { bookmarked: boolean }) => (data.bookmarked ? '已收藏' : '已取消收藏')
+  )
 
   if (isLoading) {
     return <LoadingState />
@@ -166,11 +195,8 @@ export default function BlogDetail() {
     return <ErrorState message={error || '找不到文章'} />
   }
 
-  // 使用從 API 獲取的相關文章
-  const displayRelatedArticles = relatedArticles
-
-  // 使用從 API 獲取的熱門文章
-  const displayPopularArticles = popularArticles
+  // 檢查是否為文章作者
+  const isAuthor = user?.id === article.author_id
 
   // 格式化日期
   const dateToFormat = article.published_at || article.created_at
@@ -216,34 +242,52 @@ export default function BlogDetail() {
                 </div>
               </div>
               <div className="flex gap-2">
+                {/* 按讚按鈕 */}
                 <Button
                   variant="outline"
                   onClick={handleLike}
                   disabled={isLiking}
                   className={`${isLiked
-                    ? 'border-red-300 bg-red-50 text-red-600'
+                    ? 'border-emerald-300 bg-emerald-50 text-emerald-600'
                     : 'border-gray-300 text-gray-600 hover:bg-gray-50'
                     }`}
                 >
                   <Mountain
                     size={18}
-                    className={`mr-1 ${isLiked ? 'fill-red-600' : ''}`}
+                    className={`mr-1 ${isLiked ? 'fill-emerald-600' : ''}`}
                   />
-                  {likeCount > 0 ? likeCount : '收藏'}
+                  {likeCount > 0 ? likeCount : '讚'}
                 </Button>
+                {/* 收藏按鈕 */}
                 <Button
                   variant="outline"
-                  onClick={handleShare}
+                  onClick={handleBookmark}
+                  disabled={isBookmarking}
+                  className={`${isBookmarked
+                    ? 'border-amber-300 bg-amber-50 text-amber-600'
+                    : 'border-gray-300 text-gray-600 hover:bg-gray-50'
+                    }`}
+                >
+                  <Bookmark
+                    size={18}
+                    className={`mr-1 ${isBookmarked ? 'fill-amber-600' : ''}`}
+                  />
+                  {bookmarkCount > 0 ? bookmarkCount : '收藏'}
+                </Button>
+                <ShareButton
+                  title={`${article.title} - NobodyClimb`}
+                  description={article.excerpt || ''}
+                  variant="outline"
                   className="border-gray-300 text-gray-600 hover:bg-gray-50"
-                >
-                  <Share2 size={18} className="mr-1" />
-                </Button>
-                <Button
-                  onClick={() => router.push(`/blog/edit/${id}`)}
-                  className="bg-brand-dark text-white hover:bg-brand-dark-hover"
-                >
-                  編輯文章
-                </Button>
+                />
+                {isAuthor && (
+                  <Button
+                    onClick={() => router.push(`/blog/edit/${id}`)}
+                    className="bg-brand-dark text-white hover:bg-brand-dark-hover"
+                  >
+                    編輯文章
+                  </Button>
+                )}
               </div>
             </div>
 
@@ -341,7 +385,7 @@ export default function BlogDetail() {
             <div>
               <h2 className="mb-4 text-2xl font-medium">熱門文章</h2>
               <div className="space-y-4">
-                {displayPopularArticles.map((popularArticle) => (
+                {popularArticles.map((popularArticle) => (
                   <Link
                     key={popularArticle.id}
                     href={`/blog/${popularArticle.id}`}
@@ -367,7 +411,7 @@ export default function BlogDetail() {
         <div className="mx-auto max-w-[1440px]">
           <h2 className="mb-8 text-2xl font-medium">相關文章</h2>
           <div className="grid grid-cols-1 gap-6 md:grid-cols-3">
-            {displayRelatedArticles.map((relatedArticle) => (
+            {relatedArticles.map((relatedArticle) => (
               <Link
                 key={relatedArticle.id}
                 href={`/blog/${relatedArticle.id}`}

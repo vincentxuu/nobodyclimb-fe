@@ -269,7 +269,7 @@ export const postService = {
   },
 
   /**
-   * 喜歡/取消喜歡文章
+   * 按讚/取消按讚文章
    */
   toggleLike: async (id: string) => {
     const response = await apiClient.post<ApiResponse<{ liked: boolean; likes: number }>>(
@@ -279,11 +279,31 @@ export const postService = {
   },
 
   /**
-   * 獲取文章點讚狀態
+   * 獲取文章按讚狀態
    */
   getLikeStatus: async (id: string) => {
     const response = await apiClient.get<ApiResponse<{ liked: boolean; likes: number }>>(
       `/posts/${id}/like`
+    )
+    return response.data
+  },
+
+  /**
+   * 收藏/取消收藏文章
+   */
+  toggleBookmark: async (id: string) => {
+    const response = await apiClient.post<ApiResponse<{ bookmarked: boolean; bookmarks: number }>>(
+      `/posts/${id}/bookmark`
+    )
+    return response.data
+  },
+
+  /**
+   * 獲取文章收藏狀態
+   */
+  getBookmarkStatus: async (id: string) => {
+    const response = await apiClient.get<ApiResponse<{ bookmarked: boolean; bookmarks: number }>>(
+      `/posts/${id}/bookmark`
     )
     return response.data
   },
