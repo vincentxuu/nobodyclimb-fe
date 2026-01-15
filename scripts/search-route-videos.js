@@ -164,15 +164,8 @@ async function main() {
       '路線名稱',
       '路線英文名',
       '難度',
-      '建議影片1_標題',
-      '建議影片1_頻道',
-      '建議影片1_URL',
-      '建議影片2_標題',
-      '建議影片2_頻道',
-      '建議影片2_URL',
-      '建議影片3_標題',
-      '建議影片3_頻道',
-      '建議影片3_URL',
+      '找到數量',
+      '建議影片（標題 | URL）',
       '選擇的YouTube影片',
       '選擇的Instagram貼文',
     ].join(','),
@@ -208,6 +201,11 @@ async function main() {
       )
     }
 
+    // 建立建議影片清單（所有符合的都列出）
+    const videoList = videos
+      .map((v) => `${v.title} | ${v.url}`)
+      .join('\n')
+
     // 建立 CSV 行
     const row = [
       escapeCSV(crag.name),
@@ -216,22 +214,11 @@ async function main() {
       escapeCSV(route.name),
       escapeCSV(route.nameEn || ''),
       escapeCSV(route.grade),
+      videos.length,
+      escapeCSV(videoList),
+      '', // 選擇的 YouTube 影片
+      '', // 選擇的 Instagram 貼文
     ]
-
-    // 加入搜尋結果（最多 3 個）
-    for (let i = 0; i < 3; i++) {
-      if (videos[i]) {
-        row.push(escapeCSV(videos[i].title))
-        row.push(escapeCSV(videos[i].channel))
-        row.push(escapeCSV(videos[i].url))
-      } else {
-        row.push('', '', '')
-      }
-    }
-
-    // 空白欄位給用戶填寫
-    row.push('') // 選擇的 YouTube 影片
-    row.push('') // 選擇的 Instagram 貼文
 
     csvRows.push(row.join(','))
 
