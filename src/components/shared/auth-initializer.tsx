@@ -9,6 +9,7 @@ import apiClient from '@/lib/api/client'
 import { ApiResponse, BackendUser, mapBackendUserToUser } from '@/lib/types'
 import { storyPromptService } from '@/lib/api/services'
 import { toast } from '@/components/ui/use-toast'
+import { getAccessToken } from '@/lib/utils/tokenStorage'
 
 /** 故事推薦彈窗顯示延遲時間（毫秒） */
 const STORY_PROMPT_SHOW_DELAY = 1500
@@ -32,6 +33,12 @@ export function AuthInitializer() {
     if (hasCheckedStoryPrompt.current) return
     hasCheckedStoryPrompt.current = true
 
+    // 確保有 access token 才發送請求，避免未登入時產生錯誤
+    const token = getAccessToken()
+    if (!token) {
+      return
+    }
+
     try {
       const response = await storyPromptService.shouldPrompt()
       if (response.success && response.data?.should_prompt) {
@@ -54,7 +61,11 @@ export function AuthInitializer() {
         }
       }
     } catch (error) {
-      console.error('檢查故事推薦失敗:', error)
+      // 靜默處理錯誤 - 這是非關鍵功能
+      // 僅在開發環境記錄錯誤
+      if (process.env.NODE_ENV === 'development') {
+        console.error('檢查故事推薦失敗:', error)
+      }
     }
   }, [openStoryPrompt])
 

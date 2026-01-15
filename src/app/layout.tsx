@@ -128,6 +128,12 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   return (
     <html suppressHydrationWarning className={`${notoSansTC.variable} ${allertaStencil.variable}`} lang="zh-TW">
       <head>
+        {/* esbuild __name polyfill - 修復 Cloudflare Workers 部署問題 */}
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `typeof __name === "undefined" && (window.__name = function(fn) { return fn; });`,
+          }}
+        />
         {/* Quill Editor CSS - 透過 CDN 載入避免 SSR 問題 */}
         <link
           rel="stylesheet"
