@@ -80,9 +80,27 @@ function searchYouTube(query, limit = 5) {
       url: `https://www.youtube.com/watch?v=${item.id}`,
     }))
   } catch (error) {
-    console.error(`  搜尋失敗: ${query}`)
     return []
   }
+}
+
+// 檢查影片標題是否與路線相關
+function isRelevantVideo(video, routeName, routeNameEn, cragName) {
+  const title = video.title.toLowerCase()
+  const name = routeName.toLowerCase()
+  const nameEn = (routeNameEn || '').toLowerCase()
+  const crag = cragName.toLowerCase()
+
+  // 標題包含路線名稱（中文或英文）
+  if (name && title.includes(name)) return true
+  if (nameEn && title.includes(nameEn)) return true
+
+  // 標題包含岩場名稱且有攀岩相關字
+  const climbingKeywords = ['攀岩', 'climb', 'climbing', '攀登', 'rock', '龍洞', 'longdong']
+  const hasClimbingKeyword = climbingKeywords.some((kw) => title.includes(kw))
+  const hasCragName = title.includes(crag)
+
+  return hasClimbingKeyword && hasCragName
 }
 
 // 轉義 CSV 欄位
@@ -168,17 +186,33 @@ async function main() {
 
   // 搜尋每條路線
   let processed = 0
+  let foundRelevant = 0
   const total = routes.length
 
   for (const route of routes) {
     processed++
     const progress = `[${processed}/${total}]`
 
-    // 建立搜尋關鍵字
-    const searchQuery = `${crag.name} ${route.name} 攀岩`
-    process.stdout.write(`${progress} 搜尋: ${route.name}...`)
+    // 建立搜尋關鍵字（更精確）
+    const searchQuery = `${crag.name} ${route.name} ${route.grade} 攀岩`
+    process.stdout.write(`${progress} 搜尋: ${route.name} (${route.grade})...`)
 
-    const videos = searchYouTube(searchQuery, Math.min(limit, 3))
+    const allVideos = searchYouTube(searchQuery, limit)
+
+    // 過濾相關影片
+    const relevantVideos = allVideos.filter((v) =>
+      isRelevantVideo(v, route.name, route.nameEn, crag.name)
+    )
+
+    // 如果沒有相關影片，嘗試用英文名搜尋
+    let videos = relevantVideos
+    if (videos.length === 0 && route.nameEn) {
+      const searchQueryEn = `${crag.nameEn || crag.name} ${route.nameEn} climbing`
+      const allVideosEn = searchYouTube(searchQueryEn, limit)
+      videos = allVideosEn.filter((v) =>
+        isRelevantVideo(v, route.name, route.nameEn, crag.name)
+      )
+    }
 
     // 建立 CSV 行
     const row = [
@@ -206,7 +240,13 @@ async function main() {
     row.push('') // 選擇的 Instagram 貼文
 
     csvRows.push(row.join(','))
-    console.log(` 找到 ${videos.length} 個影片`)
+
+    if (videos.length > 0) {
+      foundRelevant++
+      console.log(` ✓ 找到 ${videos.length} 個相關影片`)
+    } else {
+      console.log(` ✗ 無相關影片`)
+    }
 
     // 避免請求太快
     await new Promise((resolve) => setTimeout(resolve, 500))
@@ -216,13 +256,17 @@ async function main() {
   const outputPath = path.join(OUTPUT_DIR, `route-videos-${cragId}.csv`)
   fs.writeFileSync(outputPath, '\uFEFF' + csvRows.join('\n'), 'utf-8') // BOM for Excel/Google Sheets
 
-  console.log(`\n✅ 完成！輸出: ${outputPath}`)
+  console.log(`\n=== 搜尋統計 ===`)
+  console.log(`總路線數: ${total}`)
+  console.log(`找到相關影片: ${foundRelevant} 條 (${((foundRelevant / total) * 100).toFixed(1)}%)`)
+  console.log(`無相關影片: ${total - foundRelevant} 條`)
+  console.log(`\n✅ 輸出: ${outputPath}`)
   console.log('')
   console.log('下一步：')
   console.log('1. 將 CSV 匯入 Google Sheets')
-  console.log('2. 在「選擇的YouTube影片」欄位貼上你要的影片 URL')
-  console.log('3. 在「選擇的Instagram貼文」欄位貼上相關 IG 連結')
-  console.log('4. 下載為 CSV，用 import-route-videos.js 匯入')
+  console.log('2. 檢視建議影片，正確的複製到「選擇的YouTube影片」欄位')
+  console.log('3. 補充 Instagram 貼文連結')
+  console.log('4. 下載為 CSV，執行: node scripts/import-route-videos.js <csv檔案>')
 }
 
 main().catch(console.error)
