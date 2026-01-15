@@ -25,7 +25,7 @@ function ClimberCard({ person }: { person: Biography }) {
       <Link href={`/biography/profile/${person.id}`} className="block h-full">
         <Card className="h-full overflow-hidden transition-shadow duration-300 hover:shadow-md">
           <AvatarImage
-            avatarUrl={person.avatar_url}
+            avatarUrl={person.cover_image}
             altText={person.name}
             iconSize={64}
             containerClassName="h-[248px]"
