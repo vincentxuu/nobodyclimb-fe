@@ -656,7 +656,10 @@
       "description": "《RCT》P.183路線圖路線走向繪製錯誤",
       "safetyRating": "●●●",
       "boltCount": 8,
-      "status": "published"
+      "status": "published",
+      "youtubeVideos": [
+        "https://www.youtube.com/watch?v=texvCIIlhaI"
+      ]
     },
     {
       "id": "LD-MUSIC-HALL-357",
@@ -773,7 +776,10 @@
       "firstAscentDate": "1991-04-05",
       "safetyRating": "●●●",
       "boltCount": 0,
-      "status": "published"
+      "status": "published",
+      "youtubeVideos": [
+        "https://www.youtube.com/watch?v=U4WaSSMjLD8"
+      ]
     },
     {
       "id": "LD-MUSIC-HALL-361",
@@ -899,7 +905,8 @@
         "https://www.youtube.com/watch?v=4u-84ODebZk",
         "https://www.youtube.com/watch?v=cklnu8SRtV0",
         "https://www.youtube.com/watch?v=rcB9_aNvIF0",
-        "https://www.youtube.com/watch?v=-e1KF_8m0Rk"
+        "https://www.youtube.com/watch?v=-e1KF_8m0Rk",
+        "https://www.youtube.com/watch?v=Fkv5eYPv478"
       ]
     },
     {
@@ -995,7 +1002,10 @@
       "description": "《RCT》P.190路線圖編號372的完攀點誤植為375",
       "safetyRating": "●●●",
       "boltCount": 8,
-      "status": "published"
+      "status": "published",
+      "youtubeVideos": [
+        "https://www.youtube.com/watch?v=PVNu85ERDHg"
+      ]
     },
     {
       "id": "LD-MUSIC-HALL-373",
@@ -1166,7 +1176,10 @@
       "description": "岩友毛祖琦、楊思碧於1987/08/24在此路線上結為連理而得名。原為運攀路線，2017/10/28將老舊Bolt (304) 切除後保留為傳攀路線",
       "safetyRating": "●●●",
       "boltCount": 2,
-      "status": "published"
+      "status": "published",
+      "youtubeVideos": [
+        "https://www.youtube.com/watch?v=tDgGodL6-u8"
+      ]
     },
     {
       "id": "LD-MUSIC-HALL-384",
@@ -1969,7 +1982,10 @@
       "firstAscentEn": "Paul Foster (FTRA)",
       "safetyRating": "●●●",
       "boltCount": 13,
-      "status": "published"
+      "status": "published",
+      "youtubeVideos": [
+        "https://www.youtube.com/watch?v=t5oAReFmu2k"
+      ]
     },
     {
       "id": "LD-SCHOOL-GATE-527",
@@ -1988,7 +2004,8 @@
       "boltCount": 11,
       "status": "published",
       "youtubeVideos": [
-        "https://www.youtube.com/watch?v=Dywk4HMwdMQ"
+        "https://www.youtube.com/watch?v=Dywk4HMwdMQ",
+        "https://www.youtube.com/watch?v=D1FwWIl4Q6k"
       ]
     },
     {
@@ -2190,7 +2207,10 @@
       "firstAscentDate": "2006-01-01",
       "safetyRating": "●●●",
       "boltCount": 8,
-      "status": "published"
+      "status": "published",
+      "youtubeVideos": [
+        "https://www.youtube.com/watch?v=CgteS84ivjw"
+      ]
     },
     {
       "id": "LD-SCHOOL-GATE-539",
@@ -2401,7 +2421,11 @@
       "firstAscentEn": "Yen-Yi Wu",
       "safetyRating": "●●●",
       "boltCount": 9,
-      "status": "published"
+      "status": "published",
+      "youtubeVideos": [
+        "https://www.youtube.com/watch?v=r503kYP2RdI",
+        "https://www.youtube.com/watch?v=CNTkjWLhxUM"
+      ]
     },
     {
       "id": "LD-SCHOOL-GATE-550",
@@ -2453,7 +2477,10 @@
       "description": "首攀者在得知此路線尚無人完攀時感到意外，因而將其命名為 <出乎意料>",
       "safetyRating": "●●●",
       "boltCount": 2,
-      "status": "published"
+      "status": "published",
+      "youtubeVideos": [
+        "https://www.youtube.com/watch?v=U6emy8li-WU"
+      ]
     },
     {
       "id": "LD-SCHOOL-GATE-553",
@@ -2699,7 +2726,10 @@
       "firstAscentEn": "Jun-Min Jou",
       "safetyRating": "●●●",
       "boltCount": 8,
-      "status": "published"
+      "status": "published",
+      "youtubeVideos": [
+        "https://www.youtube.com/watch?v=68sXywwb6rI"
+      ]
     },
     {
       "id": "LD-SCHOOL-GATE-568",
@@ -2870,7 +2900,12 @@
       "description": "與 <三角關係> 共用 Anchor",
       "safetyRating": "●●●",
       "boltCount": 0,
-      "status": "published"
+      "status": "published",
+      "youtubeVideos": [
+        "https://www.youtube.com/watch?v=OKzbfm6qtUY",
+        "https://www.youtube.com/watch?v=fIeTSliKOZo",
+        "https://www.youtube.com/watch?v=xmsNKhjoATw"
+      ]
     },
     {
       "id": "LD-GRAND-AUDITORIUM-312",
@@ -4053,7 +4088,9 @@
       "boltCount": 0,
       "status": "published",
       "youtubeVideos": [
-        "https://www.youtube.com/watch?v=olOEs1OZ67E"
+        "https://www.youtube.com/watch?v=olOEs1OZ67E",
+        "https://www.youtube.com/watch?v=EKVNvfMwnKc",
+        "https://www.youtube.com/watch?v=VOj3ezD9xNM"
       ]
     },
     {
@@ -4197,7 +4234,8 @@
       "boltCount": 0,
       "status": "published",
       "youtubeVideos": [
-        "https://www.youtube.com/watch?v=ywebtLVHQIQ"
+        "https://www.youtube.com/watch?v=ywebtLVHQIQ",
+        "https://www.youtube.com/watch?v=1tkWTa8q_PA"
       ]
     },
     {
@@ -4760,7 +4798,10 @@
       "firstAscentDate": "2014-01-18",
       "safetyRating": "●●●",
       "boltCount": 18,
-      "status": "published"
+      "status": "published",
+      "youtubeVideos": [
+        "https://www.youtube.com/watch?v=ccMwLcbVnHI"
+      ]
     },
     {
       "id": "LD-FIRST-CAVE-260",
@@ -4905,7 +4946,10 @@
       "description": "原路線名稱為：上班不上班 / Skipping Work (5.13a, 張登榮)，更新後改變路線走向，並改為 Project",
       "safetyRating": "●●●",
       "boltCount": 9,
-      "status": "published"
+      "status": "published",
+      "youtubeVideos": [
+        "https://www.youtube.com/watch?v=s7dRHLqMxns"
+      ]
     },
     {
       "id": "LD-FIRST-CAVE-268",
@@ -4924,7 +4968,10 @@
       "description": "B01-B09 與 <洪來瘋> 共⽤ 與 <無人完攀> 共⽤ Anchor",
       "safetyRating": "●●●",
       "boltCount": 17,
-      "status": "published"
+      "status": "published",
+      "youtubeVideos": [
+        "https://www.youtube.com/watch?v=hg5-znEe3Moo"
+      ]
     },
     {
       "id": "LD-FIRST-CAVE-269",
@@ -4943,7 +4990,12 @@
       "description": "B01-B09 與 <洪來瘋> 共⽤ B10 以及 Anchor 與 <無人完攀> 共⽤",
       "safetyRating": "●●●",
       "boltCount": 4,
-      "status": "published"
+      "status": "published",
+      "youtubeVideos": [
+        "https://www.youtube.com/watch?v=C1LzSg6b6CI",
+        "https://www.youtube.com/watch?v=mK0H7tm5TUE",
+        "https://www.youtube.com/watch?v=_zfGT8p8D88"
+      ]
     },
     {
       "id": "LD-FIRST-CAVE-270",
@@ -4962,7 +5014,10 @@
       "description": "於難關處墜落時需⼩⼼岩階，且路線仍使用 304 錨栓",
       "safetyRating": "●●●",
       "boltCount": 16,
-      "status": "published"
+      "status": "published",
+      "youtubeVideos": [
+        "https://www.youtube.com/watch?v=RLhg653HZKM"
+      ]
     },
     {
       "id": "LD-FIRST-CAVE-271",
@@ -5003,7 +5058,8 @@
       "status": "published",
       "youtubeVideos": [
         "https://www.youtube.com/watch?v=pYBHQJgNoBU",
-        "https://www.youtube.com/watch?v=OJj5V5fFmJU"
+        "https://www.youtube.com/watch?v=OJj5V5fFmJU",
+        "https://www.youtube.com/watch?v=QXOc0cIYFyk"
       ]
     },
     {
@@ -5063,7 +5119,10 @@
       "description": "少數區塊岩質不穩 Bolt 數量待確認",
       "safetyRating": "●●●",
       "boltCount": 18,
-      "status": "published"
+      "status": "published",
+      "youtubeVideos": [
+        "https://www.youtube.com/watch?v=XyedNXAIjbE"
+      ]
     },
     {
       "id": "LD-FIRST-CAVE-276",
@@ -5096,7 +5155,10 @@
       "firstAscentDate": "2004-02-22",
       "safetyRating": "●●●",
       "boltCount": 9,
-      "status": "published"
+      "status": "published",
+      "youtubeVideos": [
+        "https://www.youtube.com/watch?v=RklSfQOiz5s"
+      ]
     },
     {
       "id": "LD-FIRST-CAVE-278",
@@ -5148,7 +5210,13 @@
       "firstAscentDate": "2004-12-19",
       "safetyRating": "●●●",
       "boltCount": 8,
-      "status": "published"
+      "status": "published",
+      "youtubeVideos": [
+        "https://www.youtube.com/watch?v=erOR183BHKk",
+        "https://www.youtube.com/watch?v=3fQbqujNppg",
+        "https://www.youtube.com/watch?v=gQ469MngY0c",
+        "https://www.youtube.com/watch?v=l5jt24REn9c"
+      ]
     },
     {
       "id": "LD-FIRST-CAVE-281",
@@ -5271,7 +5339,10 @@
       "firstAscentDate": "2006-11-26",
       "safetyRating": "●●●",
       "boltCount": 7,
-      "status": "published"
+      "status": "published",
+      "youtubeVideos": [
+        "https://www.youtube.com/watch?v=LEjCj_ZU7RI"
+      ]
     },
     {
       "id": "LD-FIRST-CAVE-288",
@@ -5291,7 +5362,9 @@
       "boltCount": 6,
       "status": "published",
       "youtubeVideos": [
-        "https://www.youtube.com/watch?v=4KWykCO0b2s"
+        "https://www.youtube.com/watch?v=4KWykCO0b2s",
+        "https://www.youtube.com/watch?v=PUXdZgByDQc",
+        "https://www.youtube.com/watch?v=4ZL0VQqO80w"
       ]
     },
     {
@@ -5386,7 +5459,8 @@
       "boltCount": 9,
       "status": "published",
       "youtubeVideos": [
-        "https://www.youtube.com/watch?v=2zT4KO8F4tI"
+        "https://www.youtube.com/watch?v=2zT4KO8F4tI",
+        "https://www.youtube.com/watch?v=RklSfQOiz5s"
       ]
     },
     {
@@ -5873,7 +5947,10 @@
       "firstAscentDate": "2005-03-27",
       "safetyRating": "●●●",
       "boltCount": 14,
-      "status": "published"
+      "status": "published",
+      "youtubeVideos": [
+        "https://www.youtube.com/watch?v=k6YESaDLRjk"
+      ]
     },
     {
       "id": "LD-SECOND-CAVE-212",
@@ -5909,7 +5986,10 @@
       "firstAscentDate": "2005-08-22",
       "safetyRating": "●●●",
       "boltCount": 16,
-      "status": "published"
+      "status": "published",
+      "youtubeVideos": [
+        "https://www.youtube.com/watch?v=dGMZGASlk5Q"
+      ]
     },
     {
       "id": "LD-SECOND-CAVE-213.1",
@@ -6594,7 +6674,10 @@
       "description": "無 Anchor，可步⾏返回起攀處",
       "safetyRating": "●●●",
       "boltCount": 0,
-      "status": "published"
+      "status": "published",
+      "youtubeVideos": [
+        "https://www.youtube.com/watch?v=fOO6eAAiGuY"
+      ]
     },
     {
       "id": "LD-BACK-DOOR-16",
@@ -7137,7 +7220,12 @@
       "description": "B01-B04 與 <冤家宜解不宜結> 共⽤",
       "safetyRating": "●●●",
       "boltCount": 10,
-      "status": "published"
+      "status": "published",
+      "youtubeVideos": [
+        "https://www.youtube.com/watch?v=VEpHY4nmI_k",
+        "https://www.youtube.com/watch?v=hwimHJc4ldw",
+        "https://www.youtube.com/watch?v=5a1vXmoDsAY"
+      ]
     },
     {
       "id": "LD-BACK-DOOR-47",
@@ -7218,7 +7306,8 @@
         "https://www.youtube.com/watch?v=MVYOH8AP0W0",
         "https://www.youtube.com/watch?v=ywjh53wq7Yg",
         "https://www.youtube.com/watch?v=kHgFxM6cDqc",
-        "https://www.youtube.com/watch?v=qOgKMfvOjtk"
+        "https://www.youtube.com/watch?v=qOgKMfvOjtk",
+        "https://www.youtube.com/watch?v=lHdMwrWGuTE"
       ]
     },
     {
@@ -7239,7 +7328,10 @@
       "boltCount": 12,
       "status": "published",
       "youtubeVideos": [
-        "https://www.youtube.com/watch?v=BW7i8i3S154"
+        "https://www.youtube.com/watch?v=BW7i8i3S154",
+        "https://www.youtube.com/watch?v=5PJ3o2sYu_c",
+        "https://www.youtube.com/watch?v=yUC7Vsg8f0I",
+        "https://www.youtube.com/watch?v=zQ2Q8gAWHLI"
       ]
     },
     {
@@ -7339,7 +7431,8 @@
       "youtubeVideos": [
         "https://www.youtube.com/watch?v=4NxpLqLv4pg",
         "https://www.youtube.com/watch?v=fTJtaVcZZAE",
-        "https://www.youtube.com/watch?v=eIc14AAI4LA"
+        "https://www.youtube.com/watch?v=eIc14AAI4LA",
+        "https://www.youtube.com/watch?v=mnMt1yNrX4I"
       ]
     },
     {
@@ -7361,7 +7454,8 @@
       "boltCount": 13,
       "status": "published",
       "youtubeVideos": [
-        "https://www.youtube.com/watch?v=gaN-UMvPkIU"
+        "https://www.youtube.com/watch?v=gaN-UMvPkIU",
+        "https://www.youtube.com/watch?v=eM6qZbCblfY"
       ]
     },
     {
@@ -7404,7 +7498,8 @@
         "https://www.youtube.com/watch?v=YFd3goWaVKQ",
         "https://www.youtube.com/watch?v=tvqsa10Etvw",
         "https://www.youtube.com/watch?v=SnOcRNlcKgI",
-        "https://www.youtube.com/watch?v=w-bW7oGGmPo"
+        "https://www.youtube.com/watch?v=w-bW7oGGmPo",
+        "https://www.youtube.com/watch?v=c-dh238zVUY"
       ]
     },
     {
@@ -7510,7 +7605,8 @@
       "youtubeVideos": [
         "https://www.youtube.com/watch?v=RDVstk8Teyg",
         "https://www.youtube.com/watch?v=NqvSHcEM1e8",
-        "https://www.youtube.com/watch?v=LKGMIqwRl7k"
+        "https://www.youtube.com/watch?v=LKGMIqwRl7k",
+        "https://www.youtube.com/watch?v=GIhKhg_m-UI"
       ]
     },
     {
@@ -7536,7 +7632,8 @@
         "https://www.youtube.com/watch?v=IhyA3Xpxo98",
         "https://www.youtube.com/watch?v=5Rh9HnacS4E",
         "https://www.youtube.com/watch?v=cLFDJJgvlGk",
-        "https://www.youtube.com/watch?v=UNfMMr71vh8"
+        "https://www.youtube.com/watch?v=UNfMMr71vh8",
+        "https://www.youtube.com/watch?v=4X6UMCQ2V8g"
       ]
     },
     {
@@ -7971,7 +8068,8 @@
       "boltCount": 12,
       "status": "published",
       "youtubeVideos": [
-        "https://www.youtube.com/watch?v=OUOWYMu9PLA"
+        "https://www.youtube.com/watch?v=OUOWYMu9PLA",
+        "https://www.youtube.com/watch?v=BzTBOPamJok"
       ]
     },
     {
@@ -7990,7 +8088,10 @@
       "firstAscentDate": "2007-09-03",
       "safetyRating": "●●●",
       "boltCount": 12,
-      "status": "published"
+      "status": "published",
+      "youtubeVideos": [
+        "https://www.youtube.com/watch?v=vdr5jFWL_dU"
+      ]
     },
     {
       "id": "LD-BACK-DOOR-91",
@@ -8335,7 +8436,12 @@
       "firstAscentEn": "Ta-Chi Wang",
       "safetyRating": "●●●",
       "boltCount": 11,
-      "status": "published"
+      "status": "published",
+      "youtubeVideos": [
+        "https://www.youtube.com/watch?v=G2U4N23jma0",
+        "https://www.youtube.com/watch?v=cnHiMlaCp7Y",
+        "https://www.youtube.com/watch?v=rePyV-mdkd4"
+      ]
     },
     {
       "id": "LD-LONG-LANE-426",
@@ -8644,7 +8750,11 @@
       "firstAscentEn": "Yen-Yi Wu",
       "safetyRating": "●●●",
       "boltCount": 9,
-      "status": "published"
+      "status": "published",
+      "youtubeVideos": [
+        "https://www.youtube.com/watch?v=jZnnS6XIVm8",
+        "https://www.youtube.com/watch?v=JXjjh0vYtQw"
+      ]
     },
     {
       "id": "LD-LONG-LANE-444",
@@ -8731,7 +8841,10 @@
       "status": "published",
       "youtubeVideos": [
         "https://www.youtube.com/watch?v=EjQwWpNo-zU",
-        "20161224 龍洞 長巷 天鉤 5.11a        Sammy Chen   https://www.youtube.com/watch?v=pEX3978iL_Y"
+        "20161224 龍洞 長巷 天鉤 5.11a        Sammy Chen   https://www.youtube.com/watch?v=pEX3978iL_Y",
+        "https://www.youtube.com/watch?v=pEX3978iL_Y",
+        "https://www.youtube.com/watch?v=TQsT9yp0xJE",
+        "https://www.youtube.com/watch?v=YZm8oJA8UFI"
       ]
     },
     {
@@ -9682,7 +9795,11 @@
       "description": "與 <珍珠項鍊> 共⽤ Anchor",
       "safetyRating": "●●●",
       "boltCount": 0,
-      "status": "published"
+      "status": "published",
+      "youtubeVideos": [
+        "https://www.youtube.com/watch?v=-8sCc4rHyZ0",
+        "https://www.youtube.com/watch?v=VqSDDEr4i-8"
+      ]
     },
     {
       "id": "LD-GOLDEN-VALLEY-131.0",
@@ -9843,7 +9960,8 @@
       "boltCount": 8,
       "status": "published",
       "youtubeVideos": [
-        "https://www.youtube.com/watch?v=VZRS6XCB2AQ"
+        "https://www.youtube.com/watch?v=VZRS6XCB2AQ",
+        "https://www.youtube.com/watch?v=VSDncuuK6rs"
       ]
     },
     {
@@ -10060,7 +10178,9 @@
         "https://www.youtube.com/watch?v=mouzLVq_e9s",
         "https://www.youtube.com/watch?v=mi1XqxzSdTs",
         "https://www.youtube.com/watch?v=wWY3409glyk",
-        "https://www.youtube.com/watch?v=B7bB1YykBbE"
+        "https://www.youtube.com/watch?v=B7bB1YykBbE",
+        "https://www.youtube.com/watch?v=lcqv2t-Ux1I",
+        "https://www.youtube.com/watch?v=cMatiQa5PM4"
       ]
     },
     {
@@ -10107,7 +10227,8 @@
       "boltCount": 9,
       "status": "published",
       "youtubeVideos": [
-        "https://www.youtube.com/watch?v=AtEapJneRv8"
+        "https://www.youtube.com/watch?v=AtEapJneRv8",
+        "https://www.youtube.com/watch?v=qrFBdbXppFI"
       ]
     },
     {
@@ -10187,7 +10308,10 @@
       "description": "Bolt 數量待確認",
       "safetyRating": "●●●",
       "boltCount": 11,
-      "status": "published"
+      "status": "published",
+      "youtubeVideos": [
+        "https://www.youtube.com/watch?v=ih9WJOEkOwI"
+      ]
     },
     {
       "id": "LD-GOLDEN-VALLEY-159.0",
@@ -10482,7 +10606,11 @@
       "description": "更新時將路線往上延伸，難度未定",
       "safetyRating": "●●●",
       "boltCount": 13,
-      "status": "published"
+      "status": "published",
+      "youtubeVideos": [
+        "https://www.youtube.com/watch?v=CDXxhGQZ8DY",
+        "https://www.youtube.com/watch?v=0AXERXfnB40"
+      ]
     },
     {
       "id": "LD-GOLDEN-VALLEY-175.0",
@@ -10559,7 +10687,10 @@
       "description": "與 <開光點睛> 共⽤ Anchor",
       "safetyRating": "●●●",
       "boltCount": 0,
-      "status": "published"
+      "status": "published",
+      "youtubeVideos": [
+        "https://www.youtube.com/watch?v=Jn8KgFXChZQ"
+      ]
     },
     {
       "id": "LD-GOLDEN-VALLEY-179.0",
@@ -10577,7 +10708,11 @@
       "firstAscentDate": "2000-07-22",
       "safetyRating": "●●●",
       "boltCount": 8,
-      "status": "published"
+      "status": "published",
+      "youtubeVideos": [
+        "https://www.youtube.com/watch?v=DUl3ggY6lOE",
+        "https://www.youtube.com/watch?v=ZrvGdhlkjic"
+      ]
     },
     {
       "id": "LD-GOLDEN-VALLEY-180.0",

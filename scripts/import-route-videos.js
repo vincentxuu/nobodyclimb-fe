@@ -147,14 +147,13 @@ function parseCSVLine(line) {
   return result
 }
 
-// 解析多行/分號分隔的 URL
+// 解析多種格式的 URL（以 https 為錨點）
 function parseUrls(text) {
   if (!text) return []
 
-  return text
-    .split(/[\n;]/)
-    .map((url) => url.trim())
-    .filter((url) => url.length > 0)
+  // 匹配所有 https:// 開頭的 URL（直到空白、逗號、分號或換行）
+  const matches = text.match(/https:\/\/[^\s,;，；\n]+/g)
+  return matches || []
 }
 
 // 從「標題 | URL」格式中提取 URL
@@ -286,14 +285,9 @@ function main() {
       const selectedYoutube = row['選擇的YouTube影片'] || row['YouTube影片'] || ''
       const suggestedYoutube = row['建議影片（標題 | URL）'] || row['建議影片'] || ''
 
-      let youtubeUrls = []
-      if (selectedYoutube) {
-        // 有手動選擇的，用選擇的
-        youtubeUrls = parseUrls(selectedYoutube)
-      } else if (suggestedYoutube) {
-        // 沒有手動選擇，用建議的全部
-        youtubeUrls = parseVideoList(suggestedYoutube)
-      }
+      // 合併所有可能的 URL 來源，統一用 parseUrls 提取
+      const allYoutubeText = [selectedYoutube, suggestedYoutube].filter(Boolean).join(' ')
+      let youtubeUrls = parseUrls(allYoutubeText)
 
       youtubeUrls = youtubeUrls.filter((url) => {
         if (isValidYoutubeUrl(url)) return true
@@ -302,9 +296,15 @@ function main() {
       })
 
       if (youtubeUrls.length > 0) {
-        route.youtubeVideos = youtubeUrls
-        stats.youtubeAdded += youtubeUrls.length
-        hasChanges = true
+        // 過濾掉已存在的 URL
+        const existingUrls = route.youtubeVideos || []
+        const newUrls = youtubeUrls.filter((url) => !existingUrls.includes(url))
+
+        if (newUrls.length > 0) {
+          route.youtubeVideos = [...existingUrls, ...newUrls]
+          stats.youtubeAdded += newUrls.length
+          hasChanges = true
+        }
       }
 
       // 處理 Instagram 貼文
