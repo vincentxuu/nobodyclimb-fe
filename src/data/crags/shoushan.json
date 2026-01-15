@@ -231,7 +231,10 @@
       "description": "2012使用glue-in抗酸鹼不繡鋼螺桿，外加不繡鋼耳片",
       "safetyRating": "●●●",
       "boltCount": 7,
-      "status": "published"
+      "status": "published",
+      "youtubeVideos": [
+        "https://www.youtube.com/watch?v=8HSyT57cfVc"
+      ]
     },
     {
       "id": "SS-OUTSIDE-WALL-002",
@@ -246,7 +249,10 @@
       "length": "11m",
       "safetyRating": "●●●",
       "boltCount": 7,
-      "status": "published"
+      "status": "published",
+      "youtubeVideos": [
+        "https://www.youtube.com/watch?v=GL85f3j3Idw"
+      ]
     },
     {
       "id": "SS-OUTSIDE-WALL-003",
@@ -333,7 +339,13 @@
       "description": "蠻費前臂體力外傾的路線，常常會爬到讓人雙臂充血，後來Top Anchors加高了2公尺使得爬起來更累人了",
       "safetyRating": "●●●",
       "boltCount": 7,
-      "status": "published"
+      "status": "published",
+      "youtubeVideos": [
+        "https://www.youtube.com/watch?v=FzJJ-W9bCKg",
+        "https://www.youtube.com/watch?v=gg8iDyGsiM0",
+        "https://www.youtube.com/watch?v=q1BleiBCdHI",
+        "https://www.youtube.com/watch?v=Qf5AZCRRxQI"
+      ]
     },
     {
       "id": "SS-OUTSIDE-WALL-008",
@@ -353,7 +365,8 @@
       "boltCount": 6,
       "status": "published",
       "youtubeVideos": [
-        "https://www.youtube.com/watch?v=41UWrqM8ajg"
+        "https://www.youtube.com/watch?v=41UWrqM8ajg",
+        "https://www.youtube.com/watch?v=V93nf3izh_o"
       ]
     },
     {
@@ -714,7 +727,8 @@
       "status": "published",
       "youtubeVideos": [
         "https://www.youtube.com/watch?v=5mR9PT8qWuc",
-        "https://www.youtube.com/watch?v=O2oa_xVYxR8"
+        "https://www.youtube.com/watch?v=O2oa_xVYxR8",
+        "https://www.youtube.com/watch?v=gSDzjsgKWnA"
       ]
     },
     {
@@ -757,7 +771,9 @@
       "boltCount": 5,
       "status": "published",
       "youtubeVideos": [
-        "https://www.youtube.com/watch?v=IDvpQdS0F0Y"
+        "https://www.youtube.com/watch?v=IDvpQdS0F0Y",
+        "https://www.youtube.com/watch?v=WZmotJiDQtQ",
+        "https://www.youtube.com/watch?v=fyTs57gJbcY"
       ]
     },
     {
@@ -774,7 +790,10 @@
       "description": "從蛹夢起攀，之後接龍門的上半部",
       "safetyRating": "●●●",
       "boltCount": 5,
-      "status": "published"
+      "status": "published",
+      "youtubeVideos": [
+        "https://www.youtube.com/watch?v=4JFK7Fy5f3g"
+      ]
     },
     {
       "id": "SS-PLATFORM-UPPER-015",
@@ -1037,7 +1056,11 @@
       "description": "2014/02使用不繡鋼glue-in bolts",
       "safetyRating": "●●●",
       "boltCount": 5,
-      "status": "published"
+      "status": "published",
+      "youtubeVideos": [
+        "https://www.youtube.com/watch?v=gIecylH4yOg",
+        "https://www.youtube.com/watch?v=7b4oYOcSYOE"
+      ]
     },
     {
       "id": "SS-PLATFORM-LOWER-016",
@@ -1315,7 +1338,12 @@
       "boltCount": 7,
       "status": "published",
       "youtubeVideos": [
-        "https://www.youtube.com/watch?v=14zOqJ5I1ek"
+        "https://www.youtube.com/watch?v=14zOqJ5I1ek",
+        "https://www.youtube.com/watch?v=fN3wbJ9lckM",
+        "https://www.youtube.com/watch?v=9QeedA-0p1U",
+        "https://www.youtube.com/watch?v=uKdbZFHZ9a4",
+        "https://www.youtube.com/watch?v=utSKhc3x5jY",
+        "https://www.youtube.com/watch?v=T6guQ_hJnHc"
       ]
     },
     {
@@ -1352,7 +1380,10 @@
       "firstAscentDate": "2015-01-25",
       "safetyRating": "●●●",
       "boltCount": 7,
-      "status": "published"
+      "status": "published",
+      "youtubeVideos": [
+        "https://www.youtube.com/watch?v=OMFzG4bLEw4"
+      ]
     },
     {
       "id": "SS-HEARTLESS-VALLEY-006",
@@ -1387,7 +1418,10 @@
       "description": "整條路線難度平均、外傾",
       "safetyRating": "●●●",
       "boltCount": 7,
-      "status": "published"
+      "status": "published",
+      "youtubeVideos": [
+        "https://www.youtube.com/watch?v=gkJT7_3UjwU"
+      ]
     },
     {
       "id": "SS-HEARTLESS-VALLEY-008",
@@ -1407,7 +1441,12 @@
       "boltCount": 7,
       "status": "published",
       "youtubeVideos": [
-        "https://www.youtube.com/watch?v=Sk7NCRV0F1Q"
+        "https://www.youtube.com/watch?v=Sk7NCRV0F1Q",
+        "https://www.youtube.com/watch?v=AStxdtJcKmo",
+        "https://www.youtube.com/watch?v=7AyKpYd_D6g",
+        "https://www.youtube.com/watch?v=h0JjI-yGRlA",
+        "https://www.youtube.com/watch?v=hjWROVtr7QE",
+        "https://www.youtube.com/watch?v=ysXemhYmdw0"
       ]
     },
     {
@@ -1586,7 +1625,13 @@
       "description": "左邊路線，手點大多不錯考驗耐力，避免去左邊的錯距裂隙，有兩個舊的耳片通常不使用",
       "safetyRating": "●●●",
       "boltCount": 7,
-      "status": "published"
+      "status": "published",
+      "youtubeVideos": [
+        "https://www.youtube.com/watch?v=01pbP1AV36c",
+        "https://www.youtube.com/watch?v=b8Bc0UMcp6A",
+        "https://www.youtube.com/watch?v=k4uzqsZyDUw",
+        "https://www.youtube.com/watch?v=A76Hug1AK6w"
+      ]
     },
     {
       "id": "SS-SKYLINE-006",
@@ -1602,7 +1647,10 @@
       "description": "右1路線，考驗指力與平衡的路線，難關分別在第二及最後一個bolts處。右邊的岩角不得使用，上方anchor與Skyline awesome共用",
       "safetyRating": "●●●",
       "boltCount": 6,
-      "status": "published"
+      "status": "published",
+      "youtubeVideos": [
+        "https://www.youtube.com/watch?v=j34zCOTwkp8"
+      ]
     },
     {
       "id": "SS-SKYLINE-007",
@@ -1620,7 +1668,15 @@
       "boltCount": 7,
       "status": "published",
       "youtubeVideos": [
-        "https://www.youtube.com/watch?v=3rQEPLpy48g"
+        "https://www.youtube.com/watch?v=3rQEPLpy48g",
+        "https://www.youtube.com/watch?v=XIUAWIlwOyM",
+        "https://www.youtube.com/watch?v=xTFkBZTuNOU",
+        "https://www.youtube.com/watch?v=mt98YsJy3rY",
+        "https://www.youtube.com/watch?v=I58uDI61Sr0",
+        "https://www.youtube.com/watch?v=lMuyxnOxPW8",
+        "https://www.youtube.com/watch?v=2xMq6EGMAws",
+        "https://www.youtube.com/watch?v=1BSi4D2Thmk",
+        "https://www.youtube.com/watch?v=V0eB5oEomAA"
       ]
     },
     {
@@ -1639,7 +1695,8 @@
       "boltCount": 6,
       "status": "published",
       "youtubeVideos": [
-        "https://www.youtube.com/watch?v=hG0y4ymK7vQ"
+        "https://www.youtube.com/watch?v=hG0y4ymK7vQ",
+        "https://www.youtube.com/watch?v=jBM8XeHchXg"
       ]
     },
     {
@@ -1656,7 +1713,13 @@
       "description": "左2路線，半月型地形起攀，第四及五bolts左邊有舊的耳片已不能使用，到橫裂隙之後往右上攀爬至top anchor",
       "safetyRating": "●●●",
       "boltCount": 7,
-      "status": "published"
+      "status": "published",
+      "youtubeVideos": [
+        "https://www.youtube.com/watch?v=zIhCfHSx79U",
+        "https://www.youtube.com/watch?v=oFrl99Q2-UI",
+        "https://www.youtube.com/watch?v=Nq9J0fVang4",
+        "https://www.youtube.com/watch?v=EFF9xwFcypY"
+      ]
     },
     {
       "id": "SS-SKYLINE-010",
@@ -1674,7 +1737,9 @@
       "boltCount": 7,
       "status": "published",
       "youtubeVideos": [
-        "https://www.youtube.com/watch?v=ltKcnOul1yo"
+        "https://www.youtube.com/watch?v=ltKcnOul1yo",
+        "https://www.youtube.com/watch?v=arixW1Y7uAM",
+        "https://www.youtube.com/watch?v=5DYauPgNKQk"
       ]
     },
     {
@@ -1723,7 +1788,11 @@
       "description": "右1路線，沿著樹幹起攀小心不要掉到下方洞裡",
       "safetyRating": "●●●",
       "boltCount": 7,
-      "status": "published"
+      "status": "published",
+      "youtubeVideos": [
+        "https://www.youtube.com/watch?v=KfrdABO7IlY",
+        "https://www.youtube.com/watch?v=xN5OcccKBFM"
+      ]
     },
     {
       "id": "SS-SKYLINE-014",
@@ -1803,7 +1872,10 @@
       "description": "第一個bolt偏高且動作比較困難建議新手預先掛好快扣再攀登，不可使用右邊的直裂隙",
       "safetyRating": "●●●",
       "boltCount": 5,
-      "status": "published"
+      "status": "published",
+      "youtubeVideos": [
+        "https://www.youtube.com/watch?v=AefNDWtGcG0"
+      ]
     },
     {
       "id": "SS-GRAND-CANYON-001",
@@ -1899,7 +1971,12 @@
       "description": "大峽谷經典的路線，型態與其它路線不同，共有兩個難關在第二及第五個bolt處。前兩個bolt墜落會有撞到後方石頭的風險，需格外小心",
       "safetyRating": "●●",
       "boltCount": 7,
-      "status": "published"
+      "status": "published",
+      "youtubeVideos": [
+        "https://www.youtube.com/watch?v=FwSwA7lkzeM",
+        "https://www.youtube.com/watch?v=SsIcKW47SNY",
+        "https://www.youtube.com/watch?v=QmhUl14FdUQ"
+      ]
     },
     {
       "id": "SS-GRAND-CANYON-007",
@@ -1915,7 +1992,10 @@
       "description": "小手點與小腳點的指力路線，有些點易碎，確保要特別注意。第四個bolt的地方左右各有一顆bolt，必須爬在兩個bolt之間，上方anchor與Big butts on Saturday night共用。前兩個bolt墜落會有撞到後方石頭的風險，需格外小心",
       "safetyRating": "●●",
       "boltCount": 6,
-      "status": "published"
+      "status": "published",
+      "youtubeVideos": [
+        "https://www.youtube.com/watch?v=4YVbBJM1__0"
+      ]
     },
     {
       "id": "SS-GRAND-CANYON-008",
@@ -1931,7 +2011,10 @@
       "description": "路線名稱源自於某天開發者帶了一位穿短褲的朋友來攀爬時發生的糗事，前兩個bolts直上後往右上到第四個bolt邊有一顆球型的手點後直上，球型點為界限以右是Balls in的手點，攀爬本路線不得使用",
       "safetyRating": "●●●",
       "boltCount": 6,
-      "status": "published"
+      "status": "published",
+      "youtubeVideos": [
+        "https://www.youtube.com/watch?v=w160Kbf96Lg"
+      ]
     },
     {
       "id": "SS-GRAND-CANYON-009",
@@ -1947,7 +2030,13 @@
       "description": "考驗爆發力、指力耐力、平衡、腳點處理及心理素質的路線，前半段手點相對好一點但是若搞錯手順會倍感困難，第三個bolt左上的球型手點開始連續難關，球型點以左的點是Balls out的手點，攀爬本路線不得使用。最後三個bolts的距離很遠，確保者要非常小心，上方anchor與Balls out共用",
       "safetyRating": "●●",
       "boltCount": 6,
-      "status": "published"
+      "status": "published",
+      "youtubeVideos": [
+        "https://www.youtube.com/watch?v=HbiS3fBwcXg",
+        "https://www.youtube.com/watch?v=VH1ViJLWYbs",
+        "https://www.youtube.com/watch?v=xKmr6vxPQ8Y",
+        "https://www.youtube.com/watch?v=hFW-jTohMpA"
+      ]
     },
     {
       "id": "SS-GRAND-CANYON-010",
@@ -1979,7 +2068,10 @@
       "description": "結合了前三分之二Grace的難關與Desperado的最後難關，整體上比Desperado更加困難。第四個bolt以後往左上橫渡，上方anchor與Desperado共用",
       "safetyRating": "●●●",
       "boltCount": 7,
-      "status": "published"
+      "status": "published",
+      "youtubeVideos": [
+        "https://www.youtube.com/watch?v=H0IjB-BePZk"
+      ]
     },
     {
       "id": "SS-GRAND-CANYON-012",
@@ -2011,7 +2103,13 @@
       "description": "起攀第一個bolt是一段外傾抱石，翻上去第二個bolt後路線變成平衡型態，最後難關是一條斜裂隙，避免轉折太多建議加長快扣，上方anchor與Grace共用",
       "safetyRating": "●●●",
       "boltCount": 6,
-      "status": "published"
+      "status": "published",
+      "youtubeVideos": [
+        "https://www.youtube.com/watch?v=Fawvsb_5TX4",
+        "https://www.youtube.com/watch?v=2-VBZUjZoeg",
+        "https://www.youtube.com/watch?v=DJ0KWavJ0Tk",
+        "https://www.youtube.com/watch?v=nF4wWaWmPtw"
+      ]
     },
     {
       "id": "SS-GRAND-CANYON-014",
