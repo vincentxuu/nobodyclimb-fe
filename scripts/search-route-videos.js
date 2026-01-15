@@ -85,22 +85,16 @@ function searchYouTube(query, limit = 5) {
 }
 
 // 檢查影片標題是否與路線相關
-function isRelevantVideo(video, routeName, routeNameEn, cragName) {
+function isRelevantVideo(video, routeName, routeNameEn) {
   const title = video.title.toLowerCase()
   const name = routeName.toLowerCase()
   const nameEn = (routeNameEn || '').toLowerCase()
-  const crag = cragName.toLowerCase()
 
-  // 標題包含路線名稱（中文或英文）
+  // 標題必須包含路線名稱（中文或英文）
   if (name && title.includes(name)) return true
-  if (nameEn && title.includes(nameEn)) return true
+  if (nameEn && nameEn.length > 2 && title.includes(nameEn)) return true
 
-  // 標題包含岩場名稱且有攀岩相關字
-  const climbingKeywords = ['攀岩', 'climb', 'climbing', '攀登', 'rock', '龍洞', 'longdong']
-  const hasClimbingKeyword = climbingKeywords.some((kw) => title.includes(kw))
-  const hasCragName = title.includes(crag)
-
-  return hasClimbingKeyword && hasCragName
+  return false
 }
 
 // 轉義 CSV 欄位
@@ -201,7 +195,7 @@ async function main() {
 
     // 過濾相關影片
     const relevantVideos = allVideos.filter((v) =>
-      isRelevantVideo(v, route.name, route.nameEn, crag.name)
+      isRelevantVideo(v, route.name, route.nameEn)
     )
 
     // 如果沒有相關影片，嘗試用英文名搜尋
@@ -210,7 +204,7 @@ async function main() {
       const searchQueryEn = `${crag.nameEn || crag.name} ${route.nameEn} climbing`
       const allVideosEn = searchYouTube(searchQueryEn, limit)
       videos = allVideosEn.filter((v) =>
-        isRelevantVideo(v, route.name, route.nameEn, crag.name)
+        isRelevantVideo(v, route.name, route.nameEn)
       )
     }
 
