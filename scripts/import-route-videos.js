@@ -41,24 +41,75 @@ function parseCSV(content) {
   // 移除 BOM
   content = content.replace(/^\uFEFF/, '')
 
-  const lines = content.split('\n').filter((line) => line.trim())
-  if (lines.length < 2) return []
-
-  // 解析標頭
-  const headers = parseCSVLine(lines[0])
-
-  // 解析資料
+  // 正確處理帶有換行的引號欄位
   const rows = []
-  for (let i = 1; i < lines.length; i++) {
-    const values = parseCSVLine(lines[i])
+  let currentRow = []
+  let currentCell = ''
+  let inQuotes = false
+
+  for (let i = 0; i < content.length; i++) {
+    const char = content[i]
+    const nextChar = content[i + 1]
+
+    if (inQuotes) {
+      if (char === '"' && nextChar === '"') {
+        // 轉義的引號
+        currentCell += '"'
+        i++
+      } else if (char === '"') {
+        // 結束引號
+        inQuotes = false
+      } else {
+        // 引號內的任何字元（包括換行）
+        currentCell += char
+      }
+    } else {
+      if (char === '"') {
+        // 開始引號
+        inQuotes = true
+      } else if (char === ',') {
+        // 欄位分隔
+        currentRow.push(currentCell)
+        currentCell = ''
+      } else if (char === '\n' || (char === '\r' && nextChar === '\n')) {
+        // 行結束
+        if (char === '\r') i++ // 跳過 \r\n 的 \n
+        currentRow.push(currentCell)
+        if (currentRow.some(cell => cell.trim())) {
+          rows.push(currentRow)
+        }
+        currentRow = []
+        currentCell = ''
+      } else if (char !== '\r') {
+        currentCell += char
+      }
+    }
+  }
+
+  // 處理最後一行
+  if (currentCell || currentRow.length > 0) {
+    currentRow.push(currentCell)
+    if (currentRow.some(cell => cell.trim())) {
+      rows.push(currentRow)
+    }
+  }
+
+  if (rows.length < 2) return []
+
+  // 第一行是標頭
+  const headers = rows[0]
+  const result = []
+
+  for (let i = 1; i < rows.length; i++) {
+    const values = rows[i]
     const row = {}
     for (let j = 0; j < headers.length; j++) {
       row[headers[j]] = values[j] || ''
     }
-    rows.push(row)
+    result.push(row)
   }
 
-  return rows
+  return result
 }
 
 // 解析單行 CSV（處理引號）
