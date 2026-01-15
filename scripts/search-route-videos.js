@@ -84,15 +84,25 @@ function searchYouTube(query, limit = 5) {
   }
 }
 
+// 提取路線主要名稱（去除括號內容）
+function extractMainName(name) {
+  if (!name) return ''
+  // "劍 (舊名：劍直上)" → "劍"
+  // "Some Route (old name)" → "Some Route"
+  return name.split(/[\(（]/)[0].trim()
+}
+
 // 檢查影片標題是否與路線相關
 function isRelevantVideo(video, routeName, routeNameEn) {
   const title = video.title.toLowerCase()
-  const name = routeName.toLowerCase()
-  const nameEn = (routeNameEn || '').toLowerCase()
+
+  // 提取主要名稱
+  const mainName = extractMainName(routeName).toLowerCase()
+  const mainNameEn = extractMainName(routeNameEn).toLowerCase()
 
   // 標題必須包含路線名稱（中文或英文）
-  if (name && title.includes(name)) return true
-  if (nameEn && nameEn.length > 2 && title.includes(nameEn)) return true
+  if (mainName && title.includes(mainName)) return true
+  if (mainNameEn && mainNameEn.length > 2 && title.includes(mainNameEn)) return true
 
   return false
 }
@@ -180,9 +190,10 @@ async function main() {
     processed++
     const progress = `[${processed}/${total}]`
 
-    // 建立搜尋關鍵字（更精確）
-    const searchQuery = `${crag.name} ${route.name} ${route.grade} 攀岩`
-    process.stdout.write(`${progress} 搜尋: ${route.name} (${route.grade})...`)
+    // 建立搜尋關鍵字（用主要名稱）
+    const mainRouteName = extractMainName(route.name)
+    const searchQuery = `${crag.name} ${mainRouteName} ${route.grade} 攀岩`
+    process.stdout.write(`${progress} 搜尋: ${mainRouteName} (${route.grade})...`)
 
     const allVideos = searchYouTube(searchQuery, limit)
 
@@ -194,7 +205,8 @@ async function main() {
     // 如果沒有相關影片，嘗試用英文名搜尋
     let videos = relevantVideos
     if (videos.length === 0 && route.nameEn) {
-      const searchQueryEn = `${crag.nameEn || crag.name} ${route.nameEn} climbing`
+      const mainRouteNameEn = extractMainName(route.nameEn)
+      const searchQueryEn = `${crag.nameEn || crag.name} ${mainRouteNameEn} climbing`
       const allVideosEn = searchYouTube(searchQueryEn, limit)
       videos = allVideosEn.filter((v) =>
         isRelevantVideo(v, route.name, route.nameEn)
