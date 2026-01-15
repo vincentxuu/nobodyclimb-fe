@@ -116,10 +116,10 @@ export function BiographySection() {
   }, [])
 
   return (
-    <section className="border-t border-[#D2D2D2] py-16 md:py-20">
+    <section className="pt-8 pb-16 md:pt-12 md:pb-20">
       <div className="container mx-auto px-4">
         <div className="mb-8 text-center">
-          <h2 className="text-3xl font-bold text-[#1B1A1A] md:text-[40px]">熱門人物誌</h2>
+          <h2 className="text-3xl font-bold text-[#1B1A1A] md:text-[40px]">人物誌</h2>
           <p className="mt-4 text-base text-[#6D6C6C]">認識這些熱愛攀岩的小人物們</p>
         </div>
 
