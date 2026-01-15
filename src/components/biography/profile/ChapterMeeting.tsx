@@ -15,7 +15,7 @@ interface ChapterMeetingProps {
 export function ChapterMeeting({ person }: ChapterMeetingProps) {
   if (!person.climbing_origin) return null
 
-  const imageUrl = person.avatar_url
+  const imageUrl = person.cover_image
   const paragraphs = person.climbing_origin.split('\n').filter(p => p.trim())
 
   return (
