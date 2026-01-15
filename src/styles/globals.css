@@ -92,6 +92,8 @@
 
   body {
     @apply bg-background text-foreground;
+    /* 確保行動裝置可以滾動 */
+    -webkit-overflow-scrolling: touch;
   }
 }
 

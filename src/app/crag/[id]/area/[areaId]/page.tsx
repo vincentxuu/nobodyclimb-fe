@@ -174,7 +174,7 @@ export default function AreaDetailPage({
 
           {/* 路線列表 */}
           <div className="mt-10 border-t border-gray-200 pt-8">
-            <CragRouteSection routes={routes} />
+            <CragRouteSection routes={routes} cragId={cragId} />
           </div>
 
           {/* 其他區域推薦 */}

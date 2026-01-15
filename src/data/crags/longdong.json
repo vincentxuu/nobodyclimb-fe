@@ -91,7 +91,29 @@
       "description": "校門口攀登區域",
       "descriptionEn": "School Gate climbing area",
       "boltCount": 197,
-      "routesCount": 51
+      "routesCount": 51,
+      "sectors": [
+        {
+          "id": "face-rock",
+          "name": "人面岩",
+          "nameEn": "Disco"
+        },
+        {
+          "id": "school-gate-main",
+          "name": "校門口",
+          "nameEn": "School Gate"
+        },
+        {
+          "id": "door-eaves",
+          "name": "門簷",
+          "nameEn": "Apprentice"
+        },
+        {
+          "id": "illusion-wall",
+          "name": "騙人的牆",
+          "nameEn": "Illusion Wall"
+        }
+      ]
     },
     {
       "id": "clocktower",
@@ -100,7 +122,44 @@
       "description": "鐘塔攀登區域",
       "descriptionEn": "Clocktower climbing area",
       "boltCount": 69,
-      "routesCount": 54
+      "routesCount": 54,
+      "sectors": [
+        {
+          "id": "discipline-office",
+          "name": "訓導處",
+          "nameEn": "Discipline Office"
+        },
+        {
+          "id": "pondside",
+          "name": "水池畔",
+          "nameEn": "Pondside"
+        },
+        {
+          "id": "left-clocktower",
+          "name": "左鐘塔",
+          "nameEn": "Left Clocktower"
+        },
+        {
+          "id": "clocktower-main",
+          "name": "鐘塔",
+          "nameEn": "Clocktower"
+        },
+        {
+          "id": "mt-rushmore",
+          "name": "總統頭像山",
+          "nameEn": "Mt. Rushmore"
+        },
+        {
+          "id": "short-alley",
+          "name": "短巷",
+          "nameEn": "Short Alley"
+        },
+        {
+          "id": "oceanside",
+          "name": "臨海面",
+          "nameEn": "Oceanside"
+        }
+      ]
     },
     {
       "id": "long-lane",
@@ -109,7 +168,24 @@
       "description": "長巷攀登區域",
       "descriptionEn": "Long Lane climbing area",
       "boltCount": 183,
-      "routesCount": 47
+      "routesCount": 47,
+      "sectors": [
+        {
+          "id": "bulletin-board",
+          "name": "佈告欄",
+          "nameEn": "Bulletin Board"
+        },
+        {
+          "id": "long-lane-main",
+          "name": "長巷",
+          "nameEn": "Long Lane"
+        },
+        {
+          "id": "wooden-bridge",
+          "name": "獨木橋畔",
+          "nameEn": "Wooden Bridge"
+        }
+      ]
     },
     {
       "id": "music-hall",
@@ -118,7 +194,44 @@
       "description": "音樂廳攀登區域",
       "descriptionEn": "Music Hall climbing area",
       "boltCount": 149,
-      "routesCount": 103
+      "routesCount": 103,
+      "sectors": [
+        {
+          "id": "broken-faces",
+          "name": "破碎面",
+          "nameEn": "Broken Faces"
+        },
+        {
+          "id": "left-face",
+          "name": "左面",
+          "nameEn": "Left Face"
+        },
+        {
+          "id": "main-face",
+          "name": "正面",
+          "nameEn": "Main Face"
+        },
+        {
+          "id": "north-face",
+          "name": "北面",
+          "nameEn": "North Face"
+        },
+        {
+          "id": "stage",
+          "name": "演奏台",
+          "nameEn": "Recital Hall"
+        },
+        {
+          "id": "balcony",
+          "name": "包廂",
+          "nameEn": "Balcony"
+        },
+        {
+          "id": "whale-head",
+          "name": "鯨魚頭",
+          "nameEn": "Whale’s Head"
+        }
+      ]
     },
     {
       "id": "grand-auditorium",
@@ -127,7 +240,39 @@
       "description": "大禮堂攀登區域",
       "descriptionEn": "Grand Auditorium climbing area",
       "boltCount": 116,
-      "routesCount": 42
+      "routesCount": 42,
+      "sectors": [
+        {
+          "id": "upper-dragon-spine",
+          "name": "上龍脊",
+          "nameEn": "Upper Dragon Ridge"
+        },
+        {
+          "id": "south-side",
+          "name": "南側",
+          "nameEn": "South Side"
+        },
+        {
+          "id": "great-slab",
+          "name": "大斜板",
+          "nameEn": "Great Slab"
+        },
+        {
+          "id": "west-face",
+          "name": "西面",
+          "nameEn": "West Face"
+        },
+        {
+          "id": "verdon-valley",
+          "name": "凡登峽谷",
+          "nameEn": "Verdon Valley"
+        },
+        {
+          "id": "dragon-pillar",
+          "name": "龍柱",
+          "nameEn": "Dragon Pillar"
+        }
+      ]
     },
     {
       "id": "first-cave",
@@ -136,7 +281,54 @@
       "description": "第一洞攀登區域",
       "descriptionEn": "First Cave climbing area",
       "boltCount": 594,
-      "routesCount": 68
+      "routesCount": 68,
+      "sectors": [
+        {
+          "id": "cave-exterior-left",
+          "name": "洞外左側",
+          "nameEn": "Route info"
+        },
+        {
+          "id": "above-cave",
+          "name": "洞之上",
+          "nameEn": "Headwall"
+        },
+        {
+          "id": "inside-first-cave",
+          "name": "第一洞內",
+          "nameEn": "Headwall"
+        },
+        {
+          "id": "south-face",
+          "name": "南面",
+          "nameEn": "Interior"
+        },
+        {
+          "id": "west-face",
+          "name": "西面",
+          "nameEn": "Interior"
+        },
+        {
+          "id": "northeast-face",
+          "name": "東北面",
+          "nameEn": "Interior"
+        },
+        {
+          "id": "outer-wall",
+          "name": "外牆",
+          "nameEn": "Outer Wall"
+        },
+        {
+          "id": "dragon-spine-lower",
+          "name": "龍脊背面下半部",
+          "nameEn": "Lower Dragon Ridge"
+        },
+        {
+          "id": "dragon-spine-upper",
+          "name": "龍脊背面上半部",
+          "nameEn": "Yellow Wall"
+        }
+      ]
     },
     {
       "id": "second-cave",
@@ -145,7 +337,34 @@
       "description": "第二洞攀登區域",
       "descriptionEn": "Second Cave climbing area",
       "boltCount": 77,
-      "routesCount": 46
+      "routesCount": 46,
+      "sectors": [
+        {
+          "id": "back-porch",
+          "name": "後院",
+          "nameEn": "Back Porch"
+        },
+        {
+          "id": "sunshine-wall",
+          "name": "陽光面",
+          "nameEn": "Sunshine Wall"
+        },
+        {
+          "id": "entrance-cracks",
+          "name": "入口裂隙",
+          "nameEn": "Entrance Cracks"
+        },
+        {
+          "id": "rain-wall",
+          "name": "雨牆",
+          "nameEn": "Rain Wall"
+        },
+        {
+          "id": "exterior-wall",
+          "name": "洞外岩壁",
+          "nameEn": "Cave Rock"
+        }
+      ]
     },
     {
       "id": "golden-valley",
@@ -154,7 +373,54 @@
       "description": "黃金谷攀登區域",
       "descriptionEn": "Golden Valley climbing area",
       "boltCount": 284,
-      "routesCount": 100
+      "routesCount": 100,
+      "sectors": [
+        {
+          "id": "catwalk",
+          "name": "伸展台",
+          "nameEn": "Catwalk"
+        },
+        {
+          "id": "beyond-waves",
+          "name": "浪之外",
+          "nameEn": "Euro Wall"
+        },
+        {
+          "id": "gold-rock",
+          "name": "黃金岩",
+          "nameEn": "Gold Wall"
+        },
+        {
+          "id": "black-rock",
+          "name": "黑岩",
+          "nameEn": "Black Wall"
+        },
+        {
+          "id": "legend-rock",
+          "name": "傳奇岩",
+          "nameEn": "Legend Wall"
+        },
+        {
+          "id": "bikini-cave",
+          "name": "比基尼洞穴",
+          "nameEn": "Bikini Cave"
+        },
+        {
+          "id": "tower-rock",
+          "name": "塔岩",
+          "nameEn": "Tower Wall"
+        },
+        {
+          "id": "dragon-boat-rock",
+          "name": "龍船岩",
+          "nameEn": "Dragon Boat Wall"
+        },
+        {
+          "id": "lost-dragon-tower",
+          "name": "失落的龍塔",
+          "nameEn": "Lost Dragon Spire"
+        }
+      ]
     },
     {
       "id": "back-door",
@@ -163,7 +429,39 @@
       "description": "後門攀登區域",
       "descriptionEn": "Back Door climbing area",
       "boltCount": 435,
-      "routesCount": 105
+      "routesCount": 105,
+      "sectors": [
+        {
+          "id": "b1",
+          "name": "地下一樓",
+          "nameEn": "B1"
+        },
+        {
+          "id": "basement-steps",
+          "name": "地下室台階",
+          "nameEn": "Basement Steps"
+        },
+        {
+          "id": "basement",
+          "name": "地下二樓",
+          "nameEn": "Basement"
+        },
+        {
+          "id": "old-man-wall",
+          "name": "老人牆",
+          "nameEn": "Old Man Wall"
+        },
+        {
+          "id": "crocodile-cape",
+          "name": "鱷魚岬",
+          "nameEn": "Crocodile Cape"
+        },
+        {
+          "id": "po-wall",
+          "name": "美好的懸岩",
+          "nameEn": "P.O. Wall"
+        }
+      ]
     }
   ],
   "routes": [
@@ -2771,7 +3069,7 @@
       "id": "LD-GRAND-AUDITORIUM-303",
       "areaId": "grand-auditorium",
       "sector": "上龍脊",
-      "sectorEn": "Upper Dragon Ridge",
+      "sectorEn": "",
       "name": "上龍脊",
       "nameEn": "Upper Dragon Ridge",
       "grade": "5.7",
@@ -2787,7 +3085,7 @@
       "id": "LD-GRAND-AUDITORIUM-304",
       "areaId": "grand-auditorium",
       "sector": "南側",
-      "sectorEn": "South Side",
+      "sectorEn": "",
       "name": "龍脊左路",
       "nameEn": "Dragon Ridge Left",
       "grade": "5.4",
@@ -2803,7 +3101,7 @@
       "id": "LD-GRAND-AUDITORIUM-305",
       "areaId": "grand-auditorium",
       "sector": "南側",
-      "sectorEn": "South Side",
+      "sectorEn": "",
       "name": "龍脊中路",
       "nameEn": "Dragon Ridge Center",
       "grade": "5.5",
@@ -2819,7 +3117,7 @@
       "id": "LD-GRAND-AUDITORIUM-306",
       "areaId": "grand-auditorium",
       "sector": "南側",
-      "sectorEn": "South Side",
+      "sectorEn": "",
       "name": "龍脊右路",
       "nameEn": "Dragon Ridge Right",
       "grade": "5.6",
@@ -2835,7 +3133,7 @@
       "id": "LD-GRAND-AUDITORIUM-307",
       "areaId": "grand-auditorium",
       "sector": "南側",
-      "sectorEn": "South Side",
+      "sectorEn": "",
       "name": "垃圾斜板",
       "nameEn": "Junk Slab",
       "grade": "5.7",
@@ -2850,7 +3148,7 @@
       "id": "LD-GRAND-AUDITORIUM-308",
       "areaId": "grand-auditorium",
       "sector": "大斜板",
-      "sectorEn": "Great Slab",
+      "sectorEn": "",
       "name": "三角關係",
       "nameEn": "Two-timer",
       "grade": "5.8",
@@ -2864,7 +3162,7 @@
       "id": "LD-GRAND-AUDITORIUM-309",
       "areaId": "grand-auditorium",
       "sector": "大斜板",
-      "sectorEn": "Great Slab",
+      "sectorEn": "",
       "name": "小裂隙",
       "nameEn": "Thin Crack",
       "grade": "5.11c",
@@ -2879,7 +3177,7 @@
       "id": "LD-GRAND-AUDITORIUM-310",
       "areaId": "grand-auditorium",
       "sector": "大斜板",
-      "sectorEn": "Great Slab",
+      "sectorEn": "",
       "name": "祕密開關",
       "nameEn": "Secret Switch",
       "grade": "5.10d",
@@ -2894,7 +3192,7 @@
       "id": "LD-GRAND-AUDITORIUM-311",
       "areaId": "grand-auditorium",
       "sector": "大斜板",
-      "sectorEn": "Great Slab",
+      "sectorEn": "",
       "name": "嬰兒之家",
       "nameEn": "Womb",
       "grade": "5.11a",
@@ -2917,7 +3215,7 @@
       "id": "LD-GRAND-AUDITORIUM-312",
       "areaId": "grand-auditorium",
       "sector": "大斜板",
-      "sectorEn": "Great Slab",
+      "sectorEn": "",
       "name": "面壁",
       "nameEn": "Face the Wall",
       "grade": "5.6",
@@ -2932,7 +3230,7 @@
       "id": "LD-GRAND-AUDITORIUM-313",
       "areaId": "grand-auditorium",
       "sector": "大斜板",
-      "sectorEn": "Great Slab",
+      "sectorEn": "",
       "name": "通道",
       "nameEn": "Canaleta",
       "grade": "5.4",
@@ -2947,7 +3245,7 @@
       "id": "LD-GRAND-AUDITORIUM-314",
       "areaId": "grand-auditorium",
       "sector": "大斜板",
-      "sectorEn": "Great Slab",
+      "sectorEn": "",
       "name": "大斜板內角",
       "nameEn": "Great Slab Dihedral",
       "grade": "5.6",
@@ -2962,7 +3260,7 @@
       "id": "LD-GRAND-AUDITORIUM-314.1",
       "areaId": "grand-auditorium",
       "sector": "大斜板",
-      "sectorEn": "Great Slab",
+      "sectorEn": "",
       "name": "左翼",
       "nameEn": "Left Wing",
       "grade": "5.10?",
@@ -2979,7 +3277,7 @@
       "id": "LD-GRAND-AUDITORIUM-314.2",
       "areaId": "grand-auditorium",
       "sector": "大斜板",
-      "sectorEn": "Great Slab",
+      "sectorEn": "",
       "name": "臉部辨識",
       "nameEn": "Facial Network",
       "grade": "5.10?",
@@ -2996,7 +3294,7 @@
       "id": "LD-GRAND-AUDITORIUM-314.3",
       "areaId": "grand-auditorium",
       "sector": "大斜板",
-      "sectorEn": "Great Slab",
+      "sectorEn": "",
       "name": "火辣登場",
       "nameEn": "Coming in Hot",
       "grade": "5.12a",
@@ -3013,7 +3311,7 @@
       "id": "LD-GRAND-AUDITORIUM-314.4",
       "areaId": "grand-auditorium",
       "sector": "大斜板",
-      "sectorEn": "Great Slab",
+      "sectorEn": "",
       "name": "不知為不知",
       "nameEn": "Unknown Unknowns",
       "grade": "5.11?",
@@ -3030,7 +3328,7 @@
       "id": "LD-GRAND-AUDITORIUM-314.5",
       "areaId": "grand-auditorium",
       "sector": "大斜板",
-      "sectorEn": "Great Slab",
+      "sectorEn": "",
       "name": "就是很故意",
       "nameEn": "Define: contrived",
       "grade": "5.11?",
@@ -3047,7 +3345,7 @@
       "id": "LD-GRAND-AUDITORIUM-314.6",
       "areaId": "grand-auditorium",
       "sector": "大斜板",
-      "sectorEn": "Great Slab",
+      "sectorEn": "",
       "name": "明顯很好爬",
       "nameEn": "Obvious weakness",
       "grade": "5.10b",
@@ -3064,7 +3362,7 @@
       "id": "LD-GRAND-AUDITORIUM-314.7",
       "areaId": "grand-auditorium",
       "sector": "大斜板",
-      "sectorEn": "Great Slab",
+      "sectorEn": "",
       "name": "轟天雷",
       "nameEn": "Big Thunder",
       "grade": "5.11b",
@@ -3081,7 +3379,7 @@
       "id": "LD-GRAND-AUDITORIUM-314.8",
       "areaId": "grand-auditorium",
       "sector": "大斜板",
-      "sectorEn": "Great Slab",
+      "sectorEn": "",
       "name": "王者雷電",
       "nameEn": "King Lightning",
       "grade": "5.10? R",
@@ -3098,7 +3396,7 @@
       "id": "LD-GRAND-AUDITORIUM-314.9",
       "areaId": "grand-auditorium",
       "sector": "大斜板",
-      "sectorEn": "Great Slab",
+      "sectorEn": "",
       "name": "猢猻耍猴戲",
       "nameEn": "Barrel of Monkeys",
       "grade": "5.10?",
@@ -3115,7 +3413,7 @@
       "id": "LD-GRAND-AUDITORIUM-315",
       "areaId": "grand-auditorium",
       "sector": "西面",
-      "sectorEn": "West Wall",
+      "sectorEn": "",
       "name": "菲律賓人普羅 (舊：十字裂隙)",
       "nameEn": "Puro Filippino (Cross Crack)",
       "grade": "5.11b",
@@ -3131,7 +3429,7 @@
       "id": "LD-GRAND-AUDITORIUM-315.1",
       "areaId": "grand-auditorium",
       "sector": "西面",
-      "sectorEn": "West Wall",
+      "sectorEn": "",
       "name": "O.P.P. 誰的鴿",
       "nameEn": "(Other Peoples’ Pigeons)",
       "grade": "5.11?",
@@ -3148,7 +3446,7 @@
       "id": "LD-GRAND-AUDITORIUM-316",
       "areaId": "grand-auditorium",
       "sector": "西面",
-      "sectorEn": "West Wall",
+      "sectorEn": "",
       "name": "大懸岩 | P1",
       "nameEn": "The Great Roof | P1",
       "grade": "5.13b",
@@ -3165,7 +3463,7 @@
       "id": "LD-GRAND-AUDITORIUM-316.1",
       "areaId": "grand-auditorium",
       "sector": "西面",
-      "sectorEn": "West Wall",
+      "sectorEn": "",
       "name": "大懸岩 | P2",
       "nameEn": "The Great Roof | P2",
       "grade": "5.13b",
@@ -3182,7 +3480,7 @@
       "id": "LD-GRAND-AUDITORIUM-317",
       "areaId": "grand-auditorium",
       "sector": "西面",
-      "sectorEn": "West Wall",
+      "sectorEn": "",
       "name": "十",
       "nameEn": "Ten",
       "grade": "5.9",
@@ -3197,7 +3495,7 @@
       "id": "LD-GRAND-AUDITORIUM-318",
       "areaId": "grand-auditorium",
       "sector": "西面",
-      "sectorEn": "West Wall",
+      "sectorEn": "",
       "name": "自由裂隙 | P1",
       "nameEn": "Freedom Crack | P1",
       "grade": "5.8",
@@ -3212,7 +3510,7 @@
       "id": "LD-GRAND-AUDITORIUM-318.1",
       "areaId": "grand-auditorium",
       "sector": "西面",
-      "sectorEn": "West Wall",
+      "sectorEn": "",
       "name": "自由裂隙 | P2",
       "nameEn": "Freedom Crack | P2 Left",
       "grade": "5.9",
@@ -3228,7 +3526,7 @@
       "id": "LD-GRAND-AUDITORIUM-318.2",
       "areaId": "grand-auditorium",
       "sector": "西面",
-      "sectorEn": "West Wall",
+      "sectorEn": "",
       "name": "自由裂隙 | P2 右",
       "nameEn": "Freedom Crack | P2 Right",
       "grade": "5.9",
@@ -3244,7 +3542,7 @@
       "id": "LD-GRAND-AUDITORIUM-319",
       "areaId": "grand-auditorium",
       "sector": "西面",
-      "sectorEn": "West Wall",
+      "sectorEn": "",
       "name": "登峰造極",
       "nameEn": "Topout",
       "grade": "5.8",
@@ -3262,7 +3560,7 @@
       "id": "LD-GRAND-AUDITORIUM-320",
       "areaId": "grand-auditorium",
       "sector": "西面",
-      "sectorEn": "West Wall",
+      "sectorEn": "",
       "name": "吉薩岩板",
       "nameEn": "Giza Flake",
       "grade": "5.9",
@@ -3277,7 +3575,7 @@
       "id": "LD-GRAND-AUDITORIUM-321",
       "areaId": "grand-auditorium",
       "sector": "凡登峽谷",
-      "sectorEn": "Verdon Wall",
+      "sectorEn": "",
       "name": "海闊天空",
       "nameEn": "Boundless Sea and Sky",
       "grade": "5.11c",
@@ -3295,7 +3593,7 @@
       "id": "LD-GRAND-AUDITORIUM-322",
       "areaId": "grand-auditorium",
       "sector": "凡登峽谷",
-      "sectorEn": "Verdon Wall",
+      "sectorEn": "",
       "name": "法國革命日",
       "nameEn": "Bastille Day",
       "grade": "5.11c",
@@ -3313,7 +3611,7 @@
       "id": "LD-GRAND-AUDITORIUM-323",
       "areaId": "grand-auditorium",
       "sector": "凡登峽谷",
-      "sectorEn": "Verdon Wall",
+      "sectorEn": "",
       "name": "阿魯巴",
       "nameEn": "Arupa",
       "grade": "5.10d",
@@ -3330,7 +3628,7 @@
       "id": "LD-GRAND-AUDITORIUM-324",
       "areaId": "grand-auditorium",
       "sector": "凡登峽谷",
-      "sectorEn": "Verdon Wall",
+      "sectorEn": "",
       "name": "倒掛金鉤",
       "nameEn": "Upside Down",
       "grade": "5.11d",
@@ -3347,7 +3645,7 @@
       "id": "LD-GRAND-AUDITORIUM-325",
       "areaId": "grand-auditorium",
       "sector": "凡登峽谷",
-      "sectorEn": "Verdon Wall",
+      "sectorEn": "",
       "name": "今天不上課",
       "nameEn": "No Class Today",
       "grade": "5.11c",
@@ -3365,7 +3663,7 @@
       "id": "LD-GRAND-AUDITORIUM-326",
       "areaId": "grand-auditorium",
       "sector": "凡登峽谷",
-      "sectorEn": "Verdon Wall",
+      "sectorEn": "",
       "name": "Verdon 在台灣",
       "nameEn": "Verdon du Taiwan",
       "grade": "5.10b",
@@ -3382,7 +3680,7 @@
       "id": "LD-GRAND-AUDITORIUM-327",
       "areaId": "grand-auditorium",
       "sector": "凡登峽谷",
-      "sectorEn": "Verdon Wall",
+      "sectorEn": "",
       "name": "普羅旺斯大懸岩",
       "nameEn": "Provence Roof",
       "grade": "5.11a",
@@ -3399,7 +3697,7 @@
       "id": "LD-GRAND-AUDITORIUM-327.1",
       "areaId": "grand-auditorium",
       "sector": "凡登峽谷",
-      "sectorEn": "Verdon Wall",
+      "sectorEn": "",
       "name": "無名路線–寬裂隙",
       "nameEn": "Unnamed wide crack",
       "grade": "5.10c",
@@ -3414,7 +3712,7 @@
       "id": "LD-GRAND-AUDITORIUM-327.2",
       "areaId": "grand-auditorium",
       "sector": "凡登峽谷",
-      "sectorEn": "Verdon Wall",
+      "sectorEn": "",
       "name": "無名路線–手指裂隙",
       "nameEn": "Unnamed finger crack",
       "grade": "5.10c",
@@ -3429,7 +3727,7 @@
       "id": "LD-GRAND-AUDITORIUM-328",
       "areaId": "grand-auditorium",
       "sector": "龍柱",
-      "sectorEn": "Dragon Point Buttress",
+      "sectorEn": "",
       "name": "龍路 | P1",
       "nameEn": "Via del Drago | P1",
       "grade": "5.8",
@@ -3445,7 +3743,7 @@
       "id": "LD-GRAND-AUDITORIUM-328.1",
       "areaId": "grand-auditorium",
       "sector": "龍柱",
-      "sectorEn": "Dragon Point Buttress",
+      "sectorEn": "",
       "name": "龍路 | P2",
       "nameEn": "Via del Drago | P2",
       "grade": "5.10c",
@@ -3460,8 +3758,8 @@
     {
       "id": "LD-CLOCKTOWER-468",
       "areaId": "clocktower",
-      "sector": "鐘塔",
-      "sectorEn": "Clocktower",
+      "sector": "訓導處",
+      "sectorEn": "Discipline Office",
       "name": "毛毛蟲",
       "nameEn": "Caterpillar",
       "grade": "5.7",
@@ -3476,8 +3774,8 @@
     {
       "id": "LD-CLOCKTOWER-469",
       "areaId": "clocktower",
-      "sector": "鐘塔",
-      "sectorEn": "Clocktower",
+      "sector": "訓導處",
+      "sectorEn": "Discipline Office",
       "name": "觀護人",
       "nameEn": "Probation Officer",
       "grade": "5.10b",
@@ -3491,8 +3789,8 @@
     {
       "id": "LD-CLOCKTOWER-470",
       "areaId": "clocktower",
-      "sector": "鐘塔",
-      "sectorEn": "Clocktower",
+      "sector": "訓導處",
+      "sectorEn": "Discipline Office",
       "name": "訓導主任",
       "nameEn": "Blind Reach",
       "grade": "5.11d",
@@ -3507,8 +3805,8 @@
     {
       "id": "LD-CLOCKTOWER-471",
       "areaId": "clocktower",
-      "sector": "鐘塔",
-      "sectorEn": "Clocktower",
+      "sector": "訓導處",
+      "sectorEn": "Discipline Office",
       "name": "副主任",
       "nameEn": "Reach Around",
       "grade": "5.10a",
@@ -3523,8 +3821,8 @@
     {
       "id": "LD-CLOCKTOWER-472",
       "areaId": "clocktower",
-      "sector": "鐘塔",
-      "sectorEn": "Clocktower",
+      "sector": "訓導處",
+      "sectorEn": "Discipline Office",
       "name": "翻牆",
       "nameEn": "Truancy",
       "grade": "5.8",
@@ -3538,8 +3836,8 @@
     {
       "id": "LD-CLOCKTOWER-473",
       "areaId": "clocktower",
-      "sector": "鐘塔",
-      "sectorEn": "Clocktower",
+      "sector": "訓導處",
+      "sectorEn": "Discipline Office",
       "name": "凹洞",
       "nameEn": "Concave",
       "grade": "5.9",
@@ -3553,8 +3851,8 @@
     {
       "id": "LD-CLOCKTOWER-474",
       "areaId": "clocktower",
-      "sector": "鐘塔",
-      "sectorEn": "Clocktower",
+      "sector": "訓導處",
+      "sectorEn": "Discipline Office",
       "name": "快速道路",
       "nameEn": "Highway",
       "grade": "5.8",
@@ -3566,10 +3864,10 @@
       "status": "published"
     },
     {
-      "id": "LD-CLOCKTOWER-474",
+      "id": "LD-CLOCKTOWER-474a",
       "areaId": "clocktower",
-      "sector": "鐘塔",
-      "sectorEn": "Clocktower",
+      "sector": "訓導處",
+      "sectorEn": "Discipline Office",
       "name": "無名路線",
       "nameEn": "Project",
       "grade": "5.??",
@@ -3584,8 +3882,8 @@
     {
       "id": "LD-CLOCKTOWER-475",
       "areaId": "clocktower",
-      "sector": "鐘塔",
-      "sectorEn": "Clocktower",
+      "sector": "訓導處",
+      "sectorEn": "Discipline Office",
       "name": "留校察看",
       "nameEn": "Detention",
       "grade": "5.7",
@@ -3604,8 +3902,8 @@
     {
       "id": "LD-CLOCKTOWER-476",
       "areaId": "clocktower",
-      "sector": "鐘塔",
-      "sectorEn": "Clocktower",
+      "sector": "訓導處",
+      "sectorEn": "Discipline Office",
       "name": "停學",
       "nameEn": "Suspended",
       "grade": "5.9",
@@ -3620,8 +3918,8 @@
     {
       "id": "LD-CLOCKTOWER-477",
       "areaId": "clocktower",
-      "sector": "鐘塔",
-      "sectorEn": "Clocktower",
+      "sector": "訓導處",
+      "sectorEn": "Discipline Office",
       "name": "退學",
       "nameEn": "Eliminate",
       "grade": "5.10b",
@@ -3636,8 +3934,8 @@
     {
       "id": "LD-CLOCKTOWER-478",
       "areaId": "clocktower",
-      "sector": "鐘塔",
-      "sectorEn": "Clocktower",
+      "sector": "訓導處",
+      "sectorEn": "Discipline Office",
       "name": "非暴力抵抗",
       "nameEn": "Civil Disobedience",
       "grade": "5.9",
@@ -3654,8 +3952,8 @@
     {
       "id": "LD-CLOCKTOWER-479",
       "areaId": "clocktower",
-      "sector": "鐘塔",
-      "sectorEn": "Clocktower",
+      "sector": "訓導處",
+      "sectorEn": "Discipline Office",
       "name": "給我抱抱",
       "nameEn": "Fal Buligee",
       "grade": "5.12a",
@@ -3672,8 +3970,8 @@
     {
       "id": "LD-CLOCKTOWER-480",
       "areaId": "clocktower",
-      "sector": "鐘塔",
-      "sectorEn": "Clocktower",
+      "sector": "訓導處",
+      "sectorEn": "Discipline Office",
       "name": "表皮摩擦力",
       "nameEn": "Skin Friction",
       "grade": "5.10c",
@@ -3690,8 +3988,8 @@
     {
       "id": "LD-CLOCKTOWER-481",
       "areaId": "clocktower",
-      "sector": "鐘塔",
-      "sectorEn": "Clocktower",
+      "sector": "訓導處",
+      "sectorEn": "Discipline Office",
       "name": "訓導處煙囪",
       "nameEn": "Discipline Chimney",
       "grade": "5.6",
@@ -3705,8 +4003,8 @@
     {
       "id": "LD-CLOCKTOWER-482",
       "areaId": "clocktower",
-      "sector": "鐘塔",
-      "sectorEn": "Clocktower",
+      "sector": "水池畔",
+      "sectorEn": "Pondside",
       "name": "信天翁",
       "nameEn": "Albatross",
       "grade": "5.9",
@@ -3724,8 +4022,8 @@
     {
       "id": "LD-CLOCKTOWER-483",
       "areaId": "clocktower",
-      "sector": "鐘塔",
-      "sectorEn": "Clocktower",
+      "sector": "水池畔",
+      "sectorEn": "Pondside",
       "name": "水池畔煙囪",
       "nameEn": "Pondside Chimney",
       "grade": "5.5",
@@ -3739,8 +4037,8 @@
     {
       "id": "LD-CLOCKTOWER-484",
       "areaId": "clocktower",
-      "sector": "鐘塔",
-      "sectorEn": "Clocktower",
+      "sector": "水池畔",
+      "sectorEn": "Pondside",
       "name": "魚臉",
       "nameEn": "Fish Face",
       "grade": "5.10a",
@@ -3757,8 +4055,8 @@
     {
       "id": "LD-CLOCKTOWER-485",
       "areaId": "clocktower",
-      "sector": "鐘塔",
-      "sectorEn": "Clocktower",
+      "sector": "水池畔",
+      "sectorEn": "Pondside",
       "name": "大綠龜",
       "nameEn": "Big Green Turtle",
       "grade": "5.10c",
@@ -3775,8 +4073,8 @@
     {
       "id": "LD-CLOCKTOWER-486",
       "areaId": "clocktower",
-      "sector": "鐘塔",
-      "sectorEn": "Clocktower",
+      "sector": "水池畔",
+      "sectorEn": "Pondside",
       "name": "小藍魚",
       "nameEn": "Tiny Blue Fish",
       "grade": "5.8",
@@ -3790,8 +4088,8 @@
     {
       "id": "LD-CLOCKTOWER-487",
       "areaId": "clocktower",
-      "sector": "鐘塔",
-      "sectorEn": "Clocktower",
+      "sector": "水池畔",
+      "sectorEn": "Pondside",
       "name": "海狗",
       "nameEn": "Sea Dogs",
       "grade": "5.9",
@@ -3808,8 +4106,8 @@
     {
       "id": "LD-CLOCKTOWER-488",
       "areaId": "clocktower",
-      "sector": "鐘塔",
-      "sectorEn": "Clocktower",
+      "sector": "水池畔",
+      "sectorEn": "Pondside",
       "name": "保護我們的海洋",
       "nameEn": "Save Our Seas",
       "grade": "5.10a",
@@ -3826,8 +4124,8 @@
     {
       "id": "LD-CLOCKTOWER-489",
       "areaId": "clocktower",
-      "sector": "鐘塔",
-      "sectorEn": "Clocktower",
+      "sector": "水池畔",
+      "sectorEn": "Pondside",
       "name": "水池畔內角",
       "nameEn": "Pondside Dihedral",
       "grade": "5.7",
@@ -3842,8 +4140,8 @@
     {
       "id": "LD-CLOCKTOWER-490",
       "areaId": "clocktower",
-      "sector": "鐘塔",
-      "sectorEn": "Clocktower",
+      "sector": "左鐘塔",
+      "sectorEn": "Left Clocktower",
       "name": "蟑螂窩",
       "nameEn": "Cockroach Nest",
       "grade": "5.11c",
@@ -3859,8 +4157,8 @@
     {
       "id": "LD-CLOCKTOWER-491",
       "areaId": "clocktower",
-      "sector": "鐘塔",
-      "sectorEn": "Clocktower",
+      "sector": "左鐘塔",
+      "sectorEn": "Left Clocktower",
       "name": "潮起潮落",
       "nameEn": "Tides Rise and Fall",
       "grade": "5.13a",
@@ -3877,8 +4175,8 @@
     {
       "id": "LD-CLOCKTOWER-492",
       "areaId": "clocktower",
-      "sector": "鐘塔",
-      "sectorEn": "Clocktower",
+      "sector": "左鐘塔",
+      "sectorEn": "Left Clocktower",
       "name": "沙漠一號",
       "nameEn": "Desert Number 1",
       "grade": "5.12d",
@@ -3895,8 +4193,8 @@
     {
       "id": "LD-CLOCKTOWER-493",
       "areaId": "clocktower",
-      "sector": "鐘塔",
-      "sectorEn": "Clocktower",
+      "sector": "左鐘塔",
+      "sectorEn": "Left Clocktower",
       "name": "刀疤",
       "nameEn": "Scarface",
       "grade": "5.11c",
@@ -3912,8 +4210,8 @@
     {
       "id": "LD-CLOCKTOWER-494",
       "areaId": "clocktower",
-      "sector": "鐘塔",
-      "sectorEn": "Clocktower",
+      "sector": "左鐘塔",
+      "sectorEn": "Left Clocktower",
       "name": "印尼人",
       "nameEn": "Indonesian",
       "grade": "5.12a",
@@ -3928,8 +4226,8 @@
     {
       "id": "LD-CLOCKTOWER-495",
       "areaId": "clocktower",
-      "sector": "鐘塔",
-      "sectorEn": "Clocktower",
+      "sector": "左鐘塔",
+      "sectorEn": "Left Clocktower",
       "name": "斗轉星移",
       "nameEn": "Stars Pass Over the Sky",
       "grade": "5.12b",
@@ -3946,8 +4244,8 @@
     {
       "id": "LD-CLOCKTOWER-496",
       "areaId": "clocktower",
-      "sector": "鐘塔",
-      "sectorEn": "Clocktower",
+      "sector": "左鐘塔",
+      "sectorEn": "Left Clocktower",
       "name": "一條洞",
       "nameEn": "One Single Cave",
       "grade": "5.11d",
@@ -3964,8 +4262,8 @@
     {
       "id": "LD-CLOCKTOWER-497",
       "areaId": "clocktower",
-      "sector": "鐘塔",
-      "sectorEn": "Clocktower",
+      "sector": "左鐘塔",
+      "sectorEn": "Left Clocktower",
       "name": "中級岩角",
       "nameEn": "Moderate Left",
       "grade": "5.10d",
@@ -4214,8 +4512,8 @@
     {
       "id": "LD-CLOCKTOWER-512",
       "areaId": "clocktower",
-      "sector": "鐘塔",
-      "sectorEn": "Clocktower",
+      "sector": "總統頭像山",
+      "sectorEn": "Mt. Rushmore",
       "name": "黑人總統",
       "nameEn": "Black President",
       "grade": "5.7",
@@ -4230,8 +4528,8 @@
     {
       "id": "LD-CLOCKTOWER-513",
       "areaId": "clocktower",
-      "sector": "鐘塔",
-      "sectorEn": "Clocktower",
+      "sector": "總統頭像山",
+      "sectorEn": "Mt. Rushmore",
       "name": "橢圓辦公室",
       "nameEn": "Oval Office",
       "grade": "5.11a",
@@ -4250,8 +4548,8 @@
     {
       "id": "LD-CLOCKTOWER-514",
       "areaId": "clocktower",
-      "sector": "鐘塔",
-      "sectorEn": "Clocktower",
+      "sector": "總統頭像山",
+      "sectorEn": "Mt. Rushmore",
       "name": "傑佛遜",
       "nameEn": "Jefferson",
       "grade": "5.10a",
@@ -4266,8 +4564,8 @@
     {
       "id": "LD-CLOCKTOWER-515",
       "areaId": "clocktower",
-      "sector": "鐘塔",
-      "sectorEn": "Clocktower",
+      "sector": "總統頭像山",
+      "sectorEn": "Mt. Rushmore",
       "name": "四巨頭",
       "nameEn": "Monument to Presidents",
       "grade": "5.9",
@@ -4285,8 +4583,8 @@
     {
       "id": "LD-CLOCKTOWER-516",
       "areaId": "clocktower",
-      "sector": "鐘塔",
-      "sectorEn": "Clocktower",
+      "sector": "短巷",
+      "sectorEn": "Short Alley",
       "name": "蔚藍的誘惑",
       "nameEn": "Crystal Blue Temptation",
       "grade": "5.8",
@@ -4303,8 +4601,8 @@
     {
       "id": "LD-CLOCKTOWER-517",
       "areaId": "clocktower",
-      "sector": "鐘塔",
-      "sectorEn": "Clocktower",
+      "sector": "臨海面",
+      "sectorEn": "Oceanside",
       "name": "海膽",
       "nameEn": "Sea Urchin",
       "grade": "5.6",
@@ -4318,8 +4616,8 @@
     {
       "id": "LD-CLOCKTOWER-518",
       "areaId": "clocktower",
-      "sector": "鐘塔",
-      "sectorEn": "Clocktower",
+      "sector": "臨海面",
+      "sectorEn": "Oceanside",
       "name": "海水正藍",
       "nameEn": "Blue Ocean",
       "grade": "5.12a",
@@ -4335,8 +4633,8 @@
     {
       "id": "LD-CLOCKTOWER-519",
       "areaId": "clocktower",
-      "sector": "鐘塔",
-      "sectorEn": "Clocktower",
+      "sector": "臨海面",
+      "sectorEn": "Oceanside",
       "name": "碧海藍天",
       "nameEn": "Green Ocean, Blue Sky",
       "grade": "5.11c",
@@ -4352,8 +4650,8 @@
     {
       "id": "LD-CLOCKTOWER-520",
       "areaId": "clocktower",
-      "sector": "鐘塔",
-      "sectorEn": "Clocktower",
+      "sector": "臨海面",
+      "sectorEn": "Oceanside",
       "name": "看海的日子",
       "nameEn": "Sea-Watching Day",
       "grade": "5.10a",
@@ -4369,8 +4667,8 @@
     {
       "id": "LD-FIRST-CAVE-238.1",
       "areaId": "first-cave",
-      "sector": "第一洞",
-      "sectorEn": "First Cave",
+      "sector": "洞外左側",
+      "sectorEn": "Route info",
       "name": "Lucid Dreaming | P1",
       "nameEn": "",
       "grade": "5.9",
@@ -4385,8 +4683,8 @@
     {
       "id": "LD-FIRST-CAVE-238.2",
       "areaId": "first-cave",
-      "sector": "第一洞",
-      "sectorEn": "First Cave",
+      "sector": "洞外左側",
+      "sectorEn": "Route info",
       "name": "Lucid Dreaming | P2",
       "nameEn": "",
       "grade": "5.8",
@@ -4401,8 +4699,8 @@
     {
       "id": "LD-FIRST-CAVE-238.3",
       "areaId": "first-cave",
-      "sector": "第一洞",
-      "sectorEn": "First Cave",
+      "sector": "洞外左側",
+      "sectorEn": "Route info",
       "name": "Lucid Dreaming | P3",
       "nameEn": "",
       "grade": "5.10?",
@@ -4470,8 +4768,8 @@
     {
       "id": "LD-FIRST-CAVE-242",
       "areaId": "first-cave",
-      "sector": "第一洞內",
-      "sectorEn": "南面",
+      "sector": "南面",
+      "sectorEn": "Interior",
       "name": "石花凍 | P1",
       "nameEn": "Agar Jelly | P1",
       "grade": "5.10a",
@@ -4486,10 +4784,10 @@
       "status": "published"
     },
     {
-      "id": "LD-FIRST-CAVE-242",
+      "id": "LD-FIRST-CAVE-242-P2",
       "areaId": "first-cave",
-      "sector": "第一洞內",
-      "sectorEn": "南面",
+      "sector": "南面",
+      "sectorEn": "Interior",
       "name": "石花凍 | P2",
       "nameEn": "Agar Jelly | P2",
       "grade": "5.10b",
@@ -4506,8 +4804,8 @@
     {
       "id": "LD-FIRST-CAVE-243",
       "areaId": "first-cave",
-      "sector": "第一洞內",
-      "sectorEn": "南面",
+      "sector": "南面",
+      "sectorEn": "Interior",
       "name": "親子路線",
       "nameEn": "Family Route",
       "grade": "5.11d",
@@ -4525,8 +4823,8 @@
     {
       "id": "LD-FIRST-CAVE-244",
       "areaId": "first-cave",
-      "sector": "第一洞內",
-      "sectorEn": "南面",
+      "sector": "南面",
+      "sectorEn": "Interior",
       "name": "爸爸帶小孩",
       "nameEn": "Papa Carry Kid",
       "grade": "5.11c",
@@ -4541,8 +4839,8 @@
     {
       "id": "LD-FIRST-CAVE-245",
       "areaId": "first-cave",
-      "sector": "第一洞內",
-      "sectorEn": "南面",
+      "sector": "南面",
+      "sectorEn": "Interior",
       "name": "曲終人散",
       "nameEn": "The Music is Over",
       "grade": "5.12a",
@@ -4560,8 +4858,8 @@
     {
       "id": "LD-FIRST-CAVE-246",
       "areaId": "first-cave",
-      "sector": "第一洞內",
-      "sectorEn": "南面",
+      "sector": "南面",
+      "sectorEn": "Interior",
       "name": "爬岩真爽",
       "nameEn": "Climbing is Great",
       "grade": "5.12a",
@@ -4579,8 +4877,8 @@
     {
       "id": "LD-FIRST-CAVE-247",
       "areaId": "first-cave",
-      "sector": "第一洞內",
-      "sectorEn": "南面",
+      "sector": "南面",
+      "sectorEn": "Interior",
       "name": "爬岩真好",
       "nameEn": "Climbing is Good",
       "grade": "5.12c",
@@ -4598,8 +4896,8 @@
     {
       "id": "LD-FIRST-CAVE-248",
       "areaId": "first-cave",
-      "sector": "第一洞內",
-      "sectorEn": "南面",
+      "sector": "南面",
+      "sectorEn": "Interior",
       "name": "來去北海道",
       "nameEn": "Going to Hokkaido",
       "grade": "5.12a",
@@ -4617,8 +4915,8 @@
     {
       "id": "LD-FIRST-CAVE-249",
       "areaId": "first-cave",
-      "sector": "第一洞內",
-      "sectorEn": "西面",
+      "sector": "西面",
+      "sectorEn": "Interior",
       "name": "斜板",
       "nameEn": "The Ramp",
       "grade": "5.8",
@@ -4636,8 +4934,8 @@
     {
       "id": "LD-FIRST-CAVE-250",
       "areaId": "first-cave",
-      "sector": "第一洞內",
-      "sectorEn": "西面",
+      "sector": "西面",
+      "sectorEn": "Interior",
       "name": "斜板之板",
       "nameEn": "The Ramp Flake",
       "grade": "5.9",
@@ -4652,8 +4950,8 @@
     {
       "id": "LD-FIRST-CAVE-251",
       "areaId": "first-cave",
-      "sector": "第一洞內",
-      "sectorEn": "西面",
+      "sector": "西面",
+      "sectorEn": "Interior",
       "name": "天外飛仙",
       "nameEn": "Wonderland Fairy",
       "grade": "5.10b",
@@ -4671,8 +4969,8 @@
     {
       "id": "LD-FIRST-CAVE-252",
       "areaId": "first-cave",
-      "sector": "第一洞內",
-      "sectorEn": "西面",
+      "sector": "西面",
+      "sectorEn": "Interior",
       "name": "創世紀",
       "nameEn": "Genesis",
       "grade": "5.12d",
@@ -4689,8 +4987,8 @@
     {
       "id": "LD-FIRST-CAVE-253",
       "areaId": "first-cave",
-      "sector": "第一洞內",
-      "sectorEn": "西面",
+      "sector": "西面",
+      "sectorEn": "Interior",
       "name": "曙光裂隙",
       "nameEn": "Twilight Crack",
       "grade": "5.11b",
@@ -4710,8 +5008,8 @@
     {
       "id": "LD-FIRST-CAVE-254",
       "areaId": "first-cave",
-      "sector": "第一洞內",
-      "sectorEn": "西面",
+      "sector": "西面",
+      "sectorEn": "Interior",
       "name": "新世界",
       "nameEn": "New World",
       "grade": "5.11c",
@@ -4729,8 +5027,8 @@
     {
       "id": "LD-FIRST-CAVE-255",
       "areaId": "first-cave",
-      "sector": "第一洞內",
-      "sectorEn": "西面",
+      "sector": "西面",
+      "sectorEn": "Interior",
       "name": "天堂鳥",
       "nameEn": "Bird Of Paradise",
       "grade": "5.12c",
@@ -4747,8 +5045,8 @@
     {
       "id": "LD-FIRST-CAVE-256",
       "areaId": "first-cave",
-      "sector": "第一洞內",
-      "sectorEn": "西面",
+      "sector": "西面",
+      "sectorEn": "Interior",
       "name": "烏鴉",
       "nameEn": "Crow",
       "grade": "5.13a",
@@ -4761,8 +5059,8 @@
     {
       "id": "LD-FIRST-CAVE-257",
       "areaId": "first-cave",
-      "sector": "第一洞內",
-      "sectorEn": "西面",
+      "sector": "西面",
+      "sectorEn": "Interior",
       "name": "三明治",
       "nameEn": "Sandwich",
       "grade": "5.12c",
@@ -4779,8 +5077,8 @@
     {
       "id": "LD-FIRST-CAVE-258",
       "areaId": "first-cave",
-      "sector": "第一洞內",
-      "sectorEn": "東北面",
+      "sector": "東北面",
+      "sectorEn": "Interior",
       "name": "饅頭雙裂隙",
       "nameEn": "Mantou Double Crack",
       "grade": "5.12a",
@@ -4797,8 +5095,8 @@
     {
       "id": "LD-FIRST-CAVE-259",
       "areaId": "first-cave",
-      "sector": "第一洞內",
-      "sectorEn": "東北面",
+      "sector": "東北面",
+      "sectorEn": "Interior",
       "name": "萬里長征",
       "nameEn": "Long March",
       "grade": "5.13d",
@@ -4818,8 +5116,8 @@
     {
       "id": "LD-FIRST-CAVE-260",
       "areaId": "first-cave",
-      "sector": "第一洞內",
-      "sectorEn": "東北面",
+      "sector": "東北面",
+      "sectorEn": "Interior",
       "name": "獨奏",
       "nameEn": "Solo",
       "grade": "5.12d",
@@ -4837,8 +5135,8 @@
     {
       "id": "LD-FIRST-CAVE-261",
       "areaId": "first-cave",
-      "sector": "第一洞內",
-      "sectorEn": "東北面",
+      "sector": "東北面",
+      "sectorEn": "Interior",
       "name": "二重奏",
       "nameEn": "Duet",
       "grade": "5.13a",
@@ -4856,8 +5154,8 @@
     {
       "id": "LD-FIRST-CAVE-262",
       "areaId": "first-cave",
-      "sector": "第一洞內",
-      "sectorEn": "東北面",
+      "sector": "東北面",
+      "sectorEn": "Interior",
       "name": "三天三十米",
       "nameEn": "Three Days, Thirty Meters",
       "grade": "5.12a",
@@ -4874,8 +5172,8 @@
     {
       "id": "LD-FIRST-CAVE-263",
       "areaId": "first-cave",
-      "sector": "第一洞內",
-      "sectorEn": "東北面",
+      "sector": "東北面",
+      "sectorEn": "Interior",
       "name": "鴿子",
       "nameEn": "Pigeon",
       "grade": "5.12c",
@@ -4892,8 +5190,8 @@
     {
       "id": "LD-FIRST-CAVE-264",
       "areaId": "first-cave",
-      "sector": "第一洞內",
-      "sectorEn": "東北面",
+      "sector": "東北面",
+      "sectorEn": "Interior",
       "name": "沒完沒了",
       "nameEn": "Endless",
       "grade": "5.12d",
@@ -4911,8 +5209,8 @@
     {
       "id": "LD-FIRST-CAVE-265",
       "areaId": "first-cave",
-      "sector": "第一洞內",
-      "sectorEn": "東北面",
+      "sector": "東北面",
+      "sectorEn": "Interior",
       "name": "抱樹幹",
       "nameEn": "Hug the Tree",
       "grade": "5.12c",
@@ -4929,8 +5227,8 @@
     {
       "id": "LD-FIRST-CAVE-266",
       "areaId": "first-cave",
-      "sector": "第一洞內",
-      "sectorEn": "東北面",
+      "sector": "東北面",
+      "sectorEn": "Interior",
       "name": "洪來瘋 (舊：懸岩外角)",
       "nameEn": "Hongsanity (Overhang Arête)",
       "grade": "5.14a",
@@ -4948,8 +5246,8 @@
     {
       "id": "LD-FIRST-CAVE-267",
       "areaId": "first-cave",
-      "sector": "第一洞內",
-      "sectorEn": "東北面",
+      "sector": "東北面",
+      "sectorEn": "Interior",
       "name": "無人完攀 (舊：上班不上班)",
       "nameEn": "Project (Skipping Work)",
       "grade": "5.??",
@@ -4966,8 +5264,8 @@
     {
       "id": "LD-FIRST-CAVE-268",
       "areaId": "first-cave",
-      "sector": "第一洞內",
-      "sectorEn": "東北面",
+      "sector": "東北面",
+      "sectorEn": "Interior",
       "name": "國慶日",
       "nameEn": "National Day",
       "grade": "5.13c",
@@ -4989,8 +5287,8 @@
     {
       "id": "LD-FIRST-CAVE-269",
       "areaId": "first-cave",
-      "sector": "第一洞內",
-      "sectorEn": "東北面",
+      "sector": "東北面",
+      "sectorEn": "Interior",
       "name": "十月十日",
       "nameEn": "October Ten",
       "grade": "5.13b",
@@ -5013,8 +5311,8 @@
     {
       "id": "LD-FIRST-CAVE-270",
       "areaId": "first-cave",
-      "sector": "第一洞內",
-      "sectorEn": "東北面",
+      "sector": "東北面",
+      "sectorEn": "Interior",
       "name": "步步高升",
       "nameEn": "Up and Up",
       "grade": "5.12d",
@@ -5035,8 +5333,8 @@
     {
       "id": "LD-FIRST-CAVE-271",
       "areaId": "first-cave",
-      "sector": "第一洞內",
-      "sectorEn": "東北面",
+      "sector": "東北面",
+      "sectorEn": "Interior",
       "name": "檳榔路",
       "nameEn": "Bin Lang Road",
       "grade": "5.12b",
@@ -6116,8 +6414,8 @@
     {
       "id": "LD-SECOND-CAVE-220",
       "areaId": "second-cave",
-      "sector": "雨牆",
-      "sectorEn": "Rain Wall",
+      "sector": "洞外岩壁",
+      "sectorEn": "Cave Rock",
       "name": "雨中曲",
       "nameEn": "Singing in the Rain",
       "grade": "5.5",

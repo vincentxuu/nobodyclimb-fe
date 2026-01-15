@@ -287,6 +287,250 @@ export function getRouteById(cragId: string, routeId: string): CragRoute | null 
 }
 
 /**
+ * 路線詳情頁所需的完整資料格式
+ */
+export interface RouteDetailData {
+  route: {
+    id: string
+    name: string
+    englishName: string
+    grade: string
+    length: string
+    type: string
+    typeEn: string
+    firstAscent: string
+    firstAscentDate: string
+    description: string
+    protection: string
+    tips: string
+    boltCount: number
+    safetyRating: string
+    popularity: number
+    views: number
+    images: string[]
+    videos: string[]
+    youtubeVideos: string[]
+    instagramPosts: string[]
+  }
+  crag: {
+    id: string
+    name: string
+    nameEn: string
+    slug: string
+    location: string
+  }
+  area: {
+    id: string
+    name: string
+    nameEn: string
+  } | null
+  relatedRoutes: Array<{
+    id: string
+    name: string
+    grade: string
+    type: string
+  }>
+}
+
+/**
+ * 獲取路線詳情頁所需的完整資料
+ */
+export function getRouteDetailData(cragId: string, routeId: string): RouteDetailData | null {
+  const fullData = getCragById(cragId)
+  if (!fullData) return null
+
+  const route = fullData.routes.find(r => r.id === routeId)
+  if (!route) return null
+
+  const area = fullData.areas.find(a => a.id === route.areaId)
+
+  // 獲取同區域的相關路線（排除當前路線，最多 5 條）
+  const relatedRoutes = fullData.routes
+    .filter(r => r.areaId === route.areaId && r.id !== routeId)
+    .slice(0, 5)
+    .map(r => ({
+      id: r.id,
+      name: r.name,
+      grade: r.grade,
+      type: r.typeEn,
+    }))
+
+  return {
+    route: {
+      id: route.id,
+      name: route.name,
+      englishName: route.nameEn,
+      grade: route.grade,
+      length: route.length || '',
+      type: route.type,
+      typeEn: route.typeEn,
+      firstAscent: route.firstAscent || '',
+      firstAscentDate: route.firstAscentDate || '',
+      description: route.description || '',
+      protection: route.protection || '',
+      tips: route.tips || '',
+      boltCount: route.boltCount,
+      safetyRating: route.safetyRating || '',
+      popularity: route.popularity ?? 0,
+      views: route.views ?? 0,
+      images: route.images || [],
+      videos: route.videos || [],
+      youtubeVideos: route.youtubeVideos || [],
+      instagramPosts: route.instagramPosts || [],
+    },
+    crag: {
+      id: fullData.crag.id,
+      name: fullData.crag.name,
+      nameEn: fullData.crag.nameEn,
+      slug: fullData.crag.slug,
+      location: fullData.crag.location.address,
+    },
+    area: area ? {
+      id: area.id,
+      name: area.name,
+      nameEn: area.nameEn,
+    } : null,
+    relatedRoutes,
+  }
+}
+
+/**
+ * 側邊欄用的輕量路線資料格式
+ */
+export interface RouteSidebarItem {
+  id: string
+  name: string
+  grade: string
+  type: string
+  areaId: string
+  areaName: string
+  sector?: string
+  sectorEn?: string
+}
+
+/**
+ * 獲取岩場路線列表（側邊欄專用輕量版）
+ */
+export function getCragRoutesForSidebar(cragId: string): RouteSidebarItem[] {
+  const data = cragsDataMap.get(cragId)
+  if (!data) return []
+
+  const areaMap = new Map(data.areas.map((a) => [a.id, a.name]))
+
+  return data.routes.map((route) => ({
+    id: route.id,
+    name: route.name,
+    grade: route.grade,
+    type: route.typeEn,
+    areaId: route.areaId,
+    areaName: areaMap.get(route.areaId) || '',
+    sector: route.sector,
+    sectorEn: route.sectorEn,
+  }))
+}
+
+/**
+ * 獲取岩場區域列表（側邊欄篩選用）
+ */
+export function getCragAreasForFilter(cragId: string): Array<{ id: string; name: string }> {
+  const data = cragsDataMap.get(cragId)
+  if (!data) return []
+
+  return data.areas.map((area) => ({
+    id: area.id,
+    name: area.name,
+  }))
+}
+
+/**
+ * 獲取指定區域的 sector 列表（側邊欄篩選用）
+ */
+export function getSectorsForArea(cragId: string, areaId: string): Array<{ id: string; name: string }> {
+  const data = cragsDataMap.get(cragId)
+  if (!data) return []
+
+  // 從路線資料中提取該區域的所有 sector
+  const sectorsSet = new Set<string>()
+  data.routes
+    .filter((route) => route.areaId === areaId && route.sector)
+    .forEach((route) => {
+      sectorsSet.add(route.sector!)
+    })
+
+  // 轉換為陣列格式，使用 sector 名稱作為 id
+  return Array.from(sectorsSet).map((sector) => ({
+    id: sector,
+    name: sector,
+  }))
+}
+
+/**
+ * 路線預覽資料（用於岩場頁面的路線簡介面板）
+ */
+export interface RoutePreviewItem {
+  id: string
+  name: string
+  englishName?: string
+  grade: string
+  type: string
+  typeEn: string
+  areaId: string
+  areaName: string
+  length?: string
+  firstAscent?: string
+  description?: string
+  youtubeVideos?: string[]
+  boltCount?: number
+}
+
+/**
+ * 根據路線 ID 獲取路線預覽資料
+ */
+export function getRoutePreviewData(cragId: string, routeId: string): RoutePreviewItem | null {
+  const data = cragsDataMap.get(cragId)
+  if (!data) return null
+
+  const route = data.routes.find((r) => r.id === routeId)
+  if (!route) return null
+
+  const areaMap = new Map(data.areas.map((a) => [a.id, a.name]))
+
+  return {
+    id: route.id,
+    name: route.name,
+    englishName: route.nameEn,
+    grade: route.grade,
+    type: route.type,
+    typeEn: route.typeEn,
+    areaId: route.areaId,
+    areaName: areaMap.get(route.areaId) || '',
+    length: route.length,
+    firstAscent: route.firstAscent,
+    description: route.description,
+    youtubeVideos: route.youtubeVideos,
+    boltCount: route.boltCount,
+  }
+}
+
+/**
+ * 獲取所有路線的參數（用於 generateStaticParams）
+ */
+export function getAllRouteParams(): Array<{ id: string; routeId: string }> {
+  const params: Array<{ id: string; routeId: string }> = []
+
+  cragsDataMap.forEach((data) => {
+    data.routes.forEach((route) => {
+      params.push({
+        id: data.crag.id,
+        routeId: route.id,
+      })
+    })
+  })
+
+  return params
+}
+
+/**
  * 根據區域 ID 獲取區域詳情
  */
 export function getAreaById(cragId: string, areaId: string): CragArea | null {
