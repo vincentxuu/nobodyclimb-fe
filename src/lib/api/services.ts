@@ -101,21 +101,10 @@ export const authService = {
   },
 
   /**
-   * 重設密碼請求
+   * 重設密碼（直接重設）
    */
-  forgotPassword: async (email: string) => {
-    const response = await apiClient.post<ApiResponse<{}>>('/auth/forgot-password', { email })
-    return response.data
-  },
-
-  /**
-   * 重設密碼
-   */
-  resetPassword: async (token: string, password: string) => {
-    const response = await apiClient.post<ApiResponse<{}>>('/auth/reset-password', {
-      token,
-      password,
-    })
+  forgotPassword: async (email: string, password: string) => {
+    const response = await apiClient.post<ApiResponse<{}>>('/auth/forgot-password', { email, password })
     return response.data
   },
 

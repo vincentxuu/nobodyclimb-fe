@@ -11,6 +11,7 @@ import {
   hashPassword,
   verifyPassword,
 } from '../middleware/auth';
+import { checkPasswordResetRateLimit } from '../middleware/rateLimit';
 
 export const authRoutes = new Hono<{ Bindings: Env }>();
 
@@ -614,3 +615,79 @@ authRoutes.post('/google', zValidator('json', googleAuthSchema), async (c) => {
     );
   }
 });
+
+// Forgot password schema (direct reset)
+const forgotPasswordSchema = z.object({
+  email: z.string().email(),
+  password: z.string().min(8),
+});
+
+// POST /auth/forgot-password - Direct password reset
+authRoutes.post('/forgot-password', zValidator('json', forgotPasswordSchema), async (c) => {
+  const { email, password } = c.req.valid('json');
+
+  // Rate limit 檢查
+  const ip = c.req.header('CF-Connecting-IP') || c.req.header('X-Forwarded-For') || 'unknown';
+  const rateLimit = await checkPasswordResetRateLimit(c.env.CACHE, ip, email);
+  if (!rateLimit.allowed) {
+    return c.json(
+      {
+        success: false,
+        error: 'Too Many Requests',
+        message: rateLimit.message,
+      },
+      429
+    );
+  }
+
+  // Find user by email
+  const user = await c.env.DB.prepare(
+    'SELECT id, email, auth_provider FROM users WHERE email = ? AND is_active = 1'
+  )
+    .bind(email)
+    .first<{ id: string; email: string; auth_provider: string }>();
+
+  if (!user) {
+    return c.json(
+      {
+        success: false,
+        error: 'Not Found',
+        message: '找不到此電子郵件對應的帳號',
+      },
+      404
+    );
+  }
+
+  // Check if user registered with Google (no password)
+  if (user.auth_provider === 'google') {
+    return c.json(
+      {
+        success: false,
+        error: 'Invalid Request',
+        message: '此帳號使用 Google 登入，無法重設密碼',
+      },
+      400
+    );
+  }
+
+  // Hash the new password
+  const newPasswordHash = await hashPassword(password);
+
+  // Update user's password
+  await c.env.DB.prepare(
+    `UPDATE users SET password_hash = ?, updated_at = datetime('now') WHERE id = ?`
+  )
+    .bind(newPasswordHash, user.id)
+    .run();
+
+  // Delete all refresh tokens for this user (force re-login)
+  await c.env.DB.prepare('DELETE FROM refresh_tokens WHERE user_id = ?')
+    .bind(user.id)
+    .run();
+
+  return c.json({
+    success: true,
+    message: '密碼已成功重設，請使用新密碼登入',
+  });
+});
+
