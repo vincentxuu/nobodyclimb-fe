@@ -244,12 +244,12 @@ export default function BlogDetail() {
               <div className="flex gap-2">
                 {/* 按讚按鈕 */}
                 <Button
-                  variant="outline"
+                  variant="ghost"
                   onClick={handleLike}
                   disabled={isLiking}
                   className={`${isLiked
-                    ? 'border-emerald-300 bg-emerald-50 text-emerald-600'
-                    : 'border-gray-300 text-gray-600 hover:bg-gray-50'
+                    ? 'text-emerald-600 hover:bg-emerald-50'
+                    : 'text-gray-600 hover:bg-gray-50'
                     }`}
                 >
                   <Mountain
@@ -260,12 +260,12 @@ export default function BlogDetail() {
                 </Button>
                 {/* 收藏按鈕 */}
                 <Button
-                  variant="outline"
+                  variant="ghost"
                   onClick={handleBookmark}
                   disabled={isBookmarking}
                   className={`${isBookmarked
-                    ? 'border-amber-300 bg-amber-50 text-amber-600'
-                    : 'border-gray-300 text-gray-600 hover:bg-gray-50'
+                    ? 'text-amber-600 hover:bg-amber-50'
+                    : 'text-gray-600 hover:bg-gray-50'
                     }`}
                 >
                   <Bookmark
@@ -277,8 +277,8 @@ export default function BlogDetail() {
                 <ShareButton
                   title={`${article.title} - NobodyClimb`}
                   description={article.excerpt || ''}
-                  variant="outline"
-                  className="border-gray-300 text-gray-600 hover:bg-gray-50"
+                  variant="ghost"
+                  className="text-gray-600 hover:bg-gray-50"
                 />
                 {isAuthor && (
                   <Button
