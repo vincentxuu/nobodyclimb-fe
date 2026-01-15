@@ -113,7 +113,7 @@ async function main() {
 
   // 解析參數
   let cragId = null
-  let limit = 5
+  let limit = 10
 
   for (const arg of args) {
     if (arg.startsWith('--limit=')) {
