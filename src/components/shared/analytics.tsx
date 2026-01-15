@@ -12,12 +12,12 @@ import Script from 'next/script'
  * - NEXT_PUBLIC_POSTHOG_KEY: PostHog API Key
  * - NEXT_PUBLIC_POSTHOG_HOST: PostHog Host (預設: https://us.i.posthog.com)
  */
-export function Analytics() {
-  const gaId = process.env.NEXT_PUBLIC_GA_ID
-  const clarityId = process.env.NEXT_PUBLIC_CLARITY_ID
-  const posthogKey = process.env.NEXT_PUBLIC_POSTHOG_KEY
-  const posthogHost = process.env.NEXT_PUBLIC_POSTHOG_HOST || 'https://us.i.posthog.com'
+const gaId = process.env.NEXT_PUBLIC_GA_ID
+const clarityId = process.env.NEXT_PUBLIC_CLARITY_ID
+const posthogKey = process.env.NEXT_PUBLIC_POSTHOG_KEY
+const posthogHost = process.env.NEXT_PUBLIC_POSTHOG_HOST || 'https://us.i.posthog.com'
 
+export function Analytics() {
   return (
     <>
       {/* Google Analytics */}

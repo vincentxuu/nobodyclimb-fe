@@ -41,8 +41,8 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           href="https://cdn.jsdelivr.net/npm/quill@2.0.2/dist/quill.snow.css"
         />
       </head>
-      <Analytics />
       <body suppressHydrationWarning className={notoSansTC.className}>
+        <Analytics />
         <Providers>
           <AuthInitializer />
           <StoryPromptWrapper />
