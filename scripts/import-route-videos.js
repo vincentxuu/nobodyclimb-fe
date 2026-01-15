@@ -106,6 +106,23 @@ function parseUrls(text) {
     .filter((url) => url.length > 0)
 }
 
+// 從「標題 | URL」格式中提取 URL
+function parseVideoList(text) {
+  if (!text) return []
+
+  return text
+    .split('\n')
+    .map((line) => {
+      // 格式: "標題 | https://www.youtube.com/watch?v=xxx"
+      const parts = line.split('|')
+      if (parts.length >= 2) {
+        return parts[parts.length - 1].trim() // 取最後一個部分作為 URL
+      }
+      return line.trim()
+    })
+    .filter((url) => url.length > 0)
+}
+
 // 驗證 YouTube URL
 function isValidYoutubeUrl(url) {
   return (
@@ -160,7 +177,7 @@ function main() {
     let cragId = null
     if (routeId.startsWith('LD-')) cragId = 'longdong'
     else if (routeId.startsWith('DF-')) cragId = 'defulan'
-    else if (routeId.startsWith('GZL-')) cragId = 'guanziling'
+    else if (routeId.startsWith('GZ-') || routeId.startsWith('GZL-')) cragId = 'guanziling'
     else if (routeId.startsWith('KT-')) cragId = 'kenting'
     else if (routeId.startsWith('SS-')) cragId = 'shoushan'
 
@@ -214,8 +231,20 @@ function main() {
       let hasChanges = false
 
       // 處理 YouTube 影片
-      const youtubeText = row['選擇的YouTube影片'] || row['YouTube影片'] || ''
-      const youtubeUrls = parseUrls(youtubeText).filter((url) => {
+      // 優先讀取「選擇的YouTube影片」，如果沒有則讀取「建議影片（標題 | URL）」
+      const selectedYoutube = row['選擇的YouTube影片'] || row['YouTube影片'] || ''
+      const suggestedYoutube = row['建議影片（標題 | URL）'] || row['建議影片'] || ''
+
+      let youtubeUrls = []
+      if (selectedYoutube) {
+        // 有手動選擇的，用選擇的
+        youtubeUrls = parseUrls(selectedYoutube)
+      } else if (suggestedYoutube) {
+        // 沒有手動選擇，用建議的全部
+        youtubeUrls = parseVideoList(suggestedYoutube)
+      }
+
+      youtubeUrls = youtubeUrls.filter((url) => {
         if (isValidYoutubeUrl(url)) return true
         if (url) stats.errors.push(`無效的 YouTube URL: ${url}`)
         return false
