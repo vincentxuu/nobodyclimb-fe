@@ -15,7 +15,7 @@ interface ChapterMeetingProps {
 export function ChapterMeeting({ person }: ChapterMeetingProps) {
   if (!person.climbing_origin) return null
 
-  const imageUrl = person.avatar_url
+  const imageUrl = person.cover_image
   const paragraphs = person.climbing_origin.split('\n').filter(p => p.trim())
 
   return (
@@ -35,18 +35,18 @@ export function ChapterMeeting({ person }: ChapterMeetingProps) {
         </h2>
       </div>
 
-      {/* 內容區 - 使用 Grid 佈局 */}
-      <div className="grid gap-8 md:grid-cols-12">
-        {/* 圖片 - 占 5 欄 - 只在有圖片時顯示 */}
+      {/* 內容區 - 上下排列 */}
+      <div className="flex flex-col gap-8">
+        {/* 圖片 - 只在有圖片時顯示 */}
         {imageUrl && (
           <motion.div
-            className="md:col-span-5"
-            initial={{ opacity: 0, x: -20 }}
-            whileInView={{ opacity: 1, x: 0 }}
+            initial={{ opacity: 0, y: -20 }}
+            whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
+            className="mx-auto w-full max-w-2xl"
           >
-            <div className="sticky top-24 overflow-hidden rounded-lg shadow-lg">
-              <div className="relative aspect-[4/5]">
+            <div className="overflow-hidden rounded-lg shadow-lg">
+              <div className="relative aspect-[3/2]">
                 <Image
                   src={imageUrl}
                   alt={`${person.name} 的攀岩相遇`}
@@ -58,8 +58,8 @@ export function ChapterMeeting({ person }: ChapterMeetingProps) {
           </motion.div>
         )}
 
-        {/* 文字 - 有圖片時占 7 欄，沒圖片時占全部 */}
-        <div className={imageUrl ? 'md:col-span-7' : 'md:col-span-12'}>
+        {/* 文字 */}
+        <div>
           {paragraphs.map((para, index) => (
             <motion.p
               key={index}
