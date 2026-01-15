@@ -60,6 +60,14 @@ function extractMainName(name) {
   return name.split(/[\(（]/)[0].trim()
 }
 
+// 詞邊界匹配（確保英文名是完整單字）
+function matchWordBoundary(text, keyword) {
+  // 使用正則表達式確保是完整單字
+  const escaped = keyword.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
+  const regex = new RegExp(`\\b${escaped}\\b`, 'i')
+  return regex.test(text)
+}
+
 // 建立關鍵字對照表
 function buildKeywordMap(cragsData) {
   const map = {
@@ -124,7 +132,7 @@ function extractKeywords(title, keywordMap) {
       result.crag = crag
       break
     }
-    if (crag.nameEn && crag.nameEn.length > 2 && titleLower.includes(crag.nameEn.toLowerCase())) {
+    if (crag.nameEn && crag.nameEn.length > 2 && matchWordBoundary(titleLower, crag.nameEn.toLowerCase())) {
       result.crag = crag
       break
     }
@@ -172,7 +180,7 @@ function extractKeywords(title, keywordMap) {
     if (
       route.nameEn &&
       route.nameEn.length > 2 &&
-      titleLower.includes(route.nameEn.toLowerCase())
+      matchWordBoundary(titleLower, route.nameEn.toLowerCase())
     ) {
       result.route = route
       if (!result.crag) {
@@ -302,52 +310,110 @@ async function main() {
 
   console.log(`\n總共 ${allVideos.length} 個影片，開始提取關鍵字...\n`)
 
-  // 建立 CSV
-  const csvRows = [
-    [
-      '影片標題',
-      '影片URL',
-      '頻道',
-      '岩場',
-      '區域',
-      '路線名稱',
-      '路線ID',
-      '難度',
-      '是否匹配',
-    ].join(','),
-  ]
+  // 以路線為主收集匹配的影片
+  // routeVideos: { [routeId]: { route, videos: [{title, url}] } }
+  const routeVideos = {}
+  // cragVideos: { [cragId]: { crag, videos: [{title, url}] } } - 只匹配岩場但沒有路線
+  const cragVideos = {}
 
   let matchedCount = 0
   for (const video of allVideos) {
     const keywords = extractKeywords(video.title, keywordMap)
-    const hasMatch = keywords.crag || keywords.area || keywords.route
 
-    if (hasMatch) matchedCount++
-
-    const row = [
-      escapeCSV(video.title),
-      escapeCSV(video.url),
-      escapeCSV(video.channel),
-      escapeCSV(keywords.crag?.name || ''),
-      escapeCSV(keywords.area?.name || ''),
-      escapeCSV(keywords.route?.name || ''),
-      escapeCSV(keywords.route?.routeId || ''),
-      escapeCSV(keywords.route?.grade || ''),
-      hasMatch ? '是' : '否',
-    ]
-
-    csvRows.push(row.join(','))
+    if (keywords.route) {
+      // 有匹配到路線
+      matchedCount++
+      const routeId = keywords.route.routeId
+      if (!routeVideos[routeId]) {
+        routeVideos[routeId] = {
+          route: keywords.route,
+          crag: keywords.crag,
+          area: keywords.area,
+          videos: [],
+        }
+      }
+      routeVideos[routeId].videos.push({
+        title: video.title,
+        url: video.url,
+      })
+    } else if (keywords.crag) {
+      // 只匹配到岩場（沒有路線）
+      matchedCount++
+      const cragId = keywords.crag.id
+      if (!cragVideos[cragId]) {
+        cragVideos[cragId] = {
+          crag: keywords.crag,
+          videos: [],
+        }
+      }
+      cragVideos[cragId].videos.push({
+        title: video.title,
+        url: video.url,
+        area: keywords.area,
+      })
+    }
   }
 
-  // 寫入 CSV
-  const outputPath = path.join(OUTPUT_DIR, 'video-keywords.csv')
-  fs.writeFileSync(outputPath, '\uFEFF' + csvRows.join('\n'), 'utf-8')
+  // 依岩場分組輸出 CSV
+  const cragGroups = {}
+  for (const [routeId, data] of Object.entries(routeVideos)) {
+    const cragId = data.route.cragId
+    if (!cragGroups[cragId]) {
+      cragGroups[cragId] = {
+        cragName: data.crag?.name || data.route.cragName,
+        routes: [],
+      }
+    }
+    cragGroups[cragId].routes.push(data)
+  }
 
-  console.log('=== 提取統計 ===')
+  // 為每個岩場輸出一個 CSV
+  for (const [cragId, group] of Object.entries(cragGroups)) {
+    const csvRows = [
+      ['岩場', '區域', '路線ID', '路線名稱', '路線英文名', '難度', '找到數量', '建議影片（標題 | URL）', '選擇的YouTube影片', '選擇的Instagram貼文'].join(','),
+    ]
+
+    for (const data of group.routes) {
+      const { route, area, videos } = data
+      const videosStr = videos
+        .map((v) => `${v.title}\t${v.url}`)
+        .join('\n')
+
+      const row = [
+        escapeCSV(route.cragName),
+        escapeCSV(area?.name || route.areaName || ''),
+        escapeCSV(route.routeId),
+        escapeCSV(route.name),
+        escapeCSV(route.nameEn || ''),
+        escapeCSV(route.grade || ''),
+        videos.length,
+        escapeCSV(videosStr),
+        '', // 選擇的YouTube影片
+        '', // 選擇的Instagram貼文
+      ]
+
+      csvRows.push(row.join(','))
+    }
+
+    const cragSlug = cragId.toLowerCase().replace(/_/g, '-')
+    const outputPath = path.join(OUTPUT_DIR, `route-videos-${cragSlug}.csv`)
+    fs.writeFileSync(outputPath, '\uFEFF' + csvRows.join('\n'), 'utf-8')
+    console.log(`✅ 輸出: ${outputPath} (${group.routes.length} 條路線)`)
+  }
+
+  // 輸出只匹配岩場的影片（未歸類到路線）
+  if (Object.keys(cragVideos).length > 0) {
+    console.log('\n=== 只匹配岩場的影片（未歸類到路線）===')
+    for (const [cragId, data] of Object.entries(cragVideos)) {
+      console.log(`${data.crag.name}: ${data.videos.length} 個影片`)
+    }
+  }
+
+  console.log('\n=== 提取統計 ===')
   console.log(`總影片數: ${allVideos.length}`)
   console.log(`有匹配的: ${matchedCount} (${((matchedCount / allVideos.length) * 100).toFixed(1)}%)`)
-  console.log(`無匹配的: ${allVideos.length - matchedCount}`)
-  console.log(`\n✅ 輸出: ${outputPath}`)
+  console.log(`匹配到路線: ${Object.values(routeVideos).reduce((sum, r) => sum + r.videos.length, 0)}`)
+  console.log(`只匹配岩場: ${Object.values(cragVideos).reduce((sum, c) => sum + c.videos.length, 0)}`)
 }
 
 main().catch(console.error)

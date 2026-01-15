@@ -227,7 +227,10 @@
       "protection": "5 bolts + anchor",
       "boltCount": 5,
       "popularity": 2,
-      "status": "published"
+      "status": "published",
+      "youtubeVideos": [
+        "https://www.youtube.com/watch?v=adVt6XDmLx0"
+      ]
     },
     {
       "id": "KT-MF-002",
@@ -244,7 +247,11 @@
       "protection": "4 bolts + anchor",
       "boltCount": 4,
       "popularity": 2,
-      "status": "published"
+      "status": "published",
+      "youtubeVideos": [
+        "https://www.youtube.com/watch?v=p33dUyDHQEs",
+        "https://www.youtube.com/watch?v=4KOxXoDPjLw"
+      ]
     },
     {
       "id": "KT-MF-003",
@@ -278,7 +285,10 @@
       "protection": "7 bolts + anchor",
       "boltCount": 7,
       "popularity": 3,
-      "status": "published"
+      "status": "published",
+      "youtubeVideos": [
+        "https://www.youtube.com/watch?v=gKP8ieh7VEA"
+      ]
     },
     {
       "id": "KT-MF-005",
@@ -295,7 +305,10 @@
       "protection": "6 bolts + anchor",
       "boltCount": 6,
       "popularity": 2,
-      "status": "published"
+      "status": "published",
+      "youtubeVideos": [
+        "https://www.youtube.com/watch?v=1x68c-k1DfA"
+      ]
     },
     {
       "id": "KT-MF-006",
@@ -346,7 +359,12 @@
       "protection": "7 bolts + anchor",
       "boltCount": 7,
       "popularity": 3,
-      "status": "published"
+      "status": "published",
+      "youtubeVideos": [
+        "https://www.youtube.com/watch?v=3hAVTDPAFps",
+        "https://www.youtube.com/watch?v=-gNb3ESQqCc",
+        "https://www.youtube.com/watch?v=9jiS4MleG8g"
+      ]
     },
     {
       "id": "KT-AW-001",
@@ -499,7 +517,10 @@
       "protection": "4 bolts + anchor",
       "boltCount": 4,
       "popularity": 2,
-      "status": "published"
+      "status": "published",
+      "youtubeVideos": [
+        "https://www.youtube.com/watch?v=Qbdhad6LI_I"
+      ]
     },
     {
       "id": "KT-SW-003",
@@ -533,7 +554,10 @@
       "protection": "4 bolts + anchor",
       "boltCount": 4,
       "popularity": 2,
-      "status": "published"
+      "status": "published",
+      "youtubeVideos": [
+        "https://www.youtube.com/watch?v=rJ-U6dp0eNA"
+      ]
     },
     {
       "id": "KT-SW-005",
@@ -567,7 +591,10 @@
       "protection": "5 bolts + anchor",
       "boltCount": 5,
       "popularity": 3,
-      "status": "published"
+      "status": "published",
+      "youtubeVideos": [
+        "https://www.youtube.com/watch?v=vN8VWHYLQNM"
+      ]
     },
     {
       "id": "KT-SW-007",
@@ -584,7 +611,10 @@
       "protection": "5 bolts + anchor",
       "boltCount": 5,
       "popularity": 3,
-      "status": "published"
+      "status": "published",
+      "youtubeVideos": [
+        "https://www.youtube.com/watch?v=kHUCV3_h1Z0"
+      ]
     },
     {
       "id": "KT-SW-008",
@@ -603,7 +633,9 @@
       "popularity": 2,
       "status": "published",
       "youtubeVideos": [
-        "https://www.youtube.com/watch?v=Sw0AFeReG3E"
+        "https://www.youtube.com/watch?v=Sw0AFeReG3E",
+        "https://www.youtube.com/watch?v=LRNbBzDdv00",
+        "https://www.youtube.com/watch?v=V87OTnIzQQU"
       ]
     },
     {
@@ -638,7 +670,10 @@
       "protection": "4 bolts + anchor",
       "boltCount": 4,
       "popularity": 2,
-      "status": "published"
+      "status": "published",
+      "youtubeVideos": [
+        "https://www.youtube.com/watch?v=-9A0yUyMMP8"
+      ]
     },
     {
       "id": "KT-SW-011",
@@ -655,7 +690,10 @@
       "protection": "5 bolts + anchor",
       "boltCount": 5,
       "popularity": 2,
-      "status": "published"
+      "status": "published",
+      "youtubeVideos": [
+        "https://www.youtube.com/watch?v=g12Zmh9VREk"
+      ]
     },
     {
       "id": "KT-SW-012",
@@ -674,7 +712,9 @@
       "popularity": 3,
       "status": "published",
       "youtubeVideos": [
-        "https://www.youtube.com/watch?v=7ZLFxr6ajlQ"
+        "https://www.youtube.com/watch?v=7ZLFxr6ajlQ",
+        "https://www.youtube.com/watch?v=oDkiH0u_KYA",
+        "https://www.youtube.com/watch?v=h0VwUTFbHm4"
       ]
     },
     {
@@ -692,7 +732,12 @@
       "protection": "6 bolts + anchor",
       "boltCount": 6,
       "popularity": 2,
-      "status": "published"
+      "status": "published",
+      "youtubeVideos": [
+        "https://www.youtube.com/watch?v=i5GkKL4KafM",
+        "https://www.youtube.com/watch?v=-GPcnz50g-0",
+        "https://www.youtube.com/watch?v=L_S-4LiGIJU"
+      ]
     },
     {
       "id": "KT-SW-014",
@@ -713,7 +758,9 @@
       "youtubeVideos": [
         "https://www.youtube.com/watch?v=2GVIwWQIB3M",
         "https://www.youtube.com/watch?v=irB4jYC4d5g",
-        "https://www.youtube.com/watch?v=a_Q5WgGQnqM"
+        "https://www.youtube.com/watch?v=a_Q5WgGQnqM",
+        "https://www.youtube.com/watch?v=VpNbj4ZcYpM",
+        "https://www.youtube.com/watch?v=qKLZhGga93M"
       ]
     },
     {
@@ -733,7 +780,8 @@
       "popularity": 2,
       "status": "published",
       "youtubeVideos": [
-        "https://www.youtube.com/watch?v=V37qalaiCsM"
+        "https://www.youtube.com/watch?v=V37qalaiCsM",
+        "https://www.youtube.com/watch?v=yajLS8RCzYw"
       ]
     },
     {
@@ -751,7 +799,11 @@
       "protection": "7 bolts + anchor",
       "boltCount": 7,
       "popularity": 3,
-      "status": "published"
+      "status": "published",
+      "youtubeVideos": [
+        "https://www.youtube.com/watch?v=3qQ_3N4VP58",
+        "https://www.youtube.com/watch?v=b1gs6d2F82o"
+      ]
     },
     {
       "id": "KT-SW-017",
@@ -785,7 +837,12 @@
       "protection": "7 bolts + anchor",
       "boltCount": 7,
       "popularity": 3,
-      "status": "published"
+      "status": "published",
+      "youtubeVideos": [
+        "https://www.youtube.com/watch?v=_X9C2jDyeJs",
+        "https://www.youtube.com/watch?v=ic1Z3S38IzU",
+        "https://www.youtube.com/watch?v=B0T3FXjJD40"
+      ]
     },
     {
       "id": "KT-SW-019",
@@ -819,7 +876,12 @@
       "protection": "6 bolts + anchor",
       "boltCount": 6,
       "popularity": 3,
-      "status": "published"
+      "status": "published",
+      "youtubeVideos": [
+        "https://www.youtube.com/watch?v=XEIydlwREEY",
+        "https://www.youtube.com/watch?v=OxxQ4S2CEeg",
+        "https://www.youtube.com/watch?v=ptFd9Q3OJjo"
+      ]
     },
     {
       "id": "KT-SW-021",
@@ -839,7 +901,8 @@
       "status": "published",
       "youtubeVideos": [
         "https://www.youtube.com/watch?v=qsHIq3ant24",
-        "https://www.youtube.com/watch?v=snCxoez2EFY"
+        "https://www.youtube.com/watch?v=snCxoez2EFY",
+        "https://www.youtube.com/watch?v=wxztxvveyQY"
       ]
     },
     {
@@ -876,7 +939,10 @@
       "popularity": 3,
       "status": "published",
       "youtubeVideos": [
-        "https://www.youtube.com/watch?v=oGoWInXQERg"
+        "https://www.youtube.com/watch?v=oGoWInXQERg",
+        "https://www.youtube.com/watch?v=jDTrywE-rWU",
+        "https://www.youtube.com/watch?v=MfE3zXScMj0",
+        "https://www.youtube.com/watch?v=a1H8vr_Ylho"
       ]
     },
     {
@@ -894,7 +960,11 @@
       "protection": "9 bolts + anchor",
       "boltCount": 9,
       "popularity": 3,
-      "status": "published"
+      "status": "published",
+      "youtubeVideos": [
+        "https://www.youtube.com/watch?v=W_IMLhbCU0o",
+        "https://www.youtube.com/watch?v=UrU5Ifh4RTw"
+      ]
     },
     {
       "id": "KT-SW-025",
@@ -911,7 +981,12 @@
       "protection": "9 bolts + anchor",
       "boltCount": 9,
       "popularity": 3,
-      "status": "published"
+      "status": "published",
+      "youtubeVideos": [
+        "https://www.youtube.com/watch?v=nMkLvPe_gxI",
+        "https://www.youtube.com/watch?v=MKQy0vFhH4w",
+        "https://www.youtube.com/watch?v=Sgp_OH1A3po"
+      ]
     },
     {
       "id": "KT-SW-026",
@@ -930,7 +1005,12 @@
       "popularity": 3,
       "status": "published",
       "youtubeVideos": [
-        "https://www.youtube.com/watch?v=p8HZIqwArdQ"
+        "https://www.youtube.com/watch?v=p8HZIqwArdQ",
+        "https://www.youtube.com/watch?v=o85qmGOCBkE",
+        "https://www.youtube.com/watch?v=jpOgsZ1Vukc",
+        "https://www.youtube.com/watch?v=YUnsyZ_5l-8",
+        "https://www.youtube.com/watch?v=4-cpqmhZnR4",
+        "https://www.youtube.com/watch?v=JVJT3gqpcVg"
       ]
     },
     {
@@ -948,7 +1028,12 @@
       "protection": "6 bolts + anchor",
       "boltCount": 6,
       "popularity": 3,
-      "status": "published"
+      "status": "published",
+      "youtubeVideos": [
+        "https://www.youtube.com/watch?v=KuTbD-3NYdY",
+        "https://www.youtube.com/watch?v=LvP2WRwhrOI",
+        "https://www.youtube.com/watch?v=3GP0O48MaE0"
+      ]
     },
     {
       "id": "KT-SW-028",
@@ -965,7 +1050,11 @@
       "protection": "7 bolts + anchor",
       "boltCount": 7,
       "popularity": 3,
-      "status": "published"
+      "status": "published",
+      "youtubeVideos": [
+        "https://www.youtube.com/watch?v=MyA4Puwa8yU",
+        "https://www.youtube.com/watch?v=T9sF3d5ysUQ"
+      ]
     },
     {
       "id": "KT-SW-029",
@@ -984,7 +1073,8 @@
       "popularity": 3,
       "status": "published",
       "youtubeVideos": [
-        "https://www.youtube.com/watch?v=vMQs4UosK0M"
+        "https://www.youtube.com/watch?v=vMQs4UosK0M",
+        "https://www.youtube.com/watch?v=QgM9tRrVrHM"
       ]
     },
     {
@@ -1002,7 +1092,11 @@
       "protection": "6 bolts + anchor",
       "boltCount": 6,
       "popularity": 2,
-      "status": "published"
+      "status": "published",
+      "youtubeVideos": [
+        "https://www.youtube.com/watch?v=yFgBKLdCjQs",
+        "https://www.youtube.com/watch?v=LQ-cY2lKTkk"
+      ]
     },
     {
       "id": "KT-SW-031",
@@ -1019,7 +1113,10 @@
       "protection": "6 bolts + anchor",
       "boltCount": 6,
       "popularity": 3,
-      "status": "published"
+      "status": "published",
+      "youtubeVideos": [
+        "https://www.youtube.com/watch?v=iBE9vW2DwQY"
+      ]
     },
     {
       "id": "KT-SW-032",
@@ -1226,7 +1323,10 @@
       "protection": "5 bolts + anchor",
       "boltCount": 5,
       "popularity": 2,
-      "status": "published"
+      "status": "published",
+      "youtubeVideos": [
+        "https://www.youtube.com/watch?v=G5iEHe-rNd4"
+      ]
     },
     {
       "id": "KT-DW-005",
@@ -1247,7 +1347,8 @@
       "youtubeVideos": [
         "https://www.youtube.com/watch?v=DDFvuOqVypY",
         "https://www.youtube.com/watch?v=3GHY6uYf-xE",
-        "https://www.youtube.com/watch?v=fVfoNz8ZkzE"
+        "https://www.youtube.com/watch?v=fVfoNz8ZkzE",
+        "https://www.youtube.com/watch?v=H0ifYf3iDXg"
       ]
     },
     {
@@ -1265,7 +1366,10 @@
       "protection": "6 bolts + anchor",
       "boltCount": 6,
       "popularity": 2,
-      "status": "published"
+      "status": "published",
+      "youtubeVideos": [
+        "https://www.youtube.com/watch?v=oMbnmoPUMd8"
+      ]
     },
     {
       "id": "KT-DW-007",
@@ -1284,7 +1388,8 @@
       "popularity": 3,
       "status": "published",
       "youtubeVideos": [
-        "https://www.youtube.com/watch?v=BLiyuxCaf0k"
+        "https://www.youtube.com/watch?v=BLiyuxCaf0k",
+        "https://www.youtube.com/watch?v=n7G7fDTt4RI"
       ]
     },
     {
@@ -1306,7 +1411,10 @@
       "youtubeVideos": [
         "https://www.youtube.com/watch?v=U5gCrVS4iF4",
         "https://www.youtube.com/watch?v=rTPBHT5Y8TQ",
-        "https://www.youtube.com/watch?v=AmVSkzxPuKs"
+        "https://www.youtube.com/watch?v=AmVSkzxPuKs",
+        "https://www.youtube.com/watch?v=wI5MLritb1o",
+        "https://www.youtube.com/watch?v=h0yG8HDCBRA",
+        "https://www.youtube.com/watch?v=ahqSekzIetY"
       ]
     },
     {
@@ -1343,7 +1451,10 @@
       "popularity": 3,
       "status": "published",
       "youtubeVideos": [
-        "https://www.youtube.com/watch?v=Exhpm5ttKyE"
+        "https://www.youtube.com/watch?v=Exhpm5ttKyE",
+        "https://www.youtube.com/watch?v=YI8LhyZau6Q",
+        "https://www.youtube.com/watch?v=Q1Cp1JbR_CE",
+        "https://www.youtube.com/watch?v=7pasSQjIEaI"
       ]
     },
     {
@@ -1361,7 +1472,11 @@
       "protection": "6 bolts + anchor",
       "boltCount": 6,
       "popularity": 3,
-      "status": "published"
+      "status": "published",
+      "youtubeVideos": [
+        "https://www.youtube.com/watch?v=oz2-bPSlKrw",
+        "https://www.youtube.com/watch?v=HXctlPXLa98"
+      ]
     },
     {
       "id": "KT-DW-012",
@@ -1378,7 +1493,11 @@
       "protection": "3 bolts + anchor",
       "boltCount": 3,
       "popularity": 3,
-      "status": "published"
+      "status": "published",
+      "youtubeVideos": [
+        "https://www.youtube.com/watch?v=BbIiwksPsIM",
+        "https://www.youtube.com/watch?v=Y0EZCy_qqHg"
+      ]
     },
     {
       "id": "KT-DW-013",
@@ -1412,7 +1531,10 @@
       "protection": "4 bolts + anchor",
       "boltCount": 4,
       "popularity": 1,
-      "status": "published"
+      "status": "published",
+      "youtubeVideos": [
+        "https://www.youtube.com/watch?v=QeEZhnfFo5A"
+      ]
     },
     {
       "id": "KT-DW-015",
@@ -1429,7 +1551,12 @@
       "protection": "5 bolts + anchor",
       "boltCount": 5,
       "popularity": 2,
-      "status": "published"
+      "status": "published",
+      "youtubeVideos": [
+        "https://www.youtube.com/watch?v=LFyNBsEZ7Q4",
+        "https://www.youtube.com/watch?v=QXfiQivZI6o",
+        "https://www.youtube.com/watch?v=I1NuMHHA7AQ"
+      ]
     },
     {
       "id": "KT-DW-016",
@@ -1483,7 +1610,10 @@
       "protection": "4 bolts + anchor",
       "boltCount": 4,
       "popularity": 3,
-      "status": "published"
+      "status": "published",
+      "youtubeVideos": [
+        "https://www.youtube.com/watch?v=YLSjg52TvTE"
+      ]
     },
     {
       "id": "KT-DW-019",
@@ -1500,7 +1630,12 @@
       "protection": "3 bolts + anchor",
       "boltCount": 3,
       "popularity": 3,
-      "status": "published"
+      "status": "published",
+      "youtubeVideos": [
+        "https://www.youtube.com/watch?v=pxHNJ1zSTss",
+        "https://www.youtube.com/watch?v=1OTLI4dbiWc",
+        "https://www.youtube.com/watch?v=tnJc_Pl5NiQ"
+      ]
     },
     {
       "id": "KT-DW-020",
@@ -1517,7 +1652,11 @@
       "protection": "3 bolts + anchor",
       "boltCount": 3,
       "popularity": 3,
-      "status": "published"
+      "status": "published",
+      "youtubeVideos": [
+        "https://www.youtube.com/watch?v=_Yjz9e_sZR8",
+        "https://www.youtube.com/watch?v=Y7zCfqfXpX0"
+      ]
     },
     {
       "id": "KT-DW-021",
@@ -1590,7 +1729,8 @@
       "popularity": 2,
       "status": "published",
       "youtubeVideos": [
-        "https://www.youtube.com/watch?v=QCYdCFYcQng"
+        "https://www.youtube.com/watch?v=QCYdCFYcQng",
+        "https://www.youtube.com/watch?v=DdxfL0UP3bs"
       ]
     },
     {
@@ -1750,7 +1890,10 @@
       "protection": "4 bolts + anchor",
       "boltCount": 4,
       "popularity": 2,
-      "status": "published"
+      "status": "published",
+      "youtubeVideos": [
+        "https://www.youtube.com/watch?v=GPQ9WRxhecA"
+      ]
     },
     {
       "id": "KT-DAR-006",
@@ -1767,7 +1910,10 @@
       "protection": "5 bolts + anchor",
       "boltCount": 5,
       "popularity": 3,
-      "status": "published"
+      "status": "published",
+      "youtubeVideos": [
+        "https://www.youtube.com/watch?v=i5Vf4ftldK4"
+      ]
     },
     {
       "id": "KT-DAR-007",
@@ -1784,7 +1930,10 @@
       "protection": "5 bolts + anchor",
       "boltCount": 5,
       "popularity": 3,
-      "status": "published"
+      "status": "published",
+      "youtubeVideos": [
+        "https://www.youtube.com/watch?v=eXlKqufTJIQ"
+      ]
     },
     {
       "id": "KT-DAR-008",
@@ -1818,7 +1967,10 @@
       "protection": "4 bolts + anchor",
       "boltCount": 4,
       "popularity": 2,
-      "status": "published"
+      "status": "published",
+      "youtubeVideos": [
+        "https://www.youtube.com/watch?v=4xPf9lmCjOY"
+      ]
     },
     {
       "id": "KT-DAR-010",
@@ -1838,7 +1990,8 @@
       "status": "published",
       "youtubeVideos": [
         "https://www.youtube.com/watch?v=vNjOHdG8wiw",
-        "https://www.youtube.com/watch?v=lC_6WRK3HUI"
+        "https://www.youtube.com/watch?v=lC_6WRK3HUI",
+        "https://www.youtube.com/watch?v=3fmyBfMP_Xw"
       ]
     },
     {
@@ -1873,7 +2026,10 @@
       "protection": "5 bolts + anchor",
       "boltCount": 5,
       "popularity": 2,
-      "status": "published"
+      "status": "published",
+      "youtubeVideos": [
+        "https://www.youtube.com/watch?v=YKxKapa3x5Y"
+      ]
     },
     {
       "id": "KT-LPH-001",
@@ -1907,7 +2063,10 @@
       "protection": "2 bolts + anchor",
       "boltCount": 2,
       "popularity": 2,
-      "status": "published"
+      "status": "published",
+      "youtubeVideos": [
+        "https://www.youtube.com/watch?v=ZV76CjmJ2Bo"
+      ]
     },
     {
       "id": "KT-LPH-003",
@@ -1944,7 +2103,10 @@
       "protection": "4 bolts + anchor",
       "boltCount": 4,
       "popularity": 1,
-      "status": "published"
+      "status": "published",
+      "youtubeVideos": [
+        "https://www.youtube.com/watch?v=tYGzLOv7IDk"
+      ]
     },
     {
       "id": "KT-LPH-005",
@@ -1995,7 +2157,10 @@
       "protection": "5 bolts + anchor",
       "boltCount": 5,
       "popularity": 3,
-      "status": "published"
+      "status": "published",
+      "youtubeVideos": [
+        "https://www.youtube.com/watch?v=P6Q6R6xDSZg"
+      ]
     },
     {
       "id": "KT-WW-003",
@@ -2014,7 +2179,9 @@
       "popularity": 3,
       "status": "published",
       "youtubeVideos": [
-        "https://www.youtube.com/watch?v=-p3fY5kM-GU"
+        "https://www.youtube.com/watch?v=-p3fY5kM-GU",
+        "https://www.youtube.com/watch?v=CDHosjHOXBg",
+        "https://www.youtube.com/watch?v=DAylMhAbirs"
       ]
     },
     {
@@ -2051,7 +2218,8 @@
       "popularity": 2,
       "status": "published",
       "youtubeVideos": [
-        "https://www.youtube.com/watch?v=WK3FRtVwdZo"
+        "https://www.youtube.com/watch?v=WK3FRtVwdZo",
+        "https://www.youtube.com/watch?v=Q7f16gApFp0"
       ]
     },
     {
@@ -2086,7 +2254,11 @@
       "protection": "5 bolts + anchor",
       "boltCount": 5,
       "popularity": 2,
-      "status": "published"
+      "status": "published",
+      "youtubeVideos": [
+        "https://www.youtube.com/watch?v=BbcglX-jKII",
+        "https://www.youtube.com/watch?v=zQOJv-N5Ci4"
+      ]
     },
     {
       "id": "KT-WW-008",

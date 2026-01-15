@@ -217,7 +217,10 @@
       "description": "可步行下撤",
       "safetyRating": "●●●",
       "boltCount": 0,
-      "status": "published"
+      "status": "published",
+      "youtubeVideos": [
+        "https://www.youtube.com/watch?v=f_SDlBGYcWo"
+      ]
     },
     {
       "id": "LD-MUSIC-HALL-332",
@@ -757,7 +760,8 @@
       "status": "published",
       "youtubeVideos": [
         "https://www.youtube.com/watch?v=CBrCMm7oIEM",
-        "https://www.youtube.com/watch?v=f_SDlBGYcWo"
+        "https://www.youtube.com/watch?v=f_SDlBGYcWo",
+        "https://www.youtube.com/watch?v=fdqjyIfXblA"
       ]
     },
     {
@@ -982,7 +986,8 @@
       "boltCount": 10,
       "status": "published",
       "youtubeVideos": [
-        "https://www.youtube.com/watch?v=c6ZzhlN5BnI"
+        "https://www.youtube.com/watch?v=c6ZzhlN5BnI",
+        "https://www.youtube.com/watch?v=AfSVjJrxgeY"
       ]
     },
     {
@@ -2904,7 +2909,8 @@
       "youtubeVideos": [
         "https://www.youtube.com/watch?v=OKzbfm6qtUY",
         "https://www.youtube.com/watch?v=fIeTSliKOZo",
-        "https://www.youtube.com/watch?v=xmsNKhjoATw"
+        "https://www.youtube.com/watch?v=xmsNKhjoATw",
+        "https://www.youtube.com/watch?v=UYoTNeeN8UM"
       ]
     },
     {
@@ -4053,7 +4059,10 @@
       "status": "published",
       "youtubeVideos": [
         "https://www.youtube.com/watch?v=3CqZcImr33I",
-        "https://www.youtube.com/watch?v=_694Lrp7zLM"
+        "https://www.youtube.com/watch?v=_694Lrp7zLM",
+        "https://www.youtube.com/watch?v=3Yq5WQFncTE",
+        "https://www.youtube.com/watch?v=JuxGljWFDlU",
+        "https://www.youtube.com/watch?v=MVvH27oB-Yk"
       ]
     },
     {
@@ -4453,7 +4462,10 @@
       "description": "路線仍使用拉膨式錨栓 (304)",
       "safetyRating": "●●●",
       "boltCount": 6,
-      "status": "published"
+      "status": "published",
+      "youtubeVideos": [
+        "https://www.youtube.com/watch?v=s7dRHLqMxns"
+      ]
     },
     {
       "id": "LD-FIRST-CAVE-242",
@@ -4970,7 +4982,8 @@
       "boltCount": 17,
       "status": "published",
       "youtubeVideos": [
-        "https://www.youtube.com/watch?v=hg5-znEe3Moo"
+        "https://www.youtube.com/watch?v=hg5-znEe3Moo",
+        "https://www.youtube.com/watch?v=hg5-znEe3Mo"
       ]
     },
     {
@@ -5289,7 +5302,8 @@
       "boltCount": 2,
       "status": "published",
       "youtubeVideos": [
-        "https://www.youtube.com/watch?v=pMNPUC7X1jk"
+        "https://www.youtube.com/watch?v=pMNPUC7X1jk",
+        "https://www.youtube.com/watch?v=JI3wNksLayM"
       ]
     },
     {
@@ -7307,7 +7321,10 @@
         "https://www.youtube.com/watch?v=ywjh53wq7Yg",
         "https://www.youtube.com/watch?v=kHgFxM6cDqc",
         "https://www.youtube.com/watch?v=qOgKMfvOjtk",
-        "https://www.youtube.com/watch?v=lHdMwrWGuTE"
+        "https://www.youtube.com/watch?v=lHdMwrWGuTE",
+        "https://www.youtube.com/watch?v=G43W4VoqkqY",
+        "https://www.youtube.com/watch?v=_kpq73MwuG4",
+        "https://www.youtube.com/watch?v=B1w-vNaBg3U"
       ]
     },
     {
@@ -7499,7 +7516,8 @@
         "https://www.youtube.com/watch?v=tvqsa10Etvw",
         "https://www.youtube.com/watch?v=SnOcRNlcKgI",
         "https://www.youtube.com/watch?v=w-bW7oGGmPo",
-        "https://www.youtube.com/watch?v=c-dh238zVUY"
+        "https://www.youtube.com/watch?v=c-dh238zVUY",
+        "https://www.youtube.com/watch?v=XsUs-yjQrVA"
       ]
     },
     {
@@ -7546,7 +7564,8 @@
         "https://www.youtube.com/watch?v=fBKpU60QPD8",
         "https://www.youtube.com/watch?v=RHpXPXQvulQ",
         "https://www.youtube.com/watch?v=ZBMThWZFku0",
-        "https://www.youtube.com/watch?v=oJvsdYf5lEo"
+        "https://www.youtube.com/watch?v=oJvsdYf5lEo",
+        "https://www.youtube.com/watch?v=KmkjwQJQWJI"
       ]
     },
     {
@@ -7917,7 +7936,8 @@
       "status": "published",
       "youtubeVideos": [
         "https://www.youtube.com/watch?v=wXLl0jKmrWY",
-        "https://www.youtube.com/watch?v=c-dh238zVUY"
+        "https://www.youtube.com/watch?v=dISk9t7kZ4g",
+        "https://www.youtube.com/watch?v=2nZkNheUd4w"
       ]
     },
     {
@@ -7938,7 +7958,8 @@
       "boltCount": 11,
       "status": "published",
       "youtubeVideos": [
-        "https://www.youtube.com/watch?v=RrnIw3_9AxM"
+        "https://www.youtube.com/watch?v=RrnIw3_9AxM",
+        "https://www.youtube.com/watch?v=4MfurxemKmw"
       ]
     },
     {
@@ -7975,7 +7996,10 @@
       "description": "書中路線圖 (P.40) 未標示此路線",
       "safetyRating": "●●●",
       "boltCount": 11,
-      "status": "published"
+      "status": "published",
+      "youtubeVideos": [
+        "https://www.youtube.com/watch?v=j2cyAnzZc-Q"
+      ]
     },
     {
       "id": "LD-BACK-DOOR-85",
@@ -8090,7 +8114,9 @@
       "boltCount": 12,
       "status": "published",
       "youtubeVideos": [
-        "https://www.youtube.com/watch?v=vdr5jFWL_dU"
+        "https://www.youtube.com/watch?v=vdr5jFWL_dU",
+        "https://www.youtube.com/watch?v=owEe0vzyZos",
+        "https://www.youtube.com/watch?v=Gzu8S8Qwzo4"
       ]
     },
     {
@@ -8440,7 +8466,8 @@
       "youtubeVideos": [
         "https://www.youtube.com/watch?v=G2U4N23jma0",
         "https://www.youtube.com/watch?v=cnHiMlaCp7Y",
-        "https://www.youtube.com/watch?v=rePyV-mdkd4"
+        "https://www.youtube.com/watch?v=rePyV-mdkd4",
+        "https://www.youtube.com/watch?v=2k3Ug5qggZ8"
       ]
     },
     {
@@ -10180,7 +10207,8 @@
         "https://www.youtube.com/watch?v=wWY3409glyk",
         "https://www.youtube.com/watch?v=B7bB1YykBbE",
         "https://www.youtube.com/watch?v=lcqv2t-Ux1I",
-        "https://www.youtube.com/watch?v=cMatiQa5PM4"
+        "https://www.youtube.com/watch?v=cMatiQa5PM4",
+        "https://www.youtube.com/watch?v=6sHH7kWKC5E"
       ]
     },
     {
@@ -10206,7 +10234,8 @@
         "https://www.youtube.com/watch?v=GiRZwqzzjTU",
         "https://www.youtube.com/watch?v=xzpdYg8TS-E",
         "https://www.youtube.com/watch?v=TFW4we6123U",
-        "https://www.youtube.com/watch?v=z1XtLan79JI"
+        "https://www.youtube.com/watch?v=z1XtLan79JI",
+        "https://www.youtube.com/watch?v=Q9hVXNu70bk"
       ]
     },
     {
@@ -10228,7 +10257,8 @@
       "status": "published",
       "youtubeVideos": [
         "https://www.youtube.com/watch?v=AtEapJneRv8",
-        "https://www.youtube.com/watch?v=qrFBdbXppFI"
+        "https://www.youtube.com/watch?v=qrFBdbXppFI",
+        "https://www.youtube.com/watch?v=wX6N9lR_zzQ"
       ]
     },
     {
@@ -10290,7 +10320,8 @@
       "boltCount": 13,
       "status": "published",
       "youtubeVideos": [
-        "https://www.youtube.com/watch?v=bFZNSC1GlBw"
+        "https://www.youtube.com/watch?v=bFZNSC1GlBw",
+        "https://www.youtube.com/watch?v=D2S6NpTEAyw"
       ]
     },
     {
@@ -10417,12 +10448,7 @@
       "boltCount": 2,
       "status": "published",
       "youtubeVideos": [
-        "https://www.youtube.com/watch?v=XlkYXJilScY",
-        "https://www.youtube.com/watch?v=GiRZwqzzjTU",
-        "https://www.youtube.com/watch?v=xzpdYg8TS-E",
-        "https://www.youtube.com/watch?v=ZlEHP4i8Deo",
-        "https://www.youtube.com/watch?v=TFW4we6123U",
-        "https://www.youtube.com/watch?v=Xum-7BS-XiY"
+        "https://www.youtube.com/watch?v=ZlEHP4i8Deo"
       ]
     },
     {
