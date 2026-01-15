@@ -123,27 +123,21 @@ export default function ClimbingFootprintsSection({
           }
         }
 
-        // 執行刪除
-        for (const record of toDelete) {
-          await climbingLocationService.deleteLocation(record.id)
-        }
-
-        // 執行新增
-        for (const loc of toCreate) {
-          await climbingLocationService.createLocation(locationToCreateData(loc))
-        }
-
-        // 執行更新
-        for (const { id, data } of toUpdate) {
-          await climbingLocationService.updateLocation(id, {
-            location: data.location,
-            country: data.country,
-            visit_year: data.visit_year,
-            notes: data.notes,
-            photos: data.photos,
-            is_public: data.is_public,
-          })
-        }
+        // 平行執行刪除、新增、更新
+        await Promise.all([
+          ...toDelete.map((record) => climbingLocationService.deleteLocation(record.id)),
+          ...toCreate.map((loc) => climbingLocationService.createLocation(locationToCreateData(loc))),
+          ...toUpdate.map(({ id, data }) =>
+            climbingLocationService.updateLocation(id, {
+              location: data.location,
+              country: data.country,
+              visit_year: data.visit_year,
+              notes: data.notes,
+              photos: data.photos,
+              is_public: data.is_public,
+            })
+          ),
+        ])
 
         // 重新載入資料
         await loadLocations()

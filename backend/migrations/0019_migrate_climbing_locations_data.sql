@@ -24,11 +24,7 @@ SELECT
   json_extract(loc.value, '$.country') as country,
   json_extract(loc.value, '$.visit_year') as visit_year,
   json_extract(loc.value, '$.notes') as notes,
-  CASE
-    WHEN json_extract(loc.value, '$.photos') IS NOT NULL
-    THEN json_extract(loc.value, '$.photos')
-    ELSE NULL
-  END as photos,
+  json_extract(loc.value, '$.photos') as photos,
   CASE
     WHEN json_extract(loc.value, '$.is_public') = 0 THEN 0
     WHEN json_extract(loc.value, '$.is_public') = false THEN 0
