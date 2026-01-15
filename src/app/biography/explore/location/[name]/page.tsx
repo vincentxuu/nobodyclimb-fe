@@ -25,12 +25,13 @@ export default function LocationDetailPage({ params }: LocationDetailPageProps) 
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
 
+  // 使用正規化表格 API
   useEffect(() => {
     const fetchLocation = async () => {
       setLoading(true)
       setError(null)
       try {
-        const response = await climbingLocationService.getLocationDetail(locationName)
+        const response = await climbingLocationService.exploreLocation(locationName)
         if (response.success && response.data) {
           setLocation(response.data)
         } else {

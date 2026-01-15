@@ -455,12 +455,13 @@ export interface BiographyView {
 
 /**
  * 地點探索 - 地點統計
+ * 注意：visitors 為可選，新版 API 列表端點不回傳訪客詳情
  */
 export interface LocationStat {
   location: string
   country: string
   visitor_count: number
-  visitors: Array<{
+  visitors?: Array<{
     biography_id: string
     name: string
     avatar_url: string | null

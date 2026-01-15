@@ -18,7 +18,6 @@ import { useIsMobile } from '@/lib/hooks/useIsMobile'
 import { useToast } from '@/components/ui/use-toast'
 import { biographyService } from '@/lib/api/services'
 import { AdvancedStories, SocialLinks } from './types'
-import { ClimbingLocation } from '@/lib/types'
 
 export default function ProfileContainer() {
   const { profileData, setProfileData, isEditing, setIsEditing } = useProfile()
@@ -158,29 +157,16 @@ export default function ProfileContainer() {
     [setProfileData, toast]
   )
 
-  // 處理攀岩足跡變更
-  const handleClimbingLocationsChange = useCallback(
-    (locations: ClimbingLocation[]) => {
-      setProfileData((prev) => ({
-        ...prev,
-        climbingLocations: locations,
-      }))
-    },
-    [setProfileData]
-  )
-
   // 處理儲存
   const handleSave = async () => {
     setIsSaving(true)
 
     try {
-      // 序列化攀岩足跡
-      const climbingLocationsJson = JSON.stringify(profileData.climbingLocations)
-
       // 序列化社群連結
       const socialLinksJson = JSON.stringify(profileData.socialLinks)
 
       // 將前端資料轉換為 API 格式
+      // 注意：攀岩足跡已改用獨立的 climbing_locations 表，不再存入 biographies JSON
       const biographyData = {
         name: profileData.name,
         title: profileData.title || undefined,
@@ -195,8 +181,6 @@ export default function ProfileContainer() {
         advice_to_self: profileData.adviceForBeginners,
         // 進階故事
         ...profileData.advancedStories,
-        // 攀岩足跡
-        climbing_locations: climbingLocationsJson,
         // 社群連結
         social_links: socialLinksJson,
         is_public: profileData.isPublic ? 1 : 0,
@@ -295,10 +279,8 @@ export default function ProfileContainer() {
           />
           <ProfileDivider />
           <ClimbingFootprintsSection
-            locations={profileData.climbingLocations}
             isEditing={isEditing}
             isMobile={isMobile}
-            onChange={handleClimbingLocationsChange}
           />
           <ProfileDivider />
           <PublicSettingSection

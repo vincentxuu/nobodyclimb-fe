@@ -131,8 +131,8 @@ export function LocationExploreCard({ location, index = 0 }: LocationExploreCard
           </div>
         </div>
 
-        {/* 訪客頭像預覽 */}
-        {location.visitors.length > 0 && (
+        {/* 訪客頭像預覽（僅在有訪客資料時顯示） */}
+        {location.visitors && location.visitors.length > 0 && (
           <div className="mt-3 flex items-center gap-2">
             <div className="flex -space-x-2">
               {location.visitors.slice(0, 4).map((visitor, i) => (
