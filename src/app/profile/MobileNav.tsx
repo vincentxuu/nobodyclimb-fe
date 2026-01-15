@@ -61,14 +61,14 @@ export default function MobileNav() {
   return (
     <nav className="w-full border-t border-gray-200 bg-white shadow-[0_-2px_10px_rgba(0,0,0,0.05)]">
       {/* 水平滾動容器 */}
-      <div className="scrollbar-hide flex w-full flex-nowrap items-center gap-4 overflow-x-auto px-4 py-2.5">
+      <div className="scrollbar-hide flex w-full flex-nowrap items-center gap-6 overflow-x-auto px-4 py-4">
         {menuItems.map((item) => {
           const isActive = pathname === item.href
           return (
             <div
               key={item.href}
               onClick={() => handleNavigate(item.href)}
-              className={`shrink-0 cursor-pointer whitespace-nowrap px-1 text-sm ${isActive ? 'font-semibold text-text-main' : 'font-medium text-text-subtle'
+              className={`shrink-0 cursor-pointer whitespace-nowrap px-2 text-base ${isActive ? 'font-semibold text-text-main' : 'font-medium text-text-subtle'
                 }`}
             >
               {item.name}

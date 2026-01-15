@@ -249,19 +249,19 @@ export function StoryPromptModal({
             {/* 內容 */}
             <div className="px-6 py-5">
               {/* 問題卡片 */}
-              <div className="mb-4 rounded-lg border border-gray-100 bg-gray-50 p-4">
-                <div className="mb-3 flex items-start gap-3">
+              <div className="mb-4 rounded-lg border border-gray-100 bg-gray-50 p-3">
+                <div className="mb-2 flex items-start gap-2">
                   <div
                     className={cn(
-                      'flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-full',
+                      'flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full',
                       'bg-white shadow-sm'
                     )}
                   >
-                    <Icon className={cn('h-5 w-5', categoryInfo?.color || 'text-gray-500')} />
+                    <Icon className={cn('h-4 w-4', categoryInfo?.color || 'text-gray-500')} />
                   </div>
                   <div className="flex-1">
-                    <h3 className="font-medium text-gray-900">{currentQuestion.title}</h3>
-                    <p className="mt-1 text-sm text-gray-500">{currentQuestion.subtitle}</p>
+                    <h3 className="text-sm font-medium text-gray-900">{currentQuestion.title}</h3>
+                    <p className="mt-0.5 text-xs text-gray-500">{currentQuestion.subtitle}</p>
                   </div>
                 </div>
 
@@ -270,7 +270,7 @@ export function StoryPromptModal({
                   value={value}
                   onChange={(e) => setValue(e.target.value)}
                   placeholder={currentQuestion.placeholder}
-                  className="min-h-[120px] resize-none border-gray-200 bg-white"
+                  className="min-h-[100px] resize-none border-gray-200 bg-white text-sm"
                   autoFocus
                 />
 
