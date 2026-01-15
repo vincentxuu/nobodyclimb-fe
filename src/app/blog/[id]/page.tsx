@@ -39,7 +39,7 @@ export default function BlogDetail() {
   const router = useRouter()
   const { toast } = useToast()
   const id = params.id as string
-  const { isAuthenticated } = useAuthStore()
+  const { isAuthenticated, user } = useAuthStore()
 
   const [article, setArticle] = useState<BackendPost | null>(null)
   const [isLoading, setIsLoading] = useState(true)
@@ -147,9 +147,11 @@ export default function BlogDetail() {
       }
     } catch (err) {
       console.error('Failed to toggle like:', err)
-      // 本地切換狀態
-      setIsLiked(!isLiked)
-      setLikeCount((prev) => (isLiked ? prev - 1 : prev + 1))
+      toast({
+        title: '操作失敗',
+        description: '請稍後再試',
+        variant: 'destructive',
+      })
     } finally {
       setIsLiking(false)
     }
@@ -171,9 +173,11 @@ export default function BlogDetail() {
       }
     } catch (err) {
       console.error('Failed to toggle bookmark:', err)
-      // 本地切換狀態
-      setIsBookmarked(!isBookmarked)
-      setBookmarkCount((prev) => (isBookmarked ? prev - 1 : prev + 1))
+      toast({
+        title: '操作失敗',
+        description: '請稍後再試',
+        variant: 'destructive',
+      })
     } finally {
       setIsBookmarking(false)
     }
@@ -187,11 +191,8 @@ export default function BlogDetail() {
     return <ErrorState message={error || '找不到文章'} />
   }
 
-  // 使用從 API 獲取的相關文章
-  const displayRelatedArticles = relatedArticles
-
-  // 使用從 API 獲取的熱門文章
-  const displayPopularArticles = popularArticles
+  // 檢查是否為文章作者
+  const isAuthor = user?.id === article.author_id
 
   // 格式化日期
   const dateToFormat = article.published_at || article.created_at
@@ -275,12 +276,14 @@ export default function BlogDetail() {
                   variant="outline"
                   className="border-gray-300 text-gray-600 hover:bg-gray-50"
                 />
-                <Button
-                  onClick={() => router.push(`/blog/edit/${id}`)}
-                  className="bg-brand-dark text-white hover:bg-brand-dark-hover"
-                >
-                  編輯文章
-                </Button>
+                {isAuthor && (
+                  <Button
+                    onClick={() => router.push(`/blog/edit/${id}`)}
+                    className="bg-brand-dark text-white hover:bg-brand-dark-hover"
+                  >
+                    編輯文章
+                  </Button>
+                )}
               </div>
             </div>
 
@@ -378,7 +381,7 @@ export default function BlogDetail() {
             <div>
               <h2 className="mb-4 text-2xl font-medium">熱門文章</h2>
               <div className="space-y-4">
-                {displayPopularArticles.map((popularArticle) => (
+                {popularArticles.map((popularArticle) => (
                   <Link
                     key={popularArticle.id}
                     href={`/blog/${popularArticle.id}`}
@@ -404,7 +407,7 @@ export default function BlogDetail() {
         <div className="mx-auto max-w-[1440px]">
           <h2 className="mb-8 text-2xl font-medium">相關文章</h2>
           <div className="grid grid-cols-1 gap-6 md:grid-cols-3">
-            {displayRelatedArticles.map((relatedArticle) => (
+            {relatedArticles.map((relatedArticle) => (
               <Link
                 key={relatedArticle.id}
                 href={`/blog/${relatedArticle.id}`}
