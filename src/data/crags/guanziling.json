@@ -10,7 +10,7 @@
       "region": "南部",
       "regionEn": "Southern Taiwan",
       "latitude": 23.3333,
-      "longitude": 120.5000
+      "longitude": 120.5
     },
     "description": "關子嶺岩場位於台南市白河區，是台灣南部著名的石灰岩攀岩場地。岩場以其獨特的石灰岩地形和知名的泥漿溫泉聞名。這裡的路線多為力量耐力型，難度偏高，適合有經驗的攀岩者。攀岩後可到附近享受獨特的泥漿溫泉。",
     "descriptionEn": "Guanziling is located in Baihe District, Tainan City, and is a famous limestone climbing area in southern Taiwan. The crag is known for its unique limestone formations and the famous mud hot springs. Most routes here are power-endurance style with higher difficulty, suitable for experienced climbers. After climbing, enjoy the unique mud hot springs nearby.",
@@ -156,7 +156,13 @@
       "firstAscentDate": "2002.03.27",
       "description": "在左側岩石上起攀，建議使用 Cheat Sticker 先讓腳踩穩一個洞，前三米較為死板。",
       "boltCount": 12,
-      "status": "published"
+      "status": "published",
+      "youtubeVideos": [
+        "https://www.youtube.com/watch?v=OUmz50eba9I",
+        "https://www.youtube.com/watch?v=aBAUtqL2-ok",
+        "https://www.youtube.com/watch?v=aGFHZ2zMVZk",
+        "https://www.youtube.com/watch?v=qe-_UP3Z7C8"
+      ]
     },
     {
       "id": "GZ-ULTIMATE-002",
@@ -171,7 +177,15 @@
       "firstAscentEn": "Chi-Nan Chen",
       "description": "開始在終極岩左側第一個 Bolt 處，難關在岩壁中段，中段有 V3~V4 的抱石難度。",
       "boltCount": 11,
-      "status": "published"
+      "status": "published",
+      "youtubeVideos": [
+        "https://www.youtube.com/watch?v=1lzCDuVM04M",
+        "https://www.youtube.com/watch?v=Dlwgg3CvP9Y",
+        "https://www.youtube.com/watch?v=cpH7Fru3ljw",
+        "https://www.youtube.com/watch?v=tJHmwYp3g3w",
+        "https://www.youtube.com/watch?v=iJYc_dQuDXM",
+        "https://www.youtube.com/watch?v=skMrPNyJsdY"
+      ]
     },
     {
       "id": "GZ-ULTIMATE-003",
@@ -186,7 +200,10 @@
       "firstAscentEn": "Chi-Nan Chen",
       "description": "使用「雪山飛狐」同樣的第一個 Bolt，難關在路線中間 V3~V4，後半段只有耐力問題。",
       "boltCount": 10,
-      "status": "published"
+      "status": "published",
+      "youtubeVideos": [
+        "https://www.youtube.com/watch?v=1gPCPCeKtqs"
+      ]
     },
     {
       "id": "GZ-ULTIMATE-004",
@@ -202,10 +219,38 @@
       "firstAscentDate": "2002.06.23",
       "description": "終極岩最難的路線之一，結合力量與續航力之終極線。",
       "boltCount": 14,
-      "status": "published"
+      "status": "published",
+      "youtubeVideos": [
+        "https://www.youtube.com/watch?v=8A81Ik9ut4o",
+        "https://www.youtube.com/watch?v=793QqPGchKs",
+        "https://www.youtube.com/watch?v=xucZh8ZDdTw",
+        "https://www.youtube.com/watch?v=QuOp80JuBa8",
+        "https://www.youtube.com/watch?v=nYwMSs8DS2c",
+        "https://www.youtube.com/watch?v=G-scx-qk6m8"
+      ]
     },
     {
       "id": "GZ-ULTIMATE-005",
+      "areaId": "ultimate-wall",
+      "name": "叭咘叭咘",
+      "nameEn": "Babu Babu",
+      "grade": "5.12c",
+      "type": "sport",
+      "typeEn": "Sport Climbing",
+      "length": "17m",
+      "firstAscent": "劉以德",
+      "firstAscentEn": "Yi-De Liu",
+      "firstAscentDate": "2002.03.30",
+      "description": "力量耐力型路線。",
+      "boltCount": 13,
+      "status": "published",
+      "youtubeVideos": [
+        "https://www.youtube.com/watch?v=wM0-hNsVkBw",
+        "https://www.youtube.com/watch?v=jmU-TVEH0E4"
+      ]
+    },
+    {
+      "id": "GZ-ULTIMATE-006",
       "areaId": "ultimate-wall",
       "name": "青蛙王子",
       "nameEn": "The Frog Prince",
@@ -218,10 +263,19 @@
       "firstAscentDate": "2002.03.30",
       "description": "需要像青蛙一樣蹲低並抓遠點，力量耐力型路線。",
       "boltCount": 13,
-      "status": "published"
+      "status": "published",
+      "youtubeVideos": [
+        "https://www.youtube.com/watch?v=GqG6J7pDB9w",
+        "https://www.youtube.com/watch?v=RYIcMUk6i9k",
+        "https://www.youtube.com/watch?v=mlCcHcnN1wk",
+        "https://www.youtube.com/watch?v=jNmgN1mqLXw",
+        "https://www.youtube.com/watch?v=AMb6fcdwgJo",
+        "https://www.youtube.com/watch?v=1lH3KBDaAd4",
+        "https://www.youtube.com/watch?v=hcSYYVXdd6k"
+      ]
     },
     {
-      "id": "GZ-ULTIMATE-006",
+      "id": "GZ-ULTIMATE-007",
       "areaId": "ultimate-wall",
       "name": "終極右",
       "nameEn": "Ultimate-Right",
@@ -233,10 +287,18 @@
       "firstAscentEn": "Chi-Nan Chen",
       "description": "終極岩最簡單的熱身路線，外傾動作多且有趣。如想架設 Top-Rope 可使用「終極右」。",
       "boltCount": 10,
-      "status": "published"
+      "status": "published",
+      "youtubeVideos": [
+        "https://www.youtube.com/watch?v=pg5knpaznKE",
+        "https://www.youtube.com/watch?v=kcYRdos4UYc",
+        "https://www.youtube.com/watch?v=mxhua3N2b98",
+        "https://www.youtube.com/watch?v=pwXrEBgItfw",
+        "https://www.youtube.com/watch?v=HY27AHTqWyQ",
+        "https://www.youtube.com/watch?v=MtVkzZv6TpM"
+      ]
     },
     {
-      "id": "GZ-ULTIMATE-007",
+      "id": "GZ-ULTIMATE-008",
       "areaId": "ultimate-wall",
       "name": "終極左",
       "nameEn": "Ultimate-Left",
@@ -248,10 +310,13 @@
       "firstAscentEn": "Jian-Long Xie",
       "description": "岩質不佳，可能是最容易崩岩的路線，有石灰岩點蝕特殊的紅白混合牆面。",
       "boltCount": 6,
-      "status": "published"
+      "status": "published",
+      "youtubeVideos": [
+        "https://www.youtube.com/watch?v=Hcchhl1XB-4"
+      ]
     },
     {
-      "id": "GZ-ULTIMATE-008",
+      "id": "GZ-ULTIMATE-009",
       "areaId": "ultimate-wall",
       "name": "Project",
       "nameEn": "Project",
@@ -274,7 +339,12 @@
       "length": "12m",
       "description": "經典石灰岩路線，不太難，不會很酸，要注意岩邊較為鬆脫的手點。",
       "boltCount": 8,
-      "status": "published"
+      "status": "published",
+      "youtubeVideos": [
+        "https://www.youtube.com/watch?v=6vBkJZZowkE",
+        "https://www.youtube.com/watch?v=Ce6kvAp-68Y",
+        "https://www.youtube.com/watch?v=hnnQSd3l-lk"
+      ]
     },
     {
       "id": "GZ-ASSEMBLING-002",
@@ -302,7 +372,11 @@
       "firstAscentEn": "Yum Yum",
       "description": "第一至第二個 Bolt 之後有點距離，建議使用 Cheat Sticker。短攀岩者推薦。",
       "boltCount": 4,
-      "status": "published"
+      "status": "published",
+      "youtubeVideos": [
+        "https://www.youtube.com/watch?v=iKra50DvIoE",
+        "https://www.youtube.com/watch?v=J7qIutwImMA"
+      ]
     },
     {
       "id": "GZ-ASSEMBLING-004",
@@ -317,7 +391,11 @@
       "firstAscentEn": "Yum Yum",
       "description": "與「美人照鏡」共用上方兩個 Bolt 及 Anchors。難關在第二個 bolt 附近，是 5.12A 的入門線。",
       "boltCount": 5,
-      "status": "published"
+      "status": "published",
+      "youtubeVideos": [
+        "https://www.youtube.com/watch?v=xn-I4UgfWFQ",
+        "https://www.youtube.com/watch?v=XRBjGw6sRpQ"
+      ]
     },
     {
       "id": "GZ-ASSEMBLING-005",
@@ -330,7 +408,16 @@
       "length": "10m",
       "description": "集合場最經典的路線，持續的外傾動作會讓你完全 Pump。",
       "boltCount": 5,
-      "status": "published"
+      "status": "published",
+      "youtubeVideos": [
+        "https://www.youtube.com/watch?v=s1IJHbMEZPg",
+        "https://www.youtube.com/watch?v=Nsa1RwilOFY",
+        "https://www.youtube.com/watch?v=HOmVD_cpEw4",
+        "https://www.youtube.com/watch?v=ugFPv_haWkg",
+        "https://www.youtube.com/watch?v=pB48pLl4TwU",
+        "https://www.youtube.com/watch?v=6XpE8efd9BU",
+        "https://www.youtube.com/watch?v=TEne8-moW0I"
+      ]
     },
     {
       "id": "GZ-ASSEMBLING-006",
@@ -343,7 +430,11 @@
       "length": "9m",
       "description": "難關在第三和第四個 Bolt 之間，有點距離略顯 runout 了一點。",
       "boltCount": 4,
-      "status": "published"
+      "status": "published",
+      "youtubeVideos": [
+        "https://www.youtube.com/watch?v=bhvWaSNY2xU",
+        "https://www.youtube.com/watch?v=RW-lBQuaIRc"
+      ]
     },
     {
       "id": "GZ-ASSEMBLING-007",
@@ -358,7 +449,11 @@
       "firstAscentEn": "Kang-Jiao Xie",
       "description": "集合場簡單的新手路線，適合初學者。",
       "boltCount": 4,
-      "status": "published"
+      "status": "published",
+      "youtubeVideos": [
+        "https://www.youtube.com/watch?v=HJU2Ofk02uc",
+        "https://www.youtube.com/watch?v=BZO-IpkLEzQ"
+      ]
     },
     {
       "id": "GZ-ASSEMBLING-008",
@@ -373,7 +468,10 @@
       "firstAscentEn": "Kang-Jiao Xie",
       "description": "集合場的簡單路線。",
       "boltCount": 4,
-      "status": "published"
+      "status": "published",
+      "youtubeVideos": [
+        "https://www.youtube.com/watch?v=R4Nibd60FHc"
+      ]
     },
     {
       "id": "GZ-ASSEMBLING-009",
@@ -388,7 +486,10 @@
       "firstAscentEn": "Jing-Lun Huang",
       "description": "需要很好的平衡技巧來克服第三個 Bolt 附近的難關。",
       "boltCount": 5,
-      "status": "published"
+      "status": "published",
+      "youtubeVideos": [
+        "https://www.youtube.com/watch?v=oM0Y7ERnpVQ"
+      ]
     },
     {
       "id": "GZ-ASSEMBLING-010",
@@ -427,7 +528,13 @@
       "length": "7m",
       "description": "因五彩繽紛的岩石會讓你找不到好的手點。",
       "boltCount": 4,
-      "status": "published"
+      "status": "published",
+      "youtubeVideos": [
+        "https://www.youtube.com/watch?v=dAicN0jLbnQ",
+        "https://www.youtube.com/watch?v=CkSWYf_ABDY",
+        "https://www.youtube.com/watch?v=b7lwRhzY2JQ",
+        "https://www.youtube.com/watch?v=mmokgjZD34A"
+      ]
     },
     {
       "id": "GZ-TAIWAN-003",
@@ -442,7 +549,12 @@
       "firstAscentEn": "Chi-Nan Chen",
       "description": "動作不平衡，需要一氣呵成完攀。",
       "boltCount": 4,
-      "status": "published"
+      "status": "published",
+      "youtubeVideos": [
+        "https://www.youtube.com/watch?v=0KFwl0nwkRU",
+        "https://www.youtube.com/watch?v=CZqSJHJNcyQ",
+        "https://www.youtube.com/watch?v=-TbxpJIyCl8"
+      ]
     },
     {
       "id": "GZ-TAIWAN-004",
@@ -501,7 +613,12 @@
       "firstAscentEn": "Chi-Nan Chen",
       "description": "前四個 Bolt 與「環島旅行」相同。沿著岩邊往左上，攀到投奔大陸第五個 Bolt，需要指力。",
       "boltCount": 7,
-      "status": "published"
+      "status": "published",
+      "youtubeVideos": [
+        "https://www.youtube.com/watch?v=KE2oVNbxUOI",
+        "https://www.youtube.com/watch?v=M2RZ2AMN8Vs",
+        "https://www.youtube.com/watch?v=T2T0PY2cqEc"
+      ]
     },
     {
       "id": "GZ-TAIWAN-008",
@@ -572,7 +689,10 @@
       "length": "10m",
       "description": "可坐在大象耳朵上喝下午茶休息。與「左耳」共用同樣的固定點。",
       "boltCount": 5,
-      "status": "published"
+      "status": "published",
+      "youtubeVideos": [
+        "https://www.youtube.com/watch?v=KZk5eR826z8"
+      ]
     },
     {
       "id": "GZ-MYSTERIOUS-004",
@@ -598,7 +718,11 @@
       "length": "12m",
       "description": "難關只有一步，使用單一手指口袋並試圖站起來，建議使用 Cheat Sticker。",
       "boltCount": 4,
-      "status": "published"
+      "status": "published",
+      "youtubeVideos": [
+        "https://www.youtube.com/watch?v=zezYo3Rc_Eo",
+        "https://www.youtube.com/watch?v=-Zqd0Ao_Dz8"
+      ]
     },
     {
       "id": "GZ-MYSTERIOUS-006",
@@ -624,7 +748,12 @@
       "length": "12m",
       "description": "兩個手指口袋，注意腳步，有點滑。兩條路線共用同樣的固定點。",
       "boltCount": 5,
-      "status": "published"
+      "status": "published",
+      "youtubeVideos": [
+        "https://www.youtube.com/watch?v=KV83jAEDs8A",
+        "https://www.youtube.com/watch?v=ae0bKlHCstY",
+        "https://www.youtube.com/watch?v=8n9Dwb5HgTI"
+      ]
     },
     {
       "id": "GZ-MYSTERIOUS-008",
@@ -682,7 +811,18 @@
       "firstAscentEn": "Chi-Nan Chen",
       "description": "要注意第五和第六個 Bolt 之間的鬆岩。難關在5~6 Bolt 之間，需要做一些平衡動作。",
       "boltCount": 6,
-      "status": "published"
+      "status": "published",
+      "youtubeVideos": [
+        "https://www.youtube.com/watch?v=z2jWqS8O2xk",
+        "https://www.youtube.com/watch?v=J3rhzpCLaRE",
+        "https://www.youtube.com/watch?v=QOvk_rZqp9I",
+        "https://www.youtube.com/watch?v=_mc7Fffab_w",
+        "https://www.youtube.com/watch?v=b5EPRGVzKjo",
+        "https://www.youtube.com/watch?v=2NK9HWYNZT8",
+        "https://www.youtube.com/watch?v=ZlPLTN9MjPw",
+        "https://www.youtube.com/watch?v=KTWd-ZZfnI8",
+        "https://www.youtube.com/watch?v=A91kqPdB2WY"
+      ]
     },
     {
       "id": "GZ-DOUCILIN-002",
@@ -697,7 +837,13 @@
       "firstAscentEn": "Yi-De Liu",
       "description": "動作在第三個 Bolt 集中，頂部稍微再容易一些。力量風格路線，有很多小點和 open hold。",
       "boltCount": 7,
-      "status": "published"
+      "status": "published",
+      "youtubeVideos": [
+        "https://www.youtube.com/watch?v=5ZPNFklZVB0",
+        "https://www.youtube.com/watch?v=BTcOHh3XMMk",
+        "https://www.youtube.com/watch?v=y6tOnFH8Y4k",
+        "https://www.youtube.com/watch?v=aOSFb99ZvGc"
+      ]
     },
     {
       "id": "GZ-DOUCILIN-003",
@@ -712,7 +858,11 @@
       "firstAscentEn": "周俊明",
       "description": "路線均勻，極度力量耐力型路線。單一動作難度不超過 V5，但你無法找到一個休息點。",
       "boltCount": 9,
-      "status": "published"
+      "status": "published",
+      "youtubeVideos": [
+        "https://www.youtube.com/watch?v=Vt7s57W5k4M",
+        "https://www.youtube.com/watch?v=-Q9YNPpDgDM"
+      ]
     },
     {
       "id": "GZ-DOUCILIN-004",
@@ -728,7 +878,12 @@
       "firstAscentDate": "2003.05.21",
       "description": "石灰岩點蝕特殊的紅白混合牆面，有小 edge、3~4 個 Bolt 力氣、V5 及 V4 的抱石區。",
       "boltCount": 9,
-      "status": "published"
+      "status": "published",
+      "youtubeVideos": [
+        "https://www.youtube.com/watch?v=zYEKgVJjEN8",
+        "https://www.youtube.com/watch?v=KRsEu4eLwRw",
+        "https://www.youtube.com/watch?v=BBk6PKpOw7k"
+      ]
     },
     {
       "id": "GZ-DOUCILIN-005",
@@ -744,7 +899,10 @@
       "firstAscentDate": "2002.07.02",
       "description": "從中央鐘乳石起攀上來，連續向上攀爬，每年蜜蜂會回來築巢。",
       "boltCount": 7,
-      "status": "published"
+      "status": "published",
+      "youtubeVideos": [
+        "https://www.youtube.com/watch?v=kcKVCwoMPbQ"
+      ]
     },
     {
       "id": "GZ-DOUCILIN-006",
@@ -759,7 +917,12 @@
       "firstAscentEn": "Yum Yum",
       "description": "從右側鐘乳石開始 Bolt，第四個 Bolt 後橫渡到石灰岩的左側。經典路線。",
       "boltCount": 7,
-      "status": "published"
+      "status": "published",
+      "youtubeVideos": [
+        "https://www.youtube.com/watch?v=GTxRS7njpXk",
+        "https://www.youtube.com/watch?v=HF3d6azDCY0",
+        "https://www.youtube.com/watch?v=nERl7zjes9g"
+      ]
     },
     {
       "id": "GZ-DOUCILIN-007",
@@ -775,7 +938,11 @@
       "firstAscentDate": "2002.11.13",
       "description": "第三個 Bolt 有力量感到比青蛙王子更上半端。難關約在 V5 之後石頭邊，先處分再向大方向。",
       "boltCount": 6,
-      "status": "published"
+      "status": "published",
+      "youtubeVideos": [
+        "https://www.youtube.com/watch?v=7I6lbxY0_as",
+        "https://www.youtube.com/watch?v=OSQfKrwp5u8"
+      ]
     },
     {
       "id": "GZ-DOUCILIN-008",
@@ -803,7 +970,10 @@
       "length": "9m",
       "description": "毒刺林入口處的簡單路線之一。",
       "boltCount": 6,
-      "status": "published"
+      "status": "published",
+      "youtubeVideos": [
+        "https://www.youtube.com/watch?v=K83RX0IT7Ys"
+      ]
     },
     {
       "id": "GZ-DOUCILIN-010",
@@ -816,7 +986,10 @@
       "length": "8m",
       "description": "毒刺林入口處的簡單路線。",
       "boltCount": 6,
-      "status": "published"
+      "status": "published",
+      "youtubeVideos": [
+        "https://www.youtube.com/watch?v=fs_Tnn4OUBg"
+      ]
     },
     {
       "id": "GZ-FLYING-001",
