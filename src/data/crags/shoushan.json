@@ -9,7 +9,7 @@
       "addressEn": "Qianguang Road, Shoushan, Gushan District, Kaohsiung City",
       "region": "南部",
       "regionEn": "Southern Taiwan",
-      "latitude": 22.6500,
+      "latitude": 22.65,
       "longitude": 120.2667
     },
     "description": "壽山岩場位於高雄市鼓山區，是台灣南部最大的天然攀岩場地之一。岩場以珊瑚礁石灰岩為主，岩質獨特，手點和腳點豐富。由於靠近市區，交通便利，是高雄地區攀岩者的首選場地。壽山也是獼猴的棲息地，攀登時常可見到猴群活動。壽山岩場主要分為三大區域：千光寺區（包含外牆、通道、平台上下、南面、天橋下、絕情谷等）、一線天區（早年稱為迴圈谷，擁有30年以上歷史）、以及由加拿大岩友開發的大峽谷區。三個區域提供從5.6到5.13a的多樣化路線，共有107條路線，適合各程度攀岩者。",
@@ -37,8 +37,16 @@
       "max": 13,
       "unit": "m"
     },
-    "seasons": ["秋", "冬", "春"],
-    "seasonsEn": ["Autumn", "Winter", "Spring"],
+    "seasons": [
+      "秋",
+      "冬",
+      "春"
+    ],
+    "seasonsEn": [
+      "Autumn",
+      "Winter",
+      "Spring"
+    ],
     "access": {
       "approach": "5-10分鐘徒步",
       "approachEn": "5-10 minutes hiking",
@@ -62,8 +70,18 @@
         }
       ]
     },
-    "amenities": ["便利商店", "餐廳", "公廁", "停車場"],
-    "amenitiesEn": ["Convenience stores", "Restaurants", "Public restrooms", "Parking"],
+    "amenities": [
+      "便利商店",
+      "餐廳",
+      "公廁",
+      "停車場"
+    ],
+    "amenitiesEn": [
+      "Convenience stores",
+      "Restaurants",
+      "Public restrooms",
+      "Parking"
+    ],
     "featured": true,
     "rating": 4.4,
     "status": "published",
@@ -77,7 +95,10 @@
       "nameEn": "Outside Wall",
       "description": "高手區，有多條經典高難度路線，包含壽山岩面的經典路線Y2K出差。",
       "descriptionEn": "Advanced area with many classic high-difficulty routes, including the iconic Y2K Business Trip route.",
-      "difficulty": { "min": "5.10c", "max": "5.13a" },
+      "difficulty": {
+        "min": "5.10c",
+        "max": "5.13a"
+      },
       "image": "/images/crag/shoushan-outside-wall.jpg",
       "boltCount": 92,
       "routesCount": 14
@@ -88,7 +109,10 @@
       "nameEn": "Passage",
       "description": "位於通往水泥平台的路徑旁，岩面是破碎面，落石較多，下雨後請避免攀爬。",
       "descriptionEn": "Located beside the path to the cement platform. The rock surface is fractured with more rockfall risk. Avoid climbing after rain.",
-      "difficulty": { "min": "5.10a", "max": "5.11a" },
+      "difficulty": {
+        "min": "5.10a",
+        "max": "5.11a"
+      },
       "image": "/images/crag/shoushan-passage.jpg",
       "boltCount": 24,
       "routesCount": 4
@@ -99,7 +123,10 @@
       "nameEn": "Upper Platform",
       "description": "水泥平台上的北面岩壁，有多條經典中高難度路線，包含阿雪路線、越嶺獵狐等。",
       "descriptionEn": "North-facing wall on the cement platform with many classic intermediate to advanced routes including A-Xue Route and Fox Hunt.",
-      "difficulty": { "min": "5.10a", "max": "5.12c" },
+      "difficulty": {
+        "min": "5.10a",
+        "max": "5.12c"
+      },
       "image": "/images/crag/shoushan-platform-upper.jpg",
       "boltCount": 79,
       "routesCount": 15
@@ -110,7 +137,10 @@
       "nameEn": "Lower Platform",
       "description": "水泥平台下方的岩壁，有超級賽亞人、策馬入林等經典路線。",
       "descriptionEn": "Rock wall below the cement platform, featuring classic routes like Super Saiyan and Galloping into the Forest.",
-      "difficulty": { "min": "5.10a", "max": "5.12b" },
+      "difficulty": {
+        "min": "5.10a",
+        "max": "5.12b"
+      },
       "image": "/images/crag/shoushan-platform-lower.jpg",
       "boltCount": 75,
       "routesCount": 16
@@ -121,7 +151,10 @@
       "nameEn": "South Face",
       "description": "新手區，位於水泥平台右手邊，難度較低，適合初學者練習先鋒攀登。",
       "descriptionEn": "Beginner area on the right side of the cement platform, lower difficulty routes suitable for lead climbing practice.",
-      "difficulty": { "min": "5.6", "max": "5.10d" },
+      "difficulty": {
+        "min": "5.6",
+        "max": "5.10d"
+      },
       "image": "/images/crag/shoushan-south-face.jpg",
       "boltCount": 43,
       "routesCount": 11
@@ -132,7 +165,10 @@
       "nameEn": "Under Bridge",
       "description": "位於千光路往千光寺廁所的步道旁天橋階梯下。",
       "descriptionEn": "Located under the bridge stairs beside the path from Qianguang Road to Qianguang Temple restroom.",
-      "difficulty": { "min": "5.10c", "max": "5.10d" },
+      "difficulty": {
+        "min": "5.10c",
+        "max": "5.10d"
+      },
       "image": "/images/crag/shoushan-under-bridge.jpg",
       "boltCount": 9,
       "routesCount": 2
@@ -143,7 +179,10 @@
       "nameEn": "Heartless Valley",
       "description": "千光寺區域內的進階岩場，有多條高難度路線，難度從5.9到5.12d。",
       "descriptionEn": "Advanced climbing area within Qianguang Temple section, featuring multiple high-difficulty routes from 5.9 to 5.12d.",
-      "difficulty": { "min": "5.9", "max": "5.12d" },
+      "difficulty": {
+        "min": "5.9",
+        "max": "5.12d"
+      },
       "image": "/images/crag/shoushan-heartless-valley.jpg",
       "boltCount": 98,
       "routesCount": 13
@@ -154,7 +193,10 @@
       "nameEn": "Skyline",
       "description": "由龍泉寺登山口出發步行約45分鐘即可抵達，早年開發時稱為「迴圈谷」，擁有30年以上歷史的古老岩場。大部份的高度約12到15米，總共18條路線。難度分佈從5.6到5.12c都有，能同時滿足新手與高手。",
       "descriptionEn": "About 45 minutes walk from Longquan Temple trailhead. Originally called 'Loop Valley', this historic climbing area has over 30 years of history. Most routes are 12-15m high, totaling 18 routes. Difficulty ranges from 5.6 to 5.12c, suitable for both beginners and advanced climbers.",
-      "difficulty": { "min": "5.6", "max": "5.12c" },
+      "difficulty": {
+        "min": "5.6",
+        "max": "5.12c"
+      },
       "image": "/images/crag/shoushan-skyline.jpg",
       "boltCount": 120,
       "routesCount": 18
@@ -165,7 +207,10 @@
       "nameEn": "Grand Canyon",
       "description": "由龍泉寺登山口出發步行約40分鐘即可抵達，由加拿大岩友所開發的運動攀登岩場，分為上下兩區，上半區6條高度約12米，下半區8條高度約15米，總共14條路線。難度分佈從5.10b到5.12d，大多數難度在5.11c以上，對於初學者來說比較難親近的岩場。",
       "descriptionEn": "About 40 minutes walk from Longquan Temple trailhead. Developed by Canadian climbers, this sport climbing area has two sections: upper section with 6 routes (12m high) and lower section with 8 routes (15m high), totaling 14 routes. Difficulty ranges from 5.10b to 5.12d, with most routes at 5.11c or above, making it more suitable for experienced climbers.",
-      "difficulty": { "min": "5.10b", "max": "5.12d" },
+      "difficulty": {
+        "min": "5.10b",
+        "max": "5.12d"
+      },
       "image": "/images/crag/shoushan-grand-canyon.jpg",
       "boltCount": 85,
       "routesCount": 14
@@ -249,7 +294,10 @@
       "description": "下半部與土地公完全相同，上半部直上是後來才打bolts的，整體難度比土地公高一點點",
       "safetyRating": "●●●",
       "boltCount": 7,
-      "status": "published"
+      "status": "published",
+      "youtubeVideos": [
+        "https://www.youtube.com/watch?v=GIggBteFv-s"
+      ]
     },
     {
       "id": "SS-OUTSIDE-WALL-006",
@@ -303,7 +351,10 @@
       "description": "起攀與Pump共用兩個bolt，上半部有一個V5的難關，倒拉去Dyno一個很遠的指洞需要爆發力。身高高的人有明顯的優勢",
       "safetyRating": "●●●",
       "boltCount": 6,
-      "status": "published"
+      "status": "published",
+      "youtubeVideos": [
+        "https://www.youtube.com/watch?v=41UWrqM8ajg"
+      ]
     },
     {
       "id": "SS-OUTSIDE-WALL-009",
@@ -321,7 +372,10 @@
       "firstAscentDate": "2000-01-01",
       "safetyRating": "●●●",
       "boltCount": 6,
-      "status": "published"
+      "status": "published",
+      "youtubeVideos": [
+        "https://www.youtube.com/watch?v=V3JFI5_OeBw"
+      ]
     },
     {
       "id": "SS-OUTSIDE-WALL-010",
@@ -628,7 +682,9 @@
       "sectorEn": "Upper Platform",
       "name": "阿雪路線",
       "nameEn": "A-Xue Route",
-      "alternativeNames": ["北京猿人"],
+      "alternativeNames": [
+        "北京猿人"
+      ],
       "grade": "5.11a",
       "type": "sport",
       "typeEn": "Sport Climbing",
@@ -636,7 +692,10 @@
       "description": "又稱為北京猿人，整條路線難度很平均，對於攀岩者的指力、腳踩點的信心、平衡感、身體姿勢、體力的要求很全面，堪稱是進入高手之林的必經路線",
       "safetyRating": "●●●",
       "boltCount": 5,
-      "status": "published"
+      "status": "published",
+      "youtubeVideos": [
+        "https://www.youtube.com/watch?v=fF_StsICqsQ"
+      ]
     },
     {
       "id": "SS-PLATFORM-UPPER-011",
@@ -652,7 +711,11 @@
       "description": "路線中途有一個大石洞，攀岩者可以躲在其中休息，起攀對高個子比較有利。很容易在第二個快扣處墜落，確保時要特別小心",
       "safetyRating": "●●●",
       "boltCount": 5,
-      "status": "published"
+      "status": "published",
+      "youtubeVideos": [
+        "https://www.youtube.com/watch?v=5mR9PT8qWuc",
+        "https://www.youtube.com/watch?v=O2oa_xVYxR8"
+      ]
     },
     {
       "id": "SS-PLATFORM-UPPER-012",
@@ -671,7 +734,12 @@
       "description": "屬於典型的Open Hand抓法。手點、腳點都已經被磨得很光滑了，不可使用山頂洞人的把手點才會有7a+的難度。難關只集中在路線的下半部，上半部相較之下比較簡單。2014/02 rebolts使用不繡鋼glue-in bolts",
       "safetyRating": "●●●",
       "boltCount": 5,
-      "status": "published"
+      "status": "published",
+      "youtubeVideos": [
+        "https://www.youtube.com/watch?v=S5YVeKAv5I4",
+        "https://www.youtube.com/watch?v=9Zd3Mx7Et0I",
+        "https://www.youtube.com/watch?v=Fc46_KR85g4"
+      ]
     },
     {
       "id": "SS-PLATFORM-UPPER-013",
@@ -687,7 +755,10 @@
       "description": "難關在於起攀處，對於個子小的人會覺得更困難，需要好的指力。很容易在第二個快扣處墜落，確保時要特別小心",
       "safetyRating": "●●●",
       "boltCount": 5,
-      "status": "published"
+      "status": "published",
+      "youtubeVideos": [
+        "https://www.youtube.com/watch?v=IDvpQdS0F0Y"
+      ]
     },
     {
       "id": "SS-PLATFORM-UPPER-014",
@@ -953,7 +1024,9 @@
       "sectorEn": "Lower Platform",
       "name": "唬神",
       "nameEn": "Bluffing God",
-      "alternativeNames": ["蒼蠅路線"],
+      "alternativeNames": [
+        "蒼蠅路線"
+      ],
       "grade": "5.11d",
       "type": "sport",
       "typeEn": "Sport Climbing",
@@ -989,7 +1062,9 @@
       "sectorEn": "South Face",
       "name": "練習一",
       "nameEn": "Practice 1",
-      "alternativeNames": ["Slab 2"],
+      "alternativeNames": [
+        "Slab 2"
+      ],
       "grade": "5.7",
       "type": "sport",
       "typeEn": "Sport Climbing",
@@ -1005,7 +1080,9 @@
       "sectorEn": "South Face",
       "name": "練習二",
       "nameEn": "Practice 2",
-      "alternativeNames": ["Slab 1"],
+      "alternativeNames": [
+        "Slab 1"
+      ],
       "grade": "5.6",
       "type": "sport",
       "typeEn": "Sport Climbing",
@@ -1022,7 +1099,9 @@
       "sectorEn": "South Face",
       "name": "練習三",
       "nameEn": "Practice 3",
-      "alternativeNames": ["Little Over"],
+      "alternativeNames": [
+        "Little Over"
+      ],
       "grade": "5.8",
       "type": "sport",
       "typeEn": "Sport Climbing",
@@ -1234,7 +1313,10 @@
       "firstAscentEn": "Yao Yu-Chen",
       "safetyRating": "●●●",
       "boltCount": 7,
-      "status": "published"
+      "status": "published",
+      "youtubeVideos": [
+        "https://www.youtube.com/watch?v=14zOqJ5I1ek"
+      ]
     },
     {
       "id": "SS-HEARTLESS-VALLEY-004",
@@ -1286,7 +1368,10 @@
       "description": "整條路線難度平均，最難的一步在掛上TopAnchor前，這使得這條路線更難完成",
       "safetyRating": "●●●",
       "boltCount": 7,
-      "status": "published"
+      "status": "published",
+      "youtubeVideos": [
+        "https://www.youtube.com/watch?v=jDwIchtmWH4"
+      ]
     },
     {
       "id": "SS-HEARTLESS-VALLEY-007",
@@ -1320,7 +1405,10 @@
       "description": "整條路線難度平均、外傾。由於最下方的岩壁不穩定，前兩個Bolts跟險角共用。若不偏左使用8號路線的腳點，難度會是6c+。若有用到則大約是6c",
       "safetyRating": "●●●",
       "boltCount": 7,
-      "status": "published"
+      "status": "published",
+      "youtubeVideos": [
+        "https://www.youtube.com/watch?v=Sk7NCRV0F1Q"
+      ]
     },
     {
       "id": "SS-HEARTLESS-VALLEY-009",
@@ -1338,7 +1426,14 @@
       "description": "前三個bolts的墜落有撞到背後岩壁的危險，要先TopRope練習後再試",
       "safetyRating": "●●",
       "boltCount": 7,
-      "status": "published"
+      "status": "published",
+      "youtubeVideos": [
+        "https://www.youtube.com/watch?v=vwo729huj6Q",
+        "https://www.youtube.com/watch?v=lDnJiGMYhac",
+        "https://www.youtube.com/watch?v=6Vm6UpAp6Tk",
+        "https://www.youtube.com/watch?v=EXXyHYX_2dE",
+        "https://www.youtube.com/watch?v=NdjMZXrV0eU"
+      ]
     },
     {
       "id": "SS-HEARTLESS-VALLEY-010",
@@ -1396,7 +1491,9 @@
       "sectorEn": "Heartless Valley",
       "name": "不是我愛劈腿",
       "nameEn": "Not That I Love Cheating",
-      "alternativeNames": ["煙囪爬法"],
+      "alternativeNames": [
+        "煙囪爬法"
+      ],
       "grade": "5.7",
       "type": "toprope",
       "typeEn": "Top Rope",
@@ -1470,7 +1567,10 @@
       "description": "中間路線，前半段相對簡單很多，難關集中在第五個bolt到top之間，不能抓或踩到右邊的樹，注意這一段先鋒墜落距離會很遠",
       "safetyRating": "●●",
       "boltCount": 7,
-      "status": "published"
+      "status": "published",
+      "youtubeVideos": [
+        "https://www.youtube.com/watch?v=32gxnlr1upA"
+      ]
     },
     {
       "id": "SS-SKYLINE-005",
@@ -1518,7 +1618,10 @@
       "description": "右2路線，考驗踩腳功力、指力及deadpoint技巧，整體難度非常平均的經典路線",
       "safetyRating": "●●●",
       "boltCount": 7,
-      "status": "published"
+      "status": "published",
+      "youtubeVideos": [
+        "https://www.youtube.com/watch?v=3rQEPLpy48g"
+      ]
     },
     {
       "id": "SS-SKYLINE-008",
@@ -1534,7 +1637,10 @@
       "description": "中間路線，前三個Bolts大約是一段V5指力難關，最後接到Ay caramba的top anchor",
       "safetyRating": "●●●",
       "boltCount": 6,
-      "status": "published"
+      "status": "published",
+      "youtubeVideos": [
+        "https://www.youtube.com/watch?v=hG0y4ymK7vQ"
+      ]
     },
     {
       "id": "SS-SKYLINE-009",
@@ -1566,7 +1672,10 @@
       "description": "左1路線，前半段偏向力量、後半段平衡的路線，上方兩個Bolts各有一個D環用以徹退",
       "safetyRating": "●●●",
       "boltCount": 7,
-      "status": "published"
+      "status": "published",
+      "youtubeVideos": [
+        "https://www.youtube.com/watch?v=ltKcnOul1yo"
+      ]
     },
     {
       "id": "SS-SKYLINE-011",
@@ -1923,7 +2032,7 @@
   ],
   "statistics": {
     "totalRoutes": 107,
-"totalBolts": 596,
+    "totalBolts": 596,
     "routesByType": {
       "sport": 105,
       "trad": 0,
