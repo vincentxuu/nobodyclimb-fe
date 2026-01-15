@@ -1,7 +1,6 @@
 'use client'
 
 import { useEffect, useRef, useCallback } from 'react'
-import { usePathname, useRouter } from 'next/navigation'
 import { useAuthStore } from '@/store/authStore'
 import { useUIStore } from '@/store/uiStore'
 import Cookies from 'js-cookie'
@@ -22,10 +21,8 @@ const BIOGRAPHY_PROMPT_KEY = 'nobodyclimb_biography_prompt_shown'
  * 在應用程序啟動時檢查使用者認證狀態
  */
 export function AuthInitializer() {
-  const { refreshToken, isAuthenticated, setUser } = useAuthStore()
+  const { refreshToken, isAuthenticated, setUser, setInitialized } = useAuthStore()
   const { openStoryPrompt } = useUIStore()
-  const pathname = usePathname()
-  const router = useRouter()
   // 追蹤是否已經檢查過故事推薦
   const hasCheckedStoryPrompt = useRef(false)
 
@@ -94,32 +91,21 @@ export function AuthInitializer() {
             if (refreshed) {
               // Token 刷新成功後也檢查故事推薦
               checkStoryPrompt()
-            } else if (
-              !pathname.startsWith('/auth/login') &&
-              !pathname.startsWith('/auth/register')
-            ) {
-              // 如果當前頁面需要授權，重定向到登入頁
-              if (pathname.includes('/create') || pathname.includes('/edit')) {
-                router.push('/auth/login')
-              }
             }
           } else {
             // 沒有 refresh token，清除 access token
             Cookies.remove(AUTH_TOKEN_KEY)
-
-            if (pathname.includes('/create') || pathname.includes('/edit')) {
-              router.push('/auth/login')
-            }
           }
         }
-      } else if (!isAuthenticated && (pathname.includes('/create') || pathname.includes('/edit'))) {
-        // 如果沒有 Token 且訪問受保護頁面，重定向到登入頁
-        router.push('/auth/login')
       }
+
+      // 無論認證結果如何，都標記初始化完成
+      // 讓 ProtectedRoute 可以做出正確的判斷
+      setInitialized()
     }
 
     checkAuthStatus()
-  }, [isAuthenticated, pathname, refreshToken, router, setUser, checkStoryPrompt])
+  }, [isAuthenticated, refreshToken, setUser, checkStoryPrompt, setInitialized])
 
   // 追蹤前一次的認證狀態，用於偵測登入事件
   const prevIsAuthenticated = useRef(isAuthenticated)
