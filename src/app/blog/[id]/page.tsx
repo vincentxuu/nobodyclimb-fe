@@ -6,7 +6,7 @@ import Image from 'next/image'
 import Link from 'next/link'
 import { Chip } from '@/components/ui/chip'
 import { Button } from '@/components/ui/button'
-import { Mountain, Eye, Loader2, Share2 } from 'lucide-react'
+import { Mountain, Eye, Loader2, Share2, Bookmark } from 'lucide-react'
 import { Breadcrumb } from '@/components/ui/breadcrumb'
 import { CommentSection } from '@/components/blog/CommentSection'
 import { postService } from '@/lib/api/services'
@@ -43,9 +43,14 @@ export default function BlogDetail() {
   const [article, setArticle] = useState<BackendPost | null>(null)
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
+  // 按讚狀態
   const [isLiked, setIsLiked] = useState(false)
   const [likeCount, setLikeCount] = useState(0)
   const [isLiking, setIsLiking] = useState(false)
+  // 收藏狀態
+  const [isBookmarked, setIsBookmarked] = useState(false)
+  const [bookmarkCount, setBookmarkCount] = useState(0)
+  const [isBookmarking, setIsBookmarking] = useState(false)
   const [popularArticles, setPopularArticles] = useState<BackendPost[]>([])
   const [relatedArticles, setRelatedArticles] = useState<BackendPost[]>([])
 
@@ -68,16 +73,16 @@ export default function BlogDetail() {
     }
   }, [id])
 
-  // 獲取點讚狀態
-  const fetchLikeStatus = useCallback(async () => {
+  // 獲取收藏狀態
+  const fetchBookmarkStatus = useCallback(async () => {
     try {
       const response = await postService.getLikeStatus(id)
       if (response.success && response.data) {
-        setIsLiked(response.data.liked)
-        setLikeCount(response.data.likes)
+        setIsBookmarked(response.data.liked)
+        setBookmarkCount(response.data.likes)
       }
     } catch (err) {
-      console.error('Failed to fetch like status:', err)
+      console.error('Failed to fetch bookmark status:', err)
     }
   }, [id])
 
@@ -107,32 +112,45 @@ export default function BlogDetail() {
 
   useEffect(() => {
     fetchArticle()
-    fetchLikeStatus()
+    fetchBookmarkStatus()
     fetchPopularArticles()
     fetchRelatedArticles()
-  }, [fetchArticle, fetchLikeStatus, fetchPopularArticles, fetchRelatedArticles])
+  }, [fetchArticle, fetchBookmarkStatus, fetchPopularArticles, fetchRelatedArticles])
 
-  // 處理點讚
-  const handleLike = async () => {
+  // 處理按讚
+  const handleLike = () => {
     if (isLiking) return
-
     setIsLiking(true)
+    // 本地狀態切換（未來可接入後端 API）
+    setIsLiked(!isLiked)
+    setLikeCount((prev) => (isLiked ? prev - 1 : prev + 1))
+    toast({
+      title: isLiked ? '已取消按讚' : '已按讚',
+    })
+    setIsLiking(false)
+  }
+
+  // 處理收藏
+  const handleBookmark = async () => {
+    if (isBookmarking) return
+
+    setIsBookmarking(true)
     try {
       const response = await postService.toggleLike(id)
       if (response.success && response.data) {
-        setIsLiked(response.data.liked)
-        setLikeCount(response.data.likes)
+        setIsBookmarked(response.data.liked)
+        setBookmarkCount(response.data.likes)
         toast({
           title: response.data.liked ? '已收藏' : '已取消收藏',
         })
       }
     } catch (err) {
-      console.error('Failed to toggle like:', err)
+      console.error('Failed to toggle bookmark:', err)
       // 本地切換狀態
-      setIsLiked(!isLiked)
-      setLikeCount((prev) => (isLiked ? prev - 1 : prev + 1))
+      setIsBookmarked(!isBookmarked)
+      setBookmarkCount((prev) => (isBookmarked ? prev - 1 : prev + 1))
     } finally {
-      setIsLiking(false)
+      setIsBookmarking(false)
     }
   }
 
@@ -216,20 +234,37 @@ export default function BlogDetail() {
                 </div>
               </div>
               <div className="flex gap-2">
+                {/* 按讚按鈕 */}
                 <Button
                   variant="outline"
                   onClick={handleLike}
                   disabled={isLiking}
                   className={`${isLiked
-                    ? 'border-red-300 bg-red-50 text-red-600'
+                    ? 'border-emerald-300 bg-emerald-50 text-emerald-600'
                     : 'border-gray-300 text-gray-600 hover:bg-gray-50'
                     }`}
                 >
                   <Mountain
                     size={18}
-                    className={`mr-1 ${isLiked ? 'fill-red-600' : ''}`}
+                    className={`mr-1 ${isLiked ? 'fill-emerald-600' : ''}`}
                   />
-                  {likeCount > 0 ? likeCount : '收藏'}
+                  {likeCount > 0 ? likeCount : '讚'}
+                </Button>
+                {/* 收藏按鈕 */}
+                <Button
+                  variant="outline"
+                  onClick={handleBookmark}
+                  disabled={isBookmarking}
+                  className={`${isBookmarked
+                    ? 'border-amber-300 bg-amber-50 text-amber-600'
+                    : 'border-gray-300 text-gray-600 hover:bg-gray-50'
+                    }`}
+                >
+                  <Bookmark
+                    size={18}
+                    className={`mr-1 ${isBookmarked ? 'fill-amber-600' : ''}`}
+                  />
+                  {bookmarkCount > 0 ? bookmarkCount : '收藏'}
                 </Button>
                 <Button
                   variant="outline"
