@@ -1,8 +1,6 @@
 import type { Metadata } from 'next'
 import BlogDetailClient from './BlogDetailClient'
-
-const SITE_URL = 'https://nobodyclimb.cc'
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'https://api.nobodyclimb.cc/api/v1'
+import { SITE_URL, SITE_NAME, OG_IMAGE, API_BASE_URL } from '@/lib/constants'
 
 // 獲取文章資料用於 SEO
 async function getPost(id: string) {
@@ -15,6 +13,51 @@ async function getPost(id: string) {
     return data.success ? data.data : null
   } catch {
     return null
+  }
+}
+
+// 生成 Article JSON-LD 結構化數據
+function generateArticleJsonLd(post: {
+  title: string
+  excerpt?: string
+  content?: string
+  cover_image?: string
+  author_name?: string
+  published_at?: string
+  updated_at?: string
+  tags?: string[]
+}, id: string) {
+  const description = post.excerpt || post.content?.substring(0, 160).replace(/<[^>]*>/g, '') || ''
+  const image = post.cover_image?.startsWith('http')
+    ? post.cover_image
+    : `${SITE_URL}${post.cover_image || OG_IMAGE}`
+
+  return {
+    '@context': 'https://schema.org',
+    '@type': 'Article',
+    headline: post.title,
+    description,
+    image,
+    author: {
+      '@type': 'Person',
+      name: post.author_name || SITE_NAME,
+    },
+    publisher: {
+      '@type': 'Organization',
+      name: SITE_NAME,
+      url: SITE_URL,
+      logo: {
+        '@type': 'ImageObject',
+        url: `${SITE_URL}/logo/Nobodylimb-black.png`,
+      },
+    },
+    datePublished: post.published_at,
+    dateModified: post.updated_at || post.published_at,
+    mainEntityOfPage: {
+      '@type': 'WebPage',
+      '@id': `${SITE_URL}/blog/${id}`,
+    },
+    keywords: post.tags?.join(', '),
   }
 }
 
@@ -36,7 +79,7 @@ export async function generateMetadata({
 
   const title = post.title
   const description = post.excerpt || post.content?.substring(0, 160).replace(/<[^>]*>/g, '') || ''
-  const image = post.cover_image || '/og-image.png'
+  const image = post.cover_image || OG_IMAGE
 
   return {
     title,
@@ -44,7 +87,7 @@ export async function generateMetadata({
     keywords: post.tags || [],
     authors: post.author_name ? [{ name: post.author_name }] : undefined,
     openGraph: {
-      title: `${title} | NobodyClimb`,
+      title: `${title} | ${SITE_NAME}`,
       description,
       type: 'article',
       url: `${SITE_URL}/blog/${id}`,
@@ -62,7 +105,7 @@ export async function generateMetadata({
     },
     twitter: {
       card: 'summary_large_image',
-      title: `${title} | NobodyClimb`,
+      title: `${title} | ${SITE_NAME}`,
       description,
       images: [image.startsWith('http') ? image : `${SITE_URL}${image}`],
     },
@@ -72,6 +115,26 @@ export async function generateMetadata({
   }
 }
 
-export default function BlogDetailPage() {
-  return <BlogDetailClient />
+export default async function BlogDetailPage({
+  params,
+}: {
+  params: Promise<{ id: string }>
+}) {
+  const { id } = await params
+  const post = await getPost(id)
+
+  return (
+    <>
+      {/* Article JSON-LD 結構化數據 */}
+      {post && (
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{
+            __html: JSON.stringify(generateArticleJsonLd(post, id)),
+          }}
+        />
+      )}
+      <BlogDetailClient />
+    </>
+  )
 }

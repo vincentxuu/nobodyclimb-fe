@@ -8,6 +8,7 @@ import { Footer } from '@/components/layout/footer'
 import { ProgressBar } from '@/components/shared/progress-bar'
 import { AuthInitializer } from '@/components/shared/auth-initializer'
 import { StoryPromptWrapper } from '@/components/shared/story-prompt-wrapper'
+import { SITE_URL, SITE_NAME, SITE_DESCRIPTION, SITE_LOGO, OG_IMAGE } from '@/lib/constants'
 
 const notoSansTC = Noto_Sans_TC({
   weight: ['300', '400', '500', '700'],
@@ -20,10 +21,6 @@ const allertaStencil = Allerta_Stencil({
   subsets: ['latin'],
   variable: '--font-allerta-stencil',
 })
-
-const SITE_URL = 'https://nobodyclimb.cc'
-const SITE_NAME = 'NobodyClimb'
-const SITE_DESCRIPTION = '台灣攀岩社群平台，提供攀岩愛好者分享經驗、探索岩場岩館、觀看攀岩影片及交流的園地。無論你是初學者還是高手，都能在這裡找到志同道合的攀岩夥伴。'
 
 export const metadata: Metadata = {
   metadataBase: new URL(SITE_URL),
@@ -64,7 +61,7 @@ export const metadata: Metadata = {
     description: SITE_DESCRIPTION,
     images: [
       {
-        url: '/og-image.png',
+        url: OG_IMAGE,
         width: 1200,
         height: 630,
         alt: `${SITE_NAME} - 台灣攀岩社群平台`,
@@ -75,7 +72,7 @@ export const metadata: Metadata = {
     card: 'summary_large_image',
     title: `${SITE_NAME} - 台灣攀岩社群平台`,
     description: SITE_DESCRIPTION,
-    images: ['/og-image.png'],
+    images: [OG_IMAGE],
   },
   robots: {
     index: true,
@@ -118,7 +115,7 @@ const jsonLd = {
     url: SITE_URL,
     logo: {
       '@type': 'ImageObject',
-      url: `${SITE_URL}/logo.png`,
+      url: `${SITE_URL}${SITE_LOGO}`,
     },
     sameAs: [
       // 可以添加社群媒體連結

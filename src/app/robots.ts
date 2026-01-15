@@ -1,8 +1,7 @@
 import { MetadataRoute } from 'next'
+import { SITE_URL } from '@/lib/constants'
 
 export default function robots(): MetadataRoute.Robots {
-  const baseUrl = 'https://nobodyclimb.cc'
-
   return {
     rules: [
       {
@@ -18,7 +17,7 @@ export default function robots(): MetadataRoute.Robots {
         ],
       },
     ],
-    sitemap: `${baseUrl}/sitemap.xml`,
-    host: baseUrl,
+    sitemap: `${SITE_URL}/sitemap.xml`,
+    host: SITE_URL,
   }
 }
