@@ -142,7 +142,7 @@ export function LatestContentSection() {
               id: bio.id,
               type: 'biography',
               title: bio.name,
-              thumbnail: bio.avatar_url || null,
+              thumbnail: bio.cover_image || bio.avatar_url || null,
               excerpt: bio.climbing_meaning || '探索這位攀岩者的故事',
               date: bio.created_at
                 ? new Date(bio.created_at).toLocaleDateString('zh-TW')
