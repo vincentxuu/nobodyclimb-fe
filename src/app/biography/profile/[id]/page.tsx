@@ -19,6 +19,12 @@ interface BiographyData {
   }
 }
 
+// API 回應類型
+interface ApiResponse {
+  success: boolean
+  data?: BiographyData
+}
+
 // 獲取人物資料用於 SEO
 async function getBiography(id: string): Promise<BiographyData | null> {
   try {
@@ -26,8 +32,8 @@ async function getBiography(id: string): Promise<BiographyData | null> {
       next: { revalidate: 60 },
     })
     if (!res.ok) return null
-    const data = await res.json()
-    return data.success ? data.data : null
+    const data: ApiResponse = await res.json()
+    return data.success ? data.data ?? null : null
   } catch {
     return null
   }

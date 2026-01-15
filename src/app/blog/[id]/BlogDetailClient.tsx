@@ -136,10 +136,10 @@ export default function BlogDetailClient() {
   const createToggleHandler = useCallback(
     <T extends Record<string, unknown>>(
       isToggling: boolean,
-      setToggling: (v: boolean) => void,
+      setToggling: (_v: boolean) => void,
       apiCall: () => Promise<{ success: boolean; data?: T }>,
-      onSuccess: (data: T) => void,
-      successMessage: (data: T) => string
+      onSuccess: (_data: T) => void,
+      successMessage: (_data: T) => string
     ) => async () => {
       if (isToggling) return
       setToggling(true)
