@@ -4,110 +4,24 @@ import { useState, useEffect } from 'react'
 import Image from 'next/image'
 import Link from 'next/link'
 import { motion } from 'framer-motion'
-import { ArrowRightCircle, FileText, User, Video, Loader2 } from 'lucide-react'
-import { Card, CardContent } from '@/components/ui/card'
-import { postService, biographyService } from '@/lib/api/services'
-import { BackendPost, Biography, getCategoryLabel } from '@/lib/types'
-import type { Video as VideoType } from '@/lib/types'
+import { FileText, Loader2 } from 'lucide-react'
+import { Button } from '@/components/ui/button'
+import { postService } from '@/lib/api/services'
+import { BackendPost, getCategoryLabel } from '@/lib/types'
 import { generateSummary } from '@/lib/utils/article'
 
-// 統一的內容項目類型
-type ContentType = 'article' | 'biography' | 'video'
-
-interface ContentItem {
+interface ArticleItem {
   id: string
-  type: ContentType
   title: string
   thumbnail: string | null
   excerpt: string
   date: string
   link: string
-  meta?: string
-  avatarUrl?: string | null
+  category?: string
 }
 
-// 人物誌卡片組件（與列表頁相同樣式）
-function BiographyCard({ item, index }: { item: ContentItem; index: number }) {
-  return (
-    <motion.div
-      initial={{ opacity: 0, y: 20 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.5, delay: index * 0.1 }}
-      className="h-full"
-    >
-      <Link href={item.link} className="block h-full">
-        <Card className="h-full overflow-hidden rounded-lg border border-gray-200 bg-white shadow-sm transition-shadow duration-300 hover:shadow-md">
-          <CardContent className="p-6">
-            <div className="mb-4 space-y-3">
-              {item.excerpt ? (
-                <div className="relative">
-                  <p className="line-clamp-3 text-base font-medium leading-relaxed text-[#1B1A1A]">
-                    &ldquo;{item.excerpt}&rdquo;
-                  </p>
-                </div>
-              ) : (
-                <p className="text-sm italic text-[#8E8C8C]">尚未分享故事</p>
-              )}
-            </div>
-
-            <div className="flex items-center justify-between border-t border-gray-100 pt-3">
-              <div className="flex items-center gap-3">
-                <div className="relative h-10 w-10 flex-shrink-0 overflow-hidden rounded-full bg-gray-100">
-                  {item.avatarUrl ? (
-                    <Image
-                      src={item.avatarUrl}
-                      alt={item.title}
-                      fill
-                      className="object-cover"
-                      sizes="40px"
-                    />
-                  ) : (
-                    <div className="flex h-full w-full items-center justify-center">
-                      <User size={20} className="text-gray-400" />
-                    </div>
-                  )}
-                </div>
-                <div className="flex-1">
-                  <h3 className="text-sm font-medium text-[#1B1A1A]">{item.title}</h3>
-                  <p className="text-xs text-[#8E8C8C]">
-                    {item.meta || '年資未知'}
-                  </p>
-                </div>
-              </div>
-              <ArrowRightCircle size={18} className="flex-shrink-0 text-gray-400" />
-            </div>
-          </CardContent>
-        </Card>
-      </Link>
-    </motion.div>
-  )
-}
-
-// 內容卡片組件（文章、影片用）
-function ContentCard({ item, index }: { item: ContentItem; index: number }) {
-  const typeIcons = {
-    article: <FileText className="h-4 w-4" />,
-    biography: <User className="h-4 w-4" />,
-    video: <Video className="h-4 w-4" />,
-  }
-
-  const typeLabels = {
-    article: '文章',
-    biography: '人物誌',
-    video: '影片',
-  }
-
-  const typeColors = {
-    article: 'bg-brand-dark',
-    biography: 'bg-brand-dark',
-    video: 'bg-brand-dark',
-  }
-
-  // 人物誌使用專屬卡片樣式
-  if (item.type === 'biography') {
-    return <BiographyCard item={item} index={index} />
-  }
-
+// 文章卡片組件
+function ArticleCard({ item, index }: { item: ArticleItem; index: number }) {
   return (
     <motion.div
       initial={{ opacity: 0, y: 20 }}
@@ -130,16 +44,15 @@ function ContentCard({ item, index }: { item: ContentItem; index: number }) {
             />
           ) : (
             <div className="flex h-full items-center justify-center text-gray-400">
-              {typeIcons[item.type]}
+              <FileText className="h-8 w-8" />
             </div>
           )}
-          {/* 類型標籤 */}
-          <div
-            className={`absolute left-3 top-3 flex items-center gap-1.5 rounded px-2 py-1 text-xs font-medium text-white ${typeColors[item.type]}`}
-          >
-            {typeIcons[item.type]}
-            <span>{typeLabels[item.type]}</span>
-          </div>
+          {/* 分類標籤 */}
+          {item.category && (
+            <div className="absolute left-3 top-3 rounded bg-[#1B1A1A] px-2 py-1 text-xs font-medium text-white">
+              {item.category}
+            </div>
+          )}
         </div>
 
         {/* 內容 */}
@@ -148,9 +61,8 @@ function ContentCard({ item, index }: { item: ContentItem; index: number }) {
             {item.title}
           </h3>
           <p className="mb-3 line-clamp-2 text-sm text-[#6D6C6C]">{item.excerpt}</p>
-          <div className="flex items-center justify-between text-xs text-[#8E8C8C]">
+          <div className="text-xs text-[#8E8C8C]">
             <span>{item.date}</span>
-            {item.meta && <span>{item.meta}</span>}
           </div>
         </div>
       </Link>
@@ -159,93 +71,40 @@ function ContentCard({ item, index }: { item: ContentItem; index: number }) {
 }
 
 /**
- * 最新內容區組件
- * 混合展示最新文章、人物誌和影片
+ * 最新文章區組件
+ * 展示最新的 4 篇文章
  */
 export function LatestContentSection() {
-  const [content, setContent] = useState<ContentItem[]>([])
+  const [articles, setArticles] = useState<ArticleItem[]>([])
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
-    const fetchContent = async () => {
+    const fetchArticles = async () => {
       try {
-        // 並行獲取所有內容
-        const [postsRes, biosRes, videosRes] = await Promise.all([
-          postService.getPosts(1, 2),
-          biographyService.getBiographies(1, 1),
-          fetch('/data/videos.json').then((r) => r.json()),
-        ])
+        const postsRes = await postService.getPosts(1, 4)
 
-        const items: ContentItem[] = []
-
-        // 添加文章
         if (postsRes.success && postsRes.data) {
-          postsRes.data.slice(0, 2).forEach((post: BackendPost) => {
-            items.push({
-              id: post.id,
-              type: 'article',
-              title: post.title,
-              thumbnail: post.cover_image,
-              excerpt: post.excerpt || generateSummary(post.content, undefined, 80),
-              date: post.published_at
-                ? new Date(post.published_at).toLocaleDateString('zh-TW')
-                : new Date(post.created_at).toLocaleDateString('zh-TW'),
-              link: `/blog/${post.id}`,
-              meta: getCategoryLabel(post.category) || undefined,
-            })
-          })
+          const items: ArticleItem[] = postsRes.data.map((post: BackendPost) => ({
+            id: post.id,
+            title: post.title,
+            thumbnail: post.cover_image,
+            excerpt: post.excerpt || generateSummary(post.content, undefined, 80),
+            date: post.published_at
+              ? new Date(post.published_at).toLocaleDateString('zh-TW')
+              : new Date(post.created_at).toLocaleDateString('zh-TW'),
+            link: `/blog/${post.id}`,
+            category: getCategoryLabel(post.category) || undefined,
+          }))
+          setArticles(items)
         }
-
-        // 添加人物誌
-        if (biosRes.success && biosRes.data) {
-          biosRes.data.slice(0, 1).forEach((bio: Biography) => {
-            const climbingYears = bio.climbing_start_year
-              ? new Date().getFullYear() - parseInt(bio.climbing_start_year)
-              : null
-            items.push({
-              id: bio.id,
-              type: 'biography',
-              title: bio.name,
-              thumbnail: null,
-              excerpt: bio.climbing_meaning || '',
-              date: bio.created_at
-                ? new Date(bio.created_at).toLocaleDateString('zh-TW')
-                : '',
-              link: `/biography/profile/${bio.id}`,
-              meta: climbingYears ? `攀岩 ${climbingYears} 年` : undefined,
-              avatarUrl: bio.avatar_url,
-            })
-          })
-        }
-
-        // 添加精選影片
-        if (Array.isArray(videosRes)) {
-          const featuredVideo = videosRes.find((v: VideoType) => v.featured) || videosRes[0]
-          if (featuredVideo) {
-            items.push({
-              id: featuredVideo.id,
-              type: 'video',
-              title: featuredVideo.title,
-              thumbnail: featuredVideo.thumbnailUrl,
-              excerpt: featuredVideo.channel,
-              date: featuredVideo.publishedAt
-                ? new Date(featuredVideo.publishedAt).toLocaleDateString('zh-TW')
-                : '',
-              link: '/videos',
-              meta: featuredVideo.category,
-            })
-          }
-        }
-
-        setContent(items)
       } catch (err) {
-        console.error('Failed to fetch content:', err)
+        console.error('Failed to fetch articles:', err)
       } finally {
         setLoading(false)
       }
     }
 
-    fetchContent()
+    fetchArticles()
   }, [])
 
   if (loading) {
@@ -260,7 +119,7 @@ export function LatestContentSection() {
     )
   }
 
-  if (content.length === 0) {
+  if (articles.length === 0) {
     return null
   }
 
@@ -268,18 +127,28 @@ export function LatestContentSection() {
     <section className="border-t border-[#D2D2D2] py-16 md:py-20">
       <div className="container mx-auto px-4">
         {/* 標題區 */}
-        <div className="mb-8 flex items-center justify-between">
-          <div>
-            <h2 className="text-3xl font-bold text-[#1B1A1A] md:text-[40px]">最新內容</h2>
-            <p className="mt-2 text-base text-[#6D6C6C]">探索攀岩社群的最新動態</p>
-          </div>
+        <div className="mb-8 text-center">
+          <h2 className="text-3xl font-bold text-[#1B1A1A] md:text-[40px]">最新文章</h2>
+          <p className="mt-4 text-base text-[#6D6C6C]">探索攀岩社群的最新動態</p>
         </div>
 
-        {/* 內容網格 */}
+        {/* 文章網格 */}
         <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4">
-          {content.map((item, index) => (
-            <ContentCard key={`${item.type}-${item.id}`} item={item} index={index} />
+          {articles.map((item, index) => (
+            <ArticleCard key={item.id} item={item} index={index} />
           ))}
+        </div>
+
+        {/* 查看更多按鈕 */}
+        <div className="mt-10 flex justify-center">
+          <Link href="/blog">
+            <Button
+              variant="outline"
+              className="h-11 border border-[#1B1A1A] px-8 text-base text-[#1B1A1A] hover:bg-[#DBD8D8]"
+            >
+              查看更多文章
+            </Button>
+          </Link>
         </div>
       </div>
     </section>
