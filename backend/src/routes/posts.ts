@@ -745,7 +745,7 @@ postsRoutes.post('/:id/like', authMiddleware, async (c) => {
 
   // Check if already liked
   const existingLike = await c.env.DB.prepare(
-    `SELECT id FROM likes WHERE user_id = ? AND entity_type = 'post' AND entity_id = ? AND action_type = 'like'`
+    `SELECT id FROM likes WHERE user_id = ? AND entity_type = 'post' AND entity_id = ?`
   )
     .bind(userId, postId)
     .first();
@@ -755,7 +755,7 @@ postsRoutes.post('/:id/like', authMiddleware, async (c) => {
   if (existingLike) {
     // Unlike - remove the like
     await c.env.DB.prepare(
-      `DELETE FROM likes WHERE user_id = ? AND entity_type = 'post' AND entity_id = ? AND action_type = 'like'`
+      `DELETE FROM likes WHERE user_id = ? AND entity_type = 'post' AND entity_id = ?`
     )
       .bind(userId, postId)
       .run();
@@ -764,7 +764,7 @@ postsRoutes.post('/:id/like', authMiddleware, async (c) => {
     // Like - add a new like
     const id = generateId();
     await c.env.DB.prepare(
-      `INSERT INTO likes (id, user_id, entity_type, entity_id, action_type) VALUES (?, ?, 'post', ?, 'like')`
+      `INSERT INTO likes (id, user_id, entity_type, entity_id) VALUES (?, ?, 'post', ?)`
     )
       .bind(id, userId, postId)
       .run();
@@ -773,7 +773,7 @@ postsRoutes.post('/:id/like', authMiddleware, async (c) => {
 
   // Get total like count for this post
   const likeCount = await c.env.DB.prepare(
-    `SELECT COUNT(*) as count FROM likes WHERE entity_type = 'post' AND entity_id = ? AND action_type = 'like'`
+    `SELECT COUNT(*) as count FROM likes WHERE entity_type = 'post' AND entity_id = ?`
   )
     .bind(postId)
     .first<{ count: number }>();
@@ -794,7 +794,7 @@ postsRoutes.get('/:id/like', optionalAuthMiddleware, async (c) => {
 
   // Get total like count
   const likeCount = await c.env.DB.prepare(
-    `SELECT COUNT(*) as count FROM likes WHERE entity_type = 'post' AND entity_id = ? AND action_type = 'like'`
+    `SELECT COUNT(*) as count FROM likes WHERE entity_type = 'post' AND entity_id = ?`
   )
     .bind(postId)
     .first<{ count: number }>();
@@ -804,7 +804,7 @@ postsRoutes.get('/:id/like', optionalAuthMiddleware, async (c) => {
   if (userId) {
     // Check if user has liked
     const existingLike = await c.env.DB.prepare(
-      `SELECT id FROM likes WHERE user_id = ? AND entity_type = 'post' AND entity_id = ? AND action_type = 'like'`
+      `SELECT id FROM likes WHERE user_id = ? AND entity_type = 'post' AND entity_id = ?`
     )
       .bind(userId, postId)
       .first();
@@ -843,7 +843,7 @@ postsRoutes.post('/:id/bookmark', authMiddleware, async (c) => {
 
   // Check if already bookmarked
   const existingBookmark = await c.env.DB.prepare(
-    `SELECT id FROM likes WHERE user_id = ? AND entity_type = 'post' AND entity_id = ? AND action_type = 'bookmark'`
+    `SELECT id FROM bookmarks WHERE user_id = ? AND entity_type = 'post' AND entity_id = ?`
   )
     .bind(userId, postId)
     .first();
@@ -853,7 +853,7 @@ postsRoutes.post('/:id/bookmark', authMiddleware, async (c) => {
   if (existingBookmark) {
     // Remove bookmark
     await c.env.DB.prepare(
-      `DELETE FROM likes WHERE user_id = ? AND entity_type = 'post' AND entity_id = ? AND action_type = 'bookmark'`
+      `DELETE FROM bookmarks WHERE user_id = ? AND entity_type = 'post' AND entity_id = ?`
     )
       .bind(userId, postId)
       .run();
@@ -862,7 +862,7 @@ postsRoutes.post('/:id/bookmark', authMiddleware, async (c) => {
     // Add bookmark
     const id = generateId();
     await c.env.DB.prepare(
-      `INSERT INTO likes (id, user_id, entity_type, entity_id, action_type) VALUES (?, ?, 'post', ?, 'bookmark')`
+      `INSERT INTO bookmarks (id, user_id, entity_type, entity_id) VALUES (?, ?, 'post', ?)`
     )
       .bind(id, userId, postId)
       .run();
@@ -871,7 +871,7 @@ postsRoutes.post('/:id/bookmark', authMiddleware, async (c) => {
 
   // Get total bookmark count for this post
   const bookmarkCount = await c.env.DB.prepare(
-    `SELECT COUNT(*) as count FROM likes WHERE entity_type = 'post' AND entity_id = ? AND action_type = 'bookmark'`
+    `SELECT COUNT(*) as count FROM bookmarks WHERE entity_type = 'post' AND entity_id = ?`
   )
     .bind(postId)
     .first<{ count: number }>();
@@ -892,7 +892,7 @@ postsRoutes.get('/:id/bookmark', optionalAuthMiddleware, async (c) => {
 
   // Get total bookmark count
   const bookmarkCount = await c.env.DB.prepare(
-    `SELECT COUNT(*) as count FROM likes WHERE entity_type = 'post' AND entity_id = ? AND action_type = 'bookmark'`
+    `SELECT COUNT(*) as count FROM bookmarks WHERE entity_type = 'post' AND entity_id = ?`
   )
     .bind(postId)
     .first<{ count: number }>();
@@ -902,7 +902,7 @@ postsRoutes.get('/:id/bookmark', optionalAuthMiddleware, async (c) => {
   if (userId) {
     // Check if user has bookmarked
     const existingBookmark = await c.env.DB.prepare(
-      `SELECT id FROM likes WHERE user_id = ? AND entity_type = 'post' AND entity_id = ? AND action_type = 'bookmark'`
+      `SELECT id FROM bookmarks WHERE user_id = ? AND entity_type = 'post' AND entity_id = ?`
     )
       .bind(userId, postId)
       .first();

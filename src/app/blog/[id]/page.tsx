@@ -6,8 +6,9 @@ import Image from 'next/image'
 import Link from 'next/link'
 import { Chip } from '@/components/ui/chip'
 import { Button } from '@/components/ui/button'
-import { Mountain, Eye, Loader2, Share2, Bookmark } from 'lucide-react'
+import { Mountain, Eye, Loader2, Bookmark } from 'lucide-react'
 import { Breadcrumb } from '@/components/ui/breadcrumb'
+import { ShareButton } from '@/components/shared/share-button'
 import { CommentSection } from '@/components/blog/CommentSection'
 import { postService } from '@/lib/api/services'
 import { useToast } from '@/components/ui/use-toast'
@@ -178,28 +179,6 @@ export default function BlogDetail() {
     }
   }
 
-  // 處理分享
-  const handleShare = async () => {
-    const url = window.location.href
-    if (navigator.share) {
-      try {
-        await navigator.share({
-          title: article?.title,
-          url,
-        })
-      } catch (err) {
-        // 用戶取消分享
-      }
-    } else {
-      // 複製連結
-      await navigator.clipboard.writeText(url)
-      toast({
-        title: '連結已複製',
-        description: '文章連結已複製到剪貼簿',
-      })
-    }
-  }
-
   if (isLoading) {
     return <LoadingState />
   }
@@ -290,13 +269,12 @@ export default function BlogDetail() {
                   />
                   {bookmarkCount > 0 ? bookmarkCount : '收藏'}
                 </Button>
-                <Button
+                <ShareButton
+                  title={`${article.title} - NobodyClimb`}
+                  description={article.excerpt || ''}
                   variant="outline"
-                  onClick={handleShare}
                   className="border-gray-300 text-gray-600 hover:bg-gray-50"
-                >
-                  <Share2 size={18} className="mr-1" />
-                </Button>
+                />
                 <Button
                   onClick={() => router.push(`/blog/edit/${id}`)}
                   className="bg-brand-dark text-white hover:bg-brand-dark-hover"
