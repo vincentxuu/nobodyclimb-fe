@@ -85,22 +85,16 @@ function searchYouTube(query, limit = 5) {
 }
 
 // 檢查影片標題是否與路線相關
-function isRelevantVideo(video, routeName, routeNameEn, cragName) {
+function isRelevantVideo(video, routeName, routeNameEn) {
   const title = video.title.toLowerCase()
   const name = routeName.toLowerCase()
   const nameEn = (routeNameEn || '').toLowerCase()
-  const crag = cragName.toLowerCase()
 
-  // 標題包含路線名稱（中文或英文）
+  // 標題必須包含路線名稱（中文或英文）
   if (name && title.includes(name)) return true
-  if (nameEn && title.includes(nameEn)) return true
+  if (nameEn && nameEn.length > 2 && title.includes(nameEn)) return true
 
-  // 標題包含岩場名稱且有攀岩相關字
-  const climbingKeywords = ['攀岩', 'climb', 'climbing', '攀登', 'rock', '龍洞', 'longdong']
-  const hasClimbingKeyword = climbingKeywords.some((kw) => title.includes(kw))
-  const hasCragName = title.includes(crag)
-
-  return hasClimbingKeyword && hasCragName
+  return false
 }
 
 // 轉義 CSV 欄位
@@ -119,7 +113,7 @@ async function main() {
 
   // 解析參數
   let cragId = null
-  let limit = 5
+  let limit = 10
 
   for (const arg of args) {
     if (arg.startsWith('--limit=')) {
@@ -170,15 +164,8 @@ async function main() {
       '路線名稱',
       '路線英文名',
       '難度',
-      '建議影片1_標題',
-      '建議影片1_頻道',
-      '建議影片1_URL',
-      '建議影片2_標題',
-      '建議影片2_頻道',
-      '建議影片2_URL',
-      '建議影片3_標題',
-      '建議影片3_頻道',
-      '建議影片3_URL',
+      '找到數量',
+      '建議影片（標題 | URL）',
       '選擇的YouTube影片',
       '選擇的Instagram貼文',
     ].join(','),
@@ -201,7 +188,7 @@ async function main() {
 
     // 過濾相關影片
     const relevantVideos = allVideos.filter((v) =>
-      isRelevantVideo(v, route.name, route.nameEn, crag.name)
+      isRelevantVideo(v, route.name, route.nameEn)
     )
 
     // 如果沒有相關影片，嘗試用英文名搜尋
@@ -210,9 +197,14 @@ async function main() {
       const searchQueryEn = `${crag.nameEn || crag.name} ${route.nameEn} climbing`
       const allVideosEn = searchYouTube(searchQueryEn, limit)
       videos = allVideosEn.filter((v) =>
-        isRelevantVideo(v, route.name, route.nameEn, crag.name)
+        isRelevantVideo(v, route.name, route.nameEn)
       )
     }
+
+    // 建立建議影片清單（所有符合的都列出）
+    const videoList = videos
+      .map((v) => `${v.title} | ${v.url}`)
+      .join('\n')
 
     // 建立 CSV 行
     const row = [
@@ -222,22 +214,11 @@ async function main() {
       escapeCSV(route.name),
       escapeCSV(route.nameEn || ''),
       escapeCSV(route.grade),
+      videos.length,
+      escapeCSV(videoList),
+      '', // 選擇的 YouTube 影片
+      '', // 選擇的 Instagram 貼文
     ]
-
-    // 加入搜尋結果（最多 3 個）
-    for (let i = 0; i < 3; i++) {
-      if (videos[i]) {
-        row.push(escapeCSV(videos[i].title))
-        row.push(escapeCSV(videos[i].channel))
-        row.push(escapeCSV(videos[i].url))
-      } else {
-        row.push('', '', '')
-      }
-    }
-
-    // 空白欄位給用戶填寫
-    row.push('') // 選擇的 YouTube 影片
-    row.push('') // 選擇的 Instagram 貼文
 
     csvRows.push(row.join(','))
 
