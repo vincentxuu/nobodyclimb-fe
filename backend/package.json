@@ -14,6 +14,9 @@
     "db:migrate:production": "wrangler d1 execute nobodyclimb-db --remote --file=./src/db/migrations/001_add_biography_fields.sql --env production --batch",
     "db:migrate:profile:preview": "wrangler d1 execute nobodyclimb-db-preview --remote --file=./migrations/0001_add_profile_fields.sql --env preview --batch",
     "db:migrate:profile:production": "wrangler d1 execute nobodyclimb-db --remote --file=./migrations/0001_add_profile_fields.sql --env production --batch",
+    "db:migrate:climbing-locations:local": "wrangler d1 execute nobodyclimb-db --local --file=./migrations/0019_migrate_climbing_locations_data.sql --batch",
+    "db:migrate:climbing-locations:preview": "wrangler d1 execute nobodyclimb-db-preview --remote --file=./migrations/0019_migrate_climbing_locations_data.sql --env preview --batch",
+    "db:migrate:climbing-locations:production": "wrangler d1 execute nobodyclimb-db --remote --file=./migrations/0019_migrate_climbing_locations_data.sql --env production --batch",
     "db:seed": "wrangler d1 execute nobodyclimb-db --local --file=./src/db/seed.sql --batch",
     "cf-typegen": "wrangler types"
   },

@@ -50,34 +50,13 @@ export default function ClimbingFootprintsSection({
   const [error, setError] = useState<string | null>(null)
   const [isSaving, setIsSaving] = useState(false)
 
-  // 載入攀岩足跡（首次載入時自動遷移舊資料）
-  const loadLocations = useCallback(async (shouldMigrate = false) => {
+  // 載入攀岩足跡
+  const loadLocations = useCallback(async () => {
     setLoading(true)
     setError(null)
     try {
       const response = await climbingLocationService.getMyLocations()
       if (response.success && response.data) {
-        // 如果正規化表格是空的且需要遷移，嘗試從舊 JSON 遷移
-        if (response.data.length === 0 && shouldMigrate) {
-          try {
-            const migrateResponse = await climbingLocationService.migrateLocations()
-            if (migrateResponse.success && migrateResponse.data && migrateResponse.data.migrated > 0) {
-              // 遷移成功，重新載入資料
-              const newResponse = await climbingLocationService.getMyLocations()
-              if (newResponse.success && newResponse.data) {
-                setRecords(newResponse.data)
-                toast({
-                  title: '資料遷移完成',
-                  description: `已遷移 ${migrateResponse.data.migrated} 個攀岩足跡`,
-                })
-                return
-              }
-            }
-          } catch (migrateErr) {
-            // 遷移失敗不影響正常載入
-            console.error('Migration failed:', migrateErr)
-          }
-        }
         setRecords(response.data)
       } else {
         setError(response.error || '載入失敗')
@@ -88,11 +67,10 @@ export default function ClimbingFootprintsSection({
     } finally {
       setLoading(false)
     }
-  }, [toast])
+  }, [])
 
   useEffect(() => {
-    // 首次載入時嘗試遷移
-    loadLocations(true)
+    loadLocations()
   }, [loadLocations])
 
   // 將 records 轉換為 Editor 使用的格式
@@ -245,7 +223,7 @@ export default function ClimbingFootprintsSection({
           <AlertCircle className="mx-auto mb-2 h-6 w-6 text-red-500" />
           <p className="text-sm text-red-600">{error}</p>
           <button
-            onClick={() => loadLocations(true)}
+            onClick={loadLocations}
             className="mt-2 text-sm text-red-600 underline hover:text-red-800"
           >
             重試
