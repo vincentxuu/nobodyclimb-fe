@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { Loader2, ChevronDown, ChevronUp } from 'lucide-react'
-import { Biography, ClimbingLocation, ClimbingLocationRecord } from '@/lib/types'
+import { Biography, ClimbingLocationRecord } from '@/lib/types'
 import { climbingLocationService } from '@/lib/api/services'
 import { getCountryFlag } from '@/lib/utils/country'
 
@@ -14,13 +14,13 @@ interface ClimbingFootprintsSectionProps {
 interface LocationsByCountry {
   country: string
   flag: string
-  locations: ClimbingLocation[]
+  locations: ClimbingLocationRecord[]
 }
 
 /**
  * 單一地點卡片元件
  */
-function LocationCard({ location }: { location: ClimbingLocation }) {
+function LocationCard({ location }: { location: ClimbingLocationRecord }) {
   const [isExpanded, setIsExpanded] = useState(false)
   const hasNotes = location.notes && location.notes.trim().length > 0
   const notesLength = location.notes?.length || 0
@@ -119,7 +119,7 @@ function CountryGroup({
       <div className="space-y-3 p-4 sm:p-6">
         {group.locations.map((location, locIndex) => (
           <motion.div
-            key={`${location.location}-${locIndex}`}
+            key={location.id}
             initial={{ opacity: 0, y: 10 }}
             whileInView={{ opacity: 1, y: 0 }}
             transition={{ delay: locIndex * 0.05 }}
@@ -140,7 +140,7 @@ function CountryGroup({
 export function ClimbingFootprintsSection({
   person,
 }: ClimbingFootprintsSectionProps) {
-  const [locations, setLocations] = useState<ClimbingLocation[]>([])
+  const [locations, setLocations] = useState<ClimbingLocationRecord[]>([])
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
@@ -151,17 +151,7 @@ export function ClimbingFootprintsSection({
           person.id
         )
         if (response.success && response.data) {
-          const apiLocations: ClimbingLocation[] = response.data.map(
-            (record: ClimbingLocationRecord) => ({
-              location: record.location,
-              country: record.country,
-              visit_year: record.visit_year,
-              notes: record.notes,
-              photos: record.photos,
-              is_public: record.is_public,
-            })
-          )
-          setLocations(apiLocations)
+          setLocations(response.data)
         }
       } catch (err) {
         console.error('Failed to load climbing locations:', err)
@@ -196,7 +186,7 @@ export function ClimbingFootprintsSection({
         acc[country].push(loc)
         return acc
       },
-      {} as Record<string, ClimbingLocation[]>
+      {} as Record<string, ClimbingLocationRecord[]>
     )
   ).map(([country, locs]) => ({
     country,
