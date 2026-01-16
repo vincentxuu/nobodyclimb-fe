@@ -1,48 +1,46 @@
 'use client'
 
-import { useState, useMemo, useCallback } from 'react'
+import { useState, useCallback } from 'react'
 import Link from 'next/link'
 import { List, X, ArrowLeft } from 'lucide-react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { RouteListFilter } from './route-list-filter'
 import { VirtualizedRouteList } from './virtualized-route-list'
 import type { RouteSidebarItem } from '@/lib/crag-data'
-import { getSectorsForArea } from '@/lib/crag-data'
-import { useRouteFilter } from '@/lib/hooks/useRouteFilter'
+import type { RouteFilterState } from '@/lib/hooks/useRouteFilter'
 
 interface RouteMobileDrawerProps {
   cragId: string
   cragName: string
   routes: RouteSidebarItem[]
+  filteredRoutes: RouteSidebarItem[]
   areas: Array<{ id: string; name: string }>
+  sectors: string[]
   currentRouteId: string
+  filterState: RouteFilterState
+  onSearchChange: (query: string) => void
+  onAreaChange: (area: string) => void
+  onSectorChange: (sector: string) => void
+  onGradeChange: (grade: string) => void
+  onTypeChange: (type: string) => void
 }
 
 export function RouteMobileDrawer({
   cragId,
   cragName,
   routes,
+  filteredRoutes,
   areas,
+  sectors,
   currentRouteId,
+  filterState,
+  onSearchChange,
+  onAreaChange,
+  onSectorChange,
+  onGradeChange,
+  onTypeChange,
 }: RouteMobileDrawerProps) {
   const [isOpen, setIsOpen] = useState(false)
-
-  // 使用共用的路線過濾 hook（包含防抖）
-  const {
-    filterState,
-    filteredRoutes,
-    setSearchQuery,
-    setSelectedArea,
-    setSelectedSector,
-    setSelectedGrade,
-    setSelectedType,
-  } = useRouteFilter(routes)
-
-  // 根據選擇的區域獲取 sectors（使用緩存）
-  const sectors = useMemo(() => {
-    if (filterState.selectedArea === 'all') return []
-    return getSectorsForArea(cragId, filterState.selectedArea)
-  }, [cragId, filterState.selectedArea])
 
   const handleItemClick = useCallback(() => {
     setIsOpen(false)
@@ -116,15 +114,15 @@ export function RouteMobileDrawer({
               <div className="flex-shrink-0 border-b border-gray-200 p-4">
                 <RouteListFilter
                   searchQuery={filterState.searchQuery}
-                  onSearchChange={setSearchQuery}
+                  onSearchChange={onSearchChange}
                   selectedArea={filterState.selectedArea}
-                  onAreaChange={setSelectedArea}
+                  onAreaChange={onAreaChange}
                   selectedSector={filterState.selectedSector}
-                  onSectorChange={setSelectedSector}
+                  onSectorChange={onSectorChange}
                   selectedGrade={filterState.selectedGrade}
-                  onGradeChange={setSelectedGrade}
+                  onGradeChange={onGradeChange}
                   selectedType={filterState.selectedType}
-                  onTypeChange={setSelectedType}
+                  onTypeChange={onTypeChange}
                   areas={areas}
                   sectors={sectors}
                 />
