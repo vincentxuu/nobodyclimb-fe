@@ -1,7 +1,8 @@
 /**
  * About 頁面統計資料 Hook
  * 混合使用本地 JSON 和後端 API
- * - 本地 JSON：岩館、岩場、路線、影片
+ * - 本地 JSON：岩館、岩場、路線
+ * - 靜態 JSON (fetch)：影片
  * - 後端 API：文章、人物誌
  */
 
@@ -32,6 +33,8 @@ const DEFAULT_DB_STATS = {
   posts: 0,
 }
 
+const DEFAULT_VIDEOS_COUNT = 6500
+
 /**
  * 取得 About 頁面統計資料的 Hook
  *
@@ -44,7 +47,7 @@ const DEFAULT_DB_STATS = {
  * ```
  */
 export function useAboutStats() {
-  // 從本地 JSON 檔案取得統計（岩館、岩場、路線、影片）
+  // 從本地 JSON 檔案取得統計（岩館、岩場、路線）
   const localStats = useMemo(() => getLocalStats(), [])
 
   // 從後端 API 取得統計（文章、人物誌）
@@ -66,23 +69,41 @@ export function useAboutStats() {
     retryDelay: 1000,
   })
 
+  // 從 public/data/videos.json 取得影片數量
+  const videosQuery = useQuery({
+    queryKey: ['videos-count'],
+    queryFn: async () => {
+      const response = await fetch('/data/videos.json')
+      if (!response.ok) {
+        throw new Error('Failed to fetch videos')
+      }
+      const videos = await response.json() as unknown[]
+      return videos.length
+    },
+    staleTime: STATS_STALE_TIME,
+    gcTime: STATS_STALE_TIME * 2,
+    retry: 2,
+    retryDelay: 1000,
+  })
+
   // 合併本地和 API 數據
   const stats: AboutStats = useMemo(() => {
     const dbStats = dbQuery.data ?? DEFAULT_DB_STATS
+    const videosCount = videosQuery.data ?? DEFAULT_VIDEOS_COUNT
 
     return {
       gyms: localStats.gyms,
       crags: localStats.crags,
       routes: localStats.routes,
-      videos: localStats.videos,
+      videos: videosCount,
       biographies: dbStats.biographies,
     }
-  }, [localStats, dbQuery.data])
+  }, [localStats, dbQuery.data, videosQuery.data])
 
   return {
     stats,
-    isLoading: dbQuery.isLoading,
-    isFetching: dbQuery.isFetching,
-    error: dbQuery.error,
+    isLoading: dbQuery.isLoading || videosQuery.isLoading,
+    isFetching: dbQuery.isFetching || videosQuery.isFetching,
+    error: dbQuery.error || videosQuery.error,
   }
 }

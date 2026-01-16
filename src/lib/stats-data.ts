@@ -23,12 +23,11 @@ export interface LocalStats {
   gyms: number
   crags: number
   routes: number
-  videos: number
 }
 
 /**
  * 從本地 JSON 檔案計算統計數據
- * 注意：文章和人物誌從後端 API 讀取
+ * 注意：影片從 public/data/videos.json fetch，文章和人物誌從後端 API 讀取
  */
 export function getLocalStats(): LocalStats {
   // 岩館數量
@@ -43,13 +42,9 @@ export function getLocalStats(): LocalStats {
     return total + count
   }, 0)
 
-  // 影片數量（從 public/data/videos.json，目前用預設值）
-  const videosCount = 6500
-
   return {
     gyms: gymsCount,
     crags: cragsCount,
     routes: routesCount,
-    videos: videosCount,
   }
 }
