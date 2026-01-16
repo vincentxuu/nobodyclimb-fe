@@ -2,7 +2,7 @@
 
 import React, { use, useState, useMemo } from 'react'
 import Link from 'next/link'
-import { MapPin, ArrowLeft, List, X } from 'lucide-react'
+import { MapPin, ArrowLeft, List, X, ExternalLink } from 'lucide-react'
 import { motion, AnimatePresence } from 'framer-motion'
 import PlaceholderImage from '@/components/ui/placeholder-image'
 import BackToTop from '@/components/ui/back-to-top'
@@ -285,17 +285,29 @@ export default function CragDetailClient({ params }: { params: Promise<{ id: str
                   <div className="h-px w-full bg-gray-200"></div>
                 </div>
                 {currentCrag.geoCoordinates.latitude && currentCrag.geoCoordinates.longitude ? (
-                  <div className="mt-4 overflow-hidden rounded-lg">
-                    <iframe
-                      src={`https://www.google.com/maps?q=${currentCrag.geoCoordinates.latitude},${currentCrag.geoCoordinates.longitude}&z=15&output=embed`}
-                      width="100%"
-                      height="250"
-                      style={{ border: 0 }}
-                      allowFullScreen
-                      loading="lazy"
-                      referrerPolicy="no-referrer-when-downgrade"
-                      title={`${currentCrag.name} 地圖`}
-                    />
+                  <div className="mt-4">
+                    <a
+                      href={`https://www.google.com/maps/search/?api=1&query=${currentCrag.geoCoordinates.latitude},${currentCrag.geoCoordinates.longitude}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="mb-2 inline-flex items-center gap-1 text-sm text-blue-600 hover:underline"
+                    >
+                      <MapPin size={14} />
+                      在 Google Maps 開啟
+                      <ExternalLink size={12} />
+                    </a>
+                    <div className="overflow-hidden rounded-lg">
+                      <iframe
+                        src={`https://www.google.com/maps?q=${currentCrag.geoCoordinates.latitude},${currentCrag.geoCoordinates.longitude}&z=15&output=embed`}
+                        width="100%"
+                        height="250"
+                        style={{ border: 0 }}
+                        allowFullScreen
+                        loading="lazy"
+                        referrerPolicy="no-referrer-when-downgrade"
+                        title={`${currentCrag.name} 地圖`}
+                      />
+                    </div>
                   </div>
                 ) : (
                   <div className="mt-4 flex h-48 items-center justify-center rounded-lg bg-gray-200">
@@ -364,7 +376,7 @@ export default function CragDetailClient({ params }: { params: Promise<{ id: str
                 <div className="mt-8 border-t border-gray-200 pt-8">
                   <h2 className="mb-6 text-xl font-medium">攀岩區域</h2>
                   <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
-                    {currentCrag.areas.slice(0, 6).map((area, index) => (
+                    {currentCrag.areas.map((area, index) => (
                       <Link
                         key={area.id || index}
                         href={`/crag/${id}/area/${area.id}`}
