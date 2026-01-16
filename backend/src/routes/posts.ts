@@ -3,6 +3,7 @@ import { Env, Post } from '../types';
 import { parsePagination, generateId, generateSlug } from '../utils/id';
 import { authMiddleware, optionalAuthMiddleware } from '../middleware/auth';
 import { trackAndUpdateViewCount } from '../utils/viewTracker';
+import { deleteR2Images, extractR2ImagesFromContent } from '../utils/storage';
 
 export const postsRoutes = new Hono<{ Bindings: Env }>();
 
@@ -588,10 +589,10 @@ postsRoutes.delete('/:id', authMiddleware, async (c) => {
   const user = c.get('user');
 
   const existing = await c.env.DB.prepare(
-    'SELECT author_id FROM posts WHERE id = ?'
+    'SELECT author_id, cover_image, content FROM posts WHERE id = ?'
   )
     .bind(id)
-    .first<{ author_id: string }>();
+    .first<{ author_id: string; cover_image: string | null; content: string | null }>();
 
   if (!existing) {
     return c.json(
@@ -614,6 +615,10 @@ postsRoutes.delete('/:id', authMiddleware, async (c) => {
       403
     );
   }
+
+  // Delete images from R2
+  const contentImages = extractR2ImagesFromContent(existing.content, c.env.R2_PUBLIC_URL);
+  await deleteR2Images(c.env.STORAGE, [existing.cover_image, ...contentImages]);
 
   await c.env.DB.prepare('DELETE FROM posts WHERE id = ?').bind(id).run();
 

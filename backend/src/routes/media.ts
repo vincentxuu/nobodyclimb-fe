@@ -753,3 +753,112 @@ function extractInstagramShortcode(url: string): string | null {
 
   return null;
 }
+
+// ═══════════════════════════════════════════════════════════
+// 通用圖片上傳 API
+// ═══════════════════════════════════════════════════════════
+
+// 允許的上傳類型與對應資料夾
+const uploadFolders: Record<string, string> = {
+  posts: 'posts',
+  biography: 'biography',
+  gallery: 'gallery',
+  avatars: 'avatars',
+  gyms: 'gyms',
+  crags: 'crags',
+};
+
+// POST /media/upload?type=posts - Upload image to R2 storage
+mediaRoutes.post('/upload', authMiddleware, async (c) => {
+  const type = c.req.query('type') || 'general';
+  const folder = uploadFolders[type];
+
+  if (!folder) {
+    return c.json(
+      {
+        success: false,
+        error: 'Bad Request',
+        message: `Invalid type. Allowed: ${Object.keys(uploadFolders).join(', ')}`,
+      },
+      400
+    );
+  }
+
+  const formData = await c.req.formData();
+
+  // Delete old image if provided
+  const oldUrl = formData.get('old_url') as string | null;
+  if (oldUrl) {
+    try {
+      const oldKey = new URL(oldUrl).pathname.substring(1);
+      await c.env.STORAGE.delete(oldKey);
+    } catch {
+      // Ignore deletion errors, continue with upload
+    }
+  }
+  const file = formData.get('image') as File | null;
+
+  if (!file) {
+    return c.json(
+      {
+        success: false,
+        error: 'Bad Request',
+        message: 'No image file provided',
+      },
+      400
+    );
+  }
+
+  // Validate file type
+  const allowedTypes = ['image/jpeg', 'image/png', 'image/webp', 'image/gif'];
+  if (!allowedTypes.includes(file.type)) {
+    return c.json(
+      {
+        success: false,
+        error: 'Bad Request',
+        message: 'Invalid file type. Only JPEG, PNG, WebP, and GIF are allowed.',
+      },
+      400
+    );
+  }
+
+  // Validate file size (max 500KB)
+  const maxSize = 500 * 1024;
+  if (file.size > maxSize) {
+    return c.json(
+      {
+        success: false,
+        error: 'Bad Request',
+        message: 'File too large. Maximum size is 500KB.',
+      },
+      400
+    );
+  }
+
+  // Generate unique filename
+  const extMap: Record<string, string> = {
+    'image/jpeg': 'jpg',
+    'image/png': 'png',
+    'image/webp': 'webp',
+    'image/gif': 'gif',
+  };
+  const ext = extMap[file.type] || 'jpg';
+  const filename = `${folder}/${generateId()}.${ext}`;
+
+  // Upload to R2
+  const arrayBuffer = await file.arrayBuffer();
+  await c.env.STORAGE.put(filename, arrayBuffer, {
+    httpMetadata: {
+      contentType: file.type,
+      cacheControl: 'public, max-age=31536000, immutable',
+    },
+  });
+
+  // Construct URL
+  const url = `${c.env.R2_PUBLIC_URL}/${filename}`;
+
+  return c.json({
+    success: true,
+    data: { url },
+  });
+});

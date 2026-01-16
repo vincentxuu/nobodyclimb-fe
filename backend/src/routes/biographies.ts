@@ -3,6 +3,7 @@ import { Env, Biography } from '../types';
 import { parsePagination, generateId, generateSlug } from '../utils/id';
 import { authMiddleware, optionalAuthMiddleware } from '../middleware/auth';
 import { createNotification } from './notifications';
+import { deleteR2Images } from '../utils/storage';
 
 // ═══════════════════════════════════════════════════════════
 // 共用常數 - 故事欄位定義
@@ -456,10 +457,10 @@ biographiesRoutes.delete('/me', authMiddleware, async (c) => {
   const userId = c.get('userId');
 
   const existing = await c.env.DB.prepare(
-    'SELECT id FROM biographies WHERE user_id = ?'
+    'SELECT id, profile_image, cover_image FROM biographies WHERE user_id = ?'
   )
     .bind(userId)
-    .first<{ id: string }>();
+    .first<{ id: string; profile_image: string | null; cover_image: string | null }>();
 
   if (!existing) {
     return c.json(
@@ -471,6 +472,9 @@ biographiesRoutes.delete('/me', authMiddleware, async (c) => {
       404
     );
   }
+
+  // Delete images from R2
+  await deleteR2Images(c.env.STORAGE, [existing.profile_image, existing.cover_image]);
 
   await c.env.DB.prepare('DELETE FROM biographies WHERE id = ?')
     .bind(existing.id)
@@ -1827,56 +1831,5 @@ biographiesRoutes.delete('/comments/:id', authMiddleware, async (c) => {
     data: {
       message: 'Comment deleted successfully',
     },
-  });
-});
-
-// POST /biographies/upload-image - Upload image to R2 storage
-biographiesRoutes.post('/upload-image', authMiddleware, async (c) => {
-  const formData = await c.req.formData();
-  const file = formData.get('image') as File | null;
-
-  if (!file) {
-    return c.json(
-      {
-        success: false,
-        error: 'Bad Request',
-        message: 'No image file provided',
-      },
-      400
-    );
-  }
-
-  // Validate file type
-  const allowedTypes = ['image/jpeg', 'image/png', 'image/webp'];
-  if (!allowedTypes.includes(file.type)) {
-    return c.json(
-      {
-        success: false,
-        error: 'Bad Request',
-        message: 'Invalid file type. Only JPEG, PNG, and WebP are allowed.',
-      },
-      400
-    );
-  }
-
-  // Generate unique filename
-  const ext = file.name.split('.').pop() || 'jpg';
-  const filename = `biography/${generateId()}.${ext}`;
-
-  // Upload to R2
-  const arrayBuffer = await file.arrayBuffer();
-  await c.env.STORAGE.put(filename, arrayBuffer, {
-    httpMetadata: {
-      contentType: file.type,
-      cacheControl: 'public, max-age=31536000, immutable',
-    },
-  });
-
-  // Construct URL using environment variable
-  const url = `${c.env.R2_PUBLIC_URL}/${filename}`;
-
-  return c.json({
-    success: true,
-    data: { url },
   });
 });

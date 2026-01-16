@@ -32,13 +32,43 @@ import {
   BiographyInstagram,
   BiographyInstagramRelationType,
   InstagramMediaType,
-  LocationStat,
   LocationDetail,
   CountryStat,
   ClimbingLocationRecord,
   StoryPrompt,
   StoryPromptStats,
 } from '@/lib/types'
+import { processImage } from '@/lib/utils/image'
+
+/**
+ * 共用圖片上傳函數
+ * @param file 圖片檔案
+ * @param type 上傳類型
+ * @param oldUrl 舊圖片 URL（可選，會刪除舊圖片）
+ */
+async function uploadImage(
+  file: File,
+  type: 'posts' | 'biography' | 'gallery' | 'gyms' | 'crags' | 'avatars',
+  oldUrl?: string
+): Promise<ApiResponse<{ url: string }>> {
+  // 壓縮圖片
+  const compressedFile = await processImage(file)
+
+  const formData = new FormData()
+  formData.append('image', compressedFile)
+  if (oldUrl) formData.append('old_url', oldUrl)
+
+  const response = await apiClient.post<ApiResponse<{ url: string }>>(
+    `/media/upload?type=${type}`,
+    formData,
+    {
+      headers: {
+        'Content-Type': 'multipart/form-data',
+      },
+    }
+  )
+  return response.data
+}
 
 /**
  * 建立/更新文章請求資料
@@ -316,22 +346,10 @@ export const postService = {
   },
 
   /**
-   * 上傳文章圖片
+   * 上傳文章圖片（自動壓縮至 500KB 以下）
+   * @param oldUrl 舊圖片 URL，如有則會刪除
    */
-  uploadImage: async (file: File) => {
-    const formData = new FormData()
-    formData.append('image', file)
-    const response = await apiClient.post<ApiResponse<{ url: string }>>(
-      '/posts/upload-image',
-      formData,
-      {
-        headers: {
-          'Content-Type': 'multipart/form-data',
-        },
-      }
-    )
-    return response.data
-  },
+  uploadImage: (file: File, oldUrl?: string) => uploadImage(file, 'posts', oldUrl),
 }
 
 /**
@@ -426,22 +444,10 @@ export const gymService = {
   },
 
   /**
-   * 上傳攀岩館圖片
+   * 上傳攀岩館圖片（自動壓縮至 500KB 以下）
+   * @param oldUrl 舊圖片 URL，如有則會刪除
    */
-  uploadImage: async (file: File) => {
-    const formData = new FormData()
-    formData.append('image', file)
-    const response = await apiClient.post<ApiResponse<{ url: string }>>(
-      '/gyms/upload-image',
-      formData,
-      {
-        headers: {
-          'Content-Type': 'multipart/form-data',
-        },
-      }
-    )
-    return response.data
-  },
+  uploadImage: (file: File, oldUrl?: string) => uploadImage(file, 'gyms', oldUrl),
 }
 
 /**
@@ -523,24 +529,6 @@ export const galleryService = {
   },
 
   /**
-   * 上傳圖片檔案到儲存空間
-   */
-  uploadImage: async (file: File) => {
-    const formData = new FormData()
-    formData.append('image', file)
-    const response = await apiClient.post<ApiResponse<{ url: string }>>(
-      '/galleries/upload',
-      formData,
-      {
-        headers: {
-          'Content-Type': 'multipart/form-data',
-        },
-      }
-    )
-    return response.data
-  },
-
-  /**
    * 獲取相簿列表
    */
   getGalleries: async (page = 1, limit = 10) => {
@@ -603,23 +591,22 @@ export const galleryService = {
   },
 
   /**
-   * 上傳相簿圖片（多張）
+   * 上傳相簿圖片（自動壓縮至 500KB 以下）
+   * @param oldUrl 舊圖片 URL，如有則會刪除
+   */
+  uploadImage: (file: File, oldUrl?: string) => uploadImage(file, 'gallery', oldUrl),
+
+  /**
+   * 上傳相簿圖片（多張，自動壓縮）
    */
   uploadImages: async (files: File[]) => {
-    const formData = new FormData()
-    files.forEach((file, index) => {
-      formData.append(`images[${index}]`, file)
-    })
-    const response = await apiClient.post<ApiResponse<{ urls: string[] }>>(
-      '/galleries/upload-images',
-      formData,
-      {
-        headers: {
-          'Content-Type': 'multipart/form-data',
-        },
-      }
+    const results = await Promise.all(
+      files.map((file) => uploadImage(file, 'gallery'))
     )
-    return response.data
+    return {
+      success: true,
+      data: { urls: results.map((r) => r.data?.url).filter((url): url is string => !!url) },
+    }
   },
 }
 
@@ -715,22 +702,10 @@ export const biographyService = {
   },
 
   /**
-   * 上傳人物誌圖片
+   * 上傳人物誌圖片（自動壓縮至 500KB 以下）
+   * @param oldUrl 舊圖片 URL，如有則會刪除
    */
-  uploadImage: async (file: File) => {
-    const formData = new FormData()
-    formData.append('image', file)
-    const response = await apiClient.post<ApiResponse<{ url: string }>>(
-      '/biographies/upload-image',
-      formData,
-      {
-        headers: {
-          'Content-Type': 'multipart/form-data',
-        },
-      }
-    )
-    return response.data
-  },
+  uploadImage: (file: File, oldUrl?: string) => uploadImage(file, 'biography', oldUrl),
 
   /**
    * 獲取人物誌統計資料
@@ -1568,23 +1543,22 @@ export const cragService = {
   },
 
   /**
-   * 上傳岩場圖片
+   * 上傳岩場圖片（自動壓縮至 500KB 以下）
+   * @param oldUrl 舊圖片 URL，如有則會刪除
+   */
+  uploadImage: (file: File, oldUrl?: string) => uploadImage(file, 'crags', oldUrl),
+
+  /**
+   * 上傳岩場圖片（多張，自動壓縮）
    */
   uploadImages: async (files: File[]) => {
-    const formData = new FormData()
-    files.forEach((file, index) => {
-      formData.append(`images[${index}]`, file)
-    })
-    const response = await apiClient.post<ApiResponse<{ urls: string[] }>>(
-      '/crags/upload-images',
-      formData,
-      {
-        headers: {
-          'Content-Type': 'multipart/form-data',
-        },
-      }
+    const results = await Promise.all(
+      files.map((file) => uploadImage(file, 'crags'))
     )
-    return response.data
+    return {
+      success: true,
+      data: { urls: results.map((r) => r.data?.url).filter((url): url is string => !!url) },
+    }
   },
 }
 

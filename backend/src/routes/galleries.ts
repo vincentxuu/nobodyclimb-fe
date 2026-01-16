@@ -4,6 +4,7 @@ import { Env, Gallery } from '../types';
 import { parsePagination, generateId, generateSlug } from '../utils/id';
 import { authMiddleware } from '../middleware/auth';
 import { trackAndUpdateViewCount } from '../utils/viewTracker';
+import { deleteR2Images } from '../utils/storage';
 
 export const galleriesRoutes = new Hono<{ Bindings: Env }>();
 
@@ -328,57 +329,6 @@ galleriesRoutes.delete('/photos/:id', authMiddleware, async (c) => {
   return c.json({
     success: true,
     message: 'Photo deleted successfully',
-  });
-});
-
-// POST /galleries/upload - Upload image to R2 storage
-galleriesRoutes.post('/upload', authMiddleware, async (c) => {
-  const formData = await c.req.formData();
-  const file = formData.get('image') as File | null;
-
-  if (!file) {
-    return c.json(
-      {
-        success: false,
-        error: 'Bad Request',
-        message: 'No image file provided',
-      },
-      400
-    );
-  }
-
-  // Validate file type
-  const allowedTypes = ['image/jpeg', 'image/png', 'image/webp'];
-  if (!allowedTypes.includes(file.type)) {
-    return c.json(
-      {
-        success: false,
-        error: 'Bad Request',
-        message: 'Invalid file type. Only JPEG, PNG, and WebP are allowed.',
-      },
-      400
-    );
-  }
-
-  // Generate unique filename
-  const ext = file.name.split('.').pop() || 'jpg';
-  const filename = `gallery/${generateId()}.${ext}`;
-
-  // Upload to R2
-  const arrayBuffer = await file.arrayBuffer();
-  await c.env.STORAGE.put(filename, arrayBuffer, {
-    httpMetadata: {
-      contentType: file.type,
-      cacheControl: 'public, max-age=31536000, immutable',
-    },
-  });
-
-  // Construct URL using environment variable
-  const url = `${c.env.R2_PUBLIC_URL}/${filename}`;
-
-  return c.json({
-    success: true,
-    data: { url },
   });
 });
 
@@ -716,10 +666,10 @@ galleriesRoutes.delete('/:id', authMiddleware, async (c) => {
   const user = c.get('user');
 
   const existing = await c.env.DB.prepare(
-    'SELECT author_id FROM galleries WHERE id = ?'
+    'SELECT author_id, cover_image FROM galleries WHERE id = ?'
   )
     .bind(id)
-    .first<{ author_id: string }>();
+    .first<{ author_id: string; cover_image: string | null }>();
 
   if (!existing) {
     return c.json(
@@ -742,6 +692,17 @@ galleriesRoutes.delete('/:id', authMiddleware, async (c) => {
       403
     );
   }
+
+  // Get all images in the gallery
+  const images = await c.env.DB.prepare(
+    'SELECT image_url FROM gallery_images WHERE gallery_id = ?'
+  )
+    .bind(id)
+    .all<{ image_url: string }>();
+
+  // Delete all images from R2
+  const imageUrls = images.results?.map((img) => img.image_url) || [];
+  await deleteR2Images(c.env.STORAGE, [existing.cover_image, ...imageUrls]);
 
   await c.env.DB.prepare('DELETE FROM galleries WHERE id = ?').bind(id).run();
 
