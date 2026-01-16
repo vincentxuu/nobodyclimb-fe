@@ -3,6 +3,7 @@ import { Env, Biography } from '../types';
 import { parsePagination, generateId, generateSlug } from '../utils/id';
 import { authMiddleware, optionalAuthMiddleware } from '../middleware/auth';
 import { createNotification } from './notifications';
+import { deleteR2Images } from '../utils/storage';
 
 // ═══════════════════════════════════════════════════════════
 // 共用常數 - 故事欄位定義
@@ -456,10 +457,10 @@ biographiesRoutes.delete('/me', authMiddleware, async (c) => {
   const userId = c.get('userId');
 
   const existing = await c.env.DB.prepare(
-    'SELECT id FROM biographies WHERE user_id = ?'
+    'SELECT id, profile_image, cover_image FROM biographies WHERE user_id = ?'
   )
     .bind(userId)
-    .first<{ id: string }>();
+    .first<{ id: string; profile_image: string | null; cover_image: string | null }>();
 
   if (!existing) {
     return c.json(
@@ -471,6 +472,9 @@ biographiesRoutes.delete('/me', authMiddleware, async (c) => {
       404
     );
   }
+
+  // Delete images from R2
+  await deleteR2Images(c.env.STORAGE, [existing.profile_image, existing.cover_image]);
 
   await c.env.DB.prepare('DELETE FROM biographies WHERE id = ?')
     .bind(existing.id)

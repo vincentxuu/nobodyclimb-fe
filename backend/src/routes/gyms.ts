@@ -2,6 +2,7 @@ import { Hono } from 'hono';
 import { Env, Gym } from '../types';
 import { parsePagination, generateId, generateSlug } from '../utils/id';
 import { authMiddleware, adminMiddleware } from '../middleware/auth';
+import { deleteR2Images } from '../utils/storage';
 
 export const gymsRoutes = new Hono<{ Bindings: Env }>();
 
@@ -327,9 +328,9 @@ gymsRoutes.put('/:id', authMiddleware, adminMiddleware, async (c) => {
 gymsRoutes.delete('/:id', authMiddleware, adminMiddleware, async (c) => {
   const id = c.req.param('id');
 
-  const existing = await c.env.DB.prepare('SELECT id FROM gyms WHERE id = ?')
+  const existing = await c.env.DB.prepare('SELECT id, cover_image FROM gyms WHERE id = ?')
     .bind(id)
-    .first();
+    .first<{ id: string; cover_image: string | null }>();
 
   if (!existing) {
     return c.json(
@@ -341,6 +342,9 @@ gymsRoutes.delete('/:id', authMiddleware, adminMiddleware, async (c) => {
       404
     );
   }
+
+  // Delete cover image from R2
+  await deleteR2Images(c.env.STORAGE, existing.cover_image);
 
   await c.env.DB.prepare('DELETE FROM gyms WHERE id = ?').bind(id).run();
 

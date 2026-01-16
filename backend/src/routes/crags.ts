@@ -2,6 +2,7 @@ import { Hono } from 'hono';
 import { Env, Crag } from '../types';
 import { parsePagination, generateId, generateSlug } from '../utils/id';
 import { authMiddleware, adminMiddleware } from '../middleware/auth';
+import { deleteR2Images } from '../utils/storage';
 
 export const cragsRoutes = new Hono<{ Bindings: Env }>();
 
@@ -320,9 +321,9 @@ cragsRoutes.put('/:id', authMiddleware, adminMiddleware, async (c) => {
 cragsRoutes.delete('/:id', authMiddleware, adminMiddleware, async (c) => {
   const id = c.req.param('id');
 
-  const existing = await c.env.DB.prepare('SELECT id FROM crags WHERE id = ?')
+  const existing = await c.env.DB.prepare('SELECT id, images FROM crags WHERE id = ?')
     .bind(id)
-    .first();
+    .first<{ id: string; images: string | null }>();
 
   if (!existing) {
     return c.json(
@@ -333,6 +334,16 @@ cragsRoutes.delete('/:id', authMiddleware, adminMiddleware, async (c) => {
       },
       404
     );
+  }
+
+  // Delete images from R2 (images is JSON array)
+  if (existing.images) {
+    try {
+      const imageUrls = JSON.parse(existing.images) as string[];
+      await deleteR2Images(c.env.STORAGE, imageUrls);
+    } catch {
+      // Ignore JSON parse errors
+    }
   }
 
   await c.env.DB.prepare('DELETE FROM crags WHERE id = ?').bind(id).run();
