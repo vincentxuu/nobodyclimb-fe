@@ -23,10 +23,8 @@ export function ClimbingFootprintsSection({ person }: ClimbingFootprintsSectionP
     const loadLocations = async () => {
       setLoading(true)
       try {
-        // 優先從新的正規化表格 API 取得資料
         const response = await climbingLocationService.getBiographyLocations(person.id)
-        if (response.success && response.data && response.data.length > 0) {
-          // 將 ClimbingLocationRecord 轉換為 ClimbingLocation 格式
+        if (response.success && response.data) {
           const apiLocations: ClimbingLocation[] = response.data.map((record: ClimbingLocationRecord) => ({
             location: record.location,
             country: record.country,
@@ -36,39 +34,16 @@ export function ClimbingFootprintsSection({ person }: ClimbingFootprintsSectionP
             is_public: record.is_public,
           }))
           setLocations(apiLocations)
-        } else {
-          // 如果新 API 沒有資料，嘗試從舊的 JSON 欄位讀取（向後兼容）
-          if (person.climbing_locations) {
-            try {
-              const jsonLocations = JSON.parse(person.climbing_locations)
-              if (Array.isArray(jsonLocations)) {
-                setLocations(jsonLocations)
-              }
-            } catch {
-              // JSON 解析失敗，忽略
-            }
-          }
         }
       } catch (err) {
-        // API 請求失敗，嘗試從舊的 JSON 欄位讀取
-        console.error('Failed to load climbing locations from API:', err)
-        if (person.climbing_locations) {
-          try {
-            const jsonLocations = JSON.parse(person.climbing_locations)
-            if (Array.isArray(jsonLocations)) {
-              setLocations(jsonLocations)
-            }
-          } catch {
-            // JSON 解析失敗，忽略
-          }
-        }
+        console.error('Failed to load climbing locations:', err)
       } finally {
         setLoading(false)
       }
     }
 
     loadLocations()
-  }, [person.id, person.climbing_locations])
+  }, [person.id])
 
   if (loading) {
     return (
