@@ -29,7 +29,7 @@ export default function AreaDetailPage({
           <div className="rounded-lg bg-white p-8 text-center shadow-sm">
             <h1 className="text-2xl font-bold text-gray-800">找不到區域</h1>
             <p className="mt-2 text-gray-600">該區域不存在或已被移除</p>
-            <Link href={`/crag/${cragId}`}>
+            <Link href={`/crag/${cragId}`} prefetch={false}>
               <Button className="mt-4">返回岩場</Button>
             </Link>
           </div>
@@ -63,7 +63,7 @@ export default function AreaDetailPage({
             animate={{ opacity: 1, x: 0 }}
             transition={{ duration: 0.3 }}
           >
-            <Link href={`/crag/${crag.id}`}>
+            <Link href={`/crag/${crag.id}`} prefetch={false}>
               <Button
                 variant="ghost"
                 className="flex items-center gap-2 bg-white shadow-sm hover:bg-gray-200"
@@ -188,6 +188,7 @@ export default function AreaDetailPage({
                   <Link
                     key={otherArea.id}
                     href={`/crag/${crag.id}/area/${otherArea.id}`}
+                    prefetch={false}
                     className="group overflow-hidden rounded-lg border border-gray-200 bg-white transition-all hover:border-[#FFE70C] hover:shadow-md"
                   >
                     <div className="relative h-32">

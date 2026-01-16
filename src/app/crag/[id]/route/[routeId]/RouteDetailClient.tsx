@@ -104,6 +104,7 @@ export default function RouteDetailClient({ data }: RouteDetailClientProps) {
                 <MapPin size={14} />
                 <Link
                   href={`/crag/${crag.id}/area/${area.id}`}
+                  prefetch={false}
                   className="hover:text-[#1B1A1A] hover:underline"
                 >
                   {area.name}
@@ -355,6 +356,7 @@ export default function RouteDetailClient({ data }: RouteDetailClientProps) {
                   <Link
                     key={relRoute.id}
                     href={`/crag/${crag.id}/route/${relRoute.id}`}
+                    prefetch={false}
                     className="flex items-center justify-between rounded-lg border border-gray-200 p-4 transition hover:border-[#FFE70C] hover:bg-gray-50"
                   >
                     <div>

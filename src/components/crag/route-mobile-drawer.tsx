@@ -38,49 +38,61 @@ export function RouteMobileDrawer({
   }, [cragId, selectedArea])
 
   const filteredRoutes = useMemo(() => {
+    if (!routes || !Array.isArray(routes)) return []
+
     return routes.filter((route) => {
+      if (!route || typeof route !== 'object') return false
+
+      const routeName = route.name || ''
+      const routeGrade = route.grade || ''
+      const routeType = route.type || ''
+      const routeSector = route.sector || ''
+      const routeAreaId = route.areaId || ''
+
       // 文字搜尋
+      const searchLower = searchQuery.toLowerCase()
       const matchesSearch =
         !searchQuery ||
-        route.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        route.grade.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        route.type.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        (route.sector && route.sector.toLowerCase().includes(searchQuery.toLowerCase()))
+        routeName.toLowerCase().includes(searchLower) ||
+        routeGrade.toLowerCase().includes(searchLower) ||
+        routeType.toLowerCase().includes(searchLower) ||
+        routeSector.toLowerCase().includes(searchLower)
 
       // 區域篩選
-      const matchesArea = selectedArea === 'all' || route.areaId === selectedArea
+      const matchesArea = selectedArea === 'all' || routeAreaId === selectedArea
 
       // Sector 篩選
-      const matchesSector = selectedSector === 'all' || route.sector === selectedSector
+      const matchesSector = selectedSector === 'all' || routeSector === selectedSector
 
       // 難度篩選
       let matchesGrade = true
-      if (selectedGrade !== 'all') {
-        const grade = route.grade
+      if (selectedGrade !== 'all' && routeGrade) {
         switch (selectedGrade) {
           case '5.0-5.7':
-            matchesGrade = /^5\.[0-7](?![0-9])/.test(grade)
+            matchesGrade = /^5\.[0-7](?![0-9])/.test(routeGrade)
             break
           case '5.8-5.9':
-            matchesGrade = /^5\.[89](?![0-9])/.test(grade)
+            matchesGrade = /^5\.[89](?![0-9])/.test(routeGrade)
             break
           case '5.10':
-            matchesGrade = /^5\.10/.test(grade)
+            matchesGrade = /^5\.10/.test(routeGrade)
             break
           case '5.11':
-            matchesGrade = /^5\.11/.test(grade)
+            matchesGrade = /^5\.11/.test(routeGrade)
             break
           case '5.12':
-            matchesGrade = /^5\.12/.test(grade)
+            matchesGrade = /^5\.12/.test(routeGrade)
             break
           case '5.13+':
-            matchesGrade = /^5\.1[3-5]/.test(grade)
+            matchesGrade = /^5\.1[3-5]/.test(routeGrade)
             break
+          default:
+            matchesGrade = true
         }
       }
 
       // 類型篩選
-      const matchesType = selectedType === 'all' || route.type === selectedType
+      const matchesType = selectedType === 'all' || routeType === selectedType
 
       return matchesSearch && matchesArea && matchesSector && matchesGrade && matchesType
     })
@@ -128,6 +140,7 @@ export function RouteMobileDrawer({
                 <div>
                   <Link
                     href={`/crag/${cragId}`}
+                    prefetch={false}
                     className="flex items-center gap-1 text-sm text-gray-600 hover:text-[#1B1A1A]"
                     onClick={() => setIsOpen(false)}
                   >

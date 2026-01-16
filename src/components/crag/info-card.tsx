@@ -28,7 +28,7 @@ export const CragInfoCard: React.FC<CragInfoCardProps> = () => {
       <ul className="space-y-3">
         {infoLinks.map((link, index) => (
           <li key={index}>
-            <Link href={link.href} className="flex items-center text-[#1B1A1A] hover:text-gray-800">
+            <Link href={link.href} prefetch={false} className="flex items-center text-[#1B1A1A] hover:text-gray-800">
               <span className="mr-2">{link.emoji}</span> {link.label}
             </Link>
           </li>
