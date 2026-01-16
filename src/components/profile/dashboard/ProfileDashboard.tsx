@@ -88,53 +88,46 @@ export default function ProfileDashboard() {
     router.push('/profile', { scroll: false })
   }
 
-  // 處理表單變更
+  // 處理表單變更（使用函式更新形式避免 stale state）
   const handleChange = (field: string, value: string | boolean | SocialLinks) => {
-    setProfileData({
-      ...profileData,
+    setProfileData((prev) => ({
+      ...prev,
       [field]: value,
-    })
+    }))
+  }
+
+  // 通用圖片上傳處理
+  const handleImageUpload = async (
+    file: File,
+    field: 'avatarUrl' | 'coverImageUrl',
+    successMessage: string,
+    errorMessage: string
+  ) => {
+    try {
+      const response = await biographyService.uploadImage(file)
+      if (response.success && response.data?.url) {
+        setProfileData((prev) => ({
+          ...prev,
+          [field]: response.data.url,
+        }))
+        toast({ title: successMessage })
+      } else {
+        throw new Error(response.error || '上傳失敗')
+      }
+    } catch (error) {
+      console.error(`${errorMessage}:`, error)
+      toast({ title: errorMessage, description: '請稍後再試', variant: 'destructive' })
+      throw error
+    }
   }
 
   // 處理頭像上傳
-  const handleAvatarUpload = async (file: File) => {
-    try {
-      const response = await biographyService.uploadImage(file)
-      if (response.success && response.data?.url) {
-        setProfileData({
-          ...profileData,
-          avatarUrl: response.data.url,
-        })
-        toast({ title: '頭像上傳成功' })
-      } else {
-        throw new Error(response.error || '上傳失敗')
-      }
-    } catch (error) {
-      console.error('頭像上傳失敗:', error)
-      toast({ title: '頭像上傳失敗', description: '請稍後再試', variant: 'destructive' })
-      throw error
-    }
-  }
+  const handleAvatarUpload = (file: File) =>
+    handleImageUpload(file, 'avatarUrl', '頭像上傳成功', '頭像上傳失敗')
 
   // 處理封面照片上傳
-  const handleCoverImageUpload = async (file: File) => {
-    try {
-      const response = await biographyService.uploadImage(file)
-      if (response.success && response.data?.url) {
-        setProfileData({
-          ...profileData,
-          coverImageUrl: response.data.url,
-        })
-        toast({ title: '封面照片上傳成功' })
-      } else {
-        throw new Error(response.error || '上傳失敗')
-      }
-    } catch (error) {
-      console.error('封面照片上傳失敗:', error)
-      toast({ title: '封面照片上傳失敗', description: '請稍後再試', variant: 'destructive' })
-      throw error
-    }
-  }
+  const handleCoverImageUpload = (file: File) =>
+    handleImageUpload(file, 'coverImageUrl', '封面照片上傳成功', '封面照片上傳失敗')
 
   // 處理進階故事單一欄位儲存
   const handleAdvancedStorySave = useCallback(
@@ -179,7 +172,7 @@ export default function ProfileDashboard() {
         is_public: profileData.isPublic ? 1 : 0,
       }
 
-      const response = await biographyService.createBiography(biographyData)
+      const response = await biographyService.updateMyBiography(biographyData)
 
       if (response.success) {
         toast({ title: '儲存成功', description: '您的個人資料已成功更新' })
@@ -373,8 +366,8 @@ export default function ProfileDashboard() {
         onSave={handleSave}
         onAvatarUpload={handleAvatarUpload}
         onCoverImageUpload={handleCoverImageUpload}
-        onAvatarDelete={() => setProfileData({ ...profileData, avatarUrl: null })}
-        onCoverImageDelete={() => setProfileData({ ...profileData, coverImageUrl: null })}
+        onAvatarDelete={() => setProfileData((prev) => ({ ...prev, avatarUrl: null }))}
+        onCoverImageDelete={() => setProfileData((prev) => ({ ...prev, coverImageUrl: null }))}
         onAdvancedStorySave={handleAdvancedStorySave}
       />
     </motion.div>
