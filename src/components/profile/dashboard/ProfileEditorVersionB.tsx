@@ -832,10 +832,10 @@ export default function ProfileEditorVersionB({ onBack }: ProfileEditorVersionBP
 
         {/* 公開設定 */}
         <section className="mb-8 rounded-xl border border-subtle bg-white p-6 shadow-sm">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-2">
-              <Globe className="h-5 w-5 text-brand-dark" />
-              <div>
+          <div className="flex items-center justify-between gap-4">
+            <div className="flex min-w-0 flex-1 items-center gap-2">
+              <Globe className="h-5 w-5 flex-shrink-0 text-brand-dark" />
+              <div className="min-w-0">
                 <h2 className="font-semibold text-brand-dark">公開設定</h2>
                 <p className="text-sm text-text-subtle">
                   {profileData.isPublic ? '其他人可以看到你的人物誌' : '只有你可以看到'}
@@ -844,7 +844,7 @@ export default function ProfileEditorVersionB({ onBack }: ProfileEditorVersionBP
             </div>
             <button
               onClick={togglePublicSetting}
-              className={`relative h-7 w-12 rounded-full transition-colors ${
+              className={`relative h-7 w-12 flex-shrink-0 rounded-full transition-colors ${
                 profileData.isPublic ? 'bg-brand-accent' : 'bg-subtle'
               }`}
               role="switch"
