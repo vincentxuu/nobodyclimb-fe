@@ -117,6 +117,8 @@ interface StoryPromptModalProps {
   onSkip?: (_skippedField: string) => void
   strategy?: PromptStrategy
   lastPromptedField?: string
+  /** 從後端 API 獲取的推薦題目欄位名稱，優先使用此欄位以確保頻率控制生效 */
+  initialField?: string | null
 }
 
 /**
@@ -132,6 +134,7 @@ export function StoryPromptModal({
   onSkip,
   strategy = 'random',
   lastPromptedField,
+  initialField,
 }: StoryPromptModalProps) {
   const [currentQuestion, setCurrentQuestion] = useState<StoryQuestion | null>(null)
   const [value, setValue] = useState('')
@@ -146,12 +149,23 @@ export function StoryPromptModal({
   useEffect(() => {
     if (isOpen) {
       const unfilled = getUnfilledQuestions(biography)
-      const nextQuestion = selectNextPrompt(unfilled, strategy, lastPromptedField)
+      let nextQuestion: StoryQuestion | null = null
+
+      // 優先使用後端 API 推薦的題目（確保頻率控制生效）
+      if (initialField) {
+        nextQuestion = ADVANCED_STORY_QUESTIONS.find((q) => q.field === initialField) || null
+      }
+
+      // 如果後端沒有推薦或找不到對應題目，使用本地策略選擇
+      if (!nextQuestion) {
+        nextQuestion = selectNextPrompt(unfilled, strategy, lastPromptedField)
+      }
+
       setCurrentQuestion(nextQuestion)
       setValue('')
       setError(null)
     }
-  }, [isOpen, biography, strategy, lastPromptedField])
+  }, [isOpen, biography, strategy, lastPromptedField, initialField])
 
   // 取得分類資訊
   const categoryInfo = useMemo(() => {
