@@ -30,10 +30,14 @@ export function ProfileDashboardCard({
   size = 'normal',
   className,
 }: ProfileDashboardCardProps) {
-  const percentage = progress ? Math.round((progress.current / progress.total) * 100) : null
+  const percentage =
+    progress && progress.total > 0
+      ? Math.round((progress.current / progress.total) * 100)
+      : null
 
   return (
     <button
+      type="button"
       onClick={onClick}
       className={cn(
         'group relative flex w-full flex-col rounded-lg border border-gray-200 bg-white p-4 text-left transition-all hover:border-gray-300 hover:shadow-md',

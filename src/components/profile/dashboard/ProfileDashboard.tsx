@@ -34,6 +34,28 @@ export type EditPanelType =
   | 'settings'
   | null
 
+// 有效的面板類型列表（用於驗證）
+const VALID_PANELS: EditPanelType[] = [
+  'avatar',
+  'basic',
+  'climbing',
+  'social',
+  'core-stories',
+  'advanced-stories',
+  'footprints',
+  'settings',
+]
+
+// 類別名稱映射
+const CATEGORY_NAMES: Record<string, string> = {
+  growth: '成長突破',
+  psychology: '心理哲學',
+  community: '社群連結',
+  practical: '實用分享',
+  dreams: '夢想探索',
+  life: '生活整合',
+}
+
 export default function ProfileDashboard() {
   const { profileData, setProfileData } = useProfile()
   const isMobile = useIsMobile()
@@ -46,9 +68,9 @@ export default function ProfileDashboard() {
 
   // 同步 URL query param
   useEffect(() => {
-    const panel = searchParams.get('edit') as EditPanelType
-    if (panel) {
-      setActivePanel(panel)
+    const panel = searchParams.get('edit')
+    if (panel && VALID_PANELS.includes(panel as EditPanelType)) {
+      setActivePanel(panel as EditPanelType)
     }
   }, [searchParams])
 
@@ -309,13 +331,7 @@ export default function ProfileDashboard() {
                         : 'bg-gray-100 text-gray-600'
                     }`}
                   >
-                    {category === 'growth' && '成長突破'}
-                    {category === 'psychology' && '心理哲學'}
-                    {category === 'community' && '社群連結'}
-                    {category === 'practical' && '實用分享'}
-                    {category === 'dreams' && '夢想探索'}
-                    {category === 'life' && '生活整合'}{' '}
-                    {progress.completed}/{progress.total}
+                    {CATEGORY_NAMES[category] || category} {progress.completed}/{progress.total}
                   </span>
                 ))}
               </div>

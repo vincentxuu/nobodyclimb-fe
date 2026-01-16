@@ -68,6 +68,8 @@ export function ProfileEditSheet({
     setIsSaving(true)
     try {
       await onSave()
+    } catch {
+      // 錯誤已在 onSave 中處理
     } finally {
       setIsSaving(false)
     }
