@@ -822,14 +822,14 @@ mediaRoutes.post('/upload', authMiddleware, async (c) => {
     );
   }
 
-  // Validate file size (max 10MB)
-  const maxSize = 10 * 1024 * 1024;
+  // Validate file size (max 500KB)
+  const maxSize = 500 * 1024;
   if (file.size > maxSize) {
     return c.json(
       {
         success: false,
         error: 'Bad Request',
-        message: 'File too large. Maximum size is 10MB.',
+        message: 'File too large. Maximum size is 500KB.',
       },
       400
     );
