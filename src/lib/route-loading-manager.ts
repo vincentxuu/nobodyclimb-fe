@@ -4,10 +4,12 @@
 
 class RouteLoadingManager {
   private loadingRoutes = new Set<string>()
+  private loadingTimeouts = new Map<string, NodeJS.Timeout>()
   private recentRequests: string[] = []
   private readonly maxConcurrentRequests = 2
   private readonly requestWindowMs = 1000 // 1 second window
   private readonly maxRequestsPerWindow = 5
+  private readonly loadingTimeoutMs = 10000 // 10 秒超時自動清理
 
   /**
    * 檢查是否可以載入路線
@@ -38,6 +40,13 @@ class RouteLoadingManager {
   startLoadingRoute(routeId: string): void {
     this.loadingRoutes.add(routeId)
     this.recentRequests.push(`${Date.now()}-${routeId}`)
+
+    // 設置超時自動清理，防止狀態卡死
+    const timeout = setTimeout(() => {
+      this.loadingRoutes.delete(routeId)
+      this.loadingTimeouts.delete(routeId)
+    }, this.loadingTimeoutMs)
+    this.loadingTimeouts.set(routeId, timeout)
   }
 
   /**
@@ -45,6 +54,12 @@ class RouteLoadingManager {
    */
   finishLoadingRoute(routeId: string): void {
     this.loadingRoutes.delete(routeId)
+    // 清除超時計時器
+    const timeout = this.loadingTimeouts.get(routeId)
+    if (timeout) {
+      clearTimeout(timeout)
+      this.loadingTimeouts.delete(routeId)
+    }
   }
 
   /**
@@ -67,6 +82,17 @@ class RouteLoadingManager {
       loadingCount: this.loadingRoutes.size,
       recentRequestCount: this.recentRequests.length
     }
+  }
+
+  /**
+   * 重置所有狀態（用於錯誤恢復）
+   */
+  reset(): void {
+    // 清除所有超時計時器
+    this.loadingTimeouts.forEach(timeout => clearTimeout(timeout))
+    this.loadingTimeouts.clear()
+    this.loadingRoutes.clear()
+    this.recentRequests = []
   }
 }
 

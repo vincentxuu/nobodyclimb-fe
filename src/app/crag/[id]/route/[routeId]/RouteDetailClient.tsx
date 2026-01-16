@@ -18,6 +18,7 @@ import { CollapsibleBreadcrumb } from '@/components/ui/collapsible-breadcrumb'
 import BackToTop from '@/components/ui/back-to-top'
 import { routeLoadingManager } from '@/lib/route-loading-manager'
 import { useRouter } from 'next/navigation'
+import { useToast } from '@/components/ui/use-toast'
 import type { RouteDetailData } from '@/lib/crag-data'
 
 interface RouteDetailClientProps {
@@ -52,6 +53,7 @@ function getInstagramPostId(url: string): string | null {
 export default function RouteDetailClient({ data }: RouteDetailClientProps) {
   const { route, crag, area, relatedRoutes } = data
   const router = useRouter()
+  const { toast } = useToast()
   const [currentPhotoIndex, setCurrentPhotoIndex] = useState(0)
 
   const hasImages = route.images && route.images.length > 0
@@ -65,6 +67,11 @@ export default function RouteDetailClient({ data }: RouteDetailClientProps) {
 
     if (!routeLoadingManager.canLoadRoute(routeId)) {
       console.warn('Related route loading rate limited:', routeId)
+      toast({
+        title: '請稍候',
+        description: '點擊太快了，請稍後再試',
+        variant: 'default',
+      })
       return
     }
 
