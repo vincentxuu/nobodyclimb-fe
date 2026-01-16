@@ -221,6 +221,7 @@ export function CragInfoPanel({ crag }: CragInfoPanelProps) {
                 <Link
                   key={area.id || index}
                   href={`/crag/${crag.id}/area/${area.id}`}
+                  prefetch={false}
                   className="group overflow-hidden rounded-lg border border-gray-200 bg-white shadow-sm transition-all hover:border-[#FFE70C] hover:shadow"
                 >
                   <div className="relative h-32">

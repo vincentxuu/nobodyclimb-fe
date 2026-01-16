@@ -355,6 +355,7 @@ export default function RouteDetailClient({ data }: RouteDetailClientProps) {
                   <Link
                     key={relRoute.id}
                     href={`/crag/${crag.id}/route/${relRoute.id}`}
+                    prefetch={false}
                     className="flex items-center justify-between rounded-lg border border-gray-200 p-4 transition hover:border-[#FFE70C] hover:bg-gray-50"
                   >
                     <div>

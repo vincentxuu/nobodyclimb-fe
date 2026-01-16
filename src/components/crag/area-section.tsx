@@ -27,6 +27,7 @@ export const CragAreaSection: React.FC<CragAreaSectionProps> = ({ cragId, areas 
           <Link
             key={area.id || index}
             href={`/crag/${cragId}/area/${area.id}`}
+            prefetch={false}
             className="group grid cursor-pointer grid-cols-1 gap-6 rounded-lg border border-transparent p-4 transition-all hover:border-[#FFE70C] hover:bg-yellow-50 md:grid-cols-3"
             aria-label={`查看 ${area.name} 區域詳情`}
           >

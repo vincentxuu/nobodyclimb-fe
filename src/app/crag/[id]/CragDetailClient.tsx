@@ -163,6 +163,7 @@ export default function CragDetailClient({ params }: { params: Promise<{ id: str
                   <Link
                     key={route.id}
                     href={`/crag/${id}/route/${route.id}`}
+                    prefetch={false}
                     className="block w-full rounded-lg p-3 text-left transition-colors border-2 border-transparent hover:bg-gray-50 hover:border-gray-200"
                   >
                     <div className="flex items-start justify-between gap-2">
@@ -381,6 +382,7 @@ export default function CragDetailClient({ params }: { params: Promise<{ id: str
                       <Link
                         key={area.id || index}
                         href={`/crag/${id}/area/${area.id}`}
+                        prefetch={false}
                         className="group overflow-hidden rounded-lg border border-gray-200 bg-white shadow-sm transition-all hover:border-[#FFE70C] hover:shadow"
                       >
                         <div className="relative h-32">
@@ -488,6 +490,7 @@ export default function CragDetailClient({ params }: { params: Promise<{ id: str
                       <Link
                         key={route.id}
                         href={`/crag/${id}/route/${route.id}`}
+                        prefetch={false}
                         onClick={() => setIsDrawerOpen(false)}
                         className="block w-full rounded-lg p-3 text-left transition-colors border-2 border-transparent hover:bg-gray-50"
                       >
