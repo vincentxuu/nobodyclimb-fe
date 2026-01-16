@@ -18,6 +18,7 @@ export interface AboutStats {
   routes: number
   biographies: number
   videos: number
+  gyms: number
 }
 
 /**
@@ -28,6 +29,7 @@ export const DEFAULT_STATS: AboutStats = {
   routes: 600,
   biographies: 50,
   videos: 100,
+  gyms: 20,
 }
 
 /**
@@ -69,6 +71,7 @@ export function useAboutStats() {
       routes: query.data.routes,
       biographies: query.data.biographies,
       videos: query.data.videos,
+      gyms: query.data.gyms,
     }
   }, [query.data])
 

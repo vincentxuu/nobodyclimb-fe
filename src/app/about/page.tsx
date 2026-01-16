@@ -263,10 +263,10 @@ function FeaturesSection() {
             <motion.div key={feature.title} variants={fadeInUp}>
               <Link
                 href={feature.href}
-                className="group flex items-start gap-4 rounded-lg border border-[#E5E5E5] bg-white p-6 transition-all hover:border-[#1B1A1A] hover:shadow-md"
+                className="group flex items-start gap-4 rounded-lg border border-[#E5E5E5] bg-white p-6 transition-all hover:border-brand-accent hover:shadow-md"
               >
-                <div className="flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-lg bg-[#F5F5F5] transition-colors group-hover:bg-[#1B1A1A]">
-                  <feature.icon className="h-6 w-6 text-[#1B1A1A] transition-colors group-hover:text-[#FFE70C]" />
+                <div className="flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-lg bg-[#F5F5F5] transition-colors group-hover:bg-brand-accent">
+                  <feature.icon className="h-6 w-6 text-[#1B1A1A] transition-colors group-hover:text-brand-dark" />
                 </div>
                 <div>
                   <h3 className="mb-1 font-semibold text-[#1B1A1A]">{feature.title}</h3>
@@ -296,6 +296,7 @@ function StatsSection() {
   const { stats, isLoading } = useAboutStats()
 
   const statsConfig = [
+    { key: 'gyms' as const, label: '間岩館', suffix: '+' },
     { key: 'crags' as const, label: '個岩場', suffix: '+' },
     { key: 'routes' as const, label: '條路線', suffix: '+' },
     { key: 'biographies' as const, label: '篇人物誌', suffix: '+' },
@@ -310,7 +311,7 @@ function StatsSection() {
           initial="initial"
           whileInView="animate"
           viewport={{ once: true }}
-          className="grid grid-cols-2 gap-8 md:grid-cols-4"
+          className="grid grid-cols-2 gap-8 md:grid-cols-5"
         >
           {statsConfig.map((item) => (
             <motion.div key={item.key} variants={fadeInUp} className="text-center">
