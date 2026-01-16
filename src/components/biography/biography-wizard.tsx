@@ -34,6 +34,7 @@ import { BiographyInput } from '@/lib/types'
 import { generateUniqueId } from '@/lib/utils/biography-ui'
 import { userService } from '@/lib/api/services'
 import { useToast } from '@/components/ui/use-toast'
+import { processImage, validateImageType } from '@/lib/utils/image'
 
 /**
  * 帶 ID 的列表項目
@@ -166,20 +167,10 @@ export function BiographyWizard({
       if (!file) return
 
       // 檢查檔案類型
-      if (!file.type.startsWith('image/')) {
+      if (!validateImageType(file)) {
         toast({
           title: '檔案格式錯誤',
-          description: '請上傳圖片檔案',
-          variant: 'destructive',
-        })
-        return
-      }
-
-      // 檢查檔案大小 (限制 5MB)
-      if (file.size > 5 * 1024 * 1024) {
-        toast({
-          title: '檔案太大',
-          description: '圖片大小不能超過 5MB',
+          description: '請上傳 JPG、PNG、WebP 或 GIF 格式的圖片',
           variant: 'destructive',
         })
         return
@@ -188,15 +179,18 @@ export function BiographyWizard({
       try {
         setIsUploadingAvatar(true)
 
+        // 壓縮圖片到 500KB
+        const compressedFile = await processImage(file)
+
         // 先顯示預覽
         const reader = new FileReader()
         reader.onload = (event) => {
           setAvatarPreview((event.target?.result as string) || null)
         }
-        reader.readAsDataURL(file)
+        reader.readAsDataURL(compressedFile)
 
         // 上傳檔案
-        const response = await userService.uploadAvatar(file)
+        const response = await userService.uploadAvatar(compressedFile)
 
         if (response.success && response.data?.url) {
           updateFormData('avatar_url', response.data.url)
@@ -209,9 +203,10 @@ export function BiographyWizard({
         }
       } catch (error) {
         console.error('Failed to upload avatar:', error)
+        const message = error instanceof Error ? error.message : '頭像上傳時發生錯誤，請稍後再試'
         toast({
           title: '上傳失敗',
-          description: '頭像上傳時發生錯誤，請稍後再試',
+          description: message,
           variant: 'destructive',
         })
         // 恢復原本的預覽
@@ -437,9 +432,6 @@ export function BiographyWizard({
                       <Upload className="h-4 w-4" />
                       {isUploadingAvatar ? '上傳中...' : '上傳照片'}
                     </label>
-                    <p className="mt-1 text-xs text-gray-500">
-                      支援 JPG、PNG 格式，最大 5MB
-                    </p>
                   </div>
                 </div>
               </div>

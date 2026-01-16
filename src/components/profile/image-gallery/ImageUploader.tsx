@@ -42,12 +42,9 @@ export default function ImageUploader({
           throw new Error('請上傳 JPG、PNG 或 WebP 格式的圖片')
         }
 
-        // 壓縮圖片（如果需要）
-        let processedFile = file
-        if (file.size > IMAGE_CONSTRAINTS.maxSizeBytes) {
-          setProcessingStatus('壓縮中...')
-          processedFile = await compressImage(file)
-        }
+        // 一律壓縮圖片到 500KB
+        setProcessingStatus('壓縮中...')
+        const processedFile = await compressImage(file)
 
         // 上傳
         setProcessingStatus('上傳中...')
@@ -203,9 +200,6 @@ export default function ImageUploader({
                 ) : (
                   '無法上傳'
                 )}
-              </p>
-              <p className="mt-1 text-xs text-gray-400">
-                JPG、PNG、WebP，超過 {IMAGE_CONSTRAINTS.maxSizeMB}MB 自動壓縮
               </p>
               <p className="text-xs text-gray-400">
                 還可上傳 {remainingSlots} 張（共 {IMAGE_CONSTRAINTS.maxCount} 張）

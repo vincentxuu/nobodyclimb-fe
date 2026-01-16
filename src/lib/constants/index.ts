@@ -43,7 +43,7 @@ export const AUTH_TOKEN_EXPIRY = 60 * 60 * 24 * 7 // 7 days in seconds
 export const DEFAULT_AVATAR = '/images/default-avatar.png'
 export const DEFAULT_COVER = '/images/default-cover.jpg'
 export const IMAGE_FORMATS = ['.jpg', '.jpeg', '.png', '.webp']
-export const MAX_IMAGE_SIZE = 5 * 1024 * 1024 // 5MB
+export const MAX_IMAGE_SIZE = 500 * 1024 // 500KB
 
 /**
  * 社交媒體連結

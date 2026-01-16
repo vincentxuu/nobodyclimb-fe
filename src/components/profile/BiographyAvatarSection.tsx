@@ -4,6 +4,7 @@ import React, { useRef, useState } from 'react'
 import { User, Image as ImageIcon, X } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { useToast } from '@/components/ui/use-toast'
+import { processImage, validateImageType } from '@/lib/utils/image'
 
 interface BiographyAvatarSectionProps {
   avatarUrl: string | null
@@ -39,21 +40,10 @@ export default function BiographyAvatarSection({
     if (!file) return
 
     // 驗證檔案類型
-    const allowedTypes = ['image/jpeg', 'image/png', 'image/webp']
-    if (!allowedTypes.includes(file.type)) {
+    if (!validateImageType(file)) {
       toast({
         title: '不支援的檔案格式',
-        description: '請上傳 JPG、PNG 或 WebP 格式的圖片',
-        variant: 'destructive',
-      })
-      return
-    }
-
-    // 驗證檔案大小 (最大 5MB)
-    if (file.size > 5 * 1024 * 1024) {
-      toast({
-        title: '檔案太大',
-        description: '請上傳小於 5MB 的圖片',
+        description: '請上傳 JPG、PNG、WebP 或 GIF 格式的圖片',
         variant: 'destructive',
       })
       return
@@ -61,9 +51,17 @@ export default function BiographyAvatarSection({
 
     setIsUploadingAvatar(true)
     try {
-      await onAvatarUpload(file)
+      // 壓縮圖片到 500KB
+      const compressedFile = await processImage(file)
+      await onAvatarUpload(compressedFile)
     } catch (error) {
       console.error('上傳失敗:', error)
+      const message = error instanceof Error ? error.message : '上傳失敗'
+      toast({
+        title: '上傳失敗',
+        description: message,
+        variant: 'destructive',
+      })
     } finally {
       setIsUploadingAvatar(false)
       // 清空 input 以允許重複上傳相同檔案
@@ -78,21 +76,10 @@ export default function BiographyAvatarSection({
     if (!file) return
 
     // 驗證檔案類型
-    const allowedTypes = ['image/jpeg', 'image/png', 'image/webp']
-    if (!allowedTypes.includes(file.type)) {
+    if (!validateImageType(file)) {
       toast({
         title: '不支援的檔案格式',
-        description: '請上傳 JPG、PNG 或 WebP 格式的圖片',
-        variant: 'destructive',
-      })
-      return
-    }
-
-    // 驗證檔案大小 (最大 5MB)
-    if (file.size > 5 * 1024 * 1024) {
-      toast({
-        title: '檔案太大',
-        description: '請上傳小於 5MB 的圖片',
+        description: '請上傳 JPG、PNG、WebP 或 GIF 格式的圖片',
         variant: 'destructive',
       })
       return
@@ -100,9 +87,17 @@ export default function BiographyAvatarSection({
 
     setIsUploadingCover(true)
     try {
-      await onCoverImageUpload(file)
+      // 壓縮圖片到 500KB
+      const compressedFile = await processImage(file)
+      await onCoverImageUpload(compressedFile)
     } catch (error) {
       console.error('上傳失敗:', error)
+      const message = error instanceof Error ? error.message : '上傳失敗'
+      toast({
+        title: '上傳失敗',
+        description: message,
+        variant: 'destructive',
+      })
     } finally {
       setIsUploadingCover(false)
       // 清空 input 以允許重複上傳相同檔案
@@ -158,7 +153,6 @@ export default function BiographyAvatarSection({
               >
                 {isUploadingAvatar ? '上傳中...' : avatarUrl ? '更換頭像' : '上傳頭像'}
               </Button>
-              <p className="mt-2 text-xs text-gray-500">建議尺寸：400x400px，最大 5MB</p>
             </div>
           )}
         </div>
@@ -217,7 +211,6 @@ export default function BiographyAvatarSection({
               >
                 {isUploadingCover ? '上傳中...' : coverImageUrl ? '更換封面' : '上傳封面'}
               </Button>
-              <p className="mt-2 text-xs text-gray-500">建議尺寸：2100x900px，最大 5MB</p>
             </div>
           )}
         </div>
