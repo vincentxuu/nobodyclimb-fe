@@ -21,7 +21,7 @@ export interface BiographyApiInput {
   favorite_route_type?: string
   climbing_origin?: string
   climbing_meaning?: string
-  climbing_bucket_list?: string
+  bucket_list_story?: string
   advice_to_self?: string
   social_links?: string
   is_public?: number
@@ -67,7 +67,7 @@ export interface BiographyApiInput {
 export const CORE_STORY_FIELD_MAP: Record<string, keyof ProfileData> = {
   climbing_origin: 'climbingReason',
   climbing_meaning: 'climbingMeaning',
-  climbing_bucket_list: 'climbingBucketList',
+  bucket_list_story: 'climbingBucketList',
   advice_to_self: 'adviceForBeginners',
 } as const
 
@@ -82,7 +82,7 @@ export const PROFILE_TO_API_FIELD_MAP: Record<string, string> = {
   favoriteRouteType: 'favorite_route_type',
   climbingReason: 'climbing_origin',
   climbingMeaning: 'climbing_meaning',
-  climbingBucketList: 'climbing_bucket_list',
+  climbingBucketList: 'bucket_list_story',
   adviceForBeginners: 'advice_to_self',
 } as const
 
@@ -97,7 +97,7 @@ export const API_TO_PROFILE_FIELD_MAP: Record<string, keyof ProfileData> = {
   favorite_route_type: 'favoriteRouteType',
   climbing_origin: 'climbingReason',
   climbing_meaning: 'climbingMeaning',
-  climbing_bucket_list: 'climbingBucketList',
+  bucket_list_story: 'climbingBucketList',
   advice_to_self: 'adviceForBeginners',
 } as const
 
@@ -128,7 +128,7 @@ export function mapProfileDataToApi(
     favorite_route_type: data.favoriteRouteType,
     climbing_origin: data.climbingReason,
     climbing_meaning: data.climbingMeaning,
-    climbing_bucket_list: data.climbingBucketList,
+    bucket_list_story: data.climbingBucketList,
     advice_to_self: data.adviceForBeginners,
     social_links: JSON.stringify(data.socialLinks),
     is_public: data.isPublic ? 1 : 0,

@@ -166,7 +166,7 @@ export default function ProfileDashboard() {
         favorite_route_type: profileData.favoriteRouteType,
         climbing_origin: profileData.climbingReason,
         climbing_meaning: profileData.climbingMeaning,
-        climbing_bucket_list: profileData.climbingBucketList,
+        bucket_list_story: profileData.climbingBucketList,
         advice_to_self: profileData.adviceForBeginners,
         ...profileData.advancedStories,
         social_links: socialLinksJson,
