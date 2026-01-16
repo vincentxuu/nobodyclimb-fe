@@ -23,11 +23,6 @@ export default function CragDetailClient({ params }: { params: Promise<{ id: str
   const { id } = use(params)
   const router = useRouter()
   const { toast } = useToast()
-  const [searchQuery, setSearchQuery] = useState('')
-  const [selectedArea, setSelectedArea] = useState('all')
-  const [selectedSector, setSelectedSector] = useState('all')
-  const [selectedGrade, setSelectedGrade] = useState('all')
-  const [selectedType, setSelectedType] = useState('all')
   const [isDrawerOpen, setIsDrawerOpen] = useState(false)
 
   // 從資料服務層讀取岩場資料
