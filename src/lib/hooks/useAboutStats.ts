@@ -3,6 +3,7 @@
  * 從後端 API 取得即時統計數據，支援 10 分鐘快取
  */
 
+import { useMemo } from 'react'
 import { useQuery } from '@tanstack/react-query'
 import { statsService, SiteStats } from '@/lib/api/services'
 
@@ -58,15 +59,18 @@ export function useAboutStats() {
     retryDelay: 1000,
   })
 
-  // 轉換為 About 頁面需要的格式
-  const stats: AboutStats = query.data
-    ? {
-        crags: query.data.crags,
-        routes: query.data.routes,
-        biographies: query.data.biographies,
-        videos: query.data.videos,
-      }
-    : DEFAULT_STATS
+  // 轉換為 About 頁面需要的格式（使用 useMemo 優化）
+  const stats: AboutStats = useMemo(() => {
+    if (!query.data) {
+      return DEFAULT_STATS
+    }
+    return {
+      crags: query.data.crags,
+      routes: query.data.routes,
+      biographies: query.data.biographies,
+      videos: query.data.videos,
+    }
+  }, [query.data])
 
   return {
     stats,

@@ -1,5 +1,6 @@
 import { Hono } from 'hono';
 import { Env } from '../types';
+import { authMiddleware, adminMiddleware } from '../middleware/auth';
 
 const statsRoutes = new Hono<{ Bindings: Env }>();
 
@@ -18,6 +19,18 @@ interface SiteStats {
   posts: number;
   gyms: number;
   updatedAt: string;
+}
+
+/**
+ * 統計查詢結果介面
+ */
+interface StatsQueryResult {
+  crags_count: number;
+  routes_count: number;
+  biographies_count: number;
+  videos_count: number;
+  posts_count: number;
+  gyms_count: number;
 }
 
 /**
@@ -40,45 +53,27 @@ statsRoutes.get('/', async (c) => {
     console.error('Cache read error:', e);
   }
 
-  // 2. 查詢資料庫
+  // 2. 使用單一查詢取得所有統計數據
   try {
-    // 岩場數量
-    const cragsResult = await c.env.DB.prepare(
-      'SELECT COUNT(*) as count FROM crags'
-    ).first<{ count: number }>();
+    const query = `
+      SELECT
+        (SELECT COUNT(*) FROM crags) as crags_count,
+        (SELECT COUNT(*) FROM routes) as routes_count,
+        (SELECT COUNT(*) FROM biographies WHERE is_public = 1) as biographies_count,
+        (SELECT COUNT(*) FROM videos) as videos_count,
+        (SELECT COUNT(*) FROM posts WHERE status = 'published') as posts_count,
+        (SELECT COUNT(*) FROM gyms) as gyms_count
+    `;
 
-    // 路線數量
-    const routesResult = await c.env.DB.prepare(
-      'SELECT COUNT(*) as count FROM routes'
-    ).first<{ count: number }>();
-
-    // 人物誌數量（只計算公開的）
-    const biographiesResult = await c.env.DB.prepare(
-      'SELECT COUNT(*) as count FROM biographies WHERE is_public = 1'
-    ).first<{ count: number }>();
-
-    // 影片數量
-    const videosResult = await c.env.DB.prepare(
-      'SELECT COUNT(*) as count FROM videos'
-    ).first<{ count: number }>();
-
-    // 文章數量（只計算已發布的）
-    const postsResult = await c.env.DB.prepare(
-      "SELECT COUNT(*) as count FROM posts WHERE status = 'published'"
-    ).first<{ count: number }>();
-
-    // 岩館數量
-    const gymsResult = await c.env.DB.prepare(
-      'SELECT COUNT(*) as count FROM gyms'
-    ).first<{ count: number }>();
+    const result = await c.env.DB.prepare(query).first<StatsQueryResult>();
 
     const stats: SiteStats = {
-      crags: cragsResult?.count ?? 0,
-      routes: routesResult?.count ?? 0,
-      biographies: biographiesResult?.count ?? 0,
-      videos: videosResult?.count ?? 0,
-      posts: postsResult?.count ?? 0,
-      gyms: gymsResult?.count ?? 0,
+      crags: result?.crags_count ?? 0,
+      routes: result?.routes_count ?? 0,
+      biographies: result?.biographies_count ?? 0,
+      videos: result?.videos_count ?? 0,
+      posts: result?.posts_count ?? 0,
+      gyms: result?.gyms_count ?? 0,
       updatedAt: new Date().toISOString(),
     };
 
@@ -111,9 +106,9 @@ statsRoutes.get('/', async (c) => {
 
 /**
  * POST /api/v1/stats/invalidate
- * 強制清除統計快取（管理員用）
+ * 強制清除統計快取（需要管理員權限）
  */
-statsRoutes.post('/invalidate', async (c) => {
+statsRoutes.post('/invalidate', authMiddleware, adminMiddleware, async (c) => {
   try {
     await c.env.CACHE.delete(STATS_CACHE_KEY);
     return c.json({
