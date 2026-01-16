@@ -28,12 +28,7 @@ function LocationCard({ location }: { location: ClimbingLocation }) {
   const shouldShowExpandButton = hasNotes && notesLength > 100
 
   return (
-    <motion.div
-      className="rounded-lg border border-gray-200 bg-white transition-shadow hover:shadow-md"
-      initial={{ opacity: 0, y: 10 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.3 }}
-    >
+    <div className="rounded-lg border border-gray-200 bg-white transition-shadow hover:shadow-md">
       {/* 標題列：地點名稱 + 年份 */}
       <div className="flex items-center justify-between px-4 py-3">
         <h4 className="font-semibold text-gray-900">{location.location}</h4>
@@ -85,7 +80,7 @@ function LocationCard({ location }: { location: ClimbingLocation }) {
           </div>
         </>
       )}
-    </motion.div>
+    </div>
   )
 }
 
