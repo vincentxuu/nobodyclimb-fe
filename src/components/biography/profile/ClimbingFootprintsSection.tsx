@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-import { Loader2, ChevronDown, ChevronUp } from 'lucide-react'
+import { Loader2, ChevronDown, ChevronUp, MapPin, Calendar } from 'lucide-react'
 import { Biography, ClimbingLocationRecord } from '@/lib/types'
 import { climbingLocationService } from '@/lib/api/services'
 import { getCountryFlag } from '@/lib/utils/country'
@@ -11,37 +11,64 @@ interface ClimbingFootprintsSectionProps {
   person: Biography
 }
 
-interface LocationsByCountry {
-  country: string
-  flag: string
+interface TimelineYear {
+  year: string
   locations: ClimbingLocationRecord[]
 }
 
 /**
- * 單一地點卡片元件
+ * 時間軸上的單一地點項目
  */
-function LocationCard({ location }: { location: ClimbingLocationRecord }) {
+function TimelineLocationItem({
+  location,
+  index,
+  isLast,
+}: {
+  location: ClimbingLocationRecord
+  index: number
+  isLast: boolean
+}) {
   const [isExpanded, setIsExpanded] = useState(false)
   const hasNotes = location.notes && location.notes.trim().length > 0
   const notesLength = location.notes?.length || 0
-  // 超過 100 字元才顯示展開按鈕
   const shouldShowExpandButton = hasNotes && notesLength > 100
 
   return (
-    <div className="rounded-lg border border-gray-200 bg-white transition-shadow hover:shadow-md">
-      {/* 標題列：地點名稱 + 年份 */}
-      <div className="flex items-center justify-between px-4 py-3">
-        <h4 className="font-semibold text-gray-900">{location.location}</h4>
-        {location.visit_year && (
-          <span className="text-sm text-gray-400">{location.visit_year}</span>
-        )}
+    <motion.div
+      className="relative pl-8"
+      initial={{ opacity: 0, x: -20 }}
+      whileInView={{ opacity: 1, x: 0 }}
+      transition={{ delay: index * 0.05, duration: 0.3 }}
+      viewport={{ once: true, margin: '-50px' }}
+    >
+      {/* 連接線 */}
+      {!isLast && (
+        <div className="absolute left-[11px] top-6 h-full w-0.5 bg-gradient-to-b from-brand-light to-transparent" />
+      )}
+
+      {/* 節點圓點 */}
+      <div className="absolute left-0 top-1.5 flex h-6 w-6 items-center justify-center">
+        <div className="h-3 w-3 rounded-full border-2 border-brand-dark bg-white shadow-sm" />
       </div>
 
-      {/* 筆記內容 */}
-      {hasNotes && (
-        <>
-          <div className="border-t border-gray-100" />
-          <div className="px-4 py-3">
+      {/* 內容卡片 */}
+      <div className="group mb-4 overflow-hidden rounded-lg bg-white/60 px-1 transition-all duration-300 hover:bg-white">
+        {/* 標題區 */}
+        <div className="flex items-start justify-between gap-3 p-4">
+          <div className="flex items-center gap-3">
+            <span className="text-2xl">{getCountryFlag(location.country)}</span>
+            <div>
+              <h4 className="font-semibold text-brand-dark transition-colors group-hover:text-brand-dark-hover">
+                {location.location}
+              </h4>
+              <p className="text-sm text-text-subtle">{location.country}</p>
+            </div>
+          </div>
+        </div>
+
+        {/* 筆記內容 */}
+        {hasNotes && (
+          <div className="px-4 pb-3">
             <AnimatePresence mode="wait">
               <motion.div
                 key={isExpanded ? 'expanded' : 'collapsed'}
@@ -51,8 +78,8 @@ function LocationCard({ location }: { location: ClimbingLocationRecord }) {
                 transition={{ duration: 0.2 }}
               >
                 <p
-                  className={`text-sm leading-relaxed text-gray-600 ${
-                    !isExpanded && shouldShowExpandButton ? 'line-clamp-3' : ''
+                  className={`text-sm leading-relaxed text-text-subtle ${
+                    !isExpanded && shouldShowExpandButton ? 'line-clamp-2' : ''
                   }`}
                 >
                   {location.notes}
@@ -60,11 +87,10 @@ function LocationCard({ location }: { location: ClimbingLocationRecord }) {
               </motion.div>
             </AnimatePresence>
 
-            {/* 展開/收合按鈕 */}
             {shouldShowExpandButton && (
               <button
                 onClick={() => setIsExpanded(!isExpanded)}
-                className="mt-2 flex items-center gap-1 text-sm font-medium text-emerald-600 transition-colors hover:text-emerald-700"
+                className="mt-2 flex items-center gap-1 text-sm font-medium text-brand-dark transition-colors hover:text-brand-dark-hover"
               >
                 {isExpanded ? (
                   <>
@@ -78,55 +104,52 @@ function LocationCard({ location }: { location: ClimbingLocationRecord }) {
               </button>
             )}
           </div>
-        </>
-      )}
-    </div>
+        )}
+      </div>
+    </motion.div>
   )
 }
 
 /**
- * 國家分組區塊元件
+ * 時間軸年份區塊
  */
-function CountryGroup({
-  group,
+function TimelineYearSection({
+  yearData,
   index,
 }: {
-  group: LocationsByCountry
+  yearData: TimelineYear
   index: number
 }) {
   return (
     <motion.div
-      className="overflow-hidden rounded-xl border border-gray-200 bg-gray-50"
-      initial={{ opacity: 0, x: -20 }}
-      whileInView={{ opacity: 1, x: 0 }}
+      className="relative"
+      initial={{ opacity: 0, y: 20 }}
+      whileInView={{ opacity: 1, y: 0 }}
       transition={{ delay: index * 0.1, duration: 0.4 }}
-      viewport={{ once: true }}
+      viewport={{ once: true, margin: '-50px' }}
     >
-      {/* 國家標題 */}
-      <div className="flex items-center justify-between border-b border-gray-200 bg-white px-4 py-4 sm:px-6">
-        <div className="flex items-center gap-3">
-          <span className="text-2xl sm:text-3xl">{group.flag}</span>
-          <span className="text-lg font-semibold text-gray-900">
-            {group.country}
+      {/* 年份標籤 */}
+      <div className="mb-4 flex items-center gap-3">
+        <div className="flex h-10 w-10 items-center justify-center rounded-full bg-brand-accent shadow-lg">
+          <Calendar className="h-5 w-5 text-brand-dark" />
+        </div>
+        <div className="flex items-center gap-2">
+          <span className="text-xl font-bold text-brand-dark">{yearData.year}</span>
+          <span className="rounded-full bg-brand-light px-2.5 py-0.5 text-sm font-medium text-brand-dark">
+            {yearData.locations.length} 個地點
           </span>
         </div>
-        <span className="text-sm text-gray-400">
-          {group.locations.length} 個地點
-        </span>
       </div>
 
-      {/* 地點列表 */}
-      <div className="space-y-3 p-4 sm:p-6">
-        {group.locations.map((location, locIndex) => (
-          <motion.div
+      {/* 該年份的地點列表 */}
+      <div className="ml-5">
+        {yearData.locations.map((location, locIndex) => (
+          <TimelineLocationItem
             key={location.id}
-            initial={{ opacity: 0, y: 10 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            transition={{ delay: locIndex * 0.05 }}
-            viewport={{ once: true }}
-          >
-            <LocationCard location={location} />
-          </motion.div>
+            location={location}
+            index={locIndex}
+            isLast={locIndex === yearData.locations.length - 1}
+          />
         ))}
       </div>
     </motion.div>
@@ -134,8 +157,43 @@ function CountryGroup({
 }
 
 /**
+ * 統計摘要卡片
+ */
+function StatsSummary({
+  totalLocations,
+  countryCount,
+  yearRange,
+}: {
+  totalLocations: number
+  countryCount: number
+  yearRange: string
+}) {
+  return (
+    <motion.div
+      className="mb-8 grid grid-cols-3 gap-4"
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.5, delay: 0.2 }}
+    >
+      <div className="rounded-xl bg-brand-light p-4 text-center">
+        <div className="text-2xl font-bold text-brand-dark">{totalLocations}</div>
+        <div className="text-sm text-text-subtle">攀岩地點</div>
+      </div>
+      <div className="rounded-xl bg-brand-light p-4 text-center">
+        <div className="text-2xl font-bold text-brand-dark">{countryCount}</div>
+        <div className="text-sm text-text-subtle">個國家</div>
+      </div>
+      <div className="rounded-xl bg-brand-light p-4 text-center">
+        <div className="text-2xl font-bold text-brand-dark">{yearRange}</div>
+        <div className="text-sm text-text-subtle">時間跨度</div>
+      </div>
+    </motion.div>
+  )
+}
+
+/**
  * 攀岩足跡區塊
- * 時間軸分組式設計 - 按國家分組顯示
+ * 時間軸設計 - 按年份分組，展示攀岩旅程
  */
 export function ClimbingFootprintsSection({
   person,
@@ -165,9 +223,9 @@ export function ClimbingFootprintsSection({
 
   if (loading) {
     return (
-      <section className="bg-gray-50 py-16">
-        <div className="container mx-auto flex max-w-4xl justify-center px-4">
-          <Loader2 className="h-8 w-8 animate-spin text-gray-400" />
+      <section className="bg-gradient-to-b from-page-bg to-white py-16">
+        <div className="container mx-auto flex max-w-3xl justify-center px-4">
+          <Loader2 className="h-8 w-8 animate-spin text-brand-dark" />
         </div>
       </section>
     )
@@ -175,55 +233,105 @@ export function ClimbingFootprintsSection({
 
   if (locations.length === 0) return null
 
-  // 按國家分組
-  const groupedByCountry: LocationsByCountry[] = Object.entries(
-    locations.reduce(
-      (acc, loc) => {
-        const country = loc.country || '未知'
-        if (!acc[country]) {
-          acc[country] = []
-        }
-        acc[country].push(loc)
-        return acc
-      },
-      {} as Record<string, ClimbingLocationRecord[]>
-    )
-  ).map(([country, locs]) => ({
-    country,
-    flag: getCountryFlag(country),
-    locations: locs,
-  }))
+  // 按年份分組
+  const locationsByYear: Record<string, ClimbingLocationRecord[]> = {}
+  const locationsWithoutYear: ClimbingLocationRecord[] = []
 
-  // 排序：台灣優先，其他按地點數量排序
-  groupedByCountry.sort((a, b) => {
-    if (a.country === '台灣') return -1
-    if (b.country === '台灣') return 1
-    return b.locations.length - a.locations.length
+  locations.forEach((loc) => {
+    if (loc.visit_year) {
+      if (!locationsByYear[loc.visit_year]) {
+        locationsByYear[loc.visit_year] = []
+      }
+      locationsByYear[loc.visit_year].push(loc)
+    } else {
+      locationsWithoutYear.push(loc)
+    }
   })
 
+  // 轉換為陣列並按年份降序排序
+  const timelineData: TimelineYear[] = Object.entries(locationsByYear)
+    .map(([year, locs]) => ({
+      year,
+      locations: locs,
+    }))
+    .sort((a, b) => parseInt(b.year) - parseInt(a.year))
+
+  // 如果有無年份的地點，加到最後
+  if (locationsWithoutYear.length > 0) {
+    timelineData.push({
+      year: '其他足跡',
+      locations: locationsWithoutYear,
+    })
+  }
+
+  // 計算統計數據
+  const countrySet = new Set(locations.map((loc) => loc.country))
+  const countryCount = countrySet.size
+  const years = Object.keys(locationsByYear).map((y) => parseInt(y)).filter((y) => !isNaN(y))
+  const yearRange = years.length > 0
+    ? years.length === 1
+      ? `${Math.min(...years)}`
+      : `${Math.max(...years) - Math.min(...years) + 1} 年`
+    : '-'
+
   return (
-    <section className="bg-gray-50 py-16">
-      <div className="container mx-auto max-w-4xl px-4">
+    <section className="bg-gradient-to-b from-page-bg to-white py-16">
+      <div className="container mx-auto max-w-3xl px-4">
         {/* 標題 */}
         <motion.div
-          className="mb-8"
+          className="mb-6 text-center"
           initial={{ opacity: 0, y: -10 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.4 }}
         >
-          <h2 className="flex items-center gap-3 text-2xl font-bold text-gray-900">
-            攀岩足跡
-            <span className="text-lg font-normal text-gray-500">
-              {locations.length} 個地點
-            </span>
+          <div className="mb-2 inline-flex items-center gap-2 rounded-full bg-brand-dark px-4 py-1.5">
+            <MapPin className="h-4 w-4 text-white" />
+            <span className="text-sm font-medium text-white">攀岩足跡</span>
+          </div>
+          <h2 className="text-2xl font-bold text-text-main sm:text-3xl">
+            攀岩旅程時間軸
           </h2>
+          <p className="mt-2 text-text-subtle">
+            記錄每一次與岩壁相遇的美好時刻
+          </p>
         </motion.div>
 
-        {/* 國家分組列表 */}
-        <div className="space-y-6">
-          {groupedByCountry.map((group, index) => (
-            <CountryGroup key={group.country} group={group} index={index} />
-          ))}
+        {/* 統計摘要 */}
+        <StatsSummary
+          totalLocations={locations.length}
+          countryCount={countryCount}
+          yearRange={yearRange}
+        />
+
+        {/* 時間軸 */}
+        <div className="relative">
+          {/* 主時間線 */}
+          <div className="absolute left-5 top-0 h-full w-0.5 bg-gradient-to-b from-brand-dark via-brand-light to-transparent" />
+
+          {/* 年份區塊 */}
+          <div className="space-y-8">
+            {timelineData.map((yearData, index) => (
+              <TimelineYearSection
+                key={yearData.year}
+                yearData={yearData}
+                index={index}
+              />
+            ))}
+          </div>
+
+          {/* 時間軸結尾 */}
+          <motion.div
+            className="relative ml-5 mt-6 flex items-center gap-3 pl-8"
+            initial={{ opacity: 0 }}
+            whileInView={{ opacity: 1 }}
+            transition={{ delay: 0.3 }}
+            viewport={{ once: true }}
+          >
+            <div className="absolute left-0 flex h-6 w-6 items-center justify-center">
+              <div className="h-2 w-2 rounded-full bg-brand-light" />
+            </div>
+            <p className="text-sm italic text-text-subtle">持續探索中...</p>
+          </motion.div>
         </div>
       </div>
     </section>
