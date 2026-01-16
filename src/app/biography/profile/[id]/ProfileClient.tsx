@@ -56,6 +56,11 @@ export default function ProfileClient({ params }: ProfileClientProps) {
           setPerson(response.data)
           setFollowerCount(response.data.follower_count || 0)
 
+          // 記錄瀏覽次數
+          biographyService.recordView(id).catch((err) => {
+            console.error('Failed to record view:', err)
+          })
+
           // 獲取相鄰人物
           try {
             const adjacentResponse = await biographyService.getAdjacentBiographies(id)
