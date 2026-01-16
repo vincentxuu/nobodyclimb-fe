@@ -168,6 +168,9 @@ export default function ProfileContainer() {
       // 將前端資料轉換為 API 格式
       // 注意：攀岩足跡已改用獨立的 climbing_locations 表，不再存入 biographies JSON
       const biographyData = {
+        // 進階故事（先展開，讓後面的核心故事欄位可以覆蓋）
+        ...profileData.advancedStories,
+        // 基本資料
         name: profileData.name,
         title: profileData.title || undefined,
         avatar_url: profileData.avatarUrl || undefined,
@@ -175,12 +178,11 @@ export default function ProfileContainer() {
         climbing_start_year: profileData.startYear,
         frequent_locations: profileData.frequentGyms,
         favorite_route_type: profileData.favoriteRouteType,
+        // 核心故事（覆蓋 advancedStories 中的 bucket_list_story）
         climbing_origin: profileData.climbingReason,
         climbing_meaning: profileData.climbingMeaning,
-        climbing_bucket_list: profileData.climbingBucketList,
+        bucket_list_story: profileData.climbingBucketList,
         advice_to_self: profileData.adviceForBeginners,
-        // 進階故事
-        ...profileData.advancedStories,
         // 社群連結
         social_links: socialLinksJson,
         is_public: profileData.isPublic ? 1 : 0,
