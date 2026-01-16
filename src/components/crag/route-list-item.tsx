@@ -15,6 +15,7 @@ export function RouteListItem({ route, cragId, isActive, onClick }: RouteListIte
   return (
     <Link
       href={`/crag/${cragId}/route/${route.id}`}
+      prefetch={false}
       onClick={onClick}
       className={cn(
         'flex items-center justify-between px-3 py-2.5 rounded-lg transition-colors',
