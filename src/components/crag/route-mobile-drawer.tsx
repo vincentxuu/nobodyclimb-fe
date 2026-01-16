@@ -129,7 +129,7 @@ export function RouteMobileDrawer({
               </div>
 
               {/* 路線列表 - 使用虛擬化 */}
-              <div className="min-h-0 flex-1 overflow-hidden overscroll-y-contain p-2">
+              <div className="min-h-0 flex-1 overflow-y-auto overscroll-y-contain p-2 touch-pan-y">
                 <VirtualizedRouteList
                   routes={filteredRoutes}
                   cragId={cragId}

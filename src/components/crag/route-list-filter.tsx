@@ -84,11 +84,7 @@ export function RouteListFilter({
       {/* 區域篩選 */}
       <select
         value={selectedArea}
-        onChange={(e) => {
-          onAreaChange(e.target.value)
-          // 當區域變更時，重置 sector 選擇
-          onSectorChange('all')
-        }}
+        onChange={(e) => onAreaChange(e.target.value)}
         className="w-full rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm outline-none transition-colors focus:border-[#FFE70C] focus:ring-1 focus:ring-[#FFE70C]/20"
       >
         <option value="all">所有區域</option>

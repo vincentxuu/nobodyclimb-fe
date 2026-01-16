@@ -119,7 +119,6 @@ export default function RouteDetailClient({ data }: RouteDetailClientProps) {
                   {route.grade}
                 </span>
                 <span className="inline-flex items-center rounded-full bg-gray-100 px-3 py-1 text-sm text-gray-600">
-                  <Mountain size={14} className="mr-1" />
                   {route.typeEn}
                 </span>
               </div>
@@ -213,45 +212,40 @@ export default function RouteDetailClient({ data }: RouteDetailClientProps) {
           )}
 
           {/* 基本資訊卡片 */}
-          <div className="mb-8 grid grid-cols-2 gap-4 md:grid-cols-4">
-            {route.length && (
-              <div className="rounded-lg bg-gray-50 p-4">
-                <div className="flex items-center gap-2 text-sm text-gray-500">
-                  <Ruler size={16} />
-                  長度
+          {(route.length || route.boltCount > 0 || route.firstAscent) && (
+            <div className="mb-8 grid grid-cols-2 gap-4 md:grid-cols-3">
+              {route.length && (
+                <div className="rounded-lg bg-gray-50 p-4">
+                  <div className="flex items-center gap-2 text-sm text-gray-500">
+                    <Ruler size={16} />
+                    長度
+                  </div>
+                  <div className="mt-1 text-lg font-semibold text-[#1B1A1A]">{route.length}</div>
                 </div>
-                <div className="mt-1 text-lg font-semibold text-[#1B1A1A]">{route.length}</div>
-              </div>
-            )}
-            <div className="rounded-lg bg-gray-50 p-4">
-              <div className="flex items-center gap-2 text-sm text-gray-500">
-                <Mountain size={16} />
-                類型
-              </div>
-              <div className="mt-1 text-lg font-semibold text-[#1B1A1A]">{route.typeEn}</div>
+              )}
+              {route.boltCount > 0 && (
+                <div className="rounded-lg bg-gray-50 p-4">
+                  <div className="flex items-center gap-2 text-sm text-gray-500">
+                    <Shield size={16} />
+                    Bolt 數量
+                  </div>
+                  <div className="mt-1 text-lg font-semibold text-[#1B1A1A]">{route.boltCount}</div>
+                </div>
+              )}
+              {route.firstAscent && (
+                <div className="rounded-lg bg-gray-50 p-4">
+                  <div className="flex items-center gap-2 text-sm text-gray-500">
+                    <User size={16} />
+                    首攀者
+                  </div>
+                  <div className="mt-1 text-lg font-semibold text-[#1B1A1A]">{route.firstAscent}</div>
+                  {route.firstAscentDate && (
+                    <div className="text-xs text-gray-500">{route.firstAscentDate}</div>
+                  )}
+                </div>
+              )}
             </div>
-            {route.boltCount > 0 && (
-              <div className="rounded-lg bg-gray-50 p-4">
-                <div className="flex items-center gap-2 text-sm text-gray-500">
-                  <Shield size={16} />
-                  Bolt 數量
-                </div>
-                <div className="mt-1 text-lg font-semibold text-[#1B1A1A]">{route.boltCount}</div>
-              </div>
-            )}
-            {route.firstAscent && (
-              <div className="rounded-lg bg-gray-50 p-4">
-                <div className="flex items-center gap-2 text-sm text-gray-500">
-                  <User size={16} />
-                  首攀者
-                </div>
-                <div className="mt-1 text-lg font-semibold text-[#1B1A1A]">{route.firstAscent}</div>
-                {route.firstAscentDate && (
-                  <div className="text-xs text-gray-500">{route.firstAscentDate}</div>
-                )}
-              </div>
-            )}
-          </div>
+          )}
 
           {/* 路線描述 */}
           {route.description && (

@@ -47,6 +47,28 @@ export default function CragDetailClient({ params }: { params: Promise<{ id: str
     return getSectorsForArea(id, filterState.selectedArea)
   }, [id, filterState.selectedArea])
 
+  // 建構篩選參數的 URL query string
+  const buildFilterQueryString = useCallback(() => {
+    const params = new URLSearchParams()
+    if (filterState.selectedArea !== 'all') {
+      params.set('area', filterState.selectedArea)
+    }
+    if (filterState.selectedSector !== 'all') {
+      params.set('sector', filterState.selectedSector)
+    }
+    if (filterState.selectedGrade !== 'all') {
+      params.set('grade', filterState.selectedGrade)
+    }
+    if (filterState.selectedType !== 'all') {
+      params.set('type', filterState.selectedType)
+    }
+    if (filterState.searchQuery) {
+      params.set('q', filterState.searchQuery)
+    }
+    const queryString = params.toString()
+    return queryString ? `?${queryString}` : ''
+  }, [filterState])
+
   // 處理路線點擊，避免過度請求
   const handleRouteClick = useCallback((routeId: string, e: React.MouseEvent) => {
     e.preventDefault()
@@ -58,8 +80,9 @@ export default function CragDetailClient({ params }: { params: Promise<{ id: str
     }
 
     routeLoadingManager.startLoadingRoute(routeId)
-    router.push(`/crag/${id}/route/${routeId}`)
-  }, [id, router])
+    const queryString = buildFilterQueryString()
+    router.push(`/crag/${id}/route/${routeId}${queryString}`)
+  }, [id, router, buildFilterQueryString, toast])
 
   const handleDrawerItemClick = useCallback(() => {
     setIsDrawerOpen(false)
@@ -121,7 +144,7 @@ export default function CragDetailClient({ params }: { params: Promise<{ id: str
           </div>
 
           {/* 路線列表 - 使用虛擬化 */}
-          <div className="min-h-0 flex-1 overflow-hidden p-2">
+          <div className="min-h-0 flex-1 overflow-y-auto p-2">
             <VirtualizedRouteList
               routes={filteredRoutes}
               cragId={id}
@@ -437,7 +460,7 @@ export default function CragDetailClient({ params }: { params: Promise<{ id: str
               </div>
 
               {/* 路線列表 - 使用虛擬化 */}
-              <div className="min-h-0 flex-1 overflow-hidden overscroll-y-contain p-2">
+              <div className="min-h-0 flex-1 overflow-y-auto overscroll-y-contain p-2 touch-pan-y">
                 <VirtualizedRouteList
                   routes={filteredRoutes}
                   cragId={id}

@@ -78,7 +78,7 @@ export function RouteSidebar({
       </div>
 
       {/* 路線列表 - 使用虛擬化 */}
-      <div className="flex-1 overflow-hidden p-2">
+      <div className="flex-1 overflow-y-auto p-2">
         <VirtualizedRouteList
           routes={filteredRoutes}
           cragId={cragId}
