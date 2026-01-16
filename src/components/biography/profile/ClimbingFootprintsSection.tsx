@@ -52,7 +52,7 @@ function TimelineLocationItem({
       </div>
 
       {/* 內容卡片 */}
-      <div className="group mb-4 overflow-hidden rounded-xl border border-gray-100 bg-white shadow-sm transition-all duration-300 hover:border-emerald-200 hover:shadow-md">
+      <div className="group mb-4 overflow-hidden rounded-lg bg-white/60 px-1 transition-all duration-300 hover:bg-white">
         {/* 標題區 */}
         <div className="flex items-start justify-between gap-3 p-4">
           <div className="flex items-center gap-3">
@@ -68,7 +68,7 @@ function TimelineLocationItem({
 
         {/* 筆記內容 */}
         {hasNotes && (
-          <div className="border-t border-gray-50 bg-gray-50/50 px-4 py-3">
+          <div className="px-4 pb-3">
             <AnimatePresence mode="wait">
               <motion.div
                 key={isExpanded ? 'expanded' : 'collapsed'}
