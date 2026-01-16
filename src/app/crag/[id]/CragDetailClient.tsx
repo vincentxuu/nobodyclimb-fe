@@ -16,10 +16,13 @@ import { VirtualizedRouteList } from '@/components/crag/virtualized-route-list'
 import { getCragDetailData, getCragRoutesForSidebar, getCragAreasForFilter, getSectorsForArea } from '@/lib/crag-data'
 import { useRouteFilter } from '@/lib/hooks/useRouteFilter'
 import { routeLoadingManager } from '@/lib/route-loading-manager'
+import { useToast } from '@/components/ui/use-toast'
+import { RATE_LIMIT_TOAST } from '@/lib/constants'
 
 export default function CragDetailClient({ params }: { params: Promise<{ id: string }> }) {
   const { id } = use(params)
   const router = useRouter()
+  const { toast } = useToast()
   const [isDrawerOpen, setIsDrawerOpen] = useState(false)
 
   // 從資料服務層讀取岩場資料
@@ -50,6 +53,7 @@ export default function CragDetailClient({ params }: { params: Promise<{ id: str
 
     if (!routeLoadingManager.canLoadRoute(routeId)) {
       console.warn('Route loading rate limited:', routeId)
+      toast(RATE_LIMIT_TOAST)
       return
     }
 

@@ -4,6 +4,8 @@ import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { cn } from '@/lib/utils'
 import { routeLoadingManager } from '@/lib/route-loading-manager'
+import { useToast } from '@/components/ui/use-toast'
+import { RATE_LIMIT_TOAST } from '@/lib/constants'
 import type { RouteSidebarItem } from '@/lib/crag-data'
 
 interface RouteListItemProps {
@@ -15,6 +17,7 @@ interface RouteListItemProps {
 
 export function RouteListItem({ route, cragId, isActive, onClick }: RouteListItemProps) {
   const router = useRouter()
+  const { toast } = useToast()
 
   const handleClick = (e: React.MouseEvent) => {
     e.preventDefault()
@@ -22,6 +25,7 @@ export function RouteListItem({ route, cragId, isActive, onClick }: RouteListIte
     // 檢查是否可以載入路線
     if (!routeLoadingManager.canLoadRoute(route.id)) {
       console.warn('Route loading rate limited:', route.id)
+      toast(RATE_LIMIT_TOAST)
       return
     }
 
