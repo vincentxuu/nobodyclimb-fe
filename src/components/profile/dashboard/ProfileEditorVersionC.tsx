@@ -10,7 +10,7 @@
  * - 適合新用戶首次設定
  */
 
-import React, { useState, useCallback } from 'react'
+import React, { useState } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import {
   User,
@@ -30,10 +30,10 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
 import { useProfile } from '../ProfileContext'
-import { useIsMobile } from '@/lib/hooks/useIsMobile'
 import { useToast } from '@/components/ui/use-toast'
 import { biographyService } from '@/lib/api/services'
 import { SocialLinks } from '../types'
+import { mapProfileDataToApi } from '../mappers'
 
 interface Step {
   id: string
@@ -50,7 +50,6 @@ interface ProfileEditorVersionCProps {
 
 export default function ProfileEditorVersionC({ onBack, onComplete }: ProfileEditorVersionCProps) {
   const { profileData, setProfileData } = useProfile()
-  const isMobile = useIsMobile()
   const { toast } = useToast()
   const [currentStep, setCurrentStep] = useState(0)
   const [isSaving, setIsSaving] = useState(false)
@@ -79,10 +78,11 @@ export default function ProfileEditorVersionC({ onBack, onComplete }: ProfileEdi
   const handleImageUpload = async (file: File, field: 'avatarUrl' | 'coverImageUrl') => {
     try {
       const response = await biographyService.uploadImage(file)
-      if (response.success && response.data?.url) {
+      const uploadedUrl = response.data?.url
+      if (response.success && uploadedUrl) {
         setProfileData((prev) => ({
           ...prev,
-          [field]: response.data!.url,
+          [field]: uploadedUrl,
         }))
         toast({ title: '圖片上傳成功' })
       }
@@ -96,20 +96,7 @@ export default function ProfileEditorVersionC({ onBack, onComplete }: ProfileEdi
   const saveAndNext = async () => {
     setIsSaving(true)
     try {
-      const biographyData = {
-        name: profileData.name,
-        title: profileData.title || undefined,
-        avatar_url: profileData.avatarUrl || undefined,
-        cover_image: profileData.coverImageUrl || undefined,
-        climbing_start_year: profileData.startYear,
-        frequent_locations: profileData.frequentGyms,
-        favorite_route_type: profileData.favoriteRouteType,
-        climbing_origin: profileData.climbingReason,
-        climbing_meaning: profileData.climbingMeaning,
-        advice_to_self: profileData.adviceForBeginners,
-        social_links: JSON.stringify(profileData.socialLinks),
-        is_public: profileData.isPublic ? 1 : 0,
-      }
+      const biographyData = mapProfileDataToApi(profileData, { includeAdvancedStories: false })
 
       await biographyService.updateMyBiography(biographyData)
 

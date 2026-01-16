@@ -35,29 +35,12 @@ import { useIsMobile } from '@/lib/hooks/useIsMobile'
 import { useToast } from '@/components/ui/use-toast'
 import { biographyService } from '@/lib/api/services'
 import { ALL_STORY_QUESTIONS, StoryQuestion } from '@/lib/constants/biography-stories'
-import { ProfileData } from '../types'
-
-// ============================================================================
-// 常數定義
-// ============================================================================
-
-/** 核心故事欄位映射：API 欄位名 -> 前端欄位名 */
-const CORE_FIELD_MAP: Record<string, keyof ProfileData> = {
-  climbing_origin: 'climbingReason',
-  climbing_meaning: 'climbingMeaning',
-  advice_to_self: 'adviceForBeginners',
-} as const
-
-/** API 欄位映射：前端欄位名 -> API 欄位名 */
-const API_FIELD_MAP: Record<string, string> = {
-  name: 'name',
-  title: 'title',
-  startYear: 'climbing_start_year',
-  frequentGyms: 'frequent_locations',
-  climbingReason: 'climbing_origin',
-  climbingMeaning: 'climbing_meaning',
-  adviceForBeginners: 'advice_to_self',
-} as const
+import {
+  mapFieldToApi,
+  getStoryFieldValue,
+  updateProfileField,
+  updateStoryField,
+} from '../mappers'
 
 type StoryFilter = 'all' | 'filled' | 'unfilled'
 
@@ -283,7 +266,7 @@ const StoryCard = React.memo(function StoryCard({
 // ============================================================================
 
 interface ImageUploadButtonProps {
-  inputRef: React.RefObject<HTMLInputElement>
+  inputRef: React.RefObject<HTMLInputElement | null>
   isUploading: boolean
   hasImage: boolean
   label: string
@@ -377,20 +360,7 @@ export default function ProfileEditorVersionB({ onBack }: ProfileEditorVersionBP
 
   /** 取得故事值 */
   const getStoryValue = useCallback(
-    (field: string): string => {
-      // 先檢查 advancedStories
-      const advancedValue =
-        profileData.advancedStories?.[field as keyof typeof profileData.advancedStories]
-      if (advancedValue) return advancedValue as string
-
-      // 核心故事的欄位映射
-      const mappedField = CORE_FIELD_MAP[field]
-      if (mappedField) {
-        return (profileData[mappedField] as string) || ''
-      }
-
-      return ''
-    },
+    (field: string): string => getStoryFieldValue(profileData, field),
     [profileData]
   )
 
@@ -443,38 +413,12 @@ export default function ProfileEditorVersionB({ onBack }: ProfileEditorVersionBP
 
       try {
         // 樂觀更新本地狀態
-        if (field.startsWith('socialLinks.')) {
-          const socialField = field.replace('socialLinks.', '')
-          setProfileData((prev) => ({
-            ...prev,
-            socialLinks: {
-              ...prev.socialLinks,
-              [socialField]: value,
-            },
-          }))
-        } else {
-          setProfileData((prev) => ({
-            ...prev,
-            [field]: value,
-          }))
-        }
+        setProfileData((prev) => updateProfileField(prev, field, value))
 
-        // 建立 API 資料
-        let apiData: Record<string, unknown>
-
-        if (field.startsWith('socialLinks.')) {
-          const socialField = field.replace('socialLinks.', '')
-          const newSocialLinks = {
-            ...profileData.socialLinks,
-            [socialField]: value,
-          }
-          apiData = { social_links: JSON.stringify(newSocialLinks) }
-        } else {
-          const apiField = API_FIELD_MAP[field] || field
-          apiData = { [apiField]: value }
-        }
-
+        // 建立 API 資料並儲存
+        const apiData = mapFieldToApi(field, value, profileData)
         await biographyService.updateMyBiography(apiData)
+
         toast({ title: '已儲存' })
         setEditingField(null)
         setTempValue('')
@@ -498,21 +442,7 @@ export default function ProfileEditorVersionB({ onBack }: ProfileEditorVersionBP
 
       try {
         // 樂觀更新本地狀態
-        const mappedField = CORE_FIELD_MAP[field]
-        if (mappedField) {
-          setProfileData((prev) => ({
-            ...prev,
-            [mappedField]: value,
-          }))
-        } else {
-          setProfileData((prev) => ({
-            ...prev,
-            advancedStories: {
-              ...prev.advancedStories,
-              [field]: value,
-            },
-          }))
-        }
+        setProfileData((prev) => updateStoryField(prev, field, value))
 
         // API 使用原始欄位名
         await biographyService.updateMyBiography({ [field]: value })

@@ -7,15 +7,13 @@
  */
 
 import React, { useState } from 'react'
-import { motion, AnimatePresence } from 'framer-motion'
+import { motion } from 'framer-motion'
 import {
   LayoutGrid,
   MousePointer,
   ListOrdered,
   ChevronRight,
-  ArrowLeft,
 } from 'lucide-react'
-import { Button } from '@/components/ui/button'
 import ProfileEditorVersionA from './ProfileEditorVersionA'
 import ProfileEditorVersionB from './ProfileEditorVersionB'
 import ProfileEditorVersionC from './ProfileEditorVersionC'
@@ -30,7 +28,6 @@ interface VersionOption {
   description: string
   pros: string[]
   bestFor: string
-  preview: string
 }
 
 const VERSION_OPTIONS: VersionOption[] = [
@@ -42,7 +39,6 @@ const VERSION_OPTIONS: VersionOption[] = [
     description: '使用側邊導航標籤，在單一頁面中切換編輯不同區塊。適合想要一次編輯多個欄位的用戶。',
     pros: ['一目了然的導航', '可以快速切換區塊', '適合完整編輯'],
     bestFor: '想要完整編輯所有資料的用戶',
-    preview: '/images/editor-version-a.png',
   },
   {
     id: 'B',
@@ -52,7 +48,6 @@ const VERSION_OPTIONS: VersionOption[] = [
     description: '直接在預覽頁面上點擊編輯，即時看到修改效果。類似 Notion 的編輯體驗。',
     pros: ['直覺的編輯方式', '即時預覽效果', '自動儲存'],
     bestFor: '想要快速修改特定欄位的用戶',
-    preview: '/images/editor-version-b.png',
   },
   {
     id: 'C',
@@ -62,7 +57,6 @@ const VERSION_OPTIONS: VersionOption[] = [
     description: '一步一步引導你完成設定，每次只專注一件事。有明確的進度指示。',
     pros: ['降低認知負擔', '明確的完成進度', '適合新手'],
     bestFor: '第一次設定或喜歡被引導的用戶',
-    preview: '/images/editor-version-c.png',
   },
 ]
 
@@ -142,8 +136,8 @@ export default function ProfileEditorSelector() {
 
                 {/* 優點列表 */}
                 <ul className="mt-4 space-y-1">
-                  {option.pros.map((pro, index) => (
-                    <li key={index} className="flex items-center gap-2 text-sm text-gray-600">
+                  {option.pros.map((pro) => (
+                    <li key={pro} className="flex items-center gap-2 text-sm text-gray-600">
                       <span className="h-1.5 w-1.5 rounded-full bg-green-500" />
                       {pro}
                     </li>

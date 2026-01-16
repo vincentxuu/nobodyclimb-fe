@@ -10,7 +10,7 @@
  * - 桌面體驗優先
  */
 
-import React, { useState, useCallback } from 'react'
+import React, { useState, useCallback, useMemo } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import {
   User,
@@ -40,7 +40,8 @@ import PublicSettingSection from '../PublicSettingSection'
 import BiographyAvatarSection from '../BiographyAvatarSection'
 import ClimbingFootprintsSection from '../ClimbingFootprintsSection'
 import { AdvancedStoryEditor } from '@/components/biography/advanced-story-editor'
-import { SocialLinks } from '../types'
+import { SocialLinks, AdvancedStories } from '../types'
+import { mapProfileDataToApi, CORE_STORY_FIELD_MAP } from '../mappers'
 
 type TabType =
   | 'avatar'
@@ -82,6 +83,12 @@ export default function ProfileEditorVersionA({ onBack }: ProfileEditorVersionAP
   const [isSaving, setIsSaving] = useState(false)
   const [hasChanges, setHasChanges] = useState(false)
 
+  // 快取當前 tab 配置，避免重複查詢
+  const activeTabConfig = useMemo(
+    () => TABS.find((t) => t.id === activeTab),
+    [activeTab]
+  )
+
   // 計算完成狀態
   const getTabCompletion = (tabId: TabType): boolean => {
     switch (tabId) {
@@ -95,17 +102,12 @@ export default function ProfileEditorVersionA({ onBack }: ProfileEditorVersionAP
         return !!(profileData.socialLinks.instagram || profileData.socialLinks.youtube_channel)
       case 'core-stories':
         return CORE_STORY_QUESTIONS.some((q) => {
-          const fieldMap: Record<string, string> = {
-            climbing_origin: 'climbingReason',
-            climbing_meaning: 'climbingMeaning',
-            advice_to_self: 'adviceForBeginners',
-          }
-          const key = fieldMap[q.field] || q.field
+          const key = CORE_STORY_FIELD_MAP[q.field] || q.field
           const value = profileData[key as keyof typeof profileData]
           return value && typeof value === 'string' && value.trim().length > 0
         })
       case 'advanced-stories':
-        const progress = calculateStoryProgress(profileData.advancedStories as unknown as Record<string, unknown>)
+        const progress = calculateStoryProgress(profileData.advancedStories ?? {})
         return progress.completed > 0
       case 'footprints':
         return false // TODO: 實作足跡完成狀態
@@ -129,10 +131,11 @@ export default function ProfileEditorVersionA({ onBack }: ProfileEditorVersionAP
   const handleImageUpload = async (file: File, field: 'avatarUrl' | 'coverImageUrl') => {
     try {
       const response = await biographyService.uploadImage(file)
-      if (response.success && response.data?.url) {
+      const uploadedUrl = response.data?.url
+      if (response.success && uploadedUrl) {
         setProfileData((prev) => ({
           ...prev,
-          [field]: response.data!.url,
+          [field]: uploadedUrl,
         }))
         setHasChanges(true)
         toast({ title: field === 'avatarUrl' ? '頭像上傳成功' : '封面上傳成功' })
@@ -168,22 +171,7 @@ export default function ProfileEditorVersionA({ onBack }: ProfileEditorVersionAP
   const handleSaveAll = async () => {
     setIsSaving(true)
     try {
-      const biographyData = {
-        name: profileData.name,
-        title: profileData.title || undefined,
-        avatar_url: profileData.avatarUrl || undefined,
-        cover_image: profileData.coverImageUrl || undefined,
-        climbing_start_year: profileData.startYear,
-        frequent_locations: profileData.frequentGyms,
-        favorite_route_type: profileData.favoriteRouteType,
-        climbing_origin: profileData.climbingReason,
-        climbing_meaning: profileData.climbingMeaning,
-        climbing_bucket_list: profileData.climbingBucketList,
-        advice_to_self: profileData.adviceForBeginners,
-        ...profileData.advancedStories,
-        social_links: JSON.stringify(profileData.socialLinks),
-        is_public: profileData.isPublic ? 1 : 0,
-      }
+      const biographyData = mapProfileDataToApi(profileData)
 
       const response = await biographyService.updateMyBiography(biographyData)
 
@@ -267,7 +255,7 @@ export default function ProfileEditorVersionA({ onBack }: ProfileEditorVersionAP
       case 'advanced-stories':
         return (
           <AdvancedStoryEditor
-            biography={profileData.advancedStories as unknown as Record<string, unknown>}
+            biography={(profileData.advancedStories ?? {}) as AdvancedStories & Record<string, string>}
             onSave={handleAdvancedStorySave}
             onClose={() => {}}
             className="max-h-none border-0 shadow-none"
@@ -439,10 +427,10 @@ export default function ProfileEditorVersionA({ onBack }: ProfileEditorVersionAP
             >
               <div className="mb-6">
                 <h2 className="text-lg font-semibold text-gray-900">
-                  {TABS.find((t) => t.id === activeTab)?.title}
+                  {activeTabConfig?.title}
                 </h2>
                 <p className="text-sm text-gray-500">
-                  {TABS.find((t) => t.id === activeTab)?.description}
+                  {activeTabConfig?.description}
                 </p>
               </div>
               {renderTabContent()}

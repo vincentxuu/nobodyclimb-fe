@@ -11,10 +11,6 @@ import { Suspense } from 'react'
 import { ProfileProvider } from '@/components/profile/ProfileContext'
 import ProfileEditorSelector from '@/components/profile/dashboard/ProfileEditorSelector'
 
-function EditorDemoContent() {
-  return <ProfileEditorSelector />
-}
-
 export default function EditorDemoPage() {
   return (
     <ProfileProvider>
@@ -25,7 +21,7 @@ export default function EditorDemoPage() {
           </div>
         }
       >
-        <EditorDemoContent />
+        <ProfileEditorSelector />
       </Suspense>
     </ProfileProvider>
   )
