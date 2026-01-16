@@ -1,12 +1,12 @@
 'use client'
 
-import { useMemo } from 'react'
+import { Suspense, useMemo } from 'react'
 import { useParams } from 'next/navigation'
 import { RouteSidebar } from '@/components/crag/route-sidebar'
 import { RouteMobileDrawer } from '@/components/crag/route-mobile-drawer'
 import type { RouteSidebarItem } from '@/lib/crag-data'
 import { getSectorsForArea } from '@/lib/crag-data'
-import { useRouteFilter } from '@/lib/hooks/useRouteFilter'
+import { useRouteFilterParams } from '@/lib/hooks/useRouteFilterParams'
 
 interface RouteLayoutClientProps {
   children: React.ReactNode
@@ -16,7 +16,8 @@ interface RouteLayoutClientProps {
   areas: Array<{ id: string; name: string }>
 }
 
-export function RouteLayoutClient({
+// 內部元件，使用 useSearchParams 需要 Suspense 包裹
+function RouteLayoutContent({
   children,
   cragId,
   cragName,
@@ -26,7 +27,7 @@ export function RouteLayoutClient({
   const params = useParams()
   const currentRouteId = (params?.routeId as string) || ''
 
-  // 在父層級管理篩選狀態，讓桌面版和手機版共享同一狀態
+  // 使用 URL 參數管理篩選狀態，讓設定可以保留在網址中
   const {
     filterState,
     filteredRoutes,
@@ -35,7 +36,7 @@ export function RouteLayoutClient({
     setSelectedSector,
     setSelectedGrade,
     setSelectedType,
-  } = useRouteFilter(routes)
+  } = useRouteFilterParams(routes)
 
   // 根據選擇的區域獲取 sectors
   const sectors = useMemo(() => {
@@ -84,5 +85,27 @@ export function RouteLayoutClient({
         onTypeChange={setSelectedType}
       />
     </div>
+  )
+}
+
+// 主元件，用 Suspense 包裹以支援 useSearchParams
+export function RouteLayoutClient(props: RouteLayoutClientProps) {
+  return (
+    <Suspense fallback={
+      <div className="lg:flex lg:h-[calc(100vh-70px)] lg:overflow-hidden">
+        <aside className="hidden lg:flex lg:w-80 lg:flex-shrink-0 lg:flex-col border-r border-gray-200 bg-white">
+          <div className="animate-pulse p-4">
+            <div className="h-4 bg-gray-200 rounded w-24 mb-3" />
+            <div className="h-6 bg-gray-200 rounded w-32 mb-2" />
+            <div className="h-4 bg-gray-200 rounded w-20" />
+          </div>
+        </aside>
+        <div className="lg:flex-1 lg:overflow-y-auto">
+          {props.children}
+        </div>
+      </div>
+    }>
+      <RouteLayoutContent {...props} />
+    </Suspense>
   )
 }
