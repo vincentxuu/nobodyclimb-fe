@@ -785,6 +785,17 @@ mediaRoutes.post('/upload', authMiddleware, async (c) => {
   }
 
   const formData = await c.req.formData();
+
+  // Delete old image if provided
+  const oldUrl = formData.get('old_url') as string | null;
+  if (oldUrl) {
+    try {
+      const oldKey = new URL(oldUrl).pathname.substring(1);
+      await c.env.STORAGE.delete(oldKey);
+    } catch {
+      // Ignore deletion errors, continue with upload
+    }
+  }
   const file = formData.get('image') as File | null;
 
   if (!file) {

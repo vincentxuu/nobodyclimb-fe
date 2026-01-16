@@ -317,10 +317,12 @@ export const postService = {
 
   /**
    * 上傳文章圖片
+   * @param oldUrl 舊圖片 URL，如有則會刪除
    */
-  uploadImage: async (file: File) => {
+  uploadImage: async (file: File, oldUrl?: string) => {
     const formData = new FormData()
     formData.append('image', file)
+    if (oldUrl) formData.append('old_url', oldUrl)
     const response = await apiClient.post<ApiResponse<{ url: string }>>(
       '/media/upload?type=posts',
       formData,
@@ -427,10 +429,12 @@ export const gymService = {
 
   /**
    * 上傳攀岩館圖片
+   * @param oldUrl 舊圖片 URL，如有則會刪除
    */
-  uploadImage: async (file: File) => {
+  uploadImage: async (file: File, oldUrl?: string) => {
     const formData = new FormData()
     formData.append('image', file)
+    if (oldUrl) formData.append('old_url', oldUrl)
     const response = await apiClient.post<ApiResponse<{ url: string }>>(
       '/media/upload?type=gyms',
       formData,
@@ -604,10 +608,12 @@ export const galleryService = {
 
   /**
    * 上傳相簿圖片（單張）
+   * @param oldUrl 舊圖片 URL，如有則會刪除
    */
-  uploadImage: async (file: File) => {
+  uploadImage: async (file: File, oldUrl?: string) => {
     const formData = new FormData()
     formData.append('image', file)
+    if (oldUrl) formData.append('old_url', oldUrl)
     const response = await apiClient.post<ApiResponse<{ url: string }>>(
       '/media/upload?type=gallery',
       formData,
@@ -727,10 +733,12 @@ export const biographyService = {
 
   /**
    * 上傳人物誌圖片
+   * @param oldUrl 舊圖片 URL，如有則會刪除
    */
-  uploadImage: async (file: File) => {
+  uploadImage: async (file: File, oldUrl?: string) => {
     const formData = new FormData()
     formData.append('image', file)
+    if (oldUrl) formData.append('old_url', oldUrl)
     const response = await apiClient.post<ApiResponse<{ url: string }>>(
       '/media/upload?type=biography',
       formData,
@@ -1580,10 +1588,12 @@ export const cragService = {
 
   /**
    * 上傳岩場圖片（單張）
+   * @param oldUrl 舊圖片 URL，如有則會刪除
    */
-  uploadImage: async (file: File) => {
+  uploadImage: async (file: File, oldUrl?: string) => {
     const formData = new FormData()
     formData.append('image', file)
+    if (oldUrl) formData.append('old_url', oldUrl)
     const response = await apiClient.post<ApiResponse<{ url: string }>>(
       '/media/upload?type=crags',
       formData,
