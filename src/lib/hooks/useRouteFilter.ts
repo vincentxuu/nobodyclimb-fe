@@ -85,13 +85,15 @@ export function useRouteFilter(routes: RouteSidebarItem[]): UseRouteFilterResult
     setFilterState(initialFilterState)
   }, [])
 
+  // 解構篩選狀態為純量值，避免 useMemo 因物件參考改變而不必要地重新計算
+  const { selectedArea, selectedSector, selectedGrade, selectedType } = filterState
+
   // 過濾邏輯
   const filteredRoutes = useMemo(() => {
     if (!routes || !Array.isArray(routes) || routes.length === 0) {
       return []
     }
 
-    const { selectedArea, selectedSector, selectedGrade, selectedType } = filterState
     const searchLower = debouncedSearchQuery.toLowerCase()
 
     // 如果沒有任何篩選條件，直接返回原陣列
@@ -146,14 +148,11 @@ export function useRouteFilter(routes: RouteSidebarItem[]): UseRouteFilterResult
 
       return true
     })
-  }, [routes, debouncedSearchQuery, filterState])
+  }, [routes, debouncedSearchQuery, selectedArea, selectedSector, selectedGrade, selectedType])
 
   return {
-    filterState: {
-      ...filterState,
-      // 返回防抖後的搜尋字串給顯示用
-      searchQuery: filterState.searchQuery,
-    },
+    // 返回即時的 filterState，讓 UI 能立即更新（搜尋框等）
+    filterState,
     filteredRoutes,
     setSearchQuery,
     setSelectedArea,

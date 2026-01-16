@@ -72,7 +72,7 @@ export function VirtualizedRouteList({
   routes,
   cragId,
   currentRouteId,
-  itemHeight = 72,
+  itemHeight = 66, // p-3 (24px) + border-2 (4px) + text-sm (20px) + mt-0.5 (2px) + text-xs (16px) = 66px
   overscan = 5,
   onRouteClick,
   onItemClick,
