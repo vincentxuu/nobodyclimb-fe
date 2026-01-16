@@ -167,6 +167,43 @@ cragsDataMap.set('guanziling', guanzilingData as CragFullData)
 cragsDataMap.set('shoushan', shoushanData as CragFullData)
 cragsDataMap.set('kenting', kentingData as CragFullData)
 
+// ============ 預計算緩存 ============
+
+// Sector 緩存：Map<cragId:areaId, sectors[]>
+const sectorsCache: Map<string, Array<{ id: string; name: string }>> = new Map()
+
+// 區域名稱映射緩存：Map<cragId, Map<areaId, areaName>>
+const areaNameCache: Map<string, Map<string, string>> = new Map()
+
+// 初始化緩存
+function initializeCache() {
+  cragsDataMap.forEach((data, cragId) => {
+    // 緩存區域名稱映射
+    const areaMap = new Map<string, string>()
+    data.areas.forEach(area => {
+      areaMap.set(area.id, area.name)
+    })
+    areaNameCache.set(cragId, areaMap)
+
+    // 預計算每個區域的 sectors
+    data.areas.forEach(area => {
+      const cacheKey = `${cragId}:${area.id}`
+      const sectorsSet = new Set<string>()
+      data.routes
+        .filter(route => route.areaId === area.id && route.sector)
+        .forEach(route => sectorsSet.add(route.sector!))
+
+      sectorsCache.set(
+        cacheKey,
+        Array.from(sectorsSet).map(sector => ({ id: sector, name: sector }))
+      )
+    })
+  })
+}
+
+// 執行初始化
+initializeCache()
+
 // ============ 列表頁用的簡化資料格式 ============
 
 export interface CragListItem {
@@ -444,24 +481,11 @@ export function getCragAreasForFilter(cragId: string): Array<{ id: string; name:
 
 /**
  * 獲取指定區域的 sector 列表（側邊欄篩選用）
+ * 使用預計算緩存，避免每次都遍歷所有路線
  */
 export function getSectorsForArea(cragId: string, areaId: string): Array<{ id: string; name: string }> {
-  const data = cragsDataMap.get(cragId)
-  if (!data) return []
-
-  // 從路線資料中提取該區域的所有 sector
-  const sectorsSet = new Set<string>()
-  data.routes
-    .filter((route) => route.areaId === areaId && route.sector)
-    .forEach((route) => {
-      sectorsSet.add(route.sector!)
-    })
-
-  // 轉換為陣列格式，使用 sector 名稱作為 id
-  return Array.from(sectorsSet).map((sector) => ({
-    id: sector,
-    name: sector,
-  }))
+  const cacheKey = `${cragId}:${areaId}`
+  return sectorsCache.get(cacheKey) || []
 }
 
 /**
@@ -755,7 +779,9 @@ export function getCragDetailData(id: string) {
       image: CRAG_FALLBACK_IMAGE,
     })),
     routes_details: routes.map(route => {
-      const routeArea = areas.find(a => a.id === route.areaId)
+      // 使用緩存的區域名稱映射，O(1) 查找取代 O(n) 的 .find()
+      const areaNameMap = areaNameCache.get(id)
+      const routeAreaName = areaNameMap?.get(route.areaId) || route.sector || ''
       return {
         id: route.id,
         name: route.name,
@@ -764,7 +790,7 @@ export function getCragDetailData(id: string) {
         length: route.length || '',
         type: route.typeEn,
         firstAscent: route.firstAscent || '',
-        area: routeArea?.name || route.sector || '',
+        area: routeAreaName,
         description: route.description || '',
         protection: route.protection || '',
         popularity: route.popularity ?? 0,

@@ -55,23 +55,32 @@ export default function ProfileClient({ params }: ProfileClientProps) {
         if (response.success && response.data) {
           setPerson(response.data)
           setFollowerCount(response.data.follower_count || 0)
+          setLoading(false)
 
-          // 獲取相鄰人物
-          try {
-            const adjacentResponse = await biographyService.getAdjacentBiographies(id)
-            if (adjacentResponse.success && adjacentResponse.data) {
-              setAdjacent(adjacentResponse.data)
-            }
-          } catch (err) {
-            console.error('Failed to load adjacent biographies:', err)
-          }
+          // 次要請求：非阻塞執行，不影響主要內容顯示
+          // 記錄瀏覽次數
+          biographyService.recordView(id).catch((err) => {
+            console.error('Failed to record view:', err)
+          })
+
+          // 獲取相鄰人物（用於上下篇導航）
+          biographyService
+            .getAdjacentBiographies(id)
+            .then((adjacentResponse) => {
+              if (adjacentResponse.success && adjacentResponse.data) {
+                setAdjacent(adjacentResponse.data)
+              }
+            })
+            .catch((err) => {
+              console.error('Failed to load adjacent biographies:', err)
+            })
         } else {
           setPerson(null)
+          setLoading(false)
         }
       } catch (err) {
         console.error('Failed to load biography:', err)
         setPerson(null)
-      } finally {
         setLoading(false)
       }
     }

@@ -1,6 +1,6 @@
 'use client'
 
-import React, { use, useState, useMemo } from 'react'
+import React, { use, useState, useMemo, useCallback } from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { MapPin, ArrowLeft, List, X, ExternalLink } from 'lucide-react'
@@ -12,7 +12,9 @@ import { TrafficCamerasCard } from '@/components/crag/traffic-cameras-card'
 import { YouTubeLiveCard } from '@/components/crag/youtube-live-card'
 import { CollapsibleBreadcrumb } from '@/components/ui/collapsible-breadcrumb'
 import { RouteListFilter } from '@/components/crag/route-list-filter'
+import { VirtualizedRouteList } from '@/components/crag/virtualized-route-list'
 import { getCragDetailData, getCragRoutesForSidebar, getCragAreasForFilter, getSectorsForArea } from '@/lib/crag-data'
+import { useRouteFilter } from '@/lib/hooks/useRouteFilter'
 import { routeLoadingManager } from '@/lib/route-loading-manager'
 import { useToast } from '@/components/ui/use-toast'
 import { RATE_LIMIT_TOAST } from '@/lib/constants'
@@ -28,8 +30,30 @@ export default function CragDetailClient({ params }: { params: Promise<{ id: str
   const [selectedType, setSelectedType] = useState('all')
   const [isDrawerOpen, setIsDrawerOpen] = useState(false)
 
+  // 從資料服務層讀取岩場資料
+  const currentCrag = getCragDetailData(id)
+  const routes = getCragRoutesForSidebar(id)
+  const areas = getCragAreasForFilter(id)
+
+  // 使用共用的路線過濾 hook（包含防抖）
+  const {
+    filterState,
+    filteredRoutes,
+    setSearchQuery,
+    setSelectedArea,
+    setSelectedSector,
+    setSelectedGrade,
+    setSelectedType,
+  } = useRouteFilter(routes)
+
+  // 根據選擇的區域獲取 sectors（使用緩存）
+  const sectors = useMemo(() => {
+    if (filterState.selectedArea === 'all') return []
+    return getSectorsForArea(id, filterState.selectedArea)
+  }, [id, filterState.selectedArea])
+
   // 處理路線點擊，避免過度請求
-  const handleRouteClick = (routeId: string, e: React.MouseEvent) => {
+  const handleRouteClick = useCallback((routeId: string, e: React.MouseEvent) => {
     e.preventDefault()
 
     if (!routeLoadingManager.canLoadRoute(routeId)) {
@@ -40,82 +64,11 @@ export default function CragDetailClient({ params }: { params: Promise<{ id: str
 
     routeLoadingManager.startLoadingRoute(routeId)
     router.push(`/crag/${id}/route/${routeId}`)
-  }
+  }, [id, router])
 
-  // 從資料服務層讀取岩場資料
-  const currentCrag = getCragDetailData(id)
-  const routes = getCragRoutesForSidebar(id)
-  const areas = getCragAreasForFilter(id)
-
-  // 根據選擇的區域獲取 sectors
-  const sectors = useMemo(() => {
-    if (selectedArea === 'all') return []
-    return getSectorsForArea(id, selectedArea)
-  }, [id, selectedArea])
-
-  // 篩選路線
-  const filteredRoutes = useMemo(() => {
-    if (!routes || !Array.isArray(routes)) return []
-
-    return routes.filter((route) => {
-      // 防護檢查：確保 route 物件及其必要屬性存在
-      if (!route || typeof route !== 'object') return false
-
-      const routeName = route.name || ''
-      const routeGrade = route.grade || ''
-      const routeType = route.type || ''
-      const routeSector = route.sector || ''
-      const routeAreaId = route.areaId || ''
-
-      // 文字搜尋
-      const searchLower = searchQuery.toLowerCase()
-      const matchesSearch =
-        !searchQuery ||
-        routeName.toLowerCase().includes(searchLower) ||
-        routeGrade.toLowerCase().includes(searchLower) ||
-        routeType.toLowerCase().includes(searchLower) ||
-        routeSector.toLowerCase().includes(searchLower)
-
-      // 區域篩選
-      const matchesArea = selectedArea === 'all' || routeAreaId === selectedArea
-
-      // Sector 篩選
-      const matchesSector = selectedSector === 'all' || routeSector === selectedSector
-
-      // 難度篩選
-      let matchesGrade = true
-      if (selectedGrade !== 'all' && routeGrade) {
-        switch (selectedGrade) {
-          case '5.0-5.7':
-            // 使用負向前瞻確保 5.1 後面沒有數字（排除 5.10, 5.11 等）
-            matchesGrade = /^5\.[0-7](?![0-9])/.test(routeGrade)
-            break
-          case '5.8-5.9':
-            matchesGrade = /^5\.[89](?![0-9])/.test(routeGrade)
-            break
-          case '5.10':
-            matchesGrade = /^5\.10/.test(routeGrade)
-            break
-          case '5.11':
-            matchesGrade = /^5\.11/.test(routeGrade)
-            break
-          case '5.12':
-            matchesGrade = /^5\.12/.test(routeGrade)
-            break
-          case '5.13+':
-            matchesGrade = /^5\.1[3-5]/.test(routeGrade)
-            break
-          default:
-            matchesGrade = true
-        }
-      }
-
-      // 類型篩選
-      const matchesType = selectedType === 'all' || routeType === selectedType
-
-      return matchesSearch && matchesArea && matchesSector && matchesGrade && matchesType
-    })
-  }, [routes, searchQuery, selectedArea, selectedSector, selectedGrade, selectedType])
+  const handleDrawerItemClick = useCallback(() => {
+    setIsDrawerOpen(false)
+  }, [])
 
   if (!currentCrag) {
     return (
@@ -157,52 +110,28 @@ export default function CragDetailClient({ params }: { params: Promise<{ id: str
           {/* 篩選區 */}
           <div className="flex-shrink-0 border-b border-gray-200 p-4">
             <RouteListFilter
-              searchQuery={searchQuery}
+              searchQuery={filterState.searchQuery}
               onSearchChange={setSearchQuery}
-              selectedArea={selectedArea}
+              selectedArea={filterState.selectedArea}
               onAreaChange={setSelectedArea}
-              selectedSector={selectedSector}
+              selectedSector={filterState.selectedSector}
               onSectorChange={setSelectedSector}
-              selectedGrade={selectedGrade}
+              selectedGrade={filterState.selectedGrade}
               onGradeChange={setSelectedGrade}
-              selectedType={selectedType}
+              selectedType={filterState.selectedType}
               onTypeChange={setSelectedType}
               areas={areas}
               sectors={sectors}
             />
           </div>
 
-          {/* 路線列表 */}
-          <div className="flex-1 overflow-y-auto p-2">
-            {filteredRoutes.length === 0 ? (
-              <div className="flex h-32 items-center justify-center text-sm text-gray-500">
-                沒有符合條件的路線
-              </div>
-            ) : (
-              <div className="space-y-1">
-                {filteredRoutes.map((route) => (
-                  <Link
-                    key={route.id}
-                    href={`/crag/${id}/route/${route.id}`}
-                    prefetch={false}
-                    onClick={(e) => handleRouteClick(route.id, e)}
-                    className="block w-full rounded-lg p-3 text-left transition-colors border-2 border-transparent hover:bg-gray-50 hover:border-gray-200"
-                  >
-                    <div className="flex items-start justify-between gap-2">
-                      <div className="min-w-0 flex-1">
-                        <div className="truncate text-sm font-medium text-[#1B1A1A]">
-                          {route.name}
-                        </div>
-                        <div className="mt-0.5 text-xs text-gray-500">{route.areaName}</div>
-                      </div>
-                      <span className="flex-shrink-0 rounded bg-yellow-100 px-2 py-0.5 text-xs font-medium text-[#1B1A1A]">
-                        {route.grade}
-                      </span>
-                    </div>
-                  </Link>
-                ))}
-              </div>
-            )}
+          {/* 路線列表 - 使用虛擬化 */}
+          <div className="min-h-0 flex-1 overflow-hidden p-2">
+            <VirtualizedRouteList
+              routes={filteredRoutes}
+              cragId={id}
+              onRouteClick={handleRouteClick}
+            />
           </div>
         </aside>
 
@@ -497,55 +426,29 @@ export default function CragDetailClient({ params }: { params: Promise<{ id: str
               {/* 篩選區 */}
               <div className="flex-shrink-0 border-b border-gray-200 p-4">
                 <RouteListFilter
-                  searchQuery={searchQuery}
+                  searchQuery={filterState.searchQuery}
                   onSearchChange={setSearchQuery}
-                  selectedArea={selectedArea}
+                  selectedArea={filterState.selectedArea}
                   onAreaChange={setSelectedArea}
-                  selectedSector={selectedSector}
+                  selectedSector={filterState.selectedSector}
                   onSectorChange={setSelectedSector}
-                  selectedGrade={selectedGrade}
+                  selectedGrade={filterState.selectedGrade}
                   onGradeChange={setSelectedGrade}
-                  selectedType={selectedType}
+                  selectedType={filterState.selectedType}
                   onTypeChange={setSelectedType}
                   areas={areas}
                   sectors={sectors}
                 />
               </div>
 
-              {/* 路線列表 */}
-              <div className="flex-1 overflow-y-auto p-2">
-                {filteredRoutes.length === 0 ? (
-                  <div className="flex h-32 items-center justify-center text-sm text-gray-500">
-                    沒有符合條件的路線
-                  </div>
-                ) : (
-                  <div className="space-y-1">
-                    {filteredRoutes.map((route) => (
-                      <Link
-                        key={route.id}
-                        href={`/crag/${id}/route/${route.id}`}
-                        prefetch={false}
-                        onClick={(e) => {
-                          handleRouteClick(route.id, e)
-                          setIsDrawerOpen(false)
-                        }}
-                        className="block w-full rounded-lg p-3 text-left transition-colors border-2 border-transparent hover:bg-gray-50"
-                      >
-                        <div className="flex items-start justify-between gap-2">
-                          <div className="min-w-0 flex-1">
-                            <div className="truncate text-sm font-medium text-[#1B1A1A]">
-                              {route.name}
-                            </div>
-                            <div className="mt-0.5 text-xs text-gray-500">{route.areaName}</div>
-                          </div>
-                          <span className="flex-shrink-0 rounded bg-yellow-100 px-2 py-0.5 text-xs font-medium text-[#1B1A1A]">
-                            {route.grade}
-                          </span>
-                        </div>
-                      </Link>
-                    ))}
-                  </div>
-                )}
+              {/* 路線列表 - 使用虛擬化 */}
+              <div className="min-h-0 flex-1 overflow-hidden overscroll-y-contain p-2">
+                <VirtualizedRouteList
+                  routes={filteredRoutes}
+                  cragId={id}
+                  onRouteClick={handleRouteClick}
+                  onItemClick={handleDrawerItemClick}
+                />
               </div>
             </motion.div>
           </>
