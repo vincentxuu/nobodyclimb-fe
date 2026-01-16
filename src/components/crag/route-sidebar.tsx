@@ -1,45 +1,43 @@
 'use client'
 
-import { useMemo } from 'react'
 import Link from 'next/link'
 import { ArrowLeft } from 'lucide-react'
 import { RouteListFilter } from './route-list-filter'
 import { VirtualizedRouteList } from './virtualized-route-list'
 import type { RouteSidebarItem } from '@/lib/crag-data'
-import { getSectorsForArea } from '@/lib/crag-data'
-import { useRouteFilter } from '@/lib/hooks/useRouteFilter'
+import type { RouteFilterState } from '@/lib/hooks/useRouteFilter'
 
 interface RouteSidebarProps {
   cragId: string
   cragName: string
   routes: RouteSidebarItem[]
+  filteredRoutes: RouteSidebarItem[]
   areas: Array<{ id: string; name: string }>
+  sectors: Array<{ id: string; name: string }>
   currentRouteId: string
+  filterState: RouteFilterState
+  onSearchChange: (query: string) => void
+  onAreaChange: (area: string) => void
+  onSectorChange: (sector: string) => void
+  onGradeChange: (grade: string) => void
+  onTypeChange: (type: string) => void
 }
 
 export function RouteSidebar({
   cragId,
   cragName,
   routes,
+  filteredRoutes,
   areas,
+  sectors,
   currentRouteId,
+  filterState,
+  onSearchChange,
+  onAreaChange,
+  onSectorChange,
+  onGradeChange,
+  onTypeChange,
 }: RouteSidebarProps) {
-  // 使用共用的路線過濾 hook（包含防抖）
-  const {
-    filterState,
-    filteredRoutes,
-    setSearchQuery,
-    setSelectedArea,
-    setSelectedSector,
-    setSelectedGrade,
-    setSelectedType,
-  } = useRouteFilter(routes)
-
-  // 根據選擇的區域獲取 sectors（使用緩存）
-  const sectors = useMemo(() => {
-    if (filterState.selectedArea === 'all') return []
-    return getSectorsForArea(cragId, filterState.selectedArea)
-  }, [cragId, filterState.selectedArea])
 
   return (
     <aside className="hidden lg:flex lg:w-80 lg:flex-shrink-0 lg:flex-col border-r border-gray-200 bg-white">
@@ -65,15 +63,15 @@ export function RouteSidebar({
       <div className="flex-shrink-0 border-b border-gray-200 p-4">
         <RouteListFilter
           searchQuery={filterState.searchQuery}
-          onSearchChange={setSearchQuery}
+          onSearchChange={onSearchChange}
           selectedArea={filterState.selectedArea}
-          onAreaChange={setSelectedArea}
+          onAreaChange={onAreaChange}
           selectedSector={filterState.selectedSector}
-          onSectorChange={setSelectedSector}
+          onSectorChange={onSectorChange}
           selectedGrade={filterState.selectedGrade}
-          onGradeChange={setSelectedGrade}
+          onGradeChange={onGradeChange}
           selectedType={filterState.selectedType}
-          onTypeChange={setSelectedType}
+          onTypeChange={onTypeChange}
           areas={areas}
           sectors={sectors}
         />
