@@ -104,6 +104,7 @@ export default function RouteDetailClient({ data }: RouteDetailClientProps) {
                 <MapPin size={14} />
                 <Link
                   href={`/crag/${crag.id}/area/${area.id}`}
+                  prefetch={false}
                   className="hover:text-[#1B1A1A] hover:underline"
                 >
                   {area.name}

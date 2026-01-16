@@ -140,6 +140,7 @@ export function RouteMobileDrawer({
                 <div>
                   <Link
                     href={`/crag/${cragId}`}
+                    prefetch={false}
                     className="flex items-center gap-1 text-sm text-gray-600 hover:text-[#1B1A1A]"
                     onClick={() => setIsOpen(false)}
                   >
