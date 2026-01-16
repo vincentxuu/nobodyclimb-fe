@@ -1,6 +1,6 @@
 'use client'
 
-import { useMemo, useCallback } from 'react'
+import { useMemo, useCallback, useState, useEffect, useRef } from 'react'
 import { useSearchParams, useRouter, usePathname } from 'next/navigation'
 import { useDebounce } from './useDebounce'
 import type { RouteSidebarItem } from '@/lib/crag-data'
@@ -52,17 +52,31 @@ export function useRouteFilterParams(routes: RouteSidebarItem[]): UseRouteFilter
   const router = useRouter()
   const pathname = usePathname()
 
-  // 從 URL 參數讀取篩選狀態
+  // 搜尋輸入使用本地狀態，避免每次按鍵都更新 URL
+  const urlSearchQuery = searchParams.get(PARAM_KEYS.search) || ''
+  const [localSearchQuery, setLocalSearchQuery] = useState(urlSearchQuery)
+  const isInitialMount = useRef(true)
+
+  // URL 參數變更時同步本地狀態（例如瀏覽器上一頁/下一頁）
+  useEffect(() => {
+    if (isInitialMount.current) {
+      isInitialMount.current = false
+      return
+    }
+    setLocalSearchQuery(urlSearchQuery)
+  }, [urlSearchQuery])
+
+  // 搜尋字串防抖後更新 URL
+  const debouncedSearchQuery = useDebounce(localSearchQuery, 300)
+
+  // 從 URL 參數讀取其他篩選狀態
   const filterState: RouteFilterState = useMemo(() => ({
-    searchQuery: searchParams.get(PARAM_KEYS.search) || '',
+    searchQuery: localSearchQuery, // 使用本地狀態讓輸入即時響應
     selectedArea: searchParams.get(PARAM_KEYS.area) || 'all',
     selectedSector: searchParams.get(PARAM_KEYS.sector) || 'all',
     selectedGrade: (searchParams.get(PARAM_KEYS.grade) || 'all') as GradeFilter,
     selectedType: searchParams.get(PARAM_KEYS.type) || 'all',
-  }), [searchParams])
-
-  // 搜尋字串使用防抖，減少過濾頻率
-  const debouncedSearchQuery = useDebounce(filterState.searchQuery, 200)
+  }), [localSearchQuery, searchParams])
 
   // 更新 URL 參數的輔助函數
   const updateParams = useCallback((updates: Record<string, string | null>) => {
@@ -81,10 +95,28 @@ export function useRouteFilterParams(routes: RouteSidebarItem[]): UseRouteFilter
     router.replace(newUrl, { scroll: false })
   }, [searchParams, pathname, router])
 
-  // 設置函數
+  // 防抖後的搜尋 URL 更新
+  const prevDebouncedQuery = useRef(debouncedSearchQuery)
+  useEffect(() => {
+    // 只在防抖值變更且非初始載入時更新 URL
+    if (prevDebouncedQuery.current !== debouncedSearchQuery) {
+      prevDebouncedQuery.current = debouncedSearchQuery
+      const params = new URLSearchParams(searchParams.toString())
+      if (debouncedSearchQuery) {
+        params.set(PARAM_KEYS.search, debouncedSearchQuery)
+      } else {
+        params.delete(PARAM_KEYS.search)
+      }
+      const queryString = params.toString()
+      const newUrl = queryString ? `${pathname}?${queryString}` : pathname
+      router.replace(newUrl, { scroll: false })
+    }
+  }, [debouncedSearchQuery, searchParams, pathname, router])
+
+  // 設置函數 - 搜尋只更新本地狀態，URL 由 useEffect 防抖更新
   const setSearchQuery = useCallback((query: string) => {
-    updateParams({ [PARAM_KEYS.search]: query })
-  }, [updateParams])
+    setLocalSearchQuery(query)
+  }, [])
 
   const setSelectedArea = useCallback((area: string) => {
     // 區域改變時重置 sector
@@ -107,6 +139,7 @@ export function useRouteFilterParams(routes: RouteSidebarItem[]): UseRouteFilter
   }, [updateParams])
 
   const resetFilters = useCallback(() => {
+    setLocalSearchQuery('') // 清除本地搜尋狀態
     router.replace(pathname, { scroll: false })
   }, [router, pathname])
 
