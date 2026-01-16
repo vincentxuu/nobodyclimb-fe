@@ -27,7 +27,7 @@ export function StoryPromptWrapper() {
         try {
           // 並行獲取人物誌資料和後端推薦的題目
           const [biographyResponse, promptResponse] = await Promise.all([
-            biography ? Promise.resolve({ success: true, data: biography }) : biographyService.getMyBiography(),
+            biographyService.getMyBiography(),
             storyPromptService.getNextPrompt('easy_first'),
           ])
 
@@ -48,7 +48,7 @@ export function StoryPromptWrapper() {
     }
 
     fetchData()
-  }, [isStoryPromptOpen, isAuthenticated, biography])
+  }, [isStoryPromptOpen, isAuthenticated])
 
   // 儲存故事
   const handleSave = useCallback(async (storyField: string, storyValue: string) => {
