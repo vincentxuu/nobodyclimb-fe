@@ -924,43 +924,9 @@ export const biographyService = {
 }
 
 /**
- * 攀岩足跡探索 API 服務
+ * 攀岩足跡 API 服務
  */
 export const climbingLocationService = {
-  /**
-   * 獲取所有攀岩地點（含訪客統計）- 舊 API (from biographies JSON)
-   */
-  getLocations: async (options?: { country?: string; limit?: number; offset?: number }) => {
-    const response = await apiClient.get<
-      ApiResponse<LocationStat[]> & { pagination: { total: number; limit: number; offset: number } }
-    >('/biographies/explore/locations', { params: options })
-    return response.data
-  },
-
-  /**
-   * 獲取特定地點詳情（含所有訪客）- 舊 API
-   */
-  getLocationDetail: async (locationName: string) => {
-    const response = await apiClient.get<ApiResponse<LocationDetail>>(
-      `/biographies/explore/locations/${encodeURIComponent(locationName)}`
-    )
-    return response.data
-  },
-
-  /**
-   * 獲取所有國家統計 - 舊 API
-   */
-  getCountries: async () => {
-    const response = await apiClient.get<ApiResponse<CountryStat[]>>(
-      '/biographies/explore/countries'
-    )
-    return response.data
-  },
-
-  // ═══════════════════════════════════════════════════════════
-  // 正規化表格 API (新)
-  // ═══════════════════════════════════════════════════════════
-
   /**
    * 獲取當前用戶的攀岩足跡
    */
