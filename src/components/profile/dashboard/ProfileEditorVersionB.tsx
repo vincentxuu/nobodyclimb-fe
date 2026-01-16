@@ -844,7 +844,7 @@ export default function ProfileEditorVersionB({ onBack }: ProfileEditorVersionBP
             </div>
             <button
               onClick={togglePublicSetting}
-              className={`relative h-7 w-12 flex-shrink-0 rounded-full transition-colors ${
+              className={`relative h-7 w-12 flex-shrink-0 overflow-hidden rounded-full transition-colors ${
                 profileData.isPublic ? 'bg-brand-accent' : 'bg-subtle'
               }`}
               role="switch"
@@ -852,8 +852,8 @@ export default function ProfileEditorVersionB({ onBack }: ProfileEditorVersionBP
               aria-label="公開設定開關"
             >
               <span
-                className={`absolute top-0.5 h-6 w-6 rounded-full bg-white shadow transition-transform ${
-                  profileData.isPublic ? 'translate-x-5' : 'translate-x-0.5'
+                className={`absolute left-0.5 top-0.5 h-6 w-6 rounded-full bg-white shadow-sm transition-transform ${
+                  profileData.isPublic ? 'translate-x-5' : 'translate-x-0'
                 }`}
               />
             </button>
