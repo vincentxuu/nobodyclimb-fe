@@ -245,8 +245,6 @@ biographiesRoutes.post('/', authMiddleware, async (c) => {
       'climbing_goal', 'climbing_style', 'climbing_inspiration',
       // Level 3F: Life Integration
       'life_outside_climbing',
-      // Climbing locations
-      'climbing_locations',
       // Media & Social
       'gallery_images', 'social_links', 'youtube_channel_id', 'featured_video_id',
       // Status
@@ -404,8 +402,6 @@ biographiesRoutes.put('/me', authMiddleware, async (c) => {
     'climbing_goal', 'climbing_style', 'climbing_inspiration',
     // Level 3F: Life Integration
     'life_outside_climbing',
-    // Climbing locations
-    'climbing_locations',
     // Media & Social
     'gallery_images', 'social_links', 'youtube_channel_id', 'featured_video_id',
     // Status
@@ -552,7 +548,7 @@ biographiesRoutes.get('/:id/stats', async (c) => {
       climbing_mentor, climbing_partner, funny_moment, favorite_spot, advice_to_group, climbing_space,
       injury_recovery, memorable_route, training_method, effective_practice, technique_tip, gear_choice,
       dream_climb, climbing_trip, bucket_list_story, climbing_goal, climbing_style, climbing_inspiration,
-      life_outside_climbing, climbing_locations
+      life_outside_climbing
     FROM biographies WHERE id = ? AND is_public = 1`
   )
     .bind(id)
@@ -595,16 +591,13 @@ biographiesRoutes.get('/:id/stats', async (c) => {
     (field) => biography[field as keyof Biography] && String(biography[field as keyof Biography]).trim() !== ''
   ).length;
 
-  // Count climbing locations
-  let locationsCount = 0;
-  if (biography.climbing_locations) {
-    try {
-      const locations = JSON.parse(biography.climbing_locations as string);
-      locationsCount = Array.isArray(locations) ? locations.length : 0;
-    } catch {
-      locationsCount = 0;
-    }
-  }
+  // Count climbing locations from normalized table
+  const locationsCountResult = await c.env.DB.prepare(
+    'SELECT COUNT(*) as count FROM climbing_locations WHERE biography_id = ? AND is_public = 1'
+  )
+    .bind(id)
+    .first<{ count: number }>();
+  const locationsCount = locationsCountResult?.count || 0;
 
   return c.json({
     success: true,
@@ -1230,7 +1223,7 @@ biographiesRoutes.get('/:id/badges', async (c) => {
   const id = c.req.param('id');
 
   const biography = await c.env.DB.prepare(
-    `SELECT id, user_id, total_likes, climbing_locations,
+    `SELECT id, user_id, total_likes,
       climbing_origin, climbing_meaning, advice_to_self,
       memorable_moment, biggest_challenge, breakthrough_story, first_outdoor, first_grade, frustrating_climb,
       fear_management, climbing_lesson, failure_perspective, flow_moment, life_balance, unexpected_gain,
@@ -1283,22 +1276,17 @@ biographiesRoutes.get('/:id/badges', async (c) => {
     .bind(biography.user_id)
     .first<{ count: number }>();
 
-  // Count climbing locations
-  let locationsCount = 0;
-  let internationalCount = 0;
-  if (biography.climbing_locations) {
-    try {
-      const locations = JSON.parse(biography.climbing_locations as string);
-      if (Array.isArray(locations)) {
-        locationsCount = locations.length;
-        internationalCount = locations.filter(
-          (loc: { country?: string }) => isInternationalLocation(loc.country)
-        ).length;
-      }
-    } catch {
-      // ignore parse errors
-    }
-  }
+  // Count climbing locations from normalized table
+  const locationsStats = await c.env.DB.prepare(
+    `SELECT
+      COUNT(*) as total,
+      SUM(CASE WHEN LOWER(country) NOT IN ('台灣', '臺灣', 'taiwan', 'tw') THEN 1 ELSE 0 END) as international
+    FROM climbing_locations WHERE biography_id = ?`
+  )
+    .bind(id)
+    .first<{ total: number; international: number }>();
+  const locationsCount = locationsStats?.total || 0;
+  const internationalCount = locationsStats?.international || 0;
 
   // Get biographies viewed count (for explorer badge)
   const viewedCount = await c.env.DB.prepare(

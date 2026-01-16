@@ -1,5 +1,3 @@
-import { ClimbingLocation } from '@/lib/types'
-
 /**
  * 社群連結
  */
@@ -82,8 +80,6 @@ export interface ProfileData {
   adviceForBeginners: string
   // 進階故事
   advancedStories: AdvancedStories
-  // 攀岩足跡
-  climbingLocations: ClimbingLocation[]
   // 社群連結
   socialLinks: SocialLinks
   // 設定
@@ -164,7 +160,6 @@ export const initialProfileData: ProfileData = {
     '想要挑戰世界各地的著名岩場，特別是泰國的Tonsai和美國的Yosemite。希望能在攀岩世界中不斷進步，挑戰更高難度的路線。',
   adviceForBeginners: '享受其中是最重要的事！',
   advancedStories: initialAdvancedStories,
-  climbingLocations: [],
   socialLinks: initialSocialLinks,
   isPublic: true,
   avatarUrl: null,

@@ -212,78 +212,106 @@ bucketListRoutes.get('/explore/locations/:location', async (c) => {
   });
 });
 
-// GET /bucket-list/explore/climbing-footprints - Get climbing locations from biographies
+// GET /bucket-list/explore/climbing-footprints - Get climbing locations from normalized table
 bucketListRoutes.get('/explore/climbing-footprints', async (c) => {
   const limit = parseInt(c.req.query('limit') || '20', 10);
   const country = c.req.query('country'); // 'taiwan' or 'overseas'
 
-  // Get biographies with climbing_locations
-  const biographies = await c.env.DB.prepare(
-    `SELECT id, name, avatar_url, slug, climbing_locations
-     FROM biographies
-     WHERE climbing_locations IS NOT NULL
-       AND climbing_locations != ''
-       AND climbing_locations != '[]'
-       AND is_public = 1
-     ORDER BY updated_at DESC
-     LIMIT ?`
-  )
-    .bind(limit * 2) // Get more to ensure we have enough after filtering
-    .all();
+  // Build country filter (使用統一的台灣名稱列表)
+  let countryFilter = '';
+  if (country === 'taiwan') {
+    countryFilter = "AND LOWER(cl.country) IN ('台灣', '臺灣', 'taiwan', 'tw')";
+  } else if (country === 'overseas') {
+    countryFilter = "AND LOWER(cl.country) NOT IN ('台灣', '臺灣', 'taiwan', 'tw')";
+  }
 
-  // Parse and aggregate locations
+  // Step 1: 先查詢熱門地點（按訪客數排序，限制數量）
+  const topLocations = await c.env.DB.prepare(
+    `SELECT
+      cl.location,
+      cl.country,
+      COUNT(DISTINCT cl.biography_id) as visitor_count
+    FROM climbing_locations cl
+    JOIN biographies b ON b.id = cl.biography_id AND b.is_public = 1
+    WHERE cl.is_public = 1 ${countryFilter}
+    GROUP BY cl.location, cl.country
+    ORDER BY visitor_count DESC
+    LIMIT ?`
+  )
+    .bind(limit)
+    .all<{ location: string; country: string; visitor_count: number }>();
+
+  if (!topLocations.results || topLocations.results.length === 0) {
+    return c.json({
+      success: true,
+      data: [],
+    });
+  }
+
+  // Step 2: 查詢這些地點的訪客詳情
+  const locationNames = topLocations.results.map(loc => loc.location);
+  const placeholders = locationNames.map(() => '?').join(',');
+
+  const visitors = await c.env.DB.prepare(
+    `SELECT
+      cl.location,
+      cl.country,
+      b.id as biography_id,
+      b.name,
+      b.avatar_url,
+      b.slug
+    FROM climbing_locations cl
+    JOIN biographies b ON b.id = cl.biography_id AND b.is_public = 1
+    WHERE cl.is_public = 1 AND cl.location IN (${placeholders})
+    ORDER BY cl.location, b.name`
+  )
+    .bind(...locationNames)
+    .all<{
+      location: string;
+      country: string;
+      biography_id: string;
+      name: string;
+      avatar_url: string | null;
+      slug: string;
+    }>();
+
+  // Group visitors by location
   const locationMap = new Map<string, {
     location: string;
     country: string;
     visitors: Array<{ id: string; name: string; avatar_url: string | null; slug: string }>;
   }>();
 
-  for (const bio of biographies.results as Array<{ id: string; name: string; avatar_url: string | null; slug: string; climbing_locations: string }>) {
-    try {
-      const locations = JSON.parse(bio.climbing_locations || '[]') as Array<{
-        location: string;
-        country: string;
-        is_public?: boolean;
-      }>;
+  for (const row of visitors.results || []) {
+    const key = `${row.location}|${row.country}`;
+    if (!locationMap.has(key)) {
+      locationMap.set(key, {
+        location: row.location,
+        country: row.country,
+        visitors: [],
+      });
+    }
 
-      for (const loc of locations) {
-        if (!loc.location || (loc.is_public === false)) continue;
-
-        // Filter by country if specified - normalize to lowercase for robust comparison
-        const normalizedCountry = (loc.country || '').toLowerCase();
-        const isTaiwan = ['台灣', 'taiwan', 'tw'].includes(normalizedCountry);
-        if (country === 'taiwan' && !isTaiwan) continue;
-        if (country === 'overseas' && isTaiwan) continue;
-
-        const key = `${loc.location}|${loc.country}`;
-        if (!locationMap.has(key)) {
-          locationMap.set(key, {
-            location: loc.location,
-            country: loc.country,
-            visitors: [],
-          });
-        }
-
-        const existing = locationMap.get(key)!;
-        if (!existing.visitors.some(v => v.id === bio.id)) {
-          existing.visitors.push({
-            id: bio.id,
-            name: bio.name,
-            avatar_url: bio.avatar_url,
-            slug: bio.slug,
-          });
-        }
-      }
-    } catch (e) {
-      // Skip invalid JSON, but log the error for debugging purposes
-      console.error(`Failed to parse climbing_locations for biography ${bio.id}:`, e);
+    const existing = locationMap.get(key)!;
+    if (!existing.visitors.some(v => v.id === row.biography_id)) {
+      existing.visitors.push({
+        id: row.biography_id,
+        name: row.name,
+        avatar_url: row.avatar_url,
+        slug: row.slug,
+      });
     }
   }
 
-  // Convert to array and sort by visitor count
-  const result = Array.from(locationMap.values())
-    .sort((a, b) => b.visitors.length - a.visitors.length)
-    .slice(0, limit);
+  // Sort by visitor count (maintain the order from step 1)
+  const result = topLocations.results.map(loc => {
+    const key = `${loc.location}|${loc.country}`;
+    return locationMap.get(key) || {
+      location: loc.location,
+      country: loc.country,
+      visitors: [],
+    };
+  });
 
   return c.json({
     success: true,
