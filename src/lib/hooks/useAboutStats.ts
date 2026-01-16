@@ -1,7 +1,7 @@
 /**
  * About 頁面統計資料 Hook
  * - 靜態 JSON (build 時生成)：岩館、岩場、路線、影片
- * - 後端 API：人物誌
+ * - 後端 API：人物誌、文章
  */
 
 import { useMemo } from 'react'
@@ -20,6 +20,7 @@ export interface AboutStats {
   biographies: number
   videos: number
   gyms: number
+  posts: number
 }
 
 /**
@@ -34,6 +35,7 @@ const DEFAULT_LOCAL_STATS = {
 
 const DEFAULT_DB_STATS = {
   biographies: 50,
+  posts: 0,
 }
 
 /**
@@ -66,7 +68,7 @@ export function useAboutStats() {
     retry: 1,
   })
 
-  // 從後端 API 讀取人物誌統計
+  // 從後端 API 讀取人物誌和文章統計
   const dbQuery = useQuery({
     queryKey: ['site-stats-db'],
     queryFn: async () => {
@@ -76,6 +78,7 @@ export function useAboutStats() {
       }
       return {
         biographies: response.data.biographies,
+        posts: response.data.posts,
       }
     },
     staleTime: STATS_STALE_TIME,
@@ -95,6 +98,7 @@ export function useAboutStats() {
       routes: localStats.routes,
       videos: localStats.videos,
       biographies: dbStats.biographies,
+      posts: dbStats.posts,
     }
   }, [localQuery.data, dbQuery.data])
 
