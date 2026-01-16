@@ -26,6 +26,8 @@
       "/gallery/*",
       "/profile/*",
       "/search/*",
+      "/sitemap.xml",
+      "/robots.txt",
       "/"
     ]
   },
