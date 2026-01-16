@@ -78,9 +78,8 @@ function TimelineLocationItem({
                 transition={{ duration: 0.2 }}
               >
                 <p
-                  className={`text-sm leading-relaxed text-text-subtle ${
-                    !isExpanded && shouldShowExpandButton ? 'line-clamp-2' : ''
-                  }`}
+                  className={`text-sm leading-relaxed text-text-subtle ${!isExpanded && shouldShowExpandButton ? 'line-clamp-2' : ''
+                    }`}
                 >
                   {location.notes}
                 </p>
@@ -288,12 +287,6 @@ export function ClimbingFootprintsSection({
             <MapPin className="h-4 w-4 text-white" />
             <span className="text-sm font-medium text-white">攀岩足跡</span>
           </div>
-          <h2 className="text-2xl font-bold text-text-main sm:text-3xl">
-            攀岩旅程時間軸
-          </h2>
-          <p className="mt-2 text-text-subtle">
-            記錄每一次與岩壁相遇的美好時刻
-          </p>
         </motion.div>
 
         {/* 統計摘要 */}
