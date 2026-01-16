@@ -43,12 +43,12 @@ function TimelineLocationItem({
     >
       {/* 連接線 */}
       {!isLast && (
-        <div className="absolute left-[11px] top-6 h-full w-0.5 bg-gradient-to-b from-emerald-200 to-emerald-100" />
+        <div className="absolute left-[11px] top-6 h-full w-0.5 bg-gradient-to-b from-brand-light to-transparent" />
       )}
 
       {/* 節點圓點 */}
       <div className="absolute left-0 top-1.5 flex h-6 w-6 items-center justify-center">
-        <div className="h-3 w-3 rounded-full border-2 border-emerald-400 bg-white shadow-sm" />
+        <div className="h-3 w-3 rounded-full border-2 border-brand-accent bg-white shadow-sm" />
       </div>
 
       {/* 內容卡片 */}
@@ -58,10 +58,10 @@ function TimelineLocationItem({
           <div className="flex items-center gap-3">
             <span className="text-2xl">{getCountryFlag(location.country)}</span>
             <div>
-              <h4 className="font-semibold text-gray-900 transition-colors group-hover:text-emerald-700">
+              <h4 className="font-semibold text-brand-dark transition-colors group-hover:text-brand-dark-hover">
                 {location.location}
               </h4>
-              <p className="text-sm text-gray-500">{location.country}</p>
+              <p className="text-sm text-text-subtle">{location.country}</p>
             </div>
           </div>
         </div>
@@ -78,7 +78,7 @@ function TimelineLocationItem({
                 transition={{ duration: 0.2 }}
               >
                 <p
-                  className={`text-sm leading-relaxed text-gray-600 ${
+                  className={`text-sm leading-relaxed text-text-subtle ${
                     !isExpanded && shouldShowExpandButton ? 'line-clamp-2' : ''
                   }`}
                 >
@@ -90,7 +90,7 @@ function TimelineLocationItem({
             {shouldShowExpandButton && (
               <button
                 onClick={() => setIsExpanded(!isExpanded)}
-                className="mt-2 flex items-center gap-1 text-sm font-medium text-emerald-600 transition-colors hover:text-emerald-700"
+                className="mt-2 flex items-center gap-1 text-sm font-medium text-brand-dark transition-colors hover:text-brand-dark-hover"
               >
                 {isExpanded ? (
                   <>
@@ -130,12 +130,12 @@ function TimelineYearSection({
     >
       {/* 年份標籤 */}
       <div className="mb-4 flex items-center gap-3">
-        <div className="flex h-10 w-10 items-center justify-center rounded-full bg-gradient-to-br from-emerald-500 to-emerald-600 shadow-lg shadow-emerald-200">
-          <Calendar className="h-5 w-5 text-white" />
+        <div className="flex h-10 w-10 items-center justify-center rounded-full bg-brand-accent shadow-lg">
+          <Calendar className="h-5 w-5 text-brand-dark" />
         </div>
         <div className="flex items-center gap-2">
-          <span className="text-xl font-bold text-gray-900">{yearData.year}</span>
-          <span className="rounded-full bg-emerald-100 px-2.5 py-0.5 text-sm font-medium text-emerald-700">
+          <span className="text-xl font-bold text-brand-dark">{yearData.year}</span>
+          <span className="rounded-full bg-brand-light px-2.5 py-0.5 text-sm font-medium text-brand-dark">
             {yearData.locations.length} 個地點
           </span>
         </div>
@@ -175,17 +175,17 @@ function StatsSummary({
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.5, delay: 0.2 }}
     >
-      <div className="rounded-xl bg-gradient-to-br from-emerald-50 to-emerald-100/50 p-4 text-center">
-        <div className="text-2xl font-bold text-emerald-700">{totalLocations}</div>
-        <div className="text-sm text-emerald-600">攀岩地點</div>
+      <div className="rounded-xl bg-brand-accent/20 p-4 text-center">
+        <div className="text-2xl font-bold text-brand-dark">{totalLocations}</div>
+        <div className="text-sm text-text-subtle">攀岩地點</div>
       </div>
-      <div className="rounded-xl bg-gradient-to-br from-blue-50 to-blue-100/50 p-4 text-center">
-        <div className="text-2xl font-bold text-blue-700">{countryCount}</div>
-        <div className="text-sm text-blue-600">個國家</div>
+      <div className="rounded-xl bg-brand-light/50 p-4 text-center">
+        <div className="text-2xl font-bold text-brand-dark">{countryCount}</div>
+        <div className="text-sm text-text-subtle">個國家</div>
       </div>
-      <div className="rounded-xl bg-gradient-to-br from-amber-50 to-amber-100/50 p-4 text-center">
-        <div className="text-2xl font-bold text-amber-700">{yearRange}</div>
-        <div className="text-sm text-amber-600">時間跨度</div>
+      <div className="rounded-xl bg-brand-accent/10 p-4 text-center">
+        <div className="text-2xl font-bold text-brand-dark">{yearRange}</div>
+        <div className="text-sm text-text-subtle">時間跨度</div>
       </div>
     </motion.div>
   )
@@ -223,9 +223,9 @@ export function ClimbingFootprintsSection({
 
   if (loading) {
     return (
-      <section className="bg-gradient-to-b from-gray-50 to-white py-16">
+      <section className="bg-gradient-to-b from-page-bg to-white py-16">
         <div className="container mx-auto flex max-w-3xl justify-center px-4">
-          <Loader2 className="h-8 w-8 animate-spin text-emerald-500" />
+          <Loader2 className="h-8 w-8 animate-spin text-brand-dark" />
         </div>
       </section>
     )
@@ -275,7 +275,7 @@ export function ClimbingFootprintsSection({
     : '-'
 
   return (
-    <section className="bg-gradient-to-b from-gray-50 to-white py-16">
+    <section className="bg-gradient-to-b from-page-bg to-white py-16">
       <div className="container mx-auto max-w-3xl px-4">
         {/* 標題 */}
         <motion.div
@@ -284,14 +284,14 @@ export function ClimbingFootprintsSection({
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.4 }}
         >
-          <div className="mb-2 inline-flex items-center gap-2 rounded-full bg-emerald-100 px-4 py-1.5">
-            <MapPin className="h-4 w-4 text-emerald-600" />
-            <span className="text-sm font-medium text-emerald-700">攀岩足跡</span>
+          <div className="mb-2 inline-flex items-center gap-2 rounded-full bg-brand-accent px-4 py-1.5">
+            <MapPin className="h-4 w-4 text-brand-dark" />
+            <span className="text-sm font-medium text-brand-dark">攀岩足跡</span>
           </div>
-          <h2 className="text-2xl font-bold text-gray-900 sm:text-3xl">
+          <h2 className="text-2xl font-bold text-text-main sm:text-3xl">
             攀岩旅程時間軸
           </h2>
-          <p className="mt-2 text-gray-500">
+          <p className="mt-2 text-text-subtle">
             記錄每一次與岩壁相遇的美好時刻
           </p>
         </motion.div>
@@ -306,7 +306,7 @@ export function ClimbingFootprintsSection({
         {/* 時間軸 */}
         <div className="relative">
           {/* 主時間線 */}
-          <div className="absolute left-5 top-0 h-full w-0.5 bg-gradient-to-b from-emerald-300 via-emerald-200 to-transparent" />
+          <div className="absolute left-5 top-0 h-full w-0.5 bg-gradient-to-b from-brand-accent via-brand-light to-transparent" />
 
           {/* 年份區塊 */}
           <div className="space-y-8">
@@ -328,9 +328,9 @@ export function ClimbingFootprintsSection({
             viewport={{ once: true }}
           >
             <div className="absolute left-0 flex h-6 w-6 items-center justify-center">
-              <div className="h-2 w-2 rounded-full bg-emerald-300" />
+              <div className="h-2 w-2 rounded-full bg-brand-light" />
             </div>
-            <p className="text-sm italic text-gray-400">持續探索中...</p>
+            <p className="text-sm italic text-text-subtle">持續探索中...</p>
           </motion.div>
         </div>
       </div>
