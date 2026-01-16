@@ -152,8 +152,9 @@ export function StoryPromptModal({
       let nextQuestion: StoryQuestion | null = null
 
       // 優先使用後端 API 推薦的題目（確保頻率控制生效）
+      // 從未填寫的問題中查找，避免顯示已填寫的題目
       if (initialField) {
-        nextQuestion = ADVANCED_STORY_QUESTIONS.find((q) => q.field === initialField) || null
+        nextQuestion = unfilled.find((q) => q.field === initialField) || null
       }
 
       // 如果後端沒有推薦或找不到對應題目，使用本地策略選擇
