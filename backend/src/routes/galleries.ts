@@ -331,57 +331,6 @@ galleriesRoutes.delete('/photos/:id', authMiddleware, async (c) => {
   });
 });
 
-// POST /galleries/upload - Upload image to R2 storage
-galleriesRoutes.post('/upload', authMiddleware, async (c) => {
-  const formData = await c.req.formData();
-  const file = formData.get('image') as File | null;
-
-  if (!file) {
-    return c.json(
-      {
-        success: false,
-        error: 'Bad Request',
-        message: 'No image file provided',
-      },
-      400
-    );
-  }
-
-  // Validate file type
-  const allowedTypes = ['image/jpeg', 'image/png', 'image/webp'];
-  if (!allowedTypes.includes(file.type)) {
-    return c.json(
-      {
-        success: false,
-        error: 'Bad Request',
-        message: 'Invalid file type. Only JPEG, PNG, and WebP are allowed.',
-      },
-      400
-    );
-  }
-
-  // Generate unique filename
-  const ext = file.name.split('.').pop() || 'jpg';
-  const filename = `gallery/${generateId()}.${ext}`;
-
-  // Upload to R2
-  const arrayBuffer = await file.arrayBuffer();
-  await c.env.STORAGE.put(filename, arrayBuffer, {
-    httpMetadata: {
-      contentType: file.type,
-      cacheControl: 'public, max-age=31536000, immutable',
-    },
-  });
-
-  // Construct URL using environment variable
-  const url = `${c.env.R2_PUBLIC_URL}/${filename}`;
-
-  return c.json({
-    success: true,
-    data: { url },
-  });
-});
-
 // GET /galleries - List all galleries
 galleriesRoutes.get('/', async (c) => {
   const { page, limit, offset } = parsePagination(

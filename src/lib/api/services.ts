@@ -322,7 +322,7 @@ export const postService = {
     const formData = new FormData()
     formData.append('image', file)
     const response = await apiClient.post<ApiResponse<{ url: string }>>(
-      '/posts/upload-image',
+      '/media/upload?type=posts',
       formData,
       {
         headers: {
@@ -432,7 +432,7 @@ export const gymService = {
     const formData = new FormData()
     formData.append('image', file)
     const response = await apiClient.post<ApiResponse<{ url: string }>>(
-      '/gyms/upload-image',
+      '/media/upload?type=gyms',
       formData,
       {
         headers: {
@@ -603,15 +603,13 @@ export const galleryService = {
   },
 
   /**
-   * 上傳相簿圖片（多張）
+   * 上傳相簿圖片（單張）
    */
-  uploadImages: async (files: File[]) => {
+  uploadImage: async (file: File) => {
     const formData = new FormData()
-    files.forEach((file, index) => {
-      formData.append(`images[${index}]`, file)
-    })
-    const response = await apiClient.post<ApiResponse<{ urls: string[] }>>(
-      '/galleries/upload-images',
+    formData.append('image', file)
+    const response = await apiClient.post<ApiResponse<{ url: string }>>(
+      '/media/upload?type=gallery',
       formData,
       {
         headers: {
@@ -620,6 +618,19 @@ export const galleryService = {
       }
     )
     return response.data
+  },
+
+  /**
+   * 上傳相簿圖片（多張）
+   */
+  uploadImages: async (files: File[]) => {
+    const results = await Promise.all(
+      files.map((file) => galleryService.uploadImage(file))
+    )
+    return {
+      success: true,
+      data: { urls: results.map((r) => r.data.url) },
+    }
   },
 }
 
@@ -721,7 +732,7 @@ export const biographyService = {
     const formData = new FormData()
     formData.append('image', file)
     const response = await apiClient.post<ApiResponse<{ url: string }>>(
-      '/biographies/upload-image',
+      '/media/upload?type=biography',
       formData,
       {
         headers: {
@@ -1568,15 +1579,13 @@ export const cragService = {
   },
 
   /**
-   * 上傳岩場圖片
+   * 上傳岩場圖片（單張）
    */
-  uploadImages: async (files: File[]) => {
+  uploadImage: async (file: File) => {
     const formData = new FormData()
-    files.forEach((file, index) => {
-      formData.append(`images[${index}]`, file)
-    })
-    const response = await apiClient.post<ApiResponse<{ urls: string[] }>>(
-      '/crags/upload-images',
+    formData.append('image', file)
+    const response = await apiClient.post<ApiResponse<{ url: string }>>(
+      '/media/upload?type=crags',
       formData,
       {
         headers: {
@@ -1585,6 +1594,19 @@ export const cragService = {
       }
     )
     return response.data
+  },
+
+  /**
+   * 上傳岩場圖片（多張）
+   */
+  uploadImages: async (files: File[]) => {
+    const results = await Promise.all(
+      files.map((file) => cragService.uploadImage(file))
+    )
+    return {
+      success: true,
+      data: { urls: results.map((r) => r.data.url) },
+    }
   },
 }
 
