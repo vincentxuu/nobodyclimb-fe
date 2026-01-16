@@ -117,7 +117,7 @@ export default function CragDetailClient({ params }: { params: Promise<{ id: str
           </div>
 
           {/* 路線列表 - 使用虛擬化 */}
-          <div className="flex-1 overflow-hidden p-2">
+          <div className="min-h-0 flex-1 overflow-hidden p-2">
             <VirtualizedRouteList
               routes={filteredRoutes}
               cragId={id}
@@ -433,7 +433,7 @@ export default function CragDetailClient({ params }: { params: Promise<{ id: str
               </div>
 
               {/* 路線列表 - 使用虛擬化 */}
-              <div className="flex-1 overflow-hidden p-2">
+              <div className="min-h-0 flex-1 overflow-hidden overscroll-y-contain p-2">
                 <VirtualizedRouteList
                   routes={filteredRoutes}
                   cragId={id}
