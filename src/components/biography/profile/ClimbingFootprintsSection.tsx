@@ -48,7 +48,7 @@ function TimelineLocationItem({
 
       {/* 節點圓點 */}
       <div className="absolute left-0 top-1.5 flex h-6 w-6 items-center justify-center">
-        <div className="h-3 w-3 rounded-full border-2 border-brand-accent bg-white shadow-sm" />
+        <div className="h-3 w-3 rounded-full border-2 border-brand-dark bg-white shadow-sm" />
       </div>
 
       {/* 內容卡片 */}
@@ -130,8 +130,8 @@ function TimelineYearSection({
     >
       {/* 年份標籤 */}
       <div className="mb-4 flex items-center gap-3">
-        <div className="flex h-10 w-10 items-center justify-center rounded-full bg-brand-accent shadow-lg">
-          <Calendar className="h-5 w-5 text-brand-dark" />
+        <div className="flex h-10 w-10 items-center justify-center rounded-full bg-brand-dark shadow-lg">
+          <Calendar className="h-5 w-5 text-white" />
         </div>
         <div className="flex items-center gap-2">
           <span className="text-xl font-bold text-brand-dark">{yearData.year}</span>
@@ -175,15 +175,15 @@ function StatsSummary({
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.5, delay: 0.2 }}
     >
-      <div className="rounded-xl bg-brand-accent/20 p-4 text-center">
+      <div className="rounded-xl bg-brand-light p-4 text-center">
         <div className="text-2xl font-bold text-brand-dark">{totalLocations}</div>
         <div className="text-sm text-text-subtle">攀岩地點</div>
       </div>
-      <div className="rounded-xl bg-brand-light/50 p-4 text-center">
+      <div className="rounded-xl bg-brand-light p-4 text-center">
         <div className="text-2xl font-bold text-brand-dark">{countryCount}</div>
         <div className="text-sm text-text-subtle">個國家</div>
       </div>
-      <div className="rounded-xl bg-brand-accent/10 p-4 text-center">
+      <div className="rounded-xl bg-brand-light p-4 text-center">
         <div className="text-2xl font-bold text-brand-dark">{yearRange}</div>
         <div className="text-sm text-text-subtle">時間跨度</div>
       </div>
@@ -284,9 +284,9 @@ export function ClimbingFootprintsSection({
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.4 }}
         >
-          <div className="mb-2 inline-flex items-center gap-2 rounded-full bg-brand-accent px-4 py-1.5">
-            <MapPin className="h-4 w-4 text-brand-dark" />
-            <span className="text-sm font-medium text-brand-dark">攀岩足跡</span>
+          <div className="mb-2 inline-flex items-center gap-2 rounded-full bg-brand-dark px-4 py-1.5">
+            <MapPin className="h-4 w-4 text-white" />
+            <span className="text-sm font-medium text-white">攀岩足跡</span>
           </div>
           <h2 className="text-2xl font-bold text-text-main sm:text-3xl">
             攀岩旅程時間軸
@@ -306,7 +306,7 @@ export function ClimbingFootprintsSection({
         {/* 時間軸 */}
         <div className="relative">
           {/* 主時間線 */}
-          <div className="absolute left-5 top-0 h-full w-0.5 bg-gradient-to-b from-brand-accent via-brand-light to-transparent" />
+          <div className="absolute left-5 top-0 h-full w-0.5 bg-gradient-to-b from-brand-dark via-brand-light to-transparent" />
 
           {/* 年份區塊 */}
           <div className="space-y-8">
