@@ -13,10 +13,10 @@ const HTML_ENTITIES: Record<string, string> = {
   '&hellip;': '…',
   '&mdash;': '—',
   '&ndash;': '–',
-  '&lsquo;': ''',
-  '&rsquo;': ''',
-  '&ldquo;': '"',
-  '&rdquo;': '"',
+  '&lsquo;': '\u2018',
+  '&rsquo;': '\u2019',
+  '&ldquo;': '\u201C',
+  '&rdquo;': '\u201D',
 }
 
 // 匹配 HTML 實體的正規表達式（包含數字實體）
