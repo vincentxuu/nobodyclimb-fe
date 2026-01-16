@@ -2,10 +2,9 @@
 
 import { useState, useEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-import { Loader2, ChevronDown, ChevronUp, MapPin, Calendar } from 'lucide-react'
+import { Loader2, ChevronDown, ChevronUp, MapPin, Calendar, Globe } from 'lucide-react'
 import { Biography, ClimbingLocationRecord } from '@/lib/types'
 import { climbingLocationService } from '@/lib/api/services'
-import { getCountryFlag } from '@/lib/utils/country'
 
 interface ClimbingFootprintsSectionProps {
   person: Biography
@@ -56,7 +55,9 @@ function TimelineLocationItem({
         {/* 標題區 */}
         <div className="flex items-start justify-between gap-3 p-4">
           <div className="flex items-center gap-3">
-            <span className="text-2xl">{getCountryFlag(location.country)}</span>
+            <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-emerald-50">
+              <Globe className="h-5 w-5 text-emerald-600" />
+            </div>
             <div>
               <h4 className="font-semibold text-gray-900 transition-colors group-hover:text-emerald-700">
                 {location.location}
