@@ -4,7 +4,7 @@
 
 class RouteLoadingManager {
   private loadingRoutes = new Set<string>()
-  private loadingTimeouts = new Map<string, NodeJS.Timeout>()
+  private loadingTimeouts = new Map<string, ReturnType<typeof setTimeout>>()
   private recentRequests: string[] = []
   private readonly maxConcurrentRequests = 2
   private readonly requestWindowMs = 1000 // 1 second window
@@ -38,11 +38,18 @@ class RouteLoadingManager {
    * 開始載入路線
    */
   startLoadingRoute(routeId: string): void {
+    // 清除可能存在的舊超時，以防萬一
+    const existingTimeout = this.loadingTimeouts.get(routeId)
+    if (existingTimeout) {
+      clearTimeout(existingTimeout)
+    }
+
     this.loadingRoutes.add(routeId)
     this.recentRequests.push(`${Date.now()}-${routeId}`)
 
     // 設置超時自動清理，防止狀態卡死
     const timeout = setTimeout(() => {
+      console.warn(`Route loading for "${routeId}" timed out. Auto-releasing lock.`)
       this.loadingRoutes.delete(routeId)
       this.loadingTimeouts.delete(routeId)
     }, this.loadingTimeoutMs)

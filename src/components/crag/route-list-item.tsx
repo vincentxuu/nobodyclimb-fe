@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation'
 import { cn } from '@/lib/utils'
 import { routeLoadingManager } from '@/lib/route-loading-manager'
 import { useToast } from '@/components/ui/use-toast'
+import { RATE_LIMIT_TOAST } from '@/lib/constants'
 import type { RouteSidebarItem } from '@/lib/crag-data'
 
 interface RouteListItemProps {
@@ -24,11 +25,7 @@ export function RouteListItem({ route, cragId, isActive, onClick }: RouteListIte
     // 檢查是否可以載入路線
     if (!routeLoadingManager.canLoadRoute(route.id)) {
       console.warn('Route loading rate limited:', route.id)
-      toast({
-        title: '請稍候',
-        description: '點擊太快了，請稍後再試',
-        variant: 'default',
-      })
+      toast(RATE_LIMIT_TOAST)
       return
     }
 

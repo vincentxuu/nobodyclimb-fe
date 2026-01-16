@@ -19,6 +19,7 @@ import BackToTop from '@/components/ui/back-to-top'
 import { routeLoadingManager } from '@/lib/route-loading-manager'
 import { useRouter } from 'next/navigation'
 import { useToast } from '@/components/ui/use-toast'
+import { RATE_LIMIT_TOAST } from '@/lib/constants'
 import type { RouteDetailData } from '@/lib/crag-data'
 
 interface RouteDetailClientProps {
@@ -67,11 +68,7 @@ export default function RouteDetailClient({ data }: RouteDetailClientProps) {
 
     if (!routeLoadingManager.canLoadRoute(routeId)) {
       console.warn('Related route loading rate limited:', routeId)
-      toast({
-        title: '請稍候',
-        description: '點擊太快了，請稍後再試',
-        variant: 'default',
-      })
+      toast(RATE_LIMIT_TOAST)
       return
     }
 

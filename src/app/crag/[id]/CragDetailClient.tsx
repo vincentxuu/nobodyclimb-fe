@@ -15,6 +15,7 @@ import { RouteListFilter } from '@/components/crag/route-list-filter'
 import { getCragDetailData, getCragRoutesForSidebar, getCragAreasForFilter, getSectorsForArea } from '@/lib/crag-data'
 import { routeLoadingManager } from '@/lib/route-loading-manager'
 import { useToast } from '@/components/ui/use-toast'
+import { RATE_LIMIT_TOAST } from '@/lib/constants'
 
 export default function CragDetailClient({ params }: { params: Promise<{ id: string }> }) {
   const { id } = use(params)
@@ -33,11 +34,7 @@ export default function CragDetailClient({ params }: { params: Promise<{ id: str
 
     if (!routeLoadingManager.canLoadRoute(routeId)) {
       console.warn('Route loading rate limited:', routeId)
-      toast({
-        title: '請稍候',
-        description: '點擊太快了，請稍後再試',
-        variant: 'default',
-      })
+      toast(RATE_LIMIT_TOAST)
       return
     }
 

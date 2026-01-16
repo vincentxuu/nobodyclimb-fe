@@ -14,6 +14,15 @@ export const API_URL = API_BASE_URL // 保留向後兼容
 export const API_TIMEOUT = 10000 // 10 seconds
 
 /**
+ * Toast 提示訊息常數
+ */
+export const RATE_LIMIT_TOAST = {
+  title: '請稍候',
+  description: '點擊太快了，請稍後再試',
+  variant: 'default' as const,
+}
+
+/**
  * 分頁相關常數
  */
 export const DEFAULT_PAGE_SIZE = 10
