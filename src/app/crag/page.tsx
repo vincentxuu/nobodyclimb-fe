@@ -59,7 +59,7 @@ export default function CragListPage() {
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.4 }}
             >
-              <Link href={`/crag/${crag.id}`} className="block h-full">
+              <Link href={`/crag/${crag.id}`} prefetch={false} className="block h-full">
                 <div className="relative h-48 w-full">
                   <PlaceholderImage text={crag.name} bgColor="#f8fafc" />
                   <div className="absolute right-4 top-4 rounded bg-[#FFE70C] px-2.5 py-1 text-xs font-bold text-black">

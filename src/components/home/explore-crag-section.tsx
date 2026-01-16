@@ -27,6 +27,7 @@ function CragCard({ crag, index }: { crag: CragListItem; index: number }) {
     >
       <Link
         href={`/crag/${crag.id}`}
+        prefetch={false}
         className="group block overflow-hidden rounded-lg bg-white shadow-sm transition-shadow hover:shadow-md"
       >
         {/* 岩場圖片 */}
@@ -159,7 +160,7 @@ export function TaiwanMap({
         }
 
         return clickable ? (
-          <Link key={crag.id} href={`/crag/${crag.id}`} {...commonProps}>
+          <Link key={crag.id} href={`/crag/${crag.id}`} prefetch={false} {...commonProps}>
             {markerContent}
           </Link>
         ) : (

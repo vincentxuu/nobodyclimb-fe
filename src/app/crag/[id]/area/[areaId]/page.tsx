@@ -188,6 +188,7 @@ export default function AreaDetailPage({
                   <Link
                     key={otherArea.id}
                     href={`/crag/${crag.id}/area/${otherArea.id}`}
+                    prefetch={false}
                     className="group overflow-hidden rounded-lg border border-gray-200 bg-white transition-all hover:border-[#FFE70C] hover:shadow-md"
                   >
                     <div className="relative h-32">
