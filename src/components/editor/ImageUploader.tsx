@@ -3,6 +3,7 @@
 import { useState, useCallback, useRef } from 'react'
 import { UploadCloud, X, Image as ImageIcon, Loader2 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
+import { processImage, validateImageType } from '@/lib/utils/image'
 
 interface ImageUploaderProps {
   value: string | null
@@ -26,27 +27,31 @@ export function ImageUploader({
   const inputRef = useRef<HTMLInputElement>(null)
 
   const handleFile = useCallback(
-    (file: File) => {
-      if (!file.type.startsWith('image/')) {
-        alert('請上傳圖片檔案')
+    async (file: File) => {
+      // 驗證檔案類型
+      if (!validateImageType(file)) {
+        alert('請上傳 JPG、PNG、WebP 或 GIF 格式的圖片')
         return
       }
 
-      if (file.size > 5 * 1024 * 1024) {
-        alert('圖片大小不能超過 5MB')
-        return
-      }
+      try {
+        // 壓縮圖片到 500KB
+        const compressedFile = await processImage(file)
 
-      // 建立本地預覽
-      const reader = new FileReader()
-      reader.onloadend = () => {
-        setPreviewUrl(reader.result as string)
-      }
-      reader.readAsDataURL(file)
+        // 建立本地預覽
+        const reader = new FileReader()
+        reader.onloadend = () => {
+          setPreviewUrl(reader.result as string)
+        }
+        reader.readAsDataURL(compressedFile)
 
-      // 通知父組件
-      if (onFileSelect) {
-        onFileSelect(file)
+        // 通知父組件
+        if (onFileSelect) {
+          onFileSelect(compressedFile)
+        }
+      } catch (error) {
+        const message = error instanceof Error ? error.message : '圖片處理失敗'
+        alert(message)
       }
     },
     [onFileSelect]
@@ -167,7 +172,7 @@ export function ImageUploader({
             <>
               <UploadCloud className="mb-3 h-10 w-10 text-gray-400" />
               <p className="mb-1 text-sm text-gray-600">拖曳圖片至此處，或點擊上傳</p>
-              <p className="text-xs text-gray-400">支援 JPG、PNG、GIF，最大 5MB</p>
+              <p className="text-xs text-gray-400">支援 JPG、PNG、WebP、GIF，自動壓縮至 500KB</p>
             </>
           )}
         </div>

@@ -92,8 +92,8 @@ export interface ProfileData {
 // 圖片限制常數
 export const IMAGE_CONSTRAINTS = {
   maxCount: 5,
-  maxSizeBytes: 1 * 1024 * 1024, // 1MB
-  maxSizeMB: 1,
+  maxSizeBytes: 500 * 1024, // 500KB
+  maxSizeMB: 0.5,
   acceptedTypes: ['image/jpeg', 'image/png', 'image/webp'],
   acceptedExtensions: '.jpg,.jpeg,.png,.webp',
 }
