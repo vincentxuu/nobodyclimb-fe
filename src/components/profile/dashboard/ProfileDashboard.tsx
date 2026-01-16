@@ -106,9 +106,10 @@ export default function ProfileDashboard() {
     try {
       const response = await biographyService.uploadImage(file)
       if (response.success && response.data?.url) {
+        const url = response.data.url
         setProfileData((prev) => ({
           ...prev,
-          [field]: response.data.url,
+          [field]: url,
         }))
         toast({ title: successMessage })
       } else {
