@@ -52,7 +52,6 @@ export interface BiographyApiInput {
   gear_choice?: string
   dream_climb?: string
   climbing_trip?: string
-  bucket_list_story?: string
   climbing_goal?: string
   climbing_style?: string
   climbing_inspiration?: string
