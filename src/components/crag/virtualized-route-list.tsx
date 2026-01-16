@@ -143,18 +143,20 @@ export function VirtualizedRouteList({
   // 路線數量少於 50 時，直接渲染全部（避免虛擬化的 overhead）
   if (routes.length < 50) {
     return (
-      <div className="space-y-1">
-        {routes.map((route) => (
-          <RouteItem
-            key={route.id}
-            route={route}
-            cragId={cragId}
-            isActive={route.id === currentRouteId}
-            style={{}}
-            onClick={onRouteClick}
-            onItemClick={onItemClick}
-          />
-        ))}
+      <div className="h-full overflow-y-auto">
+        <div className="space-y-1">
+          {routes.map((route) => (
+            <RouteItem
+              key={route.id}
+              route={route}
+              cragId={cragId}
+              isActive={route.id === currentRouteId}
+              style={{}}
+              onClick={onRouteClick}
+              onItemClick={onItemClick}
+            />
+          ))}
+        </div>
       </div>
     )
   }
