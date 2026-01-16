@@ -15,6 +15,7 @@ import { useToast } from '@/components/ui/use-toast'
 import { BackendPost } from '@/lib/types'
 import { useAuthStore } from '@/store/authStore'
 import { sanitizeHtml } from '@/lib/utils/sanitize'
+import { decodeHtmlEntities } from '@/lib/utils/article'
 
 // 載入狀態元件
 const LoadingState = () => (
@@ -292,7 +293,7 @@ export default function BlogDetailClient() {
             <div className="space-y-6">
               {article.excerpt && (
                 <section>
-                  <p className="text-lg text-gray-600 italic">{article.excerpt}</p>
+                  <p className="text-lg text-gray-600 italic">{decodeHtmlEntities(article.excerpt)}</p>
                 </section>
               )}
               <section
