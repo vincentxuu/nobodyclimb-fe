@@ -16,27 +16,39 @@ export function StoryPromptWrapper() {
   const { isStoryPromptOpen, closeStoryPrompt } = useUIStore()
   const [biography, setBiography] = useState<Biography | null>(null)
   const [isLoading, setIsLoading] = useState(false)
+  // 從後端獲取的推薦題目欄位
+  const [promptedField, setPromptedField] = useState<string | null>(null)
 
-  // 當彈窗打開時，獲取用戶的人物誌資料
+  // 當彈窗打開時，獲取用戶的人物誌資料和後端推薦的題目
   useEffect(() => {
-    const fetchBiography = async () => {
-      if (isStoryPromptOpen && isAuthenticated && !biography) {
+    const fetchData = async () => {
+      if (isStoryPromptOpen && isAuthenticated) {
         setIsLoading(true)
         try {
-          const response = await biographyService.getMyBiography()
-          if (response.success && response.data) {
-            setBiography(response.data)
+          // 並行獲取人物誌資料和後端推薦的題目
+          const [biographyResponse, promptResponse] = await Promise.all([
+            biographyService.getMyBiography(),
+            storyPromptService.getNextPrompt('easy_first'),
+          ])
+
+          if (biographyResponse.success && biographyResponse.data) {
+            setBiography(biographyResponse.data)
+          }
+
+          // 設置後端推薦的題目，讓頻率控制生效
+          if (promptResponse.success && promptResponse.data) {
+            setPromptedField(promptResponse.data.field)
           }
         } catch (error) {
-          console.error('獲取人物誌失敗:', error)
+          console.error('獲取資料失敗:', error)
         } finally {
           setIsLoading(false)
         }
       }
     }
 
-    fetchBiography()
-  }, [isStoryPromptOpen, isAuthenticated, biography])
+    fetchData()
+  }, [isStoryPromptOpen, isAuthenticated])
 
   // 儲存故事
   const handleSave = useCallback(async (storyField: string, storyValue: string) => {
@@ -70,6 +82,8 @@ export function StoryPromptWrapper() {
   // 關閉彈窗
   const handleClose = useCallback(() => {
     closeStoryPrompt()
+    // 重置推薦題目，下次打開時會重新從後端獲取
+    setPromptedField(null)
   }, [closeStoryPrompt])
 
   // 如果未登入或正在加載，不顯示彈窗
@@ -86,6 +100,7 @@ export function StoryPromptWrapper() {
       onSave={handleSave}
       onSkip={handleSkip}
       strategy="easy_first"
+      initialField={promptedField}
     />
   )
 }
