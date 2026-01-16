@@ -25,6 +25,7 @@ export function Breadcrumb({ items, className, hideOnMobile = false }: Breadcrum
           {item.href ? (
             <Link
               href={item.href}
+              prefetch={false}
               className="text-sm text-[#8E8C8C] transition-colors hover:text-[#1B1A1A]"
             >
               {item.label}

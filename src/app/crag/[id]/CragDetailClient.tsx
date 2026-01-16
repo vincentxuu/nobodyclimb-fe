@@ -120,6 +120,7 @@ export default function CragDetailClient({ params }: { params: Promise<{ id: str
           <div className="flex-shrink-0 border-b border-gray-200 p-4">
             <Link
               href="/crag"
+              prefetch={false}
               className="flex items-center gap-2 text-sm text-gray-600 hover:text-[#1B1A1A] transition-colors"
             >
               <ArrowLeft size={16} />

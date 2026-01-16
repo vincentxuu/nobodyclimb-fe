@@ -27,7 +27,7 @@ export function CollapsibleBreadcrumb({ items, className }: CollapsibleBreadcrum
           {items.map((item, index) => (
             <li key={item.label}>
               {item.href ? (
-                <Link href={item.href}>{item.label}</Link>
+                <Link href={item.href} prefetch={false}>{item.label}</Link>
               ) : (
                 <span>{item.label}</span>
               )}
@@ -72,6 +72,7 @@ export function CollapsibleBreadcrumb({ items, className }: CollapsibleBreadcrum
                   {item.href ? (
                     <Link
                       href={item.href}
+                      prefetch={false}
                       className="whitespace-nowrap text-sm text-gray-500 transition-colors hover:text-gray-900 hover:underline"
                     >
                       {item.label}
