@@ -1,6 +1,6 @@
 'use client'
 
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import Link from 'next/link'
 import {
   ChevronLeft,
@@ -16,6 +16,8 @@ import {
 } from 'lucide-react'
 import { CollapsibleBreadcrumb } from '@/components/ui/collapsible-breadcrumb'
 import BackToTop from '@/components/ui/back-to-top'
+import { routeLoadingManager } from '@/lib/route-loading-manager'
+import { useRouter } from 'next/navigation'
 import type { RouteDetailData } from '@/lib/crag-data'
 
 interface RouteDetailClientProps {
@@ -49,12 +51,31 @@ function getInstagramPostId(url: string): string | null {
 
 export default function RouteDetailClient({ data }: RouteDetailClientProps) {
   const { route, crag, area, relatedRoutes } = data
+  const router = useRouter()
   const [currentPhotoIndex, setCurrentPhotoIndex] = useState(0)
 
   const hasImages = route.images && route.images.length > 0
   const hasVideos = route.videos && route.videos.length > 0
   const hasYoutubeVideos = route.youtubeVideos && route.youtubeVideos.length > 0
   const hasInstagramPosts = route.instagramPosts && route.instagramPosts.length > 0
+
+  // 處理相關路線點擊
+  const handleRelatedRouteClick = (routeId: string, e: React.MouseEvent) => {
+    e.preventDefault()
+
+    if (!routeLoadingManager.canLoadRoute(routeId)) {
+      console.warn('Related route loading rate limited:', routeId)
+      return
+    }
+
+    routeLoadingManager.startLoadingRoute(routeId)
+    router.push(`/crag/${crag.id}/route/${routeId}`)
+  }
+
+  // 標記路線載入完成
+  useEffect(() => {
+    routeLoadingManager.finishLoadingRoute(route.id)
+  }, [route.id])
 
   // 建立麵包屑項目
   const breadcrumbItems: Array<{ label: string; href?: string }> = [
@@ -357,6 +378,7 @@ export default function RouteDetailClient({ data }: RouteDetailClientProps) {
                     key={relRoute.id}
                     href={`/crag/${crag.id}/route/${relRoute.id}`}
                     prefetch={false}
+                    onClick={(e) => handleRelatedRouteClick(relRoute.id, e)}
                     className="flex items-center justify-between rounded-lg border border-gray-200 p-4 transition hover:border-[#FFE70C] hover:bg-gray-50"
                   >
                     <div>

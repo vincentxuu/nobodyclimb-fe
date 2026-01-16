@@ -1,7 +1,9 @@
 'use client'
 
 import Link from 'next/link'
+import { useRouter } from 'next/navigation'
 import { cn } from '@/lib/utils'
+import { routeLoadingManager } from '@/lib/route-loading-manager'
 import type { RouteSidebarItem } from '@/lib/crag-data'
 
 interface RouteListItemProps {
@@ -12,11 +14,32 @@ interface RouteListItemProps {
 }
 
 export function RouteListItem({ route, cragId, isActive, onClick }: RouteListItemProps) {
+  const router = useRouter()
+
+  const handleClick = (e: React.MouseEvent) => {
+    e.preventDefault()
+
+    // 檢查是否可以載入路線
+    if (!routeLoadingManager.canLoadRoute(route.id)) {
+      console.warn('Route loading rate limited:', route.id)
+      return
+    }
+
+    // 開始載入路線
+    routeLoadingManager.startLoadingRoute(route.id)
+
+    // 執行點擊回調
+    onClick?.()
+
+    // 導航到路線頁面
+    router.push(`/crag/${cragId}/route/${route.id}`)
+  }
+
   return (
     <Link
       href={`/crag/${cragId}/route/${route.id}`}
       prefetch={false}
-      onClick={onClick}
+      onClick={handleClick}
       className={cn(
         'flex items-center justify-between px-3 py-2.5 rounded-lg transition-colors',
         'hover:bg-gray-100',

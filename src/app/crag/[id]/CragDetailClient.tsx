@@ -2,6 +2,7 @@
 
 import React, { use, useState, useMemo } from 'react'
 import Link from 'next/link'
+import { useRouter } from 'next/navigation'
 import { MapPin, ArrowLeft, List, X, ExternalLink } from 'lucide-react'
 import { motion, AnimatePresence } from 'framer-motion'
 import PlaceholderImage from '@/components/ui/placeholder-image'
@@ -12,15 +13,30 @@ import { YouTubeLiveCard } from '@/components/crag/youtube-live-card'
 import { CollapsibleBreadcrumb } from '@/components/ui/collapsible-breadcrumb'
 import { RouteListFilter } from '@/components/crag/route-list-filter'
 import { getCragDetailData, getCragRoutesForSidebar, getCragAreasForFilter, getSectorsForArea } from '@/lib/crag-data'
+import { routeLoadingManager } from '@/lib/route-loading-manager'
 
 export default function CragDetailClient({ params }: { params: Promise<{ id: string }> }) {
   const { id } = use(params)
+  const router = useRouter()
   const [searchQuery, setSearchQuery] = useState('')
   const [selectedArea, setSelectedArea] = useState('all')
   const [selectedSector, setSelectedSector] = useState('all')
   const [selectedGrade, setSelectedGrade] = useState('all')
   const [selectedType, setSelectedType] = useState('all')
   const [isDrawerOpen, setIsDrawerOpen] = useState(false)
+
+  // 處理路線點擊，避免過度請求
+  const handleRouteClick = (routeId: string, e: React.MouseEvent) => {
+    e.preventDefault()
+
+    if (!routeLoadingManager.canLoadRoute(routeId)) {
+      console.warn('Route loading rate limited:', routeId)
+      return
+    }
+
+    routeLoadingManager.startLoadingRoute(routeId)
+    router.push(`/crag/${id}/route/${routeId}`)
+  }
 
   // 從資料服務層讀取岩場資料
   const currentCrag = getCragDetailData(id)
@@ -165,6 +181,7 @@ export default function CragDetailClient({ params }: { params: Promise<{ id: str
                     key={route.id}
                     href={`/crag/${id}/route/${route.id}`}
                     prefetch={false}
+                    onClick={(e) => handleRouteClick(route.id, e)}
                     className="block w-full rounded-lg p-3 text-left transition-colors border-2 border-transparent hover:bg-gray-50 hover:border-gray-200"
                   >
                     <div className="flex items-start justify-between gap-2">
@@ -504,7 +521,10 @@ export default function CragDetailClient({ params }: { params: Promise<{ id: str
                         key={route.id}
                         href={`/crag/${id}/route/${route.id}`}
                         prefetch={false}
-                        onClick={() => setIsDrawerOpen(false)}
+                        onClick={(e) => {
+                          handleRouteClick(route.id, e)
+                          setIsDrawerOpen(false)
+                        }}
                         className="block w-full rounded-lg p-3 text-left transition-colors border-2 border-transparent hover:bg-gray-50"
                       >
                         <div className="flex items-start justify-between gap-2">
