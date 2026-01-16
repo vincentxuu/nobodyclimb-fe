@@ -153,7 +153,6 @@ export default function BiographyAvatarSection({
               >
                 {isUploadingAvatar ? '上傳中...' : avatarUrl ? '更換頭像' : '上傳頭像'}
               </Button>
-              <p className="mt-2 text-xs text-gray-500">建議尺寸：400x400px，自動壓縮至 500KB</p>
             </div>
           )}
         </div>
@@ -212,7 +211,6 @@ export default function BiographyAvatarSection({
               >
                 {isUploadingCover ? '上傳中...' : coverImageUrl ? '更換封面' : '上傳封面'}
               </Button>
-              <p className="mt-2 text-xs text-gray-500">建議尺寸：2100x900px，自動壓縮至 500KB</p>
             </div>
           )}
         </div>

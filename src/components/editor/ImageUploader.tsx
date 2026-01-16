@@ -171,8 +171,7 @@ export function ImageUploader({
           ) : (
             <>
               <UploadCloud className="mb-3 h-10 w-10 text-gray-400" />
-              <p className="mb-1 text-sm text-gray-600">拖曳圖片至此處，或點擊上傳</p>
-              <p className="text-xs text-gray-400">支援 JPG、PNG、WebP、GIF，自動壓縮至 500KB</p>
+              <p className="text-sm text-gray-600">拖曳圖片至此處，或點擊上傳</p>
             </>
           )}
         </div>

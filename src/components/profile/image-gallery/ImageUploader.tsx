@@ -201,9 +201,6 @@ export default function ImageUploader({
                   '無法上傳'
                 )}
               </p>
-              <p className="mt-1 text-xs text-gray-400">
-                JPG、PNG、WebP，自動壓縮至 500KB
-              </p>
               <p className="text-xs text-gray-400">
                 還可上傳 {remainingSlots} 張（共 {IMAGE_CONSTRAINTS.maxCount} 張）
               </p>

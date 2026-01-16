@@ -432,9 +432,6 @@ export function BiographyWizard({
                       <Upload className="h-4 w-4" />
                       {isUploadingAvatar ? '上傳中...' : '上傳照片'}
                     </label>
-                    <p className="mt-1 text-xs text-gray-500">
-                      支援 JPG、PNG、WebP、GIF 格式，自動壓縮至 500KB
-                    </p>
                   </div>
                 </div>
               </div>
