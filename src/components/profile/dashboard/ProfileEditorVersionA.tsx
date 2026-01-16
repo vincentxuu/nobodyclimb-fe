@@ -107,7 +107,8 @@ export default function ProfileEditorVersionA({ onBack }: ProfileEditorVersionAP
           return value && typeof value === 'string' && value.trim().length > 0
         })
       case 'advanced-stories':
-        const progress = calculateStoryProgress(profileData.advancedStories ?? {})
+        const stories = profileData.advancedStories ?? {}
+        const progress = calculateStoryProgress(stories as unknown as Record<string, unknown>)
         return progress.completed > 0
       case 'footprints':
         return false // TODO: 實作足跡完成狀態

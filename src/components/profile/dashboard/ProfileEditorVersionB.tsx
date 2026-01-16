@@ -57,7 +57,7 @@ interface EditableTextProps {
   isEditing: boolean
   tempValue: string
   isSaving: boolean
-  inputRef: React.RefObject<HTMLInputElement | HTMLTextAreaElement>
+  inputRef: React.RefObject<HTMLInputElement | HTMLTextAreaElement | null>
   onStartEdit: (field: string, value: string) => void
   onCancel: () => void
   onSave: (field: string, value: string) => Promise<void>
@@ -161,7 +161,7 @@ interface StoryCardProps {
   isEditing: boolean
   tempValue: string
   isSaving: boolean
-  inputRef: React.RefObject<HTMLTextAreaElement>
+  inputRef: React.RefObject<HTMLTextAreaElement | null>
   onStartEdit: (field: string, value: string) => void
   onCancel: () => void
   onSave: (field: string, value: string) => Promise<void>
