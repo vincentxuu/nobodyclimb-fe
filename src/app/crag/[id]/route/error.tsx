@@ -2,6 +2,7 @@
 
 import { useEffect } from 'react'
 import Link from 'next/link'
+import { useParams } from 'next/navigation'
 import { AlertTriangle, RefreshCw, ArrowLeft } from 'lucide-react'
 
 export default function RouteError({
@@ -11,6 +12,9 @@ export default function RouteError({
   error: Error & { digest?: string }
   reset: () => void
 }) {
+  const params = useParams()
+  const cragId = params.id as string | undefined
+
   useEffect(() => {
     console.error('路線頁面錯誤:', error)
   }, [error])
@@ -48,11 +52,11 @@ export default function RouteError({
           </button>
 
           <Link
-            href="/crag"
+            href={cragId ? `/crag/${cragId}` : '/crag'}
             className="inline-flex items-center justify-center gap-2 rounded-lg border border-gray-300 bg-white px-4 py-2.5 text-sm font-medium text-gray-700 transition hover:bg-gray-50"
           >
             <ArrowLeft size={16} />
-            返回岩場列表
+            返回岩場頁面
           </Link>
         </div>
       </div>
