@@ -130,8 +130,8 @@ function TimelineYearSection({
     >
       {/* 年份標籤 */}
       <div className="mb-4 flex items-center gap-3">
-        <div className="flex h-10 w-10 items-center justify-center rounded-full bg-brand-dark shadow-lg">
-          <Calendar className="h-5 w-5 text-white" />
+        <div className="flex h-10 w-10 items-center justify-center rounded-full bg-brand-accent shadow-lg">
+          <Calendar className="h-5 w-5 text-brand-dark" />
         </div>
         <div className="flex items-center gap-2">
           <span className="text-xl font-bold text-brand-dark">{yearData.year}</span>
