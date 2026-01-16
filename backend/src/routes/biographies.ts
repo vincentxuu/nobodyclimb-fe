@@ -1280,7 +1280,7 @@ biographiesRoutes.get('/:id/badges', async (c) => {
   const locationsStats = await c.env.DB.prepare(
     `SELECT
       COUNT(*) as total,
-      SUM(CASE WHEN country NOT IN ('台灣', 'Taiwan', 'TW', 'taiwan', 'tw') THEN 1 ELSE 0 END) as international
+      SUM(CASE WHEN LOWER(country) NOT IN ('台灣', '臺灣', 'taiwan', 'tw') THEN 1 ELSE 0 END) as international
     FROM climbing_locations WHERE biography_id = ?`
   )
     .bind(id)

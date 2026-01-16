@@ -217,16 +217,42 @@ bucketListRoutes.get('/explore/climbing-footprints', async (c) => {
   const limit = parseInt(c.req.query('limit') || '20', 10);
   const country = c.req.query('country'); // 'taiwan' or 'overseas'
 
-  // Build country filter
+  // Build country filter (使用統一的台灣名稱列表)
   let countryFilter = '';
   if (country === 'taiwan') {
-    countryFilter = "AND LOWER(cl.country) IN ('台灣', 'taiwan', 'tw')";
+    countryFilter = "AND LOWER(cl.country) IN ('台灣', '臺灣', 'taiwan', 'tw')";
   } else if (country === 'overseas') {
-    countryFilter = "AND LOWER(cl.country) NOT IN ('台灣', 'taiwan', 'tw')";
+    countryFilter = "AND LOWER(cl.country) NOT IN ('台灣', '臺灣', 'taiwan', 'tw')";
   }
 
-  // Get locations with visitor info using normalized climbing_locations table
-  const locations = await c.env.DB.prepare(
+  // Step 1: 先查詢熱門地點（按訪客數排序，限制數量）
+  const topLocations = await c.env.DB.prepare(
+    `SELECT
+      cl.location,
+      cl.country,
+      COUNT(DISTINCT cl.biography_id) as visitor_count
+    FROM climbing_locations cl
+    JOIN biographies b ON b.id = cl.biography_id AND b.is_public = 1
+    WHERE cl.is_public = 1 ${countryFilter}
+    GROUP BY cl.location, cl.country
+    ORDER BY visitor_count DESC
+    LIMIT ?`
+  )
+    .bind(limit)
+    .all<{ location: string; country: string; visitor_count: number }>();
+
+  if (!topLocations.results || topLocations.results.length === 0) {
+    return c.json({
+      success: true,
+      data: [],
+    });
+  }
+
+  // Step 2: 查詢這些地點的訪客詳情
+  const locationNames = topLocations.results.map(loc => loc.location);
+  const placeholders = locationNames.map(() => '?').join(',');
+
+  const visitors = await c.env.DB.prepare(
     `SELECT
       cl.location,
       cl.country,
@@ -236,25 +262,27 @@ bucketListRoutes.get('/explore/climbing-footprints', async (c) => {
       b.slug
     FROM climbing_locations cl
     JOIN biographies b ON b.id = cl.biography_id AND b.is_public = 1
-    WHERE cl.is_public = 1 ${countryFilter}
+    WHERE cl.is_public = 1 AND cl.location IN (${placeholders})
     ORDER BY cl.location, b.name`
-  ).all();
+  )
+    .bind(...locationNames)
+    .all<{
+      location: string;
+      country: string;
+      biography_id: string;
+      name: string;
+      avatar_url: string | null;
+      slug: string;
+    }>();
 
-  // Group by location
+  // Group visitors by location
   const locationMap = new Map<string, {
     location: string;
     country: string;
     visitors: Array<{ id: string; name: string; avatar_url: string | null; slug: string }>;
   }>();
 
-  for (const row of locations.results as Array<{
-    location: string;
-    country: string;
-    biography_id: string;
-    name: string;
-    avatar_url: string | null;
-    slug: string;
-  }>) {
+  for (const row of visitors.results || []) {
     const key = `${row.location}|${row.country}`;
     if (!locationMap.has(key)) {
       locationMap.set(key, {
@@ -275,10 +303,15 @@ bucketListRoutes.get('/explore/climbing-footprints', async (c) => {
     }
   }
 
-  // Convert to array and sort by visitor count
-  const result = Array.from(locationMap.values())
-    .sort((a, b) => b.visitors.length - a.visitors.length)
-    .slice(0, limit);
+  // Sort by visitor count (maintain the order from step 1)
+  const result = topLocations.results.map(loc => {
+    const key = `${loc.location}|${loc.country}`;
+    return locationMap.get(key) || {
+      location: loc.location,
+      country: loc.country,
+      visitors: [],
+    };
+  });
 
   return c.json({
     success: true,
