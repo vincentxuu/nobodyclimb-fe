@@ -527,24 +527,6 @@ export const galleryService = {
   },
 
   /**
-   * 上傳圖片檔案到儲存空間
-   */
-  uploadImage: async (file: File) => {
-    const formData = new FormData()
-    formData.append('image', file)
-    const response = await apiClient.post<ApiResponse<{ url: string }>>(
-      '/galleries/upload',
-      formData,
-      {
-        headers: {
-          'Content-Type': 'multipart/form-data',
-        },
-      }
-    )
-    return response.data
-  },
-
-  /**
    * 獲取相簿列表
    */
   getGalleries: async (page = 1, limit = 10) => {

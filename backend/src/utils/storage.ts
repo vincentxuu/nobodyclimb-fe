@@ -7,7 +7,7 @@ import type { R2Bucket } from '@cloudflare/workers-types';
  */
 export async function deleteR2Images(
   storage: R2Bucket,
-  url: string | string[] | null | undefined
+  url: string | (string | null | undefined)[] | null | undefined
 ): Promise<void> {
   if (!url) return;
 
