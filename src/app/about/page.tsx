@@ -300,6 +300,7 @@ function StatsSection() {
     { key: 'crags' as const, label: '個岩場', suffix: '+' },
     { key: 'routes' as const, label: '條路線', suffix: '+' },
     { key: 'biographies' as const, label: '篇人物誌', suffix: '+' },
+    { key: 'posts' as const, label: '篇文章', suffix: '+' },
     { key: 'videos' as const, label: '部影片', suffix: '+' },
   ]
 
@@ -311,7 +312,7 @@ function StatsSection() {
           initial="initial"
           whileInView="animate"
           viewport={{ once: true }}
-          className="grid grid-cols-2 gap-8 md:grid-cols-5"
+          className="grid grid-cols-2 gap-8 md:grid-cols-3 lg:grid-cols-6"
         >
           {statsConfig.map((item) => (
             <motion.div key={item.key} variants={fadeInUp} className="text-center">
