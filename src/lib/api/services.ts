@@ -2016,3 +2016,41 @@ export const mediaService = {
     return response.data
   },
 }
+
+/**
+ * 全站統計資料介面
+ */
+export interface SiteStats {
+  crags: number
+  routes: number
+  biographies: number
+  videos: number
+  posts: number
+  gyms: number
+  updatedAt: string
+}
+
+/**
+ * 全站統計相關 API 服務
+ */
+export const statsService = {
+  /**
+   * 取得全站統計資料
+   */
+  getStats: async () => {
+    const response = await apiClient.get<
+      ApiResponse<SiteStats> & { cached: boolean }
+    >('/stats')
+    return response.data
+  },
+
+  /**
+   * 強制清除統計快取
+   */
+  invalidateCache: async () => {
+    const response = await apiClient.post<ApiResponse<{ message: string }>>(
+      '/stats/invalidate'
+    )
+    return response.data
+  },
+}

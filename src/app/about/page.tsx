@@ -15,6 +15,7 @@ import {
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { PageTransition } from '@/components/shared/page-transition'
+import { useAboutStats } from '@/lib/hooks/useAboutStats'
 
 // 動畫配置
 const fadeInUp = {
@@ -180,8 +181,8 @@ function MissionSection() {
               variants={fadeInUp}
               className="rounded-lg bg-white p-8 text-center shadow-sm transition-shadow hover:shadow-md"
             >
-              <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-[#1B1A1A]">
-                <mission.icon className="h-8 w-8 text-[#FFE70C]" />
+              <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-brand-accent">
+                <mission.icon className="h-8 w-8 text-brand-dark" />
               </div>
               <h3 className="mb-3 text-xl font-semibold text-[#1B1A1A]">{mission.title}</h3>
               <p className="text-[#6D6C6C]">{mission.description}</p>
@@ -280,17 +281,29 @@ function FeaturesSection() {
   )
 }
 
+// Stats Skeleton Component for loading state
+function StatsSkeleton() {
+  return (
+    <div className="flex flex-col items-center">
+      <div className="h-12 w-20 animate-pulse rounded bg-brand-dark/20 md:h-14 md:w-24" />
+      <div className="mt-2 h-5 w-16 animate-pulse rounded bg-brand-dark/10" />
+    </div>
+  )
+}
+
 // Stats Section
 function StatsSection() {
-  const stats = [
-    { value: '5', label: '個岩場', suffix: '+' },
-    { value: '600', label: '條路線', suffix: '+' },
-    { value: '50', label: '篇人物誌', suffix: '+' },
-    { value: '100', label: '部影片', suffix: '+' },
+  const { stats, isLoading } = useAboutStats()
+
+  const statsConfig = [
+    { key: 'crags' as const, label: '個岩場', suffix: '+' },
+    { key: 'routes' as const, label: '條路線', suffix: '+' },
+    { key: 'biographies' as const, label: '篇人物誌', suffix: '+' },
+    { key: 'videos' as const, label: '部影片', suffix: '+' },
   ]
 
   return (
-    <section className="bg-[#1B1A1A] py-16 md:py-20">
+    <section className="bg-brand-accent py-16 md:py-20">
       <div className="container mx-auto px-4">
         <motion.div
           variants={staggerContainer}
@@ -299,13 +312,25 @@ function StatsSection() {
           viewport={{ once: true }}
           className="grid grid-cols-2 gap-8 md:grid-cols-4"
         >
-          {stats.map((stat) => (
-            <motion.div key={stat.label} variants={fadeInUp} className="text-center">
-              <div className="text-4xl font-bold text-[#FFE70C] md:text-5xl">
-                {stat.value}
-                <span className="text-2xl md:text-3xl">{stat.suffix}</span>
-              </div>
-              <div className="mt-2 text-white/80">{stat.label}</div>
+          {statsConfig.map((item) => (
+            <motion.div key={item.key} variants={fadeInUp} className="text-center">
+              {isLoading ? (
+                <StatsSkeleton />
+              ) : (
+                <>
+                  <div className="text-4xl font-bold text-brand-dark md:text-5xl">
+                    <motion.span
+                      initial={{ opacity: 0 }}
+                      animate={{ opacity: 1 }}
+                      transition={{ duration: 0.5 }}
+                    >
+                      {stats[item.key]}
+                    </motion.span>
+                    <span className="text-2xl md:text-3xl">{item.suffix}</span>
+                  </div>
+                  <div className="mt-2 text-brand-dark/80">{item.label}</div>
+                </>
+              )}
             </motion.div>
           ))}
         </motion.div>
