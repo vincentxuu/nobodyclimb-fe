@@ -212,71 +212,66 @@ bucketListRoutes.get('/explore/locations/:location', async (c) => {
   });
 });
 
-// GET /bucket-list/explore/climbing-footprints - Get climbing locations from biographies
+// GET /bucket-list/explore/climbing-footprints - Get climbing locations from normalized table
 bucketListRoutes.get('/explore/climbing-footprints', async (c) => {
   const limit = parseInt(c.req.query('limit') || '20', 10);
   const country = c.req.query('country'); // 'taiwan' or 'overseas'
 
-  // Get biographies with climbing_locations
-  const biographies = await c.env.DB.prepare(
-    `SELECT id, name, avatar_url, slug, climbing_locations
-     FROM biographies
-     WHERE climbing_locations IS NOT NULL
-       AND climbing_locations != ''
-       AND climbing_locations != '[]'
-       AND is_public = 1
-     ORDER BY updated_at DESC
-     LIMIT ?`
-  )
-    .bind(limit * 2) // Get more to ensure we have enough after filtering
-    .all();
+  // Build country filter
+  let countryFilter = '';
+  if (country === 'taiwan') {
+    countryFilter = "AND LOWER(cl.country) IN ('台灣', 'taiwan', 'tw')";
+  } else if (country === 'overseas') {
+    countryFilter = "AND LOWER(cl.country) NOT IN ('台灣', 'taiwan', 'tw')";
+  }
 
-  // Parse and aggregate locations
+  // Get locations with visitor info using normalized climbing_locations table
+  const locations = await c.env.DB.prepare(
+    `SELECT
+      cl.location,
+      cl.country,
+      b.id as biography_id,
+      b.name,
+      b.avatar_url,
+      b.slug
+    FROM climbing_locations cl
+    JOIN biographies b ON b.id = cl.biography_id AND b.is_public = 1
+    WHERE cl.is_public = 1 ${countryFilter}
+    ORDER BY cl.location, b.name`
+  ).all();
+
+  // Group by location
   const locationMap = new Map<string, {
     location: string;
     country: string;
     visitors: Array<{ id: string; name: string; avatar_url: string | null; slug: string }>;
   }>();
 
-  for (const bio of biographies.results as Array<{ id: string; name: string; avatar_url: string | null; slug: string; climbing_locations: string }>) {
-    try {
-      const locations = JSON.parse(bio.climbing_locations || '[]') as Array<{
-        location: string;
-        country: string;
-        is_public?: boolean;
-      }>;
+  for (const row of locations.results as Array<{
+    location: string;
+    country: string;
+    biography_id: string;
+    name: string;
+    avatar_url: string | null;
+    slug: string;
+  }>) {
+    const key = `${row.location}|${row.country}`;
+    if (!locationMap.has(key)) {
+      locationMap.set(key, {
+        location: row.location,
+        country: row.country,
+        visitors: [],
+      });
+    }
 
-      for (const loc of locations) {
-        if (!loc.location || (loc.is_public === false)) continue;
-
-        // Filter by country if specified - normalize to lowercase for robust comparison
-        const normalizedCountry = (loc.country || '').toLowerCase();
-        const isTaiwan = ['台灣', 'taiwan', 'tw'].includes(normalizedCountry);
-        if (country === 'taiwan' && !isTaiwan) continue;
-        if (country === 'overseas' && isTaiwan) continue;
-
-        const key = `${loc.location}|${loc.country}`;
-        if (!locationMap.has(key)) {
-          locationMap.set(key, {
-            location: loc.location,
-            country: loc.country,
-            visitors: [],
-          });
-        }
-
-        const existing = locationMap.get(key)!;
-        if (!existing.visitors.some(v => v.id === bio.id)) {
-          existing.visitors.push({
-            id: bio.id,
-            name: bio.name,
-            avatar_url: bio.avatar_url,
-            slug: bio.slug,
-          });
-        }
-      }
-    } catch (e) {
-      // Skip invalid JSON, but log the error for debugging purposes
-      console.error(`Failed to parse climbing_locations for biography ${bio.id}:`, e);
+    const existing = locationMap.get(key)!;
+    if (!existing.visitors.some(v => v.id === row.biography_id)) {
+      existing.visitors.push({
+        id: row.biography_id,
+        name: row.name,
+        avatar_url: row.avatar_url,
+        slug: row.slug,
+      });
     }
   }
 

@@ -10,7 +10,7 @@ import {
   initialSocialLinks,
 } from './types'
 import { useAuthStore } from '@/store/authStore'
-import { User, Biography, ClimbingLocation } from '@/lib/types'
+import { User, Biography } from '@/lib/types'
 import { biographyService } from '@/lib/api/services'
 
 interface ProfileContextType {
@@ -22,21 +22,6 @@ interface ProfileContextType {
 }
 
 const ProfileContext = createContext<ProfileContextType | undefined>(undefined)
-
-/**
- * 解析 climbing_locations JSON 字串
- */
-function parseClimbingLocations(locationsJson: string | null | undefined): ClimbingLocation[] {
-  if (!locationsJson) {
-    return []
-  }
-  try {
-    const parsed = JSON.parse(locationsJson)
-    return Array.isArray(parsed) ? parsed : []
-  } catch {
-    return []
-  }
-}
 
 /**
  * 解析 social_links JSON 字串
@@ -64,7 +49,6 @@ function mapBiographyToProfileData(biography: Biography | null): Partial<Profile
     return {}
   }
 
-  const climbingLocations = parseClimbingLocations(biography.climbing_locations)
   const socialLinks = parseSocialLinks(biography.social_links)
 
   // 映射進階故事
@@ -120,7 +104,6 @@ function mapBiographyToProfileData(biography: Biography | null): Partial<Profile
     climbingBucketList: biography.bucket_list_story || '',
     adviceForBeginners: biography.advice_to_self || '',
     advancedStories,
-    climbingLocations,
     socialLinks,
     isPublic: Number(biography.is_public) === 1,
     avatarUrl: biography.avatar_url || null,
@@ -167,7 +150,6 @@ function mapUserToProfileData(user: User | null): ProfileData {
     climbingBucketList: bioData.climbingBucketList || '',
     adviceForBeginners: bioData.messageToBeginners || '',
     advancedStories: initialAdvancedStories,
-    climbingLocations: [],
     socialLinks: initialSocialLinks,
     isPublic: bioData.isPublic ?? true,
     // 使用 Google 頭像作為人物誌頭像的備用

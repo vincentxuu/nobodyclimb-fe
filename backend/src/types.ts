@@ -265,9 +265,6 @@ export interface Biography {
   // 第三層：進階故事 - F. 生活整合
   life_outside_climbing: string | null;
 
-  // 攀岩足跡
-  climbing_locations: string | null;
-
   // 媒體與社群
   gallery_images: string | null;
   social_links: string | null;

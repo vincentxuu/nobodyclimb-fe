@@ -341,11 +341,6 @@ export interface Biography {
   life_outside_climbing: string | null // 除了攀岩，還讓我著迷的事
 
   // ═══════════════════════════════════════════
-  // 攀岩足跡
-  // ═══════════════════════════════════════════
-  climbing_locations: string | null // JSON array of ClimbingLocation
-
-  // ═══════════════════════════════════════════
   // 媒體與社群
   // ═══════════════════════════════════════════
   gallery_images?: string | null // JSON 格式的圖片資料（可選）
@@ -389,7 +384,7 @@ export interface BiographyAdjacent {
 }
 
 /**
- * 攀岩足跡地點 (JSON 格式，用於 biography.climbing_locations)
+ * 攀岩足跡地點
  */
 export interface ClimbingLocation {
   location: string // 地點名稱
@@ -819,9 +814,6 @@ export interface BiographyInput {
 
   // 第三層：進階故事 - F. 生活整合
   life_outside_climbing?: string
-
-  // 攀岩足跡
-  climbing_locations?: string // JSON
 
   // 媒體與社群
   gallery_images?: string // JSON
