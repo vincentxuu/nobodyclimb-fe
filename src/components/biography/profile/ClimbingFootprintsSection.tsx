@@ -1,9 +1,11 @@
 'use client'
 
+import { useState, useEffect } from 'react'
 import Image from 'next/image'
 import { motion } from 'framer-motion'
-import { MapPin } from 'lucide-react'
-import { Biography, ClimbingLocation } from '@/lib/types'
+import { MapPin, Loader2 } from 'lucide-react'
+import { Biography, ClimbingLocation, ClimbingLocationRecord } from '@/lib/types'
+import { climbingLocationService } from '@/lib/api/services'
 
 interface ClimbingFootprintsSectionProps {
   person: Biography
@@ -14,14 +16,68 @@ interface ClimbingFootprintsSectionProps {
  * 視覺化地點展示
  */
 export function ClimbingFootprintsSection({ person }: ClimbingFootprintsSectionProps) {
-  // 解析攀岩足跡資料
-  let locations: ClimbingLocation[] = []
-  try {
-    if (person.climbing_locations) {
-      locations = JSON.parse(person.climbing_locations)
+  const [locations, setLocations] = useState<ClimbingLocation[]>([])
+  const [loading, setLoading] = useState(true)
+
+  useEffect(() => {
+    const loadLocations = async () => {
+      setLoading(true)
+      try {
+        // 優先從新的正規化表格 API 取得資料
+        const response = await climbingLocationService.getBiographyLocations(person.id)
+        if (response.success && response.data && response.data.length > 0) {
+          // 將 ClimbingLocationRecord 轉換為 ClimbingLocation 格式
+          const apiLocations: ClimbingLocation[] = response.data.map((record: ClimbingLocationRecord) => ({
+            location: record.location,
+            country: record.country,
+            visit_year: record.visit_year,
+            notes: record.notes,
+            photos: record.photos,
+            is_public: record.is_public,
+          }))
+          setLocations(apiLocations)
+        } else {
+          // 如果新 API 沒有資料，嘗試從舊的 JSON 欄位讀取（向後兼容）
+          if (person.climbing_locations) {
+            try {
+              const jsonLocations = JSON.parse(person.climbing_locations)
+              if (Array.isArray(jsonLocations)) {
+                setLocations(jsonLocations)
+              }
+            } catch {
+              // JSON 解析失敗，忽略
+            }
+          }
+        }
+      } catch (err) {
+        // API 請求失敗，嘗試從舊的 JSON 欄位讀取
+        console.error('Failed to load climbing locations from API:', err)
+        if (person.climbing_locations) {
+          try {
+            const jsonLocations = JSON.parse(person.climbing_locations)
+            if (Array.isArray(jsonLocations)) {
+              setLocations(jsonLocations)
+            }
+          } catch {
+            // JSON 解析失敗，忽略
+          }
+        }
+      } finally {
+        setLoading(false)
+      }
     }
-  } catch {
-    return null
+
+    loadLocations()
+  }, [person.id, person.climbing_locations])
+
+  if (loading) {
+    return (
+      <section className="bg-gray-50 py-16">
+        <div className="container mx-auto max-w-6xl px-4 flex justify-center">
+          <Loader2 className="h-8 w-8 animate-spin text-gray-400" />
+        </div>
+      </section>
+    )
   }
 
   if (locations.length === 0) return null
