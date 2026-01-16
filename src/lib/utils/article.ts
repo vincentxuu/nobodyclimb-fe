@@ -1,4 +1,23 @@
 /**
+ * 解碼 HTML 實體
+ * @param text - 包含 HTML 實體的文字
+ * @returns 解碼後的文字
+ */
+export function decodeHtmlEntities(text: string): string {
+  const entities: Record<string, string> = {
+    '&nbsp;': ' ',
+    '&amp;': '&',
+    '&lt;': '<',
+    '&gt;': '>',
+    '&quot;': '"',
+    '&#39;': "'",
+    '&apos;': "'",
+  }
+
+  return text.replace(/&(?:nbsp|amp|lt|gt|quot|#39|apos);/g, (match) => entities[match] || match)
+}
+
+/**
  * 從 HTML 內容生成文章摘要
  * @param content - HTML 格式的文章內容
  * @param manualSummary - 手動輸入的摘要（如果有）
@@ -15,8 +34,8 @@ export function generateSummary(
     return manualSummary.trim()
   }
 
-  // 從 HTML 內容中提取純文字
-  const plainTextContent = content.replace(/<[^>]*>/g, '').trim()
+  // 從 HTML 內容中提取純文字，並解碼 HTML 實體
+  const plainTextContent = decodeHtmlEntities(content.replace(/<[^>]*>/g, '')).trim()
 
   // 如果內容為空，返回空字串
   if (!plainTextContent) {
