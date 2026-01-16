@@ -15,7 +15,7 @@ interface RouteMobileDrawerProps {
   routes: RouteSidebarItem[]
   filteredRoutes: RouteSidebarItem[]
   areas: Array<{ id: string; name: string }>
-  sectors: string[]
+  sectors: Array<{ id: string; name: string }>
   currentRouteId: string
   filterState: RouteFilterState
   onSearchChange: (query: string) => void
