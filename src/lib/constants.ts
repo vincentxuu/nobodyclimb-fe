@@ -180,3 +180,10 @@ export const SOCIAL_LINKS = [
 // 時間格式
 export const DATE_FORMAT = 'yyyy年MM月dd日'
 export const DATE_TIME_FORMAT = 'yyyy年MM月dd日 HH:mm'
+
+// Toast 提示訊息常數
+export const RATE_LIMIT_TOAST = {
+  title: '請稍候',
+  description: '點擊太快了，請稍後再試',
+  variant: 'default' as const,
+}
