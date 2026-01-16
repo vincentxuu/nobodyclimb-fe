@@ -157,6 +157,9 @@ export default function ProfileDashboard() {
     try {
       const socialLinksJson = JSON.stringify(profileData.socialLinks)
       const biographyData = {
+        // 進階故事（先展開，讓後面的核心故事欄位可以覆蓋）
+        ...profileData.advancedStories,
+        // 基本資料
         name: profileData.name,
         title: profileData.title || undefined,
         avatar_url: profileData.avatarUrl || undefined,
@@ -164,11 +167,12 @@ export default function ProfileDashboard() {
         climbing_start_year: profileData.startYear,
         frequent_locations: profileData.frequentGyms,
         favorite_route_type: profileData.favoriteRouteType,
+        // 核心故事（覆蓋 advancedStories 中的 bucket_list_story）
         climbing_origin: profileData.climbingReason,
         climbing_meaning: profileData.climbingMeaning,
         bucket_list_story: profileData.climbingBucketList,
         advice_to_self: profileData.adviceForBeginners,
-        ...profileData.advancedStories,
+        // 社群連結與設定
         social_links: socialLinksJson,
         is_public: profileData.isPublic ? 1 : 0,
       }
