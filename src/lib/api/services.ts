@@ -617,7 +617,7 @@ export const galleryService = {
     )
     return {
       success: true,
-      data: { urls: results.map((r) => r.data.url) },
+      data: { urls: results.map((r) => r.data?.url).filter((url): url is string => !!url) },
     }
   },
 }
@@ -1597,7 +1597,7 @@ export const cragService = {
     )
     return {
       success: true,
-      data: { urls: results.map((r) => r.data.url) },
+      data: { urls: results.map((r) => r.data?.url).filter((url): url is string => !!url) },
     }
   },
 }
