@@ -14,7 +14,7 @@ import React, { useState } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import {
   User,
-  Mountain,
+  Gauge,
   Link2,
   BookOpen,
   Globe,
@@ -336,7 +336,7 @@ export default function ProfileEditorVersionC({ onBack, onComplete }: ProfileEdi
     },
     {
       id: 'climbing',
-      icon: <Mountain className="h-6 w-6" />,
+      icon: <Gauge className="h-6 w-6" />,
       title: '你的攀岩旅程',
       subtitle: '分享你的攀岩經歷',
       component: <ClimbingInfoStep />,

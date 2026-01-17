@@ -15,7 +15,7 @@ import React, { useState, useRef, useEffect, useMemo, useCallback } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import {
   User,
-  Mountain,
+  Gauge,
   Link2,
   BookOpen,
   Globe,
@@ -628,7 +628,7 @@ export default function ProfileEditorVersionB({ onBack }: ProfileEditorVersionBP
         {/* 攀岩資訊卡片 */}
         <section className="mb-8 rounded-xl border border-subtle bg-white p-6 shadow-sm">
           <div className="mb-4 flex items-center gap-2">
-            <Mountain className="h-5 w-5 text-brand-dark" />
+            <Gauge className="h-5 w-5 text-brand-dark" />
             <h2 className="font-semibold text-brand-dark">攀岩資訊</h2>
           </div>
 
