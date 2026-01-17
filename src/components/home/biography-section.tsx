@@ -79,35 +79,16 @@ export function BiographySection() {
   useEffect(() => {
     const loadBiographies = async () => {
       try {
-        // 先嘗試獲取精選人物誌
-        const featuredResponse = await biographyService.getFeaturedBiographies(3)
-
-        if (featuredResponse.success && featuredResponse.data && featuredResponse.data.length > 0) {
-          setBiographies(featuredResponse.data)
+        const response = await biographyService.getBiographies(1, 3)
+        if (response.success && response.data) {
+          setBiographies(response.data)
         } else {
-          // 如果沒有精選人物誌，改用一般的人物誌列表
-          const response = await biographyService.getBiographies(1, 3)
-          if (response.success && response.data) {
-            setBiographies(response.data)
-          } else {
-            setBiographies([])
-          }
+          setBiographies([])
         }
       } catch (err) {
         console.error('Failed to load biographies:', err)
-        // 嘗試備用方案
-        try {
-          const response = await biographyService.getBiographies(1, 3)
-          if (response.success && response.data) {
-            setBiographies(response.data)
-          } else {
-            setError('載入人物誌時發生錯誤')
-            setBiographies([])
-          }
-        } catch {
-          setError('載入人物誌時發生錯誤')
-          setBiographies([])
-        }
+        setError('載入人物誌時發生錯誤')
+        setBiographies([])
       } finally {
         setLoading(false)
       }
