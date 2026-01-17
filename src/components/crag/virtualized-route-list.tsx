@@ -2,6 +2,7 @@
 
 import React, { useRef, useState, useEffect, useCallback, useMemo } from 'react'
 import Link from 'next/link'
+import { useSearchParams } from 'next/navigation'
 import type { RouteSidebarItem } from '@/lib/crag-data'
 
 interface VirtualizedRouteListProps {
@@ -19,6 +20,7 @@ interface RouteItemProps {
   cragId: string
   isActive: boolean
   style: React.CSSProperties
+  searchParamsString: string
   onClick?: (_routeId: string, _e: React.MouseEvent) => void
   onItemClick?: () => void
 }
@@ -28,6 +30,7 @@ const RouteItem = React.memo(function RouteItem({
   cragId,
   isActive,
   style,
+  searchParamsString,
   onClick,
   onItemClick,
 }: RouteItemProps) {
@@ -36,10 +39,12 @@ const RouteItem = React.memo(function RouteItem({
     onItemClick?.()
   }
 
+  const href = `/crag/${cragId}/route/${route.id}${searchParamsString}`
+
   return (
     <div style={style} className="px-1">
       <Link
-        href={`/crag/${cragId}/route/${route.id}`}
+        href={href}
         prefetch={false}
         onClick={handleClick}
         className={`block w-full rounded-lg p-3 text-left transition-colors border-2 ${
@@ -80,6 +85,13 @@ export function VirtualizedRouteList({
   const containerRef = useRef<HTMLDivElement>(null)
   const [scrollTop, setScrollTop] = useState(0)
   const [containerHeight, setContainerHeight] = useState(0)
+  const searchParams = useSearchParams()
+
+  // 保留當前的篩選參數
+  const searchParamsString = useMemo(() => {
+    const paramsStr = searchParams.toString()
+    return paramsStr ? `?${paramsStr}` : ''
+  }, [searchParams])
 
   // 計算可見範圍
   const { startIndex, visibleItems, totalHeight } = useMemo(() => {
@@ -152,6 +164,7 @@ export function VirtualizedRouteList({
               cragId={cragId}
               isActive={route.id === currentRouteId}
               style={{}}
+              searchParamsString={searchParamsString}
               onClick={onRouteClick}
               onItemClick={onItemClick}
             />
@@ -188,6 +201,7 @@ export function VirtualizedRouteList({
                 right: 0,
                 height: itemHeight,
               }}
+              searchParamsString={searchParamsString}
               onClick={onRouteClick}
               onItemClick={onItemClick}
             />

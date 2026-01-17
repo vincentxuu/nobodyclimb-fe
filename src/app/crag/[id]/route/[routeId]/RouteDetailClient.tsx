@@ -11,13 +11,12 @@ import {
   MapPin,
   Shield,
   Ruler,
-  Mountain,
   User,
 } from 'lucide-react'
 import { CollapsibleBreadcrumb } from '@/components/ui/collapsible-breadcrumb'
 import BackToTop from '@/components/ui/back-to-top'
 import { routeLoadingManager } from '@/lib/route-loading-manager'
-import { useRouter } from 'next/navigation'
+import { useRouter, useSearchParams } from 'next/navigation'
 import { useToast } from '@/components/ui/use-toast'
 import { RATE_LIMIT_TOAST } from '@/lib/constants'
 import type { RouteDetailData } from '@/lib/crag-data'
@@ -54,6 +53,7 @@ function getInstagramPostId(url: string): string | null {
 export default function RouteDetailClient({ data }: RouteDetailClientProps) {
   const { route, crag, area, relatedRoutes } = data
   const router = useRouter()
+  const searchParams = useSearchParams()
   const { toast } = useToast()
   const [currentPhotoIndex, setCurrentPhotoIndex] = useState(0)
 
@@ -61,6 +61,10 @@ export default function RouteDetailClient({ data }: RouteDetailClientProps) {
   const hasVideos = route.videos && route.videos.length > 0
   const hasYoutubeVideos = route.youtubeVideos && route.youtubeVideos.length > 0
   const hasInstagramPosts = route.instagramPosts && route.instagramPosts.length > 0
+
+  // 保留當前的篩選參數
+  const searchParamsString = searchParams.toString()
+  const queryString = searchParamsString ? `?${searchParamsString}` : ''
 
   // 處理相關路線點擊
   const handleRelatedRouteClick = (routeId: string, e: React.MouseEvent) => {
@@ -73,7 +77,7 @@ export default function RouteDetailClient({ data }: RouteDetailClientProps) {
     }
 
     routeLoadingManager.startLoadingRoute(routeId)
-    router.push(`/crag/${crag.id}/route/${routeId}`)
+    router.push(`/crag/${crag.id}/route/${routeId}${queryString}`)
   }
 
   // 標記路線載入完成
@@ -374,7 +378,7 @@ export default function RouteDetailClient({ data }: RouteDetailClientProps) {
                 {relatedRoutes.map((relRoute) => (
                   <Link
                     key={relRoute.id}
-                    href={`/crag/${crag.id}/route/${relRoute.id}`}
+                    href={`/crag/${crag.id}/route/${relRoute.id}${queryString}`}
                     prefetch={false}
                     onClick={(e) => handleRelatedRouteClick(relRoute.id, e)}
                     className="flex items-center justify-between rounded-lg border border-gray-200 p-4 transition hover:border-[#FFE70C] hover:bg-gray-50"
