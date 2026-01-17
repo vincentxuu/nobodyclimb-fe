@@ -49,6 +49,7 @@ function ProfileCard({ person }: ProfileCardProps) {
                       fill
                       className="object-cover"
                       sizes="40px"
+                      unoptimized
                     />
                   ) : (
                     <div className="flex h-full w-full items-center justify-center">
