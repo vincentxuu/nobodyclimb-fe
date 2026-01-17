@@ -146,7 +146,7 @@ const EditableText = React.memo(function EditableText({
       <span className={value ? 'text-brand-dark' : 'text-subtle'}>
         {value || placeholder}
       </span>
-      <Pencil className="h-3.5 w-3.5 text-subtle opacity-0 transition-opacity group-hover:opacity-100" />
+      <Pencil className="h-3.5 w-3.5 text-subtle opacity-30 transition-opacity group-hover:opacity-100" />
     </button>
   )
 })
@@ -251,7 +251,7 @@ const StoryCard = React.memo(function StoryCard({
               aria-label="未填寫"
             />
           )}
-          <Pencil className="h-4 w-4 text-subtle opacity-0 transition-opacity group-hover:opacity-100" />
+          <Pencil className="h-4 w-4 text-subtle opacity-30 transition-opacity group-hover:opacity-100" />
         </div>
       </div>
       <p className={`text-sm ${isFilled ? 'text-text-subtle line-clamp-2' : 'text-subtle'}`}>
