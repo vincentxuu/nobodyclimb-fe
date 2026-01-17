@@ -14,7 +14,7 @@ import React, { useState, useCallback, useMemo } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import {
   User,
-  Mountain,
+  Gauge,
   Link2,
   BookOpen,
   Sparkles,
@@ -63,7 +63,7 @@ interface TabConfig {
 const TABS: TabConfig[] = [
   { id: 'avatar', icon: <ImageIcon className="h-4 w-4" />, title: '頭像與封面', description: '個人形象照片' },
   { id: 'basic', icon: <User className="h-4 w-4" />, title: '基本資料', description: '暱稱、一句話介紹' },
-  { id: 'climbing', icon: <Mountain className="h-4 w-4" />, title: '攀岩資訊', description: '年資、常去的地方' },
+  { id: 'climbing', icon: <Gauge className="h-4 w-4" />, title: '攀岩資訊', description: '年資、常去的地方' },
   { id: 'social', icon: <Link2 className="h-4 w-4" />, title: '社群連結', description: 'Instagram、YouTube' },
   { id: 'core-stories', icon: <BookOpen className="h-4 w-4" />, title: '核心故事', description: '與攀岩的相遇' },
   { id: 'advanced-stories', icon: <Sparkles className="h-4 w-4" />, title: '小故事', description: '更多攀岩故事' },

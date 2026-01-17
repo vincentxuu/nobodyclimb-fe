@@ -5,7 +5,7 @@ import { useSearchParams, useRouter } from 'next/navigation'
 import { motion } from 'framer-motion'
 import {
   User,
-  Mountain,
+  Gauge,
   Link2,
   BookOpen,
   Sparkles,
@@ -265,7 +265,7 @@ export default function ProfileDashboard() {
 
           {/* 攀岩資訊 */}
           <ProfileDashboardCard
-            icon={<Mountain className="h-5 w-5" />}
+            icon={<Gauge className="h-5 w-5" />}
             title="攀岩資訊"
             description="年資、常去的地方、喜好"
             onClick={() => openPanel('climbing')}
