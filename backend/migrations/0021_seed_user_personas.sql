@@ -22,7 +22,7 @@ INSERT INTO biographies (
   -- 1. Jack - 龍洞傳攀教父
   (
     'persona-jack', 'Jack', 'jack',
-    '龍洞傳攀教父', '攀岩18年的軟體工程師，見證了台灣攀岩運動的發展。從龍洞的第一條傳攀路線開始，至今仍持續開發新路線，致力於傳承傳統攀登的精神與技術。', 'https://api.dicebear.com/7.x/avataaars/svg?seed=Jack&backgroundColor=b6e3f4',
+    '龍洞傳攀教父', '攀岩18年的軟體工程師，見證了台灣攀岩運動的發展。從龍洞的第一條傳攀路線開始，至今仍持續開發新路線，致力於傳承傳統攀登的精神與技術。', 'https://api.dicebear.com/7.x/bottts/svg?seed=Jack&backgroundColor=b6e3f4',
     NULL, '2008', '龍洞、原岩中和',
     '傳統攀登', '大學時參加登山社，在一次溯溪活動中看到學長在瀑布旁的岩壁上攀爬，那種自由的感覺深深吸引了我。', '攀岩對我來說是一種修行，在岩壁上你只能專注當下，所有工作壓力都會消失。',
     '完攀龍洞所有傳攀路線、去優勝美地攀登乾船長', '年輕時應該多花時間在戶外，不要只待在岩館裡。', '2015年首攀龍洞「時光隧道」5.12a，那是我花了三年才完成的計畫路線。',
@@ -42,7 +42,7 @@ INSERT INTO biographies (
   -- 2. Mia - 競技抱石新星
   (
     'persona-mia', 'Mia', 'mia',
-    '競技抱石新星', '23歲的運動科學研究生，專攻競技抱石。從高中開始接觸攀岩，大學時期獲得全大運金牌，目前是國家隊培訓選手，目標是站上國際賽場。', 'https://api.dicebear.com/7.x/adventurer/svg?seed=Mia&backgroundColor=ffd5dc',
+    '競技抱石新星', '23歲的運動科學研究生，專攻競技抱石。從高中開始接觸攀岩，大學時期獲得全大運金牌，目前是國家隊培訓選手，目標是站上國際賽場。', 'https://api.dicebear.com/7.x/fun-emoji/svg?seed=Mia&backgroundColor=ffd5dc',
     NULL, '2020', 'MegaSTONE、市民抱石',
     '競技抱石', '高中體育課的攀岩體驗，發現自己很擅長解決路線問題，教練說我很有天份。', '攀岩是我表達自己的方式，在岩壁上我可以展現最好的自己。',
     '參加世界盃巡迴賽、進入奧運培訓名單', '不要太在意比賽結果，享受每一次攀爬的過程。', '2025年全大運抱石金牌，那是我第一個全國冠軍。',
@@ -62,7 +62,7 @@ INSERT INTO biographies (
   -- 3. Kevin - 健身轉攀岩的台中陽光男
   (
     'persona-kevin', 'Kevin', 'kevin',
-    '健身教練的攀岩之路', '31歲健身教練，4年前從健身房踏入攀岩館，發現攀岩比單純舉鐵更有趣。現在專注於運動攀登，在台中岩友圈相當活躍，常常帶新手入門。', 'https://i.pravatar.cc/200?u=kevin-climber',
+    '健身教練的攀岩之路', '31歲健身教練，4年前從健身房踏入攀岩館，發現攀岩比單純舉鐵更有趣。現在專注於運動攀登，在台中岩友圈相當活躍，常常帶新手入門。', 'https://api.dicebear.com/7.x/pixel-art/svg?seed=Kevin&backgroundColor=c0aede',
     NULL, '2022', 'Dapro、攀吶進化館',
     '運動攀登', '健身房的會員揪我去 Dapro 體驗，本來以為肌肉大就會爬得好，結果被打臉。', '攀岩給了我新的挑戰，讓我的訓練更有目標和樂趣。',
     '完攀 5.12a、挑戰龍洞戶外路線', '不要怕丟臉，初學者爬簡單路線很正常。', '第一次完攀 5.11c，證明自己不只是有肌肉而已。',
@@ -82,7 +82,7 @@ INSERT INTO biographies (
   -- 4. Grace - 銀髮族的攀岩人生
   (
     'persona-grace', 'Grace', 'grace',
-    '退休後的攀岩新人生', '58歲退休國小老師，8年前退休後開始接觸攀岩。最愛去龍洞校門口曬太陽、慢慢爬，享受戶外攀岩的樂趣。證明年齡不是限制，只要願意開始，什麼時候都不晚。', 'https://api.dicebear.com/7.x/lorelei/svg?seed=Grace&backgroundColor=c0aede',
+    '退休後的攀岩新人生', '58歲退休國小老師，8年前退休後開始接觸攀岩。最愛去龍洞校門口曬太陽、慢慢爬，享受戶外攀岩的樂趣。證明年齡不是限制，只要願意開始，什麼時候都不晚。', 'https://api.dicebear.com/7.x/thumbs/svg?seed=Grace&backgroundColor=d1f4d1',
     NULL, '2018', 'Camp4北投、龍洞',
     '戶外運攀', '退休後想找個運動，朋友帶我去 Camp4 體驗，沒想到一試就愛上了。', '攀岩是我退休生活最美好的禮物，讓我的人生有了新的目標。',
     '把龍洞校門口的路線都爬過一遍', '當初應該更早開始運動，但現在開始也不晚。', '第一次在龍洞完攀 5.8，當時激動得快哭了。',
@@ -102,7 +102,7 @@ INSERT INTO biographies (
   -- 5. Wayne - 在台美國人的攀岩故事
   (
     'persona-wayne', 'Wayne', 'wayne',
-    '在台美國人的攀岩十年', '36歲美國人，在台灣工作已經10年，中文流利。在美國時就開始攀岩，來台後發現龍洞是亞洲最棒的岩場之一，現在是台灣攀岩社群的活躍成員。', 'https://i.pravatar.cc/200?u=wayne-climber',
+    '在台美國人的攀岩十年', '36歲美國人，在台灣工作已經10年，中文流利。在美國時就開始攀岩，來台後發現龍洞是亞洲最棒的岩場之一，現在是台灣攀岩社群的活躍成員。', 'https://api.dicebear.com/7.x/bottts/svg?seed=Wayne&backgroundColor=ffeaa7',
     NULL, '2017', '原岩南港、龍洞',
     '運動攀登', '在美國大學時加入攀岩社，那是我第一次接觸攀岩。', '攀岩讓我在異鄉找到歸屬感，透過攀岩認識了很多台灣朋友。',
     '完攀龍洞所有 5.12 路線、回美國爬 Yosemite', '剛來台灣時應該更積極融入社群，不要只跟外國人爬。', '第一次在龍洞完攀 5.12b，那條路線很經典。',
@@ -122,7 +122,7 @@ INSERT INTO biographies (
   -- 6. Coral - 東海岸的海洋女孩
   (
     'persona-coral', 'Coral', 'coral',
-    '東海岸的海蝕岩女孩', '29歲海洋生物研究員，在花蓮長大，熱愛大海和岩石。專攻東海岸的戶外抱石，對海蝕岩地形有獨特的理解，常常在研究之餘探索新的抱石點。', 'https://api.dicebear.com/7.x/adventurer/svg?seed=Coral&backgroundColor=d1f4d1',
+    '東海岸的海蝕岩女孩', '29歲海洋生物研究員，在花蓮長大，熱愛大海和岩石。專攻東海岸的戶外抱石，對海蝕岩地形有獨特的理解，常常在研究之餘探索新的抱石點。', 'https://api.dicebear.com/7.x/fun-emoji/svg?seed=Coral&backgroundColor=a8e6cf',
     NULL, '2019', '禾匠攀岩、龍洞',
     '戶外抱石', '從小在海邊長大，常常爬礁岩玩，後來才知道這叫抱石。', '攀岩讓我用不同的方式親近大海和岩石，結合了我的兩個最愛。',
     '記錄東海岸所有可攀爬的海蝕岩點', '應該更早開始系統性的訓練。', '發現一個沒人爬過的海蝕岩點，完成了首攀。',
@@ -142,7 +142,7 @@ INSERT INTO biographies (
   -- 7. Derek - 數據分析師的科學攀岩法
   (
     'persona-derek', 'Derek', 'derek',
-    '用數據攀岩的工程師', '33歲數據工程師，把工作的分析思維帶入攀岩。自製訓練 app 追蹤進度，用科學方法規劃訓練，5年內從完全新手到 5.11d，證明系統化訓練的效果。', 'https://ui-avatars.com/api/?name=Derek&background=0D8ABC&color=fff&size=200',
+    '用數據攀岩的工程師', '33歲數據工程師，把工作的分析思維帶入攀岩。自製訓練 app 追蹤進度，用科學方法規劃訓練，5年內從完全新手到 5.11d，證明系統化訓練的效果。', 'https://api.dicebear.com/7.x/identicon/svg?seed=Derek&backgroundColor=74b9ff',
     NULL, '2021', '角攀岩館華山、原岩中和',
     '運動攀登', '同事揪去角攀華山體驗，發現攀岩是可以量化和分析的運動。', '攀岩是我用腦也用身體的運動，兩者的結合很有趣。',
     '完攀 5.12a、開發更完善的訓練追蹤系統', '一開始太著重數據，忽略了攀岩的樂趣。', '用自己開發的 app 追蹤訓練三個月，成功突破瓶頸期。',
@@ -162,7 +162,7 @@ INSERT INTO biographies (
   -- 8. Lily - 瑜伽與攀岩的身心整合
   (
     'persona-lily', 'Lily', 'lily',
-    '瑜伽老師的攀岩之道', '37歲瑜伽老師，8年前開始攀岩。將瑜伽的呼吸和身體覺察帶入攀岩，發展出獨特的教學方式，幫助學生在攀岩中找到身心平衡。', 'https://api.dicebear.com/7.x/lorelei/svg?seed=Lily&backgroundColor=ffdfbf',
+    '瑜伽老師的攀岩之道', '37歲瑜伽老師，8年前開始攀岩。將瑜伽的呼吸和身體覺察帶入攀岩，發展出獨特的教學方式，幫助學生在攀岩中找到身心平衡。', 'https://api.dicebear.com/7.x/shapes/svg?seed=Lily&backgroundColor=ffdfbf',
     NULL, '2018', '心流抱石、原岩萬華',
     '抱石', '瑜伽學生跟我說攀岩也需要身體覺察，就去試試看了。', '攀岩讓我的瑜伽教學更完整，兩者互相補充。',
     '開設瑜伽結合攀岩的工作坊', '不要太執著於難度，享受攀爬的過程。', '帶領第一場「瑜伽 x 攀岩」工作坊，反應很好。',
@@ -182,7 +182,7 @@ INSERT INTO biographies (
   -- 9. Danny - 大學攀岩社的熱血社長
   (
     'persona-danny', 'Danny', 'danny',
-    '台大攀岩社的熱血社長', '21歲台大學生，3年前加入攀岩社就愛上這項運動。現任社長，積極推廣攀岩運動，常常揪團去岩館和戶外，是社團裡的開心果。', 'https://api.dicebear.com/7.x/adventurer/svg?seed=Danny&backgroundColor=c0f4f4',
+    '台大攀岩社的熱血社長', '21歲台大學生，3年前加入攀岩社就愛上這項運動。現任社長，積極推廣攀岩運動，常常揪團去岩館和戶外，是社團裡的開心果。', 'https://api.dicebear.com/7.x/pixel-art/svg?seed=Danny&backgroundColor=c0f4f4',
     NULL, '2023', '千手抱石、奇岩',
     '抱石', '大一社團博覽會被攀岩社的照片吸引，就去試試看了。', '攀岩是我大學生活的重要部分，社團就像第二個家。',
     '帶社員去龍洞、辦一場成功的校際攀岩賽', '應該大一就加入，不要浪費時間。', '帶領社員第一次去龍洞，大家都超興奮。',
@@ -202,7 +202,7 @@ INSERT INTO biographies (
   -- 10. Linda - 最勵志的銀髮攀岩者
   (
     'persona-linda', 'Linda', 'linda',
-    '62歲開始的攀岩人生', '66歲退休會計師，62歲那年孫子帶她去岩館體驗，從此愛上攀岩。雖然難度不高，但她的毅力和樂觀感染了身邊所有人，是岩館裡最受歡迎的阿嬤。', 'https://api.dicebear.com/7.x/avataaars/svg?seed=Linda&backgroundColor=ffeaa7',
+    '62歲開始的攀岩人生', '66歲退休會計師，62歲那年孫子帶她去岩館體驗，從此愛上攀岩。雖然難度不高，但她的毅力和樂觀感染了身邊所有人，是岩館裡最受歡迎的阿嬤。', 'https://api.dicebear.com/7.x/thumbs/svg?seed=Linda&backgroundColor=ffeaa7',
     NULL, '2022', '趣攀岩永和、原岩萬華',
     '室內抱石', '孫子說帶我去玩一個好玩的運動，沒想到是爬牆。', '攀岩是我退休後最開心的事，每次去岩館都很期待。',
     '完攀 V3、鼓勵更多銀髮族嘗試攀岩', '不要因為年紀大就覺得什麼都不行。', '第一次完攀 V2，孫子幫我拍影片，我哭了。',
@@ -222,7 +222,7 @@ INSERT INTO biographies (
   -- 11. Ben - 減重成功的勵志故事
   (
     'persona-ben', 'Ben', 'ben',
-    '減重35公斤的攀岩之路', '36歲小吃店老闆，6年前體重120公斤時開始攀岩，如今已減到85公斤。攀岩成為他的動力來源，不只改變體態也改變人生態度。', 'https://i.pravatar.cc/200?u=ben-climber',
+    '減重35公斤的攀岩之路', '36歲小吃店老闆，6年前體重120公斤時開始攀岩，如今已減到85公斤。攀岩成為他的動力來源，不只改變體態也改變人生態度。', 'https://api.dicebear.com/7.x/bottts/svg?seed=Ben&backgroundColor=fab1a0',
     NULL, '2020', 'B-plus太原、Dapro',
     '運動攀登', '醫生說再不減肥會有健康問題，朋友建議試試攀岩。', '攀岩改變了我的人生，不只是體重，還有整個心態。',
     '完攀 5.12a、參加攀岩比賽', '應該更早開始運動，不要等到身體出問題。', '第一次完攀 5.11a，體重已經掉了 25 公斤那時候。',
@@ -242,7 +242,7 @@ INSERT INTO biographies (
   -- 12. Wind - 資深攀岩教練
   (
     'persona-wind', 'Wind', 'wind',
-    '台灣攀岩界的資深教練', '43歲攀岩教練兼定線員，16年的攀岩經歷讓他成為業界資深人物。在原岩體系任教多年，培育了無數攀岩新人，對台灣攀岩運動的發展貢獻良多。', 'https://api.dicebear.com/7.x/avataaars/svg?seed=Wind&backgroundColor=a8e6cf',
+    '台灣攀岩界的資深教練', '43歲攀岩教練兼定線員，16年的攀岩經歷讓他成為業界資深人物。在原岩體系任教多年，培育了無數攀岩新人，對台灣攀岩運動的發展貢獻良多。', 'https://api.dicebear.com/7.x/fun-emoji/svg?seed=Wind&backgroundColor=a8e6cf',
     NULL, '2010', '原岩體系、龍洞',
     '運動攀登', '大學時期在美國交換學生接觸攀岩，回台後決定投入這個產業。', '攀岩是我的事業也是生活，我無法想像沒有攀岩的日子。',
     '培養出參加奧運的選手、讓更多人認識攀岩', '年輕時太拼，應該更注重恢復和長期發展。', '看著自己教的學生第一次完攀的表情，這是最棒的回報。',
@@ -262,7 +262,7 @@ INSERT INTO biographies (
   -- 13. Vivian - 物理治療師的攀岩觀點
   (
     'persona-vivian', 'Vivian', 'vivian',
-    '攀岩傷害預防專家', '34歲物理治療師，7年前開始攀岩後，結合專業知識專注於攀岩傷害預防。在岩館開設傷害預防講座，幫助許多攀岩者避免和處理運動傷害。', 'https://api.dicebear.com/7.x/adventurer/svg?seed=Vivian&backgroundColor=ffd3e0',
+    '攀岩傷害預防專家', '34歲物理治療師，7年前開始攀岩後，結合專業知識專注於攀岩傷害預防。在岩館開設傷害預防講座，幫助許多攀岩者避免和處理運動傷害。', 'https://api.dicebear.com/7.x/shapes/svg?seed=Vivian&backgroundColor=ffd3e0',
     NULL, '2019', 'MegaSTONE、小岩館',
     '抱石', '病人有攀岩傷害來看診，我很好奇這是什麼運動就去試了。', '能結合專業幫助攀岩社群，這是很有意義的事。',
     '出版攀岩傷害預防手冊', '應該更早重視預防，而不是等到受傷才處理。', '第一次辦傷害預防講座，來了 50 幾個人。',
@@ -282,7 +282,7 @@ INSERT INTO biographies (
   -- 14. Leo - 攀岩攝影師的視角
   (
     'persona-leo', 'Leo', 'leo',
-    '用鏡頭記錄攀岩之美', '29歲攀岩攝影師，9年的攀岩經驗讓他成為專業的戶外攀岩攝影師。IG擁有5萬追蹤者，作品記錄了台灣各地岩場的壯麗風景和攀岩者的精彩時刻。', 'https://i.pravatar.cc/200?u=leo-climber',
+    '用鏡頭記錄攀岩之美', '29歲攀岩攝影師，9年的攀岩經驗讓他成為專業的戶外攀岩攝影師。IG擁有5萬追蹤者，作品記錄了台灣各地岩場的壯麗風景和攀岩者的精彩時刻。', 'https://api.dicebear.com/7.x/pixel-art/svg?seed=Leo&backgroundColor=dfe6e9',
     NULL, '2017', '龍洞、壽山、墾丁',
     '戶外運攀', '高中開始玩攝影，大學接觸攀岩後發現可以結合兩者。', '能用影像記錄攀岩的美，並分享給更多人，這是我的使命。',
     '出版台灣攀岩攝影集、幫世界級攀岩者拍照', '應該更早開始記錄台灣的岩場，很多畫面錯過了。', '有張龍洞夕陽攀岩照被國際攀岩媒體採用。',
@@ -302,7 +302,7 @@ INSERT INTO biographies (
   -- 15. Christine - 親子攀岩推廣者
   (
     'persona-christine', 'Christine', 'christine',
-    '帶著孩子一起攀岩的媽媽', '40歲全職媽媽，6年前帶孩子去岩館後自己也愛上攀岩。現在全家都是攀岩愛好者，三個孩子最小的6歲最大的12歲，週末都會一起去岩館或戶外。', 'https://api.dicebear.com/7.x/lorelei/svg?seed=Christine&backgroundColor=d4f1f9',
+    '帶著孩子一起攀岩的媽媽', '40歲全職媽媽，6年前帶孩子去岩館後自己也愛上攀岩。現在全家都是攀岩愛好者，三個孩子最小的6歲最大的12歲，週末都會一起去岩館或戶外。', 'https://api.dicebear.com/7.x/thumbs/svg?seed=Christine&backgroundColor=d4f1f9',
     NULL, '2020', '內湖運動中心、奇岩',
     '親子攀岩', '帶孩子去岩館消耗體力，沒想到自己也被吸引了。', '攀岩讓我們家的親子關係更緊密。',
     '帶孩子去龍洞完成戶外初體驗', '應該更早開始，攀岩對孩子的發展很有幫助。', '看到三個孩子都完攀自己的目標路線，那是最驕傲的時刻。',
@@ -322,7 +322,7 @@ INSERT INTO biographies (
   -- 16. Stone - 地質學教授的岩石之愛
   (
     'persona-stone', 'Stone', 'stone',
-    '用地質學眼光攀岩', '47歲大學地質學教授，14年攀岩經歷。用專業的地質學知識理解岩壁的形成和特性，被稱為「龍洞活百科」，常常在攀岩時分享岩石的故事。', 'https://ui-avatars.com/api/?name=Stone&background=8B7355&color=fff&size=200',
+    '用地質學眼光攀岩', '47歲大學地質學教授，14年攀岩經歷。用專業的地質學知識理解岩壁的形成和特性，被稱為「龍洞活百科」，常常在攀岩時分享岩石的故事。', 'https://api.dicebear.com/7.x/identicon/svg?seed=Stone&backgroundColor=dcd6f7',
     NULL, '2012', '龍洞、關子嶺',
     '傳統攀登', '研究地質就要接觸岩石，攀岩讓我能更親近研究對象。', '攀岩結合了我的專業和熱情，這是最完美的組合。',
     '記錄台灣各岩場的地質特性', '應該更早開始系統性地記錄台灣岩場的地質。', '帶學生去龍洞做地質考察兼攀岩，大家都很興奮。',
@@ -342,7 +342,7 @@ INSERT INTO biographies (
   -- 17. Nina - 夜班護理師的攀岩紓壓
   (
     'persona-nina', 'Nina', 'nina',
-    '夜班後的攀岩時光', '31歲急診護理師，5年前開始攀岩作為夜班後的紓壓方式。雖然時間不多，但攀岩讓她在高壓工作中找到平衡，成為生活中不可或缺的一部分。', 'https://api.dicebear.com/7.x/avataaars/svg?seed=Nina&backgroundColor=dcd6f7',
+    '夜班後的攀岩時光', '31歲急診護理師，5年前開始攀岩作為夜班後的紓壓方式。雖然時間不多，但攀岩讓她在高壓工作中找到平衡，成為生活中不可或缺的一部分。', 'https://api.dicebear.com/7.x/bottts/svg?seed=Nina&backgroundColor=dcd6f7',
     NULL, '2021', '紅石士林、double 8',
     '室內抱石', '夜班下班後需要發洩壓力，同事推薦了抱石。', '攀岩是我工作和生活的平衡點，沒有它我可能會瘋掉。',
     '完攀 V6、嘗試戶外抱石', '應該更早開始運動，不要等到身體出警訊。', '夜班後去岩館，完攀一條 project，那種成就感治癒了疲憊。',
@@ -362,7 +362,7 @@ INSERT INTO biographies (
   -- 18. Roger - 壽山岩場的守護者
   (
     'persona-roger', 'Roger', 'roger',
-    '壽山岩場的守護者', '52歲有機農夫，在高雄經營小農場。10年前開始在壽山攀岩，對當地岩場瞭若指掌，常常帶新手認識這片土地，是南部攀岩社群的重要人物。', 'https://i.pravatar.cc/200?u=roger-climber',
+    '壽山岩場的守護者', '52歲有機農夫，在高雄經營小農場。10年前開始在壽山攀岩，對當地岩場瞭若指掌，常常帶新手認識這片土地，是南部攀岩社群的重要人物。', 'https://api.dicebear.com/7.x/fun-emoji/svg?seed=Roger&backgroundColor=ffeaa7',
     NULL, '2016', '壽山、抱石基地',
     '戶外抱石', '住在壽山腳下，看到有人在爬石頭就跟著爬了。', '攀岩讓我更親近這片土地，也讓我認識很多朋友。',
     '記錄壽山所有可攀爬的石頭、推廣在地攀岩文化', '應該更早開始記錄壽山的岩點。', '帶一群人完成壽山抱石巡禮，大家都很開心。',
@@ -382,7 +382,7 @@ INSERT INTO biographies (
   -- 19. Amy - 科技業主管的攀岩紓壓
   (
     'persona-amy', 'Amy', 'amy',
-    '科技業女強人的攀岩人生', '35歲科技公司主管，4年前開始攀岩。在高壓的工作環境中，攀岩成為她最好的紓壓方式。週末會從新竹北上或南下尋找不同的岩館。', 'https://api.dicebear.com/7.x/lorelei/svg?seed=Amy&backgroundColor=fce4ec',
+    '科技業女強人的攀岩人生', '35歲科技公司主管，4年前開始攀岩。在高壓的工作環境中，攀岩成為她最好的紓壓方式。週末會從新竹北上或南下尋找不同的岩館。', 'https://api.dicebear.com/7.x/shapes/svg?seed=Amy&backgroundColor=fce4ec',
     NULL, '2022', 'iClimb風城、紅石新竹',
     '運動攀登', '工作壓力大到失眠，朋友建議我試試攀岩。', '攀岩讓我在高壓工作中找到平衡，是不可或缺的紓壓管道。',
     '完攀 5.11a、建立工作與生活的平衡', '不要等到身體出問題才開始運動。', '在重要專案結束後完攀了一條 project，那是最好的慶祝。',
@@ -402,7 +402,7 @@ INSERT INTO biographies (
   -- 20. Monkey - 天生的攀爬好手
   (
     'persona-monkey', 'Monkey', 'monkey',
-    '天生的攀爬動物', '27歲攀樹師，從小就喜歡爬樹，長大後把興趣變成職業。8年前開始接觸攀岩，發現動態動作是他的強項，被朋友稱為「猴子」，在岩館的 dyno 路線幾乎無人能敵。', 'https://api.dicebear.com/7.x/adventurer/svg?seed=Monkey&backgroundColor=ffe0b2',
+    '天生的攀爬動物', '27歲攀樹師，從小就喜歡爬樹，長大後把興趣變成職業。8年前開始接觸攀岩，發現動態動作是他的強項，被朋友稱為「猴子」，在岩館的 dyno 路線幾乎無人能敵。', 'https://api.dicebear.com/7.x/pixel-art/svg?seed=Monkey&backgroundColor=ffe0b2',
     NULL, '2018', '爬森攀岩館、龍洞',
     '動態抱石', '從小就愛爬樹，攀岩是很自然的延伸。', '攀岩和工作都是在攀爬，我的人生就是在垂直世界。',
     '完攀 V8、成為動態路線的代名詞', '應該更早接觸系統化訓練。', '在比賽中完成別人跳不到的 dyno，全場歡呼。',
