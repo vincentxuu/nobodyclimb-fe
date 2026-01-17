@@ -199,9 +199,108 @@
 
 ---
 
+### 9. Rock Climbing: Mastering Basic Skills
+
+**攀岩基礎技巧**
+
+| 項目 | 說明 |
+|------|------|
+| 類型 | 攀岩入門教科書 |
+| 作者 | Topher Donahue & Craig Luebben |
+| 出版 | Mountaineers Books（第 2 版，2014） |
+| 權威性 | 被廣泛用於攀岩課程教學 |
+| 主要內容 | 從室內到戶外的完整入門指南 |
+
+**涵蓋章節**：
+- 裝備認識與選擇
+- 繩結技術
+- 頂繩與先鋒攀登
+- 固定點基礎
+- 戶外攀岩轉換
+
+**適用主題**：
+- 入門級題目的知識基礎
+- 裝備使用教學
+- 室內到戶外的進階路徑
+
+---
+
+### 10. The Climbing Bible
+
+**攀岩聖經**
+
+| 項目 | 說明 |
+|------|------|
+| 類型 | 現代攀岩綜合教材 |
+| 作者 | Martin Mobråten & Stian Christophersen |
+| 出版 | Vertebrate Publishing（2020） |
+| 權威性 | 挪威頂尖攀岩者編寫，內容現代化 |
+| 主要內容 | 技術、訓練、心理的全方位指南 |
+
+**特色**：
+- 大量高品質照片與圖解
+- 涵蓋運動攀登與抱石
+- 訓練計畫與傷害預防
+- 比賽策略
+
+**適用主題**：
+- 現代攀岩技術觀點
+- 動作技巧分析
+- 訓練相關題目
+
+---
+
+### 11. Training for Climbing (Eric J. Hörst)
+
+**攀岩訓練專書**
+
+| 項目 | 說明 |
+|------|------|
+| 類型 | 攀岩體能與心理訓練 |
+| 作者 | Eric J. Hörst |
+| 出版 | Falcon Guides（第 3 版，2016） |
+| 權威性 | 攀岩訓練領域的權威著作 |
+| 網站 | https://trainingforclimbing.com/ |
+
+**涵蓋主題**：
+- 攀岩專項體能訓練
+- 心理訓練與恐懼管理
+- 傷害預防與恢復
+- 營養與生活方式
+
+**適用主題**：
+- 訓練相關知識
+- 攀岩生理學基礎
+
+---
+
+### 12. Crack Climbing (Pete Whittaker)
+
+**裂隙攀登專書**
+
+| 項目 | 說明 |
+|------|------|
+| 類型 | 裂隙攀登技術專書 |
+| 作者 | Pete Whittaker（Wide Boyz） |
+| 出版 | Vertebrate Publishing（2020） |
+| 權威性 | 世界頂級裂隙攀登者編寫 |
+| 主要內容 | 各種裂隙寬度的攀爬技術 |
+
+**涵蓋主題**：
+- 手指裂隙到煙囪
+- 手部與腳部卡塞技術
+- 保護裝備放置
+- 經典路線介紹
+
+**適用主題**：
+- 傳統攀登技術
+- 裂隙中的保護裝備放置
+
+---
+
 ## 線上教育平台
 
-### 9. VDiff Climbing
+### 13. VDiff Climbing
 
 **攀岩技術教學網站**
 
@@ -226,7 +325,7 @@
 
 ---
 
-### 10. REI Expert Advice - Climbing
+### 14. REI Expert Advice - Climbing
 
 **REI 攀岩教學資源**
 
@@ -249,9 +348,126 @@
 
 ---
 
+### 15. Mountain Project
+
+**美國最大攀岩路線資料庫**
+
+| 項目 | 說明 |
+|------|------|
+| 類型 | 攀岩路線資料庫與社群論壇 |
+| 權威性 | 最大的英文攀岩資訊平台 |
+| 主要內容 | 路線資訊、論壇討論、技術文章 |
+| 網站 | https://www.mountainproject.com/ |
+| 論壇 | https://www.mountainproject.com/forum |
+
+**重點資源**：
+- [攀岩入門文章](https://www.mountainproject.com/articles)
+- [論壇技術討論](https://www.mountainproject.com/forum/climbing-disciplines)
+- 使用者經驗分享
+
+**適用主題**：
+- 實際攀岩情境參考
+- 社群常見問題與解答
+- 美國岩場資訊
+
+---
+
+### 16. UKClimbing (UKC)
+
+**英國攀岩資訊平台**
+
+| 項目 | 說明 |
+|------|------|
+| 類型 | 攀岩新聞、技術文章、路線資料庫 |
+| 權威性 | 英國最大攀岩社群，技術文章品質高 |
+| 主要內容 | 新聞、技術文章、裝備評測、論壇 |
+| 網站 | https://www.ukclimbing.com/ |
+| 技術文章 | https://www.ukclimbing.com/articles/skills/ |
+
+**重點資源**：
+- [技術技巧文章](https://www.ukclimbing.com/articles/skills/)
+- [裝備評測](https://www.ukclimbing.com/gear/)
+- [安全相關文章](https://www.ukclimbing.com/articles/skills/series/safe_climbing/)
+
+**適用主題**：
+- 進階技術討論
+- 裝備深度評測
+- 英國/歐洲觀點的技術標準
+
+---
+
+### 17. Climbing Magazine
+
+**攀岩雜誌**
+
+| 項目 | 說明 |
+|------|------|
+| 類型 | 美國主流攀岩雜誌 |
+| 權威性 | 創刊於 1970 年，業界權威媒體 |
+| 主要內容 | 新聞、人物專訪、技術教學、裝備評測 |
+| 網站 | https://www.climbing.com/ |
+| 技術文章 | https://www.climbing.com/skills/ |
+
+**重點資源**：
+- [技術教學](https://www.climbing.com/skills/)
+- [安全專欄](https://www.climbing.com/skills/climb-safe/)
+- [訓練指南](https://www.climbing.com/skills/training/)
+
+**適用主題**：
+- 技術文章參考
+- 最新安全資訊
+- 專業攀岩者的建議
+
+---
+
+## 影片教學資源
+
+### 18. YouTube 專業頻道
+
+以下為具有教育價值的攀岩 YouTube 頻道：
+
+#### EpicTV Climbing Daily
+
+| 項目 | 說明 |
+|------|------|
+| 訂閱數 | 100 萬+ |
+| 內容 | 攀岩新聞、技術教學、紀錄片 |
+| 連結 | https://www.youtube.com/@EpicTV |
+
+#### Hard Is Easy (Magnus Midtbø)
+
+| 項目 | 說明 |
+|------|------|
+| 訂閱數 | 200 萬+ |
+| 內容 | 職業攀岩者視角、技術示範、挑戰 |
+| 連結 | https://www.youtube.com/@MagnusMidtbø |
+
+#### Mani the Monkey
+
+| 項目 | 說明 |
+|------|------|
+| 訂閱數 | 30 萬+ |
+| 內容 | 訓練技巧、抱石技術、裝備評測 |
+| 連結 | https://www.youtube.com/@ManitheMonkey |
+
+#### Geek Climber
+
+| 項目 | 說明 |
+|------|------|
+| 訂閱數 | 40 萬+ |
+| 內容 | 訓練科學、數據分析、裝備測試 |
+| 連結 | https://www.youtube.com/@GeekClimber |
+
+**適用主題**：
+- 視覺化技術示範
+- 現代攀岩趨勢
+- 訓練方法參考
+
+---
+
 ## 中文資源
 
-### 11. 中華民國山岳協會
+### 19. 中華民國山岳協會
 
 | 項目 | 說明 |
 |------|------|
@@ -259,13 +475,23 @@
 | 主要內容 | 登山安全教育、嚮導培訓 |
 | 網站 | https://www.mountaineering.org.tw/ |
 
-### 12. 台灣攀岩資料庫
+### 20. 台灣攀岩資料庫
 
 | 項目 | 說明 |
 |------|------|
 | 類型 | 台灣攀岩路線與資訊 |
 | 主要內容 | 在地岩場資訊、社群經驗分享 |
 | 網站 | https://www.climbing.org.tw/ |
+
+---
+
+### 21. 相關中文書籍
+
+| 書名 | 作者/出版 | 說明 |
+|------|-----------|------|
+| 《攀岩技術教本》 | 中華民國山岳協會 | 台灣官方攀岩教材 |
+| 《傳統攀登》 | 易思婷 | 繁體中文傳攀入門 |
+| 《一攀就上手》 | 李虹瑩 | 攀岩入門書籍 |
 
 ---
 
@@ -299,3 +525,4 @@
 | 日期 | 更新內容 |
 |------|----------|
 | 2024-01 | 初版建立，收錄 12 個來源 |
+| 2024-01 | 擴充至 21 個來源，新增教科書、線上平台、影片頻道 |
