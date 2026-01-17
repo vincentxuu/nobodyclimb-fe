@@ -104,7 +104,7 @@ biographiesRoutes.get('/featured', async (c) => {
      FROM biographies b
      LEFT JOIN users u ON b.user_id = u.id
      WHERE b.is_public = 1 AND b.is_featured = 1
-     ORDER BY b.published_at DESC, b.created_at DESC
+     ORDER BY CASE WHEN b.user_id IS NOT NULL THEN 0 ELSE 1 END, b.published_at DESC, b.created_at DESC
      LIMIT ?`
   )
     .bind(limit)
