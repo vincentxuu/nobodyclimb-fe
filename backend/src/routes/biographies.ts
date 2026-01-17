@@ -77,7 +77,7 @@ biographiesRoutes.get('/', async (c) => {
      FROM biographies b
      LEFT JOIN users u ON b.user_id = u.id
      WHERE ${whereClause}
-     ORDER BY b.is_featured DESC, b.published_at DESC, b.created_at DESC
+     ORDER BY CASE WHEN b.user_id IS NOT NULL THEN 0 ELSE 1 END, b.is_featured DESC, b.published_at DESC, b.created_at DESC
      LIMIT ? OFFSET ?`
   )
     .bind(...params, limit, offset)
