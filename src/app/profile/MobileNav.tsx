@@ -2,7 +2,7 @@
 
 import React, { useCallback } from 'react'
 import { useRouter, usePathname } from 'next/navigation'
-import { UserCircle, FileText, Bookmark, Settings, Target, Image, BarChart3 } from 'lucide-react'
+import { UserCircle, FileText, Bookmark, Settings, Target, ImageIcon, BarChart3 } from 'lucide-react'
 
 // 所有導航項目（水平滾動）
 const menuItems = [
@@ -25,7 +25,7 @@ const menuItems = [
   {
     name: '照片',
     href: '/profile/photos',
-    icon: Image,
+    icon: ImageIcon,
   },
   {
     name: '成就',

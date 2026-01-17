@@ -81,7 +81,9 @@ import { IconName } from 'lucide-react'
 
 | Icon | 檔案位置 | 用途 |
 |------|----------|------|
-| `Mountain` | `biography/like-button.tsx`, `biography/biography-like-button.tsx`, `crag/route-section.tsx` | **按讚按鈕**、路線區塊 |
+| `Mountain` | `biography/like-button.tsx`, `biography/biography-like-button.tsx`, `lib/constants/badges.ts` | **按讚按鈕**（鼓勵大使徽章） |
+| `Tag` | `crag/route-section.tsx`, `crag/route-preview-panel.tsx` | 路線類型 |
+| `Shield` | `crag/route-section.tsx`, `crag/route-preview-panel.tsx` | 保護資訊、Bolt |
 | `MapPin` | `home/explore-crag-section.tsx`, `gallery/upload-photo-dialog.tsx`, 多處 | 地點資訊 |
 | `Globe` | `profile/dashboard/ProfileDashboard.tsx`, `biography/climbing-footprints-editor.tsx` | 全球、公開設定 |
 | `Ruler` | `crag/route-section.tsx`, `crag/route-preview-panel.tsx` | 路線長度 |
@@ -105,7 +107,7 @@ import { IconName } from 'lucide-react'
 |------|----------|------|
 | `Play` | `videos/video-card.tsx`, `home/featured-videos-section.tsx` | 影片播放 |
 | `Youtube` | `crag/youtube-live-card.tsx`, `crag/route-section.tsx` | YouTube 連結 |
-| `ImageIcon` | `ProfileSidebar.tsx`, `editor/ImageUploader.tsx` | 照片區塊 |
+| `ImageIcon` | `ProfileSidebar.tsx`, `app/profile/MobileNav.tsx`, `editor/ImageUploader.tsx` | 照片區塊 |
 | `ImagePlus` | `profile/image-gallery/ProfileImageSection.tsx` | 新增照片 |
 | `FileText` | `ProfileSidebar.tsx`, `app/blog/page.tsx` | 文章/部落格 |
 | `BookOpen` | `biography/story-card.tsx`, `profile/dashboard/ProfileDashboard.tsx` | 故事功能 |
@@ -208,7 +210,6 @@ import { IconName } from 'lucide-react'
 | `Copy` | 複製功能 |
 | `Maximize` / `Minimize` | 全螢幕切換 |
 | `Zap` | 能量/快速功能 |
-| `Shield` | 安全/隱私設定 |
 | `HelpCircle` | 幫助/FAQ |
 
 ---
@@ -237,3 +238,5 @@ import { IconName } from 'lucide-react'
 |------|----------|
 | 2026-01-17 | 建立文件，記錄所有 icon 使用情況 |
 | 2026-01-17 | 攀岩資訊 icon 從 `Mountain` 改為 `Gauge` |
+| 2026-01-17 | 路線類型改用 `Tag`、保護資訊改用 `Shield`，統一 `Mountain` 專用於按讚 |
+| 2026-01-17 | 統一照片區塊使用 `ImageIcon`（移除 `Image` 用法） |

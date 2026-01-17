@@ -1,6 +1,6 @@
 'use client'
 
-import { Mountain, Ruler, User, Youtube } from 'lucide-react'
+import { Tag, Shield, Ruler, User, Youtube } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 
 export interface RoutePreviewData {
@@ -69,7 +69,7 @@ export function RoutePreviewPanel({
               {route.grade}
             </span>
             <span className="inline-flex items-center rounded-full bg-gray-100 px-3 py-1 text-sm text-gray-600">
-              <Mountain size={14} className="mr-1" />
+              <Tag size={14} className="mr-1" />
               {route.typeEn || route.type}
             </span>
           </div>
@@ -91,7 +91,7 @@ export function RoutePreviewPanel({
           {route.boltCount !== undefined && route.boltCount > 0 && (
             <div className="rounded-lg bg-gray-50 p-3">
               <div className="flex items-center gap-1.5 text-xs text-gray-500">
-                <Mountain size={14} />
+                <Shield size={14} />
                 Bolt
               </div>
               <div className="mt-1 text-base font-semibold text-[#1B1A1A]">
