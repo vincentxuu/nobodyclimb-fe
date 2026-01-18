@@ -15,7 +15,7 @@ function ProfileFallback() {
 export default function ProfilePage() {
   return (
     <ProfilePageLayout>
-      <Suspense fallback={<ProfileFallback />}>
+      <Suspense fallback={<div className="flex h-96 items-center justify-center"><div className="h-8 w-8 animate-spin rounded-full border-2 border-gray-300 border-t-gray-900" /></div>}>
         <ProfileEditorVersionB />
       </Suspense>
     </ProfilePageLayout>
