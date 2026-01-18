@@ -25,10 +25,10 @@ interface BiographyDetailPageProps {
  * 檢查人物誌是否有任何內容
  */
 function hasAnyContent(biography: BiographyV2): boolean {
-  const hasTags = biography.tags?.length > 0
-  const hasOneLiners = biography.one_liners?.length > 0
-  const hasStories = biography.stories?.length > 0
-  const hasGallery = biography.gallery_images?.length > 0
+  const hasTags = (biography.tags?.length ?? 0) > 0
+  const hasOneLiners = (biography.one_liners?.length ?? 0) > 0
+  const hasStories = (biography.stories?.length ?? 0) > 0
+  const hasGallery = (biography.gallery_images?.length ?? 0) > 0
   const hasSocials = biography.social_links
     ? Object.values(biography.social_links).some((v) => v && v.trim() !== '')
     : false
