@@ -26,6 +26,7 @@ import {
   ExternalLink,
   ChevronDown,
   Loader2,
+  MapPin,
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -41,6 +42,7 @@ import {
   updateProfileField,
   updateStoryField,
 } from '../mappers'
+import ClimbingFootprintsSection from '../ClimbingFootprintsSection'
 
 type StoryFilter = 'all' | 'filled' | 'unfilled'
 
@@ -724,6 +726,15 @@ export default function ProfileEditorVersionB({ onBack }: ProfileEditorVersionBP
               />
             </div>
           </div>
+        </section>
+
+        {/* 攀岩足跡區塊 */}
+        <section className="mb-8 rounded-xl border border-subtle bg-white p-6 shadow-sm">
+          <div className="mb-4 flex items-center gap-2">
+            <MapPin className="h-5 w-5 text-brand-dark" />
+            <h2 className="font-semibold text-brand-dark">攀岩足跡</h2>
+          </div>
+          <ClimbingFootprintsSection isEditing={true} isMobile={isMobile} />
         </section>
 
         {/* 故事區塊 - 全部合併 */}
