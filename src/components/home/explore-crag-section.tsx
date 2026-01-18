@@ -38,6 +38,7 @@ function CragCard({ crag, index }: { crag: CragListItem; index: number }) {
             fill
             sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
             className="object-cover transition-transform duration-300 group-hover:scale-105"
+            loading="lazy"
             onError={(e) => {
               // 圖片載入失敗時使用佔位符
               const target = e.target as HTMLImageElement

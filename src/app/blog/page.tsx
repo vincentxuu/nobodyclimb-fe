@@ -9,7 +9,6 @@ import { SearchInput } from '@/components/ui/search-input'
 import { ChevronLeft, ChevronRight, Loader2, FileText } from 'lucide-react'
 import { Article } from '@/mocks/articles'
 import { Breadcrumb } from '@/components/ui/breadcrumb'
-import { motion } from 'framer-motion'
 import { postService } from '@/lib/api/services'
 import { PostCategory, POST_CATEGORIES, getCategoryLabel } from '@/lib/types'
 import { generateSummary } from '@/lib/utils/article'
@@ -209,10 +208,9 @@ function BlogContent() {
     }
   }, [])
 
-  // 初始載入
+  // 初始載入 - 合併 API 調用
   useEffect(() => {
-    fetchArticles(1)
-    fetchFeaturedArticles()
+    Promise.all([fetchArticles(1), fetchFeaturedArticles()])
   }, [fetchArticles, fetchFeaturedArticles])
 
   // 載入更多
@@ -276,13 +274,7 @@ function BlogContent() {
   }
 
   return (
-    <motion.div
-      initial={{ opacity: 0, y: 20 }}
-      animate={{ opacity: 1, y: 0 }}
-      exit={{ opacity: 0, y: -20 }}
-      transition={{ duration: 0.5 }}
-      className="min-h-screen bg-page-content-bg"
-    >
+    <div className="min-h-screen bg-page-content-bg">
       {/* Header Section - Featured Carousel */}
       {displayFeatured.length > 0 && (
         <div
@@ -304,6 +296,7 @@ function BlogContent() {
                   fill
                   className="object-cover"
                   priority={index === 0}
+                  loading={index === 0 ? 'eager' : 'lazy'}
                 />
                 <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
                 <div className="absolute bottom-12 left-12 text-white">
@@ -422,7 +415,7 @@ function BlogContent() {
           </>
         )}
       </div>
-    </motion.div>
+    </div>
   )
 }
 
