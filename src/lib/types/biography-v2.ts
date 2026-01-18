@@ -416,7 +416,8 @@ export interface BiographyBackend {
   avatar_url: string | null
   cover_image: string | null
   climbing_start_year: number | string | null
-  frequent_locations: string | null // JSON string
+  frequent_locations: string | null // JSON string or comma-separated string
+  favorite_route_type: string | null // comma-separated string
   home_gym: string | null
   visibility: VisibilityLevel | null
   tags_data: string | null // JSON string
@@ -509,13 +510,38 @@ export function transformBackendToBiographyV2(backend: BiographyBackend): Biogra
     backend.one_liners_data,
     {}
   ) || {}
-  const one_liners: OneLinerItem[] = Object.entries(oneLinersRaw)
+  const oneLinersFromJson: OneLinerItem[] = Object.entries(oneLinersRaw)
     .filter(([, data]) => data?.answer)
     .map(([question_id, data]) => ({
       question_id,
       answer: data.answer,
       source: 'system' as ContentSource,
     }))
+
+  // 從舊版欄位中提取一句話問題（直接存在資料庫欄位中的資料）
+  const legacyOneLinerFields = [
+    'climbing_origin',
+    'climbing_meaning',
+    'advice_to_self',
+  ] as const
+
+  const oneLinersFromLegacy: OneLinerItem[] = legacyOneLinerFields
+    .filter((field) => {
+      const value = backend[field as keyof BiographyBackend]
+      return value && typeof value === 'string' && value.trim().length > 0
+    })
+    .map((field) => ({
+      question_id: field,
+      answer: backend[field as keyof BiographyBackend] as string,
+      source: 'system' as ContentSource,
+    }))
+
+  // 合併兩個來源的一句話問題，優先使用 one_liners_data 中的資料
+  const existingOneLinerIds = new Set(oneLinersFromJson.map((o) => o.question_id))
+  const one_liners: OneLinerItem[] = [
+    ...oneLinersFromJson,
+    ...oneLinersFromLegacy.filter((o) => !existingOneLinerIds.has(o.question_id)),
+  ]
 
   // 解析 stories_data - 後端格式為 Record<category, Record<field, { answer, visibility, updated_at }>>
   const storiesRaw = safeJsonParse<Record<string, Record<string, { answer: string; visibility: string; updated_at: string } | null>>>(
@@ -656,7 +682,9 @@ export function transformBackendToBiographyV2(backend: BiographyBackend): Biogra
     climbing_years:
       startYear && !isNaN(startYear) ? new Date().getFullYear() - startYear : null,
     frequent_locations,
-    favorite_route_types: null, // 目前後端尚未支援此欄位
+    favorite_route_types: backend.favorite_route_type
+      ? backend.favorite_route_type.split(/[,、，]/).map(s => s.trim()).filter(Boolean)
+      : null,
     home_gym: backend.home_gym,
     tags,
     one_liners,

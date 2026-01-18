@@ -177,16 +177,6 @@ export function BiographyHero({
                 </span>
               )}
 
-              {biography.home_gym && (
-                <>
-                  <span className="text-[#B6B3B3]">·</span>
-                  <span className="flex items-center gap-1">
-                    <MapPin size={16} />
-                    主場：{biography.home_gym}
-                  </span>
-                </>
-              )}
-
               {biography.frequent_locations &&
                 biography.frequent_locations.length > 0 && (
                   <>
