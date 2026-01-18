@@ -8,127 +8,238 @@
 
 ## ER 關聯圖
 
+> 📌 **圖例說明**：
+> - 藍色框：現有主系統資料表（gyms, users）
+> - 綠色框：遊戲系統新增資料表
+
 ```
-┌─────────────────┐       ┌─────────────────┐       ┌─────────────────┐
-│   categories    │       │     users       │       │      gyms       │
-│─────────────────│       │─────────────────│       │─────────────────│
-│ id (PK)         │       │ id (PK)         │       │ id (PK)         │
-│ type            │       │ ...             │       │ name            │
-│ name            │       └────────┬────────┘       │ slug            │
-│ description     │                │                │ logo_url        │
-│ icon            │                │                │ is_active       │
-│ order_index     │                │                └────────┬────────┘
-└────────┬────────┘                │                         │
-         │                         │                         │
-         │ 1:N                     │                         │
-         ▼                         │                         │
-┌─────────────────┐                │                         │
-│    questions    │                │                         │
-│─────────────────│                │                         │
-│ id (PK)         │                │                         │
-│ category_id(FK) │                │                         │
-│ type            │                │                         │
-│ difficulty      │                │                         │
-│ scenario        │                │                         │
-│ question        │                │                         │
-│ options (JSON)  │                │                         │
-│ correct_answer  │                │                         │
-│ explanation     │                │                         │
-│ reference_sources│                │                         │
-│ image_url       │                │                         │
-│ is_active       │                │                         │
-└────────┬────────┘                │                         │
-         │                         │                         │
-         │ N:M                     │                         │
-         ▼                         │                         │
-┌─────────────────┐                │                         │
-│  exam_questions │                │                         │
-│─────────────────│                │                         │
-│ exam_id (FK)    │                │                         │
-│ question_id(FK) │                │                         │
-│ order_index     │                │                         │
-└────────┬────────┘                │                         │
-         │                         │                         │
-         │ N:1                     │                         │
-         ▼                         │                         │
-┌─────────────────┐                │                         │
-│     exams       │                │                         │
-│─────────────────│                │                         │
-│ id (PK)         │                │                         │
-│ gym_id (FK)     │◄───────────────┼─────────────────────────┤
-│ name            │                │                         │
-│ description     │                │                         │
-│ time_limit      │                │                         │
-│ pass_score      │                │                         │
-│ is_published    │                │                         │
-└────────┬────────┘                │                         │
-         │                         │                         │
-         │ 1:N                     │                         │
-         ▼                         │                         │
-┌─────────────────┐                │                         │
-│    attempts     │                │                         │
-│─────────────────│                │                         │
-│ id (PK)         │                │                         │
-│ user_id (FK)    │◄───────────────┤                         │
-│ exam_id (FK)    │                │                         │
-│ category_id(FK) │                │                         │
-│ mode            │                │                         │
-│ score           │                │                         │
-│ total_questions │                │                         │
-│ correct_count   │                │                         │
-│ answers (JSON)  │                │                         │
-│ started_at      │                │                         │
-│ completed_at    │                │                         │
-└────────┬────────┘                │                         │
-         │                         │                         │
-         │                         │                         │
-         ▼                         │                         │
-┌─────────────────┐                │                         │
-│ certifications  │                │                         │
-│─────────────────│                │                         │
-│ id (PK)         │                │                         │
-│ user_id (FK)    │◄───────────────┘                         │
-│ level           │                                          │
-│ gym_id (FK)     │◄─────────────────────────────────────────┘
-│ attempt_id (FK) │
-│ issued_at       │
-│ expires_at      │
-└─────────────────┘
+                    ┌─────────────────────────────────────────────────────────┐
+                    │                    現有主系統資料表                       │
+                    │  ┌─────────────────┐           ┌─────────────────┐      │
+                    │  │     users       │           │      gyms       │      │
+                    │  │─────────────────│           │─────────────────│      │
+                    │  │ id (PK)         │           │ id (PK)         │      │
+                    │  │ username        │           │ name            │      │
+                    │  │ display_name    │           │ slug            │      │
+                    │  │ avatar_url      │           │ cover_image     │      │
+                    │  │ role            │           │ ...             │      │
+                    │  └────────┬────────┘           └────────┬────────┘      │
+                    └───────────┼──────────────────────────────┼──────────────┘
+                                │                              │
+        ┌───────────────────────┼──────────────────────────────┼───────────────┐
+        │                       │                              │               │
+        │                       │   ┌──────────────────────────┴───────┐       │
+        │                       │   │                                  │       │
+        │                       ▼   ▼                                  ▼       │
+        │             ┌─────────────────┐                ┌─────────────────┐   │
+        │             │   gym_admins    │                │gym_game_settings│   │
+        │             │─────────────────│                │─────────────────│   │
+        │             │ id (PK)         │                │ gym_id (PK,FK)  │   │
+        │             │ gym_id (FK)     │                │ is_enabled      │   │
+        │             │ user_id (FK)    │                │ custom_branding │   │
+        │             │ role            │                └─────────────────┘   │
+        │             └─────────────────┘                                      │
+        │                                                                      │
+        │  ┌─────────────────┐                                                 │
+        │  │   categories    │                                                 │
+        │  │─────────────────│                                                 │
+        │  │ id (PK)         │                                                 │
+        │  │ type            │                                                 │
+        │  │ name            │                                                 │
+        │  └────────┬────────┘                                                 │
+        │           │                                                          │
+        │           │ 1:N                                                      │
+        │           ▼                                                          │
+        │  ┌─────────────────┐                                                 │
+        │  │    questions    │                                                 │
+        │  │─────────────────│                                                 │
+        │  │ id (PK)         │       ┌─────────────────┐                       │
+        │  │ category_id(FK) │       │  exam_questions │                       │
+        │  │ type            │       │─────────────────│                       │
+        │  │ difficulty      │◄──────│ question_id(FK) │                       │
+        │  │ question        │       │ exam_id (FK)    │──────┐                │
+        │  │ options (JSON)  │       └─────────────────┘      │                │
+        │  │ correct_answer  │                                │                │
+        │  │ reference_sources│                                ▼                │
+        │  └────────┬────────┘                      ┌─────────────────┐        │
+        │           │                               │     exams       │        │
+        │           │                               │─────────────────│        │
+        │           │           gyms ──────────────►│ gym_id (FK)     │        │
+        │           │                               │ name            │        │
+        │           │                               │ pass_score      │        │
+        │           │                               │ is_published    │        │
+        │           │                               └────────┬────────┘        │
+        │           │                                        │                 │
+        │           │                                        │ 1:N             │
+        │           │                                        ▼                 │
+        │           │                               ┌─────────────────┐        │
+        │           │        users ────────────────►│    attempts     │        │
+        │           └───────────────────────────────│ category_id(FK) │        │
+        │                                           │ exam_id (FK)    │        │
+        │                                           │ user_id (FK)    │        │
+        │                                           │ score           │        │
+        │                                           │ is_passed       │        │
+        │                                           └────────┬────────┘        │
+        │                                                    │                 │
+        │                                                    │ 1:1             │
+        │                                                    ▼                 │
+        │                                           ┌─────────────────┐        │
+        │           users ─────────────────────────►│ certifications  │        │
+        │           gyms  ─────────────────────────►│ user_id (FK)    │        │
+        │                                           │ gym_id (FK)     │        │
+        │                                           │ level           │        │
+        │                                           │ attempt_id (FK) │        │
+        │                                           └─────────────────┘        │
+        │                                                                      │
+        │                          遊戲系統資料表                                │
+        └──────────────────────────────────────────────────────────────────────┘
 ```
+
+### 資料表關聯說明
+
+| 關聯 | 說明 |
+|------|------|
+| gyms → gym_game_settings | 1:1，岩館的遊戲功能設定 |
+| gyms → gym_admins | 1:N，岩館可有多個管理員 |
+| users → gym_admins | 1:N，用戶可管理多個岩館 |
+| gyms → exams | 1:N，岩館可建立多個考卷 |
+| users → attempts | 1:N，用戶可多次作答 |
+| users → certifications | 1:N，用戶可獲得多個認證 |
+| categories → questions | 1:N，類別包含多題 |
+| questions ↔ exams | N:M，透過 exam_questions 關聯 |
 
 ---
 
 ## 資料表定義
 
-### gyms（岩館）
+### gyms（岩館）- 使用現有資料表
 
-> 此表與網站主系統共用，這裡列出遊戲系統需要的欄位。
+> ⚠️ **重要**：此表已存在於主系統 (`backend/src/db/schema.sql`)，遊戲系統直接引用，不需另外建立。
 
 ```sql
-CREATE TABLE gyms (
-    id TEXT PRIMARY KEY,
-    name TEXT NOT NULL,
-    slug TEXT UNIQUE,
-    logo_url TEXT,
-    is_active INTEGER NOT NULL DEFAULT 1,
+-- 現有 gyms 表結構（來自主系統）
+CREATE TABLE IF NOT EXISTS gyms (
+  id TEXT PRIMARY KEY,
+  name TEXT NOT NULL,
+  slug TEXT UNIQUE NOT NULL,
+  description TEXT,
+  address TEXT,
+  city TEXT,
+  region TEXT,
+  latitude REAL,
+  longitude REAL,
+  phone TEXT,
+  email TEXT,
+  website TEXT,
+  cover_image TEXT,           -- 遊戲系統使用此欄位作為岩館 Logo
+  is_featured INTEGER DEFAULT 0,
+  opening_hours TEXT,         -- JSON string
+  facilities TEXT,            -- JSON array
+  price_info TEXT,            -- JSON object
+  rating_avg REAL DEFAULT 0,
+  review_count INTEGER DEFAULT 0,
+  created_at TEXT DEFAULT (datetime('now')),
+  updated_at TEXT DEFAULT (datetime('now'))
+);
+```
+
+**遊戲系統使用的欄位**
+
+| 欄位 | 說明 |
+|------|------|
+| id | 主鍵，用於關聯 exams 和 certifications |
+| name | 岩館名稱，顯示於考卷和認證 |
+| slug | URL 友善名稱，用於路由 |
+| cover_image | 作為岩館 Logo 顯示 |
+
+> **注意**：現有 gyms 表無 `is_active` 欄位。若需停用岩館的遊戲功能，建議新增 `gym_game_settings` 表處理。
+
+---
+
+### gym_game_settings（岩館遊戲設定）- 新增
+
+> 管理岩館的遊戲功能設定與管理員權限。
+
+```sql
+CREATE TABLE IF NOT EXISTS gym_game_settings (
+    gym_id TEXT PRIMARY KEY,
+    is_enabled INTEGER NOT NULL DEFAULT 1,  -- 是否啟用遊戲功能
+    custom_branding TEXT,                    -- JSON: 自訂品牌設定
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-    updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
+    updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (gym_id) REFERENCES gyms(id) ON DELETE CASCADE
+);
+```
+
+---
+
+### gym_admins（岩館管理員）- 新增
+
+> 管理岩館的遊戲後台管理員權限。
+
+```sql
+CREATE TABLE IF NOT EXISTS gym_admins (
+    id TEXT PRIMARY KEY,
+    gym_id TEXT NOT NULL,
+    user_id TEXT NOT NULL,
+    role TEXT NOT NULL DEFAULT 'admin' CHECK (role IN ('owner', 'admin', 'instructor')),
+    permissions TEXT,           -- JSON: 細部權限設定
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    UNIQUE(gym_id, user_id),
+    FOREIGN KEY (gym_id) REFERENCES gyms(id) ON DELETE CASCADE,
+    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
 );
 
 -- 索引
-CREATE INDEX idx_gyms_slug ON gyms(slug);
-CREATE INDEX idx_gyms_active ON gyms(is_active);
+CREATE INDEX IF NOT EXISTS idx_gym_admins_gym ON gym_admins(gym_id);
+CREATE INDEX IF NOT EXISTS idx_gym_admins_user ON gym_admins(user_id);
 ```
 
-**欄位說明**
+**角色說明**
 
-| 欄位 | 型別 | 說明 |
-|------|------|------|
-| id | TEXT | 主鍵（UUID） |
-| name | TEXT | 岩館名稱 |
-| slug | TEXT | URL 友善名稱 |
-| logo_url | TEXT | 岩館 Logo |
-| is_active | INTEGER | 是否啟用 |
+| 角色 | 權限 |
+|------|------|
+| owner | 完整權限，可管理其他管理員 |
+| admin | 管理題目、考卷、查看學員成績 |
+| instructor | 僅查看學員成績、發放認證 |
+
+---
+
+### users（使用者）- 使用現有資料表
+
+> 此表已存在於主系統，遊戲系統直接引用。
+
+```sql
+-- 現有 users 表結構（來自主系統）
+CREATE TABLE IF NOT EXISTS users (
+  id TEXT PRIMARY KEY,
+  email TEXT UNIQUE NOT NULL,
+  username TEXT UNIQUE NOT NULL,
+  password_hash TEXT,                    -- nullable (用於OAuth)
+  display_name TEXT,
+  avatar_url TEXT,
+  bio TEXT,
+  climbing_start_year TEXT,
+  frequent_gym TEXT,
+  favorite_route_type TEXT,
+  role TEXT DEFAULT 'user' CHECK (role IN ('user', 'admin', 'moderator')),
+  is_active INTEGER DEFAULT 1,
+  email_verified INTEGER DEFAULT 0,
+  google_id TEXT UNIQUE,                 -- OAuth支援
+  auth_provider TEXT DEFAULT 'local',
+  created_at TEXT DEFAULT (datetime('now')),
+  updated_at TEXT DEFAULT (datetime('now'))
+);
+```
+
+**遊戲系統使用的欄位**
+
+| 欄位 | 說明 |
+|------|------|
+| id | 主鍵，關聯作答紀錄和認證 |
+| display_name / username | 顯示名稱 |
+| avatar_url | 頭像 |
+| role | 系統管理員（admin）可管理所有岩館 |
 
 ---
 
@@ -535,21 +646,40 @@ LIMIT 20;
 ## Migration 檔案
 
 ```sql
--- migrations/0001_create_game_tables.sql
+-- migrations/XXXX_create_game_tables.sql
+--
+-- 注意：此 migration 假設 gyms 和 users 表已存在（來自主系統）
+-- 執行前請確認主系統的 migration 已完成
 
--- 岩館表（若尚未存在）
-CREATE TABLE IF NOT EXISTS gyms (
-    id TEXT PRIMARY KEY,
-    name TEXT NOT NULL,
-    slug TEXT UNIQUE,
-    logo_url TEXT,
-    is_active INTEGER NOT NULL DEFAULT 1,
+-- ============================================
+-- 遊戲系統專用資料表
+-- ============================================
+
+-- 岩館遊戲設定表
+CREATE TABLE IF NOT EXISTS gym_game_settings (
+    gym_id TEXT PRIMARY KEY,
+    is_enabled INTEGER NOT NULL DEFAULT 1,
+    custom_branding TEXT,
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-    updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
+    updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (gym_id) REFERENCES gyms(id) ON DELETE CASCADE
 );
 
-CREATE INDEX IF NOT EXISTS idx_gyms_slug ON gyms(slug);
-CREATE INDEX IF NOT EXISTS idx_gyms_active ON gyms(is_active);
+-- 岩館管理員表
+CREATE TABLE IF NOT EXISTS gym_admins (
+    id TEXT PRIMARY KEY,
+    gym_id TEXT NOT NULL,
+    user_id TEXT NOT NULL,
+    role TEXT NOT NULL DEFAULT 'admin' CHECK (role IN ('owner', 'admin', 'instructor')),
+    permissions TEXT,
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    UNIQUE(gym_id, user_id),
+    FOREIGN KEY (gym_id) REFERENCES gyms(id) ON DELETE CASCADE,
+    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+);
+
+CREATE INDEX IF NOT EXISTS idx_gym_admins_gym ON gym_admins(gym_id);
+CREATE INDEX IF NOT EXISTS idx_gym_admins_user ON gym_admins(user_id);
 
 -- 類別表
 CREATE TABLE IF NOT EXISTS game_categories (

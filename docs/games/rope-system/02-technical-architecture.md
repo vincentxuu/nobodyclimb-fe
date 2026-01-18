@@ -77,6 +77,10 @@ src/
 
 ```
 backend/src/
+├── middleware/
+│   ├── auth.ts                             # 現有：JWT 認證中間件
+│   └── gymAdmin.ts                         # 新增：岩館管理員權限中間件
+│
 ├── routes/
 │   └── games/
 │       ├── index.ts                        # 路由入口
@@ -84,11 +88,106 @@ backend/src/
 │       ├── questions.ts                    # 題目 API
 │       ├── exams.ts                        # 考試 API
 │       ├── attempts.ts                     # 作答紀錄 API
-│       └── certifications.ts               # 認證 API
+│       ├── certifications.ts               # 認證 API
+│       └── admin/                          # 岩館後台 API
+│           ├── index.ts                    # 後台路由入口
+│           ├── questions.ts                # 題目管理
+│           ├── exams.ts                    # 考卷管理
+│           ├── students.ts                 # 學員管理
+│           └── analytics.ts                # 數據分析
 │
 └── db/
     └── migrations/
         └── XXXX_create_game_tables.sql     # 遊戲相關資料表
+```
+
+### 認證與權限中間件
+
+> 遊戲系統使用現有的 JWT 認證機制，並新增岩館管理員權限檢查。
+
+```typescript
+// backend/src/middleware/gymAdmin.ts
+
+import { createMiddleware } from 'hono/factory'
+import type { Env } from '../types'
+
+/**
+ * 岩館管理員權限中間件
+ * 檢查用戶是否為指定岩館的管理員
+ */
+export const gymAdminMiddleware = createMiddleware<{ Bindings: Env }>(
+  async (c, next) => {
+    const userId = c.get('userId')  // 來自 authMiddleware
+    const gymId = c.req.param('gymId') || c.req.query('gym_id')
+
+    if (!gymId) {
+      return c.json({ success: false, error: '缺少岩館 ID' }, 400)
+    }
+
+    // 系統管理員有所有權限
+    const userRole = c.get('userRole')
+    if (userRole === 'admin') {
+      c.set('gymAdminRole', 'owner')
+      return next()
+    }
+
+    // 檢查岩館管理員身份
+    const db = c.env.DB
+    const gymAdmin = await db.prepare(`
+      SELECT role, permissions FROM gym_admins
+      WHERE gym_id = ? AND user_id = ?
+    `).bind(gymId, userId).first()
+
+    if (!gymAdmin) {
+      return c.json({ success: false, error: '無此岩館管理權限' }, 403)
+    }
+
+    c.set('gymAdminRole', gymAdmin.role)
+    c.set('gymAdminPermissions', JSON.parse(gymAdmin.permissions || '{}'))
+
+    return next()
+  }
+)
+
+/**
+ * 檢查特定權限
+ */
+export const requirePermission = (permission: string) =>
+  createMiddleware<{ Bindings: Env }>(async (c, next) => {
+    const role = c.get('gymAdminRole')
+    const permissions = c.get('gymAdminPermissions') || {}
+
+    // owner 有所有權限
+    if (role === 'owner') return next()
+
+    // 檢查特定權限
+    if (permissions[permission]) return next()
+
+    return c.json({ success: false, error: `缺少權限: ${permission}` }, 403)
+  })
+```
+
+**使用範例**
+
+```typescript
+// backend/src/routes/games/admin/index.ts
+import { Hono } from 'hono'
+import { authMiddleware } from '../../../middleware/auth'
+import { gymAdminMiddleware, requirePermission } from '../../../middleware/gymAdmin'
+
+const adminRoutes = new Hono()
+
+// 所有後台路由都需要認證 + 岩館管理員權限
+adminRoutes.use('/*', authMiddleware, gymAdminMiddleware)
+
+// 題目管理：需要 manage_questions 權限
+adminRoutes.post('/questions', requirePermission('manage_questions'), ...)
+adminRoutes.put('/questions/:id', requirePermission('manage_questions'), ...)
+
+// 發放認證：需要 issue_certifications 權限
+adminRoutes.post('/certifications', requirePermission('issue_certifications'), ...)
+
+export default adminRoutes
 ```
 
 ---
