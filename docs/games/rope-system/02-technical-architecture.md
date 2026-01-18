@@ -79,21 +79,22 @@ src/
 backend/src/
 ├── middleware/
 │   ├── auth.ts                             # 現有：JWT 認證中間件
-│   └── gymAdmin.ts                         # 新增：岩館管理員權限中間件
+│   └── orgAdmin.ts                         # 新增：組織管理員權限中間件
 │
 ├── routes/
 │   └── games/
 │       ├── index.ts                        # 路由入口
 │       ├── categories.ts                   # 類別 API
 │       ├── questions.ts                    # 題目 API
+│       ├── organizations.ts                # 組織 API
 │       ├── exams.ts                        # 考試 API
 │       ├── attempts.ts                     # 作答紀錄 API
 │       ├── certifications.ts               # 認證 API
-│       └── admin/                          # 岩館後台 API
+│       └── admin/                          # 組織後台 API
 │           ├── index.ts                    # 後台路由入口
 │           ├── questions.ts                # 題目管理
 │           ├── exams.ts                    # 考卷管理
-│           ├── students.ts                 # 學員管理
+│           ├── members.ts                  # 成員管理
 │           └── analytics.ts                # 數據分析
 │
 └── db/
@@ -103,47 +104,48 @@ backend/src/
 
 ### 認證與權限中間件
 
-> 遊戲系統使用現有的 JWT 認證機制，並新增岩館管理員權限檢查。
+> 遊戲系統使用現有的 JWT 認證機制，並新增組織管理員權限檢查。
 
 ```typescript
-// backend/src/middleware/gymAdmin.ts
+// backend/src/middleware/orgAdmin.ts
 
 import { createMiddleware } from 'hono/factory'
 import type { Env } from '../types'
 
 /**
- * 岩館管理員權限中間件
- * 檢查用戶是否為指定岩館的管理員
+ * 組織管理員權限中間件
+ * 檢查用戶是否為指定組織的管理員
+ * 支援岩館、攀岩學校、嚮導公司、社團等各類組織
  */
-export const gymAdminMiddleware = createMiddleware<{ Bindings: Env }>(
+export const orgAdminMiddleware = createMiddleware<{ Bindings: Env }>(
   async (c, next) => {
     const userId = c.get('userId')  // 來自 authMiddleware
-    const gymId = c.req.param('gymId') || c.req.query('gym_id')
+    const orgId = c.req.param('orgId') || c.req.query('org_id')
 
-    if (!gymId) {
-      return c.json({ success: false, error: '缺少岩館 ID' }, 400)
+    if (!orgId) {
+      return c.json({ success: false, error: '缺少組織 ID' }, 400)
     }
 
     // 系統管理員有所有權限
     const userRole = c.get('userRole')
     if (userRole === 'admin') {
-      c.set('gymAdminRole', 'owner')
+      c.set('orgAdminRole', 'owner')
       return next()
     }
 
-    // 檢查岩館管理員身份
+    // 檢查組織管理員身份
     const db = c.env.DB
-    const gymAdmin = await db.prepare(`
-      SELECT role, permissions FROM gym_admins
-      WHERE gym_id = ? AND user_id = ?
-    `).bind(gymId, userId).first()
+    const orgAdmin = await db.prepare(`
+      SELECT role, permissions FROM game_org_admins
+      WHERE org_id = ? AND user_id = ?
+    `).bind(orgId, userId).first()
 
-    if (!gymAdmin) {
-      return c.json({ success: false, error: '無此岩館管理權限' }, 403)
+    if (!orgAdmin) {
+      return c.json({ success: false, error: '無此組織管理權限' }, 403)
     }
 
-    c.set('gymAdminRole', gymAdmin.role)
-    c.set('gymAdminPermissions', JSON.parse(gymAdmin.permissions || '{}'))
+    c.set('orgAdminRole', orgAdmin.role)
+    c.set('orgAdminPermissions', JSON.parse(orgAdmin.permissions || '{}'))
 
     return next()
   }
@@ -154,8 +156,8 @@ export const gymAdminMiddleware = createMiddleware<{ Bindings: Env }>(
  */
 export const requirePermission = (permission: string) =>
   createMiddleware<{ Bindings: Env }>(async (c, next) => {
-    const role = c.get('gymAdminRole')
-    const permissions = c.get('gymAdminPermissions') || {}
+    const role = c.get('orgAdminRole')
+    const permissions = c.get('orgAdminPermissions') || {}
 
     // owner 有所有權限
     if (role === 'owner') return next()
@@ -173,12 +175,12 @@ export const requirePermission = (permission: string) =>
 // backend/src/routes/games/admin/index.ts
 import { Hono } from 'hono'
 import { authMiddleware } from '../../../middleware/auth'
-import { gymAdminMiddleware, requirePermission } from '../../../middleware/gymAdmin'
+import { orgAdminMiddleware, requirePermission } from '../../../middleware/orgAdmin'
 
 const adminRoutes = new Hono()
 
-// 所有後台路由都需要認證 + 岩館管理員權限
-adminRoutes.use('/*', authMiddleware, gymAdminMiddleware)
+// 所有後台路由都需要認證 + 組織管理員權限
+adminRoutes.use('/*', authMiddleware, orgAdminMiddleware)
 
 // 題目管理：需要 manage_questions 權限
 adminRoutes.post('/questions', requirePermission('manage_questions'), ...)
@@ -381,9 +383,30 @@ GET  /api/v1/games/rope-system/user/certifications
      回傳使用者認證列表
 ```
 
-### 岩館後台 API（需管理員權限）
+### 組織管理 API
 
-> 所有後台 API 需要 JWT 認證且用戶需有岩館管理員權限。
+```
+GET  /api/v1/games/rope-system/organizations
+     回傳組織列表（公開資訊）
+     Query: ?type=gym&city=taipei
+
+GET  /api/v1/games/rope-system/organizations/:id
+     回傳組織詳情
+
+POST /api/v1/games/rope-system/organizations
+     建立新組織（需登入）
+     Body: {
+       type: 'gym' | 'school' | 'guide' | 'club' | 'association' | 'company' | 'other',
+       name: string,
+       description?: string,
+       linked_gym_id?: string  // 若為岩館類型
+     }
+```
+
+### 組織後台 API（需管理員權限）
+
+> 所有後台 API 需要 JWT 認證且用戶需有組織管理員權限。
+> 支援岩館、攀岩學校、嚮導公司、社團等各類組織。
 
 #### 題目管理
 
@@ -426,7 +449,8 @@ POST   /api/v1/admin/games/rope-system/questions/:id/toggle
 
 ```
 GET    /api/v1/admin/games/rope-system/exams
-       取得考卷列表（限該岩館）
+       取得考卷列表（限該組織）
+       Query: ?org_id=xxx
 
 GET    /api/v1/admin/games/rope-system/exams/:id
        取得考卷詳情
@@ -455,23 +479,35 @@ POST   /api/v1/admin/games/rope-system/exams/:id/publish
        發布/下架考卷
 ```
 
-#### 學員管理
+#### 成員管理
 
 ```
-GET    /api/v1/admin/games/rope-system/students
-       取得學員列表（限該岩館會員）
-       Query: ?search=name&certification_level=2
+GET    /api/v1/admin/games/rope-system/members
+       取得成員列表（限該組織成員）
+       Query: ?org_id=xxx&search=name&certification_level=2&status=active
 
-GET    /api/v1/admin/games/rope-system/students/:userId/attempts
-       取得學員作答紀錄
+POST   /api/v1/admin/games/rope-system/members
+       新增成員
+       Body: { user_id: string, org_id: string }
 
-GET    /api/v1/admin/games/rope-system/students/:userId/certifications
-       取得學員認證狀態
+PUT    /api/v1/admin/games/rope-system/members/:id
+       更新成員狀態
+       Body: { status: 'active' | 'suspended', notes?: string }
+
+DELETE /api/v1/admin/games/rope-system/members/:id
+       移除成員
+
+GET    /api/v1/admin/games/rope-system/members/:userId/attempts
+       取得成員作答紀錄
+
+GET    /api/v1/admin/games/rope-system/members/:userId/certifications
+       取得成員認證狀態
 
 POST   /api/v1/admin/games/rope-system/certifications
        手動發放認證
        Body: {
          user_id: string,
+         org_id: string,
          level: 1-5,
          expires_at?: string
        }

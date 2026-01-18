@@ -9,104 +9,90 @@
 ## ER 關聯圖
 
 > 📌 **圖例說明**：
-> - 藍色框：現有主系統資料表（gyms, users）
-> - 綠色框：遊戲系統新增資料表
+> - 🔵 藍色區塊：現有主系統資料表（gyms, users）
+> - 🟢 綠色區塊：遊戲系統新增資料表
 
 ```
-                    ┌─────────────────────────────────────────────────────────┐
-                    │                    現有主系統資料表                       │
-                    │  ┌─────────────────┐           ┌─────────────────┐      │
-                    │  │     users       │           │      gyms       │      │
-                    │  │─────────────────│           │─────────────────│      │
-                    │  │ id (PK)         │           │ id (PK)         │      │
-                    │  │ username        │           │ name            │      │
-                    │  │ display_name    │           │ slug            │      │
-                    │  │ avatar_url      │           │ cover_image     │      │
-                    │  │ role            │           │ ...             │      │
-                    │  └────────┬────────┘           └────────┬────────┘      │
-                    └───────────┼──────────────────────────────┼──────────────┘
-                                │                              │
-        ┌───────────────────────┼──────────────────────────────┼───────────────┐
-        │                       │                              │               │
-        │                       │   ┌──────────────────────────┴───────┐       │
-        │                       │   │                                  │       │
-        │                       ▼   ▼                                  ▼       │
-        │             ┌─────────────────┐                ┌─────────────────┐   │
-        │             │   gym_admins    │                │gym_game_settings│   │
-        │             │─────────────────│                │─────────────────│   │
-        │             │ id (PK)         │                │ gym_id (PK,FK)  │   │
-        │             │ gym_id (FK)     │                │ is_enabled      │   │
-        │             │ user_id (FK)    │                │ custom_branding │   │
-        │             │ role            │                └─────────────────┘   │
-        │             └─────────────────┘                                      │
-        │                                                                      │
-        │  ┌─────────────────┐                                                 │
-        │  │   categories    │                                                 │
-        │  │─────────────────│                                                 │
-        │  │ id (PK)         │                                                 │
-        │  │ type            │                                                 │
-        │  │ name            │                                                 │
-        │  └────────┬────────┘                                                 │
-        │           │                                                          │
-        │           │ 1:N                                                      │
-        │           ▼                                                          │
-        │  ┌─────────────────┐                                                 │
-        │  │    questions    │                                                 │
-        │  │─────────────────│                                                 │
-        │  │ id (PK)         │       ┌─────────────────┐                       │
-        │  │ category_id(FK) │       │  exam_questions │                       │
-        │  │ type            │       │─────────────────│                       │
-        │  │ difficulty      │◄──────│ question_id(FK) │                       │
-        │  │ question        │       │ exam_id (FK)    │──────┐                │
-        │  │ options (JSON)  │       └─────────────────┘      │                │
-        │  │ correct_answer  │                                │                │
-        │  │ reference_sources│                                ▼                │
-        │  └────────┬────────┘                      ┌─────────────────┐        │
-        │           │                               │     exams       │        │
-        │           │                               │─────────────────│        │
-        │           │           gyms ──────────────►│ gym_id (FK)     │        │
-        │           │                               │ name            │        │
-        │           │                               │ pass_score      │        │
-        │           │                               │ is_published    │        │
-        │           │                               └────────┬────────┘        │
-        │           │                                        │                 │
-        │           │                                        │ 1:N             │
-        │           │                                        ▼                 │
-        │           │                               ┌─────────────────┐        │
-        │           │        users ────────────────►│    attempts     │        │
-        │           └───────────────────────────────│ category_id(FK) │        │
-        │                                           │ exam_id (FK)    │        │
-        │                                           │ user_id (FK)    │        │
-        │                                           │ score           │        │
-        │                                           │ is_passed       │        │
-        │                                           └────────┬────────┘        │
-        │                                                    │                 │
-        │                                                    │ 1:1             │
-        │                                                    ▼                 │
-        │                                           ┌─────────────────┐        │
-        │           users ─────────────────────────►│ certifications  │        │
-        │           gyms  ─────────────────────────►│ user_id (FK)    │        │
-        │                                           │ gym_id (FK)     │        │
-        │                                           │ level           │        │
-        │                                           │ attempt_id (FK) │        │
-        │                                           └─────────────────┘        │
-        │                                                                      │
-        │                          遊戲系統資料表                                │
-        └──────────────────────────────────────────────────────────────────────┘
+┌─────────────────────────────────────────────────────────────────────────────┐
+│                           現有主系統資料表 (藍色)                             │
+│  ┌─────────────────┐                              ┌─────────────────┐       │
+│  │     users       │                              │      gyms       │       │
+│  │─────────────────│                              │─────────────────│       │
+│  │ id (PK)         │                              │ id (PK)         │       │
+│  │ username        │                              │ name            │       │
+│  │ display_name    │                              │ slug            │       │
+│  │ avatar_url      │                              │ cover_image     │       │
+│  │ role            │                              │ ...             │       │
+│  └────────┬────────┘                              └────────┬────────┘       │
+└───────────┼────────────────────────────────────────────────┼────────────────┘
+            │                                                │
+            │                                                │ (可選連結)
+            ▼                                                ▼
+┌───────────────────────────────────────────────────────────────────────────────┐
+│                          遊戲系統資料表 (綠色)                                  │
+│                                                                               │
+│  ┌─────────────────────────────────────────────────────────────────────┐     │
+│  │                     game_organizations (組織)                        │     │
+│  │  ┌─────────────────┐                                                │     │
+│  │  │ id (PK)         │◄────────────────────────────────┐              │     │
+│  │  │ type            │  (gym/school/guide/club/...)    │              │     │
+│  │  │ name            │                                 │              │     │
+│  │  │ linked_gym_id   │──► gyms (可選)                  │              │     │
+│  │  │ is_active       │                                 │              │     │
+│  │  └─────────────────┘                                 │              │     │
+│  │           │                                          │              │     │
+│  │     ┌─────┴─────┬───────────────┐                   │              │     │
+│  │     ▼           ▼               ▼                   │              │     │
+│  │  ┌────────┐ ┌────────┐    ┌──────────┐             │              │     │
+│  │  │org_    │ │org_    │    │  exams   │             │              │     │
+│  │  │admins  │ │members │    │──────────│             │              │     │
+│  │  │────────│ │────────│    │org_id(FK)│─────────────┘              │     │
+│  │  │user_id │ │user_id │    │name      │                            │     │
+│  │  │role    │ │status  │    │pass_score│                            │     │
+│  │  └────────┘ └────────┘    └────┬─────┘                            │     │
+│  │       │          │             │                                  │     │
+│  │       └──────────┼─────────────┤                                  │     │
+│  │                  │             │                                  │     │
+│  └──────────────────┼─────────────┼──────────────────────────────────┘     │
+│                     │             │                                        │
+│                     │             │ 1:N                                    │
+│                     │             ▼                                        │
+│  ┌─────────────────┐│    ┌─────────────────┐                              │
+│  │   categories    ││    │    attempts     │                              │
+│  │─────────────────││    │─────────────────│                              │
+│  │ id (PK)         ││    │ user_id (FK)    │◄── users                     │
+│  │ type            ││    │ exam_id (FK)    │                              │
+│  │ name            ││    │ org_id (FK)     │◄── organizations             │
+│  └────────┬────────┘│    │ score           │                              │
+│           │         │    │ is_passed       │                              │
+│           │ 1:N     │    └────────┬────────┘                              │
+│           ▼         │             │                                        │
+│  ┌─────────────────┐│             │ 1:1                                   │
+│  │    questions    ││             ▼                                        │
+│  │─────────────────││    ┌─────────────────┐                              │
+│  │ category_id(FK) │└───►│ certifications  │                              │
+│  │ type            │     │─────────────────│                              │
+│  │ difficulty      │     │ user_id (FK)    │◄── users                     │
+│  │ question        │     │ org_id (FK)     │◄── organizations             │
+│  │ options (JSON)  │     │ level           │                              │
+│  └─────────────────┘     │ attempt_id (FK) │                              │
+│                          └─────────────────┘                              │
+│                                                                           │
+└───────────────────────────────────────────────────────────────────────────┘
 ```
 
 ### 資料表關聯說明
 
 | 關聯 | 說明 |
 |------|------|
-| gyms → gym_game_settings | 1:1，岩館的遊戲功能設定 |
-| gyms → gym_admins | 1:N，岩館可有多個管理員 |
-| users → gym_admins | 1:N，用戶可管理多個岩館 |
-| gyms → exams | 1:N，岩館可建立多個考卷 |
-| users → attempts | 1:N，用戶可多次作答 |
-| users → certifications | 1:N，用戶可獲得多個認證 |
-| categories → questions | 1:N，類別包含多題 |
-| questions ↔ exams | N:M，透過 exam_questions 關聯 |
+| gyms → game_organizations | 0:1，岩館可選擇性關聯到遊戲組織 |
+| users → game_org_admins | 1:N，用戶可管理多個組織 |
+| users → game_org_members | 1:N，用戶可加入多個組織 |
+| game_organizations → game_exams | 1:N，組織可建立多個考卷 |
+| users → game_attempts | 1:N，用戶可多次作答 |
+| users → game_certifications | 1:N，用戶可獲得多個認證 |
+| game_categories → game_questions | 1:N，類別包含多題 |
+| game_questions ↔ game_exams | N:M，透過 game_exam_questions 關聯 |
 
 ---
 
@@ -152,56 +138,135 @@ CREATE TABLE IF NOT EXISTS gyms (
 | slug | URL 友善名稱，用於路由 |
 | cover_image | 作為岩館 Logo 顯示 |
 
-> **注意**：現有 gyms 表無 `is_active` 欄位。若需停用岩館的遊戲功能，建議新增 `gym_game_settings` 表處理。
+> **注意**：現有 gyms 表無 `is_active` 欄位。遊戲系統透過 `game_organizations` 表來管理哪些單位可使用遊戲功能。
 
 ---
 
-### gym_game_settings（岩館遊戲設定）- 新增
+### game_organizations（遊戲系統組織）- 新增
 
-> 管理岩館的遊戲功能設定與管理員權限。
+> 管理可使用遊戲系統的組織單位。支援多種類型的組織，不限於岩館。
 
 ```sql
-CREATE TABLE IF NOT EXISTS gym_game_settings (
-    gym_id TEXT PRIMARY KEY,
-    is_enabled INTEGER NOT NULL DEFAULT 1,  -- 是否啟用遊戲功能
-    custom_branding TEXT,                    -- JSON: 自訂品牌設定
+CREATE TABLE IF NOT EXISTS game_organizations (
+    id TEXT PRIMARY KEY,
+    type TEXT NOT NULL CHECK (type IN ('gym', 'school', 'guide', 'club', 'association', 'company', 'other')),
+    name TEXT NOT NULL,
+    slug TEXT UNIQUE,
+    description TEXT,
+    logo_url TEXT,
+    website TEXT,
+    contact_email TEXT,
+    -- 若為岩館類型，可關聯到現有 gyms 表
+    linked_gym_id TEXT,
+    -- 設定
+    is_active INTEGER NOT NULL DEFAULT 1,
+    custom_branding TEXT,           -- JSON: { primaryColor, logo, certificate_template }
+    settings TEXT,                  -- JSON: 組織專屬設定
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
     updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-    FOREIGN KEY (gym_id) REFERENCES gyms(id) ON DELETE CASCADE
-);
-```
-
----
-
-### gym_admins（岩館管理員）- 新增
-
-> 管理岩館的遊戲後台管理員權限。
-
-```sql
-CREATE TABLE IF NOT EXISTS gym_admins (
-    id TEXT PRIMARY KEY,
-    gym_id TEXT NOT NULL,
-    user_id TEXT NOT NULL,
-    role TEXT NOT NULL DEFAULT 'admin' CHECK (role IN ('owner', 'admin', 'instructor')),
-    permissions TEXT,           -- JSON: 細部權限設定
-    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-    UNIQUE(gym_id, user_id),
-    FOREIGN KEY (gym_id) REFERENCES gyms(id) ON DELETE CASCADE,
-    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+    FOREIGN KEY (linked_gym_id) REFERENCES gyms(id) ON DELETE SET NULL
 );
 
 -- 索引
-CREATE INDEX IF NOT EXISTS idx_gym_admins_gym ON gym_admins(gym_id);
-CREATE INDEX IF NOT EXISTS idx_gym_admins_user ON gym_admins(user_id);
+CREATE INDEX IF NOT EXISTS idx_game_orgs_type ON game_organizations(type);
+CREATE INDEX IF NOT EXISTS idx_game_orgs_slug ON game_organizations(slug);
+CREATE INDEX IF NOT EXISTS idx_game_orgs_active ON game_organizations(is_active);
+CREATE INDEX IF NOT EXISTS idx_game_orgs_gym ON game_organizations(linked_gym_id);
+```
+
+**組織類型說明**
+
+| 類型 | 說明 | 範例 |
+|------|------|------|
+| gym | 室內岩館 | 攀岩工廠、RedRock、岩究所 |
+| school | 攀岩學校/教學機構 | 台灣攀岩學校、TARA 訓練中心 |
+| guide | 戶外嚮導公司 | 戶外探索、溯溪攀岩團隊 |
+| club | 社團/俱樂部 | 大學登山社、攀岩同好會 |
+| association | 協會/官方組織 | 中華民國山岳協會、各縣市攀岩委員會 |
+| company | 企業/團體 | 公司內訓、戶外團建 |
+| other | 其他 | 自訂組織 |
+
+**與現有岩館整合**
+
+若組織類型為 `gym` 且網站已有該岩館資料，可透過 `linked_gym_id` 關聯：
+- 自動同步岩館名稱、Logo
+- 在岩館頁面顯示「此岩館提供繩索系統認證」
+- 學員可從岩館頁面直接進入考試
+
+---
+
+### game_org_admins（組織管理員）- 新增
+
+> 管理組織的後台管理員權限。
+
+```sql
+CREATE TABLE IF NOT EXISTS game_org_admins (
+    id TEXT PRIMARY KEY,
+    org_id TEXT NOT NULL,
+    user_id TEXT NOT NULL,
+    role TEXT NOT NULL DEFAULT 'admin' CHECK (role IN ('owner', 'admin', 'instructor')),
+    permissions TEXT,           -- JSON: 細部權限設定
+    invited_by TEXT,            -- 邀請人 user_id
+    invited_at DATETIME,
+    accepted_at DATETIME,
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    UNIQUE(org_id, user_id),
+    FOREIGN KEY (org_id) REFERENCES game_organizations(id) ON DELETE CASCADE,
+    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
+    FOREIGN KEY (invited_by) REFERENCES users(id) ON DELETE SET NULL
+);
+
+-- 索引
+CREATE INDEX IF NOT EXISTS idx_game_org_admins_org ON game_org_admins(org_id);
+CREATE INDEX IF NOT EXISTS idx_game_org_admins_user ON game_org_admins(user_id);
 ```
 
 **角色說明**
 
 | 角色 | 權限 |
 |------|------|
-| owner | 完整權限，可管理其他管理員 |
-| admin | 管理題目、考卷、查看學員成績 |
-| instructor | 僅查看學員成績、發放認證 |
+| owner | 完整權限：管理組織設定、邀請/移除管理員、所有題目與考卷管理 |
+| admin | 管理權限：管理題目、考卷、查看學員成績、發放認證 |
+| instructor | 教練權限：查看學員成績、發放認證、監考 |
+
+**權限 JSON 格式（可選，用於細部控制）**
+
+```json
+{
+  "manage_questions": true,      // 管理題目
+  "manage_exams": true,          // 管理考卷
+  "view_analytics": true,        // 查看數據分析
+  "issue_certifications": true,  // 發放認證
+  "manage_members": false        // 管理成員（僅 owner）
+}
+```
+
+---
+
+### game_org_members（組織成員/學員）- 新增
+
+> 追蹤組織的學員名單，用於統計與權限控制。
+
+```sql
+CREATE TABLE IF NOT EXISTS game_org_members (
+    id TEXT PRIMARY KEY,
+    org_id TEXT NOT NULL,
+    user_id TEXT NOT NULL,
+    status TEXT NOT NULL DEFAULT 'active' CHECK (status IN ('pending', 'active', 'suspended')),
+    joined_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    notes TEXT,                 -- 管理員備註
+    UNIQUE(org_id, user_id),
+    FOREIGN KEY (org_id) REFERENCES game_organizations(id) ON DELETE CASCADE,
+    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+);
+
+-- 索引
+CREATE INDEX IF NOT EXISTS idx_game_org_members_org ON game_org_members(org_id);
+CREATE INDEX IF NOT EXISTS idx_game_org_members_user ON game_org_members(user_id);
+CREATE INDEX IF NOT EXISTS idx_game_org_members_status ON game_org_members(status);
+```
+
+> **用途**：組織可管理自己的學員名單，限定只有成員才能參加該組織的考試。若不設限，則所有用戶都可參加。
 
 ---
 
@@ -379,7 +444,7 @@ CREATE INDEX idx_game_questions_active ON game_questions(is_active);
 ```sql
 CREATE TABLE game_exams (
     id TEXT PRIMARY KEY,
-    gym_id TEXT,  -- NULL 表示系統預設考卷
+    org_id TEXT,  -- NULL 表示系統預設考卷（公開題庫）
     name TEXT NOT NULL,
     description TEXT,
     category_ids TEXT,  -- JSON array，限定類別
@@ -389,14 +454,15 @@ CREATE TABLE game_exams (
     randomize_questions INTEGER NOT NULL DEFAULT 1,
     randomize_options INTEGER NOT NULL DEFAULT 0,
     show_explanation INTEGER NOT NULL DEFAULT 0,  -- 考試中是否顯示解釋
+    require_membership INTEGER NOT NULL DEFAULT 0,  -- 是否限定組織成員
     is_published INTEGER NOT NULL DEFAULT 0,
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
     updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-    FOREIGN KEY (gym_id) REFERENCES gyms(id)
+    FOREIGN KEY (org_id) REFERENCES game_organizations(id) ON DELETE CASCADE
 );
 
 -- 索引
-CREATE INDEX idx_game_exams_gym ON game_exams(gym_id);
+CREATE INDEX idx_game_exams_org ON game_exams(org_id);
 CREATE INDEX idx_game_exams_published ON game_exams(is_published);
 ```
 
@@ -405,7 +471,7 @@ CREATE INDEX idx_game_exams_published ON game_exams(is_published);
 | 欄位 | 型別 | 說明 |
 |------|------|------|
 | id | TEXT | 主鍵 |
-| gym_id | TEXT | 岩館 ID（NULL 為系統預設） |
+| org_id | TEXT | 組織 ID（NULL 為系統公開考卷） |
 | name | TEXT | 考試名稱 |
 | description | TEXT | 考試說明 |
 | category_ids | TEXT | 限定類別（JSON） |
@@ -415,6 +481,7 @@ CREATE INDEX idx_game_exams_published ON game_exams(is_published);
 | randomize_questions | INTEGER | 是否隨機出題 |
 | randomize_options | INTEGER | 是否隨機選項順序 |
 | show_explanation | INTEGER | 是否顯示解釋 |
+| require_membership | INTEGER | 是否限定組織成員才能參加 |
 | is_published | INTEGER | 是否發布 |
 
 ---
@@ -447,6 +514,7 @@ CREATE INDEX idx_game_exam_questions_exam ON game_exam_questions(exam_id);
 CREATE TABLE game_attempts (
     id TEXT PRIMARY KEY,
     user_id TEXT NOT NULL,
+    org_id TEXT,  -- 所屬組織（可追蹤學員來源）
     exam_id TEXT,  -- NULL 表示學習模式
     category_id TEXT,  -- 學習模式時使用
     mode TEXT NOT NULL CHECK (mode IN ('learn', 'exam')),
@@ -461,12 +529,14 @@ CREATE TABLE game_attempts (
     started_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
     completed_at DATETIME,
     FOREIGN KEY (user_id) REFERENCES users(id),
+    FOREIGN KEY (org_id) REFERENCES game_organizations(id) ON DELETE SET NULL,
     FOREIGN KEY (exam_id) REFERENCES game_exams(id),
     FOREIGN KEY (category_id) REFERENCES game_categories(id)
 );
 
 -- 索引
 CREATE INDEX idx_game_attempts_user ON game_attempts(user_id);
+CREATE INDEX idx_game_attempts_org ON game_attempts(org_id);
 CREATE INDEX idx_game_attempts_exam ON game_attempts(exam_id);
 CREATE INDEX idx_game_attempts_category ON game_attempts(category_id);
 CREATE INDEX idx_game_attempts_mode ON game_attempts(mode);
@@ -479,6 +549,7 @@ CREATE INDEX idx_game_attempts_completed ON game_attempts(completed_at);
 |------|------|------|
 | id | TEXT | 主鍵（UUID） |
 | user_id | TEXT | 使用者 ID |
+| org_id | TEXT | 組織 ID（追蹤學員來源） |
 | exam_id | TEXT | 考試 ID（考試模式） |
 | category_id | TEXT | 類別 ID（學習模式） |
 | mode | TEXT | 模式：`learn`/`exam` |
@@ -519,23 +590,25 @@ CREATE TABLE game_certifications (
     id TEXT PRIMARY KEY,
     user_id TEXT NOT NULL,
     level INTEGER NOT NULL CHECK (level BETWEEN 1 AND 5),
-    gym_id TEXT,  -- 發證岩館，NULL 為系統認證
+    org_id TEXT,  -- 發證組織，NULL 為系統認證
     attempt_id TEXT,  -- 取得認證的考試紀錄
     certificate_url TEXT,  -- 證書圖片 URL
+    certificate_number TEXT UNIQUE,  -- 證書編號
     issued_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
     expires_at DATETIME,  -- NULL 表示永久有效
     revoked_at DATETIME,  -- 撤銷時間
     revoke_reason TEXT,
     FOREIGN KEY (user_id) REFERENCES users(id),
-    FOREIGN KEY (gym_id) REFERENCES gyms(id),
+    FOREIGN KEY (org_id) REFERENCES game_organizations(id) ON DELETE SET NULL,
     FOREIGN KEY (attempt_id) REFERENCES game_attempts(id)
 );
 
 -- 索引
 CREATE INDEX idx_game_certifications_user ON game_certifications(user_id);
 CREATE INDEX idx_game_certifications_level ON game_certifications(level);
-CREATE INDEX idx_game_certifications_gym ON game_certifications(gym_id);
-CREATE UNIQUE INDEX idx_game_certifications_unique ON game_certifications(user_id, level, gym_id)
+CREATE INDEX idx_game_certifications_org ON game_certifications(org_id);
+CREATE INDEX idx_game_certifications_number ON game_certifications(certificate_number);
+CREATE UNIQUE INDEX idx_game_certifications_unique ON game_certifications(user_id, level, org_id)
     WHERE revoked_at IS NULL;
 ```
 
@@ -546,9 +619,10 @@ CREATE UNIQUE INDEX idx_game_certifications_unique ON game_certifications(user_i
 | id | TEXT | 主鍵（UUID） |
 | user_id | TEXT | 使用者 ID |
 | level | INTEGER | 認證等級 1-5 |
-| gym_id | TEXT | 發證岩館 |
+| org_id | TEXT | 發證組織 |
 | attempt_id | TEXT | 關聯的考試紀錄 |
-| certificate_url | TEXT | 證書圖片 |
+| certificate_url | TEXT | 證書圖片 URL |
+| certificate_number | TEXT | 證書編號（唯一） |
 | issued_at | DATETIME | 發證時間 |
 | expires_at | DATETIME | 過期時間 |
 | revoked_at | DATETIME | 撤銷時間 |
@@ -655,31 +729,66 @@ LIMIT 20;
 -- 遊戲系統專用資料表
 -- ============================================
 
--- 岩館遊戲設定表
-CREATE TABLE IF NOT EXISTS gym_game_settings (
-    gym_id TEXT PRIMARY KEY,
-    is_enabled INTEGER NOT NULL DEFAULT 1,
+-- 組織表（支援岩館、學校、嚮導公司、社團等）
+CREATE TABLE IF NOT EXISTS game_organizations (
+    id TEXT PRIMARY KEY,
+    type TEXT NOT NULL CHECK (type IN ('gym', 'school', 'guide', 'club', 'association', 'company', 'other')),
+    name TEXT NOT NULL,
+    slug TEXT UNIQUE,
+    description TEXT,
+    logo_url TEXT,
+    website TEXT,
+    contact_email TEXT,
+    linked_gym_id TEXT,  -- 若為岩館類型，可關聯到現有 gyms 表
+    is_active INTEGER NOT NULL DEFAULT 1,
     custom_branding TEXT,
+    settings TEXT,
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
     updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-    FOREIGN KEY (gym_id) REFERENCES gyms(id) ON DELETE CASCADE
+    FOREIGN KEY (linked_gym_id) REFERENCES gyms(id) ON DELETE SET NULL
 );
 
--- 岩館管理員表
-CREATE TABLE IF NOT EXISTS gym_admins (
+CREATE INDEX IF NOT EXISTS idx_game_orgs_type ON game_organizations(type);
+CREATE INDEX IF NOT EXISTS idx_game_orgs_slug ON game_organizations(slug);
+CREATE INDEX IF NOT EXISTS idx_game_orgs_active ON game_organizations(is_active);
+CREATE INDEX IF NOT EXISTS idx_game_orgs_gym ON game_organizations(linked_gym_id);
+
+-- 組織管理員表
+CREATE TABLE IF NOT EXISTS game_org_admins (
     id TEXT PRIMARY KEY,
-    gym_id TEXT NOT NULL,
+    org_id TEXT NOT NULL,
     user_id TEXT NOT NULL,
     role TEXT NOT NULL DEFAULT 'admin' CHECK (role IN ('owner', 'admin', 'instructor')),
     permissions TEXT,
+    invited_by TEXT,
+    invited_at DATETIME,
+    accepted_at DATETIME,
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-    UNIQUE(gym_id, user_id),
-    FOREIGN KEY (gym_id) REFERENCES gyms(id) ON DELETE CASCADE,
+    UNIQUE(org_id, user_id),
+    FOREIGN KEY (org_id) REFERENCES game_organizations(id) ON DELETE CASCADE,
+    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
+    FOREIGN KEY (invited_by) REFERENCES users(id) ON DELETE SET NULL
+);
+
+CREATE INDEX IF NOT EXISTS idx_game_org_admins_org ON game_org_admins(org_id);
+CREATE INDEX IF NOT EXISTS idx_game_org_admins_user ON game_org_admins(user_id);
+
+-- 組織成員表
+CREATE TABLE IF NOT EXISTS game_org_members (
+    id TEXT PRIMARY KEY,
+    org_id TEXT NOT NULL,
+    user_id TEXT NOT NULL,
+    status TEXT NOT NULL DEFAULT 'active' CHECK (status IN ('pending', 'active', 'suspended')),
+    joined_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    notes TEXT,
+    UNIQUE(org_id, user_id),
+    FOREIGN KEY (org_id) REFERENCES game_organizations(id) ON DELETE CASCADE,
     FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
 );
 
-CREATE INDEX IF NOT EXISTS idx_gym_admins_gym ON gym_admins(gym_id);
-CREATE INDEX IF NOT EXISTS idx_gym_admins_user ON gym_admins(user_id);
+CREATE INDEX IF NOT EXISTS idx_game_org_members_org ON game_org_members(org_id);
+CREATE INDEX IF NOT EXISTS idx_game_org_members_user ON game_org_members(user_id);
+CREATE INDEX IF NOT EXISTS idx_game_org_members_status ON game_org_members(status);
 
 -- 類別表
 CREATE TABLE IF NOT EXISTS game_categories (
@@ -720,7 +829,7 @@ CREATE TABLE IF NOT EXISTS game_questions (
 -- 考試表
 CREATE TABLE IF NOT EXISTS game_exams (
     id TEXT PRIMARY KEY,
-    gym_id TEXT,
+    org_id TEXT,  -- NULL 表示系統公開考卷
     name TEXT NOT NULL,
     description TEXT,
     category_ids TEXT,
@@ -730,10 +839,14 @@ CREATE TABLE IF NOT EXISTS game_exams (
     randomize_questions INTEGER NOT NULL DEFAULT 1,
     randomize_options INTEGER NOT NULL DEFAULT 0,
     show_explanation INTEGER NOT NULL DEFAULT 0,
+    require_membership INTEGER NOT NULL DEFAULT 0,
     is_published INTEGER NOT NULL DEFAULT 0,
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-    updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
+    updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (org_id) REFERENCES game_organizations(id) ON DELETE CASCADE
 );
+
+CREATE INDEX IF NOT EXISTS idx_game_exams_org ON game_exams(org_id);
 
 -- 考試題目關聯表
 CREATE TABLE IF NOT EXISTS game_exam_questions (
@@ -749,6 +862,7 @@ CREATE TABLE IF NOT EXISTS game_exam_questions (
 CREATE TABLE IF NOT EXISTS game_attempts (
     id TEXT PRIMARY KEY,
     user_id TEXT NOT NULL,
+    org_id TEXT,  -- 所屬組織
     exam_id TEXT,
     category_id TEXT,
     mode TEXT NOT NULL CHECK (mode IN ('learn', 'exam')),
@@ -761,7 +875,11 @@ CREATE TABLE IF NOT EXISTS game_attempts (
     answers TEXT,
     is_passed INTEGER,
     started_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    completed_at DATETIME
+    completed_at DATETIME,
+    FOREIGN KEY (user_id) REFERENCES users(id),
+    FOREIGN KEY (org_id) REFERENCES game_organizations(id) ON DELETE SET NULL,
+    FOREIGN KEY (exam_id) REFERENCES game_exams(id),
+    FOREIGN KEY (category_id) REFERENCES game_categories(id)
 );
 
 -- 認證表
@@ -769,13 +887,17 @@ CREATE TABLE IF NOT EXISTS game_certifications (
     id TEXT PRIMARY KEY,
     user_id TEXT NOT NULL,
     level INTEGER NOT NULL CHECK (level BETWEEN 1 AND 5),
-    gym_id TEXT,
+    org_id TEXT,  -- 發證組織
     attempt_id TEXT,
     certificate_url TEXT,
+    certificate_number TEXT UNIQUE,
     issued_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
     expires_at DATETIME,
     revoked_at DATETIME,
-    revoke_reason TEXT
+    revoke_reason TEXT,
+    FOREIGN KEY (user_id) REFERENCES users(id),
+    FOREIGN KEY (org_id) REFERENCES game_organizations(id) ON DELETE SET NULL,
+    FOREIGN KEY (attempt_id) REFERENCES game_attempts(id)
 );
 
 -- 題目統計表
@@ -792,7 +914,13 @@ CREATE TABLE IF NOT EXISTS game_question_stats (
 CREATE INDEX IF NOT EXISTS idx_game_categories_type ON game_categories(type);
 CREATE INDEX IF NOT EXISTS idx_game_questions_category ON game_questions(category_id);
 CREATE INDEX IF NOT EXISTS idx_game_questions_active ON game_questions(is_active);
+CREATE INDEX IF NOT EXISTS idx_game_exams_published ON game_exams(is_published);
 CREATE INDEX IF NOT EXISTS idx_game_attempts_user ON game_attempts(user_id);
+CREATE INDEX IF NOT EXISTS idx_game_attempts_org ON game_attempts(org_id);
 CREATE INDEX IF NOT EXISTS idx_game_attempts_completed ON game_attempts(completed_at);
 CREATE INDEX IF NOT EXISTS idx_game_certifications_user ON game_certifications(user_id);
+CREATE INDEX IF NOT EXISTS idx_game_certifications_org ON game_certifications(org_id);
+CREATE INDEX IF NOT EXISTS idx_game_certifications_number ON game_certifications(certificate_number);
+CREATE UNIQUE INDEX IF NOT EXISTS idx_game_certifications_unique ON game_certifications(user_id, level, org_id)
+    WHERE revoked_at IS NULL;
 ```
