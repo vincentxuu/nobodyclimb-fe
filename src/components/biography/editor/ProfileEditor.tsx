@@ -1,7 +1,8 @@
 'use client'
 
-import { useState, useEffect, useCallback } from 'react'
+import { useState, useEffect, useCallback, useRef } from 'react'
 import { cn } from '@/lib/utils'
+import { User, Tag, MessageCircle, BookOpen, Globe, Link } from 'lucide-react'
 import type {
   BiographyV2,
   TagDimension,
@@ -18,6 +19,8 @@ import { StoriesSection } from './StoriesSection'
 import { StoryEditModal } from './StoryEditModal'
 import { FixedBottomBar, BottomBarSpacer } from './FixedBottomBar'
 import { AutoSaveIndicator, useSaveStatus } from '../shared/AutoSaveIndicator'
+import { SocialLinksEditorSection } from './SocialLinksEditorSection'
+import { ClimbingFootprintsEditorSection } from './ClimbingFootprintsEditorSection'
 
 interface ProfileEditorProps {
   /** 人物誌資料 */
@@ -60,6 +63,18 @@ export function ProfileEditor({
   const [activeSection, setActiveSection] = useState<string>('basic')
   const { status, lastSavedAt, error, setSaving, setSaved, setError } = useSaveStatus()
 
+  // Section refs for scroll navigation
+  const sectionRefs = useRef<Record<string, HTMLElement | null>>({})
+
+  // Handle section click - scroll to section
+  const handleSectionClick = useCallback((sectionId: string) => {
+    setActiveSection(sectionId)
+    const element = sectionRefs.current[sectionId]
+    if (element) {
+      element.scrollIntoView({ behavior: 'smooth', block: 'start' })
+    }
+  }, [])
+
   // Auto-save with debounce
   const [pendingChanges, setPendingChanges] = useState(false)
 
@@ -94,13 +109,13 @@ export function ProfileEditor({
     {
       id: 'basic',
       label: '基本資料',
-      emoji: '👤',
+      icon: User,
       isCompleted: !!biography.name,
     },
     {
       id: 'tags',
       label: '身份標籤',
-      emoji: '🏷️',
+      icon: Tag,
       isCompleted: biography.tags.length > 0,
       progress: {
         completed: biography.tags.length,
@@ -110,7 +125,7 @@ export function ProfileEditor({
     {
       id: 'oneliners',
       label: '快問快答',
-      emoji: '💬',
+      icon: MessageCircle,
       isCompleted: biography.one_liners.some((o) => o.answer?.trim()),
       progress: {
         completed: biography.one_liners.filter((o) => o.answer?.trim()).length,
@@ -120,12 +135,24 @@ export function ProfileEditor({
     {
       id: 'stories',
       label: '深度故事',
-      emoji: '📖',
+      icon: BookOpen,
       isCompleted: biography.stories.some((s) => s.content?.trim()),
       progress: {
         completed: biography.stories.filter((s) => s.content?.trim()).length,
         total: Object.values(storyQuestionsByCategory).flat().length,
       },
+    },
+    {
+      id: 'footprints',
+      label: '攀岩足跡',
+      icon: Globe,
+      isCompleted: false, // Will be updated by ClimbingFootprintsEditorSection
+    },
+    {
+      id: 'social',
+      label: '社群連結',
+      icon: Link,
+      isCompleted: !!(biography.social_links?.instagram || biography.social_links?.youtube),
     },
   ]
 
@@ -172,7 +199,7 @@ export function ProfileEditor({
               <ProgressIndicator
                 sections={sections}
                 activeSection={activeSection}
-                onSectionClick={setActiveSection}
+                onSectionClick={handleSectionClick}
               />
             </div>
           </aside>
@@ -182,6 +209,7 @@ export function ProfileEditor({
             {/* Basic Info */}
             <section
               id="basic"
+              ref={(el) => { sectionRefs.current['basic'] = el }}
               className="bg-white rounded-xl p-4 md:p-6"
             >
               <BasicInfoSection
@@ -213,6 +241,7 @@ export function ProfileEditor({
             {/* Tags */}
             <section
               id="tags"
+              ref={(el) => { sectionRefs.current['tags'] = el }}
               className="bg-white rounded-xl p-4 md:p-6"
             >
               <TagsSection
@@ -251,6 +280,7 @@ export function ProfileEditor({
             {/* One-liners */}
             <section
               id="oneliners"
+              ref={(el) => { sectionRefs.current['oneliners'] = el }}
               className="bg-white rounded-xl p-4 md:p-6"
             >
               <OneLinersSection
@@ -285,12 +315,34 @@ export function ProfileEditor({
             {/* Stories */}
             <section
               id="stories"
+              ref={(el) => { sectionRefs.current['stories'] = el }}
               className="bg-white rounded-xl p-4 md:p-6"
             >
               <StoriesSection
                 questionsByCategory={storyQuestionsByCategory}
                 stories={biography.stories}
                 onStoryClick={(questionId) => setEditingStoryId(questionId)}
+              />
+            </section>
+
+            {/* Climbing Footprints */}
+            <section
+              id="footprints"
+              ref={(el) => { sectionRefs.current['footprints'] = el }}
+              className="bg-white rounded-xl p-4 md:p-6"
+            >
+              <ClimbingFootprintsEditorSection />
+            </section>
+
+            {/* Social Links */}
+            <section
+              id="social"
+              ref={(el) => { sectionRefs.current['social'] = el }}
+              className="bg-white rounded-xl p-4 md:p-6"
+            >
+              <SocialLinksEditorSection
+                socialLinks={biography.social_links || {}}
+                onSocialLinksChange={(socialLinks) => handleChange({ social_links: socialLinks })}
               />
             </section>
           </main>
