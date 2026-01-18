@@ -1006,12 +1006,85 @@
 - 點擊：展開故事 Modal（桌面）或進入全螢幕編輯（手機）
 - 長故事顯示前 3 行，加「繼續閱讀」按鈕
 
-### 7.3 自動儲存
+### 7.3 自動儲存與手動儲存
 
-- 離開輸入框 3 秒後自動儲存
-- 儲存中顯示 spinner
-- 儲存成功顯示 ✓
-- 顯示「上次儲存：X 分鐘前」
+**自動儲存機制：**
+
+| 觸發條件 | 行為 |
+|---------|------|
+| 輸入框失去焦點 (blur) | 立即觸發儲存 |
+| 輸入停止 3 秒 (debounce) | 觸發儲存 |
+| 切換 section/tab | 儲存當前 section |
+| 頁面即將關閉 (beforeunload) | 觸發儲存（見下方說明） |
+
+**儲存狀態指示：**
+
+```
+┌─────────────────────────────────────────┐
+│  儲存狀態顯示在 Fixed Bottom Bar        │
+├─────────────────────────────────────────┤
+│  ⏳ 儲存中...                           │  ← 正在儲存
+│  ✓ 已儲存                               │  ← 儲存成功（顯示 2 秒）
+│  ⚠️ 儲存失敗，請重試                     │  ← 儲存失敗
+│  上次儲存：2 分鐘前                      │  ← 閒置狀態
+└─────────────────────────────────────────┘
+```
+
+**自動儲存與手動儲存按鈕的互動：**
+
+| 情境 | 手動「儲存變更」按鈕狀態 |
+|-----|-------------------------|
+| 無未儲存變更 | 禁用 (disabled)，顯示「已儲存」 |
+| 有未儲存變更 | 啟用，顯示「儲存變更」 |
+| 自動儲存中 | 禁用，顯示 spinner |
+| 自動儲存完成 | 更新為「已儲存」，2 秒後恢復 |
+
+**頁面關閉時的處理：**
+
+```typescript
+// 使用 beforeunload 事件
+useEffect(() => {
+  const handleBeforeUnload = (e: BeforeUnloadEvent) => {
+    if (hasUnsavedChanges) {
+      // 1. 嘗試使用 sendBeacon 儲存
+      navigator.sendBeacon('/api/v1/biographies/autosave', JSON.stringify(data))
+
+      // 2. 顯示瀏覽器預設的「離開確認」對話框
+      e.preventDefault()
+      e.returnValue = ''
+    }
+  }
+
+  window.addEventListener('beforeunload', handleBeforeUnload)
+  return () => window.removeEventListener('beforeunload', handleBeforeUnload)
+}, [hasUnsavedChanges])
+```
+
+**儲存失敗的處理：**
+
+1. **網路錯誤**：顯示錯誤提示，3 秒後自動重試（最多 3 次）
+2. **伺服器錯誤**：顯示錯誤提示，啟用手動「儲存變更」按鈕
+3. **離線狀態**：將變更暫存到 localStorage，上線後自動同步
+
+**實作建議：**
+
+```typescript
+// 使用 useDebouncedCallback 處理自動儲存
+const debouncedSave = useDebouncedCallback(
+  async (data: BiographyV2) => {
+    setSaveStatus('saving')
+    try {
+      await saveBiography(data)
+      setSaveStatus('saved')
+      setLastSavedAt(new Date())
+    } catch (error) {
+      setSaveStatus('error')
+      // 加入重試佇列
+    }
+  },
+  3000 // 3 秒 debounce
+)
+```
 
 ### 7.4 隨機推薦
 
@@ -1069,3 +1142,4 @@ src/components/biography/
 | 日期 | 版本 | 變更內容 | 作者 |
 |-----|-----|---------|------|
 | 2026-01-18 | v1.0 | 初版建立 | Claude |
+| 2026-01-18 | v1.1 | 審查修正：補充自動儲存與手動儲存的互動機制、頁面關閉處理、儲存失敗處理 | Claude |

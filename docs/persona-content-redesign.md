@@ -758,26 +758,36 @@ const userStories: BiographyStoriesV2 = {
 **隨機推薦邏輯：**
 
 ```typescript
-function getRandomQuestion(stories: BiographyStories): StoryQuestion {
+function getRandomQuestion(
+  stories: BiographyStoriesV2,
+  allQuestions: StoryQuestion[]
+): StoryQuestion {
+  // 建立已回答問題的 ID 集合
+  const answeredQuestionIds = new Set(
+    stories.answers.map(a => a.question_id)
+  )
+
   // 優先推薦：
   // 1. 尚未填寫的
   // 2. 難度為 'easy' 的
   // 3. 如果都填了，隨機選一個讓用戶更新
 
-  const unfilledEasy = questions.filter(
-    q => !stories[q.field] && q.difficulty === 'easy'
+  const unfilledEasy = allQuestions.filter(
+    q => !answeredQuestionIds.has(q.id) && q.difficulty === 'easy'
   )
 
   if (unfilledEasy.length > 0) {
     return randomPick(unfilledEasy)
   }
 
-  const unfilled = questions.filter(q => !stories[q.field])
+  const unfilled = allQuestions.filter(
+    q => !answeredQuestionIds.has(q.id)
+  )
   if (unfilled.length > 0) {
     return randomPick(unfilled)
   }
 
-  return randomPick(questions)
+  return randomPick(allQuestions)
 }
 ```
 
@@ -899,7 +909,98 @@ CREATE INDEX idx_tag_options_dimension ON tag_options(dimension_id);
 CREATE INDEX idx_story_questions_category ON story_questions(category_id);
 ```
 
-### 3.3 用戶自訂內容表（可選，用於社群共享）
+### 3.3 用戶自訂內容儲存策略
+
+**核心問題：用戶自訂內容存在哪裡？**
+
+用戶自訂內容採用**雙軌儲存機制**，根據是否公開共享而有不同的儲存方式：
+
+```
+┌─────────────────────────────────────────────────────────────────────────────┐
+│                          用戶建立自訂內容                                    │
+│                                │                                            │
+│                                ▼                                            │
+│                   ┌────────────────────────┐                                │
+│                   │ 用戶選擇是否公開共享？  │                                │
+│                   └────────────────────────┘                                │
+│                        │              │                                     │
+│                        ▼              ▼                                     │
+│            ┌──────────────────┐ ┌──────────────────┐                        │
+│            │   僅自己使用      │ │   公開讓他人選用  │                        │
+│            │   is_public=false │ │   is_public=true  │                        │
+│            └──────────────────┘ └──────────────────┘                        │
+│                        │              │                                     │
+│                        ▼              ▼                                     │
+│            ┌──────────────────┐ ┌──────────────────┐                        │
+│            │ 儲存在 JSON 欄位  │ │ 同時儲存在：      │                        │
+│            │ biographies.tags  │ │ 1. JSON 欄位      │                        │
+│            │ biographies.xxx   │ │ 2. 共享表         │                        │
+│            │                  │ │    user_custom_*  │                        │
+│            └──────────────────┘ └──────────────────┘                        │
+└─────────────────────────────────────────────────────────────────────────────┘
+```
+
+**儲存規則：**
+
+| 情境 | 儲存位置 | 說明 |
+|-----|---------|------|
+| 用戶建立自訂標籤（不公開） | `biographies.tags.custom_options` | 僅存在用戶自己的 JSON 中 |
+| 用戶建立自訂標籤（公開） | `biographies.tags.custom_options` + `user_custom_tags` | 同時存兩處 |
+| 用戶選用他人的公開標籤 | `biographies.tags.selections` | 記錄選用的 ID |
+| 用戶建立自訂問題（不公開） | `biographies.one_liners.custom_questions` 或 `biographies.stories.custom_questions` | 僅存在用戶自己的 JSON 中 |
+| 用戶建立自訂問題（公開） | JSON 欄位 + `user_custom_questions` | 同時存兩處 |
+
+**更新同步規則：**
+
+1. **不公開的自訂內容**：僅更新用戶的 JSON 欄位
+2. **公開的自訂內容**：
+   - 用戶修改自己建立的內容 → 同步更新共享表
+   - 共享表的 `usage_count` 記錄有多少人在使用
+   - 已被其他人選用的內容，建議用戶只能新增而非刪除
+3. **被採納為系統預設**：
+   - 管理員審核後設置 `is_approved = true`
+   - 將內容複製到系統表（`tag_options` / `story_questions`）
+   - 原共享表記錄保留，用於追溯來源
+
+**API 流程範例：**
+
+```typescript
+// 建立自訂標籤
+async function createCustomTag(data: CreateCustomTagRequest) {
+  const tagId = `usr_tag_${generateId()}`
+
+  // 1. 更新用戶的 biography JSON
+  await updateBiographyTags(userId, {
+    custom_options: [
+      ...existingCustomOptions,
+      {
+        id: tagId,
+        source: 'user',
+        created_by: userId,
+        dimension_id: data.dimension_id,
+        label: data.label,
+        description: data.description,
+      }
+    ]
+  })
+
+  // 2. 如果用戶選擇公開，同時寫入共享表
+  if (data.is_public) {
+    await db.insert(user_custom_tags).values({
+      id: tagId,
+      user_id: userId,
+      dimension_id: data.dimension_id,
+      label: data.label,
+      description: data.description,
+      is_public: true,
+    })
+  }
+
+  return tagId
+}
+```
+
+### 3.4 用戶自訂內容共享表
 
 ```sql
 -- 用戶自訂標籤（可能被其他用戶採用）
@@ -941,7 +1042,7 @@ CREATE INDEX idx_user_custom_questions_user ON user_custom_questions(user_id);
 CREATE INDEX idx_user_custom_questions_type ON user_custom_questions(type);
 ```
 
-### 3.4 資料遷移策略
+### 3.5 資料遷移策略
 
 舊欄位資料遷移到新結構：
 
@@ -1309,128 +1410,179 @@ function migrateToV2(oldBio: Biography): BiographyV2 {
 
 ## 5. 標籤顯示名稱對照表
 
-### 5.1 風格邪教
+> **ID 格式說明**：所有系統標籤使用 `sys_{dimension}_{option}` 格式
+> 用戶自訂標籤使用 `usr_{type}_{id}` 格式
 
-| 值 | 顯示名稱 | 說明 |
-|---|---------|------|
-| `crack_cult` | #裂隙邪教 | 塞裂隙的快感無可取代 |
-| `slab_cult` | #Slab邪教 | 平衡就是藝術 |
-| `overhang_cult` | #外傾邪教 | 沒有倒掛不想爬 |
-| `dyno_cult` | #Dyno邪教 | 能飛就不要慢慢來 |
-| `crimp_cult` | #Crimp邪教 | 小點越小越愛 |
-| `jug_cult` | #大把手邪教 | jug 是我的信仰 |
-| `all_styles` | #什麼都爬教 | 我不挑 |
+### 5.1 風格邪教（維度 ID: `sys_style_cult`）
 
-### 5.2 傷痛勳章
+| 完整 ID | 顯示名稱 | 說明 |
+|---------|---------|------|
+| `sys_style_cult_crack` | #裂隙邪教 | 塞裂隙的快感無可取代 |
+| `sys_style_cult_slab` | #Slab邪教 | 平衡就是藝術 |
+| `sys_style_cult_overhang` | #外傾邪教 | 沒有倒掛不想爬 |
+| `sys_style_cult_dyno` | #Dyno邪教 | 能飛就不要慢慢來 |
+| `sys_style_cult_crimp` | #Crimp邪教 | 小點越小越愛 |
+| `sys_style_cult_jug` | #大把手邪教 | jug 是我的信仰 |
+| `sys_style_cult_all` | #什麼都爬教 | 我不挑 |
 
-| 值 | 顯示名稱 | 說明 |
-|---|---------|------|
-| `a2_survivor` | #A2滑輪倖存者 | 聽過那聲「啪」的都懂 |
-| `elbow_sufferer` | #手肘苦主 | 網球肘/高爾夫球肘認證 |
-| `shoulder_issues` | #肩膀卡卡 | 做 mantle 要小心 |
-| `skin_badge` | #手皮勳章 | 撕過的皮都是榮耀 |
-| `back_protest` | #腰在抗議 | 外傾爬多了 |
-| `injury_free` | #目前無傷 | 珍惜這個狀態 |
-| `always_rehabbing` | #永遠在復健 | 休息也是訓練 |
+### 5.2 傷痛勳章（維度 ID: `sys_injury_badge`）
 
-### 5.3 鞋子門派
+| 完整 ID | 顯示名稱 | 說明 |
+|---------|---------|------|
+| `sys_injury_badge_a2` | #A2滑輪倖存者 | 聽過那聲「啪」的都懂 |
+| `sys_injury_badge_elbow` | #手肘苦主 | 網球肘/高爾夫球肘認證 |
+| `sys_injury_badge_shoulder` | #肩膀卡卡 | 做 mantle 要小心 |
+| `sys_injury_badge_skin` | #手皮勳章 | 撕過的皮都是榮耀 |
+| `sys_injury_badge_back` | #腰在抗議 | 外傾爬多了 |
+| `sys_injury_badge_none` | #目前無傷 | 珍惜這個狀態 |
+| `sys_injury_badge_rehab` | #永遠在復健 | 休息也是訓練 |
 
-| 值 | 顯示名稱 | 說明 |
-|---|---------|------|
-| `la_sportiva` | #LaSportiva黨 | Solution 是信仰 |
-| `scarpa` | #Scarpa派 | Instinct 用過回不去 |
-| `evolv` | #Evolv教 | 美國設計懂我的腳 |
-| `unparallel` | #UnParallel新勢力 | 小眾但好穿 |
-| `many_shoes` | #鞋子越多越好 | 不同路線不同鞋 |
-| `one_pair` | #一雙穿到爛 | 感情比性能重要 |
-| `rental_fine` | #租借鞋也能爬 | 鞋子不是重點 |
+### 5.3 鞋子門派（維度 ID: `sys_shoe_faction`）
 
-### 5.4 時間型態
+| 完整 ID | 顯示名稱 | 說明 |
+|---------|---------|------|
+| `sys_shoe_faction_lasportiva` | #LaSportiva黨 | Solution 是信仰 |
+| `sys_shoe_faction_scarpa` | #Scarpa派 | Instinct 用過回不去 |
+| `sys_shoe_faction_evolv` | #Evolv教 | 美國設計懂我的腳 |
+| `sys_shoe_faction_unparallel` | #UnParallel新勢力 | 小眾但好穿 |
+| `sys_shoe_faction_many` | #鞋子越多越好 | 不同路線不同鞋 |
+| `sys_shoe_faction_one` | #一雙穿到爛 | 感情比性能重要 |
+| `sys_shoe_faction_rental` | #租借鞋也能爬 | 鞋子不是重點 |
 
-| 值 | 顯示名稱 | 說明 |
-|---|---------|------|
-| `morning_climber` | #晨型攀岩人 | 早上岩館人少爽爽爬 |
-| `night_climber` | #夜貓攀岩人 | 下班後的岩館時光 |
-| `weekend_warrior` | #週末戰士 | 平日上班週末爆發 |
-| `lunch_attacker` | #午休攻擊手 | 中午偷爬一下 |
-| `whenever` | #有空就爬 | 不固定但把握機會 |
-| `fulltime` | #全職岩棍 | 每天都是攀岩日 |
+### 5.4 時間型態（維度 ID: `sys_time_type`）
 
-### 5.5 生活方式
+| 完整 ID | 顯示名稱 | 說明 |
+|---------|---------|------|
+| `sys_time_type_morning` | #晨型攀岩人 | 早上岩館人少爽爽爬 |
+| `sys_time_type_night` | #夜貓攀岩人 | 下班後的岩館時光 |
+| `sys_time_type_weekend` | #週末戰士 | 平日上班週末爆發 |
+| `sys_time_type_lunch` | #午休攻擊手 | 中午偷爬一下 |
+| `sys_time_type_whenever` | #有空就爬 | 不固定但把握機會 |
+| `sys_time_type_fulltime` | #全職岩棍 | 每天都是攀岩日 |
 
-| 值 | 顯示名稱 | 說明 |
-|---|---------|------|
-| `dirtbag` | #Dirtbag精神 | 為了爬可以睡車上 |
-| `workbag` | #Workbag | 有工作但心在岩壁上 |
-| `weekend_escape` | #週末出逃 | 平日社畜週末野人 |
-| `gym_resident` | #岩館居民 | 室內就很滿足了 |
-| `travel_climber` | #旅行攀岩派 | 去哪都要找岩場 |
-| `local_gym` | #就近解決 | 家裡附近的岩館最好 |
+### 5.5 生活方式（維度 ID: `sys_lifestyle`）
 
-### 5.6 爬牆 BGM
+| 完整 ID | 顯示名稱 | 說明 |
+|---------|---------|------|
+| `sys_lifestyle_dirtbag` | #Dirtbag精神 | 為了爬可以睡車上 |
+| `sys_lifestyle_workbag` | #Workbag | 有工作但心在岩壁上 |
+| `sys_lifestyle_weekend` | #週末出逃 | 平日社畜週末野人 |
+| `sys_lifestyle_gym` | #岩館居民 | 室內就很滿足了 |
+| `sys_lifestyle_travel` | #旅行攀岩派 | 去哪都要找岩場 |
+| `sys_lifestyle_local` | #就近解決 | 家裡附近的岩館最好 |
 
-| 值 | 顯示名稱 | 說明 |
-|---|---------|------|
-| `no_music` | #不聽音樂派 | 要專心感受動作 |
-| `electronic` | #電子Techno | 節奏帶動身體 |
-| `hiphop` | #嘻哈饒舌 | Wu-Tang 給我力量 |
-| `rock_metal` | #搖滾金屬 | 爆發力來源 |
-| `lofi` | #Lofi放鬆 | chill 才爬得好 |
-| `podcast` | #Podcast派 | 邊聽邊爬 |
-| `gym_music` | #聽岩館放的 | 沒特別想法 |
+### 5.6 爬牆 BGM（維度 ID: `sys_climbing_music`）
 
-### 5.7 面對失敗
+| 完整 ID | 顯示名稱 | 說明 |
+|---------|---------|------|
+| `sys_climbing_music_none` | #不聽音樂派 | 要專心感受動作 |
+| `sys_climbing_music_electronic` | #電子Techno | 節奏帶動身體 |
+| `sys_climbing_music_hiphop` | #嘻哈饒舌 | Wu-Tang 給我力量 |
+| `sys_climbing_music_rock` | #搖滾金屬 | 爆發力來源 |
+| `sys_climbing_music_lofi` | #Lofi放鬆 | chill 才爬得好 |
+| `sys_climbing_music_podcast` | #Podcast派 | 邊聽邊爬 |
+| `sys_climbing_music_gym` | #聽岩館放的 | 沒特別想法 |
 
-| 值 | 顯示名稱 | 說明 |
-|---|---------|------|
-| `try_again` | #再試一次 | 今天一定要送 |
-| `rest_tomorrow` | #先休息明天再來 | 不硬拼 |
-| `switch_route` | #換條線 | 這條不適合我 |
-| `watch_others` | #看別人怎麼爬 | 偷學 beta |
-| `video_analysis` | #錄影分析 | 科學派 |
-| `ask_others` | #問人請教 | 請教厲害的人 |
+### 5.7 面對失敗（維度 ID: `sys_failure_response`）
 
-### 5.8 社交類型
+| 完整 ID | 顯示名稱 | 說明 |
+|---------|---------|------|
+| `sys_failure_response_retry` | #再試一次 | 今天一定要送 |
+| `sys_failure_response_rest` | #先休息明天再來 | 不硬拼 |
+| `sys_failure_response_switch` | #換條線 | 這條不適合我 |
+| `sys_failure_response_watch` | #看別人怎麼爬 | 偷學 beta |
+| `sys_failure_response_video` | #錄影分析 | 科學派 |
+| `sys_failure_response_ask` | #問人請教 | 請教厲害的人 |
 
-| 值 | 顯示名稱 | 說明 |
-|---|---------|------|
-| `solo_climber` | #獨攀俠 | 一個人也能爬 |
-| `fixed_partner` | #固定繩伴 | 有穩定的搭檔 |
-| `group_organizer` | #揪團仔 | 人多熱鬧 |
-| `shy_social` | #社恐但想交朋友 | 默默觀察中 |
-| `talkative` | #話很多 | 邊爬邊聊 |
-| `quiet_focused` | #安靜專注派 | 不太講話 |
+### 5.8 社交類型（維度 ID: `sys_social_type`）
 
-### 5.9 上粉習慣
+| 完整 ID | 顯示名稱 | 說明 |
+|---------|---------|------|
+| `sys_social_type_solo` | #獨攀俠 | 一個人也能爬 |
+| `sys_social_type_partner` | #固定繩伴 | 有穩定的搭檔 |
+| `sys_social_type_organizer` | #揪團仔 | 人多熱鬧 |
+| `sys_social_type_shy` | #社恐但想交朋友 | 默默觀察中 |
+| `sys_social_type_talkative` | #話很多 | 邊爬邊聊 |
+| `sys_social_type_quiet` | #安靜專注派 | 不太講話 |
 
-| 值 | 顯示名稱 | 說明 |
-|---|---------|------|
-| `heavy_chalker` | #瘋狂上粉 | 沒在省的 |
-| `moderate` | #適量就好 | 環保一點 |
-| `liquid_chalk` | #液態粉派 | 比較不會飛 |
-| `minimal_chalk` | #幾乎不上粉 | 手不太流汗 |
-| `chalk_stalling` | #上粉等於拖延 | 其實在逃避 crux |
+### 5.9 上粉習慣（維度 ID: `sys_chalk_habit`）
 
-### 5.10 訓練取向
+| 完整 ID | 顯示名稱 | 說明 |
+|---------|---------|------|
+| `sys_chalk_habit_heavy` | #瘋狂上粉 | 沒在省的 |
+| `sys_chalk_habit_moderate` | #適量就好 | 環保一點 |
+| `sys_chalk_habit_liquid` | #液態粉派 | 比較不會飛 |
+| `sys_chalk_habit_minimal` | #幾乎不上粉 | 手不太流汗 |
+| `sys_chalk_habit_stalling` | #上粉等於拖延 | 其實在逃避 crux |
 
-| 值 | 顯示名稱 | 說明 |
-|---|---------|------|
-| `just_climb` | #爬就對了 | 爬多就會進步 |
-| `hangboard` | #指力板信徒 | Hangboard 是日常 |
-| `campus_board` | #CampusBoard派 | 爆發力至上 |
-| `core_training` | #核心訓練狂 | 身體張力很重要 |
-| `zen_progress` | #佛系進步 | 有爬就好不強求 |
-| `planned_training` | #有計畫訓練 | 週期化、記錄、分析 |
-| `youtube_student` | #YouTube研究員 | 看影片比爬多 |
+### 5.10 訓練取向（維度 ID: `sys_training_approach`）
 
-### 5.11 在地認同
+| 完整 ID | 顯示名稱 | 說明 |
+|---------|---------|------|
+| `sys_training_approach_climb` | #爬就對了 | 爬多就會進步 |
+| `sys_training_approach_hangboard` | #指力板信徒 | Hangboard 是日常 |
+| `sys_training_approach_campus` | #CampusBoard派 | 爆發力至上 |
+| `sys_training_approach_core` | #核心訓練狂 | 身體張力很重要 |
+| `sys_training_approach_zen` | #佛系進步 | 有爬就好不強求 |
+| `sys_training_approach_planned` | #有計畫訓練 | 週期化、記錄、分析 |
+| `sys_training_approach_youtube` | #YouTube研究員 | 看影片比爬多 |
 
-| 值 | 顯示名稱 | 說明 |
-|---|---------|------|
-| `longdong_believer` | #龍洞信徒 | 週末必去朝聖 |
-| `beitou_cannon` | #北投大砲派 | 戶外啟蒙聖地 |
-| `indoor_only` | #只爬室內派 | 有冷氣有軟墊 |
-| `climb_anywhere` | #哪裡都爬 | 不挑場地 |
+### 5.11 在地認同（維度 ID: `sys_local_identity`）
+
+| 完整 ID | 顯示名稱 | 說明 |
+|---------|---------|------|
+| `sys_local_identity_longdong` | #龍洞信徒 | 週末必去朝聖 |
+| `sys_local_identity_beitou` | #北投大砲派 | 戶外啟蒙聖地 |
+| `sys_local_identity_indoor` | #只爬室內派 | 有冷氣有軟墊 |
+| `sys_local_identity_anywhere` | #哪裡都爬 | 不挑場地 |
+| `sys_local_identity_gym` | #岩館社畜 | 動態標籤，見下方說明 |
+
+### 5.12 動態標籤說明
+
+部分標籤的內容會根據用戶的其他欄位動態生成：
+
+| 動態標籤 | 資料來源 | 顯示範例 |
+|---------|---------|---------|
+| `sys_local_identity_gym` | `biographies.home_gym` | #原岩攀岩館社畜 |
+| `sys_local_identity_custom` | 用戶自訂地點 | #[自訂地點]信徒 |
+
+**資料結構擴展：**
+
+```typescript
+interface TagOption extends ExtensibleItem {
+  // ... 基本欄位
+
+  // 動態標籤專用
+  is_dynamic?: boolean           // 是否為動態標籤
+  template?: string              // 顯示模板，如 "#{value}社畜"
+  source_field?: string          // 資料來源欄位，如 "home_gym"
+}
+
+// 動態標籤範例
+const gymWorkerTag: TagOption = {
+  id: 'sys_local_identity_gym',
+  source: 'system',
+  dimension_id: 'sys_local_identity',
+  label: '#岩館社畜',
+  description: '常駐特定岩館',
+  is_dynamic: true,
+  template: '#{value}社畜',
+  source_field: 'home_gym',
+  order: 5,
+}
+
+// 渲染邏輯
+function renderDynamicTag(tag: TagOption, biography: BiographyV2): string {
+  if (!tag.is_dynamic || !tag.template || !tag.source_field) {
+    return tag.label
+  }
+  const value = biography[tag.source_field as keyof BiographyV2]
+  if (!value) return tag.label
+  return tag.template.replace('{value}', String(value))
+}
+
+// 結果：如果 home_gym = "原岩攀岩館"，顯示 "#原岩攀岩館社畜"
+```
 
 ---
 
@@ -1563,3 +1715,4 @@ interface PopularCustomContentResponse {
 |-----|-----|---------|------|
 | 2026-01-18 | v1.0 | 初版建立 | Claude |
 | 2026-01-18 | v2.0 | 開放式設計：支援用戶自訂維度、標籤、問題、分類 | Claude |
+| 2026-01-18 | v2.1 | 審查修正：(1) 修正 getRandomQuestion 使用新資料結構 (2) 補充用戶自訂內容儲存策略 (3) 統一標籤 ID 格式對照表 (4) 新增動態標籤資料結構設計 | Claude |
