@@ -2,6 +2,7 @@
 
 import Link from 'next/link'
 import { cn } from '@/lib/utils'
+import { Lightbulb, Plus } from 'lucide-react'
 
 type EmptyStateType = 'no_content' | 'private' | 'anonymous' | 'not_found'
 
@@ -74,20 +75,21 @@ export function EmptyState({
         className
       )}
     >
-      <div className="w-20 h-20 rounded-full bg-gray-100 flex items-center justify-center mb-6">
+      <div className="w-20 h-20 rounded-full bg-[#EBEAEA] flex items-center justify-center mb-6">
         <span className="text-4xl">{content.emoji}</span>
       </div>
 
-      <h2 className="text-xl font-semibold text-gray-900 mb-2">
+      <h2 className="text-xl font-semibold text-[#1B1A1A] mb-2">
         {content.title}
       </h2>
 
-      <p className="text-gray-500 max-w-sm mb-6">{content.description}</p>
+      <p className="text-[#6D6C6C] max-w-sm mb-6">{content.description}</p>
 
       {showOwnerGuide && (
-        <div className="bg-primary/5 rounded-xl p-4 mb-6 max-w-sm">
-          <p className="text-sm text-primary">
-            💡 小提示：選幾個標籤就能完成基本的人物誌，不需要寫很多字！
+        <div className="bg-brand-accent/10 rounded-xl p-4 mb-6 max-w-sm">
+          <p className="text-sm text-brand-dark flex items-center gap-2">
+            <Lightbulb size={16} className="flex-shrink-0" />
+            小提示：選幾個標籤就能完成基本的人物誌，不需要寫很多字！
           </p>
         </div>
       )}
@@ -95,7 +97,7 @@ export function EmptyState({
       {content.actionLabel && content.actionHref && (
         <Link
           href={content.actionHref}
-          className="px-6 py-3 rounded-full bg-primary text-white font-medium hover:bg-primary/90 transition-colors"
+          className="px-6 py-3 rounded-full bg-brand-dark text-white font-medium hover:bg-[#3F3D3D] transition-colors"
         >
           {content.actionLabel}
         </Link>
@@ -138,19 +140,20 @@ export function SectionEmptyState({
   return (
     <div
       className={cn(
-        'flex flex-col items-center justify-center py-8 px-4 text-center border-2 border-dashed border-gray-200 rounded-xl',
+        'flex flex-col items-center justify-center py-8 px-4 text-center border-2 border-dashed border-[#DBD8D8] rounded-xl',
         className
       )}
     >
       <span className="text-3xl mb-3">{emoji}</span>
-      <p className="text-gray-500 mb-2">{title}</p>
-      {description && <p className="text-sm text-gray-400 mb-4">{description}</p>}
+      <p className="text-[#6D6C6C] mb-2">{title}</p>
+      {description && <p className="text-sm text-[#8E8C8C] mb-4">{description}</p>}
 
       {editable && onAdd && (
         <button
           onClick={onAdd}
-          className="px-4 py-2 rounded-full bg-primary/10 text-primary font-medium hover:bg-primary/20 transition-colors"
+          className="inline-flex items-center gap-1 px-4 py-2 rounded-full bg-brand-accent/20 text-brand-dark font-medium hover:bg-brand-accent/30 transition-colors"
         >
+          <Plus size={16} />
           {addLabel}
         </button>
       )}

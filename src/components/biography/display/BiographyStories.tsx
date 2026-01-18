@@ -2,10 +2,9 @@
 
 import { useMemo, useState } from 'react'
 import { cn } from '@/lib/utils'
+import { BookOpen, ChevronDown, ChevronUp } from 'lucide-react'
 import type { BiographyV2 } from '@/lib/types/biography-v2'
 import {
-  SYSTEM_STORY_CATEGORY_LIST,
-  SYSTEM_STORY_QUESTION_LIST,
   getStoryQuestionById,
   getStoryCategoryById,
 } from '@/lib/constants/biography-questions'
@@ -108,10 +107,10 @@ export function BiographyStories({
     <section className={cn('py-6', className)}>
       <div className="flex items-center justify-between mb-4">
         <div className="flex items-center gap-2">
-          <span className="text-lg">📖</span>
-          <h2 className="text-lg font-semibold text-gray-900">我的故事</h2>
+          <BookOpen size={18} className="text-[#3F3D3D]" />
+          <h2 className="text-lg font-semibold text-[#1B1A1A]">我的故事</h2>
         </div>
-        <span className="text-sm text-gray-500">共 {stories.length} 則故事</span>
+        <span className="text-sm text-[#6D6C6C]">共 {stories.length} 則故事</span>
       </div>
 
       {/* Stories Grid */}
@@ -132,9 +131,19 @@ export function BiographyStories({
         <div className="flex justify-center mt-6">
           <button
             onClick={() => setShowAll(!showAll)}
-            className="px-6 py-2 rounded-full border border-gray-300 text-gray-600 font-medium hover:bg-gray-50 transition-colors"
+            className="inline-flex items-center gap-1 px-6 py-2 rounded-full border border-[#B6B3B3] text-[#6D6C6C] font-medium hover:bg-[#F5F5F5] transition-colors"
           >
-            {showAll ? '收合故事' : `載入更多故事 (${stories.length - initialCount})`}
+            {showAll ? (
+              <>
+                收合故事
+                <ChevronUp size={16} />
+              </>
+            ) : (
+              <>
+                載入更多故事 (+{stories.length - initialCount})
+                <ChevronDown size={16} />
+              </>
+            )}
           </button>
         </div>
       )}

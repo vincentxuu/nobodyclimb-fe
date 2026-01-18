@@ -3,6 +3,7 @@
 import { useState } from 'react'
 import Image from 'next/image'
 import { cn } from '@/lib/utils'
+import { Camera, X, ChevronLeft, ChevronRight } from 'lucide-react'
 import type { BiographyV2, GalleryImage } from '@/lib/types/biography-v2'
 
 interface BiographyGalleryProps {
@@ -35,8 +36,8 @@ export function BiographyGallery({
   return (
     <section className={cn('py-6', className)}>
       <div className="flex items-center gap-2 mb-4">
-        <span className="text-lg">📸</span>
-        <h2 className="text-lg font-semibold text-gray-900">攀岩日常</h2>
+        <Camera size={18} className="text-[#3F3D3D]" />
+        <h2 className="text-lg font-semibold text-[#1B1A1A]">攀岩日常</h2>
       </div>
 
       {/* Desktop Grid */}
@@ -60,9 +61,9 @@ export function BiographyGallery({
         {images.length > initialCount && (
           <button
             onClick={() => setSelectedImage(images[initialCount])}
-            className="relative aspect-square rounded-lg overflow-hidden bg-gray-100 flex items-center justify-center hover:bg-gray-200 transition-colors"
+            className="relative aspect-square rounded-lg overflow-hidden bg-[#EBEAEA] flex items-center justify-center hover:bg-[#DBD8D8] transition-colors"
           >
-            <span className="text-primary font-medium">
+            <span className="text-brand-dark font-medium">
               查看全部 ({images.length})
             </span>
           </button>
@@ -92,7 +93,7 @@ export function BiographyGallery({
           <div className="text-center mt-3">
             <button
               onClick={() => setSelectedImage(images[0])}
-              className="text-sm text-primary font-medium"
+              className="text-sm text-brand-dark font-medium hover:underline"
             >
               查看全部相簿
             </button>
@@ -110,20 +111,7 @@ export function BiographyGallery({
             className="absolute top-4 right-4 text-white/80 hover:text-white"
             onClick={() => setSelectedImage(null)}
           >
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              fill="none"
-              viewBox="0 0 24 24"
-              strokeWidth={2}
-              stroke="currentColor"
-              className="w-8 h-8"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                d="M6 18L18 6M6 6l12 12"
-              />
-            </svg>
+            <X size={32} />
           </button>
 
           <div className="relative max-w-4xl max-h-[80vh] w-full mx-4">
@@ -156,20 +144,7 @@ export function BiographyGallery({
                   setSelectedImage(images[prevIndex])
                 }}
               >
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                  strokeWidth={2}
-                  stroke="currentColor"
-                  className="w-8 h-8"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    d="M15.75 19.5L8.25 12l7.5-7.5"
-                  />
-                </svg>
+                <ChevronLeft size={32} />
               </button>
               <button
                 className="absolute right-4 text-white/80 hover:text-white"
@@ -183,20 +158,7 @@ export function BiographyGallery({
                   setSelectedImage(images[nextIndex])
                 }}
               >
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                  strokeWidth={2}
-                  stroke="currentColor"
-                  className="w-8 h-8"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    d="M8.25 4.5l7.5 7.5-7.5 7.5"
-                  />
-                </svg>
+                <ChevronRight size={32} />
               </button>
             </>
           )}

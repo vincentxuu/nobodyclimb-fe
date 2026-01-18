@@ -2,11 +2,9 @@
 
 import { useMemo } from 'react'
 import { cn } from '@/lib/utils'
-import type { BiographyV2, BiographyOneLinersV2 } from '@/lib/types/biography-v2'
-import {
-  SYSTEM_ONELINER_QUESTION_LIST,
-  getOneLinerQuestionById,
-} from '@/lib/constants/biography-questions'
+import { MessageCircle, Sparkles } from 'lucide-react'
+import type { BiographyV2 } from '@/lib/types/biography-v2'
+import { getOneLinerQuestionById } from '@/lib/constants/biography-questions'
 
 interface BiographyOneLinersProps {
   /** 人物誌資料 */
@@ -73,8 +71,8 @@ export function BiographyOneLiners({
   return (
     <section className={cn('py-6', className)}>
       <div className="flex items-center gap-2 mb-4">
-        <span className="text-lg">💬</span>
-        <h2 className="text-lg font-semibold text-gray-900">關於我</h2>
+        <MessageCircle size={18} className="text-[#3F3D3D]" />
+        <h2 className="text-lg font-semibold text-[#1B1A1A]">關於我</h2>
       </div>
 
       <div className="space-y-4">
@@ -84,15 +82,15 @@ export function BiographyOneLiners({
             className={cn(
               'p-4 rounded-xl border',
               item.isCustom
-                ? 'bg-amber-50/50 border-amber-200'
-                : 'bg-white border-gray-200'
+                ? 'bg-brand-accent/5 border-brand-accent/30'
+                : 'bg-white border-[#DBD8D8]'
             )}
           >
             <div className="flex items-center gap-1 mb-2">
-              {item.isCustom && <span className="text-amber-500">✨</span>}
-              <h3 className="font-medium text-gray-700">{item.question}</h3>
+              {item.isCustom && <Sparkles size={14} className="text-brand-accent" />}
+              <h3 className="font-medium text-[#6D6C6C]">{item.question}</h3>
             </div>
-            <p className="text-gray-900">「{item.answer}」</p>
+            <p className="text-[#1B1A1A]">「{item.answer}」</p>
           </div>
         ))}
       </div>

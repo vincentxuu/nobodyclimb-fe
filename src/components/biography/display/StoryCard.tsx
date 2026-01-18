@@ -2,6 +2,7 @@
 
 import { useState } from 'react'
 import { cn } from '@/lib/utils'
+import { Sparkles } from 'lucide-react'
 
 interface StoryCardProps {
   /** 問題標題 */
@@ -52,8 +53,8 @@ export function StoryCard({
       className={cn(
         'p-4 rounded-xl border transition-all duration-200 hover:shadow-md cursor-pointer',
         isCustom
-          ? 'bg-amber-50/50 border-amber-200 hover:border-amber-300'
-          : 'bg-white border-gray-200 hover:border-gray-300',
+          ? 'bg-brand-accent/5 border-brand-accent/30 hover:border-brand-accent'
+          : 'bg-white border-[#DBD8D8] hover:border-[#B6B3B3]',
         className
       )}
       onClick={handleClick}
@@ -61,8 +62,8 @@ export function StoryCard({
       {/* Title */}
       <div className="flex items-start gap-2 mb-3">
         {emoji && <span className="text-lg flex-shrink-0">{emoji}</span>}
-        <h3 className="font-medium text-gray-900">
-          {isCustom && <span className="text-amber-500 mr-1">✨</span>}
+        <h3 className="font-medium text-[#1B1A1A]">
+          {isCustom && <Sparkles size={14} className="text-brand-accent mr-1 inline" />}
           {title}
         </h3>
       </div>
@@ -70,7 +71,7 @@ export function StoryCard({
       {/* Content */}
       <div
         className={cn(
-          'text-gray-600 leading-relaxed',
+          'text-[#6D6C6C] leading-relaxed',
           !isExpanded && needsTruncation && 'line-clamp-3'
         )}
       >
@@ -84,7 +85,7 @@ export function StoryCard({
             e.stopPropagation()
             handleClick()
           }}
-          className="mt-3 text-sm text-primary font-medium hover:underline"
+          className="mt-3 text-sm text-brand-dark font-medium hover:underline"
         >
           繼續閱讀
         </button>
@@ -97,7 +98,7 @@ export function StoryCard({
             e.stopPropagation()
             setIsExpanded(false)
           }}
-          className="mt-3 text-sm text-gray-500 font-medium hover:underline"
+          className="mt-3 text-sm text-[#6D6C6C] font-medium hover:underline"
         >
           收合
         </button>
