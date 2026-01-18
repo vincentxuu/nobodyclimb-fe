@@ -6,17 +6,18 @@ import { SITE_URL, SITE_NAME, OG_IMAGE, API_BASE_URL } from '@/lib/constants'
 interface BiographyData {
   id: string
   name: string
-  avatar?: string
-  bio?: string
-  location?: string
+  avatar_url?: string | null
+  bio?: string | null
+  title?: string | null
+  climbing_meaning?: string | null
+  frequent_locations?: string | null
   climbing_style?: string[]
-  climbing_since?: string
-  favorite_crag?: string
+  climbing_start_year?: string | null
   social_links?: {
     instagram?: string
     facebook?: string
     youtube?: string
-  }
+  } | null
 }
 
 // API 回應類型
@@ -30,11 +31,22 @@ async function getBiography(id: string): Promise<BiographyData | null> {
   try {
     const res = await fetch(`${API_BASE_URL}/biographies/${id}`, {
       next: { revalidate: 60 },
+      headers: {
+        'Content-Type': 'application/json',
+      },
     })
-    if (!res.ok) return null
+    if (!res.ok) {
+      console.error(`[getBiography] API returned ${res.status} for id: ${id}`)
+      return null
+    }
     const data: ApiResponse = await res.json()
-    return data.success ? data.data ?? null : null
-  } catch {
+    if (!data.success || !data.data) {
+      console.error(`[getBiography] API returned success=false for id: ${id}`)
+      return null
+    }
+    return data.data
+  } catch (error) {
+    console.error(`[getBiography] Failed to fetch biography for id: ${id}`, error)
     return null
   }
 }
@@ -58,16 +70,16 @@ function generatePersonJsonLd(person: BiographyData) {
     '@id': `${SITE_URL}/biography/profile/${person.id}`,
     name: person.name,
     description: person.bio,
-    image: person.avatar?.startsWith('http')
-      ? person.avatar
-      : person.avatar
-        ? `${SITE_URL}${person.avatar}`
+    image: person.avatar_url?.startsWith('http')
+      ? person.avatar_url
+      : person.avatar_url
+        ? `${SITE_URL}${person.avatar_url}`
         : `${SITE_URL}${OG_IMAGE}`,
     url: `${SITE_URL}/biography/profile/${person.id}`,
     // 地點
-    homeLocation: person.location ? {
+    homeLocation: person.frequent_locations ? {
       '@type': 'Place',
-      name: person.location,
+      name: person.frequent_locations,
     } : undefined,
     // 興趣/專長
     knowsAbout: person.climbing_style || ['攀岩'],
@@ -99,8 +111,8 @@ export async function generateMetadata({
   }
 
   const title = `${person.name} - 攀岩人物誌`
-  const description = person.bio?.substring(0, 160) || `認識 ${person.name}，一位熱愛攀岩的攀岩愛好者。`
-  const image = person.avatar || OG_IMAGE
+  const description = person.climbing_meaning?.substring(0, 160) || person.bio?.substring(0, 160) || `認識 ${person.name}，一位熱愛攀岩的攀岩愛好者。`
+  const image = person.avatar_url || OG_IMAGE
 
   return {
     title: person.name,
