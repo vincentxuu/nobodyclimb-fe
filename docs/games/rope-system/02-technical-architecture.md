@@ -303,31 +303,45 @@ GET  /api/v1/games/rope-system/user/certifications
 ```typescript
 // lib/games/rope-system/sounds.ts
 
+// 定義所有音效 ID（與上方音效列表對應）
+const SOUND_IDS = [
+  'correct',   // 答對時
+  'wrong',     // 答錯時
+  'fall',      // 掉落中
+  'impact',    // 撞擊平台
+  'levelUp',   // 進入下一關
+  'complete',  // 完成所有題目
+  'gameOver',  // 生命歸零
+] as const
+
+type SoundId = typeof SOUND_IDS[number]
+
 class SoundManager {
-  private sounds: Map<string, HTMLAudioElement>
+  private sounds: Map<SoundId, HTMLAudioElement>
   private enabled: boolean
 
   constructor() {
     this.sounds = new Map()
     this.enabled = true
-    this.preload()
   }
 
-  preload() {
-    const soundFiles = ['correct', 'wrong', 'fall', 'impact', ...]
-    soundFiles.forEach(id => {
+  // 在客戶端初始化時調用
+  init() {
+    SOUND_IDS.forEach(id => {
       const audio = new Audio(`/sounds/games/${id}.mp3`)
       audio.preload = 'auto'
       this.sounds.set(id, audio)
     })
   }
 
-  play(id: string) {
+  play(id: SoundId) {
     if (!this.enabled) return
     const sound = this.sounds.get(id)
     if (sound) {
       sound.currentTime = 0
-      sound.play()
+      sound.play().catch(() => {
+        // 瀏覽器可能阻擋自動播放，忽略錯誤
+      })
     }
   }
 
@@ -335,10 +349,18 @@ class SoundManager {
     this.enabled = !this.enabled
     return this.enabled
   }
+
+  setEnabled(enabled: boolean) {
+    this.enabled = enabled
+  }
 }
 
+// 建議透過 React Context 提供，便於測試
+// 這裡提供一個預設實例供簡單使用
 export const soundManager = new SoundManager()
 ```
+
+> **測試建議**：實際開發時建議透過 React Context 提供 SoundManager，以便單元測試時可注入 mock 實例。
 
 ---
 

@@ -100,6 +100,38 @@
 
 ## 資料表定義
 
+### gyms（岩館）
+
+> 此表與網站主系統共用，這裡列出遊戲系統需要的欄位。
+
+```sql
+CREATE TABLE gyms (
+    id TEXT PRIMARY KEY,
+    name TEXT NOT NULL,
+    slug TEXT UNIQUE,
+    logo_url TEXT,
+    is_active INTEGER NOT NULL DEFAULT 1,
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
+);
+
+-- 索引
+CREATE INDEX idx_gyms_slug ON gyms(slug);
+CREATE INDEX idx_gyms_active ON gyms(is_active);
+```
+
+**欄位說明**
+
+| 欄位 | 型別 | 說明 |
+|------|------|------|
+| id | TEXT | 主鍵（UUID） |
+| name | TEXT | 岩館名稱 |
+| slug | TEXT | URL 友善名稱 |
+| logo_url | TEXT | 岩館 Logo |
+| is_active | INTEGER | 是否啟用 |
+
+---
+
 ### categories（題目類別）
 
 ```sql
