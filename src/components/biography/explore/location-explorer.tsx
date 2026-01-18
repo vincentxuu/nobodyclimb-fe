@@ -92,7 +92,11 @@ export function LocationExplorer() {
                   title={visitor.name}
                 >
                   {visitor.avatar_url ? (
-                    <Image src={visitor.avatar_url} alt={visitor.name} fill className="object-cover" />
+                    visitor.avatar_url.includes('dicebear.com') || visitor.avatar_url.endsWith('.svg') ? (
+                      <img src={visitor.avatar_url} alt={visitor.name} className="h-full w-full object-cover" />
+                    ) : (
+                      <Image src={visitor.avatar_url} alt={visitor.name} fill className="object-cover" />
+                    )
                   ) : (
                     <div className="flex h-full w-full items-center justify-center text-xs text-gray-500">
                       {visitor.name.charAt(0)}
