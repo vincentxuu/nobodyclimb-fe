@@ -25,9 +25,6 @@ async function getPost(id: string): Promise<PostData | null> {
   try {
     const res = await fetch(`${API_BASE_URL}/posts/${id}`, {
       next: { revalidate: 60 }, // 快取 60 秒
-      headers: {
-        'Content-Type': 'application/json',
-      },
     })
     if (!res.ok) {
       console.error(`[getPost] API returned ${res.status} for id: ${id}`)

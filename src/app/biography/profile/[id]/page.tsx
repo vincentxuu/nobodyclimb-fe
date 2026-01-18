@@ -31,9 +31,6 @@ async function getBiography(id: string): Promise<BiographyData | null> {
   try {
     const res = await fetch(`${API_BASE_URL}/biographies/${id}`, {
       next: { revalidate: 60 },
-      headers: {
-        'Content-Type': 'application/json',
-      },
     })
     if (!res.ok) {
       console.error(`[getBiography] API returned ${res.status} for id: ${id}`)
@@ -70,11 +67,9 @@ function generatePersonJsonLd(person: BiographyData) {
     '@id': `${SITE_URL}/biography/profile/${person.id}`,
     name: person.name,
     description: person.bio,
-    image: person.avatar_url?.startsWith('http')
-      ? person.avatar_url
-      : person.avatar_url
-        ? `${SITE_URL}${person.avatar_url}`
-        : `${SITE_URL}${OG_IMAGE}`,
+    image: person.avatar_url
+      ? (person.avatar_url.startsWith('http') ? person.avatar_url : `${SITE_URL}${person.avatar_url}`)
+      : `${SITE_URL}${OG_IMAGE}`,
     url: `${SITE_URL}/biography/profile/${person.id}`,
     // 地點
     homeLocation: person.frequent_locations ? {
@@ -112,7 +107,9 @@ export async function generateMetadata({
 
   const title = `${person.name} - 攀岩人物誌`
   const description = person.climbing_meaning?.substring(0, 160) || person.bio?.substring(0, 160) || `認識 ${person.name}，一位熱愛攀岩的攀岩愛好者。`
-  const image = person.avatar_url || OG_IMAGE
+  const image = person.avatar_url
+    ? (person.avatar_url.startsWith('http') ? person.avatar_url : `${SITE_URL}${person.avatar_url}`)
+    : `${SITE_URL}${OG_IMAGE}`
 
   return {
     title: person.name,
@@ -125,7 +122,7 @@ export async function generateMetadata({
       url: `${SITE_URL}/biography/profile/${id}`,
       images: [
         {
-          url: image.startsWith('http') ? image : `${SITE_URL}${image}`,
+          url: image,
           width: 1200,
           height: 630,
           alt: title,
@@ -136,7 +133,7 @@ export async function generateMetadata({
       card: 'summary_large_image',
       title: `${title} | ${SITE_NAME}`,
       description,
-      images: [image.startsWith('http') ? image : `${SITE_URL}${image}`],
+      images: [image],
     },
     alternates: {
       canonical: `${SITE_URL}/biography/profile/${id}`,
