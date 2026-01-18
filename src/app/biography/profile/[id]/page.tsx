@@ -2,6 +2,9 @@ import type { Metadata } from 'next'
 import ProfileClient from './ProfileClient'
 import { SITE_URL, SITE_NAME, OG_IMAGE, API_BASE_URL } from '@/lib/constants'
 
+// 強制動態渲染，避免快取問題
+export const dynamic = 'force-dynamic'
+
 // 人物資料類型
 interface BiographyData {
   id: string
@@ -30,7 +33,7 @@ interface ApiResponse {
 async function getBiography(id: string): Promise<BiographyData | null> {
   try {
     const res = await fetch(`${API_BASE_URL}/biographies/${id}`, {
-      next: { revalidate: 60 },
+      cache: 'no-store',
     })
     if (!res.ok) {
       console.error(`[getBiography] API returned ${res.status} for id: ${id}`)
