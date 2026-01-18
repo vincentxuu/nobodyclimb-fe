@@ -140,22 +140,9 @@ const VideosPage: React.FC = () => {
     featured: false,
   }))
 
-  const handleVideoClick = async (video: Video) => {
-    // 載入完整影片資料（包含 description）
-    try {
-      const response = await fetch('/data/videos.json')
-      if (response.ok) {
-        const allVideos: Video[] = await response.json()
-        const fullVideo = allVideos.find((v) => v.id === video.id)
-        if (fullVideo) {
-          setSelectedVideo(fullVideo)
-          return
-        }
-      }
-    } catch (error) {
-      console.error('Error loading full video data:', error)
-    }
-    // 如果載入失敗，使用基本資料
+  const handleVideoClick = (video: Video) => {
+    // 直接使用已有的資料，避免重新載入 4.8MB 的 videos.json
+    // VideoPlayer 已有足夠的資訊來播放影片
     setSelectedVideo(video)
   }
 

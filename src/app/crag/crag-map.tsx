@@ -9,24 +9,18 @@ interface CragMapProps {
 
 export function CragMap({ crags }: CragMapProps) {
   return (
-    <>
-      {/* 手機版地圖 */}
-      <div className="mb-6 rounded-xl bg-white p-4 shadow-sm lg:hidden lg:order-none order-first col-span-full">
-        <p className="mb-3 text-center text-sm text-[#6D6C6C]">點擊地圖標記前往岩場</p>
+    <div className="order-first col-span-full mb-6 lg:order-none lg:col-span-1 lg:mb-0">
+      <div className="rounded-xl bg-white p-4 shadow-sm lg:sticky lg:top-24 lg:p-6">
+        <p className="mb-3 text-center text-sm text-[#6D6C6C] lg:hidden">
+          點擊地圖標記前往岩場
+        </p>
+        <h3 className="mb-4 hidden text-center font-medium text-[#1B1A1A] lg:block">
+          點擊地圖前往岩場
+        </h3>
         <div className="flex justify-center">
           <TaiwanMap crags={crags} clickable />
         </div>
       </div>
-
-      {/* 桌面版固定地圖 */}
-      <div className="hidden lg:block">
-        <div className="sticky top-24 rounded-xl bg-white p-6 shadow-sm">
-          <h3 className="mb-4 text-center font-medium text-[#1B1A1A]">點擊地圖前往岩場</h3>
-          <div className="flex justify-center">
-            <TaiwanMap crags={crags} clickable />
-          </div>
-        </div>
-      </div>
-    </>
+    </div>
   )
 }

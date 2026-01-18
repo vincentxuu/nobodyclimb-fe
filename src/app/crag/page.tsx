@@ -14,7 +14,7 @@ import { CragMap } from './crag-map'
 function CragCard({ crag }: { crag: ReturnType<typeof getAllCrags>[0] }) {
   return (
     <div className="group overflow-hidden rounded-lg bg-white shadow-md transition-all duration-300 hover:-translate-y-1 hover:shadow-lg">
-      <Link href={`/crag/${crag.id}`} prefetch={false} className="block h-full">
+      <Link href={`/crag/${crag.id}`} className="block h-full">
         <div className="relative h-48 w-full">
           <PlaceholderImage text={crag.name} bgColor="#f8fafc" />
           <div className="absolute right-4 top-4 rounded bg-[#FFE70C] px-2.5 py-1 text-xs font-bold text-black">
@@ -79,9 +79,9 @@ export default function CragListPage() {
           <Breadcrumb items={[{ label: '首頁', href: '/' }, { label: '岩場' }]} />
         </div>
 
-        {/* 主要內容區 */}
-        <div className="grid gap-8 lg:grid-cols-[280px_1fr]">
-          {/* 地圖（客戶端組件）- 只渲染一次，用 CSS 控制顯示 */}
+        {/* 主要內容區 - 使用 grid 讓地圖在手機版顯示在最上面 */}
+        <div className="grid grid-cols-1 gap-8 lg:grid-cols-[280px_1fr]">
+          {/* 地圖（客戶端組件）- 只渲染一次 TaiwanMap */}
           <CragMap crags={crags} />
 
           {/* 岩場列表 */}
