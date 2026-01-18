@@ -182,7 +182,7 @@ export interface TagOption extends ExtensibleItem {
 
   // 動態標籤專用欄位
   is_dynamic?: boolean          // 是否為動態標籤
-  template?: string             // 顯示模板，如 "#{value}社畜"
+  template?: string             // 顯示模板，如 "#{value}常客"
   source_field?: string         // 資料來源欄位，如 "home_gym"
 }
 
@@ -215,7 +215,7 @@ export const SYSTEM_TAG_DIMENSIONS = {
   CLIMBING_MUSIC: 'sys_climbing_music',   // 爬牆 BGM
   FAILURE_RESPONSE: 'sys_failure_response', // 面對失敗
   SOCIAL_TYPE: 'sys_social_type',         // 社交類型
-  CHALK_HABIT: 'sys_chalk_habit',         // 上粉習慣
+  CHALK_HABIT: 'sys_chalk_habit',         // 抹粉習慣
   TRAINING_APPROACH: 'sys_training_approach', // 訓練取向
   LOCAL_IDENTITY: 'sys_local_identity',   // 在地認同
 } as const
@@ -1522,15 +1522,15 @@ function migrateToV2(oldBio: Biography): BiographyV2 {
 | `sys_social_type_talkative` | #話很多 | 邊爬邊聊 |
 | `sys_social_type_quiet` | #安靜專注派 | 不太講話 |
 
-### 5.9 上粉習慣（維度 ID: `sys_chalk_habit`）
+### 5.9 抹粉習慣（維度 ID: `sys_chalk_habit`）
 
 | 完整 ID | 顯示名稱 | 說明 |
 |---------|---------|------|
-| `sys_chalk_habit_heavy` | #瘋狂上粉 | 沒在省的 |
+| `sys_chalk_habit_heavy` | #瘋狂抹粉 | 沒在省的 |
 | `sys_chalk_habit_moderate` | #適量就好 | 環保一點 |
 | `sys_chalk_habit_liquid` | #液態粉派 | 比較不會飛 |
-| `sys_chalk_habit_minimal` | #幾乎不上粉 | 手不太流汗 |
-| `sys_chalk_habit_stalling` | #上粉等於拖延 | 其實在逃避 crux |
+| `sys_chalk_habit_minimal` | #幾乎不抹粉 | 手不太流汗 |
+| `sys_chalk_habit_stalling` | #抹粉等於拖延 | 其實在逃避 crux |
 
 ### 5.10 訓練取向（維度 ID: `sys_training_approach`）
 
@@ -1549,10 +1549,10 @@ function migrateToV2(oldBio: Biography): BiographyV2 {
 | 完整 ID | 顯示名稱 | 說明 |
 |---------|---------|------|
 | `sys_local_identity_longdong` | #龍洞信徒 | 週末必去朝聖 |
-| `sys_local_identity_beitou` | #北投大砲派 | 戶外啟蒙聖地 |
+| `sys_local_identity_limestone` | #石灰岩愛好者 | 天然岩壁的魅力 |
 | `sys_local_identity_indoor` | #只爬室內派 | 有冷氣有軟墊 |
 | `sys_local_identity_anywhere` | #哪裡都爬 | 不挑場地 |
-| `sys_local_identity_gym` | #岩館社畜 | 動態標籤，見下方說明 |
+| `sys_local_identity_gym` | #岩館常客 | 動態標籤，見下方說明 |
 
 ### 5.12 動態標籤說明
 
@@ -1560,7 +1560,7 @@ function migrateToV2(oldBio: Biography): BiographyV2 {
 
 | 動態標籤 | 資料來源 | 顯示範例 |
 |---------|---------|---------|
-| `sys_local_identity_gym` | `biographies.home_gym` | #原岩攀岩館社畜 |
+| `sys_local_identity_gym` | `biographies.home_gym` | #原岩攀岩館常客 |
 | `sys_local_identity_custom` | 用戶自訂地點 | #[自訂地點]信徒 |
 
 **資料結構擴展：**
@@ -1571,19 +1571,19 @@ interface TagOption extends ExtensibleItem {
 
   // 動態標籤專用
   is_dynamic?: boolean           // 是否為動態標籤
-  template?: string              // 顯示模板，如 "#{value}社畜"
+  template?: string              // 顯示模板，如 "#{value}常客"
   source_field?: string          // 資料來源欄位，如 "home_gym"
 }
 
 // 動態標籤範例
-const gymWorkerTag: TagOption = {
+const gymRegularTag: TagOption = {
   id: 'sys_local_identity_gym',
   source: 'system',
   dimension_id: 'sys_local_identity',
-  label: '#岩館社畜',
+  label: '#岩館常客',
   description: '常駐特定岩館',
   is_dynamic: true,
-  template: '#{value}社畜',
+  template: '#{value}常客',
   source_field: 'home_gym',
   order: 5,
 }
@@ -1606,7 +1606,7 @@ function renderDynamicTag(tag: TagOption, biography: BiographyV2): string | stri
 }
 
 // 結果範例：
-// - home_gym = "原岩攀岩館" → "#原岩攀岩館社畜"
+// - home_gym = "原岩攀岩館" → "#原岩攀岩館常客"
 // - frequent_locations = ["龍洞", "北投"] → ["#龍洞信徒", "#北投信徒"]
 ```
 
