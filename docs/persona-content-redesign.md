@@ -1,6 +1,6 @@
 # 人物誌內容重新規劃
 
-> 文件版本：v2.0
+> 文件版本：v2.2
 > 建立日期：2026-01-18
 > 最後更新：2026-01-18
 > 關聯文件：`persona-creation-ux-improvement.md`
@@ -179,6 +179,11 @@ export interface TagOption extends ExtensibleItem {
   label: string                 // 顯示標籤，如「#裂隙邪教」
   description: string           // 說明，如「塞裂隙的快感無可取代」
   order: number                 // 排序
+
+  // 動態標籤專用欄位
+  is_dynamic?: boolean          // 是否為動態標籤
+  template?: string             // 顯示模板，如 "#{value}社畜"
+  source_field?: string         // 資料來源欄位，如 "home_gym"
 }
 
 /**
@@ -865,6 +870,7 @@ CREATE TABLE tag_options (
   "order" INTEGER DEFAULT 0,
   is_active BOOLEAN DEFAULT true,
   created_at TEXT DEFAULT (datetime('now')),
+  updated_at TEXT DEFAULT (datetime('now')),
   FOREIGN KEY (dimension_id) REFERENCES tag_dimensions(id)
 );
 
@@ -876,7 +882,8 @@ CREATE TABLE oneliner_questions (
   placeholder TEXT,
   "order" INTEGER DEFAULT 0,
   is_active BOOLEAN DEFAULT true,
-  created_at TEXT DEFAULT (datetime('now'))
+  created_at TEXT DEFAULT (datetime('now')),
+  updated_at TEXT DEFAULT (datetime('now'))
 );
 
 -- 系統預設故事分類
@@ -887,7 +894,8 @@ CREATE TABLE story_categories (
   description TEXT,
   "order" INTEGER DEFAULT 0,
   is_active BOOLEAN DEFAULT true,
-  created_at TEXT DEFAULT (datetime('now'))
+  created_at TEXT DEFAULT (datetime('now')),
+  updated_at TEXT DEFAULT (datetime('now'))
 );
 
 -- 系統預設故事問題
@@ -901,6 +909,7 @@ CREATE TABLE story_questions (
   "order" INTEGER DEFAULT 0,
   is_active BOOLEAN DEFAULT true,
   created_at TEXT DEFAULT (datetime('now')),
+  updated_at TEXT DEFAULT (datetime('now')),
   FOREIGN KEY (category_id) REFERENCES story_categories(id)
 );
 
@@ -1009,12 +1018,14 @@ CREATE TABLE user_custom_tags (
   user_id TEXT NOT NULL,            -- 建立者
   dimension_id TEXT,                -- 加到哪個維度（null 表示新維度）
   dimension_name TEXT,              -- 如果是新維度，維度名稱
+  dimension_emoji TEXT,             -- 如果是新維度，維度圖示
   label TEXT NOT NULL,              -- '#Campusing邪教'
   description TEXT,
   usage_count INTEGER DEFAULT 1,    -- 被多少人使用
   is_public BOOLEAN DEFAULT false,  -- 是否公開讓其他人選用
   is_approved BOOLEAN DEFAULT false,-- 是否已審核採納為系統預設
   created_at TEXT DEFAULT (datetime('now')),
+  updated_at TEXT DEFAULT (datetime('now')),
   FOREIGN KEY (user_id) REFERENCES users(id)
 );
 
@@ -1032,6 +1043,7 @@ CREATE TABLE user_custom_questions (
   is_public BOOLEAN DEFAULT false,
   is_approved BOOLEAN DEFAULT false,
   created_at TEXT DEFAULT (datetime('now')),
+  updated_at TEXT DEFAULT (datetime('now')),
   FOREIGN KEY (user_id) REFERENCES users(id)
 );
 
@@ -1047,6 +1059,11 @@ CREATE INDEX idx_user_custom_questions_type ON user_custom_questions(type);
 舊欄位資料遷移到新結構：
 
 ```typescript
+// 類型守衛，確保類型安全
+function isDefined<T>(value: T | null | undefined | false): value is T {
+  return value !== null && value !== undefined && value !== false
+}
+
 // 遷移腳本範例
 function migrateToV2(oldBio: Biography): BiographyV2 {
   return {
@@ -1055,36 +1072,36 @@ function migrateToV2(oldBio: Biography): BiographyV2 {
     // 遷移一句話系列
     one_liners: {
       answers: [
-        oldBio.climbing_origin && {
+        oldBio.climbing_origin ? {
           question_id: 'sys_ol_why_started',
           answer: oldBio.climbing_origin,
           updated_at: oldBio.updated_at,
-        },
-        oldBio.advice_to_self && {
+        } : null,
+        oldBio.advice_to_self ? {
           question_id: 'sys_ol_advice_for_beginners',
           answer: oldBio.advice_to_self,
           updated_at: oldBio.updated_at,
-        },
+        } : null,
         // ... 其他欄位
-      ].filter(Boolean),
+      ].filter(isDefined),
       custom_questions: [],
     },
 
     // 遷移深度故事
     stories: {
       answers: [
-        oldBio.memorable_moment && {
+        oldBio.memorable_moment ? {
           question_id: 'sys_story_growth_memorable_moment',
           content: oldBio.memorable_moment,
           updated_at: oldBio.updated_at,
-        },
-        oldBio.biggest_challenge && {
+        } : null,
+        oldBio.biggest_challenge ? {
           question_id: 'sys_story_growth_biggest_challenge',
           content: oldBio.biggest_challenge,
           updated_at: oldBio.updated_at,
-        },
+        } : null,
         // ... 其他欄位
-      ].filter(Boolean),
+      ].filter(isDefined),
       custom_categories: [],
       custom_questions: [],
     },
@@ -1572,16 +1589,25 @@ const gymWorkerTag: TagOption = {
 }
 
 // 渲染邏輯
-function renderDynamicTag(tag: TagOption, biography: BiographyV2): string {
+function renderDynamicTag(tag: TagOption, biography: BiographyV2): string | string[] {
   if (!tag.is_dynamic || !tag.template || !tag.source_field) {
     return tag.label
   }
+
   const value = biography[tag.source_field as keyof BiographyV2]
   if (!value) return tag.label
+
+  // 處理陣列類型（如 frequent_locations）
+  if (Array.isArray(value)) {
+    return value.map(v => tag.template!.replace('{value}', String(v)))
+  }
+
   return tag.template.replace('{value}', String(value))
 }
 
-// 結果：如果 home_gym = "原岩攀岩館"，顯示 "#原岩攀岩館社畜"
+// 結果範例：
+// - home_gym = "原岩攀岩館" → "#原岩攀岩館社畜"
+// - frequent_locations = ["龍洞", "北投"] → ["#龍洞信徒", "#北投信徒"]
 ```
 
 ---
@@ -1716,3 +1742,4 @@ interface PopularCustomContentResponse {
 | 2026-01-18 | v1.0 | 初版建立 | Claude |
 | 2026-01-18 | v2.0 | 開放式設計：支援用戶自訂維度、標籤、問題、分類 | Claude |
 | 2026-01-18 | v2.1 | 審查修正：(1) 修正 getRandomQuestion 使用新資料結構 (2) 補充用戶自訂內容儲存策略 (3) 統一標籤 ID 格式對照表 (4) 新增動態標籤資料結構設計 | Claude |
+| 2026-01-18 | v2.2 | 二次審查修正：(1) 統一 TagOption 定義加入動態標籤欄位 (2) user_custom_tags 表加入 dimension_emoji 欄位 (3) 所有資料表補充 updated_at 欄位 (4) renderDynamicTag 支援陣列類型 (5) 遷移腳本改用類型守衛確保類型安全 | Claude |
