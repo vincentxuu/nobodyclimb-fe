@@ -42,54 +42,25 @@ export function BiographyStories({
 
   // 將回答整理為展示列表
   const stories = useMemo(() => {
-    if (!biography.stories?.answers) return []
+    if (!biography.stories || biography.stories.length === 0) return []
 
     const items: StoryItem[] = []
 
-    for (const answer of biography.stories.answers) {
-      if (!answer.content) continue
+    for (const story of biography.stories) {
+      if (!story.content) continue
 
       // 嘗試找系統問題
-      const systemQuestion = getStoryQuestionById(answer.question_id)
+      const systemQuestion = getStoryQuestionById(story.question_id)
       if (systemQuestion) {
         const category = getStoryCategoryById(systemQuestion.category_id)
         items.push({
-          id: answer.question_id,
+          id: story.question_id,
           title: systemQuestion.title,
-          content: answer.content,
+          content: story.content,
           emoji: category?.emoji || '📖',
           categoryId: systemQuestion.category_id,
-          isCustom: false,
+          isCustom: story.source === 'user',
         })
-      } else {
-        // 找用戶自訂問題
-        const customQuestion = biography.stories.custom_questions?.find(
-          (q) => q.id === answer.question_id
-        )
-        if (customQuestion) {
-          // 找分類（可能是系統分類或用戶自訂分類）
-          let emoji = '📖'
-          const systemCategory = getStoryCategoryById(customQuestion.category_id)
-          if (systemCategory) {
-            emoji = systemCategory.emoji
-          } else {
-            const customCategory = biography.stories.custom_categories?.find(
-              (c) => c.id === customQuestion.category_id
-            )
-            if (customCategory) {
-              emoji = customCategory.emoji
-            }
-          }
-
-          items.push({
-            id: answer.question_id,
-            title: customQuestion.title,
-            content: answer.content,
-            emoji,
-            categoryId: customQuestion.category_id,
-            isCustom: true,
-          })
-        }
       }
     }
 

@@ -24,7 +24,7 @@ export function BiographyOneLiners({
 }: BiographyOneLinersProps) {
   // 將回答整理為展示列表
   const oneLiners = useMemo(() => {
-    if (!biography.one_liners?.answers) return []
+    if (!biography.one_liners || biography.one_liners.length === 0) return []
 
     const items: Array<{
       id: string
@@ -33,31 +33,18 @@ export function BiographyOneLiners({
       isCustom: boolean
     }> = []
 
-    for (const answer of biography.one_liners.answers) {
-      if (!answer.answer) continue
+    for (const item of biography.one_liners) {
+      if (!item.answer) continue
 
       // 嘗試找系統問題
-      const systemQuestion = getOneLinerQuestionById(answer.question_id)
+      const systemQuestion = getOneLinerQuestionById(item.question_id)
       if (systemQuestion) {
         items.push({
-          id: answer.question_id,
+          id: item.question_id,
           question: systemQuestion.question,
-          answer: answer.answer,
-          isCustom: false,
+          answer: item.answer,
+          isCustom: item.source === 'user',
         })
-      } else {
-        // 找用戶自訂問題
-        const customQuestion = biography.one_liners.custom_questions?.find(
-          (q) => q.id === answer.question_id
-        )
-        if (customQuestion) {
-          items.push({
-            id: answer.question_id,
-            question: customQuestion.question,
-            answer: answer.answer,
-            isCustom: true,
-          })
-        }
       }
     }
 

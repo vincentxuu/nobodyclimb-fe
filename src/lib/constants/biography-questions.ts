@@ -6,7 +6,7 @@
 
 import type {
   OneLinerQuestion,
-  StoryCategory,
+  StoryCategoryDefinition,
   StoryQuestion,
 } from '@/lib/types/biography-v2'
 
@@ -119,7 +119,7 @@ export type SystemStoryCategoryId =
 // 故事分類定義
 // ═══════════════════════════════════════════
 
-export const SYSTEM_STORY_CATEGORY_LIST: StoryCategory[] = [
+export const SYSTEM_STORY_CATEGORY_LIST: StoryCategoryDefinition[] = [
   {
     id: SYSTEM_STORY_CATEGORIES.GROWTH,
     source: 'system',
@@ -530,7 +530,7 @@ export const SYSTEM_STORY_QUESTION_LIST: StoryQuestion[] = [
  */
 export function getStoryCategoryById(
   categoryId: string
-): StoryCategory | undefined {
+): StoryCategoryDefinition | undefined {
   return SYSTEM_STORY_CATEGORY_LIST.find((cat) => cat.id === categoryId)
 }
 
@@ -559,7 +559,7 @@ export function getStoryQuestionById(
  */
 export function getStoryCategoryByQuestionId(
   questionId: string
-): StoryCategory | undefined {
+): StoryCategoryDefinition | undefined {
   const question = getStoryQuestionById(questionId)
   if (!question) return undefined
   return getStoryCategoryById(question.category_id)
@@ -578,10 +578,10 @@ export function getOneLinerQuestionById(
  * 取得故事問題按分類分組
  */
 export function getStoryQuestionsGroupedByCategory(): Map<
-  StoryCategory,
+  StoryCategoryDefinition,
   StoryQuestion[]
 > {
-  const grouped = new Map<StoryCategory, StoryQuestion[]>()
+  const grouped = new Map<StoryCategoryDefinition, StoryQuestion[]>()
 
   for (const category of SYSTEM_STORY_CATEGORY_LIST) {
     const questions = getStoryQuestionsByCategory(category.id)

@@ -703,11 +703,40 @@ export const biographyService = {
     stories_data?: string
     basic_info_data?: string
   }) => {
-    const response = await apiClient.put<ApiResponse<{ autosave_at: string }>>(
+    const response = await apiClient.put<ApiResponse<{ autosave_at: string; throttled?: boolean }>>(
       '/biographies/me/autosave',
       data
     )
     return response.data
+  },
+
+  /**
+   * 自動儲存人物誌 V2（接受 BiographyV2 部分資料）
+   * 自動將前端資料轉換為後端 JSON 格式
+   */
+  autosaveV2: async (bio: import('@/lib/types/biography-v2').BiographyV2) => {
+    const { transformBiographyV2ToBackend } = await import('@/lib/types/biography-v2')
+    const backendData = transformBiographyV2ToBackend(bio)
+    const response = await apiClient.put<ApiResponse<{ autosave_at: string; throttled?: boolean }>>(
+      '/biographies/me/autosave',
+      backendData
+    )
+    return response.data
+  },
+
+  /**
+   * 獲取個人人物誌（V2 格式）
+   * 自動將後端 JSON 字串轉換為前端結構化資料
+   */
+  getMyBiographyV2: async () => {
+    const { transformBackendToBiographyV2, createEmptyBiographyV2 } = await import('@/lib/types/biography-v2')
+    const response = await apiClient.get<ApiResponse<Biography | null>>('/biographies/me')
+    if (!response.data.success || !response.data.data) {
+      return { success: true, data: null }
+    }
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const bioV2 = transformBackendToBiographyV2(response.data.data as any)
+    return { success: true, data: bioV2 }
   },
 
   /**

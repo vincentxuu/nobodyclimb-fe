@@ -30,66 +30,40 @@ export function BiographyTags({
 
   // 將選中的標籤整理為扁平列表
   const selectedTags = useMemo(() => {
-    if (!biography.tags?.selections) return []
+    if (!biography.tags || biography.tags.length === 0) return []
 
     const tags: Array<{
       id: string
       label: string
       isCustom: boolean
-      dimensionId: string
     }> = []
 
-    // 處理系統維度的選擇
-    for (const [dimensionId, selectedIds] of Object.entries(
-      biography.tags.selections
-    )) {
-      for (const optionId of selectedIds) {
-        const option = getTagOptionById(optionId)
-        if (option) {
-          // 處理動態標籤
-          if (option.is_dynamic) {
-            const renderedLabels = renderDynamicTag(option, biography)
-            if (Array.isArray(renderedLabels)) {
-              for (const label of renderedLabels) {
-                tags.push({
-                  id: `${optionId}_${label}`,
-                  label,
-                  isCustom: false,
-                  dimensionId,
-                })
-              }
-            } else {
+    for (const tagSelection of biography.tags) {
+      const option = getTagOptionById(tagSelection.tag_id)
+      if (option) {
+        // 處理動態標籤
+        if (option.is_dynamic) {
+          const renderedLabels = renderDynamicTag(option, biography)
+          if (Array.isArray(renderedLabels)) {
+            for (const label of renderedLabels) {
               tags.push({
-                id: optionId,
-                label: renderedLabels,
+                id: `${tagSelection.tag_id}_${label}`,
+                label,
                 isCustom: false,
-                dimensionId,
               })
             }
           } else {
             tags.push({
-              id: optionId,
-              label: option.label,
-              isCustom: option.source === 'user',
-              dimensionId,
+              id: tagSelection.tag_id,
+              label: renderedLabels,
+              isCustom: false,
             })
           }
-        }
-      }
-    }
-
-    // 處理用戶自訂標籤
-    if (biography.tags.custom_options) {
-      for (const customOption of biography.tags.custom_options) {
-        // 確認這個自訂標籤被選中
-        const selectedInDimension =
-          biography.tags.selections[customOption.dimension_id] || []
-        if (selectedInDimension.includes(customOption.id)) {
+        } else {
           tags.push({
-            id: customOption.id,
-            label: customOption.label,
-            isCustom: true,
-            dimensionId: customOption.dimension_id,
+            id: tagSelection.tag_id,
+            label: option.label,
+            isCustom: tagSelection.source === 'user',
           })
         }
       }
