@@ -31,7 +31,7 @@ export function StoryCard({
   content,
   emoji,
   isCustom = false,
-  maxLines = 3,
+  maxLines: _maxLines = 3,
   onReadMore,
   className,
 }: StoryCardProps) {

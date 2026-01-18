@@ -9,7 +9,7 @@ interface PrivacyBannerProps {
   /** 當前可見性設定 */
   visibility: VisibilityLevel
   /** 可見性變更回調 */
-  onVisibilityChange: (visibility: VisibilityLevel) => void
+  onVisibilityChange: (_visibility: VisibilityLevel) => void
   /** 是否可以編輯 */
   editable?: boolean
   /** 自訂樣式 */

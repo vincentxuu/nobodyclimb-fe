@@ -9,7 +9,7 @@ interface RandomRecommendProps {
   /** 未填寫的問題列表 */
   unfilledQuestions: (StoryQuestion | OneLinerQuestion)[]
   /** 點擊問題回調 */
-  onQuestionClick: (questionId: string, type: 'story' | 'oneliner') => void
+  onQuestionClick: (_questionId: string, _type: 'story' | 'oneliner') => void
   /** 關閉回調 */
   onClose?: () => void
   /** 自訂樣式 */
@@ -82,10 +82,10 @@ export function RandomRecommend({
       {/* Question */}
       <div className="p-4">
         <p className="text-[#1B1A1A] font-medium mb-2">
-          {currentQuestion.question}
+          {'question' in currentQuestion ? currentQuestion.question : currentQuestion.title}
         </p>
-        {'prompt' in currentQuestion && currentQuestion.prompt && (
-          <p className="text-sm text-[#6D6C6C] mb-4">{currentQuestion.prompt}</p>
+        {'subtitle' in currentQuestion && currentQuestion.subtitle && (
+          <p className="text-sm text-[#6D6C6C] mb-4">{currentQuestion.subtitle}</p>
         )}
         {'format_hint' in currentQuestion && currentQuestion.format_hint && (
           <p className="text-sm text-[#6D6C6C] mb-4">{currentQuestion.format_hint}</p>

@@ -729,7 +729,7 @@ export const biographyService = {
    * 自動將後端 JSON 字串轉換為前端結構化資料
    */
   getMyBiographyV2: async () => {
-    const { transformBackendToBiographyV2, createEmptyBiographyV2 } = await import('@/lib/types/biography-v2')
+    const { transformBackendToBiographyV2 } = await import('@/lib/types/biography-v2')
     const response = await apiClient.get<ApiResponse<Biography | null>>('/biographies/me')
     if (!response.data.success || !response.data.data) {
       return { success: true, data: null }

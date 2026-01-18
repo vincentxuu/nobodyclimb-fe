@@ -18,11 +18,11 @@ interface RouteMobileDrawerProps {
   sectors: Array<{ id: string; name: string }>
   currentRouteId: string
   filterState: RouteFilterState
-  onSearchChange: (query: string) => void
-  onAreaChange: (area: string) => void
-  onSectorChange: (sector: string) => void
-  onGradeChange: (grade: string) => void
-  onTypeChange: (type: string) => void
+  onSearchChange: (_query: string) => void
+  onAreaChange: (_area: string) => void
+  onSectorChange: (_sector: string) => void
+  onGradeChange: (_grade: string) => void
+  onTypeChange: (_type: string) => void
 }
 
 export function RouteMobileDrawer({

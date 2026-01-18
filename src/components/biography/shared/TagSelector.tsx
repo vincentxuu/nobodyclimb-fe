@@ -12,7 +12,7 @@ interface TagSelectorProps {
   /** 已選中的標籤 ID 列表 */
   selectedIds: string[]
   /** 選擇變更回調 */
-  onSelectionChange: (selectedIds: string[]) => void
+  onSelectionChange: (_selectedIds: string[]) => void
   /** 是否預設展開 */
   defaultExpanded?: boolean
   /** 是否顯示新增自訂標籤按鈕 */
@@ -146,13 +146,13 @@ interface TagSelectorGroupProps {
   /** 已選中的標籤，按維度分組 */
   selections: Record<string, string[]>
   /** 選擇變更回調 */
-  onSelectionChange: (dimensionId: string, selectedIds: string[]) => void
+  onSelectionChange: (_dimensionId: string, _selectedIds: string[]) => void
   /** 顯示的維度數量（剩餘會收合） */
   visibleCount?: number
   /** 是否顯示新增自訂標籤按鈕 */
   showAddCustom?: boolean
   /** 新增自訂標籤回調 */
-  onAddCustomTag?: (dimensionId: string) => void
+  onAddCustomTag?: (_dimensionId: string) => void
   /** 新增自訂維度回調 */
   onAddCustomDimension?: () => void
   /** 自訂樣式 */

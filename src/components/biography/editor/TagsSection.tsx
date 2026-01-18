@@ -10,9 +10,9 @@ interface TagsSectionProps {
   /** 已選中的標籤，按維度分組 */
   selections: Record<string, string[]>
   /** 選擇變更回調 */
-  onSelectionChange: (dimensionId: string, selectedIds: string[]) => void
+  onSelectionChange: (_dimensionId: string, _selectedIds: string[]) => void
   /** 新增自訂標籤回調 */
-  onAddCustomTag?: (dimensionId: string) => void
+  onAddCustomTag?: (_dimensionId: string) => void
   /** 新增自訂維度回調 */
   onAddCustomDimension?: () => void
   /** 自訂樣式 */

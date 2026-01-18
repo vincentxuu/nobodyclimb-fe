@@ -10,7 +10,7 @@ import { Button } from '@/components/ui/button'
 
 interface OrderingQuestionProps {
   question: Question
-  onAnswer: (answer: string[]) => void
+  onAnswer: (_answer: string[]) => void
   disabled?: boolean
   showResult?: boolean
   userAnswer?: string[]

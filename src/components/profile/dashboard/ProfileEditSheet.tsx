@@ -40,13 +40,13 @@ interface ProfileEditSheetProps {
   onClose: () => void
   profileData: ProfileData
   isMobile: boolean
-  onChange: (field: string, value: string | boolean | SocialLinks) => void
+  onChange: (_field: string, _value: string | boolean | SocialLinks) => void
   onSave: () => Promise<void>
-  onAvatarUpload: (file: File) => Promise<void>
-  onCoverImageUpload: (file: File) => Promise<void>
+  onAvatarUpload: (_file: File) => Promise<void>
+  onCoverImageUpload: (_file: File) => Promise<void>
   onAvatarDelete: () => void
   onCoverImageDelete: () => void
-  onAdvancedStorySave: (field: string, value: string) => Promise<void>
+  onAdvancedStorySave: (_field: string, _value: string) => Promise<void>
 }
 
 export function ProfileEditSheet({

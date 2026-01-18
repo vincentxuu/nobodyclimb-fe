@@ -18,7 +18,7 @@ interface ProgressIndicatorProps {
   /** 當前活動區塊 ID */
   activeSection?: string
   /** 區塊點擊回調 */
-  onSectionClick?: (sectionId: string) => void
+  onSectionClick?: (_sectionId: string) => void
   /** 自訂樣式 */
   className?: string
 }

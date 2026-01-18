@@ -70,7 +70,7 @@ interface BiographyHeroProps {
   /** 分享回調 */
   onShare?: () => void
   /** 追蹤者數量變更回調 */
-  onFollowerCountChange?: (count: number) => void
+  onFollowerCountChange?: (_count: number) => void
   /** 自訂樣式 */
   className?: string
 }
@@ -82,12 +82,12 @@ interface BiographyHeroProps {
  */
 export function BiographyHero({
   biography,
-  isOwner = false,
+  isOwner: _isOwner = false,
   isAnonymous: isAnonymousProp,
   showActions = true,
   onFollow,
   onShare,
-  onFollowerCountChange,
+  onFollowerCountChange: _onFollowerCountChange,
   className,
 }: BiographyHeroProps) {
   // 使用 prop 覆蓋或從 visibility 判斷

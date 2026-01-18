@@ -11,7 +11,7 @@ interface OneLinersSectionProps {
   /** 已填寫的答案 */
   answers: OneLiner[]
   /** 答案變更回調 */
-  onAnswerChange: (questionId: string, answer: string | null) => void
+  onAnswerChange: (_questionId: string, _answer: string | null) => void
   /** 新增自訂問題回調 */
   onAddCustomQuestion?: () => void
   /** 隨機推薦回調 */

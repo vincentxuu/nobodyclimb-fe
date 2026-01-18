@@ -9,27 +9,27 @@ interface BasicInfoSectionProps {
   /** 用戶名稱 */
   name: string
   /** 名稱變更回調 */
-  onNameChange: (name: string) => void
+  onNameChange: (_name: string) => void
   /** 個人標題 */
   title: string | null
   /** 標題變更回調 */
-  onTitleChange: (title: string | null) => void
+  onTitleChange: (_title: string | null) => void
   /** 頭像 URL */
   avatarUrl: string | null
   /** 頭像變更回調 */
-  onAvatarChange: (file: File) => void
+  onAvatarChange: (_file: File) => void
   /** 封面圖 URL */
   coverUrl: string | null
   /** 封面圖變更回調 */
-  onCoverChange: (file: File) => void
+  onCoverChange: (_file: File) => void
   /** 攀岩年資 */
   climbingYears: number | null
   /** 攀岩年資變更回調 */
-  onClimbingYearsChange: (years: number | null) => void
+  onClimbingYearsChange: (_years: number | null) => void
   /** 主要攀岩地點 */
   homeGym: string | null
   /** 攀岩地點變更回調 */
-  onHomeGymChange: (location: string | null) => void
+  onHomeGymChange: (_location: string | null) => void
   /** 自訂樣式 */
   className?: string
 }

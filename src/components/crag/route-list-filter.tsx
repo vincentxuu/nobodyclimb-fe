@@ -32,15 +32,15 @@ export interface RouteFilterState {
 
 interface RouteListFilterProps {
   searchQuery: string
-  onSearchChange: (query: string) => void
+  onSearchChange: (_query: string) => void
   selectedArea: string
-  onAreaChange: (area: string) => void
+  onAreaChange: (_area: string) => void
   selectedSector: string
-  onSectorChange: (sector: string) => void
+  onSectorChange: (_sector: string) => void
   selectedGrade: string
-  onGradeChange: (grade: string) => void
+  onGradeChange: (_grade: string) => void
   selectedType: string
-  onTypeChange: (type: string) => void
+  onTypeChange: (_type: string) => void
   areas: Array<{ id: string; name: string }>
   sectors: Array<{ id: string; name: string }>
 }

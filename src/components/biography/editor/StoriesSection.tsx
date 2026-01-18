@@ -10,9 +10,9 @@ interface StoriesSectionProps {
   /** 已填寫的故事 */
   stories: Story[]
   /** 故事點擊回調 */
-  onStoryClick: (questionId: string) => void
+  onStoryClick: (_questionId: string) => void
   /** 新增自訂問題回調 */
-  onAddCustomQuestion?: (category: StoryCategory) => void
+  onAddCustomQuestion?: (_category: StoryCategory) => void
   /** 自訂樣式 */
   className?: string
 }
@@ -168,7 +168,7 @@ export function StoriesSection({
                                 isFilled ? 'text-[#1B1A1A]' : 'text-[#3F3D3D]'
                               )}
                             >
-                              {question.question}
+                              {question.title}
                             </span>
                           </div>
                           {isFilled && story?.content && (

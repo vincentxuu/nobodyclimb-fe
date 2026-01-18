@@ -7,7 +7,6 @@ import type {
   TagDimension,
   OneLinerQuestion,
   StoryQuestion,
-  SaveStatus,
   StoryCategory,
 } from '@/lib/types/biography-v2'
 import { PrivacyBanner } from './PrivacyBanner'
@@ -30,9 +29,9 @@ interface ProfileEditorProps {
   /** 故事問題列表（按類別分組） */
   storyQuestionsByCategory: Record<StoryCategory, StoryQuestion[]>
   /** 資料變更回調 */
-  onChange: (biography: Partial<BiographyV2>) => void
+  onChange: (_biography: Partial<BiographyV2>) => void
   /** 儲存回調 */
-  onSave: (biography: BiographyV2) => Promise<void>
+  onSave: (_biography: BiographyV2) => Promise<void>
   /** 預覽連結 */
   previewHref: string
   /** 發布回調 */

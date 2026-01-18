@@ -15,7 +15,7 @@ interface StoryEditModalProps {
   /** 已存在的故事資料 */
   story?: Story | null
   /** 儲存回調 */
-  onSave: (content: string) => void
+  onSave: (_content: string) => void
   /** 刪除回調 */
   onDelete?: () => void
   /** 是否正在儲存 */
@@ -98,11 +98,11 @@ export function StoryEditModal({
         <div className="flex-1 overflow-y-auto p-4 space-y-4">
           {/* Question */}
           <div className="bg-[#F5F5F5] rounded-xl p-4">
-            <p className="font-medium text-[#1B1A1A]">{question.question}</p>
-            {question.prompt && (
+            <p className="font-medium text-[#1B1A1A]">{question.title}</p>
+            {question.subtitle && (
               <p className="text-sm text-[#6D6C6C] mt-2 flex items-start gap-1">
                 <Lightbulb size={14} className="mt-0.5 flex-shrink-0" />
-                {question.prompt}
+                {question.subtitle}
               </p>
             )}
           </div>
