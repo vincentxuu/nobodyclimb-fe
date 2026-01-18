@@ -625,3 +625,44 @@ export function calculateStoryProgress(answeredQuestionIds: Set<string>): {
     },
   }
 }
+
+// ═══════════════════════════════════════════
+// StoryCategory 類型映射
+// ═══════════════════════════════════════════
+
+/**
+ * 將系統分類 ID 映射到 StoryCategory 類型
+ */
+const CATEGORY_ID_TO_TYPE: Record<string, import('@/lib/types/biography-v2').StoryCategory> = {
+  [SYSTEM_STORY_CATEGORIES.GROWTH]: 'growth',
+  [SYSTEM_STORY_CATEGORIES.PSYCHOLOGY]: 'psychology',
+  [SYSTEM_STORY_CATEGORIES.COMMUNITY]: 'community',
+  [SYSTEM_STORY_CATEGORIES.PRACTICAL]: 'practical',
+  [SYSTEM_STORY_CATEGORIES.DREAMS]: 'dreams',
+  [SYSTEM_STORY_CATEGORIES.LIFE]: 'life',
+}
+
+/**
+ * 取得故事問題按 StoryCategory 類型分組
+ * 用於 ProfileEditor 組件
+ */
+export function getStoryQuestionsByStoryCategory(): Record<
+  import('@/lib/types/biography-v2').StoryCategory,
+  StoryQuestion[]
+> {
+  return {
+    growth: getStoryQuestionsByCategory(SYSTEM_STORY_CATEGORIES.GROWTH),
+    psychology: getStoryQuestionsByCategory(SYSTEM_STORY_CATEGORIES.PSYCHOLOGY),
+    community: getStoryQuestionsByCategory(SYSTEM_STORY_CATEGORIES.COMMUNITY),
+    practical: getStoryQuestionsByCategory(SYSTEM_STORY_CATEGORIES.PRACTICAL),
+    dreams: getStoryQuestionsByCategory(SYSTEM_STORY_CATEGORIES.DREAMS),
+    life: getStoryQuestionsByCategory(SYSTEM_STORY_CATEGORIES.LIFE),
+  }
+}
+
+/**
+ * 將系統分類 ID 轉換為 StoryCategory 類型
+ */
+export function categoryIdToType(categoryId: string): import('@/lib/types/biography-v2').StoryCategory | undefined {
+  return CATEGORY_ID_TO_TYPE[categoryId]
+}

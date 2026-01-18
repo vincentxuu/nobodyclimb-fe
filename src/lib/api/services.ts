@@ -650,6 +650,20 @@ export const biographyService = {
   },
 
   /**
+   * 獲取人物誌詳情（通過ID，V2 格式）
+   * 自動將後端 JSON 字串轉換為前端結構化資料
+   */
+  getBiographyByIdV2: async (id: string) => {
+    const { transformBackendToBiographyV2 } = await import('@/lib/types/biography-v2')
+    const response = await apiClient.get<ApiResponse<Biography>>(`/biographies/${id}`)
+    if (!response.data.success || !response.data.data) {
+      return { success: false, data: null }
+    }
+    const bioV2 = transformBackendToBiographyV2(response.data.data as unknown as import('@/lib/types/biography-v2').BiographyBackend)
+    return { success: true, data: bioV2 }
+  },
+
+  /**
    * 獲取人物誌詳情（通過 Slug）
    */
   getBiographyBySlug: async (slug: string) => {
