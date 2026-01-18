@@ -512,7 +512,7 @@ export default function ProfileEditorVersionB({ onBack }: ProfileEditorVersionBP
   // ============================================================================
 
   return (
-    <div className={`min-h-screen bg-page-bg ${isMobile ? 'pb-20' : ''}`}>
+    <div>
       {/* 封面區域 */}
       <div className="relative">
         <div className="h-48 w-full bg-gradient-to-r from-brand-dark to-brand-dark-hover md:h-64">
