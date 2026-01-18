@@ -14,6 +14,8 @@ interface ImageCropperProps {
   onCropComplete: (croppedFile: File) => void
   aspectRatio?: number
   title?: string
+  /** 輸出圖片尺寸（預設 400px） */
+  outputSize?: number
 }
 
 /**
@@ -41,7 +43,8 @@ function centerAspectCrop(mediaWidth: number, mediaHeight: number, aspect: numbe
 async function getCroppedImg(
   image: HTMLImageElement,
   crop: PixelCrop,
-  fileName: string
+  fileName: string,
+  outputSize: number
 ): Promise<File> {
   const canvas = document.createElement('canvas')
   const ctx = canvas.getContext('2d')
@@ -50,8 +53,6 @@ async function getCroppedImg(
     throw new Error('無法創建 canvas context')
   }
 
-  // 設定輸出尺寸（頭像使用 400x400）
-  const outputSize = 400
   canvas.width = outputSize
   canvas.height = outputSize
 
@@ -99,6 +100,7 @@ export default function ImageCropper({
   onCropComplete,
   aspectRatio = 1,
   title = '裁切圖片',
+  outputSize = 400,
 }: ImageCropperProps) {
   const [crop, setCrop] = useState<Crop>()
   const [completedCrop, setCompletedCrop] = useState<PixelCrop>()
@@ -129,7 +131,8 @@ export default function ImageCropper({
       const croppedFile = await getCroppedImg(
         imgRef.current,
         completedCrop,
-        'avatar.jpg'
+        'avatar.jpg',
+        outputSize
       )
       onCropComplete(croppedFile)
       onClose()

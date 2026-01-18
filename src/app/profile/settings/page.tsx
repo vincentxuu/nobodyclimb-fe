@@ -314,16 +314,22 @@ export default function SettingsPage() {
         return
       }
 
-      // 讀取檔案並顯示裁切器
-      const reader = new FileReader()
-      reader.onloadend = () => {
-        setCropperImageSrc(reader.result as string)
-        setShowCropper(true)
-      }
-      reader.readAsDataURL(file)
+      // 使用 URL.createObjectURL 以提升性能
+      const objectUrl = URL.createObjectURL(file)
+      setCropperImageSrc(objectUrl)
+      setShowCropper(true)
 
       // 清除 input 值以允許重新選擇同一檔案
       e.target.value = ''
+    }
+  }
+
+  // 裁切器關閉時清理 blob URL
+  const handleCropperClose = () => {
+    setShowCropper(false)
+    if (cropperImageSrc && cropperImageSrc.startsWith('blob:')) {
+      URL.revokeObjectURL(cropperImageSrc)
+      setCropperImageSrc('')
     }
   }
 
@@ -332,12 +338,12 @@ export default function SettingsPage() {
     setAvatar(croppedFile)
     setUseDefaultAvatar(false)
 
-    // 預覽裁切後的頭像
-    const reader = new FileReader()
-    reader.onloadend = () => {
-      setAvatarPreview(reader.result as string)
+    // 釋放舊的預覽 URL
+    if (avatarPreview && avatarPreview.startsWith('blob:')) {
+      URL.revokeObjectURL(avatarPreview)
     }
-    reader.readAsDataURL(croppedFile)
+    // 使用 URL.createObjectURL 產生預覽
+    setAvatarPreview(URL.createObjectURL(croppedFile))
   }
 
   // 處理預設頭像選擇
@@ -348,12 +354,20 @@ export default function SettingsPage() {
     }))
     setUseDefaultAvatar(true)
     setAvatar(null)
+    // 釋放舊的預覽 URL
+    if (avatarPreview && avatarPreview.startsWith('blob:')) {
+      URL.revokeObjectURL(avatarPreview)
+    }
     setAvatarPreview(null)
   }
 
   // 移除頭像
   const handleRemoveAvatar = () => {
     setAvatar(null)
+    // 釋放舊的預覽 URL
+    if (avatarPreview && avatarPreview.startsWith('blob:')) {
+      URL.revokeObjectURL(avatarPreview)
+    }
     setAvatarPreview(null)
     setUseDefaultAvatar(true)
   }
@@ -613,7 +627,7 @@ export default function SettingsPage() {
       {/* 圖片裁切器 */}
       <ImageCropper
         open={showCropper}
-        onClose={() => setShowCropper(false)}
+        onClose={handleCropperClose}
         imageSrc={cropperImageSrc}
         onCropComplete={handleCropComplete}
         aspectRatio={1}
