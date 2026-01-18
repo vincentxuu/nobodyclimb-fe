@@ -1,13 +1,13 @@
-import { Suspense } from 'react'
-import dynamic from 'next/dynamic'
-// 直接引入避免 barrel file 拉入 framer-motion
-import { AboutSection } from '@/components/home/about-section'
+'use client'
 
-// 載入骨架組件 - 使用 CSS spinner 避免在 Server Component 引入 lucide-react
+import dynamic from 'next/dynamic'
+import { Loader2 } from 'lucide-react'
+
+// 載入骨架組件
 function SectionSkeleton() {
   return (
     <div className="flex min-h-[300px] items-center justify-center py-16">
-      <div className="h-8 w-8 animate-spin rounded-full border-4 border-[#1B1A1A] border-t-transparent" />
+      <Loader2 className="h-8 w-8 animate-spin text-[#1B1A1A]" />
     </div>
   )
 }
@@ -39,39 +39,34 @@ const GallerySection = dynamic(
   { loading: () => <SectionSkeleton /> }
 )
 
+const AboutSection = dynamic(
+  () => import('@/components/home/about-section').then((mod) => mod.AboutSection),
+  { loading: () => <SectionSkeleton /> }
+)
+
 /**
  * 首頁 - 內容導向型設計
- * 使用 Server Component + 動態載入優化性能
+ * 使用動態載入優化初始載入速度
  */
 export default function HomePage() {
   return (
     <main>
       {/* 人物誌精選 - 放最上面（優先載入） */}
-      <Suspense fallback={<SectionSkeleton />}>
-        <BiographySection />
-      </Suspense>
+      <BiographySection />
 
       {/* 最新文章 */}
-      <Suspense fallback={<SectionSkeleton />}>
-        <LatestContentSection />
-      </Suspense>
+      <LatestContentSection />
 
       {/* 最新影片 */}
-      <Suspense fallback={<SectionSkeleton />}>
-        <FeaturedVideosSection />
-      </Suspense>
+      <FeaturedVideosSection />
 
       {/* 探索岩場 */}
-      <Suspense fallback={<SectionSkeleton />}>
-        <ExploreCragSection />
-      </Suspense>
+      <ExploreCragSection />
 
       {/* 相片集精選 */}
-      <Suspense fallback={<SectionSkeleton />}>
-        <GallerySection />
-      </Suspense>
+      <GallerySection />
 
-      {/* 關於小人物攀岩（Server Component，直接渲染） */}
+      {/* 關於小人物攀岩 */}
       <AboutSection />
     </main>
   )
