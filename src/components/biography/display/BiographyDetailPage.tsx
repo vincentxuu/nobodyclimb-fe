@@ -25,7 +25,7 @@ interface BiographyDetailPageProps {
  * 檢查人物誌是否有任何內容
  */
 function hasAnyContent(biography: BiographyV2): boolean {
-  return (
+  return !!(
     (biography.tags && biography.tags.length > 0) ||
     (biography.one_liners && biography.one_liners.length > 0) ||
     (biography.stories && biography.stories.length > 0) ||
