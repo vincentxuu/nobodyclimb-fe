@@ -5,6 +5,11 @@ import { SITE_URL, SITE_NAME, OG_IMAGE } from '@/lib/constants'
 // 強制動態渲染，避免快取問題
 export const dynamic = 'force-dynamic'
 
+// Cloudflare KV 類型定義
+interface KVNamespace {
+  get(key: string, type: 'json'): Promise<unknown>
+}
+
 // 人物資料類型（用於 metadata，與後端 KV 快取結構一致）
 interface BiographyMetadata {
   id: string
@@ -25,13 +30,16 @@ async function getBiographyFromKV(id: string): Promise<BiographyMetadata | null>
     const { getCloudflareContext } = await import('@opennextjs/cloudflare')
     const { env } = getCloudflareContext()
 
-    if (!env?.CACHE) {
+    // 使用 type assertion 因為 CACHE 綁定在 wrangler.json 中定義
+    const cache = (env as unknown as Record<string, KVNamespace | undefined>)?.CACHE
+
+    if (!cache) {
       console.warn('[getBiographyFromKV] CACHE KV not available')
       return null
     }
 
     const cacheKey = `bio-meta:${id}`
-    const cached = await env.CACHE.get(cacheKey, 'json')
+    const cached = await cache.get(cacheKey, 'json')
 
     if (cached) {
       return cached as BiographyMetadata
