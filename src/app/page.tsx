@@ -1,13 +1,13 @@
 import { Suspense } from 'react'
 import dynamic from 'next/dynamic'
-import { Loader2 } from 'lucide-react'
-import { AboutSection } from '@/components/home'
+// 直接引入避免 barrel file 拉入 framer-motion
+import { AboutSection } from '@/components/home/about-section'
 
-// 載入骨架組件
+// 載入骨架組件 - 使用 CSS spinner 避免在 Server Component 引入 lucide-react
 function SectionSkeleton() {
   return (
     <div className="flex min-h-[300px] items-center justify-center py-16">
-      <Loader2 className="h-8 w-8 animate-spin text-[#1B1A1A]" />
+      <div className="h-8 w-8 animate-spin rounded-full border-4 border-[#1B1A1A] border-t-transparent" />
     </div>
   )
 }
