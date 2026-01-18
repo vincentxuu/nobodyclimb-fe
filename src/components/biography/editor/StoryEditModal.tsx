@@ -71,7 +71,7 @@ export function StoryEditModal({
     <div className="fixed inset-0 z-50 flex items-end md:items-center justify-center">
       {/* Backdrop */}
       <div
-        className="absolute inset-0 bg-black/50"
+        className="absolute inset-0 bg-brand-dark/30 backdrop-blur-sm"
         onClick={onClose}
       />
 
@@ -113,7 +113,7 @@ export function StoryEditModal({
               value={content}
               onChange={(e) => setContent(e.target.value)}
               placeholder="寫下你的故事..."
-              className="w-full h-64 px-4 py-3 border border-[#B6B3B3] rounded-xl resize-none focus:outline-none focus:ring-2 focus:ring-brand-accent/50 focus:border-brand-dark transition-colors"
+              className="w-full h-64 px-4 py-3 bg-white border border-[#B6B3B3] rounded-xl resize-none focus:outline-none focus:ring-2 focus:ring-brand-accent/50 focus:border-brand-dark transition-colors text-[#1B1A1A] placeholder:text-[#9D9D9D]"
               maxLength={5000}
             />
             <div className="flex justify-between items-center">

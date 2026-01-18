@@ -3,7 +3,7 @@
 import { useState, useRef, useMemo } from 'react'
 import Image from 'next/image'
 import { cn } from '@/lib/utils'
-import { User, ImageIcon, Pencil, Clock, Link, Instagram, Youtube } from 'lucide-react'
+import { User, ImageIcon, Pencil, Clock, Link, Instagram, Youtube, X, Plus, Lightbulb } from 'lucide-react'
 import type { SocialLinks } from '@/lib/types/biography-v2'
 
 interface BasicInfoSectionProps {
@@ -27,10 +27,14 @@ interface BasicInfoSectionProps {
   climbingStartYear: number | null
   /** 開始攀岩年份變更回調 */
   onClimbingStartYearChange: (_year: number | null) => void
-  /** 主要攀岩地點 */
-  homeGym: string | null
-  /** 攀岩地點變更回調 */
-  onHomeGymChange: (_location: string | null) => void
+  /** 平常出沒的地方 */
+  frequentLocations: string[]
+  /** 平常出沒的地方變更回調 */
+  onFrequentLocationsChange: (_locations: string[]) => void
+  /** 喜歡的路線型態 */
+  favoriteRouteTypes: string[]
+  /** 喜歡的路線型態變更回調 */
+  onFavoriteRouteTypesChange: (_types: string[]) => void
   /** 社群連結 */
   socialLinks: SocialLinks
   /** 社群連結變更回調 */
@@ -55,8 +59,10 @@ export function BasicInfoSection({
   onCoverChange,
   climbingStartYear,
   onClimbingStartYearChange,
-  homeGym,
-  onHomeGymChange,
+  frequentLocations,
+  onFrequentLocationsChange,
+  favoriteRouteTypes,
+  onFavoriteRouteTypesChange,
   socialLinks,
   onSocialLinksChange,
   className,
@@ -65,6 +71,50 @@ export function BasicInfoSection({
   const coverInputRef = useRef<HTMLInputElement>(null)
   const [avatarPreview, setAvatarPreview] = useState<string | null>(null)
   const [coverPreview, setCoverPreview] = useState<string | null>(null)
+  const [newLocation, setNewLocation] = useState('')
+  const [newRouteType, setNewRouteType] = useState('')
+
+  // 預設的路線型態選項（分類）
+  const routeTypeGroups = [
+    {
+      category: '攀登方式',
+      options: [
+        { label: '抱石', value: '抱石' },
+        { label: '運動攀登', value: '運動攀登' },
+        { label: '頂繩攀登', value: '頂繩攀登' },
+        { label: '速度攀登', value: '速度攀登' },
+        { label: '傳統攀登', value: '傳統攀登' },
+      ],
+    },
+    {
+      category: '地形型態',
+      options: [
+        { label: '平板岩', value: '平板岩' },
+        { label: '垂直岩壁', value: '垂直岩壁' },
+        { label: '外傾岩壁', value: '外傾岩壁' },
+        { label: '屋簷', value: '屋簷' },
+        { label: '裂隙', value: '裂隙' },
+        { label: '稜線', value: '稜線' },
+        { label: '壁面', value: '壁面' },
+        { label: '煙囪', value: '煙囪' },
+      ],
+    },
+    {
+      category: '動作風格',
+      options: [
+        { label: '動態路線', value: '動態路線' },
+        { label: '跑酷風格', value: '跑酷風格' },
+        { label: '協調性', value: '協調性' },
+        { label: '靜態', value: '靜態' },
+        { label: '技術性', value: '技術性' },
+        { label: '力量型', value: '力量型' },
+        { label: '耐力型', value: '耐力型' },
+      ],
+    },
+  ]
+
+  // 扁平化所有選項（用於檢查是否為預設選項）
+  const allRouteTypeOptions = routeTypeGroups.flatMap((g) => g.options)
 
   // Generate year options from current year back to 1970
   const currentYear = new Date().getFullYear()
@@ -157,7 +207,7 @@ export function BasicInfoSection({
               <span className="text-sm">點擊上傳封面圖片</span>
             </div>
           )}
-          <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+          <div className="absolute inset-0 bg-brand-dark/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
             <span className="text-white text-sm font-medium">更換封面</span>
           </div>
         </div>
@@ -191,7 +241,7 @@ export function BasicInfoSection({
                 <User size={32} />
               </div>
             )}
-            <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+            <div className="absolute inset-0 bg-brand-dark/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
               <Pencil size={20} className="text-white" />
             </div>
           </div>
@@ -228,19 +278,20 @@ export function BasicInfoSection({
       {/* Title / Tagline */}
       <div className="space-y-2">
         <label className="text-sm font-medium text-[#3F3D3D]">
-          個人標語
+          一句話介紹自己
           <span className="text-[#8E8C8C] font-normal ml-1">(選填)</span>
         </label>
         <input
           type="text"
           value={title || ''}
           onChange={(e) => onTitleChange(e.target.value || null)}
-          placeholder="例如：週末岩友、抱石愛好者、嘗試中的上攀者..."
+          placeholder="例如：快樂最重要的週末岩友"
           className="w-full px-4 py-3 bg-white border border-[#B6B3B3] rounded-xl text-[#1B1A1A] placeholder:text-[#9D9D9D] focus:outline-none focus:ring-2 focus:ring-brand-accent/50 focus:border-brand-dark transition-colors"
           maxLength={100}
         />
-        <p className="text-xs text-[#8E8C8C]">
-          一句話描述你自己，或是你的攀岩風格
+        <p className="text-xs text-[#8E8C8C] flex items-center gap-1">
+          <Lightbulb size={12} />
+          這句話會顯示在你的名字下方
         </p>
       </div>
 
@@ -275,21 +326,161 @@ export function BasicInfoSection({
         <p className="text-xs text-[#8E8C8C]">選擇你開始攀岩的年份，系統會自動計算年資</p>
       </div>
 
-      {/* Home Gym / Location */}
+      {/* Frequent Locations - 多選標籤 */}
       <div className="space-y-2">
         <label className="text-sm font-medium text-[#3F3D3D]">
-          常去的岩館/岩場
-          <span className="text-[#8E8C8C] font-normal ml-1">(選填)</span>
+          平常出沒的地方
+          <span className="text-[#8E8C8C] font-normal ml-1">(可多選)</span>
         </label>
-        <input
-          type="text"
-          value={homeGym || ''}
-          onChange={(e) => onHomeGymChange(e.target.value || null)}
-          placeholder="例如：內湖運動中心、龍洞、北投..."
-          className="w-full px-4 py-3 bg-white border border-[#B6B3B3] rounded-xl text-[#1B1A1A] placeholder:text-[#9D9D9D] focus:outline-none focus:ring-2 focus:ring-brand-accent/50 focus:border-brand-dark transition-colors"
-          maxLength={100}
-        />
-        <p className="text-xs text-[#8E8C8C]">讓其他岩友更容易找到你</p>
+        <div className="flex flex-wrap gap-2">
+          {frequentLocations.map((location, index) => (
+            <span
+              key={index}
+              className="inline-flex items-center gap-1 rounded-full bg-[#F5F5F5] px-3 py-1.5 text-sm text-[#1B1A1A]"
+            >
+              {location}
+              <button
+                type="button"
+                onClick={() => {
+                  const newLocations = frequentLocations.filter((_, i) => i !== index)
+                  onFrequentLocationsChange(newLocations)
+                }}
+                className="ml-1 text-[#6D6C6C] hover:text-[#1B1A1A] transition-colors"
+              >
+                <X size={14} />
+              </button>
+            </span>
+          ))}
+          <div className="inline-flex items-center gap-1">
+            <input
+              type="text"
+              value={newLocation}
+              onChange={(e) => setNewLocation(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter' && newLocation.trim()) {
+                  e.preventDefault()
+                  if (!frequentLocations.includes(newLocation.trim())) {
+                    onFrequentLocationsChange([...frequentLocations, newLocation.trim()])
+                  }
+                  setNewLocation('')
+                }
+              }}
+              placeholder="輸入後按 Enter"
+              className="w-32 px-3 py-1.5 text-sm bg-white text-[#1B1A1A] border border-dashed border-[#B6B3B3] rounded-full placeholder:text-[#9D9D9D] focus:outline-none focus:border-brand-dark"
+            />
+            <button
+              type="button"
+              onClick={() => {
+                if (newLocation.trim() && !frequentLocations.includes(newLocation.trim())) {
+                  onFrequentLocationsChange([...frequentLocations, newLocation.trim()])
+                  setNewLocation('')
+                }
+              }}
+              className="p-1.5 text-[#6D6C6C] hover:text-brand-dark hover:bg-[#F5F5F5] rounded-full transition-colors"
+            >
+              <Plus size={16} />
+            </button>
+          </div>
+        </div>
+        <p className="text-xs text-[#8E8C8C]">岩館、戶外岩場都可以加</p>
+      </div>
+
+      {/* Favorite Route Types - 多選標籤 */}
+      <div className="space-y-4">
+        <label className="text-sm font-medium text-[#3F3D3D]">
+          喜歡的路線型態
+          <span className="text-[#8E8C8C] font-normal ml-1">(可多選)</span>
+        </label>
+        {/* 分類預設選項 */}
+        {routeTypeGroups.map((group) => (
+          <div key={group.category} className="space-y-2">
+            <span className="text-xs text-[#6D6C6C]">{group.category}</span>
+            <div className="flex flex-wrap gap-2">
+              {group.options.map((option) => {
+                const isSelected = favoriteRouteTypes.includes(option.value)
+                return (
+                  <button
+                    key={option.value}
+                    type="button"
+                    onClick={() => {
+                      if (isSelected) {
+                        onFavoriteRouteTypesChange(favoriteRouteTypes.filter((t) => t !== option.value))
+                      } else {
+                        onFavoriteRouteTypesChange([...favoriteRouteTypes, option.value])
+                      }
+                    }}
+                    className={cn(
+                      'px-3 py-1.5 text-sm rounded-full border transition-colors',
+                      isSelected
+                        ? 'bg-brand-dark text-white border-brand-dark'
+                        : 'bg-white text-[#3F3D3D] border-[#B6B3B3] hover:border-brand-dark hover:bg-[#F5F5F5]'
+                    )}
+                  >
+                    {option.label}
+                  </button>
+                )
+              })}
+            </div>
+          </div>
+        ))}
+        {/* 已選擇的自訂選項（非預設選項的） */}
+        {favoriteRouteTypes.filter((t) => !allRouteTypeOptions.some((o) => o.value === t)).length > 0 && (
+          <div className="space-y-2">
+            <span className="text-xs text-[#6D6C6C]">自訂</span>
+            <div className="flex flex-wrap gap-2">
+              {favoriteRouteTypes
+                .filter((type) => !allRouteTypeOptions.some((o) => o.value === type))
+                .map((type, index) => (
+                  <span
+                    key={index}
+                    className="inline-flex items-center gap-1 rounded-full bg-brand-dark text-white px-3 py-1.5 text-sm"
+                  >
+                    {type}
+                    <button
+                      type="button"
+                      onClick={() => {
+                        onFavoriteRouteTypesChange(favoriteRouteTypes.filter((t) => t !== type))
+                      }}
+                      className="ml-1 text-white/70 hover:text-white transition-colors"
+                    >
+                      <X size={14} />
+                    </button>
+                  </span>
+                ))}
+            </div>
+          </div>
+        )}
+        {/* 自訂輸入 */}
+        <div className="flex items-center gap-2">
+          <input
+            type="text"
+            value={newRouteType}
+            onChange={(e) => setNewRouteType(e.target.value)}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter' && newRouteType.trim()) {
+                e.preventDefault()
+                if (!favoriteRouteTypes.includes(newRouteType.trim())) {
+                  onFavoriteRouteTypesChange([...favoriteRouteTypes, newRouteType.trim()])
+                }
+                setNewRouteType('')
+              }
+            }}
+            placeholder="沒有想要的？自己輸入..."
+            className="flex-1 max-w-xs px-3 py-1.5 text-sm bg-white text-[#1B1A1A] border border-dashed border-[#B6B3B3] rounded-full placeholder:text-[#9D9D9D] focus:outline-none focus:border-brand-dark"
+          />
+          <button
+            type="button"
+            onClick={() => {
+              if (newRouteType.trim() && !favoriteRouteTypes.includes(newRouteType.trim())) {
+                onFavoriteRouteTypesChange([...favoriteRouteTypes, newRouteType.trim()])
+                setNewRouteType('')
+              }
+            }}
+            className="p-1.5 text-[#6D6C6C] hover:text-brand-dark hover:bg-[#F5F5F5] rounded-full transition-colors"
+          >
+            <Plus size={16} />
+          </button>
+        </div>
       </div>
 
       {/* Divider */}

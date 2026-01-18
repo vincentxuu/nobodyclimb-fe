@@ -15,17 +15,18 @@ import type {
 // ═══════════════════════════════════════════
 
 export const SYSTEM_ONELINER_QUESTIONS = {
-  WHY_STARTED: 'sys_ol_why_started',
-  FAVORITE_PLACE: 'sys_ol_favorite_place',
-  BEST_MOMENT: 'sys_ol_best_moment',
-  ADVICE_FOR_BEGINNERS: 'sys_ol_advice_for_beginners',
-  CURRENT_GOAL: 'sys_ol_current_goal',
-  CLIMBING_LESSON: 'sys_ol_climbing_lesson',
-  CLIMBING_STYLE_DESC: 'sys_ol_climbing_style_desc',
-  LIFE_OUTSIDE: 'sys_ol_life_outside',
-  // 新增：對應舊欄位 climbing_meaning 和 bucket_list
-  CLIMBING_MEANING: 'sys_ol_climbing_meaning',
-  BUCKET_LIST: 'sys_ol_bucket_list',
+  // 核心三題
+  CLIMBING_ORIGIN: 'climbing_origin',           // 你與攀岩的相遇
+  CLIMBING_MEANING: 'climbing_meaning',         // 攀岩對你來說是什麼
+  ADVICE_TO_SELF: 'advice_to_self',             // 給剛開始攀岩的自己
+  // 延伸題目
+  FAVORITE_PLACE: 'favorite_place',
+  BEST_MOMENT: 'best_moment',
+  CURRENT_GOAL: 'current_goal',
+  CLIMBING_TAKEAWAY: 'climbing_takeaway',       // 一句話版本（避免與故事的 climbing_lesson 衝突）
+  CLIMBING_STYLE_DESC: 'climbing_style_desc',
+  LIFE_OUTSIDE: 'life_outside',
+  BUCKET_LIST: 'bucket_list',
 } as const
 
 export type SystemOneLinerQuestionId =
@@ -36,29 +37,39 @@ export type SystemOneLinerQuestionId =
 // ═══════════════════════════════════════════
 
 export const SYSTEM_ONELINER_QUESTION_LIST: OneLinerQuestion[] = [
+  // 核心三題
   {
-    id: SYSTEM_ONELINER_QUESTIONS.WHY_STARTED,
+    id: SYSTEM_ONELINER_QUESTIONS.CLIMBING_ORIGIN,
     source: 'system',
-    question: '為什麼開始攀岩？',
-    format_hint: '因為＿＿＿',
-    placeholder: '朋友拉我去，結果就回不去了',
+    question: '你與攀岩的相遇',
+    format_hint: '描述第一次接觸攀岩的情景',
+    placeholder: '大學社團體驗，一爬就愛上了',
     order: 1,
   },
+  {
+    id: SYSTEM_ONELINER_QUESTIONS.CLIMBING_MEANING,
+    source: 'system',
+    question: '攀岩對你來說是什麼？',
+    format_hint: '攀岩在你生活中扮演什麼角色',
+    placeholder: '一種生活方式，也是認識自己的途徑',
+    order: 2,
+  },
+  {
+    id: SYSTEM_ONELINER_QUESTIONS.ADVICE_TO_SELF,
+    source: 'system',
+    question: '給剛開始攀岩的自己',
+    format_hint: '如果能回到起點，你會對自己說什麼',
+    placeholder: '不要急，享受每一次攀爬的過程',
+    order: 3,
+  },
+  // 延伸題目
   {
     id: SYSTEM_ONELINER_QUESTIONS.BEST_MOMENT,
     source: 'system',
     question: '爬岩最爽的是？',
     format_hint: '當＿＿＿的時候',
     placeholder: '終於送出卡了一個月的 project',
-    order: 2,
-  },
-  {
-    id: SYSTEM_ONELINER_QUESTIONS.ADVICE_FOR_BEGINNERS,
-    source: 'system',
-    question: '給新手一句話？',
-    format_hint: null,
-    placeholder: '不要急，享受過程最重要',
-    order: 3,
+    order: 4,
   },
   {
     id: SYSTEM_ONELINER_QUESTIONS.FAVORITE_PLACE,
@@ -66,7 +77,7 @@ export const SYSTEM_ONELINER_QUESTION_LIST: OneLinerQuestion[] = [
     question: '最喜歡在哪裡爬？',
     format_hint: null,
     placeholder: '龍洞的海邊岩壁',
-    order: 4,
+    order: 5,
   },
   {
     id: SYSTEM_ONELINER_QUESTIONS.CURRENT_GOAL,
@@ -74,15 +85,15 @@ export const SYSTEM_ONELINER_QUESTION_LIST: OneLinerQuestion[] = [
     question: '目前的攀岩小目標？',
     format_hint: null,
     placeholder: '這個月送出 V4',
-    order: 5,
+    order: 6,
   },
   {
-    id: SYSTEM_ONELINER_QUESTIONS.CLIMBING_LESSON,
+    id: SYSTEM_ONELINER_QUESTIONS.CLIMBING_TAKEAWAY,
     source: 'system',
     question: '攀岩教會我的一件事？',
     format_hint: null,
     placeholder: '失敗沒什麼，再來就好',
-    order: 6,
+    order: 7,
   },
   {
     id: SYSTEM_ONELINER_QUESTIONS.CLIMBING_STYLE_DESC,
@@ -90,7 +101,7 @@ export const SYSTEM_ONELINER_QUESTION_LIST: OneLinerQuestion[] = [
     question: '用一句話形容你的攀岩風格？',
     format_hint: null,
     placeholder: '慢慢來但很穩',
-    order: 7,
+    order: 8,
   },
   {
     id: SYSTEM_ONELINER_QUESTIONS.LIFE_OUTSIDE,
@@ -98,15 +109,6 @@ export const SYSTEM_ONELINER_QUESTION_LIST: OneLinerQuestion[] = [
     question: '攀岩之外，你是誰？',
     format_hint: null,
     placeholder: '工程師/學生/全職岩棍',
-    order: 8,
-  },
-  // 新增：對應舊欄位
-  {
-    id: SYSTEM_ONELINER_QUESTIONS.CLIMBING_MEANING,
-    source: 'system',
-    question: '攀岩對你來說是什麼？',
-    format_hint: '對我來說，攀岩是＿＿＿',
-    placeholder: '一種生活方式、挑戰自我的方式',
     order: 9,
   },
   {
@@ -203,7 +205,7 @@ export const SYSTEM_STORY_CATEGORY_LIST: StoryCategoryDefinition[] = [
 // A. 成長與突破（6題）
 const growthQuestions: StoryQuestion[] = [
   {
-    id: 'sys_story_growth_memorable_moment',
+    id: 'memorable_moment',
     source: 'system',
     category_id: SYSTEM_STORY_CATEGORIES.GROWTH,
     title: '有沒有某次攀爬讓你一直記到現在？',
@@ -213,7 +215,7 @@ const growthQuestions: StoryQuestion[] = [
     order: 1,
   },
   {
-    id: 'sys_story_growth_biggest_challenge',
+    id: 'biggest_challenge',
     source: 'system',
     category_id: SYSTEM_STORY_CATEGORIES.GROWTH,
     title: '有遇過什麼卡關的時候嗎？',
@@ -223,7 +225,7 @@ const growthQuestions: StoryQuestion[] = [
     order: 2,
   },
   {
-    id: 'sys_story_growth_breakthrough',
+    id: 'breakthrough_story',
     source: 'system',
     category_id: SYSTEM_STORY_CATEGORIES.GROWTH,
     title: '最近有沒有覺得自己進步的時刻？',
@@ -233,7 +235,7 @@ const growthQuestions: StoryQuestion[] = [
     order: 3,
   },
   {
-    id: 'sys_story_growth_first_outdoor',
+    id: 'first_outdoor',
     source: 'system',
     category_id: SYSTEM_STORY_CATEGORIES.GROWTH,
     title: '還記得第一次戶外攀岩嗎？',
@@ -243,7 +245,7 @@ const growthQuestions: StoryQuestion[] = [
     order: 4,
   },
   {
-    id: 'sys_story_growth_first_grade',
+    id: 'first_grade',
     source: 'system',
     category_id: SYSTEM_STORY_CATEGORIES.GROWTH,
     title: '有沒有哪條路線讓你特別有成就感？',
@@ -253,7 +255,7 @@ const growthQuestions: StoryQuestion[] = [
     order: 5,
   },
   {
-    id: 'sys_story_growth_frustrating',
+    id: 'frustrating_climb',
     source: 'system',
     category_id: SYSTEM_STORY_CATEGORIES.GROWTH,
     title: '有沒有讓你很挫折的經驗？後來怎麼面對？',
@@ -267,7 +269,7 @@ const growthQuestions: StoryQuestion[] = [
 // B. 心理與哲學（6題）
 const psychologyQuestions: StoryQuestion[] = [
   {
-    id: 'sys_story_psychology_fear',
+    id: 'fear_management',
     source: 'system',
     category_id: SYSTEM_STORY_CATEGORIES.PSYCHOLOGY,
     title: '會怕高或怕墜落嗎？怎麼面對的？',
@@ -277,7 +279,7 @@ const psychologyQuestions: StoryQuestion[] = [
     order: 1,
   },
   {
-    id: 'sys_story_psychology_lesson',
+    id: 'climbing_lesson',
     source: 'system',
     category_id: SYSTEM_STORY_CATEGORIES.PSYCHOLOGY,
     title: '攀岩有沒有讓你學到什麼？',
@@ -287,7 +289,7 @@ const psychologyQuestions: StoryQuestion[] = [
     order: 2,
   },
   {
-    id: 'sys_story_psychology_failure',
+    id: 'failure_perspective',
     source: 'system',
     category_id: SYSTEM_STORY_CATEGORIES.PSYCHOLOGY,
     title: '爬不上去的時候會怎麼想？',
@@ -297,7 +299,7 @@ const psychologyQuestions: StoryQuestion[] = [
     order: 3,
   },
   {
-    id: 'sys_story_psychology_flow',
+    id: 'flow_moment',
     source: 'system',
     category_id: SYSTEM_STORY_CATEGORIES.PSYCHOLOGY,
     title: '有沒有爬到忘記時間的經驗？',
@@ -307,7 +309,7 @@ const psychologyQuestions: StoryQuestion[] = [
     order: 4,
   },
   {
-    id: 'sys_story_psychology_balance',
+    id: 'life_balance',
     source: 'system',
     category_id: SYSTEM_STORY_CATEGORIES.PSYCHOLOGY,
     title: '怎麼安排攀岩和其他生活？',
@@ -317,7 +319,7 @@ const psychologyQuestions: StoryQuestion[] = [
     order: 5,
   },
   {
-    id: 'sys_story_psychology_gain',
+    id: 'unexpected_gain',
     source: 'system',
     category_id: SYSTEM_STORY_CATEGORIES.PSYCHOLOGY,
     title: '攀岩有帶給你什麼意外的收穫嗎？',
@@ -331,7 +333,7 @@ const psychologyQuestions: StoryQuestion[] = [
 // C. 社群與連結（6題）
 const communityQuestions: StoryQuestion[] = [
   {
-    id: 'sys_story_community_mentor',
+    id: 'climbing_mentor',
     source: 'system',
     category_id: SYSTEM_STORY_CATEGORIES.COMMUNITY,
     title: '有沒有想感謝的人？',
@@ -341,7 +343,7 @@ const communityQuestions: StoryQuestion[] = [
     order: 1,
   },
   {
-    id: 'sys_story_community_partner',
+    id: 'climbing_partner',
     source: 'system',
     category_id: SYSTEM_STORY_CATEGORIES.COMMUNITY,
     title: '有沒有固定的攀岩夥伴？有什麼故事？',
@@ -351,7 +353,7 @@ const communityQuestions: StoryQuestion[] = [
     order: 2,
   },
   {
-    id: 'sys_story_community_funny',
+    id: 'funny_moment',
     source: 'system',
     category_id: SYSTEM_STORY_CATEGORIES.COMMUNITY,
     title: '有沒有什麼搞笑或尷尬的經歷？',
@@ -361,7 +363,7 @@ const communityQuestions: StoryQuestion[] = [
     order: 3,
   },
   {
-    id: 'sys_story_community_spot',
+    id: 'favorite_spot',
     source: 'system',
     category_id: SYSTEM_STORY_CATEGORIES.COMMUNITY,
     title: '最常去或最推薦哪裡爬？為什麼？',
@@ -371,7 +373,7 @@ const communityQuestions: StoryQuestion[] = [
     order: 4,
   },
   {
-    id: 'sys_story_community_advice',
+    id: 'advice_to_group',
     source: 'system',
     category_id: SYSTEM_STORY_CATEGORIES.COMMUNITY,
     title: '想對新手（或某個族群）說什麼？',
@@ -381,7 +383,7 @@ const communityQuestions: StoryQuestion[] = [
     order: 5,
   },
   {
-    id: 'sys_story_community_space',
+    id: 'climbing_space',
     source: 'system',
     category_id: SYSTEM_STORY_CATEGORIES.COMMUNITY,
     title: '有沒有對你特別有意義的岩館或地點？',
@@ -395,7 +397,7 @@ const communityQuestions: StoryQuestion[] = [
 // D. 實用分享（6題）
 const practicalQuestions: StoryQuestion[] = [
   {
-    id: 'sys_story_practical_injury',
+    id: 'injury_recovery',
     source: 'system',
     category_id: SYSTEM_STORY_CATEGORIES.PRACTICAL,
     title: '有受過傷嗎？怎麼復原的？',
@@ -405,7 +407,7 @@ const practicalQuestions: StoryQuestion[] = [
     order: 1,
   },
   {
-    id: 'sys_story_practical_route',
+    id: 'memorable_route',
     source: 'system',
     category_id: SYSTEM_STORY_CATEGORIES.PRACTICAL,
     title: '有沒有想分享的路線或經驗？',
@@ -415,7 +417,7 @@ const practicalQuestions: StoryQuestion[] = [
     order: 2,
   },
   {
-    id: 'sys_story_practical_training',
+    id: 'training_method',
     source: 'system',
     category_id: SYSTEM_STORY_CATEGORIES.PRACTICAL,
     title: '你平常怎麼練習？有什麼小習慣？',
@@ -425,7 +427,7 @@ const practicalQuestions: StoryQuestion[] = [
     order: 3,
   },
   {
-    id: 'sys_story_practical_practice',
+    id: 'effective_practice',
     source: 'system',
     category_id: SYSTEM_STORY_CATEGORIES.PRACTICAL,
     title: '有沒有對你特別有效的練習方法？',
@@ -435,7 +437,7 @@ const practicalQuestions: StoryQuestion[] = [
     order: 4,
   },
   {
-    id: 'sys_story_practical_technique',
+    id: 'technique_tip',
     source: 'system',
     category_id: SYSTEM_STORY_CATEGORIES.PRACTICAL,
     title: '有沒有學到什麼實用的技巧？',
@@ -445,7 +447,7 @@ const practicalQuestions: StoryQuestion[] = [
     order: 5,
   },
   {
-    id: 'sys_story_practical_gear',
+    id: 'gear_choice',
     source: 'system',
     category_id: SYSTEM_STORY_CATEGORIES.PRACTICAL,
     title: '關於裝備有沒有什麼心得？',
@@ -459,7 +461,7 @@ const practicalQuestions: StoryQuestion[] = [
 // E. 夢想與探索（6題）
 const dreamsQuestions: StoryQuestion[] = [
   {
-    id: 'sys_story_dreams_dream_climb',
+    id: 'dream_climb',
     source: 'system',
     category_id: SYSTEM_STORY_CATEGORIES.DREAMS,
     title: '如果能去任何地方爬，你想去哪？',
@@ -469,7 +471,7 @@ const dreamsQuestions: StoryQuestion[] = [
     order: 1,
   },
   {
-    id: 'sys_story_dreams_trip',
+    id: 'climbing_trip',
     source: 'system',
     category_id: SYSTEM_STORY_CATEGORIES.DREAMS,
     title: '有沒有印象深刻的攀岩旅行？',
@@ -479,7 +481,7 @@ const dreamsQuestions: StoryQuestion[] = [
     order: 2,
   },
   {
-    id: 'sys_story_dreams_bucket_list',
+    id: 'bucket_list_story',
     source: 'system',
     category_id: SYSTEM_STORY_CATEGORIES.DREAMS,
     title: '有沒有完成過什麼攀岩目標？感覺如何？',
@@ -489,7 +491,7 @@ const dreamsQuestions: StoryQuestion[] = [
     order: 3,
   },
   {
-    id: 'sys_story_dreams_goal',
+    id: 'climbing_goal',
     source: 'system',
     category_id: SYSTEM_STORY_CATEGORIES.DREAMS,
     title: '最近有什麼想達成的小目標？',
@@ -499,7 +501,7 @@ const dreamsQuestions: StoryQuestion[] = [
     order: 4,
   },
   {
-    id: 'sys_story_dreams_style',
+    id: 'climbing_style',
     source: 'system',
     category_id: SYSTEM_STORY_CATEGORIES.DREAMS,
     title: '最喜歡什麼樣的路線或風格？',
@@ -509,7 +511,7 @@ const dreamsQuestions: StoryQuestion[] = [
     order: 5,
   },
   {
-    id: 'sys_story_dreams_inspiration',
+    id: 'climbing_inspiration',
     source: 'system',
     category_id: SYSTEM_STORY_CATEGORIES.DREAMS,
     title: '有沒有啟發你的人、影片或故事？',
@@ -523,7 +525,7 @@ const dreamsQuestions: StoryQuestion[] = [
 // F. 生活整合（1題）
 const lifeQuestions: StoryQuestion[] = [
   {
-    id: 'sys_story_life_outside',
+    id: 'life_outside_climbing',
     source: 'system',
     category_id: SYSTEM_STORY_CATEGORIES.LIFE,
     title: '攀岩之外，還有什麼讓你著迷？',
@@ -548,77 +550,23 @@ export const SYSTEM_STORY_QUESTION_LIST: StoryQuestion[] = [
 ]
 
 // ═══════════════════════════════════════════
-// 舊欄位名到 V2 ID 的映射（向後兼容）
+// ID 正規化（向後兼容）
 // ═══════════════════════════════════════════
 
 /**
- * 故事問題：舊 DB 欄位名 → V2 問題 ID
- * 用於兼容後端 stories_data 中使用舊欄位名的資料
- */
-export const LEGACY_STORY_FIELD_TO_V2_ID: Record<string, string> = {
-  // growth
-  climbing_origin: 'sys_story_growth_memorable_moment',
-  memorable_moment: 'sys_story_growth_memorable_moment',
-  biggest_challenge: 'sys_story_growth_biggest_challenge',
-  breakthrough_story: 'sys_story_growth_breakthrough',
-  first_outdoor: 'sys_story_growth_first_outdoor',
-  first_grade: 'sys_story_growth_first_grade',
-  frustrating_climb: 'sys_story_growth_frustrating',
-  // psychology
-  fear_management: 'sys_story_psychology_fear',
-  climbing_lesson: 'sys_story_psychology_lesson',
-  failure_perspective: 'sys_story_psychology_failure',
-  flow_moment: 'sys_story_psychology_flow',
-  life_balance: 'sys_story_psychology_balance',
-  unexpected_gain: 'sys_story_psychology_gain',
-  // community
-  climbing_mentor: 'sys_story_community_mentor',
-  climbing_partner: 'sys_story_community_partner',
-  funny_moment: 'sys_story_community_funny',
-  favorite_spot: 'sys_story_community_spot',
-  advice_to_group: 'sys_story_community_advice',
-  climbing_space: 'sys_story_community_space',
-  // practical
-  advice_to_self: 'sys_story_practical_injury',
-  injury_recovery: 'sys_story_practical_injury',
-  memorable_route: 'sys_story_practical_route',
-  training_method: 'sys_story_practical_training',
-  effective_practice: 'sys_story_practical_practice',
-  technique_tip: 'sys_story_practical_technique',
-  gear_choice: 'sys_story_practical_gear',
-  // dreams
-  dream_climb: 'sys_story_dreams_dream_climb',
-  climbing_trip: 'sys_story_dreams_trip',
-  bucket_list_story: 'sys_story_dreams_bucket_list',
-  climbing_goal: 'sys_story_dreams_goal',
-  climbing_style: 'sys_story_dreams_style',
-  climbing_inspiration: 'sys_story_dreams_inspiration',
-  // life
-  life_outside_climbing: 'sys_story_life_outside',
-}
-
-/**
- * 一句話問題：舊 DB 欄位名 → V2 問題 ID
- */
-export const LEGACY_ONELINER_FIELD_TO_V2_ID: Record<string, string> = {
-  climbing_reason: SYSTEM_ONELINER_QUESTIONS.WHY_STARTED,
-  advice: SYSTEM_ONELINER_QUESTIONS.ADVICE_FOR_BEGINNERS,
-  climbing_meaning: SYSTEM_ONELINER_QUESTIONS.CLIMBING_MEANING,
-  bucket_list: SYSTEM_ONELINER_QUESTIONS.BUCKET_LIST,
-}
-
-/**
- * 將舊欄位名轉換為 V2 問題 ID
+ * 正規化故事問題 ID
+ * 目前 ID 已統一，直接返回原值
  */
 export function normalizeStoryQuestionId(questionId: string): string {
-  return LEGACY_STORY_FIELD_TO_V2_ID[questionId] || questionId
+  return questionId
 }
 
 /**
- * 將舊一句話欄位名轉換為 V2 問題 ID
+ * 正規化一句話問題 ID
+ * 目前 ID 已統一，直接返回原值
  */
 export function normalizeOneLinerQuestionId(questionId: string): string {
-  return LEGACY_ONELINER_FIELD_TO_V2_ID[questionId] || questionId
+  return questionId
 }
 
 // ═══════════════════════════════════════════

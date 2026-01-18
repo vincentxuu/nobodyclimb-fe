@@ -1,10 +1,11 @@
 'use client'
 
+import { useMemo } from 'react'
 import { motion } from 'framer-motion'
-import { Biography } from '@/lib/types'
+import { BiographyV2 } from '@/lib/types/biography-v2'
 
 interface ChapterMeaningProps {
-  person: Biography
+  person: BiographyV2 | null
 }
 
 /**
@@ -12,7 +13,14 @@ interface ChapterMeaningProps {
  * 攀岩對你來說是什麼 - 引言式設計
  */
 export function ChapterMeaning({ person }: ChapterMeaningProps) {
-  if (!person.climbing_meaning) return null
+  // 從 one_liners 陣列中取得 climbing_meaning
+  const climbingMeaning = useMemo(() => {
+    if (!person?.one_liners) return null
+    const item = person.one_liners.find(o => o.question_id === 'climbing_meaning')
+    return item?.answer || null
+  }, [person?.one_liners])
+
+  if (!climbingMeaning) return null
 
   return (
     <motion.section
@@ -36,7 +44,7 @@ export function ChapterMeaning({ person }: ChapterMeaningProps) {
             &ldquo;
           </span>
           <p className="px-8 text-xl italic leading-relaxed text-gray-800">
-            {person.climbing_meaning}
+            {climbingMeaning}
           </p>
           <span className="absolute -bottom-8 -right-4 text-6xl bg-brand-accent/30">
             &rdquo;
@@ -44,7 +52,7 @@ export function ChapterMeaning({ person }: ChapterMeaningProps) {
         </blockquote>
 
         {/* 簽名 */}
-        <p className="mt-12 text-gray-600">— {person.name}</p>
+        <p className="mt-12 text-gray-600">— {person?.name}</p>
       </div>
     </motion.section>
   )

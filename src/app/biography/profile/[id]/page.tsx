@@ -7,7 +7,7 @@ export const dynamic = 'force-dynamic'
 
 // Cloudflare KV 類型定義
 interface KVNamespace {
-  get(key: string, type: 'json'): Promise<unknown>
+  get(_key: string, _type: 'json'): Promise<unknown>
 }
 
 // 人物資料類型（用於 metadata，與後端 KV 快取結構一致）

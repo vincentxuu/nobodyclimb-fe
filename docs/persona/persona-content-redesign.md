@@ -1,6 +1,6 @@
 # 人物誌內容重新規劃
 
-> 文件版本：v2.2
+> 文件版本：v2.3
 > 建立日期：2026-01-18
 > 最後更新：2026-01-18
 > 關聯文件：`persona-creation-ux-improvement.md`
@@ -15,11 +15,11 @@
 
 ```
 ┌─────────────────────────────────────────────────────────────┐
-│  第一層：標籤系統（11+ 維度）          ⏱️ 30 秒    完成率 80%+ │
+│  第一層：標籤系統（11+ 維度）          <Clock> 30 秒    完成率 80%+ │
 ├─────────────────────────────────────────────────────────────┤
-│  第二層：一句話系列（8+ 題）           ⏱️ 2-3 分鐘  完成率 50%+ │
+│  第二層：一句話系列（8+ 題）           <Clock> 2-3 分鐘  完成率 50%+ │
 ├─────────────────────────────────────────────────────────────┤
-│  第三層：深度故事（31+ 題）            ⏱️ 依個人    完成率 15%+ │
+│  第三層：深度故事（31+ 題）            <Clock> 依個人    完成率 15%+ │
 └─────────────────────────────────────────────────────────────┘
 ```
 
@@ -29,11 +29,12 @@
 
 | 層級 | 開發者預設 | 用戶可自訂 |
 |-----|-----------|-----------|
-| 標籤系統 | 11 個維度、70+ 選項 | ✅ 新增維度、新增選項 |
-| 一句話系列 | 8 個問題 | ✅ 新增問題 |
-| 深度故事 | 31 個問題（6 分類） | ✅ 新增問題 |
+| 標籤系統 | 11 個維度、70+ 選項 | [x] 新增維度、新增選項 |
+| 一句話系列 | 8 個問題 | [x] 新增問題 |
+| 深度故事 | 31 個問題（6 分類） | [x] 新增問題 |
 
 **設計理念：**
+
 - 開發者提供「好的起點」，降低用戶選擇困難
 - 用戶可以「突破框架」，表達獨特身份
 - 熱門的用戶自訂內容可被採納為系統預設（未來功能）
@@ -97,11 +98,14 @@ export interface BiographyV2 {
   cover_image: string | null
 
   // ═══════════════════════════════════════════
-  // 攀岩基本資料
+  // 攀岩基本資料（第一層）
   // ═══════════════════════════════════════════
-  climbing_start_year: number | null      // 開始攀岩年份
-  frequent_locations: string[] | null     // 常去的地點（陣列）
-  home_gym: string | null                 // 主場岩館
+  climbing_start_year: number | null      // 哪一年開始攀岩
+  frequent_locations: string[] | null     // 平常出沒的地方（陣列）
+  favorite_route_type: string[] | null    // 喜歡的路線型態（可複選）
+                                          // 攀登方式: 抱石/運動攀登/頂繩攀登/速度攀登/傳統攀登
+                                          // 地形型態: 平板岩/垂直岩壁/外傾岩壁/屋簷/裂隙/稜線/壁面/煙囪
+                                          // 動作風格: 動態路線/跑酷風格/協調性/靜態/技術性/力量型/耐力型
 
   // ═══════════════════════════════════════════
   // 第一層：標籤系統（開放式）
@@ -147,6 +151,7 @@ export interface BiographyV2 {
 ### 2.2 標籤系統結構（開放式設計）
 
 **設計原則：**
+
 - 維度和選項都可動態擴展
 - 系統預設提供 11 個維度、70+ 選項
 - 用戶可新增維度、新增選項
@@ -161,7 +166,7 @@ export interface TagDimension extends ExtensibleItem {
   id: string                    // 維度 ID，如 'sys_style_cult' 或 'usr_custom_123'
   source: ContentSource         // 'system' | 'user'
   name: string                  // 顯示名稱，如「風格邪教」
-  emoji: string                 // 圖標，如「🔮」
+  icon: string                  // Lucide icon 名稱，如「Wand2」
   description: string           // 說明文字
   selection_mode: 'single' | 'multiple'  // 單選或複選
   options: TagOption[]          // 該維度下的選項
@@ -182,8 +187,8 @@ export interface TagOption extends ExtensibleItem {
 
   // 動態標籤專用欄位
   is_dynamic?: boolean          // 是否為動態標籤
-  template?: string             // 顯示模板，如 "#{value}常客"
-  source_field?: string         // 資料來源欄位，如 "home_gym"
+  template?: string             // 顯示模板，如 "#{value}信徒"
+  source_field?: string         // 資料來源欄位，如 "frequent_locations"
 }
 
 /**
@@ -240,7 +245,7 @@ const styleCultDimension: TagDimension = {
   id: 'sys_style_cult',
   source: 'system',
   name: '風格邪教',
-  emoji: '🔮',
+  icon: 'Wand2',
   description: '你是哪個邪教的？',
   selection_mode: 'multiple',
   order: 1,
@@ -273,7 +278,7 @@ const customDimension: TagDimension = {
   created_by: 'user_123',
   created_at: '2026-01-18T10:00:00Z',
   name: '裝備迷信',
-  emoji: '🧿',
+  icon: 'Shield',
   description: '你有什麼攀岩迷信？',
   selection_mode: 'multiple',
   order: 100,  // 用戶自訂維度排在後面
@@ -317,6 +322,7 @@ const userTags: BiographyTagsV2 = {
 ### 2.3 一句話系列結構（開放式設計）
 
 **設計原則：**
+
 - 問題和回答都使用動態結構
 - 系統預設 8 個問題
 - 用戶可新增自己想回答的問題
@@ -361,10 +367,13 @@ export interface BiographyOneLinersV2 {
 // ═══════════════════════════════════════════
 
 export const SYSTEM_ONELINER_QUESTIONS = {
-  WHY_STARTED: 'sys_ol_why_started',
+  // 核心三題（原第二層核心故事）
+  CLIMBING_ORIGIN: 'sys_ol_climbing_origin',       // 你與攀岩的相遇
+  CLIMBING_MEANING: 'sys_ol_climbing_meaning',     // 攀岩對你來說是什麼
+  ADVICE_TO_SELF: 'sys_ol_advice_to_self',         // 給剛開始攀岩的自己
+  // 延伸題目
   FAVORITE_PLACE: 'sys_ol_favorite_place',
   BEST_MOMENT: 'sys_ol_best_moment',
-  ADVICE_FOR_BEGINNERS: 'sys_ol_advice_for_beginners',
   CURRENT_GOAL: 'sys_ol_current_goal',
   CLIMBING_LESSON: 'sys_ol_climbing_lesson',
   CLIMBING_STYLE_DESC: 'sys_ol_climbing_style_desc',
@@ -377,21 +386,39 @@ export const SYSTEM_ONELINER_QUESTIONS = {
 ```typescript
 // 系統預設問題
 const systemQuestions: OneLinerQuestion[] = [
+  // 核心三題（原第二層核心故事）
   {
-    id: 'sys_ol_why_started',
+    id: 'sys_ol_climbing_origin',
     source: 'system',
-    question: '為什麼開始攀岩？',
-    format_hint: '因為＿＿＿',
-    placeholder: '朋友拉我去，結果就回不去了',
+    question: '你與攀岩的相遇',
+    format_hint: '描述第一次接觸攀岩的情景',
+    placeholder: '大學社團體驗，從此愛上',
     order: 1,
   },
+  {
+    id: 'sys_ol_climbing_meaning',
+    source: 'system',
+    question: '攀岩對你來說是什麼',
+    format_hint: '攀岩在你生活中扮演什麼角色',
+    placeholder: '一種生活方式、挑戰自我的途徑',
+    order: 2,
+  },
+  {
+    id: 'sys_ol_advice_to_self',
+    source: 'system',
+    question: '給剛開始攀岩的自己',
+    format_hint: '如果能回到起點，你會對自己說什麼',
+    placeholder: '不要急，享受每一次攀爬的過程',
+    order: 3,
+  },
+  // 延伸題目
   {
     id: 'sys_ol_best_moment',
     source: 'system',
     question: '爬岩最爽的是？',
     format_hint: '當＿＿＿的時候',
     placeholder: '終於送出 project',
-    order: 2,
+    order: 4,
   },
   // ... 更多問題
 ]
@@ -412,8 +439,18 @@ const customQuestion: OneLinerQuestion = {
 const userOneLiners: BiographyOneLinersV2 = {
   answers: [
     {
-      question_id: 'sys_ol_why_started',
-      answer: '朋友拉我去，結果就回不去了',
+      question_id: 'sys_ol_climbing_origin',
+      answer: '大學社團體驗，一爬就愛上了',
+      updated_at: '2026-01-18T10:00:00Z',
+    },
+    {
+      question_id: 'sys_ol_climbing_meaning',
+      answer: '一種生活方式，也是認識自己的途徑',
+      updated_at: '2026-01-18T10:00:00Z',
+    },
+    {
+      question_id: 'sys_ol_advice_to_self',
+      answer: '不要急，享受每一次攀爬的過程',
       updated_at: '2026-01-18T10:00:00Z',
     },
     {
@@ -434,6 +471,7 @@ const userOneLiners: BiographyOneLinersV2 = {
 ### 2.4 深度故事結構（開放式設計）
 
 **設計理念：**
+
 - 保留豐富的故事選項，改變呈現方式
 - 問題和分類都可動態擴展
 - 用戶可新增自己想回答的問題
@@ -451,7 +489,7 @@ export interface StoryCategory extends ExtensibleItem {
   id: string                    // 分類 ID，如 'sys_growth' 或 'usr_cat_123'
   source: ContentSource         // 'system' | 'user'
   name: string                  // 顯示名稱，如「成長與突破」
-  emoji: string                 // 圖標，如「🌱」
+  icon: string                  // Lucide icon 名稱，如「Sprout」
   description: string           // 說明文字
   order: number                 // 排序
 }
@@ -527,7 +565,7 @@ const systemCategories: StoryCategory[] = [
     id: 'sys_cat_growth',
     source: 'system',
     name: '成長與突破',
-    emoji: '🌱',
+    icon: 'Sprout',
     description: '你的攀岩成長故事',
     order: 1,
   },
@@ -535,7 +573,7 @@ const systemCategories: StoryCategory[] = [
     id: 'sys_cat_psychology',
     source: 'system',
     name: '心理與哲學',
-    emoji: '🧠',
+    icon: 'Brain',
     description: '攀岩帶給你的思考',
     order: 2,
   },
@@ -574,7 +612,7 @@ const customCategory: StoryCategory = {
   created_by: 'user_123',
   created_at: '2026-01-18T10:00:00Z',
   name: '攀岩與感情',
-  emoji: '💕',
+  icon: 'Heart',
   description: '攀岩對你的感情關係有什麼影響？',
   order: 100,
 }
@@ -705,7 +743,7 @@ const userStories: BiographyStoriesV2 = {
   source: 'user',
   created_by: 'user_123',
   name: '攀岩與感情',
-  emoji: '💕',
+  icon: 'Heart',
   description: '攀岩對感情關係的影響',
   order: 100,
 }
@@ -716,6 +754,7 @@ const userStories: BiographyStoriesV2 = {
 #### 故事 UI 呈現方式
 
 **設計原則：**
+
 - 預設收合，不造成壓力
 - 按分類瀏覽，容易找到想回答的
 - 「隨機推薦」幫助不知道從哪開始的人
@@ -723,10 +762,10 @@ const userStories: BiographyStoriesV2 = {
 
 ```
 ┌─────────────────────────────────────────────────────────────┐
-│  📖 我的故事                                    已記錄 5 則  │
+│  <BookOpen> 我的故事                            已記錄 5 則  │
 ├─────────────────────────────────────────────────────────────┤
 │                                                             │
-│  不知道要寫什麼？ [🎲 隨機推薦一題]                          │
+│  不知道要寫什麼？ [<Dice5> 隨機推薦一題]                     │
 │                                                             │
 │  ───────────────────────────────────────────────────────   │
 │                                                             │
@@ -755,7 +794,7 @@ const userStories: BiographyStoriesV2 = {
 │                                                             │
 │  ───────────────────────────────────────────────────────   │
 │                                                             │
-│  💡 想寫多少就寫多少，隨時可以回來補充                       │
+│  <Lightbulb> 想寫多少就寫多少，隨時可以回來補充              │
 │                                                             │
 └─────────────────────────────────────────────────────────────┘
 ```
@@ -840,9 +879,6 @@ ALTER TABLE biographies ADD COLUMN stories TEXT DEFAULT NULL;
 -- 隱私設定
 ALTER TABLE biographies ADD COLUMN visibility TEXT DEFAULT 'private'
   CHECK (visibility IN ('public', 'community', 'private', 'anonymous'));
-
--- 主場岩館
-ALTER TABLE biographies ADD COLUMN home_gym TEXT DEFAULT NULL;
 ```
 
 ### 3.2 內容定義表（開發者維護）
@@ -852,7 +888,7 @@ ALTER TABLE biographies ADD COLUMN home_gym TEXT DEFAULT NULL;
 CREATE TABLE tag_dimensions (
   id TEXT PRIMARY KEY,              -- 'sys_style_cult'
   name TEXT NOT NULL,               -- '風格邪教'
-  emoji TEXT,                       -- '🔮'
+  icon TEXT,                        -- 'Wand2'
   description TEXT,
   selection_mode TEXT DEFAULT 'single' CHECK (selection_mode IN ('single', 'multiple')),
   "order" INTEGER DEFAULT 0,
@@ -876,9 +912,9 @@ CREATE TABLE tag_options (
 
 -- 系統預設一句話問題
 CREATE TABLE oneliner_questions (
-  id TEXT PRIMARY KEY,              -- 'sys_ol_why_started'
-  question TEXT NOT NULL,           -- '為什麼開始攀岩？'
-  format_hint TEXT,                 -- '因為＿＿＿'
+  id TEXT PRIMARY KEY,              -- 'sys_ol_climbing_origin'
+  question TEXT NOT NULL,           -- '你與攀岩的相遇'
+  format_hint TEXT,                 -- '描述第一次接觸攀岩的情景'
   placeholder TEXT,
   "order" INTEGER DEFAULT 0,
   is_active BOOLEAN DEFAULT true,
@@ -890,7 +926,7 @@ CREATE TABLE oneliner_questions (
 CREATE TABLE story_categories (
   id TEXT PRIMARY KEY,              -- 'sys_cat_growth'
   name TEXT NOT NULL,               -- '成長與突破'
-  emoji TEXT,                       -- '🌱'
+  icon TEXT,                        -- 'Sprout'
   description TEXT,
   "order" INTEGER DEFAULT 0,
   is_active BOOLEAN DEFAULT true,
@@ -1018,7 +1054,7 @@ CREATE TABLE user_custom_tags (
   user_id TEXT NOT NULL,            -- 建立者
   dimension_id TEXT,                -- 加到哪個維度（null 表示新維度）
   dimension_name TEXT,              -- 如果是新維度，維度名稱
-  dimension_emoji TEXT,             -- 如果是新維度，維度圖示
+  dimension_icon TEXT,              -- 如果是新維度，維度 Lucide icon 名稱
   label TEXT NOT NULL,              -- '#Campusing邪教'
   description TEXT,
   usage_count INTEGER DEFAULT 1,    -- 被多少人使用
@@ -1069,16 +1105,21 @@ function migrateToV2(oldBio: Biography): BiographyV2 {
   return {
     ...oldBio,
 
-    // 遷移一句話系列
+    // 遷移一句話系列（核心三題）
     one_liners: {
       answers: [
         oldBio.climbing_origin ? {
-          question_id: 'sys_ol_why_started',
+          question_id: 'sys_ol_climbing_origin',  // 你與攀岩的相遇
           answer: oldBio.climbing_origin,
           updated_at: oldBio.updated_at,
         } : null,
+        oldBio.climbing_meaning ? {
+          question_id: 'sys_ol_climbing_meaning',  // 攀岩對你來說是什麼
+          answer: oldBio.climbing_meaning,
+          updated_at: oldBio.updated_at,
+        } : null,
         oldBio.advice_to_self ? {
-          question_id: 'sys_ol_advice_for_beginners',
+          question_id: 'sys_ol_advice_to_self',  // 給剛開始攀岩的自己
           answer: oldBio.advice_to_self,
           updated_at: oldBio.updated_at,
         } : null,
@@ -1123,304 +1164,1031 @@ function migrateToV2(oldBio: Biography): BiographyV2 {
 
 ## 4. UI 排版設計
 
-### 4.1 編輯頁面結構
+> **設計原則**：延續現有 `biography/profile` 頁面的章節式設計風格，確保視覺一致性。
+>
+> **參考組件**：`src/components/biography/profile/` 目錄下的組件
 
-```
-┌─────────────────────────────────────────────────────────────┐
-│  📝 記錄我的攀岩故事                                         │
-│                                                             │
-│  ┌─────────────────────────────────────────────────────┐   │
-│  │  🔒 這些內容目前只有你看得到                          │   │
-│  │  [公開設定 ▾]                                        │   │
-│  └─────────────────────────────────────────────────────┘   │
-│                                                             │
-│  ═══════════════════════════════════════════════════════   │
-│  📸 基本資料                                    [編輯]      │
-│  ═══════════════════════════════════════════════════════   │
-│                                                             │
-│  [頭像]  暱稱                                               │
-│          開始攀岩：2022 年                                   │
-│          常去：原岩、紅石                                    │
-│                                                             │
-│  ═══════════════════════════════════════════════════════   │
-│  🏷️ 第一步：幫自己貼標籤                ⏱️ 30 秒完成        │
-│  ═══════════════════════════════════════════════════════   │
-│                                                             │
-│  ┌─ 🔮 風格邪教 ────────────────────────────────────────┐   │
-│  │ [#Slab邪教] [#外傾邪教] [#Dyno邪教] ...              │   │
-│  │                                         [+ 自訂標籤] │   │
-│  └─────────────────────────────────────────────────────┘   │
-│                                                             │
-│  ┌─ 🩹 傷痛勳章 ────────────────────────────────────────┐   │
-│  │ [#A2滑輪倖存者] [#手皮勳章] [#目前無傷] ...          │   │
-│  │                                         [+ 自訂標籤] │   │
-│  └─────────────────────────────────────────────────────┘   │
-│                                                             │
-│  ┌─ 👟 鞋子門派 ────────────────────────────────────────┐   │
-│  │ ○ #LaSportiva黨  ○ #Scarpa派  ○ #一雙穿到爛 ...     │   │
-│  │                                         [+ 自訂標籤] │   │
-│  └─────────────────────────────────────────────────────┘   │
-│                                                             │
-│  [展開更多標籤 ▾]                    [+ 新增標籤類別]       │
-│                                                             │
-│  ═══════════════════════════════════════════════════════   │
-│  💬 第二步：一句話系列                  ⏱️ 2-3 分鐘        │
-│  ═══════════════════════════════════════════════════════   │
-│                                                             │
-│  為什麼開始攀岩？                                           │
-│  ┌─────────────────────────────────────────────────────┐   │
-│  │ 因為 [朋友拉我去，結果就回不去了              ]     │   │
-│  └─────────────────────────────────────────────────────┘   │
-│                                                             │
-│  爬岩最爽的是？                                             │
-│  ┌─────────────────────────────────────────────────────┐   │
-│  │ 當 [終於送出 project                        ] 的時候│   │
-│  └─────────────────────────────────────────────────────┘   │
-│                                                             │
-│  💡 一句話就好，不用寫很多                                  │
-│                                                             │
-│  [展開更多問題 ▾]                      [+ 自訂問題]         │
-│                                                             │
-│  ═══════════════════════════════════════════════════════   │
-│  📖 第三步：想說更多嗎？（選填）                             │
-│  ═══════════════════════════════════════════════════════   │
-│                                                             │
-│  這些問題需要一點時間思考，有靈感的時候再來寫就好            │
-│                                                             │
-│  ▸ 有沒有某次攀爬讓你一直記到現在？                         │
-│  ▸ 有遇過什麼卡關的時候嗎？                                 │
-│  ▸ 攀岩有沒有改變你看事情的方式？                           │
-│                                                             │
-│  [展開所有深度問題 ▾]      [+ 自訂問題]    [+ 新增分類]     │
-│                                                             │
-│  ═══════════════════════════════════════════════════════   │
-│                                                             │
-│  [儲存]                                    [預覽我的頁面]   │
-│                                                             │
-└─────────────────────────────────────────────────────────────┘
+### 4.0 設計系統規範
+
+#### 容器與間距
+
+```css
+/* 內容容器 */
+.container {
+  @apply container mx-auto max-w-5xl px-4;  /* 標準內容寬度 */
+  @apply max-w-6xl;                          /* 橫向滾動區塊可用更寬 */
+}
+
+/* 章節間距 */
+.section {
+  @apply py-12;   /* 標準章節 */
+  @apply py-16;   /* 重點章節 */
+}
 ```
 
-### 4.2 自訂標籤 Modal
+#### 背景色交替
 
-```
-┌─────────────────────────────────────────────────────────────┐
-│  ➕ 新增自訂標籤                                      [✕]   │
-├─────────────────────────────────────────────────────────────┤
-│                                                             │
-│  加到哪個類別？                                             │
-│  ┌─────────────────────────────────────────────────────┐   │
-│  │ ▾ 風格邪教                                          │   │
-│  └─────────────────────────────────────────────────────┘   │
-│                                                             │
-│  標籤名稱（會自動加上 #）                                    │
-│  ┌─────────────────────────────────────────────────────┐   │
-│  │ Campusing邪教                                       │   │
-│  └─────────────────────────────────────────────────────┘   │
-│                                                             │
-│  說明文字（選填）                                           │
-│  ┌─────────────────────────────────────────────────────┐   │
-│  │ 不用腳也能爬                                        │   │
-│  └─────────────────────────────────────────────────────┘   │
-│                                                             │
-│  預覽：[#Campusing邪教]                                     │
-│                                                             │
-│  ┌─────────────────────────────────────────────────────┐   │
-│  │ ☐ 讓其他用戶也能選用這個標籤                         │   │
-│  └─────────────────────────────────────────────────────┘   │
-│                                                             │
-│                                [取消]        [新增標籤]     │
-│                                                             │
-└─────────────────────────────────────────────────────────────┘
+```css
+/* 章節背景色交替，製造視覺層次 */
+.section-light { @apply bg-white; }
+.section-gray  { @apply bg-gray-50; }
 ```
 
-### 4.3 自訂問題 Modal
+#### 章節標題風格
 
-```
-┌─────────────────────────────────────────────────────────────┐
-│  ➕ 新增自訂問題                                      [✕]   │
-├─────────────────────────────────────────────────────────────┤
-│                                                             │
-│  問題類型                                                   │
-│  ┌───────────────────┐ ┌───────────────────┐               │
-│  │ ○ 一句話           │ │ ● 深度故事        │               │
-│  └───────────────────┘ └───────────────────┘               │
-│                                                             │
-│  放在哪個分類？（深度故事需要）                               │
-│  ┌─────────────────────────────────────────────────────┐   │
-│  │ ▾ 社群與連結                                        │   │
-│  └─────────────────────────────────────────────────────┘   │
-│                                                             │
-│  問題內容                                                   │
-│  ┌─────────────────────────────────────────────────────┐   │
-│  │ 有沒有因為攀岩認識的好朋友？                          │   │
-│  └─────────────────────────────────────────────────────┘   │
-│                                                             │
-│  引導說明（選填）                                           │
-│  ┌─────────────────────────────────────────────────────┐   │
-│  │ 分享你們怎麼認識的                                   │   │
-│  └─────────────────────────────────────────────────────┘   │
-│                                                             │
-│  回答範例（選填）                                           │
-│  ┌─────────────────────────────────────────────────────┐   │
-│  │ 在岩館遇到一個很會聊天的人...                        │   │
-│  └─────────────────────────────────────────────────────┘   │
-│                                                             │
-│  ┌─────────────────────────────────────────────────────┐   │
-│  │ ☐ 讓其他用戶也能回答這個問題                         │   │
-│  └─────────────────────────────────────────────────────┘   │
-│                                                             │
-│                                [取消]        [新增問題]     │
-│                                                             │
-└─────────────────────────────────────────────────────────────┘
+```tsx
+// Chapter 標記 + 主標題
+<div className="mb-8">
+  <span className="text-sm font-medium uppercase tracking-wider bg-brand-accent">
+    Chapter 1
+  </span>
+  <h2 className="mt-2 text-2xl font-bold text-gray-900">
+    章節標題
+  </h2>
+</div>
+
+// 簡潔標題（無 Chapter 標記）
+<h2 className="mb-8 text-2xl font-semibold text-gray-900">
+  章節標題
+</h2>
 ```
 
-### 4.4 新增標籤類別 Modal
+#### 卡片樣式
 
-```
-┌─────────────────────────────────────────────────────────────┐
-│  ➕ 新增標籤類別                                      [✕]   │
-├─────────────────────────────────────────────────────────────┤
-│                                                             │
-│  類別名稱                                                   │
-│  ┌─────────────────────────────────────────────────────┐   │
-│  │ 裝備迷信                                            │   │
-│  └─────────────────────────────────────────────────────┘   │
-│                                                             │
-│  選個圖示                                                   │
-│  [🧿] [🔮] [🎯] [⭐] [🎪] [🎭] [🎨] [🎬]                    │
-│                                                             │
-│  說明文字                                                   │
-│  ┌─────────────────────────────────────────────────────┐   │
-│  │ 你有什麼攀岩迷信？                                   │   │
-│  └─────────────────────────────────────────────────────┘   │
-│                                                             │
-│  選擇方式                                                   │
-│  ○ 單選（只能選一個）                                       │
-│  ● 複選（可以選多個）                                       │
-│                                                             │
-│  第一個標籤                                                 │
-│  ┌─────────────────────────────────────────────────────┐   │
-│  │ 左腳先穿                                            │   │
-│  └─────────────────────────────────────────────────────┘   │
-│                                                             │
-│                                [取消]        [新增類別]     │
-│                                                             │
-└─────────────────────────────────────────────────────────────┘
+```css
+/* 標準卡片 */
+.card {
+  @apply rounded-lg bg-white p-6 shadow-sm;
+  @apply transition-shadow hover:shadow-md;
+}
+
+/* 橫向滾動卡片 */
+.scroll-card {
+  @apply w-80 flex-shrink-0 snap-start rounded-lg bg-white p-6 shadow-sm;
+}
+
+/* 空狀態/新增卡片 */
+.empty-card {
+  @apply flex min-h-[240px] flex-col items-center justify-center;
+  @apply rounded-lg border-2 border-dashed border-gray-300 p-6;
+  @apply cursor-pointer transition-colors hover:border-brand-accent;
+}
 ```
 
-### 4.5 展示頁面結構
+#### 分類標籤色系
 
-```
-┌─────────────────────────────────────────────────────────────┐
-│  ┌───────────────────────────────────────────────────────┐ │
-│  │                    [封面圖片]                          │ │
-│  │                                                       │ │
-│  │        [頭像]                                         │ │
-│  │        小明                                           │ │
-│  │        「快樂最重要的週末岩友」                        │ │
-│  │                                                       │ │
-│  │        攀岩第 3 年 ｜ 常出沒：原岩、龍洞              │ │
-│  └───────────────────────────────────────────────────────┘ │
-│                                                             │
-│  ═══════════════════════════════════════════════════════   │
-│  🏷️ 我的攀岩人格                                           │
-│  ═══════════════════════════════════════════════════════   │
-│                                                             │
-│  ┌─────────────────────────────────────────────────────┐   │
-│  │ #Slab邪教 #LaSportiva黨 #週末戰士 #獨攀俠           │   │
-│  │ #A2滑輪倖存者 #佛系進步 #龍洞信徒                    │   │
-│  └─────────────────────────────────────────────────────┘   │
-│                                                             │
-│  ═══════════════════════════════════════════════════════   │
-│  💬 關於我                                                  │
-│  ═══════════════════════════════════════════════════════   │
-│                                                             │
-│  為什麼開始爬？                                             │
-│  「因為朋友拉我去，結果就回不去了」                         │
-│                                                             │
-│  爬岩最爽的是？                                             │
-│  「當終於送出 project 的時候」                              │
-│                                                             │
-│  給新手一句話？                                             │
-│  「不要急，享受過程最重要」                                 │
-│                                                             │
-│  ═══════════════════════════════════════════════════════   │
-│  📖 我的故事                                                │
-│  ═══════════════════════════════════════════════════════   │
-│                                                             │
-│  ┌─ 有沒有某次攀爬讓你一直記到現在？─────────────────────┐ │
-│  │                                                       │ │
-│  │  去年第一次去龍洞，本來只是想說體驗看看，結果...      │ │
-│  │  [繼續閱讀]                                           │ │
-│  │                                                       │ │
-│  └───────────────────────────────────────────────────────┘ │
-│                                                             │
-│  ┌─ 有沒有什麼搞笑或尷尬的經歷？────────────────────────┐ │
-│  │                                                       │ │
-│  │  有一次在岩館，爬到一半褲子裂開...                    │ │
-│  │  [繼續閱讀]                                           │ │
-│  │                                                       │ │
-│  └───────────────────────────────────────────────────────┘ │
-│                                                             │
-│  ═══════════════════════════════════════════════════════   │
-│  📸 相簿                                                    │
-│  ═══════════════════════════════════════════════════════   │
-│                                                             │
-│  [圖1] [圖2] [圖3] [圖4]                                    │
-│                                                             │
-│  ═══════════════════════════════════════════════════════   │
-│  🔗 社群連結                                                │
-│  ═══════════════════════════════════════════════════════   │
-│                                                             │
-│  [Instagram] [YouTube]                                      │
-│                                                             │
-└─────────────────────────────────────────────────────────────┘
+```tsx
+// 延續現有 FeaturedStoriesSection 的配色
+const CATEGORY_COLORS = {
+  growth: { bg: 'bg-brand-accent/20', text: 'text-brand-dark' },
+  psychology: { bg: 'bg-brand-light', text: 'text-brand-dark' },
+  community: { bg: 'bg-brand-accent/20', text: 'text-brand-dark' },
+  practical: { bg: 'bg-brand-light', text: 'text-brand-dark' },
+  dreams: { bg: 'bg-brand-accent/20', text: 'text-brand-dark' },
+  life: { bg: 'bg-brand-light', text: 'text-brand-dark' },
+}
 ```
 
-### 4.6 標籤選擇器組件
+#### 動畫規範
 
-```
-┌─────────────────────────────────────────────────────────────┐
-│  🔮 風格邪教                                    已選 2 個   │
-├─────────────────────────────────────────────────────────────┤
-│                                                             │
-│  ┌───────────┐ ┌───────────┐ ┌───────────┐               │
-│  │ ☑ 裂隙邪教│ │ ☐ Slab邪教│ │ ☑ 外傾邪教│               │
-│  │ 塞裂隙的快│ │ 平衡就是藝│ │ 沒有倒掛不│               │
-│  │ 感無可取代│ │ 術        │ │ 想爬      │               │
-│  └───────────┘ └───────────┘ └───────────┘               │
-│                                                             │
-│  ┌───────────┐ ┌───────────┐ ┌───────────┐               │
-│  │ ☐ Dyno邪教│ │ ☐ Crimp邪│ │ ☐ 大把手邪│               │
-│  │ 能飛就不要│ │ 教 小點越 │ │ 教 jug 是 │               │
-│  │ 慢慢來    │ │ 小越愛    │ │ 我的信仰  │               │
-│  └───────────┘ └───────────┘ └───────────┘               │
-│                                                             │
-│  ┌───────────┐                                             │
-│  │ ☐ 什麼都爬│                                             │
-│  │ 教 我不挑 │                                             │
-│  └───────────┘                                             │
-│                                                             │
-└─────────────────────────────────────────────────────────────┘
+```tsx
+// framer-motion 進場動畫
+<motion.div
+  initial={{ opacity: 0, y: 20 }}
+  whileInView={{ opacity: 1, y: 0 }}
+  viewport={{ once: true, margin: '-50px' }}
+  transition={{ delay: index * 0.05 }}
+>
 ```
 
-### 4.7 一句話輸入組件
+---
 
+### 4.1 展示頁面結構
+
+延續現有 `ProfileClient.tsx` 的章節式設計，新增標籤系統與一句話系列區塊。
+
+```tsx
+// 頁面結構順序
+<div className="min-h-screen bg-page-content-bg">
+  {/* 1. Hero Section - 封面與基本資訊（現有） */}
+  <HeroSection person={person} ... />
+
+  {/* 2. 快速了解 - 基本資訊卡片（現有） */}
+  <QuickFactsSection person={person} />
+
+  {/* 3. 我的關鍵字 - 標籤展示（新增）*/}
+  <TagsDisplaySection person={person} />
+
+  {/* 4. 關於我 - 一句話系列展示（新增）*/}
+  <OneLinersDisplaySection person={person} />
+
+  {/* 5. 精選故事（現有） */}
+  <FeaturedStoriesSection person={person} />
+
+  {/* 6. Chapter 1: 相遇篇（調整為核心三題之一）*/}
+  <ChapterMeeting person={person} />
+
+  {/* 7. Chapter 2: 意義篇（調整為核心三題之一）*/}
+  <ChapterMeaning person={person} />
+
+  {/* 8. Chapter 3: 給自己的話（調整為核心三題之一）*/}
+  <ChapterAdvice person={person} />
+
+  {/* 9. 我的故事 - 深度故事橫向滾動（整合現有） */}
+  <CompleteStoriesSection person={person} isOwner={isOwner} />
+
+  {/* 10. 攀岩足跡地圖（現有） */}
+  <ClimbingFootprintsSection person={person} />
+</div>
 ```
-┌─────────────────────────────────────────────────────────────┐
-│  為什麼開始攀岩？                                           │
-├─────────────────────────────────────────────────────────────┤
-│                                                             │
-│  ┌─────────────────────────────────────────────────────┐   │
-│  │ 因為                                                 │   │
-│  │ ┌─────────────────────────────────────────────────┐ │   │
-│  │ │ 朋友拉我去，結果就回不去了                      │ │   │
-│  │ └─────────────────────────────────────────────────┘ │   │
-│  └─────────────────────────────────────────────────────┘   │
-│                                                             │
-│  💡 一句話就好，例如：「被朋友騙去的」                      │
-│                                                             │
-└─────────────────────────────────────────────────────────────┘
+
+#### 3. 標籤展示區塊（新增）
+
+```tsx
+/**
+ * TagsDisplaySection - 我的關鍵字
+ * 顯示用戶選擇的標籤，按維度分組展示
+ */
+export function TagsDisplaySection({ person }: { person: Biography }) {
+  // 從 person.tags 解析標籤選擇
+  const tags = person.tags as BiographyTagsV2 | null
+
+  if (!tags || Object.keys(tags.selections).length === 0) return null
+
+  return (
+    <section className="bg-white py-12">
+      <div className="container mx-auto max-w-5xl px-4">
+        <h2 className="mb-8 text-2xl font-semibold text-gray-900">
+          我的關鍵字
+        </h2>
+
+        {/* 標籤雲 - 所有選中的標籤 */}
+        <motion.div
+          initial={{ opacity: 0 }}
+          whileInView={{ opacity: 1 }}
+          viewport={{ once: true }}
+          className="flex flex-wrap gap-2"
+        >
+          {renderSelectedTags(tags).map((tag, index) => (
+            <motion.span
+              key={tag.id}
+              initial={{ opacity: 0, scale: 0.9 }}
+              whileInView={{ opacity: 1, scale: 1 }}
+              transition={{ delay: index * 0.03 }}
+              className="rounded-full bg-gray-100 px-4 py-2 text-sm font-medium text-gray-700"
+            >
+              {tag.label}
+            </motion.span>
+          ))}
+        </motion.div>
+      </div>
+    </section>
+  )
+}
+```
+
+#### 4. 一句話系列展示區塊（新增）
+
+```tsx
+/**
+ * OneLinersDisplaySection - 關於我
+ * 顯示用戶的一句話回答
+ */
+export function OneLinersDisplaySection({ person }: { person: Biography }) {
+  const oneLiners = person.one_liners as BiographyOneLinersV2 | null
+
+  if (!oneLiners || oneLiners.answers.length === 0) return null
+
+  return (
+    <section className="bg-gray-50 py-12">
+      <div className="container mx-auto max-w-5xl px-4">
+        <h2 className="mb-8 text-2xl font-semibold text-gray-900">
+          關於我
+        </h2>
+
+        <div className="space-y-6">
+          {oneLiners.answers.map((answer, index) => {
+            const question = getQuestionById(answer.question_id)
+            return (
+              <motion.div
+                key={answer.question_id}
+                initial={{ opacity: 0, y: 10 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ delay: index * 0.1 }}
+              >
+                <p className="text-sm text-gray-500">{question?.question}</p>
+                <p className="mt-1 text-lg font-medium text-gray-900">
+                  「{answer.answer}」
+                </p>
+              </motion.div>
+            )
+          })}
+        </div>
+      </div>
+    </section>
+  )
+}
+```
+
+#### 9. 深度故事橫向滾動（調整現有）
+
+延續現有 `CompleteStoriesSection` 的設計，整合新的資料結構。
+
+```tsx
+/**
+ * CompleteStoriesSection - 我的故事
+ * 橫向滾動顯示所有已填寫的深度故事
+ */
+export function CompleteStoriesSection({ person, isOwner }: Props) {
+  const stories = person.stories as BiographyStoriesV2 | null
+
+  return (
+    <section className="bg-gray-50 py-16">
+      <div className="container mx-auto max-w-6xl px-4">
+        <h2 className="mb-2 text-2xl font-bold text-gray-900">
+          我的故事
+        </h2>
+        <p className="mb-10 text-gray-600">
+          {stories?.answers.length
+            ? `已分享 ${stories.answers.length} 則故事`
+            : '還沒有分享故事'}
+        </p>
+
+        {/* 橫向滾動卡片 */}
+        <div className="flex gap-6 overflow-x-auto pb-4 snap-x">
+          {stories?.answers.map((story, index) => {
+            const question = getStoryQuestionById(story.question_id)
+            const category = getCategoryById(question?.category_id)
+
+            return (
+              <motion.div
+                key={story.question_id}
+                initial={{ opacity: 0, x: 20 }}
+                whileInView={{ opacity: 1, x: 0 }}
+                viewport={{ once: true, margin: '-50px' }}
+                transition={{ delay: index * 0.05 }}
+                className="w-80 flex-shrink-0 snap-start rounded-lg bg-white p-6 shadow-sm"
+              >
+                {/* 分類標籤 */}
+                <div className={cn(
+                  'mb-3 inline-block rounded px-2 py-1 text-xs',
+                  CATEGORY_COLORS[category?.id]?.bg,
+                  CATEGORY_COLORS[category?.id]?.text
+                )}>
+                  {category?.name}
+                </div>
+
+                {/* 標題 */}
+                <h3 className="mb-3 font-semibold text-gray-900">
+                  {question?.title}
+                </h3>
+
+                {/* 內容 */}
+                <p className="whitespace-pre-wrap text-sm leading-relaxed text-gray-600">
+                  {story.content}
+                </p>
+              </motion.div>
+            )
+          })}
+
+          {/* 未填寫提示（Owner only）*/}
+          {isOwner && (
+            <EmptyStoryCard href="/profile/edit#stories" />
+          )}
+        </div>
+      </div>
+    </section>
+  )
+}
+```
+
+---
+
+### 4.2 編輯頁面結構
+
+延續章節式設計，採用三層漸進式編輯流程。
+
+```tsx
+/**
+ * BiographyEditorV2 - 編輯頁面主組件
+ */
+export function BiographyEditorV2({ biography }: Props) {
+  return (
+    <div className="min-h-screen bg-page-content-bg">
+      {/* 頁面標題 */}
+      <div className="bg-white border-b border-gray-200">
+        <div className="container mx-auto max-w-5xl px-4 py-8">
+          <h1 className="text-2xl font-bold text-gray-900">
+            記錄我的攀岩故事
+          </h1>
+
+          {/* 隱私提示 */}
+          <div className="mt-4 flex items-center gap-2 rounded-lg bg-gray-50 px-4 py-3">
+            <Lock className="h-4 w-4 text-gray-500" />
+            <span className="text-sm text-gray-600">
+              這些內容目前只有你看得到
+            </span>
+            <VisibilitySelector
+              value={biography.visibility}
+              onChange={handleVisibilityChange}
+            />
+          </div>
+        </div>
+      </div>
+
+      {/* Step 1: 標籤系統 */}
+      <TagsEditorSection biography={biography} />
+
+      {/* Step 2: 一句話系列 */}
+      <OneLinersEditorSection biography={biography} />
+
+      {/* Step 3: 深度故事 */}
+      <StoriesEditorSection biography={biography} />
+
+      {/* 底部操作區 */}
+      <div className="sticky bottom-0 border-t border-gray-200 bg-white">
+        <div className="container mx-auto max-w-5xl px-4 py-4">
+          <div className="flex justify-between">
+            <Button variant="outline">預覽我的頁面</Button>
+            <Button>儲存</Button>
+          </div>
+        </div>
+      </div>
+    </div>
+  )
+}
+```
+
+#### Step 1: 標籤編輯區塊
+
+```tsx
+/**
+ * TagsEditorSection - 第一步：幫自己貼標籤
+ */
+export function TagsEditorSection({ biography }: Props) {
+  return (
+    <section className="bg-white py-12">
+      <div className="container mx-auto max-w-5xl px-4">
+        {/* 章節標題 */}
+        <div className="mb-8 flex items-center justify-between">
+          <div>
+            <span className="text-sm font-medium uppercase tracking-wider bg-brand-accent px-2 py-1">
+              Step 1
+            </span>
+            <h2 className="mt-2 text-2xl font-bold text-gray-900">
+              幫自己貼標籤
+            </h2>
+          </div>
+          <div className="flex items-center gap-1 text-sm text-gray-500">
+            <Clock className="h-4 w-4" />
+            <span>30 秒完成</span>
+          </div>
+        </div>
+
+        {/* 標籤維度列表 */}
+        <div className="space-y-6">
+          {tagDimensions.map((dimension) => (
+            <TagDimensionGroup
+              key={dimension.id}
+              dimension={dimension}
+              selected={selections[dimension.id] || []}
+              onSelect={handleSelect}
+            />
+          ))}
+        </div>
+
+        {/* 展開更多 & 新增類別 */}
+        <div className="mt-6 flex items-center justify-between">
+          <Button variant="ghost" className="text-gray-500">
+            展開更多標籤
+          </Button>
+          <Button variant="outline" size="sm">
+            <Plus className="mr-1 h-4 w-4" />
+            新增標籤類別
+          </Button>
+        </div>
+      </div>
+    </section>
+  )
+}
+```
+
+#### 標籤維度群組組件
+
+```tsx
+/**
+ * TagDimensionGroup - 單一標籤維度
+ * 延續 QuickFactsSection 的卡片風格
+ */
+export function TagDimensionGroup({ dimension, selected, onSelect }: Props) {
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 20 }}
+      whileInView={{ opacity: 1, y: 0 }}
+      viewport={{ once: true }}
+      className="rounded-lg bg-gray-50 p-6"
+    >
+      {/* 維度標題 */}
+      <div className="mb-4 flex items-center justify-between">
+        <div className="flex items-center gap-2">
+          <DynamicIcon name={dimension.icon} className="h-5 w-5 text-gray-600" />
+          <h3 className="font-semibold text-gray-900">{dimension.name}</h3>
+        </div>
+        <span className="text-sm text-gray-500">
+          已選 {selected.length} 個
+        </span>
+      </div>
+
+      {/* 標籤選項 - Grid 排列 */}
+      <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-4">
+        {dimension.options.map((option) => (
+          <TagOptionCard
+            key={option.id}
+            option={option}
+            isSelected={selected.includes(option.id)}
+            onClick={() => onSelect(dimension.id, option.id)}
+          />
+        ))}
+
+        {/* 自訂標籤按鈕 */}
+        <button
+          onClick={openAddTagModal}
+          className="flex items-center justify-center gap-1 rounded-lg border-2 border-dashed border-gray-300 p-3 text-sm text-gray-500 transition-colors hover:border-brand-accent hover:text-brand-dark"
+        >
+          <Plus className="h-4 w-4" />
+          自訂標籤
+        </button>
+      </div>
+    </motion.div>
+  )
+}
+```
+
+#### 標籤選項卡片
+
+```tsx
+/**
+ * TagOptionCard - 單一標籤選項
+ */
+export function TagOptionCard({ option, isSelected, onClick }: Props) {
+  return (
+    <button
+      onClick={onClick}
+      className={cn(
+        'rounded-lg border p-3 text-left transition-all',
+        isSelected
+          ? 'border-brand-dark bg-brand-accent/10'
+          : 'border-gray-200 bg-white hover:border-gray-300'
+      )}
+    >
+      <div className="flex items-start justify-between">
+        <span className={cn(
+          'text-sm font-medium',
+          isSelected ? 'text-brand-dark' : 'text-gray-700'
+        )}>
+          {option.label}
+        </span>
+        {isSelected && (
+          <Check className="h-4 w-4 text-brand-dark" />
+        )}
+      </div>
+      <p className="mt-1 text-xs text-gray-500 line-clamp-2">
+        {option.description}
+      </p>
+    </button>
+  )
+}
+```
+
+#### Step 2: 一句話編輯區塊
+
+```tsx
+/**
+ * OneLinersEditorSection - 第二步：一句話系列
+ */
+export function OneLinersEditorSection({ biography }: Props) {
+  return (
+    <section className="bg-gray-50 py-12">
+      <div className="container mx-auto max-w-5xl px-4">
+        {/* 章節標題 */}
+        <div className="mb-8 flex items-center justify-between">
+          <div>
+            <span className="text-sm font-medium uppercase tracking-wider bg-brand-accent px-2 py-1">
+              Step 2
+            </span>
+            <h2 className="mt-2 text-2xl font-bold text-gray-900">
+              一句話系列
+            </h2>
+          </div>
+          <div className="flex items-center gap-1 text-sm text-gray-500">
+            <Clock className="h-4 w-4" />
+            <span>2-3 分鐘</span>
+          </div>
+        </div>
+
+        {/* 提示文字 */}
+        <div className="mb-6 flex items-center gap-2 text-sm text-gray-500">
+          <Lightbulb className="h-4 w-4" />
+          <span>一句話就好，不用寫很多</span>
+        </div>
+
+        {/* 問題列表 */}
+        <div className="space-y-6">
+          {oneLinerQuestions.map((question) => (
+            <OneLinerInput
+              key={question.id}
+              question={question}
+              value={answers[question.id] || ''}
+              onChange={(value) => handleChange(question.id, value)}
+            />
+          ))}
+        </div>
+
+        {/* 展開更多 & 自訂問題 */}
+        <div className="mt-6 flex items-center justify-between">
+          <Button variant="ghost" className="text-gray-500">
+            展開更多問題
+          </Button>
+          <Button variant="outline" size="sm">
+            <Plus className="mr-1 h-4 w-4" />
+            自訂問題
+          </Button>
+        </div>
+      </div>
+    </section>
+  )
+}
+```
+
+#### 一句話輸入組件
+
+```tsx
+/**
+ * OneLinerInput - 帶格式引導的輸入框
+ */
+export function OneLinerInput({ question, value, onChange }: Props) {
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 10 }}
+      whileInView={{ opacity: 1, y: 0 }}
+      viewport={{ once: true }}
+      className="rounded-lg bg-white p-6 shadow-sm"
+    >
+      <label className="mb-3 block font-medium text-gray-900">
+        {question.question}
+      </label>
+
+      {question.format_hint ? (
+        // 有格式引導的輸入
+        <div className="flex items-center gap-2 rounded-lg border border-gray-200 px-4 py-3">
+          <span className="text-gray-500">{question.format_hint}</span>
+          <input
+            type="text"
+            value={value}
+            onChange={(e) => onChange(e.target.value)}
+            placeholder={question.placeholder}
+            className="flex-1 border-none bg-transparent outline-none placeholder:text-gray-400"
+          />
+        </div>
+      ) : (
+        // 無格式引導的輸入
+        <input
+          type="text"
+          value={value}
+          onChange={(e) => onChange(e.target.value)}
+          placeholder={question.placeholder}
+          className="w-full rounded-lg border border-gray-200 px-4 py-3 outline-none focus:border-brand-accent"
+        />
+      )}
+    </motion.div>
+  )
+}
+```
+
+#### Step 3: 深度故事編輯區塊
+
+```tsx
+/**
+ * StoriesEditorSection - 第三步：深度故事
+ */
+export function StoriesEditorSection({ biography }: Props) {
+  return (
+    <section className="bg-white py-12">
+      <div className="container mx-auto max-w-5xl px-4">
+        {/* 章節標題 */}
+        <div className="mb-8">
+          <span className="text-sm font-medium uppercase tracking-wider bg-brand-accent px-2 py-1">
+            Step 3
+          </span>
+          <h2 className="mt-2 text-2xl font-bold text-gray-900">
+            想說更多嗎？（選填）
+          </h2>
+          <p className="mt-2 text-gray-600">
+            這些問題需要一點時間思考，有靈感的時候再來寫就好
+          </p>
+        </div>
+
+        {/* 隨機推薦 */}
+        <div className="mb-8 flex items-center gap-3">
+          <span className="text-sm text-gray-500">不知道要寫什麼？</span>
+          <Button variant="outline" size="sm" onClick={randomRecommend}>
+            <Dice5 className="mr-1 h-4 w-4" />
+            隨機推薦一題
+          </Button>
+        </div>
+
+        {/* 分類摺疊列表 */}
+        <div className="space-y-4">
+          {storyCategories.map((category) => (
+            <StoryCategoryAccordion
+              key={category.id}
+              category={category}
+              questions={getQuestionsByCategory(category.id)}
+              answers={answers}
+              onEdit={handleEdit}
+            />
+          ))}
+        </div>
+
+        {/* 新增分類 & 自訂問題 */}
+        <div className="mt-6 flex items-center justify-end gap-3">
+          <Button variant="outline" size="sm">
+            <Plus className="mr-1 h-4 w-4" />
+            自訂問題
+          </Button>
+          <Button variant="outline" size="sm">
+            <Plus className="mr-1 h-4 w-4" />
+            新增分類
+          </Button>
+        </div>
+      </div>
+    </section>
+  )
+}
+```
+
+#### 故事分類摺疊組件
+
+```tsx
+/**
+ * StoryCategoryAccordion - 故事分類摺疊
+ */
+export function StoryCategoryAccordion({ category, questions, answers, onEdit }: Props) {
+  const [isOpen, setIsOpen] = useState(false)
+  const filledCount = questions.filter(q => answers[q.id]).length
+
+  return (
+    <div className="rounded-lg border border-gray-200 bg-white">
+      {/* 摺疊標題 */}
+      <button
+        onClick={() => setIsOpen(!isOpen)}
+        className="flex w-full items-center justify-between px-6 py-4"
+      >
+        <div className="flex items-center gap-3">
+          <DynamicIcon name={category.icon} className="h-5 w-5 text-gray-600" />
+          <span className="font-semibold text-gray-900">{category.name}</span>
+        </div>
+        <div className="flex items-center gap-3">
+          <span className="text-sm text-gray-500">
+            {filledCount}/{questions.length} 已填寫
+          </span>
+          <ChevronDown className={cn(
+            'h-5 w-5 text-gray-400 transition-transform',
+            isOpen && 'rotate-180'
+          )} />
+        </div>
+      </button>
+
+      {/* 展開內容 */}
+      {isOpen && (
+        <div className="border-t border-gray-200 px-6 py-4">
+          <div className="space-y-3">
+            {questions.map((question) => (
+              <StoryQuestionItem
+                key={question.id}
+                question={question}
+                answer={answers[question.id]}
+                onEdit={() => onEdit(question)}
+              />
+            ))}
+          </div>
+        </div>
+      )}
+    </div>
+  )
+}
+```
+
+---
+
+### 4.3 Modal 組件設計
+
+延續現有 Modal 設計風格，使用 Radix UI Dialog。
+
+#### 自訂標籤 Modal
+
+```tsx
+/**
+ * AddCustomTagModal - 新增自訂標籤
+ */
+export function AddCustomTagModal({ open, onClose, dimensions }: Props) {
+  return (
+    <Dialog open={open} onOpenChange={onClose}>
+      <DialogContent className="max-w-md">
+        <DialogHeader>
+          <DialogTitle className="flex items-center gap-2">
+            <Plus className="h-5 w-5" />
+            新增自訂標籤
+          </DialogTitle>
+        </DialogHeader>
+
+        <form className="space-y-4">
+          {/* 選擇類別 */}
+          <div>
+            <Label>加到哪個類別？</Label>
+            <Select value={dimensionId} onValueChange={setDimensionId}>
+              <SelectTrigger>
+                <SelectValue placeholder="選擇類別" />
+              </SelectTrigger>
+              <SelectContent>
+                {dimensions.map((d) => (
+                  <SelectItem key={d.id} value={d.id}>
+                    {d.name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+
+          {/* 標籤名稱 */}
+          <div>
+            <Label>標籤名稱（會自動加上 #）</Label>
+            <Input
+              value={label}
+              onChange={(e) => setLabel(e.target.value)}
+              placeholder="Campusing邪教"
+            />
+          </div>
+
+          {/* 說明文字 */}
+          <div>
+            <Label>說明文字（選填）</Label>
+            <Input
+              value={description}
+              onChange={(e) => setDescription(e.target.value)}
+              placeholder="不用腳也能爬"
+            />
+          </div>
+
+          {/* 預覽 */}
+          <div className="rounded-lg bg-gray-50 p-3">
+            <span className="text-sm text-gray-500">預覽：</span>
+            <span className="ml-2 rounded-full bg-gray-200 px-3 py-1 text-sm font-medium">
+              #{label || '標籤名稱'}
+            </span>
+          </div>
+
+          {/* 公開選項 */}
+          <div className="flex items-center gap-2">
+            <Checkbox
+              id="is-public"
+              checked={isPublic}
+              onCheckedChange={setIsPublic}
+            />
+            <Label htmlFor="is-public" className="text-sm text-gray-600">
+              讓其他用戶也能選用這個標籤
+            </Label>
+          </div>
+        </form>
+
+        <DialogFooter>
+          <Button variant="outline" onClick={onClose}>
+            取消
+          </Button>
+          <Button onClick={handleSubmit}>
+            新增標籤
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
+  )
+}
+```
+
+#### 自訂問題 Modal
+
+```tsx
+/**
+ * AddCustomQuestionModal - 新增自訂問題
+ */
+export function AddCustomQuestionModal({ open, onClose, categories }: Props) {
+  return (
+    <Dialog open={open} onOpenChange={onClose}>
+      <DialogContent className="max-w-md">
+        <DialogHeader>
+          <DialogTitle className="flex items-center gap-2">
+            <Plus className="h-5 w-5" />
+            新增自訂問題
+          </DialogTitle>
+        </DialogHeader>
+
+        <form className="space-y-4">
+          {/* 問題類型 */}
+          <div>
+            <Label>問題類型</Label>
+            <RadioGroup value={type} onValueChange={setType}>
+              <div className="mt-2 flex gap-4">
+                <div className="flex items-center gap-2">
+                  <RadioGroupItem value="oneliner" id="type-oneliner" />
+                  <Label htmlFor="type-oneliner">一句話</Label>
+                </div>
+                <div className="flex items-center gap-2">
+                  <RadioGroupItem value="story" id="type-story" />
+                  <Label htmlFor="type-story">深度故事</Label>
+                </div>
+              </div>
+            </RadioGroup>
+          </div>
+
+          {/* 分類選擇（深度故事需要）*/}
+          {type === 'story' && (
+            <div>
+              <Label>放在哪個分類？</Label>
+              <Select value={categoryId} onValueChange={setCategoryId}>
+                <SelectTrigger>
+                  <SelectValue placeholder="選擇分類" />
+                </SelectTrigger>
+                <SelectContent>
+                  {categories.map((c) => (
+                    <SelectItem key={c.id} value={c.id}>
+                      {c.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+          )}
+
+          {/* 問題內容 */}
+          <div>
+            <Label>問題內容</Label>
+            <Input
+              value={question}
+              onChange={(e) => setQuestion(e.target.value)}
+              placeholder="有沒有因為攀岩認識的好朋友？"
+            />
+          </div>
+
+          {/* 引導說明 */}
+          <div>
+            <Label>引導說明（選填）</Label>
+            <Input
+              value={formatHint}
+              onChange={(e) => setFormatHint(e.target.value)}
+              placeholder="分享你們怎麼認識的"
+            />
+          </div>
+
+          {/* 回答範例 */}
+          <div>
+            <Label>回答範例（選填）</Label>
+            <Input
+              value={placeholder}
+              onChange={(e) => setPlaceholder(e.target.value)}
+              placeholder="在岩館遇到一個很會聊天的人..."
+            />
+          </div>
+
+          {/* 公開選項 */}
+          <div className="flex items-center gap-2">
+            <Checkbox
+              id="is-public"
+              checked={isPublic}
+              onCheckedChange={setIsPublic}
+            />
+            <Label htmlFor="is-public" className="text-sm text-gray-600">
+              讓其他用戶也能回答這個問題
+            </Label>
+          </div>
+        </form>
+
+        <DialogFooter>
+          <Button variant="outline" onClick={onClose}>
+            取消
+          </Button>
+          <Button onClick={handleSubmit}>
+            新增問題
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
+  )
+}
+```
+
+#### 新增標籤類別 Modal
+
+```tsx
+/**
+ * AddTagDimensionModal - 新增標籤類別
+ */
+export function AddTagDimensionModal({ open, onClose }: Props) {
+  const iconOptions = ['Shield', 'Wand2', 'Target', 'Star', 'Tent', 'Drama', 'Palette', 'Clapperboard']
+
+  return (
+    <Dialog open={open} onOpenChange={onClose}>
+      <DialogContent className="max-w-md">
+        <DialogHeader>
+          <DialogTitle className="flex items-center gap-2">
+            <Plus className="h-5 w-5" />
+            新增標籤類別
+          </DialogTitle>
+        </DialogHeader>
+
+        <form className="space-y-4">
+          {/* 類別名稱 */}
+          <div>
+            <Label>類別名稱</Label>
+            <Input
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+              placeholder="裝備迷信"
+            />
+          </div>
+
+          {/* 選擇圖示 */}
+          <div>
+            <Label>選個圖示</Label>
+            <div className="mt-2 flex flex-wrap gap-2">
+              {iconOptions.map((iconName) => (
+                <button
+                  key={iconName}
+                  type="button"
+                  onClick={() => setIcon(iconName)}
+                  className={cn(
+                    'rounded-lg border p-3 transition-colors',
+                    icon === iconName
+                      ? 'border-brand-dark bg-brand-accent/10'
+                      : 'border-gray-200 hover:border-gray-300'
+                  )}
+                >
+                  <DynamicIcon name={iconName} className="h-5 w-5" />
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {/* 說明文字 */}
+          <div>
+            <Label>說明文字</Label>
+            <Input
+              value={description}
+              onChange={(e) => setDescription(e.target.value)}
+              placeholder="你有什麼攀岩迷信？"
+            />
+          </div>
+
+          {/* 選擇方式 */}
+          <div>
+            <Label>選擇方式</Label>
+            <RadioGroup value={selectionMode} onValueChange={setSelectionMode}>
+              <div className="mt-2 space-y-2">
+                <div className="flex items-center gap-2">
+                  <RadioGroupItem value="single" id="mode-single" />
+                  <Label htmlFor="mode-single">單選（只能選一個）</Label>
+                </div>
+                <div className="flex items-center gap-2">
+                  <RadioGroupItem value="multiple" id="mode-multiple" />
+                  <Label htmlFor="mode-multiple">複選（可以選多個）</Label>
+                </div>
+              </div>
+            </RadioGroup>
+          </div>
+
+          {/* 第一個標籤 */}
+          <div>
+            <Label>第一個標籤</Label>
+            <Input
+              value={firstTag}
+              onChange={(e) => setFirstTag(e.target.value)}
+              placeholder="左腳先穿"
+            />
+          </div>
+        </form>
+
+        <DialogFooter>
+          <Button variant="outline" onClick={onClose}>
+            取消
+          </Button>
+          <Button onClick={handleSubmit}>
+            新增類別
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
+  )
+}
 ```
 
 ---
@@ -1560,7 +2328,7 @@ function migrateToV2(oldBio: Biography): BiographyV2 {
 
 | 動態標籤 | 資料來源 | 顯示範例 |
 |---------|---------|---------|
-| `sys_local_identity_gym` | `biographies.home_gym` | #原岩攀岩館常客 |
+| `sys_local_identity_location` | `biographies.frequent_locations` | #龍洞信徒、#北投信徒 |
 | `sys_local_identity_custom` | 用戶自訂地點 | #[自訂地點]信徒 |
 
 **資料結構擴展：**
@@ -1571,20 +2339,20 @@ interface TagOption extends ExtensibleItem {
 
   // 動態標籤專用
   is_dynamic?: boolean           // 是否為動態標籤
-  template?: string              // 顯示模板，如 "#{value}常客"
-  source_field?: string          // 資料來源欄位，如 "home_gym"
+  template?: string              // 顯示模板，如 "#{value}信徒"
+  source_field?: string          // 資料來源欄位，如 "frequent_locations"
 }
 
 // 動態標籤範例
-const gymRegularTag: TagOption = {
-  id: 'sys_local_identity_gym',
+const locationTag: TagOption = {
+  id: 'sys_local_identity_location',
   source: 'system',
   dimension_id: 'sys_local_identity',
-  label: '#岩館常客',
-  description: '常駐特定岩館',
+  label: '#地點信徒',
+  description: '常去的攀岩地點',
   is_dynamic: true,
-  template: '#{value}常客',
-  source_field: 'home_gym',
+  template: '#{value}信徒',
+  source_field: 'frequent_locations',
   order: 5,
 }
 
@@ -1606,7 +2374,6 @@ function renderDynamicTag(tag: TagOption, biography: BiographyV2): string | stri
 }
 
 // 結果範例：
-// - home_gym = "原岩攀岩館" → "#原岩攀岩館常客"
 // - frequent_locations = ["龍洞", "北投"] → ["#龍洞信徒", "#北投信徒"]
 ```
 
@@ -1743,3 +2510,4 @@ interface PopularCustomContentResponse {
 | 2026-01-18 | v2.0 | 開放式設計：支援用戶自訂維度、標籤、問題、分類 | Claude |
 | 2026-01-18 | v2.1 | 審查修正：(1) 修正 getRandomQuestion 使用新資料結構 (2) 補充用戶自訂內容儲存策略 (3) 統一標籤 ID 格式對照表 (4) 新增動態標籤資料結構設計 | Claude |
 | 2026-01-18 | v2.2 | 二次審查修正：(1) 統一 TagOption 定義加入動態標籤欄位 (2) user_custom_tags 表加入 dimension_emoji 欄位 (3) 所有資料表補充 updated_at 欄位 (4) renderDynamicTag 支援陣列類型 (5) 遷移腳本改用類型守衛確保類型安全 | Claude |
+| 2026-01-18 | v2.3 | UI 排版調整：(1) 新增設計系統規範章節（4.0）延續現有 biography/profile 風格 (2) 將 ASCII 線框圖改為實際 TSX 組件範例 (3) 統一使用 TailwindCSS 類名、framer-motion 動畫、Radix UI 組件 (4) 新增 TagsDisplaySection、OneLinersDisplaySection 展示組件 (5) 編輯頁面改為三層漸進式設計（Step 1-3）(6) Modal 組件改用 Radix Dialog | Claude |

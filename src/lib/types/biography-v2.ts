@@ -249,7 +249,8 @@ export interface BiographyV2 {
   // ═══════════════════════════════════════════
   climbing_start_year: number | null // 開始攀岩的年份
   climbing_years: number | null // 攀岩年資（從 climbing_start_year 計算）
-  frequent_locations: string[] | null
+  frequent_locations: string[] | null // 平常出沒的地方（可多選）
+  favorite_route_types: string[] | null // 喜歡的路線型態（可多選）
   home_gym: string | null
 
   // ═══════════════════════════════════════════
@@ -533,11 +534,8 @@ export function transformBackendToBiographyV2(backend: BiographyBackend): Biogra
     )
 
   // 從舊版欄位中提取故事資料（直接存在資料庫欄位中的資料）
+  // 注意：climbing_origin, climbing_meaning, advice_to_self 是一句話問題，不在此列表
   const legacyStoryFields = [
-    // 核心故事
-    'climbing_origin',
-    'climbing_meaning',
-    'advice_to_self',
     // A. 成長與突破
     'memorable_moment',
     'biggest_challenge',
@@ -588,10 +586,27 @@ export function transformBackendToBiographyV2(backend: BiographyBackend): Biogra
       source: 'system' as ContentSource,
     }))
 
+  // 這些是一句話問題的 ID，不應該出現在故事中
+  const oneLinerIds = new Set([
+    'climbing_origin',
+    'climbing_meaning',
+    'advice_to_self',
+    'favorite_place',
+    'best_moment',
+    'current_goal',
+    'climbing_takeaway',
+    'climbing_style_desc',
+    'life_outside',
+    'bucket_list',
+  ])
+
+  // 過濾掉一句話問題
+  const filteredStoriesFromJson = storiesFromJson.filter((s) => !oneLinerIds.has(s.question_id))
+
   // 合併兩個來源的故事，優先使用 stories_data 中的資料（如果有的話）
-  const existingQuestionIds = new Set(storiesFromJson.map((s) => s.question_id))
+  const existingQuestionIds = new Set(filteredStoriesFromJson.map((s) => s.question_id))
   const stories: StoryItem[] = [
-    ...storiesFromJson,
+    ...filteredStoriesFromJson,
     ...storiesFromLegacy.filter((s) => !existingQuestionIds.has(s.question_id)),
   ]
 
@@ -641,6 +656,7 @@ export function transformBackendToBiographyV2(backend: BiographyBackend): Biogra
     climbing_years:
       startYear && !isNaN(startYear) ? new Date().getFullYear() - startYear : null,
     frequent_locations,
+    favorite_route_types: null, // 目前後端尚未支援此欄位
     home_gym: backend.home_gym,
     tags,
     one_liners,
@@ -733,6 +749,7 @@ export function createEmptyBiographyV2(userId: string): BiographyV2 {
     climbing_start_year: null,
     climbing_years: null,
     frequent_locations: null,
+    favorite_route_types: null,
     home_gym: null,
     tags: [],
     one_liners: [],

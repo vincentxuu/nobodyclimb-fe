@@ -18,9 +18,11 @@ export function SocialLinksSection({ socialLinks, className }: SocialLinksSectio
   if (!socialLinks) return null
 
   const { instagram, youtube_channel } = socialLinks
+  // 兼容新欄位名稱 youtube
+  const youtube = youtube_channel || (socialLinks as { youtube?: string }).youtube
 
   // 如果沒有任何社群連結，不顯示
-  if (!instagram && !youtube_channel) return null
+  if (!instagram && !youtube) return null
 
   return (
     <div className={cn('flex flex-wrap items-center gap-3', className)}>
@@ -37,15 +39,15 @@ export function SocialLinksSection({ socialLinks, className }: SocialLinksSectio
         </a>
       )}
 
-      {youtube_channel && (
+      {youtube && (
         <a
-          href={getYouTubeChannelUrl(youtube_channel)}
+          href={getYouTubeChannelUrl(youtube)}
           target="_blank"
           rel="noopener noreferrer"
           className="inline-flex items-center gap-2 rounded-full bg-red-600 px-4 py-2 text-sm font-medium text-white transition-opacity hover:opacity-90"
         >
           <Youtube className="h-4 w-4" />
-          <span>{formatYouTubeHandle(youtube_channel)}</span>
+          <span>{formatYouTubeHandle(youtube)}</span>
           <ExternalLink className="h-3 w-3 opacity-70" />
         </a>
       )}
@@ -65,8 +67,10 @@ export function CompactSocialLinks({ socialLinks, className }: CompactSocialLink
   if (!socialLinks) return null
 
   const { instagram, youtube_channel } = socialLinks
+  // 兼容新欄位名稱 youtube
+  const youtube = youtube_channel || (socialLinks as { youtube?: string }).youtube
 
-  if (!instagram && !youtube_channel) return null
+  if (!instagram && !youtube) return null
 
   return (
     <div className={cn('flex items-center gap-2', className)}>
@@ -82,13 +86,13 @@ export function CompactSocialLinks({ socialLinks, className }: CompactSocialLink
         </a>
       )}
 
-      {youtube_channel && (
+      {youtube && (
         <a
-          href={getYouTubeChannelUrl(youtube_channel)}
+          href={getYouTubeChannelUrl(youtube)}
           target="_blank"
           rel="noopener noreferrer"
           className="rounded-full bg-red-600 p-2 text-white transition-opacity hover:opacity-90"
-          title={formatYouTubeHandle(youtube_channel)}
+          title={formatYouTubeHandle(youtube)}
         >
           <Youtube className="h-4 w-4" />
         </a>

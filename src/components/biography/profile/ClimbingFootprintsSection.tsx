@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-import { Loader2, ChevronDown, ChevronUp, MapPin, Calendar } from 'lucide-react'
+import { Loader2, ChevronDown, ChevronUp, Calendar } from 'lucide-react'
 import { Biography, ClimbingLocationRecord } from '@/lib/types'
 import { climbingLocationService } from '@/lib/api/services'
 import { getCountryFlag } from '@/lib/utils/country'

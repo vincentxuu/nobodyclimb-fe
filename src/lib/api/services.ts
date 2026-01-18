@@ -708,6 +708,35 @@ export const biographyService = {
   },
 
   /**
+   * 更新人物誌（註冊流程用）
+   * 支援 tags_data, one_liners_data, stories_data 等 V2 欄位
+   * 如果人物誌不存在，會先創建一個再更新
+   */
+  updateBiography: async (data: Record<string, unknown>) => {
+    try {
+      const response = await apiClient.put<ApiResponse<Biography>>('/biographies/me', data)
+      return response.data
+    } catch (error) {
+      // 如果是 404 錯誤，先創建人物誌再更新
+      if (error && typeof error === 'object' && 'response' in error) {
+        const axiosError = error as { response?: { status?: number } }
+        if (axiosError.response?.status === 404) {
+          // 先創建一個人物誌，預設為公開
+          await apiClient.post<ApiResponse<Biography>>('/biographies', {
+            name: '攀岩者',
+            is_public: 1,
+            visibility: 'public',
+          })
+          // 再嘗試更新
+          const retryResponse = await apiClient.put<ApiResponse<Biography>>('/biographies/me', data)
+          return retryResponse.data
+        }
+      }
+      throw error
+    }
+  },
+
+  /**
    * 自動儲存人物誌（V2 JSON 欄位）
    * 用於編輯器的即時自動儲存，只更新 tags_data, one_liners_data, stories_data, basic_info_data
    */

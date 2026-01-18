@@ -83,7 +83,7 @@ export function BiographyTags({
     <section className={cn('py-6', className)}>
       <div className="flex items-center gap-2 mb-4">
         <Tag size={18} className="text-[#3F3D3D]" />
-        <h2 className="text-lg font-semibold text-[#1B1A1A]">攀岩人格</h2>
+        <h2 className="text-lg font-semibold text-[#1B1A1A]">關鍵字</h2>
       </div>
 
       <div className="flex flex-wrap gap-2">

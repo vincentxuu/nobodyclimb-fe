@@ -43,7 +43,7 @@ function hasAnyContent(biography: BiographyV2): boolean {
  *
  * 頁面結構：
  * 1. Hero Section - 封面圖 + 頭像 + 基本資訊 + 社群連結
- * 2. Identity Tags - 攀岩人格標籤
+ * 2. Identity Tags - 關鍵字標籤
  * 3. Quick Intro - 一句話系列
  * 4. Stories - 深度故事
  * 5. Climbing Footprints - 攀岩足跡
@@ -104,7 +104,7 @@ export function BiographyDetailPage({
 
       {/* 內容區塊 */}
       <div className="container mx-auto max-w-4xl px-4">
-        {/* 2. Identity Tags - 攀岩人格標籤 */}
+        {/* 2. Identity Tags - 關鍵字標籤 */}
         <BiographyTags biography={biography} />
 
         {/* 3. Quick Intro - 一句話系列 */}

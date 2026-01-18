@@ -1,10 +1,11 @@
 'use client'
 
+import { useMemo } from 'react'
 import { motion } from 'framer-motion'
-import { Biography } from '@/lib/types'
+import { BiographyV2 } from '@/lib/types/biography-v2'
 
 interface ChapterMeetingProps {
-  person: Biography
+  person: BiographyV2 | null
 }
 
 /**
@@ -12,9 +13,16 @@ interface ChapterMeetingProps {
  * 你與攀岩的相遇故事
  */
 export function ChapterMeeting({ person }: ChapterMeetingProps) {
-  if (!person.climbing_origin) return null
+  // 從 one_liners 陣列中取得 climbing_origin
+  const climbingOrigin = useMemo(() => {
+    if (!person?.one_liners) return null
+    const item = person.one_liners.find(o => o.question_id === 'climbing_origin')
+    return item?.answer || null
+  }, [person?.one_liners])
 
-  const paragraphs = person.climbing_origin.split('\n').filter(p => p.trim())
+  if (!climbingOrigin) return null
+
+  const paragraphs = climbingOrigin.split('\n').filter(p => p.trim())
 
   return (
     <motion.section

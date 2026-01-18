@@ -1,13 +1,14 @@
 'use client'
 
-import { useState, useEffect, useCallback } from 'react'
-import { Loader2, Target } from 'lucide-react'
-import { Biography, BucketListItem } from '@/lib/types'
+import { useState, useEffect, useCallback, useMemo } from 'react'
+import { Loader2 } from 'lucide-react'
+import { BucketListItem } from '@/lib/types'
+import { BiographyV2 } from '@/lib/types/biography-v2'
 import { bucketListService } from '@/lib/api/services'
 import { BiographyBucketList } from '@/components/bucket-list'
 
 interface ChapterBucketListProps {
-  person: Biography
+  person: BiographyV2 | null
   isOwner: boolean
 }
 
@@ -15,12 +16,23 @@ interface ChapterBucketListProps {
  * Chapter 3 - 人生清單
  * 永遠顯示，沒有資料時顯示預設內容
  */
-export function ChapterBucketList({ person, isOwner }: ChapterBucketListProps) {
+export function ChapterBucketList({ person, isOwner: _isOwner }: ChapterBucketListProps) {
   const [items, setItems] = useState<BucketListItem[]>([])
   const [isLoading, setIsLoading] = useState(true)
 
+  // 從 stories 陣列中取得 bucket_list_story
+  const bucketListStory = useMemo(() => {
+    if (!person?.stories) return null
+    const story = person.stories.find(s => s.question_id === 'bucket_list_story')
+    return story?.content || null
+  }, [person?.stories])
+
   // 檢查是否有人生清單項目
   const loadItems = useCallback(async () => {
+    if (!person?.id) {
+      setIsLoading(false)
+      return
+    }
     setIsLoading(true)
     try {
       const response = await bucketListService.getBucketList(person.id)
@@ -32,7 +44,7 @@ export function ChapterBucketList({ person, isOwner }: ChapterBucketListProps) {
     } finally {
       setIsLoading(false)
     }
-  }, [person.id])
+  }, [person?.id])
 
   useEffect(() => {
     loadItems()
@@ -51,7 +63,9 @@ export function ChapterBucketList({ person, isOwner }: ChapterBucketListProps) {
     )
   }
 
-  const hasContent = person.bucket_list_story || items.length > 0
+  const hasContent = bucketListStory || items.length > 0
+
+  if (!person) return null
 
   return (
     <section className="bg-white py-16">
@@ -68,9 +82,9 @@ export function ChapterBucketList({ person, isOwner }: ChapterBucketListProps) {
         {hasContent ? (
           <>
             {/* 人生清單故事描述 */}
-            {person.bucket_list_story && (
+            {bucketListStory && (
               <p className="mb-8 text-lg leading-relaxed text-gray-700">
-                {person.bucket_list_story}
+                {bucketListStory}
               </p>
             )}
             {/* 結構化人生清單 */}

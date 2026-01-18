@@ -45,7 +45,7 @@ export function HeroSection({ person, followerCount, isOwner, onFollowChange }: 
     <div className="bg-white">
       {/* 封面圖片區域 - 限制在內容寬度內，固定比例 */}
       <div className="container mx-auto max-w-5xl px-4">
-        <div className="relative w-full aspect-[4/1] bg-gray-200 overflow-hidden rounded-b-xl">
+        <div className="relative w-full aspect-[3/1] bg-gray-200 overflow-hidden rounded-b-xl">
           {person.cover_image ? (
             <Image
               src={person.cover_image}

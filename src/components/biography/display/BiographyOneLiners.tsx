@@ -13,6 +13,13 @@ interface BiographyOneLinersProps {
   className?: string
 }
 
+// 這些問題已經在 Chapter 組件中顯示，不需要重複顯示
+const CHAPTER_QUESTION_IDS = new Set([
+  'climbing_origin',   // Chapter 1: 相遇篇
+  'climbing_meaning',  // Chapter 2: 意義篇
+  'advice_to_self',    // Chapter 4: 給新手的話
+])
+
 /**
  * 一句話系列展示組件
  *
@@ -35,6 +42,9 @@ export function BiographyOneLiners({
 
     for (const item of biography.one_liners) {
       if (!item.answer) continue
+
+      // 跳過已經在 Chapter 組件顯示的問題
+      if (CHAPTER_QUESTION_IDS.has(item.question_id)) continue
 
       // 嘗試找系統問題
       const systemQuestion = getOneLinerQuestionById(item.question_id)

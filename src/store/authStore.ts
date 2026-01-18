@@ -290,9 +290,35 @@ export const useAuthStore = create<AuthState>()(
           const updateData: Record<string, unknown> = {}
           if (userData.displayName !== undefined) updateData.display_name = userData.displayName
           if (userData.bio !== undefined) updateData.bio = userData.bio
-          if (userData.avatar && typeof userData.avatar === 'string') {
-            updateData.avatar_url = userData.avatar
+
+          // 處理頭像上傳
+          if (userData.avatar) {
+            if (typeof userData.avatar === 'string') {
+              // 已經是 URL，直接使用
+              updateData.avatar_url = userData.avatar
+            } else if (userData.avatar instanceof File) {
+              // 是 File 對象，先上傳到 R2
+              const formData = new FormData()
+              formData.append('image', userData.avatar)
+
+              const uploadResponse = await apiClient.post<ApiResponse<{ url: string }>>(
+                '/media/upload?type=avatars',
+                formData,
+                {
+                  headers: {
+                    'Content-Type': 'multipart/form-data',
+                  },
+                }
+              )
+
+              if (uploadResponse.data.success && uploadResponse.data.data?.url) {
+                updateData.avatar_url = uploadResponse.data.data.url
+              } else {
+                throw new Error('頭像上傳失敗')
+              }
+            }
           }
+
           if (userData.climbingStartYear !== undefined) updateData.climbing_start_year = userData.climbingStartYear
           if (userData.frequentGym !== undefined) updateData.frequent_gym = userData.frequentGym
           if (userData.favoriteRouteType !== undefined) updateData.favorite_route_type = userData.favoriteRouteType

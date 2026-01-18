@@ -79,9 +79,11 @@ export function FixedBottomBar({
 
         {/* Right: Actions */}
         <div className="flex items-center gap-2">
-          {/* Preview Button */}
+          {/* Preview Button - 在新分頁開啟，方便返回編輯器 */}
           <Link
             href={previewHref}
+            target="_blank"
+            rel="noopener noreferrer"
             className="flex items-center gap-1 px-4 py-2 text-sm font-medium text-[#3F3D3D] border border-[#B6B3B3] rounded-lg hover:bg-[#F5F5F5] transition-colors"
           >
             <Eye size={16} />

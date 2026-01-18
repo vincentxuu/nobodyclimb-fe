@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect, useCallback, useRef } from 'react'
+import { useState, useEffect, useCallback, useRef, useMemo } from 'react'
 import { cn } from '@/lib/utils'
 import { User, Tag, MessageCircle, BookOpen, Globe } from 'lucide-react'
 import { biographyService } from '@/lib/api/services'
@@ -80,7 +80,7 @@ export function ProfileEditor({
   const [showCropper, setShowCropper] = useState(false)
   const [cropperImageSrc, setCropperImageSrc] = useState<string>('')
   const [cropType, setCropType] = useState<'avatar' | 'cover'>('avatar')
-  const [isUploading, setIsUploading] = useState(false)
+  const [_isUploading, setIsUploading] = useState(false)
 
   // 手機版 TagsBottomSheet 狀態
   const [tagsBottomSheetOpen, setTagsBottomSheetOpen] = useState(false)
@@ -99,7 +99,10 @@ export function ProfileEditor({
   const [customStoryQuestions, setCustomStoryQuestions] = useState<StoryQuestion[]>([])
 
   // 所有維度（系統 + 自訂）
-  const allTagDimensions = [...tagDimensions, ...customDimensions]
+  const allTagDimensions = useMemo(
+    () => [...tagDimensions, ...customDimensions],
+    [tagDimensions, customDimensions]
+  )
   // 所有一句話問題（系統 + 自訂）
   const allOneLinerQuestions = [...oneLinerQuestions, ...customOneLinerQuestions]
   // 所有故事問題（系統 + 自訂）
