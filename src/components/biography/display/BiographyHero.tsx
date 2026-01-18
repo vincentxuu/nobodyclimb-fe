@@ -8,14 +8,18 @@ import type { BiographyV2 } from '@/lib/types/biography-v2'
 interface BiographyHeroProps {
   /** 人物誌資料 */
   biography: BiographyV2
-  /** 是否為編輯模式 */
-  editable?: boolean
+  /** 是否為擁有者 */
+  isOwner?: boolean
+  /** 是否為匿名模式 (覆蓋 visibility 判斷) */
+  isAnonymous?: boolean
   /** 是否顯示追蹤和分享按鈕 */
   showActions?: boolean
   /** 追蹤回調 */
   onFollow?: () => void
   /** 分享回調 */
   onShare?: () => void
+  /** 追蹤者數量變更回調 */
+  onFollowerCountChange?: (count: number) => void
   /** 自訂樣式 */
   className?: string
 }
@@ -27,25 +31,27 @@ interface BiographyHeroProps {
  */
 export function BiographyHero({
   biography,
-  editable = false,
+  isOwner = false,
+  isAnonymous: isAnonymousProp,
   showActions = true,
   onFollow,
   onShare,
+  onFollowerCountChange,
   className,
 }: BiographyHeroProps) {
-  const climbingYears = biography.climbing_start_year
-    ? new Date().getFullYear() - biography.climbing_start_year
-    : null
+  // 使用 prop 覆蓋或從 visibility 判斷
+  const isAnonymous = isAnonymousProp ?? biography.visibility === 'anonymous'
 
-  const isAnonymous = biography.visibility === 'anonymous'
+  // 計算攀岩年資
+  const climbingYears = biography.climbing_years
 
   return (
     <div className={cn('relative', className)}>
       {/* Cover Image */}
       <div className="relative w-full aspect-[3/1] md:aspect-[4/1] bg-gradient-to-br from-[#EBEAEA] to-[#DBD8D8] overflow-hidden">
-        {biography.cover_image && (
+        {biography.cover_url && (
           <Image
-            src={biography.cover_image}
+            src={biography.cover_url}
             alt="封面圖片"
             fill
             className="object-cover"
@@ -98,10 +104,10 @@ export function BiographyHero({
 
             {/* Meta Info */}
             <div className="flex flex-wrap items-center gap-2 text-sm text-[#6D6C6C]">
-              {climbingYears !== null && (
+              {climbingYears !== null && climbingYears > 0 && (
                 <span className="flex items-center gap-1">
                   <Clock size={16} />
-                  攀岩第 {climbingYears + 1} 年
+                  攀岩第 {climbingYears} 年
                 </span>
               )}
 
