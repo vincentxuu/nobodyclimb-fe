@@ -2,6 +2,7 @@
 
 import { Suspense } from 'react'
 import ProfileEditorVersionB from '@/components/profile/dashboard/ProfileEditorVersionB'
+import ProfilePageLayout from '@/components/profile/layout/ProfilePageLayout'
 
 function ProfileFallback() {
   return (
@@ -13,8 +14,10 @@ function ProfileFallback() {
 
 export default function ProfilePage() {
   return (
-    <Suspense fallback={<ProfileFallback />}>
-      <ProfileEditorVersionB />
-    </Suspense>
+    <ProfilePageLayout>
+      <Suspense fallback={<ProfileFallback />}>
+        <ProfileEditorVersionB />
+      </Suspense>
+    </ProfilePageLayout>
   )
 }
