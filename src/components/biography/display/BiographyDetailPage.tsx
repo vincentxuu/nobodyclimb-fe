@@ -25,14 +25,15 @@ interface BiographyDetailPageProps {
  * 檢查人物誌是否有任何內容
  */
 function hasAnyContent(biography: BiographyV2): boolean {
-  return !!(
-    (biography.tags && biography.tags.length > 0) ||
-    (biography.one_liners && biography.one_liners.length > 0) ||
-    (biography.stories && biography.stories.length > 0) ||
-    (biography.gallery_images && biography.gallery_images.length > 0) ||
-    (biography.social_links &&
-      Object.values(biography.social_links).some((v) => v && v.trim() !== ''))
-  )
+  const hasTags = biography.tags?.length > 0
+  const hasOneLiners = biography.one_liners?.length > 0
+  const hasStories = biography.stories?.length > 0
+  const hasGallery = biography.gallery_images?.length > 0
+  const hasSocials = biography.social_links
+    ? Object.values(biography.social_links).some((v) => v && v.trim() !== '')
+    : false
+
+  return hasTags || hasOneLiners || hasStories || hasGallery || hasSocials
 }
 
 /**
