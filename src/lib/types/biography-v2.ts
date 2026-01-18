@@ -37,6 +37,7 @@ export interface TagDimension extends ExtensibleItem {
   source: ContentSource
   name: string
   emoji: string
+  icon: string // Lucide icon name
   description: string
   selection_mode: 'single' | 'multiple'
   options: TagOption[]
@@ -140,6 +141,7 @@ export interface StoryCategoryDefinition extends ExtensibleItem {
   source: ContentSource
   name: string
   emoji: string
+  icon: string // Lucide icon name
   description: string
   order: number
 }
@@ -431,6 +433,51 @@ export interface BiographyBackend {
   total_likes: number
   total_views: number
   follower_count: number
+
+  // ═══════════════════════════════════════════
+  // 舊版故事欄位（直接存在資料庫中）
+  // ═══════════════════════════════════════════
+  // 核心故事
+  climbing_origin?: string | null
+  climbing_meaning?: string | null
+  advice_to_self?: string | null
+  // A. 成長與突破
+  memorable_moment?: string | null
+  biggest_challenge?: string | null
+  breakthrough_story?: string | null
+  first_outdoor?: string | null
+  first_grade?: string | null
+  frustrating_climb?: string | null
+  // B. 心理與哲學
+  fear_management?: string | null
+  climbing_lesson?: string | null
+  failure_perspective?: string | null
+  flow_moment?: string | null
+  life_balance?: string | null
+  unexpected_gain?: string | null
+  // C. 社群與連結
+  climbing_mentor?: string | null
+  climbing_partner?: string | null
+  funny_moment?: string | null
+  favorite_spot?: string | null
+  advice_to_group?: string | null
+  climbing_space?: string | null
+  // D. 實用分享
+  injury_recovery?: string | null
+  memorable_route?: string | null
+  training_method?: string | null
+  effective_practice?: string | null
+  technique_tip?: string | null
+  gear_choice?: string | null
+  // E. 夢想與探索
+  dream_climb?: string | null
+  climbing_trip?: string | null
+  bucket_list_story?: string | null
+  climbing_goal?: string | null
+  climbing_style?: string | null
+  climbing_inspiration?: string | null
+  // F. 生活整合
+  life_outside_climbing?: string | null
 }
 
 // ═══════════════════════════════════════════
@@ -474,7 +521,7 @@ export function transformBackendToBiographyV2(backend: BiographyBackend): Biogra
     backend.stories_data,
     {}
   ) || {}
-  const stories: StoryItem[] = Object.values(storiesRaw)
+  const storiesFromJson: StoryItem[] = Object.values(storiesRaw)
     .flatMap((category) =>
       Object.entries(category || {})
         .filter(([, data]) => data?.answer)
@@ -484,6 +531,69 @@ export function transformBackendToBiographyV2(backend: BiographyBackend): Biogra
           source: 'system' as ContentSource,
         }))
     )
+
+  // 從舊版欄位中提取故事資料（直接存在資料庫欄位中的資料）
+  const legacyStoryFields = [
+    // 核心故事
+    'climbing_origin',
+    'climbing_meaning',
+    'advice_to_self',
+    // A. 成長與突破
+    'memorable_moment',
+    'biggest_challenge',
+    'breakthrough_story',
+    'first_outdoor',
+    'first_grade',
+    'frustrating_climb',
+    // B. 心理與哲學
+    'fear_management',
+    'climbing_lesson',
+    'failure_perspective',
+    'flow_moment',
+    'life_balance',
+    'unexpected_gain',
+    // C. 社群與連結
+    'climbing_mentor',
+    'climbing_partner',
+    'funny_moment',
+    'favorite_spot',
+    'advice_to_group',
+    'climbing_space',
+    // D. 實用分享
+    'injury_recovery',
+    'memorable_route',
+    'training_method',
+    'effective_practice',
+    'technique_tip',
+    'gear_choice',
+    // E. 夢想與探索
+    'dream_climb',
+    'climbing_trip',
+    'bucket_list_story',
+    'climbing_goal',
+    'climbing_style',
+    'climbing_inspiration',
+    // F. 生活整合
+    'life_outside_climbing',
+  ] as const
+
+  const storiesFromLegacy: StoryItem[] = legacyStoryFields
+    .filter((field) => {
+      const value = backend[field as keyof BiographyBackend]
+      return value && typeof value === 'string' && value.trim().length > 0
+    })
+    .map((field) => ({
+      question_id: field,
+      content: backend[field as keyof BiographyBackend] as string,
+      source: 'system' as ContentSource,
+    }))
+
+  // 合併兩個來源的故事，優先使用 stories_data 中的資料（如果有的話）
+  const existingQuestionIds = new Set(storiesFromJson.map((s) => s.question_id))
+  const stories: StoryItem[] = [
+    ...storiesFromJson,
+    ...storiesFromLegacy.filter((s) => !existingQuestionIds.has(s.question_id)),
+  ]
 
   // 解析其他 JSON 欄位
   // frequent_locations 可能是 JSON 陣列字串或純字串，需要兼容處理
@@ -501,7 +611,16 @@ export function transformBackendToBiographyV2(backend: BiographyBackend): Biogra
     }
   }
   const gallery_images = safeJsonParse<GalleryImage[] | null>(backend.gallery_images, null)
-  const social_links = safeJsonParse<SocialLinks | null>(backend.social_links, null)
+
+  // 解析 social_links，並處理舊版欄位名稱兼容（youtube_channel -> youtube）
+  const rawSocialLinks = safeJsonParse<Record<string, string | undefined> | null>(backend.social_links, null)
+  const social_links: SocialLinks | null = rawSocialLinks ? {
+    instagram: rawSocialLinks.instagram,
+    youtube: rawSocialLinks.youtube || rawSocialLinks.youtube_channel, // 兼容舊版欄位名稱
+    facebook: rawSocialLinks.facebook,
+    threads: rawSocialLinks.threads,
+    website: rawSocialLinks.website,
+  } : null
 
   // climbing_start_year 可能是字串或數字，需要解析
   const startYear =

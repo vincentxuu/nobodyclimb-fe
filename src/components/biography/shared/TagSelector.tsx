@@ -2,9 +2,42 @@
 
 import { useState } from 'react'
 import { cn } from '@/lib/utils'
-import { ChevronDown, ChevronUp, Plus, Tag, Clock, Lightbulb } from 'lucide-react'
+import {
+  ChevronDown,
+  ChevronUp,
+  Plus,
+  Tag,
+  Clock,
+  Lightbulb,
+  Sparkles,
+  HeartPulse,
+  Footprints,
+  Tent,
+  Music,
+  Target,
+  Users,
+  Hand,
+  Dumbbell,
+  MapPin,
+  type LucideIcon,
+} from 'lucide-react'
 import type { TagDimension } from '@/lib/types/biography-v2'
 import { TagCard } from './TagChip'
+
+// Icon mapping for dynamic rendering
+const iconMap: Record<string, LucideIcon> = {
+  Sparkles,
+  HeartPulse,
+  Footprints,
+  Clock,
+  Tent,
+  Music,
+  Target,
+  Users,
+  Hand,
+  Dumbbell,
+  MapPin,
+}
 
 interface TagSelectorProps {
   /** 標籤維度資料 */
@@ -76,7 +109,14 @@ export function TagSelector({
         className="w-full flex items-center justify-between p-4 bg-[#F5F5F5] hover:bg-[#EBEAEA] transition-colors"
       >
         <div className="flex items-center gap-2">
-          <span className="text-lg">{dimension.emoji}</span>
+          {(() => {
+            const IconComponent = iconMap[dimension.icon]
+            return IconComponent ? (
+              <IconComponent size={20} className="text-[#3F3D3D]" />
+            ) : (
+              <Tag size={20} className="text-[#3F3D3D]" />
+            )
+          })()}
           <span className="font-medium text-[#1B1A1A]">{dimension.name}</span>
           <span className="text-xs text-[#6D6C6C] px-2 py-0.5 bg-[#EBEAEA] rounded-full">
             {isMultiSelect ? '可複選' : '單選'}

@@ -23,6 +23,9 @@ export const SYSTEM_ONELINER_QUESTIONS = {
   CLIMBING_LESSON: 'sys_ol_climbing_lesson',
   CLIMBING_STYLE_DESC: 'sys_ol_climbing_style_desc',
   LIFE_OUTSIDE: 'sys_ol_life_outside',
+  // 新增：對應舊欄位 climbing_meaning 和 bucket_list
+  CLIMBING_MEANING: 'sys_ol_climbing_meaning',
+  BUCKET_LIST: 'sys_ol_bucket_list',
 } as const
 
 export type SystemOneLinerQuestionId =
@@ -97,6 +100,23 @@ export const SYSTEM_ONELINER_QUESTION_LIST: OneLinerQuestion[] = [
     placeholder: '工程師/學生/全職岩棍',
     order: 8,
   },
+  // 新增：對應舊欄位
+  {
+    id: SYSTEM_ONELINER_QUESTIONS.CLIMBING_MEANING,
+    source: 'system',
+    question: '攀岩對你來說是什麼？',
+    format_hint: '對我來說，攀岩是＿＿＿',
+    placeholder: '一種生活方式、挑戰自我的方式',
+    order: 9,
+  },
+  {
+    id: SYSTEM_ONELINER_QUESTIONS.BUCKET_LIST,
+    source: 'system',
+    question: '攀岩人生清單上有什麼？',
+    format_hint: null,
+    placeholder: '去優勝美地爬一次、完攀龍洞經典路線',
+    order: 10,
+  },
 ]
 
 // ═══════════════════════════════════════════
@@ -125,6 +145,7 @@ export const SYSTEM_STORY_CATEGORY_LIST: StoryCategoryDefinition[] = [
     source: 'system',
     name: '成長與突破',
     emoji: '🌱',
+    icon: 'TrendingUp',
     description: '你的攀岩成長故事',
     order: 1,
   },
@@ -133,6 +154,7 @@ export const SYSTEM_STORY_CATEGORY_LIST: StoryCategoryDefinition[] = [
     source: 'system',
     name: '心理與哲學',
     emoji: '🧠',
+    icon: 'Brain',
     description: '攀岩帶給你的思考',
     order: 2,
   },
@@ -141,6 +163,7 @@ export const SYSTEM_STORY_CATEGORY_LIST: StoryCategoryDefinition[] = [
     source: 'system',
     name: '社群與連結',
     emoji: '😄',
+    icon: 'Users',
     description: '攀岩社群的故事',
     order: 3,
   },
@@ -149,6 +172,7 @@ export const SYSTEM_STORY_CATEGORY_LIST: StoryCategoryDefinition[] = [
     source: 'system',
     name: '實用分享',
     emoji: '🔧',
+    icon: 'Wrench',
     description: '經驗與技巧分享',
     order: 4,
   },
@@ -157,6 +181,7 @@ export const SYSTEM_STORY_CATEGORY_LIST: StoryCategoryDefinition[] = [
     source: 'system',
     name: '夢想與探索',
     emoji: '🎯',
+    icon: 'Compass',
     description: '攀岩的夢想與目標',
     order: 5,
   },
@@ -165,6 +190,7 @@ export const SYSTEM_STORY_CATEGORY_LIST: StoryCategoryDefinition[] = [
     source: 'system',
     name: '生活整合',
     emoji: '🌈',
+    icon: 'Palette',
     description: '攀岩與生活的交集',
     order: 6,
   },
@@ -522,6 +548,80 @@ export const SYSTEM_STORY_QUESTION_LIST: StoryQuestion[] = [
 ]
 
 // ═══════════════════════════════════════════
+// 舊欄位名到 V2 ID 的映射（向後兼容）
+// ═══════════════════════════════════════════
+
+/**
+ * 故事問題：舊 DB 欄位名 → V2 問題 ID
+ * 用於兼容後端 stories_data 中使用舊欄位名的資料
+ */
+export const LEGACY_STORY_FIELD_TO_V2_ID: Record<string, string> = {
+  // growth
+  climbing_origin: 'sys_story_growth_memorable_moment',
+  memorable_moment: 'sys_story_growth_memorable_moment',
+  biggest_challenge: 'sys_story_growth_biggest_challenge',
+  breakthrough_story: 'sys_story_growth_breakthrough',
+  first_outdoor: 'sys_story_growth_first_outdoor',
+  first_grade: 'sys_story_growth_first_grade',
+  frustrating_climb: 'sys_story_growth_frustrating',
+  // psychology
+  fear_management: 'sys_story_psychology_fear',
+  climbing_lesson: 'sys_story_psychology_lesson',
+  failure_perspective: 'sys_story_psychology_failure',
+  flow_moment: 'sys_story_psychology_flow',
+  life_balance: 'sys_story_psychology_balance',
+  unexpected_gain: 'sys_story_psychology_gain',
+  // community
+  climbing_mentor: 'sys_story_community_mentor',
+  climbing_partner: 'sys_story_community_partner',
+  funny_moment: 'sys_story_community_funny',
+  favorite_spot: 'sys_story_community_spot',
+  advice_to_group: 'sys_story_community_advice',
+  climbing_space: 'sys_story_community_space',
+  // practical
+  advice_to_self: 'sys_story_practical_injury',
+  injury_recovery: 'sys_story_practical_injury',
+  memorable_route: 'sys_story_practical_route',
+  training_method: 'sys_story_practical_training',
+  effective_practice: 'sys_story_practical_practice',
+  technique_tip: 'sys_story_practical_technique',
+  gear_choice: 'sys_story_practical_gear',
+  // dreams
+  dream_climb: 'sys_story_dreams_dream_climb',
+  climbing_trip: 'sys_story_dreams_trip',
+  bucket_list_story: 'sys_story_dreams_bucket_list',
+  climbing_goal: 'sys_story_dreams_goal',
+  climbing_style: 'sys_story_dreams_style',
+  climbing_inspiration: 'sys_story_dreams_inspiration',
+  // life
+  life_outside_climbing: 'sys_story_life_outside',
+}
+
+/**
+ * 一句話問題：舊 DB 欄位名 → V2 問題 ID
+ */
+export const LEGACY_ONELINER_FIELD_TO_V2_ID: Record<string, string> = {
+  climbing_reason: SYSTEM_ONELINER_QUESTIONS.WHY_STARTED,
+  advice: SYSTEM_ONELINER_QUESTIONS.ADVICE_FOR_BEGINNERS,
+  climbing_meaning: SYSTEM_ONELINER_QUESTIONS.CLIMBING_MEANING,
+  bucket_list: SYSTEM_ONELINER_QUESTIONS.BUCKET_LIST,
+}
+
+/**
+ * 將舊欄位名轉換為 V2 問題 ID
+ */
+export function normalizeStoryQuestionId(questionId: string): string {
+  return LEGACY_STORY_FIELD_TO_V2_ID[questionId] || questionId
+}
+
+/**
+ * 將舊一句話欄位名轉換為 V2 問題 ID
+ */
+export function normalizeOneLinerQuestionId(questionId: string): string {
+  return LEGACY_ONELINER_FIELD_TO_V2_ID[questionId] || questionId
+}
+
+// ═══════════════════════════════════════════
 // 工具函數
 // ═══════════════════════════════════════════
 
@@ -547,11 +647,22 @@ export function getStoryQuestionsByCategory(
 
 /**
  * 根據問題 ID 取得問題
+ * 支援舊欄位名和 V2 ID
  */
 export function getStoryQuestionById(
   questionId: string
 ): StoryQuestion | undefined {
-  return SYSTEM_STORY_QUESTION_LIST.find((q) => q.id === questionId)
+  // 先嘗試直接查找（V2 ID）
+  const direct = SYSTEM_STORY_QUESTION_LIST.find((q) => q.id === questionId)
+  if (direct) return direct
+
+  // 嘗試將舊欄位名轉換為 V2 ID 再查找
+  const normalizedId = normalizeStoryQuestionId(questionId)
+  if (normalizedId !== questionId) {
+    return SYSTEM_STORY_QUESTION_LIST.find((q) => q.id === normalizedId)
+  }
+
+  return undefined
 }
 
 /**
@@ -567,11 +678,22 @@ export function getStoryCategoryByQuestionId(
 
 /**
  * 根據一句話問題 ID 取得問題
+ * 支援舊欄位名和 V2 ID
  */
 export function getOneLinerQuestionById(
   questionId: string
 ): OneLinerQuestion | undefined {
-  return SYSTEM_ONELINER_QUESTION_LIST.find((q) => q.id === questionId)
+  // 先嘗試直接查找（V2 ID）
+  const direct = SYSTEM_ONELINER_QUESTION_LIST.find((q) => q.id === questionId)
+  if (direct) return direct
+
+  // 嘗試將舊欄位名轉換為 V2 ID 再查找
+  const normalizedId = normalizeOneLinerQuestionId(questionId)
+  if (normalizedId !== questionId) {
+    return SYSTEM_ONELINER_QUESTION_LIST.find((q) => q.id === normalizedId)
+  }
+
+  return undefined
 }
 
 /**

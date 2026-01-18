@@ -27,7 +27,10 @@ export function BiographyGallery({
 }: BiographyGalleryProps) {
   const [selectedImage, setSelectedImage] = useState<GalleryImage | null>(null)
 
-  const images = biography.gallery_images || []
+  // Ensure images is always an array (handle cases where it might be a string or object)
+  const images: GalleryImage[] = Array.isArray(biography.gallery_images)
+    ? biography.gallery_images
+    : []
 
   if (images.length === 0) {
     return null

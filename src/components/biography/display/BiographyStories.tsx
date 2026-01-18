@@ -1,20 +1,24 @@
 'use client'
 
-import { useMemo, useState } from 'react'
+import { useMemo } from 'react'
+import { motion } from 'framer-motion'
 import { cn } from '@/lib/utils'
-import { BookOpen, ChevronDown, ChevronUp } from 'lucide-react'
+import { BookOpen } from 'lucide-react'
 import type { BiographyV2 } from '@/lib/types/biography-v2'
 import {
   getStoryQuestionById,
   getStoryCategoryById,
+  SYSTEM_STORY_CATEGORIES,
 } from '@/lib/constants/biography-questions'
-import { StoryCard } from './StoryCard'
+import {
+  ALL_STORY_QUESTIONS as LEGACY_STORY_QUESTIONS,
+  STORY_CATEGORIES as LEGACY_STORY_CATEGORIES,
+  type StoryCategory as LegacyStoryCategory,
+} from '@/lib/constants/biography-stories'
 
 interface BiographyStoriesProps {
   /** 人物誌資料 */
   biography: BiographyV2
-  /** 初始顯示的故事數量 */
-  initialCount?: number
   /** 自訂樣式 */
   className?: string
 }
@@ -23,23 +27,50 @@ interface StoryItem {
   id: string
   title: string
   content: string
-  emoji: string
   categoryId: string
-  isCustom: boolean
+  categoryName: string
+}
+
+// 分類顏色映射 - 使用品牌色系（新版 ID）
+const CATEGORY_COLORS: Record<string, { bg: string; text: string }> = {
+  [SYSTEM_STORY_CATEGORIES.GROWTH]: { bg: 'bg-brand-accent/20', text: 'text-brand-dark' },
+  [SYSTEM_STORY_CATEGORIES.PSYCHOLOGY]: { bg: 'bg-brand-light', text: 'text-brand-dark' },
+  [SYSTEM_STORY_CATEGORIES.COMMUNITY]: { bg: 'bg-brand-accent/20', text: 'text-brand-dark' },
+  [SYSTEM_STORY_CATEGORIES.PRACTICAL]: { bg: 'bg-brand-light', text: 'text-brand-dark' },
+  [SYSTEM_STORY_CATEGORIES.DREAMS]: { bg: 'bg-brand-accent/20', text: 'text-brand-dark' },
+  [SYSTEM_STORY_CATEGORIES.LIFE]: { bg: 'bg-brand-light', text: 'text-brand-dark' },
+  // 舊版分類 ID
+  growth: { bg: 'bg-brand-accent/20', text: 'text-brand-dark' },
+  psychology: { bg: 'bg-brand-light', text: 'text-brand-dark' },
+  community: { bg: 'bg-brand-accent/20', text: 'text-brand-dark' },
+  practical: { bg: 'bg-brand-light', text: 'text-brand-dark' },
+  dreams: { bg: 'bg-brand-accent/20', text: 'text-brand-dark' },
+  life: { bg: 'bg-brand-light', text: 'text-brand-dark' },
+}
+
+/**
+ * 根據舊版欄位名稱查找問題定義
+ */
+function getLegacyQuestionByField(field: string) {
+  return LEGACY_STORY_QUESTIONS.find((q) => q.field === field)
+}
+
+/**
+ * 根據舊版分類 ID 取得分類名稱
+ */
+function getLegacyCategoryName(categoryId: LegacyStoryCategory) {
+  return LEGACY_STORY_CATEGORIES.find((c) => c.id === categoryId)?.name || '故事'
 }
 
 /**
  * 故事列表展示組件
  *
- * 顯示用戶填寫的所有故事
+ * 顯示用戶填寫的所有故事，使用橫向滾動卡片
  */
 export function BiographyStories({
   biography,
-  initialCount = 4,
   className,
 }: BiographyStoriesProps) {
-  const [showAll, setShowAll] = useState(false)
-
   // 將回答整理為展示列表
   const stories = useMemo(() => {
     if (!biography.stories || biography.stories.length === 0) return []
@@ -49,7 +80,20 @@ export function BiographyStories({
     for (const story of biography.stories) {
       if (!story.content) continue
 
-      // 嘗試找系統問題
+      // 優先使用舊版定義（因為舊版欄位名和舊版問題定義是對應的）
+      const legacyQuestion = getLegacyQuestionByField(story.question_id)
+      if (legacyQuestion) {
+        items.push({
+          id: story.question_id,
+          title: legacyQuestion.title,
+          content: story.content,
+          categoryId: legacyQuestion.category,
+          categoryName: getLegacyCategoryName(legacyQuestion.category),
+        })
+        continue
+      }
+
+      // 如果舊版定義找不到，嘗試用新版 API 查找（用於 V2 格式的新資料）
       const systemQuestion = getStoryQuestionById(story.question_id)
       if (systemQuestion) {
         const category = getStoryCategoryById(systemQuestion.category_id)
@@ -57,11 +101,20 @@ export function BiographyStories({
           id: story.question_id,
           title: systemQuestion.title,
           content: story.content,
-          emoji: category?.emoji || '📖',
           categoryId: systemQuestion.category_id,
-          isCustom: story.source === 'user',
+          categoryName: category?.name || '故事',
         })
+        continue
       }
+
+      // 如果都找不到，使用預設值
+      items.push({
+        id: story.question_id,
+        title: story.question_id, // 使用欄位名稱作為標題
+        content: story.content,
+        categoryId: 'growth',
+        categoryName: '故事',
+      })
     }
 
     return items
@@ -71,53 +124,54 @@ export function BiographyStories({
     return null
   }
 
-  const visibleStories = showAll ? stories : stories.slice(0, initialCount)
-  const hasMore = stories.length > initialCount
-
   return (
-    <section className={cn('py-6', className)}>
-      <div className="flex items-center justify-between mb-4">
+    <section className={cn('py-8', className)}>
+      <div className="flex items-center justify-between mb-6">
         <div className="flex items-center gap-2">
-          <BookOpen size={18} className="text-[#3F3D3D]" />
-          <h2 className="text-lg font-semibold text-[#1B1A1A]">我的故事</h2>
+          <BookOpen size={20} className="text-[#3F3D3D]" />
+          <h2 className="text-xl font-bold text-[#1B1A1A]">小故事</h2>
         </div>
-        <span className="text-sm text-[#6D6C6C]">共 {stories.length} 則故事</span>
+        <span className="text-sm text-[#6D6C6C]">
+          已分享 {stories.length} 則故事
+        </span>
       </div>
 
-      {/* Stories Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        {visibleStories.map((story) => (
-          <StoryCard
-            key={story.id}
-            title={story.title}
-            content={story.content}
-            emoji={story.emoji}
-            isCustom={story.isCustom}
-          />
-        ))}
-      </div>
+      {/* 故事橫向滾動 */}
+      <div className="flex gap-6 overflow-x-auto pb-4 snap-x -mx-4 px-4">
+        {stories.map((story, index) => {
+          const colors = CATEGORY_COLORS[story.categoryId] || { bg: 'bg-gray-100', text: 'text-gray-700' }
 
-      {/* Load More Button */}
-      {hasMore && (
-        <div className="flex justify-center mt-6">
-          <button
-            onClick={() => setShowAll(!showAll)}
-            className="inline-flex items-center gap-1 px-6 py-2 rounded-full border border-[#B6B3B3] text-[#6D6C6C] font-medium hover:bg-[#F5F5F5] transition-colors"
-          >
-            {showAll ? (
-              <>
-                收合故事
-                <ChevronUp size={16} />
-              </>
-            ) : (
-              <>
-                載入更多故事 (+{stories.length - initialCount})
-                <ChevronDown size={16} />
-              </>
-            )}
-          </button>
-        </div>
-      )}
+          return (
+            <motion.div
+              key={story.id}
+              initial={{ opacity: 0, x: 20 }}
+              whileInView={{ opacity: 1, x: 0 }}
+              viewport={{ once: true, margin: '-50px' }}
+              transition={{ delay: index * 0.05 }}
+              className="w-80 flex-shrink-0 snap-start rounded-xl bg-white p-6 shadow-sm border border-[#EBEAEA]"
+            >
+              {/* 分類標籤 */}
+              <div className={cn(
+                'mb-3 inline-block rounded px-2 py-1 text-xs font-medium',
+                colors.bg,
+                colors.text
+              )}>
+                {story.categoryName}
+              </div>
+
+              {/* 標題 */}
+              <h3 className="mb-3 font-semibold text-[#1B1A1A]">
+                {story.title}
+              </h3>
+
+              {/* 完整內容 */}
+              <p className="whitespace-pre-wrap text-sm leading-relaxed text-[#6D6C6C]">
+                {story.content}
+              </p>
+            </motion.div>
+          )
+        })}
+      </div>
     </section>
   )
 }

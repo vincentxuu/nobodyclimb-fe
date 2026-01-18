@@ -2,15 +2,36 @@
 
 import { useState } from 'react'
 import { cn } from '@/lib/utils'
-import { Sparkles } from 'lucide-react'
+import {
+  Sparkles,
+  TrendingUp,
+  Brain,
+  Users,
+  Wrench,
+  Compass,
+  Palette,
+  BookOpen,
+  type LucideIcon,
+} from 'lucide-react'
+
+// Icon mapping for dynamic rendering
+const iconMap: Record<string, LucideIcon> = {
+  TrendingUp,
+  Brain,
+  Users,
+  Wrench,
+  Compass,
+  Palette,
+  BookOpen,
+}
 
 interface StoryCardProps {
   /** 問題標題 */
   title: string
   /** 故事內容 */
   content: string
-  /** 分類 Emoji */
-  emoji?: string
+  /** 分類 Icon 名稱 (Lucide icon name) */
+  icon?: string
   /** 是否為用戶自訂問題 */
   isCustom?: boolean
   /** 最大顯示行數 */
@@ -29,7 +50,7 @@ interface StoryCardProps {
 export function StoryCard({
   title,
   content,
-  emoji,
+  icon,
   isCustom = false,
   maxLines: _maxLines = 3,
   onReadMore,
@@ -61,7 +82,12 @@ export function StoryCard({
     >
       {/* Title */}
       <div className="flex items-start gap-2 mb-3">
-        {emoji && <span className="text-lg flex-shrink-0">{emoji}</span>}
+        {(() => {
+          const IconComponent = icon ? iconMap[icon] : null
+          return IconComponent ? (
+            <IconComponent size={18} className="text-[#3F3D3D] flex-shrink-0 mt-0.5" />
+          ) : null
+        })()}
         <h3 className="font-medium text-[#1B1A1A]">
           {isCustom && <Sparkles size={14} className="text-brand-accent mr-1 inline" />}
           {title}

@@ -145,7 +145,9 @@ export function ProfileEditor({
       id: 'footprints',
       label: '攀岩足跡',
       icon: Globe,
-      isCompleted: false, // Will be updated by ClimbingFootprintsEditorSection
+      isCompleted:
+        (biography.frequent_locations && biography.frequent_locations.length > 0) ||
+        !!biography.home_gym,
     },
   ]
 

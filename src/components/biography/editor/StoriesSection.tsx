@@ -1,7 +1,21 @@
 'use client'
 
 import { cn } from '@/lib/utils'
-import { BookOpen, Clock, ChevronRight, Check, Lightbulb, Sparkles } from 'lucide-react'
+import {
+  BookOpen,
+  Clock,
+  ChevronRight,
+  Check,
+  Lightbulb,
+  Sparkles,
+  TrendingUp,
+  Brain,
+  Users,
+  Wrench,
+  Compass,
+  Palette,
+  type LucideIcon,
+} from 'lucide-react'
 import type { StoryQuestion, Story, StoryCategory } from '@/lib/types/biography-v2'
 
 interface StoriesSectionProps {
@@ -19,36 +33,36 @@ interface StoriesSectionProps {
 
 const categoryMeta: Record<
   StoryCategory,
-  { label: string; emoji: string; description: string }
+  { label: string; icon: LucideIcon; description: string }
 > = {
   growth: {
     label: '成長軌跡',
-    emoji: '🌱',
+    icon: TrendingUp,
     description: '你的攀岩旅程',
   },
   psychology: {
     label: '心理層面',
-    emoji: '🧠',
+    icon: Brain,
     description: '攀岩中的心理感受',
   },
   community: {
     label: '社群連結',
-    emoji: '🤝',
+    icon: Users,
     description: '與岩友的故事',
   },
   practical: {
     label: '實用經驗',
-    emoji: '🔧',
+    icon: Wrench,
     description: '裝備、訓練、技巧',
   },
   dreams: {
     label: '願望與目標',
-    emoji: '🎯',
+    icon: Compass,
     description: '未來的攀岩計畫',
   },
   life: {
     label: '人生連結',
-    emoji: '💫',
+    icon: Palette,
     description: '攀岩與生活',
   },
 }
@@ -111,7 +125,7 @@ export function StoriesSection({
                 {/* Category Header */}
                 <div className="flex items-center justify-between p-4 bg-[#F5F5F5]">
                   <div className="flex items-center gap-2">
-                    <span className="text-lg">{meta.emoji}</span>
+                    <meta.icon size={20} className="text-[#3F3D3D]" />
                     <div>
                       <span className="font-medium text-[#1B1A1A]">
                         {meta.label}

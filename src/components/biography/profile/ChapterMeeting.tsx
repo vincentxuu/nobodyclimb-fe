@@ -1,6 +1,5 @@
 'use client'
 
-import Image from 'next/image'
 import { motion } from 'framer-motion'
 import { Biography } from '@/lib/types'
 
@@ -15,7 +14,6 @@ interface ChapterMeetingProps {
 export function ChapterMeeting({ person }: ChapterMeetingProps) {
   if (!person.climbing_origin) return null
 
-  const imageUrl = person.cover_image
   const paragraphs = person.climbing_origin.split('\n').filter(p => p.trim())
 
   return (
@@ -35,44 +33,20 @@ export function ChapterMeeting({ person }: ChapterMeetingProps) {
         </h2>
       </div>
 
-      {/* 內容區 - 上下排列 */}
-      <div className="flex flex-col gap-8">
-        {/* 圖片 - 只在有圖片時顯示 */}
-        {imageUrl && (
-          <motion.div
-            initial={{ opacity: 0, y: -20 }}
+      {/* 文字內容 */}
+      <div>
+        {paragraphs.map((para, index) => (
+          <motion.p
+            key={index}
+            initial={{ opacity: 0, y: 10 }}
             whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            className="mx-auto w-full max-w-2xl"
+            viewport={{ once: true, margin: '-50px' }}
+            transition={{ delay: index * 0.1 }}
+            className="mb-6 text-lg leading-relaxed text-gray-700"
           >
-            <div className="overflow-hidden rounded-lg shadow-lg">
-              <div className="relative aspect-[3/2]">
-                <Image
-                  src={imageUrl}
-                  alt={`${person.name} 的攀岩相遇`}
-                  fill
-                  className="object-cover"
-                />
-              </div>
-            </div>
-          </motion.div>
-        )}
-
-        {/* 文字 */}
-        <div>
-          {paragraphs.map((para, index) => (
-            <motion.p
-              key={index}
-              initial={{ opacity: 0, y: 10 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true, margin: '-50px' }}
-              transition={{ delay: index * 0.1 }}
-              className="mb-6 text-lg leading-relaxed text-gray-700"
-            >
-              {para}
-            </motion.p>
-          ))}
-        </div>
+            {para}
+          </motion.p>
+        ))}
       </div>
     </motion.section>
   )

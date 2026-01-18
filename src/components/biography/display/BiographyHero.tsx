@@ -1,9 +1,14 @@
 'use client'
 
+import { useState } from 'react'
 import Image from 'next/image'
 import { cn } from '@/lib/utils'
-import { Clock, MapPin, BarChart3, Share2, Globe } from 'lucide-react'
+import { Clock, MapPin, BarChart3, Globe, Eye, Users, MessageCircle } from 'lucide-react'
 import type { BiographyV2, SocialLinks } from '@/lib/types/biography-v2'
+import { FollowButton } from '../follow-button'
+import { BiographyLikeButton } from '../biography-like-button'
+import { ShareButton } from '@/components/shared/share-button'
+import { BiographyCommentSection } from '../biography-comment-section'
 
 // 社群平台圖示
 const SocialIcon: Record<keyof SocialLinks, React.ReactNode> = {
@@ -65,10 +70,6 @@ interface BiographyHeroProps {
   isAnonymous?: boolean
   /** 是否顯示追蹤和分享按鈕 */
   showActions?: boolean
-  /** 追蹤回調 */
-  onFollow?: () => void
-  /** 分享回調 */
-  onShare?: () => void
   /** 追蹤者數量變更回調 */
   onFollowerCountChange?: (_count: number) => void
   /** 自訂樣式 */
@@ -82,12 +83,10 @@ interface BiographyHeroProps {
  */
 export function BiographyHero({
   biography,
-  isOwner: _isOwner = false,
+  isOwner = false,
   isAnonymous: isAnonymousProp,
   showActions = true,
-  onFollow,
-  onShare,
-  onFollowerCountChange: _onFollowerCountChange,
+  onFollowerCountChange,
   className,
 }: BiographyHeroProps) {
   // 使用 prop 覆蓋或從 visibility 判斷
@@ -95,6 +94,22 @@ export function BiographyHero({
 
   // 計算攀岩年資
   const climbingYears = biography.climbing_years
+
+  // 按讚數狀態
+  const [likesCount, setLikesCount] = useState(biography.total_likes || 0)
+  // 評論區展開狀態
+  const [showComments, setShowComments] = useState(false)
+  // 評論數狀態
+  const [commentsCount, setCommentsCount] = useState(0)
+  // 追蹤數狀態
+  const [followerCount, setFollowerCount] = useState(biography.follower_count || 0)
+
+  // 處理追蹤狀態變化
+  const handleFollowChange = (isFollowing: boolean) => {
+    const newCount = isFollowing ? followerCount + 1 : Math.max(0, followerCount - 1)
+    setFollowerCount(newCount)
+    onFollowerCountChange?.(newCount)
+  }
 
   return (
     <div className={cn('relative', className)}>
@@ -210,25 +225,82 @@ export function BiographyHero({
             )}
           </div>
 
-          {/* Right: Actions */}
+          {/* Right: Actions & Stats */}
           {showActions && !isAnonymous && (
-            <div className="flex items-center gap-2">
-              <button
-                onClick={onFollow}
-                className="px-4 py-2 rounded-full bg-brand-dark text-white font-medium hover:bg-brand-dark-hover transition-colors"
-              >
-                追蹤
-              </button>
-              <button
-                onClick={onShare}
-                className="p-2 rounded-full border border-[#B6B3B3] text-[#6D6C6C] hover:bg-[#F5F5F5] transition-colors"
-                aria-label="分享"
-              >
-                <Share2 size={20} />
-              </button>
+            <div className="flex flex-col items-end gap-3">
+              {/* 追蹤按鈕 */}
+              {!isOwner && biography.id && (
+                <FollowButton
+                  biographyId={biography.id}
+                  onFollowChange={handleFollowChange}
+                  className="bg-brand-dark text-white hover:bg-brand-dark-hover"
+                />
+              )}
+
+              {/* 社群統計與互動 */}
+              <div className="flex items-center gap-4 text-sm text-[#6D6C6C]">
+                {/* 瀏覽數 */}
+                <div className="flex items-center gap-1.5">
+                  <Eye className="h-4 w-4" />
+                  <span>{biography.total_views || 0}</span>
+                </div>
+
+                {/* 按讚 */}
+                <BiographyLikeButton
+                  biographyId={biography.id}
+                  initialCount={likesCount}
+                  onLikeChange={(_isLiked, count) => setLikesCount(count)}
+                  showCount
+                  className="text-[#6D6C6C] hover:text-emerald-600"
+                />
+
+                {/* 追蹤數 */}
+                <div className="flex items-center gap-1.5">
+                  <Users className="h-4 w-4" />
+                  <span>{followerCount}</span>
+                </div>
+
+                {/* 留言 */}
+                <button
+                  onClick={() => setShowComments(!showComments)}
+                  className="flex items-center gap-1.5 hover:text-brand-dark transition-colors"
+                >
+                  <MessageCircle className="h-4 w-4" />
+                  <span>{commentsCount}</span>
+                </button>
+
+                {/* 分享 */}
+                <ShareButton
+                  title={`${biography.name} 的攀岩人物誌 - NobodyClimb`}
+                  description={biography.title || `來看看 ${biography.name} 的攀岩故事`}
+                  className="text-[#6D6C6C] hover:text-[#3F3D3D]"
+                />
+              </div>
             </div>
           )}
         </div>
+
+        {/* 評論區展開內容 */}
+        {showComments && (
+          <div className="border-t border-[#DBD8D8] pt-6 mt-6">
+            <div className="flex justify-end mb-4">
+              <button
+                onClick={() => setShowComments(false)}
+                className="text-[#6D6C6C] hover:text-[#3F3D3D]"
+              >
+                <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
+            </div>
+            <BiographyCommentSection
+              biographyId={biography.id}
+              defaultOpen={true}
+              isEmbedded={true}
+              onCountChange={setCommentsCount}
+            />
+          </div>
+        )}
       </div>
     </div>
   )
