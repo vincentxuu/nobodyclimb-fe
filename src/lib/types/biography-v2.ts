@@ -411,7 +411,7 @@ export interface BiographyBackend {
   bio: string | null
   avatar_url: string | null
   cover_image: string | null
-  climbing_start_year: number | null
+  climbing_start_year: number | string | null
   frequent_locations: string | null // JSON string
   home_gym: string | null
   visibility: VisibilityLevel | null
@@ -485,9 +485,28 @@ export function transformBackendToBiographyV2(backend: BiographyBackend): Biogra
     )
 
   // 解析其他 JSON 欄位
-  const frequent_locations = safeJsonParse<string[] | null>(backend.frequent_locations, null)
+  // frequent_locations 可能是 JSON 陣列字串或純字串，需要兼容處理
+  let frequent_locations: string[] | null = null
+  if (backend.frequent_locations) {
+    const parsed = safeJsonParse<unknown>(backend.frequent_locations, null)
+    if (Array.isArray(parsed)) {
+      frequent_locations = parsed.filter((item): item is string => typeof item === 'string')
+    } else {
+      // 如果不是 JSON，當作純字串處理，以逗號分隔
+      frequent_locations = backend.frequent_locations
+        .split(/[,、，]/)
+        .map((s) => s.trim())
+        .filter(Boolean)
+    }
+  }
   const gallery_images = safeJsonParse<GalleryImage[] | null>(backend.gallery_images, null)
   const social_links = safeJsonParse<SocialLinks | null>(backend.social_links, null)
+
+  // climbing_start_year 可能是字串或數字，需要解析
+  const startYear =
+    typeof backend.climbing_start_year === 'string'
+      ? parseInt(backend.climbing_start_year, 10)
+      : backend.climbing_start_year
 
   return {
     id: backend.id,
@@ -498,7 +517,8 @@ export function transformBackendToBiographyV2(backend: BiographyBackend): Biogra
     bio: backend.bio,
     avatar_url: backend.avatar_url,
     cover_url: backend.cover_image,
-    climbing_years: backend.climbing_start_year,
+    climbing_years:
+      startYear && !isNaN(startYear) ? new Date().getFullYear() - startYear : null,
     frequent_locations,
     home_gym: backend.home_gym,
     tags,
