@@ -43,21 +43,24 @@ export function HeroSection({ person, followerCount, isOwner, onFollowChange }: 
 
   return (
     <div className="bg-white">
-      {/* 封面圖片區域 */}
-      <div className="relative w-full h-48 md:h-64 lg:h-72 bg-gray-200 overflow-hidden">
-        {person.cover_image ? (
-          <Image
-            src={person.cover_image}
-            alt={`${person.name} 的封面照片`}
-            fill
-            className="object-cover"
-            sizes="100vw"
-            quality={85}
-            priority
-          />
-        ) : (
-          <div className="absolute inset-0 bg-gradient-to-br from-gray-300 to-gray-400" />
-        )}
+      {/* 封面圖片區域 - 限制在內容寬度內，固定比例 */}
+      <div className="container mx-auto max-w-5xl px-4">
+        <div className="relative w-full aspect-[4/1] bg-gray-200 overflow-hidden rounded-b-xl">
+          {person.cover_image ? (
+            <Image
+              src={person.cover_image}
+              alt={`${person.name} 的封面照片`}
+              fill
+              className="object-cover"
+              sizes="(max-width: 768px) 100vw, 1024px"
+              quality={100}
+              priority
+              referrerPolicy="no-referrer"
+            />
+          ) : (
+            <div className="absolute inset-0 bg-gradient-to-br from-gray-300 to-gray-400" />
+          )}
+        </div>
       </div>
 
       {/* 內容區域 */}
