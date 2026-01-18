@@ -10,6 +10,10 @@
     {
       "binding": "VIDEOS",
       "id": "6562f1cc9373496da57aeb48987346f8"
+    },
+    {
+      "binding": "CACHE",
+      "id": "608d1fb3c4424146abe50ab56e246aca"
     }
   ],
   "assets": {
@@ -38,6 +42,10 @@
         {
           "binding": "VIDEOS",
           "id": "6562f1cc9373496da57aeb48987346f8"
+        },
+        {
+          "binding": "CACHE",
+          "id": "608d1fb3c4424146abe50ab56e246aca"
         }
       ],
       "routes": [
@@ -56,6 +64,16 @@
     },
     "preview": {
       "name": "nobodyclimb-fe-preview",
+      "kv_namespaces": [
+        {
+          "binding": "VIDEOS",
+          "id": "6562f1cc9373496da57aeb48987346f8"
+        },
+        {
+          "binding": "CACHE",
+          "id": "396df52e16864a35a3cb7898fcd686e7"
+        }
+      ],
       "vars": {
         "NEXT_PUBLIC_API_URL": "https://api-preview.nobodyclimb.cc/api/v1"
       }

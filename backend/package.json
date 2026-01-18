@@ -18,7 +18,9 @@
     "db:migrate:climbing-locations:preview": "wrangler d1 execute nobodyclimb-db-preview --remote --file=./migrations/0019_migrate_climbing_locations_data.sql --env preview --batch",
     "db:migrate:climbing-locations:production": "wrangler d1 execute nobodyclimb-db --remote --file=./migrations/0019_migrate_climbing_locations_data.sql --env production --batch",
     "db:seed": "wrangler d1 execute nobodyclimb-db --local --file=./src/db/seed.sql --batch",
-    "cf-typegen": "wrangler types"
+    "cf-typegen": "wrangler types",
+    "seed:kv:preview": "./scripts/seed-biography-kv.sh preview",
+    "seed:kv:production": "./scripts/seed-biography-kv.sh production"
   },
   "devDependencies": {
     "@cloudflare/workers-types": "^4.20241205.0",

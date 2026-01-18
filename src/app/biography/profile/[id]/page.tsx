@@ -1,95 +1,66 @@
 import type { Metadata } from 'next'
 import ProfileClient from './ProfileClient'
-import { SITE_URL, SITE_NAME, OG_IMAGE, API_BASE_URL } from '@/lib/constants'
+import { SITE_URL, SITE_NAME, OG_IMAGE } from '@/lib/constants'
 
 // 強制動態渲染，避免快取問題
 export const dynamic = 'force-dynamic'
 
-// 人物資料類型
-interface BiographyData {
+// 人物資料類型（用於 metadata，與後端 KV 快取結構一致）
+interface BiographyMetadata {
   id: string
   name: string
   avatar_url?: string | null
   bio?: string | null
   title?: string | null
   climbing_meaning?: string | null
-  frequent_locations?: string | null
-  climbing_style?: string[]
-  climbing_start_year?: string | null
-  social_links?: {
-    instagram?: string
-    facebook?: string
-    youtube?: string
-  } | null
 }
 
-// API 回應類型
-interface ApiResponse {
-  success: boolean
-  data?: BiographyData
-}
-
-// 獲取人物資料用於 SEO
-async function getBiography(id: string): Promise<BiographyData | null> {
+/**
+ * 從 KV 快取獲取人物誌 metadata
+ * 這是最快的方式，避免 Worker-to-Worker 522 超時問題
+ */
+async function getBiographyFromKV(id: string): Promise<BiographyMetadata | null> {
   try {
-    const res = await fetch(`${API_BASE_URL}/biographies/${id}`, {
-      cache: 'no-store',
-    })
-    if (!res.ok) {
-      console.error(`[getBiography] API returned ${res.status} for id: ${id}`)
+    // 動態載入以避免在非 Cloudflare 環境報錯
+    const { getCloudflareContext } = await import('@opennextjs/cloudflare')
+    const { env } = getCloudflareContext()
+
+    if (!env?.CACHE) {
+      console.warn('[getBiographyFromKV] CACHE KV not available')
       return null
     }
-    const data: ApiResponse = await res.json()
-    if (!data.success || !data.data) {
-      console.error(`[getBiography] API returned success=false for id: ${id}`)
-      return null
+
+    const cacheKey = `bio-meta:${id}`
+    const cached = await env.CACHE.get(cacheKey, 'json')
+
+    if (cached) {
+      return cached as BiographyMetadata
     }
-    return data.data
+
+    return null
   } catch (error) {
-    console.error(`[getBiography] Failed to fetch biography for id: ${id}`, error)
+    // 在本地開發環境會失敗，這是正常的
+    console.warn('[getBiographyFromKV] Failed to access KV:', error)
     return null
   }
 }
 
-// 生成 Person JSON-LD 結構化數據
-function generatePersonJsonLd(person: BiographyData) {
-  const sameAs = []
-  if (person.social_links?.instagram) {
-    sameAs.push(`https://instagram.com/${person.social_links.instagram}`)
-  }
-  if (person.social_links?.facebook) {
-    sameAs.push(person.social_links.facebook)
-  }
-  if (person.social_links?.youtube) {
-    sameAs.push(person.social_links.youtube)
+/**
+ * 獲取人物資料用於 SEO
+ * 優先從 KV 讀取，失敗則 fallback 到通用標題
+ */
+async function getBiographyMetadata(id: string): Promise<BiographyMetadata | null> {
+  // 嘗試從 KV 快取讀取（最快）
+  const kvData = await getBiographyFromKV(id)
+  if (kvData) {
+    return kvData
   }
 
-  return {
-    '@context': 'https://schema.org',
-    '@type': 'Person',
-    '@id': `${SITE_URL}/biography/profile/${person.id}`,
-    name: person.name,
-    description: person.bio,
-    image: person.avatar_url
-      ? (person.avatar_url.startsWith('http') ? person.avatar_url : `${SITE_URL}${person.avatar_url}`)
-      : `${SITE_URL}${OG_IMAGE}`,
-    url: `${SITE_URL}/biography/profile/${person.id}`,
-    // 地點
-    homeLocation: person.frequent_locations ? {
-      '@type': 'Place',
-      name: person.frequent_locations,
-    } : undefined,
-    // 興趣/專長
-    knowsAbout: person.climbing_style || ['攀岩'],
-    // 社群連結
-    sameAs: sameAs.length > 0 ? sameAs : undefined,
-    // 成為會員的組織
-    memberOf: {
-      '@type': 'Organization',
-      name: SITE_NAME,
-      url: SITE_URL,
-    },
-  }
+  // KV 沒有資料時，直接返回 null，使用通用標題
+  // 不再嘗試 API 呼叫，因為容易 522 超時
+  // 頁面內容會由 client-side ProfileClient 正確載入
+  console.warn(`[getBiographyMetadata] KV cache miss for id: ${id}, using fallback title`)
+  return null
 }
 
 // 動態生成 metadata
@@ -99,12 +70,14 @@ export async function generateMetadata({
   params: Promise<{ id: string }>
 }): Promise<Metadata> {
   const { id } = await params
-  const person = await getBiography(id)
+  const person = await getBiographyMetadata(id)
 
   if (!person) {
+    // Server-side fetch 可能因 Worker-to-Worker 522 超時而失敗
+    // 使用通用標題，讓 client-side 正確顯示內容
     return {
-      title: '找不到人物',
-      description: '您要找的人物資料不存在',
+      title: '人物誌 - NobodyClimb',
+      description: '探索攀岩人物的故事',
     }
   }
 
@@ -117,7 +90,7 @@ export async function generateMetadata({
   return {
     title: person.name,
     description,
-    keywords: [person.name, '攀岩人物', '人物誌', '攀岩社群', ...(person.climbing_style || [])],
+    keywords: [person.name, '攀岩人物', '人物誌', '攀岩社群'],
     openGraph: {
       title: `${title} | ${SITE_NAME}`,
       description,
@@ -149,21 +122,7 @@ export default async function ProfilePage({
 }: {
   params: Promise<{ id: string }>
 }) {
-  const { id } = await params
-  const person = await getBiography(id)
-
-  return (
-    <>
-      {/* Person JSON-LD 結構化數據 */}
-      {person && (
-        <script
-          type="application/ld+json"
-          dangerouslySetInnerHTML={{
-            __html: JSON.stringify(generatePersonJsonLd(person)),
-          }}
-        />
-      )}
-      <ProfileClient params={params} />
-    </>
-  )
+  // JSON-LD 結構化數據由 ProfileClient 在客戶端生成
+  // 因為需要完整人物資料，而 KV 只存 metadata
+  return <ProfileClient params={params} />
 }

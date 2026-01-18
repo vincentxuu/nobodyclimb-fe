@@ -50,6 +50,46 @@ function isInternationalLocation(country: string | undefined): boolean {
 
 export const biographiesRoutes = new Hono<{ Bindings: Env }>();
 
+// ═══════════════════════════════════════════════════════════
+// KV 快取 - 用於前端 SSR metadata
+// ═══════════════════════════════════════════════════════════
+
+interface BiographyMetadata {
+  id: string;
+  name: string;
+  avatar_url: string | null;
+  bio: string | null;
+  title: string | null;
+  climbing_meaning: string | null;
+}
+
+/**
+ * 將人物誌 metadata 寫入 KV 快取
+ * 前端 SSR 會讀取此快取以避免 Worker-to-Worker 522 超時
+ */
+async function cacheBiographyMetadata(
+  cache: KVNamespace,
+  biography: BiographyMetadata
+): Promise<void> {
+  const cacheKey = `bio-meta:${biography.id}`;
+  const metadata = {
+    id: biography.id,
+    name: biography.name,
+    avatar_url: biography.avatar_url,
+    bio: biography.bio,
+    title: biography.title,
+    climbing_meaning: biography.climbing_meaning,
+  };
+
+  try {
+    await cache.put(cacheKey, JSON.stringify(metadata), {
+      expirationTtl: 86400 * 7, // 7 天過期
+    });
+  } catch (error) {
+    console.error(`Failed to cache biography metadata for ${biography.id}:`, error);
+  }
+}
+
 // GET /biographies - List all public biographies
 biographiesRoutes.get('/', async (c) => {
   const { page, limit, offset } = parsePagination(
@@ -312,7 +352,19 @@ biographiesRoutes.post('/', authMiddleware, async (c) => {
       'SELECT * FROM biographies WHERE id = ?'
     )
       .bind(existing.id)
-      .first();
+      .first<Biography>();
+
+    // 同步更新 KV 快取
+    if (biography) {
+      await cacheBiographyMetadata(c.env.CACHE, {
+        id: biography.id,
+        name: biography.name,
+        avatar_url: biography.avatar_url || null,
+        bio: biography.bio || null,
+        title: biography.title || null,
+        climbing_meaning: biography.climbing_meaning || null,
+      });
+    }
 
     return c.json({
       success: true,
@@ -359,7 +411,19 @@ biographiesRoutes.post('/', authMiddleware, async (c) => {
     'SELECT * FROM biographies WHERE id = ?'
   )
     .bind(id)
-    .first();
+    .first<Biography>();
+
+  // 同步寫入 KV 快取
+  if (biography) {
+    await cacheBiographyMetadata(c.env.CACHE, {
+      id: biography.id,
+      name: biography.name,
+      avatar_url: biography.avatar_url || null,
+      bio: biography.bio || null,
+      title: biography.title || null,
+      climbing_meaning: biography.climbing_meaning || null,
+    });
+  }
 
   return c.json(
     {
@@ -473,7 +537,19 @@ biographiesRoutes.put('/me', authMiddleware, async (c) => {
     'SELECT * FROM biographies WHERE id = ?'
   )
     .bind(existing.id)
-    .first();
+    .first<Biography>();
+
+  // 同步更新 KV 快取
+  if (biography) {
+    await cacheBiographyMetadata(c.env.CACHE, {
+      id: biography.id,
+      name: biography.name,
+      avatar_url: biography.avatar_url || null,
+      bio: biography.bio || null,
+      title: biography.title || null,
+      climbing_meaning: biography.climbing_meaning || null,
+    });
+  }
 
   return c.json({
     success: true,
