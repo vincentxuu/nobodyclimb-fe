@@ -66,6 +66,30 @@ export async function trackUniqueView(
 }
 
 /**
+ * Track and increment view count for an entity (fire-and-forget style)
+ * Use this when you don't need to return the updated count
+ */
+export async function trackAndIncrementViewCount(
+  db: D1Database,
+  kv: KVNamespace,
+  request: Request,
+  entityType: EntityType,
+  entityId: string
+): Promise<void> {
+  const clientIP = getClientIP(request);
+  const isUniqueView = await trackUniqueView(kv, entityType, entityId, clientIP);
+
+  if (isUniqueView) {
+    const table = TABLE_MAP[entityType];
+    const column = VIEW_COUNT_COLUMN[entityType];
+    await db
+      .prepare(`UPDATE ${table} SET ${column} = COALESCE(${column}, 0) + 1 WHERE id = ?`)
+      .bind(entityId)
+      .run();
+  }
+}
+
+/**
  * Track and update view count for an entity
  * Returns the updated view count to display
  */
