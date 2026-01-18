@@ -8,6 +8,7 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { PageTransition } from '@/components/shared/page-transition'
 import { useToast } from '@/components/ui/use-toast'
+import ImageCropper from '@/components/shared/image-cropper'
 
 interface BasicInfoFormData {
   displayName: string
@@ -40,6 +41,9 @@ export default function BasicInfoPage() {
   })
   const [avatarPreview, setAvatarPreview] = useState<string | null>(null)
   const [isSubmitting, setIsSubmitting] = useState(false)
+  // 裁切器相關狀態
+  const [showCropper, setShowCropper] = useState(false)
+  const [cropperImageSrc, setCropperImageSrc] = useState<string>('')
 
   useEffect(() => {
     // 如果使用者未登入，重定向至登入頁面
@@ -61,18 +65,44 @@ export default function BasicInfoPage() {
     setFormData((prev) => ({ ...prev, [name]: value }))
   }
 
+  // 處理頭像上傳 - 顯示裁切器
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
       const file = e.target.files[0]
-      setFormData((prev) => ({ ...prev, avatar: file }))
 
-      // 建立預覽
+      // 驗證檔案類型
+      if (!file.type.startsWith('image/')) {
+        toast({
+          title: '檔案類型錯誤',
+          description: '請選擇圖片檔案',
+          variant: 'destructive',
+        })
+        return
+      }
+
+      // 讀取檔案並顯示裁切器
       const reader = new FileReader()
-      reader.onload = (event) => {
-        setAvatarPreview((event.target?.result as string) || null)
+      reader.onloadend = () => {
+        setCropperImageSrc(reader.result as string)
+        setShowCropper(true)
       }
       reader.readAsDataURL(file)
+
+      // 清除 input 值以允許重新選擇同一檔案
+      e.target.value = ''
     }
+  }
+
+  // 裁切完成後的處理
+  const handleCropComplete = (croppedFile: File) => {
+    setFormData((prev) => ({ ...prev, avatar: croppedFile }))
+
+    // 預覽裁切後的頭像
+    const reader = new FileReader()
+    reader.onloadend = () => {
+      setAvatarPreview(reader.result as string)
+    }
+    reader.readAsDataURL(croppedFile)
   }
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -263,6 +293,16 @@ export default function BasicInfoPage() {
             </Button>
           </div>
         </form>
+
+        {/* 圖片裁切器 */}
+        <ImageCropper
+          open={showCropper}
+          onClose={() => setShowCropper(false)}
+          imageSrc={cropperImageSrc}
+          onCropComplete={handleCropComplete}
+          aspectRatio={1}
+          title="裁切頭像"
+        />
       </div>
     </PageTransition>
   )

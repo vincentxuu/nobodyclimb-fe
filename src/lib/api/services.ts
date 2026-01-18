@@ -1662,8 +1662,11 @@ export const userService = {
    * 上傳用戶頭像
    */
   uploadAvatar: async (file: File) => {
+    // 壓縮圖片以確保上傳成功
+    const compressedFile = await processImage(file)
+
     const formData = new FormData()
-    formData.append('avatar', file)
+    formData.append('avatar', compressedFile)
     const response = await apiClient.post<ApiResponse<{ url: string }>>(
       '/users/upload-avatar',
       formData,
