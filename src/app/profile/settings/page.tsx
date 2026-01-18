@@ -12,6 +12,7 @@ import {
   getAvatarStyleById,
   DEFAULT_AVATARS,
 } from '@/components/shared/avatar-options'
+import ImageCropper from '@/components/shared/image-cropper'
 import { cn } from '@/lib/utils'
 import { useIsMobile } from '@/lib/hooks/useIsMobile'
 import { useToast } from '@/components/ui/use-toast'
@@ -244,6 +245,9 @@ export default function SettingsPage() {
   const [isLoading, setIsLoading] = useState(true)
   const [isSaving, setIsSaving] = useState(false)
   const [isChangingPassword, setIsChangingPassword] = useState(false)
+  // 裁切器相關狀態
+  const [showCropper, setShowCropper] = useState(false)
+  const [cropperImageSrc, setCropperImageSrc] = useState<string>('')
   const isMobile = useIsMobile()
   const { toast } = useToast()
 
@@ -295,20 +299,51 @@ export default function SettingsPage() {
     }))
   }
 
-  // 處理頭像上傳
+  // 處理頭像上傳 - 顯示裁切器
   const handleAvatarChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
       const file = e.target.files[0]
-      setAvatar(file)
-      setUseDefaultAvatar(false)
 
-      // 預覽頭像
-      const reader = new FileReader()
-      reader.onloadend = () => {
-        setAvatarPreview(reader.result as string)
+      // 驗證檔案類型
+      if (!file.type.startsWith('image/')) {
+        toast({
+          title: '檔案類型錯誤',
+          description: '請選擇圖片檔案',
+          variant: 'destructive',
+        })
+        return
       }
-      reader.readAsDataURL(file)
+
+      // 使用 URL.createObjectURL 以提升性能
+      const objectUrl = URL.createObjectURL(file)
+      setCropperImageSrc(objectUrl)
+      setShowCropper(true)
+
+      // 清除 input 值以允許重新選擇同一檔案
+      e.target.value = ''
     }
+  }
+
+  // 裁切器關閉時清理 blob URL
+  const handleCropperClose = () => {
+    setShowCropper(false)
+    if (cropperImageSrc && cropperImageSrc.startsWith('blob:')) {
+      URL.revokeObjectURL(cropperImageSrc)
+      setCropperImageSrc('')
+    }
+  }
+
+  // 裁切完成後的處理
+  const handleCropComplete = (croppedFile: File) => {
+    setAvatar(croppedFile)
+    setUseDefaultAvatar(false)
+
+    // 釋放舊的預覽 URL
+    if (avatarPreview && avatarPreview.startsWith('blob:')) {
+      URL.revokeObjectURL(avatarPreview)
+    }
+    // 使用 URL.createObjectURL 產生預覽
+    setAvatarPreview(URL.createObjectURL(croppedFile))
   }
 
   // 處理預設頭像選擇
@@ -319,12 +354,20 @@ export default function SettingsPage() {
     }))
     setUseDefaultAvatar(true)
     setAvatar(null)
+    // 釋放舊的預覽 URL
+    if (avatarPreview && avatarPreview.startsWith('blob:')) {
+      URL.revokeObjectURL(avatarPreview)
+    }
     setAvatarPreview(null)
   }
 
   // 移除頭像
   const handleRemoveAvatar = () => {
     setAvatar(null)
+    // 釋放舊的預覽 URL
+    if (avatarPreview && avatarPreview.startsWith('blob:')) {
+      URL.revokeObjectURL(avatarPreview)
+    }
     setAvatarPreview(null)
     setUseDefaultAvatar(true)
   }
@@ -580,6 +623,16 @@ export default function SettingsPage() {
           </div>
         )}
       </div>
+
+      {/* 圖片裁切器 */}
+      <ImageCropper
+        open={showCropper}
+        onClose={handleCropperClose}
+        imageSrc={cropperImageSrc}
+        onCropComplete={handleCropComplete}
+        aspectRatio={1}
+        title="裁切頭像"
+      />
     </ProfilePageLayout>
   )
 }
