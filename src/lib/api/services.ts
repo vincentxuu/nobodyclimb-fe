@@ -734,8 +734,7 @@ export const biographyService = {
     if (!response.data.success || !response.data.data) {
       return { success: true, data: null }
     }
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const bioV2 = transformBackendToBiographyV2(response.data.data as any)
+    const bioV2 = transformBackendToBiographyV2(response.data.data as unknown as import('@/lib/types/biography-v2').BiographyBackend)
     return { success: true, data: bioV2 }
   },
 
