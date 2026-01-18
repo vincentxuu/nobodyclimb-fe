@@ -1,17 +1,13 @@
 import Image from 'next/image'
 import { User } from 'lucide-react'
 import { cn } from '@/lib/utils'
+import { isSvgUrl } from '@/lib/utils/image'
 
 interface AvatarImageProps {
   avatarUrl: string | null | undefined
   altText: string
   iconSize?: number
   containerClassName?: string
-}
-
-// 檢查是否為 SVG 或 dicebear URL（不需要 Next.js 圖片優化）
-function shouldSkipOptimization(url: string): boolean {
-  return url.includes('dicebear.com') || url.endsWith('.svg')
 }
 
 export function AvatarImage({
@@ -23,7 +19,7 @@ export function AvatarImage({
   return (
     <div className={cn('relative overflow-hidden', containerClassName)}>
       {avatarUrl ? (
-        shouldSkipOptimization(avatarUrl) ? (
+        isSvgUrl(avatarUrl) ? (
           // SVG 或 dicebear 使用原生 img 標籤，避免 Next.js 優化導致 400 錯誤
           <img
             src={avatarUrl}

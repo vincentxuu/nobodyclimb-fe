@@ -5,6 +5,7 @@ import { StatCard, BarChart } from './progress-chart'
 import type { CommunityStats, LeaderboardItem } from '@/lib/types'
 import { Users, Target, BookOpen, Activity, Trophy, TrendingUp } from 'lucide-react'
 import Image from 'next/image'
+import { isSvgUrl } from '@/lib/utils/image'
 
 interface CommunityStatsOverviewProps {
   stats: CommunityStats
@@ -180,13 +181,17 @@ export function Leaderboard({ title, items, valueLabel = '分數', className }: 
             {/* 頭像 */}
             <div className="w-10 h-10 rounded-full bg-gray-200 overflow-hidden">
               {item.avatar_url ? (
-                <Image
-                  src={item.avatar_url}
-                  alt={item.name}
-                  width={40}
-                  height={40}
-                  className="w-full h-full object-cover"
-                />
+                isSvgUrl(item.avatar_url) ? (
+                  <img src={item.avatar_url} alt={item.name} className="w-full h-full object-cover" />
+                ) : (
+                  <Image
+                    src={item.avatar_url}
+                    alt={item.name}
+                    width={40}
+                    height={40}
+                    className="w-full h-full object-cover"
+                  />
+                )
               ) : (
                 <div className="w-full h-full flex items-center justify-center text-gray-400">
                   {item.name.charAt(0)}

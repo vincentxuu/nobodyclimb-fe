@@ -5,6 +5,7 @@ import Image from 'next/image'
 import { motion } from 'framer-motion'
 import { Eye, Users, MessageCircle, User } from 'lucide-react'
 import { Biography, BiographySocialLinks } from '@/lib/types'
+import { isSvgUrl } from '@/lib/utils/image'
 import { FollowButton } from '../follow-button'
 import { CompactSocialLinks } from '../social-links'
 import { BiographyLikeButton } from '../biography-like-button'
@@ -54,14 +55,18 @@ export function HeroSection({ person, followerCount, isOwner, onFollowChange }: 
             {/* 頭像 */}
             <div className="relative h-20 w-20 flex-shrink-0 overflow-hidden rounded-full border-2 border-gray-200 bg-gray-100 md:h-24 md:w-24">
               {person.avatar_url ? (
-                <Image
-                  src={person.avatar_url}
-                  alt={`${person.name} 的頭像`}
-                  fill
-                  className="object-cover"
-                  sizes="96px"
-                  priority
-                />
+                isSvgUrl(person.avatar_url) ? (
+                  <img src={person.avatar_url} alt={`${person.name} 的頭像`} className="h-full w-full object-cover" />
+                ) : (
+                  <Image
+                    src={person.avatar_url}
+                    alt={`${person.name} 的頭像`}
+                    fill
+                    className="object-cover"
+                    sizes="96px"
+                    priority
+                  />
+                )
               ) : (
                 <div className="flex h-full w-full items-center justify-center text-gray-400">
                   <User className="h-10 w-10 md:h-12 md:w-12" />

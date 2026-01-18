@@ -9,6 +9,7 @@ import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
 import { biographyService } from '@/lib/api/services'
 import { Biography } from '@/lib/types'
+import { isSvgUrl } from '@/lib/utils/image'
 
 function ClimberCard({ person }: { person: Biography }) {
   const climbingYears = person.climbing_start_year
@@ -41,13 +42,17 @@ function ClimberCard({ person }: { person: Biography }) {
               <div className="flex items-center gap-3">
                 <div className="relative h-10 w-10 flex-shrink-0 overflow-hidden rounded-full bg-gray-100">
                   {person.avatar_url ? (
-                    <Image
-                      src={person.avatar_url}
-                      alt={person.name}
-                      fill
-                      className="object-cover"
-                      sizes="40px"
-                    />
+                    isSvgUrl(person.avatar_url) ? (
+                      <img src={person.avatar_url} alt={person.name} className="h-full w-full object-cover" />
+                    ) : (
+                      <Image
+                        src={person.avatar_url}
+                        alt={person.name}
+                        fill
+                        className="object-cover"
+                        sizes="40px"
+                      />
+                    )
                   ) : (
                     <div className="flex h-full w-full items-center justify-center">
                       <User size={20} className="text-gray-400" />
