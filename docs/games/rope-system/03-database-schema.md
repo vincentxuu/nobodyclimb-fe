@@ -9,87 +9,87 @@
 ## ER 關聯圖
 
 ```
-┌─────────────────┐       ┌─────────────────┐
-│   categories    │       │     users       │
-│─────────────────│       │─────────────────│
-│ id (PK)         │       │ id (PK)         │
-│ type            │       │ ...             │
-│ name            │       └────────┬────────┘
-│ description     │                │
-│ icon            │                │
-│ order_index     │                │
-└────────┬────────┘                │
-         │                         │
-         │ 1:N                     │
-         ▼                         │
-┌─────────────────┐                │
-│    questions    │                │
-│─────────────────│                │
-│ id (PK)         │                │
-│ category_id(FK) │                │
-│ type            │                │
-│ difficulty      │                │
-│ scenario        │                │
-│ question        │                │
-│ options (JSON)  │                │
-│ correct_answer  │                │
-│ explanation     │                │
-│ image_url       │                │
-│ animation_url   │                │
-│ is_active       │                │
-└────────┬────────┘                │
-         │                         │
-         │ N:M                     │
-         ▼                         │
-┌─────────────────┐                │
-│  exam_questions │                │
-│─────────────────│                │
-│ exam_id (FK)    │                │
-│ question_id(FK) │                │
-│ order_index     │                │
-└────────┬────────┘                │
-         │                         │
-         │ N:1                     │
-         ▼                         │
-┌─────────────────┐                │
-│     exams       │                │
-│─────────────────│                │
-│ id (PK)         │                │
-│ gym_id (FK)     │◄───────────────┤
-│ name            │                │
-│ description     │                │
-│ time_limit      │                │
-│ pass_score      │                │
-│ is_published    │                │
-└────────┬────────┘                │
-         │                         │
-         │ 1:N                     │
-         ▼                         │
-┌─────────────────┐                │
-│    attempts     │                │
-│─────────────────│                │
-│ id (PK)         │                │
-│ user_id (FK)    │◄───────────────┤
-│ exam_id (FK)    │                │
-│ category_id(FK) │                │
-│ mode            │                │
-│ score           │                │
-│ total_questions │                │
-│ correct_count   │                │
-│ answers (JSON)  │                │
-│ started_at      │                │
-│ completed_at    │                │
-└────────┬────────┘                │
-         │                         │
-         │                         │
-         ▼                         │
-┌─────────────────┐                │
-│ certifications  │                │
-│─────────────────│                │
-│ id (PK)         │                │
-│ user_id (FK)    │◄───────────────┘
-│ level           │
-│ gym_id (FK)     │
+┌─────────────────┐       ┌─────────────────┐       ┌─────────────────┐
+│   categories    │       │     users       │       │      gyms       │
+│─────────────────│       │─────────────────│       │─────────────────│
+│ id (PK)         │       │ id (PK)         │       │ id (PK)         │
+│ type            │       │ ...             │       │ name            │
+│ name            │       └────────┬────────┘       │ slug            │
+│ description     │                │                │ logo_url        │
+│ icon            │                │                │ is_active       │
+│ order_index     │                │                └────────┬────────┘
+└────────┬────────┘                │                         │
+         │                         │                         │
+         │ 1:N                     │                         │
+         ▼                         │                         │
+┌─────────────────┐                │                         │
+│    questions    │                │                         │
+│─────────────────│                │                         │
+│ id (PK)         │                │                         │
+│ category_id(FK) │                │                         │
+│ type            │                │                         │
+│ difficulty      │                │                         │
+│ scenario        │                │                         │
+│ question        │                │                         │
+│ options (JSON)  │                │                         │
+│ correct_answer  │                │                         │
+│ explanation     │                │                         │
+│ reference_sources│                │                         │
+│ image_url       │                │                         │
+│ is_active       │                │                         │
+└────────┬────────┘                │                         │
+         │                         │                         │
+         │ N:M                     │                         │
+         ▼                         │                         │
+┌─────────────────┐                │                         │
+│  exam_questions │                │                         │
+│─────────────────│                │                         │
+│ exam_id (FK)    │                │                         │
+│ question_id(FK) │                │                         │
+│ order_index     │                │                         │
+└────────┬────────┘                │                         │
+         │                         │                         │
+         │ N:1                     │                         │
+         ▼                         │                         │
+┌─────────────────┐                │                         │
+│     exams       │                │                         │
+│─────────────────│                │                         │
+│ id (PK)         │                │                         │
+│ gym_id (FK)     │◄───────────────┼─────────────────────────┤
+│ name            │                │                         │
+│ description     │                │                         │
+│ time_limit      │                │                         │
+│ pass_score      │                │                         │
+│ is_published    │                │                         │
+└────────┬────────┘                │                         │
+         │                         │                         │
+         │ 1:N                     │                         │
+         ▼                         │                         │
+┌─────────────────┐                │                         │
+│    attempts     │                │                         │
+│─────────────────│                │                         │
+│ id (PK)         │                │                         │
+│ user_id (FK)    │◄───────────────┤                         │
+│ exam_id (FK)    │                │                         │
+│ category_id(FK) │                │                         │
+│ mode            │                │                         │
+│ score           │                │                         │
+│ total_questions │                │                         │
+│ correct_count   │                │                         │
+│ answers (JSON)  │                │                         │
+│ started_at      │                │                         │
+│ completed_at    │                │                         │
+└────────┬────────┘                │                         │
+         │                         │                         │
+         │                         │                         │
+         ▼                         │                         │
+┌─────────────────┐                │                         │
+│ certifications  │                │                         │
+│─────────────────│                │                         │
+│ id (PK)         │                │                         │
+│ user_id (FK)    │◄───────────────┘                         │
+│ level           │                                          │
+│ gym_id (FK)     │◄─────────────────────────────────────────┘
 │ attempt_id (FK) │
 │ issued_at       │
 │ expires_at      │
@@ -196,6 +196,7 @@ CREATE TABLE game_questions (
     correct_answer TEXT NOT NULL,  -- 單一值或 JSON array（排序題）
     explanation TEXT,
     hint TEXT,
+    reference_sources TEXT,  -- JSON array: 參考來源
     image_url TEXT,
     animation_url TEXT,
     tags TEXT,  -- JSON array
@@ -226,6 +227,7 @@ CREATE INDEX idx_game_questions_active ON game_questions(is_active);
 | correct_answer | TEXT | 正確答案 |
 | explanation | TEXT | 答案解釋 |
 | hint | TEXT | 提示（學習模式用） |
+| reference_sources | TEXT | 參考來源（JSON 格式） |
 | image_url | TEXT | 題目圖片 |
 | animation_url | TEXT | 操作動畫 |
 | tags | TEXT | 標籤（JSON 格式） |
@@ -535,6 +537,20 @@ LIMIT 20;
 ```sql
 -- migrations/0001_create_game_tables.sql
 
+-- 岩館表（若尚未存在）
+CREATE TABLE IF NOT EXISTS gyms (
+    id TEXT PRIMARY KEY,
+    name TEXT NOT NULL,
+    slug TEXT UNIQUE,
+    logo_url TEXT,
+    is_active INTEGER NOT NULL DEFAULT 1,
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE INDEX IF NOT EXISTS idx_gyms_slug ON gyms(slug);
+CREATE INDEX IF NOT EXISTS idx_gyms_active ON gyms(is_active);
+
 -- 類別表
 CREATE TABLE IF NOT EXISTS game_categories (
     id TEXT PRIMARY KEY,
@@ -561,6 +577,7 @@ CREATE TABLE IF NOT EXISTS game_questions (
     correct_answer TEXT NOT NULL,
     explanation TEXT,
     hint TEXT,
+    reference_sources TEXT,  -- JSON array: 參考來源
     image_url TEXT,
     animation_url TEXT,
     tags TEXT,

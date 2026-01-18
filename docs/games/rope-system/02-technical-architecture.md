@@ -282,6 +282,124 @@ GET  /api/v1/games/rope-system/user/certifications
      回傳使用者認證列表
 ```
 
+### 岩館後台 API（需管理員權限）
+
+> 所有後台 API 需要 JWT 認證且用戶需有岩館管理員權限。
+
+#### 題目管理
+
+```
+GET    /api/v1/admin/games/rope-system/questions
+       取得題目列表
+       Query: ?category=sport-belay&page=1&limit=20&search=確保
+
+GET    /api/v1/admin/games/rope-system/questions/:id
+       取得單一題目詳情
+
+POST   /api/v1/admin/games/rope-system/questions
+       新增題目
+       Body: {
+         category_id: string,
+         type: 'choice' | 'ordering' | 'situation',
+         difficulty: 1 | 2 | 3,
+         scenario?: string,
+         question: string,
+         options: { id: string, text: string, image?: string }[],
+         correct_answer: string | string[],
+         explanation?: string,
+         hint?: string,
+         reference_sources?: string[],
+         image_url?: string,
+         tags?: string[]
+       }
+
+PUT    /api/v1/admin/games/rope-system/questions/:id
+       更新題目
+
+DELETE /api/v1/admin/games/rope-system/questions/:id
+       刪除題目（軟刪除，設為 is_active = 0）
+
+POST   /api/v1/admin/games/rope-system/questions/:id/toggle
+       啟用/停用題目
+```
+
+#### 考卷管理
+
+```
+GET    /api/v1/admin/games/rope-system/exams
+       取得考卷列表（限該岩館）
+
+GET    /api/v1/admin/games/rope-system/exams/:id
+       取得考卷詳情
+
+POST   /api/v1/admin/games/rope-system/exams
+       新增考卷
+       Body: {
+         name: string,
+         description?: string,
+         category_ids?: string[],
+         question_count: number,
+         time_limit?: number,
+         pass_score: number,
+         randomize_questions?: boolean,
+         randomize_options?: boolean,
+         question_ids?: string[]  // 指定題目
+       }
+
+PUT    /api/v1/admin/games/rope-system/exams/:id
+       更新考卷
+
+DELETE /api/v1/admin/games/rope-system/exams/:id
+       刪除考卷
+
+POST   /api/v1/admin/games/rope-system/exams/:id/publish
+       發布/下架考卷
+```
+
+#### 學員管理
+
+```
+GET    /api/v1/admin/games/rope-system/students
+       取得學員列表（限該岩館會員）
+       Query: ?search=name&certification_level=2
+
+GET    /api/v1/admin/games/rope-system/students/:userId/attempts
+       取得學員作答紀錄
+
+GET    /api/v1/admin/games/rope-system/students/:userId/certifications
+       取得學員認證狀態
+
+POST   /api/v1/admin/games/rope-system/certifications
+       手動發放認證
+       Body: {
+         user_id: string,
+         level: 1-5,
+         expires_at?: string
+       }
+
+DELETE /api/v1/admin/games/rope-system/certifications/:id
+       撤銷認證
+       Body: { reason: string }
+```
+
+#### 數據分析
+
+```
+GET    /api/v1/admin/games/rope-system/analytics/questions
+       取得題目答對率統計
+       Query: ?category=sport-belay&sort=correct_rate&order=asc
+
+GET    /api/v1/admin/games/rope-system/analytics/exams
+       取得考試統計（通過率、平均分數）
+
+GET    /api/v1/admin/games/rope-system/analytics/categories
+       取得各類別學習統計
+
+GET    /api/v1/admin/games/rope-system/analytics/export
+       匯出成績報表（CSV）
+       Query: ?start_date=2024-01-01&end_date=2024-12-31
+```
+
 ---
 
 ## 音效系統
