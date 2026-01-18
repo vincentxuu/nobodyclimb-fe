@@ -5,11 +5,7 @@ import { StatCard, BarChart } from './progress-chart'
 import type { CommunityStats, LeaderboardItem } from '@/lib/types'
 import { Users, Target, BookOpen, Activity, Trophy, TrendingUp } from 'lucide-react'
 import Image from 'next/image'
-
-// 檢查是否為 SVG 或 dicebear URL
-function isSvgUrl(url: string): boolean {
-  return url.includes('dicebear.com') || url.endsWith('.svg')
-}
+import { isSvgUrl } from '@/lib/utils/image'
 
 interface CommunityStatsOverviewProps {
   stats: CommunityStats

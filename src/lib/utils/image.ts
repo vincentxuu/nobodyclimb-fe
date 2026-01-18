@@ -1,9 +1,18 @@
 /**
- * 圖片壓縮工具
+ * 圖片工具函式
  */
 
 const MAX_FILE_SIZE = 500 * 1024 // 500KB
 const ALLOWED_TYPES = ['image/jpeg', 'image/png', 'image/webp', 'image/gif']
+
+/**
+ * 檢查是否為 SVG 或 DiceBear URL（不需要 Next.js 圖片優化）
+ * @param url 圖片 URL
+ * @returns 是否應跳過 Next.js Image 優化
+ */
+export function isSvgUrl(url: string): boolean {
+  return url.includes('dicebear.com') || url.endsWith('.svg')
+}
 
 /**
  * 驗證圖片檔案類型

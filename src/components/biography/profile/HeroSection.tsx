@@ -5,16 +5,12 @@ import Image from 'next/image'
 import { motion } from 'framer-motion'
 import { Eye, Users, MessageCircle, User } from 'lucide-react'
 import { Biography, BiographySocialLinks } from '@/lib/types'
+import { isSvgUrl } from '@/lib/utils/image'
 import { FollowButton } from '../follow-button'
 import { CompactSocialLinks } from '../social-links'
 import { BiographyLikeButton } from '../biography-like-button'
 import { ShareButton } from '@/components/shared/share-button'
 import { BiographyCommentSection } from '../biography-comment-section'
-
-// 檢查是否為 SVG 或 dicebear URL
-function isSvgUrl(url: string): boolean {
-  return url.includes('dicebear.com') || url.endsWith('.svg')
-}
 
 interface HeroSectionProps {
   person: Biography
