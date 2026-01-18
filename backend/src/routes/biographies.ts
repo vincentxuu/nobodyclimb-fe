@@ -26,6 +26,19 @@ const ADVANCED_STORY_FIELDS = [
 /** 所有故事欄位 */
 const ALL_STORY_FIELDS = [...CORE_STORY_FIELDS, ...ADVANCED_STORY_FIELDS] as const;
 
+/** BiographyV2 新欄位 */
+const V2_FIELDS = [
+  'visibility',
+  'tags_data',
+  'one_liners_data',
+  'stories_data',
+  'basic_info_data',
+  'autosave_at',
+] as const;
+
+/** Visibility 等級 */
+type VisibilityLevel = 'private' | 'anonymous' | 'community' | 'public';
+
 /** 台灣地區名稱（用於判斷是否為國際地點） */
 const LOCAL_COUNTRY_NAMES = ['台灣', '臺灣', 'taiwan'];
 
@@ -46,7 +59,8 @@ biographiesRoutes.get('/', async (c) => {
   const featured = c.req.query('featured');
   const search = c.req.query('search');
 
-  let whereClause = 'is_public = 1';
+  // Support both old is_public and new visibility system
+  let whereClause = "(is_public = 1 OR visibility = 'public')";
   const params: (string | number)[] = [];
 
   if (featured === 'true') {
@@ -222,7 +236,7 @@ biographiesRoutes.post('/', authMiddleware, async (c) => {
     const updates: string[] = [];
     const values: (string | number | null)[] = [];
 
-    // All biography fields including new advanced story fields
+    // All biography fields including new advanced story fields and V2 fields
     const fields = [
       // Basic info
       'name', 'title', 'bio', 'avatar_url', 'cover_image',
@@ -251,6 +265,8 @@ biographiesRoutes.post('/', authMiddleware, async (c) => {
       'gallery_images', 'social_links', 'youtube_channel_id', 'featured_video_id',
       // Status
       'achievements', 'is_featured', 'is_public',
+      // V2 Fields
+      'visibility', 'tags_data', 'one_liners_data', 'stories_data', 'basic_info_data',
     ];
 
     for (const field of fields) {
@@ -379,7 +395,7 @@ biographiesRoutes.put('/me', authMiddleware, async (c) => {
   const updates: string[] = [];
   const values: (string | number | null)[] = [];
 
-  // All biography fields including new advanced story fields
+  // All biography fields including new advanced story fields and V2 fields
   const fields = [
     // Basic info
     'name', 'title', 'bio', 'avatar_url', 'cover_image',
@@ -408,6 +424,8 @@ biographiesRoutes.put('/me', authMiddleware, async (c) => {
     'gallery_images', 'social_links', 'youtube_channel_id', 'featured_video_id',
     // Status
     'achievements', 'is_public',
+    // V2 Fields
+    'visibility', 'tags_data', 'one_liners_data', 'stories_data', 'basic_info_data',
   ];
 
   for (const field of fields) {
@@ -424,8 +442,18 @@ biographiesRoutes.put('/me', authMiddleware, async (c) => {
     values.push(newSlug);
   }
 
+  // Handle visibility change - sync with is_public
+  if (body.visibility) {
+    const visibilityPublic = body.visibility === 'public' ? 1 : 0;
+    if (body.is_public === undefined) {
+      updates.push('is_public = ?');
+      values.push(visibilityPublic);
+    }
+  }
+
   // Set published_at when going public for first time
-  if (body.is_public === 1 && !existing.published_at && Number(existing.is_public) !== 1) {
+  const goingPublic = body.is_public === 1 || body.visibility === 'public';
+  if (goingPublic && !existing.published_at && Number(existing.is_public) !== 1) {
     updates.push('published_at = ?');
     values.push(new Date().toISOString());
   }
@@ -450,6 +478,67 @@ biographiesRoutes.put('/me', authMiddleware, async (c) => {
   return c.json({
     success: true,
     data: biography,
+  });
+});
+
+// PUT /biographies/me/autosave - Autosave current user's biography
+biographiesRoutes.put('/me/autosave', authMiddleware, async (c) => {
+  const userId = c.get('userId');
+  const body = await c.req.json<Partial<Biography>>();
+
+  const existing = await c.env.DB.prepare(
+    'SELECT id FROM biographies WHERE user_id = ?'
+  )
+    .bind(userId)
+    .first<{ id: string }>();
+
+  if (!existing) {
+    return c.json(
+      {
+        success: false,
+        error: 'Not Found',
+        message: 'Biography not found. Create one first.',
+      },
+      404
+    );
+  }
+
+  const updates: string[] = [];
+  const values: (string | number | null)[] = [];
+
+  // Autosave only accepts V2 JSON fields to avoid accidental overwrites
+  const autosaveFields = [
+    'tags_data',
+    'one_liners_data',
+    'stories_data',
+    'basic_info_data',
+  ];
+
+  for (const field of autosaveFields) {
+    if (body[field as keyof Biography] !== undefined) {
+      updates.push(`${field} = ?`);
+      // Stringify if object, otherwise use as-is
+      const value = body[field as keyof Biography];
+      values.push(typeof value === 'object' ? JSON.stringify(value) : value as string);
+    }
+  }
+
+  if (updates.length > 0) {
+    updates.push("autosave_at = datetime('now')");
+    values.push(existing.id);
+
+    await c.env.DB.prepare(
+      `UPDATE biographies SET ${updates.join(', ')} WHERE id = ?`
+    )
+      .bind(...values)
+      .run();
+  }
+
+  return c.json({
+    success: true,
+    data: {
+      autosave_at: new Date().toISOString(),
+    },
   });
 });
 

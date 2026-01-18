@@ -694,6 +694,23 @@ export const biographyService = {
   },
 
   /**
+   * 自動儲存人物誌（V2 JSON 欄位）
+   * 用於編輯器的即時自動儲存，只更新 tags_data, one_liners_data, stories_data, basic_info_data
+   */
+  autosave: async (data: {
+    tags_data?: string
+    one_liners_data?: string
+    stories_data?: string
+    basic_info_data?: string
+  }) => {
+    const response = await apiClient.put<ApiResponse<{ autosave_at: string }>>(
+      '/biographies/me/autosave',
+      data
+    )
+    return response.data
+  },
+
+  /**
    * 刪除個人人物誌
    */
   deleteMyBiography: async () => {
