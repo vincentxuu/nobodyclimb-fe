@@ -266,7 +266,7 @@ biographiesRoutes.post('/', authMiddleware, async (c) => {
       // Status
       'achievements', 'is_featured', 'is_public',
       // V2 Fields
-      'visibility', 'tags_data', 'one_liners_data', 'stories_data', 'basic_info_data',
+      ...V2_FIELDS.filter(f => f !== 'autosave_at'),
     ];
 
     for (const field of fields) {
