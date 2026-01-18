@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useCallback, useRef } from 'react'
 import { cn } from '@/lib/utils'
-import { User, Tag, MessageCircle, BookOpen, Globe, Link } from 'lucide-react'
+import { User, Tag, MessageCircle, BookOpen, Globe } from 'lucide-react'
 import type {
   BiographyV2,
   TagDimension,
@@ -19,7 +19,6 @@ import { StoriesSection } from './StoriesSection'
 import { StoryEditModal } from './StoryEditModal'
 import { FixedBottomBar, BottomBarSpacer } from './FixedBottomBar'
 import { AutoSaveIndicator, useSaveStatus } from '../shared/AutoSaveIndicator'
-import { SocialLinksEditorSection } from './SocialLinksEditorSection'
 import { ClimbingFootprintsEditorSection } from './ClimbingFootprintsEditorSection'
 
 interface ProfileEditorProps {
@@ -148,12 +147,6 @@ export function ProfileEditor({
       icon: Globe,
       isCompleted: false, // Will be updated by ClimbingFootprintsEditorSection
     },
-    {
-      id: 'social',
-      label: '社群連結',
-      icon: Link,
-      isCompleted: !!(biography.social_links?.instagram || biography.social_links?.youtube),
-    },
   ]
 
   const overallProgress = Math.round(
@@ -229,12 +222,15 @@ export function ProfileEditor({
                   const url = URL.createObjectURL(file)
                   handleChange({ cover_url: url })
                 }}
-                climbingYears={biography.climbing_years}
-                onClimbingYearsChange={(years) =>
-                  handleChange({ climbing_years: years })
-                }
+                climbingStartYear={biography.climbing_start_year}
+                onClimbingStartYearChange={(year) => {
+                  const climbingYears = year ? new Date().getFullYear() - year : null
+                  handleChange({ climbing_start_year: year, climbing_years: climbingYears })
+                }}
                 homeGym={biography.home_gym}
                 onHomeGymChange={(gym) => handleChange({ home_gym: gym })}
+                socialLinks={biography.social_links || {}}
+                onSocialLinksChange={(socialLinks) => handleChange({ social_links: socialLinks })}
               />
             </section>
 
@@ -332,18 +328,6 @@ export function ProfileEditor({
               className="bg-white rounded-xl p-4 md:p-6"
             >
               <ClimbingFootprintsEditorSection />
-            </section>
-
-            {/* Social Links */}
-            <section
-              id="social"
-              ref={(el) => { sectionRefs.current['social'] = el }}
-              className="bg-white rounded-xl p-4 md:p-6"
-            >
-              <SocialLinksEditorSection
-                socialLinks={biography.social_links || {}}
-                onSocialLinksChange={(socialLinks) => handleChange({ social_links: socialLinks })}
-              />
             </section>
           </main>
         </div>
