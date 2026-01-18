@@ -2,7 +2,6 @@
 
 import React, { useState, useEffect } from 'react'
 import Link from 'next/link'
-import { motion } from 'framer-motion'
 import { MapPin, Filter, Loader2, Star } from 'lucide-react'
 import BackToTop from '@/components/ui/back-to-top'
 import PlaceholderImage from '@/components/ui/placeholder-image'
@@ -28,6 +27,44 @@ const regions = [
 
 // 攀岩館類型篩選選項
 const gymTypes = ['所有類型', '上攀', '抱石']
+
+// 岩館卡片組件（使用 CSS 動畫）
+function GymCard({ gym }: { gym: GymListItem }) {
+  return (
+    <div className="overflow-hidden rounded-lg bg-white shadow-sm transition-all duration-300 hover:-translate-y-1 hover:shadow-md">
+      <Link href={`/gym/${gym.id}`}>
+        <div className="relative h-48 w-full bg-gray-100">
+          <PlaceholderImage text={gym.name} bgColor="#f8fafc" textColor="#64748b" />
+        </div>
+        <div className="p-4">
+          <div className="mb-2">
+            <h3 className="text-base font-bold text-gray-900">{gym.name}</h3>
+            {gym.nameEn && gym.nameEn !== gym.name && (
+              <p className="text-sm text-gray-500">{gym.nameEn}</p>
+            )}
+          </div>
+
+          <div className="mb-2 flex items-center">
+            <MapPin size={14} className="mr-1 text-gray-400" />
+            <span className="text-sm text-gray-600">{gym.location}</span>
+          </div>
+
+          <div className="flex items-center justify-between">
+            <span className="rounded bg-gray-100 px-2 py-1 text-xs text-gray-600">
+              {gym.typeLabel}
+            </span>
+            {gym.rating > 0 && (
+              <span className="flex items-center gap-1 text-sm text-yellow-500">
+                <Star size={14} fill="currentColor" />
+                {gym.rating.toFixed(1)}
+              </span>
+            )}
+          </div>
+        </div>
+      </Link>
+    </div>
+  )
+}
 
 export default function GymListPage() {
   const [selectedRegion, setSelectedRegion] = useState('所有地區')
@@ -148,56 +185,9 @@ export default function GymListPage() {
             {/* 攀岩館列表 */}
             <div className="mb-8 grid grid-cols-1 gap-5 md:grid-cols-2 lg:grid-cols-3">
               {gyms.map((gym) => (
-                <motion.div
-                  key={gym.id}
-                  className="overflow-hidden rounded-lg bg-white shadow-sm transition-shadow hover:shadow"
-                  whileHover={{ y: -3 }}
-                  initial={{ opacity: 0, y: 15 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ duration: 0.3 }}
-                >
-                  <Link href={`/gym/${gym.id}`}>
-                    <div className="relative h-48 w-full bg-gray-100">
-                      <PlaceholderImage text={gym.name} bgColor="#f8fafc" textColor="#64748b" />
-                    </div>
-                    <div className="p-4">
-                      <div className="mb-2">
-                        <h3 className="text-base font-bold text-gray-900">{gym.name}</h3>
-                        {gym.nameEn && gym.nameEn !== gym.name && (
-                          <p className="text-sm text-gray-500">{gym.nameEn}</p>
-                        )}
-                      </div>
-
-                      <div className="mb-2 flex items-center">
-                        <MapPin size={14} className="mr-1 text-gray-400" />
-                        <span className="text-sm text-gray-600">{gym.location}</span>
-                      </div>
-
-                      <div className="flex items-center justify-between">
-                        <span className="rounded bg-gray-100 px-2 py-1 text-xs text-gray-600">
-                          {gym.typeLabel}
-                        </span>
-                        {gym.rating > 0 && (
-                          <span className="flex items-center gap-1 text-sm text-yellow-500">
-                            <Star size={14} fill="currentColor" />
-                            {gym.rating.toFixed(1)}
-                          </span>
-                        )}
-                      </div>
-                    </div>
-                  </Link>
-                </motion.div>
+                <GymCard key={gym.id} gym={gym} />
               ))}
             </div>
-
-            {/* 查看更多按鈕 */}
-            {gyms.length > 0 && (
-              <div className="mb-8 mt-6 flex justify-center">
-                <button className="rounded-md border border-black px-8 py-2.5 text-sm font-medium text-black transition hover:bg-gray-50">
-                  看更多
-                </button>
-              </div>
-            )}
 
             {/* 無結果提示 */}
             {gyms.length === 0 && (

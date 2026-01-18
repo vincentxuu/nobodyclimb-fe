@@ -61,7 +61,6 @@ export function HeroSection({ person, followerCount, isOwner, onFollowChange }: 
                   className="object-cover"
                   sizes="96px"
                   priority
-                  unoptimized
                 />
               ) : (
                 <div className="flex h-full w-full items-center justify-center text-gray-400">
