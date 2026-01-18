@@ -288,7 +288,7 @@
 | 攀岩種類完整介紹 | `01-climbing-types.md` | 了解岩館內的攀登類型 |
 | 攀岩術語大全 | `03-climbing-glossary.md` | 聽懂岩館內的交流 |
 | 台北岩館推薦 | `../gyms/taipei-gyms.md` | 台北地區岩館介紹 |
-| 攀岩裝備入門 | `../gear/01-beginner-gear.md` | 購買第一雙岩鞋 |
+| 攀岩裝備入門 | `../gear/01-gear-basics.md` | 購買第一雙岩鞋 |
 
 ---
 

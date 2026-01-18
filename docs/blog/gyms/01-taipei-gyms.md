@@ -185,7 +185,7 @@
 
 ### 延伸閱讀
 - [攀岩新手入門指南](../beginner/01-first-climb.md) - 第一次攀岩該知道的事
-- [攀岩裝備選購指南](../gear/01-beginner-gear.md) - 新手裝備怎麼買
+- [攀岩裝備選購指南](../gear/01-gear-basics.md) - 新手裝備怎麼買
 - [抱石基礎技巧](../skills/01-bouldering-basics.md) - 抱石入門技術
 
 ---

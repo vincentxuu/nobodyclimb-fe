@@ -262,7 +262,7 @@
 ### 延伸閱讀
 - [攀岩新手入門指南](../beginner/01-first-climb.md) - 第一次攀岩該知道的事
 - [台灣戶外岩場介紹](../crags/01-taiwan-crags-overview.md) - 戶外攀岩場地
-- [攀岩裝備選購指南](../gear/01-beginner-gear.md) - 新手裝備採購建議
+- [攀岩裝備選購指南](../gear/01-gear-basics.md) - 新手裝備採購建議
 - [攀岩常見運動傷害](../injury/01-common-injuries.md) - 預防與處理
 
 ---

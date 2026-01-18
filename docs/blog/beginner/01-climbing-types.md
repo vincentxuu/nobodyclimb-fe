@@ -198,7 +198,7 @@
 | 攀岩難度分級系統 | `02-grading-systems.md` | 了解各類型的難度標準 |
 | 第一次攀岩就上手 | `04-first-time-climbing.md` | 選定類型後的實戰指南 |
 | 岩館新手指南 | `05-gym-guide-beginner.md` | 室內攀岩入門實務 |
-| 攀岩裝備入門 | `../gear/01-beginner-gear.md` | 各類型所需裝備介紹 |
+| 攀岩裝備入門 | `../gear/01-gear-basics.md` | 各類型所需裝備介紹 |
 
 ---
 

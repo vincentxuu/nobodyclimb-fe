@@ -30,7 +30,7 @@
 ```typescript
 type PostCategory =
   | 'beginner'      // 新手入門
-  | 'news'          // 新聞動態
+  | 'news'          // 新聞動態（保留，用於時事搭配）
   | 'gear'          // 裝備分享
   | 'skills'        // 技巧分享
   | 'training'      // 訓練計畫
@@ -39,10 +39,12 @@ type PostCategory =
   | 'gyms'          // 岩館開箱
   | 'travel'        // 攀岩旅遊
   | 'competition'   // 賽事介紹
-  | 'events'        // 活動介紹
+  | 'events'        // 活動介紹（保留，用於未來活動）
   | 'community'     // 社群資源
   | 'injury'        // 傷害防護
 ```
+
+> **備註**：`news` 和 `events` 為專案保留分類，目前規劃透過 [content-calendar.md](./content-calendar.md) 以時事行銷方式搭配其他文章發布。
 
 ## 使用方式
 

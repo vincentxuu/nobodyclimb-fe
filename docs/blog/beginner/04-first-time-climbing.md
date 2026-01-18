@@ -234,7 +234,7 @@
 | 攀岩種類完整介紹 | `01-climbing-types.md` | 了解更多攀岩類型 |
 | 攀岩術語大全 | `03-climbing-glossary.md` | 聽懂攀岩人在說什麼 |
 | 岩館新手指南 | `05-gym-guide-beginner.md` | 進一步了解岩館資訊 |
-| 攀岩裝備入門 | `../gear/01-beginner-gear.md` | 準備購買第一雙岩鞋 |
+| 攀岩裝備入門 | `../gear/01-gear-basics.md` | 準備購買第一雙岩鞋 |
 
 ---
 
