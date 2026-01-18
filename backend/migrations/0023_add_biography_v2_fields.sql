@@ -62,21 +62,9 @@ UPDATE biographies SET one_liners_data = json_object(
   'adviceToNewClimbers', json_object('answer', COALESCE(advice, ''), 'visibility', 'public')
 );
 
--- Migrate tags from climbing_style (if exists as JSON array)
-UPDATE biographies SET tags_data =
-  CASE
-    WHEN climbing_style IS NOT NULL AND climbing_style != '' AND climbing_style != '[]' THEN
-      '[' ||
-      REPLACE(
-        REPLACE(
-          REPLACE(climbing_style, '[', ''),
-          ']', ''
-        ),
-        '"', '{"dimension":"climbing_style","value":"') || '","customValue":null}'
-      || ']'
-    ELSE '[]'
-  END
-WHERE climbing_style IS NOT NULL;
+-- Initialize tags_data as empty array
+-- Note: climbing_style 舊欄位格式不一致，改為讓用戶在新介面重新選擇
+UPDATE biographies SET tags_data = '[]' WHERE tags_data IS NULL;
 
 -- Migrate stories from existing story fields
 UPDATE biographies SET stories_data = json_object(

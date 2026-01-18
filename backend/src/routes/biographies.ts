@@ -482,15 +482,16 @@ biographiesRoutes.put('/me', authMiddleware, async (c) => {
 });
 
 // PUT /biographies/me/autosave - Autosave current user's biography
+// Rate limited: minimum 2 seconds between saves
 biographiesRoutes.put('/me/autosave', authMiddleware, async (c) => {
   const userId = c.get('userId');
   const body = await c.req.json<Partial<Biography>>();
 
   const existing = await c.env.DB.prepare(
-    'SELECT id FROM biographies WHERE user_id = ?'
+    'SELECT id, autosave_at FROM biographies WHERE user_id = ?'
   )
     .bind(userId)
-    .first<{ id: string }>();
+    .first<{ id: string; autosave_at: string | null }>();
 
   if (!existing) {
     return c.json(
@@ -501,6 +502,23 @@ biographiesRoutes.put('/me/autosave', authMiddleware, async (c) => {
       },
       404
     );
+  }
+
+  // Rate limiting: minimum 2 seconds between saves
+  if (existing.autosave_at) {
+    const lastSave = new Date(existing.autosave_at).getTime();
+    const now = Date.now();
+    const minInterval = 2000; // 2 seconds
+
+    if (now - lastSave < minInterval) {
+      return c.json({
+        success: true,
+        data: {
+          autosave_at: existing.autosave_at,
+          throttled: true,
+        },
+      });
+    }
   }
 
   const updates: string[] = [];
