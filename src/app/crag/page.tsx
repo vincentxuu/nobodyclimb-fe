@@ -1,3 +1,5 @@
+'use client'
+
 import React from 'react'
 import PlaceholderImage from '@/components/ui/placeholder-image'
 import Link from 'next/link'
