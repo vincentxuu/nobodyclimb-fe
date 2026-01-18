@@ -174,7 +174,7 @@ export function BasicInfoSection({
           value={name}
           onChange={(e) => onNameChange(e.target.value)}
           placeholder="你想怎麼被稱呼？"
-          className="w-full px-4 py-3 border border-[#B6B3B3] rounded-xl focus:outline-none focus:ring-2 focus:ring-brand-accent/50 focus:border-brand-dark transition-colors"
+          className="w-full px-4 py-3 bg-white border border-[#B6B3B3] rounded-xl text-[#1B1A1A] placeholder:text-[#9D9D9D] focus:outline-none focus:ring-2 focus:ring-brand-accent/50 focus:border-brand-dark transition-colors"
           maxLength={50}
         />
         <p className="text-xs text-[#8E8C8C]">這會顯示在你的人物誌上</p>
@@ -191,7 +191,7 @@ export function BasicInfoSection({
           value={title || ''}
           onChange={(e) => onTitleChange(e.target.value || null)}
           placeholder="例如：週末岩友、抱石愛好者、嘗試中的上攀者..."
-          className="w-full px-4 py-3 border border-[#B6B3B3] rounded-xl focus:outline-none focus:ring-2 focus:ring-brand-accent/50 focus:border-brand-dark transition-colors"
+          className="w-full px-4 py-3 bg-white border border-[#B6B3B3] rounded-xl text-[#1B1A1A] placeholder:text-[#9D9D9D] focus:outline-none focus:ring-2 focus:ring-brand-accent/50 focus:border-brand-dark transition-colors"
           maxLength={100}
         />
         <p className="text-xs text-[#8E8C8C]">
@@ -216,7 +216,7 @@ export function BasicInfoSection({
             placeholder="0"
             min={0}
             max={99}
-            className="w-24 px-4 py-3 border border-[#B6B3B3] rounded-xl focus:outline-none focus:ring-2 focus:ring-brand-accent/50 focus:border-brand-dark transition-colors text-center"
+            className="w-24 px-4 py-3 bg-white border border-[#B6B3B3] rounded-xl text-[#1B1A1A] placeholder:text-[#9D9D9D] focus:outline-none focus:ring-2 focus:ring-brand-accent/50 focus:border-brand-dark transition-colors text-center"
           />
           <span className="text-[#6D6C6C]">年</span>
         </div>
@@ -234,7 +234,7 @@ export function BasicInfoSection({
           value={homeGym || ''}
           onChange={(e) => onHomeGymChange(e.target.value || null)}
           placeholder="例如：內湖運動中心、龍洞、北投..."
-          className="w-full px-4 py-3 border border-[#B6B3B3] rounded-xl focus:outline-none focus:ring-2 focus:ring-brand-accent/50 focus:border-brand-dark transition-colors"
+          className="w-full px-4 py-3 bg-white border border-[#B6B3B3] rounded-xl text-[#1B1A1A] placeholder:text-[#9D9D9D] focus:outline-none focus:ring-2 focus:ring-brand-accent/50 focus:border-brand-dark transition-colors"
           maxLength={100}
         />
         <p className="text-xs text-[#8E8C8C]">讓其他岩友更容易找到你</p>

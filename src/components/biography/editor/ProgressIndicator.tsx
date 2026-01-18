@@ -1,14 +1,14 @@
 'use client'
 
 import { cn } from '@/lib/utils'
-import { Check, ChevronRight, BarChart3 } from 'lucide-react'
+import { Check, ChevronRight, BarChart3, LucideIcon } from 'lucide-react'
 
 interface ProgressIndicatorProps {
   /** 各區塊的完成狀態 */
   sections: {
     id: string
     label: string
-    emoji: string
+    icon: LucideIcon
     isCompleted: boolean
     progress?: {
       completed: number
@@ -96,7 +96,7 @@ export function ProgressIndicator({
               {section.isCompleted ? (
                 <Check size={14} />
               ) : (
-                <span className="text-xs">{section.emoji}</span>
+                <section.icon size={14} className="text-[#6D6C6C]" />
               )}
             </div>
 
