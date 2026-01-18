@@ -488,9 +488,9 @@ export function transformBackendToBiographyV2(backend: BiographyBackend): Biogra
   // frequent_locations 可能是 JSON 陣列字串或純字串，需要兼容處理
   let frequent_locations: string[] | null = null
   if (backend.frequent_locations) {
-    const parsed = safeJsonParse<string[]>(backend.frequent_locations, null)
-    if (parsed) {
-      frequent_locations = parsed
+    const parsed = safeJsonParse<unknown>(backend.frequent_locations, null)
+    if (Array.isArray(parsed)) {
+      frequent_locations = parsed.filter((item): item is string => typeof item === 'string')
     } else {
       // 如果不是 JSON，當作純字串處理，以逗號分隔
       frequent_locations = backend.frequent_locations
