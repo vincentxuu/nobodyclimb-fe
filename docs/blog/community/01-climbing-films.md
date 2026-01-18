@@ -87,7 +87,7 @@
 - 台灣可購買/租借平台
 
 ### 4. 延伸推薦
-- 經典劇情片：《乾岩壁》（Cliffhanger）、《乾岩壁》（Vertical Limit）
+- 經典劇情片：《巔峰戰士》（Cliffhanger）、《巔峰極限》（Vertical Limit）
 - 更多紀錄片：《180 Degrees South》、《Touching the Void》
 - 華語攀岩影片資源
 
