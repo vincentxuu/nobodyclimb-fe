@@ -365,6 +365,16 @@ export interface Biography {
   total_views: number
   follower_count: number
   comment_count: number
+
+  // ═══════════════════════════════════════════
+  // V2 欄位 - 漸進式揭露設計
+  // ═══════════════════════════════════════════
+  visibility?: 'private' | 'anonymous' | 'community' | 'public' | null
+  tags_data?: string | null // JSON array of TagSelection
+  one_liners_data?: string | null // JSON object of OneLinerData
+  stories_data?: string | null // JSON object of StoriesData
+  basic_info_data?: string | null // JSON object of BasicInfoData
+  autosave_at?: string | null // 最後自動儲存時間
 }
 
 /**
@@ -824,6 +834,13 @@ export interface BiographyInput {
   // 狀態
   achievements?: string
   is_public?: number
+
+  // V2 欄位
+  visibility?: 'private' | 'anonymous' | 'community' | 'public'
+  tags_data?: string
+  one_liners_data?: string
+  stories_data?: string
+  basic_info_data?: string
 }
 
 /**

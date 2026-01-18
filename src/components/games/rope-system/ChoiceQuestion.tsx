@@ -9,7 +9,7 @@ import { OptionButton, type OptionState } from './OptionButton'
 
 interface ChoiceQuestionProps {
   question: Question
-  onAnswer: (answer: string) => void
+  onAnswer: (_answer: string) => void
   disabled?: boolean
   showResult?: boolean
   userAnswer?: string

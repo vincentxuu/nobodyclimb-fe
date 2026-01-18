@@ -694,6 +694,51 @@ export const biographyService = {
   },
 
   /**
+   * 自動儲存人物誌（V2 JSON 欄位）
+   * 用於編輯器的即時自動儲存，只更新 tags_data, one_liners_data, stories_data, basic_info_data
+   */
+  autosave: async (data: {
+    tags_data?: string
+    one_liners_data?: string
+    stories_data?: string
+    basic_info_data?: string
+  }) => {
+    const response = await apiClient.put<ApiResponse<{ autosave_at: string; throttled?: boolean }>>(
+      '/biographies/me/autosave',
+      data
+    )
+    return response.data
+  },
+
+  /**
+   * 自動儲存人物誌 V2（接受 BiographyV2 部分資料）
+   * 自動將前端資料轉換為後端 JSON 格式
+   */
+  autosaveV2: async (bio: import('@/lib/types/biography-v2').BiographyV2) => {
+    const { transformBiographyV2ToBackend } = await import('@/lib/types/biography-v2')
+    const backendData = transformBiographyV2ToBackend(bio)
+    const response = await apiClient.put<ApiResponse<{ autosave_at: string; throttled?: boolean }>>(
+      '/biographies/me/autosave',
+      backendData
+    )
+    return response.data
+  },
+
+  /**
+   * 獲取個人人物誌（V2 格式）
+   * 自動將後端 JSON 字串轉換為前端結構化資料
+   */
+  getMyBiographyV2: async () => {
+    const { transformBackendToBiographyV2 } = await import('@/lib/types/biography-v2')
+    const response = await apiClient.get<ApiResponse<Biography | null>>('/biographies/me')
+    if (!response.data.success || !response.data.data) {
+      return { success: true, data: null }
+    }
+    const bioV2 = transformBackendToBiographyV2(response.data.data as unknown as import('@/lib/types/biography-v2').BiographyBackend)
+    return { success: true, data: bioV2 }
+  },
+
+  /**
    * 刪除個人人物誌
    */
   deleteMyBiography: async () => {

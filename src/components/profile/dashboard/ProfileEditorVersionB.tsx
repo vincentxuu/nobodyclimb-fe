@@ -60,10 +60,10 @@ interface EditableTextProps {
   tempValue: string
   isSaving: boolean
   inputRef: React.RefObject<HTMLInputElement | HTMLTextAreaElement | null>
-  onStartEdit: (field: string, value: string) => void
+  onStartEdit: (_field: string, _value: string) => void
   onCancel: () => void
-  onSave: (field: string, value: string) => Promise<void>
-  onTempValueChange: (value: string) => void
+  onSave: (_field: string, _value: string) => Promise<void>
+  onTempValueChange: (_value: string) => void
 }
 
 const EditableText = React.memo(function EditableText({
@@ -164,10 +164,10 @@ interface StoryCardProps {
   tempValue: string
   isSaving: boolean
   inputRef: React.RefObject<HTMLTextAreaElement | null>
-  onStartEdit: (field: string, value: string) => void
+  onStartEdit: (_field: string, _value: string) => void
   onCancel: () => void
-  onSave: (field: string, value: string) => Promise<void>
-  onTempValueChange: (value: string) => void
+  onSave: (_field: string, _value: string) => Promise<void>
+  onTempValueChange: (_value: string) => void
 }
 
 const StoryCard = React.memo(function StoryCard({
@@ -272,7 +272,7 @@ interface ImageUploadButtonProps {
   isUploading: boolean
   hasImage: boolean
   label: string
-  onUpload: (file: File) => void
+  onUpload: (_file: File) => void
   className?: string
 }
 
