@@ -1,9 +1,10 @@
 'use client'
 
-import { useState, useRef } from 'react'
+import { useState, useRef, useMemo } from 'react'
 import Image from 'next/image'
 import { cn } from '@/lib/utils'
-import { User, ImageIcon, Pencil, Clock } from 'lucide-react'
+import { User, ImageIcon, Pencil, Clock, Link, Instagram, Youtube } from 'lucide-react'
+import type { SocialLinks } from '@/lib/types/biography-v2'
 
 interface BasicInfoSectionProps {
   /** 用戶名稱 */
@@ -22,14 +23,18 @@ interface BasicInfoSectionProps {
   coverUrl: string | null
   /** 封面圖變更回調 */
   onCoverChange: (_file: File) => void
-  /** 攀岩年資 */
-  climbingYears: number | null
-  /** 攀岩年資變更回調 */
-  onClimbingYearsChange: (_years: number | null) => void
+  /** 開始攀岩年份 */
+  climbingStartYear: number | null
+  /** 開始攀岩年份變更回調 */
+  onClimbingStartYearChange: (_year: number | null) => void
   /** 主要攀岩地點 */
   homeGym: string | null
   /** 攀岩地點變更回調 */
   onHomeGymChange: (_location: string | null) => void
+  /** 社群連結 */
+  socialLinks: SocialLinks
+  /** 社群連結變更回調 */
+  onSocialLinksChange: (_socialLinks: SocialLinks) => void
   /** 自訂樣式 */
   className?: string
 }
@@ -48,16 +53,56 @@ export function BasicInfoSection({
   onAvatarChange,
   coverUrl,
   onCoverChange,
-  climbingYears,
-  onClimbingYearsChange,
+  climbingStartYear,
+  onClimbingStartYearChange,
   homeGym,
   onHomeGymChange,
+  socialLinks,
+  onSocialLinksChange,
   className,
 }: BasicInfoSectionProps) {
   const avatarInputRef = useRef<HTMLInputElement>(null)
   const coverInputRef = useRef<HTMLInputElement>(null)
   const [avatarPreview, setAvatarPreview] = useState<string | null>(null)
   const [coverPreview, setCoverPreview] = useState<string | null>(null)
+
+  // Generate year options from current year back to 1970
+  const currentYear = new Date().getFullYear()
+  const yearOptions = useMemo(() => {
+    const years: number[] = []
+    for (let year = currentYear; year >= 1970; year--) {
+      years.push(year)
+    }
+    return years
+  }, [currentYear])
+
+  // Calculate climbing years for display
+  const climbingYearsDisplay = climbingStartYear
+    ? currentYear - climbingStartYear
+    : null
+
+  // Handle social links change
+  const handleSocialLinkChange = (field: keyof SocialLinks, value: string) => {
+    onSocialLinksChange({
+      ...socialLinks,
+      [field]: value || undefined,
+    })
+  }
+
+  // Extract username from URL if user pastes full URL
+  const extractUsername = (value: string) => {
+    if (!value) return ''
+    try {
+      if (value.includes('/')) {
+        const parts = value.split('/').filter(Boolean)
+        const username = parts.pop() || ''
+        return username.replace(/^@/, '')
+      }
+      return value.replace(/^@/, '')
+    } catch {
+      return value
+    }
+  }
 
   const handleAvatarSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]
@@ -199,28 +244,35 @@ export function BasicInfoSection({
         </p>
       </div>
 
-      {/* Climbing Years */}
+      {/* Climbing Start Year */}
       <div className="space-y-2">
         <label className="text-sm font-medium text-[#3F3D3D]">
-          攀岩年資
+          開始攀岩年份
           <span className="text-[#8E8C8C] font-normal ml-1">(選填)</span>
         </label>
-        <div className="flex items-center gap-2">
-          <input
-            type="number"
-            value={climbingYears ?? ''}
+        <div className="flex items-center gap-3">
+          <select
+            value={climbingStartYear ?? ''}
             onChange={(e) => {
               const value = e.target.value
-              onClimbingYearsChange(value ? parseInt(value, 10) : null)
+              onClimbingStartYearChange(value ? parseInt(value, 10) : null)
             }}
-            placeholder="0"
-            min={0}
-            max={99}
-            className="w-24 px-4 py-3 bg-white border border-[#B6B3B3] rounded-xl text-[#1B1A1A] placeholder:text-[#9D9D9D] focus:outline-none focus:ring-2 focus:ring-brand-accent/50 focus:border-brand-dark transition-colors text-center"
-          />
-          <span className="text-[#6D6C6C]">年</span>
+            className="w-32 px-4 py-3 bg-white border border-[#B6B3B3] rounded-xl text-[#1B1A1A] focus:outline-none focus:ring-2 focus:ring-brand-accent/50 focus:border-brand-dark transition-colors appearance-none cursor-pointer"
+          >
+            <option value="">選擇年份</option>
+            {yearOptions.map((year) => (
+              <option key={year} value={year}>
+                {year}
+              </option>
+            ))}
+          </select>
+          {climbingYearsDisplay !== null && climbingYearsDisplay >= 0 && (
+            <span className="text-[#6D6C6C] text-sm">
+              約 {climbingYearsDisplay} 年經驗
+            </span>
+          )}
         </div>
-        <p className="text-xs text-[#8E8C8C]">不確定的話，填個大概就好</p>
+        <p className="text-xs text-[#8E8C8C]">選擇你開始攀岩的年份，系統會自動計算年資</p>
       </div>
 
       {/* Home Gym / Location */}
@@ -238,6 +290,84 @@ export function BasicInfoSection({
           maxLength={100}
         />
         <p className="text-xs text-[#8E8C8C]">讓其他岩友更容易找到你</p>
+      </div>
+
+      {/* Divider */}
+      <div className="border-t border-[#EBEAEA] pt-6 mt-6">
+        {/* Social Links Header */}
+        <div className="flex items-center gap-2 mb-4">
+          <Link size={18} className="text-[#3F3D3D]" />
+          <h4 className="font-medium text-[#1B1A1A]">社群連結</h4>
+        </div>
+        <p className="text-sm text-[#6D6C6C] mb-4">
+          新增你的社群帳號，讓其他岩友可以追蹤你的動態
+        </p>
+
+        {/* Instagram */}
+        <div className="space-y-2 mb-4">
+          <label className="text-sm font-medium text-[#3F3D3D] flex items-center gap-2">
+            <Instagram size={16} className="text-pink-600" />
+            Instagram
+            <span className="text-[#8E8C8C] font-normal">(選填)</span>
+          </label>
+          <div className="flex items-center gap-2">
+            <span className="text-[#6D6C6C]">@</span>
+            <input
+              type="text"
+              value={socialLinks.instagram || ''}
+              onChange={(e) => handleSocialLinkChange('instagram', e.target.value)}
+              onBlur={(e) => {
+                const username = extractUsername(e.target.value)
+                if (username !== e.target.value) {
+                  handleSocialLinkChange('instagram', username)
+                }
+              }}
+              placeholder="your_username"
+              className="flex-1 px-4 py-3 bg-white border border-[#B6B3B3] rounded-xl text-[#1B1A1A] placeholder:text-[#9D9D9D] focus:outline-none focus:ring-2 focus:ring-brand-accent/50 focus:border-brand-dark transition-colors"
+              maxLength={50}
+            />
+          </div>
+        </div>
+
+        {/* YouTube */}
+        <div className="space-y-2 mb-4">
+          <label className="text-sm font-medium text-[#3F3D3D] flex items-center gap-2">
+            <Youtube size={16} className="text-red-600" />
+            YouTube 頻道
+            <span className="text-[#8E8C8C] font-normal">(選填)</span>
+          </label>
+          <input
+            type="text"
+            value={socialLinks.youtube || ''}
+            onChange={(e) => handleSocialLinkChange('youtube', e.target.value)}
+            onBlur={(e) => {
+              const username = extractUsername(e.target.value)
+              if (username !== e.target.value) {
+                handleSocialLinkChange('youtube', username)
+              }
+            }}
+            placeholder="頻道 ID 或網址"
+            className="w-full px-4 py-3 bg-white border border-[#B6B3B3] rounded-xl text-[#1B1A1A] placeholder:text-[#9D9D9D] focus:outline-none focus:ring-2 focus:ring-brand-accent/50 focus:border-brand-dark transition-colors"
+            maxLength={100}
+          />
+        </div>
+
+        {/* Website */}
+        <div className="space-y-2">
+          <label className="text-sm font-medium text-[#3F3D3D] flex items-center gap-2">
+            <Link size={16} className="text-[#3F3D3D]" />
+            個人網站
+            <span className="text-[#8E8C8C] font-normal">(選填)</span>
+          </label>
+          <input
+            type="url"
+            value={socialLinks.website || ''}
+            onChange={(e) => handleSocialLinkChange('website', e.target.value)}
+            placeholder="https://your-website.com"
+            className="w-full px-4 py-3 bg-white border border-[#B6B3B3] rounded-xl text-[#1B1A1A] placeholder:text-[#9D9D9D] focus:outline-none focus:ring-2 focus:ring-brand-accent/50 focus:border-brand-dark transition-colors"
+            maxLength={200}
+          />
+        </div>
       </div>
     </div>
   )

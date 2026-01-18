@@ -245,7 +245,8 @@ export interface BiographyV2 {
   // ═══════════════════════════════════════════
   // 攀岩基本資料
   // ═══════════════════════════════════════════
-  climbing_years: number | null // 攀岩年資
+  climbing_start_year: number | null // 開始攀岩的年份
+  climbing_years: number | null // 攀岩年資（從 climbing_start_year 計算）
   frequent_locations: string[] | null
   home_gym: string | null
 
@@ -517,6 +518,7 @@ export function transformBackendToBiographyV2(backend: BiographyBackend): Biogra
     bio: backend.bio,
     avatar_url: backend.avatar_url,
     cover_url: backend.cover_image,
+    climbing_start_year: startYear && !isNaN(startYear) ? startYear : null,
     climbing_years:
       startYear && !isNaN(startYear) ? new Date().getFullYear() - startYear : null,
     frequent_locations,
@@ -583,7 +585,7 @@ export function transformBiographyV2ToBackend(bio: BiographyV2): {
     name: bio.name,
     title: bio.title || '',
     bio: bio.bio || '',
-    climbing_start_year: bio.climbing_years || '',
+    climbing_start_year: bio.climbing_start_year || '',
     frequent_locations: bio.frequent_locations?.join(', ') || '',
     home_gym: bio.home_gym || '',
   })
@@ -609,6 +611,7 @@ export function createEmptyBiographyV2(userId: string): BiographyV2 {
     bio: null,
     avatar_url: null,
     cover_url: null,
+    climbing_start_year: null,
     climbing_years: null,
     frequent_locations: null,
     home_gym: null,
