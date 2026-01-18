@@ -3,13 +3,18 @@
 import { useState, useEffect, useCallback, useRef } from 'react'
 import { cn } from '@/lib/utils'
 import { User, Tag, MessageCircle, BookOpen, Globe } from 'lucide-react'
+import { biographyService } from '@/lib/api/services'
+import { useToast } from '@/components/ui/use-toast'
+import ImageCropper from '@/components/shared/image-cropper'
 import type {
   BiographyV2,
   TagDimension,
+  TagOption,
   OneLinerQuestion,
   StoryQuestion,
   StoryCategory,
 } from '@/lib/types/biography-v2'
+import { SYSTEM_STORY_CATEGORY_LIST } from '@/lib/constants/biography-questions'
 import { PrivacyBanner } from './PrivacyBanner'
 import { ProgressIndicator } from './ProgressIndicator'
 import { BasicInfoSection } from './BasicInfoSection'
@@ -20,6 +25,13 @@ import { StoryEditModal } from './StoryEditModal'
 import { FixedBottomBar, BottomBarSpacer } from './FixedBottomBar'
 import { AutoSaveIndicator, useSaveStatus } from '../shared/AutoSaveIndicator'
 import { ClimbingFootprintsEditorSection } from './ClimbingFootprintsEditorSection'
+import { AddCustomTagModal } from './AddCustomTagModal'
+import { AddCustomDimensionModal } from './AddCustomDimensionModal'
+import { AddCustomOneLinerModal } from './AddCustomOneLinerModal'
+import { AddCustomStoryModal } from './AddCustomStoryModal'
+import { TagsBottomSheet } from './TagsBottomSheet'
+import { StoryEditFullscreen } from './StoryEditFullscreen'
+import { useIsMobile } from '@/lib/hooks/useIsMobile'
 
 interface ProfileEditorProps {
   /** 人物誌資料 */
@@ -61,6 +73,43 @@ export function ProfileEditor({
   const [editingStoryId, setEditingStoryId] = useState<string | null>(null)
   const [activeSection, setActiveSection] = useState<string>('basic')
   const { status, lastSavedAt, error, setSaving, setSaved, setError } = useSaveStatus()
+  const isMobile = useIsMobile()
+  const { toast } = useToast()
+
+  // 圖片裁切器狀態
+  const [showCropper, setShowCropper] = useState(false)
+  const [cropperImageSrc, setCropperImageSrc] = useState<string>('')
+  const [cropType, setCropType] = useState<'avatar' | 'cover'>('avatar')
+  const [isUploading, setIsUploading] = useState(false)
+
+  // 手機版 TagsBottomSheet 狀態
+  const [tagsBottomSheetOpen, setTagsBottomSheetOpen] = useState(false)
+
+  // Modal 狀態管理
+  const [customTagModalOpen, setCustomTagModalOpen] = useState(false)
+  const [customTagDimensionId, setCustomTagDimensionId] = useState<string | undefined>(undefined)
+  const [customDimensionModalOpen, setCustomDimensionModalOpen] = useState(false)
+  const [customOneLinerModalOpen, setCustomOneLinerModalOpen] = useState(false)
+  const [customStoryModalOpen, setCustomStoryModalOpen] = useState(false)
+  const [customStoryCategoryId, setCustomStoryCategoryId] = useState<string | undefined>(undefined)
+
+  // 合併系統維度和用戶自訂維度
+  const [customDimensions, setCustomDimensions] = useState<TagDimension[]>([])
+  const [customOneLinerQuestions, setCustomOneLinerQuestions] = useState<OneLinerQuestion[]>([])
+  const [customStoryQuestions, setCustomStoryQuestions] = useState<StoryQuestion[]>([])
+
+  // 所有維度（系統 + 自訂）
+  const allTagDimensions = [...tagDimensions, ...customDimensions]
+  // 所有一句話問題（系統 + 自訂）
+  const allOneLinerQuestions = [...oneLinerQuestions, ...customOneLinerQuestions]
+  // 所有故事問題（系統 + 自訂）
+  const allStoryQuestionsByCategory = { ...storyQuestionsByCategory }
+  customStoryQuestions.forEach((q) => {
+    const category = q.category_id as StoryCategory
+    if (allStoryQuestionsByCategory[category]) {
+      allStoryQuestionsByCategory[category] = [...allStoryQuestionsByCategory[category], q]
+    }
+  })
 
   // Section refs for scroll navigation
   const sectionRefs = useRef<Record<string, HTMLElement | null>>({})
@@ -102,6 +151,145 @@ export function ProfileEditor({
     },
     [onChange]
   )
+
+  // 處理頭像選擇 - 開啟裁切器
+  const handleAvatarSelect = useCallback((file: File) => {
+    const url = URL.createObjectURL(file)
+    setCropperImageSrc(url)
+    setCropType('avatar')
+    setShowCropper(true)
+  }, [])
+
+  // 處理封面選擇 - 開啟裁切器
+  const handleCoverSelect = useCallback((file: File) => {
+    const url = URL.createObjectURL(file)
+    setCropperImageSrc(url)
+    setCropType('cover')
+    setShowCropper(true)
+  }, [])
+
+  // 裁切器關閉時清理 blob URL
+  const handleCropperClose = useCallback(() => {
+    setShowCropper(false)
+    if (cropperImageSrc && cropperImageSrc.startsWith('blob:')) {
+      URL.revokeObjectURL(cropperImageSrc)
+      setCropperImageSrc('')
+    }
+  }, [cropperImageSrc])
+
+  // 處理裁切完成 - 上傳圖片
+  const handleCropComplete = useCallback(async (croppedFile: File) => {
+    setIsUploading(true)
+    try {
+      const response = await biographyService.uploadImage(croppedFile,
+        cropType === 'avatar' ? biography.avatar_url || undefined : biography.cover_url || undefined
+      )
+
+      if (response.success && response.data) {
+        const permanentUrl = response.data.url
+        if (cropType === 'avatar') {
+          handleChange({ avatar_url: permanentUrl })
+        } else {
+          handleChange({ cover_url: permanentUrl })
+        }
+        toast({
+          title: '上傳成功',
+          description: cropType === 'avatar' ? '頭像已更新' : '封面圖片已更新',
+        })
+      } else {
+        throw new Error('上傳失敗')
+      }
+    } catch (err) {
+      console.error('圖片上傳失敗:', err)
+      toast({
+        title: '上傳失敗',
+        description: err instanceof Error ? err.message : '請稍後再試',
+        variant: 'destructive',
+      })
+    } finally {
+      setIsUploading(false)
+      // 清理 blob URL
+      if (cropperImageSrc && cropperImageSrc.startsWith('blob:')) {
+        URL.revokeObjectURL(cropperImageSrc)
+        setCropperImageSrc('')
+      }
+    }
+  }, [cropType, biography.avatar_url, biography.cover_url, handleChange, toast, cropperImageSrc])
+
+  // Handle custom tag modal
+  const handleAddCustomTag = useCallback((dimensionId?: string) => {
+    setCustomTagDimensionId(dimensionId)
+    setCustomTagModalOpen(true)
+  }, [])
+
+  const handleSaveCustomTag = useCallback((tag: TagOption) => {
+    // 將新標籤加入維度
+    const dimensionId = tag.dimension_id
+    const dimension = allTagDimensions.find((d) => d.id === dimensionId)
+    if (dimension) {
+      // 如果是用戶自訂維度，更新該維度
+      if (dimension.source === 'user') {
+        setCustomDimensions((prev) =>
+          prev.map((d) =>
+            d.id === dimensionId
+              ? { ...d, options: [...d.options, tag] }
+              : d
+          )
+        )
+      }
+      // 自動選中新增的標籤
+      const otherTags = biography.tags.filter((t) => {
+        const dim = allTagDimensions.find((d) =>
+          d.options.some((o) => o.id === t.tag_id)
+        )
+        return dim?.id !== dimensionId
+      })
+      const currentDimensionTags = biography.tags.filter((t) => {
+        const dim = allTagDimensions.find((d) =>
+          d.options.some((o) => o.id === t.tag_id)
+        )
+        return dim?.id === dimensionId
+      })
+      const newTags = [
+        ...otherTags,
+        ...currentDimensionTags,
+        { tag_id: tag.id, source: 'user' as const },
+      ]
+      handleChange({ tags: newTags })
+    }
+    setCustomTagModalOpen(false)
+  }, [allTagDimensions, biography.tags, handleChange])
+
+  // Handle custom dimension modal
+  const handleAddCustomDimension = useCallback(() => {
+    setCustomDimensionModalOpen(true)
+  }, [])
+
+  const handleSaveCustomDimension = useCallback((dimension: TagDimension) => {
+    setCustomDimensions((prev) => [...prev, dimension])
+    setCustomDimensionModalOpen(false)
+  }, [])
+
+  // Handle custom one-liner modal
+  const handleAddCustomOneLiner = useCallback(() => {
+    setCustomOneLinerModalOpen(true)
+  }, [])
+
+  const handleSaveCustomOneLiner = useCallback((question: OneLinerQuestion) => {
+    setCustomOneLinerQuestions((prev) => [...prev, question])
+    setCustomOneLinerModalOpen(false)
+  }, [])
+
+  // Handle custom story modal
+  const handleAddCustomStory = useCallback((categoryId?: string) => {
+    setCustomStoryCategoryId(categoryId)
+    setCustomStoryModalOpen(true)
+  }, [])
+
+  const handleSaveCustomStory = useCallback((question: StoryQuestion) => {
+    setCustomStoryQuestions((prev) => [...prev, question])
+    setCustomStoryModalOpen(false)
+  }, [])
 
   // Calculate progress
   const sections = [
@@ -157,7 +345,7 @@ export function ProfileEditor({
 
   // Get current editing story question
   const editingQuestion = editingStoryId
-    ? Object.values(storyQuestionsByCategory)
+    ? Object.values(allStoryQuestionsByCategory)
         .flat()
         .find((q) => q.id === editingStoryId)
     : null
@@ -213,24 +401,18 @@ export function ProfileEditor({
                 title={biography.title}
                 onTitleChange={(title) => handleChange({ title })}
                 avatarUrl={biography.avatar_url}
-                onAvatarChange={(file) => {
-                  // TODO: Upload avatar
-                  const url = URL.createObjectURL(file)
-                  handleChange({ avatar_url: url })
-                }}
+                onAvatarChange={handleAvatarSelect}
                 coverUrl={biography.cover_url}
-                onCoverChange={(file) => {
-                  // TODO: Upload cover
-                  const url = URL.createObjectURL(file)
-                  handleChange({ cover_url: url })
-                }}
+                onCoverChange={handleCoverSelect}
                 climbingStartYear={biography.climbing_start_year}
                 onClimbingStartYearChange={(year) => {
                   const climbingYears = year ? new Date().getFullYear() - year : null
                   handleChange({ climbing_start_year: year, climbing_years: climbingYears })
                 }}
-                homeGym={biography.home_gym}
-                onHomeGymChange={(gym) => handleChange({ home_gym: gym })}
+                frequentLocations={biography.frequent_locations || []}
+                onFrequentLocationsChange={(locations) => handleChange({ frequent_locations: locations })}
+                favoriteRouteTypes={biography.favorite_route_types || []}
+                onFavoriteRouteTypesChange={(types) => handleChange({ favorite_route_types: types })}
                 socialLinks={biography.social_links || {}}
                 onSocialLinksChange={(socialLinks) => handleChange({ social_links: socialLinks })}
               />
@@ -243,10 +425,10 @@ export function ProfileEditor({
               className="bg-white rounded-xl p-4 md:p-6"
             >
               <TagsSection
-                dimensions={tagDimensions}
+                dimensions={allTagDimensions}
                 selections={biography.tags.reduce(
                   (acc, tag) => {
-                    const dimension = tagDimensions.find((d) =>
+                    const dimension = allTagDimensions.find((d) =>
                       d.options.some((o) => o.id === tag.tag_id)
                     )
                     if (dimension) {
@@ -261,7 +443,7 @@ export function ProfileEditor({
                 )}
                 onSelectionChange={(dimensionId, selectedIds) => {
                   const otherTags = biography.tags.filter((t) => {
-                    const dim = tagDimensions.find((d) =>
+                    const dim = allTagDimensions.find((d) =>
                       d.options.some((o) => o.id === t.tag_id)
                     )
                     return dim?.id !== dimensionId
@@ -272,6 +454,10 @@ export function ProfileEditor({
                   }))
                   handleChange({ tags: [...otherTags, ...newTags] })
                 }}
+                onAddCustomTag={handleAddCustomTag}
+                onAddCustomDimension={handleAddCustomDimension}
+                isMobile={isMobile}
+                onOpenBottomSheet={() => setTagsBottomSheetOpen(true)}
               />
             </section>
 
@@ -282,7 +468,7 @@ export function ProfileEditor({
               className="bg-white rounded-xl p-4 md:p-6"
             >
               <OneLinersSection
-                questions={oneLinerQuestions}
+                questions={allOneLinerQuestions}
                 answers={biography.one_liners}
                 onAnswerChange={(questionId, answer) => {
                   const existingIndex = biography.one_liners.findIndex(
@@ -299,14 +485,16 @@ export function ProfileEditor({
                       newOneLiners.splice(existingIndex, 1)
                     }
                   } else if (answer) {
+                    const question = allOneLinerQuestions.find((q) => q.id === questionId)
                     newOneLiners.push({
                       question_id: questionId,
                       answer,
-                      source: 'system',
+                      source: question?.source || 'system',
                     })
                   }
                   handleChange({ one_liners: newOneLiners })
                 }}
+                onAddCustomQuestion={handleAddCustomOneLiner}
               />
             </section>
 
@@ -317,9 +505,10 @@ export function ProfileEditor({
               className="bg-white rounded-xl p-4 md:p-6"
             >
               <StoriesSection
-                questionsByCategory={storyQuestionsByCategory}
+                questionsByCategory={allStoryQuestionsByCategory}
                 stories={biography.stories}
                 onStoryClick={(questionId) => setEditingStoryId(questionId)}
+                onAddCustomQuestion={(category) => handleAddCustomStory(category)}
               />
             </section>
 
@@ -347,41 +536,162 @@ export function ProfileEditor({
         progress={overallProgress}
       />
 
-      {/* Story Edit Modal */}
-      <StoryEditModal
-        isOpen={!!editingStoryId}
-        onClose={() => setEditingStoryId(null)}
-        question={editingQuestion || null}
-        story={editingStory}
-        onSave={(content) => {
-          if (!editingStoryId) return
-          const existingIndex = biography.stories.findIndex(
-            (s) => s.question_id === editingStoryId
-          )
-          let newStories = [...biography.stories]
-          if (existingIndex >= 0) {
-            newStories[existingIndex] = {
-              ...newStories[existingIndex],
-              content,
+      {/* Story Edit Modal - 桌面版 */}
+      {!isMobile && (
+        <StoryEditModal
+          isOpen={!!editingStoryId}
+          onClose={() => setEditingStoryId(null)}
+          question={editingQuestion || null}
+          story={editingStory}
+          onSave={(content) => {
+            if (!editingStoryId) return
+            const existingIndex = biography.stories.findIndex(
+              (s) => s.question_id === editingStoryId
+            )
+            let newStories = [...biography.stories]
+            if (existingIndex >= 0) {
+              newStories[existingIndex] = {
+                ...newStories[existingIndex],
+                content,
+              }
+            } else {
+              const question = editingQuestion
+              newStories.push({
+                question_id: editingStoryId,
+                content,
+                source: question?.source || 'system',
+              })
             }
-          } else {
-            newStories.push({
-              question_id: editingStoryId,
-              content,
-              source: 'system',
-            })
-          }
-          handleChange({ stories: newStories })
-          setEditingStoryId(null)
+            handleChange({ stories: newStories })
+            setEditingStoryId(null)
+          }}
+          onDelete={() => {
+            if (!editingStoryId) return
+            const newStories = biography.stories.filter(
+              (s) => s.question_id !== editingStoryId
+            )
+            handleChange({ stories: newStories })
+            setEditingStoryId(null)
+          }}
+        />
+      )}
+
+      {/* Story Edit Fullscreen - 手機版 */}
+      {isMobile && (
+        <StoryEditFullscreen
+          isOpen={!!editingStoryId}
+          onClose={() => setEditingStoryId(null)}
+          question={editingQuestion || null}
+          story={editingStory}
+          onSave={(content) => {
+            if (!editingStoryId) return
+            const existingIndex = biography.stories.findIndex(
+              (s) => s.question_id === editingStoryId
+            )
+            let newStories = [...biography.stories]
+            if (existingIndex >= 0) {
+              newStories[existingIndex] = {
+                ...newStories[existingIndex],
+                content,
+              }
+            } else {
+              const question = editingQuestion
+              newStories.push({
+                question_id: editingStoryId,
+                content,
+                source: question?.source || 'system',
+              })
+            }
+            handleChange({ stories: newStories })
+            setEditingStoryId(null)
+          }}
+          onDelete={() => {
+            if (!editingStoryId) return
+            const newStories = biography.stories.filter(
+              (s) => s.question_id !== editingStoryId
+            )
+            handleChange({ stories: newStories })
+            setEditingStoryId(null)
+          }}
+        />
+      )}
+
+      {/* Tags Bottom Sheet - 手機版 */}
+      <TagsBottomSheet
+        isOpen={tagsBottomSheetOpen}
+        onClose={() => setTagsBottomSheetOpen(false)}
+        dimensions={allTagDimensions}
+        selections={biography.tags.reduce(
+          (acc, tag) => {
+            const dimension = allTagDimensions.find((d) =>
+              d.options.some((o) => o.id === tag.tag_id)
+            )
+            if (dimension) {
+              if (!acc[dimension.id]) {
+                acc[dimension.id] = []
+              }
+              acc[dimension.id].push(tag.tag_id)
+            }
+            return acc
+          },
+          {} as Record<string, string[]>
+        )}
+        onSelectionChange={(dimensionId, selectedIds) => {
+          const otherTags = biography.tags.filter((t) => {
+            const dim = allTagDimensions.find((d) =>
+              d.options.some((o) => o.id === t.tag_id)
+            )
+            return dim?.id !== dimensionId
+          })
+          const newTags = selectedIds.map((id) => ({
+            tag_id: id,
+            source: 'system' as const,
+          }))
+          handleChange({ tags: [...otherTags, ...newTags] })
         }}
-        onDelete={() => {
-          if (!editingStoryId) return
-          const newStories = biography.stories.filter(
-            (s) => s.question_id !== editingStoryId
-          )
-          handleChange({ stories: newStories })
-          setEditingStoryId(null)
-        }}
+      />
+
+      {/* Custom Tag Modal */}
+      <AddCustomTagModal
+        isOpen={customTagModalOpen}
+        onClose={() => setCustomTagModalOpen(false)}
+        dimensions={allTagDimensions}
+        defaultDimensionId={customTagDimensionId}
+        onSave={handleSaveCustomTag}
+      />
+
+      {/* Custom Dimension Modal */}
+      <AddCustomDimensionModal
+        isOpen={customDimensionModalOpen}
+        onClose={() => setCustomDimensionModalOpen(false)}
+        onSave={handleSaveCustomDimension}
+      />
+
+      {/* Custom One-liner Modal */}
+      <AddCustomOneLinerModal
+        isOpen={customOneLinerModalOpen}
+        onClose={() => setCustomOneLinerModalOpen(false)}
+        onSave={handleSaveCustomOneLiner}
+      />
+
+      {/* Custom Story Modal */}
+      <AddCustomStoryModal
+        isOpen={customStoryModalOpen}
+        onClose={() => setCustomStoryModalOpen(false)}
+        categories={SYSTEM_STORY_CATEGORY_LIST}
+        defaultCategoryId={customStoryCategoryId}
+        onSave={handleSaveCustomStory}
+      />
+
+      {/* 圖片裁切器 */}
+      <ImageCropper
+        open={showCropper}
+        onClose={handleCropperClose}
+        imageSrc={cropperImageSrc}
+        onCropComplete={handleCropComplete}
+        aspectRatio={cropType === 'avatar' ? 1 : 3}
+        title={cropType === 'avatar' ? '裁切頭像' : '裁切封面圖片'}
+        outputSize={cropType === 'avatar' ? 400 : 1200}
       />
     </div>
   )

@@ -14,8 +14,10 @@ interface ImageCropperProps {
   onCropComplete: (croppedFile: File) => void
   aspectRatio?: number
   title?: string
-  /** 輸出圖片尺寸（預設 400px） */
+  /** 輸出圖片寬度（預設 400px） */
   outputSize?: number
+  /** 輸出圖片高度（預設依 aspectRatio 計算，若無則等於 outputSize） */
+  outputHeight?: number
 }
 
 /**
@@ -39,12 +41,14 @@ function centerAspectCrop(mediaWidth: number, mediaHeight: number, aspect: numbe
 
 /**
  * 將裁切區域轉換為 File 物件
+ * crop 座標已經是原始圖片的像素座標（不需要縮放）
  */
-async function getCroppedImg(
+async function getCroppedImgDirect(
   image: HTMLImageElement,
   crop: PixelCrop,
   fileName: string,
-  outputSize: number
+  outputWidth: number,
+  outputHeight: number
 ): Promise<File> {
   const canvas = document.createElement('canvas')
   const ctx = canvas.getContext('2d')
@@ -53,10 +57,10 @@ async function getCroppedImg(
     throw new Error('無法創建 canvas context')
   }
 
-  canvas.width = outputSize
-  canvas.height = outputSize
+  canvas.width = outputWidth
+  canvas.height = outputHeight
 
-  // 繪製裁切後的圖片
+  // 繪製裁切後的圖片（座標已經是原始圖片的像素座標）
   ctx.drawImage(
     image,
     crop.x,
@@ -65,8 +69,8 @@ async function getCroppedImg(
     crop.height,
     0,
     0,
-    outputSize,
-    outputSize
+    outputWidth,
+    outputHeight
   )
 
   // 將 canvas 轉換為 Blob
@@ -101,9 +105,12 @@ export default function ImageCropper({
   aspectRatio = 1,
   title = '裁切圖片',
   outputSize = 400,
+  outputHeight,
 }: ImageCropperProps) {
+  // 計算輸出高度：優先使用 outputHeight，否則根據 aspectRatio 計算
+  const finalOutputHeight = outputHeight ?? Math.round(outputSize / aspectRatio)
   const [crop, setCrop] = useState<Crop>()
-  const [completedCrop, setCompletedCrop] = useState<PixelCrop>()
+  const [percentCrop, setPercentCrop] = useState<Crop>()
   const [isProcessing, setIsProcessing] = useState(false)
   const imgRef = useRef<HTMLImageElement>(null)
 
@@ -113,7 +120,9 @@ export default function ImageCropper({
   const onImageLoad = useCallback(
     (e: React.SyntheticEvent<HTMLImageElement>) => {
       const { width, height } = e.currentTarget
-      setCrop(centerAspectCrop(width, height, aspectRatio))
+      const initialCrop = centerAspectCrop(width, height, aspectRatio)
+      setCrop(initialCrop)
+      setPercentCrop(initialCrop)
     },
     [aspectRatio]
   )
@@ -122,17 +131,33 @@ export default function ImageCropper({
    * 確認裁切
    */
   const handleConfirm = async () => {
-    if (!imgRef.current || !completedCrop) {
+    if (!imgRef.current || !percentCrop) {
       return
+    }
+
+    // 使用百分比直接計算原始圖片中的裁切區域（更可靠）
+    const image = imgRef.current
+    const sourceX = Math.round((percentCrop.x / 100) * image.naturalWidth)
+    const sourceY = Math.round((percentCrop.y / 100) * image.naturalHeight)
+    const sourceWidth = Math.round((percentCrop.width / 100) * image.naturalWidth)
+    const sourceHeight = Math.round((percentCrop.height / 100) * image.naturalHeight)
+
+    const pixelCrop: PixelCrop = {
+      unit: 'px',
+      x: sourceX,
+      y: sourceY,
+      width: sourceWidth,
+      height: sourceHeight,
     }
 
     setIsProcessing(true)
     try {
-      const croppedFile = await getCroppedImg(
+      const croppedFile = await getCroppedImgDirect(
         imgRef.current,
-        completedCrop,
-        'avatar.jpg',
-        outputSize
+        pixelCrop,
+        'image.jpg',
+        outputSize,
+        finalOutputHeight
       )
       onCropComplete(croppedFile)
       onClose()
@@ -148,7 +173,7 @@ export default function ImageCropper({
    */
   const handleCancel = () => {
     setCrop(undefined)
-    setCompletedCrop(undefined)
+    setPercentCrop(undefined)
     onClose()
   }
 
@@ -177,8 +202,10 @@ export default function ImageCropper({
         <div className="flex justify-center py-4">
           <ReactCrop
             crop={crop}
-            onChange={(_, percentCrop) => setCrop(percentCrop)}
-            onComplete={(c) => setCompletedCrop(c)}
+            onChange={(_, pCrop) => {
+              setCrop(pCrop)
+              setPercentCrop(pCrop)
+            }}
             aspect={aspectRatio}
             circularCrop={aspectRatio === 1}
             className="max-h-[400px]"
@@ -210,7 +237,7 @@ export default function ImageCropper({
           </Button>
           <Button
             onClick={handleConfirm}
-            disabled={isProcessing || !completedCrop}
+            disabled={isProcessing || !percentCrop}
             className="bg-[#1B1A1A] text-white hover:bg-[#3F3D3D]"
           >
             {isProcessing ? (
