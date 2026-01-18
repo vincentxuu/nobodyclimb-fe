@@ -8,7 +8,6 @@ import { BiographyOneLiners } from './BiographyOneLiners'
 import { BiographyStories } from './BiographyStories'
 import { BiographyFootprints } from './BiographyFootprints'
 import { BiographyGallery } from './BiographyGallery'
-import { BiographySocials } from './BiographySocials'
 import { EmptyState } from './EmptyState'
 
 interface BiographyDetailPageProps {
@@ -42,13 +41,12 @@ function hasAnyContent(biography: BiographyV2): boolean {
  * 整合所有 V2 展示組件，按照 docs/persona-page-layout.md 規格排版
  *
  * 頁面結構：
- * 1. Hero Section - 封面圖 + 頭像 + 基本資訊
+ * 1. Hero Section - 封面圖 + 頭像 + 基本資訊 + 社群連結
  * 2. Identity Tags - 攀岩人格標籤
  * 3. Quick Intro - 一句話系列
  * 4. Stories - 深度故事
  * 5. Climbing Footprints - 攀岩足跡
  * 6. Gallery - 攀岩相簿
- * 7. Social Links - 社群連結
  */
 export function BiographyDetailPage({
   biography,
@@ -155,9 +153,6 @@ export function BiographyDetailPage({
 
         {/* 6. Gallery - 攀岩相簿 */}
         <BiographyGallery biography={biography} />
-
-        {/* 7. Social Links - 社群連結 */}
-        <BiographySocials biography={biography} />
 
         {/* 底部間距 */}
         <div className="h-16" />
