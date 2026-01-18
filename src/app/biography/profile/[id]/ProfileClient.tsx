@@ -145,7 +145,7 @@ export default function ProfileClient({ params }: ProfileClientProps) {
         </div>
       </div>
 
-      {/* 1. Hero Section - 極簡標題區 */}
+      {/* 1. Hero Section - 封面與基本資訊 */}
       <HeroSection
         person={person}
         followerCount={followerCount}
@@ -155,29 +155,29 @@ export default function ProfileClient({ params }: ProfileClientProps) {
         }}
       />
 
-      {/* 2. 精選故事 */}
+      {/* 2. 快速了解 - 基本資訊卡片 */}
+      <QuickFactsSection person={person} />
+
+      {/* 3. 精選故事 */}
       <FeaturedStoriesSection person={person} />
 
-      {/* 3. Chapter 1: 相遇篇 */}
+      {/* 4. Chapter 1: 相遇篇 */}
       <ChapterMeeting person={person} />
 
-      {/* 4. Chapter 2: 意義篇 */}
+      {/* 5. Chapter 2: 意義篇 */}
       <ChapterMeaning person={person} />
-
-      {/* 5. Quick Facts - 快速了解 */}
-      <QuickFactsSection person={person} />
 
       {/* 6. Chapter 3: 人生清單 */}
       <ChapterBucketList person={person} isOwner={isOwner} />
 
-      {/* 7. Gallery: 攀岩足跡地圖 */}
-      <ClimbingFootprintsSection person={person} />
+      {/* 7. Chapter 4: 給新手的話 */}
+      <ChapterAdvice person={person} />
 
       {/* 8. 小故事（完整版） */}
       <CompleteStoriesSection person={person} isOwner={isOwner} />
 
-      {/* 9. Chapter 4: 給新手的話 */}
-      <ChapterAdvice person={person} />
+      {/* 9. 攀岩足跡地圖 */}
+      <ClimbingFootprintsSection person={person} />
 
       {/* 上下篇導航 */}
       <div className="container mx-auto max-w-5xl px-4 py-8">

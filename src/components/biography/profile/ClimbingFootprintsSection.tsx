@@ -230,7 +230,7 @@ export function ClimbingFootprintsSection({
     )
   }
 
-  if (locations.length === 0) return null
+  const hasContent = locations.length > 0
 
   // 按年份分組
   const locationsByYear: Record<string, ClimbingLocationRecord[]> = {}
@@ -278,54 +278,70 @@ export function ClimbingFootprintsSection({
       <div className="container mx-auto max-w-3xl px-4">
         {/* 標題 */}
         <motion.div
-          className="mb-6 text-center"
+          className="mb-8"
           initial={{ opacity: 0, y: -10 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.4 }}
         >
-          <div className="mb-2 inline-flex items-center gap-2 rounded-full bg-brand-dark px-4 py-1.5">
-            <MapPin className="h-4 w-4 text-white" />
-            <span className="text-sm font-medium text-white">攀岩足跡</span>
-          </div>
+          <span className="text-sm font-medium uppercase tracking-wider bg-brand-accent">
+            攀岩足跡
+          </span>
+          <h2 className="mt-2 flex items-center gap-2 text-2xl font-bold text-gray-900">
+            探索世界的腳步
+          </h2>
         </motion.div>
 
-        {/* 統計摘要 */}
-        <StatsSummary
-          totalLocations={locations.length}
-          countryCount={countryCount}
-          yearRange={yearRange}
-        />
+        {hasContent ? (
+          <>
+            {/* 統計摘要 */}
+            <StatsSummary
+              totalLocations={locations.length}
+              countryCount={countryCount}
+              yearRange={yearRange}
+            />
 
-        {/* 時間軸 */}
-        <div className="relative">
-          {/* 主時間線 */}
-          <div className="absolute left-5 top-0 h-full w-0.5 bg-gradient-to-b from-brand-dark via-brand-light to-transparent" />
+            {/* 時間軸 */}
+            <div className="relative">
+              {/* 主時間線 */}
+              <div className="absolute left-5 top-0 h-full w-0.5 bg-gradient-to-b from-brand-dark via-brand-light to-transparent" />
 
-          {/* 年份區塊 */}
-          <div className="space-y-8">
-            {timelineData.map((yearData, index) => (
-              <TimelineYearSection
-                key={yearData.year}
-                yearData={yearData}
-                index={index}
-              />
-            ))}
-          </div>
+              {/* 年份區塊 */}
+              <div className="space-y-8">
+                {timelineData.map((yearData, index) => (
+                  <TimelineYearSection
+                    key={yearData.year}
+                    yearData={yearData}
+                    index={index}
+                  />
+                ))}
+              </div>
 
-          {/* 時間軸結尾 */}
-          <motion.div
-            className="relative ml-5 mt-6 flex items-center gap-3 pl-8"
-            initial={{ opacity: 0 }}
-            whileInView={{ opacity: 1 }}
-            transition={{ delay: 0.3 }}
-            viewport={{ once: true }}
-          >
-            <div className="absolute left-0 flex h-6 w-6 items-center justify-center">
-              <div className="h-2 w-2 rounded-full bg-brand-light" />
+              {/* 時間軸結尾 */}
+              <motion.div
+                className="relative ml-5 mt-6 flex items-center gap-3 pl-8"
+                initial={{ opacity: 0 }}
+                whileInView={{ opacity: 1 }}
+                transition={{ delay: 0.3 }}
+                viewport={{ once: true }}
+              >
+                <div className="absolute left-0 flex h-6 w-6 items-center justify-center">
+                  <div className="h-2 w-2 rounded-full bg-brand-light" />
+                </div>
+                <p className="text-sm italic text-text-subtle">持續探索中...</p>
+              </motion.div>
             </div>
-            <p className="text-sm italic text-text-subtle">持續探索中...</p>
-          </motion.div>
-        </div>
+          </>
+        ) : (
+          /* 沒有資料時的預設內容 */
+          <div className="flex flex-col items-center justify-center py-12 text-center">
+            <p className="text-lg text-gray-500">
+              {person.name} 的攀岩足跡正在累積中...
+            </p>
+            <p className="mt-2 text-sm text-gray-400">
+              每一次出發，都是新的冒險
+            </p>
+          </div>
+        )}
       </div>
     </section>
   )

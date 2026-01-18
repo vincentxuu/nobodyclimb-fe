@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect, useCallback } from 'react'
-import { Loader2 } from 'lucide-react'
+import { Loader2, Target } from 'lucide-react'
 import { Biography, BucketListItem } from '@/lib/types'
 import { bucketListService } from '@/lib/api/services'
 import { BiographyBucketList } from '@/components/bucket-list'
@@ -13,7 +13,7 @@ interface ChapterBucketListProps {
 
 /**
  * Chapter 3 - 人生清單
- * 只在有內容時顯示（有故事描述或有清單項目）
+ * 永遠顯示，沒有資料時顯示預設內容
  */
 export function ChapterBucketList({ person, isOwner }: ChapterBucketListProps) {
   const [items, setItems] = useState<BucketListItem[]>([])
@@ -38,11 +38,6 @@ export function ChapterBucketList({ person, isOwner }: ChapterBucketListProps) {
     loadItems()
   }, [loadItems])
 
-  // 沒有故事描述、沒有清單項目、且不是擁有者時，不顯示此區塊
-  if (!isLoading && !person.bucket_list_story && items.length === 0 && !isOwner) {
-    return null
-  }
-
   // 載入中時顯示 loading
   if (isLoading) {
     return (
@@ -56,6 +51,8 @@ export function ChapterBucketList({ person, isOwner }: ChapterBucketListProps) {
     )
   }
 
+  const hasContent = person.bucket_list_story || items.length > 0
+
   return (
     <section className="bg-white py-16">
       <div className="container mx-auto max-w-5xl px-4">
@@ -68,16 +65,30 @@ export function ChapterBucketList({ person, isOwner }: ChapterBucketListProps) {
           </h2>
         </div>
 
-        {/* 人生清單故事描述 */}
-        {person.bucket_list_story && (
-          <p className="mb-8 text-lg leading-relaxed text-gray-700">
-            {person.bucket_list_story}
-          </p>
+        {hasContent ? (
+          <>
+            {/* 人生清單故事描述 */}
+            {person.bucket_list_story && (
+              <p className="mb-8 text-lg leading-relaxed text-gray-700">
+                {person.bucket_list_story}
+              </p>
+            )}
+            {/* 結構化人生清單 */}
+            <div className="mt-8">
+              <BiographyBucketList biographyId={person.id} />
+            </div>
+          </>
+        ) : (
+          /* 沒有資料時的預設內容 */
+          <div className="flex flex-col items-center justify-center py-12 text-center">
+            <p className="text-lg text-gray-500">
+              {person.name} 的攀岩人生清單正在醞釀中...
+            </p>
+            <p className="mt-2 text-sm text-gray-400">
+              每個攀岩者都有屬於自己的目標與夢想
+            </p>
+          </div>
         )}
-        {/* 結構化人生清單 */}
-        <div className="mt-8">
-          <BiographyBucketList biographyId={person.id} />
-        </div>
       </div>
     </section>
   )
