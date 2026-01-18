@@ -4,6 +4,7 @@ import { parsePagination, generateId, generateSlug } from '../utils/id';
 import { authMiddleware, optionalAuthMiddleware } from '../middleware/auth';
 import { createNotification } from './notifications';
 import { deleteR2Images } from '../utils/storage';
+import { trackUniqueView, getClientIP } from '../utils/viewTracker';
 
 // ═══════════════════════════════════════════════════════════
 // 共用常數 - 故事欄位定義
@@ -647,14 +648,21 @@ biographiesRoutes.put('/:id/view', optionalAuthMiddleware, async (c) => {
     );
   }
 
-  // Increment view count
-  await c.env.DB.prepare(
-    'UPDATE biographies SET total_views = COALESCE(total_views, 0) + 1 WHERE id = ?'
-  )
-    .bind(id)
-    .run();
+  // Check if this is a unique view (deduplicate by IP, 24-hour window)
+  const clientIP = getClientIP(c.req.raw);
+  const isUniqueView = await trackUniqueView(c.env.CACHE, 'biography', id, clientIP);
+
+  // Only increment view count for unique views
+  if (isUniqueView) {
+    await c.env.DB.prepare(
+      'UPDATE biographies SET total_views = COALESCE(total_views, 0) + 1 WHERE id = ?'
+    )
+      .bind(id)
+      .run();
+  }
 
   // Track individual user view for explorer badge (atomic UPSERT to avoid race conditions)
+  // This always runs for authenticated users to track their viewing history
   if (userId) {
     const viewId = generateId();
     await c.env.DB.prepare(
