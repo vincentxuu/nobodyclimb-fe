@@ -3,13 +3,22 @@
  * Uses Cloudflare KV to deduplicate views based on IP + entity
  */
 
-type EntityType = 'post' | 'video' | 'gallery';
+export type EntityType = 'post' | 'video' | 'gallery' | 'biography';
 
 // Table names for each entity type
 const TABLE_MAP: Record<EntityType, string> = {
   post: 'posts',
   video: 'videos',
   gallery: 'galleries',
+  biography: 'biographies',
+};
+
+// Column names for view count (most use view_count, biography uses total_views)
+const VIEW_COUNT_COLUMN: Record<EntityType, string> = {
+  post: 'view_count',
+  video: 'view_count',
+  gallery: 'view_count',
+  biography: 'total_views',
 };
 
 // Hash IP address for privacy (using Web Crypto API)
@@ -57,6 +66,30 @@ export async function trackUniqueView(
 }
 
 /**
+ * Track and increment view count for an entity (fire-and-forget style)
+ * Use this when you don't need to return the updated count
+ */
+export async function trackAndIncrementViewCount(
+  db: D1Database,
+  kv: KVNamespace,
+  request: Request,
+  entityType: EntityType,
+  entityId: string
+): Promise<void> {
+  const clientIP = getClientIP(request);
+  const isUniqueView = await trackUniqueView(kv, entityType, entityId, clientIP);
+
+  if (isUniqueView) {
+    const table = TABLE_MAP[entityType];
+    const column = VIEW_COUNT_COLUMN[entityType];
+    await db
+      .prepare(`UPDATE ${table} SET ${column} = COALESCE(${column}, 0) + 1 WHERE id = ?`)
+      .bind(entityId)
+      .run();
+  }
+}
+
+/**
  * Track and update view count for an entity
  * Returns the updated view count to display
  */
@@ -73,8 +106,9 @@ export async function trackAndUpdateViewCount(
 
   if (isUniqueView) {
     const table = TABLE_MAP[entityType];
+    const column = VIEW_COUNT_COLUMN[entityType];
     await db
-      .prepare(`UPDATE ${table} SET view_count = view_count + 1 WHERE id = ?`)
+      .prepare(`UPDATE ${table} SET ${column} = COALESCE(${column}, 0) + 1 WHERE id = ?`)
       .bind(entityId)
       .run();
     return currentViewCount + 1;
