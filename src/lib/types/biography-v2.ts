@@ -498,7 +498,9 @@ export function transformBackendToBiographyV2(backend: BiographyBackend): Biogra
     bio: backend.bio,
     avatar_url: backend.avatar_url,
     cover_url: backend.cover_image,
-    climbing_years: backend.climbing_start_year,
+    climbing_years: backend.climbing_start_year
+      ? new Date().getFullYear() - backend.climbing_start_year
+      : null,
     frequent_locations,
     home_gym: backend.home_gym,
     tags,
