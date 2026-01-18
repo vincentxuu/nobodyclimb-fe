@@ -25,11 +25,22 @@ async function getPost(id: string): Promise<PostData | null> {
   try {
     const res = await fetch(`${API_BASE_URL}/posts/${id}`, {
       next: { revalidate: 60 }, // 快取 60 秒
+      headers: {
+        'Content-Type': 'application/json',
+      },
     })
-    if (!res.ok) return null
+    if (!res.ok) {
+      console.error(`[getPost] API returned ${res.status} for id: ${id}`)
+      return null
+    }
     const data: ApiResponse = await res.json()
-    return data.success ? data.data ?? null : null
-  } catch {
+    if (!data.success || !data.data) {
+      console.error(`[getPost] API returned success=false for id: ${id}`)
+      return null
+    }
+    return data.data
+  } catch (error) {
+    console.error(`[getPost] Failed to fetch post for id: ${id}`, error)
     return null
   }
 }
