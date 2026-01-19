@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useCallback, useRef } from 'react'
 import Link from 'next/link'
 import Image from 'next/image'
 import { motion } from 'framer-motion'
@@ -10,6 +10,12 @@ import { Card, CardContent } from '@/components/ui/card'
 import { biographyService } from '@/lib/api/services'
 import { Biography } from '@/lib/types'
 import { isSvgUrl } from '@/lib/utils/image'
+import {
+  getCachedHomeBiographies,
+  cacheHomeBiographies,
+  isHomeBiographiesCacheExpired,
+  getDefaultQuote,
+} from '@/lib/utils/biography-cache'
 
 function ClimberCard({ person }: { person: Biography }) {
   const climbingYears = person.climbing_start_year
@@ -27,15 +33,17 @@ function ClimberCard({ person }: { person: Biography }) {
         <Card className="h-full overflow-hidden rounded-lg border border-gray-200 bg-white shadow-sm transition-shadow duration-300 hover:shadow-md">
           <CardContent className="p-6">
             <div className="mb-4 space-y-3">
-              {person.climbing_meaning ? (
-                <div className="relative">
-                  <p className="line-clamp-3 text-base font-medium leading-relaxed text-[#1B1A1A]">
-                    &ldquo;{person.climbing_meaning}&rdquo;
-                  </p>
-                </div>
-              ) : (
-                <p className="text-sm italic text-[#8E8C8C]">尚未分享故事</p>
-              )}
+              <div className="relative">
+                <p className={`line-clamp-3 text-base leading-relaxed ${
+                  person.climbing_meaning
+                    ? 'font-medium text-[#1B1A1A]'
+                    : 'italic text-[#8E8C8C]'
+                }`}>
+                  {person.climbing_meaning
+                    ? `"${person.climbing_meaning}"`
+                    : getDefaultQuote(person.id)}
+                </p>
+              </div>
             </div>
 
             <div className="flex items-center justify-between border-t border-gray-100 pt-3">
@@ -79,27 +87,46 @@ export function BiographySection() {
   const [biographies, setBiographies] = useState<Biography[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
+  const hasFetched = useRef(false)
 
-  useEffect(() => {
-    const loadBiographies = async () => {
-      try {
-        const response = await biographyService.getBiographies(1, 3)
-        if (response.success && response.data) {
-          setBiographies(response.data)
-        } else {
-          setBiographies([])
-        }
-      } catch (err) {
-        console.error('Failed to load biographies:', err)
-        setError('載入人物誌時發生錯誤')
-        setBiographies([])
-      } finally {
-        setLoading(false)
+  const loadBiographies = useCallback(async () => {
+    // 防止重複請求
+    if (hasFetched.current) return
+    hasFetched.current = true
+
+    // 優先使用緩存數據（stale-while-revalidate 模式）
+    const cached = getCachedHomeBiographies()
+    if (cached && cached.length > 0) {
+      setBiographies(cached)
+      setLoading(false)
+
+      // 如果緩存未過期，不需要重新請求
+      if (!isHomeBiographiesCacheExpired()) {
+        return
       }
+      // 緩存過期，在背景靜默更新
     }
 
-    loadBiographies()
+    try {
+      const response = await biographyService.getBiographies(1, 3)
+      if (response.success && response.data) {
+        setBiographies(response.data)
+        cacheHomeBiographies(response.data)
+      }
+    } catch (err) {
+      console.error('Failed to load biographies:', err)
+      // 如果有緩存數據，使用緩存數據而不顯示錯誤
+      if (!cached || cached.length === 0) {
+        setError('載入人物誌時發生錯誤')
+      }
+    } finally {
+      setLoading(false)
+    }
   }, [])
+
+  useEffect(() => {
+    loadBiographies()
+  }, [loadBiographies])
 
   return (
     <section className="pt-8 pb-16 md:pt-12 md:pb-20">

@@ -1,6 +1,6 @@
 'use client'
 
-import React, { useEffect, useState, useCallback } from 'react'
+import React, { useEffect, useState, useCallback, useRef } from 'react'
 import Link from 'next/link'
 import Image from 'next/image'
 import { motion } from 'framer-motion'
@@ -10,6 +10,12 @@ import { biographyService } from '@/lib/api/services'
 import { Biography } from '@/lib/types'
 import { calculateClimbingYears } from '@/lib/utils/biography'
 import { isSvgUrl } from '@/lib/utils/image'
+import {
+  getCachedBiographyList,
+  cacheBiographyList,
+  isBiographyListCacheExpired,
+  getDefaultQuote,
+} from '@/lib/utils/biography-cache'
 
 // 卡片組件
 interface BiographyCardProps {
@@ -30,15 +36,17 @@ function BiographyCard({ person }: BiographyCardProps) {
         <Card className="h-full overflow-hidden rounded-lg transition-shadow duration-300 hover:shadow-md">
           <CardContent className="p-6">
             <div className="mb-4 space-y-3">
-              {person.climbing_meaning ? (
-                <div className="relative">
-                  <p className="line-clamp-3 text-base font-medium leading-relaxed text-[#1B1A1A]">
-                    &ldquo;{person.climbing_meaning}&rdquo;
-                  </p>
-                </div>
-              ) : (
-                <p className="text-sm italic text-[#8E8C8C]">尚未分享故事</p>
-              )}
+              <div className="relative">
+                <p className={`line-clamp-3 text-base leading-relaxed ${
+                  person.climbing_meaning
+                    ? 'font-medium text-[#1B1A1A]'
+                    : 'italic text-[#8E8C8C]'
+                }`}>
+                  {person.climbing_meaning
+                    ? `"${person.climbing_meaning}"`
+                    : getDefaultQuote(person.id)}
+                </p>
+              </div>
             </div>
 
             <div className="flex items-center justify-between border-t border-gray-100 pt-3">
@@ -94,12 +102,34 @@ export function BiographyList({ searchTerm, onTotalChange, onLoadMoreChange }: B
   const [error, setError] = useState<string | null>(null)
   const [currentPage, setCurrentPage] = useState(1)
   const [hasMore, setHasMore] = useState(false)
+  const initialLoadDone = useRef(false)
+  const prevSearchTerm = useRef(searchTerm)
 
   // 從 API 加載數據
-  const loadBiographies = useCallback(async (page: number, append: boolean = false) => {
+  const loadBiographies = useCallback(async (page: number, append: boolean = false, useCache: boolean = false) => {
+    // 僅在首次載入且沒有搜索詞時使用緩存
+    if (useCache && page === 1 && !searchTerm && !initialLoadDone.current) {
+      const cached = getCachedBiographyList()
+      if (cached && cached.data.length > 0) {
+        setBiographies(cached.data)
+        const hasMoreData = cached.pagination.page < cached.pagination.total_pages
+        setHasMore(hasMoreData)
+        setCurrentPage(1)
+        onTotalChange?.(cached.pagination.total, hasMoreData)
+        setLoading(false)
+
+        // 如果緩存未過期，標記完成並返回
+        if (!isBiographyListCacheExpired()) {
+          initialLoadDone.current = true
+          return
+        }
+        // 緩存過期，在背景靜默更新
+      }
+    }
+
     if (append) {
       setLoadingMore(true)
-    } else {
+    } else if (!useCache) {
       setLoading(true)
     }
     setError(null)
@@ -113,25 +143,49 @@ export function BiographyList({ searchTerm, onTotalChange, onLoadMoreChange }: B
         setHasMore(hasMoreData)
         setCurrentPage(page)
         onTotalChange?.(response.pagination.total, hasMoreData)
+
+        // 緩存首頁無搜索的數據
+        if (page === 1 && !searchTerm) {
+          cacheBiographyList(response.data, response.pagination)
+        }
       } else {
-        setError('無法載入人物誌資料')
+        // 如果有緩存數據且 API 失敗，使用緩存
+        const cached = getCachedBiographyList()
+        if (cached && cached.data.length > 0 && !append && !searchTerm) {
+          setBiographies(cached.data)
+          const hasMoreData = cached.pagination.page < cached.pagination.total_pages
+          setHasMore(hasMoreData)
+          onTotalChange?.(cached.pagination.total, hasMoreData)
+        } else {
+          setError('無法載入人物誌資料')
+          if (!append) {
+            setBiographies([])
+          }
+          setHasMore(false)
+          onTotalChange?.(0, false)
+        }
+      }
+    } catch (err) {
+      console.error('Failed to load biographies:', err)
+      // 如果有緩存數據且 API 失敗，使用緩存
+      const cached = getCachedBiographyList()
+      if (cached && cached.data.length > 0 && !append && !searchTerm) {
+        setBiographies(cached.data)
+        const hasMoreData = cached.pagination.page < cached.pagination.total_pages
+        setHasMore(hasMoreData)
+        onTotalChange?.(cached.pagination.total, hasMoreData)
+      } else {
+        setError('載入人物誌時發生錯誤')
         if (!append) {
           setBiographies([])
         }
         setHasMore(false)
         onTotalChange?.(0, false)
       }
-    } catch (err) {
-      console.error('Failed to load biographies:', err)
-      setError('載入人物誌時發生錯誤')
-      if (!append) {
-        setBiographies([])
-      }
-      setHasMore(false)
-      onTotalChange?.(0, false)
     } finally {
       setLoading(false)
       setLoadingMore(false)
+      initialLoadDone.current = true
     }
   }, [searchTerm, onTotalChange])
 
@@ -150,8 +204,15 @@ export function BiographyList({ searchTerm, onTotalChange, onLoadMoreChange }: B
   // 搜索時重新加載
   useEffect(() => {
     const debounceTimer = setTimeout(() => {
-      setCurrentPage(1)
-      loadBiographies(1, false)
+      // 檢查搜索詞是否真的改變了，避免重複請求
+      const isSearchTermChanged = prevSearchTerm.current !== searchTerm
+      prevSearchTerm.current = searchTerm
+
+      if (isSearchTermChanged || !initialLoadDone.current) {
+        setCurrentPage(1)
+        // 首次載入時使用緩存
+        loadBiographies(1, false, !initialLoadDone.current && !searchTerm)
+      }
     }, 300)
 
     return () => clearTimeout(debounceTimer)
