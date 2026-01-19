@@ -455,8 +455,12 @@ authRoutes.post('/google', zValidator('json', googleAuthSchema), async (c) => {
       }
     }
 
+    // Track if this is a new user for frontend routing
+    let isNewUser = false;
+
     // If still no user, create a new one
     if (!user) {
+      isNewUser = true;
       const id = generateId();
       // Generate a unique username from email
       const baseUsername = googlePayload.email.split('@')[0].replace(/[^a-zA-Z0-9_]/g, '_');
@@ -528,6 +532,7 @@ authRoutes.post('/google', zValidator('json', googleAuthSchema), async (c) => {
         access_token,
         refresh_token,
         expires_in: 900, // 15 minutes
+        is_new_user: isNewUser,
       },
     });
   } catch (error) {
