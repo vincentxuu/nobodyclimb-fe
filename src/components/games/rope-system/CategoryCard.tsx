@@ -3,14 +3,38 @@
 import * as React from 'react'
 import Link from 'next/link'
 import { motion } from 'framer-motion'
-import { Star } from 'lucide-react'
+import {
+  Star,
+  Target,
+  PersonStanding,
+  Link as LinkIcon,
+  ArrowDown,
+  Anchor,
+  Wrench,
+  Mountain,
+  LifeBuoy,
+} from 'lucide-react'
 import { cn } from '@/lib/utils'
-import type { Category, CategoryProgress } from '@/lib/games/rope-system/types'
+import type { Category, CategoryProgress, CategoryIconName } from '@/lib/games/rope-system/types'
 import {
   DIFFICULTY_COLORS,
   DIFFICULTY_LABELS,
   ROUTES,
 } from '@/lib/games/rope-system/constants'
+
+/** 類別圖示對應 */
+const CategoryIcons: Record<CategoryIconName, React.ComponentType<{ className?: string }>> = {
+  Target,
+  PersonStanding,
+  Link: LinkIcon,
+  ArrowDown,
+  Anchor,
+  Wrench,
+  Mountain,
+  LifeBuoy,
+  Dumbbell: Target, // fallback
+  MountainSnow: Mountain, // fallback
+}
 
 interface CategoryCardProps {
   category: Category
@@ -45,7 +69,10 @@ export function CategoryCard({
         {/* 圖示與標題 */}
         <div className="mb-3 flex items-start justify-between">
           <div className="flex items-center gap-3">
-            <span className="text-2xl">{category.icon}</span>
+            {(() => {
+              const IconComponent = CategoryIcons[category.icon]
+              return <IconComponent className="h-6 w-6 text-[#1B1A1A]" />
+            })()}
             <div>
               <h3 className="font-medium text-[#1B1A1A]">{category.name}</h3>
               <p className="text-sm text-[#535353]">{category.description}</p>

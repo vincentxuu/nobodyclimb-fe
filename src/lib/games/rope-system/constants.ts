@@ -66,11 +66,11 @@ export const STATUS_COLORS = {
   INFO: '#3B82F6',
 } as const
 
-/** 難度色彩 */
+/** 難度色彩（品牌色系三色） */
 export const DIFFICULTY_COLORS: Record<Difficulty, { star: string; bg: string }> = {
-  1: { star: '#22C55E', bg: 'rgba(34, 197, 94, 0.1)' },
-  2: { star: '#F59E0B', bg: 'rgba(245, 158, 11, 0.1)' },
-  3: { star: '#EF4444', bg: 'rgba(239, 68, 68, 0.1)' },
+  1: { star: '#FFE70C', bg: 'rgba(255, 231, 12, 0.15)' },
+  2: { star: '#535353', bg: 'rgba(83, 83, 83, 0.1)' },
+  3: { star: '#1B1A1A', bg: 'rgba(27, 26, 26, 0.15)' },
 }
 
 /** 難度標籤 */
@@ -90,7 +90,7 @@ export const CATEGORIES: Category[] = [
     slug: 'sport-belay',
     name: '基礎確保',
     description: '學習正確的確保技術與安全觀念',
-    icon: '🎯',
+    icon: 'Target',
     parentSlug: 'sport',
     parentName: '運動攀登',
     questionCount: 15,
@@ -102,7 +102,7 @@ export const CATEGORIES: Category[] = [
     slug: 'sport-lead',
     name: '先鋒攀登',
     description: '掌握先鋒攀登的繩索管理與掛繩技巧',
-    icon: '🧗',
+    icon: 'PersonStanding',
     parentSlug: 'sport',
     parentName: '運動攀登',
     questionCount: 20,
@@ -114,7 +114,7 @@ export const CATEGORIES: Category[] = [
     slug: 'sport-toprope',
     name: '頂繩架設',
     description: '學習頂繩系統的架設與安全確認',
-    icon: '🔗',
+    icon: 'Link',
     parentSlug: 'sport',
     parentName: '運動攀登',
     questionCount: 15,
@@ -126,7 +126,7 @@ export const CATEGORIES: Category[] = [
     slug: 'sport-rappel',
     name: '垂降系統',
     description: '掌握垂降設備操作與安全程序',
-    icon: '⬇️',
+    icon: 'ArrowDown',
     parentSlug: 'sport',
     parentName: '運動攀登',
     questionCount: 15,
@@ -139,7 +139,7 @@ export const CATEGORIES: Category[] = [
     slug: 'trad-anchor',
     name: '固定點架設',
     description: '學習多點固定系統的架設原則',
-    icon: '⚓',
+    icon: 'Anchor',
     parentSlug: 'trad',
     parentName: '傳統攀登',
     questionCount: 15,
@@ -151,7 +151,7 @@ export const CATEGORIES: Category[] = [
     slug: 'trad-protection',
     name: '保護裝備',
     description: '掌握各類保護裝備的放置技巧',
-    icon: '🔩',
+    icon: 'Wrench',
     parentSlug: 'trad',
     parentName: '傳統攀登',
     questionCount: 15,
@@ -163,7 +163,7 @@ export const CATEGORIES: Category[] = [
     slug: 'trad-multipitch',
     name: '多繩距系統',
     description: '學習多繩距攀登的繩索管理',
-    icon: '🏔️',
+    icon: 'Mountain',
     parentSlug: 'trad',
     parentName: '傳統攀登',
     questionCount: 15,
@@ -175,7 +175,7 @@ export const CATEGORIES: Category[] = [
     slug: 'trad-rescue',
     name: '自我救援',
     description: '掌握基本的自我救援技術',
-    icon: '🆘',
+    icon: 'LifeBuoy',
     parentSlug: 'trad',
     parentName: '傳統攀登',
     questionCount: 15,
@@ -195,13 +195,13 @@ export const PARENT_CATEGORIES = {
   sport: {
     slug: 'sport',
     name: '運動攀登',
-    icon: '🏋️',
+    icon: 'Dumbbell' as const,
     description: 'Sport Climbing',
   },
   trad: {
     slug: 'trad',
     name: '傳統攀登',
-    icon: '⛰️',
+    icon: 'MountainSnow' as const,
     description: 'Traditional Climbing',
   },
 }

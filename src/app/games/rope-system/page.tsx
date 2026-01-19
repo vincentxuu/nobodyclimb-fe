@@ -3,12 +3,25 @@
 import * as React from 'react'
 import Link from 'next/link'
 import { motion } from 'framer-motion'
-import { ArrowLeft, Mountain, Trophy, BookOpen } from 'lucide-react'
+import {
+  ArrowLeft,
+  Mountain,
+  Trophy,
+  BookOpen,
+  Dumbbell,
+  MountainSnow,
+} from 'lucide-react'
 import { CategoryCard } from '@/components/games/rope-system'
 import {
   CATEGORIES_BY_PARENT,
   PARENT_CATEGORIES,
 } from '@/lib/games/rope-system/constants'
+
+/** 父類別圖示對應 */
+const ParentCategoryIcons = {
+  Dumbbell: Dumbbell,
+  MountainSnow: MountainSnow,
+} as const
 
 export default function RopeSystemHomePage() {
   return (
@@ -34,7 +47,9 @@ export default function RopeSystemHomePage() {
           animate={{ opacity: 1, y: 0 }}
           className="mb-8 text-center"
         >
-          <div className="mb-4 text-5xl">⛰️</div>
+          <div className="mb-4 flex justify-center">
+            <MountainSnow className="h-12 w-12 text-[#1B1A1A]" />
+          </div>
           <h1 className="mb-2 text-3xl font-bold text-[#1B1A1A]">
             攀岩系統練習
           </h1>
@@ -61,8 +76,8 @@ export default function RopeSystemHomePage() {
           </div>
 
           <div className="flex items-center gap-4 rounded-xl border border-[#E5E5E5] bg-white p-4 opacity-50">
-            <div className="flex h-12 w-12 items-center justify-center rounded-full bg-[rgba(34,197,94,0.2)]">
-              <Trophy className="h-6 w-6 text-[#22C55E]" />
+            <div className="flex h-12 w-12 items-center justify-center rounded-full bg-[rgba(255,231,12,0.2)]">
+              <Trophy className="h-6 w-6 text-[#FFE70C]" />
             </div>
             <div>
               <h3 className="font-medium text-[#1B1A1A]">系統考試</h3>
@@ -71,8 +86,8 @@ export default function RopeSystemHomePage() {
           </div>
 
           <div className="flex items-center gap-4 rounded-xl border border-[#E5E5E5] bg-white p-4 opacity-50 sm:col-span-2 lg:col-span-1">
-            <div className="flex h-12 w-12 items-center justify-center rounded-full bg-[rgba(59,130,246,0.2)]">
-              <Mountain className="h-6 w-6 text-[#3B82F6]" />
+            <div className="flex h-12 w-12 items-center justify-center rounded-full bg-[rgba(255,231,12,0.2)]">
+              <Mountain className="h-6 w-6 text-[#1B1A1A]" />
             </div>
             <div>
               <h3 className="font-medium text-[#1B1A1A]">認證徽章</h3>
@@ -89,7 +104,10 @@ export default function RopeSystemHomePage() {
           className="mb-8"
         >
           <div className="mb-4 flex items-center gap-3">
-            <span className="text-2xl">{PARENT_CATEGORIES.sport.icon}</span>
+            {(() => {
+              const IconComponent = ParentCategoryIcons[PARENT_CATEGORIES.sport.icon]
+              return <IconComponent className="h-6 w-6 text-[#1B1A1A]" />
+            })()}
             <div>
               <h2 className="text-xl font-bold text-[#1B1A1A]">
                 {PARENT_CATEGORIES.sport.name}
@@ -120,7 +138,10 @@ export default function RopeSystemHomePage() {
           transition={{ delay: 0.4 }}
         >
           <div className="mb-4 flex items-center gap-3">
-            <span className="text-2xl">{PARENT_CATEGORIES.trad.icon}</span>
+            {(() => {
+              const IconComponent = ParentCategoryIcons[PARENT_CATEGORIES.trad.icon]
+              return <IconComponent className="h-6 w-6 text-[#1B1A1A]" />
+            })()}
             <div>
               <h2 className="text-xl font-bold text-[#1B1A1A]">
                 {PARENT_CATEGORIES.trad.name}
