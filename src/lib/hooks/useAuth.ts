@@ -50,12 +50,12 @@ export function useAuth() {
   /**
    * 使用 Google 登入
    * @param {string} credential - Google OAuth credential (ID token)
-   * @returns {Promise<{ success: boolean, error?: string }>} 登入結果
+   * @returns {Promise<{ success: boolean, isNewUser?: boolean, error?: string }>} 登入結果
    */
   const loginWithGoogle = useCallback(async (credential: string) => {
     try {
-      await storeLoginWithGoogle(credential)
-      return { success: true }
+      const result = await storeLoginWithGoogle(credential)
+      return { success: true, isNewUser: result.isNewUser }
     } catch (error) {
       return {
         success: false,

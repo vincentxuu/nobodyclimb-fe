@@ -35,7 +35,12 @@ export default function RegisterPage() {
       const result = await loginWithGoogle(credentialResponse.credential)
       if (result.success) {
         setTimeout(() => {
-          router.push('/')
+          // 新用戶跳轉到 profile-setup，舊用戶跳轉到首頁
+          if (result.isNewUser) {
+            router.push('/auth/profile-setup/basic-info')
+          } else {
+            router.push('/')
+          }
         }, 100)
       } else {
         setError(result.error || 'Google 註冊失敗')

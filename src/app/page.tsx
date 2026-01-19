@@ -13,6 +13,11 @@ function SectionSkeleton() {
 }
 
 // 動態載入各區塊組件（按需載入，減少初始 bundle 大小）
+const FunFactSection = dynamic(
+  () => import('@/components/home/fun-fact-section').then((mod) => mod.FunFactSection),
+  { loading: () => null }
+)
+
 const BiographySection = dynamic(
   () => import('@/components/home/biography-section').then((mod) => mod.BiographySection),
   { loading: () => <SectionSkeleton /> }
@@ -51,7 +56,10 @@ const AboutSection = dynamic(
 export default function HomePage() {
   return (
     <main>
-      {/* 人物誌精選 - 放最上面（優先載入） */}
+      {/* 趣味冷知識 */}
+      <FunFactSection />
+
+      {/* 人物誌精選 */}
       <BiographySection />
 
       {/* 最新文章 */}

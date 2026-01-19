@@ -36,12 +36,6 @@ export default function UnifiedNav() {
               )}
               <span className="absolute -bottom-1 left-0 h-0.5 w-0 bg-[#1B1A1A] transition-all duration-300 group-hover:w-full"></span>
               {link.label}
-              {/* 人物誌標籤提示 - 僅未登入時顯示 */}
-              {link.href === '/biography' && !isAuthenticated && (
-                <span className="ml-1 inline-flex items-center rounded-full bg-amber-100 px-1.5 py-0.5 text-[10px] font-medium text-amber-700">
-                  可加入
-                </span>
-              )}
             </span>
           </Link>
         ))}

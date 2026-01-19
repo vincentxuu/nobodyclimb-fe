@@ -50,7 +50,7 @@ interface AuthState {
   // eslint-disable-next-line no-unused-vars
   login: (email: string, password: string) => Promise<{ success: boolean; error?: string }>
   // eslint-disable-next-line no-unused-vars
-  loginWithGoogle: (token: string) => Promise<void>
+  loginWithGoogle: (token: string) => Promise<{ isNewUser: boolean }>
   // eslint-disable-next-line no-unused-vars
   register: (username: string, email: string, password: string) => Promise<{ success: boolean; error?: string }>
   logout: () => Promise<void>
@@ -150,7 +150,7 @@ export const useAuthStore = create<AuthState>()(
             throw new Error(loginResponse.data.message || 'Google 登入失敗')
           }
 
-          const { access_token, refresh_token } = loginResponse.data.data
+          const { access_token, refresh_token, is_new_user } = loginResponse.data.data
 
           // 儲存 tokens (同時使用 cookie 和 localStorage 以支援 Android WebView)
           setTokens(access_token, refresh_token)
@@ -176,6 +176,8 @@ export const useAuthStore = create<AuthState>()(
             isLoading: false,
             error: null,
           })
+
+          return { isNewUser: is_new_user ?? false }
         } catch (error) {
           // 處理錯誤
           let errorMessage = 'Google 登入過程中發生錯誤'
