@@ -49,6 +49,10 @@ module.exports = {
           light: '#dbd8d8', // 淺灰色背景
           accent: '#FFE70C', // 黃色強調色
           'accent-light': '#FAF40A', // 黃色亮色版
+          gray: {
+            DEFAULT: '#E5E5E5', // 邊框灰色
+            light: '#F5F5F5', // 淺灰色背景
+          },
         },
         primary: {
           DEFAULT: 'hsl(var(--primary))',
