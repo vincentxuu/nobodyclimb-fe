@@ -147,6 +147,35 @@ async function cacheBiographyMetadata(
   }
 }
 
+/**
+ * 清除人物誌相關快取（當人物誌更新時呼叫）
+ * - biography:slug:{slug} - 詳細頁快取
+ * - biographies:featured:* - 首頁精選快取
+ */
+async function invalidateBiographyCaches(
+  cache: KVNamespace,
+  slug: string | null
+): Promise<void> {
+  const keysToDelete: string[] = [];
+
+  // Detail page cache
+  if (slug) {
+    keysToDelete.push(`biography:slug:${slug}`);
+  }
+
+  // Featured list caches (common limits: 3 for homepage, 6 for explore, 10 for admin)
+  keysToDelete.push('biographies:featured:3', 'biographies:featured:6', 'biographies:featured:10');
+
+  // 並行刪除所有快取 key
+  await Promise.all(
+    keysToDelete.map(key =>
+      cache.delete(key).catch(error => {
+        console.error(`Failed to invalidate cache ${key}:`, error);
+      })
+    )
+  );
+}
+
 // GET /biographies - List all public biographies
 biographiesRoutes.get('/', optionalAuthMiddleware, async (c) => {
   const userId = c.get('userId');
@@ -185,8 +214,22 @@ biographiesRoutes.get('/', optionalAuthMiddleware, async (c) => {
     .first<{ count: number }>();
   const total = countResult?.count || 0;
 
+  // Select only fields needed for list display (optimized for performance)
+  // Note: is_public needed for legacy data compatibility with visibility check
   const biographies = await c.env.DB.prepare(
-    `SELECT b.*, COALESCE(b.avatar_url, u.avatar_url) as avatar_url
+    `SELECT
+       b.id,
+       b.user_id,
+       b.slug,
+       b.name,
+       COALESCE(b.avatar_url, u.avatar_url) as avatar_url,
+       b.climbing_start_year,
+       b.climbing_meaning,
+       b.one_liners_data,
+       b.stories_data,
+       b.basic_info_data,
+       b.visibility,
+       b.is_public
      FROM biographies b
      LEFT JOIN users u ON b.user_id = u.id
      WHERE ${whereClause}
@@ -218,12 +261,36 @@ biographiesRoutes.get('/', optionalAuthMiddleware, async (c) => {
 });
 
 // GET /biographies/featured - Get featured biographies (only truly public)
+// Optimized for homepage: returns only necessary fields with KV caching
 biographiesRoutes.get('/featured', async (c) => {
   const limit = parseInt(c.req.query('limit') || '3', 10);
 
+  // Check cache first (5 minute TTL)
+  const cacheKey = `biographies:featured:${limit}`;
+  try {
+    const cached = await c.env.CACHE.get(cacheKey);
+    if (cached) {
+      return c.json({
+        success: true,
+        data: JSON.parse(cached),
+      });
+    }
+  } catch (e) {
+    console.error(`Cache read error for ${cacheKey}:`, e);
+  }
+
   // Featured biographies only show truly public ones (not community/anonymous)
+  // Select only fields needed for homepage display
   const biographies = await c.env.DB.prepare(
-    `SELECT b.*, COALESCE(b.avatar_url, u.avatar_url) as avatar_url
+    `SELECT
+       b.id,
+       b.slug,
+       b.name,
+       COALESCE(b.avatar_url, u.avatar_url) as avatar_url,
+       b.climbing_start_year,
+       b.climbing_meaning,
+       b.one_liners_data,
+       b.stories_data
      FROM biographies b
      LEFT JOIN users u ON b.user_id = u.id
      WHERE (b.visibility = 'public' OR (b.visibility IS NULL AND b.is_public = 1))
@@ -234,9 +301,18 @@ biographiesRoutes.get('/featured', async (c) => {
     .bind(limit)
     .all();
 
+  const results = biographies.results || [];
+
+  // Cache the result for 5 minutes
+  try {
+    await c.env.CACHE.put(cacheKey, JSON.stringify(results), { expirationTtl: 300 });
+  } catch (e) {
+    console.error(`Cache write error for ${cacheKey}:`, e);
+  }
+
   return c.json({
     success: true,
-    data: biographies.results,
+    data: results,
   });
 });
 
@@ -299,9 +375,30 @@ biographiesRoutes.get('/:id', optionalAuthMiddleware, async (c) => {
 });
 
 // GET /biographies/slug/:slug - Get biography by slug
+// Optimized with KV caching for public biographies (anonymous visitors)
 biographiesRoutes.get('/slug/:slug', optionalAuthMiddleware, async (c) => {
   const slug = c.req.param('slug');
   const userId = c.get('userId');
+
+  // For anonymous users, try cache first (public biographies only)
+  if (!userId) {
+    const cacheKey = `biography:slug:${slug}`;
+    try {
+      const cached = await c.env.CACHE.get(cacheKey);
+      if (cached) {
+        const cachedData = JSON.parse(cached);
+        // Verify it's still public (cache might be stale)
+        if (cachedData.visibility === 'public' || (cachedData.visibility === null && cachedData.is_public === 1)) {
+          return c.json({
+            success: true,
+            data: cachedData,
+          });
+        }
+      }
+    } catch (e) {
+      console.error(`Cache read error for ${cacheKey}:`, e);
+    }
+  }
 
   const visibilityClause = getVisibilityWhereClause(userId);
   const biography = await c.env.DB.prepare(
@@ -327,6 +424,18 @@ biographiesRoutes.get('/slug/:slug', optionalAuthMiddleware, async (c) => {
     ? sanitizeForAnonymous(bioRecord)
     : biography;
 
+  // Cache public biographies for anonymous users (5 minute TTL)
+  const isPublic = (bioRecord.visibility === 'public') ||
+    (bioRecord.visibility === null && bioRecord.is_public === 1);
+  if (!userId && isPublic) {
+    const cacheKey = `biography:slug:${slug}`;
+    try {
+      await c.env.CACHE.put(cacheKey, JSON.stringify(result), { expirationTtl: 300 });
+    } catch (e) {
+      console.error(`Cache write error for ${cacheKey}:`, e);
+    }
+  }
+
   return c.json({
     success: true,
     data: result,
@@ -351,10 +460,10 @@ biographiesRoutes.post('/', authMiddleware, async (c) => {
 
   // Check if user already has a biography
   const existing = await c.env.DB.prepare(
-    'SELECT id FROM biographies WHERE user_id = ?'
+    'SELECT id, slug FROM biographies WHERE user_id = ?'
   )
     .bind(userId)
-    .first<{ id: string }>();
+    .first<{ id: string; slug: string }>();
 
   if (existing) {
     // Update existing biography
@@ -439,7 +548,7 @@ biographiesRoutes.post('/', authMiddleware, async (c) => {
       .bind(existing.id)
       .first<Biography>();
 
-    // 同步更新 KV 快取
+    // 同步更新 KV 快取並清除舊快取
     if (biography) {
       await cacheBiographyMetadata(c.env.CACHE, {
         id: biography.id,
@@ -449,6 +558,8 @@ biographiesRoutes.post('/', authMiddleware, async (c) => {
         title: biography.title || null,
         climbing_meaning: biography.climbing_meaning || null,
       });
+      // 清除詳細頁和首頁精選快取
+      await invalidateBiographyCaches(c.env.CACHE, biography.slug || existing.slug);
     }
 
     return c.json({
@@ -526,10 +637,10 @@ biographiesRoutes.put('/me', authMiddleware, async (c) => {
   const body = await c.req.json<Partial<Biography>>();
 
   const existing = await c.env.DB.prepare(
-    'SELECT id, published_at, is_public FROM biographies WHERE user_id = ?'
+    'SELECT id, slug, published_at, is_public FROM biographies WHERE user_id = ?'
   )
     .bind(userId)
-    .first<{ id: string; published_at: string | null; is_public: number }>();
+    .first<{ id: string; slug: string; published_at: string | null; is_public: number }>();
 
   // Upsert: If biography doesn't exist, create one
   if (!existing) {
@@ -695,7 +806,7 @@ biographiesRoutes.put('/me', authMiddleware, async (c) => {
     .bind(existing.id)
     .first<Biography>();
 
-  // 同步更新 KV 快取
+  // 同步更新 KV 快取並清除舊快取
   if (biography) {
     await cacheBiographyMetadata(c.env.CACHE, {
       id: biography.id,
@@ -705,6 +816,8 @@ biographiesRoutes.put('/me', authMiddleware, async (c) => {
       title: biography.title || null,
       climbing_meaning: biography.climbing_meaning || null,
     });
+    // 清除詳細頁和首頁精選快取
+    await invalidateBiographyCaches(c.env.CACHE, biography.slug || existing.slug);
   }
 
   return c.json({
@@ -797,10 +910,10 @@ biographiesRoutes.delete('/me', authMiddleware, async (c) => {
   const userId = c.get('userId');
 
   const existing = await c.env.DB.prepare(
-    'SELECT id, profile_image, cover_image FROM biographies WHERE user_id = ?'
+    'SELECT id, slug, profile_image, cover_image FROM biographies WHERE user_id = ?'
   )
     .bind(userId)
-    .first<{ id: string; profile_image: string | null; cover_image: string | null }>();
+    .first<{ id: string; slug: string; profile_image: string | null; cover_image: string | null }>();
 
   if (!existing) {
     return c.json(
@@ -819,6 +932,9 @@ biographiesRoutes.delete('/me', authMiddleware, async (c) => {
   await c.env.DB.prepare('DELETE FROM biographies WHERE id = ?')
     .bind(existing.id)
     .run();
+
+  // 清除快取
+  await invalidateBiographyCaches(c.env.CACHE, existing.slug);
 
   return c.json({
     success: true,

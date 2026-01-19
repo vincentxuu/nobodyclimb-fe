@@ -156,7 +156,7 @@ export function BiographySection() {
     }
 
     try {
-      const response = await biographyService.getBiographies(1, 3)
+      const response = await biographyService.getFeaturedBiographies(3)
       if (response.success && response.data) {
         setBiographies(response.data)
         cacheHomeBiographies(response.data)
