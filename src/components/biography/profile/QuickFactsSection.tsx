@@ -45,7 +45,14 @@ export function QuickFactsSection({ person, mobileTagLimit = 8 }: QuickFactsSect
     }> = []
 
     for (const tagSelection of person.tags) {
-      const option = getTagOptionById(tagSelection.tag_id)
+      // 先在系統標籤中查找
+      let option = getTagOptionById(tagSelection.tag_id)
+
+      // 如果是用戶自定義標籤，從 custom_tags 中查找
+      if (!option && tagSelection.source === 'user' && person.custom_tags) {
+        option = person.custom_tags.find(t => t.id === tagSelection.tag_id)
+      }
+
       if (option) {
         // 處理動態標籤
         if (option.is_dynamic) {

@@ -69,7 +69,7 @@ export function AddCustomTagModal({
   const canSave = label.trim().length > 0 && dimensionId
 
   return (
-    <div className="fixed inset-0 z-50 flex items-end md:items-center justify-center">
+    <div className="fixed inset-0 z-[150] flex items-end md:items-center justify-center">
       {/* Backdrop */}
       <div
         className="absolute inset-0 bg-brand-dark/30 backdrop-blur-sm"
@@ -79,7 +79,7 @@ export function AddCustomTagModal({
       {/* Modal */}
       <div
         className={cn(
-          'relative bg-white w-full md:max-w-md md:rounded-2xl rounded-t-2xl max-h-[90vh] flex flex-col',
+          'relative bg-white w-full md:max-w-md md:rounded-2xl rounded-t-2xl max-h-[90vh] flex flex-col mb-20 md:mb-0',
           className
         )}
       >
