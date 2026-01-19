@@ -11,6 +11,7 @@ import { biographyService } from '@/lib/api/services'
 import { Biography } from '@/lib/types'
 import { useAuthStore } from '@/store/authStore'
 import { isSvgUrl } from '@/lib/utils/image'
+import { getDisplayTags } from '@/lib/utils/biography'
 import {
   getCachedHomeBiographies,
   cacheHomeBiographies,
@@ -65,6 +66,8 @@ function ClimberCard({ person, selectedContent }: ClimberCardProps) {
   const climbingYears = person.climbing_start_year
     ? new Date().getFullYear() - parseInt(person.climbing_start_year)
     : null
+  // 取得展示標籤
+  const displayTags = getDisplayTags(person.tags_data)
 
   return (
     <motion.div
@@ -114,11 +117,21 @@ function ClimberCard({ person, selectedContent }: ClimberCardProps) {
                     </div>
                   )}
                 </div>
-                <div className="flex-1">
+                <div className="flex-1 min-w-0">
                   <h3 className="text-sm font-medium text-[#1B1A1A]">{person.name}</h3>
-                  <p className="text-xs text-[#8E8C8C]">
-                    {climbingYears !== null ? `攀岩 ${climbingYears}年` : '從入坑那天起算'}
-                  </p>
+                  {displayTags.length > 0 ? (
+                    <div className="flex flex-wrap gap-1 mt-0.5">
+                      {displayTags.map((tag, index) => (
+                        <span key={tag.id} className="text-xs text-[#6D6C6C] truncate">
+                          {tag.label}{index < displayTags.length - 1 && <span className="mx-0.5">·</span>}
+                        </span>
+                      ))}
+                    </div>
+                  ) : (
+                    <p className="text-xs text-[#8E8C8C]">
+                      {climbingYears !== null ? `攀岩 ${climbingYears}年` : '從入坑那天起算'}
+                    </p>
+                  )}
                 </div>
               </div>
               <ArrowRightCircle size={18} className="flex-shrink-0 text-gray-400" />

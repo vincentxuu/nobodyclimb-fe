@@ -86,6 +86,7 @@ export interface TagsDataStorage {
   selections: TagSelection[]
   custom_tags?: TagOption[] // 用戶為系統維度新增的自訂標籤
   custom_dimensions?: TagDimension[] // 用戶自訂的標籤維度（包含其中的標籤選項）
+  display_tags?: string[] // 要在卡片上展示的 tag_id 陣列，最多 3 個
 }
 
 // ═══════════════════════════════════════════
