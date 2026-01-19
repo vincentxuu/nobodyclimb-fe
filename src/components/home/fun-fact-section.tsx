@@ -1,38 +1,109 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import { motion, AnimatePresence } from 'framer-motion'
 import { Lightbulb, ChevronDown, ChevronUp, ExternalLink } from 'lucide-react'
 
 interface FunFact {
+  id: string
   question: string
   answer: string
   detail: string
+  category: string
   link?: {
     href: string
     text: string
   }
+  tags?: string[]
 }
 
-// 趣味冷知識資料
-const funFacts: FunFact[] = [
-  {
-    question: 'Alex Honnold 在台灣 FA 一條戶外路線，你知道是哪一條嗎？',
-    answer: 'Happy Ending (5.13a)',
-    detail: '這條路線位於龍洞的 後門 區域，是 Alex Honnold 來台灣時首攀的！',
-    link: {
-      href: '/crag/longdong/route/LD-BACK-DOOR-52',
-      text: '查看路線資訊',
-    },
-  },
-]
+interface FunFactsData {
+  facts: FunFact[]
+  meta: {
+    total: number
+    lastUpdated: string
+    categories: Record<string, string>
+  }
+}
+
+// 每週七天對應的類別
+const DAILY_CATEGORIES = [
+  'taiwan',      // 週日
+  'record',      // 週一
+  'history',     // 週二
+  'technique',   // 週三
+  'gear',        // 週四
+  'culture',     // 週五
+  'competition', // 週六
+] as const
+
+// 類別顯示名稱
+const CATEGORY_LABELS: Record<string, string> = {
+  taiwan: '台灣攀岩',
+  record: '世界紀錄',
+  history: '攀岩歷史',
+  technique: '技術知識',
+  gear: '裝備知識',
+  culture: '攀岩文化',
+  competition: '競技攀岩',
+}
+
+// 根據日期生成穩定的偽隨機數
+function seededRandom(seed: number): number {
+  const x = Math.sin(seed) * 10000
+  return x - Math.floor(x)
+}
 
 export function FunFactSection() {
   const [isRevealed, setIsRevealed] = useState(false)
-  const currentFactIndex = 0
+  const [currentFact, setCurrentFact] = useState<FunFact | null>(null)
+  const [categoryLabel, setCategoryLabel] = useState<string>('')
+  const [isLoading, setIsLoading] = useState(true)
 
-  const currentFact = funFacts[currentFactIndex]
+  useEffect(() => {
+    async function loadFunFacts() {
+      try {
+        const response = await fetch('/data/fun-facts.json')
+        const data: FunFactsData = await response.json()
+
+        if (data.facts && data.facts.length > 0) {
+          const today = new Date()
+          const dayOfWeek = today.getDay() // 0-6 (週日-週六)
+          const todayCategory = DAILY_CATEGORIES[dayOfWeek]
+
+          // 篩選當天類別的冷知識
+          const categoryFacts = data.facts.filter((fact) => fact.category === todayCategory)
+
+          if (categoryFacts.length > 0) {
+            // 使用日期作為種子，確保同一天顯示同一則
+            const dateSeed = today.getFullYear() * 10000 + (today.getMonth() + 1) * 100 + today.getDate()
+            const index = Math.floor(seededRandom(dateSeed) * categoryFacts.length)
+            setCurrentFact(categoryFacts[index])
+            setCategoryLabel(CATEGORY_LABELS[todayCategory] || todayCategory)
+          }
+        }
+      } catch (error) {
+        console.error('Failed to load fun facts:', error)
+      } finally {
+        setIsLoading(false)
+      }
+    }
+
+    loadFunFacts()
+  }, [])
+
+  if (isLoading) {
+    return (
+      <section className="bg-gradient-to-r from-brand-accent/20 to-brand-accent/10 py-4 md:py-6">
+        <div className="container mx-auto px-4">
+          <div className="mx-auto max-w-3xl">
+            <div className="h-[72px] animate-pulse rounded-xl bg-white/50" />
+          </div>
+        </div>
+      </section>
+    )
+  }
 
   if (!currentFact) {
     return null
@@ -53,9 +124,16 @@ export function FunFactSection() {
                   <Lightbulb className="h-5 w-5 text-brand-dark" />
                 </div>
                 <div className="flex-1">
-                  <span className="text-xs font-medium tracking-wide text-brand-dark-hover">
-                    你知道嗎？
-                  </span>
+                  <div className="flex items-center gap-2">
+                    <span className="text-xs font-medium tracking-wide text-brand-dark-hover">
+                      你知道嗎？
+                    </span>
+                    {categoryLabel && (
+                      <span className="rounded-full bg-brand-accent/40 px-2 py-0.5 text-[10px] font-medium text-brand-dark">
+                        {categoryLabel}
+                      </span>
+                    )}
+                  </div>
                   <p className="mt-0.5 text-sm font-medium text-brand-dark md:text-base">
                     {currentFact.question}
                   </p>
