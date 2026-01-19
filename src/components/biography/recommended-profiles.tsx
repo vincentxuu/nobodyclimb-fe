@@ -29,7 +29,7 @@ function ProfileCard({ person }: ProfileCardProps) {
       transition={{ duration: 0.4 }}
       className="h-full"
     >
-      <Link href={`/biography/profile/${person.slug}`} className="block h-full">
+      <Link href={`/biography/profile/${person.slug || person.id}`} className="block h-full">
         <Card className="h-full overflow-hidden rounded-lg border border-gray-200 bg-white shadow-sm transition-shadow duration-300 hover:shadow-md">
           <CardContent className="p-6">
             <div className="mb-4 space-y-2">
