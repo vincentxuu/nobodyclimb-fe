@@ -142,7 +142,7 @@ export function RecentCompletedStories({ searchTerm, filter }: RecentCompletedSt
                   {/* 作者與時間 */}
                   <div className="mb-4 flex items-center justify-between">
                     <Link
-                      href={`/biography/profile/${item.biography_id}`}
+                      href={`/biography/profile/${item.author_slug || item.biography_id}`}
                       className="flex items-center gap-3"
                     >
                       <div className="relative h-10 w-10 overflow-hidden rounded-full bg-gray-200">
@@ -230,7 +230,7 @@ export function RecentCompletedStories({ searchTerm, filter }: RecentCompletedSt
                         {item.inspired_count || 0} 人也加入
                       </span>
                     </div>
-                    <Link href={`/biography/profile/${item.biography_id}`}>
+                    <Link href={`/biography/profile/${item.author_slug || item.biography_id}`}>
                       <Button variant="ghost" size="sm" className="text-gray-600 hover:text-gray-900">
                         查看完整故事
                         <ChevronRight className="ml-1 h-4 w-4" />

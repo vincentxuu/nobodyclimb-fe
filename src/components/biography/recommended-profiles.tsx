@@ -10,6 +10,7 @@ import { biographyService } from '@/lib/api/services'
 import { Biography } from '@/lib/types'
 import { calculateClimbingYears } from '@/lib/utils/biography'
 import { isSvgUrl } from '@/lib/utils/image'
+import { getDefaultQuote, selectOneLiner } from '@/lib/utils/biography-cache'
 
 interface ProfileCardProps {
   person: Biography
@@ -18,6 +19,9 @@ interface ProfileCardProps {
 function ProfileCard({ person }: ProfileCardProps) {
   const climbingYears = calculateClimbingYears(person.climbing_start_year)
 
+  // 從 one_liners_data 選擇一個有回答的問題
+  const selectedOneLiner = selectOneLiner(person.id, person.one_liners_data, person.climbing_meaning)
+
   return (
     <motion.div
       initial={{ opacity: 0, y: 20 }}
@@ -25,19 +29,24 @@ function ProfileCard({ person }: ProfileCardProps) {
       transition={{ duration: 0.4 }}
       className="h-full"
     >
-      <Link href={`/biography/profile/${person.id}`} className="block h-full">
+      <Link href={`/biography/profile/${person.slug || person.id}`} className="block h-full">
         <Card className="h-full overflow-hidden rounded-lg border border-gray-200 bg-white shadow-sm transition-shadow duration-300 hover:shadow-md">
           <CardContent className="p-6">
-            <div className="mb-4 space-y-3">
-              {person.climbing_meaning ? (
-                <div className="relative">
-                  <p className="line-clamp-3 text-base font-medium leading-relaxed text-[#1B1A1A]">
-                    &ldquo;{person.climbing_meaning}&rdquo;
-                  </p>
-                </div>
-              ) : (
-                <p className="text-sm italic text-[#8E8C8C]">尚未分享故事</p>
-              )}
+            <div className="mb-4 space-y-2">
+              <p className="text-xs text-[#8E8C8C]">
+                {selectedOneLiner?.question || '攀岩對你來說是什麼？'}
+              </p>
+              <div className="relative">
+                <p className={`line-clamp-3 text-base leading-relaxed ${
+                  selectedOneLiner
+                    ? 'font-medium text-[#1B1A1A]'
+                    : 'italic text-[#8E8C8C]'
+                }`}>
+                  {selectedOneLiner
+                    ? `"${selectedOneLiner.answer}"`
+                    : getDefaultQuote(person.id)}
+                </p>
+              </div>
             </div>
 
             <div className="flex items-center justify-between border-t border-gray-100 pt-3">

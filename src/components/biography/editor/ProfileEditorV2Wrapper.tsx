@@ -203,7 +203,7 @@ export function ProfileEditorV2Wrapper({ className }: ProfileEditorV2WrapperProp
         storyQuestionsByCategory={storyQuestionsByCategory}
         onChange={handleChange}
         onSave={handleSave}
-        previewHref={biography.id ? `/biography/profile/${biography.id}` : '#'}
+        previewHref={(biography.slug || biography.id) ? `/biography/profile/${biography.slug || biography.id}` : '#'}
         onPublish={handlePublish}
       />
     </div>

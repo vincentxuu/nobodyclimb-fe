@@ -383,11 +383,13 @@ export interface Biography {
 export interface BiographyAdjacent {
   previous: {
     id: string
+    slug?: string
     name: string
     avatar_url: string | null
   } | null
   next: {
     id: string
+    slug?: string
     name: string
     avatar_url: string | null
   } | null

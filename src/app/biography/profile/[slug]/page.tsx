@@ -24,7 +24,7 @@ interface BiographyMetadata {
  * 從 KV 快取獲取人物誌 metadata
  * 這是最快的方式，避免 Worker-to-Worker 522 超時問題
  */
-async function getBiographyFromKV(id: string): Promise<BiographyMetadata | null> {
+async function getBiographyFromKV(slug: string): Promise<BiographyMetadata | null> {
   try {
     // 動態載入以避免在非 Cloudflare 環境報錯
     const { getCloudflareContext } = await import('@opennextjs/cloudflare')
@@ -38,7 +38,7 @@ async function getBiographyFromKV(id: string): Promise<BiographyMetadata | null>
       return null
     }
 
-    const cacheKey = `bio-meta:${id}`
+    const cacheKey = `bio-meta:${slug}`
     const cached = await cache.get(cacheKey, 'json')
 
     if (cached) {
@@ -57,9 +57,9 @@ async function getBiographyFromKV(id: string): Promise<BiographyMetadata | null>
  * 獲取人物資料用於 SEO
  * 優先從 KV 讀取，失敗則 fallback 到通用標題
  */
-async function getBiographyMetadata(id: string): Promise<BiographyMetadata | null> {
+async function getBiographyMetadata(slug: string): Promise<BiographyMetadata | null> {
   // 嘗試從 KV 快取讀取（最快）
-  const kvData = await getBiographyFromKV(id)
+  const kvData = await getBiographyFromKV(slug)
   if (kvData) {
     return kvData
   }
@@ -67,7 +67,7 @@ async function getBiographyMetadata(id: string): Promise<BiographyMetadata | nul
   // KV 沒有資料時，直接返回 null，使用通用標題
   // 不再嘗試 API 呼叫，因為容易 522 超時
   // 頁面內容會由 client-side ProfileClient 正確載入
-  console.warn(`[getBiographyMetadata] KV cache miss for id: ${id}, using fallback title`)
+  console.warn(`[getBiographyMetadata] KV cache miss for slug: ${slug}, using fallback title`)
   return null
 }
 
@@ -75,10 +75,10 @@ async function getBiographyMetadata(id: string): Promise<BiographyMetadata | nul
 export async function generateMetadata({
   params,
 }: {
-  params: Promise<{ id: string }>
+  params: Promise<{ slug: string }>
 }): Promise<Metadata> {
-  const { id } = await params
-  const person = await getBiographyMetadata(id)
+  const { slug } = await params
+  const person = await getBiographyMetadata(slug)
 
   if (!person) {
     // Server-side fetch 可能因 Worker-to-Worker 522 超時而失敗
@@ -104,7 +104,7 @@ export async function generateMetadata({
       title: `${title} | ${SITE_NAME}`,
       description,
       type: 'profile',
-      url: `${SITE_URL}/biography/profile/${id}`,
+      url: `${SITE_URL}/biography/profile/${slug}`,
       images: [
         {
           url: image,
@@ -121,7 +121,7 @@ export async function generateMetadata({
       images: [image],
     },
     alternates: {
-      canonical: `${SITE_URL}/biography/profile/${id}`,
+      canonical: `${SITE_URL}/biography/profile/${slug}`,
     },
   }
 }
@@ -129,7 +129,7 @@ export async function generateMetadata({
 export default async function ProfilePage({
   params,
 }: {
-  params: Promise<{ id: string }>
+  params: Promise<{ slug: string }>
 }) {
   // JSON-LD 結構化數據由 ProfileClient 在客戶端生成
   // 因為需要完整人物資料，而 KV 只存 metadata
