@@ -43,7 +43,7 @@ app.use('*', async (c, next) => {
         ...envOrigins,
         // 支援 www 子網域
         ...envOrigins
-          .filter((o) => o.startsWith('https://'))
+          .filter((o) => o.startsWith('https://') && o.includes('nobodyclimb.cc'))
           .map((o) => o.replace('https://', 'https://www.')),
         'http://localhost:3000',
         'http://127.0.0.1:3000',
