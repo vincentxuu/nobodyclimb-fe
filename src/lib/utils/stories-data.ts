@@ -52,11 +52,16 @@ export function getStoryContent(
 ): string | null {
   // 優先從 stories_data 取得（新格式）
   if (storiesData) {
-    // 如果有傳入 category，直接 O(1) 查找
+    // 如果有傳入 category，先嘗試直接 O(1) 查找
     if (category) {
       const storyItem = storiesData[category]?.[field]
       if (storyItem?.answer && storyItem.answer.trim() && storyItem.visibility === 'public') {
         return storyItem.answer
+      }
+      // Fallback: 檢查 'uncategorized' 分類（V2 編輯器儲存的格式）
+      const uncategorizedItem = storiesData['uncategorized']?.[field]
+      if (uncategorizedItem?.answer && uncategorizedItem.answer.trim() && uncategorizedItem.visibility === 'public') {
+        return uncategorizedItem.answer
       }
     } else {
       // 沒有 category 時，遍歷所有分類（向後兼容）
