@@ -107,6 +107,31 @@ function shouldSanitizeAnonymous(biography: { visibility?: string | null; user_i
   return biography.visibility === 'anonymous' && biography.user_id !== currentUserId;
 }
 
+/**
+ * 如果 biography 沒有頭像，從關聯的 user 取得頭像作為 fallback
+ * @param db - D1 資料庫實例
+ * @param biography - 人物誌資料
+ */
+async function applyAvatarFallback(
+  db: D1Database,
+  biography: Record<string, unknown> | null
+): Promise<void> {
+  if (!biography) return;
+
+  const userId = biography.user_id as string | undefined;
+  if (!biography.avatar_url && userId) {
+    const user = await db.prepare(
+      'SELECT avatar_url FROM users WHERE id = ?'
+    )
+      .bind(userId)
+      .first<{ avatar_url: string | null }>();
+
+    if (user?.avatar_url) {
+      biography.avatar_url = user.avatar_url;
+    }
+  }
+}
+
 // ═══════════════════════════════════════════════════════════
 // KV 快取 - 用於前端 SSR metadata
 // ═══════════════════════════════════════════════════════════
@@ -228,6 +253,7 @@ biographiesRoutes.get('/', optionalAuthMiddleware, async (c) => {
        b.one_liners_data,
        b.stories_data,
        b.basic_info_data,
+       b.tags_data,
        b.visibility,
        b.is_public
      FROM biographies b
@@ -290,7 +316,8 @@ biographiesRoutes.get('/featured', async (c) => {
        b.climbing_start_year,
        b.climbing_meaning,
        b.one_liners_data,
-       b.stories_data
+       b.stories_data,
+       b.tags_data
      FROM biographies b
      LEFT JOIN users u ON b.user_id = u.id
      WHERE (b.visibility = 'public' OR (b.visibility IS NULL AND b.is_public = 1))
@@ -333,9 +360,13 @@ biographiesRoutes.get('/me', authMiddleware, async (c) => {
     });
   }
 
+  // Fallback to user avatar if biography has no avatar
+  const bioRecord = biography as Record<string, unknown>;
+  await applyAvatarFallback(c.env.DB, bioRecord);
+
   return c.json({
     success: true,
-    data: biography,
+    data: bioRecord,
   });
 });
 
@@ -362,11 +393,14 @@ biographiesRoutes.get('/:id', optionalAuthMiddleware, async (c) => {
     );
   }
 
-  // Sanitize anonymous biographies for non-owners
+  // Fallback to user avatar if biography has no avatar
   const bioRecord = biography as Record<string, unknown>;
+  await applyAvatarFallback(c.env.DB, bioRecord);
+
+  // Sanitize anonymous biographies for non-owners
   const result = shouldSanitizeAnonymous(bioRecord as { visibility?: string | null; user_id?: string | null }, userId)
     ? sanitizeForAnonymous(bioRecord)
-    : biography;
+    : bioRecord;
 
   return c.json({
     success: true,
@@ -418,11 +452,14 @@ biographiesRoutes.get('/slug/:slug', optionalAuthMiddleware, async (c) => {
     );
   }
 
-  // Sanitize anonymous biographies for non-owners
+  // Fallback to user avatar if biography has no avatar
   const bioRecord = biography as Record<string, unknown>;
+  await applyAvatarFallback(c.env.DB, bioRecord);
+
+  // Sanitize anonymous biographies for non-owners
   const result = shouldSanitizeAnonymous(bioRecord as { visibility?: string | null; user_id?: string | null }, userId)
     ? sanitizeForAnonymous(bioRecord)
-    : biography;
+    : bioRecord;
 
   // Cache public biographies for anonymous users (5 minute TTL)
   const isPublic = (bioRecord.visibility === 'public') ||
