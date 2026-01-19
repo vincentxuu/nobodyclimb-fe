@@ -1,38 +1,68 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import { motion, AnimatePresence } from 'framer-motion'
 import { Lightbulb, ChevronDown, ChevronUp, ExternalLink } from 'lucide-react'
 
 interface FunFact {
+  id: string
   question: string
   answer: string
   detail: string
+  category: string
   link?: {
     href: string
     text: string
   }
+  tags?: string[]
 }
 
-// 趣味冷知識資料
-const funFacts: FunFact[] = [
-  {
-    question: 'Alex Honnold 在台灣 FA 一條戶外路線，你知道是哪一條嗎？',
-    answer: 'Happy Ending (5.13a)',
-    detail: '這條路線位於龍洞的 後門 區域，是 Alex Honnold 來台灣時首攀的！',
-    link: {
-      href: '/crag/longdong/route/LD-BACK-DOOR-52',
-      text: '查看路線資訊',
-    },
-  },
-]
+interface FunFactsData {
+  facts: FunFact[]
+  meta: {
+    total: number
+    lastUpdated: string
+  }
+}
 
 export function FunFactSection() {
   const [isRevealed, setIsRevealed] = useState(false)
-  const currentFactIndex = 0
+  const [currentFact, setCurrentFact] = useState<FunFact | null>(null)
+  const [isLoading, setIsLoading] = useState(true)
 
-  const currentFact = funFacts[currentFactIndex]
+  useEffect(() => {
+    async function loadFunFacts() {
+      try {
+        const response = await fetch('/data/fun-facts.json')
+        const data: FunFactsData = await response.json()
+
+        if (data.facts && data.facts.length > 0) {
+          // 隨機選擇一則冷知識
+          const randomIndex = Math.floor(Math.random() * data.facts.length)
+          setCurrentFact(data.facts[randomIndex])
+        }
+      } catch (error) {
+        console.error('Failed to load fun facts:', error)
+      } finally {
+        setIsLoading(false)
+      }
+    }
+
+    loadFunFacts()
+  }, [])
+
+  if (isLoading) {
+    return (
+      <section className="bg-gradient-to-r from-brand-accent/20 to-brand-accent/10 py-4 md:py-6">
+        <div className="container mx-auto px-4">
+          <div className="mx-auto max-w-3xl">
+            <div className="h-[72px] animate-pulse rounded-xl bg-white/50" />
+          </div>
+        </div>
+      </section>
+    )
+  }
 
   if (!currentFact) {
     return null

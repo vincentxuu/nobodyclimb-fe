@@ -1,0 +1,80 @@
+{
+  "facts": [
+    {
+      "id": "alex-honnold-taiwan-fa",
+      "question": "Alex Honnold 在台灣 FA 一條戶外路線，你知道是哪一條嗎？",
+      "answer": "Happy Ending (5.13a)",
+      "detail": "這條路線位於龍洞的後門區域，是 Alex Honnold 來台灣時首攀的！",
+      "category": "taiwan",
+      "link": {
+        "href": "/crag/longdong/route/LD-BACK-DOOR-52",
+        "text": "查看路線資訊"
+      },
+      "tags": ["龍洞", "首攀", "名人"]
+    },
+    {
+      "id": "first-5-15a",
+      "question": "世界上第一條被確認的 5.15a 路線是哪一條？",
+      "answer": "Realization / Biographie",
+      "detail": "位於法國 Céüse 岩場，由 Chris Sharma 於 2001 年完成首攀，開啟了 5.15 時代。",
+      "category": "record",
+      "tags": ["世界紀錄", "首攀", "Chris Sharma"]
+    },
+    {
+      "id": "free-solo-el-cap",
+      "question": "Alex Honnold 無繩獨攀 El Capitan 花了多少時間？",
+      "answer": "3 小時 56 分鐘",
+      "detail": "2017 年 6 月 3 日，Honnold 完成了這項被譽為「攀岩史上最偉大成就」的壯舉，攀登 900 公尺高的 Freerider 路線。",
+      "category": "record",
+      "tags": ["Alex Honnold", "Free Solo", "El Capitan"]
+    },
+    {
+      "id": "climbing-olympics-2020",
+      "question": "運動攀登首次成為奧運正式項目是哪一年？",
+      "answer": "2020 年東京奧運",
+      "detail": "比賽包含速度攀登、抱石、先鋒攀登三個項目，由斯洛維尼亞選手 Janja Garnbret 奪得女子金牌。",
+      "category": "history",
+      "tags": ["奧運", "Janja Garnbret", "競技攀登"]
+    },
+    {
+      "id": "yosemite-decimal-system",
+      "question": "攀岩難度等級 5.10、5.11 的「5」代表什麼意思？",
+      "answer": "Yosemite Decimal System 的第五級",
+      "detail": "YDS 系統分為 1-5 級，第 5 級代表需要繩索確保的技術攀登。後來因難度細分，又加上 a/b/c/d 四個子級別。",
+      "category": "technique",
+      "tags": ["難度系統", "YDS", "攀岩知識"]
+    },
+    {
+      "id": "dawn-wall",
+      "question": "Tommy Caldwell 和 Kevin Jorgeson 花了多少天完成 Dawn Wall？",
+      "answer": "19 天",
+      "detail": "2015 年 1 月，他們完成了 El Capitan 上這條被認為是世界上最難的大岩壁自由攀登路線（5.14d）。",
+      "category": "record",
+      "tags": ["Dawn Wall", "Tommy Caldwell", "El Capitan"]
+    },
+    {
+      "id": "taiwan-first-indoor-gym",
+      "question": "台灣第一間商業攀岩館是哪一間？",
+      "answer": "Y17 攀岩館（原青年公園攀岩場）",
+      "detail": "位於台北市青年公園內，1997 年成立，是許多台灣攀岩者的啟蒙之地。",
+      "category": "taiwan",
+      "link": {
+        "href": "/gym",
+        "text": "探索攀岩館"
+      },
+      "tags": ["台灣", "攀岩館", "歷史"]
+    },
+    {
+      "id": "chalk-magnesium",
+      "question": "攀岩用的止滑粉（Chalk）主要成分是什麼？",
+      "answer": "碳酸鎂 (MgCO₃)",
+      "detail": "碳酸鎂能吸收手汗、增加摩擦力。最早是體操選手使用，1950 年代由 John Gill 引入攀岩運動。",
+      "category": "gear",
+      "tags": ["裝備", "粉袋", "攀岩知識"]
+    }
+  ],
+  "meta": {
+    "total": 8,
+    "lastUpdated": "2025-01-19"
+  }
+}
