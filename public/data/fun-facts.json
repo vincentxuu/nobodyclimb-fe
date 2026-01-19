@@ -71,10 +71,150 @@
       "detail": "碳酸鎂能吸收手汗、增加摩擦力。最早是體操選手使用，1950 年代由 John Gill 引入攀岩運動。",
       "category": "gear",
       "tags": ["裝備", "粉袋", "攀岩知識"]
+    },
+    {
+      "id": "longdong-history",
+      "question": "龍洞岩場最早是在什麼時候開始被攀岩者開發的？",
+      "answer": "1980 年代初期",
+      "detail": "龍洞是台灣最具規模的天然岩場，擁有超過 600 條路線。早期由登山社團開始探索，逐漸發展成亞洲知名的攀岩聖地。",
+      "category": "taiwan",
+      "link": {
+        "href": "/crag/longdong",
+        "text": "探索龍洞"
+      },
+      "tags": ["龍洞", "台灣", "歷史"]
+    },
+    {
+      "id": "silence-5-15d",
+      "question": "目前世界上最難的運動攀登路線難度是多少？",
+      "answer": "5.15d (Silence)",
+      "detail": "位於挪威 Flatanger 洞穴，由 Adam Ondra 於 2017 年完成首攀。這條路線至今仍無第二人完攀（repeat）。",
+      "category": "record",
+      "tags": ["Adam Ondra", "世界紀錄", "最難路線"]
+    },
+    {
+      "id": "speed-climbing-record",
+      "question": "男子速度攀登世界紀錄是多少秒？",
+      "answer": "4.79 秒",
+      "detail": "由印尼選手 Veddriq Leonardo 於 2024 年創下，攀登 15 公尺高的標準速度賽道。女子紀錄則是 6.24 秒。",
+      "category": "record",
+      "tags": ["速度攀登", "世界紀錄", "競技"]
+    },
+    {
+      "id": "lynn-hill-the-nose",
+      "question": "誰是第一位自由攀登 El Capitan「The Nose」路線的攀岩者？",
+      "answer": "Lynn Hill",
+      "detail": "1993 年，Lynn Hill 完成了這項歷史性壯舉，隔年更以不到 24 小時的時間再次完攀，至今仍是攀岩史上最偉大的成就之一。",
+      "category": "history",
+      "tags": ["Lynn Hill", "The Nose", "El Capitan", "女性攀岩"]
+    },
+    {
+      "id": "fall-factor",
+      "question": "什麼是「墜落係數」(Fall Factor)？",
+      "answer": "墜落距離除以繩索長度",
+      "detail": "墜落係數最大值為 2（繩索完全收緊時直接墜落）。係數越高，對攀岩者和裝備的衝擊力越大，這也是為什麼第一個快扣很重要。",
+      "category": "technique",
+      "tags": ["安全", "確保", "攀岩知識"]
+    },
+    {
+      "id": "onsight-vs-flash",
+      "question": "Onsight 和 Flash 有什麼不同？",
+      "answer": "是否事先獲得路線資訊",
+      "detail": "Onsight 是完全沒有任何資訊下首次嘗試就完攀；Flash 則是看過別人攀爬或獲得 beta 後首次嘗試完攀。兩者都必須一次完成、不能墜落。",
+      "category": "technique",
+      "tags": ["攀岩術語", "完攀方式", "攀岩知識"]
+    },
+    {
+      "id": "cam-invention",
+      "question": "現代 Cam（彈簧凸輪裝置）是誰發明的？",
+      "answer": "Ray Jardine",
+      "detail": "1978 年，美國攀岩者 Ray Jardine 發明了 Friends（第一款商業化的 Cam），徹底改變了傳統攀登的保護方式，讓攀岩者能在平行裂隙中放置可靠的保護點。",
+      "category": "gear",
+      "tags": ["裝備", "傳統攀登", "發明"]
+    },
+    {
+      "id": "climbing-shoes-evolution",
+      "question": "現代岩鞋的黏性橡膠底是什麼時候開始普及的？",
+      "answer": "1982 年（Boreal Fire）",
+      "detail": "西班牙品牌 Boreal 推出的 Fire 岩鞋首次採用高摩擦力橡膠，大幅提升了腳點的精準度，開啟了現代岩鞋的革命。",
+      "category": "gear",
+      "tags": ["裝備", "岩鞋", "歷史"]
+    },
+    {
+      "id": "v-scale-origin",
+      "question": "抱石的 V 級難度系統是誰創立的？",
+      "answer": "John Sherman",
+      "detail": "V 級系統（Vermin Scale）由美國抱石傳奇 John Sherman 在 1991 年創立，以德州 Hueco Tanks 的抱石路線為基準。V 代表他的綽號「Verm」。",
+      "category": "technique",
+      "tags": ["難度系統", "抱石", "攀岩知識"]
+    },
+    {
+      "id": "send-origin",
+      "question": "攀岩術語「Send」是怎麼來的？",
+      "answer": "源自「Ascend」的縮寫",
+      "detail": "Send 意指成功完攀一條路線，據說是從「Ascend」（攀登）一詞演變而來。當攀岩者說「I sent it!」就是表示成功完攀了！",
+      "category": "culture",
+      "tags": ["攀岩術語", "攀岩文化"]
+    },
+    {
+      "id": "janja-domination",
+      "question": "Janja Garnbret 在世界盃賽季中最長的連勝紀錄是多少場？",
+      "answer": "連續 11 場先鋒賽金牌",
+      "detail": "斯洛維尼亞選手 Janja Garnbret 在 2019 年賽季創下驚人的連勝紀錄，被譽為競技攀岩史上最具統治力的選手。",
+      "category": "record",
+      "tags": ["Janja Garnbret", "世界盃", "競技攀登"]
+    },
+    {
+      "id": "shoushan-limestone",
+      "question": "高雄壽山（柴山）的岩質是什麼類型？",
+      "answer": "珊瑚礁石灰岩",
+      "detail": "壽山是由古代珊瑚礁隆起形成的石灰岩地形，岩壁上可見許多化石痕跡。獨特的岩質造就了銳利的手點和特殊的攀爬風格。",
+      "category": "taiwan",
+      "link": {
+        "href": "/crag/shoushan",
+        "text": "探索壽山"
+      },
+      "tags": ["壽山", "台灣", "岩質"]
+    },
+    {
+      "id": "guanziling-hot-spring",
+      "question": "關子嶺岩場旁邊有什麼特別的自然景觀？",
+      "answer": "泥漿溫泉",
+      "detail": "關子嶺是台灣少數擁有泥漿溫泉的地區，攀岩後可以泡湯放鬆。岩場本身是砂岩材質，以裂隙和煙囪地形著稱。",
+      "category": "taiwan",
+      "link": {
+        "href": "/crag/guanziling",
+        "text": "探索關子嶺"
+      },
+      "tags": ["關子嶺", "台灣", "溫泉"]
+    },
+    {
+      "id": "free-climbing-definition",
+      "question": "「自由攀登」(Free Climbing) 是指不用繩子攀爬嗎？",
+      "answer": "不是，是指不借助器材向上移動",
+      "detail": "自由攀登是指只用身體力量攀爬，繩索和器材僅作為墜落保護。不用繩子的是「無繩攀登」(Free Solo)，兩者常被混淆。",
+      "category": "technique",
+      "tags": ["攀岩術語", "攀岩知識", "安全"]
+    },
+    {
+      "id": "the-valley-uprising",
+      "question": "哪部紀錄片講述了優勝美地攀岩文化的演變史？",
+      "answer": "Valley Uprising (2014)",
+      "detail": "這部紀錄片記錄了從 1950 年代至今優勝美地的攀岩歷史，包括 Royal Robbins、Yvon Chouinard 到 Lynn Hill、Alex Honnold 等傳奇人物的故事。",
+      "category": "culture",
+      "tags": ["紀錄片", "優勝美地", "攀岩文化"]
     }
   ],
   "meta": {
-    "total": 8,
-    "lastUpdated": "2025-01-19"
+    "total": 23,
+    "lastUpdated": "2025-01-19",
+    "categories": {
+      "taiwan": "台灣攀岩",
+      "record": "世界紀錄",
+      "history": "攀岩歷史",
+      "technique": "技術知識",
+      "gear": "裝備知識",
+      "culture": "攀岩文化"
+    }
   }
 }
