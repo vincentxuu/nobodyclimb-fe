@@ -85,6 +85,7 @@ export interface TagSelection {
 export interface TagsDataStorage {
   selections: TagSelection[]
   custom_tags?: TagOption[] // 用戶為系統維度新增的自訂標籤
+  custom_dimensions?: TagDimension[] // 用戶自訂的標籤維度（包含其中的標籤選項）
 }
 
 // ═══════════════════════════════════════════
@@ -267,6 +268,7 @@ export interface BiographyV2 {
   // ═══════════════════════════════════════════
   tags: TagSelection[]
   custom_tags?: TagOption[] // 用戶為系統維度新增的自訂標籤定義
+  custom_dimensions?: TagDimension[] // 用戶自訂的標籤維度（包含其中的標籤選項）
 
   // ═══════════════════════════════════════════
   // 第二層：一句話系列（簡化陣列結構）
@@ -516,6 +518,7 @@ export function transformBackendToBiographyV2(backend: BiographyBackend): Biogra
   const tagsRaw = safeJsonParse<TagSelection[] | TagsDataStorage>(backend.tags_data, [])
   let tags: TagSelection[] = []
   let custom_tags: TagOption[] | undefined = undefined
+  let custom_dimensions: TagDimension[] | undefined = undefined
 
   if (Array.isArray(tagsRaw)) {
     // 舊格式：直接是 TagSelection[]
@@ -524,11 +527,15 @@ export function transformBackendToBiographyV2(backend: BiographyBackend): Biogra
     // 新格式：TagsDataStorage
     tags = tagsRaw.selections || []
     custom_tags = tagsRaw.custom_tags
+    custom_dimensions = tagsRaw.custom_dimensions
   }
 
   // 清理無效的用戶自訂標籤引用
-  // 過濾掉 source 為 'user' 但在 custom_tags 中找不到定義的標籤
-  const customTagIds = new Set(custom_tags?.map((t) => t.id) || [])
+  // 過濾掉 source 為 'user' 但在 custom_tags 或 custom_dimensions 中找不到定義的標籤
+  const customTagIds = new Set([
+    ...(custom_tags?.map((t) => t.id) || []),
+    ...(custom_dimensions?.flatMap((d) => d.options.map((o) => o.id)) || []),
+  ])
   tags = tags.filter((tag) => {
     // 系統標籤：保留（假設系統維度總是包含它們）
     if (tag.source === 'system') return true
@@ -719,6 +726,7 @@ export function transformBackendToBiographyV2(backend: BiographyBackend): Biogra
     home_gym: backend.home_gym,
     tags,
     custom_tags,
+    custom_dimensions,
     one_liners,
     stories,
     gallery_images,
@@ -749,6 +757,7 @@ export function transformBiographyV2ToBackend(bio: BiographyV2): {
   const tagsStorage: TagsDataStorage = {
     selections: bio.tags,
     custom_tags: bio.custom_tags,
+    custom_dimensions: bio.custom_dimensions,
   }
   const tags_data = JSON.stringify(tagsStorage)
 
@@ -817,6 +826,7 @@ export function createEmptyBiographyV2(userId: string): BiographyV2 {
     home_gym: null,
     tags: [],
     custom_tags: undefined,
+    custom_dimensions: undefined,
     one_liners: [],
     stories: [],
     gallery_images: null,
