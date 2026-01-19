@@ -11328,9 +11328,11 @@
     }
   },
   "metadata": {
-    "version": "2.0.0",
-    "source": "CSV data conversion from Taiwan Climbing Database",
-    "lastUpdated": "2026-01-09T14:34:05.000Z",
-    "maintainer": "NobodyClimb Team"
+    "version": "",
+    "source": "龍洞岩場攀登路線資料庫 Google Sheet",
+    "sourceUrl": "https://docs.google.com/spreadsheets/d/1QHFNQSPgKgQrTNnYn246wfotOYqOkzHjLltZ26keBgg/edit?gid=409537589#gid=409537589",
+    "lastUpdated": "",
+    "maintainer": "TOCC(臺灣戶外攀岩協會)",
+    "maintainerUrl": "https://www.tocc-climbing.org/"
   }
 }

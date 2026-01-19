@@ -349,19 +349,6 @@
       ]
     },
     {
-      "id": "GZ-ULTIMATE-009",
-      "areaId": "ultimate-wall",
-      "name": "Project",
-      "nameEn": "Project",
-      "grade": "5.12d",
-      "type": "sport",
-      "typeEn": "Sport Climbing",
-      "length": "20m",
-      "description": "終極岩的新計畫路線，難度在最後5米段落。",
-      "boltCount": 12,
-      "status": "published"
-    },
-    {
       "id": "GZ-ASSEMBLING-001",
       "areaId": "assembling-field",
       "name": "天天天藍",
@@ -1137,9 +1124,9 @@
     }
   },
   "metadata": {
-    "version": "2.0.0",
+    "version": "",
     "source": "關子嶺攀岩圖冊 by Hung-Hsiang Wang",
-    "lastUpdated": "2025-01-10",
-    "maintainer": "NobodyClimb Team"
+    "lastUpdated": "",
+    "maintainer": ""
   }
 }
