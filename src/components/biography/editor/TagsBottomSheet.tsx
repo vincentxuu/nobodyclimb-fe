@@ -51,6 +51,8 @@ interface TagsBottomSheetProps {
   onSelectionChange: (_dimensionId: string, _selectedIds: string[]) => void
   /** 新增自訂標籤回調 */
   onAddCustomTag?: (_dimensionId: string) => void
+  /** 新增自訂維度回調 */
+  onAddCustomDimension?: () => void
   /** 完成回調 */
   onComplete?: () => void
   /** 自訂樣式 */
@@ -69,6 +71,7 @@ export function TagsBottomSheet({
   selections,
   onSelectionChange,
   onAddCustomTag,
+  onAddCustomDimension,
   onComplete,
   className,
 }: TagsBottomSheetProps) {
@@ -345,6 +348,18 @@ export function TagsBottomSheet({
               </div>
             )
           })}
+
+          {/* 新增標籤類別按鈕 */}
+          {onAddCustomDimension && (
+            <button
+              type="button"
+              onClick={onAddCustomDimension}
+              className="flex items-center gap-1 text-sm text-[#6D6C6C] hover:text-[#1B1A1A] transition-colors mt-2"
+            >
+              <Plus size={16} />
+              新增標籤類別
+            </button>
+          )}
         </div>
 
         {/* Safe Area Padding */}

@@ -653,6 +653,7 @@ export function ProfileEditor({
           handleChange({ tags: [...otherTags, ...newTags] })
         }}
         onAddCustomTag={handleAddCustomTag}
+        onAddCustomDimension={handleAddCustomDimension}
       />
 
       {/* Custom Tag Modal */}
