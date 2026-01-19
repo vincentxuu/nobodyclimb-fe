@@ -652,6 +652,7 @@ export function ProfileEditor({
           }))
           handleChange({ tags: [...otherTags, ...newTags] })
         }}
+        onAddCustomTag={handleAddCustomTag}
       />
 
       {/* Custom Tag Modal */}
