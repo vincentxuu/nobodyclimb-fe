@@ -30,10 +30,11 @@ fi
 TEMP_DIR=$(mktemp -d)
 echo "Using temp directory: $TEMP_DIR"
 
-# 從 D1 查詢所有公開的人物誌
+# 從 D1 查詢所有可公開顯示的人物誌
+# 包含 visibility = 'public', 'community', 'anonymous' 或舊的 is_public = 1
 echo "Querying biographies from D1..."
 wrangler d1 execute "$DB_NAME" --remote --env "$ENV" \
-  --command "SELECT id, name, avatar_url, bio, title, climbing_meaning FROM biographies WHERE is_public = 1" \
+  --command "SELECT id, name, avatar_url, bio, title, climbing_meaning FROM biographies WHERE visibility IN ('public', 'community', 'anonymous') OR (visibility IS NULL AND is_public = 1)" \
   --json > "$TEMP_DIR/biographies.json"
 
 # 用 Node.js 處理 JSON 並產生 KV bulk 格式

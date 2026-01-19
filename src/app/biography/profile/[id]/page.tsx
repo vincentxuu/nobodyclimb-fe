@@ -83,8 +83,9 @@ export async function generateMetadata({
   if (!person) {
     // Server-side fetch 可能因 Worker-to-Worker 522 超時而失敗
     // 使用通用標題，讓 client-side 正確顯示內容
+    // 只設定 title 為頁面名稱，讓 root layout 的 template 自動加上 site name
     return {
-      title: '人物誌 - NobodyClimb',
+      title: '人物誌',
       description: '探索攀岩人物的故事',
     }
   }
