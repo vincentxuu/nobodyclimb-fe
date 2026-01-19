@@ -3,7 +3,7 @@
 import * as React from 'react'
 import { useCallback, useEffect, useMemo } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-import { ArrowLeft } from 'lucide-react'
+import { ArrowLeft, PersonStanding, PartyPopper, AlertTriangle, Flame } from 'lucide-react'
 import Link from 'next/link'
 import { cn } from '@/lib/utils'
 import { useRopeGameStore, selectCurrentQuestion, selectProgress } from '@/store/ropeGameStore'
@@ -197,18 +197,20 @@ export function GameCanvas({
               <div className="flex items-center justify-between rounded-xl border border-[#E5E5E5] bg-white p-4 lg:hidden">
                 <div className="flex items-center gap-4">
                   <motion.div
-                    className="text-3xl"
+                    className="flex h-10 w-10 items-center justify-center rounded-full bg-gray-100"
                     animate={
                       characterState === 'falling'
                         ? { rotate: [0, 15, -15, 0] }
                         : {}
                     }
                   >
-                    {characterState === 'falling'
-                      ? '😱'
-                      : characterState === 'celebrating'
-                        ? '🎉'
-                        : '🧗'}
+                    {characterState === 'falling' ? (
+                      <AlertTriangle className="h-6 w-6 text-red-500" />
+                    ) : characterState === 'celebrating' ? (
+                      <PartyPopper className="h-6 w-6 text-green-500" />
+                    ) : (
+                      <PersonStanding className="h-6 w-6 text-[#1B1A1A]" />
+                    )}
                   </motion.div>
                   <ScoreDisplay score={score} />
                 </div>
@@ -279,9 +281,10 @@ export function GameCanvas({
               <motion.div
                 initial={{ scale: 0 }}
                 animate={{ scale: 1 }}
-                className="rounded-full bg-[#F59E0B] px-3 py-1 text-sm font-medium text-white"
+                className="flex items-center gap-1 rounded-full bg-[#F59E0B] px-3 py-1 text-sm font-medium text-white"
               >
-                🔥 x{combo}
+                <Flame className="h-4 w-4" />
+                <span>x{combo}</span>
               </motion.div>
             )}
             <LifeDisplay lives={lives} />
