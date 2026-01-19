@@ -1,5 +1,5 @@
-import axios from 'axios'
-import { API_BASE_URL } from '../constants'
+import axios, { AxiosError } from 'axios'
+import { API_BASE_URL, API_TIMEOUT } from '../constants'
 import { ApiResponse, RefreshTokenResponse } from '../types'
 import {
   getAccessToken,
@@ -9,10 +9,40 @@ import {
 } from '../utils/tokenStorage'
 
 /**
+ * 重試配置
+ */
+const RETRY_CONFIG = {
+  maxRetries: 3,
+  retryDelay: 1000, // 基礎延遲時間 (ms)
+  retryableStatuses: [408, 500, 502, 503, 504, 522], // 可重試的 HTTP 狀態碼
+}
+
+/**
+ * 指數退避延遲計算
+ */
+function getRetryDelay(retryCount: number): number {
+  return RETRY_CONFIG.retryDelay * Math.pow(2, retryCount)
+}
+
+/**
+ * 判斷是否應該重試
+ */
+function shouldRetry(error: AxiosError, retryCount: number): boolean {
+  if (retryCount >= RETRY_CONFIG.maxRetries) return false
+
+  // 網路錯誤或超時
+  if (!error.response) return true
+
+  // 可重試的狀態碼
+  return RETRY_CONFIG.retryableStatuses.includes(error.response.status)
+}
+
+/**
  * 創建一個 Axios 實例用於 API 請求
  */
 const apiClient = axios.create({
   baseURL: API_BASE_URL,
+  timeout: API_TIMEOUT,
   headers: {
     'Content-Type': 'application/json',
   },
@@ -40,14 +70,21 @@ apiClient.interceptors.request.use(
 
 /**
  * 響應攔截器
- * 處理常見錯誤情況，如 Token 過期
+ * 處理常見錯誤情況，如 Token 過期、網路錯誤重試
  */
 apiClient.interceptors.response.use(
   (response) => {
     return response
   },
-  async (error) => {
-    const originalRequest = error.config
+  async (error: AxiosError) => {
+    const originalRequest = error.config as typeof error.config & {
+      _retry?: boolean
+      _retryCount?: number
+    }
+
+    if (!originalRequest) {
+      return Promise.reject(error)
+    }
 
     // 處理 401 未授權錯誤 (可能是 Token 過期)
     if (error.response?.status === 401 && !originalRequest._retry) {
@@ -91,6 +128,24 @@ apiClient.interceptors.response.use(
 
         return Promise.reject(refreshError)
       }
+    }
+
+    // 處理可重試的錯誤（503、502、超時等）
+    const retryCount = originalRequest._retryCount || 0
+
+    if (shouldRetry(error, retryCount)) {
+      originalRequest._retryCount = retryCount + 1
+      const delay = getRetryDelay(retryCount)
+
+      // eslint-disable-next-line no-console
+      console.info(
+        `[API] 請求失敗，${delay}ms 後重試 (${originalRequest._retryCount}/${RETRY_CONFIG.maxRetries})`,
+        originalRequest.url
+      )
+
+      // 等待後重試
+      await new Promise((resolve) => setTimeout(resolve, delay))
+      return apiClient(originalRequest)
     }
 
     return Promise.reject(error)

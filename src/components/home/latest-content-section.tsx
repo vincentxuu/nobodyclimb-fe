@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import Image from 'next/image'
 import Link from 'next/link'
 import { motion } from 'framer-motion'
@@ -10,6 +10,10 @@ import { postService } from '@/lib/api/services'
 import { BackendPost, getCategoryLabel } from '@/lib/types'
 import { generateSummary } from '@/lib/utils/article'
 
+// 緩存配置
+const CACHE_KEY = 'nobodyclimb_home_articles'
+const CACHE_TTL = 5 * 60 * 1000 // 5 分鐘
+
 interface ArticleItem {
   id: string
   title: string
@@ -18,6 +22,62 @@ interface ArticleItem {
   date: string
   link: string
   category?: string
+}
+
+interface CachedData {
+  data: ArticleItem[]
+  timestamp: number
+}
+
+/**
+ * 從 localStorage 獲取緩存的文章數據
+ */
+function getCachedArticles(): ArticleItem[] | null {
+  if (typeof window === 'undefined') return null
+
+  try {
+    const cached = localStorage.getItem(CACHE_KEY)
+    if (!cached) return null
+
+    const { data }: CachedData = JSON.parse(cached)
+    return data
+  } catch {
+    return null
+  }
+}
+
+/**
+ * 檢查緩存是否過期
+ */
+function isCacheExpired(): boolean {
+  if (typeof window === 'undefined') return true
+
+  try {
+    const cached = localStorage.getItem(CACHE_KEY)
+    if (!cached) return true
+
+    const { timestamp }: CachedData = JSON.parse(cached)
+    return Date.now() - timestamp > CACHE_TTL
+  } catch {
+    return true
+  }
+}
+
+/**
+ * 緩存文章數據到 localStorage
+ */
+function cacheArticles(data: ArticleItem[]): void {
+  if (typeof window === 'undefined') return
+
+  try {
+    const cacheData: CachedData = {
+      data,
+      timestamp: Date.now(),
+    }
+    localStorage.setItem(CACHE_KEY, JSON.stringify(cacheData))
+  } catch {
+    // 忽略緩存錯誤
+  }
 }
 
 // 文章卡片組件
@@ -79,34 +139,55 @@ export function LatestContentSection() {
   const [articles, setArticles] = useState<ArticleItem[]>([])
   const [loading, setLoading] = useState(true)
 
-  useEffect(() => {
-    const fetchArticles = async () => {
-      try {
-        const postsRes = await postService.getPosts(1, 4)
-
-        if (postsRes.success && postsRes.data) {
-          const items: ArticleItem[] = postsRes.data.map((post: BackendPost) => ({
-            id: post.id,
-            title: post.title,
-            thumbnail: post.cover_image,
-            excerpt: post.excerpt || generateSummary(post.content, undefined, 80),
-            date: post.published_at
-              ? new Date(post.published_at).toLocaleDateString('zh-TW')
-              : new Date(post.created_at).toLocaleDateString('zh-TW'),
-            link: `/blog/${post.id}`,
-            category: getCategoryLabel(post.category) || undefined,
-          }))
-          setArticles(items)
-        }
-      } catch (err) {
-        console.error('Failed to fetch articles:', err)
-      } finally {
+  const fetchArticles = useCallback(async (useCache: boolean = true) => {
+    // 優先使用緩存數據（stale-while-revalidate 模式）
+    if (useCache) {
+      const cached = getCachedArticles()
+      if (cached && cached.length > 0) {
+        setArticles(cached)
         setLoading(false)
+
+        // 如果緩存未過期，不需要重新請求
+        if (!isCacheExpired()) {
+          return
+        }
+        // 緩存過期，在背景靜默更新
       }
     }
 
-    fetchArticles()
+    try {
+      const postsRes = await postService.getPosts(1, 4)
+
+      if (postsRes.success && postsRes.data) {
+        const items: ArticleItem[] = postsRes.data.map((post: BackendPost) => ({
+          id: post.id,
+          title: post.title,
+          thumbnail: post.cover_image,
+          excerpt: post.excerpt || generateSummary(post.content, undefined, 80),
+          date: post.published_at
+            ? new Date(post.published_at).toLocaleDateString('zh-TW')
+            : new Date(post.created_at).toLocaleDateString('zh-TW'),
+          link: `/blog/${post.id}`,
+          category: getCategoryLabel(post.category) || undefined,
+        }))
+        setArticles(items)
+        cacheArticles(items)
+      }
+    } catch (err) {
+      console.error('Failed to fetch articles:', err)
+      // 如果有緩存數據，使用緩存數據
+      const cached = getCachedArticles()
+      if (cached && cached.length > 0) {
+        setArticles(cached)
+      }
+    } finally {
+      setLoading(false)
+    }
   }, [])
+
+  useEffect(() => {
+    fetchArticles()
+  }, [fetchArticles])
 
   if (loading) {
     return (
