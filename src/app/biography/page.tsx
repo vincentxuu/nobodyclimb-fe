@@ -58,18 +58,18 @@ export default function BiographyPage() {
           <motion.div
             initial={{ opacity: 0, y: -10 }}
             animate={{ opacity: 1, y: 0 }}
-            className="mb-6 flex flex-col items-center justify-between gap-3 rounded-lg border border-[#E5E5E5] bg-white p-4 shadow-sm sm:flex-row md:mb-8"
+            className="mb-6 flex flex-col items-center justify-between gap-3 rounded-lg border border-brand-gray bg-white p-4 shadow-sm sm:flex-row md:mb-8"
           >
             <div className="flex items-center gap-3">
-              <div className="flex h-10 w-10 items-center justify-center rounded-full bg-[#F5F5F5]">
-                <UserPlus size={20} className="text-[#1B1A1A]" />
+              <div className="flex h-10 w-10 items-center justify-center rounded-full bg-brand-gray-light">
+                <UserPlus size={20} className="text-brand-dark" />
               </div>
-              <p className="text-sm text-[#1B1A1A] md:text-base">
+              <p className="text-sm text-brand-dark md:text-base">
                 你也是攀岩人嗎？註冊建立你的人物誌，讓大家認識你！
               </p>
             </div>
             <Link href="/auth/register">
-              <Button className="h-9 whitespace-nowrap bg-brand-accent/70 px-6 text-sm text-[#1B1A1A] hover:bg-brand-accent">
+              <Button className="h-9 whitespace-nowrap bg-brand-accent/70 px-6 text-sm text-brand-dark hover:bg-brand-accent">
                 立即加入
               </Button>
             </Link>
@@ -94,7 +94,7 @@ export default function BiographyPage() {
             <Button
               variant="outline"
               onClick={handleLoadMore}
-              className="h-10 border border-[#1B1A1A] px-6 text-[#1B1A1A] hover:bg-[#dbd8d8] hover:text-[#1B1A1A] md:h-11 md:px-8"
+              className="h-10 border border-brand-dark px-6 text-brand-dark hover:bg-brand-light hover:text-brand-dark md:h-11 md:px-8"
             >
               看更多
             </Button>

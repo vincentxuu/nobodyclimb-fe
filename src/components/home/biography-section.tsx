@@ -9,6 +9,7 @@ import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
 import { biographyService } from '@/lib/api/services'
 import { Biography } from '@/lib/types'
+import { useAuthStore } from '@/store/authStore'
 import { isSvgUrl } from '@/lib/utils/image'
 import {
   getCachedHomeBiographies,
@@ -53,7 +54,7 @@ function ClimberCard({ person }: { person: Biography }) {
       transition={{ duration: 0.4 }}
       className="h-full"
     >
-      <Link href={`/biography/profile/${person.id}`} className="block h-full">
+      <Link href={`/biography/profile/${person.slug}`} className="block h-full">
         <Card className="h-full overflow-hidden rounded-lg border border-gray-200 bg-white shadow-sm transition-shadow duration-300 hover:shadow-md">
           <CardContent className="p-6">
             <div className="mb-4 space-y-3">
@@ -112,6 +113,7 @@ export function BiographySection() {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const hasFetched = useRef(false)
+  const { isAuthenticated } = useAuthStore()
 
   const loadBiographies = useCallback(async () => {
     // 防止重複請求
@@ -189,13 +191,15 @@ export function BiographySection() {
               認識更多小人物
             </Button>
           </Link>
-          <Link href="/auth/register" className="w-full sm:w-auto">
-            <Button
-              className="h-11 w-full bg-brand-accent/70 px-8 text-base text-[#1B1A1A] hover:bg-brand-accent sm:w-auto"
-            >
-              成為小人物
-            </Button>
-          </Link>
+          {!isAuthenticated && (
+            <Link href="/auth/register" className="w-full sm:w-auto">
+              <Button
+                className="h-11 w-full bg-brand-accent/70 px-8 text-base text-[#1B1A1A] hover:bg-brand-accent sm:w-auto"
+              >
+                成為小人物
+              </Button>
+            </Link>
+          )}
         </div>
       </div>
     </section>
