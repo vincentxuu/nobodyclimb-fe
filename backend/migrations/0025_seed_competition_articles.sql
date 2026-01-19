@@ -35,8 +35,8 @@ VALUES (
 <h3>1. 先鋒攀登（Lead Climbing）</h3>
 <p>先鋒攀登是最傳統的攀岩比賽項目，考驗選手的耐力、技術與路線閱讀能力：</p>
 <ul>
-<li><strong>岩壁高度</strong>：12 公尺以上</li>
-<li><strong>路線長度</strong>：至少 15 公尺</li>
+<li><strong>岩壁高度</strong>：15 公尺以上（世界盃標準）</li>
+<li><strong>路線長度</strong>：約 15 公尺</li>
 <li><strong>比賽時間</strong>：限時 6 分鐘完成</li>
 <li><strong>計分方式</strong>：以攀登高度計分，越高分數越高</li>
 <li><strong>特色</strong>：選手需要邊爬邊將繩索扣入快扣，考驗體力分配與心理素質</li>
@@ -337,6 +337,15 @@ VALUES (
 <li>比賽更具可看性</li>
 </ul>
 
+<h3>巴黎 2024 金牌得主</h3>
+<ul>
+<li><strong>男子速度攀岩</strong>：Veddriq Leonardo（印尼）</li>
+<li><strong>女子速度攀岩</strong>：Aleksandra Miroslaw（波蘭）</li>
+<li><strong>男子抱石與先鋒複合賽</strong>：Toby Roberts（英國）</li>
+<li><strong>女子抱石與先鋒複合賽</strong>：Janja Garnbret（斯洛維尼亞）</li>
+</ul>
+<p>Janja Garnbret 在巴黎奧運成功衛冕，延續她在東京奧運的統治地位；Aleksandra Miroslaw 則以破世界紀錄的 6.06 秒奪得女子速度金牌。</p>
+
 <h2>洛杉磯 2028 展望</h2>
 <p>洛杉磯奧運的攀岩項目令人期待：</p>
 <ul>
@@ -350,7 +359,7 @@ VALUES (
 <h3>先鋒攀登規則</h3>
 <ul>
 <li><strong>時間限制</strong>：6 分鐘</li>
-<li><strong>岩壁高度</strong>：12 公尺以上</li>
+<li><strong>岩壁高度</strong>：15 公尺以上</li>
 <li><strong>計分方式</strong>：以最高點計分</li>
 <li><strong>特殊規定</strong>：
   <ul>
