@@ -204,7 +204,7 @@ export function TagsBottomSheet({
   return (
     <div
       className={cn(
-        'fixed inset-0 z-50 transition-opacity duration-300',
+        'fixed inset-0 z-[100] transition-opacity duration-300',
         isOpen ? 'opacity-100' : 'opacity-0'
       )}
       onTransitionEnd={() => {
@@ -221,13 +221,14 @@ export function TagsBottomSheet({
       <div
         ref={sheetRef}
         className={cn(
-          'absolute bottom-0 left-0 right-0 bg-white rounded-t-2xl flex flex-col transition-transform duration-300 ease-out',
+          'absolute left-0 right-0 bg-white rounded-t-2xl flex flex-col transition-transform duration-300 ease-out',
           isOpen ? 'translate-y-0' : 'translate-y-full',
           className
         )}
         style={{
           transform: isDragging ? `translateY(${dragY}px)` : undefined,
-          maxHeight: 'calc(100vh - env(safe-area-inset-top) - 60px)',
+          top: '80px',
+          bottom: 0,
         }}
         onMouseMove={handleMouseMove}
         onMouseUp={handleMouseUp}
