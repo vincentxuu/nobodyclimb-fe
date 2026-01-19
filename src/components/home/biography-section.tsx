@@ -73,6 +73,29 @@ function cacheBiographies(data: Biography[]): void {
   }
 }
 
+/**
+ * 有趣的預設語錄
+ */
+const DEFAULT_QUOTES = [
+  '正在岩壁上尋找人生的意義...',
+  '手指還在長繭中，故事正在醞釀',
+  '專注攀爬，無暇寫字',
+  '話不多說，先爬再說',
+  '故事？都刻在岩壁上了',
+  '正忙著挑戰下一條路線',
+  '沉默的攀岩者，響亮的 send',
+  '低調的小人物，高調的攀登',
+]
+
+/**
+ * 根據 ID 獲取一個固定的趣味語錄
+ */
+function getDefaultQuote(id: string): string {
+  // 使用 ID 的字符碼總和來生成一個穩定的索引
+  const hash = id.split('').reduce((acc, char) => acc + char.charCodeAt(0), 0)
+  return DEFAULT_QUOTES[hash % DEFAULT_QUOTES.length]
+}
+
 function ClimberCard({ person }: { person: Biography }) {
   const climbingYears = person.climbing_start_year
     ? new Date().getFullYear() - parseInt(person.climbing_start_year)
@@ -89,15 +112,17 @@ function ClimberCard({ person }: { person: Biography }) {
         <Card className="h-full overflow-hidden rounded-lg border border-gray-200 bg-white shadow-sm transition-shadow duration-300 hover:shadow-md">
           <CardContent className="p-6">
             <div className="mb-4 space-y-3">
-              {person.climbing_meaning ? (
-                <div className="relative">
-                  <p className="line-clamp-3 text-base font-medium leading-relaxed text-[#1B1A1A]">
-                    &ldquo;{person.climbing_meaning}&rdquo;
-                  </p>
-                </div>
-              ) : (
-                <p className="text-sm italic text-[#8E8C8C]">尚未分享故事</p>
-              )}
+              <div className="relative">
+                <p className={`line-clamp-3 text-base leading-relaxed ${
+                  person.climbing_meaning
+                    ? 'font-medium text-[#1B1A1A]'
+                    : 'italic text-[#8E8C8C]'
+                }`}>
+                  {person.climbing_meaning
+                    ? `"${person.climbing_meaning}"`
+                    : getDefaultQuote(person.id)}
+                </p>
+              </div>
             </div>
 
             <div className="flex items-center justify-between border-t border-gray-100 pt-3">
