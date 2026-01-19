@@ -2,7 +2,7 @@ name: Deploy API to Cloudflare Workers
 
 on:
   push:
-    branches: [main]
+    branches: [main, develop]
     paths:
       - 'backend/**'
       - '.github/workflows/deploy-api.yml'
