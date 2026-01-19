@@ -135,17 +135,31 @@ VALUES (
 <p>美國是攀岩運動的重要推手，USA Climbing 是美國官方的攀岩協會：</p>
 <ul>
 <li><strong>官網</strong>：usaclimbing.org</li>
-<li><strong>國內賽事系統</strong>：分為 Youth（青少年）、Collegiate（大學）、Open（公開）三大系列</li>
-<li><strong>重要消息</strong>：2026 年美國將舉辦國內世界盃站點，地點在鹽湖城</li>
-<li><strong>特色</strong>：完善的青訓系統，培育出多位世界級選手</li>
+<li><strong>國內賽事系統</strong>：
+  <ul>
+  <li><strong>Youth Series</strong>：青少年賽事，分為地區賽、分區賽、全國賽</li>
+  <li><strong>Collegiate Series</strong>：大學生攀岩聯賽</li>
+  <li><strong>Open Nationals</strong>：成人公開賽全國錦標賽</li>
+  <li><strong>Adaptive Nationals</strong>：身障者攀岩全國賽</li>
+  </ul>
+</li>
+<li><strong>國際賽事</strong>：2026 年鹽湖城將舉辦 IFSC 世界盃</li>
+<li><strong>特色</strong>：完善的青訓系統，培育出 Colin Duffy、Brooke Raboutou、Sam Watson 等世界級選手</li>
 </ul>
 
 <h3>加拿大 - Climbing Escalade Canada</h3>
 <p>加拿大攀岩協會負責推動國內攀岩運動發展：</p>
 <ul>
-<li>舉辦國內錦標賽</li>
-<li>青年培訓計畫</li>
-<li>代表加拿大參與國際賽事</li>
+<li><strong>官網</strong>：climbingcanada.ca</li>
+<li><strong>國內賽事</strong>：
+  <ul>
+  <li><strong>Canadian Bouldering Championships</strong>：全國抱石錦標賽</li>
+  <li><strong>Canadian Lead/Speed Championships</strong>：全國先鋒與速度錦標賽</li>
+  <li><strong>Youth Nationals</strong>：青少年全國賽</li>
+  </ul>
+</li>
+<li><strong>地區賽事</strong>：各省設有攀岩協會，舉辦省級錦標賽</li>
+<li><strong>國際表現</strong>：Alannah Yip 等選手在國際賽場嶄露頭角</li>
 </ul>
 
 <h2>歐洲</h2>
@@ -153,17 +167,33 @@ VALUES (
 <h3>法國 - FFME</h3>
 <p>法國是歐洲攀岩強國，擁有深厚的攀岩傳統：</p>
 <ul>
-<li>楓丹白露（Fontainebleau）是世界知名的抱石聖地</li>
-<li>FFME（Fédération Française de la Montagne et de l''Escalade）負責管理攀岩與登山運動</li>
-<li>培育出多位世界冠軍選手</li>
+<li><strong>官網</strong>：ffme.fr</li>
+<li><strong>協會</strong>：FFME（Fédération Française de la Montagne et de l''Escalade）負責管理攀岩與登山運動</li>
+<li><strong>國內賽事</strong>：
+  <ul>
+  <li><strong>Championnat de France</strong>：法國全國錦標賽（先鋒、抱石、速度）</li>
+  <li><strong>Coupe de France</strong>：法國盃系列賽</li>
+  <li><strong>Championnats de France Jeunes</strong>：青少年全國賽</li>
+  </ul>
+</li>
+<li><strong>戶外聖地</strong>：楓丹白露（Fontainebleau）是世界抱石發源地，Céüse、Verdon 等地是先鋒攀岩勝地</li>
+<li><strong>知名選手</strong>：Mejdi Schalck、Oriane Bertone 等新生代選手崛起</li>
 </ul>
 
-<h3>奧地利</h3>
+<h3>奧地利 - KVÖ</h3>
 <p>奧地利是攀岩世界盃的常客：</p>
 <ul>
-<li>因斯布魯克（Innsbruck）是歐洲攀岩重鎮</li>
-<li>多次舉辦世界盃與世界錦標賽</li>
-<li>擁有世界級的攀岩設施</li>
+<li><strong>協會</strong>：KVÖ（Kletterverband Österreich）奧地利攀岩協會</li>
+<li><strong>國內賽事</strong>：
+  <ul>
+  <li><strong>Österreichische Staatsmeisterschaft</strong>：奧地利全國錦標賽</li>
+  <li><strong>Austrian Climbing Series</strong>：奧地利攀岩系列賽</li>
+  <li><strong>Jugend-Staatsmeisterschaft</strong>：青少年全國賽</li>
+  </ul>
+</li>
+<li><strong>國際賽事</strong>：因斯布魯克是 IFSC 世界盃與世錦賽的常設舉辦地</li>
+<li><strong>知名選手</strong>：Jakob Schubert、Jessica Pilz 等世界冠軍</li>
+<li><strong>設施</strong>：Kletterzentrum Innsbruck 是世界頂級的攀岩中心</li>
 </ul>
 
 <h3>捷克</h3>
@@ -213,47 +243,82 @@ VALUES (
 <h3>日本 - JMSCA</h3>
 <p>日本是亞洲攀岩強國，在國際賽場上表現優異：</p>
 <ul>
-<li>JMSCA（Japan Mountaineering and Sport Climbing Association）負責管理攀岩運動</li>
-<li>完整的青訓系統，從小學開始培養選手</li>
-<li>多位世界級選手：野口啟代、野中生萌、楢﨑智亞等</li>
-<li>2020 東京奧運主辦國，推動攀岩成為正式項目</li>
+<li><strong>官網</strong>：jma-climbing.org</li>
+<li><strong>協會</strong>：JMSCA（Japan Mountaineering and Sport Climbing Association）負責管理攀岩運動</li>
+<li><strong>國內賽事</strong>：
+  <ul>
+  <li><strong>日本選手權大会</strong>：全日本攀岩錦標賽（先鋒、抱石、速度、複合）</li>
+  <li><strong>ボルダリングジャパンカップ</strong>：日本抱石盃</li>
+  <li><strong>リードジャパンカップ</strong>：日本先鋒盃</li>
+  <li><strong>ユース選手権</strong>：青少年全國賽</li>
+  </ul>
+</li>
+<li><strong>青訓系統</strong>：從小學開始培養選手，完整的梯隊制度</li>
+<li><strong>知名選手</strong>：野口啟代、野中生萌、楢﨑智亞、緒方良行等</li>
+<li><strong>特色</strong>：2020 東京奧運主辦國，大力推動攀岩運動</li>
 </ul>
 
 <h3>韓國 - KAF</h3>
 <p>韓國在攀岩領域持續進步：</p>
 <ul>
-<li>KAF（Korea Alpine Federation）管理國內攀岩賽事</li>
-<li>速度攀岩是強項之一</li>
-<li>釜山攀岩中心設施完善</li>
-<li>2025 年將舉辦 IFSC 世界錦標賽</li>
+<li><strong>官網</strong>：climbing.or.kr</li>
+<li><strong>協會</strong>：KAF（Korea Alpine Federation）韓國山岳聯盟</li>
+<li><strong>國內賽事</strong>：
+  <ul>
+  <li><strong>전국스포츠클라이밍선수권대회</strong>：韓國全國運動攀登錦標賽</li>
+  <li><strong>Korea Cup</strong>：韓國盃系列賽</li>
+  </ul>
+</li>
+<li><strong>國際賽事</strong>：2025 年首爾將舉辦 IFSC 世界錦標賽</li>
+<li><strong>知名選手</strong>：Chaehyun Seo 等在國際賽場表現亮眼</li>
+<li><strong>設施</strong>：釜山攀岩中心等現代化設施</li>
 </ul>
 
 <h3>中國 - CMA</h3>
 <p>中國在速度攀岩領域具有傳統優勢：</p>
 <ul>
-<li>CMA（Chinese Mountaineering Association）負責攀岩運動</li>
-<li>速度攀岩曾多次打破世界紀錄</li>
-<li>國家隊培訓體系完善，集中訓練資源</li>
-<li>鍾齊鑫等選手在國際賽場表現出色</li>
+<li><strong>官網</strong>：cmasports.cn</li>
+<li><strong>協會</strong>：CMA（Chinese Mountaineering Association）中國登山協會</li>
+<li><strong>國內賽事</strong>：
+  <ul>
+  <li><strong>全國攀岩錦標賽</strong>：最高等級國內賽事</li>
+  <li><strong>全國攀岩聯賽</strong>：系列巡迴賽</li>
+  <li><strong>全國青年攀岩錦標賽</strong>：青少年賽事</li>
+  </ul>
+</li>
+<li><strong>培訓體系</strong>：國家隊集中訓練模式，專注於速度攀岩</li>
+<li><strong>知名選手</strong>：鍾齊鑫曾多次打破速度攀岩世界紀錄</li>
 </ul>
 
 <h3>台灣 - CTAA</h3>
 <p>中華民國山岳協會是台灣攀岩運動的官方組織：</p>
 <ul>
-<li>負責舉辦國內攀岩錦標賽</li>
-<li>選拔國家代表隊參與國際賽事</li>
-<li>青年選手培育計畫</li>
-<li>比賽系統網站：ctaa.j91.me</li>
+<li><strong>官網</strong>：climbing.org.tw</li>
+<li><strong>協會</strong>：CTAA（Chinese Taipei Alpine Association）中華民國山岳協會</li>
+<li><strong>國內賽事</strong>：
+  <ul>
+  <li><strong>全國運動攀登錦標賽</strong>：最高等級國內賽事</li>
+  <li><strong>全國青年運動攀登錦標賽</strong>：青少年賽事</li>
+  <li><strong>全國中等學校運動攀登錦標賽</strong>：學生組賽事</li>
+  </ul>
+</li>
+<li><strong>參賽管道</strong>：透過各縣市攀岩委員會報名參賽</li>
+<li><strong>比賽系統</strong>：ctaa.j91.me 提供賽事資訊與成績查詢</li>
 </ul>
 
 <h3>印尼 - FPTI</h3>
 <p>印尼是男子速度攀岩的絕對強國：</p>
 <ul>
-<li>FPTI（Federasi Panjat Tebing Indonesia）負責管理攀岩運動</li>
-<li>Veddriq Leonardo：2024 巴黎奧運男子速度金牌、前世界紀錄保持人</li>
-<li>Kiromal Katibin：多次打破世界紀錄的速度攀岩好手</li>
-<li>國家培訓體系專注於速度攀岩，成效卓著</li>
-<li>2025 年峇里島首度舉辦 IFSC 世界盃</li>
+<li><strong>協會</strong>：FPTI（Federasi Panjat Tebing Indonesia）印尼攀岩聯合會</li>
+<li><strong>國內賽事</strong>：
+  <ul>
+  <li><strong>Kejurnas Panjat Tebing</strong>：印尼全國攀岩錦標賽</li>
+  <li><strong>PON（Pekan Olahraga Nasional）</strong>：印尼全國運動會攀岩項目</li>
+  </ul>
+</li>
+<li><strong>國際賽事</strong>：2025 年峇里島首度舉辦 IFSC 世界盃</li>
+<li><strong>培訓體系</strong>：國家隊專注於速度攀岩，成效卓著</li>
+<li><strong>知名選手</strong>：Veddriq Leonardo（2024 奧運金牌）、Kiromal Katibin（前世界紀錄保持人）</li>
 </ul>
 
 <h2>大洋洲</h2>
@@ -261,9 +326,17 @@ VALUES (
 <h3>澳洲 - Sport Climbing Australia</h3>
 <p>澳洲擁有豐富的戶外攀岩資源：</p>
 <ul>
-<li>國內賽事聯盟運作成熟</li>
-<li>戶外攀岩傳統悠久</li>
-<li>藍山（Blue Mountains）等地是知名的攀岩勝地</li>
+<li><strong>官網</strong>：sportclimbingaustralia.org.au</li>
+<li><strong>協會</strong>：SCA（Sport Climbing Australia）澳洲運動攀登協會</li>
+<li><strong>國內賽事</strong>：
+  <ul>
+  <li><strong>Australian National Championships</strong>：澳洲全國錦標賽</li>
+  <li><strong>Australian Bouldering Open</strong>：澳洲抱石公開賽</li>
+  <li><strong>State Championships</strong>：各州錦標賽</li>
+  </ul>
+</li>
+<li><strong>戶外攀岩</strong>：藍山（Blue Mountains）、Arapiles 等地是知名的攀岩勝地</li>
+<li><strong>特色</strong>：結合戶外攀岩傳統與現代競技發展</li>
 </ul>
 
 <h2>如何參與國際賽事</h2>
@@ -299,10 +372,16 @@ VALUES (
 
 <h2>參考來源</h2>
 <ul>
+<li><a href="https://www.ifsc-climbing.org/about/member-federations" target="_blank" rel="noopener noreferrer">IFSC Member Federations - 各國攀岩協會列表</a></li>
 <li><a href="https://usaclimbing.org/" target="_blank" rel="noopener noreferrer">USA Climbing 官網</a></li>
 <li><a href="https://usaclimbing.org/domestic-world-cup-events/" target="_blank" rel="noopener noreferrer">USA Climbing - 2026 Domestic World Cups</a></li>
+<li><a href="https://www.ffme.fr/" target="_blank" rel="noopener noreferrer">FFME 法國登山攀岩協會</a></li>
+<li><a href="https://www.kletterverband.at/" target="_blank" rel="noopener noreferrer">KVÖ 奧地利攀岩協會</a></li>
+<li><a href="https://www.jma-climbing.org/" target="_blank" rel="noopener noreferrer">JMSCA 日本山岳運動攀登協會</a></li>
+<li><a href="https://climbing.or.kr/" target="_blank" rel="noopener noreferrer">KAF 韓國山岳聯盟</a></li>
+<li><a href="https://www.climbing.org.tw/" target="_blank" rel="noopener noreferrer">CTAA 中華民國山岳協會</a></li>
 <li><a href="https://www.tpenoc.net/sport/sports-climbing/" target="_blank" rel="noopener noreferrer">中華奧林匹克委員會 - 運動攀登</a></li>
-<li><a href="https://www.ifsc-climbing.org/about/member-federations" target="_blank" rel="noopener noreferrer">IFSC Member Federations</a></li>
+<li><a href="https://www.sportclimbingaustralia.org.au/" target="_blank" rel="noopener noreferrer">Sport Climbing Australia 官網</a></li>
 </ul>',
   NULL,
   'competition',
