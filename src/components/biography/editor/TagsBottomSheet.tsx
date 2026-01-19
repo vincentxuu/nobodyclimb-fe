@@ -17,6 +17,7 @@ import {
   Hand,
   Dumbbell,
   MapPin,
+  X,
   type LucideIcon,
 } from 'lucide-react'
 import type { TagDimension } from '@/lib/types/biography-v2'
@@ -214,7 +215,7 @@ export function TagsBottomSheet({
       <div
         ref={sheetRef}
         className={cn(
-          'absolute bottom-0 left-0 right-0 bg-white rounded-t-2xl max-h-[85vh] flex flex-col transition-transform duration-300 ease-out',
+          'absolute bottom-0 left-0 right-0 bg-white rounded-t-2xl max-h-[70vh] flex flex-col transition-transform duration-300 ease-out',
           isOpen ? 'translate-y-0' : 'translate-y-full',
           className
         )}
@@ -239,6 +240,14 @@ export function TagsBottomSheet({
         {/* Header */}
         <div className="flex items-center justify-between px-4 pb-3 border-b border-[#EBEAEA]">
           <div className="flex items-center gap-2">
+            <button
+              type="button"
+              onClick={onClose}
+              className="p-1.5 -ml-1.5 rounded-full hover:bg-[#F5F5F5] active:bg-[#EBEAEA] transition-colors"
+              aria-label="關閉"
+            >
+              <X size={20} className="text-[#6D6C6C]" />
+            </button>
             <Tag size={20} className="text-[#3F3D3D]" />
             <h3 className="font-semibold text-[#1B1A1A]">幫自己貼標籤</h3>
             {totalSelected > 0 && (
@@ -258,7 +267,7 @@ export function TagsBottomSheet({
         </div>
 
         {/* Content */}
-        <div className="flex-1 overflow-y-auto px-4 py-4 space-y-3">
+        <div className="flex-1 overflow-y-auto overscroll-contain px-4 py-4 pb-6 space-y-3">
           {dimensions.map((dimension) => {
             const isExpanded = expandedDimensions.has(dimension.id)
             const selectedCount = (selections[dimension.id] || []).length
