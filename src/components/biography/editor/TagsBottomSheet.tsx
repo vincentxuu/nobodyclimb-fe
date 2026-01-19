@@ -6,6 +6,7 @@ import {
   Check,
   Tag,
   ChevronDown,
+  Plus,
   Sparkles,
   HeartPulse,
   Footprints,
@@ -49,6 +50,10 @@ interface TagsBottomSheetProps {
   selections: Record<string, string[]>
   /** 選擇變更回調 */
   onSelectionChange: (_dimensionId: string, _selectedIds: string[]) => void
+  /** 新增自訂標籤回調 */
+  onAddCustomTag?: (_dimensionId: string) => void
+  /** 新增自訂維度回調 */
+  onAddCustomDimension?: () => void
   /** 完成回調 */
   onComplete?: () => void
   /** 自訂樣式 */
@@ -66,6 +71,8 @@ export function TagsBottomSheet({
   dimensions,
   selections,
   onSelectionChange,
+  onAddCustomTag,
+  onAddCustomDimension,
   onComplete,
   className,
 }: TagsBottomSheetProps) {
@@ -215,12 +222,13 @@ export function TagsBottomSheet({
       <div
         ref={sheetRef}
         className={cn(
-          'absolute bottom-0 left-0 right-0 bg-white rounded-t-2xl max-h-[70vh] flex flex-col transition-transform duration-300 ease-out',
+          'absolute bottom-0 left-0 right-0 bg-white rounded-t-2xl flex flex-col transition-transform duration-300 ease-out',
           isOpen ? 'translate-y-0' : 'translate-y-full',
           className
         )}
         style={{
           transform: isDragging ? `translateY(${dragY}px)` : undefined,
+          maxHeight: 'calc(100vh - env(safe-area-inset-top) - 60px)',
         }}
         onMouseMove={handleMouseMove}
         onMouseUp={handleMouseUp}
@@ -326,6 +334,17 @@ export function TagsBottomSheet({
                           size="sm"
                         />
                       ))}
+                      {/* 新增自訂標籤按鈕 */}
+                      {onAddCustomTag && (
+                        <button
+                          type="button"
+                          onClick={() => onAddCustomTag(dimension.id)}
+                          className="flex items-center gap-1 px-3 py-1.5 border border-dashed border-[#DBD8D8] rounded-full text-sm text-[#6D6C6C] hover:border-[#3F3D3D] hover:text-[#3F3D3D] transition-colors"
+                        >
+                          <Plus size={14} />
+                          <span>新增</span>
+                        </button>
+                      )}
                     </div>
                     <p className="text-xs text-[#8E8C8C]">
                       {dimension.selection_mode === 'multiple'
@@ -338,6 +357,18 @@ export function TagsBottomSheet({
               </div>
             )
           })}
+
+          {/* 新增標籤類別按鈕 */}
+          {onAddCustomDimension && (
+            <button
+              type="button"
+              onClick={onAddCustomDimension}
+              className="flex items-center gap-1 text-sm text-[#6D6C6C] hover:text-[#1B1A1A] transition-colors mt-2"
+            >
+              <Plus size={16} />
+              新增標籤類別
+            </button>
+          )}
         </div>
 
         {/* Safe Area Padding */}

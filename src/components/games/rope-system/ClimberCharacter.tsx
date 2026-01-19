@@ -3,6 +3,7 @@
 import * as React from 'react'
 import { useEffect } from 'react'
 import { motion, useAnimation, type Variants } from 'framer-motion'
+import { PersonStanding, PartyPopper, AlertTriangle, User } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import type { CharacterState } from '@/lib/games/rope-system/types'
 import { ANIMATION_DURATION } from '@/lib/games/rope-system/constants'
@@ -132,7 +133,7 @@ export function ClimberCharacter({
           {/* 角色圖示 */}
           <div
             className={cn(
-              'flex h-16 w-16 items-center justify-center rounded-full text-3xl shadow-lg',
+              'flex h-16 w-16 items-center justify-center rounded-full shadow-lg',
               state === 'falling'
                 ? 'bg-[rgba(239,68,68,0.2)]'
                 : state === 'celebrating'
@@ -140,7 +141,13 @@ export function ClimberCharacter({
                   : 'bg-white'
             )}
           >
-            {state === 'falling' ? '😱' : state === 'celebrating' ? '🎉' : '🧗'}
+            {state === 'falling' ? (
+              <AlertTriangle className="h-8 w-8 text-red-500" />
+            ) : state === 'celebrating' ? (
+              <PartyPopper className="h-8 w-8 text-green-500" />
+            ) : (
+              <PersonStanding className="h-8 w-8 text-[#1B1A1A]" />
+            )}
           </div>
 
           {/* 確保站 / 繩索連接點 */}
@@ -150,8 +157,8 @@ export function ClimberCharacter({
 
       {/* 底部確保站 */}
       <div className="absolute bottom-4 left-1/2 -translate-x-1/2">
-        <div className="flex h-12 w-12 items-center justify-center rounded-full bg-[#1B1A1A] text-xl shadow-lg">
-          🧍
+        <div className="flex h-12 w-12 items-center justify-center rounded-full bg-[#1B1A1A] shadow-lg">
+          <User className="h-6 w-6 text-white" />
         </div>
         <div className="mt-1 text-center text-xs text-[#535353]">確保站</div>
       </div>

@@ -28,7 +28,7 @@ routes = [
 
 [env.preview.vars]
 
-CORS_ORIGIN = "https://nobodyclimb-fe-preview.vincentxuu.workers.dev,http://localhost:3000"
+CORS_ORIGIN = "https://nobodyclimb-fe-preview.vincent-xu-work.workers.dev,http://localhost:3000"
 
 JWT_ISSUER = "nobodyclimb-api"
 

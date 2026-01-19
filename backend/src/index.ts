@@ -37,13 +37,13 @@ app.use('*', async (c, next) => {
       const envOrigins = c.env.CORS_ORIGIN?.split(',').map((o) => o.trim()) || [];
 
       // 允許沒有 origin 的請求 (如 server-to-server 或同源請求)
-      if (!origin) return envOrigins[0] || null;
+      if (!origin) return null;
 
       const allowedOrigins = [
         ...envOrigins,
         // 支援 www 子網域
         ...envOrigins
-          .filter((o) => o.startsWith('https://'))
+          .filter((o) => o.startsWith('https://') && o.includes('nobodyclimb.cc'))
           .map((o) => o.replace('https://', 'https://www.')),
         'http://localhost:3000',
         'http://127.0.0.1:3000',
