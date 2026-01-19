@@ -78,6 +78,15 @@ export interface TagSelection {
   source: ContentSource
 }
 
+/**
+ * 用於資料庫儲存的標籤資料結構
+ * 包含選擇的標籤以及用戶自訂標籤的定義
+ */
+export interface TagsDataStorage {
+  selections: TagSelection[]
+  custom_tags?: TagOption[] // 用戶為系統維度新增的自訂標籤
+}
+
 // ═══════════════════════════════════════════
 // 一句話系列類型
 // ═══════════════════════════════════════════
@@ -257,6 +266,7 @@ export interface BiographyV2 {
   // 第一層：標籤系統（簡化陣列結構）
   // ═══════════════════════════════════════════
   tags: TagSelection[]
+  custom_tags?: TagOption[] // 用戶為系統維度新增的自訂標籤定義
 
   // ═══════════════════════════════════════════
   // 第二層：一句話系列（簡化陣列結構）
@@ -502,8 +512,29 @@ function safeJsonParse<T>(json: string | null, defaultValue: T | null): T | null
  * 將後端 Biography 資料轉換為前端 BiographyV2 格式
  */
 export function transformBackendToBiographyV2(backend: BiographyBackend): BiographyV2 {
-  // 解析 tags_data - 後端格式為 TagSelection[]
-  const tags: TagSelection[] = safeJsonParse<TagSelection[]>(backend.tags_data, []) || []
+  // 解析 tags_data - 可能是舊格式 TagSelection[] 或新格式 TagsDataStorage
+  const tagsRaw = safeJsonParse<TagSelection[] | TagsDataStorage>(backend.tags_data, [])
+  let tags: TagSelection[] = []
+  let custom_tags: TagOption[] | undefined = undefined
+
+  if (Array.isArray(tagsRaw)) {
+    // 舊格式：直接是 TagSelection[]
+    tags = tagsRaw
+  } else if (tagsRaw && typeof tagsRaw === 'object') {
+    // 新格式：TagsDataStorage
+    tags = tagsRaw.selections || []
+    custom_tags = tagsRaw.custom_tags
+  }
+
+  // 清理無效的用戶自訂標籤引用
+  // 過濾掉 source 為 'user' 但在 custom_tags 中找不到定義的標籤
+  const customTagIds = new Set(custom_tags?.map((t) => t.id) || [])
+  tags = tags.filter((tag) => {
+    // 系統標籤：保留（假設系統維度總是包含它們）
+    if (tag.source === 'system') return true
+    // 用戶自訂標籤：只保留有定義的
+    return customTagIds.has(tag.tag_id)
+  })
 
   // 解析 one_liners_data - 後端格式為 Record<string, { answer, visibility }>
   const oneLinersRaw = safeJsonParse<Record<string, { answer: string; visibility: string }>>(
@@ -687,6 +718,7 @@ export function transformBackendToBiographyV2(backend: BiographyBackend): Biogra
       : null,
     home_gym: backend.home_gym,
     tags,
+    custom_tags,
     one_liners,
     stories,
     gallery_images,
@@ -713,8 +745,12 @@ export function transformBiographyV2ToBackend(bio: BiographyV2): {
   stories_data: string
   basic_info_data: string
 } {
-  // 將 tags 陣列轉為 JSON
-  const tags_data = JSON.stringify(bio.tags)
+  // 將 tags 陣列轉為 JSON（使用新格式 TagsDataStorage）
+  const tagsStorage: TagsDataStorage = {
+    selections: bio.tags,
+    custom_tags: bio.custom_tags,
+  }
+  const tags_data = JSON.stringify(tagsStorage)
 
   // 將 one_liners 陣列轉為後端格式
   const oneLinersObj: Record<string, { answer: string; visibility: string }> = {}
@@ -780,6 +816,7 @@ export function createEmptyBiographyV2(userId: string): BiographyV2 {
     favorite_route_types: null,
     home_gym: null,
     tags: [],
+    custom_tags: undefined,
     one_liners: [],
     stories: [],
     gallery_images: null,
