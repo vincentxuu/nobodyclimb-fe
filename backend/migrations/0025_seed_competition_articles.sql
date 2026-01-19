@@ -213,20 +213,46 @@ VALUES (
 <li><strong>設施</strong>：Kletterzentrum Innsbruck 是世界頂級的攀岩中心</li>
 </ul>
 
-<h3>捷克</h3>
-<p>捷克是攀岩傳奇 Adam Ondra 的故鄉：</p>
+<h3>捷克 - ČHS</h3>
+<p>捷克是攀岩傳奇 Adam Ondra 的故鄉，近年積極發展國際賽事：</p>
 <ul>
-<li>Adam Ondra 被譽為史上最偉大的攀岩者之一</li>
-<li>國內賽事發展完善</li>
-<li>戶外攀岩資源豐富</li>
+<li><strong>協會</strong>：ČHS（Český horolezecký svaz）捷克登山協會，會長 Jan Bloudek 同時擔任 IFSC 歐洲理事會成員</li>
+<li><strong>國內賽事</strong>：
+  <ul>
+  <li><strong>Mistrovství České republiky</strong>：捷克全國錦標賽（先鋒、抱石、速度）</li>
+  <li><strong>Český pohár</strong>：捷克盃系列賽</li>
+  </ul>
+</li>
+<li><strong>國際賽事</strong>：
+  <ul>
+  <li>布拉格（Prague）自 2023 年起連續舉辦 IFSC 世界盃，並確定延續至 2026 與 2028 年</li>
+  <li>布爾諾（Brno）將於 2027 年舉辦 IFSC 攀岩與身障攀岩世界錦標賽</li>
+  </ul>
+</li>
+<li><strong>知名選手</strong>：Adam Ondra（史上唯一在同一年贏得先鋒與抱石世錦賽雙冠軍的男選手、4 屆世界冠軍、首位完攀 9c 難度路線 Silence）、Martin Stráník（多屆捷克抱石冠軍）</li>
+<li><strong>戶外攀岩</strong>：Adršpach-Teplice 砂岩塔群、Moravský kras 等地是知名攀岩區域</li>
 </ul>
 
-<h3>斯洛維尼亞</h3>
-<p>這個小國在攀岩界有著驚人的成就：</p>
+<h3>斯洛維尼亞 - PZS</h3>
+<p>這個人口僅 200 萬的小國，在攀岩界有著驚人的成就：</p>
 <ul>
-<li>Janja Garnbret 的故鄉，她是史上最成功的女子攀岩選手</li>
-<li>人口僅 200 多萬，卻擁有世界級的攀岩實力</li>
-<li>完善的國家培訓體系</li>
+<li><strong>協會</strong>：PZS（Planinska zveza Slovenije）斯洛維尼亞高山協會，成立於 1893 年，擁有超過 5.8 萬名會員，是斯洛維尼亞最大的運動組織</li>
+<li><strong>國內賽事</strong>：
+  <ul>
+  <li><strong>Državno prvenstvo</strong>：斯洛維尼亞全國錦標賽</li>
+  <li><strong>Slovenski pokal</strong>：斯洛維尼亞盃系列賽</li>
+  </ul>
+</li>
+<li><strong>國際賽事</strong>：
+  <ul>
+  <li>科佩爾（Koper）自 2022 年起舉辦 IFSC 世界盃，已確定延續至 2028 年</li>
+  <li>2024 年科佩爾站被選手與團隊評為年度最佳世界盃站點</li>
+  <li>克拉尼（Kranj）曾連續 25 年舉辦世界盃賽事</li>
+  </ul>
+</li>
+<li><strong>知名選手</strong>：Janja Garnbret（2 屆奧運金牌、8 屆世界冠軍、史上最成功的女子攀岩選手）、Domen Škofic（多屆世界盃獎牌得主）</li>
+<li><strong>青訓系統</strong>：Slovenia Climbing Team 從青少年時期開始培養選手，Garnbret 7 歲開始攀岩、13 歲贏得歐洲青少年錦標賽</li>
+<li><strong>國家榮譽</strong>：Garnbret 曾獲頒 Bloudek 獎（斯洛維尼亞最高體育榮譽）與金質功績勳章</li>
 </ul>
 
 <h3>波蘭</h3>
@@ -458,6 +484,11 @@ VALUES (
 <li><a href="https://en.wikipedia.org/wiki/Petra_Klingler" target="_blank" rel="noopener noreferrer">Petra Klingler - Wikipedia</a></li>
 <li><a href="https://en.wikipedia.org/wiki/Stefano_Ghisolfi" target="_blank" rel="noopener noreferrer">Stefano Ghisolfi - Wikipedia</a></li>
 <li><a href="https://en.wikipedia.org/wiki/Alexander_Megos" target="_blank" rel="noopener noreferrer">Alexander Megos - Wikipedia</a></li>
+<li><a href="https://www.ifsc-climbing.org/news/ifsc-world-cup-series-to-return-to-prague-in-2026-and-2028" target="_blank" rel="noopener noreferrer">IFSC - Prague World Cup 2026 & 2028</a></li>
+<li><a href="https://en.wikipedia.org/wiki/Adam_Ondra" target="_blank" rel="noopener noreferrer">Adam Ondra - Wikipedia</a></li>
+<li><a href="https://en.pzs.si/" target="_blank" rel="noopener noreferrer">PZS 斯洛維尼亞高山協會</a></li>
+<li><a href="https://www.slovenia.info/en/press-centre/news-of-the-tourism-press-agency/31139-koper-secures-sport-climbing-world-cup-until-2028" target="_blank" rel="noopener noreferrer">Koper World Cup 2028 - Slovenia.info</a></li>
+<li><a href="https://en.wikipedia.org/wiki/Janja_Garnbret" target="_blank" rel="noopener noreferrer">Janja Garnbret - Wikipedia</a></li>
 </ul>',
   NULL,
   'competition',
