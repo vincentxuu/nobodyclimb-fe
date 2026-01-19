@@ -162,6 +162,23 @@ VALUES (
 <li><strong>國際表現</strong>：Alannah Yip 等選手在國際賽場嶄露頭角</li>
 </ul>
 
+<h3>巴西 - CBME</h3>
+<p>巴西是南美洲攀岩運動的領頭羊，2025 年創下歷史里程碑：</p>
+<ul>
+<li><strong>協會</strong>：CBME（Confederação Brasileira de Montanhismo e Escalada）巴西登山攀岩聯合會</li>
+<li><strong>歷史性時刻</strong>：2025 年 5 月，庫里奇巴（Curitiba）舉辦南美洲史上首場 IFSC 世界盃</li>
+<li><strong>賽事場地</strong>：Parque Olímpico do Cajuru 奧林匹克攀岩訓練中心</li>
+<li><strong>國內賽事</strong>：
+  <ul>
+  <li><strong>Campeonato Brasileiro</strong>：巴西全國錦標賽</li>
+  <li><strong>Copa Brasil</strong>：巴西盃系列賽</li>
+  </ul>
+</li>
+<li><strong>發展歷程</strong>：CBME 會長 Thiago Campacci 表示，這是十年努力推廣攀岩運動的成果</li>
+<li><strong>賽事規模</strong>：2025 庫里奇巴世界盃吸引 23 國 115 名選手參賽，巴西與日本各派出 12 名選手</li>
+<li><strong>戶外攀岩</strong>：巴西擁有豐富的花崗岩與砂岩攀岩資源</li>
+</ul>
+
 <h2>歐洲</h2>
 
 <h3>法國 - FFME</h3>
@@ -236,6 +253,57 @@ VALUES (
 <li>Alberto Ginés López 在 2020 東京奧運奪得男子三項全能金牌</li>
 <li>擁有眾多世界級戶外攀岩場地，如 Siurana、El Chorro</li>
 <li>溫暖氣候吸引全球攀岩者前往訓練</li>
+</ul>
+
+<h3>瑞士 - SAC</h3>
+<p>瑞士是阿爾卑斯攀登的發源地，擁有悠久的登山傳統：</p>
+<ul>
+<li><strong>協會</strong>：SAC（Swiss Alpine Club / Schweizer Alpen-Club）瑞士高山俱樂部，擁有約 15 萬名會員</li>
+<li><strong>國內賽事</strong>：
+  <ul>
+  <li><strong>Swiss Climbing Cup</strong>：瑞士攀岩盃，包含先鋒、抱石、速度三項</li>
+  <li><strong>Swiss Championships</strong>：瑞士全國錦標賽</li>
+  <li><strong>Youth Series</strong>：青少年賽事系統（10-16 歲）</li>
+  </ul>
+</li>
+<li><strong>國際賽事</strong>：維拉爾（Villars）是 IFSC 世界盃常設站點</li>
+<li><strong>戶外聖地</strong>：Magic Wood 是世界知名的花崗岩抱石區</li>
+<li><strong>知名選手</strong>：Petra Klingler（2016 世錦賽抱石金牌、2022 冰攀世界冠軍，史上唯一同時在抱石與冰攀奪得世界冠軍的選手）</li>
+<li><strong>速度發展</strong>：Gilles Meili 保持瑞士速度紀錄（5.85 秒）</li>
+</ul>
+
+<h3>義大利 - FASI</h3>
+<p>義大利是歐洲攀岩重鎮，擁有深厚的攀岩歷史：</p>
+<ul>
+<li><strong>官網</strong>：federclimb.it</li>
+<li><strong>協會</strong>：FASI（Federazione Arrampicata Sportiva Italiana）義大利運動攀登聯合會</li>
+<li><strong>國內賽事</strong>：
+  <ul>
+  <li><strong>Campionato Italiano</strong>：義大利全國錦標賽（先鋒、抱石、速度）</li>
+  <li><strong>Coppa Italia</strong>：義大利盃系列賽</li>
+  <li><strong>Campionato Italiano Giovanile</strong>：青少年全國賽</li>
+  </ul>
+</li>
+<li><strong>國際賽事</strong>：Arco di Trento 是世界盃與 Rock Master 的常設舉辦地</li>
+<li><strong>歷史地位</strong>：1985 年在 Bardonecchia 舉辦首場國際先鋒攀登比賽，是競技攀岩的發源地之一</li>
+<li><strong>知名選手</strong>：Stefano Ghisolfi（2021 世界盃總冠軍、6 座世界盃分站冠軍、完攀多條 9b+ 路線）</li>
+<li><strong>戶外聖地</strong>：Arco、Valle Orco 等地是世界級攀岩勝地</li>
+</ul>
+
+<h3>德國 - DAV</h3>
+<p>德國擁有全球最大的攀岩協會：</p>
+<ul>
+<li><strong>協會</strong>：DAV（Deutscher Alpenverein）德國高山俱樂部，是世界上最大的攀岩組織</li>
+<li><strong>國內賽事</strong>：
+  <ul>
+  <li><strong>Deutsche Meisterschaft</strong>：德國全國錦標賽（先鋒、抱石、速度）</li>
+  <li><strong>Deutsche Meisterschaft Bouldern</strong>：德國抱石錦標賽，2025 年在慕尼黑奧林匹克公園舉行</li>
+  <li><strong>Deutsche Meisterschaft Paraclimbing</strong>：2025 年首次舉辦官方德國身障攀岩錦標賽</li>
+  </ul>
+</li>
+<li><strong>攀岩設施</strong>：德國擁有歐洲最大的室內攀岩社群，眾多 DAV 攀岩中心遍布全國</li>
+<li><strong>知名選手</strong>：Alexander Megos（史上首位 onsight 9a 的選手、完攀三條 9b+ 路線、2024 巴黎奧運參賽選手）</li>
+<li><strong>特色</strong>：強調戶外攀岩傳統，Frankenjura 是德國最著名的攀岩區域</li>
 </ul>
 
 <h2>亞洲</h2>
@@ -382,6 +450,14 @@ VALUES (
 <li><a href="https://www.climbing.org.tw/" target="_blank" rel="noopener noreferrer">CTAA 中華民國山岳協會</a></li>
 <li><a href="https://www.tpenoc.net/sport/sports-climbing/" target="_blank" rel="noopener noreferrer">中華奧林匹克委員會 - 運動攀登</a></li>
 <li><a href="https://www.sportclimbingaustralia.org.au/" target="_blank" rel="noopener noreferrer">Sport Climbing Australia 官網</a></li>
+<li><a href="https://www.sac-cas.ch/en" target="_blank" rel="noopener noreferrer">SAC 瑞士高山俱樂部</a></li>
+<li><a href="https://www.federclimb.it/" target="_blank" rel="noopener noreferrer">FASI 義大利運動攀登聯合會</a></li>
+<li><a href="https://en.wikipedia.org/wiki/German_Alpine_Club" target="_blank" rel="noopener noreferrer">DAV 德國高山俱樂部 - Wikipedia</a></li>
+<li><a href="https://www.lacrux.com/en/competition/German-Bouldering-Championship-2025-info-livestream/" target="_blank" rel="noopener noreferrer">German Bouldering Championship 2025 - Lacrux</a></li>
+<li><a href="https://www.ifsc-climbing.org/news/curitiba-brazil-to-host-first-ever-ifsc-world-cup-in-south-america-in-2025" target="_blank" rel="noopener noreferrer">IFSC - Curitiba World Cup 2025</a></li>
+<li><a href="https://en.wikipedia.org/wiki/Petra_Klingler" target="_blank" rel="noopener noreferrer">Petra Klingler - Wikipedia</a></li>
+<li><a href="https://en.wikipedia.org/wiki/Stefano_Ghisolfi" target="_blank" rel="noopener noreferrer">Stefano Ghisolfi - Wikipedia</a></li>
+<li><a href="https://en.wikipedia.org/wiki/Alexander_Megos" target="_blank" rel="noopener noreferrer">Alexander Megos - Wikipedia</a></li>
 </ul>',
   NULL,
   'competition',
