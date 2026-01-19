@@ -16,36 +16,16 @@ import {
   cacheHomeBiographies,
   isHomeBiographiesCacheExpired,
   getDefaultQuote,
+  selectOneLiner,
 } from '@/lib/utils/biography-cache'
-
-// 解析 one_liners_data JSON
-interface OneLinerData {
-  answer: string
-  visibility?: string
-}
-
-interface OneLinersData {
-  climbing_meaning?: OneLinerData
-  [key: string]: OneLinerData | undefined
-}
-
-function parseOneLinersData(json: string | null | undefined): OneLinersData | null {
-  if (!json) return null
-  try {
-    return JSON.parse(json) as OneLinersData
-  } catch {
-    return null
-  }
-}
 
 function ClimberCard({ person }: { person: Biography }) {
   const climbingYears = person.climbing_start_year
     ? new Date().getFullYear() - parseInt(person.climbing_start_year)
     : null
 
-  // 優先使用 one_liners_data 中的 climbing_meaning
-  const oneLiners = parseOneLinersData(person.one_liners_data)
-  const climbingMeaning = oneLiners?.climbing_meaning?.answer || person.climbing_meaning
+  // 從 one_liners_data 選擇一個有回答的問題
+  const selectedOneLiner = selectOneLiner(person.id, person.one_liners_data, person.climbing_meaning)
 
   return (
     <motion.div
@@ -57,15 +37,18 @@ function ClimberCard({ person }: { person: Biography }) {
       <Link href={`/biography/profile/${person.slug}`} className="block h-full">
         <Card className="h-full overflow-hidden rounded-lg border border-gray-200 bg-white shadow-sm transition-shadow duration-300 hover:shadow-md">
           <CardContent className="p-6">
-            <div className="mb-4 space-y-3">
+            <div className="mb-4 space-y-2">
+              <p className="text-xs text-[#8E8C8C]">
+                {selectedOneLiner?.question || '攀岩對你來說是什麼？'}
+              </p>
               <div className="relative">
                 <p className={`line-clamp-3 text-base leading-relaxed ${
-                  climbingMeaning
+                  selectedOneLiner
                     ? 'font-medium text-[#1B1A1A]'
                     : 'italic text-[#8E8C8C]'
                 }`}>
-                  {climbingMeaning
-                    ? `"${climbingMeaning}"`
+                  {selectedOneLiner
+                    ? `"${selectedOneLiner.answer}"`
                     : getDefaultQuote(person.id)}
                 </p>
               </div>
