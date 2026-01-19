@@ -164,7 +164,7 @@ async function invalidateBiographyCaches(
   }
 
   // Featured list caches (common limits: 3 for homepage, 6 for explore, 10 for admin)
-  keysToDelete.push('biographies:featured:3', 'biographies:featured:6', 'biographies:featured:10');
+  keysToDelete.push(...[3, 6, 10].map(limit => `biographies:featured:${limit}`));
 
   // 並行刪除所有快取 key
   await Promise.all(

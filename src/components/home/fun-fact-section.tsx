@@ -30,9 +30,13 @@ const funFacts: FunFact[] = [
 
 export function FunFactSection() {
   const [isRevealed, setIsRevealed] = useState(false)
-  const [currentFactIndex] = useState(0)
+  const currentFactIndex = 0
 
   const currentFact = funFacts[currentFactIndex]
+
+  if (!currentFact) {
+    return null
+  }
 
   return (
     <section className="bg-gradient-to-r from-brand-accent/20 to-brand-accent/10 py-4 md:py-6">
