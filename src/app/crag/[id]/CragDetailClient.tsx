@@ -10,6 +10,7 @@ import BackToTop from '@/components/ui/back-to-top'
 import { WeatherDisplay } from '@/components/shared/weather-display'
 import { TrafficCamerasCard } from '@/components/crag/traffic-cameras-card'
 import { YouTubeLiveCard } from '@/components/crag/youtube-live-card'
+import { DataSourceSection } from '@/components/crag/data-source-section'
 import { CollapsibleBreadcrumb } from '@/components/ui/collapsible-breadcrumb'
 import { RouteListFilter } from '@/components/crag/route-list-filter'
 import { VirtualizedRouteList } from '@/components/crag/virtualized-route-list'
@@ -380,6 +381,13 @@ export default function CragDetailClient({ params }: { params: Promise<{ id: str
                       </Link>
                     ))}
                   </div>
+                </div>
+              )}
+
+              {/* 資料來源 */}
+              {currentCrag.metadata && (
+                <div className="mt-8 border-t border-gray-200 pt-8">
+                  <DataSourceSection data={currentCrag.metadata} />
                 </div>
               )}
             </div>

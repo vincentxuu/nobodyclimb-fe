@@ -145,8 +145,10 @@ export interface CragFullData {
   metadata: {
     version: string
     source: string
+    sourceUrl?: string
     lastUpdated: string
     maintainer: string
+    maintainerUrl?: string
   }
 }
 
@@ -733,7 +735,7 @@ export function getCragDetailData(id: string) {
   const fullData = getCragById(id)
   if (!fullData) return null
 
-  const { crag, areas, routes } = fullData
+  const { crag, areas, routes, metadata } = fullData
 
   // 使用 JSON 中的圖片或使用備用圖片
   const defaultImages = [CRAG_FALLBACK_IMAGE]
@@ -802,5 +804,14 @@ export function getCragDetailData(id: string) {
         youtubeVideos: route.youtubeVideos || [],
       }
     }),
+    // 資料來源資訊
+    metadata: {
+      source: metadata.source,
+      sourceUrl: metadata.sourceUrl,
+      lastUpdated: metadata.lastUpdated,
+      maintainer: metadata.maintainer,
+      maintainerUrl: metadata.maintainerUrl,
+      version: metadata.version,
+    },
   }
 }

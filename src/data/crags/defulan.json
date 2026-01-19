@@ -964,9 +964,11 @@
     }
   },
   "metadata": {
-    "version": "2.0.0",
-    "source": "德芙蘭路線資料 CSV 轉換",
-    "lastUpdated": "2025-01-10",
-    "maintainer": "NobodyClimb Team"
+    "version": "",
+    "source": "德芙蘭路線圖 Google Sheet &Photo ",
+    "sourceUrl": "https: //www.facebook.com/groups/455004859343205/announcements",
+    "lastUpdated": "",
+    "maintainer": "谷關德芙蘭攀岩場 開發團隊",
+    "maintainerUrl": "https://www.facebook.com/groups/455004859343205/"
   }
 }
