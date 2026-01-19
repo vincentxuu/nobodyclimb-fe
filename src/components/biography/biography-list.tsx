@@ -17,13 +17,38 @@ import {
   getDefaultQuote,
 } from '@/lib/utils/biography-cache'
 
+// 解析 basic_info_data JSON，優先使用其中的值
+interface BasicInfoData {
+  name?: string
+  title?: string
+  bio?: string
+  climbing_start_year?: number | string
+  frequent_locations?: string
+  home_gym?: string
+}
+
+function parseBasicInfoData(json: string | null | undefined): BasicInfoData | null {
+  if (!json) return null
+  try {
+    return JSON.parse(json) as BasicInfoData
+  } catch {
+    return null
+  }
+}
+
 // 卡片組件
 interface BiographyCardProps {
   person: Biography
 }
 
 function BiographyCard({ person }: BiographyCardProps) {
-  const climbingYears = calculateClimbingYears(person.climbing_start_year)
+  // 優先使用 basic_info_data 中的資料
+  const basicInfo = parseBasicInfoData(person.basic_info_data)
+  const displayName = basicInfo?.name || person.name
+  const climbingStartYear = basicInfo?.climbing_start_year ?? person.climbing_start_year
+  const climbingYears = calculateClimbingYears(
+    climbingStartYear != null ? String(climbingStartYear) : null
+  )
 
   return (
     <motion.div
@@ -54,11 +79,11 @@ function BiographyCard({ person }: BiographyCardProps) {
                 <div className="relative h-10 w-10 flex-shrink-0 overflow-hidden rounded-full bg-gray-100">
                   {person.avatar_url ? (
                     isSvgUrl(person.avatar_url) ? (
-                      <img src={person.avatar_url} alt={person.name} className="h-full w-full object-cover" />
+                      <img src={person.avatar_url} alt={displayName} className="h-full w-full object-cover" />
                     ) : (
                       <Image
                         src={person.avatar_url}
-                        alt={person.name}
+                        alt={displayName}
                         fill
                         className="object-cover"
                         sizes="40px"
@@ -71,7 +96,7 @@ function BiographyCard({ person }: BiographyCardProps) {
                   )}
                 </div>
                 <div className="flex-1">
-                  <h3 className="text-sm font-medium text-[#1B1A1A]">{person.name}</h3>
+                  <h3 className="text-sm font-medium text-[#1B1A1A]">{displayName}</h3>
                   <p className="text-xs text-[#8E8C8C]">
                     攀岩 {climbingYears !== null ? `${climbingYears}年` : '年資未知'}
                   </p>

@@ -65,8 +65,8 @@ export function SocialLinksEditorSection({
           Instagram
           <span className="text-[#8E8C8C] font-normal">(選填)</span>
         </label>
-        <div className="flex items-center gap-2">
-          <span className="text-[#6D6C6C]">@</span>
+        <div className="flex items-center gap-2 min-w-0">
+          <span className="text-[#6D6C6C] shrink-0">@</span>
           <input
             type="text"
             value={socialLinks.instagram || ''}
@@ -78,7 +78,7 @@ export function SocialLinksEditorSection({
               }
             }}
             placeholder="your_username"
-            className="flex-1 px-4 py-3 bg-white border border-[#B6B3B3] rounded-xl text-[#1B1A1A] placeholder:text-[#9D9D9D] focus:outline-none focus:ring-2 focus:ring-brand-accent/50 focus:border-brand-dark transition-colors"
+            className="flex-1 min-w-0 px-4 py-3 bg-white border border-[#B6B3B3] rounded-xl text-[#1B1A1A] placeholder:text-[#9D9D9D] focus:outline-none focus:ring-2 focus:ring-brand-accent/50 focus:border-brand-dark transition-colors"
             maxLength={50}
           />
         </div>
