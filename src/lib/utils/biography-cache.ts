@@ -1,4 +1,5 @@
 import { Biography, PaginationInfo } from '@/lib/types'
+import type { StoriesDataJson } from './stories-data'
 
 // ═══════════════════════════════════════════════════════════
 // 快取配置
@@ -136,11 +137,42 @@ export const ONE_LINER_QUESTIONS: Record<string, string> = {
 
 /** 故事問題 ID 對應的顯示文字 */
 export const STORY_QUESTIONS: Record<string, string> = {
+  // 原有欄位
   climbing_origin_story: '你與攀岩的故事',
   memorable_route: '最難忘的一條路線',
   climbing_philosophy: '攀岩教會你的事',
   community_story: '岩友之間的故事',
   injury_recovery: '受傷與復原的經歷',
+  // 進階故事欄位
+  memorable_moment: '最難忘的攀岩時刻',
+  biggest_challenge: '最大的挑戰',
+  breakthrough_story: '突破的故事',
+  first_outdoor: '第一次戶外攀岩',
+  first_grade: '第一次完成的難度',
+  frustrating_climb: '最挫折的一次',
+  fear_management: '如何面對恐懼',
+  climbing_lesson: '攀岩教會我的事',
+  failure_perspective: '如何看待失敗',
+  flow_moment: '心流時刻',
+  life_balance: '攀岩與生活的平衡',
+  unexpected_gain: '意外的收穫',
+  climbing_mentor: '攀岩導師',
+  climbing_partner: '攀岩夥伴',
+  funny_moment: '有趣的攀岩經歷',
+  favorite_spot: '最愛的攀岩地點',
+  advice_to_group: '給岩友的建議',
+  climbing_space: '攀岩的空間',
+  training_method: '訓練方式',
+  effective_practice: '有效的練習',
+  technique_tip: '技巧心得',
+  gear_choice: '裝備選擇',
+  dream_climb: '夢想中的路線',
+  climbing_trip: '攀岩旅行',
+  bucket_list_story: '願望清單',
+  climbing_goal: '攀岩目標',
+  climbing_style: '攀岩風格',
+  climbing_inspiration: '攀岩的啟發',
+  life_outside_climbing: '攀岩以外的生活',
 }
 
 /** 卡片故事內容截斷長度 */
@@ -162,15 +194,6 @@ interface OneLinerData {
 
 interface OneLinersData {
   [key: string]: OneLinerData | undefined
-}
-
-interface StoryData {
-  content: string
-  visibility?: string
-}
-
-interface StoriesData {
-  [key: string]: StoryData | undefined
 }
 
 export interface SelectedCardContent {
@@ -202,10 +225,10 @@ export function selectCardContent(
   }
 
   // 解析 stories_data
-  let stories: StoriesData | null = null
+  let stories: StoriesDataJson | null = null
   if (storiesJson) {
     try {
-      stories = JSON.parse(storiesJson) as StoriesData
+      stories = JSON.parse(storiesJson) as StoriesDataJson
     } catch {
       stories = null
     }
@@ -214,11 +237,11 @@ export function selectCardContent(
   // 收集所有有回答的問題（排除已使用的）
   const availableContent: { key: string; question: string; answer: string }[] = []
 
-  // 從 one_liners 收集
+  // 從 one_liners 收集（只顯示 public 的內容）
   for (const key of CARD_QUESTION_PRIORITY) {
     if (usedQuestionIds.has(key)) continue
     const data = oneLiners?.[key]
-    if (data?.answer && data.answer.trim()) {
+    if (data?.answer && data.answer.trim() && data.visibility === 'public') {
       availableContent.push({
         key,
         question: ONE_LINER_QUESTIONS[key] || '攀岩對你來說是什麼？',
@@ -228,18 +251,22 @@ export function selectCardContent(
   }
 
   // 從 stories 收集（截取指定長度）
+  // stories_data 結構: { category: { questionKey: { answer, visibility } } }
   if (stories) {
-    for (const [key, data] of Object.entries(stories)) {
-      if (usedQuestionIds.has(key)) continue
-      if (data?.content && data.content.trim()) {
-        const truncated = data.content.length > CARD_STORY_MAX_LENGTH
-          ? data.content.slice(0, CARD_STORY_MAX_LENGTH) + '...'
-          : data.content
-        availableContent.push({
-          key,
-          question: STORY_QUESTIONS[key] || '攀岩故事',
-          answer: truncated,
-        })
+    for (const category of Object.values(stories)) {
+      if (!category) continue
+      for (const [key, data] of Object.entries(category)) {
+        if (usedQuestionIds.has(key)) continue
+        if (data?.answer && data.answer.trim() && data.visibility === 'public') {
+          const truncated = data.answer.length > CARD_STORY_MAX_LENGTH
+            ? data.answer.slice(0, CARD_STORY_MAX_LENGTH) + '...'
+            : data.answer
+          availableContent.push({
+            key,
+            question: STORY_QUESTIONS[key] || '攀岩故事',
+            answer: truncated,
+          })
+        }
       }
     }
   }

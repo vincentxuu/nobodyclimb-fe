@@ -7,20 +7,11 @@ import { Plus } from 'lucide-react'
 import { Biography } from '@/lib/types'
 import { ADVANCED_STORY_QUESTIONS, STORY_CATEGORIES, StoryCategory } from '@/lib/constants/biography-stories'
 import { cn } from '@/lib/utils'
+import { parseStoriesData, getStoryContent, STORY_CATEGORY_COLORS } from '@/lib/utils/stories-data'
 
 interface CompleteStoriesSectionProps {
   person: Biography
   isOwner: boolean
-}
-
-// 分類顏色映射 - 使用品牌色系
-const CATEGORY_COLORS: Record<StoryCategory, { bg: string; text: string }> = {
-  growth: { bg: 'bg-brand-accent/20', text: 'text-brand-dark' },
-  psychology: { bg: 'bg-brand-light', text: 'text-brand-dark' },
-  community: { bg: 'bg-brand-accent/20', text: 'text-brand-dark' },
-  practical: { bg: 'bg-brand-light', text: 'text-brand-dark' },
-  dreams: { bg: 'bg-brand-accent/20', text: 'text-brand-dark' },
-  life: { bg: 'bg-brand-light', text: 'text-brand-dark' },
 }
 
 /**
@@ -28,27 +19,28 @@ const CATEGORY_COLORS: Record<StoryCategory, { bg: string; text: string }> = {
  * 顯示所有已填寫的進階故事，直接顯示完整內容
  */
 export function CompleteStoriesSection({ person, isOwner }: CompleteStoriesSectionProps) {
-  // 整理已填寫的故事
-  const filledStories = useMemo(() => {
-    return ADVANCED_STORY_QUESTIONS
-      .filter(q => {
-        const content = person[q.field as keyof Biography] as string | null
-        return content && content.trim()
-      })
-      .map(q => ({
-        ...q,
-        content: person[q.field as keyof Biography] as string
-      }))
-  }, [person])
+  // 解析 stories_data JSON
+  const storiesData = useMemo(
+    () => parseStoriesData(person.stories_data),
+    [person.stories_data]
+  )
 
-  // 整理未填寫的故事（只給擁有者看）
-  const unfilledStories = useMemo(() => {
-    if (!isOwner) return []
-    return ADVANCED_STORY_QUESTIONS.filter(q => {
-      const content = person[q.field as keyof Biography] as string | null
-      return !content || !content.trim()
-    })
-  }, [person, isOwner])
+  // 整理已填寫和未填寫的故事（單次遍歷）
+  const { filledStories, unfilledStories } = useMemo(() => {
+    const filled: Array<typeof ADVANCED_STORY_QUESTIONS[number] & { content: string }> = []
+    const unfilled: typeof ADVANCED_STORY_QUESTIONS = []
+
+    for (const q of ADVANCED_STORY_QUESTIONS) {
+      const content = getStoryContent(person, q.field, storiesData)
+      if (content !== null) {
+        filled.push({ ...q, content })
+      } else if (isOwner) {
+        unfilled.push(q)
+      }
+    }
+
+    return { filledStories: filled, unfilledStories: unfilled }
+  }, [person, storiesData, isOwner])
 
   const getCategoryName = (categoryId: StoryCategory) => {
     return STORY_CATEGORIES.find(c => c.id === categoryId)?.name || ''
@@ -83,8 +75,8 @@ export function CompleteStoriesSection({ person, isOwner }: CompleteStoriesSecti
               {/* 分類標籤 */}
               <div className={cn(
                 'mb-3 inline-block rounded px-2 py-1 text-xs',
-                CATEGORY_COLORS[story.category].bg,
-                CATEGORY_COLORS[story.category].text
+                STORY_CATEGORY_COLORS[story.category].bg,
+                STORY_CATEGORY_COLORS[story.category].text
               )}>
                 {getCategoryName(story.category)}
               </div>
