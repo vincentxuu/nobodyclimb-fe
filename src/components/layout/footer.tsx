@@ -45,7 +45,7 @@ export function Footer() {
             height={32}
             className="h-8 w-auto"
           />
-          <p className="text-[14px] font-light text-[#8E8C8C]">NobodyClimb © 2022.</p>
+          <p className="text-[14px] font-light text-[#8E8C8C]">NobodyClimb © {new Date().getFullYear()}.</p>
         </div>
 
         {/* 社交媒體圖標 */}
