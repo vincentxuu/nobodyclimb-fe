@@ -82,6 +82,7 @@ export function ProfileEditorV2Wrapper({ className }: ProfileEditorV2WrapperProp
         cover_image: bio.cover_url ?? undefined,
         climbing_start_year: bio.climbing_start_year?.toString() ?? undefined,
         frequent_locations: bio.frequent_locations ? bio.frequent_locations.join(', ') : undefined,
+        favorite_route_type: bio.favorite_route_types ? bio.favorite_route_types.join(', ') : undefined,
         social_links: bio.social_links ? JSON.stringify(bio.social_links) : undefined,
         visibility: bio.visibility ?? undefined,
         // V2 資料欄位
