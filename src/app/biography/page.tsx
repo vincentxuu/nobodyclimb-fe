@@ -1,16 +1,20 @@
 'use client'
 
 import React, { useState, useCallback } from 'react'
+import Link from 'next/link'
 import { motion } from 'framer-motion'
+import { UserPlus } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Breadcrumb } from '@/components/ui/breadcrumb'
 import { PageHeader } from '@/components/ui/page-header'
 import { SearchInput } from '@/components/ui/search-input'
+import { useAuthStore } from '@/store/authStore'
 
 // 匯入頁面組件
 import { BiographyList } from '@/components/biography/biography-list'
 
 export default function BiographyPage() {
+  const { isAuthenticated } = useAuthStore()
   const [searchTerm, setSearchTerm] = useState('')
   const [hasMore, setHasMore] = useState(false)
   const [loadMoreFn, setLoadMoreFn] = useState<(() => void) | null>(null)
@@ -48,6 +52,29 @@ export default function BiographyPage() {
         <div className="mb-4 md:mb-8">
           <Breadcrumb items={[{ label: '首頁', href: '/' }, { label: '人物誌' }]} hideOnMobile />
         </div>
+
+        {/* 訪客引導 Banner - 僅未登入時顯示 */}
+        {!isAuthenticated && (
+          <motion.div
+            initial={{ opacity: 0, y: -10 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="mb-6 flex flex-col items-center justify-between gap-3 rounded-lg border border-[#E5E5E5] bg-white p-4 shadow-sm sm:flex-row md:mb-8"
+          >
+            <div className="flex items-center gap-3">
+              <div className="flex h-10 w-10 items-center justify-center rounded-full bg-[#F5F5F5]">
+                <UserPlus size={20} className="text-[#1B1A1A]" />
+              </div>
+              <p className="text-sm text-[#1B1A1A] md:text-base">
+                你也是攀岩人嗎？註冊建立你的人物誌，讓大家認識你！
+              </p>
+            </div>
+            <Link href="/auth/register">
+              <Button className="h-9 whitespace-nowrap bg-brand-accent/70 px-6 text-sm text-[#1B1A1A] hover:bg-brand-accent">
+                立即加入
+              </Button>
+            </Link>
+          </motion.div>
+        )}
 
         <SearchInput
           value={searchTerm}

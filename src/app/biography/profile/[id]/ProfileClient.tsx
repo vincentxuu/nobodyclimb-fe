@@ -284,6 +284,25 @@ export default function ProfileClient({ params }: ProfileClientProps) {
         </div>
       </div>
 
+      {/* 訪客註冊引導 CTA - 僅未登入時顯示 */}
+      {!user && (
+        <div className="bg-[#1B1A1A] py-12">
+          <div className="container mx-auto max-w-2xl px-4 text-center">
+            <h3 className="mb-3 text-xl font-medium text-white md:text-2xl">
+              你也有攀岩故事嗎？
+            </h3>
+            <p className="mb-6 text-sm text-gray-300 md:text-base">
+              來寫寫你的小人物誌吧
+            </p>
+            <Link href="/auth/register">
+              <Button className="h-11 bg-white px-8 text-[#1B1A1A] hover:bg-gray-100">
+                立即註冊加入
+              </Button>
+            </Link>
+          </div>
+        </div>
+      )}
+
       {/* 回到頂部按鈕 */}
       <BackToTop />
     </div>

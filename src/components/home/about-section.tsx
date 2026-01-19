@@ -1,7 +1,12 @@
+'use client'
+
 import Link from 'next/link'
 import { Button } from '@/components/ui/button'
+import { useAuthStore } from '@/store/authStore'
 
 export function AboutSection() {
+  const { isAuthenticated } = useAuthStore()
+
   return (
     <section className="relative h-[500px] overflow-hidden bg-white">
       {/* 背景圖片 */}
@@ -37,11 +42,20 @@ export function AboutSection() {
           當然過程中一定會有一些疑惑，或許這裡能帶給你一些解答或收穫
         </p>
 
-        <Link href="/about">
-          <Button variant="secondary" size="lg" className="mt-8">
-            認識小人物
-          </Button>
-        </Link>
+        <div className="mt-8 flex flex-col gap-3 sm:flex-row sm:gap-4">
+          <Link href="/about" className="w-full sm:w-auto">
+            <Button variant="secondary" size="lg" className="w-full sm:w-auto">
+              認識小人物
+            </Button>
+          </Link>
+          {!isAuthenticated && (
+            <Link href="/auth/register" className="w-full sm:w-auto">
+              <Button size="lg" className="w-full bg-brand-accent/70 text-[#1B1A1A] hover:bg-brand-accent sm:w-auto">
+                成為小人物
+              </Button>
+            </Link>
+          )}
+        </div>
       </div>
     </section>
   )

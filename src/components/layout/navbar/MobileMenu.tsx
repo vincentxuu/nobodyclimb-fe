@@ -140,13 +140,24 @@ export default function MobileMenu() {
                 </div>
               ) : (
                 <div className="border-b border-gray-200 bg-white px-3 py-2 xs:p-3">
-                  <Button
-                    variant="outline"
-                    className="h-7 w-full rounded-md border border-[#1B1A1A] bg-white font-medium text-[#1B1A1A] hover:bg-gray-50 xs:h-8"
-                    onClick={() => handleNavigation('/auth/login')}
-                  >
-                    <span className="font-['Noto_Sans_TC'] text-xs">登入</span>
-                  </Button>
+                  <div className="mb-2 text-center">
+                    <p className="text-xs text-gray-500">也是攀岩人？加入寫下你的故事</p>
+                  </div>
+                  <div className="flex gap-2">
+                    <Button
+                      variant="outline"
+                      className="h-7 flex-1 rounded-md border border-[#1B1A1A] bg-white font-medium text-[#1B1A1A] hover:bg-gray-50 xs:h-8"
+                      onClick={() => handleNavigation('/auth/login')}
+                    >
+                      <span className="font-['Noto_Sans_TC'] text-xs">登入</span>
+                    </Button>
+                    <Button
+                      className="h-7 flex-1 rounded-md bg-brand-accent/70 font-medium text-[#1B1A1A] hover:bg-brand-accent xs:h-8"
+                      onClick={() => handleNavigation('/auth/register')}
+                    >
+                      <span className="font-['Noto_Sans_TC'] text-xs">註冊</span>
+                    </Button>
+                  </div>
                 </div>
               )}
 

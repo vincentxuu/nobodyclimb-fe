@@ -180,13 +180,20 @@ export function BiographySection() {
           </div>
         )}
 
-        <div className="mt-10 flex justify-center">
-          <Link href="/biography">
+        <div className="mt-10 flex flex-col items-center justify-center gap-3 sm:flex-row sm:gap-4">
+          <Link href="/biography" className="w-full sm:w-auto">
             <Button
               variant="outline"
-              className="h-11 border border-[#1B1A1A] px-8 text-base text-[#1B1A1A] hover:bg-[#DBD8D8]"
+              className="h-11 w-full border border-[#1B1A1A] px-8 text-base text-[#1B1A1A] hover:bg-[#DBD8D8] sm:w-auto"
             >
               認識更多小人物
+            </Button>
+          </Link>
+          <Link href="/auth/register" className="w-full sm:w-auto">
+            <Button
+              className="h-11 w-full bg-brand-accent/70 px-8 text-base text-[#1B1A1A] hover:bg-brand-accent sm:w-auto"
+            >
+              成為小人物
             </Button>
           </Link>
         </div>
