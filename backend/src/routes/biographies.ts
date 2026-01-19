@@ -107,6 +107,31 @@ function shouldSanitizeAnonymous(biography: { visibility?: string | null; user_i
   return biography.visibility === 'anonymous' && biography.user_id !== currentUserId;
 }
 
+/**
+ * 如果 biography 沒有頭像，從關聯的 user 取得頭像作為 fallback
+ * @param db - D1 資料庫實例
+ * @param biography - 人物誌資料
+ */
+async function applyAvatarFallback(
+  db: D1Database,
+  biography: Record<string, unknown> | null
+): Promise<void> {
+  if (!biography) return;
+
+  const userId = biography.user_id as string | undefined;
+  if (!biography.avatar_url && userId) {
+    const user = await db.prepare(
+      'SELECT avatar_url FROM users WHERE id = ?'
+    )
+      .bind(userId)
+      .first<{ avatar_url: string | null }>();
+
+    if (user?.avatar_url) {
+      biography.avatar_url = user.avatar_url;
+    }
+  }
+}
+
 // ═══════════════════════════════════════════════════════════
 // KV 快取 - 用於前端 SSR metadata
 // ═══════════════════════════════════════════════════════════
@@ -337,16 +362,7 @@ biographiesRoutes.get('/me', authMiddleware, async (c) => {
 
   // Fallback to user avatar if biography has no avatar
   const bioRecord = biography as Record<string, unknown>;
-  if (!bioRecord.avatar_url) {
-    const user = await c.env.DB.prepare(
-      'SELECT avatar_url FROM users WHERE id = ?'
-    )
-      .bind(userId)
-      .first<{ avatar_url: string | null }>();
-    if (user?.avatar_url) {
-      bioRecord.avatar_url = user.avatar_url;
-    }
-  }
+  await applyAvatarFallback(c.env.DB, bioRecord);
 
   return c.json({
     success: true,
@@ -379,16 +395,7 @@ biographiesRoutes.get('/:id', optionalAuthMiddleware, async (c) => {
 
   // Fallback to user avatar if biography has no avatar
   const bioRecord = biography as Record<string, unknown>;
-  if (!bioRecord.avatar_url && bioRecord.user_id) {
-    const user = await c.env.DB.prepare(
-      'SELECT avatar_url FROM users WHERE id = ?'
-    )
-      .bind(bioRecord.user_id)
-      .first<{ avatar_url: string | null }>();
-    if (user?.avatar_url) {
-      bioRecord.avatar_url = user.avatar_url;
-    }
-  }
+  await applyAvatarFallback(c.env.DB, bioRecord);
 
   // Sanitize anonymous biographies for non-owners
   const result = shouldSanitizeAnonymous(bioRecord as { visibility?: string | null; user_id?: string | null }, userId)
@@ -447,16 +454,7 @@ biographiesRoutes.get('/slug/:slug', optionalAuthMiddleware, async (c) => {
 
   // Fallback to user avatar if biography has no avatar
   const bioRecord = biography as Record<string, unknown>;
-  if (!bioRecord.avatar_url && bioRecord.user_id) {
-    const user = await c.env.DB.prepare(
-      'SELECT avatar_url FROM users WHERE id = ?'
-    )
-      .bind(bioRecord.user_id)
-      .first<{ avatar_url: string | null }>();
-    if (user?.avatar_url) {
-      bioRecord.avatar_url = user.avatar_url;
-    }
-  }
+  await applyAvatarFallback(c.env.DB, bioRecord);
 
   // Sanitize anonymous biographies for non-owners
   const result = shouldSanitizeAnonymous(bioRecord as { visibility?: string | null; user_id?: string | null }, userId)

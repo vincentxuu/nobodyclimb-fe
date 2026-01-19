@@ -31,7 +31,7 @@ export function CompleteStoriesSection({ person, isOwner }: CompleteStoriesSecti
     const unfilled: typeof ADVANCED_STORY_QUESTIONS = []
 
     for (const q of ADVANCED_STORY_QUESTIONS) {
-      const content = getStoryContent(person, q.field, storiesData)
+      const content = getStoryContent(person, q.field, storiesData, q.category)
       if (content !== null) {
         filled.push({ ...q, content })
       } else if (isOwner) {

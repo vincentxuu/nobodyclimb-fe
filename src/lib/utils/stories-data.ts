@@ -38,19 +38,34 @@ export function parseStoriesData(storiesDataJson: string | null | undefined): St
 /**
  * 從 stories_data JSON 或舊欄位中取得故事內容
  * 優先使用 stories_data，fallback 到舊欄位
+ *
+ * @param person - Biography 物件
+ * @param field - 故事欄位名稱
+ * @param storiesData - 解析後的 stories_data JSON
+ * @param category - 可選的分類，傳入可實現 O(1) 直接查找
  */
 export function getStoryContent(
   person: Biography,
   field: string,
-  storiesData: StoriesDataJson | null
+  storiesData: StoriesDataJson | null,
+  category?: StoryCategory
 ): string | null {
   // 優先從 stories_data 取得（新格式）
   if (storiesData) {
-    for (const category of Object.values(storiesData)) {
-      if (!category) continue
-      const storyItem = category[field]
+    // 如果有傳入 category，直接 O(1) 查找
+    if (category) {
+      const storyItem = storiesData[category]?.[field]
       if (storyItem?.answer && storyItem.answer.trim() && storyItem.visibility === 'public') {
         return storyItem.answer
+      }
+    } else {
+      // 沒有 category 時，遍歷所有分類（向後兼容）
+      for (const cat of Object.values(storiesData)) {
+        if (!cat) continue
+        const storyItem = cat[field]
+        if (storyItem?.answer && storyItem.answer.trim() && storyItem.visibility === 'public') {
+          return storyItem.answer
+        }
       }
     }
   }

@@ -27,7 +27,7 @@ export function FeaturedStoriesSection({ person }: FeaturedStoriesSectionProps) 
     const result: Array<typeof ADVANCED_STORY_QUESTIONS[number] & { content: string }> = []
 
     for (const q of ADVANCED_STORY_QUESTIONS) {
-      const content = getStoryContent(person, q.field, storiesData)
+      const content = getStoryContent(person, q.field, storiesData, q.category)
       if (content !== null) {
         result.push({ ...q, content })
       }
