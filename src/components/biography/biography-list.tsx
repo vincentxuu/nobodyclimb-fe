@@ -7,93 +7,15 @@ import { motion } from 'framer-motion'
 import { ArrowRightCircle, Loader2, User } from 'lucide-react'
 import { Card, CardContent } from '@/components/ui/card'
 import { biographyService } from '@/lib/api/services'
-import { Biography, PaginationInfo } from '@/lib/types'
+import { Biography } from '@/lib/types'
 import { calculateClimbingYears } from '@/lib/utils/biography'
 import { isSvgUrl } from '@/lib/utils/image'
-
-// 緩存配置
-const CACHE_KEY = 'nobodyclimb_biography_list'
-const CACHE_TTL = 3 * 60 * 1000 // 3 分鐘
-
-interface CachedData {
-  data: Biography[]
-  pagination: PaginationInfo
-  timestamp: number
-}
-
-/**
- * 從 localStorage 獲取緩存的人物誌列表數據
- */
-function getCachedBiographies(): { data: Biography[]; pagination: PaginationInfo } | null {
-  if (typeof window === 'undefined') return null
-
-  try {
-    const cached = localStorage.getItem(CACHE_KEY)
-    if (!cached) return null
-
-    const { data, pagination }: CachedData = JSON.parse(cached)
-    return { data, pagination }
-  } catch {
-    return null
-  }
-}
-
-/**
- * 檢查緩存是否過期
- */
-function isCacheExpired(): boolean {
-  if (typeof window === 'undefined') return true
-
-  try {
-    const cached = localStorage.getItem(CACHE_KEY)
-    if (!cached) return true
-
-    const { timestamp }: CachedData = JSON.parse(cached)
-    return Date.now() - timestamp > CACHE_TTL
-  } catch {
-    return true
-  }
-}
-
-/**
- * 緩存人物誌列表數據到 localStorage
- */
-function cacheBiographies(data: Biography[], pagination: PaginationInfo): void {
-  if (typeof window === 'undefined') return
-
-  try {
-    const cacheData: CachedData = {
-      data,
-      pagination,
-      timestamp: Date.now(),
-    }
-    localStorage.setItem(CACHE_KEY, JSON.stringify(cacheData))
-  } catch {
-    // 忽略緩存錯誤
-  }
-}
-
-/**
- * 有趣的預設語錄
- */
-const DEFAULT_QUOTES = [
-  '正在岩壁上尋找人生的意義...',
-  '手指還在長繭中，故事正在醞釀',
-  '專注攀爬，無暇寫字',
-  '話不多說，先爬再說',
-  '故事？都刻在岩壁上了',
-  '正忙著挑戰下一條路線',
-  '沉默的攀岩者，響亮的 send',
-  '低調的小人物，高調的攀登',
-]
-
-/**
- * 根據 ID 獲取一個固定的趣味語錄
- */
-function getDefaultQuote(id: string): string {
-  const hash = id.split('').reduce((acc, char) => acc + char.charCodeAt(0), 0)
-  return DEFAULT_QUOTES[hash % DEFAULT_QUOTES.length]
-}
+import {
+  getCachedBiographyList,
+  cacheBiographyList,
+  isBiographyListCacheExpired,
+  getDefaultQuote,
+} from '@/lib/utils/biography-cache'
 
 // 卡片組件
 interface BiographyCardProps {
@@ -181,12 +103,13 @@ export function BiographyList({ searchTerm, onTotalChange, onLoadMoreChange }: B
   const [currentPage, setCurrentPage] = useState(1)
   const [hasMore, setHasMore] = useState(false)
   const initialLoadDone = useRef(false)
+  const prevSearchTerm = useRef(searchTerm)
 
   // 從 API 加載數據
   const loadBiographies = useCallback(async (page: number, append: boolean = false, useCache: boolean = false) => {
     // 僅在首次載入且沒有搜索詞時使用緩存
     if (useCache && page === 1 && !searchTerm && !initialLoadDone.current) {
-      const cached = getCachedBiographies()
+      const cached = getCachedBiographyList()
       if (cached && cached.data.length > 0) {
         setBiographies(cached.data)
         const hasMoreData = cached.pagination.page < cached.pagination.total_pages
@@ -196,7 +119,7 @@ export function BiographyList({ searchTerm, onTotalChange, onLoadMoreChange }: B
         setLoading(false)
 
         // 如果緩存未過期，標記完成並返回
-        if (!isCacheExpired()) {
+        if (!isBiographyListCacheExpired()) {
           initialLoadDone.current = true
           return
         }
@@ -206,7 +129,7 @@ export function BiographyList({ searchTerm, onTotalChange, onLoadMoreChange }: B
 
     if (append) {
       setLoadingMore(true)
-    } else if (!useCache || biographies.length === 0) {
+    } else if (!useCache) {
       setLoading(true)
     }
     setError(null)
@@ -223,11 +146,11 @@ export function BiographyList({ searchTerm, onTotalChange, onLoadMoreChange }: B
 
         // 緩存首頁無搜索的數據
         if (page === 1 && !searchTerm) {
-          cacheBiographies(response.data, response.pagination)
+          cacheBiographyList(response.data, response.pagination)
         }
       } else {
         // 如果有緩存數據且 API 失敗，使用緩存
-        const cached = getCachedBiographies()
+        const cached = getCachedBiographyList()
         if (cached && cached.data.length > 0 && !append && !searchTerm) {
           setBiographies(cached.data)
           const hasMoreData = cached.pagination.page < cached.pagination.total_pages
@@ -245,7 +168,7 @@ export function BiographyList({ searchTerm, onTotalChange, onLoadMoreChange }: B
     } catch (err) {
       console.error('Failed to load biographies:', err)
       // 如果有緩存數據且 API 失敗，使用緩存
-      const cached = getCachedBiographies()
+      const cached = getCachedBiographyList()
       if (cached && cached.data.length > 0 && !append && !searchTerm) {
         setBiographies(cached.data)
         const hasMoreData = cached.pagination.page < cached.pagination.total_pages
@@ -264,7 +187,7 @@ export function BiographyList({ searchTerm, onTotalChange, onLoadMoreChange }: B
       setLoadingMore(false)
       initialLoadDone.current = true
     }
-  }, [searchTerm, onTotalChange, biographies.length])
+  }, [searchTerm, onTotalChange])
 
   // 加載更多
   const loadMore = useCallback(() => {
@@ -281,9 +204,15 @@ export function BiographyList({ searchTerm, onTotalChange, onLoadMoreChange }: B
   // 搜索時重新加載
   useEffect(() => {
     const debounceTimer = setTimeout(() => {
-      setCurrentPage(1)
-      // 首次載入時使用緩存
-      loadBiographies(1, false, !initialLoadDone.current)
+      // 檢查搜索詞是否真的改變了，避免重複請求
+      const isSearchTermChanged = prevSearchTerm.current !== searchTerm
+      prevSearchTerm.current = searchTerm
+
+      if (isSearchTermChanged || !initialLoadDone.current) {
+        setCurrentPage(1)
+        // 首次載入時使用緩存
+        loadBiographies(1, false, !initialLoadDone.current && !searchTerm)
+      }
     }, 300)
 
     return () => clearTimeout(debounceTimer)

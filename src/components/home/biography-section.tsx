@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState, useCallback } from 'react'
+import { useEffect, useState, useCallback, useRef } from 'react'
 import Link from 'next/link'
 import Image from 'next/image'
 import { motion } from 'framer-motion'
@@ -10,91 +10,12 @@ import { Card, CardContent } from '@/components/ui/card'
 import { biographyService } from '@/lib/api/services'
 import { Biography } from '@/lib/types'
 import { isSvgUrl } from '@/lib/utils/image'
-
-// 緩存配置
-const CACHE_KEY = 'nobodyclimb_home_biographies'
-const CACHE_TTL = 5 * 60 * 1000 // 5 分鐘
-
-interface CachedData {
-  data: Biography[]
-  timestamp: number
-}
-
-/**
- * 從 localStorage 獲取緩存的人物誌數據
- */
-function getCachedBiographies(): Biography[] | null {
-  if (typeof window === 'undefined') return null
-
-  try {
-    const cached = localStorage.getItem(CACHE_KEY)
-    if (!cached) return null
-
-    const { data }: CachedData = JSON.parse(cached)
-
-    // 即使過期也返回數據（作為 stale 數據顯示）
-    return data
-  } catch {
-    return null
-  }
-}
-
-/**
- * 檢查緩存是否過期
- */
-function isCacheExpired(): boolean {
-  if (typeof window === 'undefined') return true
-
-  try {
-    const cached = localStorage.getItem(CACHE_KEY)
-    if (!cached) return true
-
-    const { timestamp }: CachedData = JSON.parse(cached)
-    return Date.now() - timestamp > CACHE_TTL
-  } catch {
-    return true
-  }
-}
-
-/**
- * 緩存人物誌數據到 localStorage
- */
-function cacheBiographies(data: Biography[]): void {
-  if (typeof window === 'undefined') return
-
-  try {
-    const cacheData: CachedData = {
-      data,
-      timestamp: Date.now(),
-    }
-    localStorage.setItem(CACHE_KEY, JSON.stringify(cacheData))
-  } catch {
-    // 忽略緩存錯誤
-  }
-}
-
-/**
- * 有趣的預設語錄
- */
-const DEFAULT_QUOTES = [
-  '正在岩壁上尋找人生的意義...',
-  '手指還在長繭中，故事正在醞釀',
-  '專注攀爬，無暇寫字',
-  '話不多說，先爬再說',
-  '故事？都刻在岩壁上了',
-  '正忙著挑戰下一條路線',
-  '沉默的攀岩者，響亮的 send',
-  '低調的小人物，高調的攀登',
-]
-
-/**
- * 根據 ID 獲取一個固定的趣味語錄
- */
-function getDefaultQuote(id: string): string {
-  // 使用 ID 的字符碼總和來生成一個穩定的索引
-  const hash = id.split('').reduce((acc, char) => acc + char.charCodeAt(0), 0)
-  return DEFAULT_QUOTES[hash % DEFAULT_QUOTES.length]
-}
+import {
+  getCachedHomeBiographies,
+  cacheHomeBiographies,
+  isHomeBiographiesCacheExpired,
+  getDefaultQuote,
+} from '@/lib/utils/biography-cache'
 
 function ClimberCard({ person }: { person: Biography }) {
   const climbingYears = person.climbing_start_year
@@ -166,46 +87,42 @@ export function BiographySection() {
   const [biographies, setBiographies] = useState<Biography[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
+  const hasFetched = useRef(false)
 
-  const loadBiographies = useCallback(async (useCache: boolean = true) => {
+  const loadBiographies = useCallback(async () => {
+    // 防止重複請求
+    if (hasFetched.current) return
+    hasFetched.current = true
+
     // 優先使用緩存數據（stale-while-revalidate 模式）
-    if (useCache) {
-      const cached = getCachedBiographies()
-      if (cached && cached.length > 0) {
-        setBiographies(cached)
-        setLoading(false)
+    const cached = getCachedHomeBiographies()
+    if (cached && cached.length > 0) {
+      setBiographies(cached)
+      setLoading(false)
 
-        // 如果緩存未過期，不需要重新請求
-        if (!isCacheExpired()) {
-          return
-        }
-        // 緩存過期，在背景靜默更新
+      // 如果緩存未過期，不需要重新請求
+      if (!isHomeBiographiesCacheExpired()) {
+        return
       }
+      // 緩存過期，在背景靜默更新
     }
 
     try {
       const response = await biographyService.getBiographies(1, 3)
       if (response.success && response.data) {
         setBiographies(response.data)
-        cacheBiographies(response.data)
-      } else if (biographies.length === 0) {
-        // 只有在沒有緩存數據時才顯示空狀態
-        setBiographies([])
+        cacheHomeBiographies(response.data)
       }
     } catch (err) {
       console.error('Failed to load biographies:', err)
       // 如果有緩存數據，使用緩存數據而不顯示錯誤
-      const cached = getCachedBiographies()
-      if (cached && cached.length > 0) {
-        setBiographies(cached)
-      } else {
+      if (!cached || cached.length === 0) {
         setError('載入人物誌時發生錯誤')
-        setBiographies([])
       }
     } finally {
       setLoading(false)
     }
-  }, [biographies.length])
+  }, [])
 
   useEffect(() => {
     loadBiographies()
