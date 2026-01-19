@@ -37,7 +37,7 @@ app.use('*', async (c, next) => {
       const envOrigins = c.env.CORS_ORIGIN?.split(',').map((o) => o.trim()) || [];
 
       // 允許沒有 origin 的請求 (如 server-to-server 或同源請求)
-      if (!origin) return envOrigins[0] || null;
+      if (!origin) return null;
 
       const allowedOrigins = [
         ...envOrigins,
