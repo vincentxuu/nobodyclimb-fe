@@ -182,6 +182,32 @@ VALUES (
 <li>完善的國家培訓體系</li>
 </ul>
 
+<h3>波蘭</h3>
+<p>波蘭在女子速度攀岩領域稱霸全球：</p>
+<ul>
+<li>Aleksandra Miroslaw 的故鄉，女子速度攀岩世界紀錄保持人（6.06 秒）</li>
+<li>2024 巴黎奧運女子速度金牌得主</li>
+<li>國內速度攀岩培訓體系發達</li>
+</ul>
+
+<h3>英國 - BMC</h3>
+<p>英國擁有悠久的登山與攀岩傳統：</p>
+<ul>
+<li>BMC（British Mountaineering Council）負責管理攀岩運動</li>
+<li>Toby Roberts 在 2024 巴黎奧運奪得男子複合賽金牌</li>
+<li>峰區（Peak District）等地是著名的戶外攀岩勝地</li>
+<li>近年競技攀岩實力大幅提升</li>
+</ul>
+
+<h3>西班牙 - FEDME</h3>
+<p>西班牙是攀岩運動的熱門目的地：</p>
+<ul>
+<li>FEDME（Federación Española de Deportes de Montaña y Escalada）管理攀岩運動</li>
+<li>Alberto Ginés López 在 2020 東京奧運奪得男子三項全能金牌</li>
+<li>擁有眾多世界級戶外攀岩場地，如 Siurana、El Chorro</li>
+<li>溫暖氣候吸引全球攀岩者前往訓練</li>
+</ul>
+
 <h2>亞洲</h2>
 
 <h3>日本 - JMSCA</h3>
@@ -218,6 +244,16 @@ VALUES (
 <li>選拔國家代表隊參與國際賽事</li>
 <li>青年選手培育計畫</li>
 <li>比賽系統網站：ctaa.j91.me</li>
+</ul>
+
+<h3>印尼 - FPTI</h3>
+<p>印尼是男子速度攀岩的絕對強國：</p>
+<ul>
+<li>FPTI（Federasi Panjat Tebing Indonesia）負責管理攀岩運動</li>
+<li>Veddriq Leonardo：2024 巴黎奧運男子速度金牌、前世界紀錄保持人</li>
+<li>Kiromal Katibin：多次打破世界紀錄的速度攀岩好手</li>
+<li>國家培訓體系專注於速度攀岩，成效卓著</li>
+<li>2025 年峇里島首度舉辦 IFSC 世界盃</li>
 </ul>
 
 <h2>大洋洲</h2>
