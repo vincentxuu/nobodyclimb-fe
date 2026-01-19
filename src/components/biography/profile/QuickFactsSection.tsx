@@ -167,7 +167,7 @@ export function QuickFactsSection({ person, mobileTagLimit = 8 }: QuickFactsSect
                       : 'bg-[#EBEAEA] text-[#3F3D3D] hover:bg-[#DBD8D8]'
                   )}
                 >
-                  {tag.isCustom && <Sparkles size={12} className="text-brand-accent" />}
+                  {tag.isCustom}
                   {tag.label}
                 </span>
               ))}
