@@ -16,6 +16,19 @@ export type GameMode = 'learn' | 'exam'
 /** 角色狀態 */
 export type CharacterState = 'idle' | 'climbing' | 'falling' | 'celebrating'
 
+/** 類別圖示名稱 (對應 lucide-react 圖示) */
+export type CategoryIconName =
+  | 'Target'
+  | 'PersonStanding'
+  | 'Link'
+  | 'ArrowDown'
+  | 'Anchor'
+  | 'Wrench'
+  | 'Mountain'
+  | 'LifeBuoy'
+  | 'Dumbbell'
+  | 'MountainSnow'
+
 // ============ 類別相關 ============
 
 /** 題目類別 */
@@ -24,7 +37,7 @@ export interface Category {
   slug: string
   name: string
   description: string
-  icon: string
+  icon: CategoryIconName
   parentSlug: 'sport' | 'trad'
   parentName: string
   questionCount: number

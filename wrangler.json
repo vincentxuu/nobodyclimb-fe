@@ -75,6 +75,12 @@
           "id": "396df52e16864a35a3cb7898fcd686e7"
         }
       ],
+      "routes": [
+        {
+          "pattern": "preview.nobodyclimb.cc/*",
+          "zone_name": "nobodyclimb.cc"
+        }
+      ],
       "vars": {
         "NEXT_PUBLIC_API_URL": "https://api-preview.nobodyclimb.cc/api/v1"
       }

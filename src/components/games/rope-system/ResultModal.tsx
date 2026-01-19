@@ -3,7 +3,7 @@
 import * as React from 'react'
 import { useEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-import { Trophy, RotateCcw, Home, Clock, Target, Flame } from 'lucide-react'
+import { Trophy, RotateCcw, Home, Clock, Target, Flame, PartyPopper, HeartCrack } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { Button } from '@/components/ui/button'
 import type { GameStats } from '@/lib/games/rope-system/types'
@@ -80,9 +80,13 @@ export function ResultModal({
                 initial={{ scale: 0 }}
                 animate={{ scale: 1 }}
                 transition={{ delay: 0.2, type: 'spring' }}
-                className="mb-4 text-6xl"
+                className="mb-4 flex justify-center"
               >
-                {isGameOver ? '💔' : '🎉'}
+                {isGameOver ? (
+                  <HeartCrack className="h-16 w-16 text-[#1B1A1A]" />
+                ) : (
+                  <PartyPopper className="h-16 w-16 text-[#FFE70C]" />
+                )}
               </motion.div>
               <h2 className="text-2xl font-bold text-[#1B1A1A]">
                 {isGameOver ? '遊戲結束' : '完成練習！'}
@@ -118,7 +122,7 @@ export function ResultModal({
                 className="flex items-center justify-between rounded-lg bg-[#F5F5F5] p-4"
               >
                 <div className="flex items-center gap-3">
-                  <Target className="h-6 w-6 text-[#22C55E]" />
+                  <Target className="h-6 w-6 text-[#1B1A1A]" />
                   <span className="text-[#535353]">正確率</span>
                 </div>
                 <div className="text-right">
@@ -139,7 +143,7 @@ export function ResultModal({
                 className="flex items-center justify-between rounded-lg bg-[#F5F5F5] p-4"
               >
                 <div className="flex items-center gap-3">
-                  <Flame className="h-6 w-6 text-[#F59E0B]" />
+                  <Flame className="h-6 w-6 text-[#FFE70C]" />
                   <span className="text-[#535353]">最高連擊</span>
                 </div>
                 <span className="text-2xl font-bold text-[#1B1A1A]">
@@ -155,7 +159,7 @@ export function ResultModal({
                 className="flex items-center justify-between rounded-lg bg-[#F5F5F5] p-4"
               >
                 <div className="flex items-center gap-3">
-                  <Clock className="h-6 w-6 text-[#3B82F6]" />
+                  <Clock className="h-6 w-6 text-[#1B1A1A]" />
                   <span className="text-[#535353]">用時</span>
                 </div>
                 <span className="text-2xl font-bold text-[#1B1A1A]">

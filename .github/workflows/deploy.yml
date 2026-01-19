@@ -31,6 +31,7 @@ jobs:
       - name: Build for Cloudflare
         run: pnpm run build:cf
         env:
+          NEXT_PUBLIC_API_URL: ${{ github.ref == 'refs/heads/main' && 'https://api.nobodyclimb.cc/api/v1' || 'https://api-preview.nobodyclimb.cc/api/v1' }}
           NEXT_PUBLIC_GOOGLE_CLIENT_ID: ${{ secrets.GOOGLE_CLIENT_ID }}
           NEXT_PUBLIC_GA_ID: ${{ secrets.GA_ID }}
           NEXT_PUBLIC_CLARITY_ID: ${{ secrets.CLARITY_ID }}
