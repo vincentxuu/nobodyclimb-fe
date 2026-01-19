@@ -1033,6 +1033,7 @@ export interface AuthTokenResponse {
   access_token: string
   refresh_token: string
   expires_in: number
+  is_new_user?: boolean // Only returned by Google auth
 }
 
 /**
