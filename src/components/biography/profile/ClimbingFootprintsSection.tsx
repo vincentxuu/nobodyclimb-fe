@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-import { Loader2, ChevronDown, ChevronUp, Calendar } from 'lucide-react'
+import { Loader2, ChevronDown, ChevronUp, Calendar, Lock } from 'lucide-react'
 import { Biography, ClimbingLocationRecord } from '@/lib/types'
 import { climbingLocationService } from '@/lib/api/services'
 import { getCountryFlag } from '@/lib/utils/country'
@@ -333,10 +333,11 @@ export function ClimbingFootprintsSection({
           </>
         ) : (
           /* 沒有資料時的預設內容 */
-          <div className="flex flex-col items-center justify-center py-12 text-center">
-            <p className="text-lg text-gray-500">
-              {person.name} 的攀岩足跡正在累積中...
-            </p>
+          <div className="flex flex-col items-center justify-center py-12 text-center" data-placeholder="true">
+            <div className="flex items-center gap-2 text-lg text-gray-400">
+              <Lock size={18} />
+              <span>{person.name} 的攀岩足跡正在累積中...</span>
+            </div>
             <p className="mt-2 text-sm text-gray-400">
               每一次出發，都是新的冒險
             </p>

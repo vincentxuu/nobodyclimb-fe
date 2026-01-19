@@ -2,6 +2,7 @@
 
 import { useMemo } from 'react'
 import { motion } from 'framer-motion'
+import { Lock } from 'lucide-react'
 import { BiographyV2 } from '@/lib/types/biography-v2'
 
 interface ChapterAdviceProps {
@@ -9,7 +10,7 @@ interface ChapterAdviceProps {
 }
 
 /**
- * Chapter 4 - 給新手的話
+ * Chapter 4 - 給自己的話
  * 信件/便條紙風格設計
  */
 export function ChapterAdvice({ person }: ChapterAdviceProps) {
@@ -36,7 +37,7 @@ export function ChapterAdvice({ person }: ChapterAdviceProps) {
     }
   }, [person?.updated_at, person?.published_at, person?.created_at])
 
-  if (!adviceToSelf) return null
+  const isPlaceholder = !adviceToSelf
 
   return (
     <motion.section
@@ -44,6 +45,7 @@ export function ChapterAdvice({ person }: ChapterAdviceProps) {
       initial={{ opacity: 0, y: 20 }}
       whileInView={{ opacity: 1, y: 0 }}
       viewport={{ once: true }}
+      data-placeholder={isPlaceholder}
     >
       <div className="mx-auto max-w-2xl">
         {/* 章節標題 */}
@@ -61,15 +63,26 @@ export function ChapterAdvice({ person }: ChapterAdviceProps) {
           {/* 頂部裝飾線 */}
           <div className="absolute -top-1 left-8 h-2 w-16 rounded-full bg-brand-accent" />
 
-          <p className="whitespace-pre-wrap text-lg leading-relaxed text-gray-700">
-            {adviceToSelf}
-          </p>
+          {isPlaceholder ? (
+            <div className="flex flex-col items-center justify-center py-4 text-center">
+              <div className="flex items-center gap-2 text-lg text-gray-400">
+                <Lock size={18} />
+                <span>等這個人心情好再來問</span>
+              </div>
+            </div>
+          ) : (
+            <>
+              <p className="whitespace-pre-wrap text-lg leading-relaxed text-gray-700">
+                {adviceToSelf}
+              </p>
 
-          {/* 簽名 */}
-          <div className="mt-6 text-right text-gray-600">
-            <p className="font-medium">— {person?.name}</p>
-            {displayDate && <p className="text-sm">{displayDate}</p>}
-          </div>
+              {/* 簽名 */}
+              <div className="mt-6 text-right text-gray-600">
+                <p className="font-medium">— {person?.name}</p>
+                {displayDate && <p className="text-sm">{displayDate}</p>}
+              </div>
+            </>
+          )}
         </div>
       </div>
     </motion.section>
