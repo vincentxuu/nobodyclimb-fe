@@ -1,6 +1,19 @@
 -- Seed blog posts for testing (13 articles, one for each category)
 -- Author: vincentxu (996bf611399e5ee8594a478909dd4db9)
 
+-- First, create the author user if not exists
+INSERT OR IGNORE INTO users (id, email, username, display_name, password_hash, role, is_active, email_verified)
+VALUES (
+  '996bf611399e5ee8594a478909dd4db9',
+  'vincentxu@nobodyclimb.cc',
+  'vincentxu',
+  'Vincent Xu',
+  '$2a$10$placeholder_hash_for_seed_data',
+  'admin',
+  1,
+  1
+);
+
 -- 1. 新手入門 (beginner)
 INSERT INTO posts (id, author_id, title, slug, excerpt, content, category, status, is_featured, published_at, created_at, updated_at)
 VALUES (
