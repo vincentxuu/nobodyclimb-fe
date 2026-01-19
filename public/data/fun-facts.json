@@ -796,10 +796,145 @@
       "category": "culture",
       "source": "攀岩倫理",
       "tags": ["首攀", "倫理"]
+    },
+    {
+      "id": "competition-world-cup-format",
+      "question": "IFSC 世界盃先鋒賽的決賽有幾位選手？",
+      "answer": "8 位",
+      "detail": "先鋒賽經過資格賽和準決賽後，前 8 名進入決賽。決賽路線只有一次嘗試機會，以最高點計分。",
+      "category": "competition",
+      "source": "IFSC 規則手冊",
+      "tags": ["世界盃", "先鋒"]
+    },
+    {
+      "id": "competition-boulder-tops",
+      "question": "抱石賽中「Top」和「Zone」哪個分數較高？",
+      "answer": "Top 較高",
+      "detail": "Top 是完成整條路線，Zone 是觸碰到中間的加分點。比較成績時先比 Top 數，相同再比 Zone 數，最後比嘗試次數。",
+      "category": "competition",
+      "source": "IFSC 規則手冊",
+      "tags": ["抱石", "計分"]
+    },
+    {
+      "id": "competition-speed-wall-height",
+      "question": "奧運速度攀登的標準牆高度是多少？",
+      "answer": "15 公尺",
+      "detail": "速度攀登使用全球統一的標準路線，牆面傾斜 5 度，手點和腳點位置完全相同，讓選手可以記憶並優化動作。",
+      "category": "competition",
+      "source": "IFSC 官方規格",
+      "tags": ["速度攀登", "規格"]
+    },
+    {
+      "id": "competition-isolation-zone",
+      "question": "什麼是比賽中的「隔離區」(Isolation Zone)？",
+      "answer": "選手賽前等待的封閉區域",
+      "detail": "選手在比賽前被隔離，不能觀看其他人攀爬或獲得路線資訊，確保比賽公平性。這也是為什麼選手出場順序很重要。",
+      "category": "competition",
+      "source": "IFSC 規則手冊",
+      "tags": ["比賽規則", "公平性"]
+    },
+    {
+      "id": "competition-observation-time",
+      "question": "抱石賽決賽每條路線有多少觀察時間？",
+      "answer": "通常 2 分鐘",
+      "detail": "選手在開始攀爬前可以觀察路線，但不能觸碰岩壁。這段時間用來規劃動作序列（beta）。",
+      "category": "competition",
+      "source": "IFSC 規則手冊",
+      "tags": ["抱石", "比賽規則"]
+    },
+    {
+      "id": "competition-paris-2024-format",
+      "question": "2024 巴黎奧運攀岩比賽有什麼重大改變？",
+      "answer": "速度攀登獨立為單項",
+      "detail": "東京奧運是三項複合賽，巴黎奧運改為速度單項 + 抱石/先鋒複合賽，讓不同專長的選手都有機會奪牌。",
+      "category": "competition",
+      "source": "國際奧委會",
+      "tags": ["奧運", "2024"]
+    },
+    {
+      "id": "competition-lead-time-limit",
+      "question": "先鋒賽決賽每位選手有多少時間完成路線？",
+      "answer": "6 分鐘",
+      "detail": "計時從選手雙腳離地開始。如果超時，以超時瞬間的最高點計分。選手需要在體力和時間之間取得平衡。",
+      "category": "competition",
+      "source": "IFSC 規則手冊",
+      "tags": ["先鋒", "時間限制"]
+    },
+    {
+      "id": "competition-taiwan-national",
+      "question": "台灣全國運動會何時開始有攀岩項目？",
+      "answer": "2019 年",
+      "detail": "攀岩在 2019 年全運會首次成為正式競賽項目，包含先鋒、抱石、速度三個單項。",
+      "category": "competition",
+      "source": "中華民國山岳協會",
+      "tags": ["台灣", "全運會"]
+    },
+    {
+      "id": "competition-youth-categories",
+      "question": "IFSC 青年賽有哪些年齡組別？",
+      "answer": "Youth A、B、C 三個組別",
+      "detail": "Youth A (16-17歲)、Youth B (14-15歲)、Youth C (12-13歲)。這是培養未來奧運選手的重要賽事。",
+      "category": "competition",
+      "source": "IFSC 官方",
+      "tags": ["青年賽", "年齡組別"]
+    },
+    {
+      "id": "competition-flash-round",
+      "question": "什麼是比賽中的「Flash Round」？",
+      "answer": "所有選手同時觀看示範後攀爬",
+      "detail": "部分賽事會讓選手觀看開線員或影片示範，然後一次嘗試完攀。這與一般的隔離賽制不同。",
+      "category": "competition",
+      "source": "攀岩賽事規則",
+      "tags": ["比賽形式", "Flash"]
+    },
+    {
+      "id": "competition-ranking-points",
+      "question": "IFSC 世界盃積分如何計算？",
+      "answer": "依名次給予遞減積分",
+      "detail": "冠軍 100 分、亞軍 80 分、季軍 65 分，以此類推。年度總積分最高者獲得世界盃總冠軍頭銜。",
+      "category": "competition",
+      "source": "IFSC 積分系統",
+      "tags": ["世界盃", "積分"]
+    },
+    {
+      "id": "competition-route-setter",
+      "question": "誰負責設計比賽路線？",
+      "answer": "開線員 (Route Setter)",
+      "detail": "開線員是攀岩比賽的幕後功臣，需要設計出能分辨選手程度、觀賞性高且安全的路線。頂級賽事的開線員需經 IFSC 認證。",
+      "category": "competition",
+      "source": "IFSC 開線員制度",
+      "tags": ["開線員", "比賽"]
+    },
+    {
+      "id": "competition-countback",
+      "question": "當比賽成績相同時如何決定名次？",
+      "answer": "使用「Countback」回溯前輪成績",
+      "detail": "如決賽同分，先比準決賽成績；再同分比資格賽。若完全相同則並列。這讓每一輪比賽都很重要。",
+      "category": "competition",
+      "source": "IFSC 規則手冊",
+      "tags": ["比賽規則", "計分"]
+    },
+    {
+      "id": "competition-combined-format",
+      "question": "奧運複合賽如何計算總分？",
+      "answer": "將各項名次相乘，數字越小越好",
+      "detail": "例如抱石第 2 名、先鋒第 3 名，總分為 2×3=6。這種計分方式讓全能型選手更有優勢。",
+      "category": "competition",
+      "source": "國際奧委會",
+      "tags": ["奧運", "複合賽"]
+    },
+    {
+      "id": "competition-world-championship",
+      "question": "IFSC 世界錦標賽多久舉辦一次？",
+      "answer": "兩年一次",
+      "detail": "世錦賽是僅次於奧運的最重要攀岩賽事，也是奧運資格賽的重要積分來源。比世界盃更具冠軍頭銜的含金量。",
+      "category": "competition",
+      "source": "IFSC 官方",
+      "tags": ["世錦賽", "賽事"]
     }
   ],
   "meta": {
-    "total": 90,
+    "total": 105,
     "lastUpdated": "2025-01-19",
     "categories": {
       "taiwan": "台灣攀岩",
@@ -807,7 +942,8 @@
       "history": "攀岩歷史",
       "technique": "技術知識",
       "gear": "裝備知識",
-      "culture": "攀岩文化"
+      "culture": "攀岩文化",
+      "competition": "競技攀岩"
     },
     "counts": {
       "taiwan": 15,
@@ -815,7 +951,8 @@
       "history": 15,
       "technique": 15,
       "gear": 15,
-      "culture": 15
+      "culture": 15,
+      "competition": 15
     }
   }
 }

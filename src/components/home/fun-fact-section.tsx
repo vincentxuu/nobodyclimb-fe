@@ -23,12 +23,42 @@ interface FunFactsData {
   meta: {
     total: number
     lastUpdated: string
+    categories: Record<string, string>
   }
+}
+
+// 每週七天對應的類別
+const DAILY_CATEGORIES = [
+  'taiwan',      // 週日
+  'record',      // 週一
+  'history',     // 週二
+  'technique',   // 週三
+  'gear',        // 週四
+  'culture',     // 週五
+  'competition', // 週六
+] as const
+
+// 類別顯示名稱
+const CATEGORY_LABELS: Record<string, string> = {
+  taiwan: '台灣攀岩',
+  record: '世界紀錄',
+  history: '攀岩歷史',
+  technique: '技術知識',
+  gear: '裝備知識',
+  culture: '攀岩文化',
+  competition: '競技攀岩',
+}
+
+// 根據日期生成穩定的偽隨機數
+function seededRandom(seed: number): number {
+  const x = Math.sin(seed) * 10000
+  return x - Math.floor(x)
 }
 
 export function FunFactSection() {
   const [isRevealed, setIsRevealed] = useState(false)
   const [currentFact, setCurrentFact] = useState<FunFact | null>(null)
+  const [categoryLabel, setCategoryLabel] = useState<string>('')
   const [isLoading, setIsLoading] = useState(true)
 
   useEffect(() => {
@@ -38,9 +68,20 @@ export function FunFactSection() {
         const data: FunFactsData = await response.json()
 
         if (data.facts && data.facts.length > 0) {
-          // 隨機選擇一則冷知識
-          const randomIndex = Math.floor(Math.random() * data.facts.length)
-          setCurrentFact(data.facts[randomIndex])
+          const today = new Date()
+          const dayOfWeek = today.getDay() // 0-6 (週日-週六)
+          const todayCategory = DAILY_CATEGORIES[dayOfWeek]
+
+          // 篩選當天類別的冷知識
+          const categoryFacts = data.facts.filter((fact) => fact.category === todayCategory)
+
+          if (categoryFacts.length > 0) {
+            // 使用日期作為種子，確保同一天顯示同一則
+            const dateSeed = today.getFullYear() * 10000 + (today.getMonth() + 1) * 100 + today.getDate()
+            const index = Math.floor(seededRandom(dateSeed) * categoryFacts.length)
+            setCurrentFact(categoryFacts[index])
+            setCategoryLabel(CATEGORY_LABELS[todayCategory] || todayCategory)
+          }
         }
       } catch (error) {
         console.error('Failed to load fun facts:', error)
@@ -83,9 +124,16 @@ export function FunFactSection() {
                   <Lightbulb className="h-5 w-5 text-brand-dark" />
                 </div>
                 <div className="flex-1">
-                  <span className="text-xs font-medium tracking-wide text-brand-dark-hover">
-                    你知道嗎？
-                  </span>
+                  <div className="flex items-center gap-2">
+                    <span className="text-xs font-medium tracking-wide text-brand-dark-hover">
+                      你知道嗎？
+                    </span>
+                    {categoryLabel && (
+                      <span className="rounded-full bg-brand-accent/40 px-2 py-0.5 text-[10px] font-medium text-brand-dark">
+                        {categoryLabel}
+                      </span>
+                    )}
+                  </div>
                   <p className="mt-0.5 text-sm font-medium text-brand-dark md:text-base">
                     {currentFact.question}
                   </p>
