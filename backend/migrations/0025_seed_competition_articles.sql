@@ -612,3 +612,325 @@ VALUES (
 INSERT INTO post_tags (post_id, tag) VALUES ('post_competition_speed_climbing_records', '速度攀岩');
 INSERT INTO post_tags (post_id, tag) VALUES ('post_competition_speed_climbing_records', '世界紀錄');
 INSERT INTO post_tags (post_id, tag) VALUES ('post_competition_speed_climbing_records', '選手');
+
+-- 5. 先鋒攀登深度介紹
+INSERT INTO posts (id, author_id, title, slug, excerpt, content, cover_image, category, status, is_featured, published_at, created_at, updated_at)
+VALUES (
+  'post_competition_lead_climbing',
+  'nobodyclimb_staff_account_001',
+  '先鋒攀登深度介紹：技術、策略與傳奇選手',
+  'lead-climbing-complete-guide',
+  '先鋒攀登是攀岩競技中最具技術性與策略性的項目。本文深入介紹先鋒攀登的歷史演進、比賽規則、技術要素、傳奇選手，以及如何欣賞這項運動。',
+  '<h2>先鋒攀登簡介</h2>
+<p>先鋒攀登（Lead Climbing）是競技攀岩中歷史最悠久的項目，也是最考驗選手綜合能力的比賽形式。選手需要在限時內攀爬一條從未見過的路線，邊爬邊將繩索扣入快扣（Quickdraw），展現耐力、技術、路線閱讀能力與心理素質的完美結合。</p>
+
+<h2>歷史演進</h2>
+<p>先鋒攀登競賽的發展歷程：</p>
+<ul>
+<li><strong>1985 年</strong>：義大利巴乾涅（Bardonecchia）舉辦首場國際先鋒攀登比賽</li>
+<li><strong>1989 年</strong>：首屆世界盃在法國舉行</li>
+<li><strong>1991 年</strong>：首屆世界錦標賽舉辦</li>
+<li><strong>2007 年</strong>：IFSC 成立，統一管理國際賽事</li>
+<li><strong>2020 年</strong>：先鋒攀登作為三項全能的一部分首次登上奧運舞台</li>
+<li><strong>2024 年</strong>：巴黎奧運，先鋒攀登與抱石合併為複合賽</li>
+</ul>
+
+<h2>比賽規則詳解</h2>
+
+<h3>基本規則</h3>
+<ul>
+<li><strong>岩壁高度</strong>：世界盃標準為 15 公尺以上</li>
+<li><strong>時間限制</strong>：6 分鐘</li>
+<li><strong>觀察時間</strong>：決賽前有 6 分鐘集體觀察路線</li>
+<li><strong>隔離區</strong>：選手在比賽前須待在隔離區，不得觀看其他選手攀爬</li>
+</ul>
+
+<h3>計分方式</h3>
+<p>先鋒攀登的計分系統相當精細：</p>
+<ul>
+<li>每個手點都有編號，攀得越高分數越高</li>
+<li>「+」符號表示選手已控制該手點並做出有效移動</li>
+<li>例如：「35+」表示控制第 35 點並嘗試移動，但未碰到第 36 點</li>
+<li>完攀（Top）是最高分，表示選手成功登頂</li>
+</ul>
+
+<h3>常見違規</h3>
+<ul>
+<li>跳過快扣（未依序扣入繩索）</li>
+<li>使用岩壁邊緣或禁止區域</li>
+<li>超時未開始攀爬</li>
+<li>接受場外指導</li>
+</ul>
+
+<h2>技術要素分析</h2>
+
+<h3>1. 路線閱讀（Route Reading）</h3>
+<p>路線閱讀是先鋒攀登最關鍵的技能之一：</p>
+<ul>
+<li>在觀察時間內規劃整條路線的攀爬策略</li>
+<li>識別關鍵難點（Crux）的位置</li>
+<li>規劃休息點與快扣位置</li>
+<li>預判手腳順序與身體姿勢</li>
+</ul>
+
+<h3>2. 耐力管理</h3>
+<p>先鋒路線通常長達 40-50 個動作，耐力管理至關重要：</p>
+<ul>
+<li>識別可以「抖手」（Shake Out）休息的位置</li>
+<li>控制攀爬節奏，避免過早力竭</li>
+<li>在簡單段落節省體力，在難點全力以赴</li>
+</ul>
+
+<h3>3. 心理素質</h3>
+<p>先鋒攀登對心理素質要求極高：</p>
+<ul>
+<li>面對未知路線的適應能力</li>
+<li>在高處保持冷靜與專注</li>
+<li>墜落前的最後嘗試決心</li>
+<li>比賽壓力下的穩定發揮</li>
+</ul>
+
+<h2>傳奇選手</h2>
+
+<h3>男子選手</h3>
+<ul>
+<li><strong>Adam Ondra（捷克）</strong>：被譽為史上最偉大的攀岩者，首位完攀 9c 難度路線（Silence）的選手，多次世界冠軍</li>
+<li><strong>Jakob Schubert（奧地利）</strong>：世界錦標賽與世界盃常勝軍，技術全面穩定</li>
+<li><strong>Stefano Ghisolfi（義大利）</strong>：戶外與競技雙棲的頂尖選手</li>
+<li><strong>楢﨑智亞（日本）</strong>：東京奧運銅牌，抱石與先鋒雙強</li>
+</ul>
+
+<h3>女子選手</h3>
+<ul>
+<li><strong>Janja Garnbret（斯洛維尼亞）</strong>：史上最成功的女子攀岩選手，兩屆奧運金牌得主，幾乎壟斷近年所有重大賽事</li>
+<li><strong>Jessica Pilz（奧地利）</strong>：先鋒專項強手，世界冠軍得主</li>
+<li><strong>野口啟代（日本）</strong>：日本攀岩傳奇，東京奧運銅牌</li>
+<li><strong>Chaehyun Seo（韓國）</strong>：新生代頂尖選手，技術細膩</li>
+</ul>
+
+<h2>經典賽事場地</h2>
+<ul>
+<li><strong>因斯布魯克（奧地利）</strong>：歐洲攀岩重鎮，多次舉辦世界盃與世錦賽</li>
+<li><strong>霞慕尼（法國）</strong>：攀岩聖地，結合阿爾卑斯山壯麗景色</li>
+<li><strong>八王子（日本）</strong>：亞洲頂級攀岩設施</li>
+<li><strong>鹽湖城（美國）</strong>：2026 年將舉辦世界盃</li>
+</ul>
+
+<h2>如何欣賞先鋒攀登比賽</h2>
+
+<h3>觀賽重點</h3>
+<ol>
+<li><strong>觀察選手的路線選擇</strong>：不同選手可能採用不同的攀爬方式</li>
+<li><strong>注意難點（Crux）</strong>：通常在路線中後段，是勝負關鍵</li>
+<li><strong>觀察體力分配</strong>：看選手如何在休息點恢復</li>
+<li><strong>感受心理壓力</strong>：特別是決賽最後幾位選手的表現</li>
+</ol>
+
+<h3>專業術語</h3>
+<ul>
+<li><strong>Flash</strong>：首次嘗試即完攀</li>
+<li><strong>Crux</strong>：路線中最難的段落</li>
+<li><strong>Pump</strong>：前臂充血導致力量下降</li>
+<li><strong>Dyno</strong>：動態跳躍動作</li>
+<li><strong>Deadpoint</strong>：利用重力暫停的瞬間抓點</li>
+</ul>
+
+<h2>結語</h2>
+<p>先鋒攀登是攀岩競技中最具深度的項目，結合了體能、技術、策略與心理的完美考驗。觀看頂尖選手在 15 公尺高的岩壁上展現人類的極限能力，是一種獨特的視覺與精神享受。隨著攀岩運動持續發展，先鋒攀登的技術與難度也將不斷突破，讓我們期待更多精彩的比賽！</p>
+
+<h2>參考來源</h2>
+<ul>
+<li><a href="https://www.ifsc-climbing.org/" target="_blank" rel="noopener noreferrer">IFSC 官方網站</a></li>
+<li><a href="https://en.wikipedia.org/wiki/Lead_climbing" target="_blank" rel="noopener noreferrer">Wikipedia - Lead Climbing</a></li>
+<li><a href="https://www.climbing.com/" target="_blank" rel="noopener noreferrer">Climbing Magazine</a></li>
+<li><a href="https://olympics.com/en/sports/sport-climbing/" target="_blank" rel="noopener noreferrer">Olympics.com - Sport Climbing</a></li>
+</ul>',
+  NULL,
+  'competition',
+  'published',
+  0,
+  datetime('now'),
+  datetime('now'),
+  datetime('now')
+);
+
+INSERT INTO post_tags (post_id, tag) VALUES ('post_competition_lead_climbing', '先鋒攀登');
+INSERT INTO post_tags (post_id, tag) VALUES ('post_competition_lead_climbing', '比賽規則');
+INSERT INTO post_tags (post_id, tag) VALUES ('post_competition_lead_climbing', '選手');
+
+-- 6. 抱石深度介紹
+INSERT INTO posts (id, author_id, title, slug, excerpt, content, cover_image, category, status, is_featured, published_at, created_at, updated_at)
+VALUES (
+  'post_competition_bouldering',
+  'nobodyclimb_staff_account_001',
+  '抱石深度介紹：解題藝術與爆發力的完美結合',
+  'bouldering-complete-guide',
+  '抱石是近年最受歡迎的攀岩項目，強調爆發力、創意與解題能力。本文深入介紹抱石的歷史、比賽規則、技術特點、傳奇選手，以及為何這項運動如此吸引人。',
+  '<h2>抱石簡介</h2>
+<p>抱石（Bouldering）是在較低的岩壁上進行的攀岩形式，不使用繩索確保，僅依靠地面軟墊保護。每條路線稱為一個「問題」（Problem），選手需要在限時內解決盡可能多的問題。抱石強調爆發力、創意思維與動作解讀能力，是攀岩三大競技項目中最具觀賞性的一項。</p>
+
+<h2>歷史演進</h2>
+<p>抱石從訓練方式發展成獨立競技項目：</p>
+<ul>
+<li><strong>19 世紀末</strong>：法國楓丹白露（Fontainebleau）開始有系統的抱石活動</li>
+<li><strong>1998 年</strong>：首屆抱石世界盃舉辦</li>
+<li><strong>2001 年</strong>：抱石納入世界錦標賽項目</li>
+<li><strong>2007 年</strong>：IFSC 成立後，抱石賽事更加規範化</li>
+<li><strong>2020 年</strong>：抱石作為三項全能的一部分首次進入奧運</li>
+<li><strong>2024 年</strong>：巴黎奧運，抱石與先鋒合併為複合賽</li>
+</ul>
+
+<h2>比賽規則詳解</h2>
+
+<h3>基本規則</h3>
+<ul>
+<li><strong>岩壁高度</strong>：約 4-5 公尺</li>
+<li><strong>問題數量</strong>：資格賽通常 5 條，決賽 4 條</li>
+<li><strong>時間限制</strong>：每條問題約 4-5 分鐘（依賽事規定）</li>
+<li><strong>安全措施</strong>：地面鋪設厚軟墊，無繩索確保</li>
+</ul>
+
+<h3>計分方式（2024 新制）</h3>
+<p>IFSC 在 2024 年更新了計分系統，讓觀眾更容易理解：</p>
+<ul>
+<li><strong>Top（完攀）</strong>：25 分</li>
+<li><strong>Zone（中繼點）</strong>：10 分</li>
+<li><strong>嘗試次數扣分</strong>：每次嘗試扣 0.1 分</li>
+<li><strong>計算方式</strong>：基礎分數減去嘗試次數的扣分</li>
+<li><strong>例如</strong>：第 3 次嘗試完攀 = 25 - (3 × 0.1) = 24.7 分</li>
+</ul>
+
+<h3>傳統計分方式</h3>
+<p>舊制仍在部分賽事使用：</p>
+<ul>
+<li>先比較 Top 數量</li>
+<li>Top 數相同則比較 Zone 數量</li>
+<li>再相同則比較達成 Top 與 Zone 的總嘗試次數</li>
+</ul>
+
+<h2>技術要素分析</h2>
+
+<h3>1. 動作解讀（Beta Reading）</h3>
+<p>抱石最核心的能力是「解題」：</p>
+<ul>
+<li>觀察岩點的形狀、角度與距離</li>
+<li>判斷最佳的手腳順序</li>
+<li>預測身體重心的移動路徑</li>
+<li>識別是否需要動態或靜態動作</li>
+</ul>
+
+<h3>2. 爆發力與力量</h3>
+<p>抱石動作通常短而激烈：</p>
+<ul>
+<li><strong>指力</strong>：抓握各種形狀岩點的能力</li>
+<li><strong>拉力</strong>：引體向上與鎖定能力</li>
+<li><strong>核心力量</strong>：維持身體張力與協調</li>
+<li><strong>腿部力量</strong>：推蹬與跳躍能力</li>
+</ul>
+
+<h3>3. 動態動作（Dynamic Moves）</h3>
+<p>抱石中常見的動態技巧：</p>
+<ul>
+<li><strong>Dyno</strong>：雙手放開跳躍抓點</li>
+<li><strong>Coordination（協調跳）</strong>：連續動態移動</li>
+<li><strong>Paddle Dyno</strong>：用手掌拍擊岩壁借力</li>
+<li><strong>Run and Jump</strong>：起跳式動態開始</li>
+</ul>
+
+<h3>4. 創意與適應力</h3>
+<p>每位選手可能用不同方式解決同一問題：</p>
+<ul>
+<li>身高優勢或劣勢的應對策略</li>
+<li>發現定線員未預期的「非官方解法」</li>
+<li>在嘗試中快速調整策略</li>
+</ul>
+
+<h2>傳奇選手</h2>
+
+<h3>男子選手</h3>
+<ul>
+<li><strong>Tomoa Narasaki 楢﨑智亞（日本）</strong>：世界錦標賽與世界盃常勝軍，動態能力極強</li>
+<li><strong>Mejdi Schalck（法國）</strong>：新生代抱石天才，創意解法令人驚嘆</li>
+<li><strong>Yoshiyuki Ogata 緒方良行（日本）</strong>：技術全面的頂尖選手</li>
+<li><strong>Adam Ondra（捷克）</strong>：雖以先鋒著稱，抱石實力同樣頂尖</li>
+</ul>
+
+<h3>女子選手</h3>
+<ul>
+<li><strong>Janja Garnbret（斯洛維尼亞）</strong>：統治級存在，抱石與先鋒雙冠王</li>
+<li><strong>野中生萌 Miho Nonaka（日本）</strong>：東京奧運銀牌，爆發力驚人</li>
+<li><strong>Oriane Bertone（法國）</strong>：新生代法國女將，2024 年表現亮眼</li>
+<li><strong>Brooke Raboutou（美國）</strong>：美國抱石新星，技術細膩</li>
+</ul>
+
+<h2>抱石聖地</h2>
+
+<h3>戶外抱石勝地</h3>
+<ul>
+<li><strong>楓丹白露（法國）</strong>：抱石運動的發源地，擁有數千條經典路線</li>
+<li><strong>Rocklands（南非）</strong>：獨特的砂岩地形，風景壯麗</li>
+<li><strong>Bishop（美國加州）</strong>：高海拔沙漠抱石天堂</li>
+<li><strong>Magic Wood（瑞士）</strong>：森林中的花崗岩抱石區</li>
+<li><strong>御岳（日本）</strong>：亞洲知名抱石聖地</li>
+</ul>
+
+<h3>室內賽事場地</h3>
+<ul>
+<li><strong>東京（日本）</strong>：2020 奧運場地</li>
+<li><strong>巴黎（法國）</strong>：2024 奧運場地</li>
+<li><strong>因斯布魯克（奧地利）</strong>：世界盃常設站點</li>
+<li><strong>鹽湖城（美國）</strong>：北美攀岩重鎮</li>
+</ul>
+
+<h2>如何欣賞抱石比賽</h2>
+
+<h3>觀賽重點</h3>
+<ol>
+<li><strong>觀察不同選手的解法差異</strong>：同一問題可能有多種解法</li>
+<li><strong>注意嘗試次數</strong>：一次完成（Flash）最能展現實力</li>
+<li><strong>感受選手的臨場調整</strong>：如何從失敗中修正策略</li>
+<li><strong>欣賞動態動作的爆發力</strong>：Dyno 等動態技巧是一大看點</li>
+</ol>
+
+<h3>專業術語</h3>
+<ul>
+<li><strong>Flash</strong>：首次嘗試即完攀</li>
+<li><strong>Beta</strong>：解題方式或攀爬訣竅</li>
+<li><strong>Crimp</strong>：指尖抓握小岩點的方式</li>
+<li><strong>Sloper</strong>：圓滑無明顯抓握點的岩點</li>
+<li><strong>Heel Hook / Toe Hook</strong>：用腳跟或腳尖勾住岩點</li>
+<li><strong>Campus</strong>：不使用腳的純手臂攀爬</li>
+<li><strong>Mantle</strong>：撐上平台的動作</li>
+</ul>
+
+<h2>為何抱石如此受歡迎</h2>
+<ul>
+<li><strong>入門門檻低</strong>：不需要繩索確保知識，適合新手</li>
+<li><strong>社交性強</strong>：岩友可以一起討論解法、互相鼓勵</li>
+<li><strong>即時滿足感</strong>：問題短，成功完攀的成就感來得快</li>
+<li><strong>觀賞性高</strong>：動作戲劇性強，適合現場觀看與直播</li>
+<li><strong>訓練效率高</strong>：短時間內可以嘗試多條路線</li>
+</ul>
+
+<h2>結語</h2>
+<p>抱石是攀岩運動中最具創意與爆發力的項目，每一個「問題」都是一道獨特的謎題，等待選手用身體去解答。無論是在戶外的天然岩石上，還是在室內的人工岩壁前，抱石都能帶來獨特的樂趣與挑戰。隨著攀岩運動持續普及，抱石也將吸引更多人體驗這項結合力量、技巧與智慧的運動！</p>
+
+<h2>參考來源</h2>
+<ul>
+<li><a href="https://www.ifsc-climbing.org/" target="_blank" rel="noopener noreferrer">IFSC 官方網站</a></li>
+<li><a href="https://en.wikipedia.org/wiki/Bouldering" target="_blank" rel="noopener noreferrer">Wikipedia - Bouldering</a></li>
+<li><a href="https://www.climbing.com/" target="_blank" rel="noopener noreferrer">Climbing Magazine</a></li>
+<li><a href="https://www.fontainebleau.co/" target="_blank" rel="noopener noreferrer">Fontainebleau Bouldering</a></li>
+</ul>',
+  NULL,
+  'competition',
+  'published',
+  0,
+  datetime('now'),
+  datetime('now'),
+  datetime('now')
+);
+
+INSERT INTO post_tags (post_id, tag) VALUES ('post_competition_bouldering', '抱石');
+INSERT INTO post_tags (post_id, tag) VALUES ('post_competition_bouldering', '比賽規則');
+INSERT INTO post_tags (post_id, tag) VALUES ('post_competition_bouldering', '選手');
