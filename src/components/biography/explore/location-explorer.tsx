@@ -7,6 +7,7 @@ import { motion } from 'framer-motion'
 import { MapPin, Globe, Users, ChevronRight, Loader2 } from 'lucide-react'
 import { Card, CardContent } from '@/components/ui/card'
 import { bucketListService } from '@/lib/api/services'
+import { isSvgUrl } from '@/lib/utils/image'
 
 interface LocationData {
   location: string
@@ -92,7 +93,11 @@ export function LocationExplorer() {
                   title={visitor.name}
                 >
                   {visitor.avatar_url ? (
-                    <Image src={visitor.avatar_url} alt={visitor.name} fill className="object-cover" />
+                    isSvgUrl(visitor.avatar_url) ? (
+                      <img src={visitor.avatar_url} alt={visitor.name} className="h-full w-full object-cover" />
+                    ) : (
+                      <Image src={visitor.avatar_url} alt={visitor.name} fill className="object-cover" />
+                    )
                   ) : (
                     <div className="flex h-full w-full items-center justify-center text-xs text-gray-500">
                       {visitor.name.charAt(0)}

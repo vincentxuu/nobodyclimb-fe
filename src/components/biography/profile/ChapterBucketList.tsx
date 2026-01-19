@@ -1,26 +1,38 @@
 'use client'
 
-import { useState, useEffect, useCallback } from 'react'
+import { useState, useEffect, useCallback, useMemo } from 'react'
 import { Loader2 } from 'lucide-react'
-import { Biography, BucketListItem } from '@/lib/types'
+import { BucketListItem } from '@/lib/types'
+import { BiographyV2 } from '@/lib/types/biography-v2'
 import { bucketListService } from '@/lib/api/services'
 import { BiographyBucketList } from '@/components/bucket-list'
 
 interface ChapterBucketListProps {
-  person: Biography
+  person: BiographyV2 | null
   isOwner: boolean
 }
 
 /**
  * Chapter 3 - 人生清單
- * 只在有內容時顯示（有故事描述或有清單項目）
+ * 永遠顯示，沒有資料時顯示預設內容
  */
-export function ChapterBucketList({ person, isOwner }: ChapterBucketListProps) {
+export function ChapterBucketList({ person, isOwner: _isOwner }: ChapterBucketListProps) {
   const [items, setItems] = useState<BucketListItem[]>([])
   const [isLoading, setIsLoading] = useState(true)
 
+  // 從 stories 陣列中取得 bucket_list_story
+  const bucketListStory = useMemo(() => {
+    if (!person?.stories) return null
+    const story = person.stories.find(s => s.question_id === 'bucket_list_story')
+    return story?.content || null
+  }, [person?.stories])
+
   // 檢查是否有人生清單項目
   const loadItems = useCallback(async () => {
+    if (!person?.id) {
+      setIsLoading(false)
+      return
+    }
     setIsLoading(true)
     try {
       const response = await bucketListService.getBucketList(person.id)
@@ -32,16 +44,11 @@ export function ChapterBucketList({ person, isOwner }: ChapterBucketListProps) {
     } finally {
       setIsLoading(false)
     }
-  }, [person.id])
+  }, [person?.id])
 
   useEffect(() => {
     loadItems()
   }, [loadItems])
-
-  // 沒有故事描述、沒有清單項目、且不是擁有者時，不顯示此區塊
-  if (!isLoading && !person.bucket_list_story && items.length === 0 && !isOwner) {
-    return null
-  }
 
   // 載入中時顯示 loading
   if (isLoading) {
@@ -56,6 +63,10 @@ export function ChapterBucketList({ person, isOwner }: ChapterBucketListProps) {
     )
   }
 
+  const hasContent = bucketListStory || items.length > 0
+
+  if (!person) return null
+
   return (
     <section className="bg-white py-16">
       <div className="container mx-auto max-w-5xl px-4">
@@ -68,16 +79,30 @@ export function ChapterBucketList({ person, isOwner }: ChapterBucketListProps) {
           </h2>
         </div>
 
-        {/* 人生清單故事描述 */}
-        {person.bucket_list_story && (
-          <p className="mb-8 text-lg leading-relaxed text-gray-700">
-            {person.bucket_list_story}
-          </p>
+        {hasContent ? (
+          <>
+            {/* 人生清單故事描述 */}
+            {bucketListStory && (
+              <p className="mb-8 text-lg leading-relaxed text-gray-700">
+                {bucketListStory}
+              </p>
+            )}
+            {/* 結構化人生清單 */}
+            <div className="mt-8">
+              <BiographyBucketList biographyId={person.id} />
+            </div>
+          </>
+        ) : (
+          /* 沒有資料時的預設內容 */
+          <div className="flex flex-col items-center justify-center py-12 text-center">
+            <p className="text-lg text-gray-500">
+              {person.name} 的攀岩人生清單正在醞釀中...
+            </p>
+            <p className="mt-2 text-sm text-gray-400">
+              每個攀岩者都有屬於自己的目標與夢想
+            </p>
+          </div>
         )}
-        {/* 結構化人生清單 */}
-        <div className="mt-8">
-          <BiographyBucketList biographyId={person.id} />
-        </div>
       </div>
     </section>
   )

@@ -9,6 +9,7 @@ import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
 import { biographyService } from '@/lib/api/services'
 import { Biography } from '@/lib/types'
+import { isSvgUrl } from '@/lib/utils/image'
 
 function ClimberCard({ person }: { person: Biography }) {
   const climbingYears = person.climbing_start_year
@@ -41,13 +42,17 @@ function ClimberCard({ person }: { person: Biography }) {
               <div className="flex items-center gap-3">
                 <div className="relative h-10 w-10 flex-shrink-0 overflow-hidden rounded-full bg-gray-100">
                   {person.avatar_url ? (
-                    <Image
-                      src={person.avatar_url}
-                      alt={person.name}
-                      fill
-                      className="object-cover"
-                      sizes="40px"
-                    />
+                    isSvgUrl(person.avatar_url) ? (
+                      <img src={person.avatar_url} alt={person.name} className="h-full w-full object-cover" />
+                    ) : (
+                      <Image
+                        src={person.avatar_url}
+                        alt={person.name}
+                        fill
+                        className="object-cover"
+                        sizes="40px"
+                      />
+                    )
                   ) : (
                     <div className="flex h-full w-full items-center justify-center">
                       <User size={20} className="text-gray-400" />
@@ -78,35 +83,16 @@ export function BiographySection() {
   useEffect(() => {
     const loadBiographies = async () => {
       try {
-        // 先嘗試獲取精選人物誌
-        const featuredResponse = await biographyService.getFeaturedBiographies(3)
-
-        if (featuredResponse.success && featuredResponse.data && featuredResponse.data.length > 0) {
-          setBiographies(featuredResponse.data)
+        const response = await biographyService.getBiographies(1, 3)
+        if (response.success && response.data) {
+          setBiographies(response.data)
         } else {
-          // 如果沒有精選人物誌，改用一般的人物誌列表
-          const response = await biographyService.getBiographies(1, 3)
-          if (response.success && response.data) {
-            setBiographies(response.data)
-          } else {
-            setBiographies([])
-          }
+          setBiographies([])
         }
       } catch (err) {
         console.error('Failed to load biographies:', err)
-        // 嘗試備用方案
-        try {
-          const response = await biographyService.getBiographies(1, 3)
-          if (response.success && response.data) {
-            setBiographies(response.data)
-          } else {
-            setError('載入人物誌時發生錯誤')
-            setBiographies([])
-          }
-        } catch {
-          setError('載入人物誌時發生錯誤')
-          setBiographies([])
-        }
+        setError('載入人物誌時發生錯誤')
+        setBiographies([])
       } finally {
         setLoading(false)
       }

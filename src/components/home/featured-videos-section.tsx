@@ -94,6 +94,7 @@ function SmallVideoCard({
           fill
           sizes="160px"
           className="object-cover transition-transform duration-300 group-hover:scale-105"
+          loading="lazy"
         />
         {/* 播放按鈕 */}
         <div className="absolute inset-0 flex items-center justify-center bg-black/0 transition-colors group-hover:bg-black/30">
@@ -132,17 +133,12 @@ export function FeaturedVideosSection() {
   useEffect(() => {
     const fetchVideos = async () => {
       try {
-        const response = await fetch('/data/videos.json')
+        // 使用精簡的 featured-videos.json (7KB vs 4.8MB)
+        const response = await fetch('/data/featured-videos.json')
         const data: Video[] = await response.json()
 
-        // 優先選擇精選影片，否則取最新的
-        const featuredVideos = data.filter((v) => v.featured)
-        const selectedVideos =
-          featuredVideos.length >= 3
-            ? featuredVideos.slice(0, 3)
-            : [...featuredVideos, ...data.filter((v) => !v.featured)].slice(0, 3)
-
-        setVideos(selectedVideos)
+        // 取前 3 個精選影片
+        setVideos(data.slice(0, 3))
       } catch (err) {
         console.error('Failed to fetch videos:', err)
       } finally {

@@ -1,22 +1,84 @@
 'use client'
 
+import { useState, useMemo } from 'react'
 import { motion } from 'framer-motion'
-import { Calendar, MapPin, Activity } from 'lucide-react'
-import { Biography } from '@/lib/types'
-import { calculateClimbingYears } from '@/lib/utils/biography'
+import { Calendar, MapPin, Activity, ChevronDown, ChevronUp, Sparkles } from 'lucide-react'
+import { cn } from '@/lib/utils'
+import { BiographyV2 } from '@/lib/types/biography-v2'
+import { renderDynamicTag } from '@/lib/types/biography-v2'
+import { getTagOptionById } from '@/lib/constants/biography-tags'
 
 interface QuickFactsSectionProps {
-  person: Biography
+  person: BiographyV2 | null
+  /** 標籤最多顯示數量（手機版） */
+  mobileTagLimit?: number
 }
 
 /**
  * Quick Facts - 快速了解
- * 三張資訊卡片展示基本資訊
+ * 整合基本資訊卡片與關鍵字標籤
  */
-export function QuickFactsSection({ person }: QuickFactsSectionProps) {
-  const climbingYears = calculateClimbingYears(person.climbing_start_year)
-  const locations = person.frequent_locations?.split(',').filter(l => l.trim()) || []
-  const routeTypes = person.favorite_route_type?.split(',').filter(t => t.trim()) || []
+export function QuickFactsSection({ person, mobileTagLimit = 8 }: QuickFactsSectionProps) {
+  const [showAllTags, setShowAllTags] = useState(false)
+
+  // 計算攀岩年資
+  const climbingYears = useMemo(() => {
+    if (!person?.climbing_start_year) return null
+    const currentYear = new Date().getFullYear()
+    return currentYear - person.climbing_start_year
+  }, [person?.climbing_start_year])
+
+  // 處理常出沒地點
+  const locations = useMemo(() => {
+    if (!person?.frequent_locations) return []
+    return person.frequent_locations.filter(l => l.trim())
+  }, [person?.frequent_locations])
+
+  // 將選中的標籤整理為扁平列表
+  const selectedTags = useMemo(() => {
+    if (!person?.tags || person.tags.length === 0) return []
+
+    const tags: Array<{
+      id: string
+      label: string
+      isCustom: boolean
+    }> = []
+
+    for (const tagSelection of person.tags) {
+      const option = getTagOptionById(tagSelection.tag_id)
+      if (option) {
+        // 處理動態標籤
+        if (option.is_dynamic) {
+          const renderedLabels = renderDynamicTag(option, person)
+          if (Array.isArray(renderedLabels)) {
+            for (const label of renderedLabels) {
+              tags.push({
+                id: `${tagSelection.tag_id}_${label}`,
+                label,
+                isCustom: false,
+              })
+            }
+          } else {
+            tags.push({
+              id: tagSelection.tag_id,
+              label: renderedLabels,
+              isCustom: false,
+            })
+          }
+        } else {
+          tags.push({
+            id: tagSelection.tag_id,
+            label: option.label,
+            isCustom: tagSelection.source === 'user',
+          })
+        }
+      }
+    }
+
+    return tags
+  }, [person])
+
+  if (!person) return null
 
   const quickFacts = [
     {
@@ -24,19 +86,28 @@ export function QuickFactsSection({ person }: QuickFactsSectionProps) {
       label: '開始攀岩',
       value: person.climbing_start_year
         ? `${person.climbing_start_year}${climbingYears !== null ? ` (${climbingYears} 年)` : ''}`
-        : '尚未填寫'
+        : '從入坑那天起算',
+      isEmpty: !person.climbing_start_year
     },
     {
       icon: <MapPin className="h-6 w-6 text-gray-600" />,
       label: '常出沒地點',
-      value: locations.length > 0 ? locations.join('、') : '尚未填寫'
+      value: locations.length > 0 ? locations.join('、') : '哪裡有牆哪裡去',
+      isEmpty: locations.length === 0
     },
     {
       icon: <Activity className="h-6 w-6 text-gray-600" />,
       label: '喜歡的類型',
-      value: routeTypes.length > 0 ? routeTypes.join('、') : '尚未填寫'
+      value: person.favorite_route_types && person.favorite_route_types.length > 0
+        ? person.favorite_route_types.join('、')
+        : '能爬的都是好路線',
+      isEmpty: !person.favorite_route_types || person.favorite_route_types.length === 0
     }
   ]
+
+  // 計算標籤顯示
+  const visibleTags = showAllTags ? selectedTags : selectedTags.slice(0, mobileTagLimit)
+  const hiddenTagCount = selectedTags.length - mobileTagLimit
 
   return (
     <section className="bg-white py-12">
@@ -45,6 +116,7 @@ export function QuickFactsSection({ person }: QuickFactsSectionProps) {
           快速了解 {person.name}
         </h2>
 
+        {/* 基本資訊卡片 */}
         <div className="grid gap-6 md:grid-cols-3">
           {quickFacts.map((fact, index) => (
             <motion.div
@@ -61,10 +133,61 @@ export function QuickFactsSection({ person }: QuickFactsSectionProps) {
                 {fact.icon}
               </div>
               <p className="text-sm text-gray-500">{fact.label}</p>
-              <p className="mt-1 font-medium text-gray-900">{fact.value}</p>
+              <p className={cn(
+                'mt-1 font-medium',
+                fact.isEmpty ? 'text-gray-400' : 'text-gray-900'
+              )}>
+                {fact.value}
+              </p>
             </motion.div>
           ))}
         </div>
+
+        {/* 關鍵字 標籤 */}
+        {selectedTags.length > 0 && (
+          <div className="mt-8 pt-8 border-t border-gray-100">
+            <h3 className="text-center text-lg font-medium text-gray-700 mb-4">
+              關鍵字
+            </h3>
+            <div className="flex flex-wrap justify-center gap-2">
+              {visibleTags.map((tag) => (
+                <span
+                  key={tag.id}
+                  className={cn(
+                    'inline-flex items-center gap-1 px-3 py-1.5 rounded-full text-sm font-medium transition-colors',
+                    tag.isCustom
+                      ? 'bg-brand-accent/10 text-[#1B1A1A] border border-brand-accent/50'
+                      : 'bg-[#EBEAEA] text-[#3F3D3D] hover:bg-[#DBD8D8]'
+                  )}
+                >
+                  {tag.isCustom && <Sparkles size={12} className="text-brand-accent" />}
+                  {tag.label}
+                </span>
+              ))}
+
+              {/* Show more button */}
+              {!showAllTags && hiddenTagCount > 0 && (
+                <button
+                  onClick={() => setShowAllTags(true)}
+                  className="inline-flex items-center gap-1 px-3 py-1.5 rounded-full text-sm font-medium text-[#6D6C6C] bg-[#F5F5F5] hover:bg-[#EBEAEA] transition-colors"
+                >
+                  展開更多 (+{hiddenTagCount})
+                  <ChevronDown size={16} />
+                </button>
+              )}
+
+              {showAllTags && hiddenTagCount > 0 && (
+                <button
+                  onClick={() => setShowAllTags(false)}
+                  className="inline-flex items-center gap-1 px-3 py-1.5 rounded-full text-sm font-medium text-[#6D6C6C] bg-[#F5F5F5] hover:bg-[#EBEAEA] transition-colors"
+                >
+                  收合
+                  <ChevronUp size={16} />
+                </button>
+              )}
+            </div>
+          </div>
+        )}
       </div>
     </section>
   )

@@ -650,6 +650,20 @@ export const biographyService = {
   },
 
   /**
+   * 獲取人物誌詳情（通過ID，V2 格式）
+   * 自動將後端 JSON 字串轉換為前端結構化資料
+   */
+  getBiographyByIdV2: async (id: string) => {
+    const { transformBackendToBiographyV2 } = await import('@/lib/types/biography-v2')
+    const response = await apiClient.get<ApiResponse<Biography>>(`/biographies/${id}`)
+    if (!response.data.success || !response.data.data) {
+      return { success: false, data: null }
+    }
+    const bioV2 = transformBackendToBiographyV2(response.data.data as unknown as import('@/lib/types/biography-v2').BiographyBackend)
+    return { success: true, data: bioV2 }
+  },
+
+  /**
    * 獲取人物誌詳情（通過 Slug）
    */
   getBiographyBySlug: async (slug: string) => {
@@ -691,6 +705,80 @@ export const biographyService = {
   updateMyBiography: async (biographyData: Partial<BiographyInput>) => {
     const response = await apiClient.put<ApiResponse<Biography>>('/biographies/me', biographyData)
     return response.data
+  },
+
+  /**
+   * 更新人物誌（註冊流程用）
+   * 支援 tags_data, one_liners_data, stories_data 等 V2 欄位
+   * 如果人物誌不存在，會先創建一個再更新
+   */
+  updateBiography: async (data: Record<string, unknown>) => {
+    try {
+      const response = await apiClient.put<ApiResponse<Biography>>('/biographies/me', data)
+      return response.data
+    } catch (error) {
+      // 如果是 404 錯誤，先創建人物誌再更新
+      if (error && typeof error === 'object' && 'response' in error) {
+        const axiosError = error as { response?: { status?: number } }
+        if (axiosError.response?.status === 404) {
+          // 先創建一個人物誌，預設為公開
+          await apiClient.post<ApiResponse<Biography>>('/biographies', {
+            name: '攀岩者',
+            is_public: 1,
+            visibility: 'public',
+          })
+          // 再嘗試更新
+          const retryResponse = await apiClient.put<ApiResponse<Biography>>('/biographies/me', data)
+          return retryResponse.data
+        }
+      }
+      throw error
+    }
+  },
+
+  /**
+   * 自動儲存人物誌（V2 JSON 欄位）
+   * 用於編輯器的即時自動儲存，只更新 tags_data, one_liners_data, stories_data, basic_info_data
+   */
+  autosave: async (data: {
+    tags_data?: string
+    one_liners_data?: string
+    stories_data?: string
+    basic_info_data?: string
+  }) => {
+    const response = await apiClient.put<ApiResponse<{ autosave_at: string; throttled?: boolean }>>(
+      '/biographies/me/autosave',
+      data
+    )
+    return response.data
+  },
+
+  /**
+   * 自動儲存人物誌 V2（接受 BiographyV2 部分資料）
+   * 自動將前端資料轉換為後端 JSON 格式
+   */
+  autosaveV2: async (bio: import('@/lib/types/biography-v2').BiographyV2) => {
+    const { transformBiographyV2ToBackend } = await import('@/lib/types/biography-v2')
+    const backendData = transformBiographyV2ToBackend(bio)
+    const response = await apiClient.put<ApiResponse<{ autosave_at: string; throttled?: boolean }>>(
+      '/biographies/me/autosave',
+      backendData
+    )
+    return response.data
+  },
+
+  /**
+   * 獲取個人人物誌（V2 格式）
+   * 自動將後端 JSON 字串轉換為前端結構化資料
+   */
+  getMyBiographyV2: async () => {
+    const { transformBackendToBiographyV2 } = await import('@/lib/types/biography-v2')
+    const response = await apiClient.get<ApiResponse<Biography | null>>('/biographies/me')
+    if (!response.data.success || !response.data.data) {
+      return { success: true, data: null }
+    }
+    const bioV2 = transformBackendToBiographyV2(response.data.data as unknown as import('@/lib/types/biography-v2').BiographyBackend)
+    return { success: true, data: bioV2 }
   },
 
   /**
@@ -1662,8 +1750,11 @@ export const userService = {
    * 上傳用戶頭像
    */
   uploadAvatar: async (file: File) => {
+    // 壓縮圖片以確保上傳成功
+    const compressedFile = await processImage(file)
+
     const formData = new FormData()
-    formData.append('avatar', file)
+    formData.append('avatar', compressedFile)
     const response = await apiClient.post<ApiResponse<{ url: string }>>(
       '/users/upload-avatar',
       formData,

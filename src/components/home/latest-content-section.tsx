@@ -41,6 +41,7 @@ function ArticleCard({ item, index }: { item: ArticleItem; index: number }) {
               fill
               sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 25vw"
               className="object-cover transition-transform duration-300 group-hover:scale-105"
+              loading="lazy"
             />
           ) : (
             <div className="flex h-full items-center justify-center text-gray-400">

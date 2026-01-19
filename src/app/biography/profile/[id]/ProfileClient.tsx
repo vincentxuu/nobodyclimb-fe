@@ -1,9 +1,9 @@
 'use client'
 
-import React, { useState, useEffect, use } from 'react'
+import React, { useState, useEffect, use, useMemo } from 'react'
 import Link from 'next/link'
 import { motion } from 'framer-motion'
-import { ArrowLeft, ArrowRight, Loader2 } from 'lucide-react'
+import { ArrowLeft, ArrowRight, Loader2, Pencil } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import BackToTop from '@/components/ui/back-to-top'
 import { RecommendedProfiles } from '@/components/biography/recommended-profiles'
@@ -11,6 +11,11 @@ import { Breadcrumb } from '@/components/ui/breadcrumb'
 import { biographyService } from '@/lib/api/services'
 import { Biography, BiographyAdjacent } from '@/lib/types'
 import { useAuthStore } from '@/store/authStore'
+import {
+  BiographyV2,
+  BiographyBackend,
+  transformBackendToBiographyV2,
+} from '@/lib/types/biography-v2'
 
 // 新的章節式組件
 import {
@@ -24,6 +29,11 @@ import {
   CompleteStoriesSection,
   ChapterAdvice,
 } from '@/components/biography/profile'
+
+// V2 展示組件
+import { BiographyOneLiners } from '@/components/biography/display/BiographyOneLiners'
+// TODO: 待開發相簿編輯功能後再啟用
+// import { BiographyGallery } from '@/components/biography/display/BiographyGallery'
 
 interface ProfileClientProps {
   params: Promise<{
@@ -42,6 +52,19 @@ export default function ProfileClient({ params }: ProfileClientProps) {
   const [followerCount, setFollowerCount] = useState(0)
   const { user } = useAuthStore()
   const isOwner = user?.id === person?.user_id
+
+  // 將 person 轉換為 BiographyV2 格式，供新的展示組件使用
+  const personV2: BiographyV2 | null = useMemo(() => {
+    if (!person) return null
+    try {
+      // 後端 API 返回的資料實際上包含 V2 欄位（tags_data, one_liners_data 等）
+      // 只是前端 Biography 類型沒有定義它們，所以需要強制轉換
+      return transformBackendToBiographyV2(person as unknown as BiographyBackend)
+    } catch (error) {
+      console.error('Failed to transform biography to V2:', error)
+      return null
+    }
+  }, [person])
 
   // 從 API 加載人物資料
   useEffect(() => {
@@ -126,7 +149,7 @@ export default function ProfileClient({ params }: ProfileClientProps) {
         </div>
 
         {/* 返回按鈕 */}
-        <div className="mb-4">
+        <div className="mb-4 flex items-center gap-2">
           <motion.div
             initial={{ opacity: 0, x: -20 }}
             animate={{ opacity: 1, x: 0 }}
@@ -142,10 +165,29 @@ export default function ProfileClient({ params }: ProfileClientProps) {
               </Button>
             </Link>
           </motion.div>
+
+          {/* 返回編輯按鈕 - 僅本人可見 */}
+          {isOwner && (
+            <motion.div
+              initial={{ opacity: 0, x: -20 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ duration: 0.3, delay: 0.1 }}
+            >
+              <Link href="/profile">
+                <Button
+                  variant="ghost"
+                  className="flex items-center gap-2 bg-brand-accent shadow-sm hover:bg-brand-accent/80"
+                >
+                  <Pencil size={16} />
+                  <span>返回編輯</span>
+                </Button>
+              </Link>
+            </motion.div>
+          )}
         </div>
       </div>
 
-      {/* 1. Hero Section - 極簡標題區 */}
+      {/* 1. Hero Section - 封面與基本資訊 */}
       <HeroSection
         person={person}
         followerCount={followerCount}
@@ -155,29 +197,40 @@ export default function ProfileClient({ params }: ProfileClientProps) {
         }}
       />
 
-      {/* 2. 精選故事 */}
+      {/* 2. 快速了解 - 基本資訊卡片 + 關鍵字標籤 */}
+      <QuickFactsSection person={personV2} />
+
+      {/* 3. 關於我 - 一句話系列 */}
+      {personV2 && personV2.one_liners && personV2.one_liners.length > 0 && (
+        <section className="bg-[#F5F5F5]">
+          <div className="container mx-auto max-w-5xl px-4">
+            <BiographyOneLiners biography={personV2} />
+          </div>
+        </section>
+      )}
+
+      {/* 4. 精選故事 */}
       <FeaturedStoriesSection person={person} />
 
-      {/* 3. Chapter 1: 相遇篇 */}
-      <ChapterMeeting person={person} />
+      {/* 5. Chapter 1: 相遇篇 */}
+      <ChapterMeeting person={personV2} />
 
-      {/* 4. Chapter 2: 意義篇 */}
-      <ChapterMeaning person={person} />
+      {/* 6. Chapter 2: 意義篇 */}
+      <ChapterMeaning person={personV2} />
 
-      {/* 5. Quick Facts - 快速了解 */}
-      <QuickFactsSection person={person} />
+      {/* 7. Chapter 3: 人生清單 */}
+      <ChapterBucketList person={personV2} isOwner={isOwner} />
 
-      {/* 6. Chapter 3: 人生清單 */}
-      <ChapterBucketList person={person} isOwner={isOwner} />
+      {/* 8. Chapter 4: 給新手的話 */}
+      <ChapterAdvice person={personV2} />
 
-      {/* 7. Gallery: 攀岩足跡地圖 */}
-      <ClimbingFootprintsSection person={person} />
-
-      {/* 8. 小故事（完整版） */}
+      {/* 9. 小故事（完整版） */}
       <CompleteStoriesSection person={person} isOwner={isOwner} />
 
-      {/* 9. Chapter 4: 給新手的話 */}
-      <ChapterAdvice person={person} />
+      {/* 10. 攀岩足跡地圖 */}
+      <ClimbingFootprintsSection person={person} />
+
+      {/* TODO: 11. 攀岩日常 - 相簿展示（待開發相簿編輯功能後啟用）*/}
 
       {/* 上下篇導航 */}
       <div className="container mx-auto max-w-5xl px-4 py-8">
@@ -212,7 +265,7 @@ export default function ProfileClient({ params }: ProfileClientProps) {
         </div>
       </div>
 
-      {/* 10. 下一個故事 - 推薦其他人物誌 */}
+      {/* 推薦其他人物誌 */}
       <div className="bg-[#dbd8d8] py-10">
         <div className="container mx-auto px-4">
           <h2 className="mb-8 text-center text-2xl font-medium">推薦其他人物誌</h2>

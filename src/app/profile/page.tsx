@@ -1,8 +1,8 @@
 'use client'
 
 import { Suspense } from 'react'
-import { ProfileProvider } from '@/components/profile/ProfileContext'
-import ProfileEditorVersionB from '@/components/profile/dashboard/ProfileEditorVersionB'
+import ProfileEditorV2Wrapper from '@/components/biography/editor/ProfileEditorV2Wrapper'
+import ProfilePageLayout from '@/components/profile/layout/ProfilePageLayout'
 
 function ProfileFallback() {
   return (
@@ -14,10 +14,10 @@ function ProfileFallback() {
 
 export default function ProfilePage() {
   return (
-    <ProfileProvider>
+    <ProfilePageLayout>
       <Suspense fallback={<ProfileFallback />}>
-        <ProfileEditorVersionB />
+        <ProfileEditorV2Wrapper />
       </Suspense>
-    </ProfileProvider>
+    </ProfilePageLayout>
   )
 }

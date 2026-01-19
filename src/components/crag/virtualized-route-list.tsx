@@ -11,7 +11,7 @@ interface VirtualizedRouteListProps {
   currentRouteId?: string
   itemHeight?: number
   overscan?: number
-  onRouteClick?: (routeId: string, e: React.MouseEvent) => void
+  onRouteClick?: (_routeId: string, _e: React.MouseEvent) => void
   onItemClick?: () => void
 }
 

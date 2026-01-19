@@ -35,8 +35,8 @@ interface CragRouteSectionProps {
 export const CragRouteSection: React.FC<CragRouteSectionProps> = ({
   routes,
   initialArea = 'all',
-  cragId,
-  areaIdMap,
+  cragId: _cragId,
+  areaIdMap: _areaIdMap,
   searchQuery = '',
 }) => {
   const [selectedArea, setSelectedArea] = useState<string>(initialArea)

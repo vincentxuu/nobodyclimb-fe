@@ -46,7 +46,6 @@ export function AvatarWithFallback({
         className="object-cover"
         sizes="96px"
         onError={() => setHasError(true)}
-        unoptimized={src.startsWith('http')}
       />
     </div>
   )

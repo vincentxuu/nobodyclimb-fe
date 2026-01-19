@@ -9,7 +9,7 @@ import { OrderingQuestion } from './OrderingQuestion'
 
 interface QuestionCardProps {
   question: Question
-  onAnswer: (answer: string | string[]) => void
+  onAnswer: (_answer: string | string[]) => void
   disabled?: boolean
   showResult?: boolean
   userAnswer?: string | string[]

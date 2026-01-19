@@ -33,11 +33,11 @@ export interface UseRouteFilterParamsResult {
   // 篩選後的路線
   filteredRoutes: RouteSidebarItem[]
   // 更新函數
-  setSearchQuery: (query: string) => void
-  setSelectedArea: (area: string) => void
-  setSelectedSector: (sector: string) => void
-  setSelectedGrade: (grade: string) => void
-  setSelectedType: (type: string) => void
+  setSearchQuery: (_query: string) => void
+  setSelectedArea: (_area: string) => void
+  setSelectedSector: (_sector: string) => void
+  setSelectedGrade: (_grade: string) => void
+  setSelectedType: (_type: string) => void
   // 重設所有篩選
   resetFilters: () => void
 }

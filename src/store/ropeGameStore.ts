@@ -47,17 +47,17 @@ interface RopeGameState {
 
   // ========== Actions ==========
   startGame: (
-    mode: GameMode,
-    questions: Question[],
-    category?: Category,
-    exam?: Exam
+    _mode: GameMode,
+    _questions: Question[],
+    _category?: Category,
+    _exam?: Exam
   ) => void
-  submitAnswer: (answer: string | string[]) => AnswerResult
+  submitAnswer: (_answer: string | string[]) => AnswerResult
   nextQuestion: () => void
-  setCharacterState: (state: CharacterState) => void
+  setCharacterState: (_state: CharacterState) => void
   toggleSound: () => void
   togglePause: () => void
-  updateTimeRemaining: (time: number) => void
+  updateTimeRemaining: (_time: number) => void
   resetGame: () => void
   getStats: () => GameStats
 }

@@ -283,6 +283,14 @@ export interface Biography {
   total_likes: number;
   total_views: number;
   follower_count: number;
+
+  // V2 欄位 - 漸進式揭露設計
+  visibility: 'private' | 'anonymous' | 'community' | 'public' | null;
+  tags_data: string | null;
+  one_liners_data: string | null;
+  stories_data: string | null;
+  basic_info_data: string | null;
+  autosave_at: string | null;
 }
 
 export interface Review {

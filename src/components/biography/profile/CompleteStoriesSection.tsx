@@ -111,7 +111,7 @@ export function CompleteStoriesSection({ person, isOwner }: CompleteStoriesSecti
               transition={{ delay: (filledStories.length + index) * 0.05 }}
               className="w-80 flex-shrink-0 snap-start"
             >
-              <Link href={`/profile/edit#${story.field}`} className="block h-full">
+              <Link href={`/profile#${story.field}`} className="block h-full">
                 <div className="group flex h-full min-h-[240px] cursor-pointer flex-col items-center justify-center rounded-lg border-2 border-dashed border-gray-300 p-6 text-center transition-colors hover:border-brand-accent">
                   <div className="mb-3 flex h-10 w-10 items-center justify-center rounded-full bg-gray-100 text-gray-400 transition-colors group-hover:bg-yellow-100 group-hover:text-yellow-600">
                     <Plus className="h-5 w-5" />

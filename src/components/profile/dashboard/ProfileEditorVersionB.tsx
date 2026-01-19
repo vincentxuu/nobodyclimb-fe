@@ -26,6 +26,7 @@ import {
   ExternalLink,
   ChevronDown,
   Loader2,
+  MapPin,
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -41,6 +42,7 @@ import {
   updateProfileField,
   updateStoryField,
 } from '../mappers'
+import ClimbingFootprintsSection from '../ClimbingFootprintsSection'
 
 type StoryFilter = 'all' | 'filled' | 'unfilled'
 
@@ -58,10 +60,10 @@ interface EditableTextProps {
   tempValue: string
   isSaving: boolean
   inputRef: React.RefObject<HTMLInputElement | HTMLTextAreaElement | null>
-  onStartEdit: (field: string, value: string) => void
+  onStartEdit: (_field: string, _value: string) => void
   onCancel: () => void
-  onSave: (field: string, value: string) => Promise<void>
-  onTempValueChange: (value: string) => void
+  onSave: (_field: string, _value: string) => Promise<void>
+  onTempValueChange: (_value: string) => void
 }
 
 const EditableText = React.memo(function EditableText({
@@ -146,7 +148,7 @@ const EditableText = React.memo(function EditableText({
       <span className={value ? 'text-brand-dark' : 'text-subtle'}>
         {value || placeholder}
       </span>
-      <Pencil className="h-3.5 w-3.5 text-subtle opacity-0 transition-opacity group-hover:opacity-100" />
+      <Pencil className="h-3.5 w-3.5 text-subtle opacity-30 transition-opacity group-hover:opacity-100" />
     </button>
   )
 })
@@ -162,10 +164,10 @@ interface StoryCardProps {
   tempValue: string
   isSaving: boolean
   inputRef: React.RefObject<HTMLTextAreaElement | null>
-  onStartEdit: (field: string, value: string) => void
+  onStartEdit: (_field: string, _value: string) => void
   onCancel: () => void
-  onSave: (field: string, value: string) => Promise<void>
-  onTempValueChange: (value: string) => void
+  onSave: (_field: string, _value: string) => Promise<void>
+  onTempValueChange: (_value: string) => void
 }
 
 const StoryCard = React.memo(function StoryCard({
@@ -251,7 +253,7 @@ const StoryCard = React.memo(function StoryCard({
               aria-label="未填寫"
             />
           )}
-          <Pencil className="h-4 w-4 text-subtle opacity-0 transition-opacity group-hover:opacity-100" />
+          <Pencil className="h-4 w-4 text-subtle opacity-30 transition-opacity group-hover:opacity-100" />
         </div>
       </div>
       <p className={`text-sm ${isFilled ? 'text-text-subtle line-clamp-2' : 'text-subtle'}`}>
@@ -270,7 +272,7 @@ interface ImageUploadButtonProps {
   isUploading: boolean
   hasImage: boolean
   label: string
-  onUpload: (file: File) => void
+  onUpload: (_file: File) => void
   className?: string
 }
 
@@ -512,7 +514,7 @@ export default function ProfileEditorVersionB({ onBack }: ProfileEditorVersionBP
   // ============================================================================
 
   return (
-    <div className={`min-h-screen bg-page-bg ${isMobile ? 'pb-20' : ''}`}>
+    <div>
       {/* 封面區域 */}
       <div className="relative">
         <div className="h-48 w-full bg-gradient-to-r from-brand-dark to-brand-dark-hover md:h-64">
@@ -724,6 +726,15 @@ export default function ProfileEditorVersionB({ onBack }: ProfileEditorVersionBP
               />
             </div>
           </div>
+        </section>
+
+        {/* 攀岩足跡區塊 */}
+        <section className="mb-8 rounded-xl border border-subtle bg-white p-6 shadow-sm">
+          <div className="mb-4 flex items-center gap-2">
+            <MapPin className="h-5 w-5 text-brand-dark" />
+            <h2 className="font-semibold text-brand-dark">攀岩足跡</h2>
+          </div>
+          <ClimbingFootprintsSection isEditing={true} isMobile={isMobile} />
         </section>
 
         {/* 故事區塊 - 全部合併 */}

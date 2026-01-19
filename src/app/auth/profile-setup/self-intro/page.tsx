@@ -4,70 +4,50 @@ import React, { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { useAuth } from '@/lib/hooks/useAuth'
 import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
-import { Textarea } from '@/components/ui/textarea'
 import { PageTransition } from '@/components/shared/page-transition'
 import { useToast } from '@/components/ui/use-toast'
 import { biographyService } from '@/lib/api/services'
+import { cn } from '@/lib/utils'
+import {
+  SYSTEM_ONELINER_QUESTIONS,
+  SYSTEM_ONELINER_QUESTION_LIST,
+} from '@/lib/constants/biography-questions'
 
-interface SelfIntroFormData {
-  climbingReason: string
-  climbingMeaning: string
-  climbingBucketList: string
-  messageToBeginners: string
-  isPublic: boolean
+// 註冊流程只顯示核心 3 題
+const REGISTRATION_QUESTIONS: string[] = [
+  SYSTEM_ONELINER_QUESTIONS.CLIMBING_ORIGIN,
+  SYSTEM_ONELINER_QUESTIONS.CLIMBING_MEANING,
+  SYSTEM_ONELINER_QUESTIONS.ADVICE_TO_SELF,
+]
+
+interface OneLinerFormData {
+  [key: string]: string
 }
 
 export default function SelfIntroPage() {
   const router = useRouter()
-  const { user, updateUser, isAuthenticated, loading } = useAuth()
+  const { isAuthenticated, loading } = useAuth()
   const { toast } = useToast()
 
-  const [formData, setFormData] = useState<SelfIntroFormData>({
-    climbingReason: '',
-    climbingMeaning: '',
-    climbingBucketList: '',
-    messageToBeginners: '',
-    isPublic: false,
-  })
+  const [formData, setFormData] = useState<OneLinerFormData>({})
   const [isSubmitting, setIsSubmitting] = useState(false)
+  const [isPublic, setIsPublic] = useState(true)
+
+  // 取得要顯示的問題
+  const questionsToShow = SYSTEM_ONELINER_QUESTION_LIST.filter((q) =>
+    REGISTRATION_QUESTIONS.includes(q.id as string)
+  ).sort((a, b) => REGISTRATION_QUESTIONS.indexOf(a.id as string) - REGISTRATION_QUESTIONS.indexOf(b.id as string))
 
   useEffect(() => {
     // 如果使用者未登入，重定向至登入頁面
     if (!loading && !isAuthenticated) {
       router.push('/auth/login')
     }
+  }, [isAuthenticated, loading, router])
 
-    // 如果使用者已有自我介紹資料，則預填寫表單
-    if (user && user.bio) {
-      try {
-        // 假設 bio 是 JSON 格式儲存的
-        const bioData = JSON.parse(user.bio)
-        if (bioData) {
-          setFormData((prev) => ({
-            ...prev,
-            climbingReason: bioData.climbingReason || '',
-            climbingMeaning: bioData.climbingMeaning || '',
-            climbingBucketList: bioData.climbingBucketList || '',
-            messageToBeginners: bioData.messageToBeginners || '',
-            isPublic: bioData.isPublic || false,
-          }))
-        }
-      } catch (error) {
-        // 如果不是 JSON 格式，忽略錯誤
-        console.error('解析使用者 bio 時發生錯誤', error)
-      }
-    }
-  }, [user, isAuthenticated, loading, router])
-
-  const handleChange = (e: React.ChangeEvent<HTMLTextAreaElement | HTMLInputElement>) => {
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target
     setFormData((prev) => ({ ...prev, [name]: value }))
-  }
-
-  const handleCheckboxChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const { name, checked } = e.target
-    setFormData((prev) => ({ ...prev, [name]: checked }))
   }
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -75,56 +55,31 @@ export default function SelfIntroPage() {
     setIsSubmitting(true)
 
     try {
-      // 將自我介紹資料儲存為 JSON 格式
-      const bioData = JSON.stringify({
-        climbingReason: formData.climbingReason,
-        climbingMeaning: formData.climbingMeaning,
-        climbingBucketList: formData.climbingBucketList,
-        messageToBeginners: formData.messageToBeginners,
-        isPublic: formData.isPublic,
+      // 將表單資料轉換為 API 格式
+      const oneLinersData: Record<string, { answer: string; visibility: string }> = {}
+      Object.entries(formData).forEach(([questionId, answer]) => {
+        if (answer.trim()) {
+          oneLinersData[questionId] = {
+            answer: answer.trim(),
+            visibility: 'public',
+          }
+        }
       })
 
-      const userData = {
-        bio: bioData,
-      }
+      // 更新人物誌
+      await biographyService.updateBiography({
+        one_liners_data: JSON.stringify(oneLinersData),
+        visibility: isPublic ? 'public' : 'private',
+      })
 
-      const result = await updateUser(userData)
+      toast({
+        title: '自我介紹已儲存',
+        description: '您的個人資料已成功更新',
+        variant: 'default',
+      })
 
-      if (result.success) {
-        // 同步創建/更新 biography 表
-        try {
-          const biographyData = {
-            name: user?.displayName || user?.username || '匿名岩友',
-            climbing_start_year: user?.climbingStartYear || '',
-            frequent_locations: user?.frequentGym || '',
-            favorite_route_type: user?.favoriteRouteType || '',
-            climbing_origin: formData.climbingReason,
-            climbing_meaning: formData.climbingMeaning,
-            bucket_list_story: formData.climbingBucketList,
-            advice_to_self: formData.messageToBeginners,
-            is_public: formData.isPublic ? 1 : 0,
-          }
-
-          await biographyService.createBiography(biographyData)
-        } catch (biographyError) {
-          // biography 創建失敗不阻擋流程，只記錄錯誤
-          console.error('創建人物誌失敗', biographyError)
-        }
-
-        toast({
-          title: '自我介紹已更新',
-          description: '您的自我介紹已成功更新',
-          variant: 'default',
-        })
-        // 導航到完成頁面
-        router.push('/auth/profile-setup/complete')
-      } else {
-        toast({
-          title: '更新失敗',
-          description: result.error || '更新資料時發生錯誤',
-          variant: 'destructive',
-        })
-      }
+      // 導航到完成頁面
+      router.push('/auth/profile-setup/complete')
     } catch (error) {
       console.error('更新資料失敗', error)
       toast({
@@ -137,9 +92,8 @@ export default function SelfIntroPage() {
     }
   }
 
-  const handleSkip = () => {
-    router.push('/auth/profile-setup/complete')
-  }
+  // 計算已填寫的問題數量
+  const filledCount = Object.values(formData).filter((v) => v.trim()).length
 
   return (
     <PageTransition>
@@ -147,113 +101,103 @@ export default function SelfIntroPage() {
         {/* 步驟指示器 */}
         <div className="mb-8">
           <div className="flex justify-center">
-            <div className="flex items-center space-x-4">
+            <div className="flex items-center space-x-2 sm:space-x-4">
               <div className="flex flex-col items-center">
                 <div className="flex h-8 w-8 items-center justify-center rounded-full bg-primary text-white">
                   1
                 </div>
-                <span className="mt-2 text-sm">基本資料</span>
+                <span className="mt-2 text-xs sm:text-sm">基本資料</span>
               </div>
-              <div className="h-1 w-16 bg-gray-300"></div>
+              <div className="h-1 w-8 sm:w-12 bg-primary"></div>
               <div className="flex flex-col items-center">
                 <div className="flex h-8 w-8 items-center justify-center rounded-full bg-primary text-white">
                   2
                 </div>
-                <span className="mt-2 text-sm">自我介紹</span>
+                <span className="mt-2 text-xs sm:text-sm">標籤</span>
               </div>
-              <div className="h-1 w-16 bg-gray-300"></div>
+              <div className="h-1 w-8 sm:w-12 bg-primary"></div>
               <div className="flex flex-col items-center">
-                <div className="flex h-8 w-8 items-center justify-center rounded-full bg-gray-300 text-gray-600">
+                <div className="flex h-8 w-8 items-center justify-center rounded-full bg-primary text-white">
                   3
                 </div>
-                <span className="mt-2 text-sm text-gray-500">完成</span>
+                <span className="mt-2 text-xs sm:text-sm">一句話</span>
+              </div>
+              <div className="h-1 w-8 sm:w-12 bg-gray-300"></div>
+              <div className="flex flex-col items-center">
+                <div className="flex h-8 w-8 items-center justify-center rounded-full bg-gray-300 text-gray-600">
+                  4
+                </div>
+                <span className="mt-2 text-xs sm:text-sm text-gray-500">完成</span>
               </div>
             </div>
           </div>
         </div>
 
         <div className="mb-6 text-center">
-          <h1 className="text-2xl font-bold">自我介紹</h1>
+          <h1 className="text-2xl font-bold">用一句話回答</h1>
+          <p className="mt-2 text-gray-600">
+            不用想太多，簡短回答就好
+          </p>
+          {filledCount > 0 && (
+            <span className="mt-2 inline-block text-sm text-primary">
+              已填寫 {filledCount}/{questionsToShow.length} 題
+            </span>
+          )}
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-6">
-          {/* 攀岩原因 */}
-          <div className="space-y-2">
-            <label className="text-gray-700">踏上攀岩不歸路的原因</label>
-            <Textarea
-              name="climbingReason"
-              value={formData.climbingReason}
-              onChange={handleChange}
-              placeholder="分享你是如何開始攀岩的故事..."
-              className="min-h-24"
-            />
-          </div>
-
-          {/* 攀岩意義 */}
-          <div className="space-y-2">
-            <label className="text-gray-700">攀岩對你來說是什麼樣的存在</label>
-            <Textarea
-              name="climbingMeaning"
-              value={formData.climbingMeaning}
-              onChange={handleChange}
-              placeholder="攀岩對你的意義是什麼？"
-              className="min-h-24"
-            />
-          </div>
-
-          {/* 攀岩清單 */}
-          <div className="space-y-2">
-            <label className="text-gray-700">在攀岩世界裡，想做的人生清單是什麼</label>
-            <Textarea
-              name="climbingBucketList"
-              value={formData.climbingBucketList}
-              onChange={handleChange}
-              placeholder="你有想完成的攀岩目標或願望嗎？"
-              className="min-h-24"
-            />
-          </div>
-
-          {/* 給新手的話 */}
-          <div className="space-y-2">
-            <label className="text-gray-700">對於初踏入攀岩的岩友，留言給他們的一句話</label>
-            <Input
-              type="outline"
-              name="messageToBeginners"
-              value={formData.messageToBeginners}
-              onChange={handleChange}
-              placeholder="享受其中是最重要的事！"
-            />
-          </div>
+          {/* 一句話問題列表 */}
+          {questionsToShow.map((question) => (
+            <div key={question.id} className="space-y-2">
+              <label className="text-gray-700 font-medium">
+                {question.question}
+              </label>
+              {question.format_hint && (
+                <p className="text-xs text-gray-500">{question.format_hint}</p>
+              )}
+              <input
+                type="text"
+                name={question.id}
+                value={formData[question.id] || ''}
+                onChange={handleChange}
+                placeholder={question.placeholder}
+                className="w-full px-4 py-3 bg-white border border-gray-300 rounded-xl text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary transition-colors"
+              />
+            </div>
+          ))}
 
           {/* 公開分享選項 */}
-          <div className="flex items-center space-x-2">
-            <input
-              type="checkbox"
-              id="isPublic"
-              name="isPublic"
-              checked={formData.isPublic}
-              onChange={handleCheckboxChange}
-              className="h-5 w-5 rounded border-gray-300 text-primary focus:ring-primary"
-            />
-            <label htmlFor="isPublic" className="text-gray-700">
-              我願意將自我介紹公開放到人物誌
+          <div className="flex items-center space-x-3 pt-4">
+            <button
+              type="button"
+              onClick={() => setIsPublic(!isPublic)}
+              className={cn(
+                'h-5 w-5 rounded border-2 flex items-center justify-center transition-colors',
+                isPublic
+                  ? 'bg-primary border-primary text-white'
+                  : 'bg-white border-gray-300 hover:border-primary'
+              )}
+            >
+              {isPublic && (
+                <svg className="w-3 h-3" viewBox="0 0 12 12" fill="none">
+                  <path d="M2 6L5 9L10 3" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                </svg>
+              )}
+            </button>
+            <label
+              htmlFor="isPublic"
+              className="text-gray-700 cursor-pointer select-none"
+              onClick={() => setIsPublic(!isPublic)}
+            >
+              我願意將人物誌公開
             </label>
           </div>
 
           {/* 按鈕區 */}
-          <div className="flex justify-between space-x-4 pt-4">
-            <Button
-              type="button"
-              variant="outline"
-              onClick={handleSkip}
-              className="flex-1 rounded-lg border-gray-700 py-3"
-              disabled={isSubmitting}
-            >
-              略過
-            </Button>
+          <div className="pt-4">
             <Button
               type="submit"
-              className="flex-1 rounded-lg py-3 text-white"
+              className="w-full rounded-lg py-3 text-white"
               disabled={isSubmitting}
             >
               {isSubmitting ? '處理中...' : '完成'}

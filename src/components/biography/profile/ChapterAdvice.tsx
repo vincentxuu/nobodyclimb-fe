@@ -2,10 +2,10 @@
 
 import { useMemo } from 'react'
 import { motion } from 'framer-motion'
-import { Biography } from '@/lib/types'
+import { BiographyV2 } from '@/lib/types/biography-v2'
 
 interface ChapterAdviceProps {
-  person: Biography
+  person: BiographyV2 | null
 }
 
 /**
@@ -13,9 +13,16 @@ interface ChapterAdviceProps {
  * 信件/便條紙風格設計
  */
 export function ChapterAdvice({ person }: ChapterAdviceProps) {
+  // 從 one_liners 陣列中取得 advice_to_self
+  const adviceToSelf = useMemo(() => {
+    if (!person?.one_liners) return null
+    const item = person.one_liners.find(o => o.question_id === 'advice_to_self')
+    return item?.answer || null
+  }, [person?.one_liners])
+
   // 使用人物誌的更新日期或發布日期（Hooks 必須在條件判斷之前）
   const displayDate = useMemo(() => {
-    const dateStr = person.updated_at || person.published_at || person.created_at
+    const dateStr = person?.updated_at || person?.published_at || person?.created_at
     if (!dateStr) return null
 
     try {
@@ -27,9 +34,9 @@ export function ChapterAdvice({ person }: ChapterAdviceProps) {
     } catch {
       return null
     }
-  }, [person.updated_at, person.published_at, person.created_at])
+  }, [person?.updated_at, person?.published_at, person?.created_at])
 
-  if (!person.advice_to_self) return null
+  if (!adviceToSelf) return null
 
   return (
     <motion.section
@@ -55,12 +62,12 @@ export function ChapterAdvice({ person }: ChapterAdviceProps) {
           <div className="absolute -top-1 left-8 h-2 w-16 rounded-full bg-brand-accent" />
 
           <p className="whitespace-pre-wrap text-lg leading-relaxed text-gray-700">
-            {person.advice_to_self}
+            {adviceToSelf}
           </p>
 
           {/* 簽名 */}
           <div className="mt-6 text-right text-gray-600">
-            <p className="font-medium">— {person.name}</p>
+            <p className="font-medium">— {person?.name}</p>
             {displayDate && <p className="text-sm">{displayDate}</p>}
           </div>
         </div>
