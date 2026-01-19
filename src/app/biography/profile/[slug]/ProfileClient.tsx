@@ -37,7 +37,7 @@ import { BiographyOneLiners } from '@/components/biography/display/BiographyOneL
 
 interface ProfileClientProps {
   params: Promise<{
-    id: string
+    slug: string
   }>
 }
 
@@ -45,7 +45,7 @@ interface ProfileClientProps {
  * 人物誌詳情頁 - 章節式故事設計
  */
 export default function ProfileClient({ params }: ProfileClientProps) {
-  const { id } = use(params)
+  const { slug } = use(params)
   const [person, setPerson] = useState<Biography | null>(null)
   const [adjacent, setAdjacent] = useState<BiographyAdjacent | null>(null)
   const [loading, setLoading] = useState(true)
@@ -72,23 +72,24 @@ export default function ProfileClient({ params }: ProfileClientProps) {
       setLoading(true)
 
       try {
-        // 從 API 獲取
-        const response = await biographyService.getBiographyById(id)
+        // 從 API 獲取（使用 slug）
+        const response = await biographyService.getBiographyBySlug(slug)
 
         if (response.success && response.data) {
-          setPerson(response.data)
-          setFollowerCount(response.data.follower_count || 0)
+          const biographyData = response.data
+          setPerson(biographyData)
+          setFollowerCount(biographyData.follower_count || 0)
           setLoading(false)
 
           // 次要請求：非阻塞執行，不影響主要內容顯示
-          // 記錄瀏覽次數
-          biographyService.recordView(id).catch((err) => {
+          // 記錄瀏覽次數（使用 id）
+          biographyService.recordView(biographyData.id).catch((err) => {
             console.error('Failed to record view:', err)
           })
 
-          // 獲取相鄰人物（用於上下篇導航）
+          // 獲取相鄰人物（用於上下篇導航，使用 id）
           biographyService
-            .getAdjacentBiographies(id)
+            .getAdjacentBiographies(biographyData.id)
             .then((adjacentResponse) => {
               if (adjacentResponse.success && adjacentResponse.data) {
                 setAdjacent(adjacentResponse.data)
@@ -109,7 +110,7 @@ export default function ProfileClient({ params }: ProfileClientProps) {
     }
 
     loadPerson()
-  }, [id])
+  }, [slug])
 
   if (loading) {
     return (
@@ -236,7 +237,7 @@ export default function ProfileClient({ params }: ProfileClientProps) {
       <div className="container mx-auto max-w-5xl px-4 py-8">
         <div className="flex justify-between">
           {adjacent?.previous ? (
-            <Link href={`/biography/profile/${adjacent.previous.id}`}>
+            <Link href={`/biography/profile/${adjacent.previous.slug || adjacent.previous.id}`}>
               <Button
                 variant="outline"
                 className="flex items-center gap-2 border border-[#1B1A1A] text-[#1B1A1A] hover:bg-[#dbd8d8]"
@@ -250,7 +251,7 @@ export default function ProfileClient({ params }: ProfileClientProps) {
           )}
 
           {adjacent?.next ? (
-            <Link href={`/biography/profile/${adjacent.next.id}`}>
+            <Link href={`/biography/profile/${adjacent.next.slug || adjacent.next.id}`}>
               <Button
                 variant="outline"
                 className="flex items-center gap-2 border border-[#1B1A1A] text-[#1B1A1A] hover:bg-[#dbd8d8]"
@@ -269,7 +270,7 @@ export default function ProfileClient({ params }: ProfileClientProps) {
       <div className="bg-[#dbd8d8] py-10">
         <div className="container mx-auto px-4">
           <h2 className="mb-8 text-center text-2xl font-medium">推薦其他人物誌</h2>
-          <RecommendedProfiles currentId={id} />
+          <RecommendedProfiles currentId={person.id} />
 
           <div className="mt-10 flex justify-center">
             <Link href="/biography">

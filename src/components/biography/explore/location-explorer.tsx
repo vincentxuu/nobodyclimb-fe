@@ -88,7 +88,7 @@ export function LocationExplorer() {
               {loc.visitors.slice(0, 4).map((visitor) => (
                 <Link
                   key={visitor.id}
-                  href={`/biography/profile/${visitor.id}`}
+                  href={`/biography/profile/${visitor.slug || visitor.id}`}
                   className="relative h-7 w-7 overflow-hidden rounded-full border-2 border-white bg-gray-200"
                   title={visitor.name}
                 >

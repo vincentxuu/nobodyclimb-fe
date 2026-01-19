@@ -144,7 +144,7 @@ export default function BucketListDetailPage({ params }: BucketListDetailPagePro
             items={[
               { label: '首頁', href: '/' },
               { label: '人物誌', href: '/biography' },
-              ...(biography ? [{ label: biography.name, href: `/biography/profile/${biography.id}` }] : []),
+              ...(biography ? [{ label: biography.name, href: `/biography/profile/${biography.slug || biography.id}` }] : []),
               { label: item.title },
             ]}
           />
@@ -158,7 +158,7 @@ export default function BucketListDetailPage({ params }: BucketListDetailPagePro
             animate={{ opacity: 1, x: 0 }}
             transition={{ duration: 0.3 }}
           >
-            <Link href={biography ? `/biography/profile/${biography.id}` : '/biography'}>
+            <Link href={biography ? `/biography/profile/${biography.slug || biography.id}` : '/biography'}>
               <Button
                 variant="ghost"
                 className="flex items-center gap-2 bg-white shadow-sm hover:bg-[#dbd8d8]"
@@ -205,7 +205,7 @@ export default function BucketListDetailPage({ params }: BucketListDetailPagePro
                 {/* 作者 */}
                 {biography && (
                   <Link
-                    href={`/biography/profile/${biography.id}`}
+                    href={`/biography/profile/${biography.slug || biography.id}`}
                     className="mt-2 inline-flex items-center gap-2 text-sm text-gray-500 hover:text-[#1B1A1A]"
                   >
                     <span>by {biography.name}</span>

@@ -206,7 +206,7 @@ export function TrendingGoals({ searchTerm, filter }: TrendingGoalsProps) {
                       {/* 作者資訊 */}
                       {item.author_name && (
                         <Link
-                          href={`/biography/profile/${item.biography_id}`}
+                          href={`/biography/profile/${item.author_slug || item.biography_id}`}
                           className="flex items-center gap-2 text-sm text-gray-600 hover:text-gray-900"
                         >
                           <div className="relative h-6 w-6 overflow-hidden rounded-full bg-gray-200">

@@ -87,7 +87,7 @@ function BiographyCard({ person }: BiographyCardProps) {
       transition={{ duration: 0.4 }}
       className="h-full"
     >
-      <Link href={`/biography/profile/${person.id}`} className="block h-full">
+      <Link href={`/biography/profile/${person.slug}`} className="block h-full">
         <Card className="h-full overflow-hidden rounded-lg transition-shadow duration-300 hover:shadow-md">
           <CardContent className="p-6">
             <div className="mb-4 space-y-3">
