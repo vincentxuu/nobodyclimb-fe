@@ -3,7 +3,7 @@
 import { useState } from 'react'
 import Image from 'next/image'
 import { cn } from '@/lib/utils'
-import { Clock, MapPin, BarChart3, Globe, Eye, Users, MessageCircle } from 'lucide-react'
+import { Clock, BarChart3, Globe, Eye, Users, MessageCircle } from 'lucide-react'
 import type { BiographyV2, SocialLinks } from '@/lib/types/biography-v2'
 import { FollowButton } from '../follow-button'
 import { BiographyLikeButton } from '../biography-like-button'
@@ -170,12 +170,12 @@ export function BiographyHero({
 
             {/* Meta Info */}
             <div className="flex flex-wrap items-center gap-2 text-sm text-[#6D6C6C]">
-              {climbingYears !== null && climbingYears > 0 && (
-                <span className="flex items-center gap-1">
-                  <Clock size={16} />
-                  攀岩第 {climbingYears} 年
-                </span>
-              )}
+              <span className="flex items-center gap-1">
+                <Clock size={16} />
+                {climbingYears !== null && climbingYears > 0
+                  ? `攀岩第 ${climbingYears} 年`
+                  : '從入坑那天起算'}
+              </span>
 
               {biography.frequent_locations &&
                 biography.frequent_locations.length > 0 && (

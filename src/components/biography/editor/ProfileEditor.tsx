@@ -93,16 +93,34 @@ export function ProfileEditor({
   const [customStoryModalOpen, setCustomStoryModalOpen] = useState(false)
   const [customStoryCategoryId, setCustomStoryCategoryId] = useState<string | undefined>(undefined)
 
-  // 合併系統維度和用戶自訂維度
-  const [customDimensions, setCustomDimensions] = useState<TagDimension[]>([])
+  // 合併系統維度和用戶自訂維度（從 biography.custom_dimensions 初始化）
+  const [customDimensions, setCustomDimensions] = useState<TagDimension[]>(
+    () => biography.custom_dimensions || []
+  )
+  // 用戶為系統維度新增的自訂標籤（從 biography.custom_tags 初始化）
+  const [customTagsForSystemDimensions, setCustomTagsForSystemDimensions] = useState<TagOption[]>(
+    () => biography.custom_tags || []
+  )
   const [customOneLinerQuestions, setCustomOneLinerQuestions] = useState<OneLinerQuestion[]>([])
   const [customStoryQuestions, setCustomStoryQuestions] = useState<StoryQuestion[]>([])
 
-  // 所有維度（系統 + 自訂）
-  const allTagDimensions = useMemo(
-    () => [...tagDimensions, ...customDimensions],
-    [tagDimensions, customDimensions]
-  )
+  // 所有維度（系統 + 自訂），並將用戶為系統維度新增的自訂標籤合併進去
+  const allTagDimensions = useMemo(() => {
+    // 將用戶自訂標籤合併到對應的系統維度
+    const mergedSystemDimensions = tagDimensions.map((dim) => {
+      const customTags = customTagsForSystemDimensions.filter(
+        (tag) => tag.dimension_id === dim.id
+      )
+      if (customTags.length > 0) {
+        return {
+          ...dim,
+          options: [...dim.options, ...customTags],
+        }
+      }
+      return dim
+    })
+    return [...mergedSystemDimensions, ...customDimensions]
+  }, [tagDimensions, customDimensions, customTagsForSystemDimensions])
   // 所有一句話問題（系統 + 自訂）
   const allOneLinerQuestions = [...oneLinerQuestions, ...customOneLinerQuestions]
   // 所有故事問題（系統 + 自訂）
@@ -125,6 +143,22 @@ export function ProfileEditor({
       element.scrollIntoView({ behavior: 'smooth', block: 'start' })
     }
   }, [])
+
+  // 同步 biography.custom_tags 到 customTagsForSystemDimensions
+  // 當 biography 從父組件更新時（例如初始載入或重新載入）
+  // 使用 JSON.stringify 進行深度比較，避免因陣列引用變化導致不必要的更新
+  const customTagsJson = JSON.stringify(biography.custom_tags || [])
+  useEffect(() => {
+    const parsed = JSON.parse(customTagsJson) as TagOption[]
+    setCustomTagsForSystemDimensions(parsed)
+  }, [customTagsJson])
+
+  // 同步 biography.custom_dimensions 到 customDimensions
+  const customDimensionsJson = JSON.stringify(biography.custom_dimensions || [])
+  useEffect(() => {
+    const parsed = JSON.parse(customDimensionsJson) as TagDimension[]
+    setCustomDimensions(parsed)
+  }, [customDimensionsJson])
 
   // Auto-save with debounce
   const [pendingChanges, setPendingChanges] = useState(false)
@@ -230,16 +264,6 @@ export function ProfileEditor({
     const dimensionId = tag.dimension_id
     const dimension = allTagDimensions.find((d) => d.id === dimensionId)
     if (dimension) {
-      // 如果是用戶自訂維度，更新該維度
-      if (dimension.source === 'user') {
-        setCustomDimensions((prev) =>
-          prev.map((d) =>
-            d.id === dimensionId
-              ? { ...d, options: [...d.options, tag] }
-              : d
-          )
-        )
-      }
       // 自動選中新增的標籤
       const otherTags = biography.tags.filter((t) => {
         const dim = allTagDimensions.find((d) =>
@@ -258,10 +282,26 @@ export function ProfileEditor({
         ...currentDimensionTags,
         { tag_id: tag.id, source: 'user' as const },
       ]
-      handleChange({ tags: newTags })
+
+      // 根據維度來源決定如何儲存自訂標籤
+      if (dimension.source === 'user') {
+        // 用戶自訂維度：更新該維度的 options 並同步到 biography.custom_dimensions
+        const newCustomDimensions = customDimensions.map((d) =>
+          d.id === dimensionId
+            ? { ...d, options: [...d.options, tag] }
+            : d
+        )
+        setCustomDimensions(newCustomDimensions)
+        handleChange({ tags: newTags, custom_dimensions: newCustomDimensions })
+      } else {
+        // 系統維度：將標籤加入 customTagsForSystemDimensions 並同步到 biography.custom_tags
+        const newCustomTags = [...customTagsForSystemDimensions, tag]
+        setCustomTagsForSystemDimensions(newCustomTags)
+        handleChange({ tags: newTags, custom_tags: newCustomTags })
+      }
     }
     setCustomTagModalOpen(false)
-  }, [allTagDimensions, biography.tags, handleChange])
+  }, [allTagDimensions, biography.tags, customDimensions, customTagsForSystemDimensions, handleChange])
 
   // Handle custom dimension modal
   const handleAddCustomDimension = useCallback(() => {
@@ -269,9 +309,11 @@ export function ProfileEditor({
   }, [])
 
   const handleSaveCustomDimension = useCallback((dimension: TagDimension) => {
-    setCustomDimensions((prev) => [...prev, dimension])
+    const newCustomDimensions = [...customDimensions, dimension]
+    setCustomDimensions(newCustomDimensions)
+    handleChange({ custom_dimensions: newCustomDimensions })
     setCustomDimensionModalOpen(false)
-  }, [])
+  }, [customDimensions, handleChange])
 
   // Handle custom one-liner modal
   const handleAddCustomOneLiner = useCallback(() => {

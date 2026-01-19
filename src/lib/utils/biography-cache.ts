@@ -134,6 +134,18 @@ export const ONE_LINER_QUESTIONS: Record<string, string> = {
   climbing_style_desc: '你的攀岩風格',
 }
 
+/** 故事問題 ID 對應的顯示文字 */
+export const STORY_QUESTIONS: Record<string, string> = {
+  climbing_origin_story: '你與攀岩的故事',
+  memorable_route: '最難忘的一條路線',
+  climbing_philosophy: '攀岩教會你的事',
+  community_story: '岩友之間的故事',
+  injury_recovery: '受傷與復原的經歷',
+}
+
+/** 卡片故事內容截斷長度 */
+const CARD_STORY_MAX_LENGTH = 100
+
 /** 卡片顯示的優先問題順序 */
 const CARD_QUESTION_PRIORITY = [
   'climbing_meaning',
@@ -152,20 +164,33 @@ interface OneLinersData {
   [key: string]: OneLinerData | undefined
 }
 
-export interface SelectedOneLiner {
+interface StoryData {
+  content: string
+  visibility?: string
+}
+
+interface StoriesData {
+  [key: string]: StoryData | undefined
+}
+
+export interface SelectedCardContent {
   question: string
   answer: string
+  questionId: string
 }
 
 /**
- * 從 one_liners_data 中選擇一個有回答的問題
- * 使用 ID 的 hash 來穩定選擇，確保同一用戶每次顯示相同的問題
+ * 從 one_liners_data 和 stories_data 中隨機選擇一個問題
+ * 避免與已使用的問題重複
+ * @param usedQuestionIds - 已使用的問題 ID 集合，用於避免卡片間重複
  */
-export function selectOneLiner(
+export function selectCardContent(
   id: string,
   oneLinersJson: string | null | undefined,
+  storiesJson: string | null | undefined,
+  usedQuestionIds: Set<string> = new Set(),
   fallbackMeaning?: string | null
-): SelectedOneLiner | null {
+): SelectedCardContent | null {
   // 解析 one_liners_data
   let oneLiners: OneLinersData | null = null
   if (oneLinersJson) {
@@ -176,36 +201,70 @@ export function selectOneLiner(
     }
   }
 
-  // 收集所有有回答的問題
-  const answeredQuestions: { key: string; answer: string }[] = []
+  // 解析 stories_data
+  let stories: StoriesData | null = null
+  if (storiesJson) {
+    try {
+      stories = JSON.parse(storiesJson) as StoriesData
+    } catch {
+      stories = null
+    }
+  }
 
+  // 收集所有有回答的問題（排除已使用的）
+  const availableContent: { key: string; question: string; answer: string }[] = []
+
+  // 從 one_liners 收集
   for (const key of CARD_QUESTION_PRIORITY) {
+    if (usedQuestionIds.has(key)) continue
     const data = oneLiners?.[key]
     if (data?.answer && data.answer.trim()) {
-      answeredQuestions.push({ key, answer: data.answer })
+      availableContent.push({
+        key,
+        question: ONE_LINER_QUESTIONS[key] || '攀岩對你來說是什麼？',
+        answer: data.answer,
+      })
     }
   }
 
-  // 如果 one_liners_data 沒有資料，檢查 fallback 的 climbing_meaning
-  if (answeredQuestions.length === 0 && fallbackMeaning?.trim()) {
-    return {
-      question: ONE_LINER_QUESTIONS.climbing_meaning,
-      answer: fallbackMeaning,
+  // 從 stories 收集（截取指定長度）
+  if (stories) {
+    for (const [key, data] of Object.entries(stories)) {
+      if (usedQuestionIds.has(key)) continue
+      if (data?.content && data.content.trim()) {
+        const truncated = data.content.length > CARD_STORY_MAX_LENGTH
+          ? data.content.slice(0, CARD_STORY_MAX_LENGTH) + '...'
+          : data.content
+        availableContent.push({
+          key,
+          question: STORY_QUESTIONS[key] || '攀岩故事',
+          answer: truncated,
+        })
+      }
     }
   }
 
-  // 沒有任何回答
-  if (answeredQuestions.length === 0) {
+  // 如果沒有可用內容，嘗試 fallback
+  if (availableContent.length === 0) {
+    if (fallbackMeaning?.trim() && !usedQuestionIds.has('climbing_meaning_fallback')) {
+      return {
+        question: ONE_LINER_QUESTIONS.climbing_meaning,
+        answer: fallbackMeaning,
+        questionId: 'climbing_meaning_fallback',
+      }
+    }
     return null
   }
 
-  // 使用 ID hash 穩定選擇一個問題
+  // 使用 ID hash 選擇，確保同一用戶顯示固定的內容
   const hash = id.split('').reduce((acc, char) => acc + char.charCodeAt(0), 0)
-  const selected = answeredQuestions[hash % answeredQuestions.length]
+  const index = hash % availableContent.length
+  const selected = availableContent[index]
 
   return {
-    question: ONE_LINER_QUESTIONS[selected.key] || '攀岩對你來說是什麼？',
+    question: selected.question,
     answer: selected.answer,
+    questionId: selected.key,
   }
 }
 

@@ -4,6 +4,9 @@ import { useMemo } from 'react'
 import { motion } from 'framer-motion'
 import { BiographyV2 } from '@/lib/types/biography-v2'
 
+/** 預設的攀岩意義文字 */
+const DEFAULT_CLIMBING_MEANING = '這題還在想，等我爬完這條再說'
+
 interface ChapterMeaningProps {
   person: BiographyV2 | null
 }
@@ -20,7 +23,9 @@ export function ChapterMeaning({ person }: ChapterMeaningProps) {
     return item?.answer || null
   }, [person?.one_liners])
 
-  if (!climbingMeaning) return null
+  // 預設內容
+  const displayMeaning = climbingMeaning || DEFAULT_CLIMBING_MEANING
+  const isDefault = !climbingMeaning
 
   return (
     <motion.section
@@ -43,8 +48,8 @@ export function ChapterMeaning({ person }: ChapterMeaningProps) {
           <span className="absolute -left-4 -top-4 text-6xl bg-brand-accent/30">
             &ldquo;
           </span>
-          <p className="px-8 text-xl italic leading-relaxed text-gray-800">
-            {climbingMeaning}
+          <p className={`px-8 text-xl italic leading-relaxed ${isDefault ? 'text-gray-400' : 'text-gray-800'}`}>
+            {displayMeaning}
           </p>
           <span className="absolute -bottom-8 -right-4 text-6xl bg-brand-accent/30">
             &rdquo;

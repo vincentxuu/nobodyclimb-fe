@@ -85,8 +85,11 @@ export function ProfileEditorV2Wrapper({ className }: ProfileEditorV2WrapperProp
         favorite_route_type: bio.favorite_route_types ? bio.favorite_route_types.join(', ') : undefined,
         social_links: bio.social_links ? JSON.stringify(bio.social_links) : undefined,
         visibility: bio.visibility ?? undefined,
-        // V2 資料欄位
-        tags_data: JSON.stringify(bio.tags),
+        // V2 資料欄位（使用 TagsDataStorage 格式，包含 custom_tags）
+        tags_data: JSON.stringify({
+          selections: bio.tags,
+          custom_tags: bio.custom_tags,
+        }),
         one_liners_data: JSON.stringify(
           bio.one_liners.reduce((acc, item) => {
             acc[item.question_id] = { answer: item.answer, visibility: 'public' }
