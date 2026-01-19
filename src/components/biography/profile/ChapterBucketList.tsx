@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect, useCallback, useMemo } from 'react'
-import { Loader2 } from 'lucide-react'
+import { Loader2, Lock } from 'lucide-react'
 import { BucketListItem } from '@/lib/types'
 import { BiographyV2 } from '@/lib/types/biography-v2'
 import { bucketListService } from '@/lib/api/services'
@@ -94,10 +94,11 @@ export function ChapterBucketList({ person, isOwner: _isOwner }: ChapterBucketLi
           </>
         ) : (
           /* 沒有資料時的預設內容 */
-          <div className="flex flex-col items-center justify-center py-12 text-center">
-            <p className="text-lg text-gray-500">
-              {person.name} 的攀岩人生清單正在醞釀中...
-            </p>
+          <div className="flex flex-col items-center justify-center py-12 text-center" data-placeholder="true">
+            <div className="flex items-center gap-2 text-lg text-gray-400">
+              <Lock size={18} />
+              <span>{person.name} 的攀岩人生清單正在醞釀中...</span>
+            </div>
             <p className="mt-2 text-sm text-gray-400">
               每個攀岩者都有屬於自己的目標與夢想
             </p>
