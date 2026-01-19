@@ -20,11 +20,15 @@ account_id = "1ff43f0d4c3ad3bd98ce5ab767546a68"
 
 name = "nobodyclimb-api-preview"
 
+routes = [
+  { pattern = "api-preview.nobodyclimb.cc/*", zone_name = "nobodyclimb.cc" }
+]
+
  
 
 [env.preview.vars]
 
-CORS_ORIGIN = "http://localhost:3000"
+CORS_ORIGIN = "https://nobodyclimb-fe-preview.vincentxuu.workers.dev,http://localhost:3000"
 
 JWT_ISSUER = "nobodyclimb-api"
 

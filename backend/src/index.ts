@@ -33,13 +33,18 @@ app.use('*', secureHeaders());
 app.use('*', async (c, next) => {
   const corsMiddleware = cors({
     origin: (origin) => {
+      // 解析逗號分隔的 CORS_ORIGIN 環境變數
+      const envOrigins = c.env.CORS_ORIGIN?.split(',').map((o) => o.trim()) || [];
+
       // 允許沒有 origin 的請求 (如 server-to-server 或同源請求)
-      if (!origin) return c.env.CORS_ORIGIN;
+      if (!origin) return null;
 
       const allowedOrigins = [
-        c.env.CORS_ORIGIN,
+        ...envOrigins,
         // 支援 www 子網域
-        c.env.CORS_ORIGIN?.replace('https://', 'https://www.'),
+        ...envOrigins
+          .filter((o) => o.startsWith('https://') && o.includes('nobodyclimb.cc'))
+          .map((o) => o.replace('https://', 'https://www.')),
         'http://localhost:3000',
         'http://127.0.0.1:3000',
       ].filter(Boolean);
