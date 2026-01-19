@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState, useCallback, useRef } from 'react'
+import { useEffect, useState, useCallback, useRef, useMemo } from 'react'
 import Link from 'next/link'
 import Image from 'next/image'
 import { motion } from 'framer-motion'
@@ -16,16 +16,55 @@ import {
   cacheHomeBiographies,
   isHomeBiographiesCacheExpired,
   getDefaultQuote,
-  selectOneLiner,
+  selectCardContent,
+  SelectedCardContent,
 } from '@/lib/utils/biography-cache'
 
-function ClimberCard({ person }: { person: Biography }) {
+interface ClimberCardProps {
+  person: Biography
+  selectedContent: SelectedCardContent | null
+}
+
+// 卡片網格組件，預先計算每張卡片的內容
+function BiographyGrid({ biographies }: { biographies: Biography[] }) {
+  // 使用 reduce 避免 mutation，確保純函數
+  const biographiesWithContent = useMemo(() => {
+    const result = biographies.reduce<{
+      items: Array<{ person: Biography; content: ReturnType<typeof selectCardContent> }>
+      usedIds: string[]
+    }>(
+      (acc, person) => {
+        const usedQuestionIds = new Set(acc.usedIds)
+        const content = selectCardContent(
+          person.id,
+          person.one_liners_data,
+          person.stories_data,
+          usedQuestionIds,
+          person.climbing_meaning
+        )
+        return {
+          items: [...acc.items, { person, content }],
+          usedIds: content?.questionId ? [...acc.usedIds, content.questionId] : acc.usedIds,
+        }
+      },
+      { items: [], usedIds: [] }
+    )
+    return result.items
+  }, [biographies])
+
+  return (
+    <div className="mt-8 grid grid-cols-1 gap-6 md:grid-cols-3">
+      {biographiesWithContent.map(({ person, content }) => (
+        <ClimberCard key={person.id} person={person} selectedContent={content} />
+      ))}
+    </div>
+  )
+}
+
+function ClimberCard({ person, selectedContent }: ClimberCardProps) {
   const climbingYears = person.climbing_start_year
     ? new Date().getFullYear() - parseInt(person.climbing_start_year)
     : null
-
-  // 從 one_liners_data 選擇一個有回答的問題
-  const selectedOneLiner = selectOneLiner(person.id, person.one_liners_data, person.climbing_meaning)
 
   return (
     <motion.div
@@ -39,16 +78,16 @@ function ClimberCard({ person }: { person: Biography }) {
           <CardContent className="p-6">
             <div className="mb-4 space-y-2">
               <p className="text-xs text-[#8E8C8C]">
-                {selectedOneLiner?.question || '攀岩對你來說是什麼？'}
+                {selectedContent?.question || '攀岩對你來說是什麼？'}
               </p>
               <div className="relative">
                 <p className={`line-clamp-3 text-base leading-relaxed ${
-                  selectedOneLiner
+                  selectedContent
                     ? 'font-medium text-[#1B1A1A]'
                     : 'italic text-[#8E8C8C]'
                 }`}>
-                  {selectedOneLiner
-                    ? `"${selectedOneLiner.answer}"`
+                  {selectedContent
+                    ? `"${selectedContent.answer}"`
                     : getDefaultQuote(person.id)}
                 </p>
               </div>
@@ -78,7 +117,7 @@ function ClimberCard({ person }: { person: Biography }) {
                 <div className="flex-1">
                   <h3 className="text-sm font-medium text-[#1B1A1A]">{person.name}</h3>
                   <p className="text-xs text-[#8E8C8C]">
-                    攀岩 {climbingYears !== null ? `${climbingYears}年` : '年資未知'}
+                    {climbingYears !== null ? `攀岩 ${climbingYears}年` : '從入坑那天起算'}
                   </p>
                 </div>
               </div>
@@ -158,11 +197,7 @@ export function BiographySection() {
             <p className="text-lg text-[#6D6C6C]">目前沒有精選人物誌</p>
           </div>
         ) : (
-          <div className="mt-8 grid grid-cols-1 gap-6 md:grid-cols-3">
-            {biographies.map((person) => (
-              <ClimberCard key={person.id} person={person} />
-            ))}
-          </div>
+          <BiographyGrid biographies={biographies} />
         )}
 
         <div className="mt-10 flex flex-col items-center justify-center gap-3 sm:flex-row sm:gap-4">

@@ -1,6 +1,6 @@
 'use client'
 
-import React, { useEffect, useState } from 'react'
+import React, { useEffect, useState, useMemo } from 'react'
 import Link from 'next/link'
 import Image from 'next/image'
 import { motion } from 'framer-motion'
@@ -10,17 +10,15 @@ import { biographyService } from '@/lib/api/services'
 import { Biography } from '@/lib/types'
 import { calculateClimbingYears } from '@/lib/utils/biography'
 import { isSvgUrl } from '@/lib/utils/image'
-import { getDefaultQuote, selectOneLiner } from '@/lib/utils/biography-cache'
+import { getDefaultQuote, selectCardContent, SelectedCardContent } from '@/lib/utils/biography-cache'
 
 interface ProfileCardProps {
   person: Biography
+  selectedContent: SelectedCardContent | null
 }
 
-function ProfileCard({ person }: ProfileCardProps) {
+function ProfileCard({ person, selectedContent }: ProfileCardProps) {
   const climbingYears = calculateClimbingYears(person.climbing_start_year)
-
-  // 從 one_liners_data 選擇一個有回答的問題
-  const selectedOneLiner = selectOneLiner(person.id, person.one_liners_data, person.climbing_meaning)
 
   return (
     <motion.div
@@ -34,16 +32,16 @@ function ProfileCard({ person }: ProfileCardProps) {
           <CardContent className="p-6">
             <div className="mb-4 space-y-2">
               <p className="text-xs text-[#8E8C8C]">
-                {selectedOneLiner?.question || '攀岩對你來說是什麼？'}
+                {selectedContent?.question || '攀岩對你來說是什麼？'}
               </p>
               <div className="relative">
                 <p className={`line-clamp-3 text-base leading-relaxed ${
-                  selectedOneLiner
+                  selectedContent
                     ? 'font-medium text-[#1B1A1A]'
                     : 'italic text-[#8E8C8C]'
                 }`}>
-                  {selectedOneLiner
-                    ? `"${selectedOneLiner.answer}"`
+                  {selectedContent
+                    ? `"${selectedContent.answer}"`
                     : getDefaultQuote(person.id)}
                 </p>
               </div>
@@ -73,7 +71,7 @@ function ProfileCard({ person }: ProfileCardProps) {
                 <div className="flex-1">
                   <h3 className="text-sm font-medium text-[#1B1A1A]">{person.name}</h3>
                   <p className="text-xs text-[#8E8C8C]">
-                    攀岩 {climbingYears !== null ? `${climbingYears}年` : '年資未知'}
+                    {climbingYears !== null ? `攀岩 ${climbingYears}年` : '從入坑那天起算'}
                   </p>
                 </div>
               </div>
@@ -127,6 +125,33 @@ export function RecommendedProfiles({ currentId, limit = 3 }: RecommendedProfile
     loadProfiles()
   }, [currentId, limit])
 
+  // 預先計算每張卡片的內容，確保問題不重複（使用 reduce 避免 mutation）
+  // 必須在所有 early return 之前調用 useMemo
+  const profilesWithContent = useMemo(() => {
+    if (profiles.length === 0) return []
+    const result = profiles.reduce<{
+      items: Array<{ person: Biography; content: ReturnType<typeof selectCardContent> }>
+      usedIds: string[]
+    }>(
+      (acc, person) => {
+        const usedQuestionIds = new Set(acc.usedIds)
+        const content = selectCardContent(
+          person.id,
+          person.one_liners_data,
+          person.stories_data,
+          usedQuestionIds,
+          person.climbing_meaning
+        )
+        return {
+          items: [...acc.items, { person, content }],
+          usedIds: content?.questionId ? [...acc.usedIds, content.questionId] : acc.usedIds,
+        }
+      },
+      { items: [], usedIds: [] }
+    )
+    return result.items
+  }, [profiles])
+
   if (loading) {
     return (
       <div className="flex min-h-[200px] items-center justify-center">
@@ -141,8 +166,8 @@ export function RecommendedProfiles({ currentId, limit = 3 }: RecommendedProfile
 
   return (
     <div className="grid grid-cols-1 gap-6 md:grid-cols-3">
-      {profiles.map((person) => (
-        <ProfileCard key={person.id} person={person} />
+      {profilesWithContent.map(({ person, content }) => (
+        <ProfileCard key={person.id} person={person} selectedContent={content} />
       ))}
     </div>
   )

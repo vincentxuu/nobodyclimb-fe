@@ -1,6 +1,6 @@
 'use client'
 
-import React, { useEffect, useState, useCallback, useRef } from 'react'
+import React, { useEffect, useState, useCallback, useRef, useMemo } from 'react'
 import Link from 'next/link'
 import Image from 'next/image'
 import { motion } from 'framer-motion'
@@ -15,7 +15,8 @@ import {
   cacheBiographyList,
   isBiographyListCacheExpired,
   getDefaultQuote,
-  selectOneLiner,
+  selectCardContent,
+  SelectedCardContent,
 } from '@/lib/utils/biography-cache'
 
 // 解析 basic_info_data JSON，優先使用其中的值
@@ -40,9 +41,10 @@ function parseBasicInfoData(json: string | null | undefined): BasicInfoData | nu
 // 卡片組件
 interface BiographyCardProps {
   person: Biography
+  selectedContent: SelectedCardContent | null
 }
 
-function BiographyCard({ person }: BiographyCardProps) {
+function BiographyCard({ person, selectedContent }: BiographyCardProps) {
   // 優先使用 basic_info_data 中的資料
   const basicInfo = parseBasicInfoData(person.basic_info_data)
   const displayName = basicInfo?.name || person.name
@@ -50,9 +52,6 @@ function BiographyCard({ person }: BiographyCardProps) {
   const climbingYears = calculateClimbingYears(
     climbingStartYear != null ? String(climbingStartYear) : null
   )
-
-  // 從 one_liners_data 選擇一個有回答的問題
-  const selectedOneLiner = selectOneLiner(person.id, person.one_liners_data, person.climbing_meaning)
 
   return (
     <motion.div
@@ -66,16 +65,16 @@ function BiographyCard({ person }: BiographyCardProps) {
           <CardContent className="p-6">
             <div className="mb-4 space-y-2">
               <p className="text-xs text-[#8E8C8C]">
-                {selectedOneLiner?.question || '攀岩對你來說是什麼？'}
+                {selectedContent?.question || '攀岩對你來說是什麼？'}
               </p>
               <div className="relative">
                 <p className={`line-clamp-3 text-base leading-relaxed ${
-                  selectedOneLiner
+                  selectedContent
                     ? 'font-medium text-[#1B1A1A]'
                     : 'italic text-[#8E8C8C]'
                 }`}>
-                  {selectedOneLiner
-                    ? `"${selectedOneLiner.answer}"`
+                  {selectedContent
+                    ? `"${selectedContent.answer}"`
                     : getDefaultQuote(person.id)}
                 </p>
               </div>
@@ -105,7 +104,7 @@ function BiographyCard({ person }: BiographyCardProps) {
                 <div className="flex-1">
                   <h3 className="text-sm font-medium text-[#1B1A1A]">{displayName}</h3>
                   <p className="text-xs text-[#8E8C8C]">
-                    攀岩 {climbingYears !== null ? `${climbingYears}年` : '年資未知'}
+                    {climbingYears !== null ? `攀岩 ${climbingYears}年` : '從入坑那天起算'}
                   </p>
                 </div>
               </div>
@@ -250,6 +249,33 @@ export function BiographyList({ searchTerm, onTotalChange, onLoadMoreChange }: B
     return () => clearTimeout(debounceTimer)
   }, [searchTerm, loadBiographies])
 
+  // 預先計算每張卡片的內容，確保問題不重複（使用 reduce 避免 mutation）
+  // 必須在所有 early return 之前調用 useMemo
+  const biographiesWithContent = useMemo(() => {
+    if (biographies.length === 0) return []
+    const result = biographies.reduce<{
+      items: Array<{ person: Biography; content: ReturnType<typeof selectCardContent> }>
+      usedIds: string[]
+    }>(
+      (acc, person) => {
+        const usedQuestionIds = new Set(acc.usedIds)
+        const content = selectCardContent(
+          person.id,
+          person.one_liners_data,
+          person.stories_data,
+          usedQuestionIds,
+          person.climbing_meaning
+        )
+        return {
+          items: [...acc.items, { person, content }],
+          usedIds: content?.questionId ? [...acc.usedIds, content.questionId] : acc.usedIds,
+        }
+      },
+      { items: [], usedIds: [] }
+    )
+    return result.items
+  }, [biographies])
+
   if (loading) {
     return (
       <div className="flex min-h-[300px] items-center justify-center">
@@ -279,8 +305,8 @@ export function BiographyList({ searchTerm, onTotalChange, onLoadMoreChange }: B
   return (
     <>
       <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
-        {biographies.map((person) => (
-          <BiographyCard key={person.id} person={person} />
+        {biographiesWithContent.map(({ person, content }) => (
+          <BiographyCard key={person.id} person={person} selectedContent={content} />
         ))}
       </div>
       {loadingMore && (

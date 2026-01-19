@@ -317,11 +317,11 @@ export function BasicInfoSection({
               </option>
             ))}
           </select>
-          {climbingYearsDisplay !== null && climbingYearsDisplay >= 0 && (
-            <span className="text-[#6D6C6C] text-sm">
-              約 {climbingYearsDisplay} 年經驗
-            </span>
-          )}
+          <span className="text-[#6D6C6C] text-sm">
+            {climbingYearsDisplay !== null && climbingYearsDisplay >= 0
+              ? `約 ${climbingYearsDisplay} 年經驗`
+              : '從入坑那天起算'}
+          </span>
         </div>
         <p className="text-xs text-[#8E8C8C]">選擇你開始攀岩的年份，系統會自動計算年資</p>
       </div>
