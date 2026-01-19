@@ -1,5 +1,8 @@
 import axios, { AxiosError } from 'axios'
-import { API_BASE_URL, API_TIMEOUT } from '../constants'
+import { API_BASE_URL } from '../constants'
+
+// API 超時設定 (10 秒)
+const API_TIMEOUT = 10000
 import { ApiResponse, RefreshTokenResponse } from '../types'
 import {
   getAccessToken,
@@ -121,7 +124,7 @@ apiClient.interceptors.response.use(
         removeTokens()
 
         // 如果在瀏覽器環境且不是請求刷新 Token 的請求
-        if (typeof window !== 'undefined' && !originalRequest.url.includes('refresh-token')) {
+        if (typeof window !== 'undefined' && !originalRequest.url?.includes('refresh-token')) {
           // 重定向到登入頁面
           window.location.href = '/auth/login'
         }
