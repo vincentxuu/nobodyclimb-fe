@@ -2,9 +2,29 @@
 -- Author: nobodyclimb (staff account)
 -- Date: 2026-01-19
 
--- First, create the nobodyclimb staff user if not exists
-INSERT OR IGNORE INTO users (id, email, username, display_name, avatar_url, password_hash, role, is_active, email_verified, created_at, updated_at)
-VALUES (
+-- Clean up existing posts with these IDs (if any) to avoid conflicts
+DELETE FROM post_tags WHERE post_id IN (
+  'post_competition_ifsc_world_cup',
+  'post_competition_national_federations',
+  'post_competition_olympic_climbing',
+  'post_competition_speed_climbing_records',
+  'post_competition_lead_climbing',
+  'post_competition_bouldering'
+);
+
+DELETE FROM posts WHERE id IN (
+  'post_competition_ifsc_world_cup',
+  'post_competition_national_federations',
+  'post_competition_olympic_climbing',
+  'post_competition_speed_climbing_records',
+  'post_competition_lead_climbing',
+  'post_competition_bouldering'
+);
+
+-- Create the nobodyclimb staff user if not exists
+-- First check if user with this username exists, if not create it
+INSERT INTO users (id, email, username, display_name, avatar_url, password_hash, role, is_active, email_verified, created_at, updated_at)
+SELECT
   'nobodyclimb_staff_account_001',
   'staff@nobodyclimb.cc',
   'nobodyclimb',
@@ -16,13 +36,13 @@ VALUES (
   1,
   datetime('now'),
   datetime('now')
-);
+WHERE NOT EXISTS (SELECT 1 FROM users WHERE username = 'nobodyclimb');
 
 -- 1. IFSC 世界盃攀岩賽事完整介紹
 INSERT INTO posts (id, author_id, title, slug, excerpt, content, cover_image, category, status, is_featured, published_at, created_at, updated_at)
 VALUES (
   'post_competition_ifsc_world_cup',
-  'nobodyclimb_staff_account_001',
+  (SELECT id FROM users WHERE username = 'nobodyclimb'),
   'IFSC 世界盃攀岩賽事完整介紹',
   'ifsc-world-cup-complete-guide',
   '國際運動攀登總會（IFSC）主辦的世界盃是攀岩界最高等級的賽事之一。本文完整介紹三大競技項目、2025-2026 賽季亮點，以及如何觀看賽事直播。',
@@ -122,7 +142,7 @@ INSERT INTO post_tags (post_id, tag) VALUES ('post_competition_ifsc_world_cup', 
 INSERT INTO posts (id, author_id, title, slug, excerpt, content, cover_image, category, status, is_featured, published_at, created_at, updated_at)
 VALUES (
   'post_competition_national_federations',
-  'nobodyclimb_staff_account_001',
+  (SELECT id FROM users WHERE username = 'nobodyclimb'),
   '各國攀岩賽事與協會介紹',
   'national-climbing-federations-guide',
   '想了解國際攀岩生態？本文介紹北美、歐洲、亞洲、大洋洲的主要攀岩協會與賽事系統，以及如何參與國際賽事的指南。',
@@ -555,7 +575,7 @@ INSERT INTO post_tags (post_id, tag) VALUES ('post_competition_national_federati
 INSERT INTO posts (id, author_id, title, slug, excerpt, content, cover_image, category, status, is_featured, published_at, created_at, updated_at)
 VALUES (
   'post_competition_olympic_climbing',
-  'nobodyclimb_staff_account_001',
+  (SELECT id FROM users WHERE username = 'nobodyclimb'),
   '奧運攀岩項目完整解析',
   'olympic-climbing-complete-guide',
   '攀岩自東京奧運成為正式項目後備受矚目。本文詳細介紹攀岩進入奧運的歷程、東京與巴黎的賽制差異、各項目規則，以及台灣選手的奧運之路。',
@@ -717,7 +737,7 @@ INSERT INTO post_tags (post_id, tag) VALUES ('post_competition_olympic_climbing'
 INSERT INTO posts (id, author_id, title, slug, excerpt, content, cover_image, category, status, is_featured, published_at, created_at, updated_at)
 VALUES (
   'post_competition_speed_climbing_records',
-  'nobodyclimb_staff_account_001',
+  (SELECT id FROM users WHERE username = 'nobodyclimb'),
   '速度攀岩世界紀錄史',
   'speed-climbing-world-records-history',
   '速度攀岩是攀岩界最純粹的競速運動。本文記錄男女世界紀錄的演進歷程、各國強權分析、技術解密，以及人體極限的探討。',
@@ -890,7 +910,7 @@ INSERT INTO post_tags (post_id, tag) VALUES ('post_competition_speed_climbing_re
 INSERT INTO posts (id, author_id, title, slug, excerpt, content, cover_image, category, status, is_featured, published_at, created_at, updated_at)
 VALUES (
   'post_competition_lead_climbing',
-  'nobodyclimb_staff_account_001',
+  (SELECT id FROM users WHERE username = 'nobodyclimb'),
   '先鋒攀登深度介紹：技術、策略與傳奇選手',
   'lead-climbing-complete-guide',
   '先鋒攀登是攀岩競技中最具技術性與策略性的項目。本文深入介紹先鋒攀登的歷史演進、比賽規則、技術要素、傳奇選手，以及如何欣賞這項運動。',
@@ -1035,7 +1055,7 @@ INSERT INTO post_tags (post_id, tag) VALUES ('post_competition_lead_climbing', '
 INSERT INTO posts (id, author_id, title, slug, excerpt, content, cover_image, category, status, is_featured, published_at, created_at, updated_at)
 VALUES (
   'post_competition_bouldering',
-  'nobodyclimb_staff_account_001',
+  (SELECT id FROM users WHERE username = 'nobodyclimb'),
   '抱石深度介紹：解題藝術與爆發力的完美結合',
   'bouldering-complete-guide',
   '抱石是近年最受歡迎的攀岩項目，強調爆發力、創意與解題能力。本文深入介紹抱石的歷史、比賽規則、技術特點、傳奇選手，以及為何這項運動如此吸引人。',
