@@ -6,6 +6,31 @@ const MAX_FILE_SIZE = 500 * 1024 // 500KB
 const ALLOWED_TYPES = ['image/jpeg', 'image/png', 'image/webp', 'image/gif']
 
 /**
+ * 生成預設頭像 URL（使用 DiceBear notionists 風格）
+ * 用名字當 seed 確保同一人每次都是同頭像
+ * @param name 用戶名字（用作 seed）
+ * @param size 頭像尺寸（預設 200）
+ * @returns DiceBear 頭像 URL
+ */
+export function getDefaultAvatarUrl(name: string, size: number = 200): string {
+  const seed = encodeURIComponent(name || 'anonymous')
+  return `https://api.dicebear.com/7.x/notionists/svg?seed=${seed}&size=${size}`
+}
+
+/**
+ * 生成預設封面照 URL（使用 Lorem Picsum）
+ * 用 id 或名字當 seed 確保同一人物誌每次都是同一張封面
+ * @param seed 唯一識別碼（用作 seed，可以是 id 或名字）
+ * @param width 封面寬度（預設 1920）
+ * @param height 封面高度（預設 600）
+ * @returns Lorem Picsum 封面照 URL
+ */
+export function getDefaultCoverUrl(seed: string, width: number = 1920, height: number = 600): string {
+  const safeSeed = encodeURIComponent(seed || 'default')
+  return `https://picsum.photos/seed/${safeSeed}/${width}/${height}`
+}
+
+/**
  * 檢查是否為 SVG 或 DiceBear URL（不需要 Next.js 圖片優化）
  * @param url 圖片 URL
  * @returns 是否應跳過 Next.js Image 優化
