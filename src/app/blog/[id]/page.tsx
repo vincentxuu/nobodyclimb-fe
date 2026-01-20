@@ -2,13 +2,14 @@ import type { Metadata } from 'next'
 import BlogDetailClient from './BlogDetailClient'
 import { SITE_URL, SITE_NAME, SITE_LOGO, OG_IMAGE, API_BASE_URL } from '@/lib/constants'
 
-// 文章資料類型
+// 文章資料類型 (需與 Backend API 回傳欄位一致)
 interface PostData {
   title: string
   excerpt?: string
   content?: string
   cover_image?: string
-  author_name?: string
+  display_name?: string
+  username?: string
   published_at?: string
   updated_at?: string
   tags?: string[]
@@ -57,7 +58,7 @@ function generateArticleJsonLd(post: PostData, id: string) {
     image,
     author: {
       '@type': 'Person',
-      name: post.author_name || SITE_NAME,
+      name: post.display_name || post.username || SITE_NAME,
     },
     publisher: {
       '@type': 'Organization',
@@ -97,12 +98,13 @@ export async function generateMetadata({
   const title = post.title
   const description = post.excerpt || post.content?.substring(0, 160).replace(/<[^>]*>/g, '') || ''
   const image = post.cover_image || OG_IMAGE
+  const authorName = post.display_name || post.username
 
   return {
     title,
     description,
     keywords: post.tags || [],
-    authors: post.author_name ? [{ name: post.author_name }] : undefined,
+    authors: authorName ? [{ name: authorName }] : undefined,
     openGraph: {
       title: `${title} | ${SITE_NAME}`,
       description,
