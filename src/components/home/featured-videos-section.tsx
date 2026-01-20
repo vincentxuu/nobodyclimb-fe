@@ -8,6 +8,7 @@ import { Play, Eye, Loader2 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import VideoPlayer from '@/components/videos/video-player'
 import type { Video } from '@/lib/types'
+import { parseDuration, parseViewCount } from '@/lib/utils/video'
 
 // 輕量版影片資料介面
 interface VideoListItem {
@@ -19,29 +20,6 @@ interface VideoListItem {
   duration: string
   viewCount: string
   category: string
-}
-
-// 解析時長字串為分鐘數
-const parseDuration = (duration: string): number => {
-  const parts = duration.split(':').map(Number)
-  if (parts.length === 2) {
-    return parts[0] // MM:SS -> 返回分鐘數
-  } else if (parts.length === 3) {
-    return parts[0] * 60 + parts[1] // HH:MM:SS -> 轉為分鐘
-  }
-  return 0
-}
-
-// 解析觀看次數字串為數字
-const parseViewCount = (viewCount: string): number => {
-  const value = viewCount.replace(/,/g, '')
-  if (value.endsWith('M')) {
-    return parseFloat(value.slice(0, -1)) * 1000000
-  }
-  if (value.endsWith('K')) {
-    return parseFloat(value.slice(0, -1)) * 1000
-  }
-  return parseInt(value, 10) || 0
 }
 
 // 影片卡片組件

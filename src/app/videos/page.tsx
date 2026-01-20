@@ -13,6 +13,12 @@ import ChannelFilter from '@/components/videos/channel-filter'
 import DurationFilter from '@/components/videos/duration-filter'
 import PopularityFilter from '@/components/videos/popularity-filter'
 import type { Video, VideoCategory, VideoDuration, VideoPopularity } from '@/lib/types'
+import {
+  parseDuration,
+  parseViewCount,
+  getDurationCategory,
+  getPopularityCategory,
+} from '@/lib/utils/video'
 
 // 輕量版影片資料（僅包含列表所需欄位）
 interface VideoListItem {
@@ -38,44 +44,6 @@ interface ChannelIndex {
     chunks: number[]
     count: number
   }
-}
-
-// 解析時長字串為分鐘數
-const parseDuration = (duration: string): number => {
-  const parts = duration.split(':').map(Number)
-  if (parts.length === 2) {
-    return parts[0] // MM:SS -> 返回分鐘數
-  } else if (parts.length === 3) {
-    return parts[0] * 60 + parts[1] // HH:MM:SS -> 轉為分鐘
-  }
-  return 0
-}
-
-// 根據分鐘數取得時長分類
-const getDurationCategory = (minutes: number): VideoDuration => {
-  if (minutes < 5) return 'short'
-  if (minutes < 20) return 'medium'
-  return 'long'
-}
-
-// 解析觀看次數字串為數字
-const parseViewCount = (viewCount: string): number => {
-  const value = viewCount.replace(/,/g, '')
-  if (value.endsWith('M')) {
-    return parseFloat(value.slice(0, -1)) * 1000000
-  }
-  if (value.endsWith('K')) {
-    return parseFloat(value.slice(0, -1)) * 1000
-  }
-  return parseInt(value, 10) || 0
-}
-
-// 根據觀看次數取得熱門程度分類
-const getPopularityCategory = (views: number): VideoPopularity => {
-  if (views >= 1000000) return 'viral'
-  if (views >= 100000) return 'popular'
-  if (views >= 10000) return 'normal'
-  return 'niche'
 }
 
 const VideosPage: React.FC = () => {

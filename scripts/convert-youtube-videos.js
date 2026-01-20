@@ -1,5 +1,6 @@
 const fs = require('fs');
 const path = require('path');
+const { normalizeChannelName } = require('./utils');
 
 function convertYouTubeToVideoType(inputFile, outputFile, channelInfo = {}) {
   // Check if input file exists
@@ -95,25 +96,6 @@ function convertYouTubeToVideoType(inputFile, outputFile, channelInfo = {}) {
     }
   }
   
-  // Function to normalize channel name (handle collaboration videos)
-  function normalizeChannelName(channelName) {
-    if (!channelName) return channelName;
-
-    // Handle " and X more" pattern (e.g., "Five Ten and 2 more")
-    const andMoreMatch = channelName.match(/^(.+?) and \d+ more$/);
-    if (andMoreMatch) {
-      return andMoreMatch[1].trim();
-    }
-
-    // Handle " and OtherChannel" pattern (e.g., "Adam Ondra and MAMMUT")
-    const andMatch = channelName.match(/^(.+?) and .+$/);
-    if (andMatch) {
-      return andMatch[1].trim();
-    }
-
-    return channelName;
-  }
-
   // Function to format upload date
   function formatUploadDate(dateString) {
     if (!dateString) return new Date().toISOString().split('T')[0];
