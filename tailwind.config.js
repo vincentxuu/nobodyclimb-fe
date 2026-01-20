@@ -34,24 +34,58 @@ module.exports = {
         ring: 'hsl(var(--ring))',
         background: 'hsl(var(--background))',
         foreground: 'hsl(var(--foreground))',
+
+        // ========================================
+        // 品牌色彩系統 (Brand Color System)
+        // 詳見 docs/color-system.md
+        // ========================================
+
+        // W&B 灰階系列 (White & Black)
+        wb: {
+          0: '#FFFFFF', // 純白
+          10: '#F5F5F5', // 淺灰背景
+          20: '#EBEAEA', // 邊框灰
+          30: '#DBD8D8', // 淺灰
+          50: '#B6B3B3', // 中灰
+          60: '#8E8C8C', // 灰
+          70: '#6D6C6C', // 深灰（次要文字）
+          90: '#3F3D3D', // 更深灰（hover）
+          100: '#1B1A1A', // 近黑（主要文字）
+        },
+
+        // Yellow 系列（品牌強調色）
+        'brand-yellow': {
+          100: '#FFE70C', // 主要黃色
+          200: '#FA9F17', // 橘黃色
+        },
+
+        // Red 系列（警示/錯誤）
+        'brand-red': {
+          100: '#DA3737', // 紅色
+        },
+
+        // 語意化別名 (Semantic Aliases)
         // 頁面級別顏色
-        'page-bg': '#f5f5f5',
-        'page-content-bg': '#f5f5f5',
-        'text-main': '#1B1A1A',
-        'text-subtle': '#6D6C6C',
+        'page-bg': '#F5F5F5', // wb-10
+        'page-content-bg': '#F5F5F5', // wb-10
+        'text-main': '#1B1A1A', // wb-100
+        'text-subtle': '#6D6C6C', // wb-70
+
         // 表單相關顏色
-        strong: '#3F3D3D', // 用於標籤文字: text-strong
-        subtle: '#B6B3B3', // 用於邊框: border-subtle
-        // 品牌顏色
+        strong: '#3F3D3D', // wb-90，用於標籤文字: text-strong
+        subtle: '#B6B3B3', // wb-50，用於邊框: border-subtle
+
+        // 品牌顏色（向後相容）
         brand: {
-          dark: '#1B1A1A', // 主色調深色
-          'dark-hover': '#3F3D3D', // 深色 hover
-          light: '#dbd8d8', // 淺灰色背景
-          accent: '#FFE70C', // 黃色強調色
-          'accent-light': '#FAF40A', // 黃色亮色版
+          dark: '#1B1A1A', // wb-100 主色調深色
+          'dark-hover': '#3F3D3D', // wb-90 深色 hover
+          light: '#DBD8D8', // wb-30 淺灰色背景
+          accent: '#FFE70C', // brand-yellow-100 黃色強調色
+          'accent-hover': '#FA9F17', // brand-yellow-200 橘黃色 hover
+          red: '#DA3737', // brand-red-100 紅色
           gray: {
-            DEFAULT: '#E5E5E5', // 邊框灰色
-            light: '#F5F5F5', // 淺灰色背景
+            DEFAULT: '#EBEAEA', // wb-20 邊框灰色
+            light: '#F5F5F5', // wb-10 淺灰色背景
           },
         },
         primary: {

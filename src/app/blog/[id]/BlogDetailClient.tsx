@@ -20,18 +20,18 @@ import { ArticleCoverGenerator } from '@/components/shared/ArticleCoverGenerator
 
 // 載入狀態元件
 const LoadingState = () => (
-  <div className="flex min-h-screen items-center justify-center bg-[#F5F5F5]">
-    <Loader2 className="h-8 w-8 animate-spin text-[#6D6C6C]" />
-    <span className="ml-2 text-[#6D6C6C]">載入中...</span>
+  <div className="flex min-h-screen items-center justify-center bg-page-bg">
+    <Loader2 className="h-6 w-6 animate-spin text-wb-70 sm:h-8 sm:w-8" />
+    <span className="ml-2 text-sm text-wb-70 sm:text-base">載入中...</span>
   </div>
 )
 
 // 錯誤狀態元件
 const ErrorState = ({ message }: { message: string }) => (
-  <div className="flex min-h-screen flex-col items-center justify-center bg-[#F5F5F5]">
-    <p className="mb-4 text-lg text-red-600">{message}</p>
+  <div className="flex min-h-screen flex-col items-center justify-center bg-page-bg px-4">
+    <p className="mb-4 text-center text-base text-brand-red sm:text-lg">{message}</p>
     <Link href="/blog">
-      <Button className="bg-brand-dark text-white hover:bg-brand-dark-hover">返回文章列表</Button>
+      <Button className="bg-brand-dark text-wb-0 hover:bg-brand-dark-hover">返回文章列表</Button>
     </Link>
   </div>
 )
@@ -211,10 +211,10 @@ export default function BlogDetailClient() {
     : ''
 
   return (
-    <div className="min-h-screen bg-[#F5F5F5]">
-      <main className="mx-auto max-w-[1440px] px-4 py-8">
+    <div className="min-h-screen bg-page-bg">
+      <main className="mx-auto max-w-[1440px] px-3 py-4 sm:px-4 sm:py-8">
         {/* Breadcrumb */}
-        <div className="mb-8">
+        <div className="mb-4 sm:mb-8">
           <Breadcrumb
             items={[
               { label: '首頁', href: '/' },
@@ -225,53 +225,53 @@ export default function BlogDetailClient() {
         </div>
 
         {/* Content */}
-        <div className="mb-16 grid grid-cols-1 gap-8 lg:grid-cols-[1fr_320px]">
-          <div className="rounded-lg bg-white p-8 lg:p-16">
+        <div className="mb-8 grid grid-cols-1 gap-4 sm:mb-16 sm:gap-8 lg:grid-cols-[1fr_320px]">
+          <div className="rounded-lg bg-wb-0 p-4 sm:p-8 lg:p-16">
             {/* Article Header */}
-            <div className="mb-8 flex flex-col items-start justify-between gap-4 sm:flex-row">
+            <div className="mb-6 flex flex-col items-start justify-between gap-4 sm:mb-8 sm:flex-row">
               <div className="flex-1">
-                <h1 className="mb-3 text-2xl font-medium sm:text-3xl">{article.title}</h1>
-                <div className="flex flex-wrap items-center gap-3">
+                <h1 className="mb-2 text-xl font-medium sm:mb-3 sm:text-2xl md:text-3xl">{article.title}</h1>
+                <div className="flex flex-wrap items-center gap-2 sm:gap-3">
                   {article.tags && article.tags.length > 0 && (
                     <Chip>{article.tags[0]}</Chip>
                   )}
-                  <span className="text-sm text-gray-500">更新日期</span>
-                  <span className="text-sm text-gray-500">{formattedDate}</span>
+                  <span className="text-xs text-wb-70 sm:text-sm">更新日期</span>
+                  <span className="text-xs text-wb-70 sm:text-sm">{formattedDate}</span>
                 </div>
-                <div className="flex items-center gap-4 text-sm text-gray-500">
+                <div className="mt-2 flex items-center gap-3 text-xs text-wb-70 sm:gap-4 sm:text-sm">
                   <span className="flex items-center gap-1">
-                    <Eye size={16} />
+                    <Eye size={14} className="sm:h-4 sm:w-4" />
                     {article.view_count}
                   </span>
                   <button
                     onClick={handleLike}
                     disabled={isLiking}
-                    className={`flex items-center gap-1 ${isLiked ? 'text-emerald-600' : 'text-gray-500 hover:text-gray-700'}`}
+                    className={`flex items-center gap-1 ${isLiked ? 'text-emerald-600' : 'text-wb-70 hover:text-wb-90'}`}
                   >
-                    <Mountain size={16} className={isLiked ? 'fill-emerald-600' : ''} />
+                    <Mountain size={14} className={`sm:h-4 sm:w-4 ${isLiked ? 'fill-emerald-600' : ''}`} />
                     {likeCount > 0 && likeCount}
                   </button>
                   <button
                     onClick={handleBookmark}
                     disabled={isBookmarking}
-                    className={`flex items-center gap-1 ${isBookmarked ? 'text-amber-600' : 'text-gray-500 hover:text-gray-700'}`}
+                    className={`flex items-center gap-1 ${isBookmarked ? 'text-brand-accent-hover' : 'text-wb-70 hover:text-wb-90'}`}
                   >
-                    <Bookmark size={16} className={isBookmarked ? 'fill-amber-600' : ''} />
+                    <Bookmark size={14} className={`sm:h-4 sm:w-4 ${isBookmarked ? 'fill-brand-accent-hover' : ''}`} />
                     {bookmarkCount > 0 && bookmarkCount}
                   </button>
                   <ShareButton
                     title={`${article.title} - NobodyClimb`}
                     description={article.excerpt || ''}
                     variant="ghost"
-                    className="h-auto p-0 text-gray-500 hover:bg-transparent hover:text-gray-700"
-                    iconSize={16}
+                    className="h-auto p-0 text-wb-70 hover:bg-transparent hover:text-wb-90"
+                    iconSize={14}
                   />
                 </div>
               </div>
               {isAuthor && (
                 <Button
                   onClick={() => router.push(`/blog/edit/${id}`)}
-                  className="bg-brand-dark text-white hover:bg-brand-dark-hover"
+                  className="bg-brand-dark text-wb-0 hover:bg-brand-dark-hover"
                 >
                   編輯文章
                 </Button>
@@ -279,7 +279,7 @@ export default function BlogDetailClient() {
             </div>
 
             {/* Main Image */}
-            <div className="relative mb-8 aspect-[16/9] overflow-hidden rounded-lg">
+            <div className="relative mb-6 aspect-[16/9] overflow-hidden rounded-lg sm:mb-8">
               {article.cover_image ? (
                 <Image
                   src={article.cover_image}
@@ -298,24 +298,24 @@ export default function BlogDetailClient() {
             </div>
 
             {/* Article Content */}
-            <div className="space-y-6">
+            <div className="space-y-4 sm:space-y-6">
               {article.excerpt && (
                 <section>
-                  <p className="text-lg text-gray-600 italic">{decodeHtmlEntities(article.excerpt)}</p>
+                  <p className="text-base italic text-wb-70 sm:text-lg">{decodeHtmlEntities(article.excerpt)}</p>
                 </section>
               )}
               <section
-                className="blog-content text-gray-800 [&>p]:mb-4 [&>h1]:text-2xl [&>h1]:font-bold [&>h1]:mb-4 [&>h2]:text-xl [&>h2]:font-bold [&>h2]:mb-3 [&>h3]:text-lg [&>h3]:font-semibold [&>h3]:mb-2 [&>ul]:list-disc [&>ul]:ml-6 [&>ul]:mb-4 [&>ol]:list-decimal [&>ol]:ml-6 [&>ol]:mb-4 [&>blockquote]:border-l-4 [&>blockquote]:border-gray-300 [&>blockquote]:pl-4 [&>blockquote]:italic [&>a]:text-blue-600 [&>a]:underline"
+                className="blog-content text-sm text-wb-100 sm:text-base [&>p]:mb-4 [&>h1]:text-xl [&>h1]:font-bold [&>h1]:mb-4 sm:[&>h1]:text-2xl [&>h2]:text-lg [&>h2]:font-bold [&>h2]:mb-3 sm:[&>h2]:text-xl [&>h3]:text-base [&>h3]:font-semibold [&>h3]:mb-2 sm:[&>h3]:text-lg [&>ul]:list-disc [&>ul]:ml-6 [&>ul]:mb-4 [&>ol]:list-decimal [&>ol]:ml-6 [&>ol]:mb-4 [&>blockquote]:border-l-4 [&>blockquote]:border-wb-30 [&>blockquote]:pl-4 [&>blockquote]:italic [&>a]:text-blue-600 [&>a]:underline"
                 dangerouslySetInnerHTML={{ __html: sanitizeHtml(article.content) }}
               />
             </div>
 
             {/* Tags */}
             {article.tags && article.tags.length > 0 && (
-              <div className="mt-8 flex flex-wrap gap-2">
+              <div className="mt-6 flex flex-wrap gap-2 sm:mt-8">
                 {article.tags.map((tag) => (
                   <Link key={tag} href={`/blog?tag=${encodeURIComponent(tag)}`}>
-                    <Chip className="cursor-pointer hover:bg-gray-200">{tag}</Chip>
+                    <Chip className="cursor-pointer hover:bg-wb-20">{tag}</Chip>
                   </Link>
                 ))}
               </div>
@@ -326,16 +326,16 @@ export default function BlogDetailClient() {
             <CommentSection postId={id} isLoggedIn={isAuthenticated} />
           </div>
 
-          {/* Sidebar */}
-          <div className="space-y-8">
+          {/* Sidebar - 手機版隱藏或改為水平滾動 */}
+          <div className="hidden space-y-6 sm:space-y-8 lg:block">
             {/* Categories */}
             <div>
-              <h2 className="mb-4 text-2xl font-medium">文章分類</h2>
-              <div className="overflow-hidden rounded-lg bg-white">
+              <h2 className="mb-3 text-xl font-medium sm:mb-4 sm:text-2xl">文章分類</h2>
+              <div className="overflow-hidden rounded-lg bg-wb-0">
                 <Link href="/blog">
                   <Button
                     variant="ghost"
-                    className="w-full justify-start px-5 py-3 font-medium hover:bg-gray-50"
+                    className="w-full justify-start px-4 py-2.5 text-sm font-medium hover:bg-wb-10 sm:px-5 sm:py-3 sm:text-base"
                   >
                     所有文章
                   </Button>
@@ -343,7 +343,7 @@ export default function BlogDetailClient() {
                 <Link href="/blog?category=equipment">
                   <Button
                     variant="ghost"
-                    className="w-full justify-start px-5 py-3 font-medium text-gray-500 hover:bg-gray-50"
+                    className="w-full justify-start px-4 py-2.5 text-sm font-medium text-wb-70 hover:bg-wb-10 sm:px-5 sm:py-3 sm:text-base"
                   >
                     裝備介紹
                   </Button>
@@ -351,7 +351,7 @@ export default function BlogDetailClient() {
                 <Link href="/blog?category=technique">
                   <Button
                     variant="ghost"
-                    className="w-full justify-start px-5 py-3 font-medium text-gray-500 hover:bg-gray-50"
+                    className="w-full justify-start px-4 py-2.5 text-sm font-medium text-wb-70 hover:bg-wb-10 sm:px-5 sm:py-3 sm:text-base"
                   >
                     技巧介紹
                   </Button>
@@ -359,7 +359,7 @@ export default function BlogDetailClient() {
                 <Link href="/blog?category=research">
                   <Button
                     variant="ghost"
-                    className="w-full justify-start px-5 py-3 font-medium text-gray-500 hover:bg-gray-50"
+                    className="w-full justify-start px-4 py-2.5 text-sm font-medium text-wb-70 hover:bg-wb-10 sm:px-5 sm:py-3 sm:text-base"
                   >
                     技術研究
                   </Button>
@@ -367,7 +367,7 @@ export default function BlogDetailClient() {
                 <Link href="/blog?category=competition">
                   <Button
                     variant="ghost"
-                    className="w-full justify-start px-5 py-3 font-medium text-gray-500 hover:bg-gray-50"
+                    className="w-full justify-start px-4 py-2.5 text-sm font-medium text-wb-70 hover:bg-wb-10 sm:px-5 sm:py-3 sm:text-base"
                   >
                     比賽介紹
                   </Button>
@@ -377,18 +377,18 @@ export default function BlogDetailClient() {
 
             {/* Popular Articles */}
             <div>
-              <h2 className="mb-4 text-2xl font-medium">熱門文章</h2>
-              <div className="space-y-4">
+              <h2 className="mb-3 text-xl font-medium sm:mb-4 sm:text-2xl">熱門文章</h2>
+              <div className="space-y-3 sm:space-y-4">
                 {popularArticles.map((popularArticle) => (
                   <Link
                     key={popularArticle.id}
                     href={`/blog/${popularArticle.id}`}
-                    className="block rounded-lg border-b border-gray-200 bg-white p-5 transition-colors hover:bg-gray-50"
+                    className="block rounded-lg border-b border-wb-20 bg-wb-0 p-4 transition-colors hover:bg-wb-10 sm:p-5"
                   >
-                    <h3 className="mb-2 font-medium">{popularArticle.title}</h3>
-                    <div className="flex items-center gap-3">
+                    <h3 className="mb-2 text-sm font-medium sm:text-base">{popularArticle.title}</h3>
+                    <div className="flex items-center gap-2 sm:gap-3">
                       <Chip>{popularArticle.tags?.[0] || '技巧介紹'}</Chip>
-                      <span className="text-sm text-gray-500">
+                      <span className="text-xs text-wb-70 sm:text-sm">
                         {popularArticle.published_at
                           ? new Date(popularArticle.published_at).toLocaleDateString('zh-TW')
                           : ''}
@@ -403,13 +403,13 @@ export default function BlogDetailClient() {
 
         {/* Related Articles Section */}
         <div className="mx-auto max-w-[1440px]">
-          <h2 className="mb-8 text-2xl font-medium">相關文章</h2>
-          <div className="grid grid-cols-1 gap-6 md:grid-cols-3">
+          <h2 className="mb-4 text-xl font-medium sm:mb-8 sm:text-2xl">相關文章</h2>
+          <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 sm:gap-6 md:grid-cols-3">
             {relatedArticles.map((relatedArticle) => (
               <Link
                 key={relatedArticle.id}
                 href={`/blog/${relatedArticle.id}`}
-                className="block overflow-hidden rounded-lg bg-white transition-shadow hover:shadow-lg"
+                className="block overflow-hidden rounded-lg bg-wb-0 transition-shadow hover:shadow-lg"
               >
                 <div className="relative aspect-[16/9]">
                   {relatedArticle.cover_image ? (
@@ -428,17 +428,17 @@ export default function BlogDetailClient() {
                     />
                   )}
                 </div>
-                <div className="p-6">
-                  <h3 className="mb-2 font-medium">{relatedArticle.title}</h3>
-                  <div className="mb-2 flex items-center gap-3">
+                <div className="p-4 sm:p-6">
+                  <h3 className="mb-2 text-sm font-medium sm:text-base">{relatedArticle.title}</h3>
+                  <div className="mb-2 flex flex-wrap items-center gap-2 sm:gap-3">
                     <Chip>{relatedArticle.tags?.[0] || '技巧介紹'}</Chip>
-                    <span className="text-sm text-gray-500">
+                    <span className="text-xs text-wb-70 sm:text-sm">
                       {relatedArticle.published_at
                         ? new Date(relatedArticle.published_at).toLocaleDateString('zh-TW')
                         : ''}
                     </span>
                   </div>
-                  <p className="line-clamp-3 text-sm text-gray-500">
+                  <p className="line-clamp-2 text-xs text-wb-70 sm:line-clamp-3 sm:text-sm">
                     {relatedArticle.excerpt || relatedArticle.content}
                   </p>
                 </div>
