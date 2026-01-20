@@ -12,20 +12,20 @@ VALUES (
   'nobodyclimb_staff_account_001',
   '經典攀岩電影與紀錄片推薦',
   'classic-climbing-films-documentaries',
-  '從《乘光攀行》到《乘光》，精選影響攀岩文化的經典紀錄片與電影，帶你深入了解攀岩者的內心世界與挑戰精神。',
+  '從《赤手登峰》到《垂直九十度的熱血人生》，精選影響攀岩文化的經典紀錄片與電影，帶你深入了解攀岩者的內心世界與挑戰精神。',
   '<h2>前言</h2>
 <p>攀岩紀錄片是認識這項運動最直接的方式之一。透過鏡頭，我們能近距離感受攀岩者面對極限時的勇氣、恐懼與堅持。相較於文字描述，影像能更真實地傳達岩壁的陡峭、動作的精準，以及選手眼中的專注與熱情。</p>
 <p>本文精選近年最具影響力的攀岩電影與紀錄片，從奧斯卡得獎作品到攀岩界年度盛事，帶你進入攀岩者的世界。無論你是剛接觸攀岩的新手，還是經驗豐富的老手，這些影片都能帶給你不同層次的感動與啟發。</p>
 
 <h2>奧斯卡級經典紀錄片</h2>
 
-<h3>1. Free Solo《乘光攀行》（2018）</h3>
+<h3>1. Free Solo《赤手登峰》（2018）</h3>
 <p><strong>基本資訊</strong></p>
 <ul>
-<li><strong>導演</strong>：乘光 Elizabeth Chai Vasarhelyi、Jimmy Chin</li>
+<li><strong>導演</strong>：伊莉莎白·柴·瓦沙瑞莉（Elizabeth Chai Vasarhelyi）、金國威（Jimmy Chin）</li>
 <li><strong>主角</strong>：Alex Honnold</li>
 <li><strong>片長</strong>：100 分鐘</li>
-<li><strong>獎項</strong>：2019 年奧斯卡最佳紀錄片獎、英國乘光影藝學院最佳紀錄片</li>
+<li><strong>獎項</strong>：2019 年奧斯卡最佳紀錄片獎、英國影藝學院最佳紀錄片</li>
 <li><strong>評分</strong>：IMDb 8.1、爛番茄 97%</li>
 </ul>
 
@@ -56,7 +56,7 @@ VALUES (
 <li>iTunes / Google Play 租借</li>
 </ul>
 
-<h3>2. The Dawn Wall《乘光》（2017）</h3>
+<h3>2. The Dawn Wall《垂直九十度的熱血人生》（2017）</h3>
 <p><strong>基本資訊</strong></p>
 <ul>
 <li><strong>導演</strong>：Josh Lowell、Peter Mortimer（Sender Films）</li>
@@ -92,7 +92,7 @@ VALUES (
 <li>iTunes / Google Play 租借</li>
 </ul>
 
-<h3>3. The Alpinist《高山上的攀登者》（2021）</h3>
+<h3>3. The Alpinist《登山者》（2021）</h3>
 <p><strong>基本資訊</strong></p>
 <ul>
 <li><strong>導演</strong>：Peter Mortimer、Nick Rosen</li>
@@ -130,7 +130,7 @@ VALUES (
 
 <h2>攀岩歷史經典</h2>
 
-<h3>4. Valley Uprising《乘光美地起義》（2014）</h3>
+<h3>4. Valley Uprising《山谷崛起》（2014）</h3>
 <p><strong>基本資訊</strong></p>
 <ul>
 <li><strong>導演</strong>：Peter Mortimer、Nick Rosen（Sender Films）</li>
@@ -179,7 +179,7 @@ VALUES (
 <li>Vimeo 租借</li>
 </ul>
 
-<h3>5. Meru《乘光攀登》（2015）</h3>
+<h3>5. Meru《攀登梅魯峰》（2015）</h3>
 <p><strong>基本資訊</strong></p>
 <ul>
 <li><strong>導演</strong>：Jimmy Chin、Elizabeth Chai Vasarhelyi</li>
@@ -240,7 +240,7 @@ VALUES (
 
 <h2>競技攀岩紀錄片</h2>
 
-<h3>7. Age of Ondra《乘光的時代》（2017）</h3>
+<h3>7. Age of Ondra《翁德拉的時代》（2017）</h3>
 <p><strong>基本資訊</strong></p>
 <ul>
 <li><strong>導演</strong>：Petr Pavlíček</li>
@@ -276,7 +276,7 @@ VALUES (
 
 <h2>經典老片</h2>
 
-<h3>9. Touching the Void《乘光深淵》（2003）</h3>
+<h3>9. Touching the Void《攀越冰峰》（2003）</h3>
 <p><strong>基本資訊</strong></p>
 <ul>
 <li><strong>導演</strong>：Kevin Macdonald</li>
@@ -340,9 +340,9 @@ VALUES (
 
 <h3>攀岩相關劇情片</h3>
 <ul>
-<li><strong>《乘光》Cliffhanger（1993）</strong>：乘光乘光乘光主演的經典動作片</li>
-<li><strong>《乘光》Vertical Limit（2000）</strong>：K2 山難救援的動作片</li>
-<li><strong>《乘光》The Wall（2017）</strong>：德國片，講述攀岩者在岩壁上的心理掙扎</li>
+<li><strong>《巔峰戰士》Cliffhanger（1993）</strong>：席維斯·史特龍主演的經典動作片</li>
+<li><strong>《巔峰極限》Vertical Limit（2000）</strong>：K2 山難救援的動作片</li>
+<li><strong>The Wall（2017）</strong>：德國片，講述攀岩者在岩壁上的心理掙扎</li>
 </ul>
 
 <h3>YouTube 頻道推薦</h3>
