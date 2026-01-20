@@ -5,12 +5,13 @@ import Image from 'next/image'
 import { motion } from 'framer-motion'
 import { Eye, Users, MessageCircle } from 'lucide-react'
 import { Biography, BiographySocialLinks } from '@/lib/types'
-import { isSvgUrl, getDefaultAvatarUrl, getDefaultCoverUrl } from '@/lib/utils/image'
+import { getDefaultCoverUrl } from '@/lib/utils/image'
 import { FollowButton } from '../follow-button'
 import { CompactSocialLinks } from '../social-links'
 import { BiographyLikeButton } from '../biography-like-button'
 import { ShareButton } from '@/components/shared/share-button'
 import { BiographyCommentSection } from '../biography-comment-section'
+import { ProfileAvatar } from '../shared'
 
 interface HeroSectionProps {
   person: Biography
@@ -64,21 +65,13 @@ export function HeroSection({ person, followerCount, isOwner, onFollowChange }: 
         {/* 頭像 - 疊在封面底部 */}
         <div className="absolute -top-16 md:-top-20 left-4 md:left-8">
           <div className="relative h-32 w-32 md:h-40 md:w-40 overflow-hidden rounded-full border-4 border-white bg-gray-100 shadow-lg">
-            {(() => {
-              const avatarUrl = person.avatar_url || getDefaultAvatarUrl(person.name || 'anonymous')
-              return isSvgUrl(avatarUrl) ? (
-                <img src={avatarUrl} alt={`${person.name} 的頭像`} className="h-full w-full object-cover" />
-              ) : (
-                <Image
-                  src={avatarUrl}
-                  alt={`${person.name} 的頭像`}
-                  fill
-                  className="object-cover"
-                  sizes="160px"
-                  priority
-                />
-              )
-            })()}
+            <ProfileAvatar
+              src={person.avatar_url}
+              name={person.name || 'anonymous'}
+              alt={`${person.name} 的頭像`}
+              size={160}
+              priority
+            />
           </div>
         </div>
 

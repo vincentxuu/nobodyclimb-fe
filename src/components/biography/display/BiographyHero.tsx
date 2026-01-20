@@ -3,13 +3,14 @@
 import { useState } from 'react'
 import Image from 'next/image'
 import { cn } from '@/lib/utils'
-import { getDefaultAvatarUrl, getDefaultCoverUrl, isSvgUrl } from '@/lib/utils/image'
+import { getDefaultCoverUrl } from '@/lib/utils/image'
 import { Clock, BarChart3, Globe, Eye, Users, MessageCircle } from 'lucide-react'
 import type { BiographyV2, SocialLinks } from '@/lib/types/biography-v2'
 import { FollowButton } from '../follow-button'
 import { BiographyLikeButton } from '../biography-like-button'
 import { ShareButton } from '@/components/shared/share-button'
 import { BiographyCommentSection } from '../biography-comment-section'
+import { ProfileAvatar } from '../shared'
 
 // 社群平台圖示
 const SocialIcon: Record<keyof SocialLinks, React.ReactNode> = {
@@ -136,23 +137,13 @@ export function BiographyHero({
               <div className="w-full h-full flex items-center justify-center bg-[#DBD8D8] text-4xl md:text-5xl">
                 🎭
               </div>
-            ) : (() => {
-              const avatarUrl = biography.avatar_url || getDefaultAvatarUrl(biography.name || 'anonymous')
-              return isSvgUrl(avatarUrl) ? (
-                <img
-                  src={avatarUrl}
-                  alt={biography.name}
-                  className="h-full w-full object-cover"
-                />
-              ) : (
-                <Image
-                  src={avatarUrl}
-                  alt={biography.name}
-                  fill
-                  className="object-cover"
-                />
-              )
-            })()}
+            ) : (
+              <ProfileAvatar
+                src={biography.avatar_url}
+                name={biography.name || 'anonymous'}
+                size={128}
+              />
+            )}
           </div>
         </div>
 
