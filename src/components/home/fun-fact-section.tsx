@@ -11,11 +11,17 @@ interface FunFact {
   answer: string
   detail: string
   category: string
+  source?: string
   link?: {
     href: string
     text: string
   }
   tags?: string[]
+}
+
+// 判斷是否為有效的 URL
+function isValidUrl(str: string): boolean {
+  return str.startsWith('http://') || str.startsWith('https://')
 }
 
 interface FunFactsData {
@@ -98,7 +104,15 @@ export function FunFactSection() {
       <section className="bg-gradient-to-r from-brand-accent/20 to-brand-accent/10 py-4 md:py-6">
         <div className="container mx-auto px-4">
           <div className="mx-auto max-w-3xl">
-            <div className="h-[72px] animate-pulse rounded-xl bg-white/50" />
+            <div className="rounded-xl bg-white/80 p-4 shadow-sm backdrop-blur-sm md:p-6">
+              <div className="flex items-center gap-3">
+                <div className="h-10 w-10 rounded-full bg-brand-accent/20" />
+                <div className="flex-1 space-y-2">
+                  <div className="h-3 w-16 rounded bg-brand-accent/20" />
+                  <div className="h-4 w-3/4 rounded bg-brand-accent/20" />
+                </div>
+              </div>
+            </div>
           </div>
         </div>
       </section>
@@ -158,17 +172,29 @@ export function FunFactSection() {
                   className="overflow-hidden"
                 >
                   <div className="mt-4 border-t border-brand-accent/30 pt-4">
-                    <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
-                      <div>
+                    <div className="flex flex-col gap-3 md:flex-row md:items-start md:justify-between">
+                      <div className="flex-1">
                         <p className="text-lg font-bold text-brand-dark md:text-xl">
                           {currentFact.answer}
                         </p>
                         <p className="mt-1 text-sm text-text-subtle">{currentFact.detail}</p>
+                        {currentFact.source && isValidUrl(currentFact.source) && (
+                          <a
+                            href={currentFact.source}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="mt-2 inline-flex items-center gap-1 text-xs text-text-subtle/70 hover:text-brand-dark"
+                            onClick={(e) => e.stopPropagation()}
+                          >
+                            了解更多
+                            <ExternalLink className="h-3 w-3" />
+                          </a>
+                        )}
                       </div>
                       {currentFact.link && (
                         <Link
                           href={currentFact.link.href}
-                          className="inline-flex items-center gap-1.5 rounded-lg bg-brand-accent/70 px-4 py-2 text-sm font-medium text-brand-dark transition-colors hover:bg-brand-accent"
+                          className="inline-flex flex-shrink-0 items-center gap-1.5 rounded-lg bg-brand-accent/70 px-4 py-2 text-sm font-medium text-brand-dark transition-colors hover:bg-brand-accent"
                           onClick={(e) => e.stopPropagation()}
                         >
                           {currentFact.link.text}
