@@ -1,6 +1,6 @@
 'use client'
 
-import { Building2, Mountain, ArrowUpFromLine, LucideIcon } from 'lucide-react'
+import { Building2, Dumbbell, ArrowUpFromLine, LucideIcon } from 'lucide-react'
 
 /**
  * 背景圖案類型
@@ -37,10 +37,11 @@ const GYM_TYPE_THEMES: Record<
     pattern: PatternType
   }
 > = {
-  // 抱石 - 橘色，活力/溫暖感，使用 Mountain 代表抱石岩牆
+  // 抱石 - 橘色，活力/溫暖感，使用 Dumbbell 代表運動訓練
+  // 注意：Mountain 專用於按讚功能，請參考 docs/icon-usage-guide.md
   bouldering: {
     gradient: GRADIENTS.orange,
-    Icon: Mountain,
+    Icon: Dumbbell,
     pattern: 'triangles',
   },
   // 上攀 - 青綠色，專業/挑戰感，使用向上箭頭代表上攀
