@@ -4,7 +4,7 @@ import React, { useState, useEffect } from 'react'
 import Link from 'next/link'
 import { MapPin, Filter, Loader2, Star } from 'lucide-react'
 import BackToTop from '@/components/ui/back-to-top'
-import PlaceholderImage from '@/components/ui/placeholder-image'
+import { GymCoverGenerator } from '@/components/shared/GymCoverGenerator'
 import { Breadcrumb } from '@/components/ui/breadcrumb'
 import { PageHeader } from '@/components/ui/page-header'
 import { searchGyms, type GymListItem } from '@/lib/gym-data'
@@ -33,8 +33,14 @@ function GymCard({ gym }: { gym: GymListItem }) {
   return (
     <div className="overflow-hidden rounded-lg bg-white shadow-sm transition-all duration-300 hover:-translate-y-1 hover:shadow-md">
       <Link href={`/gym/${gym.id}`}>
-        <div className="relative h-48 w-full bg-gray-100">
-          <PlaceholderImage text={gym.name} bgColor="#f8fafc" textColor="#64748b" />
+        <div className="relative h-48 w-full">
+          <GymCoverGenerator
+            type={gym.type}
+            name={gym.name}
+            typeLabel={gym.typeLabel}
+            aspectRatio="card"
+            className="h-full w-full"
+          />
         </div>
         <div className="p-4">
           <div className="mb-2">

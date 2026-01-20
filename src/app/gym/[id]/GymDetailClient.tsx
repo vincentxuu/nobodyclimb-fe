@@ -21,6 +21,7 @@ import {
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import BackToTop from '@/components/ui/back-to-top'
+import { GymCoverGenerator } from '@/components/shared/GymCoverGenerator'
 import PlaceholderImage from '@/components/ui/placeholder-image'
 import { Breadcrumb } from '@/components/ui/breadcrumb'
 import { WeatherDisplay } from '@/components/shared/weather-display'
@@ -191,11 +192,17 @@ export default function GymDetailClient({ params }: { params: Promise<{ id: stri
 
         {/* 主要內容區 */}
         <div className="mb-12 mt-4 rounded-lg bg-white p-8 shadow-sm">
-          {/* 照片展示區 */}
+          {/* 封面展示區 */}
           <div className="mb-8">
             {/* 大圖 */}
             <div className="relative mb-2 h-96 w-full overflow-hidden rounded-lg">
-              <PlaceholderImage text={gym.name} bgColor="#f8f9fa" />
+              <GymCoverGenerator
+                type={gym.type}
+                name={gym.name}
+                typeLabel={gym.typeLabel}
+                aspectRatio="video"
+                className="h-full w-full"
+              />
             </div>
 
             {/* 照片縮略圖區 */}
@@ -579,7 +586,13 @@ export default function GymDetailClient({ params }: { params: Promise<{ id: stri
                   className="overflow-hidden rounded-lg bg-white shadow-sm transition-shadow hover:shadow"
                 >
                   <div className="relative h-48">
-                    <PlaceholderImage text={relatedGym.name} bgColor="#f8f9fa" />
+                    <GymCoverGenerator
+                      type={relatedGym.type}
+                      name={relatedGym.name}
+                      typeLabel={relatedGym.typeLabel}
+                      aspectRatio="card"
+                      className="h-full w-full"
+                    />
                   </div>
                   <div className="p-4">
                     <h3 className="text-base font-medium">{relatedGym.name}</h3>

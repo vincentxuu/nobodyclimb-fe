@@ -3,12 +3,14 @@
 import { useState } from 'react'
 import Image from 'next/image'
 import { cn } from '@/lib/utils'
+import { getDefaultCoverUrl } from '@/lib/utils/image'
 import { Clock, BarChart3, Globe, Eye, Users, MessageCircle } from 'lucide-react'
 import type { BiographyV2, SocialLinks } from '@/lib/types/biography-v2'
 import { FollowButton } from '../follow-button'
 import { BiographyLikeButton } from '../biography-like-button'
 import { ShareButton } from '@/components/shared/share-button'
 import { BiographyCommentSection } from '../biography-comment-section'
+import { ProfileAvatar } from '../shared'
 
 // 社群平台圖示
 const SocialIcon: Record<keyof SocialLinks, React.ReactNode> = {
@@ -100,7 +102,7 @@ export function BiographyHero({
   // 評論區展開狀態
   const [showComments, setShowComments] = useState(false)
   // 評論數狀態
-  const [commentsCount, setCommentsCount] = useState(0)
+  const [commentsCount, setCommentsCount] = useState(biography.comment_count || 0)
   // 追蹤數狀態
   const [followerCount, setFollowerCount] = useState(biography.follower_count || 0)
 
@@ -115,15 +117,13 @@ export function BiographyHero({
     <div className={cn('relative', className)}>
       {/* Cover Image */}
       <div className="relative w-full aspect-[3/1] md:aspect-[4/1] bg-gradient-to-br from-[#EBEAEA] to-[#DBD8D8] overflow-hidden">
-        {biography.cover_url && (
-          <Image
-            src={biography.cover_url}
-            alt="封面圖片"
-            fill
-            className="object-cover"
-            priority
-          />
-        )}
+        <Image
+          src={biography.cover_url || getDefaultCoverUrl(biography.id || biography.name || 'default')}
+          alt="封面圖片"
+          fill
+          className="object-cover"
+          priority
+        />
         {/* Gradient Overlay */}
         <div className="absolute inset-0 bg-gradient-to-t from-black/30 to-transparent" />
       </div>
@@ -137,17 +137,12 @@ export function BiographyHero({
               <div className="w-full h-full flex items-center justify-center bg-[#DBD8D8] text-4xl md:text-5xl">
                 🎭
               </div>
-            ) : biography.avatar_url ? (
-              <Image
-                src={biography.avatar_url}
-                alt={biography.name}
-                fill
-                className="object-cover"
-              />
             ) : (
-              <div className="w-full h-full flex items-center justify-center bg-brand-accent/20 text-brand-dark text-2xl md:text-3xl font-bold">
-                {biography.name?.charAt(0) || '?'}
-              </div>
+              <ProfileAvatar
+                src={biography.avatar_url}
+                name={biography.name || 'anonymous'}
+                size={128}
+              />
             )}
           </div>
         </div>

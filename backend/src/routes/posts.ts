@@ -1,4 +1,5 @@
 import { Hono } from 'hono';
+import { z } from 'zod';
 import { Env, Post } from '../types';
 import { parsePagination, generateId, generateSlug } from '../utils/id';
 import { authMiddleware, optionalAuthMiddleware } from '../middleware/auth';
@@ -6,6 +7,62 @@ import { trackAndUpdateViewCount } from '../utils/viewTracker';
 import { deleteR2Images, extractR2ImagesFromContent } from '../utils/storage';
 
 export const postsRoutes = new Hono<{ Bindings: Env }>();
+
+/**
+ * Post Metadata schema（用於 SEO，存入 KV 快取）
+ * 使用 zod 驗證確保型別安全
+ */
+const postMetadataSchema = z.object({
+  id: z.string(),
+  title: z.string(),
+  excerpt: z.string().nullable(),
+  cover_image: z.string().nullable(),
+  display_name: z.string().nullable(),
+  username: z.string().nullable(),
+  published_at: z.string().nullable(),
+  updated_at: z.string().nullable(),
+  tags: z.array(z.string()),
+});
+
+type PostMetadata = z.infer<typeof postMetadataSchema>;
+
+/**
+ * 快取 Post metadata 到 KV
+ * 前端 SSR 會讀取此快取以避免 Worker-to-Worker 522 超時
+ */
+async function cachePostMetadata(
+  cache: KVNamespace,
+  post: Record<string, unknown>,
+  tags: string[]
+): Promise<void> {
+  const rawMetadata = {
+    id: post.id,
+    title: post.title,
+    excerpt: post.excerpt ?? null,
+    cover_image: post.cover_image ?? null,
+    display_name: post.display_name ?? null,
+    username: post.username ?? null,
+    published_at: post.published_at ?? null,
+    updated_at: post.updated_at ?? null,
+    tags,
+  };
+
+  const parsed = postMetadataSchema.safeParse(rawMetadata);
+  if (!parsed.success) {
+    console.error(`Invalid post metadata for ${post.id}:`, parsed.error.issues);
+    return;
+  }
+
+  const cacheKey = `post-meta:${parsed.data.id}`;
+
+  try {
+    await cache.put(cacheKey, JSON.stringify(parsed.data), {
+      expirationTtl: 86400 * 7, // 7 天過期
+    });
+  } catch (error) {
+    console.error(`Failed to cache post metadata for ${parsed.data.id}:`, error);
+  }
+}
 
 // GET /posts - List all posts
 postsRoutes.get('/', async (c) => {
@@ -339,12 +396,17 @@ postsRoutes.get('/:id', async (c) => {
     post.view_count as number
   );
 
+  const tagList = tags.results.map((t) => t.tag);
+
+  // 快取 metadata 到 KV 供前端 SSR 使用
+  await cachePostMetadata(c.env.CACHE, post, tagList);
+
   return c.json({
     success: true,
     data: {
       ...post,
       view_count: viewCount,
-      tags: tags.results.map((t) => t.tag),
+      tags: tagList,
     },
   });
 });
@@ -389,12 +451,17 @@ postsRoutes.get('/slug/:slug', async (c) => {
     post.view_count as number
   );
 
+  const tagList = tags.results.map((t) => t.tag);
+
+  // 快取 metadata 到 KV 供前端 SSR 使用
+  await cachePostMetadata(c.env.CACHE, post, tagList);
+
   return c.json({
     success: true,
     data: {
       ...post,
       view_count: viewCount,
-      tags: tags.results.map((t) => t.tag),
+      tags: tagList,
     },
   });
 });
@@ -725,6 +792,54 @@ postsRoutes.post('/:id/comments', authMiddleware, async (c) => {
     },
     201
   );
+});
+
+// DELETE /posts/:postId/comments/:commentId - Delete a comment
+postsRoutes.delete('/:postId/comments/:commentId', authMiddleware, async (c) => {
+  const postId = c.req.param('postId');
+  const commentId = c.req.param('commentId');
+  const userId = c.get('userId');
+  const user = c.get('user');
+
+  // Check if comment exists and belongs to this post
+  const comment = await c.env.DB.prepare(
+    `SELECT id, user_id FROM comments
+     WHERE id = ? AND entity_type = 'post' AND entity_id = ?`
+  )
+    .bind(commentId, postId)
+    .first<{ id: string; user_id: string }>();
+
+  if (!comment) {
+    return c.json(
+      {
+        success: false,
+        error: 'Not Found',
+        message: 'Comment not found',
+      },
+      404
+    );
+  }
+
+  // Check if user is the comment author or admin
+  if (comment.user_id !== userId && user.role !== 'admin') {
+    return c.json(
+      {
+        success: false,
+        error: 'Forbidden',
+        message: 'You can only delete your own comments',
+      },
+      403
+    );
+  }
+
+  await c.env.DB.prepare('DELETE FROM comments WHERE id = ?')
+    .bind(commentId)
+    .run();
+
+  return c.json({
+    success: true,
+    message: 'Comment deleted successfully',
+  });
 });
 
 // ============================================

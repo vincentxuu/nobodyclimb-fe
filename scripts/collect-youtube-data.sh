@@ -90,6 +90,7 @@ PUBLIC_DATA_DIR="public/data"
 JSON_FILE="$DATA_DIR/${OUTPUT_NAME}_videos.json"
 OUTPUT_FILE="$PUBLIC_DATA_DIR/${OUTPUT_NAME}_videos.json"
 TEMP_DIR="temp"
+TEMP_JSON="$TEMP_DIR/${OUTPUT_NAME}_videos.json"
 
 # 創建暫存目錄和資料目錄
 mkdir -p "$TEMP_DIR"
@@ -101,9 +102,9 @@ echo "📥 步驟 1: 收集影片資料..."
 echo "⏳ 正在從 $CHANNEL_URL 收集資料，這可能需要幾分鐘..."
 
 # 使用 yt-dlp 收集影片資料
-if yt-dlp --dump-json --flat-playlist "$CHANNEL_URL/videos" > "$TEMP_DIR/$JSON_FILE"; then
+if yt-dlp --dump-json --flat-playlist "$CHANNEL_URL/videos" > "$TEMP_JSON"; then
     # 檢查是否成功收集到資料
-    if [ ! -s "$TEMP_DIR/$JSON_FILE" ]; then
+    if [ ! -s "$TEMP_JSON" ]; then
         echo "❌ 無法收集到影片資料，請檢查："
         echo "   1. 網路連接是否正常"
         echo "   2. 頻道 URL 是否正確"
@@ -111,7 +112,7 @@ if yt-dlp --dump-json --flat-playlist "$CHANNEL_URL/videos" > "$TEMP_DIR/$JSON_F
         exit 1
     fi
     
-    VIDEO_COUNT=$(wc -l < "$TEMP_DIR/$JSON_FILE")
+    VIDEO_COUNT=$(wc -l < "$TEMP_JSON")
     echo "✅ 成功收集 $VIDEO_COUNT 部影片資料"
 else
     echo "❌ yt-dlp 執行失敗"
@@ -125,7 +126,7 @@ echo "🔄 步驟 2: 轉換資料格式..."
 CHANNEL_INFO="{\\"name\\":\\"$CHANNEL_NAME\\",\\"id\\":\\"$CHANNEL_ID\\",\\"type\\":\\"$CHANNEL_TYPE\\",\\"featuredThreshold\\":$FEATURED_THRESHOLD}"
 
 # 使用通用轉換腳本
-if node "$CONVERT_SCRIPT" "$TEMP_DIR/$JSON_FILE" "$OUTPUT_FILE" --channel "$CHANNEL_INFO"; then
+if node "$CONVERT_SCRIPT" "$TEMP_JSON" "$OUTPUT_FILE" --channel "$CHANNEL_INFO"; then
     echo "✅ 成功生成 JSON 檔案"
 else
     echo "❌ 轉換失敗，請檢查轉換腳本"
@@ -135,7 +136,6 @@ fi
 echo ""
 echo "🧹 步驟 3: 清理暫存檔案..."
 # 將 JSON 檔案移到 scripts/data 作為備份
-TEMP_JSON="$TEMP_DIR/${OUTPUT_NAME}_videos.json"
 mv "$TEMP_JSON" "$JSON_FILE"
 rmdir "$TEMP_DIR" 2>/dev/null || true
 

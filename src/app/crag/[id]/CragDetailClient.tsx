@@ -5,8 +5,8 @@ import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { MapPin, ArrowLeft, List, X, ExternalLink } from 'lucide-react'
 import { motion, AnimatePresence } from 'framer-motion'
-import PlaceholderImage from '@/components/ui/placeholder-image'
 import BackToTop from '@/components/ui/back-to-top'
+import { CragCoverGenerator } from '@/components/shared/CragCoverGenerator'
 import { WeatherDisplay } from '@/components/shared/weather-display'
 import { TrafficCamerasCard } from '@/components/crag/traffic-cameras-card'
 import { YouTubeLiveCard } from '@/components/crag/youtube-live-card'
@@ -164,24 +164,15 @@ export default function CragDetailClient({ params }: { params: Promise<{ id: str
 
             {/* 主要內容區 */}
             <div className="rounded-lg bg-white p-6 shadow-sm lg:p-8">
-              {/* 照片展示區 */}
+              {/* 封面展示區 */}
               <div className="mb-8">
-                <div className="relative mb-2 h-64 w-full overflow-hidden rounded-lg lg:h-80">
-                  <PlaceholderImage
-                    text={`${currentCrag.name} 場景圖`}
-                    bgColor="#333"
-                    textColor="#fff"
+                <div className="relative w-full overflow-hidden rounded-lg">
+                  <CragCoverGenerator
+                    rockType={currentCrag.rockType}
+                    name={currentCrag.name}
+                    typeLabel={currentCrag.rockType}
+                    aspectRatio="wide"
                   />
-                </div>
-                <div className="flex flex-nowrap gap-2 overflow-x-auto pb-2">
-                  {currentCrag.images.slice(0, 5).map((photo, index) => (
-                    <div
-                      key={index}
-                      className="relative h-16 w-16 flex-shrink-0 overflow-hidden rounded-md lg:h-20 lg:w-20"
-                    >
-                      <PlaceholderImage text={`${index + 1}`} bgColor="#444" textColor="#fff" />
-                    </div>
-                  ))}
                 </div>
               </div>
 
@@ -367,8 +358,13 @@ export default function CragDetailClient({ params }: { params: Promise<{ id: str
                         prefetch={false}
                         className="group overflow-hidden rounded-lg border border-gray-200 bg-white shadow-sm transition-all hover:border-[#FFE70C] hover:shadow"
                       >
-                        <div className="relative h-32">
-                          <PlaceholderImage text={area.name} bgColor="#f8f9fa" />
+                        <div className="relative aspect-[4/1] overflow-hidden">
+                          <CragCoverGenerator
+                            rockType={currentCrag.rockType}
+                            name={area.name}
+                            showTypeLabel={false}
+                            className="absolute inset-0"
+                          />
                         </div>
                         <div className="p-3">
                           <h3 className="text-sm font-medium group-hover:text-[#1B1A1A]">

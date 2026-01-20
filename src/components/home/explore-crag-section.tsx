@@ -4,8 +4,9 @@ import { useState, useEffect } from 'react'
 import Image from 'next/image'
 import Link from 'next/link'
 import { motion, AnimatePresence } from 'framer-motion'
-import { MapPin, Mountain, Calendar, ChevronDown } from 'lucide-react'
+import { MapPin, MountainSnow, Calendar, ChevronDown } from 'lucide-react'
 import { Button } from '@/components/ui/button'
+import { CragCoverGenerator } from '@/components/shared/CragCoverGenerator'
 import { getAllCrags, type CragListItem } from '@/lib/crag-data'
 
 // 台灣地圖上的岩場標記位置（百分比，基於 taiwan.svg 437x555）
@@ -30,55 +31,49 @@ function CragCard({ crag, index }: { crag: CragListItem; index: number }) {
         prefetch={false}
         className="group block overflow-hidden rounded-lg bg-white shadow-sm transition-shadow hover:shadow-md"
       >
-        {/* 岩場圖片 */}
-        <div className="relative aspect-[16/10] overflow-hidden bg-gray-100">
-          <Image
-            src={crag.image}
-            alt={crag.name}
-            fill
-            sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
-            className="object-cover transition-transform duration-300 group-hover:scale-105"
-            loading="lazy"
-            onError={(e) => {
-              // 圖片載入失敗時使用佔位符
-              const target = e.target as HTMLImageElement
-              target.src = '/photo/cont-intro.jpeg'
-            }}
+        {/* 岩場封面 */}
+        <div className="relative aspect-[4/1] overflow-hidden transition-transform duration-300 group-hover:scale-[1.02]">
+          <CragCoverGenerator
+            rockType={crag.rockType}
+            name={crag.name}
+            showName={false}
+            showTypeLabel={false}
+            className="absolute inset-0"
           />
           {/* 岩石類型標籤 */}
-          <div className="absolute left-3 top-3 rounded bg-[#1B1A1A]/80 px-2 py-1 text-xs font-medium text-white">
+          <div className="absolute left-2 top-2 rounded bg-[#1B1A1A]/80 px-1.5 py-0.5 text-[10px] font-medium text-white">
             {crag.type}
           </div>
         </div>
 
         {/* 岩場資訊 */}
-        <div className="p-4">
-          <h3 className="mb-2 text-lg font-medium text-[#1B1A1A] group-hover:text-[#3F3D3D]">
+        <div className="p-3">
+          <h3 className="mb-1.5 text-base font-medium text-[#1B1A1A] group-hover:text-[#3F3D3D]">
             {crag.name}
-            <span className="ml-2 text-sm font-normal text-[#8E8C8C]">{crag.nameEn}</span>
+            <span className="ml-1.5 text-xs font-normal text-[#8E8C8C]">{crag.nameEn}</span>
           </h3>
 
-          <div className="mb-3 flex items-center gap-2 text-sm text-[#6D6C6C]">
-            <MapPin className="h-4 w-4" />
+          <div className="mb-2 flex items-center gap-1.5 text-xs text-[#6D6C6C]">
+            <MapPin className="h-3.5 w-3.5" />
             <span>{crag.location}</span>
           </div>
 
-          <div className="flex flex-wrap items-center gap-4 text-sm">
-            <div className="flex items-center gap-1.5 text-[#6D6C6C]">
-              <Mountain className="h-4 w-4" />
+          <div className="flex flex-wrap items-center gap-3 text-xs">
+            <div className="flex items-center gap-1 text-[#6D6C6C]">
+              <MountainSnow className="h-3.5 w-3.5" />
               <span>{crag.routes} 條路線</span>
             </div>
             <div className="text-[#8E8C8C]">{crag.difficulty}</div>
           </div>
 
           {/* 季節標籤 */}
-          <div className="mt-3 flex items-center gap-2">
-            <Calendar className="h-4 w-4 text-[#8E8C8C]" />
+          <div className="mt-2 flex items-center gap-1.5">
+            <Calendar className="h-3.5 w-3.5 text-[#8E8C8C]" />
             <div className="flex gap-1">
               {crag.seasons.map((season) => (
                 <span
                   key={season}
-                  className="rounded bg-[#F5F5F5] px-2 py-0.5 text-xs text-[#6D6C6C]"
+                  className="rounded bg-[#F5F5F5] px-1.5 py-0.5 text-[10px] text-[#6D6C6C]"
                 >
                   {season}
                 </span>
@@ -105,7 +100,7 @@ export function TaiwanMap({
 
   return (
     <div
-      className={`relative aspect-[437/555] w-full overflow-visible ${compact ? 'max-w-[120px]' : 'max-w-[240px]'}`}
+      className={`relative aspect-[437/555] w-full overflow-visible ${compact ? 'max-w-[120px]' : 'max-w-[320px]'}`}
     >
       {/* 台灣島輪廓 SVG */}
       <Image
@@ -126,9 +121,8 @@ export function TaiwanMap({
           <>
             {/* 標記點 */}
             <motion.div
-              className={`relative flex items-center justify-center rounded-full ${
-                compact ? 'h-1.5 w-1.5' : 'h-6 w-6'
-              } ${hoveredCrag === crag.id ? 'bg-brand-accent' : 'bg-brand-dark'}`}
+              className={`relative flex items-center justify-center rounded-full ${compact ? 'h-1.5 w-1.5' : 'h-6 w-6'
+                } ${hoveredCrag === crag.id ? 'bg-brand-accent' : 'bg-brand-dark'}`}
               whileHover={{ scale: 1.2 }}
               transition={{ duration: 0.2 }}
             >

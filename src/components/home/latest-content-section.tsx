@@ -4,11 +4,12 @@ import { useState, useEffect, useCallback } from 'react'
 import Image from 'next/image'
 import Link from 'next/link'
 import { motion } from 'framer-motion'
-import { FileText, Loader2 } from 'lucide-react'
+import { Loader2 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { postService } from '@/lib/api/services'
-import { BackendPost, getCategoryLabel } from '@/lib/types'
+import { BackendPost, PostCategory, getCategoryLabel } from '@/lib/types'
 import { generateSummary } from '@/lib/utils/article'
+import { ArticleCoverGenerator } from '@/components/shared/ArticleCoverGenerator'
 
 // 緩存配置
 const CACHE_KEY = 'nobodyclimb_home_articles'
@@ -22,6 +23,8 @@ interface ArticleItem {
   date: string
   link: string
   category?: string
+  categoryValue?: PostCategory
+  author?: string
 }
 
 interface CachedData {
@@ -104,9 +107,12 @@ function ArticleCard({ item, index }: { item: ArticleItem; index: number }) {
               loading="lazy"
             />
           ) : (
-            <div className="flex h-full items-center justify-center text-gray-400">
-              <FileText className="h-8 w-8" />
-            </div>
+            <ArticleCoverGenerator
+              category={item.categoryValue}
+              title={item.title}
+              showTitle={false}
+              className="h-full w-full"
+            />
           )}
           {/* 分類標籤 */}
           {item.category && (
@@ -122,8 +128,9 @@ function ArticleCard({ item, index }: { item: ArticleItem; index: number }) {
             {item.title}
           </h3>
           <p className="mb-3 line-clamp-2 text-sm text-[#6D6C6C]">{item.excerpt}</p>
-          <div className="text-xs text-[#8E8C8C]">
+          <div className="flex items-center justify-between text-xs text-[#8E8C8C]">
             <span>{item.date}</span>
+            {item.author && <span>{item.author}</span>}
           </div>
         </div>
       </Link>
@@ -169,6 +176,8 @@ export function LatestContentSection() {
             : new Date(post.created_at).toLocaleDateString('zh-TW'),
           link: `/blog/${post.id}`,
           category: getCategoryLabel(post.category) || undefined,
+          categoryValue: post.category as PostCategory,
+          author: post.display_name || post.username || undefined,
         }))
         setArticles(items)
         cacheArticles(items)

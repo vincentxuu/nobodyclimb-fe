@@ -152,7 +152,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           <StoryPromptWrapper />
           <ProgressBar />
           <Navbar />
-          <main className="min-h-[calc(100vh-14rem)] pt-[70px]">{children}</main>
+          <main className="min-h-[calc(100vh-14rem)] pt-14 md:pt-[70px]">{children}</main>
           <Footer />
         </Providers>
       </body>

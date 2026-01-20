@@ -215,6 +215,7 @@ export interface CragListItem {
   image: string
   location: string
   type: string
+  rockType: string
   routes: number
   difficulty: string
   seasons: string[]
@@ -234,9 +235,10 @@ export function getAllCrags(): CragListItem[] {
       id: data.crag.id,
       name: data.crag.name,
       nameEn: data.crag.nameEn,
-      image: CRAG_FALLBACK_IMAGE,
+      image: data.crag.images?.[0] || CRAG_FALLBACK_IMAGE,
       location: data.crag.location.address,
       type: data.crag.rockType,
+      rockType: data.crag.rockType,
       routes: data.crag.routesCount,
       difficulty: `${data.crag.difficulty.min} - ${data.crag.difficulty.max}`,
       seasons: data.crag.seasons,
