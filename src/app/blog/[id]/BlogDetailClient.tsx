@@ -16,6 +16,7 @@ import { BackendPost } from '@/lib/types'
 import { useAuthStore } from '@/store/authStore'
 import { sanitizeHtml } from '@/lib/utils/sanitize'
 import { decodeHtmlEntities } from '@/lib/utils/article'
+import { ArticleCoverGenerator } from '@/components/shared/ArticleCoverGenerator'
 
 // 載入狀態元件
 const LoadingState = () => (
@@ -278,16 +279,23 @@ export default function BlogDetailClient() {
             </div>
 
             {/* Main Image */}
-            {article.cover_image && (
-              <div className="relative mb-8 aspect-[16/9]">
+            <div className="relative mb-8 aspect-[16/9] overflow-hidden rounded-lg">
+              {article.cover_image ? (
                 <Image
                   src={article.cover_image}
                   alt={article.title}
                   fill
-                  className="rounded-lg object-cover"
+                  className="object-cover"
                 />
-              </div>
-            )}
+              ) : (
+                <ArticleCoverGenerator
+                  category={article.category}
+                  title={article.title}
+                  showTitle={true}
+                  className="h-full w-full"
+                />
+              )}
+            </div>
 
             {/* Article Content */}
             <div className="space-y-6">
@@ -404,12 +412,21 @@ export default function BlogDetailClient() {
                 className="block overflow-hidden rounded-lg bg-white transition-shadow hover:shadow-lg"
               >
                 <div className="relative aspect-[16/9]">
-                  <Image
-                    src={relatedArticle.cover_image || '/photo/blog-left.jpeg'}
-                    alt={relatedArticle.title}
-                    fill
-                    className="object-cover"
-                  />
+                  {relatedArticle.cover_image ? (
+                    <Image
+                      src={relatedArticle.cover_image}
+                      alt={relatedArticle.title}
+                      fill
+                      className="object-cover"
+                    />
+                  ) : (
+                    <ArticleCoverGenerator
+                      category={relatedArticle.category}
+                      title={relatedArticle.title}
+                      showTitle={false}
+                      className="h-full w-full"
+                    />
+                  )}
                 </div>
                 <div className="p-6">
                   <h3 className="mb-2 font-medium">{relatedArticle.title}</h3>

@@ -12,6 +12,7 @@ import { Breadcrumb } from '@/components/ui/breadcrumb'
 import { postService } from '@/lib/api/services'
 import { PostCategory, POST_CATEGORIES, getCategoryLabel } from '@/lib/types'
 import { generateSummary } from '@/lib/utils/article'
+import { ArticleCoverGenerator } from '@/components/shared/ArticleCoverGenerator'
 
 // 空狀態元件
 const EmptyState = ({ searchQuery, category }: { searchQuery: string; category: string }) => (
@@ -41,30 +42,30 @@ interface ArticleCardProps {
 }
 
 const ArticleCard = ({ article }: ArticleCardProps) => {
-  const hasImage = article.imageUrl && article.imageUrl !== '/photo/blog-left.jpeg'
+  const hasImage = article.imageUrl && article.imageUrl.trim() !== ''
 
   return (
     <Link
       href={`/blog/${article.id}`}
-      className={`group overflow-hidden rounded-lg bg-white transition-shadow hover:shadow-lg ${hasImage ? 'h-[416px]' : 'h-auto'}`}
+      className="group h-[416px] overflow-hidden rounded-lg bg-white transition-shadow hover:shadow-lg"
     >
-      {hasImage && (
-        <div className="relative h-[208px]">
+      <div className="relative h-[208px]">
+        {hasImage ? (
           <Image src={article.imageUrl} alt={article.title} fill className="object-cover" />
-          {article.isFeature && (
-            <div className="absolute left-3 top-3 rounded bg-brand-accent px-2 py-1 text-xs font-medium text-brand-dark">
-              精選
-            </div>
-          )}
-        </div>
-      )}
-      {!hasImage && article.isFeature && (
-        <div className="px-5 pt-5">
-          <span className="rounded bg-brand-accent px-2 py-1 text-xs font-medium text-brand-dark">
+        ) : (
+          <ArticleCoverGenerator
+            category={article.categoryValue}
+            title={article.title}
+            showTitle={false}
+            className="h-full w-full"
+          />
+        )}
+        {article.isFeature && (
+          <div className="absolute left-3 top-3 rounded bg-brand-accent px-2 py-1 text-xs font-medium text-brand-dark">
             精選
-          </span>
-        </div>
-      )}
+          </div>
+        )}
+      </div>
       <div className="flex flex-col gap-3 p-5">
         <div className="flex items-center gap-3">
           <span className="rounded bg-brand-dark px-3 py-1 text-sm text-white">{article.category}</span>
@@ -151,11 +152,12 @@ function BlogContent() {
           id: post.id,
           title: post.title,
           category: getCategoryLabel(post.category) || '未分類',
+          categoryValue: post.category || undefined,
           date: post.published_at
             ? new Date(post.published_at).toLocaleDateString('zh-TW')
             : new Date(post.created_at).toLocaleDateString('zh-TW'),
           content: post.content,
-          imageUrl: post.cover_image || '/photo/blog-left.jpeg',
+          imageUrl: post.cover_image || '',
           isFeature: post.is_featured === 1,
           description: post.excerpt || undefined,
         }))
@@ -193,11 +195,12 @@ function BlogContent() {
           id: post.id,
           title: post.title,
           category: getCategoryLabel(post.category) || '未分類',
+          categoryValue: post.category || undefined,
           date: post.published_at
             ? new Date(post.published_at).toLocaleDateString('zh-TW')
             : new Date(post.created_at).toLocaleDateString('zh-TW'),
           content: post.content,
-          imageUrl: post.cover_image || '/photo/blog-left.jpeg',
+          imageUrl: post.cover_image || '',
           isFeature: true,
           description: post.excerpt || undefined,
         }))
@@ -290,14 +293,24 @@ function BlogContent() {
               }`}
             >
               <Link href={`/blog/${article.id}`} className="relative block h-full">
-                <Image
-                  src={article.imageUrl}
-                  alt={article.title}
-                  fill
-                  className="object-cover"
-                  priority={index === 0}
-                  loading={index === 0 ? 'eager' : 'lazy'}
-                />
+                {article.imageUrl && article.imageUrl.trim() !== '' ? (
+                  <Image
+                    src={article.imageUrl}
+                    alt={article.title}
+                    fill
+                    className="object-cover"
+                    priority={index === 0}
+                    loading={index === 0 ? 'eager' : 'lazy'}
+                  />
+                ) : (
+                  <ArticleCoverGenerator
+                    category={article.categoryValue}
+                    title={article.title}
+                    showTitle={false}
+                    showIcon={true}
+                    className="h-full w-full"
+                  />
+                )}
                 <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
                 <div className="absolute bottom-12 left-12 text-white">
                   <div className="mb-4 flex items-center gap-3">
