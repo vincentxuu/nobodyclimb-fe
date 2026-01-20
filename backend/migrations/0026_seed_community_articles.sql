@@ -1,15 +1,15 @@
 -- Seed community blog posts (expanded version)
--- Author: nobodyclimb (staff account)
+-- Author: nobodyclimb (existing user)
 -- Date: 2026-01-20
 -- Category: community (社群與文化)
 
--- Note: nobodyclimb staff user already created in migration 0025
+-- Using existing nobodyclimb user: 67f57fd60ed7c8edf015f0ee389b5c83
 
 -- 1. 經典攀岩電影與紀錄片推薦 (約 4,000 字)
 INSERT OR REPLACE INTO posts (id, author_id, title, slug, excerpt, content, cover_image, category, status, is_featured, published_at, created_at, updated_at)
 VALUES (
   'post_community_climbing_films',
-  'nobodyclimb_staff_account_001',
+  '67f57fd60ed7c8edf015f0ee389b5c83',
   '經典攀岩電影與紀錄片推薦',
   'classic-climbing-films-documentaries',
   '從《赤手登峰》到《垂直九十度的熱血人生》，精選影響攀岩文化的經典紀錄片與電影，帶你深入了解攀岩者的內心世界與挑戰精神。',
@@ -390,7 +390,7 @@ INSERT INTO post_tags (post_id, tag) VALUES ('post_community_climbing_films', 'F
 INSERT OR REPLACE INTO posts (id, author_id, title, slug, excerpt, content, cover_image, category, status, is_featured, published_at, created_at, updated_at)
 VALUES (
   'post_community_top_climbers',
-  'nobodyclimb_staff_account_001',
+  '67f57fd60ed7c8edf015f0ee389b5c83',
   '當代最強攀岩選手介紹',
   'top-climbers-of-modern-era',
   '從 Adam Ondra 到 Janja Garnbret，認識當今攀岩界最頂尖的選手，了解他們的成就、風格與對這項運動的貢獻。',
@@ -710,7 +710,7 @@ INSERT INTO post_tags (post_id, tag) VALUES ('post_community_top_climbers', 'Jan
 INSERT OR REPLACE INTO posts (id, author_id, title, slug, excerpt, content, cover_image, category, status, is_featured, published_at, created_at, updated_at)
 VALUES (
   'post_community_climbing_history',
-  'nobodyclimb_staff_account_001',
+  '67f57fd60ed7c8edf015f0ee389b5c83',
   '攀岩運動發展史：從登山附屬到奧運項目',
   'history-of-rock-climbing',
   '從 1492 年的 Mont Aiguille 到 2024 年巴黎奧運，攀岩運動經歷了怎樣的演變？本文帶你回顧攀岩運動超過 500 年的發展歷程。',
@@ -1006,7 +1006,7 @@ INSERT INTO post_tags (post_id, tag) VALUES ('post_community_climbing_history', 
 INSERT OR REPLACE INTO posts (id, author_id, title, slug, excerpt, content, cover_image, category, status, is_featured, published_at, created_at, updated_at)
 VALUES (
   'post_community_climbing_books',
-  'nobodyclimb_staff_account_001',
+  '67f57fd60ed7c8edf015f0ee389b5c83',
   '攀岩必讀書籍推薦',
   'must-read-climbing-books',
   '從《攀岩聖經》到《The Rock Warrior''s Way》，精選技術訓練、心理建設與攀岩故事類書籍，助你從閱讀中提升攀岩實力。',
