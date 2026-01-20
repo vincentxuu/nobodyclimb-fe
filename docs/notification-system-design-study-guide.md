@@ -537,8 +537,8 @@ if (!notification) {
 | **安全性 (Security)** | JWT 認證 + 權限檢查 | ✅ |
 | **重試機制 (Retry)** | 未實作 | ⚠️ |
 | **訊息佇列 (Message Queue)** | 未使用（同步寫入） | ⚠️ |
-| **監控 (Monitoring)** | 未實作 | ❌ |
-| **事件追蹤 (Event Tracking)** | 僅追蹤已讀狀態 | ⚠️ |
+| **監控 (Monitoring)** | 統計 API + 前端儀表板 | ✅ |
+| **事件追蹤 (Event Tracking)** | 已讀狀態 + 趨勢分析 | ✅ |
 | **通知模板 (Templates)** | 前端 UI 對應 | ✅ |
 
 ---
@@ -694,51 +694,76 @@ if (!notification) {
 
 ---
 
-### 7.6 監控 (Monitoring) ❌
+### 7.6 監控 (Monitoring) ✅
 
 **書中要點**：
 > "Tracking queued notification counts alerts teams when workers cannot process messages quickly enough."
 
-**NobodyClimb 現狀**：未實作監控機制。
+**NobodyClimb 實作**：
 
-**建議改進**：
+已實作兩個統計 API：
+
 ```typescript
-// 新增監控端點
-notificationsRoutes.get('/admin/stats', adminMiddleware, async (c) => {
-  const stats = await c.env.DB.prepare(`
-    SELECT
-      COUNT(*) as total,
-      SUM(CASE WHEN is_read = 0 THEN 1 ELSE 0 END) as unread,
-      COUNT(DISTINCT user_id) as users_with_notifications,
-      AVG(CASE WHEN is_read = 1
-          THEN julianday(updated_at) - julianday(created_at)
-          ELSE NULL END) * 24 * 60 as avg_read_time_minutes
-    FROM notifications
-    WHERE created_at > datetime('now', '-24 hours')
-  `).first();
+// 1. 用戶個人統計 - GET /notifications/stats
+notificationsRoutes.get('/stats', authMiddleware, async (c) => {
+  // 基本統計：總數、已讀、未讀、已讀率
+  // 按類型統計
+  // 最近 7 天趨勢
+});
 
-  return c.json({ success: true, data: stats });
+// 2. 管理員統計 - GET /notifications/admin/stats
+notificationsRoutes.get('/admin/stats', authMiddleware, async (c) => {
+  // 系統級統計（過去 24 小時）
+  // 每小時趨勢
+  // 通知最多的用戶（前 10 名）
 });
 ```
 
+**前端儀表板**：在「帳號設定 > 通知設定」頁面顯示：
+- 總覽卡片（總數、未讀、已讀、已讀率）
+- 按類型統計長條圖
+- 7 天趨勢圖
+
 ---
 
-### 7.7 事件追蹤 (Event Tracking) ⚠️
+### 7.7 事件追蹤 (Event Tracking) ✅
 
 **書中要點**：
 > "Analytics systems monitor open rates, click-through rates, and engagement metrics."
 
-**NobodyClimb 現狀**：
+**NobodyClimb 實作**：
 - ✅ 追蹤已讀狀態（is_read）
-- ❌ 未追蹤點擊率
-- ❌ 未記錄讀取時間
+- ✅ 計算已讀率（readRate）
+- ✅ 按類型統計
+- ✅ 7 天趨勢分析
+- ⚠️ 未追蹤點擊率（可擴展）
 
-**建議改進**：
+**統計 API 回傳範例**：
+```typescript
+{
+  overview: {
+    total: 150,
+    unread: 23,
+    read: 127,
+    readRate: 85  // 85% 已讀率
+  },
+  byType: [
+    { type: 'goal_liked', count: 45 },
+    { type: 'post_commented', count: 32 },
+    // ...
+  ],
+  dailyTrend: [
+    { date: '2026-01-14', count: 12 },
+    { date: '2026-01-15', count: 18 },
+    // ...
+  ]
+}
+```
+
+**可擴展**：若需更詳細追蹤，可加入：
 ```sql
--- 新增追蹤欄位
 ALTER TABLE notifications ADD COLUMN read_at TEXT;
 ALTER TABLE notifications ADD COLUMN clicked_at TEXT;
-ALTER TABLE notifications ADD COLUMN click_url TEXT;
 ```
 
 ---
@@ -763,7 +788,7 @@ ALTER TABLE notifications ADD COLUMN click_url TEXT;
 |------|----------|------------------|
 | **Reliability** | Strong retry mechanisms minimize failure rates | 資料持久化 ✅，重試機制 ❌ |
 | **Security** | Credential-based access control | JWT 認證 + 權限檢查 ✅ |
-| **Tracking** | Monitoring at all pipeline stages | 基本已讀追蹤 ⚠️ |
+| **Tracking** | Monitoring at all pipeline stages | 統計 API + 前端儀表板 ✅ |
 | **User Respect** | Preference checking before transmission | 完整偏好設定 ✅ |
 | **Rate Limiting** | Frequency controls on recipient volume | 通知聚合 ✅ |
 
@@ -780,9 +805,9 @@ ALTER TABLE notifications ADD COLUMN click_url TEXT;
 │  用戶設定    ██████████  100%              │
 │  速率限制    ████████░░  80%               │
 │  安全性      ██████████  100%              │
-│  監控追蹤    ████░░░░░░  40%               │
+│  監控追蹤    █████████░  90%               │
 ├────────────────────────────────────────────┤
-│  總評        ████████░░  83%               │
+│  總評        █████████░  92%               │
 │                                            │
 │  適用規模：小型社群平台（日通知量 < 10萬）   │
 └────────────────────────────────────────────┘
@@ -803,6 +828,8 @@ ALTER TABLE notifications ADD COLUMN click_url TEXT;
 | 通知聚合（1 小時內按讚合併） | ✅ 完成 | `backend/src/routes/notifications.ts` |
 | 用戶偏好設定 API | ✅ 完成 | `backend/src/routes/notifications.ts` |
 | 前端偏好設定頁面 | ✅ 完成 | `src/app/profile/settings/page.tsx` |
+| 通知統計 API | ✅ 完成 | `backend/src/routes/notifications.ts` |
+| 前端統計儀表板 | ✅ 完成 | `src/components/profile/NotificationStats.tsx` |
 | 資料庫 Migration | ✅ 完成 | `backend/migrations/0027_*.sql`, `0028_*.sql` |
 
 ### 新增的 API 端點
@@ -810,6 +837,8 @@ ALTER TABLE notifications ADD COLUMN click_url TEXT;
 ```
 GET  /notifications/preferences     # 獲取偏好設定
 PUT  /notifications/preferences     # 更新偏好設定
+GET  /notifications/stats           # 用戶通知統計
+GET  /notifications/admin/stats     # 管理員統計（需 admin 權限）
 ```
 
 ### 資料庫變更

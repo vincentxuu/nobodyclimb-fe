@@ -174,6 +174,157 @@ notificationsRoutes.delete('/', authMiddleware, async (c) => {
 });
 
 // ═══════════════════════════════════════════════════════════
+// 通知統計與分析 API
+// ═══════════════════════════════════════════════════════════
+
+// GET /notifications/stats - Get user's notification statistics
+notificationsRoutes.get('/stats', authMiddleware, async (c) => {
+  const userId = c.get('userId');
+
+  // 基本統計
+  const basicStats = await c.env.DB.prepare(`
+    SELECT
+      COUNT(*) as total,
+      SUM(CASE WHEN is_read = 0 THEN 1 ELSE 0 END) as unread,
+      SUM(CASE WHEN is_read = 1 THEN 1 ELSE 0 END) as read
+    FROM notifications
+    WHERE user_id = ?
+  `)
+    .bind(userId)
+    .first<{ total: number; unread: number; read: number }>();
+
+  // 按類型統計
+  const typeStats = await c.env.DB.prepare(`
+    SELECT type, COUNT(*) as count
+    FROM notifications
+    WHERE user_id = ?
+    GROUP BY type
+    ORDER BY count DESC
+  `)
+    .bind(userId)
+    .all<{ type: string; count: number }>();
+
+  // 最近 7 天趨勢
+  const dailyTrend = await c.env.DB.prepare(`
+    SELECT
+      date(created_at) as date,
+      COUNT(*) as count
+    FROM notifications
+    WHERE user_id = ?
+    AND created_at >= date('now', '-7 days')
+    GROUP BY date(created_at)
+    ORDER BY date ASC
+  `)
+    .bind(userId)
+    .all<{ date: string; count: number }>();
+
+  // 已讀率計算
+  const readRate = basicStats?.total
+    ? Math.round(((basicStats.read || 0) / basicStats.total) * 100)
+    : 0;
+
+  return c.json({
+    success: true,
+    data: {
+      overview: {
+        total: basicStats?.total || 0,
+        unread: basicStats?.unread || 0,
+        read: basicStats?.read || 0,
+        readRate,
+      },
+      byType: typeStats.results || [],
+      dailyTrend: dailyTrend.results || [],
+    },
+  });
+});
+
+// GET /notifications/admin/stats - Admin statistics (requires admin role)
+notificationsRoutes.get('/admin/stats', authMiddleware, async (c) => {
+  const user = c.get('user');
+
+  // 簡單的管理員檢查（可根據實際需求調整）
+  if (user?.role !== 'admin') {
+    return c.json(
+      {
+        success: false,
+        error: 'Forbidden',
+        message: 'Admin access required',
+      },
+      403
+    );
+  }
+
+  // 系統級統計（過去 24 小時）
+  const systemStats = await c.env.DB.prepare(`
+    SELECT
+      COUNT(*) as total_24h,
+      SUM(CASE WHEN is_read = 0 THEN 1 ELSE 0 END) as unread_24h,
+      COUNT(DISTINCT user_id) as users_with_notifications
+    FROM notifications
+    WHERE created_at > datetime('now', '-24 hours')
+  `).first<{
+    total_24h: number;
+    unread_24h: number;
+    users_with_notifications: number;
+  }>();
+
+  // 按類型統計（過去 24 小時）
+  const typeStats24h = await c.env.DB.prepare(`
+    SELECT type, COUNT(*) as count
+    FROM notifications
+    WHERE created_at > datetime('now', '-24 hours')
+    GROUP BY type
+    ORDER BY count DESC
+  `).all<{ type: string; count: number }>();
+
+  // 每小時趨勢（過去 24 小時）
+  const hourlyTrend = await c.env.DB.prepare(`
+    SELECT
+      strftime('%Y-%m-%d %H:00', created_at) as hour,
+      COUNT(*) as count
+    FROM notifications
+    WHERE created_at > datetime('now', '-24 hours')
+    GROUP BY strftime('%Y-%m-%d %H:00', created_at)
+    ORDER BY hour ASC
+  `).all<{ hour: string; count: number }>();
+
+  // 通知最多的用戶（過去 24 小時，前 10 名）
+  const topRecipients = await c.env.DB.prepare(`
+    SELECT
+      n.user_id,
+      u.username,
+      u.display_name,
+      COUNT(*) as notification_count
+    FROM notifications n
+    LEFT JOIN users u ON n.user_id = u.id
+    WHERE n.created_at > datetime('now', '-24 hours')
+    GROUP BY n.user_id
+    ORDER BY notification_count DESC
+    LIMIT 10
+  `).all<{
+    user_id: string;
+    username: string;
+    display_name: string | null;
+    notification_count: number;
+  }>();
+
+  return c.json({
+    success: true,
+    data: {
+      period: '24h',
+      overview: {
+        total: systemStats?.total_24h || 0,
+        unread: systemStats?.unread_24h || 0,
+        usersWithNotifications: systemStats?.users_with_notifications || 0,
+      },
+      byType: typeStats24h.results || [],
+      hourlyTrend: hourlyTrend.results || [],
+      topRecipients: topRecipients.results || [],
+    },
+  });
+});
+
+// ═══════════════════════════════════════════════════════════
 // 通知偏好設定 API
 // ═══════════════════════════════════════════════════════════
 

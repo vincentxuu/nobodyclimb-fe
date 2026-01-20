@@ -1921,6 +1921,25 @@ export const notificationService = {
     )
     return response.data
   },
+
+  /**
+   * 獲取用戶通知統計
+   */
+  getStats: async () => {
+    const response = await apiClient.get<
+      ApiResponse<{
+        overview: {
+          total: number
+          unread: number
+          read: number
+          readRate: number
+        }
+        byType: Array<{ type: string; count: number }>
+        dailyTrend: Array<{ date: string; count: number }>
+      }>
+    >('/notifications/stats')
+    return response.data
+  },
 }
 
 /**

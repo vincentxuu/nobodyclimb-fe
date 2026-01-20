@@ -5,8 +5,9 @@ import ProfilePageLayout from '@/components/profile/layout/ProfilePageLayout'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
-import { UserCircle, Key, Upload, Loader2, Bell } from 'lucide-react'
+import { UserCircle, Key, Upload, Loader2, Bell, BarChart3 } from 'lucide-react'
 import NotificationPreferences from '@/components/profile/NotificationPreferences'
+import NotificationStats from '@/components/profile/NotificationStats'
 import {
   AvatarOptions,
   generateAvatarElement,
@@ -640,6 +641,16 @@ export default function SettingsPage() {
 
         {activeTab === 'notifications' && (
           <div className="space-y-8">
+            {/* 通知統計 */}
+            <div className={`rounded-sm border border-[#DBD8D8] ${isMobile ? 'p-4' : 'p-6'}`}>
+              <div className="flex items-center gap-2 mb-4">
+                <BarChart3 size={isMobile ? 18 : 20} className="text-[#3F3D3D]" />
+                <h2 className={`${isMobile ? 'text-lg' : 'text-xl'} font-medium`}>通知統計</h2>
+              </div>
+              <NotificationStats />
+            </div>
+
+            {/* 通知偏好設定 */}
             <div className={`rounded-sm border border-[#DBD8D8] ${isMobile ? 'p-4' : 'p-6'}`}>
               <h2 className={`${isMobile ? 'text-lg' : 'text-xl'} mb-4 font-medium`}>通知偏好設定</h2>
               <p className="text-sm text-[#6D6C6C] mb-6">
