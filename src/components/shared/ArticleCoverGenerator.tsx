@@ -111,11 +111,7 @@ export function ArticleCoverGenerator({
   showTitle = true,
   aspectRatio = 'video',
 }: ArticleCoverGeneratorProps) {
-  const theme =
-    category && category in CATEGORY_THEMES
-      ? CATEGORY_THEMES[category as PostCategory]
-      : DEFAULT_THEME
-
+  const theme = getCategoryTheme(category)
   const categoryLabel = category ? getCategoryLabel(category as PostCategory) : ''
 
   const aspectClasses = {
@@ -157,10 +153,15 @@ export function ArticleCoverGenerator({
 }
 
 /**
+ * 背景圖案類型
+ */
+type PatternType = 'dots' | 'lines' | 'grid' | 'waves' | 'triangles'
+
+/**
  * 背景圖案組件
  */
-function PatternOverlay({ pattern }: { pattern: string }) {
-  const patternStyles: Record<string, React.ReactNode> = {
+function PatternOverlay({ pattern }: { pattern: PatternType }) {
+  const patternStyles: Record<PatternType, React.ReactNode> = {
     dots: (
       <div
         className="absolute inset-0 opacity-10"
@@ -215,7 +216,7 @@ function PatternOverlay({ pattern }: { pattern: string }) {
     ),
   }
 
-  return patternStyles[pattern] || null
+  return patternStyles[pattern]
 }
 
 /**
