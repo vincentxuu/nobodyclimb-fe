@@ -25,8 +25,16 @@ import {
 type PatternType = 'dots' | 'lines' | 'grid' | 'waves' | 'triangles'
 
 /**
+ * 統一漸層配色 - 使用品牌色
+ * from: brand-dark-hover (#3F3D3D)
+ * to: brand-dark (#1B1A1A)
+ */
+const BRAND_GRADIENT = 'from-brand-dark-hover to-brand-dark'
+
+/**
  * 每個分類的配色方案
- * 使用品牌色系：深灰/石墨色基底 + 黃色強調
+ * 使用品牌色系：深灰基底 + 黃色強調
+ * 各分類透過「圖案」區分，配色統一使用品牌色
  * Icon 選擇遵循 docs/icon-usage-guide.md
  *
  * 注意：Mountain icon 專用於「按讚功能」，不可用於其他用途
@@ -41,79 +49,79 @@ const CATEGORY_THEMES: Record<
 > = {
   // 新手入門 - Sprout（新手徽章）
   beginner: {
-    gradient: 'from-[#2d2c2c] to-[#1B1A1A]',
+    gradient: BRAND_GRADIENT,
     Icon: Sprout,
     pattern: 'dots',
   },
   // 新聞動態 - Newspaper
   news: {
-    gradient: 'from-[#3a3939] to-[#1B1A1A]',
+    gradient: BRAND_GRADIENT,
     Icon: Newspaper,
     pattern: 'grid',
   },
   // 裝備分享 - Backpack
   gear: {
-    gradient: 'from-[#33312f] to-[#1B1A1A]',
+    gradient: BRAND_GRADIENT,
     Icon: Backpack,
     pattern: 'triangles',
   },
   // 技巧分享 - Lightbulb
   skills: {
-    gradient: 'from-[#2f2d33] to-[#1B1A1A]',
+    gradient: BRAND_GRADIENT,
     Icon: Lightbulb,
     pattern: 'lines',
   },
   // 訓練計畫 - Dumbbell（運動/訓練相關）
   training: {
-    gradient: 'from-[#352d2d] to-[#1B1A1A]',
+    gradient: BRAND_GRADIENT,
     Icon: Dumbbell,
     pattern: 'waves',
   },
   // 路線攻略 - Map
   routes: {
-    gradient: 'from-[#2d3133] to-[#1B1A1A]',
+    gradient: BRAND_GRADIENT,
     Icon: Map,
     pattern: 'lines',
   },
   // 岩場開箱 - Globe（Mountain 專用於按讚，改用 Globe 表示地點/探索）
   crags: {
-    gradient: 'from-[#3F3D3D] to-[#1B1A1A]',
+    gradient: BRAND_GRADIENT,
     Icon: Globe,
     pattern: 'triangles',
   },
   // 岩館開箱 - Building2
   gyms: {
-    gradient: 'from-[#2d2d35] to-[#1B1A1A]',
+    gradient: BRAND_GRADIENT,
     Icon: Building2,
     pattern: 'grid',
   },
   // 攀岩旅遊 - Plane（國際旅行徽章）
   travel: {
-    gradient: 'from-[#2d3235] to-[#1B1A1A]',
+    gradient: BRAND_GRADIENT,
     Icon: Plane,
     pattern: 'waves',
   },
   // 賽事介紹 - Trophy（成就獎盃）
   competition: {
-    gradient: 'from-[#35332d] to-[#1B1A1A]',
+    gradient: BRAND_GRADIENT,
     Icon: Trophy,
     pattern: 'dots',
   },
   // 活動介紹 - Calendar（日期資訊）
   events: {
-    gradient: 'from-[#332d31] to-[#1B1A1A]',
+    gradient: BRAND_GRADIENT,
     Icon: Calendar,
     pattern: 'dots',
   },
   // 社群資源 - Users（社群功能）
   community: {
-    gradient: 'from-[#2d3331] to-[#1B1A1A]',
+    gradient: BRAND_GRADIENT,
     Icon: Users,
     pattern: 'grid',
   },
   // 傷害防護 - HeartPulse
   injury: {
-    gradient: 'from-[#352d2d] to-[#1B1A1A]',
+    gradient: BRAND_GRADIENT,
     Icon: HeartPulse,
     pattern: 'waves',
   },
@@ -121,7 +129,7 @@ const CATEGORY_THEMES: Record<
 
 // 預設主題（當分類為空時使用）
 const DEFAULT_THEME = {
-  gradient: 'from-[#3F3D3D] to-[#1B1A1A]',
+  gradient: BRAND_GRADIENT,
   Icon: FileText,
   pattern: 'dots' as PatternType,
 }
