@@ -121,10 +121,12 @@ export async function generateMetadata({
 
   // Server-side fetch 可能因 Worker-to-Worker 522 超時而失敗
   // 使用通用標題，讓 client-side 正確顯示內容
+  // 添加 noindex 防止搜尋引擎索引帶有通用 metadata 的頁面
   if (!post) {
     return {
       title: '部落格文章',
       description: '攀岩技術教學、心得分享、裝備評測、比賽資訊等攀岩相關文章。',
+      robots: { index: false, follow: false },
     }
   }
 
