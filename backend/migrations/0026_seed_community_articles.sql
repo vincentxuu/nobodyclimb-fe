@@ -3,7 +3,21 @@
 -- Date: 2026-01-20
 -- Category: community (社群與文化)
 
--- Note: nobodyclimb staff user already created in migration 0025
+-- First, create the nobodyclimb staff user if not exists
+INSERT OR IGNORE INTO users (id, email, username, display_name, avatar, password_hash, role, is_active, email_verified, created_at, updated_at)
+VALUES (
+  'nobodyclimb_staff_account_001',
+  'staff@nobodyclimb.cc',
+  'nobodyclimb',
+  'NobodyClimb',
+  '/logo192.png',
+  '$2a$10$placeholder_hash_for_staff_account',
+  'admin',
+  1,
+  1,
+  datetime('now'),
+  datetime('now')
+);
 
 -- 1. 經典攀岩電影與紀錄片推薦 (約 4,000 字)
 INSERT OR REPLACE INTO posts (id, author_id, title, slug, excerpt, content, cover_image, category, status, is_featured, published_at, created_at, updated_at)
