@@ -8,11 +8,11 @@ import {
   Lightbulb,
   Dumbbell,
   Map,
-  Mountain,
+  Globe,
   Building2,
   Plane,
   Trophy,
-  PartyPopper,
+  Calendar,
   Users,
   HeartPulse,
   FileText,
@@ -26,7 +26,10 @@ type PatternType = 'dots' | 'lines' | 'grid' | 'waves' | 'triangles'
 
 /**
  * 每個分類的配色方案
- * 使用低飽和度、柔和的色調
+ * 使用品牌色系：深灰/石墨色基底 + 黃色強調
+ * Icon 選擇遵循 docs/icon-usage-guide.md
+ *
+ * 注意：Mountain icon 專用於「按讚功能」，不可用於其他用途
  */
 const CATEGORY_THEMES: Record<
   PostCategory,
@@ -36,68 +39,81 @@ const CATEGORY_THEMES: Record<
     pattern: PatternType
   }
 > = {
+  // 新手入門 - Sprout（新手徽章）
   beginner: {
-    gradient: 'from-emerald-600/80 to-teal-700/90',
+    gradient: 'from-[#2d2c2c] to-[#1B1A1A]',
     Icon: Sprout,
     pattern: 'dots',
   },
+  // 新聞動態 - Newspaper
   news: {
-    gradient: 'from-slate-500/80 to-slate-700/90',
+    gradient: 'from-[#3a3939] to-[#1B1A1A]',
     Icon: Newspaper,
     pattern: 'grid',
   },
+  // 裝備分享 - Backpack
   gear: {
-    gradient: 'from-amber-600/80 to-orange-700/90',
+    gradient: 'from-[#33312f] to-[#1B1A1A]',
     Icon: Backpack,
     pattern: 'triangles',
   },
+  // 技巧分享 - Lightbulb
   skills: {
-    gradient: 'from-violet-600/80 to-purple-800/90',
+    gradient: 'from-[#2f2d33] to-[#1B1A1A]',
     Icon: Lightbulb,
     pattern: 'lines',
   },
+  // 訓練計畫 - Dumbbell（運動/訓練相關）
   training: {
-    gradient: 'from-rose-600/80 to-red-800/90',
+    gradient: 'from-[#352d2d] to-[#1B1A1A]',
     Icon: Dumbbell,
     pattern: 'waves',
   },
+  // 路線攻略 - Map
   routes: {
-    gradient: 'from-cyan-600/80 to-blue-800/90',
+    gradient: 'from-[#2d3133] to-[#1B1A1A]',
     Icon: Map,
     pattern: 'lines',
   },
+  // 岩場開箱 - Globe（Mountain 專用於按讚，改用 Globe 表示地點/探索）
   crags: {
-    gradient: 'from-stone-500/80 to-stone-700/90',
-    Icon: Mountain,
+    gradient: 'from-[#3F3D3D] to-[#1B1A1A]',
+    Icon: Globe,
     pattern: 'triangles',
   },
+  // 岩館開箱 - Building2
   gyms: {
-    gradient: 'from-indigo-600/80 to-indigo-800/90',
+    gradient: 'from-[#2d2d35] to-[#1B1A1A]',
     Icon: Building2,
     pattern: 'grid',
   },
+  // 攀岩旅遊 - Plane（國際旅行徽章）
   travel: {
-    gradient: 'from-sky-600/80 to-blue-700/90',
+    gradient: 'from-[#2d3235] to-[#1B1A1A]',
     Icon: Plane,
     pattern: 'waves',
   },
+  // 賽事介紹 - Trophy（成就獎盃）
   competition: {
-    gradient: 'from-amber-500/80 to-yellow-700/90',
+    gradient: 'from-[#35332d] to-[#1B1A1A]',
     Icon: Trophy,
     pattern: 'dots',
   },
+  // 活動介紹 - Calendar（日期資訊）
   events: {
-    gradient: 'from-pink-600/80 to-rose-800/90',
-    Icon: PartyPopper,
+    gradient: 'from-[#332d31] to-[#1B1A1A]',
+    Icon: Calendar,
     pattern: 'dots',
   },
+  // 社群資源 - Users（社群功能）
   community: {
-    gradient: 'from-teal-600/80 to-emerald-800/90',
+    gradient: 'from-[#2d3331] to-[#1B1A1A]',
     Icon: Users,
     pattern: 'grid',
   },
+  // 傷害防護 - HeartPulse
   injury: {
-    gradient: 'from-red-600/80 to-rose-800/90',
+    gradient: 'from-[#352d2d] to-[#1B1A1A]',
     Icon: HeartPulse,
     pattern: 'waves',
   },
@@ -105,7 +121,7 @@ const CATEGORY_THEMES: Record<
 
 // 預設主題（當分類為空時使用）
 const DEFAULT_THEME = {
-  gradient: 'from-gray-600/80 to-gray-800/90',
+  gradient: 'from-[#3F3D3D] to-[#1B1A1A]',
   Icon: FileText,
   pattern: 'dots' as PatternType,
 }
@@ -122,6 +138,7 @@ interface ArticleCoverGeneratorProps {
 /**
  * 文章封面圖產生器
  * 根據文章分類自動產生設計化的封面
+ * 使用品牌色系：深灰基底 + 黃色強調
  */
 export function ArticleCoverGenerator({
   category,
@@ -145,13 +162,18 @@ export function ArticleCoverGenerator({
     <div
       className={`relative overflow-hidden bg-gradient-to-br ${theme.gradient} ${aspectClasses[aspectRatio]} ${className}`}
     >
-      {/* 背景圖案 */}
+      {/* 背景圖案 - 使用品牌黃色 */}
       <PatternOverlay pattern={theme.pattern} />
 
       {/* 內容 */}
       <div className="absolute inset-0 flex flex-col items-center justify-center p-4 text-white">
         {showIcon && (
-          <IconComponent className="mb-3 h-12 w-12 drop-shadow-lg md:h-16 md:w-16" strokeWidth={1.5} />
+          <div className="mb-3 rounded-full bg-brand-accent/10 p-4">
+            <IconComponent
+              className="h-10 w-10 text-brand-accent drop-shadow-lg md:h-14 md:w-14"
+              strokeWidth={1.5}
+            />
+          </div>
         )}
 
         {showTitle && title && (
@@ -161,14 +183,14 @@ export function ArticleCoverGenerator({
         )}
 
         {categoryLabel && (
-          <span className="mt-3 rounded-full bg-white/20 px-4 py-1.5 text-xs font-medium backdrop-blur-sm md:text-sm">
+          <span className="mt-3 rounded-full bg-brand-accent px-4 py-1.5 text-xs font-medium text-brand-dark md:text-sm">
             {categoryLabel}
           </span>
         )}
       </div>
 
       {/* 品牌標識 */}
-      <div className="absolute bottom-2 right-2 text-xs font-medium text-white/60 md:bottom-3 md:right-3 md:text-sm">
+      <div className="absolute bottom-2 right-2 text-xs font-medium text-white/40 md:bottom-3 md:right-3 md:text-sm">
         NobodyClimb
       </div>
     </div>
@@ -177,58 +199,54 @@ export function ArticleCoverGenerator({
 
 /**
  * 背景圖案組件
+ * 使用品牌黃色 (#FFE70C) 作為圖案顏色
  */
 function PatternOverlay({ pattern }: { pattern: PatternType }) {
   const patternStyles: Record<PatternType, React.ReactNode> = {
     dots: (
       <div
-        className="absolute inset-0 opacity-10"
+        className="absolute inset-0 opacity-[0.08]"
         style={{
-          backgroundImage: 'radial-gradient(circle, white 1px, transparent 1px)',
-          backgroundSize: '20px 20px',
+          backgroundImage: 'radial-gradient(circle, #FFE70C 1px, transparent 1px)',
+          backgroundSize: '24px 24px',
         }}
       />
     ),
     lines: (
       <div
-        className="absolute inset-0 opacity-10"
+        className="absolute inset-0 opacity-[0.08]"
         style={{
           backgroundImage:
-            'repeating-linear-gradient(45deg, white 0, white 1px, transparent 0, transparent 50%)',
-          backgroundSize: '20px 20px',
+            'repeating-linear-gradient(45deg, #FFE70C 0, #FFE70C 1px, transparent 0, transparent 50%)',
+          backgroundSize: '24px 24px',
         }}
       />
     ),
     grid: (
       <div
-        className="absolute inset-0 opacity-10"
+        className="absolute inset-0 opacity-[0.08]"
         style={{
           backgroundImage:
-            'linear-gradient(white 1px, transparent 1px), linear-gradient(90deg, white 1px, transparent 1px)',
-          backgroundSize: '30px 30px',
+            'linear-gradient(#FFE70C 1px, transparent 1px), linear-gradient(90deg, #FFE70C 1px, transparent 1px)',
+          backgroundSize: '32px 32px',
         }}
       />
     ),
     waves: (
-      <svg className="absolute inset-0 h-full w-full opacity-10" preserveAspectRatio="none">
+      <svg className="absolute inset-0 h-full w-full opacity-[0.08]" preserveAspectRatio="none">
         <pattern id="waves" width="100" height="20" patternUnits="userSpaceOnUse">
-          <path
-            d="M0 10 Q 25 0, 50 10 T 100 10"
-            fill="none"
-            stroke="white"
-            strokeWidth="1.5"
-          />
+          <path d="M0 10 Q 25 0, 50 10 T 100 10" fill="none" stroke="#FFE70C" strokeWidth="1.5" />
         </pattern>
         <rect width="100%" height="100%" fill="url(#waves)" />
       </svg>
     ),
     triangles: (
       <div
-        className="absolute inset-0 opacity-10"
+        className="absolute inset-0 opacity-[0.08]"
         style={{
           backgroundImage:
-            'linear-gradient(135deg, white 25%, transparent 25%), linear-gradient(225deg, white 25%, transparent 25%)',
-          backgroundSize: '40px 40px',
+            'linear-gradient(135deg, #FFE70C 25%, transparent 25%), linear-gradient(225deg, #FFE70C 25%, transparent 25%)',
+          backgroundSize: '48px 48px',
         }}
       />
     ),
