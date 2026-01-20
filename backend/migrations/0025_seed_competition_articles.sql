@@ -255,30 +255,73 @@ VALUES (
 <li><strong>國家榮譽</strong>：Garnbret 曾獲頒 Bloudek 獎（斯洛維尼亞最高體育榮譽）與金質功績勳章</li>
 </ul>
 
-<h3>波蘭</h3>
-<p>波蘭在女子速度攀岩領域稱霸全球：</p>
+<h3>波蘭 - PZA</h3>
+<p>波蘭在女子速度攀岩領域稱霸全球，2025 年迎來重大里程碑：</p>
 <ul>
-<li>Aleksandra Miroslaw 的故鄉，女子速度攀岩世界紀錄保持人（6.06 秒）</li>
-<li>2024 巴黎奧運女子速度金牌得主</li>
-<li>國內速度攀岩培訓體系發達</li>
+<li><strong>協會</strong>：PZA（Polski Związek Alpinizmu）波蘭登山協會，會長 Marek Wierzbowski</li>
+<li><strong>國內賽事</strong>：
+  <ul>
+  <li><strong>Mistrzostwa Polski</strong>：波蘭全國錦標賽（先鋒、抱石、速度）</li>
+  <li><strong>Puchar Polski</strong>：波蘭盃系列賽</li>
+  </ul>
+</li>
+<li><strong>國際賽事</strong>：
+  <ul>
+  <li>克拉科夫（Krakow）於 2025 年 7 月舉辦 IFSC 世界盃，這是波蘭睽違 16 年再度舉辦世界盃</li>
+  <li>克拉科夫市長 Aleksander Miszalski 親自出席賽事發布會</li>
+  </ul>
+</li>
+<li><strong>知名選手</strong>：
+  <ul>
+  <li>Aleksandra Mirosław（2024 奧運金牌、3 屆世界冠軍、世界紀錄保持人 6.03 秒）</li>
+  <li>Natalia Kalucka（世界盃獎牌得主、2024 奧運銅牌）</li>
+  </ul>
+</li>
+<li><strong>特色</strong>：國家隊專注於速度攀岩培訓，Mirosław 同時具有波蘭軍人身份</li>
+<li><strong>榮譽</strong>：Mirosław 入圍 2025 年勞倫斯世界體育獎年度最佳極限運動員</li>
 </ul>
 
 <h3>英國 - BMC</h3>
-<p>英國擁有悠久的登山與攀岩傳統：</p>
+<p>英國擁有悠久的登山與攀岩傳統，近年競技實力大幅提升：</p>
 <ul>
-<li>BMC（British Mountaineering Council）負責管理攀岩運動</li>
-<li>Toby Roberts 在 2024 巴黎奧運奪得男子複合賽金牌</li>
-<li>峰區（Peak District）等地是著名的戶外攀岩勝地</li>
-<li>近年競技攀岩實力大幅提升</li>
+<li><strong>協會</strong>：BMC（British Mountaineering Council）英國登山理事會，負責管理攀岩運動與 GB Climbing 國家隊</li>
+<li><strong>國內賽事</strong>：
+  <ul>
+  <li><strong>British Boulder Championships</strong>：英國抱石錦標賽，2025 年於曼徹斯特 Big Depot 舉辦（1 月 25-26 日）</li>
+  <li><strong>British Lead Championships</strong>：英國先鋒錦標賽，2025 年於曼徹斯特舉辦（2 月 8-9 日）</li>
+  <li><strong>England Climbing Trials</strong>：英格蘭攀岩選拔賽</li>
+  </ul>
+</li>
+<li><strong>知名選手</strong>：
+  <ul>
+  <li>Toby Roberts（2024 巴黎奧運男子複合賽金牌、2025 布拉格世界盃銅牌）</li>
+  <li>Erin McNeice（2025 世界盃先鋒總冠軍）</li>
+  <li>Hamish McArthur（奧運選手、多屆全國冠軍）</li>
+  </ul>
+</li>
+<li><strong>青訓系統</strong>：BMC 設有 England National and Regional Squads，2026 年 GB Climbing Performance Programme 持續培育新生代選手</li>
+<li><strong>戶外聖地</strong>：峰區（Peak District）、湖區（Lake District）、威爾斯等地是著名的戶外攀岩勝地</li>
 </ul>
 
 <h3>西班牙 - FEDME</h3>
-<p>西班牙是攀岩運動的熱門目的地：</p>
+<p>西班牙是攀岩運動的熱門目的地，擁有理想的訓練環境：</p>
 <ul>
-<li>FEDME（Federación Española de Deportes de Montaña y Escalada）管理攀岩運動</li>
-<li>Alberto Ginés López 在 2020 東京奧運奪得男子三項全能金牌</li>
-<li>擁有眾多世界級戶外攀岩場地，如 Siurana、El Chorro</li>
-<li>溫暖氣候吸引全球攀岩者前往訓練</li>
+<li><strong>協會</strong>：FEDME（Federación Española de Deportes de Montaña y Escalada）西班牙登山攀岩運動聯合會</li>
+<li><strong>國內賽事</strong>：
+  <ul>
+  <li><strong>Campeonato de España</strong>：西班牙全國錦標賽（先鋒、抱石、速度）</li>
+  <li><strong>Copa de España</strong>：西班牙盃系列賽</li>
+  </ul>
+</li>
+<li><strong>國際賽事</strong>：馬德里（Madrid）於 2025 年舉辦 IFSC 世界盃先鋒賽</li>
+<li><strong>知名選手</strong>：
+  <ul>
+  <li>Alberto Ginés López（2020 東京奧運金牌、史上首位奧運攀岩冠軍、2019 世界盃先鋒亞軍、2025 馬德里世界盃銀牌）</li>
+  <li>Erik Noya Cardona（2021 世錦賽速度銀牌）</li>
+  </ul>
+</li>
+<li><strong>戶外聖地</strong>：Siurana、El Chorro、Rodellar、Margalef 等地是世界級攀岩勝地</li>
+<li><strong>特色</strong>：地中海型氣候，全年適合戶外攀岩，吸引全球攀岩者前往訓練</li>
 </ul>
 
 <h3>瑞士 - SAC</h3>
@@ -489,6 +532,11 @@ VALUES (
 <li><a href="https://en.pzs.si/" target="_blank" rel="noopener noreferrer">PZS 斯洛維尼亞高山協會</a></li>
 <li><a href="https://www.slovenia.info/en/press-centre/news-of-the-tourism-press-agency/31139-koper-secures-sport-climbing-world-cup-until-2028" target="_blank" rel="noopener noreferrer">Koper World Cup 2028 - Slovenia.info</a></li>
 <li><a href="https://en.wikipedia.org/wiki/Janja_Garnbret" target="_blank" rel="noopener noreferrer">Janja Garnbret - Wikipedia</a></li>
+<li><a href="https://www.ifsc-climbing.org/events/ifsc-world-cup-poland-2025" target="_blank" rel="noopener noreferrer">IFSC World Cup Krakow 2025</a></li>
+<li><a href="https://en.wikipedia.org/wiki/Aleksandra_Miros%C5%82aw" target="_blank" rel="noopener noreferrer">Aleksandra Mirosław - Wikipedia</a></li>
+<li><a href="https://thebmc.co.uk/en/performance" target="_blank" rel="noopener noreferrer">BMC Performance - GB Climbing</a></li>
+<li><a href="https://thebmc.co.uk/en/gb-climbing-names-2026-performance-programme-athletes" target="_blank" rel="noopener noreferrer">GB Climbing 2026 Performance Programme</a></li>
+<li><a href="https://en.wikipedia.org/wiki/Alberto_Gin%C3%A9s" target="_blank" rel="noopener noreferrer">Alberto Ginés López - Wikipedia</a></li>
 </ul>',
   NULL,
   'competition',
