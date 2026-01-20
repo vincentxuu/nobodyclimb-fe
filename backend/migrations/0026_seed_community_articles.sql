@@ -460,7 +460,7 @@ VALUES (
 <li><strong>國籍</strong>：斯洛維尼亞</li>
 <li><strong>身高</strong>：164 公分</li>
 <li><strong>專長</strong>：先鋒攀登、抱石</li>
-<li><strong>Instagram</strong>：<a href="https://www.instagram.com/jabornet/" target="_blank">@jabornet</a>（85 萬追蹤）</li>
+<li><strong>Instagram</strong>：<a href="https://www.instagram.com/janjagarnbret/" target="_blank">@janjagarnbret</a>（85 萬追蹤）</li>
 </ul>
 
 <p><strong>主要成就</strong></p>
@@ -619,7 +619,7 @@ VALUES (
 <p><strong>特色</strong>：年僅 20 歲就打破世界紀錄，代表美國速度攀岩的崛起。他是首位突破 4.7 秒大關的選手。</p>
 
 <h3>Aleksandra Miroslaw（波蘭）</h3>
-<p><strong>成就</strong>：女子速度攀岩世界紀錄保持人（6.06 秒）、2024 巴黎奧運女子速度金牌</p>
+<p><strong>成就</strong>：女子速度攀岩世界紀錄保持人（6.03 秒）、2024 巴黎奧運女子速度金牌</p>
 <p><strong>特色</strong>：女子速度攀岩的絕對統治者，連續多年打破自己的世界紀錄。她在巴黎奧運決賽中以破紀錄成績奪冠。</p>
 
 <h3>Veddriq Leonardo（印尼）</h3>

@@ -1,4 +1,5 @@
 import { Hono } from 'hono';
+import { z } from 'zod';
 import { Env, Post } from '../types';
 import { parsePagination, generateId, generateSlug } from '../utils/id';
 import { authMiddleware, optionalAuthMiddleware } from '../middleware/auth';
@@ -8,19 +9,22 @@ import { deleteR2Images, extractR2ImagesFromContent } from '../utils/storage';
 export const postsRoutes = new Hono<{ Bindings: Env }>();
 
 /**
- * Post Metadata 類型（用於 SEO，存入 KV 快取）
+ * Post Metadata schema（用於 SEO，存入 KV 快取）
+ * 使用 zod 驗證確保型別安全
  */
-interface PostMetadata {
-  id: string;
-  title: string;
-  excerpt: string | null;
-  cover_image: string | null;
-  display_name: string | null;
-  username: string | null;
-  published_at: string | null;
-  updated_at: string | null;
-  tags: string[];
-}
+const postMetadataSchema = z.object({
+  id: z.string(),
+  title: z.string(),
+  excerpt: z.string().nullable(),
+  cover_image: z.string().nullable(),
+  display_name: z.string().nullable(),
+  username: z.string().nullable(),
+  published_at: z.string().nullable(),
+  updated_at: z.string().nullable(),
+  tags: z.array(z.string()),
+});
+
+type PostMetadata = z.infer<typeof postMetadataSchema>;
 
 /**
  * 快取 Post metadata 到 KV
@@ -31,25 +35,32 @@ async function cachePostMetadata(
   post: Record<string, unknown>,
   tags: string[]
 ): Promise<void> {
-  const cacheKey = `post-meta:${post.id}`;
-  const metadata: PostMetadata = {
-    id: post.id as string,
-    title: post.title as string,
-    excerpt: post.excerpt as string | null,
-    cover_image: post.cover_image as string | null,
-    display_name: post.display_name as string | null,
-    username: post.username as string | null,
-    published_at: post.published_at as string | null,
-    updated_at: post.updated_at as string | null,
+  const rawMetadata = {
+    id: post.id,
+    title: post.title,
+    excerpt: post.excerpt ?? null,
+    cover_image: post.cover_image ?? null,
+    display_name: post.display_name ?? null,
+    username: post.username ?? null,
+    published_at: post.published_at ?? null,
+    updated_at: post.updated_at ?? null,
     tags,
   };
 
+  const parsed = postMetadataSchema.safeParse(rawMetadata);
+  if (!parsed.success) {
+    console.error(`Invalid post metadata for ${post.id}:`, parsed.error.issues);
+    return;
+  }
+
+  const cacheKey = `post-meta:${parsed.data.id}`;
+
   try {
-    await cache.put(cacheKey, JSON.stringify(metadata), {
+    await cache.put(cacheKey, JSON.stringify(parsed.data), {
       expirationTtl: 86400 * 7, // 7 天過期
     });
   } catch (error) {
-    console.error(`Failed to cache post metadata for ${post.id}:`, error);
+    console.error(`Failed to cache post metadata for ${parsed.data.id}:`, error);
   }
 }
 
@@ -781,6 +792,54 @@ postsRoutes.post('/:id/comments', authMiddleware, async (c) => {
     },
     201
   );
+});
+
+// DELETE /posts/:postId/comments/:commentId - Delete a comment
+postsRoutes.delete('/:postId/comments/:commentId', authMiddleware, async (c) => {
+  const postId = c.req.param('postId');
+  const commentId = c.req.param('commentId');
+  const userId = c.get('userId');
+  const user = c.get('user');
+
+  // Check if comment exists and belongs to this post
+  const comment = await c.env.DB.prepare(
+    `SELECT id, user_id FROM comments
+     WHERE id = ? AND entity_type = 'post' AND entity_id = ?`
+  )
+    .bind(commentId, postId)
+    .first<{ id: string; user_id: string }>();
+
+  if (!comment) {
+    return c.json(
+      {
+        success: false,
+        error: 'Not Found',
+        message: 'Comment not found',
+      },
+      404
+    );
+  }
+
+  // Check if user is the comment author or admin
+  if (comment.user_id !== userId && user.role !== 'admin') {
+    return c.json(
+      {
+        success: false,
+        error: 'Forbidden',
+        message: 'You can only delete your own comments',
+      },
+      403
+    );
+  }
+
+  await c.env.DB.prepare('DELETE FROM comments WHERE id = ?')
+    .bind(commentId)
+    .run();
+
+  return c.json({
+    success: true,
+    message: 'Comment deleted successfully',
+  });
 });
 
 // ============================================

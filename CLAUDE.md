@@ -61,10 +61,13 @@ pnpm deploy:production             # Deploy to production
 
 ### YouTube Video Data Processing
 ```bash
-./scripts/collect-youtube-data.sh   # Collect YouTube video data
+./scripts/add-channel.sh            # Add new YouTube channel (interactive)
+./scripts/update-videos.sh          # Update all channel videos
+./scripts/collect-youtube-data.sh   # Collect single channel video data
 node scripts/convert-youtube-videos.js  # Convert video data format
-./scripts/update-videos.sh          # Update video data
 ```
+
+Channel configuration is stored in `scripts/channels.json`. Prerequisites: `yt-dlp`, `jq`.
 
 ## Project Structure
 

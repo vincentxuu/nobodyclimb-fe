@@ -110,12 +110,25 @@ main() {
 
         if node scripts/merge-video-sources.js; then
             echo ""
-            echo "🎉 影片資料庫更新完成！"
-            echo ""
-            echo "📂 檔案位置: public/data/videos.json"
-            echo "📊 包含 $successful 個頻道的所有影片資料"
-            echo "📝 個別頻道檔案已自動清理"
+            echo "✅ 影片合併完成"
 
+            # 生成分塊資料
+            echo ""
+            echo "🔄 生成分塊資料..."
+            if node scripts/generate-video-chunks.js; then
+                echo ""
+                echo "🎉 影片資料庫更新完成！"
+                echo ""
+                echo "📂 檔案位置:"
+                echo "   - public/data/videos.json (完整資料)"
+                echo "   - public/data/videos-meta.json (元資料)"
+                echo "   - public/data/featured-videos.json (精選影片)"
+                echo "   - public/data/videos-chunks/ (分塊資料)"
+                echo "📊 包含 $successful 個頻道的所有影片資料"
+            else
+                echo "❌ 分塊生成失敗"
+                exit 1
+            fi
         else
             echo "❌ 合併失敗"
             exit 1
