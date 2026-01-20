@@ -41,32 +41,30 @@ function HeroSection() {
 
       {/* 內容 */}
       <div className="container relative z-10 mx-auto flex h-full flex-col items-center justify-center px-4 text-center">
-        <motion.h1
+        <motion.div
           initial={{ opacity: 0, y: 30 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6 }}
-          className="text-4xl font-bold text-white md:text-5xl lg:text-6xl"
         >
-          小人物攀岩
-        </motion.h1>
-        <motion.p
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6, delay: 0.2 }}
-          className="mt-2 text-xl font-light tracking-wider text-white/90 md:text-2xl"
-        >
-          NobodyClimb
-        </motion.p>
+          <Image
+            src="/logo/Nobodylimb-white.svg"
+            alt="小人物攀岩"
+            width={280}
+            height={80}
+            className="mx-auto"
+            priority
+          />
+        </motion.div>
         <motion.div
           initial={{ opacity: 0, scaleX: 0 }}
           animate={{ opacity: 1, scaleX: 1 }}
-          transition={{ duration: 0.4, delay: 0.4 }}
+          transition={{ duration: 0.4, delay: 0.3 }}
           className="my-6 h-1 w-16 bg-brand-accent"
         />
         <motion.p
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6, delay: 0.5 }}
+          transition={{ duration: 0.6, delay: 0.4 }}
           className="max-w-xl text-lg text-white/80 md:text-xl"
         >
           每個 Nobody 都有屬於自己的攀岩故事
@@ -345,7 +343,15 @@ function CTASection() {
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
           transition={{ duration: 0.5 }}
+          className="flex flex-col items-center"
         >
+          <Image
+            src="/logo/Nobodylimb-black.svg"
+            alt="小人物攀岩"
+            width={280}
+            height={80}
+            className="mb-8"
+          />
           <h2 className="text-3xl font-bold text-[#1B1A1A] md:text-4xl">
             成為小人物的一份子
           </h2>
@@ -354,13 +360,11 @@ function CTASection() {
             加入我們的社群，和其他攀岩愛好者一起分享、學習、成長
           </p>
 
-          <div className="flex flex-col items-center gap-6">
-            <Link href="/auth/register">
-              <Button className="h-12 bg-[#1B1A1A] px-8 text-base text-white hover:bg-[#3F3D3D]">
-                立即加入
-              </Button>
-            </Link>
-          </div>
+          <Link href="/auth/register">
+            <Button className="h-12 bg-[#1B1A1A] px-8 text-base text-white hover:bg-[#3F3D3D]">
+              立即加入
+            </Button>
+          </Link>
         </motion.div>
       </div>
     </section>

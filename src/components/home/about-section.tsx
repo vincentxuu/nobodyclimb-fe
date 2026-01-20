@@ -1,5 +1,6 @@
 'use client'
 
+import Image from 'next/image'
 import Link from 'next/link'
 import { Button } from '@/components/ui/button'
 import { useAuthStore } from '@/store/authStore'
@@ -14,18 +15,15 @@ export function AboutSection() {
 
       {/* 內容區域 */}
       <div className="container relative z-10 mx-auto flex h-full flex-col items-center justify-center px-4 text-center">
-        <h2 className="text-[32px] font-medium text-[#1B1A1A]">關於小人物攀岩</h2>
+        <Image
+          src="/logo/Nobodylimb-black.svg"
+          alt="小人物攀岩"
+          width={320}
+          height={90}
+          className="mb-6"
+        />
 
-        <svg
-          width="40"
-          height="4"
-          viewBox="0 0 40 4"
-          fill="none"
-          xmlns="http://www.w3.org/2000/svg"
-          className="my-2"
-        >
-          <rect width="40" height="4" fill="#1B1A1A" />
-        </svg>
+        <div className="my-2 h-1 w-10 bg-[#1B1A1A]" />
 
         <p className="mt-4 max-w-[582px] px-4 text-base text-[#1B1A1A]">
           緣起於一個 Nobody 很熱愛這項運動，期待更多 Nobody 能一起 Climb
