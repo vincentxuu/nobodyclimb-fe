@@ -294,6 +294,15 @@
       "tags": ["Action Directe", "歷史"]
     },
     {
+      "id": "record-most-world-titles",
+      "question": "哪位攀岩者擁有最多 IFSC 世界冠軍頭銜？",
+      "answer": "Janja Garnbret（超過 20 個）",
+      "detail": "斯洛維尼亞選手 Janja Garnbret 在先鋒和抱石項目累積了超過 20 個世界冠軍頭銜，是攀岩史上最成功的競技選手。",
+      "category": "record",
+      "source": "https://www.ifsc-climbing.org/",
+      "tags": ["Janja Garnbret", "世界冠軍"]
+    },
+    {
       "id": "history-olympics-2020",
       "question": "運動攀登首次成為奧運正式項目是哪一年？",
       "answer": "2020 年東京奧運",
@@ -418,6 +427,15 @@
       "category": "history",
       "source": "https://www.ifsc-climbing.org/",
       "tags": ["IFSC", "組織"]
+    },
+    {
+      "id": "history-aid-climbing-era",
+      "question": "「人工攀登」(Aid Climbing) 的黃金年代是什麼時候？",
+      "answer": "1950-1970 年代",
+      "detail": "在自由攀登技術成熟前，攀岩者大量使用岩釘、繩梯等器材輔助向上。優勝美地的大岩壁路線大多在這個時期被首攀。",
+      "category": "history",
+      "source": "https://en.wikipedia.org/wiki/Aid_climbing",
+      "tags": ["人工攀登", "歷史"]
     },
     {
       "id": "technique-yds-meaning",
@@ -546,6 +564,15 @@
       "tags": ["難度", "術語"]
     },
     {
+      "id": "technique-rest-position",
+      "question": "什麼是「No-Hand Rest」？",
+      "answer": "不用手就能休息的位置",
+      "detail": "在某些地形（如煙囪、角落）可以靠身體卡住或腳撐住來完全放開雙手休息，這是長路線中恢復體力的關鍵。",
+      "category": "technique",
+      "source": "https://www.climbing.com/skills/",
+      "tags": ["休息", "技術"]
+    },
+    {
       "id": "gear-chalk-origin",
       "question": "攀岩用的止滑粉（Chalk）主要成分是什麼？",
       "answer": "碳酸鎂 (MgCO₃)",
@@ -672,6 +699,15 @@
       "tags": ["確保器", "GriGri"]
     },
     {
+      "id": "gear-helmet-importance",
+      "question": "室內攀岩需要戴頭盔嗎？",
+      "answer": "通常不需要，但戶外強烈建議",
+      "detail": "室內環境可控，落石風險低。但戶外攀岩時，頭盔能保護你免於落石、墜落時撞擊岩壁、以及確保者被拉起時撞頭。",
+      "category": "gear",
+      "source": "https://www.climbing.com/gear/",
+      "tags": ["頭盔", "安全"]
+    },
+    {
       "id": "culture-send-origin",
       "question": "攀岩術語「Send」是怎麼來的？",
       "answer": "源自「Ascend」的縮寫",
@@ -796,6 +832,15 @@
       "category": "culture",
       "source": "https://www.climbing.com/skills/",
       "tags": ["首攀", "倫理"]
+    },
+    {
+      "id": "culture-beta-spray",
+      "question": "為什麼不應該主動給別人「Beta」？",
+      "answer": "可能剝奪他人解謎的樂趣",
+      "detail": "攀岩的一大樂趣是自己研究動作。除非對方詢問，否則不請自來的建議（beta spray）可能讓人感到掃興或被冒犯。",
+      "category": "culture",
+      "source": "https://www.climbing.com/",
+      "tags": ["禮儀", "Beta"]
     },
     {
       "id": "competition-world-cup-format",
