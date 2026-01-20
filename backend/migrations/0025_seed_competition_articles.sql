@@ -3,7 +3,7 @@
 -- Date: 2026-01-19
 
 -- First, create the nobodyclimb staff user if not exists
-INSERT OR IGNORE INTO users (id, email, username, display_name, avatar, password_hash, role, is_active, email_verified, created_at, updated_at)
+INSERT OR IGNORE INTO users (id, email, username, display_name, avatar_url, password_hash, role, is_active, email_verified, created_at, updated_at)
 VALUES (
   'nobodyclimb_staff_account_001',
   'staff@nobodyclimb.cc',
