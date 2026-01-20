@@ -88,10 +88,32 @@ export async function generateMetadata({
   const { id } = await params
   const post = await getPost(id)
 
+  // 即使找不到文章，也要提供完整的 OG tags 給社交媒體爬蟲
   if (!post) {
     return {
       title: '找不到文章',
       description: '您要找的文章不存在或已被刪除',
+      robots: { index: false, follow: false },
+      openGraph: {
+        title: `找不到文章 | ${SITE_NAME}`,
+        description: '您要找的文章不存在或已被刪除',
+        type: 'article',
+        url: `${SITE_URL}/blog/${id}`,
+        images: [
+          {
+            url: `${SITE_URL}${OG_IMAGE}`,
+            width: 1200,
+            height: 630,
+            alt: SITE_NAME,
+          },
+        ],
+      },
+      twitter: {
+        card: 'summary_large_image',
+        title: `找不到文章 | ${SITE_NAME}`,
+        description: '您要找的文章不存在或已被刪除',
+        images: [`${SITE_URL}${OG_IMAGE}`],
+      },
     }
   }
 
