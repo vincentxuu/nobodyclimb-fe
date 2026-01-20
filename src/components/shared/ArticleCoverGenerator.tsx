@@ -34,24 +34,33 @@ type PatternType = 'dots' | 'lines' | 'grid' | 'waves' | 'triangles'
 const COLORS = {
   /** Yellow 100 - 品牌強調色 (brand-yellow-100) */
   BRAND_YELLOW_100: '#FFE70C',
-  /** W&B 90 - 深灰 hover (brand-dark-hover) */
+  /** W&B 60 - 中灰 */
+  WB_60: '#8E8C8C',
+  /** W&B 70 - 深灰 */
+  WB_70: '#6D6C6C',
+  /** W&B 90 - 更深灰 */
   WB_90: '#3F3D3D',
-  /** W&B 100 - 近黑 (brand-dark) */
+  /** W&B 100 - 近黑 */
   WB_100: '#1B1A1A',
 } as const
 
 /**
- * 統一漸層配色 - 使用品牌色
- * from: brand-dark-hover (wb-90 / #3F3D3D)
- * to: brand-dark (wb-100 / #1B1A1A)
+ * 漸層配色選項
  * 參考 docs/color-system.md
  */
-const BRAND_GRADIENT = 'from-brand-dark-hover to-brand-dark'
+const GRADIENTS = {
+  /** 深色漸層 - 原本的深灰 */
+  dark: 'from-wb-90 to-wb-100',
+  /** 中等漸層 - 較輕盈 */
+  medium: 'from-wb-60 to-wb-90',
+  /** 淺色漸層 - 最輕盈 */
+  light: 'from-wb-50 to-wb-70',
+} as const
 
 /**
  * 每個分類的配色方案
- * 使用品牌色系：深灰基底 + 黃色強調
- * 各分類透過「圖案」區分，配色統一使用品牌色
+ * 使用品牌色系：不同深淺的灰階漸層 + 黃色強調
+ * 各分類透過「漸層深淺」和「圖案」區分
  * Icon 選擇遵循 docs/icon-usage-guide.md
  *
  * 注意：Mountain icon 專用於「按讚功能」，不可用於其他用途
@@ -64,81 +73,81 @@ const CATEGORY_THEMES: Record<
     pattern: PatternType
   }
 > = {
-  // 新手入門 - Sprout（新手徽章）
+  // 新手入門 - Sprout（新手徽章）- 淺色，友善感
   beginner: {
-    gradient: BRAND_GRADIENT,
+    gradient: GRADIENTS.light,
     Icon: Sprout,
     pattern: 'dots',
   },
-  // 新聞動態 - Newspaper
+  // 新聞動態 - Newspaper - 中等
   news: {
-    gradient: BRAND_GRADIENT,
+    gradient: GRADIENTS.medium,
     Icon: Newspaper,
     pattern: 'grid',
   },
-  // 裝備分享 - Backpack
+  // 裝備分享 - Backpack - 中等
   gear: {
-    gradient: BRAND_GRADIENT,
+    gradient: GRADIENTS.medium,
     Icon: Backpack,
     pattern: 'triangles',
   },
-  // 技巧分享 - Lightbulb
+  // 技巧分享 - Lightbulb - 淺色，創意感
   skills: {
-    gradient: BRAND_GRADIENT,
+    gradient: GRADIENTS.light,
     Icon: Lightbulb,
     pattern: 'lines',
   },
-  // 訓練計畫 - Dumbbell（運動/訓練相關）
+  // 訓練計畫 - Dumbbell（運動/訓練相關）- 深色，專業感
   training: {
-    gradient: BRAND_GRADIENT,
+    gradient: GRADIENTS.dark,
     Icon: Dumbbell,
     pattern: 'waves',
   },
-  // 路線攻略 - Map
+  // 路線攻略 - Map - 中等
   routes: {
-    gradient: BRAND_GRADIENT,
+    gradient: GRADIENTS.medium,
     Icon: Map,
     pattern: 'lines',
   },
-  // 岩場開箱 - Globe（Mountain 專用於按讚，改用 Globe 表示地點/探索）
+  // 岩場開箱 - Globe - 淺色，探索感
   crags: {
-    gradient: BRAND_GRADIENT,
+    gradient: GRADIENTS.light,
     Icon: Globe,
     pattern: 'triangles',
   },
-  // 岩館開箱 - Building2
+  // 岩館開箱 - Building2 - 中等
   gyms: {
-    gradient: BRAND_GRADIENT,
+    gradient: GRADIENTS.medium,
     Icon: Building2,
     pattern: 'grid',
   },
-  // 攀岩旅遊 - Plane（國際旅行徽章）
+  // 攀岩旅遊 - Plane（國際旅行徽章）- 淺色，輕鬆感
   travel: {
-    gradient: BRAND_GRADIENT,
+    gradient: GRADIENTS.light,
     Icon: Plane,
     pattern: 'waves',
   },
-  // 賽事介紹 - Trophy（成就獎盃）
+  // 賽事介紹 - Trophy（成就獎盃）- 深色，專業感
   competition: {
-    gradient: BRAND_GRADIENT,
+    gradient: GRADIENTS.dark,
     Icon: Trophy,
     pattern: 'dots',
   },
-  // 活動介紹 - Calendar（日期資訊）
+  // 活動介紹 - Calendar（日期資訊）- 中等
   events: {
-    gradient: BRAND_GRADIENT,
+    gradient: GRADIENTS.medium,
     Icon: Calendar,
     pattern: 'dots',
   },
-  // 社群資源 - Users（社群功能）
+  // 社群資源 - Users（社群功能）- 淺色，親和感
   community: {
-    gradient: BRAND_GRADIENT,
+    gradient: GRADIENTS.light,
     Icon: Users,
     pattern: 'grid',
   },
-  // 傷害防護 - HeartPulse
+  // 傷害防護 - HeartPulse - 深色，嚴肅感
   injury: {
-    gradient: BRAND_GRADIENT,
+    gradient: GRADIENTS.dark,
     Icon: HeartPulse,
     pattern: 'waves',
   },
@@ -146,7 +155,7 @@ const CATEGORY_THEMES: Record<
 
 // 預設主題（當分類為空時使用）
 const DEFAULT_THEME = {
-  gradient: BRAND_GRADIENT,
+  gradient: GRADIENTS.medium,
   Icon: FileText,
   pattern: 'dots' as PatternType,
 }
@@ -237,36 +246,36 @@ function PatternOverlay({ pattern }: { pattern: PatternType }) {
   const patternStyles: Record<PatternType, React.ReactNode> = {
     dots: (
       <div
-        className="absolute inset-0 opacity-[0.08]"
+        className="absolute inset-0 opacity-[0.15]"
         style={{
-          backgroundImage: `radial-gradient(circle, ${BRAND_YELLOW_100} 1px, transparent 1px)`,
-          backgroundSize: '20px 20px',
+          backgroundImage: `radial-gradient(circle, ${BRAND_YELLOW_100} 1.5px, transparent 1.5px)`,
+          backgroundSize: '18px 18px',
         }}
       />
     ),
     lines: (
       <div
-        className="absolute inset-0 opacity-[0.08]"
+        className="absolute inset-0 opacity-[0.12]"
         style={{
           backgroundImage: `repeating-linear-gradient(45deg, ${BRAND_YELLOW_100} 0, ${BRAND_YELLOW_100} 1px, transparent 0, transparent 50%)`,
-          backgroundSize: '20px 20px',
+          backgroundSize: '16px 16px',
         }}
       />
     ),
     grid: (
       <div
-        className="absolute inset-0 opacity-[0.08]"
+        className="absolute inset-0 opacity-[0.12]"
         style={{
           backgroundImage: `linear-gradient(${BRAND_YELLOW_100} 1px, transparent 1px), linear-gradient(90deg, ${BRAND_YELLOW_100} 1px, transparent 1px)`,
-          backgroundSize: '28px 28px',
+          backgroundSize: '24px 24px',
         }}
       />
     ),
     waves: (
-      <svg className="absolute inset-0 h-full w-full opacity-[0.08]" preserveAspectRatio="none">
-        <pattern id="waves" width="80" height="16" patternUnits="userSpaceOnUse">
+      <svg className="absolute inset-0 h-full w-full opacity-[0.12]" preserveAspectRatio="none">
+        <pattern id="waves" width="60" height="12" patternUnits="userSpaceOnUse">
           <path
-            d="M0 8 Q 20 0, 40 8 T 80 8"
+            d="M0 6 Q 15 0, 30 6 T 60 6"
             fill="none"
             stroke={BRAND_YELLOW_100}
             strokeWidth="1.5"
@@ -277,10 +286,10 @@ function PatternOverlay({ pattern }: { pattern: PatternType }) {
     ),
     triangles: (
       <div
-        className="absolute inset-0 opacity-[0.08]"
+        className="absolute inset-0 opacity-[0.12]"
         style={{
           backgroundImage: `linear-gradient(135deg, ${BRAND_YELLOW_100} 25%, transparent 25%), linear-gradient(225deg, ${BRAND_YELLOW_100} 25%, transparent 25%)`,
-          backgroundSize: '40px 40px',
+          backgroundSize: '32px 32px',
         }}
       />
     ),
