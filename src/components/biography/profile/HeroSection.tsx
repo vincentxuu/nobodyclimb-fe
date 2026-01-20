@@ -3,9 +3,9 @@
 import { useMemo, useState } from 'react'
 import Image from 'next/image'
 import { motion } from 'framer-motion'
-import { Eye, Users, MessageCircle, User } from 'lucide-react'
+import { Eye, Users, MessageCircle } from 'lucide-react'
 import { Biography, BiographySocialLinks } from '@/lib/types'
-import { isSvgUrl } from '@/lib/utils/image'
+import { isSvgUrl, getDefaultAvatarUrl, getDefaultCoverUrl } from '@/lib/utils/image'
 import { FollowButton } from '../follow-button'
 import { CompactSocialLinks } from '../social-links'
 import { BiographyLikeButton } from '../biography-like-button'
@@ -46,20 +46,16 @@ export function HeroSection({ person, followerCount, isOwner, onFollowChange }: 
       {/* 封面圖片區域 - 限制在內容寬度內，固定比例 */}
       <div className="container mx-auto max-w-5xl px-4">
         <div className="relative w-full aspect-[3/1] bg-gray-200 overflow-hidden rounded-b-xl">
-          {person.cover_image ? (
-            <Image
-              src={person.cover_image}
-              alt={`${person.name} 的封面照片`}
-              fill
-              className="object-cover"
-              sizes="(max-width: 768px) 100vw, 1024px"
-              quality={100}
-              priority
-              referrerPolicy="no-referrer"
-            />
-          ) : (
-            <div className="absolute inset-0 bg-gradient-to-br from-gray-300 to-gray-400" />
-          )}
+          <Image
+            src={person.cover_image || getDefaultCoverUrl(person.id || person.name || 'default')}
+            alt={`${person.name} 的封面照片`}
+            fill
+            className="object-cover"
+            sizes="(max-width: 768px) 100vw, 1024px"
+            quality={100}
+            priority
+            referrerPolicy="no-referrer"
+          />
         </div>
       </div>
 
@@ -68,12 +64,13 @@ export function HeroSection({ person, followerCount, isOwner, onFollowChange }: 
         {/* 頭像 - 疊在封面底部 */}
         <div className="absolute -top-16 md:-top-20 left-4 md:left-8">
           <div className="relative h-32 w-32 md:h-40 md:w-40 overflow-hidden rounded-full border-4 border-white bg-gray-100 shadow-lg">
-            {person.avatar_url ? (
-              isSvgUrl(person.avatar_url) ? (
-                <img src={person.avatar_url} alt={`${person.name} 的頭像`} className="h-full w-full object-cover" />
+            {(() => {
+              const avatarUrl = person.avatar_url || getDefaultAvatarUrl(person.name || 'anonymous')
+              return isSvgUrl(avatarUrl) ? (
+                <img src={avatarUrl} alt={`${person.name} 的頭像`} className="h-full w-full object-cover" />
               ) : (
                 <Image
-                  src={person.avatar_url}
+                  src={avatarUrl}
                   alt={`${person.name} 的頭像`}
                   fill
                   className="object-cover"
@@ -81,11 +78,7 @@ export function HeroSection({ person, followerCount, isOwner, onFollowChange }: 
                   priority
                 />
               )
-            ) : (
-              <div className="flex h-full w-full items-center justify-center text-gray-400 bg-gray-100">
-                <User className="h-16 w-16 md:h-20 md:w-20" />
-              </div>
-            )}
+            })()}
           </div>
         </div>
 

@@ -3,6 +3,7 @@
 import { useState } from 'react'
 import Image from 'next/image'
 import { cn } from '@/lib/utils'
+import { getDefaultAvatarUrl, getDefaultCoverUrl, isSvgUrl } from '@/lib/utils/image'
 import { Clock, BarChart3, Globe, Eye, Users, MessageCircle } from 'lucide-react'
 import type { BiographyV2, SocialLinks } from '@/lib/types/biography-v2'
 import { FollowButton } from '../follow-button'
@@ -115,15 +116,13 @@ export function BiographyHero({
     <div className={cn('relative', className)}>
       {/* Cover Image */}
       <div className="relative w-full aspect-[3/1] md:aspect-[4/1] bg-gradient-to-br from-[#EBEAEA] to-[#DBD8D8] overflow-hidden">
-        {biography.cover_url && (
-          <Image
-            src={biography.cover_url}
-            alt="封面圖片"
-            fill
-            className="object-cover"
-            priority
-          />
-        )}
+        <Image
+          src={biography.cover_url || getDefaultCoverUrl(biography.id || biography.name || 'default')}
+          alt="封面圖片"
+          fill
+          className="object-cover"
+          priority
+        />
         {/* Gradient Overlay */}
         <div className="absolute inset-0 bg-gradient-to-t from-black/30 to-transparent" />
       </div>
@@ -137,18 +136,23 @@ export function BiographyHero({
               <div className="w-full h-full flex items-center justify-center bg-[#DBD8D8] text-4xl md:text-5xl">
                 🎭
               </div>
-            ) : biography.avatar_url ? (
-              <Image
-                src={biography.avatar_url}
-                alt={biography.name}
-                fill
-                className="object-cover"
-              />
-            ) : (
-              <div className="w-full h-full flex items-center justify-center bg-brand-accent/20 text-brand-dark text-2xl md:text-3xl font-bold">
-                {biography.name?.charAt(0) || '?'}
-              </div>
-            )}
+            ) : (() => {
+              const avatarUrl = biography.avatar_url || getDefaultAvatarUrl(biography.name || 'anonymous')
+              return isSvgUrl(avatarUrl) ? (
+                <img
+                  src={avatarUrl}
+                  alt={biography.name}
+                  className="h-full w-full object-cover"
+                />
+              ) : (
+                <Image
+                  src={avatarUrl}
+                  alt={biography.name}
+                  fill
+                  className="object-cover"
+                />
+              )
+            })()}
           </div>
         </div>
 
