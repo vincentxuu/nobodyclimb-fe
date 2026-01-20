@@ -1,60 +1,66 @@
 'use client'
 
 import React from 'react'
-import PlaceholderImage from '@/components/ui/placeholder-image'
 import Link from 'next/link'
-import { MapPin, Calendar, Clock } from 'lucide-react'
+import { MapPin, Calendar, MountainSnow } from 'lucide-react'
 import { Breadcrumb } from '@/components/ui/breadcrumb'
 import { PageHeader } from '@/components/ui/page-header'
 import BackToTop from '@/components/ui/back-to-top'
+import { CragCoverGenerator } from '@/components/shared/CragCoverGenerator'
 import { getAllCrags } from '@/lib/crag-data'
 import { CragMap } from './crag-map'
 
 // 岩場卡片組件（使用 CSS 動畫替代 Framer Motion）
 function CragCard({ crag }: { crag: ReturnType<typeof getAllCrags>[0] }) {
   return (
-    <div className="group overflow-hidden rounded-lg bg-white shadow-md transition-all duration-300 hover:-translate-y-1 hover:shadow-lg">
+    <div className="group overflow-hidden rounded-lg bg-white shadow-sm transition-all duration-300 hover:-translate-y-0.5 hover:shadow-md">
       <Link href={`/crag/${crag.id}`} className="block h-full">
-        <div className="relative h-48 w-full">
-          <PlaceholderImage text={crag.name} bgColor="#f8fafc" />
-          <div className="absolute right-4 top-4 rounded bg-[#FFE70C] px-2.5 py-1 text-xs font-bold text-black">
+        {/* 岩場封面 */}
+        <div className="relative aspect-[4/1] overflow-hidden">
+          <CragCoverGenerator
+            rockType={crag.rockType}
+            name={crag.name}
+            showName={false}
+            showTypeLabel={false}
+            className="absolute inset-0"
+          />
+          <div className="absolute left-2 top-2 rounded bg-[#1B1A1A]/80 px-1.5 py-0.5 text-[10px] font-medium text-white">
             {crag.type}
           </div>
         </div>
-        <div className="p-6">
-          <div className="mb-4">
-            <h3 className="text-xl font-bold">{crag.name}</h3>
-            <p className="text-gray-500">{crag.nameEn}</p>
+
+        <div className="p-3">
+          <h3 className="mb-1.5 text-base font-medium text-[#1B1A1A] group-hover:text-[#3F3D3D]">
+            {crag.name}
+            <span className="ml-1.5 text-xs font-normal text-[#8E8C8C]">{crag.nameEn}</span>
+          </h3>
+
+          <div className="mb-2 flex items-center gap-1.5 text-xs text-[#6D6C6C]">
+            <MapPin className="h-3.5 w-3.5" />
+            <span>{crag.location}</span>
           </div>
 
-          <div className="mb-5 space-y-3">
-            <div className="flex items-center text-gray-700">
-              <MapPin size={16} className="mr-2 text-gray-400" />
-              <span>{crag.location}</span>
+          <div className="flex flex-wrap items-center gap-3 text-xs">
+            <div className="flex items-center gap-1 text-[#6D6C6C]">
+              <MountainSnow className="h-3.5 w-3.5" />
+              <span>{crag.routes} 條路線</span>
             </div>
-            <div className="flex items-center text-gray-700">
-              <Calendar size={16} className="mr-2 text-gray-400" />
-              <span>最佳季節: {crag.seasons.join(', ')}</span>
-            </div>
-            <div className="flex items-center text-gray-700">
-              <Clock size={16} className="mr-2 text-gray-400" />
-              <span>接近時間: 15-30分鐘</span>
-            </div>
+            <div className="text-[#8E8C8C]">{crag.difficulty}</div>
           </div>
 
-          <div className="mb-5 grid grid-cols-2 gap-4">
-            <div className="rounded-lg bg-gray-50 p-3 text-center">
-              <p className="mb-1 text-sm text-gray-500">難度範圍</p>
-              <p className="font-medium">{crag.difficulty}</p>
+          {/* 季節標籤 */}
+          <div className="mt-2 flex items-center gap-1.5">
+            <Calendar className="h-3.5 w-3.5 text-[#8E8C8C]" />
+            <div className="flex gap-1">
+              {crag.seasons.map((season) => (
+                <span
+                  key={season}
+                  className="rounded bg-[#F5F5F5] px-1.5 py-0.5 text-[10px] text-[#6D6C6C]"
+                >
+                  {season}
+                </span>
+              ))}
             </div>
-            <div className="rounded-lg bg-gray-50 p-3 text-center">
-              <p className="mb-1 text-sm text-gray-500">路線數量</p>
-              <p className="font-medium">{crag.routes}+</p>
-            </div>
-          </div>
-
-          <div className="w-full rounded-md bg-[#1B1A1A] py-2 text-center font-medium text-white transition hover:bg-black">
-            查看詳情
           </div>
         </div>
       </Link>

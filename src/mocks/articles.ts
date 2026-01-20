@@ -11,6 +11,7 @@ export interface Article {
   imageUrl: string
   isFeature?: boolean
   description?: string
+  author?: string // 作者名稱
   equipment?: {
     name: string
     usage: string

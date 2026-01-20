@@ -1,75 +1,80 @@
 'use client'
 
-import { Building2, Dumbbell, ArrowUpFromLine, LucideIcon } from 'lucide-react'
-
 /**
  * 背景圖案類型
  */
-type PatternType = 'dots' | 'lines' | 'grid' | 'waves' | 'triangles'
+type PatternType = 'dots' | 'lines' | 'grid' | 'waves' | 'triangles' | 'rocks'
 
 /**
- * 岩館類型
+ * 岩石類型
  */
-type GymType = 'bouldering' | 'lead' | 'mixed'
+type RockType = 'sandstone' | 'limestone' | 'coral' | 'granite' | 'default'
 
 /**
- * 漸層配色選項
+ * 漸層配色選項 - 大自然岩石色調
  */
 const GRADIENTS = {
-  /** 天空藍漸層 - 抱石的活力感 */
-  sky: 'from-sky-200 to-sky-400',
-  /** 翠綠色漸層 - 上攀的專業感 */
-  emerald: 'from-emerald-300 to-emerald-500',
-  /** 靛藍漸層 - 混合類型的多元感 */
-  indigo: 'from-indigo-300 to-indigo-500',
-  /** 中性灰漸層 - 預設 */
-  zinc: 'from-zinc-300 to-zinc-500',
+  /** 砂岩 - 溫暖的橙棕色調 */
+  sandstone: 'from-amber-300 to-orange-400',
+  /** 石灰岩 - 灰白色調 */
+  limestone: 'from-stone-300 to-stone-500',
+  /** 珊瑚礁石灰岩 - 海洋藍綠色調 */
+  coral: 'from-teal-300 to-cyan-500',
+  /** 花崗岩 - 深灰色調 */
+  granite: 'from-slate-400 to-slate-600',
+  /** 預設 - 自然綠色調 */
+  default: 'from-emerald-300 to-emerald-500',
 } as const
 
 /**
- * 每種岩館類型的配色方案
+ * 每種岩石類型的配色方案
  */
-const GYM_TYPE_THEMES: Record<
-  GymType,
+const ROCK_TYPE_THEMES: Record<
+  RockType,
   {
     gradient: string
-    Icon: LucideIcon
     pattern: PatternType
   }
 > = {
-  // 抱石 - 天空藍，活力/清爽感，使用 Dumbbell 代表運動訓練
-  // 注意：Mountain 專用於按讚功能，請參考 docs/icon-usage-guide.md
-  bouldering: {
-    gradient: GRADIENTS.sky,
-    Icon: Dumbbell,
+  sandstone: {
+    gradient: GRADIENTS.sandstone,
     pattern: 'triangles',
   },
-  // 上攀 - 翠綠色，專業/挑戰感，使用向上箭頭代表上攀
-  lead: {
-    gradient: GRADIENTS.emerald,
-    Icon: ArrowUpFromLine,
+  limestone: {
+    gradient: GRADIENTS.limestone,
+    pattern: 'rocks',
+  },
+  coral: {
+    gradient: GRADIENTS.coral,
+    pattern: 'waves',
+  },
+  granite: {
+    gradient: GRADIENTS.granite,
+    pattern: 'dots',
+  },
+  default: {
+    gradient: GRADIENTS.default,
     pattern: 'lines',
   },
-  // 上攀和抱石 - 靛藍，多元/綜合感，使用 Building2 代表綜合岩館
-  mixed: {
-    gradient: GRADIENTS.indigo,
-    Icon: Building2,
-    pattern: 'grid',
-  },
 }
 
-// 預設主題（當類型為空時使用）
-const DEFAULT_THEME = {
-  gradient: GRADIENTS.zinc,
-  Icon: Building2,
-  pattern: 'dots' as PatternType,
+/**
+ * 將中文岩石類型轉換為英文 key
+ */
+function parseRockType(rockType: string | null | undefined): RockType {
+  if (!rockType) return 'default'
+  const lower = rockType.toLowerCase()
+  if (lower.includes('珊瑚') || lower.includes('coral')) return 'coral'
+  if (lower.includes('石灰') || lower.includes('limestone')) return 'limestone'
+  if (lower.includes('花崗') || lower.includes('granite')) return 'granite'
+  if (lower.includes('砂') || lower.includes('sand')) return 'sandstone'
+  return 'default'
 }
 
-interface GymCoverGeneratorProps {
-  type?: GymType | string | null
+interface CragCoverGeneratorProps {
+  rockType?: string | null
   name: string
   className?: string
-  showIcon?: boolean
   showName?: boolean
   showTypeLabel?: boolean
   typeLabel?: string
@@ -77,27 +82,26 @@ interface GymCoverGeneratorProps {
 }
 
 /**
- * 岩館封面圖產生器
- * 根據岩館類型自動產生設計化的封面
+ * 岩場封面圖產生器
+ * 根據岩石類型自動產生設計化的封面
  */
-export function GymCoverGenerator({
-  type,
+export function CragCoverGenerator({
+  rockType,
   name,
   className = '',
-  showIcon = true,
   showName = true,
   showTypeLabel = true,
   typeLabel,
   aspectRatio = 'video',
-}: GymCoverGeneratorProps) {
-  const theme = getGymTypeTheme(type)
-  const IconComponent = theme.Icon
+}: CragCoverGeneratorProps) {
+  const parsedType = parseRockType(rockType)
+  const theme = ROCK_TYPE_THEMES[parsedType]
 
   const aspectClasses = {
     video: 'aspect-video',
     square: 'aspect-square',
     wide: 'aspect-[21/9]',
-    card: 'h-48', // 固定高度，適用於卡片
+    card: 'aspect-[16/10]',
   }
 
   return (
@@ -109,19 +113,9 @@ export function GymCoverGenerator({
 
       {/* 內容區塊 - 響應式設計 */}
       <div className="absolute inset-0 flex flex-col items-center justify-center p-3 text-white sm:p-4 md:p-6">
-        {/* 圖標 - 響應式大小，白色帶陰影 */}
-        {showIcon && (
-          <div className="mb-2 rounded-full bg-white/20 p-2.5 backdrop-blur-sm sm:mb-3 sm:p-3 md:p-4">
-            <IconComponent
-              className="h-8 w-8 text-white drop-shadow-md sm:h-10 sm:w-10 md:h-12 md:w-12 lg:h-14 lg:w-14"
-              strokeWidth={1.5}
-            />
-          </div>
-        )}
-
-        {/* 岩館名稱 - 響應式字體大小與行數 */}
+        {/* 岩場名稱 - 響應式字體大小與行數 */}
         {showName && name && (
-          <h3 className="line-clamp-2 max-w-[90%] text-center text-base font-bold text-white drop-shadow-md sm:max-w-[85%] sm:text-lg md:max-w-[80%] md:text-xl">
+          <h3 className="line-clamp-2 max-w-[90%] text-center text-lg font-bold text-white drop-shadow-md sm:max-w-[85%] sm:text-xl md:max-w-[80%] md:text-2xl">
             {name}
           </h3>
         )}
@@ -174,7 +168,7 @@ function PatternOverlay({ pattern }: { pattern: PatternType }) {
     ),
     waves: (
       <svg className="absolute inset-0 h-full w-full opacity-[0.15]" preserveAspectRatio="none">
-        <pattern id="gym-waves" width="60" height="12" patternUnits="userSpaceOnUse">
+        <pattern id="crag-waves" width="60" height="12" patternUnits="userSpaceOnUse">
           <path
             d="M0 6 Q 15 0, 30 6 T 60 6"
             fill="none"
@@ -182,7 +176,7 @@ function PatternOverlay({ pattern }: { pattern: PatternType }) {
             strokeWidth="1.5"
           />
         </pattern>
-        <rect width="100%" height="100%" fill="url(#gym-waves)" />
+        <rect width="100%" height="100%" fill="url(#crag-waves)" />
       </svg>
     ),
     triangles: (
@@ -194,27 +188,34 @@ function PatternOverlay({ pattern }: { pattern: PatternType }) {
         }}
       />
     ),
+    rocks: (
+      <div
+        className="absolute inset-0 opacity-[0.12]"
+        style={{
+          backgroundImage: `radial-gradient(ellipse 20px 15px at 20px 20px, ${patternColor} 40%, transparent 50%), radial-gradient(ellipse 15px 20px at 50px 35px, ${patternColor} 40%, transparent 50%)`,
+          backgroundSize: '70px 55px',
+        }}
+      />
+    ),
   }
 
   return patternStyles[pattern]
 }
 
 /**
- * 取得岩館類型的主題配色（用於其他組件）
+ * 取得岩石類型的主題配色（用於其他組件）
  */
-export function getGymTypeTheme(type: GymType | string | null | undefined) {
-  if (type && Object.prototype.hasOwnProperty.call(GYM_TYPE_THEMES, type)) {
-    return GYM_TYPE_THEMES[type as GymType]
-  }
-  return DEFAULT_THEME
+export function getCragTypeTheme(rockType: string | null | undefined) {
+  const parsedType = parseRockType(rockType)
+  return ROCK_TYPE_THEMES[parsedType]
 }
 
 /**
- * 取得岩館類型的漸層 CSS 類別
+ * 取得岩石類型的漸層 CSS 類別
  */
-export function getGymTypeGradient(type: GymType | string | null | undefined): string {
-  const theme = getGymTypeTheme(type)
+export function getCragTypeGradient(rockType: string | null | undefined): string {
+  const theme = getCragTypeTheme(rockType)
   return `bg-gradient-to-br ${theme.gradient}`
 }
 
-export default GymCoverGenerator
+export default CragCoverGenerator

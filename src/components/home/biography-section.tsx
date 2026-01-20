@@ -4,13 +4,13 @@ import { useEffect, useState, useCallback, useRef, useMemo } from 'react'
 import Link from 'next/link'
 import Image from 'next/image'
 import { motion } from 'framer-motion'
-import { ArrowRightCircle, Loader2, User } from 'lucide-react'
+import { ArrowRightCircle, Loader2 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
 import { biographyService } from '@/lib/api/services'
 import { Biography } from '@/lib/types'
 import { useAuthStore } from '@/store/authStore'
-import { isSvgUrl } from '@/lib/utils/image'
+import { isSvgUrl, getDefaultAvatarUrl } from '@/lib/utils/image'
 import { getDisplayTags } from '@/lib/utils/biography'
 import {
   getCachedHomeBiographies,
@@ -112,9 +112,11 @@ function ClimberCard({ person, selectedContent }: ClimberCardProps) {
                       />
                     )
                   ) : (
-                    <div className="flex h-full w-full items-center justify-center">
-                      <User size={20} className="text-gray-400" />
-                    </div>
+                    <img
+                      src={getDefaultAvatarUrl(person.name || 'anonymous', 40)}
+                      alt={person.name}
+                      className="h-full w-full object-cover"
+                    />
                   )}
                 </div>
                 <div className="flex-1 min-w-0">

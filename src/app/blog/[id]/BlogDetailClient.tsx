@@ -230,13 +230,35 @@ export default function BlogDetailClient() {
             {/* Article Header */}
             <div className="mb-6 flex flex-col items-start justify-between gap-4 sm:mb-8 sm:flex-row">
               <div className="flex-1">
-                <h1 className="mb-2 text-xl font-medium sm:mb-3 sm:text-2xl md:text-3xl">{article.title}</h1>
+                <h1 className="mb-3 text-xl font-medium sm:mb-4 sm:text-2xl md:text-3xl">{article.title}</h1>
+                {/* 作者資訊 */}
+                <div className="mb-3 flex items-center gap-3 sm:mb-4">
+                  {article.author_avatar ? (
+                    <div className="h-10 w-10 overflow-hidden rounded-full">
+                      <Image
+                        src={article.author_avatar}
+                        alt={article.display_name || article.username || '作者'}
+                        width={40}
+                        height={40}
+                        className="h-full w-full object-cover"
+                      />
+                    </div>
+                  ) : (
+                    <div className="flex h-10 w-10 items-center justify-center rounded-full bg-wb-20 text-sm font-medium text-wb-70">
+                      {(article.display_name || article.username || '?').charAt(0).toUpperCase()}
+                    </div>
+                  )}
+                  <div>
+                    <p className="text-sm font-medium text-wb-100 sm:text-base">
+                      {article.display_name || article.username || '匿名'}
+                    </p>
+                    <p className="text-xs text-wb-70 sm:text-sm">{formattedDate}</p>
+                  </div>
+                </div>
                 <div className="flex flex-wrap items-center gap-2 sm:gap-3">
                   {article.tags && article.tags.length > 0 && (
                     <Chip>{article.tags[0]}</Chip>
                   )}
-                  <span className="text-xs text-wb-70 sm:text-sm">更新日期</span>
-                  <span className="text-xs text-wb-70 sm:text-sm">{formattedDate}</span>
                 </div>
                 <div className="mt-2 flex items-center gap-3 text-xs text-wb-70 sm:gap-4 sm:text-sm">
                   <span className="flex items-center gap-1">

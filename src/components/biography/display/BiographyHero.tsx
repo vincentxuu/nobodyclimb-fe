@@ -102,7 +102,7 @@ export function BiographyHero({
   // 評論區展開狀態
   const [showComments, setShowComments] = useState(false)
   // 評論數狀態
-  const [commentsCount, setCommentsCount] = useState(0)
+  const [commentsCount, setCommentsCount] = useState(biography.comment_count || 0)
   // 追蹤數狀態
   const [followerCount, setFollowerCount] = useState(biography.follower_count || 0)
 

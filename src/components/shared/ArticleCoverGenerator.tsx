@@ -30,17 +30,17 @@ type PatternType = 'dots' | 'lines' | 'grid' | 'waves' | 'triangles'
  */
 const GRADIENTS = {
   /** 品牌黃色漸層 - 活力感 */
-  yellow: 'from-amber-400 to-amber-600',
+  yellow: 'from-amber-200 to-amber-400',
   /** 暖橘色漸層 - 溫暖感 */
-  orange: 'from-orange-400 to-orange-600',
+  orange: 'from-orange-200 to-orange-400',
   /** 青綠色漸層 - 戶外/自然感 */
-  teal: 'from-teal-500 to-teal-700',
+  teal: 'from-teal-300 to-teal-500',
   /** 石板藍漸層 - 專業/冷靜感 */
-  slate: 'from-slate-500 to-slate-700',
+  slate: 'from-slate-300 to-slate-500',
   /** 玫瑰色漸層 - 溫馨感 */
-  rose: 'from-rose-400 to-rose-600',
+  rose: 'from-rose-200 to-rose-400',
   /** 紫色漸層 - 神秘感 */
-  violet: 'from-violet-500 to-violet-700',
+  violet: 'from-violet-300 to-violet-500',
 } as const
 
 /**
@@ -212,10 +212,6 @@ export function ArticleCoverGenerator({
         )}
       </div>
 
-      {/* 品牌標識 - 響應式位置 */}
-      <div className="absolute bottom-1.5 right-2 text-[10px] font-medium text-white/50 sm:bottom-2 sm:right-2 sm:text-xs md:bottom-3 md:right-3 md:text-sm">
-        NobodyClimb
-      </div>
     </div>
   )
 }

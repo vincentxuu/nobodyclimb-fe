@@ -24,6 +24,7 @@ interface ArticleItem {
   link: string
   category?: string
   categoryValue?: PostCategory
+  author?: string
 }
 
 interface CachedData {
@@ -127,8 +128,9 @@ function ArticleCard({ item, index }: { item: ArticleItem; index: number }) {
             {item.title}
           </h3>
           <p className="mb-3 line-clamp-2 text-sm text-[#6D6C6C]">{item.excerpt}</p>
-          <div className="text-xs text-[#8E8C8C]">
+          <div className="flex items-center justify-between text-xs text-[#8E8C8C]">
             <span>{item.date}</span>
+            {item.author && <span>{item.author}</span>}
           </div>
         </div>
       </Link>
@@ -175,6 +177,7 @@ export function LatestContentSection() {
           link: `/blog/${post.id}`,
           category: getCategoryLabel(post.category) || undefined,
           categoryValue: post.category as PostCategory,
+          author: post.display_name || post.username || undefined,
         }))
         setArticles(items)
         cacheArticles(items)

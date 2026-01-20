@@ -346,6 +346,16 @@ export const postService = {
   },
 
   /**
+   * 刪除文章評論
+   */
+  deleteComment: async (postId: string, commentId: string) => {
+    const response = await apiClient.delete<ApiResponse<{ message: string }>>(
+      `/posts/${postId}/comments/${commentId}`
+    )
+    return response.data
+  },
+
+  /**
    * 上傳文章圖片（自動壓縮至 500KB 以下）
    * @param oldUrl 舊圖片 URL，如有則會刪除
    */

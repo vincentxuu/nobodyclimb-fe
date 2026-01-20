@@ -25,6 +25,7 @@ function isValidUrl(str: string): boolean {
 }
 
 interface FunFactsData {
+  featured?: string // 指定顯示的題目 ID，留空則用原本邏輯
   facts: FunFact[]
   meta: {
     total: number
@@ -74,6 +75,18 @@ export function FunFactSection() {
         const data: FunFactsData = await response.json()
 
         if (data.facts && data.facts.length > 0) {
+          // 優先檢查是否有指定的 featured 題目
+          if (data.featured) {
+            const featuredFact = data.facts.find((fact) => fact.id === data.featured)
+            if (featuredFact) {
+              setCurrentFact(featuredFact)
+              setCategoryLabel(CATEGORY_LABELS[featuredFact.category] || featuredFact.category)
+              setIsLoading(false)
+              return
+            }
+          }
+
+          // 沒有 featured 或找不到，使用原本的每日類別邏輯
           const today = new Date()
           const dayOfWeek = today.getDay() // 0-6 (週日-週六)
           const todayCategory = DAILY_CATEGORIES[dayOfWeek]

@@ -6,7 +6,7 @@ import Link from 'next/link'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { Button } from '@/components/ui/button'
 import { SearchInput } from '@/components/ui/search-input'
-import { ChevronLeft, ChevronRight, Loader2, FileText } from 'lucide-react'
+import { Loader2, FileText } from 'lucide-react'
 import { Article } from '@/mocks/articles'
 import { Breadcrumb } from '@/components/ui/breadcrumb'
 import { postService } from '@/lib/api/services'
@@ -79,6 +79,9 @@ const ArticleCard = ({ article }: ArticleCardProps) => {
         <p className="line-clamp-2 text-xs text-wb-70 sm:line-clamp-3 sm:text-sm">
           {generateSummary(article.content)}
         </p>
+        {article.author && (
+          <p className="mt-auto text-xs text-wb-50">{article.author}</p>
+        )}
       </div>
     </Link>
   )
@@ -109,11 +112,8 @@ function BlogContent() {
   // 根據 URL 參數設置默認選中的類別（URL 參數或 null 表示「所有文章」）
   const [selectedCategory, setSelectedCategory] = useState<PostCategory | null>(categoryParam)
   const [searchQuery, setSearchQuery] = useState('')
-  const [currentSlide, setCurrentSlide] = useState(0)
-  const [isAutoPlaying, setIsAutoPlaying] = useState(true)
   const [isLoading, setIsLoading] = useState(true)
   const [articles, setArticles] = useState<Article[]>([])
-  const [featuredArticles, setFeaturedArticles] = useState<Article[]>([])
   const [page, setPage] = useState(1)
   const [hasMore, setHasMore] = useState(true)
   const [isLoadingMore, setIsLoadingMore] = useState(false)
@@ -164,6 +164,7 @@ function BlogContent() {
           imageUrl: post.cover_image || '',
           isFeature: post.is_featured === 1,
           description: post.excerpt || undefined,
+          author: post.display_name || post.username || undefined,
         }))
 
         if (append) {
@@ -190,35 +191,10 @@ function BlogContent() {
     }
   }, [])
 
-  // 獲取精選文章
-  const fetchFeaturedArticles = useCallback(async () => {
-    try {
-      const response = await postService.getFeaturedPosts()
-      if (response.success && response.data) {
-        const fetchedFeatured: Article[] = response.data.map((post) => ({
-          id: post.id,
-          title: post.title,
-          category: getCategoryLabel(post.category) || '未分類',
-          categoryValue: post.category || undefined,
-          date: post.published_at
-            ? new Date(post.published_at).toLocaleDateString('zh-TW')
-            : new Date(post.created_at).toLocaleDateString('zh-TW'),
-          content: post.content,
-          imageUrl: post.cover_image || '',
-          isFeature: true,
-          description: post.excerpt || undefined,
-        }))
-        setFeaturedArticles(fetchedFeatured)
-      }
-    } catch (err) {
-      console.error('Failed to fetch featured articles:', err)
-    }
-  }, [])
-
-  // 初始載入 - 合併 API 調用
+  // 初始載入
   useEffect(() => {
-    Promise.all([fetchArticles(1), fetchFeaturedArticles()])
-  }, [fetchArticles, fetchFeaturedArticles])
+    fetchArticles(1)
+  }, [fetchArticles])
 
   // 載入更多
   const handleLoadMore = () => {
@@ -228,33 +204,6 @@ function BlogContent() {
       fetchArticles(nextPage, true)
     }
   }
-
-  // 使用從 API 獲取的精選文章
-  const displayFeatured = featuredArticles
-
-  const nextSlide = useCallback(() => {
-    setCurrentSlide((prev) => (prev + 1) % displayFeatured.length)
-  }, [displayFeatured.length])
-
-  const prevSlide = useCallback(() => {
-    setCurrentSlide((prev) => (prev - 1 + displayFeatured.length) % displayFeatured.length)
-  }, [displayFeatured.length])
-
-  useEffect(() => {
-    let intervalId: NodeJS.Timeout
-
-    if (isAutoPlaying && displayFeatured.length > 0) {
-      intervalId = setInterval(() => {
-        nextSlide()
-      }, 5000) // Change slide every 5 seconds
-    }
-
-    return () => {
-      if (intervalId) {
-        clearInterval(intervalId)
-      }
-    }
-  }, [isAutoPlaying, nextSlide, displayFeatured.length])
 
   // 分類按鈕列表（含「所有文章」）
   const categoryButtons: { value: PostCategory | null; label: string }[] = [
@@ -282,87 +231,6 @@ function BlogContent() {
 
   return (
     <div className="min-h-screen bg-page-content-bg">
-      {/* Header Section - Featured Carousel */}
-      {displayFeatured.length > 0 && (
-        <div className="container mx-auto px-3 pt-4 sm:px-4 sm:pt-8">
-          <div
-            className="group relative aspect-[16/9] w-full overflow-hidden rounded-lg sm:aspect-[21/9] sm:rounded-xl"
-            onMouseEnter={() => setIsAutoPlaying(false)}
-            onMouseLeave={() => setIsAutoPlaying(true)}
-          >
-            {displayFeatured.map((article, index) => (
-              <div
-                key={article.id}
-                className={`absolute inset-0 transition-opacity duration-500 ${
-                  index === currentSlide ? 'opacity-100' : 'pointer-events-none opacity-0'
-                }`}
-              >
-                <Link href={`/blog/${article.id}`} className="relative block h-full">
-                  {article.imageUrl && article.imageUrl.trim() !== '' ? (
-                    <Image
-                      src={article.imageUrl}
-                      alt={article.title}
-                      fill
-                      className="object-cover"
-                      priority={index === 0}
-                      loading={index === 0 ? 'eager' : 'lazy'}
-                    />
-                  ) : (
-                    <ArticleCoverGenerator
-                      category={article.categoryValue}
-                      title={article.title}
-                      showTitle={false}
-                      showIcon={true}
-                      className="h-full w-full"
-                      aspectRatio="wide"
-                    />
-                  )}
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
-                  <div className="absolute bottom-4 left-4 right-4 text-wb-0 sm:bottom-8 sm:left-8 sm:right-auto md:bottom-12 md:left-12">
-                    <div className="mb-2 flex flex-wrap items-center gap-2 sm:mb-3 sm:gap-3 md:mb-4">
-                      <span className="rounded bg-brand-dark px-2 py-0.5 text-xs sm:px-3 sm:py-1 sm:text-sm">
-                        {article.category}
-                      </span>
-                      <span className="text-xs sm:text-sm">{article.date}</span>
-                    </div>
-                    <h1 className="line-clamp-2 text-lg font-medium sm:max-w-[600px] sm:text-2xl md:max-w-[800px] md:text-4xl">
-                      {article.title}
-                    </h1>
-                  </div>
-                </Link>
-              </div>
-            ))}
-
-            {/* Navigation Dots */}
-            <div className="absolute bottom-2 left-1/2 flex -translate-x-1/2 transform gap-2 sm:bottom-4 sm:gap-3">
-              {displayFeatured.map((_, index) => (
-                <button
-                  key={index}
-                  className={`h-1.5 w-1.5 rounded-full transition-all sm:h-2 sm:w-2 ${
-                    index === currentSlide ? 'w-4 bg-wb-0 sm:w-6' : 'bg-wb-0/50'
-                  }`}
-                  onClick={() => setCurrentSlide(index)}
-                />
-              ))}
-            </div>
-
-            {/* Navigation Arrows - 手機版隱藏 */}
-            <button
-              className="absolute left-2 top-1/2 hidden h-8 w-8 -translate-y-1/2 items-center justify-center rounded-full bg-wb-0/80 opacity-0 transition-opacity group-hover:opacity-100 sm:left-4 sm:flex sm:h-10 sm:w-10"
-              onClick={prevSlide}
-            >
-              <ChevronLeft className="h-5 w-5 sm:h-6 sm:w-6" />
-            </button>
-            <button
-              className="absolute right-2 top-1/2 hidden h-8 w-8 -translate-y-1/2 items-center justify-center rounded-full bg-wb-0/80 opacity-0 transition-opacity group-hover:opacity-100 sm:right-4 sm:flex sm:h-10 sm:w-10"
-              onClick={nextSlide}
-            >
-              <ChevronRight className="h-5 w-5 sm:h-6 sm:w-6" />
-            </button>
-          </div>
-        </div>
-      )}
-
       <div className="container mx-auto px-3 py-6 sm:px-4 sm:py-10">
         {/* Breadcrumb */}
         <div className="mb-6 sm:mb-8">

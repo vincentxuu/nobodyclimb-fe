@@ -30,7 +30,7 @@ export function HeroSection({ person, followerCount, isOwner, onFollowChange }: 
   // 評論區展開狀態
   const [showComments, setShowComments] = useState(false)
   // 評論數狀態
-  const [commentsCount, setCommentsCount] = useState(0)
+  const [commentsCount, setCommentsCount] = useState(person.comment_count || 0)
 
   // 解析社群連結
   const socialLinks = useMemo<BiographySocialLinks | null>(() => {
