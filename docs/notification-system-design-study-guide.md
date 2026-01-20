@@ -522,7 +522,275 @@ if (!notification) {
 
 ---
 
-## 第七部分：NobodyClimb 實作總結
+## 第七部分：設計審查（對照書中要點）
+
+根據《系統設計面試指南》第 10 章的設計原則，對 NobodyClimb 通知系統進行全面審查：
+
+### 審查總覽
+
+| 書中要點 | NobodyClimb 狀態 | 評分 |
+|----------|------------------|------|
+| **可靠性 (Reliability)** | 資料持久化到 D1 | ✅ |
+| **去重 (Deduplication)** | 5 分鐘內相同通知不重複 | ✅ |
+| **用戶設定 (User Settings)** | 完整偏好設定頁面 | ✅ |
+| **速率限制 (Rate Limiting)** | 通知聚合機制 | ✅ |
+| **安全性 (Security)** | JWT 認證 + 權限檢查 | ✅ |
+| **重試機制 (Retry)** | 未實作 | ⚠️ |
+| **訊息佇列 (Message Queue)** | 未使用（同步寫入） | ⚠️ |
+| **監控 (Monitoring)** | 未實作 | ❌ |
+| **事件追蹤 (Event Tracking)** | 僅追蹤已讀狀態 | ⚠️ |
+| **通知模板 (Templates)** | 前端 UI 對應 | ✅ |
+
+---
+
+### 7.1 可靠性 (Reliability) ✅
+
+**書中要點**：
+> "The system preserves notification data persistently in databases while implementing retry mechanisms to prevent data loss."
+
+**NobodyClimb 實作**：
+
+```typescript
+// 直接持久化到 D1 Database
+await db.prepare(
+  `INSERT INTO notifications (id, user_id, type, actor_id, target_id, title, message)
+   VALUES (?, ?, ?, ?, ?, ?, ?)`
+).bind(...).run();
+```
+
+**評估**：通知資料直接寫入 D1 Database，確保不會丟失。但缺少重試機制，若資料庫寫入失敗，通知會遺失。
+
+**建議改進**：
+```typescript
+// 加入重試邏輯
+async function createNotificationWithRetry(db, data, maxRetries = 3) {
+  for (let i = 0; i < maxRetries; i++) {
+    try {
+      return await createNotification(db, data);
+    } catch (error) {
+      if (i === maxRetries - 1) throw error;
+      await new Promise(r => setTimeout(r, 1000 * Math.pow(2, i))); // 指數退避
+    }
+  }
+}
+```
+
+---
+
+### 7.2 去重 (Deduplication) ✅
+
+**書中要點**：
+> "Event IDs prevent duplicate deliveries. While most times notifications send once, distributed systems can cause duplicates requiring deduplication logic."
+
+**NobodyClimb 實作**：
+
+```typescript
+// 去重檢查：相同的 actor + target + type 在 5 分鐘內只創建一則通知
+if (!options?.skipDedup && data.actorId && data.targetId) {
+  const existing = await db.prepare(
+    `SELECT id FROM notifications
+     WHERE user_id = ? AND actor_id = ? AND target_id = ? AND type = ?
+     AND created_at > datetime('now', '-' || ? || ' minutes')`
+  ).bind(data.userId, data.actorId, data.targetId, data.type, dedupMinutes)
+   .first();
+
+  if (existing) return null; // 已存在，跳過
+}
+```
+
+**評估**：完整實作去重邏輯，避免用戶收到重複通知。
+
+---
+
+### 7.3 用戶設定 (User Settings) ✅
+
+**書中要點**：
+> "Users can select not receiving notifications. The system checks opt-in preferences before sending any message."
+
+**NobodyClimb 實作**：
+
+```typescript
+// 偏好設定檢查：如果用戶已關閉該類型通知，則不創建
+if (!options?.skipPrefsCheck) {
+  const prefs = await db.prepare(
+    `SELECT ${data.type} as enabled FROM notification_preferences WHERE user_id = ?`
+  ).bind(data.userId).first();
+
+  if (prefs && prefs.enabled === 0) return null; // 用戶已關閉
+}
+```
+
+**評估**：完整實作，包含：
+- 10 種通知類型的獨立開關
+- 前端設定頁面（帳號設定 > 通知設定）
+- 創建通知前自動檢查偏好
+
+---
+
+### 7.4 速率限制 (Rate Limiting) ✅
+
+**書中要點**：
+> "Frequency caps prevent overwhelming users, reducing notification abandonment."
+
+**NobodyClimb 實作**：
+
+```typescript
+// 通知聚合：1 小時內同一目標的按讚合併成一則
+if (existing) {
+  const totalLikers = (countResult?.count || 0) + 1;
+  const newMessage = totalLikers > 1
+    ? `${data.actorName} 和其他 ${totalLikers - 1} 人對你的文章按讚`
+    : `${data.actorName} 對你的文章按讚`;
+
+  await db.prepare(`UPDATE notifications SET message = ? WHERE id = ?`)
+    .bind(newMessage, existing.id).run();
+}
+```
+
+**評估**：透過聚合機制實現速率控制，避免「通知轟炸」。
+
+**可擴展**：若需更精細控制，可加入：
+```typescript
+// 每小時最多 N 則同類型通知
+const hourlyCount = await db.prepare(
+  `SELECT COUNT(*) as count FROM notifications
+   WHERE user_id = ? AND type = ?
+   AND created_at > datetime('now', '-1 hour')`
+).bind(userId, type).first();
+
+if (hourlyCount.count >= MAX_HOURLY_NOTIFICATIONS) {
+  return null; // 超過限制，跳過
+}
+```
+
+---
+
+### 7.5 安全性 (Security) ✅
+
+**書中要點**：
+> "AppKey/AppSecret authentication ensures only verified clients access notification APIs."
+
+**NobodyClimb 實作**：
+
+```typescript
+// 所有通知 API 都使用 authMiddleware
+notificationsRoutes.get('/', authMiddleware, async (c) => { ... });
+notificationsRoutes.put('/:id/read', authMiddleware, async (c) => { ... });
+
+// 權限檢查：確保只能操作自己的通知
+const notification = await c.env.DB.prepare(
+  'SELECT id FROM notifications WHERE id = ? AND user_id = ?'
+).bind(id, userId).first();
+
+if (!notification) {
+  return c.json({ error: 'Not Found' }, 404);
+}
+```
+
+**評估**：完整實作認證和授權：
+- JWT 認證（authMiddleware）
+- 資源所有權驗證
+- 防止越權存取
+
+---
+
+### 7.6 監控 (Monitoring) ❌
+
+**書中要點**：
+> "Tracking queued notification counts alerts teams when workers cannot process messages quickly enough."
+
+**NobodyClimb 現狀**：未實作監控機制。
+
+**建議改進**：
+```typescript
+// 新增監控端點
+notificationsRoutes.get('/admin/stats', adminMiddleware, async (c) => {
+  const stats = await c.env.DB.prepare(`
+    SELECT
+      COUNT(*) as total,
+      SUM(CASE WHEN is_read = 0 THEN 1 ELSE 0 END) as unread,
+      COUNT(DISTINCT user_id) as users_with_notifications,
+      AVG(CASE WHEN is_read = 1
+          THEN julianday(updated_at) - julianday(created_at)
+          ELSE NULL END) * 24 * 60 as avg_read_time_minutes
+    FROM notifications
+    WHERE created_at > datetime('now', '-24 hours')
+  `).first();
+
+  return c.json({ success: true, data: stats });
+});
+```
+
+---
+
+### 7.7 事件追蹤 (Event Tracking) ⚠️
+
+**書中要點**：
+> "Analytics systems monitor open rates, click-through rates, and engagement metrics."
+
+**NobodyClimb 現狀**：
+- ✅ 追蹤已讀狀態（is_read）
+- ❌ 未追蹤點擊率
+- ❌ 未記錄讀取時間
+
+**建議改進**：
+```sql
+-- 新增追蹤欄位
+ALTER TABLE notifications ADD COLUMN read_at TEXT;
+ALTER TABLE notifications ADD COLUMN clicked_at TEXT;
+ALTER TABLE notifications ADD COLUMN click_url TEXT;
+```
+
+---
+
+### 7.8 架構差異分析
+
+| 層面 | 書中大型系統 | NobodyClimb | 差異原因 |
+|------|-------------|-------------|----------|
+| **訊息佇列** | Kafka/RabbitMQ | 無 | 規模小，同步寫入足夠 |
+| **推送服務** | APNS/FCM/SMS | 前端輪詢 | Web-only，暫無原生 App |
+| **Worker 數量** | 多個，水平擴展 | 單一 Worker | Cloudflare Workers 自動擴展 |
+| **資料庫** | 分散式 DB | D1 (SQLite) | 適合小規模 |
+| **快取** | Redis | 無 | 可用 KV 改進 |
+
+---
+
+### 7.9 書中 Summary 對照
+
+書中最後總結的設計原則：
+
+| 原則 | 書中說明 | NobodyClimb 對應 |
+|------|----------|------------------|
+| **Reliability** | Strong retry mechanisms minimize failure rates | 資料持久化 ✅，重試機制 ❌ |
+| **Security** | Credential-based access control | JWT 認證 + 權限檢查 ✅ |
+| **Tracking** | Monitoring at all pipeline stages | 基本已讀追蹤 ⚠️ |
+| **User Respect** | Preference checking before transmission | 完整偏好設定 ✅ |
+| **Rate Limiting** | Frequency controls on recipient volume | 通知聚合 ✅ |
+
+---
+
+### 7.10 總體評分
+
+```
+┌────────────────────────────────────────────┐
+│         NobodyClimb 通知系統評分            │
+├────────────────────────────────────────────┤
+│  可靠性      ████████░░  80%               │
+│  去重機制    ██████████  100%              │
+│  用戶設定    ██████████  100%              │
+│  速率限制    ████████░░  80%               │
+│  安全性      ██████████  100%              │
+│  監控追蹤    ████░░░░░░  40%               │
+├────────────────────────────────────────────┤
+│  總評        ████████░░  83%               │
+│                                            │
+│  適用規模：小型社群平台（日通知量 < 10萬）   │
+└────────────────────────────────────────────┘
+```
+
+---
+
+## 第八部分：NobodyClimb 實作總結
 
 ### 本次實作項目
 
