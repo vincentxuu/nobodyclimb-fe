@@ -26,6 +26,7 @@ type PatternType = 'dots' | 'lines' | 'grid' | 'waves' | 'triangles'
 
 /**
  * 每個分類的配色方案
+ * 使用低飽和度、柔和的色調
  */
 const CATEGORY_THEMES: Record<
   PostCategory,
@@ -36,67 +37,67 @@ const CATEGORY_THEMES: Record<
   }
 > = {
   beginner: {
-    gradient: 'from-emerald-400 to-teal-600',
+    gradient: 'from-emerald-600/80 to-teal-700/90',
     Icon: Sprout,
     pattern: 'dots',
   },
   news: {
-    gradient: 'from-blue-500 to-indigo-600',
+    gradient: 'from-slate-500/80 to-slate-700/90',
     Icon: Newspaper,
     pattern: 'grid',
   },
   gear: {
-    gradient: 'from-orange-400 to-red-500',
+    gradient: 'from-amber-600/80 to-orange-700/90',
     Icon: Backpack,
     pattern: 'triangles',
   },
   skills: {
-    gradient: 'from-purple-500 to-pink-500',
+    gradient: 'from-violet-600/80 to-purple-800/90',
     Icon: Lightbulb,
     pattern: 'lines',
   },
   training: {
-    gradient: 'from-red-500 to-orange-600',
+    gradient: 'from-rose-600/80 to-red-800/90',
     Icon: Dumbbell,
     pattern: 'waves',
   },
   routes: {
-    gradient: 'from-cyan-500 to-blue-600',
+    gradient: 'from-cyan-600/80 to-blue-800/90',
     Icon: Map,
     pattern: 'lines',
   },
   crags: {
-    gradient: 'from-stone-500 to-stone-700',
+    gradient: 'from-stone-500/80 to-stone-700/90',
     Icon: Mountain,
     pattern: 'triangles',
   },
   gyms: {
-    gradient: 'from-violet-500 to-purple-600',
+    gradient: 'from-indigo-600/80 to-indigo-800/90',
     Icon: Building2,
     pattern: 'grid',
   },
   travel: {
-    gradient: 'from-sky-400 to-cyan-500',
+    gradient: 'from-sky-600/80 to-blue-700/90',
     Icon: Plane,
     pattern: 'waves',
   },
   competition: {
-    gradient: 'from-amber-400 to-yellow-500',
+    gradient: 'from-amber-500/80 to-yellow-700/90',
     Icon: Trophy,
     pattern: 'dots',
   },
   events: {
-    gradient: 'from-pink-500 to-rose-500',
+    gradient: 'from-pink-600/80 to-rose-800/90',
     Icon: PartyPopper,
     pattern: 'dots',
   },
   community: {
-    gradient: 'from-green-500 to-emerald-600',
+    gradient: 'from-teal-600/80 to-emerald-800/90',
     Icon: Users,
     pattern: 'grid',
   },
   injury: {
-    gradient: 'from-rose-500 to-red-600',
+    gradient: 'from-red-600/80 to-rose-800/90',
     Icon: HeartPulse,
     pattern: 'waves',
   },
@@ -104,7 +105,7 @@ const CATEGORY_THEMES: Record<
 
 // 預設主題（當分類為空時使用）
 const DEFAULT_THEME = {
-  gradient: 'from-gray-500 to-gray-700',
+  gradient: 'from-gray-600/80 to-gray-800/90',
   Icon: FileText,
   pattern: 'dots' as PatternType,
 }
