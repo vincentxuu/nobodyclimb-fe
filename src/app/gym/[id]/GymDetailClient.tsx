@@ -22,6 +22,7 @@ import {
 import { Button } from '@/components/ui/button'
 import BackToTop from '@/components/ui/back-to-top'
 import { GymCoverGenerator } from '@/components/shared/GymCoverGenerator'
+import PlaceholderImage from '@/components/ui/placeholder-image'
 import { Breadcrumb } from '@/components/ui/breadcrumb'
 import { WeatherDisplay } from '@/components/shared/weather-display'
 import {
@@ -203,6 +204,24 @@ export default function GymDetailClient({ params }: { params: Promise<{ id: stri
                 className="h-full w-full"
               />
             </div>
+
+            {/* 照片縮略圖區 */}
+            {gym.images && gym.images.length > 0 && (
+              <div className="flex flex-nowrap gap-2 overflow-x-auto pb-2">
+                {gym.images.map((photo, index) => (
+                  <div
+                    key={index}
+                    className="relative h-24 w-24 flex-shrink-0 overflow-hidden rounded-md"
+                  >
+                    <PlaceholderImage
+                      text={`照片 ${index + 1}`}
+                      bgColor="#f0f1f3"
+                      textColor="#6c757d"
+                    />
+                  </div>
+                ))}
+              </div>
+            )}
           </div>
 
           {/* 標題和類型 */}

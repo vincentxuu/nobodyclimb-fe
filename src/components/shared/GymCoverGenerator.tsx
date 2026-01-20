@@ -133,11 +133,6 @@ export function GymCoverGenerator({
           </span>
         )}
       </div>
-
-      {/* 品牌標識 - 響應式位置 */}
-      <div className="absolute bottom-1.5 right-2 text-[10px] font-medium text-white/50 sm:bottom-2 sm:right-2 sm:text-xs md:bottom-3 md:right-3 md:text-sm">
-        NobodyClimb
-      </div>
     </div>
   )
 }
@@ -208,7 +203,7 @@ function PatternOverlay({ pattern }: { pattern: PatternType }) {
  * 取得岩館類型的主題配色（用於其他組件）
  */
 export function getGymTypeTheme(type: GymType | string | null | undefined) {
-  if (type && type in GYM_TYPE_THEMES) {
+  if (type && Object.prototype.hasOwnProperty.call(GYM_TYPE_THEMES, type)) {
     return GYM_TYPE_THEMES[type as GymType]
   }
   return DEFAULT_THEME
