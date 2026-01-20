@@ -12,6 +12,8 @@ import {
   Trash2,
   Loader2,
   X,
+  Heart,
+  FileText,
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { notificationService } from '@/lib/api/services'
@@ -44,6 +46,9 @@ const notificationIcons: Record<string, React.ElementType> = {
   goal_referenced: Sparkles,
   new_follower: UserPlus,
   story_featured: Sparkles,
+  biography_commented: MessageCircle,
+  post_liked: Heart,
+  post_commented: FileText,
 }
 
 const notificationColors: Record<string, string> = {
@@ -52,6 +57,9 @@ const notificationColors: Record<string, string> = {
   goal_referenced: 'text-amber-500 bg-amber-50',
   new_follower: 'text-green-500 bg-green-50',
   story_featured: 'text-purple-500 bg-purple-50',
+  biography_commented: 'text-indigo-500 bg-indigo-50',
+  post_liked: 'text-pink-500 bg-pink-50',
+  post_commented: 'text-cyan-500 bg-cyan-50',
 }
 
 export function NotificationCenter({ className }: NotificationCenterProps) {

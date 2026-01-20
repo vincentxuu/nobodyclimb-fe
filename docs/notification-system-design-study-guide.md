@@ -33,6 +33,8 @@ export type NotificationType =
   | 'new_follower'        // 新追蹤者
   | 'story_featured'      // 故事被精選
   | 'biography_commented' // 人物誌被留言
+  | 'post_liked'          // 文章被按讚 ✨ 新增
+  | 'post_commented'      // 文章被留言 ✨ 新增
 ```
 
 ---
@@ -150,23 +152,32 @@ send(notification);
 cache.set(notification_id, TTL=24h);
 ```
 
-#### NobodyClimb 建議改進
+#### NobodyClimb 實作 ✅
 
-目前沒有去重機制，可考慮：
+**已實作去重機制**：相同的 userId + actorId + targetId + type 在 5 分鐘內只會創建一則通知。
 
 ```typescript
-// 建議：在創建通知前檢查
-async function createNotificationIfNotExists(db: D1Database, data: NotificationData) {
-  // 檢查是否已存在相同的通知（相同 actor、target、type，且在短時間內）
-  const existing = await db.prepare(
-    `SELECT id FROM notifications
-     WHERE user_id = ? AND actor_id = ? AND target_id = ? AND type = ?
-     AND created_at > datetime('now', '-5 minutes')`
-  ).bind(data.userId, data.actorId, data.targetId, data.type).first();
+// backend/src/routes/notifications.ts
+export async function createNotification(
+  db: D1Database,
+  data: { userId, type, actorId?, targetId?, title, message },
+  options?: { skipDedup?: boolean; dedupMinutes?: number }
+): Promise<string | null> {
+  const dedupMinutes = options?.dedupMinutes ?? 5;
 
-  if (existing) return null; // 已存在，跳過
+  // 去重檢查
+  if (!options?.skipDedup && data.actorId && data.targetId) {
+    const existing = await db.prepare(
+      `SELECT id FROM notifications
+       WHERE user_id = ? AND actor_id = ? AND target_id = ? AND type = ?
+       AND created_at > datetime('now', '-' || ? || ' minutes')`
+    ).bind(data.userId, data.actorId, data.targetId, data.type, dedupMinutes)
+     .first<{ id: string }>();
 
-  return createNotification(db, data);
+    if (existing) return null; // 已存在相同通知，跳過
+  }
+
+  // ... 創建通知
 }
 ```
 
@@ -225,26 +236,41 @@ CREATE TABLE user_notification_settings (
 );
 ```
 
-#### NobodyClimb 建議新增
+#### NobodyClimb 實作 ✅
+
+**已實作用戶偏好設定**，可在「帳號設定 > 通知設定」頁面調整。
 
 ```sql
--- 建議的 migration
+-- backend/migrations/0028_add_notification_preferences.sql
 CREATE TABLE notification_preferences (
   user_id TEXT PRIMARY KEY,
-  -- 通知類型開關
-  goal_liked BOOLEAN DEFAULT true,
-  goal_commented BOOLEAN DEFAULT true,
-  new_follower BOOLEAN DEFAULT true,
-  -- 通知方式
-  web_push BOOLEAN DEFAULT true,
-  email_digest BOOLEAN DEFAULT false,  -- 每日摘要
+  -- 互動通知
+  goal_liked BOOLEAN DEFAULT 1,
+  goal_commented BOOLEAN DEFAULT 1,
+  goal_referenced BOOLEAN DEFAULT 1,
+  post_liked BOOLEAN DEFAULT 1,
+  post_commented BOOLEAN DEFAULT 1,
+  biography_commented BOOLEAN DEFAULT 1,
+  -- 社交通知
+  new_follower BOOLEAN DEFAULT 1,
+  -- 系統通知
+  story_featured BOOLEAN DEFAULT 1,
+  goal_completed BOOLEAN DEFAULT 1,
+  -- Email（開發中）
+  email_digest BOOLEAN DEFAULT 0,
   FOREIGN KEY (user_id) REFERENCES users(id)
 );
 ```
 
+**API 端點**：
+- `GET /notifications/preferences` - 獲取偏好設定
+- `PUT /notifications/preferences` - 更新偏好設定
+
+**整合方式**：創建通知時會自動檢查用戶偏好，若已關閉則不創建。
+
 ---
 
-### 3.5 速率限制
+### 3.5 速率限制與通知聚合
 
 #### 經典做法
 
@@ -257,15 +283,52 @@ CREATE TABLE notification_preferences (
 - 超過限制時聚合成摘要通知
 ```
 
-#### NobodyClimb 應用場景
+#### NobodyClimb 實作 ✅
 
+**已實作通知聚合**：1 小時內同一目標的按讚會合併成一則通知。
+
+```typescript
+// backend/src/routes/notifications.ts
+export async function createLikeNotificationWithAggregation(
+  db: D1Database,
+  data: { userId, type, actorId, actorName, targetId, targetTitle }
+): Promise<string | null> {
+  // 檢查 1 小時內是否已有同一目標的按讚通知
+  const existing = await db.prepare(
+    `SELECT id, message FROM notifications
+     WHERE user_id = ? AND target_id = ? AND type = ?
+     AND created_at > datetime('now', '-1 hour')
+     ORDER BY created_at DESC LIMIT 1`
+  ).bind(data.userId, data.targetId, data.type).first();
+
+  if (existing) {
+    // 聚合：統計不同按讚者數量
+    const countResult = await db.prepare(
+      `SELECT COUNT(DISTINCT actor_id) as count FROM notifications
+       WHERE user_id = ? AND target_id = ? AND type = ?
+       AND created_at > datetime('now', '-1 hour')`
+    ).bind(data.userId, data.targetId, data.type).first();
+
+    const totalLikers = (countResult?.count || 0) + 1;
+    const newMessage = totalLikers > 1
+      ? `${data.actorName} 和其他 ${totalLikers - 1} 人對你的文章按讚`
+      : `${data.actorName} 對你的文章按讚`;
+
+    // 更新現有通知
+    await db.prepare(`UPDATE notifications SET message = ?, actor_id = ?, created_at = datetime('now') WHERE id = ?`)
+      .bind(newMessage, data.actorId, existing.id).run();
+
+    return existing.id;
+  }
+
+  // 沒有現有通知，創建新的
+  return createNotification(db, { ... });
+}
 ```
-場景：某篇文章很紅，短時間內收到 100 個讚
 
-不好的體驗：收到 100 則「XXX 對你的文章按讚」
-
-好的體驗：收到 1 則「你的文章獲得 100 個讚！」
-```
+**效果**：
+- 原本：收到 100 則「XXX 對你的文章按讚」
+- 現在：收到 1 則「小明 和其他 99 人對你的文章按讚」
 
 ---
 
@@ -454,6 +517,70 @@ if (!notification) {
 4. **Cloudflare 生態系統的選擇？**
    - Durable Objects (WebSocket) vs Queues vs Workers
    - 成本與複雜度的權衡
+
+---
+
+---
+
+## 第七部分：NobodyClimb 實作總結
+
+### 本次實作項目
+
+在讀書會準備過程中，我們實際實作了以下功能：
+
+| 功能 | 狀態 | 檔案位置 |
+|------|------|----------|
+| 文章按讚/留言通知 | ✅ 完成 | `backend/src/routes/posts.ts` |
+| 通知去重（5 分鐘內） | ✅ 完成 | `backend/src/routes/notifications.ts` |
+| 通知聚合（1 小時內按讚合併） | ✅ 完成 | `backend/src/routes/notifications.ts` |
+| 用戶偏好設定 API | ✅ 完成 | `backend/src/routes/notifications.ts` |
+| 前端偏好設定頁面 | ✅ 完成 | `src/app/profile/settings/page.tsx` |
+| 資料庫 Migration | ✅ 完成 | `backend/migrations/0027_*.sql`, `0028_*.sql` |
+
+### 新增的 API 端點
+
+```
+GET  /notifications/preferences     # 獲取偏好設定
+PUT  /notifications/preferences     # 更新偏好設定
+```
+
+### 資料庫變更
+
+```sql
+-- Migration 0027: 新增通知類型
+ALTER TABLE notifications ADD CONSTRAINT type_check
+  CHECK (type IN (..., 'post_liked', 'post_commented'));
+
+-- Migration 0028: 新增偏好設定表
+CREATE TABLE notification_preferences (...);
+```
+
+### 架構流程圖
+
+```
+┌─────────────────────────────────────────────────────────────────┐
+│                    通知系統完整流程                               │
+├─────────────────────────────────────────────────────────────────┤
+│                                                                  │
+│  用戶操作 ──▶ 偏好檢查 ──▶ 去重檢查 ──▶ 聚合判斷 ──▶ 建立/更新通知  │
+│    │            │            │            │            │         │
+│    │         關閉?        重複?        可聚合?        │         │
+│    │           ↓            ↓            ↓            ↓         │
+│    │        跳過          跳過        更新現有     新建通知       │
+│    │                                                    │         │
+│    └────────────────────────────────────────────────────┘         │
+│                                                                    │
+│  前端輪詢 (60秒) ◀─────────────────────────── D1 Database          │
+│                                                                    │
+└────────────────────────────────────────────────────────────────────┘
+```
+
+### 待優化項目
+
+1. **即時推送**：目前使用 60 秒輪詢，可考慮 WebSocket
+2. **Email 摘要**：每日通知彙整 Email（已預留欄位）
+3. **通知分析**：追蹤已讀率、點擊率等指標
+4. **批次刪除**：提供清除舊通知的功能
 
 ---
 

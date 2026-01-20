@@ -1878,6 +1878,49 @@ export const notificationService = {
     const response = await apiClient.delete<ApiResponse<{ message: string }>>('/notifications')
     return response.data
   },
+
+  /**
+   * 獲取通知偏好設定
+   */
+  getPreferences: async () => {
+    const response = await apiClient.get<
+      ApiResponse<{
+        goal_liked: boolean
+        goal_commented: boolean
+        goal_referenced: boolean
+        post_liked: boolean
+        post_commented: boolean
+        biography_commented: boolean
+        new_follower: boolean
+        story_featured: boolean
+        goal_completed: boolean
+        email_digest: boolean
+      }>
+    >('/notifications/preferences')
+    return response.data
+  },
+
+  /**
+   * 更新通知偏好設定
+   */
+  updatePreferences: async (preferences: {
+    goal_liked?: boolean
+    goal_commented?: boolean
+    goal_referenced?: boolean
+    post_liked?: boolean
+    post_commented?: boolean
+    biography_commented?: boolean
+    new_follower?: boolean
+    story_featured?: boolean
+    goal_completed?: boolean
+    email_digest?: boolean
+  }) => {
+    const response = await apiClient.put<ApiResponse<{ message: string }>>(
+      '/notifications/preferences',
+      preferences
+    )
+    return response.data
+  },
 }
 
 /**
