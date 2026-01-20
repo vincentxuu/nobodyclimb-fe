@@ -6,12 +6,16 @@
       "answer": "Happy Ending (5.13a)",
       "detail": "這條路線位於龍洞的後門區域，是 Alex Honnold 來台灣時首攀的！",
       "category": "taiwan",
-      "source": "https://www.climbing.com/places/",
+      "source": "https://www.thecrag.com/en/climbing/taiwan/longdong",
       "link": {
         "href": "/crag/longdong/route/LD-BACK-DOOR-52",
         "text": "查看路線資訊"
       },
-      "tags": ["龍洞", "首攀", "名人"]
+      "tags": [
+        "龍洞",
+        "首攀",
+        "名人"
+      ]
     },
     {
       "id": "taiwan-longdong-history",
@@ -19,12 +23,15 @@
       "answer": "1980 年代初期",
       "detail": "龍洞是台灣最具規模的天然岩場，擁有超過 600 條路線。早期由登山社團開始探索，逐漸發展成亞洲知名的攀岩聖地。",
       "category": "taiwan",
-      "source": "https://www.climbing.com/places/",
+      "source": "https://www.thecrag.com/en/climbing/taiwan/longdong",
       "link": {
         "href": "/crag/longdong",
         "text": "探索龍洞"
       },
-      "tags": ["龍洞", "歷史"]
+      "tags": [
+        "龍洞",
+        "歷史"
+      ]
     },
     {
       "id": "taiwan-shoushan-geology",
@@ -37,7 +44,10 @@
         "href": "/crag/shoushan",
         "text": "探索壽山"
       },
-      "tags": ["壽山", "地質"]
+      "tags": [
+        "壽山",
+        "地質"
+      ]
     },
     {
       "id": "taiwan-guanziling",
@@ -45,12 +55,15 @@
       "answer": "泥漿溫泉",
       "detail": "關子嶺是台灣少數擁有泥漿溫泉的地區，攀岩後可以泡湯放鬆。岩場本身是砂岩材質，以裂隙和煙囪地形著稱。",
       "category": "taiwan",
-      "source": "https://www.climbing.com/places/",
+      "source": "https://www.thecrag.com/en/climbing/taiwan",
       "link": {
         "href": "/crag/guanziling",
         "text": "探索關子嶺"
       },
-      "tags": ["關子嶺", "溫泉"]
+      "tags": [
+        "關子嶺",
+        "溫泉"
+      ]
     },
     {
       "id": "taiwan-first-gym",
@@ -58,12 +71,15 @@
       "answer": "Y17 攀岩館（原青年公園攀岩場）",
       "detail": "位於台北市青年公園內，1997 年成立，是許多台灣攀岩者的啟蒙之地。",
       "category": "taiwan",
-      "source": "https://zh.wikipedia.org/wiki/攀岩",
+      "source": "https://www.y17.taipei/",
       "link": {
         "href": "/gym",
         "text": "探索攀岩館"
       },
-      "tags": ["攀岩館", "歷史"]
+      "tags": [
+        "攀岩館",
+        "歷史"
+      ]
     },
     {
       "id": "taiwan-longdong-sandstone",
@@ -71,8 +87,11 @@
       "answer": "四稜砂岩",
       "detail": "龍洞的四稜砂岩形成於約 3500 萬年前，質地堅硬、摩擦力佳，是台灣少見的優質攀岩岩質。",
       "category": "taiwan",
-      "source": "https://www.gsmma.gov.tw/",
-      "tags": ["龍洞", "地質"]
+      "source": "https://www.necoast-nsa.gov.tw/",
+      "tags": [
+        "龍洞",
+        "地質"
+      ]
     },
     {
       "id": "taiwan-longdong-routes",
@@ -80,12 +99,15 @@
       "answer": "超過 600 條",
       "detail": "龍洞路線涵蓋 5.5 到 5.14 各級難度，從入門到進階都有，是台灣路線數量最多的天然岩場。",
       "category": "taiwan",
-      "source": "https://www.climbing.com/places/",
+      "source": "https://www.thecrag.com/en/climbing/taiwan/longdong",
       "link": {
         "href": "/crag/longdong",
         "text": "探索龍洞"
       },
-      "tags": ["龍洞", "路線"]
+      "tags": [
+        "龍洞",
+        "路線"
+      ]
     },
     {
       "id": "taiwan-defulan",
@@ -93,12 +115,15 @@
       "answer": "台中市和平區",
       "detail": "德芙蘭位於大甲溪畔，是中部地區重要的戶外攀岩場地，以花崗岩質地和多樣的裂隙路線聞名。",
       "category": "taiwan",
-      "source": "https://www.climbing.com/places/",
+      "source": "https://www.thecrag.com/en/climbing/taiwan",
       "link": {
         "href": "/crag/defulan",
         "text": "探索德芙蘭"
       },
-      "tags": ["德芙蘭", "中部"]
+      "tags": [
+        "德芙蘭",
+        "中部"
+      ]
     },
     {
       "id": "taiwan-shoushan-military",
@@ -107,7 +132,10 @@
       "detail": "壽山原為軍事管制區，1989 年起逐步解除管制，1998 年高雄市政府鋪設木棧道後，成為市民登山休閒的熱門去處。",
       "category": "taiwan",
       "source": "https://zh.wikipedia.org/wiki/柴山",
-      "tags": ["壽山", "歷史"]
+      "tags": [
+        "壽山",
+        "歷史"
+      ]
     },
     {
       "id": "taiwan-longdong-season",
@@ -115,8 +143,11 @@
       "answer": "秋季（9-11月）",
       "detail": "秋季東北季風尚未增強，天氣穩定涼爽，是龍洞攀岩的黃金季節。夏季炎熱、冬春多雨潮濕較不適合。",
       "category": "taiwan",
-      "source": "https://www.climbing.com/places/",
-      "tags": ["龍洞", "季節"]
+      "source": "https://www.thecrag.com/en/climbing/taiwan/longdong",
+      "tags": [
+        "龍洞",
+        "季節"
+      ]
     },
     {
       "id": "taiwan-kenting",
@@ -124,8 +155,11 @@
       "answer": "有，萬里桐等地點",
       "detail": "墾丁地區有數個石灰岩攀岩點，岩質類似東南亞的石灰岩，但規模較小，路線數量有限。",
       "category": "taiwan",
-      "source": "https://www.climbing.com/places/",
-      "tags": ["墾丁", "南部"]
+      "source": "https://www.thecrag.com/en/climbing/taiwan",
+      "tags": [
+        "墾丁",
+        "南部"
+      ]
     },
     {
       "id": "taiwan-competition-history",
@@ -134,7 +168,10 @@
       "detail": "台灣於 2005 年在台北市立大學舉辦亞洲盃攀岩錦標賽，是台灣攀岩運動國際化的重要里程碑。",
       "category": "taiwan",
       "source": "https://www.mountaineering.org.tw/",
-      "tags": ["競技", "賽事"]
+      "tags": [
+        "競技",
+        "賽事"
+      ]
     },
     {
       "id": "taiwan-longdong-depth",
@@ -142,8 +179,11 @@
       "answer": "10-30 公尺",
       "detail": "龍洞大多數路線為單繩距，長度在 10-30 公尺之間，部分區域如「乘風破浪」有超過 40 公尺的長路線。",
       "category": "taiwan",
-      "source": "https://www.climbing.com/places/",
-      "tags": ["龍洞", "路線"]
+      "source": "https://www.thecrag.com/en/climbing/taiwan/longdong",
+      "tags": [
+        "龍洞",
+        "路線"
+      ]
     },
     {
       "id": "taiwan-bouldering-spots",
@@ -151,8 +191,11 @@
       "answer": "有，如龍洞、熱海等地",
       "detail": "雖然台灣以運動攀登為主，但龍洞校門口、熱海等地都有天然抱石區，近年也有越來越多人開發新的抱石點。",
       "category": "taiwan",
-      "source": "https://www.climbing.com/",
-      "tags": ["抱石", "戶外"]
+      "source": "https://www.thecrag.com/en/climbing/taiwan",
+      "tags": [
+        "抱石",
+        "戶外"
+      ]
     },
     {
       "id": "taiwan-gyms-count",
@@ -160,12 +203,15 @@
       "answer": "超過 50 間",
       "detail": "近年台灣攀岩運動蓬勃發展，全台攀岩館數量從 2015 年的不到 20 間，成長到現在超過 50 間。",
       "category": "taiwan",
-      "source": "https://www.climbing.com/places/",
+      "source": "https://www.thecrag.com/en/climbing/taiwan",
       "link": {
         "href": "/gym",
         "text": "探索攀岩館"
       },
-      "tags": ["攀岩館", "發展"]
+      "tags": [
+        "攀岩館",
+        "發展"
+      ]
     },
     {
       "id": "record-silence",
@@ -173,8 +219,11 @@
       "answer": "5.15d (9c)",
       "detail": "截至 2024 年，全球僅有三條 9c 路線：Silence（Adam Ondra, 2017）、DNA（Sébastien Bouin, 2022）、B.I.G.（Sébastien Bouin, 2023）。",
       "category": "record",
-      "source": "https://en.wikipedia.org/wiki/Yosemite_Decimal_System",
-      "tags": ["世界紀錄", "最難路線"]
+      "source": "https://en.wikipedia.org/wiki/Silence_(climb)",
+      "tags": [
+        "世界紀錄",
+        "最難路線"
+      ]
     },
     {
       "id": "record-free-solo-el-cap",
@@ -183,7 +232,11 @@
       "detail": "2017 年 6 月 3 日，Honnold 完成了這項被譽為「攀岩史上最偉大成就」的壯舉，攀登 900 公尺高的 Freerider 路線。",
       "category": "record",
       "source": "https://en.wikipedia.org/wiki/Free_Solo",
-      "tags": ["Alex Honnold", "Free Solo", "El Capitan"]
+      "tags": [
+        "Alex Honnold",
+        "Free Solo",
+        "El Capitan"
+      ]
     },
     {
       "id": "record-first-5-15a",
@@ -192,7 +245,11 @@
       "detail": "位於德國 Frankenjura，由 Wolfgang Güllich 於 1991 年 9 月 14 日完成首攀。這條僅 15 公尺的路線被譽為 9a 的「黃金標準」。",
       "category": "record",
       "source": "https://en.wikipedia.org/wiki/Action_Directe_(climb)",
-      "tags": ["Wolfgang Güllich", "首攀", "里程碑"]
+      "tags": [
+        "Wolfgang Güllich",
+        "首攀",
+        "里程碑"
+      ]
     },
     {
       "id": "record-dawn-wall",
@@ -201,16 +258,23 @@
       "detail": "2015 年 1 月，他們完成了 El Capitan 上這條被認為是世界上最難的大岩壁自由攀登路線（5.14d）。",
       "category": "record",
       "source": "https://en.wikipedia.org/wiki/Dawn_Wall",
-      "tags": ["Dawn Wall", "Tommy Caldwell", "El Capitan"]
+      "tags": [
+        "Dawn Wall",
+        "Tommy Caldwell",
+        "El Capitan"
+      ]
     },
     {
       "id": "record-speed-climbing",
       "question": "男子速度攀登世界紀錄是多少秒？",
-      "answer": "4.79 秒",
-      "detail": "由印尼選手 Veddriq Leonardo 於 2024 年創下，攀登 15 公尺高的標準速度賽道。女子紀錄則是波蘭選手 Aleksandra Miroslaw 的 6.06 秒。",
+      "answer": "4.64 秒",
+      "detail": "由美國選手 Samuel Watson 於 2025 年 5 月創下，攀登 15 公尺高的標準速度賽道。女子紀錄則是波蘭選手 Aleksandra Miroslaw 的 6.06 秒。",
       "category": "record",
-      "source": "https://www.ifsc-climbing.org/",
-      "tags": ["速度攀登", "世界紀錄"]
+      "source": "https://www.worldclimbing.com/rankings/speed",
+      "tags": [
+        "速度攀登",
+        "世界紀錄"
+      ]
     },
     {
       "id": "record-lynn-hill-nose",
@@ -219,7 +283,11 @@
       "detail": "1993 年，Lynn Hill 完成了這項歷史性壯舉，隔年更以不到 24 小時的時間再次完攀。傳奇攀岩家 Yvon Chouinard 稱其為「岩石上最偉大的成就」。",
       "category": "record",
       "source": "https://en.wikipedia.org/wiki/Lynn_Hill",
-      "tags": ["Lynn Hill", "The Nose", "女性攀岩"]
+      "tags": [
+        "Lynn Hill",
+        "The Nose",
+        "女性攀岩"
+      ]
     },
     {
       "id": "record-janja-streak",
@@ -227,8 +295,11 @@
       "answer": "2019 年抱石賽季全勝（6 站全部金牌）",
       "detail": "斯洛維尼亞選手 Janja Garnbret 在 2019 年包辦所有世界盃抱石分站冠軍，被譽為競技攀岩史上最具統治力的選手。",
       "category": "record",
-      "source": "https://www.ifsc-climbing.org/",
-      "tags": ["Janja Garnbret", "世界盃"]
+      "source": "https://en.wikipedia.org/wiki/Janja_Garnbret",
+      "tags": [
+        "Janja Garnbret",
+        "世界盃"
+      ]
     },
     {
       "id": "record-ondra-age",
@@ -237,7 +308,10 @@
       "detail": "2006 年，年僅 13 歲的 Adam Ondra 完攀了 Martin Krpan (9a)，成為史上最年輕完攀 9a 的攀岩者。",
       "category": "record",
       "source": "https://en.wikipedia.org/wiki/Adam_Ondra",
-      "tags": ["Adam Ondra", "年齡紀錄"]
+      "tags": [
+        "Adam Ondra",
+        "年齡紀錄"
+      ]
     },
     {
       "id": "record-hardest-boulder",
@@ -246,7 +320,10 @@
       "detail": "目前有數條 V17 抱石路線，包括 Burden of Dreams（Nalle Hukkataival, 2016）和 Megatron（Aidan Roberts, 2023）等。",
       "category": "record",
       "source": "https://en.wikipedia.org/wiki/V_scale",
-      "tags": ["抱石", "最難路線"]
+      "tags": [
+        "抱石",
+        "最難路線"
+      ]
     },
     {
       "id": "record-nose-speed",
@@ -254,8 +331,11 @@
       "answer": "1 小時 58 分 7 秒",
       "detail": "由 Tommy Caldwell 和 Alex Honnold 於 2018 年創下，他們是首組在 2 小時內完成這條 31 段繩距路線的搭檔。",
       "category": "record",
-      "source": "https://www.climbing.com",
-      "tags": ["The Nose", "速攀"]
+      "source": "https://en.wikipedia.org/wiki/The_Nose_(El_Capitan)",
+      "tags": [
+        "The Nose",
+        "速攀"
+      ]
     },
     {
       "id": "record-first-8a",
@@ -264,7 +344,10 @@
       "detail": "1979 年由德國攀岩家 Kurt Albert 在 Frankenjura 的 Altmühltal 完成，開創了運動攀登的新時代。",
       "category": "record",
       "source": "https://en.wikipedia.org/wiki/History_of_rock_climbing",
-      "tags": ["Kurt Albert", "首攀"]
+      "tags": [
+        "Kurt Albert",
+        "首攀"
+      ]
     },
     {
       "id": "record-female-9b",
@@ -273,16 +356,22 @@
       "detail": "2017 年，奧地利攀岩家 Angela Eiter 完攀 La Planta de Shiva (9b)，成為史上第一位達成此難度的女性。",
       "category": "record",
       "source": "https://en.wikipedia.org/wiki/Angela_Eiter",
-      "tags": ["女性攀岩", "紀錄"]
+      "tags": [
+        "女性攀岩",
+        "紀錄"
+      ]
     },
     {
       "id": "record-oldest-5-14",
       "question": "最年長完攀 5.14a 的攀岩者幾歲？",
-      "answer": "超過 60 歲",
-      "detail": "日本攀岩家 Yuji Hirayama 在 60 歲後仍持續完攀 5.14 等級路線，證明年齡不是攀岩的限制。",
+      "answer": "超過 50 歲",
+      "detail": "日本傳奇攀岩家 Yuji Hirayama 在 52 歲時完攀 5.14c，53 歲完攀 5.14d，持續刷新高齡攀岩紀錄，證明年齡不是攀岩的限制。",
       "category": "record",
-      "source": "https://www.climbing.com/",
-      "tags": ["年齡", "勵志"]
+      "source": "https://en.wikipedia.org/wiki/Yuji_Hirayama",
+      "tags": [
+        "年齡",
+        "勵志"
+      ]
     },
     {
       "id": "record-action-directe-repeat",
@@ -291,16 +380,22 @@
       "detail": "Wolfgang Güllich 於 1991 年首攀後，直到 1995 年才由 Alexander Adler 完成第二次攀登，顯示這條路線的超前難度。",
       "category": "record",
       "source": "https://en.wikipedia.org/wiki/Action_Directe_(climb)",
-      "tags": ["Action Directe", "歷史"]
+      "tags": [
+        "Action Directe",
+        "歷史"
+      ]
     },
     {
       "id": "record-most-world-titles",
       "question": "哪位攀岩者擁有最多 IFSC 世界冠軍頭銜？",
-      "answer": "Janja Garnbret（超過 20 個）",
-      "detail": "斯洛維尼亞選手 Janja Garnbret 在先鋒和抱石項目累積了超過 20 個世界冠軍頭銜，是攀岩史上最成功的競技選手。",
+      "answer": "Janja Garnbret（10 面世錦賽金牌）",
+      "detail": "斯洛維尼亞選手 Janja Garnbret 擁有 10 面 IFSC 世界錦標賽金牌，加上超過 40 座世界盃分站冠軍，是攀岩史上最成功的競技選手。",
       "category": "record",
-      "source": "https://www.ifsc-climbing.org/",
-      "tags": ["Janja Garnbret", "世界冠軍"]
+      "source": "https://en.wikipedia.org/wiki/Janja_Garnbret",
+      "tags": [
+        "Janja Garnbret",
+        "世界冠軍"
+      ]
     },
     {
       "id": "history-olympics-2020",
@@ -309,7 +404,10 @@
       "detail": "比賽包含速度攀登、抱石、先鋒攀登三個項目的複合賽。2024 巴黎奧運起，速度攀登獨立為單項比賽。",
       "category": "history",
       "source": "https://olympics.com/en/sports/sport-climbing",
-      "tags": ["奧運", "競技攀登"]
+      "tags": [
+        "奧運",
+        "競技攀登"
+      ]
     },
     {
       "id": "history-yosemite-origin",
@@ -318,7 +416,10 @@
       "detail": "1950-70 年代，優勝美地的攀岩先驅們發展出自由攀登的理念和技術，奠定了現代攀岩運動的基礎。",
       "category": "history",
       "source": "https://en.wikipedia.org/wiki/Yosemite_climbing",
-      "tags": ["優勝美地", "發源地"]
+      "tags": [
+        "優勝美地",
+        "發源地"
+      ]
     },
     {
       "id": "history-first-5-9",
@@ -327,7 +428,10 @@
       "detail": "1950 年代在 Tahquitz 岩場發展的 YDS 系統，原本設定 5.9 為人類極限。直到 1960 年代才突破，開始出現 5.10、5.11 等級。",
       "category": "history",
       "source": "https://en.wikipedia.org/wiki/Yosemite_Decimal_System",
-      "tags": ["YDS", "難度系統"]
+      "tags": [
+        "YDS",
+        "難度系統"
+      ]
     },
     {
       "id": "history-sport-climbing-origin",
@@ -336,7 +440,10 @@
       "detail": "法國攀岩者開始在石灰岩上預先打好膨脹螺栓，專注於動作難度而非冒險，開創了運動攀登的新時代。",
       "category": "history",
       "source": "https://en.wikipedia.org/wiki/History_of_rock_climbing",
-      "tags": ["運動攀登", "法國"]
+      "tags": [
+        "運動攀登",
+        "法國"
+      ]
     },
     {
       "id": "history-first-el-cap",
@@ -345,7 +452,10 @@
       "detail": "Warren Harding、Wayne Merry 和 George Whitmore 花了 47 天（跨越 18 個月）才完成這條 870 公尺的路線。",
       "category": "history",
       "source": "https://en.wikipedia.org/wiki/The_Nose_(El_Capitan)",
-      "tags": ["The Nose", "El Capitan"]
+      "tags": [
+        "The Nose",
+        "El Capitan"
+      ]
     },
     {
       "id": "history-bouldering-father",
@@ -354,7 +464,10 @@
       "detail": "1950 年代起，John Gill 將體操動作融入攀岩，發展出動態抱石技術，並首次將止滑粉引入攀岩運動。",
       "category": "history",
       "source": "https://en.wikipedia.org/wiki/John_Gill_(climber)",
-      "tags": ["John Gill", "抱石"]
+      "tags": [
+        "John Gill",
+        "抱石"
+      ]
     },
     {
       "id": "history-redpoint-origin",
@@ -363,7 +476,10 @@
       "detail": "1970 年代，Kurt Albert 會在成功自由攀登的路線起點畫上紅點標記，後來「Redpoint」成為不墜落完攀的代名詞。",
       "category": "history",
       "source": "https://en.wikipedia.org/wiki/History_of_rock_climbing",
-      "tags": ["Redpoint", "術語"]
+      "tags": [
+        "Redpoint",
+        "術語"
+      ]
     },
     {
       "id": "history-first-indoor-wall",
@@ -372,7 +488,10 @@
       "detail": "Don Robinson 在 Leeds 大學建造了第一座室內人工攀岩牆，最初是為了讓學生在惡劣天氣時也能練習。",
       "category": "history",
       "source": "https://en.wikipedia.org/wiki/History_of_rock_climbing",
-      "tags": ["攀岩牆", "發明"]
+      "tags": [
+        "攀岩牆",
+        "發明"
+      ]
     },
     {
       "id": "history-free-solo-definition",
@@ -380,8 +499,11 @@
       "answer": "1970 年代",
       "detail": "隨著無繩獨攀越來越受關注，攀岩界開始用 Free Solo 來區分「無繩自由攀登」與使用繩索的 Free Climbing。",
       "category": "history",
-      "source": "https://en.wikipedia.org/wiki/Glossary_of_climbing_terms",
-      "tags": ["Free Solo", "術語"]
+      "source": "https://en.wikipedia.org/wiki/Free_solo_climbing",
+      "tags": [
+        "Free Solo",
+        "術語"
+      ]
     },
     {
       "id": "history-competition-first",
@@ -389,8 +511,11 @@
       "answer": "1985 年義大利 Bardonecchia",
       "detail": "這場比賽被稱為 SportRoccia，在天然岩壁上舉行，標誌著競技攀登的開始。1989 年起 UIAA 開始舉辦世界盃。",
       "category": "history",
-      "source": "https://www.ifsc-climbing.org/index.php/about-the-ifsc/history",
-      "tags": ["競技", "賽事"]
+      "source": "https://www.worldclimbing.com/ifsc/index",
+      "tags": [
+        "競技",
+        "賽事"
+      ]
     },
     {
       "id": "history-trad-protection",
@@ -399,7 +524,10 @@
       "detail": "最早的岩楔是用工業機械螺帽改造而成，攀岩者發現這些金屬塊能卡在岩縫中作為保護點。",
       "category": "history",
       "source": "https://en.wikipedia.org/wiki/Climbing_equipment",
-      "tags": ["傳統攀登", "裝備"]
+      "tags": [
+        "傳統攀登",
+        "裝備"
+      ]
     },
     {
       "id": "history-chalk-controversy",
@@ -407,8 +535,11 @@
       "answer": "1970-80 年代的「Clean Hand Gang」抗議",
       "detail": "部分攀岩者認為使用止滑粉是作弊且破壞岩石，發起抵制運動。隨著時間推移，止滑粉最終被廣泛接受。",
       "category": "history",
-      "source": "https://www.climbing.com/gear/why-climbers-started-using-chalk/",
-      "tags": ["Chalk", "爭議"]
+      "source": "https://www.ukclimbing.com/articles/features/chalk_in_climbing-1234",
+      "tags": [
+        "Chalk",
+        "爭議"
+      ]
     },
     {
       "id": "history-wolfang-death",
@@ -417,7 +548,10 @@
       "detail": "1992 年 8 月 31 日，Güllich 因車禍去世，年僅 31 歲。他在短暫的攀岩生涯中創下了四個「世界第一」難度紀錄。",
       "category": "history",
       "source": "https://en.wikipedia.org/wiki/Wolfgang_Güllich",
-      "tags": ["Wolfgang Güllich", "歷史"]
+      "tags": [
+        "Wolfgang Güllich",
+        "歷史"
+      ]
     },
     {
       "id": "history-ifsc-founded",
@@ -425,8 +559,11 @@
       "answer": "2007 年",
       "detail": "IFSC 從 UIAA 獨立出來，成為管理競技攀登的國際組織，並成功推動攀岩進入奧運。",
       "category": "history",
-      "source": "https://www.ifsc-climbing.org/",
-      "tags": ["IFSC", "組織"]
+      "source": "https://www.worldclimbing.com/",
+      "tags": [
+        "IFSC",
+        "組織"
+      ]
     },
     {
       "id": "history-aid-climbing-era",
@@ -435,7 +572,10 @@
       "detail": "在自由攀登技術成熟前，攀岩者大量使用岩釘、繩梯等器材輔助向上。優勝美地的大岩壁路線大多在這個時期被首攀。",
       "category": "history",
       "source": "https://en.wikipedia.org/wiki/Aid_climbing",
-      "tags": ["人工攀登", "歷史"]
+      "tags": [
+        "人工攀登",
+        "歷史"
+      ]
     },
     {
       "id": "technique-yds-meaning",
@@ -444,7 +584,10 @@
       "detail": "YDS（Yosemite Decimal System）分為 1-5 級，第 5 級代表需要繩索確保的技術攀登。後來因難度細分，又加上 a/b/c/d 四個子級別。",
       "category": "technique",
       "source": "https://en.wikipedia.org/wiki/Yosemite_Decimal_System",
-      "tags": ["難度系統", "YDS"]
+      "tags": [
+        "難度系統",
+        "YDS"
+      ]
     },
     {
       "id": "technique-fall-factor",
@@ -453,7 +596,10 @@
       "detail": "墜落係數最大值為 2（起攀時未放保護點直接墜落）。係數越高，對攀岩者和裝備的衝擊力越大，這也是為什麼第一個快扣很重要。",
       "category": "technique",
       "source": "https://en.wikipedia.org/wiki/Fall_factor",
-      "tags": ["安全", "確保"]
+      "tags": [
+        "安全",
+        "確保"
+      ]
     },
     {
       "id": "technique-onsight-flash",
@@ -462,7 +608,10 @@
       "detail": "Onsight 是完全沒有任何資訊下首次嘗試就完攀；Flash 則是看過別人攀爬或獲得 beta 後首次嘗試完攀。兩者都必須一次完成、不能墜落。",
       "category": "technique",
       "source": "https://en.wikipedia.org/wiki/Glossary_of_climbing_terms",
-      "tags": ["完攀方式", "術語"]
+      "tags": [
+        "完攀方式",
+        "術語"
+      ]
     },
     {
       "id": "technique-v-scale",
@@ -471,7 +620,10 @@
       "detail": "V 級系統由美國抱石傳奇 John Sherman 在 1991 年創立，以德州 Hueco Tanks 的抱石路線為基準。「V」代表他的綽號「Verm」。",
       "category": "technique",
       "source": "https://en.wikipedia.org/wiki/V_scale",
-      "tags": ["難度系統", "抱石"]
+      "tags": [
+        "難度系統",
+        "抱石"
+      ]
     },
     {
       "id": "technique-free-climbing-def",
@@ -480,7 +632,10 @@
       "detail": "自由攀登是指只用身體力量攀爬，繩索和器材僅作為墜落保護。不用繩子的是「無繩攀登」(Free Solo)，兩者常被混淆。",
       "category": "technique",
       "source": "https://en.wikipedia.org/wiki/Glossary_of_climbing_terms",
-      "tags": ["術語", "定義"]
+      "tags": [
+        "術語",
+        "定義"
+      ]
     },
     {
       "id": "technique-pump-science",
@@ -489,7 +644,10 @@
       "detail": "常見誤解是乳酸造成 Pump。實際上是肌肉收縮時壓迫血管，導致氧氣供應不足、代謝廢物堆積，造成前臂腫脹無力。",
       "category": "technique",
       "source": "https://theclimbingdoctor.com/physiology-of-forearm-pump-and-ways-to-delay-its-onset/",
-      "tags": ["生理學", "訓練"]
+      "tags": [
+        "生理學",
+        "訓練"
+      ]
     },
     {
       "id": "technique-crimp-types",
@@ -497,8 +655,11 @@
       "answer": "拇指是否壓在食指上",
       "detail": "Full Crimp 拇指壓住食指，力量最大但最傷關節；Half Crimp 拇指不壓，較為安全；Open Hand 則是手指完全伸展的抓法。",
       "category": "technique",
-      "source": "https://www.climbing.com/skills/",
-      "tags": ["技術", "手法"]
+      "source": "https://www.99boulders.com/climbing-moves-holds-and-technique",
+      "tags": [
+        "技術",
+        "手法"
+      ]
     },
     {
       "id": "technique-flagging",
@@ -506,8 +667,11 @@
       "answer": "將一隻腳伸出平衡身體的技巧",
       "detail": "當只有一個腳點時，可以將另一隻腳向外伸出（flag）來維持平衡，避免身體「barn door」（像門一樣旋轉甩出去）。",
       "category": "technique",
-      "source": "https://www.climbing.com/skills/",
-      "tags": ["技術", "腳法"]
+      "source": "https://www.99boulders.com/climbing-moves-holds-and-technique",
+      "tags": [
+        "技術",
+        "腳法"
+      ]
     },
     {
       "id": "technique-dyno",
@@ -516,7 +680,10 @@
       "detail": "Dyno 是 Dynamic 的縮寫，指雙手或雙腳同時離開岩壁，跳躍抓取下一個點。這是抱石中常見的高難度動作。",
       "category": "technique",
       "source": "https://en.wikipedia.org/wiki/Glossary_of_climbing_terms",
-      "tags": ["技術", "動態"]
+      "tags": [
+        "技術",
+        "動態"
+      ]
     },
     {
       "id": "technique-redpoint-pinkpoint",
@@ -525,7 +692,10 @@
       "detail": "傳統定義中，Redpoint 需要自己掛快扣，Pinkpoint 則是快扣已預先掛好。現在這個區分已較少使用，多統稱為 Redpoint。",
       "category": "technique",
       "source": "https://en.wikipedia.org/wiki/Glossary_of_climbing_terms",
-      "tags": ["術語", "完攀方式"]
+      "tags": [
+        "術語",
+        "完攀方式"
+      ]
     },
     {
       "id": "technique-beta",
@@ -533,8 +703,11 @@
       "answer": "源自 1980 年代的 Betamax 錄影帶",
       "detail": "早期攀岩者用 Betamax 錄影帶錄下路線攻略分享，久而久之「beta」就成了路線資訊的代稱。",
       "category": "technique",
-      "source": "https://en.wikipedia.org/wiki/History_of_rock_climbing",
-      "tags": ["術語", "文化"]
+      "source": "https://en.wikipedia.org/wiki/Beta_(climbing)",
+      "tags": [
+        "術語",
+        "文化"
+      ]
     },
     {
       "id": "technique-project",
@@ -543,7 +716,10 @@
       "detail": "當攀岩者持續練習某條超出能力的路線，這條路線就成為他的「project」。完攀 project 是攀岩者進步的重要里程碑。",
       "category": "technique",
       "source": "https://en.wikipedia.org/wiki/Glossary_of_climbing_terms",
-      "tags": ["術語", "訓練"]
+      "tags": [
+        "術語",
+        "訓練"
+      ]
     },
     {
       "id": "technique-heel-hook",
@@ -551,8 +727,11 @@
       "answer": "當需要將重心拉近岩壁或鎖定身體時",
       "detail": "Heel Hook 是將腳跟勾在點上，利用大腿後側肌群發力。在天花板路線或需要固定身體時特別有用。",
       "category": "technique",
-      "source": "https://www.climbing.com/skills/",
-      "tags": ["技術", "腳法"]
+      "source": "https://www.99boulders.com/climbing-moves-holds-and-technique",
+      "tags": [
+        "技術",
+        "腳法"
+      ]
     },
     {
       "id": "technique-grading-soft-stiff",
@@ -560,8 +739,11 @@
       "answer": "路線難度相對於官方標示偏簡單或偏難",
       "detail": "如果一條 5.12a 感覺像 5.11d，就說它「標軟」；反之若感覺像 5.12b，就是「標硬」。難度感受因人而異。",
       "category": "technique",
-      "source": "https://www.climbing.com/news/rock-climbing-terms-definitions/",
-      "tags": ["難度", "術語"]
+      "source": "https://www.99boulders.com/climbing-grades",
+      "tags": [
+        "難度",
+        "術語"
+      ]
     },
     {
       "id": "technique-rest-position",
@@ -569,8 +751,11 @@
       "answer": "不用手就能休息的位置",
       "detail": "在某些地形（如煙囪、角落）可以靠身體卡住或腳撐住來完全放開雙手休息，這是長路線中恢復體力的關鍵。",
       "category": "technique",
-      "source": "https://www.climbing.com/skills/",
-      "tags": ["休息", "技術"]
+      "source": "https://en.wikipedia.org/wiki/Glossary_of_climbing_terms",
+      "tags": [
+        "休息",
+        "技術"
+      ]
     },
     {
       "id": "gear-chalk-origin",
@@ -579,7 +764,10 @@
       "detail": "1954 年，John Gill 在 Georgia Tech 上體操課時接觸到止滑粉，成為第一位將其引入攀岩的人。",
       "category": "gear",
       "source": "https://www.climbing.com/gear/why-climbers-started-using-chalk/",
-      "tags": ["Chalk", "發明"]
+      "tags": [
+        "Chalk",
+        "發明"
+      ]
     },
     {
       "id": "gear-cam-invention",
@@ -588,7 +776,10 @@
       "detail": "1978 年，美國攀岩者 Ray Jardine 發明了 Friends（第一款商業化的 Cam），徹底改變了傳統攀登的保護方式。",
       "category": "gear",
       "source": "https://en.wikipedia.org/wiki/Spring-loaded_camming_device",
-      "tags": ["Cam", "傳統攀登"]
+      "tags": [
+        "Cam",
+        "傳統攀登"
+      ]
     },
     {
       "id": "gear-shoe-rubber",
@@ -596,8 +787,11 @@
       "answer": "1982 年（Boreal Fire）",
       "detail": "西班牙品牌 Boreal 推出的 Fire 岩鞋首次採用高摩擦力橡膠，大幅提升了腳點的精準度，開啟了現代岩鞋的革命。",
       "category": "gear",
-      "source": "https://en.wikipedia.org/wiki/Climbing_equipment",
-      "tags": ["岩鞋", "橡膠"]
+      "source": "https://en.wikipedia.org/wiki/Climbing_shoe",
+      "tags": [
+        "岩鞋",
+        "橡膠"
+      ]
     },
     {
       "id": "gear-crash-pad-origin",
@@ -606,7 +800,10 @@
       "detail": "1980 年代末，他們在 Hueco Tanks 抱石時用地毯和泡棉製作了第一個抱石墊。1992 年 Kinnaloa 推出第一款商業化 Crash Pad。",
       "category": "gear",
       "source": "https://www.climbing.com/gear/crash-pads-safety-changed-bouldering-forever/",
-      "tags": ["Crash Pad", "抱石"]
+      "tags": [
+        "Crash Pad",
+        "抱石"
+      ]
     },
     {
       "id": "gear-hangboard-origin",
@@ -615,7 +812,10 @@
       "detail": "1980 年，John Bachar 將木條釘在自家屋簷上練習，發明了第一個原型指力板。1990 年代 Metolius 推出第一款商業化指力板。",
       "category": "gear",
       "source": "https://www.rockstarvolumes.com/post/the-history-of-the-hangboard",
-      "tags": ["Hangboard", "訓練"]
+      "tags": [
+        "Hangboard",
+        "訓練"
+      ]
     },
     {
       "id": "gear-campus-board",
@@ -624,7 +824,10 @@
       "detail": "1988 年，Wolfgang Güllich 為了訓練 Action Directe 而發明。這塊板子掛在紐倫堡大學的 Campus Centre 健身房，因此得名。",
       "category": "gear",
       "source": "https://en.wikipedia.org/wiki/Campus_board",
-      "tags": ["Campus Board", "訓練"]
+      "tags": [
+        "Campus Board",
+        "訓練"
+      ]
     },
     {
       "id": "gear-dynamic-rope",
@@ -632,8 +835,11 @@
       "answer": "動態繩能吸收墜落衝擊力",
       "detail": "動態繩的延展性（7-12%）能緩衝墜落，減少對人體和固定點的衝擊。靜態繩延展性低，墜落時會產生致命的衝擊力。",
       "category": "gear",
-      "source": "https://www.climbing.com/skills/",
-      "tags": ["繩索", "安全"]
+      "source": "https://en.wikipedia.org/wiki/Dynamic_rope",
+      "tags": [
+        "繩索",
+        "安全"
+      ]
     },
     {
       "id": "gear-quickdraw-history",
@@ -642,7 +848,10 @@
       "detail": "早期攀岩者使用繩環加鉤環，後來為了快速掛繩，發展出預先組裝好的快扣。現代快扣有鋼製和鋁製兩種材質選擇。",
       "category": "gear",
       "source": "https://en.wikipedia.org/wiki/Climbing_equipment",
-      "tags": ["快扣", "裝備"]
+      "tags": [
+        "快扣",
+        "裝備"
+      ]
     },
     {
       "id": "gear-harness-evolution",
@@ -650,8 +859,11 @@
       "answer": "Don Whillans",
       "detail": "1960 年代，英國攀岩家 Don Whillans 設計了 Whillans Harness，成為現代坐式吊帶的原型，大幅提升了攀岩的舒適度和安全性。",
       "category": "gear",
-      "source": "https://en.wikipedia.org/wiki/Climbing_equipment",
-      "tags": ["吊帶", "發明"]
+      "source": "https://en.wikipedia.org/wiki/Climbing_harness",
+      "tags": [
+        "吊帶",
+        "發明"
+      ]
     },
     {
       "id": "gear-belay-device-evolution",
@@ -660,7 +872,10 @@
       "detail": "在此之前，攀岩者用身體確保或 Munter hitch 繩結。Fritz Sticht 發明的 Sticht Plate 是第一個專門為確保設計的器材。",
       "category": "gear",
       "source": "https://en.wikipedia.org/wiki/Climbing_equipment",
-      "tags": ["確保器", "發明"]
+      "tags": [
+        "確保器",
+        "發明"
+      ]
     },
     {
       "id": "gear-liquid-chalk",
@@ -668,8 +883,11 @@
       "answer": "持久、乾淨、不飛粉塵",
       "detail": "液態止滑粉含有酒精，塗抹後會快速乾燥並在手上形成一層止滑膜。許多室內岩館要求使用液態止滑粉以減少粉塵。",
       "category": "gear",
-      "source": "https://www.climbing.com/gear/",
-      "tags": ["Chalk", "室內攀岩"]
+      "source": "https://en.wikipedia.org/wiki/Chalk_(climbing)",
+      "tags": [
+        "Chalk",
+        "室內攀岩"
+      ]
     },
     {
       "id": "gear-rope-diameter",
@@ -677,8 +895,11 @@
       "answer": "不一定，要考慮耐用度和確保手感",
       "detail": "細繩（9.0-9.4mm）輕量但磨損快、確保手感差；粗繩（10.0mm+）耐用但重。一般運動攀登使用 9.4-9.8mm 較為平衡。",
       "category": "gear",
-      "source": "https://www.climbing.com/gear/",
-      "tags": ["繩索", "裝備"]
+      "source": "https://en.wikipedia.org/wiki/Dynamic_rope",
+      "tags": [
+        "繩索",
+        "裝備"
+      ]
     },
     {
       "id": "gear-shoe-downturn",
@@ -686,8 +907,11 @@
       "answer": "增加在小腳點上的力量傳遞",
       "detail": "下彎鞋（Aggressive）讓腳趾集中發力，適合天花板和小腳點路線。但長時間穿著不舒適，入門者建議從平底鞋開始。",
       "category": "gear",
-      "source": "https://www.climbing.com/gear/",
-      "tags": ["岩鞋", "選購"]
+      "source": "https://en.wikipedia.org/wiki/Climbing_shoe",
+      "tags": [
+        "岩鞋",
+        "選購"
+      ]
     },
     {
       "id": "gear-grigri-invention",
@@ -696,7 +920,10 @@
       "detail": "GriGri 是第一款廣泛使用的輔助制動確保器，其凸輪機制能在墜落時自動鎖定繩索，大幅提升確保安全性。",
       "category": "gear",
       "source": "https://www.petzl.com/",
-      "tags": ["確保器", "GriGri"]
+      "tags": [
+        "確保器",
+        "GriGri"
+      ]
     },
     {
       "id": "gear-helmet-importance",
@@ -704,8 +931,11 @@
       "answer": "通常不需要，但戶外強烈建議",
       "detail": "室內環境可控，落石風險低。但戶外攀岩時，頭盔能保護你免於落石、墜落時撞擊岩壁、以及確保者被拉起時撞頭。",
       "category": "gear",
-      "source": "https://www.climbing.com/gear/",
-      "tags": ["頭盔", "安全"]
+      "source": "https://en.wikipedia.org/wiki/Climbing_helmet",
+      "tags": [
+        "頭盔",
+        "安全"
+      ]
     },
     {
       "id": "culture-send-origin",
@@ -714,7 +944,10 @@
       "detail": "Send 意指成功完攀一條路線，據說是從「Ascend」（攀登）一詞演變而來。當攀岩者說「I sent it!」就是表示成功完攀了！",
       "category": "culture",
       "source": "https://en.wikipedia.org/wiki/Glossary_of_climbing_terms",
-      "tags": ["術語", "文化"]
+      "tags": [
+        "術語",
+        "文化"
+      ]
     },
     {
       "id": "culture-spray",
@@ -722,8 +955,11 @@
       "answer": "過度吹噓自己攀岩成就的行為",
       "detail": "Spray 指不請自來地炫耀自己的攀岩難度或成就，被視為攀岩社群中的不良行為。相對地，謙虛低調更受尊重。",
       "category": "culture",
-      "source": "https://www.climbing.com/",
-      "tags": ["術語", "禮儀"]
+      "source": "https://en.wikipedia.org/wiki/Glossary_of_climbing_terms",
+      "tags": [
+        "術語",
+        "禮儀"
+      ]
     },
     {
       "id": "culture-valley-uprising",
@@ -732,7 +968,10 @@
       "detail": "這部紀錄片記錄了從 1950 年代至今優勝美地的攀岩歷史，包括 Royal Robbins、Yvon Chouinard 到 Lynn Hill、Alex Honnold 等傳奇人物的故事。",
       "category": "culture",
       "source": "https://www.imdb.com/title/tt3784160/",
-      "tags": ["紀錄片", "優勝美地"]
+      "tags": [
+        "紀錄片",
+        "優勝美地"
+      ]
     },
     {
       "id": "culture-free-solo-film",
@@ -741,7 +980,10 @@
       "detail": "這部記錄 Alex Honnold 無繩獨攀 El Capitan 的紀錄片，讓攀岩運動首次站上奧斯卡頒獎台，獲得全球關注。",
       "category": "culture",
       "source": "https://en.wikipedia.org/wiki/Free_Solo",
-      "tags": ["紀錄片", "奧斯卡"]
+      "tags": [
+        "紀錄片",
+        "奧斯卡"
+      ]
     },
     {
       "id": "culture-dirtbag",
@@ -750,7 +992,10 @@
       "detail": "Dirtbag 原本是貶義詞，但在攀岩文化中轉變為對全心投入攀岩、住在車裡或帳篷、追逐岩壁的攀岩者的讚美。",
       "category": "culture",
       "source": "https://en.wikipedia.org/wiki/History_of_rock_climbing",
-      "tags": ["文化", "生活方式"]
+      "tags": [
+        "文化",
+        "生活方式"
+      ]
     },
     {
       "id": "culture-stonemasters",
@@ -759,7 +1004,10 @@
       "detail": "包括 John Bachar、John Long、Ron Kauk 等人，他們推動了自由攀登的極限，並定義了優勝美地的攀岩文化和倫理。",
       "category": "culture",
       "source": "https://en.wikipedia.org/wiki/Stonemasters",
-      "tags": ["Stonemasters", "歷史"]
+      "tags": [
+        "Stonemasters",
+        "歷史"
+      ]
     },
     {
       "id": "culture-patagonia-founder",
@@ -768,7 +1016,10 @@
       "detail": "Yvon Chouinard 是 1960-70 年代優勝美地的傳奇攀岩者，他從製作攀岩裝備起家，後來創立了 Patagonia。",
       "category": "culture",
       "source": "https://en.wikipedia.org/wiki/Yvon_Chouinard",
-      "tags": ["Patagonia", "名人"]
+      "tags": [
+        "Patagonia",
+        "名人"
+      ]
     },
     {
       "id": "culture-climbing-ethics",
@@ -777,7 +1028,10 @@
       "detail": "攀岩者應帶走所有垃圾、避免破壞植被、不在岩壁上留下粉跡或 tick marks（標記）。尊重自然是攀岩社群的重要價值。",
       "category": "culture",
       "source": "https://lnt.org/",
-      "tags": ["倫理", "環保"]
+      "tags": [
+        "倫理",
+        "環保"
+      ]
     },
     {
       "id": "culture-dawn-wall-doc",
@@ -786,7 +1040,10 @@
       "detail": "這部紀錄片不僅記錄了他們 19 天的攀登過程，也講述了 Tommy Caldwell 被綁架和失去手指的故事。",
       "category": "culture",
       "source": "https://www.imdb.com/title/tt7286916/",
-      "tags": ["紀錄片", "Dawn Wall"]
+      "tags": [
+        "紀錄片",
+        "Dawn Wall"
+      ]
     },
     {
       "id": "culture-psicobloc",
@@ -795,7 +1052,10 @@
       "detail": "攀岩者在海崖或懸崖上進行無繩攀登，墜落時落入水中。西班牙 Mallorca 島是最著名的 Psicobloc 地點之一。",
       "category": "culture",
       "source": "https://en.wikipedia.org/wiki/Rock_climbing",
-      "tags": ["Psicobloc", "攀岩形式"]
+      "tags": [
+        "Psicobloc",
+        "攀岩形式"
+      ]
     },
     {
       "id": "culture-choss",
@@ -804,7 +1064,10 @@
       "detail": "Choss 是攀岩俚語，形容那些容易剝落、不穩定的岩石。遇到 chossy 的路線時要特別小心落石。",
       "category": "culture",
       "source": "https://en.wikipedia.org/wiki/Glossary_of_climbing_terms",
-      "tags": ["術語", "岩質"]
+      "tags": [
+        "術語",
+        "岩質"
+      ]
     },
     {
       "id": "culture-climbing-film-reel-rock",
@@ -813,7 +1076,10 @@
       "detail": "自 2006 年起，Reel Rock Film Tour 每年製作並巡迴放映攀岩紀錄片，成為攀岩社群的重要文化活動。",
       "category": "culture",
       "source": "https://reelrocktour.com/",
-      "tags": ["電影", "文化活動"]
+      "tags": [
+        "電影",
+        "文化活動"
+      ]
     },
     {
       "id": "culture-sandbag",
@@ -822,7 +1088,10 @@
       "detail": "有些開線者會故意把路線難度標得比實際低，讓後來的攀岩者措手不及。這種行為在社群中毀譽參半。",
       "category": "culture",
       "source": "https://en.wikipedia.org/wiki/Rock_climbing",
-      "tags": ["術語", "難度"]
+      "tags": [
+        "術語",
+        "難度"
+      ]
     },
     {
       "id": "culture-first-ascent-ethics",
@@ -830,8 +1099,11 @@
       "answer": "首攀者有權命名路線和建議難度",
       "detail": "開發新路線的首攀者可以為路線命名、決定保護點位置，並提出建議難度。這是攀岩傳統中對開拓者的尊重。",
       "category": "culture",
-      "source": "https://www.climbing.com/skills/",
-      "tags": ["首攀", "倫理"]
+      "source": "https://en.wikipedia.org/wiki/First_ascent",
+      "tags": [
+        "首攀",
+        "倫理"
+      ]
     },
     {
       "id": "culture-beta-spray",
@@ -839,8 +1111,11 @@
       "answer": "可能剝奪他人解謎的樂趣",
       "detail": "攀岩的一大樂趣是自己研究動作。除非對方詢問，否則不請自來的建議（beta spray）可能讓人感到掃興或被冒犯。",
       "category": "culture",
-      "source": "https://www.climbing.com/",
-      "tags": ["禮儀", "Beta"]
+      "source": "https://en.wikipedia.org/wiki/Beta_(climbing)",
+      "tags": [
+        "禮儀",
+        "Beta"
+      ]
     },
     {
       "id": "competition-world-cup-format",
@@ -848,8 +1123,11 @@
       "answer": "8 位",
       "detail": "先鋒賽經過資格賽和準決賽後，前 8 名進入決賽。決賽路線只有一次嘗試機會，以最高點計分。",
       "category": "competition",
-      "source": "https://www.ifsc-climbing.org/index.php/world-competition/rules",
-      "tags": ["世界盃", "先鋒"]
+      "source": "https://www.worldclimbing.com/resources/competitions",
+      "tags": [
+        "世界盃",
+        "先鋒"
+      ]
     },
     {
       "id": "competition-boulder-tops",
@@ -857,8 +1135,11 @@
       "answer": "Top 較高",
       "detail": "Top 是完成整條路線，Zone 是觸碰到中間的加分點。比較成績時先比 Top 數，相同再比 Zone 數，最後比嘗試次數。",
       "category": "competition",
-      "source": "https://www.ifsc-climbing.org/index.php/world-competition/rules",
-      "tags": ["抱石", "計分"]
+      "source": "https://www.worldclimbing.com/resources/competitions",
+      "tags": [
+        "抱石",
+        "計分"
+      ]
     },
     {
       "id": "competition-speed-wall-height",
@@ -866,8 +1147,11 @@
       "answer": "15 公尺",
       "detail": "速度攀登使用全球統一的標準路線，牆面傾斜 5 度，手點和腳點位置完全相同，讓選手可以記憶並優化動作。",
       "category": "competition",
-      "source": "https://www.ifsc-climbing.org/index.php/world-competition/rules",
-      "tags": ["速度攀登", "規格"]
+      "source": "https://www.worldclimbing.com/resources/competitions",
+      "tags": [
+        "速度攀登",
+        "規格"
+      ]
     },
     {
       "id": "competition-isolation-zone",
@@ -875,8 +1159,11 @@
       "answer": "選手賽前等待的封閉區域",
       "detail": "選手在比賽前被隔離，不能觀看其他人攀爬或獲得路線資訊，確保比賽公平性。這也是為什麼選手出場順序很重要。",
       "category": "competition",
-      "source": "https://www.ifsc-climbing.org/index.php/world-competition/rules",
-      "tags": ["比賽規則", "公平性"]
+      "source": "https://www.worldclimbing.com/resources/competitions",
+      "tags": [
+        "比賽規則",
+        "公平性"
+      ]
     },
     {
       "id": "competition-observation-time",
@@ -884,8 +1171,11 @@
       "answer": "通常 2 分鐘",
       "detail": "選手在開始攀爬前可以觀察路線，但不能觸碰岩壁。這段時間用來規劃動作序列（beta）。",
       "category": "competition",
-      "source": "https://www.ifsc-climbing.org/index.php/world-competition/rules",
-      "tags": ["抱石", "比賽規則"]
+      "source": "https://www.worldclimbing.com/resources/competitions",
+      "tags": [
+        "抱石",
+        "比賽規則"
+      ]
     },
     {
       "id": "competition-paris-2024-format",
@@ -894,7 +1184,10 @@
       "detail": "東京奧運是三項複合賽，巴黎奧運改為速度單項 + 抱石/先鋒複合賽，讓不同專長的選手都有機會奪牌。",
       "category": "competition",
       "source": "https://olympics.com/en/sports/sport-climbing",
-      "tags": ["奧運", "2024"]
+      "tags": [
+        "奧運",
+        "2024"
+      ]
     },
     {
       "id": "competition-lead-time-limit",
@@ -902,8 +1195,11 @@
       "answer": "6 分鐘",
       "detail": "計時從選手雙腳離地開始。如果超時，以超時瞬間的最高點計分。選手需要在體力和時間之間取得平衡。",
       "category": "competition",
-      "source": "https://www.ifsc-climbing.org/index.php/world-competition/rules",
-      "tags": ["先鋒", "時間限制"]
+      "source": "https://www.worldclimbing.com/resources/competitions",
+      "tags": [
+        "先鋒",
+        "時間限制"
+      ]
     },
     {
       "id": "competition-taiwan-national",
@@ -912,7 +1208,10 @@
       "detail": "攀岩在 2019 年全運會首次成為正式競賽項目，包含先鋒、抱石、速度三個單項。",
       "category": "competition",
       "source": "https://www.mountaineering.org.tw/",
-      "tags": ["台灣", "全運會"]
+      "tags": [
+        "台灣",
+        "全運會"
+      ]
     },
     {
       "id": "competition-youth-categories",
@@ -920,8 +1219,11 @@
       "answer": "Youth A、B、C 三個組別",
       "detail": "Youth A (16-17歲)、Youth B (14-15歲)、Youth C (12-13歲)。這是培養未來奧運選手的重要賽事。",
       "category": "competition",
-      "source": "https://www.ifsc-climbing.org/",
-      "tags": ["青年賽", "年齡組別"]
+      "source": "https://www.worldclimbing.com/",
+      "tags": [
+        "青年賽",
+        "年齡組別"
+      ]
     },
     {
       "id": "competition-flash-round",
@@ -929,8 +1231,11 @@
       "answer": "所有選手同時觀看示範後攀爬",
       "detail": "部分賽事會讓選手觀看開線員或影片示範，然後一次嘗試完攀。這與一般的隔離賽制不同。",
       "category": "competition",
-      "source": "https://www.ifsc-climbing.org/index.php/world-competition/rules",
-      "tags": ["比賽形式", "Flash"]
+      "source": "https://www.worldclimbing.com/resources/competitions",
+      "tags": [
+        "比賽形式",
+        "Flash"
+      ]
     },
     {
       "id": "competition-ranking-points",
@@ -938,8 +1243,11 @@
       "answer": "依名次給予遞減積分",
       "detail": "冠軍 100 分、亞軍 80 分、季軍 65 分，以此類推。年度總積分最高者獲得世界盃總冠軍頭銜。",
       "category": "competition",
-      "source": "https://www.ifsc-climbing.org/index.php/world-competition/rules",
-      "tags": ["世界盃", "積分"]
+      "source": "https://www.worldclimbing.com/resources/competitions",
+      "tags": [
+        "世界盃",
+        "積分"
+      ]
     },
     {
       "id": "competition-route-setter",
@@ -947,8 +1255,11 @@
       "answer": "開線員 (Route Setter)",
       "detail": "開線員是攀岩比賽的幕後功臣，需要設計出能分辨選手程度、觀賞性高且安全的路線。頂級賽事的開線員需經 IFSC 認證。",
       "category": "competition",
-      "source": "https://www.ifsc-climbing.org/",
-      "tags": ["開線員", "比賽"]
+      "source": "https://www.worldclimbing.com/",
+      "tags": [
+        "開線員",
+        "比賽"
+      ]
     },
     {
       "id": "competition-countback",
@@ -956,8 +1267,11 @@
       "answer": "使用「Countback」回溯前輪成績",
       "detail": "如決賽同分，先比準決賽成績；再同分比資格賽。若完全相同則並列。這讓每一輪比賽都很重要。",
       "category": "competition",
-      "source": "https://www.ifsc-climbing.org/index.php/world-competition/rules",
-      "tags": ["比賽規則", "計分"]
+      "source": "https://www.worldclimbing.com/resources/competitions",
+      "tags": [
+        "比賽規則",
+        "計分"
+      ]
     },
     {
       "id": "competition-combined-format",
@@ -966,7 +1280,10 @@
       "detail": "例如抱石第 2 名、先鋒第 3 名，總分為 2×3=6。這種計分方式讓全能型選手更有優勢。",
       "category": "competition",
       "source": "https://olympics.com/en/sports/sport-climbing",
-      "tags": ["奧運", "複合賽"]
+      "tags": [
+        "奧運",
+        "複合賽"
+      ]
     },
     {
       "id": "competition-world-championship",
@@ -974,8 +1291,11 @@
       "answer": "兩年一次",
       "detail": "世錦賽是僅次於奧運的最重要攀岩賽事，也是奧運資格賽的重要積分來源。比世界盃更具冠軍頭銜的含金量。",
       "category": "competition",
-      "source": "https://www.ifsc-climbing.org/",
-      "tags": ["世錦賽", "賽事"]
+      "source": "https://www.worldclimbing.com/",
+      "tags": [
+        "世錦賽",
+        "賽事"
+      ]
     }
   ],
   "meta": {
