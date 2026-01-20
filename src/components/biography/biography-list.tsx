@@ -47,7 +47,9 @@ interface BiographyCardProps {
 function BiographyCard({ person, selectedContent }: BiographyCardProps) {
   // 優先使用 basic_info_data 中的資料
   const basicInfo = parseBasicInfoData(person.basic_info_data)
-  const displayName = basicInfo?.name || person.name
+  // 匿名人物誌顯示「匿名岩友」
+  const isAnonymous = person.visibility === 'anonymous'
+  const displayName = isAnonymous ? '匿名岩友' : (basicInfo?.name || person.name)
   const climbingStartYear = basicInfo?.climbing_start_year ?? person.climbing_start_year
   const climbingYears = calculateClimbingYears(
     climbingStartYear != null ? String(climbingStartYear) : null
