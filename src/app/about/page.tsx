@@ -4,7 +4,7 @@ import { motion } from 'framer-motion'
 import Image from 'next/image'
 import Link from 'next/link'
 import {
-  Mountain,
+  MountainSnow,
   Users,
   BookOpen,
   MapPin,
@@ -36,17 +36,8 @@ const staggerContainer = {
 function HeroSection() {
   return (
     <section className="relative h-[60vh] min-h-[400px] overflow-hidden">
-      {/* 背景圖片 */}
-      <div className="absolute inset-0">
-        <Image
-          src="/photo/cont-intro.jpeg"
-          alt="攀岩背景"
-          fill
-          className="object-cover"
-          priority
-        />
-        <div className="absolute inset-0 bg-gradient-to-b from-black/60 via-black/40 to-black/70" />
-      </div>
+      {/* 背景 */}
+      <div className="absolute inset-0 bg-gradient-to-b from-[#1B1A1A] to-[#3F3D3D]" />
 
       {/* 內容 */}
       <div className="container relative z-10 mx-auto flex h-full flex-col items-center justify-center px-4 text-center">
@@ -70,7 +61,7 @@ function HeroSection() {
           initial={{ opacity: 0, scaleX: 0 }}
           animate={{ opacity: 1, scaleX: 1 }}
           transition={{ duration: 0.4, delay: 0.4 }}
-          className="my-6 h-1 w-16 bg-[#FFE70C]"
+          className="my-6 h-1 w-16 bg-brand-accent"
         />
         <motion.p
           initial={{ opacity: 0, y: 20 }}
@@ -113,19 +104,19 @@ function StorySection() {
             </div>
           </motion.div>
 
-          {/* 圖片 */}
+          {/* Logo 區塊 */}
           <motion.div
             initial={{ opacity: 0, x: 30 }}
             whileInView={{ opacity: 1, x: 0 }}
             viewport={{ once: true }}
             transition={{ duration: 0.6 }}
-            className="relative aspect-[4/3] overflow-hidden rounded-lg"
+            className="flex aspect-[4/3] items-center justify-center"
           >
             <Image
-              src="/photo/cover-photo.jpeg"
-              alt="攀岩故事"
-              fill
-              className="object-cover"
+              src="/logo512.png"
+              alt="小人物攀岩 Logo"
+              width={240}
+              height={240}
             />
           </motion.div>
         </div>
@@ -138,19 +129,22 @@ function StorySection() {
 function MissionSection() {
   const missions = [
     {
-      icon: Mountain,
+      icon: MountainSnow,
       title: '推廣攀岩',
       description: '降低入門門檻，提供完整的岩場資訊與攻略，讓更多人認識並愛上攀岩運動。',
+      color: 'bg-brand-accent', // 黃色
     },
     {
       icon: Users,
       title: '建立社群',
       description: '連結台灣各地的攀岩愛好者，創造交流與分享的空間，一起成長進步。',
+      color: 'bg-brand-accent-hover/60', // 橘色淡化
     },
     {
       icon: BookOpen,
       title: '記錄故事',
       description: '透過人物誌與部落格，記錄每位攀岩者的珍貴回憶與獨特經歷。',
+      color: 'bg-brand-red/50', // 紅色淡化
     },
   ]
 
@@ -181,7 +175,7 @@ function MissionSection() {
               variants={fadeInUp}
               className="rounded-lg bg-white p-8 text-center shadow-sm transition-shadow hover:shadow-md"
             >
-              <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-brand-accent">
+              <div className={`mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full ${mission.color}`}>
                 <mission.icon className="h-8 w-8 text-brand-dark" />
               </div>
               <h3 className="mb-3 text-xl font-semibold text-[#1B1A1A]">{mission.title}</h3>
@@ -217,7 +211,7 @@ function FeaturesSection() {
     },
     {
       icon: Camera,
-      title: '相片集',
+      title: '攝影集',
       description: '捕捉攀岩的精彩瞬間',
       href: '/gallery',
     },

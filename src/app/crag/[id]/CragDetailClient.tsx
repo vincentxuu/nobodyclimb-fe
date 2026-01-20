@@ -8,8 +8,8 @@ import { motion, AnimatePresence } from 'framer-motion'
 import BackToTop from '@/components/ui/back-to-top'
 import { CragCoverGenerator } from '@/components/shared/CragCoverGenerator'
 import { WeatherDisplay } from '@/components/shared/weather-display'
-import { TrafficCamerasCard } from '@/components/crag/traffic-cameras-card'
 import { YouTubeLiveCard } from '@/components/crag/youtube-live-card'
+import { TrafficCamerasCard } from '@/components/crag/traffic-cameras-card'
 import { DataSourceSection } from '@/components/crag/data-source-section'
 import { CollapsibleBreadcrumb } from '@/components/ui/collapsible-breadcrumb'
 import { RouteListFilter } from '@/components/crag/route-list-filter'
@@ -259,21 +259,23 @@ export default function CragDetailClient({ params }: { params: Promise<{ id: str
                   <h2 className="text-lg font-medium text-orange-500">岩場位置</h2>
                   <div className="h-px w-full bg-gray-200"></div>
                 </div>
-                {currentCrag.geoCoordinates.latitude && currentCrag.geoCoordinates.longitude ? (
+                {currentCrag.geoCoordinates ? (
                   <div className="mt-4">
-                    <a
-                      href={`https://www.google.com/maps/search/?api=1&query=${currentCrag.geoCoordinates.latitude},${currentCrag.geoCoordinates.longitude}`}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="mb-2 inline-flex items-center gap-1 text-sm text-blue-600 hover:underline"
-                    >
-                      <MapPin size={14} />
-                      在 Google Maps 開啟
-                      <ExternalLink size={12} />
-                    </a>
+                    {currentCrag.googleMapsUrl && (
+                      <a
+                        href={currentCrag.googleMapsUrl}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="mb-2 inline-flex items-center gap-1 text-sm text-blue-600 hover:underline"
+                      >
+                        <MapPin size={14} />
+                        在 Google Maps 開啟
+                        <ExternalLink size={12} />
+                      </a>
+                    )}
                     <div className="overflow-hidden rounded-lg">
                       <iframe
-                        src={`https://www.google.com/maps?q=${currentCrag.geoCoordinates.latitude},${currentCrag.geoCoordinates.longitude}&z=15&output=embed`}
+                        src={`https://maps.google.com/maps?q=${currentCrag.geoCoordinates.latitude},${currentCrag.geoCoordinates.longitude}&z=15&output=embed`}
                         width="100%"
                         height="250"
                         style={{ border: 0 }}
@@ -318,24 +320,23 @@ export default function CragDetailClient({ params }: { params: Promise<{ id: str
                 <div className="mt-4">
                   <WeatherDisplay
                     location={currentCrag.weatherLocation}
-                    latitude={currentCrag.geoCoordinates.latitude}
-                    longitude={currentCrag.geoCoordinates.longitude}
                     showForecast={true}
                   />
                 </div>
               </div>
 
-              {/* 即時路況與影像 */}
-              <div className="mb-6">
-                <div className="mb-1">
-                  <h2 className="text-lg font-medium text-orange-500">即時路況與影像</h2>
-                  <div className="h-px w-full bg-gray-200"></div>
-                </div>
-                <div className={`mt-4 grid grid-cols-1 gap-6 ${currentCrag.liveVideoId ? 'lg:grid-cols-2' : ''}`}>
-                  <TrafficCamerasCard
-                    latitude={currentCrag.geoCoordinates.latitude}
-                    longitude={currentCrag.geoCoordinates.longitude}
-                  />
+              {/* 即時路況攝影機與即時影像 */}
+              {(currentCrag.liveVideoId || currentCrag.geoCoordinates) && (
+                <div className="mb-6 grid grid-cols-1 gap-6 lg:grid-cols-2">
+                  {/* 即時路況攝影機 */}
+                  {currentCrag.geoCoordinates && (
+                    <TrafficCamerasCard
+                      latitude={currentCrag.geoCoordinates.latitude}
+                      longitude={currentCrag.geoCoordinates.longitude}
+                    />
+                  )}
+
+                  {/* 即時影像 */}
                   {currentCrag.liveVideoId && (
                     <YouTubeLiveCard
                       videoId={currentCrag.liveVideoId}
@@ -344,7 +345,7 @@ export default function CragDetailClient({ params }: { params: Promise<{ id: str
                     />
                   )}
                 </div>
-              </div>
+              )}
 
               {/* 攀岩區域 */}
               {currentCrag.areas.length > 0 && (

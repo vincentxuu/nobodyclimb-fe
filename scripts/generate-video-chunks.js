@@ -12,10 +12,33 @@ const PUBLIC_DATA_DIR = 'public/data';
 const VIDEOS_FILE = path.join(PUBLIC_DATA_DIR, 'videos.json');
 const META_FILE = path.join(PUBLIC_DATA_DIR, 'videos-meta.json');
 const FEATURED_FILE = path.join(PUBLIC_DATA_DIR, 'featured-videos.json');
+const CHANNEL_INDEX_FILE = path.join(PUBLIC_DATA_DIR, 'channel-index.json');
 const CHUNKS_DIR = path.join(PUBLIC_DATA_DIR, 'videos-chunks');
 
 // 每個 chunk 的影片數量
 const CHUNK_SIZE = 500;
+
+/**
+ * 正規化頻道名稱（處理合作影片）
+ * 例如 "Adam Ondra and MAMMUT" -> "Adam Ondra"
+ */
+function normalizeChannelName(channelName) {
+  if (!channelName) return channelName;
+
+  // 處理 " and X more" 格式 (例如 "Five Ten and 2 more")
+  const andMoreMatch = channelName.match(/^(.+?) and \d+ more$/);
+  if (andMoreMatch) {
+    return andMoreMatch[1].trim();
+  }
+
+  // 處理 " and OtherChannel" 格式 (例如 "Adam Ondra and MAMMUT")
+  const andMatch = channelName.match(/^(.+?) and .+$/);
+  if (andMatch) {
+    return andMatch[1].trim();
+  }
+
+  return channelName;
+}
 
 /**
  * 將完整影片資料轉換為列表所需的精簡格式
@@ -26,7 +49,7 @@ function toListItem(video) {
     youtubeId: video.youtubeId,
     title: video.title,
     thumbnailUrl: video.thumbnailUrl,
-    channel: video.channel,
+    channel: normalizeChannelName(video.channel),
     duration: video.duration,
     viewCount: video.viewCount,
     category: video.category
@@ -66,23 +89,33 @@ function generateVideoChunks() {
     console.log(`🧹 清理舊的 chunk 檔案 (${oldFiles.length} 個)`);
   }
 
-  // 生成 chunks
+  // 生成 chunks 並建立頻道索引
   console.log('');
   console.log('📦 生成分塊檔案...');
   const totalChunks = Math.ceil(videos.length / CHUNK_SIZE);
+  const channelChunkMap = {}; // 記錄每個頻道在哪些 chunks 中
 
   for (let i = 0; i < totalChunks; i++) {
     const start = i * CHUNK_SIZE;
     const end = Math.min(start + CHUNK_SIZE, videos.length);
     const chunk = videos.slice(start, end).map(toListItem);
 
+    // 記錄該 chunk 中每個頻道的出現
+    chunk.forEach(video => {
+      if (!channelChunkMap[video.channel]) {
+        channelChunkMap[video.channel] = { chunks: new Set(), count: 0 };
+      }
+      channelChunkMap[video.channel].chunks.add(i);
+      channelChunkMap[video.channel].count++;
+    });
+
     const chunkFile = path.join(CHUNKS_DIR, `videos-${i}.json`);
     fs.writeFileSync(chunkFile, JSON.stringify(chunk));
     console.log(`   ✅ videos-${i}.json (${chunk.length} 部影片)`);
   }
 
-  // 收集所有頻道名稱
-  const channelsSet = new Set(videos.map(v => v.channel));
+  // 收集所有頻道名稱（正規化後）
+  const channelsSet = new Set(videos.map(v => normalizeChannelName(v.channel)));
   const channels = [...channelsSet].sort();
 
   // 生成 metadata
@@ -97,6 +130,19 @@ function generateVideoChunks() {
 
   fs.writeFileSync(META_FILE, JSON.stringify(meta, null, 2));
   console.log(`   ✅ ${META_FILE}`);
+
+  // 生成頻道索引
+  console.log('');
+  console.log('🔍 生成頻道索引...');
+  const channelIndex = {};
+  Object.keys(channelChunkMap).sort().forEach(channel => {
+    channelIndex[channel] = {
+      chunks: Array.from(channelChunkMap[channel].chunks).sort((a, b) => a - b),
+      count: channelChunkMap[channel].count
+    };
+  });
+  fs.writeFileSync(CHANNEL_INDEX_FILE, JSON.stringify(channelIndex, null, 2));
+  console.log(`   ✅ ${CHANNEL_INDEX_FILE}`);
 
   // 生成精選影片
   console.log('');
@@ -119,6 +165,7 @@ function generateVideoChunks() {
   console.log('');
   console.log('📂 生成的檔案:');
   console.log(`   - ${META_FILE}`);
+  console.log(`   - ${CHANNEL_INDEX_FILE}`);
   console.log(`   - ${FEATURED_FILE}`);
   console.log(`   - ${CHUNKS_DIR}/videos-0.json ~ videos-${totalChunks - 1}.json`);
   console.log('');

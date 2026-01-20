@@ -95,6 +95,25 @@ function convertYouTubeToVideoType(inputFile, outputFile, channelInfo = {}) {
     }
   }
   
+  // Function to normalize channel name (handle collaboration videos)
+  function normalizeChannelName(channelName) {
+    if (!channelName) return channelName;
+
+    // Handle " and X more" pattern (e.g., "Five Ten and 2 more")
+    const andMoreMatch = channelName.match(/^(.+?) and \d+ more$/);
+    if (andMoreMatch) {
+      return andMoreMatch[1].trim();
+    }
+
+    // Handle " and OtherChannel" pattern (e.g., "Adam Ondra and MAMMUT")
+    const andMatch = channelName.match(/^(.+?) and .+$/);
+    if (andMatch) {
+      return andMatch[1].trim();
+    }
+
+    return channelName;
+  }
+
   // Function to format upload date
   function formatUploadDate(dateString) {
     if (!dateString) return new Date().toISOString().split('T')[0];
@@ -130,7 +149,7 @@ function convertYouTubeToVideoType(inputFile, outputFile, channelInfo = {}) {
       title: video.title || 'Untitled Video',
       description: video.description || '',
       thumbnailUrl: bestThumbnail,
-      channel: video.uploader || video.playlist_uploader || channelInfo.name || 'YouTube Channel',
+      channel: normalizeChannelName(video.uploader || video.playlist_uploader) || channelInfo.name || 'YouTube Channel',
       channelId: video.uploader_id || video.playlist_uploader_id || channelInfo.id || '@channel',
       publishedAt: formatUploadDate(video.upload_date),
       duration: duration,

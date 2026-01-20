@@ -18,6 +18,7 @@ export interface CragLocation {
   regionEn: string
   latitude: number
   longitude: number
+  googleMapsUrl: string
 }
 
 export interface CragAccess {
@@ -766,6 +767,8 @@ export function getCragDetailData(id: string) {
     })),
     parking: crag.access.parking,
     amenities: crag.amenities,
+    googleMapsUrl: crag.location.googleMapsUrl,
+    // 地圖嵌入用的座標
     geoCoordinates: {
       latitude: crag.location.latitude,
       longitude: crag.location.longitude,

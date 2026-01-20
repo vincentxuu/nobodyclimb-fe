@@ -856,6 +856,7 @@ export interface Crag {
   location: {
     latitude: number
     longitude: number
+    googleMapsUrl: string
     address: string
     region: string
   }
@@ -1115,6 +1116,32 @@ export type VideoCategory =
  * 影片時長分類
  */
 export type VideoDuration = 'short' | 'medium' | 'long' // <5min, 5-20min, >20min
+
+/**
+ * 影片時長篩選選項
+ */
+export const VIDEO_DURATION_OPTIONS: { value: VideoDuration | 'all'; label: string }[] = [
+  { value: 'all', label: '全部時長' },
+  { value: 'short', label: '短片 (<5分鐘)' },
+  { value: 'medium', label: '中片 (5-20分鐘)' },
+  { value: 'long', label: '長片 (>20分鐘)' },
+]
+
+/**
+ * 影片熱門程度分類
+ */
+export type VideoPopularity = 'viral' | 'popular' | 'normal' | 'niche' // 100萬+, 10萬-100萬, 1萬-10萬, <1萬
+
+/**
+ * 影片熱門程度篩選選項
+ */
+export const VIDEO_POPULARITY_OPTIONS: { value: VideoPopularity | 'all'; label: string }[] = [
+  { value: 'all', label: '全部' },
+  { value: 'viral', label: '百萬點閱' },
+  { value: 'popular', label: '熱門' },
+  { value: 'normal', label: '一般' },
+  { value: 'niche', label: '小眾' },
+]
 
 /**
  * 影片介面

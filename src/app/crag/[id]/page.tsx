@@ -17,10 +17,7 @@ interface CragDetail {
   approach?: string
   parking?: string
   amenities?: string[]
-  geoCoordinates: {
-    latitude?: number
-    longitude?: number
-  }
+  googleMapsUrl?: string
 }
 
 // 生成 Place JSON-LD 結構化數據
@@ -39,11 +36,8 @@ function generateCragJsonLd(crag: CragDetail, id: string) {
       addressLocality: crag.location,
       addressCountry: 'TW',
     },
-    geo: crag.geoCoordinates.latitude && crag.geoCoordinates.longitude ? {
-      '@type': 'GeoCoordinates',
-      latitude: crag.geoCoordinates.latitude,
-      longitude: crag.geoCoordinates.longitude,
-    } : undefined,
+    // Google Maps URL available at crag.googleMapsUrl
+    hasMap: crag.googleMapsUrl,
     additionalType: 'https://schema.org/TouristAttraction',
     amenityFeature: crag.amenities?.map(amenity => ({
       '@type': 'LocationFeatureSpecification',
