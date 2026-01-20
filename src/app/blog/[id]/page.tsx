@@ -23,14 +23,26 @@ interface ApiResponse {
 
 // 獲取文章資料用於 SEO
 async function getPost(id: string): Promise<PostData | null> {
+  // 使用絕對 URL，確保在 Cloudflare Workers 環境中正常工作
+  const apiUrl = API_BASE_URL || 'https://api.nobodyclimb.cc/api/v1'
+  const url = `${apiUrl}/posts/${id}`
+
   try {
-    const res = await fetch(`${API_BASE_URL}/posts/${id}`, {
-      next: { revalidate: 60 }, // 快取 60 秒
+    const res = await fetch(url, {
+      method: 'GET',
+      headers: {
+        'Accept': 'application/json',
+        'Content-Type': 'application/json',
+      },
+      // 在 Cloudflare Workers 上使用 cache 而非 next.revalidate
+      cache: 'no-store',
     })
+
     if (!res.ok) {
-      console.error(`[getPost] API returned ${res.status} for id: ${id}`)
+      console.error(`[getPost] API returned ${res.status} for url: ${url}`)
       return null
     }
+
     const data: ApiResponse = await res.json()
     if (!data.success || !data.data) {
       console.error(`[getPost] API returned success=false for id: ${id}`)
@@ -38,7 +50,7 @@ async function getPost(id: string): Promise<PostData | null> {
     }
     return data.data
   } catch (error) {
-    console.error(`[getPost] Failed to fetch post for id: ${id}`, error)
+    console.error(`[getPost] Failed to fetch from ${url}:`, error)
     return null
   }
 }
@@ -88,10 +100,32 @@ export async function generateMetadata({
   const { id } = await params
   const post = await getPost(id)
 
+  // 即使找不到文章，也要提供完整的 OG tags 給社交媒體爬蟲
   if (!post) {
     return {
       title: '找不到文章',
       description: '您要找的文章不存在或已被刪除',
+      robots: { index: false, follow: false },
+      openGraph: {
+        title: `找不到文章 | ${SITE_NAME}`,
+        description: '您要找的文章不存在或已被刪除',
+        type: 'article',
+        url: `${SITE_URL}/blog/${id}`,
+        images: [
+          {
+            url: `${SITE_URL}${OG_IMAGE}`,
+            width: 1200,
+            height: 630,
+            alt: SITE_NAME,
+          },
+        ],
+      },
+      twitter: {
+        card: 'summary_large_image',
+        title: `找不到文章 | ${SITE_NAME}`,
+        description: '您要找的文章不存在或已被刪除',
+        images: [`${SITE_URL}${OG_IMAGE}`],
+      },
     }
   }
 
