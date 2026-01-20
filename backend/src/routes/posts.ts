@@ -7,6 +7,52 @@ import { deleteR2Images, extractR2ImagesFromContent } from '../utils/storage';
 
 export const postsRoutes = new Hono<{ Bindings: Env }>();
 
+/**
+ * Post Metadata 類型（用於 SEO，存入 KV 快取）
+ */
+interface PostMetadata {
+  id: string;
+  title: string;
+  excerpt: string | null;
+  cover_image: string | null;
+  display_name: string | null;
+  username: string | null;
+  published_at: string | null;
+  updated_at: string | null;
+  tags: string[];
+}
+
+/**
+ * 快取 Post metadata 到 KV
+ * 前端 SSR 會讀取此快取以避免 Worker-to-Worker 522 超時
+ */
+async function cachePostMetadata(
+  cache: KVNamespace,
+  post: Record<string, unknown>,
+  tags: string[]
+): Promise<void> {
+  const cacheKey = `post-meta:${post.id}`;
+  const metadata: PostMetadata = {
+    id: post.id as string,
+    title: post.title as string,
+    excerpt: post.excerpt as string | null,
+    cover_image: post.cover_image as string | null,
+    display_name: post.display_name as string | null,
+    username: post.username as string | null,
+    published_at: post.published_at as string | null,
+    updated_at: post.updated_at as string | null,
+    tags,
+  };
+
+  try {
+    await cache.put(cacheKey, JSON.stringify(metadata), {
+      expirationTtl: 86400 * 7, // 7 天過期
+    });
+  } catch (error) {
+    console.error(`Failed to cache post metadata for ${post.id}:`, error);
+  }
+}
+
 // GET /posts - List all posts
 postsRoutes.get('/', async (c) => {
   const { page, limit, offset } = parsePagination(
@@ -339,12 +385,17 @@ postsRoutes.get('/:id', async (c) => {
     post.view_count as number
   );
 
+  const tagList = tags.results.map((t) => t.tag);
+
+  // 快取 metadata 到 KV 供前端 SSR 使用
+  await cachePostMetadata(c.env.CACHE, post, tagList);
+
   return c.json({
     success: true,
     data: {
       ...post,
       view_count: viewCount,
-      tags: tags.results.map((t) => t.tag),
+      tags: tagList,
     },
   });
 });
@@ -389,12 +440,17 @@ postsRoutes.get('/slug/:slug', async (c) => {
     post.view_count as number
   );
 
+  const tagList = tags.results.map((t) => t.tag);
+
+  // 快取 metadata 到 KV 供前端 SSR 使用
+  await cachePostMetadata(c.env.CACHE, post, tagList);
+
   return c.json({
     success: true,
     data: {
       ...post,
       view_count: viewCount,
-      tags: tags.results.map((t) => t.tag),
+      tags: tagList,
     },
   });
 });
