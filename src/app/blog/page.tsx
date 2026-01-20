@@ -280,75 +280,78 @@ function BlogContent() {
     <div className="min-h-screen bg-page-content-bg">
       {/* Header Section - Featured Carousel */}
       {displayFeatured.length > 0 && (
-        <div
-          className="group relative h-[480px] w-full"
-          onMouseEnter={() => setIsAutoPlaying(false)}
-          onMouseLeave={() => setIsAutoPlaying(true)}
-        >
-          {displayFeatured.map((article, index) => (
-            <div
-              key={article.id}
-              className={`absolute inset-0 transition-opacity duration-500 ${
-                index === currentSlide ? 'opacity-100' : 'pointer-events-none opacity-0'
-              }`}
-            >
-              <Link href={`/blog/${article.id}`} className="relative block h-full">
-                {article.imageUrl && article.imageUrl.trim() !== '' ? (
-                  <Image
-                    src={article.imageUrl}
-                    alt={article.title}
-                    fill
-                    className="object-cover"
-                    priority={index === 0}
-                    loading={index === 0 ? 'eager' : 'lazy'}
-                  />
-                ) : (
-                  <ArticleCoverGenerator
-                    category={article.categoryValue}
-                    title={article.title}
-                    showTitle={false}
-                    showIcon={true}
-                    className="h-full w-full"
-                  />
-                )}
-                <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
-                <div className="absolute bottom-12 left-12 text-white">
-                  <div className="mb-4 flex items-center gap-3">
-                    <span className="rounded bg-brand-dark px-3 py-1 text-sm">{article.category}</span>
-                    <span className="text-sm">{article.date}</span>
-                  </div>
-                  <h1 className="max-w-[800px] text-4xl font-medium">{article.title}</h1>
-                </div>
-              </Link>
-            </div>
-          ))}
-
-          {/* Navigation Dots */}
-          <div className="absolute bottom-4 left-1/2 flex -translate-x-1/2 transform gap-3">
-            {displayFeatured.map((_, index) => (
-              <button
-                key={index}
-                className={`h-2 w-2 rounded-full transition-all ${
-                  index === currentSlide ? 'w-6 bg-white' : 'bg-white/50'
+        <div className="container mx-auto px-4 pt-8">
+          <div
+            className="group relative aspect-[21/9] w-full overflow-hidden rounded-xl"
+            onMouseEnter={() => setIsAutoPlaying(false)}
+            onMouseLeave={() => setIsAutoPlaying(true)}
+          >
+            {displayFeatured.map((article, index) => (
+              <div
+                key={article.id}
+                className={`absolute inset-0 transition-opacity duration-500 ${
+                  index === currentSlide ? 'opacity-100' : 'pointer-events-none opacity-0'
                 }`}
-                onClick={() => setCurrentSlide(index)}
-              />
+              >
+                <Link href={`/blog/${article.id}`} className="relative block h-full">
+                  {article.imageUrl && article.imageUrl.trim() !== '' ? (
+                    <Image
+                      src={article.imageUrl}
+                      alt={article.title}
+                      fill
+                      className="object-cover"
+                      priority={index === 0}
+                      loading={index === 0 ? 'eager' : 'lazy'}
+                    />
+                  ) : (
+                    <ArticleCoverGenerator
+                      category={article.categoryValue}
+                      title={article.title}
+                      showTitle={false}
+                      showIcon={true}
+                      className="h-full w-full"
+                      aspectRatio="wide"
+                    />
+                  )}
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
+                  <div className="absolute bottom-8 left-8 text-white md:bottom-12 md:left-12">
+                    <div className="mb-3 flex items-center gap-3 md:mb-4">
+                      <span className="rounded bg-brand-dark px-3 py-1 text-sm">{article.category}</span>
+                      <span className="text-sm">{article.date}</span>
+                    </div>
+                    <h1 className="max-w-[600px] text-2xl font-medium md:max-w-[800px] md:text-4xl">{article.title}</h1>
+                  </div>
+                </Link>
+              </div>
             ))}
-          </div>
 
-          {/* Navigation Arrows */}
-          <button
-            className="absolute left-4 top-1/2 flex h-10 w-10 -translate-y-1/2 items-center justify-center rounded-full bg-white/80 opacity-0 transition-opacity group-hover:opacity-100"
-            onClick={prevSlide}
-          >
-            <ChevronLeft className="h-6 w-6" />
-          </button>
-          <button
-            className="absolute right-4 top-1/2 flex h-10 w-10 -translate-y-1/2 items-center justify-center rounded-full bg-white/80 opacity-0 transition-opacity group-hover:opacity-100"
-            onClick={nextSlide}
-          >
-            <ChevronRight className="h-6 w-6" />
-          </button>
+            {/* Navigation Dots */}
+            <div className="absolute bottom-4 left-1/2 flex -translate-x-1/2 transform gap-3">
+              {displayFeatured.map((_, index) => (
+                <button
+                  key={index}
+                  className={`h-2 w-2 rounded-full transition-all ${
+                    index === currentSlide ? 'w-6 bg-white' : 'bg-white/50'
+                  }`}
+                  onClick={() => setCurrentSlide(index)}
+                />
+              ))}
+            </div>
+
+            {/* Navigation Arrows */}
+            <button
+              className="absolute left-4 top-1/2 flex h-10 w-10 -translate-y-1/2 items-center justify-center rounded-full bg-white/80 opacity-0 transition-opacity group-hover:opacity-100"
+              onClick={prevSlide}
+            >
+              <ChevronLeft className="h-6 w-6" />
+            </button>
+            <button
+              className="absolute right-4 top-1/2 flex h-10 w-10 -translate-y-1/2 items-center justify-center rounded-full bg-white/80 opacity-0 transition-opacity group-hover:opacity-100"
+              onClick={nextSlide}
+            >
+              <ChevronRight className="h-6 w-6" />
+            </button>
+          </div>
         </div>
       )}
 
