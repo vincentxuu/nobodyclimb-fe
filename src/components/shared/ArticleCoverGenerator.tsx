@@ -25,9 +25,26 @@ import {
 type PatternType = 'dots' | 'lines' | 'grid' | 'waves' | 'triangles'
 
 /**
+ * 品牌色彩常數
+ * 參考 docs/color-system.md
+ *
+ * 注意：inline style 無法使用 Tailwind class，
+ * 因此在此定義常數供 PatternOverlay 使用
+ */
+const COLORS = {
+  /** Yellow 100 - 品牌強調色 (brand-yellow-100) */
+  BRAND_YELLOW_100: '#FFE70C',
+  /** W&B 90 - 深灰 hover (brand-dark-hover) */
+  WB_90: '#3F3D3D',
+  /** W&B 100 - 近黑 (brand-dark) */
+  WB_100: '#1B1A1A',
+} as const
+
+/**
  * 統一漸層配色 - 使用品牌色
- * from: brand-dark-hover (#3F3D3D)
- * to: brand-dark (#1B1A1A)
+ * from: brand-dark-hover (wb-90 / #3F3D3D)
+ * to: brand-dark (wb-100 / #1B1A1A)
+ * 參考 docs/color-system.md
  */
 const BRAND_GRADIENT = 'from-brand-dark-hover to-brand-dark'
 
@@ -147,6 +164,7 @@ interface ArticleCoverGeneratorProps {
  * 文章封面圖產生器
  * 根據文章分類自動產生設計化的封面
  * 使用品牌色系：深灰基底 + 黃色強調
+ * 參考 docs/color-system.md
  */
 export function ArticleCoverGenerator({
   category,
@@ -170,35 +188,38 @@ export function ArticleCoverGenerator({
     <div
       className={`relative overflow-hidden bg-gradient-to-br ${theme.gradient} ${aspectClasses[aspectRatio]} ${className}`}
     >
-      {/* 背景圖案 - 使用品牌黃色 */}
+      {/* 背景圖案 - 使用 brand-yellow-100 */}
       <PatternOverlay pattern={theme.pattern} />
 
-      {/* 內容 */}
-      <div className="absolute inset-0 flex flex-col items-center justify-center p-4 text-white">
+      {/* 內容區塊 - 響應式設計 */}
+      <div className="absolute inset-0 flex flex-col items-center justify-center p-3 text-wb-0 sm:p-4 md:p-6">
+        {/* 圖標 - 響應式大小 */}
         {showIcon && (
-          <div className="mb-3 rounded-full bg-brand-accent/10 p-4">
+          <div className="mb-2 rounded-full bg-brand-accent/10 p-2.5 sm:mb-3 sm:p-3 md:p-4">
             <IconComponent
-              className="h-10 w-10 text-brand-accent drop-shadow-lg md:h-14 md:w-14"
+              className="h-8 w-8 text-brand-accent drop-shadow-lg sm:h-10 sm:w-10 md:h-12 md:w-12 lg:h-14 lg:w-14"
               strokeWidth={1.5}
             />
           </div>
         )}
 
+        {/* 標題 - 響應式字體大小與行數 */}
         {showTitle && title && (
-          <h3 className="line-clamp-2 max-w-[80%] text-center text-lg font-bold drop-shadow-lg md:text-xl">
+          <h3 className="line-clamp-2 max-w-[90%] text-center text-base font-bold drop-shadow-lg sm:max-w-[85%] sm:text-lg md:max-w-[80%] md:text-xl">
             {title}
           </h3>
         )}
 
+        {/* 分類標籤 - 響應式大小 */}
         {categoryLabel && (
-          <span className="mt-3 rounded-full bg-brand-accent px-4 py-1.5 text-xs font-medium text-brand-dark md:text-sm">
+          <span className="mt-2 rounded-full bg-brand-accent px-3 py-1 text-[10px] font-medium text-brand-dark sm:mt-3 sm:px-4 sm:py-1.5 sm:text-xs md:text-sm">
             {categoryLabel}
           </span>
         )}
       </div>
 
-      {/* 品牌標識 */}
-      <div className="absolute bottom-2 right-2 text-xs font-medium text-white/40 md:bottom-3 md:right-3 md:text-sm">
+      {/* 品牌標識 - 響應式位置 */}
+      <div className="absolute bottom-1.5 right-2 text-[10px] font-medium text-wb-0/40 sm:bottom-2 sm:right-2 sm:text-xs md:bottom-3 md:right-3 md:text-sm">
         NobodyClimb
       </div>
     </div>
@@ -207,16 +228,19 @@ export function ArticleCoverGenerator({
 
 /**
  * 背景圖案組件
- * 使用品牌黃色 (#FFE70C) 作為圖案顏色
+ * 使用 brand-yellow-100 (#FFE70C) 作為圖案顏色
+ * 參考 docs/color-system.md
  */
 function PatternOverlay({ pattern }: { pattern: PatternType }) {
+  const { BRAND_YELLOW_100 } = COLORS
+
   const patternStyles: Record<PatternType, React.ReactNode> = {
     dots: (
       <div
         className="absolute inset-0 opacity-[0.08]"
         style={{
-          backgroundImage: 'radial-gradient(circle, #FFE70C 1px, transparent 1px)',
-          backgroundSize: '24px 24px',
+          backgroundImage: `radial-gradient(circle, ${BRAND_YELLOW_100} 1px, transparent 1px)`,
+          backgroundSize: '20px 20px',
         }}
       />
     ),
@@ -224,9 +248,8 @@ function PatternOverlay({ pattern }: { pattern: PatternType }) {
       <div
         className="absolute inset-0 opacity-[0.08]"
         style={{
-          backgroundImage:
-            'repeating-linear-gradient(45deg, #FFE70C 0, #FFE70C 1px, transparent 0, transparent 50%)',
-          backgroundSize: '24px 24px',
+          backgroundImage: `repeating-linear-gradient(45deg, ${BRAND_YELLOW_100} 0, ${BRAND_YELLOW_100} 1px, transparent 0, transparent 50%)`,
+          backgroundSize: '20px 20px',
         }}
       />
     ),
@@ -234,16 +257,20 @@ function PatternOverlay({ pattern }: { pattern: PatternType }) {
       <div
         className="absolute inset-0 opacity-[0.08]"
         style={{
-          backgroundImage:
-            'linear-gradient(#FFE70C 1px, transparent 1px), linear-gradient(90deg, #FFE70C 1px, transparent 1px)',
-          backgroundSize: '32px 32px',
+          backgroundImage: `linear-gradient(${BRAND_YELLOW_100} 1px, transparent 1px), linear-gradient(90deg, ${BRAND_YELLOW_100} 1px, transparent 1px)`,
+          backgroundSize: '28px 28px',
         }}
       />
     ),
     waves: (
       <svg className="absolute inset-0 h-full w-full opacity-[0.08]" preserveAspectRatio="none">
-        <pattern id="waves" width="100" height="20" patternUnits="userSpaceOnUse">
-          <path d="M0 10 Q 25 0, 50 10 T 100 10" fill="none" stroke="#FFE70C" strokeWidth="1.5" />
+        <pattern id="waves" width="80" height="16" patternUnits="userSpaceOnUse">
+          <path
+            d="M0 8 Q 20 0, 40 8 T 80 8"
+            fill="none"
+            stroke={BRAND_YELLOW_100}
+            strokeWidth="1.5"
+          />
         </pattern>
         <rect width="100%" height="100%" fill="url(#waves)" />
       </svg>
@@ -252,9 +279,8 @@ function PatternOverlay({ pattern }: { pattern: PatternType }) {
       <div
         className="absolute inset-0 opacity-[0.08]"
         style={{
-          backgroundImage:
-            'linear-gradient(135deg, #FFE70C 25%, transparent 25%), linear-gradient(225deg, #FFE70C 25%, transparent 25%)',
-          backgroundSize: '48px 48px',
+          backgroundImage: `linear-gradient(135deg, ${BRAND_YELLOW_100} 25%, transparent 25%), linear-gradient(225deg, ${BRAND_YELLOW_100} 25%, transparent 25%)`,
+          backgroundSize: '40px 40px',
         }}
       />
     ),
