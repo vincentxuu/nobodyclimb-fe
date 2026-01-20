@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react'
 import Image from 'next/image'
 import Link from 'next/link'
 import { motion, AnimatePresence } from 'framer-motion'
-import { MapPin, Mountain, Calendar, ChevronDown } from 'lucide-react'
+import { MapPin, MountainSnow, Calendar, ChevronDown } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { getAllCrags, type CragListItem } from '@/lib/crag-data'
 
@@ -65,7 +65,7 @@ function CragCard({ crag, index }: { crag: CragListItem; index: number }) {
 
           <div className="flex flex-wrap items-center gap-4 text-sm">
             <div className="flex items-center gap-1.5 text-[#6D6C6C]">
-              <Mountain className="h-4 w-4" />
+              <MountainSnow className="h-4 w-4" />
               <span>{crag.routes} 條路線</span>
             </div>
             <div className="text-[#8E8C8C]">{crag.difficulty}</div>
@@ -126,9 +126,8 @@ export function TaiwanMap({
           <>
             {/* 標記點 */}
             <motion.div
-              className={`relative flex items-center justify-center rounded-full ${
-                compact ? 'h-1.5 w-1.5' : 'h-6 w-6'
-              } ${hoveredCrag === crag.id ? 'bg-brand-accent' : 'bg-brand-dark'}`}
+              className={`relative flex items-center justify-center rounded-full ${compact ? 'h-1.5 w-1.5' : 'h-6 w-6'
+                } ${hoveredCrag === crag.id ? 'bg-brand-accent' : 'bg-brand-dark'}`}
               whileHover={{ scale: 1.2 }}
               transition={{ duration: 0.2 }}
             >

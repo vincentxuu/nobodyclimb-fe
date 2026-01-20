@@ -133,28 +133,21 @@ export function GallerySection() {
             <h2 className="text-3xl font-bold text-[#1B1A1A] md:text-[40px]">攝影集精選</h2>
             <p className="mt-2 text-base text-[#6D6C6C]">看看小人物們攀岩的英姿吧</p>
           </div>
-          <Link
-            href="/gallery"
-            className="hidden items-center gap-2 text-sm font-medium text-[#1B1A1A] hover:text-[#6D6C6C] md:flex"
-          >
-            查看全部
-            <ArrowRight className="h-4 w-4" />
-          </Link>
         </div>
 
         {/* Masonry Grid - 使用 CSS Columns */}
         <div className="columns-1 gap-4 sm:columns-2 lg:columns-3 xl:columns-4">
           {isLoading
             ? Array.from({ length: 8 }).map((_, index) => (
-                <div key={index} className="mb-4 break-inside-avoid">
-                  <PhotoSkeleton index={index} />
-                </div>
-              ))
+              <div key={index} className="mb-4 break-inside-avoid">
+                <PhotoSkeleton index={index} />
+              </div>
+            ))
             : photos.map((photo, index) => (
-                <div key={photo.id} className="mb-4 break-inside-avoid">
-                  <PhotoCard photo={photo} index={index} />
-                </div>
-              ))}
+              <div key={photo.id} className="mb-4 break-inside-avoid">
+                <PhotoCard photo={photo} index={index} />
+              </div>
+            ))}
         </div>
 
         {/* 查看全部按鈕 */}
