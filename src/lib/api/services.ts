@@ -1940,6 +1940,31 @@ export const notificationService = {
     >('/notifications/stats')
     return response.data
   },
+
+  /**
+   * 獲取管理員通知統計（需要 admin 權限）
+   */
+  getAdminStats: async () => {
+    const response = await apiClient.get<
+      ApiResponse<{
+        period: string
+        overview: {
+          total: number
+          unread: number
+          usersWithNotifications: number
+        }
+        byType: Array<{ type: string; count: number }>
+        hourlyTrend: Array<{ hour: string; count: number }>
+        topRecipients: Array<{
+          user_id: string
+          username: string
+          display_name: string | null
+          notification_count: number
+        }>
+      }>
+    >('/notifications/admin/stats')
+    return response.data
+  },
 }
 
 /**
