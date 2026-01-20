@@ -58,7 +58,7 @@ VALUES (
 <li><strong>岩壁高度</strong>：標準化 15 公尺</li>
 <li><strong>路線設計</strong>：全球統一的固定路線（自 2007 年制定）</li>
 <li><strong>比賽方式</strong>：兩人對戰淘汰制</li>
-<li><strong>世界紀錄</strong>：男子 4.64 秒（Sam Watson，美國）、女子 6.06 秒（Aleksandra Miroslaw，波蘭）</li>
+<li><strong>世界紀錄</strong>：男子 4.64 秒（Sam Watson，美國）、女子 6.03 秒（Aleksandra Mirosław，波蘭）</li>
 <li><strong>特色</strong>：由於路線固定，選手可以透過反覆練習達到肌肉記憶的極致</li>
 </ul>
 
@@ -743,33 +743,36 @@ VALUES (
 <h3>女子紀錄</h3>
 <ul>
 <li><strong>紀錄保持人</strong>：Aleksandra Miroslaw（波蘭）</li>
-<li><strong>成績</strong>：6.06 秒</li>
-<li><strong>特點</strong>：連續多次打破自己保持的紀錄</li>
-<li><strong>地位</strong>：被譽為女子速度攀岩的統治者</li>
+<li><strong>成績</strong>：6.03 秒</li>
+<li><strong>創下時間</strong>：2025 年 9 月（首爾世界錦標賽決賽）</li>
+<li><strong>特點</strong>：連續多次打破自己保持的紀錄，在決賽中刷新世界紀錄奪金</li>
+<li><strong>地位</strong>：被譽為女子速度攀岩的統治者，3 屆世界冠軍</li>
 </ul>
 
 <h2>紀錄演進史</h2>
 
 <h3>男子紀錄演進</h3>
 <table>
-<tr><th>年份</th><th>選手</th><th>國籍</th><th>成績</th></tr>
-<tr><td>2017</td><td>Reza Alipourshenazandifar</td><td>伊朗</td><td>5.48 秒</td></tr>
-<tr><td>2022</td><td>Kiromal Katibin</td><td>印尼</td><td>5.00 秒</td></tr>
-<tr><td>2023</td><td>Veddriq Leonardo</td><td>印尼</td><td>4.90 秒</td></tr>
-<tr><td>2024</td><td>Sam Watson</td><td>美國</td><td>4.74 秒</td></tr>
-<tr><td>2025</td><td>Sam Watson</td><td>美國</td><td>4.64 秒</td></tr>
+<tr><th>年份</th><th>選手</th><th>國籍</th><th>成績</th><th>賽事</th></tr>
+<tr><td>2017</td><td>Reza Alipourshenazandifar</td><td>伊朗</td><td>5.48 秒</td><td>南京世界盃</td></tr>
+<tr><td>2021</td><td>Veddriq Leonardo</td><td>印尼</td><td>5.20 秒</td><td>鹽湖城世界盃</td></tr>
+<tr><td>2022</td><td>Kiromal Katibin</td><td>印尼</td><td>5.00 秒</td><td>首爾世界盃</td></tr>
+<tr><td>2023</td><td>Veddriq Leonardo</td><td>印尼</td><td>4.90 秒</td><td>亞洲錦標賽</td></tr>
+<tr><td>2024</td><td>Sam Watson</td><td>美國</td><td>4.74 秒</td><td>首爾世界盃</td></tr>
+<tr><td>2025</td><td>Sam Watson</td><td>美國</td><td>4.64 秒</td><td>峇里島世界盃</td></tr>
 </table>
-<p>從 2017 年的 5.48 秒到 2025 年的 4.64 秒，男子紀錄在短短幾年內進步了將近一秒，這在競速運動中是相當驚人的進步幅度。</p>
+<p>從 2017 年的 5.48 秒到 2025 年的 4.64 秒，男子紀錄在短短幾年內進步了將近一秒，這在競速運動中是相當驚人的進步幅度。印尼與美國選手輪流刷新紀錄，展現兩國在速度攀岩領域的統治力。</p>
 
 <h3>女子紀錄演進</h3>
 <table>
-<tr><th>年份</th><th>選手</th><th>國籍</th><th>成績</th></tr>
-<tr><td>2021</td><td>Aleksandra Miroslaw</td><td>波蘭</td><td>6.84 秒</td></tr>
-<tr><td>2022</td><td>Aleksandra Miroslaw</td><td>波蘭</td><td>6.53 秒</td></tr>
-<tr><td>2023</td><td>Aleksandra Miroslaw</td><td>波蘭</td><td>6.24 秒</td></tr>
-<tr><td>2024</td><td>Aleksandra Miroslaw</td><td>波蘭</td><td>6.06 秒</td></tr>
+<tr><th>年份</th><th>選手</th><th>國籍</th><th>成績</th><th>賽事</th></tr>
+<tr><td>2021</td><td>Aleksandra Miroslaw</td><td>波蘭</td><td>6.84 秒</td><td>鹽湖城世界盃</td></tr>
+<tr><td>2022</td><td>Aleksandra Miroslaw</td><td>波蘭</td><td>6.53 秒</td><td>首爾世界盃</td></tr>
+<tr><td>2023</td><td>Aleksandra Miroslaw</td><td>波蘭</td><td>6.24 秒</td><td>雅加達亞洲錦標賽</td></tr>
+<tr><td>2024</td><td>Aleksandra Miroslaw</td><td>波蘭</td><td>6.06 秒</td><td>巴黎奧運</td></tr>
+<tr><td>2025</td><td>Aleksandra Miroslaw</td><td>波蘭</td><td>6.03 秒</td><td>首爾世界錦標賽</td></tr>
 </table>
-<p>Aleksandra Miroslaw 獨自統治女子速度攀岩界，連續多年打破自己的紀錄，展現出絕對的統治力。</p>
+<p>Aleksandra Miroslaw 獨自統治女子速度攀岩界，從 2021 年至 2025 年連續五年打破自己的紀錄，展現出絕對的統治力。她在 2025 首爾世錦賽決賽中以 6.03 秒刷新紀錄，同時奪得第三座世界冠軍。</p>
 
 <h2>速度攀岩強國</h2>
 
