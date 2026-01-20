@@ -1,5 +1,6 @@
 const fs = require('fs');
 const path = require('path');
+const { normalizeChannelName } = require('./utils');
 
 function convertYouTubeToVideoType(inputFile, outputFile, channelInfo = {}) {
   // Check if input file exists
@@ -130,7 +131,7 @@ function convertYouTubeToVideoType(inputFile, outputFile, channelInfo = {}) {
       title: video.title || 'Untitled Video',
       description: video.description || '',
       thumbnailUrl: bestThumbnail,
-      channel: video.uploader || video.playlist_uploader || channelInfo.name || 'YouTube Channel',
+      channel: normalizeChannelName(video.uploader || video.playlist_uploader) || channelInfo.name || 'YouTube Channel',
       channelId: video.uploader_id || video.playlist_uploader_id || channelInfo.id || '@channel',
       publishedAt: formatUploadDate(video.upload_date),
       duration: duration,

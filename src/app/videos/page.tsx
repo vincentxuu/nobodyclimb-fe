@@ -10,7 +10,15 @@ import VideoGrid from '@/components/videos/video-grid'
 import VideoPlayer from '@/components/videos/video-player'
 import VideoFilters from '@/components/videos/video-filters'
 import ChannelFilter from '@/components/videos/channel-filter'
-import type { Video, VideoCategory } from '@/lib/types'
+import DurationFilter from '@/components/videos/duration-filter'
+import PopularityFilter from '@/components/videos/popularity-filter'
+import type { Video, VideoCategory, VideoDuration, VideoPopularity } from '@/lib/types'
+import {
+  parseDuration,
+  parseViewCount,
+  getDurationCategory,
+  getPopularityCategory,
+} from '@/lib/utils/video'
 
 // 輕量版影片資料（僅包含列表所需欄位）
 interface VideoListItem {
@@ -31,9 +39,17 @@ interface VideosMeta {
   channels: string[]
 }
 
+interface ChannelIndex {
+  [channel: string]: {
+    chunks: number[]
+    count: number
+  }
+}
+
 const VideosPage: React.FC = () => {
   const [videoList, setVideoList] = useState<VideoListItem[]>([])
   const [meta, setMeta] = useState<VideosMeta | null>(null)
+  const [channelIndex, setChannelIndex] = useState<ChannelIndex | null>(null)
   const [loadedChunks, setLoadedChunks] = useState<Set<number>>(new Set())
   const [loading, setLoading] = useState(true)
   const [loadingMore, setLoadingMore] = useState(false)
@@ -41,6 +57,8 @@ const VideosPage: React.FC = () => {
   const [searchQuery, setSearchQuery] = useState('')
   const [selectedCategory, setSelectedCategory] = useState<VideoCategory | 'all'>('all')
   const [selectedChannel, setSelectedChannel] = useState<string>('all')
+  const [selectedDuration, setSelectedDuration] = useState<VideoDuration | 'all'>('all')
+  const [selectedPopularity, setSelectedPopularity] = useState<VideoPopularity | 'all'>('all')
   const [visibleCount, setVisibleCount] = useState(12)
 
   // 載入單個 chunk
@@ -60,21 +78,29 @@ const VideosPage: React.FC = () => {
     return []
   }, [loadedChunks])
 
-  // 初始載入 metadata 和第一個 chunk
+  // 初始載入 metadata、頻道索引和第一個 chunk
   useEffect(() => {
     const initialize = async () => {
       try {
-        // 載入 metadata
-        const metaResponse = await fetch('/data/videos-meta.json')
+        // 並行載入 metadata、頻道索引和第一個 chunk
+        const [metaResponse, indexResponse, chunkResponse] = await Promise.all([
+          fetch('/data/videos-meta.json'),
+          fetch('/data/channel-index.json'),
+          fetch('/data/videos-chunks/videos-0.json'),
+        ])
+
         if (metaResponse.ok) {
           const metaData: VideosMeta = await metaResponse.json()
           setMeta(metaData)
         }
 
-        // 載入第一個 chunk
-        const response = await fetch('/data/videos-chunks/videos-0.json')
-        if (response.ok) {
-          const videos: VideoListItem[] = await response.json()
+        if (indexResponse.ok) {
+          const indexData: ChannelIndex = await indexResponse.json()
+          setChannelIndex(indexData)
+        }
+
+        if (chunkResponse.ok) {
+          const videos: VideoListItem[] = await chunkResponse.json()
           setVideoList(videos)
           setLoadedChunks(new Set([0]))
         }
@@ -93,6 +119,50 @@ const VideosPage: React.FC = () => {
     return meta?.channels || []
   }, [meta])
 
+  // 載入特定頻道所需的 chunks
+  const loadChunksForChannel = useCallback(
+    async (channel: string) => {
+      if (!channelIndex || !channelIndex[channel]) return
+
+      const neededChunks = channelIndex[channel].chunks.filter(
+        (chunkIndex) => !loadedChunks.has(chunkIndex)
+      )
+
+      if (neededChunks.length === 0) return
+
+      setLoadingMore(true)
+      const newVideos: VideoListItem[] = []
+      const newLoadedChunks = new Set(loadedChunks)
+
+      // 並行載入所有需要的 chunks
+      const results = await Promise.all(
+        neededChunks.map(async (chunkIndex) => {
+          try {
+            const response = await fetch(`/data/videos-chunks/videos-${chunkIndex}.json`)
+            if (response.ok) {
+              const videos: VideoListItem[] = await response.json()
+              newLoadedChunks.add(chunkIndex)
+              return videos
+            }
+          } catch (error) {
+            console.error(`Error loading chunk ${chunkIndex}:`, error)
+          }
+          return []
+        })
+      )
+
+      results.forEach((videos) => newVideos.push(...videos))
+
+      if (newVideos.length > 0) {
+        setVideoList((prev) => [...prev, ...newVideos])
+        setLoadedChunks(newLoadedChunks)
+      }
+
+      setLoadingMore(false)
+    },
+    [channelIndex, loadedChunks]
+  )
+
   // 篩選和搜尋邏輯
   const filteredVideos = useMemo(() => {
     let filtered = [...videoList]
@@ -107,6 +177,22 @@ const VideosPage: React.FC = () => {
       filtered = filtered.filter((video) => video.channel === selectedChannel)
     }
 
+    // 時長篩選
+    if (selectedDuration !== 'all') {
+      filtered = filtered.filter((video) => {
+        const minutes = parseDuration(video.duration)
+        return getDurationCategory(minutes) === selectedDuration
+      })
+    }
+
+    // 熱門程度篩選
+    if (selectedPopularity !== 'all') {
+      filtered = filtered.filter((video) => {
+        const views = parseViewCount(video.viewCount)
+        return getPopularityCategory(views) === selectedPopularity
+      })
+    }
+
     // 搜尋篩選
     if (searchQuery) {
       const query = searchQuery.toLowerCase()
@@ -117,7 +203,7 @@ const VideosPage: React.FC = () => {
     }
 
     return filtered
-  }, [videoList, searchQuery, selectedCategory, selectedChannel])
+  }, [videoList, searchQuery, selectedCategory, selectedChannel, selectedDuration, selectedPopularity])
 
   // 分頁顯示的影片
   const visibleVideos = filteredVideos.slice(0, visibleCount)
@@ -151,11 +237,18 @@ const VideosPage: React.FC = () => {
   }
 
   const handleLoadMore = async () => {
-    // 先增加顯示數量
+    // 增加顯示數量
     const newVisibleCount = visibleCount + 12
+    setVisibleCount(newVisibleCount)
 
-    // 計算需要載入的 chunk
-    if (meta && videoList.length < meta.totalVideos) {
+    // 如果選擇了特定頻道，載入該頻道尚未載入的 chunks
+    if (selectedChannel !== 'all') {
+      await loadChunksForChannel(selectedChannel)
+      return
+    }
+
+    // 如果沒有篩選條件，按順序載入下一個 chunk
+    if (!searchQuery && selectedCategory === 'all' && meta && videoList.length < meta.totalVideos) {
       const neededChunk = Math.floor(videoList.length / meta.chunkSize)
       if (!loadedChunks.has(neededChunk) && neededChunk < meta.totalChunks) {
         setLoadingMore(true)
@@ -166,8 +259,6 @@ const VideosPage: React.FC = () => {
         setLoadingMore(false)
       }
     }
-
-    setVisibleCount(newVisibleCount)
   }
 
   const handleCategoryChange = (category: VideoCategory | 'all') => {
@@ -175,9 +266,14 @@ const VideosPage: React.FC = () => {
     setVisibleCount(12)
   }
 
-  const handleChannelChange = (channel: string) => {
+  const handleChannelChange = async (channel: string) => {
     setSelectedChannel(channel)
     setVisibleCount(12)
+
+    // 如果選擇特定頻道，載入該頻道所需的 chunks
+    if (channel !== 'all') {
+      await loadChunksForChannel(channel)
+    }
   }
 
   const handleSearch = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -185,10 +281,47 @@ const VideosPage: React.FC = () => {
     setVisibleCount(12)
   }
 
-  // 計算是否還有更多影片
-  const hasMore =
-    visibleVideos.length < filteredVideos.length ||
-    (meta && videoList.length < meta.totalVideos && !searchQuery && selectedCategory === 'all' && selectedChannel === 'all')
+  const handleDurationChange = (duration: VideoDuration | 'all') => {
+    setSelectedDuration(duration)
+    setVisibleCount(12)
+  }
+
+  const handlePopularityChange = (popularity: VideoPopularity | 'all') => {
+    setSelectedPopularity(popularity)
+    setVisibleCount(12)
+  }
+
+  // 計算是否還有更多影片可以顯示或載入
+  const hasMore = useMemo(() => {
+    // 如果還有已載入但未顯示的影片
+    if (visibleCount < filteredVideos.length) {
+      return true
+    }
+
+    // 如果選擇了特定頻道，檢查該頻道的所有 chunks 是否都已載入
+    if (selectedChannel !== 'all' && channelIndex && channelIndex[selectedChannel]) {
+      const channelChunks = channelIndex[selectedChannel].chunks
+      const allChunksLoaded = channelChunks.every((chunk) => loadedChunks.has(chunk))
+      return !allChunksLoaded
+    }
+
+    // 如果沒有篩選條件，檢查是否還有未載入的 chunks
+    if (!searchQuery && selectedCategory === 'all' && selectedChannel === 'all') {
+      return meta ? videoList.length < meta.totalVideos : false
+    }
+
+    return false
+  }, [
+    visibleCount,
+    filteredVideos.length,
+    selectedChannel,
+    channelIndex,
+    loadedChunks,
+    searchQuery,
+    selectedCategory,
+    meta,
+    videoList.length,
+  ])
 
   return (
     <div className="min-h-screen bg-page-content-bg">
@@ -213,11 +346,21 @@ const VideosPage: React.FC = () => {
                     onCategoryChange={handleCategoryChange}
                   />
                 </div>
-                <ChannelFilter
-                  channels={availableChannels}
-                  selectedChannel={selectedChannel}
-                  onChannelChange={handleChannelChange}
-                />
+                <div className="flex flex-wrap justify-center gap-2 md:justify-end">
+                  <DurationFilter
+                    selectedDuration={selectedDuration}
+                    onDurationChange={handleDurationChange}
+                  />
+                  <PopularityFilter
+                    selectedPopularity={selectedPopularity}
+                    onPopularityChange={handlePopularityChange}
+                  />
+                  <ChannelFilter
+                    channels={availableChannels}
+                    selectedChannel={selectedChannel}
+                    onChannelChange={handleChannelChange}
+                  />
+                </div>
               </div>
             </div>
 
@@ -236,7 +379,7 @@ const VideosPage: React.FC = () => {
             {filteredVideos.length > 0 && (
               <LoadMoreButton
                 onClick={handleLoadMore}
-                hasMore={hasMore || false}
+                hasMore={hasMore}
                 text={loadingMore ? '載入中...' : '載入更多影片'}
                 noMoreText="已顯示所有影片"
               />

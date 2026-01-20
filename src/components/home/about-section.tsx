@@ -1,5 +1,6 @@
 'use client'
 
+import Image from 'next/image'
 import Link from 'next/link'
 import { Button } from '@/components/ui/button'
 import { useAuthStore } from '@/store/authStore'
@@ -9,37 +10,23 @@ export function AboutSection() {
 
   return (
     <section className="relative h-[500px] overflow-hidden bg-white">
-      {/* 背景圖片 */}
-      <div className="absolute inset-0">
-        <div
-          className="to-[#FFFFFF]/33 absolute inset-0 bg-gradient-to-b from-[#F5F5F5]"
-          style={{
-            backgroundImage:
-              'linear-gradient(180deg, #F5F5F5 1.35%, rgba(255, 255, 255, 0.33) 100%), url(/photo/cont-about.jpeg)',
-            backgroundSize: 'cover',
-          }}
-        />
-      </div>
+      {/* 背景 */}
+      <div className="absolute inset-0 bg-gradient-to-b from-[#F5F5F5] to-white" />
 
       {/* 內容區域 */}
       <div className="container relative z-10 mx-auto flex h-full flex-col items-center justify-center px-4 text-center">
-        <h2 className="text-[32px] font-medium text-[#1B1A1A]">關於小人物攀岩</h2>
+        <Image
+          src="/logo/Nobodylimb-black.svg"
+          alt="小人物攀岩"
+          width={320}
+          height={90}
+          className="mb-6"
+        />
 
-        <svg
-          width="40"
-          height="4"
-          viewBox="0 0 40 4"
-          fill="none"
-          xmlns="http://www.w3.org/2000/svg"
-          className="my-2"
-        >
-          <rect width="40" height="4" fill="#1B1A1A" />
-        </svg>
+        <div className="my-2 h-1 w-10 bg-[#1B1A1A]" />
 
         <p className="mt-4 max-w-[582px] px-4 text-base text-[#1B1A1A]">
-          緣起於一個 Nobody 很喜歡這項運動，希望有更多 Nobody 也能一起來 Climb
-          <br />
-          當然過程中一定會有一些疑惑，或許這裡能帶給你一些解答或收穫
+          緣起於一個 Nobody 很熱愛這項運動，期待更多 Nobody 能一起 Climb
         </p>
 
         <div className="mt-8 flex flex-col gap-3 sm:flex-row sm:gap-4">

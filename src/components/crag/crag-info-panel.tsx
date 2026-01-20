@@ -4,8 +4,8 @@ import Link from 'next/link'
 import { MapPin, ExternalLink } from 'lucide-react'
 import PlaceholderImage from '@/components/ui/placeholder-image'
 import { WeatherDisplay } from '@/components/shared/weather-display'
-import { TrafficCamerasCard } from '@/components/crag/traffic-cameras-card'
 import { YouTubeLiveCard } from '@/components/crag/youtube-live-card'
+import { TrafficCamerasCard } from '@/components/crag/traffic-cameras-card'
 
 export interface CragInfoData {
   id: string
@@ -22,7 +22,11 @@ export interface CragInfoData {
   transportation: Array<{ type: string; description: string }>
   parking: string
   amenities: string[]
-  geoCoordinates: { latitude: number; longitude: number }
+  googleMapsUrl: string
+  geoCoordinates: {
+    latitude: number
+    longitude: number
+  }
   weatherLocation: string
   liveVideoId?: string
   liveVideoTitle?: string
@@ -138,21 +142,23 @@ export function CragInfoPanel({ crag }: CragInfoPanelProps) {
             <h2 className="text-lg font-medium text-orange-500">岩場位置</h2>
             <div className="h-px w-full bg-gray-200"></div>
           </div>
-          {crag.geoCoordinates.latitude && crag.geoCoordinates.longitude ? (
+          {crag.geoCoordinates ? (
             <div className="mt-4">
-              <a
-                href={`https://www.google.com/maps/search/?api=1&query=${crag.geoCoordinates.latitude},${crag.geoCoordinates.longitude}`}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="mb-2 inline-flex items-center gap-1 text-sm text-blue-600 hover:underline"
-              >
-                <MapPin size={14} />
-                在 Google Maps 開啟
-                <ExternalLink size={12} />
-              </a>
+              {crag.googleMapsUrl && (
+                <a
+                  href={crag.googleMapsUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="mb-2 inline-flex items-center gap-1 text-sm text-blue-600 hover:underline"
+                >
+                  <MapPin size={14} />
+                  在 Google Maps 開啟
+                  <ExternalLink size={12} />
+                </a>
+              )}
               <div className="overflow-hidden rounded-lg">
                 <iframe
-                  src={`https://www.google.com/maps?q=${crag.geoCoordinates.latitude},${crag.geoCoordinates.longitude}&z=15&output=embed`}
+                  src={`https://maps.google.com/maps?q=${crag.geoCoordinates.latitude},${crag.geoCoordinates.longitude}&z=15&output=embed`}
                   width="100%"
                   height="250"
                   style={{ border: 0 }}
@@ -197,24 +203,23 @@ export function CragInfoPanel({ crag }: CragInfoPanelProps) {
           <div className="mt-4">
             <WeatherDisplay
               location={crag.weatherLocation}
-              latitude={crag.geoCoordinates.latitude}
-              longitude={crag.geoCoordinates.longitude}
               showForecast={true}
             />
           </div>
         </div>
 
-        {/* 即時路況與影像 */}
-        <div className="mb-6">
-          <div className="mb-1">
-            <h2 className="text-lg font-medium text-orange-500">即時路況與影像</h2>
-            <div className="h-px w-full bg-gray-200"></div>
-          </div>
-          <div className={`mt-4 grid grid-cols-1 gap-6 ${crag.liveVideoId ? 'lg:grid-cols-2' : ''}`}>
-            <TrafficCamerasCard
-              latitude={crag.geoCoordinates.latitude}
-              longitude={crag.geoCoordinates.longitude}
-            />
+        {/* 即時路況攝影機與即時影像 */}
+        {(crag.liveVideoId || crag.geoCoordinates) && (
+          <div className="mb-6 grid grid-cols-1 gap-6 lg:grid-cols-2">
+            {/* 即時路況攝影機 */}
+            {crag.geoCoordinates && (
+              <TrafficCamerasCard
+                latitude={crag.geoCoordinates.latitude}
+                longitude={crag.geoCoordinates.longitude}
+              />
+            )}
+
+            {/* 即時影像 */}
             {crag.liveVideoId && (
               <YouTubeLiveCard
                 videoId={crag.liveVideoId}
@@ -223,7 +228,7 @@ export function CragInfoPanel({ crag }: CragInfoPanelProps) {
               />
             )}
           </div>
-        </div>
+        )}
 
         {/* 相關區域 */}
         {crag.areas.length > 0 && (
