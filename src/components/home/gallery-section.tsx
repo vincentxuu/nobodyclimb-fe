@@ -13,6 +13,7 @@ import type { GalleryPhoto } from '@/lib/types'
 interface DisplayPhoto {
   id: string
   image: string
+  alt: string
   location: {
     city?: string
     spot?: string
@@ -31,6 +32,7 @@ function transformPhoto(photo: GalleryPhoto, index: number): DisplayPhoto {
   return {
     id: photo.id,
     image: photo.thumbnail_url || photo.image_url,
+    alt: photo.caption || `攝影集精選照片 ${index + 1}`,
     location: {
       city: photo.location_city,
       spot: photo.location_spot,
@@ -57,7 +59,7 @@ function PhotoCard({ photo, index }: { photo: DisplayPhoto; index: number }) {
     >
       <Image
         src={photo.image}
-        alt={`攀岩照片`}
+        alt={photo.alt}
         fill
         sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
         className="object-cover transition-transform duration-500 group-hover:scale-105"
