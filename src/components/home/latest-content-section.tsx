@@ -4,11 +4,12 @@ import { useState, useEffect, useCallback } from 'react'
 import Image from 'next/image'
 import Link from 'next/link'
 import { motion } from 'framer-motion'
-import { FileText, Loader2 } from 'lucide-react'
+import { Loader2 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { postService } from '@/lib/api/services'
-import { BackendPost, getCategoryLabel } from '@/lib/types'
+import { BackendPost, PostCategory, getCategoryLabel } from '@/lib/types'
 import { generateSummary } from '@/lib/utils/article'
+import { ArticleCoverGenerator } from '@/components/shared/ArticleCoverGenerator'
 
 // 緩存配置
 const CACHE_KEY = 'nobodyclimb_home_articles'
@@ -22,6 +23,7 @@ interface ArticleItem {
   date: string
   link: string
   category?: string
+  categoryValue?: PostCategory
 }
 
 interface CachedData {
@@ -104,9 +106,12 @@ function ArticleCard({ item, index }: { item: ArticleItem; index: number }) {
               loading="lazy"
             />
           ) : (
-            <div className="flex h-full items-center justify-center text-gray-400">
-              <FileText className="h-8 w-8" />
-            </div>
+            <ArticleCoverGenerator
+              category={item.categoryValue}
+              title={item.title}
+              showTitle={false}
+              className="h-full w-full"
+            />
           )}
           {/* 分類標籤 */}
           {item.category && (
@@ -169,6 +174,7 @@ export function LatestContentSection() {
             : new Date(post.created_at).toLocaleDateString('zh-TW'),
           link: `/blog/${post.id}`,
           category: getCategoryLabel(post.category) || undefined,
+          categoryValue: post.category as PostCategory,
         }))
         setArticles(items)
         cacheArticles(items)
