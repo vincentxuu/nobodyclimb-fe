@@ -900,6 +900,55 @@ biographiesRoutes.put('/me', authMiddleware, async (c) => {
     }
   }
 
+  // 同步 one_liners_data 到 biography_one_liners 表
+  if (body.one_liners_data !== undefined) {
+    const oneLinersData = typeof body.one_liners_data === 'string'
+      ? JSON.parse(body.one_liners_data)
+      : body.one_liners_data;
+
+    if (oneLinersData && typeof oneLinersData === 'object') {
+      const now = new Date().toISOString();
+
+      for (const [questionId, data] of Object.entries(oneLinersData)) {
+        const itemData = data as { answer?: string; visibility?: string };
+        const answer = itemData?.answer;
+
+        if (answer !== undefined) {
+          const existingOneLiner = await c.env.DB.prepare(
+            'SELECT id FROM biography_one_liners WHERE biography_id = ? AND question_id = ?'
+          )
+            .bind(existing.id, questionId)
+            .first<{ id: string }>();
+
+          if (answer === null || answer.trim() === '') {
+            // 如果內容為空，刪除記錄
+            if (existingOneLiner) {
+              await c.env.DB.prepare('DELETE FROM biography_one_liners WHERE id = ?')
+                .bind(existingOneLiner.id)
+                .run();
+            }
+          } else if (existingOneLiner) {
+            // 更新現有記錄
+            await c.env.DB.prepare(
+              'UPDATE biography_one_liners SET answer = ?, updated_at = ? WHERE id = ?'
+            )
+              .bind(answer.trim(), now, existingOneLiner.id)
+              .run();
+          } else {
+            // 插入新記錄
+            const oneLinerId = generateId();
+            await c.env.DB.prepare(
+              `INSERT INTO biography_one_liners (id, biography_id, question_id, answer, source, created_at, updated_at)
+               VALUES (?, ?, ?, ?, 'system', ?, ?)`
+            )
+              .bind(oneLinerId, existing.id, questionId, answer.trim(), now, now)
+              .run();
+          }
+        }
+      }
+    }
+  }
+
   const biography = await c.env.DB.prepare(
     'SELECT * FROM biographies WHERE id = ?'
   )
@@ -995,6 +1044,55 @@ biographiesRoutes.put('/me/autosave', authMiddleware, async (c) => {
     )
       .bind(...values)
       .run();
+  }
+
+  // 同步 one_liners_data 到 biography_one_liners 表 (autosave)
+  if (body.one_liners_data !== undefined) {
+    const oneLinersData = typeof body.one_liners_data === 'string'
+      ? JSON.parse(body.one_liners_data as string)
+      : body.one_liners_data;
+
+    if (oneLinersData && typeof oneLinersData === 'object') {
+      const now = new Date().toISOString();
+
+      for (const [questionId, data] of Object.entries(oneLinersData)) {
+        const itemData = data as { answer?: string; visibility?: string };
+        const answer = itemData?.answer;
+
+        if (answer !== undefined) {
+          const existingOneLiner = await c.env.DB.prepare(
+            'SELECT id FROM biography_one_liners WHERE biography_id = ? AND question_id = ?'
+          )
+            .bind(existing.id, questionId)
+            .first<{ id: string }>();
+
+          if (answer === null || answer.trim() === '') {
+            // 如果內容為空，刪除記錄
+            if (existingOneLiner) {
+              await c.env.DB.prepare('DELETE FROM biography_one_liners WHERE id = ?')
+                .bind(existingOneLiner.id)
+                .run();
+            }
+          } else if (existingOneLiner) {
+            // 更新現有記錄
+            await c.env.DB.prepare(
+              'UPDATE biography_one_liners SET answer = ?, updated_at = ? WHERE id = ?'
+            )
+              .bind(answer.trim(), now, existingOneLiner.id)
+              .run();
+          } else {
+            // 插入新記錄
+            const oneLinerId = generateId();
+            await c.env.DB.prepare(
+              `INSERT INTO biography_one_liners (id, biography_id, question_id, answer, source, created_at, updated_at)
+               VALUES (?, ?, ?, ?, 'system', ?, ?)`
+            )
+              .bind(oneLinerId, existing.id, questionId, answer.trim(), now, now)
+              .run();
+          }
+        }
+      }
+    }
   }
 
   return c.json({
