@@ -2245,6 +2245,20 @@ export interface ContentComment {
   username: string
   display_name?: string
   avatar_url?: string
+/**
+ * Admin 用戶資料介面
+ */
+export interface AdminUser {
+  id: string
+  email: string
+  username: string
+  display_name: string | null
+  avatar_url: string | null
+  bio: string | null
+  role: 'user' | 'admin' | 'moderator'
+  is_active: number
+  email_verified: number
+  auth_provider: 'local' | 'google'
   created_at: string
   updated_at: string
 }
@@ -2311,6 +2325,46 @@ export const biographyContentService = {
     const response = await apiClient.get<ApiResponse<CoreStory[]>>(
       `/content/biographies/${biographyId}/core-stories`
     )
+/**
+ * Admin 用戶統計介面
+ */
+export interface AdminUserStats {
+  total: number
+  active: number
+  inactive: number
+  newThisWeek: number
+  newThisMonth: number
+  byRole: Array<{ role: string; count: number }>
+  byAuthProvider: Array<{ auth_provider: string; count: number }>
+}
+
+/**
+ * Admin 用戶管理 API 服務
+ */
+export const adminUserService = {
+  /**
+   * 獲取用戶列表（需要 admin 權限）
+   */
+  getUsers: async (options?: {
+    page?: number
+    limit?: number
+    search?: string
+    role?: string
+    status?: string
+  }) => {
+    const response = await apiClient.get<
+      ApiResponse<AdminUser[]> & {
+        pagination: { page: number; limit: number; total: number; total_pages: number }
+      }
+    >('/users/admin/list', { params: options })
+    return response.data
+  },
+
+  /**
+   * 獲取用戶統計（需要 admin 權限）
+   */
+  getStats: async () => {
+    const response = await apiClient.get<ApiResponse<AdminUserStats>>('/users/admin/stats')
     return response.data
   },
 
@@ -2325,6 +2379,27 @@ export const biographyContentService = {
       `/content/biographies/${biographyId}/core-stories`,
       data
     )
+   * 獲取單一用戶詳情（需要 admin 權限）
+   */
+  getUser: async (id: string) => {
+    const response = await apiClient.get<
+      ApiResponse<
+        AdminUser & {
+          biography: {
+            id: string
+            name: string
+            slug: string
+            total_views: number
+            total_likes: number
+            follower_count: number
+          } | null
+          stats: {
+            posts: number
+            photos: number
+          }
+        }
+      >
+    >(`/users/admin/${id}`)
     return response.data
   },
 
@@ -2335,6 +2410,12 @@ export const biographyContentService = {
     const response = await apiClient.post<
       ApiResponse<{ liked: boolean; like_count: number }>
     >(`/content/core-stories/${storyId}/like`)
+   * 更新用戶狀態（需要 admin 權限）
+   */
+  updateStatus: async (id: string, isActive: boolean) => {
+    const response = await apiClient.put<
+      ApiResponse<{ id: string; is_active: number }>
+    >(`/users/admin/${id}/status`, { is_active: isActive })
     return response.data
   },
 
@@ -2359,6 +2440,49 @@ export const biographyContentService = {
       `/content/core-stories/${storyId}/comments`,
       data
     )
+   * 更新用戶角色（需要 admin 權限）
+   */
+  updateRole: async (id: string, role: 'user' | 'admin' | 'moderator') => {
+    const response = await apiClient.put<
+      ApiResponse<{ id: string; role: string }>
+    >(`/users/admin/${id}/role`, { role })
+    return response.data
+  },
+}
+
+/**
+ * 廣播通知記錄介面
+ */
+export interface BroadcastRecord {
+  id: string
+  title: string
+  message: string
+  actor_id: string
+  actor_name: string
+  created_at: string
+  recipient_count: number
+  read_count: number
+}
+
+/**
+ * Admin 廣播通知 API 服務
+ */
+export const adminBroadcastService = {
+  /**
+   * 發送廣播通知（需要 admin 權限）
+   */
+  sendBroadcast: async (data: {
+    title: string
+    message: string
+    targetRole?: 'all' | 'user' | 'moderator' | 'admin'
+  }) => {
+    const response = await apiClient.post<
+      ApiResponse<{
+        totalUsers: number
+        successCount: number
+        failedCount: number
+      }>
+    >('/notifications/admin/broadcast', data)
     return response.data
   },
 
@@ -2422,6 +2546,126 @@ export const biographyContentService = {
     const response = await apiClient.post<
       ApiResponse<{ liked: boolean; like_count: number }>
     >(`/content/one-liners/${oneLinerId}/like`)
+   * 獲取廣播歷史記錄（需要 admin 權限）
+   */
+  getBroadcasts: async (page = 1, limit = 20) => {
+    const response = await apiClient.get<
+      ApiResponse<BroadcastRecord[]> & {
+        pagination: { page: number; limit: number; total: number; total_pages: number }
+      }
+    >('/notifications/admin/broadcasts', { params: { page, limit } })
+    return response.data
+  },
+}
+
+// ═══════════════════════════════════════════════════════════
+// Admin 數據分析 API 服務
+// ═══════════════════════════════════════════════════════════
+
+/**
+ * 追蹤數據分析介面
+ */
+export interface FollowAnalytics {
+  summary: {
+    totalFollows: number
+    uniqueFollowers: number
+    uniqueFollowing: number
+    mutualFollows: number
+    followsToday: number
+    followsWeek: number
+    followsMonth: number
+  }
+  dailyTrend: Array<{ date: string; count: number }>
+  topFollowed: Array<{
+    id: string
+    username: string
+    display_name: string | null
+    avatar: string | null
+    biography_id: string
+    follower_count: number
+  }>
+  topFollowers: Array<{
+    id: string
+    username: string
+    display_name: string | null
+    avatar: string | null
+    following_count: number
+  }>
+}
+
+/**
+ * 用戶活躍度分析介面
+ */
+export interface ActivityAnalytics {
+  summary: {
+    dau: number
+    wau: number
+    mau: number
+    totalUsers: number
+    activeUsers: number
+    newUsersToday: number
+    newUsersWeek: number
+    newUsersMonth: number
+    retentionRate: number
+  }
+  dailyActiveUsers: Array<{ date: string; count: number }>
+  dailyNewUsers: Array<{ date: string; count: number }>
+  activityBreakdown: {
+    postsWeek: number
+    goalsWeek: number
+    likesWeek: number
+    commentsWeek: number
+    followsWeek: number
+  }
+}
+
+/**
+ * 內容統計分析介面
+ */
+export interface ContentAnalytics {
+  summary: {
+    totalPosts: number
+    publishedPosts: number
+    draftPosts: number
+    postsWeek: number
+    totalBiographies: number
+    publicBiographies: number
+    biographiesWeek: number
+    totalVideos: number
+    totalViews: number
+    totalLikes: number
+  }
+  dailyPosts: Array<{ date: string; count: number }>
+  dailyBiographies: Array<{ date: string; count: number }>
+  topBiographies: Array<{
+    id: string
+    username: string
+    display_name: string | null
+    avatar: string | null
+    total_views: number
+    total_likes: number
+    follower_count: number
+  }>
+  topPosts: Array<{
+    id: string
+    title: string
+    slug: string
+    author_name: string
+    views: number
+    created_at: string
+  }>
+  categoryDistribution: Array<{ category: string; count: number }>
+}
+
+/**
+ * Admin 數據分析 API 服務
+ */
+export const adminAnalyticsService = {
+  /**
+   * 獲取追蹤數據分析（需要 admin 權限）
+   */
+  getFollowAnalytics: async () => {
+    const response = await apiClient.get<ApiResponse<FollowAnalytics>>('/stats/admin/follows')
     return response.data
   },
 
@@ -2432,6 +2676,10 @@ export const biographyContentService = {
     const response = await apiClient.get<ApiResponse<ContentComment[]>>(
       `/content/one-liners/${oneLinerId}/comments`
     )
+   * 獲取用戶活躍度分析（需要 admin 權限）
+   */
+  getActivityAnalytics: async () => {
+    const response = await apiClient.get<ApiResponse<ActivityAnalytics>>('/stats/admin/activity')
     return response.data
   },
 
@@ -2511,6 +2759,89 @@ export const biographyContentService = {
     const response = await apiClient.get<ApiResponse<ContentComment[]>>(
       `/content/stories/${storyId}/comments`
     )
+   * 獲取內容統計分析（需要 admin 權限）
+   */
+  getContentAnalytics: async () => {
+    const response = await apiClient.get<ApiResponse<ContentAnalytics>>('/stats/admin/content')
+    return response.data
+  },
+}
+
+/**
+ * Access Logs 日誌類型
+ */
+export interface AccessLogEntry {
+  timestamp: string
+  method: string
+  path: string
+  userAgent: string
+  country: string
+  userId: string
+  ip: string
+  statusCode: string
+  errorMessage: string
+  responseTime: number
+  statusCodeNum: number
+}
+
+export interface AccessLogSummary {
+  summary: {
+    totalRequests: number
+    avgResponseTime: number
+    successCount: number
+    clientErrorCount: number
+    serverErrorCount: number
+  }
+  topPaths: Array<{ path: string; count: number; avgResponseTime: number }>
+  hourlyRequests: Array<{ hour: string; count: number }>
+  countryDistribution: Array<{ country: string; count: number }>
+  methodDistribution: Array<{ method: string; count: number }>
+}
+
+export interface AccessLogError {
+  timestamp: string
+  method: string
+  path: string
+  userId: string
+  ip: string
+  statusCode: string
+  errorMessage: string
+  responseTime: number
+}
+
+export interface AccessLogSlow {
+  timestamp: string
+  method: string
+  path: string
+  userId: string
+  statusCode: string
+  responseTime: number
+}
+
+/**
+ * Admin 訪問日誌 API 服務
+ */
+export const adminAccessLogsService = {
+  /**
+   * 獲取訪問日誌列表（需要 admin 權限）
+   */
+  getLogs: async (params?: {
+    limit?: number
+    offset?: number
+    path?: string
+    method?: string
+    status?: string
+  }) => {
+    const queryParams = new URLSearchParams()
+    if (params?.limit) queryParams.append('limit', String(params.limit))
+    if (params?.offset) queryParams.append('offset', String(params.offset))
+    if (params?.path) queryParams.append('path', params.path)
+    if (params?.method) queryParams.append('method', params.method)
+    if (params?.status) queryParams.append('status', params.status)
+
+    const queryString = queryParams.toString()
+    const url = queryString ? `/access-logs?${queryString}` : '/access-logs'
+    const response = await apiClient.get<ApiResponse<AccessLogEntry[]>>(url)
     return response.data
   },
 
@@ -2524,6 +2855,11 @@ export const biographyContentService = {
     const response = await apiClient.post<ApiResponse<ContentComment>>(
       `/content/stories/${storyId}/comments`,
       data
+   * 獲取訪問日誌摘要統計（需要 admin 權限）
+   */
+  getSummary: async (hours: number = 24) => {
+    const response = await apiClient.get<ApiResponse<AccessLogSummary>>(
+      `/access-logs/summary?hours=${hours}`
     )
     return response.data
   },
@@ -2549,6 +2885,17 @@ export const biographyContentService = {
     const response = await apiClient.get<
       ApiResponse<(OneLiner & { author_name: string; author_avatar?: string })[]>
     >(`/content/popular/one-liners?limit=${limit}`)
+  /**
+   * 獲取錯誤日誌（需要 admin 權限）
+   */
+  getErrors: async (params?: { hours?: number; limit?: number }) => {
+    const queryParams = new URLSearchParams()
+    if (params?.hours) queryParams.append('hours', String(params.hours))
+    if (params?.limit) queryParams.append('limit', String(params.limit))
+
+    const queryString = queryParams.toString()
+    const url = queryString ? `/access-logs/errors?${queryString}` : '/access-logs/errors'
+    const response = await apiClient.get<ApiResponse<AccessLogError[]>>(url)
     return response.data
   },
 
@@ -2561,6 +2908,17 @@ export const biographyContentService = {
     const response = await apiClient.get<
       ApiResponse<(Story & { author_name: string; author_avatar?: string })[]>
     >(`/content/popular/stories?${params}`)
+   * 獲取慢請求日誌（需要 admin 權限）
+   */
+  getSlowRequests: async (params?: { hours?: number; threshold?: number; limit?: number }) => {
+    const queryParams = new URLSearchParams()
+    if (params?.hours) queryParams.append('hours', String(params.hours))
+    if (params?.threshold) queryParams.append('threshold', String(params.threshold))
+    if (params?.limit) queryParams.append('limit', String(params.limit))
+
+    const queryString = queryParams.toString()
+    const url = queryString ? `/access-logs/slow?${queryString}` : '/access-logs/slow'
+    const response = await apiClient.get<ApiResponse<AccessLogSlow[]>>(url)
     return response.data
   },
 }

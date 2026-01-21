@@ -128,52 +128,52 @@ export default function AdminNotificationDashboard() {
 
       {/* 總覽統計卡片 */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-        <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
+        <div className="bg-white rounded-xl shadow-sm border border-wb-20 p-6">
           <div className="flex items-center gap-3">
-            <div className="p-3 bg-blue-50 rounded-lg">
-              <Bell className="h-6 w-6 text-blue-600" />
+            <div className="p-3 bg-brand-yellow-100/10 rounded-lg">
+              <Bell className="h-6 w-6 text-brand-yellow-200" />
             </div>
             <div>
-              <p className="text-sm text-gray-500">發送總數</p>
-              <p className="text-2xl font-bold text-gray-900">{stats.overview.total}</p>
+              <p className="text-sm text-wb-70">發送總數</p>
+              <p className="text-2xl font-bold text-wb-100">{stats.overview.total}</p>
             </div>
           </div>
         </div>
 
-        <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
+        <div className="bg-white rounded-xl shadow-sm border border-wb-20 p-6">
           <div className="flex items-center gap-3">
-            <div className="p-3 bg-orange-50 rounded-lg">
-              <AlertCircle className="h-6 w-6 text-orange-600" />
+            <div className="p-3 bg-brand-red-100/10 rounded-lg">
+              <AlertCircle className="h-6 w-6 text-brand-red-100" />
             </div>
             <div>
-              <p className="text-sm text-gray-500">未讀通知</p>
-              <p className="text-2xl font-bold text-gray-900">{stats.overview.unread}</p>
+              <p className="text-sm text-wb-70">未讀通知</p>
+              <p className="text-2xl font-bold text-wb-100">{stats.overview.unread}</p>
             </div>
           </div>
         </div>
 
-        <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
+        <div className="bg-white rounded-xl shadow-sm border border-wb-20 p-6">
           <div className="flex items-center gap-3">
-            <div className="p-3 bg-green-50 rounded-lg">
-              <Users className="h-6 w-6 text-green-600" />
+            <div className="p-3 bg-wb-90/5 rounded-lg">
+              <Users className="h-6 w-6 text-wb-90" />
             </div>
             <div>
-              <p className="text-sm text-gray-500">有通知的用戶</p>
-              <p className="text-2xl font-bold text-gray-900">
+              <p className="text-sm text-wb-70">有通知的用戶</p>
+              <p className="text-2xl font-bold text-wb-100">
                 {stats.overview.usersWithNotifications}
               </p>
             </div>
           </div>
         </div>
 
-        <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
+        <div className="bg-white rounded-xl shadow-sm border border-wb-20 p-6">
           <div className="flex items-center gap-3">
-            <div className="p-3 bg-purple-50 rounded-lg">
-              <TrendingUp className="h-6 w-6 text-purple-600" />
+            <div className="p-3 bg-brand-yellow-100/10 rounded-lg">
+              <TrendingUp className="h-6 w-6 text-brand-yellow-200" />
             </div>
             <div>
-              <p className="text-sm text-gray-500">已讀率</p>
-              <p className="text-2xl font-bold text-gray-900">{readRate}%</p>
+              <p className="text-sm text-wb-70">已讀率</p>
+              <p className="text-2xl font-bold text-wb-100">{readRate}%</p>
             </div>
           </div>
         </div>
@@ -182,10 +182,10 @@ export default function AdminNotificationDashboard() {
       {/* 詳細統計區塊 */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* 按類型統計 */}
-        <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
+        <div className="bg-white rounded-xl shadow-sm border border-wb-20 p-6">
           <div className="flex items-center gap-2 mb-4">
-            <BarChart3 className="h-5 w-5 text-gray-400" />
-            <h3 className="font-semibold text-gray-900">按類型統計</h3>
+            <BarChart3 className="h-5 w-5 text-wb-60" />
+            <h3 className="font-semibold text-wb-100">按類型統計</h3>
           </div>
           {stats.byType.length > 0 ? (
             <div className="space-y-3">
@@ -195,12 +195,12 @@ export default function AdminNotificationDashboard() {
                 return (
                   <div key={item.type}>
                     <div className="flex justify-between text-sm mb-1">
-                      <span className="text-gray-600">{typeLabels[item.type] || item.type}</span>
-                      <span className="font-medium text-gray-900">{item.count}</span>
+                      <span className="text-wb-70">{typeLabels[item.type] || item.type}</span>
+                      <span className="font-medium text-wb-100">{item.count}</span>
                     </div>
-                    <div className="h-2 bg-gray-100 rounded-full overflow-hidden">
+                    <div className="h-2 bg-wb-10 rounded-full overflow-hidden">
                       <div
-                        className="h-full bg-blue-500 rounded-full transition-all duration-300"
+                        className="h-full bg-brand-yellow-200 rounded-full transition-all duration-300"
                         style={{ width: `${percentage}%` }}
                       />
                     </div>
@@ -209,19 +209,19 @@ export default function AdminNotificationDashboard() {
               })}
             </div>
           ) : (
-            <p className="text-gray-500 text-center py-8">過去 24 小時沒有通知</p>
+            <p className="text-wb-70 text-center py-8">過去 24 小時沒有通知</p>
           )}
         </div>
 
         {/* 每小時趨勢 */}
-        <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
+        <div className="bg-white rounded-xl shadow-sm border border-wb-20 p-6">
           <div className="flex items-center justify-between mb-4">
             <div className="flex items-center gap-2">
-              <Clock className="h-5 w-5 text-gray-400" />
-              <h3 className="font-semibold text-gray-900">24 小時趨勢</h3>
+              <Clock className="h-5 w-5 text-wb-60" />
+              <h3 className="font-semibold text-wb-100">24 小時趨勢</h3>
             </div>
             {peakHour.hour && (
-              <span className="text-xs text-gray-500">
+              <span className="text-xs text-wb-70">
                 尖峰時段: {peakHour.hour.split(' ')[1] || peakHour.hour} ({peakHour.count})
               </span>
             )}
@@ -239,33 +239,33 @@ export default function AdminNotificationDashboard() {
                     title={`${item.hour}: ${item.count} 則通知`}
                   >
                     <div
-                      className="w-full bg-gradient-to-t from-blue-500 to-blue-400 rounded-t transition-all duration-300 hover:from-blue-600 hover:to-blue-500"
+                      className="w-full bg-gradient-to-t from-brand-yellow-200 to-brand-yellow-100 rounded-t transition-all duration-300 hover:from-brand-yellow-200 hover:to-brand-yellow-200"
                       style={{ height: `${Math.max(height, 2)}%` }}
                     />
                     {index % 4 === 0 && (
-                      <span className="text-xs text-gray-400 mt-1">{hourLabel}</span>
+                      <span className="text-xs text-wb-60 mt-1">{hourLabel}</span>
                     )}
                   </div>
                 )
               })}
             </div>
           ) : (
-            <p className="text-gray-500 text-center py-8">過去 24 小時沒有通知</p>
+            <p className="text-wb-70 text-center py-8">過去 24 小時沒有通知</p>
           )}
         </div>
       </div>
 
       {/* 通知最多的用戶 */}
-      <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
+      <div className="bg-white rounded-xl shadow-sm border border-wb-20 p-6">
         <div className="flex items-center gap-2 mb-4">
-          <User className="h-5 w-5 text-gray-400" />
-          <h3 className="font-semibold text-gray-900">通知最多的用戶 (前 10 名)</h3>
+          <User className="h-5 w-5 text-wb-60" />
+          <h3 className="font-semibold text-wb-100">通知最多的用戶 (前 10 名)</h3>
         </div>
         {stats.topRecipients.length > 0 ? (
           <div className="overflow-x-auto">
             <table className="w-full">
               <thead>
-                <tr className="text-left text-sm text-gray-500 border-b border-gray-100">
+                <tr className="text-left text-sm text-wb-70 border-b border-wb-20">
                   <th className="pb-3 font-medium">排名</th>
                   <th className="pb-3 font-medium">用戶</th>
                   <th className="pb-3 font-medium text-right">通知數量</th>
@@ -273,17 +273,17 @@ export default function AdminNotificationDashboard() {
               </thead>
               <tbody>
                 {stats.topRecipients.map((user, index) => (
-                  <tr key={user.user_id} className="border-b border-gray-50 last:border-0">
+                  <tr key={user.user_id} className="border-b border-wb-10 last:border-0">
                     <td className="py-3">
                       <span
                         className={`inline-flex items-center justify-center w-6 h-6 rounded-full text-xs font-medium ${
                           index === 0
-                            ? 'bg-yellow-100 text-yellow-700'
+                            ? 'bg-brand-yellow-100 text-brand-dark'
                             : index === 1
-                              ? 'bg-gray-100 text-gray-600'
+                              ? 'bg-wb-20 text-wb-90'
                               : index === 2
-                                ? 'bg-orange-100 text-orange-700'
-                                : 'bg-gray-50 text-gray-500'
+                                ? 'bg-brand-yellow-200/20 text-brand-yellow-200'
+                                : 'bg-wb-10 text-wb-70'
                         }`}
                       >
                         {index + 1}
@@ -291,16 +291,16 @@ export default function AdminNotificationDashboard() {
                     </td>
                     <td className="py-3">
                       <div>
-                        <p className="font-medium text-gray-900">
+                        <p className="font-medium text-wb-100">
                           {user.display_name || user.username}
                         </p>
                         {user.display_name && (
-                          <p className="text-xs text-gray-500">@{user.username}</p>
+                          <p className="text-xs text-wb-70">@{user.username}</p>
                         )}
                       </div>
                     </td>
                     <td className="py-3 text-right">
-                      <span className="font-semibold text-gray-900">{user.notification_count}</span>
+                      <span className="font-semibold text-wb-100">{user.notification_count}</span>
                     </td>
                   </tr>
                 ))}
@@ -308,7 +308,7 @@ export default function AdminNotificationDashboard() {
             </table>
           </div>
         ) : (
-          <p className="text-gray-500 text-center py-8">過去 24 小時沒有用戶收到通知</p>
+          <p className="text-wb-70 text-center py-8">過去 24 小時沒有用戶收到通知</p>
         )}
       </div>
     </div>

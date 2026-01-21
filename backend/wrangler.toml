@@ -65,7 +65,15 @@ binding = "STORAGE"
 
 bucket_name = "nobodyclimb-storage-preview"
 
- 
+
+
+[[env.preview.analytics_engine_datasets]]
+
+binding = "ACCESS_LOGS"
+
+dataset = "nobodyclimb_access_logs_preview"
+
+
 
 # ============================================
 
@@ -123,3 +131,11 @@ id = "608d1fb3c4424146abe50ab56e246aca"
 binding = "STORAGE"
 
 bucket_name = "nobodyclimb-storage"
+
+
+
+[[env.production.analytics_engine_datasets]]
+
+binding = "ACCESS_LOGS"
+
+dataset = "nobodyclimb_access_logs"

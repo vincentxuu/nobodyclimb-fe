@@ -1,0 +1,58 @@
+# Worker Keep-Alive Workflow
+# 定期 ping Cloudflare Workers 保持溫暖，減少冷啟動
+#
+# 執行頻率：每 5 分鐘
+# 目的：防止 Worker 進入冷狀態，確保用戶獲得快速回應
+
+name: Worker Keep-Alive
+
+on:
+  schedule:
+    # 每 5 分鐘執行一次
+    - cron: '*/5 * * * *'
+  workflow_dispatch:
+    # 允許手動觸發
+
+jobs:
+  keep-alive:
+    runs-on: ubuntu-latest
+    timeout-minutes: 2
+
+    steps:
+      - name: Ping Frontend Worker (Production)
+        run: |
+          echo "Pinging frontend worker..."
+          response=$(curl -s -w "\n%{http_code}\n%{time_total}" \
+            --connect-timeout 10 \
+            --max-time 15 \
+            "https://nobodyclimb.cc/api/health" || echo -e "\n000\n0")
+
+          http_code=$(echo "$response" | tail -n 2 | head -n 1)
+          time_total=$(echo "$response" | tail -n 1)
+
+          echo "Frontend: HTTP $http_code (${time_total}s)"
+
+          if [ "$http_code" != "200" ]; then
+            echo "::warning::Frontend health check returned HTTP $http_code"
+          fi
+
+      - name: Ping API Worker (Production)
+        run: |
+          echo "Pinging API worker..."
+          response=$(curl -s -w "\n%{http_code}\n%{time_total}" \
+            --connect-timeout 10 \
+            --max-time 15 \
+            "https://api.nobodyclimb.cc/health" || echo -e "\n000\n0")
+
+          http_code=$(echo "$response" | tail -n 2 | head -n 1)
+          time_total=$(echo "$response" | tail -n 1)
+
+          echo "API: HTTP $http_code (${time_total}s)"
+
+          if [ "$http_code" != "200" ]; then
+            echo "::warning::API health check returned HTTP $http_code"
+          fi
+
+      - name: Summary
+        run: |
+          echo "✅ Keep-alive ping completed at $(date -u '+%Y-%m-%d %H:%M:%S UTC')"
