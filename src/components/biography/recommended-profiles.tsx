@@ -8,7 +8,7 @@ import { ArrowRightCircle, Loader2, User } from 'lucide-react'
 import { Card, CardContent } from '@/components/ui/card'
 import { biographyService } from '@/lib/api/services'
 import { Biography } from '@/lib/types'
-import { calculateClimbingYears } from '@/lib/utils/biography'
+import { calculateClimbingYears, getDisplayNameForVisibility } from '@/lib/utils/biography'
 import { isSvgUrl } from '@/lib/utils/image'
 import { getDefaultQuote, selectCardContent, SelectedCardContent } from '@/lib/utils/biography-cache'
 
@@ -19,9 +19,7 @@ interface ProfileCardProps {
 
 function ProfileCard({ person, selectedContent }: ProfileCardProps) {
   const climbingYears = calculateClimbingYears(person.climbing_start_year)
-  // 匿名人物誌顯示「匿名岩友」
-  const isAnonymous = person.visibility === 'anonymous'
-  const displayName = isAnonymous ? '匿名岩友' : person.name
+  const displayName = getDisplayNameForVisibility(person.visibility, person.name)
 
   return (
     <motion.div

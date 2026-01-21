@@ -8,7 +8,7 @@ import { ArrowRightCircle, Loader2 } from 'lucide-react'
 import { Card, CardContent } from '@/components/ui/card'
 import { biographyService } from '@/lib/api/services'
 import { Biography } from '@/lib/types'
-import { calculateClimbingYears, getDisplayTags } from '@/lib/utils/biography'
+import { calculateClimbingYears, getDisplayTags, getDisplayNameForVisibility } from '@/lib/utils/biography'
 import { isSvgUrl, getDefaultAvatarUrl } from '@/lib/utils/image'
 import {
   getCachedBiographyList,
@@ -47,9 +47,7 @@ interface BiographyCardProps {
 function BiographyCard({ person, selectedContent }: BiographyCardProps) {
   // 優先使用 basic_info_data 中的資料
   const basicInfo = parseBasicInfoData(person.basic_info_data)
-  // 匿名人物誌顯示「匿名岩友」
-  const isAnonymous = person.visibility === 'anonymous'
-  const displayName = isAnonymous ? '匿名岩友' : (basicInfo?.name || person.name)
+  const displayName = getDisplayNameForVisibility(person.visibility, basicInfo?.name || person.name)
   const climbingStartYear = basicInfo?.climbing_start_year ?? person.climbing_start_year
   const climbingYears = calculateClimbingYears(
     climbingStartYear != null ? String(climbingStartYear) : null

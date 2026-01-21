@@ -11,7 +11,7 @@ import { biographyService } from '@/lib/api/services'
 import { Biography } from '@/lib/types'
 import { useAuthStore } from '@/store/authStore'
 import { isSvgUrl, getDefaultAvatarUrl } from '@/lib/utils/image'
-import { getDisplayTags } from '@/lib/utils/biography'
+import { getDisplayTags, getDisplayNameForVisibility } from '@/lib/utils/biography'
 import {
   getCachedHomeBiographies,
   cacheHomeBiographies,
@@ -68,9 +68,7 @@ function ClimberCard({ person, selectedContent }: ClimberCardProps) {
     : null
   // 取得展示標籤
   const displayTags = getDisplayTags(person.tags_data)
-  // 匿名人物誌顯示「匿名岩友」
-  const isAnonymous = person.visibility === 'anonymous'
-  const displayName = isAnonymous ? '匿名岩友' : person.name
+  const displayName = getDisplayNameForVisibility(person.visibility, person.name)
 
   return (
     <motion.div
