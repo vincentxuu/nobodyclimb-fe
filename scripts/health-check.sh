@@ -41,7 +41,7 @@ check_endpoint() {
 
     echo -n "檢查 $name... "
 
-    while [ $retry_count -lt $MAX_RETRIES ]; do
+    while (( retry_count < MAX_RETRIES )); do
         # 使用 curl 檢查端點，捕獲回應時間和狀態碼
         response=$(curl -s -w "\n%{http_code}\n%{time_total}" \
             --connect-timeout $TIMEOUT \
