@@ -2182,3 +2182,110 @@ export const statsService = {
     return response.data
   },
 }
+
+/**
+ * Admin 用戶資料介面
+ */
+export interface AdminUser {
+  id: string
+  email: string
+  username: string
+  display_name: string | null
+  avatar_url: string | null
+  bio: string | null
+  role: 'user' | 'admin' | 'moderator'
+  is_active: number
+  email_verified: number
+  auth_provider: 'local' | 'google'
+  created_at: string
+  updated_at: string
+}
+
+/**
+ * Admin 用戶統計介面
+ */
+export interface AdminUserStats {
+  total: number
+  active: number
+  inactive: number
+  newThisWeek: number
+  newThisMonth: number
+  byRole: Array<{ role: string; count: number }>
+  byAuthProvider: Array<{ auth_provider: string; count: number }>
+}
+
+/**
+ * Admin 用戶管理 API 服務
+ */
+export const adminUserService = {
+  /**
+   * 獲取用戶列表（需要 admin 權限）
+   */
+  getUsers: async (options?: {
+    page?: number
+    limit?: number
+    search?: string
+    role?: string
+    status?: string
+  }) => {
+    const response = await apiClient.get<
+      ApiResponse<AdminUser[]> & {
+        pagination: { page: number; limit: number; total: number; total_pages: number }
+      }
+    >('/users/admin/list', { params: options })
+    return response.data
+  },
+
+  /**
+   * 獲取用戶統計（需要 admin 權限）
+   */
+  getStats: async () => {
+    const response = await apiClient.get<ApiResponse<AdminUserStats>>('/users/admin/stats')
+    return response.data
+  },
+
+  /**
+   * 獲取單一用戶詳情（需要 admin 權限）
+   */
+  getUser: async (id: string) => {
+    const response = await apiClient.get<
+      ApiResponse<
+        AdminUser & {
+          biography: {
+            id: string
+            name: string
+            slug: string
+            total_views: number
+            total_likes: number
+            follower_count: number
+          } | null
+          stats: {
+            posts: number
+            photos: number
+          }
+        }
+      >
+    >(`/users/admin/${id}`)
+    return response.data
+  },
+
+  /**
+   * 更新用戶狀態（需要 admin 權限）
+   */
+  updateStatus: async (id: string, isActive: boolean) => {
+    const response = await apiClient.put<
+      ApiResponse<{ id: string; is_active: number }>
+    >(`/users/admin/${id}/status`, { is_active: isActive })
+    return response.data
+  },
+
+  /**
+   * 更新用戶角色（需要 admin 權限）
+   */
+  updateRole: async (id: string, role: 'user' | 'admin' | 'moderator') => {
+    const response = await apiClient.put<
+      ApiResponse<{ id: string; role: string }>
+    >(`/users/admin/${id}/role`, { role })
+    return response.data
+  },
+}
