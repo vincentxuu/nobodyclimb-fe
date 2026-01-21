@@ -76,6 +76,8 @@ authRoutes.post('/register', zValidator('json', registerSchema), async (c) => {
     sub: id,
     email,
     role: 'user',
+    username,
+    display_name: display_name || null,
   });
   const refresh_token = await generateRefreshToken(c.env, { sub: id });
 
@@ -148,6 +150,8 @@ authRoutes.post('/login', zValidator('json', loginSchema), async (c) => {
     sub: user.id,
     email: user.email,
     role: user.role,
+    username: user.username,
+    display_name: user.display_name,
   });
   const refresh_token = await generateRefreshToken(c.env, { sub: user.id });
 
@@ -190,13 +194,13 @@ authRoutes.post('/refresh-token', async (c) => {
   const token_hash = await hashPassword(refresh_token);
 
   const storedToken = await c.env.DB.prepare(
-    `SELECT rt.*, u.email, u.role
+    `SELECT rt.*, u.email, u.role, u.username, u.display_name
      FROM refresh_tokens rt
      JOIN users u ON rt.user_id = u.id
      WHERE rt.token_hash = ? AND rt.expires_at > datetime('now')`
   )
     .bind(token_hash)
-    .first<{ user_id: string; email: string; role: string }>();
+    .first<{ user_id: string; email: string; role: string; username: string; display_name: string | null }>();
 
   if (!storedToken) {
     return c.json(
@@ -214,6 +218,8 @@ authRoutes.post('/refresh-token', async (c) => {
     sub: storedToken.user_id,
     email: storedToken.email,
     role: storedToken.role,
+    username: storedToken.username,
+    display_name: storedToken.display_name,
   });
 
   return c.json({
@@ -513,6 +519,8 @@ authRoutes.post('/google', zValidator('json', googleAuthSchema), async (c) => {
       sub: user.id,
       email: user.email,
       role: user.role,
+      username: user.username,
+      display_name: user.display_name,
     });
     const refresh_token = await generateRefreshToken(c.env, { sub: user.id });
 
