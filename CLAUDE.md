@@ -142,6 +142,21 @@ nobodyclimb-fe/
 - D1 database with SQLite schema in `backend/src/db/schema.sql`
 - Cloudflare bindings: DB (D1), CACHE (KV), STORAGE (R2)
 
+### Active User Definition (User Activity Tracking)
+The system tracks user activity through the `last_active_at` field in the `users` table:
+
+**Update Strategy**:
+- Updated automatically in auth middleware (`backend/src/middleware/auth.ts`)
+- Uses a "once per 24 hours" throttling strategy to minimize database writes
+- Any authenticated API request counts as activity (login-based definition)
+
+**Activity Metrics** (calculated in `backend/src/routes/stats.ts`):
+- **DAU (Daily Active Users)**: Users with `last_active_at` within the last 24 hours
+- **WAU (Weekly Active Users)**: Users with `last_active_at` within the last 7 days
+- **MAU (Monthly Active Users)**: Users with `last_active_at` within the last 30 days
+
+This follows industry-standard time ranges. The activity definition is intentionally broad (any authenticated request) to capture all user engagement, including passive browsing. This approach is commonly used by content platforms like Facebook, Instagram, and Medium.
+
 ## Deployment Environments
 
 ### Frontend (Cloudflare Workers)
