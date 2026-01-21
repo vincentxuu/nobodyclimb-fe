@@ -24,7 +24,7 @@ adminQuestionsRoutes.get('/categories', async (c) => {
 // POST /admin/questions/categories - 新增分類
 adminQuestionsRoutes.post('/categories', async (c) => {
   const body = await c.req.json();
-  const { id, name, emoji, icon, description, display_order } = body;
+  const { id, name, icon, description, display_order } = body;
 
   if (!id || !name) {
     return c.json({ success: false, error: 'ID 和名稱為必填' }, 400);
@@ -33,9 +33,9 @@ adminQuestionsRoutes.post('/categories', async (c) => {
   const now = new Date().toISOString();
 
   await c.env.DB.prepare(`
-    INSERT INTO story_categories (id, name, emoji, icon, description, display_order, created_at, updated_at)
-    VALUES (?, ?, ?, ?, ?, ?, ?, ?)
-  `).bind(id, name, emoji || null, icon || null, description || null, display_order || 0, now, now).run();
+    INSERT INTO story_categories (id, name, icon, description, display_order, created_at, updated_at)
+    VALUES (?, ?, ?, ?, ?, ?, ?)
+  `).bind(id, name, icon || null, description || null, display_order || 0, now, now).run();
 
   return c.json({ success: true, message: '分類已新增' });
 });
@@ -44,21 +44,20 @@ adminQuestionsRoutes.post('/categories', async (c) => {
 adminQuestionsRoutes.put('/categories/:id', async (c) => {
   const id = c.req.param('id');
   const body = await c.req.json();
-  const { name, emoji, icon, description, display_order, is_active } = body;
+  const { name, icon, description, display_order, is_active } = body;
 
   const now = new Date().toISOString();
 
   await c.env.DB.prepare(`
     UPDATE story_categories
     SET name = COALESCE(?, name),
-        emoji = COALESCE(?, emoji),
         icon = COALESCE(?, icon),
         description = COALESCE(?, description),
         display_order = COALESCE(?, display_order),
         is_active = COALESCE(?, is_active),
         updated_at = ?
     WHERE id = ?
-  `).bind(name, emoji, icon, description, display_order, is_active, now, id).run();
+  `).bind(name, icon, description, display_order, is_active, now, id).run();
 
   return c.json({ success: true, message: '分類已更新' });
 });
@@ -182,7 +181,7 @@ adminQuestionsRoutes.get('/stories', async (c) => {
   const categoryId = c.req.query('category_id');
 
   let query = `
-    SELECT sq.*, sc.name as category_name, sc.emoji as category_emoji
+    SELECT sq.*, sc.name as category_name
     FROM story_questions sq
     LEFT JOIN story_categories sc ON sq.category_id = sc.id
   `;
@@ -334,7 +333,7 @@ adminQuestionsRoutes.get('/stats', async (c) => {
     `).first(),
     c.env.DB.prepare(`
       SELECT
-        sc.id, sc.name, sc.emoji,
+        sc.id, sc.name,
         COUNT(sq.id) as question_count
       FROM story_categories sc
       LEFT JOIN story_questions sq ON sc.id = sq.category_id AND sq.is_active = 1

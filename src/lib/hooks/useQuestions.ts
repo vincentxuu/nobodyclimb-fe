@@ -26,7 +26,6 @@ export interface OneLinerQuestion {
 export interface StoryCategory {
   id: string
   name: string
-  emoji: string | null
   icon: string | null
   description: string | null
   display_order: number
@@ -80,7 +79,6 @@ export function useQuestions() {
         categories: (response.data.story_categories || []).map((c) => ({
           id: c.id,
           name: c.name,
-          emoji: c.emoji ?? null,
           icon: c.icon ?? null,
           description: c.description ?? null,
           display_order: c.display_order,

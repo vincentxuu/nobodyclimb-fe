@@ -47,7 +47,6 @@ export function AddCustomStoryModal({
       id: c.id,
       source: 'system' as const,
       name: c.name,
-      emoji: c.emoji || '',
       icon: c.icon || 'BookOpen',
       description: c.description || '',
       order: c.display_order,
@@ -171,7 +170,7 @@ export function AddCustomStoryModal({
             >
               {categories.map((cat) => (
                 <option key={cat.id} value={cat.id}>
-                  {cat.emoji} {cat.name}
+                  {cat.name}
                 </option>
               ))}
             </select>
@@ -202,8 +201,7 @@ export function AddCustomStoryModal({
             <div className="bg-[#F5F5F5] rounded-xl p-4 space-y-3">
               <p className="text-sm text-[#6D6C6C]">預覽</p>
               <div className="bg-white rounded-lg p-4 space-y-2">
-                <div className="flex items-center gap-2 mb-2">
-                  <span>{selectedCategory?.emoji || '📝'}</span>
+                <div className="mb-2">
                   <span className="text-xs text-[#8E8C8C]">
                     {selectedCategory?.name || '未分類'}
                   </span>

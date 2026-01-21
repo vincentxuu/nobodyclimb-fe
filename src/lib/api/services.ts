@@ -2267,7 +2267,6 @@ export interface ContentQuestions {
   story_categories: Array<{
     id: string
     name: string
-    emoji?: string
     icon?: string
     description?: string
     display_order: number

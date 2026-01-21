@@ -13,16 +13,20 @@ export const biographyContentRoutes = new Hono<{ Bindings: Bindings }>();
 biographyContentRoutes.get('/questions', async (c) => {
   const [coreQuestions, oneLinerQuestions, storyCategories, storyQuestions] = await Promise.all([
     c.env.DB.prepare(`
-      SELECT * FROM core_story_questions WHERE is_active = 1 ORDER BY display_order
+      SELECT id, title, subtitle, placeholder, display_order
+      FROM core_story_questions WHERE is_active = 1 ORDER BY display_order
     `).all(),
     c.env.DB.prepare(`
-      SELECT * FROM one_liner_questions WHERE is_active = 1 ORDER BY display_order
+      SELECT id, question, format_hint, placeholder, display_order
+      FROM one_liner_questions WHERE is_active = 1 ORDER BY display_order
     `).all(),
     c.env.DB.prepare(`
-      SELECT * FROM story_categories WHERE is_active = 1 ORDER BY display_order
+      SELECT id, name, icon, description, display_order
+      FROM story_categories WHERE is_active = 1 ORDER BY display_order
     `).all(),
     c.env.DB.prepare(`
-      SELECT * FROM story_questions WHERE is_active = 1 ORDER BY category_id, display_order
+      SELECT id, category_id, title, subtitle, placeholder, difficulty, display_order
+      FROM story_questions WHERE is_active = 1 ORDER BY category_id, display_order
     `).all(),
   ]);
 

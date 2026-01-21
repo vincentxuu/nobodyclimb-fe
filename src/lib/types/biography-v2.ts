@@ -151,7 +151,6 @@ export interface StoryCategoryDefinition extends ExtensibleItem {
   id: string
   source: ContentSource
   name: string
-  emoji: string
   icon: string // Lucide icon name
   description: string
   order: number
