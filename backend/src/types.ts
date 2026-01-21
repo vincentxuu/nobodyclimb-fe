@@ -3,12 +3,25 @@ export interface Env {
   DB: D1Database;
   CACHE: KVNamespace;
   STORAGE: R2Bucket;
+  ACCESS_LOGS: AnalyticsEngineDataset;
   CORS_ORIGIN: string;
   JWT_ISSUER: string;
   JWT_SECRET: string;
   R2_PUBLIC_URL: string;
   CWA_API_KEY: string; // 中央氣象署 API 授權碼
   GOOGLE_CLIENT_ID: string;
+  // Analytics Engine 查詢用（可選，透過 wrangler secret 設定）
+  CLOUDFLARE_ACCOUNT_ID?: string;
+  CLOUDFLARE_API_TOKEN?: string;
+}
+
+// Analytics Engine Dataset Type
+export interface AnalyticsEngineDataset {
+  writeDataPoint(event: {
+    blobs?: string[];
+    doubles?: number[];
+    indexes?: string[];
+  }): void;
 }
 
 // Weather API Types
@@ -351,6 +364,8 @@ export interface JwtPayload {
   sub: string;
   email: string;
   role: string;
+  username?: string;
+  display_name?: string | null;
   iat: number;
   exp: number;
 }

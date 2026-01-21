@@ -547,12 +547,7 @@ biographiesRoutes.post('/', authMiddleware, async (c) => {
       }
     }
 
-    // Update slug if name changed
-    if (body.name) {
-      const newSlug = generateSlug(body.name) + '-' + existing.id.substring(0, 8);
-      updates.push('slug = ?');
-      values.push(newSlug);
-    }
+    // Note: slug is now tied to username, not name. Slug updates happen via PUT /auth/profile
 
     // Set published_at when going public for first time
     if (body.is_public === 1) {
@@ -607,7 +602,26 @@ biographiesRoutes.post('/', authMiddleware, async (c) => {
 
   // Create new biography
   const id = generateId();
-  const slug = generateSlug(body.name) + '-' + id.substring(0, 8);
+
+  // Get user's username for slug
+  const user = await c.env.DB.prepare(
+    'SELECT username FROM users WHERE id = ?'
+  )
+    .bind(userId)
+    .first<{ username: string }>();
+
+  if (!user) {
+    return c.json(
+      {
+        success: false,
+        error: 'Not Found',
+        message: 'User not found',
+      },
+      404
+    );
+  }
+
+  const slug = user.username;
 
   await c.env.DB.prepare(
     `INSERT INTO biographies (
@@ -688,9 +702,21 @@ biographiesRoutes.put('/me', authMiddleware, async (c) => {
       .bind(userId)
       .first<{ display_name: string | null; username: string }>();
 
-    const defaultName = body.name || user?.display_name || user?.username || '攀岩者';
+    if (!user) {
+      return c.json(
+        {
+          success: false,
+          error: 'Not Found',
+          message: 'User not found',
+        },
+        404
+      );
+    }
+
+    const defaultName = body.name || user.display_name || user.username || '攀岩者';
     const id = generateId();
-    const slug = generateSlug(defaultName) + '-' + id.substring(0, 8);
+    // Use username as slug
+    const slug = user.username;
     const now = new Date().toISOString();
 
     // Build insert with provided fields
@@ -764,13 +790,12 @@ biographiesRoutes.put('/me', authMiddleware, async (c) => {
   const values: (string | number | null)[] = [];
 
   // All biography fields including new advanced story fields and V2 fields
+  // 注意：核心故事 (climbing_origin, climbing_meaning, advice_to_self) 已移至獨立表，不在此更新
   const fields = [
     // Basic info
     'name', 'title', 'bio', 'avatar_url', 'cover_image',
     // Level 1: Basic climbing info
     'climbing_start_year', 'frequent_locations', 'favorite_route_type',
-    // Level 2: Core stories
-    'climbing_origin', 'climbing_meaning', 'advice_to_self',
     // Level 3A: Growth & Breakthrough
     'memorable_moment', 'biggest_challenge', 'breakthrough_story',
     'first_outdoor', 'first_grade', 'frustrating_climb',
@@ -803,12 +828,7 @@ biographiesRoutes.put('/me', authMiddleware, async (c) => {
     }
   }
 
-  // Update slug if name changed
-  if (body.name) {
-    const newSlug = generateSlug(body.name) + '-' + existing.id.substring(0, 8);
-    updates.push('slug = ?');
-    values.push(newSlug);
-  }
+  // Note: slug is now tied to username, not name. Slug updates happen via PUT /auth/profile
 
   // Handle visibility change - sync with is_public
   if (body.visibility) {
@@ -835,6 +855,49 @@ biographiesRoutes.put('/me', authMiddleware, async (c) => {
     )
       .bind(...values)
       .run();
+  }
+
+  // 核心故事直接存到獨立表 (biography_core_stories)，不存舊欄位
+  const coreStoryMap: Record<string, string | undefined> = {
+    climbing_origin: body.climbing_origin as string | undefined,
+    climbing_meaning: body.climbing_meaning as string | undefined,
+    advice_to_self: body.advice_to_self as string | undefined,
+  };
+
+  for (const [questionId, content] of Object.entries(coreStoryMap)) {
+    if (content !== undefined) {
+      const now = new Date().toISOString();
+      const existingStory = await c.env.DB.prepare(
+        'SELECT id FROM biography_core_stories WHERE biography_id = ? AND question_id = ?'
+      )
+        .bind(existing.id, questionId)
+        .first<{ id: string }>();
+
+      if (content === null || content.trim() === '') {
+        // 如果內容為空，刪除記錄
+        if (existingStory) {
+          await c.env.DB.prepare('DELETE FROM biography_core_stories WHERE id = ?')
+            .bind(existingStory.id)
+            .run();
+        }
+      } else if (existingStory) {
+        // 更新現有記錄
+        await c.env.DB.prepare(
+          'UPDATE biography_core_stories SET content = ?, updated_at = ? WHERE id = ?'
+        )
+          .bind(content.trim(), now, existingStory.id)
+          .run();
+      } else {
+        // 插入新記錄
+        const storyId = generateId();
+        await c.env.DB.prepare(
+          `INSERT INTO biography_core_stories (id, biography_id, question_id, content, created_at, updated_at)
+           VALUES (?, ?, ?, ?, ?, ?)`
+        )
+          .bind(storyId, existing.id, questionId, content.trim(), now, now)
+          .run();
+      }
+    }
   }
 
   const biography = await c.env.DB.prepare(
@@ -1009,7 +1072,7 @@ biographiesRoutes.get('/:id/adjacent', optionalAuthMiddleware, async (c) => {
 
   // Get previous (newer) biography
   const previous = await c.env.DB.prepare(
-    `SELECT id, name, avatar_url FROM biographies
+    `SELECT id, slug, name, avatar_url FROM biographies
      WHERE ${publicOnlyClause} AND id != ?
      AND COALESCE(published_at, created_at) > ?
      ORDER BY COALESCE(published_at, created_at) ASC
@@ -1020,7 +1083,7 @@ biographiesRoutes.get('/:id/adjacent', optionalAuthMiddleware, async (c) => {
 
   // Get next (older) biography
   const next = await c.env.DB.prepare(
-    `SELECT id, name, avatar_url FROM biographies
+    `SELECT id, slug, name, avatar_url FROM biographies
      WHERE ${publicOnlyClause} AND id != ?
      AND COALESCE(published_at, created_at) < ?
      ORDER BY COALESCE(published_at, created_at) DESC

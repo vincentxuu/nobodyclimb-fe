@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useEffect, useCallback } from 'react'
+import { motion, AnimatePresence } from 'framer-motion'
 import {
   Bell,
   Mountain,
@@ -12,6 +13,8 @@ import {
   Trash2,
   Loader2,
   X,
+  FileText,
+  Megaphone,
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { notificationService } from '@/lib/api/services'
@@ -19,39 +22,36 @@ import { useAuthStore } from '@/store/authStore'
 import { cn } from '@/lib/utils'
 import { formatDistanceToNow } from 'date-fns'
 import { zhTW } from 'date-fns/locale'
-
-interface Notification {
-  id: string
-  user_id: string
-  type: string
-  actor_id: string | null
-  target_id: string | null
-  title: string
-  message: string
-  is_read: number
-  created_at: string
-  actor_name?: string
-  actor_avatar?: string
-}
+import { NotificationType, type Notification } from '@/lib/types'
 
 interface NotificationCenterProps {
   className?: string
 }
 
-const notificationIcons: Record<string, React.ElementType> = {
-  goal_liked: Mountain,
-  goal_commented: MessageCircle,
-  goal_referenced: Sparkles,
-  new_follower: UserPlus,
-  story_featured: Sparkles,
+// 通知類型對應的 Icon（使用 enum 值作為 key，兼容後端 string）
+const notificationIcons: Partial<Record<string, React.ElementType>> = {
+  [NotificationType.GOAL_LIKED]: Mountain,
+  [NotificationType.GOAL_COMMENTED]: MessageCircle,
+  [NotificationType.GOAL_REFERENCED]: Sparkles,
+  [NotificationType.NEW_FOLLOWER]: UserPlus,
+  [NotificationType.STORY_FEATURED]: Sparkles,
+  [NotificationType.BIOGRAPHY_COMMENTED]: MessageCircle,
+  [NotificationType.POST_LIKED]: Mountain,
+  [NotificationType.POST_COMMENTED]: FileText,
+  [NotificationType.SYSTEM_ANNOUNCEMENT]: Megaphone,
 }
 
-const notificationColors: Record<string, string> = {
-  goal_liked: 'text-red-500 bg-red-50',
-  goal_commented: 'text-blue-500 bg-blue-50',
-  goal_referenced: 'text-amber-500 bg-amber-50',
-  new_follower: 'text-green-500 bg-green-50',
-  story_featured: 'text-purple-500 bg-purple-50',
+// 通知類型對應的顏色（使用 Tailwind 主題色）
+const notificationColors: Partial<Record<string, string>> = {
+  [NotificationType.GOAL_LIKED]: 'text-brand-dark bg-brand-accent/20',
+  [NotificationType.GOAL_COMMENTED]: 'text-blue-500 bg-blue-50',
+  [NotificationType.GOAL_REFERENCED]: 'text-amber-500 bg-amber-50',
+  [NotificationType.NEW_FOLLOWER]: 'text-green-500 bg-green-50',
+  [NotificationType.STORY_FEATURED]: 'text-purple-500 bg-purple-50',
+  [NotificationType.BIOGRAPHY_COMMENTED]: 'text-indigo-500 bg-indigo-50',
+  [NotificationType.POST_LIKED]: 'text-brand-dark bg-brand-accent/20',
+  [NotificationType.POST_COMMENTED]: 'text-cyan-500 bg-cyan-50',
+  [NotificationType.SYSTEM_ANNOUNCEMENT]: 'text-brand-dark bg-brand-accent/30',
 }
 
 export function NotificationCenter({ className }: NotificationCenterProps) {
@@ -61,22 +61,27 @@ export function NotificationCenter({ className }: NotificationCenterProps) {
   const [isLoading, setIsLoading] = useState(false)
   const [page, setPage] = useState(1)
   const [hasMore, setHasMore] = useState(true)
-  const { isAuthenticated } = useAuthStore()
+  const { isAuthenticated, isInitialized } = useAuthStore()
 
   const loadUnreadCount = useCallback(async () => {
-    if (!isAuthenticated) return
+    // 確保認證已初始化且用戶已登入
+    if (!isInitialized || !isAuthenticated) return
     try {
       const response = await notificationService.getUnreadCount()
       if (response.success && response.data) {
         setUnreadCount(response.data.count)
       }
     } catch (error) {
-      console.error('Failed to load unread count:', error)
+      // 靜默處理 401 錯誤,避免干擾用戶體驗
+      if (error instanceof Error && !error.message.includes('401')) {
+        console.error('Failed to load unread count:', error)
+      }
     }
-  }, [isAuthenticated])
+  }, [isAuthenticated, isInitialized])
 
   const loadNotifications = useCallback(async (pageNum = 1, append = false) => {
-    if (!isAuthenticated) return
+    // 確保認證已初始化且用戶已登入
+    if (!isInitialized || !isAuthenticated) return
     setIsLoading(true)
     try {
       const response = await notificationService.getNotifications(pageNum, 10)
@@ -90,11 +95,14 @@ export function NotificationCenter({ className }: NotificationCenterProps) {
         setHasMore(response.pagination.page < response.pagination.total_pages)
       }
     } catch (error) {
-      console.error('Failed to load notifications:', error)
+      // 靜默處理 401 錯誤
+      if (error instanceof Error && !error.message.includes('401')) {
+        console.error('Failed to load notifications:', error)
+      }
     } finally {
       setIsLoading(false)
     }
-  }, [isAuthenticated])
+  }, [isAuthenticated, isInitialized])
 
   useEffect(() => {
     loadUnreadCount()
@@ -108,6 +116,18 @@ export function NotificationCenter({ className }: NotificationCenterProps) {
       loadNotifications(1)
     }
   }, [isOpen, loadNotifications])
+
+  // 鎖定背景滾動
+  useEffect(() => {
+    if (isOpen) {
+      document.body.style.overflow = 'hidden'
+    } else {
+      document.body.style.overflow = ''
+    }
+    return () => {
+      document.body.style.overflow = ''
+    }
+  }, [isOpen])
 
   const handleMarkAsRead = async (id: string) => {
     try {
@@ -172,135 +192,156 @@ export function NotificationCenter({ className }: NotificationCenterProps) {
       >
         <Bell className="h-5 w-5" />
         {unreadCount > 0 && (
-          <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center font-medium">
+          <span className="absolute -top-1 -right-1 bg-brand-accent text-brand-dark text-xs rounded-full h-5 w-5 flex items-center justify-center font-medium">
             {unreadCount > 99 ? '99+' : unreadCount}
           </span>
         )}
       </button>
 
-      {isOpen && (
-        <>
-          <div
-            className="fixed inset-0 z-40"
-            onClick={() => setIsOpen(false)}
-          />
-          <div className="absolute right-0 top-full mt-2 w-80 sm:w-96 bg-white rounded-lg shadow-lg border z-50 max-h-[80vh] overflow-hidden flex flex-col">
-            <div className="flex items-center justify-between px-4 py-3 border-b">
-              <h3 className="font-semibold">通知</h3>
-              <div className="flex items-center gap-2">
-                {unreadCount > 0 && (
+      <AnimatePresence>
+        {isOpen && (
+          <>
+            {/* 背景遮罩 */}
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: 0.3 }}
+              className="fixed inset-0 z-[10000] bg-black/50"
+              onClick={() => setIsOpen(false)}
+            />
+            {/* 通知面板 - 從右邊滑入 */}
+            <motion.div
+              initial={{ x: '100%' }}
+              animate={{ x: 0 }}
+              exit={{ x: '100%' }}
+              transition={{ type: 'spring', damping: 25, stiffness: 300 }}
+              className="fixed right-0 top-0 h-screen z-[10001] bg-white flex flex-col w-full max-w-md shadow-2xl"
+            >
+              {/* Header */}
+              <div className="flex items-center justify-between px-4 py-4 border-b">
+                <h3 className="text-lg font-semibold">通知</h3>
+                <div className="flex items-center gap-3">
+                  {unreadCount > 0 && (
+                    <button
+                      onClick={handleMarkAllAsRead}
+                      className="text-sm text-gray-500 hover:text-gray-700 flex items-center gap-1"
+                    >
+                      <CheckCheck className="h-4 w-4" />
+                      全部已讀
+                    </button>
+                  )}
                   <button
-                    onClick={handleMarkAllAsRead}
-                    className="text-xs text-gray-500 hover:text-gray-700 flex items-center gap-1"
+                    onClick={() => setIsOpen(false)}
+                    className="p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-full transition-colors"
+                    aria-label="關閉通知"
                   >
-                    <CheckCheck className="h-3 w-3" />
-                    全部已讀
+                    <X className="h-5 w-5" />
                   </button>
-                )}
-                <button
-                  onClick={() => setIsOpen(false)}
-                  className="text-gray-400 hover:text-gray-600"
-                >
-                  <X className="h-4 w-4" />
-                </button>
+                </div>
               </div>
-            </div>
 
-            <div className="flex-1 overflow-y-auto">
-              {isLoading && notifications.length === 0 ? (
-                <div className="flex justify-center py-8">
-                  <Loader2 className="h-6 w-6 animate-spin text-gray-400" />
-                </div>
-              ) : notifications.length === 0 ? (
-                <div className="py-8 text-center text-gray-500">
-                  <Bell className="h-8 w-8 mx-auto mb-2 opacity-50" />
-                  <p>還沒有通知</p>
-                </div>
-              ) : (
+              {/* 通知列表 */}
+              <div className="flex-1 overflow-y-auto" style={{ paddingBottom: 'max(5rem, env(safe-area-inset-bottom))' }}>
                 <div>
-                  {notifications.map((notification) => {
-                    const Icon =
-                      notificationIcons[notification.type] || Bell
-                    const colorClass =
-                      notificationColors[notification.type] ||
-                      'text-gray-500 bg-gray-50'
+                  {isLoading && notifications.length === 0 ? (
+                    <div className="flex justify-center py-12">
+                      <Loader2 className="h-8 w-8 animate-spin text-gray-400" />
+                    </div>
+                  ) : notifications.length === 0 ? (
+                    <div className="py-16 text-center text-gray-500">
+                      <Bell className="h-12 w-12 mx-auto mb-3 opacity-50" />
+                      <p className="text-lg">還沒有通知</p>
+                    </div>
+                  ) : (
+                    <div>
+                      {notifications.map((notification) => {
+                      const Icon =
+                        notificationIcons[notification.type] || Bell
+                      const colorClass =
+                        notificationColors[notification.type] ||
+                        'text-gray-500 bg-gray-50'
 
-                    return (
-                      <div
-                        key={notification.id}
-                        className={cn(
-                          'px-4 py-3 border-b last:border-b-0 hover:bg-gray-50 transition-colors',
-                          !notification.is_read && 'bg-blue-50/50'
-                        )}
-                      >
-                        <div className="flex gap-3">
-                          <div
-                            className={cn(
-                              'w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0',
-                              colorClass
-                            )}
-                          >
-                            <Icon className="h-4 w-4" />
-                          </div>
-                          <div className="flex-1 min-w-0">
-                            <p className="text-sm font-medium text-gray-900">
-                              {notification.title}
-                            </p>
-                            <p className="text-sm text-gray-600 mt-0.5 line-clamp-2">
-                              {notification.message}
-                            </p>
-                            <p className="text-xs text-gray-400 mt-1">
-                              {formatTime(notification.created_at)}
-                            </p>
-                          </div>
-                          <div className="flex items-start gap-1">
-                            {!notification.is_read && (
-                              <button
-                                onClick={() =>
-                                  handleMarkAsRead(notification.id)
-                                }
-                                className="p-1 text-gray-400 hover:text-green-500"
-                                title="標記為已讀"
-                              >
-                                <Check className="h-3 w-3" />
-                              </button>
-                            )}
-                            <button
-                              onClick={() => handleDelete(notification.id)}
-                              className="p-1 text-gray-400 hover:text-red-500"
-                              title="刪除"
+                      return (
+                        <div
+                          key={notification.id}
+                          className={cn(
+                            'px-4 py-4 border-b last:border-b-0 hover:bg-gray-50 transition-colors',
+                            !notification.is_read && 'bg-brand-accent/10'
+                          )}
+                        >
+                          <div className="flex gap-3">
+                            <div
+                              className={cn(
+                                'w-10 h-10 rounded-full flex items-center justify-center flex-shrink-0',
+                                colorClass
+                              )}
                             >
-                              <Trash2 className="h-3 w-3" />
-                            </button>
+                              <Icon className="h-5 w-5" />
+                            </div>
+                            <div className="flex-1 min-w-0">
+                              <p className="text-base font-medium text-gray-900">
+                                {notification.title}
+                              </p>
+                              <p className="text-sm text-gray-600 mt-1 line-clamp-3">
+                                {notification.message}
+                              </p>
+                              <p className="text-xs text-gray-400 mt-2">
+                                {formatTime(notification.created_at)}
+                              </p>
+                            </div>
+                            <div className="flex items-start gap-2">
+                              {!notification.is_read && (
+                                <button
+                                  onClick={() =>
+                                    handleMarkAsRead(notification.id)
+                                  }
+                                  className="p-2 text-gray-400 hover:text-green-500 hover:bg-green-50 rounded-full transition-colors"
+                                  title="標記為已讀"
+                                  aria-label="標記為已讀"
+                                >
+                                  <Check className="h-4 w-4" />
+                                </button>
+                              )}
+                              <button
+                                onClick={() => handleDelete(notification.id)}
+                                className="p-2 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-full transition-colors"
+                                title="刪除"
+                                aria-label="刪除通知"
+                              >
+                                <Trash2 className="h-4 w-4" />
+                              </button>
+                            </div>
                           </div>
                         </div>
-                      </div>
-                    )
-                  })}
+                      )
+                    })}
 
-                  {hasMore && (
-                    <div className="p-4">
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={handleLoadMore}
-                        disabled={isLoading}
-                        className="w-full"
-                      >
-                        {isLoading ? (
-                          <Loader2 className="h-4 w-4 animate-spin" />
-                        ) : (
-                          '載入更多'
-                        )}
-                      </Button>
-                    </div>
-                  )}
+                    {hasMore && (
+                      <div className="p-4">
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={handleLoadMore}
+                          disabled={isLoading}
+                          className="w-full"
+                        >
+                          {isLoading ? (
+                            <Loader2 className="h-4 w-4 animate-spin" />
+                          ) : (
+                            '載入更多'
+                          )}
+                        </Button>
+                      </div>
+                    )}
+                  </div>
+                )}
                 </div>
-              )}
-            </div>
-          </div>
-        </>
-      )}
+              </div>
+            </motion.div>
+          </>
+        )}
+      </AnimatePresence>
     </div>
   )
 }

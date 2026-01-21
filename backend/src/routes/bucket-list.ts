@@ -2,7 +2,7 @@ import { Hono } from 'hono';
 import { Env } from '../types';
 import { generateId } from '../utils/id';
 import { authMiddleware, optionalAuthMiddleware } from '../middleware/auth';
-import { createNotification } from './notifications';
+import { createNotification, createLikeNotificationWithAggregation } from './notifications';
 
 export const bucketListRoutes = new Hono<{ Bindings: Env }>();
 
@@ -805,6 +805,7 @@ bucketListRoutes.post('/:id/like', authMiddleware, async (c) => {
     .run();
 
   // Create notification for owner (if not liking own item)
+  // 使用聚合功能：1 小時內同一目標的按讚會合併成一則通知
   if (item.owner_id && item.owner_id !== userId) {
     const liker = await c.env.DB.prepare(
       'SELECT display_name, username FROM users WHERE id = ?'
@@ -814,13 +815,13 @@ bucketListRoutes.post('/:id/like', authMiddleware, async (c) => {
 
     const likerName = liker?.display_name || liker?.username || '有人';
 
-    await createNotification(c.env.DB, {
+    await createLikeNotificationWithAggregation(c.env.DB, {
       userId: item.owner_id,
       type: 'goal_liked',
       actorId: userId,
+      actorName: likerName,
       targetId: id,
-      title: '有人按讚你的目標',
-      message: `${likerName} 按讚了你的目標「${item.title}」`,
+      targetTitle: item.title,
     });
   }
 

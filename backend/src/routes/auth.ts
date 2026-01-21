@@ -76,6 +76,8 @@ authRoutes.post('/register', zValidator('json', registerSchema), async (c) => {
     sub: id,
     email,
     role: 'user',
+    username,
+    display_name: display_name || null,
   });
   const refresh_token = await generateRefreshToken(c.env, { sub: id });
 
@@ -148,6 +150,8 @@ authRoutes.post('/login', zValidator('json', loginSchema), async (c) => {
     sub: user.id,
     email: user.email,
     role: user.role,
+    username: user.username,
+    display_name: user.display_name,
   });
   const refresh_token = await generateRefreshToken(c.env, { sub: user.id });
 
@@ -190,13 +194,13 @@ authRoutes.post('/refresh-token', async (c) => {
   const token_hash = await hashPassword(refresh_token);
 
   const storedToken = await c.env.DB.prepare(
-    `SELECT rt.*, u.email, u.role
+    `SELECT rt.*, u.email, u.role, u.username, u.display_name
      FROM refresh_tokens rt
      JOIN users u ON rt.user_id = u.id
      WHERE rt.token_hash = ? AND rt.expires_at > datetime('now')`
   )
     .bind(token_hash)
-    .first<{ user_id: string; email: string; role: string }>();
+    .first<{ user_id: string; email: string; role: string; username: string; display_name: string | null }>();
 
   if (!storedToken) {
     return c.json(
@@ -214,6 +218,8 @@ authRoutes.post('/refresh-token', async (c) => {
     sub: storedToken.user_id,
     email: storedToken.email,
     role: storedToken.role,
+    username: storedToken.username,
+    display_name: storedToken.display_name,
   });
 
   return c.json({
@@ -256,6 +262,7 @@ authRoutes.get('/me', authMiddleware, async (c) => {
 authRoutes.put('/profile', authMiddleware, async (c) => {
   const userId = c.get('userId');
   const body = await c.req.json<{
+    username?: string;
     display_name?: string;
     bio?: string;
     avatar_url?: string;
@@ -266,6 +273,51 @@ authRoutes.put('/profile', authMiddleware, async (c) => {
 
   const updates: string[] = [];
   const values: (string | null)[] = [];
+
+  // Handle username update with validation and uniqueness check
+  if (body.username !== undefined) {
+    const username = body.username.trim();
+
+    // Validate username format: 3-30 chars, alphanumeric and underscore only
+    if (!/^[a-zA-Z0-9_]{3,30}$/.test(username)) {
+      return c.json(
+        {
+          success: false,
+          error: 'Bad Request',
+          message: 'Username must be 3-30 characters, only letters, numbers, and underscores allowed',
+        },
+        400
+      );
+    }
+
+    // Check if username is already taken by another user
+    const existingUser = await c.env.DB.prepare(
+      'SELECT id FROM users WHERE username = ? AND id != ?'
+    )
+      .bind(username, userId)
+      .first();
+
+    if (existingUser) {
+      return c.json(
+        {
+          success: false,
+          error: 'Conflict',
+          message: 'Username is already taken',
+        },
+        409
+      );
+    }
+
+    updates.push('username = ?');
+    values.push(username);
+
+    // Also update the biography slug if user has one
+    await c.env.DB.prepare(
+      'UPDATE biographies SET slug = ?, updated_at = datetime(\'now\') WHERE user_id = ?'
+    )
+      .bind(username, userId)
+      .run();
+  }
 
   if (body.display_name !== undefined) {
     updates.push('display_name = ?');
@@ -513,6 +565,8 @@ authRoutes.post('/google', zValidator('json', googleAuthSchema), async (c) => {
       sub: user.id,
       email: user.email,
       role: user.role,
+      username: user.username,
+      display_name: user.display_name,
     });
     const refresh_token = await generateRefreshToken(c.env, { sub: user.id });
 

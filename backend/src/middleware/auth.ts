@@ -11,6 +11,26 @@ function getJwtSecret(env: Env): Uint8Array {
   return new TextEncoder().encode(env.JWT_SECRET);
 }
 
+/**
+ * 更新用戶最後活動時間
+ * 採用「24小時內只更新一次」策略，避免過度寫入資料庫
+ */
+async function updateLastActiveAt(db: D1Database, userId: string): Promise<void> {
+  // 使用單一 SQL 語句：只有當 last_active_at 為 null 或距離現在超過 24 小時時才更新
+  await db
+    .prepare(`
+      UPDATE users
+      SET last_active_at = datetime('now')
+      WHERE id = ?
+        AND (
+          last_active_at IS NULL
+          OR datetime(last_active_at, '+24 hours') <= datetime('now')
+        )
+    `)
+    .bind(userId)
+    .run();
+}
+
 // Extend Hono context with user info
 declare module 'hono' {
   interface ContextVariableMap {
@@ -46,6 +66,14 @@ export const authMiddleware = createMiddleware<{ Bindings: Env }>(
       const user = payload as unknown as JwtPayload;
       c.set('user', user);
       c.set('userId', user.sub);
+
+      // 更新最後活動時間（24小時內只更新一次以減少資料庫寫入）
+      try {
+        await updateLastActiveAt(c.env.DB, user.sub);
+      } catch (error) {
+        // 更新失敗不影響請求繼續處理
+        console.error('Failed to update last_active_at:', error);
+      }
 
       await next();
     } catch (error) {
@@ -89,6 +117,13 @@ export const optionalAuthMiddleware = createMiddleware<{ Bindings: Env }>(
         const user = payload as unknown as JwtPayload;
         c.set('user', user);
         c.set('userId', user.sub);
+
+        // 更新最後活動時間
+        try {
+          await updateLastActiveAt(c.env.DB, user.sub);
+        } catch (error) {
+          console.error('Failed to update last_active_at:', error);
+        }
       } catch {
         // Ignore token errors in optional auth
       }
@@ -121,7 +156,7 @@ export const adminMiddleware = createMiddleware<{ Bindings: Env }>(
 // JWT token generation utilities
 export async function generateAccessToken(
   env: Env,
-  payload: { sub: string; email: string; role: string }
+  payload: { sub: string; email: string; role: string; username?: string; display_name?: string | null }
 ): Promise<string> {
   const secret = getJwtSecret(env);
 
