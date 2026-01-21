@@ -109,6 +109,18 @@ export function NotificationCenter({ className }: NotificationCenterProps) {
     }
   }, [isOpen, loadNotifications])
 
+  // 鎖定背景滾動
+  useEffect(() => {
+    if (isOpen) {
+      document.body.style.overflow = 'hidden'
+    } else {
+      document.body.style.overflow = ''
+    }
+    return () => {
+      document.body.style.overflow = ''
+    }
+  }, [isOpen])
+
   const handleMarkAsRead = async (id: string) => {
     try {
       await notificationService.markAsRead(id)
@@ -214,6 +226,7 @@ export function NotificationCenter({ className }: NotificationCenterProps) {
                   <button
                     onClick={() => setIsOpen(false)}
                     className="p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-full transition-colors"
+                    aria-label="關閉通知"
                   >
                     <X className="h-5 w-5" />
                   </button>
@@ -276,6 +289,7 @@ export function NotificationCenter({ className }: NotificationCenterProps) {
                                   }
                                   className="p-2 text-gray-400 hover:text-green-500 hover:bg-green-50 rounded-full transition-colors"
                                   title="標記為已讀"
+                                  aria-label="標記為已讀"
                                 >
                                   <Check className="h-4 w-4" />
                                 </button>
@@ -284,6 +298,7 @@ export function NotificationCenter({ className }: NotificationCenterProps) {
                                 onClick={() => handleDelete(notification.id)}
                                 className="p-2 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-full transition-colors"
                                 title="刪除"
+                                aria-label="刪除通知"
                               >
                                 <Trash2 className="h-4 w-4" />
                               </button>
