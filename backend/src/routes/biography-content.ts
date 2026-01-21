@@ -60,14 +60,14 @@ biographyContentRoutes.get('/biographies/:biographyId/core-stories', optionalAut
 
   // 如果使用者已登入，檢查是否已按讚
   if (userId && stories.results.length > 0) {
-    const storyIds = stories.results.map((s: { id: string }) => s.id);
+    const storyIds = (stories.results as Array<{ id: string }>).map((s) => s.id);
     const likes = await c.env.DB.prepare(`
       SELECT core_story_id FROM core_story_likes
       WHERE user_id = ? AND core_story_id IN (${storyIds.map(() => '?').join(',')})
     `).bind(userId, ...storyIds).all();
 
-    const likedIds = new Set(likes.results.map((l: { core_story_id: string }) => l.core_story_id));
-    stories.results = stories.results.map((s: { id: string }) => ({
+    const likedIds = new Set((likes.results as Array<{ core_story_id: string }>).map((l) => l.core_story_id));
+    stories.results = (stories.results as Array<{ id: string }>).map((s) => ({
       ...s,
       is_liked: likedIds.has(s.id),
     }));
@@ -154,10 +154,11 @@ biographyContentRoutes.post('/core-stories/:id/like', authMiddleware, async (c) 
     if ((story as { owner_id: string }).owner_id !== userId) {
       try {
         await createNotification(c.env.DB, {
-          user_id: (story as { owner_id: string }).owner_id,
+          userId: (story as { owner_id: string }).owner_id,
           type: 'core_story_liked',
-          actor_id: userId,
-          target_id: storyId,
+          actorId: userId,
+          targetId: storyId,
+          title: '核心故事獲得按讚',
           message: '對你的核心故事按讚',
         });
       } catch (err) {
@@ -243,10 +244,11 @@ biographyContentRoutes.post('/core-stories/:id/comments', authMiddleware, async 
   if ((story as { owner_id: string }).owner_id !== userId) {
     try {
       await createNotification(c.env.DB, {
-        user_id: (story as { owner_id: string }).owner_id,
+        userId: (story as { owner_id: string }).owner_id,
         type: 'core_story_commented',
-        actor_id: userId,
-        target_id: storyId,
+        actorId: userId,
+        targetId: storyId,
+        title: '核心故事有新留言',
         message: '對你的核心故事留言',
       });
     } catch (err) {
@@ -316,14 +318,14 @@ biographyContentRoutes.get('/biographies/:biographyId/one-liners', optionalAuthM
   `).bind(biographyId).all();
 
   if (userId && oneLiners.results.length > 0) {
-    const ids = oneLiners.results.map((o: { id: string }) => o.id);
+    const ids = (oneLiners.results as Array<{ id: string }>).map((o) => o.id);
     const likes = await c.env.DB.prepare(`
       SELECT one_liner_id FROM one_liner_likes
       WHERE user_id = ? AND one_liner_id IN (${ids.map(() => '?').join(',')})
     `).bind(userId, ...ids).all();
 
-    const likedIds = new Set(likes.results.map((l: { one_liner_id: string }) => l.one_liner_id));
-    oneLiners.results = oneLiners.results.map((o: { id: string }) => ({
+    const likedIds = new Set((likes.results as Array<{ one_liner_id: string }>).map((l) => l.one_liner_id));
+    oneLiners.results = (oneLiners.results as Array<{ id: string }>).map((o) => ({
       ...o,
       is_liked: likedIds.has(o.id),
     }));
@@ -430,10 +432,11 @@ biographyContentRoutes.post('/one-liners/:id/like', authMiddleware, async (c) =>
     if ((oneLiner as { owner_id: string }).owner_id !== userId) {
       try {
         await createNotification(c.env.DB, {
-          user_id: (oneLiner as { owner_id: string }).owner_id,
+          userId: (oneLiner as { owner_id: string }).owner_id,
           type: 'one_liner_liked',
-          actor_id: userId,
-          target_id: oneLinerId,
+          actorId: userId,
+          targetId: oneLinerId,
+          title: '一句話獲得按讚',
           message: '對你的一句話按讚',
         });
       } catch (err) {
@@ -512,10 +515,11 @@ biographyContentRoutes.post('/one-liners/:id/comments', authMiddleware, async (c
   if ((oneLiner as { owner_id: string }).owner_id !== userId) {
     try {
       await createNotification(c.env.DB, {
-        user_id: (oneLiner as { owner_id: string }).owner_id,
+        userId: (oneLiner as { owner_id: string }).owner_id,
         type: 'one_liner_commented',
-        actor_id: userId,
-        target_id: oneLinerId,
+        actorId: userId,
+        targetId: oneLinerId,
+        title: '一句話有新留言',
         message: '對你的一句話留言',
       });
     } catch (err) {
@@ -562,14 +566,14 @@ biographyContentRoutes.get('/biographies/:biographyId/stories', optionalAuthMidd
   const stories = await c.env.DB.prepare(query).bind(...params).all();
 
   if (userId && stories.results.length > 0) {
-    const ids = stories.results.map((s: { id: string }) => s.id);
+    const ids = (stories.results as Array<{ id: string }>).map((s) => s.id);
     const likes = await c.env.DB.prepare(`
       SELECT story_id FROM story_likes
       WHERE user_id = ? AND story_id IN (${ids.map(() => '?').join(',')})
     `).bind(userId, ...ids).all();
 
-    const likedIds = new Set(likes.results.map((l: { story_id: string }) => l.story_id));
-    stories.results = stories.results.map((s: { id: string }) => ({
+    const likedIds = new Set((likes.results as Array<{ story_id: string }>).map((l) => l.story_id));
+    stories.results = (stories.results as Array<{ id: string }>).map((s) => ({
       ...s,
       is_liked: likedIds.has(s.id),
     }));
@@ -677,10 +681,11 @@ biographyContentRoutes.post('/stories/:id/like', authMiddleware, async (c) => {
     if ((story as { owner_id: string }).owner_id !== userId) {
       try {
         await createNotification(c.env.DB, {
-          user_id: (story as { owner_id: string }).owner_id,
+          userId: (story as { owner_id: string }).owner_id,
           type: 'story_liked',
-          actor_id: userId,
-          target_id: storyId,
+          actorId: userId,
+          targetId: storyId,
+          title: '故事獲得按讚',
           message: '對你的故事按讚',
         });
       } catch (err) {
@@ -759,10 +764,11 @@ biographyContentRoutes.post('/stories/:id/comments', authMiddleware, async (c) =
   if ((story as { owner_id: string }).owner_id !== userId) {
     try {
       await createNotification(c.env.DB, {
-        user_id: (story as { owner_id: string }).owner_id,
+        userId: (story as { owner_id: string }).owner_id,
         type: 'story_commented',
-        actor_id: userId,
-        target_id: storyId,
+        actorId: userId,
+        targetId: storyId,
+        title: '故事有新留言',
         message: '對你的故事留言',
       });
     } catch (err) {
