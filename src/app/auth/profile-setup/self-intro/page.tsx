@@ -55,20 +55,11 @@ export default function SelfIntroPage() {
     setIsSubmitting(true)
 
     try {
-      // 將表單資料轉換為 API 格式
-      const oneLinersData: Record<string, { answer: string; visibility: string }> = {}
-      Object.entries(formData).forEach(([questionId, answer]) => {
-        if (answer.trim()) {
-          oneLinersData[questionId] = {
-            answer: answer.trim(),
-            visibility: 'public',
-          }
-        }
-      })
-
-      // 更新人物誌
+      // 直接傳核心故事欄位到後端（存到獨立表 biography_core_stories）
       await biographyService.updateBiography({
-        one_liners_data: JSON.stringify(oneLinersData),
+        climbing_origin: formData[SYSTEM_ONELINER_QUESTIONS.CLIMBING_ORIGIN]?.trim() || undefined,
+        climbing_meaning: formData[SYSTEM_ONELINER_QUESTIONS.CLIMBING_MEANING]?.trim() || undefined,
+        advice_to_self: formData[SYSTEM_ONELINER_QUESTIONS.ADVICE_TO_SELF]?.trim() || undefined,
         visibility: isPublic ? 'public' : 'private',
       })
 
