@@ -15,13 +15,6 @@ import {
   ChevronRight,
 } from 'lucide-react'
 
-const roleLabels: Record<string, string> = {
-  all: '所有用戶',
-  user: '一般用戶',
-  moderator: '版主',
-  admin: '管理員',
-}
-
 export default function AdminBroadcast() {
   const [title, setTitle] = useState('')
   const [message, setMessage] = useState('')

@@ -2338,3 +2338,131 @@ export const adminBroadcastService = {
     return response.data
   },
 }
+
+// ═══════════════════════════════════════════════════════════
+// Admin 數據分析 API 服務
+// ═══════════════════════════════════════════════════════════
+
+/**
+ * 追蹤數據分析介面
+ */
+export interface FollowAnalytics {
+  summary: {
+    totalFollows: number
+    uniqueFollowers: number
+    uniqueFollowing: number
+    mutualFollows: number
+    followsToday: number
+    followsWeek: number
+    followsMonth: number
+  }
+  dailyTrend: Array<{ date: string; count: number }>
+  topFollowed: Array<{
+    id: string
+    username: string
+    display_name: string | null
+    avatar: string | null
+    biography_id: string
+    follower_count: number
+  }>
+  topFollowers: Array<{
+    id: string
+    username: string
+    display_name: string | null
+    avatar: string | null
+    following_count: number
+  }>
+}
+
+/**
+ * 用戶活躍度分析介面
+ */
+export interface ActivityAnalytics {
+  summary: {
+    dau: number
+    wau: number
+    mau: number
+    totalUsers: number
+    activeUsers: number
+    newUsersToday: number
+    newUsersWeek: number
+    newUsersMonth: number
+    retentionRate: number
+  }
+  dailyActiveUsers: Array<{ date: string; count: number }>
+  dailyNewUsers: Array<{ date: string; count: number }>
+  activityBreakdown: {
+    postsWeek: number
+    goalsWeek: number
+    likesWeek: number
+    commentsWeek: number
+    followsWeek: number
+  }
+}
+
+/**
+ * 內容統計分析介面
+ */
+export interface ContentAnalytics {
+  summary: {
+    totalPosts: number
+    publishedPosts: number
+    draftPosts: number
+    postsWeek: number
+    totalBiographies: number
+    publicBiographies: number
+    biographiesWeek: number
+    totalVideos: number
+    totalViews: number
+    totalLikes: number
+  }
+  dailyPosts: Array<{ date: string; count: number }>
+  dailyBiographies: Array<{ date: string; count: number }>
+  topBiographies: Array<{
+    id: string
+    username: string
+    display_name: string | null
+    avatar: string | null
+    total_views: number
+    total_likes: number
+    follower_count: number
+  }>
+  topPosts: Array<{
+    id: string
+    title: string
+    slug: string
+    author_name: string
+    views: number
+    created_at: string
+  }>
+  categoryDistribution: Array<{ category: string; count: number }>
+}
+
+/**
+ * Admin 數據分析 API 服務
+ */
+export const adminAnalyticsService = {
+  /**
+   * 獲取追蹤數據分析（需要 admin 權限）
+   */
+  getFollowAnalytics: async () => {
+    const response = await apiClient.get<ApiResponse<FollowAnalytics>>('/stats/admin/follows')
+    return response.data
+  },
+
+  /**
+   * 獲取用戶活躍度分析（需要 admin 權限）
+   */
+  getActivityAnalytics: async () => {
+    const response = await apiClient.get<ApiResponse<ActivityAnalytics>>('/stats/admin/activity')
+    return response.data
+  },
+
+  /**
+   * 獲取內容統計分析（需要 admin 權限）
+   */
+  getContentAnalytics: async () => {
+    const response = await apiClient.get<ApiResponse<ContentAnalytics>>('/stats/admin/content')
+    return response.data
+  },
+}
