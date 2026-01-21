@@ -233,56 +233,7 @@ export interface Biography {
   frequent_locations: string | null;
   favorite_route_type: string | null;
 
-  // 第二層：核心故事
-  climbing_origin: string | null;
-  climbing_meaning: string | null;
-  advice_to_self: string | null;
-
-  // 第三層：進階故事 - A. 成長與突破
-  memorable_moment: string | null;
-  biggest_challenge: string | null;
-  breakthrough_story: string | null;
-  first_outdoor: string | null;
-  first_grade: string | null;
-  frustrating_climb: string | null;
-
-  // 第三層：進階故事 - B. 心理與哲學
-  fear_management: string | null;
-  climbing_lesson: string | null;
-  failure_perspective: string | null;
-  flow_moment: string | null;
-  life_balance: string | null;
-  unexpected_gain: string | null;
-
-  // 第三層：進階故事 - C. 社群與連結
-  climbing_mentor: string | null;
-  climbing_partner: string | null;
-  funny_moment: string | null;
-  favorite_spot: string | null;
-  advice_to_group: string | null;
-  climbing_space: string | null;
-
-  // 第三層：進階故事 - D. 實用分享
-  injury_recovery: string | null;
-  memorable_route: string | null;
-  training_method: string | null;
-  effective_practice: string | null;
-  technique_tip: string | null;
-  gear_choice: string | null;
-
-  // 第三層：進階故事 - E. 夢想與探索
-  dream_climb: string | null;
-  climbing_trip: string | null;
-  bucket_list_story: string | null;
-  climbing_goal: string | null;
-  climbing_style: string | null;
-  climbing_inspiration: string | null;
-
-  // 第三層：進階故事 - F. 生活整合
-  life_outside_climbing: string | null;
-
   // 媒體與社群
-  gallery_images: string | null;
   social_links: string | null;
   youtube_channel_id: string | null;
   featured_video_id: string | null;
@@ -290,7 +241,6 @@ export interface Biography {
   // 狀態
   achievements: string | null;
   is_featured: number;
-  is_public: number;
   published_at: string | null;
   created_at: string;
   updated_at: string;
@@ -303,8 +253,6 @@ export interface Biography {
   // V2 欄位 - 漸進式揭露設計
   visibility: 'private' | 'anonymous' | 'community' | 'public' | null;
   tags_data: string | null;
-  one_liners_data: string | null;
-  stories_data: string | null;
   basic_info_data: string | null;
   autosave_at: string | null;
 }
