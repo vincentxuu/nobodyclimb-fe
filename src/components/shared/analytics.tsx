@@ -7,17 +7,28 @@ import Script from 'next/script'
  * 整合 Google Analytics、Microsoft Clarity 和 PostHog
  *
  * 環境變數設定：
+ * - NEXT_PUBLIC_ENABLE_ANALYTICS: 是否啟用追蹤工具 ('true' 啟用，其他值或未設定則關閉)
  * - NEXT_PUBLIC_GA_ID: Google Analytics 測量 ID (G-XXXXXXXXXX)
  * - NEXT_PUBLIC_CLARITY_ID: Microsoft Clarity 專案 ID
  * - NEXT_PUBLIC_POSTHOG_KEY: PostHog API Key
  * - NEXT_PUBLIC_POSTHOG_HOST: PostHog Host (預設: https://us.i.posthog.com)
+ *
+ * 使用方式：
+ * - 開發環境：不設定 NEXT_PUBLIC_ENABLE_ANALYTICS 或設為 'false'
+ * - 正式環境：設定 NEXT_PUBLIC_ENABLE_ANALYTICS='true' 並配置各追蹤工具的 ID
  */
+const enableAnalytics = process.env.NEXT_PUBLIC_ENABLE_ANALYTICS === 'true'
 const gaId = process.env.NEXT_PUBLIC_GA_ID
 const clarityId = process.env.NEXT_PUBLIC_CLARITY_ID
 const posthogKey = process.env.NEXT_PUBLIC_POSTHOG_KEY
 const posthogHost = process.env.NEXT_PUBLIC_POSTHOG_HOST || 'https://us.i.posthog.com'
 
 export function Analytics() {
+  // 如果未啟用追蹤，直接返回 null
+  if (!enableAnalytics) {
+    return null
+  }
+
   return (
     <>
       {/* Google Analytics */}
