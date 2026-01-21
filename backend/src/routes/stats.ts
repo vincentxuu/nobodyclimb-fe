@@ -171,7 +171,7 @@ statsRoutes.get('/admin/follows', authMiddleware, adminMiddleware, async (c) => 
         u.id,
         u.username,
         u.display_name,
-        u.avatar,
+        u.avatar_url as avatar,
         b.id as biography_id,
         COALESCE(b.follower_count, 0) as follower_count
       FROM users u
@@ -194,7 +194,7 @@ statsRoutes.get('/admin/follows', authMiddleware, adminMiddleware, async (c) => 
         u.id,
         u.username,
         u.display_name,
-        u.avatar,
+        u.avatar_url as avatar,
         COUNT(f.id) as following_count
       FROM users u
       JOIN follows f ON f.follower_id = u.id
@@ -439,7 +439,7 @@ statsRoutes.get('/admin/content', authMiddleware, adminMiddleware, async (c) => 
         b.id,
         u.username,
         u.display_name,
-        u.avatar,
+        u.avatar_url as avatar,
         b.total_views,
         b.total_likes,
         b.follower_count
@@ -465,12 +465,12 @@ statsRoutes.get('/admin/content', authMiddleware, adminMiddleware, async (c) => 
         p.title,
         p.slug,
         u.username as author_name,
-        p.views,
+        p.view_count as views,
         p.created_at
       FROM posts p
       JOIN users u ON u.id = p.author_id
       WHERE p.status = 'published'
-      ORDER BY p.views DESC
+      ORDER BY p.view_count DESC
       LIMIT 10
     `).all<{
       id: string;

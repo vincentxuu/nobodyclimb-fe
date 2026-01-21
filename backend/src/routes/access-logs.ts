@@ -31,6 +31,13 @@ function sanitizePath(path: string): string | null {
 }
 
 /**
+ * 檢查 Analytics Engine 是否已設定
+ */
+function isAnalyticsEngineConfigured(env: Env): boolean {
+  return !!(env.CLOUDFLARE_ACCOUNT_ID && env.CLOUDFLARE_API_TOKEN);
+}
+
+/**
  * Analytics Engine SQL API 查詢
  * 文檔: https://developers.cloudflare.com/analytics/analytics-engine/sql-api/
  */
@@ -42,7 +49,7 @@ async function queryAnalyticsEngine(
   const apiToken = env.CLOUDFLARE_API_TOKEN;
 
   if (!accountId || !apiToken) {
-    throw new Error('Analytics Engine 查詢服務未設定，請聯繫系統管理員');
+    throw new Error('ANALYTICS_NOT_CONFIGURED');
   }
 
   const response = await fetch(
@@ -72,6 +79,16 @@ async function queryAnalyticsEngine(
 accessLogsRoutes.get('/', authMiddleware, adminMiddleware, async (c) => {
   try {
     const env = c.env as Env;
+
+    // 檢查 Analytics Engine 是否已設定
+    if (!isAnalyticsEngineConfigured(env)) {
+      return c.json({
+        success: true,
+        data: [],
+        meta: {},
+        message: 'Analytics Engine 尚未設定。請設定 CLOUDFLARE_ACCOUNT_ID 和 CLOUDFLARE_API_TOKEN 環境變數。',
+      });
+    }
     const { limit, offset, path, method, status } = c.req.query();
 
     // 安全解析數字參數
@@ -151,6 +168,22 @@ accessLogsRoutes.get('/', authMiddleware, adminMiddleware, async (c) => {
 accessLogsRoutes.get('/summary', authMiddleware, adminMiddleware, async (c) => {
   try {
     const env = c.env as Env;
+
+    // 檢查 Analytics Engine 是否已設定
+    if (!isAnalyticsEngineConfigured(env)) {
+      return c.json({
+        success: true,
+        data: {
+          summary: { totalRequests: 0, avgResponseTime: 0, successCount: 0, clientErrorCount: 0, serverErrorCount: 0 },
+          topPaths: [],
+          hourlyRequests: [],
+          countryDistribution: [],
+          methodDistribution: [],
+        },
+        message: 'Analytics Engine 尚未設定。請設定 CLOUDFLARE_ACCOUNT_ID 和 CLOUDFLARE_API_TOKEN 環境變數。',
+      });
+    }
+
     const { hours } = c.req.query();
     const hoursNum = safeParseInt(hours, DEFAULT_HOURS, 168); // 最多 7 天
 
@@ -252,6 +285,16 @@ accessLogsRoutes.get('/summary', authMiddleware, adminMiddleware, async (c) => {
 accessLogsRoutes.get('/errors', authMiddleware, adminMiddleware, async (c) => {
   try {
     const env = c.env as Env;
+
+    // 檢查 Analytics Engine 是否已設定
+    if (!isAnalyticsEngineConfigured(env)) {
+      return c.json({
+        success: true,
+        data: [],
+        message: 'Analytics Engine 尚未設定。請設定 CLOUDFLARE_ACCOUNT_ID 和 CLOUDFLARE_API_TOKEN 環境變數。',
+      });
+    }
+
     const { hours, limit } = c.req.query();
     const hoursNum = safeParseInt(hours, DEFAULT_HOURS, 168);
     const limitNum = safeParseInt(limit, 50, MAX_LIMIT);
@@ -299,6 +342,16 @@ accessLogsRoutes.get('/errors', authMiddleware, adminMiddleware, async (c) => {
 accessLogsRoutes.get('/slow', authMiddleware, adminMiddleware, async (c) => {
   try {
     const env = c.env as Env;
+
+    // 檢查 Analytics Engine 是否已設定
+    if (!isAnalyticsEngineConfigured(env)) {
+      return c.json({
+        success: true,
+        data: [],
+        message: 'Analytics Engine 尚未設定。請設定 CLOUDFLARE_ACCOUNT_ID 和 CLOUDFLARE_API_TOKEN 環境變數。',
+      });
+    }
+
     const { hours, threshold, limit } = c.req.query();
     const hoursNum = safeParseInt(hours, DEFAULT_HOURS, 168);
     const thresholdMs = safeParseInt(threshold, 1000, 60000); // 預設 1 秒，最多 60 秒
