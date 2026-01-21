@@ -18,17 +18,23 @@ CREATE TABLE IF NOT EXISTS biography_one_liners (
   source TEXT DEFAULT 'system' CHECK (source IN ('system', 'user')),
   display_order INTEGER DEFAULT 0,
   is_featured INTEGER DEFAULT 0,
+  is_hidden INTEGER DEFAULT 0,
+  hidden_reason TEXT,
+  hidden_by TEXT,
+  hidden_at TEXT,
   like_count INTEGER DEFAULT 0,
   comment_count INTEGER DEFAULT 0,
   created_at TEXT DEFAULT (datetime('now')),
   updated_at TEXT DEFAULT (datetime('now')),
   FOREIGN KEY (biography_id) REFERENCES biographies(id) ON DELETE CASCADE,
+  FOREIGN KEY (hidden_by) REFERENCES users(id) ON DELETE SET NULL,
   UNIQUE (biography_id, question_id)
 );
 
 CREATE INDEX IF NOT EXISTS idx_one_liners_biography ON biography_one_liners(biography_id);
 CREATE INDEX IF NOT EXISTS idx_one_liners_popular ON biography_one_liners(like_count DESC);
 CREATE INDEX IF NOT EXISTS idx_one_liners_featured ON biography_one_liners(is_featured) WHERE is_featured = 1;
+CREATE INDEX IF NOT EXISTS idx_one_liners_hidden ON biography_one_liners(is_hidden) WHERE is_hidden = 1;
 
 -- ============================================
 -- 小故事表
@@ -43,12 +49,17 @@ CREATE TABLE IF NOT EXISTS biography_stories (
   source TEXT DEFAULT 'system' CHECK (source IN ('system', 'user')),
   display_order INTEGER DEFAULT 0,
   is_featured INTEGER DEFAULT 0,
+  is_hidden INTEGER DEFAULT 0,
+  hidden_reason TEXT,
+  hidden_by TEXT,
+  hidden_at TEXT,
   word_count INTEGER DEFAULT 0,
   like_count INTEGER DEFAULT 0,
   comment_count INTEGER DEFAULT 0,
   created_at TEXT DEFAULT (datetime('now')),
   updated_at TEXT DEFAULT (datetime('now')),
   FOREIGN KEY (biography_id) REFERENCES biographies(id) ON DELETE CASCADE,
+  FOREIGN KEY (hidden_by) REFERENCES users(id) ON DELETE SET NULL,
   UNIQUE (biography_id, question_id)
 );
 
@@ -56,6 +67,7 @@ CREATE INDEX IF NOT EXISTS idx_stories_biography ON biography_stories(biography_
 CREATE INDEX IF NOT EXISTS idx_stories_category ON biography_stories(category_id);
 CREATE INDEX IF NOT EXISTS idx_stories_popular ON biography_stories(like_count DESC);
 CREATE INDEX IF NOT EXISTS idx_stories_featured ON biography_stories(is_featured) WHERE is_featured = 1;
+CREATE INDEX IF NOT EXISTS idx_stories_hidden ON biography_stories(is_hidden) WHERE is_hidden = 1;
 
 -- ============================================
 -- 一句話按讚表
