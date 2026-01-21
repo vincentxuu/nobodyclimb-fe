@@ -8,7 +8,7 @@ import { ArrowRightCircle, Loader2, User } from 'lucide-react'
 import { Card, CardContent } from '@/components/ui/card'
 import { biographyService } from '@/lib/api/services'
 import { Biography } from '@/lib/types'
-import { calculateClimbingYears } from '@/lib/utils/biography'
+import { calculateClimbingYears, getDisplayNameForVisibility } from '@/lib/utils/biography'
 import { isSvgUrl } from '@/lib/utils/image'
 import { getDefaultQuote, selectCardContent, SelectedCardContent } from '@/lib/utils/biography-cache'
 
@@ -19,6 +19,7 @@ interface ProfileCardProps {
 
 function ProfileCard({ person, selectedContent }: ProfileCardProps) {
   const climbingYears = calculateClimbingYears(person.climbing_start_year)
+  const displayName = getDisplayNameForVisibility(person.visibility, person.name)
 
   return (
     <motion.div
@@ -52,11 +53,11 @@ function ProfileCard({ person, selectedContent }: ProfileCardProps) {
                 <div className="relative h-10 w-10 flex-shrink-0 overflow-hidden rounded-full bg-gray-100">
                   {person.avatar_url ? (
                     isSvgUrl(person.avatar_url) ? (
-                      <img src={person.avatar_url} alt={person.name} className="h-full w-full object-cover" />
+                      <img src={person.avatar_url} alt={displayName} className="h-full w-full object-cover" />
                     ) : (
                       <Image
                         src={person.avatar_url}
-                        alt={person.name}
+                        alt={displayName}
                         fill
                         className="object-cover"
                         sizes="40px"
@@ -69,7 +70,7 @@ function ProfileCard({ person, selectedContent }: ProfileCardProps) {
                   )}
                 </div>
                 <div className="flex-1">
-                  <h3 className="text-sm font-medium text-[#1B1A1A]">{person.name}</h3>
+                  <h3 className="text-sm font-medium text-[#1B1A1A]">{displayName}</h3>
                   <p className="text-xs text-[#8E8C8C]">
                     {climbingYears !== null ? `攀岩 ${climbingYears}年` : '從入坑那天起算'}
                   </p>

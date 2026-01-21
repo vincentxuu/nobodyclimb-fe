@@ -13,6 +13,23 @@ export function calculateClimbingYears(climbingStartYear: string | null | undefi
 }
 
 // ═══════════════════════════════════════════
+// 匿名人物誌處理
+// ═══════════════════════════════════════════
+
+type VisibilityLevel = 'private' | 'anonymous' | 'community' | 'public' | null | undefined
+
+/**
+ * 根據人物誌可見性取得顯示名稱
+ * 匿名人物誌顯示「匿名岩友」，其他則顯示實際名稱
+ */
+export function getDisplayNameForVisibility(
+  visibility: VisibilityLevel,
+  actualName: string
+): string {
+  return visibility === 'anonymous' ? '匿名岩友' : actualName
+}
+
+// ═══════════════════════════════════════════
 // 展示標籤相關
 // ═══════════════════════════════════════════
 

@@ -1009,7 +1009,7 @@ biographiesRoutes.get('/:id/adjacent', optionalAuthMiddleware, async (c) => {
 
   // Get previous (newer) biography
   const previous = await c.env.DB.prepare(
-    `SELECT id, name, avatar_url FROM biographies
+    `SELECT id, slug, name, avatar_url FROM biographies
      WHERE ${publicOnlyClause} AND id != ?
      AND COALESCE(published_at, created_at) > ?
      ORDER BY COALESCE(published_at, created_at) ASC
@@ -1020,7 +1020,7 @@ biographiesRoutes.get('/:id/adjacent', optionalAuthMiddleware, async (c) => {
 
   // Get next (older) biography
   const next = await c.env.DB.prepare(
-    `SELECT id, name, avatar_url FROM biographies
+    `SELECT id, slug, name, avatar_url FROM biographies
      WHERE ${publicOnlyClause} AND id != ?
      AND COALESCE(published_at, created_at) < ?
      ORDER BY COALESCE(published_at, created_at) DESC
