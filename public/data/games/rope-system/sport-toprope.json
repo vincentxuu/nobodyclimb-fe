@@ -1,0 +1,565 @@
+[
+  {
+    "id": "sport-toprope-1",
+    "categoryId": "sport-toprope",
+    "type": "situation",
+    "difficulty": 2,
+    "scenario": "你準備在戶外岩場架設頂繩。",
+    "question": "一個安全的頂繩固定點應該符合哪個原則？",
+    "options": [
+      {
+        "id": "a",
+        "text": "SERENE（Solid, Equalized, Redundant, Efficient, No Extension）"
+      },
+      {
+        "id": "b",
+        "text": "越多裝備越好"
+      },
+      {
+        "id": "c",
+        "text": "只要有一個 bolt 就夠了"
+      },
+      {
+        "id": "d",
+        "text": "用最新最貴的裝備"
+      }
+    ],
+    "correctAnswer": "a",
+    "explanation": "SERENE 原則是評估固定點的標準：\n\n| 字母 | 意義 | 說明 |\n|------|------|------|\n| S | Solid（堅固） | 每個固定點都能承受預期負載 |\n| E | Equalized（均力） | 負載平均分配到各點 |\n| R | Redundant（冗餘） | 至少兩個獨立固定點 |\n| E | Efficient（高效） | 簡單、快速架設 |\n| NE | No Extension（無延展） | 一點失效不會造成衝擊 |\n\n另一個常用口訣：EARNEST\nEqualized, Angles, Redundant, No Extension, Efficient, Solid, Timely",
+    "referenceSources": [
+      "AMGA",
+      "Climbing Anchors (John Long)",
+      "Freedom of the Hills"
+    ],
+    "tags": [
+      "SERENE",
+      "固定點",
+      "安全原則"
+    ]
+  },
+  {
+    "id": "sport-toprope-2",
+    "categoryId": "sport-toprope",
+    "type": "situation",
+    "difficulty": 2,
+    "scenario": "你到達岩壁頂端，看到兩個 bolt 作為固定點。",
+    "question": "以下哪項是 bolt 狀態不良的警訊？",
+    "options": [
+      {
+        "id": "a",
+        "text": "bolt 頭有些許灰塵"
+      },
+      {
+        "id": "b",
+        "text": "bolt 明顯鏽蝕、鬆動或旋轉"
+      },
+      {
+        "id": "c",
+        "text": "bolt 看起來不是最新款式"
+      },
+      {
+        "id": "d",
+        "text": "bolt 表面有攀岩粉痕跡"
+      }
+    ],
+    "correctAnswer": "b",
+    "explanation": "bolt 狀態檢查項目：\n\n✅ 正常情況：\n輕微灰塵或粉塵\n舊款式但狀態良好\n表面有使用痕跡\n\n❌ 危險警訊：\n明顯鏽蝕：尤其是海邊或潮濕環境\n鬆動：用手搖會動\n旋轉：bolt 可以轉動\n膨脹裂縫：岩石有裂痕從 bolt 延伸\n掛片變形：金屬彎曲或斷裂\n\n遇到可疑 bolt：\n不要使用該固定點\n回報給當地攀岩社群或岩場管理者",
+    "referenceSources": [
+      "AMGA",
+      "AAC Accidents",
+      "Petzl"
+    ],
+    "tags": [
+      "bolt檢查",
+      "固定點",
+      "安全評估"
+    ]
+  },
+  {
+    "id": "sport-toprope-3",
+    "categoryId": "sport-toprope",
+    "type": "situation",
+    "difficulty": 2,
+    "scenario": "岩壁頂端沒有 bolt，但有一棵樹可以使用。",
+    "question": "使用樹木作為固定點時，最低要求是？",
+    "options": [
+      {
+        "id": "a",
+        "text": "任何大小的樹都可以"
+      },
+      {
+        "id": "b",
+        "text": "樹幹直徑至少 15-20 公分，根系穩固的活樹"
+      },
+      {
+        "id": "c",
+        "text": "枯樹比較硬，更適合"
+      },
+      {
+        "id": "d",
+        "text": "樹越高越好"
+      }
+    ],
+    "correctAnswer": "b",
+    "explanation": "樹木作為固定點的要求：\n\n| 項目 | 要求 |\n|------|------|\n| 直徑 | 至少 15-20 公分（約手臂粗） |\n| 狀態 | 必須是活樹，有綠葉 |\n| 根系 | 穩固紮根，不會搖晃 |\n| 位置 | 靠近岩壁邊緣，減少繩索摩擦 |\n\n不可使用：\n❌ 枯樹（內部可能腐爛）\n❌ 太細的樹（可能彎曲或斷裂）\n❌ 根系不穩的樹\n❌ 離岩邊太遠的樹\n\n架設方式：\n使用繩環繞過樹幹底部\n避免繩環滑到高處\n保護樹皮，使用護樹墊",
+    "referenceSources": [
+      "AMGA",
+      "Climbing Anchors",
+      "Freedom of the Hills"
+    ],
+    "tags": [
+      "天然固定點",
+      "樹木",
+      "固定點評估"
+    ]
+  },
+  {
+    "id": "sport-toprope-4",
+    "categoryId": "sport-toprope",
+    "type": "situation",
+    "difficulty": 2,
+    "scenario": "你要在兩個 bolt 之間架設均力固定點。",
+    "question": "兩個 bolt 之間的繩環角度應該控制在多少以內？",
+    "options": [
+      {
+        "id": "a",
+        "text": "不超過 60 度"
+      },
+      {
+        "id": "b",
+        "text": "不超過 90 度"
+      },
+      {
+        "id": "c",
+        "text": "不超過 120 度"
+      },
+      {
+        "id": "d",
+        "text": "角度不重要"
+      }
+    ],
+    "correctAnswer": "a",
+    "explanation": "角度與負載分配：\n\n| 角度 | 每點負載 | 風險 |\n|------|----------|------|\n| 0° | 50% | 最理想 |\n| 60° | 58% | 可接受 |\n| 90° | 71% | 臨界值 |\n| 120° | 100% | 危險！ |\n\n為什麼 60 度以內最好：\n負載分配接近均等\n即使一點失效，衝擊較小\n留有安全餘裕\n\n超過 90 度的問題：\n負載反而增加\n可能超過裝備強度\n\n實際操作：\n繩環盡量長一些\n主點位置靠下\n視覺上，角度應該看起來「窄」而非「寬」",
+    "referenceSources": [
+      "AMGA",
+      "Climbing Anchors",
+      "Petzl"
+    ],
+    "tags": [
+      "角度",
+      "均力",
+      "固定點架設"
+    ]
+  },
+  {
+    "id": "sport-toprope-5",
+    "categoryId": "sport-toprope",
+    "type": "situation",
+    "difficulty": 2,
+    "scenario": "你在運動攀登岩場，想用快扣快速架設頂繩。",
+    "question": "使用快扣架設頂繩時，以下哪種方式最正確？",
+    "options": [
+      {
+        "id": "a",
+        "text": "一個快扣掛一個 bolt 即可"
+      },
+      {
+        "id": "b",
+        "text": "兩個快扣分別掛兩個 bolt，繩子穿過兩個快扣"
+      },
+      {
+        "id": "c",
+        "text": "把快扣串在一起掛在一個 bolt 上"
+      },
+      {
+        "id": "d",
+        "text": "快扣不適合架設頂繩"
+      }
+    ],
+    "correctAnswer": "b",
+    "explanation": "快扣架設頂繩的正確方式：\n\n``\nBolt 1        Bolt 2\n  │             │\n  ▼             ▼\n┌───┐         ┌───┐\n│快扣│         │快扣│\n└─┬─┘         └─┬─┘\n  │             │\n  └──── 繩子 ────┘\n``\n\n重點：\n兩個獨立的 bolt = 冗餘\n繩子穿過兩個快扣 = 均力\n快扣繩門朝外，避免繩索開啟\n\n注意事項：\n只適合短時間使用\n繩子會磨損快扣的繩端鉤環\n長時間使用應改用專用器材（繩環 + 鉤環）\n\n不建議的原因：\n快扣不是設計給固定點使用\n沒有防止繩門打開的機制",
+    "referenceSources": [
+      "VDiff Climbing",
+      "REI Expert Advice"
+    ],
+    "tags": [
+      "快扣",
+      "頂繩架設",
+      "臨時固定點"
+    ]
+  },
+  {
+    "id": "sport-toprope-6",
+    "categoryId": "sport-toprope",
+    "type": "situation",
+    "difficulty": 2,
+    "scenario": "你決定使用 120cm 繩環（Sling）架設頂繩固定點。",
+    "question": "繩環應該如何連接到兩個 bolt？",
+    "options": [
+      {
+        "id": "a",
+        "text": "一條繩環穿過兩個 bolt 的掛片"
+      },
+      {
+        "id": "b",
+        "text": "兩條獨立繩環分別掛兩個 bolt，在底部用主鎖連接"
+      },
+      {
+        "id": "c",
+        "text": "繩環打結後掛在一個 bolt 上"
+      },
+      {
+        "id": "d",
+        "text": "直接把繩環綁在岩石上"
+      }
+    ],
+    "correctAnswer": "b",
+    "explanation": "正確架設方式：\n\n``\nBolt 1          Bolt 2\n  │               │\n  ▼               ▼\n繩環 1          繩環 2\n  │               │\n  └───┬───────┬───┘\n      │       │\n      ▼       ▼\n    ┌───────────┐\n    │   主鎖    │\n    └───────────┘\n         │\n        繩子\n``\n\n關鍵原則：\n1. 兩條獨立繩環（Redundancy）\n2. 各自掛入 bolt\n3. 底部用有鎖鉤環連接\n4. 繩子只穿過鉤環\n\n為什麼不穿過繩環：\n繩子會嚴重磨損繩環\nDyneema 繩環尤其不耐磨\n可能在幾次降低後就損壞",
+    "referenceSources": [
+      "AMGA",
+      "Petzl",
+      "VDiff Climbing"
+    ],
+    "tags": [
+      "繩環",
+      "架設方式",
+      "固定點"
+    ]
+  },
+  {
+    "id": "sport-toprope-7",
+    "categoryId": "sport-toprope",
+    "type": "situation",
+    "difficulty": 2,
+    "scenario": "你在架設頂繩固定點，需要設置主點（Master Point）。",
+    "question": "主點應該使用什麼裝備？",
+    "options": [
+      {
+        "id": "a",
+        "text": "一個普通（無鎖）鉤環"
+      },
+      {
+        "id": "b",
+        "text": "一個有鎖鉤環"
+      },
+      {
+        "id": "c",
+        "text": "兩個反向對扣的鉤環（有鎖或無鎖皆可）"
+      },
+      {
+        "id": "d",
+        "text": "快扣"
+      }
+    ],
+    "correctAnswer": "c",
+    "explanation": "主點設置的最佳實踐：\n\n推薦方式：雙鉤環反向對扣\n``\n    繩環\n     │\n ┌───┴───┐\n │ 鉤環1 │◄── 開口朝左\n ├───────┤\n │ 鉤環2 │◄── 開口朝右\n └───┬───┘\n     │\n    繩子\n``\n\n為什麼要反向對扣：\n即使一個鉤環意外打開，另一個仍有保護\n繩索不會同時從兩個開口滑出\n符合冗餘原則\n\n可接受的替代方案：\n兩個有鎖鉤環反向對扣（最安全）\n一個有鎖鉤環（最低標準）\n\n不可接受：\n單一無鎖鉤環\n快扣（繩門太容易打開）",
+    "referenceSources": [
+      "AMGA",
+      "Climbing Anchors",
+      "Freedom of the Hills"
+    ],
+    "tags": [
+      "主點",
+      "鉤環",
+      "反向對扣"
+    ]
+  },
+  {
+    "id": "sport-toprope-8",
+    "categoryId": "sport-toprope",
+    "type": "situation",
+    "difficulty": 2,
+    "scenario": "你的頂繩固定點架設在岩壁邊緣。",
+    "question": "繩子最可能在哪裡受到磨損？",
+    "options": [
+      {
+        "id": "a",
+        "text": "在確保者手中"
+      },
+      {
+        "id": "b",
+        "text": "在攀登者吊帶處"
+      },
+      {
+        "id": "c",
+        "text": "在岩壁邊緣接觸處"
+      },
+      {
+        "id": "d",
+        "text": "在繩袋中"
+      }
+    ],
+    "correctAnswer": "c",
+    "explanation": "繩子磨損的高風險位置：\n\n1. 岩壁邊緣（最危險）\n繩子在有重量時會摩擦岩邊\n尤其是降低和墜落時\n可能在短時間內嚴重損傷\n\n2. 解決方案：\n延長固定點，讓繩子垂直落下\n使用繩索保護器（Rope Protector）\n選擇繩子不會接觸岩邊的架設位置\n\n檢查時機：\n架設完成後檢查繩索路徑\n每次使用前目視檢查\n感覺繩子有卡頓時立即檢查",
+    "referenceSources": [
+      "AMGA",
+      "Petzl",
+      "REI Expert Advice"
+    ],
+    "tags": [
+      "繩索磨損",
+      "岩壁邊緣",
+      "安全檢查"
+    ]
+  },
+  {
+    "id": "sport-toprope-9",
+    "categoryId": "sport-toprope",
+    "type": "situation",
+    "difficulty": 2,
+    "scenario": "固定點位於岩壁頂端往內約 1 公尺的位置。",
+    "question": "為什麼需要延長固定點？",
+    "options": [
+      {
+        "id": "a",
+        "text": "讓固定點看起來更專業"
+      },
+      {
+        "id": "b",
+        "text": "讓繩子能夠垂直落下，減少岩邊摩擦"
+      },
+      {
+        "id": "c",
+        "text": "增加繩子的長度"
+      },
+      {
+        "id": "d",
+        "text": "讓攀登者爬得更高"
+      }
+    ],
+    "correctAnswer": "b",
+    "explanation": "延長固定點的目的：\n\n``\n❌ 未延長              ✅ 延長後\n\n岩邊──╮               岩邊──────╮\n      │                         │\n      │←繩子摩擦                │\n      │                         │\n      ▼                         ▼\n   固定點              固定點──延長──主點\n                                      │\n                                     繩子（垂直）\n``\n\n好處：\n1. 繩子垂直落下，不摩擦岩邊\n2. 減少繩索阻力\n3. 確保者操作更順暢\n4. 攀登者墜落時繩子不會卡住\n\n延長方式：\n使用長繩環（120-240cm）\n使用 Cordelette\n注意延長後的角度仍要小於 60 度",
+    "referenceSources": [
+      "VDiff Climbing",
+      "Climbing Anchors"
+    ],
+    "tags": [
+      "延長固定點",
+      "繩索路徑",
+      "架設技巧"
+    ]
+  },
+  {
+    "id": "sport-toprope-10",
+    "categoryId": "sport-toprope",
+    "type": "situation",
+    "difficulty": 3,
+    "scenario": "你需要獨自走到岩壁頂端架設頂繩。",
+    "question": "在岩壁頂端作業時，最重要的安全措施是？",
+    "options": [
+      {
+        "id": "a",
+        "text": "動作要快，減少在頂端的時間"
+      },
+      {
+        "id": "b",
+        "text": "全程自我確保，連接到可靠的固定點"
+      },
+      {
+        "id": "c",
+        "text": "大聲呼喊讓底下的人知道"
+      },
+      {
+        "id": "d",
+        "text": "穿著鮮豔的衣服"
+      }
+    ],
+    "correctAnswer": "b",
+    "explanation": "頂端作業的安全原則：\n\n1. 全程自我確保\n到達頂端立即連接到固定點\n使用 PAS、Daisy Chain 或繩環\n確認承重後再開始作業\n\n2. 安全順序：\n接近岩邊前先找好固定點\n連接自我確保\n測試確認牢固\n再開始架設工作\n\n3. 絕對禁止：\n❌ 沒有自我確保就靠近岩邊\n❌ 依賴摩擦力或平衡\n❌ 趕時間而省略安全步驟",
+    "referenceSources": [
+      "AMGA",
+      "Freedom of the Hills"
+    ],
+    "tags": [
+      "自我確保",
+      "頂端作業",
+      "安全程序"
+    ]
+  },
+  {
+    "id": "sport-toprope-11",
+    "categoryId": "sport-toprope",
+    "type": "situation",
+    "difficulty": 2,
+    "scenario": "你在評估一個現有的頂繩固定點。",
+    "question": "「冗餘」（Redundancy）在固定點中的意義是？",
+    "options": [
+      {
+        "id": "a",
+        "text": "使用越多裝備越好"
+      },
+      {
+        "id": "b",
+        "text": "至少有兩個獨立的固定點，一個失效時另一個仍能承受"
+      },
+      {
+        "id": "c",
+        "text": "每個裝備都要是新的"
+      },
+      {
+        "id": "d",
+        "text": "固定點要比需要的更高"
+      }
+    ],
+    "correctAnswer": "b",
+    "explanation": "冗餘原則的意義：\n\n``\n單點（無冗餘）          雙點（有冗餘）\n\n    │                    ┌──────┐\n    │                    │      │\n    ▼                    ▼      ▼\n  固定點              固定點1  固定點2\n    │                    │      │\n    │                    └──┬───┘\n    ▼                       │\n   繩子                    繩子\n\n❌ 單點失效 = 完全失效   ✅ 一點失效仍有保護\n``\n\n實現冗餘的方式：\n使用兩個 bolt\n使用兩條獨立繩環\n使用兩個鉤環（反向對扣）\n\n冗餘 ≠ 越多越好：\n過度複雜反而增加出錯機會\n重點是「獨立」而非「數量」\n兩個合格的固定點勝過五個可疑的",
+    "referenceSources": [
+      "AMGA",
+      "Climbing Anchors"
+    ],
+    "tags": [
+      "冗餘",
+      "Redundancy",
+      "固定點原則"
+    ]
+  },
+  {
+    "id": "sport-toprope-12",
+    "categoryId": "sport-toprope",
+    "type": "situation",
+    "difficulty": 3,
+    "scenario": "你正在學習固定點架設的進階概念。",
+    "question": "「不延展」（No Extension）原則是什麼意思？",
+    "options": [
+      {
+        "id": "a",
+        "text": "繩環不能有彈性"
+      },
+      {
+        "id": "b",
+        "text": "一個固定點失效時，系統不會突然延長造成衝擊"
+      },
+      {
+        "id": "c",
+        "text": "固定點不能延長"
+      },
+      {
+        "id": "d",
+        "text": "繩子不能有延展性"
+      }
+    ],
+    "correctAnswer": "b",
+    "explanation": "不延展原則：\n\n``\n❌ 有延展風險              ✅ 無延展\n\n   ╱╲                       │\n  ╱  ╲                      │\n ╱    ╲                    ╱│╲\n點1    點2                ╱ │ ╲\n ╲    ╱                  點1 │ 點2\n  ╲  ╱                      │\n   ╲╱                       │\n   主點                     主點\n\n如果點1失效：            如果點1失效：\n主點會突然下墜            主點位置不變\n造成衝擊負載              無額外衝擊\n``\n\n如何實現：\n在繩環上打限制結（Limiting Knot）\n使用 Cordelette 配合 Overhand Knot\n使用預先均力化的系統\n\n為什麼重要：\n突然的延展會產生衝擊負載\n可能導致剩餘固定點也失效\n特別是在動態負載（墜落）時更危險",
+    "referenceSources": [
+      "Climbing Anchors",
+      "AMGA"
+    ],
+    "tags": [
+      "不延展",
+      "No Extension",
+      "固定點原則"
+    ]
+  },
+  {
+    "id": "sport-toprope-13",
+    "categoryId": "sport-toprope",
+    "type": "situation",
+    "difficulty": 2,
+    "scenario": "頂繩架設完成，你準備在底下確保。",
+    "question": "頂繩確保時，確保者應該站在哪裡？",
+    "options": [
+      {
+        "id": "a",
+        "text": "離牆壁越遠越好"
+      },
+      {
+        "id": "b",
+        "text": "在攀登者正下方或稍微後退的位置"
+      },
+      {
+        "id": "c",
+        "text": "在攀登者旁邊"
+      },
+      {
+        "id": "d",
+        "text": "在繩子會經過的位置"
+      }
+    ],
+    "correctAnswer": "b",
+    "explanation": "頂繩確保的站位原則：\n\n最佳位置：\n攀登者正下方或稍微後退\n可以清楚看到攀登者\n繩子路徑直線且沒有障礙\n\n注意事項：\n不要站在繩子會擺盪的路徑上\n注意頭頂是否有落石風險\n確保可以聽到攀登者的聲音\n\n與先鋒確保的差異：\n頂繩不需要站太靠近牆壁\n因為沒有地面墜落的風險\n但也不要站太遠造成繩索角度",
+    "referenceSources": [
+      "REI Expert Advice",
+      "VDiff Climbing"
+    ],
+    "tags": [
+      "確保站位",
+      "頂繩確保",
+      "安全位置"
+    ]
+  },
+  {
+    "id": "sport-toprope-14",
+    "categoryId": "sport-toprope",
+    "type": "situation",
+    "difficulty": 1,
+    "scenario": "頂繩架設完成，繩子一端穿過固定點垂到地面。",
+    "question": "繩子的尾端應該如何處理？",
+    "options": [
+      {
+        "id": "a",
+        "text": "不用特別處理"
+      },
+      {
+        "id": "b",
+        "text": "綁上一個結，防止繩尾意外滑過確保器"
+      },
+      {
+        "id": "c",
+        "text": "讓它自然垂地"
+      },
+      {
+        "id": "d",
+        "text": "把它收進繩袋裡"
+      }
+    ],
+    "correctAnswer": "b",
+    "explanation": "繩尾處理的重要性：\n\n打結的原因：\n防止繩尾滑過確保器\n避免攀登者降到一半繩子不夠\n這是最後一道安全防線\n\n打結方式：\n在繩尾打一個大結（如雙漁人結、八字結）\n結要夠大，不會穿過確保器\n或將繩尾綁在確保者吊帶上\n\n什麼時候特別重要：\n路線長度接近繩子一半時\n不確定繩子長度是否足夠時\n永遠都應該打結",
+    "referenceSources": [
+      "AMGA",
+      "AAC Accidents",
+      "Petzl"
+    ],
+    "tags": [
+      "繩尾處理",
+      "安全措施",
+      "確保技巧"
+    ]
+  },
+  {
+    "id": "sport-toprope-15",
+    "categoryId": "sport-toprope",
+    "type": "ordering",
+    "difficulty": 2,
+    "scenario": "攀登結束，你需要收回架設在頂端的固定點。",
+    "question": "收回固定點時，正確的順序是？",
+    "options": [
+      {
+        "id": "a",
+        "text": "先拆繩子，再拆固定點"
+      },
+      {
+        "id": "b",
+        "text": "先拆固定點，再拆繩子"
+      },
+      {
+        "id": "c",
+        "text": "先確保自己安全連接，再依序拆除"
+      },
+      {
+        "id": "d",
+        "text": "全部一起拆最快"
+      }
+    ],
+    "correctAnswer": "c",
+    "explanation": "收回固定點的安全順序：\n\n1. 確保自我安全\n到達頂端，先連接自我確保\n確認自我確保承重\n\n2. 處理繩子\n確認沒有人在繩子上\n解開繩子或準備抽繩\n\n3. 拆除固定點\n依序拆除（先拆繩環，再拆鉤環）\n裝備收好掛在吊帶上\n\n4. 離開\n確認所有裝備都已收回\n最後解除自我確保\n安全離開岩壁頂端\n\n關鍵原則：\n永遠保持自我確保直到最後\n不要在沒有備份的情況下拆除最後一個固定點",
+    "referenceSources": [
+      "AMGA",
+      "VDiff Climbing"
+    ],
+    "tags": [
+      "收回固定點",
+      "安全程序",
+      "拆除順序"
+    ]
+  }
+]

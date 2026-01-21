@@ -1,0 +1,571 @@
+[
+  {
+    "id": "trad-anchor-1",
+    "categoryId": "trad-anchor",
+    "type": "situation",
+    "difficulty": 2,
+    "scenario": "你正在學習傳統攀登的固定點架設原則。",
+    "question": "傳統攀登固定點的評估原則中，以下哪個描述最完整？",
+    "options": [
+      {
+        "id": "a",
+        "text": "只要夠堅固就好"
+      },
+      {
+        "id": "b",
+        "text": "SERENE（堅固、均力、冗餘、高效、無延展）"
+      },
+      {
+        "id": "c",
+        "text": "使用越多裝備越好"
+      },
+      {
+        "id": "d",
+        "text": "看起來專業即可"
+      }
+    ],
+    "correctAnswer": "b",
+    "explanation": "SERENE 原則詳解：\n\n| 字母 | 原文 | 中文 | 說明 |\n|------|------|------|------|\n| S | Solid | 堅固 | 每個固定點都能承受預期負載 |\n| E | Equalized | 均力 | 負載平均分配到各固定點 |\n| R | Redundant | 冗餘 | 至少兩個獨立固定點 |\n| E | Efficient | 高效 | 簡單快速，減少出錯 |\n| NE | No Extension | 無延展 | 一點失效不會產生衝擊負載 |\n\n另一個口訣：ERNEST\nEqualized（均力）\nRedundant（冗餘）\nNo Extension（無延展）\nEfficient（高效）\nSolid（堅固）\nTimely（及時）\n\n兩個口訣內容相似，都強調相同的關鍵原則。",
+    "referenceSources": [
+      "AMGA",
+      "Climbing Anchors (John Long)",
+      "Freedom of the Hills"
+    ],
+    "tags": [
+      "SERENE",
+      "ERNEST",
+      "固定點原則"
+    ]
+  },
+  {
+    "id": "trad-anchor-2",
+    "categoryId": "trad-anchor",
+    "type": "situation",
+    "difficulty": 2,
+    "scenario": "你有一條 6-7 公尺的 Cordelette（輔助繩），要架設三點固定點。",
+    "question": "使用 Cordelette 架設固定點的正確方式是？",
+    "options": [
+      {
+        "id": "a",
+        "text": "把 Cordelette 綁成一個大圈掛在三個點上"
+      },
+      {
+        "id": "b",
+        "text": "Cordelette 分別穿過三個固定點，在預期受力方向收緊打結"
+      },
+      {
+        "id": "c",
+        "text": "只需要掛在最強的那個點"
+      },
+      {
+        "id": "d",
+        "text": "把三個點用獨立繩環分別連接"
+      }
+    ],
+    "correctAnswer": "b",
+    "explanation": "Cordelette 架設步驟：\n\n``\n       點1    點2    點3\n        │      │      │\n        └──────┼──────┘\n               │\n          Cordelette\n               │\n          ┌────┴────┐\n          │ Overhand │← 在受力方向打結\n          │  Knot   │\n          └────┬────┘\n               │\n             主點\n``\n\n正確步驟：\n1. Cordelette 穿過（或掛入）所有固定點\n2. 將所有股繩拉到預期受力方向\n3. 打一個 Overhand Knot 或 Figure-8\n4. 在結下方形成主點\n\n關鍵要點：\n結要在預期受力方向\n所有股繩長度調整均勻\n結打緊，不要有鬆弛\n\nCordelette 的優點：\n簡單易學\n一點失效有限的延展\n適合固定點相對集中的情況",
+    "referenceSources": [
+      "AMGA",
+      "Climbing Anchors",
+      "VDiff Climbing"
+    ],
+    "tags": [
+      "Cordelette",
+      "架設技術",
+      "均力固定點"
+    ]
+  },
+  {
+    "id": "trad-anchor-3",
+    "categoryId": "trad-anchor",
+    "type": "situation",
+    "difficulty": 3,
+    "scenario": "你的夥伴用繩環架設了一個 Sliding X（滑動X）固定點。",
+    "question": "Sliding X 最主要的缺點是什麼？",
+    "options": [
+      {
+        "id": "a",
+        "text": "架設太複雜"
+      },
+      {
+        "id": "b",
+        "text": "一點失效會造成大幅延展"
+      },
+      {
+        "id": "c",
+        "text": "不能均力"
+      },
+      {
+        "id": "d",
+        "text": "只能用在兩個點"
+      }
+    ],
+    "correctAnswer": "b",
+    "explanation": "Sliding X 的問題：\n\n``\n正常狀態：              一點失效後：\n   點1    點2              點1    ✖\n    │      │                │\n    ╲    ╱                 │\n     ╲  ╱                   │\n      ╳  ← Sliding X        │\n     ╱ ╲                    │\n    │                       │\n   主點                   主點（下墜！）\n`\n\n延展距離：\n如果繩環長度為 L\n一點失效可能延展 L/2 或更多\n延展會造成衝擊負載\n\n改良方式：Limiting Knot\n`\n    點1    點2\n     │      │\n     ╲    ╱\n    ╭─╳─╮  ← 在 X 處打限制結\n     │\n    主點\n``\n在 X 交叉處打一個結\n限制最大延展距離\n仍保持部分均力功能\n\n結論：\n純 Sliding X 不建議用於主要固定點\n如要使用，必須加限制結",
+    "referenceSources": [
+      "Climbing Anchors",
+      "AMGA",
+      "VDiff Climbing"
+    ],
+    "tags": [
+      "Sliding X",
+      "延展風險",
+      "限制結"
+    ]
+  },
+  {
+    "id": "trad-anchor-4",
+    "categoryId": "trad-anchor",
+    "type": "situation",
+    "difficulty": 2,
+    "scenario": "你要用繩環連接兩個相距較遠的保護點。",
+    "question": "繩環的角度超過多少度時，各點承受的力量會開始大幅增加？",
+    "options": [
+      {
+        "id": "a",
+        "text": "30 度"
+      },
+      {
+        "id": "b",
+        "text": "60 度"
+      },
+      {
+        "id": "c",
+        "text": "90 度"
+      },
+      {
+        "id": "d",
+        "text": "120 度"
+      }
+    ],
+    "correctAnswer": "b",
+    "explanation": "角度與負載的關係：\n\n| 角度 | 每點負載（相對於總負載） | 風險評估 |\n|------|--------------------------|----------|\n| 0° | 50% | 理想 |\n| 30° | 52% | 優良 |\n| 60° | 58% | 可接受臨界 |\n| 90° | 71% | 風險增加 |\n| 120° | 100% | 危險！ |\n| 150° | 193% | 極危險 |\n\n關鍵數字：\n60 度以內：安全範圍\n60-90 度：需要注意\n超過 90 度：應該調整\n\n為什麼角度很重要：\n``\n窄角度（好）         寬角度（危險）\n   ╱╲                ╱────────╲\n  ╱  ╲              ╱          ╲\n 點1  點2          點1          點2\n   ╲╱                    ╲  ╱\n   主點                   主點\n``\n\n解決方案：\n使用更長的繩環\n調整主點位置\n考慮增加中間點",
+    "referenceSources": [
+      "AMGA",
+      "Climbing Anchors",
+      "Petzl"
+    ],
+    "tags": [
+      "角度",
+      "負載分配",
+      "力學原理"
+    ]
+  },
+  {
+    "id": "trad-anchor-5",
+    "categoryId": "trad-anchor",
+    "type": "situation",
+    "difficulty": 3,
+    "scenario": "你在一條傳統路線上放置岩楔（Nut）。",
+    "question": "評估岩楔放置是否良好，最重要的因素是？",
+    "options": [
+      {
+        "id": "a",
+        "text": "岩楔的品牌和新舊程度"
+      },
+      {
+        "id": "b",
+        "text": "放置點的岩石品質與岩楔的卡合度"
+      },
+      {
+        "id": "c",
+        "text": "岩楔的顏色是否容易看見"
+      },
+      {
+        "id": "d",
+        "text": "放置的速度"
+      }
+    ],
+    "correctAnswer": "b",
+    "explanation": "岩楔放置的評估要點：\n\n1. 岩石品質：\n✅ 堅硬、無裂縫的岩石\n❌ 鬆動、破碎、風化的岩石\n用手敲擊測試（實心聲 vs 空心聲）\n\n2. 卡合度：\n``\n好的放置：            不好的放置：\n┌─────┐               ┌─────┐\n│     │               │     │\n│ ╲   │               │  │  │\n│  ╲══│← 楔形卡緊     │  ║  │← 只有點接觸\n│   ╲ │               │  │  │\n└─────┘               └─────┘\n``\n\n3. 受力方向：\n岩楔應該在預期受力方向上卡緊\n測試時往受力方向拉扯\n不應該能夠搖動或旋轉\n\n4. 深度：\n不要太深（難以移除）\n不要太淺（可能脫出）\n\n測試方法：\n往預期受力方向用力拉\n觀察是否有任何移動\n好的放置應該「越拉越緊」",
+    "referenceSources": [
+      "AMGA",
+      "Climbing Anchors",
+      "Traditional Lead Climbing (Luebben)"
+    ],
+    "tags": [
+      "岩楔",
+      "放置評估",
+      "保護裝備"
+    ]
+  },
+  {
+    "id": "trad-anchor-6",
+    "categoryId": "trad-anchor",
+    "type": "situation",
+    "difficulty": 2,
+    "scenario": "你正在學習使用 Cam（凸輪裝置 / Friend）。",
+    "question": "Cam 的理想放置範圍是？",
+    "options": [
+      {
+        "id": "a",
+        "text": "完全收縮（最小狀態）"
+      },
+      {
+        "id": "b",
+        "text": "凸輪張開約 50-90% 的範圍"
+      },
+      {
+        "id": "c",
+        "text": "完全張開（最大狀態）"
+      },
+      {
+        "id": "d",
+        "text": "只要放得進去就好"
+      }
+    ],
+    "correctAnswer": "b",
+    "explanation": "Cam 的放置範圍：\n\n``\n完全收縮          理想範圍          完全張開\n   ╱╲            ╱    ╲            ╱      ╲\n  ╱  ╲          ╱      ╲          ╱        ╲\n ╱    ╲        ╱        ╲        ╱          ╲\n━━━━━━━━      ━━━━━━━━━━━━      ━━━━━━━━━━━━━━\n\n❌ 太收縮       ✅ 50-90%        ❌ 太張開\n``\n\n為什麼 50-90% 最好：\n\n| 狀態 | 問題 |\n|------|------|\n| 太收縮 | 容易走位、抓力不足 |\n| 理想範圍 | 最大抓力、穩定 |\n| 太張開 | 抓力降低、可能脫出 |\n\n實際判斷：\n凸輪葉片應該平均接觸岩壁\n觸發桿還有收縮空間\n不要「硬塞」或「勉強放入」\n\n其他注意事項：\n放置在平行或內縮的岩縫（不要外擴）\n四片凸輪都要接觸\n受力方向正確",
+    "referenceSources": [
+      "AMGA",
+      "Black Diamond",
+      "Wild Country"
+    ],
+    "tags": [
+      "Cam",
+      "放置範圍",
+      "凸輪裝置"
+    ]
+  },
+  {
+    "id": "trad-anchor-7",
+    "categoryId": "trad-anchor",
+    "type": "situation",
+    "difficulty": 2,
+    "scenario": "你放置了一個保護點，但發現繩子路徑會造成很大的阻力。",
+    "question": "什麼時候應該延長保護點（加長繩環）？",
+    "options": [
+      {
+        "id": "a",
+        "text": "每個保護點都要延長"
+      },
+      {
+        "id": "b",
+        "text": "當繩子路徑會產生 Z 字形或大幅轉彎時"
+      },
+      {
+        "id": "c",
+        "text": "只有最後一個保護點需要"
+      },
+      {
+        "id": "d",
+        "text": "不需要延長，繩子會自己調整"
+      }
+    ],
+    "correctAnswer": "b",
+    "explanation": "繩索阻力問題：\n\n``\n❌ 不延長（高阻力）       ✅ 適當延長（低阻力）\n        │                        │\n       ╱│                       │\n      ╱ │                       │\n 保護點  │                  ════│← 延長\n      ╲ │                      ╱│\n       ╲│                     ╱ │\n        │                 保護點 │\n``\n\n需要延長的情況：\n繩子會有大幅度轉彎\n水平走位（Traverse）\n保護點偏離直線很遠\n岩角會磨損繩子\n\n延長的好處：\n1. 減少繩索阻力（更順暢）\n2. 減少拉動保護點的側向力\n3. 讓確保更靈敏\n4. 減少保護點被拉出的風險\n\n延長長度選擇：\n輕微轉彎：60cm 繩環\n明顯轉彎：120cm 繩環\n嚴重走位：Alpine Quickdraw",
+    "referenceSources": [
+      "AMGA",
+      "Freedom of the Hills",
+      "VDiff Climbing"
+    ],
+    "tags": [
+      "延長",
+      "繩索阻力",
+      "保護點管理"
+    ]
+  },
+  {
+    "id": "trad-anchor-8",
+    "categoryId": "trad-anchor",
+    "type": "situation",
+    "difficulty": 2,
+    "scenario": "路線上有一個穩固的岩柱（Horn）可以使用。",
+    "question": "使用自然保護點時，最重要的評估是？",
+    "options": [
+      {
+        "id": "a",
+        "text": "看起來是否美觀"
+      },
+      {
+        "id": "b",
+        "text": "岩石的穩固程度與形狀是否能固定繩環"
+      },
+      {
+        "id": "c",
+        "text": "有沒有其他人用過"
+      },
+      {
+        "id": "d",
+        "text": "位置是否方便"
+      }
+    ],
+    "correctAnswer": "b",
+    "explanation": "自然保護點的類型與評估：\n\n| 類型 | 評估重點 |\n|------|----------|\n| 岩柱（Horn） | 底部連接穩固、不會斷裂 |\n| 岩穿（Thread） | 孔洞夠大、岩石堅固 |\n| 大石塊 | 無法被移動、不會滾落 |\n| 樹木 | 活樹、直徑>15cm、根系穩固 |\n\n測試方法：\n\n1. 視覺檢查\n有無裂縫\n岩石顏色一致（無風化）\n連接處是否穩固\n\n2. 物理測試\n用手推拉（不應該移動）\n敲擊聽聲音（實心聲 = 好）\n\n3. 繩環放置\n繩環是否會滑脫\n受力方向是否正確\n\n常見錯誤：\n❌ 信任外觀漂亮但鬆動的岩石\n❌ 繩環放置位置會滑動\n❌ 沒有測試就信任",
+    "referenceSources": [
+      "AMGA",
+      "Climbing Anchors",
+      "Freedom of the Hills"
+    ],
+    "tags": [
+      "自然保護點",
+      "岩柱",
+      "評估方法"
+    ]
+  },
+  {
+    "id": "trad-anchor-9",
+    "categoryId": "trad-anchor",
+    "type": "situation",
+    "difficulty": 3,
+    "scenario": "你正在學習使用 Quad（四股系統）架設固定點。",
+    "question": "Quad 系統的主要優點是什麼？",
+    "options": [
+      {
+        "id": "a",
+        "text": "架設最快速"
+      },
+      {
+        "id": "b",
+        "text": "同時具有均力與限制延展的功能"
+      },
+      {
+        "id": "c",
+        "text": "只需要一個保護點"
+      },
+      {
+        "id": "d",
+        "text": "不需要任何結"
+      }
+    ],
+    "correctAnswer": "b",
+    "explanation": "Quad 系統架設：\n\n``\n      點1              點2\n       │                │\n       └──────┬─────────┘\n              │\n         ╭────┴────╮\n         │ 限制結   │← Overhand Knots\n         ╰────┬────╯\n              │\n           滑動段  ← 可以均力\n              │\n         ╭────┴────╮\n         │ 限制結   │← Overhand Knots\n         ╰────┬────╯\n              │\n            主點\n``\n\nQuad 的特點：\n\n| 特點 | 說明 |\n|------|------|\n| 均力 | 中間滑動段可自動調整 |\n| 限制延展 | 兩端的結限制最大延展 |\n| 冗餘 | 四股繩提供備份 |\n| 多功能 | 可掛確保、自我確保 |\n\n架設步驟：\n1. 繩環對折成四股\n2. 在兩端各打一個限制結\n3. 中間留 15-25cm 滑動空間\n4. 兩端分別掛入固定點\n\n優於 Sliding X：\n有限制結，延展受控\n仍保持自動均力\n更加安全可靠",
+    "referenceSources": [
+      "AMGA",
+      "VDiff Climbing",
+      "Climbing Anchors"
+    ],
+    "tags": [
+      "Quad",
+      "均力系統",
+      "限制延展"
+    ]
+  },
+  {
+    "id": "trad-anchor-10",
+    "categoryId": "trad-anchor",
+    "type": "situation",
+    "difficulty": 3,
+    "scenario": "你在多繩距路線的確保站架設固定點。",
+    "question": "固定點的方向應該考慮什麼？",
+    "options": [
+      {
+        "id": "a",
+        "text": "只考慮向下的力量"
+      },
+      {
+        "id": "b",
+        "text": "考慮可能的受力方向：向下（確保跟攀）和向上（先鋒墜落）"
+      },
+      {
+        "id": "c",
+        "text": "只考慮向上的力量"
+      },
+      {
+        "id": "d",
+        "text": "不需要考慮方向"
+      }
+    ],
+    "correctAnswer": "b",
+    "explanation": "固定點的多向受力：\n\n``\n向上（先鋒墜落）       向下（確保跟攀）\n      ↑                     ↓\n      │                     │\n  ┌───────┐             ┌───────┐\n  │ 固定點 │             │ 固定點 │\n  └───────┘             └───────┘\n      │                     │\n      ↓                     ↓\n    確保者                 確保者\n``\n\n不同情境的受力方向：\n\n| 情境 | 主要受力方向 |\n|------|--------------|\n| 確保跟攀者 | 向下 |\n| 先鋒墜落（有轉向） | 向上 |\n| 垂降 | 向下 |\n| 拖拉背包 | 向下 |\n\n設計原則：\n1. 多向性固定點\n有些保護點對抗向上\n有些保護點對抗向下\n都連接到同一個主點\n\n2. 或者分開架設\n先鋒墜落用一組\n確保跟攀用一組\n\n為什麼向上力量很重要：\n先鋒墜落時，繩子會經過最後一個保護點\n這會產生向上的拉力\n如果固定點只對抗向下，可能失效",
+    "referenceSources": [
+      "AMGA",
+      "Freedom of the Hills",
+      "Climbing Anchors"
+    ],
+    "tags": [
+      "方向性",
+      "多向固定點",
+      "受力分析"
+    ]
+  },
+  {
+    "id": "trad-anchor-11",
+    "categoryId": "trad-anchor",
+    "type": "situation",
+    "difficulty": 2,
+    "scenario": "你完成了固定點架設，準備開始使用。",
+    "question": "使用固定點之前，應該如何測試？",
+    "options": [
+      {
+        "id": "a",
+        "text": "用眼睛看一下就好"
+      },
+      {
+        "id": "b",
+        "text": "整體系統施加體重測試，檢查每個元件"
+      },
+      {
+        "id": "c",
+        "text": "讓夥伴先試"
+      },
+      {
+        "id": "d",
+        "text": "直接開始使用，有問題再說"
+      }
+    ],
+    "correctAnswer": "b",
+    "explanation": "固定點測試流程：\n\n1. 視覺檢查：\n每個保護點都正確放置\n繩環/Cordelette 沒有扭轉\n鉤環都已鎖緊\n沒有遺漏的環節\n\n2. 施加體重測試：\n``\n步驟：\n1. 先連接自我確保（有備份）\n2. 慢慢將體重轉移到固定點\n3. 觀察每個保護點是否移動\n4. 用力拉扯測試\n5. 確認後才完全信任\n``\n\n3. 檢查清單：\n[ ] 所有保護點穩固\n[ ] 角度小於 60 度\n[ ] 有冗餘（多個保護點）\n[ ] 無過度延展風險\n[ ] 主點正確設置\n[ ] 所有鉤環鎖緊\n\n為什麼要測試：\n發現放置不良的保護點\n確認系統整體強度\n增加對系統的信心",
+    "referenceSources": [
+      "AMGA",
+      "Climbing Anchors"
+    ],
+    "tags": [
+      "測試",
+      "安全確認",
+      "使用前檢查"
+    ]
+  },
+  {
+    "id": "trad-anchor-12",
+    "categoryId": "trad-anchor",
+    "type": "situation",
+    "difficulty": 2,
+    "scenario": "你正在架設一個傳統攀登的確保站。",
+    "question": "標準的確保站應該使用幾個保護點？",
+    "options": [
+      {
+        "id": "a",
+        "text": "1 個就夠了"
+      },
+      {
+        "id": "b",
+        "text": "通常 2-3 個，視保護點品質而定"
+      },
+      {
+        "id": "c",
+        "text": "一定要 5 個以上"
+      },
+      {
+        "id": "d",
+        "text": "數量不重要"
+      }
+    ],
+    "correctAnswer": "b",
+    "explanation": "保護點數量的原則：\n\n| 保護點品質 | 建議數量 |\n|------------|----------|\n| 優良（如：堅固的 bolt） | 2 個 |\n| 良好（如：好的岩楔/Cam） | 2-3 個 |\n| 一般（如：中等品質） | 3-4 個 |\n| 較差（如：勉強可用） | 考慮增加或放棄 |\n\n判斷標準：\n每個保護點都應該能獨立承受全部負載\n「兩個好的勝過五個差的」\n品質優先，數量其次\n\n兩個好保護點的情況：\n``\n     Cam        岩楔\n    (好)       (好)\n      │          │\n      └────┬─────┘\n           │\n         主點\n``\n→ 這比四個不確定的保護點更安全\n\n過多保護點的問題：\n浪費時間和裝備\n增加複雜度\n可能增加出錯機會",
+    "referenceSources": [
+      "AMGA",
+      "Climbing Anchors",
+      "Freedom of the Hills"
+    ],
+    "tags": [
+      "保護點數量",
+      "品質評估",
+      "架設原則"
+    ]
+  },
+  {
+    "id": "trad-anchor-13",
+    "categoryId": "trad-anchor",
+    "type": "situation",
+    "difficulty": 3,
+    "scenario": "你在選擇架設固定點的繩環材質。",
+    "question": "以下關於繩環材質的描述，何者正確？",
+    "options": [
+      {
+        "id": "a",
+        "text": "Dyneema 比 Nylon 更耐高溫"
+      },
+      {
+        "id": "b",
+        "text": "Nylon 比 Dyneema 更能吸收衝擊"
+      },
+      {
+        "id": "c",
+        "text": "兩種材質完全一樣"
+      },
+      {
+        "id": "d",
+        "text": "Dyneema 更適合打結使用"
+      }
+    ],
+    "correctAnswer": "b",
+    "explanation": "繩環材質比較：\n\n| 特性 | Nylon（尼龍） | Dyneema（高分子聚乙烯） |\n|------|---------------|-------------------------|\n| 強度 | 高 | 非常高 |\n| 重量 | 較重 | 較輕 |\n| 延展性 | 有（吸收衝擊） | 幾乎沒有 |\n| 耐高溫 | 較好 | 較差（~70°C 開始弱化） |\n| 耐磨損 | 普通 | 較差 |\n| 打結後強度 | 保留較多 | 損失較多 |\n\n實際應用：\n\n| 情況 | 建議選擇 |\n|------|----------|\n| 需要吸收衝擊 | Nylon |\n| 可能摩擦生熱 | Nylon |\n| 需要打結 | Nylon |\n| 重量敏感 | Dyneema |\n| 純靜態使用 | 都可以 |\n\n特別注意：\nDyneema 在快速滑動（垂降、降低）時可能因摩擦過熱\n不建議用 Dyneema 繩環直接給繩子摩擦\n打結會顯著降低 Dyneema 強度（30-50%）",
+    "referenceSources": [
+      "Petzl",
+      "Black Diamond",
+      "DMM"
+    ],
+    "tags": [
+      "繩環材質",
+      "Dyneema",
+      "Nylon"
+    ]
+  },
+  {
+    "id": "trad-anchor-14",
+    "categoryId": "trad-anchor",
+    "type": "situation",
+    "difficulty": 3,
+    "scenario": "你在學習不同的固定點均力系統。",
+    "question": "Pre-equalized（預先均力）和 Self-equalizing（自動均力）的主要差異是？",
+    "options": [
+      {
+        "id": "a",
+        "text": "完全沒有差異"
+      },
+      {
+        "id": "b",
+        "text": "Pre-equalized 在架設時固定分配，Self-equalizing 可隨受力方向自動調整"
+      },
+      {
+        "id": "c",
+        "text": "Self-equalizing 比較弱"
+      },
+      {
+        "id": "d",
+        "text": "Pre-equalized 只能用兩個點"
+      }
+    ],
+    "correctAnswer": "b",
+    "explanation": "兩種均力系統比較：\n\nPre-equalized（預先均力）：\n``\n    點1      點2\n     │        │\n     └────────┘\n          │\n       ═══╧═══  ← 打結固定\n          │\n        主點\n`\n架設時固定好分配\n不會隨受力方向改變\n無延展風險\n範例：Cordelette\n\nSelf-equalizing（自動均力）：\n`\n    點1      點2\n     │        │\n     └───╳────┘\n          │    ← 可以滑動\n        主點\n``\n主點可以移動\n自動調整到最佳分配\n有延展風險（需加限制結）\n範例：Sliding X, Quad\n\n如何選擇：\n\n| 情況 | 建議 |\n|------|------|\n| 受力方向明確 | Pre-equalized |\n| 受力方向可能變化 | Self-equalizing（加限制結） |\n| 快速架設 | Pre-equalized |\n| 需要精確均力 | Self-equalizing |",
+    "referenceSources": [
+      "AMGA",
+      "Climbing Anchors",
+      "VDiff Climbing"
+    ],
+    "tags": [
+      "均力系統",
+      "Pre-equalized",
+      "Self-equalizing"
+    ]
+  },
+  {
+    "id": "trad-anchor-15",
+    "categoryId": "trad-anchor",
+    "type": "situation",
+    "difficulty": 3,
+    "scenario": "你完成了一個多繩距確保站的架設。",
+    "question": "最後的整體評估應該確認什麼？",
+    "options": [
+      {
+        "id": "a",
+        "text": "只要自己覺得安全就好"
+      },
+      {
+        "id": "b",
+        "text": "確認符合 SERENE 原則且測試過每個環節"
+      },
+      {
+        "id": "c",
+        "text": "拍照給朋友看"
+      },
+      {
+        "id": "d",
+        "text": "確認裝備數量正確"
+      }
+    ],
+    "correctAnswer": "b",
+    "explanation": "整體評估檢查清單：\n\nS - Solid（堅固）：\n[ ] 每個保護點都經過測試\n[ ] 岩石品質良好\n[ ] 保護點不會移動\n\nE - Equalized（均力）：\n[ ] 負載分配合理\n[ ] 角度小於 60 度\n[ ] 主點位置正確\n\nR - Redundant（冗餘）：\n[ ] 至少兩個獨立保護點\n[ ] 使用雙鉤環或反向對扣\n[ ] 沒有單點失效風險\n\nE - Efficient（高效）：\n[ ] 系統簡潔明瞭\n[ ] 沒有不必要的複雜\n[ ] 便於操作使用\n\nNE - No Extension（無延展）：\n[ ] 有限制結或預先均力\n[ ] 一點失效延展有限\n[ ] 不會產生衝擊負載\n\n最終確認：\n全系統承重測試\n確認所有鉤環鎖緊\n確認自己了解整個系統\n\n心態：\n「如果我要在這個固定點上睡一晚，我放心嗎？」",
+    "referenceSources": [
+      "AMGA",
+      "Climbing Anchors",
+      "Freedom of the Hills"
+    ],
+    "tags": [
+      "整體評估",
+      "SERENE檢查",
+      "確保站"
+    ]
+  }
+]

@@ -1,0 +1,568 @@
+[
+  {
+    "id": "trad-protection-1",
+    "categoryId": "trad-protection",
+    "type": "situation",
+    "difficulty": 2,
+    "scenario": "你正在學習傳統攀登的保護裝備分類。",
+    "question": "以下關於被動式（Passive）與主動式（Active）保護裝備的描述，何者正確？",
+    "options": [
+      {
+        "id": "a",
+        "text": "被動式有彈簧機構，主動式沒有"
+      },
+      {
+        "id": "b",
+        "text": "被動式沒有活動部件，主動式有活動部件（如凸輪）"
+      },
+      {
+        "id": "c",
+        "text": "兩者完全一樣"
+      },
+      {
+        "id": "d",
+        "text": "主動式只能用在寬裂縫"
+      }
+    ],
+    "correctAnswer": "b",
+    "explanation": "保護裝備分類：\n\n| 類型 | 特徵 | 範例 |\n|------|------|------|\n| 被動式 | 沒有活動部件，靠形狀卡住 | 岩楔(Nut)、Hex、Tricam |\n| 主動式 | 有活動部件（彈簧凸輪） | Cam (Friend)、Camalot |\n\n被動式優點：\n結構簡單，不易故障\n重量輕\n價格較低\n可放置在淺裂縫\n\n被動式缺點：\n需要裂縫形狀配合\n受力方向較單一\n需要較多技術判斷\n\n主動式優點：\n適用範圍廣\n放置快速\n受力方向較寬容\n\n主動式缺點：\n較重、較貴\n機械部件可能故障\n不適合太淺的裂縫",
+    "referenceSources": [
+      "AMGA",
+      "Freedom of the Hills",
+      "Climbing Anchors"
+    ],
+    "tags": [
+      "被動式",
+      "主動式",
+      "保護裝備分類"
+    ]
+  },
+  {
+    "id": "trad-protection-2",
+    "categoryId": "trad-protection",
+    "type": "situation",
+    "difficulty": 2,
+    "scenario": "你要在一條收縮的裂縫中放置岩楔（Nut）。",
+    "question": "岩楔應該放置在什麼樣的裂縫形狀？",
+    "options": [
+      {
+        "id": "a",
+        "text": "平行的裂縫"
+      },
+      {
+        "id": "b",
+        "text": "向內收縮的裂縫（內窄外寬）"
+      },
+      {
+        "id": "c",
+        "text": "向外擴張的裂縫（內寬外窄）"
+      },
+      {
+        "id": "d",
+        "text": "任何形狀都可以"
+      }
+    ],
+    "correctAnswer": "b",
+    "explanation": "裂縫形狀與岩楔放置：\n\n``\n✅ 收縮裂縫（好）      ❌ 擴張裂縫（不好）\n\n   ╲    ╱              ╱    ╲\n    ╲  ╱              ╱      ╲\n     ╲╱ ← 岩楔卡住    ╱        ╲ ← 岩楔會掉出\n    ╱╲              ╱          ╲\n   ╱  ╲            ╱            ╲\n``\n\n放置要點：\n\n1. 找收縮處\n裂縫越往裡越窄\n岩楔會「越拉越緊」\n\n2. 接觸面積\n岩楔表面要充分接觸岩石\n不是只有邊緣接觸\n\n3. 受力方向\n放置時考慮墜落方向\n岩楔應該往那個方向卡緊\n\n選擇正確尺寸：\n不要太大（硬塞）\n不要太小（容易滑出）\n應該剛好卡緊",
+    "referenceSources": [
+      "AMGA",
+      "Climbing Anchors",
+      "Traditional Lead (Luebben)"
+    ],
+    "tags": [
+      "岩楔",
+      "放置技術",
+      "裂縫形狀"
+    ]
+  },
+  {
+    "id": "trad-protection-3",
+    "categoryId": "trad-protection",
+    "type": "situation",
+    "difficulty": 3,
+    "scenario": "你正在放置一個 Cam，觀察凸輪的角度。",
+    "question": "Cam 的凸輪角度約在什麼範圍時，抓力最強？",
+    "options": [
+      {
+        "id": "a",
+        "text": "完全收縮（0-25%）"
+      },
+      {
+        "id": "b",
+        "text": "中間範圍（50-90%）"
+      },
+      {
+        "id": "c",
+        "text": "接近全開（90-100%）"
+      },
+      {
+        "id": "d",
+        "text": "角度不影響抓力"
+      }
+    ],
+    "correctAnswer": "b",
+    "explanation": "凸輪角度與抓力的關係：\n\n``\n收縮     25%      50%      75%      張開\n  │       │        │        │        │\n  ╱╲     ╱ ╲      ╱  ╲     ╱   ╲    ╱    ╲\n ╱  ╲   ╱   ╲    ╱    ╲   ╱     ╲  ╱      ╲\n  ▓▓     ▓▓▓      ████      ▓▓▓      ▓▓\n\n 差      可       最佳      可       差\n``\n\n為什麼 50-90% 最好：\n\n| 範圍 | 抓力 | 問題 |\n|------|------|------|\n| 0-25% | 較弱 | 可能走位、凸輪打滑 |\n| 50-90% | 最強 | 理想放置 |\n| 90-100% | 較弱 | 抓力降低、可能脫出 |\n\n凸輪工作原理：\n凸輪是對數螺旋形狀\n受力時會試圖張開\n適當的收縮空間讓這個機制有效運作\n\n實際判斷技巧：\n觸發桿還有明顯收縮空間\n凸輪葉片平均接觸岩壁\n不需要用力擠壓才能放入",
+    "referenceSources": [
+      "Black Diamond",
+      "Wild Country",
+      "AMGA"
+    ],
+    "tags": [
+      "Cam",
+      "凸輪角度",
+      "抓力原理"
+    ]
+  },
+  {
+    "id": "trad-protection-4",
+    "categoryId": "trad-protection",
+    "type": "situation",
+    "difficulty": 2,
+    "scenario": "你在先鋒攀登時放置了一個保護點。",
+    "question": "什麼是「走位」（Walking），如何預防？",
+    "options": [
+      {
+        "id": "a",
+        "text": "攀登者走動造成的問題，無法預防"
+      },
+      {
+        "id": "b",
+        "text": "保護裝備因繩子移動而逐漸位移，可用延長繩環減少"
+      },
+      {
+        "id": "c",
+        "text": "繩子打結的現象"
+      },
+      {
+        "id": "d",
+        "text": "只有岩楔會走位，Cam 不會"
+      }
+    ],
+    "correctAnswer": "b",
+    "explanation": "走位現象：\n\n``\n原始位置              走位後\n    │                    │\n    │                    │\n   ╱╲ ← Cam            ╱╲ ← Cam 移動到\n  岩縫                 │   不穩定的位置\n    │                 岩縫\n    ╲                   │\n     繩子擺動 →         ╲\n``\n\n發生原因：\n繩子移動拉扯保護點\n保護點在裂縫中逐漸滑動\n最終可能移到不安全的位置\n\n預防方法：\n\n1. 延長繩環\n減少繩子直接拉扯保護點\n特別是在橫移路段\n\n2. 放置方向\n考慮繩子會如何拉扯\n選擇不容易被拉動的位置\n\n3. 使用較長的 Cam 桿\n有些 Cam 有加長桿選項\n減少力矩作用\n\n特別注意：\nCam 比岩楔更容易走位\n水平裂縫走位風險較高\n定期回頭檢查",
+    "referenceSources": [
+      "AMGA",
+      "Climbing Anchors",
+      "VDiff Climbing"
+    ],
+    "tags": [
+      "走位",
+      "保護點移動",
+      "預防措施"
+    ]
+  },
+  {
+    "id": "trad-protection-5",
+    "categoryId": "trad-protection",
+    "type": "situation",
+    "difficulty": 3,
+    "scenario": "你在整理裝備，看到一個 Tricam。",
+    "question": "Tricam 有哪兩種使用方式？",
+    "options": [
+      {
+        "id": "a",
+        "text": "只能當岩楔用"
+      },
+      {
+        "id": "b",
+        "text": "可以當被動岩楔或凸輪模式使用"
+      },
+      {
+        "id": "c",
+        "text": "只能當 Cam 用"
+      },
+      {
+        "id": "d",
+        "text": "只能當快扣使用"
+      }
+    ],
+    "correctAnswer": "b",
+    "explanation": "Tricam 的雙重功能：\n\n``\n岩楔模式（Chock）         凸輪模式（Cam）\n\n     ▲                       ▲\n    ╱ ╲                     ╱│╲\n   ╱   ╲                   ╱ │ ╲\n  ╱─────╲                 ╱  │  ╲\n    │                       │\n    繩環                    繩環\n\n用平面卡住              用尖端抵住，旋轉卡緊\n``\n\n岩楔模式：\n像普通岩楔一樣使用\n用寬面卡在收縮裂縫\n穩定性高\n\n凸輪模式：\n尖端抵住岩壁一側\n受力時旋轉卡緊\n適合水平裂縫或口袋\n\nTricam 的優點：\n多功能（兩種模式）\n重量輕、便宜\n適合特殊地形（如口袋、水平縫）\n不會像 Cam 一樣走位\n\nTricam 的缺點：\n需要較多技術\n放置較慢\n受力方向較單一",
+    "referenceSources": [
+      "Camp USA",
+      "AMGA",
+      "Climbing Anchors"
+    ],
+    "tags": [
+      "Tricam",
+      "雙模式",
+      "特殊裝備"
+    ]
+  },
+  {
+    "id": "trad-protection-6",
+    "categoryId": "trad-protection",
+    "type": "situation",
+    "difficulty": 2,
+    "scenario": "你有幾個 Hex（六角形岩楔）需要放置。",
+    "question": "Hex 最適合放置在什麼類型的裂縫？",
+    "options": [
+      {
+        "id": "a",
+        "text": "非常窄的指縫"
+      },
+      {
+        "id": "b",
+        "text": "中寬到寬的裂縫，特別是收縮或扭曲的裂縫"
+      },
+      {
+        "id": "c",
+        "text": "只適合水平裂縫"
+      },
+      {
+        "id": "d",
+        "text": "只適合人工岩場"
+      }
+    ],
+    "correctAnswer": "b",
+    "explanation": "Hex 的特點：\n\n``\n       ╱╲\n      ╱  ╲\n     │    │\n     │    │\n      ╲  ╱\n       ╲╱\n\nHex 有多個面可以放置\n``\n\n放置方式：\n\n| 方式 | 適用情況 |\n|------|----------|\n| 端對端放置 | 窄裂縫 |\n| 面對面放置 | 較寬裂縫 |\n| 凸輪模式 | 平行或收縮裂縫 |\n\nHex 的優點：\n覆蓋範圍大（每個有多種放法）\n價格便宜\n重量適中\n扭曲裂縫特別好用\n\nHex 的缺點：\n不適合太窄的裂縫\n放置較 Cam 慢\n需要正確的裂縫形狀\n\n與 Cam 比較：\nCam 更快、更通用\nHex 更輕、更便宜\n長路線常帶幾個 Hex 節省重量",
+    "referenceSources": [
+      "Black Diamond",
+      "AMGA",
+      "Traditional Lead"
+    ],
+    "tags": [
+      "Hex",
+      "六角形岩楔",
+      "放置技術"
+    ]
+  },
+  {
+    "id": "trad-protection-7",
+    "categoryId": "trad-protection",
+    "type": "situation",
+    "difficulty": 2,
+    "scenario": "你剛放置好一個岩楔。",
+    "question": "正確測試保護點的方式是？",
+    "options": [
+      {
+        "id": "a",
+        "text": "用眼睛看就好"
+      },
+      {
+        "id": "b",
+        "text": "往預期受力方向用力拉扯"
+      },
+      {
+        "id": "c",
+        "text": "往各個方向搖晃"
+      },
+      {
+        "id": "d",
+        "text": "讓它掛在那裡，繼續往上爬"
+      }
+    ],
+    "correctAnswer": "b",
+    "explanation": "測試保護點的正確方法：\n\n``\n    ╲\n     ╲  ← 裂縫\n      ╲\n    ╱╲ ← 岩楔\n   ╱  ╲\n      │\n      │\n      ↓ 往墜落方向拉\n``\n\n測試步驟：\n\n1. 判斷受力方向\n通常是向下偏向攀爬方向\n考慮繩子路徑\n\n2. 往該方向拉\n用快扣或繩環連接\n用力拉扯（不要用手直接拉裝備）\n觀察是否移動\n\n3. 評估結果\n✅ 不動或越拉越緊 = 好\n❌ 有移動或搖晃 = 重新放置\n\n為什麼不要各方向搖：\n保護點只需要在受力方向有效\n搖晃可能把好的放置弄鬆\n浪費時間和精力",
+    "referenceSources": [
+      "AMGA",
+      "Climbing Anchors",
+      "Traditional Lead"
+    ],
+    "tags": [
+      "測試",
+      "保護點評估",
+      "拉扯測試"
+    ]
+  },
+  {
+    "id": "trad-protection-8",
+    "categoryId": "trad-protection",
+    "type": "situation",
+    "difficulty": 2,
+    "scenario": "路線上有各種大小的裂縫。",
+    "question": "以下裂縫大小與適用裝備的配對，何者正確？",
+    "options": [
+      {
+        "id": "a",
+        "text": "指縫（Finger Crack）→ 大號 Cam"
+      },
+      {
+        "id": "b",
+        "text": "手掌縫（Hand Crack）→ 小號岩楔"
+      },
+      {
+        "id": "c",
+        "text": "拳頭縫（Fist Crack）→ 大號 Cam 或 Hex"
+      },
+      {
+        "id": "d",
+        "text": "寬裂縫（Offwidth）→ 小號 Cam"
+      }
+    ],
+    "correctAnswer": "c",
+    "explanation": "裂縫大小與裝備對照：\n\n| 裂縫類型 | 寬度約 | 適用裝備 |\n|----------|--------|----------|\n| 細縫（Thin Crack） | < 1 cm | 小號岩楔、Offset Nut |\n| 指縫（Finger Crack） | 1-2.5 cm | 小型 Cam (#0.3-0.75)、岩楔 |\n| 手縫（Hand Crack） | 5-7 cm | 中型 Cam (#1-3) |\n| 拳頭縫（Fist Crack） | 7-12 cm | 大型 Cam (#3-4)、Hex |\n| 寬縫（Offwidth） | > 12 cm | 特大 Cam (#5-6)、Big Bros |\n\n選擇原則：\n裝備尺寸要配合裂縫寬度\n太大放不進去\n太小放進去也沒用\n\n攜帶裝備的建議：\n先研究路線資訊\n帶預期會用到的尺寸\n多帶幾個常用尺寸",
+    "referenceSources": [
+      "AMGA",
+      "Freedom of the Hills",
+      "SuperTopo"
+    ],
+    "tags": [
+      "裂縫大小",
+      "裝備選擇",
+      "尺寸配對"
+    ]
+  },
+  {
+    "id": "trad-protection-9",
+    "categoryId": "trad-protection",
+    "type": "situation",
+    "difficulty": 2,
+    "scenario": "你正在先鋒一條傳統路線。",
+    "question": "保護點之間的理想間隔是？",
+    "options": [
+      {
+        "id": "a",
+        "text": "越密越好，每 50 公分放一個"
+      },
+      {
+        "id": "b",
+        "text": "越省越好，整條路線只放 2-3 個"
+      },
+      {
+        "id": "c",
+        "text": "根據墜落後果、難度和個人能力判斷，通常 2-4 公尺"
+      },
+      {
+        "id": "d",
+        "text": "固定每 5 公尺放一個"
+      }
+    ],
+    "correctAnswer": "c",
+    "explanation": "保護點間隔的考量因素：\n\n| 因素 | 放密一點 | 放疏一點 |\n|------|----------|----------|\n| 墜落後果 | 有平台、地面 | 乾淨墜落區 |\n| 難度 | 接近極限 | 輕鬆路段 |\n| 保護品質 | 放置點不佳 | 放置點很好 |\n| 心理狀態 | 緊張 | 有信心 |\n\n一般原則：\n起攀處較密（減少地面墜落風險）\n難關前後較密\n簡單地形可疏一點\n墜落區乾淨可疏一點\n\n計算墜落距離：\n``\n墜落距離 ≈ 2 × (距離最後保護點的距離) + 繩索延展\n\n例：距最後保護點 3m，墜落約 6m + 延展\n``\n\n過密的問題：\n裝備不夠用\n浪費時間\n繩索阻力增加\n\n過疏的問題：\n墜落距離太長\n心理壓力大\n風險增加",
+    "referenceSources": [
+      "AMGA",
+      "Freedom of the Hills"
+    ],
+    "tags": [
+      "放置間隔",
+      "墜落距離",
+      "風險管理"
+    ]
+  },
+  {
+    "id": "trad-protection-10",
+    "categoryId": "trad-protection",
+    "type": "situation",
+    "difficulty": 2,
+    "scenario": "你是跟攀者，需要清除先鋒放置的保護點。",
+    "question": "清除岩楔的正確技巧是？",
+    "options": [
+      {
+        "id": "a",
+        "text": "用力往下拉"
+      },
+      {
+        "id": "b",
+        "text": "往放置的反方向推或敲，讓岩楔鬆脫"
+      },
+      {
+        "id": "c",
+        "text": "用鉤環敲打岩壁"
+      },
+      {
+        "id": "d",
+        "text": "如果拿不出來就留在那裡"
+      }
+    ],
+    "correctAnswer": "b",
+    "explanation": "清除岩楔的技巧：\n\n``\n放置時：              清除時：\n    │                    │\n    ↓ 卡入              ↑ 反方向推出\n   ╱╲                   ╱╲\n  ╱  ╲                 ╱  ╲\n 岩縫                  岩縫\n``\n\n步驟：\n1. 觀察岩楔是怎麼放的\n2. 往放入的反方向推\n3. 可以用 Nut Tool 幫助\n4. 邊推邊輕輕搖動\n5. 鬆脫後取出\n\nNut Tool 的使用：\n金屬勾可以勾住岩楔\n用來推或敲擊\n省力且保護手指\n\n困難的情況：\n卡很緊：多嘗試不同角度\n放太深：用 Nut Tool 勾出\n真的拿不出：考慮留下（但要付錢給先鋒）\n\n清除 Cam：\n拉動觸發桿收縮凸輪\n保持拉住同時取出\n比岩楔容易清除",
+    "referenceSources": [
+      "AMGA",
+      "VDiff Climbing"
+    ],
+    "tags": [
+      "清除",
+      "岩楔回收",
+      "跟攀技術"
+    ]
+  },
+  {
+    "id": "trad-protection-11",
+    "categoryId": "trad-protection",
+    "type": "situation",
+    "difficulty": 2,
+    "scenario": "你在一個關鍵位置只找到一個可能的放置點。",
+    "question": "如果單一保護點的品質不確定，應該怎麼做？",
+    "options": [
+      {
+        "id": "a",
+        "text": "沒關係，繼續往上爬"
+      },
+      {
+        "id": "b",
+        "text": "在附近再放一個，或連結多個較弱的點"
+      },
+      {
+        "id": "c",
+        "text": "放棄這條路線"
+      },
+      {
+        "id": "d",
+        "text": "告訴自己不會墜落就好"
+      }
+    ],
+    "correctAnswer": "b",
+    "explanation": "處理不確定保護點的方法：\n\n方法一：堆疊（Stacking）\n``\n    岩楔1   岩楔2\n      │       │\n      └───┬───┘\n          │\n        快扣\n``\n在同一位置放多個\n用繩環連接在一起\n一個失效另一個接手\n\n方法二：附近增加\n在上方或下方找其他放置點\n多個「可能好」勝過一個「很可能好」\n但不要因此忽略品質\n\n方法三：評估風險\n這裡墜落的後果是什麼？\n下一個保護點在哪裡？\n是否應該降低攀爬？\n\n心態：\n「不確定」= 當它不存在\n不要過度依賴單一可疑保護點\n永遠有備案",
+    "referenceSources": [
+      "AMGA",
+      "Climbing Anchors"
+    ],
+    "tags": [
+      "冗餘",
+      "不確定保護點",
+      "風險管理"
+    ]
+  },
+  {
+    "id": "trad-protection-12",
+    "categoryId": "trad-protection",
+    "type": "situation",
+    "difficulty": 2,
+    "scenario": "你正在先鋒攀登，要把繩子掛入保護點。",
+    "question": "Z-clip 是什麼問題？",
+    "options": [
+      {
+        "id": "a",
+        "text": "繩子顏色是 Z 字型"
+      },
+      {
+        "id": "b",
+        "text": "繩子錯誤地從下方保護點穿過，造成繩子路徑呈 Z 字型"
+      },
+      {
+        "id": "c",
+        "text": "快扣掛成 Z 字型"
+      },
+      {
+        "id": "d",
+        "text": "一種特殊的掛繩技巧"
+      }
+    ],
+    "correctAnswer": "b",
+    "explanation": "Z-clip 圖解：\n\n``\n正確路徑：              Z-clip：\n\n    ◯ 新保護點           ◯ 新保護點\n    │                    │╲\n    │                    │ ╲ 錯誤穿入\n    ◯ 舊保護點           ◯──╱ 舊保護點\n    │                    │\n    確保者               確保者\n\n繩子是直線              繩子呈 Z 字型\n``\n\nZ-clip 的問題：\n墜落時繩子會卡住\n增加墜落距離\n可能造成保護點承受怪異角度的力\n\n如何發生：\n掛新保護點時，誤拿了下方的繩子\n通常發生在保護點距離近時\n\n如何預防：\n掛繩前確認拿的是正確段的繩子\n繩子應該從腰部直接上去\n不要從下方保護點下面拿繩\n\n如何修正：\n發現後立即修正\n把繩子從新保護點取出重掛",
+    "referenceSources": [
+      "AMGA",
+      "VDiff Climbing",
+      "Freedom of the Hills"
+    ],
+    "tags": [
+      "Z-clip",
+      "掛繩錯誤",
+      "繩索管理"
+    ]
+  },
+  {
+    "id": "trad-protection-13",
+    "categoryId": "trad-protection",
+    "type": "situation",
+    "difficulty": 3,
+    "scenario": "你攀爬的路線岩石品質看起來參差不齊。",
+    "question": "如何評估岩石是否適合放置保護點？",
+    "options": [
+      {
+        "id": "a",
+        "text": "看顏色，越深越好"
+      },
+      {
+        "id": "b",
+        "text": "敲擊聽聲音、檢查裂縫和風化程度"
+      },
+      {
+        "id": "c",
+        "text": "看有沒有其他人用過的痕跡"
+      },
+      {
+        "id": "d",
+        "text": "岩石種類不影響保護品質"
+      }
+    ],
+    "correctAnswer": "b",
+    "explanation": "岩石品質評估方法：\n\n1. 敲擊測試：\n✅ 實心聲（高音、清脆）= 堅固\n❌ 空心聲（低沉、悶）= 可能有空洞或裂縫\n\n2. 視覺檢查：\n| 好的跡象 | 不好的跡象 |\n|----------|------------|\n| 顏色均勻 | 變色、發白 |\n| 表面完整 | 剝落、碎裂 |\n| 紋理細密 | 粗糙、鬆散 |\n\n3. 物理測試：\n用手推壓岩石\n觀察是否有碎屑\n裂縫邊緣是否穩固\n\n不同岩石類型：\n| 岩石 | 通常品質 |\n|------|----------|\n| 花崗岩 | 通常很好 |\n| 砂岩 | 變化大，注意軟弱層 |\n| 石灰�ite | 可能有溶蝕空洞 |\n| 玄武岩 | 通常堅硬 |",
+    "referenceSources": [
+      "AMGA",
+      "Freedom of the Hills"
+    ],
+    "tags": [
+      "岩石品質",
+      "評估方法",
+      "地質"
+    ]
+  },
+  {
+    "id": "trad-protection-14",
+    "categoryId": "trad-protection",
+    "type": "situation",
+    "difficulty": 3,
+    "scenario": "你的裝備中有一些 Offset Nut（不對稱岩楔）。",
+    "question": "Offset Nut 最適合用在什麼情況？",
+    "options": [
+      {
+        "id": "a",
+        "text": "和普通岩楔完全相同"
+      },
+      {
+        "id": "b",
+        "text": "不平行或開口狹窄的裂縫"
+      },
+      {
+        "id": "c",
+        "text": "只適合寬裂縫"
+      },
+      {
+        "id": "d",
+        "text": "只能當配重使用"
+      }
+    ],
+    "correctAnswer": "b",
+    "explanation": "Offset Nut vs 一般 Nut：\n\n``\n一般 Nut：              Offset Nut：\n   ╱╲                      ╱╲\n  ╱  ╲                    ╱  │\n ╱    ╲                  ╱   │\n對稱形狀                 不對稱形狀\n適合 V 形裂縫            適合不規則裂縫\n``\n\nOffset Nut 的優勢：\n\n| 情況 | 效果 |\n|------|------|\n| 淺裂縫 | 可以放更淺 |\n| Pin Scar | 適合舊釘孔 |\n| 不平行裂縫 | 兩側不同厚度配合 |\n| 水平裂縫 | 更好的卡合 |\n\n使用時機：\n普通岩楔放不好時\n裂縫形狀不規則\n需要在淺處放置\n\n攜帶建議：\n不需要帶完整一套 Offset\n帶幾個常用尺寸\n補充普通岩楔的不足",
+    "referenceSources": [
+      "DMM",
+      "Wild Country",
+      "AMGA"
+    ],
+    "tags": [
+      "Offset Nut",
+      "不對稱岩楔",
+      "特殊裂縫"
+    ]
+  },
+  {
+    "id": "trad-protection-15",
+    "categoryId": "trad-protection",
+    "type": "situation",
+    "difficulty": 3,
+    "scenario": "你在分析一次保護點失效的事故報告。",
+    "question": "以下哪個是保護點失效最常見的原因？",
+    "options": [
+      {
+        "id": "a",
+        "text": "裝備本身製造缺陷"
+      },
+      {
+        "id": "b",
+        "text": "放置不當（位置、角度、尺寸選擇錯誤）"
+      },
+      {
+        "id": "c",
+        "text": "繩子太舊"
+      },
+      {
+        "id": "d",
+        "text": "天氣影響"
+      }
+    ],
+    "correctAnswer": "b",
+    "explanation": "保護點失效的原因分析：\n\n| 原因 | 比例 | 說明 |\n|------|------|------|\n| 放置不當 | 最高 | 人為錯誤 |\n| 岩石破裂 | 次高 | 岩石品質問題 |\n| 裝備故障 | 很低 | 現代裝備很可靠 |\n| 其他 | 低 | 異常情況 |\n\n常見的放置錯誤：\n\n1. 尺寸不對\n太大：硬塞，可能傷害裝備\n太小：容易脫出\n\n2. 位置不佳\n裂縫形狀不適合\n岩石品質差\n\n3. 角度錯誤\n受力方向與放置方向不符\n側向力導致脫出\n\n4. 沒有測試\n放完就走\n沒發現問題\n\n如何避免：\n正確訓練\n每次放置都測試\n不要急躁\n持續學習",
+    "referenceSources": [
+      "AAC Accidents",
+      "AMGA",
+      "Climbing Anchors"
+    ],
+    "tags": [
+      "失效原因",
+      "人為錯誤",
+      "安全分析"
+    ]
+  }
+]

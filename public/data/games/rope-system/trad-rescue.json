@@ -1,0 +1,567 @@
+[
+  {
+    "id": "trad-rescue-1",
+    "categoryId": "trad-rescue",
+    "type": "situation",
+    "difficulty": 3,
+    "scenario": "你需要在繩子上打一個可以抓住繩子的繩結。",
+    "question": "普魯士結的主要特性是什麼？",
+    "options": [
+      {
+        "id": "a",
+        "text": "用來連接兩條繩子"
+      },
+      {
+        "id": "b",
+        "text": "受力時會抓緊繩子，不受力時可以滑動"
+      },
+      {
+        "id": "c",
+        "text": "永久固定在繩子上"
+      },
+      {
+        "id": "d",
+        "text": "只能向上移動"
+      }
+    ],
+    "correctAnswer": "b",
+    "explanation": "普魯士結（Prusik）的特性：\n\n``\n       主繩\n         │\n    ╭────┼────╮\n    │    │    │\n    │╭───┼───╮│  ← Prusik 繞圈（3-4圈）\n    ││   │   ││\n    │╰───┼───╯│\n    │    │    │\n    ╰────┼────╯\n         │\n       繩環\n``\n\n工作原理：\n| 狀態 | 行為 |\n|------|------|\n| 受力 | 繩環收緊，抓住主繩 |\n| 不受力 | 可以用手推動滑行 |\n\n常見應用：\n垂降備份（Autoblock）\n繩索上升\n救援系統\n拖拉系統\n\n繩結要求：\n輔助繩直徑約為主繩的 60-80%\n圈數：通常 3-4 圈\n太粗或太細都會影響效果\n\n其他類似繩結：\nKlemheist：更易單手操作\nBachmann：加入鉤環更好操作\nFrench Prusik：較易鬆開",
+    "referenceSources": [
+      "AMGA",
+      "Freedom of the Hills",
+      "Petzl"
+    ],
+    "tags": [
+      "普魯士結",
+      "Prusik",
+      "抓繩結"
+    ]
+  },
+  {
+    "id": "trad-rescue-2",
+    "categoryId": "trad-rescue",
+    "type": "situation",
+    "difficulty": 3,
+    "scenario": "你需要沿著一條固定繩向上攀爬。",
+    "question": "使用兩個 Prusik 上升繩索的基本原理是？",
+    "options": [
+      {
+        "id": "a",
+        "text": "兩個 Prusik 同時往上推"
+      },
+      {
+        "id": "b",
+        "text": "輪流將重量轉移，一個承重時另一個往上推"
+      },
+      {
+        "id": "c",
+        "text": "只需要一個 Prusik"
+      },
+      {
+        "id": "d",
+        "text": "用手直接抓繩子往上"
+      }
+    ],
+    "correctAnswer": "b",
+    "explanation": "雙 Prusik 上升法：\n\n``\n步驟1：          步驟2：          步驟3：\n\n  │               │               │\n  P1 ← 承重      P1 ← 往上推     P1 ← 承重\n  │               │               │\n  │               │               │\n  P2              P2 ← 承重       P2 ← 往上推\n  │               │               │\n 腳              腳              腳\n\n（P1 = 吊帶 Prusik，P2 = 腳環 Prusik）\n``\n\n設置方式：\n| Prusik | 連接位置 | 功能 |\n|--------|----------|------|\n| 上方 Prusik | 吊帶確保環 | 支撐身體重量 |\n| 下方 Prusik | 腳環（繩梯） | 提供踩踏點 |\n\n上升步驟：\n1. 站在腳環上（下方 Prusik 承重）\n2. 把上方 Prusik 往上推\n3. 坐在上方 Prusik 上（轉移重量）\n4. 把下方 Prusik 往上推\n5. 重複\n\n注意事項：\n永遠保持至少一個 Prusik 承重\n上升時可打繩結備份\n練習直到熟練",
+    "referenceSources": [
+      "AMGA",
+      "Freedom of the Hills"
+    ],
+    "tags": [
+      "繩索上升",
+      "Prusik",
+      "自我救援"
+    ]
+  },
+  {
+    "id": "trad-rescue-3",
+    "categoryId": "trad-rescue",
+    "type": "situation",
+    "difficulty": 3,
+    "scenario": "你正在確保時，攀登者受傷無法移動，你需要去救援。",
+    "question": "「確保脫離」的目的是什麼？",
+    "options": [
+      {
+        "id": "a",
+        "text": "放棄確保離開"
+      },
+      {
+        "id": "b",
+        "text": "將負載轉移到固定點，讓確保者可以騰出雙手去進行其他操作"
+      },
+      {
+        "id": "c",
+        "text": "快速降低攀登者"
+      },
+      {
+        "id": "d",
+        "text": "把繩子剪斷"
+      }
+    ],
+    "correctAnswer": "b",
+    "explanation": "確保脫離的目的：\n\n``\n原始狀態：              脫離後：\n\n固定點                  固定點\n  │                       │\n確保者 ← 被繩子困住     負載轉移 ← 繩子固定在此\n  │                       │\n攀登者                  攀登者\n                          │\n                       確保者 ← 可以自由移動\n``\n\n使用時機：\n攀登者受傷需要救援\n需要騰出雙手做其他操作\n需要離開確保位置\n\n基本步驟概念：\n1. 鎖定確保器（Mule Knot 或類似方式）\n2. 將負載轉移到固定點\n3. 使用 Prusik 或繩環作為備份\n4. 解除確保器\n5. 確保者可以移動\n\n關鍵原則：\n永遠保持攀登者有支撐\n每個步驟都要有備份\n緩慢、仔細地操作",
+    "referenceSources": [
+      "AMGA",
+      "Freedom of the Hills",
+      "Petzl"
+    ],
+    "tags": [
+      "確保脫離",
+      "救援技術",
+      "負載轉移"
+    ]
+  },
+  {
+    "id": "trad-rescue-4",
+    "categoryId": "trad-rescue",
+    "type": "situation",
+    "difficulty": 3,
+    "scenario": "你需要暫時鎖定確保器。",
+    "question": "Mule Knot 的功能是什麼？",
+    "options": [
+      {
+        "id": "a",
+        "text": "永久綁死繩子"
+      },
+      {
+        "id": "b",
+        "text": "暫時鎖定繩子，但可以快速解開並控制放繩"
+      },
+      {
+        "id": "c",
+        "text": "連接兩條繩子"
+      },
+      {
+        "id": "d",
+        "text": "增加摩擦力"
+      }
+    ],
+    "correctAnswer": "b",
+    "explanation": "Mule Knot 的特性：\n\n``\n    確保器\n      │\n      │\n     ╭╮\n     ││ ← Mule Knot\n     ╰╯    （可快速解開）\n      │\n      │\n    拉繩\n      │\n     ╱ ╲\n    ╱   ╲ ← 可選擇加上\n   Overhand   半扣備份\n``\n\n優點：\n鎖定繩子，空出雙手\n可以隨時解開\n解開時可控制放繩\n\n打結方式：\n1. 在確保器下方的繩子上\n2. 打一個滑結（Slip Knot）\n3. 用繩尾穿過形成 Mule Knot\n4. 可選擇再加一個 Overhand 備份\n\n使用場合：\n垂降中途需要停止\n確保中需要空出雙手\n確保脫離的第一步\n\n解開方式：\n拉住繩尾（制動端）\n解開 Mule Knot\n控制放繩",
+    "referenceSources": [
+      "AMGA",
+      "Petzl",
+      "VDiff Climbing"
+    ],
+    "tags": [
+      "Mule Knot",
+      "騾結",
+      "鎖定繩子"
+    ]
+  },
+  {
+    "id": "trad-rescue-5",
+    "categoryId": "trad-rescue",
+    "type": "situation",
+    "difficulty": 3,
+    "scenario": "你的跟攀者在攀爬中受傷，你需要從上方將他降低。",
+    "question": "從上方降低傷者時，首先需要確認什麼？",
+    "options": [
+      {
+        "id": "a",
+        "text": "直接開始降低"
+      },
+      {
+        "id": "b",
+        "text": "確認繩子長度足夠到達安全地點，且系統正確設置"
+      },
+      {
+        "id": "c",
+        "text": "等待救援隊"
+      },
+      {
+        "id": "d",
+        "text": "讓傷者自己爬上來"
+      }
+    ],
+    "correctAnswer": "b",
+    "explanation": "降低傷者前的檢查：\n\n| 檢查項目 | 原因 |\n|----------|------|\n| 繩子長度 | 確保能到達安全位置 |\n| 繩尾 | 打結或固定，避免滑出 |\n| 固定點 | 承受得住負載 |\n| 傷者狀態 | 是否能配合 |\n| 降低路線 | 避開障礙物 |\n\n系統設置：\n``\n        固定點\n          │\n      確保器/摩擦裝置\n          │\n        繩子\n          │\n       傷者（跟攀者）\n``\n\n降低方式選擇：\n確保器降低：最常見\n義大利半扣：備用方案\n摩擦裝置：長距離降低\n\n降低過程：\n1. 確認傷者準備好\n2. 緩慢、穩定地放繩\n3. 持續溝通\n4. 注意繩子剩餘長度",
+    "referenceSources": [
+      "AMGA",
+      "Freedom of the Hills"
+    ],
+    "tags": [
+      "降低傷者",
+      "救援技術",
+      "上方降低"
+    ]
+  },
+  {
+    "id": "trad-rescue-6",
+    "categoryId": "trad-rescue",
+    "type": "situation",
+    "difficulty": 3,
+    "scenario": "你需要協助拖拉一個無法自行上升的攀登者。",
+    "question": "Z-Pulley 系統的主要優點是什麼？",
+    "options": [
+      {
+        "id": "a",
+        "text": "看起來像 Z 字"
+      },
+      {
+        "id": "b",
+        "text": "提供 3:1 的機械優勢，減少拖拉所需的力量"
+      },
+      {
+        "id": "c",
+        "text": "只需要一個 Prusik"
+      },
+      {
+        "id": "d",
+        "text": "不需要固定點"
+      }
+    ],
+    "correctAnswer": "b",
+    "explanation": "Z-Pulley 系統原理：\n\n``\n     固定點\n        │\n    Prusik 1 ← 抓繩結（進度捕捉）\n        │\n        ╰───╮\n            │\n         滑輪/鉤環\n            │\n        ╭───╯\n        │\n    Prusik 2 ← 抓繩結\n        │\n        │\n      受害者\n\n拉力方向 → 向下拉，受害者向上移動\n機械優勢 = 3:1\n``\n\n優點：\n3:1 機械優勢\n用 100N 的力可以拉起 300N（理論值）\n一個人可以拖拉較重的負載\n\n組件需求：\n2 個 Prusik 或抓繩結\n2 個鉤環（或滑輪）\n固定點\n\n操作步驟：\n1. 建立固定點的 Prusik（進度捕捉）\n2. 繩子經過滑輪/鉤環折返\n3. 在下方繩子上建立第二個 Prusik\n4. 拉動繩子\n5. 釋放後進度捕捉會保持",
+    "referenceSources": [
+      "AMGA",
+      "Freedom of the Hills",
+      "Petzl"
+    ],
+    "tags": [
+      "Z-Pulley",
+      "機械優勢",
+      "拖拉系統"
+    ]
+  },
+  {
+    "id": "trad-rescue-7",
+    "categoryId": "trad-rescue",
+    "type": "situation",
+    "difficulty": 3,
+    "scenario": "垂降時繩子中間有一個繩結（例如接繩處）。",
+    "question": "通過繩結的正確程序中，第一步應該是？",
+    "options": [
+      {
+        "id": "a",
+        "text": "直接讓繩結通過確保器"
+      },
+      {
+        "id": "b",
+        "text": "在繩結上方停止，建立備份系統"
+      },
+      {
+        "id": "c",
+        "text": "解開繩結"
+      },
+      {
+        "id": "d",
+        "text": "加快速度衝過去"
+      }
+    ],
+    "correctAnswer": "b",
+    "explanation": "通過繩結的步驟：\n\n``\n1. 停在繩結上方\n      │\n   確保器\n      │\n   【繩結】← 停在這裡上方\n      │\n      │\n\n2. 建立備份\n      │\n   確保器\n    Prusik ← 在繩結上方建立\n      │\n   【繩結】\n      │\n\n3. 轉移到備份\n      │\n   確保器（解開）\n    Prusik ← 現在承重\n      │\n   【繩結】\n      │\n\n4. 重新架設\n      │\n    Prusik\n      │\n   【繩結】\n      │\n   確保器 ← 在繩結下方重新架設\n      │\n\n5. 繼續下降\n``\n\n關鍵原則：\n永遠保持連接\n每步驟都有備份\n緩慢仔細操作\n\n為什麼繩結不能通過確保器：\n繩結會卡住\n可能導致卡在半空中\n無法繼續操作",
+    "referenceSources": [
+      "AMGA",
+      "VDiff Climbing",
+      "Petzl"
+    ],
+    "tags": [
+      "通過繩結",
+      "垂降技術",
+      "進階操作"
+    ]
+  },
+  {
+    "id": "trad-rescue-8",
+    "categoryId": "trad-rescue",
+    "type": "situation",
+    "difficulty": 3,
+    "scenario": "你在評估救援情況中可能的衝擊力。",
+    "question": "墜落因子（Fall Factor）的計算公式是？",
+    "options": [
+      {
+        "id": "a",
+        "text": "墜落距離 × 繩子長度"
+      },
+      {
+        "id": "b",
+        "text": "墜落距離 ÷ 繩索長度（吸收衝擊的繩段）"
+      },
+      {
+        "id": "c",
+        "text": "體重 × 墜落距離"
+      },
+      {
+        "id": "d",
+        "text": "高度 ÷ 時間"
+      }
+    ],
+    "correctAnswer": "b",
+    "explanation": "墜落因子公式：\n\n``\n墜落因子 = 墜落距離 / 繩索長度（可吸收衝擊的部分）\n\n範例：\n墜落 4m，繩子出去 10m\nFall Factor = 4 / 10 = 0.4\n`\n\n墜落因子與嚴重程度：\n\n| 墜落因子 | 嚴重程度 | 說明 |\n|----------|----------|------|\n| < 0.5 | 低 | 一般先鋒墜落 |\n| 0.5 - 1.0 | 中 | 較大的墜落 |\n| 1.0 - 1.5 | 高 | 固定點承受大力 |\n| 1.5 - 2.0 | 極高 | 最大可能（例如因子2墜落） |\n\n因子 2 墜落：\n`\n  固定點\n     │\n     │ 2m\n     │\n  攀登者 ← 在固定點上方 2m 墜落\n                墜落距離 = 4m\n                繩長 = 2m\n                Factor = 4/2 = 2\n``\n\n為什麼這很重要：\n高墜落因子 = 高衝擊力\n影響固定點和裝備的選擇\n救援時要避免高因子衝擊",
+    "referenceSources": [
+      "Petzl",
+      "UIAA",
+      "AMGA"
+    ],
+    "tags": [
+      "墜落因子",
+      "衝擊力",
+      "物理原理"
+    ]
+  },
+  {
+    "id": "trad-rescue-9",
+    "categoryId": "trad-rescue",
+    "type": "situation",
+    "difficulty": 3,
+    "scenario": "你遺失了確保器，需要緊急垂降。",
+    "question": "沒有確保器時，可以使用什麼方式垂降？",
+    "options": [
+      {
+        "id": "a",
+        "text": "直接用手抓繩子滑下去"
+      },
+      {
+        "id": "b",
+        "text": "義大利半扣（Munter Hitch）配合有鎖鉤環"
+      },
+      {
+        "id": "c",
+        "text": "把繩子綁在腰上"
+      },
+      {
+        "id": "d",
+        "text": "不可能垂降"
+      }
+    ],
+    "correctAnswer": "b",
+    "explanation": "義大利半扣（Munter Hitch）：\n\n``\n      有鎖鉤環\n    ╭─────╮\n    │     │\n  ─┬─────┬─\n    │╲   ╱│\n    │ ╲ ╱ │  ← 義大利半扣\n    │  ╳  │\n    │ ╱ ╲ │\n    │╱   ╲│\n  ─┴─────┴─\n        │\n       繩子\n``\n\n義大利半扣的優點：\n只需要一個有鎖鉤環\n可以確保和垂降\n緊急情況的救星\n\n使用注意事項：\n必須使用有鎖鉤環（HMS 梨形最佳）\n繩子會扭轉（kinky）\n較難控制速度\n對繩子磨損較大\n\n操作要點：\n制動手永遠在下方\n繩子兩端不要太靠近\n速度控制靠握緊程度\n\n其他緊急選項：\nDülfersitz（身體纏繞法）：非常緊急時\n鉤環制動：用多個鉤環創造摩擦",
+    "referenceSources": [
+      "AMGA",
+      "Petzl",
+      "Freedom of the Hills"
+    ],
+    "tags": [
+      "義大利半扣",
+      "緊急垂降",
+      "Munter Hitch"
+    ]
+  },
+  {
+    "id": "trad-rescue-10",
+    "categoryId": "trad-rescue",
+    "type": "situation",
+    "difficulty": 3,
+    "scenario": "垂降時你的 Autoblock（普魯士備份）沒有正常工作。",
+    "question": "Autoblock 失效的最常見原因是？",
+    "options": [
+      {
+        "id": "a",
+        "text": "繩結本身有問題"
+      },
+      {
+        "id": "b",
+        "text": "輔助繩太粗或太細、圈數不對、繩子表面濕滑"
+      },
+      {
+        "id": "c",
+        "text": "天氣太熱"
+      },
+      {
+        "id": "d",
+        "text": "鉤環品質不好"
+      }
+    ],
+    "correctAnswer": "b",
+    "explanation": "Autoblock 失效原因分析：\n\n| 原因 | 說明 | 解決方案 |\n|------|------|----------|\n| 輔助繩太粗 | 無法收緊 | 使用較細的繩環 |\n| 輔助繩太細 | 抓力不足 | 使用較粗的繩環 |\n| 圈數太少 | 摩擦不夠 | 增加圈數（3-4圈） |\n| 圈數太多 | 難以移動 | 減少圈數 |\n| 繩子濕滑 | 摩擦降低 | 增加圈數、更注意操作 |\n| Dyneema 繩環 | 太滑 | 改用 Nylon |\n\n理想配置：\n輔助繩直徑約為主繩的 60-80%\n7mm 輔助繩配 10-11mm 主繩\n圈數：3-4 圈\n材質：Nylon 優先\n\n測試方法：\n垂降前先測試\n用體重拉扯看是否抓住\n確認可以用手推動",
+    "referenceSources": [
+      "Petzl",
+      "AMGA",
+      "VDiff Climbing"
+    ],
+    "tags": [
+      "Autoblock",
+      "失效原因",
+      "備份系統"
+    ]
+  },
+  {
+    "id": "trad-rescue-11",
+    "categoryId": "trad-rescue",
+    "type": "situation",
+    "difficulty": 3,
+    "scenario": "你需要將繩子上的負載從一個系統轉移到另一個系統。",
+    "question": "負載轉移時最重要的原則是？",
+    "options": [
+      {
+        "id": "a",
+        "text": "動作要快"
+      },
+      {
+        "id": "b",
+        "text": "永遠保持負載有支撐，轉移過程中不能有空檔"
+      },
+      {
+        "id": "c",
+        "text": "只需要一個固定點"
+      },
+      {
+        "id": "d",
+        "text": "可以同時解開所有連接"
+      }
+    ],
+    "correctAnswer": "b",
+    "explanation": "負載轉移的原則：\n\n``\n❌ 危險：有空檔\n原系統 → 解開 → (沒支撐) → 新系統\n                    ↑\n               負載會墜落！\n\n✅ 安全：無空檔\n原系統 → 新系統接上 → 轉移負載 → 解開原系統\n         ↑              ↑\n    先連接新的     確認新的承重\n``\n\n正確步驟：\n1. 建立新系統（不要解開舊的）\n2. 測試新系統（確認可以承重）\n3. 逐漸轉移負載\n4. 確認新系統承重\n5. 解除舊系統\n\n常見應用場景：\n確保脫離\n通過繩結\n變換確保方式\n救援操作\n\n心態：\n「在解開任何東西之前，先確認有其他東西在支撐」",
+    "referenceSources": [
+      "AMGA",
+      "Petzl",
+      "Freedom of the Hills"
+    ],
+    "tags": [
+      "負載轉移",
+      "救援原則",
+      "系統轉換"
+    ]
+  },
+  {
+    "id": "trad-rescue-12",
+    "categoryId": "trad-rescue",
+    "type": "situation",
+    "difficulty": 3,
+    "scenario": "你和夥伴被困在岩壁上，需要求救。",
+    "question": "國際山難求救訊號是？",
+    "options": [
+      {
+        "id": "a",
+        "text": "隨便大喊"
+      },
+      {
+        "id": "b",
+        "text": "每分鐘 6 次訊號（聲音、光線或動作），間隔一分鐘後重複"
+      },
+      {
+        "id": "c",
+        "text": "持續不斷發出訊號"
+      },
+      {
+        "id": "d",
+        "text": "每分鐘 3 次訊號"
+      }
+    ],
+    "correctAnswer": "b",
+    "explanation": "國際山難求救訊號：\n\n| 項目 | 規格 |\n|------|------|\n| 頻率 | 每分鐘 6 次 |\n| 間隔 | 每次約 10 秒 |\n| 休息 | 一分鐘後重複 |\n| 方式 | 聲音、光線或動作皆可 |\n\n訊號方式：\n聲音：哨子、大喊、敲擊\n光線：手電筒、反光鏡、手機螢幕\n動作：揮動布料、雙臂\n\n確認收到的回應：\n每分鐘 3 次訊號\n表示「已收到，正在來」\n\n其他求救方式：\n手機撥打緊急電話\n衛星通訊設備\nPLB（個人定位信標）\n\n被困時的原則：\n保持冷靜\n評估情況\n節省體力和資源\n持續發出訊號",
+    "referenceSources": [
+      "Freedom of the Hills",
+      "國際山岳搜救規範"
+    ],
+    "tags": [
+      "求救訊號",
+      "緊急應變",
+      "國際規範"
+    ]
+  },
+  {
+    "id": "trad-rescue-13",
+    "categoryId": "trad-rescue",
+    "type": "situation",
+    "difficulty": 3,
+    "scenario": "你的夥伴墜落後似乎受傷了。",
+    "question": "進行傷者評估時的第一優先是？",
+    "options": [
+      {
+        "id": "a",
+        "text": "立刻移動傷者到安全處"
+      },
+      {
+        "id": "b",
+        "text": "確認自己和傷者都處於安全位置，再進行初步評估（意識、呼吸、出血）"
+      },
+      {
+        "id": "c",
+        "text": "立刻開始 CPR"
+      },
+      {
+        "id": "d",
+        "text": "給傷者喝水"
+      }
+    ],
+    "correctAnswer": "b",
+    "explanation": "傷者評估的順序（ABCDE）：\n\n| 順序 | 項目 | 檢查內容 |\n|------|------|----------|\n| 0 | 安全 | 你和傷者是否安全 |\n| A | Airway | 呼吸道是否暢通 |\n| B | Breathing | 是否有呼吸 |\n| C | Circulation | 脈搏、大量出血 |\n| D | Disability | 意識狀態、脊椎損傷 |\n| E | Exposure | 其他傷害、體溫 |\n\n確保安全：\n你們是否有墜落風險？\n是否有落石風險？\n傷者是否被確保住？\n\n不要移動傷者如果：\n懷疑脊椎損傷\n除非有立即生命危險\n需要專業固定再移動\n\n初步處置：\n1. 控制大量出血\n2. 保持呼吸道暢通\n3. 防止失溫\n4. 安撫傷者\n5. 求救",
+    "referenceSources": [
+      "Wilderness First Aid",
+      "AMGA"
+    ],
+    "tags": [
+      "傷者評估",
+      "急救",
+      "ABCDE"
+    ]
+  },
+  {
+    "id": "trad-rescue-14",
+    "categoryId": "trad-rescue",
+    "type": "situation",
+    "difficulty": 3,
+    "scenario": "你需要獨自將傷者拖拉一小段距離。",
+    "question": "簡易拖拉傷者時，什麼方式最有效？",
+    "options": [
+      {
+        "id": "a",
+        "text": "直接抓住手拉"
+      },
+      {
+        "id": "b",
+        "text": "使用傷者自己的吊帶或創造一個簡易背負系統"
+      },
+      {
+        "id": "c",
+        "text": "把傷者扛在肩上"
+      },
+      {
+        "id": "d",
+        "text": "讓傷者滾下去"
+      }
+    ],
+    "correctAnswer": "b",
+    "explanation": "簡易拖拉方法：\n\n方法一：使用吊帶\n``\n     你\n     │\n   繩環/繩子\n     │\n  傷者吊帶\n     │\n    傷者\n``\n連接到傷者的吊帶\n用自己的吊帶或肩膀拖拉\n適合短距離水平移動\n\n方法二：繩索拖拉\n把傷者綁在繩子上\n使用滑輪系統增加機械優勢\n適合垂直或陡峭地形\n\n方法三：背負\n用繩環做成背帶\n傷者在背後\n需要傷者能配合\n\n注意事項：\n避免造成二次傷害\n脊椎損傷不要亂移動\n保護傷者頭部\n移動前先規劃路線\n\n單人限制：\n體力限制\n無法同時照顧傷者\n考慮是否等待救援",
+    "referenceSources": [
+      "Wilderness First Aid",
+      "AMGA"
+    ],
+    "tags": [
+      "拖拉傷者",
+      "簡易救援",
+      "移動技術"
+    ]
+  },
+  {
+    "id": "trad-rescue-15",
+    "categoryId": "trad-rescue",
+    "type": "situation",
+    "difficulty": 3,
+    "scenario": "你在反思如何減少需要救援的情況。",
+    "question": "以下哪個不是預防山難的有效方法？",
+    "options": [
+      {
+        "id": "a",
+        "text": "出發前研究路線和天氣"
+      },
+      {
+        "id": "b",
+        "text": "攜帶足夠的裝備和急救包"
+      },
+      {
+        "id": "c",
+        "text": "永遠推到極限才能進步"
+      },
+      {
+        "id": "d",
+        "text": "知道何時撤退、設定撤退時間"
+      }
+    ],
+    "correctAnswer": "c",
+    "explanation": "預防山難的原則：\n\n| 類別 | 具體做法 |\n|------|----------|\n| 事前準備 | 研究路線、了解難度、檢查天氣 |\n| 裝備 | 攜帶適當裝備、急救包、備用食物和水 |\n| 技能 | 持續學習、練習救援技術 |\n| 判斷 | 知道何時撤退、不逞強 |\n| 團隊 | 溝通良好、互相照應 |\n\n「推到極限」的問題：\n疲勞導致判斷失誤\n體力透支無法應對緊急情況\n小問題變成大災難\n\n安全攀登的心態：\n``\n✓ 山永遠在那裡\n✓ 退一步，下次再來\n✓ 安全回家是最大的成功\n✓ 逞強只會害己害人\n``\n\n設定撤退點：\n時間：幾點前必須開始撤退\n天氣：什麼情況必須撤退\n體力：預留足夠的回程體力",
+    "referenceSources": [
+      "AAC Accidents",
+      "Freedom of the Hills",
+      "AMGA"
+    ],
+    "tags": [
+      "預防",
+      "安全心態",
+      "風險管理"
+    ]
+  }
+]

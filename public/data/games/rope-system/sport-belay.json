@@ -1,0 +1,507 @@
+[
+  {
+    "id": "sport-belay-1",
+    "categoryId": "sport-belay",
+    "type": "situation",
+    "difficulty": 1,
+    "scenario": "你準備使用 ATC 確保器進行頂繩確保。",
+    "question": "繩索穿過 ATC 的正確方向是？",
+    "options": [
+      {
+        "id": "a",
+        "text": "攀登者端在上，制動端在下"
+      },
+      {
+        "id": "b",
+        "text": "攀登者端在下，制動端在上"
+      },
+      {
+        "id": "c",
+        "text": "兩端都可以，沒有差別"
+      }
+    ],
+    "correctAnswer": "a",
+    "explanation": "ATC 的設計讓制動端（下方）通過彎折產生摩擦力。正確安裝時：\n攀登者端的繩索從上方穿入\n制動端的繩索從下方穿出\n制動手握住下方的繩索\n\n如果裝反，制動效果會大幅降低，墜落時可能無法有效制停。",
+    "tags": [
+      "ATC",
+      "確保器",
+      "穿繩"
+    ]
+  },
+  {
+    "id": "sport-belay-2",
+    "categoryId": "sport-belay",
+    "type": "situation",
+    "difficulty": 1,
+    "scenario": "你正在選擇確保器材。",
+    "question": "關於 GriGri 確保器，以下何者正確？",
+    "options": [
+      {
+        "id": "a",
+        "text": "GriGri 有輔助制動功能，但仍需要制動手握繩"
+      },
+      {
+        "id": "b",
+        "text": "GriGri 是全自動確保器，可以放開制動手"
+      },
+      {
+        "id": "c",
+        "text": "GriGri 只能用於頂繩確保，不能用於先鋒確保"
+      },
+      {
+        "id": "d",
+        "text": "GriGri 比 ATC 輕，適合多繩距攀登"
+      }
+    ],
+    "correctAnswer": "a",
+    "explanation": "GriGri 是「輔助制動」確保器，不是「自動」確保器：\n✅ 有凸輪機構，在快速拉繩時會自動鎖定\n✅ 仍然需要制動手隨時握住繩索\n✅ 可用於頂繩和先鋒確保\n❌ 比 ATC 重，不適合輕量化需求\n\n永遠不要因為使用 GriGri 就放開制動手，這是最常見的致命錯誤。",
+    "tags": [
+      "GriGri",
+      "確保器",
+      "輔助制動"
+    ]
+  },
+  {
+    "id": "sport-belay-3",
+    "categoryId": "sport-belay",
+    "type": "situation",
+    "difficulty": 1,
+    "scenario": "你有一條 9.5mm 的單繩和一條 8.0mm 的雙子繩。",
+    "question": "使用確保器前，最重要的檢查是什麼？",
+    "options": [
+      {
+        "id": "a",
+        "text": "確保器的顏色是否好看"
+      },
+      {
+        "id": "b",
+        "text": "確保器是否適用於該繩徑範圍"
+      },
+      {
+        "id": "c",
+        "text": "確保器的品牌是否與繩子相同"
+      },
+      {
+        "id": "d",
+        "text": "確保器是否為最新款式"
+      }
+    ],
+    "correctAnswer": "b",
+    "explanation": "每個確保器都有適用的繩徑範圍（通常標示在器材上）：\n繩子太細：摩擦力不足，可能滑動\n繩子太粗：繩子可能卡住或操作困難\n\n使用前務必確認：\n1. 查看確保器標示的繩徑範圍\n2. 確認你的繩子在範圍內\n3. 特別注意細繩（<9mm）需要專用確保器",
+    "tags": [
+      "確保器",
+      "繩徑",
+      "器材檢查"
+    ]
+  },
+  {
+    "id": "sport-belay-4",
+    "categoryId": "sport-belay",
+    "type": "situation",
+    "difficulty": 1,
+    "scenario": "你要將 ATC 確保器連接到吊帶上。",
+    "question": "確保器應該連接到吊帶的哪個位置？",
+    "options": [
+      {
+        "id": "a",
+        "text": "吊帶的裝備環"
+      },
+      {
+        "id": "b",
+        "text": "吊帶的確保環"
+      },
+      {
+        "id": "c",
+        "text": "吊帶的腿環"
+      },
+      {
+        "id": "d",
+        "text": "任何有環的地方都可以"
+      }
+    ],
+    "correctAnswer": "b",
+    "explanation": "確保器必須連接到吊帶的「確保環」（Belay Loop）：\n✅ 確保環：專門設計承受確保力量，強度最高（約 15-25 kN）\n❌ 裝備環：僅用於掛裝備，強度較低（約 5 kN）\n❌ 腿環：不是設計來承受向下拉力\n\n使用有鎖鉤環將確保器連接到確保環，並確認鉤環已鎖緊。",
+    "tags": [
+      "確保器",
+      "吊帶",
+      "確保環"
+    ]
+  },
+  {
+    "id": "sport-belay-5",
+    "categoryId": "sport-belay",
+    "type": "situation",
+    "difficulty": 1,
+    "scenario": "你已經將繩子穿過 ATC 並用鉤環連接到吊帶。",
+    "question": "開始確保前，下列哪項檢查最重要？",
+    "options": [
+      {
+        "id": "a",
+        "text": "確認繩子顏色是否好看"
+      },
+      {
+        "id": "b",
+        "text": "確認鉤環已鎖緊且繩子在正確位置"
+      },
+      {
+        "id": "c",
+        "text": "確認攀登者是否準備好"
+      },
+      {
+        "id": "d",
+        "text": "確認周圍是否有人在看"
+      }
+    ],
+    "correctAnswer": "b",
+    "explanation": "開始確保前的安全檢查，常用 ABC 檢查法：\nAnchor / Attachment：固定點與連接正確\nBelayer：確保者裝備正確（確保器、鉤環）\nClimber：攀登者繩結與吊帶正確\n\n具體檢查項目：\n鉤環已鎖緊（螺牙完全旋緊）\n繩子穿過確保器方向正確\n吊帶扣環已反扣（Double-back）\n攀登者八字結正確綁好",
+    "referenceSources": [
+      "REI Expert Advice",
+      "AMGA",
+      "Petzl"
+    ],
+    "tags": [
+      "安全檢查",
+      "確保器",
+      "ABC"
+    ]
+  },
+  {
+    "id": "sport-belay-6",
+    "categoryId": "sport-belay",
+    "type": "situation",
+    "difficulty": 1,
+    "scenario": "你正在進行頂繩確保。",
+    "question": "關於制動手，以下何者正確？",
+    "options": [
+      {
+        "id": "a",
+        "text": "制動手可以短暫放開來調整姿勢"
+      },
+      {
+        "id": "b",
+        "text": "制動手任何時候都不能離開繩子"
+      },
+      {
+        "id": "c",
+        "text": "使用 GriGri 時可以放開制動手"
+      },
+      {
+        "id": "d",
+        "text": "制動手只需要在攀登者墜落時握緊"
+      }
+    ],
+    "correctAnswer": "b",
+    "explanation": "黃金法則：制動手永遠不離開繩子\n\n這是確保最重要的原則，沒有例外：\n❌ 不能放開來擦汗\n❌ 不能放開來調整裝備\n❌ 不能放開來看手機\n❌ 即使用 GriGri 也不能放開\n\n如果需要調整，使用「滑動」而不是「放開」的方式移動制動手。",
+    "tags": [
+      "制動手",
+      "確保原則",
+      "安全"
+    ]
+  },
+  {
+    "id": "sport-belay-7",
+    "categoryId": "sport-belay",
+    "type": "situation",
+    "difficulty": 2,
+    "scenario": "你準備在室內岩館確保先鋒攀登者，第一個快扣在離地約 3 公尺處。",
+    "question": "你應該站在什麼位置？",
+    "options": [
+      {
+        "id": "a",
+        "text": "盡量遠離牆壁，這樣視野比較好"
+      },
+      {
+        "id": "b",
+        "text": "站在第一個快扣正下方附近"
+      },
+      {
+        "id": "c",
+        "text": "站在攀登者起攀點的正後方"
+      },
+      {
+        "id": "d",
+        "text": "位置不重要，哪裡舒服站哪裡"
+      }
+    ],
+    "correctAnswer": "b",
+    "explanation": "正確的確保站位考量：\n1. 靠近牆壁：減少墜落時被拉向牆壁的距離\n2. 第一把快扣下方：\n攀登者掛入前墜落，你可以接住或緩衝\n掛入後墜落，繩索角度較直接\n3. 注意繩索路徑：避免繩子經過銳利邊緣\n\n站太遠的風險：\n墜落時被拉向牆壁撞傷\n繩索摩擦增加\n給繩角度不佳",
+    "tags": [
+      "站位",
+      "先鋒確保",
+      "安全距離"
+    ]
+  },
+  {
+    "id": "sport-belay-8",
+    "categoryId": "sport-belay",
+    "type": "situation",
+    "difficulty": 2,
+    "scenario": "你體重 55 公斤，要確保一位 85 公斤的攀登者進行先鋒攀登。",
+    "question": "你應該如何處理這個體重差異？",
+    "options": [
+      {
+        "id": "a",
+        "text": "拒絕確保，體重差太多不安全"
+      },
+      {
+        "id": "b",
+        "text": "使用地面固定點或增加自身重量"
+      },
+      {
+        "id": "c",
+        "text": "確保時跳起來增加制動力"
+      },
+      {
+        "id": "d",
+        "text": "體重差異不影響確保，正常確保即可"
+      }
+    ],
+    "correctAnswer": "b",
+    "explanation": "當攀登者明顯比確保者重時（差距 > 15-20 公斤）：\n\n解決方案：\n1. 地面固定點：將自己連接到地面的固定點\n2. 沙袋/配重：增加確保者的有效重量\n3. 確保站位：站在牆邊，利用牆壁阻擋\n\n為什麼重要：\n輕確保者可能被拉離地面\n失去地面接觸 = 失去控制\n可能撞上第一個快扣或牆壁",
+    "tags": [
+      "體重差異",
+      "地面固定點",
+      "先鋒確保"
+    ]
+  },
+  {
+    "id": "sport-belay-9",
+    "categoryId": "sport-belay",
+    "type": "situation",
+    "difficulty": 2,
+    "scenario": "你正在確保先鋒攀登者，他正要伸手掛快扣。",
+    "question": "這時候你應該怎麼做？",
+    "options": [
+      {
+        "id": "a",
+        "text": "快速給繩，讓攀登者容易掛入"
+      },
+      {
+        "id": "b",
+        "text": "收緊繩子，準備接墜落"
+      },
+      {
+        "id": "c",
+        "text": "保持目前的繩索鬆緊度不變"
+      },
+      {
+        "id": "d",
+        "text": "大喊提醒攀登者小心"
+      }
+    ],
+    "correctAnswer": "a",
+    "explanation": "掛快扣時的確保技巧：\n\n需要給繩的時機：\n攀登者伸手要拉繩掛快扣\n攀登者做動態動作\n繩子看起來繃緊影響動作\n\n給繩方式：\n預判動作，提前給繩\n使用快速但受控的動作\n保持制動手在繩上\n\n注意：給繩過慢會造成「短繩」，反而增加墜落衝擊。",
+    "tags": [
+      "給繩",
+      "先鋒確保",
+      "掛快扣"
+    ]
+  },
+  {
+    "id": "sport-belay-10",
+    "categoryId": "sport-belay",
+    "type": "ordering",
+    "difficulty": 2,
+    "scenario": "你正在進行頂繩確保，使用 ATC 確保器。",
+    "question": "正確的收繩動作順序是？",
+    "options": [
+      {
+        "id": "a",
+        "text": "制動手往下拉 → 導向手往下滑 → 制動手往上滑 → 導向手拉繩"
+      },
+      {
+        "id": "b",
+        "text": "導向手拉繩 → 制動手往下拉 → 導向手握住制動端 → 制動手往上滑"
+      },
+      {
+        "id": "c",
+        "text": "雙手同時往下拉 → 雙手同時往上滑"
+      },
+      {
+        "id": "d",
+        "text": "只用導向手收繩，制動手固定不動"
+      }
+    ],
+    "correctAnswer": "b",
+    "explanation": "PBUS 收繩法（Pull-Brake-Under-Slide）：\n\n1. Pull（拉）：導向手拉繩子通過確保器\n2. Brake（制動）：制動手向下拉到制動位置\n3. Under（換手）：導向手移到制動手下方握繩\n4. Slide（滑）：制動手沿繩向上滑回起始位置\n\n關鍵原則：\n制動手永遠不離開繩子\n透過「滑動」而不是「放開」來移動",
+    "tags": [
+      "收繩",
+      "PBUS",
+      "ATC"
+    ]
+  },
+  {
+    "id": "sport-belay-11",
+    "categoryId": "sport-belay",
+    "type": "situation",
+    "difficulty": 2,
+    "scenario": "你正在確保先鋒攀登者，他在第五把快扣上方約 2 公尺處墜落。",
+    "question": "這時候你應該使用什麼制動方式？",
+    "options": [
+      {
+        "id": "a",
+        "text": "硬制動：固定站位，緊緊鎖死繩子"
+      },
+      {
+        "id": "b",
+        "text": "軟制動：微微跳起或向前移動來吸收衝擊"
+      },
+      {
+        "id": "c",
+        "text": "不需要制動，讓攀登者自然落下"
+      },
+      {
+        "id": "d",
+        "text": "快速放繩讓攀登者慢慢降落"
+      }
+    ],
+    "correctAnswer": "b",
+    "explanation": "軟制動（Dynamic Belay）的使用時機：\n繩子有足夠長度可以吸收\n攀登者下方沒有平台或障礙物\n墜落係數較高時\n\n軟制動的方式：\n向牆壁方向小跳\n讓身體被拉動一小段距離\n減少繩索對攀登者的衝擊\n\n硬制動的使用時機：\n攀登者下方有平台\n需要避免攀登者撞到東西\n繩子很短（如剛起攀）",
+    "tags": [
+      "軟制動",
+      "硬制動",
+      "墜落處理"
+    ]
+  },
+  {
+    "id": "sport-belay-12",
+    "categoryId": "sport-belay",
+    "type": "situation",
+    "difficulty": 1,
+    "scenario": "攀登者完成路線後喊「下降」（Lower），你準備降低他。",
+    "question": "開始降低前，你應該先做什麼？",
+    "options": [
+      {
+        "id": "a",
+        "text": "確認攀登者已經放開岩點，體重在繩子上"
+      },
+      {
+        "id": "b",
+        "text": "直接開始放繩"
+      },
+      {
+        "id": "c",
+        "text": "請攀登者自己跳下來"
+      },
+      {
+        "id": "d",
+        "text": "先把繩子全部放鬆"
+      }
+    ],
+    "correctAnswer": "a",
+    "explanation": "降低前的確認步驟：\n\n1. 口令確認（標準口令）：\n\n| 情境 | 攀登者說 | 確保者回應 |\n|------|----------|------------|\n| 收緊繩子 | \"Take!\" / \"收繩!\" | \"Got you!\" / \"收到!\" |\n| 開始下降 | \"Lower!\" / \"下降!\" | \"Lowering!\" / \"下降中!\" |\n| 到達地面 | \"Off belay!\" / \"解除確保!\" | \"Belay off!\" / \"確保解除!\" |\n\n2. 視覺確認：\n攀登者已放手，體重完全在繩子上\n繩子路徑沒有障礙\n\n3. 開始降低：\n緩慢平穩地放繩\n控制速度，接近地面時減速\n\n注意：不要混淆 \"Take\"（收繩）和 \"Lower\"（下降）",
+    "referenceSources": [
+      "AMGA",
+      "Petzl",
+      "VDiff Climbing"
+    ],
+    "tags": [
+      "降低",
+      "口令",
+      "頂繩"
+    ]
+  },
+  {
+    "id": "sport-belay-13",
+    "categoryId": "sport-belay",
+    "type": "situation",
+    "difficulty": 1,
+    "scenario": "你正在降低一位完成路線的攀登者。",
+    "question": "關於降低速度，以下何者正確？",
+    "options": [
+      {
+        "id": "a",
+        "text": "越快越好，節省時間"
+      },
+      {
+        "id": "b",
+        "text": "保持穩定中等速度，讓攀登者能控制姿勢"
+      },
+      {
+        "id": "c",
+        "text": "越慢越好，這樣最安全"
+      },
+      {
+        "id": "d",
+        "text": "速度不重要，攀登者會自己調整"
+      }
+    ],
+    "correctAnswer": "b",
+    "explanation": "降低速度的原則：\n\n適當速度：\n攀登者能舒適地用腳推牆\n有時間避開其他攀登者\n確保者能維持控制\n\n太快的風險：\n繩索過熱\n攀登者失去控制\n接近地面時來不及停止\n\n太慢的問題：\n浪費時間\n攀登者手臂疲勞\n\n特別注意：接近地面時減速！",
+    "tags": [
+      "降低",
+      "速度控制",
+      "安全"
+    ]
+  },
+  {
+    "id": "sport-belay-14",
+    "categoryId": "sport-belay",
+    "type": "situation",
+    "difficulty": 2,
+    "scenario": "你正在使用 ATC 降低攀登者。",
+    "question": "降低時，你的手應該放在哪裡？",
+    "options": [
+      {
+        "id": "a",
+        "text": "雙手都放在制動端（確保器下方）"
+      },
+      {
+        "id": "b",
+        "text": "一手在導向端，一手在制動端"
+      },
+      {
+        "id": "c",
+        "text": "雙手都放在導向端（確保器上方）"
+      },
+      {
+        "id": "d",
+        "text": "一手扶著確保器，一手在制動端"
+      }
+    ],
+    "correctAnswer": "a",
+    "explanation": "降低時的正確手位：\n\n雙手都在制動端：\n提供最大制動力\n透過調整握力控制速度\n上方的手靠近確保器，控制放繩\n下方的手保持制動\n\n錯誤方式：\n❌ 手在確保器上方：無法有效制動\n❌ 手扶確保器：手可能被夾傷\n\n技巧：讓繩子從手中「滑過」，而不是放開再抓。",
+    "tags": [
+      "降低",
+      "手部位置",
+      "ATC"
+    ]
+  },
+  {
+    "id": "sport-belay-15",
+    "categoryId": "sport-belay",
+    "type": "situation",
+    "difficulty": 2,
+    "scenario": "你正在確保時，低頭發現確保用的鉤環螺牙鬆開了，鉤環處於未鎖緊狀態。",
+    "question": "你應該怎麼處理？",
+    "options": [
+      {
+        "id": "a",
+        "text": "繼續確保，等攀登者下來再處理"
+      },
+      {
+        "id": "b",
+        "text": "大喊叫攀登者立刻停止，然後處理鉤環"
+      },
+      {
+        "id": "c",
+        "text": "在安全的情況下請攀登者暫停，鎖緊鉤環"
+      },
+      {
+        "id": "d",
+        "text": "不用擔心，未鎖的鉤環強度一樣"
+      }
+    ],
+    "correctAnswer": "c",
+    "explanation": "發現問題時的處理原則：\n\n1. 了解風險：\n未鎖緊的鉤環強度可能降低至 原本的 1/3\n開口可能被繩索或其他物體意外打開\n根據 Black Diamond QC Lab 測試，開口狀態的鉤環僅能承受約 7kN\n\n2. 安全處理：\n請攀登者在安全位置（如有好的腳點）暫停\n保持制動手在繩上\n用另一手鎖緊鉤環螺牙\n\n3. 預防勝於治療：\n開始前使用 ABC 檢查法\n養成「鎖、拉、確認」的習慣\n定期低頭檢查確保系統",
+    "referenceSources": [
+      "Black Diamond QC Lab",
+      "AMGA"
+    ],
+    "tags": [
+      "緊急處理",
+      "鉤環",
+      "安全檢查"
+    ]
+  }
+]

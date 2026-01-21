@@ -1,0 +1,752 @@
+[
+  {
+    "id": "sport-lead-1",
+    "categoryId": "sport-lead",
+    "type": "situation",
+    "difficulty": 1,
+    "scenario": "你正在掛第一把快扣到固定點上。",
+    "question": "快扣掛上 bolt 時，繩門（開口）應該朝向哪個方向？",
+    "options": [
+      {
+        "id": "a",
+        "text": "朝向你預計的攀爬方向（向上）"
+      },
+      {
+        "id": "b",
+        "text": "背對你預計的攀爬方向（向下）"
+      },
+      {
+        "id": "c",
+        "text": "朝向岩壁"
+      },
+      {
+        "id": "d",
+        "text": "方向不重要"
+      }
+    ],
+    "correctAnswer": "b",
+    "explanation": "快扣掛入 bolt 時，繩門應背對攀爬方向：\n\n原因：\n墜落時繩索會往下拉\n如果繩門朝上，繩索可能在墜落衝擊時意外打開繩門\n繩門背對攀爬方向可避免繩索滑出\n\n記憶口訣：「繩門朝下，安全不怕」",
+    "referenceSources": [
+      "Petzl",
+      "VDiff Climbing",
+      "AMGA"
+    ],
+    "tags": [
+      "快扣",
+      "掛繩方向",
+      "先鋒"
+    ]
+  },
+  {
+    "id": "sport-lead-2",
+    "categoryId": "sport-lead",
+    "type": "situation",
+    "difficulty": 1,
+    "scenario": "你已經將快扣掛上 bolt，準備把繩子掛入下方的繩端鉤環。",
+    "question": "繩子應該從哪個方向穿過快扣？",
+    "options": [
+      {
+        "id": "a",
+        "text": "從岩壁側進入，身體側出來"
+      },
+      {
+        "id": "b",
+        "text": "從身體側進入，岩壁側出來"
+      },
+      {
+        "id": "c",
+        "text": "都可以，沒有差別"
+      },
+      {
+        "id": "d",
+        "text": "從下方進入，上方出來"
+      }
+    ],
+    "correctAnswer": "a",
+    "explanation": "繩子應該從岩壁側進入，身體側出來：\n\n正確方式：\n``\n岩壁 │→ 繩子 →│ 你\n     │  快扣  │\n`\n\n錯誤方式（Back-clip）：\n`\n岩壁 │← 繩子 ←│ 你\n     │  快扣  │\n``\n\nBack-clip 的危險：\n墜落時繩索可能從鉤環中脫出\n這是最常見且最危險的先鋒錯誤之一",
+    "referenceSources": [
+      "Petzl",
+      "Climbing Magazine",
+      "VDiff Climbing"
+    ],
+    "tags": [
+      "快扣",
+      "Back-clip",
+      "先鋒安全"
+    ]
+  },
+  {
+    "id": "sport-lead-3",
+    "categoryId": "sport-lead",
+    "type": "situation",
+    "difficulty": 2,
+    "scenario": "你的攀登夥伴剛掛完一把快扣，你從下方觀察。",
+    "question": "以下哪種情況代表發生了 Back-clip？",
+    "options": [
+      {
+        "id": "a",
+        "text": "繩子從岩壁側進入快扣"
+      },
+      {
+        "id": "b",
+        "text": "繩子從身體側進入快扣，再往岩壁側出去"
+      },
+      {
+        "id": "c",
+        "text": "快扣的繩門朝向攀登者"
+      },
+      {
+        "id": "d",
+        "text": "繩子有輕微扭轉"
+      }
+    ],
+    "correctAnswer": "b",
+    "explanation": "辨識 Back-clip：\n觀察繩子進入快扣的方向\n如果繩子「先經過鉤環背面，再繞到攀登者」= Back-clip\n正確掛法：繩子應該「直接從攀登者通往岩壁」\n\n確保者的責任：\n隨時觀察攀登者的掛繩\n發現 Back-clip 要立即提醒\n這比等攀登者爬高再修正更安全",
+    "referenceSources": [
+      "AMGA",
+      "Petzl",
+      "REI Expert Advice"
+    ],
+    "tags": [
+      "Back-clip",
+      "確保者責任",
+      "安全觀察"
+    ]
+  },
+  {
+    "id": "sport-lead-4",
+    "categoryId": "sport-lead",
+    "type": "situation",
+    "difficulty": 2,
+    "scenario": "你正在先鋒攀登，剛掛完第三把快扣。",
+    "question": "什麼是 Z-clip（Z字掛繩）？",
+    "options": [
+      {
+        "id": "a",
+        "text": "繩子在快扣中形成 Z 字型的裝飾掛法"
+      },
+      {
+        "id": "b",
+        "text": "誤將下方快扣以下的繩子掛入上方快扣"
+      },
+      {
+        "id": "c",
+        "text": "快扣本身呈現 Z 字型"
+      },
+      {
+        "id": "d",
+        "text": "繩子在吊帶處打結成 Z 字型"
+      }
+    ],
+    "correctAnswer": "b",
+    "explanation": "Z-clip 的形成：\n攀登者沒有拉離身體最近的繩子\n而是拉到了下一把快扣「以下」的繩子\n導致繩子路徑形成 Z 字型\n\n問題：\n實際可用繩長縮短\n攀登者被「短繩」限制移動\n墜落時衝擊增加\n\n預防方式：\n掛繩前確認拉的是「最靠近身體」的繩段\n確保者注意觀察繩索路徑",
+    "referenceSources": [
+      "VDiff Climbing",
+      "Climbing Magazine"
+    ],
+    "tags": [
+      "Z-clip",
+      "繩索路徑",
+      "先鋒錯誤"
+    ]
+  },
+  {
+    "id": "sport-lead-5",
+    "categoryId": "sport-lead",
+    "type": "situation",
+    "difficulty": 1,
+    "scenario": "快扣有兩個鉤環，上方掛 bolt，下方掛繩子。",
+    "question": "下方繩端鉤環的繩門應該朝向哪裡？",
+    "options": [
+      {
+        "id": "a",
+        "text": "朝向慣用手方向"
+      },
+      {
+        "id": "b",
+        "text": "背對慣用手方向"
+      },
+      {
+        "id": "c",
+        "text": "一律朝右"
+      },
+      {
+        "id": "d",
+        "text": "一律朝左"
+      }
+    ],
+    "correctAnswer": "a",
+    "explanation": "繩端鉤環方向原則：\n繩門朝向你的慣用手方向\n這樣掛繩時手指自然推開繩門\n動作更流暢、更省力\n\n實際應用：\n右撇子：繩門朝右\n左撇子：繩門朝左\n路線左側的快扣：繩門可能需朝左\n路線右側的快扣：繩門可能需朝右\n\n進階技巧：\n可根據掛繩的手來決定方向\n有些攀登者會準備兩種方向的快扣",
+    "referenceSources": [
+      "Petzl",
+      "Rock Climbing: Mastering Basic Skills"
+    ],
+    "tags": [
+      "快扣",
+      "繩門方向",
+      "效率"
+    ]
+  },
+  {
+    "id": "sport-lead-6",
+    "categoryId": "sport-lead",
+    "type": "situation",
+    "difficulty": 2,
+    "scenario": "你正在先鋒攀登，繩子從最後一把快扣延伸到你的吊帶。",
+    "question": "繩子應該在你的腿的哪一側？",
+    "options": [
+      {
+        "id": "a",
+        "text": "一定要在雙腿中間"
+      },
+      {
+        "id": "b",
+        "text": "一定要在雙腿外側"
+      },
+      {
+        "id": "c",
+        "text": "確保繩子不會在腿後方"
+      },
+      {
+        "id": "d",
+        "text": "位置不重要"
+      }
+    ],
+    "correctAnswer": "c",
+    "explanation": "黃金法則：繩子永遠不能在腿後方\n\n繩子在腿後的危險：\n墜落時繩子會勾住腿\n身體被翻轉成頭下腳上\n可能頭部撞擊岩壁\n這是造成嚴重傷害的常見原因\n\n預防方式：\n隨時注意繩子位置\n換腳或移動時重新檢查\n掛繩後確認繩子在腿前方",
+    "referenceSources": [
+      "AMGA",
+      "AAC Accidents",
+      "Petzl"
+    ],
+    "tags": [
+      "繩索路徑",
+      "腿後繩",
+      "墜落安全"
+    ]
+  },
+  {
+    "id": "sport-lead-7",
+    "categoryId": "sport-lead",
+    "type": "situation",
+    "difficulty": 2,
+    "scenario": "你正在攀爬一條路線，發現某個 bolt 位置會造成繩索嚴重轉折。",
+    "question": "這時候你應該怎麼做？",
+    "options": [
+      {
+        "id": "a",
+        "text": "不用管，直接掛標準快扣"
+      },
+      {
+        "id": "b",
+        "text": "使用延長快扣（Alpine Draw）減少繩索轉折"
+      },
+      {
+        "id": "c",
+        "text": "跳過這個 bolt 不掛"
+      },
+      {
+        "id": "d",
+        "text": "把快扣反過來掛"
+      }
+    ],
+    "correctAnswer": "b",
+    "explanation": "使用延長快扣的時機：\nbolt 位置偏離路線\n路線有橫移或轉折\n繩索路徑會產生嚴重 Z 字型\n繩索摩擦過大\n\n延長快扣的好處：\n減少繩索阻力（Rope Drag）\n讓繩子路徑更直\n減少墜落時的摩擦制動\n讓確保者更容易給繩",
+    "referenceSources": [
+      "VDiff Climbing",
+      "Freedom of the Hills"
+    ],
+    "tags": [
+      "延長快扣",
+      "繩索阻力",
+      "路線規劃"
+    ]
+  },
+  {
+    "id": "sport-lead-8",
+    "categoryId": "sport-lead",
+    "type": "situation",
+    "difficulty": 2,
+    "scenario": "你在先鋒攀登的中段，感覺拉繩越來越費力。",
+    "question": "這最可能是什麼問題？",
+    "options": [
+      {
+        "id": "a",
+        "text": "確保者故意不給繩"
+      },
+      {
+        "id": "b",
+        "text": "繩子太舊需要更換"
+      },
+      {
+        "id": "c",
+        "text": "繩索阻力（Rope Drag）過大"
+      },
+      {
+        "id": "d",
+        "text": "吊帶太緊"
+      }
+    ],
+    "correctAnswer": "c",
+    "explanation": "繩索阻力（Rope Drag）的原因：\n繩子路徑不直，經過多次轉折\n沒有使用延長快扣\n快扣位置造成繩索摩擦岩壁\n\n解決方式：\n使用延長快扣讓路徑更直\n在關鍵轉折處使用長繩環\n重新規劃掛繩策略\n\n危險：\n阻力過大會影響掛繩\n可能拉不動繩子導致墜落\n也會影響確保者的判斷",
+    "referenceSources": [
+      "VDiff Climbing",
+      "Climbing Magazine"
+    ],
+    "tags": [
+      "繩索阻力",
+      "Rope Drag",
+      "路線管理"
+    ]
+  },
+  {
+    "id": "sport-lead-9",
+    "categoryId": "sport-lead",
+    "type": "situation",
+    "difficulty": 2,
+    "scenario": "你正在學習先鋒攀登的安全知識。",
+    "question": "墜落係數（Fall Factor）的計算公式是？",
+    "options": [
+      {
+        "id": "a",
+        "text": "墜落距離 ÷ 繩索長度"
+      },
+      {
+        "id": "b",
+        "text": "繩索長度 ÷ 墜落距離"
+      },
+      {
+        "id": "c",
+        "text": "墜落距離 × 體重"
+      },
+      {
+        "id": "d",
+        "text": "繩索長度 × 墜落速度"
+      }
+    ],
+    "correctAnswer": "a",
+    "explanation": "墜落係數公式：\n``\n墜落係數 = 墜落距離 ÷ 繩索長度（拉出的繩子）\n``\n\n範例：\n你在快扣上方 2m 墜落\n墜落距離 = 2m × 2 = 4m（往下掉到快扣，再往下 2m）\n如果繩索長度是 10m\n墜落係數 = 4 ÷ 10 = 0.4\n\n係數意義：\n係數越高，衝擊力越大\n最大值為 2（極端情況）\n一般先鋒墜落約 0.3-1.0",
+    "referenceSources": [
+      "UIAA",
+      "Petzl",
+      "Freedom of the Hills"
+    ],
+    "tags": [
+      "墜落係數",
+      "Fall Factor",
+      "物理原理"
+    ]
+  },
+  {
+    "id": "sport-lead-10",
+    "categoryId": "sport-lead",
+    "type": "situation",
+    "difficulty": 3,
+    "scenario": "你剛開始攀爬，只掛了第一把快扣，位於快扣上方 1 公尺。",
+    "question": "如果現在墜落，墜落係數大約是多少？",
+    "options": [
+      {
+        "id": "a",
+        "text": "0.5（低風險）"
+      },
+      {
+        "id": "b",
+        "text": "1.0（中風險）"
+      },
+      {
+        "id": "c",
+        "text": "接近 1.5-2.0（高風險）"
+      },
+      {
+        "id": "d",
+        "text": "無法計算"
+      }
+    ],
+    "correctAnswer": "c",
+    "explanation": "計算：\n第一把快扣高度約 3m\n你在快扣上方 1m，總高度 4m\n墜落距離 = 1m（到快扣）+ 1m（快扣以下）= 2m\n但繩索長度只有約 3-4m（確保者到第一把快扣）\n墜落係數 ≈ 2 ÷ 3 ≈ 0.67 到更高\n\n為什麼危險：\n剛起攀時繩子很短\n短繩吸收衝擊的能力有限\n可能墜落至地面（Ground Fall）\n\n預防方式：\n起攀時特別小心\n確保者站近一點\n考慮使用抱石墊",
+    "referenceSources": [
+      "UIAA",
+      "AAC Accidents",
+      "Petzl"
+    ],
+    "tags": [
+      "墜落係數",
+      "起攀風險",
+      "Ground Fall"
+    ]
+  },
+  {
+    "id": "sport-lead-11",
+    "categoryId": "sport-lead",
+    "type": "situation",
+    "difficulty": 2,
+    "scenario": "考慮不同的攀登位置。",
+    "question": "以下哪種情況墜落係數最高？",
+    "options": [
+      {
+        "id": "a",
+        "text": "在第十把快扣上方 2 公尺墜落"
+      },
+      {
+        "id": "b",
+        "text": "在第一把快扣上方 2 公尺墜落"
+      },
+      {
+        "id": "c",
+        "text": "在第五把快扣正下方墜落"
+      },
+      {
+        "id": "d",
+        "text": "在路線頂端固定點旁墜落"
+      }
+    ],
+    "correctAnswer": "b",
+    "explanation": "比較分析：\n\n| 情況 | 墜落距離 | 繩索長度 | 墜落係數 |\n|------|----------|----------|----------|\n| A. 第十把上方 2m | ~4m | ~25m | ~0.16 |\n| B. 第一把上方 2m | ~4m | ~5m | ~0.8 |\n| C. 第五把正下方 | ~0m | ~12m | ~0 |\n| D. 頂端固定點旁 | ~0m | ~30m | ~0 |\n\n關鍵觀念：\n繩索越短，吸收衝擊能力越差\n同樣的墜落距離，繩子短 = 係數高\n所以起攀階段最危險",
+    "referenceSources": [
+      "UIAA",
+      "Freedom of the Hills"
+    ],
+    "tags": [
+      "墜落係數",
+      "風險評估",
+      "繩索長度"
+    ]
+  },
+  {
+    "id": "sport-lead-12",
+    "categoryId": "sport-lead",
+    "type": "situation",
+    "difficulty": 2,
+    "scenario": "你正在確保一位先鋒攀登者，他在第三把快扣上方墜落。",
+    "question": "為什麼要給予「軟接」（Soft Catch）？",
+    "options": [
+      {
+        "id": "a",
+        "text": "讓墜落看起來更帥"
+      },
+      {
+        "id": "b",
+        "text": "減少繩索對攀登者的衝擊力"
+      },
+      {
+        "id": "c",
+        "text": "節省繩子的使用壽命"
+      },
+      {
+        "id": "d",
+        "text": "讓確保者更輕鬆"
+      }
+    ],
+    "correctAnswer": "b",
+    "explanation": "軟接（Soft Catch / Dynamic Belay）：\n確保者在墜落瞬間微微跳起或向牆移動\n延長制動時間，減少瞬間衝擊\n\n好處：\n減少攀登者承受的衝擊力\n降低受傷風險（尤其是背部、腳踝）\n減少固定點和裝備的受力\n\n使用時機：\n攀登者下方空間足夠\n沒有撞擊風險（平台、地面）\n墜落距離適中\n\n不適用時機：\n下方有平台或障礙物\n接近地面\n室內較短的路線",
+    "referenceSources": [
+      "AMGA",
+      "Petzl",
+      "VDiff Climbing"
+    ],
+    "tags": [
+      "軟接",
+      "Soft Catch",
+      "墜落處理"
+    ]
+  },
+  {
+    "id": "sport-lead-13",
+    "categoryId": "sport-lead",
+    "type": "situation",
+    "difficulty": 1,
+    "scenario": "你正在進行第一次先鋒攀登。",
+    "question": "關於先鋒墜落，以下何者正確？",
+    "options": [
+      {
+        "id": "a",
+        "text": "好的攀登者永遠不會墜落"
+      },
+      {
+        "id": "b",
+        "text": "墜落是先鋒攀登正常的一部分，要學會安全墜落"
+      },
+      {
+        "id": "c",
+        "text": "感覺要墜落時應該死抓岩點不放"
+      },
+      {
+        "id": "d",
+        "text": "墜落時要大叫讓確保者知道"
+      }
+    ],
+    "correctAnswer": "b",
+    "explanation": "正確的墜落觀念：\n先鋒墜落是正常的，不是失敗\n學會安全墜落比避免墜落更重要\n放鬆身體，膝蓋微彎準備吸收衝擊\n\n安全墜落技巧：\n不要抓快扣或繩子\n雙手離開岩點，準備推牆\n眼睛看著落點\n雙腳準備接觸岩壁\n\n練習方式：\n在安全環境下練習小墜落\n逐漸增加墜落距離\n建立對確保者的信任",
+    "referenceSources": [
+      "AMGA",
+      "The Climbing Bible",
+      "Climbing Magazine"
+    ],
+    "tags": [
+      "墜落練習",
+      "心理準備",
+      "安全技巧"
+    ]
+  },
+  {
+    "id": "sport-lead-14",
+    "categoryId": "sport-lead",
+    "type": "situation",
+    "difficulty": 2,
+    "scenario": "你正在先鋒攀登，看到下一把快扣在腰部高度。",
+    "question": "什麼時候是掛繩的最佳時機？",
+    "options": [
+      {
+        "id": "a",
+        "text": "快扣在頭頂上方時就立刻掛"
+      },
+      {
+        "id": "b",
+        "text": "快扣在腰部到胸口高度時掛"
+      },
+      {
+        "id": "c",
+        "text": "爬過快扣後再回頭掛"
+      },
+      {
+        "id": "d",
+        "text": "任何時候都可以，看心情"
+      }
+    ],
+    "correctAnswer": "b",
+    "explanation": "最佳掛繩高度：腰部到胸口\n\n原因：\n手臂在舒適範圍內\n不需要過度伸展\n眼睛可以看到掛繩動作\n身體平衡較穩定\n\n太高（頭頂以上）的問題：\n手臂伸展造成疲勞\n掛繩時身體不穩\n增加墜落風險\n\n太低的問題：\n增加墜落距離\n可能需要蹲下影響平衡",
+    "referenceSources": [
+      "VDiff Climbing",
+      "Rock Climbing: Mastering Basic Skills"
+    ],
+    "tags": [
+      "掛繩時機",
+      "效率",
+      "能量管理"
+    ]
+  },
+  {
+    "id": "sport-lead-15",
+    "categoryId": "sport-lead",
+    "type": "situation",
+    "difficulty": 1,
+    "scenario": "你完成了一條運動攀登路線，到達頂端的兩個 bolt 固定點。",
+    "question": "到達固定點後，你應該先做什麼？",
+    "options": [
+      {
+        "id": "a",
+        "text": "立刻大喊「下降！」"
+      },
+      {
+        "id": "b",
+        "text": "先用快扣掛入至少一個 bolt 作為自我確保"
+      },
+      {
+        "id": "c",
+        "text": "直接把繩子穿過固定點的鐵環"
+      },
+      {
+        "id": "d",
+        "text": "先休息一下再處理"
+      }
+    ],
+    "correctAnswer": "b",
+    "explanation": "到頂標準流程：\n\n1. 掛入自我確保（最重要的第一步）\n用快扣或個人固定點連接到 bolt\n確認連接後再喊「Take!」讓確保者收繩\n\n2. 確認自我確保承重\n讓體重落在自我確保上\n不要只依賴確保者\n\n3. 處理繩索\n根據下降方式處理\n穿過固定點或架設頂繩\n\n為什麼不能直接穿繩：\n沒有自我確保的情況下很危險\n如果失手，沒有備份",
+    "referenceSources": [
+      "AMGA",
+      "Petzl",
+      "VDiff Climbing"
+    ],
+    "tags": [
+      "到頂處理",
+      "自我確保",
+      "固定點"
+    ]
+  },
+  {
+    "id": "sport-lead-16",
+    "categoryId": "sport-lead",
+    "type": "situation",
+    "difficulty": 2,
+    "scenario": "你到達運動攀登路線頂端，固定點有兩個 bolt 和金屬環（Lowering Ring）。",
+    "question": "最常見的下降方式是？",
+    "options": [
+      {
+        "id": "a",
+        "text": "解開繩結後直接垂降"
+      },
+      {
+        "id": "b",
+        "text": "將繩子穿過固定點的環，讓確保者降低你"
+      },
+      {
+        "id": "c",
+        "text": "自己爬下去"
+      },
+      {
+        "id": "d",
+        "text": "呼叫救援"
+      }
+    ],
+    "correctAnswer": "b",
+    "explanation": "運動攀登標準降低流程：\n\n1. 掛入自我確保\n2. 喊「Take!」讓確保者收緊\n3. 將繩子穿過固定點的金屬環\n4. 重新綁回八字結（或使用其他方式）\n5. 解除自我確保\n6. 喊「Lower!」讓確保者降低\n\n注意事項：\n確保繩子有穿過固定點\n永遠不要在沒有確保的情況下解開繩結\n某些固定點需要清除快扣",
+    "referenceSources": [
+      "VDiff Climbing",
+      "REI Expert Advice"
+    ],
+    "tags": [
+      "降低",
+      "到頂處理",
+      "運動攀登"
+    ]
+  },
+  {
+    "id": "sport-lead-17",
+    "categoryId": "sport-lead",
+    "type": "situation",
+    "difficulty": 2,
+    "scenario": "你是最後一位攀爬這條路線的人，需要收回所有快扣。",
+    "question": "清除路線時，應該如何處理快扣？",
+    "options": [
+      {
+        "id": "a",
+        "text": "從最上方的快扣開始往下拆"
+      },
+      {
+        "id": "b",
+        "text": "讓確保者降低你，邊下降邊收快扣"
+      },
+      {
+        "id": "c",
+        "text": "先全部拆完再下降"
+      },
+      {
+        "id": "d",
+        "text": "隨便，怎麼方便怎麼做"
+      }
+    ],
+    "correctAnswer": "b",
+    "explanation": "清除路線的標準流程：\n\n1. 確保自己安全連接到頂端固定點\n2. 處理繩索（穿過固定點環）\n3. 喊「Lower!」\n4. 確保者緩慢降低你\n5. 經過每把快扣時：\n一手抓住快扣穩定身體\n另一手解開鉤環\n收回快扣掛在吊帶上\n6. 到達地面\n\n注意：\n速度要慢，給自己時間操作\n不要讓快扣散落\n靠近岩壁方便取回快扣",
+    "referenceSources": [
+      "VDiff Climbing",
+      "REI Expert Advice"
+    ],
+    "tags": [
+      "清除路線",
+      "快扣回收",
+      "下降技巧"
+    ]
+  },
+  {
+    "id": "sport-lead-18",
+    "categoryId": "sport-lead",
+    "type": "situation",
+    "difficulty": 2,
+    "scenario": "你準備開始先鋒攀登，第一把快扣在離地約 3 公尺處。",
+    "question": "為什麼第一把快扣特別重要？",
+    "options": [
+      {
+        "id": "a",
+        "text": "因為它最容易被看到"
+      },
+      {
+        "id": "b",
+        "text": "因為在掛入之前墜落可能直接落地"
+      },
+      {
+        "id": "c",
+        "text": "因為它承受最大的力量"
+      },
+      {
+        "id": "d",
+        "text": "因為它決定了整條路線的難度"
+      }
+    ],
+    "correctAnswer": "b",
+    "explanation": "第一把快扣的風險：\n還沒掛入時，墜落 = 直接落地（Ground Fall）\n剛掛入時，墜落距離也很長\n繩子很短，墜落係數高\n\n降低風險的方式：\n確保者站在靠近牆壁的位置\n確保者準備好接住或緩衝墜落\n攀登者可以先預掛第一把快扣（Stick Clip）\n使用抱石墊保護\n\n確保者的責任：\n第一把快扣掛入前要格外專注\n站位要正確（牆邊、快扣下方）\n準備好快速收繩",
+    "referenceSources": [
+      "AAC Accidents",
+      "AMGA",
+      "Petzl"
+    ],
+    "tags": [
+      "第一把快扣",
+      "Ground Fall",
+      "起攀安全"
+    ]
+  },
+  {
+    "id": "sport-lead-19",
+    "categoryId": "sport-lead",
+    "type": "situation",
+    "difficulty": 1,
+    "scenario": "路線的第一把快扣很高，你擔心起攀階段的安全。",
+    "question": "什麼是 Stick Clip？",
+    "options": [
+      {
+        "id": "a",
+        "text": "一種特殊的攀岩鞋"
+      },
+      {
+        "id": "b",
+        "text": "用延長桿預先將快扣掛入高處的 bolt"
+      },
+      {
+        "id": "c",
+        "text": "把快扣黏在岩壁上"
+      },
+      {
+        "id": "d",
+        "text": "一種繩結技術"
+      }
+    ],
+    "correctAnswer": "b",
+    "explanation": "Stick Clip（預掛桿）：\n可伸縮的桿子，末端可夾住快扣\n用來在地面就把第一把（或前幾把）快扣掛好\n甚至可以預先把繩子掛入\n\n使用時機：\n第一把 bolt 很高\n起攀有困難動作\n對起攀區域沒把握\n想要安全練習路線\n\n不是作弊：\nStick Clip 是被接受的安全工具\n很多職業攀登者都會使用\n安全永遠比面子重要",
+    "referenceSources": [
+      "Climbing Magazine",
+      "Mountain Project"
+    ],
+    "tags": [
+      "Stick Clip",
+      "預掛",
+      "起攀安全"
+    ]
+  },
+  {
+    "id": "sport-lead-20",
+    "categoryId": "sport-lead",
+    "type": "situation",
+    "difficulty": 3,
+    "scenario": "你正在先鋒攀登，考慮是否跳過某一把快扣不掛。",
+    "question": "什麼情況下可以考慮跳過快扣？",
+    "options": [
+      {
+        "id": "a",
+        "text": "想要更快完成路線時"
+      },
+      {
+        "id": "b",
+        "text": "覺得那把快扣位置不好，掛了反而增加風險時"
+      },
+      {
+        "id": "c",
+        "text": "快扣看起來有點舊"
+      },
+      {
+        "id": "d",
+        "text": "永遠不應該跳過任何快扣"
+      }
+    ],
+    "correctAnswer": "b",
+    "explanation": "可能考慮跳過的情況：\nbolt 位置會造成嚴重 Z-clip\n掛繩動作比繼續攀爬更危險\n下一把快扣很近\n\n風險評估：\n跳過快扣會增加墜落距離\n必須評估下方是否有撞擊風險\n確保你有足夠能力到達下一把\n\n一般原則：\n除非有充分理由，否則不要跳過\n新手不建議跳過任何快扣\n如果不確定，就掛",
+    "referenceSources": [
+      "Climbing Magazine",
+      "AMGA"
+    ],
+    "tags": [
+      "跳過快扣",
+      "風險評估",
+      "進階技巧"
+    ]
+  }
+]
