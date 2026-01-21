@@ -12,8 +12,8 @@ import {
   Trash2,
   Loader2,
   X,
-  Heart,
   FileText,
+  Megaphone,
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { notificationService } from '@/lib/api/services'
@@ -21,45 +21,36 @@ import { useAuthStore } from '@/store/authStore'
 import { cn } from '@/lib/utils'
 import { formatDistanceToNow } from 'date-fns'
 import { zhTW } from 'date-fns/locale'
-
-interface Notification {
-  id: string
-  user_id: string
-  type: string
-  actor_id: string | null
-  target_id: string | null
-  title: string
-  message: string
-  is_read: number
-  created_at: string
-  actor_name?: string
-  actor_avatar?: string
-}
+import { NotificationType, type Notification } from '@/lib/types'
 
 interface NotificationCenterProps {
   className?: string
 }
 
-const notificationIcons: Record<string, React.ElementType> = {
-  goal_liked: Mountain,
-  goal_commented: MessageCircle,
-  goal_referenced: Sparkles,
-  new_follower: UserPlus,
-  story_featured: Sparkles,
-  biography_commented: MessageCircle,
-  post_liked: Heart,
-  post_commented: FileText,
+// 通知類型對應的 Icon（使用 enum 值作為 key，兼容後端 string）
+const notificationIcons: Partial<Record<string, React.ElementType>> = {
+  [NotificationType.GOAL_LIKED]: Mountain,
+  [NotificationType.GOAL_COMMENTED]: MessageCircle,
+  [NotificationType.GOAL_REFERENCED]: Sparkles,
+  [NotificationType.NEW_FOLLOWER]: UserPlus,
+  [NotificationType.STORY_FEATURED]: Sparkles,
+  [NotificationType.BIOGRAPHY_COMMENTED]: MessageCircle,
+  [NotificationType.POST_LIKED]: Mountain,
+  [NotificationType.POST_COMMENTED]: FileText,
+  [NotificationType.SYSTEM_ANNOUNCEMENT]: Megaphone,
 }
 
-const notificationColors: Record<string, string> = {
-  goal_liked: 'text-red-500 bg-red-50',
-  goal_commented: 'text-blue-500 bg-blue-50',
-  goal_referenced: 'text-amber-500 bg-amber-50',
-  new_follower: 'text-green-500 bg-green-50',
-  story_featured: 'text-purple-500 bg-purple-50',
-  biography_commented: 'text-indigo-500 bg-indigo-50',
-  post_liked: 'text-pink-500 bg-pink-50',
-  post_commented: 'text-cyan-500 bg-cyan-50',
+// 通知類型對應的顏色（使用 Tailwind 主題色）
+const notificationColors: Partial<Record<string, string>> = {
+  [NotificationType.GOAL_LIKED]: 'text-brand-dark bg-brand-accent/20',
+  [NotificationType.GOAL_COMMENTED]: 'text-blue-500 bg-blue-50',
+  [NotificationType.GOAL_REFERENCED]: 'text-amber-500 bg-amber-50',
+  [NotificationType.NEW_FOLLOWER]: 'text-green-500 bg-green-50',
+  [NotificationType.STORY_FEATURED]: 'text-purple-500 bg-purple-50',
+  [NotificationType.BIOGRAPHY_COMMENTED]: 'text-indigo-500 bg-indigo-50',
+  [NotificationType.POST_LIKED]: 'text-brand-dark bg-brand-accent/20',
+  [NotificationType.POST_COMMENTED]: 'text-cyan-500 bg-cyan-50',
+  [NotificationType.SYSTEM_ANNOUNCEMENT]: 'text-brand-dark bg-brand-accent/30',
 }
 
 export function NotificationCenter({ className }: NotificationCenterProps) {
@@ -180,7 +171,7 @@ export function NotificationCenter({ className }: NotificationCenterProps) {
       >
         <Bell className="h-5 w-5" />
         {unreadCount > 0 && (
-          <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center font-medium">
+          <span className="absolute -top-1 -right-1 bg-brand-accent text-brand-dark text-xs rounded-full h-5 w-5 flex items-center justify-center font-medium">
             {unreadCount > 99 ? '99+' : unreadCount}
           </span>
         )}
@@ -238,7 +229,7 @@ export function NotificationCenter({ className }: NotificationCenterProps) {
                         key={notification.id}
                         className={cn(
                           'px-4 py-3 border-b last:border-b-0 hover:bg-gray-50 transition-colors',
-                          !notification.is_read && 'bg-blue-50/50'
+                          !notification.is_read && 'bg-brand-accent/10'
                         )}
                       >
                         <div className="flex gap-3">
