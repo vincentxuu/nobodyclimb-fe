@@ -11,6 +11,9 @@
 -- ============================================
 -- Step 1: Recreate notifications table with new types
 -- ============================================
+-- Note: Disabling foreign keys to handle orphaned actor_id references
+PRAGMA foreign_keys = OFF;
+
 CREATE TABLE IF NOT EXISTS notifications_v3 (
   id TEXT PRIMARY KEY,
   user_id TEXT NOT NULL,
@@ -25,6 +28,7 @@ CREATE TABLE IF NOT EXISTS notifications_v3 (
     'biography_commented',
     'post_liked',
     'post_commented',
+    'system_announcement',
     -- 新增類型
     'biography_liked',
     'core_story_liked',
@@ -36,26 +40,31 @@ CREATE TABLE IF NOT EXISTS notifications_v3 (
   )),
   actor_id TEXT,
   target_id TEXT,
-  message TEXT,
-  is_read INTEGER DEFAULT 0,
-  created_at TEXT DEFAULT (datetime('now')),
-  FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
-  FOREIGN KEY (actor_id) REFERENCES users(id) ON DELETE SET NULL
+  title TEXT NOT NULL DEFAULT '',
+  message TEXT NOT NULL DEFAULT '',
+  is_read INTEGER NOT NULL DEFAULT 0,
+  created_at TEXT NOT NULL DEFAULT (datetime('now')),
+  FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
 );
 
--- Copy existing data
-INSERT INTO notifications_v3 (id, user_id, type, actor_id, target_id, message, is_read, created_at)
-SELECT id, user_id, type, actor_id, target_id, message, is_read, created_at
-FROM notifications;
+-- Copy existing data (filter out any rows with non-existent user_id)
+INSERT INTO notifications_v3 (id, user_id, type, actor_id, target_id, title, message, is_read, created_at)
+SELECT n.id, n.user_id, n.type, n.actor_id, n.target_id, n.title, n.message, n.is_read, n.created_at
+FROM notifications n
+INNER JOIN users u ON n.user_id = u.id;
 
 -- Drop old table and rename
 DROP TABLE notifications;
 ALTER TABLE notifications_v3 RENAME TO notifications;
 
+-- Re-enable foreign keys
+PRAGMA foreign_keys = ON;
+
 -- Recreate indexes
 CREATE INDEX IF NOT EXISTS idx_notifications_user ON notifications(user_id);
 CREATE INDEX IF NOT EXISTS idx_notifications_user_unread ON notifications(user_id, is_read) WHERE is_read = 0;
 CREATE INDEX IF NOT EXISTS idx_notifications_created ON notifications(created_at DESC);
+CREATE INDEX IF NOT EXISTS idx_notifications_type ON notifications(type);
 
 -- ============================================
 -- Step 2: Update notification_preferences with new columns
