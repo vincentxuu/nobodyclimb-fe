@@ -90,12 +90,12 @@ CREATE INDEX IF NOT EXISTS idx_story_questions_difficulty ON story_questions(dif
 -- 初始資料：故事分類（使用 sys_cat_* ID）
 -- ============================================
 INSERT INTO story_categories (id, name, emoji, icon, description, display_order) VALUES
-  ('sys_cat_growth', '成長與突破', '🌱', 'TrendingUp', '你的攀岩成長故事', 1),
-  ('sys_cat_psychology', '心理與哲學', '🧠', 'Brain', '攀岩帶給你的思考', 2),
-  ('sys_cat_community', '社群與連結', '😄', 'Users', '攀岩社群的故事', 3),
-  ('sys_cat_practical', '實用分享', '🔧', 'Wrench', '經驗與技巧分享', 4),
-  ('sys_cat_dreams', '夢想與探索', '🎯', 'Compass', '攀岩的夢想與目標', 5),
-  ('sys_cat_life', '生活整合', '🌈', 'Palette', '攀岩與生活的交集', 6);
+  ('sys_cat_growth', '成長與突破', NULL, 'TrendingUp', '你的攀岩成長故事', 1),
+  ('sys_cat_psychology', '心理與哲學', NULL, 'Brain', '攀岩帶給你的思考', 2),
+  ('sys_cat_community', '社群與連結', NULL, 'Users', '攀岩社群的故事', 3),
+  ('sys_cat_practical', '實用分享', NULL, 'Wrench', '經驗與技巧分享', 4),
+  ('sys_cat_dreams', '夢想與探索', NULL, 'Compass', '攀岩的夢想與目標', 5),
+  ('sys_cat_life', '生活整合', NULL, 'Palette', '攀岩與生活的交集', 6);
 
 -- ============================================
 -- 初始資料：核心故事問題（3題）
