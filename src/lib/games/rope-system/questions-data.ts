@@ -67,6 +67,12 @@ export function getQuestionsByCategory(categoryId: string): Question[] {
   return questionsCache[categoryId] || []
 }
 
+/** 索引檔案的類型 */
+interface QuestionsIndex {
+  generatedAt: string
+  categories: Array<{ id: string; questionCount: number }>
+}
+
 /** 取得所有類別的題目數量統計（異步） */
 export async function getQuestionStats(): Promise<Record<string, number>> {
   try {
@@ -76,7 +82,7 @@ export async function getQuestionStats(): Promise<Record<string, number>> {
       return {}
     }
 
-    const data = await response.json()
+    const data: QuestionsIndex = await response.json()
 
     const stats: Record<string, number> = {}
     for (const category of data.categories) {
