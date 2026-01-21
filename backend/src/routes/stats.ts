@@ -465,12 +465,12 @@ statsRoutes.get('/admin/content', authMiddleware, adminMiddleware, async (c) => 
         p.title,
         p.slug,
         u.username as author_name,
-        p.views,
+        p.view_count as views,
         p.created_at
       FROM posts p
       JOIN users u ON u.id = p.author_id
       WHERE p.status = 'published'
-      ORDER BY p.views DESC
+      ORDER BY p.view_count DESC
       LIMIT 10
     `).all<{
       id: string;
