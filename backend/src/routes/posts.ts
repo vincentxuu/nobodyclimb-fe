@@ -5,6 +5,7 @@ import { parsePagination, generateId, generateSlug } from '../utils/id';
 import { authMiddleware, optionalAuthMiddleware } from '../middleware/auth';
 import { trackAndUpdateViewCount } from '../utils/viewTracker';
 import { deleteR2Images, extractR2ImagesFromContent } from '../utils/storage';
+import { createNotification, createLikeNotificationWithAggregation } from './notifications';
 
 export const postsRoutes = new Hono<{ Bindings: Env }>();
 
@@ -737,6 +738,7 @@ postsRoutes.get('/:id/comments', async (c) => {
 postsRoutes.post('/:id/comments', authMiddleware, async (c) => {
   const postId = c.req.param('id');
   const userId = c.get('userId');
+  const user = c.get('user');
   const body = await c.req.json<{ content: string; parent_id?: string }>();
 
   if (!body.content || body.content.trim() === '') {
@@ -750,10 +752,10 @@ postsRoutes.post('/:id/comments', authMiddleware, async (c) => {
     );
   }
 
-  // Check if post exists
-  const post = await c.env.DB.prepare('SELECT id FROM posts WHERE id = ?')
+  // Check if post exists and get author info
+  const post = await c.env.DB.prepare('SELECT id, user_id, title FROM posts WHERE id = ?')
     .bind(postId)
-    .first();
+    .first<{ id: string; user_id: string; title: string }>();
 
   if (!post) {
     return c.json(
@@ -784,6 +786,19 @@ postsRoutes.post('/:id/comments', authMiddleware, async (c) => {
   )
     .bind(id)
     .first();
+
+  // 發送通知給貼文作者（不是自己的貼文）
+  if (post.user_id !== userId) {
+    const contentPreview = body.content.trim().slice(0, 50) + (body.content.length > 50 ? '...' : '');
+    await createNotification(c.env.DB, {
+      userId: post.user_id,
+      type: 'post_commented',
+      actorId: userId,
+      targetId: postId,
+      title: '你的文章有新留言',
+      message: `${user?.display_name || user?.username || '有人'} 在你的文章「${post.title}」留言：${contentPreview}`,
+    });
+  }
 
   return c.json(
     {
@@ -927,16 +942,30 @@ async function getActionStatus(
 postsRoutes.post('/:id/like', authMiddleware, async (c) => {
   const postId = c.req.param('id');
   const userId = c.get('userId');
+  const user = c.get('user');
 
-  const post = await c.env.DB.prepare('SELECT id FROM posts WHERE id = ?')
+  const post = await c.env.DB.prepare('SELECT id, user_id, title FROM posts WHERE id = ?')
     .bind(postId)
-    .first();
+    .first<{ id: string; user_id: string; title: string }>();
 
   if (!post) {
     return c.json({ success: false, error: 'Not Found', message: 'Post not found' }, 404);
   }
 
   const { toggled, count } = await toggleAction(c.env.DB, 'likes', 'post', postId, userId);
+
+  // 發送通知給貼文作者（按讚時且不是自己的貼文）
+  // 使用聚合功能：1 小時內同一文章的按讚會合併成一則通知
+  if (toggled && post.user_id !== userId) {
+    await createLikeNotificationWithAggregation(c.env.DB, {
+      userId: post.user_id,
+      type: 'post_liked',
+      actorId: userId,
+      actorName: user?.display_name || user?.username || '有人',
+      targetId: postId,
+      targetTitle: post.title,
+    });
+  }
 
   return c.json({
     success: true,

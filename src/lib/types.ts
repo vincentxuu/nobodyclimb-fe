@@ -745,6 +745,9 @@ export type NotificationType =
   | 'goal_referenced'
   | 'new_follower'
   | 'story_featured'
+  | 'biography_commented'
+  | 'post_liked'
+  | 'post_commented'
 
 /**
  * 通知

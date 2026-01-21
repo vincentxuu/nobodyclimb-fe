@@ -1878,6 +1878,93 @@ export const notificationService = {
     const response = await apiClient.delete<ApiResponse<{ message: string }>>('/notifications')
     return response.data
   },
+
+  /**
+   * 獲取通知偏好設定
+   */
+  getPreferences: async () => {
+    const response = await apiClient.get<
+      ApiResponse<{
+        goal_liked: boolean
+        goal_commented: boolean
+        goal_referenced: boolean
+        post_liked: boolean
+        post_commented: boolean
+        biography_commented: boolean
+        new_follower: boolean
+        story_featured: boolean
+        goal_completed: boolean
+        email_digest: boolean
+      }>
+    >('/notifications/preferences')
+    return response.data
+  },
+
+  /**
+   * 更新通知偏好設定
+   */
+  updatePreferences: async (preferences: {
+    goal_liked?: boolean
+    goal_commented?: boolean
+    goal_referenced?: boolean
+    post_liked?: boolean
+    post_commented?: boolean
+    biography_commented?: boolean
+    new_follower?: boolean
+    story_featured?: boolean
+    goal_completed?: boolean
+    email_digest?: boolean
+  }) => {
+    const response = await apiClient.put<ApiResponse<{ message: string }>>(
+      '/notifications/preferences',
+      preferences
+    )
+    return response.data
+  },
+
+  /**
+   * 獲取用戶通知統計
+   */
+  getStats: async () => {
+    const response = await apiClient.get<
+      ApiResponse<{
+        overview: {
+          total: number
+          unread: number
+          read: number
+          readRate: number
+        }
+        byType: Array<{ type: string; count: number }>
+        dailyTrend: Array<{ date: string; count: number }>
+      }>
+    >('/notifications/stats')
+    return response.data
+  },
+
+  /**
+   * 獲取管理員通知統計（需要 admin 權限）
+   */
+  getAdminStats: async () => {
+    const response = await apiClient.get<
+      ApiResponse<{
+        period: string
+        overview: {
+          total: number
+          unread: number
+          usersWithNotifications: number
+        }
+        byType: Array<{ type: string; count: number }>
+        hourlyTrend: Array<{ hour: string; count: number }>
+        topRecipients: Array<{
+          user_id: string
+          username: string
+          display_name: string | null
+          notification_count: number
+        }>
+      }>
+    >('/notifications/admin/stats')
+    return response.data
+  },
 }
 
 /**
