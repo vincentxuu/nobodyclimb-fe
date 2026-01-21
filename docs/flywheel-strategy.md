@@ -782,8 +782,8 @@ CREATE TABLE ascent_logs (
   attempts INTEGER,
 
   -- 媒體
-  photos TEXT,           -- JSON array
-  videos TEXT,           -- JSON object
+  photos TEXT,           -- JSON string of array (e.g., '["url1", "url2"]')
+  videos TEXT,           -- JSON string of object (e.g., '{"youtube": "id"}')
 
   -- 文字紀錄
   description TEXT,
@@ -796,7 +796,7 @@ CREATE TABLE ascent_logs (
   recorded_by_id TEXT,
   belayer_id TEXT,
   photographer_id TEXT,
-  partners TEXT,         -- JSON array
+  partners TEXT,         -- JSON string of array (e.g., '["user_id1", "user_id2"]')
 
   -- 來源
   source_type TEXT DEFAULT 'manual',
@@ -934,7 +934,16 @@ CREATE TABLE story_responses (
 
   -- 目標
   biography_id TEXT NOT NULL,
-  story_field TEXT NOT NULL,        -- 欄位名稱
+  story_field TEXT NOT NULL CHECK (story_field IN (
+    -- 核心故事
+    'climbing_origin', 'climbing_meaning', 'advice_to_self',
+    -- 成長與突破
+    'memorable_moment', 'biggest_challenge', 'breakthrough', 'first_outdoor', 'first_grade', 'frustration',
+    -- 心理與哲學
+    'overcome_fear', 'important_lesson', 'view_on_failure', 'flow_moment', 'life_balance', 'unexpected_gain',
+    -- 社群與連結
+    'climbing_mentor', 'favorite_partner', 'funny_moment', 'recommended_spot', 'advice_for_others', 'memorable_gym'
+  )),
 
   -- 回應者
   responder_id TEXT NOT NULL,
@@ -965,7 +974,8 @@ CREATE TABLE story_response_likes (
   user_id TEXT NOT NULL,
   created_at TEXT DEFAULT (datetime('now')),
   UNIQUE(story_response_id, user_id),
-  FOREIGN KEY (story_response_id) REFERENCES story_responses(id) ON DELETE CASCADE
+  FOREIGN KEY (story_response_id) REFERENCES story_responses(id) ON DELETE CASCADE,
+  FOREIGN KEY (user_id) REFERENCES users(id)
 );
 
 -- 故事欄位統計快取（定期更新）
@@ -1136,7 +1146,7 @@ const STORY_FIELDS = {
 ALTER TABLE gallery_images ADD COLUMN route_id TEXT;
 ALTER TABLE gallery_images ADD COLUMN crag_id TEXT;
 ALTER TABLE gallery_images ADD COLUMN ascent_log_id TEXT;
-ALTER TABLE gallery_images ADD COLUMN climber_id TEXT;  -- 照片中的攀登者
+ALTER TABLE gallery_images ADD COLUMN climber_id TEXT REFERENCES users(id);  -- 照片中的攀登者
 ```
 
 **上傳流程增強：**

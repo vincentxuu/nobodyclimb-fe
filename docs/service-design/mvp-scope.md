@@ -196,7 +196,7 @@ CREATE TABLE story_responses (
   response_type TEXT DEFAULT 'text',  -- 'text' | 'quick' (我也是/+1)
   likes_count INTEGER DEFAULT 0,
   created_at TEXT DEFAULT (datetime('now')),
-  FOREIGN KEY (biography_id) REFERENCES biographies(id),
+  FOREIGN KEY (biography_id) REFERENCES biographies(id) ON DELETE CASCADE,
   FOREIGN KEY (responder_id) REFERENCES users(id)
 );
 
@@ -206,17 +206,21 @@ CREATE TABLE story_response_likes (
   story_response_id TEXT NOT NULL,
   user_id TEXT NOT NULL,
   created_at TEXT DEFAULT (datetime('now')),
-  UNIQUE(story_response_id, user_id)
+  UNIQUE(story_response_id, user_id),
+  FOREIGN KEY (story_response_id) REFERENCES story_responses(id) ON DELETE CASCADE,
+  FOREIGN KEY (user_id) REFERENCES users(id)
 );
 
--- 3. 故事按讚（如果還沒有）
-CREATE TABLE story_likes (
+-- 3. 人物誌故事欄位按讚（針對特定故事欄位的按讚）
+CREATE TABLE biography_story_field_likes (
   id TEXT PRIMARY KEY,
   biography_id TEXT NOT NULL,
   story_field TEXT NOT NULL,
   user_id TEXT NOT NULL,
   created_at TEXT DEFAULT (datetime('now')),
-  UNIQUE(biography_id, story_field, user_id)
+  UNIQUE(biography_id, story_field, user_id),
+  FOREIGN KEY (biography_id) REFERENCES biographies(id) ON DELETE CASCADE,
+  FOREIGN KEY (user_id) REFERENCES users(id)
 );
 
 -- 4. 通知表
@@ -229,7 +233,7 @@ CREATE TABLE notifications (
   target_id TEXT,
   is_read INTEGER DEFAULT 0,
   created_at TEXT DEFAULT (datetime('now')),
-  FOREIGN KEY (user_id) REFERENCES users(id)
+  FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
 );
 ```
 
