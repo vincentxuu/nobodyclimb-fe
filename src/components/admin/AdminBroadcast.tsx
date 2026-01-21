@@ -105,26 +105,26 @@ export default function AdminBroadcast() {
       {/* 頁面標題 */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">廣播通知</h1>
-          <p className="text-gray-500 mt-1">發送系統公告給所有用戶</p>
+          <h1 className="text-2xl font-bold text-wb-100">廣播通知</h1>
+          <p className="text-wb-70 mt-1">發送系統公告給所有用戶</p>
         </div>
         {userStats && (
-          <div className="text-sm text-gray-500">
-            目前活躍用戶：<span className="font-medium text-gray-900">{userStats.active}</span> / {userStats.total}
+          <div className="text-sm text-wb-70">
+            目前活躍用戶：<span className="font-medium text-wb-100">{userStats.active}</span> / {userStats.total}
           </div>
         )}
       </div>
 
       {/* 發送表單 */}
-      <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
+      <div className="bg-white rounded-xl shadow-sm border border-wb-20 p-6">
         <div className="flex items-center gap-2 mb-4">
           <Megaphone className="h-5 w-5 text-primary" />
-          <h2 className="font-semibold text-gray-900">發送新公告</h2>
+          <h2 className="font-semibold text-wb-100">發送新公告</h2>
         </div>
 
         <form onSubmit={handleSend} className="space-y-4">
           <div>
-            <label htmlFor="title" className="block text-sm font-medium text-gray-700 mb-1">
+            <label htmlFor="title" className="block text-sm font-medium text-wb-100 mb-1">
               標題
             </label>
             <input
@@ -133,13 +133,13 @@ export default function AdminBroadcast() {
               value={title}
               onChange={(e) => setTitle(e.target.value)}
               placeholder="輸入公告標題..."
-              className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary"
+              className="w-full px-4 py-2 bg-white border border-wb-20 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-yellow-100/50 focus:border-brand-yellow-100 text-wb-100 placeholder:text-wb-50"
               maxLength={100}
             />
           </div>
 
           <div>
-            <label htmlFor="message" className="block text-sm font-medium text-gray-700 mb-1">
+            <label htmlFor="message" className="block text-sm font-medium text-wb-100 mb-1">
               內容
             </label>
             <textarea
@@ -148,21 +148,21 @@ export default function AdminBroadcast() {
               onChange={(e) => setMessage(e.target.value)}
               placeholder="輸入公告內容..."
               rows={4}
-              className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary resize-none"
+              className="w-full px-4 py-2 bg-white border border-wb-20 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-yellow-100/50 focus:border-brand-yellow-100 text-wb-100 placeholder:text-wb-50 resize-none"
               maxLength={500}
             />
-            <p className="text-xs text-gray-400 mt-1">{message.length} / 500</p>
+            <p className="text-xs text-wb-50 mt-1">{message.length} / 500</p>
           </div>
 
           <div>
-            <label htmlFor="targetRole" className="block text-sm font-medium text-gray-700 mb-1">
+            <label htmlFor="targetRole" className="block text-sm font-medium text-wb-100 mb-1">
               發送對象
             </label>
             <select
               id="targetRole"
               value={targetRole}
               onChange={(e) => setTargetRole(e.target.value as typeof targetRole)}
-              className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary"
+              className="w-full px-4 py-2 bg-white border border-wb-20 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-yellow-100/50 focus:border-brand-yellow-100 text-wb-100"
             >
               <option value="all">所有用戶</option>
               <option value="user">僅一般用戶</option>
@@ -215,16 +215,16 @@ export default function AdminBroadcast() {
       </div>
 
       {/* 歷史記錄 */}
-      <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
-        <div className="flex items-center justify-between p-6 border-b border-gray-100">
+      <div className="bg-white rounded-xl shadow-sm border border-wb-20 overflow-hidden">
+        <div className="flex items-center justify-between p-6 border-b border-wb-20">
           <div className="flex items-center gap-2">
-            <Clock className="h-5 w-5 text-gray-400" />
-            <h2 className="font-semibold text-gray-900">發送歷史</h2>
+            <Clock className="h-5 w-5 text-wb-50" />
+            <h2 className="font-semibold text-wb-100">發送歷史</h2>
           </div>
           <button
             onClick={() => loadBroadcasts()}
             disabled={loading}
-            className="flex items-center gap-2 px-3 py-1.5 text-sm text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-lg transition-colors disabled:opacity-50"
+            className="flex items-center gap-2 px-3 py-1.5 text-sm text-wb-70 hover:text-wb-100 hover:bg-wb-10 rounded-lg transition-colors disabled:opacity-50"
           >
             <RefreshCw className={`h-4 w-4 ${loading ? 'animate-spin' : ''}`} />
             重新整理
@@ -233,19 +233,19 @@ export default function AdminBroadcast() {
 
         {loading && broadcasts.length === 0 ? (
           <div className="flex items-center justify-center py-12">
-            <RefreshCw className="h-6 w-6 animate-spin text-gray-400" />
+            <RefreshCw className="h-6 w-6 animate-spin text-wb-50" />
           </div>
         ) : broadcasts.length === 0 ? (
-          <div className="text-center py-12 text-gray-500">尚無廣播記錄</div>
+          <div className="text-center py-12 text-wb-70">尚無廣播記錄</div>
         ) : (
-          <div className="divide-y divide-gray-50">
+          <div className="divide-y divide-wb-10">
             {broadcasts.map((broadcast) => (
-              <div key={broadcast.id} className="p-6 hover:bg-gray-50/50 transition-colors">
+              <div key={broadcast.id} className="p-6 hover:bg-wb-10/50 transition-colors">
                 <div className="flex items-start justify-between gap-4">
                   <div className="flex-1 min-w-0">
-                    <h3 className="font-medium text-gray-900 truncate">{broadcast.title}</h3>
-                    <p className="text-sm text-gray-500 mt-1 line-clamp-2">{broadcast.message}</p>
-                    <div className="flex items-center gap-4 mt-3 text-xs text-gray-400">
+                    <h3 className="font-medium text-wb-100 truncate">{broadcast.title}</h3>
+                    <p className="text-sm text-wb-70 mt-1 line-clamp-2">{broadcast.message}</p>
+                    <div className="flex items-center gap-4 mt-3 text-xs text-wb-50">
                       <span className="flex items-center gap-1">
                         <Users className="h-3.5 w-3.5" />
                         {broadcast.recipient_count} 位接收者
@@ -261,7 +261,7 @@ export default function AdminBroadcast() {
                       <span>發送者：{broadcast.actor_name || '系統'}</span>
                     </div>
                   </div>
-                  <div className="text-xs text-gray-400 whitespace-nowrap">
+                  <div className="text-xs text-wb-50 whitespace-nowrap">
                     {new Date(broadcast.created_at).toLocaleString('zh-TW')}
                   </div>
                 </div>
@@ -272,20 +272,20 @@ export default function AdminBroadcast() {
 
         {/* 分頁 */}
         {totalPages > 1 && (
-          <div className="flex items-center justify-between px-6 py-4 border-t border-gray-100">
-            <p className="text-sm text-gray-500">第 {page} / {totalPages} 頁</p>
+          <div className="flex items-center justify-between px-6 py-4 border-t border-wb-20">
+            <p className="text-sm text-wb-70">第 {page} / {totalPages} 頁</p>
             <div className="flex items-center gap-2">
               <button
                 onClick={() => setPage((p) => Math.max(1, p - 1))}
                 disabled={page === 1}
-                className="p-2 hover:bg-gray-100 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                className="p-2 hover:bg-wb-10 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 <ChevronLeft className="h-4 w-4" />
               </button>
               <button
                 onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
                 disabled={page === totalPages}
-                className="p-2 hover:bg-gray-100 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                className="p-2 hover:bg-wb-10 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 <ChevronRight className="h-4 w-4" />
               </button>
