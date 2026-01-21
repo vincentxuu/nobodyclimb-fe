@@ -1,0 +1,559 @@
+[
+  {
+    "id": "trad-multipitch-1",
+    "categoryId": "trad-multipitch",
+    "type": "situation",
+    "difficulty": 2,
+    "scenario": "你是先鋒，剛到達一個確保站。",
+    "question": "到達確保站後，第一個動作應該是什麼？",
+    "options": [
+      {
+        "id": "a",
+        "text": "立刻呼叫「固定」"
+      },
+      {
+        "id": "b",
+        "text": "先自我確保到固定點，確認承重後才呼叫「固定」"
+      },
+      {
+        "id": "c",
+        "text": "開始收繩"
+      },
+      {
+        "id": "d",
+        "text": "坐下來休息"
+      }
+    ],
+    "correctAnswer": "b",
+    "explanation": "先鋒到站的正確順序：\n\n``\n1. 到達確保站\n      │\n      ▼\n2. 檢查固定點狀態\n      │\n      ▼\n3. 自我確保連接到固定點\n      │\n      ▼\n4. 確認自我確保承重\n      │\n      ▼\n5. 呼叫「固定」(Safe/Off Belay)\n      │\n      ▼\n6. 開始架設收繩系統\n``\n\n為什麼這個順序很重要：\n\n| 步驟 | 原因 |\n|------|------|\n| 先自我確保 | 確保你在解除確保前已經安全 |\n| 確認承重 | 測試自我確保是否可靠 |\n| 再喊固定 | 確保者才能解除確保 |\n\n常見錯誤：\n❌ 還沒自我確保就喊固定\n❌ 自我確保沒測試就當作沒事\n❌ 急著收繩忘了自我確保",
+    "referenceSources": [
+      "AMGA",
+      "Freedom of the Hills"
+    ],
+    "tags": [
+      "先鋒到站",
+      "自我確保",
+      "系統轉換"
+    ]
+  },
+  {
+    "id": "trad-multipitch-2",
+    "categoryId": "trad-multipitch",
+    "type": "situation",
+    "difficulty": 2,
+    "scenario": "你在多繩距攀登中需要與夥伴溝通。",
+    "question": "當先鋒喊「固定」(Safe) 後，確保者的正確回應和動作是？",
+    "options": [
+      {
+        "id": "a",
+        "text": "不需要回應，直接解除確保"
+      },
+      {
+        "id": "b",
+        "text": "回應「收到」，解除確保，準備攀爬"
+      },
+      {
+        "id": "c",
+        "text": "繼續確保，不要理會"
+      },
+      {
+        "id": "d",
+        "text": "開始收拾裝備"
+      }
+    ],
+    "correctAnswer": "b",
+    "explanation": "多繩距標準溝通流程：\n\n| 口令 | 說的人 | 意義 | 回應 |\n|------|--------|------|------|\n| 固定 (Safe) | 先鋒 | 我已自我確保，安全了 | 收到 |\n| 解除確保 (Off Belay) | 先鋒 | 你可以解除確保了 | 解除 |\n| 收繩 (Take in Slack) | 先鋒 | 我要收繩了 | 收到 |\n| 確保完成 (Belay On) | 先鋒 | 我準備好確保你了 | 收到 |\n| 攀登 (Climbing) | 跟攀者 | 我要開始爬了 | 請上 (Climb On) |\n\n為什麼要回應：\n確認聽到且理解\n避免溝通錯誤\n風大或距離遠時特別重要\n\n聽不清楚時：\n不要猜測，請對方重複\n可以用拉繩子信號\n考慮使用對講機",
+    "referenceSources": [
+      "AMGA",
+      "Freedom of the Hills",
+      "VDiff Climbing"
+    ],
+    "tags": [
+      "溝通口令",
+      "團隊協調",
+      "多繩距"
+    ]
+  },
+  {
+    "id": "trad-multipitch-3",
+    "categoryId": "trad-multipitch",
+    "type": "situation",
+    "difficulty": 2,
+    "scenario": "你在確保站準備收繩確保跟攀者。",
+    "question": "收繩時，繩子應該如何整理？",
+    "options": [
+      {
+        "id": "a",
+        "text": "隨便堆在腳邊"
+      },
+      {
+        "id": "b",
+        "text": "整齊疊放或掛在裝備環上，避免糾纏"
+      },
+      {
+        "id": "c",
+        "text": "全部塞進背包"
+      },
+      {
+        "id": "d",
+        "text": "讓繩子垂到下一個確保站"
+      }
+    ],
+    "correctAnswer": "b",
+    "explanation": "繩索管理的方法：\n\n方法一：腳踏法\n``\n     你\n   ╱    ╲\n  腿    腿\n   ╲    ╱\n    繩子  ← 繩子放在腳上方\n   ╱    ╲\n  岩壁  岩壁\n`\n繩子搭在腿上或腳上\n阻止繩子掉落或纏繞\n常用於較小的確保站\n\n方法二：蝴蝶盤繩\n`\n  ┌──────────┐\n  │  ╱╲╱╲╱╲  │\n  │ ╱      ╲ │\n  └──────────┘\n``\n繩子盤成蝴蝶狀\n掛在裝備環或固定點\n確保下次放繩順暢\n\n方法三：繩袋/繩筐\n直接收入繩袋\n適合有足夠空間的確保站\n\n為什麼管理很重要：\n防止繩子糾纏\n確保下一段放繩順暢\n避免繩子卡住或掉落",
+    "referenceSources": [
+      "AMGA",
+      "VDiff Climbing"
+    ],
+    "tags": [
+      "收繩",
+      "繩索管理",
+      "確保站"
+    ]
+  },
+  {
+    "id": "trad-multipitch-4",
+    "categoryId": "trad-multipitch",
+    "type": "situation",
+    "difficulty": 3,
+    "scenario": "你們採用輪流先鋒（Swinging Leads）的方式攀登。",
+    "question": "跟攀者到達確保站後，交換先鋒的正確程序是？",
+    "options": [
+      {
+        "id": "a",
+        "text": "跟攀者直接繼續往上爬"
+      },
+      {
+        "id": "b",
+        "text": "跟攀者自我確保，原先鋒交出裝備，設定新的確保系統後開始下一段"
+      },
+      {
+        "id": "c",
+        "text": "兩人一起爬"
+      },
+      {
+        "id": "d",
+        "text": "每次都同一人先鋒"
+      }
+    ],
+    "correctAnswer": "b",
+    "explanation": "交換先鋒的步驟：\n\n``\n跟攀者到達\n     │\n     ▼\n自我確保到固定點\n     │\n     ▼\n原先鋒將裝備轉給新先鋒\n     │\n     ▼\n原先鋒設定確保（現在變成確保者）\n     │\n     ▼\n新先鋒準備出發\n     │\n     ▼\n開始下一段\n``\n\n裝備轉移：\n新先鋒需要快扣、保護裝備\n檢查有足夠裝備\n確認沒有遺漏\n\n確保系統切換：\n原先鋒從「被確保」變成「確保別人」\n確認確保器正確架設\n繩子方向正確\n\n輪流先鋒的優點：\n兩人都能休息\n公平分配風險\n利用各自擅長的地形",
+    "referenceSources": [
+      "AMGA",
+      "Freedom of the Hills"
+    ],
+    "tags": [
+      "交換先鋒",
+      "Swinging Leads",
+      "系統轉換"
+    ]
+  },
+  {
+    "id": "trad-multipitch-5",
+    "categoryId": "trad-multipitch",
+    "type": "situation",
+    "difficulty": 2,
+    "scenario": "在多繩距攀登中，你要管理繩子的兩端。",
+    "question": "繩尾（你這端）應該如何處理？",
+    "options": [
+      {
+        "id": "a",
+        "text": "不用管，讓它自然垂著"
+      },
+      {
+        "id": "b",
+        "text": "綁在固定點或吊帶上，並打上繩尾結"
+      },
+      {
+        "id": "c",
+        "text": "剪掉不需要的部分"
+      },
+      {
+        "id": "d",
+        "text": "交給跟攀者拿著"
+      }
+    ],
+    "correctAnswer": "b",
+    "explanation": "繩尾處理的重要性：\n\n``\n固定點\n  │\n確保器\n  │\n繩子（往跟攀者）\n  │\n  │\n繩尾 ← 這端要處理！\n  │\n  ▼\n綁住或打結\n``\n\n處理方式：\n\n1. 綁在固定點上\n確保繩尾不會意外脫離\n特別是繩子長度剛好時\n\n2. 綁在吊帶上\n確保繩子不會滑出確保器\n即使意外也有備份\n\n3. 打繩尾結\n大結防止滑過確保器\n最後一道防線\n\n為什麼重要：\n防止繩子意外滑出系統\n可能因收繩過多而忘記\n致命事故的常見原因",
+    "referenceSources": [
+      "AAC Accidents",
+      "AMGA"
+    ],
+    "tags": [
+      "繩尾處理",
+      "安全措施",
+      "繩索管理"
+    ]
+  },
+  {
+    "id": "trad-multipitch-6",
+    "categoryId": "trad-multipitch",
+    "type": "situation",
+    "difficulty": 3,
+    "scenario": "你和夥伴考慮在某些路段使用同時攀登。",
+    "question": "同時攀登是什麼？什麼情況適合使用？",
+    "options": [
+      {
+        "id": "a",
+        "text": "兩人沒有繩子連接，各爬各的"
+      },
+      {
+        "id": "b",
+        "text": "兩人同時移動，繩子連接但沒有確保站，適合簡單地形加快速度"
+      },
+      {
+        "id": "c",
+        "text": "兩人面對面攀爬"
+      },
+      {
+        "id": "d",
+        "text": "任何時候都適合使用"
+      }
+    ],
+    "correctAnswer": "b",
+    "explanation": "同時攀登（Simul-climbing）：\n\n``\n     先鋒\n       │\n    保護點\n       │\n    保護點\n       │\n    保護點\n       │\n     跟攀者\n\n兩人同時移動，中間有繩子和保護點連接\n``\n\n特點：\n兩人同時移動\n比傳統確保快很多\n有保護點但沒有確保站\n\n適合情況：\n| 適合 | 不適合 |\n|------|--------|\n| 簡單地形 | 困難路段 |\n| 兩人能力相當 | 能力差異大 |\n| 需要趕時間 | 不熟悉的路線 |\n| 經驗豐富 | 新手 |\n\n風險：\n一人墜落可能拉下另一人\n需要非常好的默契\n保護點必須可靠\n\n注意事項：\n保持適當間距\n保護點要夠頻繁\n雙方持續溝通",
+    "referenceSources": [
+      "AMGA",
+      "Freedom of the Hills"
+    ],
+    "tags": [
+      "同時攀登",
+      "Simul-climbing",
+      "進階技術"
+    ]
+  },
+  {
+    "id": "trad-multipitch-7",
+    "categoryId": "trad-multipitch",
+    "type": "situation",
+    "difficulty": 2,
+    "scenario": "你在先鋒攀登，需要決定在哪裡建立確保站。",
+    "question": "選擇確保站位置時，最重要的考量是？",
+    "options": [
+      {
+        "id": "a",
+        "text": "選最舒適的地方"
+      },
+      {
+        "id": "b",
+        "text": "有足夠保護點、良好站位、繩長允許的地方"
+      },
+      {
+        "id": "c",
+        "text": "選最高的地方"
+      },
+      {
+        "id": "d",
+        "text": "選有陰影的地方"
+      }
+    ],
+    "correctAnswer": "b",
+    "explanation": "確保站位置的選擇標準：\n\n| 優先順序 | 考量因素 |\n|----------|----------|\n| 1 | 有足夠的保護點可架設 |\n| 2 | 站位或坐位舒適 |\n| 3 | 繩長範圍內（不超過繩子一半） |\n| 4 | 避免落石風險區 |\n| 5 | 便於溝通 |\n\n理想確保站特徵：\n``\n     ┌─────────────────┐\n     │ ✓ 有岩縫可放裝備 │\n     │ ✓ 有平台可站立   │\n     │ ✓ 避開落石線     │\n     │ ✓ 視野良好       │\n     └─────────────────┘\n``\n\n不適合的位置：\n❌ 沒有保護點\n❌ 懸吊確保（除非必要）\n❌ 落石區正下方\n❌ 繩子不夠長",
+    "referenceSources": [
+      "AMGA",
+      "Freedom of the Hills"
+    ],
+    "tags": [
+      "確保站選擇",
+      "位置",
+      "路線規劃"
+    ]
+  },
+  {
+    "id": "trad-multipitch-8",
+    "categoryId": "trad-multipitch",
+    "type": "situation",
+    "difficulty": 2,
+    "scenario": "你是跟攀者，準備開始攀爬。",
+    "question": "跟攀者在攀爬過程中的主要職責是？",
+    "options": [
+      {
+        "id": "a",
+        "text": "只要跟著繩子爬就好"
+      },
+      {
+        "id": "b",
+        "text": "清除保護點、管理裝備、與先鋒保持溝通"
+      },
+      {
+        "id": "c",
+        "text": "照相記錄"
+      },
+      {
+        "id": "d",
+        "text": "評論先鋒的路線選擇"
+      }
+    ],
+    "correctAnswer": "b",
+    "explanation": "跟攀者的職責清單：\n\n1. 清除保護點\n每個快扣和保護裝備都要回收\n正確使用 Nut Tool\n不要遺漏任何裝備\n\n2. 管理裝備\n整理在裝備環上\n按類型和大小排列\n方便交給先鋒\n\n3. 保持溝通\n回應先鋒的口令\n報告清除進度\n提醒繩子狀況\n\n4. 路線觀察\n記住先鋒走的路徑\n注意困難動作\n學習保護點放置\n\n清除困難時：\n不要硬拔（可能損壞裝備）\n多角度嘗試\n真的拿不出來要告知先鋒",
+    "referenceSources": [
+      "AMGA",
+      "VDiff Climbing"
+    ],
+    "tags": [
+      "跟攀者",
+      "清除裝備",
+      "職責"
+    ]
+  },
+  {
+    "id": "trad-multipitch-9",
+    "categoryId": "trad-multipitch",
+    "type": "situation",
+    "difficulty": 3,
+    "scenario": "你在架設確保站時考慮受力方向。",
+    "question": "確保站需要承受哪些方向的力量？",
+    "options": [
+      {
+        "id": "a",
+        "text": "只有向下（跟攀者的重量）"
+      },
+      {
+        "id": "b",
+        "text": "向下（跟攀者）和向上（先鋒墜落經過轉向）"
+      },
+      {
+        "id": "c",
+        "text": "只有向上"
+      },
+      {
+        "id": "d",
+        "text": "只有水平方向"
+      }
+    ],
+    "correctAnswer": "b",
+    "explanation": "確保站的受力分析：\n\n``\n情況1：確保跟攀者        情況2：先鋒墜落\n\n      確保站                    下一段路線\n         │                          │\n         ↓ 向下的力              保護點\n         │                          │\n      確保者                    確保站 ← 向上的力\n         │                          │\n      跟攀者                     確保者\n``\n\n受力情況說明：\n\n| 情況 | 受力方向 | 來源 |\n|------|----------|------|\n| 確保跟攀者 | 向下 | 跟攀者的重量 |\n| 確保跟攀者墜落 | 向下（較大） | 跟攀者墜落衝擊 |\n| 先鋒墜落 | 向上 | 繩子經過保護點轉向 |\n\n設計原則：\n確保站要能承受多方向力\n有些保護點專門對抗向上\n有些專門對抗向下\n或使用可多向承力的系統\n\n為什麼向上力很重要：\n經常被忽略\n先鋒墜落時會產生\n可能把向下式固定點拉出",
+    "referenceSources": [
+      "AMGA",
+      "Climbing Anchors"
+    ],
+    "tags": [
+      "受力方向",
+      "向上力",
+      "固定點設計"
+    ]
+  },
+  {
+    "id": "trad-multipitch-10",
+    "categoryId": "trad-multipitch",
+    "type": "situation",
+    "difficulty": 2,
+    "scenario": "你在規劃一條多繩距路線。",
+    "question": "每一段繩距的長度應該如何規劃？",
+    "options": [
+      {
+        "id": "a",
+        "text": "每段都要用完整條繩子"
+      },
+      {
+        "id": "b",
+        "text": "根據繩子長度、保護點位置和難度來決定，留有餘裕"
+      },
+      {
+        "id": "c",
+        "text": "越長越好"
+      },
+      {
+        "id": "d",
+        "text": "固定每段 30 公尺"
+      }
+    ],
+    "correctAnswer": "b",
+    "explanation": "繩距規劃的考量：\n\n| 因素 | 說明 |\n|------|------|\n| 繩子長度 | 不要超過一半（需要收繩） |\n| 保護點 | 在好的位置建立確保站 |\n| 難度 | 難段落可能需要更頻繁的確保站 |\n| 溝通 | 太遠聽不到對方 |\n\n實際計算：\n``\n60m 繩子\n├── 先鋒攀爬：最多 ~28m（留餘裕）\n└── 剩餘繩子：收繩用\n``\n\n規劃建議：\n\n1. 研究路線資訊\n查閱攀岩指南\n了解確保站位置\n\n2. 保留彈性\n可能需要臨時調整\n保護點不一定在預期位置\n\n3. 溝通距離\n超過 25-30m 可能聽不清楚\n考慮帶對講機",
+    "referenceSources": [
+      "Freedom of the Hills",
+      "AMGA"
+    ],
+    "tags": [
+      "繩距規劃",
+      "路線規劃",
+      "長度計算"
+    ]
+  },
+  {
+    "id": "trad-multipitch-11",
+    "categoryId": "trad-multipitch",
+    "type": "situation",
+    "difficulty": 3,
+    "scenario": "你在確保站確保先鋒，繩子的方向很奇怪。",
+    "question": "什麼時候應該使用轉向（Redirect）？",
+    "options": [
+      {
+        "id": "a",
+        "text": "每次都要用"
+      },
+      {
+        "id": "b",
+        "text": "當直接確保會讓確保者被拉向不舒服的位置或有危險時"
+      },
+      {
+        "id": "c",
+        "text": "只有垂降時使用"
+      },
+      {
+        "id": "d",
+        "text": "轉向會降低安全性，不應該用"
+      }
+    ],
+    "correctAnswer": "b",
+    "explanation": "轉向（Redirect）的概念：\n\n``\n無轉向：                有轉向：\n\n   先鋒                    先鋒\n     │                       │\n     │                    轉向點\n     │                       │\n   確保器                   確保器\n     │                       │\n   確保者 ← 可能被拉起     確保者 ← 穩定\n``\n\n使用時機：\n\n| 情況 | 是否需要轉向 |\n|------|--------------|\n| 確保者位置低，可能被拉起 | ✓ 需要 |\n| 繩子會摩擦岩角 | ✓ 需要 |\n| 確保者站位不穩 | ✓ 需要 |\n| 正常情況 | ✗ 不需要 |\n\n轉向的優點：\n穩定確保者位置\n減少被拉動的風險\n調整繩子路徑\n\n轉向的缺點：\n增加系統摩擦力\n增加固定點負載\n架設較複雜",
+    "referenceSources": [
+      "AMGA",
+      "VDiff Climbing"
+    ],
+    "tags": [
+      "轉向",
+      "Redirect",
+      "確保技術"
+    ]
+  },
+  {
+    "id": "trad-multipitch-12",
+    "categoryId": "trad-multipitch",
+    "type": "situation",
+    "difficulty": 2,
+    "scenario": "收繩時發現繩子嚴重糾纏。",
+    "question": "預防和處理繩子糾纏的最佳方式是？",
+    "options": [
+      {
+        "id": "a",
+        "text": "用力拉就會解開"
+      },
+      {
+        "id": "b",
+        "text": "預防：收繩時注意整理；處理：耐心從外圈開始解開"
+      },
+      {
+        "id": "c",
+        "text": "把糾纏的部分剪掉"
+      },
+      {
+        "id": "d",
+        "text": "忽略糾纏，繼續攀爬"
+      }
+    ],
+    "correctAnswer": "b",
+    "explanation": "預防糾纏：\n\n| 時機 | 方法 |\n|------|------|\n| 收繩時 | 整齊堆放或盤繩 |\n| 放繩時 | 從上方開始放 |\n| 攜帶時 | 使用繩袋 |\n| 整理時 | 定期檢查繩子狀態 |\n\n處理糾纏：\n\n``\n步驟：\n1. 保持耐心（急躁會更糟）\n2. 找到繩子的兩端\n3. 從外圈開始慢慢解\n4. 不要用力拉扯\n5. 必要時把整個結構鬆開\n`\n\n蝴蝶盤繩技巧：\n`\n  ╱─────╲\n ╱   │   ╲\n│    │    │\n│    │    │\n ╲   │   ╱\n  ╲──│──╱\n\n中間是收繩處\n兩側是鬆散的圈\n``\n下次放繩時不會糾纏\n繩子會依序滑出",
+    "referenceSources": [
+      "VDiff Climbing",
+      "AMGA"
+    ],
+    "tags": [
+      "繩子糾纏",
+      "繩索整理",
+      "預防措施"
+    ]
+  },
+  {
+    "id": "trad-multipitch-13",
+    "categoryId": "trad-multipitch",
+    "type": "situation",
+    "difficulty": 3,
+    "scenario": "確保站位置沒有可以站立的平台，必須懸吊確保。",
+    "question": "懸吊確保時的特別注意事項是？",
+    "options": [
+      {
+        "id": "a",
+        "text": "和普通確保完全一樣"
+      },
+      {
+        "id": "b",
+        "text": "確保繩子不會卡在身體下方，且固定點必須特別可靠"
+      },
+      {
+        "id": "c",
+        "text": "不需要自我確保"
+      },
+      {
+        "id": "d",
+        "text": "只能用義大利半扣確保"
+      }
+    ],
+    "correctAnswer": "b",
+    "explanation": "懸吊確保的挑戰：\n\n``\n         固定點\n            │\n            │\n        自我確保\n            │\n         你（懸吊）\n            │\n         確保器\n            │\n         跟攀者\n``\n\n特別注意事項：\n\n| 項目 | 說明 |\n|------|------|\n| 固定點 | 必須特別可靠，承受全部重量 |\n| 自我確保 | 要舒適且安全 |\n| 繩子路徑 | 確保繩子不會卡在身體下方 |\n| 操作空間 | 確保有足夠空間操作 |\n\n實際技巧：\n確保器掛在吊帶確保環\n調整自我確保長度讓操作舒適\n繩子走在身體側邊\n考慮使用腳環增加穩定\n\n裝備建議：\n較長的 PAS 或 Daisy Chain\n可鎖定的確保器（如 GriGri）更安全\n考慮帶吊帶坐墊（Buttrest）",
+    "referenceSources": [
+      "AMGA",
+      "Freedom of the Hills"
+    ],
+    "tags": [
+      "懸吊確保",
+      "無平台",
+      "進階技術"
+    ]
+  },
+  {
+    "id": "trad-multipitch-14",
+    "categoryId": "trad-multipitch",
+    "type": "situation",
+    "difficulty": 3,
+    "scenario": "你們在多繩距路線的中途遇到困難。",
+    "question": "什麼情況應該考慮撤退？",
+    "options": [
+      {
+        "id": "a",
+        "text": "永遠不應該撤退"
+      },
+      {
+        "id": "b",
+        "text": "天氣惡化、體力不足、天黑前無法完成、隊員受傷時"
+      },
+      {
+        "id": "c",
+        "text": "只有下雨才撤退"
+      },
+      {
+        "id": "d",
+        "text": "只要還有裝備就繼續"
+      }
+    ],
+    "correctAnswer": "b",
+    "explanation": "撤退決策的考量因素：\n\n| 因素 | 撤退指標 |\n|------|----------|\n| 天氣 | 雷暴、大雨、強風即將到來 |\n| 時間 | 無法在天黑前完成/撤離 |\n| 體力 | 明顯疲勞、影響判斷 |\n| 傷病 | 隊員受傷或身體不適 |\n| 路線 | 難度超出能力 |\n| 裝備 | 裝備不足或故障 |\n\n撤退不是失敗：\n山永遠在那裡\n人的安全最重要\n好的判斷是進步的一部分\n\n撤退的方式：\n1. 垂降：如果有固定點\n2. 原路攀降：如果可行\n3. 等待救援：最壞情況\n\n提前規劃：\n出發前了解撤退路線\n帶足夠的輔助繩（做垂降）\n設定撤退時間點",
+    "referenceSources": [
+      "AAC Accidents",
+      "AMGA",
+      "Freedom of the Hills"
+    ],
+    "tags": [
+      "撤退",
+      "決策判斷",
+      "安全管理"
+    ]
+  },
+  {
+    "id": "trad-multipitch-15",
+    "categoryId": "trad-multipitch",
+    "type": "situation",
+    "difficulty": 2,
+    "scenario": "你想提高多繩距攀登的效率。",
+    "question": "以下哪個做法能有效提高效率？",
+    "options": [
+      {
+        "id": "a",
+        "text": "省略安全檢查"
+      },
+      {
+        "id": "b",
+        "text": "流暢的系統轉換、良好的繩索管理、清晰的溝通"
+      },
+      {
+        "id": "c",
+        "text": "每個人都獨自攀爬"
+      },
+      {
+        "id": "d",
+        "text": "不休息一直爬"
+      }
+    ],
+    "correctAnswer": "b",
+    "explanation": "提高效率的關鍵：\n\n| 領域 | 方法 |\n|------|------|\n| 系統轉換 | 熟練操作、減少思考時間 |\n| 繩索管理 | 預先整理、避免糾纏 |\n| 溝通 | 清晰口令、減少誤解 |\n| 裝備管理 | 有序排列、快速取用 |\n\n時間花在哪裡：\n``\n典型多繩距時間分配：\n├── 攀爬時間：40%\n├── 系統轉換：30%  ← 這裡最有改進空間\n├── 路線尋找：15%\n└── 休息/其他：15%\n``\n\n效率 ≠ 省略安全：\n熟練後自然快速\n安全步驟要完整\n永遠不要急躁\n\n練習建議：\n在地面練習系統轉換\n模擬各種情境\n與固定夥伴培養默契",
+    "referenceSources": [
+      "AMGA",
+      "Freedom of the Hills"
+    ],
+    "tags": [
+      "效率",
+      "時間管理",
+      "團隊協作"
+    ]
+  }
+]
