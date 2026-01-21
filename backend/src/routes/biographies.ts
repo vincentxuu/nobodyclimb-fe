@@ -702,10 +702,21 @@ biographiesRoutes.put('/me', authMiddleware, async (c) => {
       .bind(userId)
       .first<{ display_name: string | null; username: string }>();
 
-    const defaultName = body.name || user?.display_name || user?.username || '攀岩者';
+    if (!user) {
+      return c.json(
+        {
+          success: false,
+          error: 'Not Found',
+          message: 'User not found',
+        },
+        404
+      );
+    }
+
+    const defaultName = body.name || user.display_name || user.username || '攀岩者';
     const id = generateId();
     // Use username as slug
-    const slug = user?.username || generateSlug(defaultName) + '-' + id.substring(0, 8);
+    const slug = user.username;
     const now = new Date().toISOString();
 
     // Build insert with provided fields
