@@ -202,10 +202,10 @@ export default function ProfileClient({ params }: ProfileClientProps) {
       <QuickFactsSection person={personV2} />
 
       {/* 3. 關於我 - 一句話系列 */}
-      {personV2 && personV2.one_liners && personV2.one_liners.length > 0 && (
+      {personV2 && personV2.id && (
         <section className="bg-[#F5F5F5]">
           <div className="container mx-auto max-w-5xl px-4">
-            <BiographyOneLiners biography={personV2} />
+            <BiographyOneLiners biographyId={personV2.id} />
           </div>
         </section>
       )}
@@ -214,16 +214,16 @@ export default function ProfileClient({ params }: ProfileClientProps) {
       <FeaturedStoriesSection person={person} />
 
       {/* 5. Chapter 1: 相遇篇 */}
-      <ChapterMeeting person={personV2} />
+      {personV2?.id && <ChapterMeeting biographyId={personV2.id} />}
 
       {/* 6. Chapter 2: 意義篇 */}
-      <ChapterMeaning person={personV2} />
+      {personV2?.id && <ChapterMeaning biographyId={personV2.id} />}
 
       {/* 7. Chapter 3: 人生清單 */}
       <ChapterBucketList person={personV2} isOwner={isOwner} />
 
       {/* 8. Chapter 4: 給新手的話 */}
-      <ChapterAdvice person={personV2} />
+      {personV2?.id && <ChapterAdvice biographyId={personV2.id} />}
 
       {/* 9. 小故事（完整版） */}
       <CompleteStoriesSection person={person} isOwner={isOwner} />
