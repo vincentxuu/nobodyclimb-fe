@@ -5,6 +5,7 @@ import type { BiographyV2 } from '@/lib/types/biography-v2'
 import { BiographyHero } from './BiographyHero'
 import { BiographyTags } from './BiographyTags'
 import { BiographyOneLiners } from './BiographyOneLiners'
+import { BiographyCoreStories } from './BiographyCoreStories'
 import { BiographyStories } from './BiographyStories'
 import { BiographyFootprints } from './BiographyFootprints'
 import { BiographyGallery } from './BiographyGallery'
@@ -107,16 +108,19 @@ export function BiographyDetailPage({
         {/* 2. Identity Tags - 關鍵字標籤 */}
         <BiographyTags biography={biography} />
 
-        {/* 3. Quick Intro - 一句話系列 */}
-        <BiographyOneLiners biography={biography} />
+        {/* 3. Core Stories - 核心故事（3題） */}
+        <BiographyCoreStories biographyId={biography.id} />
 
-        {/* 4. Stories - 深度故事 */}
-        <BiographyStories biography={biography} />
+        {/* 4. Quick Intro - 一句話系列 */}
+        <BiographyOneLiners biographyId={biography.id} />
 
-        {/* 5. Climbing Footprints - 攀岩足跡 */}
+        {/* 5. Stories - 深度故事 */}
+        <BiographyStories biographyId={biography.id} />
+
+        {/* 6. Climbing Footprints - 攀岩足跡 */}
         <BiographyFootprints biography={biography} />
 
-        {/* 6. Gallery - 攀岩相簿 */}
+        {/* 7. Gallery - 攀岩相簿 */}
         <BiographyGallery biography={biography} />
 
         {/* 底部間距 */}
