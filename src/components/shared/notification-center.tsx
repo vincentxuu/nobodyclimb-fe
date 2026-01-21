@@ -13,6 +13,7 @@ import {
   Loader2,
   X,
   FileText,
+  Megaphone,
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { notificationService } from '@/lib/api/services'
@@ -48,6 +49,7 @@ const notificationIcons: Record<string, React.ElementType> = {
   biography_commented: MessageCircle,
   post_liked: Mountain, // 按讚功能統一使用 Mountain icon
   post_commented: FileText,
+  system_announcement: Megaphone, // 系統公告
 }
 
 // 使用品牌色 #FFE70C（黃色）作為按讚相關通知的主色
@@ -60,6 +62,7 @@ const notificationColors: Record<string, string> = {
   biography_commented: 'text-indigo-500 bg-indigo-50',
   post_liked: 'text-[#1B1A1A] bg-[#FFE70C]/20', // 品牌黃色
   post_commented: 'text-cyan-500 bg-cyan-50',
+  system_announcement: 'text-[#1B1A1A] bg-[#FFE70C]/30', // 系統公告用品牌黃色
 }
 
 export function NotificationCenter({ className }: NotificationCenterProps) {
