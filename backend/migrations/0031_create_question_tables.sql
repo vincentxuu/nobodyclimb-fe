@@ -1,10 +1,27 @@
 -- ═══════════════════════════════════════════════════════════
 -- Migration: Create question definition tables for admin management
 -- Description:
+--   - core_story_questions: 核心故事問題定義（3題固定）
 --   - one_liner_questions: 一句話問題定義（可由 Admin 管理）
 --   - story_questions: 小故事問題定義（可由 Admin 管理）
 --   - story_categories: 故事分類定義
 -- ═══════════════════════════════════════════════════════════
+
+-- ============================================
+-- 核心故事問題定義表（固定3題，未來可擴充）
+-- ============================================
+CREATE TABLE IF NOT EXISTS core_story_questions (
+  id TEXT PRIMARY KEY CHECK (id IN ('climbing_origin', 'climbing_meaning', 'advice_to_self')),
+  title TEXT NOT NULL,
+  subtitle TEXT,
+  placeholder TEXT,
+  display_order INTEGER DEFAULT 0,
+  is_active INTEGER DEFAULT 1,
+  created_at TEXT DEFAULT (datetime('now')),
+  updated_at TEXT DEFAULT (datetime('now'))
+);
+
+CREATE INDEX IF NOT EXISTS idx_core_story_questions_order ON core_story_questions(display_order);
 
 -- ============================================
 -- 故事分類表
@@ -35,7 +52,6 @@ CREATE TABLE IF NOT EXISTS one_liner_questions (
   category TEXT,
   display_order INTEGER DEFAULT 0,
   is_active INTEGER DEFAULT 1,
-  is_core INTEGER DEFAULT 0,
   created_by TEXT,
   created_at TEXT DEFAULT (datetime('now')),
   updated_at TEXT DEFAULT (datetime('now')),
@@ -44,7 +60,6 @@ CREATE TABLE IF NOT EXISTS one_liner_questions (
 
 CREATE INDEX IF NOT EXISTS idx_one_liner_questions_order ON one_liner_questions(display_order);
 CREATE INDEX IF NOT EXISTS idx_one_liner_questions_active ON one_liner_questions(is_active) WHERE is_active = 1;
-CREATE INDEX IF NOT EXISTS idx_one_liner_questions_core ON one_liner_questions(is_core) WHERE is_core = 1;
 
 -- ============================================
 -- 小故事問題定義表
@@ -82,19 +97,24 @@ INSERT INTO story_categories (id, name, emoji, icon, description, display_order)
   ('life', '生活整合', '🎨', 'Palette', '攀岩與生活的平衡', 6);
 
 -- ============================================
--- 初始資料：一句話問題（核心題目）
+-- 初始資料：核心故事問題（3題）
 -- ============================================
-INSERT INTO one_liner_questions (id, question, format_hint, placeholder, display_order, is_core) VALUES
-  ('climbing_origin', '你與攀岩的相遇', '描述第一次接觸攀岩的情景', '大學社團體驗，一爬就愛上了', 1, 1),
-  ('climbing_meaning', '攀岩對你來說是什麼？', '攀岩在你生活中扮演什麼角色', '一種生活方式，也是認識自己的途徑', 2, 1),
-  ('advice_to_self', '給剛開始攀岩的自己', '如果能回到起點，你會對自己說什麼', '不要急，享受每一次攀爬的過程', 3, 1),
-  ('best_moment', '爬岩最爽的是？', '當＿＿＿的時候', '終於送出卡了一個月的 project', 4, 0),
-  ('favorite_place', '最喜歡在哪裡爬？', NULL, '龍洞的海邊岩壁', 5, 0),
-  ('current_goal', '目前的攀岩小目標？', NULL, '這個月送出 V4', 6, 0),
-  ('climbing_takeaway', '攀岩教會我的一件事？', NULL, '失敗沒什麼，再來就好', 7, 0),
-  ('climbing_style_desc', '用一句話形容你的攀岩風格？', NULL, '穩紮穩打型，喜歡把每個動作做扎實', 8, 0),
-  ('life_outside', '不爬岩的時候在幹嘛？', NULL, '看電影、煮咖啡、發呆', 9, 0),
-  ('bucket_list', '攀岩願望清單第一名？', NULL, '去優勝美地爬 El Capitan', 10, 0);
+INSERT INTO core_story_questions (id, title, subtitle, placeholder, display_order) VALUES
+  ('climbing_origin', '你與攀岩的相遇', '描述第一次接觸攀岩的情景', '那是一個平凡的週末，朋友約我去岩館體驗...', 1),
+  ('climbing_meaning', '攀岩對你來說是什麼？', '攀岩在你生活中扮演什麼角色', '攀岩對我來說不只是運動，更是一種生活方式...', 2),
+  ('advice_to_self', '給剛開始攀岩的自己', '如果能回到起點，你會對自己說什麼', '不要急，享受每一次攀爬的過程，失敗是成長的一部分...', 3);
+
+-- ============================================
+-- 初始資料：一句話問題
+-- ============================================
+INSERT INTO one_liner_questions (id, question, format_hint, placeholder, display_order) VALUES
+  ('best_moment', '爬岩最爽的是？', '當＿＿＿的時候', '終於送出卡了一個月的 project', 1),
+  ('favorite_place', '最喜歡在哪裡爬？', NULL, '龍洞的海邊岩壁', 2),
+  ('current_goal', '目前的攀岩小目標？', NULL, '這個月送出 V4', 3),
+  ('climbing_takeaway', '攀岩教會我的一件事？', NULL, '失敗沒什麼，再來就好', 4),
+  ('climbing_style_desc', '用一句話形容你的攀岩風格？', NULL, '穩紮穩打型，喜歡把每個動作做扎實', 5),
+  ('life_outside', '不爬岩的時候在幹嘛？', NULL, '看電影、煮咖啡、發呆', 6),
+  ('bucket_list', '攀岩願望清單第一名？', NULL, '去優勝美地爬 El Capitan', 7);
 
 -- ============================================
 -- 初始資料：小故事問題

@@ -1,6 +1,7 @@
 -- ═══════════════════════════════════════════════════════════
--- Migration: Add notification types for one_liner and story interactions
+-- Migration: Add notification types for biography content interactions
 -- Description:
+--   - 新增 core_story_liked, core_story_commented 通知類型
 --   - 新增 one_liner_liked, one_liner_commented 通知類型
 --   - 新增 story_liked, story_commented 通知類型
 --   - 新增 biography_liked 通知類型（修正之前用 goal_liked 的問題）
@@ -26,6 +27,8 @@ CREATE TABLE IF NOT EXISTS notifications_v3 (
     'post_commented',
     -- 新增類型
     'biography_liked',
+    'core_story_liked',
+    'core_story_commented',
     'one_liner_liked',
     'one_liner_commented',
     'story_liked',
@@ -58,6 +61,8 @@ CREATE INDEX IF NOT EXISTS idx_notifications_created ON notifications(created_at
 -- Step 2: Update notification_preferences with new columns
 -- ============================================
 ALTER TABLE notification_preferences ADD COLUMN biography_liked INTEGER DEFAULT 1;
+ALTER TABLE notification_preferences ADD COLUMN core_story_liked INTEGER DEFAULT 1;
+ALTER TABLE notification_preferences ADD COLUMN core_story_commented INTEGER DEFAULT 1;
 ALTER TABLE notification_preferences ADD COLUMN one_liner_liked INTEGER DEFAULT 1;
 ALTER TABLE notification_preferences ADD COLUMN one_liner_commented INTEGER DEFAULT 1;
 ALTER TABLE notification_preferences ADD COLUMN story_liked INTEGER DEFAULT 1;
