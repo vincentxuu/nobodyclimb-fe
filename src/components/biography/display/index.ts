@@ -8,7 +8,6 @@
 export { BiographyHero } from './BiographyHero'
 export { BiographyTags } from './BiographyTags'
 export { BiographyOneLiners } from './BiographyOneLiners'
-export { BiographyCoreStories } from './BiographyCoreStories'
 export { StoryCard } from './StoryCard'
 export { BiographyStories } from './BiographyStories'
 export { BiographyFootprints } from './BiographyFootprints'

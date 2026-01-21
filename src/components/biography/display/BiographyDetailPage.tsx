@@ -5,11 +5,13 @@ import type { BiographyV2 } from '@/lib/types/biography-v2'
 import { BiographyHero } from './BiographyHero'
 import { BiographyTags } from './BiographyTags'
 import { BiographyOneLiners } from './BiographyOneLiners'
-import { BiographyCoreStories } from './BiographyCoreStories'
 import { BiographyStories } from './BiographyStories'
 import { BiographyFootprints } from './BiographyFootprints'
 import { BiographyGallery } from './BiographyGallery'
 import { EmptyState } from './EmptyState'
+import { ChapterMeeting } from '../profile/ChapterMeeting'
+import { ChapterMeaning } from '../profile/ChapterMeaning'
+import { ChapterAdvice } from '../profile/ChapterAdvice'
 
 interface BiographyDetailPageProps {
   /** 人物誌資料 */
@@ -107,20 +109,34 @@ export function BiographyDetailPage({
       <div className="container mx-auto max-w-4xl px-4">
         {/* 2. Identity Tags - 關鍵字標籤 */}
         <BiographyTags biography={biography} />
+      </div>
 
-        {/* 3. Core Stories - 核心故事（3題） */}
-        <BiographyCoreStories biographyId={biography.id} />
+      {/* 3. Chapter 1 - 你與攀岩的相遇 */}
+      <ChapterMeeting biographyId={biography.id} />
 
-        {/* 4. Quick Intro - 一句話系列 */}
+      {/* 4. Chapter 2 - 攀岩對你來說是什麼 */}
+      <ChapterMeaning biographyId={biography.id} personName={biography.name} />
+
+      <div className="container mx-auto max-w-4xl px-4">
+        {/* 5. Quick Intro - 一句話系列 */}
         <BiographyOneLiners biographyId={biography.id} />
 
-        {/* 5. Stories - 深度故事 */}
+        {/* 6. Stories - 深度故事 */}
         <BiographyStories biographyId={biography.id} />
+      </div>
 
-        {/* 6. Climbing Footprints - 攀岩足跡 */}
+      {/* 7. Chapter 4 - 給剛開始攀岩的自己 */}
+      <ChapterAdvice
+        biographyId={biography.id}
+        personName={biography.name}
+        updatedAt={biography.updated_at}
+      />
+
+      <div className="container mx-auto max-w-4xl px-4">
+        {/* 8. Climbing Footprints - 攀岩足跡 */}
         <BiographyFootprints biography={biography} />
 
-        {/* 7. Gallery - 攀岩相簿 */}
+        {/* 9. Gallery - 攀岩相簿 */}
         <BiographyGallery biography={biography} />
 
         {/* 底部間距 */}
