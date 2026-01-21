@@ -134,7 +134,7 @@ export default function AdminAccessLogs() {
     if (statusNum >= 300 && statusNum < 400) return 'text-blue-600 bg-blue-100'
     if (statusNum >= 400 && statusNum < 500) return 'text-yellow-600 bg-yellow-100'
     if (statusNum >= 500) return 'text-red-600 bg-red-100'
-    return 'text-gray-600 bg-gray-100'
+    return 'text-wb-70 bg-wb-10'
   }
 
   // 簡單長條圖組件
@@ -149,7 +149,7 @@ export default function AdminAccessLogs() {
     valueKey: string
     maxBars?: number
   }) => {
-    if (!data || data.length === 0) return <p className="text-gray-500">暫無數據</p>
+    if (!data || data.length === 0) return <p className="text-wb-70">暫無數據</p>
     const displayData = data.slice(0, maxBars)
     const maxValue = Math.max(...displayData.map((d) => Number(d[valueKey]) || 0))
     return (
@@ -159,16 +159,16 @@ export default function AdminAccessLogs() {
           const percentage = maxValue > 0 ? (value / maxValue) * 100 : 0
           return (
             <div key={String(item[labelKey])} className="flex items-center gap-2">
-              <span className="w-32 text-sm text-gray-600 truncate" title={String(item[labelKey])}>
+              <span className="w-32 text-sm text-wb-70 truncate" title={String(item[labelKey])}>
                 {String(item[labelKey])}
               </span>
-              <div className="flex-1 bg-gray-200 rounded-full h-4 overflow-hidden">
+              <div className="flex-1 bg-wb-20 rounded-full h-4 overflow-hidden">
                 <div
                   className="bg-blue-500 h-full rounded-full transition-all duration-300"
                   style={{ width: `${percentage}%` }}
                 />
               </div>
-              <span className="w-16 text-sm text-gray-700 text-right">{value}</span>
+              <span className="w-16 text-sm text-wb-100 text-right">{value}</span>
             </div>
           )
         })}
@@ -180,7 +180,7 @@ export default function AdminAccessLogs() {
     <div className="p-6 max-w-7xl mx-auto">
       {/* 標題和操作 */}
       <div className="flex justify-between items-center mb-6">
-        <h1 className="text-2xl font-bold text-gray-900">訪問日誌</h1>
+        <h1 className="text-2xl font-bold text-wb-100">訪問日誌</h1>
         <div className="flex items-center gap-4">
           <select
             value={hours}
@@ -190,7 +190,7 @@ export default function AdminAccessLogs() {
               setErrorsData(null)
               setSlowData(null)
             }}
-            className="px-3 py-2 border rounded-lg text-sm"
+            className="px-3 py-2 bg-white border border-wb-20 rounded-lg text-sm text-wb-100 focus:outline-none focus:ring-2 focus:ring-brand-yellow-100/50 focus:border-brand-yellow-100"
           >
             <option value={1}>過去 1 小時</option>
             <option value={6}>過去 6 小時</option>
@@ -201,7 +201,7 @@ export default function AdminAccessLogs() {
           <button
             onClick={refreshData}
             disabled={loading}
-            className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50"
+            className="flex items-center gap-2 px-4 py-2 bg-wb-100 text-white rounded-lg hover:bg-wb-90 disabled:opacity-50"
           >
             <RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} />
             重新整理
@@ -217,8 +217,8 @@ export default function AdminAccessLogs() {
             onClick={() => setActiveTab(tab.id)}
             className={`flex items-center gap-2 px-4 py-3 border-b-2 transition-colors ${
               activeTab === tab.id
-                ? 'border-blue-600 text-blue-600'
-                : 'border-transparent text-gray-500 hover:text-gray-700'
+                ? 'border-brand-yellow-100 text-wb-100'
+                : 'border-transparent text-wb-70 hover:text-wb-100'
             }`}
           >
             <tab.icon className="w-4 h-4" />
@@ -238,8 +238,8 @@ export default function AdminAccessLogs() {
       {/* 載入中 */}
       {loading && (
         <div className="flex items-center justify-center py-12">
-          <RefreshCw className="w-8 h-8 text-blue-600 animate-spin" />
-          <span className="ml-3 text-gray-600">載入中...</span>
+          <RefreshCw className="w-8 h-8 text-brand-yellow-100 animate-spin" />
+          <span className="ml-3 text-wb-70">載入中...</span>
         </div>
       )}
 
@@ -249,20 +249,20 @@ export default function AdminAccessLogs() {
           {/* 摘要卡片 */}
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
             <div className="bg-white p-4 rounded-lg border shadow-sm">
-              <div className="flex items-center gap-2 text-gray-500 mb-2">
+              <div className="flex items-center gap-2 text-wb-70 mb-2">
                 <Activity className="w-4 h-4" />
                 <span className="text-sm">總請求數</span>
               </div>
-              <p className="text-2xl font-bold text-gray-900">
+              <p className="text-2xl font-bold text-wb-100">
                 {summaryData.summary.totalRequests?.toLocaleString() || 0}
               </p>
             </div>
             <div className="bg-white p-4 rounded-lg border shadow-sm">
-              <div className="flex items-center gap-2 text-gray-500 mb-2">
+              <div className="flex items-center gap-2 text-wb-70 mb-2">
                 <Zap className="w-4 h-4" />
                 <span className="text-sm">平均響應時間</span>
               </div>
-              <p className="text-2xl font-bold text-gray-900">
+              <p className="text-2xl font-bold text-wb-100">
                 {formatResponseTime(summaryData.summary.avgResponseTime || 0)}
               </p>
             </div>
@@ -299,7 +299,7 @@ export default function AdminAccessLogs() {
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
             {/* 熱門路徑 */}
             <div className="bg-white p-6 rounded-lg border shadow-sm">
-              <h3 className="text-lg font-semibold text-gray-900 mb-4">熱門 API 路徑</h3>
+              <h3 className="text-lg font-semibold text-wb-100 mb-4">熱門 API 路徑</h3>
               <SimpleBarChart
                 data={summaryData.topPaths as unknown as Record<string, unknown>[]}
                 labelKey="path"
@@ -309,7 +309,7 @@ export default function AdminAccessLogs() {
 
             {/* HTTP 方法分布 */}
             <div className="bg-white p-6 rounded-lg border shadow-sm">
-              <h3 className="text-lg font-semibold text-gray-900 mb-4">HTTP 方法分布</h3>
+              <h3 className="text-lg font-semibold text-wb-100 mb-4">HTTP 方法分布</h3>
               <SimpleBarChart
                 data={summaryData.methodDistribution as unknown as Record<string, unknown>[]}
                 labelKey="method"
@@ -319,7 +319,7 @@ export default function AdminAccessLogs() {
 
             {/* 國家分布 */}
             <div className="bg-white p-6 rounded-lg border shadow-sm">
-              <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
+              <h3 className="text-lg font-semibold text-wb-100 mb-4 flex items-center gap-2">
                 <Globe className="w-5 h-5" />
                 訪問國家分布
               </h3>
@@ -332,7 +332,7 @@ export default function AdminAccessLogs() {
 
             {/* 每小時請求量 */}
             <div className="bg-white p-6 rounded-lg border shadow-sm">
-              <h3 className="text-lg font-semibold text-gray-900 mb-4">每小時請求量</h3>
+              <h3 className="text-lg font-semibold text-wb-100 mb-4">每小時請求量</h3>
               <SimpleBarChart
                 data={summaryData.hourlyRequests as unknown as Record<string, unknown>[]}
                 labelKey="hour"
@@ -349,43 +349,43 @@ export default function AdminAccessLogs() {
         <div className="bg-white rounded-lg border shadow-sm overflow-hidden">
           <div className="overflow-x-auto">
             <table className="w-full">
-              <thead className="bg-gray-50">
+              <thead className="bg-wb-10">
                 <tr>
-                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                  <th className="px-4 py-3 text-left text-xs font-medium text-wb-70 uppercase">
                     時間
                   </th>
-                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                  <th className="px-4 py-3 text-left text-xs font-medium text-wb-70 uppercase">
                     方法
                   </th>
-                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                  <th className="px-4 py-3 text-left text-xs font-medium text-wb-70 uppercase">
                     路徑
                   </th>
-                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                  <th className="px-4 py-3 text-left text-xs font-medium text-wb-70 uppercase">
                     狀態
                   </th>
-                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                  <th className="px-4 py-3 text-left text-xs font-medium text-wb-70 uppercase">
                     響應時間
                   </th>
-                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                  <th className="px-4 py-3 text-left text-xs font-medium text-wb-70 uppercase">
                     國家
                   </th>
-                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                  <th className="px-4 py-3 text-left text-xs font-medium text-wb-70 uppercase">
                     用戶
                   </th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-gray-200">
+              <tbody className="divide-y divide-wb-20">
                 {logsData.map((log, index) => (
-                  <tr key={index} className="hover:bg-gray-50">
-                    <td className="px-4 py-3 text-sm text-gray-500">
+                  <tr key={index} className="hover:bg-wb-10">
+                    <td className="px-4 py-3 text-sm text-wb-70">
                       {formatTime(log.timestamp)}
                     </td>
                     <td className="px-4 py-3">
-                      <span className="px-2 py-1 text-xs font-medium bg-gray-100 text-gray-700 rounded">
+                      <span className="px-2 py-1 text-xs font-medium bg-wb-10 text-wb-100 rounded">
                         {log.method}
                       </span>
                     </td>
-                    <td className="px-4 py-3 text-sm text-gray-900 font-mono max-w-xs truncate">
+                    <td className="px-4 py-3 text-sm text-wb-100 font-mono max-w-xs truncate">
                       {log.path}
                     </td>
                     <td className="px-4 py-3">
@@ -395,13 +395,13 @@ export default function AdminAccessLogs() {
                         {log.statusCode}
                       </span>
                     </td>
-                    <td className="px-4 py-3 text-sm text-gray-500">
+                    <td className="px-4 py-3 text-sm text-wb-70">
                       {formatResponseTime(log.responseTime)}
                     </td>
-                    <td className="px-4 py-3 text-sm text-gray-500">{log.country}</td>
-                    <td className="px-4 py-3 text-sm text-gray-500 truncate max-w-[100px]">
+                    <td className="px-4 py-3 text-sm text-wb-70">{log.country}</td>
+                    <td className="px-4 py-3 text-sm text-wb-70 truncate max-w-[100px]">
                       {log.userId === 'anonymous' ? (
-                        <span className="text-gray-400">匿名</span>
+                        <span className="text-wb-50">匿名</span>
                       ) : (
                         log.userId
                       )}
@@ -412,7 +412,7 @@ export default function AdminAccessLogs() {
             </table>
           </div>
           {logsData.length === 0 && (
-            <div className="text-center py-8 text-gray-500">暫無日誌數據</div>
+            <div className="text-center py-8 text-wb-70">暫無日誌數據</div>
           )}
         </div>
       )}
@@ -422,40 +422,40 @@ export default function AdminAccessLogs() {
         <div className="bg-white rounded-lg border shadow-sm overflow-hidden">
           <div className="overflow-x-auto">
             <table className="w-full">
-              <thead className="bg-gray-50">
+              <thead className="bg-wb-10">
                 <tr>
-                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                  <th className="px-4 py-3 text-left text-xs font-medium text-wb-70 uppercase">
                     時間
                   </th>
-                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                  <th className="px-4 py-3 text-left text-xs font-medium text-wb-70 uppercase">
                     方法
                   </th>
-                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                  <th className="px-4 py-3 text-left text-xs font-medium text-wb-70 uppercase">
                     路徑
                   </th>
-                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                  <th className="px-4 py-3 text-left text-xs font-medium text-wb-70 uppercase">
                     狀態
                   </th>
-                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                  <th className="px-4 py-3 text-left text-xs font-medium text-wb-70 uppercase">
                     錯誤訊息
                   </th>
-                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                  <th className="px-4 py-3 text-left text-xs font-medium text-wb-70 uppercase">
                     用戶
                   </th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-gray-200">
+              <tbody className="divide-y divide-wb-20">
                 {errorsData.map((log, index) => (
-                  <tr key={index} className="hover:bg-gray-50">
-                    <td className="px-4 py-3 text-sm text-gray-500">
+                  <tr key={index} className="hover:bg-wb-10">
+                    <td className="px-4 py-3 text-sm text-wb-70">
                       {formatTime(log.timestamp)}
                     </td>
                     <td className="px-4 py-3">
-                      <span className="px-2 py-1 text-xs font-medium bg-gray-100 text-gray-700 rounded">
+                      <span className="px-2 py-1 text-xs font-medium bg-wb-10 text-wb-100 rounded">
                         {log.method}
                       </span>
                     </td>
-                    <td className="px-4 py-3 text-sm text-gray-900 font-mono max-w-xs truncate">
+                    <td className="px-4 py-3 text-sm text-wb-100 font-mono max-w-xs truncate">
                       {log.path}
                     </td>
                     <td className="px-4 py-3">
@@ -468,9 +468,9 @@ export default function AdminAccessLogs() {
                     <td className="px-4 py-3 text-sm text-red-600 max-w-xs truncate">
                       {log.errorMessage || '-'}
                     </td>
-                    <td className="px-4 py-3 text-sm text-gray-500 truncate max-w-[100px]">
+                    <td className="px-4 py-3 text-sm text-wb-70 truncate max-w-[100px]">
                       {log.userId === 'anonymous' ? (
-                        <span className="text-gray-400">匿名</span>
+                        <span className="text-wb-50">匿名</span>
                       ) : (
                         log.userId
                       )}
@@ -481,7 +481,7 @@ export default function AdminAccessLogs() {
             </table>
           </div>
           {errorsData.length === 0 && (
-            <div className="text-center py-8 text-gray-500">太棒了！沒有錯誤日誌</div>
+            <div className="text-center py-8 text-wb-70">太棒了！沒有錯誤日誌</div>
           )}
         </div>
       )}
@@ -491,40 +491,40 @@ export default function AdminAccessLogs() {
         <div className="bg-white rounded-lg border shadow-sm overflow-hidden">
           <div className="overflow-x-auto">
             <table className="w-full">
-              <thead className="bg-gray-50">
+              <thead className="bg-wb-10">
                 <tr>
-                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                  <th className="px-4 py-3 text-left text-xs font-medium text-wb-70 uppercase">
                     時間
                   </th>
-                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                  <th className="px-4 py-3 text-left text-xs font-medium text-wb-70 uppercase">
                     方法
                   </th>
-                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                  <th className="px-4 py-3 text-left text-xs font-medium text-wb-70 uppercase">
                     路徑
                   </th>
-                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                  <th className="px-4 py-3 text-left text-xs font-medium text-wb-70 uppercase">
                     狀態
                   </th>
-                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                  <th className="px-4 py-3 text-left text-xs font-medium text-wb-70 uppercase">
                     響應時間
                   </th>
-                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                  <th className="px-4 py-3 text-left text-xs font-medium text-wb-70 uppercase">
                     用戶
                   </th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-gray-200">
+              <tbody className="divide-y divide-wb-20">
                 {slowData.map((log, index) => (
-                  <tr key={index} className="hover:bg-gray-50">
-                    <td className="px-4 py-3 text-sm text-gray-500">
+                  <tr key={index} className="hover:bg-wb-10">
+                    <td className="px-4 py-3 text-sm text-wb-70">
                       {formatTime(log.timestamp)}
                     </td>
                     <td className="px-4 py-3">
-                      <span className="px-2 py-1 text-xs font-medium bg-gray-100 text-gray-700 rounded">
+                      <span className="px-2 py-1 text-xs font-medium bg-wb-10 text-wb-100 rounded">
                         {log.method}
                       </span>
                     </td>
-                    <td className="px-4 py-3 text-sm text-gray-900 font-mono max-w-xs truncate">
+                    <td className="px-4 py-3 text-sm text-wb-100 font-mono max-w-xs truncate">
                       {log.path}
                     </td>
                     <td className="px-4 py-3">
@@ -539,9 +539,9 @@ export default function AdminAccessLogs() {
                         {formatResponseTime(log.responseTime)}
                       </span>
                     </td>
-                    <td className="px-4 py-3 text-sm text-gray-500 truncate max-w-[100px]">
+                    <td className="px-4 py-3 text-sm text-wb-70 truncate max-w-[100px]">
                       {log.userId === 'anonymous' ? (
-                        <span className="text-gray-400">匿名</span>
+                        <span className="text-wb-50">匿名</span>
                       ) : (
                         log.userId
                       )}
@@ -552,7 +552,7 @@ export default function AdminAccessLogs() {
             </table>
           </div>
           {slowData.length === 0 && (
-            <div className="text-center py-8 text-gray-500">太棒了！沒有慢請求</div>
+            <div className="text-center py-8 text-wb-70">太棒了！沒有慢請求</div>
           )}
         </div>
       )}

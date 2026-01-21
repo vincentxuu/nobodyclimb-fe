@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react'
 import { statsService, SiteStats } from '@/lib/api/services'
 import {
-  Mountain,
+  MountainSnow,
   Building2,
   Video,
   FileText,
@@ -67,7 +67,7 @@ export default function AdminContentManagement() {
   if (loading) {
     return (
       <div className="flex items-center justify-center min-h-[400px]">
-        <RefreshCw className="h-8 w-8 animate-spin text-gray-400" />
+        <RefreshCw className="h-8 w-8 animate-spin text-wb-50" />
       </div>
     )
   }
@@ -75,9 +75,9 @@ export default function AdminContentManagement() {
   if (error) {
     return (
       <div className="flex flex-col items-center justify-center min-h-[400px] text-center">
-        <AlertCircle className="h-12 w-12 text-red-400 mb-4" />
-        <h3 className="text-lg font-medium text-gray-900 mb-2">無法載入資料</h3>
-        <p className="text-gray-500 mb-4">{error}</p>
+        <AlertCircle className="h-12 w-12 text-brand-red-100 mb-4" />
+        <h3 className="text-lg font-medium text-wb-100 mb-2">無法載入資料</h3>
+        <p className="text-wb-70 mb-4">{error}</p>
         <button
           onClick={loadStats}
           className="px-4 py-2 bg-primary text-white rounded-lg hover:bg-primary/90 transition-colors"
@@ -93,7 +93,7 @@ export default function AdminContentManagement() {
       id: 'crags',
       title: '岩場管理',
       description: '管理戶外攀岩場地資訊',
-      icon: Mountain,
+      icon: MountainSnow,
       color: 'bg-emerald-500',
       count: stats?.crags || 0,
       actions: [
@@ -112,14 +112,14 @@ export default function AdminContentManagement() {
     },
     {
       id: 'gyms',
-      title: '健身房管理',
+      title: '岩館管理',
       description: '管理室內攀岩館資訊',
       icon: Building2,
       color: 'bg-cyan-500',
       count: stats?.gyms || 0,
       actions: [
-        { label: '查看所有健身房', href: '/gym' },
-        { label: '新增健身房', href: '/gym/new', external: true },
+        { label: '查看所有岩館', href: '/gym' },
+        { label: '新增岩館', href: '/gym/new', external: true },
       ],
     },
     {
@@ -159,8 +159,8 @@ export default function AdminContentManagement() {
       {/* 頁面標題 */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">內容管理</h1>
-          <p className="text-gray-500 mt-1">管理平台上的各類內容</p>
+          <h1 className="text-2xl font-bold text-wb-100">內容管理</h1>
+          <p className="text-wb-70 mt-1">管理平台上的各類內容</p>
         </div>
         <div className="flex items-center gap-2">
           <button
@@ -173,7 +173,7 @@ export default function AdminContentManagement() {
           <button
             onClick={loadStats}
             disabled={loading}
-            className="flex items-center gap-2 px-4 py-2 text-sm text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-lg transition-colors disabled:opacity-50"
+            className="flex items-center gap-2 px-4 py-2 text-sm text-wb-70 hover:text-wb-100 hover:bg-wb-10 rounded-lg transition-colors disabled:opacity-50"
           >
             <RefreshCw className={`h-4 w-4 ${loading ? 'animate-spin' : ''}`} />
             重新整理
@@ -186,15 +186,15 @@ export default function AdminContentManagement() {
         {contentCategories.map((category) => (
           <div
             key={category.id}
-            className="bg-white rounded-xl shadow-sm border border-gray-100 p-4"
+            className="bg-white rounded-xl shadow-sm border border-wb-20 p-4"
           >
             <div className="flex items-center gap-3">
               <div className={`p-2.5 ${category.color} rounded-lg`}>
                 <category.icon className="h-5 w-5 text-white" />
               </div>
               <div>
-                <p className="text-xs text-gray-500">{category.title.replace('管理', '')}</p>
-                <p className="text-xl font-bold text-gray-900">
+                <p className="text-xs text-wb-70">{category.title.replace('管理', '')}</p>
+                <p className="text-xl font-bold text-wb-100">
                   {category.count.toLocaleString()}
                 </p>
               </div>
@@ -208,19 +208,19 @@ export default function AdminContentManagement() {
         {contentCategories.map((category) => (
           <div
             key={category.id}
-            className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden hover:shadow-md transition-shadow"
+            className="bg-white rounded-xl shadow-sm border border-wb-20 overflow-hidden hover:shadow-md transition-shadow"
           >
             <div className="p-6">
               <div className="flex items-start justify-between mb-4">
                 <div className={`p-3 ${category.color} rounded-lg`}>
                   <category.icon className="h-6 w-6 text-white" />
                 </div>
-                <span className="text-2xl font-bold text-gray-900">
+                <span className="text-2xl font-bold text-wb-100">
                   {category.count.toLocaleString()}
                 </span>
               </div>
-              <h3 className="text-lg font-semibold text-gray-900 mb-1">{category.title}</h3>
-              <p className="text-sm text-gray-500 mb-4">{category.description}</p>
+              <h3 className="text-lg font-semibold text-wb-100 mb-1">{category.title}</h3>
+              <p className="text-sm text-wb-70 mb-4">{category.description}</p>
               <div className="flex flex-wrap gap-2">
                 {category.actions.map((action, index) => (
                   <a
@@ -230,7 +230,7 @@ export default function AdminContentManagement() {
                     rel={action.external ? 'noopener noreferrer' : undefined}
                     className={`inline-flex items-center gap-1 px-3 py-1.5 text-sm rounded-lg transition-colors ${
                       index === 0
-                        ? 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                        ? 'bg-wb-10 text-wb-100 hover:bg-wb-20'
                         : 'bg-primary/10 text-primary hover:bg-primary/20'
                     }`}
                   >
@@ -249,7 +249,7 @@ export default function AdminContentManagement() {
       <div className="bg-blue-50 border border-blue-100 rounded-xl p-6">
         <h3 className="font-semibold text-blue-900 mb-2">內容管理說明</h3>
         <ul className="text-sm text-blue-700 space-y-1">
-          <li>• 岩場、健身房、影片的新增和編輯需要 Admin 權限</li>
+          <li>• 岩場、岩館、影片的新增和編輯需要 Admin 權限</li>
           <li>• 文章可由一般用戶撰寫，Admin 可以審核和管理所有文章</li>
           <li>• 人物誌由用戶自行管理，Admin 可以查看和編輯所有人物誌</li>
           <li>• 清除快取會強制重新計算統計數據，建議僅在數據不一致時使用</li>
@@ -258,7 +258,7 @@ export default function AdminContentManagement() {
 
       {/* 更新時間 */}
       {stats?.updatedAt && (
-        <p className="text-xs text-gray-400 text-center">
+        <p className="text-xs text-wb-50 text-center">
           統計數據更新時間：{new Date(stats.updatedAt).toLocaleString('zh-TW')}
         </p>
       )}
