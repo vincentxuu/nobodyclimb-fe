@@ -193,7 +193,7 @@ biographyContentRoutes.get('/core-stories/:id/comments', async (c) => {
     FROM core_story_comments c
     JOIN users u ON c.user_id = u.id
     WHERE c.core_story_id = ?
-    ORDER BY c.created_at ASC
+    ORDER BY c.created_at DESC
   `).bind(storyId).all();
 
   return c.json({ success: true, data: comments.results });
@@ -465,7 +465,7 @@ biographyContentRoutes.get('/one-liners/:id/comments', async (c) => {
     FROM one_liner_comments c
     JOIN users u ON c.user_id = u.id
     WHERE c.one_liner_id = ?
-    ORDER BY c.created_at ASC
+    ORDER BY c.created_at DESC
   `).bind(oneLinerId).all();
 
   return c.json({ success: true, data: comments.results });
@@ -544,7 +544,7 @@ biographyContentRoutes.get('/biographies/:biographyId/stories', optionalAuthMidd
   const categoryId = c.req.query('category_id');
 
   let query = `
-    SELECT s.*, sq.title, sq.subtitle, sq.difficulty, sc.name as category_name, sc.emoji as category_emoji
+    SELECT s.*, sq.title, sq.subtitle, sq.difficulty, sc.name as category_name, sc.icon as category_icon
     FROM biography_stories s
     LEFT JOIN story_questions sq ON s.question_id = sq.id
     LEFT JOIN story_categories sc ON s.category_id = sc.id
@@ -712,7 +712,7 @@ biographyContentRoutes.get('/stories/:id/comments', async (c) => {
     FROM story_comments c
     JOIN users u ON c.user_id = u.id
     WHERE c.story_id = ?
-    ORDER BY c.created_at ASC
+    ORDER BY c.created_at DESC
   `).bind(storyId).all();
 
   return c.json({ success: true, data: comments.results });
@@ -824,7 +824,7 @@ biographyContentRoutes.get('/popular/stories', async (c) => {
   const categoryId = c.req.query('category_id');
 
   let query = `
-    SELECT s.*, sq.title, sq.subtitle, sc.name as category_name, sc.emoji as category_emoji,
+    SELECT s.*, sq.title, sq.subtitle, sc.name as category_name, sc.icon as category_icon,
            b.name as author_name, b.avatar_url as author_avatar
     FROM biography_stories s
     LEFT JOIN story_questions sq ON s.question_id = sq.id
