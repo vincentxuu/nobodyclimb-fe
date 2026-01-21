@@ -52,6 +52,7 @@ CREATE TABLE IF NOT EXISTS one_liner_questions (
   category TEXT,
   display_order INTEGER DEFAULT 0,
   is_active INTEGER DEFAULT 1,
+  is_core INTEGER DEFAULT 0,
   created_by TEXT,
   created_at TEXT DEFAULT (datetime('now')),
   updated_at TEXT DEFAULT (datetime('now')),
@@ -60,6 +61,7 @@ CREATE TABLE IF NOT EXISTS one_liner_questions (
 
 CREATE INDEX IF NOT EXISTS idx_one_liner_questions_order ON one_liner_questions(display_order);
 CREATE INDEX IF NOT EXISTS idx_one_liner_questions_active ON one_liner_questions(is_active) WHERE is_active = 1;
+CREATE INDEX IF NOT EXISTS idx_one_liner_questions_core ON one_liner_questions(is_core) WHERE is_core = 1;
 
 -- ============================================
 -- 小故事問題定義表

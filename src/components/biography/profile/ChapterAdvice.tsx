@@ -1,9 +1,10 @@
 'use client'
 
-import { useState, useEffect, useCallback, useMemo } from 'react'
+import { useMemo } from 'react'
 import { motion } from 'framer-motion'
 import { Lock, Loader2 } from 'lucide-react'
-import { biographyContentService, type CoreStory } from '@/lib/api/services'
+import { biographyContentService } from '@/lib/api/services'
+import { useAdviceToSelfStory, useCoreStoryLikeMutation, useCoreStoryCommentMutation } from '@/lib/hooks/useCoreStories'
 import { ContentLikeButton } from '../display/ContentLikeButton'
 import { ContentCommentSheet } from '../display/ContentCommentSheet'
 
@@ -18,39 +19,14 @@ interface ChapterAdviceProps {
  * 信件/便條紙風格設計
  */
 export function ChapterAdvice({ biographyId, personName, updatedAt }: ChapterAdviceProps) {
-  const [story, setStory] = useState<CoreStory | null>(null)
-  const [isLoading, setIsLoading] = useState(true)
-
-  // 獲取核心故事
-  const fetchStory = useCallback(async () => {
-    try {
-      const response = await biographyContentService.getCoreStories(biographyId)
-      if (response.success && response.data) {
-        const found = response.data.find((s) => s.question_id === 'advice_to_self')
-        setStory(found || null)
-      }
-    } catch (error) {
-      console.error('Failed to fetch advice story:', error)
-    } finally {
-      setIsLoading(false)
-    }
-  }, [biographyId])
-
-  useEffect(() => {
-    fetchStory()
-  }, [fetchStory])
+  const { story, isLoading } = useAdviceToSelfStory(biographyId)
+  const likeMutation = useCoreStoryLikeMutation(biographyId)
+  const commentMutation = useCoreStoryCommentMutation(biographyId, story?.id)
 
   // 按讚切換
   const handleToggleLike = async () => {
     if (!story) throw new Error('No story')
-    const response = await biographyContentService.toggleCoreStoryLike(story.id)
-    if (response.success && response.data) {
-      setStory((prev) =>
-        prev ? { ...prev, is_liked: response.data!.liked, like_count: response.data!.like_count } : null
-      )
-      return response.data
-    }
-    throw new Error('Failed to toggle like')
+    return likeMutation.mutateAsync(story.id)
   }
 
   // 獲取留言
@@ -65,15 +41,7 @@ export function ChapterAdvice({ biographyId, personName, updatedAt }: ChapterAdv
 
   // 新增留言
   const handleAddComment = async (content: string) => {
-    if (!story) throw new Error('No story')
-    const response = await biographyContentService.addCoreStoryComment(story.id, { content })
-    if (response.success && response.data) {
-      setStory((prev) =>
-        prev ? { ...prev, comment_count: prev.comment_count + 1 } : null
-      )
-      return response.data
-    }
-    throw new Error('Failed to add comment')
+    return commentMutation.mutateAsync(content)
   }
 
   // 格式化日期
