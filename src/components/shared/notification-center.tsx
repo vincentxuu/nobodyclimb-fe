@@ -199,7 +199,7 @@ export function NotificationCenter({ className }: NotificationCenterProps) {
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
               transition={{ duration: 0.3 }}
-              className="fixed inset-0 z-40 bg-black/50"
+              className="fixed inset-0 z-[1000] bg-black/50"
               onClick={() => setIsOpen(false)}
             />
             {/* 滿版通知面板 - 從下往上滑出 */}
@@ -208,7 +208,7 @@ export function NotificationCenter({ className }: NotificationCenterProps) {
               animate={{ y: 0 }}
               exit={{ y: '100%' }}
               transition={{ type: 'spring', damping: 25, stiffness: 300 }}
-              className="fixed inset-0 z-50 bg-white flex flex-col"
+              className="fixed inset-0 z-[1001] bg-white flex flex-col"
             >
               {/* Header */}
               <div className="flex items-center justify-between px-4 py-4 border-b safe-area-top">
