@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { authService } from '@/lib/api/services'
-import { Bell, LayoutDashboard, ArrowLeft, Loader2 } from 'lucide-react'
+import { Bell, LayoutDashboard, ArrowLeft, Loader2, Home, Users, FolderOpen, Megaphone, BarChart3, FileText } from 'lucide-react'
 
 interface AdminLayoutProps {
   children: React.ReactNode
@@ -80,13 +80,55 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
                 <span className="font-semibold text-gray-900">管理後台</span>
               </div>
             </div>
-            <div className="flex items-center gap-4">
+            <div className="flex items-center gap-2">
+              <Link
+                href="/admin"
+                className="flex items-center gap-2 px-3 py-2 text-sm text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-lg transition-colors"
+              >
+                <Home className="h-4 w-4" />
+                總覽
+              </Link>
               <Link
                 href="/admin/notifications"
                 className="flex items-center gap-2 px-3 py-2 text-sm text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-lg transition-colors"
               >
                 <Bell className="h-4 w-4" />
                 通知監控
+              </Link>
+              <Link
+                href="/admin/users"
+                className="flex items-center gap-2 px-3 py-2 text-sm text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-lg transition-colors"
+              >
+                <Users className="h-4 w-4" />
+                用戶管理
+              </Link>
+              <Link
+                href="/admin/content"
+                className="flex items-center gap-2 px-3 py-2 text-sm text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-lg transition-colors"
+              >
+                <FolderOpen className="h-4 w-4" />
+                內容管理
+              </Link>
+              <Link
+                href="/admin/broadcast"
+                className="flex items-center gap-2 px-3 py-2 text-sm text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-lg transition-colors"
+              >
+                <Megaphone className="h-4 w-4" />
+                廣播通知
+              </Link>
+              <Link
+                href="/admin/analytics"
+                className="flex items-center gap-2 px-3 py-2 text-sm text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-lg transition-colors"
+              >
+                <BarChart3 className="h-4 w-4" />
+                數據分析
+              </Link>
+              <Link
+                href="/admin/logs"
+                className="flex items-center gap-2 px-3 py-2 text-sm text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-lg transition-colors"
+              >
+                <FileText className="h-4 w-4" />
+                訪問日誌
               </Link>
             </div>
           </div>

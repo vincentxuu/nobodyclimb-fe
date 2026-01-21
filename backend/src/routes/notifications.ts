@@ -238,6 +238,161 @@ notificationsRoutes.get('/stats', authMiddleware, async (c) => {
   });
 });
 
+// ═══════════════════════════════════════════════════════════
+// Admin 廣播通知 API
+// ═══════════════════════════════════════════════════════════
+
+// POST /notifications/admin/broadcast - Send broadcast notification (Admin only)
+notificationsRoutes.post('/admin/broadcast', authMiddleware, async (c) => {
+  const user = c.get('user');
+
+  if (user?.role !== 'admin') {
+    return c.json(
+      {
+        success: false,
+        error: 'Forbidden',
+        message: 'Admin access required',
+      },
+      403
+    );
+  }
+
+  const { title, message, targetRole } = await c.req.json<{
+    title: string;
+    message: string;
+    targetRole?: 'all' | 'user' | 'moderator' | 'admin';
+  }>();
+
+  if (!title || !message) {
+    return c.json(
+      {
+        success: false,
+        error: 'Bad Request',
+        message: '標題和內容為必填',
+      },
+      400
+    );
+  }
+
+  // 獲取目標用戶
+  let whereClause = 'is_active = 1';
+  if (targetRole && targetRole !== 'all') {
+    whereClause += ` AND role = '${targetRole}'`;
+  }
+
+  const users = await c.env.DB.prepare(
+    `SELECT id FROM users WHERE ${whereClause}`
+  ).all<{ id: string }>();
+
+  if (!users.results || users.results.length === 0) {
+    return c.json(
+      {
+        success: false,
+        error: 'Not Found',
+        message: '沒有找到符合條件的用戶',
+      },
+      404
+    );
+  }
+
+  // 批次創建通知
+  const actorId = c.get('userId');
+  let successCount = 0;
+
+  for (const targetUser of users.results) {
+    const notifId = generateId();
+    try {
+      await c.env.DB.prepare(
+        `INSERT INTO notifications (id, user_id, type, actor_id, title, message)
+         VALUES (?, ?, 'system_announcement', ?, ?, ?)`
+      )
+        .bind(notifId, targetUser.id, actorId, title, message)
+        .run();
+      successCount++;
+    } catch (err) {
+      console.error(`Failed to create notification for user ${targetUser.id}:`, err);
+    }
+  }
+
+  return c.json({
+    success: true,
+    data: {
+      totalUsers: users.results.length,
+      successCount,
+      failedCount: users.results.length - successCount,
+    },
+    message: `已發送 ${successCount} 則廣播通知`,
+  });
+});
+
+// GET /notifications/admin/broadcasts - Get broadcast history (Admin only)
+notificationsRoutes.get('/admin/broadcasts', authMiddleware, async (c) => {
+  const user = c.get('user');
+
+  if (user?.role !== 'admin') {
+    return c.json(
+      {
+        success: false,
+        error: 'Forbidden',
+        message: 'Admin access required',
+      },
+      403
+    );
+  }
+
+  const page = parseInt(c.req.query('page') || '1');
+  const limit = Math.min(parseInt(c.req.query('limit') || '20'), 100);
+  const offset = (page - 1) * limit;
+
+  // 獲取廣播通知（按標題和時間分組）
+  const broadcasts = await c.env.DB.prepare(
+    `SELECT
+      MIN(n.id) as id,
+      n.title,
+      n.message,
+      n.actor_id,
+      u.username as actor_name,
+      MIN(n.created_at) as created_at,
+      COUNT(*) as recipient_count,
+      SUM(CASE WHEN n.is_read = 1 THEN 1 ELSE 0 END) as read_count
+    FROM notifications n
+    LEFT JOIN users u ON n.actor_id = u.id
+    WHERE n.type = 'system_announcement'
+    GROUP BY n.title, n.message, DATE(n.created_at)
+    ORDER BY created_at DESC
+    LIMIT ? OFFSET ?`
+  )
+    .bind(limit, offset)
+    .all<{
+      id: string;
+      title: string;
+      message: string;
+      actor_id: string;
+      actor_name: string;
+      created_at: string;
+      recipient_count: number;
+      read_count: number;
+    }>();
+
+  // 獲取總數
+  const countResult = await c.env.DB.prepare(
+    `SELECT COUNT(DISTINCT title || message || DATE(created_at)) as count
+     FROM notifications
+     WHERE type = 'system_announcement'`
+  ).first<{ count: number }>();
+
+  return c.json({
+    success: true,
+    data: broadcasts.results || [],
+    pagination: {
+      page,
+      limit,
+      total: countResult?.count || 0,
+      total_pages: Math.ceil((countResult?.count || 0) / limit),
+    },
+  });
+});
+
 // GET /notifications/admin/stats - Admin statistics (requires admin role)
 notificationsRoutes.get('/admin/stats', authMiddleware, async (c) => {
   const user = c.get('user');
