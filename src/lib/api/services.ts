@@ -2183,6 +2183,68 @@ export const statsService = {
   },
 }
 
+// ═══════════════════════════════════════════
+// Biography Content Service
+// ═══════════════════════════════════════════
+
+export interface CoreStory {
+  id: string
+  biography_id: string
+  question_id: string
+  content: string
+  title?: string
+  subtitle?: string
+  like_count: number
+  comment_count: number
+  is_liked?: boolean
+  created_at: string
+  updated_at: string
+}
+
+export interface OneLiner {
+  id: string
+  biography_id: string
+  question_id: string
+  question_text?: string
+  answer: string
+  question?: string
+  format_hint?: string
+  like_count: number
+  comment_count: number
+  is_liked?: boolean
+  created_at: string
+  updated_at: string
+}
+
+export interface Story {
+  id: string
+  biography_id: string
+  question_id: string
+  question_text?: string
+  category_id?: string
+  content: string
+  title?: string
+  subtitle?: string
+  difficulty?: string
+  category_name?: string
+  category_emoji?: string
+  word_count: number
+  like_count: number
+  comment_count: number
+  is_liked?: boolean
+  created_at: string
+  updated_at: string
+}
+
+export interface ContentComment {
+  id: string
+  user_id: string
+  content: string
+  parent_id?: string
+  like_count: number
+  username: string
+  display_name?: string
+  avatar_url?: string
 /**
  * Admin 用戶資料介面
  */
@@ -2201,6 +2263,68 @@ export interface AdminUser {
   updated_at: string
 }
 
+export interface ContentQuestions {
+  core_stories: Array<{
+    id: string
+    title: string
+    subtitle?: string
+    placeholder?: string
+    display_order: number
+  }>
+  one_liners: Array<{
+    id: string
+    question: string
+    format_hint?: string
+    placeholder?: string
+    display_order: number
+  }>
+  story_categories: Array<{
+    id: string
+    name: string
+    icon?: string
+    description?: string
+    display_order: number
+  }>
+  stories: Array<{
+    id: string
+    category_id: string
+    title: string
+    subtitle?: string
+    placeholder?: string
+    difficulty: string
+    display_order: number
+  }>
+}
+
+/**
+ * 人物誌內容相關 API 服務
+ */
+export const biographyContentService = {
+  // ═══════════════════════════════════════════
+  // 題目
+  // ═══════════════════════════════════════════
+
+  /**
+   * 取得所有題目
+   */
+  getQuestions: async () => {
+    const response = await apiClient.get<ApiResponse<ContentQuestions>>(
+      '/content/questions'
+    )
+    return response.data
+  },
+
+  // ═══════════════════════════════════════════
+  // 核心故事
+  // ═══════════════════════════════════════════
+
+  /**
+   * 取得某人物誌的核心故事
+   */
+  getCoreStories: async (biographyId: string) => {
+    const response = await apiClient.get<ApiResponse<CoreStory[]>>(
+      `/content/biographies/${biographyId}/core-stories`
+    )
 /**
  * Admin 用戶統計介面
  */
@@ -2245,6 +2369,16 @@ export const adminUserService = {
   },
 
   /**
+   * 儲存核心故事
+   */
+  saveCoreStory: async (
+    biographyId: string,
+    data: { question_id: string; content: string }
+  ) => {
+    const response = await apiClient.post<ApiResponse<{ message: string }>>(
+      `/content/biographies/${biographyId}/core-stories`,
+      data
+    )
    * 獲取單一用戶詳情（需要 admin 權限）
    */
   getUser: async (id: string) => {
@@ -2270,6 +2404,12 @@ export const adminUserService = {
   },
 
   /**
+   * 按讚/取消按讚核心故事
+   */
+  toggleCoreStoryLike: async (storyId: string) => {
+    const response = await apiClient.post<
+      ApiResponse<{ liked: boolean; like_count: number }>
+    >(`/content/core-stories/${storyId}/like`)
    * 更新用戶狀態（需要 admin 權限）
    */
   updateStatus: async (id: string, isActive: boolean) => {
@@ -2280,6 +2420,26 @@ export const adminUserService = {
   },
 
   /**
+   * 取得核心故事留言
+   */
+  getCoreStoryComments: async (storyId: string) => {
+    const response = await apiClient.get<ApiResponse<ContentComment[]>>(
+      `/content/core-stories/${storyId}/comments`
+    )
+    return response.data
+  },
+
+  /**
+   * 新增核心故事留言
+   */
+  addCoreStoryComment: async (
+    storyId: string,
+    data: { content: string; parent_id?: string }
+  ) => {
+    const response = await apiClient.post<ApiResponse<ContentComment>>(
+      `/content/core-stories/${storyId}/comments`,
+      data
+    )
    * 更新用戶角色（需要 admin 權限）
    */
   updateRole: async (id: string, role: 'user' | 'admin' | 'moderator') => {
@@ -2327,6 +2487,65 @@ export const adminBroadcastService = {
   },
 
   /**
+   * 刪除核心故事留言
+   */
+  deleteCoreStoryComment: async (commentId: string) => {
+    const response = await apiClient.delete<ApiResponse<{ message: string }>>(
+      `/content/core-story-comments/${commentId}`
+    )
+    return response.data
+  },
+
+  // ═══════════════════════════════════════════
+  // 一句話
+  // ═══════════════════════════════════════════
+
+  /**
+   * 取得某人物誌的一句話
+   */
+  getOneLiners: async (biographyId: string) => {
+    const response = await apiClient.get<ApiResponse<OneLiner[]>>(
+      `/content/biographies/${biographyId}/one-liners`
+    )
+    return response.data
+  },
+
+  /**
+   * 儲存一句話
+   */
+  saveOneLiner: async (
+    biographyId: string,
+    data: {
+      question_id: string
+      answer: string
+      question_text?: string
+      source?: string
+    }
+  ) => {
+    const response = await apiClient.post<ApiResponse<{ message: string }>>(
+      `/content/biographies/${biographyId}/one-liners`,
+      data
+    )
+    return response.data
+  },
+
+  /**
+   * 刪除一句話
+   */
+  deleteOneLiner: async (oneLinerId: string) => {
+    const response = await apiClient.delete<ApiResponse<{ message: string }>>(
+      `/content/one-liners/${oneLinerId}`
+    )
+    return response.data
+  },
+
+  /**
+   * 按讚/取消按讚一句話
+   */
+  toggleOneLinerLike: async (oneLinerId: string) => {
+    const response = await apiClient.post<
+      ApiResponse<{ liked: boolean; like_count: number }>
+    >(`/content/one-liners/${oneLinerId}/like`)
    * 獲取廣播歷史記錄（需要 admin 權限）
    */
   getBroadcasts: async (page = 1, limit = 20) => {
@@ -2451,6 +2670,12 @@ export const adminAnalyticsService = {
   },
 
   /**
+   * 取得一句話留言
+   */
+  getOneLinerComments: async (oneLinerId: string) => {
+    const response = await apiClient.get<ApiResponse<ContentComment[]>>(
+      `/content/one-liners/${oneLinerId}/comments`
+    )
    * 獲取用戶活躍度分析（需要 admin 權限）
    */
   getActivityAnalytics: async () => {
@@ -2459,6 +2684,81 @@ export const adminAnalyticsService = {
   },
 
   /**
+   * 新增一句話留言
+   */
+  addOneLinerComment: async (
+    oneLinerId: string,
+    data: { content: string; parent_id?: string }
+  ) => {
+    const response = await apiClient.post<ApiResponse<ContentComment>>(
+      `/content/one-liners/${oneLinerId}/comments`,
+      data
+    )
+    return response.data
+  },
+
+  // ═══════════════════════════════════════════
+  // 小故事
+  // ═══════════════════════════════════════════
+
+  /**
+   * 取得某人物誌的小故事
+   */
+  getStories: async (biographyId: string, categoryId?: string) => {
+    const params = categoryId ? `?category_id=${categoryId}` : ''
+    const response = await apiClient.get<ApiResponse<Story[]>>(
+      `/content/biographies/${biographyId}/stories${params}`
+    )
+    return response.data
+  },
+
+  /**
+   * 儲存小故事
+   */
+  saveStory: async (
+    biographyId: string,
+    data: {
+      question_id: string
+      content: string
+      category_id?: string
+      question_text?: string
+      source?: string
+    }
+  ) => {
+    const response = await apiClient.post<ApiResponse<{ message: string }>>(
+      `/content/biographies/${biographyId}/stories`,
+      data
+    )
+    return response.data
+  },
+
+  /**
+   * 刪除小故事
+   */
+  deleteStory: async (storyId: string) => {
+    const response = await apiClient.delete<ApiResponse<{ message: string }>>(
+      `/content/stories/${storyId}`
+    )
+    return response.data
+  },
+
+  /**
+   * 按讚/取消按讚小故事
+   */
+  toggleStoryLike: async (storyId: string) => {
+    const response = await apiClient.post<
+      ApiResponse<{ liked: boolean; like_count: number }>
+    >(`/content/stories/${storyId}/like`)
+    return response.data
+  },
+
+  /**
+   * 取得小故事留言
+   */
+  getStoryComments: async (storyId: string) => {
+    const response = await apiClient.get<ApiResponse<ContentComment[]>>(
+      `/content/stories/${storyId}/comments`
+    )
    * 獲取內容統計分析（需要 admin 權限）
    */
   getContentAnalytics: async () => {
@@ -2546,6 +2846,15 @@ export const adminAccessLogsService = {
   },
 
   /**
+   * 新增小故事留言
+   */
+  addStoryComment: async (
+    storyId: string,
+    data: { content: string; parent_id?: string }
+  ) => {
+    const response = await apiClient.post<ApiResponse<ContentComment>>(
+      `/content/stories/${storyId}/comments`,
+      data
    * 獲取訪問日誌摘要統計（需要 admin 權限）
    */
   getSummary: async (hours: number = 24) => {
@@ -2555,6 +2864,27 @@ export const adminAccessLogsService = {
     return response.data
   },
 
+  // ═══════════════════════════════════════════
+  // 探索/熱門
+  // ═══════════════════════════════════════════
+
+  /**
+   * 取得熱門核心故事
+   */
+  getPopularCoreStories: async (limit = 10) => {
+    const response = await apiClient.get<
+      ApiResponse<(CoreStory & { author_name: string; author_avatar?: string })[]>
+    >(`/content/popular/core-stories?limit=${limit}`)
+    return response.data
+  },
+
+  /**
+   * 取得熱門一句話
+   */
+  getPopularOneLiners: async (limit = 10) => {
+    const response = await apiClient.get<
+      ApiResponse<(OneLiner & { author_name: string; author_avatar?: string })[]>
+    >(`/content/popular/one-liners?limit=${limit}`)
   /**
    * 獲取錯誤日誌（需要 admin 權限）
    */
@@ -2570,6 +2900,14 @@ export const adminAccessLogsService = {
   },
 
   /**
+   * 取得熱門小故事
+   */
+  getPopularStories: async (limit = 10, categoryId?: string) => {
+    const params = new URLSearchParams({ limit: String(limit) })
+    if (categoryId) params.append('category_id', categoryId)
+    const response = await apiClient.get<
+      ApiResponse<(Story & { author_name: string; author_avatar?: string })[]>
+    >(`/content/popular/stories?${params}`)
    * 獲取慢請求日誌（需要 admin 權限）
    */
   getSlowRequests: async (params?: { hours?: number; threshold?: number; limit?: number }) => {

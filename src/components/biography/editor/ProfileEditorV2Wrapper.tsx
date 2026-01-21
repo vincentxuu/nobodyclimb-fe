@@ -1,12 +1,12 @@
 'use client'
 
-import { useState, useEffect, useCallback } from 'react'
+import { useState, useEffect, useCallback, useMemo } from 'react'
 import { Loader2 } from 'lucide-react'
 import { biographyService } from '@/lib/api/services'
-import type { BiographyV2 } from '@/lib/types/biography-v2'
+import type { BiographyV2, StoryCategory, StoryQuestion } from '@/lib/types/biography-v2'
 import { createEmptyBiographyV2 } from '@/lib/types/biography-v2'
 import { SYSTEM_TAG_DIMENSION_LIST } from '@/lib/constants/biography-tags'
-import { SYSTEM_ONELINER_QUESTION_LIST, getStoryQuestionsByStoryCategory } from '@/lib/constants/biography-questions'
+import { useQuestions } from '@/lib/hooks/useQuestions'
 import { useAuthStore } from '@/store/authStore'
 import ProfileEditor from './ProfileEditor'
 
@@ -25,8 +25,88 @@ export function ProfileEditorV2Wrapper({ className }: ProfileEditorV2WrapperProp
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
-  // 獲取故事問題（按分類分組）
-  const storyQuestionsByCategory = getStoryQuestionsByStoryCategory()
+  // 從 API 獲取題目
+  const { data: questionsData, isLoading: questionsLoading } = useQuestions()
+
+  // 將 API 資料轉換為一句話問題格式（合併核心故事和一句話）
+  const oneLinerQuestions = useMemo(() => {
+    if (!questionsData) return []
+    // 核心故事轉換為一句話格式
+    const coreAsOneLiners = questionsData.coreStories.map((q) => ({
+      id: q.id,
+      source: 'system' as const,
+      question: q.title,
+      format_hint: q.subtitle,
+      placeholder: q.placeholder || '',
+      order: q.display_order,
+    }))
+    // 一句話問題
+    const oneLiners = questionsData.oneLiners.map((q) => ({
+      id: q.id,
+      source: 'system' as const,
+      question: q.question,
+      format_hint: q.format_hint,
+      placeholder: q.placeholder || '',
+      order: q.display_order,
+    }))
+    return [...coreAsOneLiners, ...oneLiners].sort((a, b) => a.order - b.order)
+  }, [questionsData])
+
+  // 將 API 資料轉換為故事問題按分類格式
+  const storyQuestionsByCategory = useMemo(() => {
+    if (!questionsData) {
+      return {
+        growth: [],
+        psychology: [],
+        community: [],
+        practical: [],
+        dreams: [],
+        life: [],
+      } as Record<StoryCategory, StoryQuestion[]>
+    }
+
+    // 分類 ID 到 StoryCategory 類型的映射
+    const categoryIdToType: Record<string, StoryCategory> = {
+      sys_cat_growth: 'growth',
+      sys_cat_psychology: 'psychology',
+      sys_cat_community: 'community',
+      sys_cat_practical: 'practical',
+      sys_cat_dreams: 'dreams',
+      sys_cat_life: 'life',
+    }
+
+    const result: Record<StoryCategory, StoryQuestion[]> = {
+      growth: [],
+      psychology: [],
+      community: [],
+      practical: [],
+      dreams: [],
+      life: [],
+    }
+
+    for (const question of questionsData.stories) {
+      const categoryType = categoryIdToType[question.category_id]
+      if (categoryType) {
+        result[categoryType].push({
+          id: question.id,
+          source: 'system' as const,
+          category_id: question.category_id,
+          title: question.title,
+          subtitle: question.subtitle || '',
+          placeholder: question.placeholder || '',
+          difficulty: question.difficulty,
+          order: question.display_order,
+        })
+      }
+    }
+
+    // 排序
+    for (const key of Object.keys(result) as StoryCategory[]) {
+      result[key].sort((a, b) => a.order - b.order)
+    }
+
+    return result
+  }, [questionsData])
 
   // 載入用戶的人物誌資料
   useEffect(() => {
@@ -147,7 +227,7 @@ export function ProfileEditorV2Wrapper({ className }: ProfileEditorV2WrapperProp
   }, [biography, handleSave])
 
   // 載入中狀態
-  if (loading) {
+  if (loading || questionsLoading) {
     return (
       <div className="flex min-h-[400px] items-center justify-center">
         <Loader2 className="h-8 w-8 animate-spin text-[#1B1A1A]" />
@@ -202,7 +282,7 @@ export function ProfileEditorV2Wrapper({ className }: ProfileEditorV2WrapperProp
       <ProfileEditor
         biography={biography}
         tagDimensions={SYSTEM_TAG_DIMENSION_LIST}
-        oneLinerQuestions={SYSTEM_ONELINER_QUESTION_LIST}
+        oneLinerQuestions={oneLinerQuestions}
         storyQuestionsByCategory={storyQuestionsByCategory}
         onChange={handleChange}
         onSave={handleSave}

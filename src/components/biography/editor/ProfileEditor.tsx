@@ -14,7 +14,6 @@ import type {
   StoryQuestion,
   StoryCategory,
 } from '@/lib/types/biography-v2'
-import { SYSTEM_STORY_CATEGORY_LIST } from '@/lib/constants/biography-questions'
 import { PrivacyBanner } from './PrivacyBanner'
 import { ProgressIndicator } from './ProgressIndicator'
 import { BasicInfoSection } from './BasicInfoSection'
@@ -725,7 +724,6 @@ export function ProfileEditor({
       <AddCustomStoryModal
         isOpen={customStoryModalOpen}
         onClose={() => setCustomStoryModalOpen(false)}
-        categories={SYSTEM_STORY_CATEGORY_LIST}
         defaultCategoryId={customStoryCategoryId}
         onSave={handleSaveCustomStory}
       />

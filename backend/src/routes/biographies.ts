@@ -790,13 +790,12 @@ biographiesRoutes.put('/me', authMiddleware, async (c) => {
   const values: (string | number | null)[] = [];
 
   // All biography fields including new advanced story fields and V2 fields
+  // 注意：核心故事 (climbing_origin, climbing_meaning, advice_to_self) 已移至獨立表，不在此更新
   const fields = [
     // Basic info
     'name', 'title', 'bio', 'avatar_url', 'cover_image',
     // Level 1: Basic climbing info
     'climbing_start_year', 'frequent_locations', 'favorite_route_type',
-    // Level 2: Core stories
-    'climbing_origin', 'climbing_meaning', 'advice_to_self',
     // Level 3A: Growth & Breakthrough
     'memorable_moment', 'biggest_challenge', 'breakthrough_story',
     'first_outdoor', 'first_grade', 'frustrating_climb',
@@ -856,6 +855,49 @@ biographiesRoutes.put('/me', authMiddleware, async (c) => {
     )
       .bind(...values)
       .run();
+  }
+
+  // 核心故事直接存到獨立表 (biography_core_stories)，不存舊欄位
+  const coreStoryMap: Record<string, string | undefined> = {
+    climbing_origin: body.climbing_origin as string | undefined,
+    climbing_meaning: body.climbing_meaning as string | undefined,
+    advice_to_self: body.advice_to_self as string | undefined,
+  };
+
+  for (const [questionId, content] of Object.entries(coreStoryMap)) {
+    if (content !== undefined) {
+      const now = new Date().toISOString();
+      const existingStory = await c.env.DB.prepare(
+        'SELECT id FROM biography_core_stories WHERE biography_id = ? AND question_id = ?'
+      )
+        .bind(existing.id, questionId)
+        .first<{ id: string }>();
+
+      if (content === null || content.trim() === '') {
+        // 如果內容為空，刪除記錄
+        if (existingStory) {
+          await c.env.DB.prepare('DELETE FROM biography_core_stories WHERE id = ?')
+            .bind(existingStory.id)
+            .run();
+        }
+      } else if (existingStory) {
+        // 更新現有記錄
+        await c.env.DB.prepare(
+          'UPDATE biography_core_stories SET content = ?, updated_at = ? WHERE id = ?'
+        )
+          .bind(content.trim(), now, existingStory.id)
+          .run();
+      } else {
+        // 插入新記錄
+        const storyId = generateId();
+        await c.env.DB.prepare(
+          `INSERT INTO biography_core_stories (id, biography_id, question_id, content, created_at, updated_at)
+           VALUES (?, ?, ?, ?, ?, ?)`
+        )
+          .bind(storyId, existing.id, questionId, content.trim(), now, now)
+          .run();
+      }
+    }
   }
 
   const biography = await c.env.DB.prepare(

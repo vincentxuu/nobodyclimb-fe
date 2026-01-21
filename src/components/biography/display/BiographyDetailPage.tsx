@@ -9,6 +9,10 @@ import { BiographyStories } from './BiographyStories'
 import { BiographyFootprints } from './BiographyFootprints'
 import { BiographyGallery } from './BiographyGallery'
 import { EmptyState } from './EmptyState'
+import { ChapterMeeting } from '../profile/ChapterMeeting'
+import { ChapterMeaning } from '../profile/ChapterMeaning'
+import { ChapterBucketList } from '../profile/ChapterBucketList'
+import { ChapterAdvice } from '../profile/ChapterAdvice'
 
 interface BiographyDetailPageProps {
   /** 人物誌資料 */
@@ -106,17 +110,35 @@ export function BiographyDetailPage({
       <div className="container mx-auto max-w-4xl px-4">
         {/* 2. Identity Tags - 關鍵字標籤 */}
         <BiographyTags biography={biography} />
+      </div>
 
-        {/* 3. Quick Intro - 一句話系列 */}
-        <BiographyOneLiners biography={biography} />
+      {/* 3. Chapter 1 - 你與攀岩的相遇 */}
+      <ChapterMeeting biographyId={biography.id} />
 
-        {/* 4. Stories - 深度故事 */}
-        <BiographyStories biography={biography} />
+      {/* 4. Chapter 2 - 攀岩對你來說是什麼 */}
+      <ChapterMeaning biographyId={biography.id} personName={biography.name} />
 
-        {/* 5. Climbing Footprints - 攀岩足跡 */}
+      {/* 5. Chapter 3 - 攀岩人生清單 */}
+      <ChapterBucketList person={biography} isOwner={isOwner} />
+
+      {/* 6. Chapter 4 - 給剛開始攀岩的自己 */}
+      <ChapterAdvice
+        biographyId={biography.id}
+        personName={biography.name}
+        updatedAt={biography.updated_at}
+      />
+
+      <div className="container mx-auto max-w-4xl px-4">
+        {/* 7. Quick Intro - 一句話系列 */}
+        <BiographyOneLiners biographyId={biography.id} />
+
+        {/* 8. Stories - 深度故事 */}
+        <BiographyStories biographyId={biography.id} />
+
+        {/* 9. Climbing Footprints - 攀岩足跡 */}
         <BiographyFootprints biography={biography} />
 
-        {/* 6. Gallery - 攀岩相簿 */}
+        {/* 10. Gallery - 攀岩相簿 */}
         <BiographyGallery biography={biography} />
 
         {/* 底部間距 */}

@@ -23,6 +23,8 @@ import { mediaRoutes } from './routes/media';
 import { storyPromptsRoutes } from './routes/story-prompts';
 import { climbingLocationsRoutes } from './routes/climbing-locations';
 import { statsRoutes } from './routes/stats';
+import { adminQuestionsRoutes } from './routes/admin-questions';
+import { biographyContentRoutes } from './routes/biography-content';
 import { accessLogsRoutes } from './routes/access-logs';
 
 const app = new Hono<{ Bindings: Env }>();
@@ -98,6 +100,8 @@ v1.route('/media', mediaRoutes);
 v1.route('/story-prompts', storyPromptsRoutes);
 v1.route('/climbing-locations', climbingLocationsRoutes);
 v1.route('/stats', statsRoutes);
+v1.route('/admin/questions', adminQuestionsRoutes);
+v1.route('/content', biographyContentRoutes);
 v1.route('/access-logs', accessLogsRoutes);
 
 app.route('/api/v1', v1);
