@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
+import Link from 'next/link'
 import { statsService, SiteStats } from '@/lib/api/services'
 import {
   MountainSnow,
@@ -94,7 +95,7 @@ export default function AdminContentManagement() {
       title: '岩場管理',
       description: '管理戶外攀岩場地資訊',
       icon: MountainSnow,
-      color: 'bg-emerald-500',
+      color: 'bg-wb-90',
       count: stats?.crags || 0,
       actions: [
         { label: '查看所有岩場', href: '/crag' },
@@ -106,7 +107,7 @@ export default function AdminContentManagement() {
       title: '路線管理',
       description: '管理攀岩路線資料',
       icon: MapPin,
-      color: 'bg-blue-500',
+      color: 'bg-brand-yellow-200',
       count: stats?.routes || 0,
       actions: [{ label: '查看路線列表', href: '/crag' }],
     },
@@ -115,7 +116,7 @@ export default function AdminContentManagement() {
       title: '岩館管理',
       description: '管理室內攀岩館資訊',
       icon: Building2,
-      color: 'bg-cyan-500',
+      color: 'bg-brand-yellow-100',
       count: stats?.gyms || 0,
       actions: [
         { label: '查看所有岩館', href: '/gym' },
@@ -127,7 +128,7 @@ export default function AdminContentManagement() {
       title: '影片管理',
       description: '管理攀岩相關影片',
       icon: Video,
-      color: 'bg-red-500',
+      color: 'bg-brand-red-100',
       count: stats?.videos || 0,
       actions: [{ label: '查看影片庫', href: '/videos' }],
     },
@@ -136,7 +137,7 @@ export default function AdminContentManagement() {
       title: '文章管理',
       description: '管理部落格文章',
       icon: FileText,
-      color: 'bg-amber-500',
+      color: 'bg-brand-yellow-200',
       count: stats?.posts || 0,
       actions: [
         { label: '查看所有文章', href: '/blog' },
@@ -148,7 +149,7 @@ export default function AdminContentManagement() {
       title: '人物誌管理',
       description: '管理攀岩者人物誌',
       icon: Image,
-      color: 'bg-purple-500',
+      color: 'bg-wb-70',
       count: stats?.biographies || 0,
       actions: [{ label: '查看人物誌', href: '/biography' }],
     },
@@ -165,7 +166,7 @@ export default function AdminContentManagement() {
         <div className="flex items-center gap-2">
           <button
             onClick={handleInvalidateCache}
-            className="flex items-center gap-2 px-4 py-2 text-sm text-orange-600 hover:text-orange-700 hover:bg-orange-50 rounded-lg transition-colors"
+            className="flex items-center gap-2 px-4 py-2 text-sm text-brand-yellow-200 hover:text-brand-yellow-200 hover:bg-brand-yellow-100/10 rounded-lg transition-colors"
           >
             <Database className="h-4 w-4" />
             清除快取
@@ -222,23 +223,42 @@ export default function AdminContentManagement() {
               <h3 className="text-lg font-semibold text-wb-100 mb-1">{category.title}</h3>
               <p className="text-sm text-wb-70 mb-4">{category.description}</p>
               <div className="flex flex-wrap gap-2">
-                {category.actions.map((action, index) => (
-                  <a
-                    key={index}
-                    href={action.href}
-                    target={action.external ? '_blank' : undefined}
-                    rel={action.external ? 'noopener noreferrer' : undefined}
-                    className={`inline-flex items-center gap-1 px-3 py-1.5 text-sm rounded-lg transition-colors ${
-                      index === 0
-                        ? 'bg-wb-10 text-wb-100 hover:bg-wb-20'
-                        : 'bg-primary/10 text-primary hover:bg-primary/20'
-                    }`}
-                  >
-                    {index === 0 ? null : <Plus className="h-3 w-3" />}
-                    {action.label}
-                    {action.external && <ExternalLink className="h-3 w-3 ml-1" />}
-                  </a>
-                ))}
+                {category.actions.map((action, index) => {
+                  const content = (
+                    <>
+                      {index === 0 ? null : <Plus className="h-3 w-3" />}
+                      {action.label}
+                      {action.external && <ExternalLink className="h-3 w-3 ml-1" />}
+                    </>
+                  )
+
+                  const className = `inline-flex items-center gap-1 px-3 py-1.5 text-sm rounded-lg transition-colors ${
+                    index === 0
+                      ? 'bg-wb-10 text-wb-100 hover:bg-wb-20'
+                      : 'bg-primary/10 text-primary hover:bg-primary/20'
+                  }`
+
+                  // 外部連結使用 <a> 標籤,內部連結使用 Link
+                  return action.external ? (
+                    <a
+                      key={index}
+                      href={action.href}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className={className}
+                    >
+                      {content}
+                    </a>
+                  ) : (
+                    <Link
+                      key={index}
+                      href={action.href}
+                      className={className}
+                    >
+                      {content}
+                    </Link>
+                  )
+                })}
               </div>
             </div>
           </div>

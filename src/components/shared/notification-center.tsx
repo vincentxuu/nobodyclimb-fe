@@ -61,22 +61,27 @@ export function NotificationCenter({ className }: NotificationCenterProps) {
   const [isLoading, setIsLoading] = useState(false)
   const [page, setPage] = useState(1)
   const [hasMore, setHasMore] = useState(true)
-  const { isAuthenticated } = useAuthStore()
+  const { isAuthenticated, isInitialized } = useAuthStore()
 
   const loadUnreadCount = useCallback(async () => {
-    if (!isAuthenticated) return
+    // 確保認證已初始化且用戶已登入
+    if (!isInitialized || !isAuthenticated) return
     try {
       const response = await notificationService.getUnreadCount()
       if (response.success && response.data) {
         setUnreadCount(response.data.count)
       }
     } catch (error) {
-      console.error('Failed to load unread count:', error)
+      // 靜默處理 401 錯誤,避免干擾用戶體驗
+      if (error instanceof Error && !error.message.includes('401')) {
+        console.error('Failed to load unread count:', error)
+      }
     }
-  }, [isAuthenticated])
+  }, [isAuthenticated, isInitialized])
 
   const loadNotifications = useCallback(async (pageNum = 1, append = false) => {
-    if (!isAuthenticated) return
+    // 確保認證已初始化且用戶已登入
+    if (!isInitialized || !isAuthenticated) return
     setIsLoading(true)
     try {
       const response = await notificationService.getNotifications(pageNum, 10)
@@ -90,11 +95,14 @@ export function NotificationCenter({ className }: NotificationCenterProps) {
         setHasMore(response.pagination.page < response.pagination.total_pages)
       }
     } catch (error) {
-      console.error('Failed to load notifications:', error)
+      // 靜默處理 401 錯誤
+      if (error instanceof Error && !error.message.includes('401')) {
+        console.error('Failed to load notifications:', error)
+      }
     } finally {
       setIsLoading(false)
     }
-  }, [isAuthenticated])
+  }, [isAuthenticated, isInitialized])
 
   useEffect(() => {
     loadUnreadCount()
@@ -199,19 +207,19 @@ export function NotificationCenter({ className }: NotificationCenterProps) {
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
               transition={{ duration: 0.3 }}
-              className="fixed inset-0 z-[1000] bg-black/50"
+              className="fixed inset-0 z-[10000] bg-black/50"
               onClick={() => setIsOpen(false)}
             />
-            {/* 滿版通知面板 - 從下往上滑出 */}
+            {/* 通知面板 - 從右邊滑入 */}
             <motion.div
-              initial={{ y: '100%' }}
-              animate={{ y: 0 }}
-              exit={{ y: '100%' }}
+              initial={{ x: '100%' }}
+              animate={{ x: 0 }}
+              exit={{ x: '100%' }}
               transition={{ type: 'spring', damping: 25, stiffness: 300 }}
-              className="fixed inset-0 z-[1001] bg-white flex flex-col"
+              className="fixed right-0 top-0 h-screen z-[10001] bg-white flex flex-col w-full max-w-md shadow-2xl"
             >
               {/* Header */}
-              <div className="flex items-center justify-between px-4 py-4 border-b safe-area-top">
+              <div className="flex items-center justify-between px-4 py-4 border-b">
                 <h3 className="text-lg font-semibold">通知</h3>
                 <div className="flex items-center gap-3">
                   {unreadCount > 0 && (
@@ -234,19 +242,20 @@ export function NotificationCenter({ className }: NotificationCenterProps) {
               </div>
 
               {/* 通知列表 */}
-              <div className="flex-1 overflow-y-auto safe-area-bottom">
-                {isLoading && notifications.length === 0 ? (
-                  <div className="flex justify-center py-12">
-                    <Loader2 className="h-8 w-8 animate-spin text-gray-400" />
-                  </div>
-                ) : notifications.length === 0 ? (
-                  <div className="py-16 text-center text-gray-500">
-                    <Bell className="h-12 w-12 mx-auto mb-3 opacity-50" />
-                    <p className="text-lg">還沒有通知</p>
-                  </div>
-                ) : (
-                  <div>
-                    {notifications.map((notification) => {
+              <div className="flex-1 overflow-y-auto" style={{ paddingBottom: 'max(5rem, env(safe-area-inset-bottom))' }}>
+                <div>
+                  {isLoading && notifications.length === 0 ? (
+                    <div className="flex justify-center py-12">
+                      <Loader2 className="h-8 w-8 animate-spin text-gray-400" />
+                    </div>
+                  ) : notifications.length === 0 ? (
+                    <div className="py-16 text-center text-gray-500">
+                      <Bell className="h-12 w-12 mx-auto mb-3 opacity-50" />
+                      <p className="text-lg">還沒有通知</p>
+                    </div>
+                  ) : (
+                    <div>
+                      {notifications.map((notification) => {
                       const Icon =
                         notificationIcons[notification.type] || Bell
                       const colorClass =
@@ -327,6 +336,7 @@ export function NotificationCenter({ className }: NotificationCenterProps) {
                     )}
                   </div>
                 )}
+                </div>
               </div>
             </motion.div>
           </>

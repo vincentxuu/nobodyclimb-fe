@@ -174,13 +174,13 @@ export default function AdminBroadcast() {
           {result && (
             <div
               className={`flex items-start gap-3 p-4 rounded-lg ${
-                result.success ? 'bg-green-50 text-green-800' : 'bg-red-50 text-red-800'
+                result.success ? 'bg-wb-90/10 text-wb-90' : 'bg-brand-red-100/10 text-brand-red-100'
               }`}
             >
               {result.success ? (
-                <CheckCircle className="h-5 w-5 text-green-500 flex-shrink-0 mt-0.5" />
+                <CheckCircle className="h-5 w-5 text-wb-90 flex-shrink-0 mt-0.5" />
               ) : (
-                <AlertCircle className="h-5 w-5 text-red-500 flex-shrink-0 mt-0.5" />
+                <AlertCircle className="h-5 w-5 text-brand-red-100 flex-shrink-0 mt-0.5" />
               )}
               <div>
                 <p className="font-medium">{result.message}</p>

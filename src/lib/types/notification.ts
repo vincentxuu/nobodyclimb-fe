@@ -6,6 +6,7 @@
  * 通知類型枚舉
  * 與後端 notifications.ts 保持同步
  */
+/* eslint-disable no-unused-vars */
 export enum NotificationType {
   GOAL_LIKED = 'goal_liked',
   GOAL_COMMENTED = 'goal_commented',
@@ -17,6 +18,7 @@ export enum NotificationType {
   POST_COMMENTED = 'post_commented',
   SYSTEM_ANNOUNCEMENT = 'system_announcement',
 }
+/* eslint-enable no-unused-vars */
 
 /**
  * 通知介面

@@ -39,7 +39,7 @@ interface PreferenceItemProps {
   description: string
   checked: boolean
   disabled?: boolean
-  onCheckedChange: (id: keyof NotificationPreferencesState, checked: boolean) => void
+  onCheckedChange: (_id: keyof NotificationPreferencesState, _checked: boolean) => void
 }
 
 function PreferenceItem({

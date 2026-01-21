@@ -130,10 +130,10 @@ export default function AdminAccessLogs() {
   // HTTP 狀態碼顏色
   const getStatusColor = (status: string | number) => {
     const statusNum = typeof status === 'string' ? parseInt(status) : status
-    if (statusNum >= 200 && statusNum < 300) return 'text-green-600 bg-green-100'
+    if (statusNum >= 200 && statusNum < 300) return 'text-wb-90 bg-wb-90/10'
     if (statusNum >= 300 && statusNum < 400) return 'text-wb-70 bg-wb-10'
-    if (statusNum >= 400 && statusNum < 500) return 'text-yellow-600 bg-yellow-100'
-    if (statusNum >= 500) return 'text-red-600 bg-red-100'
+    if (statusNum >= 400 && statusNum < 500) return 'text-brand-yellow-200 bg-brand-yellow-100/10'
+    if (statusNum >= 500) return 'text-brand-red-100 bg-brand-red-100/10'
     return 'text-wb-70 bg-wb-10'
   }
 
@@ -229,9 +229,9 @@ export default function AdminAccessLogs() {
 
       {/* 錯誤提示 */}
       {error && (
-        <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-lg flex items-center gap-3">
-          <AlertCircle className="w-5 h-5 text-red-500 flex-shrink-0" />
-          <p className="text-red-700">{error}</p>
+        <div className="mb-6 p-4 bg-brand-red-100/10 border border-brand-red-100/30 rounded-lg flex items-center gap-3">
+          <AlertCircle className="w-5 h-5 text-brand-red-100 flex-shrink-0" />
+          <p className="text-brand-red-100">{error}</p>
         </div>
       )}
 
@@ -535,7 +535,7 @@ export default function AdminAccessLogs() {
                       </span>
                     </td>
                     <td className="px-4 py-3">
-                      <span className="px-2 py-1 text-xs font-medium bg-orange-100 text-orange-700 rounded">
+                      <span className="px-2 py-1 text-xs font-medium bg-brand-yellow-100/10 text-brand-yellow-200 rounded">
                         {formatResponseTime(log.responseTime)}
                       </span>
                     </td>

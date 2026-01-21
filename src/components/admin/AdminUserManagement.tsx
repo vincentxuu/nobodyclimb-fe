@@ -25,9 +25,9 @@ const roleLabels: Record<string, string> = {
 }
 
 const roleColors: Record<string, string> = {
-  user: 'bg-gray-100 text-gray-700',
-  admin: 'bg-red-100 text-red-700',
-  moderator: 'bg-blue-100 text-blue-700',
+  user: 'bg-wb-10 text-wb-90',
+  admin: 'bg-brand-red-100/10 text-brand-red-100',
+  moderator: 'bg-brand-yellow-100/10 text-brand-yellow-200',
 }
 
 const authProviderLabels: Record<string, string> = {
@@ -131,7 +131,7 @@ export default function AdminUserManagement() {
   if (loading && users.length === 0) {
     return (
       <div className="flex items-center justify-center min-h-[400px]">
-        <RefreshCw className="h-8 w-8 animate-spin text-gray-400" />
+        <RefreshCw className="h-8 w-8 animate-spin text-wb-60" />
       </div>
     )
   }
@@ -139,9 +139,9 @@ export default function AdminUserManagement() {
   if (error) {
     return (
       <div className="flex flex-col items-center justify-center min-h-[400px] text-center">
-        <AlertCircle className="h-12 w-12 text-red-400 mb-4" />
-        <h3 className="text-lg font-medium text-gray-900 mb-2">無法載入資料</h3>
-        <p className="text-gray-500 mb-4">{error}</p>
+        <AlertCircle className="h-12 w-12 text-brand-red-100 mb-4" />
+        <h3 className="text-lg font-medium text-wb-100 mb-2">無法載入資料</h3>
+        <p className="text-wb-70 mb-4">{error}</p>
         <button
           onClick={loadData}
           className="px-4 py-2 bg-primary text-white rounded-lg hover:bg-primary/90 transition-colors"
@@ -157,13 +157,13 @@ export default function AdminUserManagement() {
       {/* 頁面標題 */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">用戶管理</h1>
-          <p className="text-gray-500 mt-1">管理平台用戶帳號和權限</p>
+          <h1 className="text-2xl font-bold text-wb-100">用戶管理</h1>
+          <p className="text-wb-70 mt-1">管理平台用戶帳號和權限</p>
         </div>
         <button
           onClick={loadData}
           disabled={loading}
-          className="flex items-center gap-2 px-4 py-2 text-sm text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-lg transition-colors disabled:opacity-50"
+          className="flex items-center gap-2 px-4 py-2 text-sm text-wb-70 hover:text-wb-100 hover:bg-wb-10 rounded-lg transition-colors disabled:opacity-50"
         >
           <RefreshCw className={`h-4 w-4 ${loading ? 'animate-spin' : ''}`} />
           重新整理
@@ -173,47 +173,47 @@ export default function AdminUserManagement() {
       {/* 統計卡片 */}
       {stats && (
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-          <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-5">
+          <div className="bg-white rounded-xl shadow-sm border border-wb-20 p-5">
             <div className="flex items-center gap-3">
-              <div className="p-3 bg-blue-50 rounded-lg">
-                <Users className="h-5 w-5 text-blue-600" />
+              <div className="p-3 bg-brand-yellow-100/10 rounded-lg">
+                <Users className="h-5 w-5 text-brand-yellow-200" />
               </div>
               <div>
-                <p className="text-sm text-gray-500">總用戶數</p>
-                <p className="text-2xl font-bold text-gray-900">{stats.total}</p>
+                <p className="text-sm text-wb-70">總用戶數</p>
+                <p className="text-2xl font-bold text-wb-100">{stats.total}</p>
               </div>
             </div>
           </div>
-          <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-5">
+          <div className="bg-white rounded-xl shadow-sm border border-wb-20 p-5">
             <div className="flex items-center gap-3">
-              <div className="p-3 bg-green-50 rounded-lg">
-                <UserCheck className="h-5 w-5 text-green-600" />
+              <div className="p-3 bg-wb-90/10 rounded-lg">
+                <UserCheck className="h-5 w-5 text-wb-90" />
               </div>
               <div>
-                <p className="text-sm text-gray-500">活躍用戶</p>
-                <p className="text-2xl font-bold text-gray-900">{stats.active}</p>
+                <p className="text-sm text-wb-70">活躍用戶</p>
+                <p className="text-2xl font-bold text-wb-100">{stats.active}</p>
               </div>
             </div>
           </div>
-          <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-5">
+          <div className="bg-white rounded-xl shadow-sm border border-wb-20 p-5">
             <div className="flex items-center gap-3">
-              <div className="p-3 bg-amber-50 rounded-lg">
-                <TrendingUp className="h-5 w-5 text-amber-600" />
+              <div className="p-3 bg-brand-yellow-200/10 rounded-lg">
+                <TrendingUp className="h-5 w-5 text-brand-yellow-200" />
               </div>
               <div>
-                <p className="text-sm text-gray-500">本週新增</p>
-                <p className="text-2xl font-bold text-gray-900">{stats.newThisWeek}</p>
+                <p className="text-sm text-wb-70">本週新增</p>
+                <p className="text-2xl font-bold text-wb-100">{stats.newThisWeek}</p>
               </div>
             </div>
           </div>
-          <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-5">
+          <div className="bg-white rounded-xl shadow-sm border border-wb-20 p-5">
             <div className="flex items-center gap-3">
-              <div className="p-3 bg-purple-50 rounded-lg">
-                <Calendar className="h-5 w-5 text-purple-600" />
+              <div className="p-3 bg-brand-yellow-100/10 rounded-lg">
+                <Calendar className="h-5 w-5 text-brand-yellow-200" />
               </div>
               <div>
-                <p className="text-sm text-gray-500">本月新增</p>
-                <p className="text-2xl font-bold text-gray-900">{stats.newThisMonth}</p>
+                <p className="text-sm text-wb-70">本月新增</p>
+                <p className="text-2xl font-bold text-wb-100">{stats.newThisMonth}</p>
               </div>
             </div>
           </div>
@@ -221,16 +221,16 @@ export default function AdminUserManagement() {
       )}
 
       {/* 搜尋和篩選 */}
-      <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-4">
+      <div className="bg-white rounded-xl shadow-sm border border-wb-20 p-4">
         <form onSubmit={handleSearch} className="flex flex-col md:flex-row gap-4">
           <div className="flex-1 relative">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-wb-60" />
             <input
               type="text"
               placeholder="搜尋用戶名稱、Email..."
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              className="w-full pl-10 pr-4 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary"
+              className="w-full pl-10 pr-4 py-2 bg-white text-wb-100 border border-wb-20 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary placeholder:text-wb-50"
             />
           </div>
           <select
@@ -239,7 +239,7 @@ export default function AdminUserManagement() {
               setRoleFilter(e.target.value)
               setPage(1)
             }}
-            className="px-4 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary"
+            className="px-4 py-2 bg-white text-wb-100 border border-wb-20 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary"
           >
             <option value="">所有角色</option>
             <option value="user">一般用戶</option>
@@ -252,7 +252,7 @@ export default function AdminUserManagement() {
               setStatusFilter(e.target.value)
               setPage(1)
             }}
-            className="px-4 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary"
+            className="px-4 py-2 bg-white text-wb-100 border border-wb-20 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary"
           >
             <option value="">所有狀態</option>
             <option value="active">已啟用</option>
@@ -260,7 +260,7 @@ export default function AdminUserManagement() {
           </select>
           <button
             type="submit"
-            className="px-6 py-2 bg-primary text-white rounded-lg hover:bg-primary/90 transition-colors"
+            className="px-6 py-2 bg-brand-dark text-white rounded-lg hover:bg-brand-dark-hover transition-colors"
           >
             搜尋
           </button>
@@ -268,11 +268,11 @@ export default function AdminUserManagement() {
       </div>
 
       {/* 用戶列表 */}
-      <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
+      <div className="bg-white rounded-xl shadow-sm border border-wb-20 overflow-hidden">
         <div className="overflow-x-auto">
           <table className="w-full">
             <thead>
-              <tr className="bg-gray-50 text-left text-sm text-gray-500 border-b border-gray-100">
+              <tr className="bg-wb-10 text-left text-sm text-wb-70 border-b border-wb-20">
                 <th className="px-6 py-4 font-medium">用戶</th>
                 <th className="px-6 py-4 font-medium">Email</th>
                 <th className="px-6 py-4 font-medium">角色</th>
@@ -286,7 +286,7 @@ export default function AdminUserManagement() {
               {users.map((user) => (
                 <tr
                   key={user.id}
-                  className="border-b border-gray-50 hover:bg-gray-50/50 transition-colors"
+                  className="border-b border-wb-10 hover:bg-wb-10/50 transition-colors"
                 >
                   <td className="px-6 py-4">
                     <div className="flex items-center gap-3">
@@ -297,21 +297,21 @@ export default function AdminUserManagement() {
                           className="w-10 h-10 rounded-full object-cover"
                         />
                       ) : (
-                        <div className="w-10 h-10 rounded-full bg-gray-200 flex items-center justify-center">
-                          <Users className="h-5 w-5 text-gray-400" />
+                        <div className="w-10 h-10 rounded-full bg-wb-20 flex items-center justify-center">
+                          <Users className="h-5 w-5 text-wb-60" />
                         </div>
                       )}
                       <div>
-                        <p className="font-medium text-gray-900">
+                        <p className="font-medium text-wb-100">
                           {user.display_name || user.username}
                         </p>
-                        <p className="text-xs text-gray-500">@{user.username}</p>
+                        <p className="text-xs text-wb-70">@{user.username}</p>
                       </div>
                     </div>
                   </td>
                   <td className="px-6 py-4">
-                    <div className="flex items-center gap-2 text-sm text-gray-600">
-                      <Mail className="h-4 w-4 text-gray-400" />
+                    <div className="flex items-center gap-2 text-sm text-wb-70">
+                      <Mail className="h-4 w-4 text-wb-60" />
                       {user.email}
                     </div>
                   </td>
