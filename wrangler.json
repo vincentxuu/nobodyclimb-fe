@@ -31,6 +31,7 @@
       "/gallery/*",
       "/profile/*",
       "/search/*",
+      "/videos/*",
       "/sitemap.xml",
       "/robots.txt",
       "/"
