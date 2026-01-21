@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { authService } from '@/lib/api/services'
-import { Bell, LayoutDashboard, ArrowLeft, Loader2, Home, Users, FolderOpen, Megaphone, BarChart3 } from 'lucide-react'
+import { Bell, LayoutDashboard, ArrowLeft, Loader2, Home, Users, FolderOpen, Megaphone, BarChart3, FileText } from 'lucide-react'
 
 interface AdminLayoutProps {
   children: React.ReactNode
@@ -122,6 +122,13 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
               >
                 <BarChart3 className="h-4 w-4" />
                 數據分析
+              </Link>
+              <Link
+                href="/admin/logs"
+                className="flex items-center gap-2 px-3 py-2 text-sm text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-lg transition-colors"
+              >
+                <FileText className="h-4 w-4" />
+                訪問日誌
               </Link>
             </div>
           </div>

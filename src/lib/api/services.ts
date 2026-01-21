@@ -2466,3 +2466,121 @@ export const adminAnalyticsService = {
     return response.data
   },
 }
+
+/**
+ * Access Logs 日誌類型
+ */
+export interface AccessLogEntry {
+  timestamp: string
+  method: string
+  path: string
+  userAgent: string
+  country: string
+  userId: string
+  ip: string
+  statusCode: string
+  errorMessage: string
+  responseTime: number
+  statusCodeNum: number
+}
+
+export interface AccessLogSummary {
+  summary: {
+    totalRequests: number
+    avgResponseTime: number
+    successCount: number
+    clientErrorCount: number
+    serverErrorCount: number
+  }
+  topPaths: Array<{ path: string; count: number; avgResponseTime: number }>
+  hourlyRequests: Array<{ hour: string; count: number }>
+  countryDistribution: Array<{ country: string; count: number }>
+  methodDistribution: Array<{ method: string; count: number }>
+}
+
+export interface AccessLogError {
+  timestamp: string
+  method: string
+  path: string
+  userId: string
+  ip: string
+  statusCode: string
+  errorMessage: string
+  responseTime: number
+}
+
+export interface AccessLogSlow {
+  timestamp: string
+  method: string
+  path: string
+  userId: string
+  statusCode: string
+  responseTime: number
+}
+
+/**
+ * Admin 訪問日誌 API 服務
+ */
+export const adminAccessLogsService = {
+  /**
+   * 獲取訪問日誌列表（需要 admin 權限）
+   */
+  getLogs: async (params?: {
+    limit?: number
+    offset?: number
+    path?: string
+    method?: string
+    status?: string
+  }) => {
+    const queryParams = new URLSearchParams()
+    if (params?.limit) queryParams.append('limit', String(params.limit))
+    if (params?.offset) queryParams.append('offset', String(params.offset))
+    if (params?.path) queryParams.append('path', params.path)
+    if (params?.method) queryParams.append('method', params.method)
+    if (params?.status) queryParams.append('status', params.status)
+
+    const queryString = queryParams.toString()
+    const url = queryString ? `/access-logs?${queryString}` : '/access-logs'
+    const response = await apiClient.get<ApiResponse<AccessLogEntry[]>>(url)
+    return response.data
+  },
+
+  /**
+   * 獲取訪問日誌摘要統計（需要 admin 權限）
+   */
+  getSummary: async (hours: number = 24) => {
+    const response = await apiClient.get<ApiResponse<AccessLogSummary>>(
+      `/access-logs/summary?hours=${hours}`
+    )
+    return response.data
+  },
+
+  /**
+   * 獲取錯誤日誌（需要 admin 權限）
+   */
+  getErrors: async (params?: { hours?: number; limit?: number }) => {
+    const queryParams = new URLSearchParams()
+    if (params?.hours) queryParams.append('hours', String(params.hours))
+    if (params?.limit) queryParams.append('limit', String(params.limit))
+
+    const queryString = queryParams.toString()
+    const url = queryString ? `/access-logs/errors?${queryString}` : '/access-logs/errors'
+    const response = await apiClient.get<ApiResponse<AccessLogError[]>>(url)
+    return response.data
+  },
+
+  /**
+   * 獲取慢請求日誌（需要 admin 權限）
+   */
+  getSlowRequests: async (params?: { hours?: number; threshold?: number; limit?: number }) => {
+    const queryParams = new URLSearchParams()
+    if (params?.hours) queryParams.append('hours', String(params.hours))
+    if (params?.threshold) queryParams.append('threshold', String(params.threshold))
+    if (params?.limit) queryParams.append('limit', String(params.limit))
+
+    const queryString = queryParams.toString()
+    const url = queryString ? `/access-logs/slow?${queryString}` : '/access-logs/slow'
+    const response = await apiClient.get<ApiResponse<AccessLogSlow[]>>(url)
+    return response.data
+  },
+}
