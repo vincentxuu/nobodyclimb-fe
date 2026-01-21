@@ -7,7 +7,7 @@ import { motion } from 'framer-motion'
 import { Loader2, HelpCircle } from 'lucide-react'
 import { GameCanvas } from '@/components/games/rope-system'
 import { CATEGORIES, ROUTES } from '@/lib/games/rope-system/constants'
-import { getQuestionsByCategory } from '@/lib/games/rope-system/questions-data'
+import { fetchQuestionsByCategory } from '@/lib/games/rope-system/questions-data'
 import type { Question } from '@/lib/games/rope-system/types'
 
 export default function LearnModePage() {
@@ -31,11 +31,8 @@ export default function LearnModePage() {
     const loadQuestions = async () => {
       setIsLoading(true)
       try {
-        // 模擬 API 延遲（未來可改為真實 API 呼叫）
-        await new Promise((resolve) => setTimeout(resolve, 300))
-
-        // 從題庫取得題目
-        const loadedQuestions = getQuestionsByCategory(categoryId)
+        // 從靜態 JSON 檔案載入題目
+        const loadedQuestions = await fetchQuestionsByCategory(categoryId)
 
         if (loadedQuestions.length === 0) {
           router.push(ROUTES.HOME)

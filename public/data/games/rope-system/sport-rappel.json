@@ -1,0 +1,566 @@
+[
+  {
+    "id": "sport-rappel-1",
+    "categoryId": "sport-rappel",
+    "type": "situation",
+    "difficulty": 2,
+    "scenario": "你準備進行第一次戶外垂降。",
+    "question": "垂降最基本需要哪些裝備？",
+    "options": [
+      {
+        "id": "a",
+        "text": "只要有繩子就可以"
+      },
+      {
+        "id": "b",
+        "text": "確保器（如 ATC）、繩子、吊帶、安全帽"
+      },
+      {
+        "id": "c",
+        "text": "只需要手套和繩子"
+      },
+      {
+        "id": "d",
+        "text": "確保器和吊帶就夠了"
+      }
+    ],
+    "correctAnswer": "b",
+    "explanation": "垂降基本裝備清單：\n\n| 裝備 | 功能 |\n|------|------|\n| 確保器 | 產生摩擦力控制下降速度（ATC、GriGri等） |\n| 繩子 | 下降的媒介，需夠長到達底部 |\n| 吊帶 | 連接身體與系統 |\n| 安全帽 | 防止落石與碰撞 |\n| 有鎖鉤環 | 連接確保器與吊帶 |\n\n建議額外裝備：\n普魯士繩（Autoblock 備份）\n手套（長距離垂降）\n繩套（整理繩子）",
+    "referenceSources": [
+      "AMGA",
+      "Petzl",
+      "Freedom of the Hills"
+    ],
+    "tags": [
+      "裝備",
+      "垂降基礎",
+      "安全裝備"
+    ]
+  },
+  {
+    "id": "sport-rappel-2",
+    "categoryId": "sport-rappel",
+    "type": "situation",
+    "difficulty": 2,
+    "scenario": "你已經架設好垂降系統，準備開始下降。",
+    "question": "開始垂降前，最重要的檢查項目是？",
+    "options": [
+      {
+        "id": "a",
+        "text": "確認天氣狀況"
+      },
+      {
+        "id": "b",
+        "text": "確認繩子有到達底部或打了繩尾結"
+      },
+      {
+        "id": "c",
+        "text": "確認有人在拍照"
+      },
+      {
+        "id": "d",
+        "text": "確認手機有電"
+      }
+    ],
+    "correctAnswer": "b",
+    "explanation": "垂降前必要檢查：\n\n最重要：\n✅ 繩子是否到底\n目視確認繩子到達地面或下一個固定點\n如果看不到，必須打繩尾結\n繩尾結防止滑出確保器\n\n完整檢查清單：\n1. 繩子長度足夠（或有繩尾結）\n2. 繩子是否卡住或纏繞\n3. 確保器正確安裝\n4. 鉤環已鎖緊\n5. 備份裝置已設置（如 Autoblock）\n\n致命錯誤案例：\n繩子不夠長又沒打繩尾結\n滑到繩尾直接墜落\n這是常見的垂降致死原因之一",
+    "referenceSources": [
+      "AAC Accidents",
+      "AMGA",
+      "Petzl"
+    ],
+    "tags": [
+      "安全檢查",
+      "繩尾結",
+      "垂降準備"
+    ]
+  },
+  {
+    "id": "sport-rappel-3",
+    "categoryId": "sport-rappel",
+    "type": "situation",
+    "difficulty": 2,
+    "scenario": "你正在設置 ATC 確保器進行垂降。",
+    "question": "雙繩垂降時，繩子應該如何穿過 ATC？",
+    "options": [
+      {
+        "id": "a",
+        "text": "只穿一股繩子"
+      },
+      {
+        "id": "b",
+        "text": "兩股繩子都要穿過確保器"
+      },
+      {
+        "id": "c",
+        "text": "一股穿過確保器，一股用手抓住"
+      },
+      {
+        "id": "d",
+        "text": "繩子不需要穿過確保器"
+      }
+    ],
+    "correctAnswer": "b",
+    "explanation": "雙繩垂降的正確設置：\n\n``\n    固定點\n      │\n    ╱   ╲\n   繩1   繩2\n    │     │\n    └──┬──┘\n       │\n   ┌───────┐\n   │  ATC  │\n   └───┬───┘\n       │\n      吊帶\n``\n\n為什麼兩股都要穿：\n均勻分配摩擦力\n確保受力平衡\n下降更平穩可控\n\n常見錯誤：\n❌ 只穿一股 → 摩擦力不夠，速度失控\n❌ 兩股交叉穿 → 可能卡繩\n❌ 穿反方向 → 制動效果降低\n\n確認方式：\n兩股繩子在制動端應該平行\n輕拉測試，確認滑順",
+    "referenceSources": [
+      "Petzl",
+      "AMGA",
+      "Black Diamond"
+    ],
+    "tags": [
+      "ATC",
+      "雙繩垂降",
+      "確保器設置"
+    ]
+  },
+  {
+    "id": "sport-rappel-4",
+    "categoryId": "sport-rappel",
+    "type": "situation",
+    "difficulty": 2,
+    "scenario": "你正在學習更安全的垂降方式。",
+    "question": "Autoblock（自動鎖繩結）應該安裝在哪裡？",
+    "options": [
+      {
+        "id": "a",
+        "text": "確保器上方"
+      },
+      {
+        "id": "b",
+        "text": "確保器下方，連接到腿環"
+      },
+      {
+        "id": "c",
+        "text": "連接到固定點"
+      },
+      {
+        "id": "d",
+        "text": "綁在手上"
+      }
+    ],
+    "correctAnswer": "b",
+    "explanation": "Autoblock 的正確位置：\n\n``\n    固定點\n      │\n     繩子\n      │\n  ┌───────┐\n  │  ATC  │ ← 確保器\n  └───┬───┘\n      │\n      │  ← 繩子\n      │\n  【Autoblock】← 在這裡！\n      │\n    腿環  ← 連接到腿環\n``\n\n為什麼在下方：\n鬆開雙手時，Autoblock 會抓住繩子\n自動停止下降\n不會干擾確保器操作\n\n為什麼連接腿環：\n距離適當，不會卡到確保器\n容易用手解開\n不影響正常操作\n\n常見 Autoblock 繩結：\nFrench Prusik（最常用）\nPrusik（傳統）\nKlemheist",
+    "referenceSources": [
+      "AMGA",
+      "Petzl",
+      "VDiff Climbing"
+    ],
+    "tags": [
+      "Autoblock",
+      "備份系統",
+      "垂降安全"
+    ]
+  },
+  {
+    "id": "sport-rappel-5",
+    "categoryId": "sport-rappel",
+    "type": "situation",
+    "difficulty": 2,
+    "scenario": "你正在垂降途中。",
+    "question": "垂降時，制動手應該放在哪裡？",
+    "options": [
+      {
+        "id": "a",
+        "text": "確保器上方抓住繩子"
+      },
+      {
+        "id": "b",
+        "text": "確保器下方抓住繩子"
+      },
+      {
+        "id": "c",
+        "text": "放在吊帶上"
+      },
+      {
+        "id": "d",
+        "text": "不需要用手抓繩子"
+      }
+    ],
+    "correctAnswer": "b",
+    "explanation": "制動手的正確位置：\n\n``\n      │\n  ┌───────┐\n  │  ATC  │\n  └───┬───┘\n      │\n      │← 制動手在這裡！\n      │\n      ▼\n``\n\n原理：\n下方的繩子 = 制動端\n握緊下方繩子可增加摩擦\n鬆開會加速，握緊會減速或停止\n\n錯誤示範：\n❌ 手在上方 → 無法有效制動\n❌ 完全不抓繩子 → 失去控制\n❌ 抓太靠近確保器 → 可能卡到手\n\n操作技巧：\n制動手永遠不離開繩子\n另一隻手可扶岩壁保持平衡\n平穩放繩，避免忽快忽慢",
+    "referenceSources": [
+      "AMGA",
+      "Petzl",
+      "REI Expert Advice"
+    ],
+    "tags": [
+      "制動手",
+      "垂降技術",
+      "繩索控制"
+    ]
+  },
+  {
+    "id": "sport-rappel-6",
+    "categoryId": "sport-rappel",
+    "type": "situation",
+    "difficulty": 2,
+    "scenario": "你正在進行戶外垂降，發現下降速度很快。",
+    "question": "如何有效減慢垂降速度？",
+    "options": [
+      {
+        "id": "a",
+        "text": "把繩子繞過大腿增加摩擦"
+      },
+      {
+        "id": "b",
+        "text": "用力抓緊上方的繩子"
+      },
+      {
+        "id": "c",
+        "text": "大聲呼救"
+      },
+      {
+        "id": "d",
+        "text": "腳踢岩壁"
+      }
+    ],
+    "correctAnswer": "a",
+    "explanation": "減速技巧：\n\n方法一：繩子繞腿\n``\n     ATC\n      │\n      │\n      ╲\n       ╲──大腿\n      ╱\n     ╱\n    │\n``\n增加摩擦面積\n有效降低速度\n長距離垂降常用\n\n方法二：加裝摩擦\n多繞一圈在確保器上\n使用有輔助制動功能的確保器\n\n其他技巧：\n手握緊制動端（下方）\n身體稍微後仰增加角度\n保持平穩節奏\n\n避免：\n❌ 抓上方繩子（無效且危險）\n❌ 腳踢岩壁（會彈開失控）\n❌ 戴手套抓繩子（可能更滑）",
+    "referenceSources": [
+      "AMGA",
+      "Freedom of the Hills"
+    ],
+    "tags": [
+      "速度控制",
+      "摩擦力",
+      "垂降技巧"
+    ]
+  },
+  {
+    "id": "sport-rappel-7",
+    "categoryId": "sport-rappel",
+    "type": "situation",
+    "difficulty": 3,
+    "scenario": "垂降途中，你發現繩子中間有一個繩結（可能是接繩處）。",
+    "question": "遇到繩結時，正確的處理方式是？",
+    "options": [
+      {
+        "id": "a",
+        "text": "直接讓繩結通過確保器"
+      },
+      {
+        "id": "b",
+        "text": "停止，建立備份，重新架設確保器在繩結下方"
+      },
+      {
+        "id": "c",
+        "text": "用力拉扯讓繩結變小"
+      },
+      {
+        "id": "d",
+        "text": "把繩結解開"
+      }
+    ],
+    "correctAnswer": "b",
+    "explanation": "通過繩結的標準程序：\n\n1. 停在繩結上方\n不要讓繩結進入確保器\n繩結會卡住確保器\n\n2. 建立備份\n用 Prusik 或繩環連接到上方繩子\n確認備份承重\n\n3. 重新架設\n在繩結下方架設確保器\n將繩子穿過\n\n4. 轉移重量\n確認新系統正確\n解除備份\n繼續下降\n\n為什麼不能直接通過：\n繩結會卡在確保器中\n可能無法繼續下降\n處於非常尷尬的位置",
+    "referenceSources": [
+      "AMGA",
+      "Freedom of the Hills",
+      "VDiff Climbing"
+    ],
+    "tags": [
+      "通過繩結",
+      "進階技術",
+      "垂降救援"
+    ]
+  },
+  {
+    "id": "sport-rappel-8",
+    "categoryId": "sport-rappel",
+    "type": "situation",
+    "difficulty": 2,
+    "scenario": "你垂降到底後，需要抽回繩子。",
+    "question": "雙繩垂降後，抽繩時應該注意什麼？",
+    "options": [
+      {
+        "id": "a",
+        "text": "隨便抽哪一端都可以"
+      },
+      {
+        "id": "b",
+        "text": "抽正確的那一端，並觀察繩子是否順暢下來"
+      },
+      {
+        "id": "c",
+        "text": "用力快速抽"
+      },
+      {
+        "id": "d",
+        "text": "兩端一起抽"
+      }
+    ],
+    "correctAnswer": "b",
+    "explanation": "抽繩的正確方式：\n\n雙繩垂降的繩子配置：\n``\n    固定點\n    ╱    ╲\n   │      │\n  抽這端   卡住！\n   │      │\n   └──────┘\n``\n\n正確步驟：\n1. 確認抽哪端\n通常是沒有打結的那端\n或是穿過固定點掛片的那端\n\n2. 慢慢抽\n先抽幾公尺測試\n確認繩子有在動\n\n3. 觀察繩子\n繩子應該順暢落下\n如果卡住要立即停止\n\n4. 站在安全位置\n不要站在繩子正下方\n避免被落下的繩子打到\n\n抽繩卡住的原因：\n繩子纏繞或打結\n卡在岩縫中\n抽錯邊",
+    "referenceSources": [
+      "AMGA",
+      "VDiff Climbing"
+    ],
+    "tags": [
+      "抽繩",
+      "雙繩垂降",
+      "繩索管理"
+    ]
+  },
+  {
+    "id": "sport-rappel-9",
+    "categoryId": "sport-rappel",
+    "type": "situation",
+    "difficulty": 2,
+    "scenario": "你正在岩壁上進行垂降。",
+    "question": "垂降時，身體相對於岩壁的正確姿勢是？",
+    "options": [
+      {
+        "id": "a",
+        "text": "身體貼緊岩壁"
+      },
+      {
+        "id": "b",
+        "text": "雙腿與岩壁約成直角，微微後仰"
+      },
+      {
+        "id": "c",
+        "text": "完全倒掛"
+      },
+      {
+        "id": "d",
+        "text": "側身下降"
+      }
+    ],
+    "correctAnswer": "b",
+    "explanation": "正確的垂降姿勢：\n\n``\n    岩壁\n      │\n      │   ╱ 身體\n      │  ╱\n      │ ╱ ← 約 90 度\n      │╱\n    ──┴── 雙腳\n``\n\n關鍵要點：\n雙腿打直：與岩壁約成直角\n雙腳與肩同寬：穩定支撐\n身體微後仰：重心在腳上\n膝蓋微彎：吸收衝擊\n\n為什麼這個姿勢最好：\n腳可以穩定踩在岩壁上\n不會旋轉或翻轉\n可以清楚看到下方\n容易控制速度\n\n常見錯誤：\n❌ 身體太直立 → 腳會滑開\n❌ 身體太後仰 → 翻過去\n❌ 雙腿彎曲 → 失去控制",
+    "referenceSources": [
+      "AMGA",
+      "Petzl",
+      "REI Expert Advice"
+    ],
+    "tags": [
+      "垂降姿勢",
+      "身體位置",
+      "垂降技術"
+    ]
+  },
+  {
+    "id": "sport-rappel-10",
+    "categoryId": "sport-rappel",
+    "type": "situation",
+    "difficulty": 2,
+    "scenario": "你的夥伴在固定點等待你垂降完成。",
+    "question": "垂降到達底部後，應該如何通知上方的夥伴？",
+    "options": [
+      {
+        "id": "a",
+        "text": "不用通知，他會自己知道"
+      },
+      {
+        "id": "b",
+        "text": "喊「Off Rappel」或「繩子解除」"
+      },
+      {
+        "id": "c",
+        "text": "拉動繩子"
+      },
+      {
+        "id": "d",
+        "text": "傳訊息"
+      }
+    ],
+    "correctAnswer": "b",
+    "explanation": "垂降溝通口令：\n\n| 口令 | 時機 | 意義 |\n|------|------|------|\n| On Rappel / 準備垂降 | 開始前 | 我要開始垂降了 |\n| Rappelling / 垂降中 | 開始時 | 我開始下降了 |\n| Off Rappel / 繩子解除 | 到達後 | 我到了，繩子可以用了 |\n\n為什麼要喊「Off Rappel」：\n告訴上方的人繩子已經空了\n上方的人可以開始垂降\n確保不會同時使用繩子\n\n如果聽不到怎麼辦：\n事先約定拉繩子信號\n例：拉三下 = 到了\n或使用對講機\n\n危險情況：\n沒溝通，兩人同時垂降\n繩子負載超過預期\n上方的人以為繩子還在被使用",
+    "referenceSources": [
+      "AMGA",
+      "Freedom of the Hills"
+    ],
+    "tags": [
+      "溝通口令",
+      "團隊協作",
+      "垂降安全"
+    ]
+  },
+  {
+    "id": "sport-rappel-11",
+    "categoryId": "sport-rappel",
+    "type": "situation",
+    "difficulty": 2,
+    "scenario": "你準備在一個 30 公尺的岩壁垂降。",
+    "question": "使用 60 公尺繩子進行雙繩垂降，最長可以垂降多遠？",
+    "options": [
+      {
+        "id": "a",
+        "text": "60 公尺"
+      },
+      {
+        "id": "b",
+        "text": "30 公尺"
+      },
+      {
+        "id": "c",
+        "text": "略少於 30 公尺（要扣除打結的長度）"
+      },
+      {
+        "id": "d",
+        "text": "120 公尺"
+      }
+    ],
+    "correctAnswer": "c",
+    "explanation": "雙繩垂降的長度計算：\n\n``\n60m 繩子對折\n\n    固定點\n      │\n     ╱ ╲\n30m │   │ 30m\n    │   │\n    └───┘\n``\n\n實際可用長度：\n理論：60m ÷ 2 = 30m\n實際：略少於 30m\n\n減少的原因：\n繩子中點打結佔用長度\n固定點連接佔用長度\n繩尾結佔用長度\n安全餘裕\n\n計算範例：\n60m 繩子\n中點結：-1m\n固定點連接：-0.5m\n繩尾結：-0.5m\n實際約 28m\n\n安全建議：\n預留 2-3 公尺餘裕\n不確定時，打繩尾結\n較長的垂降分段進行",
+    "referenceSources": [
+      "AMGA",
+      "VDiff Climbing"
+    ],
+    "tags": [
+      "繩子長度",
+      "雙繩垂降",
+      "計算"
+    ]
+  },
+  {
+    "id": "sport-rappel-12",
+    "categoryId": "sport-rappel",
+    "type": "situation",
+    "difficulty": 3,
+    "scenario": "你在垂降時遇到一段倒垂（overhang）地形，腳無法接觸岩壁。",
+    "question": "通過倒垂地形時，最重要的是？",
+    "options": [
+      {
+        "id": "a",
+        "text": "加快速度衝過去"
+      },
+      {
+        "id": "b",
+        "text": "控制好速度，保持穩定，必要時用手扶繩"
+      },
+      {
+        "id": "c",
+        "text": "放開雙手抓岩壁"
+      },
+      {
+        "id": "d",
+        "text": "閉上眼睛"
+      }
+    ],
+    "correctAnswer": "b",
+    "explanation": "倒垂地形的垂降技巧：\n\n``\n    ┐\n    │\n    │  ← 垂直段\n    │\n    └───┐\n        │  ← 倒垂段（腳離開岩壁）\n        │\n        │\n    ────┘\n``\n\n關鍵要點：\n\n1. 預期會離開岩壁\n知道什麼時候會進入倒垂\n心理準備\n\n2. 控制速度\n進入倒垂前減速\n不要讓自己擺盪\n\n3. 保持平衡\n上方手可以扶住繩子（不是制動手！）\n核心收緊，避免旋轉\n\n4. 平穩下降\n等速下降\n不要忽快忽慢\n\n避免：\n❌ 快速通過 → 會擺盪撞岩壁\n❌ 放開制動手 → 失去控制\n❌ 亂踢亂動 → 會旋轉",
+    "referenceSources": [
+      "AMGA",
+      "Petzl"
+    ],
+    "tags": [
+      "倒垂",
+      "進階技術",
+      "地形處理"
+    ]
+  },
+  {
+    "id": "sport-rappel-13",
+    "categoryId": "sport-rappel",
+    "type": "situation",
+    "difficulty": 3,
+    "scenario": "垂降途中，你發現繩子下方有障礙物需要清除。",
+    "question": "如何在垂降中途安全停止並空出雙手？",
+    "options": [
+      {
+        "id": "a",
+        "text": "叫別人幫忙抓住繩子"
+      },
+      {
+        "id": "b",
+        "text": "讓 Autoblock 鎖住，或打義大利半扣鎖繩"
+      },
+      {
+        "id": "c",
+        "text": "用腿夾住繩子"
+      },
+      {
+        "id": "d",
+        "text": "把繩子綁在吊帶上"
+      }
+    ],
+    "correctAnswer": "b",
+    "explanation": "垂降中途停止的方法：\n\n方法一：使用 Autoblock\n如果有裝 Autoblock，鬆手即可停止\n這是最簡單的方式\n這也是為什麼建議永遠裝備份\n\n方法二：Mule Knot（騾結）\n``\n    ATC\n     │\n     │\n    ╭╮  ← Mule Knot\n    ││\n    ╰╯\n     │\n``\n在確保器下方打結鎖住繩子\n可以完全空出雙手\n需要練習才能熟練\n\n方法三：義大利半扣 + 騾結\n適用於需要較長時間停止\n更加安全可靠\n\n不建議的方式：\n❌ 用腿夾繩子（會滑、會燙傷）\n❌ 依賴別人抓繩（不可靠）\n❌ 單手操作其他事（危險）",
+    "referenceSources": [
+      "AMGA",
+      "Freedom of the Hills",
+      "VDiff Climbing"
+    ],
+    "tags": [
+      "緊急停止",
+      "Mule Knot",
+      "垂降技術"
+    ]
+  },
+  {
+    "id": "sport-rappel-14",
+    "categoryId": "sport-rappel",
+    "type": "situation",
+    "difficulty": 3,
+    "scenario": "由於地形限制，你需要進行單繩垂降。",
+    "question": "單繩垂降與雙繩垂降相比，需要特別注意什麼？",
+    "options": [
+      {
+        "id": "a",
+        "text": "完全一樣，沒有差別"
+      },
+      {
+        "id": "b",
+        "text": "繩子需要固定在固定點，無法抽繩"
+      },
+      {
+        "id": "c",
+        "text": "速度會比較快"
+      },
+      {
+        "id": "d",
+        "text": "不需要打繩尾結"
+      }
+    ],
+    "correctAnswer": "b",
+    "explanation": "單繩 vs 雙繩垂降：\n\n| 項目 | 單繩 | 雙繩 |\n|------|------|------|\n| 繩子固定 | 綁死在固定點 | 繩中穿過固定點 |\n| 可用長度 | 整條繩子 | 繩子的一半 |\n| 抽繩 | 無法抽繩 | 可以抽繩 |\n| 繩子回收 | 需要爬回去拿 | 從下方抽回 |\n\n單繩垂降的情況：\n只需要單次下降（不用抽繩）\n有人會從上方帶繩子下來\n繩子留在原地供其他人使用\n\n繩尾結仍然必要：\n不管單繩雙繩都要打繩尾結\n防止滑出確保器",
+    "referenceSources": [
+      "AMGA",
+      "VDiff Climbing"
+    ],
+    "tags": [
+      "單繩垂降",
+      "繩子回收",
+      "技術比較"
+    ]
+  },
+  {
+    "id": "sport-rappel-15",
+    "categoryId": "sport-rappel",
+    "type": "situation",
+    "difficulty": 3,
+    "scenario": "你正在進行多繩距垂降，到達中間的固定點。",
+    "question": "到達中途固定點後，正確的程序是？",
+    "options": [
+      {
+        "id": "a",
+        "text": "直接開始抽繩"
+      },
+      {
+        "id": "b",
+        "text": "先自我確保，再拆除垂降系統，重新架設下一段"
+      },
+      {
+        "id": "c",
+        "text": "把繩子丟下去，看會不會到底"
+      },
+      {
+        "id": "d",
+        "text": "等上面的人下來再說"
+      }
+    ],
+    "correctAnswer": "b",
+    "explanation": "多繩距垂降的轉換程序：\n\n1. 到達固定點\n在固定點上方停止\n不要直接掛上去\n\n2. 建立自我確保\n用 PAS 或繩環連接到固定點\n確認承重\n\n3. 喊「Off Rappel」\n通知上方的人\n\n4. 拆除垂降系統\n解開 Autoblock\n把繩子從確保器取出\n\n5. 架設下一段\n抽繩（如果需要）\n穿過新的固定點\n重新架設確保器\n\n6. 開始下一段垂降\n確認系統正確\n解除自我確保\n繼續下降\n\n關鍵原則：\n永遠保持至少一個連接點\n不要在沒有備份的情況下操作",
+    "referenceSources": [
+      "AMGA",
+      "Freedom of the Hills",
+      "VDiff Climbing"
+    ],
+    "tags": [
+      "多繩距",
+      "固定點轉換",
+      "垂降程序"
+    ]
+  }
+]

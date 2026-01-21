@@ -1,0 +1,37 @@
+{
+  "generatedAt": "2026-01-21T15:05:12.545Z",
+  "categories": [
+    {
+      "id": "sport-belay",
+      "questionCount": 15
+    },
+    {
+      "id": "sport-lead",
+      "questionCount": 20
+    },
+    {
+      "id": "sport-toprope",
+      "questionCount": 15
+    },
+    {
+      "id": "sport-rappel",
+      "questionCount": 15
+    },
+    {
+      "id": "trad-anchor",
+      "questionCount": 15
+    },
+    {
+      "id": "trad-protection",
+      "questionCount": 15
+    },
+    {
+      "id": "trad-multipitch",
+      "questionCount": 15
+    },
+    {
+      "id": "trad-rescue",
+      "questionCount": 15
+    }
+  ]
+}
