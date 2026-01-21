@@ -42,7 +42,7 @@ async function queryAnalyticsEngine(
   const apiToken = env.CLOUDFLARE_API_TOKEN;
 
   if (!accountId || !apiToken) {
-    throw new Error('Analytics Engine 查詢需要設定 CLOUDFLARE_ACCOUNT_ID 和 CLOUDFLARE_API_TOKEN');
+    throw new Error('Analytics Engine 查詢服務未設定，請聯繫系統管理員');
   }
 
   const response = await fetch(

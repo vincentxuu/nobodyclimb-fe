@@ -79,8 +79,8 @@ export default function AdminAccessLogs() {
       } catch (err) {
         const message = err instanceof Error ? err.message : '載入失敗'
         // 檢查是否是 Analytics Engine 未設定的錯誤
-        if (message.includes('CLOUDFLARE_ACCOUNT_ID') || message.includes('CLOUDFLARE_API_TOKEN')) {
-          setError('Analytics Engine 尚未設定。請在 Cloudflare Workers 設定 CLOUDFLARE_ACCOUNT_ID 和 CLOUDFLARE_API_TOKEN secrets。')
+        if (message.includes('未設定') || message.includes('服務未設定')) {
+          setError('Analytics Engine 服務尚未設定，請聯繫系統管理員完成配置。')
         } else {
           setError(message)
         }
@@ -229,24 +229,9 @@ export default function AdminAccessLogs() {
 
       {/* 錯誤提示 */}
       {error && (
-        <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-lg flex items-start gap-3">
-          <AlertCircle className="w-5 h-5 text-red-500 flex-shrink-0 mt-0.5" />
-          <div>
-            <p className="text-red-700">{error}</p>
-            {error.includes('Analytics Engine') && (
-              <p className="text-sm text-red-600 mt-2">
-                設定方法：
-                <br />
-                1. 在 Cloudflare Dashboard 取得 Account ID
-                <br />
-                2. 建立 API Token（需要 Analytics Engine 讀取權限）
-                <br />
-                3. 執行：wrangler secret put CLOUDFLARE_ACCOUNT_ID --env production
-                <br />
-                4. 執行：wrangler secret put CLOUDFLARE_API_TOKEN --env production
-              </p>
-            )}
-          </div>
+        <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-lg flex items-center gap-3">
+          <AlertCircle className="w-5 h-5 text-red-500 flex-shrink-0" />
+          <p className="text-red-700">{error}</p>
         </div>
       )}
 
