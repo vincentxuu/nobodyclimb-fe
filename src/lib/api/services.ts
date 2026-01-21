@@ -2289,3 +2289,52 @@ export const adminUserService = {
     return response.data
   },
 }
+
+/**
+ * 廣播通知記錄介面
+ */
+export interface BroadcastRecord {
+  id: string
+  title: string
+  message: string
+  actor_id: string
+  actor_name: string
+  created_at: string
+  recipient_count: number
+  read_count: number
+}
+
+/**
+ * Admin 廣播通知 API 服務
+ */
+export const adminBroadcastService = {
+  /**
+   * 發送廣播通知（需要 admin 權限）
+   */
+  sendBroadcast: async (data: {
+    title: string
+    message: string
+    targetRole?: 'all' | 'user' | 'moderator' | 'admin'
+  }) => {
+    const response = await apiClient.post<
+      ApiResponse<{
+        totalUsers: number
+        successCount: number
+        failedCount: number
+      }>
+    >('/notifications/admin/broadcast', data)
+    return response.data
+  },
+
+  /**
+   * 獲取廣播歷史記錄（需要 admin 權限）
+   */
+  getBroadcasts: async (page = 1, limit = 20) => {
+    const response = await apiClient.get<
+      ApiResponse<BroadcastRecord[]> & {
+        pagination: { page: number; limit: number; total: number; total_pages: number }
+      }
+    >('/notifications/admin/broadcasts', { params: { page, limit } })
+    return response.data
+  },
+}
