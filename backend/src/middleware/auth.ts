@@ -121,7 +121,7 @@ export const adminMiddleware = createMiddleware<{ Bindings: Env }>(
 // JWT token generation utilities
 export async function generateAccessToken(
   env: Env,
-  payload: { sub: string; email: string; role: string }
+  payload: { sub: string; email: string; role: string; username?: string; display_name?: string | null }
 ): Promise<string> {
   const secret = getJwtSecret(env);
 
