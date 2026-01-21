@@ -24,7 +24,7 @@
 ### NobodyClimb 通知類型
 
 ```typescript
-// 來自 src/lib/types.ts
+// 來自 backend/src/routes/notifications.ts
 export type NotificationType =
   | 'goal_completed'      // 目標完成
   | 'goal_liked'          // 目標被按讚
@@ -36,6 +36,9 @@ export type NotificationType =
   | 'post_liked'          // 文章被按讚 ✨ 新增
   | 'post_commented'      // 文章被留言 ✨ 新增
 ```
+
+> **注意**：後端已支援所有類型，前端的 `src/lib/types.ts` 也需要同步更新以保持一致性。
+> 在全端開發中保持類型定義同步是避免 bug 的關鍵。
 
 ---
 
@@ -202,19 +205,27 @@ export async function createNotification(
 ```typescript
 // 前端 UI 元件對應
 const notificationIcons: Record<string, React.ElementType> = {
-  goal_liked: Mountain,        // 🏔️ 按讚
-  goal_commented: MessageCircle, // 💬 留言
-  goal_referenced: Sparkles,   // ✨ 引用
-  new_follower: UserPlus,      // 👤 追蹤
-  story_featured: Sparkles,    // ✨ 精選
+  goal_liked: Mountain,          // 🏔️ 目標按讚
+  goal_commented: MessageCircle, // 💬 目標留言
+  goal_referenced: Sparkles,     // ✨ 目標引用
+  new_follower: UserPlus,        // 👤 追蹤
+  story_featured: Sparkles,      // ✨ 精選
+  post_liked: Heart,             // ❤️ 文章按讚 ✨ 新增
+  post_commented: FileText,      // 📄 文章留言 ✨ 新增
+  biography_commented: MessageCircle, // 💬 人物誌留言 ✨ 新增
 }
 
 const notificationColors: Record<string, string> = {
   goal_liked: 'text-red-500 bg-red-50',
   goal_commented: 'text-blue-500 bg-blue-50',
+  post_liked: 'text-pink-500 bg-pink-50',
+  post_commented: 'text-indigo-500 bg-indigo-50',
   // ...
 }
 ```
+
+> **實作提醒**：新增通知類型時，需同步更新前端 UI 的圖示和顏色對應，
+> 否則會使用預設樣式，影響使用者體驗。
 
 ---
 
@@ -338,7 +349,7 @@ export async function createLikeNotificationWithAggregation(
 
 ```
 ┌────────────────────────────────────────────────┐
-│              通知漏斗分析                        │
+│                 通知漏斗分析                    │
 ├────────────────────────────────────────────────┤
 │  Sent        ████████████████████  100,000     │
 │  Delivered   ████████████████░░░░   95,000     │
@@ -446,11 +457,32 @@ interface NotificationAnalytics {
 ```typescript
 // src/components/shared/notification-center.tsx
 
-// 1. 輪詢機制：每 60 秒檢查未讀數量
+// 1. 輪詢機制：使用 setTimeout 避免請求堆積
+// ⚠️ 使用 setInterval 的問題：若請求時間超過間隔或發生錯誤延遲，
+//    setInterval 仍會繼續觸發，可能導致請求堆積
 useEffect(() => {
-  loadUnreadCount()
-  const interval = setInterval(loadUnreadCount, 60000)
-  return () => clearInterval(interval)
+  let isMounted = true;
+  let timerId: ReturnType<typeof setTimeout>;
+
+  const poll = async () => {
+    try {
+      await loadUnreadCount();
+    } catch (error) {
+      console.error('Polling error:', error);
+    } finally {
+      // 只有在元件還掛載時才繼續輪詢
+      if (isMounted) {
+        timerId = setTimeout(poll, 60000);
+      }
+    }
+  };
+
+  poll();
+
+  return () => {
+    isMounted = false;
+    clearTimeout(timerId);
+  };
 }, [loadUnreadCount])
 
 // 2. 未讀徽章顯示
@@ -460,13 +492,28 @@ useEffect(() => {
   </span>
 )}
 
-// 3. 樂觀更新：先更新 UI，再發 API
+// 3. 樂觀更新 (Optimistic Update)：先更新 UI，再發 API
+// 若 API 失敗則回滾 UI 狀態
 const handleMarkAsRead = async (id: string) => {
-  await notificationService.markAsRead(id)
+  // 備份原始狀態
+  const originalNotifications = [...notifications];
+  const originalUnreadCount = unreadCount;
+
+  // Step 1: 立即更新 UI（樂觀更新）
   setNotifications(prev =>
     prev.map(n => n.id === id ? { ...n, is_read: 1 } : n)
   )
   setUnreadCount(prev => Math.max(0, prev - 1))
+
+  try {
+    // Step 2: 背景發送 API 請求
+    await notificationService.markAsRead(id)
+  } catch (error) {
+    // Step 3: API 失敗，回滾 UI
+    console.error('Failed to mark as read:', error);
+    setNotifications(originalNotifications);
+    setUnreadCount(originalUnreadCount);
+  }
 }
 ```
 
