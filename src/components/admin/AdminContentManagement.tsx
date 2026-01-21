@@ -246,9 +246,9 @@ export default function AdminContentManagement() {
       </div>
 
       {/* 管理提示 */}
-      <div className="bg-blue-50 border border-blue-100 rounded-xl p-6">
-        <h3 className="font-semibold text-blue-900 mb-2">內容管理說明</h3>
-        <ul className="text-sm text-blue-700 space-y-1">
+      <div className="bg-brand-yellow-100/10 border border-brand-yellow-100/30 rounded-xl p-6">
+        <h3 className="font-semibold text-wb-100 mb-2">內容管理說明</h3>
+        <ul className="text-sm text-wb-70 space-y-1">
           <li>• 岩場、岩館、影片的新增和編輯需要 Admin 權限</li>
           <li>• 文章可由一般用戶撰寫，Admin 可以審核和管理所有文章</li>
           <li>• 人物誌由用戶自行管理，Admin 可以查看和編輯所有人物誌</li>

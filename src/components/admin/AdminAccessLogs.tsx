@@ -131,7 +131,7 @@ export default function AdminAccessLogs() {
   const getStatusColor = (status: string | number) => {
     const statusNum = typeof status === 'string' ? parseInt(status) : status
     if (statusNum >= 200 && statusNum < 300) return 'text-green-600 bg-green-100'
-    if (statusNum >= 300 && statusNum < 400) return 'text-blue-600 bg-blue-100'
+    if (statusNum >= 300 && statusNum < 400) return 'text-wb-70 bg-wb-10'
     if (statusNum >= 400 && statusNum < 500) return 'text-yellow-600 bg-yellow-100'
     if (statusNum >= 500) return 'text-red-600 bg-red-100'
     return 'text-wb-70 bg-wb-10'
@@ -164,7 +164,7 @@ export default function AdminAccessLogs() {
               </span>
               <div className="flex-1 bg-wb-20 rounded-full h-4 overflow-hidden">
                 <div
-                  className="bg-blue-500 h-full rounded-full transition-all duration-300"
+                  className="bg-brand-yellow-100 h-full rounded-full transition-all duration-300"
                   style={{ width: `${percentage}%` }}
                 />
               </div>
