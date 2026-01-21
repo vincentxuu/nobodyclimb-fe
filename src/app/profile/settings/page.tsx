@@ -153,9 +153,13 @@ const ProfileForm = ({ userData, isSaving, onFieldChange, onSave }: ProfileFormP
     <FormField label="使用者名稱">
       <Input
         value={userData.username}
+        onChange={(e) => onFieldChange('username', e.target.value)}
         className="border-[#B6B3B3]"
-        disabled
+        placeholder="3-30 字元，僅限英文、數字、底線"
       />
+      <p className="mt-1 text-xs text-[#8E8C8C]">
+        使用者名稱將作為您的個人頁面網址 (例如: nobodyclimb.cc/biography/{userData.username || 'username'})
+      </p>
     </FormField>
     <FormField label="電子郵件">
       <Input
@@ -386,6 +390,17 @@ export default function SettingsPage() {
       return
     }
 
+    // 驗證使用者名稱格式
+    const usernameRegex = /^[a-zA-Z0-9_]{3,30}$/
+    if (!usernameRegex.test(userData.username)) {
+      toast({
+        title: '使用者名稱格式錯誤',
+        description: '使用者名稱需為 3-30 字元，僅限英文、數字、底線',
+        variant: 'destructive',
+      })
+      return
+    }
+
     try {
       setIsSaving(true)
       let avatarUrl = userData.avatarUrl
@@ -408,6 +423,7 @@ export default function SettingsPage() {
       // 更新用戶資料 - 使用後端 API 期望的 snake_case 欄位名稱
       const profileData: Record<string, string | undefined> = {
         display_name: userData.displayName,
+        username: userData.username,
       }
 
       // 設定頭像相關資料
@@ -435,7 +451,27 @@ export default function SettingsPage() {
       }
     } catch (error: unknown) {
       console.error('儲存個人資料失敗:', error)
-      const errorMessage = error instanceof Error ? error.message : '請稍後再試'
+      // 處理 API 錯誤回應
+      interface ApiError {
+        response?: {
+          status?: number
+          data?: {
+            message?: string
+          }
+        }
+        message?: string
+      }
+      const apiError = error as ApiError
+      let errorMessage = '請稍後再試'
+
+      if (apiError.response?.status === 409) {
+        errorMessage = '使用者名稱已被使用，請選擇其他名稱'
+      } else if (apiError.response?.data?.message) {
+        errorMessage = apiError.response.data.message
+      } else if (apiError.message) {
+        errorMessage = apiError.message
+      }
+
       toast({
         title: '儲存失敗',
         description: errorMessage,

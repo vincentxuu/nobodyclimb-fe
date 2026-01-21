@@ -262,6 +262,7 @@ authRoutes.get('/me', authMiddleware, async (c) => {
 authRoutes.put('/profile', authMiddleware, async (c) => {
   const userId = c.get('userId');
   const body = await c.req.json<{
+    username?: string;
     display_name?: string;
     bio?: string;
     avatar_url?: string;
@@ -272,6 +273,51 @@ authRoutes.put('/profile', authMiddleware, async (c) => {
 
   const updates: string[] = [];
   const values: (string | null)[] = [];
+
+  // Handle username update with validation and uniqueness check
+  if (body.username !== undefined) {
+    const username = body.username.trim();
+
+    // Validate username format: 3-30 chars, alphanumeric and underscore only
+    if (!/^[a-zA-Z0-9_]{3,30}$/.test(username)) {
+      return c.json(
+        {
+          success: false,
+          error: 'Bad Request',
+          message: 'Username must be 3-30 characters, only letters, numbers, and underscores allowed',
+        },
+        400
+      );
+    }
+
+    // Check if username is already taken by another user
+    const existingUser = await c.env.DB.prepare(
+      'SELECT id FROM users WHERE username = ? AND id != ?'
+    )
+      .bind(username, userId)
+      .first();
+
+    if (existingUser) {
+      return c.json(
+        {
+          success: false,
+          error: 'Conflict',
+          message: 'Username is already taken',
+        },
+        409
+      );
+    }
+
+    updates.push('username = ?');
+    values.push(username);
+
+    // Also update the biography slug if user has one
+    await c.env.DB.prepare(
+      'UPDATE biographies SET slug = ?, updated_at = datetime(\'now\') WHERE user_id = ?'
+    )
+      .bind(username, userId)
+      .run();
+  }
 
   if (body.display_name !== undefined) {
     updates.push('display_name = ?');
