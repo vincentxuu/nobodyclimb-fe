@@ -8,6 +8,7 @@ import Logo from './navbar/Logo'
 import UnifiedNav from './navbar/UnifiedNav'
 import UserMenu from './navbar/UserMenu'
 import MobileMenu from './navbar/MobileMenu'
+import { NotificationCenter } from '@/components/shared/notification-center'
 
 /**
  * 主導航欄組件
@@ -66,7 +67,8 @@ export function Navbar() {
         </div>
 
         {/* 手機版選單按鈕 - 僅在手機版顯示 */}
-        <div className="ml-auto flex items-center pr-2 md:hidden">
+        <div className="ml-auto flex items-center gap-1 pr-2 md:hidden">
+          <NotificationCenter />
           <MobileMenu />
         </div>
       </div>
