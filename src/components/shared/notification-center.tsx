@@ -12,7 +12,6 @@ import {
   Trash2,
   Loader2,
   X,
-  Heart,
   FileText,
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
@@ -47,18 +46,19 @@ const notificationIcons: Record<string, React.ElementType> = {
   new_follower: UserPlus,
   story_featured: Sparkles,
   biography_commented: MessageCircle,
-  post_liked: Heart,
+  post_liked: Mountain, // 按讚功能統一使用 Mountain icon
   post_commented: FileText,
 }
 
+// 使用品牌色 #FFE70C（黃色）作為按讚相關通知的主色
 const notificationColors: Record<string, string> = {
-  goal_liked: 'text-red-500 bg-red-50',
+  goal_liked: 'text-[#1B1A1A] bg-[#FFE70C]/20', // 品牌黃色
   goal_commented: 'text-blue-500 bg-blue-50',
   goal_referenced: 'text-amber-500 bg-amber-50',
   new_follower: 'text-green-500 bg-green-50',
   story_featured: 'text-purple-500 bg-purple-50',
   biography_commented: 'text-indigo-500 bg-indigo-50',
-  post_liked: 'text-pink-500 bg-pink-50',
+  post_liked: 'text-[#1B1A1A] bg-[#FFE70C]/20', // 品牌黃色
   post_commented: 'text-cyan-500 bg-cyan-50',
 }
 
@@ -180,7 +180,7 @@ export function NotificationCenter({ className }: NotificationCenterProps) {
       >
         <Bell className="h-5 w-5" />
         {unreadCount > 0 && (
-          <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center font-medium">
+          <span className="absolute -top-1 -right-1 bg-[#FFE70C] text-[#1B1A1A] text-xs rounded-full h-5 w-5 flex items-center justify-center font-medium">
             {unreadCount > 99 ? '99+' : unreadCount}
           </span>
         )}
@@ -238,7 +238,7 @@ export function NotificationCenter({ className }: NotificationCenterProps) {
                         key={notification.id}
                         className={cn(
                           'px-4 py-3 border-b last:border-b-0 hover:bg-gray-50 transition-colors',
-                          !notification.is_read && 'bg-blue-50/50'
+                          !notification.is_read && 'bg-[#FFE70C]/10' // 品牌黃色淡色背景
                         )}
                       >
                         <div className="flex gap-3">
