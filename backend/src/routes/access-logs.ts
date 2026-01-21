@@ -4,14 +4,39 @@ import { authMiddleware, adminMiddleware } from '../middleware/auth';
 
 export const accessLogsRoutes = new Hono<{ Bindings: Env }>();
 
+// 常數定義
+const MAX_LIMIT = 1000;
+const DEFAULT_LIMIT = 100;
+const DEFAULT_HOURS = 24;
+
+/**
+ * 安全的 parseInt，返回有效數字或預設值
+ */
+function safeParseInt(value: string | undefined, defaultValue: number, max?: number): number {
+  const parsed = parseInt(value || '', 10);
+  if (isNaN(parsed) || parsed < 1) return defaultValue;
+  if (max && parsed > max) return max;
+  return parsed;
+}
+
+/**
+ * 驗證並清理路徑輸入（防止 SQL injection）
+ */
+function sanitizePath(path: string): string | null {
+  // 只允許常見的 URL 路徑字元
+  if (!/^[a-zA-Z0-9\/_\-.:?&=%]{1,200}$/.test(path)) {
+    return null;
+  }
+  return path.replace(/'/g, "''");
+}
+
 /**
  * Analytics Engine SQL API 查詢
  * 文檔: https://developers.cloudflare.com/analytics/analytics-engine/sql-api/
  */
 async function queryAnalyticsEngine(
   env: Env,
-  sql: string,
-  dataset: string = 'nobodyclimb_access_logs'
+  sql: string
 ): Promise<{ data: unknown[]; meta: unknown }> {
   const accountId = env.CLOUDFLARE_ACCOUNT_ID;
   const apiToken = env.CLOUDFLARE_API_TOKEN;
@@ -47,18 +72,34 @@ async function queryAnalyticsEngine(
 accessLogsRoutes.get('/', authMiddleware, adminMiddleware, async (c) => {
   try {
     const env = c.env as Env;
-    const { limit = '100', offset = '0', path, method, status } = c.req.query();
+    const { limit, offset, path, method, status } = c.req.query();
+
+    // 安全解析數字參數
+    const limitNum = safeParseInt(limit, DEFAULT_LIMIT, MAX_LIMIT);
+    const offsetNum = safeParseInt(offset, 0);
 
     // 建立查詢條件
     const conditions: string[] = [];
+
+    // path 過濾 (blob2)
     if (path) {
-      conditions.push(`blob1 LIKE '%${path.replace(/'/g, "''")}%'`);
+      const sanitizedPath = sanitizePath(path);
+      if (sanitizedPath) {
+        conditions.push(`blob2 LIKE '%${sanitizedPath}%'`);
+      }
     }
-    if (method) {
-      conditions.push(`blob1 = '${method.replace(/'/g, "''").toUpperCase()}'`);
+
+    // method 過濾 (blob1)
+    if (method && /^[A-Z]{3,7}$/.test(method.toUpperCase())) {
+      conditions.push(`blob1 = '${method.toUpperCase()}'`);
     }
+
+    // status 過濾
     if (status) {
-      conditions.push(`double2 = ${parseInt(status)}`);
+      const statusNum = safeParseInt(status, 0);
+      if (statusNum >= 100 && statusNum < 600) {
+        conditions.push(`double2 = ${statusNum}`);
+      }
     }
 
     const whereClause = conditions.length > 0 ? `WHERE ${conditions.join(' AND ')}` : '';
@@ -79,8 +120,8 @@ accessLogsRoutes.get('/', authMiddleware, adminMiddleware, async (c) => {
       FROM nobodyclimb_access_logs
       ${whereClause}
       ORDER BY timestamp DESC
-      LIMIT ${parseInt(limit as string)}
-      OFFSET ${parseInt(offset as string)}
+      LIMIT ${limitNum}
+      OFFSET ${offsetNum}
     `;
 
     const result = await queryAnalyticsEngine(env, sql);
@@ -110,8 +151,8 @@ accessLogsRoutes.get('/', authMiddleware, adminMiddleware, async (c) => {
 accessLogsRoutes.get('/summary', authMiddleware, adminMiddleware, async (c) => {
   try {
     const env = c.env as Env;
-    const { hours = '24' } = c.req.query();
-    const hoursNum = parseInt(hours as string);
+    const { hours } = c.req.query();
+    const hoursNum = safeParseInt(hours, DEFAULT_HOURS, 168); // 最多 7 天
 
     // 總請求數和平均響應時間
     const summarySQL = `
@@ -211,8 +252,9 @@ accessLogsRoutes.get('/summary', authMiddleware, adminMiddleware, async (c) => {
 accessLogsRoutes.get('/errors', authMiddleware, adminMiddleware, async (c) => {
   try {
     const env = c.env as Env;
-    const { hours = '24', limit = '50' } = c.req.query();
-    const hoursNum = parseInt(hours as string);
+    const { hours, limit } = c.req.query();
+    const hoursNum = safeParseInt(hours, DEFAULT_HOURS, 168);
+    const limitNum = safeParseInt(limit, 50, MAX_LIMIT);
 
     const sql = `
       SELECT
@@ -228,7 +270,7 @@ accessLogsRoutes.get('/errors', authMiddleware, adminMiddleware, async (c) => {
       WHERE double2 >= 400
         AND timestamp >= NOW() - INTERVAL '${hoursNum}' HOUR
       ORDER BY timestamp DESC
-      LIMIT ${parseInt(limit as string)}
+      LIMIT ${limitNum}
     `;
 
     const result = await queryAnalyticsEngine(env, sql);
@@ -257,9 +299,10 @@ accessLogsRoutes.get('/errors', authMiddleware, adminMiddleware, async (c) => {
 accessLogsRoutes.get('/slow', authMiddleware, adminMiddleware, async (c) => {
   try {
     const env = c.env as Env;
-    const { hours = '24', threshold = '1000', limit = '50' } = c.req.query();
-    const hoursNum = parseInt(hours as string);
-    const thresholdMs = parseInt(threshold as string);
+    const { hours, threshold, limit } = c.req.query();
+    const hoursNum = safeParseInt(hours, DEFAULT_HOURS, 168);
+    const thresholdMs = safeParseInt(threshold, 1000, 60000); // 預設 1 秒，最多 60 秒
+    const limitNum = safeParseInt(limit, 50, MAX_LIMIT);
 
     const sql = `
       SELECT
@@ -273,7 +316,7 @@ accessLogsRoutes.get('/slow', authMiddleware, adminMiddleware, async (c) => {
       WHERE double1 >= ${thresholdMs}
         AND timestamp >= NOW() - INTERVAL '${hoursNum}' HOUR
       ORDER BY double1 DESC
-      LIMIT ${parseInt(limit as string)}
+      LIMIT ${limitNum}
     `;
 
     const result = await queryAnalyticsEngine(env, sql);

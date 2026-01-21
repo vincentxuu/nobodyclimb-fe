@@ -1,6 +1,12 @@
 import { createMiddleware } from 'hono/factory';
 import { Env } from '../types';
 
+// 常數定義
+const MAX_BLOB_LENGTH = 256;
+
+// 已知的安全錯誤類型（可以記錄）
+const SAFE_ERROR_TYPES = ['Unauthorized', 'Forbidden', 'Not Found', 'Bad Request', 'Validation Error'];
+
 /**
  * Access Log Middleware
  * 記錄所有 API 請求到 Cloudflare Analytics Engine
@@ -47,13 +53,21 @@ export const accessLogMiddleware = createMiddleware<{ Bindings: Env }>(
       // 用戶未認證，保持 anonymous
     }
 
-    // 錯誤訊息（如果有）
+    // 錯誤訊息（如果有）- 只記錄安全的錯誤類型
     let errorMessage = '';
     if (statusCode >= 400) {
       try {
         const clonedRes = c.res.clone();
         const body = await clonedRes.json() as { error?: string; message?: string };
-        errorMessage = body?.error || body?.message || '';
+        const rawError = body?.error || '';
+        // 只記錄已知的安全錯誤類型，避免洩露敏感資訊
+        if (SAFE_ERROR_TYPES.includes(rawError)) {
+          errorMessage = rawError;
+        } else if (statusCode >= 500) {
+          errorMessage = 'Internal Server Error'; // 不記錄詳細的伺服器錯誤
+        } else {
+          errorMessage = body?.message || rawError || '';
+        }
       } catch {
         // 無法解析錯誤訊息
       }
@@ -67,12 +81,12 @@ export const accessLogMiddleware = createMiddleware<{ Bindings: Env }>(
           blobs: [
             method,
             path,
-            userAgent.substring(0, 256), // 限制長度
+            userAgent.substring(0, MAX_BLOB_LENGTH),
             country,
             userId,
             ip,
             String(statusCode),
-            errorMessage.substring(0, 256),
+            errorMessage.substring(0, MAX_BLOB_LENGTH),
           ],
           doubles: [responseTime, statusCode],
           indexes: [path],
