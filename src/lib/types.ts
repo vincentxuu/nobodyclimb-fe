@@ -1,77 +1,14 @@
 /**
  * 類型定義檔案
- * 此檔案為專案的單一類型定義來源
+ *
+ * 注意：此檔案正在逐步拆分到 src/lib/types/ 目錄
+ * 新類型請加到對應的子模組中
  */
 
 // ============================================
-// 使用者相關
+// 使用者相關（已拆分到 types/user.ts）
 // ============================================
-
-/**
- * 使用者介面
- */
-export interface User {
-  id: string
-  username: string
-  email: string
-  avatar?: string
-  avatarStyle?: string
-  bio?: string
-  createdAt: Date
-  updatedAt?: Date
-  displayName?: string
-  climbingStartYear?: string
-  frequentGym?: string
-  favoriteRouteType?: string
-  authProvider?: 'local' | 'google'
-  socialLinks?: {
-    instagram?: string
-    facebook?: string
-    twitter?: string
-    website?: string
-  }
-}
-
-/**
- * 後端 User 資料格式 (snake_case)
- */
-export interface BackendUser {
-  id: string
-  email: string
-  username: string
-  display_name?: string
-  avatar_url?: string
-  bio?: string
-  climbing_start_year?: string
-  frequent_gym?: string
-  favorite_route_type?: string
-  role: 'user' | 'admin' | 'moderator'
-  is_active?: number
-  email_verified?: number
-  google_id?: string
-  auth_provider?: 'local' | 'google'
-  created_at: string
-  updated_at?: string
-}
-
-/**
- * 將後端 User 格式轉換為前端格式
- */
-export function mapBackendUserToUser(backendUser: BackendUser): User {
-  return {
-    id: backendUser.id,
-    email: backendUser.email,
-    username: backendUser.username,
-    displayName: backendUser.display_name,
-    avatar: backendUser.avatar_url,
-    bio: backendUser.bio,
-    climbingStartYear: backendUser.climbing_start_year,
-    frequentGym: backendUser.frequent_gym,
-    favoriteRouteType: backendUser.favorite_route_type,
-    authProvider: backendUser.auth_provider,
-    createdAt: new Date(backendUser.created_at),
-  }
-}
+export { User, BackendUser, mapBackendUserToUser } from './types/user'
 
 // ============================================
 // 內容相關
@@ -1281,38 +1218,6 @@ export interface ActivityTimelineItem {
 }
 
 // ============================================
-// 通知相關
+// 通知相關（已拆分到 types/notification.ts）
 // ============================================
-
-/**
- * 通知類型枚舉
- * 與後端 notifications.ts 保持同步
- */
-export enum NotificationType {
-  GOAL_LIKED = 'goal_liked',
-  GOAL_COMMENTED = 'goal_commented',
-  GOAL_REFERENCED = 'goal_referenced',
-  NEW_FOLLOWER = 'new_follower',
-  STORY_FEATURED = 'story_featured',
-  BIOGRAPHY_COMMENTED = 'biography_commented',
-  POST_LIKED = 'post_liked',
-  POST_COMMENTED = 'post_commented',
-  SYSTEM_ANNOUNCEMENT = 'system_announcement',
-}
-
-/**
- * 通知介面
- */
-export interface Notification {
-  id: string
-  user_id: string
-  type: NotificationType | string
-  actor_id: string | null
-  target_id: string | null
-  title: string
-  message: string
-  is_read: number
-  created_at: string
-  actor_name?: string
-  actor_avatar?: string
-}
+export { NotificationType, type Notification } from './types/notification'
