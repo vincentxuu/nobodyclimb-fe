@@ -15,6 +15,9 @@ export interface Env {
   CLOUDFLARE_API_TOKEN?: string;
 }
 
+// Type alias for backwards compatibility
+export type Bindings = Env;
+
 // Analytics Engine Dataset Type
 export interface AnalyticsEngineDataset {
   writeDataPoint(event: {

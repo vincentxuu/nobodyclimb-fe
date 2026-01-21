@@ -613,7 +613,13 @@ export type NotificationType =
   | 'story_featured'
   | 'biography_commented'
   | 'post_liked'
-  | 'post_commented';
+  | 'post_commented'
+  | 'core_story_liked'
+  | 'core_story_commented'
+  | 'one_liner_liked'
+  | 'one_liner_commented'
+  | 'story_liked'
+  | 'story_commented';
 
 // ═══════════════════════════════════════════════════════════
 // Helper function to create notifications (with deduplication)
