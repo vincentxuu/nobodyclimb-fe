@@ -949,6 +949,62 @@ biographiesRoutes.put('/me', authMiddleware, async (c) => {
     }
   }
 
+  // 同步 stories_data 到 biography_stories 表
+  if (body.stories_data !== undefined) {
+    const storiesData = typeof body.stories_data === 'string'
+      ? JSON.parse(body.stories_data)
+      : body.stories_data;
+
+    if (storiesData && typeof storiesData === 'object') {
+      const now = new Date().toISOString();
+
+      // stories_data 格式: { category: { question_id: { answer, visibility, updated_at } } }
+      for (const [categoryId, questions] of Object.entries(storiesData)) {
+        if (questions && typeof questions === 'object') {
+          for (const [questionId, data] of Object.entries(questions as Record<string, unknown>)) {
+            const itemData = data as { answer?: string; visibility?: string };
+            const content = itemData?.answer;
+
+            if (content !== undefined) {
+              const existingStory = await c.env.DB.prepare(
+                'SELECT id FROM biography_stories WHERE biography_id = ? AND question_id = ?'
+              )
+                .bind(existing.id, questionId)
+                .first<{ id: string }>();
+
+              if (content === null || content.trim() === '') {
+                // 如果內容為空，刪除記錄
+                if (existingStory) {
+                  await c.env.DB.prepare('DELETE FROM biography_stories WHERE id = ?')
+                    .bind(existingStory.id)
+                    .run();
+                }
+              } else if (existingStory) {
+                // 更新現有記錄
+                const wordCount = content.trim().length;
+                await c.env.DB.prepare(
+                  'UPDATE biography_stories SET content = ?, category_id = ?, word_count = ?, updated_at = ? WHERE id = ?'
+                )
+                  .bind(content.trim(), categoryId === 'uncategorized' ? null : categoryId, wordCount, now, existingStory.id)
+                  .run();
+              } else {
+                // 插入新記錄
+                const storyId = generateId();
+                const wordCount = content.trim().length;
+                await c.env.DB.prepare(
+                  `INSERT INTO biography_stories (id, biography_id, question_id, category_id, content, source, word_count, created_at, updated_at)
+                   VALUES (?, ?, ?, ?, ?, 'system', ?, ?, ?)`
+                )
+                  .bind(storyId, existing.id, questionId, categoryId === 'uncategorized' ? null : categoryId, content.trim(), wordCount, now, now)
+                  .run();
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+
   const biography = await c.env.DB.prepare(
     'SELECT * FROM biographies WHERE id = ?'
   )
@@ -1089,6 +1145,62 @@ biographiesRoutes.put('/me/autosave', authMiddleware, async (c) => {
             )
               .bind(oneLinerId, existing.id, questionId, answer.trim(), now, now)
               .run();
+          }
+        }
+      }
+    }
+  }
+
+  // 同步 stories_data 到 biography_stories 表 (autosave)
+  if (body.stories_data !== undefined) {
+    const storiesData = typeof body.stories_data === 'string'
+      ? JSON.parse(body.stories_data as string)
+      : body.stories_data;
+
+    if (storiesData && typeof storiesData === 'object') {
+      const now = new Date().toISOString();
+
+      // stories_data 格式: { category: { question_id: { answer, visibility, updated_at } } }
+      for (const [categoryId, questions] of Object.entries(storiesData)) {
+        if (questions && typeof questions === 'object') {
+          for (const [questionId, data] of Object.entries(questions as Record<string, unknown>)) {
+            const itemData = data as { answer?: string; visibility?: string };
+            const content = itemData?.answer;
+
+            if (content !== undefined) {
+              const existingStory = await c.env.DB.prepare(
+                'SELECT id FROM biography_stories WHERE biography_id = ? AND question_id = ?'
+              )
+                .bind(existing.id, questionId)
+                .first<{ id: string }>();
+
+              if (content === null || content.trim() === '') {
+                // 如果內容為空，刪除記錄
+                if (existingStory) {
+                  await c.env.DB.prepare('DELETE FROM biography_stories WHERE id = ?')
+                    .bind(existingStory.id)
+                    .run();
+                }
+              } else if (existingStory) {
+                // 更新現有記錄
+                const wordCount = content.trim().length;
+                await c.env.DB.prepare(
+                  'UPDATE biography_stories SET content = ?, category_id = ?, word_count = ?, updated_at = ? WHERE id = ?'
+                )
+                  .bind(content.trim(), categoryId === 'uncategorized' ? null : categoryId, wordCount, now, existingStory.id)
+                  .run();
+              } else {
+                // 插入新記錄
+                const storyId = generateId();
+                const wordCount = content.trim().length;
+                await c.env.DB.prepare(
+                  `INSERT INTO biography_stories (id, biography_id, question_id, category_id, content, source, word_count, created_at, updated_at)
+                   VALUES (?, ?, ?, ?, ?, 'system', ?, ?, ?)`
+                )
+                  .bind(storyId, existing.id, questionId, categoryId === 'uncategorized' ? null : categoryId, content.trim(), wordCount, now, now)
+                  .run();
+              }
+            }
           }
         }
       }
