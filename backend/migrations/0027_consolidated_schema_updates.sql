@@ -2,7 +2,7 @@
 -- Migration: Consolidated Schema Updates (0027-0032)
 -- Description:
 --   This migration consolidates all changes from the original 0027-0032 migrations:
---   - Add last_active_at to users table
+--   - Add tracking fields to users table (last_active_at, last_login_at, login_count, referral_source)
 --   - Remove redundant climbing fields from users table (now in biographies)
 --   - Update notifications table with all notification types
 --   - Create notification_preferences table
@@ -13,12 +13,25 @@
 -- ═══════════════════════════════════════════════════════════════════════════
 
 -- ============================================
--- PART 1: Users Table - Add last_active_at
+-- PART 1: Users Table - Add tracking fields
 -- ============================================
 
+-- Activity tracking
 ALTER TABLE users ADD COLUMN last_active_at TEXT;
+ALTER TABLE users ADD COLUMN last_login_at TEXT;
+ALTER TABLE users ADD COLUMN login_count INTEGER DEFAULT 0;
+
+-- Referral tracking
+ALTER TABLE users ADD COLUMN referral_source TEXT;
+
+-- Create indexes
 CREATE INDEX IF NOT EXISTS idx_users_last_active ON users(last_active_at);
+CREATE INDEX IF NOT EXISTS idx_users_last_login ON users(last_login_at);
+
+-- Initialize values for existing users
 UPDATE users SET last_active_at = COALESCE(updated_at, created_at) WHERE last_active_at IS NULL;
+UPDATE users SET last_login_at = created_at WHERE last_login_at IS NULL;
+UPDATE users SET login_count = 1 WHERE login_count IS NULL OR login_count = 0;
 
 -- Remove redundant climbing fields (data exists in biographies table)
 ALTER TABLE users DROP COLUMN climbing_start_year;

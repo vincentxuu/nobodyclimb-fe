@@ -33,6 +33,7 @@ const registerSchema = z.object({
     .regex(/^[a-zA-Z0-9_]+$/),
   password: z.string().min(8),
   display_name: z.string().optional(),
+  referral_source: z.string().optional(),
 });
 
 const loginSchema = z.object({
@@ -42,7 +43,7 @@ const loginSchema = z.object({
 
 // POST /auth/register
 authRoutes.post('/register', zValidator('json', registerSchema), async (c) => {
-  const { email, username, password, display_name } = c.req.valid('json');
+  const { email, username, password, display_name, referral_source } = c.req.valid('json');
 
   // Check if email or username already exists
   const existing = await c.env.DB.prepare(
@@ -66,10 +67,10 @@ authRoutes.post('/register', zValidator('json', registerSchema), async (c) => {
   const password_hash = await hashPassword(password);
 
   await c.env.DB.prepare(
-    `INSERT INTO users (id, email, username, password_hash, display_name)
-     VALUES (?, ?, ?, ?, ?)`
+    `INSERT INTO users (id, email, username, password_hash, display_name, referral_source, last_login_at, login_count)
+     VALUES (?, ?, ?, ?, ?, ?, datetime('now'), 1)`
   )
-    .bind(id, email, username, password_hash, display_name || null)
+    .bind(id, email, username, password_hash, display_name || null, referral_source || null)
     .run();
 
   const access_token = await generateAccessToken(c.env, {
@@ -163,6 +164,13 @@ authRoutes.post('/login', zValidator('json', loginSchema), async (c) => {
      VALUES (?, ?, ?, ?)`
   )
     .bind(generateId(), user.id, refresh_token_hash, expires_at)
+    .run();
+
+  // Update login tracking
+  await c.env.DB.prepare(
+    `UPDATE users SET last_login_at = datetime('now'), login_count = COALESCE(login_count, 0) + 1 WHERE id = ?`
+  )
+    .bind(user.id)
     .run();
 
   return c.json({
@@ -379,6 +387,7 @@ authRoutes.post('/logout', authMiddleware, async (c) => {
 // Google OAuth schema
 const googleAuthSchema = z.object({
   credential: z.string().min(1),
+  referral_source: z.string().optional(),
 });
 
 // Google token payload validation schema
@@ -399,7 +408,7 @@ const googleTokenPayloadSchema = z.object({
 
 // POST /auth/google
 authRoutes.post('/google', zValidator('json', googleAuthSchema), async (c) => {
-  const { credential } = c.req.valid('json');
+  const { credential, referral_source } = c.req.valid('json');
 
   // Validate GOOGLE_CLIENT_ID is configured
   if (!c.env.GOOGLE_CLIENT_ID) {
@@ -516,8 +525,8 @@ authRoutes.post('/google', zValidator('json', googleAuthSchema), async (c) => {
       }
 
       await c.env.DB.prepare(
-        `INSERT INTO users (id, email, username, display_name, avatar_url, google_id, auth_provider, email_verified)
-         VALUES (?, ?, ?, ?, ?, ?, 'google', 1)`
+        `INSERT INTO users (id, email, username, display_name, avatar_url, google_id, auth_provider, email_verified, referral_source, last_login_at, login_count)
+         VALUES (?, ?, ?, ?, ?, ?, 'google', 1, ?, datetime('now'), 1)`
       )
         .bind(
           id,
@@ -525,7 +534,8 @@ authRoutes.post('/google', zValidator('json', googleAuthSchema), async (c) => {
           username,
           googlePayload.name || null,
           googlePayload.picture || null,
-          googlePayload.sub
+          googlePayload.sub,
+          referral_source || null
         )
         .run();
 
@@ -563,6 +573,13 @@ authRoutes.post('/google', zValidator('json', googleAuthSchema), async (c) => {
        VALUES (?, ?, ?, ?)`
     )
       .bind(generateId(), user.id, refresh_token_hash, expires_at)
+      .run();
+
+    // Update login tracking
+    await c.env.DB.prepare(
+      `UPDATE users SET last_login_at = datetime('now'), login_count = COALESCE(login_count, 0) + 1 WHERE id = ?`
+    )
+      .bind(user.id)
       .run();
 
     return c.json({
