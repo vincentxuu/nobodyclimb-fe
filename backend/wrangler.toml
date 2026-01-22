@@ -45,7 +45,7 @@ binding = "DB"
 
 database_name = "nobodyclimb-db-preview"
 
-database_id = "6193f059-d301-4a9b-a134-c5ab03652f72"
+database_id = "e222129e-3ecf-4c6a-a410-09301c7c5ce8"
 
 migrations_dir = "migrations"
 
