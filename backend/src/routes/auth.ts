@@ -21,7 +21,10 @@ const GOOGLE_JWKS = jose.createRemoteJWKSet(
 );
 
 // User fields to select (reusable constant for maintainability)
-const USER_SELECT_FIELDS = 'id, email, username, display_name, avatar_url, bio, climbing_start_year, frequent_gym, favorite_route_type, role, google_id, auth_provider, created_at';
+const USER_SELECT_FIELDS = 'id, email, username, display_name, avatar_url, bio, role, google_id, auth_provider, created_at';
+
+// Valid referral sources
+const REFERRAL_SOURCES = ['instagram', 'facebook', 'youtube', 'google', 'friend', 'event', 'organic', 'other'] as const;
 
 // Validation schemas
 const registerSchema = z.object({
@@ -33,6 +36,7 @@ const registerSchema = z.object({
     .regex(/^[a-zA-Z0-9_]+$/),
   password: z.string().min(8),
   display_name: z.string().optional(),
+  referral_source: z.enum(REFERRAL_SOURCES).optional(),
 });
 
 const loginSchema = z.object({
@@ -42,7 +46,7 @@ const loginSchema = z.object({
 
 // POST /auth/register
 authRoutes.post('/register', zValidator('json', registerSchema), async (c) => {
-  const { email, username, password, display_name } = c.req.valid('json');
+  const { email, username, password, display_name, referral_source } = c.req.valid('json');
 
   // Check if email or username already exists
   const existing = await c.env.DB.prepare(
@@ -66,10 +70,10 @@ authRoutes.post('/register', zValidator('json', registerSchema), async (c) => {
   const password_hash = await hashPassword(password);
 
   await c.env.DB.prepare(
-    `INSERT INTO users (id, email, username, password_hash, display_name)
-     VALUES (?, ?, ?, ?, ?)`
+    `INSERT INTO users (id, email, username, password_hash, display_name, referral_source, last_login_at, login_count)
+     VALUES (?, ?, ?, ?, ?, ?, datetime('now'), 1)`
   )
-    .bind(id, email, username, password_hash, display_name || null)
+    .bind(id, email, username, password_hash, display_name || null, referral_source || null)
     .run();
 
   const access_token = await generateAccessToken(c.env, {
@@ -155,15 +159,18 @@ authRoutes.post('/login', zValidator('json', loginSchema), async (c) => {
   });
   const refresh_token = await generateRefreshToken(c.env, { sub: user.id });
 
-  // Store refresh token hash
+  // Store refresh token hash and update login tracking (batched for performance)
   const refresh_token_hash = await hashPassword(refresh_token);
   const expires_at = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString();
-  await c.env.DB.prepare(
-    `INSERT INTO refresh_tokens (id, user_id, token_hash, expires_at)
-     VALUES (?, ?, ?, ?)`
-  )
-    .bind(generateId(), user.id, refresh_token_hash, expires_at)
-    .run();
+
+  await c.env.DB.batch([
+    c.env.DB.prepare(
+      `INSERT INTO refresh_tokens (id, user_id, token_hash, expires_at) VALUES (?, ?, ?, ?)`
+    ).bind(generateId(), user.id, refresh_token_hash, expires_at),
+    c.env.DB.prepare(
+      `UPDATE users SET last_login_at = datetime('now'), login_count = COALESCE(login_count, 0) + 1 WHERE id = ?`
+    ).bind(user.id),
+  ]);
 
   return c.json({
     success: true,
@@ -266,9 +273,6 @@ authRoutes.put('/profile', authMiddleware, async (c) => {
     display_name?: string;
     bio?: string;
     avatar_url?: string;
-    climbing_start_year?: string;
-    frequent_gym?: string;
-    favorite_route_type?: string;
   }>();
 
   const updates: string[] = [];
@@ -331,18 +335,6 @@ authRoutes.put('/profile', authMiddleware, async (c) => {
     updates.push('avatar_url = ?');
     values.push(body.avatar_url);
   }
-  if (body.climbing_start_year !== undefined) {
-    updates.push('climbing_start_year = ?');
-    values.push(body.climbing_start_year);
-  }
-  if (body.frequent_gym !== undefined) {
-    updates.push('frequent_gym = ?');
-    values.push(body.frequent_gym);
-  }
-  if (body.favorite_route_type !== undefined) {
-    updates.push('favorite_route_type = ?');
-    values.push(body.favorite_route_type);
-  }
 
   if (updates.length === 0) {
     return c.json(
@@ -394,6 +386,7 @@ authRoutes.post('/logout', authMiddleware, async (c) => {
 // Google OAuth schema
 const googleAuthSchema = z.object({
   credential: z.string().min(1),
+  referral_source: z.enum(REFERRAL_SOURCES).optional(),
 });
 
 // Google token payload validation schema
@@ -414,7 +407,7 @@ const googleTokenPayloadSchema = z.object({
 
 // POST /auth/google
 authRoutes.post('/google', zValidator('json', googleAuthSchema), async (c) => {
-  const { credential } = c.req.valid('json');
+  const { credential, referral_source } = c.req.valid('json');
 
   // Validate GOOGLE_CLIENT_ID is configured
   if (!c.env.GOOGLE_CLIENT_ID) {
@@ -531,8 +524,8 @@ authRoutes.post('/google', zValidator('json', googleAuthSchema), async (c) => {
       }
 
       await c.env.DB.prepare(
-        `INSERT INTO users (id, email, username, display_name, avatar_url, google_id, auth_provider, email_verified)
-         VALUES (?, ?, ?, ?, ?, ?, 'google', 1)`
+        `INSERT INTO users (id, email, username, display_name, avatar_url, google_id, auth_provider, email_verified, referral_source, last_login_at, login_count)
+         VALUES (?, ?, ?, ?, ?, ?, 'google', 1, ?, datetime('now'), 1)`
       )
         .bind(
           id,
@@ -540,7 +533,8 @@ authRoutes.post('/google', zValidator('json', googleAuthSchema), async (c) => {
           username,
           googlePayload.name || null,
           googlePayload.picture || null,
-          googlePayload.sub
+          googlePayload.sub,
+          referral_source || null
         )
         .run();
 
@@ -570,15 +564,18 @@ authRoutes.post('/google', zValidator('json', googleAuthSchema), async (c) => {
     });
     const refresh_token = await generateRefreshToken(c.env, { sub: user.id });
 
-    // Store refresh token hash
+    // Store refresh token hash and update login tracking (batched for performance)
     const refresh_token_hash = await hashPassword(refresh_token);
     const expires_at = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString();
-    await c.env.DB.prepare(
-      `INSERT INTO refresh_tokens (id, user_id, token_hash, expires_at)
-       VALUES (?, ?, ?, ?)`
-    )
-      .bind(generateId(), user.id, refresh_token_hash, expires_at)
-      .run();
+
+    await c.env.DB.batch([
+      c.env.DB.prepare(
+        `INSERT INTO refresh_tokens (id, user_id, token_hash, expires_at) VALUES (?, ?, ?, ?)`
+      ).bind(generateId(), user.id, refresh_token_hash, expires_at),
+      c.env.DB.prepare(
+        `UPDATE users SET last_login_at = datetime('now'), login_count = COALESCE(login_count, 0) + 1 WHERE id = ?`
+      ).bind(user.id),
+    ]);
 
     return c.json({
       success: true,

@@ -606,10 +606,10 @@ biographyContentRoutes.post('/biographies/:biographyId/stories', authMiddleware,
   const wordCount = content.length;
 
   await c.env.DB.prepare(`
-    INSERT INTO biography_stories (id, biography_id, question_id, question_text, category_id, content, source, word_count, created_at, updated_at)
+    INSERT INTO biography_stories (id, biography_id, question_id, question_text, category_id, content, source, character_count, created_at, updated_at)
     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     ON CONFLICT (biography_id, question_id)
-    DO UPDATE SET content = excluded.content, question_text = excluded.question_text, category_id = excluded.category_id, word_count = excluded.word_count, updated_at = excluded.updated_at
+    DO UPDATE SET content = excluded.content, question_text = excluded.question_text, category_id = excluded.category_id, character_count = excluded.character_count, updated_at = excluded.updated_at
   `).bind(id, biographyId, question_id, question_text || null, category_id || null, content, source || 'system', wordCount, now, now).run();
 
   return c.json({ success: true, message: '故事已儲存' });

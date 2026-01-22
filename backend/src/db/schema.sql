@@ -13,22 +13,26 @@ CREATE TABLE IF NOT EXISTS users (
   display_name TEXT,
   avatar_url TEXT,
   bio TEXT,
-  climbing_start_year TEXT,
-  frequent_gym TEXT,
-  favorite_route_type TEXT,
   role TEXT DEFAULT 'user' CHECK (role IN ('user', 'admin', 'moderator')),
   is_active INTEGER DEFAULT 1,
   email_verified INTEGER DEFAULT 0,
   google_id TEXT UNIQUE,
   auth_provider TEXT DEFAULT 'local' CHECK (auth_provider IN ('local', 'google')),
+  -- Activity tracking
+  last_active_at TEXT,
+  last_login_at TEXT,
+  login_count INTEGER DEFAULT 0,
+  -- Referral tracking
+  referral_source TEXT,
   created_at TEXT DEFAULT (datetime('now')),
   updated_at TEXT DEFAULT (datetime('now'))
 );
 
 CREATE INDEX IF NOT EXISTS idx_users_google_id ON users(google_id);
-
 CREATE INDEX IF NOT EXISTS idx_users_email ON users(email);
 CREATE INDEX IF NOT EXISTS idx_users_username ON users(username);
+CREATE INDEX IF NOT EXISTS idx_users_last_active ON users(last_active_at);
+CREATE INDEX IF NOT EXISTS idx_users_last_login ON users(last_login_at);
 
 CREATE TABLE IF NOT EXISTS refresh_tokens (
   id TEXT PRIMARY KEY,

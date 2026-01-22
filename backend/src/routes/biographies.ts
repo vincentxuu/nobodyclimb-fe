@@ -643,17 +643,17 @@ biographiesRoutes.post('/', authMiddleware, async (c) => {
                       .bind(existingStory.id).run();
                   }
                 } else if (existingStory) {
-                  const wordCount = content.trim().length;
+                  const characterCount = content.trim().length;
                   await c.env.DB.prepare(
-                    'UPDATE biography_stories SET content = ?, category_id = ?, word_count = ?, updated_at = ? WHERE id = ?'
-                  ).bind(content.trim(), categoryId === 'uncategorized' ? null : categoryId, wordCount, now, existingStory.id).run();
+                    'UPDATE biography_stories SET content = ?, category_id = ?, character_count = ?, updated_at = ? WHERE id = ?'
+                  ).bind(content.trim(), categoryId === 'uncategorized' ? null : categoryId, characterCount, now, existingStory.id).run();
                 } else {
                   const storyId = generateId();
-                  const wordCount = content.trim().length;
+                  const characterCount = content.trim().length;
                   await c.env.DB.prepare(
-                    `INSERT INTO biography_stories (id, biography_id, question_id, category_id, content, source, word_count, created_at, updated_at)
+                    `INSERT INTO biography_stories (id, biography_id, question_id, category_id, content, source, character_count, created_at, updated_at)
                      VALUES (?, ?, ?, ?, ?, 'system', ?, ?, ?)`
-                  ).bind(storyId, existing.id, questionId, categoryId === 'uncategorized' ? null : categoryId, content.trim(), wordCount, now, now).run();
+                  ).bind(storyId, existing.id, questionId, categoryId === 'uncategorized' ? null : categoryId, content.trim(), characterCount, now, now).run();
                 }
               }
             }
@@ -788,11 +788,11 @@ biographiesRoutes.post('/', authMiddleware, async (c) => {
 
             if (content && content.trim() !== '') {
               const storyId = generateId();
-              const wordCount = content.trim().length;
+              const characterCount = content.trim().length;
               await c.env.DB.prepare(
-                `INSERT INTO biography_stories (id, biography_id, question_id, category_id, content, source, word_count, created_at, updated_at)
+                `INSERT INTO biography_stories (id, biography_id, question_id, category_id, content, source, character_count, created_at, updated_at)
                  VALUES (?, ?, ?, ?, ?, 'system', ?, ?, ?)`
-              ).bind(storyId, id, questionId, categoryId === 'uncategorized' ? null : categoryId, content.trim(), wordCount, now, now).run();
+              ).bind(storyId, id, questionId, categoryId === 'uncategorized' ? null : categoryId, content.trim(), characterCount, now, now).run();
             }
           }
         }
@@ -948,11 +948,11 @@ biographiesRoutes.put('/me', authMiddleware, async (c) => {
 
               if (content && content.trim() !== '') {
                 const storyId = generateId();
-                const wordCount = content.trim().length;
+                const characterCount = content.trim().length;
                 await c.env.DB.prepare(
-                  `INSERT INTO biography_stories (id, biography_id, question_id, category_id, content, source, word_count, created_at, updated_at)
+                  `INSERT INTO biography_stories (id, biography_id, question_id, category_id, content, source, character_count, created_at, updated_at)
                    VALUES (?, ?, ?, ?, ?, 'system', ?, ?, ?)`
-                ).bind(storyId, id, questionId, categoryId === 'uncategorized' ? null : categoryId, content.trim(), wordCount, now, now).run();
+                ).bind(storyId, id, questionId, categoryId === 'uncategorized' ? null : categoryId, content.trim(), characterCount, now, now).run();
               }
             }
           }
@@ -1143,21 +1143,21 @@ biographiesRoutes.put('/me', authMiddleware, async (c) => {
                 }
               } else if (existingStory) {
                 // 更新現有記錄
-                const wordCount = content.trim().length;
+                const characterCount = content.trim().length;
                 await c.env.DB.prepare(
-                  'UPDATE biography_stories SET content = ?, category_id = ?, word_count = ?, updated_at = ? WHERE id = ?'
+                  'UPDATE biography_stories SET content = ?, category_id = ?, character_count = ?, updated_at = ? WHERE id = ?'
                 )
-                  .bind(content.trim(), categoryId === 'uncategorized' ? null : categoryId, wordCount, now, existingStory.id)
+                  .bind(content.trim(), categoryId === 'uncategorized' ? null : categoryId, characterCount, now, existingStory.id)
                   .run();
               } else {
                 // 插入新記錄
                 const storyId = generateId();
-                const wordCount = content.trim().length;
+                const characterCount = content.trim().length;
                 await c.env.DB.prepare(
-                  `INSERT INTO biography_stories (id, biography_id, question_id, category_id, content, source, word_count, created_at, updated_at)
+                  `INSERT INTO biography_stories (id, biography_id, question_id, category_id, content, source, character_count, created_at, updated_at)
                    VALUES (?, ?, ?, ?, ?, 'system', ?, ?, ?)`
                 )
-                  .bind(storyId, existing.id, questionId, categoryId === 'uncategorized' ? null : categoryId, content.trim(), wordCount, now, now)
+                  .bind(storyId, existing.id, questionId, categoryId === 'uncategorized' ? null : categoryId, content.trim(), characterCount, now, now)
                   .run();
               }
             }
@@ -1374,21 +1374,21 @@ biographiesRoutes.put('/me/autosave', authMiddleware, async (c) => {
                 }
               } else if (existingStory) {
                 // 更新現有記錄
-                const wordCount = content.trim().length;
+                const characterCount = content.trim().length;
                 await c.env.DB.prepare(
-                  'UPDATE biography_stories SET content = ?, category_id = ?, word_count = ?, updated_at = ? WHERE id = ?'
+                  'UPDATE biography_stories SET content = ?, category_id = ?, character_count = ?, updated_at = ? WHERE id = ?'
                 )
-                  .bind(content.trim(), categoryId === 'uncategorized' ? null : categoryId, wordCount, now, existingStory.id)
+                  .bind(content.trim(), categoryId === 'uncategorized' ? null : categoryId, characterCount, now, existingStory.id)
                   .run();
               } else {
                 // 插入新記錄
                 const storyId = generateId();
-                const wordCount = content.trim().length;
+                const characterCount = content.trim().length;
                 await c.env.DB.prepare(
-                  `INSERT INTO biography_stories (id, biography_id, question_id, category_id, content, source, word_count, created_at, updated_at)
+                  `INSERT INTO biography_stories (id, biography_id, question_id, category_id, content, source, character_count, created_at, updated_at)
                    VALUES (?, ?, ?, ?, ?, 'system', ?, ?, ?)`
                 )
-                  .bind(storyId, existing.id, questionId, categoryId === 'uncategorized' ? null : categoryId, content.trim(), wordCount, now, now)
+                  .bind(storyId, existing.id, questionId, categoryId === 'uncategorized' ? null : categoryId, content.trim(), characterCount, now, now)
                   .run();
               }
             }
