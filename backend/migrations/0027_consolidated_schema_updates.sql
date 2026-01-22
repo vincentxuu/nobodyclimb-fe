@@ -640,71 +640,76 @@ WHERE visibility IS NULL AND (is_public = 0 OR is_public IS NULL);
 
 -- ============================================
 -- PART 13: Cleanup redundant biography columns
+-- Using table rebuild for SQLite/D1 compatibility (DROP COLUMN not allowed)
 -- ============================================
 
--- Remove is_public (replaced by visibility)
-ALTER TABLE biographies DROP COLUMN is_public;
+PRAGMA foreign_keys = OFF;
 
--- Remove core story columns (now in biography_core_stories)
-ALTER TABLE biographies DROP COLUMN climbing_origin;
-ALTER TABLE biographies DROP COLUMN climbing_meaning;
-ALTER TABLE biographies DROP COLUMN advice_to_self;
+-- Create new biographies table with only the fields we need to keep
+CREATE TABLE biographies_new (
+  id TEXT PRIMARY KEY,
+  user_id TEXT,
+  name TEXT NOT NULL,
+  slug TEXT UNIQUE NOT NULL,
+  title TEXT,
+  bio TEXT,
+  avatar_url TEXT,
+  cover_image TEXT,
+  -- Visibility (replaces is_public)
+  visibility TEXT DEFAULT 'private' CHECK (visibility IN ('private', 'public', 'unlisted')),
+  -- Metadata
+  achievements TEXT,
+  social_links TEXT,
+  tags_data TEXT,
+  basic_info_data TEXT,
+  -- Media integration
+  youtube_channel_id TEXT,
+  featured_video_id TEXT,
+  -- Statistics
+  total_likes INTEGER DEFAULT 0,
+  total_views INTEGER DEFAULT 0,
+  follower_count INTEGER DEFAULT 0,
+  comment_count INTEGER DEFAULT 0,
+  -- Status
+  is_featured INTEGER DEFAULT 0,
+  published_at TEXT,
+  autosave_at TEXT,
+  -- Timestamps
+  created_at TEXT DEFAULT (datetime('now')),
+  updated_at TEXT DEFAULT (datetime('now')),
+  FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE SET NULL
+);
 
--- Remove legacy story columns (never used in V2)
-ALTER TABLE biographies DROP COLUMN climbing_reason;
-ALTER TABLE biographies DROP COLUMN bucket_list;
-ALTER TABLE biographies DROP COLUMN advice;
+-- Copy data from old table (only the fields we're keeping)
+-- Note: Only selecting fields that exist after Part 12 migrations
+INSERT INTO biographies_new (
+  id, user_id, name, slug, title, bio, avatar_url, cover_image,
+  visibility,
+  achievements, social_links,
+  youtube_channel_id, featured_video_id,
+  total_likes, total_views, follower_count, comment_count,
+  is_featured, published_at,
+  created_at, updated_at
+)
+SELECT
+  b.id, b.user_id, b.name, b.slug, b.title, b.bio, b.avatar_url, b.cover_image,
+  COALESCE(b.visibility, 'private'),  -- Use migrated visibility value from Part 12
+  b.achievements, b.social_links,
+  b.youtube_channel_id, b.featured_video_id,
+  COALESCE(b.total_likes, 0), COALESCE(b.total_views, 0),
+  COALESCE(b.follower_count, 0), COALESCE(b.comment_count, 0),
+  b.is_featured, b.published_at,
+  b.created_at, b.updated_at
+FROM biographies b;
 
--- Remove advanced story columns (now in biography_stories)
--- Level 3A: Growth & Breakthrough
-ALTER TABLE biographies DROP COLUMN memorable_moment;
-ALTER TABLE biographies DROP COLUMN biggest_challenge;
-ALTER TABLE biographies DROP COLUMN breakthrough_story;
-ALTER TABLE biographies DROP COLUMN first_outdoor;
-ALTER TABLE biographies DROP COLUMN first_grade;
-ALTER TABLE biographies DROP COLUMN frustrating_climb;
+-- Drop old table and rename new one
+DROP TABLE biographies;
+ALTER TABLE biographies_new RENAME TO biographies;
 
--- Level 3B: Psychology & Philosophy
-ALTER TABLE biographies DROP COLUMN fear_management;
-ALTER TABLE biographies DROP COLUMN climbing_lesson;
-ALTER TABLE biographies DROP COLUMN failure_perspective;
-ALTER TABLE biographies DROP COLUMN flow_moment;
-ALTER TABLE biographies DROP COLUMN life_balance;
-ALTER TABLE biographies DROP COLUMN unexpected_gain;
+-- Recreate indexes
+CREATE INDEX IF NOT EXISTS idx_biographies_slug ON biographies(slug);
+CREATE INDEX IF NOT EXISTS idx_biographies_user ON biographies(user_id);
+CREATE INDEX IF NOT EXISTS idx_biographies_visibility ON biographies(visibility) WHERE visibility = 'public';
+CREATE INDEX IF NOT EXISTS idx_biographies_featured ON biographies(is_featured) WHERE is_featured = 1;
 
--- Level 3C: Community & Connection
-ALTER TABLE biographies DROP COLUMN climbing_mentor;
-ALTER TABLE biographies DROP COLUMN climbing_partner;
-ALTER TABLE biographies DROP COLUMN funny_moment;
-ALTER TABLE biographies DROP COLUMN favorite_spot;
-ALTER TABLE biographies DROP COLUMN advice_to_group;
-ALTER TABLE biographies DROP COLUMN climbing_space;
-
--- Level 3D: Practical Sharing
-ALTER TABLE biographies DROP COLUMN injury_recovery;
-ALTER TABLE biographies DROP COLUMN memorable_route;
-ALTER TABLE biographies DROP COLUMN training_method;
-ALTER TABLE biographies DROP COLUMN effective_practice;
-ALTER TABLE biographies DROP COLUMN technique_tip;
-ALTER TABLE biographies DROP COLUMN gear_choice;
-
--- Level 3E: Dreams & Exploration
-ALTER TABLE biographies DROP COLUMN dream_climb;
-ALTER TABLE biographies DROP COLUMN climbing_trip;
-ALTER TABLE biographies DROP COLUMN bucket_list_story;
-ALTER TABLE biographies DROP COLUMN climbing_goal;
-ALTER TABLE biographies DROP COLUMN climbing_style;
-ALTER TABLE biographies DROP COLUMN climbing_inspiration;
-
--- Level 3F: Life Integration
-ALTER TABLE biographies DROP COLUMN life_outside_climbing;
-
--- Remove JSON data columns (now synced to tables)
-ALTER TABLE biographies DROP COLUMN one_liners_data;
-ALTER TABLE biographies DROP COLUMN stories_data;
-
--- Remove gallery_images (can use separate media table)
-ALTER TABLE biographies DROP COLUMN gallery_images;
-
--- Drop index for is_public (no longer exists)
-DROP INDEX IF EXISTS idx_biographies_public;
+PRAGMA foreign_keys = ON;
