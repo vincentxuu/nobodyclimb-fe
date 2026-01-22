@@ -17,7 +17,7 @@
 -- Using table rebuild for SQLite compatibility
 -- ============================================
 
-PRAGMA foreign_keys = OFF;
+-- Note: D1 does not enforce foreign keys by default, so PRAGMA statements are not needed
 
 -- Create new users table with updated schema
 CREATE TABLE users_new (
@@ -71,13 +71,9 @@ CREATE INDEX IF NOT EXISTS idx_users_google_id ON users(google_id);
 CREATE INDEX IF NOT EXISTS idx_users_last_active ON users(last_active_at);
 CREATE INDEX IF NOT EXISTS idx_users_last_login ON users(last_login_at);
 
-PRAGMA foreign_keys = ON;
-
 -- ============================================
 -- PART 2: Notifications Table - Add all notification types
 -- ============================================
-
-PRAGMA foreign_keys = OFF;
 
 CREATE TABLE IF NOT EXISTS notifications_new (
   id TEXT PRIMARY KEY,
@@ -121,8 +117,6 @@ INNER JOIN users u ON n.user_id = u.id;
 
 DROP TABLE notifications;
 ALTER TABLE notifications_new RENAME TO notifications;
-
-PRAGMA foreign_keys = ON;
 
 -- Recreate indexes
 CREATE INDEX IF NOT EXISTS idx_notifications_user ON notifications(user_id);
@@ -594,7 +588,8 @@ WHERE b.one_liners_data IS NOT NULL
   );
 
 -- Migrate stories_data to biography_stories using temp table
-CREATE TEMP TABLE IF NOT EXISTS temp_stories_flat AS
+-- Note: D1 doesn't support TEMP TABLE, so we use a regular table and drop it after
+CREATE TABLE IF NOT EXISTS temp_stories_flat AS
 SELECT
   b.id as biography_id,
   cat.key as category_id,
@@ -642,8 +637,6 @@ WHERE visibility IS NULL AND (is_public = 0 OR is_public IS NULL);
 -- PART 13: Cleanup redundant biography columns
 -- Using table rebuild for SQLite/D1 compatibility (DROP COLUMN not allowed)
 -- ============================================
-
-PRAGMA foreign_keys = OFF;
 
 -- Create new biographies table with only the fields we need to keep
 CREATE TABLE biographies_new (
@@ -711,5 +704,3 @@ CREATE INDEX IF NOT EXISTS idx_biographies_slug ON biographies(slug);
 CREATE INDEX IF NOT EXISTS idx_biographies_user ON biographies(user_id);
 CREATE INDEX IF NOT EXISTS idx_biographies_visibility ON biographies(visibility) WHERE visibility = 'public';
 CREATE INDEX IF NOT EXISTS idx_biographies_featured ON biographies(is_featured) WHERE is_featured = 1;
-
-PRAGMA foreign_keys = ON;
