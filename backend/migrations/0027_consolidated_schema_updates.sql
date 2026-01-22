@@ -13,30 +13,65 @@
 -- ═══════════════════════════════════════════════════════════════════════════
 
 -- ============================================
--- PART 1: Users Table - Add tracking fields
+-- PART 1: Users Table - Restructure with new fields
+-- Using table rebuild for SQLite compatibility
 -- ============================================
 
--- Activity tracking
-ALTER TABLE users ADD COLUMN last_active_at TEXT;
-ALTER TABLE users ADD COLUMN last_login_at TEXT;
-ALTER TABLE users ADD COLUMN login_count INTEGER DEFAULT 0;
+PRAGMA foreign_keys = OFF;
 
--- Referral tracking
-ALTER TABLE users ADD COLUMN referral_source TEXT;
+-- Create new users table with updated schema
+CREATE TABLE users_new (
+  id TEXT PRIMARY KEY,
+  email TEXT UNIQUE NOT NULL,
+  username TEXT UNIQUE NOT NULL,
+  password_hash TEXT,
+  display_name TEXT,
+  avatar_url TEXT,
+  bio TEXT,
+  role TEXT DEFAULT 'user' CHECK (role IN ('user', 'admin', 'moderator')),
+  is_active INTEGER DEFAULT 1,
+  email_verified INTEGER DEFAULT 0,
+  google_id TEXT UNIQUE,
+  auth_provider TEXT DEFAULT 'local' CHECK (auth_provider IN ('local', 'google')),
+  -- Activity tracking (new)
+  last_active_at TEXT,
+  last_login_at TEXT,
+  login_count INTEGER DEFAULT 0,
+  -- Referral tracking (new)
+  referral_source TEXT,
+  created_at TEXT DEFAULT (datetime('now')),
+  updated_at TEXT DEFAULT (datetime('now'))
+  -- Removed: climbing_start_year, frequent_gym, favorite_route_type (now in biographies)
+);
 
--- Create indexes
+-- Copy data from old table
+INSERT INTO users_new (
+  id, email, username, password_hash, display_name, avatar_url, bio,
+  role, is_active, email_verified, google_id, auth_provider,
+  last_active_at, last_login_at, login_count,
+  created_at, updated_at
+)
+SELECT
+  id, email, username, password_hash, display_name, avatar_url, bio,
+  role, is_active, email_verified, google_id, auth_provider,
+  COALESCE(updated_at, created_at),  -- last_active_at
+  created_at,                         -- last_login_at (use created_at as initial)
+  1,                                  -- login_count (default to 1 for existing users)
+  created_at, updated_at
+FROM users;
+
+-- Drop old table and rename new one
+DROP TABLE users;
+ALTER TABLE users_new RENAME TO users;
+
+-- Recreate indexes
+CREATE INDEX IF NOT EXISTS idx_users_email ON users(email);
+CREATE INDEX IF NOT EXISTS idx_users_username ON users(username);
+CREATE INDEX IF NOT EXISTS idx_users_google_id ON users(google_id);
 CREATE INDEX IF NOT EXISTS idx_users_last_active ON users(last_active_at);
 CREATE INDEX IF NOT EXISTS idx_users_last_login ON users(last_login_at);
 
--- Initialize values for existing users
-UPDATE users SET last_active_at = COALESCE(updated_at, created_at) WHERE last_active_at IS NULL;
-UPDATE users SET last_login_at = created_at WHERE last_login_at IS NULL;
-UPDATE users SET login_count = 1 WHERE login_count IS NULL OR login_count = 0;
-
--- Remove redundant climbing fields (data exists in biographies table)
-ALTER TABLE users DROP COLUMN climbing_start_year;
-ALTER TABLE users DROP COLUMN frequent_gym;
-ALTER TABLE users DROP COLUMN favorite_route_type;
+PRAGMA foreign_keys = ON;
 
 -- ============================================
 -- PART 2: Notifications Table - Add all notification types
