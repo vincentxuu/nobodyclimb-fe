@@ -59,7 +59,7 @@ statsRoutes.get('/', async (c) => {
       SELECT
         (SELECT COUNT(*) FROM crags) as crags_count,
         (SELECT COUNT(*) FROM routes) as routes_count,
-        (SELECT COUNT(*) FROM biographies WHERE is_public = 1) as biographies_count,
+        (SELECT COUNT(*) FROM biographies WHERE visibility = 'public') as biographies_count,
         (SELECT COUNT(*) FROM videos) as videos_count,
         (SELECT COUNT(*) FROM posts WHERE status = 'published') as posts_count,
         (SELECT COUNT(*) FROM gyms) as gyms_count
@@ -393,7 +393,7 @@ statsRoutes.get('/admin/content', authMiddleware, adminMiddleware, async (c) => 
         (SELECT COUNT(*) FROM posts WHERE status = 'draft') as draft_posts,
         (SELECT COUNT(*) FROM posts WHERE created_at >= datetime('now', '-7 days')) as posts_week,
         (SELECT COUNT(*) FROM biographies) as total_biographies,
-        (SELECT COUNT(*) FROM biographies WHERE is_public = 1) as public_biographies,
+        (SELECT COUNT(*) FROM biographies WHERE visibility = 'public') as public_biographies,
         (SELECT COUNT(*) FROM biographies WHERE created_at >= datetime('now', '-7 days')) as biographies_week,
         (SELECT COUNT(*) FROM videos) as total_videos,
         (SELECT SUM(total_views) FROM biographies) as total_views,
@@ -445,7 +445,7 @@ statsRoutes.get('/admin/content', authMiddleware, adminMiddleware, async (c) => 
         b.follower_count
       FROM biographies b
       JOIN users u ON u.id = b.user_id
-      WHERE b.is_public = 1
+      WHERE b.visibility = 'public'
       ORDER BY b.total_views DESC
       LIMIT 10
     `).all<{
