@@ -319,7 +319,7 @@ CREATE TABLE IF NOT EXISTS biography_stories (
   hidden_reason TEXT,
   hidden_by TEXT,
   hidden_at TEXT,
-  word_count INTEGER DEFAULT 0,
+  character_count INTEGER DEFAULT 0,
   like_count INTEGER DEFAULT 0,
   comment_count INTEGER DEFAULT 0,
   created_at TEXT DEFAULT (datetime('now')),
@@ -540,6 +540,13 @@ AND user_id IN (SELECT id FROM users);
 -- ============================================
 -- PART 12: Migrate JSON data to new tables
 -- ============================================
+-- Note: UUID generation uses the following SQLite expression pattern:
+--   lower(hex(randomblob(8))) || '-' || lower(hex(randomblob(4))) || '-4' ||
+--   substr(lower(hex(randomblob(2))),2) || '-' ||
+--   substr('89ab',abs(random()) % 4 + 1, 1) || substr(lower(hex(randomblob(2))),2) || '-' ||
+--   lower(hex(randomblob(6)))
+-- This generates a UUID v4 compatible string. SQLite doesn't support UDFs in D1 migrations,
+-- so this pattern is repeated in each INSERT statement below.
 
 -- Migrate one_liners_data to biography_core_stories
 WITH core_questions (question_id, json_path) AS (
@@ -603,7 +610,7 @@ WHERE b.stories_data IS NOT NULL
   AND json_extract(q.value, '$.answer') IS NOT NULL
   AND TRIM(json_extract(q.value, '$.answer')) != '';
 
-INSERT INTO biography_stories (id, biography_id, question_id, category_id, content, source, word_count, created_at, updated_at)
+INSERT INTO biography_stories (id, biography_id, question_id, category_id, content, source, character_count, created_at, updated_at)
 SELECT
   lower(hex(randomblob(8))) || '-' || lower(hex(randomblob(4))) || '-4' || substr(lower(hex(randomblob(2))),2) || '-' || substr('89ab',abs(random()) % 4 + 1, 1) || substr(lower(hex(randomblob(2))),2) || '-' || lower(hex(randomblob(6))),
   t.biography_id,
