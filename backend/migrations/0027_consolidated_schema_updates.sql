@@ -78,27 +78,7 @@ CREATE INDEX IF NOT EXISTS idx_users_last_login ON users(last_login_at);
 CREATE TABLE IF NOT EXISTS notifications_new (
   id TEXT PRIMARY KEY,
   user_id TEXT NOT NULL,
-  type TEXT NOT NULL CHECK (type IN (
-    -- Original types
-    'goal_completed',
-    'goal_liked',
-    'goal_commented',
-    'goal_referenced',
-    'new_follower',
-    'story_featured',
-    'biography_commented',
-    'post_liked',
-    'post_commented',
-    'system_announcement',
-    -- New content interaction types
-    'biography_liked',
-    'core_story_liked',
-    'core_story_commented',
-    'one_liner_liked',
-    'one_liner_commented',
-    'story_liked',
-    'story_commented'
-  )),
+  type TEXT NOT NULL CHECK (type IN ('goal_completed', 'goal_liked', 'goal_commented', 'goal_referenced', 'new_follower', 'story_featured', 'biography_commented', 'post_liked', 'post_commented', 'system_announcement', 'biography_liked', 'core_story_liked', 'core_story_commented', 'one_liner_liked', 'one_liner_commented', 'story_liked', 'story_commented')),
   actor_id TEXT,
   target_id TEXT,
   title TEXT NOT NULL DEFAULT '',
