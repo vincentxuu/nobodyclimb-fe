@@ -10,60 +10,30 @@
 -- ============================================
 -- Migrate one_liners_data JSON to biography_core_stories
 -- Core stories: climbing_origin, climbing_meaning, advice_to_self
+-- Using CTE to reduce code duplication
 -- ============================================
 
--- climbing_origin
+WITH core_questions (question_id, json_path) AS (
+  VALUES
+    ('climbing_origin', '$.climbing_origin.answer'),
+    ('climbing_meaning', '$.climbing_meaning.answer'),
+    ('advice_to_self', '$.advice_to_self.answer')
+)
 INSERT INTO biography_core_stories (id, biography_id, question_id, content, created_at, updated_at)
 SELECT
   lower(hex(randomblob(8))) || '-' || lower(hex(randomblob(4))) || '-4' || substr(lower(hex(randomblob(2))),2) || '-' || substr('89ab',abs(random()) % 4 + 1, 1) || substr(lower(hex(randomblob(2))),2) || '-' || lower(hex(randomblob(6))),
   b.id,
-  'climbing_origin',
-  json_extract(b.one_liners_data, '$.climbing_origin.answer'),
+  q.question_id,
+  json_extract(b.one_liners_data, q.json_path),
   COALESCE(b.created_at, datetime('now')),
   COALESCE(b.updated_at, datetime('now'))
-FROM biographies b
+FROM biographies b, core_questions q
 WHERE b.one_liners_data IS NOT NULL
-  AND json_extract(b.one_liners_data, '$.climbing_origin.answer') IS NOT NULL
-  AND TRIM(json_extract(b.one_liners_data, '$.climbing_origin.answer')) != ''
+  AND json_extract(b.one_liners_data, q.json_path) IS NOT NULL
+  AND TRIM(json_extract(b.one_liners_data, q.json_path)) != ''
   AND NOT EXISTS (
-    SELECT 1 FROM biography_core_stories
-    WHERE biography_id = b.id AND question_id = 'climbing_origin'
-  );
-
--- climbing_meaning
-INSERT INTO biography_core_stories (id, biography_id, question_id, content, created_at, updated_at)
-SELECT
-  lower(hex(randomblob(8))) || '-' || lower(hex(randomblob(4))) || '-4' || substr(lower(hex(randomblob(2))),2) || '-' || substr('89ab',abs(random()) % 4 + 1, 1) || substr(lower(hex(randomblob(2))),2) || '-' || lower(hex(randomblob(6))),
-  b.id,
-  'climbing_meaning',
-  json_extract(b.one_liners_data, '$.climbing_meaning.answer'),
-  COALESCE(b.created_at, datetime('now')),
-  COALESCE(b.updated_at, datetime('now'))
-FROM biographies b
-WHERE b.one_liners_data IS NOT NULL
-  AND json_extract(b.one_liners_data, '$.climbing_meaning.answer') IS NOT NULL
-  AND TRIM(json_extract(b.one_liners_data, '$.climbing_meaning.answer')) != ''
-  AND NOT EXISTS (
-    SELECT 1 FROM biography_core_stories
-    WHERE biography_id = b.id AND question_id = 'climbing_meaning'
-  );
-
--- advice_to_self
-INSERT INTO biography_core_stories (id, biography_id, question_id, content, created_at, updated_at)
-SELECT
-  lower(hex(randomblob(8))) || '-' || lower(hex(randomblob(4))) || '-4' || substr(lower(hex(randomblob(2))),2) || '-' || substr('89ab',abs(random()) % 4 + 1, 1) || substr(lower(hex(randomblob(2))),2) || '-' || lower(hex(randomblob(6))),
-  b.id,
-  'advice_to_self',
-  json_extract(b.one_liners_data, '$.advice_to_self.answer'),
-  COALESCE(b.created_at, datetime('now')),
-  COALESCE(b.updated_at, datetime('now'))
-FROM biographies b
-WHERE b.one_liners_data IS NOT NULL
-  AND json_extract(b.one_liners_data, '$.advice_to_self.answer') IS NOT NULL
-  AND TRIM(json_extract(b.one_liners_data, '$.advice_to_self.answer')) != ''
-  AND NOT EXISTS (
-    SELECT 1 FROM biography_core_stories
-    WHERE biography_id = b.id AND question_id = 'advice_to_self'
+    SELECT 1 FROM biography_core_stories bcs
+    WHERE bcs.biography_id = b.id AND bcs.question_id = q.question_id
   );
 
 -- ============================================

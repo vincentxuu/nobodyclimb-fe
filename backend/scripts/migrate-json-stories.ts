@@ -10,15 +10,14 @@
  *   npx tsx scripts/migrate-json-stories.ts
  */
 
-import { D1Database } from '@cloudflare/workers-types';
+import { D1Database, D1PreparedStatement } from '@cloudflare/workers-types';
 
 // Core story fields that go to biography_core_stories table
 const CORE_STORY_FIELDS = ['climbing_origin', 'climbing_meaning', 'advice_to_self'];
 
-// Generate UUID v4-like ID
+// Generate UUID using crypto API
 function generateId(): string {
-  const hex = () => Math.random().toString(16).substring(2, 10);
-  return `${hex()}${hex()}-${hex().substring(0, 4)}-4${hex().substring(1, 4)}-${['8', '9', 'a', 'b'][Math.floor(Math.random() * 4)]}${hex().substring(1, 4)}-${hex()}${hex().substring(0, 4)}`;
+  return crypto.randomUUID();
 }
 
 interface Biography {
@@ -55,6 +54,11 @@ export async function migrateJsonStories(db: D1Database): Promise<void> {
   let oneLinersInserted = 0;
   let storiesInserted = 0;
 
+  // Collect all statements for batching
+  const coreStoryStmts: D1PreparedStatement[] = [];
+  const oneLinerStmts: D1PreparedStatement[] = [];
+  const storyStmts: D1PreparedStatement[] = [];
+
   for (const bio of biographies.results || []) {
     const now = new Date().toISOString();
 
@@ -69,33 +73,16 @@ export async function migrateJsonStories(db: D1Database): Promise<void> {
 
           // Check if core story field
           if (CORE_STORY_FIELDS.includes(questionId)) {
-            // Check if already exists
-            const existing = await db.prepare(
-              'SELECT id FROM biography_core_stories WHERE biography_id = ? AND question_id = ?'
-            ).bind(bio.id, questionId).first();
-
-            if (!existing) {
-              const storyId = generateId();
-              await db.prepare(`
-                INSERT INTO biography_core_stories (id, biography_id, question_id, content, created_at, updated_at)
-                VALUES (?, ?, ?, ?, ?, ?)
-              `).bind(storyId, bio.id, questionId, answer.trim(), bio.created_at || now, bio.updated_at || now).run();
-              coreStoriesInserted++;
-            }
+            coreStoryStmts.push(db.prepare(`
+              INSERT INTO biography_core_stories (id, biography_id, question_id, content, created_at, updated_at)
+              VALUES (?, ?, ?, ?, ?, ?) ON CONFLICT(biography_id, question_id) DO NOTHING
+            `).bind(generateId(), bio.id, questionId, answer.trim(), bio.created_at || now, bio.updated_at || now));
           } else {
             // Regular one-liner
-            const existing = await db.prepare(
-              'SELECT id FROM biography_one_liners WHERE biography_id = ? AND question_id = ?'
-            ).bind(bio.id, questionId).first();
-
-            if (!existing) {
-              const oneLinerId = generateId();
-              await db.prepare(`
-                INSERT INTO biography_one_liners (id, biography_id, question_id, answer, source, created_at, updated_at)
-                VALUES (?, ?, ?, ?, 'system', ?, ?)
-              `).bind(oneLinerId, bio.id, questionId, answer.trim(), bio.created_at || now, bio.updated_at || now).run();
-              oneLinersInserted++;
-            }
+            oneLinerStmts.push(db.prepare(`
+              INSERT INTO biography_one_liners (id, biography_id, question_id, answer, source, created_at, updated_at)
+              VALUES (?, ?, ?, ?, 'system', ?, ?) ON CONFLICT(biography_id, question_id) DO NOTHING
+            `).bind(generateId(), bio.id, questionId, answer.trim(), bio.created_at || now, bio.updated_at || now));
           }
         }
       } catch (e) {
@@ -115,28 +102,42 @@ export async function migrateJsonStories(db: D1Database): Promise<void> {
             const content = data?.answer;
             if (!content || content.trim() === '') continue;
 
-            // Check if already exists
-            const existing = await db.prepare(
-              'SELECT id FROM biography_stories WHERE biography_id = ? AND question_id = ?'
-            ).bind(bio.id, questionId).first();
-
-            if (!existing) {
-              const storyId = generateId();
-              const wordCount = content.trim().length;
-              const actualCategoryId = categoryId === 'uncategorized' ? null : categoryId;
-
-              await db.prepare(`
-                INSERT INTO biography_stories (id, biography_id, question_id, category_id, content, source, word_count, created_at, updated_at)
-                VALUES (?, ?, ?, ?, ?, 'system', ?, ?, ?)
-              `).bind(storyId, bio.id, questionId, actualCategoryId, content.trim(), wordCount, bio.created_at || now, bio.updated_at || now).run();
-              storiesInserted++;
-            }
+            storyStmts.push(db.prepare(`
+              INSERT INTO biography_stories (id, biography_id, question_id, category_id, content, source, word_count, created_at, updated_at)
+              VALUES (?, ?, ?, ?, ?, 'system', ?, ?, ?) ON CONFLICT(biography_id, question_id) DO NOTHING
+            `).bind(
+              generateId(),
+              bio.id,
+              questionId,
+              categoryId === 'uncategorized' ? null : categoryId,
+              content.trim(),
+              content.trim().length,
+              bio.created_at || now,
+              bio.updated_at || now
+            ));
           }
         }
       } catch (e) {
         console.error(`Error parsing stories_data for biography ${bio.id}:`, e);
       }
     }
+  }
+
+  // Execute batched inserts
+  if (coreStoryStmts.length > 0) {
+    console.log(`Executing ${coreStoryStmts.length} core story inserts...`);
+    const results = await db.batch(coreStoryStmts);
+    coreStoriesInserted = results.reduce((acc, res) => acc + (res.meta.changes || 0), 0);
+  }
+  if (oneLinerStmts.length > 0) {
+    console.log(`Executing ${oneLinerStmts.length} one-liner inserts...`);
+    const results = await db.batch(oneLinerStmts);
+    oneLinersInserted = results.reduce((acc, res) => acc + (res.meta.changes || 0), 0);
+  }
+  if (storyStmts.length > 0) {
+    console.log(`Executing ${storyStmts.length} story inserts...`);
+    const results = await db.batch(storyStmts);
+    storiesInserted = results.reduce((acc, res) => acc + (res.meta.changes || 0), 0);
   }
 
   console.log('Migration completed:');
