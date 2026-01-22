@@ -605,13 +605,13 @@ WHERE NOT EXISTS (
 DROP TABLE IF EXISTS temp_stories_flat;
 
 -- Migrate visibility: is_public to visibility column
+-- First, update all NULL or invalid visibility values based on is_public
 UPDATE biographies
-SET visibility = 'public'
-WHERE visibility IS NULL AND is_public = 1;
-
-UPDATE biographies
-SET visibility = 'private'
-WHERE visibility IS NULL AND (is_public = 0 OR is_public IS NULL);
+SET visibility = CASE
+  WHEN is_public = 1 THEN 'public'
+  ELSE 'private'
+END
+WHERE visibility IS NULL OR visibility NOT IN ('private', 'public', 'unlisted');
 
 -- ============================================
 -- PART 13: Cleanup redundant biography columns
@@ -666,7 +666,11 @@ INSERT INTO biographies_new (
 )
 SELECT
   b.id, b.user_id, b.name, b.slug, b.title, b.bio, b.avatar_url, b.cover_image,
-  COALESCE(b.visibility, 'private'),  -- Use migrated visibility value from Part 12
+  CASE
+    WHEN b.visibility IN ('private', 'public', 'unlisted') THEN b.visibility
+    WHEN b.is_public = 1 THEN 'public'
+    ELSE 'private'
+  END,
   b.achievements, b.social_links,
   b.youtube_channel_id, b.featured_video_id,
   COALESCE(b.total_likes, 0), COALESCE(b.total_views, 0),
