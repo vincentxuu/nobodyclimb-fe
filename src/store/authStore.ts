@@ -26,9 +26,6 @@ interface UpdateUserData {
   avatarStyle?: string
   bio?: string
   displayName?: string
-  climbingStartYear?: string
-  frequentGym?: string
-  favoriteRouteType?: string
   socialLinks?: {
     instagram?: string
     facebook?: string
@@ -320,10 +317,6 @@ export const useAuthStore = create<AuthState>()(
               }
             }
           }
-
-          if (userData.climbingStartYear !== undefined) updateData.climbing_start_year = userData.climbingStartYear
-          if (userData.frequentGym !== undefined) updateData.frequent_gym = userData.frequentGym
-          if (userData.favoriteRouteType !== undefined) updateData.favorite_route_type = userData.favoriteRouteType
 
           // 使用 apiClient 以支援自動 token 刷新
           const response = await apiClient.put<ApiResponse<BackendUser>>(

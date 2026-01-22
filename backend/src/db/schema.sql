@@ -13,14 +13,12 @@ CREATE TABLE IF NOT EXISTS users (
   display_name TEXT,
   avatar_url TEXT,
   bio TEXT,
-  climbing_start_year TEXT,
-  frequent_gym TEXT,
-  favorite_route_type TEXT,
   role TEXT DEFAULT 'user' CHECK (role IN ('user', 'admin', 'moderator')),
   is_active INTEGER DEFAULT 1,
   email_verified INTEGER DEFAULT 0,
   google_id TEXT UNIQUE,
   auth_provider TEXT DEFAULT 'local' CHECK (auth_provider IN ('local', 'google')),
+  last_active_at TEXT,
   created_at TEXT DEFAULT (datetime('now')),
   updated_at TEXT DEFAULT (datetime('now'))
 );

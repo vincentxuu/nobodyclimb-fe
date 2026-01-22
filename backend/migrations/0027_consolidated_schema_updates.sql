@@ -3,6 +3,7 @@
 -- Description:
 --   This migration consolidates all changes from the original 0027-0032 migrations:
 --   - Add last_active_at to users table
+--   - Remove redundant climbing fields from users table (now in biographies)
 --   - Update notifications table with all notification types
 --   - Create notification_preferences table
 --   - Create biography content tables (core_stories, one_liners, stories)
@@ -18,6 +19,11 @@
 ALTER TABLE users ADD COLUMN last_active_at TEXT;
 CREATE INDEX IF NOT EXISTS idx_users_last_active ON users(last_active_at);
 UPDATE users SET last_active_at = COALESCE(updated_at, created_at) WHERE last_active_at IS NULL;
+
+-- Remove redundant climbing fields (data exists in biographies table)
+ALTER TABLE users DROP COLUMN climbing_start_year;
+ALTER TABLE users DROP COLUMN frequent_gym;
+ALTER TABLE users DROP COLUMN favorite_route_type;
 
 -- ============================================
 -- PART 2: Notifications Table - Add all notification types

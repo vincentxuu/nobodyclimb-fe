@@ -15,9 +15,6 @@ export interface User {
   createdAt: Date
   updatedAt?: Date
   displayName?: string
-  climbingStartYear?: string
-  frequentGym?: string
-  favoriteRouteType?: string
   authProvider?: 'local' | 'google'
   socialLinks?: {
     instagram?: string
@@ -37,9 +34,6 @@ export interface BackendUser {
   display_name?: string
   avatar_url?: string
   bio?: string
-  climbing_start_year?: string
-  frequent_gym?: string
-  favorite_route_type?: string
   role: 'user' | 'admin' | 'moderator'
   is_active?: number
   email_verified?: number
@@ -60,9 +54,6 @@ export function mapBackendUserToUser(backendUser: BackendUser): User {
     displayName: backendUser.display_name,
     avatar: backendUser.avatar_url,
     bio: backendUser.bio,
-    climbingStartYear: backendUser.climbing_start_year,
-    frequentGym: backendUser.frequent_gym,
-    favoriteRouteType: backendUser.favorite_route_type,
     authProvider: backendUser.auth_provider,
     createdAt: new Date(backendUser.created_at),
   }

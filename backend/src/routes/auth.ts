@@ -21,7 +21,7 @@ const GOOGLE_JWKS = jose.createRemoteJWKSet(
 );
 
 // User fields to select (reusable constant for maintainability)
-const USER_SELECT_FIELDS = 'id, email, username, display_name, avatar_url, bio, climbing_start_year, frequent_gym, favorite_route_type, role, google_id, auth_provider, created_at';
+const USER_SELECT_FIELDS = 'id, email, username, display_name, avatar_url, bio, role, google_id, auth_provider, created_at';
 
 // Validation schemas
 const registerSchema = z.object({
@@ -266,9 +266,6 @@ authRoutes.put('/profile', authMiddleware, async (c) => {
     display_name?: string;
     bio?: string;
     avatar_url?: string;
-    climbing_start_year?: string;
-    frequent_gym?: string;
-    favorite_route_type?: string;
   }>();
 
   const updates: string[] = [];
@@ -330,18 +327,6 @@ authRoutes.put('/profile', authMiddleware, async (c) => {
   if (body.avatar_url !== undefined) {
     updates.push('avatar_url = ?');
     values.push(body.avatar_url);
-  }
-  if (body.climbing_start_year !== undefined) {
-    updates.push('climbing_start_year = ?');
-    values.push(body.climbing_start_year);
-  }
-  if (body.frequent_gym !== undefined) {
-    updates.push('frequent_gym = ?');
-    values.push(body.frequent_gym);
-  }
-  if (body.favorite_route_type !== undefined) {
-    updates.push('favorite_route_type = ?');
-    values.push(body.favorite_route_type);
   }
 
   if (updates.length === 0) {
