@@ -33,8 +33,10 @@
 -- 避免 DROP TABLE users 觸發資料刪除
 -- ============================================
 
--- 備份使用 ON DELETE CASCADE 的表（biographies 使用 SET NULL，不需備份）
+-- 備份所有會受影響的表
+-- biographies 雖然使用 SET NULL 不會被刪除，但為了確保資料安全也備份
 CREATE TABLE users_backup AS SELECT * FROM users;
+CREATE TABLE biographies_backup AS SELECT * FROM biographies;
 CREATE TABLE posts_backup AS SELECT * FROM posts;
 CREATE TABLE galleries_backup AS SELECT * FROM galleries;
 CREATE TABLE gallery_images_backup AS SELECT * FROM gallery_images;
@@ -105,9 +107,15 @@ CREATE INDEX IF NOT EXISTS idx_users_last_active ON users(last_active_at);
 CREATE INDEX IF NOT EXISTS idx_users_last_login ON users(last_login_at);
 
 -- ============================================
--- CRITICAL FIX: 立即恢復被級聯刪除的資料
--- 注意：biographies 使用 ON DELETE SET NULL，不會被刪除，不需恢復
+-- CRITICAL FIX: 立即恢復被級聯刪除或修改的資料
+-- biographies 使用 ON DELETE SET NULL，不會被刪除，但 user_id 會變 NULL
+-- 只恢復 user_id 欄位，避免欄位數量不匹配問題
 -- ============================================
+
+-- 恢復 biographies 的 user_id（避免使用 SELECT * 導致欄位不匹配）
+UPDATE biographies
+SET user_id = (SELECT user_id FROM biographies_backup WHERE biographies_backup.id = biographies.id)
+WHERE EXISTS (SELECT 1 FROM biographies_backup WHERE biographies_backup.id = biographies.id);
 
 -- 恢復 posts 資料
 INSERT OR REPLACE INTO posts SELECT * FROM posts_backup;
@@ -126,6 +134,20 @@ INSERT OR REPLACE INTO comments SELECT * FROM comments_backup;
 
 -- 恢復 reviews 資料
 INSERT OR REPLACE INTO reviews SELECT * FROM reviews_backup;
+
+-- ============================================
+-- Compatibility: Ensure Biography V2 columns exist
+-- 0024_add_biography_v2_fields.sql is a no-op in this repo, so
+-- fresh databases may not have these columns yet.
+-- NOTE: Must run AFTER restore (INSERT ... SELECT *) to avoid column count mismatch.
+-- ============================================
+
+ALTER TABLE biographies ADD COLUMN IF NOT EXISTS visibility TEXT;
+ALTER TABLE biographies ADD COLUMN IF NOT EXISTS tags_data TEXT;
+ALTER TABLE biographies ADD COLUMN IF NOT EXISTS one_liners_data TEXT;
+ALTER TABLE biographies ADD COLUMN IF NOT EXISTS stories_data TEXT;
+ALTER TABLE biographies ADD COLUMN IF NOT EXISTS basic_info_data TEXT;
+ALTER TABLE biographies ADD COLUMN IF NOT EXISTS autosave_at TEXT;
 
 -- ============================================
 -- PART 2: Notifications Table - 支援所有通知類型
@@ -860,6 +882,7 @@ DROP TABLE IF EXISTS temp_stories_flat;
 -- ============================================
 
 DROP TABLE IF EXISTS users_backup;
+DROP TABLE IF EXISTS biographies_backup;
 DROP TABLE IF EXISTS posts_backup;
 DROP TABLE IF EXISTS galleries_backup;
 DROP TABLE IF EXISTS gallery_images_backup;
