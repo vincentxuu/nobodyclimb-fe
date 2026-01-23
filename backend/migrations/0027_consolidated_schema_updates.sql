@@ -33,9 +33,8 @@
 -- 避免 DROP TABLE users 觸發資料刪除
 -- ============================================
 
--- 備份所有會受影響的表
+-- 備份使用 ON DELETE CASCADE 的表（biographies 使用 SET NULL，不需備份）
 CREATE TABLE users_backup AS SELECT * FROM users;
-CREATE TABLE biographies_backup AS SELECT * FROM biographies;
 CREATE TABLE posts_backup AS SELECT * FROM posts;
 CREATE TABLE galleries_backup AS SELECT * FROM galleries;
 CREATE TABLE gallery_images_backup AS SELECT * FROM gallery_images;
@@ -107,10 +106,8 @@ CREATE INDEX IF NOT EXISTS idx_users_last_login ON users(last_login_at);
 
 -- ============================================
 -- CRITICAL FIX: 立即恢復被級聯刪除的資料
+-- 注意：biographies 使用 ON DELETE SET NULL，不會被刪除，不需恢復
 -- ============================================
-
--- 恢復 biographies 資料（user_id 會保留）
-INSERT OR REPLACE INTO biographies SELECT * FROM biographies_backup;
 
 -- 恢復 posts 資料
 INSERT OR REPLACE INTO posts SELECT * FROM posts_backup;
@@ -863,7 +860,6 @@ DROP TABLE IF EXISTS temp_stories_flat;
 -- ============================================
 
 DROP TABLE IF EXISTS users_backup;
-DROP TABLE IF EXISTS biographies_backup;
 DROP TABLE IF EXISTS posts_backup;
 DROP TABLE IF EXISTS galleries_backup;
 DROP TABLE IF EXISTS gallery_images_backup;
