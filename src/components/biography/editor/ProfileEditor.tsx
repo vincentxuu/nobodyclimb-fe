@@ -32,6 +32,7 @@ import { AddCustomStoryModal } from './AddCustomStoryModal'
 import { TagsBottomSheet } from './TagsBottomSheet'
 import { StoryEditFullscreen } from './StoryEditFullscreen'
 import { useIsMobile } from '@/lib/hooks/useIsMobile'
+import { useDebouncedCallback } from '@/lib/hooks/useDebouncedCallback'
 
 interface ProfileEditorProps {
   /** 人物誌資料 */
@@ -114,7 +115,7 @@ export function ProfileEditor({
       if (customTags.length > 0) {
         return {
           ...dim,
-          options: [...dim.options, ...customTags],
+          options: [...customTags, ...dim.options],
         }
       }
       return dim
@@ -160,33 +161,74 @@ export function ProfileEditor({
     setCustomDimensions(parsed)
   }, [customDimensionsJson])
 
-  // Auto-save with debounce
-  const [pendingChanges, setPendingChanges] = useState(false)
+  // 本地草稿管理
+  // 使用本地 state 維護編輯中的草稿，避免儲存時覆蓋正在編輯的內容
+  const [localBiography, setLocalBiography] = useState(biography)
 
+  // 追蹤是否正在編輯和最後儲存的版本
+  const isEditingRef = useRef(false)
+  const lastSavedBiographyRef = useRef(biography)
+  const isSavingRef = useRef(false)
+
+  // 從 props 同步到本地草稿
+  // 只在非編輯狀態且非儲存中時同步外部更新
   useEffect(() => {
-    if (!pendingChanges) return
+    if (!isEditingRef.current && !isSavingRef.current) {
+      setLocalBiography(biography)
+      lastSavedBiographyRef.current = biography
+    }
+  }, [biography])
 
-    const timer = setTimeout(async () => {
+  // 當 biography.id 變更時（例如切換用戶），強制同步並重置編輯狀態
+  useEffect(() => {
+    setLocalBiography(biography)
+    lastSavedBiographyRef.current = biography
+    isEditingRef.current = false
+  }, [biography.id])
+
+  // 自動儲存 - 使用 debounce，支援 maxWait
+  const debouncedSave = useDebouncedCallback(
+    async (bioToSave: BiographyV2) => {
       try {
+        isSavingRef.current = true
         setSaving()
-        await onSave(biography)
+        await onSave(bioToSave)
+        lastSavedBiographyRef.current = bioToSave
         setSaved()
-        setPendingChanges(false)
+        isEditingRef.current = false
       } catch (err) {
         setError(err instanceof Error ? err.message : '儲存失敗')
+        // 儲存失敗時也重置編輯狀態，允許下次外部更新同步
+        isEditingRef.current = false
+      } finally {
+        isSavingRef.current = false
       }
-    }, 15000)
+    },
+    {
+      delay: 5000,      // 停止輸入 5 秒後儲存
+      maxWait: 15000    // 持續編輯也至少每 15 秒儲存一次
+    }
+  )
 
-    return () => clearTimeout(timer)
-  }, [biography, pendingChanges, onSave, setSaving, setSaved, setError])
-
-  // Handle changes
+  // Handle changes - 樂觀更新
   const handleChange = useCallback(
     (updates: Partial<BiographyV2>) => {
-      onChange(updates)
-      setPendingChanges(true)
+      setLocalBiography((prev) => {
+        const newBio = { ...prev, ...updates }
+
+        // 標記為編輯中
+        isEditingRef.current = true
+
+        // 立即通知父組件（樂觀更新，不等待儲存）
+        onChange(updates)
+
+        // 觸發防抖儲存
+        debouncedSave(newBio)
+
+        return newBio
+      })
     },
-    [onChange]
+    [onChange, debouncedSave]
   )
 
   // 處理頭像選擇 - 開啟裁切器
@@ -219,7 +261,7 @@ export function ProfileEditor({
     setIsUploading(true)
     try {
       const response = await biographyService.uploadImage(croppedFile,
-        cropType === 'avatar' ? biography.avatar_url || undefined : biography.cover_url || undefined
+        cropType === 'avatar' ? localBiography.avatar_url || undefined : localBiography.cover_url || undefined
       )
 
       if (response.success && response.data) {
@@ -251,7 +293,7 @@ export function ProfileEditor({
         setCropperImageSrc('')
       }
     }
-  }, [cropType, biography.avatar_url, biography.cover_url, handleChange, toast, cropperImageSrc])
+  }, [cropType, localBiography.avatar_url, localBiography.cover_url, handleChange, toast, cropperImageSrc])
 
   // Handle custom tag modal
   const handleAddCustomTag = useCallback((dimensionId?: string) => {
@@ -265,13 +307,13 @@ export function ProfileEditor({
     const dimension = allTagDimensions.find((d) => d.id === dimensionId)
     if (dimension) {
       // 自動選中新增的標籤
-      const otherTags = biography.tags.filter((t) => {
+      const otherTags = localBiography.tags.filter((t) => {
         const dim = allTagDimensions.find((d) =>
           d.options.some((o) => o.id === t.tag_id)
         )
         return dim?.id !== dimensionId
       })
-      const currentDimensionTags = biography.tags.filter((t) => {
+      const currentDimensionTags = localBiography.tags.filter((t) => {
         const dim = allTagDimensions.find((d) =>
           d.options.some((o) => o.id === t.tag_id)
         )
@@ -285,7 +327,7 @@ export function ProfileEditor({
 
       // 根據維度來源決定如何儲存自訂標籤
       if (dimension.source === 'user') {
-        // 用戶自訂維度：更新該維度的 options 並同步到 biography.custom_dimensions
+        // 用戶自訂維度：更新該維度的 options 並同步到 localBiography.custom_dimensions
         const newCustomDimensions = customDimensions.map((d) =>
           d.id === dimensionId
             ? { ...d, options: [...d.options, tag] }
@@ -294,14 +336,14 @@ export function ProfileEditor({
         setCustomDimensions(newCustomDimensions)
         handleChange({ tags: newTags, custom_dimensions: newCustomDimensions })
       } else {
-        // 系統維度：將標籤加入 customTagsForSystemDimensions 並同步到 biography.custom_tags
+        // 系統維度：將標籤加入 customTagsForSystemDimensions 並同步到 localBiography.custom_tags
         const newCustomTags = [...customTagsForSystemDimensions, tag]
         setCustomTagsForSystemDimensions(newCustomTags)
         handleChange({ tags: newTags, custom_tags: newCustomTags })
       }
     }
     setCustomTagModalOpen(false)
-  }, [allTagDimensions, biography.tags, customDimensions, customTagsForSystemDimensions, handleChange])
+  }, [allTagDimensions, localBiography.tags, customDimensions, customTagsForSystemDimensions, handleChange])
 
   // Handle custom dimension modal
   const handleAddCustomDimension = useCallback(() => {
@@ -342,15 +384,15 @@ export function ProfileEditor({
       id: 'basic',
       label: '基本資料',
       icon: User,
-      isCompleted: !!biography.name,
+      isCompleted: !!localBiography.name,
     },
     {
       id: 'tags',
       label: '身份標籤',
       icon: Tag,
-      isCompleted: biography.tags.length > 0,
+      isCompleted: localBiography.tags.length > 0,
       progress: {
-        completed: biography.tags.length,
+        completed: localBiography.tags.length,
         total: tagDimensions.length * 2, // Rough estimate
       },
     },
@@ -358,9 +400,9 @@ export function ProfileEditor({
       id: 'oneliners',
       label: '快問快答',
       icon: MessageCircle,
-      isCompleted: biography.one_liners.some((o) => o.answer?.trim()),
+      isCompleted: localBiography.one_liners.some((o) => o.answer?.trim()),
       progress: {
-        completed: biography.one_liners.filter((o) => o.answer?.trim()).length,
+        completed: localBiography.one_liners.filter((o) => o.answer?.trim()).length,
         total: oneLinerQuestions.length,
       },
     },
@@ -368,9 +410,9 @@ export function ProfileEditor({
       id: 'stories',
       label: '深度故事',
       icon: BookOpen,
-      isCompleted: biography.stories.some((s) => s.content?.trim()),
+      isCompleted: localBiography.stories.some((s) => s.content?.trim()),
       progress: {
-        completed: biography.stories.filter((s) => s.content?.trim()).length,
+        completed: localBiography.stories.filter((s) => s.content?.trim()).length,
         total: Object.values(storyQuestionsByCategory).flat().length,
       },
     },
@@ -379,8 +421,8 @@ export function ProfileEditor({
       label: '攀岩足跡',
       icon: Globe,
       isCompleted:
-        (biography.frequent_locations && biography.frequent_locations.length > 0) ||
-        !!biography.home_gym,
+        (localBiography.frequent_locations && localBiography.frequent_locations.length > 0) ||
+        !!localBiography.home_gym,
     },
   ]
 
@@ -395,7 +437,7 @@ export function ProfileEditor({
       .find((q) => q.id === editingStoryId)
     : null
   const editingStory = editingStoryId
-    ? biography.stories.find((s) => s.question_id === editingStoryId)
+    ? localBiography.stories.find((s) => s.question_id === editingStoryId)
     : null
 
   return (
@@ -414,7 +456,7 @@ export function ProfileEditor({
 
           {/* Privacy Settings */}
           <PrivacyBanner
-            visibility={biography.visibility}
+            visibility={localBiography.visibility}
             onVisibilityChange={(visibility) => handleChange({ visibility })}
           />
         </div>
@@ -441,24 +483,24 @@ export function ProfileEditor({
               className="bg-white rounded-xl p-4 md:p-6"
             >
               <BasicInfoSection
-                name={biography.name}
+                name={localBiography.name}
                 onNameChange={(name) => handleChange({ name })}
-                title={biography.title}
+                title={localBiography.title}
                 onTitleChange={(title) => handleChange({ title })}
-                avatarUrl={biography.avatar_url}
+                avatarUrl={localBiography.avatar_url}
                 onAvatarChange={handleAvatarSelect}
-                coverUrl={biography.cover_url}
+                coverUrl={localBiography.cover_url}
                 onCoverChange={handleCoverSelect}
-                climbingStartYear={biography.climbing_start_year}
+                climbingStartYear={localBiography.climbing_start_year}
                 onClimbingStartYearChange={(year) => {
                   const climbingYears = year ? new Date().getFullYear() - year : null
                   handleChange({ climbing_start_year: year, climbing_years: climbingYears })
                 }}
-                frequentLocations={biography.frequent_locations || []}
+                frequentLocations={localBiography.frequent_locations || []}
                 onFrequentLocationsChange={(locations) => handleChange({ frequent_locations: locations })}
-                favoriteRouteTypes={biography.favorite_route_types || []}
+                favoriteRouteTypes={localBiography.favorite_route_types || []}
                 onFavoriteRouteTypesChange={(types) => handleChange({ favorite_route_types: types })}
-                socialLinks={biography.social_links || {}}
+                socialLinks={localBiography.social_links || {}}
                 onSocialLinksChange={(socialLinks) => handleChange({ social_links: socialLinks })}
               />
             </section>
@@ -471,7 +513,7 @@ export function ProfileEditor({
             >
               <TagsSection
                 dimensions={allTagDimensions}
-                selections={biography.tags.reduce(
+                selections={localBiography.tags.reduce(
                   (acc, tag) => {
                     const dimension = allTagDimensions.find((d) =>
                       d.options.some((o) => o.id === tag.tag_id)
@@ -487,7 +529,7 @@ export function ProfileEditor({
                   {} as Record<string, string[]>
                 )}
                 onSelectionChange={(dimensionId, selectedIds) => {
-                  const otherTags = biography.tags.filter((t) => {
+                  const otherTags = localBiography.tags.filter((t) => {
                     const dim = allTagDimensions.find((d) =>
                       d.options.some((o) => o.id === t.tag_id)
                     )
@@ -514,12 +556,12 @@ export function ProfileEditor({
             >
               <OneLinersSection
                 questions={allOneLinerQuestions}
-                answers={biography.one_liners}
+                answers={localBiography.one_liners}
                 onAnswerChange={(questionId, answer) => {
-                  const existingIndex = biography.one_liners.findIndex(
+                  const existingIndex = localBiography.one_liners.findIndex(
                     (o) => o.question_id === questionId
                   )
-                  let newOneLiners = [...biography.one_liners]
+                  let newOneLiners = [...localBiography.one_liners]
                   if (existingIndex >= 0) {
                     if (answer) {
                       newOneLiners[existingIndex] = {
@@ -551,7 +593,7 @@ export function ProfileEditor({
             >
               <StoriesSection
                 questionsByCategory={allStoryQuestionsByCategory}
-                stories={biography.stories}
+                stories={localBiography.stories}
                 onStoryClick={(questionId) => setEditingStoryId(questionId)}
                 onAddCustomQuestion={(category) => handleAddCustomStory(category)}
               />
@@ -590,10 +632,10 @@ export function ProfileEditor({
           story={editingStory}
           onSave={(content) => {
             if (!editingStoryId) return
-            const existingIndex = biography.stories.findIndex(
+            const existingIndex = localBiography.stories.findIndex(
               (s) => s.question_id === editingStoryId
             )
-            let newStories = [...biography.stories]
+            let newStories = [...localBiography.stories]
             if (existingIndex >= 0) {
               newStories[existingIndex] = {
                 ...newStories[existingIndex],
@@ -612,7 +654,7 @@ export function ProfileEditor({
           }}
           onDelete={() => {
             if (!editingStoryId) return
-            const newStories = biography.stories.filter(
+            const newStories = localBiography.stories.filter(
               (s) => s.question_id !== editingStoryId
             )
             handleChange({ stories: newStories })
@@ -630,10 +672,10 @@ export function ProfileEditor({
           story={editingStory}
           onSave={(content) => {
             if (!editingStoryId) return
-            const existingIndex = biography.stories.findIndex(
+            const existingIndex = localBiography.stories.findIndex(
               (s) => s.question_id === editingStoryId
             )
-            let newStories = [...biography.stories]
+            let newStories = [...localBiography.stories]
             if (existingIndex >= 0) {
               newStories[existingIndex] = {
                 ...newStories[existingIndex],
@@ -652,7 +694,7 @@ export function ProfileEditor({
           }}
           onDelete={() => {
             if (!editingStoryId) return
-            const newStories = biography.stories.filter(
+            const newStories = localBiography.stories.filter(
               (s) => s.question_id !== editingStoryId
             )
             handleChange({ stories: newStories })
@@ -666,7 +708,7 @@ export function ProfileEditor({
         isOpen={tagsBottomSheetOpen}
         onClose={() => setTagsBottomSheetOpen(false)}
         dimensions={allTagDimensions}
-        selections={biography.tags.reduce(
+        selections={localBiography.tags.reduce(
           (acc, tag) => {
             const dimension = allTagDimensions.find((d) =>
               d.options.some((o) => o.id === tag.tag_id)
@@ -682,7 +724,7 @@ export function ProfileEditor({
           {} as Record<string, string[]>
         )}
         onSelectionChange={(dimensionId, selectedIds) => {
-          const otherTags = biography.tags.filter((t) => {
+          const otherTags = localBiography.tags.filter((t) => {
             const dim = allTagDimensions.find((d) =>
               d.options.some((o) => o.id === t.tag_id)
             )
