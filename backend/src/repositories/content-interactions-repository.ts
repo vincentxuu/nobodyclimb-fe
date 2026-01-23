@@ -26,12 +26,9 @@ export class ContentInteractionsRepository {
    * 檢查使用者是否已按讚
    */
   async hasLiked(contentType: ContentType, contentId: string, userId: string): Promise<boolean> {
-    const table = this.getLikeTableName(contentType);
-    const column = this.getContentIdColumn(contentType);
-
     const result = await this.db
-      .prepare(`SELECT id FROM ${table} WHERE ${column} = ? AND user_id = ?`)
-      .bind(contentId, userId)
+      .prepare(`SELECT id FROM likes WHERE entity_type = ? AND entity_id = ? AND user_id = ?`)
+      .bind(contentType, contentId, userId)
       .first<{ id: string }>();
 
     return !!result;
@@ -47,13 +44,11 @@ export class ContentInteractionsRepository {
   ): Promise<Set<string>> {
     if (contentIds.length === 0) return new Set();
 
-    const table = this.getLikeTableName(contentType);
-    const column = this.getContentIdColumn(contentType);
     const placeholders = contentIds.map(() => '?').join(',');
 
     const result = await this.db
-      .prepare(`SELECT ${column} as content_id FROM ${table} WHERE user_id = ? AND ${column} IN (${placeholders})`)
-      .bind(userId, ...contentIds)
+      .prepare(`SELECT entity_id as content_id FROM likes WHERE entity_type = ? AND user_id = ? AND entity_id IN (${placeholders})`)
+      .bind(contentType, userId, ...contentIds)
       .all<{ content_id: string }>();
 
     return new Set((result.results || []).map((r) => r.content_id));
@@ -63,14 +58,12 @@ export class ContentInteractionsRepository {
    * 新增按讚
    */
   async addLike(contentType: ContentType, contentId: string, userId: string): Promise<void> {
-    const table = this.getLikeTableName(contentType);
-    const column = this.getContentIdColumn(contentType);
     const id = crypto.randomUUID();
     const now = new Date().toISOString();
 
     await this.db
-      .prepare(`INSERT INTO ${table} (id, ${column}, user_id, created_at) VALUES (?, ?, ?, ?)`)
-      .bind(id, contentId, userId, now)
+      .prepare(`INSERT INTO likes (id, entity_type, entity_id, user_id, created_at) VALUES (?, ?, ?, ?, ?)`)
+      .bind(id, contentType, contentId, userId, now)
       .run();
   }
 
@@ -78,12 +71,9 @@ export class ContentInteractionsRepository {
    * 移除按讚
    */
   async removeLike(contentType: ContentType, contentId: string, userId: string): Promise<void> {
-    const table = this.getLikeTableName(contentType);
-    const column = this.getContentIdColumn(contentType);
-
     await this.db
-      .prepare(`DELETE FROM ${table} WHERE ${column} = ? AND user_id = ?`)
-      .bind(contentId, userId)
+      .prepare(`DELETE FROM likes WHERE entity_type = ? AND entity_id = ? AND user_id = ?`)
+      .bind(contentType, contentId, userId)
       .run();
   }
 
@@ -91,12 +81,9 @@ export class ContentInteractionsRepository {
    * 取得按讚數
    */
   async getLikeCount(contentType: ContentType, contentId: string): Promise<number> {
-    const table = this.getLikeTableName(contentType);
-    const column = this.getContentIdColumn(contentType);
-
     const result = await this.db
-      .prepare(`SELECT COUNT(*) as count FROM ${table} WHERE ${column} = ?`)
-      .bind(contentId)
+      .prepare(`SELECT COUNT(*) as count FROM likes WHERE entity_type = ? AND entity_id = ?`)
+      .bind(contentType, contentId)
       .first<{ count: number }>();
 
     return result?.count || 0;
@@ -122,18 +109,15 @@ export class ContentInteractionsRepository {
    * 取得留言列表
    */
   async getComments(contentType: ContentType, contentId: string): Promise<CommentWithUser[]> {
-    const table = this.getCommentTableName(contentType);
-    const column = this.getContentIdColumn(contentType);
-
     const result = await this.db
       .prepare(
         `SELECT c.*, u.username, u.display_name, u.avatar_url
-         FROM ${table} c
+         FROM comments c
          JOIN users u ON c.user_id = u.id
-         WHERE c.${column} = ?
+         WHERE c.entity_type = ? AND c.entity_id = ?
          ORDER BY c.created_at DESC`
       )
-      .bind(contentId)
+      .bind(contentType, contentId)
       .all<CommentWithUser>();
 
     return result.results || [];
@@ -149,17 +133,15 @@ export class ContentInteractionsRepository {
     content: string,
     parentId: string | null = null
   ): Promise<string> {
-    const table = this.getCommentTableName(contentType);
-    const column = this.getContentIdColumn(contentType);
     const id = crypto.randomUUID();
     const now = new Date().toISOString();
 
     await this.db
       .prepare(
-        `INSERT INTO ${table} (id, ${column}, user_id, content, parent_id, created_at, updated_at)
-         VALUES (?, ?, ?, ?, ?, ?, ?)`
+        `INSERT INTO comments (id, entity_type, entity_id, user_id, content, parent_id, created_at, updated_at)
+         VALUES (?, ?, ?, ?, ?, ?, ?, ?)`
       )
-      .bind(id, contentId, userId, content, parentId, now, now)
+      .bind(id, contentType, contentId, userId, content, parentId, now, now)
       .run();
 
     return id;
@@ -172,16 +154,14 @@ export class ContentInteractionsRepository {
     contentType: ContentType,
     commentId: string
   ): Promise<CommentWithUser | null> {
-    const table = this.getCommentTableName(contentType);
-
     const result = await this.db
       .prepare(
         `SELECT c.*, u.username, u.display_name, u.avatar_url
-         FROM ${table} c
+         FROM comments c
          JOIN users u ON c.user_id = u.id
-         WHERE c.id = ?`
+         WHERE c.id = ? AND c.entity_type = ?`
       )
-      .bind(commentId)
+      .bind(commentId, contentType)
       .first<CommentWithUser>();
 
     return result || null;
@@ -191,11 +171,9 @@ export class ContentInteractionsRepository {
    * 刪除留言
    */
   async deleteComment(contentType: ContentType, commentId: string): Promise<void> {
-    const table = this.getCommentTableName(contentType);
-
     await this.db
-      .prepare(`DELETE FROM ${table} WHERE id = ?`)
-      .bind(commentId)
+      .prepare(`DELETE FROM comments WHERE id = ? AND entity_type = ?`)
+      .bind(commentId, contentType)
       .run();
   }
 
@@ -203,11 +181,9 @@ export class ContentInteractionsRepository {
    * 取得留言資訊（用於權限檢查）
    */
   async getComment(contentType: ContentType, commentId: string): Promise<any | null> {
-    const table = this.getCommentTableName(contentType);
-
     const result = await this.db
-      .prepare(`SELECT * FROM ${table} WHERE id = ?`)
-      .bind(commentId)
+      .prepare(`SELECT * FROM comments WHERE id = ? AND entity_type = ?`)
+      .bind(commentId, contentType)
       .first();
 
     return result;
@@ -217,12 +193,9 @@ export class ContentInteractionsRepository {
    * 取得留言數
    */
   async getCommentCount(contentType: ContentType, contentId: string): Promise<number> {
-    const table = this.getCommentTableName(contentType);
-    const column = this.getContentIdColumn(contentType);
-
     const result = await this.db
-      .prepare(`SELECT COUNT(*) as count FROM ${table} WHERE ${column} = ?`)
-      .bind(contentId)
+      .prepare(`SELECT COUNT(*) as count FROM comments WHERE entity_type = ? AND entity_id = ?`)
+      .bind(contentType, contentId)
       .first<{ count: number }>();
 
     return result?.count || 0;
@@ -248,24 +221,6 @@ export class ContentInteractionsRepository {
   // 輔助方法
   // ═══════════════════════════════════════════
 
-  private getLikeTableName(contentType: ContentType): string {
-    const tableMap: Record<ContentType, string> = {
-      core_story: 'core_story_likes',
-      one_liner: 'one_liner_likes',
-      story: 'story_likes',
-    };
-    return tableMap[contentType];
-  }
-
-  private getCommentTableName(contentType: ContentType): string {
-    const tableMap: Record<ContentType, string> = {
-      core_story: 'core_story_comments',
-      one_liner: 'one_liner_comments',
-      story: 'story_comments',
-    };
-    return tableMap[contentType];
-  }
-
   private getContentTableName(contentType: ContentType): string {
     const tableMap: Record<ContentType, string> = {
       core_story: 'biography_core_stories',
@@ -273,14 +228,5 @@ export class ContentInteractionsRepository {
       story: 'biography_stories',
     };
     return tableMap[contentType];
-  }
-
-  private getContentIdColumn(contentType: ContentType): string {
-    const columnMap: Record<ContentType, string> = {
-      core_story: 'core_story_id',
-      one_liner: 'one_liner_id',
-      story: 'story_id',
-    };
-    return columnMap[contentType];
   }
 }

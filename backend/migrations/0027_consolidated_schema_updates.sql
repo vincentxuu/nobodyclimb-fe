@@ -797,6 +797,77 @@ WHERE NOT EXISTS (
   WHERE bs.biography_id = t.biography_id AND bs.question_id = t.question_id
 );
 
+-- Backfill category_id for rows migrated from legacy JSON that used 'uncategorized'
+UPDATE biography_stories
+SET category_id = (
+  SELECT sq.category_id
+  FROM story_questions sq
+  WHERE sq.id = biography_stories.question_id
+)
+WHERE category_id IS NULL
+  AND question_id IN (SELECT id FROM story_questions);
+
+-- Backfill category_id for V2 sys_story_* question IDs (if present in legacy data)
+UPDATE biography_stories
+SET category_id = CASE
+  -- Growth
+  WHEN question_id IN (
+    'sys_story_growth_memorable_moment',
+    'sys_story_growth_biggest_challenge',
+    'sys_story_growth_breakthrough',
+    'sys_story_growth_first_outdoor',
+    'sys_story_growth_first_grade',
+    'sys_story_growth_frustrating'
+  ) THEN 'sys_cat_growth'
+  -- Psychology
+  WHEN question_id IN (
+    'sys_story_psychology_fear',
+    'sys_story_psychology_fear_management',
+    'sys_story_psychology_lesson',
+    'sys_story_psychology_failure',
+    'sys_story_psychology_flow',
+    'sys_story_psychology_balance',
+    'sys_story_psychology_gain'
+  ) THEN 'sys_cat_psychology'
+  -- Community
+  WHEN question_id IN (
+    'sys_story_community_mentor',
+    'sys_story_community_partner',
+    'sys_story_community_funny',
+    'sys_story_community_spot',
+    'sys_story_community_advice',
+    'sys_story_community_space'
+  ) THEN 'sys_cat_community'
+  -- Practical
+  WHEN question_id IN (
+    'sys_story_practical_injury',
+    'sys_story_practical_route',
+    'sys_story_practical_training',
+    'sys_story_practical_practice',
+    'sys_story_practical_technique',
+    'sys_story_practical_gear'
+  ) THEN 'sys_cat_practical'
+  -- Dreams
+  WHEN question_id IN (
+    'sys_story_dreams_dream_climb',
+    'sys_story_dreams_trip',
+    'sys_story_dreams_bucket_list',
+    'sys_story_dreams_goal',
+    'sys_story_dreams_style',
+    'sys_story_dreams_inspiration'
+  ) THEN 'sys_cat_dreams'
+  -- Life
+  WHEN question_id IN ('sys_story_life_outside') THEN 'sys_cat_life'
+  ELSE category_id
+END
+WHERE category_id IS NULL
+  AND question_id LIKE 'sys_story_%';
+
+-- Verification: how many stories still have NULL category_id
+SELECT COUNT(*) AS null_category_count
+FROM biography_stories
+WHERE category_id IS NULL;
+
 DROP TABLE IF EXISTS temp_stories_flat;
 
 -- ═══════════════════════════════════════════════════════════════════════════

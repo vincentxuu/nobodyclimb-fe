@@ -514,6 +514,15 @@ function safeJsonParse<T>(json: string | null, defaultValue: T | null): T | null
  * 將後端 Biography 資料轉換為前端 BiographyV2 格式
  */
 export function transformBackendToBiographyV2(backend: BiographyBackend): BiographyV2 {
+  // 解析 basic_info_data - 包含 climbing_start_year, frequent_locations, favorite_route_type 等欄位
+  const basicInfo = safeJsonParse<{
+    climbing_start_year?: number | string | null
+    frequent_locations?: string | null
+    favorite_route_type?: string | null
+    home_gym?: string | null
+    [key: string]: any
+  }>(backend.basic_info_data, {})
+
   // 解析 tags_data - 可能是舊格式 TagSelection[] 或新格式 TagsDataStorage
   const tagsRaw = safeJsonParse<TagSelection[] | TagsDataStorage>(backend.tags_data, [])
   let tags: TagSelection[] = []
@@ -674,21 +683,41 @@ export function transformBackendToBiographyV2(backend: BiographyBackend): Biogra
     ...storiesFromLegacy.filter((s) => !existingQuestionIds.has(s.question_id)),
   ]
 
-  // 解析其他 JSON 欄位
-  // frequent_locations 可能是 JSON 陣列字串或純字串，需要兼容處理
+  // 解析 frequent_locations - 從 basic_info_data 中讀取
+  // 可能是字串（以 / 或逗號分隔）或 JSON 陣列字串
   let frequent_locations: string[] | null = null
-  if (backend.frequent_locations) {
-    const parsed = safeJsonParse<unknown>(backend.frequent_locations, null)
+  if (basicInfo?.frequent_locations) {
+    const locStr = basicInfo.frequent_locations
+    // 先嘗試 JSON 解析
+    const parsed = safeJsonParse<unknown>(locStr, null)
     if (Array.isArray(parsed)) {
       frequent_locations = parsed.filter((item): item is string => typeof item === 'string')
     } else {
-      // 如果不是 JSON，當作純字串處理，以逗號分隔
-      frequent_locations = backend.frequent_locations
-        .split(/[,、，]/)
+      // 當作純字串處理，以 /、逗號或頓號分隔
+      frequent_locations = locStr
+        .split(/[/,、，]/)
         .map((s) => s.trim())
         .filter(Boolean)
     }
   }
+
+  // 解析 favorite_route_types - 從 basic_info_data 中讀取
+  let favorite_route_types: string[] | null = null
+  if (basicInfo?.favorite_route_type) {
+    const typeStr = basicInfo.favorite_route_type
+    // 先嘗試 JSON 解析
+    const parsed = safeJsonParse<unknown>(typeStr, null)
+    if (Array.isArray(parsed)) {
+      favorite_route_types = parsed.filter((item): item is string => typeof item === 'string')
+    } else {
+      // 當作純字串處理，以 /、逗號或頓號分隔
+      favorite_route_types = typeStr
+        .split(/[/,、，]/)
+        .map((s) => s.trim())
+        .filter(Boolean)
+    }
+  }
+
   const gallery_images = safeJsonParse<GalleryImage[] | null>(backend.gallery_images, null)
 
   // 解析 social_links，並處理舊版欄位名稱兼容（youtube_channel -> youtube）
@@ -701,11 +730,12 @@ export function transformBackendToBiographyV2(backend: BiographyBackend): Biogra
     website: rawSocialLinks.website,
   } : null
 
-  // climbing_start_year 可能是字串或數字，需要解析
-  const startYear =
-    typeof backend.climbing_start_year === 'string'
-      ? parseInt(backend.climbing_start_year, 10)
-      : backend.climbing_start_year
+  // climbing_start_year - 從 basic_info_data 中讀取
+  const startYear = basicInfo?.climbing_start_year
+    ? (typeof basicInfo.climbing_start_year === 'string'
+        ? parseInt(basicInfo.climbing_start_year, 10)
+        : basicInfo.climbing_start_year)
+    : null
 
   return {
     id: backend.id,
@@ -720,10 +750,8 @@ export function transformBackendToBiographyV2(backend: BiographyBackend): Biogra
     climbing_years:
       startYear && !isNaN(startYear) ? new Date().getFullYear() - startYear : null,
     frequent_locations,
-    favorite_route_types: backend.favorite_route_type
-      ? backend.favorite_route_type.split(/[,、，]/).map(s => s.trim()).filter(Boolean)
-      : null,
-    home_gym: backend.home_gym,
+    favorite_route_types,
+    home_gym: basicInfo?.home_gym || null,
     tags,
     custom_tags,
     custom_dimensions,

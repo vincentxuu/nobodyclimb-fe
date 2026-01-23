@@ -300,11 +300,7 @@ export class BiographyContentInteractionsService {
    * 從留言物件中取得內容 ID
    */
   private getContentIdFromComment(contentType: ContentType, comment: any): string {
-    const columnMap: Record<ContentType, string> = {
-      core_story: 'core_story_id',
-      one_liner: 'one_liner_id',
-      story: 'story_id',
-    };
-    return comment[columnMap[contentType]];
+    // 統一的 comments 表使用 entity_id 欄位
+    return comment.entity_id;
   }
 }
