@@ -1,10 +1,10 @@
 'use client'
 
-import { useEffect, useState, useCallback, useRef, useMemo } from 'react'
+import React, { useEffect, useState, useCallback, useRef, useMemo } from 'react'
 import Link from 'next/link'
 import Image from 'next/image'
 import { motion } from 'framer-motion'
-import { ArrowRightCircle, Loader2 } from 'lucide-react'
+import { ArrowRightCircle, Loader2, Sparkles } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
 import { biographyService } from '@/lib/api/services'
@@ -122,11 +122,23 @@ function ClimberCard({ person, selectedContent }: ClimberCardProps) {
                 <div className="flex-1 min-w-0">
                   <h3 className="text-sm font-medium text-[#1B1A1A]">{person.name}</h3>
                   {displayTags.length > 0 ? (
-                    <div className="flex flex-wrap gap-1 mt-0.5">
+                    <div className="flex flex-wrap items-center gap-1 mt-0.5">
                       {displayTags.map((tag, index) => (
-                        <span key={tag.id} className="text-xs text-[#6D6C6C] truncate">
-                          {tag.label}{index < displayTags.length - 1 && <span className="mx-0.5">·</span>}
-                        </span>
+                        <React.Fragment key={tag.id}>
+                          {tag.isCustom ? (
+                            <span className="inline-flex items-center gap-0.5 text-xs px-1.5 py-0.5 rounded bg-brand-accent/10 text-[#1B1A1A] border border-brand-accent/30">
+                              <Sparkles size={10} className="text-brand-accent" />
+                              {tag.label}
+                            </span>
+                          ) : (
+                            <span className="text-xs text-[#6D6C6C]">
+                              {tag.label}
+                            </span>
+                          )}
+                          {index < displayTags.length - 1 && !tag.isCustom && !displayTags[index + 1]?.isCustom && (
+                            <span className="text-xs text-[#6D6C6C]">·</span>
+                          )}
+                        </React.Fragment>
                       ))}
                     </div>
                   ) : (
