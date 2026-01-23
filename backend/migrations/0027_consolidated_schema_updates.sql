@@ -114,8 +114,11 @@ CREATE INDEX IF NOT EXISTS idx_users_last_login ON users(last_login_at);
 
 -- 恢復 biographies 的 user_id（避免使用 SELECT * 導致欄位不匹配）
 UPDATE biographies
-SET user_id = (SELECT user_id FROM biographies_backup WHERE biographies_backup.id = biographies.id)
-WHERE EXISTS (SELECT 1 FROM biographies_backup WHERE biographies_backup.id = biographies.id);
+SET user_id = (
+  SELECT user_id FROM biographies_backup
+  WHERE biographies_backup.id = biographies.id
+)
+WHERE id IN (SELECT id FROM biographies_backup);
 
 -- 恢復 posts 資料
 INSERT OR REPLACE INTO posts SELECT * FROM posts_backup;
