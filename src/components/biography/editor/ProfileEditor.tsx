@@ -169,6 +169,33 @@ export function ProfileEditor({
   const isEditingRef = useRef(false)
   const lastSavedBiographyRef = useRef(biography)
   const isSavingRef = useRef(false)
+  // 儲存請求 ID 計數器，用於追蹤版本
+  const saveIdRef = useRef(0)
+  // 當前正在進行的儲存 ID
+  const currentSaveIdRef = useRef(0)
+  // 是否需要再次儲存（當儲存進行中時有新的編輯）
+  const needsAnotherSaveRef = useRef(false)
+  // 重試計數
+  const retryCountRef = useRef(0)
+  // 追蹤最新的編輯內容（避免使用閉包捕獲的過期值）
+  const latestBiographyRef = useRef(biography)
+  // 追蹤組件是否已掛載（避免 unmount 後 setState）
+  const isMountedRef = useRef(true)
+  // 重試定時器 ref，用於取消過期的重試
+  const retryTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+
+  // 組件掛載/卸載追蹤
+  useEffect(() => {
+    isMountedRef.current = true
+    return () => {
+      isMountedRef.current = false
+      // 清理重試定時器
+      if (retryTimerRef.current) {
+        clearTimeout(retryTimerRef.current)
+        retryTimerRef.current = null
+      }
+    }
+  }, [])
 
   // 從 props 同步到本地草稿
   // 只在非編輯狀態且非儲存中時同步外部更新
@@ -176,6 +203,7 @@ export function ProfileEditor({
     if (!isEditingRef.current && !isSavingRef.current) {
       setLocalBiography(biography)
       lastSavedBiographyRef.current = biography
+      latestBiographyRef.current = biography
     }
   }, [biography])
 
@@ -183,25 +211,101 @@ export function ProfileEditor({
   useEffect(() => {
     setLocalBiography(biography)
     lastSavedBiographyRef.current = biography
+    latestBiographyRef.current = biography
     isEditingRef.current = false
+    // 重置儲存相關的 refs
+    saveIdRef.current = 0
+    currentSaveIdRef.current = 0
+    needsAnotherSaveRef.current = false
+    retryCountRef.current = 0
+    // 清理重試定時器
+    if (retryTimerRef.current) {
+      clearTimeout(retryTimerRef.current)
+      retryTimerRef.current = null
+    }
   }, [biography.id])
 
   // 自動儲存 - 使用 debounce，支援 maxWait
   const debouncedSave = useDebouncedCallback(
     async (bioToSave: BiographyV2) => {
+      // 如果組件已卸載，取消儲存（額外保護，避免意外情況下 unmount 後發送請求）
+      // 注意：useDebouncedCallback 已在 unmount 時清理 timers 不會 flush
+      // 這裡的檢查是雙重保險
+      if (!isMountedRef.current) {
+        return
+      }
+
+      // 序列化儲存：如果已經有儲存正在進行中，標記需要再次儲存
+      if (isSavingRef.current) {
+        needsAnotherSaveRef.current = true
+        return
+      }
+
+      // 遞增儲存 ID
+      saveIdRef.current += 1
+      const thisSaveId = saveIdRef.current
+
       try {
         isSavingRef.current = true
-        setSaving()
+        currentSaveIdRef.current = thisSaveId
+        // 只在組件已掛載時更新狀態
+        if (isMountedRef.current) {
+          setSaving()
+        }
         await onSave(bioToSave)
-        lastSavedBiographyRef.current = bioToSave
-        setSaved()
-        isEditingRef.current = false
+
+        // 版本檢查：只有最新的儲存完成才更新狀態
+        if (thisSaveId === saveIdRef.current) {
+          lastSavedBiographyRef.current = bioToSave
+          // 只在組件已掛載時更新狀態
+          if (isMountedRef.current) {
+            setSaved()
+          }
+          isEditingRef.current = false
+          // 儲存成功，重置重試計數
+          retryCountRef.current = 0
+          // 清理重試定時器
+          if (retryTimerRef.current) {
+            clearTimeout(retryTimerRef.current)
+            retryTimerRef.current = null
+          }
+        }
+        // 如果不是最新的儲存（有更新的儲存請求產生），則忽略此次儲存結果
       } catch (err) {
-        setError(err instanceof Error ? err.message : '儲存失敗')
+        // 只在組件已掛載時更新狀態
+        if (isMountedRef.current) {
+          setError(err instanceof Error ? err.message : '儲存失敗')
+        }
         // 儲存失敗時保持編輯狀態，防止外部資料覆蓋用戶編輯
         // isEditingRef.current 保持為 true，確保用戶編輯的內容不會丟失
+
+        // 自動重試機制（最多 3 次，指數退避）
+        retryCountRef.current += 1
+        if (retryCountRef.current <= 3) {
+          const retryDelay = 2000 * retryCountRef.current // 2s, 4s, 6s
+          // 清理舊的重試定時器
+          if (retryTimerRef.current) {
+            clearTimeout(retryTimerRef.current)
+          }
+          // 重試時使用最新的草稿，而不是失敗那次的舊資料
+          retryTimerRef.current = setTimeout(() => {
+            // 檢查版本：只有當這次儲存仍然是最新時才重試
+            if (thisSaveId === saveIdRef.current && isMountedRef.current) {
+              debouncedSave(latestBiographyRef.current)
+            }
+          }, retryDelay)
+        }
       } finally {
         isSavingRef.current = false
+
+        // 檢查是否需要再次儲存（儲存進行中時有新的編輯）
+        if (needsAnotherSaveRef.current) {
+          needsAnotherSaveRef.current = false
+          // 先調用 debouncedSave 更新 latestArgsRef，然後立即 flush 執行
+          // 這樣確保 flush 使用的是最新的資料
+          debouncedSave(latestBiographyRef.current)
+          debouncedSave.flush()
+        }
       }
     },
     {
@@ -215,6 +319,9 @@ export function ProfileEditor({
     (updates: Partial<BiographyV2>) => {
       setLocalBiography((prev) => {
         const newBio = { ...prev, ...updates }
+
+        // 同步更新最新草稿 ref（確保 finally 區塊和重試使用最新資料）
+        latestBiographyRef.current = newBio
 
         // 標記為編輯中
         isEditingRef.current = true
@@ -271,6 +378,8 @@ export function ProfileEditor({
         } else {
           handleChange({ cover_url: permanentUrl })
         }
+        // 立即執行儲存，避免使用者重新整理時遺失圖片
+        debouncedSave.flush()
         toast({
           title: '上傳成功',
           description: cropType === 'avatar' ? '頭像已更新' : '封面圖片已更新',
@@ -293,7 +402,7 @@ export function ProfileEditor({
         setCropperImageSrc('')
       }
     }
-  }, [cropType, localBiography.avatar_url, localBiography.cover_url, handleChange, toast, cropperImageSrc])
+  }, [cropType, localBiography.avatar_url, localBiography.cover_url, handleChange, toast, cropperImageSrc, debouncedSave])
 
   // Handle custom tag modal
   const handleAddCustomTag = useCallback((dimensionId?: string) => {
@@ -341,9 +450,11 @@ export function ProfileEditor({
         setCustomTagsForSystemDimensions(newCustomTags)
         handleChange({ tags: newTags, custom_tags: newCustomTags })
       }
+      // 立即執行儲存，避免使用者重新整理時遺失新增的標籤
+      debouncedSave.flush()
     }
     setCustomTagModalOpen(false)
-  }, [allTagDimensions, localBiography.tags, customDimensions, customTagsForSystemDimensions, handleChange])
+  }, [allTagDimensions, localBiography.tags, customDimensions, customTagsForSystemDimensions, handleChange, debouncedSave])
 
   // Handle custom dimension modal
   const handleAddCustomDimension = useCallback(() => {
@@ -354,8 +465,10 @@ export function ProfileEditor({
     const newCustomDimensions = [...customDimensions, dimension]
     setCustomDimensions(newCustomDimensions)
     handleChange({ custom_dimensions: newCustomDimensions })
+    // 立即執行儲存，避免使用者重新整理時遺失新增的維度
+    debouncedSave.flush()
     setCustomDimensionModalOpen(false)
-  }, [customDimensions, handleChange])
+  }, [customDimensions, handleChange, debouncedSave])
 
   // Handle custom one-liner modal
   const handleAddCustomOneLiner = useCallback(() => {
@@ -650,6 +763,8 @@ export function ProfileEditor({
               })
             }
             handleChange({ stories: newStories })
+            // 用戶點擊儲存按鈕時，立即執行儲存而不等待 debounce
+            debouncedSave.flush()
             setEditingStoryId(null)
           }}
           onDelete={() => {
@@ -658,6 +773,8 @@ export function ProfileEditor({
               (s) => s.question_id !== editingStoryId
             )
             handleChange({ stories: newStories })
+            // 立即執行儲存，避免使用者重新整理時遺失刪除操作
+            debouncedSave.flush()
             setEditingStoryId(null)
           }}
         />
@@ -690,6 +807,8 @@ export function ProfileEditor({
               })
             }
             handleChange({ stories: newStories })
+            // 用戶點擊儲存按鈕時，立即執行儲存而不等待 debounce
+            debouncedSave.flush()
             setEditingStoryId(null)
           }}
           onDelete={() => {
@@ -698,6 +817,8 @@ export function ProfileEditor({
               (s) => s.question_id !== editingStoryId
             )
             handleChange({ stories: newStories })
+            // 立即執行儲存，避免使用者重新整理時遺失刪除操作
+            debouncedSave.flush()
             setEditingStoryId(null)
           }}
         />

@@ -7,15 +7,22 @@ interface DebouncedOptions {
   maxWait?: number
 }
 
+interface DebouncedCallbackWithFlush<T extends (...args: any[]) => any> {
+  (...args: Parameters<T>): void
+  /** 立即執行 pending 的回調（如果有） */
+  flush: () => void
+}
+
 /**
  * 防抖回調 Hook
  *
  * 支援 maxWait 選項，確保即使持續觸發也會定期執行
+ * 支援 flush 方法，確保元件卸載前可以執行 pending 的回調
  */
 export function useDebouncedCallback<T extends (...args: any[]) => any>(
   callback: T,
   options: DebouncedOptions
-): T {
+): DebouncedCallbackWithFlush<T> {
   const { delay, maxWait } = options
   const timeoutRef = useRef<ReturnType<typeof setTimeout> | undefined>(undefined)
   const maxWaitTimeoutRef = useRef<ReturnType<typeof setTimeout> | undefined>(undefined)
@@ -33,9 +40,24 @@ export function useDebouncedCallback<T extends (...args: any[]) => any>(
     }
   }, [])
 
-  // 組件卸載時清理
+  // flush: 立即執行 pending 的回調
+  const flush = useCallback(() => {
+    if (latestArgsRef.current) {
+      cleanup()
+      const args = latestArgsRef.current
+      latestArgsRef.current = undefined
+      callback(...args)
+    }
+  }, [callback, cleanup])
+
+  // 組件卸載時清理 timers（但不執行 flush）
+  // 設計決策：用戶離開頁面是有意識的行為，不應強制儲存
+  // 正常編輯已有 debounce + maxWait 機制保證定期儲存
+  // 如需「離開前儲存」應在業務層面處理（例如 beforeunload）
   useEffect(() => {
-    return cleanup
+    return () => {
+      cleanup()
+    }
   }, [cleanup])
 
   const debouncedCallback = useCallback(
@@ -73,7 +95,11 @@ export function useDebouncedCallback<T extends (...args: any[]) => any>(
       }, delay)
     },
     [callback, delay, maxWait, cleanup]
-  ) as T
+  )
 
-  return debouncedCallback
+  // 將 flush 方法附加到 debouncedCallback
+  const debouncedCallbackWithFlush = debouncedCallback as DebouncedCallbackWithFlush<T>
+  debouncedCallbackWithFlush.flush = flush
+
+  return debouncedCallbackWithFlush
 }
