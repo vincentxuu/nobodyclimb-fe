@@ -203,17 +203,24 @@ export interface SelectedCardContent {
 }
 
 /**
- * 從 one_liners_data 和 stories_data 中隨機選擇一個問題
- * 避免與已使用的問題重複
- * @param usedQuestionIds - 已使用的問題 ID 集合，用於避免卡片間重複
+ * 從 one_liners_data 和 stories_data 中選擇一個問題
+ * 新演算法：優先顯示真實內容 > 避免重複 > 預設語錄
+ * @param id - 用戶 ID，用於生成穩定的內容選擇
+ * @param questionUsageCount - 問題使用次數計數器，用於追蹤和平衡問題重複
+ * @param options - 配置選項（重複上限、是否允許重複等）
  */
 export function selectCardContent(
   id: string,
   oneLinersJson: string | null | undefined,
   storiesJson: string | null | undefined,
-  usedQuestionIds: Set<string> = new Set(),
-  fallbackMeaning?: string | null
+  questionUsageCount: Map<string, number> = new Map(),
+  options: {
+    maxRepetition?: number
+    allowRepetition?: boolean
+  } = {}
 ): SelectedCardContent | null {
+  const { maxRepetition = 3, allowRepetition = true } = options
+
   // 解析 one_liners_data
   let oneLiners: OneLinersData | null = null
   if (oneLinersJson) {
@@ -234,15 +241,21 @@ export function selectCardContent(
     }
   }
 
-  // 收集所有有回答的問題（排除已使用的）
-  const availableContent: { key: string; question: string; answer: string }[] = []
+  // 階段 1：收集所有可用內容（不考慮重複）
+  const allAvailableContent: { key: string; question: string; answer: string }[] = []
 
   // 從 one_liners 收集（只顯示 public 的內容）
-  for (const key of CARD_QUESTION_PRIORITY) {
-    if (usedQuestionIds.has(key)) continue
+  const oneLinersKeys = oneLiners ? Object.keys(oneLiners) : []
+  const prioritySet = new Set(CARD_QUESTION_PRIORITY)
+  const orderedOneLinerKeys = [
+    ...CARD_QUESTION_PRIORITY,
+    ...oneLinersKeys.filter((key) => !prioritySet.has(key)).sort(),
+  ]
+
+  for (const key of orderedOneLinerKeys) {
     const data = oneLiners?.[key]
     if (data?.answer && data.answer.trim() && data.visibility === 'public') {
-      availableContent.push({
+      allAvailableContent.push({
         key,
         question: ONE_LINER_QUESTIONS[key] || '攀岩對你來說是什麼？',
         answer: data.answer,
@@ -256,12 +269,11 @@ export function selectCardContent(
     for (const category of Object.values(stories)) {
       if (!category) continue
       for (const [key, data] of Object.entries(category)) {
-        if (usedQuestionIds.has(key)) continue
         if (data?.answer && data.answer.trim() && data.visibility === 'public') {
           const truncated = data.answer.length > CARD_STORY_MAX_LENGTH
             ? data.answer.slice(0, CARD_STORY_MAX_LENGTH) + '...'
             : data.answer
-          availableContent.push({
+          allAvailableContent.push({
             key,
             question: STORY_QUESTIONS[key] || '攀岩故事',
             answer: truncated,
@@ -271,22 +283,67 @@ export function selectCardContent(
     }
   }
 
-  // 如果沒有可用內容，嘗試 fallback
-  if (availableContent.length === 0) {
-    if (fallbackMeaning?.trim() && !usedQuestionIds.has('climbing_meaning_fallback')) {
-      return {
-        question: ONE_LINER_QUESTIONS.climbing_meaning,
-        answer: fallbackMeaning,
-        questionId: 'climbing_meaning_fallback',
-      }
-    }
+  // 階段 2：如果沒有任何內容，使用預設語錄
+  if (allAvailableContent.length === 0) {
     return null
   }
 
-  // 使用 ID hash 選擇，確保同一用戶顯示固定的內容
+  // 階段 3：策略 1 - 優先選擇未使用的問題
+  const unusedContent = allAvailableContent.filter(
+    item => !questionUsageCount.has(item.key)
+  )
+
+  if (unusedContent.length > 0) {
+    return selectByHash(id, unusedContent)
+  }
+
+  // 階段 4：策略 2 - 所有問題都被使用過，允許重複但選擇使用次數最少的
+  if (allowRepetition) {
+    const availableContent = maxRepetition > 0
+      ? allAvailableContent.filter(
+        item => (questionUsageCount.get(item.key) || 0) < maxRepetition
+      )
+      : allAvailableContent
+
+    // 找出最小使用次數（僅針對可用內容）
+    const usageCounts = availableContent.map(
+      item => questionUsageCount.get(item.key) || 0
+    )
+    const minUsage = Math.min(...usageCounts)
+
+    // 過濾出使用次數最少的內容
+    const leastUsedContent = availableContent.filter(
+      item => (questionUsageCount.get(item.key) || 0) === minUsage
+    )
+
+    if (leastUsedContent.length > 0) {
+      return selectByHash(id, leastUsedContent)
+    }
+
+    // 如果所有問題都達上限，但仍有內容 - 優先顯示真實內容
+    if (allAvailableContent.length > 0) {
+      if (process.env.NODE_ENV === 'development') {
+        console.warn(`所有問題都達重複上限，但仍顯示內容 (user: ${id})`)
+      }
+      return selectByHash(id, allAvailableContent)
+    }
+  }
+
+  // 階段 5：最後才使用預設語錄
+  return null
+}
+
+/**
+ * 使用 ID hash 選擇固定內容
+ * 確保同一用戶每次都顯示相同的內容
+ */
+function selectByHash(
+  id: string,
+  content: { key: string; question: string; answer: string }[]
+): SelectedCardContent {
   const hash = id.split('').reduce((acc, char) => acc + char.charCodeAt(0), 0)
-  const index = hash % availableContent.length
-  const selected = availableContent[index]
+  const index = hash % content.length
+  const selected = content[index]
 
   return {
     question: selected.question,

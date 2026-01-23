@@ -28,27 +28,35 @@ interface ClimberCardProps {
 
 // 卡片網格組件，預先計算每張卡片的內容
 function BiographyGrid({ biographies }: { biographies: Biography[] }) {
-  // 使用 reduce 避免 mutation，確保純函數
+  // 使用 reduce 避免 mutation，優先顯示真實內容，盡量避免問題重複
   const biographiesWithContent = useMemo(() => {
     const result = biographies.reduce<{
       items: Array<{ person: Biography; content: ReturnType<typeof selectCardContent> }>
-      usedIds: string[]
+      usageCount: Map<string, number>
     }>(
       (acc, person) => {
-        const usedQuestionIds = new Set(acc.usedIds)
+        const usageCount = new Map(acc.usageCount)
         const content = selectCardContent(
           person.id,
           person.one_liners_data,
           person.stories_data,
-          usedQuestionIds,
-          person.climbing_meaning
+          usageCount
         )
+
+        // 更新使用次數
+        if (content?.questionId) {
+          usageCount.set(
+            content.questionId,
+            (usageCount.get(content.questionId) || 0) + 1
+          )
+        }
+
         return {
           items: [...acc.items, { person, content }],
-          usedIds: content?.questionId ? [...acc.usedIds, content.questionId] : acc.usedIds,
+          usageCount,
         }
       },
-      { items: [], usedIds: [] }
+      { items: [], usageCount: new Map() }
     )
     return result.items
   }, [biographies])

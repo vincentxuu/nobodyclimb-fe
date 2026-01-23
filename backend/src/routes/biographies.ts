@@ -5,6 +5,9 @@ import { authMiddleware, optionalAuthMiddleware } from '../middleware/auth';
 import { createNotification } from './notifications';
 import { deleteR2Images } from '../utils/storage';
 import { trackAndIncrementViewCount } from '../utils/viewTracker';
+import { BiographyRepository } from '../repositories/biography-repository';
+import { BiographyContentRepository } from '../repositories/biography-content-repository';
+import { BiographyService } from '../services/biography-service';
 
 // ═══════════════════════════════════════════════════════════
 // Request Body Type - 包含前端傳入的 JSON 欄位用於同步到獨立表
@@ -53,15 +56,6 @@ const V2_FIELDS = [
 /** Visibility 等級 */
 type VisibilityLevel = 'private' | 'anonymous' | 'community' | 'public';
 
-/** 台灣地區名稱（用於判斷是否為國際地點） */
-const LOCAL_COUNTRY_NAMES = ['台灣', '臺灣', 'taiwan'];
-
-/** 判斷是否為國際地點 */
-function isInternationalLocation(country: string | undefined): boolean {
-  if (!country) return false;
-  return !LOCAL_COUNTRY_NAMES.includes(country.trim().toLowerCase());
-}
-
 export const biographiesRoutes = new Hono<{ Bindings: Env }>();
 
 // ═══════════════════════════════════════════════════════════
@@ -91,56 +85,6 @@ function getVisibilityWhereClause(userId: string | undefined, tableAlias: string
       ${prefix}visibility = 'public' OR
       ${prefix}visibility = 'anonymous'
     )`;
-  }
-}
-
-/**
- * 將 anonymous 人物誌的個人資訊隱藏
- * @param biography - 原始人物誌資料
- * @returns 隱藏個人資訊後的人物誌資料
- */
-function sanitizeForAnonymous<T extends Record<string, unknown>>(biography: T): T {
-  return {
-    ...biography,
-    name: '匿名攀岩者',
-    avatar_url: null,
-    user_id: null,
-    social_links: null,
-  };
-}
-
-/**
- * 檢查是否應該隱藏 anonymous 人物誌的個人資訊
- * @param biography - 人物誌資料
- * @param currentUserId - 當前用戶 ID
- * @returns 是否應該隱藏
- */
-function shouldSanitizeAnonymous(biography: { visibility?: string | null; user_id?: string | null }, currentUserId: string | undefined): boolean {
-  return biography.visibility === 'anonymous' && biography.user_id !== currentUserId;
-}
-
-/**
- * 如果 biography 沒有頭像，從關聯的 user 取得頭像作為 fallback
- * @param db - D1 資料庫實例
- * @param biography - 人物誌資料
- */
-async function applyAvatarFallback(
-  db: D1Database,
-  biography: Record<string, unknown> | null
-): Promise<void> {
-  if (!biography) return;
-
-  const userId = biography.user_id as string | undefined;
-  if (!biography.avatar_url && userId) {
-    const user = await db.prepare(
-      'SELECT avatar_url FROM users WHERE id = ?'
-    )
-      .bind(userId)
-      .first<{ avatar_url: string | null }>();
-
-    if (user?.avatar_url) {
-      biography.avatar_url = user.avatar_url;
-    }
   }
 }
 
@@ -214,77 +158,34 @@ async function invalidateBiographyCaches(
 // GET /biographies - List all public biographies
 biographiesRoutes.get('/', optionalAuthMiddleware, async (c) => {
   const userId = c.get('userId');
-  const { page, limit, offset } = parsePagination(
+  const { page, limit } = parsePagination(
     c.req.query('page'),
     c.req.query('limit')
   );
   const featured = c.req.query('featured');
   const search = c.req.query('search');
 
-  // Use visibility-based filtering with table alias for JOIN queries
-  let whereClause = getVisibilityWhereClause(userId, 'b');
-  const params: (string | number)[] = [];
+  // 使用 Service 層處理業務邏輯
+  const repository = new BiographyRepository(c.env.DB);
+  const contentRepository = new BiographyContentRepository(c.env.DB);
+  const service = new BiographyService(repository, contentRepository, c.env.DB);
 
-  if (featured === 'true') {
-    whereClause += ' AND b.is_featured = 1';
-  }
-
-  if (search) {
-    // 搜尋只在基本欄位進行（故事內容已移至獨立表）
-    const searchFields = [
-      'name', 'frequent_locations', 'favorite_route_type',
-    ];
-    const searchConditions = searchFields.map((field) => `b.${field} LIKE ?`).join(' OR ');
-    whereClause += ` AND (${searchConditions})`;
-    const searchPattern = `%${search}%`;
-    searchFields.forEach(() => params.push(searchPattern));
-  }
-
-  const countResult = await c.env.DB.prepare(
-    `SELECT COUNT(*) as count FROM biographies b WHERE ${whereClause}`
-  )
-    .bind(...params)
-    .first<{ count: number }>();
-  const total = countResult?.count || 0;
-
-  // Select only fields needed for list display (optimized for performance)
-  const biographies = await c.env.DB.prepare(
-    `SELECT
-       b.id,
-       b.user_id,
-       b.slug,
-       b.name,
-       COALESCE(b.avatar_url, u.avatar_url) as avatar_url,
-       b.climbing_start_year,
-       b.basic_info_data,
-       b.tags_data,
-       b.visibility
-     FROM biographies b
-     LEFT JOIN users u ON b.user_id = u.id
-     WHERE ${whereClause}
-     ORDER BY CASE WHEN b.user_id IS NOT NULL THEN 0 ELSE 1 END, b.is_featured DESC, b.published_at DESC, b.created_at DESC
-     LIMIT ? OFFSET ?`
-  )
-    .bind(...params, limit, offset)
-    .all();
-
-  // Sanitize anonymous biographies for non-owners
-  const results = (biographies.results || []).map((bio) => {
-    const bioRecord = bio as Record<string, unknown>;
-    if (shouldSanitizeAnonymous(bioRecord as { visibility?: string | null; user_id?: string | null }, userId)) {
-      return sanitizeForAnonymous(bioRecord);
-    }
-    return bio;
+  const response = await service.getList({
+    page,
+    limit,
+    userId,
+    isFeatured: featured === 'true' ? true : undefined,
+    searchTerm: search || undefined,
   });
 
   return c.json({
     success: true,
-    data: results,
+    data: response.data,
     pagination: {
-      page,
-      limit,
-      total,
-      total_pages: Math.ceil(total / limit),
+      page: response.pagination.page,
+      limit: response.pagination.limit,
+      total: response.pagination.total,
+      total_pages: response.pagination.totalPages,
     },
   });
 });
@@ -308,27 +209,12 @@ biographiesRoutes.get('/featured', async (c) => {
     console.error(`Cache read error for ${cacheKey}:`, e);
   }
 
-  // Featured biographies only show truly public ones (not community/anonymous)
-  // Select only fields needed for homepage display
-  const biographies = await c.env.DB.prepare(
-    `SELECT
-       b.id,
-       b.slug,
-       b.name,
-       COALESCE(b.avatar_url, u.avatar_url) as avatar_url,
-       b.climbing_start_year,
-       b.tags_data
-     FROM biographies b
-     LEFT JOIN users u ON b.user_id = u.id
-     WHERE b.visibility = 'public'
-       AND b.is_featured = 1
-     ORDER BY CASE WHEN b.user_id IS NOT NULL THEN 0 ELSE 1 END, b.published_at DESC, b.created_at DESC
-     LIMIT ?`
-  )
-    .bind(limit)
-    .all();
+  // 使用 Service 層處理業務邏輯
+  const repository = new BiographyRepository(c.env.DB);
+  const contentRepository = new BiographyContentRepository(c.env.DB);
+  const service = new BiographyService(repository, contentRepository, c.env.DB);
 
-  const results = biographies.results || [];
+  const results = await service.getFeatured(limit);
 
   // Cache the result for 5 minutes
   try {
@@ -347,26 +233,16 @@ biographiesRoutes.get('/featured', async (c) => {
 biographiesRoutes.get('/me', authMiddleware, async (c) => {
   const userId = c.get('userId');
 
-  const biography = await c.env.DB.prepare(
-    'SELECT * FROM biographies WHERE user_id = ?'
-  )
-    .bind(userId)
-    .first();
+  // 使用 Service 層處理業務邏輯
+  const repository = new BiographyRepository(c.env.DB);
+  const contentRepository = new BiographyContentRepository(c.env.DB);
+  const service = new BiographyService(repository, contentRepository, c.env.DB);
 
-  if (!biography) {
-    return c.json({
-      success: true,
-      data: null,
-    });
-  }
-
-  // Fallback to user avatar if biography has no avatar
-  const bioRecord = biography as Record<string, unknown>;
-  await applyAvatarFallback(c.env.DB, bioRecord);
+  const biography = await service.getMyBiography(userId);
 
   return c.json({
     success: true,
-    data: bioRecord,
+    data: biography,
   });
 });
 
@@ -375,12 +251,12 @@ biographiesRoutes.get('/:id', optionalAuthMiddleware, async (c) => {
   const id = c.req.param('id');
   const userId = c.get('userId');
 
-  const visibilityClause = getVisibilityWhereClause(userId);
-  const biography = await c.env.DB.prepare(
-    `SELECT * FROM biographies WHERE id = ? AND ${visibilityClause}`
-  )
-    .bind(id)
-    .first();
+  // 使用 Service 層處理業務邏輯
+  const repository = new BiographyRepository(c.env.DB);
+  const contentRepository = new BiographyContentRepository(c.env.DB);
+  const service = new BiographyService(repository, contentRepository, c.env.DB);
+
+  const biography = await service.getById(id, userId);
 
   if (!biography) {
     return c.json(
@@ -393,18 +269,9 @@ biographiesRoutes.get('/:id', optionalAuthMiddleware, async (c) => {
     );
   }
 
-  // Fallback to user avatar if biography has no avatar
-  const bioRecord = biography as Record<string, unknown>;
-  await applyAvatarFallback(c.env.DB, bioRecord);
-
-  // Sanitize anonymous biographies for non-owners
-  const result = shouldSanitizeAnonymous(bioRecord as { visibility?: string | null; user_id?: string | null }, userId)
-    ? sanitizeForAnonymous(bioRecord)
-    : bioRecord;
-
   return c.json({
     success: true,
-    data: result,
+    data: biography,
   });
 });
 
@@ -434,12 +301,12 @@ biographiesRoutes.get('/slug/:slug', optionalAuthMiddleware, async (c) => {
     }
   }
 
-  const visibilityClause = getVisibilityWhereClause(userId);
-  const biography = await c.env.DB.prepare(
-    `SELECT * FROM biographies WHERE slug = ? AND ${visibilityClause}`
-  )
-    .bind(slug)
-    .first();
+  // 使用 Service 層處理業務邏輯
+  const repository = new BiographyRepository(c.env.DB);
+  const contentRepository = new BiographyContentRepository(c.env.DB);
+  const service = new BiographyService(repository, contentRepository, c.env.DB);
+
+  const biography = await service.getById(slug, userId);
 
   if (!biography) {
     return c.json(
@@ -452,21 +319,12 @@ biographiesRoutes.get('/slug/:slug', optionalAuthMiddleware, async (c) => {
     );
   }
 
-  // Fallback to user avatar if biography has no avatar
-  const bioRecord = biography as Record<string, unknown>;
-  await applyAvatarFallback(c.env.DB, bioRecord);
-
-  // Sanitize anonymous biographies for non-owners
-  const result = shouldSanitizeAnonymous(bioRecord as { visibility?: string | null; user_id?: string | null }, userId)
-    ? sanitizeForAnonymous(bioRecord)
-    : bioRecord;
-
   // Cache public biographies for anonymous users (5 minute TTL)
-  const isPublic = bioRecord.visibility === 'public';
+  const isPublic = biography.visibility === 'public';
   if (!userId && isPublic) {
     const cacheKey = `biography:slug:${slug}`;
     try {
-      await c.env.CACHE.put(cacheKey, JSON.stringify(result), { expirationTtl: 300 });
+      await c.env.CACHE.put(cacheKey, JSON.stringify(biography), { expirationTtl: 300 });
     } catch (e) {
       console.error(`Cache write error for ${cacheKey}:`, e);
     }
@@ -474,7 +332,7 @@ biographiesRoutes.get('/slug/:slug', optionalAuthMiddleware, async (c) => {
 
   return c.json({
     success: true,
-    data: result,
+    data: biography,
   });
 });
 
@@ -494,320 +352,15 @@ biographiesRoutes.post('/', authMiddleware, async (c) => {
     );
   }
 
-  // Check if user already has a biography
-  const existing = await c.env.DB.prepare(
-    'SELECT id, slug FROM biographies WHERE user_id = ?'
-  )
-    .bind(userId)
-    .first<{ id: string; slug: string }>();
+  // 使用 Service 層處理業務邏輯
+  const repository = new BiographyRepository(c.env.DB);
+  const contentRepository = new BiographyContentRepository(c.env.DB);
+  const service = new BiographyService(repository, contentRepository, c.env.DB);
 
-  if (existing) {
-    // Update existing biography
-    const updates: string[] = [];
-    const values: (string | number | null)[] = [];
-
-    // All biography fields (stories now stored in separate tables)
-    const fields = [
-      // Basic info
-      'name', 'title', 'bio', 'avatar_url', 'cover_image',
-      // Level 1: Basic climbing info
-      'climbing_start_year', 'frequent_locations', 'favorite_route_type',
-      // Media & Social
-      'social_links', 'youtube_channel_id', 'featured_video_id',
-      // Status
-      'achievements', 'is_featured',
-      // V2 Fields
-      'visibility', 'tags_data', 'basic_info_data',
-    ];
-
-    for (const field of fields) {
-      if (body[field as keyof Biography] !== undefined) {
-        updates.push(`${field} = ?`);
-        values.push(body[field as keyof Biography] as string | number | null);
-      }
-    }
-
-    // Note: slug is now tied to username, not name. Slug updates happen via PUT /auth/profile
-
-    // Set published_at when going public for first time
-    if (body.visibility === 'public') {
-      const currentBio = await c.env.DB.prepare(
-        'SELECT published_at, visibility FROM biographies WHERE id = ?'
-      )
-        .bind(existing.id)
-        .first<{ published_at: string | null; visibility: string | null }>();
-
-      if (currentBio && !currentBio.published_at && currentBio.visibility !== 'public') {
-        updates.push('published_at = ?');
-        values.push(new Date().toISOString());
-      }
-    }
-
-    if (updates.length > 0) {
-      updates.push("updated_at = datetime('now')");
-      values.push(existing.id);
-
-      await c.env.DB.prepare(
-        `UPDATE biographies SET ${updates.join(', ')} WHERE id = ?`
-      )
-        .bind(...values)
-        .run();
-    }
-
-    // 同步 one_liners_data 到對應資料表 (POST update)
-    if (body.one_liners_data !== undefined) {
-      const oneLinersData = typeof body.one_liners_data === 'string'
-        ? JSON.parse(body.one_liners_data as string)
-        : body.one_liners_data;
-
-      if (oneLinersData && typeof oneLinersData === 'object') {
-        const now = new Date().toISOString();
-        const coreQuestionIds = new Set(CORE_STORY_FIELDS);
-
-        for (const [questionId, data] of Object.entries(oneLinersData)) {
-          const itemData = data as { answer?: string; visibility?: string };
-          const answer = itemData?.answer;
-
-          if (answer !== undefined) {
-            if (coreQuestionIds.has(questionId as typeof CORE_STORY_FIELDS[number])) {
-              const existingCoreStory = await c.env.DB.prepare(
-                'SELECT id FROM biography_core_stories WHERE biography_id = ? AND question_id = ?'
-              ).bind(existing.id, questionId).first<{ id: string }>();
-
-              if (answer === null || answer.trim() === '') {
-                if (existingCoreStory) {
-                  await c.env.DB.prepare('DELETE FROM biography_core_stories WHERE id = ?')
-                    .bind(existingCoreStory.id).run();
-                }
-              } else if (existingCoreStory) {
-                await c.env.DB.prepare(
-                  'UPDATE biography_core_stories SET content = ?, updated_at = ? WHERE id = ?'
-                ).bind(answer.trim(), now, existingCoreStory.id).run();
-              } else {
-                const storyId = generateId();
-                await c.env.DB.prepare(
-                  `INSERT INTO biography_core_stories (id, biography_id, question_id, content, created_at, updated_at)
-                   VALUES (?, ?, ?, ?, ?, ?)`
-                ).bind(storyId, existing.id, questionId, answer.trim(), now, now).run();
-              }
-            } else {
-              const existingOneLiner = await c.env.DB.prepare(
-                'SELECT id FROM biography_one_liners WHERE biography_id = ? AND question_id = ?'
-              ).bind(existing.id, questionId).first<{ id: string }>();
-
-              if (answer === null || answer.trim() === '') {
-                if (existingOneLiner) {
-                  await c.env.DB.prepare('DELETE FROM biography_one_liners WHERE id = ?')
-                    .bind(existingOneLiner.id).run();
-                }
-              } else if (existingOneLiner) {
-                await c.env.DB.prepare(
-                  'UPDATE biography_one_liners SET answer = ?, updated_at = ? WHERE id = ?'
-                ).bind(answer.trim(), now, existingOneLiner.id).run();
-              } else {
-                const oneLinerId = generateId();
-                await c.env.DB.prepare(
-                  `INSERT INTO biography_one_liners (id, biography_id, question_id, answer, source, created_at, updated_at)
-                   VALUES (?, ?, ?, ?, 'system', ?, ?)`
-                ).bind(oneLinerId, existing.id, questionId, answer.trim(), now, now).run();
-              }
-            }
-          }
-        }
-      }
-    }
-
-    // 同步 stories_data 到 biography_stories 表 (POST update)
-    if (body.stories_data !== undefined) {
-      const storiesData = typeof body.stories_data === 'string'
-        ? JSON.parse(body.stories_data as string)
-        : body.stories_data;
-
-      if (storiesData && typeof storiesData === 'object') {
-        const now = new Date().toISOString();
-
-        for (const [categoryId, questions] of Object.entries(storiesData)) {
-          if (questions && typeof questions === 'object') {
-            for (const [questionId, data] of Object.entries(questions as Record<string, unknown>)) {
-              const itemData = data as { answer?: string; visibility?: string };
-              const content = itemData?.answer;
-
-              if (content !== undefined) {
-                const existingStory = await c.env.DB.prepare(
-                  'SELECT id FROM biography_stories WHERE biography_id = ? AND question_id = ?'
-                ).bind(existing.id, questionId).first<{ id: string }>();
-
-                if (content === null || content.trim() === '') {
-                  if (existingStory) {
-                    await c.env.DB.prepare('DELETE FROM biography_stories WHERE id = ?')
-                      .bind(existingStory.id).run();
-                  }
-                } else if (existingStory) {
-                  const characterCount = content.trim().length;
-                  await c.env.DB.prepare(
-                    'UPDATE biography_stories SET content = ?, category_id = ?, character_count = ?, updated_at = ? WHERE id = ?'
-                  ).bind(content.trim(), categoryId === 'uncategorized' ? null : categoryId, characterCount, now, existingStory.id).run();
-                } else {
-                  const storyId = generateId();
-                  const characterCount = content.trim().length;
-                  await c.env.DB.prepare(
-                    `INSERT INTO biography_stories (id, biography_id, question_id, category_id, content, source, character_count, created_at, updated_at)
-                     VALUES (?, ?, ?, ?, ?, 'system', ?, ?, ?)`
-                  ).bind(storyId, existing.id, questionId, categoryId === 'uncategorized' ? null : categoryId, content.trim(), characterCount, now, now).run();
-                }
-              }
-            }
-          }
-        }
-      }
-    }
-
-    const biography = await c.env.DB.prepare(
-      'SELECT * FROM biographies WHERE id = ?'
-    )
-      .bind(existing.id)
-      .first<Biography>();
+  try {
+    const biography = await service.createOrUpdate(userId, body as typeof body & { name: string });
 
     // 同步更新 KV 快取並清除舊快取
-    if (biography) {
-      await cacheBiographyMetadata(c.env.CACHE, {
-        id: biography.id,
-        name: biography.name,
-        avatar_url: biography.avatar_url || null,
-        bio: biography.bio || null,
-        title: biography.title || null,
-      });
-      // 清除詳細頁和首頁精選快取
-      await invalidateBiographyCaches(c.env.CACHE, biography.slug || existing.slug);
-    }
-
-    return c.json({
-      success: true,
-      data: biography,
-    });
-  }
-
-  // Create new biography
-  const id = generateId();
-
-  // Get user's username for slug
-  const user = await c.env.DB.prepare(
-    'SELECT username FROM users WHERE id = ?'
-  )
-    .bind(userId)
-    .first<{ username: string }>();
-
-  if (!user) {
-    return c.json(
-      {
-        success: false,
-        error: 'Not Found',
-        message: 'User not found',
-      },
-      404
-    );
-  }
-
-  const slug = user.username;
-  const isPublic = body.visibility === 'public';
-
-  await c.env.DB.prepare(
-    `INSERT INTO biographies (
-      id, user_id, name, slug, title, bio, avatar_url, cover_image,
-      climbing_start_year, frequent_locations, favorite_route_type,
-      achievements, social_links, is_featured, visibility, published_at
-    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
-  )
-    .bind(
-      id,
-      userId,
-      body.name,
-      slug,
-      body.title || null,
-      body.bio || null,
-      body.avatar_url || null,
-      body.cover_image || null,
-      body.climbing_start_year || null,
-      body.frequent_locations || null,
-      body.favorite_route_type || null,
-      body.achievements || null,
-      body.social_links || null,
-      body.is_featured || 0,
-      body.visibility || 'private',
-      isPublic ? new Date().toISOString() : null
-    )
-    .run();
-
-  // 同步 one_liners_data 到對應資料表 (POST create)
-  if (body.one_liners_data !== undefined) {
-    const oneLinersData = typeof body.one_liners_data === 'string'
-      ? JSON.parse(body.one_liners_data as string)
-      : body.one_liners_data;
-
-    if (oneLinersData && typeof oneLinersData === 'object') {
-      const now = new Date().toISOString();
-      const coreQuestionIds = new Set(CORE_STORY_FIELDS);
-
-      for (const [questionId, data] of Object.entries(oneLinersData)) {
-        const itemData = data as { answer?: string; visibility?: string };
-        const answer = itemData?.answer;
-
-        if (answer && answer.trim() !== '') {
-          if (coreQuestionIds.has(questionId as typeof CORE_STORY_FIELDS[number])) {
-            const storyId = generateId();
-            await c.env.DB.prepare(
-              `INSERT INTO biography_core_stories (id, biography_id, question_id, content, created_at, updated_at)
-               VALUES (?, ?, ?, ?, ?, ?)`
-            ).bind(storyId, id, questionId, answer.trim(), now, now).run();
-          } else {
-            const oneLinerId = generateId();
-            await c.env.DB.prepare(
-              `INSERT INTO biography_one_liners (id, biography_id, question_id, answer, source, created_at, updated_at)
-               VALUES (?, ?, ?, ?, 'system', ?, ?)`
-            ).bind(oneLinerId, id, questionId, answer.trim(), now, now).run();
-          }
-        }
-      }
-    }
-  }
-
-  // 同步 stories_data 到 biography_stories 表 (POST create)
-  if (body.stories_data !== undefined) {
-    const storiesData = typeof body.stories_data === 'string'
-      ? JSON.parse(body.stories_data as string)
-      : body.stories_data;
-
-    if (storiesData && typeof storiesData === 'object') {
-      const now = new Date().toISOString();
-
-      for (const [categoryId, questions] of Object.entries(storiesData)) {
-        if (questions && typeof questions === 'object') {
-          for (const [questionId, data] of Object.entries(questions as Record<string, unknown>)) {
-            const itemData = data as { answer?: string; visibility?: string };
-            const content = itemData?.answer;
-
-            if (content && content.trim() !== '') {
-              const storyId = generateId();
-              const characterCount = content.trim().length;
-              await c.env.DB.prepare(
-                `INSERT INTO biography_stories (id, biography_id, question_id, category_id, content, source, character_count, created_at, updated_at)
-                 VALUES (?, ?, ?, ?, ?, 'system', ?, ?, ?)`
-              ).bind(storyId, id, questionId, categoryId === 'uncategorized' ? null : categoryId, content.trim(), characterCount, now, now).run();
-            }
-          }
-        }
-      }
-    }
-  }
-
-  const biography = await c.env.DB.prepare(
-    'SELECT * FROM biographies WHERE id = ?'
-  )
-    .bind(id)
-    .first<Biography>();
-
-  // 同步寫入 KV 快取
-  if (biography) {
     await cacheBiographyMetadata(c.env.CACHE, {
       id: biography.id,
       name: biography.name,
@@ -815,39 +368,24 @@ biographiesRoutes.post('/', authMiddleware, async (c) => {
       bio: biography.bio || null,
       title: biography.title || null,
     });
-  }
 
-  return c.json(
-    {
-      success: true,
-      data: biography,
-    },
-    201
-  );
-});
+    // 清除詳細頁和首頁精選快取
+    await invalidateBiographyCaches(c.env.CACHE, biography.slug);
 
-// PUT /biographies/me - Update current user's biography (Upsert pattern)
-// If biography doesn't exist, creates one automatically
-biographiesRoutes.put('/me', authMiddleware, async (c) => {
-  const userId = c.get('userId');
-  const body = await c.req.json<BiographyRequestBody>();
+    // 判斷是新建還是更新
+    const isNewBiography = !await repository.findByUserId(userId);
 
-  const existing = await c.env.DB.prepare(
-    'SELECT id, slug, published_at, visibility FROM biographies WHERE user_id = ?'
-  )
-    .bind(userId)
-    .first<{ id: string; slug: string; published_at: string | null; visibility: string | null }>();
+    return c.json(
+      {
+        success: true,
+        data: biography,
+      },
+      isNewBiography ? 201 : 200
+    );
+  } catch (error) {
+    console.error('Error creating/updating biography:', error);
 
-  // Upsert: If biography doesn't exist, create one
-  if (!existing) {
-    // Get user info to set default name
-    const user = await c.env.DB.prepare(
-      'SELECT display_name, username FROM users WHERE id = ?'
-    )
-      .bind(userId)
-      .first<{ display_name: string | null; username: string }>();
-
-    if (!user) {
+    if (error instanceof Error && error.message === 'User not found') {
       return c.json(
         {
           success: false,
@@ -858,323 +396,32 @@ biographiesRoutes.put('/me', authMiddleware, async (c) => {
       );
     }
 
-    const defaultName = body.name || user.display_name || user.username || '攀岩者';
-    const id = generateId();
-    // Use username as slug
-    const slug = user.username;
-    const now = new Date().toISOString();
-
-    // Build insert with provided fields
-    const insertFields = ['id', 'user_id', 'name', 'slug', 'created_at', 'updated_at'];
-    const insertValues: (string | number | null)[] = [id, userId, defaultName, slug, now, now];
-
-    // V2 fields that can be set during creation
-    const v2Fields = ['title', 'bio', 'avatar_url', 'cover_image', 'climbing_start_year',
-      'frequent_locations', 'favorite_route_type', 'visibility', 'tags_data', 'basic_info_data'];
-
-    for (const field of v2Fields) {
-      if (body[field as keyof Biography] !== undefined) {
-        insertFields.push(field);
-        insertValues.push(body[field as keyof Biography] as string | number | null);
-      }
-    }
-
-    // 預設為公開（如果沒有指定 visibility）
-    if (body.visibility === undefined) {
-      insertFields.push('visibility');
-      insertValues.push('public');
-      insertFields.push('published_at');
-      insertValues.push(now);
-    } else {
-      // Handle published_at for public visibility
-      const goingPublic = body.visibility === 'public';
-      if (goingPublic) {
-        insertFields.push('published_at');
-        insertValues.push(now);
-      }
-    }
-
-    const placeholders = insertFields.map(() => '?').join(', ');
-    await c.env.DB.prepare(
-      `INSERT INTO biographies (${insertFields.join(', ')}) VALUES (${placeholders})`
-    )
-      .bind(...insertValues)
-      .run();
-
-    // 同步 one_liners_data 到對應資料表 (PUT /me upsert create)
-    if (body.one_liners_data !== undefined) {
-      const oneLinersData = typeof body.one_liners_data === 'string'
-        ? JSON.parse(body.one_liners_data as string)
-        : body.one_liners_data;
-
-      if (oneLinersData && typeof oneLinersData === 'object') {
-        const coreQuestionIds = new Set(CORE_STORY_FIELDS);
-
-        for (const [questionId, data] of Object.entries(oneLinersData)) {
-          const itemData = data as { answer?: string; visibility?: string };
-          const answer = itemData?.answer;
-
-          if (answer && answer.trim() !== '') {
-            if (coreQuestionIds.has(questionId as typeof CORE_STORY_FIELDS[number])) {
-              const storyId = generateId();
-              await c.env.DB.prepare(
-                `INSERT INTO biography_core_stories (id, biography_id, question_id, content, created_at, updated_at)
-                 VALUES (?, ?, ?, ?, ?, ?)`
-              ).bind(storyId, id, questionId, answer.trim(), now, now).run();
-            } else {
-              const oneLinerId = generateId();
-              await c.env.DB.prepare(
-                `INSERT INTO biography_one_liners (id, biography_id, question_id, answer, source, created_at, updated_at)
-                 VALUES (?, ?, ?, ?, 'system', ?, ?)`
-              ).bind(oneLinerId, id, questionId, answer.trim(), now, now).run();
-            }
-          }
-        }
-      }
-    }
-
-    // 同步 stories_data 到 biography_stories 表 (PUT /me upsert create)
-    if (body.stories_data !== undefined) {
-      const storiesData = typeof body.stories_data === 'string'
-        ? JSON.parse(body.stories_data as string)
-        : body.stories_data;
-
-      if (storiesData && typeof storiesData === 'object') {
-        for (const [categoryId, questions] of Object.entries(storiesData)) {
-          if (questions && typeof questions === 'object') {
-            for (const [questionId, data] of Object.entries(questions as Record<string, unknown>)) {
-              const itemData = data as { answer?: string; visibility?: string };
-              const content = itemData?.answer;
-
-              if (content && content.trim() !== '') {
-                const storyId = generateId();
-                const characterCount = content.trim().length;
-                await c.env.DB.prepare(
-                  `INSERT INTO biography_stories (id, biography_id, question_id, category_id, content, source, character_count, created_at, updated_at)
-                   VALUES (?, ?, ?, ?, ?, 'system', ?, ?, ?)`
-                ).bind(storyId, id, questionId, categoryId === 'uncategorized' ? null : categoryId, content.trim(), characterCount, now, now).run();
-              }
-            }
-          }
-        }
-      }
-    }
-
-    const biography = await c.env.DB.prepare(
-      'SELECT * FROM biographies WHERE id = ?'
-    )
-      .bind(id)
-      .first<Biography>();
-
-    // Cache the new biography metadata
-    if (biography) {
-      await cacheBiographyMetadata(c.env.CACHE, {
-        id: biography.id,
-        name: biography.name,
-        avatar_url: biography.avatar_url || null,
-        bio: biography.bio || null,
-        title: biography.title || null,
-      });
-    }
-
     return c.json(
       {
-        success: true,
-        data: biography,
+        success: false,
+        error: 'Internal Server Error',
+        message: 'Failed to create/update biography',
       },
-      201
+      500
     );
   }
+});
 
-  const updates: string[] = [];
-  const values: (string | number | null)[] = [];
+// PUT /biographies/me - Update current user's biography (Upsert pattern)
+// If biography doesn't exist, creates one automatically
+biographiesRoutes.put('/me', authMiddleware, async (c) => {
+  const userId = c.get('userId');
+  const body = await c.req.json<BiographyRequestBody>();
 
-  // All biography fields (stories now stored in separate tables)
-  const fields = [
-    // Basic info
-    'name', 'title', 'bio', 'avatar_url', 'cover_image',
-    // Level 1: Basic climbing info
-    'climbing_start_year', 'frequent_locations', 'favorite_route_type',
-    // Media & Social
-    'social_links', 'youtube_channel_id', 'featured_video_id',
-    // Status
-    'achievements',
-    // V2 Fields
-    'visibility', 'tags_data', 'basic_info_data',
-  ];
+  // 使用 Service 層處理業務邏輯
+  const repository = new BiographyRepository(c.env.DB);
+  const contentRepository = new BiographyContentRepository(c.env.DB);
+  const service = new BiographyService(repository, contentRepository, c.env.DB);
 
-  for (const field of fields) {
-    if (body[field as keyof Biography] !== undefined) {
-      updates.push(`${field} = ?`);
-      values.push(body[field as keyof Biography] as string | number | null);
-    }
-  }
+  try {
+    const biography = await service.upsertMyBiography(userId, body);
 
-  // Note: slug is now tied to username, not name. Slug updates happen via PUT /auth/profile
-
-  // Set published_at when going public for first time
-  const goingPublic = body.visibility === 'public';
-  if (goingPublic && !existing.published_at && existing.visibility !== 'public') {
-    updates.push('published_at = ?');
-    values.push(new Date().toISOString());
-  }
-
-  if (updates.length > 0) {
-    updates.push("updated_at = datetime('now')");
-    values.push(existing.id);
-
-    await c.env.DB.prepare(
-      `UPDATE biographies SET ${updates.join(', ')} WHERE id = ?`
-    )
-      .bind(...values)
-      .run();
-  }
-
-  // 同步 one_liners_data 到對應資料表
-  // - 核心故事 (climbing_origin, climbing_meaning, advice_to_self) → biography_core_stories
-  // - 其他一句話 → biography_one_liners
-  if (body.one_liners_data !== undefined) {
-    const oneLinersData = typeof body.one_liners_data === 'string'
-      ? JSON.parse(body.one_liners_data)
-      : body.one_liners_data;
-
-    if (oneLinersData && typeof oneLinersData === 'object') {
-      const now = new Date().toISOString();
-      const coreQuestionIds = new Set(CORE_STORY_FIELDS);
-
-      for (const [questionId, data] of Object.entries(oneLinersData)) {
-        const itemData = data as { answer?: string; visibility?: string };
-        const answer = itemData?.answer;
-
-        if (answer !== undefined) {
-          // 核心故事存到 biography_core_stories 表
-          if (coreQuestionIds.has(questionId as typeof CORE_STORY_FIELDS[number])) {
-            const existingCoreStory = await c.env.DB.prepare(
-              'SELECT id FROM biography_core_stories WHERE biography_id = ? AND question_id = ?'
-            )
-              .bind(existing.id, questionId)
-              .first<{ id: string }>();
-
-            if (answer === null || answer.trim() === '') {
-              if (existingCoreStory) {
-                await c.env.DB.prepare('DELETE FROM biography_core_stories WHERE id = ?')
-                  .bind(existingCoreStory.id)
-                  .run();
-              }
-            } else if (existingCoreStory) {
-              await c.env.DB.prepare(
-                'UPDATE biography_core_stories SET content = ?, updated_at = ? WHERE id = ?'
-              )
-                .bind(answer.trim(), now, existingCoreStory.id)
-                .run();
-            } else {
-              const storyId = generateId();
-              await c.env.DB.prepare(
-                `INSERT INTO biography_core_stories (id, biography_id, question_id, content, created_at, updated_at)
-                 VALUES (?, ?, ?, ?, ?, ?)`
-              )
-                .bind(storyId, existing.id, questionId, answer.trim(), now, now)
-                .run();
-            }
-          } else {
-            // 一般一句話存到 biography_one_liners 表
-            const existingOneLiner = await c.env.DB.prepare(
-              'SELECT id FROM biography_one_liners WHERE biography_id = ? AND question_id = ?'
-            )
-              .bind(existing.id, questionId)
-              .first<{ id: string }>();
-
-            if (answer === null || answer.trim() === '') {
-              if (existingOneLiner) {
-                await c.env.DB.prepare('DELETE FROM biography_one_liners WHERE id = ?')
-                  .bind(existingOneLiner.id)
-                  .run();
-              }
-            } else if (existingOneLiner) {
-              await c.env.DB.prepare(
-                'UPDATE biography_one_liners SET answer = ?, updated_at = ? WHERE id = ?'
-              )
-                .bind(answer.trim(), now, existingOneLiner.id)
-                .run();
-            } else {
-              const oneLinerId = generateId();
-              await c.env.DB.prepare(
-                `INSERT INTO biography_one_liners (id, biography_id, question_id, answer, source, created_at, updated_at)
-                 VALUES (?, ?, ?, ?, 'system', ?, ?)`
-              )
-                .bind(oneLinerId, existing.id, questionId, answer.trim(), now, now)
-                .run();
-            }
-          }
-        }
-      }
-    }
-  }
-
-  // 同步 stories_data 到 biography_stories 表
-  if (body.stories_data !== undefined) {
-    const storiesData = typeof body.stories_data === 'string'
-      ? JSON.parse(body.stories_data)
-      : body.stories_data;
-
-    if (storiesData && typeof storiesData === 'object') {
-      const now = new Date().toISOString();
-
-      // stories_data 格式: { category: { question_id: { answer, visibility, updated_at } } }
-      for (const [categoryId, questions] of Object.entries(storiesData)) {
-        if (questions && typeof questions === 'object') {
-          for (const [questionId, data] of Object.entries(questions as Record<string, unknown>)) {
-            const itemData = data as { answer?: string; visibility?: string };
-            const content = itemData?.answer;
-
-            if (content !== undefined) {
-              const existingStory = await c.env.DB.prepare(
-                'SELECT id FROM biography_stories WHERE biography_id = ? AND question_id = ?'
-              )
-                .bind(existing.id, questionId)
-                .first<{ id: string }>();
-
-              if (content === null || content.trim() === '') {
-                // 如果內容為空，刪除記錄
-                if (existingStory) {
-                  await c.env.DB.prepare('DELETE FROM biography_stories WHERE id = ?')
-                    .bind(existingStory.id)
-                    .run();
-                }
-              } else if (existingStory) {
-                // 更新現有記錄
-                const characterCount = content.trim().length;
-                await c.env.DB.prepare(
-                  'UPDATE biography_stories SET content = ?, category_id = ?, character_count = ?, updated_at = ? WHERE id = ?'
-                )
-                  .bind(content.trim(), categoryId === 'uncategorized' ? null : categoryId, characterCount, now, existingStory.id)
-                  .run();
-              } else {
-                // 插入新記錄
-                const storyId = generateId();
-                const characterCount = content.trim().length;
-                await c.env.DB.prepare(
-                  `INSERT INTO biography_stories (id, biography_id, question_id, category_id, content, source, character_count, created_at, updated_at)
-                   VALUES (?, ?, ?, ?, ?, 'system', ?, ?, ?)`
-                )
-                  .bind(storyId, existing.id, questionId, categoryId === 'uncategorized' ? null : categoryId, content.trim(), characterCount, now, now)
-                  .run();
-              }
-            }
-          }
-        }
-      }
-    }
-  }
-
-  const biography = await c.env.DB.prepare(
-    'SELECT * FROM biographies WHERE id = ?'
-  )
-    .bind(existing.id)
-    .first<Biography>();
-
-  // 同步更新 KV 快取並清除舊快取
-  if (biography) {
+    // 同步更新 KV 快取並清除舊快取
     await cacheBiographyMetadata(c.env.CACHE, {
       id: biography.id,
       name: biography.name,
@@ -1182,15 +429,39 @@ biographiesRoutes.put('/me', authMiddleware, async (c) => {
       bio: biography.bio || null,
       title: biography.title || null,
     });
-    // 清除詳細頁和首頁精選快取
-    await invalidateBiographyCaches(c.env.CACHE, biography.slug || existing.slug);
-  }
 
-  return c.json({
-    success: true,
-    data: biography,
-  });
+    // 清除詳細頁和首頁精選快取
+    await invalidateBiographyCaches(c.env.CACHE, biography.slug);
+
+    return c.json({
+      success: true,
+      data: biography,
+    });
+  } catch (error) {
+    console.error('Error upserting biography:', error);
+
+    if (error instanceof Error && error.message === 'User not found') {
+      return c.json(
+        {
+          success: false,
+          error: 'Not Found',
+          message: 'User not found',
+        },
+        404
+      );
+    }
+
+    return c.json(
+      {
+        success: false,
+        error: 'Internal Server Error',
+        message: 'Failed to upsert biography',
+      },
+      500
+    );
+  }
 });
+
 
 // PUT /biographies/me/autosave - Autosave current user's biography
 // Rate limited: minimum 2 seconds between saves

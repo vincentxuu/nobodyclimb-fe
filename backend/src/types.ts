@@ -228,11 +228,6 @@ export interface Biography {
   avatar_url: string | null;
   cover_image: string | null;
 
-  // 第一層：攀岩基本資訊
-  climbing_start_year: string | null;
-  frequent_locations: string | null;
-  favorite_route_type: string | null;
-
   // 媒體與社群
   social_links: string | null;
   youtube_channel_id: string | null;
@@ -249,12 +244,15 @@ export interface Biography {
   total_likes: number;
   total_views: number;
   follower_count: number;
+  comment_count: number;
 
-  // V2 欄位 - 漸進式揭露設計
+  // V2 欄位 - 資料儲存在 JSON 欄位和獨立表
   visibility: 'private' | 'anonymous' | 'community' | 'public' | null;
-  tags_data: string | null;
-  basic_info_data: string | null;
-  autosave_at: string | null;
+  tags_data: string | null; // JSON: 標籤資料
+  basic_info_data: string | null; // JSON: 基本資訊 (climbing_start_year, frequent_locations, favorite_route_type 等)
+  one_liners_data: string | null; // JSON: 一句話問答 (已移至獨立表，此欄位保留供查詢使用)
+  stories_data: string | null; // JSON: 故事內容 (已移至獨立表，此欄位保留供查詢使用)
+  autosave_at: string | null; // 自動儲存時間戳
 }
 
 export interface Review {
@@ -337,4 +335,145 @@ export interface AuthTokens {
   access_token: string;
   refresh_token: string;
   expires_in: number;
+}
+
+// Biography Content Types
+export interface CoreStoryQuestion {
+  id: string;
+  title: string;
+  subtitle: string | null;
+  placeholder: string | null;
+  display_order: number;
+  is_active: number;
+}
+
+export interface BiographyCoreStory {
+  id: string;
+  biography_id: string;
+  question_id: string;
+  content: string;
+  is_hidden: number;
+  like_count: number;
+  comment_count: number;
+  display_order: number;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface OneLinerQuestion {
+  id: string;
+  question: string;
+  format_hint: string | null;
+  placeholder: string | null;
+  display_order: number;
+  is_active: number;
+}
+
+export interface BiographyOneLiner {
+  id: string;
+  biography_id: string;
+  question_id: string;
+  question_text: string | null;
+  answer: string;
+  source: string;
+  is_hidden: number;
+  like_count: number;
+  comment_count: number;
+  display_order: number;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface StoryCategory {
+  id: string;
+  name: string;
+  icon: string | null;
+  description: string | null;
+  display_order: number;
+  is_active: number;
+}
+
+export interface StoryQuestion {
+  id: string;
+  category_id: string;
+  title: string;
+  subtitle: string | null;
+  placeholder: string | null;
+  difficulty: 'easy' | 'medium' | 'hard';
+  display_order: number;
+  is_active: number;
+}
+
+export interface BiographyStory {
+  id: string;
+  biography_id: string;
+  question_id: string;
+  question_text: string | null;
+  category_id: string | null;
+  content: string;
+  source: string;
+  character_count: number;
+  is_hidden: number;
+  like_count: number;
+  comment_count: number;
+  display_order: number;
+  created_at: string;
+  updated_at: string;
+}
+
+// Like Types
+export interface ContentLike {
+  id: string;
+  user_id: string;
+  created_at: string;
+}
+
+export interface CoreStoryLike extends ContentLike {
+  core_story_id: string;
+}
+
+export interface OneLinerLike extends ContentLike {
+  one_liner_id: string;
+}
+
+export interface StoryLike extends ContentLike {
+  story_id: string;
+}
+
+// Comment Types
+export interface ContentComment {
+  id: string;
+  user_id: string;
+  content: string;
+  parent_id: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface CoreStoryComment extends ContentComment {
+  core_story_id: string;
+}
+
+export interface OneLinerComment extends ContentComment {
+  one_liner_id: string;
+}
+
+export interface StoryComment extends ContentComment {
+  story_id: string;
+}
+
+// Extended types with user information
+export interface CommentWithUser extends ContentComment {
+  username: string;
+  display_name: string | null;
+  avatar_url: string | null;
+}
+
+// Content with additional fields
+export interface ContentWithLikeStatus {
+  is_liked?: boolean;
+}
+
+export interface ContentWithOwner {
+  owner_id: string;
 }
