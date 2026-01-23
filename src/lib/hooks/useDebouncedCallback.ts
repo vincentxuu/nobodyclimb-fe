@@ -54,7 +54,9 @@ export function useDebouncedCallback<T extends (...args: any[]) => any>(
           cleanup()
           // 使用最新參數執行
           if (latestArgsRef.current) {
-            callback(...latestArgsRef.current)
+            const args = latestArgsRef.current
+            latestArgsRef.current = undefined
+            callback(...args)
           }
         }, maxWait)
       }
@@ -64,7 +66,9 @@ export function useDebouncedCallback<T extends (...args: any[]) => any>(
         cleanup()
         // 使用最新參數執行
         if (latestArgsRef.current) {
-          callback(...latestArgsRef.current)
+          const args = latestArgsRef.current
+          latestArgsRef.current = undefined
+          callback(...args)
         }
       }, delay)
     },
