@@ -125,29 +125,38 @@ export function RecommendedProfiles({ currentId, limit = 3 }: RecommendedProfile
     loadProfiles()
   }, [currentId, limit])
 
-  // 預先計算每張卡片的內容，確保問題不重複（使用 reduce 避免 mutation）
+  // 預先計算每張卡片的內容，優先顯示真實內容（使用 reduce 避免 mutation）
   // 必須在所有 early return 之前調用 useMemo
   const profilesWithContent = useMemo(() => {
     if (profiles.length === 0) return []
     const result = profiles.reduce<{
       items: Array<{ person: Biography; content: ReturnType<typeof selectCardContent> }>
-      usedIds: string[]
+      usageCount: Map<string, number>
     }>(
       (acc, person) => {
-        const usedQuestionIds = new Set(acc.usedIds)
         const content = selectCardContent(
           person.id,
           person.one_liners_data,
           person.stories_data,
-          usedQuestionIds,
+          acc.usageCount,
           person.climbing_meaning
         )
+
+        // 更新使用次數
+        const newUsageCount = new Map(acc.usageCount)
+        if (content?.questionId) {
+          newUsageCount.set(
+            content.questionId,
+            (newUsageCount.get(content.questionId) || 0) + 1
+          )
+        }
+
         return {
           items: [...acc.items, { person, content }],
-          usedIds: content?.questionId ? [...acc.usedIds, content.questionId] : acc.usedIds,
+          usageCount: newUsageCount,
         }
       },
-      { items: [], usedIds: [] }
+      { items: [], usageCount: new Map() }
     )
     return result.items
   }, [profiles])
