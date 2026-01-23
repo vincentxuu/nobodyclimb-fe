@@ -198,8 +198,8 @@ export function ProfileEditor({
         isEditingRef.current = false
       } catch (err) {
         setError(err instanceof Error ? err.message : '儲存失敗')
-        // 儲存失敗時也重置編輯狀態，允許下次外部更新同步
-        isEditingRef.current = false
+        // 儲存失敗時保持編輯狀態，防止外部資料覆蓋用戶編輯
+        // isEditingRef.current 保持為 true，確保用戶編輯的內容不會丟失
       } finally {
         isSavingRef.current = false
       }
