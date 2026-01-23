@@ -139,20 +139,6 @@ INSERT OR REPLACE INTO comments SELECT * FROM comments_backup;
 INSERT OR REPLACE INTO reviews SELECT * FROM reviews_backup;
 
 -- ============================================
--- Compatibility: Ensure Biography V2 columns exist
--- 0024_add_biography_v2_fields.sql is a no-op in this repo, so
--- fresh databases may not have these columns yet.
--- NOTE: Must run AFTER restore (INSERT ... SELECT *) to avoid column count mismatch.
--- ============================================
-
-ALTER TABLE biographies ADD COLUMN IF NOT EXISTS visibility TEXT;
-ALTER TABLE biographies ADD COLUMN IF NOT EXISTS tags_data TEXT;
-ALTER TABLE biographies ADD COLUMN IF NOT EXISTS one_liners_data TEXT;
-ALTER TABLE biographies ADD COLUMN IF NOT EXISTS stories_data TEXT;
-ALTER TABLE biographies ADD COLUMN IF NOT EXISTS basic_info_data TEXT;
-ALTER TABLE biographies ADD COLUMN IF NOT EXISTS autosave_at TEXT;
-
--- ============================================
 -- PART 2: Notifications Table - 支援所有通知類型
 -- ============================================
 
@@ -632,6 +618,7 @@ SET slug = LOWER(REPLACE(name, ' ', '-')) || '-' || SUBSTR(id, 1, 8),
 WHERE slug IS NULL OR TRIM(slug) = '';
 
 -- Migrate visibility: is_public to visibility column
+-- (Prod dump already has visibility; this only normalizes NULL/invalid values)
 UPDATE biographies
 SET visibility = CASE
   WHEN is_public = 1 THEN 'public'
