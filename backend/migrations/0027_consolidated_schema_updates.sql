@@ -29,17 +29,25 @@
 -- ═══════════════════════════════════════════════════════════════════════════
 
 -- ============================================
--- CRITICAL FIX: Disable foreign key checks
--- 避免 DROP TABLE 觸發 ON DELETE SET NULL 導致 user_id 遺失
+-- CRITICAL FIX: 先備份所有會受外鍵級聯影響的表
+-- 避免 DROP TABLE users 觸發資料刪除
 -- ============================================
-PRAGMA foreign_keys = OFF;
+
+-- 備份所有會受影響的表
+CREATE TABLE users_backup AS SELECT * FROM users;
+CREATE TABLE biographies_backup AS SELECT * FROM biographies;
+CREATE TABLE posts_backup AS SELECT * FROM posts;
+CREATE TABLE galleries_backup AS SELECT * FROM galleries;
+CREATE TABLE gallery_images_backup AS SELECT * FROM gallery_images;
+CREATE TABLE notifications_backup AS SELECT * FROM notifications;
+CREATE TABLE comments_backup AS SELECT * FROM comments;
+CREATE TABLE reviews_backup AS SELECT * FROM reviews;
 
 -- ============================================
 -- PART 1: Users Table - Restructure with new fields
--- Using table rebuild for SQLite compatibility
 -- ============================================
 
--- Create new users table with updated schema
+-- 創建新的 users 表結構
 CREATE TABLE users_new (
   id TEXT PRIMARY KEY,
   email TEXT UNIQUE NOT NULL,
@@ -63,7 +71,7 @@ CREATE TABLE users_new (
   updated_at TEXT DEFAULT (datetime('now'))
 );
 
--- Copy data from old table
+-- 3. 從備份表複製資料（此時 users 原表還存在，不會觸發級聯）
 INSERT INTO users_new (
   id, email, username, password_hash, display_name, avatar_url, bio,
   role, is_active, email_verified, google_id, auth_provider,
@@ -77,18 +85,50 @@ SELECT
   created_at,                         -- last_login_at
   1,                                  -- login_count
   created_at, updated_at
-FROM users;
+FROM users_backup;
 
--- Drop old table and rename new one
+-- ============================================
+-- PART 1: Users Table - 完成重建
+-- ============================================
+
+-- 4. 現在才刪除舊 users 表
+-- 注意：這會觸發外鍵級聯刪除其他表的資料，但我們已備份
 DROP TABLE users;
+
+-- 5. 重命名新表為 users
 ALTER TABLE users_new RENAME TO users;
 
--- Recreate indexes
+-- 6. 重建索引
 CREATE INDEX IF NOT EXISTS idx_users_email ON users(email);
 CREATE INDEX IF NOT EXISTS idx_users_username ON users(username);
 CREATE INDEX IF NOT EXISTS idx_users_google_id ON users(google_id);
 CREATE INDEX IF NOT EXISTS idx_users_last_active ON users(last_active_at);
 CREATE INDEX IF NOT EXISTS idx_users_last_login ON users(last_login_at);
+
+-- ============================================
+-- CRITICAL FIX: 立即恢復被級聯刪除的資料
+-- ============================================
+
+-- 恢復 biographies 資料（user_id 會保留）
+INSERT OR REPLACE INTO biographies SELECT * FROM biographies_backup;
+
+-- 恢復 posts 資料
+INSERT OR REPLACE INTO posts SELECT * FROM posts_backup;
+
+-- 恢復 galleries 資料
+INSERT OR REPLACE INTO galleries SELECT * FROM galleries_backup;
+
+-- 恢復 gallery_images 資料
+INSERT OR REPLACE INTO gallery_images SELECT * FROM gallery_images_backup;
+
+-- 恢復 notifications 資料
+INSERT OR REPLACE INTO notifications SELECT * FROM notifications_backup;
+
+-- 恢復 comments 資料
+INSERT OR REPLACE INTO comments SELECT * FROM comments_backup;
+
+-- 恢復 reviews 資料
+INSERT OR REPLACE INTO reviews SELECT * FROM reviews_backup;
 
 -- ============================================
 -- PART 2: Notifications Table - 支援所有通知類型
@@ -819,7 +859,14 @@ DROP TABLE IF EXISTS temp_stories_flat;
 -- ═══════════════════════════════════════════════════════════════════════════
 
 -- ============================================
--- CRITICAL FIX: Re-enable foreign key checks
--- 重新啟用外鍵約束檢查
+-- CRITICAL FIX: 清理所有備份表
 -- ============================================
-PRAGMA foreign_keys = ON;
+
+DROP TABLE IF EXISTS users_backup;
+DROP TABLE IF EXISTS biographies_backup;
+DROP TABLE IF EXISTS posts_backup;
+DROP TABLE IF EXISTS galleries_backup;
+DROP TABLE IF EXISTS gallery_images_backup;
+DROP TABLE IF EXISTS notifications_backup;
+DROP TABLE IF EXISTS comments_backup;
+DROP TABLE IF EXISTS reviews_backup;
