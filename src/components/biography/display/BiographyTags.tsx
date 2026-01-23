@@ -3,7 +3,7 @@
 import { useState, useMemo } from 'react'
 import { cn } from '@/lib/utils'
 import { Tag, ChevronDown, ChevronUp, Sparkles } from 'lucide-react'
-import type { BiographyV2 } from '@/lib/types/biography-v2'
+import type { BiographyV2, TagSelection, TagOption } from '@/lib/types/biography-v2'
 import { renderDynamicTag } from '@/lib/types/biography-v2'
 import { getTagOptionById } from '@/lib/constants/biography-tags'
 
@@ -32,6 +32,41 @@ export function BiographyTags({
   const selectedTags = useMemo(() => {
     if (!biography.tags || biography.tags.length === 0) return []
 
+    // 建立自訂標籤查找表
+    const customTagsMap = new Map<string, TagOption>()
+
+    // 加入用戶為系統維度新增的自訂標籤
+    if (biography.custom_tags) {
+      for (const tag of biography.custom_tags) {
+        customTagsMap.set(tag.id, tag)
+      }
+    }
+
+    // 加入用戶自訂維度中的所有標籤
+    if (biography.custom_dimensions) {
+      for (const dimension of biography.custom_dimensions) {
+        for (const tag of dimension.options) {
+          customTagsMap.set(tag.id, tag)
+        }
+      }
+    }
+
+    // 輔助函數：查找標籤定義（優先從自訂標籤查找）
+    const findTagOption = (tagId: string) => {
+      return customTagsMap.get(tagId) || getTagOptionById(tagId)
+    }
+
+    // 輔助函數：判斷是否為自訂標籤
+    const isCustomTag = (tagSelection: TagSelection) => {
+      // 1. 檢查 source
+      if (tagSelection.source === 'user') return true
+      // 2. 檢查是否在 customTagsMap 中
+      if (customTagsMap.has(tagSelection.tag_id)) return true
+      // 3. 檢查 tag_id 是否以 usr_ 開頭
+      if (tagSelection.tag_id.startsWith('usr_')) return true
+      return false
+    }
+
     const customTags: Array<{
       id: string
       label: string
@@ -44,7 +79,7 @@ export function BiographyTags({
     }> = []
 
     for (const tagSelection of biography.tags) {
-      const option = getTagOptionById(tagSelection.tag_id)
+      const option = findTagOption(tagSelection.tag_id)
       if (option) {
         // 處理動態標籤
         if (option.is_dynamic) {
@@ -68,7 +103,7 @@ export function BiographyTags({
           const tag = {
             id: tagSelection.tag_id,
             label: option.label,
-            isCustom: tagSelection.source === 'user',
+            isCustom: isCustomTag(tagSelection),
           }
           if (tag.isCustom) {
             customTags.push(tag)

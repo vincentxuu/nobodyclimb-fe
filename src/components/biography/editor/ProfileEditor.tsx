@@ -317,23 +317,27 @@ export function ProfileEditor({
   // Handle changes - 樂觀更新
   const handleChange = useCallback(
     (updates: Partial<BiographyV2>) => {
+      // 計算新的狀態
+      let newBio: BiographyV2
+
+      // 更新本地狀態（純函數，無副作用）
       setLocalBiography((prev) => {
-        const newBio = { ...prev, ...updates }
-
-        // 同步更新最新草稿 ref（確保 finally 區塊和重試使用最新資料）
-        latestBiographyRef.current = newBio
-
-        // 標記為編輯中
-        isEditingRef.current = true
-
-        // 立即通知父組件（樂觀更新，不等待儲存）
-        onChange(updates)
-
-        // 觸發防抖儲存
-        debouncedSave(newBio)
-
+        newBio = { ...prev, ...updates }
         return newBio
       })
+
+      // 所有副作用在 setState 之外執行
+      // 同步更新最新草稿 ref（確保 finally 區塊和重試使用最新資料）
+      latestBiographyRef.current = newBio!
+
+      // 標記為編輯中
+      isEditingRef.current = true
+
+      // 立即通知父組件（樂觀更新，不等待儲存）
+      onChange(updates)
+
+      // 觸發防抖儲存
+      debouncedSave(newBio!)
     },
     [onChange, debouncedSave]
   )
@@ -648,10 +652,17 @@ export function ProfileEditor({
                     )
                     return dim?.id !== dimensionId
                   })
-                  const newTags = selectedIds.map((id) => ({
-                    tag_id: id,
-                    source: 'system' as const,
-                  }))
+                  const newTags = selectedIds.map((id) => {
+                    // 從 allTagDimensions 中找到該標籤的定義，使用實際的 source
+                    const option = allTagDimensions
+                      .find((d) => d.id === dimensionId)
+                      ?.options.find((o) => o.id === id)
+
+                    return {
+                      tag_id: id,
+                      source: option?.source || 'system',
+                    }
+                  })
                   handleChange({ tags: [...otherTags, ...newTags] })
                 }}
                 onAddCustomTag={handleAddCustomTag}
@@ -851,10 +862,17 @@ export function ProfileEditor({
             )
             return dim?.id !== dimensionId
           })
-          const newTags = selectedIds.map((id) => ({
-            tag_id: id,
-            source: 'system' as const,
-          }))
+          const newTags = selectedIds.map((id) => {
+            // 從 allTagDimensions 中找到該標籤的定義，使用實際的 source
+            const option = allTagDimensions
+              .find((d) => d.id === dimensionId)
+              ?.options.find((o) => o.id === id)
+
+            return {
+              tag_id: id,
+              source: option?.source || 'system',
+            }
+          })
           handleChange({ tags: [...otherTags, ...newTags] })
         }}
         onAddCustomTag={handleAddCustomTag}
