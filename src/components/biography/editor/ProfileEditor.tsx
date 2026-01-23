@@ -175,7 +175,7 @@ export function ProfileEditor({
       } catch (err) {
         setError(err instanceof Error ? err.message : '儲存失敗')
       }
-    }, 1500)
+    }, 15000)
 
     return () => clearTimeout(timer)
   }, [biography, pendingChanges, onSave, setSaving, setSaved, setError])
@@ -391,8 +391,8 @@ export function ProfileEditor({
   // Get current editing story question
   const editingQuestion = editingStoryId
     ? Object.values(allStoryQuestionsByCategory)
-        .flat()
-        .find((q) => q.id === editingStoryId)
+      .flat()
+      .find((q) => q.id === editingStoryId)
     : null
   const editingStory = editingStoryId
     ? biography.stories.find((s) => s.question_id === editingStoryId)
