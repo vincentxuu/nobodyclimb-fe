@@ -194,7 +194,7 @@ export function useGuestSession(): GuestSessionApi {
   }, [isAuthenticated, session, saveSessionToLocal])
 
   // 追蹤人物誌瀏覽
-  const trackBiographyView = useCallback(() => {
+  const trackBiographyView = useCallback(async () => {
     if (isAuthenticated || !isInitialized.current) return
     pendingBiographyViews.current += 1
 
@@ -206,6 +206,41 @@ export function useGuestSession(): GuestSessionApi {
       }
       setSession(updated)
       saveSessionToLocal(updated)
+
+      // 人物誌瀏覽對資格判定很重要，立即同步到後端
+      try {
+        const response = await apiClient.post('/guest/track', {
+          session_id: session.id,
+          page_views: pendingPageViews.current,
+          time_spent_seconds: pendingTimeSpent.current,
+          biography_views: pendingBiographyViews.current,
+        })
+
+        if (response.data.success) {
+          const syncedSession: GuestSession = {
+            ...session,
+            pageViews: response.data.session.page_views,
+            timeSpentSeconds: response.data.session.time_spent_seconds,
+            biographyViews: response.data.session.biography_views,
+            isEligibleToShare: response.data.session.is_eligible_to_share,
+          }
+          setSession(syncedSession)
+          saveSessionToLocal(syncedSession)
+
+          // 檢查是否剛達到資格
+          if (response.data.session.just_became_eligible) {
+            setJustBecameEligible(true)
+          }
+
+          // 清除 pending
+          pendingPageViews.current = 0
+          pendingTimeSpent.current = 0
+          pendingBiographyViews.current = 0
+          lastSyncTime.current = Date.now()
+        }
+      } catch (error) {
+        console.error('Failed to sync after biography view:', error)
+      }
     }
   }, [isAuthenticated, session, saveSessionToLocal])
 
