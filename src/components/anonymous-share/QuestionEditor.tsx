@@ -75,7 +75,7 @@ export function QuestionEditor({
           value={content}
           onChange={(e) => setContent(e.target.value)}
           placeholder={question.placeholder}
-          className={`w-full resize-none rounded-xl border border-gray-200 p-4 leading-relaxed focus:border-[#ffe70c] focus:outline-none focus:ring-2 focus:ring-[#ffe70c]/20 ${
+          className={`w-full resize-none rounded-xl border border-gray-200 bg-white p-4 leading-relaxed text-gray-900 placeholder:text-gray-400 focus:border-[#ffe70c] focus:outline-none focus:ring-2 focus:ring-[#ffe70c]/20 ${
             question.type === 'one_liner' ? 'min-h-[80px] text-lg' : 'min-h-[200px] text-lg'
           }`}
           autoFocus

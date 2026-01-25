@@ -67,11 +67,11 @@ export function ShareInvitation({ onStartShare }: ShareInvitationProps) {
           transition={{ type: 'spring', damping: 25, stiffness: 300 }}
           className="fixed bottom-4 left-4 right-4 z-50 md:left-auto md:right-6 md:max-w-md"
         >
-          <div className="relative rounded-2xl bg-[#1B1A1A] p-4 shadow-2xl">
+          <div className="relative rounded-2xl bg-white p-4 shadow-2xl">
             {/* 關閉按鈕 */}
             <button
               onClick={handleDismiss}
-              className="absolute right-3 top-3 rounded-full p-1 text-gray-400 transition-colors hover:bg-white/10 hover:text-white"
+              className="absolute right-3 top-3 rounded-full p-1 text-gray-500 transition-colors hover:bg-gray-100 hover:text-gray-700"
               aria-label="關閉"
             >
               <X className="h-4 w-4" />
@@ -85,10 +85,10 @@ export function ShareInvitation({ onStartShare }: ShareInvitationProps) {
 
               {/* 內容 */}
               <div className="flex-1 pr-6">
-                <h3 className="text-lg font-bold text-white">
+                <h3 className="text-lg font-bold text-gray-900">
                   想分享你的攀岩故事嗎？
                 </h3>
-                <p className="mt-1 text-sm text-gray-300">
+                <p className="mt-1 text-sm text-gray-600">
                   每個攀岩者都有獨特的故事，匿名分享也可以
                 </p>
 
@@ -99,14 +99,22 @@ export function ShareInvitation({ onStartShare }: ShareInvitationProps) {
                       variant="primary"
                       size="sm"
                       className="bg-[#ffe70c] text-[#1B1A1A] hover:bg-[#e6d00b]"
-                      onClick={onStartShare}
+                      onClick={() => {
+                        handleDismiss()
+                        onStartShare?.()
+                      }}
                     >
                       開始分享
                       <ChevronRight className="ml-1 h-4 w-4" />
                     </Button>
                   </Link>
                   <Link href="/auth/login">
-                    <Button variant="secondary" size="sm" className="border-white/20 text-white hover:bg-white/10">
+                    <Button
+                      variant="secondary"
+                      size="sm"
+                      className="border-gray-300 text-gray-700 hover:bg-gray-100"
+                      onClick={handleDismiss}
+                    >
                       登入後分享
                     </Button>
                   </Link>
@@ -116,8 +124,8 @@ export function ShareInvitation({ onStartShare }: ShareInvitationProps) {
 
             {/* 進度指示（可選） */}
             {session && (
-              <div className="mt-3 border-t border-white/10 pt-3">
-                <p className="text-xs text-gray-400">
+              <div className="mt-3 border-t border-gray-200 pt-3">
+                <p className="text-xs text-gray-500">
                   你已瀏覽 {session.biographyViews} 個攀岩者故事
                 </p>
               </div>

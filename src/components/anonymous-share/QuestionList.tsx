@@ -1,10 +1,12 @@
 'use client'
 
+import { useState } from 'react'
 import {
   Check,
   Plus,
   X,
   ChevronRight,
+  ChevronDown,
   Pen,
   MessageCircle,
   BookOpen,
@@ -153,14 +155,22 @@ function QuestionSection({
 
 /**
  * 問題列表組件
- * 顯示所有可選問題，按類別分組
+ * 預設顯示一題，點擊展開更多
  */
 export function QuestionList({
   stories,
   onSelectQuestion,
   onRemoveStory,
 }: QuestionListProps) {
+  const [showMore, setShowMore] = useState(false)
   const answeredIds = new Set(stories.map((s) => s.question_id))
+
+  // 預設顯示的題目（核心故事第一題）
+  const defaultQuestion = CORE_STORIES[0]
+  const isDefaultAnswered = answeredIds.has(defaultQuestion.id)
+
+  // 如果已經有回答任何題目，自動展開更多選項
+  const shouldShowMore = showMore || stories.length > 0
 
   return (
     <>
@@ -171,38 +181,68 @@ export function QuestionList({
         onRemoveStory={onRemoveStory}
       />
 
-      {/* 核心故事 */}
-      <QuestionSection
-        title="核心故事"
-        subtitle="深度分享"
-        icon={<BookOpen className="h-4 w-4 text-[#ffe70c]" />}
-        questions={CORE_STORIES}
-        answeredIds={answeredIds}
-        iconBgClass="bg-[#ffe70c]/20"
-        onSelectQuestion={onSelectQuestion}
-      />
+      {/* 預設題目（未展開且未回答時顯示） */}
+      {!shouldShowMore && !isDefaultAnswered && (
+        <section className="mb-6">
+          <div className="mb-3">
+            <h2 className="text-sm font-medium text-gray-700">從這題開始</h2>
+          </div>
+          <QuestionButton
+            question={defaultQuestion}
+            iconBgClass="bg-[#ffe70c]/20"
+            onClick={() => onSelectQuestion(defaultQuestion)}
+          />
+        </section>
+      )}
 
-      {/* 一句話 */}
-      <QuestionSection
-        title="一句話"
-        subtitle="快速回答"
-        icon={<MessageCircle className="h-4 w-4 text-[#1B1A1A]" />}
-        questions={ONE_LINERS}
-        answeredIds={answeredIds}
-        iconBgClass="bg-gray-100"
-        onSelectQuestion={onSelectQuestion}
-      />
+      {/* 展開後顯示所有問題 */}
+      {shouldShowMore && (
+        <>
+          {/* 核心故事 */}
+          <QuestionSection
+            title="核心故事"
+            subtitle="深度分享"
+            icon={<BookOpen className="h-4 w-4 text-[#ffe70c]" />}
+            questions={CORE_STORIES}
+            answeredIds={answeredIds}
+            iconBgClass="bg-[#ffe70c]/20"
+            onSelectQuestion={onSelectQuestion}
+          />
 
-      {/* 深度故事 */}
-      <QuestionSection
-        title="更多故事"
-        subtitle="選填"
-        icon={<Sparkles className="h-4 w-4 text-[#ffe70c]" />}
-        questions={STORIES}
-        answeredIds={answeredIds}
-        iconBgClass="bg-[#ffe70c]/10"
-        onSelectQuestion={onSelectQuestion}
-      />
+          {/* 一句話 */}
+          <QuestionSection
+            title="一句話"
+            subtitle="快速回答"
+            icon={<MessageCircle className="h-4 w-4 text-[#1B1A1A]" />}
+            questions={ONE_LINERS}
+            answeredIds={answeredIds}
+            iconBgClass="bg-gray-100"
+            onSelectQuestion={onSelectQuestion}
+          />
+
+          {/* 深度故事 */}
+          <QuestionSection
+            title="更多故事"
+            subtitle="選填"
+            icon={<Sparkles className="h-4 w-4 text-[#ffe70c]" />}
+            questions={STORIES}
+            answeredIds={answeredIds}
+            iconBgClass="bg-[#ffe70c]/10"
+            onSelectQuestion={onSelectQuestion}
+          />
+        </>
+      )}
+
+      {/* 想寫更多按鈕（未展開時顯示） */}
+      {!shouldShowMore && (
+        <button
+          onClick={() => setShowMore(true)}
+          className="flex w-full items-center justify-center gap-2 rounded-xl border border-dashed border-gray-300 py-4 text-sm text-gray-500 transition-colors hover:border-gray-400 hover:text-gray-700"
+        >
+          <ChevronDown className="h-4 w-4" />
+          想寫更多
+        </button>
+      )}
     </>
   )
 }
