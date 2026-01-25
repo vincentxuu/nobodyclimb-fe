@@ -289,45 +289,59 @@ guestRoutes.post('/anonymous/biography', zValidator('json', createAnonymousBiogr
   const anonymousName = generateAnonymousName();
   const slug = `anonymous-${biographyId.substring(0, 8)}`;
 
-  await c.env.DB.prepare(`
-    INSERT INTO biographies (
-      id, name, slug, guest_session_id, is_anonymous, anonymous_name, visibility
-    ) VALUES (?, ?, ?, ?, 1, ?, 'public')
-  `).bind(biographyId, anonymousName, slug, session_id, anonymousName).run();
+  // 使用 batch API 批次處理所有插入操作
+  const statements: D1PreparedStatement[] = [];
+
+  // 插入人物誌
+  statements.push(
+    c.env.DB.prepare(`
+      INSERT INTO biographies (
+        id, name, slug, guest_session_id, is_anonymous, anonymous_name, visibility
+      ) VALUES (?, ?, ?, ?, 1, ?, 'public')
+    `).bind(biographyId, anonymousName, slug, session_id, anonymousName)
+  );
 
   // 插入核心故事
   for (const story of core_stories) {
-    const storyId = generateId();
-    await c.env.DB.prepare(`
-      INSERT INTO biography_core_stories (id, biography_id, question_id, content)
-      VALUES (?, ?, ?, ?)
-    `).bind(storyId, biographyId, story.question_id, story.content).run();
+    statements.push(
+      c.env.DB.prepare(`
+        INSERT INTO biography_core_stories (id, biography_id, question_id, content)
+        VALUES (?, ?, ?, ?)
+      `).bind(generateId(), biographyId, story.question_id, story.content)
+    );
   }
 
   // 插入一句話
   for (const oneLiner of one_liners) {
-    const oneLinerId = generateId();
-    await c.env.DB.prepare(`
-      INSERT INTO biography_one_liners (id, biography_id, question_id, answer, question_text, source)
-      VALUES (?, ?, ?, ?, ?, 'system')
-    `).bind(oneLinerId, biographyId, oneLiner.question_id, oneLiner.answer, oneLiner.question_text || null).run();
+    statements.push(
+      c.env.DB.prepare(`
+        INSERT INTO biography_one_liners (id, biography_id, question_id, answer, question_text, source)
+        VALUES (?, ?, ?, ?, ?, 'system')
+      `).bind(generateId(), biographyId, oneLiner.question_id, oneLiner.answer, oneLiner.question_text || null)
+    );
   }
 
   // 插入深度故事
   for (const story of stories) {
-    const storyId = generateId();
-    await c.env.DB.prepare(`
-      INSERT INTO biography_stories (id, biography_id, question_id, content, question_text, category_id, source)
-      VALUES (?, ?, ?, ?, ?, ?, 'system')
-    `).bind(storyId, biographyId, story.question_id, story.content, story.question_text || null, story.category_id || null).run();
+    statements.push(
+      c.env.DB.prepare(`
+        INSERT INTO biography_stories (id, biography_id, question_id, content, question_text, category_id, source)
+        VALUES (?, ?, ?, ?, ?, ?, 'system')
+      `).bind(generateId(), biographyId, story.question_id, story.content, story.question_text || null, story.category_id || null)
+    );
   }
 
   // 如果有提供 email，更新 session
   if (contact_email) {
-    await c.env.DB.prepare(
-      'UPDATE guest_sessions SET contact_email = ? WHERE id = ?'
-    ).bind(contact_email, session_id).run();
+    statements.push(
+      c.env.DB.prepare(
+        'UPDATE guest_sessions SET contact_email = ? WHERE id = ?'
+      ).bind(contact_email, session_id)
+    );
   }
+
+  // 批次執行所有操作
+  await c.env.DB.batch(statements);
 
   // 計算總故事數
   const totalStories = core_stories.length + one_liners.length + stories.length;
@@ -514,56 +528,99 @@ guestRoutes.post('/claim/merge/:sourceId', authMiddleware, async (c) => {
     return c.json({ success: false, error: '你還沒有人物誌，請直接認領' }, 400);
   }
 
-  // 將核心故事從匿名人物誌移動到用戶人物誌（只移動用戶沒有的題目）
-  await c.env.DB.prepare(`
-    INSERT OR IGNORE INTO biography_core_stories (id, biography_id, question_id, content, created_at)
-    SELECT ? || '-cs-' || question_id, ?, question_id, content, created_at
-    FROM biography_core_stories
-    WHERE biography_id = ?
-  `).bind(generateId(), targetBio.id, sourceId).run();
+  // 查詢要移動的所有內容
+  const [coreStories, oneLiners, deepStories] = await Promise.all([
+    c.env.DB.prepare('SELECT question_id, content, created_at FROM biography_core_stories WHERE biography_id = ?').bind(sourceId).all(),
+    c.env.DB.prepare('SELECT question_id, answer, question_text, source, created_at FROM biography_one_liners WHERE biography_id = ?').bind(sourceId).all(),
+    c.env.DB.prepare('SELECT question_id, content, question_text, category_id, source, created_at FROM biography_stories WHERE biography_id = ?').bind(sourceId).all(),
+  ]);
 
-  // 將一句話從匿名人物誌移動到用戶人物誌
-  await c.env.DB.prepare(`
-    INSERT OR IGNORE INTO biography_one_liners (id, biography_id, question_id, answer, question_text, source, created_at)
-    SELECT ? || '-ol-' || question_id, ?, question_id, answer, question_text, source, created_at
-    FROM biography_one_liners
-    WHERE biography_id = ?
-  `).bind(generateId(), targetBio.id, sourceId).run();
+  // 查詢目標人物誌已有的 question_id，避免重複
+  const [existingCore, existingOneLiners, existingStories] = await Promise.all([
+    c.env.DB.prepare('SELECT question_id FROM biography_core_stories WHERE biography_id = ?').bind(targetBio.id).all(),
+    c.env.DB.prepare('SELECT question_id FROM biography_one_liners WHERE biography_id = ?').bind(targetBio.id).all(),
+    c.env.DB.prepare('SELECT question_id FROM biography_stories WHERE biography_id = ?').bind(targetBio.id).all(),
+  ]);
 
-  // 將深度故事從匿名人物誌移動到用戶人物誌
-  const mergedStories = await c.env.DB.prepare(`
-    INSERT OR IGNORE INTO biography_stories (id, biography_id, question_id, content, question_text, category_id, source, created_at)
-    SELECT ? || '-st-' || question_id, ?, question_id, content, question_text, category_id, source, created_at
-    FROM biography_stories
-    WHERE biography_id = ?
-  `).bind(generateId(), targetBio.id, sourceId).run();
+  const existingCoreIds = new Set(existingCore.results.map((r: any) => r.question_id));
+  const existingOneLinerIds = new Set(existingOneLiners.results.map((r: any) => r.question_id));
+  const existingStoryIds = new Set(existingStories.results.map((r: any) => r.question_id));
+
+  // 準備批次操作
+  const statements: D1PreparedStatement[] = [];
+  let mergedCount = 0;
+
+  // 插入核心故事（只插入目標沒有的）
+  for (const story of coreStories.results as any[]) {
+    if (!existingCoreIds.has(story.question_id)) {
+      statements.push(
+        c.env.DB.prepare(`
+          INSERT INTO biography_core_stories (id, biography_id, question_id, content, created_at)
+          VALUES (?, ?, ?, ?, ?)
+        `).bind(generateId(), targetBio.id, story.question_id, story.content, story.created_at)
+      );
+      mergedCount++;
+    }
+  }
+
+  // 插入一句話
+  for (const oneLiner of oneLiners.results as any[]) {
+    if (!existingOneLinerIds.has(oneLiner.question_id)) {
+      statements.push(
+        c.env.DB.prepare(`
+          INSERT INTO biography_one_liners (id, biography_id, question_id, answer, question_text, source, created_at)
+          VALUES (?, ?, ?, ?, ?, ?, ?)
+        `).bind(generateId(), targetBio.id, oneLiner.question_id, oneLiner.answer, oneLiner.question_text, oneLiner.source, oneLiner.created_at)
+      );
+      mergedCount++;
+    }
+  }
+
+  // 插入深度故事
+  for (const story of deepStories.results as any[]) {
+    if (!existingStoryIds.has(story.question_id)) {
+      statements.push(
+        c.env.DB.prepare(`
+          INSERT INTO biography_stories (id, biography_id, question_id, content, question_text, category_id, source, created_at)
+          VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+        `).bind(generateId(), targetBio.id, story.question_id, story.content, story.question_text, story.category_id, story.source, story.created_at)
+      );
+      mergedCount++;
+    }
+  }
 
   // 刪除匿名人物誌的關聯內容
-  await c.env.DB.prepare('DELETE FROM biography_core_stories WHERE biography_id = ?').bind(sourceId).run();
-  await c.env.DB.prepare('DELETE FROM biography_one_liners WHERE biography_id = ?').bind(sourceId).run();
-  await c.env.DB.prepare('DELETE FROM biography_stories WHERE biography_id = ?').bind(sourceId).run();
+  statements.push(c.env.DB.prepare('DELETE FROM biography_core_stories WHERE biography_id = ?').bind(sourceId));
+  statements.push(c.env.DB.prepare('DELETE FROM biography_one_liners WHERE biography_id = ?').bind(sourceId));
+  statements.push(c.env.DB.prepare('DELETE FROM biography_stories WHERE biography_id = ?').bind(sourceId));
 
   // 刪除匿名人物誌
-  await c.env.DB.prepare('DELETE FROM biographies WHERE id = ?').bind(sourceId).run();
+  statements.push(c.env.DB.prepare('DELETE FROM biographies WHERE id = ?').bind(sourceId));
 
   // 更新 guest_session
-  await c.env.DB.prepare(`
-    UPDATE guest_sessions
-    SET claimed_by_user_id = ?,
-        claimed_at = datetime('now')
-    WHERE id = ?
-  `).bind(userId, sourceBio.guest_session_id).run();
+  statements.push(
+    c.env.DB.prepare(`
+      UPDATE guest_sessions
+      SET claimed_by_user_id = ?,
+          claimed_at = datetime('now')
+      WHERE id = ?
+    `).bind(userId, sourceBio.guest_session_id)
+  );
 
   // 記錄認領歷史
-  const claimId = generateId();
-  await c.env.DB.prepare(`
-    INSERT INTO content_claims (id, guest_session_id, user_id, biography_id, kept_anonymous)
-    VALUES (?, ?, ?, ?, 0)
-  `).bind(claimId, sourceBio.guest_session_id, userId, targetBio.id).run();
+  statements.push(
+    c.env.DB.prepare(`
+      INSERT INTO content_claims (id, guest_session_id, user_id, biography_id, kept_anonymous)
+      VALUES (?, ?, ?, ?, 0)
+    `).bind(generateId(), sourceBio.guest_session_id, userId, targetBio.id)
+  );
+
+  // 批次執行
+  await c.env.DB.batch(statements);
 
   return c.json({
     success: true,
     merged_to_biography_id: targetBio.id,
-    stories_merged: mergedStories.meta.changes,
+    stories_merged: mergedCount,
   });
 });

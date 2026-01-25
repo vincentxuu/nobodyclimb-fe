@@ -13,8 +13,6 @@ interface ClaimContentModalProps {
   onClaimSuccess?: (biographyId: string) => void
 }
 
-type ClaimOption = 'claim' | 'merge' | null
-
 /**
  * 認領內容 Modal
  * 當用戶登入後發現有未認領的匿名內容時顯示
@@ -26,12 +24,10 @@ export function ClaimContentModal({
   onClaimSuccess,
 }: ClaimContentModalProps) {
   const { claimBiography, mergeBiography } = useContentClaim()
-  const [selectedOption, setSelectedOption] = useState<ClaimOption>(null)
   const [keepAnonymous, setKeepAnonymous] = useState(false)
   const [isProcessing, setIsProcessing] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [showMergeOption, setShowMergeOption] = useState(false)
-  const [existingBioId, setExistingBioId] = useState<string | null>(null)
 
   if (!isOpen || unclaimedContent.length === 0) return null
 
@@ -49,7 +45,6 @@ export function ClaimContentModal({
     } else if (result.error === '你已有人物誌') {
       // 顯示合併選項
       setShowMergeOption(true)
-      setExistingBioId(result.biographyId || null)
     } else {
       setError(result.error || '認領失敗')
     }
