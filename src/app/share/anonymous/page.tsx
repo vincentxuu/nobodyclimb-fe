@@ -457,7 +457,7 @@ export default function AnonymousSharePage() {
         {/* 一句話 */}
         <section className="mb-6">
           <div className="mb-3 flex items-center gap-2">
-            <MessageCircle className="h-4 w-4 text-blue-500" />
+            <MessageCircle className="h-4 w-4 text-[#1B1A1A]" />
             <h2 className="text-sm font-medium text-gray-700">一句話</h2>
             <span className="text-xs text-gray-400">快速回答</span>
           </div>
@@ -468,8 +468,8 @@ export default function AnonymousSharePage() {
                 onClick={() => handleSelectQuestion(question)}
                 className="flex w-full items-center gap-3 rounded-xl bg-white p-4 text-left shadow-sm transition-colors hover:bg-gray-50"
               >
-                <div className="flex h-8 w-8 items-center justify-center rounded-full bg-blue-50">
-                  <Plus className="h-4 w-4 text-blue-500" />
+                <div className="flex h-8 w-8 items-center justify-center rounded-full bg-gray-100">
+                  <Plus className="h-4 w-4 text-[#1B1A1A]" />
                 </div>
                 <div className="flex-1">
                   <p className="font-medium text-[#1B1A1A]">{question.title}</p>
@@ -483,7 +483,7 @@ export default function AnonymousSharePage() {
         {/* 深度故事 */}
         <section className="mb-6">
           <div className="mb-3 flex items-center gap-2">
-            <Sparkles className="h-4 w-4 text-purple-500" />
+            <Sparkles className="h-4 w-4 text-[#ffe70c]" />
             <h2 className="text-sm font-medium text-gray-700">更多故事</h2>
             <span className="text-xs text-gray-400">選填</span>
           </div>
@@ -494,8 +494,8 @@ export default function AnonymousSharePage() {
                 onClick={() => handleSelectQuestion(question)}
                 className="flex w-full items-center gap-3 rounded-xl bg-white p-4 text-left shadow-sm transition-colors hover:bg-gray-50"
               >
-                <div className="flex h-8 w-8 items-center justify-center rounded-full bg-purple-50">
-                  <Plus className="h-4 w-4 text-purple-500" />
+                <div className="flex h-8 w-8 items-center justify-center rounded-full bg-[#ffe70c]/10">
+                  <Plus className="h-4 w-4 text-[#1B1A1A]" />
                 </div>
                 <div className="flex-1">
                   <p className="font-medium text-[#1B1A1A]">{question.title}</p>
