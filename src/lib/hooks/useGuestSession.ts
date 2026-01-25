@@ -3,6 +3,7 @@
 import { useState, useEffect, useCallback, useRef } from 'react'
 import { useAuthStore } from '@/store/authStore'
 import apiClient from '@/lib/api/client'
+import { API_BASE_URL } from '@/lib/constants'
 
 // localStorage keys
 const GUEST_SESSION_ID_KEY = 'guest_session_id'
@@ -213,26 +214,16 @@ export function useGuestSession(): GuestSessionApi {
     initializeSession()
   }, [initializeSession])
 
-  // 時間追蹤
+  // 時間追蹤（只累加 ref，不更新 state，避免不必要的重新渲染）
   useEffect(() => {
     if (isAuthenticated || !isInitialized.current) return
 
     const interval = setInterval(() => {
       pendingTimeSpent.current += TIME_TRACK_INTERVAL / 1000
-
-      // 更新本地狀態
-      if (session) {
-        const updated = {
-          ...session,
-          timeSpentSeconds: session.timeSpentSeconds + TIME_TRACK_INTERVAL / 1000,
-        }
-        setSession(updated)
-        saveSessionToLocal(updated)
-      }
     }, TIME_TRACK_INTERVAL)
 
     return () => clearInterval(interval)
-  }, [isAuthenticated, session, saveSessionToLocal])
+  }, [isAuthenticated])
 
   // 定期同步
   useEffect(() => {
@@ -258,7 +249,9 @@ export function useGuestSession(): GuestSessionApi {
           time_spent_seconds: pendingTimeSpent.current,
           biography_views: pendingBiographyViews.current,
         })
-        navigator.sendBeacon('/api/v1/guest/track', data)
+        // 使用 Blob 設定正確的 Content-Type
+        const blob = new Blob([data], { type: 'application/json' })
+        navigator.sendBeacon(`${API_BASE_URL}/guest/track`, blob)
       }
     }
 

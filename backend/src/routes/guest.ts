@@ -388,7 +388,11 @@ guestRoutes.get('/claim/check', authMiddleware, async (c) => {
 
   let query = `
     SELECT b.id, b.anonymous_name, b.created_at,
-           (SELECT COUNT(*) FROM biography_core_stories WHERE biography_id = b.id) as story_count
+           (
+             (SELECT COUNT(*) FROM biography_core_stories WHERE biography_id = b.id) +
+             (SELECT COUNT(*) FROM biography_one_liners WHERE biography_id = b.id) +
+             (SELECT COUNT(*) FROM biography_stories WHERE biography_id = b.id)
+           ) as story_count
     FROM biographies b
     WHERE b.user_id IS NULL AND b.guest_session_id IS NOT NULL
   `;
@@ -511,12 +515,33 @@ guestRoutes.post('/claim/merge/:sourceId', authMiddleware, async (c) => {
   }
 
   // 將核心故事從匿名人物誌移動到用戶人物誌（只移動用戶沒有的題目）
-  const mergedStories = await c.env.DB.prepare(`
+  await c.env.DB.prepare(`
     INSERT OR IGNORE INTO biography_core_stories (id, biography_id, question_id, content, created_at)
-    SELECT ? || '-' || question_id, ?, question_id, content, created_at
+    SELECT ? || '-cs-' || question_id, ?, question_id, content, created_at
     FROM biography_core_stories
     WHERE biography_id = ?
   `).bind(generateId(), targetBio.id, sourceId).run();
+
+  // 將一句話從匿名人物誌移動到用戶人物誌
+  await c.env.DB.prepare(`
+    INSERT OR IGNORE INTO biography_one_liners (id, biography_id, question_id, answer, question_text, source, created_at)
+    SELECT ? || '-ol-' || question_id, ?, question_id, answer, question_text, source, created_at
+    FROM biography_one_liners
+    WHERE biography_id = ?
+  `).bind(generateId(), targetBio.id, sourceId).run();
+
+  // 將深度故事從匿名人物誌移動到用戶人物誌
+  const mergedStories = await c.env.DB.prepare(`
+    INSERT OR IGNORE INTO biography_stories (id, biography_id, question_id, content, question_text, category_id, source, created_at)
+    SELECT ? || '-st-' || question_id, ?, question_id, content, question_text, category_id, source, created_at
+    FROM biography_stories
+    WHERE biography_id = ?
+  `).bind(generateId(), targetBio.id, sourceId).run();
+
+  // 刪除匿名人物誌的關聯內容
+  await c.env.DB.prepare('DELETE FROM biography_core_stories WHERE biography_id = ?').bind(sourceId).run();
+  await c.env.DB.prepare('DELETE FROM biography_one_liners WHERE biography_id = ?').bind(sourceId).run();
+  await c.env.DB.prepare('DELETE FROM biography_stories WHERE biography_id = ?').bind(sourceId).run();
 
   // 刪除匿名人物誌
   await c.env.DB.prepare('DELETE FROM biographies WHERE id = ?').bind(sourceId).run();
