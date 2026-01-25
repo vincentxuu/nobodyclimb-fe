@@ -24,14 +24,30 @@ const trackActivitySchema = z.object({
 
 const createAnonymousBiographySchema = z.object({
   session_id: z.string().uuid(),
-  // 核心故事（至少填一個）
+  // 核心故事（可選）
   core_stories: z.array(z.object({
     question_id: z.string(),
     content: z.string().min(1).max(5000),
-  })).min(1).max(3),
+  })).optional().default([]),
+  // 一句話（可選）
+  one_liners: z.array(z.object({
+    question_id: z.string(),
+    answer: z.string().min(1).max(500),
+    question_text: z.string().optional(),
+  })).optional().default([]),
+  // 深度故事（可選）
+  stories: z.array(z.object({
+    question_id: z.string(),
+    content: z.string().min(1).max(10000),
+    question_text: z.string().optional(),
+    category_id: z.string().optional(),
+  })).optional().default([]),
   // 可選的聯絡 email
   contact_email: z.string().email().optional(),
-});
+}).refine(
+  (data) => data.core_stories.length > 0 || data.one_liners.length > 0 || data.stories.length > 0,
+  { message: '請至少填寫一個故事' }
+);
 
 const claimBiographySchema = z.object({
   keep_anonymous: z.boolean().optional().default(false),
@@ -237,7 +253,7 @@ guestRoutes.post('/track', zValidator('json', trackActivitySchema), async (c) =>
 
 // POST /guest/anonymous/biography - 建立匿名人物誌
 guestRoutes.post('/anonymous/biography', zValidator('json', createAnonymousBiographySchema), async (c) => {
-  const { session_id, core_stories, contact_email } = c.req.valid('json');
+  const { session_id, core_stories, one_liners, stories, contact_email } = c.req.valid('json');
 
   // 檢查 session 存在且有資格
   const session = await c.env.DB.prepare(
@@ -288,6 +304,24 @@ guestRoutes.post('/anonymous/biography', zValidator('json', createAnonymousBiogr
     `).bind(storyId, biographyId, story.question_id, story.content).run();
   }
 
+  // 插入一句話
+  for (const oneLiner of one_liners) {
+    const oneLinerId = generateId();
+    await c.env.DB.prepare(`
+      INSERT INTO biography_one_liners (id, biography_id, question_id, answer, question_text, source)
+      VALUES (?, ?, ?, ?, ?, 'system')
+    `).bind(oneLinerId, biographyId, oneLiner.question_id, oneLiner.answer, oneLiner.question_text || null).run();
+  }
+
+  // 插入深度故事
+  for (const story of stories) {
+    const storyId = generateId();
+    await c.env.DB.prepare(`
+      INSERT INTO biography_stories (id, biography_id, question_id, content, question_text, category_id, source)
+      VALUES (?, ?, ?, ?, ?, ?, 'system')
+    `).bind(storyId, biographyId, story.question_id, story.content, story.question_text || null, story.category_id || null).run();
+  }
+
   // 如果有提供 email，更新 session
   if (contact_email) {
     await c.env.DB.prepare(
@@ -295,12 +329,16 @@ guestRoutes.post('/anonymous/biography', zValidator('json', createAnonymousBiogr
     ).bind(contact_email, session_id).run();
   }
 
+  // 計算總故事數
+  const totalStories = core_stories.length + one_liners.length + stories.length;
+
   return c.json({
     success: true,
     biography: {
       id: biographyId,
       slug,
       anonymous_name: anonymousName,
+      total_stories: totalStories,
     },
   });
 });
