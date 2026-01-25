@@ -26,6 +26,7 @@ import { statsRoutes } from './routes/stats';
 import { adminQuestionsRoutes } from './routes/admin-questions';
 import { biographyContentRoutes } from './routes/biography-content';
 import { accessLogsRoutes } from './routes/access-logs';
+import { guestRoutes } from './routes/guest';
 
 const app = new Hono<{ Bindings: Env }>();
 
@@ -103,6 +104,7 @@ v1.route('/stats', statsRoutes);
 v1.route('/admin/questions', adminQuestionsRoutes);
 v1.route('/content', biographyContentRoutes);
 v1.route('/access-logs', accessLogsRoutes);
+v1.route('/guest', guestRoutes);
 
 app.route('/api/v1', v1);
 
