@@ -45,6 +45,12 @@ function StoryCard({ content }: StoryCardProps) {
 
   const { label, text } = getDisplayContent()
 
+  // 取得連結路徑
+  const getLinkHref = () => {
+    // 連結到對應的人物誌頁面
+    return `/biography/profile/${content.biography_id}`
+  }
+
   return (
     <motion.div
       initial={{ opacity: 0, y: 20 }}
@@ -52,7 +58,8 @@ function StoryCard({ content }: StoryCardProps) {
       transition={{ duration: 0.4 }}
       className="h-full"
     >
-      <Card className="h-full overflow-hidden rounded-lg border border-gray-200 bg-white shadow-sm transition-shadow duration-300 hover:shadow-md">
+      <Link href={getLinkHref()} className="block h-full">
+        <Card className="h-full overflow-hidden rounded-lg border border-gray-200 bg-white shadow-sm transition-shadow duration-300 hover:shadow-md">
         <CardContent className="flex h-full flex-col p-6">
           <div className="mb-4 flex-1 space-y-2">
             <p className="text-xs text-[#8E8C8C]">{label}</p>
@@ -108,6 +115,7 @@ function StoryCard({ content }: StoryCardProps) {
           </div>
         </CardContent>
       </Card>
+      </Link>
     </motion.div>
   )
 }

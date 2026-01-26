@@ -24,7 +24,7 @@ interface GuidedQuestionsProps {
 }
 
 const ENCOURAGEMENTS = [
-  '太棒了！讓我們繼續 🎉',
+  '太棒了！讓我們繼續',
   '很好的回答！',
   '精彩！再來一題',
   '完美！你做得很好',

@@ -143,7 +143,7 @@ export default async function Image({ params }: { params: Promise<{ slug: string
                 lineHeight: 1.5,
               }}
             >
-              {description}...
+              {description}{description.length >= 80 ? '...' : ''}
             </p>
           )}
         </div>
