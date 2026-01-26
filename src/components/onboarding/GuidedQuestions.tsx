@@ -17,7 +17,7 @@ interface GuidedQuestion {
 
 interface GuidedQuestionsProps {
   questions: GuidedQuestion[]
-  onComplete: (answers: Record<string, string>) => void
+  onComplete: (_answers: Record<string, string>) => void
   onSkip: () => void
   title?: string
   subtitle?: string
