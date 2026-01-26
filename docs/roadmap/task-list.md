@@ -83,31 +83,33 @@ GET /api/v1/content/popular/stories
 
 ---
 
-## 可選功能：快速反應按鈕 ⚪ 低優先
+## 可選功能：快速反應按鈕 ✅ 已完成
 
 **Commit Message**：`feat: add quick reaction buttons for stories`
 
-> 目前「按讚」功能已可滿足基本互動需求，此功能為體驗增強，優先級較低。
+> 目前「按讚」功能已可滿足基本互動需求，此功能為體驗增強。
 
 | # | 任務 | 狀態 |
 |---|------|------|
-| 10 | 建立 reactions 資料表 | ⬜ |
-| 11 | 實作快速反應 API | ⬜ |
-| 12 | 實作 QuickReactionBar 組件 | ⬜ |
+| 10 | 建立 reactions 資料表 | ✅ |
+| 11 | 實作快速反應 API | ✅ |
+| 12 | 實作 QuickReactionBar 組件 | ✅ |
 
 ### 功能說明
 
-| 快速反應 | Key | 說明 |
-|---------|-----|------|
-| 我也是 | `me_too` | 表達相同經歷或感受 |
-| +1 | `plus_one` | 表示認同 |
-| 說得好 | `well_said` | 讚賞表達方式 |
+| 快速反應 | Key | Icon | 說明 |
+|---------|-----|------|------|
+| 我也是 | `me_too` | HandMetal | 表達相同經歷或感受 |
+| +1 | `plus_one` | ThumbsUp | 表示認同 |
+| 說得好 | `well_said` | MessageSquareHeart | 讚賞表達方式 |
 
 ### 交付物
 
-- [ ] `backend/migrations/0028_create_reactions_table.sql`
-- [ ] `backend/src/routes/biography-content.ts` 新增 reaction 路由
-- [ ] `src/components/biography/display/QuickReactionBar.tsx`
+- [x] `backend/migrations/0029_create_reactions_table.sql`
+- [x] `backend/src/routes/biography-content.ts` 新增 reaction 路由
+- [x] `backend/src/services/biography-content-interactions-service.ts` 新增 reaction 邏輯
+- [x] `src/components/biography/display/QuickReactionBar.tsx`
+- [x] `src/lib/api/services.ts` 新增 reaction API
 
 ---
 
@@ -120,7 +122,7 @@ GET /api/v1/content/popular/stories
 | ✅ 完成 | Sprint 3：首頁精選故事 | 2 | 已完成 |
 | ✅ 完成 | Sprint 4：引導式體驗 | 3 | 已完成 |
 | ✅ 完成 | Sprint 5：分享優化 | 4 | 已完成 |
-| ⚪ 低 | 快速反應按鈕 | 3 | 可選 |
+| ✅ 完成 | 快速反應按鈕 | 3 | 已完成 |
 
 ---
 

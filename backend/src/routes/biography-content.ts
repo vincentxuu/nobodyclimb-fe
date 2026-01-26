@@ -388,3 +388,128 @@ biographyContentRoutes.get('/popular/stories', async (c) => {
   const stories = await contentRepo.getPopularStories(limit, categoryId);
   return c.json({ success: true, data: stories });
 });
+
+// ═══════════════════════════════════════════
+// 快速反應 API
+// ═══════════════════════════════════════════
+
+const VALID_REACTION_TYPES = ['me_too', 'plus_one', 'well_said'] as const;
+type ReactionType = (typeof VALID_REACTION_TYPES)[number];
+
+function isValidReactionType(type: string): type is ReactionType {
+  return VALID_REACTION_TYPES.includes(type as ReactionType);
+}
+
+// 核心故事快速反應
+biographyContentRoutes.post('/core-stories/:id/reaction', authMiddleware, async (c) => {
+  const contentId = c.req.param('id');
+  const userId = c.get('userId');
+  const { reaction_type } = await c.req.json();
+  const { interactionsService } = getRepositories(c.env.DB);
+
+  if (!reaction_type || !isValidReactionType(reaction_type)) {
+    return c.json({ success: false, error: '無效的反應類型' }, 400);
+  }
+
+  try {
+    const result = await interactionsService.toggleReaction(
+      'core_story',
+      contentId,
+      reaction_type,
+      userId
+    );
+    return c.json({ success: true, data: result });
+  } catch (error) {
+    return c.json({ success: false, error: (error as Error).message }, 404);
+  }
+});
+
+// 一句話快速反應
+biographyContentRoutes.post('/one-liners/:id/reaction', authMiddleware, async (c) => {
+  const contentId = c.req.param('id');
+  const userId = c.get('userId');
+  const { reaction_type } = await c.req.json();
+  const { interactionsService } = getRepositories(c.env.DB);
+
+  if (!reaction_type || !isValidReactionType(reaction_type)) {
+    return c.json({ success: false, error: '無效的反應類型' }, 400);
+  }
+
+  try {
+    const result = await interactionsService.toggleReaction(
+      'one_liner',
+      contentId,
+      reaction_type,
+      userId
+    );
+    return c.json({ success: true, data: result });
+  } catch (error) {
+    return c.json({ success: false, error: (error as Error).message }, 404);
+  }
+});
+
+// 故事快速反應
+biographyContentRoutes.post('/stories/:id/reaction', authMiddleware, async (c) => {
+  const contentId = c.req.param('id');
+  const userId = c.get('userId');
+  const { reaction_type } = await c.req.json();
+  const { interactionsService } = getRepositories(c.env.DB);
+
+  if (!reaction_type || !isValidReactionType(reaction_type)) {
+    return c.json({ success: false, error: '無效的反應類型' }, 400);
+  }
+
+  try {
+    const result = await interactionsService.toggleReaction(
+      'story',
+      contentId,
+      reaction_type,
+      userId
+    );
+    return c.json({ success: true, data: result });
+  } catch (error) {
+    return c.json({ success: false, error: (error as Error).message }, 404);
+  }
+});
+
+// 取得內容的反應狀態（公開 API）
+biographyContentRoutes.get('/:contentType/:id/reactions', optionalAuthMiddleware, async (c) => {
+  const contentType = c.req.param('contentType');
+  const contentId = c.req.param('id');
+  const userId = c.get('userId');
+  const { interactionsService } = getRepositories(c.env.DB);
+
+  // 驗證內容類型
+  const validContentTypes = ['core-stories', 'one-liners', 'stories'] as const;
+  if (!validContentTypes.includes(contentType as any)) {
+    return c.json({ success: false, error: '無效的內容類型' }, 400);
+  }
+
+  // 轉換內容類型
+  const contentTypeMap: Record<string, 'core_story' | 'one_liner' | 'story'> = {
+    'core-stories': 'core_story',
+    'one-liners': 'one_liner',
+    'stories': 'story',
+  };
+
+  try {
+    const counts = await interactionsService.getReactionCounts(
+      contentTypeMap[contentType],
+      contentId
+    );
+
+    const userReactions = userId
+      ? await interactionsService.getUserReactions(contentTypeMap[contentType], contentId, userId)
+      : [];
+
+    return c.json({
+      success: true,
+      data: {
+        counts,
+        user_reactions: userReactions,
+      },
+    });
+  } catch (error) {
+    return c.json({ success: false, error: (error as Error).message }, 500);
+  }
+});

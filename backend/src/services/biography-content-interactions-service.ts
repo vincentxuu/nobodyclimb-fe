@@ -62,6 +62,29 @@ export interface LikeResponse {
 }
 
 /**
+ * 快速反應類型
+ */
+export type ReactionType = 'me_too' | 'plus_one' | 'well_said';
+
+/**
+ * 快速反應回應
+ */
+export interface ReactionResponse {
+  reacted: boolean;
+  reaction_counts: Record<ReactionType, number>;
+}
+
+/**
+ * 快速反應顯示資訊
+ * icon 欄位對應 lucide-react 的 icon 名稱
+ */
+export const REACTION_DISPLAY = {
+  me_too: { label: '我也是', icon: 'HandMetal' },
+  plus_one: { label: '+1', icon: 'ThumbsUp' },
+  well_said: { label: '說得好', icon: 'MessageSquareHeart' },
+} as const;
+
+/**
  * 人物誌內容互動服務
  */
 export class BiographyContentInteractionsService {
@@ -221,6 +244,220 @@ export class BiographyContentInteractionsService {
     // 更新留言數
     const commentCount = await this.interactionsRepo.getCommentCount(contentType, contentId);
     await this.interactionsRepo.updateCommentCount(contentType, contentId, commentCount);
+  }
+
+  // ═══════════════════════════════════════════
+  // 快速反應功能
+  // ═══════════════════════════════════════════
+
+  /**
+   * 切換快速反應狀態
+   */
+  async toggleReaction(
+    contentType: ContentType,
+    contentId: string,
+    reactionType: ReactionType,
+    userId: string
+  ): Promise<ReactionResponse> {
+    // 驗證內容存在
+    const content = await this.getContentWithOwner(contentType, contentId);
+    if (!content) {
+      throw new Error('找不到此內容');
+    }
+
+    // 檢查是否已反應
+    const hasReacted = await this.hasReacted(contentType, contentId, reactionType, userId);
+
+    if (hasReacted) {
+      // 移除反應
+      await this.removeReaction(contentType, contentId, reactionType, userId);
+    } else {
+      // 新增反應
+      await this.addReaction(contentType, contentId, reactionType, userId);
+    }
+
+    // 取得更新後的反應計數
+    const reactionCounts = await this.getReactionCounts(contentType, contentId);
+
+    // 更新內容表的反應計數
+    await this.updateReactionCounts(contentType, contentId, reactionCounts);
+
+    return {
+      reacted: !hasReacted,
+      reaction_counts: reactionCounts,
+    };
+  }
+
+  /**
+   * 檢查是否已反應
+   */
+  private async hasReacted(
+    contentType: ContentType,
+    contentId: string,
+    reactionType: ReactionType,
+    userId: string
+  ): Promise<boolean> {
+    const result = await this.db
+      .prepare(
+        `SELECT 1 FROM content_reactions
+         WHERE content_type = ? AND content_id = ? AND reaction_type = ? AND user_id = ?`
+      )
+      .bind(contentType, contentId, reactionType, userId)
+      .first();
+
+    return !!result;
+  }
+
+  /**
+   * 新增反應
+   */
+  private async addReaction(
+    contentType: ContentType,
+    contentId: string,
+    reactionType: ReactionType,
+    userId: string
+  ): Promise<void> {
+    await this.db
+      .prepare(
+        `INSERT INTO content_reactions (content_type, content_id, reaction_type, user_id)
+         VALUES (?, ?, ?, ?)`
+      )
+      .bind(contentType, contentId, reactionType, userId)
+      .run();
+  }
+
+  /**
+   * 移除反應
+   */
+  private async removeReaction(
+    contentType: ContentType,
+    contentId: string,
+    reactionType: ReactionType,
+    userId: string
+  ): Promise<void> {
+    await this.db
+      .prepare(
+        `DELETE FROM content_reactions
+         WHERE content_type = ? AND content_id = ? AND reaction_type = ? AND user_id = ?`
+      )
+      .bind(contentType, contentId, reactionType, userId)
+      .run();
+  }
+
+  /**
+   * 取得反應計數
+   */
+  async getReactionCounts(
+    contentType: ContentType,
+    contentId: string
+  ): Promise<Record<ReactionType, number>> {
+    const result = await this.db
+      .prepare(
+        `SELECT reaction_type, COUNT(*) as count
+         FROM content_reactions
+         WHERE content_type = ? AND content_id = ?
+         GROUP BY reaction_type`
+      )
+      .bind(contentType, contentId)
+      .all();
+
+    const counts: Record<ReactionType, number> = {
+      me_too: 0,
+      plus_one: 0,
+      well_said: 0,
+    };
+
+    for (const row of (result.results || []) as Array<{ reaction_type: ReactionType; count: number }>) {
+      counts[row.reaction_type] = row.count;
+    }
+
+    return counts;
+  }
+
+  /**
+   * 取得用戶對內容的反應狀態
+   */
+  async getUserReactions(
+    contentType: ContentType,
+    contentId: string,
+    userId: string
+  ): Promise<ReactionType[]> {
+    const result = await this.db
+      .prepare(
+        `SELECT reaction_type FROM content_reactions
+         WHERE content_type = ? AND content_id = ? AND user_id = ?`
+      )
+      .bind(contentType, contentId, userId)
+      .all();
+
+    return (result.results || []).map((row: any) => row.reaction_type);
+  }
+
+  /**
+   * 批次取得用戶對多個內容的反應狀態
+   */
+  async batchGetUserReactions(
+    contentType: ContentType,
+    contentIds: string[],
+    userId: string
+  ): Promise<Map<string, ReactionType[]>> {
+    if (contentIds.length === 0) {
+      return new Map();
+    }
+
+    const placeholders = contentIds.map(() => '?').join(',');
+    const result = await this.db
+      .prepare(
+        `SELECT content_id, reaction_type FROM content_reactions
+         WHERE content_type = ? AND content_id IN (${placeholders}) AND user_id = ?`
+      )
+      .bind(contentType, ...contentIds, userId)
+      .all();
+
+    const reactionsMap = new Map<string, ReactionType[]>();
+    for (const row of (result.results || []) as Array<{ content_id: string; reaction_type: ReactionType }>) {
+      const existing = reactionsMap.get(row.content_id) || [];
+      existing.push(row.reaction_type);
+      reactionsMap.set(row.content_id, existing);
+    }
+
+    return reactionsMap;
+  }
+
+  /**
+   * 更新內容表的反應計數
+   */
+  private async updateReactionCounts(
+    contentType: ContentType,
+    contentId: string,
+    counts: Record<ReactionType, number>
+  ): Promise<void> {
+    const tableName = this.getTableName(contentType);
+
+    await this.db
+      .prepare(
+        `UPDATE ${tableName}
+         SET reaction_me_too_count = ?,
+             reaction_plus_one_count = ?,
+             reaction_well_said_count = ?
+         WHERE id = ?`
+      )
+      .bind(counts.me_too, counts.plus_one, counts.well_said, contentId)
+      .run();
+  }
+
+  /**
+   * 取得內容表名稱
+   */
+  private getTableName(contentType: ContentType): string {
+    switch (contentType) {
+      case 'core_story':
+        return 'biography_core_stories';
+      case 'one_liner':
+        return 'biography_one_liners';
+      case 'story':
+        return 'biography_stories';
+    }
   }
 
   // ═══════════════════════════════════════════
