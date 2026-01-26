@@ -28,6 +28,12 @@ const LatestContentSection = dynamic(
   { loading: () => <SectionSkeleton /> }
 )
 
+const FeaturedStoriesSection = dynamic(
+  () =>
+    import('@/components/home/featured-stories-section').then((mod) => mod.FeaturedStoriesSection),
+  { loading: () => <SectionSkeleton /> }
+)
+
 const FeaturedVideosSection = dynamic(
   () =>
     import('@/components/home/featured-videos-section').then((mod) => mod.FeaturedVideosSection),
@@ -61,6 +67,9 @@ export default function HomePage() {
 
       {/* 人物誌精選 */}
       <BiographySection />
+
+      {/* 精選故事 */}
+      <FeaturedStoriesSection />
 
       {/* 最新文章 */}
       <LatestContentSection />
