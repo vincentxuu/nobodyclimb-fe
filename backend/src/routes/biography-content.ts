@@ -400,12 +400,30 @@ function isValidReactionType(type: string): type is ReactionType {
   return VALID_REACTION_TYPES.includes(type as ReactionType);
 }
 
-// 核心故事快速反應
-biographyContentRoutes.post('/core-stories/:id/reaction', authMiddleware, async (c) => {
+const VALID_CONTENT_TYPES = ['core-stories', 'one-liners', 'stories'] as const;
+type ContentTypeParam = (typeof VALID_CONTENT_TYPES)[number];
+
+const CONTENT_TYPE_MAP: Record<ContentTypeParam, 'core_story' | 'one_liner' | 'story'> = {
+  'core-stories': 'core_story',
+  'one-liners': 'one_liner',
+  'stories': 'story',
+};
+
+function isValidContentType(type: string): type is ContentTypeParam {
+  return VALID_CONTENT_TYPES.includes(type as ContentTypeParam);
+}
+
+// 統一的快速反應路由
+biographyContentRoutes.post('/:contentType/:id/reaction', authMiddleware, async (c) => {
+  const contentTypeParam = c.req.param('contentType');
   const contentId = c.req.param('id');
   const userId = c.get('userId');
   const { reaction_type } = await c.req.json();
   const { interactionsService } = getRepositories(c.env.DB);
+
+  if (!isValidContentType(contentTypeParam)) {
+    return c.json({ success: false, error: '無效的內容類型' }, 400);
+  }
 
   if (!reaction_type || !isValidReactionType(reaction_type)) {
     return c.json({ success: false, error: '無效的反應類型' }, 400);
@@ -413,55 +431,7 @@ biographyContentRoutes.post('/core-stories/:id/reaction', authMiddleware, async 
 
   try {
     const result = await interactionsService.toggleReaction(
-      'core_story',
-      contentId,
-      reaction_type,
-      userId
-    );
-    return c.json({ success: true, data: result });
-  } catch (error) {
-    return c.json({ success: false, error: (error as Error).message }, 404);
-  }
-});
-
-// 一句話快速反應
-biographyContentRoutes.post('/one-liners/:id/reaction', authMiddleware, async (c) => {
-  const contentId = c.req.param('id');
-  const userId = c.get('userId');
-  const { reaction_type } = await c.req.json();
-  const { interactionsService } = getRepositories(c.env.DB);
-
-  if (!reaction_type || !isValidReactionType(reaction_type)) {
-    return c.json({ success: false, error: '無效的反應類型' }, 400);
-  }
-
-  try {
-    const result = await interactionsService.toggleReaction(
-      'one_liner',
-      contentId,
-      reaction_type,
-      userId
-    );
-    return c.json({ success: true, data: result });
-  } catch (error) {
-    return c.json({ success: false, error: (error as Error).message }, 404);
-  }
-});
-
-// 故事快速反應
-biographyContentRoutes.post('/stories/:id/reaction', authMiddleware, async (c) => {
-  const contentId = c.req.param('id');
-  const userId = c.get('userId');
-  const { reaction_type } = await c.req.json();
-  const { interactionsService } = getRepositories(c.env.DB);
-
-  if (!reaction_type || !isValidReactionType(reaction_type)) {
-    return c.json({ success: false, error: '無效的反應類型' }, 400);
-  }
-
-  try {
-    const result = await interactionsService.toggleReaction(
-      'story',
+      CONTENT_TYPE_MAP[contentTypeParam],
       contentId,
       reaction_type,
       userId
@@ -474,32 +444,22 @@ biographyContentRoutes.post('/stories/:id/reaction', authMiddleware, async (c) =
 
 // 取得內容的反應狀態（公開 API）
 biographyContentRoutes.get('/:contentType/:id/reactions', optionalAuthMiddleware, async (c) => {
-  const contentType = c.req.param('contentType');
+  const contentTypeParam = c.req.param('contentType');
   const contentId = c.req.param('id');
   const userId = c.get('userId');
   const { interactionsService } = getRepositories(c.env.DB);
 
-  // 驗證內容類型
-  const validContentTypes = ['core-stories', 'one-liners', 'stories'] as const;
-  if (!validContentTypes.includes(contentType as any)) {
+  if (!isValidContentType(contentTypeParam)) {
     return c.json({ success: false, error: '無效的內容類型' }, 400);
   }
 
-  // 轉換內容類型
-  const contentTypeMap: Record<string, 'core_story' | 'one_liner' | 'story'> = {
-    'core-stories': 'core_story',
-    'one-liners': 'one_liner',
-    'stories': 'story',
-  };
+  const mappedContentType = CONTENT_TYPE_MAP[contentTypeParam];
 
   try {
-    const counts = await interactionsService.getReactionCounts(
-      contentTypeMap[contentType],
-      contentId
-    );
+    const counts = await interactionsService.getReactionCounts(mappedContentType, contentId);
 
     const userReactions = userId
-      ? await interactionsService.getUserReactions(contentTypeMap[contentType], contentId, userId)
+      ? await interactionsService.getUserReactions(mappedContentType, contentId, userId)
       : [];
 
     return c.json({

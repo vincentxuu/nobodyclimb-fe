@@ -10,6 +10,7 @@ import { GuidedQuestions } from '@/components/onboarding'
 import { biographyService } from '@/lib/api/services'
 import { useQuestions } from '@/lib/hooks/useQuestions'
 import { useToast } from '@/components/ui/use-toast'
+import { buildOneLinersData } from '@/lib/utils/biography'
 
 // 引導式問答的問題（從一句話問題中選取幾個容易回答的）
 const GUIDED_QUESTIONS_CONFIG = [
@@ -84,13 +85,7 @@ export default function CompletePage() {
     async (answers: Record<string, string>) => {
       setIsSaving(true)
       try {
-        // 將答案轉換為 one_liners_data 格式
-        const oneLinersData: Record<string, { answer: string; visibility: string }> = {}
-        for (const [questionId, answer] of Object.entries(answers)) {
-          if (answer.trim()) {
-            oneLinersData[questionId] = { answer: answer.trim(), visibility: 'public' }
-          }
-        }
+        const oneLinersData = buildOneLinersData(answers)
 
         if (Object.keys(oneLinersData).length > 0) {
           await biographyService.updateBiography({
