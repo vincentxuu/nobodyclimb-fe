@@ -2,7 +2,7 @@
 
 import { useState } from 'react'
 import { cn } from '@/lib/utils'
-import { Heart, Loader2 } from 'lucide-react'
+import { Mountain, Loader2 } from 'lucide-react'
 import { useAuthStore } from '@/store/authStore'
 import { useToast } from '@/components/ui/use-toast'
 
@@ -85,8 +85,8 @@ export function ContentLikeButton({
         'inline-flex items-center gap-1 transition-colors',
         size === 'sm' ? 'text-xs' : 'text-sm',
         liked
-          ? 'text-red-500 hover:text-red-600'
-          : 'text-[#9D9B9B] hover:text-red-400',
+          ? 'text-emerald-600 hover:text-emerald-700'
+          : 'text-[#9D9B9B] hover:text-emerald-600',
         isLoading && 'opacity-50 cursor-not-allowed',
         className
       )}
@@ -94,7 +94,7 @@ export function ContentLikeButton({
       {isLoading ? (
         <Loader2 size={iconSize} className="animate-spin" />
       ) : (
-        <Heart
+        <Mountain
           size={iconSize}
           className={cn(liked && 'fill-current')}
         />

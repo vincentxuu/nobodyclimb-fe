@@ -4,8 +4,7 @@ import { motion } from 'framer-motion'
 import { Loader2 } from 'lucide-react'
 import { biographyContentService } from '@/lib/api/services'
 import { useClimbingMeaningStory, useCoreStoryLikeMutation, useCoreStoryCommentMutation } from '@/lib/hooks/useCoreStories'
-import { ContentLikeButton } from '../display/ContentLikeButton'
-import { ContentCommentSheet } from '../display/ContentCommentSheet'
+import { ContentInteractionBar } from '../display/ContentInteractionBar'
 
 /** 預設的攀岩意義文字 */
 const DEFAULT_CLIMBING_MEANING = '這題還在想，等我爬完這條再說'
@@ -93,21 +92,20 @@ export function ChapterMeaning({ biographyId, personName }: ChapterMeaningProps)
 
         {/* 互動按鈕 */}
         {story && !isDefault && (
-          <div className="flex items-center justify-center gap-4 mt-8">
-            <ContentLikeButton
-              isLiked={story.is_liked || false}
-              likeCount={story.like_count}
-              onToggle={handleToggleLike}
-              size="md"
-            />
-            <ContentCommentSheet
-              contentTitle="攀岩對你來說是什麼"
-              commentCount={story.comment_count}
-              onFetchComments={handleFetchComments}
-              onAddComment={handleAddComment}
-              size="md"
-            />
-          </div>
+          <ContentInteractionBar
+            contentType="core-stories"
+            contentId={story.id}
+            isLiked={story.is_liked || false}
+            likeCount={story.like_count}
+            commentCount={story.comment_count}
+            onToggleLike={handleToggleLike}
+            onFetchComments={handleFetchComments}
+            onAddComment={handleAddComment}
+            size="md"
+            className="mt-8"
+            showBorder={false}
+            centered
+          />
         )}
       </div>
     </motion.section>

@@ -1,6 +1,6 @@
 import type { Metadata } from 'next'
 import ProfileClient from './ProfileClient'
-import { SITE_URL, SITE_NAME, OG_IMAGE } from '@/lib/constants'
+import { SITE_URL, SITE_NAME } from '@/lib/constants'
 
 // 強制動態渲染，避免快取問題
 export const dynamic = 'force-dynamic'
@@ -92,9 +92,8 @@ export async function generateMetadata({
 
   const title = `${person.name} - 攀岩人物誌`
   const description = person.climbing_meaning?.substring(0, 160) || person.bio?.substring(0, 160) || `認識 ${person.name}，一位熱愛攀岩的攀岩愛好者。`
-  const image = person.avatar_url
-    ? (person.avatar_url.startsWith('http') ? person.avatar_url : `${SITE_URL}${person.avatar_url}`)
-    : `${SITE_URL}${OG_IMAGE}`
+  // 使用動態 OG 圖片 API，生成品牌化的人物誌預覽圖
+  const image = `${SITE_URL}/api/og/biography?slug=${encodeURIComponent(slug)}`
 
   return {
     title: person.name,

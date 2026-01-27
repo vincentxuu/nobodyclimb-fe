@@ -1,13 +1,8 @@
 import { ImageResponse } from 'next/og'
+import { NextRequest } from 'next/server'
 import { SITE_NAME } from '@/lib/constants'
 
 export const runtime = 'edge'
-export const alt = '人物誌'
-export const size = {
-  width: 1200,
-  height: 630,
-}
-export const contentType = 'image/png'
 
 // Cloudflare KV 類型定義
 interface KVNamespace {
@@ -39,13 +34,20 @@ async function getBiographyFromKV(slug: string): Promise<BiographyMetadata | nul
   }
 }
 
-export default async function Image({ params }: { params: Promise<{ slug: string }> }) {
-  const { slug } = await params
+export async function GET(request: NextRequest) {
+  const { searchParams } = new URL(request.url)
+  const slug = searchParams.get('slug')
+
+  if (!slug) {
+    return new Response('Missing slug parameter', { status: 400 })
+  }
+
   const person = await getBiographyFromKV(slug)
 
   const name = person?.name || '攀岩人物'
   const title = person?.title || ''
-  const description = person?.climbing_meaning?.substring(0, 80) || person?.bio?.substring(0, 80) || ''
+  const description =
+    person?.climbing_meaning?.substring(0, 80) || person?.bio?.substring(0, 80) || ''
 
   return new ImageResponse(
     (
@@ -143,7 +145,8 @@ export default async function Image({ params }: { params: Promise<{ slug: string
                 lineHeight: 1.5,
               }}
             >
-              {description}{description.length >= 80 ? '...' : ''}
+              {description}
+              {description.length >= 80 ? '...' : ''}
             </p>
           )}
         </div>
@@ -170,7 +173,8 @@ export default async function Image({ params }: { params: Promise<{ slug: string
       </div>
     ),
     {
-      ...size,
+      width: 1200,
+      height: 630,
     }
   )
 }

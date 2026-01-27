@@ -5,8 +5,7 @@ import { motion } from 'framer-motion'
 import { cn } from '@/lib/utils'
 import { BookOpen, Loader2 } from 'lucide-react'
 import { biographyContentService, type Story } from '@/lib/api/services'
-import { ContentLikeButton } from './ContentLikeButton'
-import { ContentCommentSheet } from './ContentCommentSheet'
+import { ContentInteractionBar } from './ContentInteractionBar'
 
 interface BiographyStoriesProps {
   /** 人物誌 ID */
@@ -161,19 +160,16 @@ export function BiographyStories({
               </p>
 
               {/* 互動按鈕 */}
-              <div className="flex items-center gap-4 mt-4 pt-3 border-t border-[#EBEAEA]">
-                <ContentLikeButton
-                  isLiked={story.is_liked || false}
-                  likeCount={story.like_count}
-                  onToggle={() => handleToggleLike(story.id)}
-                />
-                <ContentCommentSheet
-                  contentTitle={title}
-                  commentCount={story.comment_count}
-                  onFetchComments={() => handleFetchComments(story.id)}
-                  onAddComment={(content) => handleAddComment(story.id, content)}
-                />
-              </div>
+              <ContentInteractionBar
+                contentType="stories"
+                contentId={story.id}
+                isLiked={story.is_liked || false}
+                likeCount={story.like_count}
+                commentCount={story.comment_count}
+                onToggleLike={() => handleToggleLike(story.id)}
+                onFetchComments={() => handleFetchComments(story.id)}
+                onAddComment={(content) => handleAddComment(story.id, content)}
+              />
             </motion.div>
           )
         })}

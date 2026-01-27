@@ -2,25 +2,17 @@
 
 import { useState, useEffect, useCallback } from 'react'
 import { cn } from '@/lib/utils'
-import { Loader2, MessageCircle, Send, Trash2 } from 'lucide-react'
+import { Loader2, MessageCircle, Send, Trash2, ChevronDown, ChevronUp } from 'lucide-react'
 import { useAuthStore } from '@/store/authStore'
 import { useToast } from '@/components/ui/use-toast'
 import { Button } from '@/components/ui/button'
 import { Textarea } from '@/components/ui/textarea'
-import {
-  Sheet,
-  SheetContent,
-  SheetHeader,
-  SheetTitle,
-  SheetTrigger,
-} from '@/components/ui/sheet'
 import { formatDistanceToNow } from 'date-fns'
 import { zhTW } from 'date-fns/locale'
 import type { ContentComment } from '@/lib/api/services'
+import { motion, AnimatePresence } from 'framer-motion'
 
 interface ContentCommentSheetProps {
-  /** 內容類型標題（用於顯示） */
-  contentTitle?: string
   /** 留言數量 */
   commentCount: number
   /** 取得留言列表 */
@@ -33,8 +25,6 @@ interface ContentCommentSheetProps {
   size?: 'sm' | 'md'
   /** 自訂樣式 */
   className?: string
-  /** 子元素（可自訂觸發按鈕） */
-  children?: React.ReactNode
 }
 
 // 格式化時間
@@ -153,18 +143,17 @@ function CommentForm({
 }
 
 /**
- * 內容留言側邊欄
+ * 內容留言區塊
  * 用於一句話、小故事、核心故事的留言功能
+ * 點擊後在下方展開顯示留言列表
  */
 export function ContentCommentSheet({
-  contentTitle,
   commentCount,
   onFetchComments,
   onAddComment,
   onDeleteComment,
   size = 'sm',
   className,
-  children,
 }: ContentCommentSheetProps) {
   const { isAuthenticated, user } = useAuthStore()
   const { toast } = useToast()
@@ -242,63 +231,70 @@ export function ContentCommentSheet({
   const iconSize = size === 'sm' ? 14 : 16
 
   return (
-    <Sheet open={isOpen} onOpenChange={setIsOpen}>
-      <SheetTrigger asChild>
-        {children || (
-          <button
-            className={cn(
-              'inline-flex items-center gap-1 transition-colors',
-              size === 'sm' ? 'text-xs' : 'text-sm',
-              'text-[#9D9B9B] hover:text-[#6D6C6C]',
-              className
-            )}
-          >
-            <MessageCircle size={iconSize} />
-            {count > 0 && <span>{count}</span>}
-          </button>
+    <>
+      {/* 留言按鈕 */}
+      <button
+        onClick={() => setIsOpen(!isOpen)}
+        className={cn(
+          'inline-flex items-center gap-1 transition-colors',
+          size === 'sm' ? 'text-xs' : 'text-sm',
+          'text-[#9D9B9B] hover:text-[#6D6C6C]',
+          className
         )}
-      </SheetTrigger>
-      <SheetContent side="right" className="flex flex-col">
-        <SheetHeader>
-          <SheetTitle>
-            {contentTitle ? `${contentTitle}的留言` : '留言'}
-          </SheetTitle>
-        </SheetHeader>
+      >
+        <MessageCircle size={iconSize} />
+        {count > 0 && <span>{count}</span>}
+        {isOpen ? (
+          <ChevronUp size={iconSize} className="ml-0.5" />
+        ) : (
+          <ChevronDown size={iconSize} className="ml-0.5" />
+        )}
+      </button>
 
-        <div className="flex-1 overflow-y-auto py-4">
-          {/* 留言輸入框 */}
-          <div className="mb-4 border-b pb-4">
-            <CommentForm
-              onSubmit={handleAddComment}
-              isSubmitting={isSubmitting}
-              isLoggedIn={isAuthenticated}
-            />
-          </div>
+      {/* 留言區塊展開 */}
+      <AnimatePresence>
+        {isOpen && (
+          <motion.div
+            initial={{ height: 0, opacity: 0 }}
+            animate={{ height: 'auto', opacity: 1 }}
+            exit={{ height: 0, opacity: 0 }}
+            transition={{ duration: 0.2 }}
+            className="w-full overflow-hidden basis-full"
+          >
+            <div className="mt-4 space-y-4 border-t border-[#EBEAEA] pt-4">
+              {/* 留言輸入框 */}
+              <CommentForm
+                onSubmit={handleAddComment}
+                isSubmitting={isSubmitting}
+                isLoggedIn={isAuthenticated}
+              />
 
-          {/* 留言列表 */}
-          {isLoading ? (
-            <div className="flex justify-center py-8">
-              <Loader2 className="h-6 w-6 animate-spin text-gray-400" />
+              {/* 留言列表 */}
+              {isLoading ? (
+                <div className="flex justify-center py-4">
+                  <Loader2 className="h-5 w-5 animate-spin text-gray-400" />
+                </div>
+              ) : comments.length > 0 ? (
+                <div className="space-y-3 max-h-[300px] overflow-y-auto">
+                  {comments.map((comment) => (
+                    <CommentItem
+                      key={comment.id}
+                      comment={comment}
+                      currentUserId={user?.id}
+                      onDelete={onDeleteComment ? handleDeleteComment : undefined}
+                    />
+                  ))}
+                </div>
+              ) : (
+                <p className="py-4 text-center text-sm text-gray-500">
+                  還沒有留言，成為第一個留言的人吧！
+                </p>
+              )}
             </div>
-          ) : comments.length > 0 ? (
-            <div className="space-y-4">
-              {comments.map((comment) => (
-                <CommentItem
-                  key={comment.id}
-                  comment={comment}
-                  currentUserId={user?.id}
-                  onDelete={onDeleteComment ? handleDeleteComment : undefined}
-                />
-              ))}
-            </div>
-          ) : (
-            <p className="py-8 text-center text-sm text-gray-500">
-              還沒有留言，成為第一個留言的人吧！
-            </p>
-          )}
-        </div>
-      </SheetContent>
-    </Sheet>
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </>
   )
 }
 

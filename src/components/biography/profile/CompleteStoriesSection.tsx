@@ -1,12 +1,13 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import Link from 'next/link'
 import { motion } from 'framer-motion'
 import { Plus, Loader2 } from 'lucide-react'
 import { Biography } from '@/lib/types'
 import { biographyContentService, type Story } from '@/lib/api/services'
 import { cn } from '@/lib/utils'
+import { ContentInteractionBar } from '../display/ContentInteractionBar'
 
 interface CompleteStoriesSectionProps {
   person: Biography
@@ -49,6 +50,47 @@ export function CompleteStoriesSection({ person, isOwner }: CompleteStoriesSecti
     fetchStories()
   }, [person.id])
 
+  // 按讚切換
+  const handleToggleLike = useCallback(async (storyId: string) => {
+    const response = await biographyContentService.toggleStoryLike(storyId)
+    if (response.success && response.data) {
+      setStories((prev) =>
+        prev.map((item) =>
+          item.id === storyId
+            ? { ...item, is_liked: response.data!.liked, like_count: response.data!.like_count }
+            : item
+        )
+      )
+      return response.data
+    }
+    throw new Error('Failed to toggle like')
+  }, [])
+
+  // 獲取留言
+  const handleFetchComments = useCallback(async (storyId: string) => {
+    const response = await biographyContentService.getStoryComments(storyId)
+    if (response.success && response.data) {
+      return response.data
+    }
+    return []
+  }, [])
+
+  // 新增留言
+  const handleAddComment = useCallback(async (storyId: string, content: string) => {
+    const response = await biographyContentService.addStoryComment(storyId, { content })
+    if (response.success && response.data) {
+      setStories((prev) =>
+        prev.map((item) =>
+          item.id === storyId
+            ? { ...item, comment_count: item.comment_count + 1 }
+            : item
+        )
+      )
+      return response.data
+    }
+    throw new Error('Failed to add comment')
+  }, [])
+
   if (isLoading) {
     return (
       <section id="complete-stories" className="bg-gray-50 py-16">
@@ -85,12 +127,12 @@ export function CompleteStoriesSection({ person, isOwner }: CompleteStoriesSecti
               whileInView={{ opacity: 1, x: 0 }}
               viewport={{ once: true, margin: '-50px' }}
               transition={{ delay: index * 0.05 }}
-              className="w-80 flex-shrink-0 snap-start rounded-lg bg-white p-6 shadow-sm"
+              className="w-80 flex-shrink-0 snap-start rounded-lg bg-white p-6 shadow-sm flex flex-col"
             >
               {/* 分類標籤 */}
               {story.category_name && (
                 <div className={cn(
-                  'mb-3 inline-block rounded px-2 py-1 text-xs',
+                  'mb-3 inline-block rounded px-2 py-1 text-xs self-start',
                   STORY_CATEGORY_COLORS[story.category_id || 'sys_cat_growth']?.bg || 'bg-brand-accent/20',
                   STORY_CATEGORY_COLORS[story.category_id || 'sys_cat_growth']?.text || 'text-brand-dark'
                 )}>
@@ -104,9 +146,23 @@ export function CompleteStoriesSection({ person, isOwner }: CompleteStoriesSecti
               </h3>
 
               {/* 完整內容 */}
-              <p className="whitespace-pre-wrap text-sm leading-relaxed text-gray-600">
+              <p className="whitespace-pre-wrap text-sm leading-relaxed text-gray-600 flex-1">
                 {story.content}
               </p>
+
+              {/* 互動按鈕 */}
+              <ContentInteractionBar
+                contentType="stories"
+                contentId={story.id}
+                isLiked={story.is_liked || false}
+                likeCount={story.like_count}
+                commentCount={story.comment_count}
+                onToggleLike={() => handleToggleLike(story.id)}
+                onFetchComments={() => handleFetchComments(story.id)}
+                onAddComment={(content) => handleAddComment(story.id, content)}
+                className="mt-4 pt-3 border-t border-gray-100"
+                showBorder={false}
+              />
             </motion.div>
           ))}
 

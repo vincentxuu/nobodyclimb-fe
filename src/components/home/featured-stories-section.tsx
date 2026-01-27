@@ -4,16 +4,16 @@ import { useEffect, useState, useCallback, useRef } from 'react'
 import Link from 'next/link'
 import Image from 'next/image'
 import { motion } from 'framer-motion'
-import { ArrowRightCircle, Loader2, Heart, MessageCircle } from 'lucide-react'
+import { ArrowRightCircle, Loader2, Mountain, MessageCircle } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
 import { biographyContentService, CoreStory, OneLiner, Story } from '@/lib/api/services'
 import { isSvgUrl, getDefaultAvatarUrl } from '@/lib/utils/image'
 
 type FeaturedContent =
-  | (CoreStory & { type: 'core-story'; author_name: string; author_avatar?: string })
-  | (OneLiner & { type: 'one-liner'; author_name: string; author_avatar?: string })
-  | (Story & { type: 'story'; author_name: string; author_avatar?: string })
+  | (CoreStory & { type: 'core-story'; author_name: string; author_avatar?: string; biography_slug?: string })
+  | (OneLiner & { type: 'one-liner'; author_name: string; author_avatar?: string; biography_slug?: string })
+  | (Story & { type: 'story'; author_name: string; author_avatar?: string; biography_slug?: string })
 
 interface StoryCardProps {
   content: FeaturedContent
@@ -47,8 +47,8 @@ function StoryCard({ content }: StoryCardProps) {
 
   // 取得連結路徑
   const getLinkHref = () => {
-    // 連結到對應的人物誌頁面
-    return `/biography/profile/${content.biography_id}`
+    // 連結到對應的人物誌頁面（使用 slug）
+    return `/biography/profile/${content.biography_slug || content.biography_id}`
   }
 
   return (
@@ -101,7 +101,7 @@ function StoryCard({ content }: StoryCardProps) {
                 <h3 className="text-sm font-medium text-[#1B1A1A]">{displayName}</h3>
                 <div className="mt-0.5 flex items-center gap-3 text-xs text-[#8E8C8C]">
                   <span className="flex items-center gap-1">
-                    <Heart size={12} />
+                    <Mountain size={12} />
                     {content.like_count}
                   </span>
                   <span className="flex items-center gap-1">
