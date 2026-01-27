@@ -289,7 +289,7 @@ export class BiographyContentCrudRepository {
   async getPopularCoreStories(limit: number = 10): Promise<any[]> {
     const result = await this.db
       .prepare(
-        `SELECT cs.*, csq.title, csq.subtitle, b.name as author_name, b.avatar_url as author_avatar
+        `SELECT cs.*, csq.title, csq.subtitle, b.name as author_name, b.avatar_url as author_avatar, b.slug as biography_slug
          FROM biography_core_stories cs
          JOIN core_story_questions csq ON cs.question_id = csq.id
          JOIN biographies b ON cs.biography_id = b.id
@@ -309,7 +309,7 @@ export class BiographyContentCrudRepository {
   async getPopularOneLiners(limit: number = 10): Promise<any[]> {
     const result = await this.db
       .prepare(
-        `SELECT ol.*, olq.question, b.name as author_name, b.avatar_url as author_avatar
+        `SELECT ol.*, olq.question, b.name as author_name, b.avatar_url as author_avatar, b.slug as biography_slug
          FROM biography_one_liners ol
          LEFT JOIN one_liner_questions olq ON ol.question_id = olq.id
          JOIN biographies b ON ol.biography_id = b.id
@@ -329,7 +329,7 @@ export class BiographyContentCrudRepository {
   async getPopularStories(limit: number = 10, categoryId?: string): Promise<any[]> {
     let query = `
       SELECT s.*, sq.title, sq.subtitle, sc.name as category_name, sc.icon as category_icon,
-             b.name as author_name, b.avatar_url as author_avatar
+             b.name as author_name, b.avatar_url as author_avatar, b.slug as biography_slug
       FROM biography_stories s
       LEFT JOIN story_questions sq ON s.question_id = sq.id
       LEFT JOIN story_categories sc ON s.category_id = sc.id

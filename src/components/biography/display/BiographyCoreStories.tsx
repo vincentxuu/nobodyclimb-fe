@@ -5,8 +5,7 @@ import { cn } from '@/lib/utils'
 import { Feather, Loader2 } from 'lucide-react'
 import { biographyContentService, type ContentComment } from '@/lib/api/services'
 import { useCoreStories, useCoreStoryLikeMutation, useCoreStoryCommentMutation } from '@/lib/hooks/useCoreStories'
-import { ContentLikeButton } from './ContentLikeButton'
-import { ContentCommentSheet } from './ContentCommentSheet'
+import { ContentInteractionBar } from './ContentInteractionBar'
 
 interface BiographyCoreStoriesProps {
   /** 人物誌 ID */
@@ -153,21 +152,19 @@ function CoreStoryCard({
       </div>
 
       {/* 互動按鈕 */}
-      <div className="flex items-center gap-4 mt-4 pt-4 border-t border-[#EBEAEA]">
-        <ContentLikeButton
-          isLiked={story.is_liked || false}
-          likeCount={story.like_count}
-          onToggle={onToggleLike}
-          size="md"
-        />
-        <ContentCommentSheet
-          contentTitle={displayTitle}
-          commentCount={story.comment_count}
-          onFetchComments={onFetchComments}
-          onAddComment={handleAddComment}
-          size="md"
-        />
-      </div>
+      <ContentInteractionBar
+        contentType="core-stories"
+        contentId={story.id}
+        isLiked={story.is_liked || false}
+        likeCount={story.like_count}
+        commentCount={story.comment_count}
+        onToggleLike={onToggleLike}
+        onFetchComments={onFetchComments}
+        onAddComment={handleAddComment}
+        size="md"
+        className="mt-4 pt-4 border-t border-[#EBEAEA]"
+        showBorder={false}
+      />
     </motion.article>
   )
 }

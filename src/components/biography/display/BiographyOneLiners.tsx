@@ -4,8 +4,7 @@ import { useState, useEffect, useCallback } from 'react'
 import { cn } from '@/lib/utils'
 import { MessageCircle, Sparkles, Loader2 } from 'lucide-react'
 import { biographyContentService, type OneLiner } from '@/lib/api/services'
-import { ContentLikeButton } from './ContentLikeButton'
-import { ContentCommentSheet } from './ContentCommentSheet'
+import { ContentInteractionBar } from './ContentInteractionBar'
 
 interface BiographyOneLinersProps {
   /** 人物誌 ID */
@@ -141,19 +140,18 @@ export function BiographyOneLiners({
               <p className="text-[#1B1A1A]">「{item.answer}」</p>
 
               {/* 互動按鈕 */}
-              <div className="flex items-center gap-4 mt-3 pt-3 border-t border-[#EBEAEA]">
-                <ContentLikeButton
-                  isLiked={item.is_liked || false}
-                  likeCount={item.like_count}
-                  onToggle={() => handleToggleLike(item.id)}
-                />
-                <ContentCommentSheet
-                  contentTitle={questionText}
-                  commentCount={item.comment_count}
-                  onFetchComments={() => handleFetchComments(item.id)}
-                  onAddComment={(content) => handleAddComment(item.id, content)}
-                />
-              </div>
+              <ContentInteractionBar
+                contentType="one-liners"
+                contentId={item.id}
+                isLiked={item.is_liked || false}
+                likeCount={item.like_count}
+                commentCount={item.comment_count}
+                onToggleLike={() => handleToggleLike(item.id)}
+                onFetchComments={() => handleFetchComments(item.id)}
+                onAddComment={(content) => handleAddComment(item.id, content)}
+                className="mt-3 pt-3 border-t border-[#EBEAEA]"
+                showBorder={false}
+              />
             </div>
           )
         })}

@@ -4,8 +4,7 @@ import { motion } from 'framer-motion'
 import { Lock, Loader2 } from 'lucide-react'
 import { biographyContentService } from '@/lib/api/services'
 import { useClimbingOriginStory, useCoreStoryLikeMutation, useCoreStoryCommentMutation } from '@/lib/hooks/useCoreStories'
-import { ContentLikeButton } from '../display/ContentLikeButton'
-import { ContentCommentSheet } from '../display/ContentCommentSheet'
+import { ContentInteractionBar } from '../display/ContentInteractionBar'
 
 interface ChapterMeetingProps {
   biographyId: string
@@ -98,21 +97,19 @@ export function ChapterMeeting({ biographyId }: ChapterMeetingProps) {
 
             {/* 互動按鈕 */}
             {story && (
-              <div className="flex items-center gap-4 mt-4 pt-4 border-t border-gray-200">
-                <ContentLikeButton
-                  isLiked={story.is_liked || false}
-                  likeCount={story.like_count}
-                  onToggle={handleToggleLike}
-                  size="md"
-                />
-                <ContentCommentSheet
-                  contentTitle="你與攀岩的相遇"
-                  commentCount={story.comment_count}
-                  onFetchComments={handleFetchComments}
-                  onAddComment={handleAddComment}
-                  size="md"
-                />
-              </div>
+              <ContentInteractionBar
+                contentType="core-stories"
+                contentId={story.id}
+                isLiked={story.is_liked || false}
+                likeCount={story.like_count}
+                commentCount={story.comment_count}
+                onToggleLike={handleToggleLike}
+                onFetchComments={handleFetchComments}
+                onAddComment={handleAddComment}
+                size="md"
+                className="mt-4 pt-4 border-t border-gray-200"
+                showBorder={false}
+              />
             )}
           </>
         )}

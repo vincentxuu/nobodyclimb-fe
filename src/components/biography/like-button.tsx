@@ -80,8 +80,8 @@ export function LikeButton({
         onClick={handleClick}
         disabled={isLoading}
         className={cn(
-          'inline-flex items-center gap-1 text-sm text-gray-500 hover:text-red-500 transition-colors',
-          isLiked && 'text-red-500',
+          'inline-flex items-center gap-1 text-sm text-gray-500 hover:text-emerald-600 transition-colors',
+          isLiked && 'text-emerald-600',
           className
         )}
       >
@@ -105,7 +105,7 @@ export function LikeButton({
       disabled={isLoading}
       className={cn(
         'gap-1',
-        isLiked && 'text-red-500 border-red-200 hover:bg-red-50',
+        isLiked && 'text-emerald-600 border-emerald-200 hover:bg-emerald-50',
         className
       )}
     >
