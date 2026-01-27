@@ -388,3 +388,88 @@ biographyContentRoutes.get('/popular/stories', async (c) => {
   const stories = await contentRepo.getPopularStories(limit, categoryId);
   return c.json({ success: true, data: stories });
 });
+
+// ═══════════════════════════════════════════
+// 快速反應 API
+// ═══════════════════════════════════════════
+
+const VALID_REACTION_TYPES = ['me_too', 'plus_one', 'well_said'] as const;
+type ReactionType = (typeof VALID_REACTION_TYPES)[number];
+
+function isValidReactionType(type: string): type is ReactionType {
+  return VALID_REACTION_TYPES.includes(type as ReactionType);
+}
+
+const VALID_CONTENT_TYPES = ['core-stories', 'one-liners', 'stories'] as const;
+type ContentTypeParam = (typeof VALID_CONTENT_TYPES)[number];
+
+const CONTENT_TYPE_MAP: Record<ContentTypeParam, 'core_story' | 'one_liner' | 'story'> = {
+  'core-stories': 'core_story',
+  'one-liners': 'one_liner',
+  'stories': 'story',
+};
+
+function isValidContentType(type: string): type is ContentTypeParam {
+  return VALID_CONTENT_TYPES.includes(type as ContentTypeParam);
+}
+
+// 統一的快速反應路由
+biographyContentRoutes.post('/:contentType/:id/reaction', authMiddleware, async (c) => {
+  const contentTypeParam = c.req.param('contentType');
+  const contentId = c.req.param('id');
+  const userId = c.get('userId');
+  const { reaction_type } = await c.req.json();
+  const { interactionsService } = getRepositories(c.env.DB);
+
+  if (!isValidContentType(contentTypeParam)) {
+    return c.json({ success: false, error: '無效的內容類型' }, 400);
+  }
+
+  if (!reaction_type || !isValidReactionType(reaction_type)) {
+    return c.json({ success: false, error: '無效的反應類型' }, 400);
+  }
+
+  try {
+    const result = await interactionsService.toggleReaction(
+      CONTENT_TYPE_MAP[contentTypeParam],
+      contentId,
+      reaction_type,
+      userId
+    );
+    return c.json({ success: true, data: result });
+  } catch (error) {
+    return c.json({ success: false, error: (error as Error).message }, 404);
+  }
+});
+
+// 取得內容的反應狀態（公開 API）
+biographyContentRoutes.get('/:contentType/:id/reactions', optionalAuthMiddleware, async (c) => {
+  const contentTypeParam = c.req.param('contentType');
+  const contentId = c.req.param('id');
+  const userId = c.get('userId');
+  const { interactionsService } = getRepositories(c.env.DB);
+
+  if (!isValidContentType(contentTypeParam)) {
+    return c.json({ success: false, error: '無效的內容類型' }, 400);
+  }
+
+  const mappedContentType = CONTENT_TYPE_MAP[contentTypeParam];
+
+  try {
+    const counts = await interactionsService.getReactionCounts(mappedContentType, contentId);
+
+    const userReactions = userId
+      ? await interactionsService.getUserReactions(mappedContentType, contentId, userId)
+      : [];
+
+    return c.json({
+      success: true,
+      data: {
+        counts,
+        user_reactions: userReactions,
+      },
+    });
+  } catch (error) {
+    return c.json({ success: false, error: (error as Error).message }, 500);
+  }
+});

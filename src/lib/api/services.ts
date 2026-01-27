@@ -2564,6 +2564,44 @@ export const biographyContentService = {
     >(`/content/popular/stories?${params}`)
     return response.data
   },
+
+  /**
+   * 快速反應類型
+   */
+  // ReactionType is defined below
+
+  /**
+   * 切換快速反應
+   */
+  toggleReaction: async (
+    contentType: 'core-stories' | 'one-liners' | 'stories',
+    contentId: string,
+    reactionType: 'me_too' | 'plus_one' | 'well_said'
+  ) => {
+    const response = await apiClient.post<
+      ApiResponse<{
+        reacted: boolean
+        reaction_counts: Record<'me_too' | 'plus_one' | 'well_said', number>
+      }>
+    >(`/content/${contentType}/${contentId}/reaction`, { reaction_type: reactionType })
+    return response.data
+  },
+
+  /**
+   * 取得內容的反應狀態
+   */
+  getReactions: async (
+    contentType: 'core-stories' | 'one-liners' | 'stories',
+    contentId: string
+  ) => {
+    const response = await apiClient.get<
+      ApiResponse<{
+        counts: Record<'me_too' | 'plus_one' | 'well_said', number>
+        user_reactions: Array<'me_too' | 'plus_one' | 'well_said'>
+      }>
+    >(`/content/${contentType}/${contentId}/reactions`)
+    return response.data
+  },
 }
 export interface AdminUser {
   id: string
