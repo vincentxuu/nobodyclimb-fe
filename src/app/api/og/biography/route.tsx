@@ -2,8 +2,6 @@ import { ImageResponse } from 'next/og'
 import { NextRequest } from 'next/server'
 import { SITE_NAME } from '@/lib/constants'
 
-export const runtime = 'edge'
-
 // Cloudflare KV 類型定義
 interface KVNamespace {
   get(_key: string, _type: 'json'): Promise<unknown>

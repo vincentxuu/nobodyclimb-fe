@@ -61,8 +61,7 @@
         }
       ],
       "vars": {
-        "NEXT_PUBLIC_API_URL": "https://api.nobodyclimb.cc/api/v1",
-        "NEXT_PUBLIC_ENABLE_ANALYTICS": "true"
+        "NEXT_PUBLIC_API_URL": "https://api.nobodyclimb.cc/api/v1"
       }
     },
     "preview": {
@@ -84,8 +83,7 @@
         }
       ],
       "vars": {
-        "NEXT_PUBLIC_API_URL": "https://api-preview.nobodyclimb.cc/api/v1",
-        "NEXT_PUBLIC_ENABLE_ANALYTICS": "false"
+        "NEXT_PUBLIC_API_URL": "https://api-preview.nobodyclimb.cc/api/v1"
       }
     }
   }
