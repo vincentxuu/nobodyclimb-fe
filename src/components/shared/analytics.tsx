@@ -1,5 +1,6 @@
 'use client'
 
+import { useEffect, useState } from 'react'
 import Script from 'next/script'
 
 /**
@@ -16,16 +17,31 @@ import Script from 'next/script'
  * 使用方式：
  * - 開發環境：不設定 NEXT_PUBLIC_ENABLE_ANALYTICS 或設為 'false'
  * - 正式環境：設定 NEXT_PUBLIC_ENABLE_ANALYTICS='true' 並配置各追蹤工具的 ID
+ *
+ * 注意：除了環境變數外，也會在執行時檢查 hostname
+ * - 只有在正式網域 (nobodyclimb.cc, www.nobodyclimb.cc) 才會啟用追蹤
+ * - preview.nobodyclimb.cc、localhost 等環境會自動停用
  */
-const enableAnalytics = process.env.NEXT_PUBLIC_ENABLE_ANALYTICS === 'true'
+const envEnableAnalytics = process.env.NEXT_PUBLIC_ENABLE_ANALYTICS === 'true'
 const gaId = process.env.NEXT_PUBLIC_GA_ID
 const clarityId = process.env.NEXT_PUBLIC_CLARITY_ID
 const posthogKey = process.env.NEXT_PUBLIC_POSTHOG_KEY
 const posthogHost = process.env.NEXT_PUBLIC_POSTHOG_HOST || 'https://us.i.posthog.com'
 
+// 正式環境的網域白名單
+const PRODUCTION_HOSTS = ['nobodyclimb.cc', 'www.nobodyclimb.cc']
+
 export function Analytics() {
-  // 如果未啟用追蹤，直接返回 null
-  if (!enableAnalytics) {
+  const [isProductionHost, setIsProductionHost] = useState(false)
+
+  useEffect(() => {
+    // 在客戶端檢查 hostname 是否為正式環境
+    const hostname = window.location.hostname
+    setIsProductionHost(PRODUCTION_HOSTS.includes(hostname))
+  }, [])
+
+  // 如果環境變數未啟用或不在正式網域，直接返回 null
+  if (!envEnableAnalytics || !isProductionHost) {
     return null
   }
 

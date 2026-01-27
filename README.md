@@ -485,7 +485,33 @@ wrangler kv:key list --binding=VIDEOS
 - 功能按領域分組 (例如: `components/crag/`, `components/profile/`)
 - 共用元件在 `components/shared/`
 - 基礎 UI 元件 (Radix UI 包裝) 在 `components/ui/`
+- 人物誌互動元件在 `components/biography/display/`
 - 使用 `@/` 路徑別名進行匯入 (例如: `import { Button } from '@/components/ui/button'`)
+
+#### 人物誌互動元件
+
+`src/components/biography/display/` 目錄包含統一的互動元件：
+
+| 元件 | 說明 |
+|------|------|
+| `ContentInteractionBar` | 整合快速回應、按讚、留言的統一元件 |
+| `QuickReactionBar` | 快速回應按鈕 (我也是、+1、說得好) |
+| `ContentLikeButton` | 按讚按鈕 (山形圖示，綠色) |
+| `ContentCommentSheet` | 展開式留言區塊 |
+
+使用範例：
+```tsx
+<ContentInteractionBar
+  contentType="stories"  // 'core-stories' | 'one-liners' | 'stories'
+  contentId={id}
+  isLiked={isLiked}
+  likeCount={likeCount}
+  commentCount={commentCount}
+  onToggleLike={handleToggleLike}
+  onFetchComments={handleFetchComments}
+  onAddComment={handleAddComment}
+/>
+```
 
 ### 後端架構模式
 
@@ -511,10 +537,36 @@ wrangler kv:key list --binding=VIDEOS
 本專案使用 GitHub Actions 進行自動化部署：
 
 - `.github/workflows/deploy.yml` - 前端部署工作流程
+  - 根據分支自動設定 `NEXT_PUBLIC_ENABLE_ANALYTICS`
+  - `main` 分支 → 部署至 production，啟用追蹤工具
+  - 其他分支 → 部署至 preview，停用追蹤工具
 - `.github/workflows/deploy-api.yml` - 後端 API 部署工作流程
   - 監聽 `backend/` 目錄變更時觸發
   - 自動執行 D1 資料庫遷移
   - 需要 `CLOUDFLARE_API_TOKEN` secret
+
+## 追蹤工具設定
+
+專案整合了 Google Analytics、Microsoft Clarity 和 PostHog，透過雙重機制控制：
+
+### 建置時控制
+- `NEXT_PUBLIC_ENABLE_ANALYTICS` 環境變數在 CI/CD 時設定
+- `main` 分支建置時設為 `true`，其他分支設為 `false`
+
+### 執行時控制
+- `analytics.tsx` 會在瀏覽器端檢查 hostname
+- 只在正式網域 (`nobodyclimb.cc`, `www.nobodyclimb.cc`) 啟用
+- 預覽環境、localhost 等自動停用
+
+### 環境變數
+
+| 變數 | 說明 |
+|------|------|
+| `NEXT_PUBLIC_ENABLE_ANALYTICS` | 追蹤工具總開關 (`'true'` 啟用) |
+| `NEXT_PUBLIC_GA_ID` | Google Analytics 測量 ID |
+| `NEXT_PUBLIC_CLARITY_ID` | Microsoft Clarity 專案 ID |
+| `NEXT_PUBLIC_POSTHOG_KEY` | PostHog API Key |
+| `NEXT_PUBLIC_POSTHOG_HOST` | PostHog Host URL |
 
 ## 重要提示
 
