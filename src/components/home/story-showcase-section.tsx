@@ -82,7 +82,7 @@ export function StoryShowcaseSection() {
                     >
                       — @{data.featuredStory.author.displayName}
                     </Link>
-                    <div className="flex items-center gap-1 text-sm text-amber-600">
+                    <div className="flex items-center gap-1 text-sm text-amber-500">
                       <HandMetal size={16} />
                       <span>我也是 {data.featuredStory.reactions.me_too}</span>
                     </div>
