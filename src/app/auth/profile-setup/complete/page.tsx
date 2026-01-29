@@ -2,39 +2,56 @@
 
 import React, { useEffect, useState, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
+import { useQuery } from '@tanstack/react-query'
 import { useAuth } from '@/lib/hooks/useAuth'
 import { Button } from '@/components/ui/button'
 import { PageTransition } from '@/components/shared/page-transition'
 import { Check, Edit3, Home, User, Sparkles, ArrowRight } from 'lucide-react'
-import { GuidedQuestions } from '@/components/onboarding'
+import { GuidedQuestions, ChoiceQuestion } from '@/components/onboarding'
 import { biographyService } from '@/lib/api/services'
-import { useQuestions } from '@/lib/hooks/useQuestions'
+import { useQuestions, useChoiceQuestions, useSubmitChoiceAnswer } from '@/lib/hooks/useQuestions'
 import { useToast } from '@/components/ui/use-toast'
 import { buildOneLinersData } from '@/lib/utils/biography'
 
 // 引導式問答的問題（從一句話問題中選取幾個容易回答的）
 const GUIDED_QUESTIONS_CONFIG = [
   {
-    id: 'climbing_start_reason',
-    category: '開始攀岩',
-  },
-  {
-    id: 'climbing_joy',
+    id: 'best_moment',
     category: '攀岩的樂趣',
   },
   {
-    id: 'climbing_challenge',
-    category: '挑戰與成長',
+    id: 'current_goal',
+    category: '目標與挑戰',
+  },
+  {
+    id: 'climbing_takeaway',
+    category: '成長與收穫',
   },
 ]
+
+// 流程階段
+type FlowPhase = 'complete' | 'choice' | 'guided'
 
 export default function CompletePage() {
   const router = useRouter()
   const { isAuthenticated, loading } = useAuth()
   const { toast } = useToast()
   const { data: questionsData } = useQuestions()
-  const [showGuidedQuestions, setShowGuidedQuestions] = useState(false)
+  const { data: choiceQuestions } = useChoiceQuestions()
+  const submitChoiceAnswer = useSubmitChoiceAnswer()
+  const [flowPhase, setFlowPhase] = useState<FlowPhase>('complete')
+  const [currentChoiceIndex, setCurrentChoiceIndex] = useState(0)
   const [isSaving, setIsSaving] = useState(false)
+
+  // 取得當前用戶的 biography
+  const { data: myBiography } = useQuery({
+    queryKey: ['my-biography'],
+    queryFn: async () => {
+      const response = await biographyService.getMyBiography()
+      return response.data
+    },
+    enabled: isAuthenticated,
+  })
 
   useEffect(() => {
     if (!loading && !isAuthenticated) {
@@ -77,9 +94,67 @@ export default function CompletePage() {
     }).filter((q): q is NonNullable<typeof q> => q !== null)
   }, [questionsData])
 
+  // 開始引導流程：先選擇題，再一句話
   const handleStartGuided = () => {
-    setShowGuidedQuestions(true)
+    if (choiceQuestions && choiceQuestions.length > 0) {
+      setFlowPhase('choice')
+      setCurrentChoiceIndex(0)
+    } else {
+      setFlowPhase('guided')
+    }
   }
+
+  // 處理選擇題提交
+  const handleChoiceSubmit = useCallback(
+    async (optionId: string, customText?: string, followUpText?: string) => {
+      if (!myBiography?.id) {
+        throw new Error('Biography not found')
+      }
+
+      const currentQuestion = choiceQuestions?.[currentChoiceIndex]
+      if (!currentQuestion) {
+        throw new Error('Question not found')
+      }
+
+      const result = await submitChoiceAnswer.mutateAsync({
+        biographyId: myBiography.id,
+        questionId: currentQuestion.id,
+        optionId,
+        customText,
+        followUpText,
+      })
+
+      return {
+        responseMessage: result?.response_message || '感謝你的回答！',
+        communityCount: result?.community_count || 1,
+      }
+    },
+    [myBiography?.id, choiceQuestions, currentChoiceIndex, submitChoiceAnswer]
+  )
+
+  // 選擇題完成後，進入下一題或一句話問答
+  const handleChoiceComplete = useCallback(() => {
+    if (choiceQuestions && currentChoiceIndex < choiceQuestions.length - 1) {
+      setCurrentChoiceIndex((prev) => prev + 1)
+    } else {
+      // 選擇題都完成了，進入一句話問答
+      if (guidedQuestions.length > 0) {
+        setFlowPhase('guided')
+      } else {
+        router.push('/profile')
+      }
+    }
+  }, [choiceQuestions, currentChoiceIndex, guidedQuestions.length, router])
+
+  // 跳過選擇題
+  const handleChoiceSkip = useCallback(() => {
+    // 跳過所有選擇題，進入一句話問答
+    if (guidedQuestions.length > 0) {
+      setFlowPhase('guided')
+    } else {
+      setFlowPhase('complete')
+    }
+  }, [guidedQuestions.length])
 
   const handleGuidedComplete = useCallback(
     async (answers: Record<string, string>) => {
@@ -115,7 +190,7 @@ export default function CompletePage() {
   )
 
   const handleGuidedSkip = useCallback(() => {
-    setShowGuidedQuestions(false)
+    setFlowPhase('complete')
   }, [])
 
   const handleGoToEditor = () => {
@@ -130,8 +205,27 @@ export default function CompletePage() {
     router.push('/')
   }
 
+  // 顯示選擇題
+  if (flowPhase === 'choice' && choiceQuestions && choiceQuestions.length > 0) {
+    const currentQuestion = choiceQuestions[currentChoiceIndex]
+    if (currentQuestion) {
+      return (
+        <PageTransition>
+          <div className="min-h-screen bg-white">
+            <ChoiceQuestion
+              question={currentQuestion}
+              onSubmit={handleChoiceSubmit}
+              onSkip={handleChoiceSkip}
+              onComplete={handleChoiceComplete}
+            />
+          </div>
+        </PageTransition>
+      )
+    }
+  }
+
   // 顯示引導式問答
-  if (showGuidedQuestions && guidedQuestions.length > 0) {
+  if (flowPhase === 'guided' && guidedQuestions.length > 0) {
     return (
       <PageTransition>
         <div className="min-h-screen bg-white">

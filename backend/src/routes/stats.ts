@@ -527,4 +527,244 @@ statsRoutes.get('/admin/content', authMiddleware, adminMiddleware, async (c) => 
   }
 });
 
+// ═══════════════════════════════════════════════════════════
+// 社群統計 (Public)
+// 用於首頁「故事展示區」
+// ═══════════════════════════════════════════════════════════
+
+const COMMUNITY_STATS_CACHE_KEY = 'site:community-stats:v1';
+const COMMUNITY_STATS_CACHE_TTL = 300; // 5 分鐘
+
+// 常數定義
+const MIN_FEATURED_STORY_LENGTH = 20; // 最少字數才算有意義的內容
+const DEFAULT_TOP_LOCATIONS = ['龍洞', '內湖運動中心']; // 當無資料時的後備值
+
+// 有效的內容類型
+const VALID_CONTENT_TYPES = ['core_story', 'one_liner', 'story'] as const;
+type ContentType = (typeof VALID_CONTENT_TYPES)[number];
+
+/**
+ * 驗證內容類型是否有效
+ */
+function isValidContentType(type: string): type is ContentType {
+  return VALID_CONTENT_TYPES.includes(type as ContentType);
+}
+
+interface CommunityStats {
+  featuredStory: {
+    id: string;
+    content: string;
+    contentType: 'core_story' | 'one_liner' | 'story';
+    author: {
+      displayName: string;
+      slug: string;
+    };
+    reactions: {
+      me_too: number;
+    };
+  } | null;
+  stats: {
+    friendInvited: number;
+    topLocations: string[];
+    totalStories: number;
+  };
+  updatedAt: string;
+}
+
+/**
+ * GET /api/v1/stats/community
+ * 取得首頁故事展示區所需的社群統計資料
+ * 公開 API，使用 KV 快取
+ */
+statsRoutes.get('/community', async (c) => {
+  // 1. 嘗試從快取讀取
+  try {
+    const cached = await c.env.CACHE.get(COMMUNITY_STATS_CACHE_KEY);
+    if (cached) {
+      return c.json({
+        success: true,
+        data: JSON.parse(cached) as CommunityStats,
+        cached: true,
+      });
+    }
+  } catch (e) {
+    console.error('Community stats cache read error:', e);
+  }
+
+  try {
+    // 2. 取得精選故事（按「我也是」反應數量排序）
+    // 從三種內容類型中選取最受歡迎的故事
+    // 使用參數化查詢避免 SQL 注入風險
+    const featuredStoryResult = await c.env.DB.prepare(`
+      SELECT * FROM (
+        SELECT
+          bs.id,
+          bs.content,
+          'story' as content_type,
+          COALESCE(u.display_name, u.username, b.name) as author_name,
+          b.slug as author_slug,
+          COALESCE(bs.reaction_me_too_count, 0) as me_too_count,
+          bs.created_at
+        FROM biography_stories bs
+        JOIN biographies b ON b.id = bs.biography_id
+        LEFT JOIN users u ON u.id = b.user_id
+        WHERE b.visibility = 'public'
+          AND bs.is_hidden = 0
+          AND bs.content IS NOT NULL
+          AND LENGTH(bs.content) > ?1
+        UNION ALL
+        SELECT
+          cs.id,
+          cs.content,
+          'core_story' as content_type,
+          COALESCE(u.display_name, u.username, b.name) as author_name,
+          b.slug as author_slug,
+          COALESCE(cs.reaction_me_too_count, 0) as me_too_count,
+          cs.created_at
+        FROM biography_core_stories cs
+        JOIN biographies b ON b.id = cs.biography_id
+        LEFT JOIN users u ON u.id = b.user_id
+        WHERE b.visibility = 'public'
+          AND cs.is_hidden = 0
+          AND cs.content IS NOT NULL
+          AND LENGTH(cs.content) > ?2
+      ) AS combined
+      ORDER BY me_too_count DESC, created_at DESC
+      LIMIT 1
+    `).bind(MIN_FEATURED_STORY_LENGTH, MIN_FEATURED_STORY_LENGTH).first<{
+      id: string;
+      content: string;
+      content_type: string;
+      author_name: string;
+      author_slug: string;
+      me_too_count: number;
+    }>();
+
+    // 3. 統計「被朋友拉進攀岩坑」的人數
+    const friendInvitedResult = await c.env.DB.prepare(`
+      SELECT COUNT(*) as count
+      FROM choice_answers ca
+      JOIN choice_options co ON co.id = ca.option_id
+      WHERE co.value = 'friend_invited'
+    `).first<{ count: number }>();
+
+    // 4. 統計熱門地點（從 frequent_locations 欄位）
+    const locationsResult = await c.env.DB.prepare(`
+      SELECT
+        b.basic_info_data
+      FROM biographies b
+      WHERE b.visibility = 'public'
+        AND b.basic_info_data IS NOT NULL
+    `).all<{ basic_info_data: string }>();
+
+    // 解析 basic_info_data 中的 frequent_locations
+    const locationCounts: Record<string, number> = {};
+    let parseErrors = 0;
+    for (const row of locationsResult.results || []) {
+      try {
+        const data = JSON.parse(row.basic_info_data);
+        const locations = data?.frequent_locations;
+        if (Array.isArray(locations)) {
+          for (const loc of locations) {
+            if (typeof loc === 'string' && loc.trim()) {
+              locationCounts[loc.trim()] = (locationCounts[loc.trim()] || 0) + 1;
+            }
+          }
+        } else if (typeof locations === 'string' && locations.trim()) {
+          // 可能是逗號分隔的字串
+          const locs = locations.split(/[,，、]/);
+          for (const loc of locs) {
+            if (loc.trim()) {
+              locationCounts[loc.trim()] = (locationCounts[loc.trim()] || 0) + 1;
+            }
+          }
+        }
+      } catch (err) {
+        parseErrors++;
+        // 只記錄前幾筆錯誤，避免日誌過多
+        if (parseErrors <= 3) {
+          console.warn('Failed to parse basic_info_data:', {
+            error: err instanceof Error ? err.message : 'Unknown',
+            preview: row.basic_info_data?.substring(0, 50),
+          });
+        }
+      }
+    }
+    if (parseErrors > 0) {
+      console.info(`Community stats: Skipped ${parseErrors} biographies due to JSON parse errors`);
+    }
+
+    // 取得前 2 個熱門地點
+    const topLocations = Object.entries(locationCounts)
+      .sort((a, b) => b[1] - a[1])
+      .slice(0, 2)
+      .map(([name]) => name);
+
+    // 5. 統計故事總數（公開的人物誌數量）
+    const totalStoriesResult = await c.env.DB.prepare(`
+      SELECT COUNT(*) as count
+      FROM biographies
+      WHERE visibility = 'public'
+    `).first<{ count: number }>();
+
+    // 6. 組裝結果
+    // 驗證內容類型
+    let featuredStory: CommunityStats['featuredStory'] = null;
+    if (featuredStoryResult) {
+      const contentType = featuredStoryResult.content_type;
+      if (isValidContentType(contentType)) {
+        featuredStory = {
+          id: featuredStoryResult.id,
+          content: featuredStoryResult.content,
+          contentType,
+          author: {
+            displayName: featuredStoryResult.author_name,
+            slug: featuredStoryResult.author_slug,
+          },
+          reactions: {
+            me_too: featuredStoryResult.me_too_count,
+          },
+        };
+      } else {
+        console.warn(`Invalid content_type from database: ${contentType}`);
+      }
+    }
+
+    const communityStats: CommunityStats = {
+      featuredStory,
+      stats: {
+        friendInvited: friendInvitedResult?.count ?? 0,
+        topLocations: topLocations.length > 0 ? topLocations : DEFAULT_TOP_LOCATIONS,
+        totalStories: totalStoriesResult?.count ?? 0,
+      },
+      updatedAt: new Date().toISOString(),
+    };
+
+    // 7. 寫入快取
+    try {
+      await c.env.CACHE.put(COMMUNITY_STATS_CACHE_KEY, JSON.stringify(communityStats), {
+        expirationTtl: COMMUNITY_STATS_CACHE_TTL,
+      });
+    } catch (e) {
+      console.error('Community stats cache write error:', e);
+    }
+
+    return c.json({
+      success: true,
+      data: communityStats,
+      cached: false,
+    });
+  } catch (error) {
+    console.error('Community stats query error:', error);
+    return c.json(
+      {
+        success: false,
+        error: 'Failed to fetch community stats',
+        message: error instanceof Error ? error.message : 'Unknown error',
+      },
+      500
+    );
+  }
+});
+
 export { statsRoutes };

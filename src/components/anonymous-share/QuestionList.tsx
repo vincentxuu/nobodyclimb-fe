@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useMemo } from 'react'
 import {
   Check,
   Plus,
@@ -11,9 +11,11 @@ import {
   MessageCircle,
   BookOpen,
   Sparkles,
+  Loader2,
 } from 'lucide-react'
 import type { Question, StoryInput } from './questions'
-import { ALL_QUESTIONS, CORE_STORIES, ONE_LINERS, STORIES } from './questions'
+import { convertApiQuestionsToQuestions } from './questions'
+import { useQuestions } from '@/lib/hooks/useQuestions'
 
 interface QuestionListProps {
   stories: StoryInput[]
@@ -26,10 +28,12 @@ interface QuestionListProps {
  */
 function AnsweredStories({
   stories,
+  allQuestions,
   onSelectQuestion,
   onRemoveStory,
 }: {
   stories: StoryInput[]
+  allQuestions: Question[]
   onSelectQuestion: (_question: Question) => void
   onRemoveStory: (_questionId: string) => void
 }) {
@@ -40,7 +44,7 @@ function AnsweredStories({
       <h2 className="mb-3 text-sm font-medium text-gray-500">已填寫 ({stories.length})</h2>
       <div className="space-y-2">
         {stories.map((story) => {
-          const q = ALL_QUESTIONS.find((q) => q.id === story.question_id)
+          const q = allQuestions.find((q) => q.id === story.question_id)
           return (
             <div
               key={story.question_id}
@@ -163,11 +167,27 @@ export function QuestionList({
   onRemoveStory,
 }: QuestionListProps) {
   const [showMore, setShowMore] = useState(false)
+  const { data: questionsData, isLoading } = useQuestions()
   const answeredIds = new Set(stories.map((s) => s.question_id))
 
+  // 從 API 資料轉換問題格式
+  const questions = useMemo(() => {
+    if (!questionsData) return null
+    return convertApiQuestionsToQuestions(questionsData)
+  }, [questionsData])
+
+  // 載入中狀態
+  if (isLoading || !questions) {
+    return (
+      <div className="flex items-center justify-center py-12">
+        <Loader2 className="h-6 w-6 animate-spin text-gray-400" />
+      </div>
+    )
+  }
+
   // 預設顯示的題目（核心故事第一題）
-  const defaultQuestion = CORE_STORIES[0]
-  const isDefaultAnswered = answeredIds.has(defaultQuestion.id)
+  const defaultQuestion = questions.coreStories[0]
+  const isDefaultAnswered = defaultQuestion ? answeredIds.has(defaultQuestion.id) : true
 
   // 如果已經有回答任何題目，自動展開更多選項
   const shouldShowMore = showMore || stories.length > 0
@@ -177,12 +197,13 @@ export function QuestionList({
       {/* 已填寫的故事 */}
       <AnsweredStories
         stories={stories}
+        allQuestions={questions.all}
         onSelectQuestion={onSelectQuestion}
         onRemoveStory={onRemoveStory}
       />
 
       {/* 預設題目（未展開且未回答時顯示） */}
-      {!shouldShowMore && !isDefaultAnswered && (
+      {!shouldShowMore && defaultQuestion && !isDefaultAnswered && (
         <section className="mb-6">
           <div className="mb-3">
             <h2 className="text-sm font-medium text-gray-700">從這題開始</h2>
@@ -203,7 +224,7 @@ export function QuestionList({
             title="核心故事"
             subtitle="深度分享"
             icon={<BookOpen className="h-4 w-4 text-[#ffe70c]" />}
-            questions={CORE_STORIES}
+            questions={questions.coreStories}
             answeredIds={answeredIds}
             iconBgClass="bg-[#ffe70c]/20"
             onSelectQuestion={onSelectQuestion}
@@ -214,7 +235,7 @@ export function QuestionList({
             title="一句話"
             subtitle="快速回答"
             icon={<MessageCircle className="h-4 w-4 text-[#1B1A1A]" />}
-            questions={ONE_LINERS}
+            questions={questions.oneLiners}
             answeredIds={answeredIds}
             iconBgClass="bg-gray-100"
             onSelectQuestion={onSelectQuestion}
@@ -225,7 +246,7 @@ export function QuestionList({
             title="更多故事"
             subtitle="選填"
             icon={<Sparkles className="h-4 w-4 text-[#ffe70c]" />}
-            questions={STORIES}
+            questions={questions.stories}
             answeredIds={answeredIds}
             iconBgClass="bg-[#ffe70c]/10"
             onSelectQuestion={onSelectQuestion}
