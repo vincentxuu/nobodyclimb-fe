@@ -149,6 +149,12 @@ export function ProfileEditorV2Wrapper({ className }: ProfileEditorV2WrapperProp
 
   // 處理儲存
   const handleSave = useCallback(async (bio: BiographyV2) => {
+    // 防護：確保 bio 存在
+    if (!bio) {
+      console.warn('handleSave called with undefined biography, skipping save')
+      return
+    }
+
     try {
       setError(null)
 

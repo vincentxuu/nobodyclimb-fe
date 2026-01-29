@@ -1,11 +1,12 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { Eye, EyeOff, Mail, Lock, ArrowRight, LogIn } from 'lucide-react'
 import { GoogleLogin, CredentialResponse } from '@react-oauth/google'
 import { useAuth } from '@/lib/hooks/useAuth'
+import { useAuthStore } from '@/store/authStore'
 import { Button } from '@/components/ui/button'
 import { PageTransition } from '@/components/shared/page-transition'
 import { GOOGLE_CLIENT_ID } from '@/lib/constants'
@@ -16,6 +17,14 @@ import { GOOGLE_CLIENT_ID } from '@/lib/constants'
 export default function LoginPage() {
   const router = useRouter()
   const { login, loginWithGoogle, loading } = useAuth()
+  const { isAuthenticated } = useAuthStore()
+
+  // 已登入用戶自動重導向到首頁
+  useEffect(() => {
+    if (isAuthenticated) {
+      router.replace('/')
+    }
+  }, [isAuthenticated, router])
 
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')

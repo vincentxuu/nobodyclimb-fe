@@ -307,7 +307,7 @@ export function ProfileEditor({
           // 重試時使用最新的草稿，而不是失敗那次的舊資料
           retryTimerRef.current = setTimeout(() => {
             // 檢查版本：只有當這次儲存仍然是最新時才重試
-            if (thisSaveId === saveIdRef.current && isMountedRef.current) {
+            if (thisSaveId === saveIdRef.current && isMountedRef.current && latestBiographyRef.current) {
               debouncedSave(latestBiographyRef.current, editVersionRef.current)
             }
           }, retryDelay)
@@ -316,7 +316,7 @@ export function ProfileEditor({
         isSavingRef.current = false
 
         // 檢查是否需要再次儲存（儲存進行中時有新的編輯）
-        if (needsAnotherSaveRef.current) {
+        if (needsAnotherSaveRef.current && latestBiographyRef.current) {
           needsAnotherSaveRef.current = false
           // 先調用 debouncedSave 更新 latestArgsRef，然後立即 flush 執行
           // 這樣確保 flush 使用的是最新的資料
@@ -374,8 +374,10 @@ export function ProfileEditor({
       if (!hasUnsavedChanges) return
 
       // 嘗試立即送出最後一次變更
-      debouncedSave(latestBiographyRef.current, editVersionRef.current)
-      debouncedSave.flush()
+      if (latestBiographyRef.current) {
+        debouncedSave(latestBiographyRef.current, editVersionRef.current)
+        debouncedSave.flush()
+      }
 
       event.preventDefault()
       event.returnValue = ''

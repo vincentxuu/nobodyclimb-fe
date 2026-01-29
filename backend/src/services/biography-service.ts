@@ -360,7 +360,12 @@ export class BiographyService {
         }
       }
 
-      const biography = await this.repository.update(existing.id, updateData);
+      // 只在有欄位要更新時才呼叫 repository.update
+      // (one_liners_data 和 stories_data 會在下方單獨處理)
+      let biography = existing;
+      if (Object.keys(updateData).length > 0) {
+        biography = await this.repository.update(existing.id, updateData);
+      }
 
       // 同步內容
       if (data.one_liners_data !== undefined) {
