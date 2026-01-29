@@ -128,19 +128,12 @@ storyPromptsRoutes.get('/next', authMiddleware, async (c) => {
   const userId = c.get('userId');
   const strategy = c.req.query('strategy') || 'random';
 
-  // Get user's biography with all story fields
+  // Get user's biography
   const biography = await c.env.DB.prepare(
-    `SELECT id,
-      memorable_moment, biggest_challenge, breakthrough_story, first_outdoor, first_grade, frustrating_climb,
-      fear_management, climbing_lesson, failure_perspective, flow_moment, life_balance, unexpected_gain,
-      climbing_mentor, climbing_partner, funny_moment, favorite_spot, advice_to_group, climbing_space,
-      injury_recovery, memorable_route, training_method, effective_practice, technique_tip, gear_choice,
-      dream_climb, climbing_trip, bucket_list_story, climbing_goal, climbing_style, climbing_inspiration,
-      life_outside_climbing
-    FROM biographies WHERE user_id = ?`
+    'SELECT id FROM biographies WHERE user_id = ?'
   )
     .bind(userId)
-    .first();
+    .first<{ id: string }>();
 
   if (!biography) {
     return c.json({
@@ -150,10 +143,19 @@ storyPromptsRoutes.get('/next', authMiddleware, async (c) => {
     }, 404);
   }
 
-  // Find unfilled fields using module-level constant
+  // Get already answered questions from biography_stories table
+  const answeredStories = await c.env.DB.prepare(
+    `SELECT question_id FROM biography_stories
+     WHERE biography_id = ? AND content IS NOT NULL AND content != ''`
+  )
+    .bind(biography.id)
+    .all<{ question_id: string }>();
+
+  const answeredQuestionIds = new Set((answeredStories.results || []).map(r => r.question_id));
+
+  // Find unfilled fields - check against answered question IDs
   const unfilledFields = ADVANCED_STORY_FIELDS.filter(
-    (f) => !biography[f.field as keyof typeof biography] ||
-           String(biography[f.field as keyof typeof biography]).trim() === ''
+    (f) => !answeredQuestionIds.has(f.field)
   );
 
   if (unfilledFields.length === 0) {
