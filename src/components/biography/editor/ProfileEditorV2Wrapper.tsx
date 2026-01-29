@@ -22,7 +22,7 @@ export function ProfileEditorV2Wrapper({ className }: ProfileEditorV2WrapperProp
   const { user } = useAuthStore()
   const [biography, setBiography] = useState<BiographyV2 | null>(null)
   const [loading, setLoading] = useState(true)
-  const [saving, setSaving] = useState(false)
+  const [isPublishing, setIsPublishing] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
   // 從 API 獲取題目
@@ -150,7 +150,6 @@ export function ProfileEditorV2Wrapper({ className }: ProfileEditorV2WrapperProp
   // 處理儲存
   const handleSave = useCallback(async (bio: BiographyV2) => {
     try {
-      setSaving(true)
       setError(null)
 
       // 呼叫 API 儲存（將 null 轉換為 undefined）
@@ -208,7 +207,7 @@ export function ProfileEditorV2Wrapper({ className }: ProfileEditorV2WrapperProp
       setError('儲存失敗，請稍後再試')
       throw err
     } finally {
-      setSaving(false)
+      // no-op: autosave should not block editing
     }
   }, [])
 
@@ -217,12 +216,12 @@ export function ProfileEditorV2Wrapper({ className }: ProfileEditorV2WrapperProp
     if (!biography) return
 
     try {
-      setSaving(true)
+      setIsPublishing(true)
       // 更新 visibility 為 public
       const updatedBio = { ...biography, visibility: 'public' as const }
       await handleSave(updatedBio)
     } finally {
-      setSaving(false)
+      setIsPublishing(false)
     }
   }, [biography, handleSave])
 
@@ -271,7 +270,7 @@ export function ProfileEditorV2Wrapper({ className }: ProfileEditorV2WrapperProp
         </div>
       )}
 
-      {saving && (
+      {isPublishing && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/20">
           <div className="rounded-lg bg-white p-4 shadow-lg">
             <Loader2 className="h-6 w-6 animate-spin text-[#1B1A1A]" />
