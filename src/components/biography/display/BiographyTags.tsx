@@ -28,11 +28,16 @@ export function BiographyTags({
 }: BiographyTagsProps) {
   const [showAll, setShowAll] = useState(false)
 
-  // 將選中的標籤整理為扁平列表
+  // 將選中的標籤整理為扁平列表，自訂標籤優先顯示
   const selectedTags = useMemo(() => {
     if (!biography.tags || biography.tags.length === 0) return []
 
-    const tags: Array<{
+    const customTags: Array<{
+      id: string
+      label: string
+      isCustom: boolean
+    }> = []
+    const systemTags: Array<{
       id: string
       label: string
       isCustom: boolean
@@ -46,30 +51,36 @@ export function BiographyTags({
           const renderedLabels = renderDynamicTag(option, biography)
           if (Array.isArray(renderedLabels)) {
             for (const label of renderedLabels) {
-              tags.push({
+              systemTags.push({
                 id: `${tagSelection.tag_id}_${label}`,
                 label,
                 isCustom: false,
               })
             }
           } else {
-            tags.push({
+            systemTags.push({
               id: tagSelection.tag_id,
               label: renderedLabels,
               isCustom: false,
             })
           }
         } else {
-          tags.push({
+          const tag = {
             id: tagSelection.tag_id,
             label: option.label,
             isCustom: tagSelection.source === 'user',
-          })
+          }
+          if (tag.isCustom) {
+            customTags.push(tag)
+          } else {
+            systemTags.push(tag)
+          }
         }
       }
     }
 
-    return tags
+    // 自訂標籤優先,然後是系統標籤
+    return [...customTags, ...systemTags]
   }, [biography])
 
   if (selectedTags.length === 0) {
