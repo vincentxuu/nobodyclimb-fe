@@ -1,17 +1,17 @@
 'use client'
 
-import { useEffect, useState, useCallback, useRef, useMemo } from 'react'
+import React, { useEffect, useState, useCallback, useRef, useMemo } from 'react'
 import Link from 'next/link'
 import Image from 'next/image'
 import { motion } from 'framer-motion'
-import { ArrowRightCircle, Loader2 } from 'lucide-react'
+import { ArrowRightCircle, Loader2, Sparkles } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
 import { biographyService } from '@/lib/api/services'
 import { Biography } from '@/lib/types'
 import { useAuthStore } from '@/store/authStore'
 import { isSvgUrl, getDefaultAvatarUrl } from '@/lib/utils/image'
-import { getDisplayTags } from '@/lib/utils/biography'
+import { getDisplayTags, getDisplayNameForVisibility } from '@/lib/utils/biography'
 import {
   getCachedHomeBiographies,
   cacheHomeBiographies,
@@ -28,33 +28,32 @@ interface ClimberCardProps {
 
 // 卡片網格組件，預先計算每張卡片的內容
 function BiographyGrid({ biographies }: { biographies: Biography[] }) {
-  // 使用 reduce 避免 mutation，優先顯示真實內容
+  // 使用 reduce 避免 mutation，優先顯示真實內容，盡量避免問題重複
   const biographiesWithContent = useMemo(() => {
     const result = biographies.reduce<{
       items: Array<{ person: Biography; content: ReturnType<typeof selectCardContent> }>
       usageCount: Map<string, number>
     }>(
       (acc, person) => {
+        const usageCount = new Map(acc.usageCount)
         const content = selectCardContent(
           person.id,
           person.one_liners_data,
           person.stories_data,
-          acc.usageCount,
-          person.climbing_meaning
+          usageCount
         )
 
         // 更新使用次數
-        const newUsageCount = new Map(acc.usageCount)
         if (content?.questionId) {
-          newUsageCount.set(
+          usageCount.set(
             content.questionId,
-            (newUsageCount.get(content.questionId) || 0) + 1
+            (usageCount.get(content.questionId) || 0) + 1
           )
         }
 
         return {
           items: [...acc.items, { person, content }],
-          usageCount: newUsageCount,
+          usageCount,
         }
       },
       { items: [], usageCount: new Map() }
@@ -77,6 +76,7 @@ function ClimberCard({ person, selectedContent }: ClimberCardProps) {
     : null
   // 取得展示標籤
   const displayTags = getDisplayTags(person.tags_data)
+  const displayName = getDisplayNameForVisibility(person.visibility, person.name)
 
   return (
     <motion.div
@@ -110,11 +110,11 @@ function ClimberCard({ person, selectedContent }: ClimberCardProps) {
                 <div className="relative h-10 w-10 flex-shrink-0 overflow-hidden rounded-full bg-gray-100">
                   {person.avatar_url ? (
                     isSvgUrl(person.avatar_url) ? (
-                      <img src={person.avatar_url} alt={person.name} className="h-full w-full object-cover" />
+                      <img src={person.avatar_url} alt={displayName} className="h-full w-full object-cover" />
                     ) : (
                       <Image
                         src={person.avatar_url}
-                        alt={person.name}
+                        alt={displayName}
                         fill
                         className="object-cover"
                         sizes="40px"
@@ -122,20 +122,32 @@ function ClimberCard({ person, selectedContent }: ClimberCardProps) {
                     )
                   ) : (
                     <img
-                      src={getDefaultAvatarUrl(person.name || 'anonymous', 40)}
-                      alt={person.name}
+                      src={getDefaultAvatarUrl(displayName || 'anonymous', 40)}
+                      alt={displayName}
                       className="h-full w-full object-cover"
                     />
                   )}
                 </div>
                 <div className="flex-1 min-w-0">
-                  <h3 className="text-sm font-medium text-[#1B1A1A]">{person.name}</h3>
+                  <h3 className="text-sm font-medium text-[#1B1A1A]">{displayName}</h3>
                   {displayTags.length > 0 ? (
-                    <div className="flex flex-wrap gap-1 mt-0.5">
+                    <div className="flex flex-wrap items-center gap-1 mt-0.5">
                       {displayTags.map((tag, index) => (
-                        <span key={tag.id} className="text-xs text-[#6D6C6C] truncate">
-                          {tag.label}{index < displayTags.length - 1 && <span className="mx-0.5">·</span>}
-                        </span>
+                        <React.Fragment key={tag.id}>
+                          {tag.isCustom ? (
+                            <span className="inline-flex items-center gap-0.5 text-xs px-1.5 py-0.5 rounded bg-brand-accent/10 text-[#1B1A1A] border border-brand-accent/30">
+                              <Sparkles size={10} className="text-brand-accent" />
+                              {tag.label}
+                            </span>
+                          ) : (
+                            <span className="text-xs text-[#6D6C6C]">
+                              {tag.label}
+                            </span>
+                          )}
+                          {index < displayTags.length - 1 && !tag.isCustom && !displayTags[index + 1]?.isCustom && (
+                            <span className="text-xs text-[#6D6C6C]">·</span>
+                          )}
+                        </React.Fragment>
                       ))}
                     </div>
                   ) : (

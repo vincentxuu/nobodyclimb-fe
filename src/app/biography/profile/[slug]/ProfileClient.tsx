@@ -1,6 +1,6 @@
 'use client'
 
-import React, { useState, useEffect, use, useMemo } from 'react'
+import React, { useState, useEffect, use, useMemo, useRef } from 'react'
 import Link from 'next/link'
 import { motion } from 'framer-motion'
 import { ArrowLeft, ArrowRight, Loader2, Pencil } from 'lucide-react'
@@ -11,6 +11,7 @@ import { Breadcrumb } from '@/components/ui/breadcrumb'
 import { biographyService } from '@/lib/api/services'
 import { Biography, BiographyAdjacent } from '@/lib/types'
 import { useAuthStore } from '@/store/authStore'
+import { useGuestSession } from '@/lib/hooks/useGuestSession'
 import {
   BiographyV2,
   BiographyBackend,
@@ -51,6 +52,8 @@ export default function ProfileClient({ params }: ProfileClientProps) {
   const [loading, setLoading] = useState(true)
   const [followerCount, setFollowerCount] = useState(0)
   const { user } = useAuthStore()
+  const { trackBiographyView, isLoading: isGuestSessionLoading } = useGuestSession()
+  const trackedSlugsRef = useRef<Set<string>>(new Set())
   const isOwner = user?.id === person?.user_id
 
   // 將 person 轉換為 BiographyV2 格式，供新的展示組件使用
@@ -111,6 +114,17 @@ export default function ProfileClient({ params }: ProfileClientProps) {
 
     loadPerson()
   }, [slug])
+
+  // 追蹤 Guest Session 的人物誌瀏覽次數（用於分享邀請彈窗）
+  // 獨立的 useEffect 確保在 guest session 初始化完成後才追蹤
+  useEffect(() => {
+    if (person && !isGuestSessionLoading && !trackedSlugsRef.current.has(slug)) {
+      trackedSlugsRef.current.add(slug)
+      trackBiographyView()
+    }
+    // trackBiographyView 刻意不放入依賴陣列，避免 session 更新時重複追蹤
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [person, isGuestSessionLoading, slug])
 
   if (loading) {
     return (
@@ -202,10 +216,10 @@ export default function ProfileClient({ params }: ProfileClientProps) {
       <QuickFactsSection person={personV2} />
 
       {/* 3. 關於我 - 一句話系列 */}
-      {personV2 && personV2.one_liners && personV2.one_liners.length > 0 && (
+      {personV2 && personV2.id && (
         <section className="bg-[#F5F5F5]">
           <div className="container mx-auto max-w-5xl px-4">
-            <BiographyOneLiners biography={personV2} />
+            <BiographyOneLiners biographyId={personV2.id} />
           </div>
         </section>
       )}
@@ -214,16 +228,16 @@ export default function ProfileClient({ params }: ProfileClientProps) {
       <FeaturedStoriesSection person={person} />
 
       {/* 5. Chapter 1: 相遇篇 */}
-      <ChapterMeeting person={personV2} />
+      {personV2?.id && <ChapterMeeting biographyId={personV2.id} />}
 
       {/* 6. Chapter 2: 意義篇 */}
-      <ChapterMeaning person={personV2} />
+      {personV2?.id && <ChapterMeaning biographyId={personV2.id} />}
 
       {/* 7. Chapter 3: 人生清單 */}
       <ChapterBucketList person={personV2} isOwner={isOwner} />
 
       {/* 8. Chapter 4: 給新手的話 */}
-      <ChapterAdvice person={personV2} />
+      {personV2?.id && <ChapterAdvice biographyId={personV2.id} />}
 
       {/* 9. 小故事（完整版） */}
       <CompleteStoriesSection person={person} isOwner={isOwner} />

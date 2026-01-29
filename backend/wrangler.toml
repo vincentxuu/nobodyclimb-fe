@@ -45,7 +45,7 @@ binding = "DB"
 
 database_name = "nobodyclimb-db-preview"
 
-database_id = "7957baa8-d9d1-4e18-aaec-de841b4b846c"
+database_id = "00355f2a-454b-42a5-a94f-05ba92017307"
 
 migrations_dir = "migrations"
 
@@ -65,7 +65,15 @@ binding = "STORAGE"
 
 bucket_name = "nobodyclimb-storage-preview"
 
- 
+
+
+[[env.preview.analytics_engine_datasets]]
+
+binding = "ACCESS_LOGS"
+
+dataset = "nobodyclimb_access_logs_preview"
+
+
 
 # ============================================
 
@@ -123,3 +131,11 @@ id = "608d1fb3c4424146abe50ab56e246aca"
 binding = "STORAGE"
 
 bucket_name = "nobodyclimb-storage"
+
+
+
+[[env.production.analytics_engine_datasets]]
+
+binding = "ACCESS_LOGS"
+
+dataset = "nobodyclimb_access_logs"

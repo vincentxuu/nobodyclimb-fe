@@ -34,24 +34,58 @@ export function QuickFactsSection({ person, mobileTagLimit = 8 }: QuickFactsSect
     return person.frequent_locations.filter(l => l.trim())
   }, [person?.frequent_locations])
 
-  // 將選中的標籤整理為扁平列表
+  // 將選中的標籤整理為扁平列表，自訂標籤優先顯示
   const selectedTags = useMemo(() => {
     if (!person?.tags || person.tags.length === 0) return []
 
-    const tags: Array<{
+    // 建立自訂標籤查找表
+    const customTagsMap = new Map<string, any>()
+
+    // 加入用戶為系統維度新增的自訂標籤
+    if (person.custom_tags) {
+      for (const tag of person.custom_tags) {
+        customTagsMap.set(tag.id, tag)
+      }
+    }
+
+    // 加入用戶自訂維度中的所有標籤
+    if (person.custom_dimensions) {
+      for (const dimension of person.custom_dimensions) {
+        for (const tag of dimension.options) {
+          customTagsMap.set(tag.id, tag)
+        }
+      }
+    }
+
+    // 輔助函數：查找標籤定義（優先從自訂標籤查找）
+    const findTagOption = (tagId: string) => {
+      return customTagsMap.get(tagId) || getTagOptionById(tagId)
+    }
+
+    // 輔助函數：判斷是否為自訂標籤
+    const isCustomTag = (tagSelection: any) => {
+      // 1. 檢查 source
+      if (tagSelection.source === 'user') return true
+      // 2. 檢查是否在 customTagsMap 中
+      if (customTagsMap.has(tagSelection.tag_id)) return true
+      // 3. 檢查 tag_id 是否以 usr_ 開頭
+      if (tagSelection.tag_id.startsWith('usr_')) return true
+      return false
+    }
+
+    const customTags: Array<{
+      id: string
+      label: string
+      isCustom: boolean
+    }> = []
+    const systemTags: Array<{
       id: string
       label: string
       isCustom: boolean
     }> = []
 
     for (const tagSelection of person.tags) {
-      // 先在系統標籤中查找
-      let option = getTagOptionById(tagSelection.tag_id)
-
-      // 如果是用戶自定義標籤，從 custom_tags 中查找
-      if (!option && tagSelection.source === 'user' && person.custom_tags) {
-        option = person.custom_tags.find(t => t.id === tagSelection.tag_id)
-      }
+      const option = findTagOption(tagSelection.tag_id)
 
       if (option) {
         // 處理動態標籤
@@ -59,30 +93,36 @@ export function QuickFactsSection({ person, mobileTagLimit = 8 }: QuickFactsSect
           const renderedLabels = renderDynamicTag(option, person)
           if (Array.isArray(renderedLabels)) {
             for (const label of renderedLabels) {
-              tags.push({
+              systemTags.push({
                 id: `${tagSelection.tag_id}_${label}`,
                 label,
                 isCustom: false,
               })
             }
           } else {
-            tags.push({
+            systemTags.push({
               id: tagSelection.tag_id,
               label: renderedLabels,
               isCustom: false,
             })
           }
         } else {
-          tags.push({
+          const tag = {
             id: tagSelection.tag_id,
             label: option.label,
-            isCustom: tagSelection.source === 'user',
-          })
+            isCustom: isCustomTag(tagSelection),
+          }
+          if (tag.isCustom) {
+            customTags.push(tag)
+          } else {
+            systemTags.push(tag)
+          }
         }
       }
     }
 
-    return tags
+    // 自訂標籤優先，然後是系統標籤
+    return [...customTags, ...systemTags]
   }, [person])
 
   if (!person) return null
@@ -167,7 +207,7 @@ export function QuickFactsSection({ person, mobileTagLimit = 8 }: QuickFactsSect
                       : 'bg-[#EBEAEA] text-[#3F3D3D] hover:bg-[#DBD8D8]'
                   )}
                 >
-                  {tag.isCustom}
+                  {tag.isCustom && <Sparkles size={12} className="text-brand-accent" />}
                   {tag.label}
                 </span>
               ))}

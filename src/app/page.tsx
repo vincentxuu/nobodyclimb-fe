@@ -28,6 +28,18 @@ const LatestContentSection = dynamic(
   { loading: () => <SectionSkeleton /> }
 )
 
+const FeaturedStoriesSection = dynamic(
+  () =>
+    import('@/components/home/featured-stories-section').then((mod) => mod.FeaturedStoriesSection),
+  { loading: () => <SectionSkeleton /> }
+)
+
+const StoryShowcaseSection = dynamic(
+  () =>
+    import('@/components/home/story-showcase-section').then((mod) => mod.StoryShowcaseSection),
+  { loading: () => <SectionSkeleton /> }
+)
+
 const FeaturedVideosSection = dynamic(
   () =>
     import('@/components/home/featured-videos-section').then((mod) => mod.FeaturedVideosSection),
@@ -61,6 +73,12 @@ export default function HomePage() {
 
       {/* 人物誌精選 */}
       <BiographySection />
+
+      {/* 故事展示區 - 降低心理門檻 */}
+      <StoryShowcaseSection />
+
+      {/* 精選故事 */}
+      <FeaturedStoriesSection />
 
       {/* 最新文章 */}
       <LatestContentSection />

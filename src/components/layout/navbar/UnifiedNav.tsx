@@ -4,7 +4,6 @@ import { useRef } from 'react'
 import { usePathname } from 'next/navigation'
 import Link from 'next/link'
 import { NAV_LINKS } from '@/lib/constants'
-import { useAuthStore } from '@/store/authStore'
 
 /**
  * 統一導航組件
@@ -13,7 +12,6 @@ import { useAuthStore } from '@/store/authStore'
 export default function UnifiedNav() {
   const pathname = usePathname()
   const scrollRef = useRef<HTMLDivElement>(null)
-  const { isAuthenticated } = useAuthStore()
 
   return (
     <nav className="relative flex h-full flex-1 items-center overflow-hidden">

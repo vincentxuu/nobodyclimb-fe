@@ -1,17 +1,17 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useMemo } from 'react'
 import { cn } from '@/lib/utils'
 import { X, Loader2, BookOpen } from 'lucide-react'
 import type { StoryQuestion, StoryCategoryDefinition, ContentSource } from '@/lib/types/biography-v2'
-import { SYSTEM_STORY_CATEGORY_LIST } from '@/lib/constants/biography-questions'
+import { useQuestions } from '@/lib/hooks/useQuestions'
 
 interface AddCustomStoryModalProps {
   /** 是否開啟 */
   isOpen: boolean
   /** 關閉回調 */
   onClose: () => void
-  /** 可選擇的分類列表 */
+  /** 可選擇的分類列表（如未提供則從 API 取得） */
   categories?: StoryCategoryDefinition[]
   /** 預設選擇的分類 ID */
   defaultCategoryId?: string
@@ -31,12 +31,28 @@ interface AddCustomStoryModalProps {
 export function AddCustomStoryModal({
   isOpen,
   onClose,
-  categories = SYSTEM_STORY_CATEGORY_LIST,
+  categories: categoriesProp,
   defaultCategoryId,
   onSave,
   isSaving = false,
   className,
 }: AddCustomStoryModalProps) {
+  const { data: questionsData } = useQuestions()
+
+  // 從 API 取得分類（如 prop 未提供）
+  const categories = useMemo(() => {
+    if (categoriesProp) return categoriesProp
+    if (!questionsData) return []
+    return questionsData.categories.map((c) => ({
+      id: c.id,
+      source: 'system' as const,
+      name: c.name,
+      icon: c.icon || 'BookOpen',
+      description: c.description || '',
+      order: c.display_order,
+    }))
+  }, [categoriesProp, questionsData])
+
   const [title, setTitle] = useState('')
   const [subtitle, setSubtitle] = useState('')
   const [placeholder, setPlaceholder] = useState('')
@@ -154,7 +170,7 @@ export function AddCustomStoryModal({
             >
               {categories.map((cat) => (
                 <option key={cat.id} value={cat.id}>
-                  {cat.emoji} {cat.name}
+                  {cat.name}
                 </option>
               ))}
             </select>
@@ -185,8 +201,7 @@ export function AddCustomStoryModal({
             <div className="bg-[#F5F5F5] rounded-xl p-4 space-y-3">
               <p className="text-sm text-[#6D6C6C]">預覽</p>
               <div className="bg-white rounded-lg p-4 space-y-2">
-                <div className="flex items-center gap-2 mb-2">
-                  <span>{selectedCategory?.emoji || '📝'}</span>
+                <div className="mb-2">
                   <span className="text-xs text-[#8E8C8C]">
                     {selectedCategory?.name || '未分類'}
                   </span>

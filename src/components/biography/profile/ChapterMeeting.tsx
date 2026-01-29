@@ -1,28 +1,57 @@
 'use client'
 
-import { useMemo } from 'react'
 import { motion } from 'framer-motion'
-import { Lock } from 'lucide-react'
-import { BiographyV2 } from '@/lib/types/biography-v2'
+import { Lock, Loader2 } from 'lucide-react'
+import { biographyContentService } from '@/lib/api/services'
+import { useClimbingOriginStory, useCoreStoryLikeMutation, useCoreStoryCommentMutation } from '@/lib/hooks/useCoreStories'
+import { ContentInteractionBar } from '../display/ContentInteractionBar'
 
 interface ChapterMeetingProps {
-  person: BiographyV2 | null
+  biographyId: string
 }
 
 /**
  * Chapter 1 - 相遇篇
  * 你與攀岩的相遇故事
  */
-export function ChapterMeeting({ person }: ChapterMeetingProps) {
-  // 從 one_liners 陣列中取得 climbing_origin
-  const climbingOrigin = useMemo(() => {
-    if (!person?.one_liners) return null
-    const item = person.one_liners.find(o => o.question_id === 'climbing_origin')
-    return item?.answer || null
-  }, [person?.one_liners])
+export function ChapterMeeting({ biographyId }: ChapterMeetingProps) {
+  const { story, isLoading } = useClimbingOriginStory(biographyId)
+  const likeMutation = useCoreStoryLikeMutation(biographyId)
+  const commentMutation = useCoreStoryCommentMutation(biographyId, story?.id)
 
-  const isPlaceholder = !climbingOrigin
-  const paragraphs = climbingOrigin?.split('\n').filter(p => p.trim()) || []
+  // 按讚切換
+  const handleToggleLike = async () => {
+    if (!story) throw new Error('No story')
+    return likeMutation.mutateAsync(story.id)
+  }
+
+  // 獲取留言
+  const handleFetchComments = async () => {
+    if (!story) return []
+    const response = await biographyContentService.getCoreStoryComments(story.id)
+    if (response.success && response.data) {
+      return response.data
+    }
+    return []
+  }
+
+  // 新增留言
+  const handleAddComment = async (content: string) => {
+    return commentMutation.mutateAsync(content)
+  }
+
+  if (isLoading) {
+    return (
+      <section className="mx-auto max-w-5xl px-4 py-16">
+        <div className="flex justify-center py-8">
+          <Loader2 className="h-6 w-6 animate-spin text-gray-400" />
+        </div>
+      </section>
+    )
+  }
+
+  const isPlaceholder = !story?.content
+  const paragraphs = story?.content?.split('\n').filter((p) => p.trim()) || []
 
   return (
     <motion.section
@@ -52,18 +81,37 @@ export function ChapterMeeting({ person }: ChapterMeetingProps) {
             </div>
           </div>
         ) : (
-          paragraphs.map((para, index) => (
-            <motion.p
-              key={index}
-              initial={{ opacity: 0, y: 10 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true, margin: '-50px' }}
-              transition={{ delay: index * 0.1 }}
-              className="mb-6 text-lg leading-relaxed text-gray-700"
-            >
-              {para}
-            </motion.p>
-          ))
+          <>
+            {paragraphs.map((para, index) => (
+              <motion.p
+                key={index}
+                initial={{ opacity: 0, y: 10 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true, margin: '-50px' }}
+                transition={{ delay: index * 0.1 }}
+                className="mb-6 text-lg leading-relaxed text-gray-700"
+              >
+                {para}
+              </motion.p>
+            ))}
+
+            {/* 互動按鈕 */}
+            {story && (
+              <ContentInteractionBar
+                contentType="core-stories"
+                contentId={story.id}
+                isLiked={story.is_liked || false}
+                likeCount={story.like_count}
+                commentCount={story.comment_count}
+                onToggleLike={handleToggleLike}
+                onFetchComments={handleFetchComments}
+                onAddComment={handleAddComment}
+                size="md"
+                className="mt-4 pt-4 border-t border-gray-200"
+                showBorder={false}
+              />
+            )}
+          </>
         )}
       </div>
     </motion.section>

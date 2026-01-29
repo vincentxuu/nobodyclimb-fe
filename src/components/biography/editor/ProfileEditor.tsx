@@ -14,7 +14,6 @@ import type {
   StoryQuestion,
   StoryCategory,
 } from '@/lib/types/biography-v2'
-import { SYSTEM_STORY_CATEGORY_LIST } from '@/lib/constants/biography-questions'
 import { PrivacyBanner } from './PrivacyBanner'
 import { ProgressIndicator } from './ProgressIndicator'
 import { BasicInfoSection } from './BasicInfoSection'
@@ -33,6 +32,7 @@ import { TagsBottomSheet } from './TagsBottomSheet'
 import { StoryEditFullscreen } from './StoryEditFullscreen'
 import { useIsMobile } from '@/lib/hooks/useIsMobile'
 import { useDebouncedCallback } from '@/lib/hooks/useDebouncedCallback'
+import UnsavedChangesPrompt from '@/components/shared/unsaved-changes-prompt'
 
 interface ProfileEditorProps {
   /** 人物誌資料 */
@@ -76,6 +76,7 @@ export function ProfileEditor({
   const { status, lastSavedAt, error, setSaving, setSaved, setError } = useSaveStatus()
   const isMobile = useIsMobile()
   const { toast } = useToast()
+  const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false)
 
   // 圖片裁切器狀態
   const [showCropper, setShowCropper] = useState(false)
@@ -171,6 +172,10 @@ export function ProfileEditor({
   const isSavingRef = useRef(false)
   // 儲存請求 ID 計數器，用於追蹤版本
   const saveIdRef = useRef(0)
+  // 編輯版本號（每次變更遞增，用於避免舊儲存覆蓋新編輯）
+  const editVersionRef = useRef(0)
+  // 已成功儲存的版本號
+  const lastSavedVersionRef = useRef(0)
   // 當前正在進行的儲存 ID
   const currentSaveIdRef = useRef(0)
   // 是否需要再次儲存（當儲存進行中時有新的編輯）
@@ -197,6 +202,7 @@ export function ProfileEditor({
     }
   }, [])
 
+
   // 從 props 同步到本地草稿
   // 只在非編輯狀態且非儲存中時同步外部更新
   useEffect(() => {
@@ -204,6 +210,7 @@ export function ProfileEditor({
       setLocalBiography(biography)
       lastSavedBiographyRef.current = biography
       latestBiographyRef.current = biography
+      setHasUnsavedChanges(false)
     }
   }, [biography])
 
@@ -215,6 +222,9 @@ export function ProfileEditor({
     isEditingRef.current = false
     // 重置儲存相關的 refs
     saveIdRef.current = 0
+    editVersionRef.current = 0
+    lastSavedVersionRef.current = 0
+    setHasUnsavedChanges(false)
     currentSaveIdRef.current = 0
     needsAnotherSaveRef.current = false
     retryCountRef.current = 0
@@ -227,7 +237,7 @@ export function ProfileEditor({
 
   // 自動儲存 - 使用 debounce，支援 maxWait
   const debouncedSave = useDebouncedCallback(
-    async (bioToSave: BiographyV2) => {
+    async (bioToSave: BiographyV2, saveVersion: number) => {
       // 如果組件已卸載，取消儲存（額外保護，避免意外情況下 unmount 後發送請求）
       // 注意：useDebouncedCallback 已在 unmount 時清理 timers 不會 flush
       // 這裡的檢查是雙重保險
@@ -261,7 +271,14 @@ export function ProfileEditor({
           if (isMountedRef.current) {
             setSaved()
           }
-          isEditingRef.current = false
+          // 只有當這次儲存仍是最新編輯版本時，才結束編輯狀態
+          if (saveVersion === editVersionRef.current) {
+            isEditingRef.current = false
+            lastSavedVersionRef.current = saveVersion
+            if (isMountedRef.current) {
+              setHasUnsavedChanges(false)
+            }
+          }
           // 儲存成功，重置重試計數
           retryCountRef.current = 0
           // 清理重試定時器
@@ -291,7 +308,7 @@ export function ProfileEditor({
           retryTimerRef.current = setTimeout(() => {
             // 檢查版本：只有當這次儲存仍然是最新時才重試
             if (thisSaveId === saveIdRef.current && isMountedRef.current) {
-              debouncedSave(latestBiographyRef.current)
+              debouncedSave(latestBiographyRef.current, editVersionRef.current)
             }
           }, retryDelay)
         }
@@ -303,40 +320,73 @@ export function ProfileEditor({
           needsAnotherSaveRef.current = false
           // 先調用 debouncedSave 更新 latestArgsRef，然後立即 flush 執行
           // 這樣確保 flush 使用的是最新的資料
-          debouncedSave(latestBiographyRef.current)
+          debouncedSave(latestBiographyRef.current, editVersionRef.current)
           debouncedSave.flush()
         }
       }
     },
     {
       delay: 5000,      // 停止輸入 5 秒後儲存
-      maxWait: 15000    // 持續編輯也至少每 15 秒儲存一次
+      maxWait: 60000    // 連續輸入也至少每 60 秒儲存一次
     }
   )
 
   // Handle changes - 樂觀更新
   const handleChange = useCallback(
     (updates: Partial<BiographyV2>) => {
+      // 計算新的狀態
+      let newBio: BiographyV2
+
+      // 更新本地狀態（純函數，無副作用）
       setLocalBiography((prev) => {
-        const newBio = { ...prev, ...updates }
-
-        // 同步更新最新草稿 ref（確保 finally 區塊和重試使用最新資料）
-        latestBiographyRef.current = newBio
-
-        // 標記為編輯中
-        isEditingRef.current = true
-
-        // 立即通知父組件（樂觀更新，不等待儲存）
-        onChange(updates)
-
-        // 觸發防抖儲存
-        debouncedSave(newBio)
-
+        newBio = { ...prev, ...updates }
         return newBio
       })
+
+      // 所有副作用在 setState 之外執行
+      // 同步更新最新草稿 ref（確保 finally 區塊和重試使用最新資料）
+      latestBiographyRef.current = newBio!
+      // 更新編輯版本號
+      editVersionRef.current += 1
+      const currentVersion = editVersionRef.current
+      setHasUnsavedChanges(true)
+
+      // 標記為編輯中
+      isEditingRef.current = true
+
+      // 立即通知父組件（樂觀更新，不等待儲存）
+      onChange(updates)
+
+      // 觸發防抖儲存
+      debouncedSave(newBio!, currentVersion)
     },
     [onChange, debouncedSave]
   )
+
+  // 離開頁面時提示未儲存變更，並嘗試 flush
+  useEffect(() => {
+    const handleBeforeUnload = (event: BeforeUnloadEvent) => {
+      const hasUnsavedChanges =
+        editVersionRef.current > lastSavedVersionRef.current ||
+        isSavingRef.current ||
+        needsAnotherSaveRef.current
+
+      if (!hasUnsavedChanges) return
+
+      // 嘗試立即送出最後一次變更
+      debouncedSave(latestBiographyRef.current, editVersionRef.current)
+      debouncedSave.flush()
+
+      event.preventDefault()
+      event.returnValue = ''
+    }
+
+    window.addEventListener('beforeunload', handleBeforeUnload)
+    return () => {
+      window.removeEventListener('beforeunload', handleBeforeUnload)
+    }
+  }, [debouncedSave])
+
 
   // 處理頭像選擇 - 開啟裁切器
   const handleAvatarSelect = useCallback((file: File) => {
@@ -648,10 +698,17 @@ export function ProfileEditor({
                     )
                     return dim?.id !== dimensionId
                   })
-                  const newTags = selectedIds.map((id) => ({
-                    tag_id: id,
-                    source: 'system' as const,
-                  }))
+                  const newTags = selectedIds.map((id) => {
+                    // 從 allTagDimensions 中找到該標籤的定義，使用實際的 source
+                    const option = allTagDimensions
+                      .find((d) => d.id === dimensionId)
+                      ?.options.find((o) => o.id === id)
+
+                    return {
+                      tag_id: id,
+                      source: option?.source || 'system',
+                    }
+                  })
                   handleChange({ tags: [...otherTags, ...newTags] })
                 }}
                 onAddCustomTag={handleAddCustomTag}
@@ -851,10 +908,17 @@ export function ProfileEditor({
             )
             return dim?.id !== dimensionId
           })
-          const newTags = selectedIds.map((id) => ({
-            tag_id: id,
-            source: 'system' as const,
-          }))
+          const newTags = selectedIds.map((id) => {
+            // 從 allTagDimensions 中找到該標籤的定義，使用實際的 source
+            const option = allTagDimensions
+              .find((d) => d.id === dimensionId)
+              ?.options.find((o) => o.id === id)
+
+            return {
+              tag_id: id,
+              source: option?.source || 'system',
+            }
+          })
           handleChange({ tags: [...otherTags, ...newTags] })
         }}
         onAddCustomTag={handleAddCustomTag}
@@ -888,7 +952,6 @@ export function ProfileEditor({
       <AddCustomStoryModal
         isOpen={customStoryModalOpen}
         onClose={() => setCustomStoryModalOpen(false)}
-        categories={SYSTEM_STORY_CATEGORY_LIST}
         defaultCategoryId={customStoryCategoryId}
         onSave={handleSaveCustomStory}
       />
@@ -902,6 +965,14 @@ export function ProfileEditor({
         aspectRatio={cropType === 'avatar' ? 1 : 3}
         title={cropType === 'avatar' ? '裁切頭像' : '裁切封面圖片'}
         outputSize={cropType === 'avatar' ? 400 : 1200}
+      />
+
+      <UnsavedChangesPrompt
+        when={hasUnsavedChanges}
+        title="尚未儲存"
+        message="尚有未儲存的變更，確定要離開嗎？"
+        confirmText="離開"
+        cancelText="留下"
       />
     </div>
   )

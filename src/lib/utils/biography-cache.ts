@@ -204,22 +204,22 @@ export interface SelectedCardContent {
 
 /**
  * 從 one_liners_data 和 stories_data 中選擇一個問題
- * 優先顯示用戶真實內容，即使問題重複
- * @param questionUsageCount - 問題使用次數記錄，用於優化問題多樣性
- * @param options - 可選配置（重複上限、是否允許重複）
+ * 新演算法：優先顯示真實內容 > 避免重複 > 預設語錄
+ * @param id - 用戶 ID，用於生成穩定的內容選擇
+ * @param questionUsageCount - 問題使用次數計數器，用於追蹤和平衡問題重複
+ * @param options - 配置選項（重複上限、是否允許重複等）
  */
 export function selectCardContent(
   id: string,
   oneLinersJson: string | null | undefined,
   storiesJson: string | null | undefined,
   questionUsageCount: Map<string, number> = new Map(),
-  fallbackMeaning?: string | null,
-  options?: {
-    maxRepetition?: number  // 同一問題最多重複次數（0 = 無限制），預設 3
-    allowRepetition?: boolean  // 是否允許問題重複，預設 true
-  }
+  options: {
+    maxRepetition?: number
+    allowRepetition?: boolean
+  } = {}
 ): SelectedCardContent | null {
-  const { maxRepetition = 3, allowRepetition = true } = options || {}
+  const { maxRepetition = 3, allowRepetition = true } = options
 
   // 解析 one_liners_data
   let oneLiners: OneLinersData | null = null
@@ -241,11 +241,18 @@ export function selectCardContent(
     }
   }
 
-  // 收集所有可用內容（不考慮重複）
+  // 階段 1：收集所有可用內容（不考慮重複）
   const allAvailableContent: { key: string; question: string; answer: string }[] = []
 
   // 從 one_liners 收集（只顯示 public 的內容）
-  for (const key of CARD_QUESTION_PRIORITY) {
+  const oneLinersKeys = oneLiners ? Object.keys(oneLiners) : []
+  const prioritySet = new Set(CARD_QUESTION_PRIORITY)
+  const orderedOneLinerKeys = [
+    ...CARD_QUESTION_PRIORITY,
+    ...oneLinersKeys.filter((key) => !prioritySet.has(key)).sort(),
+  ]
+
+  for (const key of orderedOneLinerKeys) {
     const data = oneLiners?.[key]
     if (data?.answer && data.answer.trim() && data.visibility === 'public') {
       allAvailableContent.push({
@@ -276,22 +283,12 @@ export function selectCardContent(
     }
   }
 
-  // 如果沒有任何內容，嘗試 fallback
+  // 階段 2：如果沒有任何內容，使用預設語錄
   if (allAvailableContent.length === 0) {
-    if (fallbackMeaning?.trim()) {
-      const fallbackUsage = questionUsageCount.get('climbing_meaning_fallback') || 0
-      if (maxRepetition === 0 || fallbackUsage < maxRepetition) {
-        return {
-          question: ONE_LINER_QUESTIONS.climbing_meaning,
-          answer: fallbackMeaning,
-          questionId: 'climbing_meaning_fallback',
-        }
-      }
-    }
     return null
   }
 
-  // 策略 1: 優先選擇未使用的問題
+  // 階段 3：策略 1 - 優先選擇未使用的問題
   const unusedContent = allAvailableContent.filter(
     item => !questionUsageCount.has(item.key)
   )
@@ -300,50 +297,49 @@ export function selectCardContent(
     return selectByHash(id, unusedContent)
   }
 
-  // 策略 2: 如果所有問題都被使用過，允許重複
+  // 階段 4：策略 2 - 所有問題都被使用過，允許重複但選擇使用次數最少的
   if (allowRepetition) {
-    // 找出使用次數最少的問題
-    const usageCounts = allAvailableContent.map(item =>
-      questionUsageCount.get(item.key) || 0
+    const availableContent = maxRepetition > 0
+      ? allAvailableContent.filter(
+        item => (questionUsageCount.get(item.key) || 0) < maxRepetition
+      )
+      : allAvailableContent
+
+    // 找出最小使用次數（僅針對可用內容）
+    const usageCounts = availableContent.map(
+      item => questionUsageCount.get(item.key) || 0
     )
     const minUsage = Math.min(...usageCounts)
 
-    // 選擇使用次數最少的問題（且未達重複上限）
-    const leastUsedContent = allAvailableContent.filter(item => {
-      const usage = questionUsageCount.get(item.key) || 0
-
-      // 檢查是否達到重複上限
-      if (maxRepetition > 0 && usage >= maxRepetition) {
-        return false
-      }
-
-      return usage === minUsage
-    })
+    // 過濾出使用次數最少的內容
+    const leastUsedContent = availableContent.filter(
+      item => (questionUsageCount.get(item.key) || 0) === minUsage
+    )
 
     if (leastUsedContent.length > 0) {
       return selectByHash(id, leastUsedContent)
     }
 
-    // 策略 3: 所有問題都達上限，但仍優先顯示真實內容
+    // 如果所有問題都達上限，但仍有內容 - 優先顯示真實內容
     if (allAvailableContent.length > 0) {
       if (process.env.NODE_ENV === 'development') {
-        console.warn(`[Biography] 所有問題都達重複上限，但仍顯示內容 (user: ${id})`)
+        console.warn(`所有問題都達重複上限，但仍顯示內容 (user: ${id})`)
       }
       return selectByHash(id, allAvailableContent)
     }
   }
 
-  // 最後才使用預設語錄
+  // 階段 5：最後才使用預設語錄
   return null
 }
 
 /**
  * 使用 ID hash 選擇固定內容
- * 確保同一用戶每次顯示相同的內容
+ * 確保同一用戶每次都顯示相同的內容
  */
 function selectByHash(
   id: string,
-  content: Array<{ key: string; question: string; answer: string }>
+  content: { key: string; question: string; answer: string }[]
 ): SelectedCardContent {
   const hash = id.split('').reduce((acc, char) => acc + char.charCodeAt(0), 0)
   const index = hash % content.length

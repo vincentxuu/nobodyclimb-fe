@@ -8,7 +8,7 @@ import { ArrowRightCircle, Loader2, User } from 'lucide-react'
 import { Card, CardContent } from '@/components/ui/card'
 import { biographyService } from '@/lib/api/services'
 import { Biography } from '@/lib/types'
-import { calculateClimbingYears } from '@/lib/utils/biography'
+import { calculateClimbingYears, getDisplayNameForVisibility } from '@/lib/utils/biography'
 import { isSvgUrl } from '@/lib/utils/image'
 import { getDefaultQuote, selectCardContent, SelectedCardContent } from '@/lib/utils/biography-cache'
 
@@ -19,6 +19,7 @@ interface ProfileCardProps {
 
 function ProfileCard({ person, selectedContent }: ProfileCardProps) {
   const climbingYears = calculateClimbingYears(person.climbing_start_year)
+  const displayName = getDisplayNameForVisibility(person.visibility, person.name)
 
   return (
     <motion.div
@@ -52,11 +53,11 @@ function ProfileCard({ person, selectedContent }: ProfileCardProps) {
                 <div className="relative h-10 w-10 flex-shrink-0 overflow-hidden rounded-full bg-gray-100">
                   {person.avatar_url ? (
                     isSvgUrl(person.avatar_url) ? (
-                      <img src={person.avatar_url} alt={person.name} className="h-full w-full object-cover" />
+                      <img src={person.avatar_url} alt={displayName} className="h-full w-full object-cover" />
                     ) : (
                       <Image
                         src={person.avatar_url}
-                        alt={person.name}
+                        alt={displayName}
                         fill
                         className="object-cover"
                         sizes="40px"
@@ -69,7 +70,7 @@ function ProfileCard({ person, selectedContent }: ProfileCardProps) {
                   )}
                 </div>
                 <div className="flex-1">
-                  <h3 className="text-sm font-medium text-[#1B1A1A]">{person.name}</h3>
+                  <h3 className="text-sm font-medium text-[#1B1A1A]">{displayName}</h3>
                   <p className="text-xs text-[#8E8C8C]">
                     {climbingYears !== null ? `攀岩 ${climbingYears}年` : '從入坑那天起算'}
                   </p>
@@ -125,7 +126,7 @@ export function RecommendedProfiles({ currentId, limit = 3 }: RecommendedProfile
     loadProfiles()
   }, [currentId, limit])
 
-  // 預先計算每張卡片的內容，優先顯示真實內容（使用 reduce 避免 mutation）
+  // 預先計算每張卡片的內容，優先顯示真實內容，盡量避免問題重複
   // 必須在所有 early return 之前調用 useMemo
   const profilesWithContent = useMemo(() => {
     if (profiles.length === 0) return []
@@ -134,26 +135,25 @@ export function RecommendedProfiles({ currentId, limit = 3 }: RecommendedProfile
       usageCount: Map<string, number>
     }>(
       (acc, person) => {
+        const usageCount = new Map(acc.usageCount)
         const content = selectCardContent(
           person.id,
           person.one_liners_data,
           person.stories_data,
-          acc.usageCount,
-          person.climbing_meaning
+          usageCount
         )
 
         // 更新使用次數
-        const newUsageCount = new Map(acc.usageCount)
         if (content?.questionId) {
-          newUsageCount.set(
+          usageCount.set(
             content.questionId,
-            (newUsageCount.get(content.questionId) || 0) + 1
+            (usageCount.get(content.questionId) || 0) + 1
           )
         }
 
         return {
           items: [...acc.items, { person, content }],
-          usageCount: newUsageCount,
+          usageCount,
         }
       },
       { items: [], usageCount: new Map() }

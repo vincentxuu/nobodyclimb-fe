@@ -5,6 +5,25 @@ import { authMiddleware, optionalAuthMiddleware } from '../middleware/auth';
 import { createNotification } from './notifications';
 import { deleteR2Images } from '../utils/storage';
 import { trackAndIncrementViewCount } from '../utils/viewTracker';
+import { BiographyRepository } from '../repositories/biography-repository';
+import { BiographyContentRepository } from '../repositories/biography-content-repository';
+import { BiographyService } from '../services/biography-service';
+
+// ═══════════════════════════════════════════════════════════
+// Request Body Type - 包含前端傳入的 JSON 欄位用於同步到獨立表
+// ═══════════════════════════════════════════════════════════
+
+/**
+ * Biography request body type
+ * 包含 Biography 欄位以及用於同步到獨立表的 JSON 欄位
+ */
+type BiographyRequestBody = Partial<Biography> & {
+  one_liners_data?: string | Record<string, { answer?: string; visibility?: string }>;
+  stories_data?: string | Record<string, Record<string, { answer?: string; visibility?: string }>>;
+  climbing_origin?: string | null;
+  climbing_meaning?: string | null;
+  advice_to_self?: string | null;
+};
 
 // ═══════════════════════════════════════════════════════════
 // 共用常數 - 故事欄位定義
@@ -30,23 +49,12 @@ const ALL_STORY_FIELDS = [...CORE_STORY_FIELDS, ...ADVANCED_STORY_FIELDS] as con
 const V2_FIELDS = [
   'visibility',
   'tags_data',
-  'one_liners_data',
-  'stories_data',
   'basic_info_data',
   'autosave_at',
 ] as const;
 
 /** Visibility 等級 */
 type VisibilityLevel = 'private' | 'anonymous' | 'community' | 'public';
-
-/** 台灣地區名稱（用於判斷是否為國際地點） */
-const LOCAL_COUNTRY_NAMES = ['台灣', '臺灣', 'taiwan'];
-
-/** 判斷是否為國際地點 */
-function isInternationalLocation(country: string | undefined): boolean {
-  if (!country) return false;
-  return !LOCAL_COUNTRY_NAMES.includes(country.trim().toLowerCase());
-}
 
 export const biographiesRoutes = new Hono<{ Bindings: Env }>();
 
@@ -69,66 +77,14 @@ function getVisibilityWhereClause(userId: string | undefined, tableAlias: string
       ${prefix}visibility = 'public' OR
       ${prefix}visibility = 'community' OR
       ${prefix}visibility = 'anonymous' OR
-      (${prefix}visibility = 'private' AND ${prefix}user_id = '${userId}') OR
-      (${prefix}visibility IS NULL AND ${prefix}is_public = 1)
+      (${prefix}visibility = 'private' AND ${prefix}user_id = '${userId}')
     )`;
   } else {
     // 未登入用戶：只能看 public 和 anonymous
     return `(
       ${prefix}visibility = 'public' OR
-      ${prefix}visibility = 'anonymous' OR
-      (${prefix}visibility IS NULL AND ${prefix}is_public = 1)
+      ${prefix}visibility = 'anonymous'
     )`;
-  }
-}
-
-/**
- * 將 anonymous 人物誌的個人資訊隱藏
- * @param biography - 原始人物誌資料
- * @returns 隱藏個人資訊後的人物誌資料
- */
-function sanitizeForAnonymous<T extends Record<string, unknown>>(biography: T): T {
-  return {
-    ...biography,
-    name: '匿名攀岩者',
-    avatar_url: null,
-    user_id: null,
-    social_links: null,
-  };
-}
-
-/**
- * 檢查是否應該隱藏 anonymous 人物誌的個人資訊
- * @param biography - 人物誌資料
- * @param currentUserId - 當前用戶 ID
- * @returns 是否應該隱藏
- */
-function shouldSanitizeAnonymous(biography: { visibility?: string | null; user_id?: string | null }, currentUserId: string | undefined): boolean {
-  return biography.visibility === 'anonymous' && biography.user_id !== currentUserId;
-}
-
-/**
- * 如果 biography 沒有頭像，從關聯的 user 取得頭像作為 fallback
- * @param db - D1 資料庫實例
- * @param biography - 人物誌資料
- */
-async function applyAvatarFallback(
-  db: D1Database,
-  biography: Record<string, unknown> | null
-): Promise<void> {
-  if (!biography) return;
-
-  const userId = biography.user_id as string | undefined;
-  if (!biography.avatar_url && userId) {
-    const user = await db.prepare(
-      'SELECT avatar_url FROM users WHERE id = ?'
-    )
-      .bind(userId)
-      .first<{ avatar_url: string | null }>();
-
-    if (user?.avatar_url) {
-      biography.avatar_url = user.avatar_url;
-    }
   }
 }
 
@@ -142,7 +98,6 @@ interface BiographyMetadata {
   avatar_url: string | null;
   bio: string | null;
   title: string | null;
-  climbing_meaning: string | null;
 }
 
 /**
@@ -160,7 +115,6 @@ async function cacheBiographyMetadata(
     avatar_url: biography.avatar_url,
     bio: biography.bio,
     title: biography.title,
-    climbing_meaning: biography.climbing_meaning,
   };
 
   try {
@@ -204,84 +158,34 @@ async function invalidateBiographyCaches(
 // GET /biographies - List all public biographies
 biographiesRoutes.get('/', optionalAuthMiddleware, async (c) => {
   const userId = c.get('userId');
-  const { page, limit, offset } = parsePagination(
+  const { page, limit } = parsePagination(
     c.req.query('page'),
     c.req.query('limit')
   );
   const featured = c.req.query('featured');
   const search = c.req.query('search');
 
-  // Use visibility-based filtering with table alias for JOIN queries
-  let whereClause = getVisibilityWhereClause(userId, 'b');
-  const params: (string | number)[] = [];
+  // 使用 Service 層處理業務邏輯
+  const repository = new BiographyRepository(c.env.DB);
+  const contentRepository = new BiographyContentRepository(c.env.DB);
+  const service = new BiographyService(repository, contentRepository, c.env.DB);
 
-  if (featured === 'true') {
-    whereClause += ' AND b.is_featured = 1';
-  }
-
-  if (search) {
-    const searchFields = [
-      'name', 'frequent_locations', 'favorite_route_type',
-      'climbing_origin', 'climbing_meaning', 'advice_to_self',
-      'memorable_moment', 'biggest_challenge', 'breakthrough_story',
-      'dream_climb', 'climbing_goal',
-    ];
-    const searchConditions = searchFields.map((field) => `b.${field} LIKE ?`).join(' OR ');
-    whereClause += ` AND (${searchConditions})`;
-    const searchPattern = `%${search}%`;
-    searchFields.forEach(() => params.push(searchPattern));
-  }
-
-  const countResult = await c.env.DB.prepare(
-    `SELECT COUNT(*) as count FROM biographies b WHERE ${whereClause}`
-  )
-    .bind(...params)
-    .first<{ count: number }>();
-  const total = countResult?.count || 0;
-
-  // Select only fields needed for list display (optimized for performance)
-  // Note: is_public needed for legacy data compatibility with visibility check
-  const biographies = await c.env.DB.prepare(
-    `SELECT
-       b.id,
-       b.user_id,
-       b.slug,
-       b.name,
-       COALESCE(b.avatar_url, u.avatar_url) as avatar_url,
-       b.climbing_start_year,
-       b.climbing_meaning,
-       b.one_liners_data,
-       b.stories_data,
-       b.basic_info_data,
-       b.tags_data,
-       b.visibility,
-       b.is_public
-     FROM biographies b
-     LEFT JOIN users u ON b.user_id = u.id
-     WHERE ${whereClause}
-     ORDER BY CASE WHEN b.user_id IS NOT NULL THEN 0 ELSE 1 END, b.is_featured DESC, b.published_at DESC, b.created_at DESC
-     LIMIT ? OFFSET ?`
-  )
-    .bind(...params, limit, offset)
-    .all();
-
-  // Sanitize anonymous biographies for non-owners
-  const results = (biographies.results || []).map((bio) => {
-    const bioRecord = bio as Record<string, unknown>;
-    if (shouldSanitizeAnonymous(bioRecord as { visibility?: string | null; user_id?: string | null }, userId)) {
-      return sanitizeForAnonymous(bioRecord);
-    }
-    return bio;
+  const response = await service.getList({
+    page,
+    limit,
+    userId,
+    isFeatured: featured === 'true' ? true : undefined,
+    searchTerm: search || undefined,
   });
 
   return c.json({
     success: true,
-    data: results,
+    data: response.data,
     pagination: {
-      page,
-      limit,
-      total,
-      total_pages: Math.ceil(total / limit),
+      page: response.pagination.page,
+      limit: response.pagination.limit,
+      total: response.pagination.total,
+      total_pages: response.pagination.totalPages,
     },
   });
 });
@@ -305,30 +209,12 @@ biographiesRoutes.get('/featured', async (c) => {
     console.error(`Cache read error for ${cacheKey}:`, e);
   }
 
-  // Featured biographies only show truly public ones (not community/anonymous)
-  // Select only fields needed for homepage display
-  const biographies = await c.env.DB.prepare(
-    `SELECT
-       b.id,
-       b.slug,
-       b.name,
-       COALESCE(b.avatar_url, u.avatar_url) as avatar_url,
-       b.climbing_start_year,
-       b.climbing_meaning,
-       b.one_liners_data,
-       b.stories_data,
-       b.tags_data
-     FROM biographies b
-     LEFT JOIN users u ON b.user_id = u.id
-     WHERE (b.visibility = 'public' OR (b.visibility IS NULL AND b.is_public = 1))
-       AND b.is_featured = 1
-     ORDER BY CASE WHEN b.user_id IS NOT NULL THEN 0 ELSE 1 END, b.published_at DESC, b.created_at DESC
-     LIMIT ?`
-  )
-    .bind(limit)
-    .all();
+  // 使用 Service 層處理業務邏輯
+  const repository = new BiographyRepository(c.env.DB);
+  const contentRepository = new BiographyContentRepository(c.env.DB);
+  const service = new BiographyService(repository, contentRepository, c.env.DB);
 
-  const results = biographies.results || [];
+  const results = await service.getFeatured(limit);
 
   // Cache the result for 5 minutes
   try {
@@ -347,26 +233,16 @@ biographiesRoutes.get('/featured', async (c) => {
 biographiesRoutes.get('/me', authMiddleware, async (c) => {
   const userId = c.get('userId');
 
-  const biography = await c.env.DB.prepare(
-    'SELECT * FROM biographies WHERE user_id = ?'
-  )
-    .bind(userId)
-    .first();
+  // 使用 Service 層處理業務邏輯
+  const repository = new BiographyRepository(c.env.DB);
+  const contentRepository = new BiographyContentRepository(c.env.DB);
+  const service = new BiographyService(repository, contentRepository, c.env.DB);
 
-  if (!biography) {
-    return c.json({
-      success: true,
-      data: null,
-    });
-  }
-
-  // Fallback to user avatar if biography has no avatar
-  const bioRecord = biography as Record<string, unknown>;
-  await applyAvatarFallback(c.env.DB, bioRecord);
+  const biography = await service.getMyBiography(userId);
 
   return c.json({
     success: true,
-    data: bioRecord,
+    data: biography,
   });
 });
 
@@ -375,12 +251,12 @@ biographiesRoutes.get('/:id', optionalAuthMiddleware, async (c) => {
   const id = c.req.param('id');
   const userId = c.get('userId');
 
-  const visibilityClause = getVisibilityWhereClause(userId);
-  const biography = await c.env.DB.prepare(
-    `SELECT * FROM biographies WHERE id = ? AND ${visibilityClause}`
-  )
-    .bind(id)
-    .first();
+  // 使用 Service 層處理業務邏輯
+  const repository = new BiographyRepository(c.env.DB);
+  const contentRepository = new BiographyContentRepository(c.env.DB);
+  const service = new BiographyService(repository, contentRepository, c.env.DB);
+
+  const biography = await service.getById(id, userId);
 
   if (!biography) {
     return c.json(
@@ -393,18 +269,9 @@ biographiesRoutes.get('/:id', optionalAuthMiddleware, async (c) => {
     );
   }
 
-  // Fallback to user avatar if biography has no avatar
-  const bioRecord = biography as Record<string, unknown>;
-  await applyAvatarFallback(c.env.DB, bioRecord);
-
-  // Sanitize anonymous biographies for non-owners
-  const result = shouldSanitizeAnonymous(bioRecord as { visibility?: string | null; user_id?: string | null }, userId)
-    ? sanitizeForAnonymous(bioRecord)
-    : bioRecord;
-
   return c.json({
     success: true,
-    data: result,
+    data: biography,
   });
 });
 
@@ -422,7 +289,7 @@ biographiesRoutes.get('/slug/:slug', optionalAuthMiddleware, async (c) => {
       if (cached) {
         const cachedData = JSON.parse(cached);
         // Verify it's still public (cache might be stale)
-        if (cachedData.visibility === 'public' || (cachedData.visibility === null && cachedData.is_public === 1)) {
+        if (cachedData.visibility === 'public') {
           return c.json({
             success: true,
             data: cachedData,
@@ -434,12 +301,12 @@ biographiesRoutes.get('/slug/:slug', optionalAuthMiddleware, async (c) => {
     }
   }
 
-  const visibilityClause = getVisibilityWhereClause(userId);
-  const biography = await c.env.DB.prepare(
-    `SELECT * FROM biographies WHERE slug = ? AND ${visibilityClause}`
-  )
-    .bind(slug)
-    .first();
+  // 使用 Service 層處理業務邏輯
+  const repository = new BiographyRepository(c.env.DB);
+  const contentRepository = new BiographyContentRepository(c.env.DB);
+  const service = new BiographyService(repository, contentRepository, c.env.DB);
+
+  const biography = await service.getById(slug, userId);
 
   if (!biography) {
     return c.json(
@@ -452,22 +319,12 @@ biographiesRoutes.get('/slug/:slug', optionalAuthMiddleware, async (c) => {
     );
   }
 
-  // Fallback to user avatar if biography has no avatar
-  const bioRecord = biography as Record<string, unknown>;
-  await applyAvatarFallback(c.env.DB, bioRecord);
-
-  // Sanitize anonymous biographies for non-owners
-  const result = shouldSanitizeAnonymous(bioRecord as { visibility?: string | null; user_id?: string | null }, userId)
-    ? sanitizeForAnonymous(bioRecord)
-    : bioRecord;
-
   // Cache public biographies for anonymous users (5 minute TTL)
-  const isPublic = (bioRecord.visibility === 'public') ||
-    (bioRecord.visibility === null && bioRecord.is_public === 1);
+  const isPublic = biography.visibility === 'public';
   if (!userId && isPublic) {
     const cacheKey = `biography:slug:${slug}`;
     try {
-      await c.env.CACHE.put(cacheKey, JSON.stringify(result), { expirationTtl: 300 });
+      await c.env.CACHE.put(cacheKey, JSON.stringify(biography), { expirationTtl: 300 });
     } catch (e) {
       console.error(`Cache write error for ${cacheKey}:`, e);
     }
@@ -475,14 +332,14 @@ biographiesRoutes.get('/slug/:slug', optionalAuthMiddleware, async (c) => {
 
   return c.json({
     success: true,
-    data: result,
+    data: biography,
   });
 });
 
 // POST /biographies - Create new biography (or update if exists)
 biographiesRoutes.post('/', authMiddleware, async (c) => {
   const userId = c.get('userId');
-  const body = await c.req.json<Partial<Biography>>();
+  const body = await c.req.json<BiographyRequestBody>();
 
   if (!body.name) {
     return c.json(
@@ -495,379 +352,122 @@ biographiesRoutes.post('/', authMiddleware, async (c) => {
     );
   }
 
-  // Check if user already has a biography
-  const existing = await c.env.DB.prepare(
-    'SELECT id, slug FROM biographies WHERE user_id = ?'
-  )
-    .bind(userId)
-    .first<{ id: string; slug: string }>();
+  // 使用 Service 層處理業務邏輯
+  const repository = new BiographyRepository(c.env.DB);
+  const contentRepository = new BiographyContentRepository(c.env.DB);
+  const service = new BiographyService(repository, contentRepository, c.env.DB);
 
-  if (existing) {
-    // Update existing biography
-    const updates: string[] = [];
-    const values: (string | number | null)[] = [];
-
-    // All biography fields including new advanced story fields and V2 fields
-    const fields = [
-      // Basic info
-      'name', 'title', 'bio', 'avatar_url', 'cover_image',
-      // Level 1: Basic climbing info
-      'climbing_start_year', 'frequent_locations', 'favorite_route_type',
-      // Level 2: Core stories
-      'climbing_origin', 'climbing_meaning', 'advice_to_self',
-      // Level 3A: Growth & Breakthrough
-      'memorable_moment', 'biggest_challenge', 'breakthrough_story',
-      'first_outdoor', 'first_grade', 'frustrating_climb',
-      // Level 3B: Psychology & Philosophy
-      'fear_management', 'climbing_lesson', 'failure_perspective',
-      'flow_moment', 'life_balance', 'unexpected_gain',
-      // Level 3C: Community & Connection
-      'climbing_mentor', 'climbing_partner', 'funny_moment',
-      'favorite_spot', 'advice_to_group', 'climbing_space',
-      // Level 3D: Practical Sharing
-      'injury_recovery', 'memorable_route', 'training_method',
-      'effective_practice', 'technique_tip', 'gear_choice',
-      // Level 3E: Dreams & Exploration
-      'dream_climb', 'climbing_trip', 'bucket_list_story',
-      'climbing_goal', 'climbing_style', 'climbing_inspiration',
-      // Level 3F: Life Integration
-      'life_outside_climbing',
-      // Media & Social
-      'gallery_images', 'social_links', 'youtube_channel_id', 'featured_video_id',
-      // Status
-      'achievements', 'is_featured', 'is_public',
-      // V2 Fields
-      ...V2_FIELDS.filter(f => f !== 'autosave_at'),
-    ];
-
-    for (const field of fields) {
-      if (body[field as keyof Biography] !== undefined) {
-        updates.push(`${field} = ?`);
-        values.push(body[field as keyof Biography] as string | number | null);
-      }
-    }
-
-    // Update slug if name changed
-    if (body.name) {
-      const newSlug = generateSlug(body.name) + '-' + existing.id.substring(0, 8);
-      updates.push('slug = ?');
-      values.push(newSlug);
-    }
-
-    // Set published_at when going public for first time
-    if (body.is_public === 1) {
-      const currentBio = await c.env.DB.prepare(
-        'SELECT published_at, is_public FROM biographies WHERE id = ?'
-      )
-        .bind(existing.id)
-        .first<{ published_at: string | null; is_public: number }>();
-
-      if (currentBio && !currentBio.published_at && Number(currentBio.is_public) !== 1) {
-        updates.push('published_at = ?');
-        values.push(new Date().toISOString());
-      }
-    }
-
-    if (updates.length > 0) {
-      updates.push("updated_at = datetime('now')");
-      values.push(existing.id);
-
-      await c.env.DB.prepare(
-        `UPDATE biographies SET ${updates.join(', ')} WHERE id = ?`
-      )
-        .bind(...values)
-        .run();
-    }
-
-    const biography = await c.env.DB.prepare(
-      'SELECT * FROM biographies WHERE id = ?'
-    )
-      .bind(existing.id)
-      .first<Biography>();
+  try {
+    const biography = await service.createOrUpdate(userId, body as typeof body & { name: string });
 
     // 同步更新 KV 快取並清除舊快取
-    if (biography) {
-      await cacheBiographyMetadata(c.env.CACHE, {
-        id: biography.id,
-        name: biography.name,
-        avatar_url: biography.avatar_url || null,
-        bio: biography.bio || null,
-        title: biography.title || null,
-        climbing_meaning: biography.climbing_meaning || null,
-      });
-      // 清除詳細頁和首頁精選快取
-      await invalidateBiographyCaches(c.env.CACHE, biography.slug || existing.slug);
-    }
-
-    return c.json({
-      success: true,
-      data: biography,
-    });
-  }
-
-  // Create new biography
-  const id = generateId();
-  const slug = generateSlug(body.name) + '-' + id.substring(0, 8);
-
-  await c.env.DB.prepare(
-    `INSERT INTO biographies (
-      id, user_id, name, slug, title, bio, avatar_url, cover_image,
-      climbing_start_year, frequent_locations, favorite_route_type,
-      climbing_origin, climbing_meaning, advice_to_self,
-      achievements, social_links, is_featured, is_public, published_at
-    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
-  )
-    .bind(
-      id,
-      userId,
-      body.name,
-      slug,
-      body.title || null,
-      body.bio || null,
-      body.avatar_url || null,
-      body.cover_image || null,
-      body.climbing_start_year || null,
-      body.frequent_locations || null,
-      body.favorite_route_type || null,
-      body.climbing_origin || null,
-      body.climbing_meaning || null,
-      body.advice_to_self || null,
-      body.achievements || null,
-      body.social_links || null,
-      body.is_featured || 0,
-      body.is_public || 0,
-      body.is_public ? new Date().toISOString() : null
-    )
-    .run();
-
-  const biography = await c.env.DB.prepare(
-    'SELECT * FROM biographies WHERE id = ?'
-  )
-    .bind(id)
-    .first<Biography>();
-
-  // 同步寫入 KV 快取
-  if (biography) {
     await cacheBiographyMetadata(c.env.CACHE, {
       id: biography.id,
       name: biography.name,
       avatar_url: biography.avatar_url || null,
       bio: biography.bio || null,
       title: biography.title || null,
-      climbing_meaning: biography.climbing_meaning || null,
     });
-  }
 
-  return c.json(
-    {
-      success: true,
-      data: biography,
-    },
-    201
-  );
-});
+    // 清除詳細頁和首頁精選快取
+    await invalidateBiographyCaches(c.env.CACHE, biography.slug);
 
-// PUT /biographies/me - Update current user's biography (Upsert pattern)
-// If biography doesn't exist, creates one automatically
-biographiesRoutes.put('/me', authMiddleware, async (c) => {
-  const userId = c.get('userId');
-  const body = await c.req.json<Partial<Biography>>();
-
-  const existing = await c.env.DB.prepare(
-    'SELECT id, slug, published_at, is_public FROM biographies WHERE user_id = ?'
-  )
-    .bind(userId)
-    .first<{ id: string; slug: string; published_at: string | null; is_public: number }>();
-
-  // Upsert: If biography doesn't exist, create one
-  if (!existing) {
-    // Get user info to set default name
-    const user = await c.env.DB.prepare(
-      'SELECT display_name, username FROM users WHERE id = ?'
-    )
-      .bind(userId)
-      .first<{ display_name: string | null; username: string }>();
-
-    const defaultName = body.name || user?.display_name || user?.username || '攀岩者';
-    const id = generateId();
-    const slug = generateSlug(defaultName) + '-' + id.substring(0, 8);
-    const now = new Date().toISOString();
-
-    // Build insert with provided fields
-    const insertFields = ['id', 'user_id', 'name', 'slug', 'created_at', 'updated_at'];
-    const insertValues: (string | number | null)[] = [id, userId, defaultName, slug, now, now];
-
-    // V2 fields that can be set during creation
-    const v2Fields = ['title', 'bio', 'avatar_url', 'cover_image', 'climbing_start_year',
-      'frequent_locations', 'favorite_route_type', 'visibility', 'tags_data',
-      'one_liners_data', 'stories_data', 'basic_info_data', 'is_public'];
-
-    for (const field of v2Fields) {
-      if (body[field as keyof Biography] !== undefined) {
-        insertFields.push(field);
-        insertValues.push(body[field as keyof Biography] as string | number | null);
-      }
-    }
-
-    // 預設為公開（如果沒有指定 visibility 或 is_public）
-    if (body.visibility === undefined && body.is_public === undefined) {
-      insertFields.push('visibility');
-      insertValues.push('public');
-      insertFields.push('is_public');
-      insertValues.push(1);
-      insertFields.push('published_at');
-      insertValues.push(now);
-    } else {
-      // Handle published_at for public visibility
-      const goingPublic = body.is_public === 1 || body.visibility === 'public';
-      if (goingPublic) {
-        insertFields.push('published_at');
-        insertValues.push(now);
-      }
-    }
-
-    const placeholders = insertFields.map(() => '?').join(', ');
-    await c.env.DB.prepare(
-      `INSERT INTO biographies (${insertFields.join(', ')}) VALUES (${placeholders})`
-    )
-      .bind(...insertValues)
-      .run();
-
-    const biography = await c.env.DB.prepare(
-      'SELECT * FROM biographies WHERE id = ?'
-    )
-      .bind(id)
-      .first<Biography>();
-
-    // Cache the new biography metadata
-    if (biography) {
-      await cacheBiographyMetadata(c.env.CACHE, {
-        id: biography.id,
-        name: biography.name,
-        avatar_url: biography.avatar_url || null,
-        bio: biography.bio || null,
-        title: biography.title || null,
-        climbing_meaning: biography.climbing_meaning || null,
-      });
-    }
+    // 判斷是新建還是更新
+    const isNewBiography = !await repository.findByUserId(userId);
 
     return c.json(
       {
         success: true,
         data: biography,
       },
-      201
+      isNewBiography ? 201 : 200
+    );
+  } catch (error) {
+    console.error('Error creating/updating biography:', error);
+
+    if (error instanceof Error && error.message === 'User not found') {
+      return c.json(
+        {
+          success: false,
+          error: 'Not Found',
+          message: 'User not found',
+        },
+        404
+      );
+    }
+
+    return c.json(
+      {
+        success: false,
+        error: 'Internal Server Error',
+        message: 'Failed to create/update biography',
+      },
+      500
     );
   }
+});
 
-  const updates: string[] = [];
-  const values: (string | number | null)[] = [];
+// PUT /biographies/me - Update current user's biography (Upsert pattern)
+// If biography doesn't exist, creates one automatically
+biographiesRoutes.put('/me', authMiddleware, async (c) => {
+  const userId = c.get('userId');
+  const body = await c.req.json<BiographyRequestBody>();
 
-  // All biography fields including new advanced story fields and V2 fields
-  const fields = [
-    // Basic info
-    'name', 'title', 'bio', 'avatar_url', 'cover_image',
-    // Level 1: Basic climbing info
-    'climbing_start_year', 'frequent_locations', 'favorite_route_type',
-    // Level 2: Core stories
-    'climbing_origin', 'climbing_meaning', 'advice_to_self',
-    // Level 3A: Growth & Breakthrough
-    'memorable_moment', 'biggest_challenge', 'breakthrough_story',
-    'first_outdoor', 'first_grade', 'frustrating_climb',
-    // Level 3B: Psychology & Philosophy
-    'fear_management', 'climbing_lesson', 'failure_perspective',
-    'flow_moment', 'life_balance', 'unexpected_gain',
-    // Level 3C: Community & Connection
-    'climbing_mentor', 'climbing_partner', 'funny_moment',
-    'favorite_spot', 'advice_to_group', 'climbing_space',
-    // Level 3D: Practical Sharing
-    'injury_recovery', 'memorable_route', 'training_method',
-    'effective_practice', 'technique_tip', 'gear_choice',
-    // Level 3E: Dreams & Exploration
-    'dream_climb', 'climbing_trip', 'bucket_list_story',
-    'climbing_goal', 'climbing_style', 'climbing_inspiration',
-    // Level 3F: Life Integration
-    'life_outside_climbing',
-    // Media & Social
-    'gallery_images', 'social_links', 'youtube_channel_id', 'featured_video_id',
-    // Status
-    'achievements', 'is_public',
-    // V2 Fields
-    'visibility', 'tags_data', 'one_liners_data', 'stories_data', 'basic_info_data',
-  ];
+  // 使用 Service 層處理業務邏輯
+  const repository = new BiographyRepository(c.env.DB);
+  const contentRepository = new BiographyContentRepository(c.env.DB);
+  const service = new BiographyService(repository, contentRepository, c.env.DB);
 
-  for (const field of fields) {
-    if (body[field as keyof Biography] !== undefined) {
-      updates.push(`${field} = ?`);
-      values.push(body[field as keyof Biography] as string | number | null);
-    }
-  }
+  try {
+    const biography = await service.upsertMyBiography(userId, body);
 
-  // Update slug if name changed
-  if (body.name) {
-    const newSlug = generateSlug(body.name) + '-' + existing.id.substring(0, 8);
-    updates.push('slug = ?');
-    values.push(newSlug);
-  }
-
-  // Handle visibility change - sync with is_public
-  if (body.visibility) {
-    const visibilityPublic = body.visibility === 'public' ? 1 : 0;
-    if (body.is_public === undefined) {
-      updates.push('is_public = ?');
-      values.push(visibilityPublic);
-    }
-  }
-
-  // Set published_at when going public for first time
-  const goingPublic = body.is_public === 1 || body.visibility === 'public';
-  if (goingPublic && !existing.published_at && Number(existing.is_public) !== 1) {
-    updates.push('published_at = ?');
-    values.push(new Date().toISOString());
-  }
-
-  if (updates.length > 0) {
-    updates.push("updated_at = datetime('now')");
-    values.push(existing.id);
-
-    await c.env.DB.prepare(
-      `UPDATE biographies SET ${updates.join(', ')} WHERE id = ?`
-    )
-      .bind(...values)
-      .run();
-  }
-
-  const biography = await c.env.DB.prepare(
-    'SELECT * FROM biographies WHERE id = ?'
-  )
-    .bind(existing.id)
-    .first<Biography>();
-
-  // 同步更新 KV 快取並清除舊快取
-  if (biography) {
+    // 同步更新 KV 快取並清除舊快取
     await cacheBiographyMetadata(c.env.CACHE, {
       id: biography.id,
       name: biography.name,
       avatar_url: biography.avatar_url || null,
       bio: biography.bio || null,
       title: biography.title || null,
-      climbing_meaning: biography.climbing_meaning || null,
     });
-    // 清除詳細頁和首頁精選快取
-    await invalidateBiographyCaches(c.env.CACHE, biography.slug || existing.slug);
-  }
 
-  return c.json({
-    success: true,
-    data: biography,
-  });
+    // 清除詳細頁和首頁精選快取
+    await invalidateBiographyCaches(c.env.CACHE, biography.slug);
+
+    return c.json({
+      success: true,
+      data: biography,
+    });
+  } catch (error) {
+    console.error('Error upserting biography:', error);
+
+    if (error instanceof Error && error.message === 'User not found') {
+      return c.json(
+        {
+          success: false,
+          error: 'Not Found',
+          message: 'User not found',
+        },
+        404
+      );
+    }
+
+    return c.json(
+      {
+        success: false,
+        error: 'Internal Server Error',
+        message: 'Failed to upsert biography',
+      },
+      500
+    );
+  }
 });
+
 
 // PUT /biographies/me/autosave - Autosave current user's biography
 // Rate limited: minimum 2 seconds between saves
 biographiesRoutes.put('/me/autosave', authMiddleware, async (c) => {
   const userId = c.get('userId');
-  const body = await c.req.json<Partial<Biography>>();
+  const body = await c.req.json<BiographyRequestBody>();
 
   const existing = await c.env.DB.prepare(
     'SELECT id, autosave_at FROM biographies WHERE user_id = ?'
@@ -909,8 +509,6 @@ biographiesRoutes.put('/me/autosave', authMiddleware, async (c) => {
   // Autosave only accepts V2 JSON fields to avoid accidental overwrites
   const autosaveFields = [
     'tags_data',
-    'one_liners_data',
-    'stories_data',
     'basic_info_data',
   ];
 
@@ -932,6 +530,143 @@ biographiesRoutes.put('/me/autosave', authMiddleware, async (c) => {
     )
       .bind(...values)
       .run();
+  }
+
+  // 同步 one_liners_data 到對應資料表 (autosave)
+  // - 核心故事 (climbing_origin, climbing_meaning, advice_to_self) → biography_core_stories
+  // - 其他一句話 → biography_one_liners
+  if (body.one_liners_data !== undefined) {
+    const oneLinersData = typeof body.one_liners_data === 'string'
+      ? JSON.parse(body.one_liners_data as string)
+      : body.one_liners_data;
+
+    if (oneLinersData && typeof oneLinersData === 'object') {
+      const now = new Date().toISOString();
+      const coreQuestionIds = new Set(CORE_STORY_FIELDS);
+
+      for (const [questionId, data] of Object.entries(oneLinersData)) {
+        const itemData = data as { answer?: string; visibility?: string };
+        const answer = itemData?.answer;
+
+        if (answer !== undefined) {
+          // 核心故事存到 biography_core_stories 表
+          if (coreQuestionIds.has(questionId as typeof CORE_STORY_FIELDS[number])) {
+            const existingCoreStory = await c.env.DB.prepare(
+              'SELECT id FROM biography_core_stories WHERE biography_id = ? AND question_id = ?'
+            )
+              .bind(existing.id, questionId)
+              .first<{ id: string }>();
+
+            if (answer === null || answer.trim() === '') {
+              if (existingCoreStory) {
+                await c.env.DB.prepare('DELETE FROM biography_core_stories WHERE id = ?')
+                  .bind(existingCoreStory.id)
+                  .run();
+              }
+            } else if (existingCoreStory) {
+              await c.env.DB.prepare(
+                'UPDATE biography_core_stories SET content = ?, updated_at = ? WHERE id = ?'
+              )
+                .bind(answer.trim(), now, existingCoreStory.id)
+                .run();
+            } else {
+              const storyId = generateId();
+              await c.env.DB.prepare(
+                `INSERT INTO biography_core_stories (id, biography_id, question_id, content, created_at, updated_at)
+                 VALUES (?, ?, ?, ?, ?, ?)`
+              )
+                .bind(storyId, existing.id, questionId, answer.trim(), now, now)
+                .run();
+            }
+          } else {
+            // 一般一句話存到 biography_one_liners 表
+            const existingOneLiner = await c.env.DB.prepare(
+              'SELECT id FROM biography_one_liners WHERE biography_id = ? AND question_id = ?'
+            )
+              .bind(existing.id, questionId)
+              .first<{ id: string }>();
+
+            if (answer === null || answer.trim() === '') {
+              if (existingOneLiner) {
+                await c.env.DB.prepare('DELETE FROM biography_one_liners WHERE id = ?')
+                  .bind(existingOneLiner.id)
+                  .run();
+              }
+            } else if (existingOneLiner) {
+              await c.env.DB.prepare(
+                'UPDATE biography_one_liners SET answer = ?, updated_at = ? WHERE id = ?'
+              )
+                .bind(answer.trim(), now, existingOneLiner.id)
+                .run();
+            } else {
+              const oneLinerId = generateId();
+              await c.env.DB.prepare(
+                `INSERT INTO biography_one_liners (id, biography_id, question_id, answer, source, created_at, updated_at)
+                 VALUES (?, ?, ?, ?, 'system', ?, ?)`
+              )
+                .bind(oneLinerId, existing.id, questionId, answer.trim(), now, now)
+                .run();
+            }
+          }
+        }
+      }
+    }
+  }
+
+  // 同步 stories_data 到 biography_stories 表 (autosave)
+  if (body.stories_data !== undefined) {
+    const storiesData = typeof body.stories_data === 'string'
+      ? JSON.parse(body.stories_data as string)
+      : body.stories_data;
+
+    if (storiesData && typeof storiesData === 'object') {
+      const now = new Date().toISOString();
+
+      // stories_data 格式: { category: { question_id: { answer, visibility, updated_at } } }
+      for (const [categoryId, questions] of Object.entries(storiesData)) {
+        if (questions && typeof questions === 'object') {
+          for (const [questionId, data] of Object.entries(questions as Record<string, unknown>)) {
+            const itemData = data as { answer?: string; visibility?: string };
+            const content = itemData?.answer;
+
+            if (content !== undefined) {
+              const existingStory = await c.env.DB.prepare(
+                'SELECT id FROM biography_stories WHERE biography_id = ? AND question_id = ?'
+              )
+                .bind(existing.id, questionId)
+                .first<{ id: string }>();
+
+              if (content === null || content.trim() === '') {
+                // 如果內容為空，刪除記錄
+                if (existingStory) {
+                  await c.env.DB.prepare('DELETE FROM biography_stories WHERE id = ?')
+                    .bind(existingStory.id)
+                    .run();
+                }
+              } else if (existingStory) {
+                // 更新現有記錄
+                const characterCount = content.trim().length;
+                await c.env.DB.prepare(
+                  'UPDATE biography_stories SET content = ?, category_id = ?, character_count = ?, updated_at = ? WHERE id = ?'
+                )
+                  .bind(content.trim(), categoryId === 'uncategorized' ? null : categoryId, characterCount, now, existingStory.id)
+                  .run();
+              } else {
+                // 插入新記錄
+                const storyId = generateId();
+                const characterCount = content.trim().length;
+                await c.env.DB.prepare(
+                  `INSERT INTO biography_stories (id, biography_id, question_id, category_id, content, source, character_count, created_at, updated_at)
+                   VALUES (?, ?, ?, ?, ?, 'system', ?, ?, ?)`
+                )
+                  .bind(storyId, existing.id, questionId, categoryId === 'uncategorized' ? null : categoryId, content.trim(), characterCount, now, now)
+                  .run();
+              }
+            }
+          }
+        }
+      }
+    }
   }
 
   return c.json({
@@ -1005,11 +740,11 @@ biographiesRoutes.get('/:id/adjacent', optionalAuthMiddleware, async (c) => {
   const orderDate = current.published_at || current.created_at;
 
   // Adjacent navigation only shows truly public biographies
-  const publicOnlyClause = "(visibility = 'public' OR (visibility IS NULL AND is_public = 1))";
+  const publicOnlyClause = "visibility = 'public'";
 
   // Get previous (newer) biography
   const previous = await c.env.DB.prepare(
-    `SELECT id, name, avatar_url FROM biographies
+    `SELECT id, slug, name, avatar_url FROM biographies
      WHERE ${publicOnlyClause} AND id != ?
      AND COALESCE(published_at, created_at) > ?
      ORDER BY COALESCE(published_at, created_at) ASC
@@ -1020,7 +755,7 @@ biographiesRoutes.get('/:id/adjacent', optionalAuthMiddleware, async (c) => {
 
   // Get next (older) biography
   const next = await c.env.DB.prepare(
-    `SELECT id, name, avatar_url FROM biographies
+    `SELECT id, slug, name, avatar_url FROM biographies
      WHERE ${publicOnlyClause} AND id != ?
      AND COALESCE(published_at, created_at) < ?
      ORDER BY COALESCE(published_at, created_at) DESC
@@ -1045,18 +780,11 @@ biographiesRoutes.get('/:id/stats', optionalAuthMiddleware, async (c) => {
 
   const visibilityClause = getVisibilityWhereClause(userId);
   const biography = await c.env.DB.prepare(
-    `SELECT id, user_id, total_likes, total_views, follower_count,
-      climbing_origin, climbing_meaning, advice_to_self,
-      memorable_moment, biggest_challenge, breakthrough_story, first_outdoor, first_grade, frustrating_climb,
-      fear_management, climbing_lesson, failure_perspective, flow_moment, life_balance, unexpected_gain,
-      climbing_mentor, climbing_partner, funny_moment, favorite_spot, advice_to_group, climbing_space,
-      injury_recovery, memorable_route, training_method, effective_practice, technique_tip, gear_choice,
-      dream_climb, climbing_trip, bucket_list_story, climbing_goal, climbing_style, climbing_inspiration,
-      life_outside_climbing
+    `SELECT id, user_id, total_likes, total_views, follower_count
     FROM biographies WHERE id = ? AND ${visibilityClause}`
   )
     .bind(id)
-    .first<Biography>();
+    .first<{ id: string; user_id: string | null; total_likes: number; total_views: number; follower_count: number }>();
 
   if (!biography) {
     return c.json(
@@ -1087,13 +815,20 @@ biographiesRoutes.get('/:id/stats', optionalAuthMiddleware, async (c) => {
     .bind(biography.user_id)
     .first<{ count: number }>();
 
-  // Calculate story completion using shared constants
-  const coreCompleted = CORE_STORY_FIELDS.filter(
-    (field) => biography[field as keyof Biography] && String(biography[field as keyof Biography]).trim() !== ''
-  ).length;
-  const advancedCompleted = ADVANCED_STORY_FIELDS.filter(
-    (field) => biography[field as keyof Biography] && String(biography[field as keyof Biography]).trim() !== ''
-  ).length;
+  // Count story completion from separate tables
+  const coreStoriesCount = await c.env.DB.prepare(
+    'SELECT COUNT(*) as count FROM biography_core_stories WHERE biography_id = ?'
+  )
+    .bind(id)
+    .first<{ count: number }>();
+  const coreCompleted = coreStoriesCount?.count || 0;
+
+  const advancedStoriesCount = await c.env.DB.prepare(
+    'SELECT COUNT(*) as count FROM biography_stories WHERE biography_id = ?'
+  )
+    .bind(id)
+    .first<{ count: number }>();
+  const advancedCompleted = advancedStoriesCount?.count || 0;
 
   // Count climbing locations from normalized table
   const locationsCountResult = await c.env.DB.prepare(
@@ -1182,7 +917,7 @@ biographiesRoutes.post('/:id/follow', authMiddleware, async (c) => {
   const id = c.req.param('id');
 
   // Only allow following public or community biographies (not anonymous or private)
-  const followableClause = "(visibility = 'public' OR visibility = 'community' OR (visibility IS NULL AND is_public = 1))";
+  const followableClause = "(visibility = 'public' OR visibility = 'community')";
   const biography = await c.env.DB.prepare(
     `SELECT id, user_id FROM biographies WHERE id = ? AND ${followableClause}`
   )
@@ -1401,7 +1136,7 @@ biographiesRoutes.get('/:id/followers', optionalAuthMiddleware, async (c) => {
   }
 
   // For follower biographies, only show public ones in the list
-  const publicOnlyClause = "(b.visibility = 'public' OR (b.visibility IS NULL AND b.is_public = 1))";
+  const publicOnlyClause = "b.visibility = 'public'";
   const followers = await c.env.DB.prepare(
     `SELECT f.id, f.created_at, u.id as user_id, u.username, u.display_name, u.avatar_url,
             b.id as biography_id, b.name as biography_name, b.slug as biography_slug
@@ -1459,7 +1194,7 @@ biographiesRoutes.get('/:id/following', optionalAuthMiddleware, async (c) => {
   }
 
   // For followed biographies, only show public ones in the list
-  const publicOnlyClause = "(b.visibility = 'public' OR (b.visibility IS NULL AND b.is_public = 1))";
+  const publicOnlyClause = "b.visibility = 'public'";
   const following = await c.env.DB.prepare(
     `SELECT f.id, f.created_at, u.id as user_id, u.username, u.display_name, u.avatar_url,
             b.id as biography_id, b.name as biography_name, b.slug as biography_slug, b.avatar_url as biography_avatar
@@ -1514,7 +1249,7 @@ biographiesRoutes.get('/explore/locations', async (c) => {
 
   // Use normalized climbing_locations table with efficient SQL aggregation
   // Explore only shows truly public biographies
-  const publicOnlyClause = "(b.visibility = 'public' OR (b.visibility IS NULL AND b.is_public = 1))";
+  const publicOnlyClause = "b.visibility = 'public'";
   const countryFilter = country ? 'AND cl.country = ?' : '';
 
   // Get total count first
@@ -1626,7 +1361,7 @@ biographiesRoutes.get('/explore/locations/:name', async (c) => {
 
   // Use normalized climbing_locations table with efficient SQL query
   // Explore only shows truly public biographies
-  const publicOnlyClause = "(b.visibility = 'public' OR (b.visibility IS NULL AND b.is_public = 1))";
+  const publicOnlyClause = "b.visibility = 'public'";
   const visitorsResult = await c.env.DB.prepare(
     `SELECT
       cl.biography_id,
@@ -1690,7 +1425,7 @@ biographiesRoutes.get('/explore/locations/:name', async (c) => {
 biographiesRoutes.get('/explore/countries', async (c) => {
   // Use normalized climbing_locations table with efficient SQL aggregation
   // Explore only shows truly public biographies
-  const publicOnlyClause = "(b.visibility = 'public' OR (b.visibility IS NULL AND b.is_public = 1))";
+  const publicOnlyClause = "b.visibility = 'public'";
   const countriesResult = await c.env.DB.prepare(
     `SELECT
       cl.country,
@@ -1744,18 +1479,11 @@ biographiesRoutes.get('/:id/badges', optionalAuthMiddleware, async (c) => {
 
   const visibilityClause = getVisibilityWhereClause(userId);
   const biography = await c.env.DB.prepare(
-    `SELECT id, user_id, total_likes,
-      climbing_origin, climbing_meaning, advice_to_self,
-      memorable_moment, biggest_challenge, breakthrough_story, first_outdoor, first_grade, frustrating_climb,
-      fear_management, climbing_lesson, failure_perspective, flow_moment, life_balance, unexpected_gain,
-      climbing_mentor, climbing_partner, funny_moment, favorite_spot, advice_to_group, climbing_space,
-      injury_recovery, memorable_route, training_method, effective_practice, technique_tip, gear_choice,
-      dream_climb, climbing_trip, bucket_list_story, climbing_goal, climbing_style, climbing_inspiration,
-      life_outside_climbing
+    `SELECT id, user_id, total_likes
     FROM biographies WHERE id = ? AND ${visibilityClause}`
   )
     .bind(id)
-    .first<Biography>();
+    .first<{ id: string; user_id: string | null; total_likes: number }>();
 
   if (!biography) {
     return c.json(
@@ -1768,10 +1496,20 @@ biographiesRoutes.get('/:id/badges', optionalAuthMiddleware, async (c) => {
     );
   }
 
-  // Calculate story count using shared constants
-  const storyCount = ALL_STORY_FIELDS.filter(
-    (field) => biography[field as keyof Biography] && String(biography[field as keyof Biography]).trim() !== ''
-  ).length;
+  // Calculate story count from separate tables
+  const coreStoriesCount = await c.env.DB.prepare(
+    'SELECT COUNT(*) as count FROM biography_core_stories WHERE biography_id = ?'
+  )
+    .bind(id)
+    .first<{ count: number }>();
+
+  const advancedStoriesCount = await c.env.DB.prepare(
+    'SELECT COUNT(*) as count FROM biography_stories WHERE biography_id = ?'
+  )
+    .bind(id)
+    .first<{ count: number }>();
+
+  const storyCount = (coreStoriesCount?.count || 0) + (advancedStoriesCount?.count || 0);
 
   // Get bucket list stats
   const bucketListStats = await c.env.DB.prepare(
@@ -1913,7 +1651,7 @@ biographiesRoutes.get('/community/stats', async (c) => {
   }
 
   // Community stats only count truly public biographies
-  const publicOnlyClause = "(visibility = 'public' OR (visibility IS NULL AND is_public = 1))";
+  const publicOnlyClause = "visibility = 'public'";
 
   // Total biographies
   const totalBiographies = await c.env.DB.prepare(
@@ -1928,13 +1666,20 @@ biographiesRoutes.get('/community/stats', async (c) => {
     FROM bucket_list_items WHERE is_public = 1`
   ).first<{ total: number; completed: number }>();
 
-  // Total stories (count biographies with at least one story field filled)
-  // Generate WHERE clause dynamically from ALL_STORY_FIELDS
-  const storyFieldConditions = ALL_STORY_FIELDS.map(field => `${field} IS NOT NULL`).join(' OR ');
-  const storiesCount = await c.env.DB.prepare(
-    `SELECT COUNT(*) as count FROM biographies
-     WHERE ${publicOnlyClause} AND (${storyFieldConditions})`
+  // Total stories (count from separate story tables)
+  const coreStoriesCount = await c.env.DB.prepare(
+    `SELECT COUNT(*) as count FROM biography_core_stories bcs
+     JOIN biographies b ON b.id = bcs.biography_id
+     WHERE ${publicOnlyClause}`
   ).first<{ count: number }>();
+
+  const advancedStoriesCount = await c.env.DB.prepare(
+    `SELECT COUNT(*) as count FROM biography_stories bs
+     JOIN biographies b ON b.id = bs.biography_id
+     WHERE ${publicOnlyClause}`
+  ).first<{ count: number }>();
+
+  const totalStoriesCount = (coreStoriesCount?.count || 0) + (advancedStoriesCount?.count || 0);
 
   // Active users this week
   const oneWeekAgo = new Date();
@@ -1959,7 +1704,7 @@ biographiesRoutes.get('/community/stats', async (c) => {
     total_biographies: totalBiographies?.count || 0,
     total_goals: goalStats?.total || 0,
     completed_goals: goalStats?.completed || 0,
-    total_stories: storiesCount?.count || 0,
+    total_stories: totalStoriesCount,
     active_users_this_week: activeUsers?.count || 0,
     trending_categories: (trendingCategories.results || []).map((cat: { category?: string; count?: number }) => ({
       category: cat.category,
@@ -2002,7 +1747,7 @@ biographiesRoutes.get('/leaderboard/:type', async (c) => {
   }
 
   // Leaderboard only shows truly public biographies
-  const publicOnlyClause = "(visibility = 'public' OR (visibility IS NULL AND is_public = 1))";
+  const publicOnlyClause = "visibility = 'public'";
 
   let query = '';
 
@@ -2012,7 +1757,7 @@ biographiesRoutes.get('/leaderboard/:type', async (c) => {
         SELECT b.id as biography_id, b.name, b.avatar_url, COUNT(bl.id) as value
         FROM biographies b
         LEFT JOIN bucket_list_items bl ON bl.biography_id = b.id AND bl.status = 'completed'
-        WHERE (b.visibility = 'public' OR (b.visibility IS NULL AND b.is_public = 1))
+        WHERE b.visibility = 'public'
         GROUP BY b.id
         ORDER BY value DESC
         LIMIT ?

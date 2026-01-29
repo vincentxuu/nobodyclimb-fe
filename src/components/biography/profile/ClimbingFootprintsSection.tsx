@@ -258,7 +258,7 @@ export function ClimbingFootprintsSection({
   // 如果有無年份的地點，加到最後
   if (locationsWithoutYear.length > 0) {
     timelineData.push({
-      year: '其他足跡',
+      year: '那些年的足跡',
       locations: locationsWithoutYear,
     })
   }

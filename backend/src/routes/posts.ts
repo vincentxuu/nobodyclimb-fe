@@ -1,206 +1,67 @@
 import { Hono } from 'hono';
-import { z } from 'zod';
 import { Env, Post } from '../types';
-import { parsePagination, generateId, generateSlug } from '../utils/id';
+import { parsePagination, generateId } from '../utils/id';
 import { authMiddleware, optionalAuthMiddleware } from '../middleware/auth';
-import { trackAndUpdateViewCount } from '../utils/viewTracker';
-import { deleteR2Images, extractR2ImagesFromContent } from '../utils/storage';
+import { createNotification, createLikeNotificationWithAggregation } from './notifications';
+import { PostRepository } from '../repositories/post-repository';
+import { PostService } from '../services/post-service';
 
 export const postsRoutes = new Hono<{ Bindings: Env }>();
 
 /**
- * Post Metadata schema（用於 SEO，存入 KV 快取）
- * 使用 zod 驗證確保型別安全
+ * 初始化 Service
  */
-const postMetadataSchema = z.object({
-  id: z.string(),
-  title: z.string(),
-  excerpt: z.string().nullable(),
-  cover_image: z.string().nullable(),
-  display_name: z.string().nullable(),
-  username: z.string().nullable(),
-  published_at: z.string().nullable(),
-  updated_at: z.string().nullable(),
-  tags: z.array(z.string()),
-});
-
-type PostMetadata = z.infer<typeof postMetadataSchema>;
-
-/**
- * 快取 Post metadata 到 KV
- * 前端 SSR 會讀取此快取以避免 Worker-to-Worker 522 超時
- */
-async function cachePostMetadata(
-  cache: KVNamespace,
-  post: Record<string, unknown>,
-  tags: string[]
-): Promise<void> {
-  const rawMetadata = {
-    id: post.id,
-    title: post.title,
-    excerpt: post.excerpt ?? null,
-    cover_image: post.cover_image ?? null,
-    display_name: post.display_name ?? null,
-    username: post.username ?? null,
-    published_at: post.published_at ?? null,
-    updated_at: post.updated_at ?? null,
-    tags,
-  };
-
-  const parsed = postMetadataSchema.safeParse(rawMetadata);
-  if (!parsed.success) {
-    console.error(`Invalid post metadata for ${post.id}:`, parsed.error.issues);
-    return;
-  }
-
-  const cacheKey = `post-meta:${parsed.data.id}`;
-
-  try {
-    await cache.put(cacheKey, JSON.stringify(parsed.data), {
-      expirationTtl: 86400 * 7, // 7 天過期
-    });
-  } catch (error) {
-    console.error(`Failed to cache post metadata for ${parsed.data.id}:`, error);
-  }
+function initService(c: any): PostService {
+  const repository = new PostRepository(c.env.DB);
+  return new PostService(repository, c.env.DB, c.env.CACHE, c.env.R2_PUBLIC_URL);
 }
+
+// ============================================
+// Posts CRUD Routes
+// ============================================
 
 // GET /posts - List all posts
 postsRoutes.get('/', async (c) => {
-  const { page, limit, offset } = parsePagination(
+  const { page, limit } = parsePagination(
     c.req.query('page'),
     c.req.query('limit')
   );
   const status = c.req.query('status') || 'published';
   const tag = c.req.query('tag');
   const category = c.req.query('category');
-  const featured = c.req.query('featured');
+  const featured = c.req.query('featured') === 'true' ? true : undefined;
 
-  let whereClause = 'p.status = ?';
-  const params: (string | number)[] = [status];
-
-  if (featured === 'true') {
-    whereClause += ' AND p.is_featured = 1';
-  }
-
-  if (category) {
-    whereClause += ' AND p.category = ?';
-    params.push(category);
-  }
-
-  let countQuery = `SELECT COUNT(*) as count FROM posts p WHERE ${whereClause}`;
-
-  if (tag) {
-    countQuery = `SELECT COUNT(DISTINCT p.id) as count FROM posts p JOIN post_tags pt ON p.id = pt.post_id WHERE ${whereClause} AND pt.tag = ?`;
-  }
-
-  const countResult = await c.env.DB.prepare(countQuery)
-    .bind(...params, ...(tag ? [tag] : []))
-    .first<{ count: number }>();
-  const total = countResult?.count || 0;
-
-  let query = `
-    SELECT p.*, u.username, u.display_name, u.avatar_url as author_avatar
-    FROM posts p
-    JOIN users u ON p.author_id = u.id
-    WHERE ${whereClause}
-  `;
-
-  if (tag) {
-    query = `
-      SELECT p.*, u.username, u.display_name, u.avatar_url as author_avatar
-      FROM posts p
-      JOIN users u ON p.author_id = u.id
-      JOIN post_tags pt ON p.id = pt.post_id
-      WHERE ${whereClause} AND pt.tag = ?
-    `;
-    params.push(tag);
-  }
-
-  query += ' ORDER BY p.is_featured DESC, p.published_at DESC LIMIT ? OFFSET ?';
-
-  const posts = await c.env.DB.prepare(query)
-    .bind(...params, limit, offset)
-    .all();
+  const service = initService(c);
+  const result = await service.getList({
+    page,
+    limit,
+    status,
+    tag,
+    category,
+    featured,
+  });
 
   return c.json({
     success: true,
-    data: posts.results,
-    pagination: {
-      page,
-      limit,
-      total,
-      total_pages: Math.ceil(total / limit),
-    },
+    ...result,
   });
 });
 
 // GET /posts/me - Get current user's posts (all statuses)
 postsRoutes.get('/me', authMiddleware, async (c) => {
   const userId = c.get('userId');
-  const { page, limit, offset } = parsePagination(
+  const { page, limit } = parsePagination(
     c.req.query('page'),
     c.req.query('limit')
   );
-  const status = c.req.query('status'); // Optional: filter by specific status
+  const status = c.req.query('status');
 
-  let whereClause = 'p.author_id = ?';
-  const params: (string | number)[] = [userId];
-
-  if (status && ['draft', 'published', 'archived'].includes(status)) {
-    whereClause += ' AND p.status = ?';
-    params.push(status);
-  }
-
-  const countResult = await c.env.DB.prepare(
-    `SELECT COUNT(*) as count FROM posts p WHERE ${whereClause}`
-  )
-    .bind(...params)
-    .first<{ count: number }>();
-  const total = countResult?.count || 0;
-
-  const posts = await c.env.DB.prepare(
-    `SELECT p.*, u.username, u.display_name, u.avatar_url as author_avatar
-     FROM posts p
-     JOIN users u ON p.author_id = u.id
-     WHERE ${whereClause}
-     ORDER BY p.created_at DESC
-     LIMIT ? OFFSET ?`
-  )
-    .bind(...params, limit, offset)
-    .all();
-
-  // Get tags for all posts in one query to avoid N+1 problem
-  const postIds = posts.results.map((p) => p.id as string);
-  const tagsMap = new Map<string, string[]>();
-  if (postIds.length > 0) {
-    const placeholders = postIds.map(() => '?').join(',');
-    const tagsResult = await c.env.DB.prepare(
-      `SELECT post_id, tag FROM post_tags WHERE post_id IN (${placeholders})`
-    )
-      .bind(...postIds)
-      .all<{ post_id: string; tag: string }>();
-
-    for (const { post_id, tag } of tagsResult.results ?? []) {
-      if (!tagsMap.has(post_id)) {
-        tagsMap.set(post_id, []);
-      }
-      tagsMap.get(post_id)!.push(tag);
-    }
-  }
-  const postsWithTags = posts.results.map((post) => ({
-    ...post,
-    tags: tagsMap.get(post.id as string) || [],
-  }));
+  const service = initService(c);
+  const result = await service.getMyPosts(userId, { page, limit, status });
 
   return c.json({
     success: true,
-    data: postsWithTags,
-    pagination: {
-      page,
-      limit,
-      total,
-      total_pages: Math.ceil(total / limit),
-    },
+    ...result,
   });
 });
 
@@ -208,37 +69,23 @@ postsRoutes.get('/me', authMiddleware, async (c) => {
 postsRoutes.get('/featured', async (c) => {
   const limit = parseInt(c.req.query('limit') || '6', 10);
 
-  const posts = await c.env.DB.prepare(
-    `SELECT p.*, u.username, u.display_name, u.avatar_url as author_avatar
-     FROM posts p
-     JOIN users u ON p.author_id = u.id
-     WHERE p.status = 'published' AND p.is_featured = 1
-     ORDER BY p.published_at DESC
-     LIMIT ?`
-  )
-    .bind(limit)
-    .all();
+  const service = initService(c);
+  const posts = await service.getFeatured(limit);
 
   return c.json({
     success: true,
-    data: posts.results,
+    data: posts,
   });
 });
 
 // GET /posts/tags - Get all tags
 postsRoutes.get('/tags', async (c) => {
-  const tags = await c.env.DB.prepare(
-    `SELECT tag, COUNT(*) as count
-     FROM post_tags pt
-     JOIN posts p ON pt.post_id = p.id
-     WHERE p.status = 'published'
-     GROUP BY tag
-     ORDER BY count DESC`
-  ).all();
+  const service = initService(c);
+  const tags = await service.getAllTags();
 
   return c.json({
     success: true,
-    data: tags.results,
+    data: tags,
   });
 });
 
@@ -246,112 +93,29 @@ postsRoutes.get('/tags', async (c) => {
 postsRoutes.get('/popular', async (c) => {
   const limit = parseInt(c.req.query('limit') || '5', 10);
 
-  const posts = await c.env.DB.prepare(
-    `SELECT p.*, u.username, u.display_name, u.avatar_url as author_avatar
-     FROM posts p
-     JOIN users u ON p.author_id = u.id
-     WHERE p.status = 'published'
-     ORDER BY p.view_count DESC
-     LIMIT ?`
-  )
-    .bind(limit)
-    .all();
-
-  // Get tags for all posts
-  const postIds = posts.results.map((p) => p.id as string);
-  const tagsMap = new Map<string, string[]>();
-  if (postIds.length > 0) {
-    const placeholders = postIds.map(() => '?').join(',');
-    const tagsResult = await c.env.DB.prepare(
-      `SELECT post_id, tag FROM post_tags WHERE post_id IN (${placeholders})`
-    )
-      .bind(...postIds)
-      .all<{ post_id: string; tag: string }>();
-
-    for (const { post_id, tag } of tagsResult.results ?? []) {
-      if (!tagsMap.has(post_id)) {
-        tagsMap.set(post_id, []);
-      }
-      tagsMap.get(post_id)!.push(tag);
-    }
-  }
-
-  const postsWithTags = posts.results.map((post) => ({
-    ...post,
-    tags: tagsMap.get(post.id as string) || [],
-  }));
+  const service = initService(c);
+  const posts = await service.getPopular(limit);
 
   return c.json({
     success: true,
-    data: postsWithTags,
+    data: posts,
   });
 });
 
 // GET /posts/liked - Get current user's liked/bookmarked posts
 postsRoutes.get('/liked', authMiddleware, async (c) => {
   const userId = c.get('userId');
-  const { page, limit, offset } = parsePagination(
+  const { page, limit } = parsePagination(
     c.req.query('page'),
     c.req.query('limit')
   );
 
-  // Get total count of liked posts
-  const countResult = await c.env.DB.prepare(
-    `SELECT COUNT(*) as count
-     FROM likes l
-     JOIN posts p ON l.entity_id = p.id
-     WHERE l.user_id = ? AND l.entity_type = 'post' AND p.status = 'published'`
-  )
-    .bind(userId)
-    .first<{ count: number }>();
-  const total = countResult?.count || 0;
-
-  // Get liked posts with pagination
-  const posts = await c.env.DB.prepare(
-    `SELECT p.*, u.username, u.display_name, u.avatar_url as author_avatar, l.created_at as liked_at
-     FROM likes l
-     JOIN posts p ON l.entity_id = p.id
-     JOIN users u ON p.author_id = u.id
-     WHERE l.user_id = ? AND l.entity_type = 'post' AND p.status = 'published'
-     ORDER BY l.created_at DESC
-     LIMIT ? OFFSET ?`
-  )
-    .bind(userId, limit, offset)
-    .all();
-
-  // Get tags for all posts in one query to avoid N+1 problem
-  const postIds = posts.results.map((p) => p.id as string);
-  const tagsMap = new Map<string, string[]>();
-  if (postIds.length > 0) {
-    const placeholders = postIds.map(() => '?').join(',');
-    const tagsResult = await c.env.DB.prepare(
-      `SELECT post_id, tag FROM post_tags WHERE post_id IN (${placeholders})`
-    )
-      .bind(...postIds)
-      .all<{ post_id: string; tag: string }>();
-
-    for (const { post_id, tag } of tagsResult.results ?? []) {
-      if (!tagsMap.has(post_id)) {
-        tagsMap.set(post_id, []);
-      }
-      tagsMap.get(post_id)!.push(tag);
-    }
-  }
-
-  const postsWithTags = posts.results.map((post) => ({
-    ...post,
-    tags: tagsMap.get(post.id as string) || [],
-  }));
+  const service = initService(c);
+  const result = await service.getLikedPosts(userId, { page, limit });
 
   return c.json({
     success: true,
-    data: postsWithTags,
-    pagination: {
-      page,
-      limit,
-      total,
-      total_pages: Math.ceil(total / limit),
-    },
+    ...result,
   });
 });
 
@@ -359,14 +123,8 @@ postsRoutes.get('/liked', authMiddleware, async (c) => {
 postsRoutes.get('/:id', async (c) => {
   const id = c.req.param('id');
 
-  const post = await c.env.DB.prepare(
-    `SELECT p.*, u.username, u.display_name, u.avatar_url as author_avatar
-     FROM posts p
-     JOIN users u ON p.author_id = u.id
-     WHERE p.id = ?`
-  )
-    .bind(id)
-    .first();
+  const service = initService(c);
+  const post = await service.getById(id, c.req.raw);
 
   if (!post) {
     return c.json(
@@ -379,35 +137,9 @@ postsRoutes.get('/:id', async (c) => {
     );
   }
 
-  // Get tags
-  const tags = await c.env.DB.prepare(
-    'SELECT tag FROM post_tags WHERE post_id = ?'
-  )
-    .bind(id)
-    .all<{ tag: string }>();
-
-  // Track unique view (only increment if not viewed by this IP in 24h)
-  const viewCount = await trackAndUpdateViewCount(
-    c.env.DB,
-    c.env.CACHE,
-    c.req.raw,
-    'post',
-    id,
-    post.view_count as number
-  );
-
-  const tagList = tags.results.map((t) => t.tag);
-
-  // 快取 metadata 到 KV 供前端 SSR 使用
-  await cachePostMetadata(c.env.CACHE, post, tagList);
-
   return c.json({
     success: true,
-    data: {
-      ...post,
-      view_count: viewCount,
-      tags: tagList,
-    },
+    data: post,
   });
 });
 
@@ -415,14 +147,8 @@ postsRoutes.get('/:id', async (c) => {
 postsRoutes.get('/slug/:slug', async (c) => {
   const slug = c.req.param('slug');
 
-  const post = await c.env.DB.prepare(
-    `SELECT p.*, u.username, u.display_name, u.avatar_url as author_avatar
-     FROM posts p
-     JOIN users u ON p.author_id = u.id
-     WHERE p.slug = ?`
-  )
-    .bind(slug)
-    .first();
+  const service = initService(c);
+  const post = await service.getBySlug(slug, c.req.raw);
 
   if (!post) {
     return c.json(
@@ -435,34 +161,9 @@ postsRoutes.get('/slug/:slug', async (c) => {
     );
   }
 
-  const tags = await c.env.DB.prepare(
-    'SELECT tag FROM post_tags WHERE post_id = ?'
-  )
-    .bind(post.id as string)
-    .all<{ tag: string }>();
-
-  // Track unique view (only increment if not viewed by this IP in 24h)
-  const viewCount = await trackAndUpdateViewCount(
-    c.env.DB,
-    c.env.CACHE,
-    c.req.raw,
-    'post',
-    post.id as string,
-    post.view_count as number
-  );
-
-  const tagList = tags.results.map((t) => t.tag);
-
-  // 快取 metadata 到 KV 供前端 SSR 使用
-  await cachePostMetadata(c.env.CACHE, post, tagList);
-
   return c.json({
     success: true,
-    data: {
-      ...post,
-      view_count: viewCount,
-      tags: tagList,
-    },
+    data: post,
   });
 });
 
@@ -484,51 +185,23 @@ postsRoutes.post('/', authMiddleware, async (c) => {
     );
   }
 
-  const id = generateId();
-  const slug = body.slug || generateSlug(body.title);
-
-  await c.env.DB.prepare(
-    `INSERT INTO posts (
-      id, author_id, title, slug, excerpt, content, cover_image, category, status, is_featured, published_at
-    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
-  )
-    .bind(
-      id,
-      userId,
-      body.title,
-      slug,
-      body.excerpt || null,
-      body.content,
-      body.cover_image || null,
-      body.category || null,
-      body.status || 'draft',
-      body.is_featured || 0,
-      body.status === 'published' ? new Date().toISOString() : null
-    )
-    .run();
-
-  // Add tags
-  if (body.tags && body.tags.length > 0) {
-    for (const tag of body.tags) {
-      await c.env.DB.prepare(
-        'INSERT INTO post_tags (post_id, tag) VALUES (?, ?)'
-      )
-        .bind(id, tag)
-        .run();
-    }
-  }
-
-  const post = await c.env.DB.prepare('SELECT * FROM posts WHERE id = ?')
-    .bind(id)
-    .first();
+  const service = initService(c);
+  const post = await service.create(userId, {
+    title: body.title,
+    content: body.content,
+    slug: body.slug || undefined,
+    excerpt: body.excerpt || undefined,
+    cover_image: body.cover_image || undefined,
+    category: body.category || undefined,
+    status: body.status,
+    is_featured: body.is_featured,
+    tags: body.tags,
+  });
 
   return c.json(
     {
       success: true,
-      data: {
-        ...post,
-        tags: body.tags || [],
-      },
+      data: post,
     },
     201
   );
@@ -541,112 +214,41 @@ postsRoutes.put('/:id', authMiddleware, async (c) => {
   const user = c.get('user');
   const body = await c.req.json<Partial<Post> & { tags?: string[] }>();
 
-  const existing = await c.env.DB.prepare(
-    'SELECT author_id FROM posts WHERE id = ?'
-  )
-    .bind(id)
-    .first<{ author_id: string }>();
+  try {
+    const service = initService(c);
+    const post = await service.update(id, userId, user.role, body);
 
-  if (!existing) {
-    return c.json(
-      {
-        success: false,
-        error: 'Not Found',
-        message: 'Post not found',
-      },
-      404
-    );
-  }
+    return c.json({
+      success: true,
+      data: post,
+    });
+  } catch (error) {
+    const message = error instanceof Error ? error.message : 'Unknown error';
 
-  // Check if user is author or admin
-  if (existing.author_id !== userId && user.role !== 'admin') {
-    return c.json(
-      {
-        success: false,
-        error: 'Forbidden',
-        message: 'You can only edit your own posts',
-      },
-      403
-    );
-  }
-
-  const updates: string[] = [];
-  const values: (string | number | null)[] = [];
-
-  const fields = [
-    'title',
-    'excerpt',
-    'content',
-    'cover_image',
-    'category',
-    'status',
-    'is_featured',
-  ];
-
-  for (const field of fields) {
-    if (body[field as keyof Post] !== undefined) {
-      updates.push(`${field} = ?`);
-      values.push(body[field as keyof Post] as string | number | null);
+    if (message === 'Post not found') {
+      return c.json(
+        {
+          success: false,
+          error: 'Not Found',
+          message,
+        },
+        404
+      );
     }
-  }
 
-  // Handle published_at when publishing
-  if (body.status === 'published') {
-    const currentPost = await c.env.DB.prepare(
-      'SELECT published_at FROM posts WHERE id = ?'
-    )
-      .bind(id)
-      .first<{ published_at: string | null }>();
-
-    if (!currentPost?.published_at) {
-      updates.push('published_at = ?');
-      values.push(new Date().toISOString());
+    if (message === 'You can only edit your own posts') {
+      return c.json(
+        {
+          success: false,
+          error: 'Forbidden',
+          message,
+        },
+        403
+      );
     }
+
+    throw error;
   }
-
-  if (updates.length > 0) {
-    updates.push("updated_at = datetime('now')");
-    values.push(id);
-
-    await c.env.DB.prepare(
-      `UPDATE posts SET ${updates.join(', ')} WHERE id = ?`
-    )
-      .bind(...values)
-      .run();
-  }
-
-  // Update tags
-  if (body.tags !== undefined) {
-    await c.env.DB.prepare('DELETE FROM post_tags WHERE post_id = ?')
-      .bind(id)
-      .run();
-
-    for (const tag of body.tags) {
-      await c.env.DB.prepare(
-        'INSERT INTO post_tags (post_id, tag) VALUES (?, ?)'
-      )
-        .bind(id, tag)
-        .run();
-    }
-  }
-
-  const post = await c.env.DB.prepare('SELECT * FROM posts WHERE id = ?')
-    .bind(id)
-    .first();
-
-  const tags = await c.env.DB.prepare(
-    'SELECT tag FROM post_tags WHERE post_id = ?'
-  )
-    .bind(id)
-    .all<{ tag: string }>();
-
-  return c.json({
-    success: true,
-    data: {
-      ...post,
-      tags: tags.results.map((t) => t.tag),
-    },
-  });
 });
 
 // DELETE /posts/:id - Delete post
@@ -655,45 +257,46 @@ postsRoutes.delete('/:id', authMiddleware, async (c) => {
   const userId = c.get('userId');
   const user = c.get('user');
 
-  const existing = await c.env.DB.prepare(
-    'SELECT author_id, cover_image, content FROM posts WHERE id = ?'
-  )
-    .bind(id)
-    .first<{ author_id: string; cover_image: string | null; content: string | null }>();
+  try {
+    const service = initService(c);
+    await service.delete(id, userId, user.role, c.env.STORAGE);
 
-  if (!existing) {
-    return c.json(
-      {
-        success: false,
-        error: 'Not Found',
-        message: 'Post not found',
-      },
-      404
-    );
+    return c.json({
+      success: true,
+      message: 'Post deleted successfully',
+    });
+  } catch (error) {
+    const message = error instanceof Error ? error.message : 'Unknown error';
+
+    if (message === 'Post not found') {
+      return c.json(
+        {
+          success: false,
+          error: 'Not Found',
+          message,
+        },
+        404
+      );
+    }
+
+    if (message === 'You can only delete your own posts') {
+      return c.json(
+        {
+          success: false,
+          error: 'Forbidden',
+          message,
+        },
+        403
+      );
+    }
+
+    throw error;
   }
-
-  if (existing.author_id !== userId && user.role !== 'admin') {
-    return c.json(
-      {
-        success: false,
-        error: 'Forbidden',
-        message: 'You can only delete your own posts',
-      },
-      403
-    );
-  }
-
-  // Delete images from R2
-  const contentImages = extractR2ImagesFromContent(existing.content, c.env.R2_PUBLIC_URL);
-  await deleteR2Images(c.env.STORAGE, [existing.cover_image, ...contentImages]);
-
-  await c.env.DB.prepare('DELETE FROM posts WHERE id = ?').bind(id).run();
-
-  return c.json({
-    success: true,
-    message: 'Post deleted successfully',
-  });
 });
+
+// ============================================
+// Comments Routes
+// ============================================
 
 // GET /posts/:id/comments - Get comments for a post
 postsRoutes.get('/:id/comments', async (c) => {
@@ -737,6 +340,7 @@ postsRoutes.get('/:id/comments', async (c) => {
 postsRoutes.post('/:id/comments', authMiddleware, async (c) => {
   const postId = c.req.param('id');
   const userId = c.get('userId');
+  const user = c.get('user');
   const body = await c.req.json<{ content: string; parent_id?: string }>();
 
   if (!body.content || body.content.trim() === '') {
@@ -750,10 +354,10 @@ postsRoutes.post('/:id/comments', authMiddleware, async (c) => {
     );
   }
 
-  // Check if post exists
-  const post = await c.env.DB.prepare('SELECT id FROM posts WHERE id = ?')
+  // Check if post exists and get author info
+  const post = await c.env.DB.prepare('SELECT id, author_id, title FROM posts WHERE id = ?')
     .bind(postId)
-    .first();
+    .first<{ id: string; author_id: string; title: string }>();
 
   if (!post) {
     return c.json(
@@ -784,6 +388,19 @@ postsRoutes.post('/:id/comments', authMiddleware, async (c) => {
   )
     .bind(id)
     .first();
+
+  // 發送通知給貼文作者（不是自己的貼文）
+  if (post.author_id !== userId) {
+    const contentPreview = body.content.trim().slice(0, 50) + (body.content.length > 50 ? '...' : '');
+    await createNotification(c.env.DB, {
+      userId: post.author_id,
+      type: 'post_commented',
+      actorId: userId,
+      targetId: postId,
+      title: '你的文章有新留言',
+      message: `${user?.display_name || user?.username || '有人'} 在你的文章「${post.title}」留言：${contentPreview}`,
+    });
+  }
 
   return c.json(
     {
@@ -847,14 +464,6 @@ postsRoutes.delete('/:postId/comments/:commentId', authMiddleware, async (c) => 
 // ============================================
 
 type ActionTable = 'likes' | 'bookmarks';
-type ActionType = 'liked' | 'bookmarked';
-
-interface ToggleActionResult {
-  success: boolean;
-  data?: { [key: string]: boolean | number };
-  error?: string;
-  message?: string;
-}
 
 /**
  * 切換按讚/收藏狀態的共用邏輯
@@ -923,20 +532,37 @@ async function getActionStatus(
   return { hasAction, count: countResult?.count || 0 };
 }
 
+// ============================================
+// Likes & Bookmarks Routes
+// ============================================
+
 // POST /posts/:id/like - Toggle like for a post (按讚)
 postsRoutes.post('/:id/like', authMiddleware, async (c) => {
   const postId = c.req.param('id');
   const userId = c.get('userId');
+  const user = c.get('user');
 
-  const post = await c.env.DB.prepare('SELECT id FROM posts WHERE id = ?')
+  const post = await c.env.DB.prepare('SELECT id, author_id, title FROM posts WHERE id = ?')
     .bind(postId)
-    .first();
+    .first<{ id: string; author_id: string; title: string }>();
 
   if (!post) {
     return c.json({ success: false, error: 'Not Found', message: 'Post not found' }, 404);
   }
 
   const { toggled, count } = await toggleAction(c.env.DB, 'likes', 'post', postId, userId);
+
+  // 發送通知給貼文作者（按讚時且不是自己的貼文）
+  if (toggled && post.author_id !== userId) {
+    await createLikeNotificationWithAggregation(c.env.DB, {
+      userId: post.author_id,
+      type: 'post_liked',
+      actorId: userId,
+      actorName: user?.display_name || user?.username || '有人',
+      targetId: postId,
+      targetTitle: post.title,
+    });
+  }
 
   return c.json({
     success: true,

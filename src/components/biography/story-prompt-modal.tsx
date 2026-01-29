@@ -3,17 +3,16 @@
 import React, { useState, useCallback, useEffect, useMemo } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { X, MessageCircle, Info, BarChart, Loader2, ChevronRight, Users } from 'lucide-react'
-import {
-  StoryQuestion,
-  StoryCategory,
-  ADVANCED_STORY_QUESTIONS,
-  getUnfilledQuestions,
-  calculateStoryProgress,
-} from '@/lib/constants/biography-stories'
 import { cn } from '@/lib/utils'
 import { Button } from '@/components/ui/button'
 import { Textarea } from '@/components/ui/textarea'
-import { getStoryIcon, getCategoryInfo } from '@/lib/utils/biography-ui'
+import {
+  useQuestions,
+  type PromptStoryQuestion,
+  convertToPromptQuestions,
+  getUnfilledPromptQuestions,
+  calculatePromptProgress,
+} from '@/lib/hooks/useQuestions'
 
 /**
  * 推題策略類型
@@ -24,10 +23,10 @@ type PromptStrategy = 'random' | 'category_rotate' | 'easy_first' | 'popular' | 
  * 推題選擇策略
  */
 function selectNextPrompt(
-  unfilledQuestions: StoryQuestion[],
+  unfilledQuestions: PromptStoryQuestion[],
   strategy: PromptStrategy = 'random',
   lastPromptedField?: string
-): StoryQuestion | null {
+): PromptStoryQuestion | null {
   if (unfilledQuestions.length === 0) return null
 
   // 過濾掉最近推過的題目
@@ -42,16 +41,9 @@ function selectNextPrompt(
       return questions[Math.floor(Math.random() * questions.length)]
 
     case 'category_rotate': {
-      // 按分類優先順序選擇
-      const categoryOrder: StoryCategory[] = [
-        'growth',
-        'psychology',
-        'community',
-        'practical',
-        'dreams',
-        'life',
-      ]
-      for (const cat of categoryOrder) {
+      // 按分類優先順序選擇（使用動態分類）
+      const categorySet = new Set(questions.map((q) => q.category))
+      for (const cat of categorySet) {
         const catQuestions = questions.filter((q) => q.category === cat)
         if (catQuestions.length > 0) {
           return catQuestions[Math.floor(Math.random() * catQuestions.length)]
@@ -62,9 +54,10 @@ function selectNextPrompt(
     }
 
     case 'easy_first': {
-      // 先推簡單有趣的題目
-      const easyFields = ['funny_moment', 'favorite_spot', 'climbing_trip', 'life_outside_climbing']
-      const easyQuestions = questions.filter((q) => easyFields.includes(q.field))
+      // 先推簡單有趣的題目（基於 difficulty 或標題關鍵字）
+      const easyQuestions = questions.filter(
+        (q) => q.title.includes('搞笑') || q.title.includes('推薦') || q.title.includes('旅行')
+      )
       if (easyQuestions.length > 0) {
         return easyQuestions[Math.floor(Math.random() * easyQuestions.length)]
       }
@@ -73,25 +66,18 @@ function selectNextPrompt(
 
     case 'completion_priority': {
       // 優先完成某個分類
-      const categoryProgress: Record<StoryCategory, number> = {
-        growth: 0,
-        psychology: 0,
-        community: 0,
-        practical: 0,
-        dreams: 0,
-        life: 0,
-      }
+      const categoryProgress: Record<string, number> = {}
       questions.forEach((q) => {
-        categoryProgress[q.category]++
+        categoryProgress[q.category] = (categoryProgress[q.category] || 0) + 1
       })
 
       // 找出最接近完成的分類
       let minRemaining = Infinity
-      let targetCategory: StoryCategory = 'growth'
+      let targetCategory = ''
       for (const [cat, remaining] of Object.entries(categoryProgress)) {
         if (remaining > 0 && remaining < minRemaining) {
           minRemaining = remaining
-          targetCategory = cat as StoryCategory
+          targetCategory = cat
         }
       }
 
@@ -136,20 +122,42 @@ export function StoryPromptModal({
   lastPromptedField,
   initialField,
 }: StoryPromptModalProps) {
-  const [currentQuestion, setCurrentQuestion] = useState<StoryQuestion | null>(null)
+  const [currentQuestion, setCurrentQuestion] = useState<PromptStoryQuestion | null>(null)
   const [value, setValue] = useState('')
   const [isSaving, setIsSaving] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [showExamples, setShowExamples] = useState(false)
 
+  // 從 API 取得問題
+  const { data: questionsData, isLoading: isLoadingQuestions } = useQuestions()
+
+  // 轉換問題格式
+  const allQuestions = useMemo(() => {
+    if (!questionsData) return []
+    return convertToPromptQuestions(questionsData)
+  }, [questionsData])
+
+  // 建立分類名稱對照表
+  const categoryNames = useMemo(() => {
+    if (!questionsData) return {}
+    const names: Record<string, string> = {}
+    questionsData.categories.forEach((cat) => {
+      names[cat.id] = cat.name
+    })
+    return names
+  }, [questionsData])
+
   // 計算進度
-  const storyProgress = useMemo(() => calculateStoryProgress(biography), [biography])
+  const storyProgress = useMemo(
+    () => calculatePromptProgress(allQuestions, biography),
+    [allQuestions, biography]
+  )
 
   // 取得未填寫的問題並選擇一個推薦
   useEffect(() => {
-    if (isOpen) {
-      const unfilled = getUnfilledQuestions(biography)
-      let nextQuestion: StoryQuestion | null = null
+    if (isOpen && allQuestions.length > 0) {
+      const unfilled = getUnfilledPromptQuestions(allQuestions, biography)
+      let nextQuestion: PromptStoryQuestion | null = null
 
       // 優先使用後端 API 推薦的題目（確保頻率控制生效）
       // 從未填寫的問題中查找，避免顯示已填寫的題目
@@ -166,24 +174,26 @@ export function StoryPromptModal({
       setValue('')
       setError(null)
     }
-  }, [isOpen, biography, strategy, lastPromptedField, initialField])
+  }, [isOpen, allQuestions, biography, strategy, lastPromptedField, initialField])
 
   // 取得分類資訊
   const categoryInfo = useMemo(() => {
     if (!currentQuestion) return null
-    return getCategoryInfo(currentQuestion.category)
-  }, [currentQuestion])
+    return {
+      name: categoryNames[currentQuestion.category] || currentQuestion.category,
+      color: 'text-brand-dark',
+    }
+  }, [currentQuestion, categoryNames])
 
   // 計算當前分類進度
   const categoryProgress = useMemo(() => {
     if (!currentQuestion || !categoryInfo) return null
     const catProgress = storyProgress.byCategory[currentQuestion.category]
-    const total = ADVANCED_STORY_QUESTIONS.filter(
-      (q) => q.category === currentQuestion.category
-    ).length
-    const filled = total - catProgress.total + catProgress.completed
+    if (!catProgress) return null
+    const total = allQuestions.filter((q) => q.category === currentQuestion.category).length
+    const filled = catProgress.completed
     return { filled, total }
-  }, [currentQuestion, categoryInfo, storyProgress])
+  }, [currentQuestion, categoryInfo, storyProgress, allQuestions])
 
   // 儲存
   const handleSave = useCallback(async () => {
@@ -212,19 +222,16 @@ export function StoryPromptModal({
 
   // 換一題
   const handleChangeQuestion = useCallback(() => {
-    const unfilled = getUnfilledQuestions(biography)
-    const nextQuestion = selectNextPrompt(
-      unfilled,
-      'random',
-      currentQuestion?.field
-    )
+    const unfilled = getUnfilledPromptQuestions(allQuestions, biography)
+    const nextQuestion = selectNextPrompt(unfilled, 'random', currentQuestion?.field)
     setCurrentQuestion(nextQuestion)
     setValue('')
-  }, [biography, currentQuestion])
+  }, [allQuestions, biography, currentQuestion])
 
-  if (!currentQuestion) return null
+  // 載入中或沒有問題
+  if (isLoadingQuestions || !currentQuestion) return null
 
-  const Icon = getStoryIcon(currentQuestion.icon)
+  const Icon = MessageCircle
 
   return (
     <AnimatePresence>
@@ -408,9 +415,16 @@ interface StoryPromptBadgeProps {
 }
 
 export function StoryPromptBadge({ biography, onClick, className }: StoryPromptBadgeProps) {
-  const unfilled = getUnfilledQuestions(biography)
+  const { data: questionsData } = useQuestions()
 
-  if (unfilled.length === 0) return null
+  const unfilledCount = useMemo(() => {
+    if (!questionsData) return 0
+    const allQuestions = convertToPromptQuestions(questionsData)
+    const unfilled = getUnfilledPromptQuestions(allQuestions, biography)
+    return unfilled.length
+  }, [questionsData, biography])
+
+  if (unfilledCount === 0) return null
 
   return (
     <motion.button
@@ -427,7 +441,7 @@ export function StoryPromptBadge({ biography, onClick, className }: StoryPromptB
       <MessageCircle className="h-5 w-5 text-blue-500" />
       <span className="text-sm font-medium text-gray-700">今天來寫個故事？</span>
       <span className="rounded-full bg-blue-100 px-2 py-0.5 text-xs font-medium text-blue-600">
-        {unfilled.length} 題待填
+        {unfilledCount} 題待填
       </span>
     </motion.button>
   )

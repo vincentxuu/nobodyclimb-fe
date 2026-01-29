@@ -1,25 +1,199 @@
 'use client'
 
-import React, { useEffect } from 'react'
+import React, { useEffect, useState, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
+import { useQuery } from '@tanstack/react-query'
 import { useAuth } from '@/lib/hooks/useAuth'
 import { Button } from '@/components/ui/button'
 import { PageTransition } from '@/components/shared/page-transition'
-import { Check, Edit3, Home, User } from 'lucide-react'
+import { Check, Edit3, Home, User, Sparkles, ArrowRight } from 'lucide-react'
+import { GuidedQuestions, ChoiceQuestion } from '@/components/onboarding'
+import { biographyService } from '@/lib/api/services'
+import { useQuestions, useChoiceQuestions, useSubmitChoiceAnswer } from '@/lib/hooks/useQuestions'
+import { useToast } from '@/components/ui/use-toast'
+import { buildOneLinersData } from '@/lib/utils/biography'
+
+// 引導式問答的問題（從一句話問題中選取幾個容易回答的）
+const GUIDED_QUESTIONS_CONFIG = [
+  {
+    id: 'best_moment',
+    category: '攀岩的樂趣',
+  },
+  {
+    id: 'current_goal',
+    category: '目標與挑戰',
+  },
+  {
+    id: 'climbing_takeaway',
+    category: '成長與收穫',
+  },
+]
+
+// 流程階段
+type FlowPhase = 'complete' | 'choice' | 'guided'
 
 export default function CompletePage() {
   const router = useRouter()
   const { isAuthenticated, loading } = useAuth()
+  const { toast } = useToast()
+  const { data: questionsData } = useQuestions()
+  const { data: choiceQuestions } = useChoiceQuestions()
+  const submitChoiceAnswer = useSubmitChoiceAnswer()
+  const [flowPhase, setFlowPhase] = useState<FlowPhase>('complete')
+  const [currentChoiceIndex, setCurrentChoiceIndex] = useState(0)
+  const [isSaving, setIsSaving] = useState(false)
+
+  // 取得當前用戶的 biography
+  const { data: myBiography } = useQuery({
+    queryKey: ['my-biography'],
+    queryFn: async () => {
+      const response = await biographyService.getMyBiography()
+      return response.data
+    },
+    enabled: isAuthenticated,
+  })
 
   useEffect(() => {
-    // 如果使用者未登入，重定向至登入頁面
     if (!loading && !isAuthenticated) {
       router.push('/auth/login')
     }
   }, [isAuthenticated, loading, router])
 
+  // 從 API 題目中匹配引導式問答的問題
+  const guidedQuestions = React.useMemo(() => {
+    if (!questionsData) return []
+
+    return GUIDED_QUESTIONS_CONFIG.map((config) => {
+      // 先從一句話問題中找
+      const oneLiner = questionsData.oneLiners.find((q) => q.id === config.id)
+      if (oneLiner) {
+        return {
+          id: oneLiner.id,
+          question: oneLiner.question,
+          subtitle: oneLiner.format_hint || undefined,
+          placeholder: oneLiner.placeholder || undefined,
+          type: 'text' as const,
+          category: config.category,
+        }
+      }
+
+      // 從核心故事中找
+      const coreStory = questionsData.coreStories.find((q) => q.id === config.id)
+      if (coreStory) {
+        return {
+          id: coreStory.id,
+          question: coreStory.title,
+          subtitle: coreStory.subtitle || undefined,
+          placeholder: coreStory.placeholder || undefined,
+          type: 'textarea' as const,
+          category: config.category,
+        }
+      }
+
+      return null
+    }).filter((q): q is NonNullable<typeof q> => q !== null)
+  }, [questionsData])
+
+  // 開始引導流程：先選擇題，再一句話
+  const handleStartGuided = () => {
+    if (choiceQuestions && choiceQuestions.length > 0) {
+      setFlowPhase('choice')
+      setCurrentChoiceIndex(0)
+    } else {
+      setFlowPhase('guided')
+    }
+  }
+
+  // 處理選擇題提交
+  const handleChoiceSubmit = useCallback(
+    async (optionId: string, customText?: string, followUpText?: string) => {
+      if (!myBiography?.id) {
+        throw new Error('Biography not found')
+      }
+
+      const currentQuestion = choiceQuestions?.[currentChoiceIndex]
+      if (!currentQuestion) {
+        throw new Error('Question not found')
+      }
+
+      const result = await submitChoiceAnswer.mutateAsync({
+        biographyId: myBiography.id,
+        questionId: currentQuestion.id,
+        optionId,
+        customText,
+        followUpText,
+      })
+
+      return {
+        responseMessage: result?.response_message || '感謝你的回答！',
+        communityCount: result?.community_count || 1,
+      }
+    },
+    [myBiography?.id, choiceQuestions, currentChoiceIndex, submitChoiceAnswer]
+  )
+
+  // 選擇題完成後，進入下一題或一句話問答
+  const handleChoiceComplete = useCallback(() => {
+    if (choiceQuestions && currentChoiceIndex < choiceQuestions.length - 1) {
+      setCurrentChoiceIndex((prev) => prev + 1)
+    } else {
+      // 選擇題都完成了，進入一句話問答
+      if (guidedQuestions.length > 0) {
+        setFlowPhase('guided')
+      } else {
+        router.push('/profile')
+      }
+    }
+  }, [choiceQuestions, currentChoiceIndex, guidedQuestions.length, router])
+
+  // 跳過選擇題
+  const handleChoiceSkip = useCallback(() => {
+    // 跳過所有選擇題，進入一句話問答
+    if (guidedQuestions.length > 0) {
+      setFlowPhase('guided')
+    } else {
+      setFlowPhase('complete')
+    }
+  }, [guidedQuestions.length])
+
+  const handleGuidedComplete = useCallback(
+    async (answers: Record<string, string>) => {
+      setIsSaving(true)
+      try {
+        const oneLinersData = buildOneLinersData(answers)
+
+        if (Object.keys(oneLinersData).length > 0) {
+          await biographyService.updateBiography({
+            one_liners_data: JSON.stringify(oneLinersData),
+          })
+
+          toast({
+            title: '回答已儲存',
+            description: '你的人物誌已更新',
+            variant: 'default',
+          })
+        }
+
+        router.push('/profile')
+      } catch (error) {
+        console.error('Failed to save guided answers:', error)
+        toast({
+          title: '儲存失敗',
+          description: '請稍後再試',
+          variant: 'destructive',
+        })
+      } finally {
+        setIsSaving(false)
+      }
+    },
+    [router, toast]
+  )
+
+  const handleGuidedSkip = useCallback(() => {
+    setFlowPhase('complete')
+  }, [])
+
   const handleGoToEditor = () => {
-    // 導向人物誌編輯器（在 /profile 頁面）
     router.push('/profile')
   }
 
@@ -29,6 +203,51 @@ export default function CompletePage() {
 
   const handleGoToHome = () => {
     router.push('/')
+  }
+
+  // 顯示選擇題
+  if (flowPhase === 'choice' && choiceQuestions && choiceQuestions.length > 0) {
+    const currentQuestion = choiceQuestions[currentChoiceIndex]
+    if (currentQuestion) {
+      return (
+        <PageTransition>
+          <div className="min-h-screen bg-white">
+            <ChoiceQuestion
+              question={currentQuestion}
+              onSubmit={handleChoiceSubmit}
+              onSkip={handleChoiceSkip}
+              onComplete={handleChoiceComplete}
+            />
+          </div>
+        </PageTransition>
+      )
+    }
+  }
+
+  // 顯示引導式問答
+  if (flowPhase === 'guided' && guidedQuestions.length > 0) {
+    return (
+      <PageTransition>
+        <div className="min-h-screen bg-white">
+          {isSaving ? (
+            <div className="flex min-h-screen items-center justify-center">
+              <div className="text-center">
+                <div className="mb-4 h-8 w-8 animate-spin rounded-full border-2 border-gray-300 border-t-primary mx-auto" />
+                <p className="text-[#6D6C6C]">正在儲存...</p>
+              </div>
+            </div>
+          ) : (
+            <GuidedQuestions
+              questions={guidedQuestions}
+              onComplete={handleGuidedComplete}
+              onSkip={handleGuidedSkip}
+              title="讓更多人認識你"
+              subtitle="回答幾個簡單的問題，讓你的人物誌更加完整"
+            />
+          )}
+        </div>
+      </PageTransition>
+    )
   }
 
   return (
@@ -83,11 +302,37 @@ export default function CompletePage() {
             與其他岩友互動交流。
           </p>
 
-          {/* 提示卡片 */}
-          <div className="w-full max-w-md rounded-xl border border-primary/20 bg-primary/5 p-4 text-left">
+          {/* 引導式問答提示卡片 */}
+          {guidedQuestions.length > 0 && (
+            <div className="w-full max-w-md rounded-xl border-2 border-primary/30 bg-gradient-to-br from-primary/5 to-primary/10 p-5 text-left">
+              <div className="flex items-start gap-3">
+                <div className="rounded-full bg-primary/20 p-2">
+                  <Sparkles size={20} className="text-primary" />
+                </div>
+                <div className="flex-1">
+                  <h3 className="font-medium text-gray-900">再多回答幾個問題？</h3>
+                  <p className="mt-1 text-sm text-gray-600">
+                    只需要 2 分鐘，讓其他岩友更了解你！
+                  </p>
+                  <Button
+                    onClick={handleStartGuided}
+                    className="mt-3 gap-1.5 bg-primary text-white hover:bg-primary/90"
+                    size="sm"
+                  >
+                    <Sparkles size={14} />
+                    開始回答
+                    <ArrowRight size={14} />
+                  </Button>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* 原有提示卡片 */}
+          <div className="w-full max-w-md rounded-xl border border-gray-200 bg-white p-4 text-left shadow-sm">
             <div className="flex items-start gap-3">
-              <div className="rounded-full bg-primary/10 p-2">
-                <Edit3 size={20} className="text-primary" />
+              <div className="rounded-full bg-gray-100 p-2">
+                <Edit3 size={20} className="text-gray-600" />
               </div>
               <div>
                 <h3 className="font-medium text-gray-900">想讓人物誌更豐富？</h3>

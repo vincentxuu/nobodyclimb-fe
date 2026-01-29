@@ -8,17 +8,14 @@ import { PageTransition } from '@/components/shared/page-transition'
 import { useToast } from '@/components/ui/use-toast'
 import { biographyService } from '@/lib/api/services'
 import { cn } from '@/lib/utils'
-import {
-  SYSTEM_ONELINER_QUESTIONS,
-  SYSTEM_ONELINER_QUESTION_LIST,
-} from '@/lib/constants/biography-questions'
+import { useQuestions } from '@/lib/hooks/useQuestions'
 
-// 註冊流程只顯示核心 3 題
-const REGISTRATION_QUESTIONS: string[] = [
-  SYSTEM_ONELINER_QUESTIONS.CLIMBING_ORIGIN,
-  SYSTEM_ONELINER_QUESTIONS.CLIMBING_MEANING,
-  SYSTEM_ONELINER_QUESTIONS.ADVICE_TO_SELF,
-]
+// 核心故事問題 ID（固定）
+const CORE_STORY_IDS = {
+  CLIMBING_ORIGIN: 'climbing_origin',
+  CLIMBING_MEANING: 'climbing_meaning',
+  ADVICE_TO_SELF: 'advice_to_self',
+} as const
 
 interface OneLinerFormData {
   [key: string]: string
@@ -28,15 +25,14 @@ export default function SelfIntroPage() {
   const router = useRouter()
   const { isAuthenticated, loading } = useAuth()
   const { toast } = useToast()
+  const { data: questionsData, isLoading: questionsLoading } = useQuestions()
 
   const [formData, setFormData] = useState<OneLinerFormData>({})
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [isPublic, setIsPublic] = useState(true)
 
-  // 取得要顯示的問題
-  const questionsToShow = SYSTEM_ONELINER_QUESTION_LIST.filter((q) =>
-    REGISTRATION_QUESTIONS.includes(q.id as string)
-  ).sort((a, b) => REGISTRATION_QUESTIONS.indexOf(a.id as string) - REGISTRATION_QUESTIONS.indexOf(b.id as string))
+  // 從 API 取得核心故事問題
+  const questionsToShow = questionsData?.coreStories || []
 
   useEffect(() => {
     // 如果使用者未登入，重定向至登入頁面
@@ -55,20 +51,11 @@ export default function SelfIntroPage() {
     setIsSubmitting(true)
 
     try {
-      // 將表單資料轉換為 API 格式
-      const oneLinersData: Record<string, { answer: string; visibility: string }> = {}
-      Object.entries(formData).forEach(([questionId, answer]) => {
-        if (answer.trim()) {
-          oneLinersData[questionId] = {
-            answer: answer.trim(),
-            visibility: 'public',
-          }
-        }
-      })
-
-      // 更新人物誌
+      // 直接傳核心故事欄位到後端（存到獨立表 biography_core_stories）
       await biographyService.updateBiography({
-        one_liners_data: JSON.stringify(oneLinersData),
+        climbing_origin: formData[CORE_STORY_IDS.CLIMBING_ORIGIN]?.trim() || undefined,
+        climbing_meaning: formData[CORE_STORY_IDS.CLIMBING_MEANING]?.trim() || undefined,
+        advice_to_self: formData[CORE_STORY_IDS.ADVICE_TO_SELF]?.trim() || undefined,
         visibility: isPublic ? 'public' : 'private',
       })
 
@@ -146,25 +133,29 @@ export default function SelfIntroPage() {
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-6">
-          {/* 一句話問題列表 */}
-          {questionsToShow.map((question) => (
-            <div key={question.id} className="space-y-2">
-              <label className="text-gray-700 font-medium">
-                {question.question}
-              </label>
-              {question.format_hint && (
-                <p className="text-xs text-gray-500">{question.format_hint}</p>
-              )}
-              <input
-                type="text"
-                name={question.id}
-                value={formData[question.id] || ''}
-                onChange={handleChange}
-                placeholder={question.placeholder}
-                className="w-full px-4 py-3 bg-white border border-gray-300 rounded-xl text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary transition-colors"
-              />
-            </div>
-          ))}
+          {/* 核心故事問題列表 */}
+          {questionsLoading ? (
+            <div className="text-center py-8 text-gray-500">載入中...</div>
+          ) : (
+            questionsToShow.map((question) => (
+              <div key={question.id} className="space-y-2">
+                <label className="text-gray-700 font-medium">
+                  {question.title}
+                </label>
+                {question.subtitle && (
+                  <p className="text-xs text-gray-500">{question.subtitle}</p>
+                )}
+                <input
+                  type="text"
+                  name={question.id}
+                  value={formData[question.id] || ''}
+                  onChange={handleChange}
+                  placeholder={question.placeholder || ''}
+                  className="w-full px-4 py-3 bg-white border border-gray-300 rounded-xl text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary transition-colors"
+                />
+              </div>
+            ))
+          )}
 
           {/* 公開分享選項 */}
           <div className="flex items-center space-x-3 pt-4">

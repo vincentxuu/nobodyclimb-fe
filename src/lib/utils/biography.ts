@@ -1,6 +1,43 @@
 import { getTagOptionById, SYSTEM_TAG_DIMENSIONS } from '@/lib/constants/biography-tags'
 import type { TagsDataStorage, TagSelection, TagOption } from '@/lib/types/biography-v2'
 
+// ═══════════════════════════════════════════
+// 一句話資料格式轉換
+// ═══════════════════════════════════════════
+
+/**
+ * 後端 one_liners_data 的儲存格式
+ */
+export type OneLinersDataStorage = Record<string, { answer: string; visibility: string }>
+
+/**
+ * 將簡單的問答映射轉換為後端 one_liners_data 格式
+ *
+ * @param answers - 問題 ID 到答案的映射
+ * @param visibility - 預設可見性 (預設為 'public')
+ * @returns 後端格式的一句話資料物件
+ *
+ * @example
+ * const answers = { 'climbing_start_reason': '想挑戰自己', 'climbing_joy': '攀到頂的成就感' }
+ * const data = buildOneLinersData(answers)
+ * // { 'climbing_start_reason': { answer: '想挑戰自己', visibility: 'public' }, ... }
+ */
+export function buildOneLinersData(
+  answers: Record<string, string>,
+  visibility: string = 'public'
+): OneLinersDataStorage {
+  const result: OneLinersDataStorage = {}
+
+  for (const [questionId, answer] of Object.entries(answers)) {
+    const trimmedAnswer = answer.trim()
+    if (trimmedAnswer) {
+      result[questionId] = { answer: trimmedAnswer, visibility }
+    }
+  }
+
+  return result
+}
+
 /**
  * 計算攀岩年資
  * @param climbingStartYear 開始攀岩的年份字串
@@ -10,6 +47,23 @@ export function calculateClimbingYears(climbingStartYear: string | null | undefi
   if (!climbingStartYear) return null
   const startYear = parseInt(climbingStartYear, 10)
   return isNaN(startYear) ? null : new Date().getFullYear() - startYear
+}
+
+// ═══════════════════════════════════════════
+// 匿名人物誌處理
+// ═══════════════════════════════════════════
+
+type VisibilityLevel = 'private' | 'anonymous' | 'community' | 'public' | null | undefined
+
+/**
+ * 根據人物誌可見性取得顯示名稱
+ * 匿名人物誌顯示「匿名岩友」，其他則顯示實際名稱
+ */
+export function getDisplayNameForVisibility(
+  visibility: VisibilityLevel,
+  actualName: string
+): string {
+  return visibility === 'anonymous' ? '匿名岩友' : actualName
 }
 
 // ═══════════════════════════════════════════

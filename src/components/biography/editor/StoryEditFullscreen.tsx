@@ -98,7 +98,7 @@ export function StoryEditFullscreen({
   return (
     <div
       className={cn(
-        'fixed inset-0 z-50 bg-white flex flex-col transition-transform duration-300 ease-out',
+        'fixed inset-0 z-[1000] bg-white flex flex-col transition-transform duration-300 ease-out',
         isOpen ? 'translate-y-0' : 'translate-y-full',
         className
       )}

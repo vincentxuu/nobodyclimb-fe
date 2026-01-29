@@ -1,27 +1,16 @@
 import '@/styles/globals.css'
 import React from 'react'
 import type { Metadata } from 'next'
-import { Noto_Sans_TC, Allerta_Stencil } from 'next/font/google'
 import { Providers } from '@/components/layout/providers'
 import { Navbar } from '@/components/layout/navbar'
 import { Footer } from '@/components/layout/footer'
 import { ProgressBar } from '@/components/shared/progress-bar'
 import { AuthInitializer } from '@/components/shared/auth-initializer'
 import { StoryPromptWrapper } from '@/components/shared/story-prompt-wrapper'
+import { ShareInvitation } from '@/components/shared/share-invitation'
+import { ClaimContentProvider } from '@/components/shared/claim-content-modal'
 import { SITE_URL, SITE_NAME, SITE_DESCRIPTION, SITE_LOGO, OG_IMAGE } from '@/lib/constants'
 import { Analytics } from '@/components/shared/analytics'
-
-const notoSansTC = Noto_Sans_TC({
-  weight: ['300', '400', '500', '700'],
-  subsets: ['latin'],
-  variable: '--font-noto-sans-tc',
-})
-
-const allertaStencil = Allerta_Stencil({
-  weight: ['400'],
-  subsets: ['latin'],
-  variable: '--font-allerta-stencil',
-})
 
 export const metadata: Metadata = {
   metadataBase: new URL(SITE_URL),
@@ -126,13 +115,20 @@ const jsonLd = {
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html suppressHydrationWarning className={`${notoSansTC.variable} ${allertaStencil.variable}`} lang="zh-TW">
+    <html suppressHydrationWarning lang="zh-TW">
       <head>
         {/* esbuild __name polyfill - 修復 Cloudflare Workers 部署問題 */}
         <script
           dangerouslySetInnerHTML={{
             __html: `typeof __name === "undefined" && (window.__name = function(fn) { return fn; });`,
           }}
+        />
+        {/* Google Fonts - 透過 CDN 載入 */}
+        <link rel="preconnect" href="https://fonts.googleapis.com" />
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
+        <link
+          href="https://fonts.googleapis.com/css2?family=Allerta+Stencil&family=Noto+Sans+TC:wght@300;400;500;700&display=swap"
+          rel="stylesheet"
         />
         {/* Quill Editor CSS - 透過 CDN 載入避免 SSR 問題 */}
         <link
@@ -145,15 +141,18 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
         />
       </head>
-      <body suppressHydrationWarning className={notoSansTC.className}>
+      <body suppressHydrationWarning className="font-sans">
         <Analytics />
         <Providers>
-          <AuthInitializer />
-          <StoryPromptWrapper />
-          <ProgressBar />
-          <Navbar />
-          <main className="min-h-[calc(100vh-14rem)] pt-14 md:pt-[70px]">{children}</main>
-          <Footer />
+          <ClaimContentProvider>
+            <AuthInitializer />
+            <StoryPromptWrapper />
+            <ProgressBar />
+            <Navbar />
+            <main className="min-h-[calc(100vh-14rem)] pt-14 md:pt-[70px]">{children}</main>
+            <ShareInvitation />
+            <Footer />
+          </ClaimContentProvider>
         </Providers>
       </body>
     </html>
