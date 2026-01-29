@@ -476,7 +476,7 @@ climbingLocationsRoutes.get('/explore', async (c) => {
       cl.country,
       COUNT(DISTINCT cl.biography_id) as visitor_count
      FROM climbing_locations cl
-     JOIN biographies b ON b.id = cl.biography_id AND b.is_public = 1
+     JOIN biographies b ON b.id = cl.biography_id AND b.visibility = 'public'
      WHERE ${whereClause}
      GROUP BY cl.location, cl.country
      ORDER BY visitor_count DESC
@@ -489,7 +489,7 @@ climbingLocationsRoutes.get('/explore', async (c) => {
   const totalResult = await c.env.DB.prepare(
     `SELECT COUNT(DISTINCT cl.location || '|' || cl.country) as count
      FROM climbing_locations cl
-     JOIN biographies b ON b.id = cl.biography_id AND b.is_public = 1
+     JOIN biographies b ON b.id = cl.biography_id AND b.visibility = 'public'
      WHERE ${whereClause}`
   )
     .bind(...params)
@@ -520,7 +520,7 @@ climbingLocationsRoutes.get('/explore/:location', async (c) => {
       cl.visit_year,
       cl.notes
      FROM climbing_locations cl
-     JOIN biographies b ON b.id = cl.biography_id AND b.is_public = 1
+     JOIN biographies b ON b.id = cl.biography_id AND b.visibility = 'public'
      WHERE cl.location = ? AND cl.is_public = 1
      ORDER BY cl.visit_year DESC`
   )
@@ -556,7 +556,7 @@ climbingLocationsRoutes.get('/explore/countries', async (c) => {
       COUNT(DISTINCT cl.location) as location_count,
       COUNT(DISTINCT cl.biography_id) as visitor_count
      FROM climbing_locations cl
-     JOIN biographies b ON b.id = cl.biography_id AND b.is_public = 1
+     JOIN biographies b ON b.id = cl.biography_id AND b.visibility = 'public'
      WHERE cl.is_public = 1
      GROUP BY cl.country
      ORDER BY visitor_count DESC`

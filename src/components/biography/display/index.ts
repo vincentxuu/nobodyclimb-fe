@@ -15,3 +15,7 @@ export { BiographyGallery } from './BiographyGallery'
 export { BiographySocials } from './BiographySocials'
 export { EmptyState, SectionEmptyState } from './EmptyState'
 export { BiographyDetailPage } from './BiographyDetailPage'
+
+// 共用互動組件
+export { ContentLikeButton } from './ContentLikeButton'
+export { ContentCommentSheet } from './ContentCommentSheet'

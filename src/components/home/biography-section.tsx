@@ -11,7 +11,7 @@ import { biographyService } from '@/lib/api/services'
 import { Biography } from '@/lib/types'
 import { useAuthStore } from '@/store/authStore'
 import { isSvgUrl, getDefaultAvatarUrl } from '@/lib/utils/image'
-import { getDisplayTags } from '@/lib/utils/biography'
+import { getDisplayTags, getDisplayNameForVisibility } from '@/lib/utils/biography'
 import {
   getCachedHomeBiographies,
   cacheHomeBiographies,
@@ -28,27 +28,35 @@ interface ClimberCardProps {
 
 // 卡片網格組件，預先計算每張卡片的內容
 function BiographyGrid({ biographies }: { biographies: Biography[] }) {
-  // 使用 reduce 避免 mutation，確保純函數
+  // 使用 reduce 避免 mutation，優先顯示真實內容，盡量避免問題重複
   const biographiesWithContent = useMemo(() => {
     const result = biographies.reduce<{
       items: Array<{ person: Biography; content: ReturnType<typeof selectCardContent> }>
-      usedIds: string[]
+      usageCount: Map<string, number>
     }>(
       (acc, person) => {
-        const usedQuestionIds = new Set(acc.usedIds)
+        const usageCount = new Map(acc.usageCount)
         const content = selectCardContent(
           person.id,
           person.one_liners_data,
           person.stories_data,
-          usedQuestionIds,
-          person.climbing_meaning
+          usageCount
         )
+
+        // 更新使用次數
+        if (content?.questionId) {
+          usageCount.set(
+            content.questionId,
+            (usageCount.get(content.questionId) || 0) + 1
+          )
+        }
+
         return {
           items: [...acc.items, { person, content }],
-          usedIds: content?.questionId ? [...acc.usedIds, content.questionId] : acc.usedIds,
+          usageCount,
         }
       },
-      { items: [], usedIds: [] }
+      { items: [], usageCount: new Map() }
     )
     return result.items
   }, [biographies])
@@ -68,6 +76,7 @@ function ClimberCard({ person, selectedContent }: ClimberCardProps) {
     : null
   // 取得展示標籤
   const displayTags = getDisplayTags(person.tags_data)
+  const displayName = getDisplayNameForVisibility(person.visibility, person.name)
 
   return (
     <motion.div
@@ -101,11 +110,11 @@ function ClimberCard({ person, selectedContent }: ClimberCardProps) {
                 <div className="relative h-10 w-10 flex-shrink-0 overflow-hidden rounded-full bg-gray-100">
                   {person.avatar_url ? (
                     isSvgUrl(person.avatar_url) ? (
-                      <img src={person.avatar_url} alt={person.name} className="h-full w-full object-cover" />
+                      <img src={person.avatar_url} alt={displayName} className="h-full w-full object-cover" />
                     ) : (
                       <Image
                         src={person.avatar_url}
-                        alt={person.name}
+                        alt={displayName}
                         fill
                         className="object-cover"
                         sizes="40px"
@@ -113,14 +122,14 @@ function ClimberCard({ person, selectedContent }: ClimberCardProps) {
                     )
                   ) : (
                     <img
-                      src={getDefaultAvatarUrl(person.name || 'anonymous', 40)}
-                      alt={person.name}
+                      src={getDefaultAvatarUrl(displayName || 'anonymous', 40)}
+                      alt={displayName}
                       className="h-full w-full object-cover"
                     />
                   )}
                 </div>
                 <div className="flex-1 min-w-0">
-                  <h3 className="text-sm font-medium text-[#1B1A1A]">{person.name}</h3>
+                  <h3 className="text-sm font-medium text-[#1B1A1A]">{displayName}</h3>
                   {displayTags.length > 0 ? (
                     <div className="flex flex-wrap gap-1 mt-0.5">
                       {displayTags.map((tag, index) => (

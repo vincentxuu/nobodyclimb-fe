@@ -134,13 +134,52 @@ nobodyclimb-fe/
 - Features grouped by domain (e.g., `components/crag/`, `components/profile/`)
 - Shared components in `components/shared/`
 - Base UI components (Radix UI wrappers) in `components/ui/`
+- Biography interaction components in `components/biography/display/`
 - Use `@/` path alias for imports (e.g., `import { Button } from '@/components/ui/button'`)
+
+### Biography Interaction Components
+The biography feature uses shared interaction components in `src/components/biography/display/`:
+
+- **`ContentInteractionBar`**: Unified component combining quick reactions, like, and comment
+  ```tsx
+  <ContentInteractionBar
+    contentType="stories"  // 'core-stories' | 'one-liners' | 'stories'
+    contentId={id}
+    isLiked={isLiked}
+    likeCount={likeCount}
+    commentCount={commentCount}
+    onToggleLike={handleToggleLike}
+    onFetchComments={handleFetchComments}
+    onAddComment={handleAddComment}
+    size="sm"           // 'sm' | 'md'
+    showBorder={true}   // Show top border
+    centered={false}    // Center align content
+  />
+  ```
+- **`QuickReactionBar`**: Quick reaction buttons (我也是, +1, 說得好)
+- **`ContentLikeButton`**: Like button with Mountain icon (emerald-600 color)
+- **`ContentCommentSheet`**: Inline expandable comment section
 
 ### Backend Architecture (Hono + D1)
 - RESTful API with route handlers in `backend/src/routes/`
 - JWT authentication middleware
 - D1 database with SQLite schema in `backend/src/db/schema.sql`
 - Cloudflare bindings: DB (D1), CACHE (KV), STORAGE (R2)
+
+### Active User Definition (User Activity Tracking)
+The system tracks user activity through the `last_active_at` field in the `users` table:
+
+**Update Strategy**:
+- Updated automatically in auth middleware (`backend/src/middleware/auth.ts`)
+- Uses a "once per 24 hours" throttling strategy to minimize database writes
+- Any authenticated API request counts as activity (login-based definition)
+
+**Activity Metrics** (calculated in `backend/src/routes/stats.ts`):
+- **DAU (Daily Active Users)**: Users with `last_active_at` within the last 24 hours
+- **WAU (Weekly Active Users)**: Users with `last_active_at` within the last 7 days
+- **MAU (Monthly Active Users)**: Users with `last_active_at` within the last 30 days
+
+This follows industry-standard time ranges. The activity definition is intentionally broad (any authenticated request) to capture all user engagement, including passive browsing. This approach is commonly used by content platforms like Facebook, Instagram, and Medium.
 
 ## Deployment Environments
 
@@ -188,10 +227,36 @@ Next.js image configuration supports:
 - Run tests: `pnpm test`
 - No custom Jest config file found (using Next.js defaults)
 
+## Analytics Configuration
+
+Analytics tools (Google Analytics, Microsoft Clarity, PostHog) are controlled by two layers:
+
+### Build-time Control
+- `NEXT_PUBLIC_ENABLE_ANALYTICS`: Set in CI/CD workflow (`.github/workflows/deploy.yml`)
+  - `main` branch → `true` (production)
+  - Other branches → `false` (preview/test)
+
+### Runtime Control
+- `analytics.tsx` checks hostname at runtime
+- Only enables on production domains: `nobodyclimb.cc`, `www.nobodyclimb.cc`
+- Automatically disabled on: `preview.nobodyclimb.cc`, `localhost`, etc.
+
+### Environment Variables
+| Variable | Description |
+|----------|-------------|
+| `NEXT_PUBLIC_ENABLE_ANALYTICS` | Master switch for analytics (`'true'` to enable) |
+| `NEXT_PUBLIC_GA_ID` | Google Analytics Measurement ID |
+| `NEXT_PUBLIC_CLARITY_ID` | Microsoft Clarity Project ID |
+| `NEXT_PUBLIC_POSTHOG_KEY` | PostHog API Key |
+| `NEXT_PUBLIC_POSTHOG_HOST` | PostHog Host URL |
+
 ## CI/CD
 
 GitHub Actions workflows in `.github/workflows/`:
 - `deploy.yml`: Frontend deployment
+  - Sets `NEXT_PUBLIC_ENABLE_ANALYTICS` based on branch
+  - `main` → production with analytics enabled
+  - Other branches → preview with analytics disabled
 - `deploy-api.yml`: Backend API deployment with D1 migrations
   - Triggers on changes to `backend/` directory
   - Requires `CLOUDFLARE_API_TOKEN` secret
@@ -203,3 +268,21 @@ GitHub Actions workflows in `.github/workflows/`:
 - Currently using static JSON files in `public/data/` for video data (KV integration planned)
 - Backend requires Cloudflare account and proper bindings setup
 - JWT secret must be configured via `wrangler secret put JWT_SECRET` for backend
+
+## StartMoving - Idea to Product Framework
+
+StartMoving is a structured framework for turning ideas into products. Use these slash commands:
+
+| Command | Purpose |
+|---------|---------|
+| `/startmoving.new` | Create a new project |
+| `/startmoving.define` | Define your idea (interactive Q&A) |
+| `/startmoving.validate` | Generate validation plan |
+| `/startmoving.plan` | Plan your MVP |
+| `/startmoving.landing` | Generate landing page |
+| `/startmoving.status` | View project status |
+| `/startmoving.list` | List all projects |
+
+**Workflow**: `/startmoving.new` → `/startmoving.define` → `/startmoving.validate` → `/startmoving.plan` → `/startmoving.landing`
+
+For detailed instructions, see `.startmoving/AGENTS.md`.

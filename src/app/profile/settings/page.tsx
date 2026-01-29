@@ -5,7 +5,9 @@ import ProfilePageLayout from '@/components/profile/layout/ProfilePageLayout'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
-import { UserCircle, Key, Upload, Loader2 } from 'lucide-react'
+import { UserCircle, Key, Upload, Loader2, Bell, BarChart3 } from 'lucide-react'
+import NotificationPreferences from '@/components/profile/NotificationPreferences'
+import NotificationStats from '@/components/profile/NotificationStats'
 import {
   AvatarOptions,
   generateAvatarElement,
@@ -151,9 +153,13 @@ const ProfileForm = ({ userData, isSaving, onFieldChange, onSave }: ProfileFormP
     <FormField label="使用者名稱">
       <Input
         value={userData.username}
+        onChange={(e) => onFieldChange('username', e.target.value)}
         className="border-[#B6B3B3]"
-        disabled
+        placeholder="3-30 字元，僅限英文、數字、底線"
       />
+      <p className="mt-1 text-xs text-[#8E8C8C]">
+        使用者名稱將作為您的個人頁面網址 (例如: nobodyclimb.cc/biography/{userData.username || 'username'})
+      </p>
     </FormField>
     <FormField label="電子郵件">
       <Input
@@ -384,6 +390,17 @@ export default function SettingsPage() {
       return
     }
 
+    // 驗證使用者名稱格式
+    const usernameRegex = /^[a-zA-Z0-9_]{3,30}$/
+    if (!usernameRegex.test(userData.username)) {
+      toast({
+        title: '使用者名稱格式錯誤',
+        description: '使用者名稱需為 3-30 字元，僅限英文、數字、底線',
+        variant: 'destructive',
+      })
+      return
+    }
+
     try {
       setIsSaving(true)
       let avatarUrl = userData.avatarUrl
@@ -406,6 +423,7 @@ export default function SettingsPage() {
       // 更新用戶資料 - 使用後端 API 期望的 snake_case 欄位名稱
       const profileData: Record<string, string | undefined> = {
         display_name: userData.displayName,
+        username: userData.username,
       }
 
       // 設定頭像相關資料
@@ -433,7 +451,27 @@ export default function SettingsPage() {
       }
     } catch (error: unknown) {
       console.error('儲存個人資料失敗:', error)
-      const errorMessage = error instanceof Error ? error.message : '請稍後再試'
+      // 處理 API 錯誤回應
+      interface ApiError {
+        response?: {
+          status?: number
+          data?: {
+            message?: string
+          }
+        }
+        message?: string
+      }
+      const apiError = error as ApiError
+      let errorMessage = '請稍後再試'
+
+      if (apiError.response?.status === 409) {
+        errorMessage = '使用者名稱已被使用，請選擇其他名稱'
+      } else if (apiError.response?.data?.message) {
+        errorMessage = apiError.response.data.message
+      } else if (apiError.message) {
+        errorMessage = apiError.message
+      }
+
       toast({
         title: '儲存失敗',
         description: errorMessage,
@@ -556,7 +594,7 @@ export default function SettingsPage() {
 
         {/* 標籤切換區域 */}
         <div className="mb-6 border-b border-[#DBD8D8]">
-          <div className={`flex ${isMobile ? 'w-full' : 'w-full md:w-[400px]'}`}>
+          <div className={`flex ${isMobile ? 'w-full' : 'w-full md:w-[600px]'}`}>
             <button
               onClick={() => handleTabChange('profile')}
               className={cn(
@@ -581,11 +619,23 @@ export default function SettingsPage() {
               <Key size={isMobile ? 16 : 18} />
               <span className={`${isMobile ? 'text-sm' : ''}`}>安全設定</span>
             </button>
+            <button
+              onClick={() => handleTabChange('notifications')}
+              className={cn(
+                'flex flex-1 items-center justify-center gap-2 px-4 py-3 font-medium transition-colors',
+                activeTab === 'notifications'
+                  ? 'border-b-2 border-[#1B1A1A] text-[#1B1A1A]'
+                  : 'text-[#6D6C6C] hover:bg-[#F5F5F5]'
+              )}
+            >
+              <Bell size={isMobile ? 16 : 18} />
+              <span className={`${isMobile ? 'text-sm' : ''}`}>通知設定</span>
+            </button>
           </div>
         </div>
 
         {/* 內容區域 */}
-        {activeTab === 'profile' ? (
+        {activeTab === 'profile' && (
           <div className="space-y-6">
             <div className={`grid grid-cols-1 ${isMobile ? '' : 'md:grid-cols-2'} gap-8`}>
               {/* 左側頭像上傳 */}
@@ -609,7 +659,9 @@ export default function SettingsPage() {
               />
             </div>
           </div>
-        ) : (
+        )}
+
+        {activeTab === 'security' && (
           <div className="space-y-8">
             <div className={`rounded-sm border border-[#DBD8D8] ${isMobile ? 'p-4' : 'p-6'}`}>
               <h2 className={`${isMobile ? 'text-lg' : 'text-xl'} mb-4 font-medium`}>修改密碼</h2>
@@ -619,6 +671,28 @@ export default function SettingsPage() {
                 onFieldChange={handleChange}
                 onChangePassword={handleChangePassword}
               />
+            </div>
+          </div>
+        )}
+
+        {activeTab === 'notifications' && (
+          <div className="space-y-8">
+            {/* 通知統計 */}
+            <div className={`rounded-sm border border-[#DBD8D8] ${isMobile ? 'p-4' : 'p-6'}`}>
+              <div className="flex items-center gap-2 mb-4">
+                <BarChart3 size={isMobile ? 18 : 20} className="text-[#3F3D3D]" />
+                <h2 className={`${isMobile ? 'text-lg' : 'text-xl'} font-medium`}>通知統計</h2>
+              </div>
+              <NotificationStats />
+            </div>
+
+            {/* 通知偏好設定 */}
+            <div className={`rounded-sm border border-[#DBD8D8] ${isMobile ? 'p-4' : 'p-6'}`}>
+              <h2 className={`${isMobile ? 'text-lg' : 'text-xl'} mb-4 font-medium`}>通知偏好設定</h2>
+              <p className="text-sm text-[#6D6C6C] mb-6">
+                選擇你想要接收的通知類型。關閉的通知類型將不會出現在你的通知中心。
+              </p>
+              <NotificationPreferences />
             </div>
           </div>
         )}

@@ -26,9 +26,6 @@ interface UpdateUserData {
   avatarStyle?: string
   bio?: string
   displayName?: string
-  climbingStartYear?: string
-  frequentGym?: string
-  favoriteRouteType?: string
   socialLinks?: {
     instagram?: string
     facebook?: string
@@ -50,9 +47,10 @@ interface AuthState {
   // eslint-disable-next-line no-unused-vars
   login: (email: string, password: string) => Promise<{ success: boolean; error?: string }>
   // eslint-disable-next-line no-unused-vars
-  loginWithGoogle: (token: string) => Promise<{ isNewUser: boolean }>
   // eslint-disable-next-line no-unused-vars
-  register: (username: string, email: string, password: string) => Promise<{ success: boolean; error?: string }>
+  loginWithGoogle: (token: string, referralSource?: string) => Promise<{ isNewUser: boolean }>
+  // eslint-disable-next-line no-unused-vars
+  register: (username: string, email: string, password: string, referralSource?: string) => Promise<{ success: boolean; error?: string }>
   logout: () => Promise<void>
   // eslint-disable-next-line no-unused-vars
   updateUser: (userData: UpdateUserData) => Promise<{ success: boolean; error?: string }>
@@ -137,13 +135,16 @@ export const useAuthStore = create<AuthState>()(
         }
       },
 
-      loginWithGoogle: async (credential) => {
+      loginWithGoogle: async (credential, referralSource) => {
         set({ isLoading: true, error: null })
         try {
           // 向後端 API 發送 Google credential (ID token)
           const loginResponse = await axios.post<ApiResponse<AuthTokenResponse>>(
             `${API_BASE_URL}/auth/google`,
-            { credential }
+            {
+              credential,
+              ...(referralSource && { referral_source: referralSource }),
+            }
           )
 
           if (!loginResponse.data.success || !loginResponse.data.data) {
@@ -198,13 +199,18 @@ export const useAuthStore = create<AuthState>()(
         }
       },
 
-      register: async (username, email, password) => {
+      register: async (username, email, password, referralSource) => {
         set({ isLoading: true, error: null })
         try {
           // Step 1: 呼叫註冊 API 取得 tokens
           const registerResponse = await axios.post<ApiResponse<AuthTokenResponse>>(
             `${API_BASE_URL}/auth/register`,
-            { username, email, password }
+            {
+              username,
+              email,
+              password,
+              ...(referralSource && { referral_source: referralSource }),
+            }
           )
 
           if (!registerResponse.data.success || !registerResponse.data.data) {
@@ -320,10 +326,6 @@ export const useAuthStore = create<AuthState>()(
               }
             }
           }
-
-          if (userData.climbingStartYear !== undefined) updateData.climbing_start_year = userData.climbingStartYear
-          if (userData.frequentGym !== undefined) updateData.frequent_gym = userData.frequentGym
-          if (userData.favoriteRouteType !== undefined) updateData.favorite_route_type = userData.favoriteRouteType
 
           // 使用 apiClient 以支援自動 token 刷新
           const response = await apiClient.put<ApiResponse<BackendUser>>(

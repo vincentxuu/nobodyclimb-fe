@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/button'
 import { useAuthStore } from '@/store/authStore'
 import { generateAvatarElement, DEFAULT_AVATARS } from '@/components/shared/avatar-options'
 import { AvatarWithFallback } from '@/components/ui/avatar-with-fallback'
+import { NotificationCenter } from '@/components/shared/notification-center'
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -66,6 +67,7 @@ export default function UserMenu() {
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
+          <NotificationCenter />
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <button className="flex h-7 w-7 items-center justify-center overflow-hidden rounded-full transition-opacity duration-200 hover:opacity-80 md:h-8 md:w-8 lg:h-10 lg:w-10">

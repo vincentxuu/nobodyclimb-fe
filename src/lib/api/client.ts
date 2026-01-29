@@ -125,8 +125,14 @@ apiClient.interceptors.response.use(
 
         // 如果在瀏覽器環境且不是請求刷新 Token 的請求
         if (typeof window !== 'undefined' && !originalRequest.url?.includes('refresh-token')) {
-          // 重定向到登入頁面
-          window.location.href = '/auth/login'
+          // 檢查當前是否已經在認證相關頁面,避免重定向循環
+          const currentPath = window.location.pathname
+          const isAuthPage = currentPath.startsWith('/auth/')
+
+          // 只有不在認證頁面時才重定向到登入頁面
+          if (!isAuthPage) {
+            window.location.href = '/auth/login'
+          }
         }
 
         return Promise.reject(refreshError)

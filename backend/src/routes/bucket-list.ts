@@ -2,7 +2,7 @@ import { Hono } from 'hono';
 import { Env } from '../types';
 import { generateId } from '../utils/id';
 import { authMiddleware, optionalAuthMiddleware } from '../middleware/auth';
-import { createNotification } from './notifications';
+import { createNotification, createLikeNotificationWithAggregation } from './notifications';
 
 export const bucketListRoutes = new Hono<{ Bindings: Env }>();
 
@@ -18,7 +18,7 @@ bucketListRoutes.get('/explore/trending', async (c) => {
     `SELECT bli.*, b.name as author_name, b.avatar_url as author_avatar, b.slug as author_slug
      FROM bucket_list_items bli
      JOIN biographies b ON bli.biography_id = b.id
-     WHERE bli.is_public = 1 AND b.is_public = 1
+     WHERE bli.is_public = 1 AND b.visibility = 'public'
      ORDER BY (bli.likes_count + bli.inspired_count * 2) DESC, bli.created_at DESC
      LIMIT ?`
   )
@@ -39,7 +39,7 @@ bucketListRoutes.get('/explore/recent-completed', async (c) => {
     `SELECT bli.*, b.name as author_name, b.avatar_url as author_avatar, b.slug as author_slug
      FROM bucket_list_items bli
      JOIN biographies b ON bli.biography_id = b.id
-     WHERE bli.status = 'completed' AND bli.is_public = 1 AND b.is_public = 1
+     WHERE bli.status = 'completed' AND bli.is_public = 1 AND b.visibility = 'public'
      ORDER BY bli.completed_at DESC
      LIMIT ?`
   )
@@ -61,7 +61,7 @@ bucketListRoutes.get('/explore/by-category/:category', async (c) => {
     `SELECT bli.*, b.name as author_name, b.avatar_url as author_avatar, b.slug as author_slug
      FROM bucket_list_items bli
      JOIN biographies b ON bli.biography_id = b.id
-     WHERE bli.category = ? AND bli.is_public = 1 AND b.is_public = 1
+     WHERE bli.category = ? AND bli.is_public = 1 AND b.visibility = 'public'
      ORDER BY bli.likes_count DESC, bli.created_at DESC
      LIMIT ?`
   )
@@ -82,7 +82,7 @@ bucketListRoutes.get('/explore/category-counts', async (c) => {
       COUNT(*) as count
      FROM bucket_list_items bli
      JOIN biographies b ON bli.biography_id = b.id
-     WHERE bli.is_public = 1 AND b.is_public = 1
+     WHERE bli.is_public = 1 AND b.visibility = 'public'
      GROUP BY bli.category`
   ).all();
 
@@ -101,7 +101,7 @@ bucketListRoutes.get('/explore/by-location/:location', async (c) => {
     `SELECT bli.*, b.name as author_name, b.avatar_url as author_avatar, b.slug as author_slug
      FROM bucket_list_items bli
      JOIN biographies b ON bli.biography_id = b.id
-     WHERE bli.target_location LIKE ? AND bli.is_public = 1 AND b.is_public = 1
+     WHERE bli.target_location LIKE ? AND bli.is_public = 1 AND b.visibility = 'public'
      ORDER BY bli.likes_count DESC, bli.created_at DESC
      LIMIT ?`
   )
@@ -131,7 +131,7 @@ bucketListRoutes.get('/explore/locations', async (c) => {
     WHERE bli.target_location IS NOT NULL
       AND bli.target_location != ''
       AND bli.is_public = 1
-      AND b.is_public = 1
+      AND b.visibility = 'public'
   `;
 
   const params: (string | number)[] = [];
@@ -166,7 +166,7 @@ bucketListRoutes.get('/explore/locations/:location', async (c) => {
     `SELECT bli.*, b.name as author_name, b.avatar_url as author_avatar, b.slug as author_slug
      FROM bucket_list_items bli
      JOIN biographies b ON bli.biography_id = b.id
-     WHERE bli.target_location = ? AND bli.is_public = 1 AND b.is_public = 1
+     WHERE bli.target_location = ? AND bli.is_public = 1 AND b.visibility = 'public'
      ORDER BY bli.status = 'completed' DESC, bli.likes_count DESC, bli.created_at DESC
      LIMIT ?`
   )
@@ -181,7 +181,7 @@ bucketListRoutes.get('/explore/locations/:location', async (c) => {
       SUM(CASE WHEN bli.status = 'completed' THEN 1 ELSE 0 END) as completed_count
      FROM bucket_list_items bli
      JOIN biographies b ON bli.biography_id = b.id
-     WHERE bli.target_location = ? AND bli.is_public = 1 AND b.is_public = 1`
+     WHERE bli.target_location = ? AND bli.is_public = 1 AND b.visibility = 'public'`
   )
     .bind(location)
     .first<{ total_items: number; total_users: number; completed_count: number }>();
@@ -194,7 +194,7 @@ bucketListRoutes.get('/explore/locations/:location', async (c) => {
      WHERE bli.target_location = ?
        AND bli.status = 'completed'
        AND bli.is_public = 1
-       AND b.is_public = 1
+       AND b.visibility = 'public'
      ORDER BY bli.completed_at DESC
      LIMIT 10`
   )
@@ -232,7 +232,7 @@ bucketListRoutes.get('/explore/climbing-footprints', async (c) => {
       cl.country,
       COUNT(DISTINCT cl.biography_id) as visitor_count
     FROM climbing_locations cl
-    JOIN biographies b ON b.id = cl.biography_id AND b.is_public = 1
+    JOIN biographies b ON b.id = cl.biography_id AND b.visibility = 'public'
     WHERE cl.is_public = 1 ${countryFilter}
     GROUP BY cl.location, cl.country
     ORDER BY visitor_count DESC
@@ -261,7 +261,7 @@ bucketListRoutes.get('/explore/climbing-footprints', async (c) => {
       b.avatar_url,
       b.slug
     FROM climbing_locations cl
-    JOIN biographies b ON b.id = cl.biography_id AND b.is_public = 1
+    JOIN biographies b ON b.id = cl.biography_id AND b.visibility = 'public'
     WHERE cl.is_public = 1 AND cl.location IN (${placeholders})
     ORDER BY cl.location, b.name`
   )
@@ -805,6 +805,7 @@ bucketListRoutes.post('/:id/like', authMiddleware, async (c) => {
     .run();
 
   // Create notification for owner (if not liking own item)
+  // 使用聚合功能：1 小時內同一目標的按讚會合併成一則通知
   if (item.owner_id && item.owner_id !== userId) {
     const liker = await c.env.DB.prepare(
       'SELECT display_name, username FROM users WHERE id = ?'
@@ -814,13 +815,13 @@ bucketListRoutes.post('/:id/like', authMiddleware, async (c) => {
 
     const likerName = liker?.display_name || liker?.username || '有人';
 
-    await createNotification(c.env.DB, {
+    await createLikeNotificationWithAggregation(c.env.DB, {
       userId: item.owner_id,
       type: 'goal_liked',
       actorId: userId,
+      actorName: likerName,
       targetId: id,
-      title: '有人按讚你的目標',
-      message: `${likerName} 按讚了你的目標「${item.title}」`,
+      targetTitle: item.title,
     });
   }
 
@@ -1223,7 +1224,7 @@ bucketListRoutes.get('/:id/references', async (c) => {
     `SELECT blr.*, b.name as referencer_name, b.avatar_url as referencer_avatar, b.slug as referencer_slug
      FROM bucket_list_references blr
      JOIN biographies b ON blr.target_biography_id = b.id
-     WHERE blr.source_item_id = ? AND b.is_public = 1
+     WHERE blr.source_item_id = ? AND b.visibility = 'public'
      ORDER BY blr.created_at DESC`
   )
     .bind(id)

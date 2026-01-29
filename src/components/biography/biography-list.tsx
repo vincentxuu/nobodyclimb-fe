@@ -8,7 +8,7 @@ import { ArrowRightCircle, Loader2, Sparkles } from 'lucide-react'
 import { Card, CardContent } from '@/components/ui/card'
 import { biographyService } from '@/lib/api/services'
 import { Biography } from '@/lib/types'
-import { calculateClimbingYears, getDisplayTags } from '@/lib/utils/biography'
+import { calculateClimbingYears, getDisplayTags, getDisplayNameForVisibility } from '@/lib/utils/biography'
 import { isSvgUrl, getDefaultAvatarUrl } from '@/lib/utils/image'
 import {
   getCachedBiographyList,
@@ -47,7 +47,7 @@ interface BiographyCardProps {
 function BiographyCard({ person, selectedContent }: BiographyCardProps) {
   // 優先使用 basic_info_data 中的資料
   const basicInfo = parseBasicInfoData(person.basic_info_data)
-  const displayName = basicInfo?.name || person.name
+  const displayName = getDisplayNameForVisibility(person.visibility, basicInfo?.name || person.name)
   const climbingStartYear = basicInfo?.climbing_start_year ?? person.climbing_start_year
   const climbingYears = calculateClimbingYears(
     climbingStartYear != null ? String(climbingStartYear) : null
@@ -275,29 +275,37 @@ export function BiographyList({ searchTerm, onTotalChange, onLoadMoreChange }: B
     return () => clearTimeout(debounceTimer)
   }, [searchTerm, loadBiographies])
 
-  // 預先計算每張卡片的內容，確保問題不重複（使用 reduce 避免 mutation）
+  // 預先計算每張卡片的內容，優先顯示真實內容，盡量避免問題重複
   // 必須在所有 early return 之前調用 useMemo
   const biographiesWithContent = useMemo(() => {
     if (biographies.length === 0) return []
     const result = biographies.reduce<{
       items: Array<{ person: Biography; content: ReturnType<typeof selectCardContent> }>
-      usedIds: string[]
+      usageCount: Map<string, number>
     }>(
       (acc, person) => {
-        const usedQuestionIds = new Set(acc.usedIds)
+        const usageCount = new Map(acc.usageCount)
         const content = selectCardContent(
           person.id,
           person.one_liners_data,
           person.stories_data,
-          usedQuestionIds,
-          person.climbing_meaning
+          usageCount
         )
+
+        // 更新使用次數
+        if (content?.questionId) {
+          usageCount.set(
+            content.questionId,
+            (usageCount.get(content.questionId) || 0) + 1
+          )
+        }
+
         return {
           items: [...acc.items, { person, content }],
-          usedIds: content?.questionId ? [...acc.usedIds, content.questionId] : acc.usedIds,
+          usageCount,
         }
       },
-      { items: [], usedIds: [] }
+      { items: [], usageCount: new Map() }
     )
     return result.items
   }, [biographies])
