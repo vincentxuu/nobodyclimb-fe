@@ -97,7 +97,7 @@ export function StoryShowcaseSection() {
               <div className="mb-8 space-y-3">
                 <h3 className="mb-4 text-base font-medium text-[#1B1A1A]">這裡的岩友們</h3>
                 <ul className="space-y-2 text-[#6D6C6C]">
-                  {data?.stats.friendInvited && data.stats.friendInvited > 0 && (
+                  {data?.stats.friendInvited != null && data.stats.friendInvited > 0 && (
                     <li className="flex items-center gap-2">
                       <Users size={16} className="text-[#8E8C8C]" />
                       <span>{data.stats.friendInvited} 人被朋友拉進攀岩坑</span>
