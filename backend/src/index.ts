@@ -51,9 +51,12 @@ app.use('*', async (c, next) => {
         ...envOrigins
           .filter((o) => o.startsWith('https://') && o.includes('nobodyclimb.cc'))
           .map((o) => o.replace('https://', 'https://www.')),
-        'http://localhost:3000',
-        'http://127.0.0.1:3000',
       ].filter(Boolean);
+
+      // 允許所有 localhost 和 127.0.0.1 的請求（任何端口）
+      if (origin.startsWith('http://localhost:') || origin.startsWith('http://127.0.0.1:')) {
+        return origin;
+      }
 
       // 只有在允許列表中的 origin 才回傳，否則拒絕
       return allowedOrigins.includes(origin) ? origin : null;
