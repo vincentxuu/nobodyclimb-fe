@@ -2181,6 +2181,40 @@ export const statsService = {
     )
     return response.data
   },
+
+  /**
+   * 取得社群統計資料（用於首頁故事展示區）
+   */
+  getCommunityStats: async () => {
+    const response = await apiClient.get<
+      ApiResponse<CommunityStats> & { cached: boolean }
+    >('/stats/community')
+    return response.data
+  },
+}
+
+/**
+ * 社群統計資料介面（用於首頁故事展示區）
+ */
+export interface CommunityStats {
+  featuredStory: {
+    id: string
+    content: string
+    contentType: 'core_story' | 'one_liner' | 'story'
+    author: {
+      displayName: string
+      slug: string
+    }
+    reactions: {
+      me_too: number
+    }
+  } | null
+  stats: {
+    friendInvited: number
+    topLocations: string[]
+    totalStories: number
+  }
+  updatedAt: string
 }
 
 // ═══════════════════════════════════════════
@@ -2287,6 +2321,79 @@ export interface ContentQuestions {
  * 人物誌內容相關 API 服務
  */
 export const biographyContentService = {
+  // ═══════════════════════════════════════════
+  // 選擇題
+  // ═══════════════════════════════════════════
+
+  /**
+   * 取得選擇題（含選項統計）
+   */
+  getChoiceQuestions: async (stage: string = 'onboarding') => {
+    const response = await apiClient.get<
+      ApiResponse<
+        Array<{
+          id: string
+          question: string
+          hint?: string
+          follow_up_prompt?: string
+          follow_up_placeholder?: string
+          options: Array<{
+            id: string
+            label: string
+            value: string
+            is_other: boolean
+            response_template?: string
+            count: number
+          }>
+        }>
+      >
+    >(`/content/choice-questions?stage=${stage}`)
+    return response.data
+  },
+
+  /**
+   * 提交選擇題回答
+   */
+  submitChoiceAnswer: async (
+    biographyId: string,
+    questionId: string,
+    optionId?: string,
+    customText?: string,
+    followUpText?: string
+  ) => {
+    const response = await apiClient.post<
+      ApiResponse<{
+        response_message: string
+        community_count: number
+      }>
+    >(`/content/biographies/${biographyId}/choice-answers`, {
+      question_id: questionId,
+      option_id: optionId,
+      custom_text: customText,
+      follow_up_text: followUpText,
+    })
+    return response.data
+  },
+
+  /**
+   * 取得用戶的選擇題回答
+   */
+  getChoiceAnswers: async (biographyId: string) => {
+    const response = await apiClient.get<
+      ApiResponse<
+        Array<{
+          question_id: string
+          option_id?: string
+          custom_text?: string
+          follow_up_text?: string
+          option_label?: string
+          option_value?: string
+        }>
+      >
+    >(`/content/biographies/${biographyId}/choice-answers`)
+    return response.data
+  },
+
   // ═══════════════════════════════════════════
   // 題目
   // ═══════════════════════════════════════════

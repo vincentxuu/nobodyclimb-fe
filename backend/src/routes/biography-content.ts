@@ -18,6 +18,206 @@ function getRepositories(db: D1Database) {
 }
 
 // ═══════════════════════════════════════════
+// 選擇題 API
+// ═══════════════════════════════════════════
+
+// 取得選擇題（含選項統計）
+biographyContentRoutes.get('/choice-questions', async (c) => {
+  const db = c.env.DB;
+  const stage = c.req.query('stage') || 'onboarding';
+
+  // 使用 JOIN 一次取得所有問題和選項（避免 N+1 查詢）
+  const result = await db
+    .prepare(
+      `SELECT
+        cq.id as question_id,
+        cq.question,
+        cq.hint,
+        cq.follow_up_prompt,
+        cq.follow_up_placeholder,
+        cq.display_order,
+        co.id as option_id,
+        co.label,
+        co.value,
+        co.is_other,
+        co.response_template,
+        co.sort_order,
+        (SELECT COUNT(*) FROM choice_answers ca WHERE ca.option_id = co.id) as count
+       FROM choice_questions cq
+       LEFT JOIN choice_options co ON cq.id = co.question_id
+       WHERE cq.is_active = 1 AND cq.stage = ?
+       ORDER BY cq.display_order, co.sort_order`
+    )
+    .bind(stage)
+    .all();
+
+  // 將扁平化結果組合成巢狀結構
+  const questionsMap = new Map<
+    string,
+    {
+      id: string;
+      question: string;
+      hint: string | null;
+      follow_up_prompt: string | null;
+      follow_up_placeholder: string | null;
+      options: Array<{
+        id: string;
+        label: string;
+        value: string;
+        is_other: boolean;
+        response_template: string | null;
+        count: number;
+      }>;
+    }
+  >();
+
+  for (const row of result.results || []) {
+    const qId = row.question_id as string;
+
+    if (!questionsMap.has(qId)) {
+      questionsMap.set(qId, {
+        id: qId,
+        question: row.question as string,
+        hint: row.hint as string | null,
+        follow_up_prompt: row.follow_up_prompt as string | null,
+        follow_up_placeholder: row.follow_up_placeholder as string | null,
+        options: [],
+      });
+    }
+
+    // 如果有選項資料，加入選項列表
+    if (row.option_id) {
+      questionsMap.get(qId)!.options.push({
+        id: row.option_id as string,
+        label: row.label as string,
+        value: row.value as string,
+        is_other: row.is_other === 1,
+        response_template: row.response_template as string | null,
+        count: (row.count as number) || 0,
+      });
+    }
+  }
+
+  const questionsWithOptions = Array.from(questionsMap.values());
+
+  return c.json({
+    success: true,
+    data: questionsWithOptions,
+  });
+});
+
+// 輸入驗證常數
+const MAX_CUSTOM_TEXT_LENGTH = 200;
+const MAX_FOLLOW_UP_TEXT_LENGTH = 500;
+
+// 提交選擇題回答
+biographyContentRoutes.post(
+  '/biographies/:biographyId/choice-answers',
+  authMiddleware,
+  async (c) => {
+    const biographyId = c.req.param('biographyId');
+    const userId = c.get('userId');
+    const { question_id, option_id, custom_text, follow_up_text } = await c.req.json();
+    const db = c.env.DB;
+
+    // 驗證輸入
+    if (!question_id) {
+      return c.json({ success: false, error: '問題 ID 為必填' }, 400);
+    }
+
+    // 驗證文字長度
+    if (custom_text && typeof custom_text === 'string' && custom_text.length > MAX_CUSTOM_TEXT_LENGTH) {
+      return c.json({ success: false, error: `自訂文字不可超過 ${MAX_CUSTOM_TEXT_LENGTH} 字` }, 400);
+    }
+
+    if (follow_up_text && typeof follow_up_text === 'string' && follow_up_text.length > MAX_FOLLOW_UP_TEXT_LENGTH) {
+      return c.json({ success: false, error: `補充說明不可超過 ${MAX_FOLLOW_UP_TEXT_LENGTH} 字` }, 400);
+    }
+
+    // 驗證權限
+    const biography = await db
+      .prepare('SELECT user_id FROM biographies WHERE id = ?')
+      .bind(biographyId)
+      .first<{ user_id: string }>();
+
+    if (!biography || biography.user_id !== userId) {
+      return c.json({ success: false, error: '無權限編輯此人物誌' }, 403);
+    }
+
+    // 取得選項資訊（用於回傳個人化回應）
+    let responseMessage = '感謝你的回答！';
+    let communityCount = 0;
+
+    if (option_id) {
+      const option = await db
+        .prepare(
+          `SELECT response_template,
+           (SELECT COUNT(*) FROM choice_answers WHERE option_id = ?) as count
+           FROM choice_options WHERE id = ?`
+        )
+        .bind(option_id, option_id)
+        .first<{ response_template: string; count: number }>();
+
+      if (option) {
+        responseMessage = option.response_template || responseMessage;
+        communityCount = option.count || 0;
+      }
+    }
+
+    // 儲存或更新回答（使用 UPSERT）
+    const answerId = `ca_${Date.now()}_${Math.random().toString(36).substring(7)}`;
+
+    await db
+      .prepare(
+        `INSERT INTO choice_answers (id, biography_id, question_id, option_id, custom_text, follow_up_text)
+         VALUES (?, ?, ?, ?, ?, ?)
+         ON CONFLICT (biography_id, question_id)
+         DO UPDATE SET
+           option_id = excluded.option_id,
+           custom_text = excluded.custom_text,
+           follow_up_text = excluded.follow_up_text,
+           updated_at = datetime('now')`
+      )
+      .bind(answerId, biographyId, question_id, option_id || null, custom_text || null, follow_up_text || null)
+      .run();
+
+    return c.json({
+      success: true,
+      data: {
+        response_message: responseMessage,
+        community_count: communityCount + 1, // 加 1 包含自己
+      },
+    });
+  }
+);
+
+// 取得用戶的選擇題回答
+biographyContentRoutes.get(
+  '/biographies/:biographyId/choice-answers',
+  optionalAuthMiddleware,
+  async (c) => {
+    const biographyId = c.req.param('biographyId');
+    const db = c.env.DB;
+
+    const answers = await db
+      .prepare(
+        `SELECT ca.question_id, ca.option_id, ca.custom_text, ca.follow_up_text,
+                co.label as option_label, co.value as option_value
+         FROM choice_answers ca
+         LEFT JOIN choice_options co ON ca.option_id = co.id
+         WHERE ca.biography_id = ?`
+      )
+      .bind(biographyId)
+      .all();
+
+    return c.json({
+      success: true,
+      data: answers.results || [],
+    });
+  }
+);
+
+// ═══════════════════════════════════════════
 // 公開 API：取得題目列表
 // ═══════════════════════════════════════════
 
