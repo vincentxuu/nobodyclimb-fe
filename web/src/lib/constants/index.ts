@@ -24,13 +24,37 @@ export {
   CRAG_AMENITIES,
   GYM_FACILITIES as SHARED_GYM_FACILITIES,
   BIOGRAPHY_INTERESTS,
-  // 路由
-  ROUTES,
+  // 路由 - 使用新結構的重新命名版本
+  ROUTES as SHARED_ROUTES,
   NAV_LINKS as SHARED_NAV_LINKS,
   FOOTER_LINKS,
   // 社群連結 (與本地 SOCIAL_LINKS 格式不同，重新命名)
   SOCIAL_LINKS as SHARED_SOCIAL_LINKS,
 } from '@nobodyclimb/constants'
+
+/**
+ * 路由路徑 (Web 舊格式，扁平結構)
+ */
+export const ROUTES = {
+  HOME: '/',
+  LOGIN: '/auth/login',
+  REGISTER: '/auth/register',
+  FORGOT_PASSWORD: '/auth/forgot-password',
+  RESET_PASSWORD: '/auth/reset-password',
+  PROFILE: '/profile',
+  BLOG: '/blog',
+  BLOG_DETAIL: (slug: string) => `/blog/${slug}`,
+  GYM: '/gym',
+  GYM_DETAIL: (slug: string) => `/gym/${slug}`,
+  GYM_ADD: '/gym/add',
+  GALLERY: '/gallery',
+  GALLERY_DETAIL: (slug: string) => `/gallery/${slug}`,
+  SEARCH: '/search',
+  BIOGRAPHY: '/biography',
+  CRAG: '/crag',
+  CRAG_DETAIL: (id: string) => `/crag/${id}`,
+  LEARN: (categoryId: string) => `/games/rope-system/learn/${categoryId}`,
+}
 
 // ============================================
 // Web 專屬常數
@@ -42,7 +66,43 @@ export {
 export const SITE_NAME = 'NobodyClimb'
 export const SITE_URL = 'https://nobodyclimb.cc'
 export const SITE_DESCRIPTION =
-  '專注於攀岩社群的網站，提供攀岩愛好者分享經驗、尋找攀岩地點及交流的平台'
+  '台灣攀岩社群平台，提供攀岩愛好者分享經驗、探索岩場岩館、觀看攀岩影片及交流的園地。無論你是初學者還是高手，都能在這裡找到志同道合的攀岩夥伴。'
+export const SITE_LOGO = '/logo/Nobodylimb-black.png'
+export const OG_IMAGE = '/og-image.png'
+
+export const DEFAULT_SEO = {
+  title: `${SITE_NAME} - 台灣攀岩社群平台`,
+  description: SITE_DESCRIPTION,
+  openGraph: {
+    type: 'website',
+    locale: 'zh_TW',
+    url: SITE_URL,
+    site_name: SITE_NAME,
+    images: [
+      {
+        url: `${SITE_URL}${OG_IMAGE}`,
+        width: 1200,
+        height: 630,
+        alt: `${SITE_NAME} - 台灣攀岩社群平台`,
+      },
+    ],
+  },
+}
+
+/**
+ * 時間格式
+ */
+export const DATE_FORMAT = 'yyyy年MM月dd日'
+export const DATE_TIME_FORMAT = 'yyyy年MM月dd日 HH:mm'
+
+/**
+ * Toast 提示訊息常數
+ */
+export const RATE_LIMIT_TOAST = {
+  title: '請稍候',
+  description: '點擊太快了，請稍後再試',
+  variant: 'default' as const,
+}
 
 /**
  * API 相關常數
@@ -73,6 +133,14 @@ export const NAV_LINKS = [
  */
 export const AUTH_COOKIE_NAME = 'nobodyclimb_token'
 export const AUTH_TOKEN_EXPIRY = 60 * 60 * 24 * 7 // 7 days in seconds
+export const AUTH_TOKEN_KEY = 'nobodyclimb-auth-token'
+export const AUTH_REFRESH_TOKEN_KEY = 'nobodyclimb-refresh-token'
+export const AUTH_USER_KEY = 'nobodyclimb-auth-user'
+
+/**
+ * Google OAuth
+ */
+export const GOOGLE_CLIENT_ID = process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID || ''
 
 /**
  * 圖片相關常數
@@ -83,13 +151,11 @@ export const IMAGE_FORMATS = ['.jpg', '.jpeg', '.png', '.webp']
 export const MAX_IMAGE_SIZE = 500 * 1024 // 500KB
 
 /**
- * 社交媒體連結 (Web 專用格式)
+ * 社交媒體連結 (陣列格式供 footer 使用)
  */
-export const SOCIAL_LINKS = {
-  instagram: 'https://www.instagram.com/nobodyclimb',
-  facebook: 'https://www.facebook.com/nobodyclimb',
-  twitter: 'https://twitter.com/nobodyclimb',
-}
+export const SOCIAL_LINKS = [
+  { label: 'Mail', href: 'mailto:contact@nobodyclimb.cc', icon: 'mail' },
+]
 
 /**
  * 搜尋選項
