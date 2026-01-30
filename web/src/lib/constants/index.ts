@@ -1,4 +1,42 @@
 /**
+ * 常數定義統一匯出
+ *
+ * 從 @nobodyclimb/constants 共用套件重新導出共用常數，
+ * 並保留 web 專屬的常數定義
+ */
+
+// 從共用套件重新導出（重新命名以避免衝突）
+export {
+  // 站點配置
+  SITE_CONFIG,
+  DATE_FORMATS,
+  BLOG_TAGS,
+  // API 相關
+  PAGINATION,
+  AUTH_KEYS,
+  API_TIMEOUT as SHARED_API_TIMEOUT,
+  RETRY_CONFIG,
+  API_VERSION,
+  // 攀岩相關
+  CLIMBING_GRADES,
+  CLIMBING_TYPES,
+  SEASONS,
+  CRAG_AMENITIES,
+  GYM_FACILITIES as SHARED_GYM_FACILITIES,
+  BIOGRAPHY_INTERESTS,
+  // 路由
+  ROUTES,
+  NAV_LINKS as SHARED_NAV_LINKS,
+  FOOTER_LINKS,
+  // 社群連結 (與本地 SOCIAL_LINKS 格式不同，重新命名)
+  SOCIAL_LINKS as SHARED_SOCIAL_LINKS,
+} from '@nobodyclimb/constants'
+
+// ============================================
+// Web 專屬常數
+// ============================================
+
+/**
  * 網站相關常數
  */
 export const SITE_NAME = 'NobodyClimb'
@@ -11,7 +49,6 @@ export const SITE_DESCRIPTION =
  */
 export const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'https://api.nobodyclimb.cc/api/v1'
 export const API_URL = API_BASE_URL // 保留向後兼容
-export const API_TIMEOUT = 10000 // 10 seconds
 
 /**
  * 分頁相關常數
@@ -46,7 +83,7 @@ export const IMAGE_FORMATS = ['.jpg', '.jpeg', '.png', '.webp']
 export const MAX_IMAGE_SIZE = 500 * 1024 // 500KB
 
 /**
- * 社交媒體連結
+ * 社交媒體連結 (Web 專用格式)
  */
 export const SOCIAL_LINKS = {
   instagram: 'https://www.instagram.com/nobodyclimb',
