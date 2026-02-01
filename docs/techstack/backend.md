@@ -1,5 +1,7 @@
 # Backend 技術棧
 
+> 詳細的 Monorepo 結構請參考 [monorepo.md](./monorepo.md)
+
 ## 核心框架
 
 | 技術 | 版本 | 用途 |

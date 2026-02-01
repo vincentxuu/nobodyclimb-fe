@@ -13,17 +13,24 @@
     }
   },
   "scripts": {
-    "build": "tsup src/index.ts --format cjs,esm --dts --external react",
-    "dev": "tsup src/index.ts --format cjs,esm --dts --external react --watch",
+    "build": "tsup src/index.ts --format cjs,esm --dts --external react --external zustand --external axios",
+    "dev": "tsup src/index.ts --format cjs,esm --dts --external react --external zustand --external axios --watch",
     "typecheck": "tsc --noEmit"
   },
   "peerDependencies": {
-    "react": ">=18.0.0"
+    "react": ">=18.0.0",
+    "zustand": ">=4.0.0"
+  },
+  "dependencies": {
+    "@nobodyclimb/api-client": "workspace:^",
+    "@nobodyclimb/types": "workspace:^"
   },
   "devDependencies": {
     "@types/react": "^19.1.12",
+    "axios": "^1.11.0",
     "react": "^19.1.1",
     "tsup": "^8.0.0",
-    "typescript": "^5.9.2"
+    "typescript": "^5.9.2",
+    "zustand": "^4.5.7"
   }
 }

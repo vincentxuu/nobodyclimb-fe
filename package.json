@@ -2,9 +2,16 @@
   "name": "nobodyclimb",
   "private": true,
   "packageManager": "pnpm@9.15.0",
+  "pnpm": {
+    "overrides": {
+      "react": "19.1.0",
+      "react-dom": "19.1.0"
+    }
+  },
   "scripts": {
     "dev": "turbo run dev",
     "dev:web": "pnpm --filter @nobodyclimb/web dev",
+    "dev:app": "pnpm --filter @nobodyclimb/app start",
     "dev:backend": "pnpm --filter @nobodyclimb/api dev",
     "build": "turbo run build",
     "build:web": "turbo run build --filter=@nobodyclimb/web",
