@@ -55,7 +55,7 @@ nobodyclimb/
 │   │   ├── package.json
 │   │   └── wrangler.json       # Cloudflare Workers 設定
 │   │
-│   └── app/                    # React Native App (Expo + Tamagui)
+│   └── mobile/                 # React Native App (Expo + Tamagui)
 │       ├── app/                # Expo Router 頁面 (檔案路由)
 │       │   ├── (tabs)/         # Tab Navigator
 │       │   ├── auth/           # 認證頁面
@@ -131,7 +131,7 @@ link-workspace-packages=true
   "scripts": {
     "dev": "turbo run dev",
     "dev:web": "pnpm --filter @nobodyclimb/web dev",
-    "dev:app": "pnpm --filter @nobodyclimb/app start",
+    "dev:mobile": "pnpm --filter @nobodyclimb/mobile start",
     "dev:backend": "pnpm --filter @nobodyclimb/api dev",
     "build": "turbo run build",
     "build:web": "turbo run build --filter=@nobodyclimb/web",
@@ -778,7 +778,7 @@ pnpm install
 
 # 只安裝特定 workspace
 pnpm --filter web install
-pnpm --filter app install
+pnpm --filter mobile install
 ```
 
 ### 新增共用套件依賴
@@ -788,7 +788,7 @@ pnpm --filter app install
 pnpm --filter web add @nobodyclimb/types --workspace
 
 # 在 app 中使用 @nobodyclimb/schemas
-pnpm --filter app add @nobodyclimb/schemas --workspace
+pnpm --filter mobile add @nobodyclimb/schemas --workspace
 ```
 
 ### 開發
@@ -967,7 +967,7 @@ nobodyclimb-fe/           # 目前的 repository
 3. **設定使用共用套件**
 
    ```bash
-   pnpm --filter app add @nobodyclimb/types @nobodyclimb/schemas @nobodyclimb/hooks @nobodyclimb/api-client --workspace
+   pnpm --filter mobile add @nobodyclimb/types @nobodyclimb/schemas @nobodyclimb/hooks @nobodyclimb/api-client --workspace
    ```
 
 4. **設定 ApiClientProvider**
@@ -1147,7 +1147,7 @@ jobs:
       - uses: pnpm/action-setup@v4
       - run: pnpm install
       - run: brew install maestro
-      - run: pnpm --filter app build:ios
+      - run: pnpm --filter mobile build:ios
       - run: maestro test app/.maestro/
 ```
 

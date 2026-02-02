@@ -64,7 +64,7 @@ React Native App 採用 Tamagui 作為 UI 框架。
 ### Babel 設定
 
 ```javascript
-// apps/app/babel.config.js
+// apps/mobile/babel.config.js
 module.exports = function (api) {
   api.cache(true)
   return {
@@ -88,7 +88,7 @@ module.exports = function (api) {
 ### Metro 設定 (Monorepo)
 
 ```javascript
-// apps/app/metro.config.js
+// apps/mobile/metro.config.js
 const { getDefaultConfig } = require('expo/metro-config')
 const path = require('path')
 
@@ -181,7 +181,7 @@ module.exports = config
 ## 專案結構
 
 ```
-apps/app/                       # React Native App (位於 apps/ 目錄下)
+apps/mobile/                       # React Native App (位於 apps/ 目錄下)
 ├── app/                        # Expo Router 頁面 (檔案路由)
 │   ├── (tabs)/                 # Tab Navigator
 │   │   ├── index.tsx           # 首頁
@@ -284,7 +284,7 @@ import { formatDate } from '@nobodyclimb/utils';
 App 使用 `@nobodyclimb/constants` 的共用設計系統，確保與 Web 品牌一致。
 
 ```typescript
-// apps/app/tamagui.config.ts
+// apps/mobile/tamagui.config.ts
 import { createTamagui, createTokens } from '@tamagui/core'
 import { shorthands } from '@tamagui/shorthands'
 import { createFont } from '@tamagui/font-inter'
@@ -394,7 +394,7 @@ declare module '@tamagui/core' {
 ### 在 App 中使用
 
 ```typescript
-// apps/app/app/_layout.tsx
+// apps/mobile/app/_layout.tsx
 import { TamaguiProvider } from '@tamagui/core'
 import { useColorScheme } from 'react-native'
 import config from '../tamagui.config'
@@ -464,7 +464,7 @@ export default function RootLayout({ children }) {
 ### 常用指令
 
 ```bash
-cd apps/app
+cd apps/mobile
 
 # 開發
 pnpm start                    # 啟動 Expo Dev Server
