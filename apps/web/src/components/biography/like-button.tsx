@@ -32,7 +32,7 @@ export function LikeButton({
   const [isLiked, setIsLiked] = useState(initialLiked)
   const [count, setCount] = useState(initialCount)
   const [isLoading, setIsLoading] = useState(false)
-  const { isAuthenticated } = useAuthStore()
+  const { status } = useAuthStore()
   const router = useRouter()
   const { toast } = useToast()
 
@@ -40,7 +40,7 @@ export function LikeButton({
     e.stopPropagation()
     e.preventDefault()
 
-    if (!isAuthenticated) {
+    if (status !== 'signIn') {
       router.push('/auth/login')
       return
     }

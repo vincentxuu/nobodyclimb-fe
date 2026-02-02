@@ -28,7 +28,7 @@ export function TrendingGoals({ searchTerm, filter }: TrendingGoalsProps) {
   const [error, setError] = useState<string | null>(null)
   const [addedItems, setAddedItems] = useState<Set<string>>(new Set())
   const [addingItems, setAddingItems] = useState<Set<string>>(new Set())
-  const { isAuthenticated } = useAuthStore()
+  const { status } = useAuthStore()
 
   const loadTrendingItems = useCallback(async () => {
     setLoading(true)
@@ -79,7 +79,7 @@ export function TrendingGoals({ searchTerm, filter }: TrendingGoalsProps) {
   }, [loadTrendingItems])
 
   const handleAddToList = async (itemId: string) => {
-    if (!isAuthenticated) {
+    if (status !== 'signIn') {
       // 導向登入頁
       window.location.href = '/auth/login?redirect=/biography/explore'
       return

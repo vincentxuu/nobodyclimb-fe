@@ -34,7 +34,7 @@ type FlowPhase = 'complete' | 'choice' | 'guided'
 
 export default function CompletePage() {
   const router = useRouter()
-  const { isAuthenticated, loading } = useAuth()
+  const { status, isLoading } = useAuth()
   const { toast } = useToast()
   const { data: questionsData } = useQuestions()
   const { data: choiceQuestions } = useChoiceQuestions()
@@ -50,14 +50,14 @@ export default function CompletePage() {
       const response = await biographyService.getMyBiography()
       return response.data
     },
-    enabled: isAuthenticated,
+    enabled: status === 'signIn',
   })
 
   useEffect(() => {
-    if (!loading && !isAuthenticated) {
+    if (!isLoading && status !== 'signIn') {
       router.push('/auth/login')
     }
-  }, [isAuthenticated, loading, router])
+  }, [status, isLoading, router])
 
   // 從 API 題目中匹配引導式問答的問題
   const guidedQuestions = React.useMemo(() => {

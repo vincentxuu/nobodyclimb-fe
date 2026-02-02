@@ -25,7 +25,7 @@ export function FollowButton({
 }: FollowButtonProps) {
   const [isFollowing, setIsFollowing] = useState(initialFollowing)
   const [isLoading, setIsLoading] = useState(false)
-  const { isAuthenticated } = useAuthStore()
+  const { status } = useAuthStore()
   const router = useRouter()
 
   // Fetch follow status when component mounts or biographyId changes
@@ -45,7 +45,7 @@ export function FollowButton({
   }, [biographyId])
 
   const handleClick = async () => {
-    if (!isAuthenticated) {
+    if (status !== 'signIn') {
       router.push('/auth/login')
       return
     }

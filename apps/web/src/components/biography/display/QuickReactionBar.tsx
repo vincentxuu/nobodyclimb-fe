@@ -60,7 +60,7 @@ export function QuickReactionBar({
   size = 'md',
   className,
 }: QuickReactionBarProps) {
-  const { isAuthenticated } = useAuthStore()
+  const { status } = useAuthStore()
   const { toast } = useToast()
 
   const [counts, setCounts] = useState<Record<ReactionType, number>>(initialCounts)
@@ -71,7 +71,7 @@ export function QuickReactionBar({
 
   const handleReaction = useCallback(
     async (reactionType: ReactionType) => {
-      if (!isAuthenticated) {
+      if (status !== 'signIn') {
         toast({
           title: '請先登入',
           description: '登入後即可表達你的反應',
@@ -118,7 +118,7 @@ export function QuickReactionBar({
         setLoadingReaction(null)
       }
     },
-    [isAuthenticated, loadingReaction, userReactions, counts, contentType, contentId, toast]
+    [status, loadingReaction, userReactions, counts, contentType, contentId, toast]
   )
 
   const sizeClasses = size === 'sm' ? 'gap-2' : 'gap-3'
@@ -130,7 +130,7 @@ export function QuickReactionBar({
     <div className={cn('flex items-center', sizeClasses, className)}>
       {REACTIONS.map((reaction) => {
         const isActive = userReactions.has(reaction.type)
-        const isLoading = loadingReaction === reaction.type
+        const loading = loadingReaction === reaction.type
         const count = counts[reaction.type]
         const Icon = reaction.icon
 
@@ -138,7 +138,7 @@ export function QuickReactionBar({
           <button
             key={reaction.type}
             onClick={() => handleReaction(reaction.type)}
-            disabled={isLoading}
+            disabled={loading}
             className={cn(
               'inline-flex items-center rounded-full border transition-all duration-200',
               buttonSizeClasses,
@@ -148,7 +148,7 @@ export function QuickReactionBar({
             )}
           >
             <AnimatePresence mode="wait">
-              {isLoading ? (
+              {loading ? (
                 <motion.span
                   key="loading"
                   initial={{ opacity: 0, scale: 0.8 }}

@@ -12,7 +12,7 @@ import { Button } from '@/components/ui/button'
  * 包含網站 logo、版權信息和社交媒體連結
  */
 export function Footer() {
-  const { isAuthenticated } = useAuthStore()
+  const { status } = useAuthStore()
 
   // 社群媒體圖標映射
   const socialIcons: Record<string, React.JSX.Element> = {
@@ -22,7 +22,7 @@ export function Footer() {
   return (
     <footer className="bg-[#1B1A1A]">
       {/* 訪客註冊引導 - 僅未登入時顯示 */}
-      {!isAuthenticated && (
+      {status !== 'signIn' && (
         <div className="border-b border-[#333] px-4 py-8 text-center md:px-20">
           <p className="mb-4 text-sm text-gray-300 md:text-base">
             加入我們，寫下你的攀岩故事

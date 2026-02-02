@@ -35,14 +35,14 @@ interface ContentClaimApi {
  * 用於檢查和認領匿名內容
  */
 export function useContentClaim(): ContentClaimApi {
-  const { isAuthenticated, user } = useAuthStore()
+  const { status, user } = useAuthStore()
   const [unclaimedContent, setUnclaimedContent] = useState<UnclaimedContent[]>([])
   const [isLoading, setIsLoading] = useState(false)
   const [hasDismissed, setHasDismissed] = useState(false)
 
   // 檢查是否有可認領的內容
   const checkForUnclaimedContent = useCallback(async () => {
-    if (!isAuthenticated || hasDismissed) return
+    if (status !== 'signIn' || hasDismissed) return
 
     const sessionId = typeof window !== 'undefined'
       ? localStorage.getItem(GUEST_SESSION_ID_KEY)
@@ -74,7 +74,7 @@ export function useContentClaim(): ContentClaimApi {
     } finally {
       setIsLoading(false)
     }
-  }, [isAuthenticated, user?.email, hasDismissed])
+  }, [status, user?.email, hasDismissed])
 
   // 認領人物誌
   const claimBiography = useCallback(async (
@@ -158,14 +158,14 @@ export function useContentClaim(): ContentClaimApi {
 
   // 登入後自動檢查
   useEffect(() => {
-    if (isAuthenticated && !hasDismissed) {
+    if (status === 'signIn' && !hasDismissed) {
       // 延遲一下，確保登入流程完成
       const timer = setTimeout(() => {
         checkForUnclaimedContent()
       }, 1000)
       return () => clearTimeout(timer)
     }
-  }, [isAuthenticated, checkForUnclaimedContent, hasDismissed])
+  }, [status, checkForUnclaimedContent, hasDismissed])
 
   return {
     unclaimedContent,

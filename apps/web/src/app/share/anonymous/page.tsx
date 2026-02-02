@@ -22,7 +22,7 @@ type ViewMode = 'list' | 'edit' | 'complete'
 
 export default function AnonymousSharePage() {
   const router = useRouter()
-  const { isAuthenticated } = useAuthStore()
+  const { status } = useAuthStore()
   const { session, isEligibleToShare, getSessionId } = useGuestSession()
 
   const [viewMode, setViewMode] = useState<ViewMode>('list')
@@ -40,7 +40,7 @@ export default function AnonymousSharePage() {
   }), [stories])
 
   // 已登入用戶
-  if (isAuthenticated) {
+  if (status === 'signIn') {
     return <AlreadyAuthenticated />
   }
 

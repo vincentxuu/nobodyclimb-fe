@@ -65,7 +65,7 @@ const compressImageFile = async (file: File): Promise<{ file: File; wasCompresse
 
 export default function UploadPage() {
   const router = useRouter()
-  const { isAuthenticated, isLoading: authLoading } = useAuthStore()
+  const { status, isLoading: authLoading } = useAuthStore()
 
   const [files, setFiles] = useState<FileWithPreview[]>([])
   const filesRef = useRef<FileWithPreview[]>([])
@@ -285,7 +285,7 @@ export default function UploadPage() {
   }
 
   // Redirect to login if not authenticated
-  if (!isAuthenticated) {
+  if (status !== 'signIn') {
     return (
       <div className="flex min-h-screen flex-col items-center justify-center pt-16">
         <div className="text-center">

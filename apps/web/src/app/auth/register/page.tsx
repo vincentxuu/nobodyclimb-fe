@@ -16,15 +16,15 @@ import { GOOGLE_CLIENT_ID } from '@/lib/constants'
  */
 export default function RegisterPage() {
   const router = useRouter()
-  const { register, loginWithGoogle, loading } = useAuth()
-  const { isAuthenticated } = useAuthStore()
+  const { signUp, signInWithGoogle, isLoading } = useAuth()
+  const { status } = useAuthStore()
 
   // 已登入用戶自動重導向到首頁
   useEffect(() => {
-    if (isAuthenticated) {
+    if (status === 'signIn') {
       router.replace('/')
     }
-  }, [isAuthenticated, router])
+  }, [status, router])
 
   const [username, setUsername] = useState('')
   const [email, setEmail] = useState('')
@@ -41,16 +41,14 @@ export default function RegisterPage() {
         return
       }
 
-      const result = await loginWithGoogle(credentialResponse.credential)
+      const result = await signInWithGoogle(credentialResponse.credential)
       if (result.success) {
-        setTimeout(() => {
-          // 新用戶跳轉到 profile-setup，舊用戶跳轉到首頁
-          if (result.isNewUser) {
-            router.push('/auth/profile-setup/basic-info')
-          } else {
-            router.push('/')
-          }
-        }, 100)
+        // 新用戶跳轉到 profile-setup，舊用戶跳轉到首頁
+        if (result.isNewUser) {
+          router.push('/auth/profile-setup/basic-info')
+        } else {
+          router.push('/')
+        }
       } else {
         setError(result.error || 'Google 註冊失敗')
       }
@@ -83,7 +81,7 @@ export default function RegisterPage() {
     }
 
     try {
-      const result = await register(username, email, password)
+      const result = await signUp(username, email, password)
       if (result.success) {
         router.push('/auth/profile-setup/basic-info')
       } else {
@@ -184,8 +182,8 @@ export default function RegisterPage() {
                 <p className="text-xs text-muted-foreground">密碼必須至少包含8個字符</p>
               </div>
 
-              <Button type="submit" className="w-full" disabled={loading}>
-                {loading ? '註冊中...' : '註冊'}
+              <Button type="submit" className="w-full" disabled={isLoading}>
+                {isLoading ? '註冊中...' : '註冊'}
                 <UserPlus className="ml-2 h-4 w-4" />
               </Button>
             </form>

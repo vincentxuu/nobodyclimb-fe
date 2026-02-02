@@ -14,7 +14,7 @@ import { useAuthStore } from '@/store/authStore'
 import { BiographyList } from '@/components/biography/biography-list'
 
 export default function BiographyPage() {
-  const { isAuthenticated } = useAuthStore()
+  const { status } = useAuthStore()
   const [searchTerm, setSearchTerm] = useState('')
   const [hasMore, setHasMore] = useState(false)
   const [loadMoreFn, setLoadMoreFn] = useState<(() => void) | null>(null)
@@ -54,7 +54,7 @@ export default function BiographyPage() {
         </div>
 
         {/* 訪客引導 Banner - 僅未登入時顯示 */}
-        {!isAuthenticated && (
+        {status !== 'signIn' && (
           <motion.div
             initial={{ opacity: 0, y: -10 }}
             animate={{ opacity: 1, y: 0 }}

@@ -9,6 +9,7 @@ import { AuthInitializer } from '@/components/shared/auth-initializer'
 import { StoryPromptWrapper } from '@/components/shared/story-prompt-wrapper'
 import { ShareInvitation } from '@/components/shared/share-invitation'
 import { ClaimContentProvider } from '@/components/shared/claim-content-modal'
+import { ErrorBoundary } from '@/components/shared/error-boundary'
 import { SITE_URL, SITE_NAME, SITE_DESCRIPTION, SITE_LOGO, OG_IMAGE } from '@/lib/constants'
 import { Analytics } from '@/components/shared/analytics'
 
@@ -144,15 +145,17 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       <body suppressHydrationWarning className="font-sans">
         <Analytics />
         <Providers>
-          <ClaimContentProvider>
-            <AuthInitializer />
-            <StoryPromptWrapper />
-            <ProgressBar />
-            <Navbar />
-            <main className="min-h-[calc(100vh-14rem)] pt-14 md:pt-[70px]">{children}</main>
-            <ShareInvitation />
-            <Footer />
-          </ClaimContentProvider>
+          <ErrorBoundary>
+            <ClaimContentProvider>
+              <AuthInitializer />
+              <StoryPromptWrapper />
+              <ProgressBar />
+              <Navbar />
+              <main className="min-h-[calc(100vh-14rem)] pt-14 md:pt-[70px]">{children}</main>
+              <ShareInvitation />
+              <Footer />
+            </ClaimContentProvider>
+          </ErrorBoundary>
         </Providers>
       </body>
     </html>

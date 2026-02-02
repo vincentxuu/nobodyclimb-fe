@@ -50,7 +50,7 @@ export function BiographyCommentSection({
   const [isOpen, setIsOpen] = useState(defaultOpen)
   const [content, setContent] = useState('')
   const [count, setCount] = useState(initialCount)
-  const { isAuthenticated, user } = useAuthStore()
+  const { status, user } = useAuthStore()
   const router = useRouter()
   const { toast } = useToast()
 
@@ -94,7 +94,7 @@ export function BiographyCommentSection({
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    if (!isAuthenticated) {
+    if (status !== 'signIn') {
       router.push('/auth/login')
       return
     }
@@ -171,7 +171,7 @@ export function BiographyCommentSection({
   if (isEmbedded) {
     return (
       <div className={cn('space-y-4', className)}>
-        {isAuthenticated && (
+        {status === 'signIn' && (
           <form onSubmit={handleSubmit} className="flex gap-2">
             <Textarea
               value={content}
@@ -194,7 +194,7 @@ export function BiographyCommentSection({
           </form>
         )}
 
-        {!isAuthenticated && (
+        {status !== 'signIn' && (
           <p className="text-sm text-gray-500">
             <button
               onClick={() => router.push('/auth/login')}
@@ -285,7 +285,7 @@ export function BiographyCommentSection({
             </button>
           </div>
           <div className="space-y-4">
-            {isAuthenticated && (
+            {status === 'signIn' && (
               <form onSubmit={handleSubmit} className="flex gap-2">
                 <Textarea
                   value={content}
@@ -308,7 +308,7 @@ export function BiographyCommentSection({
               </form>
             )}
 
-            {!isAuthenticated && (
+            {status !== 'signIn' && (
               <p className="text-sm text-gray-500">
                 <button
                   onClick={() => router.push('/auth/login')}

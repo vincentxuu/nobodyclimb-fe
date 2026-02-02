@@ -61,11 +61,11 @@ export function NotificationCenter({ className }: NotificationCenterProps) {
   const [isLoading, setIsLoading] = useState(false)
   const [page, setPage] = useState(1)
   const [hasMore, setHasMore] = useState(true)
-  const { isAuthenticated, isInitialized } = useAuthStore()
+  const { status } = useAuthStore()
 
   const loadUnreadCount = useCallback(async () => {
-    // 確保認證已初始化且用戶已登入
-    if (!isInitialized || !isAuthenticated) return
+    // 確保用戶已登入
+    if (status !== 'signIn') return
     try {
       const response = await notificationService.getUnreadCount()
       if (response.success && response.data) {
@@ -77,11 +77,11 @@ export function NotificationCenter({ className }: NotificationCenterProps) {
         console.error('Failed to load unread count:', error)
       }
     }
-  }, [isAuthenticated, isInitialized])
+  }, [status])
 
   const loadNotifications = useCallback(async (pageNum = 1, append = false) => {
-    // 確保認證已初始化且用戶已登入
-    if (!isInitialized || !isAuthenticated) return
+    // 確保用戶已登入
+    if (status !== 'signIn') return
     setIsLoading(true)
     try {
       const response = await notificationService.getNotifications(pageNum, 10)
@@ -102,7 +102,7 @@ export function NotificationCenter({ className }: NotificationCenterProps) {
     } finally {
       setIsLoading(false)
     }
-  }, [isAuthenticated, isInitialized])
+  }, [status])
 
   useEffect(() => {
     loadUnreadCount()
@@ -181,7 +181,7 @@ export function NotificationCenter({ className }: NotificationCenterProps) {
     }
   }
 
-  if (!isAuthenticated) return null
+  if (status !== 'signIn') return null
 
   return (
     <div className={cn('relative', className)}>

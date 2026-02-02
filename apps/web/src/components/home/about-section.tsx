@@ -6,7 +6,7 @@ import { Button } from '@/components/ui/button'
 import { useAuthStore } from '@/store/authStore'
 
 export function AboutSection() {
-  const { isAuthenticated } = useAuthStore()
+  const { status } = useAuthStore()
 
   return (
     <section className="relative h-[500px] overflow-hidden bg-white">
@@ -35,7 +35,7 @@ export function AboutSection() {
               認識小人物
             </Button>
           </Link>
-          {!isAuthenticated && (
+          {status !== 'signIn' && (
             <Link href="/auth/register" className="w-full sm:w-auto">
               <Button size="lg" className="w-full bg-brand-accent/70 text-[#1B1A1A] hover:bg-brand-accent sm:w-auto">
                 成為小人物

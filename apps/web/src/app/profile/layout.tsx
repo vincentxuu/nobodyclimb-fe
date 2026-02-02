@@ -8,7 +8,7 @@ import MobileNav from './MobileNav'
 import { useAuthStore } from '@/store/authStore'
 
 export default function ProfileLayout({ children }: { children: React.ReactNode }) {
-  const isAuthenticated = useAuthStore((state) => state.isAuthenticated)
+  const status = useAuthStore((state) => state.status)
   const isStoreLoading = useAuthStore((state) => state.isLoading)
   const router = useRouter()
   const pathname = usePathname()
@@ -39,10 +39,10 @@ export default function ProfileLayout({ children }: { children: React.ReactNode 
 
   // 檢查使用者是否已登入（等待 hydration 完成後再檢查）
   useEffect(() => {
-    if (isHydrated && !isStoreLoading && !isAuthenticated) {
+    if (isHydrated && !isStoreLoading && status !== 'signIn') {
       router.push('/auth/login?callbackUrl=' + encodeURIComponent(pathname || '/profile'))
     }
-  }, [isAuthenticated, isStoreLoading, isHydrated, router, pathname])
+  }, [status, isStoreLoading, isHydrated, router, pathname])
 
   // 如果還在 hydration 或正在載入中，顯示載入畫面
   if (!isHydrated || isStoreLoading) {

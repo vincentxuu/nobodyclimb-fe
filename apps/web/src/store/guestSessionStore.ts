@@ -82,7 +82,7 @@ export const useGuestSessionStore = create<GuestSessionStore>((set, get) => ({
     const state = get()
     if (state.isInitialized) return // 避免重複初始化
 
-    if (isAuthenticated) {
+    if (status === 'signIn') {
       set({ isLoading: false, isInitialized: true })
       return
     }

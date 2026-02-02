@@ -52,7 +52,7 @@ const iconMap: Record<string, LucideIcon> = {
 
 export default function TagsPage() {
   const router = useRouter()
-  const { isAuthenticated, loading } = useAuth()
+  const { status, isLoading } = useAuth()
   const { toast } = useToast()
 
   // 只使用精選的維度
@@ -68,10 +68,10 @@ export default function TagsPage() {
 
   useEffect(() => {
     // 如果使用者未登入，重定向至登入頁面
-    if (!loading && !isAuthenticated) {
+    if (!isLoading && status !== 'signIn') {
       router.push('/auth/login')
     }
-  }, [isAuthenticated, loading, router])
+  }, [status, isLoading, router])
 
   // 處理標籤點擊
   const handleTagClick = (dimension: TagDimension, tagId: string) => {

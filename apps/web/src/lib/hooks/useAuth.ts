@@ -12,19 +12,21 @@ import { ROUTES } from '@/lib/constants'
 export function useAuth() {
   const {
     user,
-    token,
-    isAuthenticated,
+    status,
     isLoading,
     error,
-    login: storeLogin,
-    register: storeRegister,
-    logout: storeLogout,
+    signIn: storeSignIn,
+    signUp: storeSignUp,
+    signOut: storeSignOut,
     updateUser: storeUpdateUser,
-    loginWithGoogle: storeLoginWithGoogle,
+    signInWithGoogle: storeSignInWithGoogle,
     clearError: storeClearError,
   } = useAuthStore()
 
   const router = useRouter()
+
+  // 衍生狀態
+  const isSignedIn = status === 'signIn'
 
   /**
    * 登入
@@ -32,10 +34,10 @@ export function useAuth() {
    * @param {string} password - 用戶密碼
    * @returns {Promise<{ success: boolean, error?: string }>} 登入結果
    */
-  const login = useCallback(
+  const signIn = useCallback(
     async (email: string, password: string) => {
       try {
-        const result = await storeLogin(email, password)
+        const result = await storeSignIn(email, password)
         return result
       } catch (error) {
         return {
@@ -44,7 +46,7 @@ export function useAuth() {
         }
       }
     },
-    [storeLogin]
+    [storeSignIn]
   )
 
   /**
@@ -52,17 +54,20 @@ export function useAuth() {
    * @param {string} credential - Google OAuth credential (ID token)
    * @returns {Promise<{ success: boolean, isNewUser?: boolean, error?: string }>} 登入結果
    */
-  const loginWithGoogle = useCallback(async (credential: string) => {
-    try {
-      const result = await storeLoginWithGoogle(credential)
-      return { success: true, isNewUser: result.isNewUser }
-    } catch (error) {
-      return {
-        success: false,
-        error: error instanceof Error ? error.message : 'Google 登入失敗',
+  const signInWithGoogle = useCallback(
+    async (credential: string) => {
+      try {
+        const result = await storeSignInWithGoogle(credential)
+        return { success: true, isNewUser: result.isNewUser }
+      } catch (error) {
+        return {
+          success: false,
+          error: error instanceof Error ? error.message : 'Google 登入失敗',
+        }
       }
-    }
-  }, [storeLoginWithGoogle])
+    },
+    [storeSignInWithGoogle]
+  )
 
   /**
    * 註冊
@@ -71,26 +76,26 @@ export function useAuth() {
    * @param {string} password - 密碼
    * @returns {Promise<{ success: boolean, error?: string }>} 註冊結果
    */
-  const register = useCallback(
+  const signUp = useCallback(
     async (username: string, email: string, password: string) => {
-      const result = await storeRegister(username, email, password)
+      const result = await storeSignUp(username, email, password)
       return result
     },
-    [storeRegister]
+    [storeSignUp]
   )
 
   /**
    * 登出
    * @param {boolean} redirect - 是否重定向到登入頁面
    */
-  const logout = useCallback(
+  const signOut = useCallback(
     async (redirect = true) => {
-      await storeLogout()
+      await storeSignOut()
       if (redirect) {
         router.push(ROUTES.LOGIN)
       }
     },
-    [storeLogout, router]
+    [storeSignOut, router]
   )
 
   /**
@@ -115,14 +120,14 @@ export function useAuth() {
 
   return {
     user,
-    token,
-    isAuthenticated,
-    loading: isLoading,
+    status,
+    isSignedIn,
+    isLoading,
     error,
-    login,
-    loginWithGoogle,
-    register,
-    logout,
+    signIn,
+    signInWithGoogle,
+    signUp,
+    signOut,
     updateUser,
     clearError,
   }

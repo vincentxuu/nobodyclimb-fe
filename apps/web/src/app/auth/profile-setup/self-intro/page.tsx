@@ -23,7 +23,7 @@ interface OneLinerFormData {
 
 export default function SelfIntroPage() {
   const router = useRouter()
-  const { isAuthenticated, loading } = useAuth()
+  const { status, isLoading } = useAuth()
   const { toast } = useToast()
   const { data: questionsData, isLoading: questionsLoading } = useQuestions()
 
@@ -36,10 +36,10 @@ export default function SelfIntroPage() {
 
   useEffect(() => {
     // 如果使用者未登入，重定向至登入頁面
-    if (!loading && !isAuthenticated) {
+    if (!isLoading && status !== 'signIn') {
       router.push('/auth/login')
     }
-  }, [isAuthenticated, loading, router])
+  }, [status, isLoading, router])
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target

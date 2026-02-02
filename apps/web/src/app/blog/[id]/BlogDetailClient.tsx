@@ -41,7 +41,7 @@ export default function BlogDetailClient() {
   const router = useRouter()
   const { toast } = useToast()
   const id = params.id as string
-  const { isAuthenticated, user } = useAuthStore()
+  const { status, user } = useAuthStore()
 
   const [article, setArticle] = useState<BackendPost | null>(null)
   const [isLoading, setIsLoading] = useState(true)
@@ -345,7 +345,7 @@ export default function BlogDetailClient() {
 
 
             {/* Comment Section */}
-            <CommentSection postId={id} isLoggedIn={isAuthenticated} />
+            <CommentSection postId={id} isLoggedIn={status === 'signIn'} />
           </div>
 
           {/* Sidebar - 手機版隱藏或改為水平滾動 */}

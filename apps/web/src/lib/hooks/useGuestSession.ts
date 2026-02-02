@@ -29,7 +29,8 @@ interface GuestSessionApi {
  * 使用 Zustand store 實現跨組件狀態同步
  */
 export function useGuestSession(): GuestSessionApi {
-  const { isAuthenticated } = useAuthStore()
+  const { status } = useAuthStore()
+  const isSignedIn = status === 'signIn'
 
   // 從 store 取得狀態和 actions
   const session = useGuestSessionStore((state) => state.session)
@@ -48,34 +49,34 @@ export function useGuestSession(): GuestSessionApi {
 
   // 初始化
   useEffect(() => {
-    initialize(isAuthenticated)
-  }, [initialize, isAuthenticated])
+    initialize(isSignedIn)
+  }, [initialize, isSignedIn])
 
   // 時間追蹤
   useEffect(() => {
-    if (isAuthenticated || !isInitialized) return
+    if (isSignedIn || !isInitialized) return
 
     const interval = setInterval(() => {
       incrementPendingTime(TIME_TRACK_INTERVAL / 1000)
     }, TIME_TRACK_INTERVAL)
 
     return () => clearInterval(interval)
-  }, [isAuthenticated, isInitialized, incrementPendingTime])
+  }, [isSignedIn, isInitialized, incrementPendingTime])
 
   // 定期同步
   useEffect(() => {
-    if (isAuthenticated || !isInitialized) return
+    if (isSignedIn || !isInitialized) return
 
     const interval = setInterval(() => {
-      syncToBackend(isAuthenticated)
+      syncToBackend(isSignedIn)
     }, SYNC_INTERVAL)
 
     return () => clearInterval(interval)
-  }, [isAuthenticated, isInitialized, syncToBackend])
+  }, [isSignedIn, isInitialized, syncToBackend])
 
   // 頁面離開時同步
   useEffect(() => {
-    if (isAuthenticated) return
+    if (isSignedIn) return
 
     const handleBeforeUnload = () => {
       const state = useGuestSessionStore.getState()
@@ -98,7 +99,7 @@ export function useGuestSession(): GuestSessionApi {
 
     window.addEventListener('beforeunload', handleBeforeUnload)
     return () => window.removeEventListener('beforeunload', handleBeforeUnload)
-  }, [isAuthenticated])
+  }, [isSignedIn])
 
   // 重置 justBecameEligible 狀態（顯示後 5 秒）
   useEffect(() => {
@@ -112,12 +113,12 @@ export function useGuestSession(): GuestSessionApi {
 
   // Wrapped actions
   const trackPageView = useCallback(() => {
-    storeTrackPageView(isAuthenticated)
-  }, [storeTrackPageView, isAuthenticated])
+    storeTrackPageView(isSignedIn)
+  }, [storeTrackPageView, isSignedIn])
 
   const trackBiographyView = useCallback(() => {
-    storeTrackBiographyView(isAuthenticated)
-  }, [storeTrackBiographyView, isAuthenticated])
+    storeTrackBiographyView(isSignedIn)
+  }, [storeTrackBiographyView, isSignedIn])
 
   return {
     session,

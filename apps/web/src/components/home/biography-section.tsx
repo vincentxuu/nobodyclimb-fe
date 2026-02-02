@@ -171,7 +171,7 @@ export function BiographySection() {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const hasFetched = useRef(false)
-  const { isAuthenticated } = useAuthStore()
+  const { status } = useAuthStore()
 
   const loadBiographies = useCallback(async () => {
     // 防止重複請求
@@ -245,7 +245,7 @@ export function BiographySection() {
               認識更多小人物
             </Button>
           </Link>
-          {!isAuthenticated && (
+          {status !== 'signIn' && (
             <Link href="/auth/register" className="w-full sm:w-auto">
               <Button
                 className="h-11 w-full bg-brand-accent/70 px-8 text-base text-[#1B1A1A] hover:bg-brand-accent sm:w-auto"

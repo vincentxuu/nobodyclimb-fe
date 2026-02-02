@@ -28,7 +28,7 @@ export function BiographyLikeButton({
   const [count, setCount] = useState(initialCount)
   const [isLoading, setIsLoading] = useState(false)
   const [hasFetched, setHasFetched] = useState(false)
-  const { isAuthenticated } = useAuthStore()
+  const { status } = useAuthStore()
   const router = useRouter()
 
   // Fetch initial like status when component mounts
@@ -56,7 +56,7 @@ export function BiographyLikeButton({
     e.stopPropagation()
     e.preventDefault()
 
-    if (!isAuthenticated) {
+    if (status !== 'signIn') {
       router.push('/auth/login')
       return
     }

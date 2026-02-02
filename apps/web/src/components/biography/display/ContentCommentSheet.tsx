@@ -155,7 +155,7 @@ export function ContentCommentSheet({
   size = 'sm',
   className,
 }: ContentCommentSheetProps) {
-  const { isAuthenticated, user } = useAuthStore()
+  const { status, user } = useAuthStore()
   const { toast } = useToast()
   const [isOpen, setIsOpen] = useState(false)
   const [comments, setComments] = useState<ContentComment[]>([])
@@ -266,7 +266,7 @@ export function ContentCommentSheet({
               <CommentForm
                 onSubmit={handleAddComment}
                 isSubmitting={isSubmitting}
-                isLoggedIn={isAuthenticated}
+                isLoggedIn={status === 'signIn'}
               />
 
               {/* 留言列表 */}

@@ -16,15 +16,15 @@ import { GOOGLE_CLIENT_ID } from '@/lib/constants'
  */
 export default function LoginPage() {
   const router = useRouter()
-  const { login, loginWithGoogle, loading } = useAuth()
-  const { isAuthenticated } = useAuthStore()
+  const { signIn, signInWithGoogle, isLoading } = useAuth()
+  const { status } = useAuthStore()
 
   // 已登入用戶自動重導向到首頁
   useEffect(() => {
-    if (isAuthenticated) {
+    if (status === 'signIn') {
       router.replace('/')
     }
-  }, [isAuthenticated, router])
+  }, [status, router])
 
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
@@ -37,12 +37,9 @@ export default function LoginPage() {
     setError('')
 
     try {
-      const result = await login(email, password)
+      const result = await signIn(email, password)
       if (result.success) {
-        // 等待一小段時間確保狀態更新完成
-        setTimeout(() => {
-          router.push('/')
-        }, 100)
+        router.push('/')
       } else {
         setError(result.error || '登入失敗，請檢查您的帳號密碼')
       }
@@ -60,16 +57,14 @@ export default function LoginPage() {
         return
       }
 
-      const result = await loginWithGoogle(credentialResponse.credential)
+      const result = await signInWithGoogle(credentialResponse.credential)
       if (result.success) {
-        setTimeout(() => {
-          // 新用戶跳轉到 profile-setup，舊用戶跳轉到首頁
-          if (result.isNewUser) {
-            router.push('/auth/profile-setup/basic-info')
-          } else {
-            router.push('/')
-          }
-        }, 100)
+        // 新用戶跳轉到 profile-setup，舊用戶跳轉到首頁
+        if (result.isNewUser) {
+          router.push('/auth/profile-setup/basic-info')
+        } else {
+          router.push('/')
+        }
       } else {
         setError(result.error || 'Google 登入失敗')
       }
@@ -152,8 +147,8 @@ export default function LoginPage() {
                 </div>
               </div>
 
-              <Button type="submit" className="w-full" disabled={loading}>
-                {loading ? '登入中...' : '登入'}
+              <Button type="submit" className="w-full" disabled={isLoading}>
+                {isLoading ? '登入中...' : '登入'}
                 <LogIn className="ml-2 h-4 w-4" />
               </Button>
             </form>

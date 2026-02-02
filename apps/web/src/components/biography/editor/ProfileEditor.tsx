@@ -1,10 +1,8 @@
 'use client'
 
-import { useState, useEffect, useCallback, useRef, useMemo } from 'react'
+import { useState, useCallback, useRef, useMemo } from 'react'
 import { cn } from '@/lib/utils'
 import { User, Tag, MessageCircle, BookOpen, Globe } from 'lucide-react'
-import { biographyService } from '@/lib/api/services'
-import { useToast } from '@/components/ui/use-toast'
 import ImageCropper from '@/components/shared/image-cropper'
 import type {
   BiographyV2,
@@ -31,8 +29,15 @@ import { AddCustomStoryModal } from './AddCustomStoryModal'
 import { TagsBottomSheet } from './TagsBottomSheet'
 import { StoryEditFullscreen } from './StoryEditFullscreen'
 import { useIsMobile } from '@/lib/hooks/useIsMobile'
-import { useDebouncedCallback } from '@/lib/hooks/useDebouncedCallback'
 import UnsavedChangesPrompt from '@/components/shared/unsaved-changes-prompt'
+
+// Custom hooks
+import {
+  useImageCropper,
+  useEditorModals,
+  useCustomContent,
+  useAutoSaveBiography,
+} from './hooks'
 
 interface ProfileEditorProps {
   /** 人物誌資料 */
@@ -71,411 +76,52 @@ export function ProfileEditor({
   onPublish,
   className,
 }: ProfileEditorProps) {
-  const [editingStoryId, setEditingStoryId] = useState<string | null>(null)
   const [activeSection, setActiveSection] = useState<string>('basic')
   const { status, lastSavedAt, error, setSaving, setSaved, setError } = useSaveStatus()
   const isMobile = useIsMobile()
-  const { toast } = useToast()
-  const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false)
-
-  // 圖片裁切器狀態
-  const [showCropper, setShowCropper] = useState(false)
-  const [cropperImageSrc, setCropperImageSrc] = useState<string>('')
-  const [cropType, setCropType] = useState<'avatar' | 'cover'>('avatar')
-  const [_isUploading, setIsUploading] = useState(false)
-
-  // 手機版 TagsBottomSheet 狀態
-  const [tagsBottomSheetOpen, setTagsBottomSheetOpen] = useState(false)
-
-  // Modal 狀態管理
-  const [customTagModalOpen, setCustomTagModalOpen] = useState(false)
-  const [customTagDimensionId, setCustomTagDimensionId] = useState<string | undefined>(undefined)
-  const [customDimensionModalOpen, setCustomDimensionModalOpen] = useState(false)
-  const [customOneLinerModalOpen, setCustomOneLinerModalOpen] = useState(false)
-  const [customStoryModalOpen, setCustomStoryModalOpen] = useState(false)
-  const [customStoryCategoryId, setCustomStoryCategoryId] = useState<string | undefined>(undefined)
-
-  // 合併系統維度和用戶自訂維度（從 biography.custom_dimensions 初始化）
-  const [customDimensions, setCustomDimensions] = useState<TagDimension[]>(
-    () => biography.custom_dimensions || []
-  )
-  // 用戶為系統維度新增的自訂標籤（從 biography.custom_tags 初始化）
-  const [customTagsForSystemDimensions, setCustomTagsForSystemDimensions] = useState<TagOption[]>(
-    () => biography.custom_tags || []
-  )
-  const [customOneLinerQuestions, setCustomOneLinerQuestions] = useState<OneLinerQuestion[]>([])
-  const [customStoryQuestions, setCustomStoryQuestions] = useState<StoryQuestion[]>([])
-
-  // 所有維度（系統 + 自訂），並將用戶為系統維度新增的自訂標籤合併進去
-  const allTagDimensions = useMemo(() => {
-    // 將用戶自訂標籤合併到對應的系統維度
-    const mergedSystemDimensions = tagDimensions.map((dim) => {
-      const customTags = customTagsForSystemDimensions.filter(
-        (tag) => tag.dimension_id === dim.id
-      )
-      if (customTags.length > 0) {
-        return {
-          ...dim,
-          options: [...customTags, ...dim.options],
-        }
-      }
-      return dim
-    })
-    return [...mergedSystemDimensions, ...customDimensions]
-  }, [tagDimensions, customDimensions, customTagsForSystemDimensions])
-  // 所有一句話問題（系統 + 自訂）
-  const allOneLinerQuestions = [...oneLinerQuestions, ...customOneLinerQuestions]
-  // 所有故事問題（系統 + 自訂）
-  const allStoryQuestionsByCategory = { ...storyQuestionsByCategory }
-  customStoryQuestions.forEach((q) => {
-    const category = q.category_id as StoryCategory
-    if (allStoryQuestionsByCategory[category]) {
-      allStoryQuestionsByCategory[category] = [...allStoryQuestionsByCategory[category], q]
-    }
-  })
 
   // Section refs for scroll navigation
   const sectionRefs = useRef<Record<string, HTMLElement | null>>({})
 
-  // Handle section click - scroll to section
-  const handleSectionClick = useCallback((sectionId: string) => {
-    setActiveSection(sectionId)
-    const element = sectionRefs.current[sectionId]
-    if (element) {
-      element.scrollIntoView({ behavior: 'smooth', block: 'start' })
-    }
-  }, [])
+  // Auto-save hook
+  const { localBiography, hasUnsavedChanges, handleChange, flushSave } = useAutoSaveBiography({
+    biography,
+    onChange,
+    onSave,
+    setSaving,
+    setSaved,
+    setError,
+  })
 
-  // 同步 biography.custom_tags 到 customTagsForSystemDimensions
-  // 當 biography 從父組件更新時（例如初始載入或重新載入）
-  // 使用 JSON.stringify 進行深度比較，避免因陣列引用變化導致不必要的更新
-  const customTagsJson = JSON.stringify(biography.custom_tags || [])
-  useEffect(() => {
-    const parsed = JSON.parse(customTagsJson) as TagOption[]
-    setCustomTagsForSystemDimensions(parsed)
-  }, [customTagsJson])
+  // Image cropper hook
+  const imageCropper = useImageCropper({
+    avatarUrl: localBiography.avatar_url,
+    coverUrl: localBiography.cover_url,
+    onAvatarChange: (url) => handleChange({ avatar_url: url }),
+    onCoverChange: (url) => handleChange({ cover_url: url }),
+    onFlushSave: flushSave,
+  })
 
-  // 同步 biography.custom_dimensions 到 customDimensions
-  const customDimensionsJson = JSON.stringify(biography.custom_dimensions || [])
-  useEffect(() => {
-    const parsed = JSON.parse(customDimensionsJson) as TagDimension[]
-    setCustomDimensions(parsed)
-  }, [customDimensionsJson])
+  // Modals hook
+  const modals = useEditorModals()
 
-  // 本地草稿管理
-  // 使用本地 state 維護編輯中的草稿，避免儲存時覆蓋正在編輯的內容
-  const [localBiography, setLocalBiography] = useState(biography)
-
-  // 追蹤是否正在編輯和最後儲存的版本
-  const isEditingRef = useRef(false)
-  const lastSavedBiographyRef = useRef(biography)
-  const isSavingRef = useRef(false)
-  // 儲存請求 ID 計數器，用於追蹤版本
-  const saveIdRef = useRef(0)
-  // 編輯版本號（每次變更遞增，用於避免舊儲存覆蓋新編輯）
-  const editVersionRef = useRef(0)
-  // 已成功儲存的版本號
-  const lastSavedVersionRef = useRef(0)
-  // 當前正在進行的儲存 ID
-  const currentSaveIdRef = useRef(0)
-  // 是否需要再次儲存（當儲存進行中時有新的編輯）
-  const needsAnotherSaveRef = useRef(false)
-  // 重試計數
-  const retryCountRef = useRef(0)
-  // 追蹤最新的編輯內容（避免使用閉包捕獲的過期值）
-  const latestBiographyRef = useRef(biography)
-  // 追蹤組件是否已掛載（避免 unmount 後 setState）
-  const isMountedRef = useRef(true)
-  // 重試定時器 ref，用於取消過期的重試
-  const retryTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
-
-  // 組件掛載/卸載追蹤
-  useEffect(() => {
-    isMountedRef.current = true
-    return () => {
-      isMountedRef.current = false
-      // 清理重試定時器
-      if (retryTimerRef.current) {
-        clearTimeout(retryTimerRef.current)
-        retryTimerRef.current = null
-      }
-    }
-  }, [])
-
-
-  // 從 props 同步到本地草稿
-  // 只在非編輯狀態且非儲存中時同步外部更新
-  useEffect(() => {
-    if (!isEditingRef.current && !isSavingRef.current) {
-      setLocalBiography(biography)
-      lastSavedBiographyRef.current = biography
-      latestBiographyRef.current = biography
-      setHasUnsavedChanges(false)
-    }
-  }, [biography])
-
-  // 當 biography.id 變更時（例如切換用戶），強制同步並重置編輯狀態
-  useEffect(() => {
-    setLocalBiography(biography)
-    lastSavedBiographyRef.current = biography
-    latestBiographyRef.current = biography
-    isEditingRef.current = false
-    // 重置儲存相關的 refs
-    saveIdRef.current = 0
-    editVersionRef.current = 0
-    lastSavedVersionRef.current = 0
-    setHasUnsavedChanges(false)
-    currentSaveIdRef.current = 0
-    needsAnotherSaveRef.current = false
-    retryCountRef.current = 0
-    // 清理重試定時器
-    if (retryTimerRef.current) {
-      clearTimeout(retryTimerRef.current)
-      retryTimerRef.current = null
-    }
-  }, [biography.id])
-
-  // 自動儲存 - 使用 debounce，支援 maxWait
-  const debouncedSave = useDebouncedCallback(
-    async (bioToSave: BiographyV2, saveVersion: number) => {
-      // 如果組件已卸載，取消儲存（額外保護，避免意外情況下 unmount 後發送請求）
-      // 注意：useDebouncedCallback 已在 unmount 時清理 timers 不會 flush
-      // 這裡的檢查是雙重保險
-      if (!isMountedRef.current) {
-        return
-      }
-
-      // 序列化儲存：如果已經有儲存正在進行中，標記需要再次儲存
-      if (isSavingRef.current) {
-        needsAnotherSaveRef.current = true
-        return
-      }
-
-      // 遞增儲存 ID
-      saveIdRef.current += 1
-      const thisSaveId = saveIdRef.current
-
-      try {
-        isSavingRef.current = true
-        currentSaveIdRef.current = thisSaveId
-        // 只在組件已掛載時更新狀態
-        if (isMountedRef.current) {
-          setSaving()
-        }
-        await onSave(bioToSave)
-
-        // 版本檢查：只有最新的儲存完成才更新狀態
-        if (thisSaveId === saveIdRef.current) {
-          lastSavedBiographyRef.current = bioToSave
-          // 只在組件已掛載時更新狀態
-          if (isMountedRef.current) {
-            setSaved()
-          }
-          // 只有當這次儲存仍是最新編輯版本時，才結束編輯狀態
-          if (saveVersion === editVersionRef.current) {
-            isEditingRef.current = false
-            lastSavedVersionRef.current = saveVersion
-            if (isMountedRef.current) {
-              setHasUnsavedChanges(false)
-            }
-          }
-          // 儲存成功，重置重試計數
-          retryCountRef.current = 0
-          // 清理重試定時器
-          if (retryTimerRef.current) {
-            clearTimeout(retryTimerRef.current)
-            retryTimerRef.current = null
-          }
-        }
-        // 如果不是最新的儲存（有更新的儲存請求產生），則忽略此次儲存結果
-      } catch (err) {
-        // 只在組件已掛載時更新狀態
-        if (isMountedRef.current) {
-          setError(err instanceof Error ? err.message : '儲存失敗')
-        }
-        // 儲存失敗時保持編輯狀態，防止外部資料覆蓋用戶編輯
-        // isEditingRef.current 保持為 true，確保用戶編輯的內容不會丟失
-
-        // 自動重試機制（最多 3 次，指數退避）
-        retryCountRef.current += 1
-        if (retryCountRef.current <= 3) {
-          const retryDelay = 2000 * retryCountRef.current // 2s, 4s, 6s
-          // 清理舊的重試定時器
-          if (retryTimerRef.current) {
-            clearTimeout(retryTimerRef.current)
-          }
-          // 重試時使用最新的草稿，而不是失敗那次的舊資料
-          retryTimerRef.current = setTimeout(() => {
-            // 檢查版本：只有當這次儲存仍然是最新時才重試
-            if (thisSaveId === saveIdRef.current && isMountedRef.current && latestBiographyRef.current) {
-              debouncedSave(latestBiographyRef.current, editVersionRef.current)
-            }
-          }, retryDelay)
-        }
-      } finally {
-        isSavingRef.current = false
-
-        // 檢查是否需要再次儲存（儲存進行中時有新的編輯）
-        if (needsAnotherSaveRef.current && latestBiographyRef.current) {
-          needsAnotherSaveRef.current = false
-          // 先調用 debouncedSave 更新 latestArgsRef，然後立即 flush 執行
-          // 這樣確保 flush 使用的是最新的資料
-          debouncedSave(latestBiographyRef.current, editVersionRef.current)
-          debouncedSave.flush()
-        }
-      }
-    },
-    {
-      delay: 5000,      // 停止輸入 5 秒後儲存
-      maxWait: 60000    // 連續輸入也至少每 60 秒儲存一次
-    }
-  )
-
-  // Handle changes - 樂觀更新
-  const handleChange = useCallback(
-    (updates: Partial<BiographyV2>) => {
-      // 計算新的狀態
-      let newBio: BiographyV2
-
-      // 更新本地狀態（純函數，無副作用）
-      setLocalBiography((prev) => {
-        newBio = { ...prev, ...updates }
-        return newBio
-      })
-
-      // 所有副作用在 setState 之外執行
-      // 同步更新最新草稿 ref（確保 finally 區塊和重試使用最新資料）
-      latestBiographyRef.current = newBio!
-      // 更新編輯版本號
-      editVersionRef.current += 1
-      const currentVersion = editVersionRef.current
-      setHasUnsavedChanges(true)
-
-      // 標記為編輯中
-      isEditingRef.current = true
-
-      // 立即通知父組件（樂觀更新，不等待儲存）
-      onChange(updates)
-
-      // 觸發防抖儲存
-      debouncedSave(newBio!, currentVersion)
-    },
-    [onChange, debouncedSave]
-  )
-
-  // 離開頁面時提示未儲存變更，並嘗試 flush
-  useEffect(() => {
-    const handleBeforeUnload = (event: BeforeUnloadEvent) => {
-      const hasUnsavedChanges =
-        editVersionRef.current > lastSavedVersionRef.current ||
-        isSavingRef.current ||
-        needsAnotherSaveRef.current
-
-      if (!hasUnsavedChanges) return
-
-      // 嘗試立即送出最後一次變更
-      if (latestBiographyRef.current) {
-        debouncedSave(latestBiographyRef.current, editVersionRef.current)
-        debouncedSave.flush()
-      }
-
-      event.preventDefault()
-      event.returnValue = ''
-    }
-
-    window.addEventListener('beforeunload', handleBeforeUnload)
-    return () => {
-      window.removeEventListener('beforeunload', handleBeforeUnload)
-    }
-  }, [debouncedSave])
-
-
-  // 處理頭像選擇 - 開啟裁切器
-  const handleAvatarSelect = useCallback((file: File) => {
-    const url = URL.createObjectURL(file)
-    setCropperImageSrc(url)
-    setCropType('avatar')
-    setShowCropper(true)
-  }, [])
-
-  // 處理封面選擇 - 開啟裁切器
-  const handleCoverSelect = useCallback((file: File) => {
-    const url = URL.createObjectURL(file)
-    setCropperImageSrc(url)
-    setCropType('cover')
-    setShowCropper(true)
-  }, [])
-
-  // 裁切器關閉時清理 blob URL
-  const handleCropperClose = useCallback(() => {
-    setShowCropper(false)
-    if (cropperImageSrc && cropperImageSrc.startsWith('blob:')) {
-      URL.revokeObjectURL(cropperImageSrc)
-      setCropperImageSrc('')
-    }
-  }, [cropperImageSrc])
-
-  // 處理裁切完成 - 上傳圖片
-  const handleCropComplete = useCallback(async (croppedFile: File) => {
-    setIsUploading(true)
-    try {
-      const response = await biographyService.uploadImage(croppedFile,
-        cropType === 'avatar' ? localBiography.avatar_url || undefined : localBiography.cover_url || undefined
-      )
-
-      if (response.success && response.data) {
-        const permanentUrl = response.data.url
-        if (cropType === 'avatar') {
-          handleChange({ avatar_url: permanentUrl })
-        } else {
-          handleChange({ cover_url: permanentUrl })
-        }
-        // 立即執行儲存，避免使用者重新整理時遺失圖片
-        debouncedSave.flush()
-        toast({
-          title: '上傳成功',
-          description: cropType === 'avatar' ? '頭像已更新' : '封面圖片已更新',
-        })
-      } else {
-        throw new Error('上傳失敗')
-      }
-    } catch (err) {
-      console.error('圖片上傳失敗:', err)
-      toast({
-        title: '上傳失敗',
-        description: err instanceof Error ? err.message : '請稍後再試',
-        variant: 'destructive',
-      })
-    } finally {
-      setIsUploading(false)
-      // 清理 blob URL
-      if (cropperImageSrc && cropperImageSrc.startsWith('blob:')) {
-        URL.revokeObjectURL(cropperImageSrc)
-        setCropperImageSrc('')
-      }
-    }
-  }, [cropType, localBiography.avatar_url, localBiography.cover_url, handleChange, toast, cropperImageSrc, debouncedSave])
-
-  // Handle custom tag modal
-  const handleAddCustomTag = useCallback((dimensionId?: string) => {
-    setCustomTagDimensionId(dimensionId)
-    setCustomTagModalOpen(true)
-  }, [])
-
-  const handleSaveCustomTag = useCallback((tag: TagOption) => {
-    // 將新標籤加入維度
-    const dimensionId = tag.dimension_id
-    const dimension = allTagDimensions.find((d) => d.id === dimensionId)
-    if (dimension) {
+  // Custom content hook
+  const customContent = useCustomContent({
+    biography,
+    tagDimensions,
+    oneLinerQuestions,
+    storyQuestionsByCategory,
+    onSaveCustomTag: (tag, isUserDimension, newCustomDimensions, newCustomTags) => {
       // 自動選中新增的標籤
+      const dimensionId = tag.dimension_id
       const otherTags = localBiography.tags.filter((t) => {
-        const dim = allTagDimensions.find((d) =>
+        const dim = customContent.allTagDimensions.find((d) =>
           d.options.some((o) => o.id === t.tag_id)
         )
         return dim?.id !== dimensionId
       })
       const currentDimensionTags = localBiography.tags.filter((t) => {
-        const dim = allTagDimensions.find((d) =>
+        const dim = customContent.allTagDimensions.find((d) =>
           d.options.some((o) => o.id === t.tag_id)
         )
         return dim?.id === dimensionId
@@ -486,123 +132,199 @@ export function ProfileEditor({
         { tag_id: tag.id, source: 'user' as const },
       ]
 
-      // 根據維度來源決定如何儲存自訂標籤
-      if (dimension.source === 'user') {
-        // 用戶自訂維度：更新該維度的 options 並同步到 localBiography.custom_dimensions
-        const newCustomDimensions = customDimensions.map((d) =>
-          d.id === dimensionId
-            ? { ...d, options: [...d.options, tag] }
-            : d
-        )
-        setCustomDimensions(newCustomDimensions)
+      if (isUserDimension && newCustomDimensions) {
         handleChange({ tags: newTags, custom_dimensions: newCustomDimensions })
-      } else {
-        // 系統維度：將標籤加入 customTagsForSystemDimensions 並同步到 localBiography.custom_tags
-        const newCustomTags = [...customTagsForSystemDimensions, tag]
-        setCustomTagsForSystemDimensions(newCustomTags)
+      } else if (newCustomTags) {
         handleChange({ tags: newTags, custom_tags: newCustomTags })
       }
-      // 立即執行儲存，避免使用者重新整理時遺失新增的標籤
-      debouncedSave.flush()
+      flushSave()
+      modals.closeCustomTagModal()
+    },
+    onSaveCustomDimension: (_dimension, newCustomDimensions) => {
+      handleChange({ custom_dimensions: newCustomDimensions })
+      flushSave()
+      modals.closeCustomDimensionModal()
+    },
+  })
+
+  // Handle section click - scroll to section
+  const handleSectionClick = useCallback((sectionId: string) => {
+    setActiveSection(sectionId)
+    const element = sectionRefs.current[sectionId]
+    if (element) {
+      element.scrollIntoView({ behavior: 'smooth', block: 'start' })
     }
-    setCustomTagModalOpen(false)
-  }, [allTagDimensions, localBiography.tags, customDimensions, customTagsForSystemDimensions, handleChange, debouncedSave])
-
-  // Handle custom dimension modal
-  const handleAddCustomDimension = useCallback(() => {
-    setCustomDimensionModalOpen(true)
   }, [])
 
-  const handleSaveCustomDimension = useCallback((dimension: TagDimension) => {
-    const newCustomDimensions = [...customDimensions, dimension]
-    setCustomDimensions(newCustomDimensions)
-    handleChange({ custom_dimensions: newCustomDimensions })
-    // 立即執行儲存，避免使用者重新整理時遺失新增的維度
-    debouncedSave.flush()
-    setCustomDimensionModalOpen(false)
-  }, [customDimensions, handleChange, debouncedSave])
-
-  // Handle custom one-liner modal
-  const handleAddCustomOneLiner = useCallback(() => {
-    setCustomOneLinerModalOpen(true)
-  }, [])
-
-  const handleSaveCustomOneLiner = useCallback((question: OneLinerQuestion) => {
-    setCustomOneLinerQuestions((prev) => [...prev, question])
-    setCustomOneLinerModalOpen(false)
-  }, [])
-
-  // Handle custom story modal
-  const handleAddCustomStory = useCallback((categoryId?: string) => {
-    setCustomStoryCategoryId(categoryId)
-    setCustomStoryModalOpen(true)
-  }, [])
-
-  const handleSaveCustomStory = useCallback((question: StoryQuestion) => {
-    setCustomStoryQuestions((prev) => [...prev, question])
-    setCustomStoryModalOpen(false)
-  }, [])
-
-  // Calculate progress
-  const sections = [
-    {
-      id: 'basic',
-      label: '基本資料',
-      icon: User,
-      isCompleted: !!localBiography.name,
+  // Handle tag selection change
+  const handleTagSelectionChange = useCallback(
+    (dimensionId: string, selectedIds: string[]) => {
+      const otherTags = localBiography.tags.filter((t) => {
+        const dim = customContent.allTagDimensions.find((d) =>
+          d.options.some((o) => o.id === t.tag_id)
+        )
+        return dim?.id !== dimensionId
+      })
+      const newTags = selectedIds.map((id) => {
+        const option = customContent.allTagDimensions
+          .find((d) => d.id === dimensionId)
+          ?.options.find((o) => o.id === id)
+        return {
+          tag_id: id,
+          source: option?.source || 'system',
+        }
+      })
+      handleChange({ tags: [...otherTags, ...newTags] })
     },
-    {
-      id: 'tags',
-      label: '身份標籤',
-      icon: Tag,
-      isCompleted: localBiography.tags.length > 0,
-      progress: {
-        completed: localBiography.tags.length,
-        total: tagDimensions.length * 2, // Rough estimate
+    [localBiography.tags, customContent.allTagDimensions, handleChange]
+  )
+
+  // Handle one-liner answer change
+  const handleOneLinerChange = useCallback(
+    (questionId: string, answer: string | null) => {
+      const existingIndex = localBiography.one_liners.findIndex(
+        (o) => o.question_id === questionId
+      )
+      let newOneLiners = [...localBiography.one_liners]
+      if (existingIndex >= 0) {
+        if (answer) {
+          newOneLiners[existingIndex] = { ...newOneLiners[existingIndex], answer }
+        } else {
+          newOneLiners.splice(existingIndex, 1)
+        }
+      } else if (answer) {
+        const question = customContent.allOneLinerQuestions.find((q) => q.id === questionId)
+        newOneLiners.push({
+          question_id: questionId,
+          answer,
+          source: question?.source || 'system',
+        })
+      }
+      handleChange({ one_liners: newOneLiners })
+    },
+    [localBiography.one_liners, customContent.allOneLinerQuestions, handleChange]
+  )
+
+  // Handle story save
+  const handleStorySave = useCallback(
+    (content: string) => {
+      if (!modals.editingStoryId) return
+      const existingIndex = localBiography.stories.findIndex(
+        (s) => s.question_id === modals.editingStoryId
+      )
+      let newStories = [...localBiography.stories]
+      if (existingIndex >= 0) {
+        newStories[existingIndex] = { ...newStories[existingIndex], content }
+      } else {
+        const question = Object.values(customContent.allStoryQuestionsByCategory)
+          .flat()
+          .find((q) => q.id === modals.editingStoryId)
+        newStories.push({
+          question_id: modals.editingStoryId,
+          content,
+          source: question?.source || 'system',
+        })
+      }
+      handleChange({ stories: newStories })
+      flushSave()
+      modals.closeStoryEditor()
+    },
+    [modals.editingStoryId, localBiography.stories, customContent.allStoryQuestionsByCategory, handleChange, flushSave, modals]
+  )
+
+  // Handle story delete
+  const handleStoryDelete = useCallback(() => {
+    if (!modals.editingStoryId) return
+    const newStories = localBiography.stories.filter(
+      (s) => s.question_id !== modals.editingStoryId
+    )
+    handleChange({ stories: newStories })
+    flushSave()
+    modals.closeStoryEditor()
+  }, [modals.editingStoryId, localBiography.stories, handleChange, flushSave, modals])
+
+  // Calculate tag selections for TagsSection
+  const tagSelections = useMemo(() => {
+    return localBiography.tags.reduce(
+      (acc, tag) => {
+        const dimension = customContent.allTagDimensions.find((d) =>
+          d.options.some((o) => o.id === tag.tag_id)
+        )
+        if (dimension) {
+          if (!acc[dimension.id]) {
+            acc[dimension.id] = []
+          }
+          acc[dimension.id].push(tag.tag_id)
+        }
+        return acc
       },
-    },
-    {
-      id: 'oneliners',
-      label: '快問快答',
-      icon: MessageCircle,
-      isCompleted: localBiography.one_liners.some((o) => o.answer?.trim()),
-      progress: {
-        completed: localBiography.one_liners.filter((o) => o.answer?.trim()).length,
-        total: oneLinerQuestions.length,
+      {} as Record<string, string[]>
+    )
+  }, [localBiography.tags, customContent.allTagDimensions])
+
+  // Calculate progress sections
+  const sections = useMemo(
+    () => [
+      {
+        id: 'basic',
+        label: '基本資料',
+        icon: User,
+        isCompleted: !!localBiography.name,
       },
-    },
-    {
-      id: 'stories',
-      label: '深度故事',
-      icon: BookOpen,
-      isCompleted: localBiography.stories.some((s) => s.content?.trim()),
-      progress: {
-        completed: localBiography.stories.filter((s) => s.content?.trim()).length,
-        total: Object.values(storyQuestionsByCategory).flat().length,
+      {
+        id: 'tags',
+        label: '身份標籤',
+        icon: Tag,
+        isCompleted: localBiography.tags.length > 0,
+        progress: {
+          completed: localBiography.tags.length,
+          total: tagDimensions.length * 2,
+        },
       },
-    },
-    {
-      id: 'footprints',
-      label: '攀岩足跡',
-      icon: Globe,
-      isCompleted:
-        (localBiography.frequent_locations && localBiography.frequent_locations.length > 0) ||
-        !!localBiography.home_gym,
-    },
-  ]
+      {
+        id: 'oneliners',
+        label: '快問快答',
+        icon: MessageCircle,
+        isCompleted: localBiography.one_liners.some((o) => o.answer?.trim()),
+        progress: {
+          completed: localBiography.one_liners.filter((o) => o.answer?.trim()).length,
+          total: oneLinerQuestions.length,
+        },
+      },
+      {
+        id: 'stories',
+        label: '深度故事',
+        icon: BookOpen,
+        isCompleted: localBiography.stories.some((s) => s.content?.trim()),
+        progress: {
+          completed: localBiography.stories.filter((s) => s.content?.trim()).length,
+          total: Object.values(storyQuestionsByCategory).flat().length,
+        },
+      },
+      {
+        id: 'footprints',
+        label: '攀岩足跡',
+        icon: Globe,
+        isCompleted:
+          (localBiography.frequent_locations && localBiography.frequent_locations.length > 0) ||
+          !!localBiography.home_gym,
+      },
+    ],
+    [localBiography, tagDimensions.length, oneLinerQuestions.length, storyQuestionsByCategory]
+  )
 
   const overallProgress = Math.round(
     (sections.filter((s) => s.isCompleted).length / sections.length) * 100
   )
 
-  // Get current editing story question
-  const editingQuestion = editingStoryId
-    ? Object.values(allStoryQuestionsByCategory)
-      .flat()
-      .find((q) => q.id === editingStoryId)
+  // Get current editing story
+  const editingQuestion = modals.editingStoryId
+    ? Object.values(customContent.allStoryQuestionsByCategory)
+        .flat()
+        .find((q) => q.id === modals.editingStoryId)
     : null
-  const editingStory = editingStoryId
-    ? localBiography.stories.find((s) => s.question_id === editingStoryId)
+  const editingStory = modals.editingStoryId
+    ? localBiography.stories.find((s) => s.question_id === modals.editingStoryId)
     : null
 
   return (
@@ -612,14 +334,8 @@ export function ProfileEditor({
         <div className="bg-white rounded-xl p-4">
           <div className="flex items-center justify-between mb-4">
             <h1 className="text-xl font-bold text-[#1B1A1A]">編輯人物誌</h1>
-            <AutoSaveIndicator
-              status={status}
-              lastSavedAt={lastSavedAt}
-              error={error}
-            />
+            <AutoSaveIndicator status={status} lastSavedAt={lastSavedAt} error={error} />
           </div>
-
-          {/* Privacy Settings */}
           <PrivacyBanner
             visibility={localBiography.visibility}
             onVisibilityChange={(visibility) => handleChange({ visibility })}
@@ -644,7 +360,9 @@ export function ProfileEditor({
             {/* Basic Info */}
             <section
               id="basic"
-              ref={(el) => { sectionRefs.current['basic'] = el }}
+              ref={(el) => {
+                sectionRefs.current['basic'] = el
+              }}
               className="bg-white rounded-xl p-4 md:p-6"
             >
               <BasicInfoSection
@@ -653,18 +371,22 @@ export function ProfileEditor({
                 title={localBiography.title}
                 onTitleChange={(title) => handleChange({ title })}
                 avatarUrl={localBiography.avatar_url}
-                onAvatarChange={handleAvatarSelect}
+                onAvatarChange={imageCropper.handleAvatarSelect}
                 coverUrl={localBiography.cover_url}
-                onCoverChange={handleCoverSelect}
+                onCoverChange={imageCropper.handleCoverSelect}
                 climbingStartYear={localBiography.climbing_start_year}
                 onClimbingStartYearChange={(year) => {
                   const climbingYears = year ? new Date().getFullYear() - year : null
                   handleChange({ climbing_start_year: year, climbing_years: climbingYears })
                 }}
                 frequentLocations={localBiography.frequent_locations || []}
-                onFrequentLocationsChange={(locations) => handleChange({ frequent_locations: locations })}
+                onFrequentLocationsChange={(locations) =>
+                  handleChange({ frequent_locations: locations })
+                }
                 favoriteRouteTypes={localBiography.favorite_route_types || []}
-                onFavoriteRouteTypesChange={(types) => handleChange({ favorite_route_types: types })}
+                onFavoriteRouteTypesChange={(types) =>
+                  handleChange({ favorite_route_types: types })
+                }
                 socialLinks={localBiography.social_links || {}}
                 onSocialLinksChange={(socialLinks) => handleChange({ social_links: socialLinks })}
               />
@@ -673,108 +395,60 @@ export function ProfileEditor({
             {/* Tags */}
             <section
               id="tags"
-              ref={(el) => { sectionRefs.current['tags'] = el }}
+              ref={(el) => {
+                sectionRefs.current['tags'] = el
+              }}
               className="bg-white rounded-xl p-4 md:p-6"
             >
               <TagsSection
-                dimensions={allTagDimensions}
-                selections={localBiography.tags.reduce(
-                  (acc, tag) => {
-                    const dimension = allTagDimensions.find((d) =>
-                      d.options.some((o) => o.id === tag.tag_id)
-                    )
-                    if (dimension) {
-                      if (!acc[dimension.id]) {
-                        acc[dimension.id] = []
-                      }
-                      acc[dimension.id].push(tag.tag_id)
-                    }
-                    return acc
-                  },
-                  {} as Record<string, string[]>
-                )}
-                onSelectionChange={(dimensionId, selectedIds) => {
-                  const otherTags = localBiography.tags.filter((t) => {
-                    const dim = allTagDimensions.find((d) =>
-                      d.options.some((o) => o.id === t.tag_id)
-                    )
-                    return dim?.id !== dimensionId
-                  })
-                  const newTags = selectedIds.map((id) => {
-                    // 從 allTagDimensions 中找到該標籤的定義，使用實際的 source
-                    const option = allTagDimensions
-                      .find((d) => d.id === dimensionId)
-                      ?.options.find((o) => o.id === id)
-
-                    return {
-                      tag_id: id,
-                      source: option?.source || 'system',
-                    }
-                  })
-                  handleChange({ tags: [...otherTags, ...newTags] })
-                }}
-                onAddCustomTag={handleAddCustomTag}
-                onAddCustomDimension={handleAddCustomDimension}
+                dimensions={customContent.allTagDimensions}
+                selections={tagSelections}
+                onSelectionChange={handleTagSelectionChange}
+                onAddCustomTag={modals.openCustomTagModal}
+                onAddCustomDimension={modals.openCustomDimensionModal}
                 isMobile={isMobile}
-                onOpenBottomSheet={() => setTagsBottomSheetOpen(true)}
+                onOpenBottomSheet={modals.openTagsBottomSheet}
               />
             </section>
 
             {/* One-liners */}
             <section
               id="oneliners"
-              ref={(el) => { sectionRefs.current['oneliners'] = el }}
+              ref={(el) => {
+                sectionRefs.current['oneliners'] = el
+              }}
               className="bg-white rounded-xl p-4 md:p-6"
             >
               <OneLinersSection
-                questions={allOneLinerQuestions}
+                questions={customContent.allOneLinerQuestions}
                 answers={localBiography.one_liners}
-                onAnswerChange={(questionId, answer) => {
-                  const existingIndex = localBiography.one_liners.findIndex(
-                    (o) => o.question_id === questionId
-                  )
-                  let newOneLiners = [...localBiography.one_liners]
-                  if (existingIndex >= 0) {
-                    if (answer) {
-                      newOneLiners[existingIndex] = {
-                        ...newOneLiners[existingIndex],
-                        answer,
-                      }
-                    } else {
-                      newOneLiners.splice(existingIndex, 1)
-                    }
-                  } else if (answer) {
-                    const question = allOneLinerQuestions.find((q) => q.id === questionId)
-                    newOneLiners.push({
-                      question_id: questionId,
-                      answer,
-                      source: question?.source || 'system',
-                    })
-                  }
-                  handleChange({ one_liners: newOneLiners })
-                }}
-                onAddCustomQuestion={handleAddCustomOneLiner}
+                onAnswerChange={handleOneLinerChange}
+                onAddCustomQuestion={modals.openCustomOneLinerModal}
               />
             </section>
 
             {/* Stories */}
             <section
               id="stories"
-              ref={(el) => { sectionRefs.current['stories'] = el }}
+              ref={(el) => {
+                sectionRefs.current['stories'] = el
+              }}
               className="bg-white rounded-xl p-4 md:p-6"
             >
               <StoriesSection
-                questionsByCategory={allStoryQuestionsByCategory}
+                questionsByCategory={customContent.allStoryQuestionsByCategory}
                 stories={localBiography.stories}
-                onStoryClick={(questionId) => setEditingStoryId(questionId)}
-                onAddCustomQuestion={(category) => handleAddCustomStory(category)}
+                onStoryClick={modals.openStoryEditor}
+                onAddCustomQuestion={modals.openCustomStoryModal}
               />
             </section>
 
             {/* Climbing Footprints */}
             <section
               id="footprints"
-              ref={(el) => { sectionRefs.current['footprints'] = el }}
+              ref={(el) => {
+                sectionRefs.current['footprints'] = el
+              }}
               className="bg-white rounded-xl p-4 md:p-6"
             >
               <ClimbingFootprintsEditorSection />
@@ -782,7 +456,6 @@ export function ProfileEditor({
           </main>
         </div>
 
-        {/* Spacer for fixed bottom bar */}
         <BottomBarSpacer />
       </div>
 
@@ -798,175 +471,78 @@ export function ProfileEditor({
       {/* Story Edit Modal - 桌面版 */}
       {!isMobile && (
         <StoryEditModal
-          isOpen={!!editingStoryId}
-          onClose={() => setEditingStoryId(null)}
+          isOpen={!!modals.editingStoryId}
+          onClose={modals.closeStoryEditor}
           question={editingQuestion || null}
           story={editingStory}
-          onSave={(content) => {
-            if (!editingStoryId) return
-            const existingIndex = localBiography.stories.findIndex(
-              (s) => s.question_id === editingStoryId
-            )
-            let newStories = [...localBiography.stories]
-            if (existingIndex >= 0) {
-              newStories[existingIndex] = {
-                ...newStories[existingIndex],
-                content,
-              }
-            } else {
-              const question = editingQuestion
-              newStories.push({
-                question_id: editingStoryId,
-                content,
-                source: question?.source || 'system',
-              })
-            }
-            handleChange({ stories: newStories })
-            // 用戶點擊儲存按鈕時，立即執行儲存而不等待 debounce
-            debouncedSave.flush()
-            setEditingStoryId(null)
-          }}
-          onDelete={() => {
-            if (!editingStoryId) return
-            const newStories = localBiography.stories.filter(
-              (s) => s.question_id !== editingStoryId
-            )
-            handleChange({ stories: newStories })
-            // 立即執行儲存，避免使用者重新整理時遺失刪除操作
-            debouncedSave.flush()
-            setEditingStoryId(null)
-          }}
+          onSave={handleStorySave}
+          onDelete={handleStoryDelete}
         />
       )}
 
       {/* Story Edit Fullscreen - 手機版 */}
       {isMobile && (
         <StoryEditFullscreen
-          isOpen={!!editingStoryId}
-          onClose={() => setEditingStoryId(null)}
+          isOpen={!!modals.editingStoryId}
+          onClose={modals.closeStoryEditor}
           question={editingQuestion || null}
           story={editingStory}
-          onSave={(content) => {
-            if (!editingStoryId) return
-            const existingIndex = localBiography.stories.findIndex(
-              (s) => s.question_id === editingStoryId
-            )
-            let newStories = [...localBiography.stories]
-            if (existingIndex >= 0) {
-              newStories[existingIndex] = {
-                ...newStories[existingIndex],
-                content,
-              }
-            } else {
-              const question = editingQuestion
-              newStories.push({
-                question_id: editingStoryId,
-                content,
-                source: question?.source || 'system',
-              })
-            }
-            handleChange({ stories: newStories })
-            // 用戶點擊儲存按鈕時，立即執行儲存而不等待 debounce
-            debouncedSave.flush()
-            setEditingStoryId(null)
-          }}
-          onDelete={() => {
-            if (!editingStoryId) return
-            const newStories = localBiography.stories.filter(
-              (s) => s.question_id !== editingStoryId
-            )
-            handleChange({ stories: newStories })
-            // 立即執行儲存，避免使用者重新整理時遺失刪除操作
-            debouncedSave.flush()
-            setEditingStoryId(null)
-          }}
+          onSave={handleStorySave}
+          onDelete={handleStoryDelete}
         />
       )}
 
       {/* Tags Bottom Sheet - 手機版 */}
       <TagsBottomSheet
-        isOpen={tagsBottomSheetOpen}
-        onClose={() => setTagsBottomSheetOpen(false)}
-        dimensions={allTagDimensions}
-        selections={localBiography.tags.reduce(
-          (acc, tag) => {
-            const dimension = allTagDimensions.find((d) =>
-              d.options.some((o) => o.id === tag.tag_id)
-            )
-            if (dimension) {
-              if (!acc[dimension.id]) {
-                acc[dimension.id] = []
-              }
-              acc[dimension.id].push(tag.tag_id)
-            }
-            return acc
-          },
-          {} as Record<string, string[]>
-        )}
-        onSelectionChange={(dimensionId, selectedIds) => {
-          const otherTags = localBiography.tags.filter((t) => {
-            const dim = allTagDimensions.find((d) =>
-              d.options.some((o) => o.id === t.tag_id)
-            )
-            return dim?.id !== dimensionId
-          })
-          const newTags = selectedIds.map((id) => {
-            // 從 allTagDimensions 中找到該標籤的定義，使用實際的 source
-            const option = allTagDimensions
-              .find((d) => d.id === dimensionId)
-              ?.options.find((o) => o.id === id)
-
-            return {
-              tag_id: id,
-              source: option?.source || 'system',
-            }
-          })
-          handleChange({ tags: [...otherTags, ...newTags] })
-        }}
-        onAddCustomTag={handleAddCustomTag}
-        onAddCustomDimension={handleAddCustomDimension}
+        isOpen={modals.tagsBottomSheetOpen}
+        onClose={modals.closeTagsBottomSheet}
+        dimensions={customContent.allTagDimensions}
+        selections={tagSelections}
+        onSelectionChange={handleTagSelectionChange}
+        onAddCustomTag={modals.openCustomTagModal}
+        onAddCustomDimension={modals.openCustomDimensionModal}
       />
 
       {/* Custom Tag Modal */}
       <AddCustomTagModal
-        isOpen={customTagModalOpen}
-        onClose={() => setCustomTagModalOpen(false)}
-        dimensions={allTagDimensions}
-        defaultDimensionId={customTagDimensionId}
-        onSave={handleSaveCustomTag}
+        isOpen={modals.customTagModalOpen}
+        onClose={modals.closeCustomTagModal}
+        dimensions={customContent.allTagDimensions}
+        defaultDimensionId={modals.customTagDimensionId}
+        onSave={customContent.handleSaveCustomTag}
       />
 
       {/* Custom Dimension Modal */}
       <AddCustomDimensionModal
-        isOpen={customDimensionModalOpen}
-        onClose={() => setCustomDimensionModalOpen(false)}
-        onSave={handleSaveCustomDimension}
+        isOpen={modals.customDimensionModalOpen}
+        onClose={modals.closeCustomDimensionModal}
+        onSave={customContent.handleSaveCustomDimension}
       />
 
       {/* Custom One-liner Modal */}
       <AddCustomOneLinerModal
-        isOpen={customOneLinerModalOpen}
-        onClose={() => setCustomOneLinerModalOpen(false)}
-        onSave={handleSaveCustomOneLiner}
+        isOpen={modals.customOneLinerModalOpen}
+        onClose={modals.closeCustomOneLinerModal}
+        onSave={customContent.handleSaveCustomOneLiner}
       />
 
       {/* Custom Story Modal */}
       <AddCustomStoryModal
-        isOpen={customStoryModalOpen}
-        onClose={() => setCustomStoryModalOpen(false)}
-        defaultCategoryId={customStoryCategoryId}
-        onSave={handleSaveCustomStory}
+        isOpen={modals.customStoryModalOpen}
+        onClose={modals.closeCustomStoryModal}
+        defaultCategoryId={modals.customStoryCategoryId}
+        onSave={customContent.handleSaveCustomStory}
       />
 
       {/* 圖片裁切器 */}
       <ImageCropper
-        open={showCropper}
-        onClose={handleCropperClose}
-        imageSrc={cropperImageSrc}
-        onCropComplete={handleCropComplete}
-        aspectRatio={cropType === 'avatar' ? 1 : 3}
-        title={cropType === 'avatar' ? '裁切頭像' : '裁切封面圖片'}
-        outputSize={cropType === 'avatar' ? 400 : 1200}
+        open={imageCropper.showCropper}
+        onClose={imageCropper.handleCropperClose}
+        imageSrc={imageCropper.cropperImageSrc}
+        onCropComplete={imageCropper.handleCropComplete}
+        aspectRatio={imageCropper.cropType === 'avatar' ? 1 : 3}
+        title={imageCropper.cropType === 'avatar' ? '裁切頭像' : '裁切封面圖片'}
+        outputSize={imageCropper.cropType === 'avatar' ? 400 : 1200}
       />
 
       <UnsavedChangesPrompt

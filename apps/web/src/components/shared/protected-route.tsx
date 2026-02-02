@@ -13,19 +13,19 @@ interface ProtectedRouteProps {
  * 確保只有已登入用戶可以訪問包裝的內容
  */
 export function ProtectedRoute({ children }: ProtectedRouteProps) {
-  const { isAuthenticated, isInitialized } = useAuthStore()
+  const { status } = useAuthStore()
   const router = useRouter()
 
   useEffect(() => {
-    // 只有在初始化完成後才進行重定向判斷
+    // 只有在初始化完成後（非 idle）才進行重定向判斷
     // 避免在認證檢查完成前就錯誤重定向
-    if (isInitialized && !isAuthenticated) {
+    if (status === 'signOut') {
       router.push('/auth/login')
     }
-  }, [isAuthenticated, isInitialized, router])
+  }, [status, router])
 
   // 如果尚未初始化，顯示載入中
-  if (!isInitialized) {
+  if (status === 'idle') {
     return (
       <div className="flex min-h-[calc(100vh-14rem)] items-center justify-center">
         <div className="text-center">
@@ -37,7 +37,7 @@ export function ProtectedRoute({ children }: ProtectedRouteProps) {
   }
 
   // 初始化完成但用戶未登入，等待重定向
-  if (!isAuthenticated) {
+  if (status !== 'signIn') {
     return (
       <div className="flex min-h-[calc(100vh-14rem)] items-center justify-center">
         <div className="text-center">

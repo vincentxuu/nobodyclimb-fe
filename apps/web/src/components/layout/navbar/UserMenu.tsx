@@ -29,7 +29,7 @@ const logoutMenuItemClass = `${menuItemBaseClass} px-8 py-3 text-[#D94A4A]`
  */
 export default function UserMenu() {
   const router = useRouter()
-  const { isAuthenticated, logout, user } = useAuthStore()
+  const { status, signOut, user } = useAuthStore()
 
   // 假設用戶數據中有 avatarStyle 屬性，否則使用默認頭像
   const avatarStyle = user?.avatarStyle
@@ -38,7 +38,7 @@ export default function UserMenu() {
 
   return (
     <div className="flex h-full shrink-0 items-center pl-2 pr-2 md:pl-4 md:pr-4 lg:pl-6 lg:pr-6">
-      {isAuthenticated ? (
+      {status === 'signIn' ? (
         <div className="flex items-center space-x-1.5 md:space-x-2 lg:space-x-4">
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
@@ -123,7 +123,7 @@ export default function UserMenu() {
               </DropdownMenuItem>
               <DropdownMenuItem
                 className={logoutMenuItemClass}
-                onClick={() => logout()}
+                onClick={() => signOut()}
               >
                 登出
               </DropdownMenuItem>

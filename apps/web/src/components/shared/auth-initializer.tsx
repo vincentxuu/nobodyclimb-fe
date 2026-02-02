@@ -3,10 +3,6 @@
 import { useEffect, useRef, useCallback } from 'react'
 import { useAuthStore } from '@/store/authStore'
 import { useUIStore } from '@/store/uiStore'
-import Cookies from 'js-cookie'
-import { AUTH_TOKEN_KEY, AUTH_REFRESH_TOKEN_KEY } from '@/lib/constants'
-import apiClient from '@/lib/api/client'
-import { ApiResponse, BackendUser, mapBackendUserToUser } from '@/lib/types'
 import { storyPromptService } from '@/lib/api/services'
 import { toast } from '@/components/ui/use-toast'
 import { getAccessToken } from '@/lib/utils/tokenStorage'
@@ -20,12 +16,16 @@ const BIOGRAPHY_PROMPT_KEY = 'nobodyclimb_biography_prompt_shown'
 /**
  * 認證初始化組件
  * 在應用程序啟動時檢查使用者認證狀態
+ *
+ * 使用 @nobodyclimb/hooks 的 hydrate 方法恢復認證狀態
  */
 export function AuthInitializer() {
-  const { refreshToken, isAuthenticated, setUser, setInitialized } = useAuthStore()
+  const status = useAuthStore((state) => state.status)
+  const hydrate = useAuthStore((state) => state.hydrate)
   const { openStoryPrompt } = useUIStore()
   // 追蹤是否已經檢查過故事推薦
   const hasCheckedStoryPrompt = useRef(false)
+  const hasHydrated = useRef(false)
 
   // 檢查是否應該顯示故事推薦彈窗
   const checkStoryPrompt = useCallback(async () => {
@@ -69,62 +69,26 @@ export function AuthInitializer() {
     }
   }, [openStoryPrompt])
 
-  // 在組件掛載時檢查認證狀態
+  // 在組件掛載時使用 hydrate 恢復認證狀態
   useEffect(() => {
-    const checkAuthStatus = async () => {
-      // 檢查是否有認證 Cookie
-      const accessToken = Cookies.get(AUTH_TOKEN_KEY)
-      const refreshTokenValue = Cookies.get(AUTH_REFRESH_TOKEN_KEY)
+    const initAuth = async () => {
+      if (hasHydrated.current) return
+      hasHydrated.current = true
 
-      if (accessToken && !isAuthenticated) {
-        try {
-          // 調用 API 獲取當前用戶資訊
-          const response = await apiClient.get<ApiResponse<BackendUser>>('/auth/me')
-
-          if (response.data.success && response.data.data) {
-            // 轉換後端 User 格式為前端格式
-            const user = mapBackendUserToUser(response.data.data)
-            setUser(user)
-
-            // 同時更新 token 到 store
-            useAuthStore.setState({ token: accessToken })
-
-            // 認證成功後檢查故事推薦
-            checkStoryPrompt()
-          } else {
-            throw new Error('Failed to get user data')
-          }
-        } catch (error) {
-          // API 調用失敗，嘗試刷新 Token
-          if (refreshTokenValue) {
-            const refreshed = await refreshToken()
-
-            if (refreshed) {
-              // Token 刷新成功後也檢查故事推薦
-              checkStoryPrompt()
-            }
-          } else {
-            // 沒有 refresh token，清除 access token
-            Cookies.remove(AUTH_TOKEN_KEY)
-          }
-        }
-      }
-
-      // 無論認證結果如何，都標記初始化完成
-      // 讓 ProtectedRoute 可以做出正確的判斷
-      setInitialized()
+      // 使用 hydrate 恢復認證狀態
+      await hydrate()
     }
 
-    checkAuthStatus()
-  }, [isAuthenticated, refreshToken, setUser, checkStoryPrompt, setInitialized])
+    initAuth()
+  }, [hydrate])
 
   // 追蹤前一次的認證狀態，用於偵測登入事件
-  const prevIsAuthenticated = useRef(isAuthenticated)
+  const prevStatus = useRef(status)
 
-  // 當用戶登入時（isAuthenticated 從 false 變成 true），檢查故事推薦
+  // 當用戶登入時（status 變成 'signIn'），檢查故事推薦
   useEffect(() => {
     // 偵測登入事件：從未認證變成已認證
-    const justLoggedIn = isAuthenticated && !prevIsAuthenticated.current
+    const justLoggedIn = status === 'signIn' && prevStatus.current !== 'signIn'
 
     if (justLoggedIn) {
       // 重置檢查標記，允許重新檢查故事推薦
@@ -132,13 +96,13 @@ export function AuthInitializer() {
     }
 
     // 更新前一次狀態
-    prevIsAuthenticated.current = isAuthenticated
+    prevStatus.current = status
 
     // 如果已認證且尚未檢查過，執行檢查
-    if (isAuthenticated && !hasCheckedStoryPrompt.current) {
+    if (status === 'signIn' && !hasCheckedStoryPrompt.current) {
       checkStoryPrompt()
     }
-  }, [isAuthenticated, checkStoryPrompt])
+  }, [status, checkStoryPrompt])
 
   // 此組件不渲染任何內容
   return null

@@ -17,7 +17,7 @@ interface ShareInvitationProps {
  * 當訪客達到分享資格時，顯示底部浮動提示邀請分享故事
  */
 export function ShareInvitation({ onStartShare }: ShareInvitationProps) {
-  const { isAuthenticated } = useAuthStore()
+  const { status } = useAuthStore()
   const { isEligibleToShare, justBecameEligible, session } = useGuestSession()
   const [isVisible, setIsVisible] = useState(false)
   const [isDismissed, setIsDismissed] = useState(false)
@@ -34,14 +34,14 @@ export function ShareInvitation({ onStartShare }: ShareInvitationProps) {
 
   // 當達到資格時顯示
   useEffect(() => {
-    if (isEligibleToShare && !isAuthenticated && !isDismissed) {
+    if (isEligibleToShare && status !== 'signIn' && !isDismissed) {
       // 延遲顯示，避免太突兀
       const timer = setTimeout(() => {
         setIsVisible(true)
       }, justBecameEligible ? 500 : 2000)
       return () => clearTimeout(timer)
     }
-  }, [isEligibleToShare, isAuthenticated, isDismissed, justBecameEligible])
+  }, [isEligibleToShare, status, isDismissed, justBecameEligible])
 
   // 關閉邀請
   const handleDismiss = () => {
@@ -53,7 +53,7 @@ export function ShareInvitation({ onStartShare }: ShareInvitationProps) {
   }
 
   // 已登入或未達資格不顯示
-  if (isAuthenticated || !isEligibleToShare || isDismissed) {
+  if (status === 'signIn' || !isEligibleToShare || isDismissed) {
     return null
   }
 

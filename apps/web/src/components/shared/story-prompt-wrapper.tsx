@@ -12,7 +12,7 @@ import StoryPromptModal from '@/components/biography/story-prompt-modal'
  * 在 layout 中渲染，負責管理故事推薦彈窗的顯示邏輯
  */
 export function StoryPromptWrapper() {
-  const { isAuthenticated, user } = useAuthStore()
+  const { status, user } = useAuthStore()
   const { isStoryPromptOpen, closeStoryPrompt } = useUIStore()
   const [biography, setBiography] = useState<Biography | null>(null)
   const [isLoading, setIsLoading] = useState(false)
@@ -22,7 +22,7 @@ export function StoryPromptWrapper() {
   // 當彈窗打開時，獲取用戶的人物誌資料和後端推薦的題目
   useEffect(() => {
     const fetchData = async () => {
-      if (isStoryPromptOpen && isAuthenticated) {
+      if (isStoryPromptOpen && status === 'signIn') {
         setIsLoading(true)
         try {
           // 並行獲取人物誌資料和後端推薦的題目
@@ -48,7 +48,7 @@ export function StoryPromptWrapper() {
     }
 
     fetchData()
-  }, [isStoryPromptOpen, isAuthenticated])
+  }, [isStoryPromptOpen, status])
 
   // 儲存故事
   const handleSave = useCallback(async (storyField: string, storyValue: string) => {
@@ -87,7 +87,7 @@ export function StoryPromptWrapper() {
   }, [closeStoryPrompt])
 
   // 如果未登入或正在加載，不顯示彈窗
-  if (!isAuthenticated || isLoading || !biography) {
+  if (status !== 'signIn' || isLoading || !biography) {
     return null
   }
 

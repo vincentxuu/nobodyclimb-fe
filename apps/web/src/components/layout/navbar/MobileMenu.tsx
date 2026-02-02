@@ -28,7 +28,7 @@ export default function MobileMenu() {
   const [isOpen, setIsOpen] = useState(false)
   const pathname = usePathname()
   const router = useRouter()
-  const { isAuthenticated, logout, user } = useAuthStore()
+  const { status, signOut, user } = useAuthStore()
 
   const toggleMenu = () => setIsOpen(!isOpen)
   const closeMenu = () => setIsOpen(false)
@@ -44,7 +44,7 @@ export default function MobileMenu() {
   }
 
   const handleLogout = () => {
-    logout()
+    signOut()
     closeMenu()
   }
 
@@ -97,7 +97,7 @@ export default function MobileMenu() {
 
             <div className="flex flex-1 flex-col overflow-y-auto bg-white">
               {/* 用戶資訊區域 */}
-              {isAuthenticated ? (
+              {status === 'signIn' ? (
                 <div className="border-b border-gray-200 bg-white px-3 py-2 xs:p-3">
                   <div className="mb-1.5 flex items-center space-x-2 xs:mb-2">
                     <div className="h-8 w-8 flex-shrink-0 overflow-hidden rounded-full xs:h-10 xs:w-10">
@@ -192,7 +192,7 @@ export default function MobileMenu() {
               </nav>
 
               {/* 用戶功能選單 - 僅登入時顯示 */}
-              {isAuthenticated && (
+              {status === 'signIn' && (
                 <nav className="flex flex-col bg-white px-3 py-2 xs:p-3">
                   <h3 className="mb-0.5 px-2 font-['Noto_Sans_TC'] text-[10px] font-semibold uppercase tracking-wider text-gray-500 xs:mb-1 xs:px-3 xs:text-xs">
                     個人

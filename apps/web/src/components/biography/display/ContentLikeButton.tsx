@@ -30,7 +30,7 @@ export function ContentLikeButton({
   size = 'sm',
   className,
 }: ContentLikeButtonProps) {
-  const { isAuthenticated } = useAuthStore()
+  const { status } = useAuthStore()
   const { toast } = useToast()
   const [liked, setLiked] = useState(isLiked)
   const [count, setCount] = useState(likeCount)
@@ -40,7 +40,7 @@ export function ContentLikeButton({
     e.preventDefault()
     e.stopPropagation()
 
-    if (!isAuthenticated) {
+    if (status !== 'signIn') {
       toast({
         title: '請先登入',
         description: '登入後才能按讚',

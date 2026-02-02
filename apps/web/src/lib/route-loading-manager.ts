@@ -83,10 +83,10 @@ class RouteLoadingManager {
   /**
    * 獲取當前載入狀態
    */
-  getLoadingStatus(): { loadingCount: number; recentRequestCount: number } {
+  getLoadingStatus(): { isLoadingCount: number; recentRequestCount: number } {
     this.cleanupOldRequests()
     return {
-      loadingCount: this.loadingRoutes.size,
+      isLoadingCount: this.loadingRoutes.size,
       recentRequestCount: this.recentRequests.length
     }
   }

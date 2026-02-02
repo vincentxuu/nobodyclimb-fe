@@ -31,7 +31,7 @@ export function CommentSection({
   const [isOpen, setIsOpen] = useState(false)
   const [content, setContent] = useState('')
   const [count, setCount] = useState(initialCount)
-  const { isAuthenticated, user } = useAuthStore()
+  const { status, user } = useAuthStore()
   const router = useRouter()
   const { toast } = useToast()
 
@@ -65,7 +65,7 @@ export function CommentSection({
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    if (!isAuthenticated) {
+    if (status !== 'signIn') {
       router.push('/auth/login')
       return
     }
@@ -138,7 +138,7 @@ export function CommentSection({
 
       {isOpen && (
         <div className="space-y-4 mt-4 border-t pt-4">
-          {isAuthenticated && (
+          {status === 'signIn' && (
             <form onSubmit={handleSubmit} className="flex gap-2">
               <Textarea
                 value={content}
@@ -161,7 +161,7 @@ export function CommentSection({
             </form>
           )}
 
-          {!isAuthenticated && (
+          {status !== 'signIn' && (
             <p className="text-sm text-gray-500">
               <button
                 onClick={() => router.push('/auth/login')}
