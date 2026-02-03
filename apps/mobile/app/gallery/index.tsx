@@ -8,7 +8,7 @@ import React, { useState, useCallback, useMemo } from 'react'
 import { StyleSheet, View, ActivityIndicator } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import { useRouter } from 'expo-router'
-import { ChevronLeft, Plus } from 'lucide-react-native'
+import { ChevronLeft, Plus, ImageIcon } from 'lucide-react-native'
 
 import { Text, IconButton, EmptyState } from '@/components/ui'
 import {
@@ -164,7 +164,7 @@ export default function GalleryScreen() {
           onRefresh={handleRefresh}
           ListEmptyComponent={
             <EmptyState
-              icon="image"
+              icon={ImageIcon}
               title="暫無照片"
               description="成為第一個分享攀岩照片的人吧！"
               actionLabel={isAuthenticated ? '上傳照片' : undefined}

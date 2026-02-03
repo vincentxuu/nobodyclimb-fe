@@ -122,8 +122,8 @@ function PhotoCard({ photo, index, onPress }: PhotoCardProps) {
             <View style={styles.authorInfo}>
               <Avatar
                 size="xs"
-                imageUrl={photo.author.avatar}
-                fallbackText={photo.author.displayName || photo.author.username}
+                source={photo.author.avatar ? { uri: photo.author.avatar } : undefined}
+                alt={photo.author.displayName || photo.author.username}
               />
               <Text
                 variant="caption"

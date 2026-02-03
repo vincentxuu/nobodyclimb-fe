@@ -86,8 +86,8 @@ export function RouteListFilter({
           value={searchQuery}
           onChangeText={onSearchChange}
           placeholder="搜尋路線..."
-          leftIcon={<Search size={18} color={SEMANTIC_COLORS.textMuted} />}
-          rightIcon={
+          leftElement={<Search size={18} color={SEMANTIC_COLORS.textMuted} />}
+          rightElement={
             searchQuery ? (
               <Pressable onPress={handleClearSearch}>
                 <X size={18} color={SEMANTIC_COLORS.textMuted} />

@@ -119,7 +119,10 @@ export function BiographyDetailPage({
         />
 
         <View style={styles.emptyContainer}>
-          <EmptyState type="no_content" isOwner={isOwner} />
+          <EmptyState
+            title={isOwner ? "開始建立你的人物誌" : "尚無內容"}
+            description={isOwner ? "點擊編輯按鈕開始填寫你的攀岩故事" : "這位攀岩者尚未新增內容"}
+          />
         </View>
       </ScrollView>
     )

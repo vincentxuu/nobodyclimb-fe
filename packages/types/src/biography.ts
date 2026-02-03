@@ -127,6 +127,8 @@ export interface OneLinerQuestion {
   placeholder: string | null
   display_order: number
   is_active: number
+  source?: 'system' | 'user'
+  order?: number
 }
 
 /**
@@ -152,6 +154,11 @@ export interface BiographyOneLiner {
 // ============================================
 
 /**
+ * 故事分類 ID (字串字面值類型，可用於 Record 索引)
+ */
+export type StoryCategoryId = 'growth' | 'psychology' | 'community' | 'practical' | 'dreams' | 'life'
+
+/**
  * 故事分類
  */
 export interface StoryCategory {
@@ -175,6 +182,8 @@ export interface StoryQuestion {
   difficulty: 'easy' | 'medium' | 'hard'
   display_order: number
   is_active: number
+  source?: 'system' | 'user'
+  order?: number
 }
 
 /**
@@ -236,11 +245,12 @@ export interface StoryLike extends ContentLike {
  */
 export interface ContentComment {
   id: string
-  user_id: string
+  user_id?: string
+  user_name?: string
   content: string
-  parent_id: string | null
+  parent_id?: string | null
   created_at: string
-  updated_at: string
+  updated_at?: string
 }
 
 /**
@@ -366,6 +376,7 @@ export interface ClimbingLocationRecord {
  */
 export interface BiographySocialLinks {
   instagram?: string
+  youtube?: string
   youtube_channel?: string
   facebook?: string
   threads?: string
@@ -384,4 +395,156 @@ export interface Follow {
   follower_id: string
   following_id: string
   created_at: string
+}
+
+// ============================================
+// V2 人物誌編輯器相關類型
+// ============================================
+
+/**
+ * 可見性等級
+ */
+export type VisibilityLevel = 'private' | 'anonymous' | 'community' | 'public'
+
+/**
+ * 儲存狀態
+ */
+export type SaveStatus = 'idle' | 'saving' | 'saved' | 'error'
+
+/**
+ * 內容來源
+ */
+export type ContentSource = 'system' | 'user'
+
+/**
+ * 標籤選項
+ */
+export interface TagOption {
+  id: string
+  label: string
+  description?: string
+  source?: ContentSource
+  dimension_id?: string
+  order?: number
+}
+
+/**
+ * 標籤維度
+ */
+export interface TagDimension {
+  id: string
+  name: string
+  icon: string
+  emoji?: string
+  description?: string
+  selection_mode: 'single' | 'multiple'
+  options: TagOption[]
+  source?: ContentSource
+  order?: number
+  is_active?: boolean
+}
+
+/**
+ * 標籤選擇 (用於 BiographyV2.tags)
+ */
+export interface TagSelection {
+  dimension_id: string
+  tag_ids: string[]
+}
+
+/**
+ * 社群連結 (簡化版別名)
+ */
+export type SocialLinks = BiographySocialLinks
+
+/**
+ * 一句話回答 (V2 編輯器格式)
+ */
+export interface OneLiner {
+  id: string
+  question_id: string
+  question_text?: string
+  answer: string
+  source?: ContentSource
+  is_hidden?: boolean
+}
+
+/**
+ * 故事回答 (V2 編輯器格式)
+ */
+export interface Story {
+  id: string
+  question_id: string
+  question_text?: string
+  category_id?: string
+  content: string
+  source?: ContentSource
+  is_hidden?: boolean
+}
+
+/**
+ * 故事分類定義 (包含問題列表)
+ */
+export interface StoryCategoryDefinition {
+  id: string
+  name: string
+  icon?: string
+  description?: string
+  questions: StoryQuestion[]
+}
+
+/**
+ * 人物誌基本資訊 (V2)
+ */
+export interface BiographyBasicInfo {
+  name: string
+  title?: string
+  bio?: string
+  avatar_url?: string
+  cover_image?: string
+  climbing_years?: number
+  home_crag?: string
+  climbing_style?: string[]
+  social_links?: SocialLinks
+}
+
+/**
+ * 人物誌 V2 介面 (前端編輯器格式)
+ */
+export interface BiographyV2 {
+  id: string
+  user_id: string | null
+  slug: string
+
+  // 基本資訊
+  basic_info: BiographyBasicInfo
+
+  // 可見性
+  visibility: VisibilityLevel
+
+  // 標籤
+  tags: TagSelection[]
+
+  // 自訂標籤維度
+  custom_dimensions?: TagDimension[]
+
+  // 自訂標籤
+  custom_tags?: TagOption[]
+
+  // 一句話回答
+  one_liners: OneLiner[]
+
+  // 故事
+  stories: Story[]
+
+  // 時間戳
+  created_at: string
+  updated_at: string
+  autosave_at?: string
+
+  // 統計
+  total_likes?: number
+  total_views?: number
+  follower_count?: number
+  comment_count?: number
 }

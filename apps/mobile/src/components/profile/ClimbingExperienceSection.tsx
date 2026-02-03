@@ -28,7 +28,7 @@ export default function ClimbingExperienceSection({
             value={climbingReason}
             onChangeText={(text) => onChange('climbingReason', text)}
             placeholder="描述你是如何開始攀岩的..."
-            minHeight={120}
+            minRows={4}
           />
         ) : (
           <ProfileTextDisplay
@@ -43,7 +43,7 @@ export default function ClimbingExperienceSection({
             value={climbingMeaning}
             onChangeText={(text) => onChange('climbingMeaning', text)}
             placeholder="攀岩在你生活中扮演什麼角色..."
-            minHeight={120}
+            minRows={4}
           />
         ) : (
           <ProfileTextDisplay
@@ -58,7 +58,7 @@ export default function ClimbingExperienceSection({
             value={adviceForBeginners}
             onChangeText={(text) => onChange('adviceForBeginners', text)}
             placeholder="如果能對剛開始攀岩的自己說一句話..."
-            minHeight={120}
+            minRows={4}
           />
         ) : (
           <ProfileTextDisplay

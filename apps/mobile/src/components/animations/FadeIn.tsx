@@ -2,6 +2,7 @@
  * FadeIn 動畫包裝組件
  */
 import React, { ReactNode } from 'react'
+import { type ViewStyle } from 'react-native'
 import Animated, {
   FadeIn as ReanimatedFadeIn,
   FadeInDown,
@@ -12,11 +13,12 @@ import Animated, {
 
 type FadeDirection = 'none' | 'up' | 'down' | 'left' | 'right'
 
-interface FadeInProps {
+export interface FadeInProps {
   children: ReactNode
   direction?: FadeDirection
   duration?: number
   delay?: number
+  style?: ViewStyle
 }
 
 export function FadeIn({
@@ -24,6 +26,7 @@ export function FadeIn({
   direction = 'none',
   duration = 300,
   delay = 0,
+  style,
 }: FadeInProps) {
   const getEnteringAnimation = () => {
     const baseAnimation = (() => {
@@ -45,7 +48,7 @@ export function FadeIn({
   }
 
   return (
-    <Animated.View entering={getEnteringAnimation()}>
+    <Animated.View entering={getEnteringAnimation()} style={style}>
       {children}
     </Animated.View>
   )

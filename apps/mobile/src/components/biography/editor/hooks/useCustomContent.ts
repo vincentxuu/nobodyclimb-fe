@@ -5,14 +5,14 @@ import type {
   TagOption,
   OneLinerQuestion,
   StoryQuestion,
-  StoryCategory,
+  StoryCategoryId,
 } from '@nobodyclimb/types'
 
 interface UseCustomContentOptions {
   biography: BiographyV2
   tagDimensions: TagDimension[]
   oneLinerQuestions: OneLinerQuestion[]
-  storyQuestionsByCategory: Record<StoryCategory, StoryQuestion[]>
+  storyQuestionsByCategory: Record<StoryCategoryId, StoryQuestion[]>
   onSaveCustomTag: (tag: TagOption, isUserDimension: boolean, newCustomDimensions?: TagDimension[], newCustomTags?: TagOption[]) => void
   onSaveCustomDimension: (dimension: TagDimension, newCustomDimensions: TagDimension[]) => void
 }
@@ -85,7 +85,7 @@ export function useCustomContent({
   const allStoryQuestionsByCategory = useMemo(() => {
     const result = { ...storyQuestionsByCategory }
     customStoryQuestions.forEach((q) => {
-      const category = q.category_id as StoryCategory
+      const category = q.category_id as StoryCategoryId
       if (result[category]) {
         result[category] = [...result[category], q]
       }

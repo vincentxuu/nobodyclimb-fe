@@ -47,7 +47,7 @@ import {
   Train,
   Bus,
   ParkingCircle,
-  Tram,
+  TramFront,
 } from 'lucide-react-native'
 
 import { Text, IconButton, Button, Card } from '@/components/ui'
@@ -556,7 +556,7 @@ export default function GymDetailScreen() {
           <View style={styles.transportList}>
             {gym.transportation.mrt && (
               <View style={styles.transportItem}>
-                <Tram size={16} color={SEMANTIC_COLORS.textSubtle} />
+                <TramFront size={16} color={SEMANTIC_COLORS.textSubtle} />
                 <Text variant="body" color="textSubtle" style={styles.transportText}>
                   {gym.transportation.mrt}
                 </Text>

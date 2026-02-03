@@ -1,9 +1,10 @@
 import React from 'react'
 import { View, Pressable, StyleSheet } from 'react-native'
 import { useRouter } from 'expo-router'
+import { ArrowLeft } from 'lucide-react-native'
 import { Text } from '../ui/Text'
 import { Icon } from '../ui/Icon'
-import { COLORS, SEMANTIC_COLORS } from '@nobodyclimb/constants'
+import { SEMANTIC_COLORS, WB_COLORS } from '@nobodyclimb/constants'
 
 interface MobileNavigationBarProps {
   title: string
@@ -27,7 +28,7 @@ export default function MobileNavigationBar({
             style={styles.backButton}
             hitSlop={8}
           >
-            <Icon name="ArrowLeft" size="md" color={SEMANTIC_COLORS.textMain} />
+            <Icon icon={ArrowLeft} size="md" color={SEMANTIC_COLORS.textMain} />
           </Pressable>
         )}
       </View>
@@ -50,9 +51,9 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     paddingHorizontal: 16,
     paddingVertical: 12,
-    backgroundColor: COLORS.white,
+    backgroundColor: WB_COLORS[0],
     borderBottomWidth: 1,
-    borderBottomColor: COLORS.gray[200],
+    borderBottomColor: WB_COLORS[20],
   },
   leftSection: {
     width: 48,

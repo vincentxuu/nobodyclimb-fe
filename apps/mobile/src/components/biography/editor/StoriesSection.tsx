@@ -19,18 +19,18 @@ import {
 } from 'lucide-react-native'
 import type { LucideIcon } from 'lucide-react-native'
 import { SEMANTIC_COLORS, COLORS } from '@nobodyclimb/constants'
-import type { StoryQuestion, Story, StoryCategory } from '@nobodyclimb/types'
+import type { StoryQuestion, Story, StoryCategoryId } from '@nobodyclimb/types'
 import { RandomRecommend } from './RandomRecommend'
 
 interface StoriesSectionProps {
   /** 故事問題列表，按類別分組 */
-  questionsByCategory: Record<StoryCategory, StoryQuestion[]>
+  questionsByCategory: Record<StoryCategoryId, StoryQuestion[]>
   /** 已填寫的故事 */
   stories: Story[]
   /** 故事點擊回調 */
   onStoryClick: (questionId: string) => void
   /** 新增自訂問題回調 */
-  onAddCustomQuestion?: (category: StoryCategory) => void
+  onAddCustomQuestion?: (category: StoryCategoryId) => void
   /** 是否顯示隨機推薦 */
   showRandomRecommend?: boolean
 }
@@ -41,7 +41,7 @@ interface CategoryMeta {
   description: string
 }
 
-const categoryMeta: Record<StoryCategory, CategoryMeta> = {
+const categoryMeta: Record<StoryCategoryId, CategoryMeta> = {
   growth: {
     label: '成長軌跡',
     icon: TrendingUp,
@@ -88,9 +88,9 @@ export function StoriesSection({
 }: StoriesSectionProps) {
   const [randomRecommendVisible, setRandomRecommendVisible] = useState(showRandomRecommend)
   // 預設所有分類都是收合的
-  const [expandedCategories, setExpandedCategories] = useState<Set<StoryCategory>>(new Set())
+  const [expandedCategories, setExpandedCategories] = useState<Set<StoryCategoryId>>(new Set())
 
-  const toggleCategory = (category: StoryCategory) => {
+  const toggleCategory = (category: StoryCategoryId) => {
     setExpandedCategories((prev) => {
       const next = new Set(prev)
       if (next.has(category)) {
@@ -185,7 +185,7 @@ export function StoriesSection({
 
       {/* Categories */}
       <YStack gap="$4">
-        {(Object.entries(questionsByCategory) as [StoryCategory, StoryQuestion[]][]).map(
+        {(Object.entries(questionsByCategory) as [StoryCategoryId, StoryQuestion[]][]).map(
           ([category, questions]) => {
             const meta = categoryMeta[category]
             const Icon = meta.icon

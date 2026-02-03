@@ -10,7 +10,7 @@ import { useRouter } from 'expo-router'
 
 import { Text } from '@/components/ui'
 import { useAuthStore } from '@/store/authStore'
-import { biographyService } from '@nobodyclimb/api-client'
+import { biographyService } from '@/lib/biographyService'
 import { SEMANTIC_COLORS, SPACING } from '@nobodyclimb/constants'
 
 interface BiographyLikeButtonProps {

@@ -167,8 +167,8 @@ export function PhotoPopup({
               <Pressable onPress={handleAuthorPress} style={styles.authorSection}>
                 <Avatar
                   size="md"
-                  imageUrl={photo.author.avatar}
-                  fallbackText={photo.author.displayName || photo.author.username}
+                  source={photo.author.avatar ? { uri: photo.author.avatar } : undefined}
+                  alt={photo.author.displayName || photo.author.username}
                 />
                 <View style={styles.authorText}>
                   <Text variant="body" fontWeight="500" style={styles.whiteText}>

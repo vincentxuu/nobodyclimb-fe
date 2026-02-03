@@ -168,7 +168,7 @@ export function BiographyOneLiners({ biographyId }: BiographyOneLinersProps) {
               key={item.id}
               entering={FadeInDown.delay(index * 100).duration(400)}
             >
-              <Card style={[styles.card, isCustom && styles.customCard]}>
+              <Card style={isCustom ? [styles.card, styles.customCard] : styles.card}>
                 <View style={styles.questionRow}>
                   {isCustom && <Sparkles size={14} color="#FFE70C" />}
                   <Text variant="small" fontWeight="500" color="textMuted">

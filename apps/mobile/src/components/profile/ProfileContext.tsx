@@ -8,7 +8,7 @@ import {
   initialSocialLinks,
 } from './types'
 import { useAuthStore } from '../../store/authStore'
-import { biographyService } from '@nobodyclimb/api-client'
+import { biographyService } from '@/lib/biographyService'
 import type { User, Biography } from '@nobodyclimb/types'
 
 interface ProfileContextType {
@@ -53,42 +53,42 @@ function mapBiographyToProfileData(biography: Biography | null): Partial<Profile
   // 映射進階故事
   const advancedStories: AdvancedStories = {
     // A. 成長與突破
-    memorable_moment: (biography as Record<string, unknown>).memorable_moment as string || '',
-    biggest_challenge: (biography as Record<string, unknown>).biggest_challenge as string || '',
-    breakthrough_story: (biography as Record<string, unknown>).breakthrough_story as string || '',
-    first_outdoor: (biography as Record<string, unknown>).first_outdoor as string || '',
-    first_grade: (biography as Record<string, unknown>).first_grade as string || '',
-    frustrating_climb: (biography as Record<string, unknown>).frustrating_climb as string || '',
+    memorable_moment: (biography as unknown as Record<string, unknown>).memorable_moment as string || '',
+    biggest_challenge: (biography as unknown as Record<string, unknown>).biggest_challenge as string || '',
+    breakthrough_story: (biography as unknown as Record<string, unknown>).breakthrough_story as string || '',
+    first_outdoor: (biography as unknown as Record<string, unknown>).first_outdoor as string || '',
+    first_grade: (biography as unknown as Record<string, unknown>).first_grade as string || '',
+    frustrating_climb: (biography as unknown as Record<string, unknown>).frustrating_climb as string || '',
     // B. 心理與哲學
-    fear_management: (biography as Record<string, unknown>).fear_management as string || '',
-    climbing_lesson: (biography as Record<string, unknown>).climbing_lesson as string || '',
-    failure_perspective: (biography as Record<string, unknown>).failure_perspective as string || '',
-    flow_moment: (biography as Record<string, unknown>).flow_moment as string || '',
-    life_balance: (biography as Record<string, unknown>).life_balance as string || '',
-    unexpected_gain: (biography as Record<string, unknown>).unexpected_gain as string || '',
+    fear_management: (biography as unknown as Record<string, unknown>).fear_management as string || '',
+    climbing_lesson: (biography as unknown as Record<string, unknown>).climbing_lesson as string || '',
+    failure_perspective: (biography as unknown as Record<string, unknown>).failure_perspective as string || '',
+    flow_moment: (biography as unknown as Record<string, unknown>).flow_moment as string || '',
+    life_balance: (biography as unknown as Record<string, unknown>).life_balance as string || '',
+    unexpected_gain: (biography as unknown as Record<string, unknown>).unexpected_gain as string || '',
     // C. 社群與連結
-    climbing_mentor: (biography as Record<string, unknown>).climbing_mentor as string || '',
-    climbing_partner: (biography as Record<string, unknown>).climbing_partner as string || '',
-    funny_moment: (biography as Record<string, unknown>).funny_moment as string || '',
-    favorite_spot: (biography as Record<string, unknown>).favorite_spot as string || '',
-    advice_to_group: (biography as Record<string, unknown>).advice_to_group as string || '',
-    climbing_space: (biography as Record<string, unknown>).climbing_space as string || '',
+    climbing_mentor: (biography as unknown as Record<string, unknown>).climbing_mentor as string || '',
+    climbing_partner: (biography as unknown as Record<string, unknown>).climbing_partner as string || '',
+    funny_moment: (biography as unknown as Record<string, unknown>).funny_moment as string || '',
+    favorite_spot: (biography as unknown as Record<string, unknown>).favorite_spot as string || '',
+    advice_to_group: (biography as unknown as Record<string, unknown>).advice_to_group as string || '',
+    climbing_space: (biography as unknown as Record<string, unknown>).climbing_space as string || '',
     // D. 實用分享
-    injury_recovery: (biography as Record<string, unknown>).injury_recovery as string || '',
-    memorable_route: (biography as Record<string, unknown>).memorable_route as string || '',
-    training_method: (biography as Record<string, unknown>).training_method as string || '',
-    effective_practice: (biography as Record<string, unknown>).effective_practice as string || '',
-    technique_tip: (biography as Record<string, unknown>).technique_tip as string || '',
-    gear_choice: (biography as Record<string, unknown>).gear_choice as string || '',
+    injury_recovery: (biography as unknown as Record<string, unknown>).injury_recovery as string || '',
+    memorable_route: (biography as unknown as Record<string, unknown>).memorable_route as string || '',
+    training_method: (biography as unknown as Record<string, unknown>).training_method as string || '',
+    effective_practice: (biography as unknown as Record<string, unknown>).effective_practice as string || '',
+    technique_tip: (biography as unknown as Record<string, unknown>).technique_tip as string || '',
+    gear_choice: (biography as unknown as Record<string, unknown>).gear_choice as string || '',
     // E. 夢想與探索
-    dream_climb: (biography as Record<string, unknown>).dream_climb as string || '',
-    climbing_trip: (biography as Record<string, unknown>).climbing_trip as string || '',
-    bucket_list_story: (biography as Record<string, unknown>).bucket_list_story as string || '',
-    climbing_goal: (biography as Record<string, unknown>).climbing_goal as string || '',
-    climbing_style: (biography as Record<string, unknown>).climbing_style as string || '',
-    climbing_inspiration: (biography as Record<string, unknown>).climbing_inspiration as string || '',
+    dream_climb: (biography as unknown as Record<string, unknown>).dream_climb as string || '',
+    climbing_trip: (biography as unknown as Record<string, unknown>).climbing_trip as string || '',
+    bucket_list_story: (biography as unknown as Record<string, unknown>).bucket_list_story as string || '',
+    climbing_goal: (biography as unknown as Record<string, unknown>).climbing_goal as string || '',
+    climbing_style: (biography as unknown as Record<string, unknown>).climbing_style as string || '',
+    climbing_inspiration: (biography as unknown as Record<string, unknown>).climbing_inspiration as string || '',
     // F. 生活整合
-    life_outside_climbing: (biography as Record<string, unknown>).life_outside_climbing as string || '',
+    life_outside_climbing: (biography as unknown as Record<string, unknown>).life_outside_climbing as string || '',
   }
 
   return {
@@ -100,7 +100,7 @@ function mapBiographyToProfileData(biography: Biography | null): Partial<Profile
     favoriteRouteType: biography.favorite_route_type || '',
     climbingReason: biography.climbing_origin || '',
     climbingMeaning: biography.climbing_meaning || '',
-    climbingBucketList: (biography as Record<string, unknown>).bucket_list_story as string || '',
+    climbingBucketList: (biography as unknown as Record<string, unknown>).bucket_list_story as string || '',
     adviceForBeginners: biography.advice_to_self || '',
     advancedStories,
     socialLinks,

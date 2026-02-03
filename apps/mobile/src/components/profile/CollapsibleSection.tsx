@@ -6,9 +6,10 @@ import Animated, {
   withTiming,
   Easing,
 } from 'react-native-reanimated'
+import { ChevronDown } from 'lucide-react-native'
 import { Text } from '../ui/Text'
 import { Icon } from '../ui/Icon'
-import { SEMANTIC_COLORS, COLORS } from '@nobodyclimb/constants'
+import { SEMANTIC_COLORS, WB_COLORS } from '@nobodyclimb/constants'
 
 interface CollapsibleSectionProps {
   title: string
@@ -69,7 +70,7 @@ export default function CollapsibleSection({
           {badge}
         </View>
         <Animated.View style={chevronStyle}>
-          <Icon name="ChevronDown" size="sm" color={COLORS.gray[500]} />
+          <Icon icon={ChevronDown} size="sm" color={WB_COLORS[50]} />
         </Animated.View>
       </Pressable>
 

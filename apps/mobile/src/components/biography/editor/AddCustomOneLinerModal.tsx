@@ -59,6 +59,8 @@ export function AddCustomOneLinerModal({
       question: question.trim().endsWith('？') ? question.trim() : `${question.trim()}？`,
       format_hint: formatHint.trim() || null,
       placeholder: placeholder.trim() || '寫下你的答案...',
+      display_order: 999,
+      is_active: 1,
       order: 999,
     }
 

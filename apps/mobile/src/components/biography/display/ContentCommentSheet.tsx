@@ -30,8 +30,8 @@ import { useAuthStore } from '@/store/authStore'
 interface ContentComment {
   id: string
   content: string
-  user_id: string
-  user_name: string
+  user_id?: string
+  user_name?: string
   user_avatar?: string
   created_at: string
 }

@@ -1,8 +1,9 @@
 import React from 'react'
 import { View, StyleSheet } from 'react-native'
+import { Bell, Inbox } from 'lucide-react-native'
 import { Text } from '../ui/Text'
 import { Icon } from '../ui/Icon'
-import { SEMANTIC_COLORS, COLORS } from '@nobodyclimb/constants'
+import { SEMANTIC_COLORS, WB_COLORS } from '@nobodyclimb/constants'
 
 interface NotificationStatsProps {
   unreadCount?: number
@@ -17,7 +18,7 @@ export default function NotificationStats({
     <View style={styles.container}>
       <View style={styles.statItem}>
         <View style={[styles.iconWrapper, styles.unreadIcon]}>
-          <Icon name="Bell" size="sm" color={COLORS.white} />
+          <Icon icon={Bell} size="sm" color={WB_COLORS[0]} />
         </View>
         <View style={styles.statInfo}>
           <Text variant="h3" style={{ color: SEMANTIC_COLORS.textMain }}>
@@ -33,7 +34,7 @@ export default function NotificationStats({
 
       <View style={styles.statItem}>
         <View style={[styles.iconWrapper, styles.totalIcon]}>
-          <Icon name="Inbox" size="sm" color={COLORS.white} />
+          <Icon icon={Inbox} size="sm" color={WB_COLORS[0]} />
         </View>
         <View style={styles.statInfo}>
           <Text variant="h3" style={{ color: SEMANTIC_COLORS.textMain }}>
@@ -51,7 +52,7 @@ export default function NotificationStats({
 const styles = StyleSheet.create({
   container: {
     flexDirection: 'row',
-    backgroundColor: COLORS.white,
+    backgroundColor: WB_COLORS[0],
     borderRadius: 12,
     padding: 16,
     alignItems: 'center',
@@ -70,10 +71,10 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   unreadIcon: {
-    backgroundColor: COLORS.red[500],
+    backgroundColor: '#EF4444', // red-500
   },
   totalIcon: {
-    backgroundColor: COLORS.blue[500],
+    backgroundColor: '#3B82F6', // blue-500
   },
   statInfo: {
     gap: 2,
@@ -81,7 +82,7 @@ const styles = StyleSheet.create({
   divider: {
     width: 1,
     height: 40,
-    backgroundColor: COLORS.gray[200],
+    backgroundColor: WB_COLORS[20],
     marginHorizontal: 16,
   },
 })

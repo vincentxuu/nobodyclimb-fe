@@ -199,7 +199,7 @@ export function BiographyHero({
               <View style={styles.metaItem}>
                 <Clock size={14} color={SEMANTIC_COLORS.textSubtle} />
                 <Text variant="small" color="textSubtle">
-                  {climbingYears !== null && climbingYears > 0
+                  {climbingYears != null && climbingYears > 0
                     ? `攀岩第 ${climbingYears} 年`
                     : '從入坑那天起算'}
                 </Text>
