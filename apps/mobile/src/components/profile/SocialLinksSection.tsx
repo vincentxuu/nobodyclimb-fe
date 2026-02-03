@@ -1,5 +1,5 @@
 import React from 'react'
-import { View, StyleSheet } from 'react-native'
+import { View, StyleSheet, Text as RNText } from 'react-native'
 import { Input } from '../ui/Input'
 import { Icon } from '../ui/Icon'
 import ProfileFormField from './ProfileFormField'
@@ -33,7 +33,7 @@ export default function SocialLinksSection({
           <View style={styles.labelRow}>
             <Icon name="Instagram" size="sm" color={COLORS.gray[600]} />
             <View style={{ marginLeft: 8 }}>
-              <View style={styles.labelText}>Instagram</View>
+              <RNText style={styles.labelText}>Instagram</RNText>
             </View>
           </View>
         }
@@ -44,7 +44,7 @@ export default function SocialLinksSection({
             value={socialLinks.instagram}
             onChangeText={(text) => handleChange('instagram', text)}
             placeholder="你的 Instagram 用戶名"
-            leftIcon={<Icon name="AtSign" size="sm" color={COLORS.gray[400]} />}
+            leftElement={<Icon name="AtSign" size="sm" color={COLORS.gray[400]} />}
           />
         ) : (
           <ProfileTextDisplay
@@ -57,7 +57,7 @@ export default function SocialLinksSection({
           <View style={styles.labelRow}>
             <Icon name="Youtube" size="sm" color={COLORS.gray[600]} />
             <View style={{ marginLeft: 8 }}>
-              <View style={styles.labelText}>YouTube</View>
+              <RNText style={styles.labelText}>YouTube</RNText>
             </View>
           </View>
         }

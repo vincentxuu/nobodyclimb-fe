@@ -6,11 +6,7 @@
  */
 import { useEffect, useRef, useCallback } from 'react'
 import { useAuthStore } from '@/store/authStore'
-import { useUIStore } from '@/store/uiStore'
 import { tokenStorage } from '@/lib/tokenStorage'
-
-/** 故事推薦彈窗顯示延遲時間（毫秒） */
-const STORY_PROMPT_SHOW_DELAY = 1500
 
 /**
  * 認證初始化組件
@@ -19,13 +15,13 @@ const STORY_PROMPT_SHOW_DELAY = 1500
 export function AuthInitializer() {
   const isAuthenticated = useAuthStore((state) => state.isAuthenticated)
   const hydrate = useAuthStore((state) => state.hydrate)
-  const { openStoryPrompt } = useUIStore()
 
   // 追蹤是否已經檢查過故事推薦
   const hasCheckedStoryPrompt = useRef(false)
   const hasHydrated = useRef(false)
 
   // 檢查是否應該顯示故事推薦彈窗
+  // TODO: 整合 storyPromptService
   const checkStoryPrompt = useCallback(async () => {
     // 避免重複檢查
     if (hasCheckedStoryPrompt.current) return
@@ -37,21 +33,16 @@ export function AuthInitializer() {
       return
     }
 
-    try {
-      // TODO: 整合 storyPromptService
-      // const response = await storyPromptService.shouldPrompt()
-      // if (response.success && response.data?.should_prompt) {
-      //   setTimeout(() => {
-      //     openStoryPrompt()
-      //   }, STORY_PROMPT_SHOW_DELAY)
-      // }
-    } catch (error) {
-      // 靜默處理錯誤 - 這是非關鍵功能
-      if (__DEV__) {
-        console.error('檢查故事推薦失敗:', error)
-      }
-    }
-  }, [openStoryPrompt])
+    // TODO: 整合 storyPromptService
+    // try {
+    //   const response = await storyPromptService.shouldPrompt()
+    //   if (response.success && response.data?.should_prompt) {
+    //     // Show story prompt
+    //   }
+    // } catch (error) {
+    //   console.error('檢查故事推薦失敗:', error)
+    // }
+  }, [])
 
   // 在組件掛載時使用 hydrate 恢復認證狀態
   useEffect(() => {

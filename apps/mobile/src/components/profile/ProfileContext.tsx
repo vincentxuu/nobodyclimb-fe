@@ -91,20 +91,23 @@ function mapBiographyToProfileData(biography: Biography | null): Partial<Profile
     life_outside_climbing: (biography as unknown as Record<string, unknown>).life_outside_climbing as string || '',
   }
 
+  // 使用類型斷言來訪問可能的擴展屬性
+  const bio = biography as unknown as Record<string, unknown>
+
   return {
     biographyId: biography.id || null,
     name: biography.name || '',
     title: biography.title || '',
-    startYear: biography.climbing_start_year || '',
-    frequentGyms: biography.frequent_locations || '',
-    favoriteRouteType: biography.favorite_route_type || '',
-    climbingReason: biography.climbing_origin || '',
-    climbingMeaning: biography.climbing_meaning || '',
-    climbingBucketList: (biography as unknown as Record<string, unknown>).bucket_list_story as string || '',
-    adviceForBeginners: biography.advice_to_self || '',
+    startYear: (bio.climbing_start_year as string) || '',
+    frequentGyms: (bio.frequent_locations as string) || '',
+    favoriteRouteType: (bio.favorite_route_type as string) || '',
+    climbingReason: (bio.climbing_origin as string) || '',
+    climbingMeaning: (bio.climbing_meaning as string) || '',
+    climbingBucketList: (bio.bucket_list_story as string) || '',
+    adviceForBeginners: (bio.advice_to_self as string) || '',
     advancedStories,
     socialLinks,
-    isPublic: Number(biography.is_public) === 1,
+    isPublic: Number(bio.is_public ?? 1) === 1,
     avatarUrl: biography.avatar_url || null,
     coverImageUrl: biography.cover_image || null,
   }
@@ -173,7 +176,7 @@ export function ProfileProvider({ children }: { children: ReactNode }) {
       try {
         const response = await biographyService.getMyBiography()
         if (response.success && response.data) {
-          const biographyData = mapBiographyToProfileData(response.data)
+          const biographyData = mapBiographyToProfileData(response.data as Biography)
           setProfileData((prev) => ({
             ...prev,
             ...biographyData,

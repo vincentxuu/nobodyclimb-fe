@@ -191,7 +191,7 @@ export default function ProfileEditSheet({
   return (
     <Sheet
       open={activePanel !== null}
-      onOpenChange={(open) => !open && onClose()}
+      onOpenChange={(open: boolean) => !open && onClose()}
       snapPoints={['85%']}
     >
       <View style={styles.container}>

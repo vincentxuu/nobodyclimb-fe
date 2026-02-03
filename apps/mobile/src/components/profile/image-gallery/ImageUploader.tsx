@@ -63,7 +63,7 @@ export default function ImageUploader({
       ]}
     >
       {isUploading ? (
-        <LoadingSpinner size="sm" />
+        <LoadingSpinner size="small" />
       ) : (
         <>
           <Icon
