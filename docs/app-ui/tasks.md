@@ -1,8 +1,8 @@
 # NobodyClimb App 開發任務清單
 
 > 狀態：進行中
-> 更新日期：2026-02-02
-> 最後同步：2026-02-02 (與 apps/web 組件結構完整核對)
+> 更新日期：2026-02-03
+> 最後同步：2026-02-03 (與 apps/web 組件結構完整核對，TypeScript 檢查通過)
 > 參考文件：[設計系統](/docs/app-ui/design-system-reference.md)、[Monorepo 結構](/docs/techstack/monorepo.md)、[App 技術棧](/docs/techstack/app.md)
 > UI 參考：`apps/web` (確保 App UI 與 Web 完全一致)
 
@@ -698,19 +698,17 @@
 
 #### 6.2.8 其他傳記組件
 
-- [ ] **6.2.8.1** 建立其他組件 (對應 `components/biography/`)
+- [x] **6.2.8.1** 建立已完成的組件 (對應 `components/biography/`)
+  - `social-links/index.tsx` ✓
+  - `follow-button/index.tsx` ✓
+  - `biography-like-button/index.tsx` ✓
+  - `display/StoryCard.tsx` ✓
+  - `shared/ProfileAvatar.tsx` ✓
+
+- [ ] **6.2.8.2** 建立其他組件 (可選，待需要時實作)
   - `biography-header.tsx`
-  - `social-links.tsx`
-  - `follow-button.tsx`
-  - `like-button.tsx`
-  - `biography-like-button.tsx`
-  - `comment-section.tsx`
-  - `biography-comment-section.tsx`
-  - `story-card.tsx`
   - `story-progress.tsx`
   - `story-prompt-modal.tsx`
-  - `bucket-list-card.tsx`
-  - `bucket-list-section.tsx`
   - `climbing-footprints-editor.tsx`
   - `climbing-location-card.tsx`
   - `advanced-story-editor.tsx`
@@ -1209,15 +1207,25 @@
 | Phase 3 | 共用組件 | 19 | 已完成 | 85% |
 | Phase 4 | 導航與佈局 | 17 | 已完成 | 95% |
 | Phase 5 | 認證功能 | 12 | 已完成 | 100% |
-| Phase 6 | 核心功能頁面 | 120+ | 進行中 | 78% |
+| Phase 6 | 核心功能頁面 | 120+ | 進行中 | 80% |
 | Phase 7 | 編輯器組件 | 3 | 已完成 | 100% |
 | Phase 8 | 狀態管理與 Hooks | 21 | 已完成 | 100% |
 | Phase 9 | 進階功能 | 10 | 已完成 | 80% |
 | Phase 10 | 優化與發布準備 | 10 | 未開始 | 0% |
 
-**總計：267+ 項任務（約 73% 完成）**
+**總計：267+ 項任務（約 75% 完成）**
 
-### 最近完成的工作 (2026-02-02)
+### 最近完成的工作 (2026-02-03)
+
+**狀態檢查更新 (2026-02-03)：**
+- ✅ TypeScript 檢查通過 - 0 錯誤 (需先 `pnpm install` 並 `pnpm -r --filter "./packages/*" build`)
+- ✅ 6.2.8.1 部分組件確認完成：
+  - `social-links/index.tsx` ✓
+  - `follow-button/index.tsx` ✓
+  - `biography-like-button/index.tsx` ✓
+  - `shared/ProfileAvatar.tsx` ✓
+- 📊 更新 Phase 6 完成率：78% → 80%
+- 📊 更新總計完成率：73% → 75%
 
 **狀態檢查更新 (2026-02-02 晚間)：**
 - ✅ 6.11.1 關於頁面 - 確認已完成 (about/index.tsx 完整實作)
