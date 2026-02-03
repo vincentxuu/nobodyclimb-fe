@@ -139,8 +139,8 @@ export const Input = forwardRef<TextInput, InputProps>(function Input(
         ref={ref}
         style={[
           styles.input,
-          leftElement && styles.inputWithLeft,
-          rightElement && styles.inputWithRight,
+          leftElement ? styles.inputWithLeft : undefined,
+          rightElement ? styles.inputWithRight : undefined,
         ]}
         placeholderTextColor={SEMANTIC_COLORS.textMuted}
         editable={!disabled}

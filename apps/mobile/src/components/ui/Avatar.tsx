@@ -4,7 +4,7 @@
  * 頭像組件
  */
 import React, { useState } from 'react'
-import { View, StyleSheet, type ViewStyle } from 'react-native'
+import { View, StyleSheet, Text as RNText, type ViewStyle } from 'react-native'
 import { Image } from 'expo-image'
 import { User } from 'lucide-react-native'
 import {
@@ -173,9 +173,9 @@ export function AvatarGroup({
               { borderRadius: avatarSize / 2 },
             ]}
           >
-            <View style={styles.remainingText}>
+            <RNText style={styles.remainingText}>
               +{remaining}
-            </View>
+            </RNText>
           </View>
         </View>
       )}

@@ -7,6 +7,9 @@
 import { Easing } from 'react-native-reanimated'
 import { DURATION } from '@nobodyclimb/constants'
 
+// Re-export DURATION for use by UI components
+export { DURATION }
+
 // ============================================
 // Easing 曲線
 // ============================================

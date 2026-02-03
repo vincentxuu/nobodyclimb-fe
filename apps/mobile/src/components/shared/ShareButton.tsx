@@ -33,7 +33,7 @@ export function ShareButton({
 }: ShareButtonProps) {
   const bottomSheetRef = useRef<BottomSheet>(null)
   const [copied, setCopied] = useState(false)
-  const { showToast } = useToast()
+  const { show } = useToast()
 
   // 分享 URL
   const shareUrl = url || ''
@@ -64,7 +64,7 @@ export function ShareButton({
     try {
       await Clipboard.setStringAsync(shareUrl)
       setCopied(true)
-      showToast({
+      show({
         message: '已複製連結',
         variant: 'success',
       })
@@ -72,12 +72,12 @@ export function ShareButton({
       bottomSheetRef.current?.close()
     } catch (error) {
       console.error('Failed to copy link:', error)
-      showToast({
+      show({
         message: '複製失敗',
         variant: 'error',
       })
     }
-  }, [shareUrl, showToast])
+  }, [shareUrl, show])
 
   // 分享到 Facebook
   const handleShareFacebook = useCallback(() => {

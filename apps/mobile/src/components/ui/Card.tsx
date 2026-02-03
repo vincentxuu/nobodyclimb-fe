@@ -10,6 +10,7 @@ import {
   Image,
   StyleSheet,
   type ViewStyle,
+  type ImageStyle,
   type ImageProps,
   type PressableProps,
 } from 'react-native'
@@ -124,7 +125,7 @@ export interface CardMediaProps extends Omit<ImageProps, 'style'> {
   /** 圖片高度 */
   height?: number
   /** 自定義樣式 */
-  style?: ViewStyle
+  style?: ImageStyle
 }
 
 /**

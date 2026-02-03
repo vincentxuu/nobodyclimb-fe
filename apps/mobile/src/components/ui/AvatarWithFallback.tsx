@@ -38,7 +38,7 @@ export function AvatarWithFallback({
   const fallbackElement = fallback ? (
     <View style={styles.fallbackContainer}>
       <Text
-        variant="label"
+        variant="bodyBold"
         style={[
           styles.fallbackText,
           { fontSize: avatarSize * 0.4 },

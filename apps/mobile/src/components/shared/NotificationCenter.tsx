@@ -84,7 +84,8 @@ interface NotificationCenterProps {
 export function NotificationCenter({ style }: NotificationCenterProps) {
   const router = useRouter()
   const bottomSheetRef = useRef<BottomSheet>(null)
-  const { isAuthenticated, isInitialized } = useAuthStore()
+  const { isAuthenticated, status } = useAuthStore()
+  const isInitialized = status !== 'idle'
 
   const [notifications, setNotifications] = useState<Notification[]>([])
   const [unreadCount, setUnreadCount] = useState(0)

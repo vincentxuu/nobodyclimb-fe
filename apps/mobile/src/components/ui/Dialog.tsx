@@ -141,11 +141,11 @@ export function Dialog({
                   variant={action.variant || 'primary'}
                   size="md"
                   onPress={action.onPress}
-                  style={[
+                  style={StyleSheet.flatten([
                     styles.action,
-                    index > 0 && styles.actionMargin,
-                    actions.length === 1 && styles.actionFull,
-                  ]}
+                    index > 0 ? styles.actionMargin : undefined,
+                    actions.length === 1 ? styles.actionFull : undefined,
+                  ])}
                 >
                   {action.label}
                 </Button>

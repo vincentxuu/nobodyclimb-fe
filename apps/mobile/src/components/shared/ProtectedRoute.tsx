@@ -25,7 +25,8 @@ export function ProtectedRoute({
   children,
   showLoadingOnUnauthenticated = true,
 }: ProtectedRouteProps) {
-  const { isAuthenticated, isInitialized } = useAuthStore()
+  const { isAuthenticated, status } = useAuthStore()
+  const isInitialized = status !== 'idle'
   const router = useRouter()
 
   useEffect(() => {

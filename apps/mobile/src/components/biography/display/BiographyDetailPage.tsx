@@ -26,11 +26,16 @@ interface SocialLinks {
   website?: string
 }
 
+interface TagSelection {
+  tag_id: string
+  source?: string
+}
+
 interface BiographyV2 {
   id: string
   name: string
   visibility?: 'public' | 'private' | 'anonymous'
-  tags?: string[]
+  tags?: TagSelection[]
   one_liners?: any[]
   stories?: any[]
   gallery_images?: any[]

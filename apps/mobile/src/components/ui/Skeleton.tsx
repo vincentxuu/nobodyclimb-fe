@@ -4,7 +4,7 @@
  * 骨架屏/載入佔位符
  */
 import React, { useEffect } from 'react'
-import { StyleSheet, View, ViewStyle } from 'react-native'
+import { StyleSheet, View, ViewStyle, DimensionValue } from 'react-native'
 import Animated, {
   useAnimatedStyle,
   useSharedValue,
@@ -58,8 +58,8 @@ export function Skeleton({
       style={[
         styles.skeleton,
         {
-          width,
-          height,
+          width: width as DimensionValue,
+          height: height as DimensionValue,
           borderRadius: circleRadius,
         },
         animatedStyle,
