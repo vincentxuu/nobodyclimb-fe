@@ -128,6 +128,7 @@ export interface OneLinerQuestion {
   display_order: number
   is_active: number
   source?: 'system' | 'user'
+  order?: number
 }
 
 /**
@@ -177,6 +178,7 @@ export interface StoryQuestion {
   display_order: number
   is_active: number
   source?: 'system' | 'user'
+  order?: number
 }
 
 /**
@@ -238,12 +240,12 @@ export interface StoryLike extends ContentLike {
  */
 export interface ContentComment {
   id: string
-  user_id: string
+  user_id?: string
   user_name?: string
   content: string
-  parent_id: string | null
+  parent_id?: string | null
   created_at: string
-  updated_at: string
+  updated_at?: string
 }
 
 /**
@@ -418,6 +420,7 @@ export interface TagOption {
   description?: string
   source?: ContentSource
   dimension_id?: string
+  order?: number
 }
 
 /**
@@ -432,6 +435,7 @@ export interface TagDimension {
   selection_mode: 'single' | 'multiple'
   options: TagOption[]
   source?: ContentSource
+  order?: number
 }
 
 /**
@@ -514,6 +518,12 @@ export interface BiographyV2 {
 
   // 標籤
   tags: TagSelection[]
+
+  // 自訂標籤維度
+  custom_dimensions?: TagDimension[]
+
+  // 自訂標籤
+  custom_tags?: TagOption[]
 
   // 一句話回答
   one_liners: OneLiner[]
