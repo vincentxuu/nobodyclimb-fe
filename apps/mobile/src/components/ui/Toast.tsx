@@ -145,9 +145,18 @@ export function Toast({
 // Toast Context & Provider
 // ============================================
 
+interface ToastOptions {
+  title?: string
+  description?: string
+  message?: string
+  variant?: ToastVariant | 'destructive'
+  duration?: number
+}
+
 interface ToastContextValue {
   show: (config: ToastConfig) => void
   hide: () => void
+  toast: (options: ToastOptions) => void
 }
 
 const ToastContext = createContext<ToastContextValue | null>(null)
@@ -165,8 +174,22 @@ export function ToastProvider({ children }: { children: React.ReactNode }) {
     setVisible(false)
   }, [])
 
+  // Compatibility function for title/description API
+  const toast = useCallback((options: ToastOptions) => {
+    const message = options.message || options.title || ''
+    const description = options.description
+    const fullMessage = description ? `${message}\n${description}` : message
+    const variant: ToastVariant = options.variant === 'destructive' ? 'error' : (options.variant || 'info')
+
+    show({
+      message: fullMessage,
+      variant,
+      duration: options.duration,
+    })
+  }, [show])
+
   return (
-    <ToastContext.Provider value={{ show, hide }}>
+    <ToastContext.Provider value={{ show, hide, toast }}>
       {children}
       {toastConfig && (
         <Toast

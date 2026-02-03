@@ -110,6 +110,7 @@ const tokens = createTokens({
     3: BORDER_RADIUS.lg,
     4: BORDER_RADIUS.xl,
     5: BORDER_RADIUS['2xl'],
+    6: BORDER_RADIUS['3xl'] || 24,
     full: BORDER_RADIUS.full,
     true: BORDER_RADIUS.md,
   },

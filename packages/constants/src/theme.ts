@@ -80,6 +80,7 @@ export const SEMANTIC_COLORS = {
 
   // 品牌色（用於 App）
   brand: BRAND_YELLOW[100],
+  brandPrimary: BRAND_YELLOW[100],
   brandDark: WB_COLORS[100],
 } as const
 
