@@ -2,10 +2,11 @@ import React from 'react'
 import { View, StyleSheet, Pressable } from 'react-native'
 import { Image } from 'expo-image'
 import * as ImagePicker from 'expo-image-picker'
+import { Image as ImageIcon, Camera, Trash2, X } from 'lucide-react-native'
 import { Text } from '../ui/Text'
 import { Icon } from '../ui/Icon'
 import { AvatarWithFallback } from '../ui/AvatarWithFallback'
-import { COLORS, SEMANTIC_COLORS } from '@nobodyclimb/constants'
+import { COLORS, SEMANTIC_COLORS, WB_COLORS } from '@nobodyclimb/constants'
 
 interface BiographyAvatarSectionProps {
   avatarUrl: string | null
@@ -56,7 +57,7 @@ export default function BiographyAvatarSection({
           />
         ) : (
           <View style={styles.coverPlaceholder}>
-            <Icon name="Image" size="lg" color={COLORS.gray[400]} />
+            <Icon icon={ImageIcon} size="lg" color={WB_COLORS[50]} />
             <Text variant="caption" style={{ color: SEMANTIC_COLORS.textMuted, marginTop: 8 }}>
               封面照片
             </Text>
@@ -68,14 +69,14 @@ export default function BiographyAvatarSection({
               style={styles.actionButton}
               onPress={() => pickImage('cover')}
             >
-              <Icon name="Camera" size="sm" color={COLORS.white} />
+              <Icon icon={Camera} size="sm" color={WB_COLORS[0]} />
             </Pressable>
             {coverImageUrl && (
               <Pressable
                 style={[styles.actionButton, styles.deleteButton]}
                 onPress={onCoverImageDelete}
               >
-                <Icon name="Trash2" size="sm" color={COLORS.white} />
+                <Icon icon={Trash2} size="sm" color={WB_COLORS[0]} />
               </Pressable>
             )}
           </View>
@@ -96,14 +97,14 @@ export default function BiographyAvatarSection({
                 style={styles.avatarButton}
                 onPress={() => pickImage('avatar')}
               >
-                <Icon name="Camera" size="xs" color={COLORS.white} />
+                <Icon icon={Camera} size="xs" color={WB_COLORS[0]} />
               </Pressable>
               {avatarUrl && (
                 <Pressable
                   style={[styles.avatarButton, styles.deleteButton]}
                   onPress={onAvatarDelete}
                 >
-                  <Icon name="X" size="xs" color={COLORS.white} />
+                  <Icon icon={X} size="xs" color={WB_COLORS[0]} />
                 </Pressable>
               )}
             </View>
@@ -121,7 +122,7 @@ const styles = StyleSheet.create({
   coverContainer: {
     width: '100%',
     aspectRatio: 21 / 9,
-    backgroundColor: COLORS.gray[100],
+    backgroundColor: WB_COLORS[10],
     borderRadius: 12,
     overflow: 'hidden',
     position: 'relative',
@@ -161,7 +162,7 @@ const styles = StyleSheet.create({
     position: 'relative',
     alignSelf: 'flex-start',
     borderWidth: 3,
-    borderColor: COLORS.white,
+    borderColor: WB_COLORS[0],
     borderRadius: 999,
   },
   avatarActions: {

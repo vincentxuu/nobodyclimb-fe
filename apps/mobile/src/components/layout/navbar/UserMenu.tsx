@@ -148,7 +148,7 @@ export function UserMenu() {
             </YStack>
           </XStack>
 
-          <Divider marginVertical={SPACING.sm} />
+          <Divider spacing={SPACING.sm} />
 
           {/* 選單項目 */}
           <YStack gap={2}>
@@ -179,7 +179,7 @@ export function UserMenu() {
             />
           </YStack>
 
-          <Divider marginVertical={SPACING.sm} />
+          <Divider spacing={SPACING.sm} />
 
           <YStack gap={2}>
             <MenuItem

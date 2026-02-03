@@ -71,6 +71,8 @@ export function AddCustomStoryModal({
       subtitle: subtitle.trim(),
       placeholder: placeholder.trim() || '寫下你的故事...',
       difficulty: 'easy',
+      display_order: 999,
+      is_active: 1,
       order: 999,
     }
 

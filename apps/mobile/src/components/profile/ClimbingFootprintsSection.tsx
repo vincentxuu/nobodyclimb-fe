@@ -1,8 +1,9 @@
 import React from 'react'
 import { View, StyleSheet, Pressable } from 'react-native'
+import { MapPin, Plus } from 'lucide-react-native'
 import { Text } from '../ui/Text'
 import { Icon } from '../ui/Icon'
-import { COLORS, SEMANTIC_COLORS } from '@nobodyclimb/constants'
+import { SEMANTIC_COLORS, WB_COLORS } from '@nobodyclimb/constants'
 
 interface ClimbingFootprintsSectionProps {
   isEditing: boolean
@@ -16,7 +17,7 @@ export default function ClimbingFootprintsSection({
   return (
     <View style={styles.container}>
       <View style={styles.placeholder}>
-        <Icon name="MapPin" size="lg" color={COLORS.gray[400]} />
+        <Icon icon={MapPin} size="lg" color={WB_COLORS[50]} />
         <Text
           variant="body"
           style={{ color: SEMANTIC_COLORS.textMuted, marginTop: 12, textAlign: 'center' }}
@@ -31,7 +32,7 @@ export default function ClimbingFootprintsSection({
         </Text>
         {isEditing && (
           <Pressable style={styles.addButton}>
-            <Icon name="Plus" size="sm" color={SEMANTIC_COLORS.textMain} />
+            <Icon icon={Plus} size="sm" color={SEMANTIC_COLORS.textMain} />
             <Text variant="body" style={{ color: SEMANTIC_COLORS.textMain, marginLeft: 8 }}>
               新增地點
             </Text>
@@ -48,11 +49,11 @@ const styles = StyleSheet.create({
   },
   placeholder: {
     padding: 32,
-    backgroundColor: COLORS.gray[50],
+    backgroundColor: WB_COLORS[5],
     borderRadius: 12,
     alignItems: 'center',
     borderWidth: 1,
-    borderColor: COLORS.gray[200],
+    borderColor: WB_COLORS[20],
     borderStyle: 'dashed',
   },
   addButton: {

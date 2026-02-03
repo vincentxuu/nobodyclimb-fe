@@ -1,10 +1,21 @@
 import React, { useState } from 'react'
 import { View, StyleSheet, Pressable } from 'react-native'
+import { TrendingUp, Brain, Users, Wrench, Star, Check, ChevronRight } from 'lucide-react-native'
+import type { LucideIcon } from 'lucide-react-native'
 import { Text } from '../ui/Text'
 import { Icon } from '../ui/Icon'
 import CollapsibleSection from './CollapsibleSection'
 import { AdvancedStories } from './types'
-import { COLORS, SEMANTIC_COLORS } from '@nobodyclimb/constants'
+import { SEMANTIC_COLORS, WB_COLORS } from '@nobodyclimb/constants'
+
+// Icon mapping
+const ICON_MAP: Record<string, LucideIcon> = {
+  TrendingUp,
+  Brain,
+  Users,
+  Wrench,
+  Star,
+}
 
 // 故事分類定義
 const STORY_CATEGORIES = [
@@ -126,7 +137,7 @@ export default function AdvancedStoriesSection({
           <View key={category.id} style={styles.categoryContainer}>
             <CollapsibleSection
               title={category.title}
-              icon={<Icon name={category.icon as any} size="sm" color={SEMANTIC_COLORS.textSubtle} />}
+              icon={<Icon icon={ICON_MAP[category.icon]} size="sm" color={SEMANTIC_COLORS.textSubtle} />}
               defaultExpanded={false}
               badge={
                 <View style={styles.progressBadge}>
@@ -158,9 +169,9 @@ export default function AdvancedStoriesSection({
                           </Text>
                           {hasValue && (
                             <Icon
-                              name="Check"
+                              icon={Check}
                               size="xs"
-                              color={COLORS.green[500]}
+                              color="#10B981"
                             />
                           )}
                         </View>
@@ -176,7 +187,7 @@ export default function AdvancedStoriesSection({
                       </View>
                       {isEditing && (
                         <Icon
-                          name="ChevronRight"
+                          icon={ChevronRight}
                           size="sm"
                           color={SEMANTIC_COLORS.textMuted}
                         />
@@ -201,7 +212,7 @@ const styles = StyleSheet.create({
     marginBottom: 16,
   },
   progressBadge: {
-    backgroundColor: COLORS.gray[100],
+    backgroundColor: WB_COLORS[10],
     paddingHorizontal: 8,
     paddingVertical: 2,
     borderRadius: 999,
@@ -214,7 +225,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     padding: 12,
-    backgroundColor: COLORS.gray[50],
+    backgroundColor: WB_COLORS[5],
     borderRadius: 8,
   },
   fieldContent: {

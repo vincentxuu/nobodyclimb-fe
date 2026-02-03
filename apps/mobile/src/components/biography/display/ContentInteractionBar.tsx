@@ -16,8 +16,8 @@ type ContentType = 'core-stories' | 'one-liners' | 'stories'
 interface ContentComment {
   id: string
   content: string
-  user_id: string
-  user_name: string
+  user_id?: string
+  user_name?: string
   user_avatar?: string
   created_at: string
 }
