@@ -127,6 +127,7 @@ export interface OneLinerQuestion {
   placeholder: string | null
   display_order: number
   is_active: number
+  source?: 'system' | 'user'
 }
 
 /**
@@ -175,6 +176,7 @@ export interface StoryQuestion {
   difficulty: 'easy' | 'medium' | 'hard'
   display_order: number
   is_active: number
+  source?: 'system' | 'user'
 }
 
 /**
@@ -367,6 +369,7 @@ export interface ClimbingLocationRecord {
  */
 export interface BiographySocialLinks {
   instagram?: string
+  youtube?: string
   youtube_channel?: string
   facebook?: string
   threads?: string
@@ -414,6 +417,7 @@ export interface TagOption {
   label: string
   description?: string
   source?: ContentSource
+  dimension_id?: string
 }
 
 /**
@@ -423,6 +427,7 @@ export interface TagDimension {
   id: string
   name: string
   icon: string
+  emoji?: string
   description?: string
   selection_mode: 'single' | 'multiple'
   options: TagOption[]

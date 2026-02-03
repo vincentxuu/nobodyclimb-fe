@@ -14,7 +14,7 @@ import {
 } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import { useRouter } from 'expo-router'
-import { ChevronLeft } from 'lucide-react-native'
+import { ChevronLeft, Search, Video as VideoIcon } from 'lucide-react-native'
 
 import {
   Text,
@@ -516,13 +516,13 @@ export default function VideosScreen() {
           ListEmptyComponent={
             videoList.length > 0 ? (
               <EmptyState
-                icon="search"
+                icon={Search}
                 title="沒有找到相關影片"
                 description="請嘗試其他搜尋關鍵字或篩選條件"
               />
             ) : (
               <EmptyState
-                icon="video"
+                icon={VideoIcon}
                 title="目前沒有影片資料"
               />
             )

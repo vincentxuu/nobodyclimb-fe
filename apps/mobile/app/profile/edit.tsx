@@ -53,7 +53,7 @@ export default function EditProfileScreen() {
   const { user } = useAuthStore()
 
   const [avatar, setAvatar] = useState<string | null>(
-    user?.avatarUrl || 'https://picsum.photos/200?random=user'
+    user?.avatar || 'https://picsum.photos/200?random=user'
   )
   const [formData, setFormData] = useState<ProfileFormData>({
     displayName: user?.displayName || '',
