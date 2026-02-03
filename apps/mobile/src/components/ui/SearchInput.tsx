@@ -23,6 +23,8 @@ export interface SearchInputProps {
   showClearButton?: boolean
   /** 是否禁用 */
   disabled?: boolean
+  /** 自定義容器樣式 */
+  style?: object
 }
 
 export function SearchInput({
@@ -33,6 +35,7 @@ export function SearchInput({
   onSubmit,
   showClearButton = true,
   disabled = false,
+  style,
 }: SearchInputProps) {
   const handleClear = useCallback(() => {
     onChangeText('')
@@ -43,7 +46,7 @@ export function SearchInput({
   }, [onSubmit])
 
   return (
-    <View style={[styles.container, disabled && styles.containerDisabled]}>
+    <View style={[styles.container, disabled && styles.containerDisabled, style]}>
       <Search
         size={20}
         color={SEMANTIC_COLORS.textMain}

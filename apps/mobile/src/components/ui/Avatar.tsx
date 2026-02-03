@@ -24,6 +24,8 @@ export interface AvatarProps {
   alt?: string
   /** 自定義樣式 */
   style?: ViewStyle
+  /** 自定義 fallback 元素 */
+  fallback?: React.ReactNode
 }
 
 /**
@@ -40,6 +42,7 @@ export function Avatar({
   size = 'md',
   alt,
   style,
+  fallback: customFallback,
 }: AvatarProps) {
   const [hasError, setHasError] = useState(false)
   const avatarSize = AVATAR_SIZES[size]
@@ -59,12 +62,18 @@ export function Avatar({
       ]}
     >
       {showFallback ? (
-        <View style={[styles.fallback, { borderRadius: avatarSize / 2 }]}>
-          <User
-            size={avatarSize * 0.5}
-            color={SEMANTIC_COLORS.textMuted}
-          />
-        </View>
+        customFallback ? (
+          <View style={[styles.fallback, { borderRadius: avatarSize / 2 }]}>
+            {customFallback}
+          </View>
+        ) : (
+          <View style={[styles.fallback, { borderRadius: avatarSize / 2 }]}>
+            <User
+              size={avatarSize * 0.5}
+              color={SEMANTIC_COLORS.textMuted}
+            />
+          </View>
+        )
       ) : (
         <Image
           source={source}
