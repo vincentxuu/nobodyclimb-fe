@@ -5,11 +5,14 @@ on:
     branches: [main, develop]
     paths:
       - 'backend/**'
+      - 'packages/**'
+      - 'pnpm-lock.yaml'
       - '.github/workflows/deploy-api.yml'
   pull_request:
     branches: [main]
     paths:
       - 'backend/**'
+      - 'packages/**'
       - '.github/workflows/deploy-api.yml'
   workflow_dispatch:
     inputs:
@@ -22,16 +25,10 @@ on:
           - preview
           - production
 
-env:
-  WORKING_DIRECTORY: ./backend
-
 jobs:
   lint-and-typecheck:
     name: Lint & Type Check
     runs-on: ubuntu-latest
-    defaults:
-      run:
-        working-directory: ${{ env.WORKING_DIRECTORY }}
 
     steps:
       - name: Checkout
@@ -47,22 +44,21 @@ jobs:
         with:
           node-version: '20'
           cache: 'pnpm'
-          cache-dependency-path: backend/pnpm-lock.yaml
 
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
+      - name: Build packages
+        run: pnpm turbo run build --filter=@nobodyclimb/api^...
+
       - name: Type check
-        run: pnpm exec tsc --noEmit
+        run: pnpm --filter @nobodyclimb/api exec tsc --noEmit
 
   deploy:
     name: Deploy to Cloudflare
     runs-on: ubuntu-latest
     needs: lint-and-typecheck
     if: github.event_name == 'push' || github.event_name == 'workflow_dispatch'
-    defaults:
-      run:
-        working-directory: ${{ env.WORKING_DIRECTORY }}
 
     steps:
       - name: Checkout
@@ -78,10 +74,12 @@ jobs:
         with:
           node-version: '20'
           cache: 'pnpm'
-          cache-dependency-path: backend/pnpm-lock.yaml
 
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
+
+      - name: Build packages
+        run: pnpm turbo run build --filter=@nobodyclimb/api^...
 
       - name: Determine environment
         id: env

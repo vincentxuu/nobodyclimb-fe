@@ -1,0 +1,72 @@
+import React from 'react'
+import { View, Pressable, StyleSheet } from 'react-native'
+import { useRouter } from 'expo-router'
+import { Text } from '../ui/Text'
+import { Icon } from '../ui/Icon'
+import { COLORS, SEMANTIC_COLORS } from '@nobodyclimb/constants'
+
+interface MobileNavigationBarProps {
+  title: string
+  showBackButton?: boolean
+  rightAction?: React.ReactNode
+}
+
+export default function MobileNavigationBar({
+  title,
+  showBackButton = true,
+  rightAction,
+}: MobileNavigationBarProps) {
+  const router = useRouter()
+
+  return (
+    <View style={styles.container}>
+      <View style={styles.leftSection}>
+        {showBackButton && (
+          <Pressable
+            onPress={() => router.back()}
+            style={styles.backButton}
+            hitSlop={8}
+          >
+            <Icon name="ArrowLeft" size="md" color={SEMANTIC_COLORS.textMain} />
+          </Pressable>
+        )}
+      </View>
+
+      <View style={styles.centerSection}>
+        <Text variant="bodyBold" style={{ color: SEMANTIC_COLORS.textMain }}>
+          {title}
+        </Text>
+      </View>
+
+      <View style={styles.rightSection}>{rightAction}</View>
+    </View>
+  )
+}
+
+const styles = StyleSheet.create({
+  container: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+    backgroundColor: COLORS.white,
+    borderBottomWidth: 1,
+    borderBottomColor: COLORS.gray[200],
+  },
+  leftSection: {
+    width: 48,
+    alignItems: 'flex-start',
+  },
+  centerSection: {
+    flex: 1,
+    alignItems: 'center',
+  },
+  rightSection: {
+    width: 48,
+    alignItems: 'flex-end',
+  },
+  backButton: {
+    padding: 4,
+  },
+})
