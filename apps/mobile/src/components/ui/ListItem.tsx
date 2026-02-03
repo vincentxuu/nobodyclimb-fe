@@ -31,8 +31,8 @@ export interface ListItemProps extends Omit<PressableProps, 'style'> {
   title: string
   /** 描述文字 */
   description?: string
-  /** 左側圖標 */
-  leftIcon?: LucideIcon
+  /** 左側圖標（可以是 LucideIcon 組件或 React 元素） */
+  leftIcon?: LucideIcon | React.ReactElement
   /** 右側內容 */
   rightContent?: React.ReactNode
   /** 是否顯示箭頭 */
@@ -122,11 +122,15 @@ export function ListItem({
       >
         {leftIcon && (
           <View style={styles.leftIcon}>
-            <Icon
-              icon={leftIcon}
-              size="md"
-              color={disabled ? SEMANTIC_COLORS.textDisabled : SEMANTIC_COLORS.textSubtle}
-            />
+            {React.isValidElement(leftIcon) ? (
+              leftIcon
+            ) : (
+              <Icon
+                icon={leftIcon as LucideIcon}
+                size="md"
+                color={disabled ? SEMANTIC_COLORS.textDisabled : SEMANTIC_COLORS.textSubtle}
+              />
+            )}
           </View>
         )}
         <View style={styles.content}>

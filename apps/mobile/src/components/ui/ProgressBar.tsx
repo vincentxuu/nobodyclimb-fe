@@ -14,7 +14,9 @@ import { SEMANTIC_COLORS, DURATION, RADIUS } from '@nobodyclimb/constants'
 
 export interface ProgressBarProps {
   /** 進度值 (0-100) */
-  value: number
+  value?: number
+  /** 進度值別名 (0-100) */
+  progress?: number
   /** 進度條高度 */
   height?: number
   /** 進度條顏色 */
@@ -27,15 +29,18 @@ export interface ProgressBarProps {
 
 export function ProgressBar({
   value,
+  progress: progressProp,
   height = 8,
   color = SEMANTIC_COLORS.brand,
   backgroundColor = '#EBEAEA',
   animated = true,
 }: ProgressBarProps) {
+  // 支援 value 或 progress 作為進度值
+  const progressValue = value ?? progressProp ?? 0
   const progress = useSharedValue(0)
 
   // 限制值在 0-100 之間
-  const clampedValue = Math.min(100, Math.max(0, value))
+  const clampedValue = Math.min(100, Math.max(0, progressValue))
 
   useEffect(() => {
     if (animated) {

@@ -80,6 +80,10 @@ const colorVariants = {
   error: SEMANTIC_COLORS.error,
   success: SEMANTIC_COLORS.success,
   inherit: undefined,
+  // 別名（向後相容）
+  textMain: SEMANTIC_COLORS.textMain,
+  textSubtle: SEMANTIC_COLORS.textSubtle,
+  textMuted: SEMANTIC_COLORS.textMuted,
 } as const
 
 export type TextColor = keyof typeof colorVariants

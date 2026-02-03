@@ -31,8 +31,8 @@ const AnimatedPressable = Animated.createAnimatedComponent(Pressable)
 export type IconButtonVariant = 'default' | 'primary' | 'ghost'
 
 export interface IconButtonProps extends Omit<PressableProps, 'style'> {
-  /** 圖標 */
-  icon: LucideIcon
+  /** 圖標（可以是 LucideIcon 組件或 React 元素） */
+  icon: LucideIcon | React.ReactElement
   /** 尺寸 */
   size?: IconSize
   /** 變體 */
@@ -172,7 +172,11 @@ export function IconButton({
       onPressOut={handlePressOut}
       {...props}
     >
-      <Icon icon={icon} size={size} color={iconColor} />
+      {React.isValidElement(icon) ? (
+        icon
+      ) : (
+        <Icon icon={icon as LucideIcon} size={size} color={iconColor} />
+      )}
       {badge !== undefined && badge > 0 && (
         <View style={styles.badge}>
           <Text style={styles.badgeText}>

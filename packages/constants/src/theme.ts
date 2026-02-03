@@ -77,6 +77,10 @@ export const SEMANTIC_COLORS = {
   warning: '#F59E0B', // amber-500
   error: BRAND_RED[100],
   info: '#3B82F6', // blue-500
+
+  // 品牌色（用於 App）
+  brand: BRAND_YELLOW[100],
+  brandDark: WB_COLORS[100],
 } as const
 
 /**
@@ -97,6 +101,7 @@ export const COLORS = {
   brand: {
     dark: WB_COLORS[100],
     'dark-hover': WB_COLORS[90],
+    darkHover: WB_COLORS[90],
     light: WB_COLORS[30],
     accent: BRAND_YELLOW[100],
     'accent-hover': BRAND_YELLOW[200],
@@ -105,6 +110,40 @@ export const COLORS = {
       DEFAULT: WB_COLORS[20],
       light: WB_COLORS[10],
     },
+    primary: BRAND_YELLOW[100],
+  },
+  // App 用簡化別名
+  white: WB_COLORS[0],
+  gray: WB_COLORS[50],
+  // App 用語意化別名
+  border: {
+    DEFAULT: WB_COLORS[20],
+    default: WB_COLORS[20],
+    subtle: WB_COLORS[30],
+    light: WB_COLORS[10],
+    focus: BRAND_YELLOW[100],
+    error: BRAND_RED[100],
+  },
+  text: {
+    main: WB_COLORS[100],
+    subtle: WB_COLORS[70],
+    muted: WB_COLORS[60],
+    disabled: WB_COLORS[50],
+    placeholder: WB_COLORS[50],
+  },
+  background: {
+    page: WB_COLORS[10],
+    card: WB_COLORS[0],
+    surface: WB_COLORS[0],
+    input: WB_COLORS[0],
+    subtle: WB_COLORS[10],
+    muted: WB_COLORS[20],
+  },
+  status: {
+    success: '#10B981',
+    warning: '#F59E0B',
+    error: BRAND_RED[100],
+    info: '#3B82F6',
   },
 } as const
 
@@ -187,6 +226,14 @@ export const SPACING = {
   12: 48,
   16: 64,
   20: 80,
+  // 命名別名（用於 App）
+  xxs: 2,
+  xs: 4,
+  sm: 8,
+  md: 16,
+  lg: 24,
+  xl: 32,
+  xxl: 48,
 } as const
 
 /**
@@ -194,6 +241,7 @@ export const SPACING = {
  */
 export const BORDER_RADIUS = {
   none: 0,
+  xs: 2,
   sm: 4,
   md: 8,
   lg: 12,
@@ -201,6 +249,11 @@ export const BORDER_RADIUS = {
   '2xl': 24,
   full: 9999,
 } as const
+
+/**
+ * RADIUS 別名（用於 App）
+ */
+export const RADIUS = BORDER_RADIUS
 
 // ============================================
 // 陰影 (Shadows) - React Native 格式

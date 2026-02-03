@@ -32,17 +32,25 @@ export interface AuthStoreState {
   isLoading: boolean
   /** 錯誤訊息 */
   error: string | null
+  /** 是否已認證（衍生狀態） */
+  isAuthenticated: boolean
 }
 
 export interface AuthStoreActions {
   /** 登入 */
   signIn: (email: string, password: string) => Promise<{ success: boolean; error?: string }>
+  /** 登入（別名） */
+  login: (email: string, password: string) => Promise<{ success: boolean; error?: string }>
   /** Google 登入 */
   signInWithGoogle: (credential: string, referralSource?: string) => Promise<{ isNewUser: boolean }>
   /** 註冊 */
   signUp: (username: string, email: string, password: string, referralSource?: string) => Promise<{ success: boolean; error?: string }>
   /** 登出 */
   signOut: () => Promise<void>
+  /** 登出（別名） */
+  logout: () => Promise<void>
+  /** 註冊（別名） */
+  register: (username: string, email: string, password: string, referralSource?: string) => Promise<{ success: boolean; error?: string }>
   /** 更新用戶資料 */
   updateUser: (userData: UpdateUserData) => Promise<{ success: boolean; error?: string }>
   /** 從儲存恢復認證狀態（App 啟動時調用） */
@@ -126,6 +134,9 @@ export function createAuthStore(config: CreateAuthStoreConfig) {
     user: null,
     isLoading: false,
     error: null,
+    get isAuthenticated() {
+      return get().status === 'signIn' && get().user !== null
+    },
 
     // Actions
     signIn: async (email, password) => {
@@ -391,5 +402,11 @@ export function createAuthStore(config: CreateAuthStoreConfig) {
     },
 
     clearError: () => set({ error: null }),
+
+    // 別名
+    login: async (email: string, password: string) => get().signIn(email, password),
+    logout: async () => get().signOut(),
+    register: async (username: string, email: string, password: string, referralSource?: string) =>
+      get().signUp(username, email, password, referralSource),
   }))
 }

@@ -13,8 +13,8 @@ import { Icon } from './Icon'
 import type { LucideIcon } from 'lucide-react-native'
 
 export interface EmptyStateProps {
-  /** 圖標 */
-  icon?: LucideIcon
+  /** 圖標（可以是 LucideIcon 組件或 React 元素） */
+  icon?: LucideIcon | React.ReactElement
   /** 標題 */
   title: string
   /** 描述文字 */
@@ -55,7 +55,11 @@ export function EmptyState({
   return (
     <View style={[styles.container, style]}>
       <View style={styles.iconContainer}>
-        <Icon icon={icon} size="xl" color={SEMANTIC_COLORS.textMuted} />
+        {React.isValidElement(icon) ? (
+          icon
+        ) : (
+          <Icon icon={icon as LucideIcon} size="xl" color={SEMANTIC_COLORS.textMuted} />
+        )}
       </View>
       <Text variant="h4" color="main" align="center" style={styles.title}>
         {title}
