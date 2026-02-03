@@ -8,7 +8,7 @@ import {
   initialSocialLinks,
 } from './types'
 import { useAuthStore } from '../../store/authStore'
-import { biographyService } from '@nobodyclimb/api-client'
+import { biographyService } from '@/lib/biographyService'
 import type { User, Biography } from '@nobodyclimb/types'
 
 interface ProfileContextType {

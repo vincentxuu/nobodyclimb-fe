@@ -3,7 +3,7 @@ import { View, ScrollView, StyleSheet, Alert } from 'react-native'
 import { useProfile } from './ProfileContext'
 import { ProfileData, SocialLinks } from './types'
 import { mapProfileDataToApi, updateProfileField } from './mappers'
-import { biographyService } from '@nobodyclimb/api-client'
+import { biographyService } from '@/lib/biographyService'
 
 import ProfilePageHeader from './ProfilePageHeader'
 import BiographyAvatarSection from './BiographyAvatarSection'

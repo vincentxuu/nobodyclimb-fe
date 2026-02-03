@@ -1,7 +1,7 @@
 import { useState, useCallback } from 'react'
 import * as ImagePicker from 'expo-image-picker'
 import * as ImageManipulator from 'expo-image-manipulator'
-import { biographyService } from '@/lib/api'
+import { biographyService } from '@/lib/biographyService'
 import { useToast } from '@/components/ui/Toast'
 
 interface UseImageCropperOptions {

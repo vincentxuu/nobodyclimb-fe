@@ -5,7 +5,7 @@ import { Button } from '../../ui/Button'
 import { Text } from '../../ui/Text'
 import { ProfileData, EditPanelType, SocialLinks } from '../types'
 import { updateProfileField, mapProfileDataToApi } from '../mappers'
-import { biographyService } from '@nobodyclimb/api-client'
+import { biographyService } from '@/lib/biographyService'
 
 import BiographyAvatarSection from '../BiographyAvatarSection'
 import BasicInfoSection from '../BasicInfoSection'
