@@ -477,3 +477,66 @@ export interface ContentWithLikeStatus {
 export interface ContentWithOwner {
   owner_id: string;
 }
+
+// ============================================
+// Route User Integration Types
+// ============================================
+
+export type AscentType =
+  | 'redpoint'
+  | 'flash'
+  | 'onsight'
+  | 'attempt'
+  | 'toprope'
+  | 'lead'
+  | 'seconding'
+  | 'repeat';
+
+export interface UserRouteAscent {
+  id: string;
+  user_id: string;
+  route_id: string;
+  ascent_type: AscentType;
+  ascent_date: string;
+  attempts_count: number;
+  rating: number | null;
+  perceived_grade: string | null;
+  notes: string | null;
+  photos: string | null; // JSON array
+  youtube_url: string | null;
+  instagram_url: string | null;
+  is_public: number;
+  created_at: string;
+  updated_at: string;
+}
+
+export type RouteStoryType =
+  | 'beta'
+  | 'experience'
+  | 'first_ascent'
+  | 'history'
+  | 'safety'
+  | 'conditions'
+  | 'gear'
+  | 'approach'
+  | 'other';
+
+export interface RouteStory {
+  id: string;
+  user_id: string;
+  route_id: string;
+  story_type: RouteStoryType;
+  title: string | null;
+  content: string;
+  photos: string | null; // JSON array
+  youtube_url: string | null;
+  instagram_url: string | null;
+  visibility: 'public' | 'community' | 'private';
+  is_featured: number;
+  is_verified: number;
+  like_count: number;
+  comment_count: number;
+  helpful_count: number;
+  created_at: string;
+  updated_at: string;
+}
