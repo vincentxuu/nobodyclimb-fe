@@ -32,17 +32,21 @@ module.exports = {
         display: [FONT_FAMILY.display, FONT_FAMILY.sans, 'sans-serif'],
       },
       colors: {
-        border: 'hsl(var(--border))',
-        input: 'hsl(var(--input))',
-        ring: 'hsl(var(--ring))',
-        background: 'hsl(var(--background))',
-        foreground: 'hsl(var(--foreground))',
-
         // ========================================
         // 品牌色彩系統 (Brand Color System)
         // 從 @nobodyclimb/constants 導入
         // ========================================
         ...COLORS,
+
+        // ========================================
+        // shadcn/ui CSS 變數顏色
+        // 必須在 ...COLORS 之後定義以覆蓋衝突的鍵值
+        // ========================================
+        border: 'hsl(var(--border))',
+        input: 'hsl(var(--input))',
+        ring: 'hsl(var(--ring))',
+        background: 'hsl(var(--background))',
+        foreground: 'hsl(var(--foreground))',
         primary: {
           DEFAULT: 'hsl(var(--primary))',
           foreground: 'hsl(var(--primary-foreground))',
