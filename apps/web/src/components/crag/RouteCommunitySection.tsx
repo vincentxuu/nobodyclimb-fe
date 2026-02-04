@@ -1,7 +1,7 @@
 'use client'
 
-import { useState, useEffect } from 'react'
-import { Mountain, BookOpen, Users, Star, Plus, LogIn } from 'lucide-react'
+import { useState, useEffect, useMemo } from 'react'
+import { Mountain, BookOpen, Users, Star, Plus, LogIn, Youtube, Instagram, Image as ImageIcon } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { useAuth } from '@/lib/hooks'
 import { useAscents } from '@/lib/hooks/useAscents'
@@ -203,9 +203,160 @@ export function RouteCommunitySection({
     }
   }
 
+  // 整合所有使用者分享的媒體內容
+  const aggregatedMedia = useMemo(() => {
+    const photos: string[] = []
+    const youtubeUrls: string[] = []
+    const instagramUrls: string[] = []
+
+    // 從路線故事收集
+    stories.forEach((story) => {
+      if (story.photos) photos.push(...story.photos)
+      if (story.youtube_url) youtubeUrls.push(story.youtube_url)
+      if (story.instagram_url) instagramUrls.push(story.instagram_url)
+    })
+
+    // 從攀爬記錄收集
+    ascents.forEach((ascent) => {
+      if (ascent.photos) photos.push(...ascent.photos)
+      if (ascent.youtube_url) youtubeUrls.push(ascent.youtube_url)
+      if (ascent.instagram_url) instagramUrls.push(ascent.instagram_url)
+    })
+
+    return {
+      photos: [...new Set(photos)], // 去除重複
+      youtubeUrls: [...new Set(youtubeUrls)],
+      instagramUrls: [...new Set(instagramUrls)],
+    }
+  }, [stories, ascents])
+
+  const hasMedia = aggregatedMedia.photos.length > 0 ||
+                   aggregatedMedia.youtubeUrls.length > 0 ||
+                   aggregatedMedia.instagramUrls.length > 0
+
+  // 將 YouTube URL 轉換為嵌入 URL
+  const getYoutubeEmbedUrl = (url: string): string => {
+    const shortMatch = url.match(/youtu\.be\/([a-zA-Z0-9_-]+)/)
+    if (shortMatch) return `https://www.youtube.com/embed/${shortMatch[1]}`
+
+    const standardMatch = url.match(/youtube\.com\/watch\?v=([a-zA-Z0-9_-]+)/)
+    if (standardMatch) return `https://www.youtube.com/embed/${standardMatch[1]}`
+
+    return url
+  }
+
+  // 從 Instagram URL 提取貼文 ID
+  const getInstagramPostId = (url: string): string | null => {
+    const match = url.match(/instagram\.com\/(?:p|reel)\/([a-zA-Z0-9_-]+)/)
+    return match ? match[1] : null
+  }
+
   return (
     <>
-      {/* 路線故事區塊 - 放在路線詳情下方 */}
+      {/* 社群媒體區塊 - 整合所有使用者分享的照片和影片 */}
+      {!isLoading && hasMedia && (
+        <div className="mb-8">
+          <h2 className="mb-4 border-l-4 border-[#FFE70C] pl-3 text-lg font-bold text-[#1B1A1A]">
+            社群分享
+          </h2>
+
+          {/* 照片牆 */}
+          {aggregatedMedia.photos.length > 0 && (
+            <div className="mb-6">
+              <div className="mb-2 flex items-center gap-2 text-sm text-gray-600">
+                <ImageIcon className="h-4 w-4" />
+                <span>攀爬照片 ({aggregatedMedia.photos.length})</span>
+              </div>
+              <div className="grid grid-cols-4 gap-2 sm:grid-cols-5 md:grid-cols-6">
+                {aggregatedMedia.photos.slice(0, 12).map((photo, index) => (
+                  <div
+                    key={index}
+                    className="relative aspect-square overflow-hidden rounded-lg"
+                  >
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img
+                      src={photo}
+                      alt={`社群照片 ${index + 1}`}
+                      className="h-full w-full object-cover hover:scale-105 transition-transform cursor-pointer"
+                    />
+                    {index === 11 && aggregatedMedia.photos.length > 12 && (
+                      <div className="absolute inset-0 flex items-center justify-center bg-black/60 text-white font-semibold">
+                        +{aggregatedMedia.photos.length - 12}
+                      </div>
+                    )}
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* YouTube 影片 */}
+          {aggregatedMedia.youtubeUrls.length > 0 && (
+            <div className="mb-6">
+              <div className="mb-2 flex items-center gap-2 text-sm text-gray-600">
+                <Youtube className="h-4 w-4 text-red-500" />
+                <span>攀爬影片 ({aggregatedMedia.youtubeUrls.length})</span>
+              </div>
+              <div className="grid gap-4 md:grid-cols-2">
+                {aggregatedMedia.youtubeUrls.slice(0, 4).map((url, index) => (
+                  <div key={index} className="aspect-video w-full">
+                    <iframe
+                      src={getYoutubeEmbedUrl(url)}
+                      className="h-full w-full rounded-lg"
+                      title={`社群影片 ${index + 1}`}
+                      allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                      allowFullScreen
+                    />
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* Instagram 貼文 */}
+          {aggregatedMedia.instagramUrls.length > 0 && (
+            <div>
+              <div className="mb-2 flex items-center gap-2 text-sm text-gray-600">
+                <Instagram className="h-4 w-4 text-pink-500" />
+                <span>Instagram ({aggregatedMedia.instagramUrls.length})</span>
+              </div>
+              <div className="grid gap-4 md:grid-cols-2">
+                {aggregatedMedia.instagramUrls.slice(0, 2).map((url, index) => {
+                  const postId = getInstagramPostId(url)
+                  return (
+                    <div
+                      key={index}
+                      className="overflow-hidden rounded-lg border border-gray-200"
+                    >
+                      {postId ? (
+                        <iframe
+                          src={`https://www.instagram.com/p/${postId}/embed`}
+                          className="h-[400px] w-full"
+                          title={`Instagram 貼文 ${index + 1}`}
+                          scrolling="no"
+                          allowFullScreen
+                        />
+                      ) : (
+                        <a
+                          href={url}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="flex items-center justify-center p-4 text-pink-600 hover:text-pink-700"
+                        >
+                          <Instagram className="mr-2 h-5 w-5" />
+                          查看 Instagram 貼文
+                        </a>
+                      )}
+                    </div>
+                  )
+                })}
+              </div>
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* 路線故事區塊 */}
       <div className="mb-8">
         <div className="mb-4 flex items-center justify-between">
           <h2 className="border-l-4 border-[#FFE70C] pl-3 text-lg font-bold text-[#1B1A1A]">
