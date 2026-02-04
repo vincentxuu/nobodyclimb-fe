@@ -1,6 +1,6 @@
 'use client'
 
-import { Tag, Shield, Ruler, User, Youtube } from 'lucide-react'
+import { Tag, CircleDot, Ruler, User, Youtube } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 
 export interface RoutePreviewData {
@@ -91,7 +91,7 @@ export function RoutePreviewPanel({
           {route.boltCount !== undefined && route.boltCount > 0 && (
             <div className="rounded-lg bg-gray-50 p-3">
               <div className="flex items-center gap-1.5 text-xs text-gray-500">
-                <Shield size={14} />
+                <CircleDot size={14} />
                 Bolt
               </div>
               <div className="mt-1 text-base font-semibold text-[#1B1A1A]">

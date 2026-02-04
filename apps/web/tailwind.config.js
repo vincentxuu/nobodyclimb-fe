@@ -40,7 +40,10 @@ module.exports = {
         // ========================================
         ...COLORS,
 
-        // shadcn/ui CSS 變數顏色（覆蓋 COLORS 中的衝突鍵值）
+        // ========================================
+        // shadcn/ui CSS 變數顏色
+        // 必須在 ...COLORS 之後定義以覆蓋衝突的鍵值
+        // ========================================
         border: 'hsl(var(--border))',
         input: 'hsl(var(--input))',
         ring: 'hsl(var(--ring))',

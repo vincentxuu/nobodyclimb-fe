@@ -9,7 +9,7 @@ import {
   Instagram,
   Youtube,
   MapPin,
-  Shield,
+  CircleDot,
   Ruler,
   User,
 } from 'lucide-react'
@@ -231,7 +231,7 @@ export default function RouteDetailClient({ data }: RouteDetailClientProps) {
               {route.boltCount > 0 && (
                 <div className="rounded-lg bg-gray-50 p-4">
                   <div className="flex items-center gap-2 text-sm text-gray-500">
-                    <Shield size={16} />
+                    <CircleDot size={16} />
                     Bolt 數量
                   </div>
                   <div className="mt-1 text-lg font-semibold text-[#1B1A1A]">{route.boltCount}</div>
