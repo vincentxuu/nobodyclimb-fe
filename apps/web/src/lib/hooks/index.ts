@@ -34,3 +34,5 @@ export {
   type ChoiceQuestion,
   type ChoiceOption,
 } from './useQuestions'
+export { useAscents } from './useAscents'
+export { useRouteStories } from './useRouteStories'

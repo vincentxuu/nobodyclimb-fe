@@ -15,6 +15,7 @@ import {
 } from 'lucide-react'
 import { CollapsibleBreadcrumb } from '@/components/ui/collapsible-breadcrumb'
 import BackToTop from '@/components/ui/back-to-top'
+import { RouteCommunitySection } from '@/components/crag/RouteCommunitySection'
 import { routeLoadingManager } from '@/lib/route-loading-manager'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { useToast } from '@/components/ui/use-toast'
@@ -395,6 +396,13 @@ export default function RouteDetailClient({ data }: RouteDetailClientProps) {
               </div>
             </div>
           )}
+
+          {/* 社群內容區塊 */}
+          <RouteCommunitySection
+            routeId={route.id}
+            routeName={route.name}
+            routeGrade={route.grade}
+          />
         </div>
       </div>
 
