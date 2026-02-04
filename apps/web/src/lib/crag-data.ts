@@ -8,6 +8,52 @@ import defulanData from '@/data/crags/defulan.json'
 import guanzilingData from '@/data/crags/guanziling.json'
 import shoushanData from '@/data/crags/shoushan.json'
 import kentingData from '@/data/crags/kenting.json'
+import videoMetadata from '@/../public/data/video-metadata.json'
+
+// ============ 影片元數據類型與工具 ============
+
+interface VideoMetadataEntry {
+  title?: string
+  channel?: string
+  channelId?: string
+  uploadDate?: string
+  duration?: number
+  viewCount?: number
+  thumbnailUrl?: string
+  error?: string
+  message?: string
+}
+
+type VideoMetadataMap = Record<string, VideoMetadataEntry>
+
+const videoMetadataMap = videoMetadata as VideoMetadataMap
+
+/**
+ * 從 YouTube URL 提取影片 ID
+ */
+function extractYoutubeId(url: string): string | null {
+  const vMatch = url.match(/[?&]v=([a-zA-Z0-9_-]{11})/)
+  if (vMatch) return vMatch[1]
+  const shortMatch = url.match(/youtu\.be\/([a-zA-Z0-9_-]{11})/)
+  if (shortMatch) return shortMatch[1]
+  return null
+}
+
+/**
+ * 根據上傳日期排序 YouTube 影片（新到舊）
+ */
+function sortYoutubeVideosByDate(urls: string[]): string[] {
+  return [...urls].sort((a, b) => {
+    const idA = extractYoutubeId(a)
+    const idB = extractYoutubeId(b)
+    const metaA = idA ? videoMetadataMap[idA] : null
+    const metaB = idB ? videoMetadataMap[idB] : null
+    const dateA = metaA?.uploadDate || '1970-01-01'
+    const dateB = metaB?.uploadDate || '1970-01-01'
+    // 新到舊排序
+    return dateB.localeCompare(dateA)
+  })
+}
 
 // ============ 類型定義 ============
 
@@ -417,7 +463,7 @@ export function getRouteDetailData(cragId: string, routeId: string): RouteDetail
       views: route.views ?? 0,
       images: route.images || [],
       videos: route.videos || [],
-      youtubeVideos: route.youtubeVideos || [],
+      youtubeVideos: sortYoutubeVideosByDate(route.youtubeVideos || []),
       instagramPosts: route.instagramPosts || [],
     },
     crag: {
@@ -536,7 +582,7 @@ export function getRoutePreviewData(cragId: string, routeId: string): RoutePrevi
     length: route.length,
     firstAscent: route.firstAscent,
     description: route.description,
-    youtubeVideos: route.youtubeVideos,
+    youtubeVideos: sortYoutubeVideosByDate(route.youtubeVideos || []),
     boltCount: route.boltCount,
   }
 }
@@ -674,7 +720,7 @@ export function getAreaDetailData(cragId: string, areaId: string) {
       videos: route.videos || [],
       tips: route.tips || '',
       instagramPosts: route.instagramPosts || [],
-      youtubeVideos: route.youtubeVideos || [],
+      youtubeVideos: sortYoutubeVideosByDate(route.youtubeVideos || []),
     })),
     otherAreas,
     statistics: {
@@ -807,7 +853,7 @@ export function getCragDetailData(id: string) {
         videos: route.videos || [],
         tips: route.tips || '',
         instagramPosts: route.instagramPosts || [],
-        youtubeVideos: route.youtubeVideos || [],
+        youtubeVideos: sortYoutubeVideosByDate(route.youtubeVideos || []),
       }
     }),
     // 資料來源資訊
