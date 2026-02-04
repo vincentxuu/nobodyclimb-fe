@@ -160,9 +160,9 @@ export function RouteStoryForm({
           <div className="space-y-2">
             <Label>誰可以看到</Label>
             <Select
-              value={form.watch('visibility')}
-              onValueChange={(value: RouteStoryVisibility) =>
-                form.setValue('visibility', value)
+              value={form.watch('visibility') ?? 'public'}
+              onValueChange={(value) =>
+                form.setValue('visibility', value as RouteStoryVisibility)
               }
             >
               <SelectTrigger>
