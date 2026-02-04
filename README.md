@@ -53,25 +53,26 @@ NobodyClimb 是一個專為攀岩愛好者打造的平台，提供攀岩場地�
 
 ```
 nobodyclimb/
-├── web/                        # Next.js Web 前端
-│   ├── src/
-│   │   ├── app/                # Next.js App Router 頁面
-│   │   ├── components/         # React 元件
-│   │   ├── lib/                # 工具函式庫
-│   │   ├── store/              # Zustand 狀態管理
-│   │   └── styles/             # 全域樣式
-│   ├── public/                 # 靜態資源
-│   ├── scripts/                # 工具腳本
-│   └── package.json
+├── apps/
+│   ├── web/                    # Next.js Web 前端 (@nobodyclimb/web)
+│   │   ├── src/
+│   │   │   ├── app/            # Next.js App Router 頁面
+│   │   │   ├── components/     # React 元件
+│   │   │   ├── lib/            # 工具函式庫
+│   │   │   ├── store/          # Zustand 狀態管理
+│   │   │   └── styles/         # 全域樣式
+│   │   ├── public/             # 靜態資源
+│   │   ├── scripts/            # 工具腳本
+│   │   └── package.json
+│   │
+│   └── mobile/                 # React Native 行動應用 (@nobodyclimb/mobile)
+│       ├── app/                # Expo Router 頁面
+│       ├── src/
+│       │   ├── components/     # React Native 元件
+│       │   └── lib/            # 工具函式庫
+│       └── package.json
 │
-├── app/                        # React Native 行動應用
-│   ├── src/
-│   │   ├── app/                # Expo Router 頁面
-│   │   ├── components/         # React Native 元件
-│   │   └── lib/                # 工具函式庫
-│   └── package.json
-│
-├── backend/                    # Cloudflare Workers API
+├── backend/                    # Cloudflare Workers API (@nobodyclimb/api)
 │   ├── src/
 │   │   ├── index.ts            # 主要進入點和路由
 │   │   ├── db/                 # 資料庫結構定義
@@ -181,22 +182,50 @@ npm run dev
 
 ## 指令說明
 
-### 前端開發相關
+### Monorepo 指令 (從根目錄執行)
 
-- `pnpm dev` - 啟動開發伺服器 (localhost:3000)
-- `pnpm build` - 建構生產版本
-- `pnpm start` - 啟動生產伺服器
-- `pnpm lint` - 執行 ESLint 程式碼檢查
-- `pnpm test` - 執行 Jest 測試
+- `pnpm dev` - 啟動所有開發伺服器 (via Turborepo)
+- `pnpm dev:web` - 僅啟動 Web 前端 (localhost:3000)
+- `pnpm dev:mobile` - 啟動行動應用 (Expo)
+- `pnpm dev:backend` - 啟動後端 API
+- `pnpm build` - 建構所有套件
+- `pnpm build:web` - 僅建構 Web 前端
+- `pnpm build:cf` - 建構 Web 至 Cloudflare
+- `pnpm lint` - 檢查所有套件程式碼
+- `pnpm test` - 執行所有測試
+- `pnpm typecheck` - TypeScript 型別檢查
 - `pnpm format` - 使用 Prettier 格式化程式碼
 - `pnpm format:check` - 檢查程式碼格式
 
+### Web 前端開發 (apps/web)
+
+```bash
+cd apps/web
+pnpm dev                        # 啟動 Next.js 開發伺服器
+pnpm build                      # 建構生產版本
+pnpm build:cf                   # 建構 Cloudflare 版本
+pnpm lint                       # 執行 ESLint
+pnpm test                       # 執行 Jest 測試
+```
+
+### 行動應用開發 (apps/mobile)
+
+```bash
+cd apps/mobile
+pnpm start                      # 啟動 Expo 開發伺服器
+pnpm ios                        # 在 iOS 模擬器執行
+pnpm android                    # 在 Android 模擬器執行
+```
+
 ### 前端 Cloudflare 部署
 
-- `pnpm build:cf` - 建構 Cloudflare 版本
-- `wrangler deploy --env production` - 部署到生產環境 (nobodyclimb.cc)
-- `wrangler deploy --env preview` - 部署到預覽環境
-- `wrangler tail --env production` - 查看生產環境日誌
+```bash
+cd apps/web
+pnpm build:cf                              # 建構 Cloudflare 版本
+wrangler deploy --env production           # 部署到生產環境 (nobodyclimb.cc)
+wrangler deploy --env preview              # 部署到預覽環境
+wrangler tail --env production             # 查看生產環境日誌
+```
 
 ### 後端開發相關
 
@@ -216,6 +245,7 @@ pnpm deploy:production          # 部署到生產環境
 使用互動式腳本新增頻道到追蹤清單：
 
 ```bash
+cd apps/web
 ./scripts/add-channel.sh
 ```
 
@@ -226,28 +256,30 @@ pnpm deploy:production          # 部署到生產環境
 也可以直接傳入參數：
 
 ```bash
+cd apps/web
 ./scripts/add-channel.sh 'https://www.youtube.com/@EmilAbrahamsson' 30000
 ```
 
-頻道設定檔位於 `scripts/channels.json`。
+頻道設定檔位於 `apps/web/scripts/channels.json`。
 
 #### 更新所有頻道影片
 
 批次更新所有追蹤頻道的影片資料：
 
 ```bash
+cd apps/web
 ./scripts/update-videos.sh
 ```
 
 此腳本會：
-1. 讀取 `scripts/channels.json` 中的頻道清單
+1. 讀取 `apps/web/scripts/channels.json` 中的頻道清單
 2. 使用 yt-dlp 收集各頻道的影片資料
-3. 轉換並輸出到 `public/data/` 目錄
+3. 轉換並輸出到 `apps/web/public/data/` 目錄
 
 #### 其他腳本
 
-- `./scripts/collect-youtube-data.sh` - 收集單一頻道影片資料
-- `node scripts/convert-youtube-videos.js` - 轉換影片資料格式
+- `apps/web/scripts/collect-youtube-data.sh` - 收集單一頻道影片資料
+- `node apps/web/scripts/convert-youtube-videos.js` - 轉換影片資料格式
 
 #### 前置需求
 
@@ -348,7 +380,7 @@ pnpm deploy:production
 
 - **綁定名稱**: VIDEOS
 - **KV 命名空間 ID**: 6562f1cc9373496da57aeb48987346f8
-- **目前使用**: 暫時使用靜態 JSON 檔案 (`public/data/videos.json`)
+- **目前使用**: 暫時使用靜態 JSON 檔案 (`apps/web/public/data/videos.json`)
 
 #### KV 使用說明
 
@@ -382,7 +414,7 @@ interface CloudflareEnv {
 
 ```bash
 # 上傳數據到 KV
-wrangler kv:key put --binding=VIDEOS "videos" --path="./public/data/videos.json"
+wrangler kv:key put --binding=VIDEOS "videos" --path="./apps/web/public/data/videos.json"
 
 # 讀取 KV 數據
 wrangler kv:key get --binding=VIDEOS "videos"
@@ -414,13 +446,13 @@ wrangler kv:key list --binding=VIDEOS
 
 #### 狀態管理
 
-- **Zustand stores** (`src/store/`): 全域客戶端狀態 (auth, UI, content)
+- **Zustand stores** (`apps/web/src/store/`): 全域客戶端狀態 (auth, UI, content)
 - **TanStack Query**: 伺服器狀態快取和資料獲取
 - **React Hook Form + Zod**: 表單狀態和驗證
 
 #### API 通信
 
-- Axios 客戶端位於 `src/lib/api/client.ts`，包含:
+- Axios 客戶端位於 `apps/web/src/lib/api/client.ts`，包含:
   - 請求攔截器: 自動從 cookies 添加 JWT token
   - 回應攔截器: 處理 401 錯誤時自動刷新 token
 - 基礎 URL: `https://api.nobodyclimb.cc/api/v1` (可透過 `NEXT_PUBLIC_API_URL` 配置)
@@ -428,15 +460,15 @@ wrangler kv:key list --binding=VIDEOS
 
 #### 元件組織
 
-- 功能按領域分組 (例如: `components/crag/`, `components/profile/`)
-- 共用元件在 `components/shared/`
-- 基礎 UI 元件 (Radix UI 包裝) 在 `components/ui/`
-- 人物誌互動元件在 `components/biography/display/`
+- 功能按領域分組 (例如: `apps/web/src/components/crag/`, `apps/web/src/components/profile/`)
+- 共用元件在 `apps/web/src/components/shared/`
+- 基礎 UI 元件 (Radix UI 包裝) 在 `apps/web/src/components/ui/`
+- 人物誌互動元件在 `apps/web/src/components/biography/display/`
 - 使用 `@/` 路徑別名進行匯入 (例如: `import { Button } from '@/components/ui/button'`)
 
 #### 人物誌互動元件
 
-`src/components/biography/display/` 目錄包含統一的互動元件：
+`apps/web/src/components/biography/display/` 目錄包含統一的互動元件：
 
 | 元件 | 說明 |
 |------|------|
@@ -468,7 +500,7 @@ wrangler kv:key list --binding=VIDEOS
 
 ### TypeScript 路徑別名
 
-- `@/*` 對應到 `src/*` (配置於 `tsconfig.json`)
+- Web: `@/*` 對應到 `apps/web/src/*` (配置於 `apps/web/tsconfig.json`)
 - 後端從前端 TypeScript 配置中排除
 
 ### 圖片處理
@@ -517,7 +549,7 @@ wrangler kv:key list --binding=VIDEOS
 ## 重要提示
 
 - 前端使用 React 19 和 Next.js 15，需要 Node.js 18+
-- 目前使用 `public/data/` 中的靜態 JSON 檔案存儲影片資料 (KV 整合規劃中)
+- 目前使用 `apps/web/public/data/` 中的靜態 JSON 檔案存儲影片資料 (KV 整合規劃中)
 - 後端需要 Cloudflare 帳號和正確的綁定設定
 - JWT secret 必須透過 `wrangler secret put JWT_SECRET` 為後端配置
 - 所有程式碼、註解和文件均使用繁體中文

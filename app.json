@@ -1,0 +1,8 @@
+{
+  "android": {
+    "package": "com.vincentxu.nobodyclimb"
+  },
+  "ios": {
+    "bundleIdentifier": "com.vincentxu.nobodyclimb"
+  }
+}
