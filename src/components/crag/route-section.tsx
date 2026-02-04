@@ -1,7 +1,7 @@
 'use client'
 
 import React, { useState, useMemo, useEffect } from 'react'
-import { Eye, Filter, X, Tag, Shield, Ruler, User, Youtube } from 'lucide-react'
+import { Eye, Filter, X, Tag, Shield, Ruler, User, Youtube, CircleDot } from 'lucide-react'
 
 interface RouteType {
   id: string
@@ -353,7 +353,7 @@ function RouteDetailModal({
             {route.boltCount !== undefined && route.boltCount > 0 && (
               <div className="rounded-lg bg-gray-50 p-3">
                 <div className="flex items-center gap-1.5 text-xs text-gray-500">
-                  <Shield size={14} />
+                  <CircleDot size={14} />
                   Bolt 數量
                 </div>
                 <div className="mt-1 text-base font-semibold text-[#1B1A1A]">
