@@ -1,6 +1,6 @@
 import { Hono } from 'hono';
 import { Env, UserRouteAscent } from '../types';
-import { parsePagination, generateId } from '../utils/id';
+import { parsePagination, generateId, safeJsonParse, isValidAscentType, VALID_ASCENT_TYPES } from '../utils/id';
 import { authMiddleware, optionalAuthMiddleware } from '../middleware/auth';
 
 export const ascentsRoutes = new Hono<{ Bindings: Env }>();
@@ -82,7 +82,7 @@ ascentsRoutes.get('/', authMiddleware, async (c) => {
     success: true,
     data: ascents.results.map((ascent: Record<string, unknown>) => ({
       ...ascent,
-      photos: ascent.photos ? JSON.parse(ascent.photos as string) : [],
+      photos: safeJsonParse<string[]>(ascent.photos as string, []),
     })),
     pagination: {
       page,
@@ -196,7 +196,7 @@ ascentsRoutes.get('/stats', authMiddleware, async (c) => {
       }, {} as Record<string, string>),
       recent_ascents: recentAscents.results.map((ascent: Record<string, unknown>) => ({
         ...ascent,
-        photos: ascent.photos ? JSON.parse(ascent.photos as string) : [],
+        photos: safeJsonParse<string[]>(ascent.photos as string, []),
       })),
     },
   });
@@ -241,7 +241,7 @@ ascentsRoutes.get('/:id', optionalAuthMiddleware, async (c) => {
     success: true,
     data: {
       ...ascent,
-      photos: ascent.photos ? JSON.parse(ascent.photos as string) : [],
+      photos: safeJsonParse<string[]>(ascent.photos as string, []),
     },
   });
 });
@@ -260,6 +260,14 @@ ascentsRoutes.post('/', authMiddleware, async (c) => {
 
   if (!body.ascent_type) {
     return c.json({ success: false, error: 'Bad Request', message: 'ascent_type is required' }, 400);
+  }
+
+  if (!isValidAscentType(body.ascent_type)) {
+    return c.json({
+      success: false,
+      error: 'Bad Request',
+      message: `Invalid ascent_type. Must be one of: ${VALID_ASCENT_TYPES.join(', ')}`
+    }, 400);
   }
 
   if (!body.ascent_date) {
@@ -493,7 +501,7 @@ ascentsRoutes.get('/route/:routeId', optionalAuthMiddleware, async (c) => {
     success: true,
     data: ascents.results.map((ascent: Record<string, unknown>) => ({
       ...ascent,
-      photos: ascent.photos ? JSON.parse(ascent.photos as string) : [],
+      photos: safeJsonParse<string[]>(ascent.photos as string, []),
     })),
     pagination: {
       page,

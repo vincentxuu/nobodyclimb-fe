@@ -13,6 +13,7 @@ import type { UserRouteAscent, RouteAscentSummary } from '@/lib/types/ascent'
 import type { RouteStory, RouteStoryType } from '@/lib/types/route-story'
 import { ROUTE_STORY_TYPE_DISPLAY } from '@/lib/types/route-story'
 import { cn } from '@/lib/utils'
+import { useToast } from '@/components/ui/use-toast'
 import Link from 'next/link'
 
 interface RouteCommunityProps {
@@ -29,6 +30,7 @@ export function RouteCommunitySection({
   const { isSignedIn } = useAuth()
   const { getRouteAscents, getRouteAscentSummary, createAscent } = useAscents()
   const { getRouteStories, createStory, toggleLike, toggleHelpful } = useRouteStories()
+  const { toast } = useToast()
 
   // States
   const [activeTab, setActiveTab] = useState('ascents')
@@ -40,8 +42,10 @@ export function RouteCommunitySection({
   const [isStoryFormOpen, setIsStoryFormOpen] = useState(false)
   const [isLoading, setIsLoading] = useState(true)
 
-  // 載入資料
+  // 載入資料 - 只依賴 routeId，避免 hook 函數造成無限迴圈
   useEffect(() => {
+    let isMounted = true
+
     const loadData = async () => {
       setIsLoading(true)
       try {
@@ -50,18 +54,28 @@ export function RouteCommunitySection({
           getRouteAscentSummary(routeId),
           getRouteStories(routeId, { limit: 10 }),
         ])
-        setAscents(ascentsRes.data)
-        setAscentSummary(summaryRes)
-        setStories(storiesRes.data)
+        if (isMounted) {
+          setAscents(ascentsRes.data)
+          setAscentSummary(summaryRes)
+          setStories(storiesRes.data)
+        }
       } catch (error) {
         console.error('Error loading community data:', error)
+        // 不顯示 toast，因為這是背景載入
       } finally {
-        setIsLoading(false)
+        if (isMounted) {
+          setIsLoading(false)
+        }
       }
     }
 
     loadData()
-  }, [routeId, getRouteAscents, getRouteAscentSummary, getRouteStories])
+
+    return () => {
+      isMounted = false
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [routeId])
 
   // 新增攀爬記錄
   const handleCreateAscent = async (data: Parameters<typeof createAscent>[0]) => {
@@ -71,8 +85,17 @@ export function RouteCommunitySection({
       // 重新載入摘要
       const summaryRes = await getRouteAscentSummary(routeId)
       setAscentSummary(summaryRes)
+      toast({
+        title: '記錄成功',
+        description: '已成功新增攀爬記錄',
+      })
     } catch (error) {
       console.error('Error creating ascent:', error)
+      toast({
+        title: '新增失敗',
+        description: '無法新增攀爬記錄，請稍後再試',
+        variant: 'destructive',
+      })
       throw error
     }
   }
@@ -82,51 +105,106 @@ export function RouteCommunitySection({
     try {
       const newStory = await createStory(data)
       setStories((prev) => [newStory, ...prev])
+      toast({
+        title: '分享成功',
+        description: '已成功分享路線故事',
+      })
     } catch (error) {
       console.error('Error creating story:', error)
+      toast({
+        title: '分享失敗',
+        description: '無法分享故事，請稍後再試',
+        variant: 'destructive',
+      })
       throw error
     }
   }
 
-  // 按讚故事
+  // 按讚故事 - 使用樂觀更新並在失敗時回滾
   const handleToggleLike = async (storyId: string) => {
     if (!isSignedIn) return
+
+    // 保存當前狀態以便回滾
+    const story = stories.find((s) => s.id === storyId)
+    if (!story) return
+
+    const prevState = { is_liked: story.is_liked, like_count: story.like_count }
+    const newIsLiked = !story.is_liked
+
+    // 樂觀更新
+    setStories((prev) =>
+      prev.map((s) =>
+        s.id === storyId
+          ? {
+              ...s,
+              is_liked: newIsLiked,
+              like_count: newIsLiked ? s.like_count + 1 : s.like_count - 1,
+            }
+          : s
+      )
+    )
+
     try {
-      const isLiked = await toggleLike(storyId)
+      await toggleLike(storyId)
+    } catch (error) {
+      // 回滾到原本狀態
       setStories((prev) =>
         prev.map((s) =>
           s.id === storyId
-            ? {
-                ...s,
-                is_liked: isLiked,
-                like_count: isLiked ? s.like_count + 1 : s.like_count - 1,
-              }
+            ? { ...s, is_liked: prevState.is_liked, like_count: prevState.like_count }
             : s
         )
       )
-    } catch (error) {
       console.error('Error toggling like:', error)
+      toast({
+        title: '操作失敗',
+        description: '無法更新按讚狀態，請稍後再試',
+        variant: 'destructive',
+      })
     }
   }
 
-  // 標記有幫助
+  // 標記有幫助 - 使用樂觀更新並在失敗時回滾
   const handleToggleHelpful = async (storyId: string) => {
     if (!isSignedIn) return
+
+    // 保存當前狀態以便回滾
+    const story = stories.find((s) => s.id === storyId)
+    if (!story) return
+
+    const prevState = { is_helpful: story.is_helpful, helpful_count: story.helpful_count }
+    const newIsHelpful = !story.is_helpful
+
+    // 樂觀更新
+    setStories((prev) =>
+      prev.map((s) =>
+        s.id === storyId
+          ? {
+              ...s,
+              is_helpful: newIsHelpful,
+              helpful_count: newIsHelpful ? s.helpful_count + 1 : s.helpful_count - 1,
+            }
+          : s
+      )
+    )
+
     try {
-      const isHelpful = await toggleHelpful(storyId)
+      await toggleHelpful(storyId)
+    } catch (error) {
+      // 回滾到原本狀態
       setStories((prev) =>
         prev.map((s) =>
           s.id === storyId
-            ? {
-                ...s,
-                is_helpful: isHelpful,
-                helpful_count: isHelpful ? s.helpful_count + 1 : s.helpful_count - 1,
-              }
+            ? { ...s, is_helpful: prevState.is_helpful, helpful_count: prevState.helpful_count }
             : s
         )
       )
-    } catch (error) {
       console.error('Error toggling helpful:', error)
+      toast({
+        title: '操作失敗',
+        description: '無法更新標記狀態，請稍後再試',
+        variant: 'destructive',
+      })
     }
   }
 

@@ -1,6 +1,6 @@
 import { Hono } from 'hono';
 import { Env, RouteStory } from '../types';
-import { parsePagination, generateId } from '../utils/id';
+import { parsePagination, generateId, safeJsonParse, isValidStoryType, VALID_STORY_TYPES } from '../utils/id';
 import { authMiddleware, optionalAuthMiddleware } from '../middleware/auth';
 
 export const routeStoriesRoutes = new Hono<{ Bindings: Env }>();
@@ -83,7 +83,7 @@ routeStoriesRoutes.get('/', optionalAuthMiddleware, async (c) => {
     success: true,
     data: stories.results.map((story: Record<string, unknown>) => ({
       ...story,
-      photos: story.photos ? JSON.parse(story.photos as string) : [],
+      photos: safeJsonParse<string[]>(story.photos as string, []),
       is_liked: Boolean(story.is_liked),
       is_helpful: Boolean(story.is_helpful),
     })),
@@ -143,7 +143,7 @@ routeStoriesRoutes.get('/:id', optionalAuthMiddleware, async (c) => {
     success: true,
     data: {
       ...story,
-      photos: story.photos ? JSON.parse(story.photos as string) : [],
+      photos: safeJsonParse<string[]>(story.photos as string, []),
       is_liked: Boolean(story.is_liked),
       is_helpful: Boolean(story.is_helpful),
     },
@@ -164,6 +164,14 @@ routeStoriesRoutes.post('/', authMiddleware, async (c) => {
 
   if (!body.story_type) {
     return c.json({ success: false, error: 'Bad Request', message: 'story_type is required' }, 400);
+  }
+
+  if (!isValidStoryType(body.story_type)) {
+    return c.json({
+      success: false,
+      error: 'Bad Request',
+      message: `Invalid story_type. Must be one of: ${VALID_STORY_TYPES.join(', ')}`
+    }, 400);
   }
 
   if (!body.content) {
@@ -589,7 +597,7 @@ routeStoriesRoutes.get('/route/:routeId', optionalAuthMiddleware, async (c) => {
     success: true,
     data: stories.results.map((story: Record<string, unknown>) => ({
       ...story,
-      photos: story.photos ? JSON.parse(story.photos as string) : [],
+      photos: safeJsonParse<string[]>(story.photos as string, []),
       is_liked: Boolean(story.is_liked),
       is_helpful: Boolean(story.is_helpful),
     })),
