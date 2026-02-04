@@ -50,9 +50,9 @@ export const CragRouteSection: React.FC<CragRouteSectionProps> = ({
     setSelectedArea(initialArea)
   }, [initialArea])
 
-  // 從路線資料中提取所有分區名稱
+  // 從路線資料中提取所有分區名稱（過濾掉空值）
   const areaNames = useMemo(() => {
-    const uniqueAreas = [...new Set(routes.map((r) => r.area))]
+    const uniqueAreas = [...new Set(routes.map((r) => r.area).filter((area) => area && area.trim()))]
     return uniqueAreas.sort()
   }, [routes])
 
@@ -331,9 +331,11 @@ function RouteDetailModal({
                 <Tag size={14} className="mr-1" />
                 {route.type}
               </span>
-              <span className="inline-flex items-center rounded-full bg-gray-100 px-3 py-1 text-sm text-gray-600">
-                {route.area}
-              </span>
+              {route.area && route.area.trim() && (
+                <span className="inline-flex items-center rounded-full bg-gray-100 px-3 py-1 text-sm text-gray-600">
+                  {route.area}
+                </span>
+              )}
             </div>
           </div>
 
