@@ -60,7 +60,7 @@ export function AscentCard({
             <Avatar className="h-10 w-10">
               <AvatarImage src={ascent.avatar_url || undefined} />
               <AvatarFallback>
-                {(ascent.display_name || ascent.username).charAt(0).toUpperCase()}
+                {(ascent.display_name || ascent.username || 'U').charAt(0).toUpperCase()}
               </AvatarFallback>
             </Avatar>
           )}

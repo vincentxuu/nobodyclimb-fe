@@ -41,6 +41,8 @@ export function RouteCommunitySection({
   const [isAscentFormOpen, setIsAscentFormOpen] = useState(false)
   const [isStoryFormOpen, setIsStoryFormOpen] = useState(false)
   const [isLoading, setIsLoading] = useState(true)
+  const [isAscentSubmitting, setIsAscentSubmitting] = useState(false)
+  const [isStorySubmitting, setIsStorySubmitting] = useState(false)
 
   // 載入資料 - 只依賴 routeId，避免 hook 函數造成無限迴圈
   useEffect(() => {
@@ -79,6 +81,7 @@ export function RouteCommunitySection({
 
   // 新增攀爬記錄
   const handleCreateAscent = async (data: Parameters<typeof createAscent>[0]) => {
+    setIsAscentSubmitting(true)
     try {
       const newAscent = await createAscent(data)
       setAscents((prev) => [newAscent, ...prev])
@@ -97,11 +100,14 @@ export function RouteCommunitySection({
         variant: 'destructive',
       })
       throw error
+    } finally {
+      setIsAscentSubmitting(false)
     }
   }
 
   // 新增故事
   const handleCreateStory = async (data: Parameters<typeof createStory>[0]) => {
+    setIsStorySubmitting(true)
     try {
       const newStory = await createStory(data)
       setStories((prev) => [newStory, ...prev])
@@ -117,6 +123,8 @@ export function RouteCommunitySection({
         variant: 'destructive',
       })
       throw error
+    } finally {
+      setIsStorySubmitting(false)
     }
   }
 
@@ -397,6 +405,7 @@ export function RouteCommunitySection({
         open={isAscentFormOpen}
         onOpenChange={setIsAscentFormOpen}
         onSubmit={handleCreateAscent}
+        isLoading={isAscentSubmitting}
       />
 
       <RouteStoryForm
@@ -406,6 +415,7 @@ export function RouteCommunitySection({
         open={isStoryFormOpen}
         onOpenChange={setIsStoryFormOpen}
         onSubmit={handleCreateStory}
+        isLoading={isStorySubmitting}
       />
     </div>
   )

@@ -72,3 +72,8 @@ export type StoryType = (typeof VALID_STORY_TYPES)[number];
 export function isValidStoryType(type: string): type is StoryType {
   return VALID_STORY_TYPES.includes(type as StoryType);
 }
+
+// Convert SQLite boolean (0/1) to JavaScript boolean
+export function toBool(value: number | null | undefined): boolean {
+  return Boolean(value);
+}

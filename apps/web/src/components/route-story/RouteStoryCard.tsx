@@ -201,16 +201,26 @@ export function RouteStoryCard({
             <span className="text-xs">有幫助</span>
           </Button>
 
-          {/* 留言 */}
-          <Button
-            variant="ghost"
-            size="sm"
-            className="h-8 gap-1.5"
-            onClick={onComment}
-          >
-            <MessageSquare className="h-4 w-4" />
-            <span>{story.comment_count || ''}</span>
-          </Button>
+          {/* 留言 - 只有當 onComment 有傳入時才顯示 */}
+          {onComment && (
+            <Button
+              variant="ghost"
+              size="sm"
+              className="h-8 gap-1.5"
+              onClick={onComment}
+            >
+              <MessageSquare className="h-4 w-4" />
+              <span>{story.comment_count || ''}</span>
+            </Button>
+          )}
+
+          {/* 當沒有 onComment 時顯示留言數（僅供展示） */}
+          {!onComment && story.comment_count > 0 && (
+            <div className="flex items-center gap-1.5 px-3 text-sm text-muted-foreground">
+              <MessageSquare className="h-4 w-4" />
+              <span>{story.comment_count}</span>
+            </div>
+          )}
         </div>
       </CardFooter>
     </Card>

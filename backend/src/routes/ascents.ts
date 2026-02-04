@@ -1,6 +1,6 @@
 import { Hono } from 'hono';
 import { Env, UserRouteAscent } from '../types';
-import { parsePagination, generateId, safeJsonParse, isValidAscentType, VALID_ASCENT_TYPES } from '../utils/id';
+import { parsePagination, generateId, safeJsonParse, isValidAscentType, VALID_ASCENT_TYPES, toBool } from '../utils/id';
 import { authMiddleware, optionalAuthMiddleware } from '../middleware/auth';
 
 export const ascentsRoutes = new Hono<{ Bindings: Env }>();
@@ -83,6 +83,7 @@ ascentsRoutes.get('/', authMiddleware, async (c) => {
     data: ascents.results.map((ascent: Record<string, unknown>) => ({
       ...ascent,
       photos: safeJsonParse<string[]>(ascent.photos as string, []),
+      is_public: toBool(ascent.is_public as number),
     })),
     pagination: {
       page,
@@ -242,6 +243,7 @@ ascentsRoutes.get('/:id', optionalAuthMiddleware, async (c) => {
     data: {
       ...ascent,
       photos: safeJsonParse<string[]>(ascent.photos as string, []),
+      is_public: toBool(ascent.is_public as number),
     },
   });
 });
@@ -309,16 +311,27 @@ ascentsRoutes.post('/', authMiddleware, async (c) => {
     )
     .run();
 
-  // 更新路線統計
-  await c.env.DB.prepare(
-    `UPDATE routes SET
-       ascent_count = (SELECT COUNT(*) FROM user_route_ascents WHERE route_id = ? AND is_public = 1),
-       community_rating_avg = (SELECT AVG(rating) FROM user_route_ascents WHERE route_id = ? AND rating IS NOT NULL),
-       community_rating_count = (SELECT COUNT(*) FROM user_route_ascents WHERE route_id = ? AND rating IS NOT NULL)
-     WHERE id = ?`
-  )
-    .bind(body.route_id, body.route_id, body.route_id, body.route_id)
-    .run();
+  // 更新路線統計 - 使用增量更新 ascent_count
+  const isPublic = body.is_public !== undefined ? body.is_public : true;
+  if (isPublic) {
+    await c.env.DB.prepare(
+      'UPDATE routes SET ascent_count = ascent_count + 1 WHERE id = ?'
+    )
+      .bind(body.route_id)
+      .run();
+  }
+
+  // rating 需要重新計算平均值
+  if (body.rating) {
+    await c.env.DB.prepare(
+      `UPDATE routes SET
+         community_rating_avg = (SELECT AVG(rating) FROM user_route_ascents WHERE route_id = ? AND rating IS NOT NULL),
+         community_rating_count = (SELECT COUNT(*) FROM user_route_ascents WHERE route_id = ? AND rating IS NOT NULL)
+       WHERE id = ?`
+    )
+      .bind(body.route_id, body.route_id, body.route_id)
+      .run();
+  }
 
   // 取得完整記錄
   const ascent = await c.env.DB.prepare(
@@ -335,7 +348,8 @@ ascentsRoutes.post('/', authMiddleware, async (c) => {
     success: true,
     data: {
       ...ascent,
-      photos: ascent?.photos ? JSON.parse(ascent.photos as string) : [],
+      photos: safeJsonParse<string[]>(ascent?.photos as string, []),
+      is_public: toBool(ascent?.is_public as number),
     },
   }, 201);
 });
@@ -423,7 +437,8 @@ ascentsRoutes.put('/:id', authMiddleware, async (c) => {
     success: true,
     data: {
       ...ascent,
-      photos: ascent?.photos ? JSON.parse(ascent.photos as string) : [],
+      photos: safeJsonParse<string[]>(ascent?.photos as string, []),
+      is_public: toBool(ascent?.is_public as number),
     },
   });
 });
@@ -436,10 +451,10 @@ ascentsRoutes.delete('/:id', authMiddleware, async (c) => {
   const userId = c.get('userId');
 
   const existing = await c.env.DB.prepare(
-    'SELECT id, user_id, route_id FROM user_route_ascents WHERE id = ?'
+    'SELECT id, user_id, route_id, is_public, rating FROM user_route_ascents WHERE id = ?'
   )
     .bind(id)
-    .first<{ id: string; user_id: string; route_id: string }>();
+    .first<{ id: string; user_id: string; route_id: string; is_public: number; rating: number | null }>();
 
   if (!existing) {
     return c.json({ success: false, error: 'Not Found', message: 'Ascent not found' }, 404);
@@ -451,16 +466,26 @@ ascentsRoutes.delete('/:id', authMiddleware, async (c) => {
 
   await c.env.DB.prepare('DELETE FROM user_route_ascents WHERE id = ?').bind(id).run();
 
-  // 更新路線統計
-  await c.env.DB.prepare(
-    `UPDATE routes SET
-       ascent_count = (SELECT COUNT(*) FROM user_route_ascents WHERE route_id = ? AND is_public = 1),
-       community_rating_avg = (SELECT AVG(rating) FROM user_route_ascents WHERE route_id = ? AND rating IS NOT NULL),
-       community_rating_count = (SELECT COUNT(*) FROM user_route_ascents WHERE route_id = ? AND rating IS NOT NULL)
-     WHERE id = ?`
-  )
-    .bind(existing.route_id, existing.route_id, existing.route_id, existing.route_id)
-    .run();
+  // 更新路線統計 - 使用增量更新
+  if (existing.is_public) {
+    await c.env.DB.prepare(
+      'UPDATE routes SET ascent_count = MAX(0, ascent_count - 1) WHERE id = ?'
+    )
+      .bind(existing.route_id)
+      .run();
+  }
+
+  // 如果有 rating 則重新計算平均值
+  if (existing.rating !== null) {
+    await c.env.DB.prepare(
+      `UPDATE routes SET
+         community_rating_avg = (SELECT AVG(rating) FROM user_route_ascents WHERE route_id = ? AND rating IS NOT NULL),
+         community_rating_count = (SELECT COUNT(*) FROM user_route_ascents WHERE route_id = ? AND rating IS NOT NULL)
+       WHERE id = ?`
+    )
+      .bind(existing.route_id, existing.route_id, existing.route_id)
+      .run();
+  }
 
   return c.json({ success: true, message: 'Ascent deleted successfully' });
 });
@@ -502,6 +527,7 @@ ascentsRoutes.get('/route/:routeId', optionalAuthMiddleware, async (c) => {
     data: ascents.results.map((ascent: Record<string, unknown>) => ({
       ...ascent,
       photos: safeJsonParse<string[]>(ascent.photos as string, []),
+      is_public: toBool(ascent.is_public as number),
     })),
     pagination: {
       page,

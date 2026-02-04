@@ -76,7 +76,6 @@ export function AscentForm({
   const [selectedDate, setSelectedDate] = useState<Date | undefined>(
     initialData?.ascent_date ? new Date(initialData.ascent_date) : new Date()
   );
-  const [rating, setRating] = useState<number | null>(initialData?.rating ?? null);
 
   const form = useForm<AscentFormData>({
     resolver: zodResolver(ascentFormSchema),
@@ -102,10 +101,13 @@ export function AscentForm({
   };
 
   const handleRatingChange = (newRating: number) => {
-    const finalRating = rating === newRating ? null : newRating;
-    setRating(finalRating);
+    const currentRating = form.getValues('rating');
+    const finalRating = currentRating === newRating ? null : newRating;
     form.setValue('rating', finalRating);
   };
+
+  // 取得目前的 rating 值以用於渲染
+  const currentRating = form.watch('rating');
 
   const handleFormSubmit = async (data: AscentFormData) => {
     await onSubmit({
@@ -190,7 +192,7 @@ export function AscentForm({
                   <Star
                     className={cn(
                       'h-6 w-6 transition-colors',
-                      rating && star <= rating
+                      currentRating && star <= currentRating
                         ? 'fill-yellow-400 text-yellow-400'
                         : 'text-gray-300 hover:text-yellow-300'
                     )}

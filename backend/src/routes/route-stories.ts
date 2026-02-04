@@ -1,6 +1,6 @@
 import { Hono } from 'hono';
 import { Env, RouteStory } from '../types';
-import { parsePagination, generateId, safeJsonParse, isValidStoryType, VALID_STORY_TYPES } from '../utils/id';
+import { parsePagination, generateId, safeJsonParse, isValidStoryType, VALID_STORY_TYPES, toBool } from '../utils/id';
 import { authMiddleware, optionalAuthMiddleware } from '../middleware/auth';
 
 export const routeStoriesRoutes = new Hono<{ Bindings: Env }>();
@@ -84,6 +84,7 @@ routeStoriesRoutes.get('/', optionalAuthMiddleware, async (c) => {
     data: stories.results.map((story: Record<string, unknown>) => ({
       ...story,
       photos: safeJsonParse<string[]>(story.photos as string, []),
+      is_featured: toBool(story.is_featured as number),
       is_liked: Boolean(story.is_liked),
       is_helpful: Boolean(story.is_helpful),
     })),
@@ -144,6 +145,7 @@ routeStoriesRoutes.get('/:id', optionalAuthMiddleware, async (c) => {
     data: {
       ...story,
       photos: safeJsonParse<string[]>(story.photos as string, []),
+      is_featured: toBool(story.is_featured as number),
       is_liked: Boolean(story.is_liked),
       is_helpful: Boolean(story.is_helpful),
     },
@@ -209,14 +211,15 @@ routeStoriesRoutes.post('/', authMiddleware, async (c) => {
     )
     .run();
 
-  // 更新路線統計
-  await c.env.DB.prepare(
-    `UPDATE routes SET
-       story_count = (SELECT COUNT(*) FROM route_stories WHERE route_id = ? AND visibility = 'public')
-     WHERE id = ?`
-  )
-    .bind(body.route_id, body.route_id)
-    .run();
+  // 更新路線統計 - 使用增量更新
+  const visibility = body.visibility || 'public';
+  if (visibility === 'public') {
+    await c.env.DB.prepare(
+      'UPDATE routes SET story_count = story_count + 1 WHERE id = ?'
+    )
+      .bind(body.route_id)
+      .run();
+  }
 
   // 取得完整記錄
   const story = await c.env.DB.prepare(
@@ -235,7 +238,8 @@ routeStoriesRoutes.post('/', authMiddleware, async (c) => {
     success: true,
     data: {
       ...story,
-      photos: story?.photos ? JSON.parse(story.photos as string) : [],
+      photos: safeJsonParse<string[]>(story?.photos as string, []),
+      is_featured: toBool(story?.is_featured as number),
     },
   }, 201);
 });
@@ -317,7 +321,8 @@ routeStoriesRoutes.put('/:id', authMiddleware, async (c) => {
     success: true,
     data: {
       ...story,
-      photos: story?.photos ? JSON.parse(story.photos as string) : [],
+      photos: safeJsonParse<string[]>(story?.photos as string, []),
+      is_featured: toBool(story?.is_featured as number),
     },
   });
 });
@@ -330,10 +335,10 @@ routeStoriesRoutes.delete('/:id', authMiddleware, async (c) => {
   const userId = c.get('userId');
 
   const existing = await c.env.DB.prepare(
-    'SELECT id, user_id, route_id FROM route_stories WHERE id = ?'
+    'SELECT id, user_id, route_id, visibility FROM route_stories WHERE id = ?'
   )
     .bind(id)
-    .first<{ id: string; user_id: string; route_id: string }>();
+    .first<{ id: string; user_id: string; route_id: string; visibility: string }>();
 
   if (!existing) {
     return c.json({ success: false, error: 'Not Found', message: 'Story not found' }, 404);
@@ -350,14 +355,14 @@ routeStoriesRoutes.delete('/:id', authMiddleware, async (c) => {
 
   await c.env.DB.prepare('DELETE FROM route_stories WHERE id = ?').bind(id).run();
 
-  // 更新路線統計
-  await c.env.DB.prepare(
-    `UPDATE routes SET
-       story_count = (SELECT COUNT(*) FROM route_stories WHERE route_id = ? AND visibility = 'public')
-     WHERE id = ?`
-  )
-    .bind(existing.route_id, existing.route_id)
-    .run();
+  // 更新路線統計 - 使用增量更新
+  if (existing.visibility === 'public') {
+    await c.env.DB.prepare(
+      'UPDATE routes SET story_count = MAX(0, story_count - 1) WHERE id = ?'
+    )
+      .bind(existing.route_id)
+      .run();
+  }
 
   return c.json({ success: true, message: 'Story deleted successfully' });
 });
@@ -598,6 +603,7 @@ routeStoriesRoutes.get('/route/:routeId', optionalAuthMiddleware, async (c) => {
     data: stories.results.map((story: Record<string, unknown>) => ({
       ...story,
       photos: safeJsonParse<string[]>(story.photos as string, []),
+      is_featured: toBool(story.is_featured as number),
       is_liked: Boolean(story.is_liked),
       is_helpful: Boolean(story.is_helpful),
     })),
