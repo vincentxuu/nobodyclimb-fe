@@ -1,6 +1,6 @@
 import { Hono } from 'hono';
 import { Env, RouteStory } from '../types';
-import { parsePagination, generateId, safeJsonParse, isValidStoryType, VALID_STORY_TYPES, toBool } from '../utils/id';
+import { parsePagination, generateId, safeJsonParse, toBool } from '../utils/id';
 import { authMiddleware, optionalAuthMiddleware } from '../middleware/auth';
 
 export const routeStoriesRoutes = new Hono<{ Bindings: Env }>();
@@ -164,18 +164,6 @@ routeStoriesRoutes.post('/', authMiddleware, async (c) => {
     return c.json({ success: false, error: 'Bad Request', message: 'route_id is required' }, 400);
   }
 
-  if (!body.story_type) {
-    return c.json({ success: false, error: 'Bad Request', message: 'story_type is required' }, 400);
-  }
-
-  if (!isValidStoryType(body.story_type)) {
-    return c.json({
-      success: false,
-      error: 'Bad Request',
-      message: `Invalid story_type. Must be one of: ${VALID_STORY_TYPES.join(', ')}`
-    }, 400);
-  }
-
   if (!body.content) {
     return c.json({ success: false, error: 'Bad Request', message: 'content is required' }, 400);
   }
@@ -195,13 +183,12 @@ routeStoriesRoutes.post('/', authMiddleware, async (c) => {
     `INSERT INTO route_stories (
        id, user_id, route_id, story_type, title, content,
        photos, youtube_url, instagram_url, visibility
-     ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
+     ) VALUES (?, ?, ?, 'story', ?, ?, ?, ?, ?, ?)`
   )
     .bind(
       id,
       userId,
       body.route_id,
-      body.story_type,
       body.title || null,
       body.content,
       body.photos ? JSON.stringify(body.photos) : null,

@@ -10,9 +10,7 @@ import { useRouteStories } from '@/lib/hooks/useRouteStories'
 import { AscentCard, AscentForm } from '@/components/ascent'
 import { RouteStoryCard, RouteStoryForm } from '@/components/route-story'
 import type { UserRouteAscent, RouteAscentSummary } from '@/lib/types/ascent'
-import type { RouteStory, RouteStoryType } from '@/lib/types/route-story'
-import { ROUTE_STORY_TYPE_DISPLAY } from '@/lib/types/route-story'
-import { cn } from '@/lib/utils'
+import type { RouteStory } from '@/lib/types/route-story'
 import { useToast } from '@/components/ui/use-toast'
 import Link from 'next/link'
 
@@ -37,7 +35,6 @@ export function RouteCommunitySection({
   const [ascents, setAscents] = useState<UserRouteAscent[]>([])
   const [ascentSummary, setAscentSummary] = useState<RouteAscentSummary | null>(null)
   const [stories, setStories] = useState<RouteStory[]>([])
-  const [storyTypeFilter, setStoryTypeFilter] = useState<RouteStoryType | 'all'>('all')
   const [isAscentFormOpen, setIsAscentFormOpen] = useState(false)
   const [isStoryFormOpen, setIsStoryFormOpen] = useState(false)
   const [isLoading, setIsLoading] = useState(true)
@@ -63,7 +60,6 @@ export function RouteCommunitySection({
         }
       } catch (error) {
         console.error('Error loading community data:', error)
-        // 不顯示 toast，因為這是背景載入
       } finally {
         if (isMounted) {
           setIsLoading(false)
@@ -85,7 +81,6 @@ export function RouteCommunitySection({
     try {
       const newAscent = await createAscent(data)
       setAscents((prev) => [newAscent, ...prev])
-      // 重新載入摘要
       const summaryRes = await getRouteAscentSummary(routeId)
       setAscentSummary(summaryRes)
       toast({
@@ -132,14 +127,12 @@ export function RouteCommunitySection({
   const handleToggleLike = async (storyId: string) => {
     if (!isSignedIn) return
 
-    // 保存當前狀態以便回滾
     const story = stories.find((s) => s.id === storyId)
     if (!story) return
 
     const prevState = { is_liked: story.is_liked, like_count: story.like_count }
     const newIsLiked = !story.is_liked
 
-    // 樂觀更新
     setStories((prev) =>
       prev.map((s) =>
         s.id === storyId
@@ -155,7 +148,6 @@ export function RouteCommunitySection({
     try {
       await toggleLike(storyId)
     } catch (error) {
-      // 回滾到原本狀態
       setStories((prev) =>
         prev.map((s) =>
           s.id === storyId
@@ -176,14 +168,12 @@ export function RouteCommunitySection({
   const handleToggleHelpful = async (storyId: string) => {
     if (!isSignedIn) return
 
-    // 保存當前狀態以便回滾
     const story = stories.find((s) => s.id === storyId)
     if (!story) return
 
     const prevState = { is_helpful: story.is_helpful, helpful_count: story.helpful_count }
     const newIsHelpful = !story.is_helpful
 
-    // 樂觀更新
     setStories((prev) =>
       prev.map((s) =>
         s.id === storyId
@@ -199,7 +189,6 @@ export function RouteCommunitySection({
     try {
       await toggleHelpful(storyId)
     } catch (error) {
-      // 回滾到原本狀態
       setStories((prev) =>
         prev.map((s) =>
           s.id === storyId
@@ -215,12 +204,6 @@ export function RouteCommunitySection({
       })
     }
   }
-
-  // 篩選故事
-  const filteredStories =
-    storyTypeFilter === 'all'
-      ? stories
-      : stories.filter((s) => s.story_type === storyTypeFilter)
 
   return (
     <div className="mt-12 border-t pt-8">
@@ -337,41 +320,13 @@ export function RouteCommunitySection({
 
         {/* 路線故事 */}
         <TabsContent value="stories" className="mt-4">
-          {/* 類型篩選 */}
-          <div className="mb-4 flex flex-wrap gap-2">
-            <button
-              onClick={() => setStoryTypeFilter('all')}
-              className={cn(
-                'rounded-full px-3 py-1 text-sm transition',
-                storyTypeFilter === 'all'
-                  ? 'bg-emerald-100 text-emerald-700'
-                  : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
-              )}
-            >
-              全部
-            </button>
-            {(Object.keys(ROUTE_STORY_TYPE_DISPLAY) as RouteStoryType[]).map((type) => (
-              <button
-                key={type}
-                onClick={() => setStoryTypeFilter(type)}
-                className={cn(
-                  'rounded-full px-3 py-1 text-sm transition',
-                  storyTypeFilter === type
-                    ? 'bg-emerald-100 text-emerald-700'
-                    : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
-                )}
-              >
-                {ROUTE_STORY_TYPE_DISPLAY[type].label}
-              </button>
-            ))}
-          </div>
-
           {isLoading ? (
             <div className="py-8 text-center text-gray-500">載入中...</div>
-          ) : filteredStories.length === 0 ? (
+          ) : stories.length === 0 ? (
             <div className="py-8 text-center text-gray-500">
               <BookOpen className="mx-auto mb-2 h-12 w-12 text-gray-300" />
               <p>還沒有人分享故事</p>
+              <p className="mt-1 text-xs">分享這條路線的命名由來或歷史故事</p>
               {isSignedIn && (
                 <Button
                   variant="link"
@@ -384,7 +339,7 @@ export function RouteCommunitySection({
             </div>
           ) : (
             <div className="space-y-4">
-              {filteredStories.map((story) => (
+              {stories.map((story) => (
                 <RouteStoryCard
                   key={story.id}
                   story={story}

@@ -23,22 +23,10 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog';
 
-import { RouteStoryTypeSelect } from './RouteStoryTypeSelect';
-import { RouteStoryType, RouteStoryFormData, RouteStoryVisibility } from '@/lib/types/route-story';
+import { RouteStoryFormData, RouteStoryVisibility } from '@/lib/types/route-story';
 
 const routeStoryFormSchema = z.object({
   route_id: z.string().min(1, '請選擇路線'),
-  story_type: z.enum([
-    'beta',
-    'experience',
-    'first_ascent',
-    'history',
-    'safety',
-    'conditions',
-    'gear',
-    'approach',
-    'other',
-  ]),
   title: z.string().nullable().optional(),
   content: z.string().min(1, '請輸入內容'),
   youtube_url: z.string().url().nullable().optional().or(z.literal('')),
@@ -71,7 +59,6 @@ export function RouteStoryForm({
     resolver: zodResolver(routeStoryFormSchema),
     defaultValues: {
       route_id: routeId,
-      story_type: initialData?.story_type ?? 'beta',
       title: initialData?.title ?? null,
       content: initialData?.content ?? '',
       youtube_url: initialData?.youtube_url ?? null,
@@ -97,34 +84,28 @@ export function RouteStoryForm({
           <p className="text-sm text-muted-foreground">
             {routeName} {routeGrade && <span className="font-medium">({routeGrade})</span>}
           </p>
+          <p className="text-xs text-muted-foreground">
+            分享這條路線的命名由來、歷史故事或特別的經歷
+          </p>
         </DialogHeader>
 
         <form onSubmit={form.handleSubmit(handleFormSubmit)} className="space-y-6">
-          {/* 故事類型 */}
-          <div className="space-y-2">
-            <Label>故事類型</Label>
-            <RouteStoryTypeSelect
-              value={form.watch('story_type') as RouteStoryType}
-              onChange={(type) => form.setValue('story_type', type)}
-            />
-          </div>
-
           {/* 標題 (可選) */}
           <div className="space-y-2">
             <Label htmlFor="title">標題 (可選)</Label>
             <Input
               id="title"
-              placeholder="為你的故事加個標題"
+              placeholder="例如：為什麼叫做這個名字"
               {...form.register('title')}
             />
           </div>
 
           {/* 內容 */}
           <div className="space-y-2">
-            <Label htmlFor="content">內容 *</Label>
+            <Label htmlFor="content">故事內容 *</Label>
             <Textarea
               id="content"
-              placeholder="分享你的經驗..."
+              placeholder="分享這條路線的故事..."
               rows={6}
               {...form.register('content')}
             />

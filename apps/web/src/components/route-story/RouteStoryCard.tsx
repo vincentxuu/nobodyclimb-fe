@@ -3,14 +3,7 @@
 import { format } from 'date-fns';
 import { zhTW } from 'date-fns/locale';
 import {
-  Lightbulb,
-  Heart,
-  Trophy,
-  History,
-  AlertTriangle,
   Mountain,
-  Wrench,
-  MapPin,
   MessageSquare,
   ThumbsUp,
   Youtube,
@@ -24,20 +17,8 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardFooter } from '@/components/ui/card';
-import { RouteStory, ROUTE_STORY_TYPE_DISPLAY } from '@/lib/types/route-story';
+import { RouteStory } from '@/lib/types/route-story';
 import { cn } from '@/lib/utils';
-
-const ICON_MAP = {
-  Lightbulb,
-  Heart,
-  Trophy,
-  History,
-  AlertTriangle,
-  Mountain,
-  Wrench,
-  MapPin,
-  MessageSquare,
-};
 
 interface RouteStoryCardProps {
   story: RouteStory;
@@ -56,44 +37,29 @@ export function RouteStoryCard({
   onComment,
   className,
 }: RouteStoryCardProps) {
-  const typeInfo = ROUTE_STORY_TYPE_DISPLAY[story.story_type];
-  const Icon = ICON_MAP[typeInfo.icon as keyof typeof ICON_MAP];
-
   return (
     <Card className={cn('overflow-hidden', className)}>
       <CardContent className="p-4">
-        {/* Header: 使用者資訊和類型標籤 */}
-        <div className="flex items-start justify-between gap-3">
-          <div className="flex items-center gap-3">
-            <Avatar className="h-10 w-10">
-              <AvatarImage src={story.avatar_url || undefined} />
-              <AvatarFallback>
-                {(story.display_name || story.username || 'U').charAt(0).toUpperCase()}
-              </AvatarFallback>
-            </Avatar>
-            <div>
-              <div className="flex items-center gap-2">
-                <span className="font-medium text-sm">
-                  {story.display_name || story.username}
-                </span>
-                {story.is_verified && (
-                  <CheckCircle className="h-4 w-4 text-blue-500" />
-                )}
-              </div>
-              <span className="text-xs text-muted-foreground">
-                {format(new Date(story.created_at), 'PPP', { locale: zhTW })}
+        {/* Header: 使用者資訊 */}
+        <div className="flex items-center gap-3">
+          <Avatar className="h-10 w-10">
+            <AvatarImage src={story.avatar_url || undefined} />
+            <AvatarFallback>
+              {(story.display_name || story.username || 'U').charAt(0).toUpperCase()}
+            </AvatarFallback>
+          </Avatar>
+          <div>
+            <div className="flex items-center gap-2">
+              <span className="font-medium text-sm">
+                {story.display_name || story.username}
               </span>
+              {story.is_verified && (
+                <CheckCircle className="h-4 w-4 text-blue-500" />
+              )}
             </div>
-          </div>
-
-          <div
-            className={cn(
-              'flex items-center gap-1 rounded-full px-2 py-1 text-xs font-medium',
-              'bg-gray-100'
-            )}
-          >
-            <Icon className={cn('h-3 w-3', typeInfo.color)} />
-            <span>{typeInfo.label}</span>
+            <span className="text-xs text-muted-foreground">
+              {format(new Date(story.created_at), 'PPP', { locale: zhTW })}
+            </span>
           </div>
         </div>
 
