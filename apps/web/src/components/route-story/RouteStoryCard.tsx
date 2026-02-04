@@ -98,14 +98,32 @@ export function RouteStoryCard({
           {story.content}
         </p>
 
+        {/* 照片展示 */}
+        {story.photos && story.photos.length > 0 && (
+          <div className="mt-3 grid grid-cols-3 gap-2">
+            {story.photos.slice(0, 3).map((photo, index) => (
+              <div
+                key={index}
+                className="relative aspect-square overflow-hidden rounded-md"
+              >
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img
+                  src={photo}
+                  alt={`照片 ${index + 1}`}
+                  className="h-full w-full object-cover"
+                />
+                {index === 2 && story.photos && story.photos.length > 3 && (
+                  <div className="absolute inset-0 flex items-center justify-center bg-black/50 text-white font-medium">
+                    +{story.photos.length - 3}
+                  </div>
+                )}
+              </div>
+            ))}
+          </div>
+        )}
+
         {/* 媒體連結 */}
         <div className="mt-3 flex items-center gap-3">
-          {story.photos && story.photos.length > 0 && (
-            <div className="flex items-center gap-1 text-xs text-muted-foreground">
-              <ImageIcon className="h-3 w-3" />
-              <span>{story.photos.length} 張照片</span>
-            </div>
-          )}
           {story.youtube_url && (
             <a
               href={story.youtube_url}

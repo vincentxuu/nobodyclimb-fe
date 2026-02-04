@@ -1,5 +1,6 @@
 'use client';
 
+import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
@@ -22,6 +23,8 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog';
+import { PhotoUpload } from '@/components/ui/photo-upload';
+import { galleryService } from '@/lib/api/services';
 
 import { RouteStoryFormData, RouteStoryVisibility } from '@/lib/types/route-story';
 
@@ -29,6 +32,7 @@ const routeStoryFormSchema = z.object({
   route_id: z.string().min(1, '請選擇路線'),
   title: z.string().nullable().optional(),
   content: z.string().min(1, '請輸入內容'),
+  photos: z.array(z.string()).optional(),
   youtube_url: z.string().url().nullable().optional().or(z.literal('')),
   instagram_url: z.string().url().nullable().optional().or(z.literal('')),
   visibility: z.enum(['public', 'community', 'private']).optional(),
@@ -55,12 +59,15 @@ export function RouteStoryForm({
   initialData,
   isLoading = false,
 }: RouteStoryFormProps) {
+  const [photos, setPhotos] = useState<string[]>(initialData?.photos ?? []);
+
   const form = useForm<RouteStoryFormData>({
     resolver: zodResolver(routeStoryFormSchema),
     defaultValues: {
       route_id: routeId,
       title: initialData?.title ?? null,
       content: initialData?.content ?? '',
+      photos: initialData?.photos ?? [],
       youtube_url: initialData?.youtube_url ?? null,
       instagram_url: initialData?.instagram_url ?? null,
       visibility: initialData?.visibility ?? 'public',
@@ -70,9 +77,11 @@ export function RouteStoryForm({
   const handleFormSubmit = async (data: RouteStoryFormData) => {
     await onSubmit({
       ...data,
+      photos: photos.length > 0 ? photos : undefined,
       youtube_url: data.youtube_url || null,
       instagram_url: data.instagram_url || null,
     });
+    setPhotos([]);
     onOpenChange(false);
   };
 
@@ -114,6 +123,18 @@ export function RouteStoryForm({
                 {form.formState.errors.content.message}
               </p>
             )}
+          </div>
+
+          {/* 照片上傳 */}
+          <div className="space-y-2">
+            <Label>照片 (可選)</Label>
+            <PhotoUpload
+              photos={photos}
+              onChange={setPhotos}
+              maxPhotos={5}
+              uploadFn={galleryService.uploadImage}
+              disabled={isLoading}
+            />
           </div>
 
           {/* 媒體連結 */}

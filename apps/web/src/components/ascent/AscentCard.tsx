@@ -145,14 +145,32 @@ export function AscentCard({
               </p>
             )}
 
+            {/* 照片展示 */}
+            {ascent.photos && ascent.photos.length > 0 && (
+              <div className="mt-2 flex gap-1">
+                {ascent.photos.slice(0, 4).map((photo, index) => (
+                  <div
+                    key={index}
+                    className="relative h-12 w-12 overflow-hidden rounded"
+                  >
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img
+                      src={photo}
+                      alt={`照片 ${index + 1}`}
+                      className="h-full w-full object-cover"
+                    />
+                    {index === 3 && ascent.photos && ascent.photos.length > 4 && (
+                      <div className="absolute inset-0 flex items-center justify-center bg-black/50 text-white text-xs font-medium">
+                        +{ascent.photos.length - 4}
+                      </div>
+                    )}
+                  </div>
+                ))}
+              </div>
+            )}
+
             {/* 媒體連結 */}
             <div className="mt-2 flex items-center gap-2">
-              {ascent.photos && ascent.photos.length > 0 && (
-                <div className="flex items-center gap-1 text-xs text-muted-foreground">
-                  <ImageIcon className="h-3 w-3" />
-                  <span>{ascent.photos.length} 張照片</span>
-                </div>
-              )}
               {ascent.youtube_url && (
                 <a
                   href={ascent.youtube_url}

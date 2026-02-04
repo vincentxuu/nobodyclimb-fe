@@ -25,6 +25,8 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog';
+import { PhotoUpload } from '@/components/ui/photo-upload';
+import { galleryService } from '@/lib/api/services';
 
 import { AscentTypeSelect } from './AscentTypeSelect';
 import { AscentType, AscentFormData } from '@/lib/types/ascent';
@@ -47,6 +49,7 @@ const ascentFormSchema = z.object({
   rating: z.number().min(1).max(5).nullable().optional(),
   perceived_grade: z.string().nullable().optional(),
   notes: z.string().nullable().optional(),
+  photos: z.array(z.string()).optional(),
   youtube_url: z.string().url().nullable().optional().or(z.literal('')),
   instagram_url: z.string().url().nullable().optional().or(z.literal('')),
   is_public: z.boolean().optional(),
@@ -76,6 +79,7 @@ export function AscentForm({
   const [selectedDate, setSelectedDate] = useState<Date | undefined>(
     initialData?.ascent_date ? new Date(initialData.ascent_date) : new Date()
   );
+  const [photos, setPhotos] = useState<string[]>(initialData?.photos ?? []);
 
   const form = useForm<AscentFormData>({
     resolver: zodResolver(ascentFormSchema),
@@ -87,6 +91,7 @@ export function AscentForm({
       rating: initialData?.rating ?? null,
       perceived_grade: initialData?.perceived_grade ?? null,
       notes: initialData?.notes ?? null,
+      photos: initialData?.photos ?? [],
       youtube_url: initialData?.youtube_url ?? null,
       instagram_url: initialData?.instagram_url ?? null,
       is_public: initialData?.is_public ?? true,
@@ -112,9 +117,11 @@ export function AscentForm({
   const handleFormSubmit = async (data: AscentFormData) => {
     await onSubmit({
       ...data,
+      photos: photos.length > 0 ? photos : undefined,
       youtube_url: data.youtube_url || null,
       instagram_url: data.instagram_url || null,
     });
+    setPhotos([]);
     onOpenChange(false);
   };
 
@@ -220,6 +227,18 @@ export function AscentForm({
               placeholder="記錄這次攀爬的心得..."
               rows={3}
               {...form.register('notes')}
+            />
+          </div>
+
+          {/* 照片上傳 */}
+          <div className="space-y-2">
+            <Label>照片 (可選)</Label>
+            <PhotoUpload
+              photos={photos}
+              onChange={setPhotos}
+              maxPhotos={5}
+              uploadFn={galleryService.uploadImage}
+              disabled={isLoading}
             />
           </div>
 
