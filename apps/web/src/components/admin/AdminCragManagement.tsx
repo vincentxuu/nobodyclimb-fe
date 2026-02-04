@@ -12,23 +12,11 @@ import {
   Star,
   Loader2,
   ExternalLink,
-  MoreHorizontal,
-  Eye,
-  Pencil,
   BarChart3,
 } from 'lucide-react'
 import { adminCragService, AdminCragStats } from '@/lib/api/services'
 import { Crag } from '@/lib/types'
 import Link from 'next/link'
-
-interface CragWithRoutes extends Crag {
-  routes?: Array<{
-    id: string
-    name: string
-    grade: string
-    route_type: string
-  }>
-}
 
 export default function AdminCragManagement() {
   const [crags, setCrags] = useState<Crag[]>([])
@@ -286,13 +274,6 @@ export default function AdminCragManagement() {
                             title="查看頁面"
                           >
                             <ExternalLink className="h-4 w-4" />
-                          </Link>
-                          <Link
-                            href={`/admin/crags/${crag.id}`}
-                            className="p-2 text-wb-70 hover:text-wb-100 hover:bg-wb-10 rounded-lg transition-colors"
-                            title="編輯"
-                          >
-                            <Pencil className="h-4 w-4" />
                           </Link>
                         </div>
                       </td>

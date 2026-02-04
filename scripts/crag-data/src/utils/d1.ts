@@ -76,8 +76,10 @@ function cragSheetToDb(crag: CragSheetRow): Partial<CragDB> {
 }
 
 function routeSheetToDb(route: RouteSheetRow, cragId: string): Partial<RouteDB> {
+  // 使用時間戳 + 隨機數避免批量導入時 ID 重複
+  const uniqueId = `${Date.now()}-${Math.random().toString(36).slice(2, 9)}`;
   return {
-    id: route.id || `${cragId}-route-${Date.now()}`,
+    id: route.id || `${cragId}-route-${uniqueId}`,
     crag_id: cragId,
     name: route.name,
     grade: route.grade || null,
