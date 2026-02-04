@@ -1,7 +1,24 @@
 import { Hono } from 'hono';
+import { D1Database } from '@cloudflare/workers-types';
 import { Env, Crag, Route } from '../types';
 import { authMiddleware, adminMiddleware } from '../middleware/auth';
 import { parsePagination, generateId } from '../utils/id';
+
+// Helper function to update crag route and bolt counts
+async function updateCragCounts(db: D1Database, cragId: string) {
+  return db
+    .prepare(
+      `
+    UPDATE crags
+    SET route_count = (SELECT COUNT(*) FROM routes WHERE crag_id = ?),
+        bolt_count = (SELECT COALESCE(SUM(bolt_count), 0) FROM routes WHERE crag_id = ?),
+        updated_at = datetime('now')
+    WHERE id = ?
+  `
+    )
+    .bind(cragId, cragId, cragId)
+    .run();
+}
 
 export const adminCragsRoutes = new Hono<{ Bindings: Env }>();
 
@@ -407,15 +424,7 @@ adminCragsRoutes.post('/:cragId/routes/batch-import', async (c) => {
   }
 
   // Update crag counts
-  await c.env.DB.prepare(`
-    UPDATE crags
-    SET route_count = (SELECT COUNT(*) FROM routes WHERE crag_id = ?),
-        bolt_count = (SELECT COALESCE(SUM(bolt_count), 0) FROM routes WHERE crag_id = ?),
-        updated_at = datetime('now')
-    WHERE id = ?
-  `)
-    .bind(cragId, cragId, cragId)
-    .run();
+  await updateCragCounts(c.env.DB, cragId);
 
   return c.json({
     success: results.errors.length === 0,
@@ -519,15 +528,7 @@ adminCragsRoutes.post('/:cragId/routes', async (c) => {
     .run();
 
   // Update crag route count
-  await c.env.DB.prepare(`
-    UPDATE crags
-    SET route_count = (SELECT COUNT(*) FROM routes WHERE crag_id = ?),
-        bolt_count = (SELECT COALESCE(SUM(bolt_count), 0) FROM routes WHERE crag_id = ?),
-        updated_at = datetime('now')
-    WHERE id = ?
-  `)
-    .bind(cragId, cragId, cragId)
-    .run();
+  await updateCragCounts(c.env.DB, cragId);
 
   const route = await c.env.DB.prepare('SELECT * FROM routes WHERE id = ?')
     .bind(id)
@@ -548,11 +549,12 @@ adminCragsRoutes.put('/:cragId/routes/:routeId', async (c) => {
   const routeId = c.req.param('routeId');
   const body = await c.req.json<Partial<Route>>();
 
+  // Query existing route with bolt_count for incremental update
   const existing = await c.env.DB.prepare(
-    'SELECT id FROM routes WHERE id = ? AND crag_id = ?'
+    'SELECT id, bolt_count FROM routes WHERE id = ? AND crag_id = ?'
   )
     .bind(routeId, cragId)
-    .first();
+    .first<{ id: string; bolt_count: number | null }>();
 
   if (!existing) {
     return c.json(
@@ -603,16 +605,24 @@ adminCragsRoutes.put('/:cragId/routes/:routeId', async (c) => {
     .bind(...values)
     .run();
 
-  // Update crag bolt count if bolt_count was changed
+  // Use incremental bolt_count update if bolt_count was changed
   if (body.bolt_count !== undefined) {
-    await c.env.DB.prepare(`
-      UPDATE crags
-      SET bolt_count = (SELECT COALESCE(SUM(bolt_count), 0) FROM routes WHERE crag_id = ?),
-          updated_at = datetime('now')
-      WHERE id = ?
-    `)
-      .bind(cragId, cragId)
-      .run();
+    const oldBoltCount = existing.bolt_count || 0;
+    const newBoltCount = body.bolt_count || 0;
+    const diff = newBoltCount - oldBoltCount;
+
+    if (diff !== 0) {
+      await c.env.DB.prepare(
+        `
+        UPDATE crags
+        SET bolt_count = bolt_count + ?,
+            updated_at = datetime('now')
+        WHERE id = ?
+      `
+      )
+        .bind(diff, cragId)
+        .run();
+    }
   }
 
   const route = await c.env.DB.prepare('SELECT * FROM routes WHERE id = ?')
@@ -650,15 +660,7 @@ adminCragsRoutes.delete('/:cragId/routes/:routeId', async (c) => {
   await c.env.DB.prepare('DELETE FROM routes WHERE id = ?').bind(routeId).run();
 
   // Update crag counts
-  await c.env.DB.prepare(`
-    UPDATE crags
-    SET route_count = (SELECT COUNT(*) FROM routes WHERE crag_id = ?),
-        bolt_count = (SELECT COALESCE(SUM(bolt_count), 0) FROM routes WHERE crag_id = ?),
-        updated_at = datetime('now')
-    WHERE id = ?
-  `)
-    .bind(cragId, cragId, cragId)
-    .run();
+  await updateCragCounts(c.env.DB, cragId);
 
   return c.json({
     success: true,

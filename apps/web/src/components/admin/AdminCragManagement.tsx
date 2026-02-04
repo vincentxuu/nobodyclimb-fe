@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect, useCallback } from 'react'
+import { useState, useEffect, useCallback, useMemo } from 'react'
 import {
   Mountain,
   Route as RouteIcon,
@@ -18,6 +18,23 @@ import { adminCragService, AdminCragStats } from '@/lib/api/services'
 import { Crag } from '@/lib/types'
 import Link from 'next/link'
 
+// Custom debounce hook
+function useDebounce<T>(value: T, delay: number): T {
+  const [debouncedValue, setDebouncedValue] = useState<T>(value)
+
+  useEffect(() => {
+    const handler = setTimeout(() => {
+      setDebouncedValue(value)
+    }, delay)
+
+    return () => {
+      clearTimeout(handler)
+    }
+  }, [value, delay])
+
+  return debouncedValue
+}
+
 export default function AdminCragManagement() {
   const [crags, setCrags] = useState<Crag[]>([])
   const [stats, setStats] = useState<AdminCragStats | null>(null)
@@ -26,6 +43,9 @@ export default function AdminCragManagement() {
   const [search, setSearch] = useState('')
   const [region, setRegion] = useState('')
   const [page, setPage] = useState(1)
+
+  // Debounce search input to reduce API calls
+  const debouncedSearch = useDebounce(search, 300)
   const [pagination, setPagination] = useState({
     total: 0,
     total_pages: 0,
@@ -52,7 +72,7 @@ export default function AdminCragManagement() {
       const response = await adminCragService.getCrags({
         page,
         limit: 20,
-        search: search || undefined,
+        search: debouncedSearch || undefined,
         region: region || undefined,
       })
       if (response.success && response.data) {
@@ -70,7 +90,7 @@ export default function AdminCragManagement() {
     } finally {
       setLoading(false)
     }
-  }, [page, search, region])
+  }, [page, debouncedSearch, region])
 
   useEffect(() => {
     fetchStats()
@@ -80,10 +100,14 @@ export default function AdminCragManagement() {
     fetchCrags()
   }, [fetchCrags])
 
+  // Reset page to 1 when search changes
+  useEffect(() => {
+    setPage(1)
+  }, [debouncedSearch])
+
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault()
-    setPage(1)
-    fetchCrags()
+    // Page reset is handled by useEffect, fetchCrags is triggered by useEffect
   }
 
   const handleRefresh = () => {
