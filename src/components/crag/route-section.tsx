@@ -15,6 +15,7 @@ interface RouteType {
   areaId?: string
   description: string
   protection: string
+  boltCount?: number
   popularity: number
   views: number
   images?: string[]
@@ -346,6 +347,17 @@ function RouteDetailModal({
                 </div>
                 <div className="mt-1 text-base font-semibold text-[#1B1A1A]">
                   {route.length}
+                </div>
+              </div>
+            )}
+            {route.boltCount !== undefined && route.boltCount > 0 && (
+              <div className="rounded-lg bg-gray-50 p-3">
+                <div className="flex items-center gap-1.5 text-xs text-gray-500">
+                  <Shield size={14} />
+                  Bolt 數量
+                </div>
+                <div className="mt-1 text-base font-semibold text-[#1B1A1A]">
+                  {route.boltCount}
                 </div>
               </div>
             )}
