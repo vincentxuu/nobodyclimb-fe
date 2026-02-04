@@ -667,6 +667,7 @@ export function getAreaDetailData(cragId: string, areaId: string) {
       area: route.sector || '',
       description: route.description || '',
       protection: route.protection || '',
+      boltCount: route.boltCount,
       popularity: route.popularity ?? 0,
       views: route.views ?? 0,
       images: route.images || [],

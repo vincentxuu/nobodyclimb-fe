@@ -1,7 +1,7 @@
 'use client'
 
 import React, { useState, useMemo, useEffect } from 'react'
-import { Eye, Filter, X, Tag, Shield, Ruler, User, Youtube } from 'lucide-react'
+import { Eye, Filter, X, Tag, Shield, Ruler, User, Youtube, CircleDot } from 'lucide-react'
 
 interface RouteType {
   id: string
@@ -15,6 +15,7 @@ interface RouteType {
   areaId?: string
   description: string
   protection: string
+  boltCount?: number
   popularity: number
   views: number
   images?: string[]
@@ -49,9 +50,9 @@ export const CragRouteSection: React.FC<CragRouteSectionProps> = ({
     setSelectedArea(initialArea)
   }, [initialArea])
 
-  // 從路線資料中提取所有分區名稱
+  // 從路線資料中提取所有分區名稱（過濾掉空值）
   const areaNames = useMemo(() => {
-    const uniqueAreas = [...new Set(routes.map((r) => r.area))]
+    const uniqueAreas = [...new Set(routes.map((r) => r.area).filter((area) => area && area.trim()))]
     return uniqueAreas.sort()
   }, [routes])
 
@@ -330,9 +331,11 @@ function RouteDetailModal({
                 <Tag size={14} className="mr-1" />
                 {route.type}
               </span>
-              <span className="inline-flex items-center rounded-full bg-gray-100 px-3 py-1 text-sm text-gray-600">
-                {route.area}
-              </span>
+              {route.area && route.area.trim() && (
+                <span className="inline-flex items-center rounded-full bg-gray-100 px-3 py-1 text-sm text-gray-600">
+                  {route.area}
+                </span>
+              )}
             </div>
           </div>
 
@@ -346,6 +349,17 @@ function RouteDetailModal({
                 </div>
                 <div className="mt-1 text-base font-semibold text-[#1B1A1A]">
                   {route.length}
+                </div>
+              </div>
+            )}
+            {route.boltCount !== undefined && route.boltCount > 0 && (
+              <div className="rounded-lg bg-gray-50 p-3">
+                <div className="flex items-center gap-1.5 text-xs text-gray-500">
+                  <CircleDot size={14} />
+                  Bolt 數量
+                </div>
+                <div className="mt-1 text-base font-semibold text-[#1B1A1A]">
+                  {route.boltCount}
                 </div>
               </div>
             )}
