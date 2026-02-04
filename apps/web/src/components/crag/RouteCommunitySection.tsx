@@ -3,7 +3,6 @@
 import { useState, useEffect } from 'react'
 import { Mountain, BookOpen, Users, Star, Plus, LogIn } from 'lucide-react'
 import { Button } from '@/components/ui/button'
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { useAuth } from '@/lib/hooks'
 import { useAscents } from '@/lib/hooks/useAscents'
 import { useRouteStories } from '@/lib/hooks/useRouteStories'
@@ -31,7 +30,6 @@ export function RouteCommunitySection({
   const { toast } = useToast()
 
   // States
-  const [activeTab, setActiveTab] = useState('ascents')
   const [ascents, setAscents] = useState<UserRouteAscent[]>([])
   const [ascentSummary, setAscentSummary] = useState<RouteAscentSummary | null>(null)
   const [stories, setStories] = useState<RouteStory[]>([])
@@ -206,151 +204,138 @@ export function RouteCommunitySection({
   }
 
   return (
-    <div className="mt-12 border-t pt-8">
-      <h2 className="mb-4 border-l-4 border-[#FFE70C] pl-3 text-lg font-bold text-[#1B1A1A]">
-        社群內容
-      </h2>
-
-      {/* 統計摘要 */}
-      {ascentSummary && (
-        <div className="mb-6 grid grid-cols-2 gap-4 sm:grid-cols-4">
-          <div className="rounded-lg bg-gray-50 p-4 text-center">
-            <div className="flex items-center justify-center gap-1 text-sm text-gray-500">
-              <Users className="h-4 w-4" />
-              攀爬人次
-            </div>
-            <div className="mt-1 text-2xl font-bold text-[#1B1A1A]">
-              {ascentSummary.total_ascents}
-            </div>
-          </div>
-          <div className="rounded-lg bg-gray-50 p-4 text-center">
-            <div className="flex items-center justify-center gap-1 text-sm text-gray-500">
-              <Mountain className="h-4 w-4" />
-              完攀人數
-            </div>
-            <div className="mt-1 text-2xl font-bold text-[#1B1A1A]">
-              {ascentSummary.unique_climbers}
-            </div>
-          </div>
-          <div className="rounded-lg bg-gray-50 p-4 text-center">
-            <div className="flex items-center justify-center gap-1 text-sm text-gray-500">
-              <Star className="h-4 w-4" />
-              平均評分
-            </div>
-            <div className="mt-1 text-2xl font-bold text-[#1B1A1A]">
-              {ascentSummary.avg_rating?.toFixed(1) || '-'}
-            </div>
-          </div>
-          <div className="rounded-lg bg-gray-50 p-4 text-center">
-            <div className="flex items-center justify-center gap-1 text-sm text-gray-500">
-              <BookOpen className="h-4 w-4" />
-              故事數
-            </div>
-            <div className="mt-1 text-2xl font-bold text-[#1B1A1A]">{stories.length}</div>
-          </div>
-        </div>
-      )}
-
-      {/* 快速動作按鈕 */}
-      <div className="mb-6 flex flex-wrap gap-2">
-        {isSignedIn ? (
-          <>
-            <Button onClick={() => setIsAscentFormOpen(true)} className="gap-1">
-              <Plus className="h-4 w-4" />
-              記錄攀爬
-            </Button>
+    <>
+      {/* 路線故事區塊 - 放在路線詳情下方 */}
+      <div className="mb-8">
+        <div className="mb-4 flex items-center justify-between">
+          <h2 className="border-l-4 border-[#FFE70C] pl-3 text-lg font-bold text-[#1B1A1A]">
+            路線故事
+          </h2>
+          {isSignedIn && (
             <Button
               variant="outline"
+              size="sm"
               onClick={() => setIsStoryFormOpen(true)}
               className="gap-1"
             >
-              <BookOpen className="h-4 w-4" />
+              <Plus className="h-4 w-4" />
               分享故事
             </Button>
-          </>
+          )}
+        </div>
+
+        {isLoading ? (
+          <div className="py-6 text-center text-gray-500">載入中...</div>
+        ) : stories.length === 0 ? (
+          <div className="rounded-lg bg-gray-50 py-6 text-center text-gray-500">
+            <BookOpen className="mx-auto mb-2 h-10 w-10 text-gray-300" />
+            <p className="text-sm">還沒有人分享這條路線的故事</p>
+            <p className="mt-1 text-xs text-gray-400">分享這條路線的命名由來或歷史故事</p>
+            {isSignedIn && (
+              <Button
+                variant="link"
+                size="sm"
+                onClick={() => setIsStoryFormOpen(true)}
+                className="mt-2"
+              >
+                成為第一個分享的人
+              </Button>
+            )}
+          </div>
         ) : (
-          <Link href="/auth/login">
-            <Button variant="outline" className="gap-1">
-              <LogIn className="h-4 w-4" />
-              登入以記錄攀爬或分享故事
-            </Button>
-          </Link>
+          <div className="space-y-4">
+            {stories.map((story) => (
+              <RouteStoryCard
+                key={story.id}
+                story={story}
+                onLike={() => handleToggleLike(story.id)}
+                onHelpful={() => handleToggleHelpful(story.id)}
+              />
+            ))}
+          </div>
         )}
       </div>
 
-      {/* 分頁內容 */}
-      <Tabs value={activeTab} onValueChange={setActiveTab}>
-        <TabsList className="grid w-full grid-cols-2">
-          <TabsTrigger value="ascents" className="gap-1">
-            <Mountain className="h-4 w-4" />
-            攀爬記錄 ({ascents.length})
-          </TabsTrigger>
-          <TabsTrigger value="stories" className="gap-1">
-            <BookOpen className="h-4 w-4" />
-            路線故事 ({stories.length})
-          </TabsTrigger>
-        </TabsList>
-
-        {/* 攀爬記錄 */}
-        <TabsContent value="ascents" className="mt-4">
-          {isLoading ? (
-            <div className="py-8 text-center text-gray-500">載入中...</div>
-          ) : ascents.length === 0 ? (
-            <div className="py-8 text-center text-gray-500">
-              <Mountain className="mx-auto mb-2 h-12 w-12 text-gray-300" />
-              <p>還沒有人記錄攀爬</p>
-              {isSignedIn && (
-                <Button
-                  variant="link"
-                  onClick={() => setIsAscentFormOpen(true)}
-                  className="mt-2"
-                >
-                  成為第一個記錄的人
-                </Button>
-              )}
-            </div>
+      {/* 攀爬記錄區塊 */}
+      <div className="mt-12 border-t pt-8">
+        <div className="mb-4 flex items-center justify-between">
+          <h2 className="border-l-4 border-[#FFE70C] pl-3 text-lg font-bold text-[#1B1A1A]">
+            攀爬記錄
+          </h2>
+          {isSignedIn ? (
+            <Button size="sm" onClick={() => setIsAscentFormOpen(true)} className="gap-1">
+              <Plus className="h-4 w-4" />
+              記錄攀爬
+            </Button>
           ) : (
-            <div className="space-y-3">
-              {ascents.map((ascent) => (
-                <AscentCard key={ascent.id} ascent={ascent} showRoute={false} />
-              ))}
-            </div>
+            <Link href="/auth/login">
+              <Button variant="outline" size="sm" className="gap-1">
+                <LogIn className="h-4 w-4" />
+                登入記錄
+              </Button>
+            </Link>
           )}
-        </TabsContent>
+        </div>
 
-        {/* 路線故事 */}
-        <TabsContent value="stories" className="mt-4">
-          {isLoading ? (
-            <div className="py-8 text-center text-gray-500">載入中...</div>
-          ) : stories.length === 0 ? (
-            <div className="py-8 text-center text-gray-500">
-              <BookOpen className="mx-auto mb-2 h-12 w-12 text-gray-300" />
-              <p>還沒有人分享故事</p>
-              <p className="mt-1 text-xs">分享這條路線的命名由來或歷史故事</p>
-              {isSignedIn && (
-                <Button
-                  variant="link"
-                  onClick={() => setIsStoryFormOpen(true)}
-                  className="mt-2"
-                >
-                  成為第一個分享的人
-                </Button>
-              )}
+        {/* 統計摘要 */}
+        {ascentSummary && (
+          <div className="mb-6 grid grid-cols-3 gap-3">
+            <div className="rounded-lg bg-gray-50 p-3 text-center">
+              <div className="flex items-center justify-center gap-1 text-xs text-gray-500">
+                <Users className="h-3 w-3" />
+                攀爬人次
+              </div>
+              <div className="mt-1 text-xl font-bold text-[#1B1A1A]">
+                {ascentSummary.total_ascents}
+              </div>
             </div>
-          ) : (
-            <div className="space-y-4">
-              {stories.map((story) => (
-                <RouteStoryCard
-                  key={story.id}
-                  story={story}
-                  onLike={() => handleToggleLike(story.id)}
-                  onHelpful={() => handleToggleHelpful(story.id)}
-                />
-              ))}
+            <div className="rounded-lg bg-gray-50 p-3 text-center">
+              <div className="flex items-center justify-center gap-1 text-xs text-gray-500">
+                <Mountain className="h-3 w-3" />
+                完攀人數
+              </div>
+              <div className="mt-1 text-xl font-bold text-[#1B1A1A]">
+                {ascentSummary.unique_climbers}
+              </div>
             </div>
-          )}
-        </TabsContent>
-      </Tabs>
+            <div className="rounded-lg bg-gray-50 p-3 text-center">
+              <div className="flex items-center justify-center gap-1 text-xs text-gray-500">
+                <Star className="h-3 w-3" />
+                平均評分
+              </div>
+              <div className="mt-1 text-xl font-bold text-[#1B1A1A]">
+                {ascentSummary.avg_rating?.toFixed(1) || '-'}
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* 攀爬記錄列表 */}
+        {isLoading ? (
+          <div className="py-6 text-center text-gray-500">載入中...</div>
+        ) : ascents.length === 0 ? (
+          <div className="rounded-lg bg-gray-50 py-6 text-center text-gray-500">
+            <Mountain className="mx-auto mb-2 h-10 w-10 text-gray-300" />
+            <p className="text-sm">還沒有人記錄攀爬</p>
+            {isSignedIn && (
+              <Button
+                variant="link"
+                size="sm"
+                onClick={() => setIsAscentFormOpen(true)}
+                className="mt-2"
+              >
+                成為第一個記錄的人
+              </Button>
+            )}
+          </div>
+        ) : (
+          <div className="space-y-3">
+            {ascents.map((ascent) => (
+              <AscentCard key={ascent.id} ascent={ascent} showRoute={false} />
+            ))}
+          </div>
+        )}
+      </div>
 
       {/* 表單 Modal */}
       <AscentForm
@@ -372,6 +357,6 @@ export function RouteCommunitySection({
         onSubmit={handleCreateStory}
         isLoading={isStorySubmitting}
       />
-    </div>
+    </>
   )
 }

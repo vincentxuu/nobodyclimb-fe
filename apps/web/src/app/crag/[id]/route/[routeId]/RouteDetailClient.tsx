@@ -369,7 +369,14 @@ export default function RouteDetailClient({ data }: RouteDetailClientProps) {
             </div>
           )}
 
-          {/* 相關路線推薦 */}
+          {/* 社群內容區塊（路線故事 + 攀爬記錄） */}
+          <RouteCommunitySection
+            routeId={route.id}
+            routeName={route.name}
+            routeGrade={route.grade}
+          />
+
+          {/* 同區域其他路線 - 放在最後 */}
           {relatedRoutes.length > 0 && (
             <div className="mt-12 border-t pt-8">
               <h2 className="mb-4 border-l-4 border-[#FFE70C] pl-3 text-lg font-bold text-[#1B1A1A]">
@@ -396,13 +403,6 @@ export default function RouteDetailClient({ data }: RouteDetailClientProps) {
               </div>
             </div>
           )}
-
-          {/* 社群內容區塊 */}
-          <RouteCommunitySection
-            routeId={route.id}
-            routeName={route.name}
-            routeGrade={route.grade}
-          />
         </div>
       </div>
 
