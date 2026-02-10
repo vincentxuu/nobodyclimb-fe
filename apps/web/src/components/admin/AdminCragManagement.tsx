@@ -21,9 +21,11 @@ import {
   X,
   Save,
   Hash,
+  Layers,
+  FolderOpen,
 } from 'lucide-react'
 import { adminCragService, AdminCragStats, cragService } from '@/lib/api/services'
-import { AdminCrag } from '@/lib/types'
+import { AdminCrag, AdminArea, AdminSector } from '@/lib/types'
 import Link from 'next/link'
 
 // Backend route type (snake_case, matching API response)
@@ -148,6 +150,25 @@ export default function AdminCragManagement() {
   const [cragForm, setCragForm] = useState<CragFormData>(emptyCragForm)
   const [cragSubmitting, setCragSubmitting] = useState(false)
 
+  // Area management
+  const [cragAreas, setCragAreas] = useState<AdminArea[]>([])
+  const [areasLoading, setAreasLoading] = useState(false)
+  const [showAreaForm, setShowAreaForm] = useState(false)
+  const [editingArea, setEditingArea] = useState<AdminArea | null>(null)
+  const [areaForm, setAreaForm] = useState({ name: '', name_en: '', description: '' })
+  const [areaSubmitting, setAreaSubmitting] = useState(false)
+  const [expandedAreaId, setExpandedAreaId] = useState<string | null>(null)
+  const [deletingAreaId, setDeletingAreaId] = useState<string | null>(null)
+
+  // Sector management
+  const [areaSectors, setAreaSectors] = useState<Record<string, AdminSector[]>>({})
+  const [sectorsLoading, setSectorsLoading] = useState(false)
+  const [showSectorForm, setShowSectorForm] = useState(false)
+  const [editingSector, setEditingSector] = useState<AdminSector | null>(null)
+  const [sectorForm, setSectorForm] = useState({ name: '', name_en: '' })
+  const [sectorSubmitting, setSectorSubmitting] = useState(false)
+  const [deletingSectorId, setDeletingSectorId] = useState<string | null>(null)
+
   // Delete confirmation
   const [deletingRouteId, setDeletingRouteId] = useState<string | null>(null)
   const [deletingCragId, setDeletingCragId] = useState<string | null>(null)
@@ -214,6 +235,34 @@ export default function AdminCragManagement() {
     }
   }, [])
 
+  const fetchAreas = useCallback(async (cragId: string) => {
+    setAreasLoading(true)
+    try {
+      const response = await adminCragService.getAreas(cragId)
+      if (response.success && response.data) {
+        setCragAreas(response.data)
+      }
+    } catch (error) {
+      console.error('Failed to fetch areas:', error)
+    } finally {
+      setAreasLoading(false)
+    }
+  }, [])
+
+  const fetchSectors = useCallback(async (cragId: string, areaId: string) => {
+    setSectorsLoading(true)
+    try {
+      const response = await adminCragService.getSectors(cragId, areaId)
+      if (response.success && response.data) {
+        setAreaSectors((prev) => ({ ...prev, [areaId]: response.data }))
+      }
+    } catch (error) {
+      console.error('Failed to fetch sectors:', error)
+    } finally {
+      setSectorsLoading(false)
+    }
+  }, [])
+
   useEffect(() => {
     fetchStats()
   }, [fetchStats])
@@ -239,13 +288,21 @@ export default function AdminCragManagement() {
     if (expandedCragId === cragId) {
       setExpandedCragId(null)
       setCragRoutes([])
+      setCragAreas([])
       setShowRouteForm(false)
       setEditingRoute(null)
+      setExpandedAreaId(null)
+      setShowAreaForm(false)
+      setShowSectorForm(false)
     } else {
       setExpandedCragId(cragId)
       fetchRoutes(cragId)
+      fetchAreas(cragId)
       setShowRouteForm(false)
       setEditingRoute(null)
+      setExpandedAreaId(null)
+      setShowAreaForm(false)
+      setShowSectorForm(false)
     }
   }
 
@@ -428,6 +485,136 @@ export default function AdminCragManagement() {
     } catch (error) {
       console.error('Failed to delete route:', error)
       alert('刪除路線失敗')
+    }
+  }
+
+  // ---- Area CRUD ----
+  const handleAddArea = () => {
+    setEditingArea(null)
+    setAreaForm({ name: '', name_en: '', description: '' })
+    setShowAreaForm(true)
+  }
+
+  const handleEditArea = (area: AdminArea) => {
+    setEditingArea(area)
+    setAreaForm({
+      name: area.name,
+      name_en: area.name_en || '',
+      description: area.description || '',
+    })
+    setShowAreaForm(true)
+  }
+
+  const handleAreaFormSubmit = async (e: React.FormEvent) => {
+    e.preventDefault()
+    if (!expandedCragId || !areaForm.name.trim()) return
+
+    setAreaSubmitting(true)
+    try {
+      const data = {
+        name: areaForm.name.trim(),
+        name_en: areaForm.name_en.trim() || undefined,
+        description: areaForm.description.trim() || undefined,
+      }
+
+      if (editingArea) {
+        await adminCragService.updateArea(expandedCragId, editingArea.id, data)
+      } else {
+        await adminCragService.createArea(expandedCragId, data)
+      }
+
+      await fetchAreas(expandedCragId)
+      setShowAreaForm(false)
+      setEditingArea(null)
+    } catch (error) {
+      console.error('Failed to save area:', error)
+      alert('儲存區域失敗')
+    } finally {
+      setAreaSubmitting(false)
+    }
+  }
+
+  const handleDeleteArea = async (areaId: string) => {
+    if (!expandedCragId) return
+    try {
+      await adminCragService.deleteArea(expandedCragId, areaId)
+      await fetchAreas(expandedCragId)
+      setDeletingAreaId(null)
+      if (expandedAreaId === areaId) {
+        setExpandedAreaId(null)
+      }
+    } catch (error) {
+      console.error('Failed to delete area:', error)
+      alert('刪除區域失敗')
+    }
+  }
+
+  const toggleAreaExpand = (areaId: string) => {
+    if (expandedAreaId === areaId) {
+      setExpandedAreaId(null)
+      setShowSectorForm(false)
+    } else {
+      setExpandedAreaId(areaId)
+      setShowSectorForm(false)
+      if (expandedCragId) {
+        fetchSectors(expandedCragId, areaId)
+      }
+    }
+  }
+
+  // ---- Sector CRUD ----
+  const handleAddSector = () => {
+    setEditingSector(null)
+    setSectorForm({ name: '', name_en: '' })
+    setShowSectorForm(true)
+  }
+
+  const handleEditSector = (sector: AdminSector) => {
+    setEditingSector(sector)
+    setSectorForm({
+      name: sector.name,
+      name_en: sector.name_en || '',
+    })
+    setShowSectorForm(true)
+  }
+
+  const handleSectorFormSubmit = async (e: React.FormEvent) => {
+    e.preventDefault()
+    if (!expandedCragId || !expandedAreaId || !sectorForm.name.trim()) return
+
+    setSectorSubmitting(true)
+    try {
+      const data = {
+        name: sectorForm.name.trim(),
+        name_en: sectorForm.name_en.trim() || undefined,
+      }
+
+      if (editingSector) {
+        await adminCragService.updateSector(expandedCragId, expandedAreaId, editingSector.id, data)
+      } else {
+        await adminCragService.createSector(expandedCragId, expandedAreaId, data)
+      }
+
+      await fetchSectors(expandedCragId, expandedAreaId)
+      setShowSectorForm(false)
+      setEditingSector(null)
+    } catch (error) {
+      console.error('Failed to save sector:', error)
+      alert('儲存岩壁失敗')
+    } finally {
+      setSectorSubmitting(false)
+    }
+  }
+
+  const handleDeleteSector = async (sectorId: string) => {
+    if (!expandedCragId || !expandedAreaId) return
+    try {
+      await adminCragService.deleteSector(expandedCragId, expandedAreaId, sectorId)
+      await fetchSectors(expandedCragId, expandedAreaId)
+      setDeletingSectorId(null)
+    } catch (error) {
+      console.error('Failed to delete sector:', error)
+      alert('刪除岩壁失敗')
     }
   }
 
@@ -939,11 +1126,273 @@ export default function AdminCragManagement() {
                         </td>
                       </tr>
 
-                      {/* Expanded Route Management */}
+                      {/* Expanded Crag Management */}
                       {expandedCragId === crag.id && (
-                        <tr key={`${crag.id}-routes`}>
+                        <tr key={`${crag.id}-detail`}>
                           <td colSpan={7} className="bg-wb-10/30 px-4 py-4">
                             <div className="space-y-4">
+                              {/* Area management */}
+                              <div className="space-y-3">
+                                <div className="flex items-center justify-between">
+                                  <h4 className="text-sm font-semibold text-wb-100 flex items-center gap-2">
+                                    <Layers className="h-4 w-4" />
+                                    區域管理 ({cragAreas.length})
+                                  </h4>
+                                  <button
+                                    onClick={handleAddArea}
+                                    className="flex items-center gap-1.5 px-3 py-1.5 text-xs bg-wb-100 text-white rounded-lg hover:bg-wb-90 transition-colors"
+                                  >
+                                    <Plus className="h-3 w-3" />
+                                    新增區域
+                                  </button>
+                                </div>
+
+                                {/* Area form */}
+                                {showAreaForm && (
+                                  <div className="bg-white rounded-lg border border-wb-20 p-3">
+                                    <form onSubmit={handleAreaFormSubmit} className="space-y-2">
+                                      <div className="flex items-center justify-between mb-1">
+                                        <span className="text-xs font-medium text-wb-90">
+                                          {editingArea ? '編輯區域' : '新增區域'}
+                                        </span>
+                                        <button
+                                          type="button"
+                                          onClick={() => { setShowAreaForm(false); setEditingArea(null) }}
+                                          className="p-1 text-wb-50 hover:text-wb-100 rounded"
+                                        >
+                                          <X className="h-3.5 w-3.5" />
+                                        </button>
+                                      </div>
+                                      <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
+                                        <input
+                                          type="text"
+                                          value={areaForm.name}
+                                          onChange={(e) => setAreaForm({ ...areaForm, name: e.target.value })}
+                                          placeholder="區域名稱（必填）"
+                                          className="px-2.5 py-1.5 text-sm border border-wb-20 rounded-lg focus:outline-none focus:ring-2 focus:ring-wb-100/20"
+                                          required
+                                        />
+                                        <input
+                                          type="text"
+                                          value={areaForm.name_en}
+                                          onChange={(e) => setAreaForm({ ...areaForm, name_en: e.target.value })}
+                                          placeholder="英文名稱"
+                                          className="px-2.5 py-1.5 text-sm border border-wb-20 rounded-lg focus:outline-none focus:ring-2 focus:ring-wb-100/20"
+                                        />
+                                        <input
+                                          type="text"
+                                          value={areaForm.description}
+                                          onChange={(e) => setAreaForm({ ...areaForm, description: e.target.value })}
+                                          placeholder="描述"
+                                          className="px-2.5 py-1.5 text-sm border border-wb-20 rounded-lg focus:outline-none focus:ring-2 focus:ring-wb-100/20"
+                                        />
+                                      </div>
+                                      <div className="flex justify-end gap-2">
+                                        <button
+                                          type="button"
+                                          onClick={() => { setShowAreaForm(false); setEditingArea(null) }}
+                                          className="px-2.5 py-1 text-xs text-wb-70 hover:text-wb-100 rounded hover:bg-wb-10"
+                                        >
+                                          取消
+                                        </button>
+                                        <button
+                                          type="submit"
+                                          disabled={areaSubmitting || !areaForm.name.trim()}
+                                          className="flex items-center gap-1 px-2.5 py-1 text-xs bg-wb-100 text-white rounded hover:bg-wb-90 disabled:opacity-50"
+                                        >
+                                          {areaSubmitting ? <Loader2 className="h-3 w-3 animate-spin" /> : <Save className="h-3 w-3" />}
+                                          {editingArea ? '更新' : '新增'}
+                                        </button>
+                                      </div>
+                                    </form>
+                                  </div>
+                                )}
+
+                                {/* Area list */}
+                                {areasLoading ? (
+                                  <div className="flex items-center justify-center py-3">
+                                    <Loader2 className="h-4 w-4 animate-spin text-wb-50" />
+                                  </div>
+                                ) : cragAreas.length === 0 ? (
+                                  <div className="text-center py-3 text-xs text-wb-50">
+                                    尚無區域資料，點擊「新增區域」開始建立
+                                  </div>
+                                ) : (
+                                  <div className="space-y-1">
+                                    {cragAreas.map((area) => (
+                                      <div key={area.id} className="bg-white rounded-lg border border-wb-20">
+                                        <div
+                                          className={`flex items-center justify-between px-3 py-2 cursor-pointer hover:bg-wb-10/50 transition-colors ${expandedAreaId === area.id ? 'bg-wb-10/50' : ''}`}
+                                          onClick={() => toggleAreaExpand(area.id)}
+                                        >
+                                          <div className="flex items-center gap-2">
+                                            <FolderOpen className="h-3.5 w-3.5 text-wb-70" />
+                                            <span className="text-sm font-medium text-wb-100">{area.name}</span>
+                                            {area.name_en && (
+                                              <span className="text-xs text-wb-50">{area.name_en}</span>
+                                            )}
+                                            <span className="text-xs text-wb-50">
+                                              ({area.route_count} 路線 / {area.bolt_count} bolt)
+                                            </span>
+                                          </div>
+                                          <div className="flex items-center gap-1">
+                                            <button
+                                              onClick={(e) => { e.stopPropagation(); handleEditArea(area) }}
+                                              className="p-1 text-wb-50 hover:text-wb-100 hover:bg-wb-10 rounded transition-colors"
+                                              title="編輯區域"
+                                            >
+                                              <Pencil className="h-3 w-3" />
+                                            </button>
+                                            {deletingAreaId === area.id ? (
+                                              <div className="flex items-center gap-1" onClick={(e) => e.stopPropagation()}>
+                                                <button
+                                                  onClick={() => handleDeleteArea(area.id)}
+                                                  className="px-1.5 py-0.5 text-xs bg-red-500 text-white rounded hover:bg-red-600"
+                                                >
+                                                  確認
+                                                </button>
+                                                <button
+                                                  onClick={() => setDeletingAreaId(null)}
+                                                  className="px-1.5 py-0.5 text-xs text-wb-70 rounded hover:bg-wb-10"
+                                                >
+                                                  取消
+                                                </button>
+                                              </div>
+                                            ) : (
+                                              <button
+                                                onClick={(e) => { e.stopPropagation(); setDeletingAreaId(area.id) }}
+                                                className="p-1 text-wb-50 hover:text-red-500 hover:bg-red-50 rounded transition-colors"
+                                                title="刪除區域"
+                                              >
+                                                <Trash2 className="h-3 w-3" />
+                                              </button>
+                                            )}
+                                            {expandedAreaId === area.id ? (
+                                              <ChevronUp className="h-3.5 w-3.5 text-wb-50" />
+                                            ) : (
+                                              <ChevronDown className="h-3.5 w-3.5 text-wb-50" />
+                                            )}
+                                          </div>
+                                        </div>
+
+                                        {/* Expanded: sectors within this area */}
+                                        {expandedAreaId === area.id && (
+                                          <div className="border-t border-wb-20 px-3 py-2 bg-wb-10/20 space-y-2">
+                                            <div className="flex items-center justify-between">
+                                              <span className="text-xs font-medium text-wb-70">
+                                                岩壁分區 ({areaSectors[area.id]?.length || 0})
+                                              </span>
+                                              <button
+                                                onClick={handleAddSector}
+                                                className="flex items-center gap-1 px-2 py-0.5 text-xs bg-wb-100 text-white rounded hover:bg-wb-90 transition-colors"
+                                              >
+                                                <Plus className="h-2.5 w-2.5" />
+                                                新增岩壁
+                                              </button>
+                                            </div>
+
+                                            {/* Sector form */}
+                                            {showSectorForm && (
+                                              <div className="bg-white rounded border border-wb-20 p-2">
+                                                <form onSubmit={handleSectorFormSubmit} className="flex items-center gap-2">
+                                                  <input
+                                                    type="text"
+                                                    value={sectorForm.name}
+                                                    onChange={(e) => setSectorForm({ ...sectorForm, name: e.target.value })}
+                                                    placeholder="岩壁名稱"
+                                                    className="flex-1 px-2 py-1 text-xs border border-wb-20 rounded focus:outline-none focus:ring-1 focus:ring-wb-100/20"
+                                                    required
+                                                  />
+                                                  <input
+                                                    type="text"
+                                                    value={sectorForm.name_en}
+                                                    onChange={(e) => setSectorForm({ ...sectorForm, name_en: e.target.value })}
+                                                    placeholder="英文名"
+                                                    className="flex-1 px-2 py-1 text-xs border border-wb-20 rounded focus:outline-none focus:ring-1 focus:ring-wb-100/20"
+                                                  />
+                                                  <button
+                                                    type="submit"
+                                                    disabled={sectorSubmitting || !sectorForm.name.trim()}
+                                                    className="flex items-center gap-1 px-2 py-1 text-xs bg-wb-100 text-white rounded hover:bg-wb-90 disabled:opacity-50"
+                                                  >
+                                                    {sectorSubmitting ? <Loader2 className="h-3 w-3 animate-spin" /> : <Save className="h-3 w-3" />}
+                                                    {editingSector ? '更新' : '新增'}
+                                                  </button>
+                                                  <button
+                                                    type="button"
+                                                    onClick={() => { setShowSectorForm(false); setEditingSector(null) }}
+                                                    className="p-1 text-wb-50 hover:text-wb-100 rounded"
+                                                  >
+                                                    <X className="h-3 w-3" />
+                                                  </button>
+                                                </form>
+                                              </div>
+                                            )}
+
+                                            {/* Sector list */}
+                                            {sectorsLoading ? (
+                                              <div className="flex items-center justify-center py-2">
+                                                <Loader2 className="h-3 w-3 animate-spin text-wb-50" />
+                                              </div>
+                                            ) : !areaSectors[area.id] || areaSectors[area.id].length === 0 ? (
+                                              <div className="text-center py-2 text-xs text-wb-50">
+                                                尚無岩壁分區
+                                              </div>
+                                            ) : (
+                                              <div className="flex flex-wrap gap-1.5">
+                                                {areaSectors[area.id].map((sector) => (
+                                                  <div
+                                                    key={sector.id}
+                                                    className="inline-flex items-center gap-1 px-2 py-1 bg-white border border-wb-20 rounded text-xs"
+                                                  >
+                                                    <span className="text-wb-100 font-medium">{sector.name}</span>
+                                                    {sector.name_en && (
+                                                      <span className="text-wb-50">{sector.name_en}</span>
+                                                    )}
+                                                    <button
+                                                      onClick={() => handleEditSector(sector)}
+                                                      className="p-0.5 text-wb-50 hover:text-wb-100 rounded transition-colors"
+                                                    >
+                                                      <Pencil className="h-2.5 w-2.5" />
+                                                    </button>
+                                                    {deletingSectorId === sector.id ? (
+                                                      <div className="flex items-center gap-0.5">
+                                                        <button
+                                                          onClick={() => handleDeleteSector(sector.id)}
+                                                          className="px-1 text-xs text-red-500 hover:text-red-600"
+                                                        >
+                                                          刪
+                                                        </button>
+                                                        <button
+                                                          onClick={() => setDeletingSectorId(null)}
+                                                          className="px-1 text-xs text-wb-50 hover:text-wb-100"
+                                                        >
+                                                          取消
+                                                        </button>
+                                                      </div>
+                                                    ) : (
+                                                      <button
+                                                        onClick={() => setDeletingSectorId(sector.id)}
+                                                        className="p-0.5 text-wb-50 hover:text-red-500 rounded transition-colors"
+                                                      >
+                                                        <Trash2 className="h-2.5 w-2.5" />
+                                                      </button>
+                                                    )}
+                                                  </div>
+                                                ))}
+                                              </div>
+                                            )}
+                                          </div>
+                                        )}
+                                      </div>
+                                    ))}
+                                  </div>
+                                )}
+                              </div>
+
+                              {/* Divider */}
+                              <div className="border-t border-wb-20" />
+
                               {/* Route list header */}
                               <div className="flex items-center justify-between">
                                 <h4 className="text-sm font-semibold text-wb-100 flex items-center gap-2">
@@ -1239,8 +1688,9 @@ export default function AdminCragManagement() {
         <ul className="text-sm text-blue-700 space-y-1">
           <li>- 點擊「新增岩場」可建立新的岩場資料，包含位置、地理、攀岩和交通等完整資訊</li>
           <li>- 點擊鉛筆圖示可編輯岩場的所有欄位</li>
-          <li>- 點擊岩場列或箭頭圖示可展開路線管理面板，直接新增、編輯或刪除路線</li>
-          <li>- 刪除岩場會同時移除其所有圖片，路線需先個別刪除</li>
+          <li>- 點擊岩場列或箭頭圖示可展開管理面板，管理區域、岩壁和路線</li>
+          <li>- 結構層次：岩場 → 區域（如校門口、鐘塔）→ 岩壁（如人面岩、門簷）→ 路線</li>
+          <li>- 刪除區域會同時移除其下所有岩壁分區，路線保留但歸屬會被清空</li>
           <li>- 攀登類型和適合季節以逗號分隔填寫</li>
         </ul>
       </div>
