@@ -69,11 +69,12 @@ function fetchVideoMetadata(youtubeId) {
   const url = `https://www.youtube.com/watch?v=${youtubeId}`;
 
   try {
+    // 使用額外參數避免被 YouTube 封鎖
     const result = execSync(
-      `yt-dlp --dump-json --no-download "${url}"`,
+      `yt-dlp --dump-json --no-download --no-warnings --extractor-args "youtube:player_client=web" "${url}"`,
       {
         encoding: 'utf8',
-        timeout: 30000,
+        timeout: 60000,
         stdio: ['pipe', 'pipe', 'pipe'],
       }
     );
@@ -261,9 +262,10 @@ async function main() {
       console.log(`   💾 已儲存進度 (${i + 1}/${toFetch.length})`);
     }
 
-    // 加入延遲避免被封鎖
+    // 加入延遲避免被封鎖（GitHub Actions 環境用較長延遲）
     if (i < toFetch.length - 1) {
-      await new Promise((resolve) => setTimeout(resolve, 500));
+      const delay = process.env.GITHUB_ACTIONS ? 2000 : 500;
+      await new Promise((resolve) => setTimeout(resolve, delay));
     }
   }
 
