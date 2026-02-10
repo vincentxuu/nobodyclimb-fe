@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect, useCallback } from 'react'
+import { useState, useEffect, useCallback, Fragment } from 'react'
 import {
   Mountain,
   Route as RouteIcon,
@@ -32,6 +32,8 @@ import Link from 'next/link'
 interface AdminRoute {
   id: string
   crag_id: string
+  area_id: string | null
+  sector_id: string | null
   name: string
   grade: string | null
   grade_system: string
@@ -70,6 +72,8 @@ interface RouteFormData {
   route_type: string
   description: string
   first_ascent: string
+  area_id: string
+  sector_id: string
 }
 
 const emptyRouteForm: RouteFormData = {
@@ -81,6 +85,8 @@ const emptyRouteForm: RouteFormData = {
   route_type: 'sport',
   description: '',
   first_ascent: '',
+  area_id: '',
+  sector_id: '',
 }
 
 // Crag form data
@@ -428,7 +434,13 @@ export default function AdminCragManagement() {
       route_type: route.route_type || 'sport',
       description: route.description || '',
       first_ascent: route.first_ascent || '',
+      area_id: route.area_id || '',
+      sector_id: route.sector_id || '',
     })
+    // 載入該區域的岩壁列表，以便在下拉選單中顯示
+    if (route.area_id && expandedCragId) {
+      fetchSectors(expandedCragId, route.area_id)
+    }
     setShowRouteForm(true)
   }
 
@@ -453,6 +465,8 @@ export default function AdminCragManagement() {
         route_type: routeForm.route_type || 'sport',
         description: routeForm.description || null,
         first_ascent: routeForm.first_ascent || null,
+        area_id: routeForm.area_id || null,
+        sector_id: routeForm.sector_id || null,
       }
 
       if (editingRoute) {
@@ -1019,9 +1033,8 @@ export default function AdminCragManagement() {
                 </thead>
                 <tbody>
                   {crags.map((crag) => (
-                    <>
+                    <Fragment key={crag.id}>
                       <tr
-                        key={crag.id}
                         className={`border-t border-wb-20 hover:bg-wb-10/50 transition-colors cursor-pointer ${expandedCragId === crag.id ? 'bg-wb-10/50' : ''}`}
                         onClick={() => toggleCragExpand(crag.id)}
                       >
@@ -1128,7 +1141,7 @@ export default function AdminCragManagement() {
 
                       {/* Expanded Crag Management */}
                       {expandedCragId === crag.id && (
-                        <tr key={`${crag.id}-detail`}>
+                        <tr>
                           <td colSpan={7} className="bg-wb-10/30 px-4 py-4">
                             <div className="space-y-4">
                               {/* Area management */}
@@ -1514,6 +1527,46 @@ export default function AdminCragManagement() {
                                         />
                                       </div>
                                     </div>
+                                    {/* 區域/岩壁歸屬 */}
+                                    {cragAreas.length > 0 && (
+                                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                                        <div>
+                                          <label className="block text-xs text-wb-70 mb-1">所屬區域</label>
+                                          <select
+                                            value={routeForm.area_id}
+                                            onChange={(e) => {
+                                              const newAreaId = e.target.value
+                                              setRouteForm({ ...routeForm, area_id: newAreaId, sector_id: '' })
+                                              if (newAreaId && expandedCragId) {
+                                                fetchSectors(expandedCragId, newAreaId)
+                                              }
+                                            }}
+                                            className="w-full px-3 py-1.5 text-sm border border-wb-20 rounded-lg focus:outline-none focus:ring-2 focus:ring-wb-100/20 bg-white"
+                                          >
+                                            <option value="">未指定</option>
+                                            {cragAreas.map((area) => (
+                                              <option key={area.id} value={area.id}>{area.name}</option>
+                                            ))}
+                                          </select>
+                                        </div>
+                                        <div>
+                                          <label className="block text-xs text-wb-70 mb-1">所屬岩壁</label>
+                                          <select
+                                            value={routeForm.sector_id}
+                                            onChange={(e) =>
+                                              setRouteForm({ ...routeForm, sector_id: e.target.value })
+                                            }
+                                            disabled={!routeForm.area_id}
+                                            className="w-full px-3 py-1.5 text-sm border border-wb-20 rounded-lg focus:outline-none focus:ring-2 focus:ring-wb-100/20 bg-white disabled:opacity-50 disabled:cursor-not-allowed"
+                                          >
+                                            <option value="">未指定</option>
+                                            {routeForm.area_id && areaSectors[routeForm.area_id]?.map((sector) => (
+                                              <option key={sector.id} value={sector.id}>{sector.name}</option>
+                                            ))}
+                                          </select>
+                                        </div>
+                                      </div>
+                                    )}
                                     <div>
                                       <label className="block text-xs text-wb-70 mb-1">描述</label>
                                       <textarea
@@ -1645,7 +1698,7 @@ export default function AdminCragManagement() {
                           </td>
                         </tr>
                       )}
-                    </>
+                    </Fragment>
                   ))}
                 </tbody>
               </table>

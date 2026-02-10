@@ -79,6 +79,15 @@ adminSectorsRoutes.post(
     const cragId = c.req.param('cragId');
     const body = c.req.valid('json');
 
+    // 驗證岩場存在
+    const cragExists = await c.env.DB.prepare('SELECT id FROM crags WHERE id = ?')
+      .bind(cragId)
+      .first();
+
+    if (!cragExists) {
+      return c.json({ success: false, error: 'Not Found', message: 'Crag not found' }, 404);
+    }
+
     const id = generateId();
     const slug = body.slug || generateSlug(body.name);
 
@@ -187,19 +196,15 @@ adminSectorsRoutes.delete(
       return c.json({ success: false, error: 'Not Found', message: 'Area not found' }, 404);
     }
 
-    // Clear area_id and sector_id on routes that belong to this area
-    await c.env.DB.prepare('UPDATE routes SET area_id = NULL, sector_id = NULL WHERE area_id = ?')
-      .bind(areaId)
-      .run();
-
-    // Delete all sectors under this area
-    await c.env.DB.prepare('DELETE FROM sectors WHERE area_id = ?')
-      .bind(areaId)
-      .run();
-
-    await c.env.DB.prepare('DELETE FROM areas WHERE id = ?')
-      .bind(areaId)
-      .run();
+    // 使用 batch 確保原子性：清除路線歸屬、刪除岩壁、刪除區域
+    await c.env.DB.batch([
+      c.env.DB.prepare('UPDATE routes SET area_id = NULL, sector_id = NULL WHERE area_id = ?')
+        .bind(areaId),
+      c.env.DB.prepare('DELETE FROM sectors WHERE area_id = ?')
+        .bind(areaId),
+      c.env.DB.prepare('DELETE FROM areas WHERE id = ?')
+        .bind(areaId),
+    ]);
 
     return c.json({ success: true, message: 'Area deleted successfully' });
   }
@@ -293,6 +298,15 @@ adminSectorsRoutes.post(
   async (c) => {
     const areaId = c.req.param('areaId');
     const body = c.req.valid('json');
+
+    // 驗證區域存在
+    const areaExists = await c.env.DB.prepare('SELECT id FROM areas WHERE id = ?')
+      .bind(areaId)
+      .first();
+
+    if (!areaExists) {
+      return c.json({ success: false, error: 'Not Found', message: 'Area not found' }, 404);
+    }
 
     const id = generateId();
 
@@ -397,14 +411,13 @@ adminSectorsRoutes.delete(
       return c.json({ success: false, error: 'Not Found', message: 'Sector not found' }, 404);
     }
 
-    // Clear sector_id on routes that belong to this sector
-    await c.env.DB.prepare('UPDATE routes SET sector_id = NULL WHERE sector_id = ?')
-      .bind(sectorId)
-      .run();
-
-    await c.env.DB.prepare('DELETE FROM sectors WHERE id = ?')
-      .bind(sectorId)
-      .run();
+    // 使用 batch 確保原子性：清除路線歸屬、刪除岩壁
+    await c.env.DB.batch([
+      c.env.DB.prepare('UPDATE routes SET sector_id = NULL WHERE sector_id = ?')
+        .bind(sectorId),
+      c.env.DB.prepare('DELETE FROM sectors WHERE id = ?')
+        .bind(sectorId),
+    ]);
 
     return c.json({ success: true, message: 'Sector deleted successfully' });
   }

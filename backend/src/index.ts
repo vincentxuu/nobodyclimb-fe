@@ -26,7 +26,7 @@ import { climbingLocationsRoutes } from './routes/climbing-locations';
 import { statsRoutes } from './routes/stats';
 import { adminQuestionsRoutes } from './routes/admin-questions';
 import { adminCragsRoutes } from './routes/admin-crags';
-import { adminSectorsRoutes } from './routes/admin-sectors';
+import { adminSectorsRoutes } from './routes/admin-areas';
 import { biographyContentRoutes } from './routes/biography-content';
 import { accessLogsRoutes } from './routes/access-logs';
 import { guestRoutes } from './routes/guest';

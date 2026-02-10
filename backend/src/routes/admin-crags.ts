@@ -73,6 +73,8 @@ const batchImportRoutesSchema = z.object({
     route_type: z.string().optional(),
     description: z.string().optional(),
     first_ascent: z.string().optional(),
+    area_id: z.string().optional(),
+    sector_id: z.string().optional(),
   })),
   skipExisting: z.boolean().optional(),
 });
@@ -539,8 +541,8 @@ adminCragsRoutes.post(
           routeData.route_type || 'sport',
           routeData.description || null,
           routeData.first_ascent || null,
-          null,
-          null
+          routeData.area_id || null,
+          routeData.sector_id || null
         )
         .run();
 
