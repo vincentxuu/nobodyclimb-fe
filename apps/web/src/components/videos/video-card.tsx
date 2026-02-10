@@ -74,10 +74,18 @@ const VideoCard: React.FC<VideoCardProps> = ({ video, onClick }) => {
         </div>
 
         {/* 分類標籤 */}
-        <div className="mt-2">
+        <div className="mt-2 flex flex-wrap gap-1">
           <span className="inline-block rounded-full bg-neutral-100 px-2 py-1 text-xs text-neutral-600">
             {video.category}
           </span>
+          {video.tags && video.tags.slice(0, 3).map((tag) => (
+            <span
+              key={tag}
+              className="inline-block rounded-full bg-emerald-50 px-2 py-1 text-xs text-emerald-700"
+            >
+              {tag}
+            </span>
+          ))}
         </div>
       </div>
     </Card>

@@ -9,7 +9,7 @@ const { normalizeChannelName } = require('./utils');
  * 同時生成 videos-meta.json 和 featured-videos.json
  */
 
-const PUBLIC_DATA_DIR = 'public/data';
+const PUBLIC_DATA_DIR = path.join(__dirname, '../public/data');
 const VIDEOS_FILE = path.join(PUBLIC_DATA_DIR, 'videos.json');
 const META_FILE = path.join(PUBLIC_DATA_DIR, 'videos-meta.json');
 const FEATURED_FILE = path.join(PUBLIC_DATA_DIR, 'featured-videos.json');
@@ -23,7 +23,7 @@ const CHUNK_SIZE = 500;
  * 將完整影片資料轉換為列表所需的精簡格式
  */
 function toListItem(video) {
-  return {
+  const item = {
     id: video.id,
     youtubeId: video.youtubeId,
     title: video.title,
@@ -33,6 +33,15 @@ function toListItem(video) {
     viewCount: video.viewCount,
     category: video.category
   };
+  // 只有被排除的影片才加入 excluded 欄位
+  if (video.excluded) {
+    item.excluded = true;
+  }
+  // 只有有 tags 的影片才加入 tags 欄位
+  if (video.tags && video.tags.length > 0) {
+    item.tags = video.tags;
+  }
+  return item;
 }
 
 /**

@@ -30,6 +30,8 @@ interface VideoListItem {
   duration: string
   viewCount: string
   category: string
+  excluded?: boolean
+  tags?: string[]
 }
 
 interface VideosMeta {
@@ -165,7 +167,8 @@ const VideosPage: React.FC = () => {
 
   // 篩選和搜尋邏輯
   const filteredVideos = useMemo(() => {
-    let filtered = [...videoList]
+    // 先過濾掉已排除的影片（品牌廣告等）
+    let filtered = videoList.filter((video) => !video.excluded)
 
     // 分類篩選
     if (selectedCategory !== 'all') {
@@ -222,7 +225,7 @@ const VideosPage: React.FC = () => {
     durationCategory: 'medium' as const,
     viewCount: v.viewCount,
     category: v.category as VideoCategory,
-    tags: [],
+    tags: v.tags || [],
     featured: false,
   }))
 

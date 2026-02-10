@@ -59,29 +59,62 @@ function mergeVideoSources() {
     return;
   }
 
-  // 按觀看次數排序（精選影片在前）
-  allVideos.sort((a, b) => {
-    // 先按精選狀態排序
-    if (a.featured !== b.featured) {
-      return b.featured - a.featured;
-    }
-
-    // 再按觀看次數排序（將 K/M 轉換為數字進行比較）
-    const parseViewCount = (viewCount) => {
-      if (typeof viewCount === 'string') {
-        if (viewCount.includes('M')) {
-          return parseFloat(viewCount) * 1000000;
-        }
-        if (viewCount.includes('K')) {
-          return parseFloat(viewCount) * 1000;
-        }
-        return parseInt(viewCount) || 0;
+  // 解析觀看次數
+  const parseViewCount = (viewCount) => {
+    if (typeof viewCount === 'string') {
+      if (viewCount.includes('M')) {
+        return parseFloat(viewCount) * 1000000;
       }
-      return viewCount || 0;
-    };
+      if (viewCount.includes('K')) {
+        return parseFloat(viewCount) * 1000;
+      }
+      return parseInt(viewCount) || 0;
+    }
+    return viewCount || 0;
+  };
 
-    return parseViewCount(b.viewCount) - parseViewCount(a.viewCount);
-  });
+  // 頻道交錯排序：避免同一頻道霸榜，保持多樣性
+  // 1. 分離精選和非精選影片
+  const featuredVideos = allVideos.filter(v => v.featured);
+  const regularVideos = allVideos.filter(v => !v.featured);
+
+  // 2. 精選影片按觀看次數排序
+  featuredVideos.sort((a, b) => parseViewCount(b.viewCount) - parseViewCount(a.viewCount));
+
+  // 3. 非精選影片按頻道分組，每組內按觀看次數排序
+  const channelGroups = {};
+  for (const video of regularVideos) {
+    const channel = video.channel;
+    if (!channelGroups[channel]) {
+      channelGroups[channel] = [];
+    }
+    channelGroups[channel].push(video);
+  }
+
+  // 每個頻道內按觀看次數排序
+  for (const channel of Object.keys(channelGroups)) {
+    channelGroups[channel].sort((a, b) => parseViewCount(b.viewCount) - parseViewCount(a.viewCount));
+  }
+
+  // 4. 頻道交錯取出：每輪從每個頻道取一部
+  const interleavedVideos = [];
+  const channelNames = Object.keys(channelGroups);
+  let round = 0;
+  let hasMore = true;
+
+  while (hasMore) {
+    hasMore = false;
+    for (const channel of channelNames) {
+      if (channelGroups[channel].length > round) {
+        interleavedVideos.push(channelGroups[channel][round]);
+        hasMore = true;
+      }
+    }
+    round++;
+  }
+
+  // 5. 合併：精選在前，交錯排序的在後
+  allVideos = [...featuredVideos, ...interleavedVideos];
 
   // 生成統計資訊
   const channels = [...new Set(allVideos.map(v => v.channel))];
@@ -121,7 +154,8 @@ function mergeVideoSources() {
 
   console.log('');
   console.log('💡 提示:');
-  console.log('   - 影片已按精選狀態和觀看次數排序');
+  console.log('   - 精選影片置頂，按觀看次數排序');
+  console.log('   - 其他影片採用頻道交錯排序，確保多樣性');
   console.log('   - ID 已重新分配以避免衝突');
   console.log('   - 個別頻道檔案已刪除，僅保留統一的 videos.json');
 }
