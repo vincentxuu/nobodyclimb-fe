@@ -38,3 +38,9 @@ export * from './stats'
 
 // Biography V2
 export * from './biography-v2'
+
+// 攀爬記錄相關
+export * from './ascent'
+
+// 路線故事相關
+export * from './route-story'

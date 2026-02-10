@@ -35,6 +35,8 @@ module.exports = {
         // ========================================
         // 品牌色彩系統 (Brand Color System)
         // 從 @nobodyclimb/constants 導入
+        // 注意：必須先展開 COLORS，再定義 CSS 變數顏色
+        // 這樣 CSS 變數版本才能正確覆蓋 COLORS 中的衝突鍵值
         // ========================================
         ...COLORS,
 
