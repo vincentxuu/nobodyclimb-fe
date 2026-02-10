@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
@@ -73,6 +73,22 @@ export function RouteStoryForm({
       visibility: initialData?.visibility ?? 'public',
     },
   });
+
+  // 當 dialog 關閉時重置表單狀態
+  useEffect(() => {
+    if (!open) {
+      form.reset({
+        route_id: routeId,
+        title: initialData?.title ?? null,
+        content: initialData?.content ?? '',
+        photos: initialData?.photos ?? [],
+        youtube_url: initialData?.youtube_url ?? null,
+        instagram_url: initialData?.instagram_url ?? null,
+        visibility: initialData?.visibility ?? 'public',
+      });
+      setPhotos(initialData?.photos ?? []);
+    }
+  }, [open, form, routeId, initialData]);
 
   const handleFormSubmit = async (data: RouteStoryFormData) => {
     await onSubmit({

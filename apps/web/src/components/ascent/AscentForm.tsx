@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
@@ -113,6 +113,27 @@ export function AscentForm({
 
   // 取得目前的 rating 值以用於渲染
   const currentRating = form.watch('rating');
+
+  // 當 dialog 關閉時重置表單狀態
+  useEffect(() => {
+    if (!open) {
+      form.reset({
+        route_id: routeId,
+        ascent_type: initialData?.ascent_type ?? 'redpoint',
+        ascent_date: initialData?.ascent_date ?? format(new Date(), 'yyyy-MM-dd'),
+        attempts_count: initialData?.attempts_count ?? 1,
+        rating: initialData?.rating ?? null,
+        perceived_grade: initialData?.perceived_grade ?? null,
+        notes: initialData?.notes ?? null,
+        photos: initialData?.photos ?? [],
+        youtube_url: initialData?.youtube_url ?? null,
+        instagram_url: initialData?.instagram_url ?? null,
+        is_public: initialData?.is_public ?? true,
+      });
+      setPhotos(initialData?.photos ?? []);
+      setSelectedDate(initialData?.ascent_date ? new Date(initialData.ascent_date) : new Date());
+    }
+  }, [open, form, routeId, initialData]);
 
   const handleFormSubmit = async (data: AscentFormData) => {
     await onSubmit({

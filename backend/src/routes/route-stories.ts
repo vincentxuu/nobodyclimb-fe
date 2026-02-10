@@ -179,16 +179,20 @@ routeStoriesRoutes.post('/', authMiddleware, async (c) => {
 
   const id = generateId();
 
+  // story_type 預設為 'other'，符合 CHECK constraint
+  const storyType = body.story_type || 'other';
+
   await c.env.DB.prepare(
     `INSERT INTO route_stories (
        id, user_id, route_id, story_type, title, content,
        photos, youtube_url, instagram_url, visibility
-     ) VALUES (?, ?, ?, 'story', ?, ?, ?, ?, ?, ?)`
+     ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
   )
     .bind(
       id,
       userId,
       body.route_id,
+      storyType,
       body.title || null,
       body.content,
       body.photos ? JSON.stringify(body.photos) : null,
