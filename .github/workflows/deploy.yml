@@ -4,14 +4,14 @@ on:
   push:
     branches: [main, develop]
     paths:
-      - 'web/**'
+      - 'apps/web/**'
       - 'packages/**'
       - 'pnpm-lock.yaml'
       - '.github/workflows/deploy.yml'
   pull_request:
     branches: [main]
     paths:
-      - 'web/**'
+      - 'apps/web/**'
       - 'packages/**'
 
 jobs:
