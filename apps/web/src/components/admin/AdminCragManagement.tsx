@@ -234,7 +234,7 @@ export default function AdminCragManagement() {
               placeholder="搜尋岩場名稱、位置..."
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              className="w-full pl-10 pr-4 py-2 border border-wb-20 rounded-lg focus:outline-none focus:ring-2 focus:ring-wb-100/20 focus:border-wb-100"
+              className="w-full pl-10 pr-4 py-2 border border-wb-20 rounded-lg bg-white focus:outline-none focus:ring-2 focus:ring-wb-100/20 focus:border-wb-100"
             />
           </div>
           <select

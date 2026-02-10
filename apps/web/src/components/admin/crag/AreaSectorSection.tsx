@@ -243,7 +243,7 @@ export default function AreaSectorSection({ cragId, onAreasChange }: AreaSectorS
                 value={areaForm.name}
                 onChange={(e) => setAreaForm({ ...areaForm, name: e.target.value })}
                 placeholder="區域名稱（必填）"
-                className="px-2.5 py-1.5 text-sm border border-wb-20 rounded-lg focus:outline-none focus:ring-2 focus:ring-wb-100/20"
+                className="px-2.5 py-1.5 text-sm border border-wb-20 rounded-lg bg-white focus:outline-none focus:ring-2 focus:ring-wb-100/20"
                 required
               />
               <input
@@ -251,14 +251,14 @@ export default function AreaSectorSection({ cragId, onAreasChange }: AreaSectorS
                 value={areaForm.name_en}
                 onChange={(e) => setAreaForm({ ...areaForm, name_en: e.target.value })}
                 placeholder="英文名稱"
-                className="px-2.5 py-1.5 text-sm border border-wb-20 rounded-lg focus:outline-none focus:ring-2 focus:ring-wb-100/20"
+                className="px-2.5 py-1.5 text-sm border border-wb-20 rounded-lg bg-white focus:outline-none focus:ring-2 focus:ring-wb-100/20"
               />
               <input
                 type="text"
                 value={areaForm.description}
                 onChange={(e) => setAreaForm({ ...areaForm, description: e.target.value })}
                 placeholder="描述"
-                className="px-2.5 py-1.5 text-sm border border-wb-20 rounded-lg focus:outline-none focus:ring-2 focus:ring-wb-100/20"
+                className="px-2.5 py-1.5 text-sm border border-wb-20 rounded-lg bg-white focus:outline-none focus:ring-2 focus:ring-wb-100/20"
               />
             </div>
             <div className="flex justify-end gap-2">

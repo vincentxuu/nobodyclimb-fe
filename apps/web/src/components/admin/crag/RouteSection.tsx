@@ -212,7 +212,7 @@ export default function RouteSection({ cragId, areas, onRoutesChange }: RouteSec
                   type="text"
                   value={routeForm.name}
                   onChange={(e) => setRouteForm({ ...routeForm, name: e.target.value })}
-                  className="w-full px-3 py-1.5 text-sm border border-wb-20 rounded-lg focus:outline-none focus:ring-2 focus:ring-wb-100/20"
+                  className="w-full px-3 py-1.5 text-sm border border-wb-20 rounded-lg bg-white focus:outline-none focus:ring-2 focus:ring-wb-100/20"
                   required
                 />
               </div>
@@ -223,7 +223,7 @@ export default function RouteSection({ cragId, areas, onRoutesChange }: RouteSec
                   value={routeForm.grade}
                   onChange={(e) => setRouteForm({ ...routeForm, grade: e.target.value })}
                   placeholder="例：5.10a"
-                  className="w-full px-3 py-1.5 text-sm border border-wb-20 rounded-lg focus:outline-none focus:ring-2 focus:ring-wb-100/20"
+                  className="w-full px-3 py-1.5 text-sm border border-wb-20 rounded-lg bg-white focus:outline-none focus:ring-2 focus:ring-wb-100/20"
                 />
               </div>
               <div>
@@ -258,7 +258,7 @@ export default function RouteSection({ cragId, areas, onRoutesChange }: RouteSec
                   type="number"
                   value={routeForm.height}
                   onChange={(e) => setRouteForm({ ...routeForm, height: e.target.value })}
-                  className="w-full px-3 py-1.5 text-sm border border-wb-20 rounded-lg focus:outline-none focus:ring-2 focus:ring-wb-100/20"
+                  className="w-full px-3 py-1.5 text-sm border border-wb-20 rounded-lg bg-white focus:outline-none focus:ring-2 focus:ring-wb-100/20"
                 />
               </div>
               <div>
@@ -267,7 +267,7 @@ export default function RouteSection({ cragId, areas, onRoutesChange }: RouteSec
                   type="number"
                   value={routeForm.bolt_count}
                   onChange={(e) => setRouteForm({ ...routeForm, bolt_count: e.target.value })}
-                  className="w-full px-3 py-1.5 text-sm border border-wb-20 rounded-lg focus:outline-none focus:ring-2 focus:ring-wb-100/20"
+                  className="w-full px-3 py-1.5 text-sm border border-wb-20 rounded-lg bg-white focus:outline-none focus:ring-2 focus:ring-wb-100/20"
                 />
               </div>
               <div>
@@ -276,7 +276,7 @@ export default function RouteSection({ cragId, areas, onRoutesChange }: RouteSec
                   type="text"
                   value={routeForm.first_ascent}
                   onChange={(e) => setRouteForm({ ...routeForm, first_ascent: e.target.value })}
-                  className="w-full px-3 py-1.5 text-sm border border-wb-20 rounded-lg focus:outline-none focus:ring-2 focus:ring-wb-100/20"
+                  className="w-full px-3 py-1.5 text-sm border border-wb-20 rounded-lg bg-white focus:outline-none focus:ring-2 focus:ring-wb-100/20"
                 />
               </div>
             </div>
@@ -325,7 +325,7 @@ export default function RouteSection({ cragId, areas, onRoutesChange }: RouteSec
                 value={routeForm.description}
                 onChange={(e) => setRouteForm({ ...routeForm, description: e.target.value })}
                 rows={2}
-                className="w-full px-3 py-1.5 text-sm border border-wb-20 rounded-lg focus:outline-none focus:ring-2 focus:ring-wb-100/20 resize-none"
+                className="w-full px-3 py-1.5 text-sm border border-wb-20 rounded-lg bg-white focus:outline-none focus:ring-2 focus:ring-wb-100/20 resize-none"
               />
             </div>
             <div className="flex items-center justify-end gap-2">

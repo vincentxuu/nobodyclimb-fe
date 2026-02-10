@@ -381,7 +381,7 @@ export default function AdminGymManagement() {
                   type="text"
                   value={gymForm.name}
                   onChange={(e) => setGymForm({ ...gymForm, name: e.target.value })}
-                  className="w-full px-3 py-2 text-sm border border-wb-20 rounded-lg focus:outline-none focus:ring-2 focus:ring-wb-100/20"
+                  className="w-full px-3 py-2 text-sm border border-wb-20 rounded-lg bg-white focus:outline-none focus:ring-2 focus:ring-wb-100/20"
                   required
                 />
               </div>
@@ -392,7 +392,7 @@ export default function AdminGymManagement() {
                   value={gymForm.city}
                   onChange={(e) => setGymForm({ ...gymForm, city: e.target.value })}
                   placeholder="例：台北市"
-                  className="w-full px-3 py-2 text-sm border border-wb-20 rounded-lg focus:outline-none focus:ring-2 focus:ring-wb-100/20"
+                  className="w-full px-3 py-2 text-sm border border-wb-20 rounded-lg bg-white focus:outline-none focus:ring-2 focus:ring-wb-100/20"
                 />
               </div>
               <div>
@@ -416,7 +416,7 @@ export default function AdminGymManagement() {
                   type="text"
                   value={gymForm.address}
                   onChange={(e) => setGymForm({ ...gymForm, address: e.target.value })}
-                  className="w-full px-3 py-2 text-sm border border-wb-20 rounded-lg focus:outline-none focus:ring-2 focus:ring-wb-100/20"
+                  className="w-full px-3 py-2 text-sm border border-wb-20 rounded-lg bg-white focus:outline-none focus:ring-2 focus:ring-wb-100/20"
                 />
               </div>
               <div>
@@ -425,7 +425,7 @@ export default function AdminGymManagement() {
                   type="text"
                   value={gymForm.phone}
                   onChange={(e) => setGymForm({ ...gymForm, phone: e.target.value })}
-                  className="w-full px-3 py-2 text-sm border border-wb-20 rounded-lg focus:outline-none focus:ring-2 focus:ring-wb-100/20"
+                  className="w-full px-3 py-2 text-sm border border-wb-20 rounded-lg bg-white focus:outline-none focus:ring-2 focus:ring-wb-100/20"
                 />
               </div>
               <div>
@@ -434,7 +434,7 @@ export default function AdminGymManagement() {
                   type="email"
                   value={gymForm.email}
                   onChange={(e) => setGymForm({ ...gymForm, email: e.target.value })}
-                  className="w-full px-3 py-2 text-sm border border-wb-20 rounded-lg focus:outline-none focus:ring-2 focus:ring-wb-100/20"
+                  className="w-full px-3 py-2 text-sm border border-wb-20 rounded-lg bg-white focus:outline-none focus:ring-2 focus:ring-wb-100/20"
                 />
               </div>
               <div>
@@ -444,7 +444,7 @@ export default function AdminGymManagement() {
                   value={gymForm.website}
                   onChange={(e) => setGymForm({ ...gymForm, website: e.target.value })}
                   placeholder="https://"
-                  className="w-full px-3 py-2 text-sm border border-wb-20 rounded-lg focus:outline-none focus:ring-2 focus:ring-wb-100/20"
+                  className="w-full px-3 py-2 text-sm border border-wb-20 rounded-lg bg-white focus:outline-none focus:ring-2 focus:ring-wb-100/20"
                 />
               </div>
               <div className="sm:col-span-2 lg:col-span-3">
@@ -454,7 +454,7 @@ export default function AdminGymManagement() {
                   value={gymForm.facilities}
                   onChange={(e) => setGymForm({ ...gymForm, facilities: e.target.value })}
                   placeholder="以逗號分隔，例：抱石區, 先鋒區, 速度牆, 淋浴間"
-                  className="w-full px-3 py-2 text-sm border border-wb-20 rounded-lg focus:outline-none focus:ring-2 focus:ring-wb-100/20"
+                  className="w-full px-3 py-2 text-sm border border-wb-20 rounded-lg bg-white focus:outline-none focus:ring-2 focus:ring-wb-100/20"
                 />
               </div>
               <div className="sm:col-span-2 lg:col-span-3">
@@ -463,7 +463,7 @@ export default function AdminGymManagement() {
                   value={gymForm.description}
                   onChange={(e) => setGymForm({ ...gymForm, description: e.target.value })}
                   rows={3}
-                  className="w-full px-3 py-2 text-sm border border-wb-20 rounded-lg focus:outline-none focus:ring-2 focus:ring-wb-100/20 resize-none"
+                  className="w-full px-3 py-2 text-sm border border-wb-20 rounded-lg bg-white focus:outline-none focus:ring-2 focus:ring-wb-100/20 resize-none"
                 />
               </div>
             </div>
@@ -478,7 +478,7 @@ export default function AdminGymManagement() {
                   value={gymForm.latitude}
                   onChange={(e) => setGymForm({ ...gymForm, latitude: e.target.value })}
                   placeholder="例：25.0330"
-                  className="w-full px-3 py-2 text-sm border border-wb-20 rounded-lg focus:outline-none focus:ring-2 focus:ring-wb-100/20"
+                  className="w-full px-3 py-2 text-sm border border-wb-20 rounded-lg bg-white focus:outline-none focus:ring-2 focus:ring-wb-100/20"
                 />
               </div>
               <div>
@@ -489,7 +489,7 @@ export default function AdminGymManagement() {
                   value={gymForm.longitude}
                   onChange={(e) => setGymForm({ ...gymForm, longitude: e.target.value })}
                   placeholder="例：121.5654"
-                  className="w-full px-3 py-2 text-sm border border-wb-20 rounded-lg focus:outline-none focus:ring-2 focus:ring-wb-100/20"
+                  className="w-full px-3 py-2 text-sm border border-wb-20 rounded-lg bg-white focus:outline-none focus:ring-2 focus:ring-wb-100/20"
                 />
               </div>
             </div>
@@ -514,7 +514,7 @@ export default function AdminGymManagement() {
                         })
                       }
                       placeholder="例：10:00-22:00 或 公休"
-                      className="w-full px-3 py-1.5 text-sm border border-wb-20 rounded-lg focus:outline-none focus:ring-2 focus:ring-wb-100/20"
+                      className="w-full px-3 py-1.5 text-sm border border-wb-20 rounded-lg bg-white focus:outline-none focus:ring-2 focus:ring-wb-100/20"
                     />
                   </div>
                 ))}
@@ -531,7 +531,7 @@ export default function AdminGymManagement() {
                 onChange={(e) => setGymForm({ ...gymForm, price_info: e.target.value })}
                 rows={4}
                 placeholder={'例：\n{\n  "單次入場": "350元",\n  "月票": "2000元",\n  "學生優惠": "300元"\n}'}
-                className="w-full px-3 py-2 text-sm border border-wb-20 rounded-lg focus:outline-none focus:ring-2 focus:ring-wb-100/20 resize-none font-mono"
+                className="w-full px-3 py-2 text-sm border border-wb-20 rounded-lg bg-white focus:outline-none focus:ring-2 focus:ring-wb-100/20 resize-none font-mono"
               />
             </div>
 
@@ -582,7 +582,7 @@ export default function AdminGymManagement() {
               placeholder="搜尋岩館名稱、地址..."
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              className="w-full pl-10 pr-4 py-2 border border-wb-20 rounded-lg focus:outline-none focus:ring-2 focus:ring-wb-100/20 focus:border-wb-100"
+              className="w-full pl-10 pr-4 py-2 border border-wb-20 rounded-lg bg-white focus:outline-none focus:ring-2 focus:ring-wb-100/20 focus:border-wb-100"
             />
           </div>
           <select

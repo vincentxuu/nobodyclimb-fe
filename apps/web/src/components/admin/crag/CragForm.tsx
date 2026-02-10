@@ -116,7 +116,7 @@ export default function CragForm({ crag, onSave, onCancel }: CragFormProps) {
                 type="text"
                 value={form.name}
                 onChange={(e) => setForm({ ...form, name: e.target.value })}
-                className="w-full px-3 py-2 text-sm border border-wb-20 rounded-lg focus:outline-none focus:ring-2 focus:ring-wb-100/20"
+                className="w-full px-3 py-2 text-sm border border-wb-20 rounded-lg bg-white focus:outline-none focus:ring-2 focus:ring-wb-100/20"
                 required
               />
             </div>
@@ -130,7 +130,7 @@ export default function CragForm({ crag, onSave, onCancel }: CragFormProps) {
                   value={form.slug}
                   onChange={(e) => setForm({ ...form, slug: e.target.value })}
                   placeholder="例：longdong"
-                  className="w-full px-3 py-2 text-sm border border-wb-20 rounded-lg focus:outline-none focus:ring-2 focus:ring-wb-100/20"
+                  className="w-full px-3 py-2 text-sm border border-wb-20 rounded-lg bg-white focus:outline-none focus:ring-2 focus:ring-wb-100/20"
                 />
               </div>
             )}
@@ -154,7 +154,7 @@ export default function CragForm({ crag, onSave, onCancel }: CragFormProps) {
                 value={form.location}
                 onChange={(e) => setForm({ ...form, location: e.target.value })}
                 placeholder="例：新北市瑞芳區龍洞"
-                className="w-full px-3 py-2 text-sm border border-wb-20 rounded-lg focus:outline-none focus:ring-2 focus:ring-wb-100/20"
+                className="w-full px-3 py-2 text-sm border border-wb-20 rounded-lg bg-white focus:outline-none focus:ring-2 focus:ring-wb-100/20"
               />
             </div>
             <div className="sm:col-span-2 lg:col-span-3">
@@ -163,7 +163,7 @@ export default function CragForm({ crag, onSave, onCancel }: CragFormProps) {
                 value={form.description}
                 onChange={(e) => setForm({ ...form, description: e.target.value })}
                 rows={3}
-                className="w-full px-3 py-2 text-sm border border-wb-20 rounded-lg focus:outline-none focus:ring-2 focus:ring-wb-100/20 resize-none"
+                className="w-full px-3 py-2 text-sm border border-wb-20 rounded-lg bg-white focus:outline-none focus:ring-2 focus:ring-wb-100/20 resize-none"
               />
             </div>
           </div>
@@ -181,7 +181,7 @@ export default function CragForm({ crag, onSave, onCancel }: CragFormProps) {
                 value={form.latitude}
                 onChange={(e) => setForm({ ...form, latitude: e.target.value })}
                 placeholder="例：25.1082"
-                className="w-full px-3 py-2 text-sm border border-wb-20 rounded-lg focus:outline-none focus:ring-2 focus:ring-wb-100/20"
+                className="w-full px-3 py-2 text-sm border border-wb-20 rounded-lg bg-white focus:outline-none focus:ring-2 focus:ring-wb-100/20"
               />
             </div>
             <div>
@@ -192,7 +192,7 @@ export default function CragForm({ crag, onSave, onCancel }: CragFormProps) {
                 value={form.longitude}
                 onChange={(e) => setForm({ ...form, longitude: e.target.value })}
                 placeholder="例：121.9227"
-                className="w-full px-3 py-2 text-sm border border-wb-20 rounded-lg focus:outline-none focus:ring-2 focus:ring-wb-100/20"
+                className="w-full px-3 py-2 text-sm border border-wb-20 rounded-lg bg-white focus:outline-none focus:ring-2 focus:ring-wb-100/20"
               />
             </div>
             <div>
@@ -201,7 +201,7 @@ export default function CragForm({ crag, onSave, onCancel }: CragFormProps) {
                 type="number"
                 value={form.altitude}
                 onChange={(e) => setForm({ ...form, altitude: e.target.value })}
-                className="w-full px-3 py-2 text-sm border border-wb-20 rounded-lg focus:outline-none focus:ring-2 focus:ring-wb-100/20"
+                className="w-full px-3 py-2 text-sm border border-wb-20 rounded-lg bg-white focus:outline-none focus:ring-2 focus:ring-wb-100/20"
               />
             </div>
           </div>
@@ -218,7 +218,7 @@ export default function CragForm({ crag, onSave, onCancel }: CragFormProps) {
                 value={form.rock_type}
                 onChange={(e) => setForm({ ...form, rock_type: e.target.value })}
                 placeholder="例：砂岩、石灰岩、花崗岩"
-                className="w-full px-3 py-2 text-sm border border-wb-20 rounded-lg focus:outline-none focus:ring-2 focus:ring-wb-100/20"
+                className="w-full px-3 py-2 text-sm border border-wb-20 rounded-lg bg-white focus:outline-none focus:ring-2 focus:ring-wb-100/20"
               />
             </div>
             <div>
@@ -228,7 +228,7 @@ export default function CragForm({ crag, onSave, onCancel }: CragFormProps) {
                 value={form.climbing_types}
                 onChange={(e) => setForm({ ...form, climbing_types: e.target.value })}
                 placeholder="逗號分隔，例：sport, trad, boulder"
-                className="w-full px-3 py-2 text-sm border border-wb-20 rounded-lg focus:outline-none focus:ring-2 focus:ring-wb-100/20"
+                className="w-full px-3 py-2 text-sm border border-wb-20 rounded-lg bg-white focus:outline-none focus:ring-2 focus:ring-wb-100/20"
               />
             </div>
             <div>
@@ -238,7 +238,7 @@ export default function CragForm({ crag, onSave, onCancel }: CragFormProps) {
                 value={form.difficulty_range}
                 onChange={(e) => setForm({ ...form, difficulty_range: e.target.value })}
                 placeholder="例：5.6-5.13a"
-                className="w-full px-3 py-2 text-sm border border-wb-20 rounded-lg focus:outline-none focus:ring-2 focus:ring-wb-100/20"
+                className="w-full px-3 py-2 text-sm border border-wb-20 rounded-lg bg-white focus:outline-none focus:ring-2 focus:ring-wb-100/20"
               />
             </div>
           </div>
@@ -255,7 +255,7 @@ export default function CragForm({ crag, onSave, onCancel }: CragFormProps) {
                 value={form.approach_time}
                 onChange={(e) => setForm({ ...form, approach_time: e.target.value })}
                 placeholder="例：15（分鐘）"
-                className="w-full px-3 py-2 text-sm border border-wb-20 rounded-lg focus:outline-none focus:ring-2 focus:ring-wb-100/20"
+                className="w-full px-3 py-2 text-sm border border-wb-20 rounded-lg bg-white focus:outline-none focus:ring-2 focus:ring-wb-100/20"
               />
             </div>
             <div>
@@ -265,7 +265,7 @@ export default function CragForm({ crag, onSave, onCancel }: CragFormProps) {
                 value={form.best_seasons}
                 onChange={(e) => setForm({ ...form, best_seasons: e.target.value })}
                 placeholder="逗號分隔，例：秋, 冬, 春"
-                className="w-full px-3 py-2 text-sm border border-wb-20 rounded-lg focus:outline-none focus:ring-2 focus:ring-wb-100/20"
+                className="w-full px-3 py-2 text-sm border border-wb-20 rounded-lg bg-white focus:outline-none focus:ring-2 focus:ring-wb-100/20"
               />
             </div>
             <div className="sm:col-span-2">
@@ -275,7 +275,7 @@ export default function CragForm({ crag, onSave, onCancel }: CragFormProps) {
                 onChange={(e) => setForm({ ...form, access_info: e.target.value })}
                 rows={2}
                 placeholder="如何抵達、大眾運輸方式等"
-                className="w-full px-3 py-2 text-sm border border-wb-20 rounded-lg focus:outline-none focus:ring-2 focus:ring-wb-100/20 resize-none"
+                className="w-full px-3 py-2 text-sm border border-wb-20 rounded-lg bg-white focus:outline-none focus:ring-2 focus:ring-wb-100/20 resize-none"
               />
             </div>
             <div>
@@ -284,7 +284,7 @@ export default function CragForm({ crag, onSave, onCancel }: CragFormProps) {
                 value={form.parking_info}
                 onChange={(e) => setForm({ ...form, parking_info: e.target.value })}
                 rows={2}
-                className="w-full px-3 py-2 text-sm border border-wb-20 rounded-lg focus:outline-none focus:ring-2 focus:ring-wb-100/20 resize-none"
+                className="w-full px-3 py-2 text-sm border border-wb-20 rounded-lg bg-white focus:outline-none focus:ring-2 focus:ring-wb-100/20 resize-none"
               />
             </div>
             <div>
@@ -294,7 +294,7 @@ export default function CragForm({ crag, onSave, onCancel }: CragFormProps) {
                 onChange={(e) => setForm({ ...form, restrictions: e.target.value })}
                 rows={2}
                 placeholder="例：雨後禁止攀爬、需申請入山證等"
-                className="w-full px-3 py-2 text-sm border border-wb-20 rounded-lg focus:outline-none focus:ring-2 focus:ring-wb-100/20 resize-none"
+                className="w-full px-3 py-2 text-sm border border-wb-20 rounded-lg bg-white focus:outline-none focus:ring-2 focus:ring-wb-100/20 resize-none"
               />
             </div>
           </div>
