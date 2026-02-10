@@ -20,7 +20,7 @@ import {
   Globe,
   Mail,
 } from 'lucide-react'
-import { gymService } from '@/lib/api/services'
+import { useToast } from '@/components/ui/use-toast'
 import Link from 'next/link'
 import apiClient from '@/lib/api/client'
 
@@ -125,6 +125,8 @@ interface GymListResponse {
 }
 
 export default function AdminGymManagement() {
+  const { toast } = useToast()
+
   const [gyms, setGyms] = useState<AdminGym[]>([])
   const [loading, setLoading] = useState(true)
   const [search, setSearch] = useState('')
@@ -156,21 +158,12 @@ export default function AdminGymManagement() {
         limit: 20,
       }
       if (cityFilter) params.city = cityFilter
+      // 使用 backend-side 搜尋
+      if (debouncedSearch) params.search = debouncedSearch
 
       const response = await apiClient.get<GymListResponse>('/gyms', { params })
       if (response.data.success && response.data.data) {
-        let filteredGyms = response.data.data
-        // Client-side search filter
-        if (debouncedSearch) {
-          const q = debouncedSearch.toLowerCase()
-          filteredGyms = filteredGyms.filter(
-            (g) =>
-              g.name.toLowerCase().includes(q) ||
-              g.address?.toLowerCase().includes(q) ||
-              g.city?.toLowerCase().includes(q)
-          )
-        }
-        setGyms(filteredGyms)
+        setGyms(response.data.data)
         if (response.data.pagination) {
           setPagination({
             total: response.data.pagination.total,
@@ -183,7 +176,10 @@ export default function AdminGymManagement() {
         const allCities = response.data.data
           .map((g) => g.city)
           .filter((c): c is string => !!c)
-        setCities([...new Set(allCities)].sort())
+        setCities((prev) => {
+          const merged = new Set([...prev, ...allCities])
+          return [...merged].sort()
+        })
       }
     } catch (error) {
       console.error('Failed to fetch gyms:', error)
@@ -253,13 +249,13 @@ export default function AdminGymManagement() {
         try {
           parsedPriceInfo = JSON.parse(gymForm.price_info)
         } catch {
-          alert('價格資訊 JSON 格式不正確')
+          toast({ variant: 'warning', title: '格式錯誤', description: '價格資訊 JSON 格式不正確' })
           setSubmitting(false)
           return
         }
       }
 
-      const data: Record<string, unknown> = {
+      const payload = {
         name: gymForm.name.trim(),
         description: gymForm.description || null,
         address: gymForm.address || null,
@@ -281,16 +277,16 @@ export default function AdminGymManagement() {
       }
 
       if (editingGym) {
-        await gymService.updateGym(editingGym.id, data as Record<string, never>)
+        await apiClient.put(`/gyms/${editingGym.id}`, payload)
       } else {
-        await gymService.createGym(data as Record<string, never>)
+        await apiClient.post('/gyms', payload)
       }
 
       await fetchGyms()
       handleCancelForm()
     } catch (error) {
       console.error('Failed to save gym:', error)
-      alert('儲存岩館失敗')
+      toast({ variant: 'destructive', title: '錯誤', description: '儲存岩館失敗' })
     } finally {
       setSubmitting(false)
     }
@@ -298,12 +294,12 @@ export default function AdminGymManagement() {
 
   const handleDeleteGym = async (id: string) => {
     try {
-      await gymService.deleteGym(id)
+      await apiClient.delete(`/gyms/${id}`)
       await fetchGyms()
       setDeletingGymId(null)
     } catch (error) {
       console.error('Failed to delete gym:', error)
-      alert('刪除岩館失敗')
+      toast({ variant: 'destructive', title: '錯誤', description: '刪除岩館失敗' })
     }
   }
 

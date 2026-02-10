@@ -18,119 +18,21 @@ import {
   Plus,
   Pencil,
   Trash2,
-  X,
-  Save,
-  Hash,
-  Layers,
-  FolderOpen,
 } from 'lucide-react'
-import { adminCragService, AdminCragStats, cragService } from '@/lib/api/services'
-import { AdminCrag, AdminArea, AdminSector } from '@/lib/types'
+import { adminCragService, AdminCragStats } from '@/lib/api/services'
+import { AdminCrag, AdminArea } from '@/lib/types'
+import { useToast } from '@/components/ui/use-toast'
+import apiClient from '@/lib/api/client'
 import Link from 'next/link'
 
-// Backend route type (snake_case, matching API response)
-interface AdminRoute {
-  id: string
-  crag_id: string
-  area_id: string | null
-  sector_id: string | null
-  name: string
-  grade: string | null
-  grade_system: string
-  height: number | null
-  bolt_count: number | null
-  route_type: 'sport' | 'trad' | 'boulder' | 'mixed'
-  description: string | null
-  first_ascent: string | null
-  created_at: string
-}
-
-// Custom debounce hook
-function useDebounce<T>(value: T, delay: number): T {
-  const [debouncedValue, setDebouncedValue] = useState<T>(value)
-
-  useEffect(() => {
-    const handler = setTimeout(() => {
-      setDebouncedValue(value)
-    }, delay)
-
-    return () => {
-      clearTimeout(handler)
-    }
-  }, [value, delay])
-
-  return debouncedValue
-}
-
-// Route form data
-interface RouteFormData {
-  name: string
-  grade: string
-  grade_system: string
-  height: string
-  bolt_count: string
-  route_type: string
-  description: string
-  first_ascent: string
-  area_id: string
-  sector_id: string
-}
-
-const emptyRouteForm: RouteFormData = {
-  name: '',
-  grade: '',
-  grade_system: 'yds',
-  height: '',
-  bolt_count: '',
-  route_type: 'sport',
-  description: '',
-  first_ascent: '',
-  area_id: '',
-  sector_id: '',
-}
-
-// Crag form data
-interface CragFormData {
-  name: string
-  slug: string
-  description: string
-  location: string
-  region: string
-  latitude: string
-  longitude: string
-  altitude: string
-  rock_type: string
-  climbing_types: string
-  difficulty_range: string
-  is_featured: boolean
-  access_info: string
-  parking_info: string
-  approach_time: string
-  best_seasons: string
-  restrictions: string
-}
-
-const emptyCragForm: CragFormData = {
-  name: '',
-  slug: '',
-  description: '',
-  location: '',
-  region: '',
-  latitude: '',
-  longitude: '',
-  altitude: '',
-  rock_type: '',
-  climbing_types: '',
-  difficulty_range: '',
-  is_featured: false,
-  access_info: '',
-  parking_info: '',
-  approach_time: '',
-  best_seasons: '',
-  restrictions: '',
-}
+import CragForm from './crag/CragForm'
+import AreaSectorSection from './crag/AreaSectorSection'
+import RouteSection from './crag/RouteSection'
+import { useDebounce, REGIONS } from './crag/types'
 
 export default function AdminCragManagement() {
+  const { toast } = useToast()
+
   const [crags, setCrags] = useState<AdminCrag[]>([])
   const [stats, setStats] = useState<AdminCragStats | null>(null)
   const [loading, setLoading] = useState(true)
@@ -139,47 +41,17 @@ export default function AdminCragManagement() {
   const [region, setRegion] = useState('')
   const [page, setPage] = useState(1)
 
-  // Expanded crag detail
+  // 展開的岩場
   const [expandedCragId, setExpandedCragId] = useState<string | null>(null)
-  const [cragRoutes, setCragRoutes] = useState<AdminRoute[]>([])
-  const [routesLoading, setRoutesLoading] = useState(false)
+  const [expandedAreas, setExpandedAreas] = useState<AdminArea[]>([])
 
-  // Route form
-  const [showRouteForm, setShowRouteForm] = useState(false)
-  const [editingRoute, setEditingRoute] = useState<AdminRoute | null>(null)
-  const [routeForm, setRouteForm] = useState<RouteFormData>(emptyRouteForm)
-  const [routeSubmitting, setRouteSubmitting] = useState(false)
-
-  // Crag form
+  // 岩場表單
   const [showCragForm, setShowCragForm] = useState(false)
   const [editingCrag, setEditingCrag] = useState<AdminCrag | null>(null)
-  const [cragForm, setCragForm] = useState<CragFormData>(emptyCragForm)
-  const [cragSubmitting, setCragSubmitting] = useState(false)
 
-  // Area management
-  const [cragAreas, setCragAreas] = useState<AdminArea[]>([])
-  const [areasLoading, setAreasLoading] = useState(false)
-  const [showAreaForm, setShowAreaForm] = useState(false)
-  const [editingArea, setEditingArea] = useState<AdminArea | null>(null)
-  const [areaForm, setAreaForm] = useState({ name: '', name_en: '', description: '' })
-  const [areaSubmitting, setAreaSubmitting] = useState(false)
-  const [expandedAreaId, setExpandedAreaId] = useState<string | null>(null)
-  const [deletingAreaId, setDeletingAreaId] = useState<string | null>(null)
-
-  // Sector management
-  const [areaSectors, setAreaSectors] = useState<Record<string, AdminSector[]>>({})
-  const [sectorsLoading, setSectorsLoading] = useState(false)
-  const [showSectorForm, setShowSectorForm] = useState(false)
-  const [editingSector, setEditingSector] = useState<AdminSector | null>(null)
-  const [sectorForm, setSectorForm] = useState({ name: '', name_en: '' })
-  const [sectorSubmitting, setSectorSubmitting] = useState(false)
-  const [deletingSectorId, setDeletingSectorId] = useState<string | null>(null)
-
-  // Delete confirmation
-  const [deletingRouteId, setDeletingRouteId] = useState<string | null>(null)
+  // 刪除確認
   const [deletingCragId, setDeletingCragId] = useState<string | null>(null)
 
-  // Debounce search input to reduce API calls
   const debouncedSearch = useDebounce(search, 300)
   const [pagination, setPagination] = useState({
     total: 0,
@@ -227,48 +99,6 @@ export default function AdminCragManagement() {
     }
   }, [page, debouncedSearch, region])
 
-  const fetchRoutes = useCallback(async (cragId: string) => {
-    setRoutesLoading(true)
-    try {
-      const response = await adminCragService.getRoutes(cragId, { limit: 100 })
-      if (response.success && response.data) {
-        setCragRoutes(response.data as unknown as AdminRoute[])
-      }
-    } catch (error) {
-      console.error('Failed to fetch routes:', error)
-    } finally {
-      setRoutesLoading(false)
-    }
-  }, [])
-
-  const fetchAreas = useCallback(async (cragId: string) => {
-    setAreasLoading(true)
-    try {
-      const response = await adminCragService.getAreas(cragId)
-      if (response.success && response.data) {
-        setCragAreas(response.data)
-      }
-    } catch (error) {
-      console.error('Failed to fetch areas:', error)
-    } finally {
-      setAreasLoading(false)
-    }
-  }, [])
-
-  const fetchSectors = useCallback(async (cragId: string, areaId: string) => {
-    setSectorsLoading(true)
-    try {
-      const response = await adminCragService.getSectors(cragId, areaId)
-      if (response.success && response.data) {
-        setAreaSectors((prev) => ({ ...prev, [areaId]: response.data }))
-      }
-    } catch (error) {
-      console.error('Failed to fetch sectors:', error)
-    } finally {
-      setSectorsLoading(false)
-    }
-  }, [])
-
   useEffect(() => {
     fetchStats()
   }, [fetchStats])
@@ -293,352 +123,50 @@ export default function AdminCragManagement() {
   const toggleCragExpand = (cragId: string) => {
     if (expandedCragId === cragId) {
       setExpandedCragId(null)
-      setCragRoutes([])
-      setCragAreas([])
-      setShowRouteForm(false)
-      setEditingRoute(null)
-      setExpandedAreaId(null)
-      setShowAreaForm(false)
-      setShowSectorForm(false)
+      setExpandedAreas([])
     } else {
       setExpandedCragId(cragId)
-      fetchRoutes(cragId)
-      fetchAreas(cragId)
-      setShowRouteForm(false)
-      setEditingRoute(null)
-      setExpandedAreaId(null)
-      setShowAreaForm(false)
-      setShowSectorForm(false)
+      setExpandedAreas([])
     }
   }
 
   // ---- Crag CRUD ----
   const handleAddCrag = () => {
     setEditingCrag(null)
-    setCragForm(emptyCragForm)
     setShowCragForm(true)
   }
 
   const handleEditCrag = (crag: AdminCrag) => {
     setEditingCrag(crag)
-    setCragForm({
-      name: crag.name,
-      slug: crag.slug,
-      description: crag.description || '',
-      location: crag.location || '',
-      region: crag.region || '',
-      latitude: crag.latitude?.toString() || '',
-      longitude: crag.longitude?.toString() || '',
-      altitude: crag.altitude?.toString() || '',
-      rock_type: crag.rock_type || '',
-      climbing_types: Array.isArray(crag.climbing_types)
-        ? crag.climbing_types.join(', ')
-        : '',
-      difficulty_range: crag.difficulty_range || '',
-      is_featured: crag.is_featured === 1,
-      access_info: crag.access_info || '',
-      parking_info: crag.parking_info || '',
-      approach_time: crag.approach_time?.toString() || '',
-      best_seasons: Array.isArray(crag.best_seasons)
-        ? crag.best_seasons.join(', ')
-        : '',
-      restrictions: crag.restrictions || '',
-    })
     setShowCragForm(true)
   }
 
-  const handleCancelCragForm = () => {
+  const handleCragFormSave = () => {
     setShowCragForm(false)
     setEditingCrag(null)
-    setCragForm(emptyCragForm)
+    fetchCrags()
+    fetchStats()
   }
 
-  const handleCragFormSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
-    if (!cragForm.name.trim()) return
-
-    setCragSubmitting(true)
-    try {
-      const data: Record<string, unknown> = {
-        name: cragForm.name.trim(),
-        description: cragForm.description || null,
-        location: cragForm.location || null,
-        region: cragForm.region || null,
-        latitude: cragForm.latitude ? Number(cragForm.latitude) : null,
-        longitude: cragForm.longitude ? Number(cragForm.longitude) : null,
-        altitude: cragForm.altitude ? Number(cragForm.altitude) : null,
-        rock_type: cragForm.rock_type || null,
-        climbing_types: cragForm.climbing_types
-          ? cragForm.climbing_types.split(',').map((s) => s.trim()).filter(Boolean)
-          : [],
-        difficulty_range: cragForm.difficulty_range || null,
-        is_featured: cragForm.is_featured ? 1 : 0,
-        access_info: cragForm.access_info || null,
-        parking_info: cragForm.parking_info || null,
-        approach_time: cragForm.approach_time || null,
-        best_seasons: cragForm.best_seasons
-          ? cragForm.best_seasons.split(',').map((s) => s.trim()).filter(Boolean)
-          : [],
-        restrictions: cragForm.restrictions || null,
-      }
-
-      if (editingCrag) {
-        await cragService.updateCrag(editingCrag.id, data as never)
-      } else {
-        if (cragForm.slug) data.slug = cragForm.slug.trim()
-        await cragService.createCrag(data as never)
-      }
-
-      await fetchCrags()
-      fetchStats()
-      handleCancelCragForm()
-    } catch (error) {
-      console.error('Failed to save crag:', error)
-      alert('儲存岩場失敗')
-    } finally {
-      setCragSubmitting(false)
-    }
+  const handleCragFormCancel = () => {
+    setShowCragForm(false)
+    setEditingCrag(null)
   }
 
   const handleDeleteCrag = async (id: string) => {
     try {
-      await cragService.deleteCrag(id)
+      await apiClient.delete(`/crags/${id}`)
       await fetchCrags()
       fetchStats()
       setDeletingCragId(null)
       if (expandedCragId === id) {
         setExpandedCragId(null)
-        setCragRoutes([])
+        setExpandedAreas([])
       }
     } catch (error) {
       console.error('Failed to delete crag:', error)
-      alert('刪除岩場失敗')
+      toast({ variant: 'destructive', title: '錯誤', description: '刪除岩場失敗' })
     }
-  }
-
-  // ---- Route CRUD ----
-  const handleAddRoute = () => {
-    setEditingRoute(null)
-    setRouteForm(emptyRouteForm)
-    setShowRouteForm(true)
-  }
-
-  const handleEditRoute = (route: AdminRoute) => {
-    setEditingRoute(route)
-    setRouteForm({
-      name: route.name,
-      grade: route.grade || '',
-      grade_system: route.grade_system || 'yds',
-      height: route.height?.toString() || '',
-      bolt_count: route.bolt_count?.toString() || '',
-      route_type: route.route_type || 'sport',
-      description: route.description || '',
-      first_ascent: route.first_ascent || '',
-      area_id: route.area_id || '',
-      sector_id: route.sector_id || '',
-    })
-    // 載入該區域的岩壁列表，以便在下拉選單中顯示
-    if (route.area_id && expandedCragId) {
-      fetchSectors(expandedCragId, route.area_id)
-    }
-    setShowRouteForm(true)
-  }
-
-  const handleCancelRouteForm = () => {
-    setShowRouteForm(false)
-    setEditingRoute(null)
-    setRouteForm(emptyRouteForm)
-  }
-
-  const handleRouteFormSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
-    if (!expandedCragId || !routeForm.name.trim()) return
-
-    setRouteSubmitting(true)
-    try {
-      const data: Record<string, unknown> = {
-        name: routeForm.name.trim(),
-        grade: routeForm.grade || null,
-        grade_system: routeForm.grade_system || 'yds',
-        height: routeForm.height ? Number(routeForm.height) : null,
-        bolt_count: routeForm.bolt_count ? Number(routeForm.bolt_count) : null,
-        route_type: routeForm.route_type || 'sport',
-        description: routeForm.description || null,
-        first_ascent: routeForm.first_ascent || null,
-        area_id: routeForm.area_id || null,
-        sector_id: routeForm.sector_id || null,
-      }
-
-      if (editingRoute) {
-        await adminCragService.updateRoute(expandedCragId, editingRoute.id, data)
-      } else {
-        await adminCragService.createRoute(expandedCragId, data)
-      }
-
-      await fetchRoutes(expandedCragId)
-      handleCancelRouteForm()
-      fetchCrags()
-      fetchStats()
-    } catch (error) {
-      console.error('Failed to save route:', error)
-      alert('儲存路線失敗')
-    } finally {
-      setRouteSubmitting(false)
-    }
-  }
-
-  const handleDeleteRoute = async (routeId: string) => {
-    if (!expandedCragId) return
-
-    try {
-      await adminCragService.deleteRoute(expandedCragId, routeId)
-      await fetchRoutes(expandedCragId)
-      setDeletingRouteId(null)
-      fetchCrags()
-      fetchStats()
-    } catch (error) {
-      console.error('Failed to delete route:', error)
-      alert('刪除路線失敗')
-    }
-  }
-
-  // ---- Area CRUD ----
-  const handleAddArea = () => {
-    setEditingArea(null)
-    setAreaForm({ name: '', name_en: '', description: '' })
-    setShowAreaForm(true)
-  }
-
-  const handleEditArea = (area: AdminArea) => {
-    setEditingArea(area)
-    setAreaForm({
-      name: area.name,
-      name_en: area.name_en || '',
-      description: area.description || '',
-    })
-    setShowAreaForm(true)
-  }
-
-  const handleAreaFormSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
-    if (!expandedCragId || !areaForm.name.trim()) return
-
-    setAreaSubmitting(true)
-    try {
-      const data = {
-        name: areaForm.name.trim(),
-        name_en: areaForm.name_en.trim() || undefined,
-        description: areaForm.description.trim() || undefined,
-      }
-
-      if (editingArea) {
-        await adminCragService.updateArea(expandedCragId, editingArea.id, data)
-      } else {
-        await adminCragService.createArea(expandedCragId, data)
-      }
-
-      await fetchAreas(expandedCragId)
-      setShowAreaForm(false)
-      setEditingArea(null)
-    } catch (error) {
-      console.error('Failed to save area:', error)
-      alert('儲存區域失敗')
-    } finally {
-      setAreaSubmitting(false)
-    }
-  }
-
-  const handleDeleteArea = async (areaId: string) => {
-    if (!expandedCragId) return
-    try {
-      await adminCragService.deleteArea(expandedCragId, areaId)
-      await fetchAreas(expandedCragId)
-      setDeletingAreaId(null)
-      if (expandedAreaId === areaId) {
-        setExpandedAreaId(null)
-      }
-    } catch (error) {
-      console.error('Failed to delete area:', error)
-      alert('刪除區域失敗')
-    }
-  }
-
-  const toggleAreaExpand = (areaId: string) => {
-    if (expandedAreaId === areaId) {
-      setExpandedAreaId(null)
-      setShowSectorForm(false)
-    } else {
-      setExpandedAreaId(areaId)
-      setShowSectorForm(false)
-      if (expandedCragId) {
-        fetchSectors(expandedCragId, areaId)
-      }
-    }
-  }
-
-  // ---- Sector CRUD ----
-  const handleAddSector = () => {
-    setEditingSector(null)
-    setSectorForm({ name: '', name_en: '' })
-    setShowSectorForm(true)
-  }
-
-  const handleEditSector = (sector: AdminSector) => {
-    setEditingSector(sector)
-    setSectorForm({
-      name: sector.name,
-      name_en: sector.name_en || '',
-    })
-    setShowSectorForm(true)
-  }
-
-  const handleSectorFormSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
-    if (!expandedCragId || !expandedAreaId || !sectorForm.name.trim()) return
-
-    setSectorSubmitting(true)
-    try {
-      const data = {
-        name: sectorForm.name.trim(),
-        name_en: sectorForm.name_en.trim() || undefined,
-      }
-
-      if (editingSector) {
-        await adminCragService.updateSector(expandedCragId, expandedAreaId, editingSector.id, data)
-      } else {
-        await adminCragService.createSector(expandedCragId, expandedAreaId, data)
-      }
-
-      await fetchSectors(expandedCragId, expandedAreaId)
-      setShowSectorForm(false)
-      setEditingSector(null)
-    } catch (error) {
-      console.error('Failed to save sector:', error)
-      alert('儲存岩壁失敗')
-    } finally {
-      setSectorSubmitting(false)
-    }
-  }
-
-  const handleDeleteSector = async (sectorId: string) => {
-    if (!expandedCragId || !expandedAreaId) return
-    try {
-      await adminCragService.deleteSector(expandedCragId, expandedAreaId, sectorId)
-      await fetchSectors(expandedCragId, expandedAreaId)
-      setDeletingSectorId(null)
-    } catch (error) {
-      console.error('Failed to delete sector:', error)
-      alert('刪除岩壁失敗')
-    }
-  }
-
-  const regions = ['北部', '中部', '南部', '東部', '離島']
-
-  const routeTypeLabels: Record<string, string> = {
-    sport: '運動攀登',
-    trad: '傳統攀登',
-    boulder: '抱石',
-    mixed: '混合',
   }
 
   return (
@@ -669,36 +197,11 @@ export default function AdminCragManagement() {
 
       {/* 統計卡片 */}
       <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
-        <StatCard
-          icon={Mountain}
-          label="總岩場數"
-          value={stats?.total_crags ?? '-'}
-          loading={statsLoading}
-        />
-        <StatCard
-          icon={RouteIcon}
-          label="總路線數"
-          value={stats?.total_routes ?? '-'}
-          loading={statsLoading}
-        />
-        <StatCard
-          icon={BarChart3}
-          label="總 Bolt 數"
-          value={stats?.total_bolts ?? '-'}
-          loading={statsLoading}
-        />
-        <StatCard
-          icon={Star}
-          label="精選岩場"
-          value={stats?.featured_count ?? '-'}
-          loading={statsLoading}
-        />
-        <StatCard
-          icon={MapPin}
-          label="本月新增"
-          value={stats?.new_this_month ?? '-'}
-          loading={statsLoading}
-        />
+        <StatCard icon={Mountain} label="總岩場數" value={stats?.total_crags ?? '-'} loading={statsLoading} />
+        <StatCard icon={RouteIcon} label="總路線數" value={stats?.total_routes ?? '-'} loading={statsLoading} />
+        <StatCard icon={BarChart3} label="總 Bolt 數" value={stats?.total_bolts ?? '-'} loading={statsLoading} />
+        <StatCard icon={Star} label="精選岩場" value={stats?.featured_count ?? '-'} loading={statsLoading} />
+        <StatCard icon={MapPin} label="本月新增" value={stats?.new_this_month ?? '-'} loading={statsLoading} />
       </div>
 
       {/* 區域分布 */}
@@ -707,10 +210,7 @@ export default function AdminCragManagement() {
           <h3 className="text-sm font-medium text-wb-70 mb-3">區域分布</h3>
           <div className="flex flex-wrap gap-2">
             {stats.regions.map((r) => (
-              <span
-                key={r.region}
-                className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-wb-10 rounded-full text-sm"
-              >
+              <span key={r.region} className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-wb-10 rounded-full text-sm">
                 <span className="text-wb-100 font-medium">{r.region}</span>
                 <span className="text-wb-70">{r.count}</span>
               </span>
@@ -721,252 +221,7 @@ export default function AdminCragManagement() {
 
       {/* 新增/編輯岩場表單 */}
       {showCragForm && (
-        <div className="bg-white rounded-xl shadow-sm border border-wb-20 p-6">
-          <div className="flex items-center justify-between mb-4">
-            <h3 className="text-lg font-semibold text-wb-100">
-              {editingCrag ? '編輯岩場' : '新增岩場'}
-            </h3>
-            <button
-              onClick={handleCancelCragForm}
-              className="p-2 text-wb-50 hover:text-wb-100 rounded-lg transition-colors"
-            >
-              <X className="h-5 w-5" />
-            </button>
-          </div>
-          <form onSubmit={handleCragFormSubmit} className="space-y-4">
-            {/* 基本資訊 */}
-            <fieldset className="space-y-3">
-              <legend className="text-sm font-medium text-wb-90 mb-2">基本資訊</legend>
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-                <div>
-                  <label className="block text-sm font-medium text-wb-70 mb-1">
-                    名稱 <span className="text-red-500">*</span>
-                  </label>
-                  <input
-                    type="text"
-                    value={cragForm.name}
-                    onChange={(e) => setCragForm({ ...cragForm, name: e.target.value })}
-                    className="w-full px-3 py-2 text-sm border border-wb-20 rounded-lg focus:outline-none focus:ring-2 focus:ring-wb-100/20"
-                    required
-                  />
-                </div>
-                {!editingCrag && (
-                  <div>
-                    <label className="block text-sm font-medium text-wb-70 mb-1">
-                      Slug <span className="text-xs text-wb-50">(留空自動產生)</span>
-                    </label>
-                    <input
-                      type="text"
-                      value={cragForm.slug}
-                      onChange={(e) => setCragForm({ ...cragForm, slug: e.target.value })}
-                      placeholder="例：longdong"
-                      className="w-full px-3 py-2 text-sm border border-wb-20 rounded-lg focus:outline-none focus:ring-2 focus:ring-wb-100/20"
-                    />
-                  </div>
-                )}
-                <div>
-                  <label className="block text-sm font-medium text-wb-70 mb-1">區域</label>
-                  <select
-                    value={cragForm.region}
-                    onChange={(e) => setCragForm({ ...cragForm, region: e.target.value })}
-                    className="w-full px-3 py-2 text-sm border border-wb-20 rounded-lg focus:outline-none focus:ring-2 focus:ring-wb-100/20 bg-white"
-                  >
-                    <option value="">選擇區域</option>
-                    {regions.map((r) => (
-                      <option key={r} value={r}>{r}</option>
-                    ))}
-                  </select>
-                </div>
-                <div className="sm:col-span-2 lg:col-span-3">
-                  <label className="block text-sm font-medium text-wb-70 mb-1">位置描述</label>
-                  <input
-                    type="text"
-                    value={cragForm.location}
-                    onChange={(e) => setCragForm({ ...cragForm, location: e.target.value })}
-                    placeholder="例：新北市瑞芳區龍洞"
-                    className="w-full px-3 py-2 text-sm border border-wb-20 rounded-lg focus:outline-none focus:ring-2 focus:ring-wb-100/20"
-                  />
-                </div>
-                <div className="sm:col-span-2 lg:col-span-3">
-                  <label className="block text-sm font-medium text-wb-70 mb-1">描述</label>
-                  <textarea
-                    value={cragForm.description}
-                    onChange={(e) => setCragForm({ ...cragForm, description: e.target.value })}
-                    rows={3}
-                    className="w-full px-3 py-2 text-sm border border-wb-20 rounded-lg focus:outline-none focus:ring-2 focus:ring-wb-100/20 resize-none"
-                  />
-                </div>
-              </div>
-            </fieldset>
-
-            {/* 地理資訊 */}
-            <fieldset className="space-y-3">
-              <legend className="text-sm font-medium text-wb-90 mb-2">地理資訊</legend>
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                <div>
-                  <label className="block text-sm font-medium text-wb-70 mb-1">緯度</label>
-                  <input
-                    type="number"
-                    step="any"
-                    value={cragForm.latitude}
-                    onChange={(e) => setCragForm({ ...cragForm, latitude: e.target.value })}
-                    placeholder="例：25.1082"
-                    className="w-full px-3 py-2 text-sm border border-wb-20 rounded-lg focus:outline-none focus:ring-2 focus:ring-wb-100/20"
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-wb-70 mb-1">經度</label>
-                  <input
-                    type="number"
-                    step="any"
-                    value={cragForm.longitude}
-                    onChange={(e) => setCragForm({ ...cragForm, longitude: e.target.value })}
-                    placeholder="例：121.9227"
-                    className="w-full px-3 py-2 text-sm border border-wb-20 rounded-lg focus:outline-none focus:ring-2 focus:ring-wb-100/20"
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-wb-70 mb-1">海拔 (m)</label>
-                  <input
-                    type="number"
-                    value={cragForm.altitude}
-                    onChange={(e) => setCragForm({ ...cragForm, altitude: e.target.value })}
-                    className="w-full px-3 py-2 text-sm border border-wb-20 rounded-lg focus:outline-none focus:ring-2 focus:ring-wb-100/20"
-                  />
-                </div>
-              </div>
-            </fieldset>
-
-            {/* 攀岩資訊 */}
-            <fieldset className="space-y-3">
-              <legend className="text-sm font-medium text-wb-90 mb-2">攀岩資訊</legend>
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-                <div>
-                  <label className="block text-sm font-medium text-wb-70 mb-1">岩質</label>
-                  <input
-                    type="text"
-                    value={cragForm.rock_type}
-                    onChange={(e) => setCragForm({ ...cragForm, rock_type: e.target.value })}
-                    placeholder="例：砂岩、石灰岩、花崗岩"
-                    className="w-full px-3 py-2 text-sm border border-wb-20 rounded-lg focus:outline-none focus:ring-2 focus:ring-wb-100/20"
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-wb-70 mb-1">攀登類型</label>
-                  <input
-                    type="text"
-                    value={cragForm.climbing_types}
-                    onChange={(e) => setCragForm({ ...cragForm, climbing_types: e.target.value })}
-                    placeholder="逗號分隔，例：sport, trad, boulder"
-                    className="w-full px-3 py-2 text-sm border border-wb-20 rounded-lg focus:outline-none focus:ring-2 focus:ring-wb-100/20"
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-wb-70 mb-1">難度範圍</label>
-                  <input
-                    type="text"
-                    value={cragForm.difficulty_range}
-                    onChange={(e) => setCragForm({ ...cragForm, difficulty_range: e.target.value })}
-                    placeholder="例：5.6-5.13a"
-                    className="w-full px-3 py-2 text-sm border border-wb-20 rounded-lg focus:outline-none focus:ring-2 focus:ring-wb-100/20"
-                  />
-                </div>
-              </div>
-            </fieldset>
-
-            {/* 交通與環境 */}
-            <fieldset className="space-y-3">
-              <legend className="text-sm font-medium text-wb-90 mb-2">交通與環境</legend>
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-sm font-medium text-wb-70 mb-1">進場時間</label>
-                  <input
-                    type="text"
-                    value={cragForm.approach_time}
-                    onChange={(e) => setCragForm({ ...cragForm, approach_time: e.target.value })}
-                    placeholder="例：15（分鐘）"
-                    className="w-full px-3 py-2 text-sm border border-wb-20 rounded-lg focus:outline-none focus:ring-2 focus:ring-wb-100/20"
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-wb-70 mb-1">適合季節</label>
-                  <input
-                    type="text"
-                    value={cragForm.best_seasons}
-                    onChange={(e) => setCragForm({ ...cragForm, best_seasons: e.target.value })}
-                    placeholder="逗號分隔，例：秋, 冬, 春"
-                    className="w-full px-3 py-2 text-sm border border-wb-20 rounded-lg focus:outline-none focus:ring-2 focus:ring-wb-100/20"
-                  />
-                </div>
-                <div className="sm:col-span-2">
-                  <label className="block text-sm font-medium text-wb-70 mb-1">交通資訊</label>
-                  <textarea
-                    value={cragForm.access_info}
-                    onChange={(e) => setCragForm({ ...cragForm, access_info: e.target.value })}
-                    rows={2}
-                    placeholder="如何抵達、大眾運輸方式等"
-                    className="w-full px-3 py-2 text-sm border border-wb-20 rounded-lg focus:outline-none focus:ring-2 focus:ring-wb-100/20 resize-none"
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-wb-70 mb-1">停車資訊</label>
-                  <textarea
-                    value={cragForm.parking_info}
-                    onChange={(e) => setCragForm({ ...cragForm, parking_info: e.target.value })}
-                    rows={2}
-                    className="w-full px-3 py-2 text-sm border border-wb-20 rounded-lg focus:outline-none focus:ring-2 focus:ring-wb-100/20 resize-none"
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-wb-70 mb-1">限制事項</label>
-                  <textarea
-                    value={cragForm.restrictions}
-                    onChange={(e) => setCragForm({ ...cragForm, restrictions: e.target.value })}
-                    rows={2}
-                    placeholder="例：雨後禁止攀爬、需申請入山證等"
-                    className="w-full px-3 py-2 text-sm border border-wb-20 rounded-lg focus:outline-none focus:ring-2 focus:ring-wb-100/20 resize-none"
-                  />
-                </div>
-              </div>
-            </fieldset>
-
-            {/* 其他設定 */}
-            <div className="flex items-center gap-2">
-              <input
-                type="checkbox"
-                id="crag_is_featured"
-                checked={cragForm.is_featured}
-                onChange={(e) => setCragForm({ ...cragForm, is_featured: e.target.checked })}
-                className="rounded border-wb-20 text-wb-100 focus:ring-wb-100/20"
-              />
-              <label htmlFor="crag_is_featured" className="text-sm text-wb-70">
-                設為精選岩場
-              </label>
-            </div>
-
-            <div className="flex items-center justify-end gap-2 pt-2">
-              <button
-                type="button"
-                onClick={handleCancelCragForm}
-                className="px-4 py-2 text-sm text-wb-70 hover:text-wb-100 rounded-lg hover:bg-wb-10 transition-colors"
-              >
-                取消
-              </button>
-              <button
-                type="submit"
-                disabled={cragSubmitting || !cragForm.name.trim()}
-                className="flex items-center gap-1.5 px-4 py-2 text-sm bg-wb-100 text-white rounded-lg hover:bg-wb-90 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-              >
-                {cragSubmitting ? (
-                  <Loader2 className="h-4 w-4 animate-spin" />
-                ) : (
-                  <Save className="h-4 w-4" />
-                )}
-                {editingCrag ? '更新岩場' : '新增岩場'}
-              </button>
-            </div>
-          </form>
-        </div>
+        <CragForm crag={editingCrag} onSave={handleCragFormSave} onCancel={handleCragFormCancel} />
       )}
 
       {/* 搜尋和篩選 */}
@@ -991,10 +246,8 @@ export default function AdminCragManagement() {
             className="px-4 py-2 border border-wb-20 rounded-lg focus:outline-none focus:ring-2 focus:ring-wb-100/20 focus:border-wb-100 bg-white"
           >
             <option value="">所有區域</option>
-            {regions.map((r) => (
-              <option key={r} value={r}>
-                {r}
-              </option>
+            {REGIONS.map((r) => (
+              <option key={r} value={r}>{r}</option>
             ))}
           </select>
           <button
@@ -1139,561 +392,21 @@ export default function AdminCragManagement() {
                         </td>
                       </tr>
 
-                      {/* Expanded Crag Management */}
+                      {/* 展開的岩場管理面板 */}
                       {expandedCragId === crag.id && (
                         <tr>
                           <td colSpan={7} className="bg-wb-10/30 px-4 py-4">
                             <div className="space-y-4">
-                              {/* Area management */}
-                              <div className="space-y-3">
-                                <div className="flex items-center justify-between">
-                                  <h4 className="text-sm font-semibold text-wb-100 flex items-center gap-2">
-                                    <Layers className="h-4 w-4" />
-                                    區域管理 ({cragAreas.length})
-                                  </h4>
-                                  <button
-                                    onClick={handleAddArea}
-                                    className="flex items-center gap-1.5 px-3 py-1.5 text-xs bg-wb-100 text-white rounded-lg hover:bg-wb-90 transition-colors"
-                                  >
-                                    <Plus className="h-3 w-3" />
-                                    新增區域
-                                  </button>
-                                </div>
-
-                                {/* Area form */}
-                                {showAreaForm && (
-                                  <div className="bg-white rounded-lg border border-wb-20 p-3">
-                                    <form onSubmit={handleAreaFormSubmit} className="space-y-2">
-                                      <div className="flex items-center justify-between mb-1">
-                                        <span className="text-xs font-medium text-wb-90">
-                                          {editingArea ? '編輯區域' : '新增區域'}
-                                        </span>
-                                        <button
-                                          type="button"
-                                          onClick={() => { setShowAreaForm(false); setEditingArea(null) }}
-                                          className="p-1 text-wb-50 hover:text-wb-100 rounded"
-                                        >
-                                          <X className="h-3.5 w-3.5" />
-                                        </button>
-                                      </div>
-                                      <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
-                                        <input
-                                          type="text"
-                                          value={areaForm.name}
-                                          onChange={(e) => setAreaForm({ ...areaForm, name: e.target.value })}
-                                          placeholder="區域名稱（必填）"
-                                          className="px-2.5 py-1.5 text-sm border border-wb-20 rounded-lg focus:outline-none focus:ring-2 focus:ring-wb-100/20"
-                                          required
-                                        />
-                                        <input
-                                          type="text"
-                                          value={areaForm.name_en}
-                                          onChange={(e) => setAreaForm({ ...areaForm, name_en: e.target.value })}
-                                          placeholder="英文名稱"
-                                          className="px-2.5 py-1.5 text-sm border border-wb-20 rounded-lg focus:outline-none focus:ring-2 focus:ring-wb-100/20"
-                                        />
-                                        <input
-                                          type="text"
-                                          value={areaForm.description}
-                                          onChange={(e) => setAreaForm({ ...areaForm, description: e.target.value })}
-                                          placeholder="描述"
-                                          className="px-2.5 py-1.5 text-sm border border-wb-20 rounded-lg focus:outline-none focus:ring-2 focus:ring-wb-100/20"
-                                        />
-                                      </div>
-                                      <div className="flex justify-end gap-2">
-                                        <button
-                                          type="button"
-                                          onClick={() => { setShowAreaForm(false); setEditingArea(null) }}
-                                          className="px-2.5 py-1 text-xs text-wb-70 hover:text-wb-100 rounded hover:bg-wb-10"
-                                        >
-                                          取消
-                                        </button>
-                                        <button
-                                          type="submit"
-                                          disabled={areaSubmitting || !areaForm.name.trim()}
-                                          className="flex items-center gap-1 px-2.5 py-1 text-xs bg-wb-100 text-white rounded hover:bg-wb-90 disabled:opacity-50"
-                                        >
-                                          {areaSubmitting ? <Loader2 className="h-3 w-3 animate-spin" /> : <Save className="h-3 w-3" />}
-                                          {editingArea ? '更新' : '新增'}
-                                        </button>
-                                      </div>
-                                    </form>
-                                  </div>
-                                )}
-
-                                {/* Area list */}
-                                {areasLoading ? (
-                                  <div className="flex items-center justify-center py-3">
-                                    <Loader2 className="h-4 w-4 animate-spin text-wb-50" />
-                                  </div>
-                                ) : cragAreas.length === 0 ? (
-                                  <div className="text-center py-3 text-xs text-wb-50">
-                                    尚無區域資料，點擊「新增區域」開始建立
-                                  </div>
-                                ) : (
-                                  <div className="space-y-1">
-                                    {cragAreas.map((area) => (
-                                      <div key={area.id} className="bg-white rounded-lg border border-wb-20">
-                                        <div
-                                          className={`flex items-center justify-between px-3 py-2 cursor-pointer hover:bg-wb-10/50 transition-colors ${expandedAreaId === area.id ? 'bg-wb-10/50' : ''}`}
-                                          onClick={() => toggleAreaExpand(area.id)}
-                                        >
-                                          <div className="flex items-center gap-2">
-                                            <FolderOpen className="h-3.5 w-3.5 text-wb-70" />
-                                            <span className="text-sm font-medium text-wb-100">{area.name}</span>
-                                            {area.name_en && (
-                                              <span className="text-xs text-wb-50">{area.name_en}</span>
-                                            )}
-                                            <span className="text-xs text-wb-50">
-                                              ({area.route_count} 路線 / {area.bolt_count} bolt)
-                                            </span>
-                                          </div>
-                                          <div className="flex items-center gap-1">
-                                            <button
-                                              onClick={(e) => { e.stopPropagation(); handleEditArea(area) }}
-                                              className="p-1 text-wb-50 hover:text-wb-100 hover:bg-wb-10 rounded transition-colors"
-                                              title="編輯區域"
-                                            >
-                                              <Pencil className="h-3 w-3" />
-                                            </button>
-                                            {deletingAreaId === area.id ? (
-                                              <div className="flex items-center gap-1" onClick={(e) => e.stopPropagation()}>
-                                                <button
-                                                  onClick={() => handleDeleteArea(area.id)}
-                                                  className="px-1.5 py-0.5 text-xs bg-red-500 text-white rounded hover:bg-red-600"
-                                                >
-                                                  確認
-                                                </button>
-                                                <button
-                                                  onClick={() => setDeletingAreaId(null)}
-                                                  className="px-1.5 py-0.5 text-xs text-wb-70 rounded hover:bg-wb-10"
-                                                >
-                                                  取消
-                                                </button>
-                                              </div>
-                                            ) : (
-                                              <button
-                                                onClick={(e) => { e.stopPropagation(); setDeletingAreaId(area.id) }}
-                                                className="p-1 text-wb-50 hover:text-red-500 hover:bg-red-50 rounded transition-colors"
-                                                title="刪除區域"
-                                              >
-                                                <Trash2 className="h-3 w-3" />
-                                              </button>
-                                            )}
-                                            {expandedAreaId === area.id ? (
-                                              <ChevronUp className="h-3.5 w-3.5 text-wb-50" />
-                                            ) : (
-                                              <ChevronDown className="h-3.5 w-3.5 text-wb-50" />
-                                            )}
-                                          </div>
-                                        </div>
-
-                                        {/* Expanded: sectors within this area */}
-                                        {expandedAreaId === area.id && (
-                                          <div className="border-t border-wb-20 px-3 py-2 bg-wb-10/20 space-y-2">
-                                            <div className="flex items-center justify-between">
-                                              <span className="text-xs font-medium text-wb-70">
-                                                岩壁分區 ({areaSectors[area.id]?.length || 0})
-                                              </span>
-                                              <button
-                                                onClick={handleAddSector}
-                                                className="flex items-center gap-1 px-2 py-0.5 text-xs bg-wb-100 text-white rounded hover:bg-wb-90 transition-colors"
-                                              >
-                                                <Plus className="h-2.5 w-2.5" />
-                                                新增岩壁
-                                              </button>
-                                            </div>
-
-                                            {/* Sector form */}
-                                            {showSectorForm && (
-                                              <div className="bg-white rounded border border-wb-20 p-2">
-                                                <form onSubmit={handleSectorFormSubmit} className="flex items-center gap-2">
-                                                  <input
-                                                    type="text"
-                                                    value={sectorForm.name}
-                                                    onChange={(e) => setSectorForm({ ...sectorForm, name: e.target.value })}
-                                                    placeholder="岩壁名稱"
-                                                    className="flex-1 px-2 py-1 text-xs border border-wb-20 rounded focus:outline-none focus:ring-1 focus:ring-wb-100/20"
-                                                    required
-                                                  />
-                                                  <input
-                                                    type="text"
-                                                    value={sectorForm.name_en}
-                                                    onChange={(e) => setSectorForm({ ...sectorForm, name_en: e.target.value })}
-                                                    placeholder="英文名"
-                                                    className="flex-1 px-2 py-1 text-xs border border-wb-20 rounded focus:outline-none focus:ring-1 focus:ring-wb-100/20"
-                                                  />
-                                                  <button
-                                                    type="submit"
-                                                    disabled={sectorSubmitting || !sectorForm.name.trim()}
-                                                    className="flex items-center gap-1 px-2 py-1 text-xs bg-wb-100 text-white rounded hover:bg-wb-90 disabled:opacity-50"
-                                                  >
-                                                    {sectorSubmitting ? <Loader2 className="h-3 w-3 animate-spin" /> : <Save className="h-3 w-3" />}
-                                                    {editingSector ? '更新' : '新增'}
-                                                  </button>
-                                                  <button
-                                                    type="button"
-                                                    onClick={() => { setShowSectorForm(false); setEditingSector(null) }}
-                                                    className="p-1 text-wb-50 hover:text-wb-100 rounded"
-                                                  >
-                                                    <X className="h-3 w-3" />
-                                                  </button>
-                                                </form>
-                                              </div>
-                                            )}
-
-                                            {/* Sector list */}
-                                            {sectorsLoading ? (
-                                              <div className="flex items-center justify-center py-2">
-                                                <Loader2 className="h-3 w-3 animate-spin text-wb-50" />
-                                              </div>
-                                            ) : !areaSectors[area.id] || areaSectors[area.id].length === 0 ? (
-                                              <div className="text-center py-2 text-xs text-wb-50">
-                                                尚無岩壁分區
-                                              </div>
-                                            ) : (
-                                              <div className="flex flex-wrap gap-1.5">
-                                                {areaSectors[area.id].map((sector) => (
-                                                  <div
-                                                    key={sector.id}
-                                                    className="inline-flex items-center gap-1 px-2 py-1 bg-white border border-wb-20 rounded text-xs"
-                                                  >
-                                                    <span className="text-wb-100 font-medium">{sector.name}</span>
-                                                    {sector.name_en && (
-                                                      <span className="text-wb-50">{sector.name_en}</span>
-                                                    )}
-                                                    <button
-                                                      onClick={() => handleEditSector(sector)}
-                                                      className="p-0.5 text-wb-50 hover:text-wb-100 rounded transition-colors"
-                                                    >
-                                                      <Pencil className="h-2.5 w-2.5" />
-                                                    </button>
-                                                    {deletingSectorId === sector.id ? (
-                                                      <div className="flex items-center gap-0.5">
-                                                        <button
-                                                          onClick={() => handleDeleteSector(sector.id)}
-                                                          className="px-1 text-xs text-red-500 hover:text-red-600"
-                                                        >
-                                                          刪
-                                                        </button>
-                                                        <button
-                                                          onClick={() => setDeletingSectorId(null)}
-                                                          className="px-1 text-xs text-wb-50 hover:text-wb-100"
-                                                        >
-                                                          取消
-                                                        </button>
-                                                      </div>
-                                                    ) : (
-                                                      <button
-                                                        onClick={() => setDeletingSectorId(sector.id)}
-                                                        className="p-0.5 text-wb-50 hover:text-red-500 rounded transition-colors"
-                                                      >
-                                                        <Trash2 className="h-2.5 w-2.5" />
-                                                      </button>
-                                                    )}
-                                                  </div>
-                                                ))}
-                                              </div>
-                                            )}
-                                          </div>
-                                        )}
-                                      </div>
-                                    ))}
-                                  </div>
-                                )}
-                              </div>
-
-                              {/* Divider */}
+                              <AreaSectorSection
+                                cragId={crag.id}
+                                onAreasChange={setExpandedAreas}
+                              />
                               <div className="border-t border-wb-20" />
-
-                              {/* Route list header */}
-                              <div className="flex items-center justify-between">
-                                <h4 className="text-sm font-semibold text-wb-100 flex items-center gap-2">
-                                  <RouteIcon className="h-4 w-4" />
-                                  路線列表 ({cragRoutes.length})
-                                </h4>
-                                <button
-                                  onClick={handleAddRoute}
-                                  className="flex items-center gap-1.5 px-3 py-1.5 text-sm bg-wb-100 text-white rounded-lg hover:bg-wb-90 transition-colors"
-                                >
-                                  <Plus className="h-3.5 w-3.5" />
-                                  新增路線
-                                </button>
-                              </div>
-
-                              {/* Route form (add/edit) */}
-                              {showRouteForm && (
-                                <div className="bg-white rounded-lg border border-wb-20 p-4">
-                                  <div className="flex items-center justify-between mb-3">
-                                    <h5 className="text-sm font-medium text-wb-100">
-                                      {editingRoute ? '編輯路線' : '新增路線'}
-                                    </h5>
-                                    <button
-                                      onClick={handleCancelRouteForm}
-                                      className="p-1 text-wb-50 hover:text-wb-100 rounded transition-colors"
-                                    >
-                                      <X className="h-4 w-4" />
-                                    </button>
-                                  </div>
-                                  <form onSubmit={handleRouteFormSubmit} className="space-y-3">
-                                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
-                                      <div>
-                                        <label className="block text-xs text-wb-70 mb-1">
-                                          名稱 <span className="text-red-500">*</span>
-                                        </label>
-                                        <input
-                                          type="text"
-                                          value={routeForm.name}
-                                          onChange={(e) =>
-                                            setRouteForm({ ...routeForm, name: e.target.value })
-                                          }
-                                          className="w-full px-3 py-1.5 text-sm border border-wb-20 rounded-lg focus:outline-none focus:ring-2 focus:ring-wb-100/20"
-                                          required
-                                        />
-                                      </div>
-                                      <div>
-                                        <label className="block text-xs text-wb-70 mb-1">難度</label>
-                                        <input
-                                          type="text"
-                                          value={routeForm.grade}
-                                          onChange={(e) =>
-                                            setRouteForm({ ...routeForm, grade: e.target.value })
-                                          }
-                                          placeholder="例：5.10a"
-                                          className="w-full px-3 py-1.5 text-sm border border-wb-20 rounded-lg focus:outline-none focus:ring-2 focus:ring-wb-100/20"
-                                        />
-                                      </div>
-                                      <div>
-                                        <label className="block text-xs text-wb-70 mb-1">難度系統</label>
-                                        <select
-                                          value={routeForm.grade_system}
-                                          onChange={(e) =>
-                                            setRouteForm({ ...routeForm, grade_system: e.target.value })
-                                          }
-                                          className="w-full px-3 py-1.5 text-sm border border-wb-20 rounded-lg focus:outline-none focus:ring-2 focus:ring-wb-100/20 bg-white"
-                                        >
-                                          <option value="yds">YDS</option>
-                                          <option value="french">French</option>
-                                          <option value="v-scale">V-Scale</option>
-                                          <option value="font">Font</option>
-                                        </select>
-                                      </div>
-                                      <div>
-                                        <label className="block text-xs text-wb-70 mb-1">類型</label>
-                                        <select
-                                          value={routeForm.route_type}
-                                          onChange={(e) =>
-                                            setRouteForm({ ...routeForm, route_type: e.target.value })
-                                          }
-                                          className="w-full px-3 py-1.5 text-sm border border-wb-20 rounded-lg focus:outline-none focus:ring-2 focus:ring-wb-100/20 bg-white"
-                                        >
-                                          <option value="sport">運動攀登</option>
-                                          <option value="trad">傳統攀登</option>
-                                          <option value="boulder">抱石</option>
-                                          <option value="mixed">混合</option>
-                                        </select>
-                                      </div>
-                                      <div>
-                                        <label className="block text-xs text-wb-70 mb-1">高度 (m)</label>
-                                        <input
-                                          type="number"
-                                          value={routeForm.height}
-                                          onChange={(e) =>
-                                            setRouteForm({ ...routeForm, height: e.target.value })
-                                          }
-                                          className="w-full px-3 py-1.5 text-sm border border-wb-20 rounded-lg focus:outline-none focus:ring-2 focus:ring-wb-100/20"
-                                        />
-                                      </div>
-                                      <div>
-                                        <label className="block text-xs text-wb-70 mb-1">Bolt 數</label>
-                                        <input
-                                          type="number"
-                                          value={routeForm.bolt_count}
-                                          onChange={(e) =>
-                                            setRouteForm({ ...routeForm, bolt_count: e.target.value })
-                                          }
-                                          className="w-full px-3 py-1.5 text-sm border border-wb-20 rounded-lg focus:outline-none focus:ring-2 focus:ring-wb-100/20"
-                                        />
-                                      </div>
-                                      <div>
-                                        <label className="block text-xs text-wb-70 mb-1">首攀者</label>
-                                        <input
-                                          type="text"
-                                          value={routeForm.first_ascent}
-                                          onChange={(e) =>
-                                            setRouteForm({ ...routeForm, first_ascent: e.target.value })
-                                          }
-                                          className="w-full px-3 py-1.5 text-sm border border-wb-20 rounded-lg focus:outline-none focus:ring-2 focus:ring-wb-100/20"
-                                        />
-                                      </div>
-                                    </div>
-                                    {/* 區域/岩壁歸屬 */}
-                                    {cragAreas.length > 0 && (
-                                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                                        <div>
-                                          <label className="block text-xs text-wb-70 mb-1">所屬區域</label>
-                                          <select
-                                            value={routeForm.area_id}
-                                            onChange={(e) => {
-                                              const newAreaId = e.target.value
-                                              setRouteForm({ ...routeForm, area_id: newAreaId, sector_id: '' })
-                                              if (newAreaId && expandedCragId) {
-                                                fetchSectors(expandedCragId, newAreaId)
-                                              }
-                                            }}
-                                            className="w-full px-3 py-1.5 text-sm border border-wb-20 rounded-lg focus:outline-none focus:ring-2 focus:ring-wb-100/20 bg-white"
-                                          >
-                                            <option value="">未指定</option>
-                                            {cragAreas.map((area) => (
-                                              <option key={area.id} value={area.id}>{area.name}</option>
-                                            ))}
-                                          </select>
-                                        </div>
-                                        <div>
-                                          <label className="block text-xs text-wb-70 mb-1">所屬岩壁</label>
-                                          <select
-                                            value={routeForm.sector_id}
-                                            onChange={(e) =>
-                                              setRouteForm({ ...routeForm, sector_id: e.target.value })
-                                            }
-                                            disabled={!routeForm.area_id}
-                                            className="w-full px-3 py-1.5 text-sm border border-wb-20 rounded-lg focus:outline-none focus:ring-2 focus:ring-wb-100/20 bg-white disabled:opacity-50 disabled:cursor-not-allowed"
-                                          >
-                                            <option value="">未指定</option>
-                                            {routeForm.area_id && areaSectors[routeForm.area_id]?.map((sector) => (
-                                              <option key={sector.id} value={sector.id}>{sector.name}</option>
-                                            ))}
-                                          </select>
-                                        </div>
-                                      </div>
-                                    )}
-                                    <div>
-                                      <label className="block text-xs text-wb-70 mb-1">描述</label>
-                                      <textarea
-                                        value={routeForm.description}
-                                        onChange={(e) =>
-                                          setRouteForm({ ...routeForm, description: e.target.value })
-                                        }
-                                        rows={2}
-                                        className="w-full px-3 py-1.5 text-sm border border-wb-20 rounded-lg focus:outline-none focus:ring-2 focus:ring-wb-100/20 resize-none"
-                                      />
-                                    </div>
-                                    <div className="flex items-center justify-end gap-2">
-                                      <button
-                                        type="button"
-                                        onClick={handleCancelRouteForm}
-                                        className="px-3 py-1.5 text-sm text-wb-70 hover:text-wb-100 rounded-lg hover:bg-wb-10 transition-colors"
-                                      >
-                                        取消
-                                      </button>
-                                      <button
-                                        type="submit"
-                                        disabled={routeSubmitting || !routeForm.name.trim()}
-                                        className="flex items-center gap-1.5 px-3 py-1.5 text-sm bg-wb-100 text-white rounded-lg hover:bg-wb-90 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-                                      >
-                                        {routeSubmitting ? (
-                                          <Loader2 className="h-3.5 w-3.5 animate-spin" />
-                                        ) : (
-                                          <Save className="h-3.5 w-3.5" />
-                                        )}
-                                        {editingRoute ? '更新' : '新增'}
-                                      </button>
-                                    </div>
-                                  </form>
-                                </div>
-                              )}
-
-                              {/* Route list */}
-                              {routesLoading ? (
-                                <div className="flex items-center justify-center py-6">
-                                  <Loader2 className="h-5 w-5 animate-spin text-wb-50" />
-                                </div>
-                              ) : cragRoutes.length === 0 ? (
-                                <div className="text-center py-6 text-sm text-wb-50">
-                                  此岩場尚無路線資料
-                                </div>
-                              ) : (
-                                <div className="bg-white rounded-lg border border-wb-20 overflow-hidden">
-                                  <table className="w-full text-sm">
-                                    <thead className="bg-wb-10">
-                                      <tr className="text-left text-xs text-wb-70">
-                                        <th className="px-3 py-2 font-medium">路線名稱</th>
-                                        <th className="px-3 py-2 font-medium">難度</th>
-                                        <th className="px-3 py-2 font-medium">類型</th>
-                                        <th className="px-3 py-2 font-medium text-center">高度</th>
-                                        <th className="px-3 py-2 font-medium text-center">Bolt</th>
-                                        <th className="px-3 py-2 font-medium">首攀</th>
-                                        <th className="px-3 py-2 font-medium text-right">操作</th>
-                                      </tr>
-                                    </thead>
-                                    <tbody>
-                                      {cragRoutes.map((route) => (
-                                        <tr
-                                          key={route.id}
-                                          className="border-t border-wb-20 hover:bg-wb-10/50 transition-colors"
-                                        >
-                                          <td className="px-3 py-2 font-medium text-wb-100">
-                                            {route.name}
-                                          </td>
-                                          <td className="px-3 py-2">
-                                            <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded bg-wb-10 text-xs font-medium text-wb-90">
-                                              <Hash className="h-3 w-3" />
-                                              {route.grade || '-'}
-                                            </span>
-                                          </td>
-                                          <td className="px-3 py-2 text-wb-70">
-                                            {routeTypeLabels[route.route_type] || route.route_type}
-                                          </td>
-                                          <td className="px-3 py-2 text-center text-wb-70">
-                                            {route.height ? `${route.height}m` : '-'}
-                                          </td>
-                                          <td className="px-3 py-2 text-center text-wb-70">
-                                            {route.bolt_count ?? '-'}
-                                          </td>
-                                          <td className="px-3 py-2 text-wb-70 text-xs">
-                                            {route.first_ascent || '-'}
-                                          </td>
-                                          <td className="px-3 py-2 text-right">
-                                            <div className="flex items-center justify-end gap-1">
-                                              <button
-                                                onClick={() => handleEditRoute(route)}
-                                                className="p-1.5 text-wb-50 hover:text-wb-100 hover:bg-wb-10 rounded transition-colors"
-                                                title="編輯"
-                                              >
-                                                <Pencil className="h-3.5 w-3.5" />
-                                              </button>
-                                              {deletingRouteId === route.id ? (
-                                                <div className="flex items-center gap-1">
-                                                  <button
-                                                    onClick={() => handleDeleteRoute(route.id)}
-                                                    className="px-2 py-1 text-xs bg-red-500 text-white rounded hover:bg-red-600 transition-colors"
-                                                  >
-                                                    確認
-                                                  </button>
-                                                  <button
-                                                    onClick={() => setDeletingRouteId(null)}
-                                                    className="px-2 py-1 text-xs text-wb-70 hover:text-wb-100 rounded hover:bg-wb-10 transition-colors"
-                                                  >
-                                                    取消
-                                                  </button>
-                                                </div>
-                                              ) : (
-                                                <button
-                                                  onClick={() => setDeletingRouteId(route.id)}
-                                                  className="p-1.5 text-wb-50 hover:text-red-500 hover:bg-red-50 rounded transition-colors"
-                                                  title="刪除"
-                                                >
-                                                  <Trash2 className="h-3.5 w-3.5" />
-                                                </button>
-                                              )}
-                                            </div>
-                                          </td>
-                                        </tr>
-                                      ))}
-                                    </tbody>
-                                  </table>
-                                </div>
-                              )}
+                              <RouteSection
+                                cragId={crag.id}
+                                areas={expandedAreas}
+                                onRoutesChange={() => { fetchCrags(); fetchStats() }}
+                              />
                             </div>
                           </td>
                         </tr>

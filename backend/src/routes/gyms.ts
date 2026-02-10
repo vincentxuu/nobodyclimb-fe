@@ -14,6 +14,7 @@ const listGymsQuerySchema = z.object({
   limit: z.string().optional(),
   city: z.string().optional(),
   featured: z.enum(['true', 'false']).optional(),
+  search: z.string().optional(),
 });
 
 const gymIdParamSchema = z.object({
@@ -76,7 +77,7 @@ gymsRoutes.get(
   describeRoute({
     tags: ['Gyms'],
     summary: '取得岩館列表',
-    description: '取得所有岩館列表，支援分頁、城市過濾和精選過濾',
+    description: '取得所有岩館列表，支援分頁、搜尋、城市過濾和精選過濾',
     responses: {
       200: { description: '成功取得岩館列表' },
     },
@@ -89,9 +90,16 @@ gymsRoutes.get(
   );
   const city = c.req.query('city');
   const featured = c.req.query('featured');
+  const search = c.req.query('search');
 
   let whereClause = '1=1';
   const params: (string | number)[] = [];
+
+  if (search) {
+    whereClause += ' AND (name LIKE ? OR address LIKE ? OR city LIKE ?)';
+    const searchPattern = `%${search}%`;
+    params.push(searchPattern, searchPattern, searchPattern);
+  }
 
   if (city) {
     whereClause += ' AND city = ?';
