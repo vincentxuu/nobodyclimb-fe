@@ -43,8 +43,8 @@ function convertYouTubeToVideoType(inputFile, outputFile, channelInfo = {}) {
     return 'long'; // > 20 minutes
   }
   
-  // Function to format view count
-  function formatViewCount(count) {
+  // Function to format count (view count, like count, etc.)
+  function formatCount(count) {
     if (!count) return '0';
     if (count >= 1000000) {
       return (count / 1000000).toFixed(1) + 'M';
@@ -117,14 +117,15 @@ function convertYouTubeToVideoType(inputFile, outputFile, channelInfo = {}) {
   const convertedVideos = videoData.map((video, index) => {
     const duration = formatDuration(video.duration);
     const durationCategory = getDurationCategory(video.duration);
-    const viewCount = formatViewCount(video.view_count);
+    const viewCount = formatCount(video.view_count);
+    const likeCount = formatCount(video.like_count);
     const category = categorizeVideo(video.title, video.description || '', channelInfo.type || 'climbing');
-    
+
     // Get best thumbnail (highest resolution available)
     const bestThumbnail = video.thumbnails && video.thumbnails.length > 0
       ? video.thumbnails[video.thumbnails.length - 1].url
       : `https://img.youtube.com/vi/${video.id}/maxresdefault.jpg`;
-    
+
     return {
       id: (index + 1).toString(),
       youtubeId: video.id,
@@ -137,6 +138,7 @@ function convertYouTubeToVideoType(inputFile, outputFile, channelInfo = {}) {
       duration: duration,
       durationCategory: durationCategory,
       viewCount: viewCount,
+      likeCount: likeCount,
       category: category,
       tags: video.tags || [],
       featured: (video.view_count || 0) > (channelInfo.featuredThreshold || 50000) // 可自定義精選閾值

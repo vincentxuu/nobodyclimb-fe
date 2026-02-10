@@ -1,0 +1,80 @@
+name: Update Video Metadata
+
+on:
+  schedule:
+    - cron: '0 3 * * 0'  # 每週日 UTC 03:00（台灣 11:00）
+  workflow_dispatch:
+    inputs:
+      batch_size:
+        description: 'Number of videos to process per run'
+        required: false
+        default: '200'
+      force:
+        description: 'Force re-fetch all videos'
+        required: false
+        default: 'false'
+
+jobs:
+  update-metadata:
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v3
+        with:
+          version: 9
+
+      - name: Install dependencies
+        run: cd apps/web && pnpm install --frozen-lockfile
+
+      - name: Install yt-dlp
+        run: pip install yt-dlp
+
+      - name: Update video metadata
+        working-directory: apps/web
+        run: |
+          ARGS="--batch ${{ github.event.inputs.batch_size || '200' }} --regenerate"
+          if [ "${{ github.event.inputs.force }}" = "true" ]; then
+            ARGS="$ARGS --force"
+          fi
+          node scripts/update-video-metadata.js $ARGS
+
+      - name: Check for changes
+        id: changes
+        run: |
+          if git diff --quiet apps/web/public/data/; then
+            echo "has_changes=false" >> $GITHUB_OUTPUT
+          else
+            echo "has_changes=true" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Create Pull Request
+        if: steps.changes.outputs.has_changes == 'true'
+        uses: peter-evans/create-pull-request@v6
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          commit-message: 'chore: update video metadata (publishedAt, likeCount, tags)'
+          title: '[自動] 更新影片元數據'
+          body: |
+            ## 自動更新影片元數據
+
+            此 PR 由 GitHub Actions 自動建立。
+
+            **更新內容**:
+            - 補抓 `publishedAt`（上傳日期）
+            - 補抓 `likeCount`（按讚數）
+            - 補抓 `tags`（標籤）
+            - 根據 tags 重新分類影片
+            - 重新生成 chunks
+
+            **處理批次**: ${{ github.event.inputs.batch_size || '200' }} 個影片
+          branch: auto/update-video-metadata
+          delete-branch: true
