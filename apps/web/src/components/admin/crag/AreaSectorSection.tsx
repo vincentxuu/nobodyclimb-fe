@@ -64,7 +64,8 @@ export default function AreaSectorSection({ cragId, onAreasChange }: AreaSectorS
     try {
       const response = await adminCragService.getSectors(cragId, areaId)
       if (response.success && response.data) {
-        setAreaSectors((prev) => ({ ...prev, [areaId]: response.data }))
+        const sectors = response.data
+        setAreaSectors((prev) => ({ ...prev, [areaId]: sectors }))
       }
     } catch (error) {
       console.error('Failed to fetch sectors:', error)
