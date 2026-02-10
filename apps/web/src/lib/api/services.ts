@@ -25,6 +25,7 @@ import {
   BucketListReference,
   Milestone,
   Crag,
+  AdminCrag,
   Route,
   Weather,
   BiographyVideo,
@@ -3139,7 +3140,7 @@ export const adminCragService = {
     region?: string
   }) => {
     const response = await apiClient.get<
-      ApiResponse<Crag[]> & {
+      ApiResponse<AdminCrag[]> & {
         pagination: { page: number; limit: number; total: number; total_pages: number }
       }
     >('/admin/crags', { params: options })
@@ -3159,7 +3160,7 @@ export const adminCragService = {
    */
   getCrag: async (id: string) => {
     const response = await apiClient.get<
-      ApiResponse<Crag & { routes: Route[] }>
+      ApiResponse<AdminCrag & { routes: Route[] }>
     >(`/admin/crags/${id}`)
     return response.data
   },
@@ -3167,7 +3168,7 @@ export const adminCragService = {
   /**
    * 批量導入岩場（需要 admin 權限）
    */
-  batchImportCrags: async (crags: Partial<Crag>[], skipExisting = false) => {
+  batchImportCrags: async (crags: Partial<AdminCrag>[], skipExisting = false) => {
     const response = await apiClient.post<
       ApiResponse<{ imported: number; skipped: number; errors: string[] }>
     >('/admin/crags/batch-import', { crags, skipExisting })

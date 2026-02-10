@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect, useCallback, useMemo } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import {
   Mountain,
   Route as RouteIcon,
@@ -15,7 +15,7 @@ import {
   BarChart3,
 } from 'lucide-react'
 import { adminCragService, AdminCragStats } from '@/lib/api/services'
-import { Crag } from '@/lib/types'
+import { AdminCrag } from '@/lib/types'
 import Link from 'next/link'
 
 // Custom debounce hook
@@ -36,7 +36,7 @@ function useDebounce<T>(value: T, delay: number): T {
 }
 
 export default function AdminCragManagement() {
-  const [crags, setCrags] = useState<Crag[]>([])
+  const [crags, setCrags] = useState<AdminCrag[]>([])
   const [stats, setStats] = useState<AdminCragStats | null>(null)
   const [loading, setLoading] = useState(true)
   const [statsLoading, setStatsLoading] = useState(true)

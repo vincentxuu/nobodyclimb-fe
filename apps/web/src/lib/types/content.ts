@@ -763,6 +763,39 @@ export interface Crag {
 }
 
 /**
+ * Admin 岩場介面（後端格式）
+ * 用於 admin API 回傳的資料
+ */
+export interface AdminCrag {
+  id: string
+  name: string
+  slug: string
+  description: string | null
+  location: string | null
+  region: string | null
+  latitude: number | null
+  longitude: number | null
+  altitude: number | null
+  rock_type: string | null
+  climbing_types: string[] | null
+  difficulty_range: string | null
+  route_count: number
+  bolt_count: number
+  cover_image: string | null
+  images: string[] | null
+  is_featured: number
+  access_info: string | null
+  parking_info: string | null
+  approach_time: number | null
+  best_seasons: string[] | null
+  restrictions: string | null
+  rating_avg: number
+  review_count: number
+  created_at: string
+  updated_at: string
+}
+
+/**
  * 路線介面
  */
 export interface Route {
