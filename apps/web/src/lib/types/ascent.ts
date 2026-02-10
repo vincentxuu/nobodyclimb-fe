@@ -18,64 +18,55 @@ export const ASCENT_TYPE_DISPLAY: Record<
   AscentType,
   {
     label: string;
-    labelEn: string;
     description: string;
     icon: string;
     color: string;
   }
 > = {
   redpoint: {
-    label: '紅點',
-    labelEn: 'Redpoint',
+    label: 'Redpoint',
     description: '經過練習後一次完攀',
     icon: 'CircleDot',
     color: 'text-red-500',
   },
   flash: {
-    label: '閃攀',
-    labelEn: 'Flash',
+    label: 'Flash',
     description: '第一次嘗試且看過他人攀爬',
     icon: 'Zap',
     color: 'text-yellow-500',
   },
   onsight: {
-    label: '視攀',
-    labelEn: 'Onsight',
+    label: 'Onsight',
     description: '第一次嘗試且未看過任何資訊',
     icon: 'Eye',
     color: 'text-emerald-500',
   },
   attempt: {
-    label: '嘗試',
-    labelEn: 'Attempt',
+    label: 'Attempt',
     description: '未完攀',
     icon: 'Target',
     color: 'text-gray-500',
   },
   toprope: {
     label: 'Top Rope',
-    labelEn: 'Top Rope',
     description: '上方確保攀登',
     icon: 'ArrowUp',
     color: 'text-blue-500',
   },
   lead: {
-    label: '先鋒',
-    labelEn: 'Lead',
+    label: 'Lead',
     description: '先鋒攀登',
     icon: 'Sword',
     color: 'text-purple-500',
   },
   seconding: {
-    label: '跟攀',
-    labelEn: 'Second',
+    label: 'Second',
     description: '跟攀',
     icon: 'Users',
     color: 'text-cyan-500',
   },
   repeat: {
-    label: '重複',
-    labelEn: 'Repeat',
+    label: 'Repeat',
     description: '重複完攀',
     icon: 'Repeat',
     color: 'text-indigo-500',

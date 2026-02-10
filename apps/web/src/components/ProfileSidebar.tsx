@@ -1,6 +1,6 @@
 'use client'
 
-import { UserCircle, FileText, Bookmark, Settings, Image as ImageIcon, Target, BarChart3 } from 'lucide-react'
+import { UserCircle, FileText, Bookmark, Settings, Image as ImageIcon, Target, BarChart3, MountainSnow } from 'lucide-react'
 import { useRouter, usePathname } from 'next/navigation'
 import { motion } from 'framer-motion'
 import { useCallback } from 'react'
@@ -28,6 +28,11 @@ const menuItems: MenuItem[] = [
     name: '我的成就',
     href: '/profile/stats',
     icon: BarChart3,
+  },
+  {
+    name: '攀爬紀錄',
+    href: '/profile/ascents',
+    icon: MountainSnow,
   },
   {
     name: '我的文章',
