@@ -22,7 +22,7 @@ import {
   Save,
   Hash,
 } from 'lucide-react'
-import { adminCragService, AdminCragStats } from '@/lib/api/services'
+import { adminCragService, AdminCragStats, cragService } from '@/lib/api/services'
 import { AdminCrag } from '@/lib/types'
 import Link from 'next/link'
 
@@ -81,6 +81,47 @@ const emptyRouteForm: RouteFormData = {
   first_ascent: '',
 }
 
+// Crag form data
+interface CragFormData {
+  name: string
+  slug: string
+  description: string
+  location: string
+  region: string
+  latitude: string
+  longitude: string
+  altitude: string
+  rock_type: string
+  climbing_types: string
+  difficulty_range: string
+  is_featured: boolean
+  access_info: string
+  parking_info: string
+  approach_time: string
+  best_seasons: string
+  restrictions: string
+}
+
+const emptyCragForm: CragFormData = {
+  name: '',
+  slug: '',
+  description: '',
+  location: '',
+  region: '',
+  latitude: '',
+  longitude: '',
+  altitude: '',
+  rock_type: '',
+  climbing_types: '',
+  difficulty_range: '',
+  is_featured: false,
+  access_info: '',
+  parking_info: '',
+  approach_time: '',
+  best_seasons: '',
+  restrictions: '',
+}
+
 export default function AdminCragManagement() {
   const [crags, setCrags] = useState<AdminCrag[]>([])
   const [stats, setStats] = useState<AdminCragStats | null>(null)
@@ -101,8 +142,15 @@ export default function AdminCragManagement() {
   const [routeForm, setRouteForm] = useState<RouteFormData>(emptyRouteForm)
   const [routeSubmitting, setRouteSubmitting] = useState(false)
 
+  // Crag form
+  const [showCragForm, setShowCragForm] = useState(false)
+  const [editingCrag, setEditingCrag] = useState<AdminCrag | null>(null)
+  const [cragForm, setCragForm] = useState<CragFormData>(emptyCragForm)
+  const [cragSubmitting, setCragSubmitting] = useState(false)
+
   // Delete confirmation
   const [deletingRouteId, setDeletingRouteId] = useState<string | null>(null)
+  const [deletingCragId, setDeletingCragId] = useState<string | null>(null)
 
   // Debounce search input to reduce API calls
   const debouncedSearch = useDebounce(search, 300)
@@ -174,7 +222,6 @@ export default function AdminCragManagement() {
     fetchCrags()
   }, [fetchCrags])
 
-  // Reset page to 1 when search changes
   useEffect(() => {
     setPage(1)
   }, [debouncedSearch])
@@ -202,6 +249,111 @@ export default function AdminCragManagement() {
     }
   }
 
+  // ---- Crag CRUD ----
+  const handleAddCrag = () => {
+    setEditingCrag(null)
+    setCragForm(emptyCragForm)
+    setShowCragForm(true)
+  }
+
+  const handleEditCrag = (crag: AdminCrag) => {
+    setEditingCrag(crag)
+    setCragForm({
+      name: crag.name,
+      slug: crag.slug,
+      description: crag.description || '',
+      location: crag.location || '',
+      region: crag.region || '',
+      latitude: crag.latitude?.toString() || '',
+      longitude: crag.longitude?.toString() || '',
+      altitude: crag.altitude?.toString() || '',
+      rock_type: crag.rock_type || '',
+      climbing_types: Array.isArray(crag.climbing_types)
+        ? crag.climbing_types.join(', ')
+        : '',
+      difficulty_range: crag.difficulty_range || '',
+      is_featured: crag.is_featured === 1,
+      access_info: crag.access_info || '',
+      parking_info: crag.parking_info || '',
+      approach_time: crag.approach_time?.toString() || '',
+      best_seasons: Array.isArray(crag.best_seasons)
+        ? crag.best_seasons.join(', ')
+        : '',
+      restrictions: crag.restrictions || '',
+    })
+    setShowCragForm(true)
+  }
+
+  const handleCancelCragForm = () => {
+    setShowCragForm(false)
+    setEditingCrag(null)
+    setCragForm(emptyCragForm)
+  }
+
+  const handleCragFormSubmit = async (e: React.FormEvent) => {
+    e.preventDefault()
+    if (!cragForm.name.trim()) return
+
+    setCragSubmitting(true)
+    try {
+      const data: Record<string, unknown> = {
+        name: cragForm.name.trim(),
+        description: cragForm.description || null,
+        location: cragForm.location || null,
+        region: cragForm.region || null,
+        latitude: cragForm.latitude ? Number(cragForm.latitude) : null,
+        longitude: cragForm.longitude ? Number(cragForm.longitude) : null,
+        altitude: cragForm.altitude ? Number(cragForm.altitude) : null,
+        rock_type: cragForm.rock_type || null,
+        climbing_types: cragForm.climbing_types
+          ? cragForm.climbing_types.split(',').map((s) => s.trim()).filter(Boolean)
+          : [],
+        difficulty_range: cragForm.difficulty_range || null,
+        is_featured: cragForm.is_featured ? 1 : 0,
+        access_info: cragForm.access_info || null,
+        parking_info: cragForm.parking_info || null,
+        approach_time: cragForm.approach_time || null,
+        best_seasons: cragForm.best_seasons
+          ? cragForm.best_seasons.split(',').map((s) => s.trim()).filter(Boolean)
+          : [],
+        restrictions: cragForm.restrictions || null,
+      }
+
+      if (editingCrag) {
+        await cragService.updateCrag(editingCrag.id, data as never)
+      } else {
+        if (cragForm.slug) data.slug = cragForm.slug.trim()
+        await cragService.createCrag(data as never)
+      }
+
+      await fetchCrags()
+      fetchStats()
+      handleCancelCragForm()
+    } catch (error) {
+      console.error('Failed to save crag:', error)
+      alert('儲存岩場失敗')
+    } finally {
+      setCragSubmitting(false)
+    }
+  }
+
+  const handleDeleteCrag = async (id: string) => {
+    try {
+      await cragService.deleteCrag(id)
+      await fetchCrags()
+      fetchStats()
+      setDeletingCragId(null)
+      if (expandedCragId === id) {
+        setExpandedCragId(null)
+        setCragRoutes([])
+      }
+    } catch (error) {
+      console.error('Failed to delete crag:', error)
+      alert('刪除岩場失敗')
+    }
+  }
+
+  // ---- Route CRUD ----
   const handleAddRoute = () => {
     setEditingRoute(null)
     setRouteForm(emptyRouteForm)
@@ -254,7 +406,6 @@ export default function AdminCragManagement() {
 
       await fetchRoutes(expandedCragId)
       handleCancelRouteForm()
-      // Refresh crag stats (route_count may have changed)
       fetchCrags()
       fetchStats()
     } catch (error) {
@@ -295,15 +446,24 @@ export default function AdminCragManagement() {
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-2xl font-bold text-wb-100">岩場管理</h1>
-          <p className="text-sm text-wb-70 mt-1">管理岩場和路線資料</p>
+          <p className="text-sm text-wb-70 mt-1">管理岩場、區域和路線資料</p>
         </div>
-        <button
-          onClick={handleRefresh}
-          className="flex items-center gap-2 px-4 py-2 text-sm bg-wb-10 text-wb-70 rounded-lg hover:bg-wb-20 transition-colors"
-        >
-          <RefreshCw className="h-4 w-4" />
-          重新整理
-        </button>
+        <div className="flex items-center gap-2">
+          <button
+            onClick={handleAddCrag}
+            className="flex items-center gap-2 px-4 py-2 text-sm bg-wb-100 text-white rounded-lg hover:bg-wb-90 transition-colors"
+          >
+            <Plus className="h-4 w-4" />
+            新增岩場
+          </button>
+          <button
+            onClick={handleRefresh}
+            className="flex items-center gap-2 px-4 py-2 text-sm bg-wb-10 text-wb-70 rounded-lg hover:bg-wb-20 transition-colors"
+          >
+            <RefreshCw className="h-4 w-4" />
+            重新整理
+          </button>
+        </div>
       </div>
 
       {/* 統計卡片 */}
@@ -355,6 +515,256 @@ export default function AdminCragManagement() {
               </span>
             ))}
           </div>
+        </div>
+      )}
+
+      {/* 新增/編輯岩場表單 */}
+      {showCragForm && (
+        <div className="bg-white rounded-xl shadow-sm border border-wb-20 p-6">
+          <div className="flex items-center justify-between mb-4">
+            <h3 className="text-lg font-semibold text-wb-100">
+              {editingCrag ? '編輯岩場' : '新增岩場'}
+            </h3>
+            <button
+              onClick={handleCancelCragForm}
+              className="p-2 text-wb-50 hover:text-wb-100 rounded-lg transition-colors"
+            >
+              <X className="h-5 w-5" />
+            </button>
+          </div>
+          <form onSubmit={handleCragFormSubmit} className="space-y-4">
+            {/* 基本資訊 */}
+            <fieldset className="space-y-3">
+              <legend className="text-sm font-medium text-wb-90 mb-2">基本資訊</legend>
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                <div>
+                  <label className="block text-sm font-medium text-wb-70 mb-1">
+                    名稱 <span className="text-red-500">*</span>
+                  </label>
+                  <input
+                    type="text"
+                    value={cragForm.name}
+                    onChange={(e) => setCragForm({ ...cragForm, name: e.target.value })}
+                    className="w-full px-3 py-2 text-sm border border-wb-20 rounded-lg focus:outline-none focus:ring-2 focus:ring-wb-100/20"
+                    required
+                  />
+                </div>
+                {!editingCrag && (
+                  <div>
+                    <label className="block text-sm font-medium text-wb-70 mb-1">
+                      Slug <span className="text-xs text-wb-50">(留空自動產生)</span>
+                    </label>
+                    <input
+                      type="text"
+                      value={cragForm.slug}
+                      onChange={(e) => setCragForm({ ...cragForm, slug: e.target.value })}
+                      placeholder="例：longdong"
+                      className="w-full px-3 py-2 text-sm border border-wb-20 rounded-lg focus:outline-none focus:ring-2 focus:ring-wb-100/20"
+                    />
+                  </div>
+                )}
+                <div>
+                  <label className="block text-sm font-medium text-wb-70 mb-1">區域</label>
+                  <select
+                    value={cragForm.region}
+                    onChange={(e) => setCragForm({ ...cragForm, region: e.target.value })}
+                    className="w-full px-3 py-2 text-sm border border-wb-20 rounded-lg focus:outline-none focus:ring-2 focus:ring-wb-100/20 bg-white"
+                  >
+                    <option value="">選擇區域</option>
+                    {regions.map((r) => (
+                      <option key={r} value={r}>{r}</option>
+                    ))}
+                  </select>
+                </div>
+                <div className="sm:col-span-2 lg:col-span-3">
+                  <label className="block text-sm font-medium text-wb-70 mb-1">位置描述</label>
+                  <input
+                    type="text"
+                    value={cragForm.location}
+                    onChange={(e) => setCragForm({ ...cragForm, location: e.target.value })}
+                    placeholder="例：新北市瑞芳區龍洞"
+                    className="w-full px-3 py-2 text-sm border border-wb-20 rounded-lg focus:outline-none focus:ring-2 focus:ring-wb-100/20"
+                  />
+                </div>
+                <div className="sm:col-span-2 lg:col-span-3">
+                  <label className="block text-sm font-medium text-wb-70 mb-1">描述</label>
+                  <textarea
+                    value={cragForm.description}
+                    onChange={(e) => setCragForm({ ...cragForm, description: e.target.value })}
+                    rows={3}
+                    className="w-full px-3 py-2 text-sm border border-wb-20 rounded-lg focus:outline-none focus:ring-2 focus:ring-wb-100/20 resize-none"
+                  />
+                </div>
+              </div>
+            </fieldset>
+
+            {/* 地理資訊 */}
+            <fieldset className="space-y-3">
+              <legend className="text-sm font-medium text-wb-90 mb-2">地理資訊</legend>
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                <div>
+                  <label className="block text-sm font-medium text-wb-70 mb-1">緯度</label>
+                  <input
+                    type="number"
+                    step="any"
+                    value={cragForm.latitude}
+                    onChange={(e) => setCragForm({ ...cragForm, latitude: e.target.value })}
+                    placeholder="例：25.1082"
+                    className="w-full px-3 py-2 text-sm border border-wb-20 rounded-lg focus:outline-none focus:ring-2 focus:ring-wb-100/20"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-wb-70 mb-1">經度</label>
+                  <input
+                    type="number"
+                    step="any"
+                    value={cragForm.longitude}
+                    onChange={(e) => setCragForm({ ...cragForm, longitude: e.target.value })}
+                    placeholder="例：121.9227"
+                    className="w-full px-3 py-2 text-sm border border-wb-20 rounded-lg focus:outline-none focus:ring-2 focus:ring-wb-100/20"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-wb-70 mb-1">海拔 (m)</label>
+                  <input
+                    type="number"
+                    value={cragForm.altitude}
+                    onChange={(e) => setCragForm({ ...cragForm, altitude: e.target.value })}
+                    className="w-full px-3 py-2 text-sm border border-wb-20 rounded-lg focus:outline-none focus:ring-2 focus:ring-wb-100/20"
+                  />
+                </div>
+              </div>
+            </fieldset>
+
+            {/* 攀岩資訊 */}
+            <fieldset className="space-y-3">
+              <legend className="text-sm font-medium text-wb-90 mb-2">攀岩資訊</legend>
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                <div>
+                  <label className="block text-sm font-medium text-wb-70 mb-1">岩質</label>
+                  <input
+                    type="text"
+                    value={cragForm.rock_type}
+                    onChange={(e) => setCragForm({ ...cragForm, rock_type: e.target.value })}
+                    placeholder="例：砂岩、石灰岩、花崗岩"
+                    className="w-full px-3 py-2 text-sm border border-wb-20 rounded-lg focus:outline-none focus:ring-2 focus:ring-wb-100/20"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-wb-70 mb-1">攀登類型</label>
+                  <input
+                    type="text"
+                    value={cragForm.climbing_types}
+                    onChange={(e) => setCragForm({ ...cragForm, climbing_types: e.target.value })}
+                    placeholder="逗號分隔，例：sport, trad, boulder"
+                    className="w-full px-3 py-2 text-sm border border-wb-20 rounded-lg focus:outline-none focus:ring-2 focus:ring-wb-100/20"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-wb-70 mb-1">難度範圍</label>
+                  <input
+                    type="text"
+                    value={cragForm.difficulty_range}
+                    onChange={(e) => setCragForm({ ...cragForm, difficulty_range: e.target.value })}
+                    placeholder="例：5.6-5.13a"
+                    className="w-full px-3 py-2 text-sm border border-wb-20 rounded-lg focus:outline-none focus:ring-2 focus:ring-wb-100/20"
+                  />
+                </div>
+              </div>
+            </fieldset>
+
+            {/* 交通與環境 */}
+            <fieldset className="space-y-3">
+              <legend className="text-sm font-medium text-wb-90 mb-2">交通與環境</legend>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-medium text-wb-70 mb-1">進場時間</label>
+                  <input
+                    type="text"
+                    value={cragForm.approach_time}
+                    onChange={(e) => setCragForm({ ...cragForm, approach_time: e.target.value })}
+                    placeholder="例：15（分鐘）"
+                    className="w-full px-3 py-2 text-sm border border-wb-20 rounded-lg focus:outline-none focus:ring-2 focus:ring-wb-100/20"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-wb-70 mb-1">適合季節</label>
+                  <input
+                    type="text"
+                    value={cragForm.best_seasons}
+                    onChange={(e) => setCragForm({ ...cragForm, best_seasons: e.target.value })}
+                    placeholder="逗號分隔，例：秋, 冬, 春"
+                    className="w-full px-3 py-2 text-sm border border-wb-20 rounded-lg focus:outline-none focus:ring-2 focus:ring-wb-100/20"
+                  />
+                </div>
+                <div className="sm:col-span-2">
+                  <label className="block text-sm font-medium text-wb-70 mb-1">交通資訊</label>
+                  <textarea
+                    value={cragForm.access_info}
+                    onChange={(e) => setCragForm({ ...cragForm, access_info: e.target.value })}
+                    rows={2}
+                    placeholder="如何抵達、大眾運輸方式等"
+                    className="w-full px-3 py-2 text-sm border border-wb-20 rounded-lg focus:outline-none focus:ring-2 focus:ring-wb-100/20 resize-none"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-wb-70 mb-1">停車資訊</label>
+                  <textarea
+                    value={cragForm.parking_info}
+                    onChange={(e) => setCragForm({ ...cragForm, parking_info: e.target.value })}
+                    rows={2}
+                    className="w-full px-3 py-2 text-sm border border-wb-20 rounded-lg focus:outline-none focus:ring-2 focus:ring-wb-100/20 resize-none"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-wb-70 mb-1">限制事項</label>
+                  <textarea
+                    value={cragForm.restrictions}
+                    onChange={(e) => setCragForm({ ...cragForm, restrictions: e.target.value })}
+                    rows={2}
+                    placeholder="例：雨後禁止攀爬、需申請入山證等"
+                    className="w-full px-3 py-2 text-sm border border-wb-20 rounded-lg focus:outline-none focus:ring-2 focus:ring-wb-100/20 resize-none"
+                  />
+                </div>
+              </div>
+            </fieldset>
+
+            {/* 其他設定 */}
+            <div className="flex items-center gap-2">
+              <input
+                type="checkbox"
+                id="crag_is_featured"
+                checked={cragForm.is_featured}
+                onChange={(e) => setCragForm({ ...cragForm, is_featured: e.target.checked })}
+                className="rounded border-wb-20 text-wb-100 focus:ring-wb-100/20"
+              />
+              <label htmlFor="crag_is_featured" className="text-sm text-wb-70">
+                設為精選岩場
+              </label>
+            </div>
+
+            <div className="flex items-center justify-end gap-2 pt-2">
+              <button
+                type="button"
+                onClick={handleCancelCragForm}
+                className="px-4 py-2 text-sm text-wb-70 hover:text-wb-100 rounded-lg hover:bg-wb-10 transition-colors"
+              >
+                取消
+              </button>
+              <button
+                type="submit"
+                disabled={cragSubmitting || !cragForm.name.trim()}
+                className="flex items-center gap-1.5 px-4 py-2 text-sm bg-wb-100 text-white rounded-lg hover:bg-wb-90 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                {cragSubmitting ? (
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                ) : (
+                  <Save className="h-4 w-4" />
+                )}
+                {editingCrag ? '更新岩場' : '新增岩場'}
+              </button>
+            </div>
+          </form>
         </div>
       )}
 
@@ -435,7 +845,7 @@ export default function AdminCragManagement() {
                             </div>
                             <div>
                               <div className="font-medium text-wb-100">{crag.name}</div>
-                              <div className="text-xs text-wb-50">{crag.slug}</div>
+                              <div className="text-xs text-wb-50">{crag.location || crag.slug}</div>
                             </div>
                           </div>
                         </td>
@@ -464,7 +874,7 @@ export default function AdminCragManagement() {
                             : '-'}
                         </td>
                         <td className="px-4 py-3 text-right">
-                          <div className="flex items-center justify-end gap-2">
+                          <div className="flex items-center justify-end gap-1">
                             <Link
                               href={`/crag/${crag.slug}`}
                               target="_blank"
@@ -474,6 +884,43 @@ export default function AdminCragManagement() {
                             >
                               <ExternalLink className="h-4 w-4" />
                             </Link>
+                            <button
+                              className="p-2 text-wb-70 hover:text-wb-100 hover:bg-wb-10 rounded-lg transition-colors"
+                              title="編輯岩場"
+                              onClick={(e) => {
+                                e.stopPropagation()
+                                handleEditCrag(crag)
+                              }}
+                            >
+                              <Pencil className="h-4 w-4" />
+                            </button>
+                            {deletingCragId === crag.id ? (
+                              <div className="flex items-center gap-1" onClick={(e) => e.stopPropagation()}>
+                                <button
+                                  onClick={() => handleDeleteCrag(crag.id)}
+                                  className="px-2 py-1 text-xs bg-red-500 text-white rounded hover:bg-red-600 transition-colors"
+                                >
+                                  確認
+                                </button>
+                                <button
+                                  onClick={() => setDeletingCragId(null)}
+                                  className="px-2 py-1 text-xs text-wb-70 hover:text-wb-100 rounded hover:bg-wb-10 transition-colors"
+                                >
+                                  取消
+                                </button>
+                              </div>
+                            ) : (
+                              <button
+                                className="p-2 text-wb-70 hover:text-red-500 hover:bg-red-50 rounded-lg transition-colors"
+                                title="刪除岩場"
+                                onClick={(e) => {
+                                  e.stopPropagation()
+                                  setDeletingCragId(crag.id)
+                                }}
+                              >
+                                <Trash2 className="h-4 w-4" />
+                              </button>
+                            )}
                             <button
                               className="p-2 text-wb-70 hover:text-wb-100 hover:bg-wb-10 rounded-lg transition-colors"
                               title={expandedCragId === crag.id ? '收合' : '管理路線'}
@@ -555,16 +1002,11 @@ export default function AdminCragManagement() {
                                         />
                                       </div>
                                       <div>
-                                        <label className="block text-xs text-wb-70 mb-1">
-                                          難度系統
-                                        </label>
+                                        <label className="block text-xs text-wb-70 mb-1">難度系統</label>
                                         <select
                                           value={routeForm.grade_system}
                                           onChange={(e) =>
-                                            setRouteForm({
-                                              ...routeForm,
-                                              grade_system: e.target.value,
-                                            })
+                                            setRouteForm({ ...routeForm, grade_system: e.target.value })
                                           }
                                           className="w-full px-3 py-1.5 text-sm border border-wb-20 rounded-lg focus:outline-none focus:ring-2 focus:ring-wb-100/20 bg-white"
                                         >
@@ -579,10 +1021,7 @@ export default function AdminCragManagement() {
                                         <select
                                           value={routeForm.route_type}
                                           onChange={(e) =>
-                                            setRouteForm({
-                                              ...routeForm,
-                                              route_type: e.target.value,
-                                            })
+                                            setRouteForm({ ...routeForm, route_type: e.target.value })
                                           }
                                           className="w-full px-3 py-1.5 text-sm border border-wb-20 rounded-lg focus:outline-none focus:ring-2 focus:ring-wb-100/20 bg-white"
                                         >
@@ -593,9 +1032,7 @@ export default function AdminCragManagement() {
                                         </select>
                                       </div>
                                       <div>
-                                        <label className="block text-xs text-wb-70 mb-1">
-                                          高度 (m)
-                                        </label>
+                                        <label className="block text-xs text-wb-70 mb-1">高度 (m)</label>
                                         <input
                                           type="number"
                                           value={routeForm.height}
@@ -606,33 +1043,23 @@ export default function AdminCragManagement() {
                                         />
                                       </div>
                                       <div>
-                                        <label className="block text-xs text-wb-70 mb-1">
-                                          Bolt 數
-                                        </label>
+                                        <label className="block text-xs text-wb-70 mb-1">Bolt 數</label>
                                         <input
                                           type="number"
                                           value={routeForm.bolt_count}
                                           onChange={(e) =>
-                                            setRouteForm({
-                                              ...routeForm,
-                                              bolt_count: e.target.value,
-                                            })
+                                            setRouteForm({ ...routeForm, bolt_count: e.target.value })
                                           }
                                           className="w-full px-3 py-1.5 text-sm border border-wb-20 rounded-lg focus:outline-none focus:ring-2 focus:ring-wb-100/20"
                                         />
                                       </div>
                                       <div>
-                                        <label className="block text-xs text-wb-70 mb-1">
-                                          首攀者
-                                        </label>
+                                        <label className="block text-xs text-wb-70 mb-1">首攀者</label>
                                         <input
                                           type="text"
                                           value={routeForm.first_ascent}
                                           onChange={(e) =>
-                                            setRouteForm({
-                                              ...routeForm,
-                                              first_ascent: e.target.value,
-                                            })
+                                            setRouteForm({ ...routeForm, first_ascent: e.target.value })
                                           }
                                           className="w-full px-3 py-1.5 text-sm border border-wb-20 rounded-lg focus:outline-none focus:ring-2 focus:ring-wb-100/20"
                                         />
@@ -643,10 +1070,7 @@ export default function AdminCragManagement() {
                                       <textarea
                                         value={routeForm.description}
                                         onChange={(e) =>
-                                          setRouteForm({
-                                            ...routeForm,
-                                            description: e.target.value,
-                                          })
+                                          setRouteForm({ ...routeForm, description: e.target.value })
                                         }
                                         rows={2}
                                         className="w-full px-3 py-1.5 text-sm border border-wb-20 rounded-lg focus:outline-none focus:ring-2 focus:ring-wb-100/20 resize-none"
@@ -813,9 +1237,11 @@ export default function AdminCragManagement() {
       <div className="bg-blue-50 border border-blue-200 rounded-xl p-4">
         <h3 className="text-sm font-medium text-blue-800 mb-2">管理說明</h3>
         <ul className="text-sm text-blue-700 space-y-1">
-          <li>- 點擊岩場列展開路線管理面板，可直接新增、編輯或刪除路線</li>
-          <li>- 點擊外部連結圖示可在新分頁中查看岩場前台頁面</li>
-          <li>- 路線的新增或刪除會自動更新岩場的路線數和 Bolt 統計</li>
+          <li>- 點擊「新增岩場」可建立新的岩場資料，包含位置、地理、攀岩和交通等完整資訊</li>
+          <li>- 點擊鉛筆圖示可編輯岩場的所有欄位</li>
+          <li>- 點擊岩場列或箭頭圖示可展開路線管理面板，直接新增、編輯或刪除路線</li>
+          <li>- 刪除岩場會同時移除其所有圖片，路線需先個別刪除</li>
+          <li>- 攀登類型和適合季節以逗號分隔填寫</li>
         </ul>
       </div>
     </div>

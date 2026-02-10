@@ -66,6 +66,17 @@ function useDebounce<T>(value: T, delay: number): T {
   return debouncedValue
 }
 
+// Days of the week (Traditional Chinese)
+const WEEKDAYS = [
+  { key: 'monday', label: '週一' },
+  { key: 'tuesday', label: '週二' },
+  { key: 'wednesday', label: '週三' },
+  { key: 'thursday', label: '週四' },
+  { key: 'friday', label: '週五' },
+  { key: 'saturday', label: '週六' },
+  { key: 'sunday', label: '週日' },
+] as const
+
 // Gym form data
 interface GymFormData {
   name: string
@@ -78,6 +89,10 @@ interface GymFormData {
   website: string
   is_featured: boolean
   facilities: string
+  opening_hours: Record<string, string>
+  price_info: string
+  latitude: string
+  longitude: string
 }
 
 const emptyGymForm: GymFormData = {
@@ -91,6 +106,10 @@ const emptyGymForm: GymFormData = {
   website: '',
   is_featured: false,
   facilities: '',
+  opening_hours: {},
+  price_info: '',
+  latitude: '',
+  longitude: '',
 }
 
 // API response types
@@ -204,6 +223,14 @@ export default function AdminGymManagement() {
       website: gym.website || '',
       is_featured: gym.is_featured === 1,
       facilities: gym.facilities?.join(', ') || '',
+      opening_hours: (gym.opening_hours && typeof gym.opening_hours === 'object')
+        ? gym.opening_hours
+        : {},
+      price_info: (gym.price_info && typeof gym.price_info === 'object')
+        ? JSON.stringify(gym.price_info, null, 2)
+        : '',
+      latitude: gym.latitude?.toString() || '',
+      longitude: gym.longitude?.toString() || '',
     })
     setShowForm(true)
   }
@@ -220,12 +247,26 @@ export default function AdminGymManagement() {
 
     setSubmitting(true)
     try {
+      // Parse price_info JSON
+      let parsedPriceInfo = null
+      if (gymForm.price_info.trim()) {
+        try {
+          parsedPriceInfo = JSON.parse(gymForm.price_info)
+        } catch {
+          alert('價格資訊 JSON 格式不正確')
+          setSubmitting(false)
+          return
+        }
+      }
+
       const data: Record<string, unknown> = {
         name: gymForm.name.trim(),
         description: gymForm.description || null,
         address: gymForm.address || null,
         city: gymForm.city || null,
         region: gymForm.region || null,
+        latitude: gymForm.latitude ? Number(gymForm.latitude) : null,
+        longitude: gymForm.longitude ? Number(gymForm.longitude) : null,
         phone: gymForm.phone || null,
         email: gymForm.email || null,
         website: gymForm.website || null,
@@ -233,6 +274,10 @@ export default function AdminGymManagement() {
         facilities: gymForm.facilities
           ? gymForm.facilities.split(',').map((f) => f.trim()).filter(Boolean)
           : [],
+        opening_hours: Object.keys(gymForm.opening_hours).length > 0
+          ? gymForm.opening_hours
+          : null,
+        price_info: parsedPriceInfo,
       }
 
       if (editingGym) {
@@ -425,18 +470,86 @@ export default function AdminGymManagement() {
                   className="w-full px-3 py-2 text-sm border border-wb-20 rounded-lg focus:outline-none focus:ring-2 focus:ring-wb-100/20 resize-none"
                 />
               </div>
-              <div className="flex items-center gap-2">
+            </div>
+
+            {/* 地理資訊 */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-2">
+              <div>
+                <label className="block text-sm font-medium text-wb-70 mb-1">緯度</label>
                 <input
-                  type="checkbox"
-                  id="is_featured"
-                  checked={gymForm.is_featured}
-                  onChange={(e) => setGymForm({ ...gymForm, is_featured: e.target.checked })}
-                  className="rounded border-wb-20 text-wb-100 focus:ring-wb-100/20"
+                  type="number"
+                  step="any"
+                  value={gymForm.latitude}
+                  onChange={(e) => setGymForm({ ...gymForm, latitude: e.target.value })}
+                  placeholder="例：25.0330"
+                  className="w-full px-3 py-2 text-sm border border-wb-20 rounded-lg focus:outline-none focus:ring-2 focus:ring-wb-100/20"
                 />
-                <label htmlFor="is_featured" className="text-sm text-wb-70">
-                  設為精選岩館
-                </label>
               </div>
+              <div>
+                <label className="block text-sm font-medium text-wb-70 mb-1">經度</label>
+                <input
+                  type="number"
+                  step="any"
+                  value={gymForm.longitude}
+                  onChange={(e) => setGymForm({ ...gymForm, longitude: e.target.value })}
+                  placeholder="例：121.5654"
+                  className="w-full px-3 py-2 text-sm border border-wb-20 rounded-lg focus:outline-none focus:ring-2 focus:ring-wb-100/20"
+                />
+              </div>
+            </div>
+
+            {/* 營業時間 */}
+            <div className="pt-2">
+              <label className="block text-sm font-medium text-wb-70 mb-2">營業時間</label>
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+                {WEEKDAYS.map(({ key, label }) => (
+                  <div key={key}>
+                    <label className="block text-xs text-wb-50 mb-1">{label}</label>
+                    <input
+                      type="text"
+                      value={gymForm.opening_hours[key] || ''}
+                      onChange={(e) =>
+                        setGymForm({
+                          ...gymForm,
+                          opening_hours: {
+                            ...gymForm.opening_hours,
+                            [key]: e.target.value,
+                          },
+                        })
+                      }
+                      placeholder="例：10:00-22:00 或 公休"
+                      className="w-full px-3 py-1.5 text-sm border border-wb-20 rounded-lg focus:outline-none focus:ring-2 focus:ring-wb-100/20"
+                    />
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* 價格資訊 */}
+            <div className="pt-2">
+              <label className="block text-sm font-medium text-wb-70 mb-1">
+                價格資訊 <span className="text-xs text-wb-50">(JSON 格式)</span>
+              </label>
+              <textarea
+                value={gymForm.price_info}
+                onChange={(e) => setGymForm({ ...gymForm, price_info: e.target.value })}
+                rows={4}
+                placeholder={'例：\n{\n  "單次入場": "350元",\n  "月票": "2000元",\n  "學生優惠": "300元"\n}'}
+                className="w-full px-3 py-2 text-sm border border-wb-20 rounded-lg focus:outline-none focus:ring-2 focus:ring-wb-100/20 resize-none font-mono"
+              />
+            </div>
+
+            <div className="flex items-center gap-2 pt-2">
+              <input
+                type="checkbox"
+                id="is_featured"
+                checked={gymForm.is_featured}
+                onChange={(e) => setGymForm({ ...gymForm, is_featured: e.target.checked })}
+                className="rounded border-wb-20 text-wb-100 focus:ring-wb-100/20"
+              />
+              <label htmlFor="is_featured" className="text-sm text-wb-70">
+                設為精選岩館
+              </label>
             </div>
             <div className="flex items-center justify-end gap-2 pt-2">
               <button
@@ -667,9 +780,10 @@ export default function AdminGymManagement() {
         <h3 className="text-sm font-medium text-blue-800 mb-2">管理說明</h3>
         <ul className="text-sm text-blue-700 space-y-1">
           <li>- 點擊「新增岩館」按鈕可建立新的岩館資料</li>
-          <li>- 點擊編輯圖示可修改岩館資訊</li>
+          <li>- 點擊編輯圖示可修改岩館資訊（含營業時間、價格、座標等完整資訊）</li>
           <li>- 刪除岩館會同時移除其封面圖片</li>
           <li>- 設施欄位以逗號分隔填寫</li>
+          <li>- 價格資訊使用 JSON 格式，例：{`{"單次": "350元", "月票": "2000元"}`}</li>
         </ul>
       </div>
     </div>
