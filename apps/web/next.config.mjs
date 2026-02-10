@@ -9,7 +9,28 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url))
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   reactStrictMode: true,
-  outputFileTracingRoot: path.join(__dirname, '..'),
+  output: 'standalone',
+  outputFileTracingRoot: path.join(__dirname, '../..'),
+
+  // 排除開發依賴和不需要的套件，減少 bundle 大小
+  serverExternalPackages: [
+    'jsdom',
+    'isomorphic-dompurify',
+  ],
+
+  // 從 output file tracing 中排除開發依賴和未使用的套件
+  outputFileTracingExcludes: {
+    '*': [
+      'node_modules/typescript/**',
+      'node_modules/sass/**',
+      'node_modules/babel-plugin-react-compiler/**',
+      'node_modules/@babel/**',
+      'node_modules/eslint/**',
+      'node_modules/prettier/**',
+      // 未使用的 @vercel/og (動態 OG 圖片生成) - 省約 1.4MB
+      'node_modules/next/dist/compiled/@vercel/og/**',
+    ],
+  },
 
   images: {
     remotePatterns: [
