@@ -92,8 +92,8 @@ export async function generateMetadata({
 
   const title = `${person.name} - 攀岩人物誌`
   const description = person.climbing_meaning?.substring(0, 160) || person.bio?.substring(0, 160) || `認識 ${person.name}，一位熱愛攀岩的攀岩愛好者。`
-  // 使用動態 OG 圖片 API，生成品牌化的人物誌預覽圖
-  const image = `${SITE_URL}/api/og/biography?slug=${encodeURIComponent(slug)}`
+  // 使用靜態 OG 圖片（動態生成需要 @vercel/og wasm，會增加 1.4MB bundle）
+  const image = `${SITE_URL}/og-image.png`
 
   return {
     title: person.name,
