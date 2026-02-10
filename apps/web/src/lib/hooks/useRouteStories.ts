@@ -265,6 +265,78 @@ export function useRouteStories() {
     []
   )
 
+  /**
+   * 取得路線的快速分享（含照片）
+   */
+  const getRouteQuickSharePhotos = useCallback(
+    async (routeId: string, params?: { page?: number; limit?: number }) => {
+      try {
+        const queryParams = new URLSearchParams()
+        if (params?.page) queryParams.set('page', params.page.toString())
+        if (params?.limit) queryParams.set('limit', params.limit.toString())
+        queryParams.set('has_photos', 'true')
+
+        const response = await apiClient.get<PaginatedResponse<RouteStory>>(
+          `/route-stories/route/${routeId}?${queryParams.toString()}`
+        )
+        return response.data
+      } catch (err) {
+        const message = err instanceof Error ? err.message : '取得路線照片失敗'
+        setError(message)
+        throw err
+      }
+    },
+    []
+  )
+
+  /**
+   * 取得路線的快速分享（含 YouTube）
+   */
+  const getRouteQuickShareYouTube = useCallback(
+    async (routeId: string, params?: { page?: number; limit?: number }) => {
+      try {
+        const queryParams = new URLSearchParams()
+        if (params?.page) queryParams.set('page', params.page.toString())
+        if (params?.limit) queryParams.set('limit', params.limit.toString())
+        queryParams.set('has_youtube', 'true')
+
+        const response = await apiClient.get<PaginatedResponse<RouteStory>>(
+          `/route-stories/route/${routeId}?${queryParams.toString()}`
+        )
+        return response.data
+      } catch (err) {
+        const message = err instanceof Error ? err.message : '取得路線影片失敗'
+        setError(message)
+        throw err
+      }
+    },
+    []
+  )
+
+  /**
+   * 取得路線的快速分享（含 Instagram）
+   */
+  const getRouteQuickShareInstagram = useCallback(
+    async (routeId: string, params?: { page?: number; limit?: number }) => {
+      try {
+        const queryParams = new URLSearchParams()
+        if (params?.page) queryParams.set('page', params.page.toString())
+        if (params?.limit) queryParams.set('limit', params.limit.toString())
+        queryParams.set('has_instagram', 'true')
+
+        const response = await apiClient.get<PaginatedResponse<RouteStory>>(
+          `/route-stories/route/${routeId}?${queryParams.toString()}`
+        )
+        return response.data
+      } catch (err) {
+        const message = err instanceof Error ? err.message : '取得路線 Instagram 失敗'
+        setError(message)
+        throw err
+      }
+    },
+    []
+  )
+
   return {
     isLoading,
     error,
@@ -278,5 +350,8 @@ export function useRouteStories() {
     getComments,
     addComment,
     getRouteStories,
+    getRouteQuickSharePhotos,
+    getRouteQuickShareYouTube,
+    getRouteQuickShareInstagram,
   }
 }

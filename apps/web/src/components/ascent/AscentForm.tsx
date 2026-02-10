@@ -12,7 +12,6 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
-import { Switch } from '@/components/ui/switch';
 import { Calendar } from '@/components/ui/calendar';
 import {
   Popover,
@@ -282,21 +281,6 @@ export function AscentForm({
                 />
               </div>
             </div>
-          </div>
-
-          {/* 公開設定 */}
-          <div className="flex items-center justify-between">
-            <div className="space-y-0.5">
-              <Label htmlFor="is_public">公開這筆記錄</Label>
-              <p className="text-xs text-muted-foreground">
-                其他人可以看到這筆攀爬記錄
-              </p>
-            </div>
-            <Switch
-              id="is_public"
-              checked={form.watch('is_public')}
-              onCheckedChange={(checked) => form.setValue('is_public', checked)}
-            />
           </div>
 
           {/* 提交按鈕 */}

@@ -5,9 +5,6 @@ import Link from 'next/link'
 import {
   ChevronLeft,
   ChevronRight,
-  ExternalLink,
-  Instagram,
-  Youtube,
   MapPin,
   CircleDot,
   Ruler,
@@ -15,7 +12,11 @@ import {
 } from 'lucide-react'
 import { CollapsibleBreadcrumb } from '@/components/ui/collapsible-breadcrumb'
 import BackToTop from '@/components/ui/back-to-top'
-import { RouteCommunitySection } from '@/components/crag/RouteCommunitySection'
+import { RouteStoriesSection } from '@/components/crag/RouteStoriesSection'
+import { RouteAscentsSection } from '@/components/crag/RouteAscentsSection'
+import { RoutePhotosSection } from '@/components/crag/RoutePhotosSection'
+import { RouteYouTubeSection } from '@/components/crag/RouteYouTubeSection'
+import { RouteInstagramSection } from '@/components/crag/RouteInstagramSection'
 import { routeLoadingManager } from '@/lib/route-loading-manager'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { useToast } from '@/components/ui/use-toast'
@@ -26,31 +27,6 @@ interface RouteDetailClientProps {
   data: RouteDetailData
 }
 
-// 將 YouTube URL 轉換為嵌入 URL
-function getYoutubeEmbedUrl(url: string): string {
-  if (url.includes('youtube.com/embed/')) {
-    return url
-  }
-
-  const shortMatch = url.match(/youtu\.be\/([a-zA-Z0-9_-]+)/)
-  if (shortMatch) {
-    return `https://www.youtube.com/embed/${shortMatch[1]}`
-  }
-
-  const standardMatch = url.match(/youtube\.com\/watch\?v=([a-zA-Z0-9_-]+)/)
-  if (standardMatch) {
-    return `https://www.youtube.com/embed/${standardMatch[1]}`
-  }
-
-  return url
-}
-
-// 從 Instagram URL 提取貼文 ID
-function getInstagramPostId(url: string): string | null {
-  const match = url.match(/instagram\.com\/(?:p|reel)\/([a-zA-Z0-9_-]+)/)
-  return match ? match[1] : null
-}
-
 export default function RouteDetailClient({ data }: RouteDetailClientProps) {
   const { route, crag, area, relatedRoutes } = data
   const router = useRouter()
@@ -59,9 +35,6 @@ export default function RouteDetailClient({ data }: RouteDetailClientProps) {
   const [currentPhotoIndex, setCurrentPhotoIndex] = useState(0)
 
   const hasImages = route.images && route.images.length > 0
-  const hasVideos = route.videos && route.videos.length > 0
-  const hasYoutubeVideos = route.youtubeVideos && route.youtubeVideos.length > 0
-  const hasInstagramPosts = route.instagramPosts && route.instagramPosts.length > 0
 
   // 保留當前的篩選參數
   const searchParamsString = searchParams.toString()
@@ -252,16 +225,6 @@ export default function RouteDetailClient({ data }: RouteDetailClientProps) {
             </div>
           )}
 
-          {/* 路線描述 */}
-          {route.description && (
-            <div className="mb-8">
-              <h2 className="mb-3 border-l-4 border-[#FFE70C] pl-3 text-lg font-bold text-[#1B1A1A]">
-                路線描述
-              </h2>
-              <p className="whitespace-pre-line text-gray-700">{route.description}</p>
-            </div>
-          )}
-
           {/* 保護裝備資訊 */}
           {route.protection && (
             <div className="mb-8">
@@ -269,6 +232,16 @@ export default function RouteDetailClient({ data }: RouteDetailClientProps) {
                 保護裝備
               </h2>
               <p className="whitespace-pre-line text-gray-700">{route.protection}</p>
+            </div>
+          )}
+
+          {/* 路線描述 */}
+          {route.description && (
+            <div className="mb-8">
+              <h2 className="mb-3 border-l-4 border-[#FFE70C] pl-3 text-lg font-bold text-[#1B1A1A]">
+                路線描述
+              </h2>
+              <p className="whitespace-pre-line text-gray-700">{route.description}</p>
             </div>
           )}
 
@@ -282,95 +255,36 @@ export default function RouteDetailClient({ data }: RouteDetailClientProps) {
             </div>
           )}
 
-          {/* 攀登影片 */}
-          {hasVideos && (
-            <div className="mb-8">
-              <h2 className="mb-3 border-l-4 border-[#FFE70C] pl-3 text-lg font-bold text-[#1B1A1A]">
-                攀登影片
-              </h2>
-              <div className="space-y-4">
-                {route.videos.map((videoUrl, index) => (
-                  <div key={index} className="aspect-video w-full">
-                    <iframe
-                      src={videoUrl}
-                      className="h-full w-full rounded-lg"
-                      title={`${route.name} 攀登影片 ${index + 1}`}
-                      allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                      allowFullScreen
-                    />
-                  </div>
-                ))}
-              </div>
-            </div>
-          )}
+          {/* 路線故事 */}
+          <RouteStoriesSection
+            routeId={route.id}
+            routeName={route.name}
+            routeGrade={route.grade}
+          />
 
-          {/* YouTube 影片 */}
-          {hasYoutubeVideos && (
-            <div className="mb-8">
-              <h2 className="mb-3 flex items-center border-l-4 border-[#FFE70C] pl-3 text-lg font-bold text-[#1B1A1A]">
-                <Youtube size={20} className="mr-2 text-red-600" />
-                YouTube 影片
-              </h2>
-              <div className="space-y-4">
-                {route.youtubeVideos.map((videoUrl, index) => (
-                  <div key={index} className="aspect-video w-full">
-                    <iframe
-                      src={getYoutubeEmbedUrl(videoUrl)}
-                      className="h-full w-full rounded-lg"
-                      title={`${route.name} YouTube 影片 ${index + 1}`}
-                      allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                      allowFullScreen
-                    />
-                  </div>
-                ))}
-              </div>
-            </div>
-          )}
+          {/* 社群照片 */}
+          <RoutePhotosSection
+            routeId={route.id}
+            routeName={route.name}
+            staticPhotos={route.images}
+          />
 
-          {/* Instagram 貼文 */}
-          {hasInstagramPosts && (
-            <div className="mb-8">
-              <h2 className="mb-3 flex items-center border-l-4 border-[#FFE70C] pl-3 text-lg font-bold text-[#1B1A1A]">
-                <Instagram size={20} className="mr-2 text-pink-600" />
-                Instagram 貼文
-              </h2>
-              <div className="space-y-4">
-                {route.instagramPosts.map((postUrl, index) => {
-                  const postId = getInstagramPostId(postUrl)
-                  return (
-                    <div
-                      key={index}
-                      className="overflow-hidden rounded-lg border border-gray-200"
-                    >
-                      {postId ? (
-                        <iframe
-                          src={`https://www.instagram.com/p/${postId}/embed`}
-                          className="h-[500px] w-full"
-                          title={`${route.name} Instagram 貼文 ${index + 1}`}
-                          scrolling="no"
-                          allowFullScreen
-                        />
-                      ) : (
-                        <a
-                          href={postUrl}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="flex items-center justify-center p-4 text-pink-600 hover:text-pink-700"
-                        >
-                          <Instagram size={20} className="mr-2" />
-                          查看 Instagram 貼文
-                          <ExternalLink size={14} className="ml-1" />
-                        </a>
-                      )}
-                    </div>
-                  )
-                })}
-              </div>
-            </div>
-          )}
+          {/* 攀登影片 (YouTube) */}
+          <RouteYouTubeSection
+            routeId={route.id}
+            routeName={route.name}
+            staticVideos={[...(route.videos || []), ...(route.youtubeVideos || [])]}
+          />
 
-          {/* 社群內容區塊（路線故事 + 攀爬記錄） */}
-          <RouteCommunitySection
+          {/* Instagram 分享 */}
+          <RouteInstagramSection
+            routeId={route.id}
+            routeName={route.name}
+            staticPosts={route.instagramPosts}
+          />
+
+          {/* 攀爬記錄 */}
+          <RouteAscentsSection
             routeId={route.id}
             routeName={route.name}
             routeGrade={route.grade}
