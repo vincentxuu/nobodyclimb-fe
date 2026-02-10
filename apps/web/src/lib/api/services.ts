@@ -3108,3 +3108,133 @@ export const adminAccessLogsService = {
     return response.data
   },
 }
+
+// ═══════════════════════════════════════════════════════════
+// Admin 岩場管理 API 服務
+// ═══════════════════════════════════════════════════════════
+
+/**
+ * 岩場統計介面
+ */
+export interface AdminCragStats {
+  total_crags: number
+  total_routes: number
+  total_bolts: number
+  featured_count: number
+  new_this_month: number
+  regions: Array<{ region: string; count: number }>
+}
+
+/**
+ * Admin 岩場 API 服務
+ */
+export const adminCragService = {
+  /**
+   * 獲取岩場列表（需要 admin 權限）
+   */
+  getCrags: async (options?: {
+    page?: number
+    limit?: number
+    search?: string
+    region?: string
+  }) => {
+    const response = await apiClient.get<
+      ApiResponse<Crag[]> & {
+        pagination: { page: number; limit: number; total: number; total_pages: number }
+      }
+    >('/admin/crags', { params: options })
+    return response.data
+  },
+
+  /**
+   * 獲取岩場統計（需要 admin 權限）
+   */
+  getStats: async () => {
+    const response = await apiClient.get<ApiResponse<AdminCragStats>>('/admin/crags/stats')
+    return response.data
+  },
+
+  /**
+   * 獲取單一岩場詳情（需要 admin 權限）
+   */
+  getCrag: async (id: string) => {
+    const response = await apiClient.get<
+      ApiResponse<Crag & { routes: Route[] }>
+    >(`/admin/crags/${id}`)
+    return response.data
+  },
+
+  /**
+   * 批量導入岩場（需要 admin 權限）
+   */
+  batchImportCrags: async (crags: Partial<Crag>[], skipExisting = false) => {
+    const response = await apiClient.post<
+      ApiResponse<{ imported: number; skipped: number; errors: string[] }>
+    >('/admin/crags/batch-import', { crags, skipExisting })
+    return response.data
+  },
+
+  /**
+   * 更新岩場路線統計（需要 admin 權限）
+   */
+  updateCounts: async (id: string) => {
+    const response = await apiClient.post<
+      ApiResponse<{ route_count: number; bolt_count: number }>
+    >(`/admin/crags/${id}/update-counts`)
+    return response.data
+  },
+
+  /**
+   * 獲取岩場路線列表（需要 admin 權限）
+   */
+  getRoutes: async (cragId: string, options?: { page?: number; limit?: number }) => {
+    const response = await apiClient.get<
+      ApiResponse<Route[]> & {
+        pagination: { page: number; limit: number; total: number; total_pages: number }
+      }
+    >(`/admin/crags/${cragId}/routes`, { params: options })
+    return response.data
+  },
+
+  /**
+   * 新增路線（需要 admin 權限）
+   */
+  createRoute: async (cragId: string, route: Partial<Route>) => {
+    const response = await apiClient.post<ApiResponse<Route>>(
+      `/admin/crags/${cragId}/routes`,
+      route
+    )
+    return response.data
+  },
+
+  /**
+   * 更新路線（需要 admin 權限）
+   */
+  updateRoute: async (cragId: string, routeId: string, route: Partial<Route>) => {
+    const response = await apiClient.put<ApiResponse<Route>>(
+      `/admin/crags/${cragId}/routes/${routeId}`,
+      route
+    )
+    return response.data
+  },
+
+  /**
+   * 刪除路線（需要 admin 權限）
+   */
+  deleteRoute: async (cragId: string, routeId: string) => {
+    const response = await apiClient.delete<ApiResponse<{ message: string }>>(
+      `/admin/crags/${cragId}/routes/${routeId}`
+    )
+    return response.data
+  },
+
+  /**
+   * 批量導入路線（需要 admin 權限）
+   */
+  batchImportRoutes: async (cragId: string, routes: Partial<Route>[], skipExisting = false) => {
+    const response = await apiClient.post<
+      ApiResponse<{ imported: number; skipped: number; errors: string[] }>
+    >(`/admin/crags/${cragId}/routes/batch-import`, { routes, skipExisting })
+    return response.data
+  },
+}
