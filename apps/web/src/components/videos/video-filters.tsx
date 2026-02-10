@@ -14,13 +14,19 @@ const VideoFilters: React.FC<VideoFiltersProps> = ({
 }) => {
   const categories: Array<{ value: VideoCategory | 'all'; label: string }> = [
     { value: 'all', label: '全部' },
-    { value: '戶外攀岩', label: '戶外攀岩' },
-    { value: '室內攀岩', label: '室內攀岩' },
-    { value: '競技攀岩', label: '競技攀岩' },
-    { value: '抱石', label: '抱石' },
+    // 攀岩類型
+    { value: '戶外上攀', label: '戶外上攀' },
+    { value: '戶外抱石', label: '戶外抱石' },
+    { value: '室內上攀', label: '室內上攀' },
+    { value: '室內抱石', label: '室內抱石' },
+    { value: '賽事', label: '賽事' },
+    // 內容類型
     { value: '教學影片', label: '教學影片' },
+    { value: '訓練', label: '訓練' },
     { value: '紀錄片', label: '紀錄片' },
     { value: '裝備評測', label: '裝備評測' },
+    { value: '挑戰影片', label: '挑戰影片' },
+    { value: '訪談', label: '訪談' },
   ]
 
   return (
