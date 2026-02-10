@@ -50,12 +50,10 @@ jobs:
           SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
 
       - name: Deploy to Cloudflare Workers
-        uses: cloudflare/wrangler-action@v3
-        with:
-          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
-          workingDirectory: apps/web
-          environment: ${{ github.ref == 'refs/heads/main' && 'production' || 'preview' }}
-          wranglerVersion: '4'
+        working-directory: apps/web
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+        run: pnpm wrangler deploy --env ${{ github.ref == 'refs/heads/main' && 'production' || 'preview' }}
 
       - name: Purge Cloudflare cache
         if: github.ref == 'refs/heads/main'
