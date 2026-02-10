@@ -42,7 +42,9 @@ NobodyClimb 是一個專為攀岩愛好者打造的平台，提供攀岩場地�
 ### 後端
 
 - **運行環境**: Cloudflare Workers
-- **框架**: Hono (輕量級 Web 框架)
+- **框架**: Hono 4.6 (輕量級 Web 框架)
+- **API 文檔**: OpenAPI 3.1 (自動生成 via hono-openapi) + Scalar API Reference UI
+- **驗證**: Zod + zod-openapi
 - **資料庫**: Cloudflare D1 (SQLite)
 - **儲存**: Cloudflare R2 (檔案儲存)
 - **快取**: Cloudflare KV
@@ -77,7 +79,9 @@ nobodyclimb/
 │   │   ├── index.ts            # 主要進入點和路由
 │   │   ├── db/                 # 資料庫結構定義
 │   │   ├── middleware/         # 認證中介軟體
-│   │   ├── routes/             # API 路由處理器
+│   │   ├── repositories/       # 資料存取層
+│   │   ├── routes/             # API 路由處理器 (含 OpenAPI 裝飾器)
+│   │   ├── services/           # 業務邏輯層
 │   │   └── utils/              # 工具函式
 │   ├── migrations/             # D1 資料庫遷移
 │   └── package.json
@@ -91,6 +95,9 @@ nobodyclimb/
 │   └── utils/                  # 通用工具函式
 │
 ├── docs/                       # 專案文件
+│   ├── ai-agent/               # AI Agent 實作指南
+│   ├── backend/                # 後端 API 開發文件
+│   └── design/                 # UI/UX 設計規範
 ├── turbo.json                  # Turborepo 配置
 ├── pnpm-workspace.yaml         # pnpm workspace 配置
 └── package.json                # 根專案配置
@@ -105,6 +112,8 @@ nobodyclimb/
 - **部落格系統**: 文章創建、編輯、瀏覽功能、富文本編輯器
 - **岩場資訊**: 岩場詳情、路線資訊、地圖顯示、天氣狀況、社群媒體整合
 - **攀岩館**: 攀岩館資訊、設施介紹、詳細頁面
+- **路線社群**: 路線故事分享、攀登紀錄、社群互動
+- **攀登紀錄**: 記錄攀登歷程、追蹤完攀路線
 - **相片集**: 攀岩相片瀏覽、彈出視窗展示、圖片上傳與裁切
 - **人物誌**: 攀岩人物故事、個人檔案展示、章節式內容
 - **搜尋功能**: 全站搜尋、進階篩選
@@ -231,12 +240,16 @@ wrangler tail --env production             # 查看生產環境日誌
 
 ```bash
 cd backend                      # 切換到後端目錄
-pnpm dev                        # 啟動本地開發伺服器
+pnpm dev                        # 啟動本地開發伺服器 (localhost:8787)
 pnpm db:migrate                 # 執行本地資料庫遷移
 pnpm db:migrate:remote          # 執行遠端 D1 資料庫遷移
 pnpm deploy:preview             # 部署到預覽環境
 pnpm deploy:production          # 部署到生產環境
 ```
+
+**API 文檔**（開發伺服器啟動後可訪問）：
+- OpenAPI JSON: `http://localhost:8787/api/v1/openapi.json`
+- Scalar 互動式文檔: `http://localhost:8787/api/v1/docs`
 
 ### YouTube 影片資料管理
 
@@ -423,14 +436,6 @@ wrangler kv:key get --binding=VIDEOS "videos"
 wrangler kv:key list --binding=VIDEOS
 ```
 
-### 詳細部署文件
-
-更詳細的部署文件請參考 `docs/cloudflare-deployment/` 目錄：
-
-- `deployment-steps.md` - 完整部署步驟
-- `deployment-checklist.md` - 部署檢查清單
-- `environment-setup.md` - 環境設定說明
-
 ## 開發指南
 
 ### 程式碼風格
@@ -494,9 +499,12 @@ wrangler kv:key list --binding=VIDEOS
 ### 後端架構模式
 
 - RESTful API，路由處理器在 `backend/src/routes/`
+- **OpenAPI 3.1 文檔**: 透過 `hono-openapi` 自動從路由生成，位於 `/api/v1/openapi.json`
+- **Scalar API Reference**: 互動式 API 文檔介面，位於 `/api/v1/docs`
 - JWT 認證中介軟體
 - D1 資料庫，SQLite schema 在 `backend/src/db/schema.sql`
 - Cloudflare 綁定: DB (D1), CACHE (KV), STORAGE (R2)
+- 分層架構: routes → services → repositories
 
 ### TypeScript 路徑別名
 
@@ -546,6 +554,18 @@ wrangler kv:key list --binding=VIDEOS
 | `NEXT_PUBLIC_POSTHOG_KEY` | PostHog API Key |
 | `NEXT_PUBLIC_POSTHOG_HOST` | PostHog Host URL |
 
+## 技術文件
+
+專案包含詳細的技術文件，位於 `docs/` 目錄：
+
+| 目錄 | 說明 |
+|------|------|
+| `docs/ai-agent/` | AI Agent 服務實作指南（架構、後端、前端、管理後台） |
+| `docs/backend/` | 後端 API 開發文件 |
+| `docs/design/` | UI/UX 設計規範 |
+| `docs/prd/` | 產品需求文件 |
+| `docs/roadmap/` | 產品路線圖 |
+
 ## 重要提示
 
 - 前端使用 React 19 和 Next.js 15，需要 Node.js 18+
@@ -568,6 +588,7 @@ wrangler kv:key list --binding=VIDEOS
 
 - **網站**: [nobodyclimb.cc](https://nobodyclimb.cc)
 - **API**: [api.nobodyclimb.cc](https://api.nobodyclimb.cc)
+- **API 文檔**: [api.nobodyclimb.cc/api/v1/docs](https://api.nobodyclimb.cc/api/v1/docs)
 - **開發團隊**: NobodyClimb Team
 
 ## 專案特色
@@ -577,6 +598,7 @@ wrangler kv:key list --binding=VIDEOS
 - 使用 D1 資料庫和 R2 儲存，零冷啟動時間
 - React 19 + Next.js 15 最新技術棧
 - 完整的認證系統和權限管理
+- OpenAPI 3.1 標準的 API 文檔與互動式介面
 - 響應式設計，支援各種裝置
 - 繁體中文介面和內容
 

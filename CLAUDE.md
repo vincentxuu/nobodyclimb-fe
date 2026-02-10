@@ -33,8 +33,8 @@ NobodyClimb is a rock climbing community platform using **pnpm workspaces + Turb
 ### Backend
 - **Runtime**: Cloudflare Workers
 - **Framework**: Hono 4.6 (lightweight web framework)
-- **API Documentation**: OpenAPI 3.1 + Scalar API Reference UI
-- **Validation**: Zod + @hono/zod-openapi
+- **API Documentation**: OpenAPI 3.1 (auto-generated via hono-openapi) + Scalar API Reference UI
+- **Validation**: Zod + zod-openapi
 - **Database**: Cloudflare D1 (SQLite)
 - **Storage**: Cloudflare R2 (file storage)
 - **Cache**: Cloudflare KV
@@ -87,8 +87,8 @@ pnpm deploy:production             # Deploy to production
 ```
 
 API documentation available at:
-- OpenAPI JSON: `http://localhost:8787/api/v1/doc`
-- Scalar UI: `http://localhost:8787/api/v1/reference`
+- OpenAPI JSON: `http://localhost:8787/api/v1/openapi.json`
+- Scalar UI: `http://localhost:8787/api/v1/docs`
 
 ### Frontend Cloudflare Deployment
 ```bash
@@ -138,11 +138,8 @@ nobodyclimb/
 │   │   ├── index.ts                # Main entry point and routing
 │   │   ├── db/                     # Database schema
 │   │   ├── middleware/             # Auth middleware
-│   │   ├── openapi/                # OpenAPI schema definitions
-│   │   │   ├── routes/             # OpenAPI route definitions
-│   │   │   └── schemas.ts          # Zod schemas for OpenAPI
 │   │   ├── repositories/           # Data access layer
-│   │   ├── routes/                 # API route handlers
+│   │   ├── routes/                 # API route handlers (with OpenAPI decorators)
 │   │   ├── services/               # Business logic layer
 │   │   └── utils/                  # Utility functions
 │   ├── migrations/                 # D1 database migrations
@@ -158,7 +155,8 @@ nobodyclimb/
 │
 ├── docs/                           # Documentation
 │   ├── ai-agent/                   # AI Agent 實作指南
-│   ├── cloudflare-deployment/      # Cloudflare 部署指南
+│   ├── backend/                    # 後端 API 開發文件
+│   ├── design/                     # UI/UX 設計規範
 │   └── ...                         # 其他設計與規劃文件
 ├── turbo.json                      # Turborepo config
 ├── pnpm-workspace.yaml             # pnpm workspace config
@@ -220,8 +218,8 @@ The biography feature uses shared interaction components in `apps/web/src/compon
 
 ### Backend Architecture (Hono + D1)
 - RESTful API with route handlers in `backend/src/routes/`
-- **OpenAPI 3.1 Documentation**: Auto-generated API docs at `/api/v1/doc`
-- **Scalar API Reference**: Interactive API documentation UI at `/api/v1/reference`
+- **OpenAPI 3.1 Documentation**: Auto-generated from routes via `hono-openapi` at `/api/v1/openapi.json`
+- **Scalar API Reference**: Interactive API documentation UI at `/api/v1/docs`
 - JWT authentication middleware
 - D1 database with SQLite schema in `backend/src/db/schema.sql`
 - Cloudflare bindings: DB (D1), CACHE (KV), STORAGE (R2)
