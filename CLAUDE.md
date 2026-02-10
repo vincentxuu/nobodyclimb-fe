@@ -32,7 +32,9 @@ NobodyClimb is a rock climbing community platform using **pnpm workspaces + Turb
 
 ### Backend
 - **Runtime**: Cloudflare Workers
-- **Framework**: Hono (lightweight web framework)
+- **Framework**: Hono 4.6 (lightweight web framework)
+- **API Documentation**: OpenAPI 3.1 + Scalar API Reference UI
+- **Validation**: Zod + @hono/zod-openapi
 - **Database**: Cloudflare D1 (SQLite)
 - **Storage**: Cloudflare R2 (file storage)
 - **Cache**: Cloudflare KV
@@ -77,12 +79,16 @@ pnpm android                        # Run on Android emulator
 ### Backend Development
 ```bash
 cd backend
-pnpm dev                           # Start local dev server
+pnpm dev                           # Start local dev server (localhost:8787)
 pnpm db:migrate                    # Run migrations locally
 pnpm db:migrate:remote             # Run migrations on remote D1
 pnpm deploy:preview                # Deploy to preview environment
 pnpm deploy:production             # Deploy to production
 ```
+
+API documentation available at:
+- OpenAPI JSON: `http://localhost:8787/api/v1/doc`
+- Scalar UI: `http://localhost:8787/api/v1/reference`
 
 ### Frontend Cloudflare Deployment
 ```bash
@@ -132,7 +138,12 @@ nobodyclimb/
 │   │   ├── index.ts                # Main entry point and routing
 │   │   ├── db/                     # Database schema
 │   │   ├── middleware/             # Auth middleware
+│   │   ├── openapi/                # OpenAPI schema definitions
+│   │   │   ├── routes/             # OpenAPI route definitions
+│   │   │   └── schemas.ts          # Zod schemas for OpenAPI
+│   │   ├── repositories/           # Data access layer
 │   │   ├── routes/                 # API route handlers
+│   │   ├── services/               # Business logic layer
 │   │   └── utils/                  # Utility functions
 │   ├── migrations/                 # D1 database migrations
 │   └── wrangler.toml               # Cloudflare Workers config
@@ -146,6 +157,9 @@ nobodyclimb/
 │   └── utils/                      # Shared utility functions
 │
 ├── docs/                           # Documentation
+│   ├── ai-agent/                   # AI Agent 實作指南
+│   ├── cloudflare-deployment/      # Cloudflare 部署指南
+│   └── ...                         # 其他設計與規劃文件
 ├── turbo.json                      # Turborepo config
 ├── pnpm-workspace.yaml             # pnpm workspace config
 └── package.json                    # Root package config
@@ -206,9 +220,12 @@ The biography feature uses shared interaction components in `apps/web/src/compon
 
 ### Backend Architecture (Hono + D1)
 - RESTful API with route handlers in `backend/src/routes/`
+- **OpenAPI 3.1 Documentation**: Auto-generated API docs at `/api/v1/doc`
+- **Scalar API Reference**: Interactive API documentation UI at `/api/v1/reference`
 - JWT authentication middleware
 - D1 database with SQLite schema in `backend/src/db/schema.sql`
 - Cloudflare bindings: DB (D1), CACHE (KV), STORAGE (R2)
+- Layered architecture: routes → services → repositories
 
 ### Active User Definition (User Activity Tracking)
 The system tracks user activity through the `last_active_at` field in the `users` table:

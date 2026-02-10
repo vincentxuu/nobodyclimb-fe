@@ -1,14 +1,56 @@
 import { Hono } from 'hono';
+import { z } from 'zod';
+import { describeRoute, validator } from 'hono-openapi';
 import { Env, RouteStory } from '../types';
 import { parsePagination, generateId, safeJsonParse, toBool } from '../utils/id';
 import { authMiddleware, optionalAuthMiddleware } from '../middleware/auth';
+
+// ============================================
+// Zod Schemas for Route Stories
+// ============================================
+const createRouteStorySchema = z.object({
+  route_id: z.string().min(1, 'route_id is required'),
+  content: z.string().min(1, 'content is required'),
+  story_type: z.enum(['beta', 'experience', 'history', 'safety', 'other']).optional().default('other'),
+  title: z.string().optional(),
+  photos: z.array(z.string()).optional(),
+  youtube_url: z.string().url().optional().nullable(),
+  instagram_url: z.string().url().optional().nullable(),
+  visibility: z.enum(['public', 'community', 'private']).optional().default('public'),
+});
+
+const updateRouteStorySchema = z.object({
+  story_type: z.enum(['beta', 'experience', 'history', 'safety', 'other']).optional(),
+  title: z.string().optional(),
+  content: z.string().optional(),
+  photos: z.array(z.string()).optional(),
+  youtube_url: z.string().url().optional().nullable(),
+  instagram_url: z.string().url().optional().nullable(),
+  visibility: z.enum(['public', 'community', 'private']).optional(),
+});
+
+const createCommentSchema = z.object({
+  content: z.string().min(1, 'content is required'),
+  parent_id: z.string().optional(),
+});
 
 export const routeStoriesRoutes = new Hono<{ Bindings: Env }>();
 
 // ============================================
 // GET /route-stories - 取得路線故事列表
 // ============================================
-routeStoriesRoutes.get('/', optionalAuthMiddleware, async (c) => {
+routeStoriesRoutes.get(
+  '/',
+  describeRoute({
+    tags: ['RouteStories'],
+    summary: '取得路線故事列表',
+    description: '取得所有公開的路線故事列表，支援分頁和篩選（route_id、crag_id、story_type、featured）',
+    responses: {
+      200: { description: '成功取得路線故事列表' },
+    },
+  }),
+  optionalAuthMiddleware,
+  async (c) => {
   const userId = c.get('userId');
   const { page, limit, offset } = parsePagination(
     c.req.query('page'),
@@ -21,7 +63,7 @@ routeStoriesRoutes.get('/', optionalAuthMiddleware, async (c) => {
   const featured = c.req.query('featured');
 
   let whereClause = "(s.visibility = 'public' OR (s.visibility = 'community' AND ? IS NOT NULL))";
-  const params: (string | number | null)[] = [userId];
+  const params: (string | number | null)[] = [userId ?? null];
 
   if (routeId) {
     whereClause += ' AND s.route_id = ?';
@@ -100,7 +142,21 @@ routeStoriesRoutes.get('/', optionalAuthMiddleware, async (c) => {
 // ============================================
 // GET /route-stories/:id - 取得單筆路線故事
 // ============================================
-routeStoriesRoutes.get('/:id', optionalAuthMiddleware, async (c) => {
+routeStoriesRoutes.get(
+  '/:id',
+  describeRoute({
+    tags: ['RouteStories'],
+    summary: '取得單筆路線故事',
+    description: '依據 ID 取得單筆路線故事的詳細資訊，包含作者、路線、岩場資訊',
+    responses: {
+      200: { description: '成功取得路線故事' },
+      401: { description: '未授權，需要登入才能查看社群故事' },
+      403: { description: '禁止存取，此故事為私人' },
+      404: { description: '找不到故事' },
+    },
+  }),
+  optionalAuthMiddleware,
+  async (c) => {
   const id = c.req.param('id');
   const userId = c.get('userId');
 
@@ -155,18 +211,23 @@ routeStoriesRoutes.get('/:id', optionalAuthMiddleware, async (c) => {
 // ============================================
 // POST /route-stories - 新增路線故事
 // ============================================
-routeStoriesRoutes.post('/', authMiddleware, async (c) => {
+routeStoriesRoutes.post(
+  '/',
+  describeRoute({
+    tags: ['RouteStories'],
+    summary: '新增路線故事',
+    description: '為指定路線新增故事，包含內容、類型、照片、影片連結等',
+    responses: {
+      201: { description: '成功新增路線故事' },
+      400: { description: '請求參數錯誤，route_id 或 content 為必填' },
+      401: { description: '未授權，需要登入' },
+    },
+  }),
+  authMiddleware,
+  validator('json', createRouteStorySchema),
+  async (c) => {
   const userId = c.get('userId');
-  const body = await c.req.json<Partial<RouteStory>>();
-
-  // 驗證必要欄位
-  if (!body.route_id) {
-    return c.json({ success: false, error: 'Bad Request', message: 'route_id is required' }, 400);
-  }
-
-  if (!body.content) {
-    return c.json({ success: false, error: 'Bad Request', message: 'content is required' }, 400);
-  }
+  const body = c.req.valid('json');
 
   // 驗證路線存在
   const route = await c.env.DB.prepare('SELECT id FROM routes WHERE id = ?')
@@ -238,10 +299,26 @@ routeStoriesRoutes.post('/', authMiddleware, async (c) => {
 // ============================================
 // PUT /route-stories/:id - 更新路線故事
 // ============================================
-routeStoriesRoutes.put('/:id', authMiddleware, async (c) => {
+routeStoriesRoutes.put(
+  '/:id',
+  describeRoute({
+    tags: ['RouteStories'],
+    summary: '更新路線故事',
+    description: '更新指定 ID 的路線故事，只有故事作者可以編輯',
+    responses: {
+      200: { description: '成功更新路線故事' },
+      400: { description: '請求參數錯誤，沒有可更新的欄位' },
+      401: { description: '未授權，需要登入' },
+      403: { description: '禁止存取，只能編輯自己的故事' },
+      404: { description: '找不到故事' },
+    },
+  }),
+  authMiddleware,
+  validator('json', updateRouteStorySchema),
+  async (c) => {
   const id = c.req.param('id');
   const userId = c.get('userId');
-  const body = await c.req.json<Partial<RouteStory>>();
+  const body = c.req.valid('json');
 
   const existing = await c.env.DB.prepare(
     'SELECT id, user_id, route_id FROM route_stories WHERE id = ?'
@@ -260,12 +337,12 @@ routeStoriesRoutes.put('/:id', authMiddleware, async (c) => {
   const updates: string[] = [];
   const values: (string | number | null)[] = [];
 
-  const fields = ['story_type', 'title', 'content', 'youtube_url', 'instagram_url', 'visibility'];
+  const fields = ['story_type', 'title', 'content', 'youtube_url', 'instagram_url', 'visibility'] as const;
 
   for (const field of fields) {
-    if (body[field as keyof RouteStory] !== undefined) {
+    if (body[field] !== undefined) {
       updates.push(`${field} = ?`);
-      values.push(body[field as keyof RouteStory] as string | number | null);
+      values.push(body[field] as string | number | null);
     }
   }
 
@@ -321,7 +398,21 @@ routeStoriesRoutes.put('/:id', authMiddleware, async (c) => {
 // ============================================
 // DELETE /route-stories/:id - 刪除路線故事
 // ============================================
-routeStoriesRoutes.delete('/:id', authMiddleware, async (c) => {
+routeStoriesRoutes.delete(
+  '/:id',
+  describeRoute({
+    tags: ['RouteStories'],
+    summary: '刪除路線故事',
+    description: '刪除指定 ID 的路線故事，同時刪除相關的按讚、留言和反應，只有故事作者可以刪除',
+    responses: {
+      200: { description: '成功刪除路線故事' },
+      401: { description: '未授權，需要登入' },
+      403: { description: '禁止存取，只能刪除自己的故事' },
+      404: { description: '找不到故事' },
+    },
+  }),
+  authMiddleware,
+  async (c) => {
   const id = c.req.param('id');
   const userId = c.get('userId');
 
@@ -361,7 +452,20 @@ routeStoriesRoutes.delete('/:id', authMiddleware, async (c) => {
 // ============================================
 // POST /route-stories/:id/like - 按讚/取消按讚
 // ============================================
-routeStoriesRoutes.post('/:id/like', authMiddleware, async (c) => {
+routeStoriesRoutes.post(
+  '/:id/like',
+  describeRoute({
+    tags: ['RouteStories'],
+    summary: '按讚或取消按讚路線故事',
+    description: '切換路線故事的按讚狀態，已按讚則取消，未按讚則新增',
+    responses: {
+      200: { description: '成功切換按讚狀態' },
+      401: { description: '未授權，需要登入' },
+      404: { description: '找不到故事' },
+    },
+  }),
+  authMiddleware,
+  async (c) => {
   const storyId = c.req.param('id');
   const userId = c.get('userId');
 
@@ -408,7 +512,20 @@ routeStoriesRoutes.post('/:id/like', authMiddleware, async (c) => {
 // ============================================
 // POST /route-stories/:id/helpful - 標記有幫助
 // ============================================
-routeStoriesRoutes.post('/:id/helpful', authMiddleware, async (c) => {
+routeStoriesRoutes.post(
+  '/:id/helpful',
+  describeRoute({
+    tags: ['RouteStories'],
+    summary: '標記或取消標記路線故事為有幫助',
+    description: '切換路線故事的「有幫助」標記狀態，已標記則取消，未標記則新增',
+    responses: {
+      200: { description: '成功切換有幫助標記狀態' },
+      401: { description: '未授權，需要登入' },
+      404: { description: '找不到故事' },
+    },
+  }),
+  authMiddleware,
+  async (c) => {
   const storyId = c.req.param('id');
   const userId = c.get('userId');
 
@@ -454,7 +571,17 @@ routeStoriesRoutes.post('/:id/helpful', authMiddleware, async (c) => {
 // ============================================
 // GET /route-stories/:id/comments - 取得故事留言
 // ============================================
-routeStoriesRoutes.get('/:id/comments', async (c) => {
+routeStoriesRoutes.get(
+  '/:id/comments',
+  describeRoute({
+    tags: ['RouteStories'],
+    summary: '取得路線故事的留言',
+    description: '取得指定路線故事的所有留言，支援分頁',
+    responses: {
+      200: { description: '成功取得留言列表' },
+    },
+  }),
+  async (c) => {
   const storyId = c.req.param('id');
   const { page, limit, offset } = parsePagination(
     c.req.query('page'),
@@ -498,14 +625,25 @@ routeStoriesRoutes.get('/:id/comments', async (c) => {
 // ============================================
 // POST /route-stories/:id/comments - 新增故事留言
 // ============================================
-routeStoriesRoutes.post('/:id/comments', authMiddleware, async (c) => {
+routeStoriesRoutes.post(
+  '/:id/comments',
+  describeRoute({
+    tags: ['RouteStories'],
+    summary: '新增路線故事留言',
+    description: '為指定路線故事新增留言，支援回覆其他留言（parent_id）',
+    responses: {
+      201: { description: '成功新增留言' },
+      400: { description: '請求參數錯誤，content 為必填' },
+      401: { description: '未授權，需要登入' },
+      404: { description: '找不到故事' },
+    },
+  }),
+  authMiddleware,
+  validator('json', createCommentSchema),
+  async (c) => {
   const storyId = c.req.param('id');
   const userId = c.get('userId');
-  const body = await c.req.json<{ content: string; parent_id?: string }>();
-
-  if (!body.content) {
-    return c.json({ success: false, error: 'Bad Request', message: 'content is required' }, 400);
-  }
+  const body = c.req.valid('json');
 
   // 確認故事存在
   const story = await c.env.DB.prepare('SELECT id, user_id FROM route_stories WHERE id = ?')
@@ -546,7 +684,18 @@ routeStoriesRoutes.post('/:id/comments', authMiddleware, async (c) => {
 // ============================================
 // GET /route/:routeId/stories - 取得路線的故事
 // ============================================
-routeStoriesRoutes.get('/route/:routeId', optionalAuthMiddleware, async (c) => {
+routeStoriesRoutes.get(
+  '/route/:routeId',
+  describeRoute({
+    tags: ['RouteStories'],
+    summary: '取得指定路線的故事列表',
+    description: '依據路線 ID 取得該路線的所有故事，支援分頁和故事類型篩選',
+    responses: {
+      200: { description: '成功取得路線故事列表' },
+    },
+  }),
+  optionalAuthMiddleware,
+  async (c) => {
   const routeId = c.req.param('routeId');
   const userId = c.get('userId');
   const { page, limit, offset } = parsePagination(
@@ -556,7 +705,7 @@ routeStoriesRoutes.get('/route/:routeId', optionalAuthMiddleware, async (c) => {
   const storyType = c.req.query('story_type');
 
   let whereClause = "s.route_id = ? AND (s.visibility = 'public' OR (s.visibility = 'community' AND ? IS NOT NULL))";
-  const params: (string | null)[] = [routeId, userId];
+  const params: (string | null)[] = [routeId, userId ?? null];
 
   if (storyType) {
     whereClause += ' AND s.story_type = ?';

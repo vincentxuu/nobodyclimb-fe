@@ -1,8 +1,77 @@
 import { Hono } from 'hono';
+import { z } from 'zod';
+import { describeRoute, validator } from 'hono-openapi';
 import { D1Database } from '@cloudflare/workers-types';
 import { Env, Crag, Route } from '../types';
 import { authMiddleware, adminMiddleware } from '../middleware/auth';
 import { parsePagination, generateId } from '../utils/id';
+
+// Validation schemas
+const batchImportCragsSchema = z.object({
+  crags: z.array(z.object({
+    id: z.string().optional(),
+    name: z.string().min(1),
+    slug: z.string().min(1),
+    description: z.string().optional(),
+    location: z.string().optional(),
+    region: z.string().optional(),
+    latitude: z.number().optional(),
+    longitude: z.number().optional(),
+    altitude: z.number().optional(),
+    rock_type: z.string().optional(),
+    climbing_types: z.array(z.string()).optional(),
+    difficulty_range: z.string().optional(),
+    route_count: z.number().optional(),
+    bolt_count: z.number().optional(),
+    cover_image: z.string().optional(),
+    images: z.array(z.string()).optional(),
+    is_featured: z.number().optional(),
+    access_info: z.string().optional(),
+    parking_info: z.string().optional(),
+    approach_time: z.string().optional(),
+    best_seasons: z.array(z.string()).optional(),
+    restrictions: z.string().optional(),
+  })),
+  skipExisting: z.boolean().optional(),
+});
+
+const createRouteSchema = z.object({
+  id: z.string().optional(),
+  name: z.string().min(1),
+  grade: z.string().optional(),
+  grade_system: z.string().optional(),
+  height: z.number().optional(),
+  bolt_count: z.number().optional(),
+  route_type: z.string().optional(),
+  description: z.string().optional(),
+  first_ascent: z.string().optional(),
+});
+
+const updateRouteSchema = z.object({
+  name: z.string().optional(),
+  grade: z.string().optional(),
+  grade_system: z.string().optional(),
+  height: z.number().optional(),
+  bolt_count: z.number().optional(),
+  route_type: z.string().optional(),
+  description: z.string().optional(),
+  first_ascent: z.string().optional(),
+});
+
+const batchImportRoutesSchema = z.object({
+  routes: z.array(z.object({
+    id: z.string().optional(),
+    name: z.string().min(1),
+    grade: z.string().optional(),
+    grade_system: z.string().optional(),
+    height: z.number().optional(),
+    bolt_count: z.number().optional(),
+    route_type: z.string().optional(),
+    description: z.string().optional(),
+    first_ascent: z.string().optional(),
+  })),
+  skipExisting: z.boolean().optional(),
+});
 
 // Helper function to update crag route and bolt counts
 async function updateCragCounts(db: D1Database, cragId: string) {
@@ -30,7 +99,19 @@ adminCragsRoutes.use('*', authMiddleware, adminMiddleware);
 // ============================================
 
 // GET /admin/crags - List all crags with admin info
-adminCragsRoutes.get('/', async (c) => {
+adminCragsRoutes.get(
+  '/',
+  describeRoute({
+    tags: ['Admin'],
+    summary: '取得所有岩場列表',
+    description: '取得所有岩場的管理列表，支援分頁、搜尋和區域篩選',
+    responses: {
+      200: { description: '成功取得岩場列表' },
+      401: { description: '未授權' },
+      403: { description: '權限不足（需要管理員權限）' },
+    },
+  }),
+  async (c) => {
   const { page, limit, offset } = parsePagination(
     c.req.query('page'),
     c.req.query('limit')
@@ -87,7 +168,19 @@ adminCragsRoutes.get('/', async (c) => {
 });
 
 // GET /admin/crags/stats - Get crag statistics (MUST be before /:id)
-adminCragsRoutes.get('/stats', async (c) => {
+adminCragsRoutes.get(
+  '/stats',
+  describeRoute({
+    tags: ['Admin'],
+    summary: '取得岩場統計資料',
+    description: '取得岩場的總數、路線數、bolt 數及區域分布統計',
+    responses: {
+      200: { description: '成功取得統計資料' },
+      401: { description: '未授權' },
+      403: { description: '權限不足（需要管理員權限）' },
+    },
+  }),
+  async (c) => {
   const stats = await c.env.DB.prepare(`
     SELECT
       COUNT(*) as total_crags,
@@ -123,22 +216,22 @@ adminCragsRoutes.get('/stats', async (c) => {
 });
 
 // POST /admin/crags/batch-import - Batch import crags (MUST be before /:id)
-adminCragsRoutes.post('/batch-import', async (c) => {
-  const body = await c.req.json<{
-    crags: Array<Partial<Crag>>;
-    skipExisting?: boolean;
-  }>();
-
-  if (!body.crags || !Array.isArray(body.crags)) {
-    return c.json(
-      {
-        success: false,
-        error: 'Bad Request',
-        message: 'crags array is required',
-      },
-      400
-    );
-  }
+adminCragsRoutes.post(
+  '/batch-import',
+  describeRoute({
+    tags: ['Admin'],
+    summary: '批次匯入岩場',
+    description: '批次匯入多個岩場資料，可選擇是否跳過已存在的岩場',
+    responses: {
+      200: { description: '匯入完成，回傳匯入、跳過及錯誤數量' },
+      400: { description: 'crags 陣列為必填' },
+      401: { description: '未授權' },
+      403: { description: '權限不足（需要管理員權限）' },
+    },
+  }),
+  validator('json', batchImportCragsSchema),
+  async (c) => {
+  const body = c.req.valid('json');
 
   const results = {
     imported: 0,
@@ -246,7 +339,20 @@ adminCragsRoutes.post('/batch-import', async (c) => {
 // ============================================
 
 // GET /admin/crags/:id - Get crag details with routes
-adminCragsRoutes.get('/:id', async (c) => {
+adminCragsRoutes.get(
+  '/:id',
+  describeRoute({
+    tags: ['Admin'],
+    summary: '取得單一岩場詳情',
+    description: '取得指定 ID 的岩場詳細資料，包含該岩場的所有路線',
+    responses: {
+      200: { description: '成功取得岩場詳情' },
+      404: { description: '找不到岩場' },
+      401: { description: '未授權' },
+      403: { description: '權限不足（需要管理員權限）' },
+    },
+  }),
+  async (c) => {
   const id = c.req.param('id');
 
   const crag = await c.env.DB.prepare('SELECT * FROM crags WHERE id = ?')
@@ -284,7 +390,20 @@ adminCragsRoutes.get('/:id', async (c) => {
 });
 
 // POST /admin/crags/:id/update-counts - Update route and bolt counts
-adminCragsRoutes.post('/:id/update-counts', async (c) => {
+adminCragsRoutes.post(
+  '/:id/update-counts',
+  describeRoute({
+    tags: ['Admin'],
+    summary: '更新岩場路線及 bolt 數量',
+    description: '重新計算並更新指定岩場的路線數量和 bolt 數量',
+    responses: {
+      200: { description: '成功更新數量' },
+      404: { description: '找不到岩場' },
+      401: { description: '未授權' },
+      403: { description: '權限不足（需要管理員權限）' },
+    },
+  }),
+  async (c) => {
   const id = c.req.param('id');
 
   // First verify crag exists
@@ -337,12 +456,24 @@ adminCragsRoutes.post('/:id/update-counts', async (c) => {
 // ============================================
 
 // POST /admin/crags/:cragId/routes/batch-import - Batch import routes (MUST be before /:cragId/routes)
-adminCragsRoutes.post('/:cragId/routes/batch-import', async (c) => {
+adminCragsRoutes.post(
+  '/:cragId/routes/batch-import',
+  describeRoute({
+    tags: ['Admin'],
+    summary: '批次匯入路線',
+    description: '批次匯入多個路線到指定岩場',
+    responses: {
+      200: { description: '匯入完成，回傳匯入、跳過及錯誤數量' },
+      400: { description: 'routes 陣列為必填' },
+      404: { description: '找不到岩場' },
+      401: { description: '未授權' },
+      403: { description: '權限不足（需要管理員權限）' },
+    },
+  }),
+  validator('json', batchImportRoutesSchema),
+  async (c) => {
   const cragId = c.req.param('cragId');
-  const body = await c.req.json<{
-    routes: Array<Partial<Route>>;
-    skipExisting?: boolean;
-  }>();
+  const body = c.req.valid('json');
 
   // Verify crag exists
   const crag = await c.env.DB.prepare('SELECT id FROM crags WHERE id = ?')
@@ -357,17 +488,6 @@ adminCragsRoutes.post('/:cragId/routes/batch-import', async (c) => {
         message: 'Crag not found',
       },
       404
-    );
-  }
-
-  if (!body.routes || !Array.isArray(body.routes)) {
-    return c.json(
-      {
-        success: false,
-        error: 'Bad Request',
-        message: 'routes array is required',
-      },
-      400
     );
   }
 
@@ -437,7 +557,19 @@ adminCragsRoutes.post('/:cragId/routes/batch-import', async (c) => {
 // ============================================
 
 // GET /admin/crags/:cragId/routes - List routes for a crag
-adminCragsRoutes.get('/:cragId/routes', async (c) => {
+adminCragsRoutes.get(
+  '/:cragId/routes',
+  describeRoute({
+    tags: ['Admin'],
+    summary: '取得岩場的路線列表',
+    description: '取得指定岩場的所有路線，支援分頁',
+    responses: {
+      200: { description: '成功取得路線列表' },
+      401: { description: '未授權' },
+      403: { description: '權限不足（需要管理員權限）' },
+    },
+  }),
+  async (c) => {
   const cragId = c.req.param('cragId');
   const { page, limit, offset } = parsePagination(
     c.req.query('page'),
@@ -474,9 +606,24 @@ adminCragsRoutes.get('/:cragId/routes', async (c) => {
 });
 
 // POST /admin/crags/:cragId/routes - Create route
-adminCragsRoutes.post('/:cragId/routes', async (c) => {
+adminCragsRoutes.post(
+  '/:cragId/routes',
+  describeRoute({
+    tags: ['Admin'],
+    summary: '新增路線',
+    description: '在指定岩場新增一條路線',
+    responses: {
+      201: { description: '路線已成功新增' },
+      400: { description: '路線名稱為必填' },
+      404: { description: '找不到岩場' },
+      401: { description: '未授權' },
+      403: { description: '權限不足（需要管理員權限）' },
+    },
+  }),
+  validator('json', createRouteSchema),
+  async (c) => {
   const cragId = c.req.param('cragId');
-  const body = await c.req.json<Partial<Route>>();
+  const body = c.req.valid('json');
 
   // Verify crag exists
   const crag = await c.env.DB.prepare('SELECT id FROM crags WHERE id = ?')
@@ -491,17 +638,6 @@ adminCragsRoutes.post('/:cragId/routes', async (c) => {
         message: 'Crag not found',
       },
       404
-    );
-  }
-
-  if (!body.name) {
-    return c.json(
-      {
-        success: false,
-        error: 'Bad Request',
-        message: 'Route name is required',
-      },
-      400
     );
   }
 
@@ -544,10 +680,25 @@ adminCragsRoutes.post('/:cragId/routes', async (c) => {
 });
 
 // PUT /admin/crags/:cragId/routes/:routeId - Update route
-adminCragsRoutes.put('/:cragId/routes/:routeId', async (c) => {
+adminCragsRoutes.put(
+  '/:cragId/routes/:routeId',
+  describeRoute({
+    tags: ['Admin'],
+    summary: '更新路線',
+    description: '更新指定岩場的指定路線',
+    responses: {
+      200: { description: '路線已成功更新' },
+      400: { description: '沒有欄位需要更新' },
+      404: { description: '找不到路線' },
+      401: { description: '未授權' },
+      403: { description: '權限不足（需要管理員權限）' },
+    },
+  }),
+  validator('json', updateRouteSchema),
+  async (c) => {
   const cragId = c.req.param('cragId');
   const routeId = c.req.param('routeId');
-  const body = await c.req.json<Partial<Route>>();
+  const body = c.req.valid('json');
 
   // Query existing route with bolt_count for incremental update
   const existing = await c.env.DB.prepare(
@@ -582,9 +733,9 @@ adminCragsRoutes.put('/:cragId/routes/:routeId', async (c) => {
   ];
 
   for (const field of fields) {
-    if (body[field as keyof Route] !== undefined) {
+    if (body[field as keyof typeof body] !== undefined) {
       updates.push(`${field} = ?`);
-      values.push(body[field as keyof Route] as string | number | null);
+      values.push(body[field as keyof typeof body] as string | number | null);
     }
   }
 
@@ -636,7 +787,20 @@ adminCragsRoutes.put('/:cragId/routes/:routeId', async (c) => {
 });
 
 // DELETE /admin/crags/:cragId/routes/:routeId - Delete route
-adminCragsRoutes.delete('/:cragId/routes/:routeId', async (c) => {
+adminCragsRoutes.delete(
+  '/:cragId/routes/:routeId',
+  describeRoute({
+    tags: ['Admin'],
+    summary: '刪除路線',
+    description: '刪除指定岩場的指定路線',
+    responses: {
+      200: { description: '路線已成功刪除' },
+      404: { description: '找不到路線' },
+      401: { description: '未授權' },
+      403: { description: '權限不足（需要管理員權限）' },
+    },
+  }),
+  async (c) => {
   const cragId = c.req.param('cragId');
   const routeId = c.req.param('routeId');
 

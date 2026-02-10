@@ -1,4 +1,6 @@
 import { Hono } from 'hono';
+import { z } from 'zod';
+import { describeRoute, validator } from 'hono-openapi';
 import { Env, Biography } from '../types';
 import { parsePagination, generateId, generateSlug } from '../utils/id';
 import { authMiddleware, optionalAuthMiddleware } from '../middleware/auth';
@@ -156,7 +158,18 @@ async function invalidateBiographyCaches(
 }
 
 // GET /biographies - List all public biographies
-biographiesRoutes.get('/', optionalAuthMiddleware, async (c) => {
+biographiesRoutes.get(
+  '/',
+  describeRoute({
+    tags: ['Biographies'],
+    summary: '取得人物誌列表',
+    description: '取得所有公開的人物誌列表，支援分頁、篩選精選、搜尋功能',
+    responses: {
+      200: { description: '成功取得人物誌列表' },
+    },
+  }),
+  optionalAuthMiddleware,
+  async (c) => {
   const userId = c.get('userId');
   const { page, limit } = parsePagination(
     c.req.query('page'),
@@ -192,7 +205,17 @@ biographiesRoutes.get('/', optionalAuthMiddleware, async (c) => {
 
 // GET /biographies/featured - Get featured biographies (only truly public)
 // Optimized for homepage: returns only necessary fields with KV caching
-biographiesRoutes.get('/featured', async (c) => {
+biographiesRoutes.get(
+  '/featured',
+  describeRoute({
+    tags: ['Biographies'],
+    summary: '取得精選人物誌',
+    description: '取得精選人物誌列表，僅包含公開的人物誌，支援 KV 快取',
+    responses: {
+      200: { description: '成功取得精選人物誌列表' },
+    },
+  }),
+  async (c) => {
   const limit = parseInt(c.req.query('limit') || '3', 10);
 
   // Check cache first (5 minute TTL)
@@ -230,7 +253,19 @@ biographiesRoutes.get('/featured', async (c) => {
 });
 
 // GET /biographies/me - Get current user's biography
-biographiesRoutes.get('/me', authMiddleware, async (c) => {
+biographiesRoutes.get(
+  '/me',
+  describeRoute({
+    tags: ['Biographies'],
+    summary: '取得目前使用者的人物誌',
+    description: '取得目前登入使用者的人物誌資料，需要驗證',
+    responses: {
+      200: { description: '成功取得人物誌' },
+      401: { description: '未授權' },
+    },
+  }),
+  authMiddleware,
+  async (c) => {
   const userId = c.get('userId');
 
   // 使用 Service 層處理業務邏輯
@@ -247,7 +282,19 @@ biographiesRoutes.get('/me', authMiddleware, async (c) => {
 });
 
 // GET /biographies/:id - Get biography by ID
-biographiesRoutes.get('/:id', optionalAuthMiddleware, async (c) => {
+biographiesRoutes.get(
+  '/:id',
+  describeRoute({
+    tags: ['Biographies'],
+    summary: '依 ID 取得人物誌',
+    description: '依 ID 取得單一人物誌詳細資料',
+    responses: {
+      200: { description: '成功取得人物誌' },
+      404: { description: '找不到人物誌' },
+    },
+  }),
+  optionalAuthMiddleware,
+  async (c) => {
   const id = c.req.param('id');
   const userId = c.get('userId');
 
@@ -277,7 +324,19 @@ biographiesRoutes.get('/:id', optionalAuthMiddleware, async (c) => {
 
 // GET /biographies/slug/:slug - Get biography by slug
 // Optimized with KV caching for public biographies (anonymous visitors)
-biographiesRoutes.get('/slug/:slug', optionalAuthMiddleware, async (c) => {
+biographiesRoutes.get(
+  '/slug/:slug',
+  describeRoute({
+    tags: ['Biographies'],
+    summary: '依 slug 取得人物誌',
+    description: '依 slug 取得單一人物誌詳細資料，公開人物誌支援 KV 快取',
+    responses: {
+      200: { description: '成功取得人物誌' },
+      404: { description: '找不到人物誌' },
+    },
+  }),
+  optionalAuthMiddleware,
+  async (c) => {
   const slug = c.req.param('slug');
   const userId = c.get('userId');
 
@@ -337,7 +396,23 @@ biographiesRoutes.get('/slug/:slug', optionalAuthMiddleware, async (c) => {
 });
 
 // POST /biographies - Create new biography (or update if exists)
-biographiesRoutes.post('/', authMiddleware, async (c) => {
+biographiesRoutes.post(
+  '/',
+  describeRoute({
+    tags: ['Biographies'],
+    summary: '建立或更新人物誌',
+    description: '建立新的人物誌，如果已存在則更新',
+    responses: {
+      200: { description: '更新人物誌成功' },
+      201: { description: '建立人物誌成功' },
+      400: { description: '缺少必要欄位' },
+      401: { description: '未授權' },
+      404: { description: '找不到使用者' },
+      500: { description: '伺服器錯誤' },
+    },
+  }),
+  authMiddleware,
+  async (c) => {
   const userId = c.get('userId');
   const body = await c.req.json<BiographyRequestBody>();
 
@@ -409,7 +484,21 @@ biographiesRoutes.post('/', authMiddleware, async (c) => {
 
 // PUT /biographies/me - Update current user's biography (Upsert pattern)
 // If biography doesn't exist, creates one automatically
-biographiesRoutes.put('/me', authMiddleware, async (c) => {
+biographiesRoutes.put(
+  '/me',
+  describeRoute({
+    tags: ['Biographies'],
+    summary: '更新目前使用者的人物誌',
+    description: '更新目前使用者的人物誌，如果不存在則自動建立 (Upsert 模式)',
+    responses: {
+      200: { description: '更新人物誌成功' },
+      401: { description: '未授權' },
+      404: { description: '找不到使用者' },
+      500: { description: '伺服器錯誤' },
+    },
+  }),
+  authMiddleware,
+  async (c) => {
   const userId = c.get('userId');
   const body = await c.req.json<BiographyRequestBody>();
 
@@ -465,7 +554,20 @@ biographiesRoutes.put('/me', authMiddleware, async (c) => {
 
 // PUT /biographies/me/autosave - Autosave current user's biography
 // Rate limited: minimum 2 seconds between saves
-biographiesRoutes.put('/me/autosave', authMiddleware, async (c) => {
+biographiesRoutes.put(
+  '/me/autosave',
+  describeRoute({
+    tags: ['Biographies'],
+    summary: '自動儲存人物誌',
+    description: '自動儲存目前使用者的人物誌草稿，限制每 2 秒只能儲存一次',
+    responses: {
+      200: { description: '儲存成功' },
+      401: { description: '未授權' },
+      404: { description: '找不到人物誌，請先建立' },
+    },
+  }),
+  authMiddleware,
+  async (c) => {
   const userId = c.get('userId');
   const body = await c.req.json<BiographyRequestBody>();
 
@@ -678,7 +780,20 @@ biographiesRoutes.put('/me/autosave', authMiddleware, async (c) => {
 });
 
 // DELETE /biographies/me - Delete current user's biography
-biographiesRoutes.delete('/me', authMiddleware, async (c) => {
+biographiesRoutes.delete(
+  '/me',
+  describeRoute({
+    tags: ['Biographies'],
+    summary: '刪除目前使用者的人物誌',
+    description: '刪除目前使用者的人物誌，包含相關圖片和快取',
+    responses: {
+      200: { description: '刪除成功' },
+      401: { description: '未授權' },
+      404: { description: '找不到人物誌' },
+    },
+  }),
+  authMiddleware,
+  async (c) => {
   const userId = c.get('userId');
 
   const existing = await c.env.DB.prepare(
@@ -715,7 +830,19 @@ biographiesRoutes.delete('/me', authMiddleware, async (c) => {
 });
 
 // GET /biographies/:id/adjacent - Get previous and next biographies
-biographiesRoutes.get('/:id/adjacent', optionalAuthMiddleware, async (c) => {
+biographiesRoutes.get(
+  '/:id/adjacent',
+  describeRoute({
+    tags: ['Biographies'],
+    summary: '取得相鄰的人物誌',
+    description: '取得指定人物誌的上一個和下一個公開人物誌',
+    responses: {
+      200: { description: '成功取得相鄰人物誌' },
+      404: { description: '找不到人物誌' },
+    },
+  }),
+  optionalAuthMiddleware,
+  async (c) => {
   const id = c.req.param('id');
   const userId = c.get('userId');
 
@@ -774,7 +901,19 @@ biographiesRoutes.get('/:id/adjacent', optionalAuthMiddleware, async (c) => {
 });
 
 // GET /biographies/:id/stats - Get biography statistics
-biographiesRoutes.get('/:id/stats', optionalAuthMiddleware, async (c) => {
+biographiesRoutes.get(
+  '/:id/stats',
+  describeRoute({
+    tags: ['Biographies'],
+    summary: '取得人物誌統計資料',
+    description: '取得指定人物誌的統計資料，包含按讚數、瀏覽數、追蹤數、故事完成度等',
+    responses: {
+      200: { description: '成功取得統計資料' },
+      404: { description: '找不到人物誌' },
+    },
+  }),
+  optionalAuthMiddleware,
+  async (c) => {
   const id = c.req.param('id');
   const userId = c.get('userId');
 
@@ -861,7 +1000,19 @@ biographiesRoutes.get('/:id/stats', optionalAuthMiddleware, async (c) => {
 });
 
 // PUT /biographies/:id/view - Record a view
-biographiesRoutes.put('/:id/view', optionalAuthMiddleware, async (c) => {
+biographiesRoutes.put(
+  '/:id/view',
+  describeRoute({
+    tags: ['Biographies'],
+    summary: '記錄瀏覽次數',
+    description: '記錄人物誌的瀏覽次數，依 IP 去重，24 小時內同一 IP 只計算一次',
+    responses: {
+      200: { description: '記錄成功' },
+      404: { description: '找不到人物誌' },
+    },
+  }),
+  optionalAuthMiddleware,
+  async (c) => {
   const id = c.req.param('id');
   const userId = c.get('userId'); // May be undefined if not authenticated
 
@@ -912,7 +1063,22 @@ biographiesRoutes.put('/:id/view', optionalAuthMiddleware, async (c) => {
 // ═══════════════════════════════════════════════════════════
 
 // POST /biographies/:id/follow - Follow a biography
-biographiesRoutes.post('/:id/follow', authMiddleware, async (c) => {
+biographiesRoutes.post(
+  '/:id/follow',
+  describeRoute({
+    tags: ['Biographies'],
+    summary: '追蹤人物誌',
+    description: '追蹤指定的人物誌，僅能追蹤公開或社群可見的人物誌',
+    responses: {
+      200: { description: '追蹤成功' },
+      400: { description: '無法追蹤自己' },
+      401: { description: '未授權' },
+      404: { description: '找不到人物誌或無法追蹤' },
+      409: { description: '已經追蹤' },
+    },
+  }),
+  authMiddleware,
+  async (c) => {
   const userId = c.get('userId');
   const id = c.req.param('id');
 
@@ -1005,7 +1171,19 @@ biographiesRoutes.post('/:id/follow', authMiddleware, async (c) => {
 });
 
 // GET /biographies/:id/follow - Check follow status
-biographiesRoutes.get('/:id/follow', optionalAuthMiddleware, async (c) => {
+biographiesRoutes.get(
+  '/:id/follow',
+  describeRoute({
+    tags: ['Biographies'],
+    summary: '檢查追蹤狀態',
+    description: '檢查目前使用者是否已追蹤指定人物誌',
+    responses: {
+      200: { description: '成功取得追蹤狀態' },
+      404: { description: '找不到人物誌' },
+    },
+  }),
+  optionalAuthMiddleware,
+  async (c) => {
   const id = c.req.param('id');
   const userId = c.get('userId');
 
@@ -1049,7 +1227,20 @@ biographiesRoutes.get('/:id/follow', optionalAuthMiddleware, async (c) => {
 });
 
 // DELETE /biographies/:id/follow - Unfollow a biography
-biographiesRoutes.delete('/:id/follow', authMiddleware, async (c) => {
+biographiesRoutes.delete(
+  '/:id/follow',
+  describeRoute({
+    tags: ['Biographies'],
+    summary: '取消追蹤人物誌',
+    description: '取消追蹤指定的人物誌',
+    responses: {
+      200: { description: '取消追蹤成功' },
+      401: { description: '未授權' },
+      404: { description: '找不到人物誌或未追蹤' },
+    },
+  }),
+  authMiddleware,
+  async (c) => {
   const userId = c.get('userId');
   const id = c.req.param('id');
 
@@ -1110,7 +1301,19 @@ biographiesRoutes.delete('/:id/follow', authMiddleware, async (c) => {
 });
 
 // GET /biographies/:id/followers - Get followers of a biography
-biographiesRoutes.get('/:id/followers', optionalAuthMiddleware, async (c) => {
+biographiesRoutes.get(
+  '/:id/followers',
+  describeRoute({
+    tags: ['Biographies'],
+    summary: '取得追蹤者列表',
+    description: '取得指定人物誌的追蹤者列表，支援分頁',
+    responses: {
+      200: { description: '成功取得追蹤者列表' },
+      404: { description: '找不到人物誌' },
+    },
+  }),
+  optionalAuthMiddleware,
+  async (c) => {
   const id = c.req.param('id');
   const userId = c.get('userId');
   const limit = parseInt(c.req.query('limit') || '20', 10);
@@ -1168,7 +1371,19 @@ biographiesRoutes.get('/:id/followers', optionalAuthMiddleware, async (c) => {
 });
 
 // GET /biographies/:id/following - Get who the biography owner is following
-biographiesRoutes.get('/:id/following', optionalAuthMiddleware, async (c) => {
+biographiesRoutes.get(
+  '/:id/following',
+  describeRoute({
+    tags: ['Biographies'],
+    summary: '取得追蹤中列表',
+    description: '取得指定人物誌擁有者正在追蹤的人物誌列表，支援分頁',
+    responses: {
+      200: { description: '成功取得追蹤中列表' },
+      404: { description: '找不到人物誌' },
+    },
+  }),
+  optionalAuthMiddleware,
+  async (c) => {
   const id = c.req.param('id');
   const userId = c.get('userId');
   const limit = parseInt(c.req.query('limit') || '20', 10);
@@ -1242,7 +1457,17 @@ interface LocationStat {
 }
 
 // GET /biographies/explore/locations - Get all climbing locations with visitor stats
-biographiesRoutes.get('/explore/locations', async (c) => {
+biographiesRoutes.get(
+  '/explore/locations',
+  describeRoute({
+    tags: ['Biographies'],
+    summary: '探索攀岩地點',
+    description: '取得所有攀岩地點及其訪客統計，支援依國家篩選和分頁',
+    responses: {
+      200: { description: '成功取得攀岩地點列表' },
+    },
+  }),
+  async (c) => {
   const country = c.req.query('country');
   const limit = parseInt(c.req.query('limit') || '20', 10);
   const offset = parseInt(c.req.query('offset') || '0', 10);
@@ -1356,7 +1581,18 @@ biographiesRoutes.get('/explore/locations', async (c) => {
 });
 
 // GET /biographies/explore/locations/:name - Get location details with all visitors
-biographiesRoutes.get('/explore/locations/:name', async (c) => {
+biographiesRoutes.get(
+  '/explore/locations/:name',
+  describeRoute({
+    tags: ['Biographies'],
+    summary: '取得攀岩地點詳情',
+    description: '取得指定攀岩地點的詳細資訊及所有訪客',
+    responses: {
+      200: { description: '成功取得攀岩地點詳情' },
+      404: { description: '找不到地點或無訪客' },
+    },
+  }),
+  async (c) => {
   const locationName = decodeURIComponent(c.req.param('name'));
 
   // Use normalized climbing_locations table with efficient SQL query
@@ -1422,7 +1658,17 @@ biographiesRoutes.get('/explore/locations/:name', async (c) => {
 });
 
 // GET /biographies/explore/countries - Get list of countries with location counts
-biographiesRoutes.get('/explore/countries', async (c) => {
+biographiesRoutes.get(
+  '/explore/countries',
+  describeRoute({
+    tags: ['Biographies'],
+    summary: '取得國家列表',
+    description: '取得所有國家及其攀岩地點數量',
+    responses: {
+      200: { description: '成功取得國家列表' },
+    },
+  }),
+  async (c) => {
   // Use normalized climbing_locations table with efficient SQL aggregation
   // Explore only shows truly public biographies
   const publicOnlyClause = "b.visibility = 'public'";
@@ -1473,7 +1719,19 @@ const BADGE_DEFINITIONS = {
 };
 
 // GET /biographies/:id/badges - Get user's badges and progress
-biographiesRoutes.get('/:id/badges', optionalAuthMiddleware, async (c) => {
+biographiesRoutes.get(
+  '/:id/badges',
+  describeRoute({
+    tags: ['Biographies'],
+    summary: '取得徽章進度',
+    description: '取得指定人物誌的徽章解鎖狀態和進度',
+    responses: {
+      200: { description: '成功取得徽章資訊' },
+      404: { description: '找不到人物誌' },
+    },
+  }),
+  optionalAuthMiddleware,
+  async (c) => {
   const id = c.req.param('id');
   const userId = c.get('userId');
 
@@ -1634,7 +1892,17 @@ biographiesRoutes.get('/:id/badges', optionalAuthMiddleware, async (c) => {
 // ═══════════════════════════════════════════════════════════
 
 // GET /biographies/community/stats - Get community statistics
-biographiesRoutes.get('/community/stats', async (c) => {
+biographiesRoutes.get(
+  '/community/stats',
+  describeRoute({
+    tags: ['Biographies'],
+    summary: '取得社群統計',
+    description: '取得社群整體統計資料，包含人物誌數量、目標達成數、故事數等',
+    responses: {
+      200: { description: '成功取得社群統計' },
+    },
+  }),
+  async (c) => {
   // Check cache first
   const cacheKey = 'community:stats';
   try {
@@ -1727,7 +1995,18 @@ biographiesRoutes.get('/community/stats', async (c) => {
 });
 
 // GET /biographies/leaderboard/:type - Get leaderboard
-biographiesRoutes.get('/leaderboard/:type', async (c) => {
+biographiesRoutes.get(
+  '/leaderboard/:type',
+  describeRoute({
+    tags: ['Biographies'],
+    summary: '取得排行榜',
+    description: '取得指定類型的排行榜，支援 goals_completed、followers、likes_received',
+    responses: {
+      200: { description: '成功取得排行榜' },
+      400: { description: '無效的排行榜類型' },
+    },
+  }),
+  async (c) => {
   const type = c.req.param('type');
   const limit = parseInt(c.req.query('limit') || '10', 10);
 
@@ -1826,7 +2105,20 @@ biographiesRoutes.get('/leaderboard/:type', async (c) => {
 // ═══════════════════════════════════════════════════════════
 
 // POST /biographies/:id/like - Toggle like for a biography
-biographiesRoutes.post('/:id/like', authMiddleware, async (c) => {
+biographiesRoutes.post(
+  '/:id/like',
+  describeRoute({
+    tags: ['Biographies'],
+    summary: '切換人物誌按讚狀態',
+    description: '對指定人物誌按讚或取消按讚',
+    responses: {
+      200: { description: '操作成功' },
+      401: { description: '未授權' },
+      404: { description: '找不到人物誌' },
+    },
+  }),
+  authMiddleware,
+  async (c) => {
   const biographyId = c.req.param('id');
   const userId = c.get('userId');
 
@@ -1917,7 +2209,18 @@ biographiesRoutes.post('/:id/like', authMiddleware, async (c) => {
 });
 
 // GET /biographies/:id/like - Check if user has liked a biography
-biographiesRoutes.get('/:id/like', optionalAuthMiddleware, async (c) => {
+biographiesRoutes.get(
+  '/:id/like',
+  describeRoute({
+    tags: ['Biographies'],
+    summary: '檢查按讚狀態',
+    description: '檢查目前使用者是否已對指定人物誌按讚',
+    responses: {
+      200: { description: '成功取得按讚狀態' },
+    },
+  }),
+  optionalAuthMiddleware,
+  async (c) => {
   const biographyId = c.req.param('id');
   const userId = c.get('userId');
 
@@ -1954,7 +2257,19 @@ biographiesRoutes.get('/:id/like', optionalAuthMiddleware, async (c) => {
 // ═══════════════════════════════════════════════════════════
 
 // GET /biographies/:id/comments - Get biography comments
-biographiesRoutes.get('/:id/comments', optionalAuthMiddleware, async (c) => {
+biographiesRoutes.get(
+  '/:id/comments',
+  describeRoute({
+    tags: ['Biographies'],
+    summary: '取得人物誌留言',
+    description: '取得指定人物誌的所有留言',
+    responses: {
+      200: { description: '成功取得留言列表' },
+      404: { description: '找不到人物誌' },
+    },
+  }),
+  optionalAuthMiddleware,
+  async (c) => {
   const biographyId = c.req.param('id');
   const userId = c.get('userId');
 
@@ -2002,7 +2317,21 @@ biographiesRoutes.get('/:id/comments', optionalAuthMiddleware, async (c) => {
 });
 
 // POST /biographies/:id/comments - Add a comment to biography
-biographiesRoutes.post('/:id/comments', authMiddleware, async (c) => {
+biographiesRoutes.post(
+  '/:id/comments',
+  describeRoute({
+    tags: ['Biographies'],
+    summary: '新增留言',
+    description: '在指定人物誌新增留言',
+    responses: {
+      200: { description: '留言成功' },
+      400: { description: '留言內容不能為空' },
+      401: { description: '未授權' },
+      404: { description: '找不到人物誌' },
+    },
+  }),
+  authMiddleware,
+  async (c) => {
   const biographyId = c.req.param('id');
   const userId = c.get('userId');
   const { content } = await c.req.json<{ content: string }>();
@@ -2082,7 +2411,21 @@ biographiesRoutes.post('/:id/comments', authMiddleware, async (c) => {
 });
 
 // DELETE /biographies/comments/:id - Delete a comment
-biographiesRoutes.delete('/comments/:id', authMiddleware, async (c) => {
+biographiesRoutes.delete(
+  '/comments/:id',
+  describeRoute({
+    tags: ['Biographies'],
+    summary: '刪除留言',
+    description: '刪除自己的留言',
+    responses: {
+      200: { description: '刪除成功' },
+      401: { description: '未授權' },
+      403: { description: '無權限刪除此留言' },
+      404: { description: '找不到留言' },
+    },
+  }),
+  authMiddleware,
+  async (c) => {
   const commentId = c.req.param('id');
   const userId = c.get('userId');
 

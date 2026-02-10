@@ -1,4 +1,6 @@
 import { Hono } from 'hono';
+import { z } from 'zod';
+import { describeRoute, validator } from 'hono-openapi';
 import { Env, Gym } from '../types';
 import { parsePagination, generateId, generateSlug } from '../utils/id';
 import { authMiddleware, adminMiddleware } from '../middleware/auth';
@@ -6,8 +8,81 @@ import { deleteR2Images } from '../utils/storage';
 
 export const gymsRoutes = new Hono<{ Bindings: Env }>();
 
+// Validation schemas
+const listGymsQuerySchema = z.object({
+  page: z.string().optional(),
+  limit: z.string().optional(),
+  city: z.string().optional(),
+  featured: z.enum(['true', 'false']).optional(),
+});
+
+const gymIdParamSchema = z.object({
+  id: z.string().min(1),
+});
+
+const gymSlugParamSchema = z.object({
+  slug: z.string().min(1),
+});
+
+const featuredQuerySchema = z.object({
+  limit: z.string().optional(),
+});
+
+const reviewsQuerySchema = z.object({
+  page: z.string().optional(),
+  limit: z.string().optional(),
+});
+
+const createGymSchema = z.object({
+  name: z.string().min(1),
+  slug: z.string().optional(),
+  description: z.string().optional(),
+  address: z.string().optional(),
+  city: z.string().optional(),
+  region: z.string().optional(),
+  latitude: z.number().optional(),
+  longitude: z.number().optional(),
+  phone: z.string().optional(),
+  email: z.string().email().optional(),
+  website: z.string().url().optional(),
+  cover_image: z.string().optional(),
+  is_featured: z.number().optional(),
+  opening_hours: z.record(z.string()).optional(),
+  facilities: z.array(z.string()).optional(),
+  price_info: z.record(z.any()).optional(),
+});
+
+const updateGymSchema = z.object({
+  name: z.string().optional(),
+  description: z.string().optional(),
+  address: z.string().optional(),
+  city: z.string().optional(),
+  region: z.string().optional(),
+  latitude: z.number().optional(),
+  longitude: z.number().optional(),
+  phone: z.string().optional(),
+  email: z.string().email().optional(),
+  website: z.string().url().optional(),
+  cover_image: z.string().optional(),
+  is_featured: z.number().optional(),
+  opening_hours: z.record(z.string()).optional(),
+  facilities: z.array(z.string()).optional(),
+  price_info: z.record(z.any()).optional(),
+});
+
 // GET /gyms - List all gyms
-gymsRoutes.get('/', async (c) => {
+gymsRoutes.get(
+  '/',
+  describeRoute({
+    tags: ['Gyms'],
+    summary: '取得岩館列表',
+    description: '取得所有岩館列表，支援分頁、城市過濾和精選過濾',
+    responses: {
+      200: { description: '成功取得岩館列表' },
+    },
+  }),
+  validator('query', listGymsQuerySchema),
+  async (c) => {
   const { page, limit, offset } = parsePagination(
     c.req.query('page'),
     c.req.query('limit')
@@ -60,7 +135,18 @@ gymsRoutes.get('/', async (c) => {
 });
 
 // GET /gyms/featured - Get featured gyms
-gymsRoutes.get('/featured', async (c) => {
+gymsRoutes.get(
+  '/featured',
+  describeRoute({
+    tags: ['Gyms'],
+    summary: '取得精選岩館',
+    description: '取得精選岩館列表，可指定數量限制',
+    responses: {
+      200: { description: '成功取得精選岩館列表' },
+    },
+  }),
+  validator('query', featuredQuerySchema),
+  async (c) => {
   const limit = parseInt(c.req.query('limit') || '6', 10);
 
   const gyms = await c.env.DB.prepare(
@@ -81,7 +167,19 @@ gymsRoutes.get('/featured', async (c) => {
 });
 
 // GET /gyms/:id - Get gym by ID
-gymsRoutes.get('/:id', async (c) => {
+gymsRoutes.get(
+  '/:id',
+  describeRoute({
+    tags: ['Gyms'],
+    summary: '根據 ID 取得岩館',
+    description: '根據岩館 ID 取得單一岩館的詳細資訊',
+    responses: {
+      200: { description: '成功取得岩館資料' },
+      404: { description: '找不到指定的岩館' },
+    },
+  }),
+  validator('param', gymIdParamSchema),
+  async (c) => {
   const id = c.req.param('id');
 
   const gym = await c.env.DB.prepare('SELECT * FROM gyms WHERE id = ?')
@@ -111,7 +209,19 @@ gymsRoutes.get('/:id', async (c) => {
 });
 
 // GET /gyms/slug/:slug - Get gym by slug
-gymsRoutes.get('/slug/:slug', async (c) => {
+gymsRoutes.get(
+  '/slug/:slug',
+  describeRoute({
+    tags: ['Gyms'],
+    summary: '根據 slug 取得岩館',
+    description: '根據岩館 slug 取得單一岩館的詳細資訊',
+    responses: {
+      200: { description: '成功取得岩館資料' },
+      404: { description: '找不到指定的岩館' },
+    },
+  }),
+  validator('param', gymSlugParamSchema),
+  async (c) => {
   const slug = c.req.param('slug');
 
   const gym = await c.env.DB.prepare('SELECT * FROM gyms WHERE slug = ?')
@@ -141,7 +251,19 @@ gymsRoutes.get('/slug/:slug', async (c) => {
 });
 
 // GET /gyms/:id/reviews - Get reviews for a gym
-gymsRoutes.get('/:id/reviews', async (c) => {
+gymsRoutes.get(
+  '/:id/reviews',
+  describeRoute({
+    tags: ['Gyms'],
+    summary: '取得岩館評論',
+    description: '取得指定岩館的所有評論，支援分頁',
+    responses: {
+      200: { description: '成功取得岩館評論列表' },
+    },
+  }),
+  validator('param', gymIdParamSchema),
+  validator('query', reviewsQuerySchema),
+  async (c) => {
   const gymId = c.req.param('id');
   const { page, limit, offset } = parsePagination(
     c.req.query('page'),
@@ -179,7 +301,23 @@ gymsRoutes.get('/:id/reviews', async (c) => {
 });
 
 // POST /gyms - Create new gym (admin only)
-gymsRoutes.post('/', authMiddleware, adminMiddleware, async (c) => {
+gymsRoutes.post(
+  '/',
+  describeRoute({
+    tags: ['Gyms'],
+    summary: '建立新岩館',
+    description: '建立一個新的岩館資料（僅限管理員）',
+    responses: {
+      201: { description: '成功建立岩館' },
+      400: { description: '請求參數錯誤' },
+      401: { description: '未授權，需要登入' },
+      403: { description: '無權限，僅限管理員' },
+    },
+  }),
+  authMiddleware,
+  adminMiddleware,
+  validator('json', createGymSchema),
+  async (c) => {
   const body = await c.req.json<Partial<Gym>>();
 
   if (!body.name) {
@@ -238,7 +376,25 @@ gymsRoutes.post('/', authMiddleware, adminMiddleware, async (c) => {
 });
 
 // PUT /gyms/:id - Update gym (admin only)
-gymsRoutes.put('/:id', authMiddleware, adminMiddleware, async (c) => {
+gymsRoutes.put(
+  '/:id',
+  describeRoute({
+    tags: ['Gyms'],
+    summary: '更新岩館資料',
+    description: '更新指定岩館的資料（僅限管理員）',
+    responses: {
+      200: { description: '成功更新岩館資料' },
+      400: { description: '請求參數錯誤或無欄位需更新' },
+      401: { description: '未授權，需要登入' },
+      403: { description: '無權限，僅限管理員' },
+      404: { description: '找不到指定的岩館' },
+    },
+  }),
+  authMiddleware,
+  adminMiddleware,
+  validator('param', gymIdParamSchema),
+  validator('json', updateGymSchema),
+  async (c) => {
   const id = c.req.param('id');
   const body = await c.req.json<Partial<Gym>>();
 
@@ -325,7 +481,23 @@ gymsRoutes.put('/:id', authMiddleware, adminMiddleware, async (c) => {
 });
 
 // DELETE /gyms/:id - Delete gym (admin only)
-gymsRoutes.delete('/:id', authMiddleware, adminMiddleware, async (c) => {
+gymsRoutes.delete(
+  '/:id',
+  describeRoute({
+    tags: ['Gyms'],
+    summary: '刪除岩館',
+    description: '刪除指定的岩館及其相關圖片資料（僅限管理員）',
+    responses: {
+      200: { description: '成功刪除岩館' },
+      401: { description: '未授權，需要登入' },
+      403: { description: '無權限，僅限管理員' },
+      404: { description: '找不到指定的岩館' },
+    },
+  }),
+  authMiddleware,
+  adminMiddleware,
+  validator('param', gymIdParamSchema),
+  async (c) => {
   const id = c.req.param('id');
 
   const existing = await c.env.DB.prepare('SELECT id, cover_image FROM gyms WHERE id = ?')

@@ -1,4 +1,6 @@
 import { Hono } from 'hono';
+import { z } from 'zod';
+import { describeRoute } from 'hono-openapi';
 import { Env } from '../types';
 import { authMiddleware, adminMiddleware } from '../middleware/auth';
 
@@ -76,7 +78,31 @@ async function queryAnalyticsEngine(
  * GET /access-logs
  * 取得訪問日誌列表（最近的請求）
  */
-accessLogsRoutes.get('/', authMiddleware, adminMiddleware, async (c) => {
+accessLogsRoutes.get(
+  '/',
+  describeRoute({
+    tags: ['AccessLogs'],
+    summary: '取得訪問日誌列表',
+    description:
+      '取得 API 訪問日誌列表，支援分頁、路徑過濾、HTTP 方法過濾和狀態碼過濾。資料來源為 Cloudflare Analytics Engine。需要管理員權限。',
+    responses: {
+      200: {
+        description: '成功取得訪問日誌列表',
+      },
+      401: {
+        description: '未授權，需要登入',
+      },
+      403: {
+        description: '權限不足，需要管理員權限',
+      },
+      500: {
+        description: '訪問日誌查詢失敗',
+      },
+    },
+  }),
+  authMiddleware,
+  adminMiddleware,
+  async (c) => {
   try {
     const env = c.env as Env;
 
@@ -165,7 +191,31 @@ accessLogsRoutes.get('/', authMiddleware, adminMiddleware, async (c) => {
  * GET /access-logs/summary
  * 取得訪問日誌摘要統計
  */
-accessLogsRoutes.get('/summary', authMiddleware, adminMiddleware, async (c) => {
+accessLogsRoutes.get(
+  '/summary',
+  describeRoute({
+    tags: ['AccessLogs'],
+    summary: '取得訪問日誌摘要統計',
+    description:
+      '取得訪問日誌的統計摘要，包括總請求數、平均響應時間、成功/錯誤請求數、熱門路徑、每小時請求趨勢、國家分布和 HTTP 方法分布。資料來源為 Cloudflare Analytics Engine。需要管理員權限。',
+    responses: {
+      200: {
+        description: '成功取得訪問日誌摘要統計',
+      },
+      401: {
+        description: '未授權，需要登入',
+      },
+      403: {
+        description: '權限不足，需要管理員權限',
+      },
+      500: {
+        description: '訪問日誌摘要查詢失敗',
+      },
+    },
+  }),
+  authMiddleware,
+  adminMiddleware,
+  async (c) => {
   try {
     const env = c.env as Env;
 
@@ -282,7 +332,31 @@ accessLogsRoutes.get('/summary', authMiddleware, adminMiddleware, async (c) => {
  * GET /access-logs/errors
  * 取得錯誤日誌
  */
-accessLogsRoutes.get('/errors', authMiddleware, adminMiddleware, async (c) => {
+accessLogsRoutes.get(
+  '/errors',
+  describeRoute({
+    tags: ['AccessLogs'],
+    summary: '取得錯誤日誌',
+    description:
+      '取得 HTTP 狀態碼 400 以上的錯誤請求日誌，包括客戶端錯誤（4xx）和伺服器錯誤（5xx）。支援時間範圍和數量限制。資料來源為 Cloudflare Analytics Engine。需要管理員權限。',
+    responses: {
+      200: {
+        description: '成功取得錯誤日誌列表',
+      },
+      401: {
+        description: '未授權，需要登入',
+      },
+      403: {
+        description: '權限不足，需要管理員權限',
+      },
+      500: {
+        description: '錯誤日誌查詢失敗',
+      },
+    },
+  }),
+  authMiddleware,
+  adminMiddleware,
+  async (c) => {
   try {
     const env = c.env as Env;
 
@@ -339,7 +413,31 @@ accessLogsRoutes.get('/errors', authMiddleware, adminMiddleware, async (c) => {
  * GET /access-logs/slow
  * 取得慢請求日誌
  */
-accessLogsRoutes.get('/slow', authMiddleware, adminMiddleware, async (c) => {
+accessLogsRoutes.get(
+  '/slow',
+  describeRoute({
+    tags: ['AccessLogs'],
+    summary: '取得慢請求日誌',
+    description:
+      '取得響應時間超過閾值的慢請求日誌，預設閾值為 1000 毫秒。支援自訂閾值、時間範圍和數量限制。資料來源為 Cloudflare Analytics Engine。需要管理員權限。',
+    responses: {
+      200: {
+        description: '成功取得慢請求日誌列表',
+      },
+      401: {
+        description: '未授權，需要登入',
+      },
+      403: {
+        description: '權限不足，需要管理員權限',
+      },
+      500: {
+        description: '慢請求日誌查詢失敗',
+      },
+    },
+  }),
+  authMiddleware,
+  adminMiddleware,
+  async (c) => {
   try {
     const env = c.env as Env;
 

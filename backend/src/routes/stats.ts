@@ -1,4 +1,6 @@
 import { Hono } from 'hono';
+import { z } from 'zod';
+import { describeRoute } from 'hono-openapi';
 import { Env } from '../types';
 import { authMiddleware, adminMiddleware } from '../middleware/auth';
 
@@ -38,7 +40,23 @@ interface StatsQueryResult {
  * 取得全站統計資料（岩場、路線、人物誌、影片等數量）
  * 使用 KV 快取，10 分鐘過期
  */
-statsRoutes.get('/', async (c) => {
+statsRoutes.get(
+  '/',
+  describeRoute({
+    tags: ['Stats'],
+    summary: '取得全站統計資料',
+    description:
+      '取得網站的基本統計資料，包括岩場、路線、人物誌、影片、文章、岩館等數量。資料使用 KV 快取，快取時間為 10 分鐘。',
+    responses: {
+      200: {
+        description: '成功取得全站統計資料',
+      },
+      500: {
+        description: '統計資料查詢失敗',
+      },
+    },
+  }),
+  async (c) => {
   // 1. 嘗試從快取讀取
   try {
     const cached = await c.env.CACHE.get(STATS_CACHE_KEY);
@@ -108,7 +126,31 @@ statsRoutes.get('/', async (c) => {
  * POST /api/v1/stats/invalidate
  * 強制清除統計快取（需要管理員權限）
  */
-statsRoutes.post('/invalidate', authMiddleware, adminMiddleware, async (c) => {
+statsRoutes.post(
+  '/invalidate',
+  describeRoute({
+    tags: ['Stats'],
+    summary: '清除統計快取',
+    description:
+      '強制清除全站統計資料的 KV 快取，下次查詢時將重新從資料庫計算。此操作需要管理員權限。',
+    responses: {
+      200: {
+        description: '快取清除成功',
+      },
+      401: {
+        description: '未授權，需要登入',
+      },
+      403: {
+        description: '無權限，需要管理員身份',
+      },
+      500: {
+        description: '快取清除失敗',
+      },
+    },
+  }),
+  authMiddleware,
+  adminMiddleware,
+  async (c) => {
   try {
     await c.env.CACHE.delete(STATS_CACHE_KEY);
     return c.json({
@@ -134,7 +176,31 @@ statsRoutes.post('/invalidate', authMiddleware, adminMiddleware, async (c) => {
  * GET /api/v1/stats/admin/follows
  * 取得追蹤數據分析（增長趨勢、關係分析）
  */
-statsRoutes.get('/admin/follows', authMiddleware, adminMiddleware, async (c) => {
+statsRoutes.get(
+  '/admin/follows',
+  describeRoute({
+    tags: ['Stats'],
+    summary: '取得追蹤數據分析',
+    description:
+      '取得追蹤功能的詳細數據分析，包括追蹤總數、每日趨勢、被追蹤最多的用戶排行、活躍追蹤者排行、互相追蹤的關係數量等。此操作需要管理員權限。',
+    responses: {
+      200: {
+        description: '成功取得追蹤數據分析',
+      },
+      401: {
+        description: '未授權，需要登入',
+      },
+      403: {
+        description: '無權限，需要管理員身份',
+      },
+      500: {
+        description: '追蹤數據查詢失敗',
+      },
+    },
+  }),
+  authMiddleware,
+  adminMiddleware,
+  async (c) => {
   try {
     // 基礎統計
     const basicStats = await c.env.DB.prepare(`
@@ -257,7 +323,31 @@ statsRoutes.get('/admin/follows', authMiddleware, adminMiddleware, async (c) => 
  * GET /api/v1/stats/admin/activity
  * 取得用戶活躍度分析（DAU/WAU/MAU、活動趨勢）
  */
-statsRoutes.get('/admin/activity', authMiddleware, adminMiddleware, async (c) => {
+statsRoutes.get(
+  '/admin/activity',
+  describeRoute({
+    tags: ['Stats'],
+    summary: '取得用戶活躍度分析',
+    description:
+      '取得用戶活躍度的詳細數據分析，包括 DAU（每日活躍用戶）、WAU（每週活躍用戶）、MAU（每月活躍用戶）、新用戶註冊趨勢、用戶留存率、以及各類型活動分佈（文章、目標、按讚、留言、追蹤）。此操作需要管理員權限。',
+    responses: {
+      200: {
+        description: '成功取得用戶活躍度分析',
+      },
+      401: {
+        description: '未授權，需要登入',
+      },
+      403: {
+        description: '無權限，需要管理員身份',
+      },
+      500: {
+        description: '活躍度數據查詢失敗',
+      },
+    },
+  }),
+  authMiddleware,
+  adminMiddleware,
+  async (c) => {
   try {
     // DAU/WAU/MAU 計算（基於最後活動時間）
     const activityStats = await c.env.DB.prepare(`
@@ -383,7 +473,31 @@ statsRoutes.get('/admin/activity', authMiddleware, adminMiddleware, async (c) =>
  * GET /api/v1/stats/admin/content
  * 取得內容統計分析（文章、影片、人物誌趨勢）
  */
-statsRoutes.get('/admin/content', authMiddleware, adminMiddleware, async (c) => {
+statsRoutes.get(
+  '/admin/content',
+  describeRoute({
+    tags: ['Stats'],
+    summary: '取得內容統計分析',
+    description:
+      '取得網站內容的詳細數據分析，包括文章統計（總數、已發布、草稿）、人物誌統計（總數、公開）、影片統計、每日發布趨勢、熱門人物誌和文章排行、文章分類分佈等。此操作需要管理員權限。',
+    responses: {
+      200: {
+        description: '成功取得內容統計分析',
+      },
+      401: {
+        description: '未授權，需要登入',
+      },
+      403: {
+        description: '無權限，需要管理員身份',
+      },
+      500: {
+        description: '內容統計查詢失敗',
+      },
+    },
+  }),
+  authMiddleware,
+  adminMiddleware,
+  async (c) => {
   try {
     // 內容基礎統計
     const contentStats = await c.env.DB.prepare(`
@@ -576,7 +690,23 @@ interface CommunityStats {
  * 取得首頁故事展示區所需的社群統計資料
  * 公開 API，使用 KV 快取
  */
-statsRoutes.get('/community', async (c) => {
+statsRoutes.get(
+  '/community',
+  describeRoute({
+    tags: ['Stats'],
+    summary: '取得社群統計資料',
+    description:
+      '取得首頁故事展示區所需的社群統計資料，包括精選故事（按「我也是」反應數量排序）、被朋友拉進攀岩坑的人數、熱門攀岩地點、故事總數等。此為公開 API，使用 KV 快取，快取時間為 5 分鐘。',
+    responses: {
+      200: {
+        description: '成功取得社群統計資料',
+      },
+      500: {
+        description: '社群統計查詢失敗',
+      },
+    },
+  }),
+  async (c) => {
   // 1. 嘗試從快取讀取
   try {
     const cached = await c.env.CACHE.get(COMMUNITY_STATS_CACHE_KEY);

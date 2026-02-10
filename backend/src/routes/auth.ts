@@ -1,6 +1,6 @@
 import { Hono } from 'hono';
-import { zValidator } from '@hono/zod-validator';
 import { z } from 'zod';
+import { describeRoute, validator } from 'hono-openapi';
 import * as jose from 'jose';
 import { Env, User } from '../types';
 import { generateId } from '../utils/id';
@@ -45,7 +45,19 @@ const loginSchema = z.object({
 });
 
 // POST /auth/register
-authRoutes.post('/register', zValidator('json', registerSchema), async (c) => {
+authRoutes.post(
+  '/register',
+  describeRoute({
+    tags: ['Auth'],
+    summary: '註冊新帳號',
+    description: '使用 email、username、password 註冊新帳號',
+    responses: {
+      200: { description: '註冊成功，回傳 access_token 和 refresh_token' },
+      409: { description: 'Email 或 username 已存在' },
+    },
+  }),
+  validator('json', registerSchema),
+  async (c) => {
   const { email, username, password, display_name, referral_source } = c.req.valid('json');
 
   // Check if email or username already exists
@@ -106,7 +118,19 @@ authRoutes.post('/register', zValidator('json', registerSchema), async (c) => {
 });
 
 // POST /auth/login
-authRoutes.post('/login', zValidator('json', loginSchema), async (c) => {
+authRoutes.post(
+  '/login',
+  describeRoute({
+    tags: ['Auth'],
+    summary: '登入',
+    description: '使用 email 和 password 登入',
+    responses: {
+      200: { description: '登入成功，回傳 access_token 和 refresh_token' },
+      401: { description: '認證失敗' },
+    },
+  }),
+  validator('json', loginSchema),
+  async (c) => {
   const { email, password } = c.req.valid('json');
 
   const user = await c.env.DB.prepare(
@@ -182,21 +206,27 @@ authRoutes.post('/login', zValidator('json', loginSchema), async (c) => {
   });
 });
 
-// POST /auth/refresh-token
-authRoutes.post('/refresh-token', async (c) => {
-  const body = await c.req.json<{ refresh_token: string }>();
-  const { refresh_token } = body;
+// Refresh token schema
+const refreshTokenSchema = z.object({
+  refresh_token: z.string().min(1),
+});
 
-  if (!refresh_token) {
-    return c.json(
-      {
-        success: false,
-        error: 'Bad Request',
-        message: 'Refresh token is required',
-      },
-      400
-    );
-  }
+// POST /auth/refresh-token
+authRoutes.post(
+  '/refresh-token',
+  describeRoute({
+    tags: ['Auth'],
+    summary: '刷新存取令牌',
+    description: '使用 refresh_token 獲取新的 access_token',
+    responses: {
+      200: { description: '刷新成功，回傳新的 access_token' },
+      400: { description: '缺少 refresh_token' },
+      401: { description: 'refresh_token 無效或已過期' },
+    },
+  }),
+  validator('json', refreshTokenSchema),
+  async (c) => {
+  const { refresh_token } = c.req.valid('json');
 
   const token_hash = await hashPassword(refresh_token);
 
@@ -236,10 +266,24 @@ authRoutes.post('/refresh-token', async (c) => {
       expires_in: 900,
     },
   });
-});
+  }
+);
 
 // GET /auth/me
-authRoutes.get('/me', authMiddleware, async (c) => {
+authRoutes.get(
+  '/me',
+  describeRoute({
+    tags: ['Auth'],
+    summary: '取得當前用戶資訊',
+    description: '需要 Bearer token 認證',
+    responses: {
+      200: { description: '成功取得用戶資訊' },
+      401: { description: '未認證' },
+      404: { description: '用戶不存在' },
+    },
+  }),
+  authMiddleware,
+  async (c) => {
   const userId = c.get('userId');
 
   const user = await c.env.DB.prepare(
@@ -265,34 +309,40 @@ authRoutes.get('/me', authMiddleware, async (c) => {
   });
 });
 
+// Profile update schema
+const profileUpdateSchema = z.object({
+  username: z.string().min(3).max(30).regex(/^[a-zA-Z0-9_]+$/).optional(),
+  display_name: z.string().optional(),
+  bio: z.string().optional(),
+  avatar_url: z.string().url().optional(),
+});
+
 // PUT /auth/profile
-authRoutes.put('/profile', authMiddleware, async (c) => {
+authRoutes.put(
+  '/profile',
+  describeRoute({
+    tags: ['Auth'],
+    summary: '更新用戶資料',
+    description: '更新當前登入用戶的個人資料，需要 Bearer token 認證',
+    responses: {
+      200: { description: '更新成功，回傳更新後的用戶資料' },
+      400: { description: '請求格式錯誤或沒有欄位需要更新' },
+      401: { description: '未認證' },
+      409: { description: 'Username 已被使用' },
+    },
+  }),
+  authMiddleware,
+  validator('json', profileUpdateSchema),
+  async (c) => {
   const userId = c.get('userId');
-  const body = await c.req.json<{
-    username?: string;
-    display_name?: string;
-    bio?: string;
-    avatar_url?: string;
-  }>();
+  const body = c.req.valid('json');
 
   const updates: string[] = [];
   const values: (string | null)[] = [];
 
-  // Handle username update with validation and uniqueness check
+  // Handle username update with uniqueness check
   if (body.username !== undefined) {
     const username = body.username.trim();
-
-    // Validate username format: 3-30 chars, alphanumeric and underscore only
-    if (!/^[a-zA-Z0-9_]{3,30}$/.test(username)) {
-      return c.json(
-        {
-          success: false,
-          error: 'Bad Request',
-          message: 'Username must be 3-30 characters, only letters, numbers, and underscores allowed',
-        },
-        400
-      );
-    }
 
     // Check if username is already taken by another user
     const existingUser = await c.env.DB.prepare(
@@ -366,10 +416,23 @@ authRoutes.put('/profile', authMiddleware, async (c) => {
     success: true,
     data: user,
   });
-});
+  }
+);
 
 // POST /auth/logout
-authRoutes.post('/logout', authMiddleware, async (c) => {
+authRoutes.post(
+  '/logout',
+  describeRoute({
+    tags: ['Auth'],
+    summary: '登出',
+    description: '登出當前用戶，刪除所有 refresh_token，需要 Bearer token 認證',
+    responses: {
+      200: { description: '登出成功' },
+      401: { description: '未認證' },
+    },
+  }),
+  authMiddleware,
+  async (c) => {
   const userId = c.get('userId');
 
   // Delete all refresh tokens for this user
@@ -381,7 +444,8 @@ authRoutes.post('/logout', authMiddleware, async (c) => {
     success: true,
     message: 'Logged out successfully',
   });
-});
+  }
+);
 
 // Google OAuth schema
 const googleAuthSchema = z.object({
@@ -406,7 +470,22 @@ const googleTokenPayloadSchema = z.object({
 });
 
 // POST /auth/google
-authRoutes.post('/google', zValidator('json', googleAuthSchema), async (c) => {
+authRoutes.post(
+  '/google',
+  describeRoute({
+    tags: ['Auth'],
+    summary: 'Google OAuth 登入',
+    description: '使用 Google ID Token 進行登入或註冊，若帳號不存在會自動建立',
+    responses: {
+      200: { description: '登入成功，回傳 access_token、refresh_token 和 is_new_user' },
+      400: { description: 'Token 格式錯誤或 email 未驗證' },
+      401: { description: 'Token 無效、過期或驗證失敗' },
+      500: { description: 'Google OAuth 配置錯誤或伺服器錯誤' },
+      503: { description: '無法連接 Google 驗證服務' },
+    },
+  }),
+  validator('json', googleAuthSchema),
+  async (c) => {
   const { credential, referral_source } = c.req.valid('json');
 
   // Validate GOOGLE_CLIENT_ID is configured
@@ -670,7 +749,8 @@ authRoutes.post('/google', zValidator('json', googleAuthSchema), async (c) => {
       401
     );
   }
-});
+  }
+);
 
 // Forgot password schema (direct reset)
 const forgotPasswordSchema = z.object({
@@ -679,7 +759,21 @@ const forgotPasswordSchema = z.object({
 });
 
 // POST /auth/forgot-password - Direct password reset
-authRoutes.post('/forgot-password', zValidator('json', forgotPasswordSchema), async (c) => {
+authRoutes.post(
+  '/forgot-password',
+  describeRoute({
+    tags: ['Auth'],
+    summary: '重設密碼',
+    description: '直接重設指定 email 的密碼，有速率限制保護',
+    responses: {
+      200: { description: '密碼重設成功' },
+      400: { description: '帳號使用 Google 登入，無法重設密碼' },
+      404: { description: '找不到此 email 對應的帳號' },
+      429: { description: '請求過於頻繁，請稍後再試' },
+    },
+  }),
+  validator('json', forgotPasswordSchema),
+  async (c) => {
   const { email, password } = c.req.valid('json');
 
   // Rate limit 檢查
@@ -745,5 +839,6 @@ authRoutes.post('/forgot-password', zValidator('json', forgotPasswordSchema), as
     success: true,
     message: '密碼已成功重設，請使用新密碼登入',
   });
-});
+  }
+);
 

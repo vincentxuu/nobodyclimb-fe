@@ -28,14 +28,16 @@
     "wrangler": "^4.59.3"
   },
   "dependencies": {
+    "@hono/standard-validator": "^0.2.2",
     "@nobodyclimb/constants": "workspace:^",
     "@nobodyclimb/schemas": "workspace:^",
     "@nobodyclimb/types": "workspace:^",
     "@nobodyclimb/utils": "workspace:^",
-    "@hono/zod-validator": "^0.7.6",
     "cheerio": "^1.1.2",
     "hono": "^4.6.0",
+    "hono-openapi": "^1.2.0",
     "jose": "^5.9.0",
-    "zod": "^3.25.76"
+    "zod": "^3.25.76",
+    "zod-openapi": "4"
   }
 }

@@ -1,4 +1,6 @@
 import { Hono } from 'hono';
+import { z } from 'zod';
+import { describeRoute, validator } from 'hono-openapi';
 import { Env } from '../types';
 import { generateId } from '../utils/id';
 import { authMiddleware, optionalAuthMiddleware } from '../middleware/auth';
@@ -11,7 +13,17 @@ export const bucketListRoutes = new Hono<{ Bindings: Env }>();
 // ═══════════════════════════════════════════════════════════
 
 // GET /bucket-list/explore/trending - Get trending bucket list items
-bucketListRoutes.get('/explore/trending', async (c) => {
+bucketListRoutes.get(
+  '/explore/trending',
+  describeRoute({
+    tags: ['BucketList'],
+    summary: '取得熱門人生清單項目',
+    description: '依據按讚數和被引用數排序，取得熱門的公開人生清單項目',
+    responses: {
+      200: { description: '成功取得熱門人生清單項目' },
+    },
+  }),
+  async (c) => {
   const limit = parseInt(c.req.query('limit') || '10', 10);
 
   const items = await c.env.DB.prepare(
@@ -32,7 +44,17 @@ bucketListRoutes.get('/explore/trending', async (c) => {
 });
 
 // GET /bucket-list/explore/recent-completed - Get recently completed items
-bucketListRoutes.get('/explore/recent-completed', async (c) => {
+bucketListRoutes.get(
+  '/explore/recent-completed',
+  describeRoute({
+    tags: ['BucketList'],
+    summary: '取得最近完成的人生清單項目',
+    description: '取得最近完成的公開人生清單項目，依完成時間排序',
+    responses: {
+      200: { description: '成功取得最近完成的人生清單項目' },
+    },
+  }),
+  async (c) => {
   const limit = parseInt(c.req.query('limit') || '10', 10);
 
   const items = await c.env.DB.prepare(
@@ -53,7 +75,17 @@ bucketListRoutes.get('/explore/recent-completed', async (c) => {
 });
 
 // GET /bucket-list/explore/by-category/:category - Get items by category
-bucketListRoutes.get('/explore/by-category/:category', async (c) => {
+bucketListRoutes.get(
+  '/explore/by-category/:category',
+  describeRoute({
+    tags: ['BucketList'],
+    summary: '依分類取得人生清單項目',
+    description: '依據指定分類取得公開的人生清單項目',
+    responses: {
+      200: { description: '成功取得指定分類的人生清單項目' },
+    },
+  }),
+  async (c) => {
   const category = c.req.param('category');
   const limit = parseInt(c.req.query('limit') || '20', 10);
 
@@ -75,7 +107,17 @@ bucketListRoutes.get('/explore/by-category/:category', async (c) => {
 });
 
 // GET /bucket-list/explore/category-counts - Get counts for all categories (solves N+1 problem)
-bucketListRoutes.get('/explore/category-counts', async (c) => {
+bucketListRoutes.get(
+  '/explore/category-counts',
+  describeRoute({
+    tags: ['BucketList'],
+    summary: '取得各分類的項目數量',
+    description: '取得所有分類的公開人生清單項目數量統計',
+    responses: {
+      200: { description: '成功取得各分類的項目數量' },
+    },
+  }),
+  async (c) => {
   const counts = await c.env.DB.prepare(
     `SELECT
       bli.category,
@@ -93,7 +135,17 @@ bucketListRoutes.get('/explore/category-counts', async (c) => {
 });
 
 // GET /bucket-list/explore/by-location/:location - Get items by location
-bucketListRoutes.get('/explore/by-location/:location', async (c) => {
+bucketListRoutes.get(
+  '/explore/by-location/:location',
+  describeRoute({
+    tags: ['BucketList'],
+    summary: '依地點取得人生清單項目',
+    description: '依據指定地點取得公開的人生清單項目',
+    responses: {
+      200: { description: '成功取得指定地點的人生清單項目' },
+    },
+  }),
+  async (c) => {
   const location = c.req.param('location');
   const limit = parseInt(c.req.query('limit') || '20', 10);
 
@@ -115,7 +167,17 @@ bucketListRoutes.get('/explore/by-location/:location', async (c) => {
 });
 
 // GET /bucket-list/explore/locations - Get popular climbing locations from bucket list
-bucketListRoutes.get('/explore/locations', async (c) => {
+bucketListRoutes.get(
+  '/explore/locations',
+  describeRoute({
+    tags: ['BucketList'],
+    summary: '取得熱門攀岩地點',
+    description: '從人生清單項目中取得熱門攀岩地點列表，支援國家篩選',
+    responses: {
+      200: { description: '成功取得熱門攀岩地點列表' },
+    },
+  }),
+  async (c) => {
   const limit = parseInt(c.req.query('limit') || '20', 10);
   const country = c.req.query('country'); // Optional country filter
 
@@ -157,7 +219,17 @@ bucketListRoutes.get('/explore/locations', async (c) => {
 });
 
 // GET /bucket-list/explore/locations/:location - Get location details
-bucketListRoutes.get('/explore/locations/:location', async (c) => {
+bucketListRoutes.get(
+  '/explore/locations/:location',
+  describeRoute({
+    tags: ['BucketList'],
+    summary: '取得特定地點詳情',
+    description: '取得指定攀岩地點的詳細資訊，包含統計數據和訪客列表',
+    responses: {
+      200: { description: '成功取得地點詳情' },
+    },
+  }),
+  async (c) => {
   const location = decodeURIComponent(c.req.param('location'));
   const limit = parseInt(c.req.query('limit') || '10', 10);
 
@@ -213,7 +285,17 @@ bucketListRoutes.get('/explore/locations/:location', async (c) => {
 });
 
 // GET /bucket-list/explore/climbing-footprints - Get climbing locations from normalized table
-bucketListRoutes.get('/explore/climbing-footprints', async (c) => {
+bucketListRoutes.get(
+  '/explore/climbing-footprints',
+  describeRoute({
+    tags: ['BucketList'],
+    summary: '取得攀岩足跡地點',
+    description: '從標準化表格取得攀岩地點和訪客資訊，支援台灣/海外篩選',
+    responses: {
+      200: { description: '成功取得攀岩足跡地點' },
+    },
+  }),
+  async (c) => {
   const limit = parseInt(c.req.query('limit') || '20', 10);
   const country = c.req.query('country'); // 'taiwan' or 'overseas'
 
@@ -324,7 +406,17 @@ bucketListRoutes.get('/explore/climbing-footprints', async (c) => {
 // ═══════════════════════════════════════════════════════════
 
 // GET /bucket-list/:biographyId - Get all bucket list items for a biography
-bucketListRoutes.get('/:biographyId', async (c) => {
+bucketListRoutes.get(
+  '/:biographyId',
+  describeRoute({
+    tags: ['BucketList'],
+    summary: '取得指定人物誌的人生清單',
+    description: '取得指定人物誌的公開人生清單項目，支援狀態和分類篩選',
+    responses: {
+      200: { description: '成功取得人生清單項目' },
+    },
+  }),
+  async (c) => {
   const biographyId = c.req.param('biographyId');
   const status = c.req.query('status'); // active, completed, archived
   const category = c.req.query('category');
@@ -357,7 +449,21 @@ bucketListRoutes.get('/:biographyId', async (c) => {
 });
 
 // POST /bucket-list - Create a new bucket list item
-bucketListRoutes.post('/', authMiddleware, async (c) => {
+bucketListRoutes.post(
+  '/',
+  describeRoute({
+    tags: ['BucketList'],
+    summary: '新增人生清單項目',
+    description: '建立新的人生清單項目，需要登入並擁有人物誌',
+    responses: {
+      201: { description: '成功建立人生清單項目' },
+      400: { description: '缺少必要欄位' },
+      401: { description: '未登入' },
+      404: { description: '找不到人物誌' },
+    },
+  }),
+  authMiddleware,
+  async (c) => {
   const userId = c.get('userId');
   const body = await c.req.json();
 
@@ -435,7 +541,20 @@ bucketListRoutes.post('/', authMiddleware, async (c) => {
 });
 
 // PUT /bucket-list/:id - Update a bucket list item
-bucketListRoutes.put('/:id', authMiddleware, async (c) => {
+bucketListRoutes.put(
+  '/:id',
+  describeRoute({
+    tags: ['BucketList'],
+    summary: '更新人生清單項目',
+    description: '更新指定的人生清單項目，僅限擁有者操作',
+    responses: {
+      200: { description: '成功更新人生清單項目' },
+      401: { description: '未登入' },
+      404: { description: '找不到項目或無權限' },
+    },
+  }),
+  authMiddleware,
+  async (c) => {
   const userId = c.get('userId');
   const id = c.req.param('id');
   const body = await c.req.json();
@@ -512,7 +631,20 @@ bucketListRoutes.put('/:id', authMiddleware, async (c) => {
 });
 
 // DELETE /bucket-list/:id - Delete a bucket list item
-bucketListRoutes.delete('/:id', authMiddleware, async (c) => {
+bucketListRoutes.delete(
+  '/:id',
+  describeRoute({
+    tags: ['BucketList'],
+    summary: '刪除人生清單項目',
+    description: '刪除指定的人生清單項目，僅限擁有者操作',
+    responses: {
+      200: { description: '成功刪除人生清單項目' },
+      401: { description: '未登入' },
+      404: { description: '找不到項目或無權限' },
+    },
+  }),
+  authMiddleware,
+  async (c) => {
   const userId = c.get('userId');
   const id = c.req.param('id');
 
@@ -551,7 +683,20 @@ bucketListRoutes.delete('/:id', authMiddleware, async (c) => {
 // ═══════════════════════════════════════════════════════════
 
 // PUT /bucket-list/:id/complete - Mark a bucket list item as completed
-bucketListRoutes.put('/:id/complete', authMiddleware, async (c) => {
+bucketListRoutes.put(
+  '/:id/complete',
+  describeRoute({
+    tags: ['BucketList'],
+    summary: '標記目標為完成',
+    description: '將人生清單項目標記為完成，可添加完成故事和心得',
+    responses: {
+      200: { description: '成功標記為完成' },
+      401: { description: '未登入' },
+      404: { description: '找不到項目或無權限' },
+    },
+  }),
+  authMiddleware,
+  async (c) => {
   const userId = c.get('userId');
   const id = c.req.param('id');
   const body = await c.req.json();
@@ -614,7 +759,20 @@ bucketListRoutes.put('/:id/complete', authMiddleware, async (c) => {
 });
 
 // PUT /bucket-list/:id/progress - Update progress
-bucketListRoutes.put('/:id/progress', authMiddleware, async (c) => {
+bucketListRoutes.put(
+  '/:id/progress',
+  describeRoute({
+    tags: ['BucketList'],
+    summary: '更新進度',
+    description: '更新人生清單項目的進度百分比（0-100）',
+    responses: {
+      200: { description: '成功更新進度' },
+      401: { description: '未登入' },
+      404: { description: '找不到項目或無權限' },
+    },
+  }),
+  authMiddleware,
+  async (c) => {
   const userId = c.get('userId');
   const id = c.req.param('id');
   const body = await c.req.json();
@@ -658,7 +816,21 @@ bucketListRoutes.put('/:id/progress', authMiddleware, async (c) => {
 });
 
 // PUT /bucket-list/:id/milestone - Update milestone
-bucketListRoutes.put('/:id/milestone', authMiddleware, async (c) => {
+bucketListRoutes.put(
+  '/:id/milestone',
+  describeRoute({
+    tags: ['BucketList'],
+    summary: '更新里程碑',
+    description: '更新人生清單項目的里程碑狀態，會自動計算整體進度',
+    responses: {
+      200: { description: '成功更新里程碑' },
+      400: { description: '缺少必要欄位' },
+      401: { description: '未登入' },
+      404: { description: '找不到項目或無權限' },
+    },
+  }),
+  authMiddleware,
+  async (c) => {
   const userId = c.get('userId');
   const id = c.req.param('id');
   const body = await c.req.json();
@@ -746,7 +918,21 @@ bucketListRoutes.put('/:id/milestone', authMiddleware, async (c) => {
 // ═══════════════════════════════════════════════════════════
 
 // POST /bucket-list/:id/like - Like a bucket list item
-bucketListRoutes.post('/:id/like', authMiddleware, async (c) => {
+bucketListRoutes.post(
+  '/:id/like',
+  describeRoute({
+    tags: ['BucketList'],
+    summary: '按讚人生清單項目',
+    description: '對公開的人生清單項目按讚，會發送通知給擁有者',
+    responses: {
+      200: { description: '成功按讚' },
+      401: { description: '未登入' },
+      404: { description: '找不到項目' },
+      409: { description: '已按讚過' },
+    },
+  }),
+  authMiddleware,
+  async (c) => {
   const userId = c.get('userId');
   const id = c.req.param('id');
 
@@ -832,7 +1018,20 @@ bucketListRoutes.post('/:id/like', authMiddleware, async (c) => {
 });
 
 // DELETE /bucket-list/:id/like - Unlike a bucket list item
-bucketListRoutes.delete('/:id/like', authMiddleware, async (c) => {
+bucketListRoutes.delete(
+  '/:id/like',
+  describeRoute({
+    tags: ['BucketList'],
+    summary: '取消按讚人生清單項目',
+    description: '取消對人生清單項目的按讚',
+    responses: {
+      200: { description: '成功取消按讚' },
+      401: { description: '未登入' },
+      404: { description: '找不到按讚紀錄' },
+    },
+  }),
+  authMiddleware,
+  async (c) => {
   const userId = c.get('userId');
   const id = c.req.param('id');
 
@@ -873,7 +1072,17 @@ bucketListRoutes.delete('/:id/like', authMiddleware, async (c) => {
 });
 
 // GET /bucket-list/:id/comments - Get comments for a bucket list item
-bucketListRoutes.get('/:id/comments', async (c) => {
+bucketListRoutes.get(
+  '/:id/comments',
+  describeRoute({
+    tags: ['BucketList'],
+    summary: '取得留言列表',
+    description: '取得指定人生清單項目的所有留言',
+    responses: {
+      200: { description: '成功取得留言列表' },
+    },
+  }),
+  async (c) => {
   const id = c.req.param('id');
 
   const comments = await c.env.DB.prepare(
@@ -893,7 +1102,21 @@ bucketListRoutes.get('/:id/comments', async (c) => {
 });
 
 // POST /bucket-list/:id/comments - Add a comment to a bucket list item
-bucketListRoutes.post('/:id/comments', authMiddleware, async (c) => {
+bucketListRoutes.post(
+  '/:id/comments',
+  describeRoute({
+    tags: ['BucketList'],
+    summary: '新增留言',
+    description: '對公開的人生清單項目新增留言，會發送通知給擁有者',
+    responses: {
+      201: { description: '成功新增留言' },
+      400: { description: '缺少留言內容' },
+      401: { description: '未登入' },
+      404: { description: '找不到項目' },
+    },
+  }),
+  authMiddleware,
+  async (c) => {
   const userId = c.get('userId');
   const id = c.req.param('id');
   const body = await c.req.json();
@@ -985,7 +1208,20 @@ bucketListRoutes.post('/:id/comments', authMiddleware, async (c) => {
 });
 
 // DELETE /bucket-list/comments/:id - Delete a comment
-bucketListRoutes.delete('/comments/:id', authMiddleware, async (c) => {
+bucketListRoutes.delete(
+  '/comments/:id',
+  describeRoute({
+    tags: ['BucketList'],
+    summary: '刪除留言',
+    description: '刪除自己的留言，僅限留言者操作',
+    responses: {
+      200: { description: '成功刪除留言' },
+      401: { description: '未登入' },
+      404: { description: '找不到留言或無權限' },
+    },
+  }),
+  authMiddleware,
+  async (c) => {
   const userId = c.get('userId');
   const id = c.req.param('id');
 
@@ -1025,7 +1261,21 @@ bucketListRoutes.delete('/comments/:id', authMiddleware, async (c) => {
 });
 
 // POST /bucket-list/:id/reference - Add item to my list (reference)
-bucketListRoutes.post('/:id/reference', authMiddleware, async (c) => {
+bucketListRoutes.post(
+  '/:id/reference',
+  describeRoute({
+    tags: ['BucketList'],
+    summary: '加入我的清單（引用）',
+    description: '將他人的人生清單項目加入自己的清單，會建立新項目並記錄引用關係',
+    responses: {
+      201: { description: '成功加入清單' },
+      401: { description: '未登入' },
+      404: { description: '找不到項目或人物誌' },
+      409: { description: '已引用過' },
+    },
+  }),
+  authMiddleware,
+  async (c) => {
   const userId = c.get('userId');
   const id = c.req.param('id');
 
@@ -1156,7 +1406,20 @@ bucketListRoutes.post('/:id/reference', authMiddleware, async (c) => {
 });
 
 // DELETE /bucket-list/:id/reference - Remove item from my list (cancel reference)
-bucketListRoutes.delete('/:id/reference', authMiddleware, async (c) => {
+bucketListRoutes.delete(
+  '/:id/reference',
+  describeRoute({
+    tags: ['BucketList'],
+    summary: '移除引用',
+    description: '取消對他人人生清單項目的引用',
+    responses: {
+      200: { description: '成功移除引用' },
+      401: { description: '未登入' },
+      404: { description: '找不到引用紀錄或人物誌' },
+    },
+  }),
+  authMiddleware,
+  async (c) => {
   const userId = c.get('userId');
   const id = c.req.param('id');
 
@@ -1217,7 +1480,17 @@ bucketListRoutes.delete('/:id/reference', authMiddleware, async (c) => {
 });
 
 // GET /bucket-list/:id/references - Get who referenced this item
-bucketListRoutes.get('/:id/references', async (c) => {
+bucketListRoutes.get(
+  '/:id/references',
+  describeRoute({
+    tags: ['BucketList'],
+    summary: '取得引用者列表',
+    description: '取得引用此人生清單項目的用戶列表',
+    responses: {
+      200: { description: '成功取得引用者列表' },
+    },
+  }),
+  async (c) => {
   const id = c.req.param('id');
 
   const references = await c.env.DB.prepare(

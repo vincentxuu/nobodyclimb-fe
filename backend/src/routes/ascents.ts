@@ -1,4 +1,6 @@
 import { Hono } from 'hono';
+import { z } from 'zod';
+import { describeRoute, validator } from 'hono-openapi';
 import { Env, UserRouteAscent } from '../types';
 import { parsePagination, generateId, safeJsonParse, isValidAscentType, VALID_ASCENT_TYPES, toBool } from '../utils/id';
 import { authMiddleware, optionalAuthMiddleware } from '../middleware/auth';
@@ -8,7 +10,19 @@ export const ascentsRoutes = new Hono<{ Bindings: Env }>();
 // ============================================
 // GET /ascents - 取得當前使用者的攀爬記錄
 // ============================================
-ascentsRoutes.get('/', authMiddleware, async (c) => {
+ascentsRoutes.get(
+  '/',
+  describeRoute({
+    tags: ['Ascents'],
+    summary: '取得當前使用者的攀爬記錄',
+    description: '取得已登入使用者的所有攀爬記錄，支援路線、岩場、攀爬類型、日期範圍等篩選條件，並支援分頁',
+    responses: {
+      200: { description: '成功取得攀爬記錄列表' },
+      401: { description: '未授權，需要登入' },
+    },
+  }),
+  authMiddleware,
+  async (c) => {
   const userId = c.get('userId');
   const { page, limit, offset } = parsePagination(
     c.req.query('page'),
@@ -92,12 +106,25 @@ ascentsRoutes.get('/', authMiddleware, async (c) => {
       total_pages: Math.ceil(total / limit),
     },
   });
-});
+  }
+);
 
 // ============================================
 // GET /ascents/stats - 取得攀爬統計
 // ============================================
-ascentsRoutes.get('/stats', authMiddleware, async (c) => {
+ascentsRoutes.get(
+  '/stats',
+  describeRoute({
+    tags: ['Ascents'],
+    summary: '取得攀爬統計',
+    description: '取得當前使用者的攀爬統計資料，包含總攀爬次數、唯一路線數、唯一岩場數、按攀爬類型統計、按難度統計、最近 12 個月統計、最高難度及最近攀爬記錄',
+    responses: {
+      200: { description: '成功取得攀爬統計資料' },
+      401: { description: '未授權，需要登入' },
+    },
+  }),
+  authMiddleware,
+  async (c) => {
   const userId = c.get('userId');
 
   // 總攀爬統計
@@ -201,12 +228,26 @@ ascentsRoutes.get('/stats', authMiddleware, async (c) => {
       })),
     },
   });
-});
+  }
+);
 
 // ============================================
 // GET /ascents/:id - 取得單筆攀爬記錄
 // ============================================
-ascentsRoutes.get('/:id', optionalAuthMiddleware, async (c) => {
+ascentsRoutes.get(
+  '/:id',
+  describeRoute({
+    tags: ['Ascents'],
+    summary: '取得單筆攀爬記錄',
+    description: '依據 ID 取得單筆攀爬記錄的詳細資訊，包含路線、岩場及使用者資料。私人記錄僅擁有者可查看',
+    responses: {
+      200: { description: '成功取得攀爬記錄' },
+      403: { description: '禁止存取，此攀爬記錄為私人' },
+      404: { description: '找不到攀爬記錄' },
+    },
+  }),
+  optionalAuthMiddleware,
+  async (c) => {
   const id = c.req.param('id');
   const userId = c.get('userId');
 
@@ -246,12 +287,26 @@ ascentsRoutes.get('/:id', optionalAuthMiddleware, async (c) => {
       is_public: toBool(ascent.is_public as number),
     },
   });
-});
+  }
+);
 
 // ============================================
 // POST /ascents - 新增攀爬記錄
 // ============================================
-ascentsRoutes.post('/', authMiddleware, async (c) => {
+ascentsRoutes.post(
+  '/',
+  describeRoute({
+    tags: ['Ascents'],
+    summary: '新增攀爬記錄',
+    description: '為當前使用者新增一筆攀爬記錄，需提供路線 ID、攀爬類型及攀爬日期。可選填嘗試次數、評分、感知難度、筆記、照片、影片連結等',
+    responses: {
+      201: { description: '成功新增攀爬記錄' },
+      400: { description: '請求參數錯誤，缺少必要欄位或路線不存在' },
+      401: { description: '未授權，需要登入' },
+    },
+  }),
+  authMiddleware,
+  async (c) => {
   const userId = c.get('userId');
   const body = await c.req.json<Partial<UserRouteAscent>>();
 
@@ -352,12 +407,28 @@ ascentsRoutes.post('/', authMiddleware, async (c) => {
       is_public: toBool(ascent?.is_public as number),
     },
   }, 201);
-});
+  }
+);
 
 // ============================================
 // PUT /ascents/:id - 更新攀爬記錄
 // ============================================
-ascentsRoutes.put('/:id', authMiddleware, async (c) => {
+ascentsRoutes.put(
+  '/:id',
+  describeRoute({
+    tags: ['Ascents'],
+    summary: '更新攀爬記錄',
+    description: '更新指定 ID 的攀爬記錄，僅記錄擁有者可進行更新。可更新攀爬類型、日期、嘗試次數、評分、感知難度、筆記、照片、影片連結及公開狀態',
+    responses: {
+      200: { description: '成功更新攀爬記錄' },
+      400: { description: '請求參數錯誤，沒有要更新的欄位' },
+      401: { description: '未授權，需要登入' },
+      403: { description: '禁止存取，只能編輯自己的攀爬記錄' },
+      404: { description: '找不到攀爬記錄' },
+    },
+  }),
+  authMiddleware,
+  async (c) => {
   const id = c.req.param('id');
   const userId = c.get('userId');
   const body = await c.req.json<Partial<UserRouteAscent>>();
@@ -441,12 +512,27 @@ ascentsRoutes.put('/:id', authMiddleware, async (c) => {
       is_public: toBool(ascent?.is_public as number),
     },
   });
-});
+  }
+);
 
 // ============================================
 // DELETE /ascents/:id - 刪除攀爬記錄
 // ============================================
-ascentsRoutes.delete('/:id', authMiddleware, async (c) => {
+ascentsRoutes.delete(
+  '/:id',
+  describeRoute({
+    tags: ['Ascents'],
+    summary: '刪除攀爬記錄',
+    description: '刪除指定 ID 的攀爬記錄，僅記錄擁有者可進行刪除。刪除後會自動更新路線的攀爬統計',
+    responses: {
+      200: { description: '成功刪除攀爬記錄' },
+      401: { description: '未授權，需要登入' },
+      403: { description: '禁止存取，只能刪除自己的攀爬記錄' },
+      404: { description: '找不到攀爬記錄' },
+    },
+  }),
+  authMiddleware,
+  async (c) => {
   const id = c.req.param('id');
   const userId = c.get('userId');
 
@@ -488,12 +574,24 @@ ascentsRoutes.delete('/:id', authMiddleware, async (c) => {
   }
 
   return c.json({ success: true, message: 'Ascent deleted successfully' });
-});
+  }
+);
 
 // ============================================
 // GET /routes/:routeId/ascents - 取得路線的公開攀爬記錄
 // ============================================
-ascentsRoutes.get('/route/:routeId', optionalAuthMiddleware, async (c) => {
+ascentsRoutes.get(
+  '/route/:routeId',
+  describeRoute({
+    tags: ['Ascents'],
+    summary: '取得路線的公開攀爬記錄',
+    description: '取得指定路線的所有公開攀爬記錄，包含攀爬者資訊，支援分頁',
+    responses: {
+      200: { description: '成功取得路線的攀爬記錄列表' },
+    },
+  }),
+  optionalAuthMiddleware,
+  async (c) => {
   const routeId = c.req.param('routeId');
   const { page, limit, offset } = parsePagination(
     c.req.query('page'),
@@ -536,12 +634,23 @@ ascentsRoutes.get('/route/:routeId', optionalAuthMiddleware, async (c) => {
       total_pages: Math.ceil(total / limit),
     },
   });
-});
+  }
+);
 
 // ============================================
 // GET /routes/:routeId/ascents/summary - 取得路線攀爬摘要
 // ============================================
-ascentsRoutes.get('/route/:routeId/summary', async (c) => {
+ascentsRoutes.get(
+  '/route/:routeId/summary',
+  describeRoute({
+    tags: ['Ascents'],
+    summary: '取得路線攀爬摘要',
+    description: '取得指定路線的攀爬統計摘要，包含總攀爬次數、唯一攀爬者數、平均評分及按攀爬類型統計',
+    responses: {
+      200: { description: '成功取得路線攀爬摘要' },
+    },
+  }),
+  async (c) => {
   const routeId = c.req.param('routeId');
 
   const summary = await c.env.DB.prepare(
@@ -578,4 +687,5 @@ ascentsRoutes.get('/route/:routeId/summary', async (c) => {
       }, {} as Record<string, number>),
     },
   });
-});
+  }
+);

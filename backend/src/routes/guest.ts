@@ -1,6 +1,6 @@
 import { Hono } from 'hono';
-import { zValidator } from '@hono/zod-validator';
 import { z } from 'zod';
+import { describeRoute, validator } from 'hono-openapi';
 import { Env } from '../types';
 import { generateId } from '../utils/id';
 import { authMiddleware } from '../middleware/auth';
@@ -109,7 +109,18 @@ async function checkEligibility(
 // ============================================
 
 // POST /guest/session - 建立或取得 Guest Session
-guestRoutes.post('/session', zValidator('json', createSessionSchema), async (c) => {
+guestRoutes.post(
+  '/session',
+  describeRoute({
+    tags: ['Guest'],
+    summary: '建立或取得訪客 Session',
+    description: '建立新的訪客 Session，或根據提供的 session_id 取得現有 Session。用於追蹤匿名訪客的瀏覽行為。',
+    responses: {
+      200: { description: '成功建立或取得 Session' },
+    },
+  }),
+  validator('json', createSessionSchema),
+  async (c) => {
   const { session_id } = c.req.valid('json');
 
   // 如果提供了 session_id，嘗試取得現有 session
@@ -160,7 +171,18 @@ guestRoutes.post('/session', zValidator('json', createSessionSchema), async (c) 
 });
 
 // GET /guest/session/:id - 取得 Session 狀態
-guestRoutes.get('/session/:id', async (c) => {
+guestRoutes.get(
+  '/session/:id',
+  describeRoute({
+    tags: ['Guest'],
+    summary: '取得訪客 Session 狀態',
+    description: '根據 Session ID 取得訪客的瀏覽狀態，包含頁面瀏覽數、停留時間、人物誌查看數等資訊。',
+    responses: {
+      200: { description: '成功取得 Session 狀態' },
+      404: { description: 'Session 不存在' },
+    },
+  }),
+  async (c) => {
   const sessionId = c.req.param('id');
 
   const session = await c.env.DB.prepare(
@@ -185,7 +207,19 @@ guestRoutes.get('/session/:id', async (c) => {
 });
 
 // POST /guest/track - 追蹤瀏覽行為
-guestRoutes.post('/track', zValidator('json', trackActivitySchema), async (c) => {
+guestRoutes.post(
+  '/track',
+  describeRoute({
+    tags: ['Guest'],
+    summary: '追蹤訪客瀏覽行為',
+    description: '累計訪客的頁面瀏覽數、停留時間、人物誌查看數，並檢查是否達到分享資格門檻。',
+    responses: {
+      200: { description: '成功追蹤瀏覽行為' },
+      404: { description: 'Session 不存在' },
+    },
+  }),
+  validator('json', trackActivitySchema),
+  async (c) => {
   const { session_id, page_views, time_spent_seconds, biography_views } = c.req.valid('json');
 
   // 取得現有 session
@@ -252,7 +286,21 @@ guestRoutes.post('/track', zValidator('json', trackActivitySchema), async (c) =>
 // ============================================
 
 // POST /guest/anonymous/biography - 建立匿名人物誌
-guestRoutes.post('/anonymous/biography', zValidator('json', createAnonymousBiographySchema), async (c) => {
+guestRoutes.post(
+  '/anonymous/biography',
+  describeRoute({
+    tags: ['Guest'],
+    summary: '建立匿名人物誌',
+    description: '訪客達到分享資格後，可建立匿名人物誌。必須至少填寫一個核心故事、一句話或深度故事。',
+    responses: {
+      200: { description: '成功建立匿名人物誌' },
+      403: { description: '尚未達到分享資格' },
+      404: { description: 'Session 不存在' },
+      409: { description: '此 Session 已有人物誌' },
+    },
+  }),
+  validator('json', createAnonymousBiographySchema),
+  async (c) => {
   const { session_id, core_stories, one_liners, stories, contact_email } = c.req.valid('json');
 
   // 檢查 session 存在且有資格
@@ -358,7 +406,18 @@ guestRoutes.post('/anonymous/biography', zValidator('json', createAnonymousBiogr
 });
 
 // GET /guest/anonymous/biography/:sessionId - 取得匿名人物誌
-guestRoutes.get('/anonymous/biography/:sessionId', async (c) => {
+guestRoutes.get(
+  '/anonymous/biography/:sessionId',
+  describeRoute({
+    tags: ['Guest'],
+    summary: '取得匿名人物誌',
+    description: '根據 Session ID 取得對應的匿名人物誌，包含基本資訊和核心故事。',
+    responses: {
+      200: { description: '成功取得匿名人物誌' },
+      404: { description: '人物誌不存在' },
+    },
+  }),
+  async (c) => {
   const sessionId = c.req.param('sessionId');
 
   const biography = await c.env.DB.prepare(`
@@ -395,7 +454,19 @@ guestRoutes.get('/anonymous/biography/:sessionId', async (c) => {
 // ============================================
 
 // GET /guest/claim/check - 檢查是否有可認領的內容
-guestRoutes.get('/claim/check', authMiddleware, async (c) => {
+guestRoutes.get(
+  '/claim/check',
+  describeRoute({
+    tags: ['Guest'],
+    summary: '檢查可認領的內容',
+    description: '登入用戶檢查是否有可認領的匿名人物誌，可透過 session_id 或 email 查詢。',
+    responses: {
+      200: { description: '成功取得可認領的內容清單' },
+      401: { description: '未登入' },
+    },
+  }),
+  authMiddleware,
+  async (c) => {
   const userId = c.get('userId');
   const sessionId = c.req.query('session_id');
   const email = c.req.query('email');
@@ -437,7 +508,22 @@ guestRoutes.get('/claim/check', authMiddleware, async (c) => {
 });
 
 // POST /guest/claim/biography/:id - 認領人物誌
-guestRoutes.post('/claim/biography/:id', authMiddleware, zValidator('json', claimBiographySchema), async (c) => {
+guestRoutes.post(
+  '/claim/biography/:id',
+  describeRoute({
+    tags: ['Guest'],
+    summary: '認領人物誌',
+    description: '登入用戶認領匿名人物誌，成為其擁有者。可選擇保持匿名或公開身份。',
+    responses: {
+      200: { description: '成功認領人物誌' },
+      401: { description: '未登入' },
+      404: { description: '內容不存在或已被認領' },
+      409: { description: '用戶已有人物誌，需選擇合併或取消' },
+    },
+  }),
+  authMiddleware,
+  validator('json', claimBiographySchema),
+  async (c) => {
   const biographyId = c.req.param('id');
   const userId = c.get('userId');
   const { keep_anonymous } = c.req.valid('json');
@@ -503,7 +589,21 @@ guestRoutes.post('/claim/biography/:id', authMiddleware, zValidator('json', clai
 });
 
 // POST /guest/claim/merge/:sourceId - 合併匿名內容到現有人物誌
-guestRoutes.post('/claim/merge/:sourceId', authMiddleware, async (c) => {
+guestRoutes.post(
+  '/claim/merge/:sourceId',
+  describeRoute({
+    tags: ['Guest'],
+    summary: '合併匿名內容到現有人物誌',
+    description: '將匿名人物誌的內容合併到用戶現有的人物誌中，合併後匿名人物誌將被刪除。只合併目標人物誌中不存在的內容。',
+    responses: {
+      200: { description: '成功合併內容' },
+      400: { description: '用戶沒有人物誌，應直接認領' },
+      401: { description: '未登入' },
+      404: { description: '匿名內容不存在或已被認領' },
+    },
+  }),
+  authMiddleware,
+  async (c) => {
   const sourceId = c.req.param('sourceId'); // 匿名人物誌 ID
   const userId = c.get('userId');
 

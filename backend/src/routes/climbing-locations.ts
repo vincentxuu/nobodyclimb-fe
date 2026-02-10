@@ -1,4 +1,6 @@
 import { Hono } from 'hono';
+import { z } from 'zod';
+import { describeRoute, validator } from 'hono-openapi';
 import { Env } from '../types';
 import { generateId } from '../utils/id';
 import { authMiddleware } from '../middleware/auth';
@@ -24,7 +26,19 @@ interface ClimbingLocation {
 }
 
 // GET /climbing-locations - Get current user's climbing locations
-climbingLocationsRoutes.get('/', authMiddleware, async (c) => {
+climbingLocationsRoutes.get(
+  '/',
+  describeRoute({
+    tags: ['ClimbingLocations'],
+    summary: '取得當前使用者的攀岩足跡',
+    description: '取得當前已登入使用者的所有攀岩足跡紀錄，依排序順序和建立時間排列',
+    responses: {
+      200: { description: '成功取得攀岩足跡列表' },
+      401: { description: '未授權，需要登入' },
+    },
+  }),
+  authMiddleware,
+  async (c) => {
   const userId = c.get('userId');
 
   const biography = await c.env.DB.prepare(
@@ -62,7 +76,17 @@ climbingLocationsRoutes.get('/', authMiddleware, async (c) => {
 });
 
 // GET /climbing-locations/biography/:id - Get a biography's public climbing locations
-climbingLocationsRoutes.get('/biography/:id', async (c) => {
+climbingLocationsRoutes.get(
+  '/biography/:id',
+  describeRoute({
+    tags: ['ClimbingLocations'],
+    summary: '取得指定自傳的公開攀岩足跡',
+    description: '根據自傳 ID 取得該使用者的公開攀岩足跡紀錄',
+    responses: {
+      200: { description: '成功取得攀岩足跡列表' },
+    },
+  }),
+  async (c) => {
   const biographyId = c.req.param('id');
 
   const locations = await c.env.DB.prepare(
@@ -86,7 +110,21 @@ climbingLocationsRoutes.get('/biography/:id', async (c) => {
 });
 
 // POST /climbing-locations - Add a new climbing location
-climbingLocationsRoutes.post('/', authMiddleware, async (c) => {
+climbingLocationsRoutes.post(
+  '/',
+  describeRoute({
+    tags: ['ClimbingLocations'],
+    summary: '新增攀岩足跡',
+    description: '為當前使用者新增一筆攀岩足跡紀錄，需提供地點和國家',
+    responses: {
+      201: { description: '成功新增攀岩足跡' },
+      400: { description: '請求格式錯誤，缺少必要欄位' },
+      401: { description: '未授權，需要登入' },
+      404: { description: '找不到使用者的自傳' },
+    },
+  }),
+  authMiddleware,
+  async (c) => {
   const userId = c.get('userId');
   const body = await c.req.json<{
     location: string;
@@ -164,7 +202,20 @@ climbingLocationsRoutes.post('/', authMiddleware, async (c) => {
 });
 
 // PUT /climbing-locations/:id - Update a climbing location
-climbingLocationsRoutes.put('/:id', authMiddleware, async (c) => {
+climbingLocationsRoutes.put(
+  '/:id',
+  describeRoute({
+    tags: ['ClimbingLocations'],
+    summary: '更新攀岩足跡',
+    description: '更新指定 ID 的攀岩足跡紀錄，只能更新自己的紀錄',
+    responses: {
+      200: { description: '成功更新攀岩足跡' },
+      401: { description: '未授權，需要登入' },
+      404: { description: '找不到指定的攀岩足跡' },
+    },
+  }),
+  authMiddleware,
+  async (c) => {
   const userId = c.get('userId');
   const locationId = c.req.param('id');
   const body = await c.req.json<{
@@ -266,7 +317,20 @@ climbingLocationsRoutes.put('/:id', authMiddleware, async (c) => {
 });
 
 // DELETE /climbing-locations/:id - Delete a climbing location
-climbingLocationsRoutes.delete('/:id', authMiddleware, async (c) => {
+climbingLocationsRoutes.delete(
+  '/:id',
+  describeRoute({
+    tags: ['ClimbingLocations'],
+    summary: '刪除攀岩足跡',
+    description: '刪除指定 ID 的攀岩足跡紀錄，只能刪除自己的紀錄',
+    responses: {
+      200: { description: '成功刪除攀岩足跡' },
+      401: { description: '未授權，需要登入' },
+      404: { description: '找不到指定的攀岩足跡' },
+    },
+  }),
+  authMiddleware,
+  async (c) => {
   const userId = c.get('userId');
   const locationId = c.req.param('id');
 
@@ -310,7 +374,21 @@ climbingLocationsRoutes.delete('/:id', authMiddleware, async (c) => {
 });
 
 // PUT /climbing-locations/reorder - Reorder climbing locations
-climbingLocationsRoutes.put('/reorder', authMiddleware, async (c) => {
+climbingLocationsRoutes.put(
+  '/reorder',
+  describeRoute({
+    tags: ['ClimbingLocations'],
+    summary: '重新排序攀岩足跡',
+    description: '根據提供的 ID 陣列重新排序使用者的攀岩足跡',
+    responses: {
+      200: { description: '成功更新排序' },
+      400: { description: '請求格式錯誤，缺少排序陣列' },
+      401: { description: '未授權，需要登入' },
+      404: { description: '找不到使用者的自傳' },
+    },
+  }),
+  authMiddleware,
+  async (c) => {
   const userId = c.get('userId');
   const body = await c.req.json<{
     order: string[]; // Array of location IDs in desired order
@@ -354,7 +432,22 @@ climbingLocationsRoutes.put('/reorder', authMiddleware, async (c) => {
 });
 
 // POST /climbing-locations/migrate - Migrate JSON data to table (one-time use)
-climbingLocationsRoutes.post('/migrate', authMiddleware, async (c) => {
+climbingLocationsRoutes.post(
+  '/migrate',
+  describeRoute({
+    tags: ['ClimbingLocations'],
+    summary: '遷移攀岩足跡資料',
+    description: '將舊版 JSON 格式的攀岩足跡資料遷移到正規化表格（一次性使用）',
+    responses: {
+      200: { description: '成功遷移資料或無需遷移' },
+      400: { description: 'JSON 格式錯誤' },
+      401: { description: '未授權，需要登入' },
+      404: { description: '找不到使用者的自傳' },
+      500: { description: '遷移失敗' },
+    },
+  }),
+  authMiddleware,
+  async (c) => {
   const userId = c.get('userId');
 
   const biography = await c.env.DB.prepare(
@@ -456,7 +549,17 @@ climbingLocationsRoutes.post('/migrate', authMiddleware, async (c) => {
 // ═══════════════════════════════════════════════════════════
 
 // GET /climbing-locations/explore - Get all public locations with visitor stats
-climbingLocationsRoutes.get('/explore', async (c) => {
+climbingLocationsRoutes.get(
+  '/explore',
+  describeRoute({
+    tags: ['ClimbingLocations'],
+    summary: '探索攀岩地點',
+    description: '取得所有公開的攀岩地點及訪客統計資料，支援國家篩選和分頁',
+    responses: {
+      200: { description: '成功取得攀岩地點列表' },
+    },
+  }),
+  async (c) => {
   const country = c.req.query('country');
   const limit = parseInt(c.req.query('limit') || '20', 10);
   const offset = parseInt(c.req.query('offset') || '0', 10);
@@ -507,7 +610,18 @@ climbingLocationsRoutes.get('/explore', async (c) => {
 });
 
 // GET /climbing-locations/explore/:location - Get location details with visitors
-climbingLocationsRoutes.get('/explore/:location', async (c) => {
+climbingLocationsRoutes.get(
+  '/explore/:location',
+  describeRoute({
+    tags: ['ClimbingLocations'],
+    summary: '取得攀岩地點詳情',
+    description: '根據地點名稱取得該地點的詳細資訊及所有訪客清單',
+    responses: {
+      200: { description: '成功取得地點詳情' },
+      404: { description: '找不到該地點或無訪客紀錄' },
+    },
+  }),
+  async (c) => {
   const locationName = decodeURIComponent(c.req.param('location'));
 
   const visitors = await c.env.DB.prepare(
@@ -549,7 +663,17 @@ climbingLocationsRoutes.get('/explore/:location', async (c) => {
 });
 
 // GET /climbing-locations/explore/countries - Get countries with location counts
-climbingLocationsRoutes.get('/explore/countries', async (c) => {
+climbingLocationsRoutes.get(
+  '/explore/countries',
+  describeRoute({
+    tags: ['ClimbingLocations'],
+    summary: '取得國家列表及統計',
+    description: '取得所有有攀岩地點紀錄的國家列表，包含各國的地點數和訪客數',
+    responses: {
+      200: { description: '成功取得國家統計列表' },
+    },
+  }),
+  async (c) => {
   const countries = await c.env.DB.prepare(
     `SELECT
       cl.country,

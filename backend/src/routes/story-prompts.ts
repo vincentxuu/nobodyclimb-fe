@@ -1,4 +1,6 @@
 import { Hono } from 'hono';
+import { z } from 'zod';
+import { describeRoute, validator } from 'hono-openapi';
 import { Env } from '../types';
 import { generateId } from '../utils/id';
 import { authMiddleware } from '../middleware/auth';
@@ -58,8 +60,28 @@ function getFieldCategory(field: string): string {
   return fieldInfo?.category ?? 'unknown';
 }
 
+// ═══════════════════════════════════════════════════════════
+// Validation Schemas
+// ═══════════════════════════════════════════════════════════
+
+const nextQuerySchema = z.object({
+  strategy: z.enum(['random', 'easy_first', 'category_rotate']).optional(),
+});
+
 // GET /story-prompts/should-prompt - Check if user should be shown a prompt
-storyPromptsRoutes.get('/should-prompt', authMiddleware, async (c) => {
+storyPromptsRoutes.get(
+  '/should-prompt',
+  describeRoute({
+    tags: ['StoryPrompts'],
+    summary: '檢查是否應顯示故事推題',
+    description: '根據用戶的推題歷史和頻率限制，判斷是否應該向用戶顯示故事推題。會檢查最後推題時間、每週推題次數等條件。',
+    responses: {
+      200: { description: '成功取得推題狀態' },
+      401: { description: '未授權，需要登入' },
+    },
+  }),
+  authMiddleware,
+  async (c) => {
   const userId = c.get('userId');
 
   // Get user's biography
@@ -124,7 +146,21 @@ storyPromptsRoutes.get('/should-prompt', authMiddleware, async (c) => {
 });
 
 // GET /story-prompts/next - Get the next recommended prompt
-storyPromptsRoutes.get('/next', authMiddleware, async (c) => {
+storyPromptsRoutes.get(
+  '/next',
+  describeRoute({
+    tags: ['StoryPrompts'],
+    summary: '取得下一個推薦的故事推題',
+    description: '根據用戶的故事填寫進度和推題策略，返回下一個推薦的故事欄位。支援多種策略：random（隨機）、easy_first（簡單優先）、category_rotate（分類輪替）。',
+    responses: {
+      200: { description: '成功取得推薦的故事欄位' },
+      401: { description: '未授權，需要登入' },
+      404: { description: '找不到人物誌' },
+    },
+  }),
+  authMiddleware,
+  validator('query', nextQuerySchema),
+  async (c) => {
   const userId = c.get('userId');
   const strategy = c.req.query('strategy') || 'random';
 
@@ -256,7 +292,20 @@ storyPromptsRoutes.get('/next', authMiddleware, async (c) => {
 });
 
 // POST /story-prompts/:field/dismiss - Record a dismissal
-storyPromptsRoutes.post('/:field/dismiss', authMiddleware, async (c) => {
+storyPromptsRoutes.post(
+  '/:field/dismiss',
+  describeRoute({
+    tags: ['StoryPrompts'],
+    summary: '跳過故事推題',
+    description: '記錄用戶跳過某個故事推題。跳過次數會累計，超過設定次數後該題目將不再推送。跳過後需等待冷卻時間才會再次推送同一題目。',
+    responses: {
+      200: { description: '成功記錄跳過' },
+      401: { description: '未授權，需要登入' },
+      404: { description: '找不到人物誌' },
+    },
+  }),
+  authMiddleware,
+  async (c) => {
   const userId = c.get('userId');
   const field = c.req.param('field');
 
@@ -295,7 +344,20 @@ storyPromptsRoutes.post('/:field/dismiss', authMiddleware, async (c) => {
 });
 
 // POST /story-prompts/:field/complete - Mark a story as completed
-storyPromptsRoutes.post('/:field/complete', authMiddleware, async (c) => {
+storyPromptsRoutes.post(
+  '/:field/complete',
+  describeRoute({
+    tags: ['StoryPrompts'],
+    summary: '標記故事推題為已完成',
+    description: '當用戶完成某個故事欄位的填寫後，記錄完成狀態。已完成的欄位不會再被推送。',
+    responses: {
+      200: { description: '成功標記為已完成' },
+      401: { description: '未授權，需要登入' },
+      404: { description: '找不到人物誌' },
+    },
+  }),
+  authMiddleware,
+  async (c) => {
   const userId = c.get('userId');
   const field = c.req.param('field');
 
@@ -333,7 +395,19 @@ storyPromptsRoutes.post('/:field/complete', authMiddleware, async (c) => {
 });
 
 // GET /story-prompts/progress - Get user's story prompt progress
-storyPromptsRoutes.get('/progress', authMiddleware, async (c) => {
+storyPromptsRoutes.get(
+  '/progress',
+  describeRoute({
+    tags: ['StoryPrompts'],
+    summary: '取得故事推題進度',
+    description: '取得用戶的故事推題進度統計，包括各欄位的推題記錄、完成狀態、跳過次數等資訊。',
+    responses: {
+      200: { description: '成功取得進度資訊' },
+      401: { description: '未授權，需要登入' },
+    },
+  }),
+  authMiddleware,
+  async (c) => {
   const userId = c.get('userId');
 
   const biography = await c.env.DB.prepare(

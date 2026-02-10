@@ -1,4 +1,6 @@
 import { Hono } from 'hono';
+import { z } from 'zod';
+import { describeRoute, validator } from 'hono-openapi';
 import { Env, Crag } from '../types';
 import { parsePagination, generateId, generateSlug } from '../utils/id';
 import { authMiddleware, adminMiddleware } from '../middleware/auth';
@@ -6,8 +8,86 @@ import { deleteR2Images } from '../utils/storage';
 
 export const cragsRoutes = new Hono<{ Bindings: Env }>();
 
+// Validation schemas
+const listCragsQuerySchema = z.object({
+  page: z.string().optional(),
+  limit: z.string().optional(),
+  region: z.string().optional(),
+  featured: z.enum(['true', 'false']).optional(),
+});
+
+const cragIdParamSchema = z.object({
+  id: z.string().min(1),
+});
+
+const cragSlugParamSchema = z.object({
+  slug: z.string().min(1),
+});
+
+const createCragSchema = z.object({
+  name: z.string().min(1),
+  slug: z.string().optional(),
+  description: z.string().optional(),
+  location: z.string().optional(),
+  region: z.string().optional(),
+  latitude: z.number().optional(),
+  longitude: z.number().optional(),
+  altitude: z.number().optional(),
+  rock_type: z.string().optional(),
+  climbing_types: z.array(z.string()).optional(),
+  difficulty_range: z.string().optional(),
+  route_count: z.number().optional(),
+  bolt_count: z.number().optional(),
+  cover_image: z.string().optional(),
+  images: z.array(z.string()).optional(),
+  is_featured: z.number().optional(),
+  access_info: z.string().optional(),
+  parking_info: z.string().optional(),
+  approach_time: z.string().optional(),
+  best_seasons: z.array(z.string()).optional(),
+  restrictions: z.string().optional(),
+});
+
+const updateCragSchema = z.object({
+  name: z.string().optional(),
+  description: z.string().optional(),
+  location: z.string().optional(),
+  region: z.string().optional(),
+  latitude: z.number().optional(),
+  longitude: z.number().optional(),
+  altitude: z.number().optional(),
+  rock_type: z.string().optional(),
+  climbing_types: z.array(z.string()).optional(),
+  difficulty_range: z.string().optional(),
+  route_count: z.number().optional(),
+  bolt_count: z.number().optional(),
+  cover_image: z.string().optional(),
+  images: z.array(z.string()).optional(),
+  is_featured: z.number().optional(),
+  access_info: z.string().optional(),
+  parking_info: z.string().optional(),
+  approach_time: z.string().optional(),
+  best_seasons: z.array(z.string()).optional(),
+  restrictions: z.string().optional(),
+});
+
+const featuredQuerySchema = z.object({
+  limit: z.string().optional(),
+});
+
 // GET /crags - List all crags
-cragsRoutes.get('/', async (c) => {
+cragsRoutes.get(
+  '/',
+  describeRoute({
+    tags: ['Crags'],
+    summary: '取得岩場列表',
+    description: '取得所有岩場列表，支援分頁、地區過濾和精選過濾',
+    responses: {
+      200: { description: '成功取得岩場列表' },
+    },
+  }),
+  validator('query', listCragsQuerySchema),
+  async (c) => {
   const { page, limit, offset } = parsePagination(
     c.req.query('page'),
     c.req.query('limit')
@@ -62,7 +142,18 @@ cragsRoutes.get('/', async (c) => {
 });
 
 // GET /crags/featured - Get featured crags
-cragsRoutes.get('/featured', async (c) => {
+cragsRoutes.get(
+  '/featured',
+  describeRoute({
+    tags: ['Crags'],
+    summary: '取得精選岩場',
+    description: '取得精選岩場列表，可指定數量限制',
+    responses: {
+      200: { description: '成功取得精選岩場列表' },
+    },
+  }),
+  validator('query', featuredQuerySchema),
+  async (c) => {
   const limit = parseInt(c.req.query('limit') || '6', 10);
 
   const crags = await c.env.DB.prepare(
@@ -83,7 +174,19 @@ cragsRoutes.get('/featured', async (c) => {
 });
 
 // GET /crags/:id - Get crag by ID
-cragsRoutes.get('/:id', async (c) => {
+cragsRoutes.get(
+  '/:id',
+  describeRoute({
+    tags: ['Crags'],
+    summary: '取得單一岩場',
+    description: '根據岩場 ID 取得岩場詳細資訊',
+    responses: {
+      200: { description: '成功取得岩場資訊' },
+      404: { description: '找不到岩場' },
+    },
+  }),
+  validator('param', cragIdParamSchema),
+  async (c) => {
   const id = c.req.param('id');
 
   const crag = await c.env.DB.prepare('SELECT * FROM crags WHERE id = ?')
@@ -113,7 +216,19 @@ cragsRoutes.get('/:id', async (c) => {
 });
 
 // GET /crags/slug/:slug - Get crag by slug
-cragsRoutes.get('/slug/:slug', async (c) => {
+cragsRoutes.get(
+  '/slug/:slug',
+  describeRoute({
+    tags: ['Crags'],
+    summary: '根據 Slug 取得岩場',
+    description: '根據岩場的 URL slug 取得岩場詳細資訊',
+    responses: {
+      200: { description: '成功取得岩場資訊' },
+      404: { description: '找不到岩場' },
+    },
+  }),
+  validator('param', cragSlugParamSchema),
+  async (c) => {
   const slug = c.req.param('slug');
 
   const crag = await c.env.DB.prepare('SELECT * FROM crags WHERE slug = ?')
@@ -143,7 +258,18 @@ cragsRoutes.get('/slug/:slug', async (c) => {
 });
 
 // GET /crags/:id/routes - Get routes for a crag
-cragsRoutes.get('/:id/routes', async (c) => {
+cragsRoutes.get(
+  '/:id/routes',
+  describeRoute({
+    tags: ['Crags'],
+    summary: '取得岩場的路線列表',
+    description: '根據岩場 ID 取得該岩場的所有攀岩路線',
+    responses: {
+      200: { description: '成功取得路線列表' },
+    },
+  }),
+  validator('param', cragIdParamSchema),
+  async (c) => {
   const cragId = c.req.param('id');
 
   const routes = await c.env.DB.prepare(
@@ -159,19 +285,24 @@ cragsRoutes.get('/:id/routes', async (c) => {
 });
 
 // POST /crags - Create new crag (admin only)
-cragsRoutes.post('/', authMiddleware, adminMiddleware, async (c) => {
-  const body = await c.req.json<Partial<Crag>>();
-
-  if (!body.name) {
-    return c.json(
-      {
-        success: false,
-        error: 'Bad Request',
-        message: 'Name is required',
-      },
-      400
-    );
-  }
+cragsRoutes.post(
+  '/',
+  describeRoute({
+    tags: ['Crags'],
+    summary: '新增岩場',
+    description: '建立新的岩場資料，需要管理員權限',
+    responses: {
+      201: { description: '成功建立岩場' },
+      400: { description: '請求參數錯誤，缺少必填欄位' },
+      401: { description: '未認證' },
+      403: { description: '沒有管理員權限' },
+    },
+  }),
+  authMiddleware,
+  adminMiddleware,
+  validator('json', createCragSchema),
+  async (c) => {
+  const body = c.req.valid('json');
 
   const id = generateId();
   const slug = body.slug || generateSlug(body.name);
@@ -224,9 +355,27 @@ cragsRoutes.post('/', authMiddleware, adminMiddleware, async (c) => {
 });
 
 // PUT /crags/:id - Update crag (admin only)
-cragsRoutes.put('/:id', authMiddleware, adminMiddleware, async (c) => {
+cragsRoutes.put(
+  '/:id',
+  describeRoute({
+    tags: ['Crags'],
+    summary: '更新岩場',
+    description: '更新岩場資料，需要管理員權限',
+    responses: {
+      200: { description: '成功更新岩場' },
+      400: { description: '請求參數錯誤，沒有提供要更新的欄位' },
+      401: { description: '未認證' },
+      403: { description: '沒有管理員權限' },
+      404: { description: '找不到岩場' },
+    },
+  }),
+  authMiddleware,
+  adminMiddleware,
+  validator('param', cragIdParamSchema),
+  validator('json', updateCragSchema),
+  async (c) => {
   const id = c.req.param('id');
-  const body = await c.req.json<Partial<Crag>>();
+  const body = c.req.valid('json');
 
   const existing = await c.env.DB.prepare('SELECT id FROM crags WHERE id = ?')
     .bind(id)
@@ -267,9 +416,9 @@ cragsRoutes.put('/:id', authMiddleware, adminMiddleware, async (c) => {
   ];
 
   for (const field of fields) {
-    if (body[field as keyof Crag] !== undefined) {
+    if (body[field as keyof typeof body] !== undefined) {
       updates.push(`${field} = ?`);
-      values.push(body[field as keyof Crag] as string | number | null);
+      values.push(body[field as keyof typeof body] as string | number | null);
     }
   }
 
@@ -318,7 +467,23 @@ cragsRoutes.put('/:id', authMiddleware, adminMiddleware, async (c) => {
 });
 
 // DELETE /crags/:id - Delete crag (admin only)
-cragsRoutes.delete('/:id', authMiddleware, adminMiddleware, async (c) => {
+cragsRoutes.delete(
+  '/:id',
+  describeRoute({
+    tags: ['Crags'],
+    summary: '刪除岩場',
+    description: '刪除岩場資料及其相關圖片，需要管理員權限',
+    responses: {
+      200: { description: '成功刪除岩場' },
+      401: { description: '未認證' },
+      403: { description: '沒有管理員權限' },
+      404: { description: '找不到岩場' },
+    },
+  }),
+  authMiddleware,
+  adminMiddleware,
+  validator('param', cragIdParamSchema),
+  async (c) => {
   const id = c.req.param('id');
 
   const existing = await c.env.DB.prepare('SELECT id, images FROM crags WHERE id = ?')

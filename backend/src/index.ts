@@ -2,6 +2,7 @@ import { Hono } from 'hono';
 import { cors } from 'hono/cors';
 import { logger } from 'hono/logger';
 import { secureHeaders } from 'hono/secure-headers';
+import { openAPIRouteHandler } from 'hono-openapi';
 import { Env } from './types';
 import { accessLogMiddleware } from './middleware/accessLog';
 
@@ -114,6 +115,73 @@ v1.route('/access-logs', accessLogsRoutes);
 v1.route('/guest', guestRoutes);
 v1.route('/ascents', ascentsRoutes);
 v1.route('/route-stories', routeStoriesRoutes);
+
+// OpenAPI JSON 端點 - 自動從路由生成 OpenAPI 規格
+v1.get(
+  '/openapi.json',
+  openAPIRouteHandler(v1, {
+    documentation: {
+      info: {
+        title: 'NobodyClimb API',
+        version: '1.0.0',
+        description: 'NobodyClimb 攀岩社群平台 API 文檔',
+        contact: {
+          name: 'NobodyClimb Team',
+          url: 'https://nobodyclimb.cc',
+        },
+      },
+      servers: [
+        {
+          url: 'https://api.nobodyclimb.cc/api/v1',
+          description: 'Production',
+        },
+        {
+          url: 'http://localhost:8787/api/v1',
+          description: 'Local Development',
+        },
+      ],
+      tags: [
+        { name: 'Auth', description: '認證相關 API' },
+        { name: 'Users', description: '用戶相關 API' },
+        { name: 'Biographies', description: '攀岩人誌相關 API' },
+        { name: 'Crags', description: '岩場相關 API' },
+        { name: 'Gyms', description: '岩館相關 API' },
+        { name: 'Routes', description: '路線相關 API' },
+        { name: 'Posts', description: '文章相關 API' },
+        { name: 'Videos', description: '影片相關 API' },
+        { name: 'Weather', description: '天氣相關 API' },
+        { name: 'Search', description: '搜尋相關 API' },
+      ],
+    },
+  })
+);
+
+// Scalar API Reference UI - 現代化的 API 文檔介面
+v1.get('/docs', async (c) => {
+  return c.html(`
+    <!DOCTYPE html>
+    <html>
+      <head>
+        <title>NobodyClimb API Reference</title>
+        <meta charset="utf-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1" />
+      </head>
+      <body>
+        <script
+          id="api-reference"
+          data-url="/api/v1/openapi.json"
+          data-configuration='${JSON.stringify({
+            theme: 'kepler',
+            layout: 'modern',
+            darkMode: true,
+            hiddenClients: [],
+          })}'
+        ></script>
+        <script src="https://cdn.jsdelivr.net/npm/@scalar/api-reference"></script>
+      </body>
+    </html>
+  `);
+});
 
 app.route('/api/v1', v1);
 
