@@ -239,6 +239,14 @@
       "channelId": "@steghiso",
       "type": "climbing",
       "featuredThreshold": 20000
+    },
+    {
+      "url": "https://www.youtube.com/@JMACompetitionTV",
+      "name": "jmacompetitiontv",
+      "displayName": "JMSCA Competition TV",
+      "channelId": "@JMACompetitionTV",
+      "type": "climbing",
+      "featuredThreshold": 20000
     }
   ]
 }

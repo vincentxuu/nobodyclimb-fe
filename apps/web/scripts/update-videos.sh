@@ -125,6 +125,16 @@ main() {
                 echo "   - public/data/featured-videos.json (精選影片)"
                 echo "   - public/data/videos-chunks/ (分塊資料)"
                 echo "📊 包含 $successful 個頻道的所有影片資料"
+
+                # 更新新影片的元數據
+                echo ""
+                echo "🔄 更新新影片的元數據和分類..."
+                if node scripts/update-video-metadata.js --newest-first --limit 500 --regenerate; then
+                    echo "✅ 元數據更新完成"
+                else
+                    echo "⚠️ 元數據更新失敗，可稍後手動執行："
+                    echo "   node scripts/update-video-metadata.js --newest-first"
+                fi
             else
                 echo "❌ 分塊生成失敗"
                 exit 1

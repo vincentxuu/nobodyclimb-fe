@@ -76,6 +76,7 @@ function searchYouTube(query, limit = 5) {
       videoId: item.id,
       title: item.title,
       channel: item.channel || item.uploader || '',
+      channelId: item.channel_id || item.uploader_id || '',
       duration: item.duration_string || '',
       url: `https://www.youtube.com/watch?v=${item.id}`,
     }))
@@ -92,19 +93,86 @@ function extractMainName(name) {
   return name.split(/[\(（]/)[0].trim()
 }
 
-// 檢查影片標題是否與路線相關
-function isRelevantVideo(video, routeName, routeNameEn) {
+// 已知的台灣攀岩頻道（從 video-metadata.json 提取的高頻頻道）
+const TRUSTED_CHANNELS = new Set([
+  '@Jimiras', '@samfang6357', '@洪覓逾', '@張峻豪-f5u', '@y8765gd',
+  '@小魏教練的攀登紀錄', '@truman615167', '@戶外江', '@twyunghui',
+  '@sammychen2000', '@lipper0802', '@MauriceChenChenYu', '@攀岩好好',
+  '@kateberrychen', '@user-fruitlai', '@loik850617', '@ikon1218',
+  '@HsuRex', '@rock6879', '@matleetube', '@sharonchang2048',
+  '@yuchinglee5555', '@kenhuang0506', '@YiXiongLi',
+])
+
+// 計算影片相關性分數
+function calculateRelevanceScore(video, routeName, routeNameEn, cragName, grade) {
   const title = video.title.toLowerCase()
+  const channel = video.channel || ''
+  let score = 0
 
   // 提取主要名稱
   const mainName = extractMainName(routeName).toLowerCase()
   const mainNameEn = extractMainName(routeNameEn).toLowerCase()
+  const cragNameLower = cragName.toLowerCase()
 
-  // 標題必須包含路線名稱（中文或英文）
-  if (mainName && title.includes(mainName)) return true
-  if (mainNameEn && mainNameEn.length > 2 && title.includes(mainNameEn)) return true
+  // 1. 路線名稱匹配（必要條件）
+  const hasRouteName = mainName && mainName.length >= 2 && title.includes(mainName)
+  const hasRouteNameEn = mainNameEn && mainNameEn.length > 2 && title.includes(mainNameEn)
 
-  return false
+  if (!hasRouteName && !hasRouteNameEn) {
+    return 0 // 沒有路線名稱，直接排除
+  }
+
+  score += hasRouteName ? 30 : 0
+  score += hasRouteNameEn ? 20 : 0
+
+  // 2. 岩場名稱匹配（+25 分）
+  if (title.includes(cragNameLower)) {
+    score += 25
+  }
+
+  // 3. 難度匹配（+15 分）
+  const gradeLower = grade.toLowerCase()
+  if (title.includes(gradeLower)) {
+    score += 15
+  }
+
+  // 4. 已知攀岩頻道（+20 分）
+  if (TRUSTED_CHANNELS.has(video.channelId)) {
+    score += 20
+  }
+
+  // 5. 攀岩相關詞彙（+10 分）
+  const climbingKeywords = ['攀岩', 'climbing', 'climber', '完攀', 'redpoint', 'onsight', 'flash']
+  for (const keyword of climbingKeywords) {
+    if (title.includes(keyword)) {
+      score += 5
+      break
+    }
+  }
+
+  return score
+}
+
+// 檢查影片是否足夠相關（分數門檻）
+function isRelevantVideo(video, routeName, routeNameEn, cragName, grade) {
+  const score = calculateRelevanceScore(video, routeName, routeNameEn, cragName, grade)
+  // 至少要有路線名稱（30分）+ 岩場或難度或頻道（15-25分）= 45分以上
+  return score >= 45
+}
+
+// 從 YouTube URL 提取影片 ID
+function extractVideoId(url) {
+  if (!url) return null
+  const match = url.match(/[?&]v=([a-zA-Z0-9_-]{11})/) || url.match(/youtu\.be\/([a-zA-Z0-9_-]{11})/)
+  return match ? match[1] : null
+}
+
+// 過濾掉已存在的影片
+function filterExistingVideos(videos, existingUrls) {
+  if (!existingUrls || existingUrls.length === 0) return videos
+
+  const existingIds = new Set(existingUrls.map(extractVideoId).filter(Boolean))
+  return videos.filter(v => !existingIds.has(v.videoId))
 }
 
 // 轉義 CSV 欄位
@@ -174,7 +242,8 @@ async function main() {
       '路線名稱',
       '路線英文名',
       '難度',
-      '找到數量',
+      '已有影片數',
+      '新發現數',
       '建議影片（標題 | URL）',
       '選擇的YouTube影片',
       '選擇的Instagram貼文',
@@ -197,10 +266,15 @@ async function main() {
 
     const allVideos = searchYouTube(searchQuery, limit)
 
-    // 過濾相關影片
-    const relevantVideos = allVideos.filter((v) =>
-      isRelevantVideo(v, route.name, route.nameEn)
+    // 過濾相關影片（使用分數門檻）
+    let relevantVideos = allVideos.filter((v) =>
+      isRelevantVideo(v, route.name, route.nameEn, crag.name, route.grade)
     )
+
+    // 過濾掉已存在的影片
+    const existingUrls = route.youtubeVideos || []
+    const existingCount = existingUrls.length
+    relevantVideos = filterExistingVideos(relevantVideos, existingUrls)
 
     // 如果沒有相關影片，嘗試用英文名搜尋
     let videos = relevantVideos
@@ -209,13 +283,20 @@ async function main() {
       const searchQueryEn = `${crag.nameEn || crag.name} ${mainRouteNameEn} climbing`
       const allVideosEn = searchYouTube(searchQueryEn, limit)
       videos = allVideosEn.filter((v) =>
-        isRelevantVideo(v, route.name, route.nameEn)
+        isRelevantVideo(v, route.name, route.nameEn, crag.name, route.grade)
       )
+      // 同樣過濾掉已存在的影片
+      videos = filterExistingVideos(videos, existingUrls)
     }
 
-    // 建立建議影片清單（所有符合的都列出）
-    const videoList = videos
-      .map((v) => `${v.title} | ${v.url}`)
+    // 建立建議影片清單（按分數排序，顯示分數）
+    const videosWithScore = videos.map(v => ({
+      ...v,
+      score: calculateRelevanceScore(v, route.name, route.nameEn, crag.name, route.grade)
+    })).sort((a, b) => b.score - a.score)
+
+    const videoList = videosWithScore
+      .map((v) => `[${v.score}分] ${v.title} | ${v.url}`)
       .join('\n')
 
     // 建立 CSV 行
@@ -226,7 +307,8 @@ async function main() {
       escapeCSV(route.name),
       escapeCSV(route.nameEn || ''),
       escapeCSV(route.grade),
-      videos.length,
+      existingCount, // 已有影片數
+      videos.length, // 新發現數
       escapeCSV(videoList),
       '', // 選擇的 YouTube 影片
       '', // 選擇的 Instagram 貼文
@@ -236,9 +318,17 @@ async function main() {
 
     if (videos.length > 0) {
       foundRelevant++
-      console.log(` ✓ 找到 ${videos.length} 個相關影片`)
+      if (existingCount > 0) {
+        console.log(` ✓ 找到 ${videos.length} 個新影片 (已有 ${existingCount} 個)`)
+      } else {
+        console.log(` ✓ 找到 ${videos.length} 個相關影片`)
+      }
     } else {
-      console.log(` ✗ 無相關影片`)
+      if (existingCount > 0) {
+        console.log(` ─ 已有 ${existingCount} 個影片，無新發現`)
+      } else {
+        console.log(` ✗ 無相關影片`)
+      }
     }
 
     // 避免請求太快

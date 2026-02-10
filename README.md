@@ -141,10 +141,12 @@ nobodyclimb/
 ### YouTube 影片功能
 
 - 支援 14+ 個攀岩 YouTube 頻道的影片收集
-- 自動化影片資料更新腳本
+- 自動化影片資料更新腳本（含元數據抓取和智慧分類）
 - 互動式新增頻道腳本
 - 影片篩選和搜尋功能
 - 嵌入式影片播放器
+- 智慧影片分類系統（11 種分類）
+- 品牌廣告自動排除機制
 
 ## 安裝與執行
 
@@ -289,10 +291,107 @@ cd apps/web
 2. 使用 yt-dlp 收集各頻道的影片資料
 3. 轉換並輸出到 `apps/web/public/data/` 目錄
 
+#### 更新影片元數據
+
+使用元數據更新腳本補抓影片的詳細資訊（上傳日期、按讚數、標籤等）並進行智慧分類：
+
+```bash
+cd apps/web
+
+# 更新缺少元數據的影片（預設）
+node scripts/update-video-metadata.js
+
+# 限制更新數量
+node scripts/update-video-metadata.js --limit 100
+
+# 強制重新更新所有影片
+node scripts/update-video-metadata.js --force --limit 50
+
+# 優先更新最新影片
+node scripts/update-video-metadata.js --force --newest-first --limit 100
+
+# 分批更新（跳過前 200 個）
+node scripts/update-video-metadata.js --force --limit 200 --offset 200
+
+# 更新後重新生成 chunks
+node scripts/update-video-metadata.js --limit 100 --regenerate
+
+# 只顯示統計，不實際抓取
+node scripts/update-video-metadata.js --dry-run
+```
+
+**分批更新全部影片：**
+
+```bash
+# 分批更新全部（每批 200，優先最新影片）
+for i in $(seq 0 200 9600); do
+  node scripts/update-video-metadata.js --force --newest-first --limit 200 --offset $i
+done
+node scripts/generate-video-chunks.js
+```
+
+**參數說明：**
+
+| 參數 | 說明 |
+|------|------|
+| `--dry-run` | 只顯示統計，不實際抓取 |
+| `--force` | 強制重新抓取所有影片 |
+| `--limit N` | 只抓取 N 個影片 |
+| `--offset N` | 跳過前 N 個影片（搭配 --force 分批更新） |
+| `--newest-first` | 按發布日期排序（新→舊），優先更新最新影片 |
+| `--batch N` | 分批處理，每批 N 個（預設 200） |
+| `--regenerate` | 更新後重新生成 chunks |
+| `--retry-failed` | 重試之前失敗的影片 |
+
+#### 影片分類系統
+
+腳本會根據影片標題、標籤自動分類為以下類別：
+
+**攀岩類型：**
+| 分類 | 說明 |
+|------|------|
+| 戶外上攀 | 戶外繩索攀岩（運動攀、傳統攀、多繩距） |
+| 戶外抱石 | 戶外抱石問題 |
+| 室內上攀 | 室內繩索攀岩 |
+| 室內抱石 | 室內抱石牆 |
+| 賽事 | IFSC 世界盃、奧運、各種正式比賽 |
+
+**內容類型：**
+| 分類 | 說明 |
+|------|------|
+| 教學影片 | 技巧教學、入門指南 |
+| 訓練 | 體能訓練、指力訓練 |
+| 紀錄片 | 專業製作的攀岩紀錄片 |
+| 裝備評測 | 裝備開箱、評測 |
+| 挑戰影片 | 強人 vs 攀岩、名人挑戰等 |
+| 訪談 | 與攀岩者的對話 |
+
+#### 頻道分類映射
+
+特定頻道可以直接指定分類，在 `update-video-metadata.js` 中設定：
+
+```javascript
+const CHANNEL_CATEGORY_MAP = {
+  '@JMACompetitionTV': '賽事',
+  '@worldclimbing': '賽事',
+  '@TheNorthFace': '紀錄片',
+  '@REELROCK1': '紀錄片',
+};
+```
+
+#### 品牌廣告排除
+
+品牌頻道的短影片（< 1 分鐘且無攀岩內容）會被自動標記為 `excluded: true`，前端不會顯示這些影片。
+
+品牌頻道列表在 `update-video-metadata.js` 的 `BRAND_CHANNELS` 中設定。
+
 #### 其他腳本
 
-- `apps/web/scripts/collect-youtube-data.sh` - 收集單一頻道影片資料
-- `node apps/web/scripts/convert-youtube-videos.js` - 轉換影片資料格式
+| 腳本 | 說明 |
+|------|------|
+| `./scripts/collect-youtube-data.sh` | 收集單一頻道影片資料 |
+| `node scripts/convert-youtube-videos.js` | 轉換影片資料格式 |
+| `node scripts/generate-video-chunks.js` | 生成影片分塊資料 |
 
 #### 前置需求
 
@@ -301,6 +400,182 @@ cd apps/web
 ```bash
 brew install yt-dlp jq
 ```
+
+### 路線影片管理
+
+路線影片是指每條攀岩路線關聯的 YouTube 攀登影片，儲存在岩場 JSON 檔案中。
+
+#### 資料架構
+
+```text
+apps/web/src/data/crags/*.json          # 路線資料（含 youtubeVideos 欄位）
+apps/web/public/data/video-metadata.json # 影片元數據（標題、頻道、上傳日期等）
+```
+
+**路線資料結構：**
+
+```json
+{
+  "routes": [
+    {
+      "id": "LD-MUSIC-HALL-329",
+      "name": "黃乾",
+      "youtubeVideos": [
+        "https://www.youtube.com/watch?v=abc123",
+        "https://www.youtube.com/watch?v=xyz789"
+      ]
+    }
+  ]
+}
+```
+
+**影片元數據結構：**
+
+```json
+{
+  "abc123": {
+    "title": "黃乾 5.12a 龍洞完攀",
+    "channel": "Taiwan Climbing",
+    "channelId": "@taiwanclimbing",
+    "uploadDate": "2024-03-15",
+    "duration": 180,
+    "viewCount": 1234,
+    "thumbnailUrl": "https://i.ytimg.com/vi/abc123/maxresdefault.jpg"
+  }
+}
+```
+
+#### 搜尋路線影片
+
+**方式一：YouTube 搜尋**
+
+用路線名稱自動搜尋 YouTube，找出相關影片：
+
+```bash
+cd apps/web
+
+# 搜尋龍洞所有路線的相關影片（每條路線搜 5 個）
+node scripts/search-route-videos.js longdong --limit=5
+
+# 搜尋其他岩場
+node scripts/search-route-videos.js guanziling --limit=3
+```
+
+**方式二：頻道影片比對**
+
+下載整個頻道的影片清單，自動比對路線名稱：
+
+```bash
+cd apps/web
+
+# 比對單一頻道
+node scripts/match-channel-videos.js longdong "https://www.youtube.com/@channel"
+
+# 比對多個頻道（建立 channels.txt，每行一個 URL）
+node scripts/match-channel-videos.js longdong --channels=channels.txt
+```
+
+**輸出範例：**
+
+```text
+[1/616] 搜尋: 黃乾 (5.12a)... ✓ 找到 2 個新影片 (已有 3 個)
+[2/616] 搜尋: 秋行 (5.11d)... ─ 已有 1 個影片，無新發現
+[3/616] 搜尋: 春風 (5.10a)... ✓ 找到 1 個相關影片
+...
+✅ 輸出: apps/web/output/route-videos-longdong.csv
+```
+
+腳本會自動過濾掉路線已有的影片，只顯示新發現的影片。
+
+**可用岩場 ID：**
+
+| ID | 岩場名稱 |
+|----|---------|
+| `longdong` | 龍洞 |
+| `defulan` | 德夫蘭 |
+| `guanziling` | 關子嶺 |
+| `kenting` | 墾丁 |
+| `shoushan` | 壽山 |
+
+#### 匯入路線影片
+
+使用 Google Sheets 審核搜尋結果後，下載為 CSV 並匯入：
+
+```bash
+cd apps/web
+
+# 匯入單一岩場的路線影片
+node scripts/import-route-videos.js output/route-videos-longdong.csv
+```
+
+**CSV 格式要求：**
+
+| 欄位 | 必填 | 說明 |
+|------|------|------|
+| 路線ID | ✓ | 路線的唯一識別碼（如 `LD-MUSIC-HALL-329`） |
+| 選擇的YouTube影片 | ✓ | YouTube 影片 URL（每行一個或用分號分隔） |
+| 選擇的Instagram貼文 | | Instagram 貼文 URL |
+
+腳本會自動：
+
+- 根據路線 ID 前綴識別岩場（LD=龍洞、DF=德夫蘭、GZ=關子嶺、KT=墾丁、SS=壽山）
+- 過濾無效 URL
+- 合併新舊影片（不覆蓋已有影片）
+
+#### 抓取影片元數據
+
+匯入影片 URL 後，需要抓取元數據以便前端顯示和排序：
+
+```bash
+cd apps/web
+
+# 抓取路線影片元數據（使用 yt-dlp）
+node scripts/fetch-video-metadata.js
+
+# 限制抓取數量
+node scripts/fetch-video-metadata.js --limit 50
+
+# 強制重新抓取所有
+node scripts/fetch-video-metadata.js --force
+```
+
+元數據會儲存到 `apps/web/public/data/video-metadata.json`。
+
+#### 完整流程
+
+```bash
+cd apps/web
+
+# 1. 搜尋路線影片
+node scripts/search-route-videos.js longdong --limit=5
+
+# 2. 審核 CSV（在 Google Sheets 中檢視「建議影片」，正確的複製到「選擇的YouTube影片」）
+
+# 3. 匯入審核後的 CSV
+node scripts/import-route-videos.js output/route-videos-longdong.csv
+
+# 4. 抓取元數據
+node scripts/fetch-video-metadata.js --limit 100
+```
+
+#### 前端顯示邏輯
+
+前端會根據 `video-metadata.json` 中的 `uploadDate` 對影片進行排序（新到舊），並在路線詳情頁顯示。
+
+相關檔案：
+
+- `apps/web/src/lib/crag-data.ts` - 排序邏輯
+- `apps/web/src/components/crag/RouteYouTubeSection.tsx` - 影片顯示元件
+- `apps/web/src/components/crag/route-preview-panel.tsx` - 路線預覽面板
+
+#### 相關腳本
+
+| 腳本 | 說明 |
+|------|------|
+| `node scripts/search-route-videos.js` | 用路線名稱搜尋 YouTube 影片 |
+| `node scripts/match-channel-videos.js` | 比對頻道影片與路線 |
+| `node scripts/import-route-videos.js` | 從 CSV 匯入路線影片 URL |
+| `node scripts/fetch-video-metadata.js` | 抓取影片元數據 |
 
 ## 部署說明
 

@@ -98,6 +98,13 @@ function extractMainName(name) {
   return name.split(/[\(（]/)[0].trim()
 }
 
+// 從 YouTube URL 提取影片 ID
+function extractVideoId(url) {
+  if (!url) return null
+  const match = url.match(/[?&]v=([a-zA-Z0-9_-]{11})/) || url.match(/youtu\.be\/([a-zA-Z0-9_-]{11})/)
+  return match ? match[1] : null
+}
+
 // 比對影片與路線
 function matchVideoToRoutes(video, routes) {
   const title = video.title.toLowerCase()
@@ -203,6 +210,14 @@ async function main() {
 
   console.log(`\n總共 ${allVideos.length} 個影片，開始比對路線...\n`)
 
+  // 建立路線已有影片的 ID Set
+  const routeExistingIds = new Map()
+  for (const route of routes) {
+    const existingUrls = route.youtubeVideos || []
+    const existingIds = new Set(existingUrls.map(extractVideoId).filter(Boolean))
+    routeExistingIds.set(route.id, existingIds)
+  }
+
   // 比對結果：路線 → 影片
   const routeMatches = new Map()
   for (const route of routes) {
@@ -216,7 +231,11 @@ async function main() {
     if (matches.length > 0) {
       matchedVideos++
       for (const route of matches) {
-        routeMatches.get(route.id).push(video)
+        // 過濾掉已存在的影片
+        const existingIds = routeExistingIds.get(route.id)
+        if (!existingIds.has(video.videoId)) {
+          routeMatches.get(route.id).push(video)
+        }
       }
     }
   }
@@ -230,7 +249,8 @@ async function main() {
       '路線名稱',
       '路線英文名',
       '難度',
-      '找到數量',
+      '已有影片數',
+      '新發現數',
       '建議影片（標題 | URL）',
       '選擇的YouTube影片',
       '選擇的Instagram貼文',
@@ -238,9 +258,14 @@ async function main() {
   ]
 
   let routesWithMatches = 0
+  let routesWithExisting = 0
+  let totalNewVideos = 0
   for (const route of routes) {
     const videos = routeMatches.get(route.id)
+    const existingCount = (route.youtubeVideos || []).length
     if (videos.length > 0) routesWithMatches++
+    if (existingCount > 0) routesWithExisting++
+    totalNewVideos += videos.length
 
     const videoList = videos.map((v) => `${v.title} | ${v.url}`).join('\n')
 
@@ -251,7 +276,8 @@ async function main() {
       escapeCSV(route.name),
       escapeCSV(route.nameEn || ''),
       escapeCSV(route.grade),
-      videos.length,
+      existingCount, // 已有影片數
+      videos.length, // 新發現數
       escapeCSV(videoList),
       '',
       '',
@@ -267,7 +293,9 @@ async function main() {
   console.log('=== 比對統計 ===')
   console.log(`總影片數: ${allVideos.length}`)
   console.log(`符合的影片: ${matchedVideos}`)
-  console.log(`有影片的路線: ${routesWithMatches} / ${routes.length}`)
+  console.log(`已有影片的路線: ${routesWithExisting} / ${routes.length}`)
+  console.log(`發現新影片的路線: ${routesWithMatches} / ${routes.length}`)
+  console.log(`新發現影片總數: ${totalNewVideos}`)
   console.log(`\n✅ 輸出: ${outputPath}`)
 }
 
