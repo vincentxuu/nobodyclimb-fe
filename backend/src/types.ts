@@ -173,9 +173,37 @@ export interface Crag {
   updated_at: string;
 }
 
+export interface Area {
+  id: string;
+  crag_id: string;
+  name: string;
+  name_en: string | null;
+  slug: string | null;
+  description: string | null;
+  description_en: string | null;
+  image: string | null;
+  bolt_count: number;
+  route_count: number;
+  sort_order: number;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface Sector {
+  id: string;
+  area_id: string;
+  name: string;
+  name_en: string | null;
+  sort_order: number;
+  created_at: string;
+  updated_at: string;
+}
+
 export interface Route {
   id: string;
   crag_id: string;
+  area_id: string | null;
+  sector_id: string | null;
   name: string;
   grade: string | null;
   grade_system: string;

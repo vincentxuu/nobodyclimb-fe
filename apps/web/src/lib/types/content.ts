@@ -814,6 +814,38 @@ export interface Route {
   updatedAt: string
 }
 
+/**
+ * 岩場區域介面（如龍洞的校門口、鐘塔、音樂廳等）
+ */
+export interface AdminArea {
+  id: string
+  crag_id: string
+  name: string
+  name_en: string | null
+  slug: string | null
+  description: string | null
+  description_en: string | null
+  image: string | null
+  bolt_count: number
+  route_count: number
+  sort_order: number
+  created_at: string
+  updated_at: string
+}
+
+/**
+ * 岩壁分區介面（如校門口的人面岩、門簷等）
+ */
+export interface AdminSector {
+  id: string
+  area_id: string
+  name: string
+  name_en: string | null
+  sort_order: number
+  created_at: string
+  updated_at: string
+}
+
 // ============================================
 // 天氣相關
 // ============================================

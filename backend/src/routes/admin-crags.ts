@@ -45,6 +45,8 @@ const createRouteSchema = z.object({
   route_type: z.string().optional(),
   description: z.string().optional(),
   first_ascent: z.string().optional(),
+  area_id: z.string().optional(),
+  sector_id: z.string().optional(),
 });
 
 const updateRouteSchema = z.object({
@@ -56,6 +58,8 @@ const updateRouteSchema = z.object({
   route_type: z.string().optional(),
   description: z.string().optional(),
   first_ascent: z.string().optional(),
+  area_id: z.string().nullable().optional(),
+  sector_id: z.string().nullable().optional(),
 });
 
 const batchImportRoutesSchema = z.object({
@@ -69,6 +73,8 @@ const batchImportRoutesSchema = z.object({
     route_type: z.string().optional(),
     description: z.string().optional(),
     first_ascent: z.string().optional(),
+    area_id: z.string().optional(),
+    sector_id: z.string().optional(),
   })),
   skipExisting: z.boolean().optional(),
 });
@@ -509,8 +515,9 @@ adminCragsRoutes.post(
       await c.env.DB.prepare(`
         INSERT INTO routes (
           id, crag_id, name, grade, grade_system,
-          height, bolt_count, route_type, description, first_ascent
-        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+          height, bolt_count, route_type, description, first_ascent,
+          area_id, sector_id
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         ON CONFLICT(id) DO UPDATE SET
           name = excluded.name,
           grade = excluded.grade,
@@ -519,7 +526,9 @@ adminCragsRoutes.post(
           bolt_count = excluded.bolt_count,
           route_type = excluded.route_type,
           description = excluded.description,
-          first_ascent = excluded.first_ascent
+          first_ascent = excluded.first_ascent,
+          area_id = excluded.area_id,
+          sector_id = excluded.sector_id
       `)
         .bind(
           id,
@@ -531,7 +540,9 @@ adminCragsRoutes.post(
           routeData.bolt_count || null,
           routeData.route_type || 'sport',
           routeData.description || null,
-          routeData.first_ascent || null
+          routeData.first_ascent || null,
+          routeData.area_id || null,
+          routeData.sector_id || null
         )
         .run();
 
@@ -646,8 +657,9 @@ adminCragsRoutes.post(
   await c.env.DB.prepare(`
     INSERT INTO routes (
       id, crag_id, name, grade, grade_system,
-      height, bolt_count, route_type, description, first_ascent
-    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+      height, bolt_count, route_type, description, first_ascent,
+      area_id, sector_id
+    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
   `)
     .bind(
       id,
@@ -659,7 +671,9 @@ adminCragsRoutes.post(
       body.bolt_count || null,
       body.route_type || 'sport',
       body.description || null,
-      body.first_ascent || null
+      body.first_ascent || null,
+      body.area_id || null,
+      body.sector_id || null
     )
     .run();
 
@@ -730,6 +744,8 @@ adminCragsRoutes.put(
     'route_type',
     'description',
     'first_ascent',
+    'area_id',
+    'sector_id',
   ];
 
   for (const field of fields) {

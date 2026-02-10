@@ -26,6 +26,8 @@ import {
   Milestone,
   Crag,
   AdminCrag,
+  AdminArea,
+  AdminSector,
   Route,
   Weather,
   BiographyVideo,
@@ -3236,6 +3238,103 @@ export const adminCragService = {
     const response = await apiClient.post<
       ApiResponse<{ imported: number; skipped: number; errors: string[] }>
     >(`/admin/crags/${cragId}/routes/batch-import`, { routes, skipExisting })
+    return response.data
+  },
+
+  // ============================================
+  // Area (區域) Management
+  // ============================================
+
+  /**
+   * 獲取區域列表（需要 admin 權限）
+   */
+  getAreas: async (cragId: string) => {
+    const response = await apiClient.get<ApiResponse<AdminArea[]>>(
+      `/admin/crags/${cragId}/areas`
+    )
+    return response.data
+  },
+
+  /**
+   * 新增區域（需要 admin 權限）
+   */
+  createArea: async (cragId: string, area: Partial<AdminArea>) => {
+    const response = await apiClient.post<ApiResponse<AdminArea>>(
+      `/admin/crags/${cragId}/areas`,
+      area
+    )
+    return response.data
+  },
+
+  /**
+   * 更新區域（需要 admin 權限）
+   */
+  updateArea: async (cragId: string, areaId: string, area: Partial<AdminArea>) => {
+    const response = await apiClient.put<ApiResponse<AdminArea>>(
+      `/admin/crags/${cragId}/areas/${areaId}`,
+      area
+    )
+    return response.data
+  },
+
+  /**
+   * 刪除區域（需要 admin 權限）
+   */
+  deleteArea: async (cragId: string, areaId: string) => {
+    const response = await apiClient.delete<ApiResponse<{ message: string }>>(
+      `/admin/crags/${cragId}/areas/${areaId}`
+    )
+    return response.data
+  },
+
+  // ============================================
+  // Sector (岩壁) Management
+  // ============================================
+
+  /**
+   * 獲取岩壁列表（需要 admin 權限）
+   */
+  getSectors: async (cragId: string, areaId: string) => {
+    const response = await apiClient.get<ApiResponse<AdminSector[]>>(
+      `/admin/crags/${cragId}/areas/${areaId}/sectors`
+    )
+    return response.data
+  },
+
+  /**
+   * 新增岩壁（需要 admin 權限）
+   */
+  createSector: async (cragId: string, areaId: string, sector: Partial<AdminSector>) => {
+    const response = await apiClient.post<ApiResponse<AdminSector>>(
+      `/admin/crags/${cragId}/areas/${areaId}/sectors`,
+      sector
+    )
+    return response.data
+  },
+
+  /**
+   * 更新岩壁（需要 admin 權限）
+   */
+  updateSector: async (
+    cragId: string,
+    areaId: string,
+    sectorId: string,
+    sector: Partial<AdminSector>
+  ) => {
+    const response = await apiClient.put<ApiResponse<AdminSector>>(
+      `/admin/crags/${cragId}/areas/${areaId}/sectors/${sectorId}`,
+      sector
+    )
+    return response.data
+  },
+
+  /**
+   * 刪除岩壁（需要 admin 權限）
+   */
+  deleteSector: async (cragId: string, areaId: string, sectorId: string) => {
+    const response = await apiClient.delete<ApiResponse<{ message: string }>>(
+      `/admin/crags/${cragId}/areas/${areaId}/sectors/${sectorId}`
+    )
     return response.data
   },
 }

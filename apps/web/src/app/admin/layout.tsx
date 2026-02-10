@@ -18,6 +18,7 @@ import {
   Menu,
   X,
   Mountain,
+  Building2,
 } from 'lucide-react'
 
 interface AdminLayoutProps {
@@ -30,6 +31,7 @@ const navLinks = [
   { href: '/admin/users', label: '用戶管理', icon: Users },
   { href: '/admin/content', label: '內容管理', icon: FolderOpen },
   { href: '/admin/crags', label: '岩場管理', icon: Mountain },
+  { href: '/admin/gyms', label: '岩館管理', icon: Building2 },
   { href: '/admin/broadcast', label: '廣播通知', icon: Megaphone },
   { href: '/admin/analytics', label: '數據分析', icon: BarChart3 },
   { href: '/admin/logs', label: '訪問日誌', icon: FileText },
