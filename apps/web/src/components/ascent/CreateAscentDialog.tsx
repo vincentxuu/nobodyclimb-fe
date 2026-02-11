@@ -49,8 +49,8 @@ export function CreateAscentDialog({
   const { data: cragsData } = useCrags({ limit: 100 })
   const crags = cragsData?.crags || []
 
-  // 從 API 取得所有路線（用於全域搜尋）
-  const { data: allRoutes = [] } = useAllCragsRoutes()
+  // 從 API 取得所有路線（用於全域搜尋，僅在對話框開啟時載入）
+  const { data: allRoutes = [] } = useAllCragsRoutes(open)
 
   // 從 API 取得選擇岩場的區域
   const { data: areas = [] } = useCragFullAreas(selectedCrag?.id || '')

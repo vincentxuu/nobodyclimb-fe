@@ -4,7 +4,7 @@
  */
 
 import type { ApiCrag, ApiArea, ApiRoute } from '@/lib/types/api-crag'
-import type { CragListItem, CragDetailData, CragArea, CragRoute, RouteSidebarItem, RouteDetailData, RouteSearchItem } from '@/lib/crag-data'
+import type { CragListItem, CragArea, CragRoute, RouteSidebarItem, RouteDetailData, RouteSearchItem } from '@/lib/crag-data'
 
 // 岩場備用圖片（當實際圖片不存在時使用）
 const CRAG_FALLBACK_IMAGE = '/photo/climbspot-photo.jpeg'
@@ -90,18 +90,7 @@ export function adaptCragToDetail(apiCrag: ApiCrag, areas?: ApiArea[]): AdaptedC
   }
 
   // 轉換區域資料
-  const adaptedAreas: CragArea[] = (areas || []).map(area => ({
-    id: area.id,
-    name: area.name,
-    nameEn: area.name_en || '',
-    description: area.description || undefined,
-    descriptionEn: area.description_en || undefined,
-    difficulty: undefined, // 後端區域沒有難度範圍
-    image: area.image || undefined,
-    boltCount: area.bolt_count,
-    routesCount: area.route_count,
-    sectors: [], // sectors 需要另外查詢
-  }))
+  const adaptedAreas: CragArea[] = (areas || []).map(adaptApiAreaToFullArea)
 
   return {
     id: apiCrag.id,
@@ -148,6 +137,17 @@ export function adaptAreaToListItem(apiArea: ApiArea): { id: string; name: strin
   return {
     id: apiArea.id,
     name: apiArea.name,
+  }
+}
+
+// ============ JSON 欄位解析工具 ============
+
+function parseJsonArray(str: string | null | undefined): string[] {
+  if (!str) return []
+  try {
+    return JSON.parse(str)
+  } catch {
+    return []
   }
 }
 
@@ -201,15 +201,6 @@ export interface AdaptedRouteDetail {
  * 將 API 路線資料轉換為詳情格式
  */
 export function adaptRouteToDetail(apiRoute: ApiRoute): AdaptedRouteDetail {
-  const parseJsonArray = (str: string | null): string[] => {
-    if (!str) return []
-    try {
-      return JSON.parse(str)
-    } catch {
-      return []
-    }
-  }
-
   return {
     id: apiRoute.id,
     name: apiRoute.name,
@@ -232,17 +223,6 @@ export function adaptRouteToDetail(apiRoute: ApiRoute): AdaptedRouteDetail {
     youtubeVideos: parseJsonArray(apiRoute.youtube_videos ?? null),
     instagramPosts: parseJsonArray(apiRoute.instagram_posts ?? null),
     sector: apiRoute.sector_id || '',
-  }
-}
-
-// ============ JSON 欄位解析工具 ============
-
-function parseJsonArray(str: string | null | undefined): string[] {
-  if (!str) return []
-  try {
-    return JSON.parse(str)
-  } catch {
-    return []
   }
 }
 
@@ -349,10 +329,29 @@ export function assembleRouteDetailData(
 }
 
 /**
+ * 岩場 metadata 格式（供 generateMetadata 和 JSON-LD 使用）
+ */
+export interface CragMetadata {
+  name: string
+  englishName: string
+  description: string
+  location: string
+  type: string
+  rockType: string
+  routes: number
+  difficulty: string
+  height: string
+  approach: string
+  parking: string
+  amenities: string[]
+  googleMapsUrl: string | null
+}
+
+/**
  * 從 API 資料組裝岩場 metadata 用的簡化資料
  * 供 Server Component 的 generateMetadata 使用
  */
-export function assembleCragMetadata(apiCrag: ApiCrag) {
+export function assembleCragMetadata(apiCrag: ApiCrag): CragMetadata {
   return {
     name: apiCrag.name,
     englishName: '',

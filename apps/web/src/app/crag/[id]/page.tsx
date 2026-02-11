@@ -1,28 +1,11 @@
 import type { Metadata } from 'next'
 import CragDetailClient from './CragDetailClient'
 import { fetchCragById } from '@/lib/api/server-fetch'
-import { assembleCragMetadata } from '@/lib/adapters/crag-adapter'
+import { assembleCragMetadata, type CragMetadata } from '@/lib/adapters/crag-adapter'
 import { SITE_URL, SITE_NAME, OG_IMAGE } from '@/lib/constants'
 
-// 定義岩場詳情資料類型
-interface CragDetail {
-  name: string
-  englishName?: string
-  description?: string
-  location: string
-  type: string
-  rockType?: string
-  routes: string | number
-  difficulty: string
-  height?: string
-  approach?: string
-  parking?: string
-  amenities?: string[]
-  googleMapsUrl?: string | null
-}
-
 // 生成 Place JSON-LD 結構化數據
-function generateCragJsonLd(crag: CragDetail, id: string) {
+function generateCragJsonLd(crag: CragMetadata, id: string) {
   return {
     '@context': 'https://schema.org',
     '@type': 'Place',
@@ -149,7 +132,7 @@ export default async function CragDetailPage({
         <script
           type="application/ld+json"
           dangerouslySetInnerHTML={{
-            __html: JSON.stringify(generateCragJsonLd(crag as CragDetail, id)),
+            __html: JSON.stringify(generateCragJsonLd(crag, id)),
           }}
         />
       )}
