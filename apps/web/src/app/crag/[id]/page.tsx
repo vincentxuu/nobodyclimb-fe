@@ -1,27 +1,11 @@
 import type { Metadata } from 'next'
 import CragDetailClient from './CragDetailClient'
-import { getCragDetailData } from '@/lib/crag-data'
+import { fetchCragById } from '@/lib/api/server-fetch'
+import { assembleCragMetadata, type CragMetadata } from '@/lib/adapters/crag-adapter'
 import { SITE_URL, SITE_NAME, OG_IMAGE } from '@/lib/constants'
 
-// 定義岩場詳情資料類型
-interface CragDetail {
-  name: string
-  englishName?: string
-  description?: string
-  location: string
-  type: string
-  rockType?: string
-  routes: string | number
-  difficulty: string
-  height?: string
-  approach?: string
-  parking?: string
-  amenities?: string[]
-  googleMapsUrl?: string
-}
-
 // 生成 Place JSON-LD 結構化數據
-function generateCragJsonLd(crag: CragDetail, id: string) {
+function generateCragJsonLd(crag: CragMetadata, id: string) {
   return {
     '@context': 'https://schema.org',
     '@type': 'Place',
@@ -89,15 +73,16 @@ export async function generateMetadata({
   params: Promise<{ id: string }>
 }): Promise<Metadata> {
   const { id } = await params
-  const crag = getCragDetailData(id)
+  const apiCrag = await fetchCragById(id)
 
-  if (!crag) {
+  if (!apiCrag) {
     return {
       title: '找不到岩場',
       description: '您要找的岩場不存在',
     }
   }
 
+  const crag = assembleCragMetadata(apiCrag)
   const title = `${crag.name} - 戶外攀岩岩場`
   const description = crag.description?.substring(0, 160) || `${crag.name}位於${crag.location}，提供${crag.routes}條攀岩路線，難度範圍${crag.difficulty}。`
 
@@ -137,7 +122,8 @@ export default async function CragDetailPage({
   params: Promise<{ id: string }>
 }) {
   const { id } = await params
-  const crag = getCragDetailData(id)
+  const apiCrag = await fetchCragById(id)
+  const crag = apiCrag ? assembleCragMetadata(apiCrag) : null
 
   return (
     <>
@@ -146,7 +132,7 @@ export default async function CragDetailPage({
         <script
           type="application/ld+json"
           dangerouslySetInnerHTML={{
-            __html: JSON.stringify(generateCragJsonLd(crag as CragDetail, id)),
+            __html: JSON.stringify(generateCragJsonLd(crag, id)),
           }}
         />
       )}

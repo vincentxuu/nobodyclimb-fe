@@ -1,13 +1,14 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState } from 'react'
 import Image from 'next/image'
 import Link from 'next/link'
 import { motion, AnimatePresence } from 'framer-motion'
 import { MapPin, ChevronDown, ChevronRight } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { CragCoverGenerator } from '@/components/shared/CragCoverGenerator'
-import { getAllCrags, getFeaturedRoutes, type CragListItem, type FeaturedRouteItem } from '@/lib/crag-data'
+import { useCrags } from '@/hooks/api/useCrags'
+import type { CragListItem } from '@/lib/crag-data'
 
 // 台灣地圖上的岩場標記位置（百分比，基於 taiwan.svg 437x555）
 const cragMapPositions: Record<string, { top: string; left: string }> = {
@@ -331,17 +332,8 @@ function ExpandableMap({ crags }: { crags: CragListItem[] }) {
  * 包含台灣地圖視覺化和熱門岩場卡片
  */
 export function ExploreCragSection() {
-  const [crags, setCrags] = useState<CragListItem[]>([])
-  const [featuredRoutes, setFeaturedRoutes] = useState<FeaturedRouteItem[]>([])
-
-  useEffect(() => {
-    const allCrags = getAllCrags()
-    setCrags(allCrags.slice(0, 5))
-
-    // 獲取熱門路線
-    const routes = getFeaturedRoutes(8)
-    setFeaturedRoutes(routes)
-  }, [])
+  const { data } = useCrags({ limit: 5 })
+  const crags = data?.crags || []
 
   if (crags.length === 0) {
     return null
