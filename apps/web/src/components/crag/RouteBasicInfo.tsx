@@ -86,7 +86,7 @@ export function RouteBasicInfo({ route, showTitle = true }: RouteBasicInfoProps)
             <div className="mt-1 text-lg font-semibold text-[#1B1A1A]">
               {route.firstAscent}
               {route.firstAscentDate && (
-                <span className="ml-2 text-sm font-normal text-gray-500">
+                <span className="ml-2 text-sm font-normal text-gray-500 whitespace-nowrap">
                   ({route.firstAscentDate})
                 </span>
               )}
