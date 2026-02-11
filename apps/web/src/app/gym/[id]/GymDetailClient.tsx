@@ -1,6 +1,6 @@
 'use client'
 
-import React, { useState, useEffect, use } from 'react'
+import React, { use } from 'react'
 import Link from 'next/link'
 import { motion } from 'framer-motion'
 import {
@@ -25,13 +25,8 @@ import { GymCoverGenerator } from '@/components/shared/GymCoverGenerator'
 import PlaceholderImage from '@/components/ui/placeholder-image'
 import { Breadcrumb } from '@/components/ui/breadcrumb'
 import { WeatherDisplay } from '@/components/shared/weather-display'
-import {
-  getGymById,
-  getAdjacentGyms,
-  getRelatedGyms,
-  type GymDetailData,
-  type GymListItem,
-} from '@/lib/gym-data'
+import { useGymDetail, useRelatedGyms, useAdjacentGyms } from '@/hooks/api/useGyms'
+import type { GymDetailData, GymListItem } from '@/lib/gym-data'
 
 // 開箱介紹類型對應的圖標和標籤
 const reviewTypeConfig = {
@@ -51,40 +46,11 @@ const reviewTypeConfig = {
 
 export default function GymDetailClient({ params }: { params: Promise<{ id: string }> }) {
   const { id } = use(params)
-  const [gym, setGym] = useState<GymDetailData | null>(null)
-  const [adjacentGyms, setAdjacentGyms] = useState<{ prev: GymListItem | null; next: GymListItem | null }>({
-    prev: null,
-    next: null,
-  })
-  const [relatedGyms, setRelatedGyms] = useState<GymListItem[]>([])
-  const [loading, setLoading] = useState(true)
-  const [error, setError] = useState<string | null>(null)
 
-  // 載入岩館資料
-  useEffect(() => {
-    try {
-      setLoading(true)
-      setError(null)
-
-      const gymData = getGymById(id)
-      const adjacent = getAdjacentGyms(id)
-      const related = getRelatedGyms(id, 3)
-
-      if (!gymData) {
-        setError('找不到這間岩館')
-        return
-      }
-
-      setGym(gymData)
-      setAdjacentGyms(adjacent)
-      setRelatedGyms(related)
-    } catch (err) {
-      console.error('Error fetching gym data:', err)
-      setError('無法載入岩館資料，請稍後再試')
-    } finally {
-      setLoading(false)
-    }
-  }, [id])
+  // 使用 API hooks 獲取資料
+  const { data: gym, isLoading, error } = useGymDetail(id)
+  const { data: relatedGyms = [] } = useRelatedGyms(id, 3)
+  const { data: adjacentGyms = { prev: null, next: null } } = useAdjacentGyms(id)
 
   // 格式化營業時間顯示
   const formatOpeningHours = (hours: GymDetailData['openingHours']) => {
@@ -109,8 +75,8 @@ export default function GymDetailClient({ params }: { params: Promise<{ id: stri
     const items: string[] = []
 
     if (pricing.singleEntry) {
-      items.push(`平日 $${pricing.singleEntry.weekday}`)
-      items.push(`假日 $${pricing.singleEntry.weekend}`)
+      if (pricing.singleEntry.weekday) items.push(`平日 $${pricing.singleEntry.weekday}`)
+      if (pricing.singleEntry.weekend) items.push(`假日 $${pricing.singleEntry.weekend}`)
       if (pricing.singleEntry.twilight) {
         items.push(`星光票 $${pricing.singleEntry.twilight}`)
       }
@@ -125,8 +91,8 @@ export default function GymDetailClient({ params }: { params: Promise<{ id: stri
   // 格式化租借價格
   const formatRental = (rental: GymDetailData['pricing']['rental']) => {
     const items: string[] = []
-    items.push(`岩鞋租借 $${rental.shoes}`)
-    items.push(`粉袋租借 $${rental.chalkBag}`)
+    if (rental.shoes) items.push(`岩鞋租借 $${rental.shoes}`)
+    if (rental.chalkBag) items.push(`粉袋租借 $${rental.chalkBag}`)
     if (rental.harness) {
       items.push(`吊帶租借 $${rental.harness}`)
     }
@@ -134,7 +100,7 @@ export default function GymDetailClient({ params }: { params: Promise<{ id: stri
   }
 
   // 載入中狀態
-  if (loading) {
+  if (isLoading) {
     return (
       <main className="min-h-screen bg-gray-50">
         <div className="container mx-auto flex items-center justify-center px-4 py-20">
@@ -150,7 +116,7 @@ export default function GymDetailClient({ params }: { params: Promise<{ id: stri
     return (
       <main className="min-h-screen bg-gray-50">
         <div className="container mx-auto px-4 py-20 text-center">
-          <p className="mb-4 text-lg text-red-500">{error || '找不到這間岩館'}</p>
+          <p className="mb-4 text-lg text-red-500">{error ? '無法載入岩館資料' : '找不到這間岩館'}</p>
           <Link href="/gym">
             <Button variant="outline">返回岩館列表</Button>
           </Link>
@@ -274,13 +240,15 @@ export default function GymDetailClient({ params }: { params: Promise<{ id: stri
           </div>
 
           {/* 場地介紹 */}
-          <div className="mb-8">
-            <div className="mb-1">
-              <h2 className="text-lg font-medium text-orange-500">場地介紹</h2>
-              <div className="h-px w-full bg-gray-200"></div>
+          {gym.description && (
+            <div className="mb-8">
+              <div className="mb-1">
+                <h2 className="text-lg font-medium text-orange-500">場地介紹</h2>
+                <div className="h-px w-full bg-gray-200"></div>
+              </div>
+              <div className="mt-4 whitespace-pre-line text-base">{gym.description}</div>
             </div>
-            <div className="mt-4 whitespace-pre-line text-base">{gym.description}</div>
-          </div>
+          )}
 
           <div className="grid grid-cols-1 gap-8 md:grid-cols-2">
             <div>
@@ -293,14 +261,14 @@ export default function GymDetailClient({ params }: { params: Promise<{ id: stri
                 <div className="mt-4 space-y-2">
                   <div className="text-base font-medium">入場費</div>
                   <div className="whitespace-pre-line text-base text-gray-700">
-                    {formatPricing(gym.pricing)}
+                    {formatPricing(gym.pricing) || '請洽詢岩館'}
                   </div>
                   {gym.pricing.notes && (
                     <div className="text-sm text-gray-500">{gym.pricing.notes}</div>
                   )}
                   <div className="mt-4 text-base font-medium">裝備租借</div>
                   <div className="whitespace-pre-line text-base text-gray-700">
-                    {formatRental(gym.pricing.rental)}
+                    {formatRental(gym.pricing.rental) || '請洽詢岩館'}
                   </div>
                 </div>
               </div>

@@ -3,7 +3,7 @@
 import React, { use, useState, useMemo, useCallback } from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
-import { MapPin, ArrowLeft, List, X, ExternalLink } from 'lucide-react'
+import { MapPin, ArrowLeft, List, X, ExternalLink, Loader2 } from 'lucide-react'
 import { motion, AnimatePresence } from 'framer-motion'
 import BackToTop from '@/components/ui/back-to-top'
 import { CragCoverGenerator } from '@/components/shared/CragCoverGenerator'
@@ -14,7 +14,7 @@ import { DataSourceSection } from '@/components/crag/data-source-section'
 import { CollapsibleBreadcrumb } from '@/components/ui/collapsible-breadcrumb'
 import { RouteListFilter } from '@/components/crag/route-list-filter'
 import { VirtualizedRouteList } from '@/components/crag/virtualized-route-list'
-import { getCragDetailData, getCragRoutesForSidebar, getCragAreasForFilter, getSectorsForArea } from '@/lib/crag-data'
+import { useCragDetail, useCragRoutes, useCragAreas } from '@/hooks/api/useCrags'
 import { useRouteFilter } from '@/lib/hooks/useRouteFilter'
 import { routeLoadingManager } from '@/lib/route-loading-manager'
 import { useToast } from '@/components/ui/use-toast'
@@ -26,10 +26,10 @@ export default function CragDetailClient({ params }: { params: Promise<{ id: str
   const { toast } = useToast()
   const [isDrawerOpen, setIsDrawerOpen] = useState(false)
 
-  // 從資料服務層讀取岩場資料
-  const currentCrag = getCragDetailData(id)
-  const routes = getCragRoutesForSidebar(id)
-  const areas = getCragAreasForFilter(id)
+  // 使用 API hooks 獲取資料
+  const { data: currentCrag, isLoading: isCragLoading, error: cragError } = useCragDetail(id)
+  const { data: routes = [], isLoading: isRoutesLoading } = useCragRoutes(id)
+  const { data: areas = [] } = useCragAreas(id)
 
   // 使用共用的路線過濾 hook（包含防抖）
   const {
@@ -42,11 +42,16 @@ export default function CragDetailClient({ params }: { params: Promise<{ id: str
     setSelectedType,
   } = useRouteFilter(routes)
 
-  // 根據選擇的區域獲取 sectors（使用緩存）
+  // 根據選擇的區域獲取 sectors（從路線資料推斷）
   const sectors = useMemo(() => {
     if (filterState.selectedArea === 'all') return []
-    return getSectorsForArea(id, filterState.selectedArea)
-  }, [id, filterState.selectedArea])
+    // 從路線資料中提取該區域的 sectors
+    const sectorsSet = new Set<string>()
+    routes
+      .filter(route => route.areaId === filterState.selectedArea && route.sector)
+      .forEach(route => sectorsSet.add(route.sector!))
+    return Array.from(sectorsSet).map(sector => ({ id: sector, name: sector }))
+  }, [routes, filterState.selectedArea])
 
   // 建構篩選參數的 URL query string
   const buildFilterQueryString = useCallback(() => {
@@ -89,7 +94,18 @@ export default function CragDetailClient({ params }: { params: Promise<{ id: str
     setIsDrawerOpen(false)
   }, [])
 
-  if (!currentCrag) {
+  // 載入中狀態
+  if (isCragLoading) {
+    return (
+      <div className="flex min-h-screen items-center justify-center">
+        <Loader2 className="h-8 w-8 animate-spin text-gray-400" />
+        <span className="ml-2 text-gray-500">載入中...</span>
+      </div>
+    )
+  }
+
+  // 錯誤狀態
+  if (cragError || !currentCrag) {
     return (
       <div className="flex min-h-screen items-center justify-center">
         <p className="text-gray-500">找不到岩場資料</p>
@@ -120,9 +136,13 @@ export default function CragDetailClient({ params }: { params: Promise<{ id: str
             </Link>
             <h2 className="mt-3 text-lg font-semibold text-[#1B1A1A]">{currentCrag.name}</h2>
             <p className="text-sm text-gray-500">
-              {filteredRoutes.length === routes.length
-                ? `${routes.length} 條路線`
-                : `${filteredRoutes.length} / ${routes.length} 條路線`}
+              {isRoutesLoading ? (
+                '載入路線中...'
+              ) : filteredRoutes.length === routes.length ? (
+                `${routes.length} 條路線`
+              ) : (
+                `${filteredRoutes.length} / ${routes.length} 條路線`
+              )}
             </p>
           </div>
 
@@ -146,11 +166,17 @@ export default function CragDetailClient({ params }: { params: Promise<{ id: str
 
           {/* 路線列表 - 使用虛擬化 */}
           <div className="min-h-0 flex-1 overflow-y-auto p-2">
-            <VirtualizedRouteList
-              routes={filteredRoutes}
-              cragId={id}
-              onRouteClick={handleRouteClick}
-            />
+            {isRoutesLoading ? (
+              <div className="flex items-center justify-center py-8">
+                <Loader2 className="h-6 w-6 animate-spin text-gray-400" />
+              </div>
+            ) : (
+              <VirtualizedRouteList
+                routes={filteredRoutes}
+                cragId={id}
+                onRouteClick={handleRouteClick}
+              />
+            )}
           </div>
         </aside>
 
@@ -179,7 +205,9 @@ export default function CragDetailClient({ params }: { params: Promise<{ id: str
               {/* 標題與位置 */}
               <div className="mb-8">
                 <h1 className="text-2xl font-bold text-[#1B1A1A] lg:text-3xl">{currentCrag.name}</h1>
-                <p className="mb-2 text-base text-gray-500 lg:text-lg">{currentCrag.englishName}</p>
+                {currentCrag.englishName && (
+                  <p className="mb-2 text-base text-gray-500 lg:text-lg">{currentCrag.englishName}</p>
+                )}
                 <div className="flex items-center text-sm text-gray-500">
                   <MapPin size={14} className="mr-1" />
                   <span>{currentCrag.location}</span>
@@ -187,15 +215,17 @@ export default function CragDetailClient({ params }: { params: Promise<{ id: str
               </div>
 
               {/* 岩場介紹 */}
-              <div className="mb-8">
-                <div className="mb-1">
-                  <h2 className="text-lg font-medium text-orange-500">岩場介紹</h2>
-                  <div className="h-px w-full bg-gray-200"></div>
+              {currentCrag.description && (
+                <div className="mb-8">
+                  <div className="mb-1">
+                    <h2 className="text-lg font-medium text-orange-500">岩場介紹</h2>
+                    <div className="h-px w-full bg-gray-200"></div>
+                  </div>
+                  <div className="mt-4 whitespace-pre-line text-base text-gray-700">
+                    {currentCrag.description}
+                  </div>
                 </div>
-                <div className="mt-4 whitespace-pre-line text-base text-gray-700">
-                  {currentCrag.description}
-                </div>
-              </div>
+              )}
 
               <div className="grid grid-cols-1 gap-8 lg:grid-cols-2">
                 {/* 岩場基本資訊 */}
@@ -205,30 +235,40 @@ export default function CragDetailClient({ params }: { params: Promise<{ id: str
                     <div className="h-px w-full bg-gray-200"></div>
                   </div>
                   <div className="mt-4 space-y-3">
-                    <div className="flex">
-                      <span className="w-28 flex-shrink-0 text-gray-500">岩場類型：</span>
-                      <span>{currentCrag.type}</span>
-                    </div>
-                    <div className="flex">
-                      <span className="w-28 flex-shrink-0 text-gray-500">岩石類型：</span>
-                      <span>{currentCrag.rockType}</span>
-                    </div>
+                    {currentCrag.type && (
+                      <div className="flex">
+                        <span className="w-28 flex-shrink-0 text-gray-500">岩場類型：</span>
+                        <span>{currentCrag.type}</span>
+                      </div>
+                    )}
+                    {currentCrag.rockType && (
+                      <div className="flex">
+                        <span className="w-28 flex-shrink-0 text-gray-500">岩石類型：</span>
+                        <span>{currentCrag.rockType}</span>
+                      </div>
+                    )}
                     <div className="flex">
                       <span className="w-28 flex-shrink-0 text-gray-500">路線數量：</span>
                       <span>~{currentCrag.routes}</span>
                     </div>
-                    <div className="flex">
-                      <span className="w-28 flex-shrink-0 text-gray-500">難度範圍：</span>
-                      <span>{currentCrag.difficulty}</span>
-                    </div>
-                    <div className="flex">
-                      <span className="w-28 flex-shrink-0 text-gray-500">岩壁高度：</span>
-                      <span>{currentCrag.height}</span>
-                    </div>
-                    <div className="flex">
-                      <span className="w-28 flex-shrink-0 text-gray-500">步行時間：</span>
-                      <span>{currentCrag.approach}</span>
-                    </div>
+                    {currentCrag.difficulty && (
+                      <div className="flex">
+                        <span className="w-28 flex-shrink-0 text-gray-500">難度範圍：</span>
+                        <span>{currentCrag.difficulty}</span>
+                      </div>
+                    )}
+                    {currentCrag.height && (
+                      <div className="flex">
+                        <span className="w-28 flex-shrink-0 text-gray-500">岩壁高度：</span>
+                        <span>{currentCrag.height}</span>
+                      </div>
+                    )}
+                    {currentCrag.approach && (
+                      <div className="flex">
+                        <span className="w-28 flex-shrink-0 text-gray-500">步行時間：</span>
+                        <span>{currentCrag.approach}</span>
+                      </div>
+                    )}
                   </div>
                 </div>
 
@@ -245,10 +285,12 @@ export default function CragDetailClient({ params }: { params: Promise<{ id: str
                         <span className="flex-1">{item.description}</span>
                       </div>
                     ))}
-                    <div className="flex pt-2">
-                      <span className="w-20 flex-shrink-0 text-gray-500">停車：</span>
-                      <span className="flex-1">{currentCrag.parking}</span>
-                    </div>
+                    {currentCrag.parking && (
+                      <div className="flex pt-2">
+                        <span className="w-20 flex-shrink-0 text-gray-500">停車：</span>
+                        <span className="flex-1">{currentCrag.parking}</span>
+                      </div>
+                    )}
                   </div>
                 </div>
               </div>
@@ -294,22 +336,24 @@ export default function CragDetailClient({ params }: { params: Promise<{ id: str
               </div>
 
               {/* 岩場設施 */}
-              <div className="mb-6">
-                <div className="mb-1">
-                  <h2 className="text-lg font-medium text-orange-500">岩場設施</h2>
-                  <div className="h-px w-full bg-gray-200"></div>
+              {currentCrag.amenities.length > 0 && (
+                <div className="mb-6">
+                  <div className="mb-1">
+                    <h2 className="text-lg font-medium text-orange-500">岩場設施</h2>
+                    <div className="h-px w-full bg-gray-200"></div>
+                  </div>
+                  <div className="mt-4 flex flex-wrap gap-2">
+                    {currentCrag.amenities.map((item, index) => (
+                      <span
+                        key={index}
+                        className="rounded-full bg-gray-100 px-3 py-1 text-sm text-gray-700"
+                      >
+                        {item}
+                      </span>
+                    ))}
+                  </div>
                 </div>
-                <div className="mt-4 flex flex-wrap gap-2">
-                  {currentCrag.amenities.map((item, index) => (
-                    <span
-                      key={index}
-                      className="rounded-full bg-gray-100 px-3 py-1 text-sm text-gray-700"
-                    >
-                      {item}
-                    </span>
-                  ))}
-                </div>
-              </div>
+              )}
 
               {/* 天氣預報資訊 */}
               <div className="mb-6">
@@ -319,7 +363,7 @@ export default function CragDetailClient({ params }: { params: Promise<{ id: str
                 </div>
                 <div className="mt-4">
                   <WeatherDisplay
-                    location={currentCrag.weatherLocation}
+                    location={currentCrag.weatherLocation || currentCrag.region || currentCrag.location}
                     showForecast={true}
                   />
                 </div>
@@ -372,7 +416,7 @@ export default function CragDetailClient({ params }: { params: Promise<{ id: str
                             {area.name}
                           </h3>
                           <div className="mt-1 text-xs text-gray-500">
-                            {area.difficulty} · {area.routes}條路線
+                            {area.routesCount}條路線
                           </div>
                         </div>
                       </Link>

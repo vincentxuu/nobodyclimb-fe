@@ -255,6 +255,73 @@ initializeCache()
 
 // ============ 列表頁用的簡化資料格式 ============
 
+/**
+ * 詳情頁用的岩場資料格式
+ */
+export interface CragDetailData {
+  id: string
+  name: string
+  englishName: string
+  location: string
+  description?: string
+  videoUrl: string
+  liveVideoId?: string
+  liveVideoTitle?: string
+  liveVideoDescription?: string
+  images: string[]
+  type: string
+  rockType: string
+  routes: number
+  difficulty: string
+  height: string
+  approach: string
+  seasons: string[]
+  transportation: Array<{ type: string; description: string }>
+  parking: string
+  amenities: string[]
+  googleMapsUrl: string
+  geoCoordinates: {
+    latitude: number
+    longitude: number
+  }
+  weatherLocation: string
+  areas: Array<{
+    id: string
+    name: string
+    description: string
+    difficulty: string
+    routes: number
+    image: string
+  }>
+  routes_details: Array<{
+    id: string
+    name: string
+    englishName?: string
+    grade: string
+    length: string
+    type: string
+    firstAscent: string
+    area: string
+    description: string
+    protection: string
+    popularity: number
+    views: number
+    images: string[]
+    videos: string[]
+    tips: string
+    instagramPosts: string[]
+    youtubeVideos: string[]
+  }>
+  metadata: {
+    source: string
+    sourceUrl?: string
+    lastUpdated?: string
+    maintainer: string
+    maintainerUrl?: string
+    version?: string
+  }
+}
+
 export interface CragListItem {
   id: string
   name: string

@@ -25,8 +25,11 @@ export const config = {
   // Environment
   environment: (process.env.ENVIRONMENT || 'preview') as 'production' | 'preview',
 
-  // JSON data path (relative to project root)
-  jsonDataPath: '../../apps/web/src/data/crags',
+  // JSON data path (relative to src/ directory)
+  jsonDataPath: '../../../apps/web/src/data/crags',
+
+  // Backend path (for wrangler CLI)
+  backendPath: process.env.BACKEND_PATH || '/Users/xiaoxu/Projects/nobodyclimb/backend',
 };
 
 export function validateConfig(): string[] {

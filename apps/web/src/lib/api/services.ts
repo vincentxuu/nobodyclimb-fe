@@ -41,6 +41,16 @@ import {
   StoryPrompt,
   StoryPromptStats,
 } from '@/lib/types'
+import type {
+  ApiCragListResponse,
+  ApiCragDetailResponse,
+  ApiCragRoutesResponse,
+  ApiCragAreasResponse,
+} from '@/lib/types/api-crag'
+import type {
+  ApiGymListResponse,
+  ApiGymDetailResponse,
+} from '@/lib/types/api-gym'
 import { processImage } from '@/lib/utils/image'
 
 /**
@@ -372,8 +382,8 @@ export const gymService = {
   /**
    * 獲取攀岩館列表
    */
-  getGyms: async (page = 1, limit = 10, facilities?: string[]) => {
-    const response = await apiClient.get<ApiResponse<PaginatedResponse<Gym>>>('/gyms', {
+  getGyms: async (page = 1, limit = 10, facilities?: string[]): Promise<ApiGymListResponse> => {
+    const response = await apiClient.get<ApiGymListResponse>('/gyms', {
       params: { page, limit, facilities: facilities?.join(',') },
     })
     return response.data
@@ -382,24 +392,24 @@ export const gymService = {
   /**
    * 獲取攀岩館詳情（通過ID）
    */
-  getGymById: async (id: string) => {
-    const response = await apiClient.get<ApiResponse<Gym>>(`/gyms/${id}`)
+  getGymById: async (id: string): Promise<ApiGymDetailResponse> => {
+    const response = await apiClient.get<ApiGymDetailResponse>(`/gyms/${id}`)
     return response.data
   },
 
   /**
    * 獲取攀岩館詳情（通過 Slug）
    */
-  getGymBySlug: async (slug: string) => {
-    const response = await apiClient.get<ApiResponse<Gym>>(`/gyms/slug/${slug}`)
+  getGymBySlug: async (slug: string): Promise<ApiGymDetailResponse> => {
+    const response = await apiClient.get<ApiGymDetailResponse>(`/gyms/slug/${slug}`)
     return response.data
   },
 
   /**
    * 獲取精選攀岩館
    */
-  getFeaturedGyms: async () => {
-    const response = await apiClient.get<ApiResponse<Gym[]>>('/gyms/featured')
+  getFeaturedGyms: async (): Promise<ApiGymListResponse> => {
+    const response = await apiClient.get<ApiGymListResponse>('/gyms/featured')
     return response.data
   },
 
@@ -1543,8 +1553,8 @@ export const cragService = {
   /**
    * 獲取岩場列表
    */
-  getCrags: async (page = 1, limit = 10, filters?: { difficulty?: string; type?: string }) => {
-    const response = await apiClient.get<ApiResponse<PaginatedResponse<Crag>>>('/crags', {
+  getCrags: async (page = 1, limit = 10, filters?: { difficulty?: string; type?: string }): Promise<ApiCragListResponse> => {
+    const response = await apiClient.get<ApiCragListResponse>('/crags', {
       params: { page, limit, ...filters },
     })
     return response.data
@@ -1553,32 +1563,32 @@ export const cragService = {
   /**
    * 獲取岩場詳情（通過ID）
    */
-  getCragById: async (id: string) => {
-    const response = await apiClient.get<ApiResponse<Crag>>(`/crags/${id}`)
+  getCragById: async (id: string): Promise<ApiCragDetailResponse> => {
+    const response = await apiClient.get<ApiCragDetailResponse>(`/crags/${id}`)
     return response.data
   },
 
   /**
    * 獲取岩場詳情（通過 Slug）
    */
-  getCragBySlug: async (slug: string) => {
-    const response = await apiClient.get<ApiResponse<Crag>>(`/crags/slug/${slug}`)
+  getCragBySlug: async (slug: string): Promise<ApiCragDetailResponse> => {
+    const response = await apiClient.get<ApiCragDetailResponse>(`/crags/slug/${slug}`)
     return response.data
   },
 
   /**
    * 獲取精選岩場
    */
-  getFeaturedCrags: async () => {
-    const response = await apiClient.get<ApiResponse<Crag[]>>('/crags/featured')
+  getFeaturedCrags: async (): Promise<ApiCragListResponse> => {
+    const response = await apiClient.get<ApiCragListResponse>('/crags/featured')
     return response.data
   },
 
   /**
    * 獲取附近岩場
    */
-  getNearbyCrags: async (latitude: number, longitude: number, radius: number = 50) => {
-    const response = await apiClient.get<ApiResponse<Crag[]>>('/crags/nearby', {
+  getNearbyCrags: async (latitude: number, longitude: number, radius: number = 50): Promise<ApiCragListResponse> => {
+    const response = await apiClient.get<ApiCragListResponse>('/crags/nearby', {
       params: { latitude, longitude, radius },
     })
     return response.data
@@ -1587,8 +1597,16 @@ export const cragService = {
   /**
    * 獲取岩場路線
    */
-  getCragRoutes: async (cragId: string) => {
-    const response = await apiClient.get<ApiResponse<Route[]>>(`/crags/${cragId}/routes`)
+  getCragRoutes: async (cragId: string): Promise<ApiCragRoutesResponse> => {
+    const response = await apiClient.get<ApiCragRoutesResponse>(`/crags/${cragId}/routes`)
+    return response.data
+  },
+
+  /**
+   * 獲取岩場區域
+   */
+  getCragAreas: async (cragId: string): Promise<ApiCragAreasResponse> => {
+    const response = await apiClient.get<ApiCragAreasResponse>(`/crags/${cragId}/areas`)
     return response.data
   },
 
@@ -3190,7 +3208,7 @@ export const adminCragService = {
   /**
    * 獲取岩場路線列表（需要 admin 權限）
    */
-  getRoutes: async (cragId: string, options?: { page?: number; limit?: number }) => {
+  getRoutes: async (cragId: string, options?: { page?: number; limit?: number; area_id?: string; sector_id?: string }) => {
     const response = await apiClient.get<
       ApiResponse<Route[]> & {
         pagination: { page: number; limit: number; total: number; total_pages: number }

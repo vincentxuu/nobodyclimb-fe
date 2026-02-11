@@ -2,16 +2,17 @@
 
 import React from 'react'
 import Link from 'next/link'
-import { MapPin, Calendar, MountainSnow } from 'lucide-react'
+import { MapPin, Calendar, MountainSnow, Loader2 } from 'lucide-react'
 import { Breadcrumb } from '@/components/ui/breadcrumb'
 import { PageHeader } from '@/components/ui/page-header'
 import BackToTop from '@/components/ui/back-to-top'
 import { CragCoverGenerator } from '@/components/shared/CragCoverGenerator'
-import { getAllCrags } from '@/lib/crag-data'
+import { useCrags } from '@/hooks/api/useCrags'
 import { CragMap } from './crag-map'
+import type { CragListItem } from '@/lib/crag-data'
 
-// 岩場卡片組件（使用 CSS 動畫替代 Framer Motion）
-function CragCard({ crag }: { crag: ReturnType<typeof getAllCrags>[0] }) {
+// 岩場卡片組件
+function CragCard({ crag }: { crag: CragListItem }) {
   return (
     <div className="group overflow-hidden rounded-lg bg-white shadow-sm transition-all duration-300 hover:-translate-y-0.5 hover:shadow-md">
       <Link href={`/crag/${crag.id}`} className="block h-full">
@@ -32,7 +33,9 @@ function CragCard({ crag }: { crag: ReturnType<typeof getAllCrags>[0] }) {
         <div className="p-3">
           <h3 className="mb-1.5 text-base font-medium text-[#1B1A1A] group-hover:text-[#3F3D3D]">
             {crag.name}
-            <span className="ml-1.5 text-xs font-normal text-[#8E8C8C]">{crag.nameEn}</span>
+            {crag.nameEn && (
+              <span className="ml-1.5 text-xs font-normal text-[#8E8C8C]">{crag.nameEn}</span>
+            )}
           </h3>
 
           <div className="mb-2 flex items-center gap-1.5 text-xs text-[#6D6C6C]">
@@ -49,28 +52,30 @@ function CragCard({ crag }: { crag: ReturnType<typeof getAllCrags>[0] }) {
           </div>
 
           {/* 季節標籤 */}
-          <div className="mt-2 flex items-center gap-1.5">
-            <Calendar className="h-3.5 w-3.5 text-[#8E8C8C]" />
-            <div className="flex gap-1">
-              {crag.seasons.map((season) => (
-                <span
-                  key={season}
-                  className="rounded bg-[#F5F5F5] px-1.5 py-0.5 text-[10px] text-[#6D6C6C]"
-                >
-                  {season}
-                </span>
-              ))}
+          {crag.seasons && crag.seasons.length > 0 && (
+            <div className="mt-2 flex items-center gap-1.5">
+              <Calendar className="h-3.5 w-3.5 text-[#8E8C8C]" />
+              <div className="flex gap-1">
+                {crag.seasons.map((season) => (
+                  <span
+                    key={season}
+                    className="rounded bg-[#F5F5F5] px-1.5 py-0.5 text-[10px] text-[#6D6C6C]"
+                  >
+                    {season}
+                  </span>
+                ))}
+              </div>
             </div>
-          </div>
+          )}
         </div>
       </Link>
     </div>
   )
 }
 
-// Server Component - 直接在服務端讀取資料
 export default function CragListPage() {
-  const crags = getAllCrags()
+  const { data, isLoading, error } = useCrags({ limit: 50 })
+  const crags = data?.crags || []
 
   return (
     <main className="min-h-screen bg-page-content-bg pb-16">
@@ -85,18 +90,42 @@ export default function CragListPage() {
           <Breadcrumb items={[{ label: '首頁', href: '/' }, { label: '岩場' }]} />
         </div>
 
-        {/* 主要內容區 - 使用 grid 讓地圖在手機版顯示在最上面 */}
-        <div className="grid grid-cols-1 gap-8 lg:grid-cols-[280px_1fr]">
-          {/* 地圖（客戶端組件）- 只渲染一次 TaiwanMap */}
-          <CragMap crags={crags} />
-
-          {/* 岩場列表 */}
-          <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
-            {crags.map((crag) => (
-              <CragCard key={crag.id} crag={crag} />
-            ))}
+        {/* 載入中狀態 */}
+        {isLoading && (
+          <div className="flex items-center justify-center py-12">
+            <Loader2 className="h-8 w-8 animate-spin text-gray-400" />
+            <span className="ml-2 text-gray-500">載入中...</span>
           </div>
-        </div>
+        )}
+
+        {/* 錯誤狀態 */}
+        {error && (
+          <div className="py-12 text-center">
+            <p className="text-lg text-red-500">無法載入岩場資料，請稍後再試</p>
+          </div>
+        )}
+
+        {/* 主要內容區 */}
+        {!isLoading && !error && crags.length > 0 && (
+          <div className="grid grid-cols-1 gap-8 lg:grid-cols-[280px_1fr]">
+            {/* 地圖（客戶端組件）- 只渲染一次 TaiwanMap */}
+            <CragMap crags={crags} />
+
+            {/* 岩場列表 */}
+            <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
+              {crags.map((crag) => (
+                <CragCard key={crag.id} crag={crag} />
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* 無資料狀態 */}
+        {!isLoading && !error && crags.length === 0 && (
+          <div className="py-12 text-center">
+            <p className="text-lg text-gray-500">目前沒有岩場資料</p>
+          </div>
+        )}
       </div>
 
       {/* 回到頂部按鈕 */}

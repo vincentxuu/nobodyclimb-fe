@@ -573,7 +573,7 @@ adminCragsRoutes.get(
   describeRoute({
     tags: ['Admin'],
     summary: '取得岩場的路線列表',
-    description: '取得指定岩場的所有路線，支援分頁',
+    description: '取得指定岩場的所有路線，支援分頁和區域篩選',
     responses: {
       200: { description: '成功取得路線列表' },
       401: { description: '未授權' },
@@ -582,26 +582,42 @@ adminCragsRoutes.get(
   }),
   async (c) => {
   const cragId = c.req.param('cragId');
+  const areaId = c.req.query('area_id');
+  const sectorId = c.req.query('sector_id');
   const { page, limit, offset } = parsePagination(
     c.req.query('page'),
     c.req.query('limit')
   );
 
+  // Build WHERE clause
+  let whereClause = 'crag_id = ?';
+  const bindParams: (string | number)[] = [cragId];
+
+  if (areaId) {
+    whereClause += ' AND area_id = ?';
+    bindParams.push(areaId);
+  }
+
+  if (sectorId) {
+    whereClause += ' AND sector_id = ?';
+    bindParams.push(sectorId);
+  }
+
   // Get total count
   const countResult = await c.env.DB.prepare(
-    'SELECT COUNT(*) as count FROM routes WHERE crag_id = ?'
+    `SELECT COUNT(*) as count FROM routes WHERE ${whereClause}`
   )
-    .bind(cragId)
+    .bind(...bindParams)
     .first<{ count: number }>();
   const total = countResult?.count || 0;
 
   // Get paginated results
   const routes = await c.env.DB.prepare(
-    `SELECT * FROM routes WHERE crag_id = ?
+    `SELECT * FROM routes WHERE ${whereClause}
      ORDER BY grade ASC, name ASC
      LIMIT ? OFFSET ?`
   )
-    .bind(cragId, limit, offset)
+    .bind(...bindParams, limit, offset)
     .all<Route>();
 
   return c.json({

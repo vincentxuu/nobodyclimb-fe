@@ -1,13 +1,15 @@
 'use client'
 
-import React, { useState, useEffect } from 'react'
+import React, { useState, useMemo } from 'react'
 import Link from 'next/link'
 import { MapPin, Filter, Loader2, Star } from 'lucide-react'
 import BackToTop from '@/components/ui/back-to-top'
 import { GymCoverGenerator } from '@/components/shared/GymCoverGenerator'
 import { Breadcrumb } from '@/components/ui/breadcrumb'
 import { PageHeader } from '@/components/ui/page-header'
-import { searchGyms, type GymListItem } from '@/lib/gym-data'
+import { useGyms } from '@/hooks/api/useGyms'
+import { filterGyms } from '@/lib/adapters/gym-adapter'
+import type { GymListItem } from '@/lib/gym-data'
 
 // 區域篩選選項（僅保留有岩館的地區）
 const regions = [
@@ -76,27 +78,18 @@ export default function GymListPage() {
   const [selectedRegion, setSelectedRegion] = useState('所有地區')
   const [selectedType, setSelectedType] = useState('所有類型')
   const [isFilterOpen, setIsFilterOpen] = useState(false)
-  const [gyms, setGyms] = useState<GymListItem[]>([])
-  const [loading, setLoading] = useState(true)
-  const [error, setError] = useState<string | null>(null)
 
-  // 載入岩館資料
-  useEffect(() => {
-    try {
-      setLoading(true)
-      setError(null)
-      const data = searchGyms({
-        region: selectedRegion,
-        type: selectedType,
-      })
-      setGyms(data)
-    } catch (err) {
-      console.error('Error fetching gyms:', err)
-      setError('無法載入岩館資料，請稍後再試')
-    } finally {
-      setLoading(false)
-    }
-  }, [selectedRegion, selectedType])
+  // 使用 API hook 獲取資料
+  const { data, isLoading, error } = useGyms({ limit: 100 })
+  const allGyms = data?.gyms || []
+
+  // 在前端進行篩選
+  const gyms = useMemo(() => {
+    return filterGyms(allGyms, {
+      region: selectedRegion,
+      type: selectedType,
+    })
+  }, [allGyms, selectedRegion, selectedType])
 
   return (
     <main className="min-h-screen bg-page-content-bg">
@@ -165,7 +158,7 @@ export default function GymListPage() {
         </div>
 
         {/* 載入中狀態 */}
-        {loading && (
+        {isLoading && (
           <div className="flex items-center justify-center py-12">
             <Loader2 className="h-8 w-8 animate-spin text-gray-400" />
             <span className="ml-2 text-gray-500">載入中...</span>
@@ -175,12 +168,12 @@ export default function GymListPage() {
         {/* 錯誤狀態 */}
         {error && (
           <div className="py-12 text-center">
-            <p className="text-lg text-red-500">{error}</p>
+            <p className="text-lg text-red-500">無法載入岩館資料，請稍後再試</p>
           </div>
         )}
 
         {/* 搜尋結果 */}
-        {!loading && !error && (
+        {!isLoading && !error && (
           <>
             <div className="mb-4">
               <p className="text-sm text-gray-500">

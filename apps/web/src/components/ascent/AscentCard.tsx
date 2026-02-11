@@ -1,5 +1,6 @@
 'use client';
 
+import { useState } from 'react';
 import { format } from 'date-fns';
 import { zhTW } from 'date-fns/locale';
 import {
@@ -12,10 +13,10 @@ import {
   Users,
   Repeat,
   Star,
-  Youtube,
   Instagram,
   Calendar,
-  Image as ImageIcon,
+  ImageOff,
+  Play,
 } from 'lucide-react';
 
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
@@ -23,6 +24,25 @@ import { Badge } from '@/components/ui/badge';
 import { Card, CardContent } from '@/components/ui/card';
 import { UserRouteAscent, ASCENT_TYPE_DISPLAY } from '@/lib/types/ascent';
 import { cn } from '@/lib/utils';
+
+/**
+ * 從 YouTube URL 中提取 video ID
+ */
+function extractYoutubeVideoId(url: string): string | null {
+  const patterns = [
+    /(?:youtube\.com\/watch\?v=|youtu\.be\/|youtube\.com\/embed\/|youtube\.com\/v\/)([^&\n?#]+)/,
+    /^([a-zA-Z0-9_-]{11})$/,
+  ];
+
+  for (const pattern of patterns) {
+    const match = url.match(pattern);
+    if (match && match[1]) {
+      return match[1];
+    }
+  }
+
+  return null;
+}
 
 const ICON_MAP = {
   CircleDot,
@@ -50,6 +70,16 @@ export function AscentCard({
 }: AscentCardProps) {
   const typeInfo = ASCENT_TYPE_DISPLAY[ascent.ascent_type];
   const Icon = ICON_MAP[typeInfo.icon as keyof typeof ICON_MAP];
+  const [failedImages, setFailedImages] = useState<Set<number>>(new Set());
+
+  const handleImageError = (index: number) => {
+    setFailedImages((prev) => new Set(prev).add(index));
+  };
+
+  // 提取 YouTube video ID
+  const youtubeVideoId = ascent.youtube_url
+    ? extractYoutubeVideoId(ascent.youtube_url)
+    : null;
 
   return (
     <Card className={cn('overflow-hidden', className)}>
@@ -147,18 +177,25 @@ export function AscentCard({
 
             {/* 照片展示 */}
             {ascent.photos && ascent.photos.length > 0 && (
-              <div className="mt-2 flex gap-1">
+              <div className="mt-3 flex gap-1.5">
                 {ascent.photos.slice(0, 4).map((photo, index) => (
                   <div
                     key={index}
-                    className="relative h-12 w-12 overflow-hidden rounded"
+                    className="relative h-14 w-14 overflow-hidden rounded-md bg-gray-100"
                   >
-                    {/* eslint-disable-next-line @next/next/no-img-element */}
-                    <img
-                      src={photo}
-                      alt={`照片 ${index + 1}`}
-                      className="h-full w-full object-cover"
-                    />
+                    {failedImages.has(index) ? (
+                      <div className="flex h-full w-full items-center justify-center text-gray-400">
+                        <ImageOff className="h-5 w-5" />
+                      </div>
+                    ) : (
+                      /* eslint-disable-next-line @next/next/no-img-element */
+                      <img
+                        src={photo}
+                        alt={`照片 ${index + 1}`}
+                        className="h-full w-full object-cover"
+                        onError={() => handleImageError(index)}
+                      />
+                    )}
                     {index === 3 && ascent.photos && ascent.photos.length > 4 && (
                       <div className="absolute inset-0 flex items-center justify-center bg-black/50 text-white text-xs font-medium">
                         +{ascent.photos.length - 4}
@@ -169,29 +206,42 @@ export function AscentCard({
               </div>
             )}
 
-            {/* 媒體連結 */}
-            <div className="mt-2 flex items-center gap-2">
-              {ascent.youtube_url && (
-                <a
-                  href={ascent.youtube_url}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="text-red-500 hover:text-red-600"
-                >
-                  <Youtube className="h-4 w-4" />
-                </a>
-              )}
-              {ascent.instagram_url && (
-                <a
-                  href={ascent.instagram_url}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="text-pink-500 hover:text-pink-600"
-                >
-                  <Instagram className="h-4 w-4" />
-                </a>
-              )}
-            </div>
+            {/* YouTube 影片縮圖 */}
+            {ascent.youtube_url && youtubeVideoId && (
+              <a
+                href={ascent.youtube_url}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="mt-3 block overflow-hidden rounded-lg border border-gray-200 hover:border-gray-300 transition-colors"
+              >
+                <div className="relative aspect-video w-full max-w-[200px] bg-gray-100">
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img
+                    src={`https://i.ytimg.com/vi/${youtubeVideoId}/mqdefault.jpg`}
+                    alt="YouTube 影片"
+                    className="h-full w-full object-cover"
+                  />
+                  <div className="absolute inset-0 flex items-center justify-center">
+                    <div className="flex h-10 w-10 items-center justify-center rounded-full bg-red-600 text-white shadow-lg">
+                      <Play className="h-5 w-5 fill-current" />
+                    </div>
+                  </div>
+                </div>
+              </a>
+            )}
+
+            {/* Instagram 連結 */}
+            {ascent.instagram_url && (
+              <a
+                href={ascent.instagram_url}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="mt-3 inline-flex items-center gap-1.5 rounded-full bg-gradient-to-r from-purple-500 via-pink-500 to-orange-500 px-3 py-1.5 text-xs font-medium text-white hover:opacity-90 transition-opacity"
+              >
+                <Instagram className="h-3.5 w-3.5" />
+                <span>Instagram 貼文</span>
+              </a>
+            )}
           </div>
         </div>
       </CardContent>

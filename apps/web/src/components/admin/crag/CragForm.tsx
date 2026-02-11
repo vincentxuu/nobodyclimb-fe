@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import { Loader2, Save, X } from 'lucide-react'
+import { Loader2, Save } from 'lucide-react'
 import { AdminCrag } from '@/lib/types'
 import { useToast } from '@/components/ui/use-toast'
 import apiClient from '@/lib/api/client'
@@ -91,18 +91,6 @@ export default function CragForm({ crag, onSave, onCancel }: CragFormProps) {
   }
 
   return (
-    <div className="bg-white rounded-xl shadow-sm border border-wb-20 p-6">
-      <div className="flex items-center justify-between mb-4">
-        <h3 className="text-lg font-semibold text-wb-100">
-          {crag ? '編輯岩場' : '新增岩場'}
-        </h3>
-        <button
-          onClick={onCancel}
-          className="p-2 text-wb-50 hover:text-wb-100 rounded-lg transition-colors"
-        >
-          <X className="h-5 w-5" />
-        </button>
-      </div>
       <form onSubmit={handleSubmit} className="space-y-4">
         {/* 基本資訊 */}
         <fieldset className="space-y-3">
@@ -336,6 +324,5 @@ export default function CragForm({ crag, onSave, onCancel }: CragFormProps) {
           </button>
         </div>
       </form>
-    </div>
   )
 }
