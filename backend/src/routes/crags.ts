@@ -116,9 +116,19 @@ cragsRoutes.get(
   const total = countResult?.count || 0;
 
   // Get paginated results
+  // 按照北中南東離島順序排列，同地區內按緯度從北到南
   const crags = await c.env.DB.prepare(
     `SELECT * FROM crags WHERE ${whereClause}
-     ORDER BY is_featured DESC, name ASC
+     ORDER BY is_featured DESC,
+       CASE region
+         WHEN '北部' THEN 1
+         WHEN '中部' THEN 2
+         WHEN '南部' THEN 3
+         WHEN '東部' THEN 4
+         WHEN '離島' THEN 5
+         ELSE 6
+       END,
+       latitude DESC
      LIMIT ? OFFSET ?`
   )
     .bind(...params, limit, offset)
@@ -156,8 +166,20 @@ cragsRoutes.get(
   async (c) => {
   const limit = parseInt(c.req.query('limit') || '6', 10);
 
+  // 按照北中南東離島順序排列，同地區內按緯度從北到南
   const crags = await c.env.DB.prepare(
-    `SELECT * FROM crags WHERE is_featured = 1 ORDER BY name ASC LIMIT ?`
+    `SELECT * FROM crags WHERE is_featured = 1
+     ORDER BY
+       CASE region
+         WHEN '北部' THEN 1
+         WHEN '中部' THEN 2
+         WHEN '南部' THEN 3
+         WHEN '東部' THEN 4
+         WHEN '離島' THEN 5
+         ELSE 6
+       END,
+       latitude DESC
+     LIMIT ?`
   )
     .bind(limit)
     .all<Crag>();
@@ -169,6 +191,8 @@ cragsRoutes.get(
       climbing_types: crag.climbing_types ? JSON.parse(crag.climbing_types) : [],
       images: crag.images ? JSON.parse(crag.images) : [],
       best_seasons: crag.best_seasons ? JSON.parse(crag.best_seasons) : [],
+      transportation: crag.transportation ? JSON.parse(crag.transportation) : [],
+      amenities: crag.amenities ? JSON.parse(crag.amenities) : [],
     })),
   });
 });
@@ -211,6 +235,8 @@ cragsRoutes.get(
       climbing_types: crag.climbing_types ? JSON.parse(crag.climbing_types) : [],
       images: crag.images ? JSON.parse(crag.images) : [],
       best_seasons: crag.best_seasons ? JSON.parse(crag.best_seasons) : [],
+      transportation: crag.transportation ? JSON.parse(crag.transportation) : [],
+      amenities: crag.amenities ? JSON.parse(crag.amenities) : [],
     },
   });
 });
@@ -253,6 +279,8 @@ cragsRoutes.get(
       climbing_types: crag.climbing_types ? JSON.parse(crag.climbing_types) : [],
       images: crag.images ? JSON.parse(crag.images) : [],
       best_seasons: crag.best_seasons ? JSON.parse(crag.best_seasons) : [],
+      transportation: crag.transportation ? JSON.parse(crag.transportation) : [],
+      amenities: crag.amenities ? JSON.parse(crag.amenities) : [],
     },
   });
 });
@@ -281,6 +309,33 @@ cragsRoutes.get(
   return c.json({
     success: true,
     data: routes.results,
+  });
+});
+
+// GET /crags/:id/areas - Get areas for a crag
+cragsRoutes.get(
+  '/:id/areas',
+  describeRoute({
+    tags: ['Crags'],
+    summary: '取得岩場的區域列表',
+    description: '根據岩場 ID 取得該岩場的所有區域',
+    responses: {
+      200: { description: '成功取得區域列表' },
+    },
+  }),
+  validator('param', cragIdParamSchema),
+  async (c) => {
+  const cragId = c.req.param('id');
+
+  const areas = await c.env.DB.prepare(
+    'SELECT * FROM areas WHERE crag_id = ? ORDER BY sort_order ASC, name ASC'
+  )
+    .bind(cragId)
+    .all();
+
+  return c.json({
+    success: true,
+    data: areas.results,
   });
 });
 
