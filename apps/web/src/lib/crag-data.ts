@@ -399,6 +399,7 @@ export interface RouteDetailData {
     videos: string[]
     youtubeVideos: string[]
     instagramPosts: string[]
+    sector: string
   }
   crag: {
     id: string
@@ -465,6 +466,7 @@ export function getRouteDetailData(cragId: string, routeId: string): RouteDetail
       videos: route.videos || [],
       youtubeVideos: sortYoutubeVideosByDate(route.youtubeVideos || []),
       instagramPosts: route.instagramPosts || [],
+      sector: route.sector || '',
     },
     crag: {
       id: fullData.crag.id,
@@ -710,7 +712,10 @@ export function getAreaDetailData(cragId: string, areaId: string) {
       length: route.length || '',
       type: route.typeEn,
       firstAscent: route.firstAscent || '',
+      firstAscentDate: route.firstAscentDate || '',
       area: route.sector || '',
+      areaName: area.name,
+      cragName: fullData.crag.name,
       description: route.description || '',
       protection: route.protection || '',
       boltCount: route.boltCount,

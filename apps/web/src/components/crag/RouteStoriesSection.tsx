@@ -192,7 +192,7 @@ export function RouteStoriesSection({
           <div className="rounded-lg bg-gray-50 py-6 text-center text-gray-500">
             <BookOpen className="mx-auto mb-2 h-10 w-10 text-gray-300" />
             <p className="text-sm">還沒有人分享這條路線的故事</p>
-            <p className="mt-1 text-xs text-gray-400">分享這條路線的命名由來或歷史故事</p>
+            <p className="mt-1 text-xs text-gray-400">分享命名由來、攀登心得、有趣經歷或路線特色</p>
             {isSignedIn && (
               <Button
                 variant="link"

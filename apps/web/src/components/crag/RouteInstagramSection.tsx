@@ -5,8 +5,10 @@ import { Instagram, Plus, LogIn, ExternalLink } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { useAuth } from '@/lib/hooks'
 import { useRouteStories } from '@/lib/hooks/useRouteStories'
+import { useAscents } from '@/lib/hooks/useAscents'
 import { RouteMediaForm } from '@/components/crag/RouteMediaForm'
 import type { RouteStory, RouteStoryFormData } from '@/lib/types/route-story'
+import type { UserRouteAscent } from '@/lib/types/ascent'
 import { useToast } from '@/components/ui/use-toast'
 import Link from 'next/link'
 
@@ -20,9 +22,6 @@ interface InstagramItem {
   url: string
   postId: string | null
   source: 'static' | 'user'
-  caption?: string
-  username?: string
-  displayName?: string
   storyId?: string
 }
 
@@ -39,9 +38,11 @@ export function RouteInstagramSection({
 }: RouteInstagramSectionProps) {
   const { isSignedIn } = useAuth()
   const { getRouteQuickShareInstagram, createStory } = useRouteStories()
+  const { getRouteAscents } = useAscents()
   const { toast } = useToast()
 
   const [userStories, setUserStories] = useState<RouteStory[]>([])
+  const [userAscents, setUserAscents] = useState<UserRouteAscent[]>([])
   const [isLoading, setIsLoading] = useState(true)
   const [isFormOpen, setIsFormOpen] = useState(false)
   const [isSubmitting, setIsSubmitting] = useState(false)
@@ -52,9 +53,15 @@ export function RouteInstagramSection({
     const loadData = async () => {
       setIsLoading(true)
       try {
-        const res = await getRouteQuickShareInstagram(routeId, { limit: 20 })
+        // 同時獲取 route stories 和 ascents 的 Instagram 貼文
+        const [storiesRes, ascentsRes] = await Promise.all([
+          getRouteQuickShareInstagram(routeId, { limit: 20 }),
+          getRouteAscents(routeId, { limit: 50 }),
+        ])
         if (isMounted) {
-          setUserStories(res.data)
+          setUserStories(storiesRes.data)
+          // 只保留有 Instagram URL 的攀爬記錄
+          setUserAscents(ascentsRes.data.filter((a) => a.instagram_url))
         }
       } catch (error) {
         console.error('Error loading instagram posts:', error)
@@ -81,17 +88,23 @@ export function RouteInstagramSection({
       postId: getInstagramPostId(url),
       source: 'static' as const,
     })),
-    // 用戶分享的貼文
+    // 用戶分享的貼文 (route stories)
     ...userStories
       .filter((story) => story.instagram_url)
       .map((story) => ({
         url: story.instagram_url!,
         postId: getInstagramPostId(story.instagram_url!),
         source: 'user' as const,
-        caption: story.content || undefined,
-        username: story.username,
-        displayName: story.display_name || undefined,
         storyId: story.id,
+      })),
+    // 攀爬記錄的 Instagram 貼文
+    ...userAscents
+      .filter((ascent) => ascent.instagram_url)
+      .map((ascent) => ({
+        url: ascent.instagram_url!,
+        postId: getInstagramPostId(ascent.instagram_url!),
+        source: 'user' as const,
+        storyId: ascent.id,
       })),
   ]
 
@@ -151,7 +164,7 @@ export function RouteInstagramSection({
           <div className="rounded-lg bg-gray-50 py-6 text-center text-gray-500">
             <Instagram className="mx-auto mb-2 h-10 w-10 text-gray-300" />
             <p className="text-sm">還沒有人分享這條路線的 Instagram 貼文</p>
-            <p className="mt-1 text-xs text-gray-400">連結你的攀岩貼文，讓更多人看到</p>
+            <p className="mt-1 text-xs text-gray-400">連結攀登紀錄、路線分享或打卡貼文</p>
             {isSignedIn && (
               <Button
                 variant="link"
@@ -189,17 +202,6 @@ export function RouteInstagramSection({
                     查看 Instagram 貼文
                     <ExternalLink className="ml-1 h-4 w-4" />
                   </a>
-                )}
-                {/* 用戶分享的貼文顯示資訊 */}
-                {post.source === 'user' && (post.caption || post.username) && (
-                  <div className="border-t border-gray-200 bg-gray-50 px-4 py-2">
-                    <div className="flex items-center justify-between text-sm">
-                      {post.caption && <p className="text-gray-600">{post.caption}</p>}
-                      <span className="text-gray-400">
-                        by {post.displayName || post.username}
-                      </span>
-                    </div>
-                  </div>
                 )}
               </div>
             ))}

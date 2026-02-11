@@ -1,7 +1,10 @@
 'use client'
 
 import React, { useState, useMemo, useEffect } from 'react'
-import { Eye, Filter, X, Tag, Shield, Ruler, User, Youtube, CircleDot } from 'lucide-react'
+import { Eye, Filter, X } from 'lucide-react'
+import { RouteBasicInfo } from '@/components/crag/RouteBasicInfo'
+import { RouteHeader } from '@/components/crag/RouteHeader'
+import { RouteContentSections } from '@/components/crag/RouteContentSections'
 
 interface RouteType {
   id: string
@@ -11,8 +14,11 @@ interface RouteType {
   length: string
   type: string
   firstAscent: string
+  firstAscentDate?: string
   area: string
   areaId?: string
+  areaName?: string
+  cragName?: string
   description: string
   protection: string
   boltCount?: number
@@ -266,24 +272,6 @@ export const CragRouteSection: React.FC<CragRouteSectionProps> = ({
   )
 }
 
-function getYoutubeEmbedUrl(url: string): string {
-  if (url.includes('youtube.com/embed/')) {
-    return url
-  }
-
-  const shortMatch = url.match(/youtu\.be\/([a-zA-Z0-9_-]+)/)
-  if (shortMatch) {
-    return `https://www.youtube.com/embed/${shortMatch[1]}`
-  }
-
-  const standardMatch = url.match(/youtube\.com\/watch\?v=([a-zA-Z0-9_-]+)/)
-  if (standardMatch) {
-    return `https://www.youtube.com/embed/${standardMatch[1]}`
-  }
-
-  return url
-}
-
 function RouteDetailModal({
   route,
   onClose,
@@ -291,8 +279,6 @@ function RouteDetailModal({
   route: RouteType
   onClose: () => void
 }) {
-  const hasYoutubeVideos = route.youtubeVideos && route.youtubeVideos.length > 0
-
   // 防止背景滾動
   useEffect(() => {
     document.body.style.overflow = 'hidden'
@@ -307,7 +293,7 @@ function RouteDetailModal({
       <div className="absolute inset-0 bg-black/50" onClick={onClose} />
 
       {/* Modal */}
-      <div className="relative z-10 w-full max-w-2xl max-h-[90vh] overflow-y-auto rounded-lg bg-white shadow-xl">
+      <div className="relative z-10 w-full max-w-4xl max-h-[90vh] overflow-y-auto rounded-lg bg-white shadow-xl">
         {/* Close button */}
         <button
           onClick={onClose}
@@ -318,117 +304,24 @@ function RouteDetailModal({
 
         <div className="p-6">
           {/* 標題區 */}
-          <div className="mb-6">
-            <h2 className="text-2xl font-bold text-[#1B1A1A] pr-8">{route.name}</h2>
-            {route.englishName && route.englishName !== route.name && (
-              <p className="mt-1 text-base text-gray-500">{route.englishName}</p>
-            )}
-            <div className="mt-3 flex flex-wrap items-center gap-2">
-              <span className="inline-flex rounded-full bg-yellow-100 px-4 py-1.5 text-sm font-semibold text-[#1B1A1A]">
-                {route.grade}
-              </span>
-              <span className="inline-flex items-center rounded-full bg-gray-100 px-3 py-1 text-sm text-gray-600">
-                <Tag size={14} className="mr-1" />
-                {route.type}
-              </span>
-              {route.area && route.area.trim() && (
-                <span className="inline-flex items-center rounded-full bg-gray-100 px-3 py-1 text-sm text-gray-600">
-                  {route.area}
-                </span>
-              )}
-            </div>
-          </div>
+          <RouteHeader
+            route={{
+              name: route.name,
+              englishName: route.englishName,
+              grade: route.grade,
+              type: route.type,
+              sector: route.area,
+              areaName: route.areaName,
+              cragName: route.cragName,
+            }}
+            headingLevel="h2"
+          />
 
-          {/* 基本資訊卡片 */}
-          <div className="mb-6 grid grid-cols-2 gap-3 sm:grid-cols-3">
-            {route.length && (
-              <div className="rounded-lg bg-gray-50 p-3">
-                <div className="flex items-center gap-1.5 text-xs text-gray-500">
-                  <Ruler size={14} />
-                  長度
-                </div>
-                <div className="mt-1 text-base font-semibold text-[#1B1A1A]">
-                  {route.length}
-                </div>
-              </div>
-            )}
-            {route.boltCount !== undefined && route.boltCount > 0 && (
-              <div className="rounded-lg bg-gray-50 p-3">
-                <div className="flex items-center gap-1.5 text-xs text-gray-500">
-                  <CircleDot size={14} />
-                  Bolt 數量
-                </div>
-                <div className="mt-1 text-base font-semibold text-[#1B1A1A]">
-                  {route.boltCount}
-                </div>
-              </div>
-            )}
-            {route.protection && (
-              <div className="rounded-lg bg-gray-50 p-3">
-                <div className="flex items-center gap-1.5 text-xs text-gray-500">
-                  <Shield size={14} />
-                  保護
-                </div>
-                <div className="mt-1 text-base font-semibold text-[#1B1A1A]">
-                  {route.protection}
-                </div>
-              </div>
-            )}
-            {route.firstAscent && (
-              <div className="rounded-lg bg-gray-50 p-3">
-                <div className="flex items-center gap-1.5 text-xs text-gray-500">
-                  <User size={14} />
-                  首攀
-                </div>
-                <div className="mt-1 text-base font-semibold text-[#1B1A1A] truncate">
-                  {route.firstAscent}
-                </div>
-              </div>
-            )}
-          </div>
+          {/* 基本資訊區塊 */}
+          <RouteBasicInfo route={route} />
 
-          {/* 路線描述 */}
-          {route.description && (
-            <div className="mb-6">
-              <h3 className="mb-2 text-sm font-medium text-gray-700">路線描述</h3>
-              <p className="text-sm text-gray-600 whitespace-pre-line">
-                {route.description}
-              </p>
-            </div>
-          )}
-
-          {/* 攀爬小提示 */}
-          {route.tips && (
-            <div className="mb-6">
-              <h3 className="mb-2 text-sm font-medium text-gray-700">攀爬小提示</h3>
-              <p className="text-sm text-gray-600 whitespace-pre-line">
-                {route.tips}
-              </p>
-            </div>
-          )}
-
-          {/* YouTube 影片 */}
-          {hasYoutubeVideos && (
-            <div>
-              <h3 className="mb-2 flex items-center text-sm font-medium text-gray-700">
-                <Youtube size={16} className="mr-1.5 text-red-600" />
-                攀登影片
-              </h3>
-              <div className="space-y-3">
-                {route.youtubeVideos!.map((videoUrl, index) => (
-                  <div key={index} className="aspect-video w-full overflow-hidden rounded-lg">
-                    <iframe
-                      src={getYoutubeEmbedUrl(videoUrl)}
-                      className="h-full w-full"
-                      title={`${route.name} 攀登影片 ${index + 1}`}
-                      allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                      allowFullScreen
-                    />
-                  </div>
-                ))}
-              </div>
-            </div>
-          )}
+          {/* 社群內容區塊 */}
+          <RouteContentSections route={route} />
         </div>
       </div>
     </div>

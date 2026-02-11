@@ -2,21 +2,12 @@
 
 import React, { useState, useEffect } from 'react'
 import Link from 'next/link'
-import {
-  ChevronLeft,
-  ChevronRight,
-  MapPin,
-  CircleDot,
-  Ruler,
-  User,
-} from 'lucide-react'
+import { ChevronLeft, ChevronRight } from 'lucide-react'
 import { CollapsibleBreadcrumb } from '@/components/ui/collapsible-breadcrumb'
 import BackToTop from '@/components/ui/back-to-top'
-import { RouteStoriesSection } from '@/components/crag/RouteStoriesSection'
-import { RouteAscentsSection } from '@/components/crag/RouteAscentsSection'
-import { RoutePhotosSection } from '@/components/crag/RoutePhotosSection'
-import { RouteYouTubeSection } from '@/components/crag/RouteYouTubeSection'
-import { RouteInstagramSection } from '@/components/crag/RouteInstagramSection'
+import { RouteBasicInfo } from '@/components/crag/RouteBasicInfo'
+import { RouteHeader } from '@/components/crag/RouteHeader'
+import { RouteContentSections } from '@/components/crag/RouteContentSections'
 import { routeLoadingManager } from '@/lib/route-loading-manager'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { useToast } from '@/components/ui/use-toast'
@@ -86,34 +77,19 @@ export default function RouteDetailClient({ data }: RouteDetailClientProps) {
         {/* 主要內容區 */}
         <div className="mb-12 rounded-lg bg-white p-6 shadow-sm md:p-8">
           {/* 標題區 */}
-          <div className="mb-8 flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
-            <div>
-              <h1 className="text-2xl font-bold text-[#1B1A1A] md:text-3xl">{route.name}</h1>
-              {route.englishName && route.englishName !== route.name && (
-                <p className="mt-1 text-lg text-gray-500">{route.englishName}</p>
-              )}
-              <div className="mt-3 flex flex-wrap items-center gap-2">
-                <span className="inline-flex rounded-full bg-yellow-100 px-4 py-1.5 text-sm font-semibold text-[#1B1A1A]">
-                  {route.grade}
-                </span>
-                <span className="inline-flex items-center rounded-full bg-gray-100 px-3 py-1 text-sm text-gray-600">
-                  {route.typeEn}
-                </span>
-              </div>
-            </div>
-            {area && (
-              <div className="flex items-center gap-1.5 text-sm text-gray-500">
-                <MapPin size={14} />
-                <Link
-                  href={`/crag/${crag.id}/area/${area.id}`}
-                  prefetch={false}
-                  className="hover:text-[#1B1A1A] hover:underline"
-                >
-                  {area.name}
-                </Link>
-              </div>
-            )}
-          </div>
+          <RouteHeader
+            route={{
+              name: route.name,
+              englishName: route.englishName,
+              grade: route.grade,
+              type: route.typeEn,
+              sector: route.sector,
+              areaName: area?.name,
+              cragName: crag.name,
+            }}
+            headingLevel="h1"
+            className="mb-8"
+          />
 
           {/* 照片輪播區 */}
           {hasImages && (
@@ -189,106 +165,11 @@ export default function RouteDetailClient({ data }: RouteDetailClientProps) {
             </div>
           )}
 
-          {/* 基本資訊卡片 */}
-          {(route.length || route.boltCount > 0 || route.firstAscent) && (
-            <div className="mb-8 grid grid-cols-2 gap-4 md:grid-cols-3">
-              {route.length && (
-                <div className="rounded-lg bg-gray-50 p-4">
-                  <div className="flex items-center gap-2 text-sm text-gray-500">
-                    <Ruler size={16} />
-                    長度
-                  </div>
-                  <div className="mt-1 text-lg font-semibold text-[#1B1A1A]">{route.length}</div>
-                </div>
-              )}
-              {route.boltCount > 0 && (
-                <div className="rounded-lg bg-gray-50 p-4">
-                  <div className="flex items-center gap-2 text-sm text-gray-500">
-                    <CircleDot size={16} />
-                    Bolt 數量
-                  </div>
-                  <div className="mt-1 text-lg font-semibold text-[#1B1A1A]">{route.boltCount}</div>
-                </div>
-              )}
-              {route.firstAscent && (
-                <div className="rounded-lg bg-gray-50 p-4">
-                  <div className="flex items-center gap-2 text-sm text-gray-500">
-                    <User size={16} />
-                    首攀者
-                  </div>
-                  <div className="mt-1 text-lg font-semibold text-[#1B1A1A]">{route.firstAscent}</div>
-                  {route.firstAscentDate && (
-                    <div className="text-xs text-gray-500">{route.firstAscentDate}</div>
-                  )}
-                </div>
-              )}
-            </div>
-          )}
+          {/* 基本資訊區塊 */}
+          <RouteBasicInfo route={route} />
 
-          {/* 保護裝備資訊 */}
-          {route.protection && (
-            <div className="mb-8">
-              <h2 className="mb-3 border-l-4 border-[#FFE70C] pl-3 text-lg font-bold text-[#1B1A1A]">
-                保護裝備
-              </h2>
-              <p className="whitespace-pre-line text-gray-700">{route.protection}</p>
-            </div>
-          )}
-
-          {/* 路線描述 */}
-          {route.description && (
-            <div className="mb-8">
-              <h2 className="mb-3 border-l-4 border-[#FFE70C] pl-3 text-lg font-bold text-[#1B1A1A]">
-                路線描述
-              </h2>
-              <p className="whitespace-pre-line text-gray-700">{route.description}</p>
-            </div>
-          )}
-
-          {/* 攀登攻略/技巧 */}
-          {route.tips && (
-            <div className="mb-8">
-              <h2 className="mb-3 border-l-4 border-[#FFE70C] pl-3 text-lg font-bold text-[#1B1A1A]">
-                攀登攻略
-              </h2>
-              <p className="whitespace-pre-line text-gray-700">{route.tips}</p>
-            </div>
-          )}
-
-          {/* 路線故事 */}
-          <RouteStoriesSection
-            routeId={route.id}
-            routeName={route.name}
-            routeGrade={route.grade}
-          />
-
-          {/* 社群照片 */}
-          <RoutePhotosSection
-            routeId={route.id}
-            routeName={route.name}
-            staticPhotos={route.images}
-          />
-
-          {/* 攀登影片 (YouTube) */}
-          <RouteYouTubeSection
-            routeId={route.id}
-            routeName={route.name}
-            staticVideos={[...(route.videos || []), ...(route.youtubeVideos || [])]}
-          />
-
-          {/* Instagram 分享 */}
-          <RouteInstagramSection
-            routeId={route.id}
-            routeName={route.name}
-            staticPosts={route.instagramPosts}
-          />
-
-          {/* 攀爬記錄 */}
-          <RouteAscentsSection
-            routeId={route.id}
-            routeName={route.name}
-            routeGrade={route.grade}
-          />
+          {/* 社群內容區塊 */}
+          <RouteContentSections route={route} />
 
           {/* 同區域其他路線 - 放在最後 */}
           {relatedRoutes.length > 0 && (

@@ -5,8 +5,10 @@ import { Camera, Plus, LogIn, X, ChevronLeft, ChevronRight } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { useAuth } from '@/lib/hooks'
 import { useRouteStories } from '@/lib/hooks/useRouteStories'
+import { useAscents } from '@/lib/hooks/useAscents'
 import { RouteMediaForm } from '@/components/crag/RouteMediaForm'
 import type { RouteStory, RouteStoryFormData } from '@/lib/types/route-story'
+import type { UserRouteAscent } from '@/lib/types/ascent'
 import { useToast } from '@/components/ui/use-toast'
 import Link from 'next/link'
 
@@ -32,9 +34,11 @@ export function RoutePhotosSection({
 }: RoutePhotosSectionProps) {
   const { isSignedIn } = useAuth()
   const { getRouteQuickSharePhotos, createStory } = useRouteStories()
+  const { getRouteAscents } = useAscents()
   const { toast } = useToast()
 
   const [userStories, setUserStories] = useState<RouteStory[]>([])
+  const [userAscents, setUserAscents] = useState<UserRouteAscent[]>([])
   const [isLoading, setIsLoading] = useState(true)
   const [isFormOpen, setIsFormOpen] = useState(false)
   const [isSubmitting, setIsSubmitting] = useState(false)
@@ -47,9 +51,15 @@ export function RoutePhotosSection({
     const loadData = async () => {
       setIsLoading(true)
       try {
-        const res = await getRouteQuickSharePhotos(routeId, { limit: 20 })
+        // 同時獲取 route stories 和 ascents 的照片
+        const [storiesRes, ascentsRes] = await Promise.all([
+          getRouteQuickSharePhotos(routeId, { limit: 20 }),
+          getRouteAscents(routeId, { limit: 50 }),
+        ])
         if (isMounted) {
-          setUserStories(res.data)
+          setUserStories(storiesRes.data)
+          // 只保留有照片的攀爬記錄
+          setUserAscents(ascentsRes.data.filter((a) => a.photos && a.photos.length > 0))
         }
       } catch (error) {
         console.error('Error loading photos:', error)
@@ -75,7 +85,7 @@ export function RoutePhotosSection({
       url,
       source: 'static' as const,
     })),
-    // 用戶分享的照片
+    // 用戶分享的照片 (route stories)
     ...userStories.flatMap((story) =>
       (story.photos || []).map((url) => ({
         url,
@@ -84,6 +94,17 @@ export function RoutePhotosSection({
         username: story.username,
         displayName: story.display_name || undefined,
         storyId: story.id,
+      }))
+    ),
+    // 攀爬記錄的照片
+    ...userAscents.flatMap((ascent) =>
+      (ascent.photos || []).map((url) => ({
+        url,
+        source: 'user' as const,
+        caption: ascent.notes || undefined,
+        username: ascent.username,
+        displayName: ascent.display_name || undefined,
+        storyId: ascent.id,
       }))
     ),
   ]
@@ -161,7 +182,7 @@ export function RoutePhotosSection({
             <Camera className="mx-auto mb-2 h-10 w-10 text-gray-300" />
             <p className="text-sm">還沒有人分享這條路線的照片</p>
             <p className="mt-1 text-xs text-gray-400">
-              分享你的攀岩照片，讓其他岩友看看這條路線
+              分享攀登照片、岩壁特寫、起攀位置或周邊風景
             </p>
             {isSignedIn && (
               <Button
