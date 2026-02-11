@@ -1,6 +1,6 @@
 import { MetadataRoute } from 'next'
 import { SITE_URL } from '@/lib/constants'
-import { getAllCrags } from '@/lib/crag-data'
+import { fetchCrags } from '@/lib/api/server-fetch'
 import { getAllGyms } from '@/lib/gym-data'
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
@@ -56,11 +56,11 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     },
   ]
 
-  // 動態頁面 - 岩場（從本地資料）
-  const crags = getAllCrags()
-  const cragPages: MetadataRoute.Sitemap = crags.map((crag) => ({
+  // 動態頁面 - 岩場（從 API 取得）
+  const apiCrags = await fetchCrags()
+  const cragPages: MetadataRoute.Sitemap = apiCrags.map((crag) => ({
     url: `${SITE_URL}/crag/${crag.id}`,
-    lastModified: new Date(),
+    lastModified: crag.updated_at ? new Date(crag.updated_at) : new Date(),
     changeFrequency: 'monthly',
     priority: 0.7,
   }))

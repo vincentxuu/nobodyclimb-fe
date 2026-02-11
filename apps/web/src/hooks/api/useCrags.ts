@@ -10,10 +10,12 @@ import {
   adaptRouteToSidebarItem,
   adaptRouteToDetail,
   adaptAreaToListItem,
+  adaptApiAreaToFullArea,
+  adaptApiRouteToCragRoute,
   type AdaptedCragDetail,
   type AdaptedRouteDetail,
 } from '@/lib/adapters/crag-adapter'
-import type { CragListItem, RouteSidebarItem } from '@/lib/crag-data'
+import type { CragListItem, CragArea, CragRoute, RouteSidebarItem, RouteSearchItem } from '@/lib/crag-data'
 
 // 快取時間常數
 const STALE_TIME = 5 * 60 * 1000 // 5 分鐘
@@ -123,18 +125,21 @@ export function useCragDetailBySlug(slug: string) {
 }
 
 /**
- * 獲取岩場路線列表
+ * 獲取岩場路線列表（側邊欄用輕量格式，包含區域名稱）
  */
 export function useCragRoutes(cragId: string) {
   return useQuery({
     queryKey: ['crag', cragId, 'routes'],
     queryFn: async (): Promise<RouteSidebarItem[]> => {
-      const response = await cragService.getCragRoutes(cragId)
-      const apiRoutes = response.data || []
+      // 同時獲取路線和區域資料，以建立區域名稱映射
+      const [routesResponse, areasResponse] = await Promise.all([
+        cragService.getCragRoutes(cragId),
+        cragService.getCragAreas(cragId),
+      ])
 
-      // 建立區域名稱映射（需要另外獲取區域資料）
-      // 暫時使用空映射
-      const areaMap = new Map<string, string>()
+      const apiRoutes = routesResponse.data || []
+      const apiAreas = areasResponse.data || []
+      const areaMap = new Map(apiAreas.map(a => [a.id, a.name]))
 
       return apiRoutes.map(route => adaptRouteToSidebarItem(route, areaMap))
     },
@@ -162,6 +167,38 @@ export function useCragAreas(cragId: string) {
 }
 
 /**
+ * 獲取岩場完整區域資料（含 routesCount、boltCount 等）
+ */
+export function useCragFullAreas(cragId: string) {
+  return useQuery({
+    queryKey: ['crag', cragId, 'full-areas'],
+    queryFn: async (): Promise<CragArea[]> => {
+      const response = await cragService.getCragAreas(cragId)
+      return (response.data || []).map(adaptApiAreaToFullArea)
+    },
+    enabled: !!cragId,
+    staleTime: STALE_TIME,
+    gcTime: GC_TIME,
+  })
+}
+
+/**
+ * 獲取岩場完整路線資料（CragRoute 格式，含所有欄位）
+ */
+export function useCragFullRoutes(cragId: string) {
+  return useQuery({
+    queryKey: ['crag', cragId, 'full-routes'],
+    queryFn: async (): Promise<CragRoute[]> => {
+      const response = await cragService.getCragRoutes(cragId)
+      return (response.data || []).map(adaptApiRouteToCragRoute)
+    },
+    enabled: !!cragId,
+    staleTime: STALE_TIME,
+    gcTime: GC_TIME,
+  })
+}
+
+/**
  * 獲取路線詳情
  */
 export function useRouteDetail(cragId: string, routeId: string) {
@@ -172,18 +209,24 @@ export function useRouteDetail(cragId: string, routeId: string) {
       crag: { id: string; name: string; slug: string }
       area: { id: string; name: string } | null
     } | null> => {
-      // 獲取路線資料
-      const routesResponse = await cragService.getCragRoutes(cragId)
+      // 並行獲取路線、岩場、區域資料
+      const [routesResponse, cragResponse, areasResponse] = await Promise.all([
+        cragService.getCragRoutes(cragId),
+        cragService.getCragById(cragId),
+        cragService.getCragAreas(cragId),
+      ])
+
       const apiRoutes = routesResponse.data || []
       const apiRoute = apiRoutes.find(r => r.id === routeId)
-
       if (!apiRoute) return null
 
-      // 獲取岩場資料
-      const cragResponse = await cragService.getCragById(cragId)
       const apiCrag = cragResponse.data
-
       if (!apiCrag) return null
+
+      const apiAreas = areasResponse.data || []
+      const areaName = apiRoute.area_id
+        ? apiAreas.find(a => a.id === apiRoute.area_id)?.name || ''
+        : ''
 
       return {
         route: adaptRouteToDetail(apiRoute),
@@ -192,11 +235,57 @@ export function useRouteDetail(cragId: string, routeId: string) {
           name: apiCrag.name,
           slug: apiCrag.slug,
         },
-        area: apiRoute.area_id ? { id: apiRoute.area_id, name: '' } : null,
+        area: apiRoute.area_id ? { id: apiRoute.area_id, name: areaName } : null,
       }
     },
     enabled: !!cragId && !!routeId,
     staleTime: STALE_TIME,
+    gcTime: GC_TIME,
+  })
+}
+
+/**
+ * 獲取所有岩場的所有路線（用於全域搜尋）
+ * 注意：此 hook 會對每個岩場發送 API 請求，適合在按需載入的場景使用
+ */
+export function useAllCragsRoutes(enabled = true) {
+  return useQuery({
+    queryKey: ['all-crags-routes'],
+    queryFn: async (): Promise<RouteSearchItem[]> => {
+      // 1. 分頁取得所有岩場（API 每頁上限 100）
+      const allCrags: Awaited<ReturnType<typeof cragService.getCrags>>['data'] = []
+      let page = 1
+      const limit = 100
+      let totalPages = 1
+      do {
+        const cragsRes = await cragService.getCrags(page, limit)
+        allCrags.push(...(cragsRes.data || []))
+        totalPages = cragsRes.pagination?.total_pages || 1
+        page++
+      } while (page <= totalPages)
+
+      // 2. 對每個岩場並行取得路線和區域資料（使用函數式方式組合結果）
+      const nestedItems = await Promise.all(
+        allCrags.map(async (crag) => {
+          const [routesRes, areasRes] = await Promise.all([
+            cragService.getCragRoutes(crag.id),
+            cragService.getCragAreas(crag.id),
+          ])
+          const areaMap = new Map((areasRes.data || []).map(a => [a.id, a.name]))
+          const routes = (routesRes.data || []).map(adaptApiRouteToCragRoute)
+          return routes.map(route => ({
+            route,
+            cragId: crag.id,
+            cragName: crag.name,
+            areaName: areaMap.get(route.areaId) || '',
+          }))
+        })
+      )
+
+      return nestedItems.flat()
+    },
+    enabled,
+    staleTime: 10 * 60 * 1000, // 10 分鐘
     gcTime: GC_TIME,
   })
 }

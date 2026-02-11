@@ -12,13 +12,8 @@ import {
 import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
 import { ScrollArea } from '@/components/ui/scroll-area'
-import {
-  getAllCrags,
-  getCragAreas,
-  getCragById,
-  getRoutesByArea,
-  getSectorsForArea,
-  getAllRoutes,
+import { useCrags, useCragFullAreas, useCragFullRoutes, useAllCragsRoutes } from '@/hooks/api/useCrags'
+import type {
   CragListItem,
   CragArea,
   CragRoute,
@@ -50,34 +45,45 @@ export function CreateAscentDialog({
   const [selectedSector, setSelectedSector] = useState<{ id: string; name: string } | null>(null)
   const [selectedRoute, setSelectedRoute] = useState<CragRoute | null>(null)
 
-  // 取得所有岩場
-  const crags = useMemo(() => getAllCrags(), [])
+  // 從 API 取得所有岩場
+  const { data: cragsData } = useCrags({ limit: 100 })
+  const crags = cragsData?.crags || []
 
-  // 取得所有路線（用於全域搜尋）
-  const allRoutes = useMemo(() => getAllRoutes(), [])
+  // 從 API 取得所有路線（用於全域搜尋，僅在對話框開啟時載入）
+  const { data: allRoutes = [] } = useAllCragsRoutes(open)
 
-  // 取得選擇岩場的區域
-  const areas = useMemo(() => {
-    if (!selectedCrag) return []
-    return getCragAreas(selectedCrag.id)
-  }, [selectedCrag])
+  // 從 API 取得選擇岩場的區域
+  const { data: areas = [] } = useCragFullAreas(selectedCrag?.id || '')
 
-  // 取得選擇區域的子區域
+  // 從 API 取得選擇岩場的路線
+  const { data: cragRoutes = [] } = useCragFullRoutes(selectedCrag?.id || '')
+
+  // 從路線資料計算指定區域的子區域列表
+  const getSectorsForArea = (areaId: string): { id: string; name: string }[] => {
+    const sectorsSet = new Set<string>()
+    cragRoutes
+      .filter(route => route.areaId === areaId && route.sector)
+      .forEach(route => sectorsSet.add(route.sector!))
+    return Array.from(sectorsSet).map(sector => ({ id: sector, name: sector }))
+  }
+
+  // 取得選擇區域的子區域（從路線資料計算）
   const sectors = useMemo(() => {
     if (!selectedCrag || !selectedArea) return []
-    return getSectorsForArea(selectedCrag.id, selectedArea.id)
-  }, [selectedCrag, selectedArea])
+    return getSectorsForArea(selectedArea.id)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [selectedCrag, selectedArea, cragRoutes])
 
   // 取得路線（根據區域和子區域過濾）
   const routes = useMemo(() => {
     if (!selectedCrag || !selectedArea) return []
-    const areaRoutes = getRoutesByArea(selectedCrag.id, selectedArea.id)
+    const areaRoutes = cragRoutes.filter(route => route.areaId === selectedArea.id)
     // 如果選擇了子區域，進一步過濾
     if (selectedSector) {
       return areaRoutes.filter((route) => route.sector === selectedSector.name)
     }
     return areaRoutes
-  }, [selectedCrag, selectedArea, selectedSector])
+  }, [selectedCrag, selectedArea, selectedSector, cragRoutes])
 
   // 過濾岩場
   const filteredCrags = useMemo(() => {
@@ -167,8 +173,8 @@ export function CreateAscentDialog({
     setSelectedArea(area)
     setSearchQuery('')
     setRouteSearchQuery('')
-    // 檢查該區域是否有子區域
-    const areaSectors = getSectorsForArea(selectedCrag!.id, area.id)
+    // 使用共用函式檢查該區域是否有子區域
+    const areaSectors = getSectorsForArea(area.id)
     if (areaSectors.length > 0) {
       setStep('sector')
     } else {
@@ -202,33 +208,26 @@ export function CreateAscentDialog({
 
   // 從全域搜尋選擇路線
   const handleSelectGlobalRoute = (item: RouteSearchItem) => {
-    // 設定對應的岩場資訊
-    const cragData = getCragById(item.cragId)
-    if (cragData) {
-      const cragListItem: CragListItem = {
-        id: cragData.crag.id,
-        name: cragData.crag.name,
-        nameEn: cragData.crag.nameEn,
-        image: cragData.crag.images?.[0] || '',
-        location: cragData.crag.location.address,
-        type: cragData.crag.rockType,
-        rockType: cragData.crag.rockType,
-        routes: cragData.crag.routesCount,
-        difficulty: `${cragData.crag.difficulty.min} - ${cragData.crag.difficulty.max}`,
-        seasons: cragData.crag.seasons,
-      }
+    // 從岩場列表找到對應的岩場
+    const cragListItem = crags.find(c => c.id === item.cragId)
+    if (cragListItem) {
       setSelectedCrag(cragListItem)
+    }
 
-      // 設定區域
-      const area = cragData.areas.find((a) => a.id === item.route.areaId)
-      if (area) {
-        setSelectedArea(area)
-      }
+    // 設定區域（用搜尋結果中的 areaName 建立最小化的 CragArea）
+    if (item.route.areaId) {
+      setSelectedArea({
+        id: item.route.areaId,
+        name: item.areaName,
+        nameEn: '',
+        boltCount: 0,
+        routesCount: 0,
+      })
+    }
 
-      // 設定子區域（如果有）
-      if (item.route.sector) {
-        setSelectedSector({ id: item.route.sector, name: item.route.sector })
-      }
+    // 設定子區域（如果有）
+    if (item.route.sector) {
+      setSelectedSector({ id: item.route.sector, name: item.route.sector })
     }
 
     setSelectedRoute(item.route)
@@ -550,8 +549,8 @@ export function CreateAscentDialog({
                 ) : (
                   filteredSectors.map((sector) => {
                     // 計算該子區域的路線數
-                    const sectorRouteCount = getRoutesByArea(selectedCrag!.id, selectedArea!.id)
-                      .filter((r) => r.sector === sector.name).length
+                    const sectorRouteCount = cragRoutes
+                      .filter((r) => r.areaId === selectedArea!.id && r.sector === sector.name).length
                     return (
                       <button
                         key={sector.id}
