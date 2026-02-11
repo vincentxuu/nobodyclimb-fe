@@ -166,7 +166,7 @@ export default function AdminDashboard() {
           {contentStats.map((stat) => (
             <div
               key={stat.label}
-              className="bg-white rounded-xl shadow-sm border border-wb-20 p-3 md:p-4 hover:shadow-md transition-shadow"
+              className="bg-white rounded-lg shadow-sm border border-wb-20 p-3 md:p-4 hover:shadow-md transition-shadow"
             >
               <div className="flex items-center gap-2 md:gap-3">
                 <div className="p-2 md:p-2.5 rounded-lg bg-wb-10">
@@ -198,7 +198,7 @@ export default function AdminDashboard() {
             </Link>
           </div>
           <div className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-4">
-            <div className="bg-white rounded-xl shadow-sm border border-wb-20 p-4 md:p-5">
+            <div className="bg-white rounded-lg shadow-sm border border-wb-20 p-4 md:p-5">
               <div className="flex items-center gap-3">
                 <div className="p-2.5 md:p-3 bg-wb-10 rounded-lg">
                   <Bell className="h-4 w-4 md:h-5 md:w-5 text-wb-100" />
@@ -209,7 +209,7 @@ export default function AdminDashboard() {
                 </div>
               </div>
             </div>
-            <div className="bg-white rounded-xl shadow-sm border border-wb-20 p-4 md:p-5">
+            <div className="bg-white rounded-lg shadow-sm border border-wb-20 p-4 md:p-5">
               <div className="flex items-center gap-3">
                 <div className="p-2.5 md:p-3 bg-brand-yellow-100/20 rounded-lg">
                   <AlertCircle className="h-4 w-4 md:h-5 md:w-5 text-brand-yellow-200" />
@@ -220,7 +220,7 @@ export default function AdminDashboard() {
                 </div>
               </div>
             </div>
-            <div className="bg-white rounded-xl shadow-sm border border-wb-20 p-4 md:p-5">
+            <div className="bg-white rounded-lg shadow-sm border border-wb-20 p-4 md:p-5">
               <div className="flex items-center gap-3">
                 <div className="p-2.5 md:p-3 bg-wb-10 rounded-lg">
                   <Users className="h-4 w-4 md:h-5 md:w-5 text-wb-100" />
@@ -231,7 +231,7 @@ export default function AdminDashboard() {
                 </div>
               </div>
             </div>
-            <div className="bg-white rounded-xl shadow-sm border border-wb-20 p-4 md:p-5">
+            <div className="bg-white rounded-lg shadow-sm border border-wb-20 p-4 md:p-5">
               <div className="flex items-center gap-3">
                 <div className="p-2.5 md:p-3 bg-wb-10 rounded-lg">
                   <TrendingUp className="h-4 w-4 md:h-5 md:w-5 text-wb-100" />
@@ -254,7 +254,7 @@ export default function AdminDashboard() {
             <Link
               key={link.title}
               href={link.href}
-              className="block bg-white rounded-xl shadow-sm border border-wb-20 p-4 md:p-5 hover:shadow-md hover:border-wb-30 transition-all group"
+              className="block bg-white rounded-lg shadow-sm border border-wb-20 p-4 md:p-5 hover:shadow-md hover:border-wb-30 transition-all group"
             >
               <div className="w-9 h-9 md:w-10 md:h-10 bg-wb-100 rounded-lg flex items-center justify-center mb-3 group-hover:bg-brand-yellow-100 transition-colors">
                 <link.icon className="h-4 w-4 md:h-5 md:w-5 text-white group-hover:text-wb-100" />
@@ -269,7 +269,7 @@ export default function AdminDashboard() {
       </div>
 
       {/* 系統資訊 */}
-      <div className="bg-wb-10 rounded-xl p-4 md:p-6">
+      <div className="bg-wb-10 rounded-lg p-4 md:p-6">
         <h2 className="text-base md:text-lg font-semibold text-wb-100 mb-3 md:mb-4">系統資訊</h2>
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 md:gap-6 text-sm">
           <div>

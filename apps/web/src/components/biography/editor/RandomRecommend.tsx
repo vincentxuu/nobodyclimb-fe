@@ -33,7 +33,7 @@ export function RandomRecommend({
     return (
       <div
         className={cn(
-          'bg-brand-accent/20 rounded-xl p-4 text-center',
+          'bg-brand-accent/20 rounded-lg p-4 text-center',
           className
         )}
       >
@@ -56,7 +56,7 @@ export function RandomRecommend({
   return (
     <div
       className={cn(
-        'bg-white border border-[#DBD8D8] rounded-xl overflow-hidden',
+        'bg-white border border-[#DBD8D8] rounded-lg overflow-hidden',
         className
       )}
     >

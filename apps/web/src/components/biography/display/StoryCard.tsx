@@ -72,7 +72,7 @@ export function StoryCard({
   return (
     <div
       className={cn(
-        'p-4 rounded-xl border transition-all duration-200 hover:shadow-md cursor-pointer',
+        'p-4 rounded-lg border transition-all duration-200 hover:shadow-md cursor-pointer',
         isCustom
           ? 'bg-brand-accent/5 border-brand-accent/30 hover:border-brand-accent'
           : 'bg-white border-[#DBD8D8] hover:border-[#B6B3B3]',

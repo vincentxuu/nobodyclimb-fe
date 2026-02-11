@@ -181,7 +181,7 @@ export function GameCanvas({
         <div className="mx-auto max-w-6xl p-4">
           <div className="grid gap-6 lg:grid-cols-[300px_1fr]">
             {/* 左側：攀岩者角色（桌面版） */}
-            <div className="hidden rounded-xl border border-[#E5E5E5] bg-white p-4 lg:block">
+            <div className="hidden rounded-lg border border-[#E5E5E5] bg-white p-4 lg:block">
               <div className="relative h-[500px]">
                 <ClimberCharacter
                   position={characterPosition}
@@ -194,7 +194,7 @@ export function GameCanvas({
             {/* 右側：題目區域 */}
             <div className="space-y-4">
               {/* 手機版：迷你角色 */}
-              <div className="flex items-center justify-between rounded-xl border border-[#E5E5E5] bg-white p-4 lg:hidden">
+              <div className="flex items-center justify-between rounded-lg border border-[#E5E5E5] bg-white p-4 lg:hidden">
                 <div className="flex items-center gap-4">
                   <motion.div
                     className="flex h-10 w-10 items-center justify-center rounded-full bg-gray-100"

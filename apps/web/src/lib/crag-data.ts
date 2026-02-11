@@ -424,6 +424,101 @@ export function getAllRoutes(): RouteSearchItem[] {
 }
 
 /**
+ * 首頁熱門路線卡片用的資料格式
+ */
+export interface FeaturedRouteItem {
+  id: string
+  name: string
+  nameEn: string
+  grade: string
+  type: string
+  typeEn: string
+  length?: string
+  boltCount: number
+  cragId: string
+  cragName: string
+  areaName: string
+  youtubeThumbnail?: string
+}
+
+/**
+ * 獲取熱門路線（用於首頁展示）
+ * 只選取有 YouTube 影片的路線，影片數量多的優先
+ * 從不同岩場輪流選取，確保多樣性
+ */
+export function getFeaturedRoutes(limit: number = 8): FeaturedRouteItem[] {
+  const allRoutes = getAllRoutes()
+
+  // 按岩場分組，只保留有影片的路線
+  const routesByCrag = new Map<string, RouteSearchItem[]>()
+
+  allRoutes
+    .filter(item =>
+      item.route.status === 'published' &&
+      (item.route.youtubeVideos?.length || 0) > 0
+    )
+    .forEach(item => {
+      const list = routesByCrag.get(item.cragId) || []
+      list.push(item)
+      routesByCrag.set(item.cragId, list)
+    })
+
+  // 每個岩場內部排序（影片數量多的優先）
+  routesByCrag.forEach((routes, cragId) => {
+    routes.sort((a, b) => {
+      const aVideoCount = a.route.youtubeVideos?.length || 0
+      const bVideoCount = b.route.youtubeVideos?.length || 0
+      return bVideoCount - aVideoCount
+    })
+    routesByCrag.set(cragId, routes)
+  })
+
+  // 輪流從各岩場選取路線
+  const result: RouteSearchItem[] = []
+  const cragIds = Array.from(routesByCrag.keys())
+  const indices = new Map<string, number>(cragIds.map(id => [id, 0]))
+
+  while (result.length < limit) {
+    let added = false
+    for (const cragId of cragIds) {
+      if (result.length >= limit) break
+      const routes = routesByCrag.get(cragId)!
+      const idx = indices.get(cragId)!
+      if (idx < routes.length) {
+        result.push(routes[idx])
+        indices.set(cragId, idx + 1)
+        added = true
+      }
+    }
+    if (!added) break
+  }
+
+  return result.map(item => {
+    // 取得最新影片的縮圖
+    const firstVideoUrl = item.route.youtubeVideos?.[0]
+    const videoId = firstVideoUrl ? extractYoutubeId(firstVideoUrl) : null
+    const youtubeThumbnail = videoId
+      ? `https://img.youtube.com/vi/${videoId}/mqdefault.jpg`
+      : undefined
+
+    return {
+      id: item.route.id,
+      name: item.route.name,
+      nameEn: item.route.nameEn,
+      grade: item.route.grade,
+      type: item.route.type,
+      typeEn: item.route.typeEn,
+      length: item.route.length,
+      boltCount: item.route.boltCount,
+      cragId: item.cragId,
+      cragName: item.cragName,
+      areaName: item.areaName,
+      youtubeThumbnail,
+    }
+  })
+}
+
+/**
  * 根據區域 ID 獲取該區域的路線
  */
 export function getRoutesByArea(cragId: string, areaId: string): CragRoute[] {

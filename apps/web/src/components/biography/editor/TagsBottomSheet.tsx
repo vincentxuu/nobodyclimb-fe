@@ -284,7 +284,7 @@ export function TagsBottomSheet({
             return (
               <div
                 key={dimension.id}
-                className="border border-[#EBEAEA] rounded-xl overflow-hidden"
+                className="border border-[#EBEAEA] rounded-lg overflow-hidden"
               >
                 {/* Dimension Header */}
                 <button

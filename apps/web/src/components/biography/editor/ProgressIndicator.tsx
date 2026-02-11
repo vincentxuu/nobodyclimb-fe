@@ -39,7 +39,7 @@ export function ProgressIndicator({
   const overallProgress = Math.round((completedCount / totalCount) * 100)
 
   return (
-    <div className={cn('bg-white rounded-xl border border-[#DBD8D8] p-4', className)}>
+    <div className={cn('bg-white rounded-lg border border-[#DBD8D8] p-4', className)}>
       {/* Header */}
       <div className="flex items-center justify-between mb-4">
         <div className="flex items-center gap-2">

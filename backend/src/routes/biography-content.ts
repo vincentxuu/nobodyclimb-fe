@@ -834,6 +834,106 @@ biographyContentRoutes.post(
 );
 
 // ═══════════════════════════════════════════
+// 單筆內容查詢（供故事詳情頁使用）
+// ═══════════════════════════════════════════
+
+biographyContentRoutes.get(
+  '/core-stories/:id/detail',
+  describeRoute({
+    tags: ['BiographyContent'],
+    summary: '取得單筆核心故事詳情',
+    description: '取得指定核心故事的詳細資訊，包含作者資訊。若已登入會包含使用者的按讚狀態',
+    responses: {
+      200: { description: '成功取得核心故事詳情' },
+      404: { description: '找不到核心故事' },
+    },
+  }),
+  optionalAuthMiddleware,
+  async (c) => {
+    const storyId = c.req.param('id');
+    const userId = c.get('userId');
+    const { contentRepo, interactionsService } = getRepositories(c.env.DB);
+
+    let story = await contentRepo.getCoreStoryById(storyId);
+    if (!story) {
+      return c.json({ success: false, error: '找不到核心故事' }, 404);
+    }
+
+    // 如果使用者已登入，加入按讚狀態
+    if (userId) {
+      const stories = await interactionsService.addLikeStatusToContents('core_story', [story], userId);
+      story = stories[0];
+    }
+
+    return c.json({ success: true, data: story });
+  }
+);
+
+biographyContentRoutes.get(
+  '/one-liners/:id/detail',
+  describeRoute({
+    tags: ['BiographyContent'],
+    summary: '取得單筆一句話詳情',
+    description: '取得指定一句話的詳細資訊，包含作者資訊。若已登入會包含使用者的按讚狀態',
+    responses: {
+      200: { description: '成功取得一句話詳情' },
+      404: { description: '找不到一句話' },
+    },
+  }),
+  optionalAuthMiddleware,
+  async (c) => {
+    const oneLinerId = c.req.param('id');
+    const userId = c.get('userId');
+    const { contentRepo, interactionsService } = getRepositories(c.env.DB);
+
+    let oneLiner = await contentRepo.getOneLinerById(oneLinerId);
+    if (!oneLiner) {
+      return c.json({ success: false, error: '找不到一句話' }, 404);
+    }
+
+    // 如果使用者已登入，加入按讚狀態
+    if (userId) {
+      const oneLiners = await interactionsService.addLikeStatusToContents('one_liner', [oneLiner], userId);
+      oneLiner = oneLiners[0];
+    }
+
+    return c.json({ success: true, data: oneLiner });
+  }
+);
+
+biographyContentRoutes.get(
+  '/stories/:id/detail',
+  describeRoute({
+    tags: ['BiographyContent'],
+    summary: '取得單筆小故事詳情',
+    description: '取得指定小故事的詳細資訊，包含作者資訊。若已登入會包含使用者的按讚狀態',
+    responses: {
+      200: { description: '成功取得小故事詳情' },
+      404: { description: '找不到小故事' },
+    },
+  }),
+  optionalAuthMiddleware,
+  async (c) => {
+    const storyId = c.req.param('id');
+    const userId = c.get('userId');
+    const { contentRepo, interactionsService } = getRepositories(c.env.DB);
+
+    let story = await contentRepo.getStoryById(storyId);
+    if (!story) {
+      return c.json({ success: false, error: '找不到小故事' }, 404);
+    }
+
+    // 如果使用者已登入，加入按讚狀態
+    if (userId) {
+      const stories = await interactionsService.addLikeStatusToContents('story', [story], userId);
+      story = stories[0];
+    }
+
+    return c.json({ success: true, data: story });
+  }
+);
+
+// ═══════════════════════════════════════════
 // 探索/熱門
 // ═══════════════════════════════════════════
 

@@ -2730,6 +2730,66 @@ export const biographyContentService = {
     >(`/content/${contentType}/${contentId}/reactions`)
     return response.data
   },
+
+  // ═══════════════════════════════════════════
+  // 單筆內容查詢（供故事詳情頁使用）
+  // ═══════════════════════════════════════════
+
+  /**
+   * 取得單筆核心故事詳情
+   */
+  getCoreStoryById: async (storyId: string) => {
+    const response = await apiClient.get<
+      ApiResponse<
+        CoreStory & {
+          title: string
+          subtitle?: string
+          biography_id: string
+          biography_slug: string
+          author_name: string
+          author_avatar?: string
+          author_title?: string
+        }
+      >
+    >(`/content/core-stories/${storyId}/detail`)
+    return response.data
+  },
+
+  /**
+   * 取得單筆一句話詳情
+   */
+  getOneLinerById: async (oneLinerId: string) => {
+    const response = await apiClient.get<
+      ApiResponse<
+        OneLiner & {
+          biography_id: string
+          biography_slug: string
+          author_name: string
+          author_avatar?: string
+          author_title?: string
+        }
+      >
+    >(`/content/one-liners/${oneLinerId}/detail`)
+    return response.data
+  },
+
+  /**
+   * 取得單筆小故事詳情
+   */
+  getStoryById: async (storyId: string) => {
+    const response = await apiClient.get<
+      ApiResponse<
+        Story & {
+          biography_id: string
+          biography_slug: string
+          author_name: string
+          author_avatar?: string
+          author_title?: string
+        }
+      >
+    >(`/content/stories/${storyId}/detail`)
+    return response.data
+  },
 }
 export interface AdminUser {
   id: string

@@ -89,7 +89,7 @@ export function AddCustomDimensionModal({
       {/* Modal */}
       <div
         className={cn(
-          'relative bg-white w-full md:max-w-md md:rounded-2xl rounded-t-2xl max-h-[90vh] flex flex-col',
+          'relative bg-white w-full md:max-w-md md:rounded-lg rounded-t-2xl max-h-[90vh] flex flex-col',
           className
         )}
       >
@@ -119,14 +119,14 @@ export function AddCustomDimensionModal({
               <button
                 type="button"
                 onClick={() => setShowEmojiPicker(!showEmojiPicker)}
-                className="w-16 h-16 text-3xl bg-[#F5F5F5] rounded-xl border border-[#DBD8D8] hover:border-[#B6B3B3] transition-colors flex items-center justify-center"
+                className="w-16 h-16 text-3xl bg-[#F5F5F5] rounded-lg border border-[#DBD8D8] hover:border-[#B6B3B3] transition-colors flex items-center justify-center"
               >
                 {emoji}
               </button>
 
               {/* Emoji Picker */}
               {showEmojiPicker && (
-                <div className="absolute top-full left-0 mt-2 p-3 bg-white border border-[#DBD8D8] rounded-xl shadow-lg z-10 w-[280px]">
+                <div className="absolute top-full left-0 mt-2 p-3 bg-white border border-[#DBD8D8] rounded-lg shadow-lg z-10 w-[280px]">
                   <div className="grid grid-cols-8 gap-1">
                     {EMOJI_OPTIONS.map((e) => (
                       <button
@@ -160,7 +160,7 @@ export function AddCustomDimensionModal({
               value={name}
               onChange={(e) => setName(e.target.value)}
               placeholder="例如：裝備偏好"
-              className="w-full px-4 py-3 bg-white border border-[#B6B3B3] rounded-xl focus:outline-none focus:ring-2 focus:ring-brand-accent/50 focus:border-brand-dark transition-colors text-[#1B1A1A] placeholder:text-[#9D9D9D]"
+              className="w-full px-4 py-3 bg-white border border-[#B6B3B3] rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-accent/50 focus:border-brand-dark transition-colors text-[#1B1A1A] placeholder:text-[#9D9D9D]"
               maxLength={10}
             />
             <p className="text-xs text-[#8E8C8C]">
@@ -178,7 +178,7 @@ export function AddCustomDimensionModal({
               value={description}
               onChange={(e) => setDescription(e.target.value)}
               placeholder="例如：你喜歡什麼裝備？"
-              className="w-full px-4 py-3 bg-white border border-[#B6B3B3] rounded-xl focus:outline-none focus:ring-2 focus:ring-brand-accent/50 focus:border-brand-dark transition-colors text-[#1B1A1A] placeholder:text-[#9D9D9D]"
+              className="w-full px-4 py-3 bg-white border border-[#B6B3B3] rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-accent/50 focus:border-brand-dark transition-colors text-[#1B1A1A] placeholder:text-[#9D9D9D]"
               maxLength={30}
             />
           </div>
@@ -193,7 +193,7 @@ export function AddCustomDimensionModal({
                 type="button"
                 onClick={() => setSelectionMode('single')}
                 className={cn(
-                  'flex-1 px-4 py-3 rounded-xl border transition-colors text-left',
+                  'flex-1 px-4 py-3 rounded-lg border transition-colors text-left',
                   selectionMode === 'single'
                     ? 'border-brand-dark bg-brand-accent/10'
                     : 'border-[#DBD8D8] hover:border-[#B6B3B3]'
@@ -206,7 +206,7 @@ export function AddCustomDimensionModal({
                 type="button"
                 onClick={() => setSelectionMode('multiple')}
                 className={cn(
-                  'flex-1 px-4 py-3 rounded-xl border transition-colors text-left',
+                  'flex-1 px-4 py-3 rounded-lg border transition-colors text-left',
                   selectionMode === 'multiple'
                     ? 'border-brand-dark bg-brand-accent/10'
                     : 'border-[#DBD8D8] hover:border-[#B6B3B3]'
@@ -220,7 +220,7 @@ export function AddCustomDimensionModal({
 
           {/* 預覽 */}
           {name.trim() && (
-            <div className="bg-[#F5F5F5] rounded-xl p-4">
+            <div className="bg-[#F5F5F5] rounded-lg p-4">
               <p className="text-sm text-[#6D6C6C] mb-2">預覽</p>
               <div className="flex items-center gap-2">
                 <span className="text-xl">{emoji}</span>
@@ -236,7 +236,7 @@ export function AddCustomDimensionModal({
           )}
 
           {/* 提示 */}
-          <div className="bg-brand-accent/10 rounded-xl p-4">
+          <div className="bg-brand-accent/10 rounded-lg p-4">
             <p className="text-sm text-[#3F3D3D]">
               建立類別後，你可以在裡面新增自訂標籤。
             </p>
@@ -248,7 +248,7 @@ export function AddCustomDimensionModal({
           <button
             type="button"
             onClick={onClose}
-            className="flex-1 px-4 py-3 border border-[#B6B3B3] text-[#3F3D3D] rounded-xl font-medium hover:bg-[#F5F5F5] transition-colors"
+            className="flex-1 px-4 py-3 border border-[#B6B3B3] text-[#3F3D3D] rounded-lg font-medium hover:bg-[#F5F5F5] transition-colors"
           >
             取消
           </button>
@@ -257,7 +257,7 @@ export function AddCustomDimensionModal({
             onClick={handleSave}
             disabled={!canSave || isSaving}
             className={cn(
-              'flex-1 px-4 py-3 rounded-xl font-medium transition-colors flex items-center justify-center gap-2',
+              'flex-1 px-4 py-3 rounded-lg font-medium transition-colors flex items-center justify-center gap-2',
               canSave
                 ? 'bg-brand-dark text-white hover:bg-brand-dark-hover'
                 : 'bg-[#EBEAEA] text-[#B6B3B3] cursor-not-allowed'

@@ -15,6 +15,25 @@ type FeaturedContent =
   | (OneLiner & { type: 'one-liner'; author_name: string; author_avatar?: string; biography_slug?: string })
   | (Story & { type: 'story'; author_name: string; author_avatar?: string; biography_slug?: string })
 
+/**
+ * 選取故事，確保每個作者只出現一次
+ * 優先選取讚數最高的，但同作者只取第一個
+ */
+function selectUniqueAuthors(items: FeaturedContent[], limit: number): FeaturedContent[] {
+  const result: FeaturedContent[] = []
+  const seenAuthors = new Set<string>()
+
+  for (const item of items) {
+    if (result.length >= limit) break
+    if (!seenAuthors.has(item.biography_id)) {
+      result.push(item)
+      seenAuthors.add(item.biography_id)
+    }
+  }
+
+  return result
+}
+
 interface StoryCardProps {
   content: FeaturedContent
 }
@@ -45,10 +64,14 @@ function StoryCard({ content }: StoryCardProps) {
 
   const { label, text } = getDisplayContent()
 
-  // 取得連結路徑
+  // 取得連結路徑 - 指向故事詳情頁
   const getLinkHref = () => {
-    // 連結到對應的人物誌頁面（使用 slug）
-    return `/biography/profile/${content.biography_slug || content.biography_id}`
+    const typeMap: Record<string, string> = {
+      'core-story': 'core-stories',
+      'one-liner': 'one-liners',
+      'story': 'stories',
+    }
+    return `/story/${typeMap[content.type]}/${content.id}`
   }
 
   return (
@@ -131,11 +154,11 @@ export function FeaturedStoriesSection() {
     hasFetched.current = true
 
     try {
-      // 並行獲取三種類型的熱門內容
+      // 並行獲取三種類型的熱門內容（多取一些以確保有足夠不同作者）
       const [coreStoriesRes, oneLinersRes, storiesRes] = await Promise.all([
-        biographyContentService.getPopularCoreStories(2),
-        biographyContentService.getPopularOneLiners(2),
-        biographyContentService.getPopularStories(2),
+        biographyContentService.getPopularCoreStories(4),
+        biographyContentService.getPopularOneLiners(4),
+        biographyContentService.getPopularStories(4),
       ])
 
       const allContents: FeaturedContent[] = []
@@ -156,9 +179,10 @@ export function FeaturedStoriesSection() {
         allContents.push(...storiesRes.data.map((item) => ({ ...item, type: 'story' as const })))
       }
 
-      // 根據 like_count 排序並取前 3 個
+      // 根據 like_count 排序，選取不重複作者的前 3 個
       allContents.sort((a, b) => b.like_count - a.like_count)
-      setContents(allContents.slice(0, 3))
+      const uniqueAuthors = selectUniqueAuthors(allContents, 3)
+      setContents(uniqueAuthors)
     } catch (err) {
       console.error('Failed to load featured stories:', err)
       setError('載入精選故事時發生錯誤')
@@ -180,7 +204,7 @@ export function FeaturedStoriesSection() {
     <section className="bg-[#F5F4F4] py-16 md:py-20">
       <div className="container mx-auto px-4">
         <div className="mb-8 text-center">
-          <h2 className="text-3xl font-bold text-[#1B1A1A] md:text-[40px]">精選故事</h2>
+          <h2 className="text-3xl font-bold text-[#1B1A1A] md:text-[40px]">看故事</h2>
           <p className="mt-4 text-base text-[#6D6C6C]">來自社群的真實攀岩故事與感悟</p>
         </div>
 
@@ -201,7 +225,7 @@ export function FeaturedStoriesSection() {
         )}
 
         <div className="mt-10 flex justify-center">
-          <Link href="/biography">
+          <Link href="/biography?tab=stories">
             <Button
               variant="outline"
               className="h-11 border border-[#1B1A1A] px-8 text-base text-[#1B1A1A] hover:bg-[#DBD8D8]"

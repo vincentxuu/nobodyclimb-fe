@@ -89,7 +89,7 @@ export function ClaimContentModal({
           initial={{ scale: 0.95, opacity: 0 }}
           animate={{ scale: 1, opacity: 1 }}
           exit={{ scale: 0.95, opacity: 0 }}
-          className="relative z-10 mx-4 w-full max-w-md rounded-2xl bg-white p-6 shadow-xl"
+          className="relative z-10 mx-4 w-full max-w-md rounded-lg bg-white p-6 shadow-xl"
         >
           {/* Close button */}
           <button

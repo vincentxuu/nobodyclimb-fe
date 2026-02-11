@@ -68,7 +68,7 @@ export function PrivacyBanner({
     return (
       <div
         className={cn(
-          'flex items-center gap-2 px-4 py-3 bg-[#F5F5F5] rounded-xl',
+          'flex items-center gap-2 px-4 py-3 bg-[#F5F5F5] rounded-lg',
           className
         )}
       >
@@ -81,7 +81,7 @@ export function PrivacyBanner({
   }
 
   return (
-    <div className={cn('bg-[#F5F5F5] rounded-xl overflow-hidden', className)}>
+    <div className={cn('bg-[#F5F5F5] rounded-lg overflow-hidden', className)}>
       {/* Header */}
       <button
         type="button"

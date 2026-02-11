@@ -86,7 +86,7 @@ export function EmptyState({
       <p className="text-[#6D6C6C] max-w-sm mb-6">{content.description}</p>
 
       {showOwnerGuide && (
-        <div className="bg-brand-accent/10 rounded-xl p-4 mb-6 max-w-sm">
+        <div className="bg-brand-accent/10 rounded-lg p-4 mb-6 max-w-sm">
           <p className="text-sm text-brand-dark flex items-center gap-2">
             <Lightbulb size={16} className="flex-shrink-0" />
             小提示：選幾個標籤就能完成基本的人物誌，不需要寫很多字！
@@ -140,7 +140,7 @@ export function SectionEmptyState({
   return (
     <div
       className={cn(
-        'flex flex-col items-center justify-center py-8 px-4 text-center border-2 border-dashed border-[#DBD8D8] rounded-xl',
+        'flex flex-col items-center justify-center py-8 px-4 text-center border-2 border-dashed border-[#DBD8D8] rounded-lg',
         className
       )}
     >

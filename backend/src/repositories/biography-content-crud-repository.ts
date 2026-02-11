@@ -280,75 +280,154 @@ export class BiographyContentCrudRepository {
   }
 
   // ═══════════════════════════════════════════
-  // 熱門內容查詢
+  // 熱門內容查詢（每位作者最多 2 則，確保多樣性）
   // ═══════════════════════════════════════════
 
   /**
-   * 取得熱門核心故事
+   * 取得熱門核心故事（每位作者最多 2 則）
    */
-  async getPopularCoreStories(limit: number = 10): Promise<any[]> {
+  async getPopularCoreStories(limit: number = 10, maxPerAuthor: number = 2): Promise<any[]> {
     const result = await this.db
       .prepare(
-        `SELECT cs.*, csq.title, csq.subtitle, b.name as author_name, b.avatar_url as author_avatar, b.slug as biography_slug
-         FROM biography_core_stories cs
-         JOIN core_story_questions csq ON cs.question_id = csq.id
-         JOIN biographies b ON cs.biography_id = b.id
-         WHERE cs.is_hidden = 0
-         ORDER BY cs.like_count DESC
+        `WITH ranked AS (
+           SELECT cs.*, csq.title, csq.subtitle,
+                  b.name as author_name, b.avatar_url as author_avatar, b.slug as biography_slug,
+                  ROW_NUMBER() OVER (PARTITION BY cs.biography_id ORDER BY cs.like_count DESC) as rn
+           FROM biography_core_stories cs
+           JOIN core_story_questions csq ON cs.question_id = csq.id
+           JOIN biographies b ON cs.biography_id = b.id
+           WHERE cs.is_hidden = 0
+         )
+         SELECT * FROM ranked WHERE rn <= ?
+         ORDER BY like_count DESC
          LIMIT ?`
       )
-      .bind(limit)
+      .bind(maxPerAuthor, limit)
       .all();
 
     return result.results || [];
   }
 
   /**
-   * 取得熱門一句話
+   * 取得熱門一句話（每位作者最多 2 則）
    */
-  async getPopularOneLiners(limit: number = 10): Promise<any[]> {
+  async getPopularOneLiners(limit: number = 10, maxPerAuthor: number = 2): Promise<any[]> {
     const result = await this.db
       .prepare(
-        `SELECT ol.*, olq.question, b.name as author_name, b.avatar_url as author_avatar, b.slug as biography_slug
-         FROM biography_one_liners ol
-         LEFT JOIN one_liner_questions olq ON ol.question_id = olq.id
-         JOIN biographies b ON ol.biography_id = b.id
-         WHERE ol.is_hidden = 0
-         ORDER BY ol.like_count DESC
+        `WITH ranked AS (
+           SELECT ol.*, olq.question,
+                  b.name as author_name, b.avatar_url as author_avatar, b.slug as biography_slug,
+                  ROW_NUMBER() OVER (PARTITION BY ol.biography_id ORDER BY ol.like_count DESC) as rn
+           FROM biography_one_liners ol
+           LEFT JOIN one_liner_questions olq ON ol.question_id = olq.id
+           JOIN biographies b ON ol.biography_id = b.id
+           WHERE ol.is_hidden = 0
+         )
+         SELECT * FROM ranked WHERE rn <= ?
+         ORDER BY like_count DESC
          LIMIT ?`
       )
-      .bind(limit)
+      .bind(maxPerAuthor, limit)
       .all();
 
     return result.results || [];
   }
 
   /**
-   * 取得熱門小故事
+   * 取得熱門小故事（每位作者最多 2 則）
    */
-  async getPopularStories(limit: number = 10, categoryId?: string): Promise<any[]> {
-    let query = `
-      SELECT s.*, sq.title, sq.subtitle, sc.name as category_name, sc.icon as category_icon,
-             b.name as author_name, b.avatar_url as author_avatar, b.slug as biography_slug
-      FROM biography_stories s
-      LEFT JOIN story_questions sq ON s.question_id = sq.id
-      LEFT JOIN story_categories sc ON s.category_id = sc.id
-      JOIN biographies b ON s.biography_id = b.id
-      WHERE s.is_hidden = 0
+  async getPopularStories(limit: number = 10, categoryId?: string, maxPerAuthor: number = 2): Promise<any[]> {
+    const categoryFilter = categoryId ? 'AND s.category_id = ?' : '';
+    const query = `
+      WITH ranked AS (
+        SELECT s.*, sq.title, sq.subtitle, sc.name as category_name, sc.icon as category_icon,
+               b.name as author_name, b.avatar_url as author_avatar, b.slug as biography_slug,
+               ROW_NUMBER() OVER (PARTITION BY s.biography_id ORDER BY s.like_count DESC) as rn
+        FROM biography_stories s
+        LEFT JOIN story_questions sq ON s.question_id = sq.id
+        LEFT JOIN story_categories sc ON s.category_id = sc.id
+        JOIN biographies b ON s.biography_id = b.id
+        WHERE s.is_hidden = 0 ${categoryFilter}
+      )
+      SELECT * FROM ranked WHERE rn <= ?
+      ORDER BY like_count DESC
+      LIMIT ?
     `;
-    const params: (string | number)[] = [];
 
+    const params: (string | number)[] = [];
     if (categoryId) {
-      query += ' AND s.category_id = ?';
       params.push(categoryId);
     }
-
-    query += ' ORDER BY s.like_count DESC LIMIT ?';
-    params.push(limit);
+    params.push(maxPerAuthor, limit);
 
     const result = await this.db.prepare(query).bind(...params).all();
 
     return result.results || [];
+  }
+
+  // ═══════════════════════════════════════════
+  // 單筆內容查詢（含作者資訊）
+  // ═══════════════════════════════════════════
+
+  /**
+   * 取得單筆核心故事（含作者資訊）
+   */
+  async getCoreStoryById(storyId: string): Promise<any | null> {
+    const result = await this.db
+      .prepare(
+        `SELECT cs.*, csq.title, csq.subtitle,
+                b.id as biography_id, b.slug as biography_slug,
+                b.name as author_name, b.avatar_url as author_avatar, b.title as author_title
+         FROM biography_core_stories cs
+         JOIN core_story_questions csq ON cs.question_id = csq.id
+         JOIN biographies b ON cs.biography_id = b.id
+         WHERE cs.id = ? AND cs.is_hidden = 0`
+      )
+      .bind(storyId)
+      .first();
+
+    return result;
+  }
+
+  /**
+   * 取得單筆一句話（含作者資訊）
+   */
+  async getOneLinerById(oneLinerId: string): Promise<any | null> {
+    const result = await this.db
+      .prepare(
+        `SELECT ol.*, olq.question,
+                b.id as biography_id, b.slug as biography_slug,
+                b.name as author_name, b.avatar_url as author_avatar, b.title as author_title
+         FROM biography_one_liners ol
+         LEFT JOIN one_liner_questions olq ON ol.question_id = olq.id
+         JOIN biographies b ON ol.biography_id = b.id
+         WHERE ol.id = ? AND ol.is_hidden = 0`
+      )
+      .bind(oneLinerId)
+      .first();
+
+    return result;
+  }
+
+  /**
+   * 取得單筆小故事（含作者資訊）
+   */
+  async getStoryById(storyId: string): Promise<any | null> {
+    const result = await this.db
+      .prepare(
+        `SELECT s.*, sq.title, sq.subtitle, sc.name as category_name, sc.icon as category_icon,
+                b.id as biography_id, b.slug as biography_slug,
+                b.name as author_name, b.avatar_url as author_avatar, b.title as author_title
+         FROM biography_stories s
+         LEFT JOIN story_questions sq ON s.question_id = sq.id
+         LEFT JOIN story_categories sc ON s.category_id = sc.id
+         JOIN biographies b ON s.biography_id = b.id
+         WHERE s.id = ? AND s.is_hidden = 0`
+      )
+      .bind(storyId)
+      .first();
+
+    return result;
   }
 
   // ═══════════════════════════════════════════

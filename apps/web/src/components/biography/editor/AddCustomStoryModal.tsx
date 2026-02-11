@@ -101,7 +101,7 @@ export function AddCustomStoryModal({
       {/* Modal */}
       <div
         className={cn(
-          'relative bg-white w-full md:max-w-md md:rounded-2xl rounded-t-2xl max-h-[90vh] flex flex-col',
+          'relative bg-white w-full md:max-w-md md:rounded-lg rounded-t-2xl max-h-[90vh] flex flex-col',
           className
         )}
       >
@@ -132,7 +132,7 @@ export function AddCustomStoryModal({
               value={title}
               onChange={(e) => setTitle(e.target.value)}
               placeholder="例如：有沒有印象深刻的攀岩經歷"
-              className="w-full px-4 py-3 bg-white border border-[#B6B3B3] rounded-xl focus:outline-none focus:ring-2 focus:ring-brand-accent/50 focus:border-brand-dark transition-colors text-[#1B1A1A] placeholder:text-[#9D9D9D]"
+              className="w-full px-4 py-3 bg-white border border-[#B6B3B3] rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-accent/50 focus:border-brand-dark transition-colors text-[#1B1A1A] placeholder:text-[#9D9D9D]"
               maxLength={50}
             />
             <p className="text-xs text-[#8E8C8C]">
@@ -150,7 +150,7 @@ export function AddCustomStoryModal({
               value={subtitle}
               onChange={(e) => setSubtitle(e.target.value)}
               placeholder="例如：不一定要很厲害，只要對你有意義"
-              className="w-full px-4 py-3 bg-white border border-[#B6B3B3] rounded-xl focus:outline-none focus:ring-2 focus:ring-brand-accent/50 focus:border-brand-dark transition-colors text-[#1B1A1A] placeholder:text-[#9D9D9D]"
+              className="w-full px-4 py-3 bg-white border border-[#B6B3B3] rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-accent/50 focus:border-brand-dark transition-colors text-[#1B1A1A] placeholder:text-[#9D9D9D]"
               maxLength={50}
             />
             <p className="text-xs text-[#8E8C8C]">
@@ -166,7 +166,7 @@ export function AddCustomStoryModal({
             <select
               value={categoryId}
               onChange={(e) => setCategoryId(e.target.value)}
-              className="w-full px-4 py-3 border border-[#B6B3B3] rounded-xl focus:outline-none focus:ring-2 focus:ring-brand-accent/50 focus:border-brand-dark transition-colors bg-white"
+              className="w-full px-4 py-3 border border-[#B6B3B3] rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-accent/50 focus:border-brand-dark transition-colors bg-white"
             >
               {categories.map((cat) => (
                 <option key={cat.id} value={cat.id}>
@@ -191,14 +191,14 @@ export function AddCustomStoryModal({
               value={placeholder}
               onChange={(e) => setPlaceholder(e.target.value)}
               placeholder="例如：記得有一次..."
-              className="w-full px-4 py-3 bg-white border border-[#B6B3B3] rounded-xl focus:outline-none focus:ring-2 focus:ring-brand-accent/50 focus:border-brand-dark transition-colors text-[#1B1A1A] placeholder:text-[#9D9D9D]"
+              className="w-full px-4 py-3 bg-white border border-[#B6B3B3] rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-accent/50 focus:border-brand-dark transition-colors text-[#1B1A1A] placeholder:text-[#9D9D9D]"
               maxLength={50}
             />
           </div>
 
           {/* 預覽 */}
           {title.trim() && (
-            <div className="bg-[#F5F5F5] rounded-xl p-4 space-y-3">
+            <div className="bg-[#F5F5F5] rounded-lg p-4 space-y-3">
               <p className="text-sm text-[#6D6C6C]">預覽</p>
               <div className="bg-white rounded-lg p-4 space-y-2">
                 <div className="mb-2">
@@ -222,7 +222,7 @@ export function AddCustomStoryModal({
           )}
 
           {/* 提示 */}
-          <div className="bg-brand-accent/10 rounded-xl p-4">
+          <div className="bg-brand-accent/10 rounded-lg p-4">
             <p className="text-sm text-[#3F3D3D]">
               故事問題適合需要深入分享的內容，可以寫長一點。
             </p>
@@ -234,7 +234,7 @@ export function AddCustomStoryModal({
           <button
             type="button"
             onClick={onClose}
-            className="flex-1 px-4 py-3 border border-[#B6B3B3] text-[#3F3D3D] rounded-xl font-medium hover:bg-[#F5F5F5] transition-colors"
+            className="flex-1 px-4 py-3 border border-[#B6B3B3] text-[#3F3D3D] rounded-lg font-medium hover:bg-[#F5F5F5] transition-colors"
           >
             取消
           </button>
@@ -243,7 +243,7 @@ export function AddCustomStoryModal({
             onClick={handleSave}
             disabled={!canSave || isSaving}
             className={cn(
-              'flex-1 px-4 py-3 rounded-xl font-medium transition-colors flex items-center justify-center gap-2',
+              'flex-1 px-4 py-3 rounded-lg font-medium transition-colors flex items-center justify-center gap-2',
               canSave
                 ? 'bg-brand-dark text-white hover:bg-brand-dark-hover'
                 : 'bg-[#EBEAEA] text-[#B6B3B3] cursor-not-allowed'

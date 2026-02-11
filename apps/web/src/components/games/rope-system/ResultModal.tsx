@@ -70,7 +70,7 @@ export function ResultModal({
             exit={{ scale: 0.9, opacity: 0 }}
             transition={{ type: 'spring', damping: 20, stiffness: 300 }}
             className={cn(
-              'w-full max-w-md rounded-2xl bg-white p-8 shadow-xl',
+              'w-full max-w-md rounded-lg bg-white p-8 shadow-xl',
               className
             )}
           >

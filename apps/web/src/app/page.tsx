@@ -13,18 +13,18 @@ function SectionSkeleton() {
 }
 
 // 動態載入各區塊組件（按需載入，減少初始 bundle 大小）
+const HeroIntroSection = dynamic(
+  () => import('@/components/home/hero-intro-section').then((mod) => mod.HeroIntroSection),
+  { loading: () => null }
+)
+
 const FunFactSection = dynamic(
   () => import('@/components/home/fun-fact-section').then((mod) => mod.FunFactSection),
   { loading: () => null }
 )
 
-const BiographySection = dynamic(
-  () => import('@/components/home/biography-section').then((mod) => mod.BiographySection),
-  { loading: () => <SectionSkeleton /> }
-)
-
-const LatestContentSection = dynamic(
-  () => import('@/components/home/latest-content-section').then((mod) => mod.LatestContentSection),
+const ExploreCragSection = dynamic(
+  () => import('@/components/home/explore-crag-section').then((mod) => mod.ExploreCragSection),
   { loading: () => <SectionSkeleton /> }
 )
 
@@ -34,25 +34,8 @@ const FeaturedStoriesSection = dynamic(
   { loading: () => <SectionSkeleton /> }
 )
 
-const StoryShowcaseSection = dynamic(
-  () =>
-    import('@/components/home/story-showcase-section').then((mod) => mod.StoryShowcaseSection),
-  { loading: () => <SectionSkeleton /> }
-)
-
-const FeaturedVideosSection = dynamic(
-  () =>
-    import('@/components/home/featured-videos-section').then((mod) => mod.FeaturedVideosSection),
-  { loading: () => <SectionSkeleton /> }
-)
-
-const ExploreCragSection = dynamic(
-  () => import('@/components/home/explore-crag-section').then((mod) => mod.ExploreCragSection),
-  { loading: () => <SectionSkeleton /> }
-)
-
-const GallerySection = dynamic(
-  () => import('@/components/home/gallery-section').then((mod) => mod.GallerySection),
+const BiographySection = dynamic(
+  () => import('@/components/home/biography-section').then((mod) => mod.BiographySection),
   { loading: () => <SectionSkeleton /> }
 )
 
@@ -62,7 +45,7 @@ const AboutSection = dynamic(
 )
 
 /**
- * 首頁 - 內容導向型設計
+ * 首頁 - 聚焦三大核心功能：查路線 · 看故事 · 寫紀錄
  * 使用動態載入優化初始載入速度
  */
 export default function HomePage() {
@@ -71,26 +54,17 @@ export default function HomePage() {
       {/* 趣味冷知識 */}
       <FunFactSection />
 
-      {/* 人物誌精選 */}
-      <BiographySection />
+      {/* 網站介紹 */}
+      <HeroIntroSection />
 
-      {/* 故事展示區 - 降低心理門檻 */}
-      <StoryShowcaseSection />
-
-      {/* 精選故事 */}
-      <FeaturedStoriesSection />
-
-      {/* 最新文章 */}
-      <LatestContentSection />
-
-      {/* 最新影片 */}
-      <FeaturedVideosSection />
-
-      {/* 探索岩場 */}
+      {/* 查路線 - 探索岩場 */}
       <ExploreCragSection />
 
-      {/* 相片集精選 */}
-      <GallerySection />
+      {/* 看故事 - 精選故事 */}
+      <FeaturedStoriesSection />
+
+      {/* 寫紀錄 - 人物誌 */}
+      <BiographySection />
 
       {/* 關於小人物攀岩 */}
       <AboutSection />

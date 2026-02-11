@@ -101,7 +101,7 @@ export function EmptyStateCard({
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.3 }}
       className={cn(
-        'rounded-xl p-8 text-center',
+        'rounded-lg p-8 text-center',
         variants[variant],
         className
       )}

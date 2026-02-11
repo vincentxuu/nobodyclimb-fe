@@ -67,7 +67,7 @@ export function ShareInvitation({ onStartShare }: ShareInvitationProps) {
           transition={{ type: 'spring', damping: 25, stiffness: 300 }}
           className="fixed bottom-4 left-4 right-4 z-50 md:left-auto md:right-6 md:max-w-md"
         >
-          <div className="relative rounded-2xl bg-white p-4 shadow-2xl">
+          <div className="relative rounded-lg bg-white p-4 shadow-2xl">
             {/* 關閉按鈕 */}
             <button
               onClick={handleDismiss}

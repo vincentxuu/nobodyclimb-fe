@@ -43,7 +43,7 @@ export const CragMapCard: React.FC<MapCardProps> = ({ googleMapsUrl, cragName })
           href={googleMapsUrl}
           target="_blank"
           rel="noopener noreferrer"
-          className="flex flex-1 items-center justify-center gap-2 rounded-md bg-[#1B1A1A] px-4 py-2 text-white transition hover:bg-black"
+          className="flex flex-1 items-center justify-center gap-2 rounded-lg bg-[#1B1A1A] px-4 py-2 text-white transition hover:bg-black"
         >
           <MapPin size={18} />
           導航前往
@@ -52,7 +52,7 @@ export const CragMapCard: React.FC<MapCardProps> = ({ googleMapsUrl, cragName })
           href={googleMapsUrl}
           target="_blank"
           rel="noopener noreferrer"
-          className="flex flex-1 items-center justify-center gap-2 rounded-md bg-gray-100 px-4 py-2 text-[#1B1A1A] transition hover:bg-gray-200"
+          className="flex flex-1 items-center justify-center gap-2 rounded-lg bg-gray-100 px-4 py-2 text-[#1B1A1A] transition hover:bg-gray-200"
         >
           <ExternalLink size={18} />
           查看完整地圖

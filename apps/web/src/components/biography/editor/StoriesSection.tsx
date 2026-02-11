@@ -172,7 +172,7 @@ export function StoriesSection({
             return (
               <div
                 key={category}
-                className="border border-[#DBD8D8] rounded-xl overflow-hidden"
+                className="border border-[#DBD8D8] rounded-lg overflow-hidden"
               >
                 {/* Category Header - 可點擊展開/收合 */}
                 <button

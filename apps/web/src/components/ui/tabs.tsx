@@ -54,7 +54,7 @@ const TabsList = ({ className, children }: TabsListProps) => {
   return (
     <div
       className={cn(
-        'inline-flex h-10 items-center justify-center rounded-md bg-[#F5F5F5] p-1',
+        'inline-flex items-center gap-2',
         className
       )}
     >
@@ -85,10 +85,12 @@ const TabsTrigger = ({ value, className, children }: TabsTriggerProps) => {
       aria-selected={isActive}
       data-state={isActive ? 'active' : 'inactive'}
       className={cn(
-        'inline-flex items-center justify-center whitespace-nowrap rounded-sm px-3 py-1.5 text-sm font-medium',
-        'ring-offset-background transition-all focus-visible:outline-none focus-visible:ring-2',
-        'focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50',
-        isActive ? 'bg-white text-[#1B1A1A] shadow-sm' : 'text-[#6D6C6C] hover:text-[#3F3D3D]',
+        'inline-flex items-center justify-center whitespace-nowrap px-3 py-1.5 text-base font-medium rounded-md',
+        'transition-all duration-200 focus-visible:outline-none',
+        'disabled:pointer-events-none disabled:opacity-50',
+        isActive
+          ? 'text-[#1B1A1A] bg-[#EBEAEA]'
+          : 'text-[#8E8C8C] hover:text-[#3F3D3D] hover:bg-[#F5F5F5]',
         className
       )}
       onClick={() => setActiveTab(value)}

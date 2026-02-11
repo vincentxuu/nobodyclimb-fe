@@ -331,7 +331,7 @@ export function ProfileEditor({
     <div className={cn('min-h-screen bg-[#F5F5F5]', className)}>
       <div className="max-w-4xl mx-auto px-4 py-6 space-y-6">
         {/* Header */}
-        <div className="bg-white rounded-xl p-4">
+        <div className="bg-white rounded-lg p-4">
           <div className="flex items-center justify-between mb-4">
             <h1 className="text-xl font-bold text-[#1B1A1A]">編輯人物誌</h1>
             <AutoSaveIndicator status={status} lastSavedAt={lastSavedAt} error={error} />
@@ -363,7 +363,7 @@ export function ProfileEditor({
               ref={(el) => {
                 sectionRefs.current['basic'] = el
               }}
-              className="bg-white rounded-xl p-4 md:p-6"
+              className="bg-white rounded-lg p-4 md:p-6"
             >
               <BasicInfoSection
                 name={localBiography.name}
@@ -398,7 +398,7 @@ export function ProfileEditor({
               ref={(el) => {
                 sectionRefs.current['tags'] = el
               }}
-              className="bg-white rounded-xl p-4 md:p-6"
+              className="bg-white rounded-lg p-4 md:p-6"
             >
               <TagsSection
                 dimensions={customContent.allTagDimensions}
@@ -417,7 +417,7 @@ export function ProfileEditor({
               ref={(el) => {
                 sectionRefs.current['oneliners'] = el
               }}
-              className="bg-white rounded-xl p-4 md:p-6"
+              className="bg-white rounded-lg p-4 md:p-6"
             >
               <OneLinersSection
                 questions={customContent.allOneLinerQuestions}
@@ -433,7 +433,7 @@ export function ProfileEditor({
               ref={(el) => {
                 sectionRefs.current['stories'] = el
               }}
-              className="bg-white rounded-xl p-4 md:p-6"
+              className="bg-white rounded-lg p-4 md:p-6"
             >
               <StoriesSection
                 questionsByCategory={customContent.allStoryQuestionsByCategory}
@@ -449,7 +449,7 @@ export function ProfileEditor({
               ref={(el) => {
                 sectionRefs.current['footprints'] = el
               }}
-              className="bg-white rounded-xl p-4 md:p-6"
+              className="bg-white rounded-lg p-4 md:p-6"
             >
               <ClimbingFootprintsEditorSection />
             </section>

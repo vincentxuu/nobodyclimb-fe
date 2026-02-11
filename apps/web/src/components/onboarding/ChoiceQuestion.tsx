@@ -146,7 +146,7 @@ export function ChoiceQuestion({
               onClick={() => handleOptionSelect(option)}
               disabled={isSubmitting}
               className={cn(
-                'w-full rounded-xl border-2 p-4 text-left transition-all',
+                'w-full rounded-lg border-2 p-4 text-left transition-all',
                 selectedOption?.id === option.id
                   ? 'border-primary bg-primary/5'
                   : 'border-gray-200 hover:border-gray-300 hover:bg-gray-50',
@@ -179,7 +179,7 @@ export function ChoiceQuestion({
               value={customText}
               onChange={(e) => setCustomText(e.target.value)}
               placeholder="請描述你的開始..."
-              className="w-full rounded-xl border border-gray-200 bg-white px-4 py-3 text-[#1B1A1A] placeholder:text-gray-400 focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20"
+              className="w-full rounded-lg border border-gray-200 bg-white px-4 py-3 text-[#1B1A1A] placeholder:text-gray-400 focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20"
               autoFocus
             />
             <Button
@@ -267,7 +267,7 @@ export function ChoiceQuestion({
             value={followUpText}
             onChange={(e) => setFollowUpText(e.target.value)}
             placeholder={question.followUpPlaceholder || '輸入你的故事...'}
-            className="w-full rounded-xl border border-gray-200 bg-white px-4 py-3 text-[#1B1A1A] placeholder:text-gray-400 focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20"
+            className="w-full rounded-lg border border-gray-200 bg-white px-4 py-3 text-[#1B1A1A] placeholder:text-gray-400 focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20"
             autoFocus
           />
 

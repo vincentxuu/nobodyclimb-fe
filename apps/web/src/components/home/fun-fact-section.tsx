@@ -117,7 +117,7 @@ export function FunFactSection() {
       <section className="bg-gradient-to-r from-brand-accent/20 to-brand-accent/10 py-4 md:py-6">
         <div className="container mx-auto px-4">
           <div className="mx-auto max-w-3xl">
-            <div className="rounded-xl bg-white/80 p-4 shadow-sm backdrop-blur-sm md:p-6">
+            <div className="rounded-lg bg-white/80 p-4 shadow-sm backdrop-blur-sm md:p-6">
               <div className="flex items-center gap-3">
                 <div className="h-10 w-10 rounded-full bg-brand-accent/20" />
                 <div className="flex-1 space-y-2">
@@ -141,7 +141,7 @@ export function FunFactSection() {
       <div className="container mx-auto px-4">
         <div className="mx-auto max-w-3xl">
           <div
-            className="cursor-pointer rounded-xl bg-white/80 p-4 shadow-sm backdrop-blur-sm transition-all hover:shadow-md md:p-6"
+            className="cursor-pointer rounded-lg bg-white/80 p-4 shadow-sm backdrop-blur-sm transition-all hover:shadow-md md:p-6"
             onClick={() => setIsRevealed(!isRevealed)}
           >
             {/* 標題區 */}

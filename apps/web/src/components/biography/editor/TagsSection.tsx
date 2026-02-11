@@ -94,7 +94,7 @@ export function TagsSection({
         <button
           type="button"
           onClick={onOpenBottomSheet}
-          className="w-full flex items-center justify-center gap-2 px-4 py-3 border border-[#DBD8D8] rounded-xl text-sm font-medium text-[#3F3D3D] hover:bg-[#F5F5F5] transition-colors"
+          className="w-full flex items-center justify-center gap-2 px-4 py-3 border border-[#DBD8D8] rounded-lg text-sm font-medium text-[#3F3D3D] hover:bg-[#F5F5F5] transition-colors"
         >
           編輯標籤
           <ChevronRight size={16} />

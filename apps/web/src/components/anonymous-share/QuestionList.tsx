@@ -48,7 +48,7 @@ function AnsweredStories({
           return (
             <div
               key={story.question_id}
-              className="flex items-center gap-3 rounded-xl bg-white p-4 shadow-sm"
+              className="flex items-center gap-3 rounded-lg bg-white p-4 shadow-sm"
             >
               <div className="flex h-8 w-8 items-center justify-center rounded-full bg-green-100">
                 <Check className="h-4 w-4 text-green-600" />
@@ -94,7 +94,7 @@ function QuestionButton({
   return (
     <button
       onClick={onClick}
-      className="flex w-full items-center gap-3 rounded-xl bg-white p-4 text-left shadow-sm transition-colors hover:bg-gray-50"
+      className="flex w-full items-center gap-3 rounded-lg bg-white p-4 text-left shadow-sm transition-colors hover:bg-gray-50"
     >
       <div className={`flex h-8 w-8 items-center justify-center rounded-full ${iconBgClass}`}>
         <Plus className="h-4 w-4 text-[#1B1A1A]" />
@@ -258,7 +258,7 @@ export function QuestionList({
       {!shouldShowMore && (
         <button
           onClick={() => setShowMore(true)}
-          className="flex w-full items-center justify-center gap-2 rounded-xl border border-dashed border-gray-300 py-4 text-sm text-gray-500 transition-colors hover:border-gray-400 hover:text-gray-700"
+          className="flex w-full items-center justify-center gap-2 rounded-lg border border-dashed border-gray-300 py-4 text-sm text-gray-500 transition-colors hover:border-gray-400 hover:text-gray-700"
         >
           <ChevronDown className="h-4 w-4" />
           想寫更多

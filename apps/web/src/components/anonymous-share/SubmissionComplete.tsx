@@ -25,7 +25,7 @@ export function SubmissionComplete({
       <motion.div
         initial={{ scale: 0.9, opacity: 0 }}
         animate={{ scale: 1, opacity: 1 }}
-        className="w-full max-w-md rounded-2xl bg-white p-8 text-center shadow-lg"
+        className="w-full max-w-md rounded-lg bg-white p-8 text-center shadow-lg"
       >
         <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-green-100">
           <Check className="h-8 w-8 text-green-600" />

@@ -272,7 +272,7 @@ function FollowAnalyticsPanel({ data }: { data: FollowAnalytics }) {
       </div>
 
       {/* 趨勢圖表 */}
-      <div className="bg-white rounded-xl shadow-sm border border-wb-20 p-6">
+      <div className="bg-white rounded-lg shadow-sm border border-wb-20 p-6">
         <h3 className="font-semibold text-wb-100 mb-4">追蹤趨勢（過去 30 天）</h3>
         <SimpleTrendChart data={dailyTrend} color="#FA9F17" />
       </div>
@@ -280,7 +280,7 @@ function FollowAnalyticsPanel({ data }: { data: FollowAnalytics }) {
       {/* 排行榜 */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         {/* 被追蹤排行 */}
-        <div className="bg-white rounded-xl shadow-sm border border-wb-20 p-6">
+        <div className="bg-white rounded-lg shadow-sm border border-wb-20 p-6">
           <h3 className="font-semibold text-wb-100 mb-4">最多追蹤者</h3>
           <div className="space-y-3">
             {topFollowed.length === 0 ? (
@@ -315,7 +315,7 @@ function FollowAnalyticsPanel({ data }: { data: FollowAnalytics }) {
         </div>
 
         {/* 活躍追蹤者排行 */}
-        <div className="bg-white rounded-xl shadow-sm border border-wb-20 p-6">
+        <div className="bg-white rounded-lg shadow-sm border border-wb-20 p-6">
           <h3 className="font-semibold text-wb-100 mb-4">最活躍追蹤者</h3>
           <div className="space-y-3">
             {topFollowers.length === 0 ? (
@@ -418,18 +418,18 @@ function ActivityAnalyticsPanel({ data }: { data: ActivityAnalytics }) {
 
       {/* 活躍用戶趨勢 */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <div className="bg-white rounded-xl shadow-sm border border-wb-20 p-6">
+        <div className="bg-white rounded-lg shadow-sm border border-wb-20 p-6">
           <h3 className="font-semibold text-wb-100 mb-4">每日活躍用戶趨勢</h3>
           <SimpleTrendChart data={dailyActiveUsers} color="#FA9F17" />
         </div>
-        <div className="bg-white rounded-xl shadow-sm border border-wb-20 p-6">
+        <div className="bg-white rounded-lg shadow-sm border border-wb-20 p-6">
           <h3 className="font-semibold text-wb-100 mb-4">每日新用戶趨勢</h3>
           <SimpleTrendChart data={dailyNewUsers} color="#FFE70C" />
         </div>
       </div>
 
       {/* 用戶活動分佈 */}
-      <div className="bg-white rounded-xl shadow-sm border border-wb-20 p-6">
+      <div className="bg-white rounded-lg shadow-sm border border-wb-20 p-6">
         <h3 className="font-semibold text-wb-100 mb-4">過去 7 天用戶活動分佈</h3>
         <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
           <ActivityBreakdownCard
@@ -506,11 +506,11 @@ function ContentAnalyticsPanel({ data }: { data: ContentAnalytics }) {
 
       {/* 內容趨勢 */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <div className="bg-white rounded-xl shadow-sm border border-wb-20 p-6">
+        <div className="bg-white rounded-lg shadow-sm border border-wb-20 p-6">
           <h3 className="font-semibold text-wb-100 mb-4">每日文章發布趨勢</h3>
           <SimpleTrendChart data={dailyPosts} color="#FA9F17" />
         </div>
-        <div className="bg-white rounded-xl shadow-sm border border-wb-20 p-6">
+        <div className="bg-white rounded-lg shadow-sm border border-wb-20 p-6">
           <h3 className="font-semibold text-wb-100 mb-4">每日人物誌建立趨勢</h3>
           <SimpleTrendChart data={dailyBiographies} color="#FFE70C" />
         </div>
@@ -518,7 +518,7 @@ function ContentAnalyticsPanel({ data }: { data: ContentAnalytics }) {
 
       {/* 分類分佈 */}
       {categoryDistribution.length > 0 && (
-        <div className="bg-white rounded-xl shadow-sm border border-wb-20 p-6">
+        <div className="bg-white rounded-lg shadow-sm border border-wb-20 p-6">
           <h3 className="font-semibold text-wb-100 mb-4">文章分類分佈</h3>
           <div className="flex flex-wrap gap-3">
             {categoryDistribution.map((cat) => (
@@ -537,7 +537,7 @@ function ContentAnalyticsPanel({ data }: { data: ContentAnalytics }) {
       {/* 排行榜 */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         {/* 熱門人物誌 */}
-        <div className="bg-white rounded-xl shadow-sm border border-wb-20 p-6">
+        <div className="bg-white rounded-lg shadow-sm border border-wb-20 p-6">
           <h3 className="font-semibold text-wb-100 mb-4">熱門人物誌</h3>
           <div className="space-y-3">
             {topBiographies.length === 0 ? (
@@ -577,7 +577,7 @@ function ContentAnalyticsPanel({ data }: { data: ContentAnalytics }) {
         </div>
 
         {/* 熱門文章 */}
-        <div className="bg-white rounded-xl shadow-sm border border-wb-20 p-6">
+        <div className="bg-white rounded-lg shadow-sm border border-wb-20 p-6">
           <h3 className="font-semibold text-wb-100 mb-4">熱門文章</h3>
           <div className="space-y-3">
             {topPosts.length === 0 ? (
@@ -626,7 +626,7 @@ function StatCard({
   subtitle?: string
 }) {
   return (
-    <div className="bg-white rounded-xl shadow-sm border border-wb-20 p-4">
+    <div className="bg-white rounded-lg shadow-sm border border-wb-20 p-4">
       <div className="flex items-start justify-between">
         <div>
           <p className="text-xs text-wb-70 mb-1">{title}</p>

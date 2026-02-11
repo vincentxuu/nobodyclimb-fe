@@ -126,13 +126,18 @@ export function isBiographyListCacheExpired(): boolean {
 
 /** 問題 ID 對應的顯示文字 */
 export const ONE_LINER_QUESTIONS: Record<string, string> = {
+  // 核心三題
   climbing_origin: '你與攀岩的相遇',
   climbing_meaning: '攀岩對你來說是什麼？',
   advice_to_self: '給剛開始攀岩的自己',
+  // 延伸題目
   best_moment: '爬岩最爽的是？',
   favorite_place: '最喜歡在哪裡爬？',
-  current_goal: '目前的攀岩目標',
-  climbing_style_desc: '你的攀岩風格',
+  current_goal: '目前的攀岩小目標？',
+  climbing_takeaway: '攀岩教會我的一件事？',
+  climbing_style_desc: '用一句話形容你的攀岩風格？',
+  life_outside: '攀岩之外，你是誰？',
+  bucket_list: '攀岩人生清單上有什麼？',
 }
 
 /** 故事問題 ID 對應的顯示文字 */

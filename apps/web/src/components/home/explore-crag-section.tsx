@@ -4,10 +4,10 @@ import { useState, useEffect } from 'react'
 import Image from 'next/image'
 import Link from 'next/link'
 import { motion, AnimatePresence } from 'framer-motion'
-import { MapPin, MountainSnow, Calendar, ChevronDown } from 'lucide-react'
+import { MapPin, ChevronDown, ChevronRight } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { CragCoverGenerator } from '@/components/shared/CragCoverGenerator'
-import { getAllCrags, type CragListItem } from '@/lib/crag-data'
+import { getAllCrags, getFeaturedRoutes, type CragListItem, type FeaturedRouteItem } from '@/lib/crag-data'
 
 // 台灣地圖上的岩場標記位置（百分比，基於 taiwan.svg 437x555）
 const cragMapPositions: Record<string, { top: string; left: string }> = {
@@ -18,27 +18,28 @@ const cragMapPositions: Record<string, { top: string; left: string }> = {
   kenting: { top: '90%', left: '60%' },       // 墾丁（屏東最南端）
 }
 
-// 岩場卡片組件
+// 岩場卡片組件（水平滑動版）
 function CragCard({ crag, index }: { crag: CragListItem; index: number }) {
   return (
     <motion.div
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.5, delay: index * 0.1 }}
+      transition={{ duration: 0.5, delay: index * 0.05 }}
+      className="flex-shrink-0"
     >
       <Link
         href={`/crag/${crag.id}`}
         prefetch={false}
-        className="group block overflow-hidden rounded-lg bg-white shadow-sm transition-shadow hover:shadow-md"
+        className="group block w-[240px] overflow-hidden rounded-lg bg-white shadow-sm transition-shadow hover:shadow-md sm:w-[280px]"
       >
         {/* 岩場封面 */}
-        <div className="relative aspect-[4/1] overflow-hidden transition-transform duration-300 group-hover:scale-[1.02]">
+        <div className="relative aspect-[16/9] overflow-hidden">
           <CragCoverGenerator
             rockType={crag.rockType}
             name={crag.name}
             showName={false}
             showTypeLabel={false}
-            className="absolute inset-0"
+            className="absolute inset-0 transition-transform duration-300 group-hover:scale-[1.02]"
           />
           {/* 岩石類型標籤 */}
           <div className="absolute left-2 top-2 rounded bg-[#1B1A1A]/80 px-1.5 py-0.5 text-[10px] font-medium text-white">
@@ -48,41 +49,151 @@ function CragCard({ crag, index }: { crag: CragListItem; index: number }) {
 
         {/* 岩場資訊 */}
         <div className="p-3">
-          <h3 className="mb-1.5 text-base font-medium text-[#1B1A1A] group-hover:text-[#3F3D3D]">
+          <h3 className="mb-1 truncate text-base font-medium text-[#1B1A1A] group-hover:text-[#3F3D3D]">
             {crag.name}
-            <span className="ml-1.5 text-xs font-normal text-[#8E8C8C]">{crag.nameEn}</span>
           </h3>
+          <p className="mb-2 truncate text-xs text-[#8E8C8C]">{crag.nameEn}</p>
 
           <div className="mb-2 flex items-center gap-1.5 text-xs text-[#6D6C6C]">
-            <MapPin className="h-3.5 w-3.5" />
-            <span>{crag.location}</span>
+            <MapPin className="h-3 w-3 flex-shrink-0" />
+            <span className="truncate">{crag.location}</span>
           </div>
 
-          <div className="flex flex-wrap items-center gap-3 text-xs">
-            <div className="flex items-center gap-1 text-[#6D6C6C]">
-              <MountainSnow className="h-3.5 w-3.5" />
-              <span>{crag.routes} 條路線</span>
-            </div>
-            <div className="text-[#8E8C8C]">{crag.difficulty}</div>
-          </div>
-
-          {/* 季節標籤 */}
-          <div className="mt-2 flex items-center gap-1.5">
-            <Calendar className="h-3.5 w-3.5 text-[#8E8C8C]" />
-            <div className="flex gap-1">
-              {crag.seasons.map((season) => (
-                <span
-                  key={season}
-                  className="rounded bg-[#F5F5F5] px-1.5 py-0.5 text-[10px] text-[#6D6C6C]"
-                >
-                  {season}
-                </span>
-              ))}
-            </div>
+          <div className="flex flex-wrap items-center gap-1.5">
+            <span className="rounded-full bg-[#FFE70C] px-2 py-0.5 text-xs font-medium text-[#1B1A1A]">
+              {crag.routes} 條路線
+            </span>
+            <span className="rounded-full bg-[#F5F5F5] px-2 py-0.5 text-xs text-[#6D6C6C]">
+              {crag.difficulty}
+            </span>
           </div>
         </div>
       </Link>
     </motion.div>
+  )
+}
+
+// 岩場水平滑動區塊
+function CragsCarousel({ crags }: { crags: CragListItem[] }) {
+  return (
+    <div>
+      {/* 小標題 */}
+      <div className="mb-4 flex items-center justify-between">
+        <h3 className="text-lg font-medium text-[#1B1A1A]">熱門岩場</h3>
+        <Link
+          href="/crag"
+          className="flex items-center gap-1 text-sm text-[#6D6C6C] transition-colors hover:text-[#1B1A1A]"
+        >
+          查看全部
+          <ChevronRight className="h-4 w-4" />
+        </Link>
+      </div>
+
+      {/* 水平滑動容器 */}
+      <div className="-mx-4 px-4">
+        <div className="flex gap-4 overflow-x-auto pb-4 scrollbar-hide">
+          {crags.map((crag, index) => (
+            <CragCard key={crag.id} crag={crag} index={index} />
+          ))}
+        </div>
+      </div>
+    </div>
+  )
+}
+
+// 路線卡片組件
+function RouteCard({ route, index }: { route: FeaturedRouteItem; index: number }) {
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.5, delay: index * 0.05 }}
+      className="flex-shrink-0"
+    >
+      <Link
+        href={`/crag/${route.cragId}/route/${route.id}`}
+        prefetch={false}
+        className="group block w-[260px] overflow-hidden rounded-lg bg-white shadow-sm transition-shadow hover:shadow-md sm:w-[300px]"
+      >
+        {/* YouTube 縮圖 */}
+        {route.youtubeThumbnail && (
+          <div className="relative aspect-video overflow-hidden">
+            <Image
+              src={route.youtubeThumbnail}
+              alt={route.name}
+              fill
+              className="object-cover transition-transform duration-300 group-hover:scale-105"
+            />
+            {/* 難度標籤（覆蓋在圖片上） */}
+            <div className="absolute bottom-2 left-2">
+              <span className="rounded-full bg-[#FFE70C] px-2.5 py-1 text-sm font-medium text-[#1B1A1A] shadow-sm">
+                {route.grade}
+              </span>
+            </div>
+          </div>
+        )}
+
+        <div className="p-4">
+          {/* 路線名稱 */}
+          <h4 className="mb-1 truncate text-base font-semibold text-[#1B1A1A] group-hover:text-[#3F3D3D]">
+            {route.name}
+          </h4>
+          {route.nameEn && (
+            <p className="mb-2 truncate text-xs text-[#8E8C8C]">{route.nameEn}</p>
+          )}
+
+          {/* 所屬岩場・區域 */}
+          <div className="mb-3 flex items-center gap-1.5 text-xs text-[#6D6C6C]">
+            <MapPin className="h-3.5 w-3.5 flex-shrink-0" />
+            <span className="truncate">
+              {route.cragName}・{route.areaName}
+            </span>
+          </div>
+
+          {/* 標籤區 */}
+          <div className="flex flex-wrap items-center gap-1.5">
+            {/* 類型標籤 */}
+            <span className="rounded-full bg-[#F5F5F5] px-2.5 py-0.5 text-xs text-[#6D6C6C]">
+              {route.type}
+            </span>
+            {/* 長度 */}
+            {route.length && (
+              <span className="rounded-full bg-[#F5F5F5] px-2.5 py-0.5 text-xs text-[#6D6C6C]">
+                {route.length}
+              </span>
+            )}
+          </div>
+        </div>
+      </Link>
+    </motion.div>
+  )
+}
+
+// 熱門路線水平滑動區塊
+function FeaturedRoutesCarousel({ routes }: { routes: FeaturedRouteItem[] }) {
+  return (
+    <div className="mt-10">
+      {/* 小標題 */}
+      <div className="mb-4 flex items-center justify-between">
+        <h3 className="text-lg font-medium text-[#1B1A1A]">熱門路線</h3>
+        <Link
+          href="/crag"
+          className="flex items-center gap-1 text-sm text-[#6D6C6C] transition-colors hover:text-[#1B1A1A]"
+        >
+          查看全部
+          <ChevronRight className="h-4 w-4" />
+        </Link>
+      </div>
+
+      {/* 水平滑動容器 */}
+      <div className="-mx-4 px-4">
+        <div className="flex gap-4 overflow-x-auto pb-4 scrollbar-hide">
+          {routes.map((route, index) => (
+            <RouteCard key={`${route.cragId}-${route.id}`} route={route} index={index} />
+          ))}
+        </div>
+      </div>
+    </div>
   )
 }
 
@@ -176,7 +287,7 @@ function ExpandableMap({ crags }: { crags: CragListItem[] }) {
     <div className="mb-6 lg:hidden">
       <button
         onClick={() => setIsExpanded(!isExpanded)}
-        className="flex w-full items-center justify-between rounded-xl bg-white p-4 shadow-sm transition-shadow hover:shadow-md"
+        className="flex w-full items-center justify-between rounded-lg bg-white p-4 shadow-sm transition-shadow hover:shadow-md"
       >
         <div className="flex items-center gap-4">
           {/* 迷你地圖預覽 */}
@@ -221,10 +332,15 @@ function ExpandableMap({ crags }: { crags: CragListItem[] }) {
  */
 export function ExploreCragSection() {
   const [crags, setCrags] = useState<CragListItem[]>([])
+  const [featuredRoutes, setFeaturedRoutes] = useState<FeaturedRouteItem[]>([])
 
   useEffect(() => {
     const allCrags = getAllCrags()
     setCrags(allCrags.slice(0, 5))
+
+    // 獲取熱門路線
+    const routes = getFeaturedRoutes(8)
+    setFeaturedRoutes(routes)
   }, [])
 
   if (crags.length === 0) {
@@ -237,28 +353,18 @@ export function ExploreCragSection() {
         {/* 標題區 */}
         <div className="mb-10 flex items-center justify-between">
           <div>
-            <h2 className="text-3xl font-bold text-[#1B1A1A] md:text-[40px]">探索岩場</h2>
-            <p className="mt-2 text-base text-[#6D6C6C]">發現台灣各地的天然岩場</p>
+            <h2 className="text-3xl font-bold text-[#1B1A1A] md:text-[40px]">查路線</h2>
+            <p className="mt-2 text-base text-[#6D6C6C]">探索台灣岩場，找到你的下一條路線</p>
           </div>
         </div>
 
-        {/* 手機版可展開地圖 */}
-        <ExpandableMap crags={crags} />
+        {/* 岩場水平滑動區塊 */}
+        <CragsCarousel crags={crags} />
 
-        {/* 主要內容區 */}
-        <div className="grid gap-8 lg:grid-cols-[280px_1fr] lg:gap-12">
-          {/* 地圖區塊（桌面版） */}
-          <div className="hidden items-center justify-center lg:flex">
-            <TaiwanMap crags={crags} />
-          </div>
-
-          {/* 岩場卡片網格 */}
-          <div className="grid grid-cols-1 gap-6 sm:grid-cols-2">
-            {crags.map((crag, index) => (
-              <CragCard key={crag.id} crag={crag} index={index} />
-            ))}
-          </div>
-        </div>
+        {/* 熱門路線區塊 */}
+        {featuredRoutes.length > 0 && (
+          <FeaturedRoutesCarousel routes={featuredRoutes} />
+        )}
 
         {/* 查看全部按鈕 */}
         <div className="mt-10 flex justify-center">

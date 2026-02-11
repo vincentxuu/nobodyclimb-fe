@@ -174,15 +174,15 @@ function StatsSummary({
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.5, delay: 0.2 }}
     >
-      <div className="rounded-xl bg-brand-light p-4 text-center">
+      <div className="rounded-lg bg-brand-light p-4 text-center">
         <div className="text-2xl font-bold text-brand-dark">{totalLocations}</div>
         <div className="text-sm text-text-subtle">攀岩地點</div>
       </div>
-      <div className="rounded-xl bg-brand-light p-4 text-center">
+      <div className="rounded-lg bg-brand-light p-4 text-center">
         <div className="text-2xl font-bold text-brand-dark">{countryCount}</div>
         <div className="text-sm text-text-subtle">個國家</div>
       </div>
-      <div className="rounded-xl bg-brand-light p-4 text-center">
+      <div className="rounded-lg bg-brand-light p-4 text-center">
         <div className="text-2xl font-bold text-brand-dark">{yearRange}</div>
         <div className="text-sm text-text-subtle">時間跨度</div>
       </div>

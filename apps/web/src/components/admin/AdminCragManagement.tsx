@@ -310,7 +310,7 @@ export default function AdminCragManagement() {
       {/* Main content: Left-Right split layout */}
       <div className="flex gap-4 h-[calc(100vh-180px)]">
         {/* Left panel: Tree navigation */}
-        <div className="w-48 lg:w-72 flex-shrink-0 bg-white rounded-xl shadow-sm border border-wb-20 flex flex-col overflow-hidden">
+        <div className="w-48 lg:w-72 flex-shrink-0 bg-white rounded-lg shadow-sm border border-wb-20 flex flex-col overflow-hidden">
           <CragTree
             selectedItem={selectedItem}
             onSelectItem={handleSelectItem}
@@ -320,7 +320,7 @@ export default function AdminCragManagement() {
         </div>
 
         {/* Right panel: Form area */}
-        <div className="flex-1 bg-white rounded-xl shadow-sm border border-wb-20 flex flex-col overflow-hidden">
+        <div className="flex-1 bg-white rounded-lg shadow-sm border border-wb-20 flex flex-col overflow-hidden">
           {renderRightPanel()}
         </div>
       </div>

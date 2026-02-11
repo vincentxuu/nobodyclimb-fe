@@ -106,7 +106,7 @@ export default function ProfileEditorSelector() {
             >
               <button
                 onClick={() => setActiveVersion(option.id)}
-                className={`group relative flex h-full w-full flex-col overflow-hidden rounded-2xl border-2 bg-white p-6 text-left transition-all ${
+                className={`group relative flex h-full w-full flex-col overflow-hidden rounded-lg border-2 bg-white p-6 text-left transition-all ${
                   hoveredVersion === option.id
                     ? 'border-gray-900 shadow-lg'
                     : 'border-gray-200 hover:border-gray-300'
@@ -114,7 +114,7 @@ export default function ProfileEditorSelector() {
               >
                 {/* 圖標 */}
                 <div
-                  className={`mb-4 flex h-16 w-16 items-center justify-center rounded-xl transition-colors ${
+                  className={`mb-4 flex h-16 w-16 items-center justify-center rounded-lg transition-colors ${
                     hoveredVersion === option.id
                       ? 'bg-gray-900 text-white'
                       : 'bg-gray-100 text-gray-600'
@@ -177,7 +177,7 @@ export default function ProfileEditorSelector() {
             功能比較
           </h2>
 
-          <div className="overflow-hidden rounded-xl border bg-white">
+          <div className="overflow-hidden rounded-lg border bg-white">
             <table className="w-full">
               <thead>
                 <tr className="border-b bg-gray-50">

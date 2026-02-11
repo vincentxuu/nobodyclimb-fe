@@ -51,7 +51,7 @@ export function StoryModal({ story, open, onClose }: StoryModalProps) {
             initial={{ opacity: 0, scale: 0.95, y: 20 }}
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.95, y: 20 }}
-            className="fixed inset-4 z-50 mx-auto my-auto max-h-[80vh] max-w-2xl overflow-y-auto rounded-2xl bg-white p-6 shadow-xl md:inset-auto md:left-1/2 md:top-1/2 md:-translate-x-1/2 md:-translate-y-1/2 md:p-8"
+            className="fixed inset-4 z-50 mx-auto my-auto max-h-[80vh] max-w-2xl overflow-y-auto rounded-lg bg-white p-6 shadow-xl md:inset-auto md:left-1/2 md:top-1/2 md:-translate-x-1/2 md:-translate-y-1/2 md:p-8"
           >
             {/* 關閉按鈕 */}
             <button

@@ -73,7 +73,7 @@ export function AddCustomOneLinerModal({
       {/* Modal */}
       <div
         className={cn(
-          'relative bg-white w-full md:max-w-md md:rounded-2xl rounded-t-2xl max-h-[90vh] flex flex-col',
+          'relative bg-white w-full md:max-w-md md:rounded-lg rounded-t-2xl max-h-[90vh] flex flex-col',
           className
         )}
       >
@@ -104,7 +104,7 @@ export function AddCustomOneLinerModal({
               value={question}
               onChange={(e) => setQuestion(e.target.value)}
               placeholder="例如：最喜歡的攀岩電影是？"
-              className="w-full px-4 py-3 bg-white border border-[#B6B3B3] rounded-xl focus:outline-none focus:ring-2 focus:ring-brand-accent/50 focus:border-brand-dark transition-colors text-[#1B1A1A] placeholder:text-[#9D9D9D]"
+              className="w-full px-4 py-3 bg-white border border-[#B6B3B3] rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-accent/50 focus:border-brand-dark transition-colors text-[#1B1A1A] placeholder:text-[#9D9D9D]"
               maxLength={50}
             />
             <p className="text-xs text-[#8E8C8C]">
@@ -122,7 +122,7 @@ export function AddCustomOneLinerModal({
               value={formatHint}
               onChange={(e) => setFormatHint(e.target.value)}
               placeholder="例如：因為＿＿＿、我覺得＿＿＿"
-              className="w-full px-4 py-3 bg-white border border-[#B6B3B3] rounded-xl focus:outline-none focus:ring-2 focus:ring-brand-accent/50 focus:border-brand-dark transition-colors text-[#1B1A1A] placeholder:text-[#9D9D9D]"
+              className="w-full px-4 py-3 bg-white border border-[#B6B3B3] rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-accent/50 focus:border-brand-dark transition-colors text-[#1B1A1A] placeholder:text-[#9D9D9D]"
               maxLength={30}
             />
             <p className="text-xs text-[#8E8C8C]">
@@ -140,7 +140,7 @@ export function AddCustomOneLinerModal({
               value={placeholder}
               onChange={(e) => setPlaceholder(e.target.value)}
               placeholder="例如：Free Solo，看完整個人都燃起來了"
-              className="w-full px-4 py-3 bg-white border border-[#B6B3B3] rounded-xl focus:outline-none focus:ring-2 focus:ring-brand-accent/50 focus:border-brand-dark transition-colors text-[#1B1A1A] placeholder:text-[#9D9D9D]"
+              className="w-full px-4 py-3 bg-white border border-[#B6B3B3] rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-accent/50 focus:border-brand-dark transition-colors text-[#1B1A1A] placeholder:text-[#9D9D9D]"
               maxLength={50}
             />
             <p className="text-xs text-[#8E8C8C]">
@@ -150,7 +150,7 @@ export function AddCustomOneLinerModal({
 
           {/* 預覽 */}
           {question.trim() && (
-            <div className="bg-[#F5F5F5] rounded-xl p-4 space-y-3">
+            <div className="bg-[#F5F5F5] rounded-lg p-4 space-y-3">
               <p className="text-sm text-[#6D6C6C]">預覽</p>
               <div className="bg-white rounded-lg p-4 space-y-2">
                 <p className="font-medium text-[#1B1A1A]">
@@ -169,7 +169,7 @@ export function AddCustomOneLinerModal({
           )}
 
           {/* 提示 */}
-          <div className="bg-brand-accent/10 rounded-xl p-4">
+          <div className="bg-brand-accent/10 rounded-lg p-4">
             <p className="text-sm text-[#3F3D3D]">
               一句話問題適合簡短、有趣的回答。想深入分享可以用「深度故事」。
             </p>
@@ -181,7 +181,7 @@ export function AddCustomOneLinerModal({
           <button
             type="button"
             onClick={onClose}
-            className="flex-1 px-4 py-3 border border-[#B6B3B3] text-[#3F3D3D] rounded-xl font-medium hover:bg-[#F5F5F5] transition-colors"
+            className="flex-1 px-4 py-3 border border-[#B6B3B3] text-[#3F3D3D] rounded-lg font-medium hover:bg-[#F5F5F5] transition-colors"
           >
             取消
           </button>
@@ -190,7 +190,7 @@ export function AddCustomOneLinerModal({
             onClick={handleSave}
             disabled={!canSave || isSaving}
             className={cn(
-              'flex-1 px-4 py-3 rounded-xl font-medium transition-colors flex items-center justify-center gap-2',
+              'flex-1 px-4 py-3 rounded-lg font-medium transition-colors flex items-center justify-center gap-2',
               canSave
                 ? 'bg-brand-dark text-white hover:bg-brand-dark-hover'
                 : 'bg-[#EBEAEA] text-[#B6B3B3] cursor-not-allowed'

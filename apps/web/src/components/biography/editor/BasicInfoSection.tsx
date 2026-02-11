@@ -191,7 +191,7 @@ export function BasicInfoSection({
       <div className="space-y-2">
         <label className="text-sm font-medium text-[#3F3D3D]">封面圖片</label>
         <div
-          className="relative h-32 md:h-48 bg-[#EBEAEA] rounded-xl overflow-hidden cursor-pointer group"
+          className="relative h-32 md:h-48 bg-[#EBEAEA] rounded-lg overflow-hidden cursor-pointer group"
           onClick={() => coverInputRef.current?.click()}
         >
           {displayCover ? (
@@ -269,7 +269,7 @@ export function BasicInfoSection({
           value={name}
           onChange={(e) => onNameChange(e.target.value)}
           placeholder="你想怎麼被稱呼？"
-          className="w-full px-4 py-3 bg-white border border-[#B6B3B3] rounded-xl text-[#1B1A1A] placeholder:text-[#9D9D9D] focus:outline-none focus:ring-2 focus:ring-brand-accent/50 focus:border-brand-dark transition-colors"
+          className="w-full px-4 py-3 bg-white border border-[#B6B3B3] rounded-lg text-[#1B1A1A] placeholder:text-[#9D9D9D] focus:outline-none focus:ring-2 focus:ring-brand-accent/50 focus:border-brand-dark transition-colors"
           maxLength={50}
         />
         <p className="text-xs text-[#8E8C8C]">這會顯示在你的人物誌上</p>
@@ -286,7 +286,7 @@ export function BasicInfoSection({
           value={title || ''}
           onChange={(e) => onTitleChange(e.target.value || null)}
           placeholder="例如：快樂最重要的週末岩友"
-          className="w-full px-4 py-3 bg-white border border-[#B6B3B3] rounded-xl text-[#1B1A1A] placeholder:text-[#9D9D9D] focus:outline-none focus:ring-2 focus:ring-brand-accent/50 focus:border-brand-dark transition-colors"
+          className="w-full px-4 py-3 bg-white border border-[#B6B3B3] rounded-lg text-[#1B1A1A] placeholder:text-[#9D9D9D] focus:outline-none focus:ring-2 focus:ring-brand-accent/50 focus:border-brand-dark transition-colors"
           maxLength={100}
         />
         <p className="text-xs text-[#8E8C8C] flex items-center gap-1">
@@ -308,7 +308,7 @@ export function BasicInfoSection({
               const value = e.target.value
               onClimbingStartYearChange(value ? parseInt(value, 10) : null)
             }}
-            className="w-32 px-4 py-3 bg-white border border-[#B6B3B3] rounded-xl text-[#1B1A1A] focus:outline-none focus:ring-2 focus:ring-brand-accent/50 focus:border-brand-dark transition-colors appearance-none cursor-pointer"
+            className="w-32 px-4 py-3 bg-white border border-[#B6B3B3] rounded-lg text-[#1B1A1A] focus:outline-none focus:ring-2 focus:ring-brand-accent/50 focus:border-brand-dark transition-colors appearance-none cursor-pointer"
           >
             <option value="">選擇年份</option>
             {yearOptions.map((year) => (
@@ -514,7 +514,7 @@ export function BasicInfoSection({
                 }
               }}
               placeholder="your_username"
-              className="flex-1 min-w-0 px-4 py-3 bg-white border border-[#B6B3B3] rounded-xl text-[#1B1A1A] placeholder:text-[#9D9D9D] focus:outline-none focus:ring-2 focus:ring-brand-accent/50 focus:border-brand-dark transition-colors"
+              className="flex-1 min-w-0 px-4 py-3 bg-white border border-[#B6B3B3] rounded-lg text-[#1B1A1A] placeholder:text-[#9D9D9D] focus:outline-none focus:ring-2 focus:ring-brand-accent/50 focus:border-brand-dark transition-colors"
               maxLength={50}
             />
           </div>
@@ -538,7 +538,7 @@ export function BasicInfoSection({
               }
             }}
             placeholder="頻道 ID 或網址"
-            className="w-full px-4 py-3 bg-white border border-[#B6B3B3] rounded-xl text-[#1B1A1A] placeholder:text-[#9D9D9D] focus:outline-none focus:ring-2 focus:ring-brand-accent/50 focus:border-brand-dark transition-colors"
+            className="w-full px-4 py-3 bg-white border border-[#B6B3B3] rounded-lg text-[#1B1A1A] placeholder:text-[#9D9D9D] focus:outline-none focus:ring-2 focus:ring-brand-accent/50 focus:border-brand-dark transition-colors"
             maxLength={100}
           />
         </div>
@@ -555,7 +555,7 @@ export function BasicInfoSection({
             value={socialLinks.website || ''}
             onChange={(e) => handleSocialLinkChange('website', e.target.value)}
             placeholder="https://your-website.com"
-            className="w-full px-4 py-3 bg-white border border-[#B6B3B3] rounded-xl text-[#1B1A1A] placeholder:text-[#9D9D9D] focus:outline-none focus:ring-2 focus:ring-brand-accent/50 focus:border-brand-dark transition-colors"
+            className="w-full px-4 py-3 bg-white border border-[#B6B3B3] rounded-lg text-[#1B1A1A] placeholder:text-[#9D9D9D] focus:outline-none focus:ring-2 focus:ring-brand-accent/50 focus:border-brand-dark transition-colors"
             maxLength={200}
           />
         </div>

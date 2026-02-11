@@ -127,7 +127,7 @@ export function BiographyOneLiners({
             <div
               key={item.id}
               className={cn(
-                'p-4 rounded-xl border',
+                'p-4 rounded-lg border',
                 isCustom
                   ? 'bg-brand-accent/5 border-brand-accent/30'
                   : 'bg-white border-[#DBD8D8]'

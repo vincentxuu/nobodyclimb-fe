@@ -75,7 +75,7 @@ export function OneLinersSection({
             <div
               key={question.id}
               className={cn(
-                'border rounded-xl overflow-hidden transition-all duration-200',
+                'border rounded-lg overflow-hidden transition-all duration-200',
                 isFilled
                   ? 'border-brand-accent bg-brand-accent/10'
                   : 'border-[#DBD8D8] bg-white'
@@ -149,7 +149,7 @@ export function OneLinersSection({
                       onAnswerChange(question.id, e.target.value || null)
                     }
                     placeholder="輸入你的答案..."
-                    className="w-full px-4 py-3 bg-white border border-[#B6B3B3] rounded-xl text-[#1B1A1A] placeholder:text-[#9D9D9D] focus:outline-none focus:ring-2 focus:ring-brand-accent/50 focus:border-brand-dark transition-colors"
+                    className="w-full px-4 py-3 bg-white border border-[#B6B3B3] rounded-lg text-[#1B1A1A] placeholder:text-[#9D9D9D] focus:outline-none focus:ring-2 focus:ring-brand-accent/50 focus:border-brand-dark transition-colors"
                     maxLength={200}
                   />
                   <div className="flex justify-between items-center">

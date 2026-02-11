@@ -116,7 +116,7 @@ export default function AdminBroadcast() {
       </div>
 
       {/* 發送表單 */}
-      <div className="bg-white rounded-xl shadow-sm border border-wb-20 p-6">
+      <div className="bg-white rounded-lg shadow-sm border border-wb-20 p-6">
         <div className="flex items-center gap-2 mb-4">
           <Megaphone className="h-5 w-5 text-primary" />
           <h2 className="font-semibold text-wb-100">發送新公告</h2>
@@ -215,7 +215,7 @@ export default function AdminBroadcast() {
       </div>
 
       {/* 歷史記錄 */}
-      <div className="bg-white rounded-xl shadow-sm border border-wb-20 overflow-hidden">
+      <div className="bg-white rounded-lg shadow-sm border border-wb-20 overflow-hidden">
         <div className="flex items-center justify-between p-6 border-b border-wb-20">
           <div className="flex items-center gap-2">
             <Clock className="h-5 w-5 text-wb-50" />

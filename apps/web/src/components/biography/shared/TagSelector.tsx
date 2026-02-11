@@ -98,7 +98,7 @@ export function TagSelector({
   return (
     <div
       className={cn(
-        'border border-[#DBD8D8] rounded-xl overflow-hidden',
+        'border border-[#DBD8D8] rounded-lg overflow-hidden',
         className
       )}
     >

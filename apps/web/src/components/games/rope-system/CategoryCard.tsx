@@ -59,7 +59,7 @@ export function CategoryCard({
     <Link href={ROUTES.LEARN(category.id)}>
       <motion.div
         className={cn(
-          'group cursor-pointer rounded-xl border border-[#E5E5E5] bg-white p-5 shadow-sm transition-shadow',
+          'group cursor-pointer rounded-lg border border-[#E5E5E5] bg-white p-5 shadow-sm transition-shadow',
           'hover:shadow-md',
           className
         )}

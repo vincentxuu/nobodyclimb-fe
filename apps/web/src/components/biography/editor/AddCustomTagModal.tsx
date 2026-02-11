@@ -79,7 +79,7 @@ export function AddCustomTagModal({
       {/* Modal */}
       <div
         className={cn(
-          'relative bg-white w-full md:max-w-md md:rounded-2xl rounded-t-2xl max-h-[90vh] flex flex-col mb-20 md:mb-0',
+          'relative bg-white w-full md:max-w-md md:rounded-lg rounded-t-2xl max-h-[90vh] flex flex-col mb-20 md:mb-0',
           className
         )}
       >
@@ -110,7 +110,7 @@ export function AddCustomTagModal({
               value={label}
               onChange={(e) => setLabel(e.target.value)}
               placeholder="例如：深夜岩館族"
-              className="w-full px-4 py-3 bg-white border border-[#B6B3B3] rounded-xl focus:outline-none focus:ring-2 focus:ring-brand-accent/50 focus:border-brand-dark transition-colors text-[#1B1A1A] placeholder:text-[#9D9D9D]"
+              className="w-full px-4 py-3 bg-white border border-[#B6B3B3] rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-accent/50 focus:border-brand-dark transition-colors text-[#1B1A1A] placeholder:text-[#9D9D9D]"
               maxLength={20}
             />
             <p className="text-xs text-[#8E8C8C]">
@@ -128,7 +128,7 @@ export function AddCustomTagModal({
               value={description}
               onChange={(e) => setDescription(e.target.value)}
               placeholder="例如：十點後才開始爬"
-              className="w-full px-4 py-3 bg-white border border-[#B6B3B3] rounded-xl focus:outline-none focus:ring-2 focus:ring-brand-accent/50 focus:border-brand-dark transition-colors text-[#1B1A1A] placeholder:text-[#9D9D9D]"
+              className="w-full px-4 py-3 bg-white border border-[#B6B3B3] rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-accent/50 focus:border-brand-dark transition-colors text-[#1B1A1A] placeholder:text-[#9D9D9D]"
               maxLength={50}
             />
             <p className="text-xs text-[#8E8C8C]">
@@ -144,7 +144,7 @@ export function AddCustomTagModal({
             <select
               value={dimensionId}
               onChange={(e) => setDimensionId(e.target.value)}
-              className="w-full px-4 py-3 border border-[#B6B3B3] rounded-xl focus:outline-none focus:ring-2 focus:ring-brand-accent/50 focus:border-brand-dark transition-colors bg-white"
+              className="w-full px-4 py-3 border border-[#B6B3B3] rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-accent/50 focus:border-brand-dark transition-colors bg-white"
             >
               {dimensions.map((dim) => (
                 <option key={dim.id} value={dim.id}>
@@ -156,7 +156,7 @@ export function AddCustomTagModal({
 
           {/* 預覽 */}
           {label.trim() && (
-            <div className="bg-[#F5F5F5] rounded-xl p-4">
+            <div className="bg-[#F5F5F5] rounded-lg p-4">
               <p className="text-sm text-[#6D6C6C] mb-2">預覽</p>
               <div className="inline-flex items-center gap-2 px-3 py-1.5 bg-white border border-[#DBD8D8] rounded-full">
                 <span className="text-sm font-medium text-[#1B1A1A]">
@@ -175,7 +175,7 @@ export function AddCustomTagModal({
           <button
             type="button"
             onClick={onClose}
-            className="flex-1 px-4 py-3 border border-[#B6B3B3] text-[#3F3D3D] rounded-xl font-medium hover:bg-[#F5F5F5] transition-colors"
+            className="flex-1 px-4 py-3 border border-[#B6B3B3] text-[#3F3D3D] rounded-lg font-medium hover:bg-[#F5F5F5] transition-colors"
           >
             取消
           </button>
@@ -184,7 +184,7 @@ export function AddCustomTagModal({
             onClick={handleSave}
             disabled={!canSave || isSaving}
             className={cn(
-              'flex-1 px-4 py-3 rounded-xl font-medium transition-colors flex items-center justify-center gap-2',
+              'flex-1 px-4 py-3 rounded-lg font-medium transition-colors flex items-center justify-center gap-2',
               canSave
                 ? 'bg-brand-dark text-white hover:bg-brand-dark-hover'
                 : 'bg-[#EBEAEA] text-[#B6B3B3] cursor-not-allowed'

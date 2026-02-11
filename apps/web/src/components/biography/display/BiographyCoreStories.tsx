@@ -132,7 +132,7 @@ function CoreStoryCard({
       whileInView={{ opacity: 1, y: 0 }}
       viewport={{ once: true, margin: '-50px' }}
       transition={{ delay: index * 0.1 }}
-      className="rounded-2xl bg-white p-6 shadow-sm border border-[#EBEAEA]"
+      className="rounded-lg bg-white p-6 shadow-sm border border-[#EBEAEA]"
     >
       {/* 標題區 */}
       <div className="mb-4">

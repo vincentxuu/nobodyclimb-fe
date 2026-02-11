@@ -36,7 +36,7 @@ export function QuestionCard({
 
   return (
     <motion.div
-      className={cn('rounded-xl border border-[#E5E5E5] bg-white p-6', className)}
+      className={cn('rounded-lg border border-[#E5E5E5] bg-white p-6', className)}
       initial={{ opacity: 0, scale: 0.98 }}
       animate={{ opacity: 1, scale: 1 }}
       exit={{ opacity: 0, scale: 0.98 }}

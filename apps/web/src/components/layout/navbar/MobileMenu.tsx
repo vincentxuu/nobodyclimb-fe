@@ -123,7 +123,7 @@ export default function MobileMenu() {
                     <Button
                       variant="outline"
                       size="sm"
-                      className="h-7 flex-1 rounded-md border border-[#1B1A1A] bg-white font-medium text-[#1B1A1A] hover:bg-gray-50 xs:h-8"
+                      className="h-7 flex-1 rounded-lg border border-[#1B1A1A] bg-white font-medium text-[#1B1A1A] hover:bg-gray-50 xs:h-8"
                       onClick={() => handleNavigation('/blog/create')}
                     >
                       <span className="font-['Noto_Sans_TC'] text-xs">發表文章</span>
@@ -131,7 +131,7 @@ export default function MobileMenu() {
                     <Button
                       variant="outline"
                       size="sm"
-                      className="h-7 flex-1 rounded-md border border-[#1B1A1A] bg-white font-medium text-[#1B1A1A] hover:bg-gray-50 xs:h-8"
+                      className="h-7 flex-1 rounded-lg border border-[#1B1A1A] bg-white font-medium text-[#1B1A1A] hover:bg-gray-50 xs:h-8"
                       onClick={() => handleNavigation('/upload')}
                     >
                       <span className="font-['Noto_Sans_TC'] text-xs">上傳照片</span>
@@ -146,13 +146,13 @@ export default function MobileMenu() {
                   <div className="flex gap-2">
                     <Button
                       variant="outline"
-                      className="h-7 flex-1 rounded-md border border-[#1B1A1A] bg-white font-medium text-[#1B1A1A] hover:bg-gray-50 xs:h-8"
+                      className="h-7 flex-1 rounded-lg border border-[#1B1A1A] bg-white font-medium text-[#1B1A1A] hover:bg-gray-50 xs:h-8"
                       onClick={() => handleNavigation('/auth/login')}
                     >
                       <span className="font-['Noto_Sans_TC'] text-xs">登入</span>
                     </Button>
                     <Button
-                      className="h-7 flex-1 rounded-md bg-brand-accent/70 font-medium text-[#1B1A1A] hover:bg-brand-accent xs:h-8"
+                      className="h-7 flex-1 rounded-lg bg-brand-accent/70 font-medium text-[#1B1A1A] hover:bg-brand-accent xs:h-8"
                       onClick={() => handleNavigation('/auth/register')}
                     >
                       <span className="font-['Noto_Sans_TC'] text-xs">註冊</span>
@@ -173,7 +173,7 @@ export default function MobileMenu() {
                       key={link.href}
                       href={link.href}
                       onClick={closeMenu}
-                      className={`relative rounded-md px-2 py-1.5 font-['Noto_Sans_TC'] text-xs font-medium transition-colors xs:px-3 xs:py-2 xs:text-sm ${isActive
+                      className={`relative rounded-lg px-2 py-1.5 font-['Noto_Sans_TC'] text-xs font-medium transition-colors xs:px-3 xs:py-2 xs:text-sm ${isActive
                         ? 'bg-[#FFE70C]/10 text-[#1B1A1A]'
                         : 'text-[#1B1A1A]/70 hover:bg-gray-100 hover:text-[#1B1A1A]'
                         }`}
@@ -203,7 +203,7 @@ export default function MobileMenu() {
                       <button
                         key={item.href}
                         onClick={() => handleNavigation(item.href)}
-                        className={`relative rounded-md px-2 py-1.5 text-left font-['Noto_Sans_TC'] text-xs font-medium transition-colors xs:px-3 xs:py-2 xs:text-sm ${isActive
+                        className={`relative rounded-lg px-2 py-1.5 text-left font-['Noto_Sans_TC'] text-xs font-medium transition-colors xs:px-3 xs:py-2 xs:text-sm ${isActive
                           ? 'bg-[#FFE70C]/10 text-[#1B1A1A]'
                           : 'text-[#1B1A1A]/70 hover:bg-gray-100 hover:text-[#1B1A1A]'
                           }`}
@@ -215,7 +215,7 @@ export default function MobileMenu() {
                   {/* 登出按鈕 */}
                   <button
                     onClick={handleLogout}
-                    className="mt-0.5 flex items-center gap-1.5 rounded-md px-2 py-1.5 text-left font-['Noto_Sans_TC'] text-xs font-medium text-[#D94A4A] transition-colors hover:bg-red-50 xs:mt-1 xs:gap-2 xs:px-3 xs:py-2 xs:text-sm"
+                    className="mt-0.5 flex items-center gap-1.5 rounded-lg px-2 py-1.5 text-left font-['Noto_Sans_TC'] text-xs font-medium text-[#D94A4A] transition-colors hover:bg-red-50 xs:mt-1 xs:gap-2 xs:px-3 xs:py-2 xs:text-sm"
                   >
                     <LogOut className="h-3.5 w-3.5 xs:h-4 xs:w-4" />
                     <span>登出</span>

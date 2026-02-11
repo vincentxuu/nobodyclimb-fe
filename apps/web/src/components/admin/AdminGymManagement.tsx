@@ -359,7 +359,7 @@ export default function AdminGymManagement() {
 
       {/* 新增/編輯表單 */}
       {showForm && (
-        <div className="bg-white rounded-xl shadow-sm border border-wb-20 p-6">
+        <div className="bg-white rounded-lg shadow-sm border border-wb-20 p-6">
           <div className="flex items-center justify-between mb-4">
             <h3 className="text-lg font-semibold text-wb-100">
               {editingGym ? '編輯岩館' : '新增岩館'}
@@ -573,7 +573,7 @@ export default function AdminGymManagement() {
       )}
 
       {/* 搜尋和篩選 */}
-      <div className="bg-white rounded-xl shadow-sm border border-wb-20 p-4">
+      <div className="bg-white rounded-lg shadow-sm border border-wb-20 p-4">
         <div className="flex flex-col sm:flex-row gap-4">
           <div className="flex-1 relative">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-wb-50" />
@@ -601,7 +601,7 @@ export default function AdminGymManagement() {
       </div>
 
       {/* 岩館列表 */}
-      <div className="bg-white rounded-xl shadow-sm border border-wb-20 overflow-hidden">
+      <div className="bg-white rounded-lg shadow-sm border border-wb-20 overflow-hidden">
         {loading ? (
           <div className="flex items-center justify-center py-12">
             <Loader2 className="h-8 w-8 animate-spin text-wb-50" />
@@ -772,7 +772,7 @@ export default function AdminGymManagement() {
       </div>
 
       {/* 說明 */}
-      <div className="bg-blue-50 border border-blue-200 rounded-xl p-4">
+      <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
         <h3 className="text-sm font-medium text-blue-800 mb-2">管理說明</h3>
         <ul className="text-sm text-blue-700 space-y-1">
           <li>- 點擊「新增岩館」按鈕可建立新的岩館資料</li>
@@ -799,7 +799,7 @@ function StatCard({
   loading?: boolean
 }) {
   return (
-    <div className="bg-white rounded-xl shadow-sm border border-wb-20 p-4">
+    <div className="bg-white rounded-lg shadow-sm border border-wb-20 p-4">
       <div className="flex items-center gap-3">
         <div className="p-2 bg-wb-10 rounded-lg">
           <Icon className="h-5 w-5 text-wb-100" />

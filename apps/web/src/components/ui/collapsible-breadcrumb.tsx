@@ -42,7 +42,7 @@ export function CollapsibleBreadcrumb({ items, className }: CollapsibleBreadcrum
         <button
           onClick={() => setIsExpanded(!isExpanded)}
           className={cn(
-            'flex items-center gap-1.5 rounded-md px-2.5 py-1.5 text-sm text-gray-500 transition-colors hover:bg-gray-100 hover:text-gray-700',
+            'flex items-center gap-1.5 rounded-lg px-2.5 py-1.5 text-sm text-gray-500 transition-colors hover:bg-gray-100 hover:text-gray-700',
             isExpanded && 'bg-gray-100'
           )}
           aria-expanded={isExpanded}

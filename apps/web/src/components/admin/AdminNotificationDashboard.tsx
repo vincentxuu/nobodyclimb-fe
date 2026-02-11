@@ -128,7 +128,7 @@ export default function AdminNotificationDashboard() {
 
       {/* 總覽統計卡片 */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-        <div className="bg-white rounded-xl shadow-sm border border-wb-20 p-6">
+        <div className="bg-white rounded-lg shadow-sm border border-wb-20 p-6">
           <div className="flex items-center gap-3">
             <div className="p-3 bg-brand-yellow-100/10 rounded-lg">
               <Bell className="h-6 w-6 text-brand-yellow-200" />
@@ -140,7 +140,7 @@ export default function AdminNotificationDashboard() {
           </div>
         </div>
 
-        <div className="bg-white rounded-xl shadow-sm border border-wb-20 p-6">
+        <div className="bg-white rounded-lg shadow-sm border border-wb-20 p-6">
           <div className="flex items-center gap-3">
             <div className="p-3 bg-brand-red-100/10 rounded-lg">
               <AlertCircle className="h-6 w-6 text-brand-red-100" />
@@ -152,7 +152,7 @@ export default function AdminNotificationDashboard() {
           </div>
         </div>
 
-        <div className="bg-white rounded-xl shadow-sm border border-wb-20 p-6">
+        <div className="bg-white rounded-lg shadow-sm border border-wb-20 p-6">
           <div className="flex items-center gap-3">
             <div className="p-3 bg-wb-90/5 rounded-lg">
               <Users className="h-6 w-6 text-wb-90" />
@@ -166,7 +166,7 @@ export default function AdminNotificationDashboard() {
           </div>
         </div>
 
-        <div className="bg-white rounded-xl shadow-sm border border-wb-20 p-6">
+        <div className="bg-white rounded-lg shadow-sm border border-wb-20 p-6">
           <div className="flex items-center gap-3">
             <div className="p-3 bg-brand-yellow-100/10 rounded-lg">
               <TrendingUp className="h-6 w-6 text-brand-yellow-200" />
@@ -182,7 +182,7 @@ export default function AdminNotificationDashboard() {
       {/* 詳細統計區塊 */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* 按類型統計 */}
-        <div className="bg-white rounded-xl shadow-sm border border-wb-20 p-6">
+        <div className="bg-white rounded-lg shadow-sm border border-wb-20 p-6">
           <div className="flex items-center gap-2 mb-4">
             <BarChart3 className="h-5 w-5 text-wb-60" />
             <h3 className="font-semibold text-wb-100">按類型統計</h3>
@@ -214,7 +214,7 @@ export default function AdminNotificationDashboard() {
         </div>
 
         {/* 每小時趨勢 */}
-        <div className="bg-white rounded-xl shadow-sm border border-wb-20 p-6">
+        <div className="bg-white rounded-lg shadow-sm border border-wb-20 p-6">
           <div className="flex items-center justify-between mb-4">
             <div className="flex items-center gap-2">
               <Clock className="h-5 w-5 text-wb-60" />
@@ -256,7 +256,7 @@ export default function AdminNotificationDashboard() {
       </div>
 
       {/* 通知最多的用戶 */}
-      <div className="bg-white rounded-xl shadow-sm border border-wb-20 p-6">
+      <div className="bg-white rounded-lg shadow-sm border border-wb-20 p-6">
         <div className="flex items-center gap-2 mb-4">
           <User className="h-5 w-5 text-wb-60" />
           <h3 className="font-semibold text-wb-100">通知最多的用戶 (前 10 名)</h3>

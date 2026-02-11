@@ -458,7 +458,7 @@ export default function ProfileEditorVersionC({ onBack, onComplete }: ProfileEdi
             </div>
 
             {/* 步驟內容 */}
-            <div className="rounded-2xl bg-white p-6 shadow-sm">
+            <div className="rounded-lg bg-white p-6 shadow-sm">
               {currentStepData.component}
             </div>
           </motion.div>

@@ -173,7 +173,7 @@ export default function AdminUserManagement() {
       {/* 統計卡片 */}
       {stats && (
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-          <div className="bg-white rounded-xl shadow-sm border border-wb-20 p-5">
+          <div className="bg-white rounded-lg shadow-sm border border-wb-20 p-5">
             <div className="flex items-center gap-3">
               <div className="p-3 bg-brand-yellow-100/10 rounded-lg">
                 <Users className="h-5 w-5 text-brand-yellow-200" />
@@ -184,7 +184,7 @@ export default function AdminUserManagement() {
               </div>
             </div>
           </div>
-          <div className="bg-white rounded-xl shadow-sm border border-wb-20 p-5">
+          <div className="bg-white rounded-lg shadow-sm border border-wb-20 p-5">
             <div className="flex items-center gap-3">
               <div className="p-3 bg-wb-90/10 rounded-lg">
                 <UserCheck className="h-5 w-5 text-wb-90" />
@@ -195,7 +195,7 @@ export default function AdminUserManagement() {
               </div>
             </div>
           </div>
-          <div className="bg-white rounded-xl shadow-sm border border-wb-20 p-5">
+          <div className="bg-white rounded-lg shadow-sm border border-wb-20 p-5">
             <div className="flex items-center gap-3">
               <div className="p-3 bg-brand-yellow-200/10 rounded-lg">
                 <TrendingUp className="h-5 w-5 text-brand-yellow-200" />
@@ -206,7 +206,7 @@ export default function AdminUserManagement() {
               </div>
             </div>
           </div>
-          <div className="bg-white rounded-xl shadow-sm border border-wb-20 p-5">
+          <div className="bg-white rounded-lg shadow-sm border border-wb-20 p-5">
             <div className="flex items-center gap-3">
               <div className="p-3 bg-brand-yellow-100/10 rounded-lg">
                 <Calendar className="h-5 w-5 text-brand-yellow-200" />
@@ -221,7 +221,7 @@ export default function AdminUserManagement() {
       )}
 
       {/* 搜尋和篩選 */}
-      <div className="bg-white rounded-xl shadow-sm border border-wb-20 p-4">
+      <div className="bg-white rounded-lg shadow-sm border border-wb-20 p-4">
         <form onSubmit={handleSearch} className="flex flex-col md:flex-row gap-4">
           <div className="flex-1 relative">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-wb-60" />
@@ -268,7 +268,7 @@ export default function AdminUserManagement() {
       </div>
 
       {/* 用戶列表 */}
-      <div className="bg-white rounded-xl shadow-sm border border-wb-20 overflow-hidden">
+      <div className="bg-white rounded-lg shadow-sm border border-wb-20 overflow-hidden">
         <div className="overflow-x-auto">
           <table className="w-full">
             <thead>

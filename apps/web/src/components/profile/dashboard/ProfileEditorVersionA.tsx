@@ -424,7 +424,7 @@ export default function ProfileEditorVersionA({ onBack }: ProfileEditorVersionAP
               animate={{ opacity: 1, x: 0 }}
               exit={{ opacity: 0, x: -20 }}
               transition={{ duration: 0.2 }}
-              className="rounded-xl bg-white p-6 shadow-sm"
+              className="rounded-lg bg-white p-6 shadow-sm"
             >
               <div className="mb-6">
                 <h2 className="text-lg font-semibold text-gray-900">

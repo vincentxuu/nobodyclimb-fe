@@ -78,7 +78,7 @@ export function StoryEditModal({
       {/* Modal */}
       <div
         className={cn(
-          'relative bg-white w-full md:max-w-2xl md:rounded-2xl rounded-t-2xl max-h-[90vh] flex flex-col',
+          'relative bg-white w-full md:max-w-2xl md:rounded-lg rounded-t-2xl max-h-[90vh] flex flex-col',
           className
         )}
       >
@@ -97,7 +97,7 @@ export function StoryEditModal({
         {/* Content */}
         <div className="flex-1 overflow-y-auto p-4 space-y-4">
           {/* Question */}
-          <div className="bg-[#F5F5F5] rounded-xl p-4">
+          <div className="bg-[#F5F5F5] rounded-lg p-4">
             <p className="font-medium text-[#1B1A1A]">{question.title}</p>
             {question.subtitle && (
               <p className="text-sm text-[#6D6C6C] mt-2 flex items-start gap-1">
@@ -113,7 +113,7 @@ export function StoryEditModal({
               value={content}
               onChange={(e) => setContent(e.target.value)}
               placeholder="寫下你的故事..."
-              className="w-full h-64 px-4 py-3 bg-white border border-[#B6B3B3] rounded-xl resize-none focus:outline-none focus:ring-2 focus:ring-brand-accent/50 focus:border-brand-dark transition-colors text-[#1B1A1A] placeholder:text-[#9D9D9D]"
+              className="w-full h-64 px-4 py-3 bg-white border border-[#B6B3B3] rounded-lg resize-none focus:outline-none focus:ring-2 focus:ring-brand-accent/50 focus:border-brand-dark transition-colors text-[#1B1A1A] placeholder:text-[#9D9D9D]"
               maxLength={5000}
             />
             <div className="flex justify-between items-center">
@@ -133,7 +133,7 @@ export function StoryEditModal({
           </div>
 
           {/* Tips */}
-          <div className="bg-brand-accent/10 rounded-xl p-4">
+          <div className="bg-brand-accent/10 rounded-lg p-4">
             <p className="text-sm text-[#3F3D3D]">
               <span className="font-medium">寫作小提示：</span>
               不用追求完美，想到什麼就寫什麼。你隨時可以回來修改。
@@ -146,7 +146,7 @@ export function StoryEditModal({
           <button
             type="button"
             onClick={onClose}
-            className="flex-1 px-4 py-3 border border-[#B6B3B3] text-[#3F3D3D] rounded-xl font-medium hover:bg-[#F5F5F5] transition-colors"
+            className="flex-1 px-4 py-3 border border-[#B6B3B3] text-[#3F3D3D] rounded-lg font-medium hover:bg-[#F5F5F5] transition-colors"
           >
             取消
           </button>
@@ -155,7 +155,7 @@ export function StoryEditModal({
             onClick={handleSave}
             disabled={!content.trim() || isSaving || !hasChanges}
             className={cn(
-              'flex-1 px-4 py-3 rounded-xl font-medium transition-colors flex items-center justify-center gap-2',
+              'flex-1 px-4 py-3 rounded-lg font-medium transition-colors flex items-center justify-center gap-2',
               content.trim() && hasChanges
                 ? 'bg-brand-dark text-white hover:bg-brand-dark-hover'
                 : 'bg-[#EBEAEA] text-[#B6B3B3] cursor-not-allowed'

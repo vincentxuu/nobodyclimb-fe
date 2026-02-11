@@ -62,7 +62,7 @@ export default function LayoutSelector({
             onClick={() => onChange(layout.value)}
             disabled={disabled}
             className={`
-              flex flex-col items-center gap-1 rounded-md px-3 py-2 transition-colors
+              flex flex-col items-center gap-1 rounded-lg px-3 py-2 transition-colors
               ${
                 value === layout.value
                   ? 'bg-primary text-white'

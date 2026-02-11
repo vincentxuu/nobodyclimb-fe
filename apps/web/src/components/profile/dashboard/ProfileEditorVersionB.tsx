@@ -142,7 +142,7 @@ const EditableText = React.memo(function EditableText({
   return (
     <button
       onClick={() => onStartEdit(field, value)}
-      className={`group flex w-full items-center gap-2 rounded-md px-2 py-1 text-left transition-colors hover:bg-brand-light ${className}`}
+      className={`group flex w-full items-center gap-2 rounded-lg px-2 py-1 text-left transition-colors hover:bg-brand-light ${className}`}
       aria-label={`編輯${placeholder}`}
     >
       <span className={value ? 'text-brand-dark' : 'text-subtle'}>
@@ -628,7 +628,7 @@ export default function ProfileEditorVersionB({ onBack }: ProfileEditorVersionBP
         </section>
 
         {/* 攀岩資訊卡片 */}
-        <section className="mb-8 rounded-xl border border-subtle bg-white p-6 shadow-sm">
+        <section className="mb-8 rounded-lg border border-subtle bg-white p-6 shadow-sm">
           <div className="mb-4 flex items-center gap-2">
             <Gauge className="h-5 w-5 text-brand-dark" />
             <h2 className="font-semibold text-brand-dark">攀岩資訊</h2>
@@ -671,7 +671,7 @@ export default function ProfileEditorVersionB({ onBack }: ProfileEditorVersionBP
         </section>
 
         {/* 社群連結卡片 */}
-        <section className="mb-8 rounded-xl border border-subtle bg-white p-6 shadow-sm">
+        <section className="mb-8 rounded-lg border border-subtle bg-white p-6 shadow-sm">
           <div className="mb-4 flex items-center gap-2">
             <Link2 className="h-5 w-5 text-brand-dark" />
             <h2 className="font-semibold text-brand-dark">社群連結</h2>
@@ -729,7 +729,7 @@ export default function ProfileEditorVersionB({ onBack }: ProfileEditorVersionBP
         </section>
 
         {/* 攀岩足跡區塊 */}
-        <section className="mb-8 rounded-xl border border-subtle bg-white p-6 shadow-sm">
+        <section className="mb-8 rounded-lg border border-subtle bg-white p-6 shadow-sm">
           <div className="mb-4 flex items-center gap-2">
             <MapPin className="h-5 w-5 text-brand-dark" />
             <h2 className="font-semibold text-brand-dark">攀岩足跡</h2>
@@ -738,7 +738,7 @@ export default function ProfileEditorVersionB({ onBack }: ProfileEditorVersionBP
         </section>
 
         {/* 故事區塊 - 全部合併 */}
-        <section className="mb-8 rounded-xl border border-subtle bg-white p-6 shadow-sm">
+        <section className="mb-8 rounded-lg border border-subtle bg-white p-6 shadow-sm">
           <div className="mb-4 flex items-center justify-between">
             <div className="flex items-center gap-2">
               <BookOpen className="h-5 w-5 text-brand-dark" />
@@ -842,7 +842,7 @@ export default function ProfileEditorVersionB({ onBack }: ProfileEditorVersionBP
         </section>
 
         {/* 公開設定 */}
-        <section className="mb-8 rounded-xl border border-subtle bg-white p-6 shadow-sm">
+        <section className="mb-8 rounded-lg border border-subtle bg-white p-6 shadow-sm">
           <div className="flex items-center justify-between gap-4">
             <div className="flex min-w-0 flex-1 items-center gap-2">
               <Globe className="h-5 w-5 flex-shrink-0 text-brand-dark" />

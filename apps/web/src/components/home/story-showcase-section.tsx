@@ -71,7 +71,7 @@ export function StoryShowcaseSection() {
             <>
               {/* 精選故事引言 */}
               {data?.featuredStory && (
-                <div className="mb-8 rounded-xl bg-[#F5F4F4] p-6 md:p-8">
+                <div className="mb-8 rounded-lg bg-[#F5F4F4] p-6 md:p-8">
                   <blockquote className="mb-4 text-lg leading-relaxed text-[#1B1A1A] md:text-xl">
                     「{data.featuredStory.content}」
                   </blockquote>

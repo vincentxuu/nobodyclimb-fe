@@ -65,7 +65,7 @@ export function PrivateEmptyState({ className }: PrivateEmptyStateProps) {
       </div>
 
       {/* 底部提示 */}
-      <div className="mt-12 p-4 bg-brand-accent/10 rounded-xl max-w-sm">
+      <div className="mt-12 p-4 bg-brand-accent/10 rounded-lg max-w-sm">
         <p className="text-sm text-[#3F3D3D]">
           想建立自己的人物誌嗎？記錄攀岩故事，與社群分享你的經歷。
         </p>

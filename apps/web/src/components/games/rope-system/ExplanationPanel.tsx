@@ -36,7 +36,7 @@ export function ExplanationPanel({
           exit={{ opacity: 0, y: -20 }}
           transition={{ duration: 0.3 }}
           className={cn(
-            'rounded-xl border bg-white p-6 shadow-lg',
+            'rounded-lg border bg-white p-6 shadow-lg',
             isCorrect ? 'border-[#22C55E]' : 'border-[#EF4444]',
             className
           )}

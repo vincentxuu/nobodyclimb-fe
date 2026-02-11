@@ -187,7 +187,7 @@ export default function AdminContentManagement() {
         {contentCategories.map((category) => (
           <div
             key={category.id}
-            className="bg-white rounded-xl shadow-sm border border-wb-20 p-4"
+            className="bg-white rounded-lg shadow-sm border border-wb-20 p-4"
           >
             <div className="flex items-center gap-3">
               <div className={`p-2.5 ${category.color} rounded-lg`}>
@@ -209,7 +209,7 @@ export default function AdminContentManagement() {
         {contentCategories.map((category) => (
           <div
             key={category.id}
-            className="bg-white rounded-xl shadow-sm border border-wb-20 overflow-hidden hover:shadow-md transition-shadow"
+            className="bg-white rounded-lg shadow-sm border border-wb-20 overflow-hidden hover:shadow-md transition-shadow"
           >
             <div className="p-6">
               <div className="flex items-start justify-between mb-4">
@@ -266,7 +266,7 @@ export default function AdminContentManagement() {
       </div>
 
       {/* 管理提示 */}
-      <div className="bg-brand-yellow-100/10 border border-brand-yellow-100/30 rounded-xl p-6">
+      <div className="bg-brand-yellow-100/10 border border-brand-yellow-100/30 rounded-lg p-6">
         <h3 className="font-semibold text-wb-100 mb-2">內容管理說明</h3>
         <ul className="text-sm text-wb-70 space-y-1">
           <li>• 岩場、岩館、影片的新增和編輯需要 Admin 權限</li>

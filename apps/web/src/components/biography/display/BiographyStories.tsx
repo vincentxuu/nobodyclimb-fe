@@ -138,7 +138,7 @@ export function BiographyStories({
               whileInView={{ opacity: 1, x: 0 }}
               viewport={{ once: true, margin: '-50px' }}
               transition={{ delay: index * 0.05 }}
-              className="w-80 flex-shrink-0 snap-start rounded-xl bg-white p-6 shadow-sm border border-[#EBEAEA] flex flex-col"
+              className="w-80 flex-shrink-0 snap-start rounded-lg bg-white p-6 shadow-sm border border-[#EBEAEA] flex flex-col"
             >
               {/* 分類標籤 */}
               <div className={cn(

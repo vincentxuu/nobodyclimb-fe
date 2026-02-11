@@ -78,7 +78,7 @@ export function SocialLinksEditorSection({
               }
             }}
             placeholder="your_username"
-            className="flex-1 min-w-0 px-4 py-3 bg-white border border-[#B6B3B3] rounded-xl text-[#1B1A1A] placeholder:text-[#9D9D9D] focus:outline-none focus:ring-2 focus:ring-brand-accent/50 focus:border-brand-dark transition-colors"
+            className="flex-1 min-w-0 px-4 py-3 bg-white border border-[#B6B3B3] rounded-lg text-[#1B1A1A] placeholder:text-[#9D9D9D] focus:outline-none focus:ring-2 focus:ring-brand-accent/50 focus:border-brand-dark transition-colors"
             maxLength={50}
           />
         </div>
@@ -103,7 +103,7 @@ export function SocialLinksEditorSection({
             }
           }}
           placeholder="頻道 ID 或網址"
-          className="w-full px-4 py-3 bg-white border border-[#B6B3B3] rounded-xl text-[#1B1A1A] placeholder:text-[#9D9D9D] focus:outline-none focus:ring-2 focus:ring-brand-accent/50 focus:border-brand-dark transition-colors"
+          className="w-full px-4 py-3 bg-white border border-[#B6B3B3] rounded-lg text-[#1B1A1A] placeholder:text-[#9D9D9D] focus:outline-none focus:ring-2 focus:ring-brand-accent/50 focus:border-brand-dark transition-colors"
           maxLength={100}
         />
         <p className="text-xs text-[#8E8C8C]">輸入你的 YouTube 頻道 ID 或網址</p>
@@ -121,7 +121,7 @@ export function SocialLinksEditorSection({
           value={socialLinks.website || ''}
           onChange={(e) => handleChange('website', e.target.value)}
           placeholder="https://your-website.com"
-          className="w-full px-4 py-3 bg-white border border-[#B6B3B3] rounded-xl text-[#1B1A1A] placeholder:text-[#9D9D9D] focus:outline-none focus:ring-2 focus:ring-brand-accent/50 focus:border-brand-dark transition-colors"
+          className="w-full px-4 py-3 bg-white border border-[#B6B3B3] rounded-lg text-[#1B1A1A] placeholder:text-[#9D9D9D] focus:outline-none focus:ring-2 focus:ring-brand-accent/50 focus:border-brand-dark transition-colors"
           maxLength={200}
         />
         <p className="text-xs text-[#8E8C8C]">你的個人網站或部落格</p>
