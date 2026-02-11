@@ -75,6 +75,10 @@ const featuredQuerySchema = z.object({
   limit: z.string().optional(),
 });
 
+const featuredRoutesQuerySchema = z.object({
+  limit: z.string().optional(),
+});
+
 // GET /crags - List all crags
 cragsRoutes.get(
   '/',
@@ -197,6 +201,139 @@ cragsRoutes.get(
   });
 });
 
+// GET /routes/featured - Get featured routes across all crags
+cragsRoutes.get(
+  '/routes/featured',
+  describeRoute({
+    tags: ['Routes'],
+    summary: '取得熱門路線',
+    description: '取得熱門路線列表，按攀登次數和故事數量排序，從不同岩場輪流選取確保多樣性',
+    responses: {
+      200: { description: '成功取得熱門路線列表' },
+    },
+  }),
+  validator('query', featuredRoutesQuerySchema),
+  async (c) => {
+    const limit = parseInt(c.req.query('limit') || '8', 10);
+
+    // 獲取所有路線，包含岩場和區域資訊，按攀登次數和故事數量排序
+    const routes = await c.env.DB.prepare(
+      `SELECT
+        r.id,
+        r.name,
+        r.name_en,
+        r.grade,
+        r.route_type,
+        r.height,
+        r.bolt_count,
+        r.description,
+        r.youtube_videos,
+        r.ascent_count,
+        r.story_count,
+        r.crag_id,
+        c.name as crag_name,
+        r.area_id,
+        a.name as area_name
+      FROM routes r
+      JOIN crags c ON r.crag_id = c.id
+      LEFT JOIN areas a ON r.area_id = a.id
+      ORDER BY
+        (COALESCE(r.ascent_count, 0) + COALESCE(r.story_count, 0)) DESC,
+        r.created_at DESC
+      LIMIT ?`
+    )
+      .bind(limit * 3) // 取多一些以便從不同岩場輪流選取
+      .all<{
+        id: string;
+        name: string;
+        name_en: string | null;
+        grade: string;
+        route_type: string;
+        height: string | null;
+        bolt_count: number;
+        description: string | null;
+        youtube_videos: string | null;
+        ascent_count: number | null;
+        story_count: number | null;
+        crag_id: string;
+        crag_name: string;
+        area_id: string | null;
+        area_name: string | null;
+      }>();
+
+    // 從不同岩場輪流選取，確保多樣性
+    const routesByCrag = new Map<string, typeof routes.results>();
+    for (const route of routes.results) {
+      const list = routesByCrag.get(route.crag_id) || [];
+      list.push(route);
+      routesByCrag.set(route.crag_id, list);
+    }
+
+    const result: typeof routes.results = [];
+    const cragIds = Array.from(routesByCrag.keys());
+    const indices = new Map<string, number>(cragIds.map(id => [id, 0]));
+
+    while (result.length < limit) {
+      let added = false;
+      for (const cragId of cragIds) {
+        if (result.length >= limit) break;
+        const cragRoutes = routesByCrag.get(cragId)!;
+        const idx = indices.get(cragId)!;
+        if (idx < cragRoutes.length) {
+          result.push(cragRoutes[idx]);
+          indices.set(cragId, idx + 1);
+          added = true;
+        }
+      }
+      if (!added) break;
+    }
+
+    // 解析 youtube_videos JSON 並取得縮圖
+    const data = result.map(route => {
+      let youtubeThumbnail: string | undefined;
+      if (route.youtube_videos) {
+        try {
+          const videos = JSON.parse(route.youtube_videos) as string[];
+          if (videos.length > 0) {
+            // 從 YouTube URL 提取影片 ID
+            const url = videos[0];
+            const vMatch = url.match(/[?&]v=([a-zA-Z0-9_-]{11})/);
+            const shortMatch = url.match(/youtu\.be\/([a-zA-Z0-9_-]{11})/);
+            const videoId = vMatch?.[1] || shortMatch?.[1];
+            if (videoId) {
+              youtubeThumbnail = `https://img.youtube.com/vi/${videoId}/mqdefault.jpg`;
+            }
+          }
+        } catch {
+          // ignore JSON parse errors
+        }
+      }
+
+      return {
+        id: route.id,
+        name: route.name,
+        nameEn: route.name_en || '',
+        grade: route.grade,
+        type: route.route_type,
+        length: route.height || undefined,
+        boltCount: route.bolt_count,
+        cragId: route.crag_id,
+        cragName: route.crag_name,
+        areaId: route.area_id || undefined,
+        areaName: route.area_name || undefined,
+        youtubeThumbnail,
+        ascentCount: route.ascent_count || 0,
+        storyCount: route.story_count || 0,
+      };
+    });
+
+    return c.json({
+      success: true,
+      data,
+    });
+  }
+);
+
 // GET /crags/:id - Get crag by ID
 cragsRoutes.get(
   '/:id',
@@ -291,7 +428,7 @@ cragsRoutes.get(
   describeRoute({
     tags: ['Crags'],
     summary: '取得岩場的路線列表',
-    description: '根據岩場 ID 取得該岩場的所有攀岩路線',
+    description: '根據岩場 ID 取得該岩場的所有攀岩路線，包含關聯影片資訊',
     responses: {
       200: { description: '成功取得路線列表' },
     },
@@ -300,15 +437,68 @@ cragsRoutes.get(
   async (c) => {
   const cragId = c.req.param('id');
 
+  // 取得路線列表
   const routes = await c.env.DB.prepare(
     'SELECT * FROM routes WHERE crag_id = ? ORDER BY grade ASC'
   )
     .bind(cragId)
     .all();
 
+  if (routes.results.length === 0) {
+    return c.json({
+      success: true,
+      data: [],
+    });
+  }
+
+  // 透過 crag_id JOIN 查詢路線關聯的影片，避免 IN 子句的變數限制
+  const routeVideos = await c.env.DB.prepare(
+    `SELECT rv.route_id, v.id, v.title, v.youtube_id, v.thumbnail_url, v.duration, v.channel, v.channel_id, v.published_at
+     FROM route_videos rv
+     JOIN videos v ON rv.video_id = v.id
+     JOIN routes r ON rv.route_id = r.id
+     WHERE r.crag_id = ?
+     ORDER BY v.published_at DESC NULLS LAST`
+  )
+    .bind(cragId)
+    .all<{
+      route_id: string;
+      id: string;
+      title: string;
+      youtube_id: string | null;
+      thumbnail_url: string | null;
+      duration: number | null;
+      channel: string | null;
+      channel_id: string | null;
+      published_at: string | null;
+    }>();
+
+  // 建立路線 ID 到影片陣列的映射
+  const videosByRoute = new Map<string, typeof routeVideos.results>();
+  for (const rv of routeVideos.results) {
+    const list = videosByRoute.get(rv.route_id) || [];
+    list.push(rv);
+    videosByRoute.set(rv.route_id, list);
+  }
+
+  // 組合路線與影片資料
+  const data = routes.results.map((route: { id: string }) => ({
+    ...route,
+    videos: (videosByRoute.get(route.id) || []).map(v => ({
+      id: v.id,
+      title: v.title,
+      youtubeId: v.youtube_id,
+      thumbnailUrl: v.thumbnail_url,
+      duration: v.duration,
+      channel: v.channel,
+      channelId: v.channel_id,
+      publishedAt: v.published_at,
+    })),
+  }));
+
   return c.json({
     success: true,
-    data: routes.results,
+    data,
   });
 });
 

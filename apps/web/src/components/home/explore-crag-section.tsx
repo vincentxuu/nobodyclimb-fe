@@ -7,7 +7,7 @@ import { motion, AnimatePresence } from 'framer-motion'
 import { MapPin, ChevronDown, ChevronRight } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { CragCoverGenerator } from '@/components/shared/CragCoverGenerator'
-import { useCrags } from '@/hooks/api/useCrags'
+import { useCrags, useFeaturedRoutes, type FeaturedRouteItem } from '@/hooks/api/useCrags'
 import type { CragListItem } from '@/lib/crag-data'
 
 // 台灣地圖上的岩場標記位置（百分比，基於 taiwan.svg 437x555）
@@ -334,6 +334,9 @@ function ExpandableMap({ crags }: { crags: CragListItem[] }) {
 export function ExploreCragSection() {
   const { data } = useCrags({ limit: 5 })
   const crags = data?.crags || []
+
+  // 獲取熱門路線
+  const { data: featuredRoutes = [] } = useFeaturedRoutes(8)
 
   if (crags.length === 0) {
     return null

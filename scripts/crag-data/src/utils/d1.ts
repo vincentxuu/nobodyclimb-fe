@@ -444,3 +444,160 @@ export function deleteCrag(id: string): void {
 export function deleteRoute(id: string): void {
   executeD1Query(`DELETE FROM routes WHERE id = ${escapeSQL(id)}`);
 }
+
+// ============================================
+// Video CRUD
+// ============================================
+
+export interface VideoMetadata {
+  id: string; // YouTube video ID
+  title: string;
+  channel: string;
+  channelId: string;
+  uploadDate: string;
+  duration: number;
+  viewCount: number;
+  thumbnailUrl: string;
+}
+
+export function upsertVideo(video: VideoMetadata): void {
+  const slug = `yt-${video.id}`;
+
+  const sql = `
+    INSERT INTO videos (
+      id, title, slug, youtube_id, thumbnail_url, duration,
+      channel, channel_id, published_at, view_count, created_at, updated_at
+    ) VALUES (
+      ${escapeSQL(video.id)}, ${escapeSQL(video.title)}, ${escapeSQL(slug)},
+      ${escapeSQL(video.id)}, ${escapeSQL(video.thumbnailUrl)}, ${escapeSQL(video.duration)},
+      ${escapeSQL(video.channel)}, ${escapeSQL(video.channelId)},
+      ${escapeSQL(video.uploadDate)}, ${escapeSQL(video.viewCount)},
+      datetime('now'), datetime('now')
+    )
+    ON CONFLICT(id) DO UPDATE SET
+      title = excluded.title,
+      thumbnail_url = excluded.thumbnail_url,
+      duration = excluded.duration,
+      channel = excluded.channel,
+      channel_id = excluded.channel_id,
+      published_at = excluded.published_at,
+      view_count = excluded.view_count,
+      updated_at = datetime('now')
+  `.replace(/\n/g, ' ');
+
+  executeD1Query(sql);
+}
+
+/**
+ * 批量插入影片
+ */
+export function buildVideoSQL(video: VideoMetadata): string {
+  const slug = `yt-${video.id}`;
+
+  return `
+    INSERT INTO videos (
+      id, title, slug, youtube_id, thumbnail_url, duration,
+      channel, channel_id, published_at, view_count, created_at, updated_at
+    ) VALUES (
+      ${escapeSQL(video.id)}, ${escapeSQL(video.title)}, ${escapeSQL(slug)},
+      ${escapeSQL(video.id)}, ${escapeSQL(video.thumbnailUrl)}, ${escapeSQL(video.duration)},
+      ${escapeSQL(video.channel)}, ${escapeSQL(video.channelId)},
+      ${escapeSQL(video.uploadDate)}, ${escapeSQL(video.viewCount)},
+      datetime('now'), datetime('now')
+    )
+    ON CONFLICT(id) DO UPDATE SET
+      title = excluded.title,
+      thumbnail_url = excluded.thumbnail_url,
+      duration = excluded.duration,
+      channel = excluded.channel,
+      channel_id = excluded.channel_id,
+      published_at = excluded.published_at,
+      view_count = excluded.view_count,
+      updated_at = datetime('now')
+  `.replace(/\n/g, ' ').trim();
+}
+
+// ============================================
+// Route Videos (Many-to-Many)
+// ============================================
+
+export function buildRouteVideoSQL(
+  routeId: string,
+  videoId: string,
+  sortOrder: number
+): string {
+  const id = `${routeId}-${videoId}`;
+
+  return `
+    INSERT INTO route_videos (id, route_id, video_id, sort_order, created_at)
+    VALUES (${escapeSQL(id)}, ${escapeSQL(routeId)}, ${escapeSQL(videoId)}, ${escapeSQL(sortOrder)}, datetime('now'))
+    ON CONFLICT(route_id, video_id) DO UPDATE SET sort_order = excluded.sort_order
+  `.replace(/\n/g, ' ').trim();
+}
+
+// ============================================
+// Extended Route Fields
+// ============================================
+
+export interface RouteExtendedFields {
+  nameEn?: string | null;
+  typeEn?: string | null;
+  firstAscentDate?: string | null;
+  firstAscentEn?: string | null;
+  safetyRating?: string | null;
+  status?: string | null;
+  sectorEn?: string | null;
+  tips?: string | null;
+  protection?: string | null;
+  anchorType?: string | null;
+}
+
+export function buildRouteExtendedSQL(
+  route: RouteSheetRow,
+  cragId: string,
+  areaId: string | null,
+  sectorId: string | null,
+  extended: RouteExtendedFields
+): string {
+  const uniqueId = `${Date.now()}-${Math.random().toString(36).slice(2, 9)}`;
+  const routeId = route.id || `${cragId}-route-${uniqueId}`;
+
+  return `
+    INSERT INTO routes (
+      id, crag_id, area_id, sector_id, name, name_en, grade, grade_system,
+      height, bolt_count, route_type, type_en, description, first_ascent,
+      first_ascent_date, first_ascent_en, safety_rating, status, sector_en,
+      tips, protection, anchor_type, created_at
+    ) VALUES (
+      ${escapeSQL(routeId)}, ${escapeSQL(cragId)}, ${escapeSQL(areaId)}, ${escapeSQL(sectorId)},
+      ${escapeSQL(route.name)}, ${escapeSQL(extended.nameEn)}, ${escapeSQL(route.grade)}, ${escapeSQL(route.gradeSystem || 'yds')},
+      ${escapeSQL(route.length)}, ${escapeSQL(route.boltCount)}, ${escapeSQL(route.routeType || 'sport')}, ${escapeSQL(extended.typeEn)},
+      ${escapeSQL(route.description)}, ${escapeSQL(route.firstAscent)},
+      ${escapeSQL(extended.firstAscentDate)}, ${escapeSQL(extended.firstAscentEn)}, ${escapeSQL(extended.safetyRating)},
+      ${escapeSQL(extended.status || 'published')}, ${escapeSQL(extended.sectorEn)},
+      ${escapeSQL(extended.tips)}, ${escapeSQL(extended.protection)}, ${escapeSQL(extended.anchorType)},
+      datetime('now')
+    )
+    ON CONFLICT(id) DO UPDATE SET
+      area_id = excluded.area_id,
+      sector_id = excluded.sector_id,
+      name = excluded.name,
+      name_en = excluded.name_en,
+      grade = excluded.grade,
+      grade_system = excluded.grade_system,
+      height = excluded.height,
+      bolt_count = excluded.bolt_count,
+      route_type = excluded.route_type,
+      type_en = excluded.type_en,
+      description = excluded.description,
+      first_ascent = excluded.first_ascent,
+      first_ascent_date = excluded.first_ascent_date,
+      first_ascent_en = excluded.first_ascent_en,
+      safety_rating = excluded.safety_rating,
+      status = excluded.status,
+      sector_en = excluded.sector_en,
+      tips = excluded.tips,
+      protection = excluded.protection,
+      anchor_type = excluded.anchor_type
+  `.replace(/\n/g, ' ').trim();
+}

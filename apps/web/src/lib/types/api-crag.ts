@@ -157,3 +157,31 @@ export interface ApiCragAreasResponse {
   success: boolean
   data: ApiArea[]
 }
+
+/**
+ * 熱門路線項目
+ */
+export interface ApiFeaturedRoute {
+  id: string
+  name: string
+  nameEn: string
+  grade: string
+  type: string
+  length?: string
+  boltCount: number
+  cragId: string
+  cragName: string
+  areaId?: string
+  areaName?: string
+  youtubeThumbnail?: string
+  ascentCount: number
+  storyCount: number
+}
+
+/**
+ * 熱門路線 API 回應
+ */
+export interface ApiFeaturedRoutesResponse {
+  success: boolean
+  data: ApiFeaturedRoute[]
+}

@@ -1,7 +1,6 @@
 import { MetadataRoute } from 'next'
 import { SITE_URL } from '@/lib/constants'
-import { fetchCrags } from '@/lib/api/server-fetch'
-import { getAllGyms } from '@/lib/gym-data'
+import { fetchCrags, fetchGyms } from '@/lib/api/server-fetch'
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   // 靜態頁面
@@ -65,11 +64,11 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     priority: 0.7,
   }))
 
-  // 動態頁面 - 岩館（從本地資料）
-  const gyms = getAllGyms()
-  const gymPages: MetadataRoute.Sitemap = gyms.map((gym) => ({
+  // 動態頁面 - 岩館（從 API 取得）
+  const apiGyms = await fetchGyms()
+  const gymPages: MetadataRoute.Sitemap = apiGyms.map((gym) => ({
     url: `${SITE_URL}/gym/${gym.id}`,
-    lastModified: new Date(),
+    lastModified: gym.updated_at ? new Date(gym.updated_at) : new Date(),
     changeFrequency: 'monthly',
     priority: 0.7,
   }))

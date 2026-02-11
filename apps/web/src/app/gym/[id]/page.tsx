@@ -1,6 +1,8 @@
 import type { Metadata } from 'next'
 import GymDetailClient from './GymDetailClient'
-import { getGymById, type GymDetailData } from '@/lib/gym-data'
+import { fetchGymById } from '@/lib/api/server-fetch'
+import { adaptGymToDetail } from '@/lib/adapters/gym-adapter'
+import type { GymDetailData } from '@/lib/gym-data'
 import { SITE_URL, SITE_NAME, OG_IMAGE } from '@/lib/constants'
 
 // 生成 LocalBusiness JSON-LD 結構化數據
@@ -84,7 +86,8 @@ export async function generateMetadata({
   params: Promise<{ id: string }>
 }): Promise<Metadata> {
   const { id } = await params
-  const gym = getGymById(id)
+  const apiGym = await fetchGymById(id)
+  const gym = apiGym ? adaptGymToDetail(apiGym) : null
 
   if (!gym) {
     return {
@@ -132,7 +135,8 @@ export default async function GymDetailPage({
   params: Promise<{ id: string }>
 }) {
   const { id } = await params
-  const gym = getGymById(id)
+  const apiGym = await fetchGymById(id)
+  const gym = apiGym ? adaptGymToDetail(apiGym) : null
 
   return (
     <>

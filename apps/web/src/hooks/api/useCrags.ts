@@ -78,6 +78,53 @@ export function useFeaturedCrags(limit?: number) {
 }
 
 /**
+ * 熱門路線項目格式
+ */
+export interface FeaturedRouteItem {
+  id: string
+  name: string
+  nameEn: string
+  grade: string
+  type: string
+  typeEn: string
+  length?: string
+  boltCount: number
+  cragId: string
+  cragName: string
+  areaName?: string
+  youtubeThumbnail?: string
+}
+
+/**
+ * 獲取熱門路線
+ */
+export function useFeaturedRoutes(limit = 8) {
+  return useQuery({
+    queryKey: ['routes', 'featured', limit],
+    queryFn: async (): Promise<FeaturedRouteItem[]> => {
+      const response = await cragService.getFeaturedRoutes(limit)
+      const apiRoutes = response.data || []
+      return apiRoutes.map(route => ({
+        id: route.id,
+        name: route.name,
+        nameEn: route.nameEn,
+        grade: route.grade,
+        type: route.type,
+        typeEn: route.type, // API 返回的 type 已經是英文
+        length: route.length,
+        boltCount: route.boltCount,
+        cragId: route.cragId,
+        cragName: route.cragName,
+        areaName: route.areaName,
+        youtubeThumbnail: route.youtubeThumbnail,
+      }))
+    },
+    staleTime: STALE_TIME,
+    gcTime: GC_TIME,
+  })
+}
+
+/**
  * 獲取岩場詳情
  */
 export function useCragDetail(id: string) {

@@ -46,6 +46,7 @@ import type {
   ApiCragDetailResponse,
   ApiCragRoutesResponse,
   ApiCragAreasResponse,
+  ApiFeaturedRoutesResponse,
 } from '@/lib/types/api-crag'
 import type {
   ApiGymListResponse,
@@ -1581,6 +1582,16 @@ export const cragService = {
    */
   getFeaturedCrags: async (): Promise<ApiCragListResponse> => {
     const response = await apiClient.get<ApiCragListResponse>('/crags/featured')
+    return response.data
+  },
+
+  /**
+   * 獲取熱門路線
+   */
+  getFeaturedRoutes: async (limit = 8): Promise<ApiFeaturedRoutesResponse> => {
+    const response = await apiClient.get<ApiFeaturedRoutesResponse>('/crags/routes/featured', {
+      params: { limit },
+    })
     return response.data
   },
 
