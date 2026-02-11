@@ -5,7 +5,6 @@ import { useParams } from 'next/navigation'
 import { RouteSidebar } from '@/components/crag/route-sidebar'
 import { RouteMobileDrawer } from '@/components/crag/route-mobile-drawer'
 import type { RouteSidebarItem } from '@/lib/crag-data'
-import { getSectorsForArea } from '@/lib/crag-data'
 import { useRouteFilterParams } from '@/lib/hooks/useRouteFilterParams'
 
 interface RouteLayoutClientProps {
@@ -38,11 +37,15 @@ function RouteLayoutContent({
     setSelectedType,
   } = useRouteFilterParams(routes)
 
-  // 根據選擇的區域獲取 sectors
+  // 根據選擇的區域從路線資料中計算 sectors
   const sectors = useMemo(() => {
     if (filterState.selectedArea === 'all') return []
-    return getSectorsForArea(cragId, filterState.selectedArea)
-  }, [cragId, filterState.selectedArea])
+    const sectorsSet = new Set<string>()
+    routes
+      .filter(route => route.areaId === filterState.selectedArea && route.sector)
+      .forEach(route => sectorsSet.add(route.sector!))
+    return Array.from(sectorsSet).map(sector => ({ id: sector, name: sector }))
+  }, [routes, filterState.selectedArea])
 
   return (
     <div className="lg:flex lg:h-[calc(100vh-70px)] lg:overflow-hidden">

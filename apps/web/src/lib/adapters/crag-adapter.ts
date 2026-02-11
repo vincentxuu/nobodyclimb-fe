@@ -4,7 +4,7 @@
  */
 
 import type { ApiCrag, ApiArea, ApiRoute } from '@/lib/types/api-crag'
-import type { CragListItem, CragDetailData, CragArea, RouteSidebarItem } from '@/lib/crag-data'
+import type { CragListItem, CragDetailData, CragArea, CragRoute, RouteSidebarItem, RouteDetailData, RouteSearchItem } from '@/lib/crag-data'
 
 // 岩場備用圖片（當實際圖片不存在時使用）
 const CRAG_FALLBACK_IMAGE = '/photo/climbspot-photo.jpeg'
@@ -232,5 +232,142 @@ export function adaptRouteToDetail(apiRoute: ApiRoute): AdaptedRouteDetail {
     youtubeVideos: parseJsonArray(apiRoute.youtube_videos ?? null),
     instagramPosts: parseJsonArray(apiRoute.instagram_posts ?? null),
     sector: apiRoute.sector_id || '',
+  }
+}
+
+// ============ JSON 欄位解析工具 ============
+
+function parseJsonArray(str: string | null | undefined): string[] {
+  if (!str) return []
+  try {
+    return JSON.parse(str)
+  } catch {
+    return []
+  }
+}
+
+// ============ 完整型別適配器（供 CreateAscentDialog 等使用） ============
+
+/**
+ * 將 API 區域資料轉換為完整前端格式（CragArea）
+ */
+export function adaptApiAreaToFullArea(apiArea: ApiArea): CragArea {
+  return {
+    id: apiArea.id,
+    name: apiArea.name,
+    nameEn: apiArea.name_en || '',
+    description: apiArea.description || undefined,
+    descriptionEn: apiArea.description_en || undefined,
+    difficulty: undefined,
+    image: apiArea.image || undefined,
+    boltCount: apiArea.bolt_count,
+    routesCount: apiArea.route_count,
+    sectors: [],
+  }
+}
+
+/**
+ * 將 API 路線資料轉換為完整前端格式（CragRoute）
+ */
+export function adaptApiRouteToCragRoute(apiRoute: ApiRoute): CragRoute {
+  return {
+    id: apiRoute.id,
+    areaId: apiRoute.area_id || '',
+    sector: apiRoute.sector_id || undefined,
+    name: apiRoute.name,
+    nameEn: apiRoute.name_en || '',
+    grade: apiRoute.grade,
+    type: apiRoute.route_type,
+    typeEn: apiRoute.route_type,
+    length: apiRoute.height || undefined,
+    firstAscent: apiRoute.first_ascent || undefined,
+    firstAscentDate: apiRoute.first_ascent_date || undefined,
+    description: apiRoute.description || undefined,
+    protection: apiRoute.protection || undefined,
+    tips: apiRoute.tips || undefined,
+    safetyRating: apiRoute.safety_rating || undefined,
+    boltCount: apiRoute.bolt_count,
+    anchorType: apiRoute.anchor_type || undefined,
+    popularity: apiRoute.popularity,
+    views: apiRoute.view_count,
+    images: parseJsonArray(apiRoute.images),
+    videos: parseJsonArray(apiRoute.videos),
+    youtubeVideos: parseJsonArray(apiRoute.youtube_videos),
+    instagramPosts: parseJsonArray(apiRoute.instagram_posts),
+    status: apiRoute.status || 'active',
+    lastUpdated: apiRoute.updated_at,
+  }
+}
+
+// ============ Server Component 用的組合函式 ============
+
+/**
+ * 從 API 資料組裝路線詳情頁所需的完整資料（RouteDetailData）
+ * 供 Server Component 的 metadata 與頁面渲染使用
+ */
+export function assembleRouteDetailData(
+  apiCrag: ApiCrag,
+  apiRoutes: ApiRoute[],
+  apiAreas: ApiArea[],
+  routeId: string
+): RouteDetailData | null {
+  const apiRoute = apiRoutes.find(r => r.id === routeId)
+  if (!apiRoute) return null
+
+  const apiArea = apiRoute.area_id
+    ? apiAreas.find(a => a.id === apiRoute.area_id)
+    : null
+
+  const relatedRoutes = apiRoutes
+    .filter(r => r.area_id === apiRoute.area_id && r.id !== routeId)
+    .slice(0, 5)
+    .map(r => ({
+      id: r.id,
+      name: r.name,
+      grade: r.grade,
+      type: r.route_type,
+    }))
+
+  const adapted = adaptRouteToDetail(apiRoute)
+
+  return {
+    route: adapted,
+    crag: {
+      id: apiCrag.id,
+      name: apiCrag.name,
+      nameEn: '',
+      slug: apiCrag.slug,
+      location: apiCrag.location || '',
+    },
+    area: apiArea ? {
+      id: apiArea.id,
+      name: apiArea.name,
+      nameEn: apiArea.name_en || '',
+    } : null,
+    relatedRoutes,
+  }
+}
+
+/**
+ * 從 API 資料組裝岩場 metadata 用的簡化資料
+ * 供 Server Component 的 generateMetadata 使用
+ */
+export function assembleCragMetadata(apiCrag: ApiCrag) {
+  return {
+    name: apiCrag.name,
+    englishName: '',
+    description: apiCrag.description || '',
+    location: apiCrag.location || '',
+    type: apiCrag.rock_type || '',
+    rockType: apiCrag.rock_type || '',
+    routes: apiCrag.route_count,
+    difficulty: apiCrag.difficulty_range || '',
+    height: apiCrag.height_min && apiCrag.height_max
+      ? `${apiCrag.height_min}-${apiCrag.height_max}m`
+      : '',
+    approach: apiCrag.approach_time ? `${apiCrag.approach_time} 分鐘` : '',
+    parking: apiCrag.parking_info || '',
+    amenities: apiCrag.amenities || [],
+    googleMapsUrl: apiCrag.google_maps_url || null,
   }
 }

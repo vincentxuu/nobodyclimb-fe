@@ -1,8 +1,25 @@
 import type { Metadata } from 'next'
 import { notFound } from 'next/navigation'
 import RouteDetailClient from './RouteDetailClient'
-import { getRouteDetailData, getAllRouteParams, type RouteDetailData } from '@/lib/crag-data'
+import { fetchCragById, fetchCragRoutes, fetchCragAreas } from '@/lib/api/server-fetch'
+import { assembleRouteDetailData } from '@/lib/adapters/crag-adapter'
+import type { RouteDetailData } from '@/lib/crag-data'
 import { SITE_URL, SITE_NAME, OG_IMAGE } from '@/lib/constants'
+
+/**
+ * 從 API 取得路線詳情資料（Server Component 用）
+ */
+async function getRouteData(cragId: string, routeId: string): Promise<RouteDetailData | null> {
+  const [apiCrag, apiRoutes, apiAreas] = await Promise.all([
+    fetchCragById(cragId),
+    fetchCragRoutes(cragId),
+    fetchCragAreas(cragId),
+  ])
+
+  if (!apiCrag) return null
+
+  return assembleRouteDetailData(apiCrag, apiRoutes, apiAreas, routeId)
+}
 
 // 生成 TouristAttraction JSON-LD 結構化數據
 function generateRouteJsonLd(data: RouteDetailData) {
@@ -117,11 +134,6 @@ function generateBreadcrumbJsonLd(data: RouteDetailData) {
   }
 }
 
-// 靜態頁面生成
-export async function generateStaticParams() {
-  return getAllRouteParams()
-}
-
 // 動態生成 metadata
 export async function generateMetadata({
   params,
@@ -129,7 +141,7 @@ export async function generateMetadata({
   params: Promise<{ id: string; routeId: string }>
 }): Promise<Metadata> {
   const { id, routeId } = await params
-  const data = getRouteDetailData(id, routeId)
+  const data = await getRouteData(id, routeId)
 
   if (!data) {
     return {
@@ -192,7 +204,7 @@ export default async function RouteDetailPage({
   params: Promise<{ id: string; routeId: string }>
 }) {
   const { id, routeId } = await params
-  const data = getRouteDetailData(id, routeId)
+  const data = await getRouteData(id, routeId)
 
   if (!data) {
     notFound()

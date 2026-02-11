@@ -1,8 +1,8 @@
 'use client'
 
-import React, { use } from 'react'
+import React, { use, useMemo } from 'react'
 import Link from 'next/link'
-import { ArrowLeft, MapPin, Mountain, Route as RouteIcon } from 'lucide-react'
+import { ArrowLeft, MapPin, Mountain, Route as RouteIcon, Loader2 } from 'lucide-react'
 import { motion } from 'framer-motion'
 import { Button } from '@/components/ui/button'
 import BackToTop from '@/components/ui/back-to-top'
@@ -10,7 +10,7 @@ import { Breadcrumb } from '@/components/ui/breadcrumb'
 import { CragRouteSection } from '@/components/crag/route-section'
 import { GradeDistributionChart } from '@/components/crag/grade-distribution-chart'
 import PlaceholderImage from '@/components/ui/placeholder-image'
-import { getAreaDetailData } from '@/lib/crag-data'
+import { useCragDetail, useCragFullAreas, useCragFullRoutes } from '@/hooks/api/useCrags'
 
 export default function AreaDetailPage({
   params,
@@ -19,8 +19,130 @@ export default function AreaDetailPage({
 }) {
   const { id: cragId, areaId } = use(params)
 
-  // 從資料服務層讀取區域資料
-  const areaData = getAreaDetailData(cragId, areaId)
+  // 從 API 獲取資料
+  const { data: cragDetail, isLoading: isCragLoading } = useCragDetail(cragId)
+  const { data: fullAreas = [], isLoading: isAreasLoading } = useCragFullAreas(cragId)
+  const { data: allRoutes = [], isLoading: isRoutesLoading } = useCragFullRoutes(cragId)
+
+  const isLoading = isCragLoading || isAreasLoading || isRoutesLoading
+
+  // 從 API 資料計算區域詳情
+  const areaData = useMemo(() => {
+    if (!cragDetail || fullAreas.length === 0) return null
+
+    const area = fullAreas.find(a => a.id === areaId)
+    if (!area) return null
+
+    const areaRoutes = allRoutes.filter(route => route.areaId === areaId)
+
+    // 計算難度範圍分組
+    const gradeRanges: Record<string, number> = {
+      '5.6-5.9': 0,
+      '5.10a-5.10d': 0,
+      '5.11a-5.11d': 0,
+      '5.12a-5.12d': 0,
+      '5.13a-5.13d': 0,
+      '5.14+': 0,
+    }
+
+    areaRoutes.forEach(route => {
+      const grade = route.grade
+      if (grade.startsWith('5.6') || grade.startsWith('5.7') || grade.startsWith('5.8') || grade.startsWith('5.9')) {
+        gradeRanges['5.6-5.9']++
+      } else if (grade.startsWith('5.10')) {
+        gradeRanges['5.10a-5.10d']++
+      } else if (grade.startsWith('5.11')) {
+        gradeRanges['5.11a-5.11d']++
+      } else if (grade.startsWith('5.12')) {
+        gradeRanges['5.12a-5.12d']++
+      } else if (grade.startsWith('5.13')) {
+        gradeRanges['5.13a-5.13d']++
+      } else if (grade.startsWith('5.14') || grade.startsWith('5.15')) {
+        gradeRanges['5.14+']++
+      }
+    })
+
+    // 計算路線類型分佈
+    const typeDistribution: Record<string, number> = {}
+    areaRoutes.forEach(route => {
+      const type = route.type
+      typeDistribution[type] = (typeDistribution[type] || 0) + 1
+    })
+
+    // 獲取同一岩場的其他區域
+    const otherAreas = fullAreas
+      .filter(a => a.id !== areaId)
+      .map(a => ({
+        id: a.id,
+        name: a.name,
+        nameEn: a.nameEn,
+        difficulty: a.difficulty ? `${a.difficulty.min} - ${a.difficulty.max}` : '',
+        routesCount: a.routesCount,
+      }))
+
+    return {
+      crag: {
+        id: cragDetail.id,
+        name: cragDetail.name,
+        nameEn: cragDetail.englishName,
+        slug: cragDetail.slug,
+      },
+      area: {
+        id: area.id,
+        name: area.name,
+        nameEn: area.nameEn,
+        description: area.description || '',
+        descriptionEn: area.descriptionEn || '',
+        difficulty: area.difficulty
+          ? `${area.difficulty.min} - ${area.difficulty.max}`
+          : '',
+      },
+      routes: areaRoutes.map(route => ({
+        id: route.id,
+        name: route.name,
+        englishName: route.nameEn,
+        grade: route.grade,
+        length: route.length || '',
+        type: route.typeEn,
+        firstAscent: route.firstAscent || '',
+        firstAscentDate: route.firstAscentDate || '',
+        area: route.sector || '',
+        areaName: area.name,
+        cragName: cragDetail.name,
+        description: route.description || '',
+        protection: route.protection || '',
+        boltCount: route.boltCount,
+        popularity: route.popularity ?? 0,
+        views: route.views ?? 0,
+        images: route.images || [],
+        videos: route.videos || [],
+        tips: route.tips || '',
+        instagramPosts: route.instagramPosts || [],
+        youtubeVideos: route.youtubeVideos || [],
+      })),
+      otherAreas,
+      statistics: {
+        totalRoutes: areaRoutes.length,
+        totalBolts: area.boltCount,
+        gradeRanges,
+        typeDistribution,
+      },
+    }
+  }, [cragDetail, fullAreas, allRoutes, areaId])
+
+  // 載入中狀態
+  if (isLoading) {
+    return (
+      <main className="min-h-screen bg-gray-50">
+        <div className="container mx-auto px-4 pt-20">
+          <div className="flex items-center justify-center py-12">
+            <Loader2 className="h-8 w-8 animate-spin text-gray-400" />
+            <span className="ml-2 text-gray-500">載入中...</span>
+          </div>
+        </div>
+      </main>
+    )
+  }
 
   if (!areaData) {
     return (
