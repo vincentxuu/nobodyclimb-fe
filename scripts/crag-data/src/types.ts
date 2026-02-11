@@ -135,11 +135,27 @@ export interface CragDB {
   review_count: number;
   created_at: string;
   updated_at: string;
+  // 新增欄位
+  metadata_source: string | null;
+  metadata_source_url: string | null;
+  metadata_maintainer: string | null;
+  metadata_maintainer_url: string | null;
+  live_video_id: string | null;
+  live_video_title: string | null;
+  live_video_description: string | null;
+  transportation: string | null; // JSON array
+  amenities: string | null; // JSON array
+  google_maps_url: string | null;
+  // 岩壁高度 (與 altitude 海拔高度區分)
+  height_min: number | null;
+  height_max: number | null;
 }
 
 export interface RouteDB {
   id: string;
   crag_id: string;
+  area_id: string | null;
+  sector_id: string | null;
   name: string;
   grade: string | null;
   grade_system: string;
@@ -149,6 +165,32 @@ export interface RouteDB {
   description: string | null;
   first_ascent: string | null;
   created_at: string;
+}
+
+export interface AreaDB {
+  id: string;
+  crag_id: string;
+  name: string;
+  name_en: string | null;
+  slug: string | null;
+  description: string | null;
+  description_en: string | null;
+  image: string | null;
+  bolt_count: number;
+  route_count: number;
+  sort_order: number;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface SectorDB {
+  id: string;
+  area_id: string;
+  name: string;
+  name_en: string | null;
+  sort_order: number;
+  created_at: string;
+  updated_at: string;
 }
 
 // ============================================
@@ -182,11 +224,18 @@ export interface CragJsonRoute {
   lastUpdated?: string;
 }
 
+export interface CragJsonSector {
+  id: string;
+  name: string;
+  nameEn?: string;
+}
+
 export interface CragJsonArea {
   id: string;
   name: string;
   nameEn?: string;
   description?: string;
+  descriptionEn?: string;
   difficulty?: {
     min: string;
     max: string;
@@ -194,7 +243,29 @@ export interface CragJsonArea {
   image?: string;
   boltCount?: number;
   routesCount?: number;
-  sectors?: string[];
+  sectors?: CragJsonSector[];
+}
+
+export interface CragJsonLocation {
+  address?: string;
+  addressEn?: string;
+  region?: string;
+  regionEn?: string;
+  latitude?: number;
+  longitude?: number;
+  googleMapsUrl?: string;
+}
+
+export interface CragJsonAccess {
+  approach?: string;
+  approachEn?: string;
+  parking?: string;
+  parkingEn?: string;
+  transportation?: Array<{
+    type: string;
+    description: string;
+    descriptionEn?: string;
+  }>;
 }
 
 export interface CragJsonData {
@@ -202,6 +273,10 @@ export interface CragJsonData {
   slug: string;
   name: string;
   nameEn?: string;
+  description?: string;
+  descriptionEn?: string;
+  location?: CragJsonLocation;
+  // Flat fields (for backward compatibility)
   address?: string;
   region?: string;
   latitude?: number;
@@ -209,6 +284,7 @@ export interface CragJsonData {
   googleMapsUrl?: string;
   type?: string;
   rockType?: string;
+  rockTypeEn?: string;
   routesCount?: number;
   difficulty?: {
     min: string;
@@ -217,15 +293,26 @@ export interface CragJsonData {
   height?: {
     min: number;
     max: number;
+    unit?: string;
   };
+  access?: CragJsonAccess;
+  // Flat access fields (for backward compatibility)
   approach?: string;
   parking?: string;
   transportation?: string;
   seasons?: string[];
+  seasonsEn?: string[];
   amenities?: string[];
+  amenitiesEn?: string[];
+  images?: string[];
   featured?: boolean;
   rating?: number;
   status?: string;
+  // 即時影像欄位
+  liveVideoId?: string;
+  liveVideoTitle?: string;
+  liveVideoDescription?: string;
+  videoUrl?: string;
 }
 
 export interface CragJsonFullData {
@@ -239,10 +326,12 @@ export interface CragJsonFullData {
     typeDistribution: Record<string, number>;
   };
   metadata?: {
-    version: string;
+    version?: string;
     source: string;
-    lastUpdated: string;
+    sourceUrl?: string;
+    lastUpdated?: string;
     maintainer?: string;
+    maintainerUrl?: string;
   };
 }
 

@@ -259,7 +259,7 @@
           "nameEn": "Great Slab"
         },
         {
-          "id": "west-face",
+          "id": "grand-auditorium-west-face",
           "name": "西面",
           "nameEn": "West Face"
         },
@@ -305,7 +305,7 @@
           "nameEn": "Interior"
         },
         {
-          "id": "west-face",
+          "id": "first-cave-west-face",
           "name": "西面",
           "nameEn": "Interior"
         },

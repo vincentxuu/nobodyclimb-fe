@@ -1,56 +1,155 @@
+import { execSync } from 'child_process';
+import { writeFileSync, unlinkSync } from 'fs';
+import { join } from 'path';
 import { config } from '../config.js';
-import type { CragDB, RouteDB, CragSheetRow, RouteSheetRow } from '../types.js';
+import type { CragDB, RouteDB, AreaDB, SectorDB, CragSheetRow, RouteSheetRow, CragJsonArea, CragJsonSector } from '../types.js';
 
-const D1_API_BASE = 'https://api.cloudflare.com/client/v4';
-
-interface D1Response<T> {
-  success: boolean;
-  errors: Array<{ message: string }>;
-  result: T[];
-}
+// ============================================
+// Wrangler D1 執行器
+// ============================================
 
 interface D1QueryResult {
   results: Record<string, unknown>[];
   success: boolean;
-  meta: {
+  meta?: {
     changes: number;
     duration: number;
-    last_row_id: number;
     rows_read: number;
     rows_written: number;
   };
 }
 
-async function executeD1Query(sql: string, params: unknown[] = []): Promise<D1QueryResult> {
-  const url = `${D1_API_BASE}/accounts/${config.cloudflare.accountId}/d1/database/${config.cloudflare.databaseId}/query`;
-
-  const response = await fetch(url, {
-    method: 'POST',
-    headers: {
-      'Authorization': `Bearer ${config.cloudflare.apiToken}`,
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify({
-      sql,
-      params,
-    }),
-  });
-
-  if (!response.ok) {
-    const error = await response.text();
-    throw new Error(`D1 API error: ${response.status} - ${error}`);
+function escapeSQL(value: unknown): string {
+  if (value === null || value === undefined) {
+    return 'NULL';
   }
-
-  const data = await response.json() as D1Response<D1QueryResult>;
-
-  if (!data.success) {
-    throw new Error(`D1 query failed: ${data.errors.map(e => e.message).join(', ')}`);
+  if (typeof value === 'number') {
+    return String(value);
   }
-
-  return data.result[0];
+  if (typeof value === 'boolean') {
+    return value ? '1' : '0';
+  }
+  // Escape single quotes by doubling them
+  const str = String(value).replace(/'/g, "''");
+  return `'${str}'`;
 }
 
-// Convert sheet row to DB format
+function executeD1Query(sql: string): D1QueryResult {
+  const dbName = config.environment === 'production' ? 'nobodyclimb-db' : 'nobodyclimb-db-preview';
+
+  // 切換到 backend 目錄執行 wrangler
+  const backendDir = config.backendPath;
+
+  // 使用暫存檔案來避免命令列編碼問題
+  const tempFile = join(backendDir, `.temp-query-${Date.now()}.sql`);
+
+  try {
+    // 寫入 SQL 到暫存檔
+    writeFileSync(tempFile, sql, 'utf-8');
+
+    const result = execSync(
+      `pnpm wrangler d1 execute ${dbName} --remote --json --file "${tempFile}"`,
+      {
+        cwd: backendDir,
+        encoding: 'utf-8',
+        maxBuffer: 10 * 1024 * 1024, // 10MB buffer
+        stdio: ['pipe', 'pipe', 'pipe'],
+      }
+    );
+
+    // 刪除暫存檔
+    try { unlinkSync(tempFile); } catch { /* ignore */ }
+
+    // 過濾掉 wrangler 的進度輸出，只保留 JSON 部分
+    const jsonStart = result.indexOf('[');
+    const jsonEnd = result.lastIndexOf(']');
+    if (jsonStart === -1 || jsonEnd === -1) {
+      throw new Error(`Invalid response: ${result.substring(0, 200)}`);
+    }
+    const jsonStr = result.substring(jsonStart, jsonEnd + 1);
+    const parsed = JSON.parse(jsonStr);
+    return {
+      results: parsed[0]?.results || [],
+      success: true,
+      meta: parsed[0]?.meta,
+    };
+  } catch (error) {
+    // 確保刪除暫存檔
+    try { unlinkSync(tempFile); } catch { /* ignore */ }
+
+    const err = error as { stderr?: string; stdout?: string; message?: string };
+    const errorDetail = err.stderr || err.stdout || err.message || 'Unknown error';
+    console.error('D1 Query Error:', errorDetail);
+    console.error('SQL:', sql.substring(0, 200) + '...');
+    throw new Error(`D1 query failed: ${errorDetail}`);
+  }
+}
+
+/**
+ * 批量執行多條 SQL 語句（合併成單一請求）
+ * @param sqlStatements SQL 語句陣列
+ * @param batchSize 每批次處理的語句數量（預設 50）
+ */
+export function executeBatchD1Query(
+  sqlStatements: string[],
+  batchSize: number = 50
+): { success: number; failed: number } {
+  const dbName = config.environment === 'production' ? 'nobodyclimb-db' : 'nobodyclimb-db-preview';
+  const backendDir = config.backendPath;
+
+  let successCount = 0;
+  let failedCount = 0;
+
+  // 分批處理
+  for (let i = 0; i < sqlStatements.length; i += batchSize) {
+    const batch = sqlStatements.slice(i, i + batchSize);
+    const batchNum = Math.floor(i / batchSize) + 1;
+    const totalBatches = Math.ceil(sqlStatements.length / batchSize);
+
+    // 合併成單一 SQL 文件（每條語句以分號結尾）
+    const combinedSql = batch.join(';\n') + ';';
+    const tempFile = join(backendDir, `.temp-batch-${Date.now()}.sql`);
+
+    try {
+      writeFileSync(tempFile, combinedSql, 'utf-8');
+
+      execSync(
+        `pnpm wrangler d1 execute ${dbName} --remote --file "${tempFile}"`,
+        {
+          cwd: backendDir,
+          encoding: 'utf-8',
+          maxBuffer: 10 * 1024 * 1024,
+          stdio: ['pipe', 'pipe', 'pipe'],
+        }
+      );
+
+      try { unlinkSync(tempFile); } catch { /* ignore */ }
+
+      successCount += batch.length;
+      process.stdout.write(`\r   ⏳ 批次 ${batchNum}/${totalBatches} 完成 (${successCount}/${sqlStatements.length})`);
+
+    } catch (error) {
+      try { unlinkSync(tempFile); } catch { /* ignore */ }
+
+      const err = error as { stderr?: string; stdout?: string; message?: string };
+      const errorDetail = err.stderr || err.stdout || err.message || 'Unknown error';
+      console.error(`\n   ✗ 批次 ${batchNum} 失敗:`, errorDetail.substring(0, 200));
+      failedCount += batch.length;
+    }
+  }
+
+  // 換行
+  if (sqlStatements.length > 0) {
+    console.log();
+  }
+
+  return { success: successCount, failed: failedCount };
+}
+
+// ============================================
+// Crag CRUD
+// ============================================
+
 function cragSheetToDb(crag: CragSheetRow): Partial<CragDB> {
   return {
     id: crag.id || crag.slug,
@@ -75,25 +174,7 @@ function cragSheetToDb(crag: CragSheetRow): Partial<CragDB> {
   };
 }
 
-function routeSheetToDb(route: RouteSheetRow, cragId: string): Partial<RouteDB> {
-  // 使用時間戳 + 隨機數避免批量導入時 ID 重複
-  const uniqueId = `${Date.now()}-${Math.random().toString(36).slice(2, 9)}`;
-  return {
-    id: route.id || `${cragId}-route-${uniqueId}`,
-    crag_id: cragId,
-    name: route.name,
-    grade: route.grade || null,
-    grade_system: route.gradeSystem || 'yds',
-    height: route.length || null,
-    bolt_count: route.boltCount || null,
-    route_type: route.routeType || 'sport',
-    description: route.description || null,
-    first_ascent: route.firstAscent || null,
-  };
-}
-
-// CRUD operations
-export async function upsertCrag(crag: CragSheetRow): Promise<void> {
+export function upsertCrag(crag: CragSheetRow): void {
   const dbCrag = cragSheetToDb(crag);
 
   const sql = `
@@ -103,7 +184,15 @@ export async function upsertCrag(crag: CragSheetRow): Promise<void> {
       difficulty_range, cover_image, is_featured, access_info,
       parking_info, approach_time, best_seasons, restrictions,
       created_at, updated_at
-    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, datetime('now'), datetime('now'))
+    ) VALUES (
+      ${escapeSQL(dbCrag.id)}, ${escapeSQL(dbCrag.name)}, ${escapeSQL(dbCrag.slug)},
+      ${escapeSQL(dbCrag.description)}, ${escapeSQL(dbCrag.location)}, ${escapeSQL(dbCrag.region)},
+      ${escapeSQL(dbCrag.latitude)}, ${escapeSQL(dbCrag.longitude)}, ${escapeSQL(dbCrag.altitude)},
+      ${escapeSQL(dbCrag.rock_type)}, ${escapeSQL(dbCrag.climbing_types)}, ${escapeSQL(dbCrag.difficulty_range)},
+      ${escapeSQL(dbCrag.cover_image)}, ${escapeSQL(dbCrag.is_featured)}, ${escapeSQL(dbCrag.access_info)},
+      ${escapeSQL(dbCrag.parking_info)}, ${escapeSQL(dbCrag.approach_time)}, ${escapeSQL(dbCrag.best_seasons)},
+      ${escapeSQL(dbCrag.restrictions)}, datetime('now'), datetime('now')
+    )
     ON CONFLICT(id) DO UPDATE SET
       name = excluded.name,
       slug = excluded.slug,
@@ -124,40 +213,73 @@ export async function upsertCrag(crag: CragSheetRow): Promise<void> {
       best_seasons = excluded.best_seasons,
       restrictions = excluded.restrictions,
       updated_at = datetime('now')
-  `;
+  `.replace(/\n/g, ' ');
 
-  await executeD1Query(sql, [
-    dbCrag.id,
-    dbCrag.name,
-    dbCrag.slug,
-    dbCrag.description,
-    dbCrag.location,
-    dbCrag.region,
-    dbCrag.latitude,
-    dbCrag.longitude,
-    dbCrag.altitude,
-    dbCrag.rock_type,
-    dbCrag.climbing_types,
-    dbCrag.difficulty_range,
-    dbCrag.cover_image,
-    dbCrag.is_featured,
-    dbCrag.access_info,
-    dbCrag.parking_info,
-    dbCrag.approach_time,
-    dbCrag.best_seasons,
-    dbCrag.restrictions,
-  ]);
+  executeD1Query(sql);
 }
 
-export async function upsertRoute(route: RouteSheetRow, cragId: string): Promise<void> {
-  const dbRoute = routeSheetToDb(route, cragId);
+/**
+ * 更新岩場的 metadata 和其他擴展欄位
+ */
+export interface CragMetadataUpdate {
+  metadataSource?: string | null;
+  metadataSourceUrl?: string | null;
+  metadataMaintainer?: string | null;
+  metadataMaintainerUrl?: string | null;
+  liveVideoId?: string | null;
+  liveVideoTitle?: string | null;
+  liveVideoDescription?: string | null;
+  transportation?: Array<{ type: string; description: string }> | null;
+  amenities?: string[] | null;
+  googleMapsUrl?: string | null;
+  ratingAvg?: number | null;
+  heightMin?: number | null;
+  heightMax?: number | null;
+}
+
+export function updateCragMetadata(cragId: string, metadata: CragMetadataUpdate): void {
+  const sql = `
+    UPDATE crags SET
+      metadata_source = ${escapeSQL(metadata.metadataSource)},
+      metadata_source_url = ${escapeSQL(metadata.metadataSourceUrl)},
+      metadata_maintainer = ${escapeSQL(metadata.metadataMaintainer)},
+      metadata_maintainer_url = ${escapeSQL(metadata.metadataMaintainerUrl)},
+      live_video_id = ${escapeSQL(metadata.liveVideoId)},
+      live_video_title = ${escapeSQL(metadata.liveVideoTitle)},
+      live_video_description = ${escapeSQL(metadata.liveVideoDescription)},
+      transportation = ${escapeSQL(metadata.transportation ? JSON.stringify(metadata.transportation) : null)},
+      amenities = ${escapeSQL(metadata.amenities ? JSON.stringify(metadata.amenities) : null)},
+      google_maps_url = ${escapeSQL(metadata.googleMapsUrl)},
+      rating_avg = COALESCE(${escapeSQL(metadata.ratingAvg)}, rating_avg),
+      height_min = COALESCE(${escapeSQL(metadata.heightMin)}, height_min),
+      height_max = COALESCE(${escapeSQL(metadata.heightMax)}, height_max),
+      updated_at = datetime('now')
+    WHERE id = ${escapeSQL(cragId)}
+  `.replace(/\n/g, ' ');
+
+  executeD1Query(sql);
+}
+
+// ============================================
+// Route CRUD (legacy, without relations)
+// ============================================
+
+export function upsertRoute(route: RouteSheetRow, cragId: string): void {
+  const uniqueId = `${Date.now()}-${Math.random().toString(36).slice(2, 9)}`;
+  const routeId = route.id || `${cragId}-route-${uniqueId}`;
 
   const sql = `
     INSERT INTO routes (
       id, crag_id, name, grade, grade_system,
       height, bolt_count, route_type, description, first_ascent,
       created_at
-    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, datetime('now'))
+    ) VALUES (
+      ${escapeSQL(routeId)}, ${escapeSQL(cragId)}, ${escapeSQL(route.name)},
+      ${escapeSQL(route.grade)}, ${escapeSQL(route.gradeSystem || 'yds')},
+      ${escapeSQL(route.length)}, ${escapeSQL(route.boltCount)},
+      ${escapeSQL(route.routeType || 'sport')}, ${escapeSQL(route.description)},
+      ${escapeSQL(route.firstAscent)}, datetime('now')
+    )
     ON CONFLICT(id) DO UPDATE SET
       name = excluded.name,
       grade = excluded.grade,
@@ -167,53 +289,158 @@ export async function upsertRoute(route: RouteSheetRow, cragId: string): Promise
       route_type = excluded.route_type,
       description = excluded.description,
       first_ascent = excluded.first_ascent
-  `;
+  `.replace(/\n/g, ' ');
 
-  await executeD1Query(sql, [
-    dbRoute.id,
-    dbRoute.crag_id,
-    dbRoute.name,
-    dbRoute.grade,
-    dbRoute.grade_system,
-    dbRoute.height,
-    dbRoute.bolt_count,
-    dbRoute.route_type,
-    dbRoute.description,
-    dbRoute.first_ascent,
-  ]);
+  executeD1Query(sql);
 }
 
-export async function updateCragRouteCount(cragId: string): Promise<void> {
+export function updateCragRouteCount(cragId: string): void {
   const sql = `
     UPDATE crags
-    SET route_count = (SELECT COUNT(*) FROM routes WHERE crag_id = ?),
-        bolt_count = (SELECT COALESCE(SUM(bolt_count), 0) FROM routes WHERE crag_id = ?),
+    SET route_count = (SELECT COUNT(*) FROM routes WHERE crag_id = ${escapeSQL(cragId)}),
+        bolt_count = (SELECT COALESCE(SUM(bolt_count), 0) FROM routes WHERE crag_id = ${escapeSQL(cragId)}),
         updated_at = datetime('now')
-    WHERE id = ?
-  `;
+    WHERE id = ${escapeSQL(cragId)}
+  `.replace(/\n/g, ' ');
 
-  await executeD1Query(sql, [cragId, cragId, cragId]);
+  executeD1Query(sql);
 }
 
-export async function getAllCrags(): Promise<CragDB[]> {
-  const result = await executeD1Query('SELECT * FROM crags ORDER BY name');
+// ============================================
+// Area CRUD
+// ============================================
+
+export function upsertArea(
+  area: CragJsonArea,
+  cragId: string,
+  sortOrder: number
+): void {
+  const sql = `
+    INSERT INTO areas (
+      id, crag_id, name, name_en, slug, description, description_en,
+      image, bolt_count, route_count, sort_order, created_at, updated_at
+    ) VALUES (
+      ${escapeSQL(area.id)}, ${escapeSQL(cragId)}, ${escapeSQL(area.name)},
+      ${escapeSQL(area.nameEn)}, ${escapeSQL(area.id)}, ${escapeSQL(area.description)},
+      ${escapeSQL(area.descriptionEn)}, ${escapeSQL(area.image)},
+      ${escapeSQL(area.boltCount || 0)}, ${escapeSQL(area.routesCount || 0)},
+      ${escapeSQL(sortOrder)}, datetime('now'), datetime('now')
+    )
+    ON CONFLICT(id) DO UPDATE SET
+      name = excluded.name,
+      name_en = excluded.name_en,
+      slug = excluded.slug,
+      description = excluded.description,
+      description_en = excluded.description_en,
+      image = excluded.image,
+      bolt_count = excluded.bolt_count,
+      route_count = excluded.route_count,
+      sort_order = excluded.sort_order,
+      updated_at = datetime('now')
+  `.replace(/\n/g, ' ');
+
+  executeD1Query(sql);
+}
+
+// ============================================
+// Sector CRUD
+// ============================================
+
+export function upsertSector(
+  sector: CragJsonSector,
+  areaId: string,
+  sortOrder: number
+): void {
+  const sql = `
+    INSERT INTO sectors (
+      id, area_id, name, name_en, sort_order, created_at, updated_at
+    ) VALUES (
+      ${escapeSQL(sector.id)}, ${escapeSQL(areaId)}, ${escapeSQL(sector.name)},
+      ${escapeSQL(sector.nameEn)}, ${escapeSQL(sortOrder)}, datetime('now'), datetime('now')
+    )
+    ON CONFLICT(id) DO UPDATE SET
+      name = excluded.name,
+      name_en = excluded.name_en,
+      sort_order = excluded.sort_order,
+      updated_at = datetime('now')
+  `.replace(/\n/g, ' ');
+
+  executeD1Query(sql);
+}
+
+// ============================================
+// Route with area_id and sector_id
+// ============================================
+
+export function upsertRouteWithRelations(
+  route: RouteSheetRow,
+  cragId: string,
+  areaId: string | null,
+  sectorId: string | null
+): void {
+  const sql = buildRouteSQL(route, cragId, areaId, sectorId);
+  executeD1Query(sql);
+}
+
+/**
+ * 生成路線 INSERT SQL（不執行）- 用於批量處理
+ */
+export function buildRouteSQL(
+  route: RouteSheetRow,
+  cragId: string,
+  areaId: string | null,
+  sectorId: string | null
+): string {
+  const uniqueId = `${Date.now()}-${Math.random().toString(36).slice(2, 9)}`;
+  const routeId = route.id || `${cragId}-route-${uniqueId}`;
+
+  return `
+    INSERT INTO routes (
+      id, crag_id, area_id, sector_id, name, grade, grade_system,
+      height, bolt_count, route_type, description, first_ascent, created_at
+    ) VALUES (
+      ${escapeSQL(routeId)}, ${escapeSQL(cragId)}, ${escapeSQL(areaId)}, ${escapeSQL(sectorId)},
+      ${escapeSQL(route.name)}, ${escapeSQL(route.grade)}, ${escapeSQL(route.gradeSystem || 'yds')},
+      ${escapeSQL(route.length)}, ${escapeSQL(route.boltCount)}, ${escapeSQL(route.routeType || 'sport')},
+      ${escapeSQL(route.description)}, ${escapeSQL(route.firstAscent)}, datetime('now')
+    )
+    ON CONFLICT(id) DO UPDATE SET
+      area_id = excluded.area_id,
+      sector_id = excluded.sector_id,
+      name = excluded.name,
+      grade = excluded.grade,
+      grade_system = excluded.grade_system,
+      height = excluded.height,
+      bolt_count = excluded.bolt_count,
+      route_type = excluded.route_type,
+      description = excluded.description,
+      first_ascent = excluded.first_ascent
+  `.replace(/\n/g, ' ').trim();
+}
+
+// ============================================
+// Query functions
+// ============================================
+
+export function getAllCrags(): CragDB[] {
+  const result = executeD1Query('SELECT * FROM crags ORDER BY name');
   return result.results as unknown as CragDB[];
 }
 
-export async function getCragBySlug(slug: string): Promise<CragDB | null> {
-  const result = await executeD1Query('SELECT * FROM crags WHERE slug = ?', [slug]);
+export function getCragBySlug(slug: string): CragDB | null {
+  const result = executeD1Query(`SELECT * FROM crags WHERE slug = ${escapeSQL(slug)}`);
   return (result.results[0] as unknown as CragDB) || null;
 }
 
-export async function getRoutesByCragId(cragId: string): Promise<RouteDB[]> {
-  const result = await executeD1Query('SELECT * FROM routes WHERE crag_id = ? ORDER BY name', [cragId]);
+export function getRoutesByCragId(cragId: string): RouteDB[] {
+  const result = executeD1Query(`SELECT * FROM routes WHERE crag_id = ${escapeSQL(cragId)} ORDER BY name`);
   return result.results as unknown as RouteDB[];
 }
 
-export async function deleteCrag(id: string): Promise<void> {
-  await executeD1Query('DELETE FROM crags WHERE id = ?', [id]);
+export function deleteCrag(id: string): void {
+  executeD1Query(`DELETE FROM crags WHERE id = ${escapeSQL(id)}`);
 }
 
-export async function deleteRoute(id: string): Promise<void> {
-  await executeD1Query('DELETE FROM routes WHERE id = ?', [id]);
+export function deleteRoute(id: string): void {
+  executeD1Query(`DELETE FROM routes WHERE id = ${escapeSQL(id)}`);
 }

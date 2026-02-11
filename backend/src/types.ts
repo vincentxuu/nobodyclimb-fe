@@ -171,6 +171,20 @@ export interface Crag {
   review_count: number;
   created_at: string;
   updated_at: string;
+  // 新增欄位
+  metadata_source: string | null;
+  metadata_source_url: string | null;
+  metadata_maintainer: string | null;
+  metadata_maintainer_url: string | null;
+  live_video_id: string | null;
+  live_video_title: string | null;
+  live_video_description: string | null;
+  transportation: string | null;
+  amenities: string | null;
+  google_maps_url: string | null;
+  // 岩壁高度 (與 altitude 海拔高度區分)
+  height_min: number | null;
+  height_max: number | null;
 }
 
 export interface Area {
