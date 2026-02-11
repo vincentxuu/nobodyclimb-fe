@@ -35,30 +35,25 @@ export default function AreaDetailClient({ cragId, areaId }: AreaDetailClientPro
     const areaRoutes = allRoutes.filter(route => route.areaId === areaId)
 
     // 計算難度範圍分組
-    const gradeRanges: Record<string, number> = {
-      '5.6-5.9': 0,
-      '5.10a-5.10d': 0,
-      '5.11a-5.11d': 0,
-      '5.12a-5.12d': 0,
-      '5.13a-5.13d': 0,
-      '5.14+': 0,
-    }
+    // 難度範圍對照表：prefix → 分組名稱
+    const gradeRangeMapping: { prefixes: string[]; label: string }[] = [
+      { prefixes: ['5.6', '5.7', '5.8', '5.9'], label: '5.6-5.9' },
+      { prefixes: ['5.10'], label: '5.10a-5.10d' },
+      { prefixes: ['5.11'], label: '5.11a-5.11d' },
+      { prefixes: ['5.12'], label: '5.12a-5.12d' },
+      { prefixes: ['5.13'], label: '5.13a-5.13d' },
+      { prefixes: ['5.14', '5.15'], label: '5.14+' },
+    ]
+
+    const gradeRanges: Record<string, number> = Object.fromEntries(
+      gradeRangeMapping.map(({ label }) => [label, 0])
+    )
 
     areaRoutes.forEach(route => {
-      const grade = route.grade
-      if (grade.startsWith('5.6') || grade.startsWith('5.7') || grade.startsWith('5.8') || grade.startsWith('5.9')) {
-        gradeRanges['5.6-5.9']++
-      } else if (grade.startsWith('5.10')) {
-        gradeRanges['5.10a-5.10d']++
-      } else if (grade.startsWith('5.11')) {
-        gradeRanges['5.11a-5.11d']++
-      } else if (grade.startsWith('5.12')) {
-        gradeRanges['5.12a-5.12d']++
-      } else if (grade.startsWith('5.13')) {
-        gradeRanges['5.13a-5.13d']++
-      } else if (grade.startsWith('5.14') || grade.startsWith('5.15')) {
-        gradeRanges['5.14+']++
-      }
+      const match = gradeRangeMapping.find(({ prefixes }) =>
+        prefixes.some(p => route.grade.startsWith(p))
+      )
+      if (match) gradeRanges[match.label]++
     })
 
     // 計算路線類型分佈

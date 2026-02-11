@@ -252,32 +252,37 @@ export function useAllCragsRoutes(enabled = true) {
   return useQuery({
     queryKey: ['all-crags-routes'],
     queryFn: async (): Promise<RouteSearchItem[]> => {
-      // 1. 取得所有岩場
-      const cragsRes = await cragService.getCrags(1, 100)
-      const apiCrags = cragsRes.data || []
+      // 1. 分頁取得所有岩場（API 每頁上限 100）
+      const allCrags: Awaited<ReturnType<typeof cragService.getCrags>>['data'] = []
+      let page = 1
+      const limit = 100
+      let totalPages = 1
+      do {
+        const cragsRes = await cragService.getCrags(page, limit)
+        allCrags.push(...(cragsRes.data || []))
+        totalPages = cragsRes.pagination?.total_pages || 1
+        page++
+      } while (page <= totalPages)
 
-      // 2. 對每個岩場並行取得路線和區域資料
-      const allItems: RouteSearchItem[] = []
-      await Promise.all(
-        apiCrags.map(async (crag) => {
+      // 2. 對每個岩場並行取得路線和區域資料（使用函數式方式組合結果）
+      const nestedItems = await Promise.all(
+        allCrags.map(async (crag) => {
           const [routesRes, areasRes] = await Promise.all([
             cragService.getCragRoutes(crag.id),
             cragService.getCragAreas(crag.id),
           ])
           const areaMap = new Map((areasRes.data || []).map(a => [a.id, a.name]))
           const routes = (routesRes.data || []).map(adaptApiRouteToCragRoute)
-          routes.forEach(route => {
-            allItems.push({
-              route,
-              cragId: crag.id,
-              cragName: crag.name,
-              areaName: areaMap.get(route.areaId) || '',
-            })
-          })
+          return routes.map(route => ({
+            route,
+            cragId: crag.id,
+            cragName: crag.name,
+            areaName: areaMap.get(route.areaId) || '',
+          }))
         })
       )
 
-      return allItems
+      return nestedItems.flat()
     },
     enabled,
     staleTime: 10 * 60 * 1000, // 10 分鐘

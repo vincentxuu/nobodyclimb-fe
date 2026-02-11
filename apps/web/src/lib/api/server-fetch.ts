@@ -32,11 +32,23 @@ async function serverFetch<T>(path: string): Promise<T | null> {
 }
 
 /**
- * 取得岩場列表
+ * 取得所有岩場列表（自動分頁取得全部資料）
  */
-export async function fetchCrags(limit = 100): Promise<ApiCrag[]> {
-  const response = await serverFetch<ApiCragListResponse>(`/crags?limit=${limit}`)
-  return response?.data || []
+export async function fetchCrags(): Promise<ApiCrag[]> {
+  const allCrags: ApiCrag[] = []
+  let page = 1
+  const limit = 100
+  let totalPages = 1
+
+  do {
+    const response = await serverFetch<ApiCragListResponse>(`/crags?page=${page}&limit=${limit}`)
+    if (!response) break
+    allCrags.push(...(response.data || []))
+    totalPages = response.pagination?.total_pages || 1
+    page++
+  } while (page <= totalPages)
+
+  return allCrags
 }
 
 /**
