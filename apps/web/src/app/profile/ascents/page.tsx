@@ -13,6 +13,7 @@ import {
   Trash2,
   ChevronLeft,
   ChevronRight,
+  Plus,
 } from 'lucide-react'
 import ProfilePageLayout from '@/components/profile/layout/ProfilePageLayout'
 import { LoadingSpinner } from '@/components/ui/loading-spinner'
@@ -20,6 +21,7 @@ import { EmptyState } from '@/components/ui/empty-state'
 import { Button } from '@/components/ui/button'
 import { AscentCard } from '@/components/ascent/AscentCard'
 import { AscentForm } from '@/components/ascent/AscentForm'
+import { CreateAscentDialog } from '@/components/ascent/CreateAscentDialog'
 import {
   Select,
   SelectContent,
@@ -37,12 +39,15 @@ const ITEMS_PER_PAGE = 10
 export default function AscentsPage() {
   const queryClient = useQueryClient()
   const { toast } = useToast()
-  const { getMyAscents, getMyStats, updateAscent, deleteAscent } = useAscents()
+  const { getMyAscents, getMyStats, createAscent, updateAscent, deleteAscent } = useAscents()
 
   // 狀態
   const [page, setPage] = useState(1)
   const [ascentTypeFilter, setAscentTypeFilter] = useState<string>('all')
   const [cragFilter, setCragFilter] = useState<string>('all')
+
+  // 新增表單狀態
+  const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false)
 
   // 編輯表單狀態
   const [editingAscent, setEditingAscent] = useState<UserRouteAscent | null>(null)
@@ -67,6 +72,27 @@ export default function AscentsPage() {
         ascent_type: ascentTypeFilter !== 'all' ? ascentTypeFilter : undefined,
         crag_id: cragFilter !== 'all' ? cragFilter : undefined,
       }),
+  })
+
+  // 新增 mutation
+  const createMutation = useMutation({
+    mutationFn: createAscent,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['my-ascents'] })
+      queryClient.invalidateQueries({ queryKey: ['my-ascents-stats'] })
+      setIsCreateDialogOpen(false)
+      toast({
+        title: '新增成功',
+        description: '攀爬紀錄已新增',
+      })
+    },
+    onError: () => {
+      toast({
+        title: '新增失敗',
+        description: '無法新增攀爬紀錄，請稍後再試',
+        variant: 'destructive',
+      })
+    },
   })
 
   // 更新 mutation
@@ -164,9 +190,15 @@ export default function AscentsPage() {
     <ProfilePageLayout>
       <div className="space-y-6">
         {/* 頁面標題 */}
-        <div>
-          <h1 className="text-2xl font-bold text-[#1B1A1A]">攀爬紀錄</h1>
-          <p className="mt-1 text-sm text-text-subtle">管理你的所有攀爬紀錄</p>
+        <div className="flex items-center justify-between">
+          <div>
+            <h1 className="text-2xl font-bold text-[#1B1A1A]">攀爬紀錄</h1>
+            <p className="mt-1 text-sm text-text-subtle">管理你的所有攀爬紀錄</p>
+          </div>
+          <Button onClick={() => setIsCreateDialogOpen(true)}>
+            <Plus className="mr-2 h-4 w-4" />
+            新增紀錄
+          </Button>
         </div>
 
         {/* 統計摘要卡片 */}
@@ -378,6 +410,14 @@ export default function AscentsPage() {
         cancelText="取消"
         isLoading={deleteMutation.isPending}
         variant="danger"
+      />
+
+      {/* 新增攀爬紀錄對話框 */}
+      <CreateAscentDialog
+        open={isCreateDialogOpen}
+        onOpenChange={setIsCreateDialogOpen}
+        onSubmit={createMutation.mutateAsync}
+        isLoading={createMutation.isPending}
       />
     </ProfilePageLayout>
   )
