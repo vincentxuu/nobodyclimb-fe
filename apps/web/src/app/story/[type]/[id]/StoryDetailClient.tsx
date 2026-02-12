@@ -362,8 +362,8 @@ export default function StoryDetailClient({ params }: StoryDetailClientProps) {
                 )}
               </div>
 
-              {/* CTA 按鈕 */}
-              <Link href={`/biography/profile/${story.biography_slug}`}>
+              {/* CTA 按鈕 - 桌面版 */}
+              <Link href={`/biography/profile/${story.biography_slug}`} className="hidden sm:block flex-shrink-0">
                 <Button
                   variant="outline"
                   className="flex items-center gap-1.5 border-[#1B1A1A] text-sm text-[#1B1A1A] hover:bg-[#F5F4F4]"
@@ -373,6 +373,17 @@ export default function StoryDetailClient({ params }: StoryDetailClientProps) {
                 </Button>
               </Link>
             </div>
+
+            {/* CTA 按鈕 - 手機版 */}
+            <Link href={`/biography/profile/${story.biography_slug}`} className="mt-4 block sm:hidden">
+              <Button
+                variant="outline"
+                className="flex w-full items-center justify-center gap-1.5 border-[#1B1A1A] text-sm text-[#1B1A1A] hover:bg-[#F5F4F4]"
+              >
+                看看 {story.author_name} 的故事
+                <ArrowRight size={14} />
+              </Button>
+            </Link>
           </div>
         </motion.div>
       </div>
