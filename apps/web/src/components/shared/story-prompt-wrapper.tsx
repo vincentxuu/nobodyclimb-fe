@@ -100,7 +100,7 @@ export function StoryPromptWrapper() {
       onSave={handleSave}
       onSkip={handleSkip}
       strategy="easy_first"
-      initialField={promptedField}
+      initialField={promptedQuestionId}
     />
   )
 }
