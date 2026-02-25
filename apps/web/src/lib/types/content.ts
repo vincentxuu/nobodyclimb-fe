@@ -364,7 +364,7 @@ export interface StoryPrompt {
   id: string
   user_id: string
   biography_id: string
-  field_name: string
+  question_id: string
   category: string
   prompted_at: string
   completed_at: string | null

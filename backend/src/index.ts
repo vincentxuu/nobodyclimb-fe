@@ -32,6 +32,7 @@ import { accessLogsRoutes } from './routes/access-logs';
 import { guestRoutes } from './routes/guest';
 import { ascentsRoutes } from './routes/ascents';
 import { routeStoriesRoutes } from './routes/route-stories';
+import { adminImportRoutes } from './routes/admin-import';
 
 const app = new Hono<{ Bindings: Env }>();
 
@@ -117,6 +118,7 @@ v1.route('/access-logs', accessLogsRoutes);
 v1.route('/guest', guestRoutes);
 v1.route('/ascents', ascentsRoutes);
 v1.route('/route-stories', routeStoriesRoutes);
+v1.route('/admin/import', adminImportRoutes);
 
 // OpenAPI JSON 端點 - 自動從路由生成 OpenAPI 規格
 v1.get(
