@@ -28,17 +28,27 @@ import type {
  * 注意：NEXT_PUBLIC_* 會在 build time 被替換，所以我們使用
  * SERVER_API_URL 作為 runtime 環境變數（用於 Server Components）
  */
-function getApiBaseUrl(): string {
-  // 優先使用 runtime 環境變數（不帶 NEXT_PUBLIC_ 前綴）
-  // 這些會在 Cloudflare Workers runtime 中正確讀取
-  return process.env.SERVER_API_URL || DEFAULT_API_BASE_URL
+async function getApiBaseUrl(): Promise<string> {
+  try {
+    // 在 Cloudflare Workers 環境中使用 getCloudflareContext 讀取 runtime 環境變數
+    const { getCloudflareContext } = await import('@opennextjs/cloudflare')
+    const { env } = getCloudflareContext()
+    const serverApiUrl = (env as unknown as Record<string, string | undefined>)?.SERVER_API_URL
+    if (serverApiUrl) {
+      return serverApiUrl
+    }
+  } catch {
+    // 非 Cloudflare 環境（如本地開發），忽略錯誤
+  }
+  // Fallback 到 build time 環境變數或預設值
+  return DEFAULT_API_BASE_URL
 }
 
 /**
  * 伺服器端 fetch 封裝
  */
 async function serverFetch<T>(path: string): Promise<T | null> {
-  const apiBaseUrl = getApiBaseUrl()
+  const apiBaseUrl = await getApiBaseUrl()
   try {
     const response = await fetch(`${apiBaseUrl}${path}`, {
       next: { revalidate: 300 }, // 5 分鐘快取

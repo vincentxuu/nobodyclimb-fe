@@ -216,7 +216,7 @@ cragsRoutes.get(
   async (c) => {
     const limit = parseInt(c.req.query('limit') || '8', 10);
 
-    // 獲取所有路線，包含岩場和區域資訊，按攀登次數和故事數量排序
+    // 獲取所有路線，包含岩場和區域資訊，按影片數量優先排序
     const routes = await c.env.DB.prepare(
       `SELECT
         r.id,
@@ -227,17 +227,23 @@ cragsRoutes.get(
         r.height,
         r.bolt_count,
         r.description,
-        r.youtube_videos,
         r.ascent_count,
         r.story_count,
         r.crag_id,
         c.name as crag_name,
         r.area_id,
-        a.name as area_name
+        a.name as area_name,
+        (SELECT v.thumbnail_url FROM route_videos rv
+         JOIN videos v ON rv.video_id = v.id
+         WHERE rv.route_id = r.id
+         ORDER BY rv.sort_order
+         LIMIT 1) as youtube_thumbnail,
+        (SELECT COUNT(*) FROM route_videos rv WHERE rv.route_id = r.id) as video_count
       FROM routes r
       JOIN crags c ON r.crag_id = c.id
       LEFT JOIN areas a ON r.area_id = a.id
       ORDER BY
+        video_count DESC,
         (COALESCE(r.ascent_count, 0) + COALESCE(r.story_count, 0)) DESC,
         r.created_at DESC
       LIMIT ?`
@@ -252,80 +258,116 @@ cragsRoutes.get(
         height: string | null;
         bolt_count: number;
         description: string | null;
-        youtube_videos: string | null;
         ascent_count: number | null;
         story_count: number | null;
         crag_id: string;
         crag_name: string;
         area_id: string | null;
         area_name: string | null;
+        youtube_thumbnail: string | null;
+        video_count: number;
       }>();
 
-    // 從不同岩場輪流選取，確保多樣性
-    const routesByCrag = new Map<string, typeof routes.results>();
-    for (const route of routes.results) {
-      const list = routesByCrag.get(route.crag_id) || [];
-      list.push(route);
-      routesByCrag.set(route.crag_id, list);
+    // 將難度分組的輔助函數
+    const getGradeLevel = (grade: string): string => {
+      // 解析 YDS 難度 (5.x 格式)
+      const match = grade.match(/5\.(\d+)([a-d])?/i);
+      if (!match) return 'other';
+      const num = parseInt(match[1], 10);
+      if (num <= 8) return 'beginner';      // 5.6-5.8: 初學
+      if (num <= 10) return 'intermediate'; // 5.9-5.10: 中等
+      if (num <= 12) return 'advanced';     // 5.11-5.12: 進階
+      return 'expert';                       // 5.13+: 專家
+    };
+
+    // 按難度等級分組，每個等級內再按岩場分組
+    const routesByGradeAndCrag = new Map<string, Map<string, typeof routes.results>>();
+    const gradeLevels = ['beginner', 'intermediate', 'advanced', 'expert'];
+
+    for (const level of gradeLevels) {
+      routesByGradeAndCrag.set(level, new Map());
     }
 
+    for (const route of routes.results) {
+      const level = getGradeLevel(route.grade);
+      const cragMap = routesByGradeAndCrag.get(level);
+      if (cragMap) {
+        const list = cragMap.get(route.crag_id) || [];
+        list.push(route);
+        cragMap.set(route.crag_id, list);
+      }
+    }
+
+    // 從不同難度等級和岩場輪流選取
     const result: typeof routes.results = [];
-    const cragIds = Array.from(routesByCrag.keys());
-    const indices = new Map<string, number>(cragIds.map(id => [id, 0]));
+    const gradeIndices = new Map<string, Map<string, number>>();
+
+    for (const level of gradeLevels) {
+      const cragMap = routesByGradeAndCrag.get(level)!;
+      const indices = new Map<string, number>();
+      for (const cragId of cragMap.keys()) {
+        indices.set(cragId, 0);
+      }
+      gradeIndices.set(level, indices);
+    }
+
+    let levelIndex = 0;
+    const usedIds = new Set<string>();
 
     while (result.length < limit) {
       let added = false;
-      for (const cragId of cragIds) {
-        if (result.length >= limit) break;
-        const cragRoutes = routesByCrag.get(cragId)!;
-        const idx = indices.get(cragId)!;
-        if (idx < cragRoutes.length) {
-          result.push(cragRoutes[idx]);
-          indices.set(cragId, idx + 1);
-          added = true;
+
+      // 嘗試每個難度等級
+      for (let i = 0; i < gradeLevels.length && result.length < limit; i++) {
+        const level = gradeLevels[(levelIndex + i) % gradeLevels.length];
+        const cragMap = routesByGradeAndCrag.get(level)!;
+        const indices = gradeIndices.get(level)!;
+        const cragIds = Array.from(cragMap.keys());
+
+        // 在該難度等級內從不同岩場選取
+        for (const cragId of cragIds) {
+          if (result.length >= limit) break;
+          const cragRoutes = cragMap.get(cragId)!;
+          const idx = indices.get(cragId)!;
+
+          // 找到下一個未使用的路線
+          let foundIdx = idx;
+          while (foundIdx < cragRoutes.length && usedIds.has(cragRoutes[foundIdx].id)) {
+            foundIdx++;
+          }
+
+          if (foundIdx < cragRoutes.length) {
+            const route = cragRoutes[foundIdx];
+            result.push(route);
+            usedIds.add(route.id);
+            indices.set(cragId, foundIdx + 1);
+            added = true;
+            break; // 每輪每個難度等級只選一條
+          }
         }
       }
+
+      levelIndex++;
       if (!added) break;
     }
 
-    // 解析 youtube_videos JSON 並取得縮圖
-    const data = result.map(route => {
-      let youtubeThumbnail: string | undefined;
-      if (route.youtube_videos) {
-        try {
-          const videos = JSON.parse(route.youtube_videos) as string[];
-          if (videos.length > 0) {
-            // 從 YouTube URL 提取影片 ID
-            const url = videos[0];
-            const vMatch = url.match(/[?&]v=([a-zA-Z0-9_-]{11})/);
-            const shortMatch = url.match(/youtu\.be\/([a-zA-Z0-9_-]{11})/);
-            const videoId = vMatch?.[1] || shortMatch?.[1];
-            if (videoId) {
-              youtubeThumbnail = `https://img.youtube.com/vi/${videoId}/mqdefault.jpg`;
-            }
-          }
-        } catch {
-          // ignore JSON parse errors
-        }
-      }
-
-      return {
-        id: route.id,
-        name: route.name,
-        nameEn: route.name_en || '',
-        grade: route.grade,
-        type: route.route_type,
-        length: route.height || undefined,
-        boltCount: route.bolt_count,
-        cragId: route.crag_id,
-        cragName: route.crag_name,
-        areaId: route.area_id || undefined,
-        areaName: route.area_name || undefined,
-        youtubeThumbnail,
-        ascentCount: route.ascent_count || 0,
-        storyCount: route.story_count || 0,
-      };
-    });
+    // 直接使用從 videos 表查詢的縮圖
+    const data = result.map(route => ({
+      id: route.id,
+      name: route.name,
+      nameEn: route.name_en || '',
+      grade: route.grade,
+      type: route.route_type,
+      length: route.height || undefined,
+      boltCount: route.bolt_count,
+      cragId: route.crag_id,
+      cragName: route.crag_name,
+      areaId: route.area_id || undefined,
+      areaName: route.area_name || undefined,
+      youtubeThumbnail: route.youtube_thumbnail || undefined,
+      ascentCount: route.ascent_count || 0,
+      storyCount: route.story_count || 0,
+    }));
 
     return c.json({
       success: true,
@@ -442,7 +484,19 @@ cragsRoutes.get(
     'SELECT * FROM routes WHERE crag_id = ? ORDER BY grade ASC'
   )
     .bind(cragId)
-    .all();
+    .all<{
+      id: string;
+      crag_id: string;
+      name: string;
+      grade: string | null;
+      grade_system: string | null;
+      height: number | null;
+      bolt_count: number | null;
+      route_type: string | null;
+      description: string | null;
+      first_ascent: string | null;
+      created_at: string | null;
+    }>();
 
   if (routes.results.length === 0) {
     return c.json({
@@ -482,7 +536,7 @@ cragsRoutes.get(
   }
 
   // 組合路線與影片資料
-  const data = routes.results.map((route: { id: string }) => ({
+  const data = routes.results.map((route) => ({
     ...route,
     videos: (videosByRoute.get(route.id) || []).map(v => ({
       id: v.id,

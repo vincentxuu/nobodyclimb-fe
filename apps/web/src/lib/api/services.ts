@@ -1157,7 +1157,7 @@ export const storyPromptService = {
    */
   getNextPrompt: async (strategy?: 'random' | 'easy_first' | 'category_rotate') => {
     const response = await apiClient.get<
-      ApiResponse<{ field: string; category: string; remaining_count: number } | null>
+      ApiResponse<{ questionId: string; category: string; remaining_count: number } | null>
     >('/story-prompts/next', { params: { strategy } })
     return response.data
   },
@@ -1165,9 +1165,9 @@ export const storyPromptService = {
   /**
    * 記錄跳過
    */
-  dismissPrompt: async (field: string) => {
+  dismissPrompt: async (questionId: string) => {
     const response = await apiClient.post<ApiResponse<{ message: string }>>(
-      `/story-prompts/${field}/dismiss`
+      `/story-prompts/${questionId}/dismiss`
     )
     return response.data
   },
@@ -1175,9 +1175,9 @@ export const storyPromptService = {
   /**
    * 記錄完成
    */
-  completePrompt: async (field: string) => {
+  completePrompt: async (questionId: string) => {
     const response = await apiClient.post<ApiResponse<{ message: string }>>(
-      `/story-prompts/${field}/complete`
+      `/story-prompts/${questionId}/complete`
     )
     return response.data
   },
