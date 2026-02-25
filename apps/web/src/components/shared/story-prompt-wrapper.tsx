@@ -16,8 +16,8 @@ export function StoryPromptWrapper() {
   const { isStoryPromptOpen, closeStoryPrompt } = useUIStore()
   const [biography, setBiography] = useState<Biography | null>(null)
   const [isLoading, setIsLoading] = useState(false)
-  // 從後端獲取的推薦題目欄位
-  const [promptedField, setPromptedField] = useState<string | null>(null)
+  // 從後端獲取的推薦題目 ID
+  const [promptedQuestionId, setPromptedQuestionId] = useState<string | null>(null)
 
   // 當彈窗打開時，獲取用戶的人物誌資料和後端推薦的題目
   useEffect(() => {
@@ -37,7 +37,7 @@ export function StoryPromptWrapper() {
 
           // 設置後端推薦的題目，讓頻率控制生效
           if (promptResponse.success && promptResponse.data) {
-            setPromptedField(promptResponse.data.field)
+            setPromptedQuestionId(promptResponse.data.questionId)
           }
         } catch (error) {
           console.error('獲取資料失敗:', error)
@@ -51,29 +51,29 @@ export function StoryPromptWrapper() {
   }, [isStoryPromptOpen, status])
 
   // 儲存故事
-  const handleSave = useCallback(async (storyField: string, storyValue: string) => {
+  const handleSave = useCallback(async (questionId: string, storyValue: string) => {
     if (!biography) {
       throw new Error('尚未載入人物誌資料，請稍後再試')
     }
 
-    // 更新人物誌資料
+    // 更新人物誌資料（暫時仍使用舊的 field-based API，未來可改用 biography_stories）
     await biographyService.updateMyBiography({
-      [storyField]: storyValue,
+      [questionId]: storyValue,
     })
 
     // 記錄完成
-    await storyPromptService.completePrompt(storyField)
+    await storyPromptService.completePrompt(questionId)
 
     // 更新本地狀態
     setBiography((prev) =>
-      prev ? { ...prev, [storyField]: storyValue } : null
+      prev ? { ...prev, [questionId]: storyValue } : null
     )
   }, [biography])
 
   // 跳過
-  const handleSkip = useCallback(async (skippedField: string) => {
+  const handleSkip = useCallback(async (questionId: string) => {
     try {
-      await storyPromptService.dismissPrompt(skippedField)
+      await storyPromptService.dismissPrompt(questionId)
     } catch (error) {
       console.error('記錄跳過失敗:', error)
     }
@@ -83,7 +83,7 @@ export function StoryPromptWrapper() {
   const handleClose = useCallback(() => {
     closeStoryPrompt()
     // 重置推薦題目，下次打開時會重新從後端獲取
-    setPromptedField(null)
+    setPromptedQuestionId(null)
   }, [closeStoryPrompt])
 
   // 如果未登入或正在加載，不顯示彈窗
