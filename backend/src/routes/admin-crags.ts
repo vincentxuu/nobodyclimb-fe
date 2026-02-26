@@ -1067,7 +1067,7 @@ adminCragsRoutes.post(
       // Create the video record
       const slug = `yt-${body.youtubeId}`;
       await c.env.DB.prepare(
-        `INSERT INTO videos (id, title, slug, youtube_id, thumbnail_url, duration,
+        `INSERT OR IGNORE INTO videos (id, title, slug, youtube_id, thumbnail_url, duration,
           channel, channel_id, published_at, view_count, created_at, updated_at)
          VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, datetime('now'), datetime('now'))`
       )

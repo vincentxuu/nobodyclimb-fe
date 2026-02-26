@@ -427,7 +427,12 @@ export default function RouteVideoManager({
                 type="text"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter') {
+                    e.preventDefault()
+                    handleSearch()
+                  }
+                }}
                 placeholder="搜尋影片標題、頻道名稱或 YouTube ID..."
                 className="w-full pl-9 pr-3 py-1.5 text-sm border border-wb-20 rounded-lg bg-white focus:outline-none focus:ring-2 focus:ring-wb-100/20"
               />
