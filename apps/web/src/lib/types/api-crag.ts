@@ -82,6 +82,20 @@ export interface ApiSector {
 }
 
 /**
+ * 後端影片資料（從 route_videos 關聯查詢返回）
+ */
+export interface ApiRouteVideo {
+  id: string
+  title: string
+  youtubeId: string | null
+  thumbnailUrl: string | null
+  duration: number | null
+  channel: string | null
+  channelId: string | null
+  publishedAt: string | null
+}
+
+/**
  * 後端路線資料
  */
 export interface ApiRoute {
@@ -109,8 +123,8 @@ export interface ApiRoute {
   view_count?: number
   status?: string
   images?: string | null
-  videos?: string | null
-  youtube_videos?: string | null
+  videos?: ApiRouteVideo[]  // 從後端 API 返回的影片陣列（來自 route_videos 關聯）
+  youtube_videos?: string | null  // 舊的 JSON 字串格式（可能已棄用）
   instagram_posts?: string | null
   ascent_count?: number
   story_count?: number
