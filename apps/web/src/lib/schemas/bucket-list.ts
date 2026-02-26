@@ -67,7 +67,31 @@ export const bucketListItemInputSchema = z.object({
   milestones: z.array(milestoneSchema).optional(),
   is_public: z.boolean().optional().default(true),
   sort_order: z.number().optional(),
-})
+}).refine(
+  (data) => {
+    // 如果開啟進度追蹤，必須選擇追蹤方式
+    if (data.enable_progress && !data.progress_mode) {
+      return false
+    }
+    return true
+  },
+  {
+    message: '請選擇進度追蹤方式',
+    path: ['progress_mode'],
+  }
+).refine(
+  (data) => {
+    // 如果使用里程碑模式，必須至少有一個里程碑
+    if (data.progress_mode === 'milestone' && (!data.milestones || data.milestones.length === 0)) {
+      return false
+    }
+    return true
+  },
+  {
+    message: '里程碑模式至少需要一個里程碑',
+    path: ['milestones'],
+  }
+)
 
 /**
  * 完成人生清單目標 schema
