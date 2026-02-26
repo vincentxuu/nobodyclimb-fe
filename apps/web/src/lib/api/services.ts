@@ -3208,6 +3208,19 @@ export const adminAccessLogsService = {
 /**
  * 岩場統計介面
  */
+export interface RouteVideoItem {
+  id: string
+  title: string
+  youtubeId: string | null
+  thumbnailUrl: string | null
+  duration: number | null
+  channel: string | null
+  channelId: string | null
+  publishedAt: string | null
+  viewCount?: number | null
+  sortOrder?: number
+}
+
 export interface AdminCragStats {
   total_crags: number
   total_routes: number
@@ -3423,6 +3436,66 @@ export const adminCragService = {
   deleteSector: async (cragId: string, areaId: string, sectorId: string) => {
     const response = await apiClient.delete<ApiResponse<{ message: string }>>(
       `/admin/crags/${cragId}/areas/${areaId}/sectors/${sectorId}`
+    )
+    return response.data
+  },
+
+  // ============================================
+  // Route Video Management
+  // ============================================
+
+  /**
+   * 取得路線影片列表（需要 admin 權限）
+   */
+  getRouteVideos: async (cragId: string, routeId: string) => {
+    const response = await apiClient.get<ApiResponse<RouteVideoItem[]>>(
+      `/admin/crags/${cragId}/routes/${routeId}/videos`
+    )
+    return response.data
+  },
+
+  /**
+   * 新增路線影片（需要 admin 權限）
+   */
+  addRouteVideo: async (
+    cragId: string,
+    routeId: string,
+    video: {
+      youtubeId: string
+      title?: string
+      channel?: string
+      channelId?: string
+      thumbnailUrl?: string
+      duration?: number
+      publishedAt?: string
+      viewCount?: number
+      sortOrder?: number
+    }
+  ) => {
+    const response = await apiClient.post<ApiResponse<RouteVideoItem>>(
+      `/admin/crags/${cragId}/routes/${routeId}/videos`,
+      video
+    )
+    return response.data
+  },
+
+  /**
+   * 移除路線影片關聯（需要 admin 權限）
+   */
+  removeRouteVideo: async (cragId: string, routeId: string, videoId: string) => {
+    const response = await apiClient.delete<ApiResponse<{ message: string }>>(
+      `/admin/crags/${cragId}/routes/${routeId}/videos/${videoId}`
+    )
+    return response.data
+  },
+
+  /**
+   * 搜尋影片（需要 admin 權限）
+   */
+  searchVideos: async (query?: string, limit?: number) => {
+    const response = await apiClient.get<ApiResponse<RouteVideoItem[]>>(
+      '/admin/crags/videos/search',
+      { params: { q: query, limit } }
     )
     return response.data
   },
