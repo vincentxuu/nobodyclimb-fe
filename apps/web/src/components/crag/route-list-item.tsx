@@ -3,6 +3,7 @@
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { cn } from '@/lib/utils'
+import { getRouteName } from '@/lib/route-utils'
 import { routeLoadingManager } from '@/lib/route-loading-manager'
 import { useToast } from '@/components/ui/use-toast'
 import { RATE_LIMIT_TOAST } from '@/lib/constants'
@@ -57,7 +58,7 @@ export function RouteListItem({ route, cragId, isActive, onClick }: RouteListIte
             isActive ? 'text-[#1B1A1A]' : 'text-gray-700'
           )}
         >
-          {route.name}
+          {getRouteName(route.name, route.nameEn)}
         </div>
         <div className="text-xs text-gray-500 truncate">{route.areaName}</div>
       </div>

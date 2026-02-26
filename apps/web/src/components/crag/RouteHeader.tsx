@@ -2,6 +2,7 @@
 
 import React from 'react'
 import { Tag, MapPin } from 'lucide-react'
+import { getRouteName } from '@/lib/route-utils'
 
 export interface RouteHeaderData {
   name: string
@@ -34,10 +35,12 @@ export function RouteHeader({
 
   const locationParts = [route.sector, route.areaName, route.cragName].filter(Boolean)
 
+  const displayName = getRouteName(route.name, route.englishName)
+
   return (
     <div className={`mb-6 ${className}`}>
-      <HeadingTag className={headingClassName}>{route.name}</HeadingTag>
-      {route.englishName && route.englishName !== route.name && (
+      <HeadingTag className={headingClassName}>{displayName}</HeadingTag>
+      {route.englishName && route.englishName !== displayName && (
         <p className="mt-1 text-base text-gray-500 md:text-lg">{route.englishName}</p>
       )}
       <div className="mt-3 flex flex-wrap items-center gap-2">
