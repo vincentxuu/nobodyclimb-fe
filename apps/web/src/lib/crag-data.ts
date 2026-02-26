@@ -652,6 +652,7 @@ export function getRouteDetailData(cragId: string, routeId: string): RouteDetail
 export interface RouteSidebarItem {
   id: string
   name: string
+  nameEn?: string
   grade: string
   type: string
   areaId: string

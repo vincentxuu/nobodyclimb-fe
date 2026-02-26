@@ -161,6 +161,7 @@ export function adaptRouteToSidebarItem(
   return {
     id: apiRoute.id,
     name: apiRoute.name,
+    nameEn: apiRoute.name_en || undefined,
     grade: apiRoute.grade,
     type: apiRoute.route_type,
     areaId: apiRoute.area_id || '',

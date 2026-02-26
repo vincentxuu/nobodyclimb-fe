@@ -3,6 +3,7 @@
 import React, { useRef, useState, useEffect, useCallback, useMemo } from 'react'
 import Link from 'next/link'
 import { useSearchParams } from 'next/navigation'
+import { getRouteName } from '@/lib/route-utils'
 import type { RouteSidebarItem } from '@/lib/crag-data'
 
 interface VirtualizedRouteListProps {
@@ -56,7 +57,7 @@ const RouteItem = React.memo(function RouteItem({
         <div className="flex items-start justify-between gap-2">
           <div className="min-w-0 flex-1">
             <div className="truncate text-sm font-medium text-[#1B1A1A]">
-              {route.name}
+              {getRouteName(route.name, route.nameEn)}
             </div>
             <div className="mt-0.5 text-xs text-gray-500">{route.areaName}</div>
           </div>

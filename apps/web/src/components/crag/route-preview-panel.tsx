@@ -2,6 +2,7 @@
 
 import { Tag, CircleDot, Ruler, User, Youtube } from 'lucide-react'
 import { Button } from '@/components/ui/button'
+import { getRouteName } from '@/lib/route-utils'
 
 export interface RoutePreviewData {
   id: string
@@ -49,6 +50,7 @@ export function RoutePreviewPanel({
   onClose,
 }: RoutePreviewPanelProps) {
   const hasYoutubeVideos = route.youtubeVideos && route.youtubeVideos.length > 0
+  const displayName = getRouteName(route.name, route.englishName)
 
   return (
     <div className="h-full overflow-y-auto bg-white">
@@ -60,8 +62,8 @@ export function RoutePreviewPanel({
             <span>/</span>
             <span>{route.areaName}</span>
           </div>
-          <h1 className="text-2xl font-bold text-[#1B1A1A]">{route.name}</h1>
-          {route.englishName && route.englishName !== route.name && (
+          <h1 className="text-2xl font-bold text-[#1B1A1A]">{displayName}</h1>
+          {route.englishName && route.englishName !== displayName && (
             <p className="mt-1 text-base text-gray-500">{route.englishName}</p>
           )}
           <div className="mt-3 flex flex-wrap items-center gap-2">

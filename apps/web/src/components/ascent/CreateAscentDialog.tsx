@@ -13,6 +13,7 @@ import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
 import { ScrollArea } from '@/components/ui/scroll-area'
 import { useCrags, useCragFullAreas, useCragFullRoutes, useAllCragsRoutes } from '@/hooks/api/useCrags'
+import { getRouteName } from '@/lib/route-utils'
 import type {
   CragListItem,
   CragArea,
@@ -338,7 +339,7 @@ export function CreateAscentDialog({
                       <Route className="h-4 w-4 shrink-0 text-brand-dark" />
                       <div className="min-w-0 flex-1">
                         <p className="font-medium text-text-main truncate">
-                          {item.route.name}
+                          {getRouteName(item.route.name, item.route.nameEn)}
                           <span className="ml-1 text-xs text-text-subtle">
                             {item.route.grade}
                           </span>
@@ -486,7 +487,7 @@ export function CreateAscentDialog({
                         <Layers className="h-5 w-5 text-emerald-600" />
                       </div>
                       <div className="min-w-0 flex-1">
-                        <p className="font-medium text-text-main">{area.name}</p>
+                        <p className="font-medium text-text-main">{getRouteName(area.name, area.nameEn)}</p>
                         <p className="text-sm text-text-subtle">
                           {area.routesCount} 條路線
                         </p>
@@ -610,7 +611,7 @@ export function CreateAscentDialog({
                         <Route className="h-5 w-5 text-brand-dark" />
                       </div>
                       <div className="min-w-0 flex-1">
-                        <p className="font-medium text-text-main">{route.name}</p>
+                        <p className="font-medium text-text-main">{getRouteName(route.name, route.nameEn)}</p>
                         <p className="text-sm text-text-subtle">
                           {route.grade} · {route.type}
                         </p>
