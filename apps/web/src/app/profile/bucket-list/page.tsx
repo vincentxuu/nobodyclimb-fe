@@ -104,6 +104,19 @@ export default function BucketListPage() {
     },
   })
 
+  // 更新里程碑
+  const updateMilestoneMutation = useMutation({
+    mutationFn: ({ id, milestoneId, completed }: { id: string; milestoneId: string; completed: boolean }) =>
+      bucketListService.updateMilestone(id, milestoneId, { completed }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['bucket-list'] })
+      toast({ title: '里程碑已更新', variant: 'default' })
+    },
+    onError: () => {
+      toast({ title: '更新失敗，請稍後再試', variant: 'destructive' })
+    },
+  })
+
   // 篩選人生清單
   const filteredList = useMemo(() => {
     let items = [...bucketList]
@@ -176,6 +189,13 @@ export default function BucketListPage() {
       }
     },
     [completingItem, completeMutation]
+  )
+
+  const handleMilestoneToggle = useCallback(
+    (itemId: string, milestoneId: string, completed: boolean) => {
+      updateMilestoneMutation.mutate({ id: itemId, milestoneId, completed })
+    },
+    [updateMilestoneMutation]
   )
 
   // 載入中
@@ -304,6 +324,9 @@ export default function BucketListPage() {
                           onEdit={handleEdit}
                           onDelete={handleDelete}
                           onComplete={handleComplete}
+                          onMilestoneToggle={(milestoneId, completed) =>
+                            handleMilestoneToggle(item.id, milestoneId, completed)
+                          }
                         />
                       </motion.div>
                     ))}
@@ -321,28 +344,43 @@ export default function BucketListPage() {
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
-              className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4"
+              className="fixed inset-0 z-[60] flex items-end sm:items-center justify-center bg-black/50 sm:p-4"
               onClick={() => {
                 setShowForm(false)
                 setEditingItem(null)
               }}
             >
               <motion.div
-                initial={{ scale: 0.95, opacity: 0 }}
-                animate={{ scale: 1, opacity: 1 }}
-                exit={{ scale: 0.95, opacity: 0 }}
+                initial={{ y: '100%', opacity: 0 }}
+                animate={{ y: 0, opacity: 1 }}
+                exit={{ y: '100%', opacity: 0 }}
+                transition={{ type: 'spring', damping: 25, stiffness: 300 }}
                 onClick={(e) => e.stopPropagation()}
-                className="max-h-[90vh] w-full max-w-2xl overflow-y-auto rounded-lg bg-white p-6"
+                className="h-[95vh] sm:h-auto sm:max-h-[90vh] w-full max-w-2xl overflow-y-auto rounded-t-2xl sm:rounded-lg bg-white"
               >
-                <BucketListForm
-                  item={editingItem}
-                  onSubmit={handleSubmit}
-                  onCancel={() => {
-                    setShowForm(false)
-                    setEditingItem(null)
-                  }}
-                  isLoading={createMutation.isPending || updateMutation.isPending}
-                />
+                <div className="sticky top-0 z-10 flex items-center justify-between border-b bg-white px-4 py-3 sm:hidden">
+                  <h2 className="text-lg font-semibold">{editingItem ? '編輯目標' : '新增目標'}</h2>
+                  <button
+                    onClick={() => {
+                      setShowForm(false)
+                      setEditingItem(null)
+                    }}
+                    className="rounded-full p-2 hover:bg-gray-100"
+                  >
+                    <span className="text-xl">&times;</span>
+                  </button>
+                </div>
+                <div className="p-4 pb-24 sm:p-6 sm:pb-6">
+                  <BucketListForm
+                    item={editingItem}
+                    onSubmit={handleSubmit}
+                    onCancel={() => {
+                      setShowForm(false)
+                      setEditingItem(null)
+                    }}
+                    isLoading={createMutation.isPending || updateMutation.isPending}
+                  />
+                </div>
               </motion.div>
             </motion.div>
           )}
@@ -355,22 +393,34 @@ export default function BucketListPage() {
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
-              className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4"
+              className="fixed inset-0 z-[60] flex items-end sm:items-center justify-center bg-black/50 sm:p-4"
               onClick={() => setCompletingItem(null)}
             >
               <motion.div
-                initial={{ scale: 0.95, opacity: 0 }}
-                animate={{ scale: 1, opacity: 1 }}
-                exit={{ scale: 0.95, opacity: 0 }}
+                initial={{ y: '100%', opacity: 0 }}
+                animate={{ y: 0, opacity: 1 }}
+                exit={{ y: '100%', opacity: 0 }}
+                transition={{ type: 'spring', damping: 25, stiffness: 300 }}
                 onClick={(e) => e.stopPropagation()}
-                className="max-h-[90vh] w-full max-w-2xl overflow-y-auto rounded-lg bg-white p-6"
+                className="h-[95vh] sm:h-auto sm:max-h-[90vh] w-full max-w-2xl overflow-y-auto rounded-t-2xl sm:rounded-lg bg-white"
               >
-                <BucketListCompletionForm
-                  item={completingItem}
-                  onSubmit={handleCompletionSubmit}
-                  onCancel={() => setCompletingItem(null)}
-                  isLoading={completeMutation.isPending}
-                />
+                <div className="sticky top-0 z-10 flex items-center justify-between border-b bg-white px-4 py-3 sm:hidden">
+                  <h2 className="text-lg font-semibold">完成目標</h2>
+                  <button
+                    onClick={() => setCompletingItem(null)}
+                    className="rounded-full p-2 hover:bg-gray-100"
+                  >
+                    <span className="text-xl">&times;</span>
+                  </button>
+                </div>
+                <div className="p-4 pb-24 sm:p-6 sm:pb-6">
+                  <BucketListCompletionForm
+                    item={completingItem}
+                    onSubmit={handleCompletionSubmit}
+                    onCancel={() => setCompletingItem(null)}
+                    isLoading={completeMutation.isPending}
+                  />
+                </div>
               </motion.div>
             </motion.div>
           )}

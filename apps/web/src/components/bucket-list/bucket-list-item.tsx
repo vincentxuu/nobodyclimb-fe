@@ -49,6 +49,7 @@ interface BucketListItemCardProps {
   onEdit?: (item: BucketListItem) => void
   onDelete?: (item: BucketListItem) => void
   onComplete?: (item: BucketListItem) => void
+  onMilestoneToggle?: (milestoneId: string, completed: boolean) => void
   onClick?: (item: BucketListItem) => void
   className?: string
 }
@@ -65,6 +66,7 @@ export function BucketListItemCard({
   onEdit,
   onDelete,
   onComplete,
+  onMilestoneToggle,
   onClick,
   className,
 }: BucketListItemCardProps) {
@@ -188,13 +190,13 @@ export function BucketListItemCard({
                     e.stopPropagation()
                     setShowMenu(!showMenu)
                   }}
-                  className="rounded-full p-1 opacity-0 transition-opacity hover:bg-gray-100 group-hover:opacity-100"
+                  className="rounded-full p-1 transition-opacity hover:bg-gray-100 sm:opacity-0 sm:group-hover:opacity-100"
                 >
                   <MoreVertical className="h-4 w-4 text-gray-400" />
                 </button>
 
                 {showMenu && (
-                  <div className="absolute right-0 top-full z-10 mt-1 w-32 overflow-hidden rounded-md border bg-white shadow-lg">
+                  <div className="absolute right-0 top-full z-30 mt-1 w-32 overflow-hidden rounded-md border bg-white shadow-lg">
                     {!isCompleted && (
                       <button
                         type="button"
@@ -254,7 +256,9 @@ export function BucketListItemCard({
                 progress={displayProgress}
                 milestones={item.milestones}
                 size="sm"
-                showLabels={variant === 'expanded'}
+                showLabels={variant !== 'compact'}
+                editable={isOwner && !!onMilestoneToggle}
+                onMilestoneToggle={onMilestoneToggle}
               />
             ) : (
               <ProgressBar progress={displayProgress} size="sm" />
@@ -317,6 +321,7 @@ interface BucketListSectionProps {
   onEdit?: (item: BucketListItem) => void
   onDelete?: (item: BucketListItem) => void
   onComplete?: (item: BucketListItem) => void
+  onMilestoneToggle?: (itemId: string, milestoneId: string, completed: boolean) => void
   onClick?: (item: BucketListItem) => void
   className?: string
 }
@@ -334,6 +339,7 @@ export function BucketListSection({
   onEdit,
   onDelete,
   onComplete,
+  onMilestoneToggle,
   onClick,
   className,
 }: BucketListSectionProps) {
@@ -358,6 +364,11 @@ export function BucketListSection({
               onEdit={onEdit}
               onDelete={onDelete}
               onComplete={onComplete}
+              onMilestoneToggle={
+                onMilestoneToggle
+                  ? (milestoneId, completed) => onMilestoneToggle(item.id, milestoneId, completed)
+                  : undefined
+              }
               onClick={onClick}
             />
           ))}

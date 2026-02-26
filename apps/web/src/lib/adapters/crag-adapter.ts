@@ -201,6 +201,20 @@ export interface AdaptedRouteDetail {
  * 將 API 路線資料轉換為詳情格式
  */
 export function adaptRouteToDetail(apiRoute: ApiRoute): AdaptedRouteDetail {
+  // 處理 videos：優先使用 API 返回的物件陣列（來自 route_videos 關聯查詢）
+  let videoUrls: string[] = []
+  if (apiRoute.videos && Array.isArray(apiRoute.videos)) {
+    // 新格式：物件陣列，轉換為 YouTube URL
+    videoUrls = apiRoute.videos
+      .filter(v => v.youtubeId)
+      .map(v => `https://www.youtube.com/watch?v=${v.youtubeId}`)
+  }
+
+  // 如果沒有從關聯查詢獲得影片，嘗試解析舊的 JSON 字串格式（向下相容）
+  if (videoUrls.length === 0 && typeof apiRoute.videos === 'string') {
+    videoUrls = parseJsonArray(apiRoute.videos)
+  }
+
   return {
     id: apiRoute.id,
     name: apiRoute.name,
@@ -219,8 +233,8 @@ export function adaptRouteToDetail(apiRoute: ApiRoute): AdaptedRouteDetail {
     popularity: apiRoute.popularity || 0,
     views: apiRoute.view_count || 0,
     images: parseJsonArray(apiRoute.images ?? null),
-    videos: parseJsonArray(apiRoute.videos ?? null),
-    youtubeVideos: parseJsonArray(apiRoute.youtube_videos ?? null),
+    videos: videoUrls,  // 使用轉換後的影片 URL 陣列
+    youtubeVideos: parseJsonArray(apiRoute.youtube_videos ?? null),  // 保留舊的 youtube_videos 欄位作為備用
     instagramPosts: parseJsonArray(apiRoute.instagram_posts ?? null),
     sector: apiRoute.sector_id || '',
   }
@@ -250,6 +264,20 @@ export function adaptApiAreaToFullArea(apiArea: ApiArea): CragArea {
  * 將 API 路線資料轉換為完整前端格式（CragRoute）
  */
 export function adaptApiRouteToCragRoute(apiRoute: ApiRoute): CragRoute {
+  // 處理 videos：優先使用 API 返回的物件陣列（來自 route_videos 關聯查詢）
+  let videoUrls: string[] = []
+  if (apiRoute.videos && Array.isArray(apiRoute.videos)) {
+    // 新格式：物件陣列，轉換為 YouTube URL
+    videoUrls = apiRoute.videos
+      .filter(v => v.youtubeId)
+      .map(v => `https://www.youtube.com/watch?v=${v.youtubeId}`)
+  }
+
+  // 如果沒有從關聯查詢獲得影片，嘗試解析舊的 JSON 字串格式（向下相容）
+  if (videoUrls.length === 0 && typeof apiRoute.videos === 'string') {
+    videoUrls = parseJsonArray(apiRoute.videos)
+  }
+
   return {
     id: apiRoute.id,
     areaId: apiRoute.area_id || '',
@@ -271,7 +299,7 @@ export function adaptApiRouteToCragRoute(apiRoute: ApiRoute): CragRoute {
     popularity: apiRoute.popularity,
     views: apiRoute.view_count,
     images: parseJsonArray(apiRoute.images),
-    videos: parseJsonArray(apiRoute.videos),
+    videos: videoUrls,  // 使用轉換後的影片 URL 陣列
     youtubeVideos: parseJsonArray(apiRoute.youtube_videos),
     instagramPosts: parseJsonArray(apiRoute.instagram_posts),
     status: apiRoute.status || 'active',

@@ -125,7 +125,7 @@ export function ProgressTracker({
         />
 
         {/* 里程碑點 */}
-        <div className="relative flex items-center justify-between">
+        <div className="relative">
           {sortedMilestones.map((milestone) => {
             const isCompleted = milestone.completed
             return (
@@ -135,13 +135,14 @@ export function ProgressTracker({
                 disabled={!editable}
                 onClick={() => editable && onMilestoneToggle?.(milestone.id, !isCompleted)}
                 className={cn(
-                  'relative z-10 flex items-center justify-center rounded-full border-2 transition-all',
+                  'absolute z-10 flex -translate-x-1/2 items-center justify-center rounded-full border-2 transition-all',
                   sizes.milestone,
                   isCompleted
                     ? 'border-[#1B1A1A] bg-brand-accent/70 text-[#1B1A1A]'
                     : 'border-gray-300 bg-white text-gray-300',
                   editable && 'cursor-pointer hover:border-[#1B1A1A]'
                 )}
+                style={{ left: `${milestone.percentage}%` }}
                 title={milestone.title}
               >
                 {isCompleted ? (
@@ -157,19 +158,19 @@ export function ProgressTracker({
 
       {/* 里程碑標籤 */}
       {showLabels && (
-        <div className="mt-2 flex justify-between">
+        <div className="mt-4 flex justify-between gap-1 overflow-hidden px-1">
           {sortedMilestones.map((milestone) => (
             <div
               key={milestone.id}
               className={cn(
-                'flex flex-col items-center text-center',
+                'flex flex-1 flex-col items-center gap-0.5 text-center',
                 sizes.text,
                 milestone.completed ? 'text-[#1B1A1A]' : 'text-gray-400'
               )}
-              style={{ width: `${100 / sortedMilestones.length}%` }}
+              title={milestone.title}
             >
-              <span className="line-clamp-2 max-w-[80px]">{milestone.title}</span>
-              <span className="text-xs text-gray-400">{milestone.percentage}%</span>
+              <span className="text-[10px] font-medium">{milestone.percentage}%</span>
+              <span className="w-full truncate text-[10px]">{milestone.title}</span>
             </div>
           ))}
         </div>

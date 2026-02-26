@@ -50,11 +50,15 @@ export function BucketListForm({
       target_grade: item?.target_grade || '',
       target_location: item?.target_location || '',
       target_date: item?.target_date || '',
-      enable_progress: item?.enable_progress || false,
+      enable_progress: Boolean(item?.enable_progress),
       progress_mode: item?.progress_mode || null,
-      progress: item?.progress || 0,
-      milestones: item?.milestones || [],
-      is_public: item?.is_public ?? true,
+      progress: Number(item?.progress) || 0,
+      milestones: (item?.milestones || []).map(m => ({
+        ...m,
+        completed: Boolean(m.completed),
+        percentage: Number(m.percentage),
+      })),
+      is_public: item?.is_public !== undefined ? Boolean(item.is_public) : true,
     },
   })
 
@@ -68,7 +72,7 @@ export function BucketListForm({
     const currentMilestones = milestones || []
     const newMilestone: Milestone = {
       id: `milestone-${Date.now()}`,
-      title: '',
+      title: `里程碑 ${currentMilestones.length + 1}`,
       percentage: Math.min(100, (currentMilestones.length + 1) * 20),
       completed: false,
       completed_at: null,
@@ -181,12 +185,17 @@ export function BucketListForm({
           {/* 預計完成日期 */}
           <div>
             <Label htmlFor="target_date">預計完成日期</Label>
-            <Input
-              id="target_date"
-              type="date"
-              {...register('target_date')}
-              className="mt-1"
-            />
+            <div className="relative mt-1">
+              <input
+                id="target_date"
+                type="date"
+                {...register('target_date')}
+                className="w-full rounded-lg border border-[#D3D3D3] bg-white px-3 py-3 text-base text-[#1B1A1A] transition-colors focus:border-[#ffe70c] focus:bg-[#F0F0F0] focus:outline-none sm:py-2 sm:text-sm [&::-webkit-calendar-picker-indicator]:cursor-pointer [&::-webkit-calendar-picker-indicator]:p-2"
+                style={{
+                  minHeight: '48px',
+                }}
+              />
+            </div>
           </div>
         </div>
       </div>
@@ -216,6 +225,9 @@ export function BucketListForm({
             {/* 進度模式選擇 */}
             <div>
               <Label>追蹤方式</Label>
+              {errors.progress_mode && (
+                <p className="mt-1 text-sm text-red-500">{errors.progress_mode.message}</p>
+              )}
               <div className="mt-2 flex gap-3">
                 <button
                   type="button"
@@ -280,6 +292,9 @@ export function BucketListForm({
             {progressMode === 'milestone' && (
               <div className="space-y-3">
                 <Label>里程碑設定</Label>
+                {errors.milestones && (
+                  <p className="text-sm text-red-500">{errors.milestones.message}</p>
+                )}
                 {(milestones || []).map((milestone, index) => (
                   <div key={milestone.id} className="flex items-center gap-2">
                     <span className="w-8 text-sm text-gray-500">{index + 1}.</span>
@@ -334,6 +349,21 @@ export function BucketListForm({
           onCheckedChange={(checked) => setValue('is_public', checked)}
         />
       </div>
+
+      {/* 表單錯誤提示 */}
+      {Object.keys(errors).length > 0 && (
+        <div className="rounded-lg border border-red-200 bg-red-50 p-4">
+          <p className="text-sm font-medium text-red-800">請修正以下錯誤：</p>
+          <ul className="mt-2 list-inside list-disc space-y-1 text-sm text-red-700">
+            {Object.entries(errors).map(([key, error]) => {
+              if (error && 'message' in error && error.message) {
+                return <li key={key}>{error.message as string}</li>
+              }
+              return null
+            })}
+          </ul>
+        </div>
+      )}
 
       {/* 按鈕 */}
       <div className="flex justify-end gap-3 border-t pt-4">
