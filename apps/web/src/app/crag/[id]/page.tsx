@@ -4,6 +4,9 @@ import { fetchCragById } from '@/lib/api/server-fetch'
 import { assembleCragMetadata, type CragMetadata } from '@/lib/adapters/crag-adapter'
 import { SITE_URL, SITE_NAME, OG_IMAGE } from '@/lib/constants'
 
+// 強制動態渲染，確保在 runtime 取得正確的 API URL
+export const dynamic = 'force-dynamic'
+
 // 生成 Place JSON-LD 結構化數據
 function generateCragJsonLd(crag: CragMetadata, id: string) {
   return {
