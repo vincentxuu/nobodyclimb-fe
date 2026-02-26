@@ -34,13 +34,18 @@ async function getApiBaseUrl(): Promise<string> {
     const { getCloudflareContext } = await import('@opennextjs/cloudflare')
     const { env } = getCloudflareContext()
     const serverApiUrl = (env as unknown as Record<string, string | undefined>)?.SERVER_API_URL
+
+    console.log('[Server Fetch] Runtime SERVER_API_URL:', serverApiUrl)
+
     if (serverApiUrl) {
       return serverApiUrl
     }
-  } catch {
+  } catch (error) {
     // 非 Cloudflare 環境（如本地開發），忽略錯誤
+    console.log('[Server Fetch] getCloudflareContext failed:', error)
   }
   // Fallback 到 build time 環境變數或預設值
+  console.log('[Server Fetch] Using fallback API URL:', DEFAULT_API_BASE_URL)
   return DEFAULT_API_BASE_URL
 }
 
@@ -49,11 +54,22 @@ async function getApiBaseUrl(): Promise<string> {
  */
 async function serverFetch<T>(path: string): Promise<T | null> {
   const apiBaseUrl = await getApiBaseUrl()
+  const fullUrl = `${apiBaseUrl}${path}`
+
+  // Debug logging
+  console.log('[Server Fetch] URL:', fullUrl)
+
   try {
-    const response = await fetch(`${apiBaseUrl}${path}`, {
+    const response = await fetch(fullUrl, {
       cache: 'no-store', // 禁用快取以避免舊資料問題
     })
-    if (!response.ok) return null
+
+    console.log('[Server Fetch] Status:', response.status, 'for', fullUrl)
+
+    if (!response.ok) {
+      console.error('[Server Fetch] Failed with status:', response.status, 'for', fullUrl)
+      return null
+    }
     return response.json()
   } catch (error) {
     console.error(`[Server Fetch] Failed to fetch ${path}:`, error)
