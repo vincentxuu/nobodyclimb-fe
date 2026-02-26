@@ -51,7 +51,7 @@ async function serverFetch<T>(path: string): Promise<T | null> {
   const apiBaseUrl = await getApiBaseUrl()
   try {
     const response = await fetch(`${apiBaseUrl}${path}`, {
-      next: { revalidate: 300 }, // 5 分鐘快取
+      cache: 'no-store', // 禁用快取以避免舊資料問題
     })
     if (!response.ok) return null
     return response.json()
