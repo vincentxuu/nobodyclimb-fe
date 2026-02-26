@@ -6,6 +6,9 @@ import { assembleRouteDetailData } from '@/lib/adapters/crag-adapter'
 import type { RouteDetailData } from '@/lib/crag-data'
 import { SITE_URL, SITE_NAME, OG_IMAGE } from '@/lib/constants'
 
+// 強制動態渲染，確保在 runtime 取得正確的 API URL
+export const dynamic = 'force-dynamic'
+
 /**
  * 從 API 取得路線詳情資料（Server Component 用）
  */
