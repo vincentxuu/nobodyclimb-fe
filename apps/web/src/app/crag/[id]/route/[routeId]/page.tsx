@@ -1,7 +1,7 @@
 import type { Metadata } from 'next'
 import { notFound } from 'next/navigation'
 import RouteDetailClient from './RouteDetailClient'
-import { fetchCragById, fetchCragRoutes, fetchCragAreas } from '@/lib/api/server-fetch'
+import { fetchCragById, fetchCragRouteById, fetchCragAreas } from '@/lib/api/server-fetch'
 import { assembleRouteDetailData } from '@/lib/adapters/crag-adapter'
 import type { RouteDetailData } from '@/lib/crag-data'
 import { SITE_URL, SITE_NAME, OG_IMAGE } from '@/lib/constants'
@@ -13,15 +13,15 @@ export const dynamic = 'force-dynamic'
  * 從 API 取得路線詳情資料（Server Component 用）
  */
 async function getRouteData(cragId: string, routeId: string): Promise<RouteDetailData | null> {
-  const [apiCrag, apiRoutes, apiAreas] = await Promise.all([
+  const [apiCrag, apiRoute, apiAreas] = await Promise.all([
     fetchCragById(cragId),
-    fetchCragRoutes(cragId),
+    fetchCragRouteById(cragId, routeId),
     fetchCragAreas(cragId),
   ])
 
-  if (!apiCrag) return null
+  if (!apiCrag || !apiRoute) return null
 
-  return assembleRouteDetailData(apiCrag, apiRoutes, apiAreas, routeId)
+  return assembleRouteDetailData(apiCrag, [apiRoute], apiAreas, routeId)
 }
 
 // 生成 TouristAttraction JSON-LD 結構化數據

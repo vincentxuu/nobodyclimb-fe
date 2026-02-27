@@ -173,6 +173,14 @@ export interface ApiCragAreasResponse {
 }
 
 /**
+ * 單一路線 API 回應
+ */
+export interface ApiCragRouteDetailResponse {
+  success: boolean
+  data: ApiRoute
+}
+
+/**
  * 熱門路線項目
  */
 export interface ApiFeaturedRoute {
