@@ -45,11 +45,12 @@ export default function CragDetailClient({ params }: { params: Promise<{ id: str
   // 根據選擇的區域獲取 sectors（從路線資料推斷）
   const sectors = useMemo(() => {
     if (filterState.selectedArea === 'all') return []
-    // 從路線資料中提取該區域的 sectors
+    // 從路線資料中提取該區域的 sectors（sector 欄位已從 API 獲取中文名稱）
     const sectorsSet = new Set<string>()
     routes
       .filter(route => route.areaId === filterState.selectedArea && route.sector)
       .forEach(route => sectorsSet.add(route.sector!))
+    // sector 欄位已經是中文名稱，直接使用作為 id 和 name
     return Array.from(sectorsSet).map(sector => ({ id: sector, name: sector }))
   }, [routes, filterState.selectedArea])
 

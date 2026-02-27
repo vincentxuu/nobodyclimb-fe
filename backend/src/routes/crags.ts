@@ -479,9 +479,16 @@ cragsRoutes.get(
   async (c) => {
   const cragId = c.req.param('id');
 
-  // 取得路線列表
+  // 取得路線列表，包含 sector 名稱
   const routes = await c.env.DB.prepare(
-    'SELECT * FROM routes WHERE crag_id = ? ORDER BY grade ASC'
+    `SELECT
+      r.*,
+      s.name as sector_name,
+      s.name_en as sector_name_en
+    FROM routes r
+    LEFT JOIN sectors s ON r.sector_id = s.id
+    WHERE r.crag_id = ?
+    ORDER BY r.grade ASC`
   )
     .bind(cragId)
     .all<{
@@ -496,6 +503,8 @@ cragsRoutes.get(
       description: string | null;
       first_ascent: string | null;
       created_at: string | null;
+      sector_name: string | null;
+      sector_name_en: string | null;
     }>();
 
   if (routes.results.length === 0) {
