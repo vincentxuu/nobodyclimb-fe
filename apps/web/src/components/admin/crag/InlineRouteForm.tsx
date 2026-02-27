@@ -5,6 +5,7 @@ import { Loader2, Save, Trash2, Route as RouteIcon } from 'lucide-react'
 import { useToast } from '@/components/ui/use-toast'
 import { adminCragService } from '@/lib/api/services'
 import { AdminRoute, RouteFormData, emptyRouteForm, routeTypeLabels } from './types'
+import RouteVideoManager from './RouteVideoManager'
 
 interface InlineRouteFormProps {
   route: AdminRoute | null
@@ -274,6 +275,11 @@ export default function InlineRouteForm({
               />
             </div>
           </fieldset>
+
+          {/* 路線影片管理（僅在編輯模式顯示） */}
+          {route && !isNew && (
+            <RouteVideoManager routeId={route.id} cragId={cragId} />
+          )}
 
           {/* 路線資訊摘要（僅在編輯模式顯示） */}
           {route && !isNew && (
