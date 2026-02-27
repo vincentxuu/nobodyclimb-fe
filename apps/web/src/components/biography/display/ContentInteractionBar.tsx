@@ -3,6 +3,7 @@
 import { cn } from '@/lib/utils'
 import { ContentLikeButton } from './ContentLikeButton'
 import { ContentCommentSheet } from './ContentCommentSheet'
+import { ContentShareButton } from './ContentShareButton'
 import { QuickReactionBar } from './QuickReactionBar'
 import type { ContentComment } from '@/lib/api/services'
 
@@ -35,6 +36,10 @@ interface ContentInteractionBarProps {
   showBorder?: boolean
   /** 是否置中對齊 */
   centered?: boolean
+  /** 分享連結（傳入後顯示分享按鈕） */
+  shareUrl?: string
+  /** 分享標題 */
+  shareTitle?: string
 }
 
 /**
@@ -55,6 +60,8 @@ export function ContentInteractionBar({
   className,
   showBorder = true,
   centered = false,
+  shareUrl,
+  shareTitle,
 }: ContentInteractionBarProps) {
   return (
     <div
@@ -84,6 +91,13 @@ export function ContentInteractionBar({
           onDeleteComment={onDeleteComment}
           size={size}
         />
+        {shareUrl && (
+          <ContentShareButton
+            url={shareUrl}
+            title={shareTitle || ''}
+            size={size}
+          />
+        )}
       </div>
     </div>
   )

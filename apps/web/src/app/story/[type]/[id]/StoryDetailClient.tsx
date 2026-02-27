@@ -8,7 +8,6 @@ import { ArrowLeft, ArrowRight, Loader2, Calendar, Quote } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Breadcrumb } from '@/components/ui/breadcrumb'
 import { ContentInteractionBar } from '@/components/biography/display/ContentInteractionBar'
-import { ShareButton } from '@/components/story/ShareButton'
 import { RelatedStories } from '@/components/story/RelatedStories'
 import {
   biographyContentService,
@@ -414,7 +413,7 @@ export default function StoryDetailClient({ params }: StoryDetailClientProps) {
           </div>
 
           {/* 故事內容卡片 */}
-          <div className="relative mb-8 overflow-hidden rounded-2xl border-l-4 border-brand-yellow-100 bg-white shadow-sm">
+          <div className="relative mb-8 overflow-hidden rounded-2xl bg-white shadow-sm">
             {/* 內容區 */}
             <div className="px-6 py-8 md:px-10 md:py-12">
               {/* 故事文字 */}
@@ -439,23 +438,13 @@ export default function StoryDetailClient({ params }: StoryDetailClientProps) {
               onDeleteComment={storyType === 'core-stories' ? handleDeleteComment : undefined}
               size="md"
               showBorder={false}
+              shareUrl={typeof window !== 'undefined' ? window.location.href : ''}
+              shareTitle={getStoryLabel()}
             />
-
-            {/* 分隔線與分享 */}
-            <div className="mt-4 flex items-center gap-4 border-t border-gray-100 pt-4">
-              <span className="text-sm text-[#8E8C8C]">喜歡這則故事？</span>
-              <ShareButton
-                title={getStoryLabel()}
-                url={typeof window !== 'undefined' ? window.location.href : ''}
-              />
-            </div>
           </div>
 
           {/* 作者資訊區 */}
           <div className="rounded-2xl bg-white p-5 shadow-sm md:p-6">
-            {/* 標題 */}
-            <h2 className="mb-4 text-sm font-semibold uppercase tracking-wide text-[#8E8C8C]">作者</h2>
-
             <div className="flex items-center gap-4">
               {/* 頭像 */}
               <Link href={`/biography/profile/${story.biography_slug}`}>
