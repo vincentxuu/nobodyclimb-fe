@@ -1,6 +1,6 @@
 import type { Metadata } from 'next'
-import { notFound } from 'next/navigation'
 import RouteDetailClient from './RouteDetailClient'
+import RouteDetailFallback from './RouteDetailFallback'
 import { fetchCragById, fetchCragRouteById, fetchCragAreas } from '@/lib/api/server-fetch'
 import { assembleRouteDetailData } from '@/lib/adapters/crag-adapter'
 import type { RouteDetailData } from '@/lib/crag-data'
@@ -209,8 +209,10 @@ export default async function RouteDetailPage({
   const { id, routeId } = await params
   const data = await getRouteData(id, routeId)
 
+  // 當 server-side fetch 失敗時（Cloudflare Worker 間 HTTP 請求限制），
+  // 使用 client-side fallback 在瀏覽器端取得資料
   if (!data) {
-    notFound()
+    return <RouteDetailFallback cragId={id} routeId={routeId} />
   }
 
   return (
