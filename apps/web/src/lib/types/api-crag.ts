@@ -103,6 +103,8 @@ export interface ApiRoute {
   crag_id: string
   area_id: string | null
   sector_id: string | null
+  sector_name?: string | null  // Sector 中文名稱（從 JOIN sectors 獲取）
+  sector_name_en?: string | null  // Sector 英文名稱（從 JOIN sectors 獲取）
   name: string
   name_en?: string | null
   alternative_names?: string | null

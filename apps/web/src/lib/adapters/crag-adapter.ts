@@ -166,8 +166,8 @@ export function adaptRouteToSidebarItem(
     type: apiRoute.route_type,
     areaId: apiRoute.area_id || '',
     areaName: apiRoute.area_id ? (areaMap.get(apiRoute.area_id) || '') : '',
-    sector: apiRoute.sector_id || undefined,
-    sectorEn: undefined,
+    sector: apiRoute.sector_name || undefined,
+    sectorEn: apiRoute.sector_name_en || undefined,
   }
 }
 
