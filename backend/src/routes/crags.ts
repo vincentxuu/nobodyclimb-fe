@@ -556,6 +556,111 @@ cragsRoutes.get(
   });
 });
 
+// GET /crags/:id/routes/:routeId - Get a single route
+cragsRoutes.get(
+  '/:id/routes/:routeId',
+  describeRoute({
+    tags: ['Crags'],
+    summary: '取得岩場的單一路線',
+    description: '根據岩場 ID 和路線 ID 取得單一攀岩路線的詳細資料，包含關聯影片資訊',
+    responses: {
+      200: { description: '成功取得路線資料' },
+      404: { description: '路線不存在' },
+    },
+  }),
+  validator('param', cragIdParamSchema),
+  async (c) => {
+  const cragId = c.req.param('id');
+  const routeId = c.req.param('routeId');
+
+  const route = await c.env.DB.prepare(
+    'SELECT * FROM routes WHERE id = ? AND crag_id = ?'
+  )
+    .bind(routeId, cragId)
+    .first<{
+      id: string;
+      crag_id: string;
+      area_id: string | null;
+      sector_id: string | null;
+      name: string;
+      name_en: string | null;
+      alternative_names: string | null;
+      grade: string | null;
+      grade_system: string | null;
+      height: number | null;
+      bolt_count: number | null;
+      anchor_type: string | null;
+      route_type: string | null;
+      description: string | null;
+      description_en: string | null;
+      protection: string | null;
+      tips: string | null;
+      safety_rating: string | null;
+      popularity: number | null;
+      view_count: number | null;
+      status: string | null;
+      images: string | null;
+      youtube_videos: string | null;
+      instagram_posts: string | null;
+      first_ascent: string | null;
+      first_ascent_date: string | null;
+      ascent_count: number | null;
+      story_count: number | null;
+      community_rating_avg: number | null;
+      community_rating_count: number | null;
+      created_at: string | null;
+      updated_at: string | null;
+    }>();
+
+  if (!route) {
+    return c.json(
+      {
+        success: false,
+        error: 'Not Found',
+        message: 'Route not found',
+      },
+      404
+    );
+  }
+
+  // 取得此路線關聯的影片
+  const routeVideos = await c.env.DB.prepare(
+    `SELECT v.id, v.title, v.youtube_id, v.thumbnail_url, v.duration, v.channel, v.channel_id, v.published_at
+     FROM route_videos rv
+     JOIN videos v ON rv.video_id = v.id
+     WHERE rv.route_id = ?
+     ORDER BY v.published_at DESC NULLS LAST`
+  )
+    .bind(routeId)
+    .all<{
+      id: string;
+      title: string;
+      youtube_id: string | null;
+      thumbnail_url: string | null;
+      duration: number | null;
+      channel: string | null;
+      channel_id: string | null;
+      published_at: string | null;
+    }>();
+
+  return c.json({
+    success: true,
+    data: {
+      ...route,
+      videos: routeVideos.results.map(v => ({
+        id: v.id,
+        title: v.title,
+        youtubeId: v.youtube_id,
+        thumbnailUrl: v.thumbnail_url,
+        duration: v.duration,
+        channel: v.channel,
+        channelId: v.channel_id,
+        publishedAt: v.published_at,
+      })),
+    },
+  });
+});
+
 // GET /crags/:id/areas - Get areas for a crag
 cragsRoutes.get(
   '/:id/areas',

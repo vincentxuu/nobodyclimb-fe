@@ -13,6 +13,7 @@ import type {
   ApiCragDetailResponse,
   ApiCragRoutesResponse,
   ApiCragAreasResponse,
+  ApiCragRouteDetailResponse,
 } from '../types/api-crag'
 import type {
   ApiGym,
@@ -119,6 +120,14 @@ export async function fetchCragAreas(cragId: string): Promise<ApiArea[]> {
 export async function fetchCragRoutes(cragId: string): Promise<ApiRoute[]> {
   const response = await serverFetch<ApiCragRoutesResponse>(`/crags/${cragId}/routes`)
   return response?.data || []
+}
+
+/**
+ * 取得單一路線詳情
+ */
+export async function fetchCragRouteById(cragId: string, routeId: string): Promise<ApiRoute | null> {
+  const response = await serverFetch<ApiCragRouteDetailResponse>(`/crags/${cragId}/routes/${routeId}`)
+  return response?.data || null
 }
 
 // ============ 岩館相關 ============
