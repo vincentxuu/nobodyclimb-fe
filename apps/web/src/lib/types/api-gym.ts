@@ -51,6 +51,7 @@ export interface ApiGym {
   description: string | null
   address: string | null
   city: string | null
+  district: string | null
   region: string | null
   latitude: number | null
   longitude: number | null

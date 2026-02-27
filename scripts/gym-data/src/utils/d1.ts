@@ -158,6 +158,7 @@ function gymJsonToDb(gym: GymJsonData): Partial<GymDB> {
     description: gym.description || null,
     address: gym.location.address || null,
     city: gym.location.city || null,
+    district: gym.location.district || null,
     region: gym.location.region || null,
     latitude: gym.location.latitude || null,
     longitude: gym.location.longitude || null,
@@ -178,16 +179,16 @@ export function upsertGym(gym: GymJsonData): void {
 
   const sql = `
     INSERT INTO gyms (
-      id, name, slug, description, address, city, region,
+      id, name, slug, description, address, city, district, region,
       latitude, longitude, phone, email, website, cover_image,
       is_featured, opening_hours, facilities, price_info, rating_avg,
       created_at, updated_at
     ) VALUES (
       ${escapeSQL(dbGym.id)}, ${escapeSQL(dbGym.name)}, ${escapeSQL(dbGym.slug)},
       ${escapeSQL(dbGym.description)}, ${escapeSQL(dbGym.address)}, ${escapeSQL(dbGym.city)},
-      ${escapeSQL(dbGym.region)}, ${escapeSQL(dbGym.latitude)}, ${escapeSQL(dbGym.longitude)},
-      ${escapeSQL(dbGym.phone)}, ${escapeSQL(dbGym.email)}, ${escapeSQL(dbGym.website)},
-      ${escapeSQL(dbGym.cover_image)}, ${escapeSQL(dbGym.is_featured)},
+      ${escapeSQL(dbGym.district)}, ${escapeSQL(dbGym.region)}, ${escapeSQL(dbGym.latitude)},
+      ${escapeSQL(dbGym.longitude)}, ${escapeSQL(dbGym.phone)}, ${escapeSQL(dbGym.email)},
+      ${escapeSQL(dbGym.website)}, ${escapeSQL(dbGym.cover_image)}, ${escapeSQL(dbGym.is_featured)},
       ${escapeSQL(dbGym.opening_hours)}, ${escapeSQL(dbGym.facilities)},
       ${escapeSQL(dbGym.price_info)}, ${escapeSQL(dbGym.rating_avg)},
       datetime('now'), datetime('now')
@@ -198,6 +199,7 @@ export function upsertGym(gym: GymJsonData): void {
       description = excluded.description,
       address = excluded.address,
       city = excluded.city,
+      district = excluded.district,
       region = excluded.region,
       latitude = excluded.latitude,
       longitude = excluded.longitude,
@@ -224,16 +226,16 @@ export function buildGymSQL(gym: GymJsonData): string {
 
   return `
     INSERT INTO gyms (
-      id, name, slug, description, address, city, region,
+      id, name, slug, description, address, city, district, region,
       latitude, longitude, phone, email, website, cover_image,
       is_featured, opening_hours, facilities, price_info, rating_avg,
       created_at, updated_at
     ) VALUES (
       ${escapeSQL(dbGym.id)}, ${escapeSQL(dbGym.name)}, ${escapeSQL(dbGym.slug)},
       ${escapeSQL(dbGym.description)}, ${escapeSQL(dbGym.address)}, ${escapeSQL(dbGym.city)},
-      ${escapeSQL(dbGym.region)}, ${escapeSQL(dbGym.latitude)}, ${escapeSQL(dbGym.longitude)},
-      ${escapeSQL(dbGym.phone)}, ${escapeSQL(dbGym.email)}, ${escapeSQL(dbGym.website)},
-      ${escapeSQL(dbGym.cover_image)}, ${escapeSQL(dbGym.is_featured)},
+      ${escapeSQL(dbGym.district)}, ${escapeSQL(dbGym.region)}, ${escapeSQL(dbGym.latitude)},
+      ${escapeSQL(dbGym.longitude)}, ${escapeSQL(dbGym.phone)}, ${escapeSQL(dbGym.email)},
+      ${escapeSQL(dbGym.website)}, ${escapeSQL(dbGym.cover_image)}, ${escapeSQL(dbGym.is_featured)},
       ${escapeSQL(dbGym.opening_hours)}, ${escapeSQL(dbGym.facilities)},
       ${escapeSQL(dbGym.price_info)}, ${escapeSQL(dbGym.rating_avg)},
       datetime('now'), datetime('now')
@@ -244,6 +246,7 @@ export function buildGymSQL(gym: GymJsonData): string {
       description = excluded.description,
       address = excluded.address,
       city = excluded.city,
+      district = excluded.district,
       region = excluded.region,
       latitude = excluded.latitude,
       longitude = excluded.longitude,

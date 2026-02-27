@@ -46,9 +46,9 @@ export function adaptGymToListItem(apiGym: ApiGym): GymListItem {
     name: apiGym.name,
     nameEn: '', // 後端目前沒有英文名稱欄位
     image: apiGym.cover_image || '/photo/gym-placeholder.jpeg',
-    location: `${apiGym.city || ''} ${apiGym.region || ''}`.trim(),
+    location: `${apiGym.city || ''} ${apiGym.district || ''}`.trim(),
     city: apiGym.city || '',
-    district: '', // 後端沒有區域欄位
+    district: apiGym.district || '',
     region: apiGym.region || '',
     type,
     typeLabel: getTypeLabel(type),
@@ -156,7 +156,7 @@ export function adaptGymToDetail(apiGym: ApiGym): GymDetailData {
     location: {
       address: apiGym.address || '',
       city: apiGym.city || '',
-      district: '', // 後端沒有區域欄位
+      district: apiGym.district || '',
       region: apiGym.region || '',
       latitude: apiGym.latitude || 0,
       longitude: apiGym.longitude || 0,
