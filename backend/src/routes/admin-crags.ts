@@ -341,6 +341,71 @@ adminCragsRoutes.post(
 });
 
 // ============================================
+// Video Search (MUST be before /:id)
+// ============================================
+
+// GET /admin/crags/videos/search - Search videos
+adminCragsRoutes.get(
+  '/videos/search',
+  describeRoute({
+    tags: ['Admin'],
+    summary: '搜尋影片',
+    description: '搜尋已匯入的影片，用於關聯到路線',
+    responses: {
+      200: { description: '成功取得影片列表' },
+      401: { description: '未授權' },
+      403: { description: '權限不足（需要管理員權限）' },
+    },
+  }),
+  async (c) => {
+    const search = c.req.query('q') || '';
+    const limit = Math.min(parseInt(c.req.query('limit') || '20'), 50);
+
+    let query = `SELECT id, title, youtube_id, thumbnail_url, duration, channel, channel_id, published_at, view_count
+                 FROM videos`;
+    const params: (string | number)[] = [];
+
+    if (search) {
+      query += ' WHERE title LIKE ? OR channel LIKE ? OR youtube_id = ?';
+      const searchPattern = `%${search}%`;
+      params.push(searchPattern, searchPattern, search);
+    }
+
+    query += ' ORDER BY published_at DESC NULLS LAST LIMIT ?';
+    params.push(limit);
+
+    const videos = await c.env.DB.prepare(query)
+      .bind(...params)
+      .all<{
+        id: string;
+        title: string;
+        youtube_id: string | null;
+        thumbnail_url: string | null;
+        duration: number | null;
+        channel: string | null;
+        channel_id: string | null;
+        published_at: string | null;
+        view_count: number | null;
+      }>();
+
+    return c.json({
+      success: true,
+      data: videos.results.map((v) => ({
+        id: v.id,
+        title: v.title,
+        youtubeId: v.youtube_id,
+        thumbnailUrl: v.thumbnail_url,
+        duration: v.duration,
+        channel: v.channel,
+        channelId: v.channel_id,
+        publishedAt: v.published_at,
+        viewCount: v.view_count,
+      })),
+    });
+  }
+);
+
+// ============================================
 // Dynamic crag routes (/:id)
 // ============================================
 
@@ -863,3 +928,272 @@ adminCragsRoutes.delete(
     message: 'Route deleted successfully',
   });
 });
+
+// ============================================
+// Route Video Management
+// ============================================
+
+// GET /admin/crags/:cragId/routes/:routeId/videos - List videos for a route
+adminCragsRoutes.get(
+  '/:cragId/routes/:routeId/videos',
+  describeRoute({
+    tags: ['Admin'],
+    summary: '取得路線的影片列表',
+    description: '取得指定路線關聯的所有 YouTube 影片',
+    responses: {
+      200: { description: '成功取得影片列表' },
+      404: { description: '找不到路線' },
+      401: { description: '未授權' },
+      403: { description: '權限不足（需要管理員權限）' },
+    },
+  }),
+  async (c) => {
+    const cragId = c.req.param('cragId');
+    const routeId = c.req.param('routeId');
+
+    // Verify route exists
+    const route = await c.env.DB.prepare(
+      'SELECT id FROM routes WHERE id = ? AND crag_id = ?'
+    )
+      .bind(routeId, cragId)
+      .first();
+
+    if (!route) {
+      return c.json(
+        { success: false, error: 'Not Found', message: 'Route not found' },
+        404
+      );
+    }
+
+    const videos = await c.env.DB.prepare(
+      `SELECT v.id, v.title, v.youtube_id, v.thumbnail_url, v.duration,
+              v.channel, v.channel_id, v.published_at, v.view_count,
+              rv.sort_order
+       FROM route_videos rv
+       JOIN videos v ON rv.video_id = v.id
+       WHERE rv.route_id = ?
+       ORDER BY rv.sort_order ASC, v.published_at DESC NULLS LAST`
+    )
+      .bind(routeId)
+      .all<{
+        id: string;
+        title: string;
+        youtube_id: string | null;
+        thumbnail_url: string | null;
+        duration: number | null;
+        channel: string | null;
+        channel_id: string | null;
+        published_at: string | null;
+        view_count: number | null;
+        sort_order: number;
+      }>();
+
+    return c.json({
+      success: true,
+      data: videos.results.map((v) => ({
+        id: v.id,
+        title: v.title,
+        youtubeId: v.youtube_id,
+        thumbnailUrl: v.thumbnail_url,
+        duration: v.duration,
+        channel: v.channel,
+        channelId: v.channel_id,
+        publishedAt: v.published_at,
+        viewCount: v.view_count,
+        sortOrder: v.sort_order,
+      })),
+    });
+  }
+);
+
+const addRouteVideoSchema = z.object({
+  youtubeId: z.string().min(1),
+  title: z.string().optional(),
+  channel: z.string().optional(),
+  channelId: z.string().optional(),
+  thumbnailUrl: z.string().optional(),
+  duration: z.number().optional(),
+  publishedAt: z.string().optional(),
+  viewCount: z.number().optional(),
+  sortOrder: z.number().optional(),
+});
+
+// POST /admin/crags/:cragId/routes/:routeId/videos - Add video to a route
+adminCragsRoutes.post(
+  '/:cragId/routes/:routeId/videos',
+  describeRoute({
+    tags: ['Admin'],
+    summary: '新增路線影片',
+    description: '將 YouTube 影片關聯到指定路線（若影片不存在則自動建立）',
+    responses: {
+      201: { description: '影片已成功關聯' },
+      400: { description: '影片已關聯到此路線' },
+      404: { description: '找不到路線' },
+      401: { description: '未授權' },
+      403: { description: '權限不足（需要管理員權限）' },
+    },
+  }),
+  validator('json', addRouteVideoSchema),
+  async (c) => {
+    const cragId = c.req.param('cragId');
+    const routeId = c.req.param('routeId');
+    const body = c.req.valid('json');
+
+    // Verify route exists
+    const route = await c.env.DB.prepare(
+      'SELECT id FROM routes WHERE id = ? AND crag_id = ?'
+    )
+      .bind(routeId, cragId)
+      .first();
+
+    if (!route) {
+      return c.json(
+        { success: false, error: 'Not Found', message: 'Route not found' },
+        404
+      );
+    }
+
+    // Check if video already exists in videos table
+    let videoId = body.youtubeId;
+    const existingVideo = await c.env.DB.prepare(
+      'SELECT id FROM videos WHERE id = ? OR youtube_id = ?'
+    )
+      .bind(videoId, videoId)
+      .first<{ id: string }>();
+
+    if (existingVideo) {
+      videoId = existingVideo.id;
+    } else {
+      // Create the video record
+      const slug = `yt-${body.youtubeId}`;
+      await c.env.DB.prepare(
+        `INSERT OR IGNORE INTO videos (id, title, slug, youtube_id, thumbnail_url, duration,
+          channel, channel_id, published_at, view_count, created_at, updated_at)
+         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, datetime('now'), datetime('now'))`
+      )
+        .bind(
+          videoId,
+          body.title || `YouTube Video ${body.youtubeId}`,
+          slug,
+          body.youtubeId,
+          body.thumbnailUrl || null,
+          body.duration || null,
+          body.channel || null,
+          body.channelId || null,
+          body.publishedAt || null,
+          body.viewCount || 0
+        )
+        .run();
+    }
+
+    // Check if route-video link already exists
+    const existingLink = await c.env.DB.prepare(
+      'SELECT id FROM route_videos WHERE route_id = ? AND video_id = ?'
+    )
+      .bind(routeId, videoId)
+      .first();
+
+    if (existingLink) {
+      return c.json(
+        {
+          success: false,
+          error: 'Conflict',
+          message: '此影片已關聯到此路線',
+        },
+        400
+      );
+    }
+
+    // Create the route-video link
+    const linkId = `${routeId}-${videoId}`;
+    const sortOrder = body.sortOrder ?? 0;
+    await c.env.DB.prepare(
+      `INSERT INTO route_videos (id, route_id, video_id, sort_order, created_at)
+       VALUES (?, ?, ?, ?, datetime('now'))`
+    )
+      .bind(linkId, routeId, videoId, sortOrder)
+      .run();
+
+    return c.json(
+      {
+        success: true,
+        data: {
+          id: videoId,
+          title: body.title || `YouTube Video ${body.youtubeId}`,
+          youtubeId: body.youtubeId,
+          thumbnailUrl: body.thumbnailUrl || null,
+          duration: body.duration || null,
+          channel: body.channel || null,
+          channelId: body.channelId || null,
+          publishedAt: body.publishedAt || null,
+          sortOrder,
+        },
+      },
+      201
+    );
+  }
+);
+
+// DELETE /admin/crags/:cragId/routes/:routeId/videos/:videoId - Remove video from route
+adminCragsRoutes.delete(
+  '/:cragId/routes/:routeId/videos/:videoId',
+  describeRoute({
+    tags: ['Admin'],
+    summary: '移除路線影片關聯',
+    description: '移除指定路線與影片的關聯（不會刪除影片本身）',
+    responses: {
+      200: { description: '影片關聯已移除' },
+      404: { description: '找不到路線或影片關聯' },
+      401: { description: '未授權' },
+      403: { description: '權限不足（需要管理員權限）' },
+    },
+  }),
+  async (c) => {
+    const cragId = c.req.param('cragId');
+    const routeId = c.req.param('routeId');
+    const videoId = c.req.param('videoId');
+
+    // Verify route exists
+    const route = await c.env.DB.prepare(
+      'SELECT id FROM routes WHERE id = ? AND crag_id = ?'
+    )
+      .bind(routeId, cragId)
+      .first();
+
+    if (!route) {
+      return c.json(
+        { success: false, error: 'Not Found', message: 'Route not found' },
+        404
+      );
+    }
+
+    const existing = await c.env.DB.prepare(
+      'SELECT id FROM route_videos WHERE route_id = ? AND video_id = ?'
+    )
+      .bind(routeId, videoId)
+      .first();
+
+    if (!existing) {
+      return c.json(
+        {
+          success: false,
+          error: 'Not Found',
+          message: 'Route-video link not found',
+        },
+        404
+      );
+    }
+
+    await c.env.DB.prepare(
+      'DELETE FROM route_videos WHERE route_id = ? AND video_id = ?'
+    )
+      .bind(routeId, videoId)
+      .run();
+
+    return c.json({
+      success: true,
+      message: 'Video removed from route successfully',
+    });
+  }
+);
+
