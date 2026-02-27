@@ -6,6 +6,7 @@ import { RouteSidebar } from '@/components/crag/route-sidebar'
 import { RouteMobileDrawer } from '@/components/crag/route-mobile-drawer'
 import type { RouteSidebarItem } from '@/lib/crag-data'
 import { useRouteFilterParams } from '@/lib/hooks/useRouteFilterParams'
+import { useCragRoutes } from '@/hooks/api/useCrags'
 
 interface RouteLayoutClientProps {
   children: React.ReactNode
@@ -20,11 +21,15 @@ function RouteLayoutContent({
   children,
   cragId,
   cragName,
-  routes,
+  routes: serverRoutes,
   areas,
 }: RouteLayoutClientProps) {
   const params = useParams()
   const currentRouteId = (params?.routeId as string) || ''
+
+  // 當 server 端未提供路線資料時（Worker 間 HTTP 請求限制），改用 client-side hook 取得
+  const { data: clientRoutes = [] } = useCragRoutes(cragId)
+  const routes = serverRoutes.length > 0 ? serverRoutes : clientRoutes
 
   // 使用 URL 參數管理篩選狀態，讓設定可以保留在網址中
   const {
