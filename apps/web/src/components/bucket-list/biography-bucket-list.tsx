@@ -57,9 +57,9 @@ export function BiographyBucketList({ biographyId, className }: BiographyBucketL
           <h3 className="mb-4 flex items-center gap-2 text-lg font-medium text-[#1B1A1A]">
             進行中 ({activeItems.length})
           </h3>
-          <div className="flex gap-4 overflow-x-auto pb-4 snap-x snap-mandatory">
+          <div className="flex gap-4 overflow-x-auto pb-4 snap-x snap-mandatory scroll-smooth">
             {activeItems.map((item) => (
-              <div key={item.id} className="w-96 flex-shrink-0 snap-center">
+              <div key={item.id} className="w-[85vw] max-w-96 flex-shrink-0 snap-start">
                 <BucketListItemCard
                   item={item}
                   variant="expanded"
@@ -78,9 +78,9 @@ export function BiographyBucketList({ biographyId, className }: BiographyBucketL
           <h3 className="mb-4 flex items-center gap-2 text-lg font-medium text-[#1B1A1A]">
             已完成 ({completedItems.length})
           </h3>
-          <div className="flex gap-4 overflow-x-auto pb-4 snap-x snap-mandatory">
+          <div className="flex gap-4 overflow-x-auto pb-4 snap-x snap-mandatory scroll-smooth">
             {completedItems.map((item) => (
-              <div key={item.id} className="w-96 flex-shrink-0 snap-center">
+              <div key={item.id} className="w-[85vw] max-w-96 flex-shrink-0 snap-start">
                 <CompletedBucketListCard item={item} />
               </div>
             ))}
