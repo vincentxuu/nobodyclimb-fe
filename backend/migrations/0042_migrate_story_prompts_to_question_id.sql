@@ -33,12 +33,10 @@ INSERT OR IGNORE INTO story_prompts_new (
 )
 SELECT
   id, user_id, biography_id,
-  COALESCE(field_name, question_id) as question_id,  -- Handle both column names
+  field_name as question_id,
   category,
   prompted_at, completed_at, dismissed_count, last_dismissed_at
-FROM story_prompts
-WHERE EXISTS (SELECT 1 FROM pragma_table_info('story_prompts') WHERE name = 'field_name')
-   OR EXISTS (SELECT 1 FROM pragma_table_info('story_prompts') WHERE name = 'question_id');
+FROM story_prompts;
 
 -- Step 3: Only drop and rename if we actually copied data
 -- Check if story_prompts_new has data
