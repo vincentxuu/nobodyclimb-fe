@@ -108,20 +108,23 @@ export function ProgressTracker({
 
   const sortedMilestones = [...parsedMilestones].sort((a, b) => a.percentage - b.percentage)
 
+  // 判斷是否為多里程碑（超過 5 個），需要特殊的行動版處理
+  const isManyMilestones = sortedMilestones.length > 5
+
   return (
-    <div className={cn('w-full', className)}>
+    <div className={cn('w-full overflow-hidden', className)}>
       {/* 里程碑進度條 */}
-      <div className="relative">
+      <div className="relative px-3">
         {/* 背景線 */}
-        <div className={cn('absolute top-1/2 w-full -translate-y-1/2 rounded-full bg-gray-200', sizes.bar)} />
+        <div className={cn('absolute left-3 right-3 top-1/2 -translate-y-1/2 rounded-full bg-gray-200', sizes.bar)} />
 
         {/* 已完成的進度線 */}
         <div
           className={cn(
-            'absolute left-0 top-1/2 -translate-y-1/2 rounded-full bg-brand-accent/70 transition-all duration-300',
+            'absolute left-3 top-1/2 -translate-y-1/2 rounded-full bg-brand-accent/70 transition-all duration-300',
             sizes.bar
           )}
-          style={{ width: `${progress}%` }}
+          style={{ width: `${progress}%`, maxWidth: 'calc(100% - 1.5rem)' }}
         />
 
         {/* 里程碑點 */}
@@ -158,19 +161,29 @@ export function ProgressTracker({
 
       {/* 里程碑標籤 */}
       {showLabels && (
-        <div className="mt-4 flex justify-between gap-1 overflow-hidden px-1">
+        <div
+          className={cn(
+            'mt-4 flex gap-1 px-1',
+            isManyMilestones
+              ? 'overflow-x-auto scrollbar-hide -mx-1 px-2 pb-1'
+              : 'justify-between overflow-hidden'
+          )}
+        >
           {sortedMilestones.map((milestone) => (
             <div
               key={milestone.id}
               className={cn(
-                'flex flex-1 flex-col items-center gap-0.5 text-center',
+                'flex flex-col items-center gap-0.5 text-center',
+                isManyMilestones ? 'min-w-[2.5rem] flex-shrink-0' : 'flex-1',
                 sizes.text,
                 milestone.completed ? 'text-[#1B1A1A]' : 'text-gray-400'
               )}
               title={milestone.title}
             >
               <span className="text-[10px] font-medium">{milestone.percentage}%</span>
-              <span className="w-full truncate text-[10px]">{milestone.title}</span>
+              <span className={cn('text-[10px]', isManyMilestones ? 'whitespace-nowrap' : 'w-full truncate')}>
+                {milestone.title}
+              </span>
             </div>
           ))}
         </div>
