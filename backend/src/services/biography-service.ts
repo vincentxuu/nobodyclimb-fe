@@ -243,6 +243,7 @@ export class BiographyService {
         'achievements', 'social_links', 'is_featured',
         'visibility', 'tags_data', 'basic_info_data',
         'youtube_channel_id', 'featured_video_id',
+        'height_cm', 'arm_span_cm', 'grade_targets',
       ];
 
       for (const field of fields) {
