@@ -40,18 +40,21 @@ export function ProgressTracker({
     sm: {
       bar: 'h-1.5',
       milestone: 'w-5 h-5',
+      milestoneContainer: 'h-5',
       text: 'text-xs',
       spacing: 'gap-1',
     },
     md: {
       bar: 'h-2',
       milestone: 'w-6 h-6',
+      milestoneContainer: 'h-6',
       text: 'text-sm',
       spacing: 'gap-2',
     },
     lg: {
       bar: 'h-3',
       milestone: 'w-8 h-8',
+      milestoneContainer: 'h-8',
       text: 'text-base',
       spacing: 'gap-3',
     },
@@ -129,7 +132,7 @@ export function ProgressTracker({
           />
 
           {/* 里程碑點 */}
-          <div className="relative">
+          <div className={cn('relative', sizes.milestoneContainer)}>
             {sortedMilestones.map((milestone) => {
               const isCompleted = milestone.completed
               return (
@@ -139,7 +142,7 @@ export function ProgressTracker({
                   disabled={!editable}
                   onClick={() => editable && onMilestoneToggle?.(milestone.id, !isCompleted)}
                   className={cn(
-                    'absolute z-10 flex -translate-x-1/2 items-center justify-center rounded-full border-2 transition-all',
+                    'absolute top-0 z-10 flex -translate-x-1/2 items-center justify-center rounded-full border-2 transition-all',
                     sizes.milestone,
                     isCompleted
                       ? 'border-[#1B1A1A] bg-brand-accent/70 text-[#1B1A1A]'
@@ -164,29 +167,32 @@ export function ProgressTracker({
         {showLabels && (
           <div
             className={cn(
-              'mt-4 flex gap-1 px-1',
-              isManyMilestones
-                ? 'pb-1'
-                : 'justify-between overflow-hidden'
+              'relative mt-2 px-3',
+              isManyMilestones && 'pb-1'
             )}
           >
             {sortedMilestones.map((milestone) => (
               <div
                 key={milestone.id}
                 className={cn(
-                  'flex flex-col items-center gap-0.5 text-center',
-                  isManyMilestones ? 'min-w-[2.5rem] flex-shrink-0' : 'flex-1',
+                  'absolute flex -translate-x-1/2 flex-col items-center gap-0.5 text-center',
                   sizes.text,
                   milestone.completed ? 'text-[#1B1A1A]' : 'text-gray-400'
                 )}
+                style={{ left: `${milestone.percentage}%` }}
                 title={milestone.title}
               >
-                <span className="text-[10px] font-medium">{milestone.percentage}%</span>
-                <span className={cn('text-[10px]', isManyMilestones ? 'whitespace-nowrap' : 'w-full truncate')}>
+                <span className="whitespace-nowrap text-[10px] font-medium">{milestone.percentage}%</span>
+                <span className="max-w-[3rem] truncate text-[10px]">
                   {milestone.title}
                 </span>
               </div>
             ))}
+            {/* 佔位元素，確保容器有高度 */}
+            <div className="invisible flex flex-col gap-0.5">
+              <span className="text-[10px]">&nbsp;</span>
+              <span className="text-[10px]">&nbsp;</span>
+            </div>
           </div>
         )}
       </div>
