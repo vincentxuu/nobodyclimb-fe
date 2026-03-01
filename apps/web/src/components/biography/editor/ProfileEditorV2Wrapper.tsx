@@ -200,12 +200,12 @@ export function ProfileEditorV2Wrapper({ className }: ProfileEditorV2WrapperProp
           frequent_locations: bio.frequent_locations?.join(', ') ?? '',
           home_gym: bio.home_gym ?? '',
         }),
-        // 攀岩者身體數據與年度目標（送 null 確保可以清除欄位）
-        height_cm: bio.height_cm ?? null,
-        arm_span_cm: bio.arm_span_cm ?? null,
+        // 攀岩者身體數據與年度目標
+        height_cm: bio.height_cm ?? undefined,
+        arm_span_cm: bio.arm_span_cm ?? undefined,
         grade_targets: bio.grade_targets && bio.grade_targets.length > 0
           ? JSON.stringify(bio.grade_targets)
-          : null,
+          : undefined,
       })
 
       if (!response.success) {
