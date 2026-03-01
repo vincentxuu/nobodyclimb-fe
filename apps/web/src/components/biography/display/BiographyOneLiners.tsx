@@ -137,7 +137,7 @@ export function BiographyOneLiners({
                 {isCustom && <Sparkles size={14} className="text-brand-accent" />}
                 <h3 className="font-medium text-[#6D6C6C]">{questionText}</h3>
               </div>
-              <p className="text-[#1B1A1A]">「{item.answer}」</p>
+              <p className="whitespace-pre-wrap text-[#1B1A1A]">「{item.answer}」</p>
 
               {/* 互動按鈕 */}
               <ContentInteractionBar

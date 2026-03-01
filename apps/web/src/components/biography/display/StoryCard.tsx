@@ -97,7 +97,7 @@ export function StoryCard({
       {/* Content */}
       <div
         className={cn(
-          'text-[#6D6C6C] leading-relaxed',
+          'whitespace-pre-wrap text-[#6D6C6C] leading-relaxed',
           !isExpanded && needsTruncation && 'line-clamp-3'
         )}
       >
