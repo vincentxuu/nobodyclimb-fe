@@ -132,8 +132,12 @@ ascentsRoutes.get(
   let yearFilter = '';
   const yearParams: string[] = [];
   if (year) {
+    const yearNum = parseInt(year, 10);
+    if (isNaN(yearNum) || yearNum < 1900 || yearNum > new Date().getFullYear() + 10) {
+      return c.json({ success: false, error: 'Bad Request', message: 'Invalid year parameter' }, 400);
+    }
     yearFilter = ` AND a.ascent_date >= ? AND a.ascent_date < ?`;
-    yearParams.push(`${year}-01-01`, `${parseInt(year) + 1}-01-01`);
+    yearParams.push(`${yearNum}-01-01`, `${yearNum + 1}-01-01`);
   }
 
   // 總攀爬統計
@@ -153,7 +157,7 @@ ascentsRoutes.get(
   const byType = await c.env.DB.prepare(
     `SELECT a.ascent_type, COUNT(*) as count
      FROM user_route_ascents a
-     WHERE a.user_id = ?${yearFilter.replace(/a\./g, 'a.')}
+     WHERE a.user_id = ?${yearFilter}
      GROUP BY a.ascent_type`
   )
     .bind(userId, ...yearParams)
