@@ -721,6 +721,9 @@ export interface BiographyInput {
   one_liners_data?: string
   stories_data?: string
   basic_info_data?: string
+  height_cm?: number
+  arm_span_cm?: number
+  grade_targets?: string
 }
 
 // ============================================
