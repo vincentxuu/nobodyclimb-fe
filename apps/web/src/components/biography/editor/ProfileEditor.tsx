@@ -2,7 +2,7 @@
 
 import { useState, useCallback, useRef, useMemo } from 'react'
 import { cn } from '@/lib/utils'
-import { User, Tag, MessageCircle, BookOpen, Globe, Target } from 'lucide-react'
+import { User, Tag, MessageCircle, BookOpen, Globe, TrendingUp } from 'lucide-react'
 import ImageCropper from '@/components/shared/image-cropper'
 import type {
   BiographyV2,
@@ -275,7 +275,7 @@ export function ProfileEditor({
       {
         id: 'targets',
         label: '年度目標',
-        icon: Target,
+        icon: TrendingUp,
         isCompleted: (localBiography.grade_targets && localBiography.grade_targets.length > 0) || false,
       },
       {
