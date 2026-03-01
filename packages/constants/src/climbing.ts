@@ -38,6 +38,16 @@ export const CLIMBING_TYPES = [
 export type ClimbingType = (typeof CLIMBING_TYPES)[number]['value']
 
 /**
+ * 年度目標用的大級數選項
+ * sport/trad 使用大級數（5.10、5.11 等），計算時匹配所有子級數
+ */
+export const GRADE_TARGET_OPTIONS = {
+  boulder: ['V0', 'V1', 'V2', 'V3', 'V4', 'V5', 'V6', 'V7', 'V8', 'V9', 'V10+'],
+  sport: ['5.6', '5.7', '5.8', '5.9', '5.10', '5.11', '5.12', '5.13'],
+  trad: ['5.5', '5.6', '5.7', '5.8', '5.9', '5.10', '5.11', '5.12+'],
+} as const
+
+/**
  * 季節
  */
 export const SEASONS = [
