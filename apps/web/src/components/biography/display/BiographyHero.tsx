@@ -4,8 +4,8 @@ import { useState } from 'react'
 import Image from 'next/image'
 import { cn } from '@/lib/utils'
 import { getDefaultCoverUrl } from '@/lib/utils/image'
-import { Clock, BarChart3, Globe, Eye, Users, MessageCircle } from 'lucide-react'
-import type { BiographyV2, SocialLinks } from '@/lib/types/biography-v2'
+import { Clock, BarChart3, Globe, Eye, Users, MessageCircle, ArrowUpDown, ArrowLeftRight, TrendingUp } from 'lucide-react'
+import type { BiographyV2, SocialLinks, GradeTarget } from '@/lib/types/biography-v2'
 import { FollowButton } from '../follow-button'
 import { BiographyLikeButton } from '../biography-like-button'
 import { ShareButton } from '@/components/shared/share-button'
@@ -172,6 +172,28 @@ export function BiographyHero({
                   : '從入坑那天起算'}
               </span>
 
+              {/* 身高 */}
+              {biography.height_cm && (
+                <>
+                  <span className="text-[#B6B3B3]">·</span>
+                  <span className="flex items-center gap-1">
+                    <ArrowUpDown size={16} />
+                    {biography.height_cm}cm
+                  </span>
+                </>
+              )}
+
+              {/* 臂展 */}
+              {biography.arm_span_cm && (
+                <>
+                  <span className="text-[#B6B3B3]">·</span>
+                  <span className="flex items-center gap-1">
+                    <ArrowLeftRight size={16} />
+                    臂展 {biography.arm_span_cm}cm
+                  </span>
+                </>
+              )}
+
               {biography.frequent_locations &&
                 biography.frequent_locations.length > 0 && (
                   <>
@@ -183,6 +205,11 @@ export function BiographyHero({
                   </>
                 )}
             </div>
+
+            {/* 年度攀爬目標 */}
+            {biography.grade_targets && biography.grade_targets.length > 0 && (
+              <GradeTargetsDisplay targets={biography.grade_targets} />
+            )}
 
             {/* Social Links */}
             {biography.social_links && !isAnonymous && (
@@ -287,6 +314,33 @@ export function BiographyHero({
           </div>
         )}
       </div>
+    </div>
+  )
+}
+
+/**
+ * 年度攀爬目標顯示
+ */
+function GradeTargetsDisplay({ targets }: { targets: GradeTarget[] }) {
+  const currentYear = new Date().getFullYear()
+  const currentYearTargets = targets.filter((t) => t.year === currentYear)
+
+  if (currentYearTargets.length === 0) return null
+
+  return (
+    <div className="flex flex-wrap items-center gap-2 mt-1">
+      <span className="flex items-center gap-1 text-sm text-[#6D6C6C]">
+        <TrendingUp size={16} />
+        {currentYear} 目標
+      </span>
+      {currentYearTargets.map((target, i) => (
+        <span
+          key={`${target.grade_system}-${target.grade}-${i}`}
+          className="inline-flex items-center gap-1 px-2 py-0.5 bg-[#F5F5F5] rounded-full text-xs text-[#3F3D3D]"
+        >
+          {target.grade} × {target.target_count}
+        </span>
+      ))}
     </div>
   )
 }
