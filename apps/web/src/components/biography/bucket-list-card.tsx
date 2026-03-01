@@ -131,7 +131,7 @@ export function BucketListCard({ item, isOwner = false, className }: BucketListC
           </div>
 
           {item.description && (
-            <p className="text-sm text-gray-600 mt-2">{item.description}</p>
+            <p className="whitespace-pre-wrap text-sm text-gray-600 mt-2">{item.description}</p>
           )}
 
           {item.enable_progress && !isCompleted && (
