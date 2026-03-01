@@ -17,12 +17,6 @@ interface GradeTargetsSectionProps {
 
 const currentYear = new Date().getFullYear()
 
-const GRADE_SYSTEM_LABELS: Record<string, string> = {
-  boulder: '抱石',
-  sport: '運動攀登',
-  trad: '傳統攀登',
-}
-
 /**
  * 年度攀爬目標編輯區塊
  */
@@ -35,14 +29,11 @@ export function GradeTargetsSection({
 
   // 篩選當前年份的目標
   const currentYearTargets = gradeTargets.filter((t) => t.year === selectedYear)
-  const otherYearTargets = gradeTargets.filter((t) => t.year !== selectedYear)
 
-  // 年份選項（前後各 2 年）
+  // 年份選項（前後各 1 年）
   const yearOptions = [currentYear - 1, currentYear, currentYear + 1]
 
   const handleAddTarget = () => {
-    // 找出尚未使用的級數系統
-    const usedSystems = currentYearTargets.map((t) => `${t.grade_system}-${t.grade}`)
     const defaultSystem = 'boulder'
     const defaultGrade = 'V4'
 
