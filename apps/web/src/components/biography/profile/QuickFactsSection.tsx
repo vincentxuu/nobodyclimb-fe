@@ -125,8 +125,6 @@ export function QuickFactsSection({ person, mobileTagLimit = 8 }: QuickFactsSect
     return [...customTags, ...systemTags]
   }, [person])
 
-  if (!person) return null
-
   // Ape Index 計算
   const apeIndex = useMemo(() => {
     if (!person?.height_cm || !person?.arm_span_cm) return null
@@ -139,6 +137,8 @@ export function QuickFactsSection({ person, mobileTagLimit = 8 }: QuickFactsSect
     const currentYear = new Date().getFullYear()
     return person.grade_targets.filter((t: GradeTarget) => t.year === currentYear)
   }, [person?.grade_targets])
+
+  if (!person) return null
 
   const quickFacts = [
     {
