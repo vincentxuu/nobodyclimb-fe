@@ -3,7 +3,7 @@
 import { useState, useRef, useMemo } from 'react'
 import Image from 'next/image'
 import { cn } from '@/lib/utils'
-import { User, ImageIcon, Pencil, Clock, Link, Instagram, Youtube, X, Plus, Lightbulb, Ruler } from 'lucide-react'
+import { User, ImageIcon, Pencil, Clock, Link, Instagram, Youtube, X, Plus, Lightbulb, ArrowUpDown, ArrowLeftRight } from 'lucide-react'
 import type { SocialLinks } from '@/lib/types/biography-v2'
 
 interface BasicInfoSectionProps {
@@ -341,7 +341,6 @@ export function BasicInfoSection({
       {/* Height & Arm Span */}
       <div className="space-y-2">
         <div className="flex items-center gap-2 mb-2">
-          <Ruler size={16} className="text-[#3F3D3D]" />
           <label className="text-sm font-medium text-[#3F3D3D]">
             身體數據
             <span className="text-[#8E8C8C] font-normal ml-1">(選填)</span>
@@ -349,6 +348,7 @@ export function BasicInfoSection({
         </div>
         <div className="flex items-center gap-4">
           <div className="flex items-center gap-2">
+            <ArrowUpDown size={16} className="text-[#3F3D3D]" />
             <span className="text-sm text-[#6D6C6C] whitespace-nowrap">身高</span>
             <input
               type="number"
@@ -365,6 +365,7 @@ export function BasicInfoSection({
             <span className="text-sm text-[#6D6C6C]">cm</span>
           </div>
           <div className="flex items-center gap-2">
+            <ArrowLeftRight size={16} className="text-[#3F3D3D]" />
             <span className="text-sm text-[#6D6C6C] whitespace-nowrap">臂展</span>
             <input
               type="number"
