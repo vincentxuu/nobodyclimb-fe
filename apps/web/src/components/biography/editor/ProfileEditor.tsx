@@ -2,7 +2,7 @@
 
 import { useState, useCallback, useRef, useMemo } from 'react'
 import { cn } from '@/lib/utils'
-import { User, Tag, MessageCircle, BookOpen, Globe } from 'lucide-react'
+import { User, Tag, MessageCircle, BookOpen, Globe, TrendingUp } from 'lucide-react'
 import ImageCropper from '@/components/shared/image-cropper'
 import type {
   BiographyV2,
@@ -22,6 +22,7 @@ import { StoryEditModal } from './StoryEditModal'
 import { FixedBottomBar, BottomBarSpacer } from './FixedBottomBar'
 import { AutoSaveIndicator, useSaveStatus } from '../shared/AutoSaveIndicator'
 import { ClimbingFootprintsEditorSection } from './ClimbingFootprintsEditorSection'
+import { GradeTargetsSection } from './GradeTargetsSection'
 import { AddCustomTagModal } from './AddCustomTagModal'
 import { AddCustomDimensionModal } from './AddCustomDimensionModal'
 import { AddCustomOneLinerModal } from './AddCustomOneLinerModal'
@@ -272,6 +273,12 @@ export function ProfileEditor({
         isCompleted: !!localBiography.name,
       },
       {
+        id: 'targets',
+        label: '年度目標',
+        icon: TrendingUp,
+        isCompleted: (localBiography.grade_targets && localBiography.grade_targets.length > 0) || false,
+      },
+      {
         id: 'tags',
         label: '身份標籤',
         icon: Tag,
@@ -379,6 +386,10 @@ export function ProfileEditor({
                   const climbingYears = year ? new Date().getFullYear() - year : null
                   handleChange({ climbing_start_year: year, climbing_years: climbingYears })
                 }}
+                heightCm={localBiography.height_cm}
+                onHeightCmChange={(height) => handleChange({ height_cm: height })}
+                armSpanCm={localBiography.arm_span_cm}
+                onArmSpanCmChange={(armSpan) => handleChange({ arm_span_cm: armSpan })}
                 frequentLocations={localBiography.frequent_locations || []}
                 onFrequentLocationsChange={(locations) =>
                   handleChange({ frequent_locations: locations })
@@ -389,6 +400,22 @@ export function ProfileEditor({
                 }
                 socialLinks={localBiography.social_links || {}}
                 onSocialLinksChange={(socialLinks) => handleChange({ social_links: socialLinks })}
+              />
+            </section>
+
+            {/* Grade Targets */}
+            <section
+              id="targets"
+              ref={(el) => {
+                sectionRefs.current['targets'] = el
+              }}
+              className="bg-white rounded-lg p-4 md:p-6"
+            >
+              <GradeTargetsSection
+                gradeTargets={localBiography.grade_targets || []}
+                onGradeTargetsChange={(targets) =>
+                  handleChange({ grade_targets: targets.length > 0 ? targets : null })
+                }
               />
             </section>
 

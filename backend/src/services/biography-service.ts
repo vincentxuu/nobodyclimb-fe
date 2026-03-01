@@ -243,6 +243,7 @@ export class BiographyService {
         'achievements', 'social_links', 'is_featured',
         'visibility', 'tags_data', 'basic_info_data',
         'youtube_channel_id', 'featured_video_id',
+        'height_cm', 'arm_span_cm', 'grade_targets',
       ];
 
       for (const field of fields) {
@@ -352,6 +353,7 @@ export class BiographyService {
         'name', 'title', 'bio', 'avatar_url', 'cover_image',
         'achievements', 'social_links', 'visibility',
         'tags_data', 'basic_info_data',
+        'height_cm', 'arm_span_cm', 'grade_targets',
       ];
 
       for (const field of fields) {
@@ -412,6 +414,9 @@ export class BiographyService {
       visibility: data.visibility || 'public', // PUT /me 預設為 public
       tags_data: data.tags_data,
       basic_info_data: data.basic_info_data,
+      height_cm: data.height_cm,
+      arm_span_cm: data.arm_span_cm,
+      grade_targets: data.grade_targets,
     });
 
     // 同步內容
