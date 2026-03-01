@@ -546,26 +546,37 @@ export function LanguageSwitcher() {
 
 ## 九、分階段實施計畫
 
-### Phase 0：基礎架構（2-3 天）
-- [ ] 安裝 `next-intl`
-- [ ] 建立 `i18n/` 設定檔（config, routing, request, navigation）
-- [ ] 建立 `middleware.ts`
-- [ ] 建立 `messages/` 目錄結構
-- [ ] 將 `app/` 下所有內容移至 `app/[locale]/`
-- [ ] 修改根 `layout.tsx` → `[locale]/layout.tsx`
-- [ ] 確認 `pnpm dev` 和 `pnpm build:cf` 正常
+> **最後更新**: 2026-03-01
+> **目前進度**: Phase 0 完成、Phase 1 進行中（約 50%）
 
-### Phase 1：核心 UI 字串抽取（3-5 天）
-- [ ] 抽取 `common.json`（nav, footer, actions, errors）
-- [ ] 改造 Navbar 元件
-- [ ] 改造 Footer 元件
-- [ ] 改造首頁 (`page.tsx`)
-- [ ] 改造 About 頁
-- [ ] 加入 LanguageSwitcher 元件
-- [ ] 替換所有 `next/link` → `@/i18n/navigation` 的 `Link`
-- [ ] 替換所有 `next/navigation` 的 `useRouter`, `usePathname`, `redirect`
+### Phase 0：基礎架構 ✅ 完成
 
-### Phase 2：功能模組頁面（5-7 天）
+- [x] 安裝 `next-intl` (v4.8.3)
+- [x] 建立 `i18n/` 設定檔（routing.ts, request.ts, navigation.ts）
+- [x] 建立 `middleware.ts`（locale 偵測 + 路由中間件）
+- [x] 建立 `messages/` 目錄結構（zh-TW, en, ja 三個語言資料夾）
+- [x] 將 `app/` 下所有 86 個頁面移至 `app/[locale]/`
+- [x] 修改根 `layout.tsx` → 精簡為 pass-through，新建 `[locale]/layout.tsx` 含 `NextIntlClientProvider`
+- [x] 更新 `next.config.mjs` 加入 `withNextIntl()` plugin
+- [x] 更新 `.eslintrc.json` 配合 `[locale]` 目錄結構
+- [x] 確認 `pnpm build` 正常通過
+
+### Phase 1：核心 UI 字串抽取（進行中）
+
+- [x] 抽取 `common.json`（nav, footer, actions, errors, userMenu, mobileMenu, language）— 三語言完成
+- [x] 建立 `home.json` — 三語言完成（基礎結構）
+- [x] 建立 `metadata.json` — 三語言完成（site title, description）
+- [x] 改造 Navbar 元件（Logo, UnifiedNav, UserMenu, MobileMenu）— 全部改用 `useTranslations()` + i18n Link
+- [x] 改造 Footer 元件 — 改用 `useTranslations()`
+- [x] 加入 LanguageSwitcher 元件（Globe 圖標 + Dropdown，桌機/手機版皆有）
+- [x] 修復 `ContentCommentSheet.tsx`、`CommentSection.tsx` 的 `<a>` 標籤改為 i18n `<Link>`
+- [ ] 改造首頁 (`page.tsx`) — 各 section 元件內中文字串抽取
+- [ ] 改造 About 頁 — 大量中文內容需抽取
+- [ ] 替換剩餘元件中 `next/link` → `@/i18n/navigation` 的 `Link`
+- [ ] 替換剩餘元件中 `next/navigation` 的 `useRouter`, `usePathname`, `redirect`
+
+### Phase 2：功能模組頁面（待開始）
+
 - [ ] Auth 頁面（login, register, forgot-password, profile-setup）
 - [ ] Biography 頁面 + 元件（editor, display, community, explore）
 - [ ] Blog 頁面（list, detail, create, edit）
@@ -577,15 +588,17 @@ export function LanguageSwitcher() {
 - [ ] Search 頁面
 - [ ] Games 頁面
 
-### Phase 3：SEO & Metadata（1-2 天）
-- [ ] 建立 `metadata.json` 翻譯檔
+### Phase 3：SEO & Metadata（待開始）
+
+- [x] 建立 `metadata.json` 翻譯檔（基礎 site 級別完成）
 - [ ] 每個頁面加入 `generateMetadata` 多語系支援
 - [ ] 更新 `sitemap.ts` 多語系 URL
 - [ ] 更新 `robots.ts`
 - [ ] 確認 `hreflang` 標籤正確
 - [ ] 確認 OpenGraph locale 正確
 
-### Phase 4：Constants & Shared（2-3 天）
+### Phase 4：Constants & Shared（待開始）
+
 - [ ] 重構 `lib/constants/index.ts` — 用 key 取代硬編碼中文
 - [ ] 重構 `lib/constants/biography-stories.ts`
 - [ ] 重構 `lib/constants/biography-questions.ts`
@@ -593,13 +606,15 @@ export function LanguageSwitcher() {
 - [ ] 重構 `lib/constants/badges.ts`
 - [ ] 更新 `packages/constants` 中的中文字串
 
-### Phase 5：翻譯與潤稿（持續）
+### Phase 5：翻譯與潤稿（待開始）
+
 - [ ] 完成所有 `en/` 翻譯檔
 - [ ] 完成所有 `ja/` 翻譯檔
 - [ ] 人工審校英文翻譯
 - [ ] 人工審校日文翻譯
 
 ### Phase 6：後端 & Mobile（視需求）
+
 - [ ] 後端 API 錯誤訊息 i18n（透過 `Accept-Language` header）
 - [ ] Mobile App i18n（使用 `react-i18next` 或 `expo-localization`）
 
