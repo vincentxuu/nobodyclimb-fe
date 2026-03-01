@@ -1,6 +1,7 @@
 'use client'
 
-import { useRouter } from 'next/navigation'
+import { useTranslations } from 'next-intl'
+import { useRouter } from '@/i18n/navigation'
 import Image from 'next/image'
 
 /**
@@ -9,6 +10,7 @@ import Image from 'next/image'
  */
 export default function Logo() {
   const router = useRouter()
+  const t = useTranslations('common')
 
   return (
     <div className="flex h-full items-center bg-[#FFE70C] px-3 md:px-6">
@@ -16,7 +18,7 @@ export default function Logo() {
         className="flex cursor-pointer items-center"
         onClick={() => router.push('/')}
         role="button"
-        aria-label="前往首頁"
+        aria-label={t('nav.goHome')}
       >
         <Image
           src="/logo/Nobodylimb-black.svg"

@@ -1,0 +1,76 @@
+{
+  "nav": {
+    "biography": "人物記",
+    "crag": "岩場",
+    "gym": "ジム",
+    "gallery": "ギャラリー",
+    "videos": "動画",
+    "blog": "ブログ",
+    "login": "ログイン",
+    "register": "新規登録",
+    "logout": "ログアウト",
+    "explore": "探索",
+    "personal": "マイページ",
+    "menu": "メニュー",
+    "openMenu": "メニューを開く",
+    "closeMenu": "メニューを閉じる",
+    "goHome": "ホームへ"
+  },
+  "userMenu": {
+    "create": "作成",
+    "writeArticle": "記事を書く",
+    "uploadPhoto": "写真をアップロード",
+    "myBiography": "マイプロフィール",
+    "bucketList": "バケットリスト",
+    "myPhotos": "マイフォト",
+    "myArticles": "マイ記事",
+    "myBookmarks": "ブックマーク",
+    "settings": "設定",
+    "userAvatar": "ユーザーアバター",
+    "defaultUser": "ユーザー"
+  },
+  "mobileMenu": {
+    "biography": "人物記",
+    "bucketList": "リスト",
+    "articles": "記事",
+    "photos": "写真",
+    "bookmarks": "ブックマーク",
+    "joinPrompt": "クライマーですか？参加してストーリーを書こう"
+  },
+  "footer": {
+    "cta": "一緒にクライミングストーリーを書こう",
+    "joinNow": "今すぐ参加",
+    "copyright": "NobodyClimb © {year}."
+  },
+  "actions": {
+    "submit": "送信",
+    "cancel": "キャンセル",
+    "save": "保存",
+    "delete": "削除",
+    "edit": "編集",
+    "loading": "読み込み中...",
+    "search": "検索",
+    "back": "戻る",
+    "next": "次へ",
+    "previous": "前へ",
+    "confirm": "確認",
+    "close": "閉じる",
+    "seeMore": "もっと見る",
+    "share": "共有"
+  },
+  "errors": {
+    "general": "エラーが発生しました。後でもう一度お試しください。",
+    "notFound": "ページが見つかりません",
+    "unauthorized": "ログインしてください",
+    "pageError": "ページエラー",
+    "pageErrorDescription": "申し訳ありませんが、このページの読み込み中に問題が発生しました。再読み込みするか、ホームページに戻ってください。",
+    "retry": "再試行",
+    "backHome": "ホームに戻る"
+  },
+  "language": {
+    "zh-TW": "繁體中文",
+    "en": "English",
+    "ja": "日本語",
+    "switchLanguage": "言語を切り替え"
+  }
+}

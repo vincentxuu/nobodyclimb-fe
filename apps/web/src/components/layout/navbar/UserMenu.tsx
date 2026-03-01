@@ -1,7 +1,7 @@
 'use client'
 
-import { useRouter } from 'next/navigation'
-import Link from 'next/link'
+import { useTranslations } from 'next-intl'
+import { Link, useRouter } from '@/i18n/navigation'
 import { Button } from '@/components/ui/button'
 import { useAuthStore } from '@/store/authStore'
 import { generateAvatarElement, DEFAULT_AVATARS } from '@/components/shared/avatar-options'
@@ -30,6 +30,7 @@ const logoutMenuItemClass = `${menuItemBaseClass} px-8 py-3 text-[#D94A4A]`
 export default function UserMenu() {
   const router = useRouter()
   const { status, signOut, user } = useAuthStore()
+  const t = useTranslations('common')
 
   // 假設用戶數據中有 avatarStyle 屬性，否則使用默認頭像
   const avatarStyle = user?.avatarStyle
@@ -48,7 +49,7 @@ export default function UserMenu() {
                 className="h-7 rounded-lg border border-[#1B1A1A] px-2 font-medium text-[#1B1A1A] hover:bg-gray-100/80 md:h-8 md:px-3 lg:h-9 lg:px-4"
               >
                 <span className="font-['Noto_Sans_CJK_TC'] text-xs font-medium leading-5 tracking-[0.01em] md:text-sm">
-                  創作
+                  {t('userMenu.create')}
                 </span>
               </Button>
             </DropdownMenuTrigger>
@@ -57,13 +58,13 @@ export default function UserMenu() {
                 className={createMenuItemClass}
                 onClick={() => router.push('/blog/create')}
               >
-                發表文章
+                {t('userMenu.writeArticle')}
               </DropdownMenuItem>
               <DropdownMenuItem
                 className={createMenuItemClass}
                 onClick={() => router.push('/upload')}
               >
-                上傳照片
+                {t('userMenu.uploadPhoto')}
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
@@ -73,10 +74,10 @@ export default function UserMenu() {
               <button className="flex h-7 w-7 items-center justify-center overflow-hidden rounded-full transition-opacity duration-200 hover:opacity-80 md:h-8 md:w-8 lg:h-10 lg:w-10">
                 <AvatarWithFallback
                   src={user?.avatar}
-                  alt="用戶頭像"
+                  alt={t('userMenu.userAvatar')}
                   size="w-7 h-7 md:w-8 md:h-8 lg:w-10 lg:h-10"
                   fallback={
-                    <div role="img" aria-label="用戶頭像">
+                    <div role="img" aria-label={t('userMenu.userAvatar')}>
                       {generateAvatarElement(avatarStyle, 'w-7 h-7 md:w-8 md:h-8 lg:w-10 lg:h-10')}
                     </div>
                   }
@@ -88,44 +89,44 @@ export default function UserMenu() {
                 className={userMenuItemClass}
                 onClick={() => router.push('/profile')}
               >
-                我的人物誌
+                {t('userMenu.myBiography')}
               </DropdownMenuItem>
               <DropdownMenuItem
                 className={userMenuItemClass}
                 onClick={() => router.push('/profile/bucket-list')}
               >
-                人生清單
+                {t('userMenu.bucketList')}
               </DropdownMenuItem>
               <DropdownMenuItem
                 className={userMenuItemClass}
                 onClick={() => router.push('/profile/photos')}
               >
-                我的照片
+                {t('userMenu.myPhotos')}
               </DropdownMenuItem>
               <DropdownMenuItem
                 className={userMenuItemClass}
                 onClick={() => router.push('/profile/articles')}
               >
-                我的文章
+                {t('userMenu.myArticles')}
               </DropdownMenuItem>
               <DropdownMenuItem
                 className={userMenuItemClass}
                 onClick={() => router.push('/profile/bookmarks')}
               >
-                我的收藏
+                {t('userMenu.myBookmarks')}
               </DropdownMenuItem>
               <DropdownMenuSeparator className="my-1 bg-[#EBEAEA]" />
               <DropdownMenuItem
                 className={userMenuItemClass}
                 onClick={() => router.push('/profile/settings')}
               >
-                帳號設定
+                {t('userMenu.settings')}
               </DropdownMenuItem>
               <DropdownMenuItem
                 className={logoutMenuItemClass}
                 onClick={() => signOut()}
               >
-                登出
+                {t('nav.logout')}
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
@@ -138,7 +139,7 @@ export default function UserMenu() {
             className="h-7 rounded-lg border border-[#1B1A1A] px-2 font-medium text-[#1B1A1A] hover:bg-gray-100/80 md:h-8 md:px-3 lg:h-9 lg:px-4"
           >
             <span className="font-['Noto_Sans_CJK_TC'] text-xs font-medium leading-5 tracking-[0.01em] md:text-sm">
-              登入
+              {t('nav.login')}
             </span>
           </Button>
         </Link>

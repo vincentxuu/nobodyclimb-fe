@@ -1,17 +1,26 @@
 'use client'
 
 import { useRef } from 'react'
-import { usePathname } from 'next/navigation'
-import Link from 'next/link'
-import { NAV_LINKS } from '@/lib/constants'
+import { useTranslations } from 'next-intl'
+import { Link, usePathname } from '@/i18n/navigation'
 
 /**
  * 統一導航組件
  * 桌機版居中顯示，手機版水平滑動（帶漸層提示）
  */
+const NAV_LINK_KEYS = [
+  { href: '/biography', labelKey: 'nav.biography' },
+  { href: '/crag', labelKey: 'nav.crag' },
+  { href: '/gym', labelKey: 'nav.gym' },
+  { href: '/gallery', labelKey: 'nav.gallery' },
+  { href: '/videos', labelKey: 'nav.videos' },
+  { href: '/blog', labelKey: 'nav.blog' },
+] as const
+
 export default function UnifiedNav() {
   const pathname = usePathname()
   const scrollRef = useRef<HTMLDivElement>(null)
+  const t = useTranslations('common')
 
   return (
     <nav className="relative flex h-full flex-1 items-center overflow-hidden">
@@ -22,7 +31,7 @@ export default function UnifiedNav() {
         ref={scrollRef}
         className="scrollbar-hide flex h-full w-full items-center justify-center gap-6 md:gap-8 lg:gap-12"
       >
-        {NAV_LINKS.map((link) => (
+        {NAV_LINK_KEYS.map((link) => (
           <Link
             key={link.href}
             href={link.href}
@@ -33,7 +42,7 @@ export default function UnifiedNav() {
                 <span className="absolute -bottom-1 left-0 h-0.5 w-full bg-[#1B1A1A]"></span>
               )}
               <span className="absolute -bottom-1 left-0 h-0.5 w-0 bg-[#1B1A1A] transition-all duration-300 group-hover:w-full"></span>
-              {link.label}
+              {t(link.labelKey)}
             </span>
           </Link>
         ))}

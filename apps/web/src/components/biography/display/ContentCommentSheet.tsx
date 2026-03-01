@@ -3,6 +3,7 @@
 import { useState, useEffect, useCallback } from 'react'
 import { cn } from '@/lib/utils'
 import { Loader2, MessageCircle, Send, Trash2, ChevronDown, ChevronUp } from 'lucide-react'
+import { Link } from '@/i18n/navigation'
 import { useAuthStore } from '@/store/authStore'
 import { useToast } from '@/components/ui/use-toast'
 import { Button } from '@/components/ui/button'
@@ -109,9 +110,9 @@ function CommentForm({
   if (!isLoggedIn) {
     return (
       <p className="text-sm text-gray-500">
-        <a href="/auth/login" className="text-brand-600 hover:underline">
+        <Link href="/auth/login" className="text-brand-600 hover:underline">
           登入
-        </a>
+        </Link>
         {' '}後才能留言
       </p>
     )

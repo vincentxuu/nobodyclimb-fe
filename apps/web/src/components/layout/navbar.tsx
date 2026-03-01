@@ -9,6 +9,7 @@ import UnifiedNav from './navbar/UnifiedNav'
 import UserMenu from './navbar/UserMenu'
 import MobileMenu from './navbar/MobileMenu'
 import { NotificationCenter } from '@/components/shared/notification-center'
+import { LanguageSwitcher } from '@/components/shared/language-switcher'
 
 /**
  * 主導航欄組件
@@ -61,13 +62,15 @@ export function Navbar() {
           <UnifiedNav />
         </div>
 
-        {/* 右側功能區 - 桌機版顯示 UserMenu */}
-        <div className="hidden md:flex">
+        {/* 右側功能區 - 桌機版顯示語言切換 + UserMenu */}
+        <div className="hidden items-center md:flex">
+          <LanguageSwitcher />
           <UserMenu />
         </div>
 
         {/* 手機版選單按鈕 - 僅在手機版顯示 */}
         <div className="ml-auto flex items-center gap-1 pr-2 md:hidden">
+          <LanguageSwitcher />
           <NotificationCenter />
           <MobileMenu />
         </div>

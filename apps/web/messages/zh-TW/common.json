@@ -1,0 +1,76 @@
+{
+  "nav": {
+    "biography": "人物誌",
+    "crag": "岩場",
+    "gym": "岩館",
+    "gallery": "攝影集",
+    "videos": "影片",
+    "blog": "部落格",
+    "login": "登入",
+    "register": "註冊",
+    "logout": "登出",
+    "explore": "探索",
+    "personal": "個人",
+    "menu": "選單",
+    "openMenu": "開啟選單",
+    "closeMenu": "關閉選單",
+    "goHome": "前往首頁"
+  },
+  "userMenu": {
+    "create": "創作",
+    "writeArticle": "發表文章",
+    "uploadPhoto": "上傳照片",
+    "myBiography": "我的人物誌",
+    "bucketList": "人生清單",
+    "myPhotos": "我的照片",
+    "myArticles": "我的文章",
+    "myBookmarks": "我的收藏",
+    "settings": "帳號設定",
+    "userAvatar": "用戶頭像",
+    "defaultUser": "用戶"
+  },
+  "mobileMenu": {
+    "biography": "人物誌",
+    "bucketList": "清單",
+    "articles": "文章",
+    "photos": "照片",
+    "bookmarks": "收藏",
+    "joinPrompt": "也是攀岩人？加入寫下你的故事"
+  },
+  "footer": {
+    "cta": "加入我們，寫下你的攀岩故事",
+    "joinNow": "立即加入",
+    "copyright": "NobodyClimb © {year}."
+  },
+  "actions": {
+    "submit": "送出",
+    "cancel": "取消",
+    "save": "儲存",
+    "delete": "刪除",
+    "edit": "編輯",
+    "loading": "載入中...",
+    "search": "搜尋",
+    "back": "返回",
+    "next": "下一步",
+    "previous": "上一步",
+    "confirm": "確認",
+    "close": "關閉",
+    "seeMore": "查看更多",
+    "share": "分享"
+  },
+  "errors": {
+    "general": "發生錯誤，請稍後再試",
+    "notFound": "頁面不存在",
+    "unauthorized": "請先登入",
+    "pageError": "頁面發生錯誤",
+    "pageErrorDescription": "抱歉，載入此頁面時發生問題。請嘗試重新載入或返回首頁。",
+    "retry": "重試",
+    "backHome": "返回首頁"
+  },
+  "language": {
+    "zh-TW": "繁體中文",
+    "en": "English",
+    "ja": "日本語",
+    "switchLanguage": "切換語言"
+  }
+}

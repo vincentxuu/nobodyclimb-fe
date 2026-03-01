@@ -4,6 +4,7 @@ import React, { useState, useEffect, useCallback } from 'react'
 import { Button } from '@/components/ui/button'
 import { Textarea } from '@/components/ui/textarea'
 import { Loader2, MessageCircle, Send, Trash2 } from 'lucide-react'
+import { Link } from '@/i18n/navigation'
 import { postService } from '@/lib/api/services'
 import { useToast } from '@/components/ui/use-toast'
 import { useAuthStore } from '@/store/authStore'
@@ -109,9 +110,9 @@ const CommentForm = ({
   if (!isLoggedIn) {
     return (
       <p className="text-sm text-gray-500">
-        <a href="/auth/login" className="text-brand-600 hover:underline">
+        <Link href="/auth/login" className="text-brand-600 hover:underline">
           登入
-        </a>
+        </Link>
         {' '}後才能留言
       </p>
     )

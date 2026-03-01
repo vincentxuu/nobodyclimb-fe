@@ -1,6 +1,12 @@
 {
   "extends": ["next/core-web-vitals"],
+  "settings": {
+    "next": {
+      "rootDir": "."
+    }
+  },
   "rules": {
+    "@next/next/no-html-link-for-pages": ["error", "src/app/[locale]"],
     "no-unused-vars": ["warn", {
       "argsIgnorePattern": "^_",
       "varsIgnorePattern": "^_"

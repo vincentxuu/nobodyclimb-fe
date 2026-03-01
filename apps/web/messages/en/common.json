@@ -1,0 +1,76 @@
+{
+  "nav": {
+    "biography": "Biographies",
+    "crag": "Crags",
+    "gym": "Gyms",
+    "gallery": "Gallery",
+    "videos": "Videos",
+    "blog": "Blog",
+    "login": "Log in",
+    "register": "Sign up",
+    "logout": "Log out",
+    "explore": "Explore",
+    "personal": "Personal",
+    "menu": "Menu",
+    "openMenu": "Open menu",
+    "closeMenu": "Close menu",
+    "goHome": "Go to homepage"
+  },
+  "userMenu": {
+    "create": "Create",
+    "writeArticle": "Write Article",
+    "uploadPhoto": "Upload Photo",
+    "myBiography": "My Biography",
+    "bucketList": "Bucket List",
+    "myPhotos": "My Photos",
+    "myArticles": "My Articles",
+    "myBookmarks": "My Bookmarks",
+    "settings": "Settings",
+    "userAvatar": "User avatar",
+    "defaultUser": "User"
+  },
+  "mobileMenu": {
+    "biography": "Biography",
+    "bucketList": "Bucket List",
+    "articles": "Articles",
+    "photos": "Photos",
+    "bookmarks": "Bookmarks",
+    "joinPrompt": "Climber too? Join and write your story"
+  },
+  "footer": {
+    "cta": "Join us and write your climbing story",
+    "joinNow": "Join Now",
+    "copyright": "NobodyClimb © {year}."
+  },
+  "actions": {
+    "submit": "Submit",
+    "cancel": "Cancel",
+    "save": "Save",
+    "delete": "Delete",
+    "edit": "Edit",
+    "loading": "Loading...",
+    "search": "Search",
+    "back": "Back",
+    "next": "Next",
+    "previous": "Previous",
+    "confirm": "Confirm",
+    "close": "Close",
+    "seeMore": "See more",
+    "share": "Share"
+  },
+  "errors": {
+    "general": "Something went wrong. Please try again later.",
+    "notFound": "Page not found",
+    "unauthorized": "Please log in first",
+    "pageError": "Page Error",
+    "pageErrorDescription": "Sorry, there was a problem loading this page. Please try reloading or go back to the homepage.",
+    "retry": "Retry",
+    "backHome": "Back to Home"
+  },
+  "language": {
+    "zh-TW": "繁體中文",
+    "en": "English",
+    "ja": "日本語",
+    "switchLanguage": "Switch language"
+  }
+}
