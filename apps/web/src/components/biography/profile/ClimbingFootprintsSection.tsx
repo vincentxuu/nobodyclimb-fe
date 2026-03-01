@@ -78,7 +78,7 @@ function TimelineLocationItem({
                 transition={{ duration: 0.2 }}
               >
                 <p
-                  className={`text-sm leading-relaxed text-text-subtle ${!isExpanded && shouldShowExpandButton ? 'line-clamp-2' : ''
+                  className={`whitespace-pre-wrap text-sm leading-relaxed text-text-subtle ${!isExpanded && shouldShowExpandButton ? 'line-clamp-2' : ''
                     }`}
                 >
                   {location.notes}
