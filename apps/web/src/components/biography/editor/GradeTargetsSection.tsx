@@ -2,7 +2,7 @@
 
 import { useState } from 'react'
 import { cn } from '@/lib/utils'
-import { Target, Plus, X } from 'lucide-react'
+import { TrendingUp, Plus, X } from 'lucide-react'
 import { GRADE_TARGET_OPTIONS, CLIMBING_TYPES } from '@nobodyclimb/constants'
 import type { GradeTarget } from '@/lib/types/biography-v2'
 
@@ -78,7 +78,7 @@ export function GradeTargetsSection({
     <div className={cn('space-y-4', className)}>
       {/* Header */}
       <div className="flex items-center gap-2">
-        <Target size={18} className="text-[#3F3D3D]" />
+        <TrendingUp size={18} className="text-[#3F3D3D]" />
         <h4 className="font-medium text-[#1B1A1A]">年度攀爬目標</h4>
       </div>
       <p className="text-sm text-[#6D6C6C]">

@@ -4,7 +4,7 @@ import { useState } from 'react'
 import Image from 'next/image'
 import { cn } from '@/lib/utils'
 import { getDefaultCoverUrl } from '@/lib/utils/image'
-import { Clock, BarChart3, Globe, Eye, Users, MessageCircle, Ruler, Target } from 'lucide-react'
+import { Clock, BarChart3, Globe, Eye, Users, MessageCircle, ArrowUpDown, ArrowLeftRight, TrendingUp } from 'lucide-react'
 import type { BiographyV2, SocialLinks, GradeTarget } from '@/lib/types/biography-v2'
 import { FollowButton } from '../follow-button'
 import { BiographyLikeButton } from '../biography-like-button'
@@ -172,18 +172,24 @@ export function BiographyHero({
                   : '從入坑那天起算'}
               </span>
 
-              {/* 身高與臂展 */}
+              {/* 身高 */}
               {biography.height_cm && (
                 <>
                   <span className="text-[#B6B3B3]">·</span>
                   <span className="flex items-center gap-1">
-                    <Ruler size={16} />
+                    <ArrowUpDown size={16} />
                     {biography.height_cm}cm
-                    {biography.arm_span_cm && (
-                      <span className="text-[#8E8C8C]">
-                        / 臂展 {biography.arm_span_cm}cm
-                      </span>
-                    )}
+                  </span>
+                </>
+              )}
+
+              {/* 臂展 */}
+              {biography.arm_span_cm && (
+                <>
+                  <span className="text-[#B6B3B3]">·</span>
+                  <span className="flex items-center gap-1">
+                    <ArrowLeftRight size={16} />
+                    臂展 {biography.arm_span_cm}cm
                   </span>
                 </>
               )}
@@ -324,7 +330,7 @@ function GradeTargetsDisplay({ targets }: { targets: GradeTarget[] }) {
   return (
     <div className="flex flex-wrap items-center gap-2 mt-1">
       <span className="flex items-center gap-1 text-sm text-[#6D6C6C]">
-        <Target size={16} />
+        <TrendingUp size={16} />
         {currentYear} 目標
       </span>
       {currentYearTargets.map((target, i) => (
