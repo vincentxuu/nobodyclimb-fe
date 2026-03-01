@@ -184,6 +184,8 @@ export function BasicInfoSection({
     }
   }
 
+  const parseIntOrNull = (value: string) => (value ? parseInt(value, 10) : null)
+
   const displayAvatar = avatarPreview || avatarUrl
   const displayCover = coverPreview || coverUrl
 
@@ -355,10 +357,7 @@ export function BasicInfoSection({
               min={100}
               max={250}
               value={heightCm ?? ''}
-              onChange={(e) => {
-                const value = e.target.value
-                onHeightCmChange(value ? parseInt(value, 10) : null)
-              }}
+              onChange={(e) => onHeightCmChange(parseIntOrNull(e.target.value))}
               placeholder="170"
               className="w-20 px-3 py-2 text-sm bg-white border border-[#B6B3B3] rounded-lg text-[#1B1A1A] placeholder:text-[#9D9D9D] focus:outline-none focus:ring-2 focus:ring-brand-accent/50 focus:border-brand-dark transition-colors text-center"
             />
@@ -372,10 +371,7 @@ export function BasicInfoSection({
               min={100}
               max={250}
               value={armSpanCm ?? ''}
-              onChange={(e) => {
-                const value = e.target.value
-                onArmSpanCmChange(value ? parseInt(value, 10) : null)
-              }}
+              onChange={(e) => onArmSpanCmChange(parseIntOrNull(e.target.value))}
               placeholder="175"
               className="w-20 px-3 py-2 text-sm bg-white border border-[#B6B3B3] rounded-lg text-[#1B1A1A] placeholder:text-[#9D9D9D] focus:outline-none focus:ring-2 focus:ring-brand-accent/50 focus:border-brand-dark transition-colors text-center"
             />
