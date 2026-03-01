@@ -112,82 +112,84 @@ export function ProgressTracker({
   const isManyMilestones = sortedMilestones.length > 5
 
   return (
-    <div className={cn('w-full overflow-hidden', className)}>
-      {/* 里程碑進度條 */}
-      <div className="relative px-3">
-        {/* 背景線 */}
-        <div className={cn('absolute left-3 right-3 top-1/2 -translate-y-1/2 rounded-full bg-gray-200', sizes.bar)} />
+    <div className={cn('w-full', isManyMilestones ? 'overflow-x-auto scrollbar-hide' : 'overflow-hidden', className)}>
+      <div className={cn(isManyMilestones && 'min-w-[500px]')}>
+        {/* 里程碑進度條 */}
+        <div className="relative px-3">
+          {/* 背景線 */}
+          <div className={cn('absolute left-3 right-3 top-1/2 -translate-y-1/2 rounded-full bg-gray-200', sizes.bar)} />
 
-        {/* 已完成的進度線 */}
-        <div
-          className={cn(
-            'absolute left-3 top-1/2 -translate-y-1/2 rounded-full bg-brand-accent/70 transition-all duration-300',
-            sizes.bar
-          )}
-          style={{ width: `${progress}%`, maxWidth: 'calc(100% - 1.5rem)' }}
-        />
+          {/* 已完成的進度線 */}
+          <div
+            className={cn(
+              'absolute left-3 top-1/2 -translate-y-1/2 rounded-full bg-brand-accent/70 transition-all duration-300',
+              sizes.bar
+            )}
+            style={{ width: `${progress}%`, maxWidth: 'calc(100% - 1.5rem)' }}
+          />
 
-        {/* 里程碑點 */}
-        <div className="relative">
-          {sortedMilestones.map((milestone) => {
-            const isCompleted = milestone.completed
-            return (
-              <button
+          {/* 里程碑點 */}
+          <div className="relative">
+            {sortedMilestones.map((milestone) => {
+              const isCompleted = milestone.completed
+              return (
+                <button
+                  key={milestone.id}
+                  type="button"
+                  disabled={!editable}
+                  onClick={() => editable && onMilestoneToggle?.(milestone.id, !isCompleted)}
+                  className={cn(
+                    'absolute z-10 flex -translate-x-1/2 items-center justify-center rounded-full border-2 transition-all',
+                    sizes.milestone,
+                    isCompleted
+                      ? 'border-[#1B1A1A] bg-brand-accent/70 text-[#1B1A1A]'
+                      : 'border-gray-300 bg-white text-gray-300',
+                    editable && 'cursor-pointer hover:border-[#1B1A1A]'
+                  )}
+                  style={{ left: `${milestone.percentage}%` }}
+                  title={milestone.title}
+                >
+                  {isCompleted ? (
+                    <Check className={cn(size === 'sm' ? 'h-3 w-3' : size === 'md' ? 'h-4 w-4' : 'h-5 w-5')} />
+                  ) : (
+                    <Circle className={cn(size === 'sm' ? 'h-2 w-2' : size === 'md' ? 'h-2.5 w-2.5' : 'h-3 w-3')} />
+                  )}
+                </button>
+              )
+            })}
+          </div>
+        </div>
+
+        {/* 里程碑標籤 */}
+        {showLabels && (
+          <div
+            className={cn(
+              'mt-4 flex gap-1 px-1',
+              isManyMilestones
+                ? 'pb-1'
+                : 'justify-between overflow-hidden'
+            )}
+          >
+            {sortedMilestones.map((milestone) => (
+              <div
                 key={milestone.id}
-                type="button"
-                disabled={!editable}
-                onClick={() => editable && onMilestoneToggle?.(milestone.id, !isCompleted)}
                 className={cn(
-                  'absolute z-10 flex -translate-x-1/2 items-center justify-center rounded-full border-2 transition-all',
-                  sizes.milestone,
-                  isCompleted
-                    ? 'border-[#1B1A1A] bg-brand-accent/70 text-[#1B1A1A]'
-                    : 'border-gray-300 bg-white text-gray-300',
-                  editable && 'cursor-pointer hover:border-[#1B1A1A]'
+                  'flex flex-col items-center gap-0.5 text-center',
+                  isManyMilestones ? 'min-w-[2.5rem] flex-shrink-0' : 'flex-1',
+                  sizes.text,
+                  milestone.completed ? 'text-[#1B1A1A]' : 'text-gray-400'
                 )}
-                style={{ left: `${milestone.percentage}%` }}
                 title={milestone.title}
               >
-                {isCompleted ? (
-                  <Check className={cn(size === 'sm' ? 'h-3 w-3' : size === 'md' ? 'h-4 w-4' : 'h-5 w-5')} />
-                ) : (
-                  <Circle className={cn(size === 'sm' ? 'h-2 w-2' : size === 'md' ? 'h-2.5 w-2.5' : 'h-3 w-3')} />
-                )}
-              </button>
-            )
-          })}
-        </div>
+                <span className="text-[10px] font-medium">{milestone.percentage}%</span>
+                <span className={cn('text-[10px]', isManyMilestones ? 'whitespace-nowrap' : 'w-full truncate')}>
+                  {milestone.title}
+                </span>
+              </div>
+            ))}
+          </div>
+        )}
       </div>
-
-      {/* 里程碑標籤 */}
-      {showLabels && (
-        <div
-          className={cn(
-            'mt-4 flex gap-1 px-1',
-            isManyMilestones
-              ? 'overflow-x-auto scrollbar-hide -mx-1 px-2 pb-1'
-              : 'justify-between overflow-hidden'
-          )}
-        >
-          {sortedMilestones.map((milestone) => (
-            <div
-              key={milestone.id}
-              className={cn(
-                'flex flex-col items-center gap-0.5 text-center',
-                isManyMilestones ? 'min-w-[2.5rem] flex-shrink-0' : 'flex-1',
-                sizes.text,
-                milestone.completed ? 'text-[#1B1A1A]' : 'text-gray-400'
-              )}
-              title={milestone.title}
-            >
-              <span className="text-[10px] font-medium">{milestone.percentage}%</span>
-              <span className={cn('text-[10px]', isManyMilestones ? 'whitespace-nowrap' : 'w-full truncate')}>
-                {milestone.title}
-              </span>
-            </div>
-          ))}
-        </div>
-      )}
     </div>
   )
 }
