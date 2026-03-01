@@ -71,6 +71,11 @@
     "zh-TW": "繁體中文",
     "en": "English",
     "ja": "日本語",
-    "switchLanguage": "切換語言"
+    "switchLanguage": "切換語言",
+    "translated": {
+      "zh-TW": "繁體中文",
+      "en": "英文",
+      "ja": "日文"
+    }
   }
 }

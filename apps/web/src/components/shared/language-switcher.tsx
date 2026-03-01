@@ -11,12 +11,6 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
 
-const LOCALE_LABELS: Record<string, string> = {
-  'zh-TW': '繁體中文',
-  en: 'English',
-  ja: '日本語',
-}
-
 export function LanguageSwitcher() {
   const locale = useLocale()
   const router = useRouter()
@@ -35,7 +29,7 @@ export function LanguageSwitcher() {
           aria-label={t('language.switchLanguage')}
         >
           <Globe className="h-4 w-4" />
-          <span className="hidden text-xs md:inline">{LOCALE_LABELS[locale]}</span>
+          <span className="hidden text-xs md:inline">{t(`language.${locale}`)}</span>
         </button>
       </DropdownMenuTrigger>
       <DropdownMenuContent className="min-w-[140px] rounded-lg border border-[#EBEAEA] bg-white p-1 shadow-md">
@@ -49,7 +43,7 @@ export function LanguageSwitcher() {
             }`}
             onClick={() => handleChange(l)}
           >
-            {LOCALE_LABELS[l]}
+            {t(`language.${l}`)}
           </DropdownMenuItem>
         ))}
       </DropdownMenuContent>

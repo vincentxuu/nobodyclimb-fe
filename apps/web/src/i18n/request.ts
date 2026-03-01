@@ -10,9 +10,8 @@ export default getRequestConfig(async ({ requestLocale }) => {
   return {
     locale,
     messages: {
+      // 全域只載入 common — 其他 namespace 在各頁面按需載入
       common: (await import(`../../messages/${locale}/common.json`)).default,
-      home: (await import(`../../messages/${locale}/home.json`)).default,
-      metadata: (await import(`../../messages/${locale}/metadata.json`)).default,
     },
   }
 })
