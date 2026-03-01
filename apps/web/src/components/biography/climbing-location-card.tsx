@@ -39,7 +39,7 @@ export function ClimbingLocationCard({ location, index = 0 }: ClimbingLocationCa
         )}
       </div>
       {location.notes && (
-        <p className="mt-3 text-sm text-gray-600 leading-relaxed">{location.notes}</p>
+        <p className="whitespace-pre-wrap mt-3 text-sm text-gray-600 leading-relaxed">{location.notes}</p>
       )}
     </motion.div>
   )
