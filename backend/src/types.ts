@@ -295,6 +295,11 @@ export interface Biography {
   one_liners_data: string | null; // JSON: 一句話問答 (已移至獨立表，此欄位保留供查詢使用)
   stories_data: string | null; // JSON: 故事內容 (已移至獨立表，此欄位保留供查詢使用)
   autosave_at: string | null; // 自動儲存時間戳
+
+  // 攀岩者身體數據與目標
+  height_cm: number | null;
+  arm_span_cm: number | null;
+  grade_targets: string | null; // JSON: 年度攀爬目標陣列
 }
 
 export interface Review {
