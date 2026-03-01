@@ -301,6 +301,11 @@ export interface Biography {
   follower_count: number
   comment_count: number
 
+  // 攀岩者身體數據與目標
+  height_cm?: number | null
+  arm_span_cm?: number | null
+  grade_targets?: string | null // JSON string
+
   // V2 欄位 - 漸進式揭露設計
   visibility?: 'private' | 'anonymous' | 'community' | 'public' | null
   tags_data?: string | null
@@ -721,9 +726,9 @@ export interface BiographyInput {
   one_liners_data?: string
   stories_data?: string
   basic_info_data?: string
-  height_cm?: number
-  arm_span_cm?: number
-  grade_targets?: string
+  height_cm?: number | null
+  arm_span_cm?: number | null
+  grade_targets?: string | null
 }
 
 // ============================================
