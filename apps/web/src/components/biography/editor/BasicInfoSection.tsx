@@ -3,7 +3,7 @@
 import { useState, useRef, useMemo } from 'react'
 import Image from 'next/image'
 import { cn } from '@/lib/utils'
-import { User, ImageIcon, Pencil, Clock, Link, Instagram, Youtube, X, Plus, Lightbulb } from 'lucide-react'
+import { User, ImageIcon, Pencil, Clock, Link, Instagram, Youtube, X, Plus, Lightbulb, ArrowUpDown, ArrowLeftRight } from 'lucide-react'
 import type { SocialLinks } from '@/lib/types/biography-v2'
 
 interface BasicInfoSectionProps {
@@ -27,6 +27,14 @@ interface BasicInfoSectionProps {
   climbingStartYear: number | null
   /** 開始攀岩年份變更回調 */
   onClimbingStartYearChange: (_year: number | null) => void
+  /** 身高（公分） */
+  heightCm: number | null
+  /** 身高變更回調 */
+  onHeightCmChange: (_height: number | null) => void
+  /** 臂展（公分） */
+  armSpanCm: number | null
+  /** 臂展變更回調 */
+  onArmSpanCmChange: (_armSpan: number | null) => void
   /** 平常出沒的地方 */
   frequentLocations: string[]
   /** 平常出沒的地方變更回調 */
@@ -59,6 +67,10 @@ export function BasicInfoSection({
   onCoverChange,
   climbingStartYear,
   onClimbingStartYearChange,
+  heightCm,
+  onHeightCmChange,
+  armSpanCm,
+  onArmSpanCmChange,
   frequentLocations,
   onFrequentLocationsChange,
   favoriteRouteTypes,
@@ -171,6 +183,8 @@ export function BasicInfoSection({
       onCoverChange(file)
     }
   }
+
+  const parseIntOrNull = (value: string) => (value ? parseInt(value, 10) : null)
 
   const displayAvatar = avatarPreview || avatarUrl
   const displayCover = coverPreview || coverUrl
@@ -324,6 +338,51 @@ export function BasicInfoSection({
           </span>
         </div>
         <p className="text-xs text-[#8E8C8C]">選擇你開始攀岩的年份，系統會自動計算年資</p>
+      </div>
+
+      {/* Height & Arm Span */}
+      <div className="space-y-2">
+        <div className="flex items-center gap-2 mb-2">
+          <label className="text-sm font-medium text-[#3F3D3D]">
+            身體數據
+            <span className="text-[#8E8C8C] font-normal ml-1">(選填)</span>
+          </label>
+        </div>
+        <div className="flex items-center gap-4">
+          <div className="flex items-center gap-2">
+            <ArrowUpDown size={16} className="text-[#3F3D3D]" />
+            <span className="text-sm text-[#6D6C6C] whitespace-nowrap">身高</span>
+            <input
+              type="number"
+              min={100}
+              max={250}
+              value={heightCm ?? ''}
+              onChange={(e) => onHeightCmChange(parseIntOrNull(e.target.value))}
+              placeholder="170"
+              className="w-20 px-3 py-2 text-sm bg-white border border-[#B6B3B3] rounded-lg text-[#1B1A1A] placeholder:text-[#9D9D9D] focus:outline-none focus:ring-2 focus:ring-brand-accent/50 focus:border-brand-dark transition-colors text-center"
+            />
+            <span className="text-sm text-[#6D6C6C]">cm</span>
+          </div>
+          <div className="flex items-center gap-2">
+            <ArrowLeftRight size={16} className="text-[#3F3D3D]" />
+            <span className="text-sm text-[#6D6C6C] whitespace-nowrap">臂展</span>
+            <input
+              type="number"
+              min={100}
+              max={250}
+              value={armSpanCm ?? ''}
+              onChange={(e) => onArmSpanCmChange(parseIntOrNull(e.target.value))}
+              placeholder="175"
+              className="w-20 px-3 py-2 text-sm bg-white border border-[#B6B3B3] rounded-lg text-[#1B1A1A] placeholder:text-[#9D9D9D] focus:outline-none focus:ring-2 focus:ring-brand-accent/50 focus:border-brand-dark transition-colors text-center"
+            />
+            <span className="text-sm text-[#6D6C6C]">cm</span>
+          </div>
+        </div>
+        <p className="text-xs text-[#8E8C8C]">
+          {heightCm && armSpanCm
+            ? `Ape Index: ${armSpanCm - heightCm > 0 ? '+' : ''}${armSpanCm - heightCm} cm`
+            : '臂展與身高的差距稱為 Ape Index，對攀岩很有參考價值'}
+        </p>
       </div>
 
       {/* Frequent Locations - 多選標籤 */}

@@ -283,6 +283,7 @@ export class BiographyRepository {
       'id', 'user_id', 'name', 'slug', 'title', 'bio', 'avatar_url', 'cover_image',
       'achievements', 'social_links', 'is_featured', 'visibility',
       'tags_data', 'basic_info_data', 'youtube_channel_id', 'featured_video_id',
+      'height_cm', 'arm_span_cm', 'grade_targets',
       'published_at', 'created_at', 'updated_at'
     ];
 
@@ -303,6 +304,9 @@ export class BiographyRepository {
       data.basic_info_data ?? null,
       data.youtube_channel_id ?? null,
       data.featured_video_id ?? null,
+      data.height_cm ?? null,
+      data.arm_span_cm ?? null,
+      data.grade_targets ?? null,
       isPublic ? now : null,
       now,
       now,
@@ -337,6 +341,7 @@ export class BiographyRepository {
       'name', 'title', 'bio', 'avatar_url', 'cover_image',
       'achievements', 'social_links', 'is_featured', 'visibility',
       'tags_data', 'basic_info_data', 'youtube_channel_id', 'featured_video_id',
+      'height_cm', 'arm_span_cm', 'grade_targets',
     ];
 
     for (const field of updatableFields) {

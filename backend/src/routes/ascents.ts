@@ -126,28 +126,41 @@ ascentsRoutes.get(
   authMiddleware,
   async (c) => {
   const userId = c.get('userId');
+  const year = c.req.query('year'); // 可選的年份篩選
+
+  // 年份篩選 SQL 片段
+  let yearFilter = '';
+  const yearParams: string[] = [];
+  if (year) {
+    const yearNum = parseInt(year, 10);
+    if (isNaN(yearNum) || yearNum < 1900 || yearNum > new Date().getFullYear() + 10) {
+      return c.json({ success: false, error: 'Bad Request', message: 'Invalid year parameter' }, 400);
+    }
+    yearFilter = ` AND a.ascent_date >= ? AND a.ascent_date < ?`;
+    yearParams.push(`${yearNum}-01-01`, `${yearNum + 1}-01-01`);
+  }
 
   // 總攀爬統計
   const totalStats = await c.env.DB.prepare(
     `SELECT
        COUNT(*) as total_ascents,
-       COUNT(DISTINCT route_id) as unique_routes,
+       COUNT(DISTINCT a.route_id) as unique_routes,
        COUNT(DISTINCT r.crag_id) as unique_crags
      FROM user_route_ascents a
      JOIN routes r ON a.route_id = r.id
-     WHERE a.user_id = ?`
+     WHERE a.user_id = ?${yearFilter}`
   )
-    .bind(userId)
+    .bind(userId, ...yearParams)
     .first<{ total_ascents: number; unique_routes: number; unique_crags: number }>();
 
   // 按攀爬類型統計
   const byType = await c.env.DB.prepare(
-    `SELECT ascent_type, COUNT(*) as count
-     FROM user_route_ascents
-     WHERE user_id = ?
-     GROUP BY ascent_type`
+    `SELECT a.ascent_type, COUNT(*) as count
+     FROM user_route_ascents a
+     WHERE a.user_id = ?${yearFilter}
+     GROUP BY a.ascent_type`
   )
-    .bind(userId)
+    .bind(userId, ...yearParams)
     .all<{ ascent_type: string; count: number }>();
 
   // 按難度統計
@@ -155,14 +168,14 @@ ascentsRoutes.get(
     `SELECT r.grade, COUNT(*) as count
      FROM user_route_ascents a
      JOIN routes r ON a.route_id = r.id
-     WHERE a.user_id = ? AND r.grade IS NOT NULL
+     WHERE a.user_id = ? AND r.grade IS NOT NULL${yearFilter}
      GROUP BY r.grade
      ORDER BY r.grade`
   )
-    .bind(userId)
+    .bind(userId, ...yearParams)
     .all<{ grade: string; count: number }>();
 
-  // 最近 12 個月統計
+  // 最近 12 個月統計（不受年份篩選影響）
   const byMonth = await c.env.DB.prepare(
     `SELECT
        strftime('%Y-%m', ascent_date) as month,
@@ -180,10 +193,10 @@ ascentsRoutes.get(
     `SELECT r.route_type, MAX(r.grade) as highest_grade
      FROM user_route_ascents a
      JOIN routes r ON a.route_id = r.id
-     WHERE a.user_id = ? AND a.ascent_type NOT IN ('attempt')
+     WHERE a.user_id = ? AND a.ascent_type NOT IN ('attempt')${yearFilter}
      GROUP BY r.route_type`
   )
-    .bind(userId)
+    .bind(userId, ...yearParams)
     .all<{ route_type: string; highest_grade: string }>();
 
   // 最近 5 筆攀爬記錄
@@ -196,16 +209,17 @@ ascentsRoutes.get(
      FROM user_route_ascents a
      JOIN routes r ON a.route_id = r.id
      JOIN crags c ON r.crag_id = c.id
-     WHERE a.user_id = ?
+     WHERE a.user_id = ?${yearFilter}
      ORDER BY a.ascent_date DESC, a.created_at DESC
      LIMIT 5`
   )
-    .bind(userId)
+    .bind(userId, ...yearParams)
     .all();
 
   return c.json({
     success: true,
     data: {
+      year: year ? parseInt(year) : null,
       total_ascents: totalStats?.total_ascents || 0,
       unique_routes: totalStats?.unique_routes || 0,
       unique_crags: totalStats?.unique_crags || 0,

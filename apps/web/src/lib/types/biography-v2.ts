@@ -202,6 +202,23 @@ export interface BiographyStoriesV2 {
 }
 
 // ═══════════════════════════════════════════
+// 攀岩者數據類型
+// ═══════════════════════════════════════════
+
+/**
+ * 年度攀爬目標
+ *
+ * 用於追蹤每年的級數完攀目標
+ * grade 使用大級數（如 V4、5.11），計算完成數時會匹配所有子級數
+ */
+export interface GradeTarget {
+  year: number
+  grade_system: 'boulder' | 'sport' | 'trad'
+  grade: string // 大級數，如 V4、5.11
+  target_count: number
+}
+
+// ═══════════════════════════════════════════
 // 輔助類型
 // ═══════════════════════════════════════════
 
@@ -262,6 +279,13 @@ export interface BiographyV2 {
   frequent_locations: string[] | null // 平常出沒的地方（可多選）
   favorite_route_types: string[] | null // 喜歡的路線型態（可多選）
   home_gym: string | null
+
+  // ═══════════════════════════════════════════
+  // 攀岩者身體數據與目標
+  // ═══════════════════════════════════════════
+  height_cm: number | null // 身高（公分）
+  arm_span_cm: number | null // 臂展（公分）
+  grade_targets: GradeTarget[] | null // 年度攀爬目標
 
   // ═══════════════════════════════════════════
   // 第一層：標籤系統（簡化陣列結構）
@@ -436,6 +460,9 @@ export interface BiographyBackend {
   one_liners_data: string | null // JSON string
   stories_data: string | null // JSON string
   basic_info_data: string | null // JSON string
+  height_cm: number | null
+  arm_span_cm: number | null
+  grade_targets: string | null // JSON string
   gallery_images: string | null // JSON string
   social_links: string | null // JSON string
   featured_video_id: string | null
@@ -752,6 +779,9 @@ export function transformBackendToBiographyV2(backend: BiographyBackend): Biogra
     frequent_locations,
     favorite_route_types,
     home_gym: basicInfo?.home_gym || null,
+    height_cm: backend.height_cm ?? null,
+    arm_span_cm: backend.arm_span_cm ?? null,
+    grade_targets: safeJsonParse<GradeTarget[]>(backend.grade_targets, null),
     tags,
     custom_tags,
     custom_dimensions,
@@ -852,6 +882,9 @@ export function createEmptyBiographyV2(userId: string): BiographyV2 {
     frequent_locations: null,
     favorite_route_types: null,
     home_gym: null,
+    height_cm: null,
+    arm_span_cm: null,
+    grade_targets: null,
     tags: [],
     custom_tags: undefined,
     custom_dimensions: undefined,
