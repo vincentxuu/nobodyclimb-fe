@@ -84,7 +84,7 @@ function TimelineLocationItem({
               >
                 <p
                   className={cn(
-                    'text-sm leading-relaxed text-[#6D6C6C]',
+                    'whitespace-pre-wrap text-sm leading-relaxed text-[#6D6C6C]',
                     !isExpanded && shouldShowExpandButton && 'line-clamp-2'
                   )}
                 >
