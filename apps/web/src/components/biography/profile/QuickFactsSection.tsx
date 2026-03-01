@@ -2,9 +2,9 @@
 
 import { useState, useMemo } from 'react'
 import { motion } from 'framer-motion'
-import { Calendar, MapPin, Activity, ChevronDown, ChevronUp, Sparkles } from 'lucide-react'
+import { Calendar, MapPin, Activity, ChevronDown, ChevronUp, Sparkles, ArrowUpDown, ArrowLeftRight, TrendingUp } from 'lucide-react'
 import { cn } from '@/lib/utils'
-import { BiographyV2 } from '@/lib/types/biography-v2'
+import { BiographyV2, GradeTarget } from '@/lib/types/biography-v2'
 import { renderDynamicTag } from '@/lib/types/biography-v2'
 import { getTagOptionById } from '@/lib/constants/biography-tags'
 
@@ -127,6 +127,19 @@ export function QuickFactsSection({ person, mobileTagLimit = 8 }: QuickFactsSect
 
   if (!person) return null
 
+  // Ape Index 計算
+  const apeIndex = useMemo(() => {
+    if (!person?.height_cm || !person?.arm_span_cm) return null
+    return person.arm_span_cm - person.height_cm
+  }, [person?.height_cm, person?.arm_span_cm])
+
+  // 年度目標
+  const currentYearTargets = useMemo(() => {
+    if (!person?.grade_targets) return []
+    const currentYear = new Date().getFullYear()
+    return person.grade_targets.filter((t: GradeTarget) => t.year === currentYear)
+  }, [person?.grade_targets])
+
   const quickFacts = [
     {
       icon: <Calendar className="h-6 w-6 text-gray-600" />,
@@ -189,6 +202,43 @@ export function QuickFactsSection({ person, mobileTagLimit = 8 }: QuickFactsSect
             </motion.div>
           ))}
         </div>
+
+        {/* 身體數據 & 年度目標 */}
+        {(person.height_cm || person.arm_span_cm || currentYearTargets.length > 0) && (
+          <div className="mt-6 flex flex-wrap items-center justify-center gap-4 text-sm text-[#6D6C6C]">
+            {person.height_cm && (
+              <span className="flex items-center gap-1">
+                <ArrowUpDown size={16} />
+                身高 {person.height_cm}cm
+              </span>
+            )}
+            {person.arm_span_cm && (
+              <span className="flex items-center gap-1">
+                <ArrowLeftRight size={16} />
+                臂展 {person.arm_span_cm}cm
+              </span>
+            )}
+            {apeIndex !== null && (
+              <span className="text-[#3F3D3D] font-medium">
+                Ape Index: {apeIndex > 0 ? '+' : ''}{apeIndex}cm
+              </span>
+            )}
+            {currentYearTargets.length > 0 && (
+              <span className="flex items-center gap-2">
+                <TrendingUp size={16} />
+                <span>{new Date().getFullYear()} 目標</span>
+                {currentYearTargets.map((target: GradeTarget, i: number) => (
+                  <span
+                    key={`${target.grade_system}-${target.grade}-${i}`}
+                    className="inline-flex items-center gap-1 px-2 py-0.5 bg-[#F5F5F5] rounded-full text-xs text-[#3F3D3D]"
+                  >
+                    {target.grade} × {target.target_count}
+                  </span>
+                ))}
+              </span>
+            )}
+          </div>
+        )}
 
         {/* 關鍵字 標籤 */}
         {selectedTags.length > 0 && (
