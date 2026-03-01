@@ -304,6 +304,9 @@ export class BiographyService {
       basic_info_data: data.basic_info_data,
       youtube_channel_id: data.youtube_channel_id,
       featured_video_id: data.featured_video_id,
+      height_cm: data.height_cm,
+      arm_span_cm: data.arm_span_cm,
+      grade_targets: data.grade_targets,
     });
 
     // 同步 one_liners_data
