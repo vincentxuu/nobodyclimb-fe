@@ -115,24 +115,24 @@ export function ProgressTracker({
   const isManyMilestones = sortedMilestones.length > 5
 
   return (
-    <div className={cn('w-full', isManyMilestones ? 'overflow-x-auto scrollbar-hide' : 'overflow-hidden', className)}>
+    <div className={cn('w-full', isManyMilestones && 'overflow-x-auto scrollbar-hide', className)}>
       <div className={cn(isManyMilestones && 'min-w-[500px]')}>
         {/* 里程碑進度條 */}
-        <div className="relative px-3">
-          {/* 背景線 */}
-          <div className={cn('absolute left-3 right-3 top-1/2 -translate-y-1/2 rounded-full bg-gray-200', sizes.bar)} />
-
-          {/* 已完成的進度線 */}
-          <div
-            className={cn(
-              'absolute left-3 top-1/2 -translate-y-1/2 rounded-full bg-brand-accent/70 transition-all duration-300',
-              sizes.bar
-            )}
-            style={{ width: `${progress}%`, maxWidth: 'calc(100% - 1.5rem)' }}
-          />
-
-          {/* 里程碑點 */}
+        <div className="px-3">
           <div className={cn('relative', sizes.milestoneContainer)}>
+            {/* 背景線 */}
+            <div className={cn('absolute inset-x-0 top-1/2 -translate-y-1/2 rounded-full bg-gray-200', sizes.bar)} />
+
+            {/* 已完成的進度線 */}
+            <div
+              className={cn(
+                'absolute left-0 top-1/2 -translate-y-1/2 rounded-full bg-brand-accent/70 transition-all duration-300',
+                sizes.bar
+              )}
+              style={{ width: `${Math.min(100, Math.max(0, progress))}%` }}
+            />
+
+            {/* 里程碑點 */}
             {sortedMilestones.map((milestone) => {
               const isCompleted = milestone.completed
               return (
@@ -167,31 +167,33 @@ export function ProgressTracker({
         {showLabels && (
           <div
             className={cn(
-              'relative mt-2 px-3',
+              'mt-2 px-3',
               isManyMilestones && 'pb-1'
             )}
           >
-            {sortedMilestones.map((milestone) => (
-              <div
-                key={milestone.id}
-                className={cn(
-                  'absolute flex -translate-x-1/2 flex-col items-center gap-0.5 text-center',
-                  sizes.text,
-                  milestone.completed ? 'text-[#1B1A1A]' : 'text-gray-400'
-                )}
-                style={{ left: `${milestone.percentage}%` }}
-                title={milestone.title}
-              >
-                <span className="whitespace-nowrap text-[10px] font-medium">{milestone.percentage}%</span>
-                <span className="max-w-[3rem] truncate text-[10px]">
-                  {milestone.title}
-                </span>
+            <div className="relative">
+              {sortedMilestones.map((milestone) => (
+                <div
+                  key={milestone.id}
+                  className={cn(
+                    'absolute flex -translate-x-1/2 flex-col items-center gap-0.5 text-center',
+                    sizes.text,
+                    milestone.completed ? 'text-[#1B1A1A]' : 'text-gray-400'
+                  )}
+                  style={{ left: `${milestone.percentage}%` }}
+                  title={milestone.title}
+                >
+                  <span className="whitespace-nowrap text-[10px] font-medium">{milestone.percentage}%</span>
+                  <span className="max-w-[3rem] truncate text-[10px]">
+                    {milestone.title}
+                  </span>
+                </div>
+              ))}
+              {/* 佔位元素，確保容器有高度 */}
+              <div className="invisible flex flex-col gap-0.5">
+                <span className="text-[10px]">&nbsp;</span>
+                <span className="text-[10px]">&nbsp;</span>
               </div>
-            ))}
-            {/* 佔位元素，確保容器有高度 */}
-            <div className="invisible flex flex-col gap-0.5">
-              <span className="text-[10px]">&nbsp;</span>
-              <span className="text-[10px]">&nbsp;</span>
             </div>
           </div>
         )}
