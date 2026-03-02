@@ -361,7 +361,8 @@ export function CreateAscentDialog({
 
   return (
     <Dialog open={open} onOpenChange={handleOpenChange}>
-      <DialogContent className="max-h-[90vh] overflow-hidden sm:max-w-lg">
+      <DialogContent className="!left-0 !right-0 !top-auto !bottom-0 !translate-x-0 !translate-y-0 max-h-[92dvh] overflow-y-auto rounded-t-2xl border-x-0 border-b-0 p-4 pb-[calc(env(safe-area-inset-bottom)+1rem)] sm:!left-[50%] sm:!right-auto sm:!top-[50%] sm:!bottom-auto sm:!translate-x-[-50%] sm:!translate-y-[-50%] sm:max-w-lg sm:rounded-lg sm:border sm:p-6 sm:pb-6">
+        <div className="mx-auto mb-2 h-1.5 w-12 rounded-full bg-muted sm:hidden" />
         <DialogHeader>
           <div className="flex items-center gap-2">
             {step !== 'crag' && (
@@ -726,7 +727,7 @@ function AscentFormContent({
   }
 
   return (
-    <ScrollArea className="max-h-[60vh] pr-4">
+    <div className="max-h-[65dvh] overflow-y-auto pr-2 pb-[calc(env(safe-area-inset-bottom)+0.5rem)]">
       <form onSubmit={form.handleSubmit(handleFormSubmit)} className="space-y-6">
         {/* 攀爬類型 */}
         <div className="space-y-2">
@@ -854,6 +855,6 @@ function AscentFormContent({
           </Button>
         </div>
       </form>
-    </ScrollArea>
+    </div>
   )
 }
