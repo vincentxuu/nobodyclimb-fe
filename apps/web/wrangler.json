@@ -50,6 +50,12 @@
           "id": "608d1fb3c4424146abe50ab56e246aca"
         }
       ],
+      "services": [
+        {
+          "binding": "BACKEND_API",
+          "service": "nobodyclimb-api-production"
+        }
+      ],
       "routes": [
         {
           "pattern": "nobodyclimb.cc/*",
@@ -75,6 +81,12 @@
         {
           "binding": "CACHE",
           "id": "396df52e16864a35a3cb7898fcd686e7"
+        }
+      ],
+      "services": [
+        {
+          "binding": "BACKEND_API",
+          "service": "nobodyclimb-api-preview"
         }
       ],
       "routes": [
