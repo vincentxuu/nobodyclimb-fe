@@ -182,6 +182,7 @@ export default function BlogDetailClient() {
     (data: { liked: boolean; likes: number }) => {
       setIsLiked(data.liked)
       setLikeCount(data.likes)
+      setLikers([]) // 按讚狀態改變後清除快取
     },
     (data: { liked: boolean }) => (data.liked ? '已按讚' : '已取消按讚')
   )
