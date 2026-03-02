@@ -391,6 +391,20 @@ export class BiographyContentInteractionsService {
   }
 
   /**
+   * 取得內容的按讚者列表
+   */
+  async getLikers(contentType: ContentType, contentId: string) {
+    return this.interactionsRepo.getLikersByEntity(contentType, contentId);
+  }
+
+  /**
+   * 取得內容的反應者列表
+   */
+  async getReactors(contentType: ContentType, contentId: string, reactionType: ReactionType) {
+    return this.interactionsRepo.getReactorsByContent(contentType, contentId, reactionType);
+  }
+
+  /**
    * 批次取得用戶對多個內容的反應狀態
    */
   async batchGetUserReactions(
