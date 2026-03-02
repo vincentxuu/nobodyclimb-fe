@@ -2171,13 +2171,20 @@ biographiesRoutes.post(
     // Send notification to biography owner (if not liking own biography)
     if (biography.user_id && biography.user_id !== userId) {
       try {
+        const liker = await c.env.DB.prepare(
+          'SELECT display_name, username FROM users WHERE id = ?'
+        )
+          .bind(userId)
+          .first<{ display_name: string | null; username: string }>();
+        const likerName = liker?.display_name || liker?.username || '有人';
+
         await createNotification(c.env.DB, {
           userId: biography.user_id,
           type: 'goal_liked',
           actorId: userId,
           targetId: biographyId,
           title: '有人喜歡你的人物誌',
-          message: '有人對你的人物誌按讚了！',
+          message: `${likerName} 對你的人物誌按讚了`,
         });
       } catch (err) {
         console.error('Failed to create notification:', err);
