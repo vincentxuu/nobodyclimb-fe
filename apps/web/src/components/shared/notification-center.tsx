@@ -320,9 +320,19 @@ export function NotificationCenter({ className }: NotificationCenterProps) {
                         >
                           <div className="flex gap-3">
                             {/* 頭像 / 圖示 */}
-                            <div className="w-10 h-10 rounded-full flex-shrink-0 overflow-hidden">
-                              {avatarContent}
-                            </div>
+                            {notification.actor_slug ? (
+                              <Link
+                                href={`/biography/profile/${notification.actor_slug}`}
+                                onClick={() => setIsOpen(false)}
+                                className="w-10 h-10 rounded-full flex-shrink-0 overflow-hidden block hover:opacity-80 transition-opacity"
+                              >
+                                {avatarContent}
+                              </Link>
+                            ) : (
+                              <div className="w-10 h-10 rounded-full flex-shrink-0 overflow-hidden">
+                                {avatarContent}
+                              </div>
+                            )}
 
                             {/* 內容 */}
                             <div className="flex-1 min-w-0">
