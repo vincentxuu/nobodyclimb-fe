@@ -163,27 +163,27 @@ export function QuickFactsSection({ person, mobileTagLimit = 8 }: QuickFactsSect
         : '能爬的都是好路線',
       isEmpty: !person.favorite_route_types || person.favorite_route_types.length === 0
     },
-    ...((person.height_cm || person.arm_span_cm || apeIndex !== null) ? [{
+    {
       icon: <ArrowUpDown className="h-6 w-6 text-gray-600" />,
       label: '體態',
-      value: '',
-      isEmpty: false,
-      lines: [
+      value: '謎一樣的存在',
+      isEmpty: !(person.height_cm || person.arm_span_cm || apeIndex !== null),
+      lines: (person.height_cm || person.arm_span_cm || apeIndex !== null) ? [
         ...(person.height_cm ? [{ label: '身高', value: `${person.height_cm}cm` }] : []),
         ...(person.arm_span_cm ? [{ label: '臂展', value: `${person.arm_span_cm}cm` }] : []),
         ...(apeIndex !== null ? [{ label: 'Ape Index', value: `${apeIndex > 0 ? '+' : ''}${apeIndex}cm` }] : []),
-      ]
-    }] : []),
-    ...(currentYearTargets.length > 0 ? [{
+      ] : undefined,
+    },
+    {
       icon: <TrendingUp className="h-6 w-6 text-gray-600" />,
       label: `${new Date().getFullYear()} 目標`,
-      value: '',
-      isEmpty: false,
-      lines: currentYearTargets.map((t: GradeTarget) => ({
+      value: '偷偷努力中...',
+      isEmpty: currentYearTargets.length === 0,
+      lines: currentYearTargets.length > 0 ? currentYearTargets.map((t: GradeTarget) => ({
         label: t.grade,
         value: `${t.completed_count ?? 0} / ${t.target_count}`
-      }))
-    }] : []),
+      })) : undefined,
+    },
   ]
 
   // 計算標籤顯示
