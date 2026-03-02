@@ -97,7 +97,10 @@ export default function UserMenu() {
                 />
               </button>
             </DropdownMenuTrigger>
-            <DropdownMenuContent className="w-[240px] rounded-lg border border-[#EBEAEA] bg-white p-2 shadow-md">
+            <DropdownMenuContent
+              sideOffset={8}
+              className="w-[240px] overflow-visible rounded-lg border border-[#EBEAEA] bg-white p-2 shadow-md"
+            >
               <div className="mb-2 grid grid-cols-2 rounded-lg bg-[#F5F5F5] p-1">
                 <button
                   type="button"
@@ -123,7 +126,7 @@ export default function UserMenu() {
                 </button>
               </div>
 
-              <div className="h-[320px] overflow-y-auto">
+              <div className="max-h-[320px] overflow-y-auto md:max-h-none md:min-h-[320px] md:overflow-visible">
                 {activeTab === 'explore' &&
                   NAV_LINKS.map((item) => (
                     <DropdownMenuItem
