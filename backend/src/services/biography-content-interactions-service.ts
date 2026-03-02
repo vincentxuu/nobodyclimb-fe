@@ -31,25 +31,22 @@ const NOTIFICATION_TYPE_MAP: Record<ContentType, { liked: NotificationType; comm
  */
 const NOTIFICATION_MESSAGE_MAP: Record<
   ContentType,
-  { likedTitle: string; likedMessage: string; commentedTitle: string; commentedMessage: string }
+  { likedTitle: string; contentLabel: string; commentedTitle: string }
 > = {
   core_story: {
     likedTitle: '核心故事獲得按讚',
-    likedMessage: '對你的核心故事按讚',
+    contentLabel: '核心故事',
     commentedTitle: '核心故事有新留言',
-    commentedMessage: '對你的核心故事留言',
   },
   one_liner: {
     likedTitle: '一句話獲得按讚',
-    likedMessage: '對你的一句話按讚',
+    contentLabel: '一句話',
     commentedTitle: '一句話有新留言',
-    commentedMessage: '對你的一句話留言',
   },
   story: {
     likedTitle: '故事獲得按讚',
-    likedMessage: '對你的故事按讚',
+    contentLabel: '故事',
     commentedTitle: '故事有新留言',
-    commentedMessage: '對你的故事留言',
   },
 };
 
@@ -494,13 +491,19 @@ export class BiographyContentInteractionsService {
       const notifType = NOTIFICATION_TYPE_MAP[contentType];
       const messages = NOTIFICATION_MESSAGE_MAP[contentType];
 
+      const actor = await this.db
+        .prepare('SELECT display_name, username FROM users WHERE id = ?')
+        .bind(actorId)
+        .first<{ display_name: string | null; username: string }>();
+      const actorName = actor?.display_name || actor?.username || '有人';
+
       await createNotification(this.db, {
         userId: ownerId,
         type: notifType.liked,
         actorId,
         targetId: contentId,
         title: messages.likedTitle,
-        message: messages.likedMessage,
+        message: `${actorName} 對你的${messages.contentLabel}按讚`,
       });
     } catch (err) {
       console.error('Failed to create like notification:', err);
@@ -520,13 +523,19 @@ export class BiographyContentInteractionsService {
       const notifType = NOTIFICATION_TYPE_MAP[contentType];
       const messages = NOTIFICATION_MESSAGE_MAP[contentType];
 
+      const actor = await this.db
+        .prepare('SELECT display_name, username FROM users WHERE id = ?')
+        .bind(actorId)
+        .first<{ display_name: string | null; username: string }>();
+      const actorName = actor?.display_name || actor?.username || '有人';
+
       await createNotification(this.db, {
         userId: ownerId,
         type: notifType.commented,
         actorId,
         targetId: contentId,
         title: messages.commentedTitle,
-        message: messages.commentedMessage,
+        message: `${actorName} 對你的${messages.contentLabel}留言`,
       });
     } catch (err) {
       console.error('Failed to create comment notification:', err);
