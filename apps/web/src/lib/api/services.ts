@@ -1858,6 +1858,7 @@ export const notificationService = {
           actor_name?: string
           actor_avatar?: string
           actor_slug?: string
+          target_slug?: string
         }>
       > & { pagination: { page: number; limit: number; total: number; total_pages: number } }
     >('/notifications', { params: { page, limit, unread: unreadOnly ? 'true' : undefined } })

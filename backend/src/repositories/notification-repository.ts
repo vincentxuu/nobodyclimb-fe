@@ -37,6 +37,7 @@ export interface NotificationItem {
   actor_name: string | null;
   actor_avatar: string | null;
   actor_slug: string | null;
+  target_slug: string | null;
 }
 
 /**
@@ -164,10 +165,12 @@ export class NotificationRepository {
 
     const result = await this.db
       .prepare(
-        `SELECT n.*, u.username as actor_name, u.avatar_url as actor_avatar, b.slug as actor_slug
+        `SELECT n.*, u.username as actor_name, u.avatar_url as actor_avatar,
+                ba.slug as actor_slug, bt.slug as target_slug
          FROM notifications n
          LEFT JOIN users u ON n.actor_id = u.id
-         LEFT JOIN biographies b ON u.id = b.user_id
+         LEFT JOIN biographies ba ON u.id = ba.user_id
+         LEFT JOIN biographies bt ON n.target_id = bt.id
          WHERE ${whereClause}
          ORDER BY n.created_at DESC
          LIMIT ? OFFSET ?`
