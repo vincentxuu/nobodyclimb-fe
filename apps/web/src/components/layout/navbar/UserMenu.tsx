@@ -1,8 +1,10 @@
 'use client'
 
+import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { Button } from '@/components/ui/button'
+import { NAV_LINKS } from '@/lib/constants'
 import { useAuthStore } from '@/store/authStore'
 import { generateAvatarElement, DEFAULT_AVATARS } from '@/components/shared/avatar-options'
 import { AvatarWithFallback } from '@/components/ui/avatar-with-fallback'
@@ -19,8 +21,19 @@ import {
 const menuItemBaseClass =
   "cursor-pointer font-['Noto_Sans_CJK_TC'] text-sm font-medium leading-5 tracking-[0.01em] hover:bg-gray-100"
 const createMenuItemClass = `${menuItemBaseClass} px-4 py-3 text-[#3F3D3D]`
-const userMenuItemClass = `${menuItemBaseClass} px-8 py-3 text-[#3F3D3D]`
-const logoutMenuItemClass = `${menuItemBaseClass} px-8 py-3 text-[#D94A4A]`
+const userMenuItemClass = `${menuItemBaseClass} px-3 py-2.5 text-[#3F3D3D]`
+const logoutMenuItemClass = `${menuItemBaseClass} px-3 py-2.5 text-[#D94A4A]`
+
+const personalMenuItems = [
+  { label: '我的人物誌', href: '/profile' },
+  { label: '人生清單', href: '/profile/bucket-list' },
+  { label: '攀爬紀錄', href: '/profile/ascents' },
+  { label: '攀登成就', href: '/profile/stats' },
+  { label: '我的照片', href: '/profile/photos' },
+  { label: '我的文章', href: '/profile/articles' },
+  { label: '我的收藏', href: '/profile/bookmarks' },
+  { label: '帳號設定', href: '/profile/settings' },
+] as const
 
 /**
  * 用戶選單組件
@@ -30,6 +43,7 @@ const logoutMenuItemClass = `${menuItemBaseClass} px-8 py-3 text-[#D94A4A]`
 export default function UserMenu() {
   const router = useRouter()
   const { status, signOut, user } = useAuthStore()
+  const [activeTab, setActiveTab] = useState<'explore' | 'personal'>('personal')
 
   // 假設用戶數據中有 avatarStyle 屬性，否則使用默認頭像
   const avatarStyle = user?.avatarStyle
@@ -83,50 +97,65 @@ export default function UserMenu() {
                 />
               </button>
             </DropdownMenuTrigger>
-            <DropdownMenuContent className="w-[200px] rounded-lg border border-[#EBEAEA] bg-white p-2 shadow-md">
-              <DropdownMenuItem
-                className={userMenuItemClass}
-                onClick={() => router.push('/profile')}
-              >
-                我的人物誌
-              </DropdownMenuItem>
-              <DropdownMenuItem
-                className={userMenuItemClass}
-                onClick={() => router.push('/profile/bucket-list')}
-              >
-                人生清單
-              </DropdownMenuItem>
-              <DropdownMenuItem
-                className={userMenuItemClass}
-                onClick={() => router.push('/profile/photos')}
-              >
-                我的照片
-              </DropdownMenuItem>
-              <DropdownMenuItem
-                className={userMenuItemClass}
-                onClick={() => router.push('/profile/articles')}
-              >
-                我的文章
-              </DropdownMenuItem>
-              <DropdownMenuItem
-                className={userMenuItemClass}
-                onClick={() => router.push('/profile/bookmarks')}
-              >
-                我的收藏
-              </DropdownMenuItem>
-              <DropdownMenuSeparator className="my-1 bg-[#EBEAEA]" />
-              <DropdownMenuItem
-                className={userMenuItemClass}
-                onClick={() => router.push('/profile/settings')}
-              >
-                帳號設定
-              </DropdownMenuItem>
-              <DropdownMenuItem
-                className={logoutMenuItemClass}
-                onClick={() => signOut()}
-              >
-                登出
-              </DropdownMenuItem>
+            <DropdownMenuContent className="w-[240px] rounded-lg border border-[#EBEAEA] bg-white p-2 shadow-md">
+              <div className="mb-2 grid grid-cols-2 rounded-lg bg-[#F5F5F5] p-1">
+                <button
+                  type="button"
+                  className={`rounded-md px-2 py-1.5 text-sm font-medium transition-colors ${
+                    activeTab === 'explore'
+                      ? 'bg-white text-[#1B1A1A] shadow-sm'
+                      : 'text-[#6D6C6C] hover:text-[#1B1A1A]'
+                  }`}
+                  onClick={() => setActiveTab('explore')}
+                >
+                  探索
+                </button>
+                <button
+                  type="button"
+                  className={`rounded-md px-2 py-1.5 text-sm font-medium transition-colors ${
+                    activeTab === 'personal'
+                      ? 'bg-white text-[#1B1A1A] shadow-sm'
+                      : 'text-[#6D6C6C] hover:text-[#1B1A1A]'
+                  }`}
+                  onClick={() => setActiveTab('personal')}
+                >
+                  個人
+                </button>
+              </div>
+
+              <div className="h-[320px] overflow-y-auto">
+                {activeTab === 'explore' &&
+                  NAV_LINKS.map((item) => (
+                    <DropdownMenuItem
+                      key={item.href}
+                      className={userMenuItemClass}
+                      onClick={() => router.push(item.href)}
+                    >
+                      {item.label}
+                    </DropdownMenuItem>
+                  ))}
+
+                {activeTab === 'personal' && (
+                  <>
+                    {personalMenuItems.map((item) => (
+                      <DropdownMenuItem
+                        key={item.href}
+                        className={userMenuItemClass}
+                        onClick={() => router.push(item.href)}
+                      >
+                        {item.label}
+                      </DropdownMenuItem>
+                    ))}
+                    <DropdownMenuSeparator className="my-1 bg-[#EBEAEA]" />
+                    <DropdownMenuItem
+                      className={logoutMenuItemClass}
+                      onClick={() => signOut()}
+                    >
+                      登出
+                    </DropdownMenuItem>
+                  </>
+                )}
+              </div>
             </DropdownMenuContent>
           </DropdownMenu>
         </div>

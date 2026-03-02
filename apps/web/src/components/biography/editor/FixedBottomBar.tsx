@@ -24,6 +24,10 @@ interface FixedBottomBarProps {
   progress?: number
   /** 自訂樣式 */
   className?: string
+  /** 手機版精簡模式：隱藏儲存狀態與手動儲存 */
+  compactOnMobile?: boolean
+  /** 是否保留底部 safe-area padding */
+  showSafeAreaPadding?: boolean
 }
 
 /**
@@ -41,7 +45,11 @@ export function FixedBottomBar({
   isPublishing = false,
   progress = 0,
   className,
+  compactOnMobile = false,
+  showSafeAreaPadding = true,
 }: FixedBottomBarProps) {
+  const mobileActionCount = onManualSave && onPublish ? 3 : onPublish || onManualSave ? 2 : 1
+
   const getSaveStatusText = () => {
     switch (saveStatus) {
       case 'saving':
@@ -79,12 +87,26 @@ export function FixedBottomBar({
       )}
 
       {/* Content */}
-      <div className="px-4 py-3 flex items-center justify-between max-w-4xl mx-auto">
+      <div
+        className={cn(
+          'mx-auto flex max-w-4xl items-center px-4 md:py-3',
+          compactOnMobile ? 'justify-end py-2 md:justify-between' : 'justify-between py-3'
+        )}
+      >
         {/* Left: Save Status */}
-        <div className="text-sm">{getSaveStatusText()}</div>
+        <div className={cn('text-sm', compactOnMobile && 'hidden md:block')}>{getSaveStatusText()}</div>
 
         {/* Right: Actions */}
-        <div className="flex items-center gap-2">
+        <div
+          className={cn(
+            'flex items-center gap-2',
+            compactOnMobile && [
+              'w-full md:w-auto',
+              mobileActionCount === 3 && 'grid grid-cols-3 md:flex',
+              mobileActionCount === 2 && 'grid grid-cols-2 md:flex',
+            ]
+          )}
+        >
           {/* Manual Save Button */}
           {onManualSave && (
             <button
@@ -92,7 +114,8 @@ export function FixedBottomBar({
               onClick={onManualSave}
               disabled={!hasUnsavedChanges || saveStatus === 'saving'}
               className={cn(
-                'flex items-center gap-1 px-4 py-2 text-sm font-medium rounded-lg transition-colors',
+                'flex items-center justify-center gap-1 rounded-lg px-4 py-2 text-sm font-medium transition-colors',
+                compactOnMobile && 'w-full px-3 py-1.5',
                 hasUnsavedChanges && saveStatus !== 'saving'
                   ? 'border border-[#1B1A1A] text-[#1B1A1A] hover:bg-[#F5F5F5]'
                   : 'border border-[#DBD8D8] text-[#B6B3B3] cursor-not-allowed'
@@ -117,7 +140,11 @@ export function FixedBottomBar({
             href={previewHref}
             target="_blank"
             rel="noopener noreferrer"
-            className="flex items-center gap-1 px-4 py-2 text-sm font-medium text-[#3F3D3D] border border-[#B6B3B3] rounded-lg hover:bg-[#F5F5F5] transition-colors"
+            className={cn(
+              'flex items-center justify-center gap-1 rounded-lg border border-[#B6B3B3] font-medium text-[#3F3D3D] transition-colors hover:bg-[#F5F5F5]',
+              compactOnMobile && 'w-full',
+              compactOnMobile ? 'px-3 py-1.5 text-sm md:px-4 md:py-2' : 'px-4 py-2 text-sm'
+            )}
           >
             <Eye size={16} />
             預覽
@@ -130,7 +157,9 @@ export function FixedBottomBar({
               onClick={onPublish}
               disabled={!canPublish || isPublishing}
               className={cn(
-                'px-4 py-2 text-sm font-medium rounded-lg transition-colors flex items-center gap-1',
+                'flex items-center justify-center gap-1 rounded-lg font-medium transition-colors',
+                compactOnMobile && 'w-full',
+                compactOnMobile ? 'px-3 py-1.5 text-sm md:px-4 md:py-2' : 'px-4 py-2 text-sm',
                 canPublish
                   ? 'bg-brand-dark text-white hover:bg-brand-dark-hover'
                   : 'bg-[#EBEAEA] text-[#B6B3B3] cursor-not-allowed'
@@ -150,7 +179,7 @@ export function FixedBottomBar({
       </div>
 
       {/* Safe area for mobile */}
-      <div className="pb-safe" />
+      {showSafeAreaPadding && <div className="pb-safe" />}
     </div>
   )
 }
@@ -160,8 +189,8 @@ export function FixedBottomBar({
  *
  * 用於防止內容被固定底部欄擋住
  */
-export function BottomBarSpacer() {
-  return <div className="h-20" />
+export function BottomBarSpacer({ className }: { className?: string }) {
+  return <div className={cn('h-20', className)} />
 }
 
 export default FixedBottomBar

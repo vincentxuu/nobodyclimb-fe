@@ -4,6 +4,7 @@ import React from 'react'
 import Link from 'next/link'
 import { motion } from 'framer-motion'
 import { ArrowRight } from 'lucide-react'
+import { normalizeNewlines } from '@/lib/utils'
 
 interface RelatedStory {
   id: string
@@ -73,8 +74,8 @@ export function RelatedStories({ stories, authorName }: RelatedStoriesProps) {
                 )}
 
                 {/* 預覽內容 */}
-                <p className="text-sm leading-relaxed text-[#6D6C6C] line-clamp-3">
-                  {story.preview}
+                <p className="whitespace-pre-line text-sm leading-relaxed text-[#6D6C6C] line-clamp-3">
+                  {normalizeNewlines(story.preview)}
                 </p>
 
                 {/* 查看更多指示 */}
