@@ -23,8 +23,10 @@ interface ContentCommentSheetProps {
   onDeleteComment?: (_commentId: string) => Promise<void>
   /** 按鈕大小 */
   size?: 'sm' | 'md'
-  /** 自訂樣式 */
+  /** 自訂樣式（套用在觸發按鈕） */
   className?: string
+  /** 展開面板的自訂樣式 */
+  panelClassName?: string
 }
 
 // 格式化時間
@@ -154,6 +156,7 @@ export function ContentCommentSheet({
   onDeleteComment,
   size = 'sm',
   className,
+  panelClassName,
 }: ContentCommentSheetProps) {
   const { status, user } = useAuthStore()
   const { toast } = useToast()
@@ -259,7 +262,7 @@ export function ContentCommentSheet({
             animate={{ height: 'auto', opacity: 1 }}
             exit={{ height: 0, opacity: 0 }}
             transition={{ duration: 0.2 }}
-            className="w-full overflow-hidden basis-full"
+            className={cn('w-full overflow-hidden basis-full', panelClassName)}
           >
             <div className="mt-4 space-y-4 border-t border-[#EBEAEA] pt-4">
               {/* 留言輸入框 */}

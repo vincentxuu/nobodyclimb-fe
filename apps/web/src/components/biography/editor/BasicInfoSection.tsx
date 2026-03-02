@@ -3,7 +3,7 @@
 import { useState, useRef, useMemo } from 'react'
 import Image from 'next/image'
 import { cn } from '@/lib/utils'
-import { User, ImageIcon, Pencil, Clock, Link, Instagram, Youtube, X, Plus, Lightbulb, ArrowUpDown, ArrowLeftRight } from 'lucide-react'
+import { User, ImageIcon, Pencil, Clock, Link, Instagram, Youtube, X, Plus, Lightbulb, ArrowUpDown, ArrowLeftRight, ChevronDown } from 'lucide-react'
 import type { SocialLinks } from '@/lib/types/biography-v2'
 
 interface BasicInfoSectionProps {
@@ -85,6 +85,7 @@ export function BasicInfoSection({
   const [coverPreview, setCoverPreview] = useState<string | null>(null)
   const [newLocation, setNewLocation] = useState('')
   const [newRouteType, setNewRouteType] = useState('')
+  const [showContent, setShowContent] = useState(false)
 
   // 預設的路線型態選項（分類）
   const routeTypeGroups = [
@@ -192,17 +193,30 @@ export function BasicInfoSection({
   return (
     <div className={cn('space-y-6', className)}>
       {/* Section Header */}
-      <div className="flex items-center gap-2">
-        <User size={18} className="text-[#3F3D3D]" />
-        <h3 className="font-semibold text-[#1B1A1A]">基本資料</h3>
-        <span className="text-xs text-[#6D6C6C] px-2 py-0.5 bg-[#F5F5F5] rounded-full flex items-center gap-1">
-          <Clock size={12} />
-          1 分鐘
-        </span>
-      </div>
+      <button
+        type="button"
+        onClick={() => setShowContent((v) => !v)}
+        className="w-full flex items-center justify-between"
+      >
+        <div className="flex items-center gap-2">
+          <User size={18} className="text-[#3F3D3D]" />
+          <h3 className="font-semibold text-[#1B1A1A]">基本資料</h3>
+          <span className="text-xs text-[#6D6C6C] px-2 py-0.5 bg-[#F5F5F5] rounded-full flex items-center gap-1">
+            <Clock size={12} />
+            1 分鐘
+          </span>
+        </div>
+        <ChevronDown
+          size={20}
+          className={cn(
+            'text-[#B6B3B3] transition-transform',
+            showContent && 'rotate-180'
+          )}
+        />
+      </button>
 
-      {/* Cover Image */}
-      <div className="space-y-2">
+      {showContent && (
+      <><div className="space-y-2">
         <label className="text-sm font-medium text-[#3F3D3D]">封面圖片</label>
         <div
           className="relative h-32 md:h-48 bg-[#EBEAEA] rounded-lg overflow-hidden cursor-pointer group"
@@ -619,6 +633,8 @@ export function BasicInfoSection({
           />
         </div>
       </div>
+      </>
+      )}
     </div>
   )
 }
