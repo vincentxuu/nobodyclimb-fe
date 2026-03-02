@@ -2815,6 +2815,7 @@ export interface AdminUser {
   auth_provider: 'local' | 'google'
   created_at: string
   updated_at: string
+  last_active_at: string | null
 }
 
 /**
@@ -2843,6 +2844,8 @@ export const adminUserService = {
     search?: string
     role?: string
     status?: string
+    sort?: 'created_at' | 'last_active_at'
+    activity?: 'recent_7d' | 'recent_30d' | 'inactive_30d'
   }) => {
     const response = await apiClient.get<
       ApiResponse<AdminUser[]> & {
