@@ -4,6 +4,8 @@ import { cn } from '@/lib/utils'
 import { ContentActions } from './ContentActions'
 import { QuickReactionBar } from './QuickReactionBar'
 import type { ContentComment } from '@/lib/api/services'
+import type { InteractorUser } from './ContentInteractorsPanel'
+import apiClient from '@/lib/api/client'
 
 type ContentType = 'core-stories' | 'one-liners' | 'stories'
 
@@ -61,6 +63,11 @@ export function ContentInteractionBar({
   shareUrl,
   shareTitle,
 }: ContentInteractionBarProps) {
+  const handleFetchLikers = async (): Promise<InteractorUser[]> => {
+    const resp = await apiClient.get(`/content/${contentType}/${contentId}/likers`)
+    return resp.data?.data?.likers ?? []
+  }
+
   return (
     <div
       className={cn(
@@ -80,6 +87,7 @@ export function ContentInteractionBar({
         likeCount={likeCount}
         commentCount={commentCount}
         onToggleLike={onToggleLike}
+        onFetchLikers={handleFetchLikers}
         onFetchComments={onFetchComments}
         onAddComment={onAddComment}
         onDeleteComment={onDeleteComment}
