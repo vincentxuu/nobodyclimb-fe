@@ -1220,6 +1220,10 @@ function parseBucketListItem(item: BucketListItem): BucketListItem {
     }
   }
 
+  if (typeof parsed.is_liked === 'number') {
+    parsed.is_liked = parsed.is_liked > 0
+  }
+
   return parsed
 }
 
