@@ -165,14 +165,13 @@ export function QuickFactsSection({ person, mobileTagLimit = 8 }: QuickFactsSect
     },
     {
       icon: <ArrowUpDown className="h-6 w-6 text-gray-600" />,
-      label: '體態',
-      value: '謎一樣的存在',
-      isEmpty: !(person.height_cm || person.arm_span_cm || apeIndex !== null),
-      lines: (person.height_cm || person.arm_span_cm || apeIndex !== null) ? [
-        ...(person.height_cm ? [{ label: '身高', value: `${person.height_cm}cm` }] : []),
-        ...(person.arm_span_cm ? [{ label: '臂展', value: `${person.arm_span_cm}cm` }] : []),
-        ...(apeIndex !== null ? [{ label: 'Ape Index', value: `${apeIndex > 0 ? '+' : ''}${apeIndex}cm` }] : []),
-      ] : undefined,
+      label: '身體數據',
+      isEmpty: false,
+      lines: [
+        { label: '身高', value: person.height_cm ? `${person.height_cm}cm` : '神秘高度', isEmpty: !person.height_cm },
+        { label: '臂展', value: person.arm_span_cm ? `${person.arm_span_cm}cm` : '未知長度', isEmpty: !person.arm_span_cm },
+        { label: 'Ape Index', value: apeIndex !== null ? `${apeIndex > 0 ? '+' : ''}${apeIndex}cm` : '謎之比例', isEmpty: apeIndex === null },
+      ],
     },
     {
       icon: <TrendingUp className="h-6 w-6 text-gray-600" />,
@@ -219,7 +218,7 @@ export function QuickFactsSection({ person, mobileTagLimit = 8 }: QuickFactsSect
                   {fact.lines.map((line) => (
                     <div key={line.label} className="flex items-center justify-between text-sm">
                       <span className="text-gray-500">{line.label}</span>
-                      <span className="font-medium text-gray-900">{line.value}</span>
+                      <span className={cn('font-medium', 'isEmpty' in line && line.isEmpty ? 'text-gray-400' : 'text-gray-900')}>{line.value}</span>
                     </div>
                   ))}
                 </div>
