@@ -645,12 +645,9 @@ import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
 import { format } from 'date-fns'
-import { zhTW } from 'date-fns/locale'
 import { Calendar as CalendarIcon, Star, Instagram, Youtube } from 'lucide-react'
 import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
-import { Calendar } from '@/components/ui/calendar'
-import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
 import { PhotoUpload } from '@/components/ui/photo-upload'
 import { galleryService } from '@/lib/api/services'
 import { AscentTypeSelect } from './AscentTypeSelect'
@@ -692,7 +689,6 @@ function AscentFormContent({
   onCancel,
   isLoading = false,
 }: AscentFormContentProps) {
-  const [selectedDate, setSelectedDate] = useState<Date | undefined>(new Date())
   const [photos, setPhotos] = useState<string[]>([])
 
   const form = useForm<AscentFormData>({
@@ -711,13 +707,6 @@ function AscentFormContent({
       is_public: true,
     },
   })
-
-  const handleDateSelect = (date: Date | undefined) => {
-    setSelectedDate(date)
-    if (date) {
-      form.setValue('ascent_date', format(date, 'yyyy-MM-dd'))
-    }
-  }
 
   const handleRatingChange = (newRating: number) => {
     const currentRating = form.getValues('rating')
@@ -751,30 +740,14 @@ function AscentFormContent({
         {/* 攀爬日期 */}
         <div className="space-y-2">
           <Label>攀爬日期</Label>
-          <Popover>
-            <PopoverTrigger asChild>
-              <Button
-                variant="outline"
-                className={cn(
-                  'w-full justify-start text-left font-normal',
-                  !selectedDate && 'text-muted-foreground'
-                )}
-              >
-                <CalendarIcon className="mr-2 h-4 w-4" />
-                {selectedDate
-                  ? format(selectedDate, 'PPP', { locale: zhTW })
-                  : '選擇日期'}
-              </Button>
-            </PopoverTrigger>
-            <PopoverContent className="w-auto p-0" align="start">
-              <Calendar
-                mode="single"
-                selected={selectedDate}
-                onSelect={handleDateSelect}
-                autoFocus
-              />
-            </PopoverContent>
-          </Popover>
+          <Input
+            type="date"
+            variant="outline"
+            textStatus="filled"
+            leftIcon={<CalendarIcon className="h-4 w-4 text-muted-foreground" />}
+            max={format(new Date(), 'yyyy-MM-dd')}
+            {...form.register('ascent_date')}
+          />
         </div>
 
         {/* 嘗試次數 */}
