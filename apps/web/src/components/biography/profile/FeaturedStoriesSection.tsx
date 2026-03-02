@@ -5,7 +5,7 @@ import { motion } from 'framer-motion'
 import { Loader2 } from 'lucide-react'
 import { Biography } from '@/lib/types'
 import { biographyContentService, type Story } from '@/lib/api/services'
-import { cn } from '@/lib/utils'
+import { cn, normalizeNewlines } from '@/lib/utils'
 import { ContentInteractionBar } from '../display/ContentInteractionBar'
 
 interface FeaturedStoriesSectionProps {
@@ -178,7 +178,7 @@ export function FeaturedStoriesSection({ person }: FeaturedStoriesSectionProps) 
 
               {/* 完整內容 */}
               <p className="whitespace-pre-wrap text-sm leading-relaxed text-gray-600 flex-1">
-                {story.content}
+                {normalizeNewlines(story.content)}
               </p>
 
               {/* 互動按鈕 */}
