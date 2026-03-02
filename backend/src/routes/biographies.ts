@@ -2259,6 +2259,36 @@ biographiesRoutes.get(
   });
 });
 
+// GET /biographies/:id/likers - 取得按讚者列表
+biographiesRoutes.get(
+  '/:id/likers',
+  describeRoute({
+    tags: ['Biographies'],
+    summary: '取得人物誌按讚者列表',
+    description: '取得指定人物誌的按讚者列表（用戶資訊）',
+    responses: {
+      200: { description: '成功取得按讚者列表' },
+    },
+  }),
+  async (c) => {
+    const biographyId = c.req.param('id');
+
+    const result = await c.env.DB
+      .prepare(
+        `SELECT u.id as user_id, u.username, u.display_name, u.avatar_url
+         FROM biography_likes bl
+         JOIN users u ON bl.user_id = u.id
+         WHERE bl.biography_id = ?
+         ORDER BY bl.id DESC`
+      )
+      .bind(biographyId)
+      .all<{ user_id: string; username: string; display_name: string | null; avatar_url: string | null }>();
+
+    const likers = result.results || [];
+    return c.json({ success: true, data: { likers, total: likers.length } });
+  }
+);
+
 // ═══════════════════════════════════════════════════════════
 // Comments
 // ═══════════════════════════════════════════════════════════

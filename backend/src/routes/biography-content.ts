@@ -1063,6 +1063,69 @@ biographyContentRoutes.post(
   }
 );
 
+// 取得內容的按讚者列表（公開 API）
+biographyContentRoutes.get(
+  '/:contentType/:id/likers',
+  describeRoute({
+    tags: ['BiographyContent'],
+    summary: '取得按讚者列表',
+    description: '取得指定內容的按讚者列表（用戶資訊）。支援的內容類型：core-stories、one-liners、stories',
+    responses: {
+      200: { description: '成功取得按讚者列表' },
+      400: { description: '無效的內容類型' },
+    },
+  }),
+  async (c) => {
+    const contentTypeParam = c.req.param('contentType');
+    const contentId = c.req.param('id');
+
+    if (!isValidContentType(contentTypeParam)) {
+      return c.json({ success: false, error: '無效的內容類型' }, 400);
+    }
+
+    const { interactionsService } = getRepositories(c.env.DB);
+    const likers = await interactionsService.getLikers(CONTENT_TYPE_MAP[contentTypeParam], contentId);
+
+    return c.json({ success: true, data: { likers, total: likers.length } });
+  }
+);
+
+// 取得內容的反應者列表（公開 API）
+biographyContentRoutes.get(
+  '/:contentType/:id/reactors',
+  describeRoute({
+    tags: ['BiographyContent'],
+    summary: '取得反應者列表',
+    description: '取得指定內容特定反應類型的用戶列表。支援的內容類型：core-stories、one-liners、stories。支援的反應類型：me_too、plus_one、well_said',
+    responses: {
+      200: { description: '成功取得反應者列表' },
+      400: { description: '無效的內容類型或反應類型' },
+    },
+  }),
+  async (c) => {
+    const contentTypeParam = c.req.param('contentType');
+    const contentId = c.req.param('id');
+    const reactionType = c.req.query('reaction_type');
+
+    if (!isValidContentType(contentTypeParam)) {
+      return c.json({ success: false, error: '無效的內容類型' }, 400);
+    }
+
+    if (!reactionType || !isValidReactionType(reactionType)) {
+      return c.json({ success: false, error: '無效的反應類型' }, 400);
+    }
+
+    const { interactionsService } = getRepositories(c.env.DB);
+    const reactors = await interactionsService.getReactors(
+      CONTENT_TYPE_MAP[contentTypeParam],
+      contentId,
+      reactionType
+    );
+
+    return c.json({ success: true, data: { reactors, total: reactors.length } });
+  }
+);
+
 // 取得內容的反應狀態（公開 API）
 biographyContentRoutes.get(
   '/:contentType/:id/reactions',

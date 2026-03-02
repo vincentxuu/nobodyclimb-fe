@@ -1,5 +1,6 @@
 'use client';
 
+import { useState, useCallback } from 'react';
 import { format } from 'date-fns';
 import { zhTW } from 'date-fns/locale';
 import {
@@ -19,6 +20,11 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardFooter } from '@/components/ui/card';
 import { RouteStory } from '@/lib/types/route-story';
 import { cn } from '@/lib/utils';
+import {
+  ContentInteractorsPanel,
+  type InteractorUser,
+} from '@/components/biography/display/ContentInteractorsPanel';
+import apiClient from '@/lib/api/client';
 
 interface RouteStoryCardProps {
   story: RouteStory;
@@ -37,6 +43,27 @@ export function RouteStoryCard({
   onComment,
   className,
 }: RouteStoryCardProps) {
+  const [isLikersOpen, setIsLikersOpen] = useState(false);
+  const [likers, setLikers] = useState<InteractorUser[]>([]);
+  const [isLoadingLikers, setIsLoadingLikers] = useState(false);
+
+  const handleShowLikers = useCallback(async (e: React.MouseEvent) => {
+    e.stopPropagation();
+    const next = !isLikersOpen;
+    setIsLikersOpen(next);
+    if (next && likers.length === 0) {
+      setIsLoadingLikers(true);
+      try {
+        const resp = await apiClient.get(`/route-stories/${story.id}/likers`);
+        setLikers(resp.data?.data?.likers ?? []);
+      } catch (err) {
+        console.error('Failed to fetch route story likers:', err);
+      } finally {
+        setIsLoadingLikers(false);
+      }
+    }
+  }, [isLikersOpen, likers.length, story.id]);
+
   return (
     <Card className={cn('overflow-hidden', className)}>
       <CardContent className="p-4">
@@ -150,23 +177,35 @@ export function RouteStoryCard({
       </CardContent>
 
       {/* Footer: 互動按鈕 */}
-      <CardFooter className="border-t px-4 py-2">
+      <CardFooter className="flex-col items-start border-t px-4 py-2">
         <div className="flex items-center gap-4">
-          {/* 按讚 */}
-          <Button
-            variant="ghost"
-            size="sm"
-            className={cn(
-              'h-8 gap-1.5',
-              story.is_liked && 'text-emerald-600'
+          {/* 按讚：icon 和 count 分開 */}
+          <div className="flex items-center">
+            <Button
+              variant="ghost"
+              size="sm"
+              className={cn(
+                'h-8 px-2',
+                story.is_liked && 'text-emerald-600'
+              )}
+              onClick={onLike}
+            >
+              <Mountain
+                className={cn('h-4 w-4', story.is_liked && 'fill-emerald-600')}
+              />
+            </Button>
+            {(story.like_count || 0) > 0 && (
+              <button
+                onClick={handleShowLikers}
+                className={cn(
+                  'text-sm hover:underline',
+                  story.is_liked ? 'text-emerald-600' : 'text-muted-foreground'
+                )}
+              >
+                {story.like_count}
+              </button>
             )}
-            onClick={onLike}
-          >
-            <Mountain
-              className={cn('h-4 w-4', story.is_liked && 'fill-emerald-600')}
-            />
-            <span>{story.like_count || ''}</span>
-          </Button>
+          </div>
 
           {/* 有幫助 */}
           <Button
@@ -206,6 +245,14 @@ export function RouteStoryCard({
             </div>
           )}
         </div>
+
+        {/* 按讚者列表 */}
+        <ContentInteractorsPanel
+          isOpen={isLikersOpen}
+          users={likers}
+          isLoading={isLoadingLikers}
+          emptyMessage="還沒有人按讚"
+        />
       </CardFooter>
     </Card>
   );
