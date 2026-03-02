@@ -1,4 +1,6 @@
 import { Hono } from 'hono';
+import { z } from 'zod';
+import { describeRoute, validator } from 'hono-openapi';
 import { Env } from '../types';
 import { generateId } from '../utils/id';
 import { authMiddleware } from '../middleware/auth';
@@ -17,49 +19,70 @@ const PROMPT_CONFIG = {
   maxDismissCount: 10,           // 跳過超過10次才不再推
 };
 
-// 進階故事欄位定義（模組級別，供所有 handler 共用）
-const ADVANCED_STORY_FIELDS = [
-  { field: 'memorable_moment', category: 'growth' },
-  { field: 'biggest_challenge', category: 'growth' },
-  { field: 'breakthrough_story', category: 'growth' },
-  { field: 'first_outdoor', category: 'growth' },
-  { field: 'first_grade', category: 'growth' },
-  { field: 'frustrating_climb', category: 'growth' },
-  { field: 'fear_management', category: 'psychology' },
-  { field: 'climbing_lesson', category: 'psychology' },
-  { field: 'failure_perspective', category: 'psychology' },
-  { field: 'flow_moment', category: 'psychology' },
-  { field: 'life_balance', category: 'psychology' },
-  { field: 'unexpected_gain', category: 'psychology' },
-  { field: 'climbing_mentor', category: 'community' },
-  { field: 'climbing_partner', category: 'community' },
-  { field: 'funny_moment', category: 'community' },
-  { field: 'favorite_spot', category: 'community' },
-  { field: 'advice_to_group', category: 'community' },
-  { field: 'climbing_space', category: 'community' },
-  { field: 'injury_recovery', category: 'practical' },
-  { field: 'memorable_route', category: 'practical' },
-  { field: 'training_method', category: 'practical' },
-  { field: 'effective_practice', category: 'practical' },
-  { field: 'technique_tip', category: 'practical' },
-  { field: 'gear_choice', category: 'practical' },
-  { field: 'dream_climb', category: 'dreams' },
-  { field: 'climbing_trip', category: 'dreams' },
-  { field: 'bucket_list_story', category: 'dreams' },
-  { field: 'climbing_goal', category: 'dreams' },
-  { field: 'climbing_style', category: 'dreams' },
-  { field: 'climbing_inspiration', category: 'dreams' },
-  { field: 'life_outside_climbing', category: 'life' },
+// 進階故事問題定義（模組級別，供所有 handler 共用）
+// 對應 story_questions 表的 question_id
+const ADVANCED_STORY_QUESTIONS = [
+  { questionId: 'memorable_moment', category: 'growth' },
+  { questionId: 'biggest_challenge', category: 'growth' },
+  { questionId: 'breakthrough_story', category: 'growth' },
+  { questionId: 'first_outdoor', category: 'growth' },
+  { questionId: 'first_grade', category: 'growth' },
+  { questionId: 'frustrating_climb', category: 'growth' },
+  { questionId: 'fear_management', category: 'psychology' },
+  { questionId: 'climbing_lesson', category: 'psychology' },
+  { questionId: 'failure_perspective', category: 'psychology' },
+  { questionId: 'flow_moment', category: 'psychology' },
+  { questionId: 'life_balance', category: 'psychology' },
+  { questionId: 'unexpected_gain', category: 'psychology' },
+  { questionId: 'climbing_mentor', category: 'community' },
+  { questionId: 'climbing_partner', category: 'community' },
+  { questionId: 'funny_moment', category: 'community' },
+  { questionId: 'favorite_spot', category: 'community' },
+  { questionId: 'advice_to_group', category: 'community' },
+  { questionId: 'climbing_space', category: 'community' },
+  { questionId: 'injury_recovery', category: 'practical' },
+  { questionId: 'memorable_route', category: 'practical' },
+  { questionId: 'training_method', category: 'practical' },
+  { questionId: 'effective_practice', category: 'practical' },
+  { questionId: 'technique_tip', category: 'practical' },
+  { questionId: 'gear_choice', category: 'practical' },
+  { questionId: 'dream_climb', category: 'dreams' },
+  { questionId: 'climbing_trip', category: 'dreams' },
+  { questionId: 'bucket_list_story', category: 'dreams' },
+  { questionId: 'climbing_goal', category: 'dreams' },
+  { questionId: 'climbing_style', category: 'dreams' },
+  { questionId: 'climbing_inspiration', category: 'dreams' },
+  { questionId: 'life_outside_climbing', category: 'life' },
 ] as const;
 
-/** 根據欄位名稱取得分類 */
-function getFieldCategory(field: string): string {
-  const fieldInfo = ADVANCED_STORY_FIELDS.find(f => f.field === field);
-  return fieldInfo?.category ?? 'unknown';
+/** 根據問題 ID 取得分類 */
+function getQuestionCategory(questionId: string): string {
+  const questionInfo = ADVANCED_STORY_QUESTIONS.find(q => q.questionId === questionId);
+  return questionInfo?.category ?? 'unknown';
 }
 
+// ═══════════════════════════════════════════════════════════
+// Validation Schemas
+// ═══════════════════════════════════════════════════════════
+
+const nextQuerySchema = z.object({
+  strategy: z.enum(['random', 'easy_first', 'category_rotate']).optional(),
+});
+
 // GET /story-prompts/should-prompt - Check if user should be shown a prompt
-storyPromptsRoutes.get('/should-prompt', authMiddleware, async (c) => {
+storyPromptsRoutes.get(
+  '/should-prompt',
+  describeRoute({
+    tags: ['StoryPrompts'],
+    summary: '檢查是否應顯示故事推題',
+    description: '根據用戶的推題歷史和頻率限制，判斷是否應該向用戶顯示故事推題。會檢查最後推題時間、每週推題次數等條件。',
+    responses: {
+      200: { description: '成功取得推題狀態' },
+      401: { description: '未授權，需要登入' },
+    },
+  }),
+  authMiddleware,
+  async (c) => {
   const userId = c.get('userId');
 
   // Get user's biography
@@ -124,23 +147,30 @@ storyPromptsRoutes.get('/should-prompt', authMiddleware, async (c) => {
 });
 
 // GET /story-prompts/next - Get the next recommended prompt
-storyPromptsRoutes.get('/next', authMiddleware, async (c) => {
+storyPromptsRoutes.get(
+  '/next',
+  describeRoute({
+    tags: ['StoryPrompts'],
+    summary: '取得下一個推薦的故事推題',
+    description: '根據用戶的故事填寫進度和推題策略，返回下一個推薦的故事欄位。支援多種策略：random（隨機）、easy_first（簡單優先）、category_rotate（分類輪替）。',
+    responses: {
+      200: { description: '成功取得推薦的故事欄位' },
+      401: { description: '未授權，需要登入' },
+      404: { description: '找不到人物誌' },
+    },
+  }),
+  authMiddleware,
+  validator('query', nextQuerySchema),
+  async (c) => {
   const userId = c.get('userId');
   const strategy = c.req.query('strategy') || 'random';
 
-  // Get user's biography with all story fields
+  // Get user's biography
   const biography = await c.env.DB.prepare(
-    `SELECT id,
-      memorable_moment, biggest_challenge, breakthrough_story, first_outdoor, first_grade, frustrating_climb,
-      fear_management, climbing_lesson, failure_perspective, flow_moment, life_balance, unexpected_gain,
-      climbing_mentor, climbing_partner, funny_moment, favorite_spot, advice_to_group, climbing_space,
-      injury_recovery, memorable_route, training_method, effective_practice, technique_tip, gear_choice,
-      dream_climb, climbing_trip, bucket_list_story, climbing_goal, climbing_style, climbing_inspiration,
-      life_outside_climbing
-    FROM biographies WHERE user_id = ?`
+    'SELECT id FROM biographies WHERE user_id = ?'
   )
     .bind(userId)
-    .first();
+    .first<{ id: string }>();
 
   if (!biography) {
     return c.json({
@@ -150,13 +180,22 @@ storyPromptsRoutes.get('/next', authMiddleware, async (c) => {
     }, 404);
   }
 
-  // Find unfilled fields using module-level constant
-  const unfilledFields = ADVANCED_STORY_FIELDS.filter(
-    (f) => !biography[f.field as keyof typeof biography] ||
-           String(biography[f.field as keyof typeof biography]).trim() === ''
+  // Get already answered questions from biography_stories table
+  const answeredStories = await c.env.DB.prepare(
+    `SELECT question_id FROM biography_stories
+     WHERE biography_id = ? AND content IS NOT NULL AND content != ''`
+  )
+    .bind(biography.id)
+    .all<{ question_id: string }>();
+
+  const answeredQuestionIds = new Set((answeredStories.results || []).map(r => r.question_id));
+
+  // Find unanswered questions - check against answered question IDs
+  const unansweredQuestions = ADVANCED_STORY_QUESTIONS.filter(
+    (q) => !answeredQuestionIds.has(q.questionId)
   );
 
-  if (unfilledFields.length === 0) {
+  if (unansweredQuestions.length === 0) {
     return c.json({
       success: true,
       data: null,
@@ -169,94 +208,107 @@ storyPromptsRoutes.get('/next', authMiddleware, async (c) => {
   cooldownDate.setDate(cooldownDate.getDate() - PROMPT_CONFIG.cooldownAfterDismiss);
 
   const recentlyDismissed = await c.env.DB.prepare(
-    `SELECT field_name FROM story_prompts
+    `SELECT question_id FROM story_prompts
      WHERE biography_id = ?
      AND last_dismissed_at > ?
      AND dismissed_count > 0`
   )
     .bind(biography.id, cooldownDate.toISOString())
-    .all<{ field_name: string }>();
+    .all<{ question_id: string }>();
 
-  const dismissedFields = new Set((recentlyDismissed.results || []).map(r => r.field_name));
+  const dismissedQuestions = new Set((recentlyDismissed.results || []).map(r => r.question_id));
 
-  // Get permanently dismissed fields (>5 dismissals)
+  // Get permanently dismissed questions (>= maxDismissCount)
   const permanentlyDismissed = await c.env.DB.prepare(
-    `SELECT field_name FROM story_prompts
+    `SELECT question_id FROM story_prompts
      WHERE biography_id = ? AND dismissed_count >= ?`
   )
     .bind(biography.id, PROMPT_CONFIG.maxDismissCount)
-    .all<{ field_name: string }>();
+    .all<{ question_id: string }>();
 
-  const permanentDismissedFields = new Set((permanentlyDismissed.results || []).map(r => r.field_name));
+  const permanentDismissedQuestions = new Set((permanentlyDismissed.results || []).map(r => r.question_id));
 
-  // Filter available fields
-  let availableFields = unfilledFields.filter(
-    (f) => !dismissedFields.has(f.field) && !permanentDismissedFields.has(f.field)
+  // Filter available questions
+  let availableQuestions = unansweredQuestions.filter(
+    (q) => !dismissedQuestions.has(q.questionId) && !permanentDismissedQuestions.has(q.questionId)
   );
 
-  // If all filtered out, use unfilled but not permanently dismissed
-  if (availableFields.length === 0) {
-    availableFields = unfilledFields.filter((f) => !permanentDismissedFields.has(f.field));
+  // If all filtered out, use unanswered but not permanently dismissed
+  if (availableQuestions.length === 0) {
+    availableQuestions = unansweredQuestions.filter((q) => !permanentDismissedQuestions.has(q.questionId));
   }
 
-  // Still empty? Use all unfilled
-  if (availableFields.length === 0) {
-    availableFields = unfilledFields;
+  // Still empty? Use all unanswered
+  if (availableQuestions.length === 0) {
+    availableQuestions = unansweredQuestions;
   }
 
   // Select based on strategy
-  let selected: typeof ADVANCED_STORY_FIELDS[number];
+  let selected: typeof ADVANCED_STORY_QUESTIONS[number];
 
   switch (strategy) {
     case 'easy_first': {
-      const easyFields = ['funny_moment', 'favorite_spot', 'climbing_trip', 'life_outside_climbing'];
-      const easy = availableFields.filter((f) => easyFields.includes(f.field));
+      const easyQuestionIds = ['funny_moment', 'favorite_spot', 'climbing_trip', 'life_outside_climbing'];
+      const easy = availableQuestions.filter((q) => easyQuestionIds.includes(q.questionId));
       selected = easy.length > 0
         ? easy[Math.floor(Math.random() * easy.length)]
-        : availableFields[Math.floor(Math.random() * availableFields.length)];
+        : availableQuestions[Math.floor(Math.random() * availableQuestions.length)];
       break;
     }
     case 'category_rotate': {
       const categoryOrder = ['growth', 'psychology', 'community', 'practical', 'dreams', 'life'];
       for (const cat of categoryOrder) {
-        const catFields = availableFields.filter((f) => f.category === cat);
-        if (catFields.length > 0) {
-          selected = catFields[Math.floor(Math.random() * catFields.length)];
+        const catQuestions = availableQuestions.filter((q) => q.category === cat);
+        if (catQuestions.length > 0) {
+          selected = catQuestions[Math.floor(Math.random() * catQuestions.length)];
           break;
         }
       }
-      selected = selected! || availableFields[Math.floor(Math.random() * availableFields.length)];
+      selected = selected! || availableQuestions[Math.floor(Math.random() * availableQuestions.length)];
       break;
     }
     default: // random
-      selected = availableFields[Math.floor(Math.random() * availableFields.length)];
+      selected = availableQuestions[Math.floor(Math.random() * availableQuestions.length)];
   }
 
   // Record prompt (atomic UPSERT to avoid race conditions)
   const promptId = generateId();
   await c.env.DB.prepare(
-    `INSERT INTO story_prompts (id, user_id, biography_id, field_name, category, prompted_at)
+    `INSERT INTO story_prompts (id, user_id, biography_id, question_id, category, prompted_at)
      VALUES (?, ?, ?, ?, ?, datetime('now'))
-     ON CONFLICT(biography_id, field_name) DO UPDATE SET
+     ON CONFLICT(biography_id, question_id) DO UPDATE SET
        prompted_at = datetime('now')`
   )
-    .bind(promptId, userId, biography.id, selected.field, selected.category)
+    .bind(promptId, userId, biography.id, selected.questionId, selected.category)
     .run();
 
   return c.json({
     success: true,
     data: {
-      field: selected.field,
+      questionId: selected.questionId,
       category: selected.category,
-      remaining_count: availableFields.length,
+      remaining_count: availableQuestions.length,
     },
   });
 });
 
-// POST /story-prompts/:field/dismiss - Record a dismissal
-storyPromptsRoutes.post('/:field/dismiss', authMiddleware, async (c) => {
+// POST /story-prompts/:questionId/dismiss - Record a dismissal
+storyPromptsRoutes.post(
+  '/:questionId/dismiss',
+  describeRoute({
+    tags: ['StoryPrompts'],
+    summary: '跳過故事推題',
+    description: '記錄用戶跳過某個故事推題。跳過次數會累計，超過設定次數後該題目將不再推送。跳過後需等待冷卻時間才會再次推送同一題目。',
+    responses: {
+      200: { description: '成功記錄跳過' },
+      401: { description: '未授權，需要登入' },
+      404: { description: '找不到人物誌' },
+    },
+  }),
+  authMiddleware,
+  async (c) => {
   const userId = c.get('userId');
-  const field = c.req.param('field');
+  const questionId = c.req.param('questionId');
 
   const biography = await c.env.DB.prepare(
     'SELECT id FROM biographies WHERE user_id = ?'
@@ -273,17 +325,17 @@ storyPromptsRoutes.post('/:field/dismiss', authMiddleware, async (c) => {
   }
 
   // Atomic UPSERT to avoid race conditions and use proper category
-  const category = getFieldCategory(field);
+  const category = getQuestionCategory(questionId);
   const promptId = generateId();
 
   await c.env.DB.prepare(
-    `INSERT INTO story_prompts (id, user_id, biography_id, field_name, category, dismissed_count, last_dismissed_at)
+    `INSERT INTO story_prompts (id, user_id, biography_id, question_id, category, dismissed_count, last_dismissed_at)
      VALUES (?, ?, ?, ?, ?, 1, datetime('now'))
-     ON CONFLICT(biography_id, field_name) DO UPDATE SET
+     ON CONFLICT(biography_id, question_id) DO UPDATE SET
        dismissed_count = dismissed_count + 1,
        last_dismissed_at = datetime('now')`
   )
-    .bind(promptId, userId, biography.id, field, category)
+    .bind(promptId, userId, biography.id, questionId, category)
     .run();
 
   return c.json({
@@ -292,10 +344,23 @@ storyPromptsRoutes.post('/:field/dismiss', authMiddleware, async (c) => {
   });
 });
 
-// POST /story-prompts/:field/complete - Mark a story as completed
-storyPromptsRoutes.post('/:field/complete', authMiddleware, async (c) => {
+// POST /story-prompts/:questionId/complete - Mark a story as completed
+storyPromptsRoutes.post(
+  '/:questionId/complete',
+  describeRoute({
+    tags: ['StoryPrompts'],
+    summary: '標記故事推題為已完成',
+    description: '當用戶完成某個故事欄位的填寫後，記錄完成狀態。已完成的欄位不會再被推送。',
+    responses: {
+      200: { description: '成功標記為已完成' },
+      401: { description: '未授權，需要登入' },
+      404: { description: '找不到人物誌' },
+    },
+  }),
+  authMiddleware,
+  async (c) => {
   const userId = c.get('userId');
-  const field = c.req.param('field');
+  const questionId = c.req.param('questionId');
 
   const biography = await c.env.DB.prepare(
     'SELECT id FROM biographies WHERE user_id = ?'
@@ -312,16 +377,16 @@ storyPromptsRoutes.post('/:field/complete', authMiddleware, async (c) => {
   }
 
   // Atomic UPSERT to avoid race conditions and use proper category
-  const category = getFieldCategory(field);
+  const category = getQuestionCategory(questionId);
   const promptId = generateId();
 
   await c.env.DB.prepare(
-    `INSERT INTO story_prompts (id, user_id, biography_id, field_name, category, completed_at)
+    `INSERT INTO story_prompts (id, user_id, biography_id, question_id, category, completed_at)
      VALUES (?, ?, ?, ?, ?, datetime('now'))
-     ON CONFLICT(biography_id, field_name) DO UPDATE SET
+     ON CONFLICT(biography_id, question_id) DO UPDATE SET
        completed_at = datetime('now')`
   )
-    .bind(promptId, userId, biography.id, field, category)
+    .bind(promptId, userId, biography.id, questionId, category)
     .run();
 
   return c.json({
@@ -331,7 +396,19 @@ storyPromptsRoutes.post('/:field/complete', authMiddleware, async (c) => {
 });
 
 // GET /story-prompts/progress - Get user's story prompt progress
-storyPromptsRoutes.get('/progress', authMiddleware, async (c) => {
+storyPromptsRoutes.get(
+  '/progress',
+  describeRoute({
+    tags: ['StoryPrompts'],
+    summary: '取得故事推題進度',
+    description: '取得用戶的故事推題進度統計，包括各欄位的推題記錄、完成狀態、跳過次數等資訊。',
+    responses: {
+      200: { description: '成功取得進度資訊' },
+      401: { description: '未授權，需要登入' },
+    },
+  }),
+  authMiddleware,
+  async (c) => {
   const userId = c.get('userId');
 
   const biography = await c.env.DB.prepare(
@@ -348,7 +425,7 @@ storyPromptsRoutes.get('/progress', authMiddleware, async (c) => {
   }
 
   const prompts = await c.env.DB.prepare(
-    `SELECT field_name, category, prompted_at, completed_at, dismissed_count, last_dismissed_at
+    `SELECT question_id, category, prompted_at, completed_at, dismissed_count, last_dismissed_at
      FROM story_prompts WHERE biography_id = ?`
   )
     .bind(biography.id)
