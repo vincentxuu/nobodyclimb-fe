@@ -405,6 +405,52 @@ bucketListRoutes.get(
 // 人生清單項目 CRUD
 // ═══════════════════════════════════════════════════════════
 
+// GET /bucket-list/item/:id - Get a single bucket list item by its ID
+bucketListRoutes.get(
+  '/item/:id',
+  describeRoute({
+    tags: ['BucketList'],
+    summary: '取得單一人生清單項目',
+    description: '依項目 ID 取得公開的人生清單項目，或由擁有者取得自己的私人項目',
+    responses: {
+      200: { description: '成功取得人生清單項目' },
+      404: { description: '找不到項目或無存取權限' },
+    },
+  }),
+  optionalAuthMiddleware,
+  async (c) => {
+    const id = c.req.param('id');
+    const userId = c.get('userId');
+
+    const item = await c.env.DB.prepare(
+      'SELECT * FROM bucket_list_items WHERE id = ?'
+    )
+      .bind(id)
+      .first<{ biography_id: string; is_public: number }>();
+
+    if (!item) {
+      return c.json({ success: false, error: 'Not found' }, 404);
+    }
+
+    // 非公開項目只有擁有者可存取
+    if (!item.is_public) {
+      if (!userId) {
+        return c.json({ success: false, error: 'Not found' }, 404);
+      }
+      const biography = await c.env.DB.prepare(
+        'SELECT id FROM biographies WHERE id = ? AND user_id = ?'
+      )
+        .bind(item.biography_id, userId)
+        .first();
+      if (!biography) {
+        return c.json({ success: false, error: 'Not found' }, 404);
+      }
+    }
+
+    return c.json({ success: true, data: item });
+  }
+);
+
 // GET /bucket-list/:biographyId - Get all bucket list items for a biography
 bucketListRoutes.get(
   '/:biographyId',
