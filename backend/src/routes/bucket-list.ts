@@ -405,6 +405,63 @@ bucketListRoutes.get(
 // 人生清單項目 CRUD
 // ═══════════════════════════════════════════════════════════
 
+// GET /bucket-list/item/:id - Get a single bucket list item by its ID
+bucketListRoutes.get(
+  '/item/:id',
+  describeRoute({
+    tags: ['BucketList'],
+    summary: '取得單一人生清單項目',
+    description: '依項目 ID 取得公開的人生清單項目，或由擁有者取得自己的私人項目',
+    responses: {
+      200: { description: '成功取得人生清單項目' },
+      404: { description: '找不到項目或無存取權限' },
+    },
+  }),
+  optionalAuthMiddleware,
+  async (c) => {
+    const id = c.req.param('id');
+    const userId = c.get('userId');
+
+    const item = await c.env.DB.prepare(
+      `SELECT
+         bli.*,
+         CASE
+           WHEN ? IS NOT NULL AND EXISTS (
+             SELECT 1
+             FROM bucket_list_likes bll
+             WHERE bll.bucket_list_item_id = bli.id AND bll.user_id = ?
+           ) THEN 1
+           ELSE 0
+         END as is_liked
+       FROM bucket_list_items bli
+       WHERE bli.id = ?`
+    )
+      .bind(userId ?? null, userId ?? null, id)
+      .first<{ biography_id: string; is_public: number }>();
+
+    if (!item) {
+      return c.json({ success: false, error: 'Not found' }, 404);
+    }
+
+    // 非公開項目只有擁有者可存取
+    if (!item.is_public) {
+      if (!userId) {
+        return c.json({ success: false, error: 'Not found' }, 404);
+      }
+      const biography = await c.env.DB.prepare(
+        'SELECT id FROM biographies WHERE id = ? AND user_id = ?'
+      )
+        .bind(item.biography_id, userId)
+        .first();
+      if (!biography) {
+        return c.json({ success: false, error: 'Not found' }, 404);
+      }
+    }
+
+    return c.json({ success: true, data: item });
+  }
+);
+
 // GET /bucket-list/:biographyId - Get all bucket list items for a biography
 bucketListRoutes.get(
   '/:biographyId',
@@ -416,8 +473,10 @@ bucketListRoutes.get(
       200: { description: '成功取得人生清單項目' },
     },
   }),
+  optionalAuthMiddleware,
   async (c) => {
   const biographyId = c.req.param('biographyId');
+  const userId = c.get('userId');
   const status = c.req.query('status'); // active, completed, archived
   const category = c.req.query('category');
 
@@ -435,11 +494,21 @@ bucketListRoutes.get(
   }
 
   const items = await c.env.DB.prepare(
-    `SELECT * FROM bucket_list_items
+    `SELECT
+       bli.*,
+       CASE
+         WHEN ? IS NOT NULL AND EXISTS (
+           SELECT 1
+           FROM bucket_list_likes bll
+           WHERE bll.bucket_list_item_id = bli.id AND bll.user_id = ?
+         ) THEN 1
+         ELSE 0
+       END as is_liked
+     FROM bucket_list_items bli
      WHERE ${whereClause}
      ORDER BY sort_order ASC, created_at DESC`
   )
-    .bind(...params)
+    .bind(userId ?? null, userId ?? null, ...params)
     .all();
 
   return c.json({

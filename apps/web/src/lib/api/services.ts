@@ -1220,6 +1220,10 @@ function parseBucketListItem(item: BucketListItem): BucketListItem {
     }
   }
 
+  if (typeof parsed.is_liked === 'number') {
+    parsed.is_liked = parsed.is_liked > 0
+  }
+
   return parsed
 }
 
@@ -1857,6 +1861,8 @@ export const notificationService = {
           created_at: string
           actor_name?: string
           actor_avatar?: string
+          actor_slug?: string
+          target_slug?: string
         }>
       > & { pagination: { page: number; limit: number; total: number; total_pages: number } }
     >('/notifications', { params: { page, limit, unread: unreadOnly ? 'true' : undefined } })
@@ -2815,6 +2821,7 @@ export interface AdminUser {
   auth_provider: 'local' | 'google'
   created_at: string
   updated_at: string
+  last_active_at: string | null
 }
 
 /**
@@ -2843,6 +2850,8 @@ export const adminUserService = {
     search?: string
     role?: string
     status?: string
+    sort?: 'created_at' | 'last_active_at'
+    activity?: 'recent_7d' | 'recent_30d' | 'inactive_30d'
   }) => {
     const response = await apiClient.get<
       ApiResponse<AdminUser[]> & {

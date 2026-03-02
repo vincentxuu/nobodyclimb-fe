@@ -5,6 +5,7 @@ import { ContentLikeButton } from './ContentLikeButton'
 import { ContentCommentSheet } from './ContentCommentSheet'
 import { ShareButton } from '@/components/shared/share-button'
 import type { ContentComment } from '@/lib/api/services'
+import type { InteractorUser } from './ContentInteractorsPanel'
 
 interface ContentActionsProps {
   /** 是否已按讚 */
@@ -15,6 +16,8 @@ interface ContentActionsProps {
   commentCount: number
   /** 按讚切換回呼 */
   onToggleLike: () => Promise<{ liked: boolean; like_count: number }>
+  /** 取得按讚者列表（選填） */
+  onFetchLikers?: () => Promise<InteractorUser[]>
   /** 獲取留言回呼 */
   onFetchComments: () => Promise<ContentComment[]>
   /** 新增留言回呼 */
@@ -42,6 +45,7 @@ export function ContentActions({
   likeCount,
   commentCount,
   onToggleLike,
+  onFetchLikers,
   onFetchComments,
   onAddComment,
   onDeleteComment,
@@ -65,6 +69,7 @@ export function ContentActions({
         isLiked={isLiked}
         likeCount={likeCount}
         onToggle={onToggleLike}
+        onFetchLikers={onFetchLikers}
         size={size}
       />
       <ContentCommentSheet

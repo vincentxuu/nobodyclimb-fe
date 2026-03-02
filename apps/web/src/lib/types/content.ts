@@ -510,6 +510,7 @@ export interface BucketListItem {
   } | null
   is_public: boolean
   likes_count: number
+  is_liked?: boolean
   inspired_count: number
   comments_count: number
   sort_order: number

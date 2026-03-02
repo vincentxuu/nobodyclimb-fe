@@ -510,6 +510,38 @@ routeStoriesRoutes.post(
 });
 
 // ============================================
+// GET /route-stories/:id/likers - 取得按讚者列表
+// ============================================
+routeStoriesRoutes.get(
+  '/:id/likers',
+  describeRoute({
+    tags: ['RouteStories'],
+    summary: '取得路線故事按讚者列表',
+    description: '取得指定路線故事的按讚者列表（用戶資訊）',
+    responses: {
+      200: { description: '成功取得按讚者列表' },
+    },
+  }),
+  async (c) => {
+    const storyId = c.req.param('id');
+
+    const result = await c.env.DB
+      .prepare(
+        `SELECT u.id as user_id, u.username, u.display_name, u.avatar_url
+         FROM likes l
+         JOIN users u ON l.user_id = u.id
+         WHERE l.entity_type = 'route_story' AND l.entity_id = ?
+         ORDER BY l.created_at DESC`
+      )
+      .bind(storyId)
+      .all<{ user_id: string; username: string; display_name: string | null; avatar_url: string | null }>();
+
+    const likers = result.results || [];
+    return c.json({ success: true, data: { likers, total: likers.length } });
+  }
+);
+
+// ============================================
 // POST /route-stories/:id/helpful - 標記有幫助
 // ============================================
 routeStoriesRoutes.post(
