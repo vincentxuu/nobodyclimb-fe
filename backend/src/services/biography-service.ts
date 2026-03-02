@@ -16,7 +16,9 @@ export interface BiographyListResponse {
   user_id: string | null;
   slug: string;
   name: string;
+  title: string | null;
   avatar_url: string | null;
+  cover_image: string | null;
   basic_info_data: string | null;
   tags_data: string | null;
   one_liners_data: string | null;
@@ -148,7 +150,9 @@ export class BiographyService {
       user_id: item.user_id,
       slug: item.slug,
       name: item.name,
+      title: item.title,
       avatar_url: item.avatar_url,
+      cover_image: item.cover_image,
       basic_info_data: item.basic_info_data,
       tags_data: item.tags_data,
       one_liners_data: oneLiners ? JSON.stringify(oneLiners) : null,
