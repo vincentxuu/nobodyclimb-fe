@@ -20,14 +20,13 @@ export function ChapterBucketList({ person, isOwner: _isOwner }: ChapterBucketLi
   const [items, setItems] = useState<BucketListItem[]>([])
   const [isLoading, setIsLoading] = useState(true)
 
-  // 從 stories 陣列中取得 bucket_list_story
+  // 從 stories 陣列中取得 bucket_list_story 的描述文字
   const bucketListStory = useMemo(() => {
     if (!person?.stories) return null
     const story = person.stories.find(s => s.question_id === 'bucket_list_story')
     return story?.content || null
   }, [person?.stories])
 
-  // 檢查是否有人生清單項目
   const loadItems = useCallback(async () => {
     if (!person?.id) {
       setIsLoading(false)
@@ -50,7 +49,6 @@ export function ChapterBucketList({ person, isOwner: _isOwner }: ChapterBucketLi
     loadItems()
   }, [loadItems])
 
-  // 載入中時顯示 loading
   if (isLoading) {
     return (
       <section className="bg-white py-16">

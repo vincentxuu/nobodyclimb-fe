@@ -1,9 +1,7 @@
 'use client'
 
 import { cn } from '@/lib/utils'
-import { ContentLikeButton } from './ContentLikeButton'
-import { ContentCommentSheet } from './ContentCommentSheet'
-import { ContentShareButton } from './ContentShareButton'
+import { ContentActions } from './ContentActions'
 import { QuickReactionBar } from './QuickReactionBar'
 import type { ContentComment } from '@/lib/api/services'
 
@@ -36,7 +34,7 @@ interface ContentInteractionBarProps {
   showBorder?: boolean
   /** 是否置中對齊 */
   centered?: boolean
-  /** 分享連結（傳入後顯示分享按鈕） */
+  /** 分享連結（選填，未傳時使用當前頁面 URL） */
   shareUrl?: string
   /** 分享標題 */
   shareTitle?: string
@@ -44,7 +42,7 @@ interface ContentInteractionBarProps {
 
 /**
  * 內容互動列
- * 整合快速回應、按讚、留言功能的共用元件
+ * 整合快速回應、按讚、留言、分享功能的共用元件
  */
 export function ContentInteractionBar({
   contentType,
@@ -77,28 +75,19 @@ export function ContentInteractionBar({
         size={size}
         className={size === 'sm' ? 'mb-2' : 'mb-3'}
       />
-      <div className={cn('flex flex-wrap items-center gap-4 pl-1', centered && 'justify-center')}>
-        <ContentLikeButton
-          isLiked={isLiked}
-          likeCount={likeCount}
-          onToggle={onToggleLike}
-          size={size}
-        />
-        <ContentCommentSheet
-          commentCount={commentCount}
-          onFetchComments={onFetchComments}
-          onAddComment={onAddComment}
-          onDeleteComment={onDeleteComment}
-          size={size}
-        />
-        {shareUrl && (
-          <ContentShareButton
-            url={shareUrl}
-            title={shareTitle || ''}
-            size={size}
-          />
-        )}
-      </div>
+      <ContentActions
+        isLiked={isLiked}
+        likeCount={likeCount}
+        commentCount={commentCount}
+        onToggleLike={onToggleLike}
+        onFetchComments={onFetchComments}
+        onAddComment={onAddComment}
+        onDeleteComment={onDeleteComment}
+        shareUrl={shareUrl}
+        shareTitle={shareTitle}
+        size={size}
+        centered={centered}
+      />
     </div>
   )
 }

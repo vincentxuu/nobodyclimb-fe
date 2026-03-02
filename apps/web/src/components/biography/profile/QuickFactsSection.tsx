@@ -162,7 +162,28 @@ export function QuickFactsSection({ person, mobileTagLimit = 8 }: QuickFactsSect
         ? person.favorite_route_types.join('、')
         : '能爬的都是好路線',
       isEmpty: !person.favorite_route_types || person.favorite_route_types.length === 0
-    }
+    },
+    ...((person.height_cm || person.arm_span_cm || apeIndex !== null) ? [{
+      icon: <ArrowUpDown className="h-6 w-6 text-gray-600" />,
+      label: '體態',
+      value: '',
+      isEmpty: false,
+      lines: [
+        ...(person.height_cm ? [{ label: '身高', value: `${person.height_cm}cm` }] : []),
+        ...(person.arm_span_cm ? [{ label: '臂展', value: `${person.arm_span_cm}cm` }] : []),
+        ...(apeIndex !== null ? [{ label: 'Ape Index', value: `${apeIndex > 0 ? '+' : ''}${apeIndex}cm` }] : []),
+      ]
+    }] : []),
+    ...(currentYearTargets.length > 0 ? [{
+      icon: <TrendingUp className="h-6 w-6 text-gray-600" />,
+      label: `${new Date().getFullYear()} 目標`,
+      value: '',
+      isEmpty: false,
+      lines: currentYearTargets.map((t: GradeTarget) => ({
+        label: t.grade,
+        value: `${t.completed_count ?? 0} / ${t.target_count}`
+      }))
+    }] : []),
   ]
 
   // 計算標籤顯示
@@ -177,7 +198,7 @@ export function QuickFactsSection({ person, mobileTagLimit = 8 }: QuickFactsSect
         </h2>
 
         {/* 基本資訊卡片 */}
-        <div className="grid gap-6 md:grid-cols-3">
+        <div className="grid gap-6 grid-cols-2 md:grid-cols-3">
           {quickFacts.map((fact, index) => (
             <motion.div
               key={fact.label}
@@ -193,52 +214,27 @@ export function QuickFactsSection({ person, mobileTagLimit = 8 }: QuickFactsSect
                 {fact.icon}
               </div>
               <p className="text-sm text-gray-500">{fact.label}</p>
-              <p className={cn(
-                'mt-1 font-medium',
-                fact.isEmpty ? 'text-gray-400' : 'text-gray-900'
-              )}>
-                {fact.value}
-              </p>
+              {'lines' in fact && fact.lines ? (
+                <div className="mt-2 space-y-1 text-left">
+                  {fact.lines.map((line) => (
+                    <div key={line.label} className="flex items-center justify-between text-sm">
+                      <span className="text-gray-500">{line.label}</span>
+                      <span className="font-medium text-gray-900">{line.value}</span>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <p className={cn(
+                  'mt-1 font-medium',
+                  fact.isEmpty ? 'text-gray-400' : 'text-gray-900'
+                )}>
+                  {fact.value}
+                </p>
+              )}
             </motion.div>
           ))}
         </div>
 
-        {/* 身體數據 & 年度目標 */}
-        {(person.height_cm || person.arm_span_cm || currentYearTargets.length > 0) && (
-          <div className="mt-6 flex flex-wrap items-center justify-center gap-4 text-sm text-[#6D6C6C]">
-            {person.height_cm && (
-              <span className="flex items-center gap-1">
-                <ArrowUpDown size={16} />
-                身高 {person.height_cm}cm
-              </span>
-            )}
-            {person.arm_span_cm && (
-              <span className="flex items-center gap-1">
-                <ArrowLeftRight size={16} />
-                臂展 {person.arm_span_cm}cm
-              </span>
-            )}
-            {apeIndex !== null && (
-              <span className="text-[#3F3D3D] font-medium">
-                Ape Index: {apeIndex > 0 ? '+' : ''}{apeIndex}cm
-              </span>
-            )}
-            {currentYearTargets.length > 0 && (
-              <span className="flex items-center gap-2">
-                <TrendingUp size={16} />
-                <span>{new Date().getFullYear()} 目標</span>
-                {currentYearTargets.map((target: GradeTarget, i: number) => (
-                  <span
-                    key={`${target.grade_system}-${target.grade}-${i}`}
-                    className="inline-flex items-center gap-1 px-2 py-0.5 bg-[#F5F5F5] rounded-full text-xs text-[#3F3D3D]"
-                  >
-                    {target.grade} × {target.target_count}
-                  </span>
-                ))}
-              </span>
-            )}
-          </div>
-        )}
 
         {/* 關鍵字 標籤 */}
         {selectedTags.length > 0 && (

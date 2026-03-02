@@ -6,11 +6,9 @@ import { Check, CheckCircle2 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { bucketListService } from '@/lib/api/services'
 import type { BucketListItem } from '@/lib/types'
-import { BucketListItemCard } from './bucket-list-item'
+import { BucketListItemCard, BucketListContentActions } from './bucket-list-item'
 import { LoadingSpinner } from '@/components/ui/loading-spinner'
-import { LikeButton } from '@/components/biography/like-button'
-import { ReferenceButton } from '@/components/biography/reference-button'
-import { CommentSection } from '@/components/biography/comment-section'
+import { MarkdownText } from '@/components/ui/markdown-text'
 
 interface BiographyBucketListProps {
   biographyId: string
@@ -148,9 +146,7 @@ function CompletedBucketListCard({ item }: { item: BucketListItem }) {
                     <span className="h-1.5 w-1.5 rounded-full bg-brand-accent"></span>
                     完成故事
                   </h5>
-                  <p className="text-sm leading-relaxed text-text-main whitespace-pre-line">
-                    {item.completion_story}
-                  </p>
+                  <MarkdownText content={item.completion_story} className="text-text-main" />
                 </div>
               )}
 
@@ -160,9 +156,7 @@ function CompletedBucketListCard({ item }: { item: BucketListItem }) {
                     <span className="h-1.5 w-1.5 rounded-full bg-brand-accent"></span>
                     心理層面
                   </h5>
-                  <p className="text-sm leading-relaxed text-text-main whitespace-pre-line">
-                    {item.psychological_insights}
-                  </p>
+                  <MarkdownText content={item.psychological_insights} className="text-text-main" />
                 </div>
               )}
 
@@ -172,9 +166,7 @@ function CompletedBucketListCard({ item }: { item: BucketListItem }) {
                     <span className="h-1.5 w-1.5 rounded-full bg-brand-accent"></span>
                     技術層面
                   </h5>
-                  <p className="text-sm leading-relaxed text-text-main whitespace-pre-line">
-                    {item.technical_insights}
-                  </p>
+                  <MarkdownText content={item.technical_insights} className="text-text-main" />
                 </div>
               )}
 
@@ -190,27 +182,10 @@ function CompletedBucketListCard({ item }: { item: BucketListItem }) {
         </div>
       )}
 
-      {/* 互動功能區 - 按讚、參考、留言 */}
+      {/* 互動功能區 */}
       {item.is_public && (
         <div className="border-t border-brand-accent/20 bg-white p-4">
-          <div className="flex items-center gap-4">
-            <LikeButton
-              itemId={item.id}
-              initialCount={item.likes_count || 0}
-              variant="icon"
-            />
-            <ReferenceButton
-              itemId={item.id}
-              initialCount={item.inspired_count || 0}
-              variant="icon"
-            />
-          </div>
-          <div className="mt-3">
-            <CommentSection
-              itemId={item.id}
-              initialCount={item.comments_count || 0}
-            />
-          </div>
+          <BucketListContentActions item={item} isOwner={false} />
         </div>
       )}
     </div>

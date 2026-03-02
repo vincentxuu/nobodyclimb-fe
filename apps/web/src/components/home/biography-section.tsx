@@ -108,7 +108,8 @@ function ClimberCard({ person }: ClimberCardProps) {
       transition={{ duration: 0.4 }}
       className="h-full"
     >
-      <div className="h-full overflow-hidden rounded-lg border border-gray-200 bg-white shadow-sm transition-shadow duration-300 hover:shadow-md">
+      <Link href={`/biography/profile/${person.slug}`} className="block h-full group">
+      <div className="h-full overflow-hidden rounded-lg border border-gray-200 bg-white shadow-sm transition-shadow duration-300 hover:shadow-md cursor-pointer">
         {/* 封面圖 */}
         <div className="relative aspect-[3/1] w-full overflow-hidden bg-gradient-to-br from-[#EBEAEA] to-[#DBD8D8]">
           <Image
@@ -188,15 +189,13 @@ function ClimberCard({ person }: ClimberCardProps) {
           )}
 
           {/* CTA 按鈕 */}
-          <Link
-            href={`/biography/profile/${person.slug}`}
-            className="flex items-center justify-center w-full h-9 mt-4 text-sm border border-[#1B1A1A] text-[#1B1A1A] hover:bg-[#F5F4F4] rounded-lg transition-colors group"
-          >
+          <div className="flex items-center justify-center w-full h-9 mt-4 text-sm border border-[#1B1A1A] text-[#1B1A1A] group-hover:bg-[#F5F4F4] rounded-lg transition-colors">
             看看 {displayName} 的故事
             <ArrowRight size={14} className="ml-1 transition-transform group-hover:translate-x-0.5" />
-          </Link>
+          </div>
         </div>
       </div>
+      </Link>
     </motion.div>
   )
 }
