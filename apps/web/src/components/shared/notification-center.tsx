@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useEffect, useCallback } from 'react'
+import Link from 'next/link'
 import { motion, AnimatePresence } from 'framer-motion'
 import {
   Bell,
@@ -280,9 +281,21 @@ export function NotificationCenter({ className }: NotificationCenterProps) {
                               <Icon className="h-5 w-5" />
                             </div>
                             <div className="flex-1 min-w-0">
-                              <p className="text-base font-medium text-gray-900">
-                                {notification.title}
-                              </p>
+                              {notification.type === NotificationType.NEW_FOLLOWER && notification.actor_slug ? (
+                                <Link
+                                  href={`/biography/profile/${notification.actor_slug}`}
+                                  onClick={() => setIsOpen(false)}
+                                  className="block hover:underline"
+                                >
+                                  <p className="text-base font-medium text-gray-900">
+                                    {notification.title}
+                                  </p>
+                                </Link>
+                              ) : (
+                                <p className="text-base font-medium text-gray-900">
+                                  {notification.title}
+                                </p>
+                              )}
                               <p className="text-sm text-gray-600 mt-1 line-clamp-3">
                                 {notification.message}
                               </p>
