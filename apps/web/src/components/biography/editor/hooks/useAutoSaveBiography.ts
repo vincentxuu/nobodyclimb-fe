@@ -158,21 +158,19 @@ export function useAutoSaveBiography({
   // Handle changes
   const handleChange = useCallback(
     (updates: Partial<BiographyV2>) => {
-      let newBio: BiographyV2
+      // 用 ref 計算新值，避免依賴 React setter callback（不保證同步執行）
+      const newBio = { ...latestBiographyRef.current, ...updates }
 
-      setLocalBiography((prev) => {
-        newBio = { ...prev, ...updates }
-        return newBio
-      })
+      latestBiographyRef.current = newBio
+      setLocalBiography(newBio)
 
-      latestBiographyRef.current = newBio!
       editVersionRef.current += 1
       const currentVersion = editVersionRef.current
       setHasUnsavedChanges(true)
       isEditingRef.current = true
 
       onChange(updates)
-      debouncedSave(newBio!, currentVersion)
+      debouncedSave(newBio, currentVersion)
     },
     [onChange, debouncedSave]
   )
