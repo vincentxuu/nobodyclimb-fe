@@ -6,7 +6,9 @@ import Image from 'next/image'
 import { motion } from 'framer-motion'
 import { ArrowRightCircle, Loader2, Mountain, MessageCircle } from 'lucide-react'
 import { Card, CardContent } from '@/components/ui/card'
+import { Button } from '@/components/ui/button'
 import { biographyContentService, CoreStory, OneLiner, Story } from '@/lib/api/services'
+import { normalizeNewlines } from '@/lib/utils'
 import { isSvgUrl, getDefaultAvatarUrl } from '@/lib/utils/image'
 
 type FeaturedContent =
@@ -96,8 +98,8 @@ function StoryCard({ content }: StoryCardProps) {
             <div className="mb-4 flex-1 space-y-2">
               <p className="text-xs text-[#8E8C8C]">{label}</p>
               <div className="relative">
-                <p className="line-clamp-4 text-base font-medium leading-relaxed text-[#1B1A1A]">
-                  &ldquo;{text}&rdquo;
+                <p className="line-clamp-4 whitespace-pre-line text-base font-medium leading-relaxed text-[#1B1A1A]">
+                  &ldquo;{normalizeNewlines(text)}&rdquo;
                 </p>
               </div>
             </div>
@@ -158,9 +160,13 @@ interface StoryListProps {
 }
 
 export function StoryList({ searchTerm }: StoryListProps) {
+  const INITIAL_VISIBLE_COUNT = 12
+  const LOAD_MORE_COUNT = 12
+
   const [contents, setContents] = useState<FeaturedContent[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
+  const [visibleCount, setVisibleCount] = useState(INITIAL_VISIBLE_COUNT)
   const hasFetched = useRef(false)
 
   const loadStories = useCallback(async () => {
@@ -170,9 +176,9 @@ export function StoryList({ searchTerm }: StoryListProps) {
     try {
       // 並行獲取三種類型的熱門內容（較多數量用於列表頁）
       const [coreStoriesRes, oneLinersRes, storiesRes] = await Promise.all([
-        biographyContentService.getPopularCoreStories(10),
-        biographyContentService.getPopularOneLiners(10),
-        biographyContentService.getPopularStories(10),
+        biographyContentService.getPopularCoreStories(50),
+        biographyContentService.getPopularOneLiners(50),
+        biographyContentService.getPopularStories(50),
       ])
 
       const allContents: FeaturedContent[] = []
@@ -209,6 +215,12 @@ export function StoryList({ searchTerm }: StoryListProps) {
     loadStories()
   }, [loadStories])
 
+  useEffect(() => {
+    if (!searchTerm) {
+      setVisibleCount(INITIAL_VISIBLE_COUNT)
+    }
+  }, [searchTerm])
+
   // 根據搜尋詞過濾（如果有的話）
   const filteredContents = searchTerm
     ? contents.filter((content) => {
@@ -223,6 +235,11 @@ export function StoryList({ searchTerm }: StoryListProps) {
         return authorName.includes(searchLower) || contentText.includes(searchLower)
       })
     : contents
+
+  const displayedContents = searchTerm
+    ? filteredContents
+    : filteredContents.slice(0, visibleCount)
+  const hasMore = !searchTerm && visibleCount < filteredContents.length
 
   if (loading) {
     return (
@@ -251,10 +268,24 @@ export function StoryList({ searchTerm }: StoryListProps) {
   }
 
   return (
-    <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
-      {filteredContents.map((content) => (
-        <StoryCard key={`${content.type}-${content.id}`} content={content} />
-      ))}
+    <div className="space-y-8">
+      <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
+        {displayedContents.map((content) => (
+          <StoryCard key={`${content.type}-${content.id}`} content={content} />
+        ))}
+      </div>
+
+      {hasMore && (
+        <div className="flex justify-center">
+          <Button
+            variant="outline"
+            className="min-w-[160px]"
+            onClick={() => setVisibleCount((prev) => prev + LOAD_MORE_COUNT)}
+          >
+            載入更多
+          </Button>
+        </div>
+      )}
     </div>
   )
 }

@@ -12,6 +12,7 @@ import {
   MapPin,
   Globe,
   ImageIcon,
+  MountainSnow,
 } from 'lucide-react'
 import { ProfileDashboardCard } from './ProfileDashboardCard'
 import { ProfileEditSheet } from './ProfileEditSheet'
@@ -342,6 +343,14 @@ export default function ProfileDashboard() {
             title="攀岩足跡"
             description="記錄去過的攀岩地點"
             onClick={() => openPanel('footprints')}
+          />
+
+          {/* 攀爬紀錄 */}
+          <ProfileDashboardCard
+            icon={<MountainSnow className="h-5 w-5" />}
+            title="攀爬紀錄"
+            description="查看與管理你的完攀紀錄"
+            onClick={() => router.push('/profile/ascents', { scroll: false })}
           />
 
           {/* 公開設定 */}

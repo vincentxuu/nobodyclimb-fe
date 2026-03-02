@@ -480,14 +480,18 @@ export function ProfileEditor({
             >
               <ClimbingFootprintsEditorSection />
             </section>
+
           </main>
         </div>
 
-        <BottomBarSpacer />
+        <BottomBarSpacer className="h-32 md:h-20" />
       </div>
 
       {/* Fixed Bottom Bar */}
       <FixedBottomBar
+        className="bottom-16 md:bottom-0"
+        compactOnMobile
+        showSafeAreaPadding={false}
         saveStatus={status}
         previewHref={previewHref}
         onManualSave={manualSave}

@@ -147,6 +147,56 @@ export function ProfileEditorV2Wrapper({ className }: ProfileEditorV2WrapperProp
     })
   }, [])
 
+  const buildBiographyPayload = useCallback((bio: BiographyV2) => {
+    return {
+      name: bio.name,
+      title: bio.title ?? undefined,
+      bio: bio.bio ?? undefined,
+      avatar_url: bio.avatar_url ?? undefined,
+      cover_image: bio.cover_url ?? undefined,
+      climbing_start_year: bio.climbing_start_year?.toString() ?? undefined,
+      frequent_locations: bio.frequent_locations ? bio.frequent_locations.join(', ') : undefined,
+      favorite_route_type: bio.favorite_route_types ? bio.favorite_route_types.join(', ') : undefined,
+      social_links: bio.social_links ? JSON.stringify(bio.social_links) : undefined,
+      visibility: bio.visibility ?? undefined,
+      tags_data: JSON.stringify({
+        selections: bio.tags,
+        custom_tags: bio.custom_tags,
+      }),
+      one_liners_data: JSON.stringify(
+        bio.one_liners.reduce((acc, item) => {
+          acc[item.question_id] = { answer: item.answer, visibility: 'public' }
+          return acc
+        }, {} as Record<string, { answer: string; visibility: string }>)
+      ),
+      stories_data: JSON.stringify(
+        bio.stories.reduce((acc, item) => {
+          if (!acc['uncategorized']) acc['uncategorized'] = {}
+          acc['uncategorized'][item.question_id] = {
+            answer: item.content,
+            visibility: 'public',
+            updated_at: new Date().toISOString(),
+          }
+          return acc
+        }, {} as Record<string, Record<string, { answer: string; visibility: string; updated_at: string }>>)
+      ),
+      basic_info_data: JSON.stringify({
+        name: bio.name,
+        title: bio.title ?? '',
+        bio: bio.bio ?? '',
+        climbing_start_year: bio.climbing_start_year ?? '',
+        frequent_locations: bio.frequent_locations?.join(', ') ?? '',
+        home_gym: bio.home_gym ?? '',
+        favorite_route_type: bio.favorite_route_types?.join(', ') ?? '',
+      }),
+      height_cm: bio.height_cm ?? null,
+      arm_span_cm: bio.arm_span_cm ?? null,
+      grade_targets: bio.grade_targets && bio.grade_targets.length > 0
+        ? JSON.stringify(bio.grade_targets)
+        : null,
+    }
+  }, [])
+
   // 處理儲存
   const handleSave = useCallback(async (bio: BiographyV2) => {
     // 防護：確保 bio 存在
@@ -158,56 +208,8 @@ export function ProfileEditorV2Wrapper({ className }: ProfileEditorV2WrapperProp
     try {
       setError(null)
 
-      // 呼叫 API 儲存（將 null 轉換為 undefined）
-      const response = await biographyService.updateMyBiography({
-        name: bio.name,
-        title: bio.title ?? undefined,
-        bio: bio.bio ?? undefined,
-        avatar_url: bio.avatar_url ?? undefined,
-        cover_image: bio.cover_url ?? undefined,
-        climbing_start_year: bio.climbing_start_year?.toString() ?? undefined,
-        frequent_locations: bio.frequent_locations ? bio.frequent_locations.join(', ') : undefined,
-        favorite_route_type: bio.favorite_route_types ? bio.favorite_route_types.join(', ') : undefined,
-        social_links: bio.social_links ? JSON.stringify(bio.social_links) : undefined,
-        visibility: bio.visibility ?? undefined,
-        // V2 資料欄位（使用 TagsDataStorage 格式，包含 custom_tags）
-        tags_data: JSON.stringify({
-          selections: bio.tags,
-          custom_tags: bio.custom_tags,
-        }),
-        one_liners_data: JSON.stringify(
-          bio.one_liners.reduce((acc, item) => {
-            acc[item.question_id] = { answer: item.answer, visibility: 'public' }
-            return acc
-          }, {} as Record<string, { answer: string; visibility: string }>)
-        ),
-        stories_data: JSON.stringify(
-          bio.stories.reduce((acc, item) => {
-            if (!acc['uncategorized']) acc['uncategorized'] = {}
-            acc['uncategorized'][item.question_id] = {
-              answer: item.content,
-              visibility: 'public',
-              updated_at: new Date().toISOString(),
-            }
-            return acc
-          }, {} as Record<string, Record<string, { answer: string; visibility: string; updated_at: string }>>)
-        ),
-        basic_info_data: JSON.stringify({
-          name: bio.name,
-          title: bio.title ?? '',
-          bio: bio.bio ?? '',
-          climbing_start_year: bio.climbing_start_year ?? '',
-          frequent_locations: bio.frequent_locations?.join(', ') ?? '',
-          home_gym: bio.home_gym ?? '',
-          favorite_route_type: bio.favorite_route_types?.join(', ') ?? '',
-        }),
-        // 攀岩者身體數據與年度目標
-        height_cm: bio.height_cm ?? null,
-        arm_span_cm: bio.arm_span_cm ?? null,
-        grade_targets: bio.grade_targets && bio.grade_targets.length > 0
-          ? JSON.stringify(bio.grade_targets)
-          : null,
-      })
+      // 編輯期間使用輕量 autosave 端點，避免大 payload 導致 timeout
+      const response = await biographyService.autosaveV2(bio)
 
       if (!response.success) {
         throw new Error('儲存失敗')
@@ -217,7 +219,8 @@ export function ProfileEditorV2Wrapper({ className }: ProfileEditorV2WrapperProp
       setBiography(bio)
     } catch (err) {
       console.error('Failed to save biography:', err)
-      setError('儲存失敗，請稍後再試')
+      const message = err instanceof Error ? err.message : ''
+      setError(message.toLowerCase().includes('timeout') ? '儲存逾時，請稍後再試' : '儲存失敗，請稍後再試')
       throw err
     } finally {
       // no-op: autosave should not block editing
@@ -230,13 +233,17 @@ export function ProfileEditorV2Wrapper({ className }: ProfileEditorV2WrapperProp
 
     try {
       setIsPublishing(true)
-      // 更新 visibility 為 public
+      // 發布時走完整更新，確保 visibility 與完整欄位都同步
       const updatedBio = { ...biography, visibility: 'public' as const }
-      await handleSave(updatedBio)
+      const response = await biographyService.updateMyBiography(buildBiographyPayload(updatedBio))
+      if (!response.success) {
+        throw new Error('發布失敗')
+      }
+      setBiography(updatedBio)
     } finally {
       setIsPublishing(false)
     }
-  }, [biography, handleSave])
+  }, [biography, buildBiographyPayload])
 
   // 載入中狀態
   if (loading || questionsLoading) {
