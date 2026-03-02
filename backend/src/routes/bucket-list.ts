@@ -423,9 +423,20 @@ bucketListRoutes.get(
     const userId = c.get('userId');
 
     const item = await c.env.DB.prepare(
-      'SELECT * FROM bucket_list_items WHERE id = ?'
+      `SELECT
+         bli.*,
+         CASE
+           WHEN ? IS NOT NULL AND EXISTS (
+             SELECT 1
+             FROM bucket_list_likes bll
+             WHERE bll.bucket_list_item_id = bli.id AND bll.user_id = ?
+           ) THEN 1
+           ELSE 0
+         END as is_liked
+       FROM bucket_list_items bli
+       WHERE bli.id = ?`
     )
-      .bind(id)
+      .bind(userId ?? null, userId ?? null, id)
       .first<{ biography_id: string; is_public: number }>();
 
     if (!item) {
@@ -462,8 +473,10 @@ bucketListRoutes.get(
       200: { description: '成功取得人生清單項目' },
     },
   }),
+  optionalAuthMiddleware,
   async (c) => {
   const biographyId = c.req.param('biographyId');
+  const userId = c.get('userId');
   const status = c.req.query('status'); // active, completed, archived
   const category = c.req.query('category');
 
@@ -481,11 +494,21 @@ bucketListRoutes.get(
   }
 
   const items = await c.env.DB.prepare(
-    `SELECT * FROM bucket_list_items
+    `SELECT
+       bli.*,
+       CASE
+         WHEN ? IS NOT NULL AND EXISTS (
+           SELECT 1
+           FROM bucket_list_likes bll
+           WHERE bll.bucket_list_item_id = bli.id AND bll.user_id = ?
+         ) THEN 1
+         ELSE 0
+       END as is_liked
+     FROM bucket_list_items bli
      WHERE ${whereClause}
      ORDER BY sort_order ASC, created_at DESC`
   )
-    .bind(...params)
+    .bind(userId ?? null, userId ?? null, ...params)
     .all();
 
   return c.json({
