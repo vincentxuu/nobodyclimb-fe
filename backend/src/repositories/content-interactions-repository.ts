@@ -218,6 +218,53 @@ export class ContentInteractionsRepository {
   }
 
   // ═══════════════════════════════════════════
+  // 按讚者 / 反應者列表
+  // ═══════════════════════════════════════════
+
+  /**
+   * 取得按讚者列表（適用於 likes 表的所有 entity_type）
+   */
+  async getLikersByEntity(
+    entityType: string,
+    entityId: string
+  ): Promise<Array<{ user_id: string; username: string; display_name: string | null; avatar_url: string | null }>> {
+    const result = await this.db
+      .prepare(
+        `SELECT u.id as user_id, u.username, u.display_name, u.avatar_url
+         FROM likes l
+         JOIN users u ON l.user_id = u.id
+         WHERE l.entity_type = ? AND l.entity_id = ?
+         ORDER BY l.created_at DESC`
+      )
+      .bind(entityType, entityId)
+      .all<{ user_id: string; username: string; display_name: string | null; avatar_url: string | null }>();
+
+    return result.results || [];
+  }
+
+  /**
+   * 取得快速反應者列表
+   */
+  async getReactorsByContent(
+    contentType: string,
+    contentId: string,
+    reactionType: string
+  ): Promise<Array<{ user_id: string; username: string; display_name: string | null; avatar_url: string | null }>> {
+    const result = await this.db
+      .prepare(
+        `SELECT u.id as user_id, u.username, u.display_name, u.avatar_url
+         FROM content_reactions r
+         JOIN users u ON r.user_id = u.id
+         WHERE r.content_type = ? AND r.content_id = ? AND r.reaction_type = ?
+         ORDER BY r.created_at DESC`
+      )
+      .bind(contentType, contentId, reactionType)
+      .all<{ user_id: string; username: string; display_name: string | null; avatar_url: string | null }>();
+
+    return result.results || [];
+  }
+
+  // ═══════════════════════════════════════════
   // 輔助方法
   // ═══════════════════════════════════════════
 

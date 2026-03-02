@@ -19,3 +19,5 @@ export { BiographyDetailPage } from './BiographyDetailPage'
 // 共用互動組件
 export { ContentLikeButton } from './ContentLikeButton'
 export { ContentCommentSheet } from './ContentCommentSheet'
+export { ContentInteractorsPanel } from './ContentInteractorsPanel'
+export type { InteractorUser } from './ContentInteractorsPanel'

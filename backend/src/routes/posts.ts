@@ -790,6 +790,36 @@ postsRoutes.get(
   }
 );
 
+// GET /posts/:id/likers - 取得按讚者列表
+postsRoutes.get(
+  '/:id/likers',
+  describeRoute({
+    tags: ['Posts'],
+    summary: '取得文章按讚者列表',
+    description: '取得指定文章的按讚者列表（用戶資訊）',
+    responses: {
+      200: { description: '成功取得按讚者列表' },
+    },
+  }),
+  async (c) => {
+    const postId = c.req.param('id');
+
+    const result = await c.env.DB
+      .prepare(
+        `SELECT u.id as user_id, u.username, u.display_name, u.avatar_url
+         FROM likes l
+         JOIN users u ON l.user_id = u.id
+         WHERE l.entity_type = 'post' AND l.entity_id = ?
+         ORDER BY l.created_at DESC`
+      )
+      .bind(postId)
+      .all<{ user_id: string; username: string; display_name: string | null; avatar_url: string | null }>();
+
+    const likers = result.results || [];
+    return c.json({ success: true, data: { likers, total: likers.length } });
+  }
+);
+
 // POST /posts/:id/bookmark - Toggle bookmark for a post (收藏)
 postsRoutes.post(
   '/:id/bookmark',
