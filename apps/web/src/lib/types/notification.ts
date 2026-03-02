@@ -35,4 +35,5 @@ export interface Notification {
   created_at: string
   actor_name?: string
   actor_avatar?: string
+  actor_slug?: string
 }
