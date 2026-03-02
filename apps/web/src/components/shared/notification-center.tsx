@@ -65,6 +65,15 @@ const getNotificationLink = (notification: Notification): string | null => {
     case NotificationType.GOAL_COMMENTED:
     case NotificationType.GOAL_REFERENCED:
       return notification.target_id ? `/bucket-list/${notification.target_id}` : null
+    case NotificationType.CORE_STORY_LIKED:
+    case NotificationType.CORE_STORY_COMMENTED:
+      return notification.owner_slug ? `/biography/profile/${notification.owner_slug}#core-stories` : null
+    case NotificationType.ONE_LINER_LIKED:
+    case NotificationType.ONE_LINER_COMMENTED:
+      return notification.owner_slug ? `/biography/profile/${notification.owner_slug}#one-liners` : null
+    case NotificationType.STORY_LIKED:
+    case NotificationType.STORY_COMMENTED:
+      return notification.owner_slug ? `/biography/profile/${notification.owner_slug}#stories` : null
     case NotificationType.BIOGRAPHY_COMMENTED:
       return notification.target_slug ? `/biography/profile/${notification.target_slug}` : null
     case NotificationType.NEW_FOLLOWER:

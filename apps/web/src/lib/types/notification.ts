@@ -17,6 +17,12 @@ export enum NotificationType {
   POST_LIKED = 'post_liked',
   POST_COMMENTED = 'post_commented',
   SYSTEM_ANNOUNCEMENT = 'system_announcement',
+  CORE_STORY_LIKED = 'core_story_liked',
+  CORE_STORY_COMMENTED = 'core_story_commented',
+  ONE_LINER_LIKED = 'one_liner_liked',
+  ONE_LINER_COMMENTED = 'one_liner_commented',
+  STORY_LIKED = 'story_liked',
+  STORY_COMMENTED = 'story_commented',
 }
 /* eslint-enable no-unused-vars */
 
@@ -37,4 +43,5 @@ export interface Notification {
   actor_avatar?: string
   actor_slug?: string
   target_slug?: string
+  owner_slug?: string
 }
