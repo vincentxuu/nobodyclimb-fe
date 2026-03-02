@@ -27,7 +27,7 @@ export function SearchInput({
         onChange={onChange}
         rightIcon={<Search className="h-5 w-5 stroke-[1.5px] text-text-main" />}
         wrapperClassName="w-full max-w-[240px]"
-        className="h-[40px] rounded-[4px] border-text-main bg-white font-light text-text-main placeholder:text-text-subtle focus:ring-2 focus:ring-text-main"
+        className="h-[40px] rounded-lg border-text-main bg-white font-light text-text-main placeholder:text-text-subtle focus:ring-2 focus:ring-text-main"
       />
     </div>
   )

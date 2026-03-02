@@ -123,13 +123,16 @@ export function useAutoSaveBiography({
           }
         }
       } catch (err) {
+        const message = err instanceof Error ? err.message : '儲存失敗'
+        const isTimeoutError = message.toLowerCase().includes('timeout')
+
         if (isMountedRef.current) {
-          setError(err instanceof Error ? err.message : '儲存失敗')
+          setError(isTimeoutError ? '儲存逾時，已暫停自動重試，請稍後再試' : message)
         }
 
         // 自動重試（最多 3 次）
         retryCountRef.current += 1
-        if (retryCountRef.current <= 3) {
+        if (!isTimeoutError && retryCountRef.current <= 3) {
           const retryDelay = 2000 * retryCountRef.current
           if (retryTimerRef.current) clearTimeout(retryTimerRef.current)
 

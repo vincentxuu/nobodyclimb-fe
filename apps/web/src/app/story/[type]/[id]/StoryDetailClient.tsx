@@ -16,6 +16,7 @@ import {
   Story,
   ContentComment,
 } from '@/lib/api/services'
+import { normalizeNewlines } from '@/lib/utils'
 import { isSvgUrl, getDefaultAvatarUrl } from '@/lib/utils/image'
 
 // 故事類型定義
@@ -204,9 +205,9 @@ export default function StoryDetailClient({ params }: StoryDetailClientProps) {
   const getStoryText = () => {
     if (!story) return ''
     if (type === 'one-liners') {
-      return story.answer || ''
+      return normalizeNewlines(story.answer)
     }
-    return story.content || ''
+    return normalizeNewlines(story.content)
   }
 
   // 取得故事標籤
@@ -417,7 +418,7 @@ export default function StoryDetailClient({ params }: StoryDetailClientProps) {
             {/* 內容區 */}
             <div className="px-6 py-8 md:px-10 md:py-12">
               {/* 故事文字 */}
-              <blockquote className="text-xl leading-relaxed text-[#2D2C2C] md:text-2xl md:leading-[1.6]">
+              <blockquote className="whitespace-pre-line text-xl leading-relaxed text-[#2D2C2C] md:text-2xl md:leading-[1.6]">
                 {getStoryText()}
               </blockquote>
             </div>
