@@ -1,7 +1,7 @@
 'use client'
 
 import { motion } from 'framer-motion'
-import { cn } from '@/lib/utils'
+import { cn, normalizeNewlines } from '@/lib/utils'
 import { Feather, Loader2 } from 'lucide-react'
 import { biographyContentService, type ContentComment } from '@/lib/api/services'
 import { useCoreStories, useCoreStoryLikeMutation, useCoreStoryCommentMutation } from '@/lib/hooks/useCoreStories'
@@ -148,7 +148,7 @@ function CoreStoryCard({
 
       {/* 內容 */}
       <div className="whitespace-pre-wrap text-[#3F3D3D] leading-relaxed">
-        {story.content}
+        {normalizeNewlines(story.content)}
       </div>
 
       {/* 互動按鈕 */}

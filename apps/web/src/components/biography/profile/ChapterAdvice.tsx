@@ -6,6 +6,7 @@ import { Lock, Loader2 } from 'lucide-react'
 import { biographyContentService } from '@/lib/api/services'
 import { useAdviceToSelfStory, useCoreStoryLikeMutation, useCoreStoryCommentMutation } from '@/lib/hooks/useCoreStories'
 import { ContentInteractionBar } from '../display/ContentInteractionBar'
+import { normalizeNewlines } from '@/lib/utils'
 
 interface ChapterAdviceProps {
   biographyId: string
@@ -105,7 +106,7 @@ export function ChapterAdvice({ biographyId, personName, updatedAt }: ChapterAdv
           ) : (
             <>
               <p className="whitespace-pre-wrap text-lg leading-relaxed text-gray-700">
-                {story?.content}
+                {normalizeNewlines(story?.content)}
               </p>
 
               {/* 簽名 */}

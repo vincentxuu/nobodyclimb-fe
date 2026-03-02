@@ -5,6 +5,7 @@ import { Lock, Loader2 } from 'lucide-react'
 import { biographyContentService } from '@/lib/api/services'
 import { useClimbingOriginStory, useCoreStoryLikeMutation, useCoreStoryCommentMutation } from '@/lib/hooks/useCoreStories'
 import { ContentInteractionBar } from '../display/ContentInteractionBar'
+import { normalizeNewlines } from '@/lib/utils'
 
 interface ChapterMeetingProps {
   biographyId: string
@@ -51,7 +52,7 @@ export function ChapterMeeting({ biographyId }: ChapterMeetingProps) {
   }
 
   const isPlaceholder = !story?.content
-  const paragraphs = story?.content?.split('\n').filter((p) => p.trim()) || []
+  const paragraphs = normalizeNewlines(story?.content).split('\n').filter((p) => p.trim())
 
   return (
     <motion.section

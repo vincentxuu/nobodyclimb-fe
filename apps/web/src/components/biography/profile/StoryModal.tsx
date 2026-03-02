@@ -3,7 +3,7 @@
 import { X } from 'lucide-react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { STORY_CATEGORIES, StoryCategory } from '@/lib/constants/biography-stories'
-import { cn } from '@/lib/utils'
+import { cn, normalizeNewlines } from '@/lib/utils'
 
 interface StoryModalProps {
   story: {
@@ -78,7 +78,7 @@ export function StoryModal({ story, open, onClose }: StoryModalProps) {
             {/* 內容 */}
             <div className="prose prose-gray max-w-none">
               <p className="whitespace-pre-wrap text-base leading-relaxed text-gray-700">
-                {story.content}
+                {normalizeNewlines(story.content)}
               </p>
             </div>
           </motion.div>
