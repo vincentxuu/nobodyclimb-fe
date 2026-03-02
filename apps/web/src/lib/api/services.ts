@@ -240,10 +240,21 @@ export const postService = {
    * 獲取相關文章
    */
   getRelatedPosts: async (id: string, limit = 3) => {
-    const response = await apiClient.get<ApiResponse<BackendPost[]>>(`/posts/${id}/related`, {
-      params: { limit },
-    })
-    return response.data
+    try {
+      const response = await apiClient.get<ApiResponse<BackendPost[]>>(`/posts/${id}/related`, {
+        params: { limit },
+      })
+      return response.data
+    } catch (error) {
+      // 後端未提供 related 端點時，前端退回空列表，避免干擾主內容顯示
+      if (error && typeof error === 'object' && 'response' in error) {
+        const axiosError = error as { response?: { status?: number } }
+        if (axiosError.response?.status === 404) {
+          return { success: true, data: [] }
+        }
+      }
+      throw error
+    }
   },
 
   /**
