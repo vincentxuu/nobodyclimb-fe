@@ -3,12 +3,28 @@ export interface Env {
   DB: D1Database;
   CACHE: KVNamespace;
   STORAGE: R2Bucket;
+  ACCESS_LOGS: AnalyticsEngineDataset;
   CORS_ORIGIN: string;
   JWT_ISSUER: string;
   JWT_SECRET: string;
   R2_PUBLIC_URL: string;
   CWA_API_KEY: string; // 中央氣象署 API 授權碼
   GOOGLE_CLIENT_ID: string;
+  // Analytics Engine 查詢用（可選，透過 wrangler secret 設定）
+  CLOUDFLARE_ACCOUNT_ID?: string;
+  CLOUDFLARE_API_TOKEN?: string;
+}
+
+// Type alias for backwards compatibility
+export type Bindings = Env;
+
+// Analytics Engine Dataset Type
+export interface AnalyticsEngineDataset {
+  writeDataPoint(event: {
+    blobs?: string[];
+    doubles?: number[];
+    indexes?: string[];
+  }): void;
 }
 
 // Weather API Types
@@ -155,11 +171,53 @@ export interface Crag {
   review_count: number;
   created_at: string;
   updated_at: string;
+  // 新增欄位
+  metadata_source: string | null;
+  metadata_source_url: string | null;
+  metadata_maintainer: string | null;
+  metadata_maintainer_url: string | null;
+  live_video_id: string | null;
+  live_video_title: string | null;
+  live_video_description: string | null;
+  transportation: string | null;
+  amenities: string | null;
+  google_maps_url: string | null;
+  // 岩壁高度 (與 altitude 海拔高度區分)
+  height_min: number | null;
+  height_max: number | null;
+}
+
+export interface Area {
+  id: string;
+  crag_id: string;
+  name: string;
+  name_en: string | null;
+  slug: string | null;
+  description: string | null;
+  description_en: string | null;
+  image: string | null;
+  bolt_count: number;
+  route_count: number;
+  sort_order: number;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface Sector {
+  id: string;
+  area_id: string;
+  name: string;
+  name_en: string | null;
+  sort_order: number;
+  created_at: string;
+  updated_at: string;
 }
 
 export interface Route {
   id: string;
   crag_id: string;
+  area_id: string | null;
+  sector_id: string | null;
   name: string;
   grade: string | null;
   grade_system: string;
@@ -212,61 +270,7 @@ export interface Biography {
   avatar_url: string | null;
   cover_image: string | null;
 
-  // 第一層：攀岩基本資訊
-  climbing_start_year: string | null;
-  frequent_locations: string | null;
-  favorite_route_type: string | null;
-
-  // 第二層：核心故事
-  climbing_origin: string | null;
-  climbing_meaning: string | null;
-  advice_to_self: string | null;
-
-  // 第三層：進階故事 - A. 成長與突破
-  memorable_moment: string | null;
-  biggest_challenge: string | null;
-  breakthrough_story: string | null;
-  first_outdoor: string | null;
-  first_grade: string | null;
-  frustrating_climb: string | null;
-
-  // 第三層：進階故事 - B. 心理與哲學
-  fear_management: string | null;
-  climbing_lesson: string | null;
-  failure_perspective: string | null;
-  flow_moment: string | null;
-  life_balance: string | null;
-  unexpected_gain: string | null;
-
-  // 第三層：進階故事 - C. 社群與連結
-  climbing_mentor: string | null;
-  climbing_partner: string | null;
-  funny_moment: string | null;
-  favorite_spot: string | null;
-  advice_to_group: string | null;
-  climbing_space: string | null;
-
-  // 第三層：進階故事 - D. 實用分享
-  injury_recovery: string | null;
-  memorable_route: string | null;
-  training_method: string | null;
-  effective_practice: string | null;
-  technique_tip: string | null;
-  gear_choice: string | null;
-
-  // 第三層：進階故事 - E. 夢想與探索
-  dream_climb: string | null;
-  climbing_trip: string | null;
-  bucket_list_story: string | null;
-  climbing_goal: string | null;
-  climbing_style: string | null;
-  climbing_inspiration: string | null;
-
-  // 第三層：進階故事 - F. 生活整合
-  life_outside_climbing: string | null;
-
   // 媒體與社群
-  gallery_images: string | null;
   social_links: string | null;
   youtube_channel_id: string | null;
   featured_video_id: string | null;
@@ -274,7 +278,6 @@ export interface Biography {
   // 狀態
   achievements: string | null;
   is_featured: number;
-  is_public: number;
   published_at: string | null;
   created_at: string;
   updated_at: string;
@@ -283,14 +286,20 @@ export interface Biography {
   total_likes: number;
   total_views: number;
   follower_count: number;
+  comment_count: number;
 
-  // V2 欄位 - 漸進式揭露設計
+  // V2 欄位 - 資料儲存在 JSON 欄位和獨立表
   visibility: 'private' | 'anonymous' | 'community' | 'public' | null;
-  tags_data: string | null;
-  one_liners_data: string | null;
-  stories_data: string | null;
-  basic_info_data: string | null;
-  autosave_at: string | null;
+  tags_data: string | null; // JSON: 標籤資料
+  basic_info_data: string | null; // JSON: 基本資訊 (climbing_start_year, frequent_locations, favorite_route_type 等)
+  one_liners_data: string | null; // JSON: 一句話問答 (已移至獨立表，此欄位保留供查詢使用)
+  stories_data: string | null; // JSON: 故事內容 (已移至獨立表，此欄位保留供查詢使用)
+  autosave_at: string | null; // 自動儲存時間戳
+
+  // 攀岩者身體數據與目標
+  height_cm: number | null;
+  arm_span_cm: number | null;
+  grade_targets: string | null; // JSON: 年度攀爬目標陣列
 }
 
 export interface Review {
@@ -351,6 +360,8 @@ export interface JwtPayload {
   sub: string;
   email: string;
   role: string;
+  username?: string;
+  display_name?: string | null;
   iat: number;
   exp: number;
 }
@@ -371,4 +382,208 @@ export interface AuthTokens {
   access_token: string;
   refresh_token: string;
   expires_in: number;
+}
+
+// Biography Content Types
+export interface CoreStoryQuestion {
+  id: string;
+  title: string;
+  subtitle: string | null;
+  placeholder: string | null;
+  display_order: number;
+  is_active: number;
+}
+
+export interface BiographyCoreStory {
+  id: string;
+  biography_id: string;
+  question_id: string;
+  content: string;
+  is_hidden: number;
+  like_count: number;
+  comment_count: number;
+  display_order: number;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface OneLinerQuestion {
+  id: string;
+  question: string;
+  format_hint: string | null;
+  placeholder: string | null;
+  display_order: number;
+  is_active: number;
+}
+
+export interface BiographyOneLiner {
+  id: string;
+  biography_id: string;
+  question_id: string;
+  question_text: string | null;
+  answer: string;
+  source: string;
+  is_hidden: number;
+  like_count: number;
+  comment_count: number;
+  display_order: number;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface StoryCategory {
+  id: string;
+  name: string;
+  icon: string | null;
+  description: string | null;
+  display_order: number;
+  is_active: number;
+}
+
+export interface StoryQuestion {
+  id: string;
+  category_id: string;
+  title: string;
+  subtitle: string | null;
+  placeholder: string | null;
+  difficulty: 'easy' | 'medium' | 'hard';
+  display_order: number;
+  is_active: number;
+}
+
+export interface BiographyStory {
+  id: string;
+  biography_id: string;
+  question_id: string;
+  question_text: string | null;
+  category_id: string | null;
+  content: string;
+  source: string;
+  character_count: number;
+  is_hidden: number;
+  like_count: number;
+  comment_count: number;
+  display_order: number;
+  created_at: string;
+  updated_at: string;
+}
+
+// Like Types
+export interface ContentLike {
+  id: string;
+  user_id: string;
+  created_at: string;
+}
+
+export interface CoreStoryLike extends ContentLike {
+  core_story_id: string;
+}
+
+export interface OneLinerLike extends ContentLike {
+  one_liner_id: string;
+}
+
+export interface StoryLike extends ContentLike {
+  story_id: string;
+}
+
+// Comment Types
+export interface ContentComment {
+  id: string;
+  user_id: string;
+  content: string;
+  parent_id: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface CoreStoryComment extends ContentComment {
+  core_story_id: string;
+}
+
+export interface OneLinerComment extends ContentComment {
+  one_liner_id: string;
+}
+
+export interface StoryComment extends ContentComment {
+  story_id: string;
+}
+
+// Extended types with user information
+export interface CommentWithUser extends ContentComment {
+  username: string;
+  display_name: string | null;
+  avatar_url: string | null;
+}
+
+// Content with additional fields
+export interface ContentWithLikeStatus {
+  is_liked?: boolean;
+}
+
+export interface ContentWithOwner {
+  owner_id: string;
+}
+
+// ============================================
+// Route User Integration Types
+// ============================================
+
+export type AscentType =
+  | 'redpoint'
+  | 'flash'
+  | 'onsight'
+  | 'attempt'
+  | 'toprope'
+  | 'lead'
+  | 'seconding'
+  | 'repeat';
+
+export interface UserRouteAscent {
+  id: string;
+  user_id: string;
+  route_id: string;
+  ascent_type: AscentType;
+  ascent_date: string;
+  attempts_count: number;
+  rating: number | null;
+  perceived_grade: string | null;
+  notes: string | null;
+  photos: string | null; // JSON array
+  youtube_url: string | null;
+  instagram_url: string | null;
+  is_public: number;
+  created_at: string;
+  updated_at: string;
+}
+
+export type RouteStoryType =
+  | 'beta'
+  | 'experience'
+  | 'first_ascent'
+  | 'history'
+  | 'safety'
+  | 'conditions'
+  | 'gear'
+  | 'approach'
+  | 'other';
+
+export interface RouteStory {
+  id: string;
+  user_id: string;
+  route_id: string;
+  story_type: RouteStoryType;
+  title: string | null;
+  content: string;
+  photos: string | null; // JSON array
+  youtube_url: string | null;
+  instagram_url: string | null;
+  visibility: 'public' | 'community' | 'private';
+  is_featured: number;
+  is_verified: number;
+  like_count: number;
+  comment_count: number;
+  helpful_count: number;
+  created_at: string;
+  updated_at: string;
 }

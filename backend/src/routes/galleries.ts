@@ -1,4 +1,6 @@
 import { Hono } from 'hono';
+import { z } from 'zod';
+import { describeRoute, validator } from 'hono-openapi';
 import { D1Database } from '@cloudflare/workers-types';
 import { Env, Gallery } from '../types';
 import { parsePagination, generateId, generateSlug } from '../utils/id';
@@ -7,6 +9,65 @@ import { trackAndUpdateViewCount } from '../utils/viewTracker';
 import { deleteR2Images } from '../utils/storage';
 
 export const galleriesRoutes = new Hono<{ Bindings: Env }>();
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// Validation Schemas
+// ═══════════════════════════════════════════════════════════════════════════════
+
+const paginationQuerySchema = z.object({
+  page: z.string().optional(),
+  limit: z.string().optional(),
+});
+
+const galleryListQuerySchema = z.object({
+  page: z.string().optional(),
+  limit: z.string().optional(),
+  featured: z.enum(['true', 'false']).optional(),
+});
+
+const popularQuerySchema = z.object({
+  limit: z.string().optional(),
+});
+
+const uploadPhotoSchema = z.object({
+  image_url: z.string().url(),
+  thumbnail_url: z.string().url().optional(),
+  caption: z.string().optional(),
+  location_country: z.string().optional(),
+  location_city: z.string().optional(),
+  location_spot: z.string().optional(),
+});
+
+const updatePhotoSchema = z.object({
+  caption: z.string().optional(),
+  location_country: z.string().optional(),
+  location_city: z.string().optional(),
+  location_spot: z.string().optional(),
+});
+
+const createGallerySchema = z.object({
+  title: z.string().min(1),
+  slug: z.string().optional(),
+  description: z.string().optional(),
+  cover_image: z.string().optional(),
+  is_featured: z.number().optional(),
+  images: z.array(z.object({
+    image_url: z.string().url(),
+    thumbnail_url: z.string().url().optional(),
+    caption: z.string().optional(),
+  })).optional(),
+});
+
+const updateGallerySchema = z.object({
+  title: z.string().optional(),
+  description: z.string().optional(),
+  cover_image: z.string().optional(),
+  is_featured: z.number().optional(),
+});
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// Helper Functions
+// ═══════════════════════════════════════════════════════════════════════════════
 
 // SQL query for photo details with author info - reusable across endpoints
 const PHOTO_DETAIL_SQL = `
@@ -36,8 +97,23 @@ const getPhotoById = async (db: D1Database, photoId: string) => {
     .first();
 };
 
+// ═══════════════════════════════════════════════════════════════════════════════
+// 照片管理 API
+// ═══════════════════════════════════════════════════════════════════════════════
+
 // GET /galleries/photos - Get all photos with uploader info (for gallery page)
-galleriesRoutes.get('/photos', async (c) => {
+galleriesRoutes.get(
+  '/photos',
+  describeRoute({
+    tags: ['Galleries'],
+    summary: '取得所有照片列表',
+    description: '取得所有照片的分頁列表，包含上傳者資訊。用於照片牆展示。',
+    responses: {
+      200: { description: '成功取得照片列表' },
+    },
+  }),
+  validator('query', paginationQuerySchema),
+  async (c) => {
   const { page, limit, offset } = parsePagination(
     c.req.query('page'),
     c.req.query('limit')
@@ -66,7 +142,21 @@ galleriesRoutes.get('/photos', async (c) => {
 });
 
 // POST /galleries/photos - Upload a single photo
-galleriesRoutes.post('/photos', authMiddleware, async (c) => {
+galleriesRoutes.post(
+  '/photos',
+  describeRoute({
+    tags: ['Galleries'],
+    summary: '上傳單張照片',
+    description: '上傳單張照片到使用者的預設相簿。如果預設相簿不存在，會自動建立「我的照片」相簿。',
+    responses: {
+      201: { description: '成功上傳照片' },
+      400: { description: '請求無效，缺少必要的 image_url' },
+      401: { description: '未授權，需要登入' },
+    },
+  }),
+  authMiddleware,
+  validator('json', uploadPhotoSchema),
+  async (c) => {
   const userId = c.get('userId');
   const body = await c.req.json<{
     image_url: string;
@@ -146,7 +236,20 @@ galleriesRoutes.post('/photos', authMiddleware, async (c) => {
 });
 
 // GET /galleries/photos/me - Get current user's photos
-galleriesRoutes.get('/photos/me', authMiddleware, async (c) => {
+galleriesRoutes.get(
+  '/photos/me',
+  describeRoute({
+    tags: ['Galleries'],
+    summary: '取得當前使用者的照片',
+    description: '取得當前登入使用者上傳的所有照片，支援分頁。',
+    responses: {
+      200: { description: '成功取得照片列表' },
+      401: { description: '未授權，需要登入' },
+    },
+  }),
+  authMiddleware,
+  validator('query', paginationQuerySchema),
+  async (c) => {
   const userId = c.get('userId');
   const { page, limit, offset } = parsePagination(
     c.req.query('page'),
@@ -181,7 +284,23 @@ galleriesRoutes.get('/photos/me', authMiddleware, async (c) => {
 });
 
 // PUT /galleries/photos/:id - Update a photo's metadata
-galleriesRoutes.put('/photos/:id', authMiddleware, async (c) => {
+galleriesRoutes.put(
+  '/photos/:id',
+  describeRoute({
+    tags: ['Galleries'],
+    summary: '更新照片資訊',
+    description: '更新照片的描述、地點等資訊。只能更新自己上傳的照片，管理員可以更新任何照片。',
+    responses: {
+      200: { description: '成功更新照片資訊' },
+      400: { description: '請求無效，沒有要更新的欄位' },
+      401: { description: '未授權，需要登入' },
+      403: { description: '權限不足，只能編輯自己的照片' },
+      404: { description: '照片不存在' },
+    },
+  }),
+  authMiddleware,
+  validator('json', updatePhotoSchema),
+  async (c) => {
   const userId = c.get('userId');
   const user = c.get('user');
   const photoId = c.req.param('id');
@@ -274,7 +393,21 @@ galleriesRoutes.put('/photos/:id', authMiddleware, async (c) => {
 });
 
 // DELETE /galleries/photos/:id - Delete a photo
-galleriesRoutes.delete('/photos/:id', authMiddleware, async (c) => {
+galleriesRoutes.delete(
+  '/photos/:id',
+  describeRoute({
+    tags: ['Galleries'],
+    summary: '刪除照片',
+    description: '刪除指定的照片，同時從 R2 儲存空間移除圖片檔案。只能刪除自己上傳的照片，管理員可以刪除任何照片。',
+    responses: {
+      200: { description: '成功刪除照片' },
+      401: { description: '未授權，需要登入' },
+      403: { description: '權限不足，只能刪除自己的照片' },
+      404: { description: '照片不存在' },
+    },
+  }),
+  authMiddleware,
+  async (c) => {
   const userId = c.get('userId');
   const user = c.get('user');
   const photoId = c.req.param('id');
@@ -332,8 +465,23 @@ galleriesRoutes.delete('/photos/:id', authMiddleware, async (c) => {
   });
 });
 
+// ═══════════════════════════════════════════════════════════════════════════════
+// 相簿管理 API
+// ═══════════════════════════════════════════════════════════════════════════════
+
 // GET /galleries - List all galleries
-galleriesRoutes.get('/', async (c) => {
+galleriesRoutes.get(
+  '/',
+  describeRoute({
+    tags: ['Galleries'],
+    summary: '取得相簿列表',
+    description: '取得所有相簿的分頁列表，可篩選精選相簿。依精選優先、建立時間排序。',
+    responses: {
+      200: { description: '成功取得相簿列表' },
+    },
+  }),
+  validator('query', galleryListQuerySchema),
+  async (c) => {
   const { page, limit, offset } = parsePagination(
     c.req.query('page'),
     c.req.query('limit')
@@ -378,7 +526,18 @@ galleriesRoutes.get('/', async (c) => {
 });
 
 // GET /galleries/popular - Get popular galleries
-galleriesRoutes.get('/popular', async (c) => {
+galleriesRoutes.get(
+  '/popular',
+  describeRoute({
+    tags: ['Galleries'],
+    summary: '取得熱門相簿',
+    description: '取得瀏覽次數最高的相簿列表。預設回傳 6 個相簿。',
+    responses: {
+      200: { description: '成功取得熱門相簿列表' },
+    },
+  }),
+  validator('query', popularQuerySchema),
+  async (c) => {
   const limit = parseInt(c.req.query('limit') || '6', 10);
 
   const galleries = await c.env.DB.prepare(
@@ -398,7 +557,18 @@ galleriesRoutes.get('/popular', async (c) => {
 });
 
 // GET /galleries/:id - Get gallery by ID
-galleriesRoutes.get('/:id', async (c) => {
+galleriesRoutes.get(
+  '/:id',
+  describeRoute({
+    tags: ['Galleries'],
+    summary: '取得單一相簿詳情',
+    description: '依 ID 取得相簿詳細資訊，包含所有照片。會追蹤瀏覽次數（同一 IP 24 小時內只計算一次）。',
+    responses: {
+      200: { description: '成功取得相簿詳情' },
+      404: { description: '相簿不存在' },
+    },
+  }),
+  async (c) => {
   const id = c.req.param('id');
 
   const gallery = await c.env.DB.prepare(
@@ -449,7 +619,18 @@ galleriesRoutes.get('/:id', async (c) => {
 });
 
 // GET /galleries/slug/:slug - Get gallery by slug
-galleriesRoutes.get('/slug/:slug', async (c) => {
+galleriesRoutes.get(
+  '/slug/:slug',
+  describeRoute({
+    tags: ['Galleries'],
+    summary: '依 Slug 取得相簿詳情',
+    description: '依 Slug 取得相簿詳細資訊，包含所有照片。會追蹤瀏覽次數（同一 IP 24 小時內只計算一次）。',
+    responses: {
+      200: { description: '成功取得相簿詳情' },
+      404: { description: '相簿不存在' },
+    },
+  }),
+  async (c) => {
   const slug = c.req.param('slug');
 
   const gallery = await c.env.DB.prepare(
@@ -499,7 +680,21 @@ galleriesRoutes.get('/slug/:slug', async (c) => {
 });
 
 // POST /galleries - Create new gallery
-galleriesRoutes.post('/', authMiddleware, async (c) => {
+galleriesRoutes.post(
+  '/',
+  describeRoute({
+    tags: ['Galleries'],
+    summary: '建立新相簿',
+    description: '建立新的相簿，可同時上傳多張照片。標題為必填欄位。',
+    responses: {
+      201: { description: '成功建立相簿' },
+      400: { description: '請求無效，缺少必要的標題' },
+      401: { description: '未授權，需要登入' },
+    },
+  }),
+  authMiddleware,
+  validator('json', createGallerySchema),
+  async (c) => {
   const userId = c.get('userId');
   const body = await c.req.json<
     Partial<Gallery> & {
@@ -583,7 +778,23 @@ galleriesRoutes.post('/', authMiddleware, async (c) => {
 });
 
 // PUT /galleries/:id - Update gallery
-galleriesRoutes.put('/:id', authMiddleware, async (c) => {
+galleriesRoutes.put(
+  '/:id',
+  describeRoute({
+    tags: ['Galleries'],
+    summary: '更新相簿資訊',
+    description: '更新相簿的標題、描述、封面圖片或精選狀態。只能更新自己建立的相簿，管理員可以更新任何相簿。',
+    responses: {
+      200: { description: '成功更新相簿' },
+      400: { description: '請求無效，沒有要更新的欄位' },
+      401: { description: '未授權，需要登入' },
+      403: { description: '權限不足，只能編輯自己的相簿' },
+      404: { description: '相簿不存在' },
+    },
+  }),
+  authMiddleware,
+  validator('json', updateGallerySchema),
+  async (c) => {
   const id = c.req.param('id');
   const userId = c.get('userId');
   const user = c.get('user');
@@ -660,7 +871,21 @@ galleriesRoutes.put('/:id', authMiddleware, async (c) => {
 });
 
 // DELETE /galleries/:id - Delete gallery
-galleriesRoutes.delete('/:id', authMiddleware, async (c) => {
+galleriesRoutes.delete(
+  '/:id',
+  describeRoute({
+    tags: ['Galleries'],
+    summary: '刪除相簿',
+    description: '刪除指定的相簿及其所有照片。會同時從 R2 儲存空間移除所有圖片檔案。只能刪除自己建立的相簿，管理員可以刪除任何相簿。',
+    responses: {
+      200: { description: '成功刪除相簿' },
+      401: { description: '未授權，需要登入' },
+      403: { description: '權限不足，只能刪除自己的相簿' },
+      404: { description: '相簿不存在' },
+    },
+  }),
+  authMiddleware,
+  async (c) => {
   const id = c.req.param('id');
   const userId = c.get('userId');
   const user = c.get('user');

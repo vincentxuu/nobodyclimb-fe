@@ -1,18 +1,26 @@
 # dependencies
-/node_modules
-/.pnp
+node_modules
+
+# pnpm
+.pnp
 .pnp.js
 
 # testing
-/coverage
+coverage
 
-# next.js
-/.next/
-/out/
-.open-next/
+# next.js (web/)
+.next
+out
+.open-next
+
+# packages build output
+packages/*/dist
+
+# turbo
+.turbo
 
 # production
-/build
+build
 
 # misc
 .DS_Store
@@ -35,12 +43,21 @@ pnpm-debug.log*
 *.tsbuildinfo
 next-env.d.ts
 
+# cloudflare
 .wrangler
 
 # scripts data
 scripts/data/*.json
+web/scripts/data/*.json
 temp/
 output/
 
 # public data - ignore individual channel files, keep merged videos.json
 public/data/*_videos.json
+web/public/data/*_videos.json
+
+# claude code
+.claude
+.startmoving
+docs/start-moving*
+openspec

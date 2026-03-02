@@ -1,4 +1,6 @@
 import { Hono } from 'hono';
+import { z } from 'zod';
+import { describeRoute, validator } from 'hono-openapi';
 import { Env } from '../types';
 import { generateId } from '../utils/id';
 import { authMiddleware } from '../middleware/auth';
@@ -23,7 +25,17 @@ interface BiographyVideo {
 }
 
 // GET /media/biographies/:id/videos - Get videos for a biography
-mediaRoutes.get('/biographies/:id/videos', async (c) => {
+mediaRoutes.get(
+  '/biographies/:id/videos',
+  describeRoute({
+    tags: ['Media'],
+    summary: '取得人物誌的 YouTube 影片列表',
+    description: '根據人物誌 ID 取得關聯的 YouTube 影片列表，可篩選精選影片',
+    responses: {
+      200: { description: '成功取得影片列表' },
+    },
+  }),
+  async (c) => {
   const biographyId = c.req.param('id');
   const featured = c.req.query('featured');
 
@@ -50,7 +62,21 @@ mediaRoutes.get('/biographies/:id/videos', async (c) => {
 });
 
 // POST /media/biographies/me/videos - Add video association
-mediaRoutes.post('/biographies/me/videos', authMiddleware, async (c) => {
+mediaRoutes.post(
+  '/biographies/me/videos',
+  describeRoute({
+    tags: ['Media'],
+    summary: '新增 YouTube 影片關聯',
+    description: '為當前登入用戶的人物誌新增 YouTube 影片關聯，需要驗證身份',
+    responses: {
+      201: { description: '成功新增影片關聯' },
+      400: { description: '請求參數錯誤，video_id 為必填' },
+      404: { description: '找不到人物誌，請先建立人物誌' },
+      409: { description: '影片已與此人物誌關聯' },
+    },
+  }),
+  authMiddleware,
+  async (c) => {
   const userId = c.get('userId');
 
   // Get user's biography
@@ -135,7 +161,19 @@ mediaRoutes.post('/biographies/me/videos', authMiddleware, async (c) => {
 });
 
 // PUT /media/biographies/me/videos/:id - Update video association
-mediaRoutes.put('/biographies/me/videos/:videoId', authMiddleware, async (c) => {
+mediaRoutes.put(
+  '/biographies/me/videos/:videoId',
+  describeRoute({
+    tags: ['Media'],
+    summary: '更新 YouTube 影片關聯',
+    description: '更新當前登入用戶人物誌的影片關聯設定，如關聯類型、是否精選、排序等',
+    responses: {
+      200: { description: '成功更新影片關聯' },
+      404: { description: '找不到人物誌或影片關聯' },
+    },
+  }),
+  authMiddleware,
+  async (c) => {
   const userId = c.get('userId');
   const videoId = c.req.param('videoId');
 
@@ -219,7 +257,19 @@ mediaRoutes.put('/biographies/me/videos/:videoId', authMiddleware, async (c) => 
 });
 
 // DELETE /media/biographies/me/videos/:id - Remove video association
-mediaRoutes.delete('/biographies/me/videos/:videoId', authMiddleware, async (c) => {
+mediaRoutes.delete(
+  '/biographies/me/videos/:videoId',
+  describeRoute({
+    tags: ['Media'],
+    summary: '刪除 YouTube 影片關聯',
+    description: '移除當前登入用戶人物誌與指定影片的關聯',
+    responses: {
+      200: { description: '成功移除影片關聯' },
+      404: { description: '找不到人物誌或影片關聯' },
+    },
+  }),
+  authMiddleware,
+  async (c) => {
   const userId = c.get('userId');
   const videoId = c.req.param('videoId');
 
@@ -294,7 +344,17 @@ interface BiographyInstagram {
 }
 
 // GET /media/biographies/:id/instagrams - Get Instagram posts for a biography
-mediaRoutes.get('/biographies/:id/instagrams', async (c) => {
+mediaRoutes.get(
+  '/biographies/:id/instagrams',
+  describeRoute({
+    tags: ['Media'],
+    summary: '取得人物誌的 Instagram 貼文列表',
+    description: '根據人物誌 ID 取得關聯的 Instagram 貼文列表，可篩選精選貼文',
+    responses: {
+      200: { description: '成功取得 Instagram 貼文列表' },
+    },
+  }),
+  async (c) => {
   const biographyId = c.req.param('id');
   const featured = c.req.query('featured');
 
@@ -321,7 +381,21 @@ mediaRoutes.get('/biographies/:id/instagrams', async (c) => {
 });
 
 // POST /media/biographies/me/instagrams - Add Instagram post association
-mediaRoutes.post('/biographies/me/instagrams', authMiddleware, async (c) => {
+mediaRoutes.post(
+  '/biographies/me/instagrams',
+  describeRoute({
+    tags: ['Media'],
+    summary: '新增 Instagram 貼文關聯',
+    description: '為當前登入用戶的人物誌新增 Instagram 貼文關聯，需要驗證身份',
+    responses: {
+      201: { description: '成功新增 Instagram 貼文關聯' },
+      400: { description: '請求參數錯誤，instagram_url 和 instagram_shortcode 為必填' },
+      404: { description: '找不到人物誌，請先建立人物誌' },
+      409: { description: '貼文已與此人物誌關聯' },
+    },
+  }),
+  authMiddleware,
+  async (c) => {
   const userId = c.get('userId');
 
   // Get user's biography
@@ -425,7 +499,19 @@ mediaRoutes.post('/biographies/me/instagrams', authMiddleware, async (c) => {
 });
 
 // PUT /media/biographies/me/instagrams/:id - Update Instagram post association
-mediaRoutes.put('/biographies/me/instagrams/:instagramId', authMiddleware, async (c) => {
+mediaRoutes.put(
+  '/biographies/me/instagrams/:instagramId',
+  describeRoute({
+    tags: ['Media'],
+    summary: '更新 Instagram 貼文關聯',
+    description: '更新當前登入用戶人物誌的 Instagram 貼文關聯設定，如媒體類型、是否精選、排序等',
+    responses: {
+      200: { description: '成功更新 Instagram 貼文關聯' },
+      404: { description: '找不到人物誌或 Instagram 貼文關聯' },
+    },
+  }),
+  authMiddleware,
+  async (c) => {
   const userId = c.get('userId');
   const instagramId = c.req.param('instagramId');
 
@@ -530,7 +616,19 @@ mediaRoutes.put('/biographies/me/instagrams/:instagramId', authMiddleware, async
 });
 
 // DELETE /media/biographies/me/instagrams/:id - Remove Instagram post association
-mediaRoutes.delete('/biographies/me/instagrams/:instagramId', authMiddleware, async (c) => {
+mediaRoutes.delete(
+  '/biographies/me/instagrams/:instagramId',
+  describeRoute({
+    tags: ['Media'],
+    summary: '刪除 Instagram 貼文關聯',
+    description: '移除當前登入用戶人物誌與指定 Instagram 貼文的關聯',
+    responses: {
+      200: { description: '成功移除 Instagram 貼文關聯' },
+      404: { description: '找不到人物誌或 Instagram 貼文關聯' },
+    },
+  }),
+  authMiddleware,
+  async (c) => {
   const userId = c.get('userId');
   const instagramId = c.req.param('instagramId');
 
@@ -585,7 +683,20 @@ mediaRoutes.delete('/biographies/me/instagrams/:instagramId', authMiddleware, as
 // ═══════════════════════════════════════════════════════════
 
 // GET /media/utils/youtube-info - Fetch YouTube video info
-mediaRoutes.get('/utils/youtube-info', async (c) => {
+mediaRoutes.get(
+  '/utils/youtube-info',
+  describeRoute({
+    tags: ['Media'],
+    summary: '取得 YouTube 影片資訊',
+    description: '透過 YouTube oEmbed API 取得影片的基本資訊，包含標題、頻道名稱、縮圖等',
+    responses: {
+      200: { description: '成功取得影片資訊' },
+      400: { description: '請求參數錯誤，url 為必填或 URL 格式無效' },
+      404: { description: '找不到影片或影片為私人' },
+      503: { description: '無法取得影片資訊，服務暫時不可用' },
+    },
+  }),
+  async (c) => {
   const url = c.req.query('url');
 
   if (!url) {
@@ -667,7 +778,18 @@ mediaRoutes.get('/utils/youtube-info', async (c) => {
 });
 
 // GET /media/utils/instagram-info - Fetch Instagram post info
-mediaRoutes.get('/utils/instagram-info', async (c) => {
+mediaRoutes.get(
+  '/utils/instagram-info',
+  describeRoute({
+    tags: ['Media'],
+    summary: '取得 Instagram 貼文資訊',
+    description: '解析 Instagram URL 取得貼文的基本資訊，包含 shortcode 和嵌入連結。注意：完整資訊需要 Instagram Graph API',
+    responses: {
+      200: { description: '成功取得貼文基本資訊' },
+      400: { description: '請求參數錯誤，url 為必填或 URL 格式無效' },
+    },
+  }),
+  async (c) => {
   const url = c.req.query('url');
 
   if (!url) {
@@ -769,7 +891,19 @@ const uploadFolders: Record<string, string> = {
 };
 
 // POST /media/upload?type=posts - Upload image to R2 storage
-mediaRoutes.post('/upload', authMiddleware, async (c) => {
+mediaRoutes.post(
+  '/upload',
+  describeRoute({
+    tags: ['Media'],
+    summary: '上傳圖片至 R2 儲存空間',
+    description: '上傳圖片至 Cloudflare R2 儲存空間，支援 JPEG、PNG、WebP、GIF 格式，最大 500KB。可透過 type 參數指定上傳類型（posts、biography、gallery、avatars、gyms、crags）',
+    responses: {
+      200: { description: '成功上傳圖片，回傳圖片 URL' },
+      400: { description: '請求參數錯誤，可能是無效的類型、未提供圖片、檔案類型不支援或檔案過大' },
+    },
+  }),
+  authMiddleware,
+  async (c) => {
   const type = c.req.query('type') || 'general';
   const folder = uploadFolders[type];
 

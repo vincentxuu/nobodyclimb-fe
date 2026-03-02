@@ -1,0 +1,36 @@
+{
+  "name": "@nobodyclimb/hooks",
+  "version": "0.1.0",
+  "private": true,
+  "main": "./dist/index.js",
+  "module": "./dist/index.mjs",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.mjs",
+      "require": "./dist/index.js"
+    }
+  },
+  "scripts": {
+    "build": "tsup src/index.ts --format cjs,esm --dts --external react --external zustand --external axios",
+    "dev": "tsup src/index.ts --format cjs,esm --dts --external react --external zustand --external axios --watch",
+    "typecheck": "tsc --noEmit"
+  },
+  "peerDependencies": {
+    "react": ">=18.0.0",
+    "zustand": ">=4.0.0"
+  },
+  "dependencies": {
+    "@nobodyclimb/api-client": "workspace:^",
+    "@nobodyclimb/types": "workspace:^"
+  },
+  "devDependencies": {
+    "@types/react": "^19.1.12",
+    "axios": "^1.11.0",
+    "react": "^19.1.1",
+    "tsup": "^8.0.0",
+    "typescript": "^5.9.2",
+    "zustand": "^4.5.7"
+  }
+}
