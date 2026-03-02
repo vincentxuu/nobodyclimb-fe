@@ -17,6 +17,11 @@ import { useAuthStore } from '@/store/authStore'
 import { sanitizeHtml } from '@/lib/utils/sanitize'
 import { decodeHtmlEntities } from '@/lib/utils/article'
 import { ArticleCoverGenerator } from '@/components/shared/ArticleCoverGenerator'
+import {
+  ContentInteractorsPanel,
+  type InteractorUser,
+} from '@/components/biography/display/ContentInteractorsPanel'
+import apiClient from '@/lib/api/client'
 
 // 載入狀態元件
 const LoadingState = () => (
@@ -50,6 +55,10 @@ export default function BlogDetailClient() {
   const [isLiked, setIsLiked] = useState(false)
   const [likeCount, setLikeCount] = useState(0)
   const [isLiking, setIsLiking] = useState(false)
+  // 按讚者列表
+  const [isLikersOpen, setIsLikersOpen] = useState(false)
+  const [likers, setLikers] = useState<InteractorUser[]>([])
+  const [isLoadingLikers, setIsLoadingLikers] = useState(false)
   // 收藏狀態
   const [isBookmarked, setIsBookmarked] = useState(false)
   const [bookmarkCount, setBookmarkCount] = useState(0)
@@ -173,9 +182,27 @@ export default function BlogDetailClient() {
     (data: { liked: boolean; likes: number }) => {
       setIsLiked(data.liked)
       setLikeCount(data.likes)
+      setLikers([]) // 按讚狀態改變後清除快取
     },
     (data: { liked: boolean }) => (data.liked ? '已按讚' : '已取消按讚')
   )
+
+  // 展開/收合按讚者列表
+  const handleShowLikers = useCallback(async () => {
+    const next = !isLikersOpen
+    setIsLikersOpen(next)
+    if (next && likers.length === 0) {
+      setIsLoadingLikers(true)
+      try {
+        const resp = await apiClient.get(`/posts/${id}/likers`)
+        setLikers(resp.data?.data?.likers ?? [])
+      } catch (err) {
+        console.error('Failed to fetch post likers:', err)
+      } finally {
+        setIsLoadingLikers(false)
+      }
+    }
+  }, [isLikersOpen, likers.length, id])
 
   // 處理收藏
   const handleBookmark = createToggleHandler(
@@ -265,14 +292,23 @@ export default function BlogDetailClient() {
                     <Eye size={14} className="sm:h-4 sm:w-4" />
                     {article.view_count}
                   </span>
-                  <button
-                    onClick={handleLike}
-                    disabled={isLiking}
-                    className={`flex items-center gap-1 ${isLiked ? 'text-emerald-600' : 'text-wb-70 hover:text-wb-90'}`}
-                  >
-                    <Mountain size={14} className={`sm:h-4 sm:w-4 ${isLiked ? 'fill-emerald-600' : ''}`} />
-                    {likeCount > 0 && likeCount}
-                  </button>
+                  <div className="flex items-center gap-1">
+                    <button
+                      onClick={handleLike}
+                      disabled={isLiking}
+                      className={`flex items-center ${isLiked ? 'text-emerald-600' : 'text-wb-70 hover:text-wb-90'}`}
+                    >
+                      <Mountain size={14} className={`sm:h-4 sm:w-4 ${isLiked ? 'fill-emerald-600' : ''}`} />
+                    </button>
+                    {likeCount > 0 && (
+                      <button
+                        onClick={handleShowLikers}
+                        className={`hover:underline ${isLiked ? 'text-emerald-600' : 'text-wb-70'}`}
+                      >
+                        {likeCount}
+                      </button>
+                    )}
+                  </div>
                   <button
                     onClick={handleBookmark}
                     disabled={isBookmarking}
@@ -289,6 +325,13 @@ export default function BlogDetailClient() {
                     iconSize={14}
                   />
                 </div>
+                {/* 按讚者列表 */}
+                <ContentInteractorsPanel
+                  isOpen={isLikersOpen}
+                  users={likers}
+                  isLoading={isLoadingLikers}
+                  emptyMessage="還沒有人按讚"
+                />
               </div>
               {isAuthor && (
                 <Button
