@@ -20,7 +20,9 @@ export interface BiographyListItem {
   user_id: string | null;
   slug: string;
   name: string;
+  title: string | null;
   avatar_url: string | null;
+  cover_image: string | null;
   basic_info_data: string | null;
   tags_data: string | null;
   one_liners_data: string | null;
