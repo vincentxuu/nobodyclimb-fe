@@ -34,6 +34,8 @@ JWT_ISSUER = "nobodyclimb-api"
 
 R2_PUBLIC_URL = "https://storage-preview.nobodyclimb.cc"
 
+AI_GATEWAY_SLUG = "nobodyclimb-preview"
+
 # Google OAuth - Set via wrangler secret or environment variable
 # GOOGLE_CLIENT_ID = "your-google-client-id.apps.googleusercontent.com"
 
@@ -75,6 +77,24 @@ dataset = "nobodyclimb_access_logs_preview"
 
 
 
+# Workers AI Binding
+
+[env.preview.ai]
+
+binding = "AI"
+
+
+
+# Vectorize Binding
+
+[[env.preview.vectorize]]
+
+binding = "VECTOR_INDEX"
+
+index_name = "nobodyclimb-routes-preview"
+
+
+
 # ============================================
 
 # 正式環境 (Production)
@@ -100,6 +120,8 @@ CORS_ORIGIN = "https://nobodyclimb.cc"
 JWT_ISSUER = "nobodyclimb-api"
 
 R2_PUBLIC_URL = "https://storage.nobodyclimb.cc"
+
+AI_GATEWAY_SLUG = "nobodyclimb"
 
 # Google OAuth - Set via wrangler secret or environment variable
 # GOOGLE_CLIENT_ID = "your-google-client-id.apps.googleusercontent.com"
@@ -139,3 +161,21 @@ bucket_name = "nobodyclimb-storage"
 binding = "ACCESS_LOGS"
 
 dataset = "nobodyclimb_access_logs"
+
+
+
+# Workers AI Binding
+
+[env.production.ai]
+
+binding = "AI"
+
+
+
+# Vectorize Binding
+
+[[env.production.vectorize]]
+
+binding = "VECTOR_INDEX"
+
+index_name = "nobodyclimb-routes"
