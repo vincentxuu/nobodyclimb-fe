@@ -19,6 +19,7 @@ import {
   X,
   Mountain,
   Building2,
+  Bot,
 } from 'lucide-react'
 
 interface AdminLayoutProps {
@@ -35,6 +36,7 @@ const navLinks = [
   { href: '/admin/broadcast', label: '廣播通知', icon: Megaphone },
   { href: '/admin/analytics', label: '數據分析', icon: BarChart3 },
   { href: '/admin/logs', label: '訪問日誌', icon: FileText },
+  { href: '/admin/ai', label: 'AI 助理', icon: Bot },
 ]
 
 export default function AdminLayout({ children }: AdminLayoutProps) {

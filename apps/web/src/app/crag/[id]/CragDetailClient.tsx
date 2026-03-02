@@ -440,7 +440,7 @@ export default function CragDetailClient({ params }: { params: Promise<{ id: str
       {/* 手機版浮動按鈕 */}
       <button
         onClick={() => setIsDrawerOpen(true)}
-        className="lg:hidden fixed bottom-6 right-6 z-40 flex h-14 w-14 items-center justify-center rounded-full bg-[#1B1A1A] text-white shadow-lg transition-transform hover:scale-105 active:scale-95"
+        className="lg:hidden fixed bottom-24 right-6 z-40 flex h-14 w-14 items-center justify-center rounded-full bg-[#1B1A1A] text-white shadow-lg transition-transform hover:scale-105 active:scale-95"
         aria-label="開啟路線列表"
       >
         <List size={24} />
