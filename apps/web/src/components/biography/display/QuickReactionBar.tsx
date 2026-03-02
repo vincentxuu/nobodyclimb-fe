@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useCallback } from 'react'
+import { useState, useCallback, useRef, Fragment } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { HandMetal, ThumbsUp, MessageSquareHeart, Loader2 } from 'lucide-react'
 import { cn } from '@/lib/utils'
@@ -84,6 +84,8 @@ export function QuickReactionBar({
     plus_one: [],
     well_said: [],
   })
+  const reactorsRef = useRef(reactors)
+  reactorsRef.current = reactors
   const [loadingReactors, setLoadingReactors] = useState<ReactionType | null>(null)
 
   const handleReaction = useCallback(
@@ -120,6 +122,7 @@ export function QuickReactionBar({
       try {
         const apiPath = `/content/${contentType}/${contentId}/reaction`
         await apiClient.post(apiPath, { reaction_type: reactionType })
+        setReactors((prev) => ({ ...prev, [reactionType]: [] })) // 反應狀態改變後清除快取
       } catch (error) {
         // 回滾
         setUserReactions(userReactions)
@@ -145,7 +148,7 @@ export function QuickReactionBar({
       const next = openReactorsPanel === reactionType ? null : reactionType
       setOpenReactorsPanel(next)
 
-      if (next && reactors[reactionType].length === 0) {
+      if (next && reactorsRef.current[reactionType].length === 0) {
         setLoadingReactors(reactionType)
         try {
           const resp = await apiClient.get(
@@ -162,7 +165,7 @@ export function QuickReactionBar({
         }
       }
     },
-    [openReactorsPanel, reactors, contentType, contentId]
+    [openReactorsPanel, contentType, contentId]
   )
 
   const sizeClasses = size === 'sm' ? 'gap-2' : 'gap-3'
@@ -180,7 +183,7 @@ export function QuickReactionBar({
         const isPanelOpen = openReactorsPanel === reaction.type
 
         return (
-          <div key={reaction.type} className="contents">
+          <Fragment key={reaction.type}>
             {/* 反應按鈕（icon + label） */}
             <button
               onClick={() => handleReaction(reaction.type)}
@@ -246,7 +249,7 @@ export function QuickReactionBar({
               emptyMessage={reaction.emptyMessage}
               panelClassName="order-last"
             />
-          </div>
+          </Fragment>
         )
       })}
     </div>

@@ -188,7 +188,7 @@ export function RouteStoryCard({
                 'h-8 px-2',
                 story.is_liked && 'text-emerald-600'
               )}
-              onClick={onLike}
+              onClick={() => { setLikers([]); onLike?.(); }}
             >
               <Mountain
                 className={cn('h-4 w-4', story.is_liked && 'fill-emerald-600')}

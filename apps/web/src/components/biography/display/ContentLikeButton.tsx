@@ -73,6 +73,7 @@ export function ContentLikeButton({
       const result = await onToggle()
       setLiked(result.liked)
       setCount(result.like_count)
+      setLikers([]) // 按讚狀態改變後清除快取
     } catch (error) {
       // Rollback on error
       setLiked(liked)
