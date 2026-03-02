@@ -122,7 +122,7 @@ export function CragCoverGenerator({
 
         {/* 類型標籤 - 響應式大小，白色半透明背景 */}
         {showTypeLabel && typeLabel && (
-          <span className="mt-2 rounded-full bg-white/90 px-3 py-1 text-[10px] font-semibold text-gray-800 sm:mt-3 sm:px-4 sm:py-1.5 sm:text-xs md:text-sm">
+          <span className="mt-2 rounded-full bg-white/90 px-3 py-1 text-[10px] font-semibold text-brand-dark sm:mt-3 sm:px-4 sm:py-1.5 sm:text-xs md:text-sm">
             {typeLabel}
           </span>
         )}
