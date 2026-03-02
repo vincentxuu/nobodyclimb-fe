@@ -21,9 +21,10 @@ import { cn } from '@/lib/utils'
 import type { BucketListItem, BucketListCategory } from '@/lib/types'
 import { ProgressBar, ProgressTracker } from './progress-tracker'
 import { Button } from '@/components/ui/button'
-import { LikeButton } from '@/components/biography/like-button'
 import { ReferenceButton } from '@/components/biography/reference-button'
-import { CommentSection } from '@/components/biography/comment-section'
+import { ContentActions } from '@/components/biography/display/ContentActions'
+import { bucketListService } from '@/lib/api/services'
+import type { ContentComment } from '@/lib/api/services'
 
 // 分類圖標和標籤映射 - 使用專案統一色系
 const categoryConfig: Record<
@@ -281,32 +282,82 @@ export function BucketListItemCard({
           </p>
         )}
 
-        {/* Social Stats - Using real interactive components */}
+        {/* Social Stats */}
         {item.is_public && variant !== 'compact' && (
-          <div className="mt-3 border-t pt-3">
-            <div className="flex items-center gap-4">
-              <LikeButton
-                itemId={item.id}
-                initialCount={item.likes_count || 0}
-                variant="icon"
-              />
-              {!isOwner && (
-                <ReferenceButton
-                  itemId={item.id}
-                  initialCount={item.inspired_count || 0}
-                  variant="icon"
-                />
-              )}
-            </div>
-            <div className="mt-2" onClick={(e) => e.stopPropagation()}>
-              <CommentSection
-                itemId={item.id}
-                initialCount={item.comments_count || 0}
-              />
-            </div>
+          <div className="mt-3 border-t pt-3" onClick={(e) => e.stopPropagation()}>
+            <BucketListContentActions item={item} isOwner={isOwner} />
           </div>
         )}
       </div>
+    </div>
+  )
+}
+
+/**
+ * 人生清單項目互動列
+ * 使用 ContentActions 統一按讚、留言、分享，ReferenceButton（我也想）靠右
+ */
+export function BucketListContentActions({
+  item,
+  isOwner,
+}: {
+  item: BucketListItem
+  isOwner: boolean
+}) {
+  const [likeCount, setLikeCount] = React.useState(item.likes_count || 0)
+  const [isLiked, setIsLiked] = React.useState(false)
+
+  const handleToggleLike = async () => {
+    if (isLiked) {
+      await bucketListService.unlikeItem(item.id)
+      const newCount = Math.max(0, likeCount - 1)
+      setIsLiked(false)
+      setLikeCount(newCount)
+      return { liked: false, like_count: newCount }
+    } else {
+      await bucketListService.likeItem(item.id)
+      const newCount = likeCount + 1
+      setIsLiked(true)
+      setLikeCount(newCount)
+      return { liked: true, like_count: newCount }
+    }
+  }
+
+  const handleFetchComments = async (): Promise<ContentComment[]> => {
+    const response = await bucketListService.getComments(item.id)
+    if (response.success && response.data) {
+      return response.data as unknown as ContentComment[]
+    }
+    return []
+  }
+
+  const handleAddComment = async (content: string): Promise<ContentComment> => {
+    const response = await bucketListService.addComment(item.id, content)
+    if (response.success && response.data) {
+      return response.data as unknown as ContentComment
+    }
+    throw new Error('Failed to add comment')
+  }
+
+  return (
+    <div className="flex items-center justify-between">
+      <ContentActions
+        isLiked={isLiked}
+        likeCount={likeCount}
+        commentCount={item.comments_count || 0}
+        onToggleLike={handleToggleLike}
+        onFetchComments={handleFetchComments}
+        onAddComment={handleAddComment}
+        size="sm"
+        className="pl-0"
+      />
+      {!isOwner && (
+        <ReferenceButton
+          itemId={item.id}
+          initialCount={item.inspired_count || 0}
+          variant="icon"
+        />
+      )}
     </div>
   )
 }

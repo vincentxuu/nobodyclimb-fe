@@ -50,8 +50,8 @@
     --ring: 60 100% 52%;
     /* #ffe70c 黃色 */
 
-    --radius: 0.25rem;
-    /* 4px */
+    --radius: 0.75rem;
+    /* 12px */
   }
 
   .dark {

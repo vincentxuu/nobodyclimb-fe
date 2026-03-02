@@ -34,6 +34,7 @@ export function OneLinersSection({
   className,
 }: OneLinersSectionProps) {
   const [expandedId, setExpandedId] = useState<string | null>(null)
+  const [showQuestions, setShowQuestions] = useState(false)
 
   const getAnswer = (questionId: string): string | undefined => {
     return answers.find((a) => a.question_id === questionId)?.answer
@@ -45,7 +46,11 @@ export function OneLinersSection({
   return (
     <div className={cn('space-y-4', className)}>
       {/* Header */}
-      <div className="flex items-center justify-between">
+      <button
+        type="button"
+        onClick={() => setShowQuestions((v) => !v)}
+        className="w-full flex items-center justify-between"
+      >
         <div className="flex items-center gap-2">
           <MessageCircle size={18} className="text-[#3F3D3D]" />
           <h3 className="font-semibold text-[#1B1A1A]">快問快答</h3>
@@ -54,11 +59,22 @@ export function OneLinersSection({
             2 分鐘
           </span>
         </div>
-        <span className="text-sm text-[#6D6C6C]">
-          {filledCount}/{totalCount} 已填寫
-        </span>
-      </div>
+        <div className="flex items-center gap-2">
+          <span className="text-sm text-[#6D6C6C]">
+            {filledCount}/{totalCount} 已填寫
+          </span>
+          <ChevronDown
+            size={20}
+            className={cn(
+              'text-[#B6B3B3] transition-transform',
+              showQuestions && 'rotate-180'
+            )}
+          />
+        </div>
+      </button>
 
+      {showQuestions && (
+        <>
       <p className="text-sm text-[#6D6C6C] flex items-center gap-1">
         <Lightbulb size={14} />
         選幾題回答就好，不用全部填
@@ -197,6 +213,8 @@ export function OneLinersSection({
           </button>
         )}
       </div>
+        </>
+      )}
     </div>
   )
 }

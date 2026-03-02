@@ -135,9 +135,21 @@ export function GradeTargetsSection({
               ))}
             </select>
 
-            {/* Target Count */}
+            {/* Completed / Target Count */}
             <div className="flex items-center gap-1">
-              <span className="text-sm text-[#6D6C6C]">目標</span>
+              <input
+                type="number"
+                min={0}
+                max={target.target_count}
+                value={target.completed_count ?? 0}
+                onChange={(e) =>
+                  handleUpdateTarget(index, {
+                    completed_count: Math.max(0, parseInt(e.target.value) || 0),
+                  })
+                }
+                className="w-14 px-2 py-1.5 text-sm text-center bg-white border border-[#B6B3B3] rounded-lg text-[#1B1A1A] focus:outline-none focus:ring-2 focus:ring-brand-accent/50"
+              />
+              <span className="text-sm text-[#6D6C6C]">/</span>
               <input
                 type="number"
                 min={1}

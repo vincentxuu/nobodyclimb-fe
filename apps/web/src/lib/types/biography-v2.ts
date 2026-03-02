@@ -216,6 +216,7 @@ export interface GradeTarget {
   grade_system: 'boulder' | 'sport' | 'trad'
   grade: string // 大級數，如 V4、5.11
   target_count: number
+  completed_count?: number // 已達成數量
 }
 
 // ═══════════════════════════════════════════
