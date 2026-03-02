@@ -5,19 +5,12 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { format } from 'date-fns';
-import { zhTW } from 'date-fns/locale';
 import { Calendar as CalendarIcon, Star, Instagram, Youtube } from 'lucide-react';
 
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
-import { Calendar } from '@/components/ui/calendar';
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from '@/components/ui/popover';
 import {
   Dialog,
   DialogContent,
@@ -75,9 +68,6 @@ export function AscentForm({
   initialData,
   isLoading = false,
 }: AscentFormProps) {
-  const [selectedDate, setSelectedDate] = useState<Date | undefined>(
-    initialData?.ascent_date ? new Date(initialData.ascent_date) : new Date()
-  );
   const [photos, setPhotos] = useState<string[]>(initialData?.photos ?? []);
 
   const form = useForm<AscentFormData>({
@@ -96,13 +86,6 @@ export function AscentForm({
       is_public: initialData?.is_public ?? true,
     },
   });
-
-  const handleDateSelect = (date: Date | undefined) => {
-    setSelectedDate(date);
-    if (date) {
-      form.setValue('ascent_date', format(date, 'yyyy-MM-dd'));
-    }
-  };
 
   const handleRatingChange = (newRating: number) => {
     const currentRating = form.getValues('rating');
@@ -130,7 +113,6 @@ export function AscentForm({
         is_public: initialData?.is_public ?? true,
       });
       setPhotos(initialData?.photos ?? []);
-      setSelectedDate(initialData?.ascent_date ? new Date(initialData.ascent_date) : new Date());
     }
   }, [open, form, routeId, initialData]);
 
@@ -168,30 +150,14 @@ export function AscentForm({
           {/* 攀爬日期 */}
           <div className="space-y-2">
             <Label>攀爬日期</Label>
-            <Popover>
-              <PopoverTrigger asChild>
-                <Button
-                  variant="outline"
-                  className={cn(
-                    'w-full justify-start text-left font-normal',
-                    !selectedDate && 'text-muted-foreground'
-                  )}
-                >
-                  <CalendarIcon className="mr-2 h-4 w-4" />
-                  {selectedDate
-                    ? format(selectedDate, 'PPP', { locale: zhTW })
-                    : '選擇日期'}
-                </Button>
-              </PopoverTrigger>
-              <PopoverContent className="w-auto p-0" align="start">
-                <Calendar
-                  mode="single"
-                  selected={selectedDate}
-                  onSelect={handleDateSelect}
-                  autoFocus
-                />
-              </PopoverContent>
-            </Popover>
+            <Input
+              type="date"
+              variant="outline"
+              textStatus="filled"
+              leftIcon={<CalendarIcon className="h-4 w-4 text-muted-foreground" />}
+              max={format(new Date(), 'yyyy-MM-dd')}
+              {...form.register('ascent_date')}
+            />
           </div>
 
           {/* 嘗試次數 */}

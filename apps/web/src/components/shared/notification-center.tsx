@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useEffect, useCallback } from 'react'
+import Link from 'next/link'
 import { motion, AnimatePresence } from 'framer-motion'
 import {
   Bell,
@@ -52,6 +53,34 @@ const notificationColors: Partial<Record<string, string>> = {
   [NotificationType.POST_LIKED]: 'text-brand-dark bg-brand-accent/20',
   [NotificationType.POST_COMMENTED]: 'text-cyan-500 bg-cyan-50',
   [NotificationType.SYSTEM_ANNOUNCEMENT]: 'text-brand-dark bg-brand-accent/30',
+}
+
+// 根據通知類型和資料決定導向連結
+const getNotificationLink = (notification: Notification): string | null => {
+  switch (notification.type) {
+    case NotificationType.POST_LIKED:
+    case NotificationType.POST_COMMENTED:
+      return notification.target_id ? `/blog/${notification.target_id}` : null
+    case NotificationType.GOAL_LIKED:
+    case NotificationType.GOAL_COMMENTED:
+    case NotificationType.GOAL_REFERENCED:
+      return notification.target_id ? `/bucket-list/${notification.target_id}` : null
+    case NotificationType.CORE_STORY_LIKED:
+    case NotificationType.CORE_STORY_COMMENTED:
+      return notification.target_id ? `/story/core-stories/${notification.target_id}` : (notification.owner_slug ? `/biography/profile/${notification.owner_slug}#core-stories` : null)
+    case NotificationType.ONE_LINER_LIKED:
+    case NotificationType.ONE_LINER_COMMENTED:
+      return notification.target_id ? `/story/one-liners/${notification.target_id}` : (notification.owner_slug ? `/biography/profile/${notification.owner_slug}#one-liners` : null)
+    case NotificationType.STORY_LIKED:
+    case NotificationType.STORY_COMMENTED:
+      return notification.target_id ? `/story/stories/${notification.target_id}` : (notification.owner_slug ? `/biography/profile/${notification.owner_slug}#stories` : null)
+    case NotificationType.BIOGRAPHY_COMMENTED:
+      return notification.target_slug ? `/biography/profile/${notification.target_slug}` : null
+    case NotificationType.NEW_FOLLOWER:
+      return notification.actor_slug ? `/biography/profile/${notification.actor_slug}` : null
+    default:
+      return null
+  }
 }
 
 export function NotificationCenter({ className }: NotificationCenterProps) {
@@ -261,6 +290,25 @@ export function NotificationCenter({ className }: NotificationCenterProps) {
                       const colorClass =
                         notificationColors[notification.type] ||
                         'text-gray-500 bg-gray-50'
+                      const link = getNotificationLink(notification)
+                      const isFollower = notification.type === NotificationType.NEW_FOLLOWER
+
+                      // 頭像區：有 actor_avatar 顯示圖片，有 actor_name 顯示首字母，否則顯示 icon
+                      const avatarContent = notification.actor_avatar ? (
+                        <img
+                          src={notification.actor_avatar}
+                          alt={notification.actor_name ?? ''}
+                          className="w-full h-full object-cover"
+                        />
+                      ) : notification.actor_name ? (
+                        <div className={cn('w-full h-full flex items-center justify-center font-medium text-sm', colorClass)}>
+                          {notification.actor_name[0].toUpperCase()}
+                        </div>
+                      ) : (
+                        <div className={cn('w-full h-full flex items-center justify-center', colorClass)}>
+                          <Icon className="h-5 w-5" />
+                        </div>
+                      )
 
                       return (
                         <div
@@ -271,21 +319,52 @@ export function NotificationCenter({ className }: NotificationCenterProps) {
                           )}
                         >
                           <div className="flex gap-3">
-                            <div
-                              className={cn(
-                                'w-10 h-10 rounded-full flex items-center justify-center flex-shrink-0',
-                                colorClass
-                              )}
-                            >
-                              <Icon className="h-5 w-5" />
-                            </div>
+                            {/* 頭像 / 圖示 */}
+                            {notification.actor_slug ? (
+                              <Link
+                                href={`/biography/profile/${notification.actor_slug}`}
+                                onClick={() => setIsOpen(false)}
+                                className="w-10 h-10 rounded-full flex-shrink-0 overflow-hidden block hover:opacity-80 transition-opacity"
+                              >
+                                {avatarContent}
+                              </Link>
+                            ) : (
+                              <div className="w-10 h-10 rounded-full flex-shrink-0 overflow-hidden">
+                                {avatarContent}
+                              </div>
+                            )}
+
+                            {/* 內容 */}
                             <div className="flex-1 min-w-0">
-                              <p className="text-base font-medium text-gray-900">
-                                {notification.title}
-                              </p>
-                              <p className="text-sm text-gray-600 mt-1 line-clamp-3">
-                                {notification.message}
-                              </p>
+                              {isFollower ? (
+                                <>
+                                  <p className="text-base font-medium text-gray-900">
+                                    {link ? (
+                                      <Link href={link} onClick={() => setIsOpen(false)} className="hover:underline">
+                                        {notification.actor_name}
+                                      </Link>
+                                    ) : (
+                                      notification.actor_name
+                                    )}
+                                  </p>
+                                  <p className="text-sm text-gray-600 mt-1">開始追蹤你了</p>
+                                </>
+                              ) : (
+                                <>
+                                  <p className="text-base font-medium text-gray-900">
+                                    {link ? (
+                                      <Link href={link} onClick={() => setIsOpen(false)} className="hover:underline">
+                                        {notification.title}
+                                      </Link>
+                                    ) : (
+                                      notification.title
+                                    )}
+                                  </p>
+                                  <p className="text-sm text-gray-600 mt-1 line-clamp-3">
+                                    {notification.message}
+                                  </p>
+                                </>
+                              )}
                               <p className="text-xs text-gray-400 mt-2">
                                 {formatTime(notification.created_at)}
                               </p>

@@ -2171,13 +2171,20 @@ biographiesRoutes.post(
     // Send notification to biography owner (if not liking own biography)
     if (biography.user_id && biography.user_id !== userId) {
       try {
+        const liker = await c.env.DB.prepare(
+          'SELECT display_name, username FROM users WHERE id = ?'
+        )
+          .bind(userId)
+          .first<{ display_name: string | null; username: string }>();
+        const likerName = liker?.display_name || liker?.username || '有人';
+
         await createNotification(c.env.DB, {
           userId: biography.user_id,
           type: 'goal_liked',
           actorId: userId,
           targetId: biographyId,
           title: '有人喜歡你的人物誌',
-          message: '有人對你的人物誌按讚了！',
+          message: `${likerName} 對你的人物誌按讚了`,
         });
       } catch (err) {
         console.error('Failed to create notification:', err);
@@ -2251,6 +2258,36 @@ biographiesRoutes.get(
     },
   });
 });
+
+// GET /biographies/:id/likers - 取得按讚者列表
+biographiesRoutes.get(
+  '/:id/likers',
+  describeRoute({
+    tags: ['Biographies'],
+    summary: '取得人物誌按讚者列表',
+    description: '取得指定人物誌的按讚者列表（用戶資訊）',
+    responses: {
+      200: { description: '成功取得按讚者列表' },
+    },
+  }),
+  async (c) => {
+    const biographyId = c.req.param('id');
+
+    const result = await c.env.DB
+      .prepare(
+        `SELECT u.id as user_id, u.username, u.display_name, u.avatar_url
+         FROM biography_likes bl
+         JOIN users u ON bl.user_id = u.id
+         WHERE bl.biography_id = ?
+         ORDER BY bl.id DESC`
+      )
+      .bind(biographyId)
+      .all<{ user_id: string; username: string; display_name: string | null; avatar_url: string | null }>();
+
+    const likers = result.results || [];
+    return c.json({ success: true, data: { likers, total: likers.length } });
+  }
+);
 
 // ═══════════════════════════════════════════════════════════
 // Comments
