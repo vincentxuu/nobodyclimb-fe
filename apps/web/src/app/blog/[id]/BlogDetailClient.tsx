@@ -16,6 +16,7 @@ import { BackendPost } from '@/lib/types'
 import { useAuthStore } from '@/store/authStore'
 import { sanitizeHtml } from '@/lib/utils/sanitize'
 import { decodeHtmlEntities } from '@/lib/utils/article'
+import { normalizeNewlines } from '@/lib/utils'
 import { ArticleCoverGenerator } from '@/components/shared/ArticleCoverGenerator'
 import {
   ContentInteractorsPanel,
@@ -129,9 +130,12 @@ export default function BlogDetailClient() {
       const response = await postService.getRelatedPosts(id, 3)
       if (response.success && response.data) {
         setRelatedArticles(response.data)
+      } else {
+        setRelatedArticles([])
       }
     } catch (err) {
       console.error('Failed to fetch related articles:', err)
+      setRelatedArticles([])
     }
   }, [id])
 
@@ -366,12 +370,14 @@ export default function BlogDetailClient() {
             <div className="space-y-4 sm:space-y-6">
               {article.excerpt && (
                 <section>
-                  <p className="text-base italic text-wb-70 sm:text-lg">{decodeHtmlEntities(article.excerpt)}</p>
+                  <p className="text-base italic text-wb-70 sm:text-lg">
+                    {decodeHtmlEntities(normalizeNewlines(article.excerpt))}
+                  </p>
                 </section>
               )}
               <section
                 className="blog-content text-sm text-wb-100 sm:text-base [&>p]:mb-4 [&>h1]:text-xl [&>h1]:font-bold [&>h1]:mb-4 sm:[&>h1]:text-2xl [&>h2]:text-lg [&>h2]:font-bold [&>h2]:mb-3 sm:[&>h2]:text-xl [&>h3]:text-base [&>h3]:font-semibold [&>h3]:mb-2 sm:[&>h3]:text-lg [&>ul]:list-disc [&>ul]:ml-6 [&>ul]:mb-4 [&>ol]:list-decimal [&>ol]:ml-6 [&>ol]:mb-4 [&>blockquote]:border-l-4 [&>blockquote]:border-wb-30 [&>blockquote]:pl-4 [&>blockquote]:italic [&>a]:text-blue-600 [&>a]:underline"
-                dangerouslySetInnerHTML={{ __html: sanitizeHtml(article.content) }}
+                dangerouslySetInnerHTML={{ __html: sanitizeHtml(normalizeNewlines(article.content)) }}
               />
             </div>
 
@@ -504,7 +510,7 @@ export default function BlogDetailClient() {
                     </span>
                   </div>
                   <p className="line-clamp-2 text-xs text-wb-70 sm:line-clamp-3 sm:text-sm">
-                    {relatedArticle.excerpt || relatedArticle.content}
+                    {normalizeNewlines(relatedArticle.excerpt || relatedArticle.content)}
                   </p>
                 </div>
               </Link>

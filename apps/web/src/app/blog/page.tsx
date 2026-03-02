@@ -12,6 +12,7 @@ import { Breadcrumb } from '@/components/ui/breadcrumb'
 import { postService } from '@/lib/api/services'
 import { PostCategory, POST_CATEGORIES, getCategoryLabel } from '@/lib/types'
 import { generateSummary } from '@/lib/utils/article'
+import { normalizeNewlines } from '@/lib/utils'
 import { ArticleCoverGenerator } from '@/components/shared/ArticleCoverGenerator'
 
 // 空狀態元件
@@ -47,7 +48,7 @@ const ArticleCard = ({ article }: ArticleCardProps) => {
   return (
     <Link
       href={`/blog/${article.id}`}
-      className="group h-auto min-h-[380px] overflow-hidden rounded-lg bg-wb-0 transition-shadow hover:shadow-lg sm:h-[416px]"
+      className="group h-auto min-h-[380px] overflow-hidden rounded-lg bg-wb-0 transition-shadow hover:shadow-lg sm:min-h-[416px]"
     >
       <div className="relative aspect-video sm:h-[208px] sm:aspect-auto">
         {hasImage ? (
@@ -77,7 +78,7 @@ const ArticleCard = ({ article }: ArticleCardProps) => {
           {article.title}
         </h2>
         <p className="line-clamp-2 text-xs text-wb-70 sm:line-clamp-3 sm:text-sm">
-          {generateSummary(article.content)}
+          {generateSummary(normalizeNewlines(article.content))}
         </p>
         {article.author && (
           <p className="mt-auto text-xs text-wb-50">{article.author}</p>
@@ -89,7 +90,7 @@ const ArticleCard = ({ article }: ArticleCardProps) => {
 
 // 文章卡片骨架屏
 const ArticleCardSkeleton = () => (
-  <div className="h-auto min-h-[380px] animate-pulse overflow-hidden rounded-lg bg-wb-0 sm:h-[416px]">
+  <div className="h-auto min-h-[380px] animate-pulse overflow-hidden rounded-lg bg-wb-0 sm:min-h-[416px]">
     <div className="aspect-video bg-wb-20 sm:h-[208px] sm:aspect-auto" />
     <div className="flex flex-col gap-2 p-4 sm:gap-3 sm:p-5">
       <div className="flex items-center gap-2 sm:gap-3">
@@ -160,10 +161,10 @@ function BlogContent() {
           date: post.published_at
             ? new Date(post.published_at).toLocaleDateString('zh-TW')
             : new Date(post.created_at).toLocaleDateString('zh-TW'),
-          content: post.content,
+          description: post.excerpt ? normalizeNewlines(post.excerpt) : undefined,
           imageUrl: post.cover_image || '',
           isFeature: post.is_featured === 1,
-          description: post.excerpt || undefined,
+          content: normalizeNewlines(post.content),
           author: post.display_name || post.username || undefined,
         }))
 
