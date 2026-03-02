@@ -200,8 +200,15 @@ export function useAutoSaveBiography({
     return () => window.removeEventListener('beforeunload', handleBeforeUnload)
   }, [debouncedSave])
 
-  // 立即儲存
+  // 立即儲存（flush pending debounced save）
   const flushSave = useCallback(() => {
+    debouncedSave.flush()
+  }, [debouncedSave])
+
+  // 手動儲存（強制排入並立即執行，即使無 pending save 也會觸發）
+  const manualSave = useCallback(() => {
+    if (!latestBiographyRef.current) return
+    debouncedSave(latestBiographyRef.current, editVersionRef.current)
     debouncedSave.flush()
   }, [debouncedSave])
 
@@ -210,5 +217,6 @@ export function useAutoSaveBiography({
     hasUnsavedChanges,
     handleChange,
     flushSave,
+    manualSave,
   }
 }

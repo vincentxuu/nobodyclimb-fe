@@ -199,6 +199,7 @@ export function ProfileEditorV2Wrapper({ className }: ProfileEditorV2WrapperProp
           climbing_start_year: bio.climbing_start_year ?? '',
           frequent_locations: bio.frequent_locations?.join(', ') ?? '',
           home_gym: bio.home_gym ?? '',
+          favorite_route_type: bio.favorite_route_types?.join(', ') ?? '',
         }),
         // 攀岩者身體數據與年度目標
         height_cm: bio.height_cm ?? null,
