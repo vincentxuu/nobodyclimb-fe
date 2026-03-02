@@ -272,33 +272,58 @@ export function NotificationCenter({ className }: NotificationCenterProps) {
                           )}
                         >
                           <div className="flex gap-3">
-                            <div
-                              className={cn(
-                                'w-10 h-10 rounded-full flex items-center justify-center flex-shrink-0',
-                                colorClass
-                              )}
-                            >
-                              <Icon className="h-5 w-5" />
-                            </div>
+                            {notification.type === NotificationType.NEW_FOLLOWER && notification.actor_slug ? (
+                              <Link
+                                href={`/biography/profile/${notification.actor_slug}`}
+                                onClick={() => setIsOpen(false)}
+                                className="w-10 h-10 rounded-full flex-shrink-0 overflow-hidden"
+                              >
+                                {notification.actor_avatar ? (
+                                  <img
+                                    src={notification.actor_avatar}
+                                    alt={notification.actor_name ?? ''}
+                                    className="w-full h-full object-cover"
+                                  />
+                                ) : (
+                                  <div className="w-full h-full bg-green-100 flex items-center justify-center text-green-600 font-medium text-sm">
+                                    {(notification.actor_name ?? '?')[0].toUpperCase()}
+                                  </div>
+                                )}
+                              </Link>
+                            ) : (
+                              <div
+                                className={cn(
+                                  'w-10 h-10 rounded-full flex items-center justify-center flex-shrink-0',
+                                  colorClass
+                                )}
+                              >
+                                <Icon className="h-5 w-5" />
+                              </div>
+                            )}
                             <div className="flex-1 min-w-0">
                               {notification.type === NotificationType.NEW_FOLLOWER && notification.actor_slug ? (
-                                <Link
-                                  href={`/biography/profile/${notification.actor_slug}`}
-                                  onClick={() => setIsOpen(false)}
-                                  className="block hover:underline"
-                                >
+                                <>
+                                  <p className="text-base font-medium text-gray-900">
+                                    <Link
+                                      href={`/biography/profile/${notification.actor_slug}`}
+                                      onClick={() => setIsOpen(false)}
+                                      className="hover:underline"
+                                    >
+                                      {notification.actor_name}
+                                    </Link>
+                                  </p>
+                                  <p className="text-sm text-gray-600 mt-1">開始追蹤你了</p>
+                                </>
+                              ) : (
+                                <>
                                   <p className="text-base font-medium text-gray-900">
                                     {notification.title}
                                   </p>
-                                </Link>
-                              ) : (
-                                <p className="text-base font-medium text-gray-900">
-                                  {notification.title}
-                                </p>
+                                  <p className="text-sm text-gray-600 mt-1 line-clamp-3">
+                                    {notification.message}
+                                  </p>
+                                </>
                               )}
-                              <p className="text-sm text-gray-600 mt-1 line-clamp-3">
-                                {notification.message}
-                              </p>
                               <p className="text-xs text-gray-400 mt-2">
                                 {formatTime(notification.created_at)}
                               </p>
