@@ -85,7 +85,7 @@ export function ProfileEditor({
   const sectionRefs = useRef<Record<string, HTMLElement | null>>({})
 
   // Auto-save hook
-  const { localBiography, hasUnsavedChanges, handleChange, flushSave } = useAutoSaveBiography({
+  const { localBiography, hasUnsavedChanges, handleChange, flushSave, manualSave } = useAutoSaveBiography({
     biography,
     onChange,
     onSave,
@@ -490,6 +490,8 @@ export function ProfileEditor({
       <FixedBottomBar
         saveStatus={status}
         previewHref={previewHref}
+        onManualSave={manualSave}
+        hasUnsavedChanges={hasUnsavedChanges}
         onPublish={onPublish}
         canPublish={overallProgress > 0}
         progress={overallProgress}
