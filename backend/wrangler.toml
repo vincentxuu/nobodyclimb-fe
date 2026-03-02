@@ -112,7 +112,7 @@ binding = "DB"
 
 database_name = "nobodyclimb-db"
 
-database_id = "8857a1ac-6e3b-4a2b-8ef4-3e657c0e436d"
+database_id = "d2e7214f-5b2a-46ff-af47-ab0bda5d9b86"
 
 migrations_dir = "migrations"
 
