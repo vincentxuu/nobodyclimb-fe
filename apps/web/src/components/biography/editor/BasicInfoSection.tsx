@@ -362,10 +362,10 @@ export function BasicInfoSection({
             <span className="text-[#8E8C8C] font-normal ml-1">(選填)</span>
           </label>
         </div>
-        <div className="flex items-center gap-4">
+        <div className="flex flex-col gap-3 md:flex-row md:items-center md:gap-4">
           <div className="flex items-center gap-2">
-            <ArrowUpDown size={16} className="text-[#3F3D3D]" />
-            <span className="text-sm text-[#6D6C6C] whitespace-nowrap">身高</span>
+            <ArrowUpDown size={16} className="shrink-0 text-[#3F3D3D]" />
+            <span className="shrink-0 whitespace-nowrap text-sm text-[#6D6C6C]">身高</span>
             <input
               type="number"
               min={100}
@@ -373,13 +373,13 @@ export function BasicInfoSection({
               value={heightCm ?? ''}
               onChange={(e) => onHeightCmChange(parseIntOrNull(e.target.value))}
               placeholder="170"
-              className="w-20 px-3 py-2 text-sm bg-white border border-[#B6B3B3] rounded-lg text-[#1B1A1A] placeholder:text-[#9D9D9D] focus:outline-none focus:ring-2 focus:ring-brand-accent/50 focus:border-brand-dark transition-colors text-center"
+              className="w-[100px] shrink-0 rounded-lg border border-[#B6B3B3] bg-white px-3 py-2 text-center text-sm text-[#1B1A1A] placeholder:text-[#9D9D9D] transition-colors focus:border-brand-dark focus:outline-none focus:ring-2 focus:ring-brand-accent/50"
             />
-            <span className="text-sm text-[#6D6C6C]">cm</span>
+            <span className="shrink-0 whitespace-nowrap text-sm text-[#6D6C6C]">cm</span>
           </div>
           <div className="flex items-center gap-2">
-            <ArrowLeftRight size={16} className="text-[#3F3D3D]" />
-            <span className="text-sm text-[#6D6C6C] whitespace-nowrap">臂展</span>
+            <ArrowLeftRight size={16} className="shrink-0 text-[#3F3D3D]" />
+            <span className="shrink-0 whitespace-nowrap text-sm text-[#6D6C6C]">臂展</span>
             <input
               type="number"
               min={100}
@@ -387,9 +387,9 @@ export function BasicInfoSection({
               value={armSpanCm ?? ''}
               onChange={(e) => onArmSpanCmChange(parseIntOrNull(e.target.value))}
               placeholder="175"
-              className="w-20 px-3 py-2 text-sm bg-white border border-[#B6B3B3] rounded-lg text-[#1B1A1A] placeholder:text-[#9D9D9D] focus:outline-none focus:ring-2 focus:ring-brand-accent/50 focus:border-brand-dark transition-colors text-center"
+              className="w-[100px] shrink-0 rounded-lg border border-[#B6B3B3] bg-white px-3 py-2 text-center text-sm text-[#1B1A1A] placeholder:text-[#9D9D9D] transition-colors focus:border-brand-dark focus:outline-none focus:ring-2 focus:ring-brand-accent/50"
             />
-            <span className="text-sm text-[#6D6C6C]">cm</span>
+            <span className="shrink-0 whitespace-nowrap text-sm text-[#6D6C6C]">cm</span>
           </div>
         </div>
         <p className="text-xs text-[#8E8C8C]">
