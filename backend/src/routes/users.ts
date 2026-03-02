@@ -17,6 +17,8 @@ const adminListQuerySchema = z.object({
   search: z.string().optional(),
   role: z.enum(['user', 'admin', 'moderator']).optional(),
   status: z.enum(['active', 'inactive']).optional(),
+  sort: z.enum(['created_at', 'last_active_at']).optional(),
+  activity: z.enum(['recent_7d', 'recent_30d', 'inactive_30d']).optional(),
 });
 
 const updateStatusSchema = z.object({
@@ -53,6 +55,8 @@ usersRoutes.get(
   const search = c.req.query('search') || '';
   const role = c.req.query('role') || '';
   const status = c.req.query('status') || '';
+  const sort = c.req.query('sort') || 'created_at';
+  const activity = c.req.query('activity') || '';
   const offset = (page - 1) * limit;
 
   let whereClause = '1=1';
@@ -71,12 +75,24 @@ usersRoutes.get(
     params.push(role);
   }
 
-  // 狀態篩選
+  // 狀態篩選（帳號啟用狀態）
   if (status === 'active') {
     whereClause += ' AND is_active = 1';
   } else if (status === 'inactive') {
     whereClause += ' AND is_active = 0';
   }
+
+  // 活躍度篩選（依 last_active_at）
+  if (activity === 'recent_7d') {
+    whereClause += " AND last_active_at >= datetime('now', '-7 days')";
+  } else if (activity === 'recent_30d') {
+    whereClause += " AND last_active_at >= datetime('now', '-30 days')";
+  } else if (activity === 'inactive_30d') {
+    whereClause += " AND (last_active_at IS NULL OR last_active_at < datetime('now', '-30 days'))";
+  }
+
+  // 排序欄位（白名單防注入）
+  const orderBy = sort === 'last_active_at' ? 'last_active_at DESC NULLS LAST' : 'created_at DESC';
 
   // 獲取總數
   const countResult = await c.env.DB.prepare(
@@ -92,10 +108,10 @@ usersRoutes.get(
     `SELECT
       id, email, username, display_name, avatar_url, bio,
       role, is_active, email_verified, auth_provider,
-      created_at, updated_at
+      created_at, updated_at, last_active_at
     FROM users
     WHERE ${whereClause}
-    ORDER BY created_at DESC
+    ORDER BY ${orderBy}
     LIMIT ? OFFSET ?`
   )
     .bind(...params, limit, offset)
