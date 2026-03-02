@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useCallback } from 'react'
 import { motion } from 'framer-motion'
-import { cn } from '@/lib/utils'
+import { cn, normalizeNewlines } from '@/lib/utils'
 import { BookOpen, Loader2 } from 'lucide-react'
 import { biographyContentService, type Story } from '@/lib/api/services'
 import { ContentInteractionBar } from './ContentInteractionBar'
@@ -156,7 +156,7 @@ export function BiographyStories({
 
               {/* 完整內容 */}
               <p className="whitespace-pre-wrap text-sm leading-relaxed text-[#6D6C6C] flex-1">
-                {story.content}
+                {normalizeNewlines(story.content)}
               </p>
 
               {/* 互動按鈕 */}

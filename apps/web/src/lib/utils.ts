@@ -76,6 +76,15 @@ export function generateId(length = 8): string {
 }
 
 /**
+ * 將字面 \n 字串轉換為真正的換行符號
+ * 用於修正資料庫儲存時將換行符號轉義為字面 \n 的問題
+ */
+export function normalizeNewlines(text: string | null | undefined): string {
+  if (!text) return ''
+  return text.replace(/\\n/g, '\n')
+}
+
+/**
  * 延遲函數
  * @param ms 毫秒
  */

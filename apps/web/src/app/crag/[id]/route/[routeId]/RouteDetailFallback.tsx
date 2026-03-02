@@ -1,5 +1,6 @@
 'use client'
 
+import { useEffect } from 'react'
 import { useRouteDetail } from '@/hooks/api/useCrags'
 import RouteDetailClient from './RouteDetailClient'
 import type { RouteDetailData } from '@/lib/crag-data'
@@ -15,6 +16,14 @@ interface RouteDetailFallbackProps {
  */
 export default function RouteDetailFallback({ cragId, routeId }: RouteDetailFallbackProps) {
   const { data, isLoading, error } = useRouteDetail(cragId, routeId)
+
+  // 當 client-side 成功取得資料後，更新瀏覽器 tab 標題
+  // （server-side metadata 因 Cloudflare Worker 限制無法取得資料，會設為「找不到路線」）
+  useEffect(() => {
+    if (data?.route) {
+      document.title = `${data.route.name} (${data.route.grade})`
+    }
+  }, [data])
 
   if (isLoading) {
     return (

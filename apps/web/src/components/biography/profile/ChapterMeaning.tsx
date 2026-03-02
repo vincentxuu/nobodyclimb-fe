@@ -5,6 +5,7 @@ import { Loader2 } from 'lucide-react'
 import { biographyContentService } from '@/lib/api/services'
 import { useClimbingMeaningStory, useCoreStoryLikeMutation, useCoreStoryCommentMutation } from '@/lib/hooks/useCoreStories'
 import { ContentInteractionBar } from '../display/ContentInteractionBar'
+import { normalizeNewlines } from '@/lib/utils'
 
 /** 預設的攀岩意義文字 */
 const DEFAULT_CLIMBING_MEANING = '這題還在想，等我爬完這條再說'
@@ -55,7 +56,7 @@ export function ChapterMeaning({ biographyId, personName }: ChapterMeaningProps)
   }
 
   // 預設內容
-  const displayMeaning = story?.content || DEFAULT_CLIMBING_MEANING
+  const displayMeaning = normalizeNewlines(story?.content) || DEFAULT_CLIMBING_MEANING
   const isDefault = !story?.content
 
   return (

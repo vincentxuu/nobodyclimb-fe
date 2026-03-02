@@ -52,28 +52,50 @@ async function getApiBaseUrl(): Promise<string> {
 
 /**
  * 伺服器端 fetch 封裝
+ * 優先使用 Cloudflare Service Binding（零網路延遲），
+ * 本地開發或 binding 不存在時 fallback 到 HTTP
  */
 async function serverFetch<T>(path: string): Promise<T | null> {
+  try {
+    const { getCloudflareContext } = await import('@opennextjs/cloudflare')
+    const { env } = getCloudflareContext()
+    const backendApi = (env as unknown as Record<string, { fetch: typeof fetch } | undefined>)
+      .BACKEND_API
+
+    if (backendApi) {
+      // 走 Service Binding，完全不走公開網路
+      const url = `https://internal/api/v1${path}`
+      console.log('[Server Fetch] Service Binding:', url)
+      const response = await backendApi.fetch(new Request(url))
+      console.log('[Server Fetch] Service Binding Status:', response.status, 'for', url)
+      if (!response.ok) {
+        console.error('[Server Fetch] Service Binding failed:', response.status, 'for', url)
+        return null
+      }
+      return response.json()
+    }
+  } catch (error) {
+    // 非 Cloudflare 環境（如本地開發），fallback 到 HTTP
+    console.log('[Server Fetch] Service Binding unavailable, falling back to HTTP:', error)
+  }
+
+  // HTTP fallback（本地開發用）
   const apiBaseUrl = await getApiBaseUrl()
   const fullUrl = `${apiBaseUrl}${path}`
-
-  // Debug logging
-  console.log('[Server Fetch] URL:', fullUrl)
+  console.log('[Server Fetch] HTTP URL:', fullUrl)
 
   try {
     const response = await fetch(fullUrl, {
-      cache: 'no-store', // 禁用快取以避免舊資料問題
+      cache: 'no-store',
     })
-
-    console.log('[Server Fetch] Status:', response.status, 'for', fullUrl)
-
+    console.log('[Server Fetch] HTTP Status:', response.status, 'for', fullUrl)
     if (!response.ok) {
-      console.error('[Server Fetch] Failed with status:', response.status, 'for', fullUrl)
+      console.error('[Server Fetch] HTTP failed:', response.status, 'for', fullUrl)
       return null
     }
     return response.json()
   } catch (error) {
-    console.error(`[Server Fetch] Failed to fetch ${path}:`, error)
+    console.error(`[Server Fetch] HTTP failed to fetch ${path}:`, error)
     return null
   }
 }
