@@ -4,6 +4,7 @@ import { useEffect } from 'react'
 import { useRouteDetail } from '@/hooks/api/useCrags'
 import RouteDetailClient from './RouteDetailClient'
 import type { RouteDetailData } from '@/lib/crag-data'
+import { SITE_NAME } from '@/lib/constants'
 
 interface RouteDetailFallbackProps {
   cragId: string
@@ -21,7 +22,7 @@ export default function RouteDetailFallback({ cragId, routeId }: RouteDetailFall
   // （server-side metadata 因 Cloudflare Worker 限制無法取得資料，會設為「找不到路線」）
   useEffect(() => {
     if (data?.route) {
-      document.title = `${data.route.name} (${data.route.grade})`
+      document.title = `${data.route.name} (${data.route.grade}) | ${SITE_NAME}`
     }
   }, [data])
 
