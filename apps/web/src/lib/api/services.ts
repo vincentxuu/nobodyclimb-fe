@@ -727,7 +727,9 @@ export const biographyService = {
    * 更新個人人物誌
    */
   updateMyBiography: async (biographyData: Partial<BiographyInput>) => {
-    const response = await apiClient.put<ApiResponse<Biography>>('/biographies/me', biographyData)
+    const response = await apiClient.put<ApiResponse<Biography>>('/biographies/me', biographyData, {
+      timeout: 20000,
+    })
     return response.data
   },
 
@@ -772,7 +774,8 @@ export const biographyService = {
   }) => {
     const response = await apiClient.put<ApiResponse<{ autosave_at: string; throttled?: boolean }>>(
       '/biographies/me/autosave',
-      data
+      data,
+      { timeout: 20000 }
     )
     return response.data
   },
@@ -786,7 +789,8 @@ export const biographyService = {
     const backendData = transformBiographyV2ToBackend(bio)
     const response = await apiClient.put<ApiResponse<{ autosave_at: string; throttled?: boolean }>>(
       '/biographies/me/autosave',
-      backendData
+      backendData,
+      { timeout: 20000 }
     )
     return response.data
   },

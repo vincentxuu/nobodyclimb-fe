@@ -100,76 +100,79 @@ export function GradeTargetsSection({
         {currentYearTargets.map((target, index) => (
           <div
             key={`${target.grade_system}-${target.grade}-${index}`}
-            className="flex items-center gap-2 p-3 bg-[#F5F5F5] rounded-lg"
+            className="flex items-center justify-between gap-2 rounded-lg bg-[#F5F5F5] p-3"
           >
-            {/* Grade System Select */}
-            <select
-              value={target.grade_system}
-              onChange={(e) => {
-                const newSystem = e.target.value as GradeTarget['grade_system']
-                const options = GRADE_TARGET_OPTIONS[newSystem]
-                handleUpdateTarget(index, {
-                  grade_system: newSystem,
-                  grade: options[Math.floor(options.length / 2)],
-                })
-              }}
-              className="px-2 py-1.5 text-sm bg-white border border-[#B6B3B3] rounded-lg text-[#1B1A1A] focus:outline-none focus:ring-2 focus:ring-brand-accent/50 appearance-none cursor-pointer"
-            >
-              {CLIMBING_TYPES.filter((t) => t.value !== 'mixed').map((type) => (
-                <option key={type.value} value={type.value}>
-                  {type.label}
-                </option>
-              ))}
-            </select>
-
-            {/* Grade Select */}
-            <select
-              value={target.grade}
-              onChange={(e) => handleUpdateTarget(index, { grade: e.target.value })}
-              className="px-2 py-1.5 text-sm bg-white border border-[#B6B3B3] rounded-lg text-[#1B1A1A] focus:outline-none focus:ring-2 focus:ring-brand-accent/50 appearance-none cursor-pointer"
-            >
-              {GRADE_TARGET_OPTIONS[target.grade_system]?.map((grade) => (
-                <option key={grade} value={grade}>
-                  {grade}
-                </option>
-              ))}
-            </select>
-
-            {/* Completed / Target Count */}
-            <div className="flex items-center gap-1">
-              <input
-                type="number"
-                min={0}
-                max={target.target_count}
-                value={target.completed_count ?? 0}
-                onChange={(e) =>
+            <div className="scrollbar-hide flex min-w-0 flex-1 items-center gap-2 overflow-x-auto">
+              {/* Grade System Select */}
+              <select
+                value={target.grade_system}
+                onChange={(e) => {
+                  const newSystem = e.target.value as GradeTarget['grade_system']
+                  const options = GRADE_TARGET_OPTIONS[newSystem]
                   handleUpdateTarget(index, {
-                    completed_count: Math.max(0, parseInt(e.target.value) || 0),
+                    grade_system: newSystem,
+                    grade: options[Math.floor(options.length / 2)],
                   })
-                }
-                className="w-14 px-2 py-1.5 text-sm text-center bg-white border border-[#B6B3B3] rounded-lg text-[#1B1A1A] focus:outline-none focus:ring-2 focus:ring-brand-accent/50"
-              />
-              <span className="text-sm text-[#6D6C6C]">/</span>
-              <input
-                type="number"
-                min={1}
-                max={100}
-                value={target.target_count}
-                onChange={(e) =>
-                  handleUpdateTarget(index, {
-                    target_count: Math.max(1, parseInt(e.target.value) || 1),
-                  })
-                }
-                className="w-14 px-2 py-1.5 text-sm text-center bg-white border border-[#B6B3B3] rounded-lg text-[#1B1A1A] focus:outline-none focus:ring-2 focus:ring-brand-accent/50"
-              />
-              <span className="text-sm text-[#6D6C6C]">條</span>
+                }}
+                className="w-[104px] shrink-0 rounded-lg border border-[#B6B3B3] bg-white px-2 py-1.5 text-sm text-[#1B1A1A] appearance-none cursor-pointer focus:outline-none focus:ring-2 focus:ring-brand-accent/50"
+              >
+                {CLIMBING_TYPES.filter((t) => t.value !== 'mixed').map((type) => (
+                  <option key={type.value} value={type.value}>
+                    {type.label}
+                  </option>
+                ))}
+              </select>
+
+              {/* Grade Select */}
+              <select
+                value={target.grade}
+                onChange={(e) => handleUpdateTarget(index, { grade: e.target.value })}
+                className="w-20 shrink-0 rounded-lg border border-[#B6B3B3] bg-white px-2 py-1.5 text-sm text-[#1B1A1A] appearance-none cursor-pointer focus:outline-none focus:ring-2 focus:ring-brand-accent/50"
+              >
+                {GRADE_TARGET_OPTIONS[target.grade_system]?.map((grade) => (
+                  <option key={grade} value={grade}>
+                    {grade}
+                  </option>
+                ))}
+              </select>
+
+              {/* Completed / Target Count */}
+              <div className="flex shrink-0 items-center gap-1">
+                <input
+                  type="number"
+                  min={0}
+                  max={target.target_count}
+                  value={target.completed_count ?? 0}
+                  onChange={(e) =>
+                    handleUpdateTarget(index, {
+                      completed_count: Math.max(0, parseInt(e.target.value) || 0),
+                    })
+                  }
+                  className="w-14 rounded-lg border border-[#B6B3B3] bg-white px-2 py-1.5 text-center text-sm text-[#1B1A1A] focus:outline-none focus:ring-2 focus:ring-brand-accent/50"
+                />
+                <span className="text-sm text-[#6D6C6C]">/</span>
+                <input
+                  type="number"
+                  min={1}
+                  max={100}
+                  value={target.target_count}
+                  onChange={(e) =>
+                    handleUpdateTarget(index, {
+                      target_count: Math.max(1, parseInt(e.target.value) || 1),
+                    })
+                  }
+                  className="w-14 rounded-lg border border-[#B6B3B3] bg-white px-2 py-1.5 text-center text-sm text-[#1B1A1A] focus:outline-none focus:ring-2 focus:ring-brand-accent/50"
+                />
+                <span className="text-sm text-[#6D6C6C]">條</span>
+              </div>
             </div>
 
             {/* Remove Button */}
             <button
               type="button"
               onClick={() => handleRemoveTarget(index)}
-              className="ml-auto p-1 text-[#8E8C8C] hover:text-red-500 transition-colors"
+              className="inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-[#8E8C8C] transition-colors hover:bg-white hover:text-red-500"
+              aria-label="刪除目標"
             >
               <X size={16} />
             </button>
