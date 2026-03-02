@@ -9,9 +9,6 @@ import {
   Target,
   MapPin,
   Calendar,
-  Mountain,
-  MessageCircle,
-  Link as LinkIcon,
   Check,
   Tent,
   Home,
@@ -26,24 +23,53 @@ import {
 import { Button } from '@/components/ui/button'
 import { LoadingSpinner } from '@/components/ui/loading-spinner'
 import { Breadcrumb } from '@/components/ui/breadcrumb'
+import { ContentActions } from '@/components/biography/display/ContentActions'
 import { ProgressTracker, ProgressBar } from '@/components/bucket-list'
-import { bucketListService, biographyService } from '@/lib/api/services'
+import {
+  bucketListService,
+  biographyService,
+  type ContentComment,
+} from '@/lib/api/services'
 import { cn } from '@/lib/utils'
-import type { BucketListCategory } from '@/lib/types'
+import type { BucketListCategory, BucketListComment } from '@/lib/types'
 
-// 分類圖標和標籤映射
+function renderFormattedText(text: string): React.ReactNode {
+  const normalized = text.replace(/\\n/g, '\n')
+  const segments = normalized.split(/(\*\*[^*]+\*\*)/)
+  return segments.map((seg, i) =>
+    seg.startsWith('**') && seg.endsWith('**')
+      ? <strong key={i}>{seg.slice(2, -2)}</strong>
+      : seg
+  )
+}
+
+function formatDate(dateString?: string): string {
+  if (!dateString) return ''
+  const date = new Date(dateString)
+  const now = new Date()
+  const diffInDays = Math.floor((now.getTime() - date.getTime()) / (1000 * 60 * 60 * 24))
+
+  if (diffInDays === 0) return '今天'
+  if (diffInDays === 1) return '昨天'
+  if (diffInDays < 7) return `${diffInDays} 天前`
+  if (diffInDays < 30) return `${Math.floor(diffInDays / 7)} 週前`
+  if (diffInDays < 365) return `${Math.floor(diffInDays / 30)} 個月前`
+
+  return date.toLocaleDateString('zh-TW', { year: 'numeric', month: 'long', day: 'numeric' })
+}
+
 const categoryConfig: Record<
   BucketListCategory,
   { icon: React.ElementType; label: string; color: string }
 > = {
-  outdoor_route: { icon: Tent, label: '戶外路線', color: 'bg-green-100 text-green-700' },
-  indoor_grade: { icon: Home, label: '室內難度', color: 'bg-blue-100 text-blue-700' },
-  competition: { icon: Trophy, label: '比賽目標', color: 'bg-yellow-100 text-yellow-700' },
-  training: { icon: Dumbbell, label: '訓練目標', color: 'bg-purple-100 text-purple-700' },
-  adventure: { icon: Plane, label: '冒險挑戰', color: 'bg-orange-100 text-orange-700' },
-  skill: { icon: Award, label: '技能學習', color: 'bg-pink-100 text-pink-700' },
-  injury_recovery: { icon: Activity, label: '受傷復原', color: 'bg-red-100 text-red-700' },
-  other: { icon: Target, label: '其他', color: 'bg-gray-100 text-gray-700' },
+  outdoor_route: { icon: Tent, label: '戶外路線', color: 'border border-brand-accent/30 bg-brand-accent/10 text-brand-dark' },
+  indoor_grade: { icon: Home, label: '室內難度', color: 'border border-brand-accent/30 bg-brand-accent/10 text-brand-dark' },
+  competition: { icon: Trophy, label: '比賽目標', color: 'border border-brand-accent/30 bg-brand-accent/10 text-brand-dark' },
+  training: { icon: Dumbbell, label: '訓練目標', color: 'border border-brand-accent/30 bg-brand-accent/10 text-brand-dark' },
+  adventure: { icon: Plane, label: '冒險挑戰', color: 'border border-brand-accent/30 bg-brand-accent/10 text-brand-dark' },
+  skill: { icon: Award, label: '技能學習', color: 'border border-brand-accent/30 bg-brand-accent/10 text-brand-dark' },
+  injury_recovery: { icon: Activity, label: '受傷復原', color: 'border border-brand-accent/30 bg-brand-accent/10 text-brand-dark' },
+  other: { icon: Target, label: '其他', color: 'border border-brand-accent/30 bg-brand-accent/10 text-brand-dark' },
 }
 
 interface BucketListDetailPageProps {
@@ -55,10 +81,9 @@ interface BucketListDetailPageProps {
 export default function BucketListDetailPage({ params }: BucketListDetailPageProps) {
   const { id } = use(params)
   const queryClient = useQueryClient()
-  const [commentText, setCommentText] = React.useState('')
-  const [isSubmittingComment, setIsSubmittingComment] = React.useState(false)
+  const [isLiked, setIsLiked] = React.useState(false)
+  const [likeCount, setLikeCount] = React.useState(0)
 
-  // 獲取目標詳情
   const { data: itemData, isLoading: isItemLoading, error } = useQuery({
     queryKey: ['bucket-list-item', id],
     queryFn: () => bucketListService.getBucketListItem(id),
@@ -66,7 +91,12 @@ export default function BucketListDetailPage({ params }: BucketListDetailPagePro
 
   const item = itemData?.data
 
-  // 獲取作者資訊
+  React.useEffect(() => {
+    if (!item) return
+    setIsLiked(!!item.is_liked)
+    setLikeCount(item.likes_count || 0)
+  }, [item])
+
   const { data: biographyData } = useQuery({
     queryKey: ['biography', item?.biography_id],
     queryFn: () => biographyService.getBiographyById(item!.biography_id),
@@ -75,31 +105,67 @@ export default function BucketListDetailPage({ params }: BucketListDetailPagePro
 
   const biography = biographyData?.data
 
-  // 獲取留言
-  const { data: commentsData, refetch: refetchComments } = useQuery({
-    queryKey: ['bucket-list-comments', id],
-    queryFn: () => bucketListService.getComments(id),
-    enabled: !!id,
-  })
+  const mapComment = React.useCallback((comment: BucketListComment & {
+    updated_at?: string
+    like_count?: number
+    parent_id?: string
+  }): ContentComment => ({
+    id: comment.id,
+    user_id: comment.user_id,
+    content: comment.content,
+    parent_id: comment.parent_id,
+    like_count: comment.like_count || 0,
+    username: comment.username || 'anonymous',
+    display_name: comment.display_name,
+    avatar_url: comment.avatar_url,
+    created_at: comment.created_at,
+    updated_at: comment.updated_at || comment.created_at,
+  }), [])
 
-  const comments = commentsData?.data || []
-
-  // 提交留言
-  const handleSubmitComment = async () => {
-    if (!commentText.trim()) return
-
-    setIsSubmittingComment(true)
-    try {
-      await bucketListService.addComment(id, commentText.trim())
-      setCommentText('')
-      refetchComments()
-      queryClient.invalidateQueries({ queryKey: ['bucket-list-item', id] })
-    } catch (err) {
-      console.error('Failed to add comment:', err)
-    } finally {
-      setIsSubmittingComment(false)
+  const handleToggleLike = React.useCallback(async () => {
+    const nextLiked = !isLiked
+    if (nextLiked) {
+      await bucketListService.likeItem(id)
+    } else {
+      await bucketListService.unlikeItem(id)
     }
-  }
+
+    const nextLikeCount = Math.max(0, likeCount + (nextLiked ? 1 : -1))
+    setIsLiked(nextLiked)
+    setLikeCount(nextLikeCount)
+    queryClient.setQueryData(['bucket-list-item', id], (prev: any) => {
+      if (!prev?.data) return prev
+      return {
+        ...prev,
+        data: {
+          ...prev.data,
+          is_liked: nextLiked,
+          likes_count: nextLikeCount,
+        },
+      }
+    })
+
+    return { liked: nextLiked, like_count: nextLikeCount }
+  }, [id, isLiked, likeCount, queryClient])
+
+  const handleFetchComments = React.useCallback(async (): Promise<ContentComment[]> => {
+    const response = await bucketListService.getComments(id)
+    return (response.data || []).map(mapComment)
+  }, [id, mapComment])
+
+  const handleAddComment = React.useCallback(async (content: string): Promise<ContentComment> => {
+    const response = await bucketListService.addComment(id, content.trim())
+    if (!response.data) {
+      throw new Error('新增留言失敗')
+    }
+    queryClient.invalidateQueries({ queryKey: ['bucket-list-item', id] })
+    return mapComment(response.data)
+  }, [id, mapComment, queryClient])
+
+  const handleDeleteComment = React.useCallback(async (commentId: string): Promise<void> => {
+    await bucketListService.deleteComment(commentId)
+    queryClient.invalidateQueries({ queryKey: ['bucket-list-item', id] })
+  }, [id, queryClient])
 
   if (isItemLoading) {
     return (
@@ -111,13 +177,15 @@ export default function BucketListDetailPage({ params }: BucketListDetailPagePro
 
   if (error || !item) {
     return (
-      <div className="container mx-auto px-4 py-16 text-center">
-        <p className="text-lg text-[#6D6C6C]">找不到此目標</p>
-        <Link href="/biography">
-          <Button variant="outline" className="mt-4">
-            返回人物誌
-          </Button>
-        </Link>
+      <div className="min-h-screen bg-page-content-bg">
+        <div className="container mx-auto px-4 py-16 text-center">
+          <p className="text-lg text-text-subtle">找不到此目標</p>
+          <Link href="/biography">
+            <Button variant="outline" className="mt-4">
+              返回人物誌
+            </Button>
+          </Link>
+        </div>
       </div>
     )
   }
@@ -126,7 +194,6 @@ export default function BucketListDetailPage({ params }: BucketListDetailPagePro
   const CategoryIcon = category.icon
   const isCompleted = item.status === 'completed'
 
-  // 計算進度（防止除以零）
   const displayProgress = item.enable_progress
     ? item.progress_mode === 'milestone' && item.milestones && item.milestones.length > 0
       ? Math.round(
@@ -135,198 +202,197 @@ export default function BucketListDetailPage({ params }: BucketListDetailPagePro
       : item.progress
     : null
 
+  const backHref = biography
+    ? `/biography/profile/${biography.slug || biography.id}`
+    : '/biography'
+
   return (
     <div className="min-h-screen bg-page-content-bg">
-      <div className="container relative mx-auto px-4 pb-4 pt-20">
-        {/* 麵包屑 */}
-        <div className="mb-8">
+      <div className="container relative mx-auto px-4 pb-4 pt-4 md:pt-8">
+        <div className="mb-4 md:mb-8">
           <Breadcrumb
             items={[
               { label: '首頁', href: '/' },
               { label: '人物誌', href: '/biography' },
-              ...(biography ? [{ label: biography.name, href: `/biography/profile/${biography.slug || biography.id}` }] : []),
+              ...(biography
+                ? [{ label: biography.name, href: `/biography/profile/${biography.slug || biography.id}` }]
+                : []),
               { label: item.title },
             ]}
+            hideOnMobile
           />
         </div>
 
-        {/* 返回按鈕 */}
-        <div className="mb-4">
-          <motion.div
-            className="w-fit"
-            initial={{ opacity: 0, x: -20 }}
-            animate={{ opacity: 1, x: 0 }}
-            transition={{ duration: 0.3 }}
-          >
-            <Link href={biography ? `/biography/profile/${biography.slug || biography.id}` : '/biography'}>
-              <Button
-                variant="ghost"
-                className="flex items-center gap-2 bg-white shadow-sm hover:bg-[#dbd8d8]"
-              >
-                <ArrowLeft size={16} />
-                <span>返回</span>
-              </Button>
-            </Link>
-          </motion.div>
-        </div>
-
-        {/* 主要內容 */}
         <motion.div
-          className="mx-auto mt-8 max-w-3xl overflow-hidden rounded-lg bg-white shadow-sm"
+          initial={{ opacity: 0, x: -20 }}
+          animate={{ opacity: 1, x: 0 }}
+          transition={{ duration: 0.3 }}
+          className="mb-6"
+        >
+          <Link href={backHref}>
+            <Button
+              variant="ghost"
+              className="flex items-center gap-2 bg-white text-brand-dark shadow-sm hover:bg-brand-light"
+            >
+              <ArrowLeft size={16} />
+              <span>返回</span>
+            </Button>
+          </Link>
+        </motion.div>
+      </div>
+
+      <div className="container mx-auto max-w-3xl px-4 pb-12">
+        <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5 }}
+          transition={{ duration: 0.4 }}
         >
-          {/* Header */}
-          <div className={cn('p-6', isCompleted && 'bg-[#FAF40A]/10')}>
-            <div className="flex items-start justify-between gap-4">
-              <div className="flex-1">
-                {/* 分類標籤 */}
-                <span
-                  className={cn(
-                    'inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-sm font-medium',
-                    category.color
-                  )}
-                >
-                  <CategoryIcon className="h-4 w-4" />
-                  {category.label}
-                </span>
+          <div className="mb-8">
+            <h1
+              className="mb-4 text-3xl font-bold leading-tight text-brand-dark md:text-4xl"
+            >
+              {item.title}
+            </h1>
 
-                {/* 標題 */}
-                <h1
-                  className={cn(
-                    'mt-3 text-2xl font-bold text-[#1B1A1A]',
-                    isCompleted && 'line-through decoration-[#FAF40A] decoration-2'
-                  )}
-                >
-                  {item.title}
-                </h1>
+            <div className="flex flex-wrap items-center gap-2">
+              <span className="inline-flex items-center rounded-full bg-brand-accent px-3 py-1 text-xs font-medium text-brand-dark">
+                人生清單
+              </span>
 
-                {/* 作者 */}
-                {biography && (
-                  <Link
-                    href={`/biography/profile/${biography.slug || biography.id}`}
-                    className="mt-2 inline-flex items-center gap-2 text-sm text-gray-500 hover:text-[#1B1A1A]"
-                  >
-                    <span>by {biography.name}</span>
-                  </Link>
+              <span
+                className={cn(
+                  'inline-flex items-center gap-1 rounded-full px-3 py-1 text-xs font-medium',
+                  category.color
                 )}
-              </div>
+              >
+                <CategoryIcon className="h-3.5 w-3.5" />
+                {category.label}
+              </span>
 
-              {/* 完成狀態 */}
               {isCompleted && (
-                <span className="flex items-center gap-1.5 rounded-full bg-[#FAF40A] px-3 py-1.5 text-sm font-medium text-[#1B1A1A]">
-                  <Check className="h-4 w-4" />
+                <span className="inline-flex items-center gap-1 rounded-full bg-brand-accent px-3 py-1 text-xs font-medium text-brand-dark">
+                  <Check className="h-3.5 w-3.5" />
                   已完成
+                </span>
+              )}
+
+              {item.created_at && (
+                <span className="inline-flex items-center gap-1 text-xs text-text-subtle">
+                  <Calendar size={12} />
+                  <span>{formatDate(item.created_at)}</span>
                 </span>
               )}
             </div>
 
-            {/* 目標資訊 */}
-            <div className="mt-4 flex flex-wrap items-center gap-4 text-sm text-gray-600">
+            <div className="mt-4 flex flex-wrap items-center gap-x-4 gap-y-2 text-sm text-text-subtle">
               {item.target_grade && (
-                <span className="flex items-center gap-1">
+                <span className="inline-flex items-center gap-1">
                   <Target className="h-4 w-4" />
                   {item.target_grade}
                 </span>
               )}
               {item.target_location && (
-                <span className="flex items-center gap-1">
+                <span className="inline-flex items-center gap-1">
                   <MapPin className="h-4 w-4" />
                   {item.target_location}
                 </span>
               )}
               {item.target_date && (
-                <span className="flex items-center gap-1">
+                <span className="inline-flex items-center gap-1">
                   <Calendar className="h-4 w-4" />
                   目標：{item.target_date}
                 </span>
               )}
               {isCompleted && item.completed_at && (
-                <span className="flex items-center gap-1 text-green-600">
+                <span className="inline-flex items-center gap-1 text-brand-dark">
                   <Check className="h-4 w-4" />
                   完成於 {new Date(item.completed_at).toLocaleDateString('zh-TW')}
                 </span>
               )}
+              {biography && (
+                <Link
+                  href={`/biography/profile/${biography.slug || biography.id}`}
+                  className="inline-flex items-center text-sm text-text-subtle hover:text-brand-dark"
+                >
+                  by {biography.name}
+                </Link>
+              )}
             </div>
-
-            {/* 進度 */}
-            {item.enable_progress && displayProgress !== null && !isCompleted && (
-              <div className="mt-6">
-                {item.progress_mode === 'milestone' && item.milestones ? (
-                  <ProgressTracker
-                    mode="milestone"
-                    progress={displayProgress}
-                    milestones={item.milestones}
-                    size="md"
-                  />
-                ) : (
-                  <ProgressBar progress={displayProgress} size="md" />
-                )}
-              </div>
-            )}
           </div>
 
-          {/* 描述 */}
-          {item.description && (
-            <div className="border-t px-6 py-4">
-              <h2 className="text-lg font-medium text-[#1B1A1A]">目標描述</h2>
-              <p className="mt-2 whitespace-pre-line text-gray-600">{item.description}</p>
-            </div>
-          )}
+          <div className="relative mb-8 overflow-hidden rounded-2xl bg-white shadow-sm">
+            <div className={cn('px-6 py-8 md:px-10 md:py-10', isCompleted && 'bg-brand-accent/10')}>
+              <h2 className="mb-3 text-lg font-semibold text-brand-dark">目標描述</h2>
+              {item.description ? (
+                <p className="whitespace-pre-line text-[15px] leading-relaxed text-brand-dark">
+                  {renderFormattedText(item.description)}
+                </p>
+              ) : (
+                <p className="text-sm text-text-subtle">尚未填寫目標描述</p>
+              )}
 
-          {/* 完成故事 */}
+              {!!item.enable_progress && displayProgress !== null && !isCompleted && (
+                <div className="mt-6 border-t border-brand-accent/20 pt-5">
+                  {item.progress_mode === 'milestone' && item.milestones ? (
+                    <ProgressTracker
+                      mode="milestone"
+                      progress={displayProgress}
+                      milestones={item.milestones}
+                      size="md"
+                    />
+                  ) : (
+                    <ProgressBar progress={displayProgress} size="md" />
+                  )}
+                </div>
+              )}
+            </div>
+          </div>
+
           {isCompleted && (item.completion_story || item.psychological_insights || item.technical_insights) && (
-            <div className="border-t bg-yellow-50/50 px-6 py-6">
-              <h2 className="text-lg font-medium text-[#1B1A1A]">完成故事</h2>
+            <div className="mb-8 rounded-2xl bg-white p-6 shadow-sm md:p-8">
+              <h2 className="text-lg font-semibold text-brand-dark">完成故事</h2>
 
               {item.completion_story && (
-                <div className="mt-4">
-                  <p className="whitespace-pre-line text-gray-700">{item.completion_story}</p>
-                </div>
+                <p className="mt-4 whitespace-pre-line leading-relaxed text-brand-dark">
+                  {renderFormattedText(item.completion_story)}
+                </p>
               )}
 
               {item.psychological_insights && (
                 <div className="mt-6">
-                  <h3 className="flex items-center gap-2 font-medium text-[#1B1A1A]">
-                    💭 心理層面
-                  </h3>
-                  <p className="mt-2 whitespace-pre-line text-gray-600">
-                    {item.psychological_insights}
+                  <h3 className="font-medium text-brand-dark">心理層面</h3>
+                  <p className="mt-2 whitespace-pre-line text-text-subtle">
+                    {renderFormattedText(item.psychological_insights)}
                   </p>
                 </div>
               )}
 
               {item.technical_insights && (
                 <div className="mt-6">
-                  <h3 className="flex items-center gap-2 font-medium text-[#1B1A1A]">
-                    🧗 技術層面
-                  </h3>
-                  <p className="mt-2 whitespace-pre-line text-gray-600">
-                    {item.technical_insights}
+                  <h3 className="font-medium text-brand-dark">技術層面</h3>
+                  <p className="mt-2 whitespace-pre-line text-text-subtle">
+                    {renderFormattedText(item.technical_insights)}
                   </p>
                 </div>
               )}
 
-              {/* 完成媒體 */}
               {item.completion_media && (
-                <div className="mt-6">
-                  {/* YouTube */}
+                <div className="mt-6 space-y-4">
                   {item.completion_media.youtube_videos &&
                     item.completion_media.youtube_videos.length > 0 && (
-                      <div className="space-y-2">
-                        <h3 className="flex items-center gap-2 font-medium text-[#1B1A1A]">
+                      <div>
+                        <h3 className="flex items-center gap-2 font-medium text-brand-dark">
                           <Youtube className="h-4 w-4 text-red-500" />
                           相關影片
                         </h3>
-                        <div className="grid gap-2">
+                        <div className="mt-2 grid gap-2">
                           {item.completion_media.youtube_videos.map((videoId) => (
                             <a
                               key={videoId}
                               href={`https://youtube.com/watch?v=${videoId}`}
                               target="_blank"
                               rel="noopener noreferrer"
-                              className="flex items-center gap-2 rounded bg-white px-3 py-2 text-sm text-gray-600 hover:bg-gray-50"
+                              className="flex items-center gap-2 rounded border border-brand-accent/20 bg-brand-light px-3 py-2 text-sm text-text-subtle hover:bg-brand-accent/10"
                             >
                               <Youtube className="h-4 w-4 text-red-500" />
                               youtube.com/watch?v={videoId}
@@ -336,22 +402,21 @@ export default function BucketListDetailPage({ params }: BucketListDetailPagePro
                       </div>
                     )}
 
-                  {/* Instagram */}
                   {item.completion_media.instagram_posts &&
                     item.completion_media.instagram_posts.length > 0 && (
-                      <div className="mt-4 space-y-2">
-                        <h3 className="flex items-center gap-2 font-medium text-[#1B1A1A]">
+                      <div>
+                        <h3 className="flex items-center gap-2 font-medium text-brand-dark">
                           <Instagram className="h-4 w-4 text-pink-500" />
                           相關貼文
                         </h3>
-                        <div className="grid gap-2">
+                        <div className="mt-2 grid gap-2">
                           {item.completion_media.instagram_posts.map((shortcode) => (
                             <a
                               key={shortcode}
                               href={`https://instagram.com/p/${shortcode}`}
                               target="_blank"
                               rel="noopener noreferrer"
-                              className="flex items-center gap-2 rounded bg-white px-3 py-2 text-sm text-gray-600 hover:bg-gray-50"
+                              className="flex items-center gap-2 rounded border border-brand-accent/20 bg-brand-light px-3 py-2 text-sm text-text-subtle hover:bg-brand-accent/10"
                             >
                               <Instagram className="h-4 w-4 text-pink-500" />
                               instagram.com/p/{shortcode}
@@ -365,70 +430,19 @@ export default function BucketListDetailPage({ params }: BucketListDetailPagePro
             </div>
           )}
 
-          {/* 社群互動 */}
-          <div className="border-t px-6 py-4">
-            <div className="flex items-center gap-6">
-              <button className="flex items-center gap-1.5 text-gray-500 hover:text-red-500">
-                <Mountain className="h-5 w-5" />
-                <span>{item.likes_count || 0}</span>
-              </button>
-              <button className="flex items-center gap-1.5 text-gray-500 hover:text-blue-500">
-                <MessageCircle className="h-5 w-5" />
-                <span>{item.comments_count || 0}</span>
-              </button>
-              <button className="flex items-center gap-1.5 text-gray-500 hover:text-green-500">
-                <LinkIcon className="h-5 w-5" />
-                <span>{item.inspired_count || 0} 人也想做</span>
-              </button>
-            </div>
-          </div>
-
-          {/* 留言區 */}
-          <div className="border-t px-6 py-6">
-            <h2 className="text-lg font-medium text-[#1B1A1A]">
-              留言 ({comments.length})
-            </h2>
-
-            {comments.length === 0 ? (
-              <p className="mt-4 text-center text-gray-500">還沒有留言，成為第一個留言的人吧！</p>
-            ) : (
-              <div className="mt-4 space-y-4">
-                {comments.map((comment) => (
-                  <div key={comment.id} className="rounded-lg bg-gray-50 p-4">
-                    <div className="flex items-center gap-2">
-                      <span className="font-medium text-[#1B1A1A]">
-                        {comment.display_name || comment.username || '匿名用戶'}
-                      </span>
-                      <span className="text-xs text-gray-400">
-                        {new Date(comment.created_at).toLocaleDateString('zh-TW')}
-                      </span>
-                    </div>
-                    <p className="mt-2 text-gray-600">{comment.content}</p>
-                  </div>
-                ))}
-              </div>
-            )}
-
-            {/* 留言輸入框 */}
-            <div className="mt-6">
-              <textarea
-                value={commentText}
-                onChange={(e) => setCommentText(e.target.value)}
-                placeholder="分享你的想法..."
-                className="w-full rounded-lg border px-4 py-3 text-sm focus:border-[#FAF40A] focus:outline-none"
-                rows={3}
-                disabled={isSubmittingComment}
-              />
-              <div className="mt-2 flex justify-end">
-                <Button
-                  size="sm"
-                  onClick={handleSubmitComment}
-                  disabled={!commentText.trim() || isSubmittingComment}
-                >
-                  {isSubmittingComment ? '發表中...' : '發表留言'}
-                </Button>
-              </div>
-            </div>
+          <div className="mb-8 rounded-2xl bg-white p-5 shadow-sm md:p-6">
+            <ContentActions
+              isLiked={isLiked}
+              likeCount={likeCount}
+              commentCount={item.comments_count || 0}
+              onToggleLike={handleToggleLike}
+              onFetchComments={handleFetchComments}
+              onAddComment={handleAddComment}
+              onDeleteComment={handleDeleteComment}
+              size="md"
+              shareUrl={typeof window !== 'undefined' ? window.location.href : ''}
+              shareTitle={item.title}
+            />
           </div>
         </motion.div>
       </div>
