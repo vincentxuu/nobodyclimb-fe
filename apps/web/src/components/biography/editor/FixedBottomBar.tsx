@@ -2,7 +2,7 @@
 
 import Link from 'next/link'
 import { cn } from '@/lib/utils'
-import { Eye, Loader2 } from 'lucide-react'
+import { Eye, Loader2, Save } from 'lucide-react'
 import type { SaveStatus } from '@/lib/types/biography-v2'
 
 interface FixedBottomBarProps {
@@ -10,6 +10,10 @@ interface FixedBottomBarProps {
   saveStatus: SaveStatus
   /** 預覽連結 */
   previewHref: string
+  /** 手動儲存回調 */
+  onManualSave?: () => void
+  /** 是否有未儲存變更 */
+  hasUnsavedChanges?: boolean
   /** 發布回調 */
   onPublish?: () => void
   /** 是否可以發布 */
@@ -30,6 +34,8 @@ interface FixedBottomBarProps {
 export function FixedBottomBar({
   saveStatus,
   previewHref,
+  onManualSave,
+  hasUnsavedChanges = false,
   onPublish,
   canPublish = true,
   isPublishing = false,
@@ -79,6 +85,33 @@ export function FixedBottomBar({
 
         {/* Right: Actions */}
         <div className="flex items-center gap-2">
+          {/* Manual Save Button */}
+          {onManualSave && (
+            <button
+              type="button"
+              onClick={onManualSave}
+              disabled={!hasUnsavedChanges || saveStatus === 'saving'}
+              className={cn(
+                'flex items-center gap-1 px-4 py-2 text-sm font-medium rounded-lg transition-colors',
+                hasUnsavedChanges && saveStatus !== 'saving'
+                  ? 'border border-[#1B1A1A] text-[#1B1A1A] hover:bg-[#F5F5F5]'
+                  : 'border border-[#DBD8D8] text-[#B6B3B3] cursor-not-allowed'
+              )}
+            >
+              {saveStatus === 'saving' ? (
+                <>
+                  <Loader2 size={16} className="animate-spin" />
+                  儲存中...
+                </>
+              ) : (
+                <>
+                  <Save size={16} />
+                  儲存
+                </>
+              )}
+            </button>
+          )}
+
           {/* Preview Button - 在新分頁開啟，方便返回編輯器 */}
           <Link
             href={previewHref}
