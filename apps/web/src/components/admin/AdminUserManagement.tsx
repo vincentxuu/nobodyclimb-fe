@@ -16,7 +16,23 @@ import {
   Mail,
   Calendar,
   TrendingUp,
+  Clock,
+  ArrowUpDown,
 } from 'lucide-react'
+
+function formatRelativeTime(dateStr: string | null): string {
+  if (!dateStr) return '從未登入'
+  const diff = Date.now() - new Date(dateStr).getTime()
+  const minutes = Math.floor(diff / 60000)
+  if (minutes < 60) return `${minutes} 分鐘前`
+  const hours = Math.floor(minutes / 60)
+  if (hours < 24) return `${hours} 小時前`
+  const days = Math.floor(hours / 24)
+  if (days < 30) return `${days} 天前`
+  const months = Math.floor(days / 30)
+  if (months < 12) return `${months} 個月前`
+  return `${Math.floor(months / 12)} 年前`
+}
 
 const roleLabels: Record<string, string> = {
   user: '一般用戶',
@@ -46,6 +62,8 @@ export default function AdminUserManagement() {
   const [search, setSearch] = useState('')
   const [roleFilter, setRoleFilter] = useState('')
   const [statusFilter, setStatusFilter] = useState('')
+  const [sortBy, setSortBy] = useState<'created_at' | 'last_active_at'>('created_at')
+  const [activityFilter, setActivityFilter] = useState('')
   const [actionLoading, setActionLoading] = useState<string | null>(null)
   const [menuOpen, setMenuOpen] = useState<string | null>(null)
 
@@ -60,6 +78,8 @@ export default function AdminUserManagement() {
           search: search || undefined,
           role: roleFilter || undefined,
           status: statusFilter || undefined,
+          sort: sortBy,
+          activity: activityFilter as 'recent_7d' | 'recent_30d' | 'inactive_30d' | undefined || undefined,
         }),
         adminUserService.getStats(),
       ])
@@ -78,7 +98,7 @@ export default function AdminUserManagement() {
     } finally {
       setLoading(false)
     }
-  }, [page, search, roleFilter, statusFilter])
+  }, [page, search, roleFilter, statusFilter, sortBy, activityFilter])
 
   useEffect(() => {
     loadData()
@@ -190,8 +210,9 @@ export default function AdminUserManagement() {
                 <UserCheck className="h-5 w-5 text-wb-90" />
               </div>
               <div>
-                <p className="text-sm text-wb-70">活躍用戶</p>
+                <p className="text-sm text-wb-70">已啟用帳號</p>
                 <p className="text-2xl font-bold text-wb-100">{stats.active}</p>
+                <p className="text-xs text-wb-50 mt-0.5">is_active = 1</p>
               </div>
             </div>
           </div>
@@ -221,8 +242,8 @@ export default function AdminUserManagement() {
       )}
 
       {/* 搜尋和篩選 */}
-      <div className="bg-white rounded-lg shadow-sm border border-wb-20 p-4">
-        <form onSubmit={handleSearch} className="flex flex-col md:flex-row gap-4">
+      <div className="bg-white rounded-lg shadow-sm border border-wb-20 p-4 space-y-3">
+        <form onSubmit={handleSearch} className="flex flex-col md:flex-row gap-3">
           <div className="flex-1 relative">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-wb-60" />
             <input
@@ -254,7 +275,7 @@ export default function AdminUserManagement() {
             }}
             className="px-4 py-2 bg-white text-wb-100 border border-wb-20 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary"
           >
-            <option value="">所有狀態</option>
+            <option value="">所有帳號狀態</option>
             <option value="active">已啟用</option>
             <option value="inactive">已停用</option>
           </select>
@@ -265,6 +286,62 @@ export default function AdminUserManagement() {
             搜尋
           </button>
         </form>
+        <div className="flex flex-wrap gap-3 pt-1 border-t border-wb-10">
+          {/* 活躍度篩選 */}
+          <div className="flex items-center gap-2">
+            <Clock className="h-4 w-4 text-wb-60" />
+            <span className="text-xs text-wb-60">活躍度：</span>
+            {[
+              { value: '', label: '全部' },
+              { value: 'recent_7d', label: '近 7 天活躍' },
+              { value: 'recent_30d', label: '近 30 天活躍' },
+              { value: 'inactive_30d', label: '超過 30 天未登入' },
+            ].map((opt) => (
+              <button
+                key={opt.value}
+                type="button"
+                onClick={() => {
+                  setActivityFilter(opt.value)
+                  setPage(1)
+                }}
+                className={`px-3 py-1 text-xs rounded-full transition-colors ${
+                  activityFilter === opt.value
+                    ? 'bg-wb-100 text-white'
+                    : 'bg-wb-10 text-wb-70 hover:bg-wb-20'
+                }`}
+              >
+                {opt.label}
+              </button>
+            ))}
+          </div>
+          {/* 排序切換 */}
+          <div className="flex items-center gap-2 ml-auto">
+            <ArrowUpDown className="h-4 w-4 text-wb-60" />
+            <span className="text-xs text-wb-60">排序：</span>
+            <button
+              type="button"
+              onClick={() => { setSortBy('created_at'); setPage(1) }}
+              className={`px-3 py-1 text-xs rounded-full transition-colors ${
+                sortBy === 'created_at'
+                  ? 'bg-wb-100 text-white'
+                  : 'bg-wb-10 text-wb-70 hover:bg-wb-20'
+              }`}
+            >
+              註冊時間
+            </button>
+            <button
+              type="button"
+              onClick={() => { setSortBy('last_active_at'); setPage(1) }}
+              className={`px-3 py-1 text-xs rounded-full transition-colors ${
+                sortBy === 'last_active_at'
+                  ? 'bg-wb-100 text-white'
+                  : 'bg-wb-10 text-wb-70 hover:bg-wb-20'
+              }`}
+            >
+              最近活躍
+            </button>
+          </div>
+        </div>
       </div>
 
       {/* 用戶列表 */}
@@ -279,6 +356,7 @@ export default function AdminUserManagement() {
                 <th className="px-6 py-4 font-medium">狀態</th>
                 <th className="px-6 py-4 font-medium">認證方式</th>
                 <th className="px-6 py-4 font-medium">註冊時間</th>
+                <th className="px-6 py-4 font-medium">最後活躍</th>
                 <th className="px-6 py-4 font-medium text-right">操作</th>
               </tr>
             </thead>
@@ -341,6 +419,22 @@ export default function AdminUserManagement() {
                   </td>
                   <td className="px-6 py-4 text-sm text-gray-500">
                     {new Date(user.created_at).toLocaleDateString('zh-TW')}
+                  </td>
+                  <td className="px-6 py-4">
+                    <span
+                      className={`text-sm ${
+                        !user.last_active_at
+                          ? 'text-wb-40'
+                          : Date.now() - new Date(user.last_active_at).getTime() < 7 * 86400000
+                          ? 'text-green-600'
+                          : Date.now() - new Date(user.last_active_at).getTime() < 30 * 86400000
+                          ? 'text-wb-70'
+                          : 'text-wb-40'
+                      }`}
+                      title={user.last_active_at ?? undefined}
+                    >
+                      {formatRelativeTime(user.last_active_at)}
+                    </span>
                   </td>
                   <td className="px-6 py-4 text-right">
                     <div className="relative">
@@ -407,7 +501,7 @@ export default function AdminUserManagement() {
               ))}
               {users.length === 0 && (
                 <tr>
-                  <td colSpan={7} className="px-6 py-12 text-center text-gray-500">
+                  <td colSpan={8} className="px-6 py-12 text-center text-gray-500">
                     沒有找到符合條件的用戶
                   </td>
                 </tr>
