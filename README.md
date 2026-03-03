@@ -77,11 +77,24 @@ nobodyclimb/
 ├── backend/                    # Cloudflare Workers API (@nobodyclimb/api)
 │   ├── src/
 │   │   ├── index.ts            # 主要進入點和路由
+│   │   ├── types.ts            # TypeScript 類型定義
 │   │   ├── db/                 # 資料庫結構定義
 │   │   ├── middleware/         # 認證中介軟體
 │   │   ├── repositories/       # 資料存取層
 │   │   ├── routes/             # API 路由處理器 (含 OpenAPI 裝飾器)
+│   │   │   ├── ai.ts           # AI 問答與語義搜尋
+│   │   │   ├── admin-ai.ts     # Admin AI 管理
+│   │   │   ├── biographies.ts  # 人物誌（含追蹤、社群互動）
+│   │   │   ├── ascents.ts      # 攀爬記錄
+│   │   │   ├── route-stories.ts # 路線故事
+│   │   │   ├── bucket-list.ts  # 人生清單
+│   │   │   ├── notifications.ts # 通知系統
+│   │   │   └── ...             # 其他路由
 │   │   ├── services/           # 業務邏輯層
+│   │   │   ├── query.ts        # AI RAG 問答服務
+│   │   │   ├── embedding.ts    # 向量嵌入服務
+│   │   │   ├── indexing.ts     # 資料索引服務
+│   │   │   └── notification-service.ts # 通知服務
 │   │   └── utils/              # 工具函式
 │   ├── migrations/             # D1 資料庫遷移
 │   └── package.json
@@ -108,18 +121,21 @@ nobodyclimb/
 ### 核心功能
 
 - **用戶認證**: 註冊、登入、Google OAuth、多步驟個人資料設定
-- **個人檔案**: 用戶資料、攀岩經驗、個人設定、文章管理、書籤收藏
+- **個人檔案**: 用戶資料、攀岩經驗、身體數據、個人設定、文章管理、書籤收藏
 - **部落格系統**: 文章創建、編輯、瀏覽功能、富文本編輯器
 - **岩場資訊**: 岩場詳情、路線資訊、地圖顯示、天氣狀況、社群媒體整合
 - **攀岩館**: 攀岩館資訊、設施介紹、詳細頁面
-- **路線社群**: 路線故事分享、攀登紀錄、社群互動
-- **攀登紀錄**: 記錄攀登歷程、追蹤完攀路線
+- **路線故事**: 路線故事分享、按讚、留言、標記有幫助、社群互動
+- **攀登紀錄**: 記錄攀登歷程、攀爬日期、難度評分、追蹤完攀路線
 - **相片集**: 攀岩相片瀏覽、彈出視窗展示、圖片上傳與裁切
-- **人物誌**: 攀岩人物故事、個人檔案展示、章節式內容
-- **搜尋功能**: 全站搜尋、進階篩選
+- **人物誌**: 攀岩人物故事、個人檔案展示、章節式內容（核心故事、一句話、小故事）、社群互動（按讚、留言、快速反應）
+- **追蹤系統**: 追蹤/取消追蹤人物誌、追蹤者/追蹤中列表
+- **通知系統**: 即時通知、未讀數量、按讚/留言/追蹤通知、廣播通知（管理員）
+- **人生清單**: 攀岩目標追蹤（依分類、地點）、已完成項目、熱門清單
+- **搜尋功能**: 全站搜尋、語義搜尋、進階篩選
 - **影片瀏覽**: YouTube 攀岩影片整合、多頻道支援、篩選、播放功能
-- **願望清單**: 攀岩目標追蹤、拖曳排序
 - **遊戲系統**: 繩索系統測驗、攀岩知識學習
+- **AI 問答系統**: RAG 自然語言問答、語義搜尋、知識庫索引、用戶回饋
 
 ### 技術特色
 
@@ -137,6 +153,8 @@ nobodyclimb/
 - **測試覆蓋**: Jest + React Testing Library
 - **現代化架構**: 使用 React 19 和 Next.js 15 最新特性
 - **XSS 防護**: DOMPurify 內容清理
+- **AI RAG**: Cloudflare AI Workers Inference，向量嵌入語義搜尋
+- **通知推播**: 即時通知系統，支援多種通知類型
 
 ### YouTube 影片功能
 
@@ -780,6 +798,8 @@ wrangler kv:key list --binding=VIDEOS
 - D1 資料庫，SQLite schema 在 `backend/src/db/schema.sql`
 - Cloudflare 綁定: DB (D1), CACHE (KV), STORAGE (R2)
 - 分層架構: routes → services → repositories
+- **AI RAG 系統**: Cloudflare AI Workers Inference（`@cf/google/gemma-3-12b-it` + `@cf/baai/bge-m3` 向量嵌入），支援自然語言問答
+- **通知服務**: `NotificationService` + `NotificationRepository` 處理多類型通知
 
 ### TypeScript 路徑別名
 
