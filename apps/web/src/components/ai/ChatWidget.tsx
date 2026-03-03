@@ -18,14 +18,9 @@ const SUGGESTION_POOL = [
   '龍洞有哪些 5.11 運攀路線？',
   '我想挑戰 5.12，有哪些推薦路線？',
   '爬完天天天藍了，推薦我下一條路線',
-  '北部有什麼適合初學者的岩場？',
-  '瑞芳有哪些抱石場地？',
-  '龍洞南口和龍洞四號有什麼差別？',
-  '推薦幾條適合女生的運攀路線',
   '我想爬長路線，台灣有什麼選擇？',
-  '武陵地區有哪些岩場？',
-  '龍洞的岩壁類型有哪些？',
-  '從台北出發，最近的攀岩岩場在哪？',
+  '龍洞的路線類型有哪些？',
+  '從台北出發，最近的岩場在哪？',
   '5.10b 的路線適合怎樣程度的攀岩者？',
 ]
 
@@ -53,6 +48,7 @@ export function ChatWidget() {
   const [sessions, setSessions] = useState<ChatSession[]>([])
   const [showConfirmClear, setShowConfirmClear] = useState(false)
   const [quota, setQuota] = useState<AiQuota | null>(null)
+  const [isRegenerating, setIsRegenerating] = useState(false)
   const messagesEndRef = useRef<HTMLDivElement>(null)
   const inputRef = useRef<HTMLTextAreaElement>(null)
   const { mutate: askAI, isPending } = useAskAI()
@@ -65,7 +61,7 @@ export function ChatWidget() {
 
     const timer = setTimeout(() => inputRef.current?.focus(), 100)
 
-    getMyQuota().then(setQuota).catch(() => {})
+    getMyQuota().then(setQuota).catch(() => { })
 
     if (isAuthenticated && !currentSessionId) {
       getChatSessions().then((list) => {
@@ -85,9 +81,9 @@ export function ChatWidget() {
                   : m.suggested_questions)
                 : undefined,
             })))
-          }).catch(() => {})
+          }).catch(() => { })
         } else {
-          createChatSession().then((s) => setCurrentSessionId(s.id)).catch(() => {})
+          createChatSession().then((s) => setCurrentSessionId(s.id)).catch(() => { })
         }
       }).catch(() => {
         // 非登入用戶或 API 失敗，不持久化
@@ -95,7 +91,7 @@ export function ChatWidget() {
     }
 
     return () => clearTimeout(timer)
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isOpen])
 
   // 新訊息時捲動到底部
@@ -170,19 +166,32 @@ export function ChatWidget() {
             })
           },
           onError: (error) => {
-            // eslint-disable-next-line @typescript-eslint/no-explicit-any
-            const axiosError = error as any
+            const axiosError = error as { response?: { status?: number; data?: { data?: { daily_limit?: number; daily_used?: number; tier?: string; tier_display?: string; resets_at?: string } } } }
             if (axiosError?.response?.status === 429) {
-              const limit = quota?.daily_limit ?? 0
+              const errData = axiosError?.response?.data?.data
+              const limit = errData?.daily_limit ?? quota?.daily_limit ?? 2
+              const used = errData?.daily_used ?? limit
               setMessages((prev) => [
                 ...prev,
                 {
                   id: crypto.randomUUID(),
                   role: 'assistant',
-                  content: `今日 AI 使用配額已用盡（${limit}/${limit} 次）。\n\n配額將於台灣時間明日 00:00 重置。\n\n💡 充實你的攀岩日誌（記錄故事、路線攀登、人生清單），即可提升段位獲得更多每日配額。`,
+                  content: `今日 AI 使用配額已用盡（${used}/${limit} 次）。\n\n配額將於台灣時間明日 00:00 重置。\n\n💡 充實你的攀岩日誌（記錄故事、路線攀登、人生清單），即可提升等級獲得更多每日配額。`,
                 },
               ])
-              setQuota((prev) => prev ? { ...prev, remaining: 0, daily_used: prev.daily_limit } : prev)
+              if (errData) {
+                setQuota({
+                  tier: (errData.tier ?? quota?.tier ?? 'foothill') as AiQuota['tier'],
+                  tier_display: errData.tier_display ?? quota?.tier_display ?? '麓',
+                  daily_limit: limit,
+                  daily_used: used,
+                  remaining: 0,
+                  score: quota?.score ?? 0,
+                  resets_at: errData.resets_at ?? quota?.resets_at ?? '',
+                })
+              } else {
+                setQuota((prev) => prev ? { ...prev, remaining: 0, daily_used: prev.daily_limit } : prev)
+              }
             } else {
               setMessages((prev) => [
                 ...prev,
@@ -197,7 +206,7 @@ export function ChatWidget() {
         }
       )
     },
-    [askAI, isPending, persistMessage]
+    [askAI, isPending, persistMessage, quota]
   )
 
   // 重新生成最後一則 AI 回應
@@ -209,10 +218,12 @@ export function ChatWidget() {
     // 移除最後一則 AI 訊息
     setMessages((prev) => prev.slice(0, -1))
     setSuggestedQuestions([])
+    setIsRegenerating(true)
     askAI(
       { query: lastUserMsg.content, include_sources: true },
       {
         onSuccess: (data) => {
+          setIsRegenerating(false)
           const assistantMsg: ChatMessageData = {
             id: crypto.randomUUID(),
             role: 'assistant',
@@ -229,19 +240,33 @@ export function ChatWidget() {
           })
         },
         onError: (error) => {
-          // eslint-disable-next-line @typescript-eslint/no-explicit-any
-          const axiosError = error as any
+          setIsRegenerating(false)
+          const axiosError = error as { response?: { status?: number; data?: { data?: { daily_limit?: number; daily_used?: number; tier?: string; tier_display?: string; resets_at?: string } } } }
           if (axiosError?.response?.status === 429) {
-            const limit = quota?.daily_limit ?? 0
+            const errData = axiosError?.response?.data?.data
+            const limit = errData?.daily_limit ?? quota?.daily_limit ?? 2
+            const used = errData?.daily_used ?? limit
             setMessages((prev) => [
               ...prev,
               {
                 id: crypto.randomUUID(),
                 role: 'assistant',
-                content: `今日 AI 使用配額已用盡（${limit}/${limit} 次）。\n\n配額將於台灣時間明日 00:00 重置。\n\n💡 充實你的攀岩日誌（記錄故事、路線攀登、人生清單），即可提升段位獲得更多每日配額。`,
+                content: `今日 AI 使用配額已用盡（${used}/${limit} 次）。\n\n配額將於台灣時間明日 00:00 重置。\n\n💡 充實你的攀岩日誌（記錄故事、路線攀登、人生清單），即可提升等級獲得更多每日配額。`,
               },
             ])
-            setQuota((prev) => prev ? { ...prev, remaining: 0, daily_used: prev.daily_limit } : prev)
+            if (errData) {
+              setQuota({
+                tier: (errData.tier ?? quota?.tier ?? 'foothill') as AiQuota['tier'],
+                tier_display: errData.tier_display ?? quota?.tier_display ?? '麓',
+                daily_limit: limit,
+                daily_used: used,
+                remaining: 0,
+                score: quota?.score ?? 0,
+                resets_at: errData.resets_at ?? quota?.resets_at ?? '',
+              })
+            } else {
+              setQuota((prev) => prev ? { ...prev, remaining: 0, daily_used: prev.daily_limit } : prev)
+            }
           } else {
             setMessages((prev) => [
               ...prev,
@@ -255,14 +280,14 @@ export function ChatWidget() {
         },
       }
     )
-  }, [isPending, messages, askAI, persistMessage])
+  }, [isPending, messages, askAI, persistMessage, quota])
 
   // 清除對話
   const handleClear = useCallback(async () => {
     if (currentSessionId) {
       try {
         await deleteChatSession(currentSessionId)
-      } catch {}
+      } catch { }
     }
     setMessages([])
     setSuggestedQuestions([])
@@ -273,7 +298,7 @@ export function ChatWidget() {
       try {
         const newSession = await createChatSession()
         setCurrentSessionId(newSession.id)
-      } catch {}
+      } catch { }
     }
   }, [currentSessionId, isAuthenticated])
 
@@ -282,7 +307,7 @@ export function ChatWidget() {
     try {
       const list = await getChatSessions()
       setSessions(list)
-    } catch {}
+    } catch { }
     setShowHistory(true)
   }, [])
 
@@ -305,7 +330,7 @@ export function ChatWidget() {
       })))
       setSuggestedQuestions([])
       setShowHistory(false)
-    } catch {}
+    } catch { }
   }, [])
 
   const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
@@ -352,10 +377,16 @@ export function ChatWidget() {
           <div className="flex shrink-0 items-center justify-between border-b border-border px-4 py-3">
             <div>
               <h2 className="text-sm font-semibold">NobodyClimb AI</h2>
-              {quota && isAuthenticated ? (
+              {quota ? (
                 <div className="flex items-center gap-1.5 mt-0.5">
-                  <RankBadge tier={quota.tier} size="sm" />
-                  <span className="text-xs text-muted-foreground">剩餘 {quota.remaining}/{quota.daily_limit}</span>
+                  {quota.daily_limit === -1 ? (
+                    <span className="text-xs text-muted-foreground">無配額限制</span>
+                  ) : (
+                    <>
+                      <RankBadge tier={quota.tier as import('@nobodyclimb/types').RankId} size="sm" />
+                      <span className="text-xs text-muted-foreground">剩餘 {quota.remaining}/{quota.daily_limit}</span>
+                    </>
+                  )}
                 </div>
               ) : (
                 <p className="text-xs text-muted-foreground">攀岩助理</p>
@@ -482,7 +513,7 @@ export function ChatWidget() {
                         message={message}
                         isLast={index === lastAssistantIndex && message.role === 'assistant'}
                         onRegenerate={handleRegenerate}
-                        isPending={isPending}
+                        isPending={isRegenerating && isPending}
                       />
                     ))}
                     {/* 後續建議按鈕列 */}

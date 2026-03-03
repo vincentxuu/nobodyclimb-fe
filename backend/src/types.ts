@@ -483,7 +483,7 @@ export interface Biography {
   arm_span_cm: number | null;
   grade_targets: string | null; // JSON: 年度攀爬目標陣列
 
-  // 段位資訊（from user_ranks）
+  // 等級資訊（from user_ranks）
   user_rank_id: string | null;
 }
 

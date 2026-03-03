@@ -179,11 +179,11 @@ v1.get('/docs', async (c) => {
           id="api-reference"
           data-url="/api/v1/openapi.json"
           data-configuration='${JSON.stringify({
-            theme: 'kepler',
-            layout: 'modern',
-            darkMode: true,
-            hiddenClients: [],
-          })}'
+    theme: 'kepler',
+    layout: 'modern',
+    darkMode: true,
+    hiddenClients: [],
+  })}'
         ></script>
         <script src="https://cdn.jsdelivr.net/npm/@scalar/api-reference"></script>
       </body>
@@ -219,7 +219,7 @@ app.onError((err, c) => {
 });
 
 // =============================================
-// Cron Trigger Handler - 每日段位重置與積分重算
+// Cron Trigger Handler - 每日等級重置與積分重算
 // =============================================
 
 import { resetDailyUsage, recalculateAllRanks } from './services/rank';
@@ -227,14 +227,14 @@ import { resetDailyUsage, recalculateAllRanks } from './services/rank';
 export default {
   fetch: app.fetch,
   async scheduled(_event: ScheduledEvent, env: Env, _ctx: ExecutionContext) {
-    console.log('[cron] 開始每日段位重置與積分重算...');
+    console.log('[cron] 開始每日等級重置與積分重算...');
     try {
       await resetDailyUsage(env.DB);
       console.log('[cron] 每日 AI 使用量已重置');
       await recalculateAllRanks(env.DB);
-      console.log('[cron] 所有用戶段位積分重算完成');
+      console.log('[cron] 所有用戶等級積分重算完成');
     } catch (err) {
-      console.error('[cron] 每日段位任務失敗:', err);
+      console.error('[cron] 每日等級任務失敗:', err);
     }
   },
 };
