@@ -56,7 +56,7 @@ aiRoutes.post(
   describeRoute({
     tags: ['AI'],
     summary: 'RAG 問答',
-    description: '使用自然語言詢問攀岩相關問題，系統根據平台資料生成回答（需登入，受段位配額限制）',
+    description: '使用自然語言詢問攀岩相關問題，系統根據平台資料生成回答（需登入，受等級配額限制）',
     responses: {
       200: { description: '問答成功，回傳 AI 回答與來源及剩餘配額' },
       400: { description: '請求格式錯誤' },
@@ -70,64 +70,74 @@ aiRoutes.post(
   async (c) => {
     const body = c.req.valid('json');
     const userId = c.get('userId') as string;
+    const isAdmin = c.get('user')?.role === 'admin';
     const db = c.env.DB;
-    const today = new Date().toISOString().slice(0, 10);
 
-    // 初始化段位記錄（首次使用）
-    await initUserRank(userId, db);
+    // 管理員不受配額限制
+    if (!isAdmin) {
+      const today = new Date().toISOString().slice(0, 10);
 
-    // 取得段位記錄，並執行 lazy reset（若 last_reset_date 非今日）
-    let rank = await getUserRank(userId, db);
-    if (rank && rank.last_reset_date !== today) {
-      await resetDailyUsage(db);
-      rank = await getUserRank(userId, db);
-    }
+      // 初始化等級記錄（首次使用）
+      await initUserRank(userId, db);
 
-    // 原子扣除配額
-    const result = await db
-      .prepare('UPDATE user_ranks SET daily_ai_used = daily_ai_used + 1, updated_at = datetime(\'now\') WHERE user_id = ? AND daily_ai_used < daily_ai_limit')
-      .bind(userId)
-      .run();
+      // 取得等級記錄，並執行 lazy reset（若 last_reset_date 非今日）
+      let rank = await getUserRank(userId, db);
+      if (rank && rank.last_reset_date !== today) {
+        await resetDailyUsage(db);
+        rank = await getUserRank(userId, db);
+      }
 
-    if (result.meta.changes === 0) {
-      const resets_at = new Date();
-      resets_at.setUTCHours(16, 0, 0, 0);
-      if (resets_at <= new Date()) resets_at.setDate(resets_at.getDate() + 1);
-      return c.json({
-        success: false,
-        error: 'quota_exceeded',
-        message: '今日 AI 使用次數已用完，明日台灣時間 00:00 重置。充實攀岩日誌可提升段位獲得更多次數。',
-        data: {
-          tier: rank?.rank_id ?? 'foothill',
-          tier_display: RANK_DISPLAY[rank?.rank_id ?? 'foothill'],
-          daily_limit: rank?.daily_ai_limit ?? 2,
-          daily_used: rank?.daily_ai_used ?? 0,
-          resets_at: resets_at.toISOString(),
-        },
-      }, 429);
+      // 原子扣除配額
+      const result = await db
+        .prepare('UPDATE user_ranks SET daily_ai_used = daily_ai_used + 1, updated_at = datetime(\'now\') WHERE user_id = ? AND daily_ai_used < daily_ai_limit')
+        .bind(userId)
+        .run();
+
+      if (result.meta.changes === 0) {
+        const resets_at = new Date();
+        resets_at.setUTCHours(16, 0, 0, 0);
+        if (resets_at <= new Date()) resets_at.setDate(resets_at.getDate() + 1);
+        return c.json({
+          success: false,
+          error: 'quota_exceeded',
+          message: '今日 AI 使用次數已用完，明日台灣時間 00:00 重置。充實攀岩日誌可提升等級獲得更多次數。',
+          data: {
+            tier: rank?.rank_id ?? 'foothill',
+            tier_display: RANK_DISPLAY[rank?.rank_id ?? 'foothill'],
+            daily_limit: rank?.daily_ai_limit ?? 2,
+            daily_used: rank?.daily_ai_used ?? 0,
+            resets_at: resets_at.toISOString(),
+          },
+        }, 429);
+      }
     }
 
     try {
       const queryService = new QueryService(c.env);
       const aiResult = await queryService.ask(body, userId);
 
-      // 取得最新配額狀態
-      const updatedRank = await getUserRank(userId, db);
-      const quota = updatedRank ? {
-        tier: updatedRank.rank_id,
-        tier_display: RANK_DISPLAY[updatedRank.rank_id] ?? updatedRank.rank_id,
-        daily_limit: updatedRank.daily_ai_limit,
-        daily_used: updatedRank.daily_ai_used,
-        remaining: Math.max(0, updatedRank.daily_ai_limit - updatedRank.daily_ai_used),
-      } : null;
+      // 管理員不回傳配額資訊；一般用戶取得最新狀態
+      let quota = null;
+      if (!isAdmin) {
+        const updatedRank = await getUserRank(userId, db);
+        quota = updatedRank ? {
+          tier: updatedRank.rank_id,
+          tier_display: RANK_DISPLAY[updatedRank.rank_id] ?? updatedRank.rank_id,
+          daily_limit: updatedRank.daily_ai_limit,
+          daily_used: updatedRank.daily_ai_used,
+          remaining: Math.max(0, updatedRank.daily_ai_limit - updatedRank.daily_ai_used),
+        } : null;
+      }
 
       return c.json({ success: true, data: { ...aiResult, quota } });
     } catch (error) {
-      // AI 呼叫失敗時退回配額
-      await db
-        .prepare('UPDATE user_ranks SET daily_ai_used = MAX(0, daily_ai_used - 1) WHERE user_id = ?')
-        .bind(userId)
-        .run();
+      // 一般用戶 AI 呼叫失敗時退回配額
+      if (!isAdmin) {
+        await db
+          .prepare('UPDATE user_ranks SET daily_ai_used = MAX(0, daily_ai_used - 1) WHERE user_id = ?')
+          .bind(userId)
+          .run();
+      }
       console.error('AI ask error:', error);
       return c.json(
         { success: false, error: 'AIError', message: '抱歉，AI 服務暫時無法使用，請稍後再試。' },
@@ -146,7 +156,7 @@ aiRoutes.get(
   describeRoute({
     tags: ['AI'],
     summary: '查詢我的 AI 配額',
-    description: '取得當前用戶的段位、積分與今日 AI 使用配額狀態',
+    description: '取得當前用戶的等級、積分與今日 AI 使用配額狀態',
     responses: {
       200: { description: '配額資訊' },
       401: { description: '未登入' },
@@ -155,7 +165,25 @@ aiRoutes.get(
   authMiddleware,
   async (c) => {
     const userId = c.get('userId') as string;
+    const isAdmin = c.get('user')?.role === 'admin';
     const db = c.env.DB;
+
+    // 管理員不受配額限制，直接回傳無限制狀態
+    if (isAdmin) {
+      return c.json({
+        success: true,
+        data: {
+          tier: 'admin',
+          tier_display: '管理員',
+          daily_limit: -1,
+          daily_used: 0,
+          remaining: -1,
+          score: 0,
+          resets_at: null,
+        },
+      });
+    }
+
     const today = new Date().toISOString().slice(0, 10);
 
     await initUserRank(userId, db);

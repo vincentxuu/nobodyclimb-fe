@@ -314,7 +314,7 @@ export interface Biography {
   basic_info_data?: string | null
   autosave_at?: string | null
 
-  // 段位資訊
+  // 等級資訊
   user_rank_id?: string | null
 }
 

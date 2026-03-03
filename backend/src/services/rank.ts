@@ -1,19 +1,19 @@
 import { D1Database } from '@cloudflare/workers-types';
 import { RankId, UserRank, RankScoreBreakdown, UserRankDetail } from '@nobodyclimb/types';
 
-// 段位積分門檻（須與 climber_ranks 資料表一致）
+// 等級積分門檻（須與 climber_ranks 資料表一致）
 const RANK_THRESHOLDS: { id: RankId; min_score: number; daily_ai_limit: number }[] = [
-  { id: 'summit',  min_score: 85, daily_ai_limit: 24 },
-  { id: 'ridge',   min_score: 55, daily_ai_limit: 12 },
-  { id: 'wall',    min_score: 25, daily_ai_limit: 6  },
-  { id: 'foothill',min_score: 0,  daily_ai_limit: 2  },
+  { id: 'summit', min_score: 85, daily_ai_limit: 24 },
+  { id: 'ridge', min_score: 55, daily_ai_limit: 12 },
+  { id: 'wall', min_score: 25, daily_ai_limit: 6 },
+  { id: 'foothill', min_score: 0, daily_ai_limit: 2 },
 ];
 
 function scoreToRank(score: number): { id: RankId; daily_ai_limit: number } {
   return RANK_THRESHOLDS.find(r => score >= r.min_score) ?? RANK_THRESHOLDS[3];
 }
 
-/** 計算用戶的段位積分明細 */
+/** 計算用戶的等級積分明細 */
 export async function calculateUserScore(userId: string, db: D1Database): Promise<RankScoreBreakdown> {
   // 取得 biography_id
   const bio = await db
@@ -70,7 +70,7 @@ export async function calculateUserScore(userId: string, db: D1Database): Promis
   return { biography_fields, biography_bucket_list, biography_public, core_stories, one_liners, stories, route_ascents, bucket_list_items, bucket_list_completed, total };
 }
 
-/** 查詢用戶段位記錄，不存在時回傳 null */
+/** 查詢用戶等級記錄，不存在時回傳 null */
 export async function getUserRank(userId: string, db: D1Database): Promise<UserRank | null> {
   return db
     .prepare('SELECT * FROM user_ranks WHERE user_id = ?')
@@ -78,7 +78,7 @@ export async function getUserRank(userId: string, db: D1Database): Promise<UserR
     .first<UserRank>();
 }
 
-/** 首次使用時初始化麓段位記錄（INSERT OR IGNORE） */
+/** 首次使用時初始化麓等級記錄（INSERT OR IGNORE） */
 export async function initUserRank(userId: string, db: D1Database): Promise<void> {
   await db
     .prepare(`
@@ -89,13 +89,13 @@ export async function initUserRank(userId: string, db: D1Database): Promise<void
     .run();
 }
 
-/** 重算單一用戶積分與段位（有 rank_override_id 時跳過段位更新） */
+/** 重算單一用戶積分與等級（有 rank_override_id 時跳過等級更新） */
 export async function updateUserRank(userId: string, db: D1Database): Promise<UserRank> {
   const breakdown = await calculateUserScore(userId, db);
   const current = await getUserRank(userId, db);
 
   if (current?.rank_override_id) {
-    // 有覆寫：只更新積分，不動段位與配額
+    // 有覆寫：只更新積分，不動等級與配額
     await db
       .prepare(`UPDATE user_ranks SET score = ?, last_score_calculated_at = datetime('now'), updated_at = datetime('now') WHERE user_id = ?`)
       .bind(breakdown.total, userId)
@@ -127,7 +127,7 @@ export async function resetDailyUsage(db: D1Database): Promise<void> {
     .run();
 }
 
-/** Cron: 批次重算所有活躍用戶段位（有 rank_override_id 的用戶只更新積分） */
+/** Cron: 批次重算所有活躍用戶等級（有 rank_override_id 的用戶只更新積分） */
 export async function recalculateAllRanks(db: D1Database): Promise<void> {
   const users = await db
     .prepare('SELECT id FROM users WHERE is_active = 1')
@@ -142,7 +142,7 @@ export async function recalculateAllRanks(db: D1Database): Promise<void> {
   }
 }
 
-/** 查詢用戶段位詳情（含積分明細），供管理員使用 */
+/** 查詢用戶等級詳情（含積分明細），供管理員使用 */
 export async function getUserRankDetail(userId: string, db: D1Database): Promise<UserRankDetail | null> {
   const rank = await getUserRank(userId, db);
   if (!rank) return null;

@@ -1,5 +1,5 @@
 /**
- * 攀岩段位系統型別定義
+ * 攀岩等級系統型別定義
  */
 
 export type RankId = 'foothill' | 'wall' | 'ridge' | 'summit'
@@ -44,7 +44,7 @@ export interface AiQuotaExceeded {
   resets_at: string
 }
 
-/** 管理員查詢用戶段位時的積分明細 */
+/** 管理員查詢用戶等級時的積分明細 */
 export interface RankScoreBreakdown {
   biography_fields: number
   biography_bucket_list: number
