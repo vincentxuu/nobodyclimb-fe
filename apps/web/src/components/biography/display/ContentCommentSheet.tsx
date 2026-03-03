@@ -11,6 +11,8 @@ import { formatDistanceToNow } from 'date-fns'
 import { zhTW } from 'date-fns/locale'
 import type { ContentComment } from '@/lib/api/services'
 import { motion, AnimatePresence } from 'framer-motion'
+import { RankBadge } from '@/components/rank/RankBadge'
+import type { RankId } from '@nobodyclimb/types'
 
 interface ContentCommentSheetProps {
   /** 留言數量 */
@@ -72,6 +74,9 @@ function CommentItem({
       <div className="min-w-0 flex-1">
         <div className="flex items-center gap-2">
           <span className="text-sm font-medium">{displayName}</span>
+          {comment.user_rank_id && comment.user_rank_id !== 'foothill' && (
+            <RankBadge tier={comment.user_rank_id as RankId} size="sm" />
+          )}
           <span className="text-xs text-gray-400">{formatTime(comment.created_at)}</span>
           {onDelete && currentUserId === comment.user_id && (
             <button

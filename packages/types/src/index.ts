@@ -24,3 +24,6 @@ export * from './notification'
 
 // 統計相關
 export * from './stats'
+
+// 攀岩等級相關
+export * from './rank'
