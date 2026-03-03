@@ -52,7 +52,8 @@ export function ChatWidget() {
   const messagesEndRef = useRef<HTMLDivElement>(null)
   const inputRef = useRef<HTMLTextAreaElement>(null)
   const { mutate: askAI, isPending } = useAskAI()
-  const isAuthenticated = useAuthStore((s) => s.isAuthenticated)
+  const authUser = useAuthStore((s) => s.user)
+  const isAuthenticated = authUser !== null
 
   // 開啟時：隨機取建議問題、建立或載入 session、取得配額
   useEffect(() => {
