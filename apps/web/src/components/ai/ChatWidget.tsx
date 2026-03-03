@@ -5,7 +5,7 @@ import { createPortal } from 'react-dom'
 import { MessageCircle, X, Send, Loader2, History, Trash2, ChevronLeft, SquarePen } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { useAskAI, createChatSession, getChatSessions, getChatMessages, deleteChatSession, saveMessage, getMyQuota } from '@/lib/api/ai'
-import type { AiQuota, ChatSession } from '@/lib/api/ai'
+import type { AiQuota, ChatSession, AIChatHistoryMessage } from '@/lib/api/ai'
 import { useAuthStore } from '@/store/authStore'
 import { ChatMessage } from './ChatMessage'
 import type { ChatMessageData } from './ChatMessage'
@@ -22,7 +22,7 @@ const SUGGESTION_POOL = [
   '想找傳攀路線，推薦我幾條？',
   '南部推薦哪些攀岩路線？',
   '剛爬完美人照鏡，不知道要爬什麼',
-  '如何查詢龍洞各區塊的路線資訊？',
+  '台灣有哪些岩場？',
   '有哪些知名的台灣多繩距路線推薦？',
 ]
 
@@ -53,6 +53,8 @@ export function ChatWidget() {
   const [showConfirmClear, setShowConfirmClear] = useState(false)
   const [quota, setQuota] = useState<AiQuota | null>(null)
   const [isRegenerating, setIsRegenerating] = useState(false)
+  // ref 確保多次快速點擊時 guard 是同步的，避免 stale closure
+  const isRegeneratingRef = useRef(false)
   const messagesEndRef = useRef<HTMLDivElement>(null)
   const inputRef = useRef<HTMLTextAreaElement>(null)
 
@@ -160,8 +162,14 @@ export function ChatWidget() {
 
       persistMessage('user', trimmed)
 
+      // 取最近 6 則歷史（不含本次 query），讓後端有對話記憶
+      const chatHistory: AIChatHistoryMessage[] = messages.slice(-6).map((m) => ({
+        role: m.role,
+        content: m.content,
+      }))
+
       askAI(
-        { query: trimmed, include_sources: true },
+        { query: trimmed, include_sources: true, chat_history: chatHistory.length > 0 ? chatHistory : undefined },
         {
           onSuccess: (data) => {
             const assistantMsg: ChatMessageData = {
@@ -225,18 +233,29 @@ export function ChatWidget() {
 
   // 重新生成最後一則 AI 回應
   const handleRegenerate = useCallback(() => {
-    if (isPending) return
+    if (isPending || isRegeneratingRef.current) return
+    // 立即鎖定（同步），防止多次快速點擊
+    isRegeneratingRef.current = true
     // 找最後一則 user 訊息
     const lastUserMsg = [...messages].reverse().find((m) => m.role === 'user')
-    if (!lastUserMsg) return
+    if (!lastUserMsg) {
+      isRegeneratingRef.current = false
+      return
+    }
     // 移除最後一則 AI 訊息
     setMessages((prev) => prev.slice(0, -1))
     setSuggestedQuestions([])
     setIsRegenerating(true)
+    // 重新生成時也帶上對話歷史（排除最後一則 AI，因為已被移除）
+    const regenHistory: AIChatHistoryMessage[] = messages.slice(0, -1).slice(-6).map((m) => ({
+      role: m.role,
+      content: m.content,
+    }))
     askAI(
-      { query: lastUserMsg.content, include_sources: true },
+      { query: lastUserMsg.content, include_sources: true, chat_history: regenHistory.length > 0 ? regenHistory : undefined },
       {
         onSuccess: (data) => {
+          isRegeneratingRef.current = false
           setIsRegenerating(false)
           const assistantMsg: ChatMessageData = {
             id: crypto.randomUUID(),
@@ -254,6 +273,7 @@ export function ChatWidget() {
           })
         },
         onError: (error) => {
+          isRegeneratingRef.current = false
           setIsRegenerating(false)
           const axiosError = error as { response?: { status?: number; data?: { data?: { daily_limit?: number; daily_used?: number; tier?: string; tier_display?: string; resets_at?: string } } } }
           if (axiosError?.response?.status === 429) {
@@ -294,7 +314,7 @@ export function ChatWidget() {
         },
       }
     )
-  }, [isPending, messages, askAI, quota])
+  }, [isPending, isRegenerating, messages, askAI, quota])
 
   // 清除對話
   const handleClear = useCallback(async () => {
@@ -548,7 +568,7 @@ export function ChatWidget() {
                         message={message}
                         isLast={index === lastAssistantIndex && message.role === 'assistant'}
                         onRegenerate={handleRegenerate}
-                        isPending={isRegenerating && isPending}
+                        isPending={isRegenerating || isPending}
                       />
                     ))}
                     {/* 後續建議按鈕列 */}

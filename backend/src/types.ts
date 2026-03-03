@@ -140,10 +140,16 @@ export interface AISource {
 // AI API Request / Response Types
 // ============================================
 
+export interface AIChatMessage {
+  role: 'user' | 'assistant';
+  content: string;
+}
+
 export interface AIAskRequest {
   query: string;
   limit?: number;            // 搜尋結果數量，預設 5
   include_sources?: boolean; // 是否回傳來源，預設 true
+  chat_history?: AIChatMessage[]; // 最近幾輪對話（不含本次 query），供 LLM 記憶和 context 補充
 }
 
 export interface AIAskResponse {
