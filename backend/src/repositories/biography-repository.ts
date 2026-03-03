@@ -182,9 +182,11 @@ export class BiographyRepository {
         b.*,
         COALESCE(b.avatar_url, u.avatar_url) as avatar_url,
         u.username,
-        u.display_name
+        u.display_name,
+        ur.rank_id AS user_rank_id
       FROM biographies b
       LEFT JOIN users u ON b.user_id = u.id
+      LEFT JOIN user_ranks ur ON b.user_id = ur.user_id
       WHERE b.id = ? AND ${visibilityClause}
     `;
 
@@ -206,9 +208,11 @@ export class BiographyRepository {
         b.*,
         COALESCE(b.avatar_url, u.avatar_url) as avatar_url,
         u.username,
-        u.display_name
+        u.display_name,
+        ur.rank_id AS user_rank_id
       FROM biographies b
       LEFT JOIN users u ON b.user_id = u.id
+      LEFT JOIN user_ranks ur ON b.user_id = ur.user_id
       WHERE b.slug = ? AND ${visibilityClause}
     `;
 

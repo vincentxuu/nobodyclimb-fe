@@ -2332,6 +2332,7 @@ export interface ContentComment {
   username: string
   display_name?: string
   avatar_url?: string
+  user_rank_id?: string | null
   created_at: string
   updated_at: string
 }
