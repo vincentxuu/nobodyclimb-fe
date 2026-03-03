@@ -3,9 +3,9 @@ import { RankId, UserRank, RankScoreBreakdown, UserRankDetail } from '@nobodycli
 
 // 等級積分門檻（須與 climber_ranks 資料表一致）
 const RANK_THRESHOLDS: { id: RankId; min_score: number; daily_ai_limit: number }[] = [
-  { id: 'summit', min_score: 85, daily_ai_limit: 24 },
-  { id: 'ridge', min_score: 55, daily_ai_limit: 12 },
-  { id: 'wall', min_score: 25, daily_ai_limit: 6 },
+  { id: 'summit', min_score: 100, daily_ai_limit: 24 },
+  { id: 'ridge', min_score: 70, daily_ai_limit: 12 },
+  { id: 'wall', min_score: 20, daily_ai_limit: 6 },
   { id: 'foothill', min_score: 0, daily_ai_limit: 2 },
 ];
 
@@ -15,17 +15,18 @@ function scoreToRank(score: number): { id: RankId; daily_ai_limit: number } {
 
 /** 計算用戶的等級積分明細 */
 export async function calculateUserScore(userId: string, db: D1Database): Promise<RankScoreBreakdown> {
-  // 取得 biography_id
+  // 取得 biography_id 與基本資料（basic_info_data 為 JSON 欄位，visibility 取代舊的 is_public）
   const bio = await db
-    .prepare('SELECT id, climbing_start_year, frequent_locations, favorite_route_type, climbing_reason, climbing_meaning, bucket_list, is_public FROM biographies WHERE user_id = ?')
+    .prepare('SELECT id, basic_info_data, visibility FROM biographies WHERE user_id = ?')
     .bind(userId)
-    .first<{ id: string; climbing_start_year: string | null; frequent_locations: string | null; favorite_route_type: string | null; climbing_reason: string | null; climbing_meaning: string | null; bucket_list: string | null; is_public: number }>();
+    .first<{ id: string; basic_info_data: string | null; visibility: string | null }>();
 
   if (!bio) {
     return { biography_fields: 0, biography_bucket_list: 0, biography_public: 0, core_stories: 0, one_liners: 0, stories: 0, route_ascents: 0, bucket_list_items: 0, bucket_list_completed: 0, total: 0 };
   }
 
   const bioId = bio.id;
+  const basicInfo = bio.basic_info_data ? JSON.parse(bio.basic_info_data) as Record<string, unknown> : {};
 
   // 並行查詢各積分來源
   const [coreStoriesRow, oneLinerRow, storiesRow, ascentsRow, bucketRow, bucketCompletedRow] = await Promise.all([
@@ -37,15 +38,21 @@ export async function calculateUserScore(userId: string, db: D1Database): Promis
     db.prepare("SELECT COUNT(*) as cnt FROM bucket_list_items WHERE biography_id = ? AND status = 'completed'").bind(bioId).first<{ cnt: number }>(),
   ]);
 
-  // biography 文字欄位（每填一欄 +3，上限 15）
-  const filledFields = [bio.climbing_start_year, bio.frequent_locations, bio.favorite_route_type, bio.climbing_reason, bio.climbing_meaning].filter(Boolean).length;
-  const biography_fields = Math.min(filledFields * 3, 15);
+  // biography 文字欄位（從 basic_info_data JSON 取值，每填一欄 +3，上限 12）
+  // climbing_meaning 已移至 core_stories 計分，不重複計算
+  const filledFields = [
+    basicInfo.climbing_start_year,
+    basicInfo.frequent_locations,
+    basicInfo.favorite_route_type,
+    basicInfo.climbing_reason,
+  ].filter(Boolean).length;
+  const biography_fields = Math.min(filledFields * 3, 12);
 
-  // bucket_list 欄位
-  const biography_bucket_list = bio.bucket_list ? 3 : 0;
+  // 人生清單有任何項目（+3）
+  const biography_bucket_list = (bucketRow?.cnt ?? 0) > 0 ? 3 : 0;
 
-  // 公開 biography
-  const biography_public = bio.is_public ? 5 : 0;
+  // 公開 biography（visibility = 'public'）
+  const biography_public = bio.visibility === 'public' ? 5 : 0;
 
   // 核心故事（上限 24 = 3篇 × 8）
   const core_stories = Math.min((coreStoriesRow?.cnt ?? 0) * 8, 24);
