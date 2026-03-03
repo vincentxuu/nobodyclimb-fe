@@ -85,5 +85,5 @@ INSERT OR IGNORE INTO ai_config (key, value) VALUES
   ('cache_ttl', '3600'),
   ('max_results', '5'),
   ('min_score', '0.5'),
-  ('llm_model', '@cf/meta/llama-3.1-8b-instruct'),
+  ('llm_model', '@cf/google/gemma-3-12b-it'),
   ('embedding_model', '@cf/baai/bge-m3');

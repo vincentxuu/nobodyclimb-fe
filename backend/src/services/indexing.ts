@@ -34,16 +34,29 @@ export class IndexingService {
     return base + suffix;
   }
 
+  private static readonly ROUTE_TYPE_LABELS: Record<string, string> = {
+    sport: '運攀',
+    trad: '傳攀',
+    boulder: '抱石',
+    mixed: '混合',
+  };
+
   // 建立路線文件文字
   createRouteDocument(route: RouteWithCrag): string {
+    // 無中文名稱時使用英文名稱作為路線名
+    const displayName = route.name || route.name_en || '未知';
+    const routeTypeLabel = IndexingService.ROUTE_TYPE_LABELS[route.route_type] ?? route.route_type ?? '未知';
     const parts = [
-      `路線名稱：${route.name}`,
+      `路線名稱：${displayName}`,
       `所屬岩場：${route.crag_name ?? '未知'}`,
       `難度等級：${route.grade ?? '未知'}`,
-      `攀登類型：${route.route_type ?? '未知'}`,
+      `攀登類型：${routeTypeLabel}`,
       `地區：${route.region ?? '未知'}`,
     ];
 
+    if (route.name_en && route.name_en !== route.name) {
+      parts.push(`英文名稱：${route.name_en}`);
+    }
     if (route.area_name) {
       parts.push(`岩場區域：${route.area_name}`);
     }
@@ -115,7 +128,8 @@ export class IndexingService {
 
     const documents = routes.results.map((route) => {
       const metadata: AIDocumentMetadata = {
-        name: route.name,
+        name: route.name || route.name_en || undefined,
+        name_en: route.name_en ?? undefined,
         grade: route.grade ?? undefined,
         grade_numeric: this.gradeToNumeric(route.grade),
         route_type: route.route_type,
