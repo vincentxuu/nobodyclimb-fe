@@ -521,7 +521,7 @@ cragsRoutes.get(
      JOIN videos v ON rv.video_id = v.id
      JOIN routes r ON rv.route_id = r.id
      WHERE r.crag_id = ?
-     ORDER BY v.published_at DESC NULLS LAST`
+     ORDER BY COALESCE(v.published_at, rv.created_at) DESC`
   )
     .bind(cragId)
     .all<{
@@ -638,7 +638,7 @@ cragsRoutes.get(
      FROM route_videos rv
      JOIN videos v ON rv.video_id = v.id
      WHERE rv.route_id = ?
-     ORDER BY v.published_at DESC NULLS LAST`
+     ORDER BY COALESCE(v.published_at, rv.created_at) DESC`
   )
     .bind(routeId)
     .all<{
