@@ -3,7 +3,6 @@ import { z } from 'zod';
 import { describeRoute, validator } from 'hono-openapi';
 import { Env } from '../types';
 import { authMiddleware, adminMiddleware } from '../middleware/auth';
-import { optionalAuthMiddleware } from '../middleware/auth';
 import { QueryService } from '../services/query';
 import { IndexingService } from '../services/indexing';
 import { EmbeddingService } from '../services/embedding';
