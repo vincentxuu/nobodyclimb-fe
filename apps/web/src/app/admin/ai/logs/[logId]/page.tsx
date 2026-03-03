@@ -2,7 +2,7 @@
 
 import { use } from 'react'
 import Link from 'next/link'
-import { ArrowLeft, Loader2, Clock, MessageSquare, ThumbsUp } from 'lucide-react'
+import { ArrowLeft, Loader2, Clock, MessageSquare, ThumbsUp, User } from 'lucide-react'
 import { useAILogDetail } from '@/lib/api/admin-ai'
 
 export default function AdminAILogDetailPage({ params }: { params: Promise<{ logId: string }> }) {
@@ -44,8 +44,21 @@ export default function AdminAILogDetailPage({ params }: { params: Promise<{ log
         <span className="text-sm text-wb-100 font-medium">日誌詳情</span>
       </div>
 
-      {/* 時間分解 */}
-      <div className="grid grid-cols-3 gap-4">
+      {/* 統計卡片 */}
+      <div className="grid grid-cols-2 gap-4 sm:grid-cols-4">
+        <div className="rounded-xl border border-wb-20 bg-white p-4 flex items-center gap-3">
+          <User className="h-5 w-5 text-wb-50" />
+          <div className="min-w-0">
+            <p className="text-xs text-wb-50">使用者</p>
+            {log.user_id ? (
+              <p className="font-medium text-wb-100 truncate" title={log.username ?? undefined}>
+                {log.display_name || log.username}
+              </p>
+            ) : (
+              <p className="text-sm text-wb-40">匿名</p>
+            )}
+          </div>
+        </div>
         <div className="rounded-xl border border-wb-20 bg-white p-4 flex items-center gap-3">
           <Clock className="h-5 w-5 text-wb-50" />
           <div>
