@@ -513,25 +513,25 @@ adminAiRoutes.put(
 );
 
 // =============================================
-// GET /users/:userId/rank - 查詢用戶段位詳情
+// GET /users/:userId/rank - 查詢用戶等級詳情
 // =============================================
 
 adminAiRoutes.get(
   '/users/:userId/rank',
   describeRoute({
     tags: ['Admin AI'],
-    summary: '查詢用戶段位詳情',
-    description: '取得指定用戶的段位、積分與各模組積分明細',
+    summary: '查詢用戶等級詳情',
+    description: '取得指定用戶的等級、積分與各模組積分明細',
     responses: {
-      200: { description: '段位詳情' },
-      404: { description: '用戶無段位記錄' },
+      200: { description: '等級詳情' },
+      404: { description: '用戶無等級記錄' },
     },
   }),
   async (c) => {
     const userId = c.req.param('userId');
     try {
       const detail = await getUserRankDetail(userId, c.env.DB);
-      if (!detail) return c.json({ success: false, error: 'NotFound', message: '該用戶尚無段位記錄' }, 404);
+      if (!detail) return c.json({ success: false, error: 'NotFound', message: '該用戶尚無等級記錄' }, 404);
       return c.json({ success: true, data: detail });
     } catch (error) {
       console.error('Admin get user rank error:', error);
@@ -541,7 +541,7 @@ adminAiRoutes.get(
 );
 
 // =============================================
-// PUT /users/:userId/rank-override - 手動覆寫段位
+// PUT /users/:userId/rank-override - 手動覆寫等級
 // =============================================
 
 const rankOverrideSchema = z.object({
@@ -554,11 +554,11 @@ adminAiRoutes.put(
   '/users/:userId/rank-override',
   describeRoute({
     tags: ['Admin AI'],
-    summary: '手動覆寫用戶段位',
-    description: '管理員手動指定段位，設為 null 則恢復自動計算',
+    summary: '手動覆寫用戶等級',
+    description: '管理員手動指定等級，設為 null 則恢復自動計算',
     responses: {
       200: { description: '覆寫成功' },
-      400: { description: '無效段位' },
+      400: { description: '無效等級' },
     },
   }),
   validator('json', rankOverrideSchema),
@@ -579,7 +579,7 @@ adminAiRoutes.put(
           .bind(rank, rank, limit, userId)
           .run();
       }
-      return c.json({ success: true, message: rank ? `已覆寫段位為「${rank}」` : '已清除覆寫，恢復自動計算' });
+      return c.json({ success: true, message: rank ? `已覆寫等級為「${rank}」` : '已清除覆寫，恢復自動計算' });
     } catch (error) {
       console.error('Admin rank override error:', error);
       return c.json({ success: false, error: 'DatabaseError' }, 500);
@@ -599,7 +599,7 @@ adminAiRoutes.post(
   '/recalculate-ranks',
   describeRoute({
     tags: ['Admin AI'],
-    summary: '手動觸發段位積分重算',
+    summary: '手動觸發等級積分重算',
     description: '傳入 user_id 重算單一用戶，傳入 "all" 重算所有用戶',
     responses: { 200: { description: '重算結果' } },
   }),
@@ -609,7 +609,7 @@ adminAiRoutes.post(
     try {
       if (user_id === 'all') {
         c.executionCtx.waitUntil(recalculateAllRanks(c.env.DB));
-        return c.json({ success: true, message: '已排程重算所有用戶段位' });
+        return c.json({ success: true, message: '已排程重算所有用戶等級' });
       }
       const updated = await updateUserRank(user_id, c.env.DB);
       return c.json({ success: true, data: updated });

@@ -51,7 +51,7 @@ export function RouteMobileDrawer({
       {/* 浮動按鈕 - 僅手機和平板顯示 */}
       <button
         onClick={() => setIsOpen(true)}
-        className="lg:hidden fixed bottom-6 right-6 z-40 flex h-14 w-14 items-center justify-center rounded-full bg-[#1B1A1A] text-white shadow-lg transition-transform hover:scale-105 active:scale-95"
+        className="lg:hidden fixed bottom-24 right-6 z-40 flex h-14 w-14 items-center justify-center rounded-full bg-[#1B1A1A] text-white shadow-lg transition-transform hover:scale-105 active:scale-95"
         aria-label="開啟路線列表"
       >
         <List size={24} />
