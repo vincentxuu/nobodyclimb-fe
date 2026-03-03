@@ -8,17 +8,43 @@ const CACHE_TTL = 3600; // 1 小時
 function parseSuggestedQuestions(raw: string): { answer: string; suggested_questions: string[] } {
   const SEP = '---SUGGESTIONS---';
   const idx = raw.indexOf(SEP);
-  if (idx === -1) return { answer: raw.trim(), suggested_questions: [] };
+  if (idx !== -1) {
+    const answer = raw.slice(0, idx).trim();
+    const suggestionsBlock = raw.slice(idx + SEP.length).trim();
+    const suggested_questions = suggestionsBlock
+      .split('\n')
+      .map((line) => line.replace(/^\d+\.\s*/, '').trim())
+      .filter((line) => line.length > 0 && (line.endsWith('？') || line.endsWith('?')))
+      .slice(0, 3);
+    return { answer, suggested_questions };
+  }
 
-  const answer = raw.slice(0, idx).trim();
-  const suggestionsBlock = raw.slice(idx + SEP.length).trim();
-  const suggested_questions = suggestionsBlock
-    .split('\n')
-    .map((line) => line.replace(/^\d+\.\s*/, '').trim())
-    .filter((line) => line.length > 0 && (line.endsWith('？') || line.endsWith('?'))) // 只保留問句
-    .slice(0, 3);
+  // Fallback：模型未輸出分隔符時，偵測末尾連續問句行
+  const lines = raw.trim().split('\n');
+  const questions: string[] = [];
+  let cutIndex = lines.length;
 
-  return { answer, suggested_questions };
+  for (let i = lines.length - 1; i >= 0; i--) {
+    const trimmed = lines[i].trim();
+    if (trimmed === '') continue;
+    const cleaned = trimmed.replace(/^\d+\.\s*/, '').trim();
+    if (cleaned.endsWith('？') || cleaned.endsWith('?')) {
+      questions.unshift(cleaned);
+      cutIndex = i;
+    } else {
+      break;
+    }
+  }
+
+  if (questions.length >= 2) {
+    const answerLines = lines.slice(0, cutIndex);
+    while (answerLines.length > 0 && answerLines[answerLines.length - 1].trim() === '') {
+      answerLines.pop();
+    }
+    return { answer: answerLines.join('\n').trim(), suggested_questions: questions.slice(0, 3) };
+  }
+
+  return { answer: raw.trim(), suggested_questions: [] };
 }
 const DEFAULT_TOP_K = 5;
 const MIN_SCORE = 0.5;
