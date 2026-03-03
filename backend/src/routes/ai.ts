@@ -171,6 +171,188 @@ aiRoutes.post(
 );
 
 // =============================================
+// Chat Session API
+// =============================================
+
+const createMessageSchema = z.object({
+  role: z.enum(['user', 'assistant']),
+  content: z.string().min(1),
+  suggested_questions: z.array(z.string()).optional(),
+  query_id: z.string().optional(),
+});
+
+// POST /sessions - 建立新 session
+aiRoutes.post(
+  '/sessions',
+  describeRoute({
+    tags: ['AI'],
+    summary: '建立對話 session',
+    description: '為已登入用戶建立新的聊天 session',
+    responses: {
+      200: { description: '建立成功' },
+      401: { description: '需要登入' },
+    },
+  }),
+  authMiddleware,
+  async (c) => {
+    const userId = c.get('userId');
+    const id = crypto.randomUUID();
+    const now = Math.floor(Date.now() / 1000);
+
+    await c.env.DB.prepare(
+      `INSERT INTO chat_sessions (id, user_id, title, created_at, updated_at) VALUES (?, ?, ?, ?, ?)`
+    ).bind(id, userId, '新對話', now, now).run();
+
+    return c.json({ success: true, data: { id, title: '新對話', created_at: now } });
+  }
+);
+
+// GET /sessions - 取得我的 session 列表
+aiRoutes.get(
+  '/sessions',
+  describeRoute({
+    tags: ['AI'],
+    summary: '取得聊天記錄列表',
+    description: '回傳已登入用戶最近 20 個對話 session',
+    responses: {
+      200: { description: '查詢成功' },
+      401: { description: '需要登入' },
+    },
+  }),
+  authMiddleware,
+  async (c) => {
+    const userId = c.get('userId');
+    const { results } = await c.env.DB.prepare(
+      `SELECT id, title, created_at, updated_at FROM chat_sessions
+       WHERE user_id = ? ORDER BY updated_at DESC LIMIT 20`
+    ).bind(userId).all();
+
+    return c.json({ success: true, data: results });
+  }
+);
+
+// GET /sessions/:id/messages - 取得指定 session 的訊息
+aiRoutes.get(
+  '/sessions/:id/messages',
+  describeRoute({
+    tags: ['AI'],
+    summary: '取得 session 訊息',
+    responses: {
+      200: { description: '查詢成功' },
+      401: { description: '需要登入' },
+      404: { description: 'Session 不存在或無權限' },
+    },
+  }),
+  authMiddleware,
+  async (c) => {
+    const userId = c.get('userId');
+    const sessionId = c.req.param('id');
+
+    // 驗證 session 歸屬
+    const session = await c.env.DB.prepare(
+      `SELECT id FROM chat_sessions WHERE id = ? AND user_id = ?`
+    ).bind(sessionId, userId).first();
+
+    if (!session) {
+      return c.json({ success: false, error: 'NotFound', message: 'Session 不存在' }, 404);
+    }
+
+    const { results } = await c.env.DB.prepare(
+      `SELECT id, role, content, suggested_questions, query_id, created_at
+       FROM chat_messages WHERE session_id = ? ORDER BY created_at ASC`
+    ).bind(sessionId).all();
+
+    return c.json({ success: true, data: results });
+  }
+);
+
+// DELETE /sessions/:id - 刪除 session
+aiRoutes.delete(
+  '/sessions/:id',
+  describeRoute({
+    tags: ['AI'],
+    summary: '刪除對話 session',
+    responses: {
+      200: { description: '刪除成功' },
+      401: { description: '需要登入' },
+      404: { description: 'Session 不存在或無權限' },
+    },
+  }),
+  authMiddleware,
+  async (c) => {
+    const userId = c.get('userId');
+    const sessionId = c.req.param('id');
+
+    const result = await c.env.DB.prepare(
+      `DELETE FROM chat_sessions WHERE id = ? AND user_id = ?`
+    ).bind(sessionId, userId).run();
+
+    if (result.meta.changes === 0) {
+      return c.json({ success: false, error: 'NotFound', message: 'Session 不存在' }, 404);
+    }
+
+    return c.json({ success: true, message: 'Session 已刪除' });
+  }
+);
+
+// POST /sessions/:id/messages - 儲存訊息
+aiRoutes.post(
+  '/sessions/:id/messages',
+  describeRoute({
+    tags: ['AI'],
+    summary: '儲存訊息',
+    responses: {
+      200: { description: '儲存成功' },
+      401: { description: '需要登入' },
+      404: { description: 'Session 不存在或無權限' },
+    },
+  }),
+  authMiddleware,
+  validator('json', createMessageSchema),
+  async (c) => {
+    const userId = c.get('userId');
+    const sessionId = c.req.param('id');
+    const { role, content, suggested_questions, query_id } = c.req.valid('json');
+
+    // 驗證 session 歸屬
+    const session = await c.env.DB.prepare(
+      `SELECT id FROM chat_sessions WHERE id = ? AND user_id = ?`
+    ).bind(sessionId, userId).first();
+
+    if (!session) {
+      return c.json({ success: false, error: 'NotFound', message: 'Session 不存在' }, 404);
+    }
+
+    const id = crypto.randomUUID();
+    const now = Math.floor(Date.now() / 1000);
+
+    await c.env.DB.prepare(
+      `INSERT INTO chat_messages (id, session_id, role, content, suggested_questions, query_id, created_at)
+       VALUES (?, ?, ?, ?, ?, ?, ?)`
+    ).bind(
+      id, sessionId, role, content,
+      suggested_questions ? JSON.stringify(suggested_questions) : null,
+      query_id ?? null,
+      now
+    ).run();
+
+    // 更新 session 的 updated_at 與 title（第一則 user 訊息作為標題）
+    if (role === 'user') {
+      const title = content.slice(0, 50);
+      await c.env.DB.prepare(
+        `UPDATE chat_sessions SET updated_at = ?, title = CASE WHEN title = '新對話' THEN ? ELSE title END WHERE id = ?`
+      ).bind(now, title, sessionId).run();
+    } else {
+      await c.env.DB.prepare(
+        `UPDATE chat_sessions SET updated_at = ? WHERE id = ?`
+      ).bind(now, sessionId).run();
+    }
+
+    return c.json({ success: true, data: { id } });
+  }
+);
+
+// =============================================
 // POST /index - 管理員索引（需 Admin 權限）
 // =============================================
 
