@@ -76,16 +76,28 @@ export class QueryService {
   }
 
   // 從 query 文字中偵測 YDS 難度，回傳 Vectorize grade_numeric 範圍
+  // 支援多個 grade（如「5.9 或 5.10a」），取最小到最大的範圍
   extractGradeFilter(query: string): { $gte: number; $lte: number } | null {
-    const match = query.match(/5\.(\d+)([a-d])?/i);
-    if (!match) return null;
-    const base = parseInt(match[1], 10) * 10;
-    if (match[2]) {
-      const suffix = 'abcd'.indexOf(match[2].toLowerCase());
-      const numeric = base + suffix;
-      return { $gte: numeric, $lte: numeric };
-    }
-    return { $gte: base, $lte: base + 3 };
+    const allMatches = [...query.matchAll(/5\.(\d+)([a-d])?/gi)];
+    if (allMatches.length === 0) return null;
+
+    const numerics = allMatches.map((m) => {
+      const base = parseInt(m[1], 10) * 10;
+      const suffix = m[2] ? 'abcd'.indexOf(m[2].toLowerCase()) : 0;
+      return base + suffix;
+    });
+
+    const min = Math.min(...numerics);
+    const maxMatch = allMatches.reduce((prev, curr) => {
+      const prevNum = parseInt(prev[1], 10) * 10 + (prev[2] ? 'abcd'.indexOf(prev[2].toLowerCase()) : 0);
+      const currNum = parseInt(curr[1], 10) * 10 + (curr[2] ? 'abcd'.indexOf(curr[2].toLowerCase()) : 0);
+      return currNum > prevNum ? curr : prev;
+    });
+    // 若最大值的 grade 沒有 a-d 後綴，擴展到 +3（含 a/b/c/d 子等級）
+    const maxBase = parseInt(maxMatch[1], 10) * 10 + (maxMatch[2] ? 'abcd'.indexOf(maxMatch[2].toLowerCase()) : 0);
+    const max = maxMatch[2] ? maxBase : maxBase + 3;
+
+    return { $gte: min, $lte: max };
   }
 
   // 完整 RAG 流程（增強版）：
