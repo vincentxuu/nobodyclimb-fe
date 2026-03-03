@@ -3,7 +3,7 @@
 // ============================================
 
 export interface AI {
-  run(model: string, inputs: Record<string, unknown>): Promise<unknown>;
+  run(model: string, inputs: Record<string, unknown>, options?: { gateway?: { id: string } }): Promise<unknown>;
 }
 
 export interface VectorizeIndex {
@@ -70,6 +70,7 @@ export interface AIDocument {
 
 export interface AIDocumentMetadata {
   name?: string;
+  name_en?: string;
   region?: string;
   // 路線專用
   grade?: string;
@@ -86,6 +87,22 @@ export interface AIDocumentMetadata {
   channel?: string;
   youtube_id?: string;
   category?: string;
+}
+
+// ============================================
+// AI Query Parsing Types
+// ============================================
+
+export interface ParsedQuery {
+  tool: 'search_routes' | 'search_crags' | 'general_knowledge';
+  params: {
+    crag_name?: string;
+    area_name?: string;
+    grade?: string;         // "5.11b" 或 "5.10-5.12"
+    route_type?: string;
+    region?: string;
+    climbing_type?: string;
+  };
 }
 
 // ============================================
@@ -116,6 +133,7 @@ export interface AISource {
   excerpt: string;
   url?: string;
   score: number;
+  latestVideoUrl?: string; // 路線最新影片 YouTube URL（僅 route 類型）
 }
 
 // ============================================
@@ -132,6 +150,7 @@ export interface AIAskResponse {
   answer: string;
   sources: AISource[];
   query_id: string; // 供後續回饋使用
+  suggested_questions: string[]; // AI 生成的追問建議
 }
 
 export interface AISearchRequest {
@@ -381,6 +400,7 @@ export interface Route {
   area_id: string | null;
   sector_id: string | null;
   name: string;
+  name_en: string | null;
   grade: string | null;
   grade_system: string;
   height: number | null;

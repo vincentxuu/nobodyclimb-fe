@@ -12,6 +12,7 @@ export interface AISource {
   excerpt: string
   url?: string
   score: number
+  latestVideoUrl?: string // 路線最新影片 YouTube URL（僅 route 類型）
 }
 
 export interface AIAskRequest {
@@ -24,6 +25,7 @@ export interface AIAskResponse {
   answer: string
   sources: AISource[]
   query_id: string
+  suggested_questions: string[]
 }
 
 export interface AISearchRequest {
@@ -55,14 +57,40 @@ export interface AIHealthResponse {
   ai: boolean
 }
 
+export interface ChatSession {
+  id: string
+  title: string
+  created_at: number
+  updated_at: number
+}
+
+export interface ChatMessage {
+  id: string
+  session_id?: string
+  role: 'user' | 'assistant'
+  content: string
+  suggested_questions?: string[]
+  query_id?: string
+  created_at: number
+}
+
+export interface SaveMessageRequest {
+  role: 'user' | 'assistant'
+  content: string
+  suggested_questions?: string[]
+  query_id?: string
+}
+
 // =============================================
 // API 函式
 // =============================================
 
 export async function askAI(request: AIAskRequest): Promise<AIAskResponse> {
+  // AI 推理包含 embedding + 向量搜尋 + 多次 LLM，最多需要 60 秒
   const response = await apiClient.post<{ success: boolean; data: AIAskResponse }>(
     '/ai/ask',
-    request
+    request,
+    { timeout: 60000 }
   )
   return response.data.data
 }
@@ -117,5 +145,63 @@ export function useSearchAI(request: AISearchRequest, enabled = true) {
 export function useSubmitFeedback() {
   return useMutation({
     mutationFn: submitFeedback,
+  })
+}
+
+// =============================================
+// Chat Session API 函式
+// =============================================
+
+export async function createChatSession(): Promise<ChatSession> {
+  const response = await apiClient.post<{ success: boolean; data: ChatSession }>('/ai/sessions')
+  return response.data.data
+}
+
+export async function getChatSessions(): Promise<ChatSession[]> {
+  const response = await apiClient.get<{ success: boolean; data: ChatSession[] }>('/ai/sessions')
+  return response.data.data
+}
+
+export async function getChatMessages(sessionId: string): Promise<ChatMessage[]> {
+  const response = await apiClient.get<{ success: boolean; data: ChatMessage[] }>(
+    `/ai/sessions/${sessionId}/messages`
+  )
+  return response.data.data
+}
+
+export async function deleteChatSession(sessionId: string): Promise<void> {
+  await apiClient.delete(`/ai/sessions/${sessionId}`)
+}
+
+export async function saveMessage(
+  sessionId: string,
+  message: SaveMessageRequest
+): Promise<{ id: string }> {
+  const response = await apiClient.post<{ success: boolean; data: { id: string } }>(
+    `/ai/sessions/${sessionId}/messages`,
+    message
+  )
+  return response.data.data
+}
+
+export function useCreateChatSession() {
+  return useMutation({ mutationFn: createChatSession })
+}
+
+export function useGetChatSessions() {
+  return useQuery({
+    queryKey: ['chat-sessions'],
+    queryFn: getChatSessions,
+    staleTime: 30 * 1000,
+  })
+}
+
+export function useDeleteChatSession() {
+  return useMutation({ mutationFn: deleteChatSession })
+}
+
+export function useSaveMessage(sessionId: string) {
+  return useMutation({
+    mutationFn: (message: SaveMessageRequest) => saveMessage(sessionId, message),
   })
 }
