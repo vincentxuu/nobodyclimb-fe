@@ -4,6 +4,7 @@ import { describeRoute, validator } from 'hono-openapi';
 import { Env } from '../types';
 import { authMiddleware, adminMiddleware } from '../middleware/auth';
 import { EmbeddingService } from '../services/embedding';
+import { getUserRankDetail, updateUserRank, recalculateAllRanks } from '../services/rank';
 
 export const adminAiRoutes = new Hono<{ Bindings: Env }>();
 
@@ -507,6 +508,114 @@ adminAiRoutes.put(
     } catch (error) {
       console.error('Admin AI update config error:', error);
       return c.json({ success: false, error: 'DatabaseError', message: '更新設定失敗' }, 500);
+    }
+  }
+);
+
+// =============================================
+// GET /users/:userId/rank - 查詢用戶段位詳情
+// =============================================
+
+adminAiRoutes.get(
+  '/users/:userId/rank',
+  describeRoute({
+    tags: ['Admin AI'],
+    summary: '查詢用戶段位詳情',
+    description: '取得指定用戶的段位、積分與各模組積分明細',
+    responses: {
+      200: { description: '段位詳情' },
+      404: { description: '用戶無段位記錄' },
+    },
+  }),
+  async (c) => {
+    const userId = c.req.param('userId');
+    try {
+      const detail = await getUserRankDetail(userId, c.env.DB);
+      if (!detail) return c.json({ success: false, error: 'NotFound', message: '該用戶尚無段位記錄' }, 404);
+      return c.json({ success: true, data: detail });
+    } catch (error) {
+      console.error('Admin get user rank error:', error);
+      return c.json({ success: false, error: 'DatabaseError' }, 500);
+    }
+  }
+);
+
+// =============================================
+// PUT /users/:userId/rank-override - 手動覆寫段位
+// =============================================
+
+const rankOverrideSchema = z.object({
+  rank: z.enum(['foothill', 'wall', 'ridge', 'summit']).nullable(),
+});
+
+const RANK_LIMITS: Record<string, number> = { foothill: 2, wall: 6, ridge: 12, summit: 24 };
+
+adminAiRoutes.put(
+  '/users/:userId/rank-override',
+  describeRoute({
+    tags: ['Admin AI'],
+    summary: '手動覆寫用戶段位',
+    description: '管理員手動指定段位，設為 null 則恢復自動計算',
+    responses: {
+      200: { description: '覆寫成功' },
+      400: { description: '無效段位' },
+    },
+  }),
+  validator('json', rankOverrideSchema),
+  async (c) => {
+    const userId = c.req.param('userId');
+    const { rank } = c.req.valid('json');
+    try {
+      if (rank === null) {
+        await c.env.DB
+          .prepare(`UPDATE user_ranks SET rank_override_id = NULL, updated_at = datetime('now') WHERE user_id = ?`)
+          .bind(userId)
+          .run();
+        await updateUserRank(userId, c.env.DB);
+      } else {
+        const limit = RANK_LIMITS[rank];
+        await c.env.DB
+          .prepare(`UPDATE user_ranks SET rank_override_id = ?, rank_id = ?, daily_ai_limit = ?, updated_at = datetime('now') WHERE user_id = ?`)
+          .bind(rank, rank, limit, userId)
+          .run();
+      }
+      return c.json({ success: true, message: rank ? `已覆寫段位為「${rank}」` : '已清除覆寫，恢復自動計算' });
+    } catch (error) {
+      console.error('Admin rank override error:', error);
+      return c.json({ success: false, error: 'DatabaseError' }, 500);
+    }
+  }
+);
+
+// =============================================
+// POST /recalculate-ranks - 手動觸發積分重算
+// =============================================
+
+const recalculateSchema = z.object({
+  user_id: z.string().min(1),
+});
+
+adminAiRoutes.post(
+  '/recalculate-ranks',
+  describeRoute({
+    tags: ['Admin AI'],
+    summary: '手動觸發段位積分重算',
+    description: '傳入 user_id 重算單一用戶，傳入 "all" 重算所有用戶',
+    responses: { 200: { description: '重算結果' } },
+  }),
+  validator('json', recalculateSchema),
+  async (c) => {
+    const { user_id } = c.req.valid('json');
+    try {
+      if (user_id === 'all') {
+        c.executionCtx.waitUntil(recalculateAllRanks(c.env.DB));
+        return c.json({ success: true, message: '已排程重算所有用戶段位' });
+      }
+      const updated = await updateUserRank(user_id, c.env.DB);
+      return c.json({ success: true, data: updated });
+    } catch (error) {
+      console.error('Admin recalculate ranks error:', error);
+      return c.json({ success: false, error: 'DatabaseError' }, 500);
     }
   }
 );

@@ -12,6 +12,8 @@ import { BiographyLikeButton } from '../biography-like-button'
 import { ShareButton } from '@/components/shared/share-button'
 import { BiographyCommentSection } from '../biography-comment-section'
 import { ProfileAvatar } from '../shared'
+import { RankBadge } from '@/components/rank/RankBadge'
+import type { RankId } from '@nobodyclimb/types'
 
 interface HeroSectionProps {
   person: Biography
@@ -85,9 +87,18 @@ export function HeroSection({ person, followerCount, isOwner, onFollowChange }: 
           <div className="flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
             {/* 左側：名字與描述 */}
             <div className="pl-0 md:pl-44 lg:pl-48">
-              <h1 className="mb-1 text-2xl font-bold text-brand-dark md:text-3xl lg:text-4xl">
-                {person.name}
-              </h1>
+              <div className="flex items-center gap-2 mb-1">
+                <h1 className="text-2xl font-bold text-brand-dark md:text-3xl lg:text-4xl">
+                  {person.name}
+                </h1>
+                {person.user_rank_id && person.user_rank_id !== 'foothill' && (
+                  <RankBadge
+                    tier={person.user_rank_id as RankId}
+                    size="md"
+                    showTooltip
+                  />
+                )}
+              </div>
               <p className="text-sm text-text-subtle md:text-base">
                 {person.title}
               </p>

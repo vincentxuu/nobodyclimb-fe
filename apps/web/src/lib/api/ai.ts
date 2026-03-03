@@ -1,5 +1,8 @@
 import { useQuery, useMutation } from '@tanstack/react-query'
 import apiClient from './client'
+import type { AiQuota } from '@nobodyclimb/types'
+
+export type { AiQuota }
 
 // =============================================
 // TypeScript 介面
@@ -26,6 +29,7 @@ export interface AIAskResponse {
   sources: AISource[]
   query_id: string
   suggested_questions: string[]
+  quota?: AiQuota
 }
 
 export interface AISearchRequest {
@@ -145,6 +149,20 @@ export function useSearchAI(request: AISearchRequest, enabled = true) {
 export function useSubmitFeedback() {
   return useMutation({
     mutationFn: submitFeedback,
+  })
+}
+
+export async function getMyQuota(): Promise<AiQuota> {
+  const response = await apiClient.get<{ success: boolean; data: AiQuota }>('/ai/quota/me')
+  return response.data.data
+}
+
+export function useMyQuota() {
+  return useQuery({
+    queryKey: ['ai-quota-me'],
+    queryFn: getMyQuota,
+    staleTime: 30 * 1000,
+    retry: false,
   })
 }
 

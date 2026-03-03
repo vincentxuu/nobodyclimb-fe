@@ -111,9 +111,10 @@ export class ContentInteractionsRepository {
   async getComments(contentType: ContentType, contentId: string): Promise<CommentWithUser[]> {
     const result = await this.db
       .prepare(
-        `SELECT c.*, u.username, u.display_name, u.avatar_url
+        `SELECT c.*, u.username, u.display_name, u.avatar_url, ur.rank_id AS user_rank_id
          FROM comments c
          JOIN users u ON c.user_id = u.id
+         LEFT JOIN user_ranks ur ON c.user_id = ur.user_id
          WHERE c.entity_type = ? AND c.entity_id = ?
          ORDER BY c.created_at DESC`
       )

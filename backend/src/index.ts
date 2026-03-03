@@ -218,4 +218,23 @@ app.onError((err, c) => {
   );
 });
 
-export default app;
+// =============================================
+// Cron Trigger Handler - 每日段位重置與積分重算
+// =============================================
+
+import { resetDailyUsage, recalculateAllRanks } from './services/rank';
+
+export default {
+  fetch: app.fetch,
+  async scheduled(_event: ScheduledEvent, env: Env, _ctx: ExecutionContext) {
+    console.log('[cron] 開始每日段位重置與積分重算...');
+    try {
+      await resetDailyUsage(env.DB);
+      console.log('[cron] 每日 AI 使用量已重置');
+      await recalculateAllRanks(env.DB);
+      console.log('[cron] 所有用戶段位積分重算完成');
+    } catch (err) {
+      console.error('[cron] 每日段位任務失敗:', err);
+    }
+  },
+};

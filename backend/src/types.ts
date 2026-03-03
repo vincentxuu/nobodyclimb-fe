@@ -482,6 +482,9 @@ export interface Biography {
   height_cm: number | null;
   arm_span_cm: number | null;
   grade_targets: string | null; // JSON: 年度攀爬目標陣列
+
+  // 段位資訊（from user_ranks）
+  user_rank_id: string | null;
 }
 
 export interface Review {
@@ -696,6 +699,7 @@ export interface CommentWithUser extends ContentComment {
   username: string;
   display_name: string | null;
   avatar_url: string | null;
+  user_rank_id: string | null;
 }
 
 // Content with additional fields
