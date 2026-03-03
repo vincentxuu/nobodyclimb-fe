@@ -74,13 +74,17 @@ export class IndexingService {
   }
 
   // 建立岩場文件文字（actualRouteCount 為從 routes 表即時計算的路線數）
-  createCragDocument(crag: Crag, actualRouteCount?: number): string {
+  createCragDocument(crag: Crag, actualRouteCount?: number, areaNames?: string): string {
     const parts = [
       `岩場名稱：${crag.name}`,
       `地區：${crag.region ?? '未知'}`,
       `岩石類型：${crag.rock_type ?? '未知'}`,
       `路線數量：${actualRouteCount ?? crag.route_count} 條`,
     ];
+
+    if (areaNames) {
+      parts.push(`岩場內的區域（area，非獨立岩場）：${areaNames}`);
+    }
 
     if (crag.description) {
       parts.push(`岩場描述：${crag.description}`);
@@ -153,6 +157,12 @@ export class IndexingService {
 
   // 索引所有岩場
   async indexCrags(): Promise<IndexResult> {
+    // 預先取得每個岩場的區域列表
+    const areasResult = await this.env.DB.prepare(
+      `SELECT crag_id, GROUP_CONCAT(name, '、') as area_names FROM areas WHERE name IS NOT NULL GROUP BY crag_id`
+    ).all<{ crag_id: string; area_names: string }>();
+    const areasByCrag = new Map(areasResult.results.map((r) => [r.crag_id, r.area_names]));
+
     // 同時 JOIN routes 取得真實路線數，避免 description 欄位有舊的靜態數字
     const crags = await this.env.DB.prepare(`
       SELECT c.*, COUNT(r.id) as actual_route_count
@@ -183,7 +193,7 @@ export class IndexingService {
 
       return {
         sourceId: crag.id,
-        text: this.createCragDocument(crag, crag.actual_route_count),
+        text: this.createCragDocument(crag, crag.actual_route_count, areasByCrag.get(crag.id)),
         metadata,
       };
     });
