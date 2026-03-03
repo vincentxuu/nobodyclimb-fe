@@ -972,7 +972,7 @@ adminCragsRoutes.get(
        FROM route_videos rv
        JOIN videos v ON rv.video_id = v.id
        WHERE rv.route_id = ?
-       ORDER BY rv.sort_order ASC, v.published_at DESC NULLS LAST`
+       ORDER BY rv.sort_order ASC, COALESCE(v.published_at, rv.created_at) DESC`
     )
       .bind(routeId)
       .all<{
