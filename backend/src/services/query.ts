@@ -1,11 +1,28 @@
-import { Env, AIAskRequest, AIAskResponse, AISearchRequest, AISource, AIDocument, AIDocumentMetadata } from '../types';
+import { Env, AIAskRequest, AIAskResponse, AISearchRequest, AISource, AIDocument, AIDocumentMetadata, ParsedQuery } from '../types';
 import { EmbeddingService } from './embedding';
-import { SYSTEM_PROMPT, QUERY_TEMPLATE } from '../utils/ai-prompts';
+import { SYSTEM_PROMPT, QUERY_TEMPLATE, TOOL_SELECTION_PROMPT, HYDE_PROMPT, GENERAL_KNOWLEDGE_SYSTEM_PROMPT } from '../utils/ai-prompts';
 
 const CACHE_TTL = 3600; // 1 小時
+
+// 解析 LLM 回應中的建議問題，回傳純回答與建議陣列
+function parseSuggestedQuestions(raw: string): { answer: string; suggested_questions: string[] } {
+  const SEP = '---SUGGESTIONS---';
+  const idx = raw.indexOf(SEP);
+  if (idx === -1) return { answer: raw.trim(), suggested_questions: [] };
+
+  const answer = raw.slice(0, idx).trim();
+  const suggestionsBlock = raw.slice(idx + SEP.length).trim();
+  const suggested_questions = suggestionsBlock
+    .split('\n')
+    .map((line) => line.replace(/^\d+\.\s*/, '').trim())
+    .filter((line) => line.length > 0)
+    .slice(0, 3);
+
+  return { answer, suggested_questions };
+}
 const DEFAULT_TOP_K = 5;
 const MIN_SCORE = 0.5;
-const DEFAULT_LLM_MODEL = '@cf/meta/llama-3.1-8b-instruct';
+const DEFAULT_LLM_MODEL = '@cf/google/gemma-3-12b-it';
 
 interface LLMResponse {
   response: string;
@@ -71,7 +88,12 @@ export class QueryService {
     return { $gte: base, $lte: base + 3 };
   }
 
-  // 完整 RAG 流程：embed → search → retrieve → generate
+  // 完整 RAG 流程（增強版）：
+  // Stage 1（並行）：LLM A（Tool Calling）+ LLM B（HyDE）
+  // Stage 2（並行）：embed(query) + embed(hydeDoc)
+  // Stage 3（並行）：兩路 Vectorize 搜尋
+  // Stage 4：mergeResults → D1 fetch
+  // Stage 5：LLM C 生成回答（含隱性 re-ranking）
   async ask(request: AIAskRequest, userId?: string): Promise<AIAskResponse> {
     const { query, limit = DEFAULT_TOP_K, include_sources = true } = request;
 
@@ -84,72 +106,7 @@ export class QueryService {
 
     const startTime = Date.now();
 
-    // 1. query 轉向量
-    const queryVector = await this.embeddingService.embed(query);
-
-    // 偵測 query 中的難度、區域、岩場、地區關鍵字，自動過濾向量搜尋結果
-    const gradeFilter = this.extractGradeFilter(query);
-    const { cragId, areaId, region } = await this.extractLocationFilter(query);
-    const typeFilter = this.extractTypeFilter(query);
-
-    const vectorFilter: Record<string, unknown> = {};
-    if (gradeFilter) vectorFilter['grade_numeric'] = gradeFilter;
-    if (areaId) {
-      // 指定區域 → 一定是找路線（區域是岩場的子分區，必定對應路線）
-      vectorFilter['area_id'] = { $eq: areaId };
-      vectorFilter['type'] = { $eq: 'route' };
-    } else if (cragId) {
-      // 指定岩場 → 依 typeFilter 判斷意圖（可能問岩場資訊或路線）
-      vectorFilter['crag_id'] = { $eq: cragId };
-      if (typeFilter) vectorFilter['type'] = { $eq: typeFilter };
-    } else if (region) {
-      // 指定地區 → 依 typeFilter 判斷意圖
-      vectorFilter['region'] = { $eq: region };
-      if (typeFilter) vectorFilter['type'] = { $eq: typeFilter };
-    } else {
-      // 無位置過濾 → 用 typeFilter 判斷意圖，避免混入不相關文件類型
-      if (typeFilter) vectorFilter['type'] = { $eq: typeFilter };
-    }
-
-    // 2. Vectorize 向量搜尋（依偵測到的條件加 metadata filter）
-    const searchResults = await this.env.VECTOR_INDEX.query(queryVector, {
-      topK: limit,
-      returnMetadata: 'all',
-      filter: Object.keys(vectorFilter).length > 0 ? vectorFilter : undefined,
-    });
-
-    // 過濾低分結果
-    const relevantMatches = searchResults.matches.filter((m) => m.score >= MIN_SCORE);
-
-    // 3. 從 D1 取得完整文字
-    const documents = await this.getDocuments(relevantMatches.map((m) => m.id));
-
-    // 4. 組合 sources
-    const sources: AISource[] = relevantMatches
-      .map((match) => {
-        const doc = documents.get(match.id);
-        if (!doc) return null;
-        const meta = doc.metadata ? (JSON.parse(doc.metadata) as AIDocumentMetadata) : {};
-        return {
-          id: doc.source_id,
-          type: doc.type,
-          title: this.extractTitle(doc),
-          excerpt: doc.text.slice(0, 120).replace(/\n/g, ' '),
-          url: this.buildUrl(doc),
-          score: match.score,
-        } as AISource;
-      })
-      .filter((s): s is AISource => s !== null);
-
-    // 5. LLM 生成回答
-    const context = documents.size > 0
-      ? Array.from(documents.values()).map((d) => d.text).join('\n\n---\n\n')
-      : '目前沒有找到相關資料。';
-
-    const prompt = QUERY_TEMPLATE
-      .replace('{context}', context)
-      .replace('{query}', query);
-
+    // 取得 LLM 模型設定
     const llmModelRow = await this.env.DB.prepare(
       `SELECT value FROM ai_config WHERE key = 'llm_model'`
     ).first<{ value: string }>();
@@ -159,19 +116,283 @@ export class QueryService {
       ? { gateway: { id: this.env.AI_GATEWAY_SLUG } }
       : undefined;
 
+    // 優先路徑：相似路線推薦（「爬完X，推薦下一條」）
+    // 需要從 DB 查出該路線的難度和岩場，不依賴 LLM A
+    let vectorFilter: Record<string, unknown> = {};
+    let hydeDoc = '';
+    let excludeRouteId: string | null = null; // 排除來源路線本身
+    let referenceRouteInfo: string | null = null; // 來源路線資訊，注入 context 讓 LLM 有正確難度
+
+    if (this.hasSimilarRouteIntent(query)) {
+      // 並行：DB 查路線資訊 + HyDE 生成
+      const [routeRef, hydeDocResult] = await Promise.all([
+        this.extractRouteReference(query),
+        this.generateHyDE(query, llmModel, gatewayOptions),
+      ]);
+      hydeDoc = hydeDocResult;
+
+      if (routeRef) {
+        // 優先同岩場 + 相近難度 + 同攀登類型
+        if (routeRef.cragId) vectorFilter['crag_id'] = { $eq: routeRef.cragId };
+        if (routeRef.gradeNumeric > 0) {
+          vectorFilter['grade_numeric'] = this.similarGradeRange(routeRef.gradeNumeric, 2);
+        }
+        if (routeRef.routeType) {
+          vectorFilter['route_type'] = { $eq: routeRef.routeType };
+        }
+        vectorFilter['type'] = { $eq: 'route' };
+        excludeRouteId = routeRef.routeId; // 記錄來源路線，後續排除
+        // 記錄來源路線資訊，避免 LLM 猜錯難度
+        const typeLabel = routeRef.routeType ? `，類型：${routeRef.routeType}` : '';
+        referenceRouteInfo = `使用者剛爬完的路線：${routeRef.name}（難度：${routeRef.grade ?? '未知'}${typeLabel}）`;
+      }
+    } else {
+      // Stage 1a：取得岩場/區域/地區清單（供 LLM A prompt 注入）
+      const [cragsResult, areasResult] = await Promise.all([
+        this.env.DB.prepare('SELECT name, region FROM crags WHERE name IS NOT NULL').all<{ name: string; region: string | null }>(),
+        this.env.DB.prepare('SELECT name FROM areas WHERE name IS NOT NULL').all<{ name: string }>(),
+      ]);
+      const cragNames = cragsResult.results.map((c) => c.name);
+      const areaNames = areasResult.results.map((a) => a.name);
+      const regionNames = [...new Set(cragsResult.results.map((c) => c.region).filter(Boolean))] as string[];
+
+      // Stage 1b（並行）：LLM A（Tool Calling）+ LLM B（HyDE）
+      const [parsedQuery, hydeDocResult] = await Promise.all([
+        this.parseQueryWithLLM(query, llmModel, cragNames, areaNames, regionNames, gatewayOptions),
+        this.generateHyDE(query, llmModel, gatewayOptions),
+      ]);
+      hydeDoc = hydeDocResult;
+
+      // general_knowledge：直接跳過向量搜尋，用 LLM 通識能力回答
+      if (parsedQuery?.tool === 'general_knowledge') {
+        const llmResult = (await this.env.AI.run(
+          llmModel,
+          { messages: [{ role: 'system', content: GENERAL_KNOWLEDGE_SYSTEM_PROMPT }, { role: 'user', content: query }], max_tokens: 600 },
+          gatewayOptions
+        )) as LLMResponse;
+        const rawAnswer = llmResult.response ?? '抱歉，無法生成回答，請稍後再試。';
+        const { answer, suggested_questions } = parseSuggestedQuestions(rawAnswer);
+        const latencyMs = Date.now() - startTime;
+        const estimatedTokens = Math.ceil((GENERAL_KNOWLEDGE_SYSTEM_PROMPT.length + query.length + answer.length) / 2);
+        const queryId = await this.logQuery({ userId: userId ?? null, query, response: answer, sources: [], latencyMs, tokenCount: llmResult.usage?.total_tokens ?? estimatedTokens });
+        const response: AIAskResponse = { answer, sources: [], query_id: queryId, suggested_questions };
+        await this.env.CACHE.put(cacheKey, JSON.stringify(response), { expirationTtl: CACHE_TTL });
+        return response;
+      }
+
+      // Stage 2：決定過濾條件
+      if (parsedQuery) {
+        vectorFilter = await this.buildFiltersFromParsed(parsedQuery);
+      } else {
+        // Fallback：使用現有 regex 方法
+        const gradeFilter = this.extractGradeFilter(query);
+        const { cragId, areaId, region } = await this.extractLocationFilter(query);
+        const typeFilter = this.extractTypeFilter(query);
+
+        if (gradeFilter) vectorFilter['grade_numeric'] = gradeFilter;
+        if (areaId) {
+          vectorFilter['area_id'] = { $eq: areaId };
+          vectorFilter['type'] = { $eq: 'route' };
+        } else if (cragId) {
+          vectorFilter['crag_id'] = { $eq: cragId };
+          if (typeFilter) vectorFilter['type'] = { $eq: typeFilter };
+        } else if (region) {
+          vectorFilter['region'] = { $eq: region };
+          if (typeFilter) vectorFilter['type'] = { $eq: typeFilter };
+        } else if (typeFilter) {
+          vectorFilter['type'] = { $eq: typeFilter };
+        }
+      }
+    }
+
+    // Stage 3（並行）：embed(query) + embed(hydeDoc)
+    const embedTasks: Promise<number[]>[] = [this.embeddingService.embed(query)];
+    if (hydeDoc) {
+      embedTasks.push(this.embeddingService.embed(hydeDoc));
+    }
+    const embedResults = await Promise.all(embedTasks);
+    const queryVector = embedResults[0];
+    const hydeVector = hydeDoc ? embedResults[1] : null;
+
+    // Stage 4（並行）：兩路 Vectorize 搜尋
+    const MERGE_TOP_K = 10;
+    const searchTasks: Promise<{ matches: SearchResult[] }>[] = [
+      this.env.VECTOR_INDEX.query(queryVector, {
+        topK: MERGE_TOP_K,
+        returnMetadata: 'all',
+        filter: Object.keys(vectorFilter).length > 0 ? vectorFilter : undefined,
+      }),
+    ];
+
+    // HyDE filter 策略：
+    // - 有 crag_id（相似路線意圖）→ 套用全部 filter（確保同岩場同難度）
+    // - 其他情況 → 只套 type filter（讓語義搜尋有彈性）
+    if (hydeVector) {
+      const hydeFilter: Record<string, unknown> =
+        vectorFilter['crag_id'] || vectorFilter['area_id']
+          ? { ...vectorFilter }                           // 相似路線：完整 filter
+          : vectorFilter['type'] ? { type: vectorFilter['type'] } : {}; // 一般：只限 type
+      searchTasks.push(
+        this.env.VECTOR_INDEX.query(hydeVector, {
+          topK: MERGE_TOP_K,
+          returnMetadata: 'all',
+          filter: Object.keys(hydeFilter).length > 0 ? hydeFilter : undefined,
+        })
+      );
+    }
+
+    const searchResponses = await Promise.all(searchTasks);
+    const queryMatches: SearchResult[] = searchResponses[0].matches.map((m) => ({ id: m.id, score: m.score, metadata: m.metadata }));
+    const rawHydeMatches: SearchResult[] = hydeVector && searchResponses[1]
+      ? searchResponses[1].matches.map((m) => ({ id: m.id, score: m.score, metadata: m.metadata }))
+      : [];
+
+    // Fix 3：有 location 過濾（crag/area/region）但 primary 搜尋無結果時，
+    // 不合併 HyDE 結果，避免引入不相關岩場/地區
+    const hasLocationFilter = !!(vectorFilter['crag_id'] || vectorFilter['area_id'] || vectorFilter['region']);
+    const hydeMatches = (hasLocationFilter && queryMatches.length === 0) ? [] : rawHydeMatches;
+
+    // Stage 5：合併結果、過濾低分、取 D1 完整文件
+    // 注意：先保留全部候選（最多 MERGE_TOP_K），熱門度重排後再截斷至 limit
+    const mergedMatches = this.mergeResults(queryMatches, hydeMatches, MERGE_TOP_K);
+    const candidateMatches = mergedMatches.filter((m) => m.score >= MIN_SCORE);
+
+    const documents = await this.getDocuments(candidateMatches.map((m) => m.id));
+
+    // 排除來源路線本身（相似路線推薦不應推薦使用者剛爬完的那條）
+    if (excludeRouteId) {
+      for (const [embeddingId, doc] of documents) {
+        if (doc.source_id === excludeRouteId) {
+          documents.delete(embeddingId);
+        }
+      }
+    }
+
+    // 熱門度排序：依影片數為路線評分加權（combined = vector*0.7 + popularity*0.3）
+    // 在全部候選（最多 MERGE_TOP_K）中重排，讓熱門路線有機會超越語義分數較高但無影片的路線
+    const routeSourceIds = [...documents.values()]
+      .filter((d) => d.type === 'route')
+      .map((d) => d.source_id);
+
+    const videoCountMap = new Map<string, number>();
+    const latestVideoMap = new Map<string, string>(); // route_id → YouTube URL
+    if (routeSourceIds.length > 0) {
+      const placeholders = routeSourceIds.map(() => '?').join(', ');
+      const [vcResult, latestVideoResult] = await Promise.all([
+        this.env.DB.prepare(
+          `SELECT route_id, COUNT(*) as cnt FROM route_videos WHERE route_id IN (${placeholders}) GROUP BY route_id`
+        ).bind(...routeSourceIds).all<{ route_id: string; cnt: number }>(),
+        this.env.DB.prepare(
+          `SELECT rv.route_id, v.youtube_id
+           FROM route_videos rv
+           JOIN videos v ON rv.video_id = v.id
+           WHERE rv.route_id IN (${placeholders}) AND v.youtube_id IS NOT NULL
+           ORDER BY rv.route_id, COALESCE(v.published_at, rv.created_at) DESC`
+        ).bind(...routeSourceIds).all<{ route_id: string; youtube_id: string }>(),
+      ]);
+      for (const row of vcResult.results) {
+        videoCountMap.set(row.route_id, row.cnt);
+      }
+      // 每個路線只取最新一筆（已按 route_id, 日期 DESC 排序，取第一筆）
+      const seenRoutes = new Set<string>();
+      for (const row of latestVideoResult.results) {
+        if (!seenRoutes.has(row.route_id)) {
+          latestVideoMap.set(row.route_id, `https://youtube.com/watch?v=${row.youtube_id}`);
+          seenRoutes.add(row.route_id);
+        }
+      }
+    }
+
+    const maxVideoCount = videoCountMap.size > 0 ? Math.max(...videoCountMap.values()) : 1;
+    const safeMax = Math.max(maxVideoCount, 1);
+
+    const rerankedMatches = candidateMatches
+      .map((match) => {
+        const doc = documents.get(match.id);
+        if (!doc || doc.type !== 'route') return { ...match, finalScore: match.score };
+        const videoCount = videoCountMap.get(doc.source_id) ?? 0;
+        const normalizedPop = videoCount / safeMax;
+        return { ...match, finalScore: match.score * 0.7 + normalizedPop * 0.3 };
+      })
+      .sort((a, b) => b.finalScore - a.finalScore)
+      .slice(0, limit); // 熱門度重排完才截斷，確保高人氣路線不被提前淘汰
+
+    // 組合 sources（依熱門度重排後的順序）
+    const sources: AISource[] = rerankedMatches
+      .map((match) => {
+        const doc = documents.get(match.id);
+        if (!doc) return null;
+        return {
+          id: doc.source_id,
+          type: doc.type,
+          title: this.extractTitle(doc),
+          excerpt: this.buildExcerpt(doc),
+          url: this.buildUrl(doc),
+          score: match.finalScore,
+          latestVideoUrl: doc.type === 'route' ? latestVideoMap.get(doc.source_id) : undefined,
+        } as AISource;
+      })
+      .filter((s): s is AISource => s !== null);
+
+    // Stage 6：LLM C 生成回答（依熱門度重排，context 順序影響 LLM 生成品質）
+    const orderedDocs = rerankedMatches
+      .map((m) => documents.get(m.id))
+      .filter((d): d is AIDocument => d !== undefined);
+
+    const docsText = orderedDocs.length > 0
+      ? orderedDocs.map((d) => {
+          if (d.type === 'route') {
+            const videoCount = videoCountMap.get(d.source_id) ?? 0;
+            const latestVideoUrl = latestVideoMap.get(d.source_id);
+            let text = d.text;
+            // 加入路線 URL，供 LLM 在回答中產生連結
+            const meta = d.metadata ? (JSON.parse(d.metadata) as AIDocumentMetadata) : {} as AIDocumentMetadata;
+            if (meta.crag_id) {
+              text += `\n路線連結：/crag/${meta.crag_id}/route/${d.source_id}`;
+            }
+            if (videoCount > 0) {
+              text += `\n影片數量：${videoCount}`;
+            }
+            return text;
+          }
+          return d.text;
+        }).join('\n\n---\n\n')
+      : '目前沒有找到相關資料。';
+
+    // 若是相似路線推薦，在 context 開頭加入來源路線資訊，避免 LLM 猜測難度
+    const context = referenceRouteInfo
+      ? `${referenceRouteInfo}\n\n以下是相近難度的推薦路線：\n\n${docsText}`
+      : docsText;
+
+    const prompt = QUERY_TEMPLATE
+      .replace('{context}', context)
+      .replace('{query}', query);
+
     const llmResult = (await this.env.AI.run(
-      llmModel as Parameters<typeof this.env.AI.run>[0],
+      llmModel,
       {
         messages: [
           { role: 'system', content: SYSTEM_PROMPT },
           { role: 'user', content: prompt },
         ],
+        max_tokens: 800,
       },
       gatewayOptions
     )) as LLMResponse;
 
-    const answer = llmResult.response ?? '抱歉，無法生成回答，請稍後再試。';
+    const rawLLMAnswer = llmResult.response ?? '抱歉，無法生成回答，請稍後再試。';
+    const { answer: parsedAnswer, suggested_questions } = parseSuggestedQuestions(rawLLMAnswer);
     const latencyMs = Date.now() - startTime;
+
+    // LLM 明確表示無法回答時，不回傳來源（來源與答案無關，顯示會造成誤解）
+    const cannotAnswer =
+      parsedAnswer.includes('超出我的知識範圍') || parsedAnswer.includes('找不到相關資訊');
+    const finalSources = cannotAnswer ? [] : sources;
+
+    // 後處理：將路線名稱注入 markdown 連結（不依賴 LLM 是否遵守格式指令）
+    const answer = !cannotAnswer && finalSources.length > 0
+      ? this.injectRouteLinks(parsedAnswer, finalSources)
+      : parsedAnswer;
 
     // Workers AI binding 不回傳 usage，用字元長度估算 token 數
     // 中英混合約每 2 字元 = 1 token
@@ -180,23 +401,24 @@ export class QueryService {
     );
     const tokenCount = llmResult.usage?.total_tokens ?? estimatedTokens;
 
-    // 6. 記錄查詢日誌
+    // 記錄查詢日誌
     const queryId = await this.logQuery({
       userId: userId ?? null,
       query,
       response: answer,
-      sources: include_sources ? sources : [],
+      sources: include_sources ? finalSources : [],
       latencyMs,
       tokenCount,
     });
 
     const response: AIAskResponse = {
       answer,
-      sources: include_sources ? sources : [],
+      sources: include_sources ? finalSources : [],
       query_id: queryId,
+      suggested_questions,
     };
 
-    // 7. 快取結果
+    // 快取結果
     await this.env.CACHE.put(cacheKey, JSON.stringify(response), {
       expirationTtl: CACHE_TTL,
     });
@@ -228,7 +450,7 @@ export class QueryService {
           id: doc.source_id,
           type: doc.type,
           title: this.extractTitle(doc),
-          excerpt: doc.text.slice(0, 120).replace(/\n/g, ' '),
+          excerpt: this.buildExcerpt(doc),
           url: this.buildUrl(doc),
           score: match.score,
         } as AISource;
@@ -265,6 +487,89 @@ export class QueryService {
     return filter;
   }
 
+  // YDS 等級轉數值（5.12a → 120，與 IndexingService 一致）
+  private gradeToNumeric(grade: string | null): number {
+    if (!grade) return 0;
+    const match = grade.match(/5\.(\d+)([a-d])?/);
+    if (!match) return 0;
+    const base = parseInt(match[1], 10) * 10;
+    const suffix = match[2] ? 'abcd'.indexOf(match[2]) : 0;
+    return base + suffix;
+  }
+
+  // grade_numeric ↔ 連續 position 互轉（消除大等級間的跳躍 gap）
+  // 5.10d(103)=43, 5.11a(110)=44，在 position 上相鄰
+  private gradeToPosition(numeric: number): number {
+    return Math.floor(numeric / 10) * 4 + (numeric % 10);
+  }
+
+  private positionToGrade(position: number): number {
+    const major = Math.floor(position / 4);
+    const sub = position % 4;
+    return major * 10 + sub;
+  }
+
+  // 取得「差不多難度」的 grade_numeric 範圍（連續序列中 ±steps）
+  private similarGradeRange(gradeNumeric: number, steps = 2): { $gte: number; $lte: number } {
+    const pos = this.gradeToPosition(gradeNumeric);
+    return {
+      $gte: this.positionToGrade(Math.max(0, pos - steps)),
+      $lte: this.positionToGrade(pos + steps),
+    };
+  }
+
+  // 偵測 query 是否有「推薦相似/類似路線」意圖
+  private hasSimilarRouteIntent(query: string): boolean {
+    return ['差不多', '類似', '相似', '爬完', '爬過', '爬了'].some((k) => query.includes(k));
+  }
+
+  // 若 query 提到已知路線名稱，回傳該路線的難度數值、所屬岩場、路線 ID、名稱、難度字串（用於相似路線過濾及 LLM 參考）
+  // 按名稱長度由長到短比對，優先匹配更精確的路線名
+  // 支援縮寫：若完整名稱比對失敗，嘗試路線名後綴部分匹配（如「天藍」→「天天天藍」）
+  async extractRouteReference(query: string): Promise<{
+    gradeNumeric: number;
+    cragId: string | null;
+    routeId: string;
+    name: string;
+    grade: string | null;
+    routeType: string | null;
+  } | null> {
+    const routes = await this.env.DB.prepare(
+      'SELECT id, name, grade, crag_id, route_type FROM routes WHERE name IS NOT NULL ORDER BY LENGTH(name) DESC'
+    ).all<{ id: string; name: string; grade: string | null; crag_id: string | null; route_type: string | null }>();
+
+    const toMatch = (route: { id: string; name: string; grade: string | null; crag_id: string | null; route_type: string | null }) => ({
+      gradeNumeric: this.gradeToNumeric(route.grade),
+      cragId: route.crag_id,
+      routeId: route.id,
+      name: route.name,
+      grade: route.grade,
+      routeType: route.route_type,
+    });
+
+    // 第一輪：完整路線名稱精確比對
+    for (const route of routes.results) {
+      if (route.name.length >= 2 && query.includes(route.name)) {
+        return toMatch(route);
+      }
+    }
+
+    // 第二輪：後綴縮寫比對（如使用者說「天藍」，路線名為「天天天藍」）
+    // 只對 3 字以上的路線名嘗試，最短取 name 長度一半的後綴，避免誤配
+    for (const route of routes.results) {
+      if (route.name.length < 3) continue;
+      const minLen = Math.ceil(route.name.length / 2);
+      for (let len = route.name.length - 1; len >= minLen; len--) {
+        const suffix = route.name.slice(-len);
+        if (query.includes(suffix)) {
+          return toMatch(route);
+        }
+      }
+    }
+
+    return null;
+  }
+
   // 從 query 文字偵測使用者意圖，回傳適合的文件類型過濾（'crag' | 'route' | null）
   // 原則：若明確詢問岩場資訊（無路線意圖） → 'crag'；明確詢問路線 → 'route'；混合/不明 → null
   extractTypeFilter(query: string): 'crag' | 'route' | null {
@@ -297,10 +602,50 @@ export class QueryService {
     return result;
   }
 
-  // 從文件中提取標題
+  // 從文件中提取標題；無中文名稱時 fallback 到 name_en
   extractTitle(doc: AIDocument): string {
     const firstLine = doc.text.split('\n')[0];
-    return firstLine.replace(/^路線名稱：|^岩場名稱：/, '').trim() || doc.source_id;
+    const name = firstLine.replace(/^路線名稱：|^岩場名稱：/, '').trim();
+    if (name) return name;
+    // 路線名稱空白時，嘗試從 metadata 取 name / name_en，否則用 source_id
+    if (doc.metadata) {
+      try {
+        const meta = JSON.parse(doc.metadata) as AIDocumentMetadata;
+        if (meta.name) return meta.name;
+        if (meta.name_en) return meta.name_en;
+      } catch { /* ignore */ }
+    }
+    return doc.source_id;
+  }
+
+  // 路線類型英文 → 中文顯示名稱
+  private routeTypeLabel(type: string): string {
+    const map: Record<string, string> = {
+      sport: '運攀',
+      trad: '傳攀',
+      boulder: '抱石',
+      mixed: '混合',
+    };
+    return map[type.toLowerCase()] ?? type;
+  }
+
+  // 從文件欄位建立清晰的來源摘要
+  // 路線：「岩場 · 難度 · 類型」；其他：原始文字截斷
+  buildExcerpt(doc: AIDocument): string {
+    if (doc.type === 'route') {
+      const fieldMap: Record<string, string> = {};
+      for (const line of doc.text.split('\n')) {
+        const match = line.match(/^([^：\n]+)：(.+)$/);
+        if (match) fieldMap[match[1].trim()] = match[2].trim();
+      }
+      const parts: string[] = [];
+      if (fieldMap['所屬岩場']) parts.push(fieldMap['所屬岩場']);
+      if (fieldMap['難度等級']) parts.push(fieldMap['難度等級']);
+      if (fieldMap['攀登類型']) parts.push(this.routeTypeLabel(fieldMap['攀登類型']));
+      if (fieldMap['岩場區域']) parts.push(fieldMap['岩場區域']);
+      if (parts.length > 0) return parts.join(' · ');
+    }
+    return doc.text.slice(0, 120).replace(/\n/g, ' ');
   }
 
   // 依文件類型建立 URL
@@ -322,6 +667,41 @@ export class QueryService {
       }
     }
     return undefined;
+  }
+
+  // LLM 回答後處理：將已知路線名稱替換為 markdown 連結，並於第一次出現時附上影片連結
+  // 依名稱長度由長到短排序，避免短名稱提前匹配到長名稱的一部分
+  private injectRouteLinks(text: string, sources: AISource[]): string {
+    let result = text;
+    const routeSources = sources
+      .filter((s) => s.type === 'route' && s.url && s.title)
+      .sort((a, b) => b.title.length - a.title.length);
+
+    for (const source of routeSources) {
+      const name = source.title;
+      const url = source.url!;
+      // 1. **name** → [**name**](routeUrl)，第一次出現附上影片連結，之後只替換連結
+      const videoSuffix = source.latestVideoUrl ? ` [觀看影片](${source.latestVideoUrl})` : '';
+      let firstReplace = true;
+      result = result.replace(
+        new RegExp(`\\*\\*${name.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}\\*\\*`, 'g'),
+        () => {
+          const replacement = firstReplace
+            ? `[**${name}**](${url})${videoSuffix}`
+            : `[**${name}**](${url})`;
+          firstReplace = false;
+          return replacement;
+        }
+      );
+
+      // 2. 純文字 name → [name](url)（排除已在連結內的）
+      const escaped = name.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+      result = result.replace(
+        new RegExp(`(?<!\\[\\*\\*|\\[)${escaped}(?!\\*\\*\\]|\\])`, 'g'),
+        `[${name}](${url})`
+      );
+    }
+    return result;
   }
 
   // 記錄查詢日誌，回傳 query_id
@@ -364,5 +744,143 @@ export class QueryService {
       hash = hash & hash; // 轉為 32-bit integer
     }
     return Math.abs(hash).toString(36);
+  }
+
+  // LLM A：解析查詢意圖，選擇搜尋工具與參數
+  // 失敗時回傳 null，由呼叫方 fallback 到 regex 方法
+  private async parseQueryWithLLM(
+    query: string,
+    llmModel: string,
+    crags: string[],
+    areas: string[],
+    regions: string[],
+    gatewayOptions?: { gateway: { id: string } }
+  ): Promise<ParsedQuery | null> {
+    try {
+      const prompt = TOOL_SELECTION_PROMPT
+        .replace('{crags}', crags.join('、') || '無')
+        .replace('{areas}', areas.join('、') || '無')
+        .replace('{regions}', regions.join('、') || '無')
+        .replace('{query}', query);
+
+      const result = (await this.env.AI.run(
+        llmModel,
+        { messages: [{ role: 'user', content: prompt }] },
+        gatewayOptions
+      )) as LLMResponse;
+
+      const text = result.response?.trim() ?? '';
+      // 移除可能包裹的 markdown code fence
+      const jsonText = text.replace(/^```(?:json)?\n?/, '').replace(/\n?```$/, '').trim();
+      const parsed = JSON.parse(jsonText) as ParsedQuery;
+
+      if (!parsed.tool || !['search_routes', 'search_crags', 'general_knowledge'].includes(parsed.tool)) {
+        return null;
+      }
+      return parsed;
+    } catch {
+      return null;
+    }
+  }
+
+  // LLM B：HyDE - 生成假設性理想答案文件以提升語義搜尋效果
+  // 失敗時回傳空字串，由呼叫方跳過 HyDE 搜尋
+  private async generateHyDE(
+    query: string,
+    llmModel: string,
+    gatewayOptions?: { gateway: { id: string } }
+  ): Promise<string> {
+    try {
+      const prompt = HYDE_PROMPT.replace('{query}', query);
+
+      const result = (await this.env.AI.run(
+        llmModel,
+        { messages: [{ role: 'user', content: prompt }] },
+        gatewayOptions
+      )) as LLMResponse;
+
+      return result.response?.trim() ?? '';
+    } catch {
+      return '';
+    }
+  }
+
+  // 將 ParsedQuery.params 轉換成 Vectorize metadata filter
+  // 需要 DB 查詢將名稱解析為 ID
+  private async buildFiltersFromParsed(
+    parsed: ParsedQuery
+  ): Promise<Record<string, unknown>> {
+    const filter: Record<string, unknown> = {};
+    const { params, tool } = parsed;
+
+    // 根據工具類型設定 type 過濾
+    if (tool === 'search_routes') {
+      filter['type'] = { $eq: 'route' };
+    } else if (tool === 'search_crags') {
+      filter['type'] = { $eq: 'crag' };
+    }
+
+    // 解析 area_name → area_id
+    if (params.area_name) {
+      const area = await this.env.DB.prepare(
+        'SELECT id FROM areas WHERE name = ? LIMIT 1'
+      ).bind(params.area_name).first<{ id: string }>();
+      if (area) {
+        filter['area_id'] = { $eq: area.id };
+      }
+    }
+
+    // 解析 crag_name → crag_id（area_id 優先，有 area_id 就不需要 crag_id）
+    if (params.crag_name && !filter['area_id']) {
+      const crag = await this.env.DB.prepare(
+        'SELECT id FROM crags WHERE name = ? LIMIT 1'
+      ).bind(params.crag_name).first<{ id: string }>();
+      if (crag) {
+        filter['crag_id'] = { $eq: crag.id };
+      }
+    }
+
+    // 解析地區
+    if (params.region && !filter['area_id'] && !filter['crag_id']) {
+      filter['region'] = { $eq: params.region };
+    }
+
+    // 解析 route_type
+    if (params.route_type) {
+      filter['route_type'] = { $eq: params.route_type };
+    }
+
+    // 解析 grade（支援 "5.11b" 或 "5.10-5.12" 格式）
+    if (params.grade) {
+      const rangeMatch = params.grade.match(/5\.(\d+)([a-d])?[-~]5\.(\d+)([a-d])?/i);
+      if (rangeMatch) {
+        const minNumeric = parseInt(rangeMatch[1], 10) * 10 + (rangeMatch[2] ? 'abcd'.indexOf(rangeMatch[2].toLowerCase()) : 0);
+        const maxNumeric = parseInt(rangeMatch[3], 10) * 10 + (rangeMatch[4] ? 'abcd'.indexOf(rangeMatch[4].toLowerCase()) : 3);
+        filter['grade_numeric'] = { $gte: minNumeric, $lte: maxNumeric };
+      } else {
+        const gradeFilter = this.extractGradeFilter(params.grade);
+        if (gradeFilter) {
+          filter['grade_numeric'] = gradeFilter;
+        }
+      }
+    }
+
+    return filter;
+  }
+
+  // 合併兩個 Vectorize 搜尋結果：去重（同 ID 取較高分）、依分數排序
+  private mergeResults(r1: SearchResult[], r2: SearchResult[], limit = 10): SearchResult[] {
+    const map = new Map<string, SearchResult>();
+
+    for (const item of [...r1, ...r2]) {
+      const existing = map.get(item.id);
+      if (!existing || item.score > existing.score) {
+        map.set(item.id, item);
+      }
+    }
+
+    return Array.from(map.values())
+      .sort((a, b) => b.score - a.score)
+      .slice(0, limit);
   }
 }
