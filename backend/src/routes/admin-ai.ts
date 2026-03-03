@@ -167,9 +167,12 @@ adminAiRoutes.get(
       ).bind(...bindings).first<{ count: number }>();
 
       const rows = await c.env.DB.prepare(
-        `SELECT id, query, latency_ms, feedback_score, created_at
-         FROM ai_query_logs ${where}
-         ORDER BY created_at DESC
+        `SELECT l.id, l.query, l.latency_ms, l.feedback_score, l.created_at,
+                l.user_id, u.username, u.display_name
+         FROM ai_query_logs l
+         LEFT JOIN users u ON l.user_id = u.id
+         ${where}
+         ORDER BY l.created_at DESC
          LIMIT ? OFFSET ?`
       ).bind(...bindings, limit, offset).all();
 
@@ -204,7 +207,10 @@ adminAiRoutes.get(
     const id = c.req.param('id');
     try {
       const log = await c.env.DB.prepare(
-        `SELECT * FROM ai_query_logs WHERE id = ?`
+        `SELECT l.*, u.username, u.display_name
+         FROM ai_query_logs l
+         LEFT JOIN users u ON l.user_id = u.id
+         WHERE l.id = ?`
       ).bind(id).first();
 
       if (!log) {

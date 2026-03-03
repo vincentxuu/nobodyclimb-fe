@@ -3,6 +3,12 @@
 import { useState, useEffect, useCallback } from 'react'
 import { adminUserService, AdminUser, AdminUserStats } from '@/lib/api/services'
 import {
+  useUserRankDetail,
+  useRecalculateRank,
+  useOverrideUserRank,
+  RankId,
+} from '@/lib/api/admin-ai'
+import {
   Users,
   UserCheck,
   UserX,
@@ -18,6 +24,8 @@ import {
   TrendingUp,
   Clock,
   ArrowUpDown,
+  Mountain,
+  X,
 } from 'lucide-react'
 
 function formatRelativeTime(dateStr: string | null): string {
@@ -51,6 +59,195 @@ const authProviderLabels: Record<string, string> = {
   google: 'Google',
 }
 
+const rankLabels: Record<string, string> = {
+  foothill: '麓',
+  wall: '壁',
+  ridge: '稜',
+  summit: '巔',
+}
+
+const rankColors: Record<string, string> = {
+  foothill: 'bg-stone-100 text-stone-600',
+  wall: 'bg-blue-100 text-blue-700',
+  ridge: 'bg-purple-100 text-purple-700',
+  summit: 'bg-amber-100 text-amber-700',
+}
+
+const RANK_OPTIONS: { id: RankId; label: string }[] = [
+  { id: 'summit', label: '巔' },
+  { id: 'ridge', label: '稜' },
+  { id: 'wall', label: '壁' },
+  { id: 'foothill', label: '麓' },
+]
+
+// =============================================
+// 用戶等級詳情 Modal
+// =============================================
+
+function UserRankModal({
+  userId,
+  username,
+  onClose,
+}: {
+  userId: string
+  username: string
+  onClose: () => void
+}) {
+  const { data: rank, isLoading, error, refetch } = useUserRankDetail(userId)
+  const recalculate = useRecalculateRank()
+  const override = useOverrideUserRank()
+
+  const handleRecalculate = async () => {
+    await recalculate.mutateAsync(userId)
+    refetch()
+  }
+
+  const handleOverride = async (rankId: RankId | null) => {
+    await override.mutateAsync({ userId, rank: rankId })
+    refetch()
+  }
+
+  const scoreItems = rank
+    ? [
+        { label: '個人頁文字欄位', value: rank.score_breakdown.biography_fields, max: 15 },
+        { label: '人生清單欄位', value: rank.score_breakdown.biography_bucket_list, max: 3 },
+        { label: '公開個人頁', value: rank.score_breakdown.biography_public, max: 5 },
+        { label: '核心故事', value: rank.score_breakdown.core_stories, max: 24 },
+        { label: 'One-liners', value: rank.score_breakdown.one_liners, max: 20 },
+        { label: 'Stories', value: rank.score_breakdown.stories, max: 15 },
+        { label: '攀爬記錄', value: rank.score_breakdown.route_ascents, max: 20 },
+        { label: '人生清單項目', value: rank.score_breakdown.bucket_list_items, max: 10 },
+        { label: '人生清單已完成', value: rank.score_breakdown.bucket_list_completed, max: 10 },
+      ]
+    : []
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40" onClick={onClose}>
+      <div
+        className="relative w-full max-w-md rounded-2xl bg-white shadow-xl p-6 mx-4"
+        onClick={(e) => e.stopPropagation()}
+      >
+        <div className="flex items-center justify-between mb-4">
+          <div className="flex items-center gap-2">
+            <Mountain className="h-5 w-5 text-emerald-600" />
+            <h2 className="text-base font-semibold text-wb-100">
+              {username} 的等級詳情
+            </h2>
+          </div>
+          <button onClick={onClose} className="p-1 hover:bg-wb-10 rounded-lg transition-colors">
+            <X className="h-4 w-4 text-wb-60" />
+          </button>
+        </div>
+
+        {isLoading && (
+          <div className="flex justify-center py-10">
+            <RefreshCw className="h-5 w-5 animate-spin text-wb-40" />
+          </div>
+        )}
+
+        {error && (
+          <div className="rounded-lg bg-red-50 border border-red-200 p-4 text-sm text-red-600">
+            載入失敗，該用戶可能尚無等級記錄。
+          </div>
+        )}
+
+        {rank && (
+          <div className="space-y-5">
+            {/* 等級與分數 */}
+            <div className="flex items-center justify-between rounded-xl bg-wb-5 border border-wb-10 px-4 py-3">
+              <div className="flex items-center gap-3">
+                <span className={`px-3 py-1 rounded-full text-sm font-bold ${rankColors[rank.rank_id] ?? 'bg-wb-10 text-wb-70'}`}>
+                  {rank.rank_display_name}
+                </span>
+                {rank.rank_override_id && (
+                  <span className="text-xs text-amber-600 bg-amber-50 border border-amber-200 px-2 py-0.5 rounded-full">
+                    手動覆寫
+                  </span>
+                )}
+              </div>
+              <div className="text-right">
+                <p className="text-2xl font-bold text-wb-100">{rank.score}</p>
+                <p className="text-xs text-wb-50">積分</p>
+              </div>
+            </div>
+
+            {/* AI 配額 */}
+            <div className="flex items-center justify-between text-sm text-wb-70 px-1">
+              <span>今日 AI 使用量</span>
+              <span className="font-medium text-wb-100">
+                {rank.daily_ai_used} / {rank.daily_ai_limit} 次
+              </span>
+            </div>
+
+            {/* 積分明細 */}
+            <div>
+              <p className="text-xs font-medium text-wb-50 mb-2">積分明細</p>
+              <div className="space-y-1.5">
+                {scoreItems.map((item) => (
+                  <div key={item.label} className="flex items-center justify-between text-sm">
+                    <span className="text-wb-70">{item.label}</span>
+                    <span className={item.value > 0 ? 'font-medium text-wb-100' : 'text-wb-40'}>
+                      {item.value} / {item.max}
+                    </span>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* 最後計算時間 */}
+            {rank.last_score_calculated_at && (
+              <p className="text-xs text-wb-40 text-center">
+                最後計算：{new Date(rank.last_score_calculated_at).toLocaleString('zh-TW')}
+              </p>
+            )}
+
+            {/* 操作 */}
+            <div className="border-t border-wb-10 pt-4 space-y-3">
+              <p className="text-xs font-medium text-wb-50">手動操作</p>
+              <button
+                onClick={handleRecalculate}
+                disabled={recalculate.isPending}
+                className="w-full flex items-center justify-center gap-2 px-4 py-2 rounded-lg border border-wb-20 text-sm text-wb-80 hover:bg-wb-5 transition-colors disabled:opacity-50"
+              >
+                <RefreshCw className={`h-3.5 w-3.5 ${recalculate.isPending ? 'animate-spin' : ''}`} />
+                立即重算積分
+              </button>
+              <div>
+                <p className="text-xs text-wb-50 mb-2">覆寫等級</p>
+                <div className="flex gap-2 flex-wrap">
+                  {RANK_OPTIONS.map((opt) => (
+                    <button
+                      key={opt.id}
+                      onClick={() => handleOverride(opt.id)}
+                      disabled={override.isPending}
+                      className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-colors disabled:opacity-50 ${
+                        rank.rank_override_id === opt.id
+                          ? rankColors[opt.id]
+                          : 'bg-wb-10 text-wb-70 hover:bg-wb-20'
+                      }`}
+                    >
+                      {opt.label}
+                    </button>
+                  ))}
+                  {rank.rank_override_id && (
+                    <button
+                      onClick={() => handleOverride(null)}
+                      disabled={override.isPending}
+                      className="px-3 py-1.5 rounded-lg text-sm text-red-600 bg-red-50 hover:bg-red-100 transition-colors disabled:opacity-50"
+                    >
+                      清除覆寫
+                    </button>
+                  )}
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+      </div>
+    </div>
+  )
+}
+
 export default function AdminUserManagement() {
   const [users, setUsers] = useState<AdminUser[]>([])
   const [stats, setStats] = useState<AdminUserStats | null>(null)
@@ -66,6 +263,13 @@ export default function AdminUserManagement() {
   const [activityFilter, setActivityFilter] = useState('')
   const [actionLoading, setActionLoading] = useState<string | null>(null)
   const [menuOpen, setMenuOpen] = useState<string | null>(null)
+  const [rankModalUser, setRankModalUser] = useState<{ id: string; username: string } | null>(null)
+  const recalculateAll = useRecalculateRank()
+
+  const handleRecalculateAll = async () => {
+    if (!confirm('確定要重算所有用戶積分嗎？此操作會在背景執行。')) return
+    await recalculateAll.mutateAsync('all')
+  }
 
   const loadData = useCallback(async () => {
     setLoading(true)
@@ -180,14 +384,24 @@ export default function AdminUserManagement() {
           <h1 className="text-2xl font-bold text-wb-100">用戶管理</h1>
           <p className="text-wb-70 mt-1">管理平台用戶帳號和權限</p>
         </div>
-        <button
-          onClick={loadData}
-          disabled={loading}
-          className="flex items-center gap-2 px-4 py-2 text-sm text-wb-70 hover:text-wb-100 hover:bg-wb-10 rounded-lg transition-colors disabled:opacity-50"
-        >
-          <RefreshCw className={`h-4 w-4 ${loading ? 'animate-spin' : ''}`} />
-          重新整理
-        </button>
+        <div className="flex items-center gap-2">
+          <button
+            onClick={handleRecalculateAll}
+            disabled={recalculateAll.isPending}
+            className="flex items-center gap-2 px-4 py-2 text-sm text-wb-70 hover:text-wb-100 hover:bg-wb-10 rounded-lg transition-colors disabled:opacity-50"
+          >
+            <Mountain className={`h-4 w-4 ${recalculateAll.isPending ? 'animate-pulse' : ''}`} />
+            全體重算積分
+          </button>
+          <button
+            onClick={loadData}
+            disabled={loading}
+            className="flex items-center gap-2 px-4 py-2 text-sm text-wb-70 hover:text-wb-100 hover:bg-wb-10 rounded-lg transition-colors disabled:opacity-50"
+          >
+            <RefreshCw className={`h-4 w-4 ${loading ? 'animate-spin' : ''}`} />
+            重新整理
+          </button>
+        </div>
       </div>
 
       {/* 統計卡片 */}
@@ -354,6 +568,7 @@ export default function AdminUserManagement() {
                 <th className="px-6 py-4 font-medium">Email</th>
                 <th className="px-6 py-4 font-medium">角色</th>
                 <th className="px-6 py-4 font-medium">狀態</th>
+                <th className="px-6 py-4 font-medium">等級</th>
                 <th className="px-6 py-4 font-medium">認證方式</th>
                 <th className="px-6 py-4 font-medium">註冊時間</th>
                 <th className="px-6 py-4 font-medium">最後活躍</th>
@@ -414,6 +629,21 @@ export default function AdminUserManagement() {
                       </span>
                     )}
                   </td>
+                  <td className="px-6 py-4">
+                    {user.rank_id ? (
+                      <button
+                        onClick={() => setRankModalUser({ id: user.id, username: user.display_name || user.username })}
+                        className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium transition-colors hover:opacity-80 ${rankColors[user.rank_id] ?? 'bg-wb-10 text-wb-70'}`}
+                      >
+                        {rankLabels[user.rank_id] ?? user.rank_id}
+                        {user.rank_score != null && (
+                          <span className="opacity-70">{user.rank_score}分</span>
+                        )}
+                      </button>
+                    ) : (
+                      <span className="text-xs text-wb-40">—</span>
+                    )}
+                  </td>
                   <td className="px-6 py-4 text-sm text-gray-600">
                     {authProviderLabels[user.auth_provider] || user.auth_provider}
                   </td>
@@ -451,6 +681,17 @@ export default function AdminUserManagement() {
                       </button>
                       {menuOpen === user.id && (
                         <div className="absolute right-0 top-full mt-1 w-48 bg-white rounded-lg shadow-lg border border-gray-100 py-1 z-10">
+                          <button
+                            onClick={() => {
+                              setMenuOpen(null)
+                              setRankModalUser({ id: user.id, username: user.display_name || user.username })
+                            }}
+                            className="w-full px-4 py-2 text-left text-sm hover:bg-gray-50 transition-colors flex items-center gap-2"
+                          >
+                            <Mountain className="h-4 w-4 text-emerald-600" />
+                            查看等級詳情
+                          </button>
+                          <div className="border-t border-gray-100 my-1" />
                           <button
                             onClick={() => handleToggleStatus(user)}
                             className="w-full px-4 py-2 text-left text-sm hover:bg-gray-50 transition-colors flex items-center gap-2"
@@ -501,7 +742,7 @@ export default function AdminUserManagement() {
               ))}
               {users.length === 0 && (
                 <tr>
-                  <td colSpan={8} className="px-6 py-12 text-center text-gray-500">
+                  <td colSpan={9} className="px-6 py-12 text-center text-gray-500">
                     沒有找到符合條件的用戶
                   </td>
                 </tr>
@@ -539,6 +780,15 @@ export default function AdminUserManagement() {
       {/* 點擊其他地方關閉選單 */}
       {menuOpen && (
         <div className="fixed inset-0 z-0" onClick={() => setMenuOpen(null)} />
+      )}
+
+      {/* 等級詳情 Modal */}
+      {rankModalUser && (
+        <UserRankModal
+          userId={rankModalUser.id}
+          username={rankModalUser.username}
+          onClose={() => setRankModalUser(null)}
+        />
       )}
     </div>
   )
