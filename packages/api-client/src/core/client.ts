@@ -29,7 +29,13 @@ function shouldRetry(
 ): boolean {
   if (retryCount >= config.maxRetries) return false
 
-  // 網路錯誤或超時
+  // timeout（ECONNABORTED）或主動取消（ERR_CANCELED）不重試
+  // timeout 應透過各端點自行設定較長的 timeout 來處理，不應盲目重送
+  if (error.code === 'ECONNABORTED' || error.code === 'ERR_CANCELED' || axios.isCancel(error)) {
+    return false
+  }
+
+  // 無回應的網路錯誤（如 DNS 失敗、連線被拒）可重試
   if (!error.response) return true
 
   // 可重試的狀態碼

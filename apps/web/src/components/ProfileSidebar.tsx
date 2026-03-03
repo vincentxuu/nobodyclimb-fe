@@ -6,6 +6,8 @@ import { motion } from 'framer-motion'
 import { useCallback } from 'react'
 import { useAuthStore } from '@/store/authStore'
 import { AvatarWithFallback } from '@/components/ui/avatar-with-fallback'
+import { useMyQuota } from '@/lib/api/ai'
+import { RankBadge } from '@/components/rank/RankBadge'
 
 interface MenuItem {
   name: string
@@ -60,6 +62,7 @@ const ProfileSidebar = () => {
   const router = useRouter()
   const pathname = usePathname()
   const user = useAuthStore((state) => state.user)
+  const { data: quota } = useMyQuota()
 
   // 優化點擊處理函數
   const handleNavigate = useCallback(
@@ -99,6 +102,7 @@ const ProfileSidebar = () => {
           />
         </div>
         <h2 className="mb-1 text-[16px] font-medium text-[#1B1A1A]">{displayName}</h2>
+        {quota && <RankBadge tier={quota.tier} size="md" className="mb-1" />}
         <p className="text-[14px] font-light text-[#8E8C8C]">{email}</p>
       </div>
 

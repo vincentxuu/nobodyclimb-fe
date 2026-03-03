@@ -1,4 +1,187 @@
+// ============================================
+// Cloudflare AI Bindings
+// ============================================
+
+export interface AI {
+  run(model: string, inputs: Record<string, unknown>, options?: { gateway?: { id: string } }): Promise<unknown>;
+}
+
+export interface VectorizeIndex {
+  query(vector: number[], options?: VectorizeQueryOptions): Promise<VectorizeMatches>;
+  insert(vectors: VectorizeVector[]): Promise<VectorizeInsertResult>;
+  upsert(vectors: VectorizeVector[]): Promise<VectorizeUpsertResult>;
+  deleteByIds(ids: string[]): Promise<VectorizeDeleteResult>;
+  getByIds(ids: string[]): Promise<VectorizeVector[]>;
+}
+
+export interface VectorizeQueryOptions {
+  topK?: number;
+  filter?: Record<string, unknown>;
+  returnValues?: boolean;
+  returnMetadata?: 'all' | 'indexed' | 'none';
+}
+
+export interface VectorizeMatches {
+  matches: VectorizeMatch[];
+  count: number;
+}
+
+export interface VectorizeMatch {
+  id: string;
+  score: number;
+  values?: number[];
+  metadata?: Record<string, unknown>;
+}
+
+export interface VectorizeVector {
+  id: string;
+  values: number[];
+  metadata?: Record<string, unknown>;
+  namespace?: string;
+}
+
+export interface VectorizeInsertResult {
+  count: number;
+  ids: string[];
+}
+
+export interface VectorizeUpsertResult {
+  count: number;
+}
+
+export interface VectorizeDeleteResult {
+  count: number;
+}
+
+// ============================================
+// AI Document Types
+// ============================================
+
+export interface AIDocument {
+  id: string;
+  type: 'route' | 'crag' | 'video';
+  source_id: string;
+  text: string;
+  metadata: string | null; // JSON string
+  embedding_id: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface AIDocumentMetadata {
+  name?: string;
+  name_en?: string;
+  region?: string;
+  // 路線專用
+  grade?: string;
+  grade_numeric?: number;
+  route_type?: string;
+  crag_id?: string;
+  crag_name?: string;
+  area_id?: string;
+  area_name?: string;
+  // 岩場專用
+  climbing_types?: string[];
+  best_seasons?: string[];
+  // 影片專用
+  channel?: string;
+  youtube_id?: string;
+  category?: string;
+}
+
+// ============================================
+// AI Query Parsing Types
+// ============================================
+
+export interface ParsedQuery {
+  tool: 'search_routes' | 'search_crags' | 'general_knowledge';
+  params: {
+    crag_name?: string;
+    area_name?: string;
+    grade?: string;         // "5.11b" 或 "5.10-5.12"
+    route_type?: string;
+    region?: string;
+    climbing_type?: string;
+  };
+}
+
+// ============================================
+// AI Query Log Types
+// ============================================
+
+export interface AIQueryLog {
+  id: string;
+  user_id: string | null;
+  query: string;
+  response: string | null;
+  sources: string | null; // JSON string
+  latency_ms: number | null;
+  token_count: number | null;
+  feedback_score: number | null;
+  feedback_text: string | null;
+  created_at: string;
+}
+
+// ============================================
+// AI API Source Types
+// ============================================
+
+export interface AISource {
+  id: string;
+  type: 'route' | 'crag' | 'video';
+  title: string;
+  excerpt: string;
+  url?: string;
+  score: number;
+  latestVideoUrl?: string; // 路線最新影片 YouTube URL（僅 route 類型）
+}
+
+// ============================================
+// AI API Request / Response Types
+// ============================================
+
+export interface AIChatMessage {
+  role: 'user' | 'assistant';
+  content: string;
+}
+
+export interface AIAskRequest {
+  query: string;
+  limit?: number;            // 搜尋結果數量，預設 5
+  include_sources?: boolean; // 是否回傳來源，預設 true
+  chat_history?: AIChatMessage[]; // 最近幾輪對話（不含本次 query），供 LLM 記憶和 context 補充
+}
+
+export interface AIAskResponse {
+  answer: string;
+  sources: AISource[];
+  query_id: string; // 供後續回饋使用
+  suggested_questions: string[]; // AI 生成的追問建議
+}
+
+export interface AISearchRequest {
+  query: string;
+  type?: 'route' | 'crag' | 'video';
+  limit?: number;
+  filters?: {
+    region?: string;
+    grade_min?: number;
+    grade_max?: number;
+    route_type?: string;
+    crag_id?: string;
+  };
+}
+
+export interface AIFeedbackRequest {
+  query_id: string;
+  score: 1 | 2 | 3 | 4 | 5;
+  text?: string;
+}
+
+// ============================================
 // Cloudflare Workers Environment Bindings
+// ============================================
+
 export interface Env {
   DB: D1Database;
   CACHE: KVNamespace;
@@ -13,6 +196,10 @@ export interface Env {
   // Analytics Engine 查詢用（可選，透過 wrangler secret 設定）
   CLOUDFLARE_ACCOUNT_ID?: string;
   CLOUDFLARE_API_TOKEN?: string;
+  // AI 相關 bindings
+  AI: AI;
+  VECTOR_INDEX: VectorizeIndex;
+  AI_GATEWAY_SLUG?: string;
 }
 
 // Type alias for backwards compatibility
@@ -219,6 +406,7 @@ export interface Route {
   area_id: string | null;
   sector_id: string | null;
   name: string;
+  name_en: string | null;
   grade: string | null;
   grade_system: string;
   height: number | null;
@@ -300,6 +488,9 @@ export interface Biography {
   height_cm: number | null;
   arm_span_cm: number | null;
   grade_targets: string | null; // JSON: 年度攀爬目標陣列
+
+  // 等級資訊（from user_ranks）
+  user_rank_id: string | null;
 }
 
 export interface Review {
@@ -514,6 +705,7 @@ export interface CommentWithUser extends ContentComment {
   username: string;
   display_name: string | null;
   avatar_url: string | null;
+  user_rank_id: string | null;
 }
 
 // Content with additional fields

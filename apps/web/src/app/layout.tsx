@@ -12,6 +12,7 @@ import { ClaimContentProvider } from '@/components/shared/claim-content-modal'
 import { ErrorBoundary } from '@/components/shared/error-boundary'
 import { SITE_URL, SITE_NAME, SITE_DESCRIPTION, SITE_LOGO, OG_IMAGE } from '@/lib/constants'
 import { Analytics } from '@/components/shared/analytics'
+import { AdminChatWidget } from '@/components/ai'
 
 export const metadata: Metadata = {
   metadataBase: new URL(SITE_URL),
@@ -154,6 +155,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
               <main className="min-h-[calc(100vh-14rem)] pt-14 md:pt-[70px]">{children}</main>
               <ShareInvitation />
               <Footer />
+              {process.env.NEXT_PUBLIC_ENABLE_AI_CHAT === 'true' && <AdminChatWidget />}
             </ClaimContentProvider>
           </ErrorBoundary>
         </Providers>

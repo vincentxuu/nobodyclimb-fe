@@ -33,6 +33,8 @@ import { guestRoutes } from './routes/guest';
 import { ascentsRoutes } from './routes/ascents';
 import { routeStoriesRoutes } from './routes/route-stories';
 import { adminImportRoutes } from './routes/admin-import';
+import { aiRoutes } from './routes/ai';
+import { adminAiRoutes } from './routes/admin-ai';
 
 const app = new Hono<{ Bindings: Env }>();
 
@@ -119,6 +121,8 @@ v1.route('/guest', guestRoutes);
 v1.route('/ascents', ascentsRoutes);
 v1.route('/route-stories', routeStoriesRoutes);
 v1.route('/admin/import', adminImportRoutes);
+v1.route('/admin/ai', adminAiRoutes);
+v1.route('/ai', aiRoutes);
 
 // OpenAPI JSON 端點 - 自動從路由生成 OpenAPI 規格
 v1.get(
@@ -175,11 +179,11 @@ v1.get('/docs', async (c) => {
           id="api-reference"
           data-url="/api/v1/openapi.json"
           data-configuration='${JSON.stringify({
-            theme: 'kepler',
-            layout: 'modern',
-            darkMode: true,
-            hiddenClients: [],
-          })}'
+    theme: 'kepler',
+    layout: 'modern',
+    darkMode: true,
+    hiddenClients: [],
+  })}'
         ></script>
         <script src="https://cdn.jsdelivr.net/npm/@scalar/api-reference"></script>
       </body>
@@ -214,4 +218,23 @@ app.onError((err, c) => {
   );
 });
 
-export default app;
+// =============================================
+// Cron Trigger Handler - 每日等級重置與積分重算
+// =============================================
+
+import { resetDailyUsage, recalculateAllRanks } from './services/rank';
+
+export default {
+  fetch: app.fetch,
+  async scheduled(_event: ScheduledEvent, env: Env, _ctx: ExecutionContext) {
+    console.log('[cron] 開始每日等級重置與積分重算...');
+    try {
+      await resetDailyUsage(env.DB);
+      console.log('[cron] 每日 AI 使用量已重置');
+      await recalculateAllRanks(env.DB);
+      console.log('[cron] 所有用戶等級積分重算完成');
+    } catch (err) {
+      console.error('[cron] 每日等級任務失敗:', err);
+    }
+  },
+};
