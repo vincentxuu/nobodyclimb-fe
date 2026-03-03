@@ -2,7 +2,7 @@
 
 import { useState, useRef, useEffect, useCallback } from 'react'
 import { createPortal } from 'react-dom'
-import { MessageCircle, X, Send, Loader2, History, Trash2, ChevronLeft } from 'lucide-react'
+import { MessageCircle, X, Send, Loader2, History, Trash2, ChevronLeft, SquarePen } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { useAskAI, createChatSession, getChatSessions, getChatMessages, deleteChatSession, saveMessage, getMyQuota } from '@/lib/api/ai'
 import type { AiQuota, ChatSession } from '@/lib/api/ai'
@@ -12,16 +12,18 @@ import type { ChatMessageData } from './ChatMessage'
 import { RankBadge } from '@/components/rank/RankBadge'
 
 // =============================================
-// 建議問題題庫（至少 12 題，每次隨機取 3 題）
+// 建議問題題庫（9題，每次隨機取 3 題）
 // =============================================
 const SUGGESTION_POOL = [
-  '龍洞有哪些 5.11 運攀路線？',
-  '我想挑戰 5.12，有哪些推薦路線？',
+  '龍洞有哪些5.11運攀路線？',
+  '我想挑戰5.12，有哪些推薦路線？',
   '爬完天天天藍了，推薦我下一條路線',
-  '我想爬長路線，台灣有什麼選擇？',
-  '龍洞的路線類型有哪些？',
-  '從台北出發，最近的岩場在哪？',
-  '5.10b 的路線適合怎樣程度的攀岩者？',
+  '5.10b的路線推薦幾條？',
+  '想找傳攀路線，推薦我幾條？',
+  '南部推薦哪些攀岩路線？',
+  '剛爬完美人照鏡，不知道要爬什麼',
+  '如何查詢龍洞各區塊的路線資訊？',
+  '有哪些知名的台灣多繩距路線推薦？',
 ]
 
 function getRandomSuggestions(): string[] {
@@ -42,6 +44,8 @@ export function ChatWidget() {
   const [messages, setMessages] = useState<ChatMessageData[]>([])
   const [input, setInput] = useState('')
   const [currentSessionId, setCurrentSessionId] = useState<string | null>(null)
+  // ref 讓非同步 callback（onSuccess 等）永遠能讀到最新 sessionId，避免 stale closure
+  const sessionIdRef = useRef<string | null>(null)
   const [suggestedQuestions, setSuggestedQuestions] = useState<string[]>([])
   const [displaySuggestions, setDisplaySuggestions] = useState<string[]>([])
   const [showHistory, setShowHistory] = useState(false)
@@ -51,6 +55,11 @@ export function ChatWidget() {
   const [isRegenerating, setIsRegenerating] = useState(false)
   const messagesEndRef = useRef<HTMLDivElement>(null)
   const inputRef = useRef<HTMLTextAreaElement>(null)
+
+  const updateSessionId = useCallback((id: string | null) => {
+    sessionIdRef.current = id
+    setCurrentSessionId(id)
+  }, [])
   const { mutate: askAI, isPending } = useAskAI()
   const authUser = useAuthStore((s) => s.user)
   const isAuthenticated = authUser !== null
@@ -64,13 +73,14 @@ export function ChatWidget() {
 
     getMyQuota().then(setQuota).catch(() => { })
 
-    if (isAuthenticated && !currentSessionId) {
+    if (isAuthenticated && !sessionIdRef.current) {
       getChatSessions().then((list) => {
         if (list.length > 0) {
           const latest = list[0]
-          setCurrentSessionId(latest.id)
+          updateSessionId(latest.id)
           getChatMessages(latest.id).then((msgs) => {
-            setMessages(msgs.map((m) => ({
+            // 若使用者已搶先送出訊息，不覆蓋既有 state
+            setMessages((prev) => prev.length > 0 ? prev : msgs.map((m) => ({
               id: m.id,
               role: m.role,
               content: m.content,
@@ -84,7 +94,7 @@ export function ChatWidget() {
             })))
           }).catch(() => { })
         } else {
-          createChatSession().then((s) => setCurrentSessionId(s.id)).catch(() => { })
+          createChatSession().then((s) => updateSessionId(s.id)).catch(() => { })
         }
       }).catch(() => {
         // 非登入用戶或 API 失敗，不持久化
@@ -117,18 +127,21 @@ export function ChatWidget() {
   }, [])
 
   // 儲存訊息到後端（靜默失敗）
+  // 刻意讀 sessionIdRef.current 而非 state，確保 onSuccess 等非同步 callback
+  // 即使是舊 closure 也能拿到最新 sessionId
   const persistMessage = useCallback(async (
     role: 'user' | 'assistant',
     content: string,
     extra?: { suggested_questions?: string[]; query_id?: string }
   ) => {
-    if (!currentSessionId) return
+    const sid = sessionIdRef.current
+    if (!sid) return
     try {
-      await saveMessage(currentSessionId, { role, content, ...extra })
+      await saveMessage(sid, { role, content, ...extra })
     } catch {
       // 靜默失敗，不中斷對話
     }
-  }, [currentSessionId])
+  }, []) // 無 deps：直接讀 ref，無 stale closure 問題
 
   const handleSubmit = useCallback(
     (query: string) => {
@@ -207,7 +220,7 @@ export function ChatWidget() {
         }
       )
     },
-    [askAI, isPending, persistMessage, quota]
+    [askAI, isPending, quota]
   )
 
   // 重新生成最後一則 AI 回應
@@ -281,27 +294,39 @@ export function ChatWidget() {
         },
       }
     )
-  }, [isPending, messages, askAI, persistMessage, quota])
+  }, [isPending, messages, askAI, quota])
 
   // 清除對話
   const handleClear = useCallback(async () => {
-    if (currentSessionId) {
+    const sid = sessionIdRef.current
+    if (sid) {
       try {
-        await deleteChatSession(currentSessionId)
+        await deleteChatSession(sid)
       } catch { }
     }
     setMessages([])
     setSuggestedQuestions([])
     setShowConfirmClear(false)
-    setCurrentSessionId(null)
+    updateSessionId(null)
     // 建立新 session
     if (isAuthenticated) {
       try {
         const newSession = await createChatSession()
-        setCurrentSessionId(newSession.id)
+        updateSessionId(newSession.id)
       } catch { }
     }
-  }, [currentSessionId, isAuthenticated])
+  }, [isAuthenticated, updateSessionId])
+
+  // 開新對話（保留舊對話在歷史）
+  const handleNewChat = useCallback(async () => {
+    setMessages([])
+    setSuggestedQuestions([])
+    updateSessionId(null)
+    try {
+      const newSession = await createChatSession()
+      updateSessionId(newSession.id)
+    } catch { }
+  }, [updateSessionId])
 
   // 開啟歷史面板
   const handleOpenHistory = useCallback(async () => {
@@ -316,7 +341,7 @@ export function ChatWidget() {
   const handleSwitchSession = useCallback(async (sessionId: string) => {
     try {
       const msgs = await getChatMessages(sessionId)
-      setCurrentSessionId(sessionId)
+      updateSessionId(sessionId)
       setMessages(msgs.map((m) => ({
         id: m.id,
         role: m.role,
@@ -332,7 +357,7 @@ export function ChatWidget() {
       setSuggestedQuestions([])
       setShowHistory(false)
     } catch { }
-  }, [])
+  }, [updateSessionId])
 
   const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
     if (e.key === 'Enter' && !e.shiftKey && !e.nativeEvent.isComposing) {
@@ -427,6 +452,15 @@ export function ChatWidget() {
                       </button>
                     )
                   )}
+                  {/* 新對話按鈕 */}
+                  <button
+                    type="button"
+                    onClick={handleNewChat}
+                    className="rounded-md p-1.5 text-muted-foreground hover:bg-muted hover:text-foreground transition-colors"
+                    aria-label="新對話"
+                  >
+                    <SquarePen className="h-4 w-4" />
+                  </button>
                   {/* 歷史按鈕 */}
                   <button
                     type="button"
