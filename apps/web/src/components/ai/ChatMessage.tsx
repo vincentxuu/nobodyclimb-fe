@@ -122,10 +122,10 @@ function MarkdownContent({ text }: { text: string }) {
         }
       }
       if (part.startsWith('**') && part.endsWith('**')) {
-        return <strong key={i}>{part.slice(2, -2)}</strong>
+        return <strong key={i}>{renderInline(part.slice(2, -2))}</strong>
       }
       if (part.startsWith('*') && part.endsWith('*') && part.length > 2) {
-        return <em key={i}>{part.slice(1, -1)}</em>
+        return <em key={i}>{renderInline(part.slice(1, -1))}</em>
       }
       // 裸 URL
       if (part.startsWith('http://') || part.startsWith('https://')) {

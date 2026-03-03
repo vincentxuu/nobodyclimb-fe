@@ -18,10 +18,16 @@ export interface AISource {
   latestVideoUrl?: string // 路線最新影片 YouTube URL（僅 route 類型）
 }
 
+export interface AIChatHistoryMessage {
+  role: 'user' | 'assistant'
+  content: string
+}
+
 export interface AIAskRequest {
   query: string
   limit?: number
   include_sources?: boolean
+  chat_history?: AIChatHistoryMessage[]
 }
 
 export interface AIAskResponse {

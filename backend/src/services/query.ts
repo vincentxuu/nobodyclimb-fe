@@ -1,4 +1,4 @@
-import { Env, AIAskRequest, AIAskResponse, AISearchRequest, AISource, AIDocument, AIDocumentMetadata, ParsedQuery } from '../types';
+import { Env, AIAskRequest, AIAskResponse, AISearchRequest, AISource, AIDocument, AIDocumentMetadata, ParsedQuery, AIChatMessage } from '../types';
 import { EmbeddingService } from './embedding';
 import { SYSTEM_PROMPT, QUERY_TEMPLATE, TOOL_SELECTION_PROMPT, HYDE_PROMPT, GENERAL_KNOWLEDGE_SYSTEM_PROMPT } from '../utils/ai-prompts';
 
@@ -15,7 +15,7 @@ function parseSuggestedQuestions(raw: string): { answer: string; suggested_quest
   const suggested_questions = suggestionsBlock
     .split('\n')
     .map((line) => line.replace(/^\d+\.\s*/, '').trim())
-    .filter((line) => line.length > 0)
+    .filter((line) => line.length > 0 && (line.endsWith('？') || line.endsWith('?'))) // 只保留問句
     .slice(0, 3);
 
   return { answer, suggested_questions };
@@ -95,10 +95,12 @@ export class QueryService {
   // Stage 4：mergeResults → D1 fetch
   // Stage 5：LLM C 生成回答（含隱性 re-ranking）
   async ask(request: AIAskRequest, userId?: string): Promise<AIAskResponse> {
-    const { query, limit = DEFAULT_TOP_K, include_sources = true } = request;
+    const { query, limit = DEFAULT_TOP_K, include_sources = true, chat_history } = request;
 
-    // 檢查快取
-    const cacheKey = `ai:ask:${this.hashQuery(query)}`;
+    // 有 chat_history 時帶入最近 3 輪（6 則），避免快取衝突故加入 history hash
+    const recentHistory: AIChatMessage[] = chat_history ? chat_history.slice(-6) : [];
+    const historyHash = recentHistory.length > 0 ? `:h${this.hashQuery(recentHistory.map(m => m.content).join('|'))}` : '';
+    const cacheKey = `ai:ask:${this.hashQuery(query)}${historyHash}`;
     const cached = await this.env.CACHE.get(cacheKey);
     if (cached) {
       return JSON.parse(cached) as AIAskResponse;
@@ -122,8 +124,10 @@ export class QueryService {
     let hydeDoc = '';
     let excludeRouteId: string | null = null; // 排除來源路線本身
     let referenceRouteInfo: string | null = null; // 來源路線資訊，注入 context 讓 LLM 有正確難度
+    let isSimRouteSearch = false; // 是否走「相似路線」流程，供後段 fallback 判斷
 
     if (this.hasSimilarRouteIntent(query)) {
+      isSimRouteSearch = true;
       // 並行：DB 查路線資訊 + HyDE 生成
       const [routeRef, hydeDocResult] = await Promise.all([
         this.extractRouteReference(query),
@@ -132,13 +136,11 @@ export class QueryService {
       hydeDoc = hydeDocResult;
 
       if (routeRef) {
-        // 優先同岩場 + 相近難度 + 同攀登類型
+        // 優先同岩場 + 相近難度（±3 步，範圍更合理）
+        // 不限制 route_type：向量搜尋本身已語意匹配，額外限制反而過嚴
         if (routeRef.cragId) vectorFilter['crag_id'] = { $eq: routeRef.cragId };
         if (routeRef.gradeNumeric > 0) {
-          vectorFilter['grade_numeric'] = this.similarGradeRange(routeRef.gradeNumeric, 2);
-        }
-        if (routeRef.routeType) {
-          vectorFilter['route_type'] = { $eq: routeRef.routeType };
+          vectorFilter['grade_numeric'] = this.similarGradeRange(routeRef.gradeNumeric, 3);
         }
         vectorFilter['type'] = { $eq: 'route' };
         excludeRouteId = routeRef.routeId; // 記錄來源路線，後續排除
@@ -205,6 +207,23 @@ export class QueryService {
       }
     }
 
+    // Context 補充：若 query 含指代詞（「附近」「還有」等）且 filter 無明確位置，
+    // 從對話歷史的 user + assistant 訊息中補充 crag/region 來源
+    const hasExplicitLocationFilter = !!(vectorFilter['crag_id'] || vectorFilter['area_id'] || vectorFilter['region']);
+    if (!hasExplicitLocationFilter && recentHistory.length > 0 && this.isContextDependentQuery(query)) {
+      const historyText = recentHistory.map((m) => m.content).join(' ');
+      const historyLocation = await this.extractLocationFilter(historyText);
+      if (historyLocation.areaId) {
+        vectorFilter['area_id'] = { $eq: historyLocation.areaId };
+        vectorFilter['type'] = { $eq: 'route' };
+      } else if (historyLocation.cragId) {
+        vectorFilter['crag_id'] = { $eq: historyLocation.cragId };
+        if (!vectorFilter['type']) vectorFilter['type'] = { $eq: 'route' };
+      } else if (historyLocation.region) {
+        vectorFilter['region'] = { $eq: historyLocation.region };
+      }
+    }
+
     // Stage 3（並行）：embed(query) + embed(hydeDoc)
     const embedTasks: Promise<number[]>[] = [this.embeddingService.embed(query)];
     if (hydeDoc) {
@@ -242,12 +261,28 @@ export class QueryService {
     }
 
     const searchResponses = await Promise.all(searchTasks);
-    const queryMatches: SearchResult[] = searchResponses[0].matches.map((m) => ({ id: m.id, score: m.score, metadata: m.metadata }));
-    const rawHydeMatches: SearchResult[] = hydeVector && searchResponses[1]
+    let queryMatches: SearchResult[] = searchResponses[0].matches.map((m) => ({ id: m.id, score: m.score, metadata: m.metadata }));
+    let rawHydeMatches: SearchResult[] = hydeVector && searchResponses[1]
       ? searchResponses[1].matches.map((m) => ({ id: m.id, score: m.score, metadata: m.metadata }))
       : [];
 
-    // Fix 3：有 location 過濾（crag/area/region）但 primary 搜尋無結果時，
+    // 相似路線 fallback：若同岩場搜尋無結果，放寬為全站相近難度搜尋
+    // 讓使用者不被限制在同一岩場（例如難度太高岩場路線稀少的情況）
+    if (isSimRouteSearch && queryMatches.length === 0 && vectorFilter['crag_id']) {
+      const relaxedFilter: Record<string, unknown> = { type: { $eq: 'route' } };
+      if (vectorFilter['grade_numeric']) relaxedFilter['grade_numeric'] = vectorFilter['grade_numeric'];
+
+      const [fbQueryResult, fbHydeResult] = await Promise.all([
+        this.env.VECTOR_INDEX.query(queryVector, { topK: MERGE_TOP_K, returnMetadata: 'all', filter: relaxedFilter }),
+        hydeVector
+          ? this.env.VECTOR_INDEX.query(hydeVector, { topK: MERGE_TOP_K, returnMetadata: 'all', filter: relaxedFilter })
+          : Promise.resolve({ matches: [] as SearchResult[] }),
+      ]);
+      queryMatches = fbQueryResult.matches.map((m) => ({ id: m.id, score: m.score, metadata: m.metadata }));
+      rawHydeMatches = fbHydeResult.matches.map((m) => ({ id: m.id, score: m.score, metadata: m.metadata }));
+    }
+
+    // 有 location 過濾（crag/area/region）但 primary 搜尋無結果時，
     // 不合併 HyDE 結果，避免引入不相關岩場/地區
     const hasLocationFilter = !!(vectorFilter['crag_id'] || vectorFilter['area_id'] || vectorFilter['region']);
     const hydeMatches = (hasLocationFilter && queryMatches.length === 0) ? [] : rawHydeMatches;
@@ -368,11 +403,19 @@ export class QueryService {
       .replace('{context}', context)
       .replace('{query}', query);
 
+    // 將對話歷史（最多 3 輪 = 6 則）加入 LLM messages，讓 LLM 有記憶脈絡
+    // assistant 歷史訊息只取純文字（截斷 500 字），避免超過 context window
+    const historyLLMMessages = recentHistory.slice(-6).map((m) => ({
+      role: m.role as 'user' | 'assistant',
+      content: m.role === 'assistant' ? m.content.slice(0, 500) : m.content,
+    }));
+
     const llmResult = (await this.env.AI.run(
       llmModel,
       {
         messages: [
           { role: 'system', content: SYSTEM_PROMPT },
+          ...historyLLMMessages,
           { role: 'user', content: prompt },
         ],
         max_tokens: 800,
@@ -521,6 +564,11 @@ export class QueryService {
   // 偵測 query 是否有「推薦相似/類似路線」意圖
   private hasSimilarRouteIntent(query: string): boolean {
     return ['差不多', '類似', '相似', '爬完', '爬過', '爬了'].some((k) => query.includes(k));
+  }
+
+  // 偵測 query 是否含有指代前文的 context-dependent 詞（需從對話歷史補充位置）
+  private isContextDependentQuery(query: string): boolean {
+    return ['附近', '那裡', '那邊', '這裡', '這邊', '這個岩場', '該岩場', '同岩場', '繼續', '再推薦', '還有', '還有哪些', '更多'].some((k) => query.includes(k));
   }
 
   // 若 query 提到已知路線名稱，回傳該路線的難度數值、所屬岩場、路線 ID、名稱、難度字串（用於相似路線過濾及 LLM 參考）
