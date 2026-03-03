@@ -4,11 +4,12 @@ import { useState, useRef, useEffect, useCallback } from 'react'
 import { createPortal } from 'react-dom'
 import { MessageCircle, X, Send, Loader2, History, Trash2, ChevronLeft } from 'lucide-react'
 import { cn } from '@/lib/utils'
-import { useAskAI, createChatSession, getChatSessions, getChatMessages, deleteChatSession, saveMessage } from '@/lib/api/ai'
+import { useAskAI, createChatSession, getChatSessions, getChatMessages, deleteChatSession, saveMessage, getMyQuota } from '@/lib/api/ai'
+import type { AiQuota, ChatSession } from '@/lib/api/ai'
 import { useAuthStore } from '@/store/authStore'
 import { ChatMessage } from './ChatMessage'
 import type { ChatMessageData } from './ChatMessage'
-import type { ChatSession } from '@/lib/api/ai'
+import { RankBadge } from '@/components/rank/RankBadge'
 
 // =============================================
 // 建議問題題庫（至少 12 題，每次隨機取 3 題）
@@ -51,17 +52,20 @@ export function ChatWidget() {
   const [showHistory, setShowHistory] = useState(false)
   const [sessions, setSessions] = useState<ChatSession[]>([])
   const [showConfirmClear, setShowConfirmClear] = useState(false)
+  const [quota, setQuota] = useState<AiQuota | null>(null)
   const messagesEndRef = useRef<HTMLDivElement>(null)
   const inputRef = useRef<HTMLTextAreaElement>(null)
   const { mutate: askAI, isPending } = useAskAI()
   const isAuthenticated = useAuthStore((s) => s.isAuthenticated)
 
-  // 開啟時：隨機取建議問題、建立或載入 session
+  // 開啟時：隨機取建議問題、建立或載入 session、取得配額
   useEffect(() => {
     if (!isOpen) return
     setDisplaySuggestions(getRandomSuggestions())
 
     const timer = setTimeout(() => inputRef.current?.focus(), 100)
+
+    getMyQuota().then(setQuota).catch(() => {})
 
     if (isAuthenticated && !currentSessionId) {
       getChatSessions().then((list) => {
@@ -159,20 +163,36 @@ export function ChatWidget() {
             }
             setMessages((prev) => [...prev, assistantMsg])
             setSuggestedQuestions(data.suggested_questions ?? [])
+            if (data.quota) setQuota(data.quota)
             persistMessage('assistant', data.answer, {
               suggested_questions: data.suggested_questions,
               query_id: data.query_id,
             })
           },
-          onError: () => {
-            setMessages((prev) => [
-              ...prev,
-              {
-                id: crypto.randomUUID(),
-                role: 'assistant',
-                content: '抱歉，AI 服務暫時無法使用，請稍後再試。',
-              },
-            ])
+          onError: (error) => {
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            const axiosError = error as any
+            if (axiosError?.response?.status === 429) {
+              const limit = quota?.daily_limit ?? 0
+              setMessages((prev) => [
+                ...prev,
+                {
+                  id: crypto.randomUUID(),
+                  role: 'assistant',
+                  content: `今日 AI 使用配額已用盡（${limit}/${limit} 次）。\n\n配額將於台灣時間明日 00:00 重置。\n\n💡 充實你的攀岩日誌（記錄故事、路線攀登、人生清單），即可提升段位獲得更多每日配額。`,
+                },
+              ])
+              setQuota((prev) => prev ? { ...prev, remaining: 0, daily_used: prev.daily_limit } : prev)
+            } else {
+              setMessages((prev) => [
+                ...prev,
+                {
+                  id: crypto.randomUUID(),
+                  role: 'assistant',
+                  content: '抱歉，AI 服務暫時無法使用，請稍後再試。',
+                },
+              ])
+            }
           },
         }
       )
@@ -202,20 +222,36 @@ export function ChatWidget() {
           }
           setMessages((prev) => [...prev, assistantMsg])
           setSuggestedQuestions(data.suggested_questions ?? [])
+          if (data.quota) setQuota(data.quota)
           persistMessage('assistant', data.answer, {
             suggested_questions: data.suggested_questions,
             query_id: data.query_id,
           })
         },
-        onError: () => {
-          setMessages((prev) => [
-            ...prev,
-            {
-              id: crypto.randomUUID(),
-              role: 'assistant',
-              content: '抱歉，重新生成失敗，請稍後再試。',
-            },
-          ])
+        onError: (error) => {
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          const axiosError = error as any
+          if (axiosError?.response?.status === 429) {
+            const limit = quota?.daily_limit ?? 0
+            setMessages((prev) => [
+              ...prev,
+              {
+                id: crypto.randomUUID(),
+                role: 'assistant',
+                content: `今日 AI 使用配額已用盡（${limit}/${limit} 次）。\n\n配額將於台灣時間明日 00:00 重置。\n\n💡 充實你的攀岩日誌（記錄故事、路線攀登、人生清單），即可提升段位獲得更多每日配額。`,
+              },
+            ])
+            setQuota((prev) => prev ? { ...prev, remaining: 0, daily_used: prev.daily_limit } : prev)
+          } else {
+            setMessages((prev) => [
+              ...prev,
+              {
+                id: crypto.randomUUID(),
+                role: 'assistant',
+                content: '抱歉，重新生成失敗，請稍後再試。',
+              },
+            ])
+          }
         },
       }
     )
@@ -316,7 +352,14 @@ export function ChatWidget() {
           <div className="flex shrink-0 items-center justify-between border-b border-border px-4 py-3">
             <div>
               <h2 className="text-sm font-semibold">NobodyClimb AI</h2>
-              <p className="text-xs text-muted-foreground">攀岩助理</p>
+              {quota && isAuthenticated ? (
+                <div className="flex items-center gap-1.5 mt-0.5">
+                  <RankBadge tier={quota.tier} size="sm" />
+                  <span className="text-xs text-muted-foreground">剩餘 {quota.remaining}/{quota.daily_limit}</span>
+                </div>
+              ) : (
+                <p className="text-xs text-muted-foreground">攀岩助理</p>
+              )}
             </div>
             <div className="flex items-center gap-1">
               {isAuthenticated && !showHistory && (
