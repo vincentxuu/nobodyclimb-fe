@@ -51,13 +51,13 @@ const createRouteSchema = z.object({
 
 const updateRouteSchema = z.object({
   name: z.string().optional(),
-  grade: z.string().optional(),
-  grade_system: z.string().optional(),
-  height: z.number().optional(),
-  bolt_count: z.number().optional(),
-  route_type: z.string().optional(),
-  description: z.string().optional(),
-  first_ascent: z.string().optional(),
+  grade: z.string().nullable().optional(),
+  grade_system: z.string().nullable().optional(),
+  height: z.number().nullable().optional(),
+  bolt_count: z.number().nullable().optional(),
+  route_type: z.string().nullable().optional(),
+  description: z.string().nullable().optional(),
+  first_ascent: z.string().nullable().optional(),
   area_id: z.string().nullable().optional(),
   sector_id: z.string().nullable().optional(),
 });
