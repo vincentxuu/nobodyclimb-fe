@@ -20,6 +20,9 @@ export interface AIDashboardData {
 
 export interface AIQueryLog {
   id: string
+  user_id: string | null
+  username: string | null
+  display_name: string | null
   query: string
   response?: string
   sources?: string
@@ -228,6 +231,82 @@ export function useUpdateAIConfig() {
     mutationFn: updateAIConfig,
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['admin-ai-config'] })
+    },
+  })
+}
+
+// =============================================
+// 用戶等級管理
+// =============================================
+
+export interface UserRankDetail {
+  user_id: string
+  score: number
+  rank_id: string
+  rank_display_name: string
+  rank_override_id: string | null
+  daily_ai_used: number
+  daily_ai_limit: number
+  last_reset_date: string
+  last_score_calculated_at: string | null
+  updated_at: string
+  score_breakdown: {
+    biography_fields: number
+    biography_bucket_list: number
+    biography_public: number
+    core_stories: number
+    one_liners: number
+    stories: number
+    route_ascents: number
+    bucket_list_items: number
+    bucket_list_completed: number
+    total: number
+  }
+}
+
+export type RankId = 'foothill' | 'wall' | 'ridge' | 'summit'
+
+export async function getUserRankDetail(userId: string): Promise<UserRankDetail> {
+  const res = await apiClient.get<{ success: boolean; data: UserRankDetail }>(
+    `/admin/ai/users/${userId}/rank`
+  )
+  return res.data.data
+}
+
+export async function recalculateUserRank(userId: string): Promise<void> {
+  await apiClient.post('/admin/ai/recalculate-ranks', { user_id: userId })
+}
+
+export async function overrideUserRank(userId: string, rank: RankId | null): Promise<void> {
+  await apiClient.put(`/admin/ai/users/${userId}/rank-override`, { rank })
+}
+
+export function useUserRankDetail(userId: string | null) {
+  return useQuery({
+    queryKey: ['admin-user-rank', userId],
+    queryFn: () => getUserRankDetail(userId!),
+    enabled: !!userId,
+    staleTime: 30 * 1000,
+  })
+}
+
+export function useRecalculateRank() {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: recalculateUserRank,
+    onSuccess: (_data, userId) => {
+      queryClient.invalidateQueries({ queryKey: ['admin-user-rank', userId] })
+    },
+  })
+}
+
+export function useOverrideUserRank() {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: ({ userId, rank }: { userId: string; rank: RankId | null }) =>
+      overrideUserRank(userId, rank),
+    onSuccess: (_data, { userId }) => {
+      queryClient.invalidateQueries({ queryKey: ['admin-user-rank', userId] })
     },
   })
 }

@@ -3,6 +3,7 @@
 import { useState, useRef, useEffect, useCallback } from 'react'
 import { createPortal } from 'react-dom'
 import { MessageCircle, X, Send, Loader2, History, Trash2, ChevronLeft, SquarePen } from 'lucide-react'
+import Link from 'next/link'
 import { cn } from '@/lib/utils'
 import { useAskAI, createChatSession, getChatSessions, getChatMessages, deleteChatSession, saveMessage, getMyQuota } from '@/lib/api/ai'
 import type { AiQuota, ChatSession, AIChatHistoryMessage } from '@/lib/api/ai'
@@ -53,6 +54,7 @@ export function ChatWidget() {
   const [showConfirmClear, setShowConfirmClear] = useState(false)
   const [quota, setQuota] = useState<AiQuota | null>(null)
   const [isRegenerating, setIsRegenerating] = useState(false)
+  const [showLoginPrompt, setShowLoginPrompt] = useState(false)
   // ref 確保多次快速點擊時 guard 是同步的，避免 stale closure
   const isRegeneratingRef = useRef(false)
   const messagesEndRef = useRef<HTMLDivElement>(null)
@@ -103,7 +105,10 @@ export function ChatWidget() {
       })
     }
 
-    return () => clearTimeout(timer)
+    return () => {
+      clearTimeout(timer)
+      setShowLoginPrompt(false)
+    }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isOpen])
 
@@ -149,6 +154,12 @@ export function ChatWidget() {
     (query: string) => {
       const trimmed = query.trim()
       if (!trimmed || isPending) return
+
+      // 未登入：顯示引導卡片，不送出
+      if (!isAuthenticated) {
+        setShowLoginPrompt(true)
+        return
+      }
 
       setSuggestedQuestions([]) // 清除前一輪建議
       const userMessage: ChatMessageData = {
@@ -228,7 +239,7 @@ export function ChatWidget() {
         }
       )
     },
-    [askAI, isPending, quota]
+    [askAI, isPending, quota, isAuthenticated]
   )
 
   // 重新生成最後一則 AI 回應
@@ -326,6 +337,7 @@ export function ChatWidget() {
     }
     setMessages([])
     setSuggestedQuestions([])
+    setShowLoginPrompt(false)
     setShowConfirmClear(false)
     updateSessionId(null)
     // 建立新 session
@@ -341,6 +353,7 @@ export function ChatWidget() {
   const handleNewChat = useCallback(async () => {
     setMessages([])
     setSuggestedQuestions([])
+    setShowLoginPrompt(false)
     updateSessionId(null)
     try {
       const newSession = await createChatSession()
@@ -504,7 +517,7 @@ export function ChatWidget() {
               )}
               <button
                 type="button"
-                onClick={() => { setIsOpen(false); setShowHistory(false); setShowConfirmClear(false) }}
+                onClick={() => { setIsOpen(false); setShowHistory(false); setShowConfirmClear(false); setShowLoginPrompt(false) }}
                 className="rounded-md p-1.5 text-muted-foreground hover:bg-muted hover:text-foreground transition-colors"
                 aria-label="關閉 AI 助理"
               >
@@ -559,6 +572,18 @@ export function ChatWidget() {
                         </button>
                       ))}
                     </div>
+                    {showLoginPrompt && (
+                      <div className="w-full text-left rounded-xl border border-border bg-muted/50 p-4 space-y-3">
+                        <p className="text-sm text-foreground font-medium">請登入後使用 AI 攀岩助理</p>
+                        <p className="text-xs text-muted-foreground">登入即可詢問路線推薦、岩場資訊等問題</p>
+                        <Link
+                          href="/auth/login"
+                          className="inline-flex items-center rounded-lg bg-primary px-4 py-2 text-sm font-medium text-primary-foreground hover:bg-primary/90 transition-colors"
+                        >
+                          前往登入
+                        </Link>
+                      </div>
+                    )}
                   </div>
                 ) : (
                   <>
