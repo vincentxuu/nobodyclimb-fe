@@ -43,9 +43,9 @@ export default function AdminAILogsPage() {
 
   const handleExport = () => {
     if (!data?.logs.length) return
-    const header = 'ID,查詢,延遲(ms),回饋,建立時間\n'
+    const header = 'ID,使用者,查詢,延遲(ms),回饋,建立時間\n'
     const rows = data.logs
-      .map((l) => `"${l.id}","${l.query.replace(/"/g, '""')}",${l.latency_ms ?? ''},${l.feedback_score ?? ''},"${l.created_at}"`)
+      .map((l) => `"${l.id}","${l.display_name || l.username || '匿名'}","${l.query.replace(/"/g, '""')}",${l.latency_ms ?? ''},${l.feedback_score ?? ''},"${l.created_at}"`)
       .join('\n')
     const blob = new Blob([header + rows], { type: 'text/csv;charset=utf-8;' })
     const url = URL.createObjectURL(blob)
@@ -139,6 +139,7 @@ export default function AdminAILogsPage() {
             <thead className="border-b border-wb-20">
               <tr>
                 <th className="px-5 py-3 text-left text-xs font-medium text-wb-50">查詢內容</th>
+                <th className="px-5 py-3 text-left text-xs font-medium text-wb-50">使用者</th>
                 <th className="px-5 py-3 text-left text-xs font-medium text-wb-50">延遲</th>
                 <th className="px-5 py-3 text-left text-xs font-medium text-wb-50">回饋</th>
                 <th className="px-5 py-3 text-left text-xs font-medium text-wb-50">時間</th>
@@ -149,6 +150,13 @@ export default function AdminAILogsPage() {
               {data.logs.map((log) => (
                 <tr key={log.id} className="hover:bg-wb-5 transition-colors">
                   <td className="max-w-xs px-5 py-3.5 truncate text-wb-90">{log.query}</td>
+                  <td className="px-5 py-3.5 whitespace-nowrap">
+                    {log.user_id ? (
+                      <span className="text-sm text-wb-80">{log.display_name || log.username}</span>
+                    ) : (
+                      <span className="text-xs text-wb-40">匿名</span>
+                    )}
+                  </td>
                   <td className="px-5 py-3.5 text-wb-60 tabular-nums">
                     {log.latency_ms != null ? `${log.latency_ms} ms` : '—'}
                   </td>

@@ -64,39 +64,39 @@ usersRoutes.get(
 
   // 搜索條件
   if (search) {
-    whereClause += ' AND (username LIKE ? OR email LIKE ? OR display_name LIKE ?)';
+    whereClause += ' AND (u.username LIKE ? OR u.email LIKE ? OR u.display_name LIKE ?)';
     const searchPattern = `%${search}%`;
     params.push(searchPattern, searchPattern, searchPattern);
   }
 
   // 角色篩選
   if (role && ['user', 'admin', 'moderator'].includes(role)) {
-    whereClause += ' AND role = ?';
+    whereClause += ' AND u.role = ?';
     params.push(role);
   }
 
   // 狀態篩選（帳號啟用狀態）
   if (status === 'active') {
-    whereClause += ' AND is_active = 1';
+    whereClause += ' AND u.is_active = 1';
   } else if (status === 'inactive') {
-    whereClause += ' AND is_active = 0';
+    whereClause += ' AND u.is_active = 0';
   }
 
   // 活躍度篩選（依 last_active_at）
   if (activity === 'recent_7d') {
-    whereClause += " AND last_active_at >= datetime('now', '-7 days')";
+    whereClause += " AND u.last_active_at >= datetime('now', '-7 days')";
   } else if (activity === 'recent_30d') {
-    whereClause += " AND last_active_at >= datetime('now', '-30 days')";
+    whereClause += " AND u.last_active_at >= datetime('now', '-30 days')";
   } else if (activity === 'inactive_30d') {
-    whereClause += " AND (last_active_at IS NULL OR last_active_at < datetime('now', '-30 days'))";
+    whereClause += " AND (u.last_active_at IS NULL OR u.last_active_at < datetime('now', '-30 days'))";
   }
 
   // 排序欄位（白名單防注入）
-  const orderBy = sort === 'last_active_at' ? 'last_active_at DESC NULLS LAST' : 'created_at DESC';
+  const orderBy = sort === 'last_active_at' ? 'u.last_active_at DESC NULLS LAST' : 'u.created_at DESC';
 
   // 獲取總數
   const countResult = await c.env.DB.prepare(
-    `SELECT COUNT(*) as total FROM users WHERE ${whereClause}`
+    `SELECT COUNT(*) as total FROM users u WHERE ${whereClause}`
   )
     .bind(...params)
     .first<{ total: number }>();
@@ -106,16 +106,18 @@ usersRoutes.get(
   // 獲取用戶列表
   const users = await c.env.DB.prepare(
     `SELECT
-      id, email, username, display_name, avatar_url, bio,
-      role, is_active, email_verified, auth_provider,
-      created_at, updated_at, last_active_at
-    FROM users
+      u.id, u.email, u.username, u.display_name, u.avatar_url, u.bio,
+      u.role, u.is_active, u.email_verified, u.auth_provider,
+      u.created_at, u.updated_at, u.last_active_at,
+      ur.rank_id, ur.score AS rank_score
+    FROM users u
+    LEFT JOIN user_ranks ur ON ur.user_id = u.id
     WHERE ${whereClause}
     ORDER BY ${orderBy}
     LIMIT ? OFFSET ?`
   )
     .bind(...params, limit, offset)
-    .all<Omit<User, 'password_hash' | 'google_id'>>();
+    .all<Omit<User, 'password_hash' | 'google_id'> & { rank_id: string | null; rank_score: number | null }>();
 
   return c.json({
     success: true,
