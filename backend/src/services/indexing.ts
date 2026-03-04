@@ -189,6 +189,7 @@ export class IndexingService {
         name: crag.name,
         region: crag.region ?? undefined,
         climbing_types: climbingTypes,
+        crag_id: crag.id,
       };
 
       return {
