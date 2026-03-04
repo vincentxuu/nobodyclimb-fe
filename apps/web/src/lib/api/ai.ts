@@ -132,8 +132,8 @@ export async function askAIStream(
   signal?: AbortSignal,
 ): Promise<void> {
   const { API_BASE_URL } = await import('../constants')
-  const Cookies = (await import('js-cookie')).default
-  const token = Cookies.get('access_token')
+  const { getAccessToken } = await import('@nobodyclimb/api-client/web')
+  const token = getAccessToken()
 
   const response = await fetch(`${API_BASE_URL}/ai/ask?stream=true`, {
     method: 'POST',

@@ -21,6 +21,17 @@ function ScoreBadge({ score }: { score: number | null }) {
   )
 }
 
+function QueryTypeBadge({ type }: { type: 'simple' | 'complex' | 'general-knowledge' | null }) {
+  if (!type) return <span className="text-wb-40">—</span>
+  const map: Record<string, { label: string; cls: string }> = {
+    simple: { label: '簡單', cls: 'bg-blue-50 text-blue-600 border-blue-200' },
+    complex: { label: '複雜', cls: 'bg-purple-50 text-purple-600 border-purple-200' },
+    'general-knowledge': { label: '通識', cls: 'bg-amber-50 text-amber-700 border-amber-200' },
+  }
+  const { label, cls } = map[type] ?? { label: type, cls: 'border-wb-20 text-wb-60' }
+  return <span className={`rounded-md border px-2 py-0.5 text-xs font-medium ${cls}`}>{label}</span>
+}
+
 const inputCls = 'rounded-lg border border-wb-20 bg-white px-3 py-1.5 text-sm text-wb-100 outline-none focus:border-wb-50 focus:ring-1 focus:ring-wb-50 transition-colors'
 
 export default function AdminAILogsPage() {
@@ -139,6 +150,7 @@ export default function AdminAILogsPage() {
             <thead className="border-b border-wb-20">
               <tr>
                 <th className="px-5 py-3 text-left text-xs font-medium text-wb-50">查詢內容</th>
+                <th className="px-5 py-3 text-left text-xs font-medium text-wb-50">類型</th>
                 <th className="px-5 py-3 text-left text-xs font-medium text-wb-50">使用者</th>
                 <th className="px-5 py-3 text-left text-xs font-medium text-wb-50">延遲</th>
                 <th className="px-5 py-3 text-left text-xs font-medium text-wb-50">回饋</th>
@@ -150,6 +162,9 @@ export default function AdminAILogsPage() {
               {data.logs.map((log) => (
                 <tr key={log.id} className="hover:bg-wb-5 transition-colors">
                   <td className="max-w-xs px-5 py-3.5 truncate text-wb-90">{log.query}</td>
+                  <td className="px-5 py-3.5 whitespace-nowrap">
+                    <QueryTypeBadge type={log.query_type} />
+                  </td>
                   <td className="px-5 py-3.5 whitespace-nowrap">
                     {log.user_id ? (
                       <span className="text-sm text-wb-80">{log.display_name || log.username}</span>

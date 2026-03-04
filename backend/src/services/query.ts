@@ -2,6 +2,9 @@ import { Env, AIAskRequest, AIAskResponse, AISearchRequest, AISource, AIDocument
 import { EmbeddingService } from './embedding';
 import { SYSTEM_PROMPT, QUERY_TEMPLATE, TOOL_SELECTION_PROMPT, HYDE_PROMPT, GENERAL_KNOWLEDGE_SYSTEM_PROMPT, JUDGE_PROMPT, SELF_REFLECTION_PROMPT } from '../utils/ai-prompts';
 import { checkOutput } from '../utils/guardrails';
+import { getMemoriesSummary } from '../repositories/memory';
+import { getRecentAscents, buildAscentContext, estimateAbilityLevel, buildPersonalizedSystemPrompt } from './personalization';
+import { extractMemoriesFromQuery } from './memory-extractor';
 
 const CACHE_TTL = 3600; // 1 小時
 
@@ -164,13 +167,33 @@ export class QueryService {
   // Stage 5：Cross-encoder reranking（bge-reranker-base）
   // Stage 6：MMR 多樣性選取（λ=0.6）
   // Stage 7：熱門度加權排序 → LLM C 生成回答
-  async ask(request: AIAskRequest, userId?: string): Promise<AIAskResponse> {
+  // Task 5.1: 加入 ctx 供 waitUntil 使用
+  async ask(request: AIAskRequest, userId?: string, ctx?: { waitUntil(promise: Promise<unknown>): void }): Promise<AIAskResponse> {
     const { query, limit = DEFAULT_TOP_K, include_sources = true, chat_history, no_cache = false } = request;
 
     // 有 chat_history 時帶入最近 3 輪（6 則），避免快取衝突故加入 history hash
     const recentHistory: AIChatMessage[] = chat_history ? chat_history.slice(-6) : [];
     const historyHash = recentHistory.length > 0 ? `:h${this.hashQuery(recentHistory.map(m => m.content).join('|'))}` : '';
-    const cacheKey = `ai:ask:${this.hashQuery(query)}${historyHash}`;
+
+    // Task 5.3: 個人化 context（已登入用戶）
+    let memorySummary: string | null = null;
+    let ascentContext: string | null = null;
+    let abilityLevel: number | null = null;
+    if (userId) {
+      const [memories, ascents] = await Promise.all([
+        getMemoriesSummary(userId, this.env.DB),
+        getRecentAscents(userId, this.env.DB),
+      ]);
+      memorySummary = memories;
+      ascentContext = buildAscentContext(ascents);
+      abilityLevel = estimateAbilityLevel(ascents);
+    }
+
+    // Task 5.2: 個人化快取鍵
+    const personalizedContext = [memorySummary, ascentContext].filter(Boolean).join('|');
+    const personalizedHash = personalizedContext ? `:p${this.hashQuery(personalizedContext)}` : '';
+    const userPrefix = userId ? `${userId}:` : '';
+    const cacheKey = `ai:ask:${userPrefix}${this.hashQuery(query)}${historyHash}${personalizedHash}`;
     if (!no_cache) {
       const cached = await this.env.CACHE.get(cacheKey);
       if (cached) {
@@ -248,9 +271,10 @@ export class QueryService {
 
       // general_knowledge：直接跳過向量搜尋，用 LLM 通識能力回答
       if (parsedQuery?.tool === 'general_knowledge') {
+        const gkPersonalized = buildPersonalizedSystemPrompt(memorySummary, ascentContext, abilityLevel, GENERAL_KNOWLEDGE_SYSTEM_PROMPT);
         const llmResult = (await this.env.AI.run(
           effectiveLlmModel,
-          { messages: [{ role: 'system', content: GENERAL_KNOWLEDGE_SYSTEM_PROMPT }, { role: 'user', content: query }], max_tokens: 600 },
+          { messages: [{ role: 'system', content: gkPersonalized }, { role: 'user', content: query }], max_tokens: 600 },
           gatewayOptions
         )) as LLMResponse;
         const rawAnswer = llmResult.response ?? '抱歉，無法生成回答，請稍後再試。';
@@ -582,8 +606,10 @@ export class QueryService {
     }));
 
     const generationStart = Date.now();
+    // Task 5.4: 使用個人化 system prompt
+    const personalizedSystemPrompt = buildPersonalizedSystemPrompt(memorySummary, ascentContext, abilityLevel);
     const llmMessages = [
-      { role: 'system' as const, content: SYSTEM_PROMPT },
+      { role: 'system' as const, content: personalizedSystemPrompt },
       ...historyLLMMessages,
       { role: 'user' as const, content: prompt },
     ];
@@ -695,6 +721,16 @@ export class QueryService {
       expirationTtl: CACHE_TTL,
     });
 
+    // Task 5.5: 非同步記憶提取（只對已登入用戶，只傳 query）
+    if (userId && ctx) {
+      const gatewayOpts = this.env.AI_GATEWAY_SLUG
+        ? { gateway: { id: this.env.AI_GATEWAY_SLUG } }
+        : undefined;
+      ctx.waitUntil(
+        extractMemoriesFromQuery(query, userId, this.env.DB, this.env.AI, gatewayOpts)
+      );
+    }
+
     return response;
   }
 
@@ -704,10 +740,11 @@ export class QueryService {
     request: AIAskRequest,
     userId: string | undefined,
     write: (data: string) => Promise<void>,
+    ctx?: { waitUntil(promise: Promise<unknown>): void },
   ): Promise<AIAskResponse> {
     let result: AIAskResponse;
     try {
-      result = await this.ask(request, userId);
+      result = await this.ask(request, userId, ctx);
     } catch (error) {
       await write(JSON.stringify({ type: 'error', message: '抱歉，AI 服務暫時無法使用，請稍後再試。' }));
       throw error;

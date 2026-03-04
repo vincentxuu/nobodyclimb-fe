@@ -11,6 +11,7 @@ import { getUserRank, initUserRank, resetDailyUsage, deductQuotaAndToken, getUse
 import { checkInput, checkOutput, GuardrailError } from '../utils/guardrails';
 import { SYSTEM_PROMPT } from '../utils/ai-prompts';
 import { RecommendationService } from '../services/recommendation';
+import { getUserMemories, deleteMemory } from '../repositories/memory';
 
 const RANK_DISPLAY: Record<string, string> = { foothill: '麓', wall: '壁', ridge: '稜', summit: '巔' };
 
@@ -111,7 +112,7 @@ aiRoutes.post(
 
       if (quotaChanges === 0) {
         // Task 4.3: 判斷是次數耗盡還是 token 耗盡
-        const quotaStatus = await getUserQuotaStatus(userId, db);
+        const quotaStatus = await getUserQuotaStatus(userId, estimatedTokens, db);
         const resets_at = new Date();
         resets_at.setUTCHours(16, 0, 0, 0);
         if (resets_at <= new Date()) resets_at.setDate(resets_at.getDate() + 1);
@@ -149,7 +150,7 @@ aiRoutes.post(
           const queryService = new QueryService(c.env);
           const result = await queryService.askStream(body, userId, async (data) => {
             await stream.writeSSE({ data });
-          });
+          }, c.executionCtx);
 
           // Task 4.4: 更新實際 token 消耗（修正預估與實際差額）
           if (!isAdmin) {
@@ -195,7 +196,7 @@ aiRoutes.post(
     // 非串流模式
     try {
       const queryService = new QueryService(c.env);
-      const aiResult = await queryService.ask(body, userId);
+      const aiResult = await queryService.ask(body, userId, c.executionCtx);
 
       // Task 4.4: 更新實際 token 消耗（修正預估與實際差額）
       if (!isAdmin) {
@@ -831,5 +832,56 @@ aiRoutes.get(
         500
       );
     }
+  }
+);
+
+// =============================================
+// Task 6.1: GET /memory - 取得用戶記憶清單
+// =============================================
+
+aiRoutes.get(
+  '/memory',
+  describeRoute({
+    tags: ['AI'],
+    summary: '取得用戶 AI 記憶',
+    description: '取得目前已儲存的 AI 記憶清單，依更新時間倒序排列',
+    responses: {
+      200: { description: '成功' },
+      401: { description: '未登入' },
+    },
+  }),
+  authMiddleware,
+  async (c) => {
+    const userId = c.get('userId') as string;
+    const memories = await getUserMemories(userId, c.env.DB);
+    return c.json({ success: true, data: memories });
+  }
+);
+
+// =============================================
+// Task 6.2: DELETE /memory/:id - 刪除記憶
+// =============================================
+
+aiRoutes.delete(
+  '/memory/:id',
+  describeRoute({
+    tags: ['AI'],
+    summary: '刪除 AI 記憶',
+    description: '刪除指定的 AI 記憶，只能刪除屬於自己的記憶',
+    responses: {
+      204: { description: '刪除成功' },
+      401: { description: '未登入' },
+      404: { description: '記憶不存在或不屬於該用戶' },
+    },
+  }),
+  authMiddleware,
+  async (c) => {
+    const userId = c.get('userId') as string;
+    const memoryId = c.req.param('id');
+    const deleted = await deleteMemory(userId, memoryId, c.env.DB);
+    if (!deleted) {
+      return c.json({ success: false, error: 'NotFound', message: '記憶不存在或無權刪除' }, 404);
+    }
+    return new Response(null, { status: 204 });
   }
 );

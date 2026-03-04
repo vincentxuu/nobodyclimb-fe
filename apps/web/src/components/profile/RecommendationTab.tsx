@@ -1,9 +1,10 @@
 'use client'
 
 import React, { useState, useEffect, useRef } from 'react'
-import { RefreshCw, Sparkles, ChevronDown } from 'lucide-react'
+import { RefreshCw, Sparkles, ChevronDown, ChevronUp } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { SourceCard } from '@/components/ai/SourceCard'
+import { MarkdownContent } from '@/components/ai/ChatMessage'
 import { useToast } from '@/components/ui/use-toast'
 import {
   useRecommendations,
@@ -13,36 +14,59 @@ import {
 
 const ITEMS_PER_PAGE = 10
 
-function RecommendationCard({ recommendation }: { recommendation: Recommendation }) {
+function RecommendationCard({
+  recommendation,
+  defaultExpanded = false,
+}: {
+  recommendation: Recommendation
+  defaultExpanded?: boolean
+}) {
+  const [expanded, setExpanded] = useState(defaultExpanded)
   const { answer, sources, context_ascents } = recommendation.recommendation
   const triggeredLabel = recommendation.triggered_by === 'ascent' ? '完攀後自動推薦' : '手動推薦'
   const date = new Date(recommendation.created_at).toLocaleDateString('zh-TW')
 
   return (
-    <div className="rounded-lg border border-border bg-card p-4 space-y-3">
-      <div className="flex items-center justify-between text-xs text-muted-foreground">
-        <span className="flex items-center gap-1">
+    <div className="rounded-lg border border-border bg-card overflow-hidden">
+      {/* 標頭列（點擊折疊/展開）*/}
+      <button
+        type="button"
+        className="w-full flex items-center justify-between px-4 py-3 text-xs text-muted-foreground hover:bg-muted/40 transition-colors"
+        onClick={() => setExpanded((v) => !v)}
+      >
+        <span className="flex items-center gap-1.5">
           <Sparkles className="h-3 w-3" />
           {triggeredLabel}
+          {context_ascents.length > 0 && (
+            <span className="text-muted-foreground/60">
+              · 根據 {context_ascents.length} 條完攀紀錄
+            </span>
+          )}
         </span>
-        <span>{date}</span>
-      </div>
+        <span className="flex items-center gap-2">
+          <span>{date}</span>
+          {expanded
+            ? <ChevronUp className="h-3.5 w-3.5" />
+            : <ChevronDown className="h-3.5 w-3.5" />}
+        </span>
+      </button>
 
-      {context_ascents.length > 0 && (
-        <p className="text-xs text-muted-foreground">
-          根據你的 {context_ascents.length} 條完攀紀錄推薦
-        </p>
-      )}
+      {/* 展開內容 */}
+      {expanded && (
+        <div className="px-4 pb-4 space-y-3 border-t border-border">
+          {answer && (
+            <div className="pt-3 text-sm text-foreground leading-relaxed">
+              <MarkdownContent text={answer} />
+            </div>
+          )}
 
-      {answer && (
-        <p className="text-sm text-foreground leading-relaxed whitespace-pre-wrap">{answer}</p>
-      )}
-
-      {sources.length > 0 && (
-        <div className="space-y-2">
-          {sources.map((source) => (
-            <SourceCard key={source.id} source={source} />
-          ))}
+          {sources.length > 0 && (
+            <div className="space-y-2">
+              {sources.map((source) => (
+                <SourceCard key={source.id} source={source} />
+              ))}
+            </div>
+          )}
         </div>
       )}
     </div>
@@ -175,8 +199,8 @@ export default function RecommendationTab() {
       {/* 推薦列表 */}
       {allItems.length > 0 && (
         <div className="space-y-3">
-          {allItems.map((rec) => (
-            <RecommendationCard key={rec.id} recommendation={rec} />
+          {allItems.map((rec, idx) => (
+            <RecommendationCard key={rec.id} recommendation={rec} defaultExpanded={idx === 0} />
           ))}
 
           {hasMore && (

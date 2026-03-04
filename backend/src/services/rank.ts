@@ -152,8 +152,8 @@ export async function deductQuotaAndToken(userId: string, estimatedTokens: numbe
   return result.meta.changes;
 }
 
-/** 原子操作失敗時，查詢是次數耗盡還是 token 耗盡 */
-export async function getUserQuotaStatus(userId: string, db: D1Database): Promise<{
+/** 原子操作失敗時，查詢是次數耗盡還是 token 耗盡（需傳入本次預估 token 數判斷邊界） */
+export async function getUserQuotaStatus(userId: string, estimatedTokens: number, db: D1Database): Promise<{
   requestExceeded: boolean;
   tokenExceeded: boolean;
 }> {
@@ -161,7 +161,8 @@ export async function getUserQuotaStatus(userId: string, db: D1Database): Promis
   if (!rank) return { requestExceeded: true, tokenExceeded: false };
   return {
     requestExceeded: rank.daily_ai_used >= rank.daily_ai_limit,
-    tokenExceeded: rank.daily_token_used >= rank.daily_token_limit,
+    // 檢查「當前已用 + 本次預估」是否超過上限，與 deductQuotaAndToken 的條件一致
+    tokenExceeded: rank.daily_token_used + estimatedTokens > rank.daily_token_limit,
   };
 }
 

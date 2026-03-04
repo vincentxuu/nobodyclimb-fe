@@ -61,6 +61,8 @@ export function ChatWidget() {
   // ref 確保多次快速點擊時 guard 是同步的，避免 stale closure
   const isRegeneratingRef = useRef(false)
   const abortControllerRef = useRef<AbortController | null>(null)
+  const tokenQueueRef = useRef<string[]>([])
+  const drainTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
   const messagesEndRef = useRef<HTMLDivElement>(null)
   const inputRef = useRef<HTMLTextAreaElement>(null)
 
@@ -184,49 +186,86 @@ export function ChatWidget() {
       }))
 
       if (ENABLE_STREAMING) {
-        // 串流模式
+        // 串流模式：用 token queue + setTimeout drain 解耦網路到達與畫面更新
         const abortController = new AbortController()
         abortControllerRef.current = abortController
         const streamingMsgId = crypto.randomUUID()
         setMessages((prev) => [...prev, { id: streamingMsgId, role: 'assistant', content: '' }])
         setIsStreaming(true)
 
-        askAIStream(
-          { query: trimmed, include_sources: true, chat_history: chatHistory.length > 0 ? chatHistory : undefined },
-          (token) => {
+        // 清除舊 queue（防止上一輪殘留）
+        tokenQueueRef.current = []
+        if (drainTimerRef.current) {
+          clearTimeout(drainTimerRef.current)
+          drainTimerRef.current = null
+        }
+
+        let isDone = false
+        let pendingDoneEvent: import('@/lib/api/ai').AIStreamDoneEvent | null = null
+
+        const finalizeDone = (doneEvent: import('@/lib/api/ai').AIStreamDoneEvent) => {
+          setIsStreaming(false)
+          abortControllerRef.current = null
+          setMessages((prev) => prev.map((m) =>
+            m.id === streamingMsgId
+              ? { ...m, sources: doneEvent.sources, queryId: doneEvent.query_id }
+              : m
+          ))
+          setSuggestedQuestions(doneEvent.suggested_questions ?? [])
+          if (doneEvent.quota_remaining >= 0) {
+            setQuota((prev) => prev ? {
+              ...prev,
+              remaining: doneEvent.quota_remaining,
+              daily_used: prev.daily_limit - doneEvent.quota_remaining,
+            } : prev)
+          }
+          setMessages((prev) => {
+            const msg = prev.find((m) => m.id === streamingMsgId)
+            if (msg) {
+              persistMessage('assistant', msg.content, {
+                suggested_questions: doneEvent.suggested_questions,
+                query_id: doneEvent.query_id,
+              })
+            }
+            return prev
+          })
+        }
+
+        const drainQueue = () => {
+          const token = tokenQueueRef.current.shift()
+          if (token !== undefined) {
             setMessages((prev) => prev.map((m) =>
               m.id === streamingMsgId ? { ...m, content: m.content + token } : m
             ))
+            drainTimerRef.current = setTimeout(drainQueue, 25)
+          } else {
+            drainTimerRef.current = null
+            if (isDone && pendingDoneEvent) finalizeDone(pendingDoneEvent)
+          }
+        }
+
+        askAIStream(
+          { query: trimmed, include_sources: true, chat_history: chatHistory.length > 0 ? chatHistory : undefined },
+          (token) => {
+            tokenQueueRef.current.push(token)
+            if (!drainTimerRef.current) {
+              drainTimerRef.current = setTimeout(drainQueue, 0)
+            }
           },
           (doneEvent) => {
-            setIsStreaming(false)
-            abortControllerRef.current = null
-            setMessages((prev) => prev.map((m) =>
-              m.id === streamingMsgId
-                ? { ...m, sources: doneEvent.sources, queryId: doneEvent.query_id }
-                : m
-            ))
-            setSuggestedQuestions(doneEvent.suggested_questions ?? [])
-            if (doneEvent.quota_remaining >= 0) {
-              setQuota((prev) => prev ? {
-                ...prev,
-                remaining: doneEvent.quota_remaining,
-                daily_used: prev.daily_limit - doneEvent.quota_remaining,
-              } : prev)
+            isDone = true
+            pendingDoneEvent = doneEvent
+            // queue 已空則立即 finalize，否則等 drainQueue 跑完再 finalize
+            if (!drainTimerRef.current && tokenQueueRef.current.length === 0) {
+              finalizeDone(doneEvent)
             }
-            // 取得最終 content 儲存
-            setMessages((prev) => {
-              const msg = prev.find((m) => m.id === streamingMsgId)
-              if (msg) {
-                persistMessage('assistant', msg.content, {
-                  suggested_questions: doneEvent.suggested_questions,
-                  query_id: doneEvent.query_id,
-                })
-              }
-              return prev
-            })
           },
           (errMessage) => {
+            tokenQueueRef.current = []
+            if (drainTimerRef.current) {
+              clearTimeout(drainTimerRef.current)
+              drainTimerRef.current = null
+            }
             setIsStreaming(false)
             abortControllerRef.current = null
             setMessages((prev) => prev.map((m) =>
@@ -714,6 +753,11 @@ export function ChatWidget() {
                       type="button"
                       onClick={() => {
                         abortControllerRef.current?.abort()
+                        tokenQueueRef.current = []
+                        if (drainTimerRef.current) {
+                          clearTimeout(drainTimerRef.current)
+                          drainTimerRef.current = null
+                        }
                         setIsStreaming(false)
                         setMessages((prev) => {
                           const last = prev[prev.length - 1]

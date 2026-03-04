@@ -168,7 +168,8 @@ adminAiRoutes.get(
 
       const rows = await c.env.DB.prepare(
         `SELECT l.id, l.query, l.latency_ms, l.feedback_score, l.created_at,
-                l.user_id, u.username, u.display_name
+                l.user_id, u.username, u.display_name,
+                l.query_type, l.model_used, l.retrieval_score, l.self_reflection_triggered
          FROM ai_query_logs l
          LEFT JOIN users u ON l.user_id = u.id
          ${where}
