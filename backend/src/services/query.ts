@@ -9,13 +9,29 @@ function parseSuggestedQuestions(raw: string): { answer: string; suggested_quest
   const SEP = '---SUGGESTIONS---';
   const idx = raw.indexOf(SEP);
   if (idx !== -1) {
-    const answer = raw.slice(0, idx).trim();
+    const rawAnswer = raw.slice(0, idx).trim();
     const suggestionsBlock = raw.slice(idx + SEP.length).trim();
     const suggested_questions = suggestionsBlock
       .split('\n')
       .map((line) => line.replace(/^\d+\.\s*/, '').trim())
       .filter((line) => line.length > 0 && (line.endsWith('？') || line.endsWith('?')))
       .slice(0, 3);
+
+    // 清理 answer 末尾模型多輸出的問句行（Gemma 3 有時在分隔符前就先列出問題）
+    const answerLines = rawAnswer.split('\n');
+    let cutIndex = answerLines.length;
+    for (let i = answerLines.length - 1; i >= 0; i--) {
+      const trimmed = answerLines[i].trim();
+      if (trimmed === '') continue;
+      const cleaned = trimmed.replace(/^\d+\.\s*/, '').trim();
+      if (cleaned.endsWith('？') || cleaned.endsWith('?')) {
+        cutIndex = i;
+      } else {
+        break;
+      }
+    }
+    const answer = answerLines.slice(0, cutIndex).join('\n').trim();
+
     return { answer, suggested_questions };
   }
 
@@ -68,8 +84,8 @@ export class QueryService {
     this.embeddingService = new EmbeddingService(env);
   }
 
-  // 從 query 中偵測岩場區域/岩場/地區，查 DB 回傳匹配資訊
-  async extractLocationFilter(query: string): Promise<{ cragId?: string; areaId?: string; region?: string }> {
+  // 從 query 中偵測岩場區域/岩場/地區，查 DB 回傳匹配資訊（支援多岩場）
+  async extractLocationFilter(query: string): Promise<{ cragIds?: string[]; areaId?: string; region?: string }> {
     // 1. 優先比對區域名稱（最精確，如「校門口」「鐘塔」）
     const areas = await this.env.DB.prepare(
       'SELECT id, name FROM areas WHERE name IS NOT NULL'
@@ -80,14 +96,18 @@ export class QueryService {
       }
     }
 
-    // 2. 再比對岩場名稱（如「龍洞」「墾丁」）
+    // 2. 再比對岩場名稱（如「龍洞」「墾丁」），收集所有匹配岩場
     const crags = await this.env.DB.prepare(
       'SELECT id, name, region FROM crags WHERE name IS NOT NULL'
     ).all<{ id: string; name: string; region: string | null }>();
+    const matchedCragIds: string[] = [];
     for (const crag of crags.results) {
       if (query.includes(crag.name)) {
-        return { cragId: crag.id };
+        matchedCragIds.push(crag.id);
       }
+    }
+    if (matchedCragIds.length > 0) {
+      return { cragIds: matchedCragIds };
     }
 
     // 3. 最後比對地區名稱（如「花蓮」「北部」）
@@ -223,18 +243,34 @@ export class QueryService {
       // Stage 2：決定過濾條件
       if (parsedQuery) {
         vectorFilter = await this.buildFiltersFromParsed(parsedQuery);
+        // 補充保底：若 LLM 未抽取 grade，用 regex 補回（避免 Gemma 漏填難度）
+        if (!vectorFilter['grade_numeric']) {
+          const gradeFilter = this.extractGradeFilter(query);
+          if (gradeFilter) vectorFilter['grade_numeric'] = gradeFilter;
+        }
+        // 補充保底：若 LLM 未抽取位置，用 regex 補回（處理多岩場查詢）
+        if (!vectorFilter['crag_id'] && !vectorFilter['area_id'] && !vectorFilter['region']) {
+          const { cragIds, areaId, region } = await this.extractLocationFilter(query);
+          if (areaId) {
+            vectorFilter['area_id'] = { $eq: areaId };
+          } else if (cragIds && cragIds.length > 0) {
+            vectorFilter['crag_id'] = cragIds.length === 1 ? { $eq: cragIds[0] } : { $in: cragIds };
+          } else if (region) {
+            vectorFilter['region'] = { $eq: region };
+          }
+        }
       } else {
         // Fallback：使用現有 regex 方法
         const gradeFilter = this.extractGradeFilter(query);
-        const { cragId, areaId, region } = await this.extractLocationFilter(query);
+        const { cragIds, areaId, region } = await this.extractLocationFilter(query);
         const typeFilter = this.extractTypeFilter(query);
 
         if (gradeFilter) vectorFilter['grade_numeric'] = gradeFilter;
         if (areaId) {
           vectorFilter['area_id'] = { $eq: areaId };
           vectorFilter['type'] = { $eq: 'route' };
-        } else if (cragId) {
-          vectorFilter['crag_id'] = { $eq: cragId };
+        } else if (cragIds && cragIds.length > 0) {
+          vectorFilter['crag_id'] = cragIds.length === 1 ? { $eq: cragIds[0] } : { $in: cragIds };
           if (typeFilter) vectorFilter['type'] = { $eq: typeFilter };
         } else if (region) {
           vectorFilter['region'] = { $eq: region };
@@ -254,8 +290,10 @@ export class QueryService {
       if (historyLocation.areaId) {
         vectorFilter['area_id'] = { $eq: historyLocation.areaId };
         vectorFilter['type'] = { $eq: 'route' };
-      } else if (historyLocation.cragId) {
-        vectorFilter['crag_id'] = { $eq: historyLocation.cragId };
+      } else if (historyLocation.cragIds && historyLocation.cragIds.length > 0) {
+        vectorFilter['crag_id'] = historyLocation.cragIds.length === 1
+          ? { $eq: historyLocation.cragIds[0] }
+          : { $in: historyLocation.cragIds };
         if (!vectorFilter['type']) vectorFilter['type'] = { $eq: 'route' };
       } else if (historyLocation.region) {
         vectorFilter['region'] = { $eq: historyLocation.region };
@@ -272,7 +310,10 @@ export class QueryService {
     const hydeVector = hydeDoc ? embedResults[1] : null;
 
     // Stage 4（並行）：兩路 Vectorize 搜尋
-    const MERGE_TOP_K = 10;
+    // 多岩場（$in）時加大 topK，確保每個岩場都有足夠結果
+    const cragFilter = vectorFilter['crag_id'] as { $in?: string[] } | undefined;
+    const isMultiCrag = Array.isArray(cragFilter?.$in) && cragFilter.$in.length > 1;
+    const MERGE_TOP_K = isMultiCrag ? 20 : 10;
     const searchTasks: Promise<{ matches: SearchResult[] }>[] = [
       this.env.VECTOR_INDEX.query(queryVector, {
         topK: MERGE_TOP_K,
