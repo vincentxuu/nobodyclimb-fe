@@ -33,6 +33,7 @@ import { ConfirmDialog } from '@/components/ui/confirm-dialog'
 import { useAscents } from '@/lib/hooks/useAscents'
 import { UserRouteAscent, AscentFormData, ASCENT_TYPE_DISPLAY, AscentType } from '@/lib/types/ascent'
 import { useToast } from '@/components/ui/use-toast'
+import { ToastAction } from '@/components/ui/toast'
 
 const ITEMS_PER_PAGE = 10
 
@@ -81,10 +82,26 @@ export default function AscentsPage() {
       queryClient.invalidateQueries({ queryKey: ['my-ascents'] })
       queryClient.invalidateQueries({ queryKey: ['my-ascents-stats'] })
       setIsCreateDialogOpen(false)
-      toast({
-        title: '新增成功',
-        description: '攀爬紀錄已新增',
-      })
+
+      // 完攀後推薦引導：以 sessionStorage 計數（每日上限 3 次）
+      const count = parseInt(sessionStorage.getItem('daily_recommendation_count') ?? '0', 10)
+      if (count < 3) {
+        sessionStorage.setItem('daily_recommendation_count', String(count + 1))
+        toast({
+          title: '新增成功',
+          description: 'AI 正在為你推薦下一條路線，稍後至個人頁面查看',
+          action: (
+            <ToastAction altText="前往推薦頁面" onClick={() => window.location.href = '/profile/recommendations'}>
+              前往查看
+            </ToastAction>
+          ),
+        })
+      } else {
+        toast({
+          title: '新增成功',
+          description: '攀爬紀錄已新增',
+        })
+      }
     },
     onError: () => {
       toast({

@@ -95,6 +95,7 @@ export interface AIDocumentMetadata {
 
 export interface ParsedQuery {
   tool: 'search_routes' | 'search_crags' | 'general_knowledge';
+  query_type?: 'simple' | 'complex' | 'general-knowledge';
   params: {
     crag_name?: string;
     area_name?: string;
@@ -150,6 +151,7 @@ export interface AIAskRequest {
   limit?: number;            // 搜尋結果數量，預設 5
   include_sources?: boolean; // 是否回傳來源，預設 true
   chat_history?: AIChatMessage[]; // 最近幾輪對話（不含本次 query），供 LLM 記憶和 context 補充
+  no_cache?: boolean;        // 強制跳過 KV 快取（如重新產生時使用）
 }
 
 export interface AIAskResponse {

@@ -2,7 +2,7 @@
 
 import { use } from 'react'
 import Link from 'next/link'
-import { ArrowLeft, Loader2, Clock, MessageSquare, ThumbsUp, User } from 'lucide-react'
+import { ArrowLeft, Loader2, Clock, MessageSquare, ThumbsUp, User, Bot, BarChart2, RefreshCw } from 'lucide-react'
 import { useAILogDetail } from '@/lib/api/admin-ai'
 
 export default function AdminAILogDetailPage({ params }: { params: Promise<{ logId: string }> }) {
@@ -81,6 +81,48 @@ export default function AdminAILogDetailPage({ params }: { params: Promise<{ log
           </div>
         </div>
       </div>
+
+      {/* Adaptive RAG 資訊 */}
+      {(log.query_type || log.model_used || log.retrieval_score != null || log.self_reflection_triggered != null) && (
+        <div className="grid grid-cols-2 gap-4 sm:grid-cols-4">
+          <div className="rounded-xl border border-wb-20 bg-white p-4 flex items-center gap-3">
+            <MessageSquare className="h-5 w-5 text-wb-50" />
+            <div>
+              <p className="text-xs text-wb-50">查詢類型</p>
+              <p className="font-medium text-wb-100">
+                {log.query_type === 'simple' ? '簡單' : log.query_type === 'complex' ? '複雜' : log.query_type === 'general-knowledge' ? '通識' : '—'}
+              </p>
+            </div>
+          </div>
+          <div className="rounded-xl border border-wb-20 bg-white p-4 flex items-center gap-3">
+            <Bot className="h-5 w-5 text-wb-50" />
+            <div className="min-w-0">
+              <p className="text-xs text-wb-50">使用模型</p>
+              <p className="text-sm font-medium text-wb-100 truncate" title={log.model_used ?? undefined}>
+                {log.model_used ? log.model_used.split('/').pop() : '—'}
+              </p>
+            </div>
+          </div>
+          <div className="rounded-xl border border-wb-20 bg-white p-4 flex items-center gap-3">
+            <BarChart2 className="h-5 w-5 text-wb-50" />
+            <div>
+              <p className="text-xs text-wb-50">Retrieval 分數</p>
+              <p className="font-semibold text-wb-100">
+                {log.retrieval_score != null ? (log.retrieval_score * 100).toFixed(1) + '%' : '—'}
+              </p>
+            </div>
+          </div>
+          <div className="rounded-xl border border-wb-20 bg-white p-4 flex items-center gap-3">
+            <RefreshCw className="h-5 w-5 text-wb-50" />
+            <div>
+              <p className="text-xs text-wb-50">Self-reflection</p>
+              <p className="font-medium text-wb-100">
+                {log.self_reflection_triggered === 1 ? '觸發重生成' : log.self_reflection_triggered === 0 ? '未觸發' : '—'}
+              </p>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* 查詢內容 */}
       <div className="rounded-xl border border-wb-20 bg-white p-5">

@@ -13,7 +13,7 @@ import type { AISource } from '@/lib/api/ai'
 // 支援：**bold**、*italic*、## 標題、- 列表、`inline code`、
 //       ```程式碼塊```、表格（| col |）、[text](url) 連結
 // =============================================
-function MarkdownContent({ text }: { text: string }) {
+export function MarkdownContent({ text }: { text: string }) {
   const lines = text.split('\n')
   const elements: React.ReactNode[] = []
   let listItems: string[] = []

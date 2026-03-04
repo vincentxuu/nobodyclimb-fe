@@ -29,6 +29,10 @@ export interface AIQueryLog {
   latency_ms: number | null
   feedback_score: number | null
   created_at: string
+  query_type: 'simple' | 'complex' | 'general-knowledge' | null
+  model_used: string | null
+  retrieval_score: number | null
+  self_reflection_triggered: number | null
 }
 
 export interface AILogsResponse {

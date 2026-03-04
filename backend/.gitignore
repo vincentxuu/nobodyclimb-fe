@@ -5,3 +5,11 @@ node_modules/
 dist/
 *.log
 .DS_Store
+
+# 備份檔案
+prod-backup.sql
+prod-ordered.sql
+wrangler.toml.backup*
+.temp-batch-*.sql
+missing_videos.sql
+migrations/backup_*/

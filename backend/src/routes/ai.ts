@@ -1,4 +1,5 @@
 import { Hono } from 'hono';
+import { streamSSE } from 'hono/streaming';
 import { z } from 'zod';
 import { describeRoute, validator } from 'hono-openapi';
 import { Env } from '../types';
@@ -6,7 +7,11 @@ import { authMiddleware, adminMiddleware } from '../middleware/auth';
 import { QueryService } from '../services/query';
 import { IndexingService } from '../services/indexing';
 import { EmbeddingService } from '../services/embedding';
-import { getUserRank, initUserRank, resetDailyUsage } from '../services/rank';
+import { getUserRank, initUserRank, resetDailyUsage, deductQuotaAndToken, getUserQuotaStatus, addTokenUsage } from '../services/rank';
+import { checkInput, checkOutput, GuardrailError } from '../utils/guardrails';
+import { SYSTEM_PROMPT } from '../utils/ai-prompts';
+import { RecommendationService } from '../services/recommendation';
+import { getUserMemories, deleteMemory } from '../repositories/memory';
 
 const RANK_DISPLAY: Record<string, string> = { foothill: '麓', wall: '壁', ridge: '稜', summit: '巔' };
 
@@ -20,6 +25,7 @@ const askSchema = z.object({
   query: z.string().min(2, '問題至少需要 2 個字元').max(500, '問題不能超過 500 個字元'),
   limit: z.number().int().min(1).max(20).optional().default(5),
   include_sources: z.boolean().optional().default(true),
+  no_cache: z.boolean().optional().default(false),
 });
 
 const searchSchema = z.object({
@@ -55,9 +61,9 @@ aiRoutes.post(
   describeRoute({
     tags: ['AI'],
     summary: 'RAG 問答',
-    description: '使用自然語言詢問攀岩相關問題，系統根據平台資料生成回答（需登入，受等級配額限制）',
+    description: '使用自然語言詢問攀岩相關問題，系統根據平台資料生成回答（需登入，受等級配額限制）。加上 `?stream=true` 可啟用 SSE 串流回應（Content-Type: text/event-stream），逐詞推送 `{"type":"token","token":"..."}` 事件，結束時推送 `{"type":"done",...}` 事件。',
     responses: {
-      200: { description: '問答成功，回傳 AI 回答與來源及剩餘配額' },
+      200: { description: '問答成功，回傳 AI 回答與來源及剩餘配額（非串流）；或 SSE 串流（stream=true）' },
       400: { description: '請求格式錯誤' },
       401: { description: '未登入' },
       429: { description: '今日配額已用盡' },
@@ -71,6 +77,21 @@ aiRoutes.post(
     const userId = c.get('userId') as string;
     const isAdmin = c.get('user')?.role === 'admin';
     const db = c.env.DB;
+
+    // Task 4.1: 輸入層防護（在配額扣除前執行，驗證失敗不扣配額）
+    try {
+      await checkInput(body.query, db);
+    } catch (err) {
+      if (err instanceof GuardrailError) {
+        return c.json({ success: false, error: 'InvalidInput', message: (err as GuardrailError).message }, 400);
+      }
+      throw err;
+    }
+
+    // Task 4.2: 預估 token 數（供原子扣除使用）
+    // estimatedContextLength = 2000（保守估算：約 5 篇文件 × 400 字）
+    const ESTIMATED_CONTEXT_LENGTH = 2000;
+    const estimatedTokens = Math.ceil((SYSTEM_PROMPT.length + ESTIMATED_CONTEXT_LENGTH + body.query.length) / 2);
 
     // 管理員不受配額限制
     if (!isAdmin) {
@@ -86,34 +107,107 @@ aiRoutes.post(
         rank = await getUserRank(userId, db);
       }
 
-      // 原子扣除配額
-      const result = await db
-        .prepare('UPDATE user_ranks SET daily_ai_used = daily_ai_used + 1, updated_at = datetime(\'now\') WHERE user_id = ? AND daily_ai_used < daily_ai_limit')
-        .bind(userId)
-        .run();
+      // Task 4.2: 原子扣除次數與 token 配額（兩個條件同時成立才成功）
+      const quotaChanges = await deductQuotaAndToken(userId, estimatedTokens, db);
 
-      if (result.meta.changes === 0) {
+      if (quotaChanges === 0) {
+        // Task 4.3: 判斷是次數耗盡還是 token 耗盡
+        const quotaStatus = await getUserQuotaStatus(userId, estimatedTokens, db);
         const resets_at = new Date();
         resets_at.setUTCHours(16, 0, 0, 0);
         if (resets_at <= new Date()) resets_at.setDate(resets_at.getDate() + 1);
+        const baseData = {
+          tier: rank?.rank_id ?? 'foothill',
+          tier_display: RANK_DISPLAY[rank?.rank_id ?? 'foothill'],
+          daily_limit: rank?.daily_ai_limit ?? 2,
+          daily_used: rank?.daily_ai_used ?? 0,
+          resets_at: resets_at.toISOString(),
+        };
+        if (quotaStatus.tokenExceeded) {
+          return c.json({
+            success: false,
+            error: 'token_quota_exceeded',
+            message: '今日 Token 配額已用盡，明日台灣時間 00:00 重置。充實攀岩日誌可提升等級獲得更多配額。',
+            data: baseData,
+          }, 429);
+        }
         return c.json({
           success: false,
           error: 'quota_exceeded',
           message: '今日 AI 使用次數已用完，明日台灣時間 00:00 重置。充實攀岩日誌可提升等級獲得更多次數。',
-          data: {
-            tier: rank?.rank_id ?? 'foothill',
-            tier_display: RANK_DISPLAY[rank?.rank_id ?? 'foothill'],
-            daily_limit: rank?.daily_ai_limit ?? 2,
-            daily_used: rank?.daily_ai_used ?? 0,
-            resets_at: resets_at.toISOString(),
-          },
+          data: baseData,
         }, 429);
       }
     }
 
+    const streamMode = c.req.query('stream') === 'true';
+
+    // SSE 串流模式
+    if (streamMode) {
+      let streamCompleted = false;
+      return streamSSE(c, async (stream) => {
+        try {
+          const queryService = new QueryService(c.env);
+          const result = await queryService.askStream(body, userId, async (data) => {
+            await stream.writeSSE({ data });
+          }, c.executionCtx);
+
+          // Task 4.4: 更新實際 token 消耗（修正預估與實際差額）
+          if (!isAdmin) {
+            const logRow = await db.prepare(`SELECT token_count FROM ai_query_logs WHERE id = ?`)
+              .bind(result.query_id)
+              .first<{ token_count: number | null }>();
+            await addTokenUsage(userId, logRow?.token_count ?? estimatedTokens, estimatedTokens, db);
+          }
+
+          // 取得最新配額（供 done 事件）
+          let quotaRemaining = -1;
+          if (!isAdmin) {
+            const updatedRank = await getUserRank(userId, db);
+            if (updatedRank) {
+              quotaRemaining = Math.max(0, updatedRank.daily_ai_limit - updatedRank.daily_ai_used);
+            }
+          }
+
+          await stream.writeSSE({
+            data: JSON.stringify({
+              type: 'done',
+              query_id: result.query_id,
+              sources: result.sources,
+              suggested_questions: result.suggested_questions,
+              quota_remaining: quotaRemaining,
+            }),
+          });
+          streamCompleted = true;
+        } catch (error) {
+          // Task 4.5: 串流失敗時退還次數與 token 預扣量
+          if (!isAdmin && !streamCompleted) {
+            await db
+              .prepare(`UPDATE user_ranks SET daily_ai_used = MAX(0, daily_ai_used - 1), daily_token_used = MAX(0, daily_token_used - ?), updated_at = datetime('now') WHERE user_id = ?`)
+              .bind(estimatedTokens, userId)
+              .run();
+          }
+          console.error('AI ask stream error:', error);
+          // askStream 已寫入 error 事件，此處確保串流結束
+        }
+      });
+    }
+
+    // 非串流模式
     try {
       const queryService = new QueryService(c.env);
-      const aiResult = await queryService.ask(body, userId);
+      const aiResult = await queryService.ask(body, userId, c.executionCtx);
+
+      // Task 4.4: 更新實際 token 消耗（修正預估與實際差額）
+      if (!isAdmin) {
+        const logRow = await db.prepare(`SELECT token_count FROM ai_query_logs WHERE id = ?`)
+          .bind(aiResult.query_id)
+          .first<{ token_count: number | null }>();
+        await addTokenUsage(userId, logRow?.token_count ?? estimatedTokens, estimatedTokens, db);
+      }
+
+      // Task 4.6: 輸出層防護（路由層額外保護）
+      const filteredAnswer = checkOutput(aiResult.answer);
 
       // 管理員不回傳配額資訊；一般用戶取得最新狀態
       let quota = null;
@@ -128,13 +222,13 @@ aiRoutes.post(
         } : null;
       }
 
-      return c.json({ success: true, data: { ...aiResult, quota } });
+      return c.json({ success: true, data: { ...aiResult, answer: filteredAnswer, quota } });
     } catch (error) {
-      // 一般用戶 AI 呼叫失敗時退回配額
+      // Task 4.5: AI 呼叫失敗時退還次數與 token 預扣量
       if (!isAdmin) {
         await db
-          .prepare('UPDATE user_ranks SET daily_ai_used = MAX(0, daily_ai_used - 1) WHERE user_id = ?')
-          .bind(userId)
+          .prepare(`UPDATE user_ranks SET daily_ai_used = MAX(0, daily_ai_used - 1), daily_token_used = MAX(0, daily_token_used - ?), updated_at = datetime('now') WHERE user_id = ?`)
+          .bind(estimatedTokens, userId)
           .run();
       }
       console.error('AI ask error:', error);
@@ -179,6 +273,9 @@ aiRoutes.get(
           remaining: -1,
           score: 0,
           resets_at: null,
+          token_limit: -1,
+          token_used: 0,
+          token_remaining: -1,
         },
       });
     }
@@ -209,6 +306,9 @@ aiRoutes.get(
         remaining: Math.max(0, rank.daily_ai_limit - rank.daily_ai_used),
         score: rank.score,
         resets_at: resets_at.toISOString(),
+        token_limit: rank.daily_token_limit,
+        token_used: rank.daily_token_used,
+        token_remaining: Math.max(0, rank.daily_token_limit - rank.daily_token_used),
       },
     });
   }
@@ -291,6 +391,24 @@ aiRoutes.post(
 
       if (result.meta.changes === 0) {
         return c.json({ success: false, error: 'NotFound', message: '找不到指定的查詢記錄' }, 400);
+      }
+
+      // 低分 feedback 與評分差異自動標記
+      const queryService = new QueryService(c.env);
+      if (score <= 2) {
+        await queryService.flagResponse(query_id, 'low_feedback');
+      }
+
+      // 評分差異：將 feedback_score (1-5) 正規化為 1-4，與 auto_score 比對
+      const logRow = await c.env.DB.prepare(
+        `SELECT auto_score FROM ai_query_logs WHERE id = ?`
+      ).bind(query_id).first<{ auto_score: number | null }>();
+
+      if (logRow?.auto_score !== null && logRow?.auto_score !== undefined) {
+        const normalizedFeedback = score <= 2 ? 1 : score === 3 ? 2 : score === 4 ? 3 : 4;
+        if (Math.abs(normalizedFeedback - logRow.auto_score) >= 2) {
+          await queryService.flagResponse(query_id, 'score_discrepancy');
+        }
       }
 
       return c.json({ success: true, message: '感謝您的回饋！' });
@@ -526,6 +644,163 @@ aiRoutes.post(
 );
 
 // =============================================
+// POST /recommendations - 手動觸發 AI 路線推薦
+// =============================================
+
+aiRoutes.post(
+  '/recommendations',
+  describeRoute({
+    tags: ['AI'],
+    summary: '手動觸發 AI 路線推薦',
+    description: '依用戶近期完攀紀錄生成個人化路線推薦，消耗一次 AI 配額',
+    responses: {
+      201: { description: '推薦生成成功' },
+      401: { description: '未登入' },
+      429: { description: '今日配額已用盡' },
+      500: { description: 'AI 服務錯誤' },
+    },
+  }),
+  authMiddleware,
+  async (c) => {
+    const userId = c.get('userId') as string;
+    const isAdmin = c.get('user')?.role === 'admin';
+    const db = c.env.DB;
+
+    if (!isAdmin) {
+      const today = new Date().toISOString().slice(0, 10);
+      await initUserRank(userId, db);
+
+      let rank = await getUserRank(userId, db);
+      if (rank && rank.last_reset_date !== today) {
+        await resetDailyUsage(db);
+        rank = await getUserRank(userId, db);
+      }
+
+      const result = await db
+        .prepare('UPDATE user_ranks SET daily_ai_used = daily_ai_used + 1, updated_at = datetime(\'now\') WHERE user_id = ? AND daily_ai_used < daily_ai_limit')
+        .bind(userId)
+        .run();
+
+      if (result.meta.changes === 0) {
+        const resets_at = new Date();
+        resets_at.setUTCHours(16, 0, 0, 0);
+        if (resets_at <= new Date()) resets_at.setDate(resets_at.getDate() + 1);
+        const rankInfo = await getUserRank(userId, db);
+        return c.json({
+          success: false,
+          error: 'quota_exceeded',
+          message: '今日 AI 使用次數已用完，明日台灣時間 00:00 重置。',
+          data: {
+            tier: rankInfo?.rank_id ?? 'foothill',
+            tier_display: RANK_DISPLAY[rankInfo?.rank_id ?? 'foothill'],
+            daily_limit: rankInfo?.daily_ai_limit ?? 2,
+            daily_used: rankInfo?.daily_ai_used ?? 0,
+            resets_at: resets_at.toISOString(),
+          },
+        }, 429);
+      }
+    }
+
+    try {
+      const recommendationService = new RecommendationService(c.env);
+      await recommendationService.generate(userId, 'manual');
+
+      // 取得剛插入的推薦
+      const recommendation = await db
+        .prepare(
+          `SELECT * FROM user_recommendations
+           WHERE user_id = ? AND triggered_by = 'manual' AND status = 'success'
+           ORDER BY created_at DESC LIMIT 1`
+        )
+        .bind(userId)
+        .first<{ id: string; triggered_by: string; status: string; recommendation: string; created_at: string }>();
+
+      if (!recommendation) {
+        throw new Error('Recommendation generation failed silently');
+      }
+
+      return c.json({
+        success: true,
+        data: {
+          id: recommendation.id,
+          triggered_by: recommendation.triggered_by,
+          status: recommendation.status,
+          recommendation: JSON.parse(recommendation.recommendation),
+          created_at: recommendation.created_at,
+        },
+      }, 201);
+    } catch (error) {
+      if (!isAdmin) {
+        await db
+          .prepare('UPDATE user_ranks SET daily_ai_used = MAX(0, daily_ai_used - 1) WHERE user_id = ?')
+          .bind(userId)
+          .run();
+      }
+      console.error('AI recommendations error:', error);
+      return c.json(
+        { success: false, error: 'AIError', message: '推薦生成失敗，請稍後再試。' },
+        500
+      );
+    }
+  }
+);
+
+// =============================================
+// GET /recommendations - 取得推薦歷史
+// =============================================
+
+aiRoutes.get(
+  '/recommendations',
+  describeRoute({
+    tags: ['AI'],
+    summary: '取得 AI 路線推薦歷史',
+    description: '取得當前用戶的 AI 路線推薦歷史，按時間降序排列，支援分頁',
+    responses: {
+      200: { description: '推薦歷史列表' },
+      401: { description: '未登入' },
+    },
+  }),
+  authMiddleware,
+  async (c) => {
+    const userId = c.get('userId') as string;
+    const db = c.env.DB;
+
+    const limitParam = parseInt(c.req.query('limit') ?? '10', 10);
+    const offset = parseInt(c.req.query('offset') ?? '0', 10);
+    const limit = Math.min(Math.max(1, limitParam), 50);
+
+    const [rows, totalRow] = await Promise.all([
+      db.prepare(
+        `SELECT id, triggered_by, status, recommendation, created_at
+         FROM user_recommendations
+         WHERE user_id = ? AND status = 'success'
+         ORDER BY created_at DESC
+         LIMIT ? OFFSET ?`
+      )
+        .bind(userId, limit, offset)
+        .all<{ id: string; triggered_by: string; status: string; recommendation: string; created_at: string }>(),
+      db.prepare(
+        `SELECT COUNT(*) as count FROM user_recommendations WHERE user_id = ? AND status = 'success'`
+      )
+        .bind(userId)
+        .first<{ count: number }>(),
+    ]);
+
+    return c.json({
+      success: true,
+      data: (rows.results ?? []).map((r) => ({
+        id: r.id,
+        triggered_by: r.triggered_by,
+        status: r.status,
+        recommendation: JSON.parse(r.recommendation),
+        created_at: r.created_at,
+      })),
+      total: totalRow?.count ?? 0,
+    });
+  }
+);
+
+// =============================================
 // GET /health - 健康檢查
 // =============================================
 
@@ -557,5 +832,56 @@ aiRoutes.get(
         500
       );
     }
+  }
+);
+
+// =============================================
+// Task 6.1: GET /memory - 取得用戶記憶清單
+// =============================================
+
+aiRoutes.get(
+  '/memory',
+  describeRoute({
+    tags: ['AI'],
+    summary: '取得用戶 AI 記憶',
+    description: '取得目前已儲存的 AI 記憶清單，依更新時間倒序排列',
+    responses: {
+      200: { description: '成功' },
+      401: { description: '未登入' },
+    },
+  }),
+  authMiddleware,
+  async (c) => {
+    const userId = c.get('userId') as string;
+    const memories = await getUserMemories(userId, c.env.DB);
+    return c.json({ success: true, data: memories });
+  }
+);
+
+// =============================================
+// Task 6.2: DELETE /memory/:id - 刪除記憶
+// =============================================
+
+aiRoutes.delete(
+  '/memory/:id',
+  describeRoute({
+    tags: ['AI'],
+    summary: '刪除 AI 記憶',
+    description: '刪除指定的 AI 記憶，只能刪除屬於自己的記憶',
+    responses: {
+      204: { description: '刪除成功' },
+      401: { description: '未登入' },
+      404: { description: '記憶不存在或不屬於該用戶' },
+    },
+  }),
+  authMiddleware,
+  async (c) => {
+    const userId = c.get('userId') as string;
+    const memoryId = c.req.param('id');
+    const deleted = await deleteMemory(userId, memoryId, c.env.DB);
+    if (!deleted) {
+      return c.json({ success: false, error: 'NotFound', message: '記憶不存在或無權刪除' }, 404);
+    }
+    return new Response(null, { status: 204 });
   }
 );
