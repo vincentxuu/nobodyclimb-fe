@@ -37,17 +37,18 @@ export class RecommendationService {
   }
 
   // 依近期完攀紀錄構建推薦查詢字串
+  // 注意：只帶路線名稱與難度，不帶岩場名稱，避免 LLM Tool Calling 誤將用戶舊岩場設為位置篩選
   buildRecommendationQuery(recentAscents: RecentAscent[]): string {
     if (recentAscents.length === 0) {
-      return '我想開始攀岩或是嘗試新路線，請推薦幾條適合挑戰的路線。';
+      return '我想嘗試新路線，請推薦幾條適合初學到中級攀岩者的台灣運攀路線。';
     }
 
     const ascentList = recentAscents
       .slice(0, 5)
-      .map((a) => `${a.route_name}（${a.grade}，${a.crag_name}）`)
+      .map((a) => `${a.route_name}（${a.grade}）`)
       .join('、');
 
-    return `我最近完攀了：${ascentList}。請根據我的攀登紀錄，推薦 3 條適合我下一步挑戰的路線，難度可以稍高一級或類型不同。`;
+    return `我最近完攀了：${ascentList}。請推薦 3 條我尚未爬過、適合下一步挑戰的路線，難度可以稍高一級或類型不同。`;
   }
 
   // 主方法：產生推薦並儲存

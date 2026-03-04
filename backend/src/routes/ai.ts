@@ -402,7 +402,7 @@ aiRoutes.post(
       // 評分差異：將 feedback_score (1-5) 正規化為 1-4，與 auto_score 比對
       const logRow = await c.env.DB.prepare(
         `SELECT auto_score FROM ai_query_logs WHERE id = ?`
-      ).first<{ auto_score: number | null }>(query_id);
+      ).bind(query_id).first<{ auto_score: number | null }>();
 
       if (logRow?.auto_score !== null && logRow?.auto_score !== undefined) {
         const normalizedFeedback = score <= 2 ? 1 : score === 3 ? 2 : score === 4 ? 3 : 4;

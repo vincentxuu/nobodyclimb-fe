@@ -286,6 +286,10 @@ export class QueryService {
         const queryId = await this.logQuery({ userId: userId ?? null, query, response: answer, sources: [], latencyMs, tokenCount: gkTokenCount, queryType: 'general-knowledge', modelUsed: effectiveLlmModel, retrievalScore: 0, selfReflectionTriggered: 0, isHighConsumption: gkTokenCount > 1000 });
         const response: AIAskResponse = { answer, sources: [], query_id: queryId, suggested_questions };
         await this.env.CACHE.put(cacheKey, JSON.stringify(response), { expirationTtl: CACHE_TTL });
+        if (userId && ctx) {
+          const gkGatewayOpts = this.env.AI_GATEWAY_SLUG ? { gateway: { id: this.env.AI_GATEWAY_SLUG } } : undefined;
+          ctx.waitUntil(extractMemoriesFromQuery(query, userId, this.env.DB, this.env.AI, gkGatewayOpts));
+        }
         return response;
       }
 
@@ -1070,7 +1074,7 @@ export class QueryService {
 
     try {
       const timeoutPromise = new Promise<never>((_, reject) =>
-        setTimeout(() => reject(new Error('judge timeout')), 3000)
+        setTimeout(() => reject(new Error('judge timeout')), 8000)
       );
       const judgePromise = (this.env.AI.run as Function)(
         '@cf/meta/llama-3.1-8b-instruct',
@@ -1079,7 +1083,8 @@ export class QueryService {
 
       const judgeResult = await Promise.race([judgePromise, timeoutPromise]);
       return this.parseJudgeResponse(judgeResult.response ?? '');
-    } catch {
+    } catch (err) {
+      console.error('[judge] error:', err instanceof Error ? err.message : String(err));
       return { groundedness: null, quality: null };
     }
   }
