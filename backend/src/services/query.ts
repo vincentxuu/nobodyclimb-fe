@@ -382,8 +382,36 @@ export class QueryService {
       }
     }
 
-    // 熱門度排序：依影片數為路線評分加權（combined = vector*0.7 + popularity*0.3）
-    // 在全部候選（最多 MERGE_TOP_K）中重排，讓熱門路線有機會超越語義分數較高但無影片的路線
+    // Cross-encoder Reranking：用 bge-reranker-base 對候選文件重新評分
+    // 候選數 > 1 時才值得呼叫（單一結果無需重排）
+    let scoredCandidates = candidateMatches;
+    const rerankCandidates = candidateMatches.filter((m) => documents.has(m.id));
+    if (rerankCandidates.length > 1) {
+      try {
+        const contexts = rerankCandidates.map((m) => ({ text: documents.get(m.id)!.text }));
+        const rerankerResult = await (this.env.AI.run as Function)(
+          '@cf/baai/bge-reranker-base',
+          { query, contexts }
+        ) as { response: { id: number; score: number }[] };
+
+        if (rerankerResult?.response?.length > 0) {
+          const scoreByIdx = new Map(rerankerResult.response.map((r) => [r.id, r.score]));
+          scoredCandidates = rerankCandidates.map((m, idx) => ({
+            ...m,
+            score: scoreByIdx.get(idx) ?? m.score,
+          }));
+        }
+      } catch {
+        // reranker 失敗時保留原始 vector score，不影響正常流程
+      }
+    }
+
+    // MMR：從 cross-encoder 重排後的候選中，選出相關且多樣的 top-N
+    // 避免回傳一堆難度/岩場完全相同的路線，提升結果多樣性
+    const mmrSelected = this.applyMMR(scoredCandidates, documents, 0.6, limit);
+
+    // 熱門度排序：依影片數為路線評分加權（combined = reranker*0.7 + popularity*0.3）
+    // 在 MMR 選出的候選中加權，決定最終顯示順序
     const routeSourceIds = [...documents.values()]
       .filter((d) => d.type === 'route')
       .map((d) => d.source_id);
@@ -420,7 +448,7 @@ export class QueryService {
     const maxVideoCount = videoCountMap.size > 0 ? Math.max(...videoCountMap.values()) : 1;
     const safeMax = Math.max(maxVideoCount, 1);
 
-    const rerankedMatches = candidateMatches
+    const rerankedMatches = mmrSelected
       .map((match) => {
         const doc = documents.get(match.id);
         if (!doc || doc.type !== 'route') return { ...match, finalScore: match.score };
@@ -428,8 +456,8 @@ export class QueryService {
         const normalizedPop = videoCount / safeMax;
         return { ...match, finalScore: match.score * 0.7 + normalizedPop * 0.3 };
       })
-      .sort((a, b) => b.finalScore - a.finalScore)
-      .slice(0, limit); // 熱門度重排完才截斷，確保高人氣路線不被提前淘汰
+      .sort((a, b) => b.finalScore - a.finalScore);
+    // MMR 已限制至 limit，不需再 slice
 
     // 組合 sources（依熱門度重排後的順序）
     const sources: AISource[] = rerankedMatches
@@ -995,19 +1023,99 @@ export class QueryService {
     return filter;
   }
 
-  // 合併兩個 Vectorize 搜尋結果：去重（同 ID 取較高分）、依分數排序
+  // 合併兩個 Vectorize 搜尋結果：Reciprocal Rank Fusion（RRF）
+  // score = Σ 1/(k + rank_i)，k=60 為標準值，出現在兩路的結果自動加分
   private mergeResults(r1: SearchResult[], r2: SearchResult[], limit = 10): SearchResult[] {
-    const map = new Map<string, SearchResult>();
+    const K = 60;
+    const rrfScores = new Map<string, number>();
+    const metaMap = new Map<string, SearchResult>();
 
-    for (const item of [...r1, ...r2]) {
-      const existing = map.get(item.id);
-      if (!existing || item.score > existing.score) {
-        map.set(item.id, item);
-      }
+    for (const [rank, item] of r1.entries()) {
+      rrfScores.set(item.id, (rrfScores.get(item.id) ?? 0) + 1 / (K + rank + 1));
+      if (!metaMap.has(item.id)) metaMap.set(item.id, item);
+    }
+    for (const [rank, item] of r2.entries()) {
+      rrfScores.set(item.id, (rrfScores.get(item.id) ?? 0) + 1 / (K + rank + 1));
+      if (!metaMap.has(item.id)) metaMap.set(item.id, item);
     }
 
-    return Array.from(map.values())
-      .sort((a, b) => b.score - a.score)
-      .slice(0, limit);
+    return Array.from(rrfScores.entries())
+      .sort((a, b) => b[1] - a[1])
+      .slice(0, limit)
+      .map(([id, score]) => ({ ...metaMap.get(id)!, score }));
+  }
+
+  // MMR（Maximal Marginal Relevance）：兼顧相關性與多樣性
+  // score = λ × relevance - (1-λ) × max_sim_to_selected
+  // lambda=0.6 表示 60% 重視相關性、40% 重視多樣性
+  private applyMMR(
+    candidates: SearchResult[],
+    documents: Map<string, AIDocument>,
+    lambda: number,
+    k: number
+  ): SearchResult[] {
+    if (candidates.length <= 1) return candidates;
+
+    const selected: SearchResult[] = [];
+    const remaining = [...candidates];
+
+    while (selected.length < k && remaining.length > 0) {
+      let bestIdx = 0;
+      let bestScore = -Infinity;
+
+      for (let i = 0; i < remaining.length; i++) {
+        const candidate = remaining[i];
+        const relevance = candidate.score;
+
+        // 已選集合中，與本候選最相似的相似度
+        let maxSim = 0;
+        for (const sel of selected) {
+          const sim = this.documentSimilarity(
+            documents.get(candidate.id),
+            documents.get(sel.id)
+          );
+          if (sim > maxSim) maxSim = sim;
+        }
+
+        const mmrScore = lambda * relevance - (1 - lambda) * maxSim;
+        if (mmrScore > bestScore) {
+          bestScore = mmrScore;
+          bestIdx = i;
+        }
+      }
+
+      selected.push(remaining[bestIdx]);
+      remaining.splice(bestIdx, 1);
+    }
+
+    return selected;
+  }
+
+  // 文件相似度（metadata-based approximation）
+  // 同岩場 + 相近難度 → 高相似；不同岩場 → 低相似
+  private documentSimilarity(docA: AIDocument | undefined, docB: AIDocument | undefined): number {
+    if (!docA || !docB) return 0;
+    if (docA.source_id === docB.source_id) return 1;
+
+    try {
+      const metaA = docA.metadata ? JSON.parse(docA.metadata) as AIDocumentMetadata : null;
+      const metaB = docB.metadata ? JSON.parse(docB.metadata) as AIDocumentMetadata : null;
+      if (!metaA || !metaB) return 0;
+
+      let sim = 0;
+      // 同岩場 → +0.6
+      if (metaA.crag_id && metaA.crag_id === metaB.crag_id) sim += 0.6;
+      // 相近難度（grade_numeric 差距 ≤ 5，如 5.10a~5.10c）→ 最多 +0.4
+      if (metaA.grade_numeric && metaB.grade_numeric) {
+        const diff = Math.abs(metaA.grade_numeric - metaB.grade_numeric);
+        if (diff <= 5) sim += 0.4 * (1 - diff / 5);
+      }
+      // 同攀登類型 → +0.1
+      if (metaA.route_type && metaA.route_type === metaB.route_type) sim += 0.1;
+
+      return Math.min(sim, 1);
+    } catch {
+      return 0;
+    }
   }
 }
