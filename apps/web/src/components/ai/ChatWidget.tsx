@@ -282,6 +282,9 @@ export function ChatWidget() {
                     remaining: 0,
                     score: quota?.score ?? 0,
                     resets_at: errData.resets_at ?? quota?.resets_at ?? '',
+                    token_limit: quota?.token_limit ?? 0,
+                    token_used: quota?.token_used ?? 0,
+                    token_remaining: quota?.token_remaining ?? 0,
                   })
                 } else {
                   setQuota((prev) => prev ? { ...prev, remaining: 0, daily_used: prev.daily_limit } : prev)
@@ -370,6 +373,9 @@ export function ChatWidget() {
                 remaining: 0,
                 score: quota?.score ?? 0,
                 resets_at: errData.resets_at ?? quota?.resets_at ?? '',
+                token_limit: quota?.token_limit ?? 0,
+                token_used: quota?.token_used ?? 0,
+                token_remaining: quota?.token_remaining ?? 0,
               })
             } else {
               setQuota((prev) => prev ? { ...prev, remaining: 0, daily_used: prev.daily_limit } : prev)
