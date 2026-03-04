@@ -1,902 +1,268 @@
 # NobodyClimb - 攀岩社群平台
 
-NobodyClimb 是一個完整的攀岩社群平台，採用 **pnpm workspaces + Turborepo** monorepo 架構。
+專為攀岩愛好者打造的社群平台，採用 **pnpm workspaces + Turborepo** monorepo 架構，前後端均部署於 Cloudflare Workers。
 
-## 專案概述
+- **網站**: [nobodyclimb.cc](https://nobodyclimb.cc)
+- **API 文檔**: [api.nobodyclimb.cc/api/v1/docs](https://api.nobodyclimb.cc/api/v1/docs)
 
-NobodyClimb 是一個專為攀岩愛好者打造的平台，提供攀岩場地資訊、攀岩路線、個人檔案、部落格、相片集、YouTube 影片瀏覽等功能，幫助攀岩愛好者分享經驗、尋找攀岩場地、交流技巧。
+## 系統架構
 
-### 系統架構
-
-- **Web 前端**: Next.js 15 + React 19 應用程式，部署於 Cloudflare Workers
-- **行動應用**: React Native (Expo) 跨平台 App
-- **後端 API**: Hono 框架，部署於 Cloudflare Workers，使用 D1 資料庫
-- **共用套件**: 跨專案共用的 types、schemas、utils、hooks 等
+| 層級 | 技術 | 說明 |
+|------|------|------|
+| Web 前端 | Next.js 15 + React 19 | `apps/web/`，部署於 Cloudflare Workers |
+| 行動應用 | React Native 0.81 + Expo 54 + Tamagui | `apps/mobile/` |
+| 後端 API | Hono 4.6 + Cloudflare Workers | `backend/`，D1 / R2 / KV |
+| 共用套件 | TypeScript packages | `packages/`，types / schemas / utils / hooks |
 
 ## 技術棧
 
-### 前端
+### 前端 (`apps/web`)
 
-- **框架**: Next.js 15.5 (App Router) + React 19
-- **語言**: TypeScript 5.9
-- **樣式**: TailwindCSS 3.4 + Tailwind Animate
-- **狀態管理**: Zustand 4.5 (全域)、TanStack Query 5.85 (伺服器狀態)
-- **表單處理**: React Hook Form 7.62 + Zod 3.25
-- **UI元件**: Radix UI primitives + 自定義元件
-- **HTTP客戶端**: Axios 1.11
-- **動畫**: Framer Motion 12.23
-- **主題管理**: Next Themes 0.4
-- **拖曳功能**: dnd-kit (core + sortable)
-- **富文本編輯**: React Quill New 3.7
-- **圖片處理**: browser-image-compression + react-image-crop
-- **工具函式**: Class Variance Authority + clsx + Tailwind Merge
-- **日期處理**: date-fns 2.30
-- **Cookie 處理**: js-cookie 3.0
-- **圖標**: Lucide React 0.542
-- **安全性**: isomorphic-dompurify (XSS 防護)
-- **OAuth**: @react-oauth/google
-- **測試**: Jest 29.7 + React Testing Library 16.3
-- **程式碼格式化**: Prettier 3.6 + ESLint 8.57
-- **部署**: Cloudflare Workers (OpenNext.js 適配器 1.6.5)
+- Next.js 15.5 (App Router)、React 19、TypeScript 5.9
+- TailwindCSS 3.4、Radix UI、Framer Motion 12.23
+- Zustand 4.5（全域狀態）、TanStack Query 5.85（伺服器狀態）
+- React Hook Form 7.62 + Zod 3.25（表單驗證）
+- Axios（JWT 自動注入）、js-cookie、dnd-kit、React Quill
+- Jest 29.7 + React Testing Library 16.3
+- 部署：OpenNext.js 1.6.5 + Wrangler
 
-### 後端
+### 後端 (`backend`)
 
-- **運行環境**: Cloudflare Workers
-- **框架**: Hono 4.6 (輕量級 Web 框架)
-- **API 文檔**: OpenAPI 3.1 (自動生成 via hono-openapi) + Scalar API Reference UI
-- **驗證**: Zod + zod-openapi
-- **資料庫**: Cloudflare D1 (SQLite)
-- **儲存**: Cloudflare R2 (檔案儲存)
-- **快取**: Cloudflare KV
-- **認證**: JWT (jose 函式庫)
-- **部署工具**: Wrangler CLI
-
-## 專案結構
-
-```
-nobodyclimb/
-├── apps/
-│   ├── web/                    # Next.js Web 前端 (@nobodyclimb/web)
-│   │   ├── src/
-│   │   │   ├── app/            # Next.js App Router 頁面
-│   │   │   ├── components/     # React 元件
-│   │   │   ├── lib/            # 工具函式庫
-│   │   │   ├── store/          # Zustand 狀態管理
-│   │   │   └── styles/         # 全域樣式
-│   │   ├── public/             # 靜態資源
-│   │   ├── scripts/            # 工具腳本
-│   │   └── package.json
-│   │
-│   └── mobile/                 # React Native 行動應用 (@nobodyclimb/mobile)
-│       ├── app/                # Expo Router 頁面
-│       ├── src/
-│       │   ├── components/     # React Native 元件
-│       │   └── lib/            # 工具函式庫
-│       └── package.json
-│
-├── backend/                    # Cloudflare Workers API (@nobodyclimb/api)
-│   ├── src/
-│   │   ├── index.ts            # 主要進入點和路由
-│   │   ├── types.ts            # TypeScript 類型定義
-│   │   ├── db/                 # 資料庫結構定義
-│   │   ├── middleware/         # 認證中介軟體
-│   │   ├── repositories/       # 資料存取層
-│   │   ├── routes/             # API 路由處理器 (含 OpenAPI 裝飾器)
-│   │   │   ├── ai.ts           # AI 問答與語義搜尋
-│   │   │   ├── admin-ai.ts     # Admin AI 管理
-│   │   │   ├── biographies.ts  # 人物誌（含追蹤、社群互動）
-│   │   │   ├── ascents.ts      # 攀爬記錄
-│   │   │   ├── route-stories.ts # 路線故事
-│   │   │   ├── bucket-list.ts  # 人生清單
-│   │   │   ├── notifications.ts # 通知系統
-│   │   │   └── ...             # 其他路由
-│   │   ├── services/           # 業務邏輯層
-│   │   │   ├── query.ts        # AI RAG 問答服務
-│   │   │   ├── embedding.ts    # 向量嵌入服務
-│   │   │   ├── indexing.ts     # 資料索引服務
-│   │   │   └── notification-service.ts # 通知服務
-│   │   └── utils/              # 工具函式
-│   ├── migrations/             # D1 資料庫遷移
-│   └── package.json
-│
-├── packages/                   # 共用套件
-│   ├── api-client/             # API 客戶端
-│   ├── constants/              # 共用常數
-│   ├── hooks/                  # 共用 React Hooks
-│   ├── schemas/                # Zod 驗證 schemas
-│   ├── types/                  # TypeScript 型別定義
-│   └── utils/                  # 通用工具函式
-│
-├── docs/                       # 專案文件
-│   ├── ai-agent/               # AI Agent 實作指南
-│   ├── backend/                # 後端 API 開發文件
-│   └── design/                 # UI/UX 設計規範
-├── turbo.json                  # Turborepo 配置
-├── pnpm-workspace.yaml         # pnpm workspace 配置
-└── package.json                # 根專案配置
-```
+- Hono 4.6、Cloudflare D1 (SQLite)、R2、KV
+- OpenAPI 3.1（hono-openapi 自動生成）+ Scalar API Reference UI
+- Zod + zod-openapi 驗證、JWT (jose) 認證
+- Cloudflare AI Workers Inference（LLM + Embedding）
 
 ## 主要功能
 
-### 核心功能
+- **用戶認證**: 註冊、登入、Google OAuth、多步驟設定
+- **等級系統**: 麓 / 壁 / 稜 / 巔，依個人檔案完整度與攀岩紀錄積分計算
+- **個人檔案**: 攀岩經驗、身體數據、文章管理、書籤收藏
+- **人物誌**: 核心故事、一句話、小故事，含追蹤、按讚、留言、快速反應
+- **攀登紀錄**: 完攀日期、難度評分、路線追蹤
+- **路線故事**: 分享、按讚、留言、標記有幫助
+- **人生清單**: 攀岩目標（依分類、地點）、完成追蹤
+- **岩場 / 攀岩館**: 詳情、路線、天氣、地圖
+- **相片集**: 瀏覽、上傳、裁切
+- **影片瀏覽**: 14+ 個 YouTube 頻道、11 種分類、篩選播放
+- **通知系統**: 按讚 / 留言 / 追蹤通知，管理員廣播
+- **搜尋**: 全站搜尋、語義搜尋、進階篩選
+- **AI 問答**: RAG 自然語言問答（SSE 串流逐字輸出）、每日配額（依等級）、Adaptive RAG（查詢分類 + 校正式 RAG）
+- **AI Chat Widget**: 浮動對話視窗、對話歷史持久化、隨機建議問題輪播、串流逐字顯示
+- **AI 路線推薦**: 完攀後非同步自動觸發個人化路線推薦（`ctx.waitUntil()`），不阻塞 API 回應
+- **AI 個人化**: 用戶記憶（跨會話）、依攀登紀錄語境化問答
+- **AI 安全防護**: 輸入 / 輸出 Guardrails、Token Budget 管理
+- **AI 品質評估**: LLM Judge、Groundedness Evaluation、RAG Tracing
 
-- **用戶認證**: 註冊、登入、Google OAuth、多步驟個人資料設定
-- **個人檔案**: 用戶資料、攀岩經驗、身體數據、個人設定、文章管理、書籤收藏
-- **部落格系統**: 文章創建、編輯、瀏覽功能、富文本編輯器
-- **岩場資訊**: 岩場詳情、路線資訊、地圖顯示、天氣狀況、社群媒體整合
-- **攀岩館**: 攀岩館資訊、設施介紹、詳細頁面
-- **路線故事**: 路線故事分享、按讚、留言、標記有幫助、社群互動
-- **攀登紀錄**: 記錄攀登歷程、攀爬日期、難度評分、追蹤完攀路線
-- **相片集**: 攀岩相片瀏覽、彈出視窗展示、圖片上傳與裁切
-- **人物誌**: 攀岩人物故事、個人檔案展示、章節式內容（核心故事、一句話、小故事）、社群互動（按讚、留言、快速反應）
-- **追蹤系統**: 追蹤/取消追蹤人物誌、追蹤者/追蹤中列表
-- **通知系統**: 即時通知、未讀數量、按讚/留言/追蹤通知、廣播通知（管理員）
-- **人生清單**: 攀岩目標追蹤（依分類、地點）、已完成項目、熱門清單
-- **搜尋功能**: 全站搜尋、語義搜尋、進階篩選
-- **影片瀏覽**: YouTube 攀岩影片整合、多頻道支援、篩選、播放功能
-- **遊戲系統**: 繩索系統測驗、攀岩知識學習
-- **AI 問答系統**: RAG 自然語言問答、語義搜尋、知識庫索引、用戶回饋
+## 專案結構
 
-### 技術特色
+```text
+nobodyclimb/
+├── apps/
+│   ├── web/                    # Next.js Web 前端
+│   │   ├── src/
+│   │   │   ├── app/            # App Router 頁面
+│   │   │   ├── components/     # React 元件（按領域分組）
+│   │   │   ├── lib/            # API client、工具函式
+│   │   │   └── store/          # Zustand stores
+│   │   ├── public/data/        # 靜態影片資料 JSON
+│   │   └── scripts/            # YouTube 資料處理腳本
+│   └── mobile/                 # React Native 行動應用
+├── backend/                    # Cloudflare Workers API
+│   ├── src/
+│   │   ├── routes/             # API 路由（含 OpenAPI 裝飾器）
+│   │   ├── services/           # 業務邏輯（含 AI RAG）
+│   │   ├── repositories/       # 資料存取層
+│   │   └── db/schema.sql       # D1 資料庫 schema
+│   └── migrations/             # D1 遷移腳本
+├── packages/                   # 共用套件
+│   ├── types/                  # TypeScript 型別
+│   ├── schemas/                # Zod schemas
+│   ├── constants/              # 共用常數
+│   ├── hooks/                  # 共用 React Hooks
+│   ├── utils/                  # 通用工具函式
+│   └── api-client/             # API 客戶端
+└── docs/                       # 技術文件
+```
 
-- **響應式設計**: 支援桌面和行動裝置
-- **主題切換**: 明暗模式支援
-- **國際化**: 多語言切換功能
-- **動畫效果**: Framer Motion 流暢的頁面轉場和互動動畫
-- **圖片優化**: Next.js 圖片優化，支援多種尺寸和格式
-- **圖片處理**: 瀏覽器端圖片壓縮與裁切
-- **拖曳排序**: dnd-kit 實現拖曳功能
-- **富文本編輯**: React Quill 編輯器
-- **YouTube 支援**: 優化的 YouTube 縮圖和影片嵌入
-- **程式碼品質**: ESLint + Prettier 自動格式化
-- **型別安全**: 完整的 TypeScript 支援
-- **測試覆蓋**: Jest + React Testing Library
-- **現代化架構**: 使用 React 19 和 Next.js 15 最新特性
-- **XSS 防護**: DOMPurify 內容清理
-- **AI RAG**: Cloudflare AI Workers Inference，向量嵌入語義搜尋
-- **通知推播**: 即時通知系統，支援多種通知類型
-
-### YouTube 影片功能
-
-- 支援 14+ 個攀岩 YouTube 頻道的影片收集
-- 自動化影片資料更新腳本（含元數據抓取和智慧分類）
-- 互動式新增頻道腳本
-- 影片篩選和搜尋功能
-- 嵌入式影片播放器
-- 智慧影片分類系統（11 種分類）
-- 品牌廣告自動排除機制
-
-## 安裝與執行
+## 快速開始
 
 ### 前置需求
 
-- Node.js 18+ (支援 React 19)
-- pnpm (推薦) 或 npm
+- Node.js 18+、pnpm
 
-### 1. 複製專案
-
-```bash
-git clone [專案repository URL]
-cd nobodyclimb-fe
-```
-
-### 2. 安裝依賴
+### 安裝與啟動
 
 ```bash
 pnpm install
-# 或
-npm install
+pnpm dev          # 啟動所有服務（Turborepo）
+pnpm dev:web      # 僅前端 localhost:3000
+pnpm dev:backend  # 僅後端 localhost:8787
 ```
 
-### 3. 設定環境變數
+API 文檔：`http://localhost:8787/api/v1/docs`
 
-在專案根目錄創建 `.env.local` 檔案（如需要）：
-
-```env
-# 環境變數配置（目前暫無外部 API 需求）
-# NEXT_PUBLIC_CUSTOM_VAR=your_value
-```
-
-### 4. 啟動開發伺服器
+### 常用指令
 
 ```bash
-pnpm dev
-# 或
-npm run dev
+pnpm build        # 建構所有套件
+pnpm build:cf     # 建構前端 Cloudflare 版本
+pnpm lint         # Lint 所有套件
+pnpm test         # 執行測試
+pnpm typecheck    # TypeScript 型別檢查
+pnpm format       # Prettier 格式化
 ```
 
-### 5. 訪問應用
+### 後端資料庫
 
-開啟瀏覽器訪問 [http://localhost:3000](http://localhost:3000)
+```bash
+cd backend
+pnpm db:migrate         # 本地遷移
+pnpm db:migrate:remote  # 遠端 D1 遷移
+```
 
-## 指令說明
+## 部署
 
-### Monorepo 指令 (從根目錄執行)
-
-- `pnpm dev` - 啟動所有開發伺服器 (via Turborepo)
-- `pnpm dev:web` - 僅啟動 Web 前端 (localhost:3000)
-- `pnpm dev:mobile` - 啟動行動應用 (Expo)
-- `pnpm dev:backend` - 啟動後端 API
-- `pnpm build` - 建構所有套件
-- `pnpm build:web` - 僅建構 Web 前端
-- `pnpm build:cf` - 建構 Web 至 Cloudflare
-- `pnpm lint` - 檢查所有套件程式碼
-- `pnpm test` - 執行所有測試
-- `pnpm typecheck` - TypeScript 型別檢查
-- `pnpm format` - 使用 Prettier 格式化程式碼
-- `pnpm format:check` - 檢查程式碼格式
-
-### Web 前端開發 (apps/web)
+### 前端
 
 ```bash
 cd apps/web
-pnpm dev                        # 啟動 Next.js 開發伺服器
-pnpm build                      # 建構生產版本
-pnpm build:cf                   # 建構 Cloudflare 版本
-pnpm lint                       # 執行 ESLint
-pnpm test                       # 執行 Jest 測試
+pnpm build:cf
+wrangler deploy --env production   # nobodyclimb.cc
+wrangler deploy --env preview
+wrangler tail --env production     # 查看日誌
 ```
 
-### 行動應用開發 (apps/mobile)
+### 後端
 
 ```bash
-cd apps/mobile
-pnpm start                      # 啟動 Expo 開發伺服器
-pnpm ios                        # 在 iOS 模擬器執行
-pnpm android                    # 在 Android 模擬器執行
+cd backend
+wrangler secret put JWT_SECRET --env production  # 僅首次
+pnpm db:migrate:remote
+pnpm deploy:production
 ```
 
-### 前端 Cloudflare 部署
+### 環境對照
+
+| 層 | 生產 | 預覽 |
+|----|------|------|
+| 前端 Worker | `nobodyclimb-fe-production` | `nobodyclimb-fe-preview` |
+| 後端 Worker | `nobodyclimb-api-production` | `nobodyclimb-api-preview` |
+| D1 | `nobodyclimb-db` | `nobodyclimb-db-preview` |
+| R2 | `nobodyclimb-storage` | `nobodyclimb-storage-preview` |
+
+### CI/CD
+
+GitHub Actions 自動部署：
+
+- `deploy.yml`：前端，`main` → production（啟用 Analytics），其他分支 → preview
+- `deploy-api.yml`：後端，偵測 `backend/` 變更自動部署，需要 `CLOUDFLARE_API_TOKEN` secret
+
+## YouTube 影片腳本
+
+所有腳本位於 `apps/web/scripts/`，需安裝 `brew install yt-dlp jq`。
+
+### 頻道管理
 
 ```bash
-cd apps/web
-pnpm build:cf                              # 建構 Cloudflare 版本
-wrangler deploy --env production           # 部署到生產環境 (nobodyclimb.cc)
-wrangler deploy --env preview              # 部署到預覽環境
-wrangler tail --env production             # 查看生產環境日誌
+./scripts/add-channel.sh                   # 互動式新增頻道
+./scripts/add-channel.sh 'https://...' 30000  # 直接傳參
+./scripts/update-videos.sh                 # 批次更新所有頻道
 ```
 
-### 後端開發相關
+### 元數據更新
 
 ```bash
-cd backend                      # 切換到後端目錄
-pnpm dev                        # 啟動本地開發伺服器 (localhost:8787)
-pnpm db:migrate                 # 執行本地資料庫遷移
-pnpm db:migrate:remote          # 執行遠端 D1 資料庫遷移
-pnpm deploy:preview             # 部署到預覽環境
-pnpm deploy:production          # 部署到生產環境
+node scripts/update-video-metadata.js              # 更新缺少元數據的影片
+node scripts/update-video-metadata.js --force --limit 50  # 強制重新抓取
+node scripts/update-video-metadata.js --dry-run    # 只顯示統計
 ```
-
-**API 文檔**（開發伺服器啟動後可訪問）：
-- OpenAPI JSON: `http://localhost:8787/api/v1/openapi.json`
-- Scalar 互動式文檔: `http://localhost:8787/api/v1/docs`
-
-### YouTube 影片資料管理
-
-#### 新增 YouTube 頻道
-
-使用互動式腳本新增頻道到追蹤清單：
-
-```bash
-cd apps/web
-./scripts/add-channel.sh
-```
-
-腳本會提示輸入：
-- **YouTube 頻道 URL**: 例如 `https://www.youtube.com/@EmilAbrahamsson`
-- **精選閾值**: 觀看次數超過此數值的影片會被標記為精選（預設 20000）
-
-也可以直接傳入參數：
-
-```bash
-cd apps/web
-./scripts/add-channel.sh 'https://www.youtube.com/@EmilAbrahamsson' 30000
-```
-
-頻道設定檔位於 `apps/web/scripts/channels.json`。
-
-#### 更新所有頻道影片
-
-批次更新所有追蹤頻道的影片資料：
-
-```bash
-cd apps/web
-./scripts/update-videos.sh
-```
-
-此腳本會：
-1. 讀取 `apps/web/scripts/channels.json` 中的頻道清單
-2. 使用 yt-dlp 收集各頻道的影片資料
-3. 轉換並輸出到 `apps/web/public/data/` 目錄
-
-#### 更新影片元數據
-
-使用元數據更新腳本補抓影片的詳細資訊（上傳日期、按讚數、標籤等）並進行智慧分類：
-
-```bash
-cd apps/web
-
-# 更新缺少元數據的影片（預設）
-node scripts/update-video-metadata.js
-
-# 限制更新數量
-node scripts/update-video-metadata.js --limit 100
-
-# 強制重新更新所有影片
-node scripts/update-video-metadata.js --force --limit 50
-
-# 優先更新最新影片
-node scripts/update-video-metadata.js --force --newest-first --limit 100
-
-# 分批更新（跳過前 200 個）
-node scripts/update-video-metadata.js --force --limit 200 --offset 200
-
-# 更新後重新生成 chunks
-node scripts/update-video-metadata.js --limit 100 --regenerate
-
-# 只顯示統計，不實際抓取
-node scripts/update-video-metadata.js --dry-run
-```
-
-**分批更新全部影片：**
-
-```bash
-# 分批更新全部（每批 200，優先最新影片）
-for i in $(seq 0 200 9600); do
-  node scripts/update-video-metadata.js --force --newest-first --limit 200 --offset $i
-done
-node scripts/generate-video-chunks.js
-```
-
-**參數說明：**
 
 | 參數 | 說明 |
 |------|------|
-| `--dry-run` | 只顯示統計，不實際抓取 |
 | `--force` | 強制重新抓取所有影片 |
 | `--limit N` | 只抓取 N 個影片 |
-| `--offset N` | 跳過前 N 個影片（搭配 --force 分批更新） |
-| `--newest-first` | 按發布日期排序（新→舊），優先更新最新影片 |
-| `--batch N` | 分批處理，每批 N 個（預設 200） |
+| `--offset N` | 跳過前 N 個（分批用） |
+| `--newest-first` | 優先更新最新影片 |
 | `--regenerate` | 更新後重新生成 chunks |
-| `--retry-failed` | 重試之前失敗的影片 |
 
-#### 影片分類系統
-
-腳本會根據影片標題、標籤自動分類為以下類別：
-
-**攀岩類型：**
-| 分類 | 說明 |
-|------|------|
-| 戶外上攀 | 戶外繩索攀岩（運動攀、傳統攀、多繩距） |
-| 戶外抱石 | 戶外抱石問題 |
-| 室內上攀 | 室內繩索攀岩 |
-| 室內抱石 | 室內抱石牆 |
-| 賽事 | IFSC 世界盃、奧運、各種正式比賽 |
-
-**內容類型：**
-| 分類 | 說明 |
-|------|------|
-| 教學影片 | 技巧教學、入門指南 |
-| 訓練 | 體能訓練、指力訓練 |
-| 紀錄片 | 專業製作的攀岩紀錄片 |
-| 裝備評測 | 裝備開箱、評測 |
-| 挑戰影片 | 強人 vs 攀岩、名人挑戰等 |
-| 訪談 | 與攀岩者的對話 |
-
-#### 頻道分類映射
-
-特定頻道可以直接指定分類，在 `update-video-metadata.js` 中設定：
-
-```javascript
-const CHANNEL_CATEGORY_MAP = {
-  '@JMACompetitionTV': '賽事',
-  '@worldclimbing': '賽事',
-  '@TheNorthFace': '紀錄片',
-  '@REELROCK1': '紀錄片',
-};
-```
-
-#### 品牌廣告排除
-
-品牌頻道的短影片（< 1 分鐘且無攀岩內容）會被自動標記為 `excluded: true`，前端不會顯示這些影片。
-
-品牌頻道列表在 `update-video-metadata.js` 的 `BRAND_CHANNELS` 中設定。
-
-#### 其他腳本
-
-| 腳本 | 說明 |
-|------|------|
-| `./scripts/collect-youtube-data.sh` | 收集單一頻道影片資料 |
-| `node scripts/convert-youtube-videos.js` | 轉換影片資料格式 |
-| `node scripts/generate-video-chunks.js` | 生成影片分塊資料 |
-
-#### 前置需求
-
-執行腳本前需安裝：
+### 路線影片工作流程
 
 ```bash
-brew install yt-dlp jq
-```
-
-### 路線影片管理
-
-路線影片是指每條攀岩路線關聯的 YouTube 攀登影片，儲存在岩場 JSON 檔案中。
-
-#### 資料架構
-
-```text
-apps/web/src/data/crags/*.json          # 路線資料（含 youtubeVideos 欄位）
-apps/web/public/data/video-metadata.json # 影片元數據（標題、頻道、上傳日期等）
-```
-
-**路線資料結構：**
-
-```json
-{
-  "routes": [
-    {
-      "id": "LD-MUSIC-HALL-329",
-      "name": "黃乾",
-      "youtubeVideos": [
-        "https://www.youtube.com/watch?v=abc123",
-        "https://www.youtube.com/watch?v=xyz789"
-      ]
-    }
-  ]
-}
-```
-
-**影片元數據結構：**
-
-```json
-{
-  "abc123": {
-    "title": "黃乾 5.12a 龍洞完攀",
-    "channel": "Taiwan Climbing",
-    "channelId": "@taiwanclimbing",
-    "uploadDate": "2024-03-15",
-    "duration": 180,
-    "viewCount": 1234,
-    "thumbnailUrl": "https://i.ytimg.com/vi/abc123/maxresdefault.jpg"
-  }
-}
-```
-
-#### 搜尋路線影片
-
-**方式一：YouTube 搜尋**
-
-用路線名稱自動搜尋 YouTube，找出相關影片：
-
-```bash
-cd apps/web
-
-# 搜尋龍洞所有路線的相關影片（每條路線搜 5 個）
+# 1. 搜尋路線相關影片
 node scripts/search-route-videos.js longdong --limit=5
 
-# 搜尋其他岩場
-node scripts/search-route-videos.js guanziling --limit=3
-```
+# 2. 在 Google Sheets 中審核，下載 CSV
 
-**方式二：頻道影片比對**
-
-下載整個頻道的影片清單，自動比對路線名稱：
-
-```bash
-cd apps/web
-
-# 比對單一頻道
-node scripts/match-channel-videos.js longdong "https://www.youtube.com/@channel"
-
-# 比對多個頻道（建立 channels.txt，每行一個 URL）
-node scripts/match-channel-videos.js longdong --channels=channels.txt
-```
-
-**輸出範例：**
-
-```text
-[1/616] 搜尋: 黃乾 (5.12a)... ✓ 找到 2 個新影片 (已有 3 個)
-[2/616] 搜尋: 秋行 (5.11d)... ─ 已有 1 個影片，無新發現
-[3/616] 搜尋: 春風 (5.10a)... ✓ 找到 1 個相關影片
-...
-✅ 輸出: apps/web/output/route-videos-longdong.csv
-```
-
-腳本會自動過濾掉路線已有的影片，只顯示新發現的影片。
-
-**可用岩場 ID：**
-
-| ID | 岩場名稱 |
-|----|---------|
-| `longdong` | 龍洞 |
-| `defulan` | 德夫蘭 |
-| `guanziling` | 關子嶺 |
-| `kenting` | 墾丁 |
-| `shoushan` | 壽山 |
-
-#### 匯入路線影片
-
-使用 Google Sheets 審核搜尋結果後，下載為 CSV 並匯入：
-
-```bash
-cd apps/web
-
-# 匯入單一岩場的路線影片
-node scripts/import-route-videos.js output/route-videos-longdong.csv
-```
-
-**CSV 格式要求：**
-
-| 欄位 | 必填 | 說明 |
-|------|------|------|
-| 路線ID | ✓ | 路線的唯一識別碼（如 `LD-MUSIC-HALL-329`） |
-| 選擇的YouTube影片 | ✓ | YouTube 影片 URL（每行一個或用分號分隔） |
-| 選擇的Instagram貼文 | | Instagram 貼文 URL |
-
-腳本會自動：
-
-- 根據路線 ID 前綴識別岩場（LD=龍洞、DF=德夫蘭、GZ=關子嶺、KT=墾丁、SS=壽山）
-- 過濾無效 URL
-- 合併新舊影片（不覆蓋已有影片）
-
-#### 抓取影片元數據
-
-匯入影片 URL 後，需要抓取元數據以便前端顯示和排序：
-
-```bash
-cd apps/web
-
-# 抓取路線影片元數據（使用 yt-dlp）
-node scripts/fetch-video-metadata.js
-
-# 限制抓取數量
-node scripts/fetch-video-metadata.js --limit 50
-
-# 強制重新抓取所有
-node scripts/fetch-video-metadata.js --force
-```
-
-元數據會儲存到 `apps/web/public/data/video-metadata.json`。
-
-#### 完整流程
-
-```bash
-cd apps/web
-
-# 1. 搜尋路線影片
-node scripts/search-route-videos.js longdong --limit=5
-
-# 2. 審核 CSV（在 Google Sheets 中檢視「建議影片」，正確的複製到「選擇的YouTube影片」）
-
-# 3. 匯入審核後的 CSV
+# 3. 匯入
 node scripts/import-route-videos.js output/route-videos-longdong.csv
 
 # 4. 抓取元數據
 node scripts/fetch-video-metadata.js --limit 100
 ```
 
-#### 前端顯示邏輯
+可用岩場 ID：`longdong`、`defulan`、`guanziling`、`kenting`、`shoushan`
 
-前端會根據 `video-metadata.json` 中的 `uploadDate` 對影片進行排序（新到舊），並在路線詳情頁顯示。
+## AI 系統
 
-相關檔案：
+### 模型配置
 
-- `apps/web/src/lib/crag-data.ts` - 排序邏輯
-- `apps/web/src/components/crag/RouteYouTubeSection.tsx` - 影片顯示元件
-- `apps/web/src/components/crag/route-preview-panel.tsx` - 路線預覽面板
-
-#### 相關腳本
-
-| 腳本 | 說明 |
+| 角色 | 模型 |
 |------|------|
-| `node scripts/search-route-videos.js` | 用路線名稱搜尋 YouTube 影片 |
-| `node scripts/match-channel-videos.js` | 比對頻道影片與路線 |
-| `node scripts/import-route-videos.js` | 從 CSV 匯入路線影片 URL |
-| `node scripts/fetch-video-metadata.js` | 抓取影片元數據 |
+| LLM | `@cf/google/gemma-3-12b-it` |
+| 向量嵌入 | `@cf/baai/bge-m3`（1024 維，多語言，繁中效果佳） |
 
-## 部署說明
+### 架構
 
-本專案前後端均部署於 Cloudflare Workers，配置了多個環境以支援不同的部署需求。
-
-### 環境配置
-
-#### 前端 (Frontend)
-
-**生產環境 (Production)**
-
-- **域名**: nobodyclimb.cc, <www.nobodyclimb.cc>
-- **Worker 名稱**: nobodyclimb-fe-production
-- **部署指令**: `wrangler deploy --env production`
-
-**預覽環境 (Preview)**
-
-- **Worker 名稱**: nobodyclimb-fe-preview
-- **部署指令**: `wrangler deploy --env preview`
-
-**KV 綁定**: `VIDEOS` (用於未來影片資料儲存)
-
-#### 後端 (Backend)
-
-**生產環境 (Production)**
-
-- **域名**: api.nobodyclimb.cc
-- **Worker 名稱**: nobodyclimb-api-production
-- **D1 資料庫**: nobodyclimb-db
-- **R2 儲存**: nobodyclimb-storage
-- **部署指令**: `cd backend && pnpm deploy:production`
-
-**預覽環境 (Preview)**
-
-- **Worker 名稱**: nobodyclimb-api-preview
-- **D1 資料庫**: nobodyclimb-db-preview
-- **R2 儲存**: nobodyclimb-storage-preview
-- **部署指令**: `cd backend && pnpm deploy:preview`
-
-#### 開發環境 (Development)
-
-- **前端**: `pnpm dev` (localhost:3000)
-- **後端**: `cd backend && pnpm dev`
-
-### 快速部署步驟
-
-#### 前端部署
-
-```bash
-# 1. 安裝依賴
-pnpm install
-
-# 2. 登入 Cloudflare
-wrangler login
-
-# 3. 建構專案
-pnpm build:cf
-
-# 4. 部署到生產環境
-wrangler deploy --env production
-
-# 5. 查看日誌
-wrangler tail --env production
-```
-
-#### 後端部署
-
-```bash
-# 1. 切換到後端目錄
-cd backend
-
-# 2. 安裝依賴
-pnpm install
-
-# 3. 設定 JWT Secret (僅首次)
-wrangler secret put JWT_SECRET --env production
-
-# 4. 執行資料庫遷移
-pnpm db:migrate:remote
-
-# 5. 部署到生產環境
-pnpm deploy:production
-```
-
-### KV 存儲配置
-
-專案配置了 Cloudflare KV 存儲，用於將來存儲動態數據：
-
-#### 當前狀態
-
-- **綁定名稱**: VIDEOS
-- **KV 命名空間 ID**: 6562f1cc9373496da57aeb48987346f8
-- **目前使用**: 暫時使用靜態 JSON 檔案 (`apps/web/public/data/videos.json`)
-
-#### KV 使用說明
-
-**1. 在 Cloudflare Workers 環境中訪問 KV**
-
-```typescript
-// 在 API routes 中使用
-export async function GET(request: Request) {
-  const { VIDEOS } = process.env as unknown as CloudflareEnv;
-  
-  // 讀取數據
-  const data = await VIDEOS.get('videos', { type: 'json' });
-  
-  // 寫入數據  
-  await VIDEOS.put('videos', JSON.stringify(newData));
-  
-  return Response.json(data);
-}
-```
-
-**2. 型別支援**
-
-```typescript
-// cloudflare-env.d.ts 中已定義
-interface CloudflareEnv {
-  VIDEOS: KVNamespace;
-}
-```
-
-**3. Wrangler CLI 操作**
-
-```bash
-# 上傳數據到 KV
-wrangler kv:key put --binding=VIDEOS "videos" --path="./apps/web/public/data/videos.json"
-
-# 讀取 KV 數據
-wrangler kv:key get --binding=VIDEOS "videos"
-
-# 列出所有 keys
-wrangler kv:key list --binding=VIDEOS
-```
-
-## 開發指南
-
-### 程式碼風格
-
-- 使用 TypeScript 5.9 進行嚴格型別檢查
-- 遵循 ESLint 8.57 和 Prettier 3.6 配置
-- 使用 Tailwind CSS 3.4 進行樣式設計
-- 採用 React 19 Hooks 和函數式元件
-- 使用現代化的 Next.js 15 App Router 結構
-- 所有程式碼和註解使用繁體中文
-
-### 前端架構模式
-
-#### 狀態管理
-
-- **Zustand stores** (`apps/web/src/store/`): 全域客戶端狀態 (auth, UI, content)
-- **TanStack Query**: 伺服器狀態快取和資料獲取
-- **React Hook Form + Zod**: 表單狀態和驗證
-
-#### API 通信
-
-- Axios 客戶端位於 `apps/web/src/lib/api/client.ts`，包含:
-  - 請求攔截器: 自動從 cookies 添加 JWT token
-  - 回應攔截器: 處理 401 錯誤時自動刷新 token
-- 基礎 URL: `https://api.nobodyclimb.cc/api/v1` (可透過 `NEXT_PUBLIC_API_URL` 配置)
-- 認證 tokens 使用 `js-cookie` 儲存在 cookies 中
-
-#### 元件組織
-
-- 功能按領域分組 (例如: `apps/web/src/components/crag/`, `apps/web/src/components/profile/`)
-- 共用元件在 `apps/web/src/components/shared/`
-- 基礎 UI 元件 (Radix UI 包裝) 在 `apps/web/src/components/ui/`
-- 人物誌互動元件在 `apps/web/src/components/biography/display/`
-- 使用 `@/` 路徑別名進行匯入 (例如: `import { Button } from '@/components/ui/button'`)
-
-#### 人物誌互動元件
-
-`apps/web/src/components/biography/display/` 目錄包含統一的互動元件：
-
-| 元件 | 說明 |
+| 服務 | 說明 |
 |------|------|
-| `ContentInteractionBar` | 整合快速回應、按讚、留言的統一元件 |
-| `QuickReactionBar` | 快速回應按鈕 (我也是、+1、說得好) |
-| `ContentLikeButton` | 按讚按鈕 (山形圖示，綠色) |
-| `ContentCommentSheet` | 展開式留言區塊 |
+| `QueryService` | NLP 過濾（地點、難度、路線類型）、RAG 問答、SSE 串流輸出 |
+| `EmbeddingService` | 向量嵌入生成與語義搜尋 |
+| `IndexingService` | 路線 / 岩場資料向量索引建立 |
 
-使用範例：
-```tsx
-<ContentInteractionBar
-  contentType="stories"  // 'core-stories' | 'one-liners' | 'stories'
-  contentId={id}
-  isLiked={isLiked}
-  likeCount={likeCount}
-  commentCount={commentCount}
-  onToggleLike={handleToggleLike}
-  onFetchComments={handleFetchComments}
-  onAddComment={handleAddComment}
-/>
-```
+### 主要特色
 
-### 後端架構模式
+**SSE 串流**：`POST /api/v1/ai/ask?stream=true`，以 Server-Sent Events 逐字回傳 token；客戶端中途斷線自動退還已扣配額。
 
-- RESTful API，路由處理器在 `backend/src/routes/`
-- **OpenAPI 3.1 文檔**: 透過 `hono-openapi` 自動從路由生成，位於 `/api/v1/openapi.json`
-- **Scalar API Reference**: 互動式 API 文檔介面，位於 `/api/v1/docs`
-- JWT 認證中介軟體
-- D1 資料庫，SQLite schema 在 `backend/src/db/schema.sql`
-- Cloudflare 綁定: DB (D1), CACHE (KV), STORAGE (R2)
-- 分層架構: routes → services → repositories
-- **AI RAG 系統**: Cloudflare AI Workers Inference（`@cf/google/gemma-3-12b-it` + `@cf/baai/bge-m3` 向量嵌入），支援自然語言問答
-- **通知服務**: `NotificationService` + `NotificationRepository` 處理多類型通知
+**Adaptive RAG**：
+- `QueryClassifier` 判斷問題類型（路線查詢、岩場查詢、一般問答等）
+- `CorrectiveRAG` 在向量搜尋相關性不足時，自動回退至全文搜尋補強
 
-### TypeScript 路徑別名
+**每日配額系統**：依等級設定上限，原子 SQL UPDATE 防止並發超量。
 
-- Web: `@/*` 對應到 `apps/web/src/*` (配置於 `apps/web/tsconfig.json`)
-- 後端從前端 TypeScript 配置中排除
+| 等級 | 積分 | 每日配額（示例） |
+|------|------|------|
+| 麓（foothill）| 0–24 | 最低 |
+| 壁（wall） | 25–54 | 標準 |
+| 稜（ridge） | 55–84 | 較高 |
+| 巔（summit） | 85+ | 最高 |
 
-### 圖片處理
+**等級積分來源**：biography 文字欄位、核心故事、一句話、小故事、攀登紀錄、人生清單項目及完成數。
 
-- 使用 Next.js 15 優化圖片載入和快取
-- 支援 YouTube 縮圖和多種圖片來源
-- 啟用 AVIF 和 WebP 格式支援
-- 配置多種裝置尺寸優化
+**AI Chat Widget**（管理員目前開放，`NEXT_PUBLIC_ENABLE_AI_CHAT=true` 控制）：
+- 浮動對話視窗，對話歷史持久化至資料庫
+- 空白狀態隨機輪播建議問題（從 12+ 題庫中取 3 題）
+- 串流逐字顯示，標題列支援「歷史」與「清除」快捷鍵
 
-## CI/CD
+**AI 路線推薦**：完攀後以 `ctx.waitUntil()` 非同步觸發，不佔用配額、不阻塞 ascent API；可在個人檔案推薦頁籤查看。
 
-本專案使用 GitHub Actions 進行自動化部署：
+**安全防護**：輸入 Guardrails（過濾有害查詢）、輸出 Guardrails（清理回應內容）、Token Budget 管理防止超額消耗。
 
-- `.github/workflows/deploy.yml` - 前端部署工作流程
-  - 根據分支自動設定 `NEXT_PUBLIC_ENABLE_ANALYTICS`
-  - `main` 分支 → 部署至 production，啟用追蹤工具
-  - 其他分支 → 部署至 preview，停用追蹤工具
-- `.github/workflows/deploy-api.yml` - 後端 API 部署工作流程
-  - 監聽 `backend/` 目錄變更時觸發
-  - 自動執行 D1 資料庫遷移
-  - 需要 `CLOUDFLARE_API_TOKEN` secret
+**品質評估**：LLM Judge 評分、Groundedness Evaluation 確認回應有所據、RAG Tracing 追蹤檢索鏈路，統計可在 Admin AI 儀表板查看。
 
-## 追蹤工具設定
+## 開發慣例
 
-專案整合了 Google Analytics、Microsoft Clarity 和 PostHog，透過雙重機制控制：
+- TypeScript 嚴格型別；前端使用 `@/` 路徑別名
+- 元件按領域分組：`components/<domain>/`
+- 人物誌互動統一使用 `components/biography/display/ContentInteractionBar`
+- 所有程式碼、註解、文件使用繁體中文
 
-### 建置時控制
-- `NEXT_PUBLIC_ENABLE_ANALYTICS` 環境變數在 CI/CD 時設定
-- `main` 分支建置時設為 `true`，其他分支設為 `false`
-
-### 執行時控制
-- `analytics.tsx` 會在瀏覽器端檢查 hostname
-- 只在正式網域 (`nobodyclimb.cc`, `www.nobodyclimb.cc`) 啟用
-- 預覽環境、localhost 等自動停用
-
-### 環境變數
+## Analytics 環境變數
 
 | 變數 | 說明 |
 |------|------|
-| `NEXT_PUBLIC_ENABLE_ANALYTICS` | 追蹤工具總開關 (`'true'` 啟用) |
-| `NEXT_PUBLIC_GA_ID` | Google Analytics 測量 ID |
-| `NEXT_PUBLIC_CLARITY_ID` | Microsoft Clarity 專案 ID |
+| `NEXT_PUBLIC_ENABLE_ANALYTICS` | 總開關（`'true'` 啟用，CI 自動設定） |
+| `NEXT_PUBLIC_GA_ID` | Google Analytics ID |
+| `NEXT_PUBLIC_CLARITY_ID` | Microsoft Clarity ID |
 | `NEXT_PUBLIC_POSTHOG_KEY` | PostHog API Key |
 | `NEXT_PUBLIC_POSTHOG_HOST` | PostHog Host URL |
-
-## 技術文件
-
-專案包含詳細的技術文件，位於 `docs/` 目錄：
-
-| 目錄 | 說明 |
-|------|------|
-| `docs/ai-agent/` | AI Agent 服務實作指南（架構、後端、前端、管理後台） |
-| `docs/backend/` | 後端 API 開發文件 |
-| `docs/design/` | UI/UX 設計規範 |
-| `docs/prd/` | 產品需求文件 |
-| `docs/roadmap/` | 產品路線圖 |
-
-## 重要提示
-
-- 前端使用 React 19 和 Next.js 15，需要 Node.js 18+
-- 目前使用 `apps/web/public/data/` 中的靜態 JSON 檔案存儲影片資料 (KV 整合規劃中)
-- 後端需要 Cloudflare 帳號和正確的綁定設定
-- JWT secret 必須透過 `wrangler secret put JWT_SECRET` 為後端配置
-- 所有程式碼、註解和文件均使用繁體中文
-
-## 貢獻指南
-
-1. Fork 此專案
-2. 建立功能分支 (`git checkout -b feature/amazing-feature`)
-3. 提交變更 (`git commit -m 'Add some amazing feature'`)
-4. 推送到分支 (`git push origin feature/amazing-feature`)
-5. 建立 Pull Request
-
----
-
-## 聯絡資訊
-
-- **網站**: [nobodyclimb.cc](https://nobodyclimb.cc)
-- **API**: [api.nobodyclimb.cc](https://api.nobodyclimb.cc)
-- **API 文檔**: [api.nobodyclimb.cc/api/v1/docs](https://api.nobodyclimb.cc/api/v1/docs)
-- **開發團隊**: NobodyClimb Team
-
-## 專案特色
-
-- 完整的前後端分離架構
-- 全部部署於 Cloudflare Workers，享受全球 CDN 加速
-- 使用 D1 資料庫和 R2 儲存，零冷啟動時間
-- React 19 + Next.js 15 最新技術棧
-- 完整的認證系統和權限管理
-- OpenAPI 3.1 標準的 API 文檔與互動式介面
-- 響應式設計，支援各種裝置
-- 繁體中文介面和內容
-
----
-
-*本專案為 NobodyClimb 攀岩社群平台，致力於為攀岩愛好者提供最佳的線上體驗。*
