@@ -63,7 +63,8 @@ function parseSuggestedQuestions(raw: string): { answer: string; suggested_quest
   return { answer: raw.trim(), suggested_questions: [] };
 }
 const DEFAULT_TOP_K = 5;
-const MIN_SCORE = 0.5;
+const MIN_SCORE = 0.5;          // 無 filter 時的基準門檻
+const MIN_SCORE_FILTERED = 0.2; // 有 grade/crag filter 時放寬門檻（metadata 已保障相關性）
 const DEFAULT_LLM_MODEL = '@cf/google/gemma-3-12b-it';
 
 interface LLMResponse {
@@ -371,7 +372,9 @@ export class QueryService {
     // Stage 5：合併結果、過濾低分、取 D1 完整文件
     // 注意：先保留全部候選（最多 MERGE_TOP_K），熱門度重排後再截斷至 limit
     const mergedMatches = this.mergeResults(queryMatches, hydeMatches, MERGE_TOP_K);
-    const candidateMatches = mergedMatches.filter((m) => m.score >= MIN_SCORE);
+    const hasFilter = Object.keys(vectorFilter).some((k) => ['grade_numeric', 'crag_id', 'area_id', 'region'].includes(k));
+    const minScore = hasFilter ? MIN_SCORE_FILTERED : MIN_SCORE;
+    const candidateMatches = mergedMatches.filter((m) => m.score >= minScore);
 
     const documents = await this.getDocuments(candidateMatches.map((m) => m.id));
 
