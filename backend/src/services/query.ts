@@ -309,6 +309,13 @@ export class QueryService {
         if (!vectorFilter['type']) vectorFilter['type'] = { $eq: 'route' };
       } else if (historyLocation.region) {
         vectorFilter['region'] = { $eq: historyLocation.region };
+      } else {
+        // 找不到岩場/地區名稱時，嘗試從歷史對話中的路線名稱反查所屬岩場
+        const routeRef = await this.extractRouteReference(historyText);
+        if (routeRef?.cragId) {
+          vectorFilter['crag_id'] = { $eq: routeRef.cragId };
+          if (!vectorFilter['type']) vectorFilter['type'] = { $eq: 'route' };
+        }
       }
     }
 
