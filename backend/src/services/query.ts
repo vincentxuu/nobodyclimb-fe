@@ -148,10 +148,12 @@ export class QueryService {
 
   // 完整 RAG 流程（增強版）：
   // Stage 1（並行）：LLM A（Tool Calling）+ LLM B（HyDE）
-  // Stage 2（並行）：embed(query) + embed(hydeDoc)
-  // Stage 3（並行）：兩路 Vectorize 搜尋
-  // Stage 4：mergeResults → D1 fetch
-  // Stage 5：LLM C 生成回答（含隱性 re-ranking）
+  // Stage 2：決定 Vectorize filter（grade / crag / region）
+  // Stage 3（並行）：embed(query) + embed(hydeDoc)
+  // Stage 4（並行）：兩路 Vectorize 搜尋 → RRF 合併 → D1 fetch
+  // Stage 5：Cross-encoder reranking（bge-reranker-base）
+  // Stage 6：MMR 多樣性選取（λ=0.6）
+  // Stage 7：熱門度加權排序 → LLM C 生成回答
   async ask(request: AIAskRequest, userId?: string): Promise<AIAskResponse> {
     const { query, limit = DEFAULT_TOP_K, include_sources = true, chat_history } = request;
 
