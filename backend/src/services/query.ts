@@ -123,9 +123,14 @@ export class QueryService {
   }
 
   // 從 query 文字中偵測 YDS 難度，回傳 Vectorize grade_numeric 範圍
-  // 支援多個 grade（如「5.9 或 5.10a」），取最小到最大的範圍
+  // 支援完整格式（5.12a）與縮寫格式（12a、12）
   extractGradeFilter(query: string): { $gte: number; $lte: number } | null {
-    const allMatches = [...query.matchAll(/5\.(\d+)([a-d])?/gi)];
+    // 先比對完整 5.XX 格式，再比對縮寫 10-15 格式（如「12a」「11b」）
+    const fullMatches = [...query.matchAll(/5\.(\d+)([a-d])?/gi)];
+    const shortMatches = [...query.matchAll(/\b(1[0-5])([a-d])?\b/gi)].filter(
+      (m) => !query.slice(Math.max(0, m.index! - 2), m.index!).includes('5.')
+    );
+    const allMatches = fullMatches.length > 0 ? fullMatches : shortMatches;
     if (allMatches.length === 0) return null;
 
     const numerics = allMatches.map((m) => {
@@ -251,16 +256,18 @@ export class QueryService {
           const gradeFilter = this.extractGradeFilter(query);
           if (gradeFilter) vectorFilter['grade_numeric'] = gradeFilter;
         }
-        // 補充保底：若 LLM 未抽取位置，用 regex 補回（處理多岩場查詢）
-        if (!vectorFilter['crag_id'] && !vectorFilter['area_id'] && !vectorFilter['region']) {
-          const { cragIds, areaId, region } = await this.extractLocationFilter(query);
-          if (areaId) {
-            vectorFilter['area_id'] = { $eq: areaId };
-          } else if (cragIds && cragIds.length > 0) {
-            vectorFilter['crag_id'] = cragIds.length === 1 ? { $eq: cragIds[0] } : { $in: cragIds };
-          } else if (region) {
-            vectorFilter['region'] = { $eq: region };
-          }
+        // 補充保底：多岩場偵測（Tool Calling 只能抽一個岩場，若 regex 找到更多則升級為 $in）
+        // 無論 Tool Calling 是否已設 crag_id，都重新偵測，以處理多岩場查詢
+        const { cragIds, areaId, region } = await this.extractLocationFilter(query);
+        if (areaId && !vectorFilter['area_id']) {
+          vectorFilter['area_id'] = { $eq: areaId };
+        } else if (cragIds && cragIds.length > 1) {
+          // 多岩場：直接覆蓋 Tool Calling 的單一 crag_id
+          vectorFilter['crag_id'] = { $in: cragIds };
+        } else if (cragIds && cragIds.length === 1 && !vectorFilter['crag_id']) {
+          vectorFilter['crag_id'] = { $eq: cragIds[0] };
+        } else if (region && !vectorFilter['crag_id'] && !vectorFilter['area_id'] && !vectorFilter['region']) {
+          vectorFilter['region'] = { $eq: region };
         }
       } else {
         // Fallback：使用現有 regex 方法
