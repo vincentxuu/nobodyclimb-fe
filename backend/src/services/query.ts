@@ -381,7 +381,7 @@ export class QueryService {
     // Stage 5：合併結果、過濾低分、取 D1 完整文件
     // 注意：先保留全部候選（最多 MERGE_TOP_K），熱門度重排後再截斷至 limit
     const mergedMatches = this.mergeResults(queryMatches, hydeMatches, MERGE_TOP_K);
-    const hasFilter = Object.keys(vectorFilter).some((k) => ['grade_numeric', 'crag_id', 'area_id', 'region'].includes(k));
+    const hasFilter = Object.keys(vectorFilter).some((k) => ['grade_numeric', 'crag_id', 'area_id', 'region', 'route_type'].includes(k));
     const minScore = hasFilter ? MIN_RRF_SCORE_FILTERED : MIN_RRF_SCORE;
     const candidateMatches = mergedMatches.filter((m) => m.score >= minScore);
 
@@ -1014,9 +1014,16 @@ export class QueryService {
       filter['region'] = { $eq: params.region };
     }
 
-    // 解析 route_type
+    // 解析 route_type（正規化中英文混用：LLM 可能輸出「運攀」或 "sport"）
     if (params.route_type) {
-      filter['route_type'] = { $eq: params.route_type };
+      const routeTypeMap: Record<string, string> = {
+        '運攀': 'sport', 'sport': 'sport',
+        '傳攀': 'trad', 'trad': 'trad',
+        '抱石': 'boulder', 'boulder': 'boulder',
+        '混合': 'mixed', 'mixed': 'mixed',
+      };
+      const normalized = routeTypeMap[params.route_type] ?? params.route_type;
+      filter['route_type'] = { $eq: normalized };
     }
 
     // 解析 grade（支援 "5.11b" 或 "5.10-5.12" 格式）

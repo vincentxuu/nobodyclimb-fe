@@ -39,7 +39,7 @@ export const TOOL_SELECTION_PROMPT = `你是 NobodyClimb 攀岩平台的查詢�
 
 可用工具：
 - search_routes：搜尋攀岩路線
-  可用參數：crag_name, area_name, grade（如"5.11b"或"5.10-5.12"）, route_type, region
+  可用參數：crag_name, area_name, grade（如"5.11b"或"5.10-5.12"）, route_type（只能填 sport/trad/boulder/mixed）, region
 - search_crags：搜尋岩場資訊（包含岩場特性、交通、注意事項等）
   可用參數：crag_name, region, climbing_type
 - general_knowledge：只用於回答與特定岩場無關的一般攀岩知識（如裝備選購、基礎技術、訓練方法）
