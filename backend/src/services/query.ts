@@ -163,15 +163,17 @@ export class QueryService {
   // Stage 6：MMR 多樣性選取（λ=0.6）
   // Stage 7：熱門度加權排序 → LLM C 生成回答
   async ask(request: AIAskRequest, userId?: string): Promise<AIAskResponse> {
-    const { query, limit = DEFAULT_TOP_K, include_sources = true, chat_history } = request;
+    const { query, limit = DEFAULT_TOP_K, include_sources = true, chat_history, no_cache = false } = request;
 
     // 有 chat_history 時帶入最近 3 輪（6 則），避免快取衝突故加入 history hash
     const recentHistory: AIChatMessage[] = chat_history ? chat_history.slice(-6) : [];
     const historyHash = recentHistory.length > 0 ? `:h${this.hashQuery(recentHistory.map(m => m.content).join('|'))}` : '';
     const cacheKey = `ai:ask:${this.hashQuery(query)}${historyHash}`;
-    const cached = await this.env.CACHE.get(cacheKey);
-    if (cached) {
-      return JSON.parse(cached) as AIAskResponse;
+    if (!no_cache) {
+      const cached = await this.env.CACHE.get(cacheKey);
+      if (cached) {
+        return JSON.parse(cached) as AIAskResponse;
+      }
     }
 
     const startTime = Date.now();

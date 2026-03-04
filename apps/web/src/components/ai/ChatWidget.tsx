@@ -263,7 +263,7 @@ export function ChatWidget() {
       content: m.content,
     }))
     askAI(
-      { query: lastUserMsg.content, include_sources: true, chat_history: regenHistory.length > 0 ? regenHistory : undefined },
+      { query: lastUserMsg.content, include_sources: true, no_cache: true, chat_history: regenHistory.length > 0 ? regenHistory : undefined },
       {
         onSuccess: (data) => {
           isRegeneratingRef.current = false

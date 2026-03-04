@@ -28,6 +28,7 @@ export interface AIAskRequest {
   limit?: number
   include_sources?: boolean
   chat_history?: AIChatHistoryMessage[]
+  no_cache?: boolean
 }
 
 export interface AIAskResponse {
