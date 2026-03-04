@@ -682,7 +682,7 @@ export class QueryService {
 
   // 偵測 query 是否有「推薦相似/類似路線」意圖
   private hasSimilarRouteIntent(query: string): boolean {
-    return ['差不多', '類似', '相似', '爬完', '爬過', '爬了'].some((k) => query.includes(k));
+    return ['差不多', '類似', '相似', '爬完', '爬過', '爬了', 'rp', 'RP', 'redpoint', 'red point'].some((k) => query.includes(k));
   }
 
   // 偵測 query 是否含有指代前文的 context-dependent 詞（需從對話歷史補充位置）
