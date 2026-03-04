@@ -207,29 +207,38 @@ Gemma 3 12B 的 Tool Calling 可靠性不足。可評估：
 
 ---
 
-## 最可能的根因結論
+## 最可能的根因結論（已確認）
 
-**Vectorize 向量索引中完全沒有資料（或 D1 資料庫為空）**，這是所有問題的共同核心原因。
+**RRF 合併後的分數尺度與 MIN_SCORE 門檻不匹配，導致所有搜尋結果被過濾掉。**
 
-證據：連「台灣有哪些岩場？」這種不帶任何 filter 的查詢都回傳空結果。若索引中有任何岩場資料，Vectorize 語義搜尋至少會返回幾筆匹配。
+### 問題詳解
 
-問題鏈條推測：
+`e777fd6` commit 將 `mergeResults` 從「取較高 vector score」改為 **RRF (Reciprocal Rank Fusion)**：
+
+- **改動前**：分數 = 原始 vector similarity score（0~1 範圍，如 0.7、0.85）
+- **改動後**：分數 = `Σ 1/(K + rank_i)`，K=60
+  - 排名第 1 → `1/61 ≈ 0.0164`
+  - 雙路都排第 1 → `0.0164 × 2 ≈ 0.033`
+  - **RRF 分數最高也只有 ~0.033**
+
+但 MIN_SCORE 門檻未同步調整：
+```typescript
+const MIN_SCORE = 0.5;          // 無 filter → 門檻 0.5
+const MIN_SCORE_FILTERED = 0.2; // 有 filter → 門檻 0.2
 ```
-靜態 JSON 資料（apps/web/src/data/crags/*.json）
-    ↓ ❌ 未匯入
-D1 資料庫（routes / crags 表）
-    ↓ ❌ 表為空，indexRoutes() 無資料可索引
-Cloudflare Vectorize（向量索引）
-    ↓ ❌ 索引為空
-RAG 搜尋 → 結果為空 → LLM 只能回「找不到」
+
+```
+RRF 最高分 ~0.033 < MIN_SCORE_FILTERED 0.2 < MIN_SCORE 0.5
+→ 所有候選結果在 score filter 這步全部被丟棄
+→ LLM 收到空 context → 只能回答「找不到」
 ```
 
-**驗證步驟：**
-1. 查看 Admin AI Dashboard（`/admin/ai`）的「已索引路線數」和「已索引岩場數」
-2. 直接查 D1：`SELECT COUNT(*) FROM routes;` 和 `SELECT COUNT(*) FROM crags;`
-3. 查索引文件數：`SELECT COUNT(*) FROM ai_documents;`
+### 修復
 
-**修復步驟：**
-1. 若 D1 為空 → 先透過 Admin Import API（`POST /api/v1/admin/import/crag`）將靜態 JSON 資料匯入 D1
-2. 若 D1 有資料但索引為空 → 執行 `POST /api/v1/ai/index`（body: `{ "type": "all" }`）重建 Vectorize 索引
-3. 索引完成後清除 KV 快取中的 `ai:ask:*` 前綴條目，避免舊的空結果繼續返回
+將門檻調整為 RRF 尺度，並區分 `ask()`（RRF 門檻）和 `search()`（原始 vector score 門檻）：
+
+```typescript
+const MIN_RRF_SCORE = 0.005;          // ask() 用，RRF 尺度
+const MIN_RRF_SCORE_FILTERED = 0.002; // ask() 有 filter 時
+const MIN_VECTOR_SCORE = 0.5;         // search() 用，原始 vector score 尺度
+```
