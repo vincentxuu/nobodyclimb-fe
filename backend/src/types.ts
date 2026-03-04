@@ -95,6 +95,7 @@ export interface AIDocumentMetadata {
 
 export interface ParsedQuery {
   tool: 'search_routes' | 'search_crags' | 'general_knowledge';
+  query_type?: 'simple' | 'complex' | 'general-knowledge';
   params: {
     crag_name?: string;
     area_name?: string;

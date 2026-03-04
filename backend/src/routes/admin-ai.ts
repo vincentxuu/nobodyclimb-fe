@@ -625,3 +625,216 @@ adminAiRoutes.post(
     }
   }
 );
+
+// =============================================
+// GET /quality-stats - 品質 KPI 統計（過去 7 天）
+// =============================================
+
+adminAiRoutes.get(
+  '/quality-stats',
+  describeRoute({
+    tags: ['Admin AI'],
+    summary: 'AI 品質統計',
+    description: '取得過去 7 天每日平均 groundedness、auto_score、feedback_score 及整體彙總',
+    responses: { 200: { description: '品質統計資料' } },
+  }),
+  async (c) => {
+    try {
+      const dailyRows = await c.env.DB.prepare(
+        `SELECT
+           date(created_at) as date,
+           AVG(groundedness_score) as avg_groundedness,
+           AVG(auto_score) as avg_auto_score,
+           AVG(feedback_score) as avg_feedback
+         FROM ai_query_logs
+         WHERE created_at >= datetime('now', '-7 days')
+         GROUP BY date(created_at)
+         ORDER BY date ASC`
+      ).all<{ date: string; avg_groundedness: number | null; avg_auto_score: number | null; avg_feedback: number | null }>();
+
+      const overallRow = await c.env.DB.prepare(
+        `SELECT
+           AVG(groundedness_score) as avg_groundedness,
+           AVG(auto_score) as avg_auto_score,
+           AVG(feedback_score) as avg_feedback
+         FROM ai_query_logs
+         WHERE created_at >= datetime('now', '-7 days')`
+      ).first<{ avg_groundedness: number | null; avg_auto_score: number | null; avg_feedback: number | null }>();
+
+      return c.json({
+        success: true,
+        data: {
+          daily: dailyRows.results,
+          overall: overallRow ?? { avg_groundedness: null, avg_auto_score: null, avg_feedback: null },
+        },
+      });
+    } catch (error) {
+      console.error('Admin quality-stats error:', error);
+      return c.json({ success: false, error: 'DatabaseError', message: '取得品質統計失敗' }, 500);
+    }
+  }
+);
+
+// =============================================
+// GET /latency-stats - RAG 分段延遲分析（過去 24 小時）
+// =============================================
+
+adminAiRoutes.get(
+  '/latency-stats',
+  describeRoute({
+    tags: ['Admin AI'],
+    summary: 'RAG 延遲分析',
+    description: '取得過去 24 小時 RAG 各階段 P50/P95 延遲（僅含非快取查詢）',
+    responses: { 200: { description: '延遲統計資料' } },
+  }),
+  async (c) => {
+    try {
+      const countRow = await c.env.DB.prepare(
+        `SELECT COUNT(*) as cnt FROM ai_query_logs
+         WHERE created_at >= datetime('now', '-1 day') AND embedding_ms IS NOT NULL`
+      ).first<{ cnt: number }>();
+
+      const sampleCount = countRow?.cnt ?? 0;
+
+      const getPercentile = async (col: string, pct: number): Promise<number | null> => {
+        if (sampleCount === 0) return null;
+        const offset = Math.max(0, Math.floor(sampleCount * pct) - 1);
+        const row = await c.env.DB.prepare(
+          `SELECT ${col} as val FROM ai_query_logs
+           WHERE created_at >= datetime('now', '-1 day') AND ${col} IS NOT NULL
+           ORDER BY ${col} ASC
+           LIMIT 1 OFFSET ?`
+        ).bind(offset).first<{ val: number | null }>();
+        return row?.val ?? null;
+      };
+
+      const [
+        embeddingP50, embeddingP95,
+        retrievalP50, retrievalP95,
+        generationP50, generationP95,
+      ] = await Promise.all([
+        getPercentile('embedding_ms', 0.5),
+        getPercentile('embedding_ms', 0.95),
+        getPercentile('retrieval_ms', 0.5),
+        getPercentile('retrieval_ms', 0.95),
+        getPercentile('generation_ms', 0.5),
+        getPercentile('generation_ms', 0.95),
+      ]);
+
+      return c.json({
+        success: true,
+        data: {
+          embedding_p50: embeddingP50,
+          embedding_p95: embeddingP95,
+          retrieval_p50: retrievalP50,
+          retrieval_p95: retrievalP95,
+          generation_p50: generationP50,
+          generation_p95: generationP95,
+          sample_count: sampleCount,
+        },
+      });
+    } catch (error) {
+      console.error('Admin latency-stats error:', error);
+      return c.json({ success: false, error: 'DatabaseError', message: '取得延遲統計失敗' }, 500);
+    }
+  }
+);
+
+// =============================================
+// GET /flagged - 待審核標記列表
+// =============================================
+
+const flaggedQuerySchema = z.object({
+  reason: z.enum(['low_groundedness', 'low_feedback', 'score_discrepancy']).optional(),
+});
+
+adminAiRoutes.get(
+  '/flagged',
+  describeRoute({
+    tags: ['Admin AI'],
+    summary: '待審核標記列表',
+    description: '取得 is_reviewed = false 的標記記錄，支援依 flag_reason 篩選',
+    responses: { 200: { description: '標記列表' } },
+  }),
+  validator('query', flaggedQuerySchema),
+  async (c) => {
+    const { reason } = c.req.valid('query');
+    try {
+      const whereClause = reason
+        ? `WHERE f.is_reviewed = 0 AND f.flag_reason = ?`
+        : `WHERE f.is_reviewed = 0`;
+
+      const stmt = reason
+        ? c.env.DB.prepare(
+            `SELECT f.id, f.query_log_id, f.flag_reason, f.created_at,
+                    l.query, l.groundedness_score, l.auto_score, l.feedback_score
+             FROM ai_flagged_responses f
+             JOIN ai_query_logs l ON f.query_log_id = l.id
+             ${whereClause}
+             ORDER BY f.created_at DESC
+             LIMIT 50`
+          ).bind(reason)
+        : c.env.DB.prepare(
+            `SELECT f.id, f.query_log_id, f.flag_reason, f.created_at,
+                    l.query, l.groundedness_score, l.auto_score, l.feedback_score
+             FROM ai_flagged_responses f
+             JOIN ai_query_logs l ON f.query_log_id = l.id
+             ${whereClause}
+             ORDER BY f.created_at DESC
+             LIMIT 50`
+          );
+
+      const rows = await stmt.all<{
+        id: string;
+        query_log_id: string;
+        flag_reason: string;
+        created_at: string;
+        query: string;
+        groundedness_score: number | null;
+        auto_score: number | null;
+        feedback_score: number | null;
+      }>();
+
+      return c.json({ success: true, data: rows.results, total: rows.results.length });
+    } catch (error) {
+      console.error('Admin flagged list error:', error);
+      return c.json({ success: false, error: 'DatabaseError', message: '取得標記列表失敗' }, 500);
+    }
+  }
+);
+
+// =============================================
+// PATCH /flagged/:id - 標記為已審核
+// =============================================
+
+adminAiRoutes.patch(
+  '/flagged/:id',
+  describeRoute({
+    tags: ['Admin AI'],
+    summary: '標記為已審核',
+    description: '將指定標記記錄的 is_reviewed 設為 true',
+    responses: {
+      200: { description: '標記成功' },
+      404: { description: '找不到指定標記' },
+    },
+  }),
+  async (c) => {
+    const { id } = c.req.param();
+    try {
+      const result = await c.env.DB.prepare(
+        `UPDATE ai_flagged_responses SET is_reviewed = 1 WHERE id = ?`
+      )
+        .bind(id)
+        .run();
+
+      if (result.meta.changes === 0) {
+        return c.json({ success: false, error: 'NotFound', message: '找不到指定的標記記錄' }, 404);
+      }
+
+      return c.json({ success: true, message: '已標記為審核完成' });
+    } catch (error) {
+      console.error('Admin flagged patch error:', error);
+      return c.json({ success: false, error: 'DatabaseError', message: '更新標記失敗' }, 500);
+    }
+  }
+);

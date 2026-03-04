@@ -4,6 +4,7 @@ import { describeRoute, validator } from 'hono-openapi';
 import { Env, UserRouteAscent } from '../types';
 import { parsePagination, generateId, safeJsonParse, isValidAscentType, VALID_ASCENT_TYPES, toBool } from '../utils/id';
 import { authMiddleware, optionalAuthMiddleware } from '../middleware/auth';
+import { RecommendationService } from '../services/recommendation';
 
 export const ascentsRoutes = new Hono<{ Bindings: Env }>();
 
@@ -412,6 +413,13 @@ ascentsRoutes.post(
   )
     .bind(id)
     .first();
+
+  // 非同步觸發 AI 推薦（不阻塞回應）
+  const recommendationService = new RecommendationService(c.env);
+  const withinLimit = await recommendationService.checkDailySystemLimit(userId);
+  if (withinLimit) {
+    c.executionCtx.waitUntil(recommendationService.generate(userId, 'ascent'));
+  }
 
   return c.json({
     success: true,

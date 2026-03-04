@@ -2,14 +2,14 @@ import { D1Database } from '@cloudflare/workers-types';
 import { RankId, UserRank, RankScoreBreakdown, UserRankDetail } from '@nobodyclimb/types';
 
 // 等級積分門檻（須與 climber_ranks 資料表一致）
-const RANK_THRESHOLDS: { id: RankId; min_score: number; daily_ai_limit: number }[] = [
-  { id: 'summit', min_score: 100, daily_ai_limit: 24 },
-  { id: 'ridge', min_score: 70, daily_ai_limit: 12 },
-  { id: 'wall', min_score: 20, daily_ai_limit: 6 },
-  { id: 'foothill', min_score: 0, daily_ai_limit: 2 },
+const RANK_THRESHOLDS: { id: RankId; min_score: number; daily_ai_limit: number; daily_token_limit: number }[] = [
+  { id: 'summit',   min_score: 100, daily_ai_limit: 24, daily_token_limit: 60000 },
+  { id: 'ridge',    min_score: 70,  daily_ai_limit: 12, daily_token_limit: 30000 },
+  { id: 'wall',     min_score: 20,  daily_ai_limit: 6,  daily_token_limit: 15000 },
+  { id: 'foothill', min_score: 0,   daily_ai_limit: 2,  daily_token_limit: 5000  },
 ];
 
-function scoreToRank(score: number): { id: RankId; daily_ai_limit: number } {
+function scoreToRank(score: number): { id: RankId; daily_ai_limit: number; daily_token_limit: number } {
   return RANK_THRESHOLDS.find(r => score >= r.min_score) ?? RANK_THRESHOLDS[3];
 }
 
@@ -89,8 +89,8 @@ export async function getUserRank(userId: string, db: D1Database): Promise<UserR
 export async function initUserRank(userId: string, db: D1Database): Promise<void> {
   await db
     .prepare(`
-      INSERT OR IGNORE INTO user_ranks (user_id, score, rank_id, daily_ai_used, daily_ai_limit, last_reset_date)
-      VALUES (?, 0, 'foothill', 0, 2, date('now'))
+      INSERT OR IGNORE INTO user_ranks (user_id, score, rank_id, daily_ai_used, daily_ai_limit, daily_token_used, daily_token_limit, last_reset_date)
+      VALUES (?, 0, 'foothill', 0, 2, 0, 5000, date('now'))
     `)
     .bind(userId)
     .run();
@@ -108,29 +108,75 @@ export async function updateUserRank(userId: string, db: D1Database): Promise<Us
       .bind(breakdown.total, userId)
       .run();
   } else {
-    const { id: rankId, daily_ai_limit } = scoreToRank(breakdown.total);
+    const { id: rankId, daily_ai_limit, daily_token_limit } = scoreToRank(breakdown.total);
     await db
       .prepare(`
-        INSERT INTO user_ranks (user_id, score, rank_id, daily_ai_used, daily_ai_limit, last_reset_date, last_score_calculated_at)
-        VALUES (?, ?, ?, 0, ?, date('now'), datetime('now'))
+        INSERT INTO user_ranks (user_id, score, rank_id, daily_ai_used, daily_ai_limit, daily_token_used, daily_token_limit, last_reset_date, last_score_calculated_at)
+        VALUES (?, ?, ?, 0, ?, 0, ?, date('now'), datetime('now'))
         ON CONFLICT(user_id) DO UPDATE SET
           score = excluded.score,
           rank_id = excluded.rank_id,
           daily_ai_limit = excluded.daily_ai_limit,
+          daily_token_limit = excluded.daily_token_limit,
           last_score_calculated_at = excluded.last_score_calculated_at,
           updated_at = datetime('now')
       `)
-      .bind(userId, breakdown.total, rankId, daily_ai_limit)
+      .bind(userId, breakdown.total, rankId, daily_ai_limit, daily_token_limit)
       .run();
   }
 
   return (await getUserRank(userId, db))!;
 }
 
-/** Cron: 重置所有用戶當日 AI 使用量 */
+/** Cron: 重置所有用戶當日 AI 使用量與 token 消耗 */
 export async function resetDailyUsage(db: D1Database): Promise<void> {
   await db
-    .prepare(`UPDATE user_ranks SET daily_ai_used = 0, last_reset_date = date('now'), updated_at = datetime('now')`)
+    .prepare(`UPDATE user_ranks SET daily_ai_used = 0, daily_token_used = 0, last_reset_date = date('now'), updated_at = datetime('now')`)
+    .run();
+}
+
+/** 原子扣除次數與 token 配額，兩個條件必須同時成立才成功（returns changes count） */
+export async function deductQuotaAndToken(userId: string, estimatedTokens: number, db: D1Database): Promise<number> {
+  const result = await db
+    .prepare(`
+      UPDATE user_ranks
+      SET daily_ai_used = daily_ai_used + 1,
+          daily_token_used = daily_token_used + ?,
+          updated_at = datetime('now')
+      WHERE user_id = ?
+        AND daily_ai_used < daily_ai_limit
+        AND daily_token_used + ? <= daily_token_limit
+    `)
+    .bind(estimatedTokens, userId, estimatedTokens)
+    .run();
+  return result.meta.changes;
+}
+
+/** 原子操作失敗時，查詢是次數耗盡還是 token 耗盡 */
+export async function getUserQuotaStatus(userId: string, db: D1Database): Promise<{
+  requestExceeded: boolean;
+  tokenExceeded: boolean;
+}> {
+  const rank = await getUserRank(userId, db);
+  if (!rank) return { requestExceeded: true, tokenExceeded: false };
+  return {
+    requestExceeded: rank.daily_ai_used >= rank.daily_ai_limit,
+    tokenExceeded: rank.daily_token_used >= rank.daily_token_limit,
+  };
+}
+
+/** LLM 完成後更新實際 token 消耗（用實際值覆蓋估算值的差額） */
+export async function addTokenUsage(userId: string, actualTokens: number, estimatedTokens: number, db: D1Database): Promise<void> {
+  const diff = actualTokens - estimatedTokens;
+  if (diff === 0) return;
+  await db
+    .prepare(`
+      UPDATE user_ranks
+      SET daily_token_used = MAX(0, daily_token_used + ?),
+          updated_at = datetime('now')
+      WHERE user_id = ?
+    `)
+    .bind(diff, userId)
     .run();
 }
 

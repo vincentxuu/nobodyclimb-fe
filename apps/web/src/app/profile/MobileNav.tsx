@@ -2,7 +2,7 @@
 
 import React, { useCallback } from 'react'
 import { useRouter, usePathname } from 'next/navigation'
-import { UserCircle, FileText, Bookmark, Settings, Target, ImageIcon, BarChart3, MountainSnow } from 'lucide-react'
+import { UserCircle, FileText, Bookmark, Settings, Target, ImageIcon, BarChart3, MountainSnow, Sparkles } from 'lucide-react'
 
 // 所有導航項目（水平滾動）
 const menuItems = [
@@ -36,6 +36,11 @@ const menuItems = [
     name: '攀登',
     href: '/profile/ascents',
     icon: MountainSnow,
+  },
+  {
+    name: '推薦',
+    href: '/profile/recommendations',
+    icon: Sparkles,
   },
   {
     name: '收藏',

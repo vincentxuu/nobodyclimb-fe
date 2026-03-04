@@ -20,6 +20,8 @@ export interface UserRank {
   rank_id: RankId
   daily_ai_used: number
   daily_ai_limit: number
+  daily_token_used: number
+  daily_token_limit: number
   last_reset_date: string
   last_score_calculated_at: string
   rank_override_id: RankId | null
@@ -33,6 +35,9 @@ export interface AiQuota {
   remaining: number
   score: number
   resets_at: string
+  token_limit: number
+  token_used: number
+  token_remaining: number
 }
 
 export interface AiQuotaExceeded {

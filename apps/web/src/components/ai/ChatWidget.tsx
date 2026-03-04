@@ -2,11 +2,13 @@
 
 import { useState, useRef, useEffect, useCallback } from 'react'
 import { createPortal } from 'react-dom'
-import { MessageCircle, X, Send, Loader2, History, Trash2, ChevronLeft, SquarePen } from 'lucide-react'
+import { MessageCircle, X, Send, Loader2, History, Trash2, ChevronLeft, SquarePen, Square } from 'lucide-react'
 import Link from 'next/link'
 import { cn } from '@/lib/utils'
-import { useAskAI, createChatSession, getChatSessions, getChatMessages, deleteChatSession, saveMessage, getMyQuota } from '@/lib/api/ai'
+import { useAskAI, askAIStream, createChatSession, getChatSessions, getChatMessages, deleteChatSession, saveMessage, getMyQuota } from '@/lib/api/ai'
 import type { AiQuota, ChatSession, AIChatHistoryMessage } from '@/lib/api/ai'
+
+const ENABLE_STREAMING = process.env.NEXT_PUBLIC_ENABLE_AI_STREAMING === 'true'
 import { useAuthStore } from '@/store/authStore'
 import { ChatMessage } from './ChatMessage'
 import type { ChatMessageData } from './ChatMessage'
@@ -55,8 +57,10 @@ export function ChatWidget() {
   const [quota, setQuota] = useState<AiQuota | null>(null)
   const [isRegenerating, setIsRegenerating] = useState(false)
   const [showLoginPrompt, setShowLoginPrompt] = useState(false)
+  const [isStreaming, setIsStreaming] = useState(false)
   // ref 確保多次快速點擊時 guard 是同步的，避免 stale closure
   const isRegeneratingRef = useRef(false)
+  const abortControllerRef = useRef<AbortController | null>(null)
   const messagesEndRef = useRef<HTMLDivElement>(null)
   const inputRef = useRef<HTMLTextAreaElement>(null)
 
@@ -115,7 +119,7 @@ export function ChatWidget() {
   // 新訊息時捲動到底部
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' })
-  }, [messages, isPending, suggestedQuestions])
+  }, [messages, isPending, isStreaming, suggestedQuestions])
 
   // Escape 鍵關閉
   useEffect(() => {
@@ -153,7 +157,7 @@ export function ChatWidget() {
   const handleSubmit = useCallback(
     (query: string) => {
       const trimmed = query.trim()
-      if (!trimmed || isPending) return
+      if (!trimmed || isPending || isStreaming) return
 
       // 未登入：顯示引導卡片，不送出
       if (!isAuthenticated) {
@@ -179,67 +183,125 @@ export function ChatWidget() {
         content: m.content,
       }))
 
-      askAI(
-        { query: trimmed, include_sources: true, chat_history: chatHistory.length > 0 ? chatHistory : undefined },
-        {
-          onSuccess: (data) => {
-            const assistantMsg: ChatMessageData = {
-              id: crypto.randomUUID(),
-              role: 'assistant',
-              content: data.answer,
-              sources: data.sources,
-              queryId: data.query_id,
+      if (ENABLE_STREAMING) {
+        // 串流模式
+        const abortController = new AbortController()
+        abortControllerRef.current = abortController
+        const streamingMsgId = crypto.randomUUID()
+        setMessages((prev) => [...prev, { id: streamingMsgId, role: 'assistant', content: '' }])
+        setIsStreaming(true)
+
+        askAIStream(
+          { query: trimmed, include_sources: true, chat_history: chatHistory.length > 0 ? chatHistory : undefined },
+          (token) => {
+            setMessages((prev) => prev.map((m) =>
+              m.id === streamingMsgId ? { ...m, content: m.content + token } : m
+            ))
+          },
+          (doneEvent) => {
+            setIsStreaming(false)
+            abortControllerRef.current = null
+            setMessages((prev) => prev.map((m) =>
+              m.id === streamingMsgId
+                ? { ...m, sources: doneEvent.sources, queryId: doneEvent.query_id }
+                : m
+            ))
+            setSuggestedQuestions(doneEvent.suggested_questions ?? [])
+            if (doneEvent.quota_remaining >= 0) {
+              setQuota((prev) => prev ? {
+                ...prev,
+                remaining: doneEvent.quota_remaining,
+                daily_used: prev.daily_limit - doneEvent.quota_remaining,
+              } : prev)
             }
-            setMessages((prev) => [...prev, assistantMsg])
-            setSuggestedQuestions(data.suggested_questions ?? [])
-            if (data.quota) setQuota(data.quota)
-            persistMessage('assistant', data.answer, {
-              suggested_questions: data.suggested_questions,
-              query_id: data.query_id,
+            // 取得最終 content 儲存
+            setMessages((prev) => {
+              const msg = prev.find((m) => m.id === streamingMsgId)
+              if (msg) {
+                persistMessage('assistant', msg.content, {
+                  suggested_questions: doneEvent.suggested_questions,
+                  query_id: doneEvent.query_id,
+                })
+              }
+              return prev
             })
           },
-          onError: (error) => {
-            const axiosError = error as { response?: { status?: number; data?: { data?: { daily_limit?: number; daily_used?: number; tier?: string; tier_display?: string; resets_at?: string } } } }
-            if (axiosError?.response?.status === 429) {
-              const errData = axiosError?.response?.data?.data
-              const limit = errData?.daily_limit ?? quota?.daily_limit ?? 2
-              const used = errData?.daily_used ?? limit
-              setMessages((prev) => [
-                ...prev,
-                {
-                  id: crypto.randomUUID(),
-                  role: 'assistant',
-                  content: `今日 AI 使用配額已用盡（${used}/${limit} 次）。\n\n配額將於台灣時間明日 00:00 重置。\n\n💡 充實你的攀岩日誌（記錄故事、路線攀登、人生清單），即可提升等級獲得更多每日配額。`,
-                },
-              ])
-              if (errData) {
-                setQuota({
-                  tier: (errData.tier ?? quota?.tier ?? 'foothill') as AiQuota['tier'],
-                  tier_display: errData.tier_display ?? quota?.tier_display ?? '麓',
-                  daily_limit: limit,
-                  daily_used: used,
-                  remaining: 0,
-                  score: quota?.score ?? 0,
-                  resets_at: errData.resets_at ?? quota?.resets_at ?? '',
-                })
-              } else {
-                setQuota((prev) => prev ? { ...prev, remaining: 0, daily_used: prev.daily_limit } : prev)
-              }
-            } else {
-              setMessages((prev) => [
-                ...prev,
-                {
-                  id: crypto.randomUUID(),
-                  role: 'assistant',
-                  content: '抱歉，AI 服務暫時無法使用，請稍後再試。',
-                },
-              ])
-            }
+          (errMessage) => {
+            setIsStreaming(false)
+            abortControllerRef.current = null
+            setMessages((prev) => prev.map((m) =>
+              m.id === streamingMsgId
+                ? { ...m, content: m.content ? m.content + '\n\n⚠ 生成中斷，請重試' : '抱歉，AI 服務暫時無法使用，請稍後再試。' }
+                : m
+            ))
+            console.error('Stream error:', errMessage)
           },
-        }
-      )
+          abortController.signal,
+        )
+      } else {
+        // 非串流模式（原有邏輯）
+        askAI(
+          { query: trimmed, include_sources: true, chat_history: chatHistory.length > 0 ? chatHistory : undefined },
+          {
+            onSuccess: (data) => {
+              const assistantMsg: ChatMessageData = {
+                id: crypto.randomUUID(),
+                role: 'assistant',
+                content: data.answer,
+                sources: data.sources,
+                queryId: data.query_id,
+              }
+              setMessages((prev) => [...prev, assistantMsg])
+              setSuggestedQuestions(data.suggested_questions ?? [])
+              if (data.quota) setQuota(data.quota)
+              persistMessage('assistant', data.answer, {
+                suggested_questions: data.suggested_questions,
+                query_id: data.query_id,
+              })
+            },
+            onError: (error) => {
+              const axiosError = error as { response?: { status?: number; data?: { data?: { daily_limit?: number; daily_used?: number; tier?: string; tier_display?: string; resets_at?: string } } } }
+              if (axiosError?.response?.status === 429) {
+                const errData = axiosError?.response?.data?.data
+                const limit = errData?.daily_limit ?? quota?.daily_limit ?? 2
+                const used = errData?.daily_used ?? limit
+                setMessages((prev) => [
+                  ...prev,
+                  {
+                    id: crypto.randomUUID(),
+                    role: 'assistant',
+                    content: `今日 AI 使用配額已用盡（${used}/${limit} 次）。\n\n配額將於台灣時間明日 00:00 重置。\n\n💡 充實你的攀岩日誌（記錄故事、路線攀登、人生清單），即可提升等級獲得更多每日配額。`,
+                  },
+                ])
+                if (errData) {
+                  setQuota({
+                    tier: (errData.tier ?? quota?.tier ?? 'foothill') as AiQuota['tier'],
+                    tier_display: errData.tier_display ?? quota?.tier_display ?? '麓',
+                    daily_limit: limit,
+                    daily_used: used,
+                    remaining: 0,
+                    score: quota?.score ?? 0,
+                    resets_at: errData.resets_at ?? quota?.resets_at ?? '',
+                  })
+                } else {
+                  setQuota((prev) => prev ? { ...prev, remaining: 0, daily_used: prev.daily_limit } : prev)
+                }
+              } else {
+                setMessages((prev) => [
+                  ...prev,
+                  {
+                    id: crypto.randomUUID(),
+                    role: 'assistant',
+                    content: '抱歉，AI 服務暫時無法使用，請稍後再試。',
+                  },
+                ])
+              }
+            },
+          }
+        )
+      }
     },
-    [askAI, isPending, quota, isAuthenticated]
+    [askAI, isPending, isStreaming, quota, isAuthenticated]
   )
 
   // 重新生成最後一則 AI 回應
@@ -616,7 +678,7 @@ export function ChatWidget() {
                       </div>
                     )}
                     {/* 載入狀態 */}
-                    {isPending && (
+                    {(isPending || (isStreaming && messages[messages.length - 1]?.content === '')) && (
                       <div className="flex items-center gap-2 text-sm text-muted-foreground">
                         <Loader2 className="h-4 w-4 animate-spin" />
                         <span>思考中...</span>
@@ -641,15 +703,38 @@ export function ChatWidget() {
                     style={{ maxHeight: '120px' }}
                     aria-label="輸入問題"
                   />
-                  <button
-                    type="button"
-                    onClick={() => handleSubmit(input)}
-                    disabled={!input.trim() || isPending}
-                    className="rounded-lg bg-primary p-1.5 text-primary-foreground disabled:opacity-50 hover:bg-primary/90 transition-colors"
-                    aria-label="送出問題"
-                  >
-                    <Send className="h-3.5 w-3.5" />
-                  </button>
+                  {isStreaming ? (
+                    <button
+                      type="button"
+                      onClick={() => {
+                        abortControllerRef.current?.abort()
+                        setIsStreaming(false)
+                        setMessages((prev) => {
+                          const last = prev[prev.length - 1]
+                          if (last?.role === 'assistant') {
+                            return prev.map((m, i) =>
+                              i === prev.length - 1 ? { ...m, content: m.content + '（已停止）' } : m
+                            )
+                          }
+                          return prev
+                        })
+                      }}
+                      className="rounded-lg bg-muted p-1.5 text-foreground hover:bg-muted/80 transition-colors"
+                      aria-label="停止生成"
+                    >
+                      <Square className="h-3.5 w-3.5" />
+                    </button>
+                  ) : (
+                    <button
+                      type="button"
+                      onClick={() => handleSubmit(input)}
+                      disabled={!input.trim() || isPending}
+                      className="rounded-lg bg-primary p-1.5 text-primary-foreground disabled:opacity-50 hover:bg-primary/90 transition-colors"
+                      aria-label="送出問題"
+                    >
+                      <Send className="h-3.5 w-3.5" />
+                    </button>
+                  )}
                 </div>
               </div>
             </>

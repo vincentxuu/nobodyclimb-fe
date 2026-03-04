@@ -1,4 +1,4 @@
-import { useQuery, useMutation } from '@tanstack/react-query'
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import apiClient from './client'
 import type { AiQuota } from '@nobodyclimb/types'
 
@@ -68,6 +68,26 @@ export interface AIHealthResponse {
   ai: boolean
 }
 
+export interface RecommendationPayload {
+  answer: string
+  sources: AISource[]
+  query: string
+  context_ascents: Array<{ route_name: string; grade: string; crag_name: string }>
+}
+
+export interface Recommendation {
+  id: string
+  triggered_by: 'ascent' | 'manual'
+  status: 'success' | 'failed'
+  recommendation: RecommendationPayload
+  created_at: string
+}
+
+export interface RecommendationsResponse {
+  data: Recommendation[]
+  total: number
+}
+
 export interface ChatSession {
   id: string
   title: string
@@ -95,6 +115,81 @@ export interface SaveMessageRequest {
 // =============================================
 // API 函式
 // =============================================
+
+export interface AIStreamDoneEvent {
+  query_id: string
+  sources: AISource[]
+  suggested_questions: string[]
+  quota_remaining: number
+}
+
+// SSE 串流問答：使用 fetch + ReadableStream 接收，支援 AbortController 取消
+export async function askAIStream(
+  request: AIAskRequest,
+  onToken: (token: string) => void,
+  onDone: (event: AIStreamDoneEvent) => void,
+  onError: (message: string) => void,
+  signal?: AbortSignal,
+): Promise<void> {
+  const { API_BASE_URL } = await import('../constants')
+  const Cookies = (await import('js-cookie')).default
+  const token = Cookies.get('access_token')
+
+  const response = await fetch(`${API_BASE_URL}/ai/ask?stream=true`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      ...(token ? { Authorization: `Bearer ${token}` } : {}),
+    },
+    body: JSON.stringify(request),
+    signal,
+  })
+
+  if (!response.ok || !response.body) {
+    onError('抱歉，AI 服務暫時無法使用，請稍後再試。')
+    return
+  }
+
+  const reader = response.body.getReader()
+  const decoder = new TextDecoder()
+  let buffer = ''
+
+  try {
+    while (true) {
+      const { done, value } = await reader.read()
+      if (done) break
+
+      buffer += decoder.decode(value, { stream: true })
+      const lines = buffer.split('\n')
+      buffer = lines.pop() ?? ''
+
+      for (const line of lines) {
+        if (!line.startsWith('data: ')) continue
+        const jsonStr = line.slice(6).trim()
+        if (!jsonStr) continue
+        try {
+          const event = JSON.parse(jsonStr) as { type: string; token?: string } & Partial<AIStreamDoneEvent> & { message?: string }
+          if (event.type === 'token' && event.token !== undefined) {
+            onToken(event.token)
+          } else if (event.type === 'done') {
+            onDone(event as AIStreamDoneEvent)
+          } else if (event.type === 'error') {
+            onError(event.message ?? '抱歉，AI 服務暫時無法使用，請稍後再試。')
+          }
+        } catch {
+          // 忽略無法解析的行
+        }
+      }
+    }
+  } catch (err) {
+    // AbortError 是用戶主動取消，靜默結束；其他錯誤呼叫 onError
+    if (err instanceof Error && err.name !== 'AbortError') {
+      onError('⚠ 生成中斷，請重試')
+    }
+  } finally {
+    reader.releaseLock()
+  }
+}
 
 export async function askAI(request: AIAskRequest): Promise<AIAskResponse> {
   // AI 推理包含 embedding + 向量搜尋 + 多次 LLM，最多需要 60 秒
@@ -228,5 +323,45 @@ export function useDeleteChatSession() {
 export function useSaveMessage(sessionId: string) {
   return useMutation({
     mutationFn: (message: SaveMessageRequest) => saveMessage(sessionId, message),
+  })
+}
+
+// =============================================
+// Recommendations API 函式
+// =============================================
+
+export async function fetchRecommendations(params: {
+  limit?: number
+  offset?: number
+}): Promise<RecommendationsResponse> {
+  const { limit = 10, offset = 0 } = params
+  const response = await apiClient.get<{ success: boolean; data: Recommendation[]; total: number }>(
+    `/ai/recommendations?limit=${limit}&offset=${offset}`
+  )
+  return { data: response.data.data, total: response.data.total }
+}
+
+export async function triggerManualRecommendation(): Promise<Recommendation> {
+  const response = await apiClient.post<{ success: boolean; data: Recommendation }>(
+    '/ai/recommendations'
+  )
+  return response.data.data
+}
+
+export function useRecommendations(params: { limit?: number; offset?: number } = {}) {
+  return useQuery({
+    queryKey: ['ai-recommendations', params],
+    queryFn: () => fetchRecommendations(params),
+    staleTime: 30 * 1000,
+  })
+}
+
+export function useTriggerRecommendation() {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: triggerManualRecommendation,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['ai-recommendations'] })
+    },
   })
 }
