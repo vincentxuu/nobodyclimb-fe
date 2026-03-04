@@ -1,14 +1,10 @@
 # dependencies
 node_modules
 
-# pnpm
-.pnp
-.pnp.js
-
 # testing
 coverage
 
-# next.js (web/)
+# Next.js (apps/web)
 .next
 out
 .open-next
@@ -16,47 +12,42 @@ out
 # packages build output
 packages/*/dist
 
-# turbo
+# Turborepo
 .turbo
 
-# production
+# production build
 build
 
 # misc
 .DS_Store
 *.pem
 
-# debug
+# logs
+*.log
 npm-debug.log*
-yarn-debug.log*
-yarn-error.log*
 pnpm-debug.log*
 
 # local env files
 .env*.local
 .env
 
-# vercel
-.vercel
-
-# typescript
+# TypeScript
 *.tsbuildinfo
 next-env.d.ts
 
-# cloudflare
+# Cloudflare
 .wrangler
 
-# scripts data
-scripts/data/*.json
-web/scripts/data/*.json
+# 影片資料（只保留合併後的主檔）
+apps/web/scripts/data/*.json
+apps/web/public/data/*_videos.json
+
+# 備份與暫存
+backups/
 temp/
 output/
 
-# public data - ignore individual channel files, keep merged videos.json
-public/data/*_videos.json
-web/public/data/*_videos.json
-
-# claude code
+# Claude Code / tools
 .claude
 .startmoving
 docs/start-moving*
