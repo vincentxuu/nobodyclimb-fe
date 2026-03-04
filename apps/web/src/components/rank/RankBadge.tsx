@@ -11,7 +11,7 @@ interface RankConfig {
   description: string
 }
 
-const RANK_CONFIG: Record<RankId, RankConfig> = {
+const RANK_CONFIG: Record<string, RankConfig> = {
   foothill: {
     display: '麓',
     bg: 'bg-stone-100',
@@ -40,6 +40,13 @@ const RANK_CONFIG: Record<RankId, RankConfig> = {
     border: 'border-indigo-300',
     description: '登上頂點，攀岩已融入靈魂',
   },
+  admin: {
+    display: '管理員',
+    bg: 'bg-purple-100',
+    text: 'text-purple-800',
+    border: 'border-purple-300',
+    description: '管理員',
+  },
 }
 
 const SIZE_CLASSES = {
@@ -56,7 +63,7 @@ interface RankBadgeProps {
 }
 
 export function RankBadge({ tier, size = 'sm', showTooltip = false, className }: RankBadgeProps) {
-  const config = RANK_CONFIG[tier]
+  const config = RANK_CONFIG[tier] ?? RANK_CONFIG.foothill
 
   const badge = (
     <span

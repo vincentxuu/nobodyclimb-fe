@@ -40,6 +40,7 @@ jobs:
           NEXT_PUBLIC_API_URL: ${{ github.ref == 'refs/heads/main' && 'https://api.nobodyclimb.cc/api/v1' || 'https://api-preview.nobodyclimb.cc/api/v1' }}
           NEXT_PUBLIC_ENABLE_ANALYTICS: ${{ github.ref == 'refs/heads/main' && 'true' || 'false' }}
           NEXT_PUBLIC_ENABLE_AI_CHAT: 'true'
+          NEXT_PUBLIC_ENABLE_AI_STREAMING: ${{ github.ref == 'refs/heads/main' && 'false' || 'true' }}
           NEXT_PUBLIC_GOOGLE_CLIENT_ID: ${{ secrets.GOOGLE_CLIENT_ID }}
           NEXT_PUBLIC_GA_ID: ${{ secrets.GA_ID }}
           NEXT_PUBLIC_CLARITY_ID: ${{ secrets.CLARITY_ID }}

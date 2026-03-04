@@ -28,6 +28,7 @@ const personalMenuItems = [
   { label: '我的人物誌', href: '/profile' },
   { label: '人生清單', href: '/profile/bucket-list' },
   { label: '攀爬紀錄', href: '/profile/ascents' },
+  { label: 'AI 推薦', href: '/profile/recommendations' },
   { label: '攀登成就', href: '/profile/stats' },
   { label: '我的照片', href: '/profile/photos' },
   { label: '我的文章', href: '/profile/articles' },

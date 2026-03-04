@@ -342,8 +342,11 @@ export async function fetchRecommendations(params: {
 }
 
 export async function triggerManualRecommendation(): Promise<Recommendation> {
+  // AI 推薦包含完整 RAG pipeline，最多需要 60 秒
   const response = await apiClient.post<{ success: boolean; data: Recommendation }>(
-    '/ai/recommendations'
+    '/ai/recommendations',
+    undefined,
+    { timeout: 60000 }
   )
   return response.data.data
 }
