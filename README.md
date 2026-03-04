@@ -47,9 +47,12 @@
 - **影片瀏覽**: 14+ 個 YouTube 頻道、11 種分類、篩選播放
 - **通知系統**: 按讚 / 留言 / 追蹤通知，管理員廣播
 - **搜尋**: 全站搜尋、語義搜尋、進階篩選
-- **AI 問答**: RAG 自然語言問答（SSE 串流）、每日配額（依等級）、Adaptive RAG
-- **AI Chat Widget**: 浮動對話視窗、歷史記錄、隨機建議問題
-- **AI 路線推薦**: 完攀後自動觸發個人化推薦
+- **AI 問答**: RAG 自然語言問答（SSE 串流逐字輸出）、每日配額（依等級）、Adaptive RAG（查詢分類 + 校正式 RAG）
+- **AI Chat Widget**: 浮動對話視窗、對話歷史持久化、隨機建議問題輪播、串流逐字顯示
+- **AI 路線推薦**: 完攀後非同步自動觸發個人化路線推薦（`ctx.waitUntil()`），不阻塞 API 回應
+- **AI 個人化**: 用戶記憶（跨會話）、依攀登紀錄語境化問答
+- **AI 安全防護**: 輸入 / 輸出 Guardrails、Token Budget 管理
+- **AI 品質評估**: LLM Judge、Groundedness Evaluation、RAG Tracing
 
 ## 專案結構
 
@@ -200,12 +203,58 @@ node scripts/fetch-video-metadata.js --limit 100
 
 可用岩場 ID：`longdong`、`defulan`、`guanziling`、`kenting`、`shoushan`
 
+## AI 系統
+
+### 模型配置
+
+| 角色 | 模型 |
+|------|------|
+| LLM | `@cf/google/gemma-3-12b-it` |
+| 向量嵌入 | `@cf/baai/bge-m3`（1024 維，多語言，繁中效果佳） |
+
+### 架構
+
+| 服務 | 說明 |
+|------|------|
+| `QueryService` | NLP 過濾（地點、難度、路線類型）、RAG 問答、SSE 串流輸出 |
+| `EmbeddingService` | 向量嵌入生成與語義搜尋 |
+| `IndexingService` | 路線 / 岩場資料向量索引建立 |
+
+### 主要特色
+
+**SSE 串流**：`POST /api/v1/ai/ask?stream=true`，以 Server-Sent Events 逐字回傳 token；客戶端中途斷線自動退還已扣配額。
+
+**Adaptive RAG**：
+- `QueryClassifier` 判斷問題類型（路線查詢、岩場查詢、一般問答等）
+- `CorrectiveRAG` 在向量搜尋相關性不足時，自動回退至全文搜尋補強
+
+**每日配額系統**：依等級設定上限，原子 SQL UPDATE 防止並發超量。
+
+| 等級 | 積分 | 每日配額（示例） |
+|------|------|------|
+| 麓（foothill）| 0–24 | 最低 |
+| 壁（wall） | 25–54 | 標準 |
+| 稜（ridge） | 55–84 | 較高 |
+| 巔（summit） | 85+ | 最高 |
+
+**等級積分來源**：biography 文字欄位、核心故事、一句話、小故事、攀登紀錄、人生清單項目及完成數。
+
+**AI Chat Widget**（管理員目前開放，`NEXT_PUBLIC_ENABLE_AI_CHAT=true` 控制）：
+- 浮動對話視窗，對話歷史持久化至資料庫
+- 空白狀態隨機輪播建議問題（從 12+ 題庫中取 3 題）
+- 串流逐字顯示，標題列支援「歷史」與「清除」快捷鍵
+
+**AI 路線推薦**：完攀後以 `ctx.waitUntil()` 非同步觸發，不佔用配額、不阻塞 ascent API；可在個人檔案推薦頁籤查看。
+
+**安全防護**：輸入 Guardrails（過濾有害查詢）、輸出 Guardrails（清理回應內容）、Token Budget 管理防止超額消耗。
+
+**品質評估**：LLM Judge 評分、Groundedness Evaluation 確認回應有所據、RAG Tracing 追蹤檢索鏈路，統計可在 Admin AI 儀表板查看。
+
 ## 開發慣例
 
 - TypeScript 嚴格型別；前端使用 `@/` 路徑別名
 - 元件按領域分組：`components/<domain>/`
 - 人物誌互動統一使用 `components/biography/display/ContentInteractionBar`
-- AI 相關：LLM `@cf/google/gemma-3-12b-it`、嵌入 `@cf/baai/bge-m3`（1024 維）
 - 所有程式碼、註解、文件使用繁體中文
 
 ## Analytics 環境變數
