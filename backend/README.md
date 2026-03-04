@@ -482,15 +482,119 @@ pnpm deploy:production
 | `IndexingService` | `src/services/indexing.ts` | 路線/岩場資料向量索引建立 |
 | 管理後台 | `/api/v1/admin/ai` | 查詢日誌、KPI 儀表板、Prompt 管理、AI 設定 |
 
-### 主要 AI 特色
+### 流程圖
 
-- **SSE 串流輸出**: `POST /api/v1/ai/ask?stream=true` 以 Server-Sent Events 逐字回傳 token，中途斷線自動退還配額
-- **Adaptive RAG**: 查詢分類器（`QueryClassifier`）判斷問題類型，校正式 RAG（`CorrectiveRAG`）在向量搜尋不足時回退至全文搜尋
-- **每日配額系統**: 依等級（麓/壁/稜/巔）設定每日 AI 請求上限，原子 SQL 防止並發超量
-- **AI Chat 持久化**: 對話歷史儲存與查詢，支援跨會話記憶
-- **個人化推薦**: 完攀後非同步觸發 `ctx.waitUntil()` 生成路線推薦，不阻塞 API 回應
-- **安全防護**: 輸入/輸出 Guardrails、Token Budget 管理
-- **品質評估**: LLM Judge、Groundedness Evaluation、RAG Tracing
+#### RAG 問答流程（含 Adaptive RAG）
+
+```
+POST /api/v1/ai/ask
+        │
+        ▼
+  ┌─────────────┐
+  │  配額檢查   │  daily_ai_used >= limit → 429 quota_exceeded
+  └──────┬──────┘
+         │ 通過
+         ▼
+  ┌─────────────┐
+  │ Input Guard │  有害查詢 → 400 blocked
+  └──────┬──────┘
+         │ 通過
+         ▼
+  ┌──────────────────┐
+  │ QueryClassifier  │  判斷類型：路線查詢 / 岩場查詢 / 一般問答
+  └──────┬───────────┘
+         │
+         ▼
+  ┌──────────────────┐
+  │  向量搜尋        │  EmbeddingService → ai_embeddings
+  └──────┬───────────┘
+         │
+    相關性足夠？
+    ┌────┴────┐
+   是         否
+    │         │
+    │         ▼
+    │   ┌─────────────────┐
+    │   │ CorrectiveRAG   │  回退至全文搜尋補強
+    │   └──────┬──────────┘
+    │          │
+    └────┬─────┘
+         │
+         ▼
+  ┌──────────────────┐
+  │  LLM 生成回應    │  @cf/google/gemma-3-12b-it
+  │  + Token Budget  │
+  └──────┬───────────┘
+         │
+         ▼
+  ┌──────────────────┐
+  │ Output Guardrails│  清理回應內容
+  └──────┬───────────┘
+         │
+    stream=true？
+    ┌────┴────┐
+   是         否
+    │         │
+    ▼         ▼
+  SSE 逐字   JSON 回應
+  推送 token  含配額資訊
+    │
+  客戶端斷線？→ 退還配額
+```
+
+#### SSE 串流事件格式
+
+```
+data: {"type":"token","token":"<text>"}        ← 逐字推送
+data: {"type":"done","query_id":"...","sources":[...],"quota_remaining":N}
+data: {"type":"error","message":"<human-readable>"}
+```
+
+#### AI 路線推薦流程
+
+```
+POST /api/v1/ascents（完攀紀錄）
+        │
+        ├─── 正常回應（不等待推薦）
+        │
+        └─── ctx.waitUntil()  ← 非同步、不佔配額
+                  │
+                  ▼
+           每日系統觸發 ≥ 3 次？→ 略過
+                  │ < 3 次
+                  ▼
+           取近期攀登紀錄作為 context
+                  │
+                  ▼
+           LLM 生成個人化路線推薦
+                  │
+                  ▼
+           寫入 user_recommendations
+           status: 'done' | 'failed'
+```
+
+#### 等級配額系統
+
+```
+任何 AI 請求
+      │
+      ▼
+ 原子 UPDATE：
+ SET daily_ai_used = daily_ai_used + 1
+ WHERE user_id = ? AND daily_ai_used < daily_ai_limit
+      │
+ 影響 1 行？
+ ┌────┴────┐
+是         否
+ │         │
+ ▼         ▼
+繼續處理  429 quota_exceeded
+      │
+      ▼
+ 回應附帶 quota_remaining
+      │
+ 串流中途斷線？→ daily_ai_used - 1
+```
 
 ### 等級系統（Climber Rank）
 
