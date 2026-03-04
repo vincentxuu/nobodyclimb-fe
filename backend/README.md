@@ -129,6 +129,7 @@ pnpm dev
 ```
 
 API 文檔（開發伺服器啟動後可訪問）：
+
 - OpenAPI JSON: `http://localhost:8787/api/v1/openapi.json`
 - Scalar 互動式文檔: `http://localhost:8787/api/v1/docs`
 
@@ -302,11 +303,14 @@ API 文檔（開發伺服器啟動後可訪問）：
 
 | Method | Endpoint | Description |
 |--------|----------|-------------|
-| POST | `/ask` | RAG 自然語言問答 |
+| POST | `/ask` | RAG 自然語言問答（`?stream=true` 啟用 SSE 串流） |
 | GET | `/search` | 語義搜尋 |
 | POST | `/feedback` | 提交回饋 |
 | POST | `/index` | 觸發資料索引（Admin） |
 | GET | `/health` | AI 服務健康檢查 |
+| POST | `/recommendations` | 手動觸發個人化路線推薦（消耗配額） |
+| GET | `/recommendations` | 取得最新路線推薦 |
+| GET | `/quota` | 取得當前用戶 AI 配額狀態 |
 
 ### Admin AI `/api/v1/admin/ai`
 
@@ -427,11 +431,13 @@ pnpm deploy:production
 專案使用 GitHub Actions 自動部署，配置檔案位於 `.github/workflows/deploy-api.yml`。
 
 **觸發條件：**
+
 - 推送到 `main` 分支且 `backend/` 目錄有變更
 - Pull Request 到 `main` 分支（僅執行 type check）
 - 手動觸發 (workflow_dispatch)
 
 **部署流程：**
+
 1. 安裝依賴
 2. TypeScript 類型檢查
 3. 部署到 Cloudflare Workers
@@ -456,9 +462,9 @@ pnpm deploy:production
    - Account > Workers R2 Storage > Edit
 5. 複製 Token 並加入 GitHub Secrets
 
-## AI RAG 系統
+## AI 系統
 
-後端整合了基於 Cloudflare AI Workers Inference 的 RAG（Retrieval-Augmented Generation）問答系統。
+後端整合了基於 Cloudflare AI Workers Inference 的完整 AI 問答與個人化系統。
 
 ### 模型配置
 
@@ -469,16 +475,39 @@ pnpm deploy:production
 
 ### 功能架構
 
-- **`QueryService`** (`src/services/query.ts`): 智慧 NLP 過濾（地點、難度、路線類型）、RAG 問答流程
-- **`EmbeddingService`** (`src/services/embedding.ts`): 向量嵌入生成與查詢
-- **`IndexingService`** (`src/services/indexing.ts`): 路線/岩場資料向量索引建立
-- **管理後台** (`/api/v1/admin/ai`): 查詢日誌、KPI 儀表板、Prompt 管理、AI 設定
+| 服務 | 檔案 | 說明 |
+|------|------|------|
+| `QueryService` | `src/services/query.ts` | 智慧 NLP 過濾（地點、難度、路線類型）、Adaptive RAG 問答、SSE 串流輸出 |
+| `EmbeddingService` | `src/services/embedding.ts` | 向量嵌入生成與語義搜尋 |
+| `IndexingService` | `src/services/indexing.ts` | 路線/岩場資料向量索引建立 |
+| 管理後台 | `/api/v1/admin/ai` | 查詢日誌、KPI 儀表板、Prompt 管理、AI 設定 |
+
+### 主要 AI 特色
+
+- **SSE 串流輸出**: `POST /api/v1/ai/ask?stream=true` 以 Server-Sent Events 逐字回傳 token，中途斷線自動退還配額
+- **Adaptive RAG**: 查詢分類器（`QueryClassifier`）判斷問題類型，校正式 RAG（`CorrectiveRAG`）在向量搜尋不足時回退至全文搜尋
+- **每日配額系統**: 依等級（麓/壁/稜/巔）設定每日 AI 請求上限，原子 SQL 防止並發超量
+- **AI Chat 持久化**: 對話歷史儲存與查詢，支援跨會話記憶
+- **個人化推薦**: 完攀後非同步觸發 `ctx.waitUntil()` 生成路線推薦，不阻塞 API 回應
+- **安全防護**: 輸入/輸出 Guardrails、Token Budget 管理
+- **品質評估**: LLM Judge、Groundedness Evaluation、RAG Tracing
+
+### 等級系統（Climber Rank）
+
+依用戶個人檔案完整度與攀岩紀錄計算積分，對應等級與 AI 配額：
+
+| 等級 | 積分範圍 |
+|------|---------|
+| 麓（foothill） | 0–24 分 |
+| 壁（wall） | 25–54 分 |
+| 稜（ridge） | 55–84 分 |
+| 巔（summit） | 85 分以上 |
 
 ### 資料庫表格
 
 ```sql
 -- AI 查詢日誌
-ai_query_logs (id, query, response, latency_ms, token_count, feedback_score, ...)
+ai_query_logs (id, query, response, latency_ms, token_count, feedback_score, query_type, ...)
 
 -- AI 向量嵌入索引
 ai_embeddings (id, content_type, content_id, embedding, metadata, ...)
@@ -488,6 +517,10 @@ ai_prompts (id, name, template, variables, is_active, ...)
 
 -- AI 設定
 ai_settings (key, value, updated_at)
+
+-- 用戶路線推薦
+user_recommendations (id, user_id, recommendation, context_ascents, status, ...)
+
 ```
 
 ## 環境變數
