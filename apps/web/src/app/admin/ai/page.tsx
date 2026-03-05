@@ -1,14 +1,10 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import Link from 'next/link'
 import {
   Clock,
   ThumbsUp,
   MessageSquare,
-  BookOpen,
-  Settings,
-  FileText,
   CheckCircle,
   AlertCircle,
   Loader2,
@@ -279,29 +275,6 @@ export default function AdminAIPage() {
           icon={ThumbsUp}
           accent="bg-emerald-50"
         />
-      </div>
-
-      {/* 快速導航 */}
-      <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
-        {[
-          { href: '/admin/ai/logs', label: '查詢日誌', icon: FileText, desc: '查看詳細查詢記錄' },
-          { href: '/admin/ai/knowledge', label: '知識庫', icon: BookOpen, desc: '管理索引資料' },
-          { href: '/admin/ai/settings', label: '設定', icon: Settings, desc: '模型與快取設定' },
-        ].map((item) => (
-          <Link
-            key={item.href}
-            href={item.href}
-            className="flex items-center gap-3 rounded-xl border border-wb-20 bg-white px-4 py-3.5 hover:border-wb-30 hover:bg-wb-5 transition-colors"
-          >
-            <span className="rounded-lg bg-wb-10 p-2">
-              <item.icon className="h-4 w-4 text-wb-70" />
-            </span>
-            <div>
-              <p className="text-sm font-medium text-wb-100">{item.label}</p>
-              <p className="text-xs text-wb-50">{item.desc}</p>
-            </div>
-          </Link>
-        ))}
       </div>
 
       {/* 趨勢圖 */}

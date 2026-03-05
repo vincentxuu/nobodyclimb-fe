@@ -43,6 +43,10 @@ function isAnalyticsEngineConfigured(env: Env): boolean {
  * Analytics Engine SQL API 查詢
  * 文檔: https://developers.cloudflare.com/analytics/analytics-engine/sql-api/
  */
+function getDataset(env: Env): string {
+  return env.ANALYTICS_DATASET ?? 'nobodyclimb_access_logs';
+}
+
 async function queryAnalyticsEngine(
   env: Env,
   sql: string
@@ -160,7 +164,7 @@ accessLogsRoutes.get(
         blob8 AS errorMessage,
         double1 AS responseTime,
         double2 AS statusCodeNum
-      FROM nobodyclimb_access_logs
+      FROM ${getDataset(env)}
       ${whereClause}
       ORDER BY timestamp DESC
       LIMIT ${limitNum}
@@ -245,7 +249,7 @@ accessLogsRoutes.get(
         SUM(CASE WHEN double2 >= 200 AND double2 < 300 THEN 1 ELSE 0 END) AS successCount,
         SUM(CASE WHEN double2 >= 400 AND double2 < 500 THEN 1 ELSE 0 END) AS clientErrorCount,
         SUM(CASE WHEN double2 >= 500 THEN 1 ELSE 0 END) AS serverErrorCount
-      FROM nobodyclimb_access_logs
+      FROM ${getDataset(env)}
       WHERE timestamp >= NOW() - INTERVAL '${hoursNum}' HOUR
     `;
 
@@ -255,7 +259,7 @@ accessLogsRoutes.get(
         blob2 AS path,
         COUNT(*) AS count,
         AVG(double1) AS avgResponseTime
-      FROM nobodyclimb_access_logs
+      FROM ${getDataset(env)}
       WHERE timestamp >= NOW() - INTERVAL '${hoursNum}' HOUR
       GROUP BY blob2
       ORDER BY count DESC
@@ -267,7 +271,7 @@ accessLogsRoutes.get(
       SELECT
         toStartOfHour(timestamp) AS hour,
         COUNT(*) AS count
-      FROM nobodyclimb_access_logs
+      FROM ${getDataset(env)}
       WHERE timestamp >= NOW() - INTERVAL '${hoursNum}' HOUR
       GROUP BY hour
       ORDER BY hour ASC
@@ -278,7 +282,7 @@ accessLogsRoutes.get(
       SELECT
         blob4 AS country,
         COUNT(*) AS count
-      FROM nobodyclimb_access_logs
+      FROM ${getDataset(env)}
       WHERE timestamp >= NOW() - INTERVAL '${hoursNum}' HOUR
       GROUP BY blob4
       ORDER BY count DESC
@@ -290,7 +294,7 @@ accessLogsRoutes.get(
       SELECT
         blob1 AS method,
         COUNT(*) AS count
-      FROM nobodyclimb_access_logs
+      FROM ${getDataset(env)}
       WHERE timestamp >= NOW() - INTERVAL '${hoursNum}' HOUR
       GROUP BY blob1
       ORDER BY count DESC
@@ -383,7 +387,7 @@ accessLogsRoutes.get(
         blob7 AS statusCode,
         blob8 AS errorMessage,
         double1 AS responseTime
-      FROM nobodyclimb_access_logs
+      FROM ${getDataset(env)}
       WHERE double2 >= 400
         AND timestamp >= NOW() - INTERVAL '${hoursNum}' HOUR
       ORDER BY timestamp DESC
@@ -463,7 +467,7 @@ accessLogsRoutes.get(
         blob5 AS userId,
         blob7 AS statusCode,
         double1 AS responseTime
-      FROM nobodyclimb_access_logs
+      FROM ${getDataset(env)}
       WHERE double1 >= ${thresholdMs}
         AND timestamp >= NOW() - INTERVAL '${hoursNum}' HOUR
       ORDER BY double1 DESC

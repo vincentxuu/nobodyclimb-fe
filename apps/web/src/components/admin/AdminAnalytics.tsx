@@ -84,9 +84,9 @@ export default function AdminAnalytics() {
   }, [activeTab, loadData])
 
   const tabs = [
-    { id: 'follows' as TabType, label: '追蹤分析', icon: Users },
-    { id: 'activity' as TabType, label: '活躍度分析', icon: Activity },
-    { id: 'content' as TabType, label: '內容分析', icon: FileText },
+    { id: 'follows' as TabType, label: '追蹤分析' },
+    { id: 'activity' as TabType, label: '活躍度分析' },
+    { id: 'content' as TabType, label: '內容分析' },
   ]
 
   // 導出 CSV 功能
@@ -171,8 +171,8 @@ export default function AdminAnalytics() {
       {/* 頁面標題 */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-wb-100">數據分析</h1>
-          <p className="text-wb-70 mt-1">追蹤、活躍度與內容趨勢分析</p>
+          <h1 className="text-xl font-bold text-wb-100">數據分析</h1>
+          <p className="mt-1 text-sm text-wb-60">追蹤、活躍度與內容趨勢分析</p>
         </div>
         <div className="flex items-center gap-2">
           <button
@@ -195,23 +195,20 @@ export default function AdminAnalytics() {
       </div>
 
       {/* Tab 切換 */}
-      <div className="border-b border-wb-20">
-        <nav className="flex gap-4">
-          {tabs.map((tab) => (
-            <button
-              key={tab.id}
-              onClick={() => setActiveTab(tab.id)}
-              className={`flex items-center gap-2 px-4 py-3 text-sm font-medium border-b-2 transition-colors ${
-                activeTab === tab.id
-                  ? 'border-primary text-primary'
-                  : 'border-transparent text-wb-70 hover:text-wb-100 hover:border-wb-30'
-              }`}
-            >
-              <tab.icon className="h-4 w-4" />
-              {tab.label}
-            </button>
-          ))}
-        </nav>
+      <div className="flex gap-1 border-b border-wb-20">
+        {tabs.map((tab) => (
+          <button
+            key={tab.id}
+            onClick={() => setActiveTab(tab.id)}
+            className={`px-4 py-2.5 text-sm font-medium border-b-2 transition-colors -mb-px ${
+              activeTab === tab.id
+                ? 'border-wb-100 text-wb-100'
+                : 'border-transparent text-wb-50 hover:text-wb-80 hover:border-wb-30'
+            }`}
+          >
+            {tab.label}
+          </button>
+        ))}
       </div>
 
       {/* Tab 內容 */}

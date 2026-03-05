@@ -391,8 +391,8 @@ export default function AdminUserManagement() {
       {/* 頁面標題 */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-wb-100">用戶管理</h1>
-          <p className="text-wb-70 mt-1">管理平台用戶帳號和權限</p>
+          <h1 className="text-xl font-bold text-wb-100">用戶管理</h1>
+          <p className="mt-1 text-sm text-wb-60">管理平台用戶帳號和權限</p>
         </div>
         <div className="flex items-center gap-2">
           <button

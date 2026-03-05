@@ -122,8 +122,8 @@ export const JUDGE_PROMPT = `你是一個回答品質評估器。請根據以下
 【AI 回答】
 {response}
 
-只回傳 JSON，不含任何說明：
-{"groundedness": <float 0.0-1.0>, "quality": <int 1-4>}`;
+只回傳 JSON，不含任何說明，範例格式（請填入實際數值）：
+{"groundedness": 0.75, "quality": 3}`;
 
 // Self-reflection：評估生成回答是否完整回應了問題
 export const SELF_REFLECTION_PROMPT = `你剛剛回答了以下攀岩問題，請評估你的回答是否完整且直接地回應了問題。

@@ -104,10 +104,10 @@ export default function AdminAccessLogs() {
   }, [activeTab, loadData])
 
   const tabs = [
-    { id: 'summary' as TabType, label: '統計總覽', icon: TrendingUp },
-    { id: 'logs' as TabType, label: '請求日誌', icon: List },
-    { id: 'errors' as TabType, label: '錯誤日誌', icon: AlertTriangle },
-    { id: 'slow' as TabType, label: '慢請求', icon: Clock },
+    { id: 'summary' as TabType, label: '統計總覽' },
+    { id: 'logs' as TabType, label: '請求日誌' },
+    { id: 'errors' as TabType, label: '錯誤日誌' },
+    { id: 'slow' as TabType, label: '慢請求' },
   ]
 
   // 格式化時間
@@ -180,7 +180,7 @@ export default function AdminAccessLogs() {
     <div className="p-6 max-w-7xl mx-auto">
       {/* 標題和操作 */}
       <div className="flex justify-between items-center mb-6">
-        <h1 className="text-2xl font-bold text-wb-100">訪問日誌</h1>
+        <h1 className="text-xl font-bold text-wb-100">訪問日誌</h1>
         <div className="flex items-center gap-4">
           <select
             value={hours}
@@ -210,18 +210,17 @@ export default function AdminAccessLogs() {
       </div>
 
       {/* 分頁標籤 */}
-      <div className="flex gap-2 mb-6 border-b">
+      <div className="flex gap-1 border-b border-wb-20">
         {tabs.map((tab) => (
           <button
             key={tab.id}
             onClick={() => setActiveTab(tab.id)}
-            className={`flex items-center gap-2 px-4 py-3 border-b-2 transition-colors ${
+            className={`px-4 py-2.5 text-sm font-medium border-b-2 transition-colors -mb-px ${
               activeTab === tab.id
-                ? 'border-brand-yellow-100 text-wb-100'
-                : 'border-transparent text-wb-70 hover:text-wb-100'
+                ? 'border-wb-100 text-wb-100'
+                : 'border-transparent text-wb-50 hover:text-wb-80 hover:border-wb-30'
             }`}
           >
-            <tab.icon className="w-4 h-4" />
             {tab.label}
           </button>
         ))}

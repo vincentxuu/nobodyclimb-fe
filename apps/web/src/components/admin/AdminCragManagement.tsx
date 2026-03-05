@@ -281,10 +281,10 @@ export default function AdminCragManagement() {
       {/* Page header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-xl lg:text-2xl font-bold text-wb-100">
+          <h1 className="text-xl font-bold text-wb-100">
             岩場管理
           </h1>
-          <p className="text-sm text-wb-70 mt-1">
+          <p className="mt-1 text-sm text-wb-60">
             {statsLoading
               ? '載入中...'
               : `共 ${stats?.total_crags || 0} 個岩場，${stats?.total_routes || 0} 條路線`}

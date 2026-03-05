@@ -41,6 +41,8 @@ R2_PUBLIC_URL = "https://storage-preview.nobodyclimb.cc"
 
 AI_GATEWAY_SLUG = "nobodyclimb-preview"
 
+ANALYTICS_DATASET = "nobodyclimb_access_logs_preview"
+
 # Google OAuth - Set via wrangler secret or environment variable
 # GOOGLE_CLIENT_ID = "your-google-client-id.apps.googleusercontent.com"
 
@@ -127,6 +129,8 @@ JWT_ISSUER = "nobodyclimb-api"
 R2_PUBLIC_URL = "https://storage.nobodyclimb.cc"
 
 AI_GATEWAY_SLUG = "nobodyclimb"
+
+ANALYTICS_DATASET = "nobodyclimb_access_logs"
 
 # Google OAuth - Set via wrangler secret or environment variable
 # GOOGLE_CLIENT_ID = "your-google-client-id.apps.googleusercontent.com"

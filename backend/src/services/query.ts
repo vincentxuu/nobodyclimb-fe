@@ -154,7 +154,7 @@ async function loadPipelineConfig(db: D1Database): Promise<PipelineConfig> {
     groundedness_flag_threshold:  num(cfg['groundedness_flag_threshold'],  0.5,  0,    1),
     // Judge
     judge_timeout_ms:             num(cfg['judge_timeout_ms'],             8000, 1000, 30000),
-    judge_context_truncate:       num(cfg['judge_context_truncate'],       800,  200,  3000),
+    judge_context_truncate:       num(cfg['judge_context_truncate'],       2000, 200,  5000),
     assistant_history_truncate:   num(cfg['assistant_history_truncate'],   500,  100,  2000),
     judge_regen_quality_max:      num(cfg['judge_regen_quality_max'],      2,    1,    3),
     // Self-reflection
@@ -791,7 +791,8 @@ export class QueryService {
     let groundedness: number | null = null;
     let quality: number | null = null;
     if (!streamingMode) {
-      ({ groundedness, quality } = await this.runJudge(query, context, answer, { model: pipelineCfg.lightweight_model, timeoutMs: pipelineCfg.judge_timeout_ms, contextTruncate: pipelineCfg.judge_context_truncate }));
+      // 傳 parsedAnswer（未注入連結）給 Judge，避免 markdown URL 干擾 groundedness 評估
+      ({ groundedness, quality } = await this.runJudge(query, context, parsedAnswer, { model: pipelineCfg.lightweight_model, timeoutMs: pipelineCfg.judge_timeout_ms, contextTruncate: pipelineCfg.judge_context_truncate }));
 
       // Judge 驅動重生成：quality 低於門檻時用外部 critic 的分數觸發重試（最多 1 次）
       // 條件：非 cannotAnswer、回答夠長（避免短回答無意義評估）、queryType 為 complex
@@ -815,8 +816,8 @@ export class QueryService {
             ? this.injectRouteLinks(retryParsed.answer, finalSources)
             : retryParsed.answer;
 
-          // 對重生成答案執行 Judge，比較 groundedness 取較高者
-          const regenJudge = await this.runJudge(query, context, regenAnswer, {
+          // 對重生成答案執行 Judge（傳 parsedAnswer，未注入連結），比較 groundedness 取較高者
+          const regenJudge = await this.runJudge(query, context, retryParsed.answer, {
             model: pipelineCfg.lightweight_model,
             timeoutMs: pipelineCfg.judge_timeout_ms,
             contextTruncate: pipelineCfg.judge_context_truncate,
@@ -903,8 +904,9 @@ export class QueryService {
       // 串流模式：Judge 異步執行，不阻塞 done 事件；完成後更新日誌分數並標記
       if (streamingMode) {
         ctx.waitUntil((async () => {
+          // 傳 parsedAnswer（未注入連結）給 Judge，避免 markdown URL 干擾 groundedness 評估
           const { groundedness: gs, quality: ql } = await this.runJudge(
-            query, context, answer,
+            query, context, parsedAnswer,
             { model: pipelineCfg.lightweight_model, timeoutMs: pipelineCfg.judge_timeout_ms, contextTruncate: pipelineCfg.judge_context_truncate }
           );
           if (gs !== null || ql !== null) {
@@ -1240,6 +1242,11 @@ export class QueryService {
   // 解析 judge LLM 回傳的 JSON，容錯處理格式錯誤
   // Fallback：llama 等模型可能忽略 JSON-only 指令，改用自然語言回答，嘗試從中萃取數值
   parseJudgeResponse(raw: string): { groundedness: number | null; quality: number | null } {
+    // 0. 模型直接輸出模板占位符（如 <float 0.0-1.0>）視為無效，回傳 null
+    if (raw.includes('<float') || raw.includes('<int')) {
+      return { groundedness: null, quality: null };
+    }
+
     // 1. 嘗試 JSON 解析
     try {
       const jsonMatch = raw.match(/\{[^}]*\}/);
@@ -1259,6 +1266,7 @@ export class QueryService {
     const gMatch = raw.match(/groundedness[^0-9]*([0-9]+(?:\.[0-9]+)?)/i);
     if (gMatch) {
       const g = parseFloat(gMatch[1]);
+      // 確保萃取到的是合理範圍的浮點數（非模板殘留如 "0.0-1.0" 中的 0）
       if (g >= 0 && g <= 1) groundedness = g;
     }
     const qMatch = raw.match(/quality[^1-4]*([1-4])(?![0-9])/i);

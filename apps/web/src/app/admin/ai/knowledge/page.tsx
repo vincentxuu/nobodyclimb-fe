@@ -8,7 +8,7 @@ import { useQueryClient } from '@tanstack/react-query'
 
 type IndexType = 'route' | 'crag' | 'all'
 
-const BATCH_SIZE = 100
+const BATCH_SIZE = 10
 
 interface IndexApiResponse {
   success: boolean
@@ -95,7 +95,7 @@ export default function AdminAIKnowledgePage() {
     <div className="space-y-6">
       <div>
         <h1 className="text-xl font-bold text-wb-100">知識庫管理</h1>
-        <p className="mt-0.5 text-sm text-wb-70">查看索引狀態，並手動觸發重新建立向量索引</p>
+        <p className="mt-1 text-sm text-wb-60">查看索引狀態，並手動觸發重新建立向量索引</p>
       </div>
 
       {/* 索引結果提示 */}
