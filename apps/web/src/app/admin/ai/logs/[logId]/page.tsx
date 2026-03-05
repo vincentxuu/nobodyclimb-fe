@@ -77,7 +77,7 @@ const STAGE_LABELS: Record<string, string> = {
   embedding: '向量嵌入',
   retrieval: '向量檢索',
   generation: 'LLM 生成',
-  self_reflection: '自我反思',
+  self_reflection: 'Judge 驅動重生成',
   judge: '品質評判',
   guardrails_output: '輸出護欄',
   memory_extraction: '記憶萃取',
