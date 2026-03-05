@@ -254,14 +254,6 @@ export class IndexingService {
     await this.env.DB.prepare('DELETE FROM ai_documents WHERE type = ?').bind(type).run();
   }
 
-  // 讀取 ai_config 是否啟用 Contextual RAG
-  private async isContextualRagEnabled(): Promise<boolean> {
-    const row = await this.env.DB.prepare(
-      `SELECT value FROM ai_config WHERE key = 'contextual_rag_enabled'`
-    ).first<{ value: string }>();
-    return row?.value === 'true';
-  }
-
   private async getContextualModel(): Promise<string> {
     const row = await this.env.DB.prepare(
       `SELECT value FROM ai_config WHERE key = 'contextual_rag_model'`
@@ -306,8 +298,8 @@ export class IndexingService {
   }
 
   // 執行文件索引：生成 embedding → 寫入 Vectorize + D1
-  // Contextual RAG：若 contextual_rag_enabled=true，embed 時 prepend LLM 生成的語意摘要
-  //   - embeddingText = summary + "\n\n" + originalText（向量更精準）
+  // Contextual RAG：embed 時 prepend LLM 生成的語意摘要，提升向量搜尋準確度
+  //   - embeddingText = summary + "\n\n" + originalText（向量用）
   //   - D1 仍存 originalText（LLM 回答時的 context 保持乾淨）
   private async indexDocuments(
     type: 'route' | 'crag' | 'video',
@@ -316,18 +308,12 @@ export class IndexingService {
     let indexed = 0;
     let failed = 0;
 
-    // Contextual RAG：若啟用，為每個 chunk 生成語意摘要並 prepend 到 embedding 文字
-    const contextualEnabled = await this.isContextualRagEnabled();
-    let embeddingTexts: string[];
-    if (contextualEnabled) {
-      const model = await this.getContextualModel();
-      const summaries = await this.generateContextSummaries(documents, type, model);
-      embeddingTexts = documents.map((d, i) =>
-        summaries[i] ? `${summaries[i]}\n\n${d.text}` : d.text
-      );
-    } else {
-      embeddingTexts = documents.map((d) => d.text);
-    }
+    // 為每個 chunk 生成語意摘要並 prepend 到 embedding 文字（Contextual RAG）
+    const model = await this.getContextualModel();
+    const summaries = await this.generateContextSummaries(documents, type, model);
+    const embeddingTexts = documents.map((d, i) =>
+      summaries[i] ? `${summaries[i]}\n\n${d.text}` : d.text
+    );
 
     const embeddings = await this.embeddingService.embedBatch(embeddingTexts);
 
