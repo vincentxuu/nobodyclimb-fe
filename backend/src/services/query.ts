@@ -105,6 +105,9 @@ interface PipelineConfig {
   // 對話與快取
   chat_history_depth: number;
   cache_ttl: number;
+  // 語義快取
+  semantic_cache_enabled: boolean;
+  semantic_cache_threshold: number;
 }
 
 function num(v: string | undefined, fallback: number, min?: number, max?: number): number {
@@ -156,6 +159,9 @@ async function loadPipelineConfig(db: D1Database): Promise<PipelineConfig> {
     // 對話與快取
     chat_history_depth:           num(cfg['chat_history_depth'],           6,    2,    20),
     cache_ttl:                    num(cfg['cache_ttl'],                    3600, 60,   86400),
+    // 語義快取
+    semantic_cache_enabled:       cfg['semantic_cache_enabled'] === '1',
+    semantic_cache_threshold:     num(cfg['semantic_cache_threshold'],     0.95, 0.8,  1),
   };
 }
 
@@ -292,8 +298,17 @@ export class QueryService {
       }
     }
 
-    // 批次讀取 pipeline 設定（一次 DB 查詢取代多次分散查詢）
-    const pipelineCfg = await loadPipelineConfig(this.env.DB);
+    // 匿名且無對話歷史的查詢才啟用語義快取（有 userId/history 時快取 key 含個人化 hash，不適合跨用戶命中）
+    const isAnonymousNoHistory = !userId && recentHistory.length === 0 && !no_cache;
+
+    // 批次讀取 pipeline 設定 + 提前 embed query（並行以降低延遲）
+    // 僅匿名+無歷史查詢需要 earlyQueryVector（語義快取檢查 + Stage 3 提前完成）
+    const [pipelineCfg, earlyQueryVector] = await Promise.all([
+      loadPipelineConfig(this.env.DB),
+      isAnonymousNoHistory
+        ? this.embeddingService.embed(query)
+        : Promise.resolve(null as number[] | null),
+    ]);
     const llmModel = pipelineCfg.llm_model;
     const effectiveLimit = pipelineCfg.max_results; // admin 設定覆蓋 request limit
     const cacheTtl = pipelineCfg.cache_ttl;
@@ -301,6 +316,18 @@ export class QueryService {
     const gatewayOptions = this.env.AI_GATEWAY_SLUG
       ? { gateway: { id: this.env.AI_GATEWAY_SLUG } }
       : undefined;
+
+    // 語義快取檢查（僅匿名且無對話歷史，避免個人化回答污染通用快取）
+    if (pipelineCfg.semantic_cache_enabled && earlyQueryVector) {
+      const semanticCached = await this.checkSemanticCache(earlyQueryVector, pipelineCfg.semantic_cache_threshold);
+      if (semanticCached) {
+        this.logQuery({
+          userId: null, query, response: '', sources: [],
+          latencyMs: Date.now() - startTime, tokenCount: 0, cacheHit: true,
+        }).catch(() => {});
+        return semanticCached;
+      }
+    }
 
     // Adaptive RAG：依查詢複雜度決定 pipeline 路徑與使用模型
     let queryType: 'simple' | 'complex' | 'general-knowledge' = 'complex';
@@ -461,16 +488,27 @@ export class QueryService {
       }
     }
 
-    // Stage 3（並行）：embed(query) + embed(hydeDoc)
+    // Stage 3：embed(query) + embed(hydeDoc)
+    // 匿名+無歷史查詢：queryVector 已提前計算（與 loadPipelineConfig 並行），直接復用，僅需 embed HyDE
+    // 其他查詢：兩者並行計算
     const embedStart = Date.now();
-    const embedTasks: Promise<number[]>[] = [this.embeddingService.embed(query)];
-    if (hydeDoc) {
-      embedTasks.push(this.embeddingService.embed(hydeDoc));
+    let queryVector: number[];
+    let hydeVector: number[] | null = null;
+    if (earlyQueryVector) {
+      queryVector = earlyQueryVector;
+      if (hydeDoc) {
+        hydeVector = await this.embeddingService.embed(hydeDoc);
+      }
+    } else {
+      const embedTasks: Promise<number[]>[] = [this.embeddingService.embed(query)];
+      if (hydeDoc) {
+        embedTasks.push(this.embeddingService.embed(hydeDoc));
+      }
+      const embedResults = await Promise.all(embedTasks);
+      queryVector = embedResults[0];
+      hydeVector = hydeDoc ? embedResults[1] : null;
     }
-    const embedResults = await Promise.all(embedTasks);
     const embeddingMs = Date.now() - embedStart;
-    const queryVector = embedResults[0];
-    const hydeVector = hydeDoc ? embedResults[1] : null;
 
     // Stage 4（並行）：兩路 Vectorize 搜尋
     const retrievalStart = Date.now();
@@ -834,6 +872,11 @@ export class QueryService {
     });
 
     if (ctx) {
+      // 語義快取寫入（匿名+無歷史，異步不阻塞）
+      // vector ID 用 sc: 前綴區分路線/岩場向量；metadata 記錄 KV cache key 供命中時直接取值
+      if (pipelineCfg.semantic_cache_enabled && earlyQueryVector) {
+        ctx.waitUntil(this.storeSemanticCache(`sc:${this.hashQuery(query)}`, earlyQueryVector, cacheKey));
+      }
       // 串流模式：Judge 異步執行，不阻塞 done 事件；完成後更新日誌分數並標記
       if (streamingMode) {
         ctx.waitUntil((async () => {
@@ -1186,6 +1229,46 @@ export class QueryService {
       return { groundedness, quality };
     } catch {
       return { groundedness: null, quality: null };
+    }
+  }
+
+  // 語義快取查詢：用 queryVector 在 VECTOR_INDEX 比對近似問題，命中時回傳快取回應
+  private async checkSemanticCache(
+    queryVector: number[],
+    threshold: number,
+  ): Promise<AIAskResponse | null> {
+    try {
+      const result = await this.env.VECTOR_INDEX.query(queryVector, {
+        topK: 1,
+        returnMetadata: 'all',
+        filter: { type: { $eq: 'query_cache' } },
+      });
+      const top = result.matches[0];
+      if (!top || top.score < threshold) return null;
+      const cacheKey = top.metadata?.cache_key as string | undefined;
+      if (!cacheKey) return null;
+      const cached = await this.env.CACHE.get(cacheKey);
+      if (!cached) return null;
+      return JSON.parse(cached) as AIAskResponse;
+    } catch {
+      return null;
+    }
+  }
+
+  // 語義快取寫入：將 queryVector 寫入 VECTOR_INDEX，metadata 記錄對應的 KV cache key
+  private async storeSemanticCache(
+    vectorId: string,
+    queryVector: number[],
+    cacheKey: string,
+  ): Promise<void> {
+    try {
+      await this.env.VECTOR_INDEX.upsert([{
+        id: vectorId,
+        values: queryVector,
+        metadata: { type: 'query_cache', cache_key: cacheKey },
+      }]);
+    } catch {
+      // 靜默忽略，不影響主流程
     }
   }
 

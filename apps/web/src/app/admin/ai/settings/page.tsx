@@ -197,6 +197,24 @@ const CONFIG_FIELDS = [
       },
     ],
   },
+  {
+    section: '語義快取',
+    desc: '使用向量相似度對語意相近的問題命中快取，跳過完整 RAG pipeline（僅匿名且無對話歷史）',
+    fields: [
+      {
+        key: 'semantic_cache_enabled',
+        label: '啟用語義快取',
+        placeholder: '0',
+        hint: '0 = 停用，1 = 啟用；建議先在測試環境驗證命中率再開啟',
+      },
+      {
+        key: 'semantic_cache_threshold',
+        label: '相似度門檻',
+        placeholder: '0.95',
+        hint: 'Cosine similarity 高於此值視為相同問題（0.80–1.00，建議 0.90–0.95）',
+      },
+    ],
+  },
 ]
 
 export default function AdminAISettingsPage() {
