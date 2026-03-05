@@ -244,7 +244,7 @@ accessLogsRoutes.get(
     // 總請求數和平均響應時間
     const summarySQL = `
       SELECT
-        COUNT(*) AS totalRequests,
+        COUNT() AS totalRequests,
         AVG(double1) AS avgResponseTime,
         SUM(CASE WHEN double2 >= 200 AND double2 < 300 THEN 1 ELSE 0 END) AS successCount,
         SUM(CASE WHEN double2 >= 400 AND double2 < 500 THEN 1 ELSE 0 END) AS clientErrorCount,
@@ -257,7 +257,7 @@ accessLogsRoutes.get(
     const topPathsSQL = `
       SELECT
         blob2 AS path,
-        COUNT(*) AS count,
+        COUNT() AS count,
         AVG(double1) AS avgResponseTime
       FROM ${getDataset(env)}
       WHERE timestamp >= NOW() - INTERVAL '${hoursNum}' HOUR
@@ -270,7 +270,7 @@ accessLogsRoutes.get(
     const hourlySQL = `
       SELECT
         toStartOfHour(timestamp) AS hour,
-        COUNT(*) AS count
+        COUNT() AS count
       FROM ${getDataset(env)}
       WHERE timestamp >= NOW() - INTERVAL '${hoursNum}' HOUR
       GROUP BY hour
@@ -281,7 +281,7 @@ accessLogsRoutes.get(
     const countrySQL = `
       SELECT
         blob4 AS country,
-        COUNT(*) AS count
+        COUNT() AS count
       FROM ${getDataset(env)}
       WHERE timestamp >= NOW() - INTERVAL '${hoursNum}' HOUR
       GROUP BY blob4
@@ -293,7 +293,7 @@ accessLogsRoutes.get(
     const methodSQL = `
       SELECT
         blob1 AS method,
-        COUNT(*) AS count
+        COUNT() AS count
       FROM ${getDataset(env)}
       WHERE timestamp >= NOW() - INTERVAL '${hoursNum}' HOUR
       GROUP BY blob1
