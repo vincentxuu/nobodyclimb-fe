@@ -24,15 +24,19 @@ export interface AIQueryLog {
   username: string | null
   display_name: string | null
   query: string
-  response?: string
-  sources?: string
   latency_ms: number | null
   feedback_score: number | null
   created_at: string
   query_type: 'simple' | 'complex' | 'general-knowledge' | null
-  model_used: string | null
-  retrieval_score: number | null
-  self_reflection_triggered: number | null
+  groundedness_score: number | null
+  auto_score: number | null
+  embedding_ms: number | null
+  retrieval_ms: number | null
+  generation_ms: number | null
+  token_count: number | null
+  is_high_consumption: number | null
+  cache_hit: number | null
+  hyde_triggered: number | null
 }
 
 export interface AILogsResponse {
@@ -40,6 +44,52 @@ export interface AILogsResponse {
   total: number
   page: number
   limit: number
+}
+
+// =============================================
+// AI Log Detail (structured pipeline view)
+// =============================================
+
+interface PipelineStageBase {
+  service: string
+  description?: string
+  skipped: boolean
+}
+
+export interface AILogDetail {
+  id: string
+  query: string
+  response: string | null
+  sources: Array<{ title?: string; type?: string; score?: number }>
+  user: { id: string | null; username: string | null; display_name: string | null }
+  created_at: string
+  latency: {
+    total_ms: number | null
+    embedding_ms: number | null
+    retrieval_ms: number | null
+    generation_ms: number | null
+  }
+  quality: {
+    groundedness_score: number | null
+    auto_score: number | null
+    feedback_score: number | null
+    feedback_text: string | null
+    flags: Array<{ type: string; description: string }>
+  }
+  pipeline: {
+    guardrails_input: PipelineStageBase
+    cache: PipelineStageBase & { hit: boolean }
+    quota_check: PipelineStageBase
+    query_parsing: PipelineStageBase & { query_type: string | null }
+    hyde: PipelineStageBase & { triggered: boolean }
+    embedding: PipelineStageBase & { duration_ms: number | null }
+    retrieval: PipelineStageBase & { duration_ms: number | null; top_score: number | null; doc_count: number | null }
+    generation: PipelineStageBase & { model: string | null; duration_ms: number | null; token_count: number | null; is_high_consumption: boolean }
+    self_reflection: PipelineStageBase & { triggered: boolean }
+    judge: PipelineStageBase & { groundedness_score: number | null; auto_score: number | null }
+    guardrails_output: PipelineStageBase
+    memory_extraction: PipelineStageBase
+  }
 }
 
 export interface AIKnowledgeSource {
@@ -91,8 +141,8 @@ export async function getAILogs(params: {
   return res.data.data
 }
 
-export async function getAILogDetail(id: string): Promise<AIQueryLog> {
-  const res = await apiClient.get<{ success: boolean; data: AIQueryLog }>(`/admin/ai/logs/${id}`)
+export async function getAILogDetail(id: string): Promise<AILogDetail> {
+  const res = await apiClient.get<{ success: boolean; data: AILogDetail }>(`/admin/ai/logs/${id}`)
   return res.data.data
 }
 
@@ -169,7 +219,7 @@ export function useAILogs(params: Parameters<typeof getAILogs>[0]) {
 }
 
 export function useAILogDetail(id: string) {
-  return useQuery({
+  return useQuery<AILogDetail>({
     queryKey: ['admin-ai-log', id],
     queryFn: () => getAILogDetail(id),
     enabled: !!id,
