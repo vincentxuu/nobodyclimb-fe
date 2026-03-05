@@ -4,39 +4,22 @@ import { useEffect, useState } from 'react'
 import { useRouter, usePathname } from 'next/navigation'
 import Link from 'next/link'
 import { authService } from '@/lib/api/services'
-import {
-  Bell,
-  LayoutDashboard,
-  ArrowLeft,
-  Loader2,
-  Home,
-  Users,
-  FolderOpen,
-  Megaphone,
-  BarChart3,
-  FileText,
-  Menu,
-  X,
-  Mountain,
-  Building2,
-  Bot,
-} from 'lucide-react'
+import { LayoutDashboard, ArrowLeft, Loader2, Menu, X } from 'lucide-react'
 
 interface AdminLayoutProps {
   children: React.ReactNode
 }
 
 const navLinks = [
-  { href: '/admin', label: '總覽', icon: Home },
-  { href: '/admin/notifications', label: '通知監控', icon: Bell },
-  { href: '/admin/users', label: '用戶管理', icon: Users },
-  { href: '/admin/content', label: '內容管理', icon: FolderOpen },
-  { href: '/admin/crags', label: '岩場管理', icon: Mountain },
-  { href: '/admin/gyms', label: '岩館管理', icon: Building2 },
-  { href: '/admin/broadcast', label: '廣播通知', icon: Megaphone },
-  { href: '/admin/analytics', label: '數據分析', icon: BarChart3 },
-  { href: '/admin/logs', label: '訪問日誌', icon: FileText },
-  { href: '/admin/ai', label: 'AI 助理', icon: Bot },
+  { href: '/admin', label: '總覽' },
+  { href: '/admin/notifications', label: '通知監控' },
+  { href: '/admin/users', label: '用戶管理' },
+  { href: '/admin/crags', label: '岩場管理' },
+  { href: '/admin/gyms', label: '岩館管理' },
+  { href: '/admin/broadcast', label: '廣播通知' },
+  { href: '/admin/analytics', label: '數據分析' },
+  { href: '/admin/logs', label: '訪問日誌' },
+  { href: '/admin/ai', label: 'AI 助理' },
 ]
 
 export default function AdminLayout({ children }: AdminLayoutProps) {
@@ -130,13 +113,12 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
                 <Link
                   key={link.href}
                   href={link.href}
-                  className={`flex items-center gap-2 px-3 py-2 text-sm rounded-lg transition-colors ${
+                  className={`px-3 py-2 text-sm rounded-lg transition-colors ${
                     isActive(link.href)
                       ? 'bg-wb-10 text-wb-100 font-medium'
                       : 'text-wb-70 hover:text-wb-100 hover:bg-wb-10'
                   }`}
                 >
-                  <link.icon className="h-4 w-4" />
                   {link.label}
                 </Link>
               ))}
@@ -165,13 +147,12 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
                 <Link
                   key={link.href}
                   href={link.href}
-                  className={`flex items-center gap-3 px-3 py-2.5 text-sm rounded-lg transition-colors ${
+                  className={`px-3 py-2.5 text-sm rounded-lg transition-colors block ${
                     isActive(link.href)
                       ? 'bg-wb-10 text-wb-100 font-medium'
                       : 'text-wb-70 hover:text-wb-100 hover:bg-wb-10'
                   }`}
                 >
-                  <link.icon className="h-4 w-4" />
                   {link.label}
                 </Link>
               ))}

@@ -6,30 +6,13 @@ import Image from 'next/image'
 import Link from 'next/link'
 import { Bookmark, Loader2 } from 'lucide-react'
 import ProfilePageLayout from '@/components/profile/layout/ProfilePageLayout'
+import ProfilePageTitle from '@/components/profile/ProfilePageTitle'
 import { useIsMobile } from '@/lib/hooks/useIsMobile'
 import { useToast } from '@/components/ui/use-toast'
 import { userService, postService } from '@/lib/api/services'
 import { BackendPost } from '@/lib/types'
 
 const ITEMS_PER_PAGE = 10
-
-// 頁面標題元件
-interface PageHeaderProps {
-  title: string
-  totalCount?: number
-  isMobile?: boolean
-}
-
-const PageHeader = ({ title, totalCount, isMobile }: PageHeaderProps) => (
-  <div className="mb-8 flex items-center justify-between">
-    <h1 className={`${isMobile ? 'text-2xl' : 'text-4xl'} font-medium text-[#1B1A1A]`}>
-      {title}
-      {totalCount !== undefined && totalCount > 0 && (
-        <span className="ml-2 text-lg font-normal text-[#6D6C6C]">({totalCount})</span>
-      )}
-    </h1>
-  </div>
-)
 
 // 載入狀態元件
 const LoadingState = () => (
@@ -335,7 +318,9 @@ export default function BookmarksPage() {
   return (
     <ProfilePageLayout>
       <div className={`bg-white ${isMobile ? 'p-4 md:p-6' : 'p-8 md:p-12'} rounded-sm`}>
-        <PageHeader title="收藏文章" totalCount={totalCount} isMobile={isMobile} />
+        <ProfilePageTitle
+          title={totalCount > 0 ? `收藏文章 (${totalCount})` : '收藏文章'}
+        />
 
         {isLoading ? (
           <LoadingState />

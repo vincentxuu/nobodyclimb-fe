@@ -114,8 +114,8 @@ export default function AdminNotificationDashboard() {
       {/* 頁面標題 */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">通知系統監控</h1>
-          <p className="text-gray-500 mt-1">過去 24 小時的通知系統統計</p>
+          <h1 className="text-xl font-bold text-wb-100">通知系統監控</h1>
+          <p className="mt-1 text-sm text-wb-60">過去 24 小時的通知系統統計</p>
         </div>
         <button
           onClick={loadStats}

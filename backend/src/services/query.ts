@@ -67,12 +67,106 @@ function parseSuggestedQuestions(raw: string): { answer: string; suggested_quest
   return { answer: raw.trim(), suggested_questions: [] };
 }
 const DEFAULT_TOP_K = 5;
-// RRF 分數尺度：1/(K+rank)，K=60，單路最高 ~0.016，雙路最高 ~0.033
-const MIN_RRF_SCORE = 0.005;          // 無 filter 時的 RRF 門檻
-const MIN_RRF_SCORE_FILTERED = 0.002; // 有 grade/crag filter 時放寬門檻（metadata 已保障相關性）
-const MIN_VECTOR_SCORE = 0.5;         // 純語義搜尋（search()）使用原始 vector score 門檻
+const MIN_VECTOR_SCORE = 0.5;         // 純語義搜尋（search()）的預設門檻，可透過 ai_config 覆蓋
 const DEFAULT_LLM_MODEL = '@cf/google/gemma-3-12b-it';
-const LIGHTWEIGHT_MODEL = '@cf/meta/llama-3.1-8b-instruct';
+const DEFAULT_LIGHTWEIGHT_MODEL = '@cf/meta/llama-3.1-8b-instruct';
+
+// 從 ai_config 批次讀取所有 pipeline 設定（一次 DB 查詢，無 hardcode）
+interface PipelineConfig {
+  // 模型
+  llm_model: string;
+  simple_model: string;
+  lightweight_model: string;
+  // 搜尋與檢索
+  max_results: number;
+  merge_top_k: number;
+  min_rrf_score: number;
+  min_rrf_score_filtered: number;
+  min_vector_score: number;
+  // 排名與多樣性
+  mmr_lambda: number;
+  reranker_weight: number;
+  popularity_weight: number;
+  // Token 限制
+  max_tokens_generation: number;
+  max_tokens_gk: number;
+  high_consumption_threshold: number;
+  // 品質閾值
+  groundedness_disclaimer_low: number;
+  groundedness_disclaimer_mid: number;
+  groundedness_flag_threshold: number;
+  // Judge 設定
+  judge_timeout_ms: number;
+  judge_context_truncate: number;
+  // 多輪對話中 assistant 歷史訊息的截斷長度（與 judge_context_truncate 是不同關注點）
+  assistant_history_truncate: number;
+  // Judge 驅動重生成：quality 等於或低於此值時重試（取代同模型 YES/NO 自評；1–4 量表）
+  judge_regen_quality_max: number;
+  // Self-reflection（最小觸發長度，控制重生成前的回答長度門檻）
+  self_reflection_min_length: number;
+  // 對話與快取
+  chat_history_depth: number;
+  cache_ttl: number;
+  // 語義快取
+  semantic_cache_enabled: boolean;
+  semantic_cache_threshold: number;
+}
+
+function num(v: string | undefined, fallback: number, min?: number, max?: number): number {
+  const parsed = v !== undefined && v !== '' ? parseFloat(v) : NaN;
+  const result = Number.isNaN(parsed) ? fallback : parsed;
+  if (min !== undefined && result < min) return min;
+  if (max !== undefined && result > max) return max;
+  return result;
+}
+
+async function loadPipelineConfig(db: D1Database): Promise<PipelineConfig> {
+  const rows = await db.prepare(`SELECT key, value FROM ai_config`).all<{ key: string; value: string }>();
+  const cfg: Record<string, string> = Object.fromEntries(rows.results.map((r) => [r.key, r.value]));
+  return {
+    // 模型
+    llm_model:                    cfg['llm_model']                    ?? DEFAULT_LLM_MODEL,
+    simple_model:                 cfg['simple_model']                 ?? DEFAULT_LIGHTWEIGHT_MODEL,
+    lightweight_model:            cfg['lightweight_model']            ?? DEFAULT_LIGHTWEIGHT_MODEL,
+    // 搜尋與檢索
+    max_results:                  num(cfg['max_results'],                  5,    1,    20),
+    merge_top_k:                  num(cfg['merge_top_k'],                  10,   5,    50),
+    min_rrf_score:                num(cfg['min_rrf_score'],                0.005, 0,   1),
+    min_rrf_score_filtered:       num(cfg['min_rrf_score_filtered'],       0.002, 0,   1),
+    min_vector_score:             num(cfg['min_vector_score'],             0.5,   0,   1),
+    // 排名與多樣性（reranker_weight + popularity_weight 自動歸一化，避免 admin 設定不當時分數異常）
+    mmr_lambda:                   num(cfg['mmr_lambda'],                   0.6,  0,    1),
+    ...(() => {
+      const rw = num(cfg['reranker_weight'],   0.7, 0, 1);
+      const pw = num(cfg['popularity_weight'], 0.3, 0, 1);
+      const total = rw + pw;
+      return total > 0
+        ? { reranker_weight: rw / total, popularity_weight: pw / total }
+        : { reranker_weight: 0.7, popularity_weight: 0.3 };
+    })(),
+    // Token 限制
+    max_tokens_generation:        num(cfg['max_tokens_generation'],        800,  200,  2000),
+    max_tokens_gk:                num(cfg['max_tokens_gk'],                600,  200,  2000),
+    high_consumption_threshold:   num(cfg['high_consumption_threshold'],   1000, 100,  10000),
+    // 品質閾值
+    groundedness_disclaimer_low:  num(cfg['groundedness_disclaimer_low'],  0.6,  0,    1),
+    groundedness_disclaimer_mid:  num(cfg['groundedness_disclaimer_mid'],  0.8,  0,    1),
+    groundedness_flag_threshold:  num(cfg['groundedness_flag_threshold'],  0.5,  0,    1),
+    // Judge
+    judge_timeout_ms:             num(cfg['judge_timeout_ms'],             8000, 1000, 30000),
+    judge_context_truncate:       num(cfg['judge_context_truncate'],       2000, 200,  5000),
+    assistant_history_truncate:   num(cfg['assistant_history_truncate'],   500,  100,  2000),
+    judge_regen_quality_max:      num(cfg['judge_regen_quality_max'],      2,    1,    3),
+    // Self-reflection
+    self_reflection_min_length:   num(cfg['self_reflection_min_length'],   50,   10,   500),
+    // 對話與快取
+    chat_history_depth:           num(cfg['chat_history_depth'],           6,    2,    20),
+    cache_ttl:                    num(cfg['cache_ttl'],                    3600, 60,   86400),
+    // 語義快取
+    semantic_cache_enabled:       cfg['semantic_cache_enabled'] === '1',
+    semantic_cache_threshold:     num(cfg['semantic_cache_threshold'],     0.95, 0.8,  1),
+  };
+}
 
 interface LLMResponse {
   response: string;
@@ -92,34 +186,28 @@ export class QueryService {
     this.embeddingService = new EmbeddingService(env);
   }
 
-  // 從 query 中偵測岩場區域/岩場/地區，查 DB 回傳匹配資訊（支援多岩場）
-  async extractLocationFilter(query: string): Promise<{ cragIds?: string[]; areaId?: string; region?: string }> {
+  // 從 query 中偵測岩場區域/岩場/地區，接受預載資料避免重複查詢 DB
+  // 優先序：area > crag（多個） > region
+  private extractLocationFilter(
+    query: string,
+    crags: Array<{ id: string; name: string; region: string | null }>,
+    areas: Array<{ id: string; name: string }>,
+  ): { cragIds?: string[]; areaId?: string; region?: string } {
     // 1. 優先比對區域名稱（最精確，如「校門口」「鐘塔」）
-    const areas = await this.env.DB.prepare(
-      'SELECT id, name FROM areas WHERE name IS NOT NULL'
-    ).all<{ id: string; name: string }>();
-    for (const area of areas.results) {
+    for (const area of areas) {
       if (query.includes(area.name)) {
         return { areaId: area.id };
       }
     }
 
-    // 2. 再比對岩場名稱（如「龍洞」「墾丁」），收集所有匹配岩場
-    const crags = await this.env.DB.prepare(
-      'SELECT id, name, region FROM crags WHERE name IS NOT NULL'
-    ).all<{ id: string; name: string; region: string | null }>();
-    const matchedCragIds: string[] = [];
-    for (const crag of crags.results) {
-      if (query.includes(crag.name)) {
-        matchedCragIds.push(crag.id);
-      }
-    }
+    // 2. 比對岩場名稱（如「龍洞」「墾丁」），支援多岩場
+    const matchedCragIds = crags.filter((c) => query.includes(c.name)).map((c) => c.id);
     if (matchedCragIds.length > 0) {
       return { cragIds: matchedCragIds };
     }
 
-    // 3. 最後比對地區名稱（如「花蓮」「北部」）
-    const regions = [...new Set(crags.results.map((c) => c.region).filter(Boolean))] as string[];
+    // 3. 比對地區名稱（如「花蓮」「北部」）
+    const regions = [...new Set(crags.map((c) => c.region).filter(Boolean))] as string[];
     for (const region of regions) {
       if (query.includes(region)) {
         return { region };
@@ -168,10 +256,11 @@ export class QueryService {
   // Stage 6：MMR 多樣性選取（λ=0.6）
   // Stage 7：熱門度加權排序 → LLM C 生成回答
   // Task 5.1: 加入 ctx 供 waitUntil 使用
-  async ask(request: AIAskRequest, userId?: string, ctx?: { waitUntil(promise: Promise<unknown>): void }): Promise<AIAskResponse> {
+  async ask(request: AIAskRequest, userId?: string, ctx?: { waitUntil(promise: Promise<unknown>): void }, onToken?: (token: string) => Promise<void>): Promise<AIAskResponse> {
+    const streamingMode = !!onToken;
     const { query, limit = DEFAULT_TOP_K, include_sources = true, chat_history, no_cache = false } = request;
 
-    // 有 chat_history 時帶入最近 3 輪（6 則），避免快取衝突故加入 history hash
+    // 有 chat_history 時帶入最近 6 則供 cache key hash 使用（LLM 實際使用量由 chat_history_depth 設定）
     const recentHistory: AIChatMessage[] = chat_history ? chat_history.slice(-6) : [];
     const historyHash = recentHistory.length > 0 ? `:h${this.hashQuery(recentHistory.map(m => m.content).join('|'))}` : '';
 
@@ -194,24 +283,54 @@ export class QueryService {
     const personalizedHash = personalizedContext ? `:p${this.hashQuery(personalizedContext)}` : '';
     const userPrefix = userId ? `${userId}:` : '';
     const cacheKey = `ai:ask:${userPrefix}${this.hashQuery(query)}${historyHash}${personalizedHash}`;
+    const startTime = Date.now();
     if (!no_cache) {
       const cached = await this.env.CACHE.get(cacheKey);
       if (cached) {
+        // 記錄快取命中日誌（非同步，不阻塞回應）
+        this.logQuery({
+          userId: userId ?? null,
+          query,
+          response: '',
+          sources: [],
+          latencyMs: Date.now() - startTime,
+          tokenCount: 0,
+          cacheHit: true,
+        }).catch(() => {});
         return JSON.parse(cached) as AIAskResponse;
       }
     }
 
-    const startTime = Date.now();
+    // 匿名且無對話歷史的查詢才啟用語義快取（有 userId/history 時快取 key 含個人化 hash，不適合跨用戶命中）
+    const isAnonymousNoHistory = !userId && recentHistory.length === 0 && !no_cache;
 
-    // 取得 LLM 模型設定
-    const llmModelRow = await this.env.DB.prepare(
-      `SELECT value FROM ai_config WHERE key = 'llm_model'`
-    ).first<{ value: string }>();
-    const llmModel = llmModelRow?.value ?? DEFAULT_LLM_MODEL;
+    // 批次讀取 pipeline 設定 + 提前 embed query（並行以降低延遲）
+    // 僅匿名+無歷史查詢需要 earlyQueryVector（語義快取檢查 + Stage 3 提前完成）
+    const [pipelineCfg, earlyQueryVector] = await Promise.all([
+      loadPipelineConfig(this.env.DB),
+      isAnonymousNoHistory
+        ? this.embeddingService.embed(query)
+        : Promise.resolve(null as number[] | null),
+    ]);
+    const llmModel = pipelineCfg.llm_model;
+    const effectiveLimit = pipelineCfg.max_results; // admin 設定覆蓋 request limit
+    const cacheTtl = pipelineCfg.cache_ttl;
 
     const gatewayOptions = this.env.AI_GATEWAY_SLUG
       ? { gateway: { id: this.env.AI_GATEWAY_SLUG } }
       : undefined;
+
+    // 語義快取檢查（僅匿名且無對話歷史，避免個人化回答污染通用快取）
+    if (pipelineCfg.semantic_cache_enabled && earlyQueryVector) {
+      const semanticCached = await this.checkSemanticCache(earlyQueryVector, pipelineCfg.semantic_cache_threshold);
+      if (semanticCached) {
+        this.logQuery({
+          userId: null, query, response: '', sources: [],
+          latencyMs: Date.now() - startTime, tokenCount: 0, cacheHit: true,
+        }).catch(() => {});
+        return semanticCached;
+      }
+    }
 
     // Adaptive RAG：依查詢複雜度決定 pipeline 路徑與使用模型
     let queryType: 'simple' | 'complex' | 'general-knowledge' = 'complex';
@@ -224,6 +343,9 @@ export class QueryService {
     let excludeRouteId: string | null = null; // 排除來源路線本身
     let referenceRouteInfo: string | null = null; // 來源路線資訊，注入 context 讓 LLM 有正確難度
     let isSimRouteSearch = false; // 是否走「相似路線」流程，供後段 fallback 判斷
+    // 預載岩場/區域資料（Stage 1a 填入），供 extractLocationFilter 共用，避免同一請求多次查 DB
+    let preloadedCrags: Array<{ id: string; name: string; region: string | null }> = [];
+    let preloadedAreas: Array<{ id: string; name: string }> = [];
 
     if (this.hasSimilarRouteIntent(query)) {
       isSimRouteSearch = true;
@@ -248,14 +370,16 @@ export class QueryService {
         referenceRouteInfo = `使用者剛爬完的路線：${routeRef.name}（難度：${routeRef.grade ?? '未知'}${typeLabel}）`;
       }
     } else {
-      // Stage 1a：取得岩場/區域/地區清單（供 LLM A prompt 注入）
+      // Stage 1a：預載岩場/區域資料，供 LLM A prompt 注入 + extractLocationFilter 共用（避免重複查詢）
       const [cragsResult, areasResult] = await Promise.all([
-        this.env.DB.prepare('SELECT name, region FROM crags WHERE name IS NOT NULL').all<{ name: string; region: string | null }>(),
-        this.env.DB.prepare('SELECT name FROM areas WHERE name IS NOT NULL').all<{ name: string }>(),
+        this.env.DB.prepare('SELECT id, name, region FROM crags WHERE name IS NOT NULL').all<{ id: string; name: string; region: string | null }>(),
+        this.env.DB.prepare('SELECT id, name FROM areas WHERE name IS NOT NULL').all<{ id: string; name: string }>(),
       ]);
-      const cragNames = cragsResult.results.map((c) => c.name);
-      const areaNames = areasResult.results.map((a) => a.name);
-      const regionNames = [...new Set(cragsResult.results.map((c) => c.region).filter(Boolean))] as string[];
+      preloadedCrags = cragsResult.results;
+      preloadedAreas = areasResult.results;
+      const cragNames = preloadedCrags.map((c) => c.name);
+      const areaNames = preloadedAreas.map((a) => a.name);
+      const regionNames = [...new Set(preloadedCrags.map((c) => c.region).filter(Boolean))] as string[];
 
       // Stage 1b：先執行 Tool Calling，再依 queryType 決定是否執行 HyDE（簡單查詢跳過）
       const parsedQuery = await this.parseQueryWithLLM(query, llmModel, cragNames, areaNames, regionNames, gatewayOptions);
@@ -263,10 +387,10 @@ export class QueryService {
       // 決定 queryType：tool=general_knowledge 優先，否則從 parsedQuery.query_type 取得
       if (parsedQuery?.tool === 'general_knowledge') {
         queryType = 'general-knowledge';
-        effectiveLlmModel = LIGHTWEIGHT_MODEL;
+        effectiveLlmModel = pipelineCfg.lightweight_model;
       } else {
         queryType = parsedQuery?.query_type ?? 'complex';
-        effectiveLlmModel = queryType === 'simple' ? LIGHTWEIGHT_MODEL : llmModel;
+        effectiveLlmModel = queryType === 'simple' ? pipelineCfg.simple_model : llmModel;
       }
 
       // general_knowledge：直接跳過向量搜尋，用 LLM 通識能力回答
@@ -274,7 +398,7 @@ export class QueryService {
         const gkPersonalized = buildPersonalizedSystemPrompt(memorySummary, ascentContext, abilityLevel, GENERAL_KNOWLEDGE_SYSTEM_PROMPT);
         const llmResult = (await this.env.AI.run(
           effectiveLlmModel,
-          { messages: [{ role: 'system', content: gkPersonalized }, { role: 'user', content: query }], max_tokens: 600 },
+          { messages: [{ role: 'system', content: gkPersonalized }, { role: 'user', content: query }], max_tokens: pipelineCfg.max_tokens_gk },
           gatewayOptions
         )) as LLMResponse;
         const rawAnswer = llmResult.response ?? '抱歉，無法生成回答，請稍後再試。';
@@ -283,9 +407,9 @@ export class QueryService {
         const latencyMs = Date.now() - startTime;
         const estimatedTokens = Math.ceil((GENERAL_KNOWLEDGE_SYSTEM_PROMPT.length + query.length + answer.length) / 2);
         const gkTokenCount = llmResult.usage?.total_tokens ?? estimatedTokens;
-        const queryId = await this.logQuery({ userId: userId ?? null, query, response: answer, sources: [], latencyMs, tokenCount: gkTokenCount, queryType: 'general-knowledge', modelUsed: effectiveLlmModel, retrievalScore: 0, selfReflectionTriggered: 0, isHighConsumption: gkTokenCount > 1000 });
+        const queryId = await this.logQuery({ userId: userId ?? null, query, response: answer, sources: [], latencyMs, tokenCount: gkTokenCount, queryType: 'general-knowledge', modelUsed: effectiveLlmModel, retrievalScore: 0, selfReflectionTriggered: 0, isHighConsumption: gkTokenCount > pipelineCfg.high_consumption_threshold, hydeTriggered: false });
         const response: AIAskResponse = { answer, sources: [], query_id: queryId, suggested_questions };
-        await this.env.CACHE.put(cacheKey, JSON.stringify(response), { expirationTtl: CACHE_TTL });
+        await this.env.CACHE.put(cacheKey, JSON.stringify(response), { expirationTtl: cacheTtl });
         if (userId && ctx) {
           const gkGatewayOpts = this.env.AI_GATEWAY_SLUG ? { gateway: { id: this.env.AI_GATEWAY_SLUG } } : undefined;
           ctx.waitUntil(extractMemoriesFromQuery(query, userId, this.env.DB, this.env.AI, gkGatewayOpts));
@@ -308,7 +432,7 @@ export class QueryService {
         }
         // 補充保底：多岩場偵測（Tool Calling 只能抽一個岩場，若 regex 找到更多則升級為 $in）
         // 無論 Tool Calling 是否已設 crag_id，都重新偵測，以處理多岩場查詢
-        const { cragIds, areaId, region } = await this.extractLocationFilter(query);
+        const { cragIds, areaId, region } = this.extractLocationFilter(query, preloadedCrags, preloadedAreas);
         if (areaId && !vectorFilter['area_id']) {
           vectorFilter['area_id'] = { $eq: areaId };
         } else if (cragIds && cragIds.length > 1) {
@@ -322,7 +446,7 @@ export class QueryService {
       } else {
         // Fallback：使用現有 regex 方法
         const gradeFilter = this.extractGradeFilter(query);
-        const { cragIds, areaId, region } = await this.extractLocationFilter(query);
+        const { cragIds, areaId, region } = this.extractLocationFilter(query, preloadedCrags, preloadedAreas);
         const typeFilter = this.extractTypeFilter(query);
 
         if (gradeFilter) vectorFilter['grade_numeric'] = gradeFilter;
@@ -346,7 +470,7 @@ export class QueryService {
     const hasExplicitLocationFilter = !!(vectorFilter['crag_id'] || vectorFilter['area_id'] || vectorFilter['region']);
     if (!hasExplicitLocationFilter && recentHistory.length > 0 && this.isContextDependentQuery(query)) {
       const historyText = recentHistory.map((m) => m.content).join(' ');
-      const historyLocation = await this.extractLocationFilter(historyText);
+      const historyLocation = this.extractLocationFilter(historyText, preloadedCrags, preloadedAreas);
       if (historyLocation.areaId) {
         vectorFilter['area_id'] = { $eq: historyLocation.areaId };
         vectorFilter['type'] = { $eq: 'route' };
@@ -367,23 +491,34 @@ export class QueryService {
       }
     }
 
-    // Stage 3（並行）：embed(query) + embed(hydeDoc)
+    // Stage 3：embed(query) + embed(hydeDoc)
+    // 匿名+無歷史查詢：queryVector 已提前計算（與 loadPipelineConfig 並行），直接復用，僅需 embed HyDE
+    // 其他查詢：兩者並行計算
     const embedStart = Date.now();
-    const embedTasks: Promise<number[]>[] = [this.embeddingService.embed(query)];
-    if (hydeDoc) {
-      embedTasks.push(this.embeddingService.embed(hydeDoc));
+    let queryVector: number[];
+    let hydeVector: number[] | null = null;
+    if (earlyQueryVector) {
+      queryVector = earlyQueryVector;
+      if (hydeDoc) {
+        hydeVector = await this.embeddingService.embed(hydeDoc);
+      }
+    } else {
+      const embedTasks: Promise<number[]>[] = [this.embeddingService.embed(query)];
+      if (hydeDoc) {
+        embedTasks.push(this.embeddingService.embed(hydeDoc));
+      }
+      const embedResults = await Promise.all(embedTasks);
+      queryVector = embedResults[0];
+      hydeVector = hydeDoc ? embedResults[1] : null;
     }
-    const embedResults = await Promise.all(embedTasks);
     const embeddingMs = Date.now() - embedStart;
-    const queryVector = embedResults[0];
-    const hydeVector = hydeDoc ? embedResults[1] : null;
 
     // Stage 4（並行）：兩路 Vectorize 搜尋
     const retrievalStart = Date.now();
     // 多岩場（$in）時加大 topK，確保每個岩場都有足夠結果
     const cragFilter = vectorFilter['crag_id'] as { $in?: string[] } | undefined;
     const isMultiCrag = Array.isArray(cragFilter?.$in) && cragFilter.$in.length > 1;
-    const MERGE_TOP_K = isMultiCrag ? 20 : 10;
+    const MERGE_TOP_K = isMultiCrag ? Math.max(20, pipelineCfg.merge_top_k * 2) : pipelineCfg.merge_top_k;
     const searchTasks: Promise<{ matches: SearchResult[] }>[] = [
       this.env.VECTOR_INDEX.query(queryVector, {
         topK: MERGE_TOP_K,
@@ -440,7 +575,7 @@ export class QueryService {
     // 注意：先保留全部候選（最多 MERGE_TOP_K），熱門度重排後再截斷至 limit
     const mergedMatches = this.mergeResults(queryMatches, hydeMatches, MERGE_TOP_K);
     const hasFilter = Object.keys(vectorFilter).some((k) => ['grade_numeric', 'crag_id', 'area_id', 'region', 'route_type'].includes(k));
-    const minScore = hasFilter ? MIN_RRF_SCORE_FILTERED : MIN_RRF_SCORE;
+    const minScore = hasFilter ? pipelineCfg.min_rrf_score_filtered : pipelineCfg.min_rrf_score;
     let candidateMatches = mergedMatches.filter((m) => m.score >= minScore);
 
     // 記錄 retrieval score（RRF 過濾前最高分，供 CRAG 觸發後追蹤）
@@ -498,7 +633,8 @@ export class QueryService {
 
     // MMR：從 cross-encoder 重排後的候選中，選出相關且多樣的 top-N
     // 避免回傳一堆難度/岩場完全相同的路線，提升結果多樣性
-    const mmrSelected = this.applyMMR(scoredCandidates, documents, 0.6, limit);
+    // effectiveLimit 來自 ai_config.max_results，覆蓋 request limit 以讓 admin 設定生效
+    const mmrSelected = this.applyMMR(scoredCandidates, documents, pipelineCfg.mmr_lambda, effectiveLimit);
 
     // 熱門度排序：依影片數為路線評分加權（combined = reranker*0.7 + popularity*0.3）
     // 在 MMR 選出的候選中加權，決定最終顯示順序
@@ -544,7 +680,7 @@ export class QueryService {
         if (!doc || doc.type !== 'route') return { ...match, finalScore: match.score };
         const videoCount = videoCountMap.get(doc.source_id) ?? 0;
         const normalizedPop = videoCount / safeMax;
-        return { ...match, finalScore: match.score * 0.7 + normalizedPop * 0.3 };
+        return { ...match, finalScore: match.score * pipelineCfg.reranker_weight + normalizedPop * pipelineCfg.popularity_weight };
       })
       .sort((a, b) => b.finalScore - a.finalScore);
     // MMR 已限制至 limit，不需再 slice
@@ -602,11 +738,11 @@ export class QueryService {
       .replace('{context}', context)
       .replace('{query}', query);
 
-    // 將對話歷史（最多 3 輪 = 6 則）加入 LLM messages，讓 LLM 有記憶脈絡
-    // assistant 歷史訊息只取純文字（截斷 500 字），避免超過 context window
-    const historyLLMMessages = recentHistory.slice(-6).map((m) => ({
+    // 將對話歷史（最多 chat_history_depth 則）加入 LLM messages，讓 LLM 有記憶脈絡
+    // assistant 歷史訊息只取純文字（截斷 assistant_history_truncate 字），避免超過 context window
+    const historyLLMMessages = recentHistory.slice(-pipelineCfg.chat_history_depth).map((m) => ({
       role: m.role as 'user' | 'assistant',
-      content: m.role === 'assistant' ? m.content.slice(0, 500) : m.content,
+      content: m.role === 'assistant' ? m.content.slice(0, pipelineCfg.assistant_history_truncate) : m.content,
     }));
 
     const generationStart = Date.now();
@@ -617,47 +753,28 @@ export class QueryService {
       ...historyLLMMessages,
       { role: 'user' as const, content: prompt },
     ];
-    const llmResult = (await this.env.AI.run(
-      effectiveLlmModel,
-      { messages: llmMessages, max_tokens: 800 },
-      gatewayOptions
-    )) as LLMResponse;
+    let rawLLMAnswer: string;
+    let llmUsage: LLMResponse['usage'] | undefined;
+    if (streamingMode) {
+      // 真串流：Stage 1-6 完成後立即開始推送 token，大幅降低 TTFT
+      rawLLMAnswer = await this.streamLLMGeneration(effectiveLlmModel, llmMessages, pipelineCfg.max_tokens_generation, gatewayOptions, onToken!);
+    } else {
+      const llmResult = (await (this.env.AI.run as Function)(
+        effectiveLlmModel,
+        { messages: llmMessages, max_tokens: pipelineCfg.max_tokens_generation },
+        gatewayOptions
+      )) as LLMResponse;
+      rawLLMAnswer = llmResult.response ?? '抱歉，無法生成回答，請稍後再試。';
+      llmUsage = llmResult.usage;
+    }
 
-    const rawLLMAnswer = llmResult.response ?? '抱歉，無法生成回答，請稍後再試。';
     let { answer: parsedAnswer, suggested_questions } = parseSuggestedQuestions(rawLLMAnswer);
     const generationMs = Date.now() - generationStart;
     const latencyMs = Date.now() - startTime;
 
-    // Self-reflection：僅對 complex 查詢且回答夠長時評估品質，不足時重新生成（最多 1 次）
     let selfReflectionTriggered = 0;
     const cannotAnswer =
       parsedAnswer.includes('超出我的知識範圍') || parsedAnswer.includes('找不到相關資訊');
-    if (queryType === 'complex' && !cannotAnswer && parsedAnswer.length >= 50) {
-      try {
-        const reflectionPrompt = SELF_REFLECTION_PROMPT
-          .replace('{query}', query)
-          .replace('{answer}', parsedAnswer);
-        const reflectionResult = (await this.env.AI.run(
-          effectiveLlmModel,
-          { messages: [{ role: 'user', content: reflectionPrompt }], max_tokens: 10 },
-          gatewayOptions
-        )) as LLMResponse;
-        const isNo = /^\s*NO\s*$/i.test(reflectionResult.response?.trim() ?? 'YES');
-        if (isNo) {
-          selfReflectionTriggered = 1;
-          const retryResult = (await this.env.AI.run(
-            effectiveLlmModel,
-            { messages: llmMessages, max_tokens: 800 },
-            gatewayOptions
-          )) as LLMResponse;
-          const retryParsed = parseSuggestedQuestions(retryResult.response ?? rawLLMAnswer);
-          parsedAnswer = retryParsed.answer;
-          suggested_questions = retryParsed.suggested_questions;
-        }
-      } catch {
-        // self-reflection 失敗時靜默保留原始回答
-      }
-    }
 
     const finalSources = cannotAnswer ? [] : sources;
 
@@ -666,15 +783,67 @@ export class QueryService {
       ? this.injectRouteLinks(parsedAnswer, finalSources)
       : parsedAnswer;
 
-    // Judge 評估：groundedness + 品質評分（同步執行，支援免責聲明注入）
-    const { groundedness, quality } = await this.runJudge(query, context, answer);
+    // Judge 評估：非串流同步執行，結果同時用於：
+    //   1. Judge 驅動重生成（取代同模型 YES/NO 自評，消除盲點問題）
+    //   2. 免責聲明注入（groundedness）
+    //   3. 查詢日誌記錄
+    // 串流模式：token 已推送無法替換，Judge 改為 waitUntil 異步執行（僅記錄日誌）
+    let groundedness: number | null = null;
+    let quality: number | null = null;
+    if (!streamingMode) {
+      // 傳 parsedAnswer（未注入連結）給 Judge，避免 markdown URL 干擾 groundedness 評估
+      ({ groundedness, quality } = await this.runJudge(query, context, parsedAnswer, { model: pipelineCfg.lightweight_model, timeoutMs: pipelineCfg.judge_timeout_ms, contextTruncate: pipelineCfg.judge_context_truncate }));
 
-    // 依 groundedness 分數注入免責聲明
-    if (groundedness !== null && !cannotAnswer) {
-      if (groundedness < 0.6) {
-        answer = `❓ 以下資訊基於現有資料推斷，建議實地確認\n\n${answer}`;
-      } else if (groundedness < 0.8) {
-        answer = `⚠️ 部分資訊來自推斷，建議實地確認\n\n${answer}`;
+      // Judge 驅動重生成：quality 低於門檻時用外部 critic 的分數觸發重試（最多 1 次）
+      // 條件：非 cannotAnswer、回答夠長（避免短回答無意義評估）、queryType 為 complex
+      // Strategy E：重生成後再跑一次 Judge，比較 groundedness 取較高者，避免退化替換
+      if (
+        quality !== null &&
+        quality <= pipelineCfg.judge_regen_quality_max &&
+        queryType === 'complex' &&
+        !cannotAnswer &&
+        parsedAnswer.length >= pipelineCfg.self_reflection_min_length
+      ) {
+        try {
+          selfReflectionTriggered = 1;
+          const retryResult = (await (this.env.AI.run as Function)(
+            effectiveLlmModel,
+            { messages: llmMessages, max_tokens: pipelineCfg.max_tokens_generation },
+            gatewayOptions
+          )) as LLMResponse;
+          const retryParsed = parseSuggestedQuestions(retryResult.response ?? rawLLMAnswer);
+          const regenAnswer = !cannotAnswer && finalSources.length > 0
+            ? this.injectRouteLinks(retryParsed.answer, finalSources)
+            : retryParsed.answer;
+
+          // 對重生成答案執行 Judge（傳 parsedAnswer，未注入連結），比較 groundedness 取較高者
+          const regenJudge = await this.runJudge(query, context, retryParsed.answer, {
+            model: pipelineCfg.lightweight_model,
+            timeoutMs: pipelineCfg.judge_timeout_ms,
+            contextTruncate: pipelineCfg.judge_context_truncate,
+          });
+
+          if ((regenJudge.groundedness ?? 0) > (groundedness ?? 0)) {
+            // 重生成品質更好，採用新答案並更新 Judge 分數
+            parsedAnswer = retryParsed.answer;
+            suggested_questions = retryParsed.suggested_questions;
+            answer = regenAnswer;
+            groundedness = regenJudge.groundedness;
+            quality = regenJudge.quality;
+          }
+          // 否則靜默保留原始回答（原 groundedness/quality 分數不變）
+        } catch {
+          // 重生成或 Judge 失敗時靜默保留原始回答
+        }
+      }
+
+      // 依 groundedness 分數注入免責聲明（閾值由 ai_config 設定；使用初次 Judge 分數，保守策略）
+      if (groundedness !== null && !cannotAnswer) {
+        if (groundedness < pipelineCfg.groundedness_disclaimer_low) {
+          answer = `❓ 以下資訊基於現有資料推斷，建議實地確認\n\n${answer}`;
+        } else if (groundedness < pipelineCfg.groundedness_disclaimer_mid) {
+          answer = `⚠️ 部分資訊來自推斷，建議實地確認\n\n${answer}`;
+        }
       }
     }
 
@@ -682,11 +851,11 @@ export class QueryService {
     answer = checkOutput(answer);
 
     // Workers AI binding 不回傳 usage，用字元長度估算 token 數
-    // 中英混合約每 2 字元 = 1 token
+    // 中英混合約每 2 字元 = 1 token；串流模式無 usage 物件，一律用估算值
     const estimatedTokens = Math.ceil(
       (SYSTEM_PROMPT.length + prompt.length + answer.length) / 2
     );
-    const tokenCount = llmResult.usage?.total_tokens ?? estimatedTokens;
+    const tokenCount = llmUsage?.total_tokens ?? estimatedTokens;
 
     // 記錄查詢日誌（含品質指標與分段延遲）
     const queryId = await this.logQuery({
@@ -705,11 +874,12 @@ export class QueryService {
       modelUsed: effectiveLlmModel,
       retrievalScore,
       selfReflectionTriggered,
-      isHighConsumption: tokenCount > 1000,
+      isHighConsumption: tokenCount > pipelineCfg.high_consumption_threshold,
+      hydeTriggered: hydeDoc !== '',
     });
 
-    // 低 groundedness 自動標記
-    if (groundedness !== null && groundedness < 0.5) {
+    // 非串流：低 groundedness 同步標記
+    if (!streamingMode && groundedness !== null && groundedness < pipelineCfg.groundedness_flag_threshold) {
       await this.flagResponse(queryId, 'low_groundedness');
     }
 
@@ -722,23 +892,49 @@ export class QueryService {
 
     // 快取結果
     await this.env.CACHE.put(cacheKey, JSON.stringify(response), {
-      expirationTtl: CACHE_TTL,
+      expirationTtl: cacheTtl,
     });
 
-    // Task 5.5: 非同步記憶提取（只對已登入用戶，只傳 query）
-    if (userId && ctx) {
-      const gatewayOpts = this.env.AI_GATEWAY_SLUG
-        ? { gateway: { id: this.env.AI_GATEWAY_SLUG } }
-        : undefined;
-      ctx.waitUntil(
-        extractMemoriesFromQuery(query, userId, this.env.DB, this.env.AI, gatewayOpts)
-      );
+    if (ctx) {
+      // 語義快取寫入（匿名+無歷史，異步不阻塞）
+      // vector ID 用 sc: 前綴區分路線/岩場向量；metadata 記錄 KV cache key 供命中時直接取值
+      if (pipelineCfg.semantic_cache_enabled && earlyQueryVector) {
+        ctx.waitUntil(this.storeSemanticCache(`sc:${this.hashQuery(query)}`, earlyQueryVector, cacheKey));
+      }
+      // 串流模式：Judge 異步執行，不阻塞 done 事件；完成後更新日誌分數並標記
+      if (streamingMode) {
+        ctx.waitUntil((async () => {
+          // 傳 parsedAnswer（未注入連結）給 Judge，避免 markdown URL 干擾 groundedness 評估
+          const { groundedness: gs, quality: ql } = await this.runJudge(
+            query, context, parsedAnswer,
+            { model: pipelineCfg.lightweight_model, timeoutMs: pipelineCfg.judge_timeout_ms, contextTruncate: pipelineCfg.judge_context_truncate }
+          );
+          if (gs !== null || ql !== null) {
+            await this.env.DB.prepare(
+              `UPDATE ai_query_logs SET groundedness_score = ?, auto_score = ? WHERE id = ?`
+            ).bind(gs, ql, queryId).run().catch(() => {});
+          }
+          if (gs !== null && gs < pipelineCfg.groundedness_flag_threshold) {
+            await this.flagResponse(queryId, 'low_groundedness');
+          }
+        })());
+      }
+
+      // Task 5.5: 非同步記憶提取（只對已登入用戶，只傳 query）
+      if (userId) {
+        const gatewayOpts = this.env.AI_GATEWAY_SLUG
+          ? { gateway: { id: this.env.AI_GATEWAY_SLUG } }
+          : undefined;
+        ctx.waitUntil(
+          extractMemoriesFromQuery(query, userId, this.env.DB, this.env.AI, gatewayOpts)
+        );
+      }
     }
 
     return response;
   }
 
-  // SSE 串流問答：複用 ask() 邏輯，將回答逐詞推送給 write callback
+  // SSE 串流問答：真串流實作，LLM C 開始生成即推送 token，大幅降低 TTFT
   // route handler 負責在此方法回傳後送出 done 事件（含 quota_remaining）
   async askStream(
     request: AIAskRequest,
@@ -746,28 +942,25 @@ export class QueryService {
     write: (data: string) => Promise<void>,
     ctx?: { waitUntil(promise: Promise<unknown>): void },
   ): Promise<AIAskResponse> {
-    let result: AIAskResponse;
+    const onToken = async (token: string) => {
+      await write(JSON.stringify({ type: 'token', token }));
+    };
     try {
-      result = await this.ask(request, userId, ctx);
+      return await this.ask(request, userId, ctx, onToken);
     } catch (error) {
       await write(JSON.stringify({ type: 'error', message: '抱歉，AI 服務暫時無法使用，請稍後再試。' }));
       throw error;
     }
-
-    // 將 answer 以詞為單位切割，逐詞推送（含後續空白，保留排版）
-    const tokens = result.answer.match(/\S+\s*/g) ?? [result.answer];
-    for (const token of tokens) {
-      await write(JSON.stringify({ type: 'token', token }));
-    }
-
-    return result;
   }
 
   // 純語義搜尋（不呼叫 LLM）
   async search(request: AISearchRequest): Promise<{ results: AISource[]; count: number }> {
     const { query, limit = DEFAULT_TOP_K } = request;
 
-    const queryVector = await this.embeddingService.embed(query);
+    const [queryVector, cfg] = await Promise.all([
+      this.embeddingService.embed(query),
+      loadPipelineConfig(this.env.DB),
+    ]);
     const filter = this.buildFilter(request);
 
     const searchResults = await this.env.VECTOR_INDEX.query(queryVector, {
@@ -776,7 +969,7 @@ export class QueryService {
       returnMetadata: 'all',
     });
 
-    const relevantMatches = searchResults.matches.filter((m) => m.score >= MIN_VECTOR_SCORE);
+    const relevantMatches = searchResults.matches.filter((m) => m.score >= cfg.min_vector_score);
     const documents = await this.getDocuments(relevantMatches.map((m) => m.id));
 
     const results: AISource[] = relevantMatches
@@ -1047,38 +1240,180 @@ export class QueryService {
   }
 
   // 解析 judge LLM 回傳的 JSON，容錯處理格式錯誤
+  // Fallback：llama 等模型可能忽略 JSON-only 指令，改用自然語言回答，嘗試從中萃取數值
   parseJudgeResponse(raw: string): { groundedness: number | null; quality: number | null } {
-    try {
-      // 嘗試直接解析
-      const jsonMatch = raw.match(/\{[^}]*\}/);
-      const parsed = JSON.parse(jsonMatch ? jsonMatch[0] : raw);
-      const groundedness = typeof parsed.groundedness === 'number' && parsed.groundedness >= 0 && parsed.groundedness <= 1
-        ? parsed.groundedness
-        : null;
-      const quality = typeof parsed.quality === 'number' && Number.isInteger(parsed.quality) && parsed.quality >= 1 && parsed.quality <= 4
-        ? parsed.quality
-        : null;
-      return { groundedness, quality };
-    } catch {
+    // 0. 模型直接輸出模板占位符（如 <float 0.0-1.0>）視為無效，回傳 null
+    if (raw.includes('<float') || raw.includes('<int')) {
       return { groundedness: null, quality: null };
+    }
+
+    // 1. 嘗試 JSON 解析
+    try {
+      const jsonMatch = raw.match(/\{[^}]*\}/);
+      if (jsonMatch) {
+        const parsed = JSON.parse(jsonMatch[0]);
+        const groundedness = typeof parsed.groundedness === 'number' && parsed.groundedness >= 0 && parsed.groundedness <= 1
+          ? parsed.groundedness : null;
+        const quality = typeof parsed.quality === 'number' && Number.isInteger(parsed.quality) && parsed.quality >= 1 && parsed.quality <= 4
+          ? parsed.quality : null;
+        if (groundedness !== null || quality !== null) return { groundedness, quality };
+      }
+    } catch { /* fall through to natural language parsing */ }
+
+    // 2. Fallback：自然語言萃取（如 "groundedness：0.8" 或 "quality: 3"）
+    let groundedness: number | null = null;
+    let quality: number | null = null;
+    const gMatch = raw.match(/groundedness[^0-9]*([0-9]+(?:\.[0-9]+)?)/i);
+    if (gMatch) {
+      const g = parseFloat(gMatch[1]);
+      // 確保萃取到的是合理範圍的浮點數（非模板殘留如 "0.0-1.0" 中的 0）
+      if (g >= 0 && g <= 1) groundedness = g;
+    }
+    const qMatch = raw.match(/quality[^1-4]*([1-4])(?![0-9])/i);
+    if (qMatch) {
+      quality = parseInt(qMatch[1], 10);
+    }
+    return { groundedness, quality };
+  }
+
+  // 語義快取查詢：用 queryVector 在 VECTOR_INDEX 比對近似問題，命中時回傳快取回應
+  private async checkSemanticCache(
+    queryVector: number[],
+    threshold: number,
+  ): Promise<AIAskResponse | null> {
+    try {
+      const result = await this.env.VECTOR_INDEX.query(queryVector, {
+        topK: 1,
+        returnMetadata: 'all',
+        filter: { type: { $eq: 'query_cache' } },
+      });
+      const top = result.matches[0];
+      if (!top || top.score < threshold) return null;
+      const cacheKey = top.metadata?.cache_key as string | undefined;
+      if (!cacheKey) return null;
+      const cached = await this.env.CACHE.get(cacheKey);
+      if (!cached) return null;
+      return JSON.parse(cached) as AIAskResponse;
+    } catch {
+      return null;
     }
   }
 
-  // 呼叫 judge LLM，設 3 秒 timeout
-  async runJudge(query: string, context: string, response: string): Promise<{ groundedness: number | null; quality: number | null }> {
-    const truncatedContext = context.slice(0, 800);
+  // 語義快取寫入：將 queryVector 寫入 VECTOR_INDEX，metadata 記錄對應的 KV cache key
+  private async storeSemanticCache(
+    vectorId: string,
+    queryVector: number[],
+    cacheKey: string,
+  ): Promise<void> {
+    try {
+      await this.env.VECTOR_INDEX.upsert([{
+        id: vectorId,
+        values: queryVector,
+        metadata: { type: 'query_cache', cache_key: cacheKey },
+      }]);
+    } catch {
+      // 靜默忽略，不影響主流程
+    }
+  }
+
+  // LLM 串流生成：邊生成邊透過 onToken 回調推送，回傳完整原始文字
+  // 偵測 ---SUGGESTIONS--- 標記，標記之前的內容推送給 onToken，之後收集但不推送
+  private async streamLLMGeneration(
+    model: string,
+    messages: Array<{ role: 'system' | 'user' | 'assistant'; content: string }>,
+    maxTokens: number,
+    gatewayOptions: unknown,
+    onToken: (token: string) => Promise<void>,
+  ): Promise<string> {
+    const stream = (await (this.env.AI.run as Function)(
+      model,
+      { messages, max_tokens: maxTokens, stream: true },
+      gatewayOptions,
+    )) as ReadableStream<Uint8Array>;
+
+    const reader = stream.getReader();
+    const decoder = new TextDecoder();
+    let fullText = '';
+    let sseBuffer = '';    // SSE line accumulation
+    let slideBuffer = '';  // sliding window for ---SUGGESTIONS--- detection
+    let suggestionsStarted = false;
+    const MARKER = '---SUGGESTIONS---';
+
+    try {
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+
+        sseBuffer += decoder.decode(value, { stream: true });
+        const lines = sseBuffer.split('\n');
+        sseBuffer = lines.pop() ?? '';
+
+        for (const line of lines) {
+          if (!line.startsWith('data: ')) continue;
+          const payload = line.slice(6).trim();
+          if (payload === '[DONE]') break;
+          try {
+            const parsed = JSON.parse(payload) as { response?: string };
+            if (!parsed.response) continue;
+
+            fullText += parsed.response;
+            if (suggestionsStarted) continue; // 建議列表區段：收集但不推送
+
+            slideBuffer += parsed.response;
+            const markerIdx = slideBuffer.indexOf(MARKER);
+            if (markerIdx !== -1) {
+              // 找到標記：推送標記前的文字，停止串流
+              const beforeMarker = slideBuffer.slice(0, markerIdx);
+              if (beforeMarker) await onToken(beforeMarker);
+              suggestionsStarted = true;
+            } else {
+              // 滑動視窗：保留最後 (MARKER.length-1) 個字元以防標記跨 chunk
+              const safeLen = slideBuffer.length - (MARKER.length - 1);
+              if (safeLen > 0) {
+                await onToken(slideBuffer.slice(0, safeLen));
+                slideBuffer = slideBuffer.slice(safeLen);
+              }
+            }
+          } catch { /* 忽略格式錯誤的 SSE 行 */ }
+        }
+      }
+      // 沖出剩餘 buffer（整個回答都沒有建議標記的情況）
+      if (!suggestionsStarted && slideBuffer) await onToken(slideBuffer);
+    } finally {
+      reader.releaseLock();
+    }
+
+    return fullText;
+  }
+
+  // 呼叫 judge LLM，timeout 與 context 截斷長度由 config 控制
+  async runJudge(
+    query: string,
+    context: string,
+    response: string,
+    opts: { model?: string; timeoutMs?: number; contextTruncate?: number } = {},
+  ): Promise<{ groundedness: number | null; quality: number | null }> {
+    const { model: judgeModel, timeoutMs = 8000, contextTruncate = 800 } = opts;
+    const truncatedContext = context.slice(0, contextTruncate);
     const judgePrompt = JUDGE_PROMPT
       .replace('{context}', truncatedContext)
       .replace('{query}', query)
       .replace('{response}', response);
+    const model = judgeModel ?? DEFAULT_LIGHTWEIGHT_MODEL;
 
     try {
       const timeoutPromise = new Promise<never>((_, reject) =>
-        setTimeout(() => reject(new Error('judge timeout')), 8000)
+        setTimeout(() => reject(new Error('judge timeout')), timeoutMs)
       );
       const judgePromise = (this.env.AI.run as Function)(
-        '@cf/meta/llama-3.1-8b-instruct',
-        { messages: [{ role: 'user', content: judgePrompt }], max_tokens: 60 }
+        model,
+        {
+          messages: [
+            { role: 'system', content: '只回傳 JSON，不含任何說明文字。格式：{"groundedness": <float 0.0-1.0>, "quality": <int 1-4>}' },
+            { role: 'user', content: judgePrompt },
+          ],
+          max_tokens: 60,
+        }
       ) as Promise<LLMResponse>;
 
       const judgeResult = await Promise.race([judgePromise, timeoutPromise]);
@@ -1121,12 +1456,14 @@ export class QueryService {
     retrievalScore?: number | null;
     selfReflectionTriggered?: number | null;
     isHighConsumption?: boolean;
+    cacheHit?: boolean;
+    hydeTriggered?: boolean;
   }): Promise<string> {
     const id = crypto.randomUUID();
     try {
       await this.env.DB.prepare(`
-        INSERT INTO ai_query_logs (id, user_id, query, response, sources, latency_ms, token_count, groundedness_score, auto_score, embedding_ms, retrieval_ms, generation_ms, query_type, model_used, retrieval_score, self_reflection_triggered, is_high_consumption)
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        INSERT INTO ai_query_logs (id, user_id, query, response, sources, latency_ms, token_count, groundedness_score, auto_score, embedding_ms, retrieval_ms, generation_ms, query_type, model_used, retrieval_score, self_reflection_triggered, is_high_consumption, cache_hit, hyde_triggered)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
       `)
         .bind(
           id,
@@ -1145,7 +1482,9 @@ export class QueryService {
           params.modelUsed ?? null,
           params.retrievalScore ?? null,
           params.selfReflectionTriggered ?? 0,
-          params.isHighConsumption ? 1 : 0
+          params.isHighConsumption ? 1 : 0,
+          params.cacheHit ? 1 : 0,
+          params.hydeTriggered ? 1 : 0
         )
         .run();
     } catch (error) {

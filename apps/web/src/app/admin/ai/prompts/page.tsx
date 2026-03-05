@@ -30,7 +30,7 @@ export default function AdminAIPromptsPage() {
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-xl font-bold text-wb-100">Prompt 管理</h1>
-          <p className="mt-0.5 text-sm text-wb-70">管理 AI 系統提示詞與版本歷史</p>
+          <p className="mt-1 text-sm text-wb-60">管理 AI 系統提示詞與版本歷史</p>
         </div>
         <Link
           href="/admin/ai/prompts/new"

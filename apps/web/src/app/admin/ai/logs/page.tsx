@@ -5,18 +5,18 @@ import Link from 'next/link'
 import { Loader2, ChevronLeft, ChevronRight, Download } from 'lucide-react'
 import { useAILogs } from '@/lib/api/admin-ai'
 
-function ScoreBadge({ score }: { score: number | null }) {
+function ScoreBadge({ score, max = 5 }: { score: number | null; max?: number }) {
   if (score == null) return <span className="text-wb-40">—</span>
-  const styles: Record<number, string> = {
-    1: 'bg-red-50 text-red-600 border-red-200',
-    2: 'bg-orange-50 text-orange-600 border-orange-200',
-    3: 'bg-yellow-50 text-yellow-700 border-yellow-200',
-    4: 'bg-emerald-50 text-emerald-700 border-emerald-200',
-    5: 'bg-emerald-50 text-emerald-700 border-emerald-200',
-  }
+  const ratio = score / max
+  const styles =
+    ratio >= 0.8
+      ? 'bg-emerald-50 text-emerald-700 border-emerald-200'
+      : ratio >= 0.6
+        ? 'bg-yellow-50 text-yellow-700 border-yellow-200'
+        : 'bg-red-50 text-red-600 border-red-200'
   return (
-    <span className={`rounded-md border px-2 py-0.5 text-xs font-medium ${styles[score] ?? 'border-wb-20 text-wb-60'}`}>
-      {score} / 5
+    <span className={`rounded-md border px-2 py-0.5 text-xs font-medium whitespace-nowrap ${styles}`}>
+      {score} / {max}
     </span>
   )
 }
@@ -54,9 +54,11 @@ export default function AdminAILogsPage() {
 
   const handleExport = () => {
     if (!data?.logs.length) return
-    const header = 'ID,使用者,查詢,延遲(ms),回饋,建立時間\n'
+    const header = 'ID,使用者,查詢,類型,快取,延遲(ms),Groundedness,Auto評分,回饋,建立時間\n'
     const rows = data.logs
-      .map((l) => `"${l.id}","${l.display_name || l.username || '匿名'}","${l.query.replace(/"/g, '""')}",${l.latency_ms ?? ''},${l.feedback_score ?? ''},"${l.created_at}"`)
+      .map((l) =>
+        `"${l.id}","${l.display_name || l.username || '匿名'}","${l.query.replace(/"/g, '""')}","${l.query_type ?? ''}",${l.cache_hit ? '是' : '否'},${l.latency_ms ?? ''},${l.groundedness_score ?? ''},${l.auto_score ?? ''},${l.feedback_score ?? ''},"${l.created_at}"`
+      )
       .join('\n')
     const blob = new Blob([header + rows], { type: 'text/csv;charset=utf-8;' })
     const url = URL.createObjectURL(blob)
@@ -153,6 +155,8 @@ export default function AdminAILogsPage() {
                 <th className="px-5 py-3 text-left text-xs font-medium text-wb-50">類型</th>
                 <th className="px-5 py-3 text-left text-xs font-medium text-wb-50">使用者</th>
                 <th className="px-5 py-3 text-left text-xs font-medium text-wb-50">延遲</th>
+                <th className="px-5 py-3 text-left text-xs font-medium text-wb-50">Groundedness</th>
+                <th className="px-5 py-3 text-left text-xs font-medium text-wb-50">Auto</th>
                 <th className="px-5 py-3 text-left text-xs font-medium text-wb-50">回饋</th>
                 <th className="px-5 py-3 text-left text-xs font-medium text-wb-50">時間</th>
                 <th className="px-5 py-3" />
@@ -162,8 +166,20 @@ export default function AdminAILogsPage() {
               {data.logs.map((log) => (
                 <tr key={log.id} className="hover:bg-wb-5 transition-colors">
                   <td className="max-w-xs px-5 py-3.5 truncate text-wb-90">{log.query}</td>
-                  <td className="px-5 py-3.5 whitespace-nowrap">
-                    <QueryTypeBadge type={log.query_type} />
+                  <td className="px-5 py-3.5">
+                    <div className="flex flex-wrap items-center gap-1">
+                      <QueryTypeBadge type={log.query_type} />
+                      {!!log.cache_hit && (
+                        <span className="rounded-md border border-sky-200 bg-sky-50 px-2 py-0.5 text-[10px] font-medium text-sky-600">
+                          快取
+                        </span>
+                      )}
+                      {!!log.hyde_triggered && (
+                        <span className="rounded-md border border-violet-200 bg-violet-50 px-2 py-0.5 text-[10px] font-medium text-violet-600">
+                          HyDE
+                        </span>
+                      )}
+                    </div>
                   </td>
                   <td className="px-5 py-3.5 whitespace-nowrap">
                     {log.user_id ? (
@@ -172,11 +188,29 @@ export default function AdminAILogsPage() {
                       <span className="text-xs text-wb-40">匿名</span>
                     )}
                   </td>
-                  <td className="px-5 py-3.5 text-wb-60 tabular-nums">
-                    {log.latency_ms != null ? `${log.latency_ms} ms` : '—'}
+                  <td className="px-5 py-3.5 text-wb-60 tabular-nums whitespace-nowrap">
+                    {log.cache_hit ? (
+                      <span className="text-sky-500 text-xs">快取命中</span>
+                    ) : log.latency_ms != null ? (
+                      `${log.latency_ms} ms`
+                    ) : (
+                      '—'
+                    )}
                   </td>
                   <td className="px-5 py-3.5">
-                    <ScoreBadge score={log.feedback_score} />
+                    {log.groundedness_score != null ? (
+                      <span className={`text-xs font-medium tabular-nums ${log.groundedness_score >= 0.7 ? 'text-emerald-600' : log.groundedness_score >= 0.5 ? 'text-yellow-600' : 'text-red-500'}`}>
+                        {(log.groundedness_score * 100).toFixed(0)}%
+                      </span>
+                    ) : (
+                      <span className="text-wb-40">—</span>
+                    )}
+                  </td>
+                  <td className="px-5 py-3.5">
+                    <ScoreBadge score={log.auto_score} max={4} />
+                  </td>
+                  <td className="px-5 py-3.5">
+                    <ScoreBadge score={log.feedback_score} max={5} />
                   </td>
                   <td className="px-5 py-3.5 text-wb-50 whitespace-nowrap tabular-nums">
                     {new Date(log.created_at).toLocaleString('zh-TW')}

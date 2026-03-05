@@ -105,8 +105,8 @@ export default function AdminBroadcast() {
       {/* 頁面標題 */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-wb-100">廣播通知</h1>
-          <p className="text-wb-70 mt-1">發送系統公告給所有用戶</p>
+          <h1 className="text-xl font-bold text-wb-100">廣播通知</h1>
+          <p className="mt-1 text-sm text-wb-60">發送系統公告給所有用戶</p>
         </div>
         {userStats && (
           <div className="text-sm text-wb-70">

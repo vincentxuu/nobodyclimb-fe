@@ -6,6 +6,7 @@ import { Edit2, Trash2, Eye, Loader2 } from 'lucide-react'
 import Image from 'next/image'
 import Link from 'next/link'
 import ProfilePageLayout from '@/components/profile/layout/ProfilePageLayout'
+import ProfilePageTitle from '@/components/profile/ProfilePageTitle'
 import { ConfirmDialog } from '@/components/ui/confirm-dialog'
 import { postService } from '@/lib/api/services'
 import { useToast } from '@/components/ui/use-toast'
@@ -21,19 +22,6 @@ interface Article {
   view_count: number
   tags?: string[]
 }
-
-// 頁面標題元件
-interface PageHeaderProps {
-  title: string
-  actionButton?: React.ReactNode
-}
-
-const PageHeader = ({ title, actionButton }: PageHeaderProps) => (
-  <div className="mb-8 flex items-center justify-between">
-    <h1 className="text-2xl font-medium text-[#1B1A1A] md:text-4xl">{title}</h1>
-    {actionButton}
-  </div>
-)
 
 // 文章卡片元件
 interface ArticleCardProps {
@@ -258,7 +246,7 @@ export default function ArticlesPage() {
   return (
     <ProfilePageLayout>
       <div className="rounded-sm bg-white p-4 md:p-8 lg:p-12">
-        <PageHeader title="我的文章" actionButton={<NewArticleButton />} />
+        <ProfilePageTitle title="我的文章" action={<NewArticleButton />} />
 
         {isLoading ? (
           <LoadingState />

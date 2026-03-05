@@ -627,7 +627,7 @@ aiRoutes.post(
 
     try {
       const indexingService = new IndexingService(c.env);
-      const result = await indexingService.reindexAll(type, offset, limit);
+      const result = await indexingService.reindexAll(type, offset, limit, c.executionCtx);
       return c.json({
         success: true,
         message: `索引完成：成功 ${result.indexed} 筆，失敗 ${result.failed} 筆`,

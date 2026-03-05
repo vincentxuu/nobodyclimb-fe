@@ -5,6 +5,7 @@ import { Trash2, Brain } from 'lucide-react'
 import { formatDistanceToNow } from 'date-fns'
 import { zhTW } from 'date-fns/locale'
 import ProfilePageLayout from '@/components/profile/layout/ProfilePageLayout'
+import ProfilePageTitle from '@/components/profile/ProfilePageTitle'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { LoadingSpinner } from '@/components/ui/loading-spinner'
@@ -73,14 +74,11 @@ export default function AiMemoryPage() {
   return (
     <ProfilePageLayout>
       <div className="mx-auto max-w-2xl px-4 py-6">
-        <div className="mb-6 flex items-center gap-2">
-          <Brain className="h-5 w-5 text-emerald-600" />
-          <h1 className="text-xl font-semibold text-gray-900">AI 記憶</h1>
-        </div>
-
-        <p className="mb-6 text-sm text-gray-500">
-          AI 會在你提問後自動學習你的偏好，並在回答時參考這些資訊提供個人化建議。
-        </p>
+        <ProfilePageTitle
+          title="記憶"
+          subtitle="AI 會在你提問後自動學習你的偏好，並在回答時參考這些資訊提供個人化建議。"
+          isAI
+        />
 
         {isLoading ? (
           <div className="flex justify-center py-12">

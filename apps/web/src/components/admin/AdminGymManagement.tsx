@@ -308,8 +308,8 @@ export default function AdminGymManagement() {
       {/* 頁面標題 */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-wb-100">岩館管理</h1>
-          <p className="text-sm text-wb-70 mt-1">管理室內攀岩館資訊</p>
+          <h1 className="text-xl font-bold text-wb-100">岩館管理</h1>
+          <p className="mt-1 text-sm text-wb-60">管理室內攀岩館資訊</p>
         </div>
         <div className="flex items-center gap-2">
           <button

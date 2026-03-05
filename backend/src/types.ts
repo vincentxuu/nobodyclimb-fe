@@ -198,6 +198,7 @@ export interface Env {
   // Analytics Engine 查詢用（可選，透過 wrangler secret 設定）
   CLOUDFLARE_ACCOUNT_ID?: string;
   CLOUDFLARE_API_TOKEN?: string;
+  ANALYTICS_DATASET?: string;
   // AI 相關 bindings
   AI: AI;
   VECTOR_INDEX: VectorizeIndex;

@@ -8,7 +8,8 @@ import { useQueryClient } from '@tanstack/react-query'
 
 type IndexType = 'route' | 'crag' | 'all'
 
-const BATCH_SIZE = 100
+const BATCH_SIZE = 10
+const INDEXING_TIMEOUT = 180000
 
 interface IndexApiResponse {
   success: boolean
@@ -39,10 +40,7 @@ export default function AdminAIKnowledgePage() {
     let totalFailed = 0
 
     try {
-      // 索引操作需要較長時間，覆寫預設 10s timeout
-      const INDEXING_TIMEOUT = 60000
-
-      // 岩場數量少，一次完成
+        // 岩場數量少，一次完成
       if (type === 'crag' || type === 'all') {
         const res = await apiClient.post<IndexApiResponse>(
           '/ai/index',
@@ -95,7 +93,7 @@ export default function AdminAIKnowledgePage() {
     <div className="space-y-6">
       <div>
         <h1 className="text-xl font-bold text-wb-100">知識庫管理</h1>
-        <p className="mt-0.5 text-sm text-wb-70">查看索引狀態，並手動觸發重新建立向量索引</p>
+        <p className="mt-1 text-sm text-wb-60">查看索引狀態，並手動觸發重新建立向量索引</p>
       </div>
 
       {/* 索引結果提示 */}

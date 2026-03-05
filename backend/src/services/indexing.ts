@@ -1,5 +1,8 @@
 import { Env, AIDocument, AIDocumentMetadata, Route, Crag } from '../types';
 import { EmbeddingService } from './embedding';
+import { CONTEXTUAL_CHUNK_PROMPT } from '../utils/ai-prompts';
+
+const CONTEXT_GENERATION_BATCH_SIZE = 5; // 並行 LLM 呼叫上限，避免超出 Workers AI 速率限制
 
 const VECTORIZE_UPSERT_BATCH_SIZE = 1000;
 const VECTORIZE_DELETE_BATCH_SIZE = 100; // Vectorize deleteByIds 上限
@@ -111,7 +114,7 @@ export class IndexingService {
   }
 
   // 索引路線，支援分頁避免 Worker timeout
-  async indexRoutes(offset = 0, limit = 100): Promise<IndexResult & { hasMore: boolean }> {
+  async indexRoutes(offset = 0, limit = 100, ctx?: { waitUntil(p: Promise<unknown>): void }): Promise<IndexResult & { hasMore: boolean }> {
     const routes = await this.env.DB.prepare(`
       SELECT r.*, c.name as crag_name, c.region, a.id as area_id, a.name as area_name
       FROM routes r
@@ -151,12 +154,12 @@ export class IndexingService {
       };
     });
 
-    const result = await this.indexDocuments('route', documents);
+    const result = await this.indexDocuments('route', documents, ctx);
     return { ...result, hasMore: offset + routes.results.length < total };
   }
 
   // 索引所有岩場
-  async indexCrags(): Promise<IndexResult> {
+  async indexCrags(ctx?: { waitUntil(p: Promise<unknown>): void }): Promise<IndexResult> {
     // 預先取得每個岩場的區域列表
     const areasResult = await this.env.DB.prepare(
       `SELECT crag_id, GROUP_CONCAT(name, '、') as area_names FROM areas WHERE name IS NOT NULL GROUP BY crag_id`
@@ -199,14 +202,15 @@ export class IndexingService {
       };
     });
 
-    return this.indexDocuments('crag', documents);
+    return this.indexDocuments('crag', documents, ctx);
   }
 
   // 重建索引，支援分頁（避免 Worker timeout）
   async reindexAll(
     type: 'route' | 'crag' | 'all' = 'all',
     offset = 0,
-    limit = 100
+    limit = 100,
+    ctx?: { waitUntil(p: Promise<unknown>): void }
   ): Promise<IndexResult & { hasMore: boolean; nextOffset: number }> {
     let totalIndexed = 0;
     let totalFailed = 0;
@@ -215,14 +219,14 @@ export class IndexingService {
 
     if (type === 'crag' || type === 'all') {
       if (offset === 0) await this.clearType('crag');
-      const result = await this.indexCrags();
+      const result = await this.indexCrags(ctx);
       totalIndexed += result.indexed;
       totalFailed += result.failed;
     }
 
     if (type === 'route' || type === 'all') {
       if (offset === 0) await this.clearType('route');
-      const result = await this.indexRoutes(offset, limit);
+      const result = await this.indexRoutes(offset, limit, ctx);
       totalIndexed += result.indexed;
       totalFailed += result.failed;
       hasMore = result.hasMore;
@@ -251,16 +255,64 @@ export class IndexingService {
     await this.env.DB.prepare('DELETE FROM ai_documents WHERE type = ?').bind(type).run();
   }
 
+  private async getContextualModel(): Promise<string> {
+    const row = await this.env.DB.prepare(
+      `SELECT value FROM ai_config WHERE key = 'contextual_rag_model'`
+    ).first<{ value: string }>();
+    return row?.value ?? '@cf/meta/llama-3.1-8b-instruct';
+  }
+
+  // 為單一 chunk 呼叫 LLM 生成語意摘要（失敗時回傳空字串，讓主流程 fallback 到原始文字）
+  private async generateContextSummary(text: string, type: 'route' | 'crag' | 'video', model: string): Promise<string> {
+    const typeLabel = type === 'route' ? '攀岩路線' : type === 'crag' ? '岩場' : '攀岩影片';
+    const prompt = CONTEXTUAL_CHUNK_PROMPT
+      .replace('{type}', typeLabel)
+      .replace('{content}', text);
+    try {
+      const result = await (this.env.AI.run as Function)(model, {
+        messages: [{ role: 'user', content: prompt }],
+        max_tokens: 80,
+      });
+      return (result as { response?: string }).response?.trim() ?? '';
+    } catch {
+      return '';
+    }
+  }
+
+  // 批次生成 context summaries（每批 CONTEXT_GENERATION_BATCH_SIZE 筆並行）
+  private async generateContextSummaries(
+    documents: Array<{ text: string }>,
+    type: 'route' | 'crag' | 'video',
+    model: string
+  ): Promise<string[]> {
+    const summaries: string[] = new Array(documents.length).fill('');
+    for (let i = 0; i < documents.length; i += CONTEXT_GENERATION_BATCH_SIZE) {
+      const batch = documents.slice(i, i + CONTEXT_GENERATION_BATCH_SIZE);
+      const results = await Promise.allSettled(
+        batch.map((doc) => this.generateContextSummary(doc.text, type, model))
+      );
+      results.forEach((result, j) => {
+        summaries[i + j] = result.status === 'fulfilled' ? result.value : '';
+      });
+    }
+    return summaries;
+  }
+
   // 執行文件索引：生成 embedding → 寫入 Vectorize + D1
+  // Contextual RAG：先以原始文字快速建立索引，再用 waitUntil 於背景生成 LLM 語意摘要並更新向量
+  //   Phase 1（同步）：embedBatch(originalText) → Vectorize upsert → D1 insert
+  //   Phase 2（背景）：LLM 生成 summary → embedBatch(summary + originalText) → Vectorize upsert 覆寫
+  //   D1 仍存 originalText，LLM 回答時的 context 保持乾淨
   private async indexDocuments(
     type: 'route' | 'crag' | 'video',
-    documents: Array<{ sourceId: string; text: string; metadata: AIDocumentMetadata }>
+    documents: Array<{ sourceId: string; text: string; metadata: AIDocumentMetadata }>,
+    ctx?: { waitUntil(p: Promise<unknown>): void }
   ): Promise<IndexResult> {
     let indexed = 0;
     let failed = 0;
 
-    const texts = documents.map((d) => d.text);
-    const embeddings = await this.embeddingService.embedBatch(texts);
+    // Phase 1: 以原始文字快速 embed（不等 LLM）
+    const embeddings = await this.embeddingService.embedBatch(documents.map((d) => d.text));
 
     const vectors: Array<{ id: string; values: number[]; metadata: Record<string, unknown> }> = [];
     const dbInserts: Array<{ id: string; sourceId: string; text: string; metadata: string; embeddingId: string }> = [];
@@ -319,6 +371,45 @@ export class IndexingService {
       }
     }
 
+    // Phase 2: 背景生成 LLM contextual summary 並更新 Vectorize 向量（不阻塞 HTTP 回應）
+    if (ctx && dbInserts.length > 0) {
+      ctx.waitUntil(this.enrichWithContextualSummaries(type, documents, dbInserts));
+    }
+
     return { indexed, failed };
+  }
+
+  // 背景任務：生成 contextual summary 並覆寫 Vectorize 向量
+  private async enrichWithContextualSummaries(
+    type: 'route' | 'crag' | 'video',
+    documents: Array<{ sourceId: string; text: string; metadata: AIDocumentMetadata }>,
+    dbInserts: Array<{ id: string }>
+  ): Promise<void> {
+    try {
+      const model = await this.getContextualModel();
+      const summaries = await this.generateContextSummaries(documents, type, model);
+      const enrichedTexts = documents.map((d, i) =>
+        summaries[i] ? `${summaries[i]}\n\n${d.text}` : d.text
+      );
+
+      const enrichedEmbeddings = await this.embeddingService.embedBatch(enrichedTexts);
+
+      const enrichedVectors: Array<{ id: string; values: number[]; metadata: Record<string, unknown> }> = [];
+      for (let i = 0; i < documents.length; i++) {
+        const embedding = enrichedEmbeddings[i];
+        if (!embedding || embedding.length === 0) continue;
+        enrichedVectors.push({
+          id: dbInserts[i].id,
+          values: embedding,
+          metadata: { type, ...documents[i].metadata },
+        });
+      }
+
+      for (let i = 0; i < enrichedVectors.length; i += VECTORIZE_UPSERT_BATCH_SIZE) {
+        await this.env.VECTOR_INDEX.upsert(enrichedVectors.slice(i, i + VECTORIZE_UPSERT_BATCH_SIZE));
+      }
+    } catch (error) {
+      console.error(`Background contextual enrichment failed for ${type}:`, error);
+    }
   }
 }

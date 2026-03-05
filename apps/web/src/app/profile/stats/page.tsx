@@ -6,6 +6,7 @@ import { useQuery } from '@tanstack/react-query'
 import { motion } from 'framer-motion'
 import { BarChart3, Award, Trophy, TrendingUp } from 'lucide-react'
 import ProfilePageLayout from '@/components/profile/layout/ProfilePageLayout'
+import ProfilePageTitle from '@/components/profile/ProfilePageTitle'
 import { LoadingSpinner } from '@/components/ui/loading-spinner'
 import { EmptyState } from '@/components/ui/empty-state'
 import { Button } from '@/components/ui/button'
@@ -67,13 +68,7 @@ export default function StatsPage() {
   return (
     <ProfilePageLayout>
       <div className="space-y-6">
-        {/* 頁面標題 */}
-        <div>
-          <h1 className="text-2xl font-bold text-[#1B1A1A]">我的成就</h1>
-          <p className="mt-1 text-sm text-text-subtle">
-            查看你的攀岩統計數據與徽章收藏
-          </p>
-        </div>
+        <ProfilePageTitle title="我的成就" subtitle="查看你的攀岩統計數據與徽章收藏" />
 
         {/* 摘要卡片 */}
         <div className="grid grid-cols-2 gap-4 sm:grid-cols-4">

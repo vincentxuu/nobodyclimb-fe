@@ -122,8 +122,8 @@ export const JUDGE_PROMPT = `你是一個回答品質評估器。請根據以下
 【AI 回答】
 {response}
 
-只回傳 JSON，不含任何說明：
-{"groundedness": <float 0.0-1.0>, "quality": <int 1-4>}`;
+只回傳 JSON，不含任何說明，範例格式（請填入實際數值）：
+{"groundedness": 0.75, "quality": 3}`;
 
 // Self-reflection：評估生成回答是否完整回應了問題
 export const SELF_REFLECTION_PROMPT = `你剛剛回答了以下攀岩問題，請評估你的回答是否完整且直接地回應了問題。
@@ -132,6 +132,15 @@ export const SELF_REFLECTION_PROMPT = `你剛剛回答了以下攀岩問題，�
 問題：{query}
 
 回答：{answer}`;
+
+// Contextual RAG：為每個 chunk 生成語意摘要，prepend 後再 embed，提升向量搜尋準確度
+// 生成的摘要只用於 embedding，不寫入 D1（LLM context 仍使用原始結構化文字）
+export const CONTEXTUAL_CHUNK_PROMPT = `以下是一筆{type}資料：
+
+{content}
+
+請用 1-2 句話描述這筆資料的核心特色，說明攀岩者在什麼情境下會需要這份資訊。
+只輸出描述，不要多餘文字。`;
 
 export const QUERY_TEMPLATE = `以下是與問題相關的攀岩資料（已依相關度與熱門度排序）：
 
