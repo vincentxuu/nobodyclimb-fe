@@ -74,36 +74,79 @@ const MIN_VECTOR_SCORE = 0.5;         // 純語義搜尋（search()）使用原�
 const DEFAULT_LLM_MODEL = '@cf/google/gemma-3-12b-it';
 const DEFAULT_LIGHTWEIGHT_MODEL = '@cf/meta/llama-3.1-8b-instruct';
 
-// 從 ai_config 批次讀取 pipeline 設定
+// 從 ai_config 批次讀取所有 pipeline 設定（一次 DB 查詢，無 hardcode）
 interface PipelineConfig {
+  // 模型
   llm_model: string;
   simple_model: string;
   lightweight_model: string;
+  // 搜尋與檢索
   max_results: number;
-  cache_ttl: number;
   merge_top_k: number;
+  min_rrf_score: number;
+  min_rrf_score_filtered: number;
+  // 排名與多樣性
+  mmr_lambda: number;
+  reranker_weight: number;
+  popularity_weight: number;
+  // Token 限制
   max_tokens_generation: number;
   max_tokens_gk: number;
+  high_consumption_threshold: number;
+  // 品質閾值
+  groundedness_disclaimer_low: number;
+  groundedness_disclaimer_mid: number;
+  groundedness_flag_threshold: number;
+  // Judge 設定
+  judge_timeout_ms: number;
+  judge_context_truncate: number;
+  // Self-reflection
+  self_reflection_min_length: number;
+  // 對話與快取
+  chat_history_depth: number;
+  cache_ttl: number;
+}
+
+function num(v: string | undefined, fallback: number, min?: number, max?: number): number {
+  const parsed = parseFloat(v ?? '') || fallback;
+  if (min !== undefined && parsed < min) return min;
+  if (max !== undefined && parsed > max) return max;
+  return parsed;
 }
 
 async function loadPipelineConfig(db: D1Database): Promise<PipelineConfig> {
-  const rows = await db.prepare(
-    `SELECT key, value FROM ai_config WHERE key IN (
-      'llm_model','simple_model','lightweight_model',
-      'max_results','cache_ttl','merge_top_k',
-      'max_tokens_generation','max_tokens_gk'
-    )`
-  ).all<{ key: string; value: string }>();
+  const rows = await db.prepare(`SELECT key, value FROM ai_config`).all<{ key: string; value: string }>();
   const cfg: Record<string, string> = Object.fromEntries(rows.results.map((r) => [r.key, r.value]));
   return {
-    llm_model: cfg['llm_model'] ?? DEFAULT_LLM_MODEL,
-    simple_model: cfg['simple_model'] ?? DEFAULT_LIGHTWEIGHT_MODEL,
-    lightweight_model: cfg['lightweight_model'] ?? DEFAULT_LIGHTWEIGHT_MODEL,
-    max_results: Math.min(20, Math.max(1, parseInt(cfg['max_results'] ?? '5', 10) || 5)),
-    cache_ttl: Math.max(60, parseInt(cfg['cache_ttl'] ?? '3600', 10) || 3600),
-    merge_top_k: Math.min(50, Math.max(5, parseInt(cfg['merge_top_k'] ?? '10', 10) || 10)),
-    max_tokens_generation: Math.min(2000, Math.max(200, parseInt(cfg['max_tokens_generation'] ?? '800', 10) || 800)),
-    max_tokens_gk: Math.min(2000, Math.max(200, parseInt(cfg['max_tokens_gk'] ?? '600', 10) || 600)),
+    // 模型
+    llm_model:                    cfg['llm_model']                    ?? DEFAULT_LLM_MODEL,
+    simple_model:                 cfg['simple_model']                 ?? DEFAULT_LIGHTWEIGHT_MODEL,
+    lightweight_model:            cfg['lightweight_model']            ?? DEFAULT_LIGHTWEIGHT_MODEL,
+    // 搜尋與檢索
+    max_results:                  num(cfg['max_results'],                  5,    1,    20),
+    merge_top_k:                  num(cfg['merge_top_k'],                  10,   5,    50),
+    min_rrf_score:                num(cfg['min_rrf_score'],                0.005, 0,   1),
+    min_rrf_score_filtered:       num(cfg['min_rrf_score_filtered'],       0.002, 0,   1),
+    // 排名與多樣性
+    mmr_lambda:                   num(cfg['mmr_lambda'],                   0.6,  0,    1),
+    reranker_weight:              num(cfg['reranker_weight'],              0.7,  0,    1),
+    popularity_weight:            num(cfg['popularity_weight'],            0.3,  0,    1),
+    // Token 限制
+    max_tokens_generation:        num(cfg['max_tokens_generation'],        800,  200,  2000),
+    max_tokens_gk:                num(cfg['max_tokens_gk'],                600,  200,  2000),
+    high_consumption_threshold:   num(cfg['high_consumption_threshold'],   1000, 100,  10000),
+    // 品質閾值
+    groundedness_disclaimer_low:  num(cfg['groundedness_disclaimer_low'],  0.6,  0,    1),
+    groundedness_disclaimer_mid:  num(cfg['groundedness_disclaimer_mid'],  0.8,  0,    1),
+    groundedness_flag_threshold:  num(cfg['groundedness_flag_threshold'],  0.5,  0,    1),
+    // Judge
+    judge_timeout_ms:             num(cfg['judge_timeout_ms'],             8000, 1000, 30000),
+    judge_context_truncate:       num(cfg['judge_context_truncate'],       800,  200,  3000),
+    // Self-reflection
+    self_reflection_min_length:   num(cfg['self_reflection_min_length'],   50,   10,   500),
+    // 對話與快取
+    chat_history_depth:           num(cfg['chat_history_depth'],           6,    2,    20),
+    cache_ttl:                    num(cfg['cache_ttl'],                    3600, 60,   86400),
   };
 }
 
@@ -204,7 +247,7 @@ export class QueryService {
   async ask(request: AIAskRequest, userId?: string, ctx?: { waitUntil(promise: Promise<unknown>): void }): Promise<AIAskResponse> {
     const { query, limit = DEFAULT_TOP_K, include_sources = true, chat_history, no_cache = false } = request;
 
-    // 有 chat_history 時帶入最近 3 輪（6 則），避免快取衝突故加入 history hash
+    // 有 chat_history 時帶入最近 6 則供 cache key hash 使用（LLM 實際使用量由 chat_history_depth 設定）
     const recentHistory: AIChatMessage[] = chat_history ? chat_history.slice(-6) : [];
     const historyHash = recentHistory.length > 0 ? `:h${this.hashQuery(recentHistory.map(m => m.content).join('|'))}` : '';
 
@@ -325,7 +368,7 @@ export class QueryService {
         const latencyMs = Date.now() - startTime;
         const estimatedTokens = Math.ceil((GENERAL_KNOWLEDGE_SYSTEM_PROMPT.length + query.length + answer.length) / 2);
         const gkTokenCount = llmResult.usage?.total_tokens ?? estimatedTokens;
-        const queryId = await this.logQuery({ userId: userId ?? null, query, response: answer, sources: [], latencyMs, tokenCount: gkTokenCount, queryType: 'general-knowledge', modelUsed: effectiveLlmModel, retrievalScore: 0, selfReflectionTriggered: 0, isHighConsumption: gkTokenCount > 1000, hydeTriggered: false });
+        const queryId = await this.logQuery({ userId: userId ?? null, query, response: answer, sources: [], latencyMs, tokenCount: gkTokenCount, queryType: 'general-knowledge', modelUsed: effectiveLlmModel, retrievalScore: 0, selfReflectionTriggered: 0, isHighConsumption: gkTokenCount > pipelineCfg.high_consumption_threshold, hydeTriggered: false });
         const response: AIAskResponse = { answer, sources: [], query_id: queryId, suggested_questions };
         await this.env.CACHE.put(cacheKey, JSON.stringify(response), { expirationTtl: cacheTtl });
         if (userId && ctx) {
@@ -482,7 +525,7 @@ export class QueryService {
     // 注意：先保留全部候選（最多 MERGE_TOP_K），熱門度重排後再截斷至 limit
     const mergedMatches = this.mergeResults(queryMatches, hydeMatches, MERGE_TOP_K);
     const hasFilter = Object.keys(vectorFilter).some((k) => ['grade_numeric', 'crag_id', 'area_id', 'region', 'route_type'].includes(k));
-    const minScore = hasFilter ? MIN_RRF_SCORE_FILTERED : MIN_RRF_SCORE;
+    const minScore = hasFilter ? pipelineCfg.min_rrf_score_filtered : pipelineCfg.min_rrf_score;
     let candidateMatches = mergedMatches.filter((m) => m.score >= minScore);
 
     // 記錄 retrieval score（RRF 過濾前最高分，供 CRAG 觸發後追蹤）
@@ -541,7 +584,7 @@ export class QueryService {
     // MMR：從 cross-encoder 重排後的候選中，選出相關且多樣的 top-N
     // 避免回傳一堆難度/岩場完全相同的路線，提升結果多樣性
     // effectiveLimit 來自 ai_config.max_results，覆蓋 request limit 以讓 admin 設定生效
-    const mmrSelected = this.applyMMR(scoredCandidates, documents, 0.6, effectiveLimit);
+    const mmrSelected = this.applyMMR(scoredCandidates, documents, pipelineCfg.mmr_lambda, effectiveLimit);
 
     // 熱門度排序：依影片數為路線評分加權（combined = reranker*0.7 + popularity*0.3）
     // 在 MMR 選出的候選中加權，決定最終顯示順序
@@ -587,7 +630,7 @@ export class QueryService {
         if (!doc || doc.type !== 'route') return { ...match, finalScore: match.score };
         const videoCount = videoCountMap.get(doc.source_id) ?? 0;
         const normalizedPop = videoCount / safeMax;
-        return { ...match, finalScore: match.score * 0.7 + normalizedPop * 0.3 };
+        return { ...match, finalScore: match.score * pipelineCfg.reranker_weight + normalizedPop * pipelineCfg.popularity_weight };
       })
       .sort((a, b) => b.finalScore - a.finalScore);
     // MMR 已限制至 limit，不需再 slice
@@ -645,11 +688,11 @@ export class QueryService {
       .replace('{context}', context)
       .replace('{query}', query);
 
-    // 將對話歷史（最多 3 輪 = 6 則）加入 LLM messages，讓 LLM 有記憶脈絡
-    // assistant 歷史訊息只取純文字（截斷 500 字），避免超過 context window
-    const historyLLMMessages = recentHistory.slice(-6).map((m) => ({
+    // 將對話歷史（最多 chat_history_depth 則）加入 LLM messages，讓 LLM 有記憶脈絡
+    // assistant 歷史訊息只取純文字（截斷 judge_context_truncate 字），避免超過 context window
+    const historyLLMMessages = recentHistory.slice(-pipelineCfg.chat_history_depth).map((m) => ({
       role: m.role as 'user' | 'assistant',
-      content: m.role === 'assistant' ? m.content.slice(0, 500) : m.content,
+      content: m.role === 'assistant' ? m.content.slice(0, pipelineCfg.judge_context_truncate) : m.content,
     }));
 
     const generationStart = Date.now();
@@ -675,7 +718,7 @@ export class QueryService {
     let selfReflectionTriggered = 0;
     const cannotAnswer =
       parsedAnswer.includes('超出我的知識範圍') || parsedAnswer.includes('找不到相關資訊');
-    if (queryType === 'complex' && !cannotAnswer && parsedAnswer.length >= 50) {
+    if (queryType === 'complex' && !cannotAnswer && parsedAnswer.length >= pipelineCfg.self_reflection_min_length) {
       try {
         const reflectionPrompt = SELF_REFLECTION_PROMPT
           .replace('{query}', query)
@@ -710,13 +753,13 @@ export class QueryService {
       : parsedAnswer;
 
     // Judge 評估：groundedness + 品質評分（同步執行，支援免責聲明注入）
-    const { groundedness, quality } = await this.runJudge(query, context, answer, pipelineCfg.lightweight_model);
+    const { groundedness, quality } = await this.runJudge(query, context, answer, pipelineCfg.lightweight_model, pipelineCfg.judge_timeout_ms, pipelineCfg.judge_context_truncate);
 
-    // 依 groundedness 分數注入免責聲明
+    // 依 groundedness 分數注入免責聲明（閾值由 ai_config 設定）
     if (groundedness !== null && !cannotAnswer) {
-      if (groundedness < 0.6) {
+      if (groundedness < pipelineCfg.groundedness_disclaimer_low) {
         answer = `❓ 以下資訊基於現有資料推斷，建議實地確認\n\n${answer}`;
-      } else if (groundedness < 0.8) {
+      } else if (groundedness < pipelineCfg.groundedness_disclaimer_mid) {
         answer = `⚠️ 部分資訊來自推斷，建議實地確認\n\n${answer}`;
       }
     }
@@ -748,12 +791,12 @@ export class QueryService {
       modelUsed: effectiveLlmModel,
       retrievalScore,
       selfReflectionTriggered,
-      isHighConsumption: tokenCount > 1000,
+      isHighConsumption: tokenCount > pipelineCfg.high_consumption_threshold,
       hydeTriggered: hydeDoc !== '',
     });
 
-    // 低 groundedness 自動標記
-    if (groundedness !== null && groundedness < 0.5) {
+    // 低 groundedness 自動標記（閾值由 ai_config.groundedness_flag_threshold 設定）
+    if (groundedness !== null && groundedness < pipelineCfg.groundedness_flag_threshold) {
       await this.flagResponse(queryId, 'low_groundedness');
     }
 
@@ -1108,9 +1151,9 @@ export class QueryService {
     }
   }
 
-  // 呼叫 judge LLM，設 8 秒 timeout
-  async runJudge(query: string, context: string, response: string, judgeModel?: string): Promise<{ groundedness: number | null; quality: number | null }> {
-    const truncatedContext = context.slice(0, 800);
+  // 呼叫 judge LLM，timeout 與 context 截斷長度由 config 控制
+  async runJudge(query: string, context: string, response: string, judgeModel?: string, timeoutMs = 8000, contextTruncate = 800): Promise<{ groundedness: number | null; quality: number | null }> {
+    const truncatedContext = context.slice(0, contextTruncate);
     const judgePrompt = JUDGE_PROMPT
       .replace('{context}', truncatedContext)
       .replace('{query}', query)
@@ -1119,7 +1162,7 @@ export class QueryService {
 
     try {
       const timeoutPromise = new Promise<never>((_, reject) =>
-        setTimeout(() => reject(new Error('judge timeout')), 8000)
+        setTimeout(() => reject(new Error('judge timeout')), timeoutMs)
       );
       const judgePromise = (this.env.AI.run as Function)(
         model,

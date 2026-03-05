@@ -7,49 +7,85 @@ import { useAIConfig, useUpdateAIConfig } from '@/lib/api/admin-ai'
 const CONFIG_FIELDS = [
   {
     section: '模型設定',
-    desc: '各 pipeline 階段使用的 AI 模型，更換後立即生效（無需重啟）',
+    desc: '各 pipeline 階段使用的 AI 模型，更換後立即生效',
     fields: [
       {
         key: 'llm_model',
         label: '複雜查詢模型',
         placeholder: '@cf/google/gemma-3-12b-it',
-        hint: '用於 complex 查詢的主力生成模型（Stage 6 LLM C）',
+        hint: 'complex queryType 的主力生成模型（Stage 6 LLM C）',
       },
       {
         key: 'simple_model',
         label: '簡單查詢模型',
         placeholder: '@cf/meta/llama-3.1-8b-instruct',
-        hint: '用於 simple 查詢的輕量生成模型，速度較快',
+        hint: 'simple queryType 的輕量生成模型，速度較快',
       },
       {
         key: 'lightweight_model',
         label: '輕量模型',
         placeholder: '@cf/meta/llama-3.1-8b-instruct',
-        hint: '用於 Judge 品質評判 + 通識回答（general-knowledge 路徑）',
+        hint: 'Judge 品質評判 + 通識回答（general-knowledge 路徑）使用',
       },
       {
         key: 'embedding_model',
         label: 'Embedding 模型',
         placeholder: '@cf/baai/bge-m3',
-        hint: '將文字轉為向量，更換後需重新索引所有文件',
+        hint: '文字轉向量模型，更換後需重新索引所有文件',
       },
     ],
   },
   {
     section: '搜尋與檢索',
-    desc: 'Vectorize 向量搜尋候選數量與最終回傳文件數的設定',
+    desc: 'Vectorize 候選池大小、RRF 合併門檻、最終傳給 LLM 的文件數',
     fields: [
       {
         key: 'max_results',
         label: '最終文件數',
         placeholder: '5',
-        hint: 'MMR 多樣性選取後傳給 LLM 的文件數（1–20）。此為主要「搜尋結果數」設定',
+        hint: 'MMR 選取後傳給 LLM C 的文件數（1–20）',
       },
       {
         key: 'merge_top_k',
         label: 'Vectorize 候選池',
         placeholder: '10',
-        hint: 'RRF 合併前每路 Vectorize 搜尋的候選數（5–50）。多岩場查詢自動 ×2',
+        hint: '每路 Vectorize 搜尋候選數（5–50），多岩場查詢自動 ×2',
+      },
+      {
+        key: 'min_rrf_score',
+        label: 'RRF 門檻（無 filter）',
+        placeholder: '0.005',
+        hint: '無 metadata filter 時過濾低分文件，越低 recall 越高（0–1）',
+      },
+      {
+        key: 'min_rrf_score_filtered',
+        label: 'RRF 門檻（有 filter）',
+        placeholder: '0.002',
+        hint: '有 grade/crag filter 時放寬門檻，因 metadata 已保障相關性',
+      },
+    ],
+  },
+  {
+    section: '排名與多樣性',
+    desc: 'MMR 多樣性、Cross-encoder 與熱門度加權比例',
+    fields: [
+      {
+        key: 'mmr_lambda',
+        label: 'MMR Lambda',
+        placeholder: '0.6',
+        hint: 'λ 越高越重視相關性，越低結果越多樣（0.0–1.0，建議 0.5–0.7）',
+      },
+      {
+        key: 'reranker_weight',
+        label: 'Cross-encoder 權重',
+        placeholder: '0.7',
+        hint: 'Final score = reranker × W + popularity × (1-W)（建議與 popularity_weight 合計 ≤ 1）',
+      },
+      {
+        key: 'popularity_weight',
+        label: '熱門度權重',
+        placeholder: '0.3',
+        hint: '依路線影片數量加權，提升曝光較多路線的排名',
       },
     ],
   },
@@ -61,7 +97,7 @@ const CONFIG_FIELDS = [
         key: 'max_tokens_generation',
         label: '生成最大 Tokens',
         placeholder: '800',
-        hint: '主力生成（LLM C）與 self-reflection 重生成的 max_tokens（200–2000）',
+        hint: '主力生成（LLM C）與 self-reflection 重生成（200–2000）',
       },
       {
         key: 'max_tokens_gk',
@@ -69,17 +105,83 @@ const CONFIG_FIELDS = [
         placeholder: '600',
         hint: 'general-knowledge 路徑（不走 RAG）的 max_tokens（200–2000）',
       },
+      {
+        key: 'high_consumption_threshold',
+        label: '高消耗門檻（tokens）',
+        placeholder: '1000',
+        hint: '超過此 token 數時日誌標記 is_high_consumption，供監控告警',
+      },
     ],
   },
   {
-    section: '快取設定',
-    desc: '相同查詢的結果快取，減少重複呼叫 LLM',
+    section: '品質閾值',
+    desc: 'Groundedness 分數決定免責聲明與自動送審的觸發條件',
     fields: [
+      {
+        key: 'groundedness_disclaimer_low',
+        label: '❓ 強警示閾值',
+        placeholder: '0.6',
+        hint: 'Groundedness 低於此值時，在回答前注入 ❓ 強警示（0–1）',
+      },
+      {
+        key: 'groundedness_disclaimer_mid',
+        label: '⚠️ 輕警示閾值',
+        placeholder: '0.8',
+        hint: 'Groundedness 低於此值時，在回答前注入 ⚠️ 提醒（應大於強警示閾值）',
+      },
+      {
+        key: 'groundedness_flag_threshold',
+        label: '自動送審閾值',
+        placeholder: '0.5',
+        hint: 'Groundedness 低於此值時自動寫入 ai_flagged_responses 待人工審核',
+      },
+    ],
+  },
+  {
+    section: 'Judge 設定',
+    desc: '品質評判 LLM 的逾時與 context 截斷設定',
+    fields: [
+      {
+        key: 'judge_timeout_ms',
+        label: 'Judge 逾時（ms）',
+        placeholder: '8000',
+        hint: 'Judge LLM 呼叫逾時上限，超時則跳過評分繼續回答（1000–30000）',
+      },
+      {
+        key: 'judge_context_truncate',
+        label: 'Context 截斷（字）',
+        placeholder: '800',
+        hint: '傳給 Judge 的 context 最大字元數，同時作為歷史訊息 assistant 截斷長度（200–3000）',
+      },
+    ],
+  },
+  {
+    section: 'Self-Reflection 設定',
+    desc: '回答品質自評重生成的觸發條件',
+    fields: [
+      {
+        key: 'self_reflection_min_length',
+        label: '最小觸發長度（字）',
+        placeholder: '50',
+        hint: '回答字元數低於此值時跳過 self-reflection（太短無意義評估）（10–500）',
+      },
+    ],
+  },
+  {
+    section: '對話與快取',
+    desc: '多輪對話歷史深度與 KV 快取存活時間',
+    fields: [
+      {
+        key: 'chat_history_depth',
+        label: '對話歷史深度（則）',
+        placeholder: '6',
+        hint: '帶入 LLM 的最近對話訊息數（1 輪 = 2 則，預設 3 輪 = 6 則）（2–20）',
+      },
       {
         key: 'cache_ttl',
         label: '快取 TTL（秒）',
         placeholder: '3600',
-        hint: '預設 1 小時（3600 秒），最小 60 秒',
+        hint: '相同查詢的 KV 快取存活時間，預設 1 小時（60–86400）',
       },
     ],
   },
@@ -116,7 +218,7 @@ export default function AdminAISettingsPage() {
     <div className="max-w-2xl space-y-6">
       <div>
         <h1 className="text-xl font-bold text-wb-100">AI Pipeline 設定</h1>
-        <p className="mt-1 text-sm text-wb-60">設定各階段模型、搜尋參數、token 限制與快取策略，儲存後立即生效</p>
+        <p className="mt-1 text-sm text-wb-60">所有參數儲存後立即生效（無需重啟），每欄位下方顯示對應的 config key</p>
       </div>
 
       {CONFIG_FIELDS.map((section) => (
@@ -132,7 +234,7 @@ export default function AdminAISettingsPage() {
                 <div className="w-40 shrink-0 pt-1.5">
                   <label className="text-sm font-medium text-wb-80">{field.label}</label>
                   <p className="mt-0.5 text-xs text-wb-50 leading-snug">{field.hint}</p>
-                  <p className="mt-1 font-mono text-[10px] text-wb-30">{field.key}</p>
+                  <p className="mt-1.5 font-mono text-[10px] text-wb-30 bg-wb-5 rounded px-1 py-0.5 inline-block">{field.key}</p>
                 </div>
                 <div className="flex-1 pt-1">
                   <input
