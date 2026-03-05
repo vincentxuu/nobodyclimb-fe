@@ -15,7 +15,7 @@ function ScoreBadge({ score, max = 5 }: { score: number | null; max?: number }) 
         ? 'bg-yellow-50 text-yellow-700 border-yellow-200'
         : 'bg-red-50 text-red-600 border-red-200'
   return (
-    <span className={`rounded-md border px-2 py-0.5 text-xs font-medium ${styles}`}>
+    <span className={`rounded-md border px-2 py-0.5 text-xs font-medium whitespace-nowrap ${styles}`}>
       {score} / {max}
     </span>
   )

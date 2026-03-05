@@ -223,7 +223,14 @@ export function useAILogDetail(id: string) {
     queryKey: ['admin-ai-log', id],
     queryFn: () => getAILogDetail(id),
     enabled: !!id,
-    refetchInterval: 1000,
+    refetchInterval: (query) => {
+      const judge = query.state.data?.pipeline?.judge
+      if (!judge || judge.skipped || judge.auto_score != null) return false
+      // Judge 失敗時分數永遠是 null，建立超過 30s 後停止輪詢
+      const createdAt = query.state.data?.created_at
+      if (createdAt && Date.now() - new Date(createdAt).getTime() > 30_000) return false
+      return 1000
+    },
   })
 }
 

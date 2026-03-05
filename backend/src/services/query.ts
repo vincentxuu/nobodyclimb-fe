@@ -795,6 +795,7 @@ export class QueryService {
 
       // Judge 驅動重生成：quality 低於門檻時用外部 critic 的分數觸發重試（最多 1 次）
       // 條件：非 cannotAnswer、回答夠長（避免短回答無意義評估）、queryType 為 complex
+      // Strategy E：重生成後再跑一次 Judge，比較 groundedness 取較高者，避免退化替換
       if (
         quality !== null &&
         quality <= pipelineCfg.judge_regen_quality_max &&
@@ -810,13 +811,28 @@ export class QueryService {
             gatewayOptions
           )) as LLMResponse;
           const retryParsed = parseSuggestedQuestions(retryResult.response ?? rawLLMAnswer);
-          parsedAnswer = retryParsed.answer;
-          suggested_questions = retryParsed.suggested_questions;
-          answer = !cannotAnswer && finalSources.length > 0
-            ? this.injectRouteLinks(parsedAnswer, finalSources)
-            : parsedAnswer;
+          const regenAnswer = !cannotAnswer && finalSources.length > 0
+            ? this.injectRouteLinks(retryParsed.answer, finalSources)
+            : retryParsed.answer;
+
+          // 對重生成答案執行 Judge，比較 groundedness 取較高者
+          const regenJudge = await this.runJudge(query, context, regenAnswer, {
+            model: pipelineCfg.lightweight_model,
+            timeoutMs: pipelineCfg.judge_timeout_ms,
+            contextTruncate: pipelineCfg.judge_context_truncate,
+          });
+
+          if ((regenJudge.groundedness ?? 0) > (groundedness ?? 0)) {
+            // 重生成品質更好，採用新答案並更新 Judge 分數
+            parsedAnswer = retryParsed.answer;
+            suggested_questions = retryParsed.suggested_questions;
+            answer = regenAnswer;
+            groundedness = regenJudge.groundedness;
+            quality = regenJudge.quality;
+          }
+          // 否則靜默保留原始回答（原 groundedness/quality 分數不變）
         } catch {
-          // 重生成失敗時靜默保留原始回答
+          // 重生成或 Judge 失敗時靜默保留原始回答
         }
       }
 
@@ -1222,21 +1238,34 @@ export class QueryService {
   }
 
   // 解析 judge LLM 回傳的 JSON，容錯處理格式錯誤
+  // Fallback：llama 等模型可能忽略 JSON-only 指令，改用自然語言回答，嘗試從中萃取數值
   parseJudgeResponse(raw: string): { groundedness: number | null; quality: number | null } {
+    // 1. 嘗試 JSON 解析
     try {
-      // 嘗試直接解析
       const jsonMatch = raw.match(/\{[^}]*\}/);
-      const parsed = JSON.parse(jsonMatch ? jsonMatch[0] : raw);
-      const groundedness = typeof parsed.groundedness === 'number' && parsed.groundedness >= 0 && parsed.groundedness <= 1
-        ? parsed.groundedness
-        : null;
-      const quality = typeof parsed.quality === 'number' && Number.isInteger(parsed.quality) && parsed.quality >= 1 && parsed.quality <= 4
-        ? parsed.quality
-        : null;
-      return { groundedness, quality };
-    } catch {
-      return { groundedness: null, quality: null };
+      if (jsonMatch) {
+        const parsed = JSON.parse(jsonMatch[0]);
+        const groundedness = typeof parsed.groundedness === 'number' && parsed.groundedness >= 0 && parsed.groundedness <= 1
+          ? parsed.groundedness : null;
+        const quality = typeof parsed.quality === 'number' && Number.isInteger(parsed.quality) && parsed.quality >= 1 && parsed.quality <= 4
+          ? parsed.quality : null;
+        if (groundedness !== null || quality !== null) return { groundedness, quality };
+      }
+    } catch { /* fall through to natural language parsing */ }
+
+    // 2. Fallback：自然語言萃取（如 "groundedness：0.8" 或 "quality: 3"）
+    let groundedness: number | null = null;
+    let quality: number | null = null;
+    const gMatch = raw.match(/groundedness[^0-9]*([0-9]+(?:\.[0-9]+)?)/i);
+    if (gMatch) {
+      const g = parseFloat(gMatch[1]);
+      if (g >= 0 && g <= 1) groundedness = g;
     }
+    const qMatch = raw.match(/quality[^1-4]*([1-4])(?![0-9])/i);
+    if (qMatch) {
+      quality = parseInt(qMatch[1], 10);
+    }
+    return { groundedness, quality };
   }
 
   // 語義快取查詢：用 queryVector 在 VECTOR_INDEX 比對近似問題，命中時回傳快取回應
@@ -1370,7 +1399,13 @@ export class QueryService {
       );
       const judgePromise = (this.env.AI.run as Function)(
         model,
-        { messages: [{ role: 'user', content: judgePrompt }], max_tokens: 60 }
+        {
+          messages: [
+            { role: 'system', content: '只回傳 JSON，不含任何說明文字。格式：{"groundedness": <float 0.0-1.0>, "quality": <int 1-4>}' },
+            { role: 'user', content: judgePrompt },
+          ],
+          max_tokens: 60,
+        }
       ) as Promise<LLMResponse>;
 
       const judgeResult = await Promise.race([judgePromise, timeoutPromise]);

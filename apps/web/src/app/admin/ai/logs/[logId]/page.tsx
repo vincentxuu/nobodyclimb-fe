@@ -106,7 +106,7 @@ function PipelineTimeline({ pipeline }: { pipeline: AILogDetail['pipeline'] }) {
       <h2 className="mb-4 text-sm font-semibold text-wb-100">RAG Pipeline 流程</h2>
       <div className="space-y-0">
         {stages.map((key, idx) => {
-          const stage = pipeline[key] as Record<string, unknown>
+          const stage = pipeline[key] as unknown as Record<string, unknown>
           const skipped = Boolean(stage.skipped)
           const isLast = idx === stages.length - 1
 
@@ -183,7 +183,7 @@ function PipelineTimeline({ pipeline }: { pipeline: AILogDetail['pipeline'] }) {
                     </span>
                   ))}
                 </div>
-                {stage.service && (
+                {!!stage.service && (
                   <p className={`mt-0.5 text-[11px] font-mono ${skipped ? 'text-wb-30' : 'text-wb-50'}`}>
                     {stage.service as string}
                   </p>
@@ -291,7 +291,7 @@ function QualitySection({ quality }: { quality: AILogDetail['quality'] }) {
         </div>
       )}
 
-      {flags.length > 0 && (
+      {(flags?.length ?? 0) > 0 && (
         <div className="space-y-1.5">
           {flags.map((f, i) => (
             <div key={i} className="flex items-start gap-2 rounded-lg border border-amber-200 bg-amber-50 px-3 py-2">
@@ -305,7 +305,7 @@ function QualitySection({ quality }: { quality: AILogDetail['quality'] }) {
         </div>
       )}
 
-      {flags.length === 0 && (
+      {(flags?.length ?? 0) === 0 && (
         <div className="flex items-center gap-2 rounded-lg border border-emerald-200 bg-emerald-50 px-3 py-2">
           <CheckCircle2 className="h-3.5 w-3.5 text-emerald-500" />
           <span className="text-xs text-emerald-700">無品質告警</span>
@@ -339,7 +339,8 @@ export default function AdminAILogDetailPage({ params }: { params: Promise<{ log
     )
   }
 
-  const isCacheHit = log.pipeline.cache.hit
+  const isCacheHit = log.pipeline?.cache?.hit
+  const sources = Array.isArray(log.sources) ? log.sources : []
 
   return (
     <div className="space-y-6 max-w-3xl">
@@ -367,7 +368,7 @@ export default function AdminAILogDetailPage({ params }: { params: Promise<{ log
           <User className="h-5 w-5 text-wb-50" />
           <div className="min-w-0">
             <p className="text-xs text-wb-50">使用者</p>
-            {log.user.id ? (
+            {log.user?.id ? (
               <p className="font-medium text-wb-100 truncate" title={log.user.username ?? undefined}>
                 {log.user.display_name || log.user.username}
               </p>
@@ -381,7 +382,7 @@ export default function AdminAILogDetailPage({ params }: { params: Promise<{ log
           <div>
             <p className="text-xs text-wb-50">總延遲</p>
             <p className="font-semibold text-wb-100">
-              {log.latency.total_ms != null ? `${log.latency.total_ms} ms` : '—'}
+              {log.latency?.total_ms != null ? `${log.latency.total_ms} ms` : '—'}
             </p>
           </div>
         </div>
@@ -401,13 +402,13 @@ export default function AdminAILogDetailPage({ params }: { params: Promise<{ log
       </div>
 
       {/* Pipeline 流程 */}
-      <PipelineTimeline pipeline={log.pipeline} />
+      {log.pipeline && <PipelineTimeline pipeline={log.pipeline} />}
 
       {/* 延遲分解 */}
-      {!isCacheHit && <LatencyBreakdown latency={log.latency} />}
+      {!isCacheHit && log.latency && <LatencyBreakdown latency={log.latency} />}
 
       {/* 品質評估 */}
-      <QualitySection quality={log.quality} />
+      {log.quality && <QualitySection quality={log.quality} />}
 
       {/* AI 回應 */}
       {log.response && (
@@ -418,11 +419,11 @@ export default function AdminAILogDetailPage({ params }: { params: Promise<{ log
       )}
 
       {/* 來源 */}
-      {log.sources.length > 0 && (
+      {sources.length > 0 && (
         <div className="rounded-xl border border-wb-20 bg-white p-5">
-          <h2 className="mb-3 text-sm font-semibold text-wb-100">參考來源（{log.sources.length}）</h2>
+          <h2 className="mb-3 text-sm font-semibold text-wb-100">參考來源（{sources.length}）</h2>
           <div className="divide-y divide-wb-10">
-            {log.sources.map((s, i) => (
+            {sources.map((s, i) => (
               <div key={i} className="flex items-center gap-3 py-2.5 text-sm">
                 <span className="shrink-0 rounded-md border border-wb-20 px-1.5 py-0.5 text-[10px] text-wb-60">
                   {s.type}
