@@ -254,7 +254,8 @@ export class QueryService {
   // Stage 6：MMR 多樣性選取（λ=0.6）
   // Stage 7：熱門度加權排序 → LLM C 生成回答
   // Task 5.1: 加入 ctx 供 waitUntil 使用
-  async ask(request: AIAskRequest, userId?: string, ctx?: { waitUntil(promise: Promise<unknown>): void }): Promise<AIAskResponse> {
+  async ask(request: AIAskRequest, userId?: string, ctx?: { waitUntil(promise: Promise<unknown>): void }, onToken?: (token: string) => Promise<void>): Promise<AIAskResponse> {
+    const streamingMode = !!onToken;
     const { query, limit = DEFAULT_TOP_K, include_sources = true, chat_history, no_cache = false } = request;
 
     // 有 chat_history 時帶入最近 6 則供 cache key hash 使用（LLM 實際使用量由 chat_history_depth 設定）
@@ -713,13 +714,21 @@ export class QueryService {
       ...historyLLMMessages,
       { role: 'user' as const, content: prompt },
     ];
-    const llmResult = (await this.env.AI.run(
-      effectiveLlmModel,
-      { messages: llmMessages, max_tokens: pipelineCfg.max_tokens_generation },
-      gatewayOptions
-    )) as LLMResponse;
+    let rawLLMAnswer: string;
+    let llmUsage: LLMResponse['usage'] | undefined;
+    if (streamingMode) {
+      // 真串流：Stage 1-6 完成後立即開始推送 token，大幅降低 TTFT
+      rawLLMAnswer = await this.streamLLMGeneration(effectiveLlmModel, llmMessages, pipelineCfg.max_tokens_generation, gatewayOptions, onToken!);
+    } else {
+      const llmResult = (await (this.env.AI.run as Function)(
+        effectiveLlmModel,
+        { messages: llmMessages, max_tokens: pipelineCfg.max_tokens_generation },
+        gatewayOptions
+      )) as LLMResponse;
+      rawLLMAnswer = llmResult.response ?? '抱歉，無法生成回答，請稍後再試。';
+      llmUsage = llmResult.usage;
+    }
 
-    const rawLLMAnswer = llmResult.response ?? '抱歉，無法生成回答，請稍後再試。';
     let { answer: parsedAnswer, suggested_questions } = parseSuggestedQuestions(rawLLMAnswer);
     const generationMs = Date.now() - generationStart;
     const latencyMs = Date.now() - startTime;
@@ -728,7 +737,8 @@ export class QueryService {
     let selfReflectionTriggered = 0;
     const cannotAnswer =
       parsedAnswer.includes('超出我的知識範圍') || parsedAnswer.includes('找不到相關資訊');
-    if (queryType === 'complex' && !cannotAnswer && parsedAnswer.length >= pipelineCfg.self_reflection_min_length) {
+    // 串流模式跳過 self-reflection：已推送的 token 無法替換
+    if (!streamingMode && queryType === 'complex' && !cannotAnswer && parsedAnswer.length >= pipelineCfg.self_reflection_min_length) {
       try {
         const reflectionPrompt = SELF_REFLECTION_PROMPT
           .replace('{query}', query)
@@ -762,15 +772,18 @@ export class QueryService {
       ? this.injectRouteLinks(parsedAnswer, finalSources)
       : parsedAnswer;
 
-    // Judge 評估：groundedness + 品質評分（同步執行，支援免責聲明注入）
-    const { groundedness, quality } = await this.runJudge(query, context, answer, pipelineCfg.lightweight_model, pipelineCfg.judge_timeout_ms, pipelineCfg.judge_context_truncate);
-
-    // 依 groundedness 分數注入免責聲明（閾值由 ai_config 設定）
-    if (groundedness !== null && !cannotAnswer) {
-      if (groundedness < pipelineCfg.groundedness_disclaimer_low) {
-        answer = `❓ 以下資訊基於現有資料推斷，建議實地確認\n\n${answer}`;
-      } else if (groundedness < pipelineCfg.groundedness_disclaimer_mid) {
-        answer = `⚠️ 部分資訊來自推斷，建議實地確認\n\n${answer}`;
+    // Judge 評估：非串流同步執行（支援免責聲明注入）；串流異步執行（token 已推送，僅記錄日誌）
+    let groundedness: number | null = null;
+    let quality: number | null = null;
+    if (!streamingMode) {
+      ({ groundedness, quality } = await this.runJudge(query, context, answer, pipelineCfg.lightweight_model, pipelineCfg.judge_timeout_ms, pipelineCfg.judge_context_truncate));
+      // 依 groundedness 分數注入免責聲明（閾值由 ai_config 設定）
+      if (groundedness !== null && !cannotAnswer) {
+        if (groundedness < pipelineCfg.groundedness_disclaimer_low) {
+          answer = `❓ 以下資訊基於現有資料推斷，建議實地確認\n\n${answer}`;
+        } else if (groundedness < pipelineCfg.groundedness_disclaimer_mid) {
+          answer = `⚠️ 部分資訊來自推斷，建議實地確認\n\n${answer}`;
+        }
       }
     }
 
@@ -778,11 +791,11 @@ export class QueryService {
     answer = checkOutput(answer);
 
     // Workers AI binding 不回傳 usage，用字元長度估算 token 數
-    // 中英混合約每 2 字元 = 1 token
+    // 中英混合約每 2 字元 = 1 token；串流模式無 usage 物件，一律用估算值
     const estimatedTokens = Math.ceil(
       (SYSTEM_PROMPT.length + prompt.length + answer.length) / 2
     );
-    const tokenCount = llmResult.usage?.total_tokens ?? estimatedTokens;
+    const tokenCount = llmUsage?.total_tokens ?? estimatedTokens;
 
     // 記錄查詢日誌（含品質指標與分段延遲）
     const queryId = await this.logQuery({
@@ -805,8 +818,8 @@ export class QueryService {
       hydeTriggered: hydeDoc !== '',
     });
 
-    // 低 groundedness 自動標記（閾值由 ai_config.groundedness_flag_threshold 設定）
-    if (groundedness !== null && groundedness < pipelineCfg.groundedness_flag_threshold) {
+    // 非串流：低 groundedness 同步標記
+    if (!streamingMode && groundedness !== null && groundedness < pipelineCfg.groundedness_flag_threshold) {
       await this.flagResponse(queryId, 'low_groundedness');
     }
 
@@ -822,20 +835,40 @@ export class QueryService {
       expirationTtl: cacheTtl,
     });
 
-    // Task 5.5: 非同步記憶提取（只對已登入用戶，只傳 query）
-    if (userId && ctx) {
-      const gatewayOpts = this.env.AI_GATEWAY_SLUG
-        ? { gateway: { id: this.env.AI_GATEWAY_SLUG } }
-        : undefined;
-      ctx.waitUntil(
-        extractMemoriesFromQuery(query, userId, this.env.DB, this.env.AI, gatewayOpts)
-      );
+    if (ctx) {
+      // 串流模式：Judge 異步執行，不阻塞 done 事件；完成後更新日誌分數並標記
+      if (streamingMode) {
+        ctx.waitUntil((async () => {
+          const { groundedness: gs, quality: ql } = await this.runJudge(
+            query, context, answer,
+            pipelineCfg.lightweight_model, pipelineCfg.judge_timeout_ms, pipelineCfg.judge_context_truncate
+          );
+          if (gs !== null || ql !== null) {
+            await this.env.DB.prepare(
+              `UPDATE ai_query_logs SET groundedness_score = ?, auto_score = ? WHERE id = ?`
+            ).bind(gs, ql, queryId).run().catch(() => {});
+          }
+          if (gs !== null && gs < pipelineCfg.groundedness_flag_threshold) {
+            await this.flagResponse(queryId, 'low_groundedness');
+          }
+        })());
+      }
+
+      // Task 5.5: 非同步記憶提取（只對已登入用戶，只傳 query）
+      if (userId) {
+        const gatewayOpts = this.env.AI_GATEWAY_SLUG
+          ? { gateway: { id: this.env.AI_GATEWAY_SLUG } }
+          : undefined;
+        ctx.waitUntil(
+          extractMemoriesFromQuery(query, userId, this.env.DB, this.env.AI, gatewayOpts)
+        );
+      }
     }
 
     return response;
   }
 
-  // SSE 串流問答：複用 ask() 邏輯，將回答逐詞推送給 write callback
+  // SSE 串流問答：真串流實作，LLM C 開始生成即推送 token，大幅降低 TTFT
   // route handler 負責在此方法回傳後送出 done 事件（含 quota_remaining）
   async askStream(
     request: AIAskRequest,
@@ -843,21 +876,15 @@ export class QueryService {
     write: (data: string) => Promise<void>,
     ctx?: { waitUntil(promise: Promise<unknown>): void },
   ): Promise<AIAskResponse> {
-    let result: AIAskResponse;
+    const onToken = async (token: string) => {
+      await write(JSON.stringify({ type: 'token', token }));
+    };
     try {
-      result = await this.ask(request, userId, ctx);
+      return await this.ask(request, userId, ctx, onToken);
     } catch (error) {
       await write(JSON.stringify({ type: 'error', message: '抱歉，AI 服務暫時無法使用，請稍後再試。' }));
       throw error;
     }
-
-    // 將 answer 以詞為單位切割，逐詞推送（含後續空白，保留排版）
-    const tokens = result.answer.match(/\S+\s*/g) ?? [result.answer];
-    for (const token of tokens) {
-      await write(JSON.stringify({ type: 'token', token }));
-    }
-
-    return result;
   }
 
   // 純語義搜尋（不呼叫 LLM）
@@ -1159,6 +1186,76 @@ export class QueryService {
     } catch {
       return { groundedness: null, quality: null };
     }
+  }
+
+  // LLM 串流生成：邊生成邊透過 onToken 回調推送，回傳完整原始文字
+  // 偵測 ---SUGGESTIONS--- 標記，標記之前的內容推送給 onToken，之後收集但不推送
+  private async streamLLMGeneration(
+    model: string,
+    messages: Array<{ role: 'system' | 'user' | 'assistant'; content: string }>,
+    maxTokens: number,
+    gatewayOptions: unknown,
+    onToken: (token: string) => Promise<void>,
+  ): Promise<string> {
+    const stream = (await (this.env.AI.run as Function)(
+      model,
+      { messages, max_tokens: maxTokens, stream: true },
+      gatewayOptions,
+    )) as ReadableStream<Uint8Array>;
+
+    const reader = stream.getReader();
+    const decoder = new TextDecoder();
+    let fullText = '';
+    let sseBuffer = '';    // SSE line accumulation
+    let slideBuffer = '';  // sliding window for ---SUGGESTIONS--- detection
+    let suggestionsStarted = false;
+    const MARKER = '---SUGGESTIONS---';
+
+    try {
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+
+        sseBuffer += decoder.decode(value, { stream: true });
+        const lines = sseBuffer.split('\n');
+        sseBuffer = lines.pop() ?? '';
+
+        for (const line of lines) {
+          if (!line.startsWith('data: ')) continue;
+          const payload = line.slice(6).trim();
+          if (payload === '[DONE]') break;
+          try {
+            const parsed = JSON.parse(payload) as { response?: string };
+            if (!parsed.response) continue;
+
+            fullText += parsed.response;
+            if (suggestionsStarted) continue; // 建議列表區段：收集但不推送
+
+            slideBuffer += parsed.response;
+            const markerIdx = slideBuffer.indexOf(MARKER);
+            if (markerIdx !== -1) {
+              // 找到標記：推送標記前的文字，停止串流
+              const beforeMarker = slideBuffer.slice(0, markerIdx);
+              if (beforeMarker) await onToken(beforeMarker);
+              suggestionsStarted = true;
+            } else {
+              // 滑動視窗：保留最後 (MARKER.length-1) 個字元以防標記跨 chunk
+              const safeLen = slideBuffer.length - (MARKER.length - 1);
+              if (safeLen > 0) {
+                await onToken(slideBuffer.slice(0, safeLen));
+                slideBuffer = slideBuffer.slice(safeLen);
+              }
+            }
+          } catch { /* 忽略格式錯誤的 SSE 行 */ }
+        }
+      }
+      // 沖出剩餘 buffer（整個回答都沒有建議標記的情況）
+      if (!suggestionsStarted && slideBuffer) await onToken(slideBuffer);
+    } finally {
+      reader.releaseLock();
+    }
+
+    return fullText;
   }
 
   // 呼叫 judge LLM，timeout 與 context 截斷長度由 config 控制
