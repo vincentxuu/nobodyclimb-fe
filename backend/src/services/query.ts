@@ -72,7 +72,40 @@ const MIN_RRF_SCORE = 0.005;          // 無 filter 時的 RRF 門檻
 const MIN_RRF_SCORE_FILTERED = 0.002; // 有 grade/crag filter 時放寬門檻（metadata 已保障相關性）
 const MIN_VECTOR_SCORE = 0.5;         // 純語義搜尋（search()）使用原始 vector score 門檻
 const DEFAULT_LLM_MODEL = '@cf/google/gemma-3-12b-it';
-const LIGHTWEIGHT_MODEL = '@cf/meta/llama-3.1-8b-instruct';
+const DEFAULT_LIGHTWEIGHT_MODEL = '@cf/meta/llama-3.1-8b-instruct';
+
+// 從 ai_config 批次讀取 pipeline 設定
+interface PipelineConfig {
+  llm_model: string;
+  simple_model: string;
+  lightweight_model: string;
+  max_results: number;
+  cache_ttl: number;
+  merge_top_k: number;
+  max_tokens_generation: number;
+  max_tokens_gk: number;
+}
+
+async function loadPipelineConfig(db: D1Database): Promise<PipelineConfig> {
+  const rows = await db.prepare(
+    `SELECT key, value FROM ai_config WHERE key IN (
+      'llm_model','simple_model','lightweight_model',
+      'max_results','cache_ttl','merge_top_k',
+      'max_tokens_generation','max_tokens_gk'
+    )`
+  ).all<{ key: string; value: string }>();
+  const cfg: Record<string, string> = Object.fromEntries(rows.results.map((r) => [r.key, r.value]));
+  return {
+    llm_model: cfg['llm_model'] ?? DEFAULT_LLM_MODEL,
+    simple_model: cfg['simple_model'] ?? DEFAULT_LIGHTWEIGHT_MODEL,
+    lightweight_model: cfg['lightweight_model'] ?? DEFAULT_LIGHTWEIGHT_MODEL,
+    max_results: Math.min(20, Math.max(1, parseInt(cfg['max_results'] ?? '5', 10) || 5)),
+    cache_ttl: Math.max(60, parseInt(cfg['cache_ttl'] ?? '3600', 10) || 3600),
+    merge_top_k: Math.min(50, Math.max(5, parseInt(cfg['merge_top_k'] ?? '10', 10) || 10)),
+    max_tokens_generation: Math.min(2000, Math.max(200, parseInt(cfg['max_tokens_generation'] ?? '800', 10) || 800)),
+    max_tokens_gk: Math.min(2000, Math.max(200, parseInt(cfg['max_tokens_gk'] ?? '600', 10) || 600)),
+  };
+}
 
 interface LLMResponse {
   response: string;
@@ -212,11 +245,11 @@ export class QueryService {
       }
     }
 
-    // 取得 LLM 模型設定
-    const llmModelRow = await this.env.DB.prepare(
-      `SELECT value FROM ai_config WHERE key = 'llm_model'`
-    ).first<{ value: string }>();
-    const llmModel = llmModelRow?.value ?? DEFAULT_LLM_MODEL;
+    // 批次讀取 pipeline 設定（一次 DB 查詢取代多次分散查詢）
+    const pipelineCfg = await loadPipelineConfig(this.env.DB);
+    const llmModel = pipelineCfg.llm_model;
+    const effectiveLimit = pipelineCfg.max_results; // admin 設定覆蓋 request limit
+    const cacheTtl = pipelineCfg.cache_ttl;
 
     const gatewayOptions = this.env.AI_GATEWAY_SLUG
       ? { gateway: { id: this.env.AI_GATEWAY_SLUG } }
@@ -272,10 +305,10 @@ export class QueryService {
       // 決定 queryType：tool=general_knowledge 優先，否則從 parsedQuery.query_type 取得
       if (parsedQuery?.tool === 'general_knowledge') {
         queryType = 'general-knowledge';
-        effectiveLlmModel = LIGHTWEIGHT_MODEL;
+        effectiveLlmModel = pipelineCfg.lightweight_model;
       } else {
         queryType = parsedQuery?.query_type ?? 'complex';
-        effectiveLlmModel = queryType === 'simple' ? LIGHTWEIGHT_MODEL : llmModel;
+        effectiveLlmModel = queryType === 'simple' ? pipelineCfg.simple_model : llmModel;
       }
 
       // general_knowledge：直接跳過向量搜尋，用 LLM 通識能力回答
@@ -283,7 +316,7 @@ export class QueryService {
         const gkPersonalized = buildPersonalizedSystemPrompt(memorySummary, ascentContext, abilityLevel, GENERAL_KNOWLEDGE_SYSTEM_PROMPT);
         const llmResult = (await this.env.AI.run(
           effectiveLlmModel,
-          { messages: [{ role: 'system', content: gkPersonalized }, { role: 'user', content: query }], max_tokens: 600 },
+          { messages: [{ role: 'system', content: gkPersonalized }, { role: 'user', content: query }], max_tokens: pipelineCfg.max_tokens_gk },
           gatewayOptions
         )) as LLMResponse;
         const rawAnswer = llmResult.response ?? '抱歉，無法生成回答，請稍後再試。';
@@ -294,7 +327,7 @@ export class QueryService {
         const gkTokenCount = llmResult.usage?.total_tokens ?? estimatedTokens;
         const queryId = await this.logQuery({ userId: userId ?? null, query, response: answer, sources: [], latencyMs, tokenCount: gkTokenCount, queryType: 'general-knowledge', modelUsed: effectiveLlmModel, retrievalScore: 0, selfReflectionTriggered: 0, isHighConsumption: gkTokenCount > 1000, hydeTriggered: false });
         const response: AIAskResponse = { answer, sources: [], query_id: queryId, suggested_questions };
-        await this.env.CACHE.put(cacheKey, JSON.stringify(response), { expirationTtl: CACHE_TTL });
+        await this.env.CACHE.put(cacheKey, JSON.stringify(response), { expirationTtl: cacheTtl });
         if (userId && ctx) {
           const gkGatewayOpts = this.env.AI_GATEWAY_SLUG ? { gateway: { id: this.env.AI_GATEWAY_SLUG } } : undefined;
           ctx.waitUntil(extractMemoriesFromQuery(query, userId, this.env.DB, this.env.AI, gkGatewayOpts));
@@ -392,7 +425,7 @@ export class QueryService {
     // 多岩場（$in）時加大 topK，確保每個岩場都有足夠結果
     const cragFilter = vectorFilter['crag_id'] as { $in?: string[] } | undefined;
     const isMultiCrag = Array.isArray(cragFilter?.$in) && cragFilter.$in.length > 1;
-    const MERGE_TOP_K = isMultiCrag ? 20 : 10;
+    const MERGE_TOP_K = isMultiCrag ? Math.max(20, pipelineCfg.merge_top_k * 2) : pipelineCfg.merge_top_k;
     const searchTasks: Promise<{ matches: SearchResult[] }>[] = [
       this.env.VECTOR_INDEX.query(queryVector, {
         topK: MERGE_TOP_K,
@@ -507,7 +540,8 @@ export class QueryService {
 
     // MMR：從 cross-encoder 重排後的候選中，選出相關且多樣的 top-N
     // 避免回傳一堆難度/岩場完全相同的路線，提升結果多樣性
-    const mmrSelected = this.applyMMR(scoredCandidates, documents, 0.6, limit);
+    // effectiveLimit 來自 ai_config.max_results，覆蓋 request limit 以讓 admin 設定生效
+    const mmrSelected = this.applyMMR(scoredCandidates, documents, 0.6, effectiveLimit);
 
     // 熱門度排序：依影片數為路線評分加權（combined = reranker*0.7 + popularity*0.3）
     // 在 MMR 選出的候選中加權，決定最終顯示順序
@@ -628,7 +662,7 @@ export class QueryService {
     ];
     const llmResult = (await this.env.AI.run(
       effectiveLlmModel,
-      { messages: llmMessages, max_tokens: 800 },
+      { messages: llmMessages, max_tokens: pipelineCfg.max_tokens_generation },
       gatewayOptions
     )) as LLMResponse;
 
@@ -656,7 +690,7 @@ export class QueryService {
           selfReflectionTriggered = 1;
           const retryResult = (await this.env.AI.run(
             effectiveLlmModel,
-            { messages: llmMessages, max_tokens: 800 },
+            { messages: llmMessages, max_tokens: pipelineCfg.max_tokens_generation },
             gatewayOptions
           )) as LLMResponse;
           const retryParsed = parseSuggestedQuestions(retryResult.response ?? rawLLMAnswer);
@@ -676,7 +710,7 @@ export class QueryService {
       : parsedAnswer;
 
     // Judge 評估：groundedness + 品質評分（同步執行，支援免責聲明注入）
-    const { groundedness, quality } = await this.runJudge(query, context, answer);
+    const { groundedness, quality } = await this.runJudge(query, context, answer, pipelineCfg.lightweight_model);
 
     // 依 groundedness 分數注入免責聲明
     if (groundedness !== null && !cannotAnswer) {
@@ -732,7 +766,7 @@ export class QueryService {
 
     // 快取結果
     await this.env.CACHE.put(cacheKey, JSON.stringify(response), {
-      expirationTtl: CACHE_TTL,
+      expirationTtl: cacheTtl,
     });
 
     // Task 5.5: 非同步記憶提取（只對已登入用戶，只傳 query）
@@ -1074,20 +1108,21 @@ export class QueryService {
     }
   }
 
-  // 呼叫 judge LLM，設 3 秒 timeout
-  async runJudge(query: string, context: string, response: string): Promise<{ groundedness: number | null; quality: number | null }> {
+  // 呼叫 judge LLM，設 8 秒 timeout
+  async runJudge(query: string, context: string, response: string, judgeModel?: string): Promise<{ groundedness: number | null; quality: number | null }> {
     const truncatedContext = context.slice(0, 800);
     const judgePrompt = JUDGE_PROMPT
       .replace('{context}', truncatedContext)
       .replace('{query}', query)
       .replace('{response}', response);
+    const model = judgeModel ?? DEFAULT_LIGHTWEIGHT_MODEL;
 
     try {
       const timeoutPromise = new Promise<never>((_, reject) =>
         setTimeout(() => reject(new Error('judge timeout')), 8000)
       );
       const judgePromise = (this.env.AI.run as Function)(
-        '@cf/meta/llama-3.1-8b-instruct',
+        model,
         { messages: [{ role: 'user', content: judgePrompt }], max_tokens: 60 }
       ) as Promise<LLMResponse>;
 
