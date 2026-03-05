@@ -9,6 +9,7 @@ import { useQueryClient } from '@tanstack/react-query'
 type IndexType = 'route' | 'crag' | 'all'
 
 const BATCH_SIZE = 10
+const INDEXING_TIMEOUT = 180000
 
 interface IndexApiResponse {
   success: boolean
@@ -39,10 +40,7 @@ export default function AdminAIKnowledgePage() {
     let totalFailed = 0
 
     try {
-      // 索引操作需要較長時間，覆寫預設 10s timeout
-      const INDEXING_TIMEOUT = 60000
-
-      // 岩場數量少，一次完成
+        // 岩場數量少，一次完成
       if (type === 'crag' || type === 'all') {
         const res = await apiClient.post<IndexApiResponse>(
           '/ai/index',

@@ -133,8 +133,9 @@ jobs:
           if [ -n "$CLOUDFLARE_ACCOUNT_ID" ]; then
             echo "$CLOUDFLARE_ACCOUNT_ID" | npx wrangler secret put CLOUDFLARE_ACCOUNT_ID --config wrangler.toml --env ${{ steps.env.outputs.environment }}
           fi
-          if [ -n "$CF_ANALYTICS_TOKEN" ]; then
-            echo "$CF_ANALYTICS_TOKEN" | npx wrangler secret put CLOUDFLARE_API_TOKEN --config wrangler.toml --env ${{ steps.env.outputs.environment }}
+          ANALYTICS_TOKEN="${CF_ANALYTICS_TOKEN:-$CLOUDFLARE_API_TOKEN}"
+          if [ -n "$ANALYTICS_TOKEN" ]; then
+            echo "$ANALYTICS_TOKEN" | npx wrangler secret put CLOUDFLARE_API_TOKEN --config wrangler.toml --env ${{ steps.env.outputs.environment }}
           fi
         env:
           JWT_SECRET: ${{ secrets.JWT_SECRET }}
