@@ -194,14 +194,23 @@ export class QueryService {
     const personalizedHash = personalizedContext ? `:p${this.hashQuery(personalizedContext)}` : '';
     const userPrefix = userId ? `${userId}:` : '';
     const cacheKey = `ai:ask:${userPrefix}${this.hashQuery(query)}${historyHash}${personalizedHash}`;
+    const startTime = Date.now();
     if (!no_cache) {
       const cached = await this.env.CACHE.get(cacheKey);
       if (cached) {
+        // 記錄快取命中日誌（非同步，不阻塞回應）
+        this.logQuery({
+          userId: userId ?? null,
+          query,
+          response: '',
+          sources: [],
+          latencyMs: Date.now() - startTime,
+          tokenCount: 0,
+          cacheHit: true,
+        }).catch(() => {});
         return JSON.parse(cached) as AIAskResponse;
       }
     }
-
-    const startTime = Date.now();
 
     // 取得 LLM 模型設定
     const llmModelRow = await this.env.DB.prepare(
@@ -283,7 +292,7 @@ export class QueryService {
         const latencyMs = Date.now() - startTime;
         const estimatedTokens = Math.ceil((GENERAL_KNOWLEDGE_SYSTEM_PROMPT.length + query.length + answer.length) / 2);
         const gkTokenCount = llmResult.usage?.total_tokens ?? estimatedTokens;
-        const queryId = await this.logQuery({ userId: userId ?? null, query, response: answer, sources: [], latencyMs, tokenCount: gkTokenCount, queryType: 'general-knowledge', modelUsed: effectiveLlmModel, retrievalScore: 0, selfReflectionTriggered: 0, isHighConsumption: gkTokenCount > 1000 });
+        const queryId = await this.logQuery({ userId: userId ?? null, query, response: answer, sources: [], latencyMs, tokenCount: gkTokenCount, queryType: 'general-knowledge', modelUsed: effectiveLlmModel, retrievalScore: 0, selfReflectionTriggered: 0, isHighConsumption: gkTokenCount > 1000, hydeTriggered: false });
         const response: AIAskResponse = { answer, sources: [], query_id: queryId, suggested_questions };
         await this.env.CACHE.put(cacheKey, JSON.stringify(response), { expirationTtl: CACHE_TTL });
         if (userId && ctx) {
@@ -706,6 +715,7 @@ export class QueryService {
       retrievalScore,
       selfReflectionTriggered,
       isHighConsumption: tokenCount > 1000,
+      hydeTriggered: hydeDoc !== '',
     });
 
     // 低 groundedness 自動標記
@@ -1121,12 +1131,14 @@ export class QueryService {
     retrievalScore?: number | null;
     selfReflectionTriggered?: number | null;
     isHighConsumption?: boolean;
+    cacheHit?: boolean;
+    hydeTriggered?: boolean;
   }): Promise<string> {
     const id = crypto.randomUUID();
     try {
       await this.env.DB.prepare(`
-        INSERT INTO ai_query_logs (id, user_id, query, response, sources, latency_ms, token_count, groundedness_score, auto_score, embedding_ms, retrieval_ms, generation_ms, query_type, model_used, retrieval_score, self_reflection_triggered, is_high_consumption)
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        INSERT INTO ai_query_logs (id, user_id, query, response, sources, latency_ms, token_count, groundedness_score, auto_score, embedding_ms, retrieval_ms, generation_ms, query_type, model_used, retrieval_score, self_reflection_triggered, is_high_consumption, cache_hit, hyde_triggered)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
       `)
         .bind(
           id,
@@ -1145,7 +1157,9 @@ export class QueryService {
           params.modelUsed ?? null,
           params.retrievalScore ?? null,
           params.selfReflectionTriggered ?? 0,
-          params.isHighConsumption ? 1 : 0
+          params.isHighConsumption ? 1 : 0,
+          params.cacheHit ? 1 : 0,
+          params.hydeTriggered ? 1 : 0
         )
         .run();
     } catch (error) {
