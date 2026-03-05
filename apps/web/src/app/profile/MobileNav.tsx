@@ -12,11 +12,30 @@ const menuItems = [
     icon: UserCircle,
   },
   {
+    name: '推薦',
+    href: '/profile/recommendations',
+    icon: Sparkles,
+  },
+  {
+    name: 'AI 記憶',
+    href: '/profile/ai-memory',
+    icon: Brain,
+  },
+  {
     name: '清單',
     href: '/profile/bucket-list',
     icon: Target,
   },
-
+  {
+    name: '攀爬紀錄',
+    href: '/profile/ascents',
+    icon: MountainSnow,
+  },
+  {
+    name: '成就',
+    href: '/profile/stats',
+    icon: BarChart3,
+  },
   {
     name: '文章',
     href: '/profile/articles',
@@ -26,26 +45,6 @@ const menuItems = [
     name: '照片',
     href: '/profile/photos',
     icon: ImageIcon,
-  },
-  {
-    name: '成就',
-    href: '/profile/stats',
-    icon: BarChart3,
-  },
-  {
-    name: '攀登',
-    href: '/profile/ascents',
-    icon: MountainSnow,
-  },
-  {
-    name: '推薦',
-    href: '/profile/recommendations',
-    icon: Sparkles,
-  },
-  {
-    name: 'AI 記憶',
-    href: '/profile/ai-memory',
-    icon: Brain,
   },
   {
     name: '收藏',
