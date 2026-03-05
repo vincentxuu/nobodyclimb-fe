@@ -169,7 +169,11 @@ adminAiRoutes.get(
       const rows = await c.env.DB.prepare(
         `SELECT l.id, l.query, l.latency_ms, l.feedback_score, l.created_at,
                 l.user_id, u.username, u.display_name,
-                l.query_type, l.model_used, l.retrieval_score, l.self_reflection_triggered
+                l.query_type, l.model_used, l.retrieval_score, l.self_reflection_triggered,
+                l.groundedness_score, l.auto_score,
+                l.embedding_ms, l.retrieval_ms, l.generation_ms,
+                l.token_count, l.is_high_consumption,
+                l.cache_hit, l.hyde_triggered
          FROM ai_query_logs l
          LEFT JOIN users u ON l.user_id = u.id
          ${where}
@@ -201,23 +205,145 @@ adminAiRoutes.get(
   '/logs/:id',
   describeRoute({
     tags: ['Admin AI'],
-    summary: '日誌詳情',
-    responses: { 200: { description: '日誌詳細資料' }, 404: { description: '找不到日誌' } },
+    summary: '日誌詳情（含完整 RAG 流程）',
+    responses: { 200: { description: '日誌詳細資料與各階段流程' }, 404: { description: '找不到日誌' } },
   }),
   async (c) => {
     const id = c.req.param('id');
     try {
-      const log = await c.env.DB.prepare(
-        `SELECT l.*, u.username, u.display_name
-         FROM ai_query_logs l
-         LEFT JOIN users u ON l.user_id = u.id
-         WHERE l.id = ?`
-      ).bind(id).first();
+      const [log, flagRows] = await Promise.all([
+        c.env.DB.prepare(
+          `SELECT l.*, u.username, u.display_name
+           FROM ai_query_logs l
+           LEFT JOIN users u ON l.user_id = u.id
+           WHERE l.id = ?`
+        ).bind(id).first<Record<string, unknown>>(),
+        c.env.DB.prepare(
+          `SELECT flag_reason, is_reviewed, created_at FROM ai_flagged_responses WHERE query_log_id = ?`
+        ).bind(id).all<{ flag_reason: string; is_reviewed: number; created_at: string }>(),
+      ]);
 
       if (!log) {
         return c.json({ success: false, error: 'NotFound', message: '找不到日誌' }, 404);
       }
-      return c.json({ success: true, data: log });
+
+      // 解析 sources JSON
+      let sources: unknown[] = [];
+      try { sources = JSON.parse((log.sources as string) ?? '[]'); } catch { /* ignore */ }
+
+      // 組合各階段流程資訊
+      const isCacheHit = Boolean(log.cache_hit);
+      const pipeline = {
+        guardrails_input: {
+          service: 'utils/guardrails.ts',
+          description: '輸入層防護：偵測 prompt injection、jailbreak、封鎖詞',
+          skipped: isCacheHit,
+        },
+        cache: {
+          service: 'Cloudflare KV',
+          description: '查詢快取（TTL 1 小時，含個人化 hash）',
+          hit: isCacheHit,
+        },
+        quota_check: {
+          service: 'services/rank.ts',
+          description: '使用者等級配額驗證與原子扣除',
+          skipped: isCacheHit,
+        },
+        query_parsing: {
+          service: 'services/query.ts#parseQueryWithLLM',
+          description: 'LLM A：Tool Calling 解析查詢意圖（search_routes / search_crags / general_knowledge）',
+          query_type: (log.query_type as string) ?? null,
+          skipped: isCacheHit,
+        },
+        hyde: {
+          service: 'services/query.ts#generateHyDE',
+          description: 'LLM B：HyDE 生成假設性文件以提升語義搜尋（僅 complex 查詢）',
+          triggered: Boolean(log.hyde_triggered),
+          skipped: isCacheHit || log.query_type === 'general-knowledge',
+        },
+        embedding: {
+          service: 'services/embedding.ts (Workers AI bge-m3)',
+          description: '將 query（和 hydeDoc）轉為向量',
+          duration_ms: (log.embedding_ms as number) ?? null,
+          skipped: isCacheHit || log.query_type === 'general-knowledge',
+        },
+        retrieval: {
+          service: 'Vectorize + D1',
+          description: '雙路向量搜尋 → RRF 合併 → Cross-encoder Reranking → MMR → 熱門度加權',
+          duration_ms: (log.retrieval_ms as number) ?? null,
+          top_score: (log.retrieval_score as number) ?? null,
+          doc_count: sources.length,
+          skipped: isCacheHit || log.query_type === 'general-knowledge',
+        },
+        generation: {
+          service: 'Workers AI (LLM C)',
+          description: '主要回答生成，加入對話歷史與個人化 system prompt',
+          model: (log.model_used as string) ?? null,
+          duration_ms: (log.generation_ms as number) ?? null,
+          token_count: (log.token_count as number) ?? null,
+          is_high_consumption: Boolean(log.is_high_consumption),
+          skipped: isCacheHit,
+        },
+        self_reflection: {
+          service: 'Workers AI (LLM C)',
+          description: 'Self-reflection：僅 complex 查詢，品質不足時重新生成（最多 1 次）',
+          triggered: Boolean(log.self_reflection_triggered),
+          skipped: isCacheHit || log.query_type !== 'complex',
+        },
+        judge: {
+          service: 'services/query.ts#runJudge (llama-3.1-8b)',
+          description: 'LLM Judge：評估 groundedness（0-1）與品質分數（1-4）',
+          groundedness_score: (log.groundedness_score as number) ?? null,
+          auto_score: (log.auto_score as number) ?? null,
+          skipped: isCacheHit || log.query_type === 'general-knowledge',
+        },
+        guardrails_output: {
+          service: 'utils/guardrails.ts',
+          description: '輸出層防護：過濾 system prompt leakage、PII，截斷過長回應',
+          skipped: isCacheHit,
+        },
+        memory_extraction: {
+          service: 'services/memory-extractor.ts',
+          description: '非同步記憶提取（僅已登入用戶，waitUntil）',
+          skipped: isCacheHit || !log.user_id,
+        },
+      };
+
+      const flags = flagRows.results ?? [];
+
+      return c.json({
+        success: true,
+        data: {
+          id: log.id,
+          query: log.query,
+          response: log.response,
+          created_at: log.created_at,
+          user: log.user_id ? {
+            id: log.user_id,
+            username: log.username,
+            display_name: log.display_name,
+          } : null,
+          pipeline,
+          quality: {
+            groundedness_score: (log.groundedness_score as number) ?? null,
+            auto_score: (log.auto_score as number) ?? null,
+            feedback_score: (log.feedback_score as number) ?? null,
+            feedback_text: (log.feedback_text as string) ?? null,
+            flags: flags.map((f) => ({
+              reason: f.flag_reason,
+              is_reviewed: Boolean(f.is_reviewed),
+              created_at: f.created_at,
+            })),
+          },
+          latency: {
+            total_ms: (log.latency_ms as number) ?? null,
+            embedding_ms: (log.embedding_ms as number) ?? null,
+            retrieval_ms: (log.retrieval_ms as number) ?? null,
+            generation_ms: (log.generation_ms as number) ?? null,
+          },
+          sources,
+        },
+      });
     } catch (error) {
       console.error('Admin AI log detail error:', error);
       return c.json({ success: false, error: 'DatabaseError', message: '取得日誌失敗' }, 500);
