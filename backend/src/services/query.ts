@@ -651,15 +651,8 @@ export class QueryService {
             gatewayOptions
           )) as LLMResponse;
           const retryParsed = parseSuggestedQuestions(retryResult.response ?? rawLLMAnswer);
-          // 若重生成後答案退化（原本有找到資訊，重生成後說找不到），保留原始回答
-          const retryCannotAnswer =
-            retryParsed.answer.includes('超出我的知識範圍') ||
-            retryParsed.answer.includes('找不到相關資訊') ||
-            retryParsed.answer.includes('找不到名為');
-          if (!retryCannotAnswer) {
-            parsedAnswer = retryParsed.answer;
-            suggested_questions = retryParsed.suggested_questions;
-          }
+          parsedAnswer = retryParsed.answer;
+          suggested_questions = retryParsed.suggested_questions;
         }
       } catch {
         // self-reflection 失敗時靜默保留原始回答
