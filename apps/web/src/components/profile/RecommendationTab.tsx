@@ -106,6 +106,7 @@ export default function RecommendationTab() {
   }, [data])
 
   // 首次載入為空時，polling 等待系統推薦（最多 3 次，間隔 2s）
+  // 注意：只依賴 isLoading，避免 refetch() 觸發 data 變動導致 effect 重跑、計時器被取消的無限循環
   useEffect(() => {
     if (!isLoading && data?.data.length === 0) {
       setPollingDone(false)
@@ -133,7 +134,7 @@ export default function RecommendationTab() {
       if (pollingTimer.current) clearTimeout(pollingTimer.current)
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [isLoading, data?.data.length])
+  }, [isLoading])
 
   const handleLoadMore = async () => {
     const newOffset = offset + ITEMS_PER_PAGE
