@@ -67,10 +67,7 @@ function parseSuggestedQuestions(raw: string): { answer: string; suggested_quest
   return { answer: raw.trim(), suggested_questions: [] };
 }
 const DEFAULT_TOP_K = 5;
-// RRF 分數尺度：1/(K+rank)，K=60，單路最高 ~0.016，雙路最高 ~0.033
-const MIN_RRF_SCORE = 0.005;          // 無 filter 時的 RRF 門檻
-const MIN_RRF_SCORE_FILTERED = 0.002; // 有 grade/crag filter 時放寬門檻（metadata 已保障相關性）
-const MIN_VECTOR_SCORE = 0.5;         // 純語義搜尋（search()）使用原始 vector score 門檻
+const MIN_VECTOR_SCORE = 0.5;         // 純語義搜尋（search()）的預設門檻，可透過 ai_config 覆蓋
 const DEFAULT_LLM_MODEL = '@cf/google/gemma-3-12b-it';
 const DEFAULT_LIGHTWEIGHT_MODEL = '@cf/meta/llama-3.1-8b-instruct';
 
@@ -85,6 +82,7 @@ interface PipelineConfig {
   merge_top_k: number;
   min_rrf_score: number;
   min_rrf_score_filtered: number;
+  min_vector_score: number;
   // 排名與多樣性
   mmr_lambda: number;
   reranker_weight: number;
@@ -130,6 +128,7 @@ async function loadPipelineConfig(db: D1Database): Promise<PipelineConfig> {
     merge_top_k:                  num(cfg['merge_top_k'],                  10,   5,    50),
     min_rrf_score:                num(cfg['min_rrf_score'],                0.005, 0,   1),
     min_rrf_score_filtered:       num(cfg['min_rrf_score_filtered'],       0.002, 0,   1),
+    min_vector_score:             num(cfg['min_vector_score'],             0.5,   0,   1),
     // 排名與多樣性（reranker_weight + popularity_weight 自動歸一化，避免 admin 設定不當時分數異常）
     mmr_lambda:                   num(cfg['mmr_lambda'],                   0.6,  0,    1),
     ...(() => {
@@ -178,34 +177,28 @@ export class QueryService {
     this.embeddingService = new EmbeddingService(env);
   }
 
-  // 從 query 中偵測岩場區域/岩場/地區，查 DB 回傳匹配資訊（支援多岩場）
-  async extractLocationFilter(query: string): Promise<{ cragIds?: string[]; areaId?: string; region?: string }> {
+  // 從 query 中偵測岩場區域/岩場/地區，接受預載資料避免重複查詢 DB
+  // 優先序：area > crag（多個） > region
+  private extractLocationFilter(
+    query: string,
+    crags: Array<{ id: string; name: string; region: string | null }>,
+    areas: Array<{ id: string; name: string }>,
+  ): { cragIds?: string[]; areaId?: string; region?: string } {
     // 1. 優先比對區域名稱（最精確，如「校門口」「鐘塔」）
-    const areas = await this.env.DB.prepare(
-      'SELECT id, name FROM areas WHERE name IS NOT NULL'
-    ).all<{ id: string; name: string }>();
-    for (const area of areas.results) {
+    for (const area of areas) {
       if (query.includes(area.name)) {
         return { areaId: area.id };
       }
     }
 
-    // 2. 再比對岩場名稱（如「龍洞」「墾丁」），收集所有匹配岩場
-    const crags = await this.env.DB.prepare(
-      'SELECT id, name, region FROM crags WHERE name IS NOT NULL'
-    ).all<{ id: string; name: string; region: string | null }>();
-    const matchedCragIds: string[] = [];
-    for (const crag of crags.results) {
-      if (query.includes(crag.name)) {
-        matchedCragIds.push(crag.id);
-      }
-    }
+    // 2. 比對岩場名稱（如「龍洞」「墾丁」），支援多岩場
+    const matchedCragIds = crags.filter((c) => query.includes(c.name)).map((c) => c.id);
     if (matchedCragIds.length > 0) {
       return { cragIds: matchedCragIds };
     }
 
-    // 3. 最後比對地區名稱（如「花蓮」「北部」）
-    const regions = [...new Set(crags.results.map((c) => c.region).filter(Boolean))] as string[];
+    // 3. 比對地區名稱（如「花蓮」「北部」）
+    const regions = [...new Set(crags.map((c) => c.region).filter(Boolean))] as string[];
     for (const region of regions) {
       if (query.includes(region)) {
         return { region };
@@ -320,6 +313,9 @@ export class QueryService {
     let excludeRouteId: string | null = null; // 排除來源路線本身
     let referenceRouteInfo: string | null = null; // 來源路線資訊，注入 context 讓 LLM 有正確難度
     let isSimRouteSearch = false; // 是否走「相似路線」流程，供後段 fallback 判斷
+    // 預載岩場/區域資料（Stage 1a 填入），供 extractLocationFilter 共用，避免同一請求多次查 DB
+    let preloadedCrags: Array<{ id: string; name: string; region: string | null }> = [];
+    let preloadedAreas: Array<{ id: string; name: string }> = [];
 
     if (this.hasSimilarRouteIntent(query)) {
       isSimRouteSearch = true;
@@ -344,14 +340,16 @@ export class QueryService {
         referenceRouteInfo = `使用者剛爬完的路線：${routeRef.name}（難度：${routeRef.grade ?? '未知'}${typeLabel}）`;
       }
     } else {
-      // Stage 1a：取得岩場/區域/地區清單（供 LLM A prompt 注入）
+      // Stage 1a：預載岩場/區域資料，供 LLM A prompt 注入 + extractLocationFilter 共用（避免重複查詢）
       const [cragsResult, areasResult] = await Promise.all([
-        this.env.DB.prepare('SELECT name, region FROM crags WHERE name IS NOT NULL').all<{ name: string; region: string | null }>(),
-        this.env.DB.prepare('SELECT name FROM areas WHERE name IS NOT NULL').all<{ name: string }>(),
+        this.env.DB.prepare('SELECT id, name, region FROM crags WHERE name IS NOT NULL').all<{ id: string; name: string; region: string | null }>(),
+        this.env.DB.prepare('SELECT id, name FROM areas WHERE name IS NOT NULL').all<{ id: string; name: string }>(),
       ]);
-      const cragNames = cragsResult.results.map((c) => c.name);
-      const areaNames = areasResult.results.map((a) => a.name);
-      const regionNames = [...new Set(cragsResult.results.map((c) => c.region).filter(Boolean))] as string[];
+      preloadedCrags = cragsResult.results;
+      preloadedAreas = areasResult.results;
+      const cragNames = preloadedCrags.map((c) => c.name);
+      const areaNames = preloadedAreas.map((a) => a.name);
+      const regionNames = [...new Set(preloadedCrags.map((c) => c.region).filter(Boolean))] as string[];
 
       // Stage 1b：先執行 Tool Calling，再依 queryType 決定是否執行 HyDE（簡單查詢跳過）
       const parsedQuery = await this.parseQueryWithLLM(query, llmModel, cragNames, areaNames, regionNames, gatewayOptions);
@@ -404,7 +402,7 @@ export class QueryService {
         }
         // 補充保底：多岩場偵測（Tool Calling 只能抽一個岩場，若 regex 找到更多則升級為 $in）
         // 無論 Tool Calling 是否已設 crag_id，都重新偵測，以處理多岩場查詢
-        const { cragIds, areaId, region } = await this.extractLocationFilter(query);
+        const { cragIds, areaId, region } = this.extractLocationFilter(query, preloadedCrags, preloadedAreas);
         if (areaId && !vectorFilter['area_id']) {
           vectorFilter['area_id'] = { $eq: areaId };
         } else if (cragIds && cragIds.length > 1) {
@@ -418,7 +416,7 @@ export class QueryService {
       } else {
         // Fallback：使用現有 regex 方法
         const gradeFilter = this.extractGradeFilter(query);
-        const { cragIds, areaId, region } = await this.extractLocationFilter(query);
+        const { cragIds, areaId, region } = this.extractLocationFilter(query, preloadedCrags, preloadedAreas);
         const typeFilter = this.extractTypeFilter(query);
 
         if (gradeFilter) vectorFilter['grade_numeric'] = gradeFilter;
@@ -442,7 +440,7 @@ export class QueryService {
     const hasExplicitLocationFilter = !!(vectorFilter['crag_id'] || vectorFilter['area_id'] || vectorFilter['region']);
     if (!hasExplicitLocationFilter && recentHistory.length > 0 && this.isContextDependentQuery(query)) {
       const historyText = recentHistory.map((m) => m.content).join(' ');
-      const historyLocation = await this.extractLocationFilter(historyText);
+      const historyLocation = this.extractLocationFilter(historyText, preloadedCrags, preloadedAreas);
       if (historyLocation.areaId) {
         vectorFilter['area_id'] = { $eq: historyLocation.areaId };
         vectorFilter['type'] = { $eq: 'route' };
@@ -776,7 +774,7 @@ export class QueryService {
     let groundedness: number | null = null;
     let quality: number | null = null;
     if (!streamingMode) {
-      ({ groundedness, quality } = await this.runJudge(query, context, answer, pipelineCfg.lightweight_model, pipelineCfg.judge_timeout_ms, pipelineCfg.judge_context_truncate));
+      ({ groundedness, quality } = await this.runJudge(query, context, answer, { model: pipelineCfg.lightweight_model, timeoutMs: pipelineCfg.judge_timeout_ms, contextTruncate: pipelineCfg.judge_context_truncate }));
       // 依 groundedness 分數注入免責聲明（閾值由 ai_config 設定）
       if (groundedness !== null && !cannotAnswer) {
         if (groundedness < pipelineCfg.groundedness_disclaimer_low) {
@@ -841,7 +839,7 @@ export class QueryService {
         ctx.waitUntil((async () => {
           const { groundedness: gs, quality: ql } = await this.runJudge(
             query, context, answer,
-            pipelineCfg.lightweight_model, pipelineCfg.judge_timeout_ms, pipelineCfg.judge_context_truncate
+            { model: pipelineCfg.lightweight_model, timeoutMs: pipelineCfg.judge_timeout_ms, contextTruncate: pipelineCfg.judge_context_truncate }
           );
           if (gs !== null || ql !== null) {
             await this.env.DB.prepare(
@@ -891,7 +889,10 @@ export class QueryService {
   async search(request: AISearchRequest): Promise<{ results: AISource[]; count: number }> {
     const { query, limit = DEFAULT_TOP_K } = request;
 
-    const queryVector = await this.embeddingService.embed(query);
+    const [queryVector, cfg] = await Promise.all([
+      this.embeddingService.embed(query),
+      loadPipelineConfig(this.env.DB),
+    ]);
     const filter = this.buildFilter(request);
 
     const searchResults = await this.env.VECTOR_INDEX.query(queryVector, {
@@ -900,7 +901,7 @@ export class QueryService {
       returnMetadata: 'all',
     });
 
-    const relevantMatches = searchResults.matches.filter((m) => m.score >= MIN_VECTOR_SCORE);
+    const relevantMatches = searchResults.matches.filter((m) => m.score >= cfg.min_vector_score);
     const documents = await this.getDocuments(relevantMatches.map((m) => m.id));
 
     const results: AISource[] = relevantMatches
@@ -1259,7 +1260,13 @@ export class QueryService {
   }
 
   // 呼叫 judge LLM，timeout 與 context 截斷長度由 config 控制
-  async runJudge(query: string, context: string, response: string, judgeModel?: string, timeoutMs = 8000, contextTruncate = 800): Promise<{ groundedness: number | null; quality: number | null }> {
+  async runJudge(
+    query: string,
+    context: string,
+    response: string,
+    opts: { model?: string; timeoutMs?: number; contextTruncate?: number } = {},
+  ): Promise<{ groundedness: number | null; quality: number | null }> {
+    const { model: judgeModel, timeoutMs = 8000, contextTruncate = 800 } = opts;
     const truncatedContext = context.slice(0, contextTruncate);
     const judgePrompt = JUDGE_PROMPT
       .replace('{context}', truncatedContext)

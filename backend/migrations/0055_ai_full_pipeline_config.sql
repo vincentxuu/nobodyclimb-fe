@@ -22,6 +22,8 @@ INSERT OR IGNORE INTO ai_config (key, value) VALUES
   ('min_rrf_score',                  '0.005'),
   -- RRF 分數門檻（有 grade/crag filter 時放寬）
   ('min_rrf_score_filtered',         '0.002'),
+  -- 純語義搜尋（/ai/search 端點）的 vector score 門檻
+  ('min_vector_score',               '0.5'),
 
   -- ── Judge 設定 ────────────────────────────────────────
   -- Judge LLM 呼叫逾時（毫秒），逾時時跳過評分

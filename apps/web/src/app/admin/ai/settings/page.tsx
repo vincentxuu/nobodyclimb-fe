@@ -63,6 +63,12 @@ const CONFIG_FIELDS = [
         placeholder: '0.002',
         hint: '有 grade/crag filter 時放寬門檻，因 metadata 已保障相關性',
       },
+      {
+        key: 'min_vector_score',
+        label: 'Vector Score 門檻',
+        placeholder: '0.5',
+        hint: '/ai/search 純語義搜尋端點的向量相似度門檻（0–1，越高結果越精準但數量越少）',
+      },
     ],
   },
   {
