@@ -100,7 +100,9 @@ interface PipelineConfig {
   judge_context_truncate: number;
   // 多輪對話中 assistant 歷史訊息的截斷長度（與 judge_context_truncate 是不同關注點）
   assistant_history_truncate: number;
-  // Self-reflection
+  // Judge 驅動重生成：quality 等於或低於此值時重試（取代同模型 YES/NO 自評；1–4 量表）
+  judge_regen_quality_max: number;
+  // Self-reflection（最小觸發長度，控制重生成前的回答長度門檻）
   self_reflection_min_length: number;
   // 對話與快取
   chat_history_depth: number;
@@ -154,6 +156,7 @@ async function loadPipelineConfig(db: D1Database): Promise<PipelineConfig> {
     judge_timeout_ms:             num(cfg['judge_timeout_ms'],             8000, 1000, 30000),
     judge_context_truncate:       num(cfg['judge_context_truncate'],       800,  200,  3000),
     assistant_history_truncate:   num(cfg['assistant_history_truncate'],   500,  100,  2000),
+    judge_regen_quality_max:      num(cfg['judge_regen_quality_max'],      2,    1,    3),
     // Self-reflection
     self_reflection_min_length:   num(cfg['self_reflection_min_length'],   50,   10,   500),
     // 對話與快取
@@ -769,37 +772,9 @@ export class QueryService {
     const generationMs = Date.now() - generationStart;
     const latencyMs = Date.now() - startTime;
 
-    // Self-reflection：僅對 complex 查詢且回答夠長時評估品質，不足時重新生成（最多 1 次）
     let selfReflectionTriggered = 0;
     const cannotAnswer =
       parsedAnswer.includes('超出我的知識範圍') || parsedAnswer.includes('找不到相關資訊');
-    // 串流模式跳過 self-reflection：已推送的 token 無法替換
-    if (!streamingMode && queryType === 'complex' && !cannotAnswer && parsedAnswer.length >= pipelineCfg.self_reflection_min_length) {
-      try {
-        const reflectionPrompt = SELF_REFLECTION_PROMPT
-          .replace('{query}', query)
-          .replace('{answer}', parsedAnswer);
-        const reflectionResult = (await this.env.AI.run(
-          effectiveLlmModel,
-          { messages: [{ role: 'user', content: reflectionPrompt }], max_tokens: 10 },
-          gatewayOptions
-        )) as LLMResponse;
-        const isNo = /^\s*NO\s*$/i.test(reflectionResult.response?.trim() ?? 'YES');
-        if (isNo) {
-          selfReflectionTriggered = 1;
-          const retryResult = (await this.env.AI.run(
-            effectiveLlmModel,
-            { messages: llmMessages, max_tokens: pipelineCfg.max_tokens_generation },
-            gatewayOptions
-          )) as LLMResponse;
-          const retryParsed = parseSuggestedQuestions(retryResult.response ?? rawLLMAnswer);
-          parsedAnswer = retryParsed.answer;
-          suggested_questions = retryParsed.suggested_questions;
-        }
-      } catch {
-        // self-reflection 失敗時靜默保留原始回答
-      }
-    }
 
     const finalSources = cannotAnswer ? [] : sources;
 
@@ -808,12 +783,44 @@ export class QueryService {
       ? this.injectRouteLinks(parsedAnswer, finalSources)
       : parsedAnswer;
 
-    // Judge 評估：非串流同步執行（支援免責聲明注入）；串流異步執行（token 已推送，僅記錄日誌）
+    // Judge 評估：非串流同步執行，結果同時用於：
+    //   1. Judge 驅動重生成（取代同模型 YES/NO 自評，消除盲點問題）
+    //   2. 免責聲明注入（groundedness）
+    //   3. 查詢日誌記錄
+    // 串流模式：token 已推送無法替換，Judge 改為 waitUntil 異步執行（僅記錄日誌）
     let groundedness: number | null = null;
     let quality: number | null = null;
     if (!streamingMode) {
       ({ groundedness, quality } = await this.runJudge(query, context, answer, { model: pipelineCfg.lightweight_model, timeoutMs: pipelineCfg.judge_timeout_ms, contextTruncate: pipelineCfg.judge_context_truncate }));
-      // 依 groundedness 分數注入免責聲明（閾值由 ai_config 設定）
+
+      // Judge 驅動重生成：quality 低於門檻時用外部 critic 的分數觸發重試（最多 1 次）
+      // 條件：非 cannotAnswer、回答夠長（避免短回答無意義評估）、queryType 為 complex
+      if (
+        quality !== null &&
+        quality <= pipelineCfg.judge_regen_quality_max &&
+        queryType === 'complex' &&
+        !cannotAnswer &&
+        parsedAnswer.length >= pipelineCfg.self_reflection_min_length
+      ) {
+        try {
+          selfReflectionTriggered = 1;
+          const retryResult = (await (this.env.AI.run as Function)(
+            effectiveLlmModel,
+            { messages: llmMessages, max_tokens: pipelineCfg.max_tokens_generation },
+            gatewayOptions
+          )) as LLMResponse;
+          const retryParsed = parseSuggestedQuestions(retryResult.response ?? rawLLMAnswer);
+          parsedAnswer = retryParsed.answer;
+          suggested_questions = retryParsed.suggested_questions;
+          answer = !cannotAnswer && finalSources.length > 0
+            ? this.injectRouteLinks(parsedAnswer, finalSources)
+            : parsedAnswer;
+        } catch {
+          // 重生成失敗時靜默保留原始回答
+        }
+      }
+
+      // 依 groundedness 分數注入免責聲明（閾值由 ai_config 設定；使用初次 Judge 分數，保守策略）
       if (groundedness !== null && !cannotAnswer) {
         if (groundedness < pipelineCfg.groundedness_disclaimer_low) {
           answer = `❓ 以下資訊基於現有資料推斷，建議實地確認\n\n${answer}`;

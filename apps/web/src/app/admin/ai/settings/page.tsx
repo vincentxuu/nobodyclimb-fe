@@ -145,7 +145,7 @@ const CONFIG_FIELDS = [
   },
   {
     section: 'Judge 設定',
-    desc: '品質評判 LLM 的逾時與 context 截斷設定',
+    desc: '品質評判 LLM 的逾時、context 截斷，以及 Judge 驅動重生成的觸發條件',
     fields: [
       {
         key: 'judge_timeout_ms',
@@ -159,11 +159,17 @@ const CONFIG_FIELDS = [
         placeholder: '800',
         hint: '傳給 Judge LLM 的 context 最大字元數（200–3000）',
       },
+      {
+        key: 'judge_regen_quality_max',
+        label: '重生成觸發門檻',
+        placeholder: '2',
+        hint: 'Judge quality 等於或低於此值時觸發重生成（1=很差、2=差、3=好、4=優；建議設 2）',
+      },
     ],
   },
   {
     section: 'Self-Reflection 設定',
-    desc: '回答品質自評重生成的觸發條件',
+    desc: '重生成的最小回答長度門檻（Judge 驅動重生成與串流模式均參考此值）',
     fields: [
       {
         key: 'self_reflection_min_length',
