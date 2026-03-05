@@ -5,25 +5,13 @@ import { Button } from '@/components/ui/button'
 import { Edit2, Trash2, Loader2, MapPin, Upload } from 'lucide-react'
 import Image from 'next/image'
 import ProfilePageLayout from '@/components/profile/layout/ProfilePageLayout'
+import ProfilePageTitle from '@/components/profile/ProfilePageTitle'
 import { ConfirmDialog } from '@/components/ui/confirm-dialog'
 import { galleryService } from '@/lib/api/services'
 import { useToast } from '@/components/ui/use-toast'
 import { GalleryPhoto } from '@/lib/types'
 import PhotoEditDialog from '@/components/gallery/photo-edit-dialog'
 import UploadPhotoDialog from '@/components/gallery/upload-photo-dialog'
-
-// 頁面標題元件
-interface PageHeaderProps {
-  title: string
-  actionButton?: React.ReactNode
-}
-
-const PageHeader = ({ title, actionButton }: PageHeaderProps) => (
-  <div className="mb-8 flex items-center justify-between">
-    <h1 className="text-2xl font-medium text-[#1B1A1A] md:text-4xl">{title}</h1>
-    {actionButton}
-  </div>
-)
 
 // 照片卡片元件
 interface PhotoCardProps {
@@ -287,7 +275,7 @@ export default function PhotosPage() {
   return (
     <ProfilePageLayout>
       <div className="rounded-sm bg-white p-4 md:p-8 lg:p-12">
-        <PageHeader title="我的照片" actionButton={<UploadButton onClick={handleUploadClick} />} />
+        <ProfilePageTitle title="我的照片" action={<UploadButton onClick={handleUploadClick} />} />
 
         {isLoading ? (
           <LoadingState />

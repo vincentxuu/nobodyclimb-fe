@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect } from 'react'
 import ProfilePageLayout from '@/components/profile/layout/ProfilePageLayout'
+import ProfilePageTitle from '@/components/profile/ProfilePageTitle'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
@@ -586,11 +587,7 @@ export default function SettingsPage() {
   return (
     <ProfilePageLayout>
       <div className={`bg-white ${isMobile ? 'p-4 md:p-6' : 'p-8 md:p-12'} rounded-sm`}>
-        <h1
-          className={`${isMobile ? 'mb-4 text-2xl' : 'mb-8 text-4xl'} font-medium text-[#1B1A1A]`}
-        >
-          帳號設定
-        </h1>
+        <ProfilePageTitle title="帳號設定" />
 
         {/* 標籤切換區域 */}
         <div className="mb-6 border-b border-[#DBD8D8]">
