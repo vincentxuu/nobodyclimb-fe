@@ -1,5 +1,8 @@
 import { Env, AIDocument, AIDocumentMetadata, Route, Crag } from '../types';
 import { EmbeddingService } from './embedding';
+import { CONTEXTUAL_CHUNK_PROMPT } from '../utils/ai-prompts';
+
+const CONTEXT_GENERATION_BATCH_SIZE = 5; // 並行 LLM 呼叫上限，避免超出 Workers AI 速率限制
 
 const VECTORIZE_UPSERT_BATCH_SIZE = 1000;
 const VECTORIZE_DELETE_BATCH_SIZE = 100; // Vectorize deleteByIds 上限
@@ -251,7 +254,61 @@ export class IndexingService {
     await this.env.DB.prepare('DELETE FROM ai_documents WHERE type = ?').bind(type).run();
   }
 
+  // 讀取 ai_config 是否啟用 Contextual RAG
+  private async isContextualRagEnabled(): Promise<boolean> {
+    const row = await this.env.DB.prepare(
+      `SELECT value FROM ai_config WHERE key = 'contextual_rag_enabled'`
+    ).first<{ value: string }>();
+    return row?.value === 'true';
+  }
+
+  private async getContextualModel(): Promise<string> {
+    const row = await this.env.DB.prepare(
+      `SELECT value FROM ai_config WHERE key = 'contextual_rag_model'`
+    ).first<{ value: string }>();
+    return row?.value ?? '@cf/meta/llama-3.1-8b-instruct';
+  }
+
+  // 為單一 chunk 呼叫 LLM 生成語意摘要（失敗時回傳空字串，讓主流程 fallback 到原始文字）
+  private async generateContextSummary(text: string, type: 'route' | 'crag' | 'video', model: string): Promise<string> {
+    const typeLabel = type === 'route' ? '攀岩路線' : type === 'crag' ? '岩場' : '攀岩影片';
+    const prompt = CONTEXTUAL_CHUNK_PROMPT
+      .replace('{type}', typeLabel)
+      .replace('{content}', text);
+    try {
+      const result = await (this.env.AI.run as Function)(model, {
+        messages: [{ role: 'user', content: prompt }],
+        max_tokens: 80,
+      });
+      return (result as { response?: string }).response?.trim() ?? '';
+    } catch {
+      return '';
+    }
+  }
+
+  // 批次生成 context summaries（每批 CONTEXT_GENERATION_BATCH_SIZE 筆並行）
+  private async generateContextSummaries(
+    documents: Array<{ text: string }>,
+    type: 'route' | 'crag' | 'video',
+    model: string
+  ): Promise<string[]> {
+    const summaries: string[] = new Array(documents.length).fill('');
+    for (let i = 0; i < documents.length; i += CONTEXT_GENERATION_BATCH_SIZE) {
+      const batch = documents.slice(i, i + CONTEXT_GENERATION_BATCH_SIZE);
+      const results = await Promise.allSettled(
+        batch.map((doc) => this.generateContextSummary(doc.text, type, model))
+      );
+      results.forEach((result, j) => {
+        summaries[i + j] = result.status === 'fulfilled' ? result.value : '';
+      });
+    }
+    return summaries;
+  }
+
   // 執行文件索引：生成 embedding → 寫入 Vectorize + D1
+  // Contextual RAG：若 contextual_rag_enabled=true，embed 時 prepend LLM 生成的語意摘要
+  //   - embeddingText = summary + "\n\n" + originalText（向量更精準）
+  //   - D1 仍存 originalText（LLM 回答時的 context 保持乾淨）
   private async indexDocuments(
     type: 'route' | 'crag' | 'video',
     documents: Array<{ sourceId: string; text: string; metadata: AIDocumentMetadata }>
@@ -259,8 +316,20 @@ export class IndexingService {
     let indexed = 0;
     let failed = 0;
 
-    const texts = documents.map((d) => d.text);
-    const embeddings = await this.embeddingService.embedBatch(texts);
+    // Contextual RAG：若啟用，為每個 chunk 生成語意摘要並 prepend 到 embedding 文字
+    const contextualEnabled = await this.isContextualRagEnabled();
+    let embeddingTexts: string[];
+    if (contextualEnabled) {
+      const model = await this.getContextualModel();
+      const summaries = await this.generateContextSummaries(documents, type, model);
+      embeddingTexts = documents.map((d, i) =>
+        summaries[i] ? `${summaries[i]}\n\n${d.text}` : d.text
+      );
+    } else {
+      embeddingTexts = documents.map((d) => d.text);
+    }
+
+    const embeddings = await this.embeddingService.embedBatch(embeddingTexts);
 
     const vectors: Array<{ id: string; values: number[]; metadata: Record<string, unknown> }> = [];
     const dbInserts: Array<{ id: string; sourceId: string; text: string; metadata: string; embeddingId: string }> = [];
