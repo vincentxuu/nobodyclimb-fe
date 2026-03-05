@@ -2,60 +2,19 @@
 
 import React, { useCallback } from 'react'
 import { useRouter, usePathname } from 'next/navigation'
-import { UserCircle, FileText, Bookmark, Settings, Target, ImageIcon, BarChart3, MountainSnow, Sparkles, Brain } from 'lucide-react'
 
 // 所有導航項目（水平滾動）
 const menuItems = [
-  {
-    name: '人物誌',
-    href: '/profile',
-    icon: UserCircle,
-  },
-  {
-    name: '推薦',
-    href: '/profile/recommendations',
-    icon: Sparkles,
-  },
-  {
-    name: 'AI 記憶',
-    href: '/profile/ai-memory',
-    icon: Brain,
-  },
-  {
-    name: '清單',
-    href: '/profile/bucket-list',
-    icon: Target,
-  },
-  {
-    name: '攀爬紀錄',
-    href: '/profile/ascents',
-    icon: MountainSnow,
-  },
-  {
-    name: '成就',
-    href: '/profile/stats',
-    icon: BarChart3,
-  },
-  {
-    name: '文章',
-    href: '/profile/articles',
-    icon: FileText,
-  },
-  {
-    name: '照片',
-    href: '/profile/photos',
-    icon: ImageIcon,
-  },
-  {
-    name: '收藏',
-    href: '/profile/bookmarks',
-    icon: Bookmark,
-  },
-  {
-    name: '設定',
-    href: '/profile/settings',
-    icon: Settings,
-  },
+  { name: '人物誌', href: '/profile' },
+  { name: '推薦', href: '/profile/recommendations' },
+  { name: 'AI 記憶', href: '/profile/ai-memory' },
+  { name: '清單', href: '/profile/bucket-list' },
+  { name: '攀爬紀錄', href: '/profile/ascents' },
+  { name: '成就', href: '/profile/stats' },
+  { name: '文章', href: '/profile/articles' },
+  { name: '照片', href: '/profile/photos' },
+  { name: '收藏', href: '/profile/bookmarks' },
+  { name: '設定', href: '/profile/settings' },
 ]
 
 export default function MobileNav() {

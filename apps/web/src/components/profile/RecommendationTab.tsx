@@ -169,8 +169,8 @@ export default function RecommendationTab() {
       {/* 標題列 */}
       <div className="flex items-center justify-between">
         <h2 className="text-base font-semibold text-foreground flex items-center gap-2">
-          <Sparkles className="h-4 w-4 text-emerald-600" />
-          AI 路線推薦
+          <span className="rounded bg-[#FFE70C] px-1.5 py-0.5 text-xs font-bold text-[#1B1A1A]">AI</span>
+          路線推薦
         </h2>
         <Button
           variant="outline"

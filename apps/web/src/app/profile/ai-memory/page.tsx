@@ -74,8 +74,8 @@ export default function AiMemoryPage() {
     <ProfilePageLayout>
       <div className="mx-auto max-w-2xl px-4 py-6">
         <div className="mb-6 flex items-center gap-2">
-          <Brain className="h-5 w-5 text-emerald-600" />
-          <h1 className="text-xl font-semibold text-gray-900">AI 記憶</h1>
+          <span className="rounded bg-[#FFE70C] px-1.5 py-0.5 text-xs font-bold text-[#1B1A1A]">AI</span>
+          <h1 className="text-xl font-semibold text-gray-900">記憶</h1>
         </div>
 
         <p className="mb-6 text-sm text-gray-500">
