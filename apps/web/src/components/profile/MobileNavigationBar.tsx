@@ -13,6 +13,11 @@ interface MenuItem {
 
 const menuItems: MenuItem[] = [
   { name: '人物誌', href: '/profile' },
+  { name: '推薦', href: '/profile/recommendations' },
+  { name: 'AI 記憶', href: '/profile/ai-memory' },
+  { name: '清單', href: '/profile/bucket-list' },
+  { name: '攀爬紀錄', href: '/profile/ascents' },
+  { name: '成就', href: '/profile/stats' },
   { name: '文章', href: '/profile/articles' },
   { name: '照片', href: '/profile/photos' },
   { name: '收藏', href: '/profile/bookmarks' },

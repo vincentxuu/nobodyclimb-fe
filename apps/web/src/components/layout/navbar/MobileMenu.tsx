@@ -13,6 +13,8 @@ import { Button } from '@/components/ui/button'
 
 const personalMenuItems = [
   { label: '人物誌', href: '/profile' },
+  { label: '推薦', href: '/profile/recommendations' },
+  { label: '記憶', href: '/profile/ai-memory' },
   { label: '清單', href: '/profile/bucket-list' },
   { label: '攀爬紀錄', href: '/profile/ascents' },
   { label: '成就', href: '/profile/stats' },

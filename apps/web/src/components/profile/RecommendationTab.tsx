@@ -92,6 +92,8 @@ export default function RecommendationTab() {
   const pollingCount = useRef(0)
   const pollingTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
 
+  const [pollingDone, setPollingDone] = useState(false)
+
   const { data, isLoading, refetch } = useRecommendations({ limit: ITEMS_PER_PAGE, offset: 0 })
   const triggerMutation = useTriggerRecommendation()
 
@@ -106,13 +108,20 @@ export default function RecommendationTab() {
   // 首次載入為空時，polling 等待系統推薦（最多 3 次，間隔 2s）
   useEffect(() => {
     if (!isLoading && data?.data.length === 0) {
+      setPollingDone(false)
+      pollingCount.current = 0
       const poll = () => {
-        if (pollingCount.current >= 3) return
+        if (pollingCount.current >= 3) {
+          setPollingDone(true)
+          return
+        }
         pollingCount.current += 1
         pollingTimer.current = setTimeout(async () => {
           const result = await refetch()
           if ((result.data?.data.length ?? 0) > 0) {
-            pollingCount.current = 3 // 停止 polling
+            setPollingDone(true)
+          } else if (pollingCount.current >= 3) {
+            setPollingDone(true)
           } else {
             poll()
           }
@@ -152,7 +161,7 @@ export default function RecommendationTab() {
     })
   }
 
-  const isPolling = !isLoading && allItems.length === 0 && pollingCount.current < 3
+  const isPolling = !isLoading && allItems.length === 0 && !pollingDone
   const hasMore = allItems.length < total
 
   return (
@@ -160,8 +169,8 @@ export default function RecommendationTab() {
       {/* 標題列 */}
       <div className="flex items-center justify-between">
         <h2 className="text-base font-semibold text-foreground flex items-center gap-2">
-          <Sparkles className="h-4 w-4 text-emerald-600" />
-          AI 路線推薦
+          <span className="rounded bg-[#FFE70C] px-1.5 py-0.5 text-xs font-bold text-[#1B1A1A]">AI</span>
+          路線推薦
         </h2>
         <Button
           variant="outline"
