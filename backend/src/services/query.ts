@@ -100,6 +100,8 @@ interface PipelineConfig {
   // Judge 設定
   judge_timeout_ms: number;
   judge_context_truncate: number;
+  // 多輪對話中 assistant 歷史訊息的截斷長度（與 judge_context_truncate 是不同關注點）
+  assistant_history_truncate: number;
   // Self-reflection
   self_reflection_min_length: number;
   // 對話與快取
@@ -108,10 +110,11 @@ interface PipelineConfig {
 }
 
 function num(v: string | undefined, fallback: number, min?: number, max?: number): number {
-  const parsed = parseFloat(v ?? '') || fallback;
-  if (min !== undefined && parsed < min) return min;
-  if (max !== undefined && parsed > max) return max;
-  return parsed;
+  const parsed = v !== undefined && v !== '' ? parseFloat(v) : NaN;
+  const result = Number.isNaN(parsed) ? fallback : parsed;
+  if (min !== undefined && result < min) return min;
+  if (max !== undefined && result > max) return max;
+  return result;
 }
 
 async function loadPipelineConfig(db: D1Database): Promise<PipelineConfig> {
@@ -127,10 +130,16 @@ async function loadPipelineConfig(db: D1Database): Promise<PipelineConfig> {
     merge_top_k:                  num(cfg['merge_top_k'],                  10,   5,    50),
     min_rrf_score:                num(cfg['min_rrf_score'],                0.005, 0,   1),
     min_rrf_score_filtered:       num(cfg['min_rrf_score_filtered'],       0.002, 0,   1),
-    // 排名與多樣性
+    // 排名與多樣性（reranker_weight + popularity_weight 自動歸一化，避免 admin 設定不當時分數異常）
     mmr_lambda:                   num(cfg['mmr_lambda'],                   0.6,  0,    1),
-    reranker_weight:              num(cfg['reranker_weight'],              0.7,  0,    1),
-    popularity_weight:            num(cfg['popularity_weight'],            0.3,  0,    1),
+    ...(() => {
+      const rw = num(cfg['reranker_weight'],   0.7, 0, 1);
+      const pw = num(cfg['popularity_weight'], 0.3, 0, 1);
+      const total = rw + pw;
+      return total > 0
+        ? { reranker_weight: rw / total, popularity_weight: pw / total }
+        : { reranker_weight: 0.7, popularity_weight: 0.3 };
+    })(),
     // Token 限制
     max_tokens_generation:        num(cfg['max_tokens_generation'],        800,  200,  2000),
     max_tokens_gk:                num(cfg['max_tokens_gk'],                600,  200,  2000),
@@ -142,6 +151,7 @@ async function loadPipelineConfig(db: D1Database): Promise<PipelineConfig> {
     // Judge
     judge_timeout_ms:             num(cfg['judge_timeout_ms'],             8000, 1000, 30000),
     judge_context_truncate:       num(cfg['judge_context_truncate'],       800,  200,  3000),
+    assistant_history_truncate:   num(cfg['assistant_history_truncate'],   500,  100,  2000),
     // Self-reflection
     self_reflection_min_length:   num(cfg['self_reflection_min_length'],   50,   10,   500),
     // 對話與快取
@@ -689,10 +699,10 @@ export class QueryService {
       .replace('{query}', query);
 
     // 將對話歷史（最多 chat_history_depth 則）加入 LLM messages，讓 LLM 有記憶脈絡
-    // assistant 歷史訊息只取純文字（截斷 judge_context_truncate 字），避免超過 context window
+    // assistant 歷史訊息只取純文字（截斷 assistant_history_truncate 字），避免超過 context window
     const historyLLMMessages = recentHistory.slice(-pipelineCfg.chat_history_depth).map((m) => ({
       role: m.role as 'user' | 'assistant',
-      content: m.role === 'assistant' ? m.content.slice(0, pipelineCfg.judge_context_truncate) : m.content,
+      content: m.role === 'assistant' ? m.content.slice(0, pipelineCfg.assistant_history_truncate) : m.content,
     }));
 
     const generationStart = Date.now();

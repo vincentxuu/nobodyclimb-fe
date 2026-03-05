@@ -15,7 +15,7 @@ INSERT OR IGNORE INTO ai_config (key, value) VALUES
   -- ── 排名與多樣性 ─────────────────────────────────────
   -- MMR lambda：λ 越高越重視相關性，越低越多樣（0.0–1.0）
   ('mmr_lambda',                     '0.6'),
-  -- 熱門度加權：final = reranker × W + popularity × (1-W)
+  -- 熱門度加權：兩者自動歸一化，總和不須恰好為 1
   ('reranker_weight',                '0.7'),
   ('popularity_weight',              '0.3'),
   -- RRF 分數門檻（無 metadata filter 時）
@@ -35,4 +35,6 @@ INSERT OR IGNORE INTO ai_config (key, value) VALUES
 
   -- ── 對話設定 ─────────────────────────────────────────
   -- 帶入 LLM 的最近對話訊息數（1 輪 = 2 則，預設 3 輪）
-  ('chat_history_depth',             '6');
+  ('chat_history_depth',             '6'),
+  -- 多輪對話中 assistant 歷史訊息截斷字元數（與 judge_context_truncate 是不同關注點）
+  ('assistant_history_truncate',     '500');
