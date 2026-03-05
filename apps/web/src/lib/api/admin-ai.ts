@@ -223,7 +223,7 @@ export function useAILogDetail(id: string) {
     queryKey: ['admin-ai-log', id],
     queryFn: () => getAILogDetail(id),
     enabled: !!id,
-    refetchInterval: 5000,
+    refetchInterval: 1000,
   })
 }
 
