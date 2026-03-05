@@ -5,6 +5,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { motion, AnimatePresence } from 'framer-motion'
 import { Plus, Filter, Target } from 'lucide-react'
 import ProfilePageLayout from '@/components/profile/layout/ProfilePageLayout'
+import ProfilePageTitle from '@/components/profile/ProfilePageTitle'
 import { Button } from '@/components/ui/button'
 import { Tabs, TabsContent } from '@/components/ui/tabs'
 import { LoadingSpinner } from '@/components/ui/loading-spinner'
@@ -232,18 +233,15 @@ export default function BucketListPage() {
   return (
     <ProfilePageLayout>
       <div className="space-y-6">
-        {/* 頁面標題 */}
-        <div className="flex items-center justify-between">
-          <div>
-            <h1 className="text-2xl font-bold text-[#1B1A1A]">人生清單</h1>
-            <p className="mt-1 text-sm text-gray-500">
-              追蹤你的攀岩目標，記錄每一次突破
-            </p>
-          </div>
-          <Button onClick={() => setShowForm(true)} icon={<Plus className="h-4 w-4" />}>
-            新增目標
-          </Button>
-        </div>
+        <ProfilePageTitle
+          title="人生清單"
+          subtitle="追蹤你的攀岩目標，記錄每一次突破"
+          action={
+            <Button onClick={() => setShowForm(true)} icon={<Plus className="h-4 w-4" />}>
+              新增目標
+            </Button>
+          }
+        />
 
         {/* 統計卡片 */}
         <div className="grid grid-cols-2 gap-4 sm:grid-cols-4">

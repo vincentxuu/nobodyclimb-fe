@@ -1,6 +1,7 @@
 'use client'
 
 import React, { useState, useEffect, useRef } from 'react'
+import ProfilePageTitle from '@/components/profile/ProfilePageTitle'
 import { RefreshCw, Sparkles, ChevronDown, ChevronUp } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { SourceCard } from '@/components/ai/SourceCard'
@@ -166,23 +167,22 @@ export default function RecommendationTab() {
 
   return (
     <div className="space-y-4">
-      {/* 標題列 */}
-      <div className="flex items-center justify-between">
-        <h2 className="text-base font-semibold text-foreground flex items-center gap-2">
-          <span className="rounded bg-[#FFE70C] px-1.5 py-0.5 text-xs font-bold text-[#1B1A1A]">AI</span>
-          路線推薦
-        </h2>
-        <Button
-          variant="outline"
-          size="sm"
-          onClick={handleRetrigger}
-          disabled={triggerMutation.isPending}
-          className="gap-1.5"
-        >
-          <RefreshCw className={`h-3.5 w-3.5 ${triggerMutation.isPending ? 'animate-spin' : ''}`} />
-          重新推薦
-        </Button>
-      </div>
+      <ProfilePageTitle
+        title="路線推薦"
+        isAI
+        action={
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={handleRetrigger}
+            disabled={triggerMutation.isPending}
+            className="gap-1.5"
+          >
+            <RefreshCw className={`h-3.5 w-3.5 ${triggerMutation.isPending ? 'animate-spin' : ''}`} />
+            重新推薦
+          </Button>
+        }
+      />
 
       {/* 骨架屏（loading 或 polling 中）*/}
       {(isLoading || isPolling) && (
