@@ -21,11 +21,17 @@ export const aiRoutes = new Hono<{ Bindings: Env }>();
 // Request Schemas
 // =============================================
 
+const chatMessageSchema = z.object({
+  role: z.enum(['user', 'assistant']),
+  content: z.string(),
+});
+
 const askSchema = z.object({
   query: z.string().min(2, '問題至少需要 2 個字元').max(500, '問題不能超過 500 個字元'),
   limit: z.number().int().min(1).max(20).optional().default(5),
   include_sources: z.boolean().optional().default(true),
   no_cache: z.boolean().optional().default(false),
+  chat_history: z.array(chatMessageSchema).max(20).optional(),
 });
 
 const searchSchema = z.object({

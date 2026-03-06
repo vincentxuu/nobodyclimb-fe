@@ -421,9 +421,9 @@ export class QueryService {
           { messages: [{ role: 'system', content: gkPersonalized }, { role: 'user', content: query }], max_tokens: pipelineCfg.max_tokens_gk },
           gatewayOptions
         )) as LLMResponse;
-        const rawAnswer = llmResult.response ?? '抱歉，無法生成回答，請稍後再試。';
+        const rawAnswer = llmResult.response || '抱歉，無法生成回答，請稍後再試。';
         const { answer: rawGkAnswer, suggested_questions } = parseSuggestedQuestions(rawAnswer);
-        const answer = checkOutput(rawGkAnswer);
+        const answer = checkOutput(rawGkAnswer) || '抱歉，無法生成回答，請稍後再試。';
         const latencyMs = Date.now() - startTime;
         const estimatedTokens = Math.ceil((GENERAL_KNOWLEDGE_SYSTEM_PROMPT.length + query.length + answer.length) / 2);
         const gkTokenCount = llmResult.usage?.total_tokens ?? estimatedTokens;
@@ -862,11 +862,15 @@ export class QueryService {
         { messages: llmMessages, max_tokens: pipelineCfg.max_tokens_generation },
         gatewayOptions
       )) as LLMResponse;
-      rawLLMAnswer = llmResult.response ?? '抱歉，無法生成回答，請稍後再試。';
+      rawLLMAnswer = llmResult.response || '抱歉，無法生成回答，請稍後再試。';
       llmUsage = llmResult.usage;
     }
 
     let { answer: parsedAnswer, suggested_questions } = parseSuggestedQuestions(rawLLMAnswer);
+    // 防護：parseSuggestedQuestions 可能因 LLM 回傳空字串或全為問句而產生空 answer
+    if (!parsedAnswer) {
+      parsedAnswer = '抱歉，目前無法生成回答，請換個方式提問或稍後再試。';
+    }
     const generationMs = Date.now() - generationStart;
     const latencyMs = Date.now() - startTime;
 
