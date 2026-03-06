@@ -25,8 +25,15 @@ import {
   List,
   ArrowRight,
   Bot,
+  Filter,
+  Layers,
+  ChevronUp,
+  GitMerge,
+  RotateCcw,
+  ArrowUpDown,
 } from 'lucide-react'
 import { useAILogDetail, type AILogDetail } from '@/lib/api/admin-ai'
+import { MarkdownContent } from '@/components/ai/ChatMessage'
 
 // =============================================
 // Sub-components
@@ -64,8 +71,13 @@ function StageIcon({ name, skipped }: { name: string; skipped: boolean }) {
     hyde: <Brain className={cls} />,
     multi_query: <List className={cls} />,
     agentic: <Bot className={cls} />,
+    filter: <Filter className={cls} />,
     embedding: <Cpu className={cls} />,
     retrieval: <Search className={cls} />,
+    rrf_fusion: <GitMerge className={cls} />,
+    crag_fallback: <RotateCcw className={cls} />,
+    reranking: <ArrowUpDown className={cls} />,
+    mmr_selection: <Layers className={cls} />,
     generation: <FileText className={cls} />,
     self_reflection: <RefreshCw className={cls} />,
     judge: <CheckCircle2 className={cls} />,
@@ -77,17 +89,22 @@ function StageIcon({ name, skipped }: { name: string; skipped: boolean }) {
 
 const STAGE_LABELS: Record<string, string> = {
   guardrails_input: '輸入護欄',
-  cache: '快取查詢',
+  cache: 'KV / 語義快取',
   quota_check: '配額檢查',
-  query_parsing: '查詢解析',
+  query_parsing: 'Adaptive Routing',
   hyde: 'HyDE 假設文件',
   multi_query: 'Multi-Query 擴展',
   agentic: 'Agentic 多步驟 RAG',
+  filter: 'Metadata Filter 建構',
   embedding: '向量嵌入',
-  retrieval: '向量檢索',
-  generation: 'LLM 生成',
+  retrieval: '多路向量搜尋 + BM25',
+  rrf_fusion: 'RRF 合併（Reciprocal Rank Fusion）',
+  crag_fallback: 'CRAG 放寬回退',
+  reranking: 'Cross-encoder Reranking',
+  mmr_selection: 'MMR + 熱門度加權',
+  generation: 'LLM 生成回答',
   self_reflection: 'Judge 驅動重生成',
-  judge: '品質評判',
+  judge: 'LLM Judge 品質評估',
   guardrails_output: '輸出護欄',
   memory_extraction: '記憶萃取',
 }
@@ -134,6 +151,12 @@ function StageSection({
 
 function IOFlow({ children }: { children: React.ReactNode }) {
   return <div className="space-y-2">{children}</div>
+}
+
+function StageDesc({ children }: { children: React.ReactNode }) {
+  return (
+    <p className="text-[11px] text-wb-50 leading-relaxed border-b border-wb-8 pb-2 mb-2">{children}</p>
+  )
 }
 
 // =============================================
@@ -188,9 +211,12 @@ function GuardrailsInputTrace({ query, pipelineStage }: { query: string; pipelin
   }
 
   return (
+    <div>
+      <StageDesc>查詢進入 Pipeline 的第一道安全關卡。對用戶輸入執行多重安全檢查，防範 Prompt Injection、越獄攻擊（Jailbreak）與無效輸入，確保後續 Pipeline 只處理合法請求。任一檢查觸發即立即攔截，不進入後續流程。</StageDesc>
     <IOFlow>
       <StageSection type="input">
-        <p className="font-mono text-xs text-wb-80 bg-wb-5 rounded px-2 py-1.5 break-all">{query}</p>
+        <KVRow label="觸發條件" value="所有查詢強制執行（無條件觸發，任一檢查失敗即攔截）" />
+        <p className="font-mono text-xs text-wb-80 bg-wb-5 rounded px-2 py-1.5 break-all mt-1">{query}</p>
         <p className="text-wb-40 mt-1">字元數：{gi?.query_length ?? query.length}</p>
       </StageSection>
       <StageSection type="decision">
@@ -221,6 +247,7 @@ function GuardrailsInputTrace({ query, pipelineStage }: { query: string; pipelin
         )}
       </StageSection>
     </IOFlow>
+    </div>
   )
 }
 
@@ -228,8 +255,11 @@ function CacheTrace({ pipelineStage, query, pipelineTrace }: { pipelineStage: Re
   const hit = pipelineStage?.hit as boolean | undefined
   const cacheType = (pipelineTrace?.cache as { type?: string } | undefined)?.type
   return (
+    <div>
+      <StageDesc>在執行完整 RAG Pipeline 之前先查詢快取，避免相同查詢重複運算。支援兩種命中模式：KV 精確快取（完全相同的查詢鍵）與語義相似度快取（向量餘弦相似度超過閾值的近似查詢）。命中時直接回傳結果，跳過後續所有 Pipeline 階段。</StageDesc>
     <IOFlow>
       <StageSection type="input">
+        <KVRow label="觸發命中條件" value="KV 精確命中：Cache Key 完全相符 ／ 語義命中：向量餘弦相似度 ≥ 閾值" />
         <KVRow label="正規化查詢" value={<span className="italic">{query}</span>} />
         <KVRow label="Cache Key 組成" value="normalized query + chat_history_depth + user_id" />
       </StageSection>
@@ -263,6 +293,7 @@ function CacheTrace({ pipelineStage, query, pipelineTrace }: { pipelineStage: Re
         )}
       </StageSection>
     </IOFlow>
+    </div>
   )
 }
 
@@ -280,9 +311,12 @@ function QuotaCheckTrace({ pipelineStage }: { pipelineStage: Record<string, unkn
   const limit = qc?.daily_ai_limit
 
   return (
+    <div>
+      <StageDesc>依據用戶的 Climber Rank 等級確認今日剩餘 AI 查詢次數。使用原子性 SQL UPDATE 扣除配額（WHERE used &lt; limit），防止並發請求超額。配額用盡回傳 429；管理員帳號無限制直接通過。每日午夜 UTC 自動重置。</StageDesc>
     <IOFlow>
       <StageSection type="input">
         <div className="space-y-1">
+          <KVRow label="觸發條件" value="所有非快取查詢強制執行；管理員帳號直接 bypass；配額耗盡回傳 429" />
           <KVRow label="用戶等級" value={qc?.rank ? <TraceBadge text={qc.rank} color={qc.rank === 'admin' ? 'violet' : qc.rank === 'summit' ? 'emerald' : 'blue'} /> : '—'} />
           {used != null && limit != null && (
             <KVRow label="今日使用" value={`${used} / ${limit === -1 ? '∞' : limit} 次`} />
@@ -324,6 +358,7 @@ function QuotaCheckTrace({ pipelineStage }: { pipelineStage: Record<string, unkn
         )}
       </StageSection>
     </IOFlow>
+    </div>
   )
 }
 
@@ -350,9 +385,12 @@ function QueryParsingTrace({
   const alternatives = qp?.alternatives ?? ['search_routes', 'search_crags', 'general_knowledge']
 
   return (
+    <div>
+      <StageDesc>使用 LLM 分析查詢意圖，決定呼叫哪個搜尋工具（路線搜尋 / 岩場搜尋 / 通識問答），同時抽取結構化過濾條件（地區、難度、路線類型等）。是後續 Metadata Filter 建構與搜尋策略（HyDE、Multi-Query、Agentic）選擇的依據。</StageDesc>
     <IOFlow>
       <StageSection type="input">
-        <p className="italic text-wb-60 line-clamp-2">{query}</p>
+        <KVRow label="觸發條件" value="所有非快取查詢必經；輸出 tool / query_type / params 決定後續 Pipeline 路徑" />
+        <p className="italic text-wb-60 line-clamp-2 mt-1">{query}</p>
       </StageSection>
       <StageSection type="decision">
         {qp ? (
@@ -416,6 +454,223 @@ function QueryParsingTrace({
         )}
       </StageSection>
     </IOFlow>
+    </div>
+  )
+}
+
+function FilterTrace({ trace, pipelineStage }: { trace: PipelineTrace | null; pipelineStage: Record<string, unknown> | null }) {
+  const f = trace?.filter
+  const qp = trace?.query_parsing
+
+  if (!f) return (
+    <div>
+      <StageDesc>將 query_parsing 抽取的結構化 params 轉換為 Vectorize 向量資料庫的 Metadata Filter，在向量搜尋時限縮候選範圍。支援 LLM 解析（llm_parsed）、Regex 降級（regex_fallback）、相似路線（sim_route）與對話歷史補充（history_supplemented）等來源。</StageDesc>
+    <IOFlow>
+      <StageSection type="input">
+        <p className="text-wb-40">來自 query_parsing 抽取的 params</p>
+      </StageSection>
+      <StageSection type="decision">
+        <p className="text-wb-40">無詳細資料（舊記錄或快取命中）</p>
+      </StageSection>
+      <StageSection type="output">
+        <p className="text-wb-40">無套用 Filter（general-knowledge 或無結構化參數）</p>
+      </StageSection>
+    </IOFlow>
+    </div>
+  )
+
+  const sourceColors: Record<string, 'emerald' | 'blue' | 'amber' | 'violet'> = {
+    llm_parsed: 'emerald',
+    regex_fallback: 'amber',
+    sim_route: 'blue',
+    history_supplemented: 'violet',
+  }
+  const params = qp?.params ?? {}
+  const matchedTexts = f.matched_texts ?? {}
+  const resolvedIds = f.resolved_ids ?? {}
+
+  return (
+    <div>
+      <StageDesc>將 query_parsing 抽取的結構化 params 轉換為 Vectorize 向量資料庫的 Metadata Filter，在向量搜尋時限縮候選範圍。支援 LLM 解析（llm_parsed）、Regex 降級（regex_fallback）、相似路線（sim_route）與對話歷史補充（history_supplemented）等來源。</StageDesc>
+    <IOFlow>
+      <StageSection type="input">
+        <div className="space-y-1">
+          <KVRow label="觸發條件" value="tool = search_routes / search_crags 且 query_parsing 抽取到結構化 params；通識問答跳過" />
+          <p className="text-wb-40 text-[10px] mt-0.5">LLM 抽取 Params（來自 query_parsing）：</p>
+          {Object.keys(params).length > 0 ? (
+            Object.entries(params).map(([k, v]) => (
+              <KVRow key={k} label={k} value={JSON.stringify(v)} />
+            ))
+          ) : (
+            <p className="text-wb-40">無結構化 params</p>
+          )}
+        </div>
+      </StageSection>
+      <StageSection type="decision">
+        <div className="space-y-2">
+          <div className="flex items-center gap-2">
+            <span className="text-wb-40">Filter 來源：</span>
+            <TraceBadge text={f.source} color={sourceColors[f.source] ?? 'default'} />
+            {f.source === 'regex_fallback' && <span className="text-wb-50">LLM 解析失敗，降級為 Regex</span>}
+          </div>
+          {f.history_supplemented && (
+            <div className="flex items-center gap-2">
+              <TraceBadge text="對話歷史補充位置" color="violet" />
+              <span className="text-wb-50">query 含指代詞，從近期對話補充 crag/region</span>
+            </div>
+          )}
+          {Object.keys(matchedTexts).length > 0 && (
+            <div>
+              <p className="text-wb-40 mb-1">觸發各欄位的原始文字：</p>
+              <div className="space-y-0.5">
+                {Object.entries(matchedTexts).map(([field, text]) => (
+                  <div key={field} className="flex items-start gap-2">
+                    <TraceBadge text={field} color="blue" />
+                    <span className="text-wb-70 italic">&ldquo;{text}&rdquo;</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+          {Object.keys(resolvedIds).length > 0 && (
+            <div>
+              <p className="text-wb-40 mb-1">DB 解析出的 ID：</p>
+              <div className="space-y-0.5">
+                {Object.entries(resolvedIds).map(([key, val]) => (
+                  <KVRow key={key} label={key} value={Array.isArray(val) ? val.join(', ') : String(val ?? '—')} />
+                ))}
+              </div>
+            </div>
+          )}
+        </div>
+      </StageSection>
+      <StageSection type="output">
+        <div className="space-y-1">
+          <p className="text-wb-40 text-[10px]">最終 Vectorize metadata filter：</p>
+          <pre className="font-mono text-wb-70 bg-wb-5 rounded px-2 py-1.5 overflow-auto max-h-32 text-[10px]">
+            {JSON.stringify(f.applied, null, 2)}
+          </pre>
+        </div>
+      </StageSection>
+    </IOFlow>
+    </div>
+  )
+}
+
+function MMRSelectionTrace({ trace, sources }: { trace: PipelineTrace | null; sources: Array<{ title?: string; type?: string; score?: number }> }) {
+  const m = trace?.mmr_selection
+  if (!m) return <p className="text-[11px] text-wb-40">無詳細資料（舊記錄）</p>
+
+  return (
+    <div>
+      <StageDesc>從 Reranking 後的候選中，以 Maximal Marginal Relevance（MMR）迭代選出兼顧相關性與多樣性的文件組合：每輪選取「與查詢最相關，同時與已選集合相似度最低」的文件。並對攀登紀錄數多的熱門路線施以熱門度加成，確保回答覆蓋受歡迎的路線。</StageDesc>
+    <IOFlow>
+      <StageSection type="input">
+        <div className="space-y-1.5">
+          <KVRow label="觸發條件" value="所有向量搜尋路徑必經；Reranking 後執行多樣性選取" />
+          {/* 輸入文件清單：優先用 reranker.top_scores */}
+          {trace?.retrieval?.reranker?.top_scores && trace.retrieval.reranker.top_scores.length > 0 ? (
+            <div>
+              <p className="text-wb-40 text-[10px] mb-1">輸入文件（Reranker 輸出，{m.input_count} 筆）：</p>
+              <div className="space-y-0.5">
+                {trace.retrieval.reranker.top_scores.map((doc, i) => (
+                  <div key={i} className="flex items-center gap-1.5 text-[10px] px-1">
+                    <span className="text-wb-30 tabular-nums w-5 shrink-0">{i + 1}.</span>
+                    <span className="flex-1 text-wb-70 truncate">{doc.title}</span>
+                    <span className={`font-mono tabular-nums shrink-0 ${doc.score >= 0.5 ? 'text-emerald-600' : doc.score >= 0.2 ? 'text-amber-600' : 'text-wb-40'}`}>{doc.score.toFixed(3)}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          ) : (
+            <KVRow label="輸入候選" value={`${m.input_count} 筆（Cross-encoder Reranking 後）`} />
+          )}
+          <KVRow label="lambda (λ)" value={
+            <span>
+              <span className="font-mono text-violet-600">{m.lambda}</span>
+              <span className="ml-1.5 text-wb-30 text-[10px]">λ=1.0 純相關性 ／ λ=0.0 純多樣性 ／ 中間值平衡兩者</span>
+            </span>
+          } />
+          <KVRow label="熱門度加權" value={
+            <span>
+              <span className="font-mono text-amber-600">{m.popularity_weight}</span>
+              <span className="ml-1.5 text-wb-30 text-[10px]">依攀登紀錄數正規化的熱門度分（0–1）的加成係數</span>
+            </span>
+          } />
+        </div>
+      </StageSection>
+      <StageSection type="decision">
+        <div className="space-y-1.5">
+          <KVRow label="MMR 公式" value={
+            <span className="font-mono text-[10px]">
+              score(d) = λ × rel(d,q) − (1−λ) × max_sim(d, selected)
+            </span>
+          } />
+          <KVRow label="熱門度補正" value={
+            <span className="font-mono text-[10px]">
+              final(d) = score(d) + popularity_weight × popularity(d)
+            </span>
+          } />
+          <p className="text-wb-30 text-[10px]">每輪迭代選出 final score 最高的未選文件，直到達到目標數量</p>
+        </div>
+      </StageSection>
+      <StageSection type="output">
+        <div className="space-y-2">
+          <div className="flex gap-4">
+            <div>
+              <p className="text-wb-40">輸入</p>
+              <p className="text-base font-bold text-wb-90 tabular-nums">{m.input_count} 筆</p>
+            </div>
+            <div>
+              <p className="text-wb-40">MMR 選出</p>
+              <p className="text-base font-bold text-emerald-600 tabular-nums">{m.selected_count} 筆</p>
+            </div>
+          </div>
+          {m.top_selected && m.top_selected.length > 0 && (
+            <div>
+              <p className="text-wb-40 mb-1.5">MMR 選取明細（{m.top_selected.length} 筆）：</p>
+              {/* header */}
+              <div className="grid text-[10px] text-wb-30 mb-1 px-2" style={{ gridTemplateColumns: '1.2rem 1fr 3rem 3rem 3rem' }}>
+                <span>#</span><span>文件</span>
+                <span className="text-right" title="MMR 相關性分（0–1，越高越符合查詢）">相關性↑</span>
+                <span className="text-right" title="影片數正規化熱門度（0–1，攀登紀錄越多越高）">熱門度↑</span>
+                <span className="text-right" title="λ×相關性 + (1-λ)×熱門度 的加權組合分">最終分↑</span>
+              </div>
+              <div className="space-y-0.5">
+                {m.top_selected.map((doc, i) => (
+                  <div key={i} className="grid items-center gap-x-1.5 rounded px-2 py-1 hover:bg-wb-5 text-[11px]" style={{ gridTemplateColumns: '1.2rem 1fr 3rem 3rem 3rem' }}>
+                    <span className="text-wb-30 tabular-nums">{i + 1}</span>
+                    <span className="text-wb-80 truncate">{doc.title}</span>
+                    <span className="text-right font-mono text-blue-600 tabular-nums">{doc.relevance_score.toFixed(3)}</span>
+                    <span className="text-right font-mono text-amber-600 tabular-nums">{doc.popularity_score.toFixed(3)}</span>
+                    <span className="text-right font-mono text-emerald-600 tabular-nums font-semibold">{doc.final_score.toFixed(3)}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+          {sources.length > 0 && (
+            <div>
+              <p className="text-wb-40 mb-1">送入 LLM 的文件（{sources.length} 筆）：</p>
+              <div className="space-y-1">
+                {sources.map((s, i) => (
+                  <div key={i} className="flex items-center gap-2 rounded bg-wb-5 px-2 py-1">
+                    <span className="shrink-0 rounded border border-wb-20 px-1 py-0.5 text-[10px] text-wb-60">{s.type}</span>
+                    <span className="flex-1 text-wb-80 truncate">{s.title ?? '—'}</span>
+                    {s.score != null && (
+                      <span className={`tabular-nums shrink-0 text-[11px] ${s.score >= 0.7 ? 'text-emerald-600' : s.score >= 0.5 ? 'text-amber-600' : 'text-red-500'}`}>
+                        {(s.score * 100).toFixed(1)}%
+                      </span>
+                    )}
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+        </div>
+      </StageSection>
+    </IOFlow>
+    </div>
   )
 }
 
@@ -425,10 +680,14 @@ function HydeTrace({ trace, pipelineStage }: { trace: PipelineTrace | null; pipe
   const queryType = pipelineStage?.query_type as string | undefined
 
   return (
+    <div>
+      <StageDesc>Hypothetical Document Embedding。對 complex 類型查詢，先讓 LLM 生成一份「假設性的理想回答文件」，再對此文件進行向量化。用假設文件的向量而非查詢向量去搜尋，能找到在語意空間中更接近「答案形式」的文件，顯著提升複雜查詢的召回品質。</StageDesc>
     <IOFlow>
       <StageSection type="input">
-        <KVRow label="觸發條件" value="query_type = complex" />
-        {queryType && <KVRow label="本次類型" value={<TraceBadge text={queryType} color={queryType === 'complex' ? 'violet' : queryType === 'simple' ? 'blue' : 'emerald'} />} />}
+        <div className="space-y-1">
+          <KVRow label="觸發條件" value="query_type = complex 或相似路線搜尋意圖" />
+          {queryType && <KVRow label="本次類型" value={<TraceBadge text={queryType} color={queryType === 'complex' ? 'violet' : queryType === 'simple' ? 'blue' : 'emerald'} />} />}
+        </div>
       </StageSection>
       <StageSection type="decision">
         {triggered === false ? (
@@ -452,29 +711,40 @@ function HydeTrace({ trace, pipelineStage }: { trace: PipelineTrace | null; pipe
         )}
       </StageSection>
       <StageSection type="output">
-        {h ? (
+        {h?.document ? (
           <div>
             <p className="text-wb-40 mb-1">假設性文件（前 300 字）：</p>
-            <pre className="font-mono text-wb-70 bg-wb-5 rounded px-2 py-1.5 whitespace-pre-wrap leading-relaxed max-h-40 overflow-auto text-[10px]">
+            <pre className="font-mono text-wb-70 bg-wb-5 rounded px-2 py-1.5 whitespace-pre-wrap leading-relaxed max-h-48 overflow-auto text-[10px]">
               {h.document}
             </pre>
           </div>
         ) : triggered === false ? (
           <p className="text-wb-40">跳過，不產生假設性文件</p>
+        ) : triggered === true ? (
+          <p className="text-wb-40">假設性文件未記錄（舊記錄不含此資料）</p>
         ) : (
-          <p className="text-wb-40">無詳細資料（舊記錄）</p>
+          <p className="text-wb-40">無詳細資料</p>
         )}
       </StageSection>
     </IOFlow>
+    </div>
   )
 }
 
-function MultiQueryTrace({ trace }: { trace: PipelineTrace }) {
+function MultiQueryTrace({ trace, query }: { trace: PipelineTrace; query: string }) {
   const mq = trace.multi_query
   return (
+    <div>
+      <StageDesc>使用 LLM 將原始查詢改寫為多個語義不同但意圖相同的子查詢，各子查詢分別在 retrieval 階段執行獨立的向量搜尋。透過多角度表述提升向量召回率，最終在 RRF 合併時整合各路徑結果。觸發條件：query_type = complex 且配置允許。</StageDesc>
     <IOFlow>
       <StageSection type="input">
-        <p className="text-wb-50">原始查詢（來自 query_parsing 輸出）</p>
+        <div className="space-y-1">
+          <KVRow label="觸發條件" value="query_type = complex 且 multi_query 配置已啟用" />
+          <div className="space-y-0.5">
+            <p className="text-wb-40 text-[10px]">原始查詢（來自 query_parsing 輸出）：</p>
+            <p className="font-mono text-[11px] text-wb-70 bg-wb-5 rounded px-2 py-1.5 break-all">{query}</p>
+          </div>
+        </div>
       </StageSection>
       <StageSection type="decision">
         {mq ? (
@@ -498,18 +768,23 @@ function MultiQueryTrace({ trace }: { trace: PipelineTrace }) {
         )}
       </StageSection>
     </IOFlow>
+    </div>
   )
 }
 
 function EmbeddingTrace({
   trace,
   pipelineStage,
+  query,
 }: {
   trace: PipelineTrace | null
   pipelineStage: Record<string, unknown> | null
+  query: string
 }) {
   const e = trace?.embedding
   const durationMs = pipelineStage?.duration_ms as number | null | undefined
+  const hydeDoc = trace?.hyde?.document
+  const expandedQueries = trace?.multi_query?.queries ?? []
 
   const inputs: string[] = []
   if (e) {
@@ -519,16 +794,55 @@ function EmbeddingTrace({
   }
 
   return (
+    <div>
+      <StageDesc>將查詢文字（及 HyDE 假設文件、Multi-Query 擴展查詢）轉換為 1024 維稠密向量（@cf/baai/bge-m3），供向量資料庫執行餘弦相似度搜尋。若前序階段已生成 query 向量（early_vector），可直接復用以節省時間。</StageDesc>
     <IOFlow>
       <StageSection type="input">
         {e ? (
-          <div className="space-y-1">
-            {inputs.map((t) => (
-              <div key={t} className="flex items-center gap-1.5">
+          <div className="space-y-2">
+            <KVRow label="觸發條件" value="所有向量搜尋必經；若已有 early_vector 可直接復用，跳過重新 embedding" />
+            {/* query */}
+            <div className="space-y-0.5">
+              <div className="flex items-center gap-1.5">
                 <span className="h-1.5 w-1.5 rounded-full bg-blue-400 shrink-0" />
-                <span>{t}</span>
+                <span>{e.early_vector_reused ? 'query 向量（復用早期向量）' : 'query 向量（新生成）'}</span>
               </div>
-            ))}
+              {query && (
+                <p className="ml-3 text-[10px] text-wb-60 font-mono border-l-2 border-blue-100 pl-2 line-clamp-2">{query}</p>
+              )}
+            </div>
+            {/* HyDE */}
+            {e.hyde_embedded && (
+              <div className="space-y-0.5">
+                <div className="flex items-center gap-1.5">
+                  <span className="h-1.5 w-1.5 rounded-full bg-violet-400 shrink-0" />
+                  <span>HyDE 假設文件向量</span>
+                </div>
+                {hydeDoc ? (
+                  <p className="ml-3 text-[10px] text-wb-60 border-l-2 border-violet-100 pl-2 line-clamp-3">{hydeDoc}</p>
+                ) : (
+                  <p className="ml-3 text-[10px] text-wb-30 border-l-2 border-wb-10 pl-2">假設性文件未記錄（舊記錄）</p>
+                )}
+              </div>
+            )}
+            {/* expanded */}
+            {e.expanded_count > 0 && (
+              <div className="space-y-0.5">
+                <div className="flex items-center gap-1.5">
+                  <span className="h-1.5 w-1.5 rounded-full bg-amber-400 shrink-0" />
+                  <span>Multi-Query 擴展向量 ×{e.expanded_count}</span>
+                </div>
+                {expandedQueries.length > 0 ? (
+                  <div className="ml-3 border-l-2 border-amber-100 pl-2 space-y-0.5">
+                    {expandedQueries.map((q, i) => (
+                      <p key={i} className="text-[10px] text-wb-60 font-mono line-clamp-1">{i + 1}. {q}</p>
+                    ))}
+                  </div>
+                ) : (
+                  <p className="ml-3 text-[10px] text-wb-30 border-l-2 border-wb-10 pl-2">擴展查詢未記錄（舊記錄）</p>
+                )}
+              </div>
+            )}
           </div>
         ) : (
           <p className="text-wb-40">無詳細資料（舊記錄）</p>
@@ -543,131 +857,715 @@ function EmbeddingTrace({
       </StageSection>
       <StageSection type="output">
         {e ? (
-          <div className="flex flex-wrap gap-1.5">
-            <TraceBadge text={e.early_vector_reused ? 'query vec（復用）' : 'query vec'} color="blue" />
-            {e.hyde_embedded && <TraceBadge text="HyDE vec" color="violet" />}
-            {e.expanded_count > 0 && <TraceBadge text={`擴展 vec ×${e.expanded_count}`} color="amber" />}
+          <div className="space-y-2">
+            {/* query vec */}
+            <div className="space-y-0.5">
+              <div className="flex items-center gap-1.5">
+                <TraceBadge text={e.early_vector_reused ? 'query vec（復用）' : 'query vec'} color="blue" />
+                <span className="text-[10px] text-wb-40">1024 維</span>
+              </div>
+              {query && (
+                <p className="ml-1 text-[10px] text-wb-50 line-clamp-1 font-mono border-l border-wb-10 pl-2">{query}</p>
+              )}
+            </div>
+            {/* HyDE vec */}
+            {e.hyde_embedded && (
+              <div className="space-y-0.5">
+                <div className="flex items-center gap-1.5">
+                  <TraceBadge text="HyDE vec" color="violet" />
+                  <span className="text-[10px] text-wb-40">1024 維</span>
+                </div>
+                {hydeDoc && (
+                  <p className="ml-1 text-[10px] text-wb-50 line-clamp-2 border-l border-wb-10 pl-2">{hydeDoc}</p>
+                )}
+              </div>
+            )}
+            {/* expanded vecs */}
+            {e.expanded_count > 0 && (
+              <div className="space-y-0.5">
+                <div className="flex items-center gap-1.5">
+                  <TraceBadge text={`擴展 vec ×${e.expanded_count}`} color="amber" />
+                  <span className="text-[10px] text-wb-40">1024 維 × {e.expanded_count}</span>
+                </div>
+                {expandedQueries.length > 0 && (
+                  <div className="ml-1 space-y-0.5 border-l border-wb-10 pl-2">
+                    {expandedQueries.map((q, i) => (
+                      <p key={i} className="text-[10px] text-wb-50 line-clamp-1 font-mono">{i + 1}. {q}</p>
+                    ))}
+                  </div>
+                )}
+              </div>
+            )}
           </div>
         ) : (
           <p className="text-wb-40">無詳細資料（舊記錄）</p>
         )}
       </StageSection>
     </IOFlow>
+    </div>
+  )
+}
+
+function RRFFusionTrace({ trace }: { trace: PipelineTrace | null }) {
+  const r = trace?.retrieval
+  const [expandedInputPath, setExpandedInputPath] = useState<string | null>(null)
+  const [showMerged, setShowMerged] = useState(false)
+  const [showOutput, setShowOutput] = useState(false)
+
+  if (!r) return <p className="text-[11px] text-wb-40">無詳細資料（舊記錄）</p>
+
+  const pathLabelMap: Record<string, string> = {
+    query_vec: 'Query 向量',
+    hyde_vec: 'HyDE 向量',
+    bm25: 'BM25 全文',
+  }
+  const pathLabel = (p: string) => pathLabelMap[p] ?? p
+  const pathColor = (p: string): 'blue' | 'violet' | 'emerald' | 'amber' | 'default' =>
+    p === 'query_vec' ? 'blue' : p === 'hyde_vec' ? 'violet' : p === 'bm25' ? 'emerald' : 'amber'
+
+  const pathEntries = r.path_counts ? Object.entries(r.path_counts) : []
+  const pathResults = r.path_results ?? {}
+
+  // 從 path_results 重建 RRF 排序（k=60）
+  const rrfResults = (() => {
+    const k = 60
+    const docMap = new Map<string, { id: string; name?: string; rrfScore: number; paths: string[]; pathRanks: Record<string, number> }>()
+    for (const [path, docs] of Object.entries(pathResults)) {
+      docs.forEach((doc, rank) => {
+        const contrib = 1 / (k + rank + 1)
+        const existing = docMap.get(doc.id)
+        if (existing) {
+          existing.rrfScore += contrib
+          existing.paths.push(path)
+          existing.pathRanks[path] = rank + 1
+        } else {
+          docMap.set(doc.id, { id: doc.id, name: doc.name, rrfScore: contrib, paths: [path], pathRanks: { [path]: rank + 1 } })
+        }
+      })
+    }
+    const sorted = Array.from(docMap.values()).sort((a, b) => b.rrfScore - a.rrfScore)
+    // 後端 merged_count 是 cap 後的數量（排序後取前 N 筆），與此一致
+    return r.rrf ? sorted.slice(0, r.rrf.merged_count) : sorted
+  })()
+
+  const threshold = r.rrf?.min_score_threshold ?? 0
+  // 使用後端記錄的 after_threshold_count 保持一致
+  const filtered = r.rrf ? rrfResults.slice(0, r.rrf.after_threshold_count) : rrfResults
+
+  if (!r.rrf) return (
+    <div>
+      <StageDesc>將多路搜尋結果以 Reciprocal Rank Fusion 演算法融合：各文件的最終 RRF 分數為其在各路徑中倒排名的加總，跨路徑去重後依分數門檻過濾低質候選，產出一份統一有序清單。</StageDesc>
+      <IOFlow>
+        <StageSection type="input">
+          <KVRow label="觸發條件" value="retrieval 執行後必然觸發（multi-path 搜尋完成即合併）" />
+          <KVRow label="各路徑候選" value={`${r.candidates_before_filter} 筆（多路徑原始結果）`} />
+        </StageSection>
+        <StageSection type="decision">
+          <p className="text-wb-50">無詳細 RRF 資料（舊記錄）</p>
+        </StageSection>
+        <StageSection type="output">
+          <p className="text-wb-40">無詳細 RRF 資料（舊記錄）</p>
+        </StageSection>
+      </IOFlow>
+    </div>
+  )
+
+  return (
+    <div>
+      <StageDesc>將多路搜尋結果以 Reciprocal Rank Fusion 演算法融合：各文件的最終 RRF 分數為其在各路徑中倒排名的加總（score = Σ 1/(k+rank)，k=60），跨路徑去重後依分數門檻過濾低質候選，產出一份統一有序清單。</StageDesc>
+      <IOFlow>
+        {/* INPUT：各路徑原始候選清單 */}
+        <StageSection type="input">
+          <div className="space-y-1.5">
+            <KVRow label="觸發條件" value="retrieval 執行後必然觸發（multi-path 搜尋完成即合併）" />
+            <KVRow label="輸入路徑" value={`${r.rrf.paths_count} 條獨立搜尋結果集`} />
+            {pathEntries.length > 0 && (
+              <div className="space-y-1">
+                <p className="text-wb-30 text-[10px]">各路徑候選（點擊展開文件清單）：</p>
+                {pathEntries.map(([path, count]) => {
+                  const docs = pathResults[path] ?? []
+                  const isExpanded = expandedInputPath === path
+                  const hasData = docs.length > 0
+                  return (
+                    <div key={path} className="rounded border border-wb-10 overflow-hidden">
+                      <button
+                        onClick={() => hasData ? setExpandedInputPath(isExpanded ? null : path) : undefined}
+                        className={`flex items-center gap-2 w-full px-2 py-1.5 bg-wb-3 text-left ${hasData ? 'cursor-pointer hover:bg-wb-5' : 'cursor-default'}`}
+                      >
+                        <TraceBadge text={pathLabel(path)} color={pathColor(path)} />
+                        <span className={`text-[11px] font-semibold tabular-nums ${count > 0 ? 'text-wb-70' : 'text-wb-30'}`}>{count} 筆</span>
+                        {hasData && <ChevronUp className={`h-3 w-3 text-wb-30 ml-auto shrink-0 transition-transform ${isExpanded ? '' : 'rotate-180'}`} />}
+                      </button>
+                      {isExpanded && docs.length > 0 && (
+                        <div className="border-t border-wb-10 px-2 py-1.5 space-y-0.5">
+                          {docs.map((doc, i) => (
+                            <div key={doc.id} className="flex items-center gap-1.5 text-[10px]">
+                              <span className="shrink-0 text-wb-30 tabular-nums w-5">{i + 1}.</span>
+                              <span className="flex-1 text-wb-70 truncate">{doc.name ?? doc.id}</span>
+                              <span className={`shrink-0 font-mono tabular-nums ${doc.score >= 0.5 ? 'text-emerald-600' : doc.score >= 0.2 ? 'text-amber-600' : 'text-wb-40'}`}>
+                                {doc.score.toFixed(3)}
+                              </span>
+                            </div>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                  )
+                })}
+              </div>
+            )}
+          </div>
+        </StageSection>
+
+        {/* DECISION：合併去重 + 計算 RRF 分 */}
+        <StageSection type="decision">
+          <div className="space-y-1.5">
+            <KVRow label="演算法" value={<span>RRF score = <span className="font-mono">Σ 1/(60 + rank)</span>（各路徑倒排名加總）</span>} />
+            <KVRow label="跨路徑去重" value={`合併為 ${r.rrf.merged_count} 筆唯一文件`} />
+            <KVRow label="分數門檻" value={
+              <span>
+                <span className="font-mono text-violet-600">{r.rrf.min_score_threshold.toFixed(4)}</span>
+                <span className="ml-1.5 text-wb-30 text-[10px]">RRF 分低於此值的文件被過濾</span>
+              </span>
+            } />
+            <KVRow label="過濾結果" value={
+              <span>
+                <span className="text-wb-50">{r.rrf.merged_count} 筆</span>
+                <span className="mx-1 text-wb-30">→</span>
+                <span className="text-emerald-600 font-semibold">{r.rrf.after_threshold_count} 筆</span>
+                <span className="ml-1 text-wb-30 text-[10px]">通過門檻</span>
+              </span>
+            } />
+            {rrfResults.length > 0 && (
+              <div>
+                <button
+                  onClick={() => setShowMerged(v => !v)}
+                  className="flex items-center gap-1 text-[10px] text-violet-600 hover:text-violet-700 mt-0.5"
+                >
+                  <ChevronUp className={`h-3 w-3 transition-transform ${showMerged ? '' : 'rotate-180'}`} />
+                  {showMerged ? '收起' : `展開合併後 ${rrfResults.length} 筆文件（含 RRF 分 + 來源路徑）`}
+                </button>
+                {showMerged && (
+                  <div className="mt-1.5 space-y-0.5">
+                    <div className="grid grid-cols-[20px_1fr_56px_auto] gap-x-2 text-[9px] text-wb-30 px-1 pb-0.5 border-b border-wb-8">
+                      <span>#</span><span>文件名稱</span><span className="text-right">RRF分</span><span>路徑</span>
+                    </div>
+                    {rrfResults.map((doc, i) => {
+                      const passed = doc.rrfScore >= threshold
+                      return (
+                        <div key={doc.id} className={`grid grid-cols-[20px_1fr_56px_auto] gap-x-2 items-center text-[10px] px-1 py-0.5 rounded ${passed ? '' : 'opacity-40'}`}>
+                          <span className="text-wb-30 tabular-nums">{i + 1}.</span>
+                          <span className={`truncate ${passed ? 'text-wb-70' : 'text-wb-40 line-through'}`}>{doc.name ?? doc.id}</span>
+                          <span className={`text-right font-mono tabular-nums ${passed ? 'text-violet-600' : 'text-wb-30'}`}>{doc.rrfScore.toFixed(4)}</span>
+                          <div className="flex gap-0.5 flex-wrap">
+                            {doc.paths.map(p => (
+                              <TraceBadge key={p} text={p === 'query_vec' ? 'Q' : p === 'hyde_vec' ? 'H' : p === 'bm25' ? 'B' : p.replace('expanded_', 'E')} color={pathColor(p)} />
+                            ))}
+                          </div>
+                        </div>
+                      )
+                    })}
+                  </div>
+                )}
+              </div>
+            )}
+          </div>
+        </StageSection>
+
+        {/* OUTPUT：通過門檻的最終排序清單 */}
+        <StageSection type="output">
+          <div className="space-y-1">
+            <div className="flex items-baseline gap-2">
+              <span className="text-emerald-600 font-bold text-base tabular-nums">{r.rrf.after_threshold_count} 筆</span>
+              <span className="text-wb-40">融合後有效候選，進入 CRAG 充足性判斷</span>
+            </div>
+            <p className="text-wb-30 text-[10px]">已按 RRF 分數降序排列，相同文件出現在越多路徑且排名越前則分數越高</p>
+            {filtered.length > 0 && (
+              <div>
+                <button
+                  onClick={() => setShowOutput(v => !v)}
+                  className="flex items-center gap-1 text-[10px] text-emerald-600 hover:text-emerald-700 mt-0.5"
+                >
+                  <ChevronUp className={`h-3 w-3 transition-transform ${showOutput ? '' : 'rotate-180'}`} />
+                  {showOutput ? '收起' : `展開最終 ${filtered.length} 筆排序清單`}
+                </button>
+                {showOutput && (
+                  <div className="mt-1.5 space-y-0.5">
+                    <div className="grid grid-cols-[20px_1fr_56px_auto] gap-x-2 text-[9px] text-wb-30 px-1 pb-0.5 border-b border-wb-8">
+                      <span>#</span><span>文件名稱</span><span className="text-right">RRF分</span><span>出現路徑</span>
+                    </div>
+                    {filtered.map((doc, i) => (
+                      <div key={doc.id} className="grid grid-cols-[20px_1fr_56px_auto] gap-x-2 items-center text-[10px] px-1 py-0.5 rounded hover:bg-wb-3">
+                        <span className="text-wb-40 tabular-nums">{i + 1}.</span>
+                        <span className="text-wb-80 truncate">{doc.name ?? doc.id}</span>
+                        <span className="text-right font-mono tabular-nums text-emerald-600">{doc.rrfScore.toFixed(4)}</span>
+                        <div className="flex gap-0.5 flex-wrap">
+                          {doc.paths.map(p => (
+                            <TraceBadge key={p} text={p === 'query_vec' ? 'Q' : p === 'hyde_vec' ? 'H' : p === 'bm25' ? 'B' : p.replace('expanded_', 'E')} color={pathColor(p)} />
+                          ))}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            )}
+          </div>
+        </StageSection>
+      </IOFlow>
+    </div>
+  )
+}
+
+function CRAGFallbackTrace({ trace }: { trace: PipelineTrace | null }) {
+  const r = trace?.retrieval
+  if (!r) return <p className="text-[11px] text-wb-40">無詳細資料（舊記錄）</p>
+
+  const postRrfCount = r.rrf?.after_threshold_count ?? r.candidates_before_filter
+  const triggered = r.crag_fallback
+  const hasDetail = !!r.crag_fallback_detail
+  const finalCount = hasDetail
+    ? (r.crag_fallback_detail!.retries.at(-1)?.candidates_after ?? postRrfCount)
+    : postRrfCount
+
+  return (
+    <div>
+      <StageDesc>判斷 RRF 後的有效候選是否足夠。若不足，逐步放寬 Metadata Filter 條件並重新搜尋：先移除難度（grade）限制，再移除類型（type）限制，每次重試後重新計算候選數，直到足夠或放無可放為止。</StageDesc>
+      <IOFlow>
+        <StageSection type="input">
+          <div className="space-y-1">
+            <KVRow label="RRF 後候選" value={`${postRrfCount} 筆`} />
+            <KVRow label="觸發條件" value="candidates_after_filter = 0（過濾後無候選）" />
+            {r.crag_fallback_stage && (
+              <KVRow label="已放寬至" value={
+                r.crag_fallback_stage === 'grade'
+                  ? '移除 grade 難度過濾'
+                  : '移除 grade + type 過濾'
+              } />
+            )}
+          </div>
+        </StageSection>
+        <StageSection type="decision">
+          <div className="space-y-1.5">
+            {triggered ? (
+              <>
+                <div className="flex items-center gap-1.5">
+                  <TraceBadge text="觸發回退" color="amber" />
+                  {r.crag_fallback_detail?.trigger_reason && (
+                    <span className="text-wb-50 text-[10px]">{r.crag_fallback_detail.trigger_reason}</span>
+                  )}
+                </div>
+                {hasDetail && r.crag_fallback_detail!.retries.length > 0 ? (
+                  <div className="space-y-1.5 pt-0.5">
+                    <p className="text-wb-30 text-[10px]">放寬步驟：</p>
+                    {r.crag_fallback_detail!.retries.map((retry, i) => (
+                      <div key={i} className="rounded border border-amber-100 bg-amber-50/40 px-2 py-1.5 space-y-0.5">
+                        <div className="flex items-center gap-2">
+                          <span className="text-wb-30 text-[10px] tabular-nums">Step {i + 1}</span>
+                          <span className="text-wb-40 text-[10px]">移除</span>
+                          <TraceBadge text={retry.removed_filter} color="red" />
+                          <span className="text-wb-30 text-[10px]">過濾條件</span>
+                        </div>
+                        <div className="flex items-center gap-1.5 pl-1">
+                          <span className="text-wb-40 text-[10px]">重搜結果：</span>
+                          <span className="text-amber-700 font-semibold text-[11px]">{retry.candidates_after} 筆</span>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                ) : r.crag_fallback_stage ? (
+                  <div className="space-y-1">
+                    <TraceBadge
+                      text={r.crag_fallback_stage === 'grade' ? '移除 grade 難度過濾後重搜' : '移除 grade + type 後重搜'}
+                      color="amber"
+                    />
+                  </div>
+                ) : null}
+              </>
+            ) : (
+              <div className="flex items-center gap-1.5">
+                <CheckCircle2 className="h-3.5 w-3.5 text-emerald-500 shrink-0" />
+                <span className="text-wb-50">candidates_after_filter &gt; 0，候選充足，跳過回退</span>
+              </div>
+            )}
+          </div>
+        </StageSection>
+        <StageSection type="output">
+          <div className="space-y-1">
+            <div className="flex items-baseline gap-2">
+              <span className={`font-bold text-base tabular-nums ${triggered ? 'text-amber-600' : 'text-emerald-600'}`}>{finalCount} 筆</span>
+              <span className="text-wb-40">
+                {triggered ? '放寬過濾後的候選，進入 Cross-encoder Reranking' : '原始有效候選，進入 Cross-encoder Reranking'}
+              </span>
+            </div>
+            {triggered && (
+              <p className="text-wb-30 text-[10px]">注意：放寬過濾可能引入相關性較低的文件，後續 Reranking 將依語意評分再次排序</p>
+            )}
+          </div>
+        </StageSection>
+      </IOFlow>
+    </div>
+  )
+}
+
+function RerankerTrace({ trace, query }: { trace: PipelineTrace | null; query: string }) {
+  const r = trace?.retrieval
+  const [showInput, setShowInput] = useState(false)
+  if (!r) return <p className="text-[11px] text-wb-40">無詳細資料（舊記錄）</p>
+
+  const skipped = r.reranker_used === false || !!r.reranker?.skipped_reason
+  const inputCount = r.reranker?.input_count ?? (r.rrf?.after_threshold_count ?? r.candidates_before_filter)
+
+  // 重建 RRF 排序後的文件清單作為 reranker input
+  const rrfFilteredDocs = (() => {
+    if (!r.path_results || !r.rrf) return []
+    const k = 60
+    const docMap = new Map<string, { id: string; name?: string; rrfScore: number }>()
+    for (const [, docs] of Object.entries(r.path_results)) {
+      docs.forEach((doc, rank) => {
+        const contrib = 1 / (k + rank + 1)
+        const ex = docMap.get(doc.id)
+        if (ex) ex.rrfScore += contrib
+        else docMap.set(doc.id, { id: doc.id, name: doc.name, rrfScore: contrib })
+      })
+    }
+    const threshold = r.rrf.min_score_threshold
+    return Array.from(docMap.values())
+      .filter(d => d.rrfScore >= threshold)
+      .sort((a, b) => b.rrfScore - a.rrfScore)
+  })()
+
+  return (
+    <div>
+      <StageDesc>使用 Cross-encoder 模型（BAAI/bge-reranker-base）對每份候選文件與查詢進行聯合編碼評分。相比 Bi-encoder 的獨立嵌入，Cross-encoder 直接對「查詢 + 文件」整體建模，能更精準捕捉語意相關性，產出 0–1 的信心度分數並重新排序。</StageDesc>
+      <IOFlow>
+        <StageSection type="input">
+          <div className="space-y-1.5">
+            <KVRow label="觸發條件" value="候選文件數 ≥ min_rerank_count（候選過少時跳過以節省時間）" />
+            <div className="space-y-0.5">
+              <p className="text-wb-40 text-[10px]">評分用查詢：</p>
+              <p className="font-mono text-[11px] text-wb-70 bg-wb-5 rounded px-2 py-1.5 break-all line-clamp-2">{query}</p>
+            </div>
+            <div className="space-y-0.5">
+              <div className="flex items-center gap-2">
+                <span className="text-wb-50">候選文件（RRF 後）：</span>
+                <span className="font-semibold text-wb-80 tabular-nums">{inputCount} 筆</span>
+                {rrfFilteredDocs.length > 0 && (
+                  <button onClick={() => setShowInput(v => !v)} className="flex items-center gap-1 text-[10px] text-blue-600 hover:text-blue-700">
+                    <ChevronUp className={`h-3 w-3 transition-transform ${showInput ? '' : 'rotate-180'}`} />
+                    {showInput ? '收起' : '展開清單'}
+                  </button>
+                )}
+              </div>
+              {showInput && rrfFilteredDocs.length > 0 && (
+                <div className="space-y-0.5 mt-0.5">
+                  {rrfFilteredDocs.map((doc, i) => (
+                    <div key={doc.id} className="flex items-center gap-1.5 text-[10px] px-1">
+                      <span className="text-wb-30 tabular-nums w-5 shrink-0">{i + 1}.</span>
+                      <span className="flex-1 text-wb-70 truncate">{doc.name ?? doc.id}</span>
+                      <span className="font-mono tabular-nums text-wb-40">{doc.rrfScore.toFixed(4)}</span>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+            <KVRow label="評分模型" value="BAAI/bge-reranker-base（Cross-encoder）" />
+            <KVRow label="分數範圍" value="0–1（≥ 0.5 高相關 ／ 0.2–0.5 部分相關 ／ < 0.2 低相關）" />
+          </div>
+        </StageSection>
+        <StageSection type="decision">
+          {skipped ? (
+            <div className="space-y-1">
+              <div className="flex items-center gap-1.5">
+                <TraceBadge text="跳過 Reranking" color="default" />
+              </div>
+              <KVRow label="原因" value={r.reranker?.skipped_reason ?? '候選數過少，不值得執行 Cross-encoder'} />
+              <p className="text-wb-30 text-[10px]">候選將以 RRF 原始分數排序直接進入 MMR</p>
+            </div>
+          ) : (
+            <div className="space-y-1">
+              <p className="text-wb-50">對每份文件與查詢的組合執行 Cross-encoder 推論，計算交叉注意力（cross-attention）語意相關分數</p>
+              <p className="text-wb-30 text-[10px]">每次推論獨立輸入整段文件，比 Bi-encoder 計算量大但精準度更高</p>
+            </div>
+          )}
+        </StageSection>
+        <StageSection type="output">
+          {skipped ? (
+            <div className="flex items-baseline gap-2">
+              <span className="text-wb-60 font-bold text-base tabular-nums">{inputCount} 筆</span>
+              <span className="text-wb-40">維持 RRF 原排序，直接進入 MMR + 熱門度加權</span>
+            </div>
+          ) : r.reranker?.top_scores ? (
+            <div className="space-y-1.5">
+              <div className="flex items-baseline gap-2">
+                <span className="text-violet-600 font-bold text-base tabular-nums">{r.reranker.top_scores.length} 筆</span>
+                <span className="text-wb-40">重排後 Top 結果，進入 MMR + 熱門度加權</span>
+              </div>
+              <div className="space-y-0.5">
+                <div className="grid text-[10px] text-wb-30 mb-0.5 px-1" style={{ gridTemplateColumns: '1.2rem 1fr 3.5rem' }}>
+                  <span>#</span><span>文件</span><span className="text-right">信心度↑</span>
+                </div>
+                {r.reranker.top_scores.map((doc, i) => (
+                  <div key={i} className="grid items-center gap-x-1.5 rounded px-1 py-0.5 hover:bg-wb-5 text-[11px]" style={{ gridTemplateColumns: '1.2rem 1fr 3.5rem' }}>
+                    <span className="shrink-0 text-wb-30 tabular-nums">{i + 1}</span>
+                    <span className="text-wb-70 truncate">{doc.title}</span>
+                    <span className={`text-right tabular-nums font-mono font-semibold ${doc.score >= 0.5 ? 'text-emerald-600' : doc.score >= 0.2 ? 'text-amber-600' : 'text-wb-50'}`}>
+                      {doc.score.toFixed(3)}
+                    </span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          ) : (
+            <div className="flex items-center gap-2">
+              <TraceBadge text="已重排" color="violet" />
+              <span className="text-wb-40">進入 MMR + 熱門度加權</span>
+            </div>
+          )}
+        </StageSection>
+      </IOFlow>
+    </div>
+  )
+}
+
+function OutputPathList({
+  r,
+  totalRaw,
+  pathColor,
+}: {
+  r: NonNullable<PipelineTrace['retrieval']>
+  totalRaw: number
+  pathColor: (p: string) => 'blue' | 'violet' | 'emerald' | 'default'
+}) {
+  const [expandedPath, setExpandedPath] = useState<string | null>(null)
+  const pathLabel = (p: string) =>
+    p === 'query_vec' ? 'Query Vec' : p === 'hyde_vec' ? 'HyDE Vec' : p === 'bm25' ? 'BM25' : p
+  return (
+    <div className="space-y-1.5">
+      <div className="flex items-baseline gap-2">
+        <span className="text-wb-80 font-bold text-base tabular-nums">{totalRaw} 筆</span>
+        <span className="text-wb-40">各路徑原始候選合計（含重複），送入 RRF 合併去重</span>
+      </div>
+      {r.path_counts && (
+        <div className="space-y-1">
+          {Object.entries(r.path_counts).map(([path, count]) => {
+            const docs = r.path_results?.[path] ?? []
+            const isExpanded = expandedPath === path
+            const hasData = docs.length > 0
+            return (
+              <div key={path} className="rounded border border-wb-10 overflow-hidden">
+                <button
+                  onClick={() => hasData ? setExpandedPath(isExpanded ? null : path) : undefined}
+                  className={`flex items-center gap-2 w-full px-2 py-1.5 bg-wb-3 text-left ${hasData ? 'cursor-pointer hover:bg-wb-5' : 'cursor-default'}`}
+                >
+                  <TraceBadge text={pathLabel(path)} color={pathColor(path)} />
+                  <span className={`text-[11px] font-semibold tabular-nums ${count > 0 ? 'text-wb-70' : 'text-wb-30'}`}>{count} 筆</span>
+                  {count !== docs.length && docs.length > 0 && (
+                    <span className="text-[10px] text-wb-30">（顯示前 {docs.length} 筆）</span>
+                  )}
+                  {hasData && <ChevronUp className={`h-3 w-3 text-wb-30 ml-auto shrink-0 transition-transform ${isExpanded ? '' : 'rotate-180'}`} />}
+                </button>
+                {isExpanded && docs.length > 0 && (
+                  <div className="border-t border-wb-10 px-2 py-1.5 space-y-0.5">
+                    <p className="text-[9px] text-wb-25 mb-1">{path === 'bm25' ? 'BM25 相關分' : '向量餘弦相似度（0–1）'}</p>
+                    {docs.map((doc, i) => (
+                      <div key={doc.id} className="flex items-center gap-1.5 text-[10px]">
+                        <span className="shrink-0 text-wb-30 tabular-nums w-5">{i + 1}.</span>
+                        <span className="flex-1 text-wb-70 truncate">{doc.name ?? doc.id}</span>
+                        <span className={`shrink-0 font-mono tabular-nums ${doc.score >= 0.5 ? 'text-emerald-600' : doc.score >= 0.2 ? 'text-amber-600' : 'text-wb-40'}`}>
+                          {doc.score.toFixed(3)}
+                        </span>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            )
+          })}
+        </div>
+      )}
+    </div>
   )
 }
 
 function RetrievalTrace({
   trace,
   pipelineStage,
-  sources,
+  query,
 }: {
   trace: PipelineTrace
   pipelineStage: Record<string, unknown> | null
-  sources: Array<{ title?: string; type?: string; score?: number }>
+  query: string
 }) {
-  const r = trace.retrieval as {
-    paths: string[]
-    candidates_before_filter: number
-    candidates_after_filter: number
-    crag_fallback: boolean
-    crag_fallback_stage?: 'grade' | 'grade_and_type' | null
-    reranker_used?: boolean
-  } | undefined
+  const r = trace.retrieval
   const topScore = pipelineStage?.top_score as number | null | undefined
   const docCount = pipelineStage?.doc_count as number | null | undefined
 
+  const [expandedPaths, setExpandedPaths] = useState<Set<string>>(new Set())
+  const togglePath = (p: string) =>
+    setExpandedPaths((prev) => { const s = new Set(prev); s.has(p) ? s.delete(p) : s.add(p); return s })
+  const pathColor = (p: string) =>
+    p === 'query_vec' ? 'blue' : p === 'hyde_vec' ? 'violet' : p === 'bm25' ? 'emerald' : 'default'
+
   if (!r) return <p className="text-[11px] text-wb-40">無詳細資料（舊記錄）</p>
+
+  // 各路徑原始候選合計（用於 OUTPUT）
+  const totalRaw = r.path_counts
+    ? Object.values(r.path_counts).reduce((a, b) => a + b, 0)
+    : r.candidates_before_filter
+
+  // 從 filter trace 取 applied filter（簡化顯示）
+  const appliedFilter = trace.filter?.applied
+  const filterKeys = appliedFilter ? Object.keys(appliedFilter) : []
+
+  const hydeDoc = trace.hyde?.document
+  const expandedQueries = trace.multi_query?.queries ?? []
+
+  // 各路徑 input 說明
+  const pathMeta: Record<string, { label: string; trigger: string; dotColor: string }> = {
+    query_vec:  { label: 'Query Vec（原始查詢向量）',        trigger: '所有非快取查詢必經（原始查詢 embedding）', dotColor: 'bg-blue-400' },
+    hyde_vec:   { label: 'HyDE Vec（假設文件向量）',         trigger: 'HyDE 啟用且 query_type = complex',          dotColor: 'bg-violet-400' },
+    bm25:       { label: 'BM25（全文關鍵字搜尋）',           trigger: 'BM25 配置啟用時，與向量搜尋並行執行',        dotColor: 'bg-emerald-400' },
+  }
+
   return (
+    <div>
+      <StageDesc>同時對向量資料庫發出多條獨立搜尋請求，各路徑使用不同策略：查詢向量（餘弦相似度）、HyDE 假設文件向量（語意擴展）、BM25 全文關鍵字搜尋。各路徑獨立執行後回傳候選文件，供後續 RRF 合併。</StageDesc>
     <IOFlow>
       <StageSection type="input">
-        <div className="space-y-1.5">
-          <div className="flex items-center gap-2">
-            <span className="text-wb-40 shrink-0">搜尋路徑：</span>
-            <div className="flex flex-wrap gap-1">
-              {r.paths.map((p) => (
-                <TraceBadge
-                  key={p}
-                  text={p}
-                  color={p === 'query_vec' ? 'blue' : p === 'hyde_vec' ? 'violet' : p === 'bm25' ? 'emerald' : 'default'}
-                />
-              ))}
-            </div>
+        <div className="space-y-2">
+          {r.paths.map((p) => {
+            const meta = pathMeta[p]
+            const isMQ = !meta
+            const mqIndex = isMQ ? parseInt(p.replace(/^(expanded_|mq_)/, ''), 10) : -1
+            const mqQuery = !isNaN(mqIndex) && mqIndex >= 0 ? expandedQueries[mqIndex] : undefined
+            const dotColor = isMQ ? 'bg-amber-400' : meta.dotColor
+            const label = isMQ ? `Multi-Query 擴展 #${mqIndex + 1}` : meta.label
+            const trigger = isMQ ? 'Multi-Query 啟用，由 LLM 改寫原始查詢而來' : meta.trigger
+
+            let inputText: string | null = null
+            if (p === 'query_vec') inputText = query || null
+            else if (p === 'hyde_vec') inputText = hydeDoc ?? null
+            else if (p === 'bm25') inputText = r.bm25_fts_query ?? null
+            else if (isMQ) inputText = mqQuery ?? null
+
+            const borderColor = p === 'bm25' ? 'border-emerald-100' : p === 'hyde_vec' ? 'border-violet-100' : isMQ ? 'border-amber-100' : 'border-blue-100'
+            // HyDE 文件可能很長，用 max-h + overflow-auto；其餘完整顯示
+            const textCls = p === 'hyde_vec'
+              ? `ml-3 text-[10px] text-wb-70 font-mono border-l-2 pl-2 max-h-40 overflow-auto whitespace-pre-wrap ${borderColor}`
+              : `ml-3 text-[10px] text-wb-70 font-mono border-l-2 pl-2 whitespace-pre-wrap break-all ${borderColor}`
+
+            return (
+              <div key={p} className="space-y-0.5">
+                <div className="flex items-center gap-1.5">
+                  <span className={`h-1.5 w-1.5 rounded-full shrink-0 ${dotColor}`} />
+                  <span className="font-medium">{label}</span>
+                </div>
+                <p className="ml-3 text-[10px] text-wb-40 border-l-2 border-wb-8 pl-2">{trigger}</p>
+                {inputText ? (
+                  <p className={textCls}>{inputText}</p>
+                ) : (
+                  <p className="ml-3 text-[10px] text-wb-30 border-l-2 border-wb-8 pl-2 italic">
+                    {p === 'bm25' ? 'BM25 查詢未記錄' : p === 'hyde_vec' ? '假設文件未記錄（舊記錄）' : isMQ ? '擴展查詢未記錄（舊記錄）' : '查詢文字未記錄'}
+                  </p>
+                )}
+              </div>
+            )
+          })}
+          <div className="pt-1 border-t border-wb-8 space-y-0.5">
+            <p className="text-wb-30 text-[10px]">Metadata Filter：</p>
+            {filterKeys.length > 0 ? (
+              <div className="flex flex-wrap gap-1">
+                {filterKeys.map((k) => (
+                  <span key={k} className="rounded border border-wb-10 bg-wb-3 px-1.5 py-0.5 text-[10px] text-wb-60 font-mono">
+                    {k}: {JSON.stringify((appliedFilter as Record<string, unknown>)[k])}
+                  </span>
+                ))}
+              </div>
+            ) : (
+              <p className="text-wb-50 text-[10px]">無（搜尋全庫）</p>
+            )}
           </div>
-          <KVRow label="原始候選" value={`${r.candidates_before_filter} 筆`} />
         </div>
       </StageSection>
       <StageSection type="decision">
-        <div className="space-y-1.5">
-          <KVRow label="RRF 融合" value="多路徑結果合併排序（Reciprocal Rank Fusion）" />
-          <KVRow label="過濾策略" value="相似度閾值 + location / grade / type Filter" />
-          <div className="flex items-center gap-2">
-            <span className="text-wb-40">CRAG Fallback：</span>
-            {r.crag_fallback
-              ? <TraceBadge text="已觸發（相似度不足，改用通識回答）" color="amber" />
-              : <TraceBadge text="未觸發（檢索品質足夠）" color="default" />}
-          </div>
-          {r.crag_fallback && r.crag_fallback_stage && (
-            <div className="flex items-center gap-2">
-              <span className="text-wb-40">放寬策略：</span>
-              <TraceBadge
-                text={r.crag_fallback_stage === 'grade' ? '移除難度過濾' : '移除難度 + 類型過濾'}
-                color="amber"
-              />
-            </div>
-          )}
-          <div className="flex items-center gap-2">
-            <span className="text-wb-40">Cross-encoder：</span>
-            {r.reranker_used
-              ? <TraceBadge text="bge-reranker-base 已重排" color="violet" />
-              : <TraceBadge text="未使用（候選數 ≤ 1）" color="default" />}
-          </div>
+        <div className="space-y-1">
+          <p className="text-wb-30 text-[10px] mb-1">各路徑執行結果（點擊展開文件清單）</p>
+          {r.paths.map((p) => {
+            const docs = r.path_results?.[p]
+            const count = r.path_counts?.[p]
+            const expanded = expandedPaths.has(p)
+            const hasData = (count ?? 0) > 0
+            // 該路徑實際使用的查詢文字
+            const isMQPath = p !== 'query_vec' && p !== 'hyde_vec' && p !== 'bm25'
+            const mqIdx = isMQPath ? parseInt(p.replace(/^(expanded_|mq_)/, ''), 10) : -1
+            const pathInputText =
+              p === 'query_vec' ? query :
+              p === 'hyde_vec' ? (hydeDoc ?? null) :
+              p === 'bm25' ? (r.bm25_fts_query ?? null) :
+              (!isNaN(mqIdx) && mqIdx >= 0 ? (expandedQueries[mqIdx] ?? null) : null)
+            return (
+              <div key={p} className="rounded border border-wb-10 overflow-hidden">
+                <button
+                  onClick={() => hasData ? togglePath(p) : undefined}
+                  className={`flex items-start gap-2 w-full px-2 py-1.5 bg-wb-3 text-left ${hasData ? 'cursor-pointer hover:bg-wb-5' : 'cursor-default'}`}
+                >
+                  <TraceBadge text={p} color={pathColor(p)} />
+                  <span className={`text-[11px] tabular-nums font-semibold shrink-0 ${hasData ? 'text-wb-70' : 'text-wb-30'}`}>
+                    {count ?? 0} 筆
+                  </span>
+                  <div className="flex-1 min-w-0 space-y-0.5">
+                    <p className="text-[10px] text-wb-30">
+                      {p === 'query_vec' ? '查詢向量搜尋（餘弦相似度）' :
+                       p === 'hyde_vec' ? 'HyDE 假設文件向量搜尋（餘弦相似度）' :
+                       p === 'bm25' ? 'BM25 全文關鍵字搜尋' :
+                       'Multi-Query 擴展查詢向量搜尋'}
+                    </p>
+                    {pathInputText && (
+                      <p className="text-[10px] text-wb-60 font-mono break-all whitespace-pre-wrap line-clamp-2">
+                        {pathInputText}
+                      </p>
+                    )}
+                  </div>
+                  {hasData && (
+                    <ChevronUp className={`h-3 w-3 text-wb-30 shrink-0 mt-0.5 transition-transform ${expanded ? '' : 'rotate-180'}`} />
+                  )}
+                </button>
+                {!hasData && (
+                  <div className="px-2 py-1 border-t border-wb-10">
+                    {p === 'bm25' ? (
+                      <p className="text-[10px] text-amber-600">關鍵字搜尋無匹配（需完整詞彙命中，中文常見）</p>
+                    ) : (
+                      <p className="text-[10px] text-wb-30">向量搜尋無結果（分數未達門檻或無相關文件）</p>
+                    )}
+                  </div>
+                )}
+                {expanded && docs && docs.length > 0 && (
+                  <div className="border-t border-wb-10 px-2 py-1.5">
+                    <p className="text-[9px] text-wb-25 mb-1">{p === 'bm25' ? 'BM25 相關分（越高越匹配關鍵字）' : '向量餘弦相似度（0–1，越高越相關）'}</p>
+                    <div className="space-y-0.5">
+                      {docs.map((doc, i) => (
+                        <div key={doc.id} className="flex items-center gap-1.5 text-[10px]">
+                          <span className="shrink-0 text-wb-30 tabular-nums w-4">{i + 1}.</span>
+                          <span className="flex-1 text-wb-70 truncate">{doc.name ?? doc.id}</span>
+                          <span className={`shrink-0 font-mono tabular-nums ${doc.score >= 0.5 ? 'text-emerald-600' : doc.score >= 0.2 ? 'text-amber-600' : 'text-wb-40'}`}>
+                            {doc.score.toFixed(3)}
+                          </span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </div>
+            )
+          })}
         </div>
       </StageSection>
       <StageSection type="output">
-        <div className="space-y-2">
-          <div className="flex gap-4">
-            {r.candidates_before_filter != null && (
-              <div>
-                <p className="text-wb-40">過濾前候選</p>
-                <p className="text-base font-bold text-wb-90 tabular-nums">{r.candidates_before_filter} 筆</p>
-              </div>
-            )}
-            {docCount != null && (
-              <div>
-                <p className="text-wb-40">過濾後存活</p>
-                <p className="text-base font-bold text-wb-90 tabular-nums">{docCount} 筆</p>
-              </div>
-            )}
-            {topScore != null && (
-              <div>
-                <p className="text-wb-40">最高相似度</p>
-                <p className={`text-base font-bold tabular-nums ${topScore >= 0.7 ? 'text-emerald-600' : topScore >= 0.5 ? 'text-amber-600' : 'text-red-500'}`}>
-                  {(topScore * 100).toFixed(1)}%
-                </p>
-              </div>
-            )}
-          </div>
-          {sources.length > 0 && (
-            <div>
-              <p className="text-wb-40 mb-1">檢索到的文件：</p>
-              <div className="space-y-1">
-                {sources.map((s, i) => (
-                  <div key={i} className="flex items-center gap-2 rounded bg-wb-5 px-2 py-1">
-                    <span className="shrink-0 rounded border border-wb-20 px-1 py-0.5 text-[10px] text-wb-60">{s.type}</span>
-                    <span className="flex-1 text-wb-80 truncate">{s.title ?? '—'}</span>
-                    {s.score != null && (
-                      <span className={`tabular-nums shrink-0 ${s.score >= 0.7 ? 'text-emerald-600' : s.score >= 0.5 ? 'text-amber-600' : 'text-red-500'}`}>
-                        {(s.score * 100).toFixed(1)}%
-                      </span>
-                    )}
-                  </div>
-                ))}
-              </div>
-            </div>
-          )}
-        </div>
+        <OutputPathList r={r} totalRaw={totalRaw} pathColor={pathColor} />
       </StageSection>
     </IOFlow>
+    </div>
   )
 }
 
@@ -682,26 +1580,42 @@ function GenerationTrace({
   query: string
   response: string | null
 }) {
-  const g = trace.generation as {
-    context_doc_count: number
-    personalized: boolean
-    regen_triggered: boolean
-    ability_level?: number | null
-    memory_summary_length?: number
-    suggested_questions?: string[]
-  } | undefined
+  const g = trace.generation
   if (!g) return <p className="text-[11px] text-wb-40">無詳細資料（舊記錄）</p>
   const model = pipelineStage?.model as string | null | undefined
   const tokenCount = pipelineStage?.token_count as number | null | undefined
   const durationMs = pipelineStage?.duration_ms as number | null | undefined
+  const [showMemoryPreview, setShowMemoryPreview] = useState(false)
 
   return (
+    <div>
+      <StageDesc>將 MMR 選出的文件作為 Context，連同用戶查詢和個人化資訊（攀登歷史、記憶摘要）注入 Prompt，呼叫 LLM（Gemma-3-12B）生成最終回答。依查詢類型選擇個人化或通用模板，並同時輸出建議追問問題。</StageDesc>
     <IOFlow>
       <StageSection type="input">
-        <div className="space-y-1">
-          <KVRow label="Context 文件" value={`${g.context_doc_count} 筆檢索結果`} />
-          <KVRow label="個人化記憶" value={g.personalized ? '已注入用戶攀登記憶' : '未啟用'} />
+        <div className="space-y-1.5">
+          <KVRow label="觸發條件" value="所有完整 Pipeline 查詢必經此階段（快取命中時跳過）" />
+          <KVRow label="Context 文件" value={`${g.context_doc_count} 筆`} />
           <KVRow label="查詢" value={<span className="italic text-wb-60 line-clamp-1">{query}</span>} />
+          {g.context_doc_titles && g.context_doc_titles.length > 0 && (
+            <div>
+              <p className="text-wb-40 text-[10px] mb-1">注入 Prompt 的文件（前 {g.context_doc_titles.length} 筆）：</p>
+              <ol className="space-y-0.5">
+                {g.context_doc_titles.map((title, i) => (
+                  <li key={i} className="flex gap-1.5 text-[11px]">
+                    <span className="shrink-0 text-wb-40 tabular-nums">{i + 1}.</span>
+                    <span className="text-wb-70 truncate">{title}</span>
+                  </li>
+                ))}
+              </ol>
+            </div>
+          )}
+          <div className="flex items-center gap-2">
+            <span className="text-wb-40">Prompt 模板：</span>
+            <TraceBadge
+              text={g.prompt_template === 'personalized' ? '個人化模板' : g.prompt_template === 'default' ? '通用模板' : g.personalized ? '個人化模板' : '通用模板'}
+              color={g.prompt_template === 'personalized' || g.personalized ? 'violet' : 'default'}
+            />
+          </div>
           {g.ability_level != null && (
             <KVRow label="能力等級" value={
               <TraceBadge
@@ -710,8 +1624,24 @@ function GenerationTrace({
               />
             } />
           )}
-          {g.memory_summary_length != null && g.memory_summary_length > 0 && (
-            <KVRow label="記憶長度" value={`${g.memory_summary_length} 字元（用戶攀登記憶）`} />
+          {g.memory_summary_preview !== undefined && g.memory_summary_preview !== null && (
+            <div>
+              <button
+                onClick={() => setShowMemoryPreview((v) => !v)}
+                className="flex items-center gap-1 text-[11px] text-wb-50 hover:text-wb-70"
+              >
+                {showMemoryPreview ? <ChevronUp className="h-3 w-3" /> : <ChevronDown className="h-3 w-3" />}
+                記憶摘要預覽
+              </button>
+              {showMemoryPreview && (
+                <pre className="mt-1 font-sans text-wb-60 bg-wb-5 rounded px-2 py-1.5 text-[10px] whitespace-pre-wrap leading-relaxed max-h-24 overflow-auto">
+                  {g.memory_summary_preview}
+                </pre>
+              )}
+            </div>
+          )}
+          {g.memory_summary_length != null && g.memory_summary_length > 0 && !g.memory_summary_preview && (
+            <KVRow label="記憶長度" value={`${g.memory_summary_length} 字元`} />
           )}
         </div>
       </StageSection>
@@ -747,6 +1677,7 @@ function GenerationTrace({
         </div>
       </StageSection>
     </IOFlow>
+    </div>
   )
 }
 
@@ -760,37 +1691,100 @@ function SelfReflectionTrace({
   const sr = trace?.self_reflection
   const triggered = pipelineStage?.triggered as boolean | undefined
 
+  const firstQuality = sr?.first_judge_quality ?? sr?.original_quality
+  const firstGroundedness = sr?.first_judge_groundedness ?? sr?.original_groundedness
+  const secondQuality = sr?.second_judge_quality ?? sr?.regen_quality
+  const secondGroundedness = sr?.second_judge_groundedness ?? sr?.regen_groundedness
+  const regenReason = sr?.regen_reason
+  const acceptanceReason = sr?.acceptance_reason
+  const regenAccepted = sr?.regen_accepted
+
+  const regenReasonLabels: Record<string, string> = {
+    quality_below_threshold: '品質分低於閾值',
+    groundedness_below_threshold: 'Groundedness 低於閾值',
+    both: '品質與 Groundedness 皆不足',
+  }
+
   return (
+    <div>
+      <StageDesc>LLM Judge 對初次生成的回答評分後，若品質（Quality &lt; 2/4）或接地性（Groundedness &lt; 50%）低於閾值，自動觸發重新生成（Regen）。重生成後再次評判，比較兩版本分數，選出品質較佳者作為最終回答。觸發條件：query_type = complex 或 pipeline 設定允許。</StageDesc>
     <IOFlow>
       <StageSection type="input">
-        {sr ? (
-          <div className="space-y-1">
-            <KVRow label="原始 Quality" value={sr.original_quality != null ? `${sr.original_quality} / 4` : '—'} />
-            <KVRow label="原始 Groundedness" value={sr.original_groundedness != null ? `${(sr.original_groundedness * 100).toFixed(0)}%` : '—'} />
-          </div>
-        ) : (
-          <p className="text-wb-40">來自初次 Judge 評分結果</p>
-        )}
+        <div className="space-y-1.5">
+          <p className="text-wb-50">來自 LLM 生成的原始回答 + 初次 Judge 評分</p>
+          <p className="text-[10px] text-wb-30">觸發重生成條件：Quality &lt; 2（滿分 4）或 Groundedness &lt; 50%</p>
+          {firstQuality != null && (
+            <div className="flex gap-6 pt-0.5">
+              <div>
+                <p className="text-wb-40 text-[10px]">第一次 Quality（1–4）</p>
+                <p className={`font-bold tabular-nums ${firstQuality >= 3 ? 'text-emerald-600' : firstQuality >= 2 ? 'text-amber-600' : 'text-red-500'}`}>
+                  {firstQuality} / 4
+                </p>
+              </div>
+              {firstGroundedness != null && (
+                <div>
+                  <p className="text-wb-40 text-[10px]">第一次 Groundedness（0–1）</p>
+                  <p className={`font-bold tabular-nums ${firstGroundedness >= 0.7 ? 'text-emerald-600' : firstGroundedness >= 0.5 ? 'text-amber-600' : 'text-red-500'}`}>
+                    {(firstGroundedness * 100).toFixed(0)}%
+                  </p>
+                </div>
+              )}
+            </div>
+          )}
+        </div>
       </StageSection>
       <StageSection type="decision">
         {!triggered ? (
-          <div className="space-y-1">
+          <div className="space-y-1.5">
             <div className="flex items-center gap-2">
-              <TraceBadge text="未觸發" color="default" />
+              <CheckCircle2 className="h-3.5 w-3.5 text-emerald-500 shrink-0" />
+              <TraceBadge text="未觸發重生成" color="default" />
             </div>
-            <ul className="text-wb-50 space-y-0.5 list-disc list-inside">
-              <li>非 complex 查詢（simple / general-knowledge 不觸發）</li>
-              <li>初次 Quality 分已高於門檻</li>
-              <li>回答長度低於最小重生成閾值</li>
-            </ul>
+            {firstQuality != null ? (
+              <p className="text-wb-50">
+                第一次 Judge Quality {firstQuality}/4 高於門檻，使用原始回答
+              </p>
+            ) : (
+              <ul className="text-wb-50 space-y-0.5 list-disc list-inside">
+                <li>非 complex 查詢（simple / general-knowledge 不觸發）</li>
+                <li>初次 Quality 分已高於門檻</li>
+              </ul>
+            )}
           </div>
         ) : sr ? (
-          <div className="space-y-1">
-            <div className="flex items-center gap-2">
-              <TraceBadge text="已觸發重生成" color="violet" />
+          <div className="space-y-2">
+            {/* 因果鏈 */}
+            <div className="space-y-1.5">
+              {regenReason && (
+                <div className="flex items-center gap-2">
+                  <AlertCircle className="h-3.5 w-3.5 text-amber-500 shrink-0" />
+                  <span className="text-wb-50">觸發原因：</span>
+                  <TraceBadge text={regenReasonLabels[regenReason] ?? regenReason} color="amber" />
+                </div>
+              )}
+              <div className="flex items-center gap-2">
+                <RefreshCw className="h-3.5 w-3.5 text-violet-500 shrink-0" />
+                <TraceBadge text="執行重生成" color="violet" />
+              </div>
+              {secondQuality != null && (
+                <div className="flex gap-4 pl-5">
+                  <div>
+                    <p className="text-wb-40 text-[10px]">第二次 Judge Quality</p>
+                    <p className={`font-bold tabular-nums ${secondQuality >= 3 ? 'text-emerald-600' : secondQuality >= 2 ? 'text-amber-600' : 'text-red-500'}`}>
+                      {secondQuality} / 4
+                    </p>
+                  </div>
+                  {secondGroundedness != null && (
+                    <div>
+                      <p className="text-wb-40 text-[10px]">第二次 Groundedness</p>
+                      <p className={`font-bold tabular-nums ${secondGroundedness >= 0.7 ? 'text-emerald-600' : secondGroundedness >= 0.5 ? 'text-amber-600' : 'text-red-500'}`}>
+                        {(secondGroundedness * 100).toFixed(0)}%
+                      </p>
+                    </div>
+                  )}
+                </div>
+              )}
             </div>
-            <KVRow label="重生成 Quality" value={sr.regen_quality != null ? `${sr.regen_quality} / 4` : '—'} />
-            <KVRow label="重生成 Groundedness" value={sr.regen_groundedness != null ? `${(sr.regen_groundedness * 100).toFixed(0)}%` : '—'} />
           </div>
         ) : (
           <p className="text-wb-40">無詳細 trace 資料（舊記錄）</p>
@@ -798,31 +1792,48 @@ function SelfReflectionTrace({
       </StageSection>
       <StageSection type="output">
         {!triggered ? (
-          <p className="text-wb-50">保留原始生成答案，進入 Judge 評判</p>
+          <p className="text-wb-50">保留原始生成答案</p>
         ) : sr ? (
-          <div className="flex items-center gap-2">
-            <TraceBadge
-              text={sr.regen_accepted ? '採用重生成答案' : '保留原始答案（重生成未改善）'}
-              color={sr.regen_accepted ? 'emerald' : 'amber'}
-            />
+          <div className="space-y-1">
+            <div className="flex items-center gap-2">
+              <TraceBadge
+                text={
+                  acceptanceReason === 'regen_accepted' ? '採用重生成答案'
+                  : acceptanceReason === 'original_kept' ? '保留原始答案（重生成未改善）'
+                  : regenAccepted ? '採用重生成答案' : '保留原始答案（重生成未改善）'
+                }
+                color={regenAccepted ? 'emerald' : 'amber'}
+              />
+            </div>
+            {!regenAccepted && secondGroundedness != null && firstGroundedness != null && (
+              <p className="text-wb-40 text-[10px]">
+                比較 Groundedness：原始 {(firstGroundedness * 100).toFixed(0)}% vs 重生成 {(secondGroundedness * 100).toFixed(0)}%，保留較高者
+              </p>
+            )}
           </div>
         ) : (
           <p className="text-wb-40">無詳細資料（舊記錄）</p>
         )}
       </StageSection>
     </IOFlow>
+    </div>
   )
 }
 
 function JudgeTrace({ pipelineStage, response }: { pipelineStage: Record<string, unknown> | null; response: string | null }) {
   const groundedness = pipelineStage?.groundedness_score as number | null | undefined
   const quality = pipelineStage?.auto_score as number | null | undefined
+  const rawScores = pipelineStage?.raw_scores as Record<string, number> | undefined
+  const criteria = pipelineStage?.criteria as string[] | undefined
 
   return (
+    <div>
+      <StageDesc>使用獨立的 LLM Judge 對生成回答進行品質評估。Groundedness 衡量回答有多少內容有文件支撐（防止幻覺）；Quality 衡量回答的完整性與相關性。兩項分數供 Self-Reflection 決策重生成，並永久記錄供管理員監控。</StageDesc>
     <IOFlow>
       <StageSection type="input">
         <div className="space-y-1">
-          <p className="text-wb-50">AI 回答 + 檢索到的來源文件</p>
+          <KVRow label="觸發條件" value="所有 LLM 生成的回答皆執行；提供 Groundedness 與 Quality 評分給 Self-Reflection 使用" />
+          <p className="text-wb-50 mt-0.5">AI 回答 + 檢索到的來源文件</p>
           {response && (
             <p className="italic text-wb-60 line-clamp-2">{response}</p>
           )}
@@ -838,33 +1849,59 @@ function JudgeTrace({ pipelineStage, response }: { pipelineStage: Record<string,
             <p className="text-wb-40 mb-0.5">Quality 評分</p>
             <p className="text-wb-50">LLM Judge 對回答完整性、相關性進行 1–4 量表評分</p>
           </div>
+          {criteria && criteria.length > 0 && (
+            <div>
+              <p className="text-wb-40 mb-1">評判向度：</p>
+              <div className="flex flex-wrap gap-1">
+                {criteria.map((c) => <TraceBadge key={c} text={c} color="blue" />)}
+              </div>
+            </div>
+          )}
         </div>
       </StageSection>
       <StageSection type="output">
-        <div className="flex flex-wrap gap-4">
-          <div>
-            <p className="text-wb-40">Groundedness</p>
-            {groundedness != null ? (
-              <p className={`text-base font-bold tabular-nums mt-0.5 ${groundedness >= 0.7 ? 'text-emerald-600' : groundedness >= 0.5 ? 'text-amber-600' : 'text-red-500'}`}>
-                {(groundedness * 100).toFixed(0)}%
-              </p>
-            ) : (
-              <p className="text-wb-40 text-base">—</p>
-            )}
+        <div className="space-y-2">
+          <div className="flex flex-wrap gap-6">
+            <div>
+              <p className="text-wb-40 text-[10px]">Groundedness</p>
+              <p className="text-[9px] text-wb-25 mb-0.5">回答有多少來自文件（0–1，≥70% 良好）</p>
+              {groundedness != null ? (
+                <p className={`text-base font-bold tabular-nums ${groundedness >= 0.7 ? 'text-emerald-600' : groundedness >= 0.5 ? 'text-amber-600' : 'text-red-500'}`}>
+                  {(groundedness * 100).toFixed(0)}%
+                </p>
+              ) : (
+                <p className="text-wb-40 text-base">—</p>
+              )}
+            </div>
+            <div>
+              <p className="text-wb-40 text-[10px]">Quality</p>
+              <p className="text-[9px] text-wb-25 mb-0.5">回答完整性與相關性（1–4，≥3 良好）</p>
+              {quality != null ? (
+                <p className={`text-base font-bold tabular-nums ${quality >= 3 ? 'text-emerald-600' : quality >= 2 ? 'text-amber-600' : 'text-red-500'}`}>
+                  {quality} / 4
+                </p>
+              ) : (
+                <p className="text-wb-40 text-base">—</p>
+              )}
+            </div>
           </div>
-          <div>
-            <p className="text-wb-40">Quality</p>
-            {quality != null ? (
-              <p className={`text-base font-bold tabular-nums mt-0.5 ${quality >= 3 ? 'text-emerald-600' : quality >= 2 ? 'text-amber-600' : 'text-red-500'}`}>
-                {quality} / 4
-              </p>
-            ) : (
-              <p className="text-wb-40 text-base">—</p>
-            )}
-          </div>
+          {rawScores && Object.keys(rawScores).length > 0 && (
+            <div>
+              <p className="text-wb-40 text-[10px] mb-1">各向度原始分數：</p>
+              <div className="flex flex-wrap gap-2">
+                {Object.entries(rawScores).map(([dim, score]) => (
+                  <div key={dim} className="text-[11px]">
+                    <span className="text-wb-50">{dim}: </span>
+                    <span className="font-mono text-wb-80">{typeof score === 'number' && score <= 1 ? `${(score * 100).toFixed(0)}%` : score}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
         </div>
       </StageSection>
     </IOFlow>
+    </div>
   )
 }
 
@@ -880,10 +1917,13 @@ function GuardrailsOutputTrace({ response, pipelineStage }: { response: string |
   const hasData = go?.original_length != null
 
   return (
+    <div>
+      <StageDesc>回答送達用戶前的最後安全關卡。偵測系統提示洩漏（System Prompt Leakage）、遮蓋個人識別資訊（PII：電話、Email 等），並在回答超過最大長度時截斷，確保輸出安全合規。</StageDesc>
     <IOFlow>
       <StageSection type="input">
+        <KVRow label="觸發條件" value="所有 LLM 回應強制執行（無條件觸發）；洩漏或違規時替換回應內容" />
         {response ? (
-          <div>
+          <div className="mt-1">
             <p className="text-wb-40 mb-1">LLM 原始回應（前 200 字）：</p>
             <p className="italic text-wb-70 bg-wb-5 rounded px-2 py-1.5 text-xs line-clamp-4 leading-relaxed">
               {response.slice(0, 200)}{response.length > 200 ? '…' : ''}
@@ -936,6 +1976,7 @@ function GuardrailsOutputTrace({ response, pipelineStage }: { response: string |
         </div>
       </StageSection>
     </IOFlow>
+    </div>
   )
 }
 
@@ -951,10 +1992,13 @@ function MemoryExtractionTrace({ pipelineStage }: { pipelineStage: Record<string
   const reason = me?.reason
 
   return (
+    <div>
+      <StageDesc>對話結束後，非同步萃取本次對話中用戶透露的個人資訊（攀登偏好、目標路線、能力等），存入 D1 user_memories 表供未來查詢個人化使用。使用 ctx.waitUntil() 確保不阻塞主回應，僅對已登入用戶執行，快取命中的查詢跳過此步驟。</StageDesc>
     <IOFlow>
       <StageSection type="input">
         <div className="space-y-1">
-          <p className="text-wb-50">本次對話：查詢 + AI 回答</p>
+          <KVRow label="觸發條件" value="用戶已登入 且 本次非快取命中（快取命中時跳過）" />
+          <p className="text-wb-50 mt-0.5">本次對話：查詢 + AI 回答</p>
           <p className="text-wb-40">搭配用戶既有記憶上下文進行萃取判斷</p>
         </div>
       </StageSection>
@@ -991,15 +2035,12 @@ function MemoryExtractionTrace({ pipelineStage }: { pipelineStage: Record<string
         )}
       </StageSection>
     </IOFlow>
+    </div>
   )
 }
 
 function AgenticTrace({ trace }: { trace: PipelineTrace }) {
-  const a = trace.agentic as {
-    steps: Array<{ step: number; type: string; refinedQuery?: string }>
-    final_doc_count: number
-    total_paths: number
-  } | undefined
+  const a = trace.agentic
   if (!a) return <p className="text-[11px] text-wb-40">無詳細資料（舊記錄）</p>
 
   const stepColors: Record<string, 'emerald' | 'violet' | 'amber'> = {
@@ -1008,12 +2049,22 @@ function AgenticTrace({ trace }: { trace: PipelineTrace }) {
     BROADEN: 'amber',
   }
 
+  const terminationLabels: Record<string, string> = {
+    enough_docs: '文件已足夠',
+    max_steps: '達到最大步數上限',
+    no_improvement: '搜尋結果無改善',
+  }
+
   return (
+    <div>
+      <StageDesc>多步驟 Agentic RAG 模式。LLM 自主規劃多輪搜尋：每步驟由 LLM 決策下一動作（RETRIEVE 繼續搜尋 / BROADEN 放寬條件 / ANSWER 已足夠回答），動態調整查詢直到累積足夠高品質文件或達到最大步數上限（max_steps）。觸發條件：query_type = complex 且 agentic_mode 已啟用。</StageDesc>
     <IOFlow>
       <StageSection type="input">
         <div className="space-y-1">
+          <KVRow label="觸發條件" value="query_type = complex 且 agentic_mode = true" />
+          <KVRow label="最大步數" value={`max_steps（每步 LLM 決策是否繼續搜尋）`} />
           <KVRow label="策略" value={<TraceBadge text="Agentic Multi-Step RAG" color="violet" />} />
-          <KVRow label="最大步數上限" value={`${a.total_paths} 步`} />
+          <KVRow label="搜尋路徑總數" value={`${a.total_paths} 路`} />
         </div>
       </StageSection>
       <StageSection type="decision">
@@ -1028,6 +2079,9 @@ function AgenticTrace({ trace }: { trace: PipelineTrace }) {
                   {s.refinedQuery && (
                     <span className="text-wb-60 italic text-[11px] line-clamp-1">{s.refinedQuery}</span>
                   )}
+                  {s.docs_retrieved != null && (
+                    <span className="ml-auto shrink-0 text-[10px] text-wb-40 tabular-nums">{s.docs_retrieved} 筆</span>
+                  )}
                 </li>
               ))}
             </ol>
@@ -1037,18 +2091,30 @@ function AgenticTrace({ trace }: { trace: PipelineTrace }) {
         )}
       </StageSection>
       <StageSection type="output">
-        <div className="flex gap-4">
-          <div>
-            <p className="text-wb-40">最終文件數</p>
-            <p className="text-base font-bold text-wb-90 tabular-nums">{a.final_doc_count} 筆</p>
+        <div className="space-y-2">
+          <div className="flex gap-4">
+            <div>
+              <p className="text-wb-40">最終文件數</p>
+              <p className="text-base font-bold text-wb-90 tabular-nums">{a.final_doc_count} 筆</p>
+            </div>
+            <div>
+              <p className="text-wb-40">搜尋總路徑</p>
+              <p className="text-base font-bold text-wb-90 tabular-nums">{a.total_paths}</p>
+            </div>
           </div>
-          <div>
-            <p className="text-wb-40">搜尋總路徑</p>
-            <p className="text-base font-bold text-wb-90 tabular-nums">{a.total_paths}</p>
-          </div>
+          {a.termination_reason && (
+            <div className="flex items-center gap-2">
+              <span className="text-wb-40 text-[10px]">終止原因：</span>
+              <TraceBadge
+                text={terminationLabels[a.termination_reason] ?? a.termination_reason}
+                color={a.termination_reason === 'enough_docs' ? 'emerald' : a.termination_reason === 'no_improvement' ? 'amber' : 'default'}
+              />
+            </div>
+          )}
         </div>
       </StageSection>
     </IOFlow>
+    </div>
   )
 }
 
@@ -1077,17 +2143,22 @@ function StageTraceDetail({
   if (stageKey === 'hyde') return <HydeTrace trace={trace} pipelineStage={pipelineStage} />
   if (stageKey === 'multi_query') {
     if (!trace) return <p className="text-[11px] text-wb-40">無詳細資料（舊記錄）</p>
-    return <MultiQueryTrace trace={trace} />
+    return <MultiQueryTrace trace={trace} query={query} />
   }
   if (stageKey === 'agentic') {
     if (!trace) return <p className="text-[11px] text-wb-40">無詳細資料（舊記錄）</p>
     return <AgenticTrace trace={trace} />
   }
-  if (stageKey === 'embedding') return <EmbeddingTrace trace={trace} pipelineStage={pipelineStage ?? null} />
+  if (stageKey === 'filter') return <FilterTrace trace={trace} pipelineStage={pipelineStage ?? null} />
+  if (stageKey === 'embedding') return <EmbeddingTrace trace={trace} pipelineStage={pipelineStage ?? null} query={query} />
   if (stageKey === 'retrieval') {
     if (!trace) return <p className="text-[11px] text-wb-40">無詳細資料（舊記錄）</p>
-    return <RetrievalTrace trace={trace} pipelineStage={pipelineStage ?? null} sources={sources} />
+    return <RetrievalTrace trace={trace} pipelineStage={pipelineStage ?? null} query={query} />
   }
+  if (stageKey === 'rrf_fusion') return <RRFFusionTrace trace={trace} />
+  if (stageKey === 'crag_fallback') return <CRAGFallbackTrace trace={trace} />
+  if (stageKey === 'reranking') return <RerankerTrace trace={trace} query={query} />
+  if (stageKey === 'mmr_selection') return <MMRSelectionTrace trace={trace} sources={sources} />
   if (stageKey === 'generation') {
     if (!trace) return <p className="text-[11px] text-wb-40">無詳細資料（舊記錄）</p>
     return <GenerationTrace trace={trace} pipelineStage={pipelineStage ?? null} query={query} response={response} />
@@ -1135,6 +2206,7 @@ function PipelineTimeline({
     'quota_check',
     'query_parsing',
     'hyde',
+    'filter',
     'embedding',
     'retrieval',
     'generation',
@@ -1145,6 +2217,7 @@ function PipelineTimeline({
   ]
 
   // agentic / multi_query 插在 hyde 後（純 trace，不在 pipeline 物件中）
+  // mmr_selection 插在 retrieval 後（純 trace）
   type StageEntry = { key: string; isTraceOnly: boolean }
   const stages: StageEntry[] = []
   for (const key of pipelineStages) {
@@ -1155,6 +2228,17 @@ function PipelineTimeline({
       }
       if (pipelineTrace?.multi_query) {
         stages.push({ key: 'multi_query', isTraceOnly: true })
+      }
+    }
+    if (key === 'retrieval') {
+      // RRF、CRAG、Reranking 在 retrieval 執行後才有意義（有 trace 才顯示）
+      if (!pipeline.retrieval.skipped && pipelineTrace?.retrieval) {
+        stages.push({ key: 'rrf_fusion', isTraceOnly: true })
+        stages.push({ key: 'crag_fallback', isTraceOnly: true })
+        stages.push({ key: 'reranking', isTraceOnly: true })
+      }
+      if (pipelineTrace?.mmr_selection) {
+        stages.push({ key: 'mmr_selection', isTraceOnly: true })
       }
     }
   }
@@ -1177,6 +2261,10 @@ function PipelineTimeline({
           else if (key === 'cache' && pipelineStage && 'hit' in pipelineStage) status = pipelineStage.hit ? 'hit' : 'ran'
           else if ((key === 'hyde' || key === 'self_reflection') && pipelineStage && 'triggered' in pipelineStage)
             status = pipelineStage.triggered ? 'triggered' : 'not-triggered'
+          else if (isTraceOnly && key === 'crag_fallback')
+            status = pipelineTrace?.retrieval?.crag_fallback ? 'triggered' : 'not-triggered'
+          else if (isTraceOnly && key === 'reranking')
+            status = pipelineTrace?.retrieval?.reranker_used === false ? 'skipped' : 'ran'
           else if (isTraceOnly) status = 'ran'
 
           // Build metrics pills
@@ -1213,6 +2301,24 @@ function PipelineTimeline({
           }
           if (isTraceOnly && key === 'multi_query' && pipelineTrace?.multi_query) {
             metrics.push({ label: '子查詢', value: `${pipelineTrace.multi_query.queries.length} 條` })
+          }
+          if (isTraceOnly && key === 'rrf_fusion' && pipelineTrace?.retrieval?.rrf) {
+            const rrf = pipelineTrace.retrieval.rrf
+            metrics.push({ label: '路徑', value: `${rrf.paths_count} 條` })
+            metrics.push({ label: '通過門檻', value: `${rrf.after_threshold_count} 筆` })
+          }
+          if (isTraceOnly && key === 'crag_fallback' && pipelineTrace?.retrieval?.crag_fallback_detail) {
+            metrics.push({ label: '重試', value: `${pipelineTrace.retrieval.crag_fallback_detail.retries.length} 次` })
+          }
+          if (isTraceOnly && key === 'reranking' && pipelineTrace?.retrieval?.reranker) {
+            const re = pipelineTrace.retrieval.reranker
+            if (re.input_count != null) metrics.push({ label: '輸入', value: `${re.input_count} 筆` })
+            if (re.top_scores?.length) metrics.push({ label: '最高', value: re.top_scores[0].score.toFixed(3) })
+          }
+          if (isTraceOnly && key === 'mmr_selection' && pipelineTrace?.mmr_selection) {
+            const mmr = pipelineTrace.mmr_selection
+            metrics.push({ label: '輸入', value: `${mmr.input_count} 筆` })
+            metrics.push({ label: '選出', value: `${mmr.selected_count} 筆` })
           }
 
           return (
@@ -1347,7 +2453,8 @@ function QualitySection({ quality }: { quality: AILogDetail['quality'] }) {
 
       <div className="grid grid-cols-3 gap-4 mb-4">
         <div className="text-center">
-          <p className="text-[11px] text-wb-50 mb-1">Groundedness</p>
+          <p className="text-[11px] text-wb-50 mb-0.5">Groundedness</p>
+          <p className="text-[10px] text-wb-30 mb-1">0–1，回答有多少來自文件</p>
           {groundedness_score != null ? (
             <p className={`text-lg font-bold tabular-nums ${groundedness_score >= 0.7 ? 'text-emerald-600' : groundedness_score >= 0.5 ? 'text-yellow-600' : 'text-red-500'}`}>
               {(groundedness_score * 100).toFixed(0)}%
@@ -1355,9 +2462,11 @@ function QualitySection({ quality }: { quality: AILogDetail['quality'] }) {
           ) : (
             <p className="text-wb-40 text-lg">—</p>
           )}
+          <p className="text-[9px] text-wb-25 mt-0.5">≥70% 良好</p>
         </div>
         <div className="text-center border-x border-wb-10">
-          <p className="text-[11px] text-wb-50 mb-1">Auto 評分</p>
+          <p className="text-[11px] text-wb-50 mb-0.5">Auto 評分</p>
+          <p className="text-[10px] text-wb-30 mb-1">LLM Judge 1–4 分</p>
           {auto_score != null ? (
             <p className={`text-lg font-bold tabular-nums ${auto_score >= 3 ? 'text-emerald-600' : auto_score >= 2 ? 'text-yellow-600' : 'text-red-500'}`}>
               {auto_score} / 4
@@ -1365,9 +2474,11 @@ function QualitySection({ quality }: { quality: AILogDetail['quality'] }) {
           ) : (
             <p className="text-wb-40 text-lg">—</p>
           )}
+          <p className="text-[9px] text-wb-25 mt-0.5">1=不佳 2=普通 3=良好 4=優秀</p>
         </div>
         <div className="text-center">
-          <p className="text-[11px] text-wb-50 mb-1">使用者回饋</p>
+          <p className="text-[11px] text-wb-50 mb-0.5">使用者回饋</p>
+          <p className="text-[10px] text-wb-30 mb-1">用戶評分 1–5 星</p>
           {feedback_score != null ? (
             <p className={`text-lg font-bold tabular-nums ${feedback_score >= 4 ? 'text-emerald-600' : feedback_score >= 3 ? 'text-yellow-600' : 'text-red-500'}`}>
               {feedback_score} / 5
@@ -1375,6 +2486,7 @@ function QualitySection({ quality }: { quality: AILogDetail['quality'] }) {
           ) : (
             <p className="text-wb-40 text-lg">—</p>
           )}
+          <p className="text-[9px] text-wb-25 mt-0.5">≥4 良好</p>
         </div>
       </div>
 
@@ -1390,9 +2502,9 @@ function QualitySection({ quality }: { quality: AILogDetail['quality'] }) {
           {flags.map((f, i) => (
             <div key={i} className="flex items-start gap-2 rounded-lg border border-amber-200 bg-amber-50 px-3 py-2">
               <AlertCircle className="mt-0.5 h-3.5 w-3.5 shrink-0 text-amber-500" />
-              <div>
+              <div className="flex items-center gap-2">
                 <span className="text-xs font-medium text-amber-700">{f.type}</span>
-                <p className="text-xs text-amber-600">{f.description}</p>
+                {f.is_reviewed && <span className="text-[10px] text-amber-500">已審閱</span>}
               </div>
             </div>
           ))}
@@ -1405,6 +2517,121 @@ function QualitySection({ quality }: { quality: AILogDetail['quality'] }) {
           <span className="text-xs text-emerald-700">無品質告警</span>
         </div>
       )}
+    </div>
+  )
+}
+
+// =============================================
+// Decision Narrative（頂部決策摘要）
+// =============================================
+
+function DecisionNarrative({
+  pipeline,
+  pipelineTrace,
+  latency,
+}: {
+  pipeline: AILogDetail['pipeline']
+  pipelineTrace: AILogDetail['pipeline_trace']
+  latency: AILogDetail['latency']
+}) {
+  const pt = pipelineTrace
+  const isCacheHit = pipeline?.cache?.hit
+  const cacheType = pt?.cache?.type
+
+  const parts: string[] = []
+
+  if (isCacheHit) {
+    if (cacheType === 'semantic') {
+      parts.push('語義快取命中 → 直接回傳')
+    } else {
+      parts.push('KV 快取命中 → 直接回傳')
+    }
+    if (latency.total_ms != null) parts.push(`${latency.total_ms} ms`)
+    return (
+      <div className="rounded-xl border border-sky-200 bg-sky-50/60 px-4 py-3">
+        <p className="text-[11px] font-medium text-sky-700 font-mono">{parts.join(' → ')}</p>
+      </div>
+    )
+  }
+
+  const queryType = pipeline?.query_parsing?.query_type
+  const queryTypeMap: Record<string, string> = { simple: '簡單查詢', complex: '複雜查詢', 'general-knowledge': '通識查詢' }
+
+  if (queryType === 'general-knowledge') {
+    parts.push(queryTypeMap[queryType])
+    parts.push('跳過向量搜尋')
+    parts.push('LLM 直接生成')
+    if (latency.total_ms != null) parts.push(`${latency.total_ms} ms`)
+    return (
+      <div className="rounded-xl border border-emerald-200 bg-emerald-50/60 px-4 py-3">
+        <p className="text-[11px] font-medium text-emerald-700 font-mono">{parts.join(' → ')}</p>
+      </div>
+    )
+  }
+
+  // 完整 RAG 查詢
+  if (queryType) parts.push(queryTypeMap[queryType] ?? queryType)
+
+  // filter 關鍵詞
+  const filterMatchedTexts = pt?.filter?.matched_texts
+  if (filterMatchedTexts && Object.keys(filterMatchedTexts).length > 0) {
+    const keywords = Object.values(filterMatchedTexts).slice(0, 2).join('/')
+    parts.push(`filter:${keywords}`)
+  }
+
+  // 搜尋路徑數
+  const retrieval = pt?.retrieval
+  if (retrieval?.paths) {
+    parts.push(`${retrieval.paths.length}路搜尋`)
+  }
+
+  // RRF 前後候選數
+  if (retrieval?.rrf) {
+    parts.push(`${retrieval.rrf.merged_count}→${retrieval.rrf.after_threshold_count}筆`)
+  }
+
+  // CRAG 狀態
+  if (retrieval?.crag_fallback) {
+    const retries = retrieval.crag_fallback_detail?.retries?.length ?? 0
+    parts.push(`CRAG放寬${retries > 0 ? `×${retries}` : ''}`)
+  }
+
+  // cross-encoder
+  if (retrieval?.reranker?.top_scores) {
+    parts.push('cross-encoder重排')
+  }
+
+  // MMR 選取數
+  const mmr = pt?.mmr_selection
+  if (mmr) {
+    parts.push(`MMR(${mmr.selected_count}筆)`)
+  }
+
+  // Judge 分數
+  const judgeQuality = pipeline?.judge?.auto_score
+  const judgeGroundedness = pipeline?.judge?.groundedness_score
+  if (judgeQuality != null) parts.push(`Quality ${judgeQuality}/4`)
+
+  // self_reflection
+  const sr = pipeline?.self_reflection
+  if (sr?.triggered) {
+    const acceptReason = pt?.self_reflection?.acceptance_reason
+    parts.push(acceptReason === 'regen_accepted' ? '觸發regen(採用)' : '觸發regen(保留原始)')
+  }
+
+  // groundedness
+  if (judgeGroundedness != null) {
+    parts.push(`groundedness ${(judgeGroundedness * 100).toFixed(0)}%`)
+  }
+
+  if (latency.total_ms != null) parts.push(`${latency.total_ms} ms`)
+
+  if (parts.length === 0) return null
+
+  return (
+    <div className="rounded-xl border border-wb-20 bg-wb-3 px-4 py-3">
+      <p className="text-[10px] text-wb-40 mb-1 uppercase tracking-wide font-semibold">決策摘要</p>
+      <p className="text-[11px] font-medium text-wb-70 font-mono leading-relaxed">{parts.join(' → ')}</p>
     </div>
   )
 }
@@ -1489,6 +2716,15 @@ export default function AdminAILogDetailPage({ params }: { params: Promise<{ log
         </div>
       </div>
 
+      {/* 決策敘事摘要 */}
+      {log.pipeline && (
+        <DecisionNarrative
+          pipeline={log.pipeline}
+          pipelineTrace={log.pipeline_trace}
+          latency={log.latency}
+        />
+      )}
+
       {/* 查詢內容 */}
       <div className="rounded-xl border border-wb-20 bg-white p-5">
         <h2 className="mb-2 text-sm font-semibold text-wb-100">使用者查詢</h2>
@@ -1516,7 +2752,9 @@ export default function AdminAILogDetailPage({ params }: { params: Promise<{ log
       {log.response && (
         <div className="rounded-xl border border-wb-20 bg-white p-5">
           <h2 className="mb-2 text-sm font-semibold text-wb-100">AI 回答</h2>
-          <p className="text-sm text-wb-80 leading-relaxed whitespace-pre-wrap">{log.response}</p>
+          <div className="text-sm text-wb-80 leading-relaxed">
+            <MarkdownContent text={log.response} />
+          </div>
         </div>
       )}
 

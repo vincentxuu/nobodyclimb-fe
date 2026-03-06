@@ -74,7 +74,7 @@ export interface AILogDetail {
     auto_score: number | null
     feedback_score: number | null
     feedback_text: string | null
-    flags: Array<{ type: string; description: string }>
+    flags: Array<{ type: string; is_reviewed: boolean; created_at: string }>
   }
   pipeline: {
     guardrails_input: PipelineStageBase
@@ -82,11 +82,12 @@ export interface AILogDetail {
     quota_check: PipelineStageBase
     query_parsing: PipelineStageBase & { query_type: string | null }
     hyde: PipelineStageBase & { triggered: boolean }
+    filter: PipelineStageBase & Record<string, unknown>
     embedding: PipelineStageBase & { duration_ms: number | null }
     retrieval: PipelineStageBase & { duration_ms: number | null; top_score: number | null; doc_count: number | null }
     generation: PipelineStageBase & { model: string | null; duration_ms: number | null; token_count: number | null; is_high_consumption: boolean }
     self_reflection: PipelineStageBase & { triggered: boolean }
-    judge: PipelineStageBase & { groundedness_score: number | null; auto_score: number | null }
+    judge: PipelineStageBase & { groundedness_score: number | null; auto_score: number | null; raw_scores?: Record<string, number>; criteria?: string[] }
     guardrails_output: PipelineStageBase
     memory_extraction: PipelineStageBase
   }
@@ -111,6 +112,7 @@ export interface AILogDetail {
       query_type: string
       alternatives: string[]
       params: Record<string, unknown>
+      fallback_used?: boolean
     }
     cache?: {
       type: 'kv' | 'semantic'
@@ -119,6 +121,8 @@ export interface AILogDetail {
       applied: Record<string, unknown>
       source: string
       history_supplemented?: boolean
+      matched_texts?: Record<string, string>
+      resolved_ids?: { area_id?: string; crag_id?: string | string[] }
     }
     hyde?: {
       document: string
@@ -128,11 +132,29 @@ export interface AILogDetail {
     }
     retrieval?: {
       paths: string[]
+      path_counts?: Record<string, number>
+      path_results?: Record<string, Array<{ id: string; score: number; name?: string }>>
+      bm25_fts_query?: string | null
       candidates_before_filter: number
       candidates_after_filter: number
       crag_fallback: boolean
-      crag_fallback_stage?: 'grade' | 'grade_and_type' | null
+      crag_fallback_stage?: 'grade' | null
       reranker_used?: boolean
+      rrf?: {
+        paths_count: number
+        merged_count: number
+        min_score_threshold: number
+        after_threshold_count: number
+      }
+      crag_fallback_detail?: {
+        trigger_reason: string
+        retries: Array<{ removed_filter: string; candidates_after: number }>
+      } | null
+      reranker?: {
+        input_count?: number
+        top_scores?: Array<{ title: string; score: number }>
+        skipped_reason?: string
+      }
     }
     generation?: {
       context_doc_count: number
@@ -141,6 +163,9 @@ export interface AILogDetail {
       ability_level?: number | null
       memory_summary_length?: number
       suggested_questions?: string[]
+      context_doc_titles?: string[]
+      prompt_template?: 'personalized' | 'default'
+      memory_summary_preview?: string | null
     }
     embedding?: {
       early_vector_reused: boolean
@@ -153,6 +178,12 @@ export interface AILogDetail {
       regen_quality: number | null
       regen_groundedness: number | null
       regen_accepted: boolean
+      first_judge_quality?: number | null
+      first_judge_groundedness?: number | null
+      regen_reason?: 'quality_below_threshold' | 'groundedness_below_threshold' | 'both'
+      second_judge_quality?: number | null
+      second_judge_groundedness?: number | null
+      acceptance_reason?: 'regen_accepted' | 'original_kept'
     }
     guardrails_output?: {
       original_length: number
@@ -167,9 +198,21 @@ export interface AILogDetail {
       reason?: string
     }
     agentic?: {
-      steps: Array<{ step: number; type: string; refinedQuery?: string }>
+      steps: Array<{ step: number; type: string; refinedQuery?: string; docs_retrieved?: number }>
       total_paths: number
       final_doc_count: number
+      termination_reason?: 'enough_docs' | 'max_steps' | 'no_improvement'
+    }
+    mmr_selection?: {
+      lambda: number
+      input_count: number
+      selected_count: number
+      popularity_weight: number
+      top_selected?: Array<{ title: string; relevance_score: number; popularity_score: number; final_score: number }>
+    }
+    judge_detail?: {
+      criteria: string[]
+      raw_scores: Record<string, number>
     }
   } | null
 }
@@ -191,6 +234,13 @@ export interface AIPrompt {
   status: 'draft' | 'active' | 'archived'
   created_at: string
   updated_at: string
+}
+
+export interface AIPromptDefault {
+  name: string
+  label: string
+  content: string
+  variables: string[]
 }
 
 // =============================================
@@ -231,6 +281,20 @@ export async function getAILogDetail(id: string): Promise<AILogDetail> {
 export async function getAIKnowledge(): Promise<{ sources: AIKnowledgeSource[] }> {
   const res = await apiClient.get<{ success: boolean; data: { sources: AIKnowledgeSource[] } }>(
     '/admin/ai/knowledge'
+  )
+  return res.data.data
+}
+
+export async function getAIPromptDefaults(): Promise<AIPromptDefault[]> {
+  const res = await apiClient.get<{ success: boolean; data: AIPromptDefault[] }>(
+    '/admin/ai/prompts/defaults'
+  )
+  return res.data.data
+}
+
+export async function getAIPromptsByName(name: string): Promise<AIPrompt[]> {
+  const res = await apiClient.get<{ success: boolean; data: AIPrompt[] }>(
+    `/admin/ai/prompts?name=${encodeURIComponent(name)}`
   )
   return res.data.data
 }
@@ -321,6 +385,35 @@ export function useAIKnowledge() {
     queryKey: ['admin-ai-knowledge'],
     queryFn: getAIKnowledge,
     staleTime: 60 * 1000,
+  })
+}
+
+export function useAIPromptDefaults() {
+  return useQuery({
+    queryKey: ['admin-ai-prompt-defaults'],
+    queryFn: getAIPromptDefaults,
+    staleTime: 10 * 60 * 1000,
+  })
+}
+
+export function useAIPromptsByName(name: string) {
+  return useQuery({
+    queryKey: ['admin-ai-prompts', name],
+    queryFn: () => getAIPromptsByName(name),
+    enabled: !!name,
+    staleTime: 30 * 1000,
+  })
+}
+
+export function useCreateAIPrompt() {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: createAIPrompt,
+    onSuccess: (_data, variables) => {
+      queryClient.invalidateQueries({ queryKey: ['admin-ai-prompts'] })
+      queryClient.invalidateQueries({ queryKey: ['admin-ai-prompts', variables.name] })
+      queryClient.invalidateQueries({ queryKey: ['admin-ai-prompt-defaults'] })
+    },
   })
 }
 

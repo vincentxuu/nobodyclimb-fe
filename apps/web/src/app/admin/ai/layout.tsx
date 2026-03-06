@@ -7,6 +7,7 @@ const tabs = [
   { href: '/admin/ai', label: '儀表板', exact: true },
   { href: '/admin/ai/logs', label: '查詢日誌', exact: false },
   { href: '/admin/ai/knowledge', label: '知識庫', exact: false },
+  { href: '/admin/ai/prompts', label: '模板設定', exact: false },
   { href: '/admin/ai/settings', label: '設定', exact: false },
 ]
 
