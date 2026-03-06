@@ -237,11 +237,13 @@ adminAiRoutes.get(
 
       // 組合各階段流程資訊
       const isCacheHit = Boolean(log.cache_hit);
+      const pt = pipelineTrace as Record<string, unknown> | null;
       const pipeline = {
         guardrails_input: {
           service: 'utils/guardrails.ts',
           description: '輸入層防護：偵測 prompt injection、jailbreak、封鎖詞',
           skipped: isCacheHit,
+          ...((pt?.guardrails_input as Record<string, unknown> | undefined) ?? {}),
         },
         cache: {
           service: 'Cloudflare KV',
@@ -252,6 +254,7 @@ adminAiRoutes.get(
           service: 'services/rank.ts',
           description: '使用者等級配額驗證與原子扣除',
           skipped: isCacheHit,
+          ...((pt?.quota_check as Record<string, unknown> | undefined) ?? {}),
         },
         query_parsing: {
           service: 'services/query.ts#parseQueryWithLLM',
@@ -305,11 +308,13 @@ adminAiRoutes.get(
           service: 'utils/guardrails.ts',
           description: '輸出層防護：過濾 system prompt leakage、PII，截斷過長回應',
           skipped: isCacheHit,
+          ...((pt?.guardrails_output as Record<string, unknown> | undefined) ?? {}),
         },
         memory_extraction: {
           service: 'services/memory-extractor.ts',
           description: '非同步記憶提取（僅已登入用戶，waitUntil）',
           skipped: isCacheHit || !log.user_id,
+          ...((pt?.memory_extraction as Record<string, unknown> | undefined) ?? {}),
         },
       };
 

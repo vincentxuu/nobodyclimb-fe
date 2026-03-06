@@ -91,6 +91,21 @@ export interface AILogDetail {
     memory_extraction: PipelineStageBase
   }
   pipeline_trace: {
+    guardrails_input?: {
+      passed: boolean
+      checks_run: string[]
+      triggered_check: string | null
+      triggered_keyword: string | null
+      query_length: number
+      blocklist_size: number
+    }
+    quota_check?: {
+      rank: string
+      daily_ai_used: number
+      daily_ai_limit: number
+      estimated_tokens: number
+      result: 'passed' | 'admin_bypass'
+    }
     query_parsing?: {
       tool: string
       query_type: string
@@ -129,6 +144,18 @@ export interface AILogDetail {
       regen_quality: number | null
       regen_groundedness: number | null
       regen_accepted: boolean
+    }
+    guardrails_output?: {
+      original_length: number
+      output_length: number
+      system_prompt_leaked: boolean
+      pii_count: number
+      truncated: boolean
+    }
+    memory_extraction?: {
+      triggered: boolean
+      async: boolean
+      reason?: string
     }
   } | null
 }

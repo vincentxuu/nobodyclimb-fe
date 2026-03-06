@@ -8,7 +8,7 @@ import { QueryService } from '../services/query';
 import { IndexingService } from '../services/indexing';
 import { EmbeddingService } from '../services/embedding';
 import { getUserRank, initUserRank, resetDailyUsage, deductQuotaAndToken, getUserQuotaStatus, addTokenUsage } from '../services/rank';
-import { checkInput, checkOutput, GuardrailError } from '../utils/guardrails';
+import { checkInput, checkOutput, GuardrailError, type GuardrailsInputTrace } from '../utils/guardrails';
 import { SYSTEM_PROMPT } from '../utils/ai-prompts';
 import { RecommendationService } from '../services/recommendation';
 import { getUserMemories, deleteMemory } from '../repositories/memory';
@@ -85,8 +85,9 @@ aiRoutes.post(
     const db = c.env.DB;
 
     // Task 4.1: 輸入層防護（在配額扣除前執行，驗證失敗不扣配額）
+    let guardrailsInputTrace: GuardrailsInputTrace | null = null;
     try {
-      await checkInput(body.query, db);
+      guardrailsInputTrace = await checkInput(body.query, db);
     } catch (err) {
       if (err instanceof GuardrailError) {
         return c.json({ success: false, error: 'InvalidInput', message: (err as GuardrailError).message }, 400);
@@ -98,6 +99,11 @@ aiRoutes.post(
     // estimatedContextLength = 2000（保守估算：約 5 篇文件 × 400 字）
     const ESTIMATED_CONTEXT_LENGTH = 2000;
     const estimatedTokens = Math.ceil((SYSTEM_PROMPT.length + ESTIMATED_CONTEXT_LENGTH + body.query.length) / 2);
+
+    // 組裝 extraTrace（guardrails_input 已通過，此處無論 admin 都記錄）
+    const extraTrace: Record<string, unknown> = {
+      guardrails_input: guardrailsInputTrace,
+    };
 
     // 管理員不受配額限制
     if (!isAdmin) {
@@ -144,6 +150,23 @@ aiRoutes.post(
           data: baseData,
         }, 429);
       }
+
+      // 記錄配額資訊到 trace
+      extraTrace.quota_check = {
+        rank: rank?.rank_id ?? 'foothill',
+        daily_ai_used: rank?.daily_ai_used ?? 0,
+        daily_ai_limit: rank?.daily_ai_limit ?? 2,
+        estimated_tokens: estimatedTokens,
+        result: 'passed',
+      };
+    } else {
+      extraTrace.quota_check = {
+        rank: 'admin',
+        daily_ai_used: 0,
+        daily_ai_limit: -1,
+        estimated_tokens: estimatedTokens,
+        result: 'admin_bypass',
+      };
     }
 
     const streamMode = c.req.query('stream') === 'true';
@@ -156,7 +179,7 @@ aiRoutes.post(
           const queryService = new QueryService(c.env);
           const result = await queryService.askStream(body, userId, async (data) => {
             await stream.writeSSE({ data });
-          }, c.executionCtx);
+          }, c.executionCtx, extraTrace);
 
           // Task 4.4: 更新實際 token 消耗（修正預估與實際差額）
           if (!isAdmin) {
@@ -202,7 +225,7 @@ aiRoutes.post(
     // 非串流模式
     try {
       const queryService = new QueryService(c.env);
-      const aiResult = await queryService.ask(body, userId, c.executionCtx);
+      const aiResult = await queryService.ask(body, userId, c.executionCtx, undefined, extraTrace);
 
       // Task 4.4: 更新實際 token 消耗（修正預估與實際差額）
       if (!isAdmin) {
@@ -212,8 +235,8 @@ aiRoutes.post(
         await addTokenUsage(userId, logRow?.token_count ?? estimatedTokens, estimatedTokens, db);
       }
 
-      // Task 4.6: 輸出層防護（路由層額外保護）
-      const filteredAnswer = checkOutput(aiResult.answer);
+      // Task 4.6: 輸出層防護（路由層二次保護，query.ts 已做過一次）
+      const { output: filteredAnswer } = checkOutput(aiResult.answer);
 
       // 管理員不回傳配額資訊；一般用戶取得最新狀態
       let quota = null;

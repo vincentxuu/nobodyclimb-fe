@@ -264,10 +264,11 @@ export class QueryService {
   // Stage 6：MMR 多樣性選取（λ=0.6）
   // Stage 7：熱門度加權排序 → LLM C 生成回答
   // Task 5.1: 加入 ctx 供 waitUntil 使用
-  async ask(request: AIAskRequest, userId?: string, ctx?: { waitUntil(promise: Promise<unknown>): void }, onToken?: (token: string) => Promise<void>): Promise<AIAskResponse> {
+  async ask(request: AIAskRequest, userId?: string, ctx?: { waitUntil(promise: Promise<unknown>): void }, onToken?: (token: string) => Promise<void>, extraTrace?: Record<string, unknown>): Promise<AIAskResponse> {
     const streamingMode = !!onToken;
     const { query, limit = DEFAULT_TOP_K, include_sources = true, chat_history, no_cache = false } = request;
-    const trace: Record<string, unknown> = {};
+    // extraTrace 包含 guardrails_input 和 quota_check（由 ai.ts 路由傳入）
+    const trace: Record<string, unknown> = extraTrace ? { ...extraTrace } : {};
 
     // 有 chat_history 時帶入最近 6 則供 cache key hash 使用（LLM 實際使用量由 chat_history_depth 設定）
     const recentHistory: AIChatMessage[] = chat_history ? chat_history.slice(-6) : [];
@@ -423,11 +424,18 @@ export class QueryService {
         )) as LLMResponse;
         const rawAnswer = llmResult.response || '抱歉，無法生成回答，請稍後再試。';
         const { answer: rawGkAnswer, suggested_questions } = parseSuggestedQuestions(rawAnswer);
-        const answer = checkOutput(rawGkAnswer) || '抱歉，無法生成回答，請稍後再試。';
+        const { output: gkFiltered, trace: gkOutputTrace } = checkOutput(rawGkAnswer);
+        const answer = gkFiltered || '抱歉，無法生成回答，請稍後再試。';
+        trace.guardrails_output = gkOutputTrace;
         const latencyMs = Date.now() - startTime;
         const estimatedTokens = Math.ceil((GENERAL_KNOWLEDGE_SYSTEM_PROMPT.length + query.length + answer.length) / 2);
         const gkTokenCount = llmResult.usage?.total_tokens ?? estimatedTokens;
-        const queryId = await this.logQuery({ userId: userId ?? null, query, response: answer, sources: [], latencyMs, tokenCount: gkTokenCount, queryType: 'general-knowledge', modelUsed: effectiveLlmModel, retrievalScore: 0, selfReflectionTriggered: 0, isHighConsumption: gkTokenCount > pipelineCfg.high_consumption_threshold, hydeTriggered: false });
+        if (userId && ctx) {
+          trace.memory_extraction = { triggered: true, async: true };
+        } else {
+          trace.memory_extraction = { triggered: false, async: false, reason: userId ? 'no_ctx' : 'anonymous' };
+        }
+        const queryId = await this.logQuery({ userId: userId ?? null, query, response: answer, sources: [], latencyMs, tokenCount: gkTokenCount, queryType: 'general-knowledge', modelUsed: effectiveLlmModel, retrievalScore: 0, selfReflectionTriggered: 0, isHighConsumption: gkTokenCount > pipelineCfg.high_consumption_threshold, hydeTriggered: false, pipelineTrace: Object.keys(trace).length > 0 ? JSON.stringify(trace) : undefined });
         const response: AIAskResponse = { answer, sources: [], query_id: queryId, suggested_questions };
         await this.env.CACHE.put(cacheKey, JSON.stringify(response), { expirationTtl: cacheTtl });
         if (userId && ctx) {
@@ -962,7 +970,9 @@ export class QueryService {
     }
 
     // 輸出層防護：過濾 system prompt leakage、PII，截斷過長回應
-    answer = checkOutput(answer);
+    const { output: filteredAnswer, trace: outputTrace } = checkOutput(answer);
+    answer = filteredAnswer;
+    trace.guardrails_output = outputTrace;
 
     // Workers AI binding 不回傳 usage，用字元長度估算 token 數
     // 中英混合約每 2 字元 = 1 token；串流模式無 usage 物件，一律用估算值
@@ -1037,12 +1047,15 @@ export class QueryService {
 
       // Task 5.5: 非同步記憶提取（只對已登入用戶，只傳 query）
       if (userId) {
+        trace.memory_extraction = { triggered: true, async: true };
         const gatewayOpts = this.env.AI_GATEWAY_SLUG
           ? { gateway: { id: this.env.AI_GATEWAY_SLUG } }
           : undefined;
         ctx.waitUntil(
           extractMemoriesFromQuery(query, userId, this.env.DB, this.env.AI, gatewayOpts)
         );
+      } else {
+        trace.memory_extraction = { triggered: false, async: false, reason: 'anonymous' };
       }
     }
 
@@ -1056,12 +1069,13 @@ export class QueryService {
     userId: string | undefined,
     write: (data: string) => Promise<void>,
     ctx?: { waitUntil(promise: Promise<unknown>): void },
+    extraTrace?: Record<string, unknown>,
   ): Promise<AIAskResponse> {
     const onToken = async (token: string) => {
       await write(JSON.stringify({ type: 'token', token }));
     };
     try {
-      return await this.ask(request, userId, ctx, onToken);
+      return await this.ask(request, userId, ctx, onToken, extraTrace);
     } catch (error) {
       await write(JSON.stringify({ type: 'error', message: '抱歉，AI 服務暫時無法使用，請稍後再試。' }));
       throw error;

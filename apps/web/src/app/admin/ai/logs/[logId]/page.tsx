@@ -169,35 +169,51 @@ function KVRow({ label, value }: { label: string; value: React.ReactNode }) {
 type PipelineTrace = NonNullable<AILogDetail['pipeline_trace']>
 
 function GuardrailsInputTrace({ query, pipelineStage }: { query: string; pipelineStage: Record<string, unknown> | null }) {
-  const description = pipelineStage?.description as string | undefined
+  const gi = pipelineStage as {
+    checks_run?: string[]
+    query_length?: number
+    blocklist_size?: number
+    triggered_check?: string | null
+  } | null
+
+  const checksRun = gi?.checks_run ?? []
+  const checkLabels: Record<string, { label: string; desc: string }> = {
+    prompt_injection: { label: 'Prompt Injection', desc: '偵測覆寫系統提示的惡意輸入' },
+    jailbreak: { label: 'Jailbreak', desc: '偵測繞過安全限制的提示詞' },
+    meaningless: { label: '無效輸入', desc: '純符號或連續重複字元' },
+    blocklist: { label: '封鎖詞過濾', desc: `比對封鎖詞清單（${gi?.blocklist_size ?? 0} 筆）` },
+  }
+
   return (
     <IOFlow>
       <StageSection type="input">
         <p className="font-mono text-xs text-wb-80 bg-wb-5 rounded px-2 py-1.5 break-all">{query}</p>
-        <p className="text-wb-40 mt-1">字元數：{query.length}</p>
+        <p className="text-wb-40 mt-1">字元數：{gi?.query_length ?? query.length}</p>
       </StageSection>
       <StageSection type="decision">
         <div className="space-y-1.5">
-          {[
-            { label: 'Prompt Injection', desc: '偵測覆寫系統提示的惡意輸入' },
-            { label: 'Jailbreak', desc: '偵測繞過安全限制的提示詞' },
-            { label: '封鎖詞過濾', desc: '比對封鎖詞清單' },
-          ].map((c) => (
-            <div key={c.label} className="flex items-center gap-2">
-              <CheckCircle2 className="h-3 w-3 text-emerald-500 shrink-0" />
-              <TraceBadge text={c.label} color="blue" />
-              <span className="text-wb-50">{c.desc}</span>
-            </div>
-          ))}
+          {(checksRun.length > 0 ? checksRun : ['prompt_injection', 'jailbreak', 'meaningless', 'blocklist']).map((key) => {
+            const cfg = checkLabels[key] ?? { label: key, desc: '' }
+            return (
+              <div key={key} className="flex items-center gap-2">
+                <CheckCircle2 className="h-3 w-3 text-emerald-500 shrink-0" />
+                <TraceBadge text={cfg.label} color="blue" />
+                <span className="text-wb-50">{cfg.desc}</span>
+              </div>
+            )
+          })}
         </div>
       </StageSection>
       <StageSection type="output">
-        {description ? (
-          <p className="text-wb-80">{description}</p>
+        {gi?.triggered_check ? (
+          <div className="flex items-center gap-2">
+            <AlertCircle className="h-3.5 w-3.5 text-red-500 shrink-0" />
+            <TraceBadge text={`攔截：${gi.triggered_check}`} color="red" />
+          </div>
         ) : (
           <div className="flex items-center gap-2">
             <CheckCircle2 className="h-3.5 w-3.5 text-emerald-500 shrink-0" />
-            <span>所有防護項目通過，查詢送入下一階段</span>
+            <span>全部 {checksRun.length || 4} 項檢查通過，查詢送入下一階段</span>
           </div>
         )}
       </StageSection>
@@ -239,22 +255,55 @@ function CacheTrace({ pipelineStage, query }: { pipelineStage: Record<string, un
 }
 
 function QuotaCheckTrace({ pipelineStage }: { pipelineStage: Record<string, unknown> | null }) {
-  const description = pipelineStage?.description as string | undefined
+  const qc = pipelineStage as {
+    rank?: string
+    daily_ai_used?: number
+    daily_ai_limit?: number
+    estimated_tokens?: number
+    result?: string
+  } | null
+
+  const isAdminBypass = qc?.result === 'admin_bypass'
+  const used = qc?.daily_ai_used
+  const limit = qc?.daily_ai_limit
+
   return (
     <IOFlow>
       <StageSection type="input">
-        <KVRow label="來源" value="JWT Token 解析後的用戶 ID + Climber Rank" />
-        <KVRow label="查詢表" value="user_ranks（daily_ai_used / daily_ai_limit）" />
+        <div className="space-y-1">
+          <KVRow label="用戶等級" value={qc?.rank ? <TraceBadge text={qc.rank} color={qc.rank === 'admin' ? 'violet' : qc.rank === 'summit' ? 'emerald' : 'blue'} /> : '—'} />
+          {used != null && limit != null && (
+            <KVRow label="今日使用" value={`${used} / ${limit === -1 ? '∞' : limit} 次`} />
+          )}
+          {qc?.estimated_tokens != null && (
+            <KVRow label="預估 Token" value={`${qc.estimated_tokens} tokens`} />
+          )}
+        </div>
       </StageSection>
       <StageSection type="decision">
-        <code className="rounded bg-wb-10 px-1.5 py-0.5 text-[10px] text-wb-80 font-mono block whitespace-pre">
-          {`UPDATE user_ranks\n  SET daily_ai_used = daily_ai_used + 1\n  WHERE user_id = ? AND daily_ai_used < daily_ai_limit`}
-        </code>
-        <p className="text-wb-50 mt-1">原子性 SQL UPDATE，避免並發重複計算</p>
+        {isAdminBypass ? (
+          <div className="flex items-center gap-2">
+            <TraceBadge text="管理員：跳過配額" color="violet" />
+            <span className="text-wb-50">不扣除任何配額</span>
+          </div>
+        ) : (
+          <div className="space-y-1.5">
+            <code className="rounded bg-wb-10 px-1.5 py-0.5 text-[10px] text-wb-80 font-mono block whitespace-pre">
+              {`UPDATE user_ranks\n  SET daily_ai_used = daily_ai_used + 1\n  WHERE user_id = ? AND daily_ai_used < daily_ai_limit`}
+            </code>
+            <p className="text-wb-50">原子性 SQL UPDATE，避免並發重複計算</p>
+          </div>
+        )}
       </StageSection>
       <StageSection type="output">
-        {description ? (
-          <p className="text-wb-80">{description}</p>
+        {qc?.result ? (
+          <div className="flex items-center gap-2">
+            <CheckCircle2 className="h-3.5 w-3.5 text-emerald-500 shrink-0" />
+            <TraceBadge
+              text={qc.result === 'admin_bypass' ? '管理員免配額' : `通過（剩餘 ${limit != null && limit !== -1 ? Math.max(0, limit - ((used ?? 0) + 1)) : '∞'} 次）`}
+              color="emerald"
+            />
+          </div>
         ) : (
           <div className="space-y-1">
             <KVRow label="成功" value="配額 -1，查詢繼續執行" />
@@ -743,7 +792,16 @@ function JudgeTrace({ pipelineStage, response }: { pipelineStage: Record<string,
 }
 
 function GuardrailsOutputTrace({ response, pipelineStage }: { response: string | null; pipelineStage: Record<string, unknown> | null }) {
-  const description = pipelineStage?.description as string | undefined
+  const go = pipelineStage as {
+    original_length?: number
+    output_length?: number
+    system_prompt_leaked?: boolean
+    pii_count?: number
+    truncated?: boolean
+  } | null
+
+  const hasData = go?.original_length != null
+
   return (
     <IOFlow>
       <StageSection type="input">
@@ -753,7 +811,7 @@ function GuardrailsOutputTrace({ response, pipelineStage }: { response: string |
             <p className="italic text-wb-70 bg-wb-5 rounded px-2 py-1.5 text-xs line-clamp-4 leading-relaxed">
               {response.slice(0, 200)}{response.length > 200 ? '…' : ''}
             </p>
-            <p className="text-wb-40 mt-1">總長度：{response.length} 字元</p>
+            <p className="text-wb-40 mt-1">原始長度：{go?.original_length ?? response.length} 字元</p>
           </div>
         ) : (
           <p className="text-wb-40">LLM 原始回應</p>
@@ -761,36 +819,60 @@ function GuardrailsOutputTrace({ response, pipelineStage }: { response: string |
       </StageSection>
       <StageSection type="decision">
         <div className="space-y-1.5">
-          {[
-            { label: 'System Prompt Leakage', desc: '偵測並移除系統提示詞洩漏片段' },
-            { label: 'PII 過濾', desc: '移除電話、Email 等個人識別資訊' },
-            { label: '過長截斷', desc: '超過最大長度時截斷輸出' },
-          ].map((c) => (
-            <div key={c.label} className="flex items-center gap-2">
-              <CheckCircle2 className="h-3 w-3 text-emerald-500 shrink-0" />
-              <TraceBadge text={c.label} color="blue" />
-              <span className="text-wb-50">{c.desc}</span>
-            </div>
-          ))}
+          <div className="flex items-center gap-2">
+            {go?.system_prompt_leaked
+              ? <AlertCircle className="h-3 w-3 text-red-500 shrink-0" />
+              : <CheckCircle2 className="h-3 w-3 text-emerald-500 shrink-0" />}
+            <TraceBadge text="System Prompt Leakage" color={go?.system_prompt_leaked ? 'red' : 'blue'} />
+            <span className="text-wb-50">{go?.system_prompt_leaked ? '偵測到洩漏，回應已替換' : '無洩漏'}</span>
+          </div>
+          <div className="flex items-center gap-2">
+            {go?.pii_count && go.pii_count > 0
+              ? <AlertCircle className="h-3 w-3 text-amber-500 shrink-0" />
+              : <CheckCircle2 className="h-3 w-3 text-emerald-500 shrink-0" />}
+            <TraceBadge text="PII 過濾" color={go?.pii_count && go.pii_count > 0 ? 'amber' : 'blue'} />
+            <span className="text-wb-50">{hasData ? `發現 ${go?.pii_count ?? 0} 筆 PII 並遮蓋` : '移除電話、Email 等個人識別資訊'}</span>
+          </div>
+          <div className="flex items-center gap-2">
+            {go?.truncated
+              ? <AlertCircle className="h-3 w-3 text-amber-500 shrink-0" />
+              : <CheckCircle2 className="h-3 w-3 text-emerald-500 shrink-0" />}
+            <TraceBadge text="長度截斷" color={go?.truncated ? 'amber' : 'blue'} />
+            <span className="text-wb-50">{hasData ? (go?.truncated ? '已截斷（超過 3000 字）' : '未超過上限') : '超過最大長度時截斷'}</span>
+          </div>
         </div>
       </StageSection>
       <StageSection type="output">
-        {description ? (
-          <p className="text-wb-80">{description}</p>
-        ) : (
-          <div className="flex items-center gap-2">
+        <div className="space-y-1">
+          {hasData ? (
+            <>
+              <KVRow label="輸出長度" value={`${go?.output_length} 字元`} />
+              {go?.original_length != null && go?.output_length != null && go.original_length !== go.output_length && (
+                <KVRow label="縮減" value={`${go.original_length - go.output_length} 字元`} />
+              )}
+            </>
+          ) : null}
+          <div className="flex items-center gap-2 mt-1">
             <CheckCircle2 className="h-3.5 w-3.5 text-emerald-500 shrink-0" />
             <span>安全過濾後的回應送達用戶端</span>
           </div>
-        )}
+        </div>
       </StageSection>
     </IOFlow>
   )
 }
 
 function MemoryExtractionTrace({ pipelineStage }: { pipelineStage: Record<string, unknown> | null }) {
-  const description = pipelineStage?.description as string | undefined
-  const skipped = pipelineStage?.skipped as boolean | undefined
+  const me = pipelineStage as {
+    triggered?: boolean
+    async?: boolean
+    reason?: string
+    skipped?: boolean
+  } | null
+
+  const triggered = me?.triggered
+  const reason = me?.reason
+
   return (
     <IOFlow>
       <StageSection type="input">
@@ -802,11 +884,15 @@ function MemoryExtractionTrace({ pipelineStage }: { pipelineStage: Record<string
       <StageSection type="decision">
         <div className="space-y-1.5">
           <div className="flex items-center gap-2">
-            {skipped
-              ? <TraceBadge text="已跳過（匿名用戶或未啟用）" color="default" />
-              : <TraceBadge text="非同步執行" color="violet" />}
+            {triggered === false ? (
+              <TraceBadge text={`未執行（${reason ?? '匿名用戶'}）`} color="default" />
+            ) : triggered === true ? (
+              <TraceBadge text="排入非同步執行" color="violet" />
+            ) : (
+              <TraceBadge text="已跳過（快取命中或匿名用戶）" color="default" />
+            )}
           </div>
-          {!skipped && (
+          {triggered === true && (
             <code className="rounded bg-wb-10 px-1.5 py-0.5 text-[10px] text-wb-80 font-mono block">
               ctx.waitUntil(extractMemory(conversation))
             </code>
@@ -815,16 +901,16 @@ function MemoryExtractionTrace({ pipelineStage }: { pipelineStage: Record<string
         </div>
       </StageSection>
       <StageSection type="output">
-        {description ? (
-          <p className="text-wb-80">{description}</p>
-        ) : (
+        {triggered === true ? (
           <div className="space-y-1">
             <div className="flex items-center gap-2">
               <Database className="h-3.5 w-3.5 text-wb-50 shrink-0" />
-              <span>萃取結果存入 D1 user_memories 表</span>
+              <span>非同步萃取，結果存入 D1 user_memories 表</span>
             </div>
             <p className="text-wb-40">供後續查詢個人化使用</p>
           </div>
+        ) : (
+          <p className="text-wb-40">未執行記憶萃取</p>
         )}
       </StageSection>
     </IOFlow>
