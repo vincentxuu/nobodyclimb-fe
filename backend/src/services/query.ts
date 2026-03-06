@@ -1409,6 +1409,10 @@ export class QueryService {
 
   // LLM 回答後處理：將已知路線名稱替換為 markdown 連結，並於第一次出現時附上影片連結
   // 依名稱長度由長到短排序，避免短名稱提前匹配到長名稱的一部分
+  // 處理三種情況：
+  //   Step 1: LLM 輸出 **name** 純粗體 → 轉為 [**name**](url) + 影片連結
+  //   Step 2: LLM 輸出純文字 name → 轉為 [name](url)
+  //   Step 3: LLM 自行生成 [name](url) 或 [**name**](url)（依 system prompt 規則 12）→ 補上影片連結
   private injectRouteLinks(text: string, sources: AISource[]): string {
     let result = text;
     const routeSources = sources
@@ -1418,26 +1422,42 @@ export class QueryService {
     for (const source of routeSources) {
       const name = source.title;
       const url = source.url!;
-      // 1. **name** → [**name**](routeUrl)，第一次出現附上影片連結，之後只替換連結
-      const videoSuffix = source.latestVideoUrl ? ` [觀看影片](${source.latestVideoUrl})` : '';
-      let firstReplace = true;
+      const videoUrl = source.latestVideoUrl;
+      const videoSuffix = videoUrl ? ` [觀看影片](${videoUrl})` : '';
+      const escaped = name.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+      let videoAdded = false;
+
+      // Step 1: 獨立的 **name**（前面沒有 [，後面沒有 ](）→ [**name**](url) + 影片連結（僅第一次）
+      // 加入 lookbehind/lookahead 避免匹配 LLM 已生成的 [**name**](url) 內部，防止破壞 markdown
       result = result.replace(
-        new RegExp(`\\*\\*${name.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}\\*\\*`, 'g'),
+        new RegExp(`(?<!\\[)\\*\\*${escaped}\\*\\*(?!\\]\\()`, 'g'),
         () => {
-          const replacement = firstReplace
-            ? `[**${name}**](${url})${videoSuffix}`
-            : `[**${name}**](${url})`;
-          firstReplace = false;
-          return replacement;
+          const suffix = (!videoAdded && videoSuffix) ? videoSuffix : '';
+          if (suffix) videoAdded = true;
+          return `[**${name}**](${url})${suffix}`;
         }
       );
 
-      // 2. 純文字 name → [name](url)（排除已在連結內的）
-      const escaped = name.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+      // Step 2: 純文字 name（排除已在連結內的）→ [name](url)（影片連結由 Step 3 統一處理）
       result = result.replace(
         new RegExp(`(?<!\\[\\*\\*|\\[)${escaped}(?!\\*\\*\\]|\\])`, 'g'),
         `[${name}](${url})`
       );
+
+      // Step 3: LLM 已自行生成的 [name](url) 或 [**name**](url)（含 Step 2 轉換的）→ 補上影片連結（僅第一次）
+      // 此步驟修正：LLM 依 system prompt 規則 12 自行生成連結時，影片連結無法被注入的問題
+      if (videoUrl && !videoAdded) {
+        result = result.replace(
+          new RegExp(`(\\[(?:\\*\\*)?${escaped}(?:\\*\\*)?\\]\\([^)]+\\))(?! \\[觀看影片\\])`, 'g'),
+          (match) => {
+            if (!videoAdded) {
+              videoAdded = true;
+              return `${match} [觀看影片](${videoUrl})`;
+            }
+            return match;
+          }
+        );
+      }
     }
     return result;
   }
