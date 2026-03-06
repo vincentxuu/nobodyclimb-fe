@@ -12,10 +12,10 @@ export class GuardrailError extends Error {
 }
 
 // =============================================
-// 輸入層防護
+// 輸入層防護 - 預設清單（可透過 ai_config 覆蓋）
 // =============================================
 
-const PROMPT_INJECTION_KEYWORDS = [
+export const DEFAULT_PROMPT_INJECTION_KEYWORDS = [
   'ignore previous instructions',
   'ignore all instructions',
   'disregard previous',
@@ -31,7 +31,7 @@ const PROMPT_INJECTION_KEYWORDS = [
   'bypass restrictions',
 ];
 
-const JAILBREAK_PATTERNS = [
+export const DEFAULT_JAILBREAK_PATTERNS = [
   'act as ',
   'roleplay as',
   'role play as',
@@ -60,18 +60,65 @@ export interface GuardrailsInputTrace {
   blocklist_size: number;
 }
 
+function parseJsonList(value: string | undefined, fallback: string[]): string[] {
+  if (!value) return fallback;
+  try {
+    const parsed = JSON.parse(value);
+    if (!Array.isArray(parsed) || parsed.length === 0) return fallback;
+    // 只保留字串元素，非字串型別靜默濾除
+    const strings = parsed.filter((item): item is string => typeof item === 'string');
+    return strings.length > 0 ? strings : fallback;
+  } catch {
+    return fallback;
+  }
+}
+
 /**
  * 輸入層防護：在 LLM 呼叫前驗證查詢是否合規
  * 驗證失敗時拋出 GuardrailError，呼叫方返回 400 且不扣配額
  * 通過時回傳 GuardrailsInputTrace 供 pipeline trace 使用
+ * 關鍵字清單優先使用 ai_config 中的設定，無設定時回退至預設清單
  */
 export async function checkInput(query: string, db: D1Database): Promise<GuardrailsInputTrace> {
   const lowerQuery = query.toLowerCase();
   const checks_run: string[] = [];
 
+  // 批次讀取所有輸入層防護設定
+  let injectionKeywords = DEFAULT_PROMPT_INJECTION_KEYWORDS;
+  let jailbreakPatterns = DEFAULT_JAILBREAK_PATTERNS;
+  let blocklistSize = 0;
+
+  try {
+    const rows = await db
+      .prepare(
+        `SELECT key, value FROM ai_config WHERE key IN ('prompt_injection_keywords', 'jailbreak_patterns', 'input_blocklist')`
+      )
+      .all<{ key: string; value: string }>();
+    const cfgMap: Record<string, string> = Object.fromEntries(
+      rows.results.map((r) => [r.key, r.value])
+    );
+
+    injectionKeywords = parseJsonList(cfgMap['prompt_injection_keywords'], DEFAULT_PROMPT_INJECTION_KEYWORDS);
+    jailbreakPatterns = parseJsonList(cfgMap['jailbreak_patterns'], DEFAULT_JAILBREAK_PATTERNS);
+
+    if (cfgMap['input_blocklist']) {
+      const customList = parseJsonList(cfgMap['input_blocklist'], []);
+      blocklistSize = customList.length;
+      checks_run.push('blocklist');
+      for (const keyword of customList) {
+        if (lowerQuery.includes(keyword.toLowerCase())) {
+          throw new GuardrailError('輸入內容不符合使用規範');
+        }
+      }
+    }
+  } catch (err) {
+    if (err instanceof GuardrailError) throw err;
+    // ai_config 讀取失敗時靜默略過，使用預設清單
+  }
+
   // 1. Prompt injection 關鍵字過濾
   checks_run.push('prompt_injection');
-  for (const keyword of PROMPT_INJECTION_KEYWORDS) {
+  for (const keyword of injectionKeywords) {
     if (lowerQuery.includes(keyword)) {
       throw new GuardrailError('輸入內容不符合使用規範');
     }
@@ -79,7 +126,7 @@ export async function checkInput(query: string, db: D1Database): Promise<Guardra
 
   // 2. Jailbreak pattern 偵測
   checks_run.push('jailbreak');
-  for (const pattern of JAILBREAK_PATTERNS) {
+  for (const pattern of jailbreakPatterns) {
     if (lowerQuery.includes(pattern.toLowerCase())) {
       throw new GuardrailError('輸入內容不符合使用規範');
     }
@@ -90,27 +137,6 @@ export async function checkInput(query: string, db: D1Database): Promise<Guardra
   const trimmed = query.trim();
   if (MEANINGLESS_SYMBOLS_RE.test(trimmed) || REPEATED_CHARS_RE.test(trimmed)) {
     throw new GuardrailError('輸入內容無效，請輸入有意義的問題');
-  }
-
-  // 4. 動態黑名單：從 ai_config 載入
-  checks_run.push('blocklist');
-  let blocklistSize = 0;
-  try {
-    const row = await db
-      .prepare(`SELECT value FROM ai_config WHERE key = 'input_blocklist' LIMIT 1`)
-      .first<{ value: string }>();
-    if (row?.value) {
-      const customList = JSON.parse(row.value) as string[];
-      blocklistSize = customList.length;
-      for (const keyword of customList) {
-        if (lowerQuery.includes(keyword.toLowerCase())) {
-          throw new GuardrailError('輸入內容不符合使用規範');
-        }
-      }
-    }
-  } catch (err) {
-    if (err instanceof GuardrailError) throw err;
-    // ai_config 讀取失敗時靜默略過，不影響正常流程
   }
 
   return {
@@ -124,10 +150,10 @@ export async function checkInput(query: string, db: D1Database): Promise<Guardra
 }
 
 // =============================================
-// 輸出層防護
+// 輸出層防護 - 預設清單（可透過 ai_config 覆蓋）
 // =============================================
 
-const SYSTEM_PROMPT_LEAKAGE_PATTERNS = [
+export const DEFAULT_SYSTEM_PROMPT_LEAKAGE_PATTERNS = [
   'SYSTEM_PROMPT',
   'You are a climbing assistant',
   '你是一個攀岩助理',
@@ -157,15 +183,24 @@ export interface GuardrailsOutputTrace {
 /**
  * 輸出層防護：掃描 LLM 回應，過濾 leakage、PII，並截斷過長回應
  * 回傳 { output, trace } 供 pipeline trace 使用
+ * @param maxLength 輸出最大字元數，預設 3000（可由 ai_config.max_output_length 覆蓋）
+ * @param leakagePatterns System prompt leakage 偵測模式，預設使用內建清單
  */
-export function checkOutput(response: string): { output: string; trace: GuardrailsOutputTrace } {
+export function checkOutput(
+  response: string,
+  maxLength?: number,
+  leakagePatterns?: string[]
+): { output: string; trace: GuardrailsOutputTrace } {
+  const effectiveMaxLength = maxLength ?? MAX_OUTPUT_LENGTH;
+  const effectiveLeakagePatterns = leakagePatterns ?? DEFAULT_SYSTEM_PROMPT_LEAKAGE_PATTERNS;
+
   const originalLength = response.length;
   let result = response;
   let piiCount = 0;
 
   // 1. System prompt leakage 偵測
   const lowerResult = result.toLowerCase();
-  for (const pattern of SYSTEM_PROMPT_LEAKAGE_PATTERNS) {
+  for (const pattern of effectiveLeakagePatterns) {
     if (lowerResult.includes(pattern.toLowerCase())) {
       console.warn('[guardrails] system prompt leakage detected');
       return {
@@ -189,9 +224,9 @@ export function checkOutput(response: string): { output: string; trace: Guardrai
   }
 
   // 3. 回應長度截斷
-  const truncated = result.length > MAX_OUTPUT_LENGTH;
+  const truncated = result.length > effectiveMaxLength;
   if (truncated) {
-    result = result.slice(0, MAX_OUTPUT_LENGTH) + OUTPUT_TRUNCATION_SUFFIX;
+    result = result.slice(0, effectiveMaxLength) + OUTPUT_TRUNCATION_SUFFIX;
   }
 
   return {

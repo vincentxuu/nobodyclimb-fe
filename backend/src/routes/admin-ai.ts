@@ -5,6 +5,11 @@ import { Env } from '../types';
 import { authMiddleware, adminMiddleware } from '../middleware/auth';
 import { EmbeddingService } from '../services/embedding';
 import { getUserRankDetail, updateUserRank, recalculateAllRanks } from '../services/rank';
+import {
+  DEFAULT_PROMPT_INJECTION_KEYWORDS,
+  DEFAULT_JAILBREAK_PATTERNS,
+  DEFAULT_SYSTEM_PROMPT_LEAKAGE_PATTERNS,
+} from '../utils/guardrails';
 
 export const adminAiRoutes = new Hono<{ Bindings: Env }>();
 
@@ -610,8 +615,12 @@ adminAiRoutes.get(
         `SELECT key, value FROM ai_config ORDER BY key`
       ).all<{ key: string; value: string }>();
 
-      // 轉為物件格式
-      const config: Record<string, string> = {};
+      // 轉為物件格式，防護清單若未設定則補回預設值供管理員檢視
+      const config: Record<string, string> = {
+        prompt_injection_keywords: JSON.stringify(DEFAULT_PROMPT_INJECTION_KEYWORDS),
+        jailbreak_patterns: JSON.stringify(DEFAULT_JAILBREAK_PATTERNS),
+        system_prompt_leakage_patterns: JSON.stringify(DEFAULT_SYSTEM_PROMPT_LEAKAGE_PATTERNS),
+      };
       for (const row of rows.results) {
         config[row.key] = row.value;
       }

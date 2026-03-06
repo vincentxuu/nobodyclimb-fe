@@ -155,6 +155,25 @@ export const MULTI_QUERY_EXPANSION_PROMPT = `你是攀岩知識庫的查詢優�
 
 只輸出 {count} 行查詢，不含編號或說明。`;
 
+// Agentic Multi-Step RAG：LLM 自主決定是否需要額外搜尋
+export const AGENTIC_DECISION_PROMPT = `你是攀岩知識庫的 AI 研究員，負責決定是否需要額外搜尋以回答問題。
+
+使用者問題：{query}
+
+目前已找到的資料（共 {count} 筆）：
+{evidence_summary}
+
+請選擇下一步行動（只輸出 JSON，不含說明）：
+- {"type": "ANSWER"} → 資訊已足夠，可直接回答
+- {"type": "RETRIEVE", "refinedQuery": "..."} → 需補充特定資訊，提供更精確的搜尋語句
+- {"type": "BROADEN"} → 資料嚴重不足，需放寬條件重新搜尋
+
+選擇規則：
+- 已有 {min_docs} 筆以上相關資料 → 優先選 ANSWER，除非問題明確需要多跳推理
+- RETRIEVE 的 refinedQuery 必須與原始查詢有所不同（不同角度或更具體）
+- BROADEN 僅在資料完全不足時使用（已有資料但不完整請用 RETRIEVE）
+- 剩餘可搜尋次數：{remaining_steps}，若為 0 請選 ANSWER`;
+
 export const QUERY_TEMPLATE = `以下是與問題相關的攀岩資料（已依相關度與熱門度排序）：
 
 {context}
