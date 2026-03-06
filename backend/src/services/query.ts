@@ -1,7 +1,7 @@
 import { Env, AIAskRequest, AIAskResponse, AISearchRequest, AISource, AIDocument, AIDocumentMetadata, ParsedQuery, AIChatMessage } from '../types';
 import { EmbeddingService } from './embedding';
-import { SYSTEM_PROMPT, QUERY_TEMPLATE, TOOL_SELECTION_PROMPT, HYDE_PROMPT, GENERAL_KNOWLEDGE_SYSTEM_PROMPT, JUDGE_PROMPT, SELF_REFLECTION_PROMPT } from '../utils/ai-prompts';
-import { checkOutput } from '../utils/guardrails';
+import { SYSTEM_PROMPT, QUERY_TEMPLATE, TOOL_SELECTION_PROMPT, HYDE_PROMPT, GENERAL_KNOWLEDGE_SYSTEM_PROMPT, JUDGE_PROMPT, SELF_REFLECTION_PROMPT, MULTI_QUERY_EXPANSION_PROMPT, AGENTIC_DECISION_PROMPT } from '../utils/ai-prompts';
+import { checkOutput, DEFAULT_SYSTEM_PROMPT_LEAKAGE_PATTERNS } from '../utils/guardrails';
 import { getMemoriesSummary } from '../repositories/memory';
 import { getRecentAscents, buildAscentContext, estimateAbilityLevel, buildPersonalizedSystemPrompt } from './personalization';
 import { extractMemoriesFromQuery } from './memory-extractor';
@@ -110,6 +110,17 @@ interface PipelineConfig {
   // 語義快取
   semantic_cache_enabled: boolean;
   semantic_cache_threshold: number;
+  // BM25 混合搜尋
+  bm25_top_k: number;
+  // Multi-Query Expansion
+  multi_query_count: number;
+  // 防護設定
+  max_output_length: number;
+  system_prompt_leakage_patterns: string[];
+  // Agentic 模式
+  rag_strategy: string;               // 'baseline' | 'agentic'
+  agentic_max_steps: number;          // 1–5
+  agentic_min_docs_to_answer: number; // 1–10
 }
 
 function num(v: string | undefined, fallback: number, min?: number, max?: number): number {
@@ -165,6 +176,25 @@ async function loadPipelineConfig(db: D1Database): Promise<PipelineConfig> {
     // 語義快取
     semantic_cache_enabled:       cfg['semantic_cache_enabled'] === '1',
     semantic_cache_threshold:     num(cfg['semantic_cache_threshold'],     0.95, 0.8,  1),
+    // BM25 混合搜尋
+    bm25_top_k:                   num(cfg['bm25_top_k'],                   10,   5,    50),
+    // Multi-Query Expansion
+    multi_query_count:            num(cfg['multi_query_count'],            3,    1,    5),
+    // 防護設定
+    max_output_length:            num(cfg['max_output_length'],            3000, 500,  10000),
+    system_prompt_leakage_patterns: (() => {
+      try {
+        if (cfg['system_prompt_leakage_patterns']) {
+          const parsed = JSON.parse(cfg['system_prompt_leakage_patterns']);
+          if (Array.isArray(parsed)) return parsed as string[];
+        }
+      } catch { /* fallback */ }
+      return DEFAULT_SYSTEM_PROMPT_LEAKAGE_PATTERNS;
+    })(),
+    // Agentic 模式
+    rag_strategy:               cfg['rag_strategy']               ?? 'baseline',
+    agentic_max_steps:          num(cfg['agentic_max_steps'],          3, 1, 5),
+    agentic_min_docs_to_answer: num(cfg['agentic_min_docs_to_answer'], 3, 1, 10),
   };
 }
 
@@ -178,6 +208,11 @@ interface SearchResult {
   score: number;
   metadata?: Record<string, unknown>;
 }
+
+// Agentic Multi-Step RAG 型別
+type AgenticActionType = 'ANSWER' | 'RETRIEVE' | 'BROADEN';
+interface AgenticAction { type: AgenticActionType; refinedQuery?: string; }
+interface AgenticStepTrace { step: number; type: AgenticActionType; refinedQuery?: string; }
 
 export class QueryService {
   private embeddingService: EmbeddingService;
@@ -256,9 +291,11 @@ export class QueryService {
   // Stage 6：MMR 多樣性選取（λ=0.6）
   // Stage 7：熱門度加權排序 → LLM C 生成回答
   // Task 5.1: 加入 ctx 供 waitUntil 使用
-  async ask(request: AIAskRequest, userId?: string, ctx?: { waitUntil(promise: Promise<unknown>): void }, onToken?: (token: string) => Promise<void>): Promise<AIAskResponse> {
+  async ask(request: AIAskRequest, userId?: string, ctx?: { waitUntil(promise: Promise<unknown>): void }, onToken?: (token: string) => Promise<void>, extraTrace?: Record<string, unknown>): Promise<AIAskResponse> {
     const streamingMode = !!onToken;
     const { query, limit = DEFAULT_TOP_K, include_sources = true, chat_history, no_cache = false } = request;
+    // extraTrace 包含 guardrails_input 和 quota_check（由 ai.ts 路由傳入）
+    const trace: Record<string, unknown> = extraTrace ? { ...extraTrace } : {};
 
     // 有 chat_history 時帶入最近 6 則供 cache key hash 使用（LLM 實際使用量由 chat_history_depth 設定）
     const recentHistory: AIChatMessage[] = chat_history ? chat_history.slice(-6) : [];
@@ -296,6 +333,7 @@ export class QueryService {
           latencyMs: Date.now() - startTime,
           tokenCount: 0,
           cacheHit: true,
+          pipelineTrace: JSON.stringify({ cache: { type: 'kv' } }),
         }).catch(() => {});
         return JSON.parse(cached) as AIAskResponse;
       }
@@ -327,6 +365,7 @@ export class QueryService {
         this.logQuery({
           userId: null, query, response: '', sources: [],
           latencyMs: Date.now() - startTime, tokenCount: 0, cacheHit: true,
+          pipelineTrace: JSON.stringify({ cache: { type: 'semantic' } }),
         }).catch(() => {});
         return semanticCached;
       }
@@ -340,6 +379,7 @@ export class QueryService {
     // 需要從 DB 查出該路線的難度和岩場，不依賴 LLM A
     let vectorFilter: Record<string, unknown> = {};
     let hydeDoc = '';
+    let expandedQueries: string[] = [];
     let excludeRouteId: string | null = null; // 排除來源路線本身
     let referenceRouteInfo: string | null = null; // 來源路線資訊，注入 context 讓 LLM 有正確難度
     let isSimRouteSearch = false; // 是否走「相似路線」流程，供後段 fallback 判斷
@@ -384,6 +424,16 @@ export class QueryService {
       // Stage 1b：先執行 Tool Calling，再依 queryType 決定是否執行 HyDE（簡單查詢跳過）
       const parsedQuery = await this.parseQueryWithLLM(query, llmModel, cragNames, areaNames, regionNames, gatewayOptions);
 
+      // 記錄 query_parsing trace
+      if (parsedQuery) {
+        trace.query_parsing = {
+          tool: parsedQuery.tool,
+          query_type: parsedQuery.query_type ?? 'complex',
+          alternatives: ['search_routes', 'search_crags', 'general_knowledge'],
+          params: (parsedQuery.params ?? {}) as Record<string, unknown>,
+        };
+      }
+
       // 決定 queryType：tool=general_knowledge 優先，否則從 parsedQuery.query_type 取得
       if (parsedQuery?.tool === 'general_knowledge') {
         queryType = 'general-knowledge';
@@ -401,13 +451,20 @@ export class QueryService {
           { messages: [{ role: 'system', content: gkPersonalized }, { role: 'user', content: query }], max_tokens: pipelineCfg.max_tokens_gk },
           gatewayOptions
         )) as LLMResponse;
-        const rawAnswer = llmResult.response ?? '抱歉，無法生成回答，請稍後再試。';
+        const rawAnswer = llmResult.response || '抱歉，無法生成回答，請稍後再試。';
         const { answer: rawGkAnswer, suggested_questions } = parseSuggestedQuestions(rawAnswer);
-        const answer = checkOutput(rawGkAnswer);
+        const { output: gkFiltered, trace: gkOutputTrace } = checkOutput(rawGkAnswer, pipelineCfg.max_output_length, pipelineCfg.system_prompt_leakage_patterns);
+        const answer = gkFiltered || '抱歉，無法生成回答，請稍後再試。';
+        trace.guardrails_output = gkOutputTrace;
         const latencyMs = Date.now() - startTime;
         const estimatedTokens = Math.ceil((GENERAL_KNOWLEDGE_SYSTEM_PROMPT.length + query.length + answer.length) / 2);
         const gkTokenCount = llmResult.usage?.total_tokens ?? estimatedTokens;
-        const queryId = await this.logQuery({ userId: userId ?? null, query, response: answer, sources: [], latencyMs, tokenCount: gkTokenCount, queryType: 'general-knowledge', modelUsed: effectiveLlmModel, retrievalScore: 0, selfReflectionTriggered: 0, isHighConsumption: gkTokenCount > pipelineCfg.high_consumption_threshold, hydeTriggered: false });
+        if (userId && ctx) {
+          trace.memory_extraction = { triggered: true, async: true };
+        } else {
+          trace.memory_extraction = { triggered: false, async: false, reason: userId ? 'no_ctx' : 'anonymous' };
+        }
+        const queryId = await this.logQuery({ userId: userId ?? null, query, response: answer, sources: [], latencyMs, tokenCount: gkTokenCount, queryType: 'general-knowledge', modelUsed: effectiveLlmModel, retrievalScore: 0, selfReflectionTriggered: 0, isHighConsumption: gkTokenCount > pipelineCfg.high_consumption_threshold, hydeTriggered: false, pipelineTrace: Object.keys(trace).length > 0 ? JSON.stringify(trace) : undefined });
         const response: AIAskResponse = { answer, sources: [], query_id: queryId, suggested_questions };
         await this.env.CACHE.put(cacheKey, JSON.stringify(response), { expirationTtl: cacheTtl });
         if (userId && ctx) {
@@ -417,9 +474,15 @@ export class QueryService {
         return response;
       }
 
-      // Stage 1c：complex 查詢執行 HyDE；simple 查詢跳過（節省 1 次 LLM + embedding 呼叫）
-      if (queryType === 'complex') {
-        hydeDoc = await this.generateHyDE(query, llmModel, gatewayOptions);
+      // Stage 1c：complex 查詢執行 HyDE + Multi-Query Expansion；simple 查詢跳過
+      // agentic 模式不使用這兩個結果（agenticRetrieve 自行管理搜尋），跳過以節省 LLM 呼叫
+      if (queryType === 'complex' && pipelineCfg.rag_strategy !== 'agentic') {
+        [hydeDoc, expandedQueries] = await Promise.all([
+          this.generateHyDE(query, llmModel, gatewayOptions),
+          this.generateMultipleQueries(query, pipelineCfg.multi_query_count, llmModel, gatewayOptions),
+        ]);
+        if (hydeDoc) trace.hyde = { document: hydeDoc.slice(0, 300) };
+        if (expandedQueries.length > 0) trace.multi_query = { queries: expandedQueries };
       }
 
       // Stage 2：決定過濾條件
@@ -465,8 +528,15 @@ export class QueryService {
       }
     }
 
+    // 記錄 filter trace（isSimRouteSearch 路徑下 parsedQuery 為 null）
+    trace.filter = {
+      applied: vectorFilter,
+      source: isSimRouteSearch ? 'sim_route' : (trace.query_parsing ? 'llm_parsed' : 'regex_fallback'),
+    };
+
     // Context 補充：若 query 含指代詞（「附近」「還有」等）且 filter 無明確位置，
     // 從對話歷史的 user + assistant 訊息中補充 crag/region 來源
+    let historySupplementedLocation = false;
     const hasExplicitLocationFilter = !!(vectorFilter['crag_id'] || vectorFilter['area_id'] || vectorFilter['region']);
     if (!hasExplicitLocationFilter && recentHistory.length > 0 && this.isContextDependentQuery(query)) {
       const historyText = recentHistory.map((m) => m.content).join(' ');
@@ -474,127 +544,221 @@ export class QueryService {
       if (historyLocation.areaId) {
         vectorFilter['area_id'] = { $eq: historyLocation.areaId };
         vectorFilter['type'] = { $eq: 'route' };
+        historySupplementedLocation = true;
       } else if (historyLocation.cragIds && historyLocation.cragIds.length > 0) {
         vectorFilter['crag_id'] = historyLocation.cragIds.length === 1
           ? { $eq: historyLocation.cragIds[0] }
           : { $in: historyLocation.cragIds };
         if (!vectorFilter['type']) vectorFilter['type'] = { $eq: 'route' };
+        historySupplementedLocation = true;
       } else if (historyLocation.region) {
         vectorFilter['region'] = { $eq: historyLocation.region };
+        historySupplementedLocation = true;
       } else {
         // 找不到岩場/地區名稱時，嘗試從歷史對話中的路線名稱反查所屬岩場
         const routeRef = await this.extractRouteReference(historyText);
         if (routeRef?.cragId) {
           vectorFilter['crag_id'] = { $eq: routeRef.cragId };
           if (!vectorFilter['type']) vectorFilter['type'] = { $eq: 'route' };
+          historySupplementedLocation = true;
         }
       }
     }
-
-    // Stage 3：embed(query) + embed(hydeDoc)
-    // 匿名+無歷史查詢：queryVector 已提前計算（與 loadPipelineConfig 並行），直接復用，僅需 embed HyDE
-    // 其他查詢：兩者並行計算
-    const embedStart = Date.now();
-    let queryVector: number[];
-    let hydeVector: number[] | null = null;
-    if (earlyQueryVector) {
-      queryVector = earlyQueryVector;
-      if (hydeDoc) {
-        hydeVector = await this.embeddingService.embed(hydeDoc);
-      }
-    } else {
-      const embedTasks: Promise<number[]>[] = [this.embeddingService.embed(query)];
-      if (hydeDoc) {
-        embedTasks.push(this.embeddingService.embed(hydeDoc));
-      }
-      const embedResults = await Promise.all(embedTasks);
-      queryVector = embedResults[0];
-      hydeVector = hydeDoc ? embedResults[1] : null;
+    // 更新 filter trace 補充對話歷史來源標記
+    if (trace.filter) {
+      (trace.filter as Record<string, unknown>).history_supplemented = historySupplementedLocation;
     }
-    const embeddingMs = Date.now() - embedStart;
 
-    // Stage 4（並行）：兩路 Vectorize 搜尋
+    // ──────────────────────────────────────────────────────────────────────────
+    // Stage 3–5：搜尋策略分支
+    //   agentic + complex → agenticRetrieve()
+    //   其他             → 現有 Stage 3–5（HyDE + Multi-Query + CRAG）
+    // ──────────────────────────────────────────────────────────────────────────
     const retrievalStart = Date.now();
-    // 多岩場（$in）時加大 topK，確保每個岩場都有足夠結果
-    const cragFilter = vectorFilter['crag_id'] as { $in?: string[] } | undefined;
-    const isMultiCrag = Array.isArray(cragFilter?.$in) && cragFilter.$in.length > 1;
-    const MERGE_TOP_K = isMultiCrag ? Math.max(20, pipelineCfg.merge_top_k * 2) : pipelineCfg.merge_top_k;
-    const searchTasks: Promise<{ matches: SearchResult[] }>[] = [
-      this.env.VECTOR_INDEX.query(queryVector, {
-        topK: MERGE_TOP_K,
-        returnMetadata: 'all',
-        filter: Object.keys(vectorFilter).length > 0 ? vectorFilter : undefined,
-      }),
-    ];
+    let embeddingMs = 0;
+    let retrievalScore = 0;
+    let candidateMatches: SearchResult[];
 
-    // HyDE filter 策略：
-    // - 有 crag_id（相似路線意圖）→ 套用全部 filter（確保同岩場同難度）
-    // - 其他情況 → 只套 type filter（讓語義搜尋有彈性）
-    if (hydeVector) {
+    if (pipelineCfg.rag_strategy === 'agentic' && queryType === 'complex') {
+      // E 方案：Agentic Multi-Step RAG
+      const agenticSteps: AgenticStepTrace[] = [];
+      candidateMatches = await this.agenticRetrieve(query, vectorFilter, pipelineCfg, agenticSteps);
+      retrievalScore = candidateMatches.length > 0 ? Math.max(...candidateMatches.map((m) => m.score)) : 0;
+      trace.agentic = {
+        steps: agenticSteps,
+        total_paths: agenticSteps.length + 1,
+        final_doc_count: candidateMatches.length,
+      };
+    } else {
+      // Baseline：Stage 3–5（現有程式碼不動）
+      // Stage 3：embed(query) + embed(hydeDoc)
+      // 匿名+無歷史查詢：queryVector 已提前計算（與 loadPipelineConfig 並行），直接復用，僅需 embed HyDE
+      // 其他查詢：兩者並行計算
+      const embedStart = Date.now();
+      let queryVector: number[];
+      let hydeVector: number[] | null = null;
+      if (earlyQueryVector) {
+        queryVector = earlyQueryVector;
+        if (hydeDoc) {
+          hydeVector = await this.embeddingService.embed(hydeDoc);
+        }
+      } else {
+        const embedTasks: Promise<number[]>[] = [this.embeddingService.embed(query)];
+        if (hydeDoc) {
+          embedTasks.push(this.embeddingService.embed(hydeDoc));
+        }
+        const embedResults = await Promise.all(embedTasks);
+        queryVector = embedResults[0];
+        hydeVector = hydeDoc ? embedResults[1] : null;
+      }
+      // 擴展查詢向量（complex 才有，失敗靜默降級）
+      let expandedVectors: number[][] = [];
+      if (expandedQueries.length > 0) {
+        expandedVectors = await this.embeddingService.embedBatch(expandedQueries);
+        expandedVectors = expandedVectors.filter((v) => v.length > 0);
+      }
+      embeddingMs = Date.now() - embedStart;
+      trace.embedding = {
+        early_vector_reused: !!earlyQueryVector,
+        hyde_embedded: !!hydeVector,
+        expanded_count: expandedVectors.length,
+      };
+
+      // Stage 4（並行）：兩路 Vectorize 搜尋 + BM25
+      // 多岩場（$in）時加大 topK，確保每個岩場都有足夠結果
+      const cragFilter = vectorFilter['crag_id'] as { $in?: string[] } | undefined;
+      const isMultiCrag = Array.isArray(cragFilter?.$in) && cragFilter.$in.length > 1;
+      const MERGE_TOP_K = isMultiCrag ? Math.max(20, pipelineCfg.merge_top_k * 2) : pipelineCfg.merge_top_k;
+
+      // HyDE filter 策略：
+      // - 有 crag_id（相似路線意圖）→ 套用全部 filter（確保同岩場同難度）
+      // - 其他情況 → 只套 type filter（讓語義搜尋有彈性）
       const hydeFilter: Record<string, unknown> =
         vectorFilter['crag_id'] || vectorFilter['area_id']
           ? { ...vectorFilter }                           // 相似路線：完整 filter
           : vectorFilter['type'] ? { type: vectorFilter['type'] } : {}; // 一般：只限 type
-      searchTasks.push(
-        this.env.VECTOR_INDEX.query(hydeVector, {
+
+      // 擴展查詢只套 type filter（讓語義搜尋有彈性，不限岩場/難度）
+      const expandedFilter = vectorFilter['type'] ? { type: vectorFilter['type'] } : undefined;
+
+      const allSearchPromises: Promise<{ matches: SearchResult[] } | SearchResult[]>[] = [
+        this.env.VECTOR_INDEX.query(queryVector, {
           topK: MERGE_TOP_K,
           returnMetadata: 'all',
-          filter: Object.keys(hydeFilter).length > 0 ? hydeFilter : undefined,
-        })
-      );
-    }
-
-    const searchResponses = await Promise.all(searchTasks);
-    let queryMatches: SearchResult[] = searchResponses[0].matches.map((m) => ({ id: m.id, score: m.score, metadata: m.metadata }));
-    let rawHydeMatches: SearchResult[] = hydeVector && searchResponses[1]
-      ? searchResponses[1].matches.map((m) => ({ id: m.id, score: m.score, metadata: m.metadata }))
-      : [];
-
-    // 相似路線 fallback：若同岩場搜尋無結果，放寬為全站相近難度搜尋
-    // 讓使用者不被限制在同一岩場（例如難度太高岩場路線稀少的情況）
-    if (isSimRouteSearch && queryMatches.length === 0 && vectorFilter['crag_id']) {
-      const relaxedFilter: Record<string, unknown> = { type: { $eq: 'route' } };
-      if (vectorFilter['grade_numeric']) relaxedFilter['grade_numeric'] = vectorFilter['grade_numeric'];
-
-      const [fbQueryResult, fbHydeResult] = await Promise.all([
-        this.env.VECTOR_INDEX.query(queryVector, { topK: MERGE_TOP_K, returnMetadata: 'all', filter: relaxedFilter }),
+          filter: Object.keys(vectorFilter).length > 0 ? vectorFilter : undefined,
+        }),
         hydeVector
-          ? this.env.VECTOR_INDEX.query(hydeVector, { topK: MERGE_TOP_K, returnMetadata: 'all', filter: relaxedFilter })
+          ? this.env.VECTOR_INDEX.query(hydeVector, {
+              topK: MERGE_TOP_K,
+              returnMetadata: 'all',
+              filter: Object.keys(hydeFilter).length > 0 ? hydeFilter : undefined,
+            })
           : Promise.resolve({ matches: [] as SearchResult[] }),
-      ]);
-      queryMatches = fbQueryResult.matches.map((m) => ({ id: m.id, score: m.score, metadata: m.metadata }));
-      rawHydeMatches = fbHydeResult.matches.map((m) => ({ id: m.id, score: m.score, metadata: m.metadata }));
-    }
+        this.searchBM25(query, pipelineCfg.bm25_top_k),
+        ...expandedVectors.map((vec) =>
+          this.env.VECTOR_INDEX.query(vec, {
+            topK: MERGE_TOP_K,
+            returnMetadata: 'all',
+            filter: expandedFilter,
+          })
+        ),
+      ];
 
-    // 有 location 過濾（crag/area/region）但 primary 搜尋無結果時，
-    // 不合併 HyDE 結果，避免引入不相關岩場/地區
-    const hasLocationFilter = !!(vectorFilter['crag_id'] || vectorFilter['area_id'] || vectorFilter['region']);
-    const hydeMatches = (hasLocationFilter && queryMatches.length === 0) ? [] : rawHydeMatches;
+      const allResults = await Promise.all(allSearchPromises);
+      const queryVecResult    = allResults[0] as { matches: SearchResult[] };
+      const hydeVecResult     = allResults[1] as { matches: SearchResult[] };
+      const bm25Matches       = allResults[2] as SearchResult[];
+      const expandedVecResults = (allResults.slice(3) as { matches: SearchResult[] }[])
+        .map((r) => r.matches.map((m) => ({ id: m.id, score: m.score, metadata: m.metadata })));
 
-    // Stage 5：合併結果、過濾低分、取 D1 完整文件
-    // 注意：先保留全部候選（最多 MERGE_TOP_K），熱門度重排後再截斷至 limit
-    const mergedMatches = this.mergeResults(queryMatches, hydeMatches, MERGE_TOP_K);
-    const hasFilter = Object.keys(vectorFilter).some((k) => ['grade_numeric', 'crag_id', 'area_id', 'region', 'route_type'].includes(k));
-    const minScore = hasFilter ? pipelineCfg.min_rrf_score_filtered : pipelineCfg.min_rrf_score;
-    let candidateMatches = mergedMatches.filter((m) => m.score >= minScore);
+      let queryMatches: SearchResult[] = queryVecResult.matches.map((m) => ({ id: m.id, score: m.score, metadata: m.metadata }));
+      let rawHydeMatches: SearchResult[] = hydeVector
+        ? hydeVecResult.matches.map((m) => ({ id: m.id, score: m.score, metadata: m.metadata }))
+        : [];
 
-    // 記錄 retrieval score（RRF 過濾前最高分，供 CRAG 觸發後追蹤）
-    const retrievalScore = mergedMatches.length > 0 ? Math.max(...mergedMatches.map((m) => m.score)) : 0;
+      // 相似路線 fallback：若同岩場搜尋無結果，放寬為全站相近難度搜尋
+      // 讓使用者不被限制在同一岩場（例如難度太高岩場路線稀少的情況）
+      if (isSimRouteSearch && queryMatches.length === 0 && vectorFilter['crag_id']) {
+        const relaxedFilter: Record<string, unknown> = { type: { $eq: 'route' } };
+        if (vectorFilter['grade_numeric']) relaxedFilter['grade_numeric'] = vectorFilter['grade_numeric'];
 
-    // CRAG（Corrective RAG）：若 RRF 過濾後無存活文件且有 grade_numeric 過濾，
-    // 移除 grade filter 放寬搜尋範圍重試一次（location filter 保留）
-    if (candidateMatches.length === 0 && vectorFilter['grade_numeric']) {
-      const relaxedFilter = { ...vectorFilter };
-      delete relaxedFilter['grade_numeric'];
-      const retryResult = await this.env.VECTOR_INDEX.query(queryVector, {
-        topK: MERGE_TOP_K,
-        returnMetadata: 'all',
-        filter: Object.keys(relaxedFilter).length > 0 ? relaxedFilter : undefined,
-      });
-      const retryMatches = retryResult.matches.map((m) => ({ id: m.id, score: m.score, metadata: m.metadata }));
-      const retryMerged = this.mergeResults(retryMatches, [], MERGE_TOP_K);
-      candidateMatches = retryMerged.filter((m) => m.score >= minScore);
-    }
+        const [fbQueryResult, fbHydeResult] = await Promise.all([
+          this.env.VECTOR_INDEX.query(queryVector, { topK: MERGE_TOP_K, returnMetadata: 'all', filter: relaxedFilter }),
+          hydeVector
+            ? this.env.VECTOR_INDEX.query(hydeVector, { topK: MERGE_TOP_K, returnMetadata: 'all', filter: relaxedFilter })
+            : Promise.resolve({ matches: [] as SearchResult[] }),
+        ]);
+        queryMatches = fbQueryResult.matches.map((m) => ({ id: m.id, score: m.score, metadata: m.metadata }));
+        rawHydeMatches = fbHydeResult.matches.map((m) => ({ id: m.id, score: m.score, metadata: m.metadata }));
+      }
+
+      // 有 location 過濾（crag/area/region）但 primary 搜尋無結果時，
+      // 不合併 HyDE 結果，避免引入不相關岩場/地區
+      const hasLocationFilter = !!(vectorFilter['crag_id'] || vectorFilter['area_id'] || vectorFilter['region']);
+      const hydeMatches = (hasLocationFilter && queryMatches.length === 0) ? [] : rawHydeMatches;
+
+      // Stage 5：合併結果、過濾低分、取 D1 完整文件
+      // 注意：先保留全部候選（最多 MERGE_TOP_K），熱門度重排後再截斷至 limit
+      const mergedMatches = this.mergeResults([queryMatches, hydeMatches, bm25Matches, ...expandedVecResults], MERGE_TOP_K);
+      const hasFilter = Object.keys(vectorFilter).some((k) => ['grade_numeric', 'crag_id', 'area_id', 'region', 'route_type'].includes(k));
+      const minScore = hasFilter ? pipelineCfg.min_rrf_score_filtered : pipelineCfg.min_rrf_score;
+      candidateMatches = mergedMatches.filter((m) => m.score >= minScore);
+
+      // 記錄 retrieval score（RRF 過濾前最高分，供 CRAG 觸發後追蹤）
+      retrievalScore = mergedMatches.length > 0 ? Math.max(...mergedMatches.map((m) => m.score)) : 0;
+
+      // 記錄 retrieval trace（CRAG 觸發後再更新 crag_fallback）
+      const tracePaths = ['query_vec'];
+      if (hydeVector) tracePaths.push('hyde_vec');
+      tracePaths.push('bm25');
+      expandedVectors.forEach((_, i) => tracePaths.push(`expanded_${i}`));
+      trace.retrieval = {
+        paths: tracePaths,
+        candidates_before_filter: mergedMatches.length,
+        candidates_after_filter: candidateMatches.length,
+        crag_fallback: false,
+        crag_fallback_stage: null as 'grade' | 'grade_and_type' | null,
+        reranker_used: false,
+      };
+
+      // CRAG（Corrective RAG）：若 RRF 過濾後無存活文件且有 grade_numeric 過濾，
+      // 移除 grade filter 放寬搜尋範圍重試一次（location filter 保留）
+      if (candidateMatches.length === 0 && vectorFilter['grade_numeric']) {
+        const relaxedFilter = { ...vectorFilter };
+        delete relaxedFilter['grade_numeric'];
+        const retryResult = await this.env.VECTOR_INDEX.query(queryVector, {
+          topK: MERGE_TOP_K,
+          returnMetadata: 'all',
+          filter: Object.keys(relaxedFilter).length > 0 ? relaxedFilter : undefined,
+        });
+        const retryMatches = retryResult.matches.map((m) => ({ id: m.id, score: m.score, metadata: m.metadata }));
+        const retryMerged = this.mergeResults([retryMatches, bm25Matches], MERGE_TOP_K);
+        candidateMatches = retryMerged.filter((m) => m.score >= minScore);
+        if (candidateMatches.length > 0) {
+          (trace.retrieval as Record<string, unknown>).crag_fallback = true;
+          (trace.retrieval as Record<string, unknown>).crag_fallback_stage = 'grade';
+        }
+      }
+
+      // CRAG 二階段：若移除 grade 後仍無結果且有 route_type 過濾，再一併移除 route_type
+      if (candidateMatches.length === 0 && vectorFilter['route_type']) {
+        const moreRelaxedFilter = { ...vectorFilter };
+        delete moreRelaxedFilter['grade_numeric'];
+        delete moreRelaxedFilter['route_type'];
+        const retryResult2 = await this.env.VECTOR_INDEX.query(queryVector, {
+          topK: MERGE_TOP_K,
+          returnMetadata: 'all',
+          filter: Object.keys(moreRelaxedFilter).length > 0 ? moreRelaxedFilter : undefined,
+        });
+        const retryMatches2 = retryResult2.matches.map((m) => ({ id: m.id, score: m.score, metadata: m.metadata }));
+        const retryMerged2 = this.mergeResults([retryMatches2, bm25Matches], MERGE_TOP_K);
+        candidateMatches = retryMerged2.filter((m) => m.score >= minScore);
+        if (candidateMatches.length > 0) {
+          (trace.retrieval as Record<string, unknown>).crag_fallback = true;
+          (trace.retrieval as Record<string, unknown>).crag_fallback_stage = 'grade_and_type';
+        }
+      }
+    } // end else (baseline)
 
     const documents = await this.getDocuments(candidateMatches.map((m) => m.id));
 
@@ -625,6 +789,9 @@ export class QueryService {
             ...m,
             score: scoreByIdx.get(idx) ?? m.score,
           }));
+          if (trace.retrieval) {
+            (trace.retrieval as Record<string, unknown>).reranker_used = true;
+          }
         }
       } catch {
         // reranker 失敗時保留原始 vector score，不影響正常流程
@@ -745,6 +912,15 @@ export class QueryService {
       content: m.role === 'assistant' ? m.content.slice(0, pipelineCfg.assistant_history_truncate) : m.content,
     }));
 
+    // 記錄 generation trace（regen_triggered 由重生成流程更新）
+    trace.generation = {
+      context_doc_count: orderedDocs.length,
+      personalized: !!userId,
+      regen_triggered: false,
+      ability_level: abilityLevel,
+      memory_summary_length: memorySummary ? memorySummary.length : 0,
+    };
+
     const generationStart = Date.now();
     // Task 5.4: 使用個人化 system prompt
     const personalizedSystemPrompt = buildPersonalizedSystemPrompt(memorySummary, ascentContext, abilityLevel);
@@ -764,17 +940,29 @@ export class QueryService {
         { messages: llmMessages, max_tokens: pipelineCfg.max_tokens_generation },
         gatewayOptions
       )) as LLMResponse;
-      rawLLMAnswer = llmResult.response ?? '抱歉，無法生成回答，請稍後再試。';
+      rawLLMAnswer = llmResult.response || '抱歉，無法生成回答，請稍後再試。';
       llmUsage = llmResult.usage;
     }
 
     let { answer: parsedAnswer, suggested_questions } = parseSuggestedQuestions(rawLLMAnswer);
+    // 記錄建議問題至 trace，供 admin 日誌詳情頁顯示
+    if (trace.generation && suggested_questions.length > 0) {
+      (trace.generation as Record<string, unknown>).suggested_questions = suggested_questions;
+    }
+    // 防護：parseSuggestedQuestions 可能因 LLM 回傳空字串或全為問句而產生空 answer
+    if (!parsedAnswer) {
+      parsedAnswer = '抱歉，目前無法生成回答，請換個方式提問或稍後再試。';
+    }
     const generationMs = Date.now() - generationStart;
     const latencyMs = Date.now() - startTime;
 
     let selfReflectionTriggered = 0;
     const cannotAnswer =
-      parsedAnswer.includes('超出我的知識範圍') || parsedAnswer.includes('找不到相關資訊');
+      parsedAnswer.includes('超出我的知識範圍') ||
+      parsedAnswer.includes('找不到相關資訊') ||
+      parsedAnswer.includes('找不到符合條件') ||
+      parsedAnswer.includes('找不到相關路線') ||
+      parsedAnswer.includes('無法提供任何推薦或建議');
 
     const finalSources = cannotAnswer ? [] : sources;
 
@@ -806,6 +994,7 @@ export class QueryService {
       ) {
         try {
           selfReflectionTriggered = 1;
+          (trace.generation as Record<string, unknown>).regen_triggered = true;
           const retryResult = (await (this.env.AI.run as Function)(
             effectiveLlmModel,
             { messages: llmMessages, max_tokens: pipelineCfg.max_tokens_generation },
@@ -822,6 +1011,13 @@ export class QueryService {
             timeoutMs: pipelineCfg.judge_timeout_ms,
             contextTruncate: pipelineCfg.judge_context_truncate,
           });
+          trace.self_reflection = {
+            original_quality: quality,
+            original_groundedness: groundedness,
+            regen_quality: regenJudge.quality,
+            regen_groundedness: regenJudge.groundedness,
+            regen_accepted: (regenJudge.groundedness ?? 0) > (groundedness ?? 0),
+          };
 
           if ((regenJudge.groundedness ?? 0) > (groundedness ?? 0)) {
             // 重生成品質更好，採用新答案並更新 Judge 分數
@@ -848,7 +1044,9 @@ export class QueryService {
     }
 
     // 輸出層防護：過濾 system prompt leakage、PII，截斷過長回應
-    answer = checkOutput(answer);
+    const { output: filteredAnswer, trace: outputTrace } = checkOutput(answer, pipelineCfg.max_output_length, pipelineCfg.system_prompt_leakage_patterns);
+    answer = filteredAnswer;
+    trace.guardrails_output = outputTrace;
 
     // Workers AI binding 不回傳 usage，用字元長度估算 token 數
     // 中英混合約每 2 字元 = 1 token；串流模式無 usage 物件，一律用估算值
@@ -876,6 +1074,7 @@ export class QueryService {
       selfReflectionTriggered,
       isHighConsumption: tokenCount > pipelineCfg.high_consumption_threshold,
       hydeTriggered: hydeDoc !== '',
+      pipelineTrace: Object.keys(trace).length > 0 ? JSON.stringify(trace) : undefined,
     });
 
     // 非串流：低 groundedness 同步標記
@@ -922,12 +1121,15 @@ export class QueryService {
 
       // Task 5.5: 非同步記憶提取（只對已登入用戶，只傳 query）
       if (userId) {
+        trace.memory_extraction = { triggered: true, async: true };
         const gatewayOpts = this.env.AI_GATEWAY_SLUG
           ? { gateway: { id: this.env.AI_GATEWAY_SLUG } }
           : undefined;
         ctx.waitUntil(
           extractMemoriesFromQuery(query, userId, this.env.DB, this.env.AI, gatewayOpts)
         );
+      } else {
+        trace.memory_extraction = { triggered: false, async: false, reason: 'anonymous' };
       }
     }
 
@@ -941,12 +1143,13 @@ export class QueryService {
     userId: string | undefined,
     write: (data: string) => Promise<void>,
     ctx?: { waitUntil(promise: Promise<unknown>): void },
+    extraTrace?: Record<string, unknown>,
   ): Promise<AIAskResponse> {
     const onToken = async (token: string) => {
       await write(JSON.stringify({ type: 'token', token }));
     };
     try {
-      return await this.ask(request, userId, ctx, onToken);
+      return await this.ask(request, userId, ctx, onToken, extraTrace);
     } catch (error) {
       await write(JSON.stringify({ type: 'error', message: '抱歉，AI 服務暫時無法使用，請稍後再試。' }));
       throw error;
@@ -1206,6 +1409,10 @@ export class QueryService {
 
   // LLM 回答後處理：將已知路線名稱替換為 markdown 連結，並於第一次出現時附上影片連結
   // 依名稱長度由長到短排序，避免短名稱提前匹配到長名稱的一部分
+  // 處理三種情況：
+  //   Step 1: LLM 輸出 **name** 純粗體 → 轉為 [**name**](url) + 影片連結
+  //   Step 2: LLM 輸出純文字 name → 轉為 [name](url)
+  //   Step 3: LLM 自行生成 [name](url) 或 [**name**](url)（依 system prompt 規則 12）→ 補上影片連結
   private injectRouteLinks(text: string, sources: AISource[]): string {
     let result = text;
     const routeSources = sources
@@ -1215,26 +1422,42 @@ export class QueryService {
     for (const source of routeSources) {
       const name = source.title;
       const url = source.url!;
-      // 1. **name** → [**name**](routeUrl)，第一次出現附上影片連結，之後只替換連結
-      const videoSuffix = source.latestVideoUrl ? ` [觀看影片](${source.latestVideoUrl})` : '';
-      let firstReplace = true;
+      const videoUrl = source.latestVideoUrl;
+      const videoSuffix = videoUrl ? ` [觀看影片](${videoUrl})` : '';
+      const escaped = name.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+      let videoAdded = false;
+
+      // Step 1: 獨立的 **name**（前面沒有 [，後面沒有 ](）→ [**name**](url) + 影片連結（僅第一次）
+      // 加入 lookbehind/lookahead 避免匹配 LLM 已生成的 [**name**](url) 內部，防止破壞 markdown
       result = result.replace(
-        new RegExp(`\\*\\*${name.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}\\*\\*`, 'g'),
+        new RegExp(`(?<!\\[)\\*\\*${escaped}\\*\\*(?!\\]\\()`, 'g'),
         () => {
-          const replacement = firstReplace
-            ? `[**${name}**](${url})${videoSuffix}`
-            : `[**${name}**](${url})`;
-          firstReplace = false;
-          return replacement;
+          const suffix = (!videoAdded && videoSuffix) ? videoSuffix : '';
+          if (suffix) videoAdded = true;
+          return `[**${name}**](${url})${suffix}`;
         }
       );
 
-      // 2. 純文字 name → [name](url)（排除已在連結內的）
-      const escaped = name.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+      // Step 2: 純文字 name（排除已在連結內的）→ [name](url)（影片連結由 Step 3 統一處理）
       result = result.replace(
         new RegExp(`(?<!\\[\\*\\*|\\[)${escaped}(?!\\*\\*\\]|\\])`, 'g'),
         `[${name}](${url})`
       );
+
+      // Step 3: LLM 已自行生成的 [name](url) 或 [**name**](url)（含 Step 2 轉換的）→ 補上影片連結（僅第一次）
+      // 此步驟修正：LLM 依 system prompt 規則 12 自行生成連結時，影片連結無法被注入的問題
+      if (videoUrl && !videoAdded) {
+        result = result.replace(
+          new RegExp(`(\\[(?:\\*\\*)?${escaped}(?:\\*\\*)?\\]\\([^)]+\\))(?! \\[觀看影片\\])`, 'g'),
+          (match) => {
+            if (!videoAdded) {
+              videoAdded = true;
+              return `${match} [觀看影片](${videoUrl})`;
+            }
+            return match;
+          }
+        );
+      }
     }
     return result;
   }
@@ -1458,12 +1681,13 @@ export class QueryService {
     isHighConsumption?: boolean;
     cacheHit?: boolean;
     hydeTriggered?: boolean;
+    pipelineTrace?: string;
   }): Promise<string> {
     const id = crypto.randomUUID();
     try {
       await this.env.DB.prepare(`
-        INSERT INTO ai_query_logs (id, user_id, query, response, sources, latency_ms, token_count, groundedness_score, auto_score, embedding_ms, retrieval_ms, generation_ms, query_type, model_used, retrieval_score, self_reflection_triggered, is_high_consumption, cache_hit, hyde_triggered)
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        INSERT INTO ai_query_logs (id, user_id, query, response, sources, latency_ms, token_count, groundedness_score, auto_score, embedding_ms, retrieval_ms, generation_ms, query_type, model_used, retrieval_score, self_reflection_triggered, is_high_consumption, cache_hit, hyde_triggered, pipeline_trace)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
       `)
         .bind(
           id,
@@ -1484,7 +1708,8 @@ export class QueryService {
           params.selfReflectionTriggered ?? 0,
           params.isHighConsumption ? 1 : 0,
           params.cacheHit ? 1 : 0,
-          params.hydeTriggered ? 1 : 0
+          params.hydeTriggered ? 1 : 0,
+          params.pipelineTrace ?? null
         )
         .run();
     } catch (error) {
@@ -1567,6 +1792,33 @@ export class QueryService {
     }
   }
 
+  // Multi-Query Expansion：將查詢改寫為 N 個不同角度的子查詢，失敗靜默降級
+  private async generateMultipleQueries(
+    query: string,
+    count: number,
+    model: string,
+    gatewayOptions?: { gateway: { id: string } }
+  ): Promise<string[]> {
+    const prompt = MULTI_QUERY_EXPANSION_PROMPT
+      .replace(/\{count\}/g, String(count))
+      .replace('{query}', query);
+    try {
+      const result = await (this.env.AI.run as Function)(
+        model,
+        { messages: [{ role: 'user', content: prompt }], max_tokens: 200 },
+        gatewayOptions
+      );
+      const text = (result as { response?: string }).response?.trim() ?? '';
+      return text
+        .split('\n')
+        .map((l) => l.trim())
+        .filter((l) => l.length > 0)
+        .slice(0, count);
+    } catch {
+      return [];
+    }
+  }
+
   // 將 ParsedQuery.params 轉換成 Vectorize metadata filter
   // 需要 DB 查詢將名稱解析為 ID
   private async buildFiltersFromParsed(
@@ -1607,17 +1859,10 @@ export class QueryService {
       filter['region'] = { $eq: params.region };
     }
 
-    // 解析 route_type（正規化中英文混用：LLM 可能輸出「運攀」或 "sport"）
-    if (params.route_type) {
-      const routeTypeMap: Record<string, string> = {
-        '運攀': 'sport', 'sport': 'sport',
-        '傳攀': 'trad', 'trad': 'trad',
-        '抱石': 'boulder', 'boulder': 'boulder',
-        '混合': 'mixed', 'mixed': 'mixed',
-      };
-      const normalized = routeTypeMap[params.route_type] ?? params.route_type;
-      filter['route_type'] = { $eq: normalized };
-    }
+    // 注意：route_type 不加入 Vectorize metadata filter
+    // 原因：與 crag_id + grade_numeric 同時使用時過於嚴格，
+    // 且許多路線的 route_type 在 DB 中為 null，導致合法路線被過濾掉。
+    // 改由語義向量搜尋 + reranker 處理類型相關性，LLM 根據 context 進行最終篩選。
 
     // 解析 grade（支援 "5.11b" 或 "5.10-5.12" 格式）
     if (params.grade) {
@@ -1639,18 +1884,195 @@ export class QueryService {
 
   // 合併兩個 Vectorize 搜尋結果：Reciprocal Rank Fusion（RRF）
   // score = Σ 1/(k + rank_i)，k=60 為標準值，出現在兩路的結果自動加分
-  private mergeResults(r1: SearchResult[], r2: SearchResult[], limit = 10): SearchResult[] {
+  // 清理查詢字串，移除 FTS5 語法特殊字符，避免 MATCH 語法錯誤
+  private buildFTSQuery(query: string): string {
+    return query.replace(/["\x00-\x1f()*^[\]]/g, ' ').trim();
+  }
+
+  // ──────────────────────────────────────────────────────────────────────────
+  // Agentic Multi-Step RAG：主控方法，管理多輪搜尋迴圈
+  // ──────────────────────────────────────────────────────────────────────────
+  private async agenticRetrieve(
+    query: string,
+    vectorFilter: Record<string, unknown>,
+    cfg: PipelineConfig,
+    steps: AgenticStepTrace[],
+  ): Promise<SearchResult[]> {
+    const cragFilter = vectorFilter['crag_id'] as { $in?: string[] } | undefined;
+    const isMultiCrag = Array.isArray(cragFilter?.$in) && cragFilter.$in.length > 1;
+    const MERGE_TOP_K = isMultiCrag ? Math.max(20, cfg.merge_top_k * 2) : cfg.merge_top_k;
+    const hasFilter = Object.keys(vectorFilter).some((k) => ['grade_numeric', 'crag_id', 'area_id', 'region', 'route_type'].includes(k));
+    const minScore = hasFilter ? cfg.min_rrf_score_filtered : cfg.min_rrf_score;
+
+    const allPaths: SearchResult[][] = [];
+
+    // Step 0：初始搜尋（必定執行）
+    const initialResults = await this.runAgenticSearch(query, vectorFilter, MERGE_TOP_K, cfg.bm25_top_k);
+    allPaths.push(initialResults);
+
+    // topK 上限固定為 3 倍，避免線性膨脹在極端情況下觸發 D1 參數限制
+    const AGENTIC_MAX_MERGE_K = MERGE_TOP_K * 3;
+
+    for (let step = 0; step < cfg.agentic_max_steps; step++) {
+      const merged = this.mergeResults(allPaths, AGENTIC_MAX_MERGE_K);
+      const uniqueCount = merged.length;
+
+      if (uniqueCount >= cfg.agentic_min_docs_to_answer) break;
+
+      const action = await this.decideNextAction(
+        query, merged, step, cfg.agentic_max_steps, cfg.agentic_min_docs_to_answer, cfg.lightweight_model
+      );
+
+      if (action.type === 'ANSWER') {
+        steps.push({ step, type: action.type });
+        break;
+      }
+
+      if (action.type === 'RETRIEVE') {
+        // refinedQuery 缺失時等同 ANSWER，避免空輪次浪費 LLM 呼叫
+        if (!action.refinedQuery) {
+          steps.push({ step, type: 'ANSWER' });
+          break;
+        }
+        steps.push({ step, type: action.type, refinedQuery: action.refinedQuery });
+        allPaths.push(await this.runAgenticSearch(action.refinedQuery, vectorFilter, MERGE_TOP_K, cfg.bm25_top_k));
+      } else if (action.type === 'BROADEN') {
+        // 保留 location filter（crag/area/region），只放寬 grade 和 route_type
+        // 與 baseline CRAG 策略一致：不移除使用者指定的位置條件
+        const broadenFilter: Record<string, unknown> = {};
+        if (vectorFilter['crag_id']) broadenFilter['crag_id'] = vectorFilter['crag_id'];
+        if (vectorFilter['area_id']) broadenFilter['area_id'] = vectorFilter['area_id'];
+        if (vectorFilter['region']) broadenFilter['region'] = vectorFilter['region'];
+        steps.push({ step, type: action.type });
+        allPaths.push(await this.runAgenticSearch(query, broadenFilter, MERGE_TOP_K, cfg.bm25_top_k));
+      }
+    }
+
+    const finalMerged = this.mergeResults(allPaths, AGENTIC_MAX_MERGE_K);
+    return finalMerged.filter((m) => m.score >= minScore);
+  }
+
+  // 每輪 Agentic 搜尋：embedding + BM25 並行，RRF 合併
+  private async runAgenticSearch(
+    query: string,
+    filter: Record<string, unknown>,
+    topK: number,
+    bm25TopK: number,
+  ): Promise<SearchResult[]> {
+    const queryVector = await this.embeddingService.embed(query);
+    const [vecResult, bm25Matches] = await Promise.all([
+      this.env.VECTOR_INDEX.query(queryVector, {
+        topK,
+        returnMetadata: 'all',
+        filter: Object.keys(filter).length > 0 ? filter : undefined,
+      }),
+      this.searchBM25(query, bm25TopK),
+    ]);
+    const vecMatches: SearchResult[] = vecResult.matches.map((m) => ({ id: m.id, score: m.score, metadata: m.metadata }));
+    return this.mergeResults([vecMatches, bm25Matches], topK);
+  }
+
+  // Agentic 決策：讓 LLM 評估目前文件是否足夠，決定下一步行動
+  // 失敗時靜默降級：回傳 ANSWER（用已有結果直接回答）
+  private async decideNextAction(
+    query: string,
+    currentDocs: SearchResult[],
+    step: number,
+    maxSteps: number,
+    minDocs: number,
+    model: string,
+  ): Promise<AgenticAction> {
+    try {
+      const evidenceSummary = this.buildEvidenceSummary(currentDocs);
+      // {query} 最後替換，避免查詢內容中的佔位符字串誤觸後續替換
+      const prompt = AGENTIC_DECISION_PROMPT
+        .replace('{count}', String(currentDocs.length))
+        .replace('{evidence_summary}', evidenceSummary)
+        .replace('{min_docs}', String(minDocs))
+        .replace('{remaining_steps}', String(maxSteps - step - 1))
+        .replace('{query}', query);
+
+      const gatewayOptions = this.env.AI_GATEWAY_SLUG
+        ? { gateway: { id: this.env.AI_GATEWAY_SLUG } }
+        : undefined;
+      const result = (await this.env.AI.run(
+        model,
+        { messages: [{ role: 'user', content: prompt }], max_tokens: 100 },
+        gatewayOptions,
+      )) as LLMResponse;
+
+      const raw = result.response ?? '';
+      const jsonMatch = raw.match(/\{[^}]+\}/);
+      if (!jsonMatch) return { type: 'ANSWER' };
+
+      const parsed = JSON.parse(jsonMatch[0]) as AgenticAction;
+      if (!['ANSWER', 'RETRIEVE', 'BROADEN'].includes(parsed.type)) return { type: 'ANSWER' };
+
+      // refinedQuery 型別與長度驗證，防止異常值傳入 embedding service
+      if (parsed.type === 'RETRIEVE') {
+        if (typeof parsed.refinedQuery !== 'string' || parsed.refinedQuery.trim().length === 0) {
+          return { type: 'ANSWER' };
+        }
+        parsed.refinedQuery = parsed.refinedQuery.slice(0, 500);
+      }
+
+      return parsed;
+    } catch {
+      // LLM 失敗或 JSON 解析失敗 → 提前結束 loop，用已有結果
+      return { type: 'ANSWER' };
+    }
+  }
+
+  // 建立 evidence summary 供 decideNextAction prompt 使用
+  private buildEvidenceSummary(docs: SearchResult[]): string {
+    if (docs.length === 0) return '（尚無資料）';
+    return docs.slice(0, 8).map((doc) => {
+      const meta = doc.metadata as Record<string, unknown> | undefined;
+      if (!meta) return `文件：${doc.id}`;
+      const docType = meta['type'] as string | undefined;
+      if (docType === 'route') {
+        return `路線：${meta['name'] ?? doc.id}｜${meta['crag_name'] ?? ''}｜${meta['grade'] ?? ''}`;
+      } else if (docType === 'crag') {
+        return `岩場：${meta['name'] ?? doc.id}｜${meta['region'] ?? ''}`;
+      }
+      return `文件：${meta['name'] ?? doc.id}`;
+    }).join('\n');
+  }
+
+  // BM25 全文搜尋：利用 D1 FTS5 索引做關鍵字匹配
+  // bm25() 回傳負值（越負越相關），取負數轉為正分供 RRF 使用
+  // 失敗時靜默降級（回傳空陣列），不影響向量搜尋路徑
+  private async searchBM25(query: string, topK: number): Promise<SearchResult[]> {
+    const ftsQuery = this.buildFTSQuery(query);
+    if (!ftsQuery) return [];
+    try {
+      const rows = await this.env.DB.prepare(`
+        SELECT doc_id, bm25(ai_documents_fts) AS bm25_score
+        FROM ai_documents_fts
+        WHERE ai_documents_fts MATCH ?
+        ORDER BY bm25(ai_documents_fts)
+        LIMIT ?
+      `).bind(ftsQuery, topK).all<{ doc_id: string; bm25_score: number }>();
+      return rows.results.map((row) => ({
+        id: row.doc_id,
+        score: -row.bm25_score,
+      }));
+    } catch {
+      return [];
+    }
+  }
+
+  // N 路 RRF 合併：支援任意數量的搜尋結果列表（向量路 + BM25 路等）
+  private mergeResults(results: SearchResult[][], limit = 10): SearchResult[] {
     const K = 60;
     const rrfScores = new Map<string, number>();
     const metaMap = new Map<string, SearchResult>();
 
-    for (const [rank, item] of r1.entries()) {
-      rrfScores.set(item.id, (rrfScores.get(item.id) ?? 0) + 1 / (K + rank + 1));
-      if (!metaMap.has(item.id)) metaMap.set(item.id, item);
-    }
-    for (const [rank, item] of r2.entries()) {
-      rrfScores.set(item.id, (rrfScores.get(item.id) ?? 0) + 1 / (K + rank + 1));
-      if (!metaMap.has(item.id)) metaMap.set(item.id, item);
+    for (const resultList of results) {
+      for (const [rank, item] of resultList.entries()) {
+        rrfScores.set(item.id, (rrfScores.get(item.id) ?? 0) + 1 / (K + rank + 1));
+        if (!metaMap.has(item.id)) metaMap.set(item.id, item);
+      }
     }
 
     return Array.from(rrfScores.entries())

@@ -78,7 +78,7 @@ export interface AILogDetail {
   }
   pipeline: {
     guardrails_input: PipelineStageBase
-    cache: PipelineStageBase & { hit: boolean }
+    cache: PipelineStageBase & { hit: boolean; cache_type?: 'kv' | 'semantic' }
     quota_check: PipelineStageBase
     query_parsing: PipelineStageBase & { query_type: string | null }
     hyde: PipelineStageBase & { triggered: boolean }
@@ -90,6 +90,88 @@ export interface AILogDetail {
     guardrails_output: PipelineStageBase
     memory_extraction: PipelineStageBase
   }
+  pipeline_trace: {
+    guardrails_input?: {
+      passed: boolean
+      checks_run: string[]
+      triggered_check: string | null
+      triggered_keyword: string | null
+      query_length: number
+      blocklist_size: number
+    }
+    quota_check?: {
+      rank: string
+      daily_ai_used: number
+      daily_ai_limit: number
+      estimated_tokens: number
+      result: 'passed' | 'admin_bypass'
+    }
+    query_parsing?: {
+      tool: string
+      query_type: string
+      alternatives: string[]
+      params: Record<string, unknown>
+    }
+    cache?: {
+      type: 'kv' | 'semantic'
+    }
+    filter?: {
+      applied: Record<string, unknown>
+      source: string
+      history_supplemented?: boolean
+    }
+    hyde?: {
+      document: string
+    }
+    multi_query?: {
+      queries: string[]
+    }
+    retrieval?: {
+      paths: string[]
+      candidates_before_filter: number
+      candidates_after_filter: number
+      crag_fallback: boolean
+      crag_fallback_stage?: 'grade' | 'grade_and_type' | null
+      reranker_used?: boolean
+    }
+    generation?: {
+      context_doc_count: number
+      personalized: boolean
+      regen_triggered: boolean
+      ability_level?: number | null
+      memory_summary_length?: number
+      suggested_questions?: string[]
+    }
+    embedding?: {
+      early_vector_reused: boolean
+      hyde_embedded: boolean
+      expanded_count: number
+    }
+    self_reflection?: {
+      original_quality: number | null
+      original_groundedness: number | null
+      regen_quality: number | null
+      regen_groundedness: number | null
+      regen_accepted: boolean
+    }
+    guardrails_output?: {
+      original_length: number
+      output_length: number
+      system_prompt_leaked: boolean
+      pii_count: number
+      truncated: boolean
+    }
+    memory_extraction?: {
+      triggered: boolean
+      async: boolean
+      reason?: string
+    }
+    agentic?: {
+      steps: Array<{ step: number; type: string; refinedQuery?: string }>
+      total_paths: number
+      final_doc_count: number
+    }
+  } | null
 }
 
 export interface AIKnowledgeSource {

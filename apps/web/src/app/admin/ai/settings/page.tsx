@@ -4,6 +4,22 @@ import { useState, useEffect } from 'react'
 import { Loader2, Save, CheckCircle } from 'lucide-react'
 import { useAIConfig, useUpdateAIConfig } from '@/lib/api/admin-ai'
 
+/** 將 JSON array 字串轉為每行一個關鍵字（顯示用） */
+function blocklistToLines(json: string): string {
+  try {
+    const arr = JSON.parse(json) as string[]
+    return arr.join('\n')
+  } catch {
+    return ''
+  }
+}
+
+/** 將每行一個關鍵字轉為 JSON array 字串（儲存用） */
+function linesToBlocklist(text: string): string {
+  const arr = text.split('\n').map((s) => s.trim()).filter(Boolean)
+  return JSON.stringify(arr)
+}
+
 const CONFIG_FIELDS = [
   {
     section: '模型設定',
@@ -33,6 +49,12 @@ const CONFIG_FIELDS = [
         placeholder: '@cf/baai/bge-m3',
         hint: '文字轉向量模型，更換後需重新索引所有文件',
       },
+      {
+        key: 'contextual_rag_model',
+        label: 'Contextual RAG 模型',
+        placeholder: '@cf/meta/llama-3.1-8b-instruct',
+        hint: '索引時生成語意摘要（Contextual RAG）使用的輕量 LLM，不影響查詢路徑',
+      },
     ],
   },
   {
@@ -50,6 +72,18 @@ const CONFIG_FIELDS = [
         label: 'Vectorize 候選池',
         placeholder: '10',
         hint: '每路 Vectorize 搜尋候選數（5–50），多岩場查詢自動 ×2',
+      },
+      {
+        key: 'bm25_top_k',
+        label: 'BM25 候選數',
+        placeholder: '10',
+        hint: 'BM25 全文搜尋（FTS5）每次回傳的候選文件數（5–50），與向量路一同 RRF 合併',
+      },
+      {
+        key: 'multi_query_count',
+        label: 'Multi-Query 子查詢數',
+        placeholder: '3',
+        hint: 'Complex 查詢擴展為 N 個角度的子查詢（1–5），各自向量搜尋後 RRF 合併',
       },
       {
         key: 'min_rrf_score',
@@ -221,6 +255,73 @@ const CONFIG_FIELDS = [
       },
     ],
   },
+  {
+    section: 'Agentic 模式',
+    desc: '多輪動態搜尋模式，讓 LLM 自主決定是否需要補充搜尋；僅對 complex 查詢生效，成本顯著較高',
+    fields: [
+      {
+        key: 'rag_strategy',
+        label: 'RAG 策略',
+        placeholder: 'baseline',
+        hint: 'baseline = 現行單輪搜尋；agentic = 多輪動態搜尋（complex 查詢）',
+      },
+      {
+        key: 'agentic_max_steps',
+        label: '最大搜尋輪數',
+        placeholder: '3',
+        hint: 'Agentic loop 最多執行幾次額外搜尋（1–5），每輪 +0.5–1s 延遲',
+      },
+      {
+        key: 'agentic_min_docs_to_answer',
+        label: '提前結束文件數',
+        placeholder: '3',
+        hint: '累積超過此數量的文件後提前結束迴圈，不等到 max_steps（1–10）',
+      },
+    ],
+  },
+  {
+    section: '防護設定',
+    desc: '輸出截斷上限（超過字元數自動截斷），其他規則由下方自訂黑名單管理',
+    fields: [
+      {
+        key: 'max_output_length',
+        label: '輸出最大字元數',
+        placeholder: '3000',
+        hint: '回應超過此字元數時自動截斷並提示（500–10000，預設 3000）',
+      },
+    ],
+  },
+]
+
+const GUARDRAIL_LISTS = [
+  {
+    key: 'prompt_injection_keywords',
+    label: '輸入防護：Prompt Injection 關鍵字',
+    desc: '含有這些關鍵字的輸入會被拒絕（不分大小寫）。每行一個關鍵字，儲存後立即生效',
+    rows: 10,
+    placeholder: 'ignore previous instructions\njailbreak\ndan mode',
+  },
+  {
+    key: 'jailbreak_patterns',
+    label: '輸入防護：Jailbreak 模式',
+    desc: '用於偵測角色扮演、繞過限制等越獄嘗試（不分大小寫）。每行一個模式',
+    rows: 8,
+    placeholder: 'act as \nroleplay as\n扮演\n假裝你是',
+  },
+  {
+    key: 'system_prompt_leakage_patterns',
+    label: '輸出防護：System Prompt 洩漏模式',
+    desc: '輸出包含這些模式時視為 system prompt 洩漏，整段回答會替換為錯誤訊息（不分大小寫）',
+    rows: 6,
+    placeholder: 'SYSTEM_PROMPT\nYou are a climbing assistant\n你是攀岩助理',
+  },
+  {
+    key: 'input_blocklist',
+    label: '輸入防護：自訂黑名單',
+    desc: '補充上方規則的自訂封鎖詞，適合加入特定業務需求的禁止詞彙（不分大小寫）',
+    rows: 6,
+    placeholder: '（選填）\n投資建議\n色情',
+  },
 ]
 
 export default function AdminAISettingsPage() {
@@ -287,6 +388,34 @@ export default function AdminAISettingsPage() {
           </div>
         </div>
       ))}
+
+      {/* 防護清單管理：每行一個關鍵字，儲存為 JSON array */}
+      {GUARDRAIL_LISTS.map((list) => {
+        const count = (() => { try { return (JSON.parse(values[list.key] ?? '[]') as string[]).length } catch { return 0 } })()
+        return (
+          <div key={list.key} className="rounded-xl border border-wb-20 bg-white overflow-hidden">
+            <div className="border-b border-wb-10 px-5 py-4">
+              <h2 className="text-sm font-semibold text-wb-100">{list.label}</h2>
+              <p className="mt-0.5 text-xs text-wb-50">{list.desc}</p>
+            </div>
+            <div className="px-5 py-4">
+              <textarea
+                rows={list.rows}
+                value={blocklistToLines(values[list.key] ?? '[]')}
+                onChange={(e) =>
+                  setValues((prev) => ({ ...prev, [list.key]: linesToBlocklist(e.target.value) }))
+                }
+                placeholder={list.placeholder}
+                className="w-full rounded-lg border border-wb-20 bg-white px-3 py-2 text-sm text-wb-100 placeholder:text-wb-40 outline-none focus:border-wb-50 focus:ring-1 focus:ring-wb-50 transition-colors font-mono resize-y"
+              />
+              <div className="mt-2 flex items-center gap-3">
+                <p className="font-mono text-[10px] text-wb-30 bg-wb-5 rounded px-1 py-0.5 inline-block">{list.key}</p>
+                <p className="text-xs text-wb-40">目前共 <span className="font-semibold text-wb-80">{count}</span> 個</p>
+              </div>
+            </div>
+          </div>
+        )
+      })}
 
       <div className="flex items-center justify-end gap-3 pt-2">
         {saved && (

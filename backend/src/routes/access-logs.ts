@@ -145,7 +145,7 @@ accessLogsRoutes.get(
     if (status) {
       const statusNum = safeParseInt(status, 0);
       if (statusNum >= 100 && statusNum < 600) {
-        conditions.push(`double2 = ${statusNum}`);
+        conditions.push(`blob7 = '${statusNum}'`);
       }
     }
 
@@ -161,9 +161,7 @@ accessLogsRoutes.get(
         blob5 AS userId,
         blob6 AS ip,
         blob7 AS statusCode,
-        blob8 AS errorMessage,
-        double1 AS responseTime,
-        double2 AS statusCodeNum
+        blob8 AS errorMessage
       FROM ${getDataset(env)}
       ${whereClause}
       ORDER BY timestamp DESC
@@ -245,10 +243,9 @@ accessLogsRoutes.get(
     const summarySQL = `
       SELECT
         COUNT() AS totalRequests,
-        AVG(double1) AS avgResponseTime,
-        SUM(CASE WHEN double2 >= 200 AND double2 < 300 THEN 1 ELSE 0 END) AS successCount,
-        SUM(CASE WHEN double2 >= 400 AND double2 < 500 THEN 1 ELSE 0 END) AS clientErrorCount,
-        SUM(CASE WHEN double2 >= 500 THEN 1 ELSE 0 END) AS serverErrorCount
+        countIf(blob7 >= '200' AND blob7 < '300') AS successCount,
+        countIf(blob7 >= '400' AND blob7 < '500') AS clientErrorCount,
+        countIf(blob7 >= '500') AS serverErrorCount
       FROM ${getDataset(env)}
       WHERE timestamp >= NOW() - INTERVAL '${hoursNum}' HOUR
     `;
@@ -257,8 +254,7 @@ accessLogsRoutes.get(
     const topPathsSQL = `
       SELECT
         blob2 AS path,
-        COUNT() AS count,
-        AVG(double1) AS avgResponseTime
+        COUNT() AS count
       FROM ${getDataset(env)}
       WHERE timestamp >= NOW() - INTERVAL '${hoursNum}' HOUR
       GROUP BY blob2
@@ -385,10 +381,9 @@ accessLogsRoutes.get(
         blob5 AS userId,
         blob6 AS ip,
         blob7 AS statusCode,
-        blob8 AS errorMessage,
-        double1 AS responseTime
+        blob8 AS errorMessage
       FROM ${getDataset(env)}
-      WHERE double2 >= 400
+      WHERE blob7 >= '400'
         AND timestamp >= NOW() - INTERVAL '${hoursNum}' HOUR
       ORDER BY timestamp DESC
       LIMIT ${limitNum}
@@ -465,12 +460,10 @@ accessLogsRoutes.get(
         blob1 AS method,
         blob2 AS path,
         blob5 AS userId,
-        blob7 AS statusCode,
-        double1 AS responseTime
+        blob7 AS statusCode
       FROM ${getDataset(env)}
-      WHERE double1 >= ${thresholdMs}
-        AND timestamp >= NOW() - INTERVAL '${hoursNum}' HOUR
-      ORDER BY double1 DESC
+      WHERE timestamp >= NOW() - INTERVAL '${hoursNum}' HOUR
+      ORDER BY timestamp DESC
       LIMIT ${limitNum}
     `;
 

@@ -5,6 +5,11 @@ import { Env } from '../types';
 import { authMiddleware, adminMiddleware } from '../middleware/auth';
 import { EmbeddingService } from '../services/embedding';
 import { getUserRankDetail, updateUserRank, recalculateAllRanks } from '../services/rank';
+import {
+  DEFAULT_PROMPT_INJECTION_KEYWORDS,
+  DEFAULT_JAILBREAK_PATTERNS,
+  DEFAULT_SYSTEM_PROMPT_LEAKAGE_PATTERNS,
+} from '../utils/guardrails';
 
 export const adminAiRoutes = new Hono<{ Bindings: Env }>();
 
@@ -231,13 +236,19 @@ adminAiRoutes.get(
       let sources: unknown[] = [];
       try { sources = JSON.parse((log.sources as string) ?? '[]'); } catch { /* ignore */ }
 
+      // 解析 pipeline_trace JSON
+      let pipelineTrace: unknown = null;
+      try { pipelineTrace = JSON.parse((log.pipeline_trace as string) ?? 'null'); } catch { /* ignore */ }
+
       // 組合各階段流程資訊
       const isCacheHit = Boolean(log.cache_hit);
+      const pt = pipelineTrace as Record<string, unknown> | null;
       const pipeline = {
         guardrails_input: {
           service: 'utils/guardrails.ts',
           description: '輸入層防護：偵測 prompt injection、jailbreak、封鎖詞',
           skipped: isCacheHit,
+          ...((pt?.guardrails_input as Record<string, unknown> | undefined) ?? {}),
         },
         cache: {
           service: 'Cloudflare KV',
@@ -248,6 +259,7 @@ adminAiRoutes.get(
           service: 'services/rank.ts',
           description: '使用者等級配額驗證與原子扣除',
           skipped: isCacheHit,
+          ...((pt?.quota_check as Record<string, unknown> | undefined) ?? {}),
         },
         query_parsing: {
           service: 'services/query.ts#parseQueryWithLLM',
@@ -301,11 +313,13 @@ adminAiRoutes.get(
           service: 'utils/guardrails.ts',
           description: '輸出層防護：過濾 system prompt leakage、PII，截斷過長回應',
           skipped: isCacheHit,
+          ...((pt?.guardrails_output as Record<string, unknown> | undefined) ?? {}),
         },
         memory_extraction: {
           service: 'services/memory-extractor.ts',
           description: '非同步記憶提取（僅已登入用戶，waitUntil）',
           skipped: isCacheHit || !log.user_id,
+          ...((pt?.memory_extraction as Record<string, unknown> | undefined) ?? {}),
         },
       };
 
@@ -324,6 +338,7 @@ adminAiRoutes.get(
             display_name: log.display_name,
           } : null,
           pipeline,
+          pipeline_trace: pipelineTrace,
           quality: {
             groundedness_score: (log.groundedness_score as number) ?? null,
             auto_score: (log.auto_score as number) ?? null,
@@ -600,8 +615,12 @@ adminAiRoutes.get(
         `SELECT key, value FROM ai_config ORDER BY key`
       ).all<{ key: string; value: string }>();
 
-      // 轉為物件格式
-      const config: Record<string, string> = {};
+      // 轉為物件格式，防護清單若未設定則補回預設值供管理員檢視
+      const config: Record<string, string> = {
+        prompt_injection_keywords: JSON.stringify(DEFAULT_PROMPT_INJECTION_KEYWORDS),
+        jailbreak_patterns: JSON.stringify(DEFAULT_JAILBREAK_PATTERNS),
+        system_prompt_leakage_patterns: JSON.stringify(DEFAULT_SYSTEM_PROMPT_LEAKAGE_PATTERNS),
+      };
       for (const row of rows.results) {
         config[row.key] = row.value;
       }
