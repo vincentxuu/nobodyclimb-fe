@@ -208,7 +208,13 @@ export function ChatWidget() {
           abortControllerRef.current = null
           setMessages((prev) => prev.map((m) =>
             m.id === streamingMsgId
-              ? { ...m, sources: doneEvent.sources, queryId: doneEvent.query_id }
+              ? {
+                  ...m,
+                  // 用後端後處理版本（已注入路線/影片連結）替換串流原始累積文字
+                  ...(doneEvent.answer ? { content: doneEvent.answer } : {}),
+                  sources: doneEvent.sources,
+                  queryId: doneEvent.query_id,
+                }
               : m
           ))
           setSuggestedQuestions(doneEvent.suggested_questions ?? [])

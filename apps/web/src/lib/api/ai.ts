@@ -118,6 +118,7 @@ export interface SaveMessageRequest {
 
 export interface AIStreamDoneEvent {
   query_id: string
+  answer?: string
   sources: AISource[]
   suggested_questions: string[]
   quota_remaining: number

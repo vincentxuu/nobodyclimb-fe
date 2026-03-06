@@ -202,6 +202,7 @@ aiRoutes.post(
             data: JSON.stringify({
               type: 'done',
               query_id: result.query_id,
+              answer: result.answer,
               sources: result.sources,
               suggested_questions: result.suggested_questions,
               quota_remaining: quotaRemaining,
