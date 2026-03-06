@@ -90,6 +90,47 @@ export interface AILogDetail {
     guardrails_output: PipelineStageBase
     memory_extraction: PipelineStageBase
   }
+  pipeline_trace: {
+    query_parsing?: {
+      tool: string
+      query_type: string
+      alternatives: string[]
+      params: Record<string, unknown>
+    }
+    filter?: {
+      applied: Record<string, unknown>
+      source: string
+    }
+    hyde?: {
+      document: string
+    }
+    multi_query?: {
+      queries: string[]
+    }
+    retrieval?: {
+      paths: string[]
+      candidates_before_filter: number
+      candidates_after_filter: number
+      crag_fallback: boolean
+    }
+    generation?: {
+      context_doc_count: number
+      personalized: boolean
+      regen_triggered: boolean
+    }
+    embedding?: {
+      early_vector_reused: boolean
+      hyde_embedded: boolean
+      expanded_count: number
+    }
+    self_reflection?: {
+      original_quality: number | null
+      original_groundedness: number | null
+      regen_quality: number | null
+      regen_groundedness: number | null
+      regen_accepted: boolean
+    }
+  } | null
 }
 
 export interface AIKnowledgeSource {

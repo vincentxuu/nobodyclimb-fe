@@ -33,6 +33,12 @@ const CONFIG_FIELDS = [
         placeholder: '@cf/baai/bge-m3',
         hint: '文字轉向量模型，更換後需重新索引所有文件',
       },
+      {
+        key: 'contextual_rag_model',
+        label: 'Contextual RAG 模型',
+        placeholder: '@cf/meta/llama-3.1-8b-instruct',
+        hint: '索引時生成語意摘要（Contextual RAG）使用的輕量 LLM，不影響查詢路徑',
+      },
     ],
   },
   {
@@ -50,6 +56,18 @@ const CONFIG_FIELDS = [
         label: 'Vectorize 候選池',
         placeholder: '10',
         hint: '每路 Vectorize 搜尋候選數（5–50），多岩場查詢自動 ×2',
+      },
+      {
+        key: 'bm25_top_k',
+        label: 'BM25 候選數',
+        placeholder: '10',
+        hint: 'BM25 全文搜尋（FTS5）每次回傳的候選文件數（5–50），與向量路一同 RRF 合併',
+      },
+      {
+        key: 'multi_query_count',
+        label: 'Multi-Query 子查詢數',
+        placeholder: '3',
+        hint: 'Complex 查詢擴展為 N 個角度的子查詢（1–5），各自向量搜尋後 RRF 合併',
       },
       {
         key: 'min_rrf_score',

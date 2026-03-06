@@ -231,6 +231,10 @@ adminAiRoutes.get(
       let sources: unknown[] = [];
       try { sources = JSON.parse((log.sources as string) ?? '[]'); } catch { /* ignore */ }
 
+      // 解析 pipeline_trace JSON
+      let pipelineTrace: unknown = null;
+      try { pipelineTrace = JSON.parse((log.pipeline_trace as string) ?? 'null'); } catch { /* ignore */ }
+
       // 組合各階段流程資訊
       const isCacheHit = Boolean(log.cache_hit);
       const pipeline = {
@@ -324,6 +328,7 @@ adminAiRoutes.get(
             display_name: log.display_name,
           } : null,
           pipeline,
+          pipeline_trace: pipelineTrace,
           quality: {
             groundedness_score: (log.groundedness_score as number) ?? null,
             auto_score: (log.auto_score as number) ?? null,
