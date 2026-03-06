@@ -24,6 +24,7 @@ import {
   ChevronRight,
   List,
   ArrowRight,
+  Bot,
 } from 'lucide-react'
 import { useAILogDetail, type AILogDetail } from '@/lib/api/admin-ai'
 
@@ -62,6 +63,7 @@ function StageIcon({ name, skipped }: { name: string; skipped: boolean }) {
     query_parsing: <MessageSquare className={cls} />,
     hyde: <Brain className={cls} />,
     multi_query: <List className={cls} />,
+    agentic: <Bot className={cls} />,
     embedding: <Cpu className={cls} />,
     retrieval: <Search className={cls} />,
     generation: <FileText className={cls} />,
@@ -80,6 +82,7 @@ const STAGE_LABELS: Record<string, string> = {
   query_parsing: '查詢解析',
   hyde: 'HyDE 假設文件',
   multi_query: 'Multi-Query 擴展',
+  agentic: 'Agentic 多步驟 RAG',
   embedding: '向量嵌入',
   retrieval: '向量檢索',
   generation: 'LLM 生成',
@@ -221,8 +224,9 @@ function GuardrailsInputTrace({ query, pipelineStage }: { query: string; pipelin
   )
 }
 
-function CacheTrace({ pipelineStage, query }: { pipelineStage: Record<string, unknown> | null; query: string }) {
+function CacheTrace({ pipelineStage, query, pipelineTrace }: { pipelineStage: Record<string, unknown> | null; query: string; pipelineTrace: PipelineTrace | null }) {
   const hit = pipelineStage?.hit as boolean | undefined
+  const cacheType = (pipelineTrace?.cache as { type?: string } | undefined)?.type
   return (
     <IOFlow>
       <StageSection type="input">
@@ -235,13 +239,21 @@ function CacheTrace({ pipelineStage, query }: { pipelineStage: Record<string, un
           {hit === true
             ? <TraceBadge text="命中 (HIT)" color="blue" />
             : <TraceBadge text="未命中 (MISS)" color="default" />}
+          {hit === true && cacheType === 'kv' && <TraceBadge text="KV 精確命中" color="blue" />}
+          {hit === true && cacheType === 'semantic' && <TraceBadge text="語義相似命中（向量）" color="violet" />}
         </div>
       </StageSection>
       <StageSection type="output">
         {hit === true ? (
           <div className="flex items-center gap-2">
             <Zap className="h-3.5 w-3.5 text-sky-500 shrink-0" />
-            <span>直接回傳快取結果，跳過剩餘 Pipeline</span>
+            <span>
+              {cacheType === 'kv'
+                ? '直接回傳精確快取，跳過剩餘 Pipeline'
+                : cacheType === 'semantic'
+                  ? '向量相似度命中語義快取，跳過剩餘 Pipeline'
+                  : '直接回傳快取結果，跳過剩餘 Pipeline'}
+            </span>
           </div>
         ) : (
           <div className="flex items-center gap-2">
@@ -389,6 +401,12 @@ function QueryParsingTrace({
                 color={f.source === 'llm_parsed' ? 'emerald' : f.source === 'sim_route' ? 'blue' : 'amber'}
               />
             </div>
+            {f?.history_supplemented && (
+              <div className="flex items-center gap-2 mt-1">
+                <TraceBadge text="從對話歷史補充位置" color="amber" />
+                <span className="text-wb-50">query 含指代詞，位置從近期對話記錄中提取</span>
+              </div>
+            )}
             <pre className="font-mono text-wb-70 bg-wb-5 rounded px-2 py-1.5 overflow-auto max-h-24 text-[10px]">
               {JSON.stringify(f.applied, null, 2)}
             </pre>
@@ -547,7 +565,14 @@ function RetrievalTrace({
   pipelineStage: Record<string, unknown> | null
   sources: Array<{ title?: string; type?: string; score?: number }>
 }) {
-  const r = trace.retrieval
+  const r = trace.retrieval as {
+    paths: string[]
+    candidates_before_filter: number
+    candidates_after_filter: number
+    crag_fallback: boolean
+    crag_fallback_stage?: 'grade' | 'grade_and_type' | null
+    reranker_used?: boolean
+  } | undefined
   const topScore = pipelineStage?.top_score as number | null | undefined
   const docCount = pipelineStage?.doc_count as number | null | undefined
 
@@ -581,14 +606,35 @@ function RetrievalTrace({
               ? <TraceBadge text="已觸發（相似度不足，改用通識回答）" color="amber" />
               : <TraceBadge text="未觸發（檢索品質足夠）" color="default" />}
           </div>
+          {r.crag_fallback && r.crag_fallback_stage && (
+            <div className="flex items-center gap-2">
+              <span className="text-wb-40">放寬策略：</span>
+              <TraceBadge
+                text={r.crag_fallback_stage === 'grade' ? '移除難度過濾' : '移除難度 + 類型過濾'}
+                color="amber"
+              />
+            </div>
+          )}
+          <div className="flex items-center gap-2">
+            <span className="text-wb-40">Cross-encoder：</span>
+            {r.reranker_used
+              ? <TraceBadge text="bge-reranker-base 已重排" color="violet" />
+              : <TraceBadge text="未使用（候選數 ≤ 1）" color="default" />}
+          </div>
         </div>
       </StageSection>
       <StageSection type="output">
         <div className="space-y-2">
           <div className="flex gap-4">
+            {r.candidates_before_filter != null && (
+              <div>
+                <p className="text-wb-40">過濾前候選</p>
+                <p className="text-base font-bold text-wb-90 tabular-nums">{r.candidates_before_filter} 筆</p>
+              </div>
+            )}
             {docCount != null && (
               <div>
-                <p className="text-wb-40">存活文件</p>
+                <p className="text-wb-40">過濾後存活</p>
                 <p className="text-base font-bold text-wb-90 tabular-nums">{docCount} 筆</p>
               </div>
             )}
@@ -636,7 +682,14 @@ function GenerationTrace({
   query: string
   response: string | null
 }) {
-  const g = trace.generation
+  const g = trace.generation as {
+    context_doc_count: number
+    personalized: boolean
+    regen_triggered: boolean
+    ability_level?: number | null
+    memory_summary_length?: number
+    suggested_questions?: string[]
+  } | undefined
   if (!g) return <p className="text-[11px] text-wb-40">無詳細資料（舊記錄）</p>
   const model = pipelineStage?.model as string | null | undefined
   const tokenCount = pipelineStage?.token_count as number | null | undefined
@@ -649,6 +702,17 @@ function GenerationTrace({
           <KVRow label="Context 文件" value={`${g.context_doc_count} 筆檢索結果`} />
           <KVRow label="個人化記憶" value={g.personalized ? '已注入用戶攀登記憶' : '未啟用'} />
           <KVRow label="查詢" value={<span className="italic text-wb-60 line-clamp-1">{query}</span>} />
+          {g.ability_level != null && (
+            <KVRow label="能力等級" value={
+              <TraceBadge
+                text={g.ability_level >= 120 ? '高階（5.12+）' : g.ability_level >= 100 ? '中階（5.10-5.11）' : '入門'}
+                color={g.ability_level >= 120 ? 'violet' : g.ability_level >= 100 ? 'blue' : 'default'}
+              />
+            } />
+          )}
+          {g.memory_summary_length != null && g.memory_summary_length > 0 && (
+            <KVRow label="記憶長度" value={`${g.memory_summary_length} 字元（用戶攀登記憶）`} />
+          )}
         </div>
       </StageSection>
       <StageSection type="decision">
@@ -661,6 +725,19 @@ function GenerationTrace({
       <StageSection type="output">
         <div className="space-y-1">
           {tokenCount != null && <KVRow label="Token 用量" value={`${tokenCount} tokens`} />}
+          {g.suggested_questions && g.suggested_questions.length > 0 && (
+            <div>
+              <p className="text-wb-40 mb-1">生成建議問題（{g.suggested_questions.length} 條）：</p>
+              <ol className="space-y-0.5">
+                {g.suggested_questions.map((q, i) => (
+                  <li key={i} className="flex gap-2">
+                    <span className="shrink-0 text-wb-40 tabular-nums">{i + 1}.</span>
+                    <span className="text-wb-70">{q}</span>
+                  </li>
+                ))}
+              </ol>
+            </div>
+          )}
           {response && (
             <div>
               <p className="text-wb-40 mb-1">回答預覽：</p>
@@ -917,6 +994,64 @@ function MemoryExtractionTrace({ pipelineStage }: { pipelineStage: Record<string
   )
 }
 
+function AgenticTrace({ trace }: { trace: PipelineTrace }) {
+  const a = trace.agentic as {
+    steps: Array<{ step: number; type: string; refinedQuery?: string }>
+    final_doc_count: number
+    total_paths: number
+  } | undefined
+  if (!a) return <p className="text-[11px] text-wb-40">無詳細資料（舊記錄）</p>
+
+  const stepColors: Record<string, 'emerald' | 'violet' | 'amber'> = {
+    ANSWER: 'emerald',
+    RETRIEVE: 'violet',
+    BROADEN: 'amber',
+  }
+
+  return (
+    <IOFlow>
+      <StageSection type="input">
+        <div className="space-y-1">
+          <KVRow label="策略" value={<TraceBadge text="Agentic Multi-Step RAG" color="violet" />} />
+          <KVRow label="最大步數上限" value={`${a.total_paths} 步`} />
+        </div>
+      </StageSection>
+      <StageSection type="decision">
+        {a.steps.length > 0 ? (
+          <div className="space-y-1.5">
+            <p className="text-wb-40">LLM 決策步驟：</p>
+            <ol className="space-y-1.5">
+              {a.steps.map((s, i) => (
+                <li key={i} className="flex items-start gap-2">
+                  <span className="shrink-0 text-wb-40 tabular-nums text-[10px] mt-0.5">步驟 {s.step}</span>
+                  <TraceBadge text={s.type} color={stepColors[s.type] ?? 'default'} />
+                  {s.refinedQuery && (
+                    <span className="text-wb-60 italic text-[11px] line-clamp-1">{s.refinedQuery}</span>
+                  )}
+                </li>
+              ))}
+            </ol>
+          </div>
+        ) : (
+          <p className="text-wb-40">LLM 首輪即決定回答（ANSWER），無額外搜尋步驟</p>
+        )}
+      </StageSection>
+      <StageSection type="output">
+        <div className="flex gap-4">
+          <div>
+            <p className="text-wb-40">最終文件數</p>
+            <p className="text-base font-bold text-wb-90 tabular-nums">{a.final_doc_count} 筆</p>
+          </div>
+          <div>
+            <p className="text-wb-40">搜尋總路徑</p>
+            <p className="text-base font-bold text-wb-90 tabular-nums">{a.total_paths}</p>
+          </div>
+        </div>
+      </StageSection>
+    </IOFlow>
+  )
+}
+
 function StageTraceDetail({
   stageKey,
   trace,
@@ -933,7 +1068,7 @@ function StageTraceDetail({
   sources: Array<{ title?: string; type?: string; score?: number }>
 }) {
   if (stageKey === 'guardrails_input') return <GuardrailsInputTrace query={query} pipelineStage={pipelineStage ?? null} />
-  if (stageKey === 'cache') return <CacheTrace pipelineStage={pipelineStage ?? null} query={query} />
+  if (stageKey === 'cache') return <CacheTrace pipelineStage={pipelineStage ?? null} query={query} pipelineTrace={trace} />
   if (stageKey === 'quota_check') return <QuotaCheckTrace pipelineStage={pipelineStage ?? null} />
   if (stageKey === 'query_parsing') {
     if (!trace) return <p className="text-[11px] text-wb-40">無詳細資料（舊記錄）</p>
@@ -943,6 +1078,10 @@ function StageTraceDetail({
   if (stageKey === 'multi_query') {
     if (!trace) return <p className="text-[11px] text-wb-40">無詳細資料（舊記錄）</p>
     return <MultiQueryTrace trace={trace} />
+  }
+  if (stageKey === 'agentic') {
+    if (!trace) return <p className="text-[11px] text-wb-40">無詳細資料（舊記錄）</p>
+    return <AgenticTrace trace={trace} />
   }
   if (stageKey === 'embedding') return <EmbeddingTrace trace={trace} pipelineStage={pipelineStage ?? null} />
   if (stageKey === 'retrieval') {
@@ -1005,12 +1144,15 @@ function PipelineTimeline({
     'memory_extraction',
   ]
 
-  // multi_query 插在 hyde 後（純 trace，不在 pipeline 物件中）
+  // agentic / multi_query 插在 hyde 後（純 trace，不在 pipeline 物件中）
   type StageEntry = { key: string; isTraceOnly: boolean }
   const stages: StageEntry[] = []
   for (const key of pipelineStages) {
     stages.push({ key, isTraceOnly: false })
     if (key === 'hyde') {
+      if (pipelineTrace?.agentic) {
+        stages.push({ key: 'agentic', isTraceOnly: true })
+      }
       if (pipelineTrace?.multi_query) {
         stages.push({ key: 'multi_query', isTraceOnly: true })
       }
@@ -1063,6 +1205,11 @@ function PipelineTimeline({
               if (pipelineStage.auto_score != null)
                 metrics.push({ label: 'Auto', value: `${pipelineStage.auto_score} / 4` })
             }
+          }
+          if (isTraceOnly && key === 'agentic' && pipelineTrace?.agentic) {
+            const a = pipelineTrace.agentic as { steps: unknown[]; final_doc_count: number; total_paths: number }
+            metrics.push({ label: '步驟', value: `${a.steps.length + 1}` })
+            metrics.push({ label: '最終文件', value: `${a.final_doc_count} 筆` })
           }
           if (isTraceOnly && key === 'multi_query' && pipelineTrace?.multi_query) {
             metrics.push({ label: '子查詢', value: `${pipelineTrace.multi_query.queries.length} 條` })

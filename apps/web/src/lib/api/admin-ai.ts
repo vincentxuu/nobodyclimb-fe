@@ -78,7 +78,7 @@ export interface AILogDetail {
   }
   pipeline: {
     guardrails_input: PipelineStageBase
-    cache: PipelineStageBase & { hit: boolean }
+    cache: PipelineStageBase & { hit: boolean; cache_type?: 'kv' | 'semantic' }
     quota_check: PipelineStageBase
     query_parsing: PipelineStageBase & { query_type: string | null }
     hyde: PipelineStageBase & { triggered: boolean }
@@ -112,9 +112,13 @@ export interface AILogDetail {
       alternatives: string[]
       params: Record<string, unknown>
     }
+    cache?: {
+      type: 'kv' | 'semantic'
+    }
     filter?: {
       applied: Record<string, unknown>
       source: string
+      history_supplemented?: boolean
     }
     hyde?: {
       document: string
@@ -127,11 +131,16 @@ export interface AILogDetail {
       candidates_before_filter: number
       candidates_after_filter: number
       crag_fallback: boolean
+      crag_fallback_stage?: 'grade' | 'grade_and_type' | null
+      reranker_used?: boolean
     }
     generation?: {
       context_doc_count: number
       personalized: boolean
       regen_triggered: boolean
+      ability_level?: number | null
+      memory_summary_length?: number
+      suggested_questions?: string[]
     }
     embedding?: {
       early_vector_reused: boolean
@@ -156,6 +165,11 @@ export interface AILogDetail {
       triggered: boolean
       async: boolean
       reason?: string
+    }
+    agentic?: {
+      steps: Array<{ step: number; type: string; refinedQuery?: string }>
+      total_paths: number
+      final_doc_count: number
     }
   } | null
 }

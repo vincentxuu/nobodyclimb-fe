@@ -333,6 +333,7 @@ export class QueryService {
           latencyMs: Date.now() - startTime,
           tokenCount: 0,
           cacheHit: true,
+          pipelineTrace: JSON.stringify({ cache: { type: 'kv' } }),
         }).catch(() => {});
         return JSON.parse(cached) as AIAskResponse;
       }
@@ -364,6 +365,7 @@ export class QueryService {
         this.logQuery({
           userId: null, query, response: '', sources: [],
           latencyMs: Date.now() - startTime, tokenCount: 0, cacheHit: true,
+          pipelineTrace: JSON.stringify({ cache: { type: 'semantic' } }),
         }).catch(() => {});
         return semanticCached;
       }
@@ -534,6 +536,7 @@ export class QueryService {
 
     // Context 補充：若 query 含指代詞（「附近」「還有」等）且 filter 無明確位置，
     // 從對話歷史的 user + assistant 訊息中補充 crag/region 來源
+    let historySupplementedLocation = false;
     const hasExplicitLocationFilter = !!(vectorFilter['crag_id'] || vectorFilter['area_id'] || vectorFilter['region']);
     if (!hasExplicitLocationFilter && recentHistory.length > 0 && this.isContextDependentQuery(query)) {
       const historyText = recentHistory.map((m) => m.content).join(' ');
@@ -541,21 +544,29 @@ export class QueryService {
       if (historyLocation.areaId) {
         vectorFilter['area_id'] = { $eq: historyLocation.areaId };
         vectorFilter['type'] = { $eq: 'route' };
+        historySupplementedLocation = true;
       } else if (historyLocation.cragIds && historyLocation.cragIds.length > 0) {
         vectorFilter['crag_id'] = historyLocation.cragIds.length === 1
           ? { $eq: historyLocation.cragIds[0] }
           : { $in: historyLocation.cragIds };
         if (!vectorFilter['type']) vectorFilter['type'] = { $eq: 'route' };
+        historySupplementedLocation = true;
       } else if (historyLocation.region) {
         vectorFilter['region'] = { $eq: historyLocation.region };
+        historySupplementedLocation = true;
       } else {
         // 找不到岩場/地區名稱時，嘗試從歷史對話中的路線名稱反查所屬岩場
         const routeRef = await this.extractRouteReference(historyText);
         if (routeRef?.cragId) {
           vectorFilter['crag_id'] = { $eq: routeRef.cragId };
           if (!vectorFilter['type']) vectorFilter['type'] = { $eq: 'route' };
+          historySupplementedLocation = true;
         }
       }
+    }
+    // 更新 filter trace 補充對話歷史來源標記
+    if (trace.filter) {
+      (trace.filter as Record<string, unknown>).history_supplemented = historySupplementedLocation;
     }
 
     // ──────────────────────────────────────────────────────────────────────────
@@ -706,6 +717,8 @@ export class QueryService {
         candidates_before_filter: mergedMatches.length,
         candidates_after_filter: candidateMatches.length,
         crag_fallback: false,
+        crag_fallback_stage: null as 'grade' | 'grade_and_type' | null,
+        reranker_used: false,
       };
 
       // CRAG（Corrective RAG）：若 RRF 過濾後無存活文件且有 grade_numeric 過濾，
@@ -723,6 +736,7 @@ export class QueryService {
         candidateMatches = retryMerged.filter((m) => m.score >= minScore);
         if (candidateMatches.length > 0) {
           (trace.retrieval as Record<string, unknown>).crag_fallback = true;
+          (trace.retrieval as Record<string, unknown>).crag_fallback_stage = 'grade';
         }
       }
 
@@ -741,6 +755,7 @@ export class QueryService {
         candidateMatches = retryMerged2.filter((m) => m.score >= minScore);
         if (candidateMatches.length > 0) {
           (trace.retrieval as Record<string, unknown>).crag_fallback = true;
+          (trace.retrieval as Record<string, unknown>).crag_fallback_stage = 'grade_and_type';
         }
       }
     } // end else (baseline)
@@ -774,6 +789,9 @@ export class QueryService {
             ...m,
             score: scoreByIdx.get(idx) ?? m.score,
           }));
+          if (trace.retrieval) {
+            (trace.retrieval as Record<string, unknown>).reranker_used = true;
+          }
         }
       } catch {
         // reranker 失敗時保留原始 vector score，不影響正常流程
@@ -899,6 +917,8 @@ export class QueryService {
       context_doc_count: orderedDocs.length,
       personalized: !!userId,
       regen_triggered: false,
+      ability_level: abilityLevel,
+      memory_summary_length: memorySummary ? memorySummary.length : 0,
     };
 
     const generationStart = Date.now();
@@ -925,6 +945,10 @@ export class QueryService {
     }
 
     let { answer: parsedAnswer, suggested_questions } = parseSuggestedQuestions(rawLLMAnswer);
+    // 記錄建議問題至 trace，供 admin 日誌詳情頁顯示
+    if (trace.generation && suggested_questions.length > 0) {
+      (trace.generation as Record<string, unknown>).suggested_questions = suggested_questions;
+    }
     // 防護：parseSuggestedQuestions 可能因 LLM 回傳空字串或全為問句而產生空 answer
     if (!parsedAnswer) {
       parsedAnswer = '抱歉，目前無法生成回答，請換個方式提問或稍後再試。';
