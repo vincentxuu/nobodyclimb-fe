@@ -1,7 +1,7 @@
 # RAG 系統面試準備指南
 
-> 建立日期：2026-03-06
-> 對應程式碼：`backend/src/services/query.ts`、`backend/src/services/indexing.ts`、`backend/src/utils/ai-prompts.ts`
+> 建立日期：2026-03-06 ｜ 最後更新：2026-03-08
+> 對應程式碼：`backend/src/services/query.ts`、`backend/src/services/indexing.ts`、`backend/src/utils/ai-prompts.ts`、`backend/src/services/rank.ts`、`backend/src/utils/guardrails.ts`
 
 ---
 
@@ -60,6 +60,8 @@
 | Guardrails 為何不用 LLM 檢查？ | 每次請求都要跑，字串比對零成本；LLM 評估加 0.5–1s |
 | System Prompt Leakage 為何整個替換？ | 部分替換留語意線索，整個替換最安全 |
 | Input Guardrail 觸發時扣配額嗎？ | 不扣。GuardrailError 直接 400，LLM 完全不呼叫 |
+| Token 怎麼計量？ | 先估算扣除（中文 1 字 ≈ 2 token），LLM 完成後用實際 usage 校正差額 |
+| 配額有幾層？ | 雙重：每日請求次數 + 每日 token 上限，原子 SQL 同時檢查兩條件 |
 
 ---
 
@@ -412,7 +414,8 @@ const abilityLevel = estimateAbilityLevel(ascents);
 | 延遲 | `latency_ms`（含分段）| P50/P95，分辨瓶頸在哪 |
 | Self-Reflection 觸發率 | `self_reflection_triggered` | 低品質回答的比率 |
 | Low Groundedness 比率 | `flagged = 'low_groundedness'` | 需要人工審視的回答 |
-| Token 消耗 | `token_count` | 成本控制 |
+| Token 消耗 | `token_count`（含 `token_breakdown` 分段明細）| 成本控制，支援分段追蹤（query_parsing / hyde / multi_query / main_generation / judge）|
+| 高消耗標記 | `is_high_consumption` | 超過門檻的查詢自動標記，供 Admin 成本追蹤 |
 | 用戶回饋 | `feedback_score` | 真實使用者滿意度 |
 
 ---
@@ -524,7 +527,9 @@ Metadata 存在向量的 metadata 欄位，支援以下 filter：
 3. **Judge-Guided Self-Reflection**：比較兩次 groundedness 再決定是否替換，避免退化
 4. **Contextual RAG 兩階段設計**：非阻塞背景更新，不影響索引速度
 5. **四路並行搜尋 + RRF**：query vec + HyDE vec + N 路子查詢 + BM25，業界最佳實踐
-6. **完整 observability**：每次查詢都記錄延遲分段、groundedness、quality、token 消耗
+6. **完整 observability**：每次查詢都記錄延遲分段、groundedness、quality、分段 token 消耗（token_breakdown）
+7. **Agentic Multi-Step RAG**：LLM 作為決策者控制多輪搜尋迴圈（ReAct 模式），解決多跳推理問題
+8. **雙重配額 + Token 校正**：原子 SQL 同時檢查次數和 token 上限，LLM 完成後用實際 usage 校正估算差額
 
 ---
 
@@ -557,7 +562,7 @@ Metadata 存在向量的 metadata 欄位，支援以下 filter：
 
 **品質保證方面，我用了獨立的 Llama 模型當 Judge 評估 Gemma 的輸出，避免同模型自評的盲點。如果品質分數低於門檻，就觸發重生成，再比較兩次的 groundedness 分數取較高者，防止替換後反而退化。**
 
-**目前系統全部功能已上線，還規劃了 Agentic Multi-Step RAG 作為進階模式，讓 LLM 主動決定是否需要再次搜尋，解決多跳推理問題。」**
+**目前系統全部功能已上線，包含 Agentic Multi-Step RAG 進階模式——讓 LLM 作為決策者主動決定是否需要再次搜尋，透過 ReAct 模式多輪迴圈解決多跳推理問題。」**
 
 ---
 
@@ -729,11 +734,11 @@ Metadata 存在向量的 metadata 欄位，支援以下 filter：
 
 ## 十二、2026 面試熱門話題
 
-### 12.1 Agentic RAG（規劃中，展示前瞻思維）
+### 12.1 Agentic RAG（已實作，`rag_strategy = 'agentic'`）
 
 **傳統 RAG vs. Agentic RAG：**
 
-| 面向 | 傳統 RAG（本系統 Baseline）| Agentic RAG（規劃中）|
+| 面向 | 傳統 RAG（本系統 Baseline）| Agentic RAG（已實作）|
 |------|--------------------------|-------------------|
 | 檢索決策 | 固定流程，一次決定 | LLM 主動決定是否繼續搜尋 |
 | 多跳推理 | 不支援 | 支援（每輪搜尋基於前輪結果）|
@@ -1318,7 +1323,7 @@ Cross-encoder（Reranker Score）：
 |------|---------|---------|
 | **Self-RAG** | LLM 評估自己的輸出是否需要搜尋、是否支持 | Judge-Guided 重生成 |
 | **CRAG** | 檢索失敗時動態放寬條件重試 | 兩階段放寬（grade→route_type）|
-| **Agentic RAG** | LLM 主動控制整個檢索迴圈 | 規劃中（E 策略）|
+| **Agentic RAG** | LLM 主動控制整個檢索迴圈 | 已實作（`rag_strategy = 'agentic'`，complex 查詢觸發）|
 
 三者不互斥，本系統 Baseline 同時具備 Self-RAG 精神（Judge 評估）+ CRAG（放寬重試），Agentic RAG 是未來的獨立模式。
 
@@ -1537,7 +1542,7 @@ CRAG 觸發後：徹底放寬（寧可低精準也要有結果）
 general-knowledge → No retrieval（直接 LLM）
 simple           → Single-step RAG（輕量搜尋）
 complex          → Enhanced RAG（HyDE + Multi-Query + Judge 重生成）
-（未來）agentic   → Iterative RAG（多輪 ReAct）
+agentic          → Iterative RAG（多輪 ReAct，已實作）
 ```
 
 LLM Tool Calling 的 Adaptive Routing 就是 Adaptive RAG 的核心機制——由 LLM 本身判斷需要什麼級別的檢索。
@@ -1557,11 +1562,15 @@ LLM Tool Calling 的 Adaptive Routing 就是 Adaptive RAG 的核心機制——�
 
 **Quota 系統的健壯性設計：**
 ```sql
--- 原子扣除額度（WHERE 條件防止超扣）
-UPDATE users SET daily_ai_used = daily_ai_used + 1
-WHERE id = ? AND daily_ai_used < daily_ai_limit
+-- 原子扣除額度（雙條件 WHERE 防止超扣）
+UPDATE user_ranks
+SET daily_ai_used = daily_ai_used + 1,
+    daily_token_used = daily_token_used + ?
+WHERE user_id = ?
+  AND daily_ai_used < daily_ai_limit
+  AND daily_token_used + ? <= daily_token_limit
 ```
-斷線（SSE 中斷）時退還配額，確保使用者不被誤扣。
+斷線（SSE 中斷）時退還配額，確保使用者不被誤扣。LLM 完成後用實際 token 數校正估算差額。
 
 ---
 
@@ -1697,14 +1706,52 @@ await db.prepare(
 ).bind(estimatedTokens, userId).run();
 ```
 
+**Token 估算與校正機制（Estimate → Correct）：**
+```typescript
+// 1. 查詢前：用字元長度估算 token 數（中文約 1 字 = 2 token）
+function estimateTokens(inputText: string, outputText: string) {
+  const prompt_tokens = Math.ceil(inputText.length / 2);
+  const completion_tokens = Math.ceil(outputText.length / 2);
+  return { prompt_tokens, completion_tokens, total_tokens: prompt_tokens + completion_tokens };
+}
+
+// 2. 查詢前：用估算值做原子扣除（deductQuotaAndToken）
+// 3. 查詢後：LLM 回傳實際 usage → 與估算值差額校正
+await addTokenUsage(userId, actualTokens, estimatedTokens, db);
+// 內部邏輯：diff = actual - estimated → UPDATE daily_token_used += diff
+```
+
+**分段 Token 追蹤（token_breakdown）：**
+每次查詢的 `pipeline_trace` 記錄每個 LLM 呼叫的 token 消耗明細：
+```json
+{
+  "token_breakdown": {
+    "query_parsing": { "prompt_tokens": 450, "completion_tokens": 30, "model": "gemma-3-12b-it", "estimated": false },
+    "hyde": { "prompt_tokens": 200, "completion_tokens": 120, "model": "gemma-3-12b-it", "estimated": false },
+    "multi_query": { "prompt_tokens": 180, "completion_tokens": 80, "model": "gemma-3-12b-it", "estimated": true },
+    "main_generation": { "prompt_tokens": 1200, "completion_tokens": 400, "model": "gemma-3-12b-it", "estimated": false },
+    "judge": { "prompt_tokens": 800, "completion_tokens": 20, "model": "llama-3.1-8b-instruct", "estimated": false }
+  }
+}
+```
+
+**高消耗標記（`is_high_consumption`）：**
+當單次查詢的 token 消耗超過設定門檻時，`ai_query_logs` 自動標記 `is_high_consumption = true`，供 Admin 儀表板追蹤成本異常。
+
+**Admin 成本儀表板（`/api/v1/admin/ai/stats`）：**
+管理後台提供 Token 用量聚合統計端點，依時間區間查詢：
+- 總 token 消耗、今日 token 消耗
+- 過去 7 天每日 token 趨勢
+- 快取命中率與查詢類型分佈
+
 **與 Climber Rank 連動：**
 
-| 等級 | 積分範圍 | daily_ai_limit |
-|------|---------|---------------|
-| 麓（foothill）| 0–24 | 2 次 |
-| 壁（wall）| 25–54 | 5 次 |
-| 稜（ridge）| 55–84 | 10 次 |
-| 巔（summit）| 85+ | 20 次 |
+| 等級 | 積分範圍 | daily_ai_limit | daily_token_limit |
+|------|---------|---------------|-------------------|
+| 麓（foothill）| 0–19 | 2 次 | 5,000 |
+| 壁（wall）| 20–69 | 6 次 | 15,000 |
+| 稜（ridge）| 70–99 | 12 次 | 30,000 |
+| 巔（summit）| 100+ | 24 次 | 60,000 |
 
 ---
 

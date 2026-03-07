@@ -47,12 +47,13 @@
 - **影片瀏覽**: 14+ 個 YouTube 頻道、11 種分類、篩選播放
 - **通知系統**: 按讚 / 留言 / 追蹤通知，管理員廣播
 - **搜尋**: 全站搜尋、語義搜尋、進階篩選
-- **AI 問答**: RAG 自然語言問答（SSE 串流逐字輸出）、每日配額（依等級）、Adaptive RAG（查詢分類 + 校正式 RAG）
+- **AI 問答**: RAG 自然語言問答（SSE 串流逐字輸出）、每日配額（依等級，次數 + Token 雙重上限）、Adaptive RAG（查詢分類 + 校正式 RAG）、Agentic Multi-Step RAG（LLM 驅動多輪搜尋）
 - **AI Chat Widget**: 浮動對話視窗、對話歷史持久化、隨機建議問題輪播、串流逐字顯示
 - **AI 路線推薦**: 完攀後非同步自動觸發個人化路線推薦（`ctx.waitUntil()`），不阻塞 API 回應
 - **AI 個人化**: 用戶記憶（跨會話）、依攀登紀錄語境化問答
 - **AI 安全防護**: 輸入 / 輸出 Guardrails、Token Budget 管理
 - **AI 品質評估**: LLM Judge、Groundedness Evaluation、RAG Tracing
+- **AI 成本追蹤**: 分段 Token 消耗追蹤（token_breakdown）、高消耗標記、Admin 統計儀表板
 
 ## 專案結構
 
@@ -71,8 +72,10 @@ nobodyclimb/
 ├── backend/                    # Cloudflare Workers API
 │   ├── src/
 │   │   ├── routes/             # API 路由（含 OpenAPI 裝飾器）
-│   │   ├── services/           # 業務邏輯（含 AI RAG）
+│   │   ├── services/           # 業務邏輯（RAG、等級、推薦、個人化）
 │   │   ├── repositories/       # 資料存取層
+│   │   ├── middleware/         # 認證、存取日誌、速率限制
+│   │   ├── utils/              # AI Prompts、Guardrails、儲存工具
 │   │   └── db/schema.sql       # D1 資料庫 schema
 │   └── migrations/             # D1 遷移腳本
 ├── packages/                   # 共用套件
@@ -219,6 +222,11 @@ node scripts/fetch-video-metadata.js --limit 100
 | `QueryService` | NLP 過濾（地點、難度、路線類型）、RAG 問答、SSE 串流輸出 |
 | `EmbeddingService` | 向量嵌入生成與語義搜尋 |
 | `IndexingService` | 路線 / 岩場資料向量索引建立 |
+| `RankService` | Climber Rank 等級計算、配額管理、Token 追蹤與校正 |
+| `RecommendationService` | 個人化路線推薦（完攀後自動觸發） |
+| `PersonalizationService` | 攀登能力估算、個人化 System Prompt |
+| `MemoryExtractor` | 從對話中萃取用戶偏好（攀岩等級、偏好地區等） |
+| `Guardrails` | 輸入 / 輸出安全防護（Prompt Injection、PII 過濾） |
 
 ### 主要特色
 
@@ -228,16 +236,23 @@ node scripts/fetch-video-metadata.js --limit 100
 - `QueryClassifier` 判斷問題類型（路線查詢、岩場查詢、一般問答等）
 - `CorrectiveRAG` 在向量搜尋相關性不足時，自動回退至全文搜尋補強
 
-**每日配額系統**：依等級設定上限，原子 SQL UPDATE 防止並發超量。
+**Agentic Multi-Step RAG**（`rag_strategy = 'agentic'`，complex 查詢觸發）：
+- LLM 作為決策者，控制多輪搜尋迴圈（ReAct 模式，最多 `agentic_max_steps` 步）
+- 每輪決定行動：`ANSWER`（資訊足夠）、`RETRIEVE`（補充搜尋）、`BROADEN`（放寬條件）
+- 文件數達 `agentic_min_docs_to_answer` 時提前終止
+- 三種終止原因：`enough_docs` / `max_steps` / `no_improvement`
+- simple 查詢即使設定 agentic 也自動走 Baseline（成本保護）
 
-| 等級 | 積分 | 每日配額（示例） |
-|------|------|------|
-| 麓（foothill）| 0–24 | 最低 |
-| 壁（wall） | 25–54 | 標準 |
-| 稜（ridge） | 55–84 | 較高 |
-| 巔（summit） | 85+ | 最高 |
+**每日配額系統**：依等級設定雙重上限（請求次數 + Token 消耗），原子 SQL UPDATE 同時檢查兩條件，防止並發超量。LLM 完成後以實際 token 數校正估算差額。
 
-**等級積分來源**：biography 文字欄位、核心故事、一句話、小故事、攀登紀錄、人生清單項目及完成數。
+| 等級 | 積分門檻 | daily_ai_limit | daily_token_limit |
+|------|---------|---------------|-------------------|
+| 麓（foothill）| 0 | 2 次 | 5,000 |
+| 壁（wall） | 20 | 6 次 | 15,000 |
+| 稜（ridge） | 70 | 12 次 | 30,000 |
+| 巔（summit） | 100 | 24 次 | 60,000 |
+
+**等級積分來源**：biography 文字欄位（+3/欄，上限 12）、人生清單有項目（+3）、公開 biography（+5）、核心故事（+8/篇，上限 24）、一句話（+2/篇，上限 20）、小故事（+3/篇，上限 15）、攀登紀錄（+1/筆，上限 20）、人生清單（+1/項，上限 10；完成額外 +2，上限 10）。支援 `rank_override_id` 管理員覆寫。
 
 **AI Chat Widget**（管理員目前開放，`NEXT_PUBLIC_ENABLE_AI_CHAT=true` 控制）：
 - 浮動對話視窗，對話歷史持久化至資料庫
@@ -249,6 +264,8 @@ node scripts/fetch-video-metadata.js --limit 100
 **安全防護**：輸入 Guardrails（過濾有害查詢）、輸出 Guardrails（清理回應內容）、Token Budget 管理防止超額消耗。
 
 **品質評估**：LLM Judge 評分、Groundedness Evaluation 確認回應有所據、RAG Tracing 追蹤檢索鏈路，統計可在 Admin AI 儀表板查看。
+
+**Token 追蹤與成本管理**：每次查詢記錄分段 token 消耗（query_parsing / hyde / multi_query / main_generation / judge），超過門檻自動標記 `is_high_consumption`，Admin 統計端點提供用量趨勢與快取命中率。
 
 ## 開發慣例
 

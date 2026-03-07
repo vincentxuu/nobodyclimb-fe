@@ -1,16 +1,50 @@
 # 通知系統設計 - 讀書會導讀
 
-## 導讀大綱
-
 本次導讀結合《系統設計面試指南》第 10 章與 NobodyClimb 攀岩社群平台的實際案例，深入探討通知系統的設計。
 
 ---
 
-## 第一部分：需求確認 (Step 1)
+## 讀書會分享重點
 
-### 經典面試問題
+著重以下三個層次，實作細節（程式碼、SQL、檔案路徑）可略過。
 
-在設計通知系統前，需要釐清以下問題：
+### 1. 用 NobodyClimb 當鏡子，驗證書中概念
+
+| 書中概念 | NobodyClimb 對照 | 值得討論的點 |
+|----------|------------------|-------------|
+| 去重 | 5 分鐘 window | window 要多長才合理？ |
+| 速率限制 | 按讚聚合成一則 | 聚合 vs 直接截流，各有什麼感受？ |
+| 用戶設定 | 17 種通知偏好開關 | 預設全開是對的嗎？ |
+| 可靠性 | D1 直寫，不重試 | 何時才真正需要重試？ |
+
+### 2. 最值得討論的取捨：輪詢 vs 即時推送
+
+> 「60 秒延遲對社群平台夠嗎？」
+> → 延伸到 Cloudflare Durable Objects / WebSocket 的成本與複雜度
+> → 再延伸到書中的 FCM/APNS 推送架構
+
+### 3. 書中講「大系統」，現實中什麼時候該縮水？
+
+> 訊息佇列、重試機制，在推送管道只有「一跳」時，收益遠低於複雜度成本。
+> 好的設計不是照抄大廠架構，而是**根據規模選擇剛好夠用的方案**。
+
+---
+
+## 暖場：從個人體驗出發
+
+在進入書中內容之前，先拋兩個問題讓大家聊聊：
+
+> **「你最近一次因為通知太煩而關掉某個 App 通知的經驗是什麼？那個 App 做錯了什麼？」**
+
+> **「反過來，有沒有哪個 App 的通知你覺得做得很好，讓你願意保持開啟？它做對了什麼？」**
+
+帶入大家的真實感受之後，再來看書中怎麼設計通知系統，會更有感覺。
+
+---
+
+## 第一部分：需求確認
+
+### 面試問題對照
 
 | 問題 | 標準答案 | NobodyClimb 需求 |
 |------|----------|------------------|
@@ -18,33 +52,36 @@
 | 是實時系統嗎？ | 軟實時（允許輕微延遲） | 軟實時 |
 | 支援哪些設備？ | iOS、Android、Desktop | Web 瀏覽器 |
 | 什麼觸發通知？ | 客戶端應用或伺服器排程 | 用戶互動事件 |
-| 用戶能退訂嗎？ | 是 | 計畫中 |
+| 用戶能退訂嗎？ | 是 | ✅ 已實作 |
 | 每日通知量？ | 1000萬+ | 小規模（數千） |
 
-### NobodyClimb 通知類型
+### NobodyClimb 通知類型（16 種）
 
-```typescript
-// 來自 backend/src/routes/notifications.ts
-export type NotificationType =
-  | 'goal_completed'      // 目標完成
-  | 'goal_liked'          // 目標被按讚
-  | 'goal_commented'      // 目標被留言
-  | 'goal_referenced'     // 目標被引用
-  | 'new_follower'        // 新追蹤者
-  | 'story_featured'      // 故事被精選
-  | 'biography_commented' // 人物誌被留言
-  | 'post_liked'          // 文章被按讚 ✨ 新增
-  | 'post_commented'      // 文章被留言 ✨ 新增
-```
+| 分類 | 類型 |
+|------|------|
+| 人生清單 | 目標被按讚、被留言、被引用、目標完成 |
+| 文章 | 文章被按讚、被留言 |
+| 人物誌 | 人物誌被按讚、被留言 |
+| 人物誌內容 | 核心故事、一句話、小故事 各自的按讚與留言（共 6 種） |
+| 社交 | 新追蹤者、故事被精選 |
+| 系統 | 管理員廣播 |
 
-> **注意**：後端已支援所有類型，前端的 `src/lib/types.ts` 也需要同步更新以保持一致性。
-> 在全端開發中保持類型定義同步是避免 bug 的關鍵。
+### 💬 討論：需求定義的眉角
+
+> **「書中面試官說每天 1000 萬推播、100 萬簡訊、500 萬 Email。如果今天你在面試中被問到通知系統，你會追問哪些書中沒問到的問題？」**
+
+例如：
+- 通知有沒有優先級？安全警告和按讚通知是同一個管道嗎？
+- 有沒有國際化需求？不同語系的模板怎麼管理？
+- 通知需要支援撤回嗎？管理員發錯廣播怎麼辦？
 
 ---
 
-## 第二部分：高層設計 (Step 2)
+## 第二部分：高層設計
 
-### 經典架構
+### 經典架構（書中四種管道）
+
+書中提到的四種通知管道：iOS Push (APNS)、Android Push (FCM)、SMS (Twilio)、Email (Sendgrid)。
 
 ```
 ┌──────────────┐    ┌──────────────┐    ┌──────────────┐
@@ -52,362 +89,239 @@ export type NotificationType =
 │  (Trigger)   │    │   Service    │    │  (Kafka等)   │
 └──────────────┘    └──────────────┘    └──────────────┘
                                                │
-                    ┌──────────────────────────┼──────────────────────────┐
-                    ▼                          ▼                          ▼
-            ┌──────────────┐          ┌──────────────┐          ┌──────────────┐
-            │  iOS Worker  │          │Android Worker│          │ Email Worker │
-            │    (APNS)    │          │    (FCM)     │          │  (Sendgrid)  │
-            └──────────────┘          └──────────────┘          └──────────────┘
-                    │                          │                          │
-                    ▼                          ▼                          ▼
-               iOS 設備               Android 設備                 Email 收件匣
+                    ┌──────────┬────────────────┼────────────────┬──────────┐
+                    ▼          ▼                ▼                ▼          ▼
+             ┌──────────┐ ┌──────────┐  ┌──────────┐  ┌──────────┐ ┌──────────┐
+             │   iOS    │ │ Android  │  │   SMS    │  │  Email   │ │ Web Push │
+             │  (APNS)  │ │  (FCM)   │  │ (Twilio) │  │(Sendgrid)│ │  ⚠️書中  │
+             └──────────┘ └──────────┘  └──────────┘  └──────────┘ │  未提及  │
+                                                                    └──────────┘
 ```
 
-### NobodyClimb 當前架構（簡化版）
+> **⚠️ 書中沒有單獨提到 Web Push。** Web Push API 其實從 2015 年起就已被 Chrome / Firefox 支援（iOS Safari 較晚，2023 年 iOS 16.4 才加入）。書中沒有獨立討論的原因可能是：
+>
+> 1. **Chrome 的 Web Push 底層就是 FCM**——書中講 FCM 某種程度已涵蓋 Chrome Web Push
+> 2. **書的定位是大規模消費級 App**，主力推播管道是 native mobile push，觸及率遠高於 Web Push（用戶要授權 + 瀏覽器需在背景運行）
+> 3. Web Push 的送達率和開啟率普遍低於原生推播，在「每天 1000 萬推播」的場景下不是主力
+>
+> 但對於 **Web-only 的平台**（像 NobodyClimb），Web Push 反而是最直接的推播管道。架構上跟 APNS/FCM 同構：Provider → Push Service（瀏覽器廠商的推播伺服器）→ Service Worker → 瀏覽器，身份驗證用 VAPID key。
+
+### NobodyClimb 當前架構
 
 ```
-┌──────────────┐    ┌──────────────┐    ┌──────────────┐
-│  用戶互動    │───▶│   Backend    │───▶│   D1 DB      │
-│  (按讚等)    │    │   (Hono)     │    │(notifications)│
-└──────────────┘    └──────────────┘    └──────────────┘
-                                               │
-                                               ▼
-                                        ┌──────────────┐
-                                        │   Frontend   │
-                                        │   Polling    │
-                                        │  (60秒一次)   │
-                                        └──────────────┘
+┌──────────────┐    ┌──────────────────────────────────┐    ┌──────────────┐
+│  用戶互動    │───▶│  Backend (Hono)                  │───▶│   D1 DB      │
+│  (按讚等)    │    │  偏好檢查 → 去重 → 聚合 → 寫入    │    │              │
+└──────────────┘    └──────────────────────────────────┘    └──────────────┘
+                                                                     │
+                                                                     ▼
+                                                              ┌──────────────┐
+                                                              │   Frontend   │
+                                                              │   Polling    │
+                                                              │  (60秒一次)  │
+                                                              └──────────────┘
 ```
 
 ### 關鍵差異
 
-| 層面 | 大型系統 | NobodyClimb |
-|------|----------|-------------|
-| 訊息佇列 | Kafka/RabbitMQ | 無（直接寫 DB）|
-| 推送方式 | APNS/FCM/Email | 前端輪詢 |
-| 擴展性 | 水平擴展 Worker | 單一服務 |
-| 延遲 | 毫秒級 | 最高 60 秒 |
+| 層面 | 大型系統 | NobodyClimb | 差異原因 |
+|------|----------|-------------|----------|
+| 訊息佇列 | Kafka/RabbitMQ | 無（直接寫 DB）| 規模小，同步寫入足夠 |
+| 推送方式 | APNS/FCM/Email | 前端輪詢 | Web-only，暫無原生 App |
+| 延遲 | 毫秒級 | 最高 60 秒 | 可接受 |
+| 擴展性 | 水平擴展 Worker | Cloudflare Workers 自動擴展 | 平台保證 |
+
+### 💬 討論：Pull vs Push，60 秒延遲真的有差嗎？
+
+> **「社群平台的通知延遲 SLA 應該是多少？用戶真的會在意 60 秒 vs 即時嗎？還是只有工程師在意？」**
+
+延伸思考：
+- 什麼場景下延遲會真正傷害體驗？（即時聊天 vs 按讚通知 vs 系統廣播）
+- LINE 的「已讀」是即時的，但 Instagram 的按讚通知延遲幾秒你根本不會發現——場景決定一切
+- 輪詢的隱性成本：每 60 秒一次 API call × 同時在線用戶數，DB 查詢量其實不小
 
 ---
 
-## 第三部分：深入設計 (Step 3)
+## 第三部分：深入設計
 
-### 3.1 可靠性機制
+### 3.1 可靠性
 
-#### 經典做法：防止資料丟失
+**書中做法**：持久化 + 重試（指數退避）
 
-```
-┌─────────────┐     ┌─────────────┐     ┌─────────────┐
-│   Service   │────▶│  Database   │────▶│   Queue     │
-│             │     │ (持久化)    │     │             │
-└─────────────┘     └─────────────┘     └─────────────┘
-                          │
-                          ▼
-                    ┌─────────────┐
-                    │ Retry Logic │
-                    │ (指數退避)  │
-                    └─────────────┘
-```
+**NobodyClimb**：直接寫入 D1，不加重試。
+書中強調重試是因為推送管道有多跳（Queue → Worker → APNS → 設備），每一跳都可能失敗。NobodyClimb 的路徑只有「寫一筆 D1」，D1 由 Cloudflare 保證高可用，額外重試的收益遠低於複雜度成本。若未來引入 Email / Web Push 多管道，才有必要加重試。
 
-#### NobodyClimb 實作
-
-```typescript
-// backend/src/routes/notifications.ts
-export async function createNotification(
-  db: D1Database,
-  data: {
-    userId: string;
-    type: NotificationType;
-    actorId?: string;
-    targetId?: string;
-    title: string;
-    message: string;
-  }
-) {
-  const id = generateId();
-
-  // 直接持久化到 D1 Database
-  await db.prepare(
-    `INSERT INTO notifications (id, user_id, type, actor_id, target_id, title, message)
-     VALUES (?, ?, ?, ?, ?, ?, ?)`
-  ).bind(id, data.userId, data.type, data.actorId || null,
-         data.targetId || null, data.title, data.message)
-   .run();
-
-  return id;
-}
-```
-
-**優點**：簡單可靠，資料不會丟失
-**缺點**：無法支援即時推送、高併發場景
+**實務心得**：「不重試」不代表「不在乎可靠性」，而是認清推送路徑只有一跳，D1 本身就提供了持久化保證。過度設計反而會引入新的複雜度（重試佇列的監控、死信佇列的處理、冪等性保證等）。
 
 ---
 
-### 3.2 去重策略
+### 3.2 去重
 
-#### 經典做法
+**書中做法**：用 event ID + cache 防止重複投遞
 
-```
-if (cache.exists(notification_id)) {
-    return; // 已發送，跳過
-}
-send(notification);
-cache.set(notification_id, TTL=24h);
-```
+**NobodyClimb**：相同的 actor + target + type，5 分鐘內只建立一則通知。
 
-#### NobodyClimb 實作 ✅
+**實務心得**：5 分鐘的 window 是拍腦袋決定的。太短（如 30 秒），用戶快速取消再按讚會產生兩則通知；太長（如 30 分鐘），真正不同時間點的互動會被吞掉。實際上線後沒收到用戶抱怨，但這種「沒人抱怨」到底是「剛好」還是「沒人注意到被吞掉的通知」，其實很難確認。
 
-**已實作去重機制**：相同的 userId + actorId + targetId + type 在 5 分鐘內只會創建一則通知。
+### 💬 討論：Exactly-Once Delivery 做得到嗎？
 
-```typescript
-// backend/src/routes/notifications.ts
-export async function createNotification(
-  db: D1Database,
-  data: { userId, type, actorId?, targetId?, title, message },
-  options?: { skipDedup?: boolean; dedupMinutes?: number }
-): Promise<string | null> {
-  const dedupMinutes = options?.dedupMinutes ?? 5;
+書中特別提到：**「你不可能做到 Exactly-Once Delivery」**（參考文獻 [5]）。
 
-  // 去重檢查
-  if (!options?.skipDedup && data.actorId && data.targetId) {
-    const existing = await db.prepare(
-      `SELECT id FROM notifications
-       WHERE user_id = ? AND actor_id = ? AND target_id = ? AND type = ?
-       AND created_at > datetime('now', '-' || ? || ' minutes')`
-    ).bind(data.userId, data.actorId, data.targetId, data.type, dedupMinutes)
-     .first<{ id: string }>();
+> **「漏掉一則重要通知 vs 收到兩則重複通知，哪個更糟？」**
 
-    if (existing) return null; // 已存在相同通知，跳過
-  }
+- **At-Least-Once**（可能重複）：適合交易通知、安全警告——寧可多通知一次也不能漏
+- **At-Most-Once**（可能遺漏）：適合行銷推播——多發一次用戶更煩
+- 社交互動通知（按讚、留言）呢？你會選哪一邊？
 
-  // ... 創建通知
-}
-```
+這是分散式系統的經典議題，沒有標準答案，但面試時能講出取捨邏輯會很加分。
 
 ---
 
 ### 3.3 通知模板
 
-#### 經典做法
+**書中做法**：模板 + 變數替換（`{actor} 對你的 {target} 按讚`）
 
-```
-模板：{actor} 對你的 {target_type} 按了讚
+**NobodyClimb**：後端組好訊息字串存入 DB，前端依類型對應圖示與導航連結。新增通知類型時需同步更新前端對應，否則會使用預設樣式。
 
-變數替換：
-- actor = "小明"
-- target_type = "攀岩目標"
+**實務心得**：目前新增一種通知類型需要改動：後端 service（建立邏輯）、前端通知列表（圖示與導航）、前端設定頁（偏好開關）——至少三個地方。如果是多人協作的團隊，這種「到處都要改」的設計很容易漏掉一個地方。書中的模板系統把這些集中管理，是更好的做法。
 
-結果：小明 對你的 攀岩目標 按了讚
-```
+### 💬 討論：通知文案怎麼寫才有效？
 
-#### NobodyClimb 實作
+> **「『小明對你的文章按讚』vs『你的文章獲得新的讚』——哪個讓你更想點進去？為什麼？」**
 
-```typescript
-// 前端 UI 元件對應
-const notificationIcons: Record<string, React.ElementType> = {
-  goal_liked: Mountain,          // 🏔️ 目標按讚
-  goal_commented: MessageCircle, // 💬 目標留言
-  goal_referenced: Sparkles,     // ✨ 目標引用
-  new_follower: UserPlus,        // 👤 追蹤
-  story_featured: Sparkles,      // ✨ 精選
-  post_liked: Heart,             // ❤️ 文章按讚 ✨ 新增
-  post_commented: FileText,      // 📄 文章留言 ✨ 新增
-  biography_commented: MessageCircle, // 💬 人物誌留言 ✨ 新增
-}
-
-const notificationColors: Record<string, string> = {
-  goal_liked: 'text-red-500 bg-red-50',
-  goal_commented: 'text-blue-500 bg-blue-50',
-  post_liked: 'text-pink-500 bg-pink-50',
-  post_commented: 'text-indigo-500 bg-indigo-50',
-  // ...
-}
-```
-
-> **實作提醒**：新增通知類型時，需同步更新前端 UI 的圖示和顏色對應，
-> 否則會使用預設樣式，影響使用者體驗。
+延伸思考：
+- 帶上 actor 名字（小明）讓通知更有「人味」，但如果 actor 是陌生人呢？
+- 文章標題太長怎麼截斷？「小明對你的《我在龍洞第一次先鋒攀登的那個下午其實…》按讚」
+- 聚合後的文案「小明和其他 99 人」——如果只有 2 個人，顯示「小明和小華」比「小明和其他 1 人」自然得多
 
 ---
 
 ### 3.4 用戶設定
 
-#### 經典設計
+**書中做法**：創建通知前先查詢用戶偏好，已關閉則略過
 
-```sql
-CREATE TABLE user_notification_settings (
-  user_id BIGINT PRIMARY KEY,
-  email_enabled BOOLEAN DEFAULT true,
-  push_enabled BOOLEAN DEFAULT true,
-  sms_enabled BOOLEAN DEFAULT false,
-  quiet_hours_start TIME,
-  quiet_hours_end TIME,
-  -- 細分設定
-  marketing_email BOOLEAN DEFAULT true,
-  social_push BOOLEAN DEFAULT true
-);
-```
+**NobodyClimb**：17 種通知類型各有獨立開關，存於獨立的 `notification_preferences` 表。創建通知時自動檢查，若關閉則不建立。前端在「帳號設定 > 通知設定」提供 UI 調整。
 
-#### NobodyClimb 實作 ✅
+**實務心得**：17 種開關看起來很完整，但設定頁面實際很長。大多數用戶不會逐一調整，更常見的行為是「全部關掉」或「全部打開」。或許加一個「全部開啟 / 全部關閉」的快捷按鈕更實用。
 
-**已實作用戶偏好設定**，可在「帳號設定 > 通知設定」頁面調整。
+### 💬 辯論：通知偏好預設應該全開還是全關？
 
-```sql
--- backend/migrations/0028_add_notification_preferences.sql
-CREATE TABLE notification_preferences (
-  user_id TEXT PRIMARY KEY,
-  -- 互動通知
-  goal_liked BOOLEAN DEFAULT 1,
-  goal_commented BOOLEAN DEFAULT 1,
-  goal_referenced BOOLEAN DEFAULT 1,
-  post_liked BOOLEAN DEFAULT 1,
-  post_commented BOOLEAN DEFAULT 1,
-  biography_commented BOOLEAN DEFAULT 1,
-  -- 社交通知
-  new_follower BOOLEAN DEFAULT 1,
-  -- 系統通知
-  story_featured BOOLEAN DEFAULT 1,
-  goal_completed BOOLEAN DEFAULT 1,
-  -- Email（開發中）
-  email_digest BOOLEAN DEFAULT 0,
-  FOREIGN KEY (user_id) REFERENCES users(id)
-);
-```
+> **這是個沒有標準答案的好辯題。**
 
-**API 端點**：
-- `GET /notifications/preferences` - 獲取偏好設定
-- `PUT /notifications/preferences` - 更新偏好設定
+| 立場 | 論點 |
+|------|------|
+| **全開派** | 用戶不知道有這個功能，不開就等於沒有通知系統。用戶回訪率靠通知驅動 |
+| **全關派** | 尊重用戶。用優質內容讓用戶主動開啟，而非騷擾式預設 |
+| **中間派** | 核心通知（留言回覆、新追蹤者）預設開，行銷類（系統廣播）預設關 |
 
-**整合方式**：創建通知時會自動檢查用戶偏好，若已關閉則不創建。
+你們公司 / 你用過的產品是怎麼做的？
 
 ---
 
-### 3.5 速率限制與通知聚合
+### 3.5 速率限制與聚合
 
-#### 經典做法
+**書中做法**：Redis 計數器限制每小時通知量，超過則聚合成摘要
+
+**NobodyClimb**：1 小時內同一目標的按讚合併為一則：
 
 ```
-規則：每個用戶每小時最多收到 10 則同類型通知
-
-實作：
-- 使用 Redis 計數器
-- Key: rate_limit:{user_id}:{notification_type}:{hour}
-- 超過限制時聚合成摘要通知
+原本：100 則「XXX 對你的文章按讚」
+現在：1 則「小明 和其他 99 人對你的文章按讚」
 ```
 
-#### NobodyClimb 實作 ✅
+目前只有按讚類型實作聚合，留言類型每則獨立。
 
-**已實作通知聚合**：1 小時內同一目標的按讚會合併成一則通知。
+### 💬 討論：通知轟炸怎麼辦？
 
-```typescript
-// backend/src/routes/notifications.ts
-export async function createLikeNotificationWithAggregation(
-  db: D1Database,
-  data: { userId, type, actorId, actorName, targetId, targetTitle }
-): Promise<string | null> {
-  // 檢查 1 小時內是否已有同一目標的按讚通知
-  const existing = await db.prepare(
-    `SELECT id, message FROM notifications
-     WHERE user_id = ? AND target_id = ? AND type = ?
-     AND created_at > datetime('now', '-1 hour')
-     ORDER BY created_at DESC LIMIT 1`
-  ).bind(data.userId, data.targetId, data.type).first();
+> **「當一篇文章爆紅，一小時內收到 200 則留言通知——現在留言沒有聚合，你會怎麼處理？」**
 
-  if (existing) {
-    // 聚合：統計不同按讚者數量
-    const countResult = await db.prepare(
-      `SELECT COUNT(DISTINCT actor_id) as count FROM notifications
-       WHERE user_id = ? AND target_id = ? AND type = ?
-       AND created_at > datetime('now', '-1 hour')`
-    ).bind(data.userId, data.targetId, data.type).first();
-
-    const totalLikers = (countResult?.count || 0) + 1;
-    const newMessage = totalLikers > 1
-      ? `${data.actorName} 和其他 ${totalLikers - 1} 人對你的文章按讚`
-      : `${data.actorName} 對你的文章按讚`;
-
-    // 更新現有通知
-    await db.prepare(`UPDATE notifications SET message = ?, actor_id = ?, created_at = datetime('now') WHERE id = ?`)
-      .bind(newMessage, data.actorId, existing.id).run();
-
-    return existing.id;
-  }
-
-  // 沒有現有通知，創建新的
-  return createNotification(db, { ... });
-}
-```
-
-**效果**：
-- 原本：收到 100 則「XXX 對你的文章按讚」
-- 現在：收到 1 則「小明 和其他 99 人對你的文章按讚」
+可能的方向：
+- 留言也做聚合？但留言內容各不同，聚合後用戶怎麼知道誰說了什麼？
+- 設定全域上限（例如每小時最多推 10 則通知），超過的延遲到下個時段？
+- 改用 digest 模式：「你的文章在過去 1 小時收到 200 則留言，點擊查看」？
+- 大家用過的 App 裡，哪個處理得最好？
 
 ---
 
 ### 3.6 事件追蹤
 
-#### 經典指標
+**書中做法**：追蹤 Sent / Delivered / Opened / Clicked 漏斗
 
-```
-┌────────────────────────────────────────────────┐
-│                 通知漏斗分析                    │
-├────────────────────────────────────────────────┤
-│  Sent        ████████████████████  100,000     │
-│  Delivered   ████████████████░░░░   95,000     │
-│  Opened      ████████░░░░░░░░░░░░   40,000     │
-│  Clicked     ████░░░░░░░░░░░░░░░░   15,000     │
-└────────────────────────────────────────────────┘
-```
+**NobodyClimb**：
+- ✅ 追蹤已讀狀態（is_read）、計算已讀率
+- ✅ 按類型統計、7 天趨勢（用戶）、24h 每小時趨勢（管理員）
+- ⚠️ 未追蹤點擊率
 
-#### NobodyClimb 可追蹤指標
+**實務心得**：已讀率能告訴你「用戶有沒有看到」，但點擊率才能告訴你「通知有沒有帶來行動」。如果已讀率 90% 但點擊率只有 5%，代表通知內容不夠吸引人、或是導航連結不對。不過對小規模平台來說，加點擊追蹤的 ROI 未必夠高。
 
-```typescript
-// 建議的追蹤事件
-interface NotificationAnalytics {
-  total_sent: number;
-  total_read: number;        // is_read = 1
-  total_deleted: number;
-  read_rate: number;         // total_read / total_sent
-  avg_time_to_read: number;  // 從 created_at 到標記已讀的時間
-}
-```
+### 💬 討論：通知系統的成功指標是什麼？
+
+> **「如果只能看一個數字來判斷通知系統的健康度，你會看哪個？」**
+
+| 指標 | 代表意義 | 陷阱 |
+|------|----------|------|
+| 發送量 | 系統有在運作 | 發越多不代表越好 |
+| 已讀率 | 用戶有看到 | 看到不代表有用 |
+| 點擊率 | 通知有驅動行為 | 點擊後可能馬上跳出 |
+| 退訂率 | 用戶覺得煩 | 最重要的負向指標 |
+
+如果已讀率很高但退訂率也在上升，代表什麼？
 
 ---
 
-## 第四部分：架構演進建議
+### 3.7 管理員廣播
 
-### 階段一：當前狀態 ✅
+書中未特別提及，但 NobodyClimb 實作了管理員可向指定角色批量發送系統通知（`system_announcement`）。目前用同步批次迴圈，若用戶規模大時應改為 Cloudflare Queues 非同步處理。
 
-```
-用戶操作 → Backend → DB → 前端輪詢 (60秒)
-```
+### 💬 討論：通知應不應該有「撤回」功能？
 
-**適用場景**：小規模、低即時性需求
+> **「管理員發錯廣播怎麼辦？如果已經推播到手機了，能撤回嗎？」**
 
-### 階段二：WebSocket 即時推送
+- 站內通知可以 soft delete，但 Email / Push 已經送出就收不回來
+- 實務上很多平台的做法是「發送前二次確認」+「只刪除未讀的」
+- 你們有沒有遇過類似的「發錯通知」事件？怎麼處理的？
 
-```
-用戶操作 → Backend → DB
-                ↓
-           WebSocket Server → 瀏覽器即時更新
-```
+---
 
-**實作建議**：
-- 使用 Cloudflare Durable Objects 維護 WebSocket 連線
-- 或使用 Pusher/Ably 等第三方服務
+## 第四部分：書中沒講但實務中很重要的事
 
-### 階段三：完整訊息佇列架構
+### 4.1 推播許可權的 UX
 
-```
-用戶操作 → Backend → Cloudflare Queue
-                          ↓
-                    Notification Worker
-                          ↓
-              ┌───────────┼───────────┐
-              ▼           ▼           ▼
-           Web Push    Email       儲存
-```
+書中的架構假設用戶已經授權推播，但實務上**取得推播許可權本身就是一大挑戰**：
 
-**適用場景**：高併發、需要多管道推送
+| 策略 | 說明 | 效果 |
+|------|------|------|
+| 一進站就問 | 最常見但最差 | 許可率極低，用戶還不信任你 |
+| 觸發後再問 | 用戶按下「追蹤」後才問「要不要開啟通知？」 | 許可率較高，有上下文 |
+| 先用站內預詢問 | 用自己的 UI 先問一次，同意才觸發瀏覽器原生彈窗 | 避免浪費唯一一次原生詢問機會 |
+
+重點：瀏覽器的原生推播許可彈窗，**用戶拒絕後就很難再問第二次**（需要用戶自己去設定裡打開）。所以時機比什麼都重要。
+
+### 4.2 排程通知與時區
+
+書中提到 server-side scheduling，但沒深入討論時區問題：
+
+- **Email 週報 / Daily Digest**：什麼時候發？台灣早上 9 點 vs 美國用戶的凌晨 3 點
+- **靜音時段**：「晚上 10 點到早上 8 點不要推播」——時區用伺服器的還是用戶的？
+- **NobodyClimb 現況**：目前用戶幾乎都在台灣，沒有時區問題。但如果未來有海外攀岩者加入呢？
+
+### 4.3 Rich Notification（富媒體通知）
+
+書中只提到文字通知，但現代推播支援更多格式：
+
+- **圖片預覽**：「小明對你的攀岩照片按讚」+ 照片縮圖
+- **Action Buttons**：通知上直接顯示「回覆」「讚」按鈕，不用打開 App
+- **Notification Grouping**：iOS / Android 會自動把同一個 App 的通知摺疊——你的聚合邏輯和系統層的 grouping 怎麼搭配？
+
+### 💬 討論：AI 時代的通知系統會有什麼不同？
+
+> **「如果你有一個 AI 助手幫你管理通知，你希望它做什麼？」**
+
+可能的方向：
+- **智慧摘要**：把 50 則通知總結成一段話——「今天你的文章很受歡迎，收到 50 個讚和 12 則留言，其中 3 則在問路線資訊」
+- **個人化發送時機**：根據用戶活躍時間決定何時推播，而非所有人同一時間
+- **重要度自動排序**：把好友的留言排在陌生人的按讚前面
+- 這些聽起來很酷，但工程複雜度和隱私問題怎麼權衡？
 
 ---
 
@@ -415,7 +329,6 @@ interface NotificationAnalytics {
 
 ### Q1: 如何保證通知不丟失？
 
-**答**：
 1. 先持久化到資料庫（NobodyClimb 做法）
 2. 使用持久化訊息佇列（如 Kafka）
 3. 實作確認機制（ACK）
@@ -423,7 +336,6 @@ interface NotificationAnalytics {
 
 ### Q2: 如何處理大量通知？
 
-**答**：
 1. 訊息佇列解耦
 2. 批次處理
 3. 速率限制
@@ -431,15 +343,13 @@ interface NotificationAnalytics {
 
 ### Q3: 如何保證即時性？
 
-**答**：
 1. WebSocket/SSE 推送
 2. 減少輪詢間隔
-3. 長輪詢 (Long Polling)
+3. 長輪詢（Long Polling）
 4. 第三方推送服務（FCM、APNS）
 
 ### Q4: 如何設計通知優先級？
 
-**答**：
 ```
 高優先級：安全警告、交易確認
 中優先級：社交互動、留言回覆
@@ -448,400 +358,48 @@ interface NotificationAnalytics {
 實作：多個佇列 + 不同處理速率
 ```
 
----
+### Q5: 「如果面試官問你：你做過的通知系統，最後悔的設計決策是什麼？」
 
-## 第六部分：程式碼導讀
-
-### 前端：通知中心元件
-
-```typescript
-// src/components/shared/notification-center.tsx
-
-// 1. 輪詢機制：使用 setTimeout 避免請求堆積
-// ⚠️ 使用 setInterval 的問題：若請求時間超過間隔或發生錯誤延遲，
-//    setInterval 仍會繼續觸發，可能導致請求堆積
-useEffect(() => {
-  let isMounted = true;
-  let timerId: ReturnType<typeof setTimeout>;
-
-  const poll = async () => {
-    try {
-      await loadUnreadCount();
-    } catch (error) {
-      console.error('Polling error:', error);
-    } finally {
-      // 只有在元件還掛載時才繼續輪詢
-      if (isMounted) {
-        timerId = setTimeout(poll, 60000);
-      }
-    }
-  };
-
-  poll();
-
-  return () => {
-    isMounted = false;
-    clearTimeout(timerId);
-  };
-}, [loadUnreadCount])
-
-// 2. 未讀徽章顯示
-{unreadCount > 0 && (
-  <span className="bg-red-500 text-white rounded-full">
-    {unreadCount > 99 ? '99+' : unreadCount}
-  </span>
-)}
-
-// 3. 樂觀更新 (Optimistic Update)：先更新 UI，再發 API
-// 若 API 失敗則回滾 UI 狀態
-const handleMarkAsRead = async (id: string) => {
-  // 備份原始狀態
-  const originalNotifications = [...notifications];
-  const originalUnreadCount = unreadCount;
-
-  // Step 1: 立即更新 UI（樂觀更新）
-  setNotifications(prev =>
-    prev.map(n => n.id === id ? { ...n, is_read: 1 } : n)
-  )
-  setUnreadCount(prev => Math.max(0, prev - 1))
-
-  try {
-    // Step 2: 背景發送 API 請求
-    await notificationService.markAsRead(id)
-  } catch (error) {
-    // Step 3: API 失敗，回滾 UI
-    console.error('Failed to mark as read:', error);
-    setNotifications(originalNotifications);
-    setUnreadCount(originalUnreadCount);
-  }
-}
-```
-
-### 後端：通知 API
-
-```typescript
-// backend/src/routes/notifications.ts
-
-// 1. 取得通知（含分頁）
-notificationsRoutes.get('/', authMiddleware, async (c) => {
-  const { page, limit, offset } = parsePagination(...)
-
-  // JOIN 取得觸發者資訊
-  const notifications = await c.env.DB.prepare(`
-    SELECT n.*, u.username as actor_name, u.avatar_url as actor_avatar
-    FROM notifications n
-    LEFT JOIN users u ON n.actor_id = u.id
-    WHERE n.user_id = ?
-    ORDER BY n.created_at DESC
-    LIMIT ? OFFSET ?
-  `).bind(userId, limit, offset).all()
-})
-
-// 2. 權限檢查：確保只能操作自己的通知
-const notification = await c.env.DB.prepare(
-  'SELECT id FROM notifications WHERE id = ? AND user_id = ?'
-).bind(id, userId).first()
-
-if (!notification) {
-  return c.json({ error: 'Not Found' }, 404)
-}
-```
+> 這題沒有標準答案，但能展示你的反思能力。準備 1-2 個真實的「早知道就…」故事。
 
 ---
 
-## 討論問題
-
-1. **NobodyClimb 是否需要即時通知？**
-   - 社群互動（按讚、留言）的即時性需求是什麼？
-   - 60 秒的延遲對用戶體驗影響有多大？
-
-2. **如何處理「通知轟炸」？**
-   - 當一篇文章爆紅，如何避免用戶收到數百則通知？
-
-3. **多管道通知的優先級？**
-   - Web Push vs Email 摘要，該如何選擇？
-
-4. **Cloudflare 生態系統的選擇？**
-   - Durable Objects (WebSocket) vs Queues vs Workers
-   - 成本與複雜度的權衡
-
----
-
----
-
-## 第七部分：設計審查（對照書中要點）
-
-根據《系統設計面試指南》第 10 章的設計原則，對 NobodyClimb 通知系統進行全面審查：
+## 第六部分：設計審查
 
 ### 審查總覽
 
 | 書中要點 | NobodyClimb 狀態 | 評分 |
 |----------|------------------|------|
-| **可靠性 (Reliability)** | 資料持久化到 D1 | ✅ |
+| **可靠性 (Reliability)** | D1 直寫持久化，推送只有一跳重試收益低 | ✅ |
 | **去重 (Deduplication)** | 5 分鐘內相同通知不重複 | ✅ |
-| **用戶設定 (User Settings)** | 完整偏好設定頁面 | ✅ |
-| **速率限制 (Rate Limiting)** | 通知聚合機制 | ✅ |
-| **安全性 (Security)** | JWT 認證 + 權限檢查 | ✅ |
-| **重試機制 (Retry)** | 未實作 | ⚠️ |
-| **訊息佇列 (Message Queue)** | 未使用（同步寫入） | ⚠️ |
-| **監控 (Monitoring)** | 統計 API + 前端儀表板 | ✅ |
-| **事件追蹤 (Event Tracking)** | 已讀狀態 + 趨勢分析 | ✅ |
-| **通知模板 (Templates)** | 前端 UI 對應 | ✅ |
+| **用戶設定 (User Settings)** | 17 種偏好開關 + 設定頁面 | ✅ |
+| **速率限制 (Rate Limiting)** | 按讚 1 小時聚合 | ✅ |
+| **安全性 (Security)** | JWT 認證 + 資源所有權驗證 + Admin 權限 | ✅ |
+| **監控 (Monitoring)** | 統計 API + 前端儀表板（用戶 / 管理員） | ✅ |
+| **事件追蹤 (Event Tracking)** | 已讀率 + 趨勢分析，缺點擊率 | ✅ |
+| **通知模板 (Templates)** | 前端圖示與導航連結對應 | ✅ |
 
----
-
-### 7.1 可靠性 (Reliability) ✅
-
-**書中要點**：
-> "The system preserves notification data persistently in databases while implementing retry mechanisms to prevent data loss."
-
-**NobodyClimb 實作**：
-
-```typescript
-// 直接持久化到 D1 Database
-await db.prepare(
-  `INSERT INTO notifications (id, user_id, type, actor_id, target_id, title, message)
-   VALUES (?, ?, ?, ?, ?, ?, ?)`
-).bind(...).run();
-```
-
-**評估**：通知資料直接寫入 D1 Database，確保不會丟失。但缺少重試機制，若資料庫寫入失敗，通知會遺失。
-
-**建議改進**：
-```typescript
-// 加入重試邏輯
-async function createNotificationWithRetry(db, data, maxRetries = 3) {
-  for (let i = 0; i < maxRetries; i++) {
-    try {
-      return await createNotification(db, data);
-    } catch (error) {
-      if (i === maxRetries - 1) throw error;
-      await new Promise(r => setTimeout(r, 1000 * Math.pow(2, i))); // 指數退避
-    }
-  }
-}
-```
-
----
-
-### 7.2 去重 (Deduplication) ✅
-
-**書中要點**：
-> "Event IDs prevent duplicate deliveries. While most times notifications send once, distributed systems can cause duplicates requiring deduplication logic."
-
-**NobodyClimb 實作**：
-
-```typescript
-// 去重檢查：相同的 actor + target + type 在 5 分鐘內只創建一則通知
-if (!options?.skipDedup && data.actorId && data.targetId) {
-  const existing = await db.prepare(
-    `SELECT id FROM notifications
-     WHERE user_id = ? AND actor_id = ? AND target_id = ? AND type = ?
-     AND created_at > datetime('now', '-' || ? || ' minutes')`
-  ).bind(data.userId, data.actorId, data.targetId, data.type, dedupMinutes)
-   .first();
-
-  if (existing) return null; // 已存在，跳過
-}
-```
-
-**評估**：完整實作去重邏輯，避免用戶收到重複通知。
-
----
-
-### 7.3 用戶設定 (User Settings) ✅
-
-**書中要點**：
-> "Users can select not receiving notifications. The system checks opt-in preferences before sending any message."
-
-**NobodyClimb 實作**：
-
-```typescript
-// 偏好設定檢查：如果用戶已關閉該類型通知，則不創建
-if (!options?.skipPrefsCheck) {
-  const prefs = await db.prepare(
-    `SELECT ${data.type} as enabled FROM notification_preferences WHERE user_id = ?`
-  ).bind(data.userId).first();
-
-  if (prefs && prefs.enabled === 0) return null; // 用戶已關閉
-}
-```
-
-**評估**：完整實作，包含：
-- 10 種通知類型的獨立開關
-- 前端設定頁面（帳號設定 > 通知設定）
-- 創建通知前自動檢查偏好
-
----
-
-### 7.4 速率限制 (Rate Limiting) ✅
-
-**書中要點**：
-> "Frequency caps prevent overwhelming users, reducing notification abandonment."
-
-**NobodyClimb 實作**：
-
-```typescript
-// 通知聚合：1 小時內同一目標的按讚合併成一則
-if (existing) {
-  const totalLikers = (countResult?.count || 0) + 1;
-  const newMessage = totalLikers > 1
-    ? `${data.actorName} 和其他 ${totalLikers - 1} 人對你的文章按讚`
-    : `${data.actorName} 對你的文章按讚`;
-
-  await db.prepare(`UPDATE notifications SET message = ? WHERE id = ?`)
-    .bind(newMessage, existing.id).run();
-}
-```
-
-**評估**：透過聚合機制實現速率控制，避免「通知轟炸」。
-
-**可擴展**：若需更精細控制，可加入：
-```typescript
-// 每小時最多 N 則同類型通知
-const hourlyCount = await db.prepare(
-  `SELECT COUNT(*) as count FROM notifications
-   WHERE user_id = ? AND type = ?
-   AND created_at > datetime('now', '-1 hour')`
-).bind(userId, type).first();
-
-if (hourlyCount.count >= MAX_HOURLY_NOTIFICATIONS) {
-  return null; // 超過限制，跳過
-}
-```
-
----
-
-### 7.5 安全性 (Security) ✅
-
-**書中要點**：
-> "AppKey/AppSecret authentication ensures only verified clients access notification APIs."
-
-**NobodyClimb 實作**：
-
-```typescript
-// 所有通知 API 都使用 authMiddleware
-notificationsRoutes.get('/', authMiddleware, async (c) => { ... });
-notificationsRoutes.put('/:id/read', authMiddleware, async (c) => { ... });
-
-// 權限檢查：確保只能操作自己的通知
-const notification = await c.env.DB.prepare(
-  'SELECT id FROM notifications WHERE id = ? AND user_id = ?'
-).bind(id, userId).first();
-
-if (!notification) {
-  return c.json({ error: 'Not Found' }, 404);
-}
-```
-
-**評估**：完整實作認證和授權：
-- JWT 認證（authMiddleware）
-- 資源所有權驗證
-- 防止越權存取
-
----
-
-### 7.6 監控 (Monitoring) ✅
-
-**書中要點**：
-> "Tracking queued notification counts alerts teams when workers cannot process messages quickly enough."
-
-**NobodyClimb 實作**：
-
-已實作兩個統計 API：
-
-```typescript
-// 1. 用戶個人統計 - GET /notifications/stats
-notificationsRoutes.get('/stats', authMiddleware, async (c) => {
-  // 基本統計：總數、已讀、未讀、已讀率
-  // 按類型統計
-  // 最近 7 天趨勢
-});
-
-// 2. 管理員統計 - GET /notifications/admin/stats
-notificationsRoutes.get('/admin/stats', authMiddleware, async (c) => {
-  // 系統級統計（過去 24 小時）
-  // 每小時趨勢
-  // 通知最多的用戶（前 10 名）
-});
-```
-
-**前端儀表板**：在「帳號設定 > 通知設定」頁面顯示：
-- 總覽卡片（總數、未讀、已讀、已讀率）
-- 按類型統計長條圖
-- 7 天趨勢圖
-
----
-
-### 7.7 事件追蹤 (Event Tracking) ✅
-
-**書中要點**：
-> "Analytics systems monitor open rates, click-through rates, and engagement metrics."
-
-**NobodyClimb 實作**：
-- ✅ 追蹤已讀狀態（is_read）
-- ✅ 計算已讀率（readRate）
-- ✅ 按類型統計
-- ✅ 7 天趨勢分析
-- ⚠️ 未追蹤點擊率（可擴展）
-
-**統計 API 回傳範例**：
-```typescript
-{
-  overview: {
-    total: 150,
-    unread: 23,
-    read: 127,
-    readRate: 85  // 85% 已讀率
-  },
-  byType: [
-    { type: 'goal_liked', count: 45 },
-    { type: 'post_commented', count: 32 },
-    // ...
-  ],
-  dailyTrend: [
-    { date: '2026-01-14', count: 12 },
-    { date: '2026-01-15', count: 18 },
-    // ...
-  ]
-}
-```
-
-**可擴展**：若需更詳細追蹤，可加入：
-```sql
-ALTER TABLE notifications ADD COLUMN read_at TEXT;
-ALTER TABLE notifications ADD COLUMN clicked_at TEXT;
-```
-
----
-
-### 7.8 架構差異分析
+### 架構差異分析
 
 | 層面 | 書中大型系統 | NobodyClimb | 差異原因 |
 |------|-------------|-------------|----------|
 | **訊息佇列** | Kafka/RabbitMQ | 無 | 規模小，同步寫入足夠 |
 | **推送服務** | APNS/FCM/SMS | 前端輪詢 | Web-only，暫無原生 App |
-| **Worker 數量** | 多個，水平擴展 | 單一 Worker | Cloudflare Workers 自動擴展 |
 | **資料庫** | 分散式 DB | D1 (SQLite) | 適合小規模 |
 | **快取** | Redis | 無 | 可用 KV 改進 |
+| **廣播** | 訊息佇列異步 | 同步批次迴圈 | 量少時可接受 |
 
----
+### 書中 Summary 對照
 
-### 7.9 書中 Summary 對照
+| 原則 | NobodyClimb 對應 |
+|------|------------------|
+| **Reliability** | 資料持久化 ✅，推送只有一跳重試收益低 ✅ |
+| **Security** | JWT 認證 + 權限檢查 ✅ |
+| **Tracking** | 統計 API + 前端儀表板 ✅ |
+| **User Respect** | 完整偏好設定 ✅ |
+| **Rate Limiting** | 通知聚合 ✅ |
 
-書中最後總結的設計原則：
-
-| 原則 | 書中說明 | NobodyClimb 對應 |
-|------|----------|------------------|
-| **Reliability** | Strong retry mechanisms minimize failure rates | 資料持久化 ✅，重試機制 ❌ |
-| **Security** | Credential-based access control | JWT 認證 + 權限檢查 ✅ |
-| **Tracking** | Monitoring at all pipeline stages | 統計 API + 前端儀表板 ✅ |
-| **User Respect** | Preference checking before transmission | 完整偏好設定 ✅ |
-| **Rate Limiting** | Frequency controls on recipient volume | 通知聚合 ✅ |
-
----
-
-### 7.10 總體評分
+### 總體評分
 
 ```
 ┌────────────────────────────────────────────┐
@@ -862,44 +420,26 @@ ALTER TABLE notifications ADD COLUMN clicked_at TEXT;
 
 ---
 
-## 第八部分：NobodyClimb 實作總結
+## 第七部分：NobodyClimb 通知流程
 
-### 本次實作項目
+### 通知觸發點
 
-在讀書會準備過程中，我們實際實作了以下功能：
+| 觸發事件 | 通知類型 | 聚合 |
+|----------|----------|------|
+| 目標被按讚 | `goal_liked` | ✅ 1小時 |
+| 目標被留言 | `goal_commented` | ❌ |
+| 目標被引用 | `goal_referenced` | ❌ |
+| 文章被按讚 | `post_liked` | ✅ 1小時 |
+| 文章被留言 | `post_commented` | ❌ |
+| 人物誌被按讚 | `goal_liked` | ❌ |
+| 人物誌被留言 | `biography_commented` | ❌ |
+| 新追蹤者 | `new_follower` | ❌ |
+| 核心故事被按讚／留言 | `core_story_liked/commented` | ❌ |
+| 一句話被按讚／留言 | `one_liner_liked/commented` | ❌ |
+| 小故事被按讚／留言 | `story_liked/commented` | ❌ |
+| 系統廣播 | `system_announcement` | ❌ |
 
-| 功能 | 狀態 | 檔案位置 |
-|------|------|----------|
-| 文章按讚/留言通知 | ✅ 完成 | `backend/src/routes/posts.ts` |
-| 通知去重（5 分鐘內） | ✅ 完成 | `backend/src/routes/notifications.ts` |
-| 通知聚合（1 小時內按讚合併） | ✅ 完成 | `backend/src/routes/notifications.ts` |
-| 用戶偏好設定 API | ✅ 完成 | `backend/src/routes/notifications.ts` |
-| 前端偏好設定頁面 | ✅ 完成 | `src/app/profile/settings/page.tsx` |
-| 通知統計 API | ✅ 完成 | `backend/src/routes/notifications.ts` |
-| 前端統計儀表板 | ✅ 完成 | `src/components/profile/NotificationStats.tsx` |
-| 資料庫 Migration | ✅ 完成 | `backend/migrations/0027_*.sql`, `0028_*.sql` |
-
-### 新增的 API 端點
-
-```
-GET  /notifications/preferences     # 獲取偏好設定
-PUT  /notifications/preferences     # 更新偏好設定
-GET  /notifications/stats           # 用戶通知統計
-GET  /notifications/admin/stats     # 管理員統計（需 admin 權限）
-```
-
-### 資料庫變更
-
-```sql
--- Migration 0027: 新增通知類型
-ALTER TABLE notifications ADD CONSTRAINT type_check
-  CHECK (type IN (..., 'post_liked', 'post_commented'));
-
--- Migration 0028: 新增偏好設定表
-CREATE TABLE notification_preferences (...);
-```
-
-### 架構流程圖
+### 完整處理流程
 
 ```
 ┌─────────────────────────────────────────────────────────────────┐
@@ -919,18 +459,78 @@ CREATE TABLE notification_preferences (...);
 └────────────────────────────────────────────────────────────────────┘
 ```
 
-### 待優化項目
+---
 
-1. **即時推送**：目前使用 60 秒輪詢，可考慮 WebSocket
-2. **Email 摘要**：每日通知彙整 Email（已預留欄位）
-3. **通知分析**：追蹤已讀率、點擊率等指標
-4. **批次刪除**：提供清除舊通知的功能
+## 第八部分：架構演進
+
+### 當前狀態 ✅
+```
+用戶操作 → Backend（偏好/去重/聚合）→ D1 DB → 前端輪詢（60秒）
+```
+適用：小規模、社群互動通知
+
+### 下一步：WebSocket 即時推送
+```
+用戶操作 → Backend → DB
+                ↓
+     Cloudflare Durable Objects（WebSocket）→ 瀏覽器即時更新
+```
+或用第三方服務（Pusher/Ably）降低複雜度
+
+### 未來：完整多管道架構
+```
+用戶操作 → Backend → Cloudflare Queue
+                            ↓
+                    Notification Worker
+                            ↓
+             ┌──────────────┼──────────────┐
+             ▼              ▼              ▼
+          Web Push       Email          儲存
+```
+適用：高併發、多設備、Email 摘要需求
+
+### 💬 討論：成長的第一個瓶頸在哪？
+
+> **「當系統從 1,000 用戶成長到 100,000 用戶，通知系統的第一個瓶頸會出現在哪裡？你會先解決哪個？」**
+
+可能的瓶頸：
+- **輪詢查詢量爆炸**：10 萬用戶 × 每 60 秒一次 = 每秒 ~1,667 次查詢
+- **廣播同步迴圈**：管理員發一則廣播 = 10 萬次 INSERT
+- **DB 寫入壓力**：熱門文章同一秒收到大量按讚
+
+你會優先處理哪個？為什麼？
+
+---
+
+## 第九部分：綜合討論（收尾用）
+
+### 設計決策型
+
+> **「如果今天你要幫一個攀岩社群平台加 Email 週報通知，你會怎麼設計？」**
+> - 放什麼內容？（本週熱門路線、你追蹤的人的新完攀、你的攀登統計？）
+> - 什麼時候發？每週幾、幾點？
+> - 退訂機制怎麼做？
+
+### 系統設計 Quick-Fire（每題 30 秒回答練習）
+
+1. 「通知系統需不需要快取？快取什麼？」
+2. 「如果第三方推播服務掛了，你怎麼處理？」
+3. 「怎麼避免用戶自己對自己產生通知？」
+4. 「通知的已讀狀態應該存在客戶端還是伺服器端？」
+
+### 總結
+
+> **好的通知系統不是技術最強的那個，而是讓用戶覺得「剛剛好」的那個。**
+> 發太多 → 用戶關掉通知 → 系統形同虛設。
+> 發太少 → 用戶忘記你的平台 → 回訪率下降。
+> 找到這個平衡點，比任何架構設計都重要。
 
 ---
 
 ## 參考資料
 
 - [系統設計面試指南 - 第10章](https://github.com/Admol/SystemDesign/blob/main/CHAPTER%2010%EF%BC%9ADESIGN%20A%20NOTIFICATION%20SYSTEM.md)
+- [You Cannot Have Exactly-Once Delivery](https://bravenewgeek.com/you-cannot-have-exactly-once-delivery/)
 - [Cloudflare Queues 文件](https://developers.cloudflare.com/queues/)
 - [Cloudflare Durable Objects](https://developers.cloudflare.com/durable-objects/)
 - [Web Push API](https://developer.mozilla.org/en-US/docs/Web/API/Push_API)

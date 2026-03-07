@@ -23,9 +23,18 @@ backend/
 │   ├── db/
 │   │   └── schema.sql                      # D1 資料庫 schema
 │   ├── middleware/
-│   │   └── auth.ts                         # JWT 認證中間件
+│   │   ├── auth.ts                         # JWT 認證中間件
+│   │   ├── accessLog.ts                    # 請求/回應日誌中間件
+│   │   ├── dateFormat.ts                   # 回應日期格式中間件
+│   │   └── rateLimit.ts                    # 速率限制中間件
 │   ├── repositories/
-│   │   └── notification-repository.ts      # 通知資料存取層
+│   │   ├── notification-repository.ts      # 通知資料存取層
+│   │   ├── biography-repository.ts         # 人物誌資料存取層
+│   │   ├── biography-content-repository.ts # 人物誌內容查詢
+│   │   ├── biography-content-crud-repository.ts # 人物誌內容 CRUD
+│   │   ├── content-interactions-repository.ts   # 內容互動（按讚/留言）
+│   │   ├── post-repository.ts              # 文章資料存取層
+│   │   └── memory.ts                       # AI 用戶記憶資料存取層
 │   ├── routes/
 │   │   ├── auth.ts                         # 認證路由
 │   │   ├── users.ts                        # 用戶管理 (Admin)
@@ -63,10 +72,17 @@ backend/
 │   │   ├── query.ts                        # AI RAG 問答服務
 │   │   ├── embedding.ts                    # 向量嵌入服務
 │   │   ├── indexing.ts                     # 資料索引服務
+│   │   ├── rank.ts                         # Climber Rank 等級與配額服務
+│   │   ├── recommendation.ts              # AI 路線推薦服務
+│   │   ├── personalization.ts             # 個人化系統（記憶 + 攀登能力）
+│   │   ├── memory-extractor.ts            # AI 用戶記憶萃取
 │   │   └── weather.ts                      # 天氣服務
 │   └── utils/
 │       ├── id.ts                           # ID 工具函數
-│       └── ai-prompts.ts                   # AI Prompt 模板
+│       ├── ai-prompts.ts                   # AI Prompt 模板
+│       ├── guardrails.ts                   # AI 輸入/輸出安全防護
+│       ├── storage.ts                      # R2 檔案儲存工具
+│       └── viewTracker.ts                  # 瀏覽次數追蹤工具
 ├── migrations/                             # D1 資料庫遷移
 ├── wrangler.toml                           # Cloudflare 配置
 ├── package.json
@@ -310,23 +326,39 @@ API 文檔（開發伺服器啟動後可訪問）：
 | GET | `/health` | AI 服務健康檢查 |
 | POST | `/recommendations` | 手動觸發個人化路線推薦（消耗配額） |
 | GET | `/recommendations` | 取得最新路線推薦 |
-| GET | `/quota` | 取得當前用戶 AI 配額狀態 |
+| GET | `/quota/me` | 取得當前用戶 AI 配額狀態（含等級、次數、token） |
+| GET | `/memory` | 取得用戶 AI 記憶 |
+| DELETE | `/memory/:id` | 刪除用戶 AI 記憶 |
+| GET | `/sessions` | 取得對話歷史列表 |
+| POST | `/sessions` | 建立新對話 |
+| DELETE | `/sessions/:id` | 刪除對話 |
+| GET | `/sessions/:id/messages` | 取得對話訊息 |
+| POST | `/sessions/:id/messages` | 儲存對話訊息 |
 
 ### Admin AI `/api/v1/admin/ai`
 
 | Method | Endpoint | Description |
 |--------|----------|-------------|
 | GET | `/dashboard` | AI 儀表板 KPI（查詢數、延遲、回饋率、Token 用量） |
+| GET | `/stats` | Token 用量聚合統計（依時間區間，供費用估算） |
 | GET | `/logs` | 查詢日誌列表 |
 | GET | `/logs/:id` | 日誌詳情 |
-| GET | `/index-status` | 知識庫索引狀態 |
+| GET | `/knowledge` | 知識庫索引狀態（文件數量統計） |
 | GET | `/prompts` | Prompt 列表 |
+| GET | `/prompts/defaults` | 取得預設 Prompt 模板 |
 | POST | `/prompts` | 建立 Prompt |
 | GET | `/prompts/:id` | 取得 Prompt 詳情 |
 | PUT | `/prompts/:id` | 更新 Prompt |
 | DELETE | `/prompts/:id` | 刪除 Prompt |
-| GET | `/settings` | 取得 AI 設定 |
-| PUT | `/settings` | 更新 AI 設定 |
+| GET | `/config` | 取得 AI Pipeline 設定 |
+| PUT | `/config` | 更新 AI Pipeline 設定 |
+| GET | `/users/:userId/rank` | 取得用戶等級詳情（含積分明細） |
+| PUT | `/users/:userId/rank-override` | 覆寫用戶等級 |
+| POST | `/recalculate-ranks` | 批次重算所有用戶等級 |
+| GET | `/quality-stats` | 品質指標統計 |
+| GET | `/latency-stats` | 延遲分段統計 |
+| GET | `/flagged` | 低品質標記列表 |
+| PATCH | `/flagged/:id` | 更新標記狀態 |
 
 ### 媒體 `/api/v1/media`
 
@@ -477,21 +509,26 @@ pnpm deploy:production
 
 | 服務 | 檔案 | 說明 |
 |------|------|------|
-| `QueryService` | `src/services/query.ts` | 智慧 NLP 過濾（地點、難度、路線類型）、Adaptive RAG 問答、SSE 串流輸出 |
+| `QueryService` | `src/services/query.ts` | 智慧 NLP 過濾、Adaptive RAG + Agentic Multi-Step RAG、SSE 串流輸出 |
 | `EmbeddingService` | `src/services/embedding.ts` | 向量嵌入生成與語義搜尋 |
 | `IndexingService` | `src/services/indexing.ts` | 路線/岩場資料向量索引建立 |
-| 管理後台 | `/api/v1/admin/ai` | 查詢日誌、KPI 儀表板、Prompt 管理、AI 設定 |
+| `RankService` | `src/services/rank.ts` | Climber Rank 等級計算、配額管理、Token 追蹤 |
+| `RecommendationService` | `src/services/recommendation.ts` | 個人化路線推薦（完攀後自動觸發） |
+| `PersonalizationService` | `src/services/personalization.ts` | 攀登能力估算、個人化 System Prompt |
+| `MemoryExtractor` | `src/services/memory-extractor.ts` | 從對話中萃取用戶偏好（攀岩等級、偏好地區等） |
+| `Guardrails` | `src/utils/guardrails.ts` | 輸入/輸出安全防護（Prompt Injection、PII 過濾） |
+| 管理後台 | `/api/v1/admin/ai` | 查詢日誌、KPI 儀表板、成本追蹤、Prompt 管理、AI 設定 |
 
 ### 流程圖
 
-#### RAG 問答流程（含 Adaptive RAG）
+#### RAG 問答流程（含 Adaptive RAG + Agentic RAG）
 
 ```
 POST /api/v1/ai/ask
         │
         ▼
   ┌─────────────┐
-  │  配額檢查   │  daily_ai_used >= limit → 429 quota_exceeded
+  │  配額檢查   │  daily_ai_used >= limit OR daily_token_used >= limit → 429
   └──────┬──────┘
          │ 通過
          ▼
@@ -504,7 +541,11 @@ POST /api/v1/ai/ask
   │ QueryClassifier  │  判斷類型：路線查詢 / 岩場查詢 / 一般問答
   └──────┬───────────┘
          │
-         ▼
+    rag_strategy?
+    ┌────┴────┐
+ agentic    baseline
+    │         │
+    ▼         ▼
   ┌──────────────────┐
   │  向量搜尋        │  EmbeddingService → ai_embeddings
   └──────┬───────────┘
@@ -600,31 +641,49 @@ POST /api/v1/ascents（完攀紀錄）
 
 依用戶個人檔案完整度與攀岩紀錄計算積分，對應等級與 AI 配額：
 
-| 等級 | 積分範圍 |
-|------|---------|
-| 麓（foothill） | 0–24 分 |
-| 壁（wall） | 25–54 分 |
-| 稜（ridge） | 55–84 分 |
-| 巔（summit） | 85 分以上 |
+| 等級 | 積分門檻 | daily_ai_limit | daily_token_limit |
+|------|---------|---------------|-------------------|
+| 麓（foothill） | 0 | 2 次 | 5,000 |
+| 壁（wall） | 20 | 6 次 | 15,000 |
+| 稜（ridge） | 70 | 12 次 | 30,000 |
+| 巔（summit） | 100 | 24 次 | 60,000 |
+
+支援 `rank_override_id`：管理員可手動覆寫用戶等級，跳過自動計算。
 
 ### 資料庫表格
 
 ```sql
--- AI 查詢日誌
-ai_query_logs (id, query, response, latency_ms, token_count, feedback_score, query_type, ...)
+-- AI 查詢日誌（含 token 追蹤、品質指標、pipeline trace）
+ai_query_logs (id, user_id, query, response, sources, latency_ms, token_count,
+  groundedness_score, auto_score, feedback_score, query_type, model_used,
+  embedding_ms, retrieval_ms, generation_ms, self_reflection_triggered,
+  is_high_consumption, cache_hit, hyde_triggered, pipeline_trace, ...)
 
--- AI 向量嵌入索引
-ai_embeddings (id, content_type, content_id, embedding, metadata, ...)
+-- AI 文件索引（路線/岩場向量化文件）
+ai_documents (id, content_type, content_id, text, metadata, ...)
 
--- AI Prompt 模板
-ai_prompts (id, name, template, variables, is_active, ...)
+-- AI Prompt 模板（支援版本控制與狀態：draft/production）
+ai_prompts (id, name, version, content, status, ...)
 
--- AI 設定
-ai_settings (key, value, updated_at)
+-- AI 設定（Key-Value，50+ 可調參數）
+ai_config (key, value, updated_at)
+
+-- AI 品質標記（低品質回答人工審視）
+ai_flagged_responses (id, query_log_id, groundedness_score, ...)
+
+-- 用戶 AI 記憶（從對話萃取的偏好）
+user_ai_memory (id, user_id, memory_key, memory_value, memory_type, ...)
 
 -- 用戶路線推薦
 user_recommendations (id, user_id, recommendation, context_ascents, status, ...)
 
+-- 對話歷史
+chat_sessions (id, user_id, created_at, updated_at)
+chat_messages (id, session_id, role, content, suggested_questions, query_id, ...)
+
+-- Climber Rank 等級與配額
+user_ranks (user_id, score, rank_id, daily_ai_used, daily_ai_limit,
+  daily_token_used, daily_token_limit, rank_override_id, last_reset_date, ...)
 ```
 
 ## 環境變數
