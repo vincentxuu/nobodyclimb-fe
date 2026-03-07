@@ -1,285 +1,107 @@
 # NobodyClimb - 攀岩社群平台
 
-專為攀岩愛好者打造的社群平台，採用 **pnpm workspaces + Turborepo** monorepo 架構，前後端均部署於 Cloudflare Workers。
+專為攀岩愛好者打造的社群平台，記錄你的攀岩故事、追蹤完攀紀錄、探索路線資訊。
 
 - **網站**: [nobodyclimb.cc](https://nobodyclimb.cc)
 - **API 文檔**: [api.nobodyclimb.cc/api/v1/docs](https://api.nobodyclimb.cc/api/v1/docs)
 
-## 系統架構
+## 技術架構
 
-| 層級 | 技術 | 說明 |
+| 層級 | 技術 | 位置 |
 |------|------|------|
-| Web 前端 | Next.js 15 + React 19 | `apps/web/`，部署於 Cloudflare Workers |
-| 行動應用 | React Native 0.81 + Expo 54 + Tamagui | `apps/mobile/` |
-| 後端 API | Hono 4.6 + Cloudflare Workers | `backend/`，D1 / R2 / KV |
-| 共用套件 | TypeScript packages | `packages/`，types / schemas / utils / hooks |
+| Web 前端 | Next.js 15 + React 19 + TailwindCSS | `apps/web/` |
+| 行動應用 | React Native + Expo 54 + Tamagui | `apps/mobile/` |
+| 後端 API | Hono + Cloudflare Workers (D1 / R2 / KV) | `backend/` |
+| AI 推論 | Cloudflare Workers AI (LLM + Embedding) | `backend/src/services/` |
+| 共用套件 | TypeScript (types / schemas / utils / hooks) | `packages/` |
 
-## 技術棧
-
-### 前端 (`apps/web`)
-
-- Next.js 15.5 (App Router)、React 19、TypeScript 5.9
-- TailwindCSS 3.4、Radix UI、Framer Motion 12.23
-- Zustand 4.5（全域狀態）、TanStack Query 5.85（伺服器狀態）
-- React Hook Form 7.62 + Zod 3.25（表單驗證）
-- Axios（JWT 自動注入）、js-cookie、dnd-kit、React Quill
-- Jest 29.7 + React Testing Library 16.3
-- 部署：OpenNext.js 1.6.5 + Wrangler
-
-### 後端 (`backend`)
-
-- Hono 4.6、Cloudflare D1 (SQLite)、R2、KV
-- OpenAPI 3.1（hono-openapi 自動生成）+ Scalar API Reference UI
-- Zod + zod-openapi 驗證、JWT (jose) 認證
-- Cloudflare AI Workers Inference（LLM + Embedding）
+前後端均部署於 **Cloudflare Workers**，使用 **pnpm workspaces + Turborepo** 管理 monorepo。
 
 ## 主要功能
 
-- **用戶認證**: 註冊、登入、Google OAuth、多步驟設定
-- **等級系統**: 麓 / 壁 / 稜 / 巔，依個人檔案完整度與攀岩紀錄積分計算
-- **個人檔案**: 攀岩經驗、身體數據、文章管理、書籤收藏
-- **人物誌**: 核心故事、一句話、小故事，含追蹤、按讚、留言、快速反應
-- **攀登紀錄**: 完攀日期、難度評分、路線追蹤
-- **路線故事**: 分享、按讚、留言、標記有幫助
-- **人生清單**: 攀岩目標（依分類、地點）、完成追蹤
-- **岩場 / 攀岩館**: 詳情、路線、天氣、地圖
-- **相片集**: 瀏覽、上傳、裁切
-- **影片瀏覽**: 14+ 個 YouTube 頻道、11 種分類、篩選播放
-- **通知系統**: 按讚 / 留言 / 追蹤通知，管理員廣播
-- **搜尋**: 全站搜尋、語義搜尋、進階篩選
-- **AI 問答**: RAG 自然語言問答（SSE 串流逐字輸出）、每日配額（依等級，次數 + Token 雙重上限）、Adaptive RAG（查詢分類 + 校正式 RAG）、Agentic Multi-Step RAG（LLM 驅動多輪搜尋）
-- **AI Chat Widget**: 浮動對話視窗、對話歷史持久化、隨機建議問題輪播、串流逐字顯示
-- **AI 路線推薦**: 完攀後非同步自動觸發個人化路線推薦（`ctx.waitUntil()`），不阻塞 API 回應
-- **AI 個人化**: 用戶記憶（跨會話）、依攀登紀錄語境化問答
-- **AI 安全防護**: 輸入 / 輸出 Guardrails、Token Budget 管理
-- **AI 品質評估**: LLM Judge、Groundedness Evaluation、RAG Tracing
-- **AI 成本追蹤**: 分段 Token 消耗追蹤（token_breakdown）、高消耗標記、Admin 統計儀表板
+- **人物誌** — 核心故事、一句話、小故事，展現你的攀岩人生
+- **攀登紀錄** — 完攀日期、難度評分、路線追蹤
+- **人生清單** — 設定攀岩目標，追蹤完成進度
+- **岩場 / 攀岩館** — 路線資訊、天氣、地圖
+- **路線影片** — 14+ 個 YouTube 頻道、11 種分類篩選
+- **AI 問答** — RAG 自然語言問答，串流逐字輸出，個人化攀岩建議
+- **等級系統** — 麓 / 壁 / 稜 / 巔，依貢獻解鎖更多功能
+- **社群互動** — 追蹤、按讚、留言、快速反應、通知
+- **管理後台** — 用戶管理、岩場 / 攀岩館管理、廣播通知、Analytics 儀表板、AI 管理（日誌、Prompt 設定、知識庫、成本追蹤）
 
-## 專案結構
+## AI 功能
 
-```text
-nobodyclimb/
-├── apps/
-│   ├── web/                    # Next.js Web 前端
-│   │   ├── src/
-│   │   │   ├── app/            # App Router 頁面
-│   │   │   ├── components/     # React 元件（按領域分組）
-│   │   │   ├── lib/            # API client、工具函式
-│   │   │   └── store/          # Zustand stores
-│   │   ├── public/data/        # 靜態影片資料 JSON
-│   │   └── scripts/            # YouTube 資料處理腳本
-│   └── mobile/                 # React Native 行動應用
-├── backend/                    # Cloudflare Workers API
-│   ├── src/
-│   │   ├── routes/             # API 路由（含 OpenAPI 裝飾器）
-│   │   ├── services/           # 業務邏輯（RAG、等級、推薦、個人化）
-│   │   ├── repositories/       # 資料存取層
-│   │   ├── middleware/         # 認證、存取日誌、速率限制
-│   │   ├── utils/              # AI Prompts、Guardrails、儲存工具
-│   │   └── db/schema.sql       # D1 資料庫 schema
-│   └── migrations/             # D1 遷移腳本
-├── packages/                   # 共用套件
-│   ├── types/                  # TypeScript 型別
-│   ├── schemas/                # Zod schemas
-│   ├── constants/              # 共用常數
-│   ├── hooks/                  # 共用 React Hooks
-│   ├── utils/                  # 通用工具函式
-│   └── api-client/             # API 客戶端
-└── docs/                       # 技術文件
-```
+平台內建 AI 攀岩助手，基於 Cloudflare Workers AI 推論，提供攀岩相關的智慧問答與推薦：
+
+- **RAG 問答** — 結合向量搜尋與全文搜尋，針對岩場、路線、攀岩知識進行自然語言問答
+- **Adaptive RAG** — 自動分類查詢類型，相關性不足時回退至全文搜尋補強
+- **Agentic Multi-Step RAG** — 複雜問題觸發多輪搜尋（ReAct 模式），由 LLM 驅動搜尋決策
+- **SSE 串流** — 逐字輸出回應，提升使用體驗
+- **個人化** — 依攀登紀錄與用戶偏好調整回答內容，跨會話記憶
+- **路線推薦** — 完攀後自動觸發個人化路線推薦
+- **安全防護** — 輸入 / 輸出 Guardrails、Token Budget 管理
+- **配額系統** — 依等級設定每日使用上限（次數 + Token 雙重限制）
+- **管理儀表板** — AI 日誌查詢、Prompt 設定、知識庫管理、成本追蹤與用量統計
 
 ## 快速開始
 
-### 前置需求
-
-- Node.js 18+、pnpm
-
-### 安裝與啟動
-
 ```bash
+# 前置需求：Node.js 18+、pnpm
 pnpm install
-pnpm dev          # 啟動所有服務（Turborepo）
-pnpm dev:web      # 僅前端 localhost:3000
-pnpm dev:backend  # 僅後端 localhost:8787
+pnpm dev          # 啟動所有服務
+pnpm dev:web      # 僅前端 (localhost:3000)
+pnpm dev:backend  # 僅後端 (localhost:8787)
 ```
-
-API 文檔：`http://localhost:8787/api/v1/docs`
 
 ### 常用指令
 
 ```bash
 pnpm build        # 建構所有套件
-pnpm build:cf     # 建構前端 Cloudflare 版本
-pnpm lint         # Lint 所有套件
+pnpm lint         # ESLint 檢查
 pnpm test         # 執行測試
 pnpm typecheck    # TypeScript 型別檢查
 pnpm format       # Prettier 格式化
 ```
 
-### 後端資料庫
+## 專案結構
 
-```bash
-cd backend
-pnpm db:migrate         # 本地遷移
-pnpm db:migrate:remote  # 遠端 D1 遷移
+```
+nobodyclimb/
+├── apps/
+│   ├── web/               # Next.js Web 前端
+│   │   ├── src/app/       # App Router 頁面
+│   │   ├── src/components # React 元件（按領域分組）
+│   │   ├── src/lib/       # API client、工具函式
+│   │   └── src/store/     # Zustand stores
+│   └── mobile/            # React Native 行動應用
+├── backend/
+│   ├── src/routes/        # API 路由（含 OpenAPI）
+│   ├── src/services/      # 業務邏輯
+│   ├── src/repositories/  # 資料存取層
+│   └── migrations/        # D1 遷移腳本
+├── packages/              # 共用套件 (types, schemas, utils, hooks, api-client)
+└── docs/                  # 技術文件
 ```
 
 ## 部署
 
-### 前端
+前後端皆透過 GitHub Actions 自動部署：
+
+- `main` 分支 → 生產環境（`nobodyclimb.cc` / `api.nobodyclimb.cc`）
+- 其他分支 → 預覽環境
+
+手動部署：
 
 ```bash
-cd apps/web
-pnpm build:cf
-wrangler deploy --env production   # nobodyclimb.cc
-wrangler deploy --env preview
-wrangler tail --env production     # 查看日誌
+# 前端
+cd apps/web && pnpm build:cf && wrangler deploy --env production
+
+# 後端
+cd backend && pnpm db:migrate:remote && pnpm deploy:production
 ```
-
-### 後端
-
-```bash
-cd backend
-wrangler secret put JWT_SECRET --env production  # 僅首次
-pnpm db:migrate:remote
-pnpm deploy:production
-```
-
-### 環境對照
-
-| 層 | 生產 | 預覽 |
-|----|------|------|
-| 前端 Worker | `nobodyclimb-fe-production` | `nobodyclimb-fe-preview` |
-| 後端 Worker | `nobodyclimb-api-production` | `nobodyclimb-api-preview` |
-| D1 | `nobodyclimb-db` | `nobodyclimb-db-preview` |
-| R2 | `nobodyclimb-storage` | `nobodyclimb-storage-preview` |
-
-### CI/CD
-
-GitHub Actions 自動部署：
-
-- `deploy.yml`：前端，`main` → production（啟用 Analytics），其他分支 → preview
-- `deploy-api.yml`：後端，偵測 `backend/` 變更自動部署，需要 `CLOUDFLARE_API_TOKEN` secret
-
-## YouTube 影片腳本
-
-所有腳本位於 `apps/web/scripts/`，需安裝 `brew install yt-dlp jq`。
-
-### 頻道管理
-
-```bash
-./scripts/add-channel.sh                   # 互動式新增頻道
-./scripts/add-channel.sh 'https://...' 30000  # 直接傳參
-./scripts/update-videos.sh                 # 批次更新所有頻道
-```
-
-### 元數據更新
-
-```bash
-node scripts/update-video-metadata.js              # 更新缺少元數據的影片
-node scripts/update-video-metadata.js --force --limit 50  # 強制重新抓取
-node scripts/update-video-metadata.js --dry-run    # 只顯示統計
-```
-
-| 參數 | 說明 |
-|------|------|
-| `--force` | 強制重新抓取所有影片 |
-| `--limit N` | 只抓取 N 個影片 |
-| `--offset N` | 跳過前 N 個（分批用） |
-| `--newest-first` | 優先更新最新影片 |
-| `--regenerate` | 更新後重新生成 chunks |
-
-### 路線影片工作流程
-
-```bash
-# 1. 搜尋路線相關影片
-node scripts/search-route-videos.js longdong --limit=5
-
-# 2. 在 Google Sheets 中審核，下載 CSV
-
-# 3. 匯入
-node scripts/import-route-videos.js output/route-videos-longdong.csv
-
-# 4. 抓取元數據
-node scripts/fetch-video-metadata.js --limit 100
-```
-
-可用岩場 ID：`longdong`、`defulan`、`guanziling`、`kenting`、`shoushan`
-
-## AI 系統
-
-### 模型配置
-
-| 角色 | 模型 |
-|------|------|
-| LLM | `@cf/google/gemma-3-12b-it` |
-| 向量嵌入 | `@cf/baai/bge-m3`（1024 維，多語言，繁中效果佳） |
-
-### 架構
-
-| 服務 | 說明 |
-|------|------|
-| `QueryService` | NLP 過濾（地點、難度、路線類型）、RAG 問答、SSE 串流輸出 |
-| `EmbeddingService` | 向量嵌入生成與語義搜尋 |
-| `IndexingService` | 路線 / 岩場資料向量索引建立 |
-| `RankService` | Climber Rank 等級計算、配額管理、Token 追蹤與校正 |
-| `RecommendationService` | 個人化路線推薦（完攀後自動觸發） |
-| `PersonalizationService` | 攀登能力估算、個人化 System Prompt |
-| `MemoryExtractor` | 從對話中萃取用戶偏好（攀岩等級、偏好地區等） |
-| `Guardrails` | 輸入 / 輸出安全防護（Prompt Injection、PII 過濾） |
-
-### 主要特色
-
-**SSE 串流**：`POST /api/v1/ai/ask?stream=true`，以 Server-Sent Events 逐字回傳 token；客戶端中途斷線自動退還已扣配額。
-
-**Adaptive RAG**：
-- `QueryClassifier` 判斷問題類型（路線查詢、岩場查詢、一般問答等）
-- `CorrectiveRAG` 在向量搜尋相關性不足時，自動回退至全文搜尋補強
-
-**Agentic Multi-Step RAG**（`rag_strategy = 'agentic'`，complex 查詢觸發）：
-- LLM 作為決策者，控制多輪搜尋迴圈（ReAct 模式，最多 `agentic_max_steps` 步）
-- 每輪決定行動：`ANSWER`（資訊足夠）、`RETRIEVE`（補充搜尋）、`BROADEN`（放寬條件）
-- 文件數達 `agentic_min_docs_to_answer` 時提前終止
-- 三種終止原因：`enough_docs` / `max_steps` / `no_improvement`
-- simple 查詢即使設定 agentic 也自動走 Baseline（成本保護）
-
-**每日配額系統**：依等級設定雙重上限（請求次數 + Token 消耗），原子 SQL UPDATE 同時檢查兩條件，防止並發超量。LLM 完成後以實際 token 數校正估算差額。
-
-| 等級 | 積分門檻 | daily_ai_limit | daily_token_limit |
-|------|---------|---------------|-------------------|
-| 麓（foothill）| 0 | 2 次 | 5,000 |
-| 壁（wall） | 20 | 6 次 | 15,000 |
-| 稜（ridge） | 70 | 12 次 | 30,000 |
-| 巔（summit） | 100 | 24 次 | 60,000 |
-
-**等級積分來源**：biography 文字欄位（+3/欄，上限 12）、人生清單有項目（+3）、公開 biography（+5）、核心故事（+8/篇，上限 24）、一句話（+2/篇，上限 20）、小故事（+3/篇，上限 15）、攀登紀錄（+1/筆，上限 20）、人生清單（+1/項，上限 10；完成額外 +2，上限 10）。支援 `rank_override_id` 管理員覆寫。
-
-**AI Chat Widget**（管理員目前開放，`NEXT_PUBLIC_ENABLE_AI_CHAT=true` 控制）：
-- 浮動對話視窗，對話歷史持久化至資料庫
-- 空白狀態隨機輪播建議問題（從 12+ 題庫中取 3 題）
-- 串流逐字顯示，標題列支援「歷史」與「清除」快捷鍵
-
-**AI 路線推薦**：完攀後以 `ctx.waitUntil()` 非同步觸發，不佔用配額、不阻塞 ascent API；可在個人檔案推薦頁籤查看。
-
-**安全防護**：輸入 Guardrails（過濾有害查詢）、輸出 Guardrails（清理回應內容）、Token Budget 管理防止超額消耗。
-
-**品質評估**：LLM Judge 評分、Groundedness Evaluation 確認回應有所據、RAG Tracing 追蹤檢索鏈路，統計可在 Admin AI 儀表板查看。
-
-**Token 追蹤與成本管理**：每次查詢記錄分段 token 消耗（query_parsing / hyde / multi_query / main_generation / judge），超過門檻自動標記 `is_high_consumption`，Admin 統計端點提供用量趨勢與快取命中率。
 
 ## 開發慣例
 
-- TypeScript 嚴格型別；前端使用 `@/` 路徑別名
+- TypeScript 嚴格型別，前端使用 `@/` 路徑別名
 - 元件按領域分組：`components/<domain>/`
-- 人物誌互動統一使用 `components/biography/display/ContentInteractionBar`
-- 所有程式碼、註解、文件使用繁體中文
-
-## Analytics 環境變數
-
-| 變數 | 說明 |
-|------|------|
-| `NEXT_PUBLIC_ENABLE_ANALYTICS` | 總開關（`'true'` 啟用，CI 自動設定） |
-| `NEXT_PUBLIC_GA_ID` | Google Analytics ID |
-| `NEXT_PUBLIC_CLARITY_ID` | Microsoft Clarity ID |
-| `NEXT_PUBLIC_POSTHOG_KEY` | PostHog API Key |
-| `NEXT_PUBLIC_POSTHOG_HOST` | PostHog Host URL |
+- 所有程式碼、註解、文件使用**繁體中文**
