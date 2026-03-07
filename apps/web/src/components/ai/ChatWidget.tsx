@@ -276,7 +276,7 @@ export function ChatWidget() {
             abortControllerRef.current = null
             setMessages((prev) => prev.map((m) =>
               m.id === streamingMsgId
-                ? { ...m, content: m.content ? m.content + '\n\n⚠ 生成中斷，請重試' : '抱歉，AI 服務暫時無法使用，請稍後再試。' }
+                ? { ...m, content: m.content ? m.content + '\n\n⚠ 生成中斷，請重試' : errMessage }
                 : m
             ))
             console.error('Stream error:', errMessage)

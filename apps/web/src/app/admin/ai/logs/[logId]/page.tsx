@@ -1,6 +1,6 @@
 'use client'
 
-import { use, useState } from 'react'
+import { use, useState, useMemo } from 'react'
 import Link from 'next/link'
 import {
   ArrowLeft,
@@ -32,7 +32,7 @@ import {
   RotateCcw,
   ArrowUpDown,
 } from 'lucide-react'
-import { useAILogDetail, type AILogDetail } from '@/lib/api/admin-ai'
+import { useAILogDetail, useAIConfig, DEFAULT_COST_PROVIDERS, type AILogDetail, type CostProvider } from '@/lib/api/admin-ai'
 import { MarkdownContent } from '@/components/ai/ChatMessage'
 
 // =============================================
@@ -1823,38 +1823,78 @@ function SelfReflectionTrace({
 function JudgeTrace({ pipelineStage, response }: { pipelineStage: Record<string, unknown> | null; response: string | null }) {
   const groundedness = pipelineStage?.groundedness_score as number | null | undefined
   const quality = pipelineStage?.auto_score as number | null | undefined
-  const rawScores = pipelineStage?.raw_scores as Record<string, number> | undefined
-  const criteria = pipelineStage?.criteria as string[] | undefined
+  const judgeDetail = pipelineStage as Record<string, unknown> | null
+  const rawLlmResponse = judgeDetail?.raw_llm_response as string | null | undefined
+  const contextChars = judgeDetail?.context_chars as number | null | undefined
+  const contextTruncated = judgeDetail?.context_truncated as boolean | undefined
+  const responseChars = judgeDetail?.response_chars as number | null | undefined
+
+  // groundedness 說明文字（對應 JUDGE_PROMPT 的評分標準）
+  const groundednessLabel = groundedness == null ? null
+    : groundedness >= 0.9 ? '所有陳述都有明確依據'
+    : groundedness >= 0.7 ? '大部分有依據，少量推斷'
+    : groundedness >= 0.5 ? '約一半有依據，一半是推斷'
+    : groundedness >= 0.3 ? '少量有依據，大部分是推斷'
+    : '幾乎沒有依據或大量推斷'
+
+  const qualityLabel = quality == null ? null
+    : quality === 4 ? '直接相關、完整、格式正確'
+    : quality === 3 ? '大致相關，有小缺失'
+    : quality === 2 ? '部分相關或不完整'
+    : '不相關或嚴重錯誤'
 
   return (
     <div>
       <StageDesc>使用獨立的 LLM Judge 對生成回答進行品質評估。Groundedness 衡量回答有多少內容有文件支撐（防止幻覺）；Quality 衡量回答的完整性與相關性。兩項分數供 Self-Reflection 決策重生成，並永久記錄供管理員監控。</StageDesc>
     <IOFlow>
       <StageSection type="input">
-        <div className="space-y-1">
+        <div className="space-y-1.5">
           <KVRow label="觸發條件" value="所有 LLM 生成的回答皆執行；提供 Groundedness 與 Quality 評分給 Self-Reflection 使用" />
-          <p className="text-wb-50 mt-0.5">AI 回答 + 檢索到的來源文件</p>
+          <div className="flex flex-wrap gap-4 text-[11px]">
+            {contextChars != null && (
+              <span className="text-wb-50">
+                來源文件：<span className="font-mono text-wb-80">{contextChars.toLocaleString()} 字元</span>
+                {contextTruncated && <span className="text-amber-600 ml-1">（已截斷）</span>}
+              </span>
+            )}
+            {responseChars != null && (
+              <span className="text-wb-50">
+                待評回答：<span className="font-mono text-wb-80">{responseChars.toLocaleString()} 字元</span>
+              </span>
+            )}
+          </div>
           {response && (
-            <p className="italic text-wb-60 line-clamp-2">{response}</p>
+            <p className="italic text-wb-60 line-clamp-2 text-[11px]">{response}</p>
           )}
         </div>
       </StageSection>
       <StageSection type="decision">
-        <div className="space-y-1.5">
-          <div>
-            <p className="text-wb-40 mb-0.5">Groundedness 計算</p>
-            <p className="text-wb-50">逐句比對回答與來源文件的接地性（0–1）</p>
-          </div>
-          <div>
-            <p className="text-wb-40 mb-0.5">Quality 評分</p>
-            <p className="text-wb-50">LLM Judge 對回答完整性、相關性進行 1–4 量表評分</p>
-          </div>
-          {criteria && criteria.length > 0 && (
-            <div>
-              <p className="text-wb-40 mb-1">評判向度：</p>
-              <div className="flex flex-wrap gap-1">
-                {criteria.map((c) => <TraceBadge key={c} text={c} color="blue" />)}
+        <div className="space-y-2">
+          <div className="grid grid-cols-2 gap-3">
+            <div className="rounded-md border border-wb-15 bg-wb-03 p-2">
+              <p className="text-[10px] font-medium text-wb-60 mb-1">Groundedness 評分標準（0–1）</p>
+              <div className="space-y-0.5 text-[10px] text-wb-50">
+                <p><span className="font-mono text-emerald-600">1.0</span>　所有陳述都有明確依據</p>
+                <p><span className="font-mono text-emerald-600">0.75</span>　大部分有依據，少量推斷</p>
+                <p><span className="font-mono text-amber-600">0.5</span>　約一半有依據，一半是推斷</p>
+                <p><span className="font-mono text-amber-600">0.25</span>　少量有依據，大部分推斷</p>
+                <p><span className="font-mono text-red-500">0.0</span>　完全沒有依據或純粹捏造</p>
               </div>
+            </div>
+            <div className="rounded-md border border-wb-15 bg-wb-03 p-2">
+              <p className="text-[10px] font-medium text-wb-60 mb-1">Quality 評分標準（1–4）</p>
+              <div className="space-y-0.5 text-[10px] text-wb-50">
+                <p><span className="font-mono text-emerald-600">4</span>　直接相關、完整、格式正確</p>
+                <p><span className="font-mono text-emerald-600">3</span>　大致相關，有小缺失</p>
+                <p><span className="font-mono text-amber-600">2</span>　部分相關或不完整</p>
+                <p><span className="font-mono text-red-500">1</span>　不相關或嚴重錯誤</p>
+              </div>
+            </div>
+          </div>
+          {rawLlmResponse != null && (
+            <div>
+              <p className="text-[10px] text-wb-40 mb-0.5">Judge LLM 原始回覆</p>
+              <pre className="rounded bg-wb-05 border border-wb-15 px-2.5 py-1.5 text-[11px] font-mono text-wb-80 whitespace-pre-wrap break-all">{rawLlmResponse}</pre>
             </div>
           )}
         </div>
@@ -1866,9 +1906,12 @@ function JudgeTrace({ pipelineStage, response }: { pipelineStage: Record<string,
               <p className="text-wb-40 text-[10px]">Groundedness</p>
               <p className="text-[9px] text-wb-25 mb-0.5">回答有多少來自文件（0–1，≥70% 良好）</p>
               {groundedness != null ? (
-                <p className={`text-base font-bold tabular-nums ${groundedness >= 0.7 ? 'text-emerald-600' : groundedness >= 0.5 ? 'text-amber-600' : 'text-red-500'}`}>
-                  {(groundedness * 100).toFixed(0)}%
-                </p>
+                <div>
+                  <p className={`text-base font-bold tabular-nums ${groundedness >= 0.7 ? 'text-emerald-600' : groundedness >= 0.5 ? 'text-amber-600' : 'text-red-500'}`}>
+                    {(groundedness * 100).toFixed(0)}%
+                  </p>
+                  {groundednessLabel && <p className="text-[10px] text-wb-40 mt-0.5">{groundednessLabel}</p>}
+                </div>
               ) : (
                 <p className="text-wb-40 text-base">—</p>
               )}
@@ -1877,27 +1920,17 @@ function JudgeTrace({ pipelineStage, response }: { pipelineStage: Record<string,
               <p className="text-wb-40 text-[10px]">Quality</p>
               <p className="text-[9px] text-wb-25 mb-0.5">回答完整性與相關性（1–4，≥3 良好）</p>
               {quality != null ? (
-                <p className={`text-base font-bold tabular-nums ${quality >= 3 ? 'text-emerald-600' : quality >= 2 ? 'text-amber-600' : 'text-red-500'}`}>
-                  {quality} / 4
-                </p>
+                <div>
+                  <p className={`text-base font-bold tabular-nums ${quality >= 3 ? 'text-emerald-600' : quality >= 2 ? 'text-amber-600' : 'text-red-500'}`}>
+                    {quality} / 4
+                  </p>
+                  {qualityLabel && <p className="text-[10px] text-wb-40 mt-0.5">{qualityLabel}</p>}
+                </div>
               ) : (
                 <p className="text-wb-40 text-base">—</p>
               )}
             </div>
           </div>
-          {rawScores && Object.keys(rawScores).length > 0 && (
-            <div>
-              <p className="text-wb-40 text-[10px] mb-1">各向度原始分數：</p>
-              <div className="flex flex-wrap gap-2">
-                {Object.entries(rawScores).map(([dim, score]) => (
-                  <div key={dim} className="text-[11px]">
-                    <span className="text-wb-50">{dim}: </span>
-                    <span className="font-mono text-wb-80">{typeof score === 'number' && score <= 1 ? `${(score * 100).toFixed(0)}%` : score}</span>
-                  </div>
-                ))}
-              </div>
-            </div>
-          )}
         </div>
       </StageSection>
     </IOFlow>
@@ -2637,6 +2670,190 @@ function DecisionNarrative({
 }
 
 // =============================================
+// 費用分析卡片
+// =============================================
+
+type StageBreakdownItem = {
+  prompt_tokens: number
+  completion_tokens: number
+  total_tokens: number
+  model: string
+  estimated: boolean
+}
+
+type TokenBreakdown = NonNullable<NonNullable<AILogDetail['pipeline_trace']>['token_breakdown']>
+
+function calcCost(inputTokens: number, outputTokens: number, provider: CostProvider): number {
+  return (inputTokens * provider.input_per_1m + outputTokens * provider.output_per_1m) / 1_000_000
+}
+
+function formatCost(cost: number): string {
+  return `$${cost.toFixed(6)}`
+}
+
+function CostAnalysisCard({ pipelineTrace }: { pipelineTrace: AILogDetail['pipeline_trace'] }) {
+  const { data: aiConfig } = useAIConfig()
+  const [hiddenProviders, setHiddenProviders] = useState<Set<string>>(new Set())
+
+  // 解析供應商設定（useMemo 須在 early return 之前）
+  const providers = useMemo<CostProvider[]>(() => {
+    try {
+      const raw = aiConfig?.['cost_providers']
+      if (raw) {
+        const parsed = JSON.parse(raw) as CostProvider[]
+        if (Array.isArray(parsed) && parsed.length > 0) return parsed
+      }
+    } catch { /* fallback */ }
+    return DEFAULT_COST_PROVIDERS
+  }, [aiConfig])
+
+  const tb = pipelineTrace?.token_breakdown
+  if (!tb) return null
+
+  const visibleProviders = providers.filter((p) => !hiddenProviders.has(p.id))
+
+  // 建立各 stage 列表
+  const singleStages: Array<{ key: string; label: string; data: StageBreakdownItem }> = []
+  const stageKeys: Array<[keyof TokenBreakdown, string]> = [
+    ['tool_selection', 'Tool Selection（路由決策）'],
+    ['hyde', 'HyDE（假設文件）'],
+    ['multi_query', 'Multi-Query（查詢擴展）'],
+    ['main_generation', 'Main Generation（主生成）'],
+    ['self_reflection_regen', 'Self-Reflection Regen（重生成）'],
+    ['judge', 'Judge（品質評估）'],
+    ['judge_2nd', 'Judge 2nd（重生成評估）'],
+  ]
+  for (const [key, label] of stageKeys) {
+    const data = tb[key] as StageBreakdownItem | undefined
+    if (data) singleStages.push({ key, label, data })
+  }
+
+  const agenticDecisions = tb.agentic_decisions
+  type AgenticDecisionItem = StageBreakdownItem & { step: number }
+
+  // 計算各 stage 費用（用於找最貴 stage）
+  const stageCosts = singleStages.map((s) =>
+    visibleProviders.reduce((sum, p) => sum + calcCost(s.data.prompt_tokens, s.data.completion_tokens, p), 0)
+  )
+  const maxStageCost = Math.max(...stageCosts, 0)
+
+  // 合計
+  const totalInput = singleStages.reduce((s, r) => s + r.data.prompt_tokens, 0) +
+    (agenticDecisions?.reduce((s, d) => s + d.prompt_tokens, 0) ?? 0)
+  const totalOutput = singleStages.reduce((s, r) => s + r.data.completion_tokens, 0) +
+    (agenticDecisions?.reduce((s, d) => s + d.completion_tokens, 0) ?? 0)
+
+  const toggleProvider = (id: string) => {
+    setHiddenProviders((prev) => {
+      const next = new Set(prev)
+      if (next.has(id)) next.delete(id)
+      else next.add(id)
+      return next
+    })
+  }
+
+  const colSpan = visibleProviders.length
+
+  return (
+    <div className="rounded-xl border border-wb-20 bg-white overflow-hidden">
+      <div className="border-b border-wb-10 px-5 py-4">
+        <h2 className="text-sm font-semibold text-wb-100">費用分析</h2>
+        <p className="mt-0.5 text-xs text-wb-50">各 stage token 消耗與不同供應商費用估算（USD）</p>
+      </div>
+
+      {/* 供應商切換 */}
+      <div className="flex flex-wrap gap-1.5 px-5 py-3 border-b border-wb-10 bg-wb-05">
+        {providers.map((p) => (
+          <button
+            key={p.id}
+            onClick={() => toggleProvider(p.id)}
+            className={`rounded-full border px-2.5 py-0.5 text-[11px] font-medium transition-colors ${
+              hiddenProviders.has(p.id)
+                ? 'border-wb-20 text-wb-40 bg-white'
+                : 'border-blue-300 text-blue-700 bg-blue-50'
+            }`}
+          >
+            {p.name}
+          </button>
+        ))}
+        <span className="ml-auto text-[10px] text-wb-40 self-center">點擊切換顯示</span>
+      </div>
+
+      {/* 費用表格 */}
+      <div className="overflow-x-auto">
+        <table className="w-full text-xs">
+          <thead>
+            <tr className="border-b border-wb-10 bg-wb-05">
+              <th className="px-4 py-2 text-left font-semibold text-wb-60 w-48">Stage</th>
+              <th className="px-3 py-2 text-right font-semibold text-wb-60">Input</th>
+              <th className="px-3 py-2 text-right font-semibold text-wb-60">Output</th>
+              {visibleProviders.map((p) => (
+                <th key={p.id} className="px-3 py-2 text-right font-semibold text-wb-60 whitespace-nowrap">{p.name}</th>
+              ))}
+            </tr>
+          </thead>
+          <tbody className="divide-y divide-wb-10">
+            {singleStages.map((s, i) => {
+              const isMaxCost = stageCosts[i] === maxStageCost && maxStageCost > 0
+              return (
+                <tr key={s.key} className={isMaxCost ? 'bg-orange-50/60' : 'hover:bg-wb-05'}>
+                  <td className="px-4 py-2 text-wb-70 font-medium">
+                    {s.data.estimated && <span className="text-wb-40 mr-1">~</span>}
+                    {s.label}
+                  </td>
+                  <td className="px-3 py-2 text-right font-mono text-wb-70">{s.data.prompt_tokens.toLocaleString()}</td>
+                  <td className="px-3 py-2 text-right font-mono text-wb-70">{s.data.completion_tokens.toLocaleString()}</td>
+                  {visibleProviders.map((p) => (
+                    <td key={p.id} className="px-3 py-2 text-right font-mono text-wb-80">
+                      {formatCost(calcCost(s.data.prompt_tokens, s.data.completion_tokens, p))}
+                    </td>
+                  ))}
+                </tr>
+              )
+            })}
+
+            {/* Agentic decisions 展開 */}
+            {agenticDecisions && agenticDecisions.length > 0 && agenticDecisions.map((d: AgenticDecisionItem) => (
+              <tr key={`agentic-${d.step}`} className="hover:bg-wb-05">
+                <td className="px-4 py-2 text-wb-50">
+                  {d.estimated && <span className="text-wb-40 mr-1">~</span>}
+                  Agentic Decision（step {d.step}）
+                </td>
+                <td className="px-3 py-2 text-right font-mono text-wb-60">{d.prompt_tokens.toLocaleString()}</td>
+                <td className="px-3 py-2 text-right font-mono text-wb-60">{d.completion_tokens.toLocaleString()}</td>
+                {visibleProviders.map((p) => (
+                  <td key={p.id} className="px-3 py-2 text-right font-mono text-wb-70">
+                    {formatCost(calcCost(d.prompt_tokens, d.completion_tokens, p))}
+                  </td>
+                ))}
+              </tr>
+            ))}
+
+            {/* 合計列 */}
+            <tr className="bg-wb-05 font-semibold border-t-2 border-wb-20">
+              <td className="px-4 py-2.5 text-wb-80">合計</td>
+              <td className="px-3 py-2.5 text-right font-mono text-wb-80">{totalInput.toLocaleString()}</td>
+              <td className="px-3 py-2.5 text-right font-mono text-wb-80">{totalOutput.toLocaleString()}</td>
+              {visibleProviders.map((p) => (
+                <td key={p.id} className="px-3 py-2.5 text-right font-mono text-wb-100">
+                  {formatCost(calcCost(totalInput, totalOutput, p))}
+                </td>
+              ))}
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div className="px-5 py-2.5 bg-wb-05 border-t border-wb-10">
+        <p className="text-[10px] text-wb-40">
+          ~ 表示串流模式估算值（字元數 / 2）。供應商定價可在設定 → 費用模擬 Tab 調整。
+        </p>
+      </div>
+    </div>
+  )
+}
+
+// =============================================
 // Main Page
 // =============================================
 
@@ -2776,6 +2993,11 @@ export default function AdminAILogDetailPage({ params }: { params: Promise<{ log
             ))}
           </div>
         </div>
+      )}
+
+      {/* 費用分析 */}
+      {log.pipeline_trace?.token_breakdown && (
+        <CostAnalysisCard pipelineTrace={log.pipeline_trace} />
       )}
 
       <p className="text-xs text-wb-40">ID: {log.id}</p>

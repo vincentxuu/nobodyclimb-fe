@@ -147,7 +147,14 @@ export async function askAIStream(
   })
 
   if (!response.ok || !response.body) {
-    onError('抱歉，AI 服務暫時無法使用，請稍後再試。')
+    // 嘗試讀取後端回傳的錯誤訊息（如 guardrails 攔截、配額耗盡等）
+    try {
+      const errJson = await response.json() as { message?: string; error?: string }
+      const errMsg = errJson.message ?? '抱歉，AI 服務暫時無法使用，請稍後再試。'
+      onError(errMsg)
+    } catch {
+      onError('抱歉，AI 服務暫時無法使用，請稍後再試。')
+    }
     return
   }
 

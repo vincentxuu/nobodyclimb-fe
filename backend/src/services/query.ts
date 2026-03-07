@@ -158,7 +158,7 @@ async function loadPipelineConfig(db: D1Database): Promise<PipelineConfig> {
     // Token 限制
     max_tokens_generation:        num(cfg['max_tokens_generation'],        800,  200,  2000),
     max_tokens_gk:                num(cfg['max_tokens_gk'],                600,  200,  2000),
-    high_consumption_threshold:   num(cfg['high_consumption_threshold'],   1000, 100,  10000),
+    high_consumption_threshold:   num(cfg['high_consumption_threshold'],   3000, 100,  10000),
     // 品質閾值
     groundedness_disclaimer_low:  num(cfg['groundedness_disclaimer_low'],  0.6,  0,    1),
     groundedness_disclaimer_mid:  num(cfg['groundedness_disclaimer_mid'],  0.8,  0,    1),
@@ -198,6 +198,15 @@ async function loadPipelineConfig(db: D1Database): Promise<PipelineConfig> {
   };
 }
 
+// 驗證 DB prompt 是否包含所有必要變數，缺少則 fallback 到硬編碼預設
+function resolvePrompt(dbContent: string | undefined, fallback: string, requiredVars: string[]): string {
+  if (!dbContent) return fallback;
+  if (requiredVars.length > 0 && requiredVars.some((v) => !dbContent.includes(`{${v}}`))) {
+    return fallback;
+  }
+  return dbContent;
+}
+
 // Prompt 載入：DB 優先 + 硬編碼 fallback
 async function loadPrompts(db: D1Database): Promise<Record<string, string>> {
   try {
@@ -213,6 +222,37 @@ async function loadPrompts(db: D1Database): Promise<Record<string, string>> {
 interface LLMResponse {
   response: string;
   usage?: { prompt_tokens: number; completion_tokens: number; total_tokens: number };
+}
+
+interface StageTokenUsage {
+  prompt_tokens: number;
+  completion_tokens: number;
+  total_tokens: number;
+  model: string;
+  estimated: boolean;
+}
+
+interface PipelineTokenBreakdown {
+  tool_selection?: StageTokenUsage;
+  hyde?: StageTokenUsage;
+  multi_query?: StageTokenUsage;
+  agentic_decisions?: Array<StageTokenUsage & { step: number }>;
+  main_generation?: StageTokenUsage;
+  self_reflection_regen?: StageTokenUsage;
+  judge?: StageTokenUsage;
+  judge_2nd?: StageTokenUsage;
+}
+
+function sumTokenBreakdown(tb: PipelineTokenBreakdown): number {
+  let total = 0;
+  for (const v of Object.values(tb)) {
+    if (Array.isArray(v)) {
+      for (const item of v) total += item.total_tokens ?? 0;
+    } else if (v) {
+      total += v.total_tokens ?? 0;
+    }
+  }
+  return total;
 }
 
 interface SearchResult {
@@ -308,6 +348,8 @@ export class QueryService {
     const { query, limit = DEFAULT_TOP_K, include_sources = true, chat_history, no_cache = false } = request;
     // extraTrace 包含 guardrails_input 和 quota_check（由 ai.ts 路由傳入）
     const trace: Record<string, unknown> = extraTrace ? { ...extraTrace } : {};
+    // 各 stage token 消耗追蹤（追加至 trace.token_breakdown）
+    const tokenBreakdown: PipelineTokenBreakdown = {};
 
     // 有 chat_history 時帶入最近 6 則供 cache key hash 使用（LLM 實際使用量由 chat_history_depth 設定）
     const recentHistory: AIChatMessage[] = chat_history ? chat_history.slice(-6) : [];
@@ -366,15 +408,15 @@ export class QueryService {
     const llmModel = pipelineCfg.llm_model;
     // Prompt DB 優先 + 硬編碼 fallback
     const p = {
-      SYSTEM_PROMPT: dbPrompts['system_prompt'] ?? SYSTEM_PROMPT,
-      TOOL_SELECTION_PROMPT: dbPrompts['tool_selection_prompt'] ?? TOOL_SELECTION_PROMPT,
-      GENERAL_KNOWLEDGE_SYSTEM_PROMPT: dbPrompts['general_knowledge_system_prompt'] ?? GENERAL_KNOWLEDGE_SYSTEM_PROMPT,
-      HYDE_PROMPT: dbPrompts['hyde_prompt'] ?? HYDE_PROMPT,
-      JUDGE_PROMPT: dbPrompts['judge_prompt'] ?? JUDGE_PROMPT,
-      SELF_REFLECTION_PROMPT: dbPrompts['self_reflection_prompt'] ?? SELF_REFLECTION_PROMPT,
-      MULTI_QUERY_EXPANSION_PROMPT: dbPrompts['multi_query_expansion_prompt'] ?? MULTI_QUERY_EXPANSION_PROMPT,
-      AGENTIC_DECISION_PROMPT: dbPrompts['agentic_decision_prompt'] ?? AGENTIC_DECISION_PROMPT,
-      QUERY_TEMPLATE: dbPrompts['query_template'] ?? QUERY_TEMPLATE,
+      SYSTEM_PROMPT: resolvePrompt(dbPrompts['system_prompt'], SYSTEM_PROMPT, []),
+      TOOL_SELECTION_PROMPT: resolvePrompt(dbPrompts['tool_selection_prompt'], TOOL_SELECTION_PROMPT, ['query', 'crags', 'areas', 'regions']),
+      GENERAL_KNOWLEDGE_SYSTEM_PROMPT: resolvePrompt(dbPrompts['general_knowledge_system_prompt'], GENERAL_KNOWLEDGE_SYSTEM_PROMPT, []),
+      HYDE_PROMPT: resolvePrompt(dbPrompts['hyde_prompt'], HYDE_PROMPT, ['query']),
+      JUDGE_PROMPT: resolvePrompt(dbPrompts['judge_prompt'], JUDGE_PROMPT, ['context', 'query', 'response']),
+      SELF_REFLECTION_PROMPT: resolvePrompt(dbPrompts['self_reflection_prompt'], SELF_REFLECTION_PROMPT, ['query', 'answer']),
+      MULTI_QUERY_EXPANSION_PROMPT: resolvePrompt(dbPrompts['multi_query_expansion_prompt'], MULTI_QUERY_EXPANSION_PROMPT, ['query', 'count']),
+      AGENTIC_DECISION_PROMPT: resolvePrompt(dbPrompts['agentic_decision_prompt'], AGENTIC_DECISION_PROMPT, ['query', 'count', 'evidence_summary', 'min_docs', 'remaining_steps']),
+      QUERY_TEMPLATE: resolvePrompt(dbPrompts['query_template'], QUERY_TEMPLATE, ['context', 'query']),
     };
     const effectiveLimit = pipelineCfg.max_results; // admin 設定覆蓋 request limit
     const cacheTtl = pipelineCfg.cache_ttl;
@@ -411,7 +453,7 @@ export class QueryService {
     // 預載岩場/區域資料（Stage 1a 填入），供 extractLocationFilter 共用，避免同一請求多次查 DB
     let preloadedCrags: Array<{ id: string; name: string; region: string | null }> = [];
     let preloadedAreas: Array<{ id: string; name: string }> = [];
-    let outerParsedQuery: Awaited<ReturnType<typeof this.parseQueryWithLLM>> | null = null;
+    let outerParsedQuery: ParsedQuery | null = null;
 
     if (this.hasSimilarRouteIntent(query)) {
       isSimRouteSearch = true;
@@ -420,7 +462,10 @@ export class QueryService {
         this.extractRouteReference(query),
         this.generateHyDE(query, llmModel, gatewayOptions, p.HYDE_PROMPT),
       ]);
-      hydeDoc = hydeDocResult;
+      hydeDoc = hydeDocResult.doc;
+      if (hydeDocResult.usage) {
+        tokenBreakdown.hyde = { ...hydeDocResult.usage, model: llmModel, estimated: false };
+      }
       if (hydeDoc) trace.hyde = { document: hydeDoc.slice(0, 300) };
 
       if (routeRef) {
@@ -449,8 +494,11 @@ export class QueryService {
       const regionNames = [...new Set(preloadedCrags.map((c) => c.region).filter(Boolean))] as string[];
 
       // Stage 1b：先執行 Tool Calling，再依 queryType 決定是否執行 HyDE（簡單查詢跳過）
-      const parsedQuery = await this.parseQueryWithLLM(query, llmModel, cragNames, areaNames, regionNames, gatewayOptions, p.TOOL_SELECTION_PROMPT);
+      const { result: parsedQuery, usage: toolSelectionUsage } = await this.parseQueryWithLLM(query, llmModel, cragNames, areaNames, regionNames, gatewayOptions, p.TOOL_SELECTION_PROMPT);
       outerParsedQuery = parsedQuery;
+      if (toolSelectionUsage) {
+        tokenBreakdown.tool_selection = { ...toolSelectionUsage, model: llmModel, estimated: false };
+      }
 
       // 記錄 query_parsing trace
       if (parsedQuery) {
@@ -487,7 +535,17 @@ export class QueryService {
         trace.guardrails_output = gkOutputTrace;
         const latencyMs = Date.now() - startTime;
         const estimatedTokens = Math.ceil((p.GENERAL_KNOWLEDGE_SYSTEM_PROMPT.length + query.length + answer.length) / 2);
-        const gkTokenCount = llmResult.usage?.total_tokens ?? estimatedTokens;
+        // 捕獲 gk 路徑 main_generation usage
+        if (llmResult.usage) {
+          tokenBreakdown.main_generation = { ...llmResult.usage, model: effectiveLlmModel, estimated: false };
+        } else {
+          const estP = Math.ceil((gkPersonalized.length + query.length) / 2);
+          const estC = Math.ceil(answer.length / 2);
+          tokenBreakdown.main_generation = { prompt_tokens: estP, completion_tokens: estC, total_tokens: estP + estC, model: effectiveLlmModel, estimated: true };
+        }
+        if (Object.keys(tokenBreakdown).length > 0) trace.token_breakdown = tokenBreakdown;
+        const gkTotalTokens = sumTokenBreakdown(tokenBreakdown);
+        const gkTokenCount = gkTotalTokens > 0 ? gkTotalTokens : (llmResult.usage?.total_tokens ?? estimatedTokens);
         if (userId && ctx) {
           trace.memory_extraction = { triggered: true, async: true };
         } else {
@@ -506,10 +564,18 @@ export class QueryService {
       // Stage 1c：complex 查詢執行 HyDE + Multi-Query Expansion；simple 查詢跳過
       // agentic 模式不使用這兩個結果（agenticRetrieve 自行管理搜尋），跳過以節省 LLM 呼叫
       if (queryType === 'complex' && pipelineCfg.rag_strategy !== 'agentic') {
-        [hydeDoc, expandedQueries] = await Promise.all([
+        const [hydeResult, multiQueryResult] = await Promise.all([
           this.generateHyDE(query, llmModel, gatewayOptions, p.HYDE_PROMPT),
           this.generateMultipleQueries(query, pipelineCfg.multi_query_count, llmModel, gatewayOptions, p.MULTI_QUERY_EXPANSION_PROMPT),
         ]);
+        hydeDoc = hydeResult.doc;
+        expandedQueries = multiQueryResult.queries;
+        if (hydeResult.usage) {
+          tokenBreakdown.hyde = { ...hydeResult.usage, model: llmModel, estimated: false };
+        }
+        if (multiQueryResult.usage) {
+          tokenBreakdown.multi_query = { ...multiQueryResult.usage, model: llmModel, estimated: false };
+        }
         if (hydeDoc) trace.hyde = { document: hydeDoc.slice(0, 300) };
         if (expandedQueries.length > 0) trace.multi_query = { queries: expandedQueries };
       }
@@ -644,14 +710,18 @@ export class QueryService {
     if (pipelineCfg.rag_strategy === 'agentic' && queryType === 'complex') {
       // E 方案：Agentic Multi-Step RAG
       const agenticSteps: AgenticStepTrace[] = [];
-      candidateMatches = await this.agenticRetrieve(query, vectorFilter, pipelineCfg, agenticSteps, p.AGENTIC_DECISION_PROMPT);
+      const agenticDecisionUsages: Array<StageTokenUsage & { step: number }> = [];
+      const { candidates: agenticCandidates, terminationReason: agenticTermReason } = await this.agenticRetrieve(query, vectorFilter, pipelineCfg, agenticSteps, p.AGENTIC_DECISION_PROMPT, agenticDecisionUsages);
+      candidateMatches = agenticCandidates;
+      if (agenticDecisionUsages.length > 0) {
+        tokenBreakdown.agentic_decisions = agenticDecisionUsages;
+      }
       retrievalScore = candidateMatches.length > 0 ? Math.max(...candidateMatches.map((m) => m.score)) : 0;
-      const agenticTermReason = (agenticSteps as unknown as Record<string, unknown>)['termination_reason'] as string | undefined;
       trace.agentic = {
         steps: agenticSteps,
         total_paths: agenticSteps.length + 1,
         final_doc_count: candidateMatches.length,
-        termination_reason: agenticTermReason ?? 'max_steps',
+        termination_reason: agenticTermReason,
       };
     } else {
       // Baseline：Stage 3–5（現有程式碼不動）
@@ -1067,6 +1137,16 @@ export class QueryService {
       rawLLMAnswer = llmResult.response || '抱歉，無法生成回答，請稍後再試。';
       llmUsage = llmResult.usage;
     }
+    // 捕獲 main_generation usage
+    if (llmUsage) {
+      tokenBreakdown.main_generation = { ...llmUsage, model: effectiveLlmModel, estimated: false };
+    } else {
+      // 串流模式或 API 未回傳 usage：用字元長度估算
+      const msgLen = llmMessages.reduce((sum, m) => sum + m.content.length, 0);
+      const estP = Math.ceil(msgLen / 2);
+      const estC = Math.ceil(rawLLMAnswer.length / 2);
+      tokenBreakdown.main_generation = { prompt_tokens: estP, completion_tokens: estC, total_tokens: estP + estC, model: effectiveLlmModel, estimated: true };
+    }
 
     let { answer: parsedAnswer, suggested_questions } = parseSuggestedQuestions(rawLLMAnswer);
     // 記錄建議問題至 trace，供 admin 日誌詳情頁顯示
@@ -1104,12 +1184,20 @@ export class QueryService {
     let quality: number | null = null;
     if (!streamingMode) {
       // 傳 parsedAnswer（未注入連結）給 Judge，避免 markdown URL 干擾 groundedness 評估
-      ({ groundedness, quality } = await this.runJudge(query, context, parsedAnswer, { model: pipelineCfg.lightweight_model, timeoutMs: pipelineCfg.judge_timeout_ms, contextTruncate: pipelineCfg.judge_context_truncate, promptTemplate: p.JUDGE_PROMPT }));
+      const judgeResult = await this.runJudge(query, context, parsedAnswer, { model: pipelineCfg.lightweight_model, timeoutMs: pipelineCfg.judge_timeout_ms, contextTruncate: pipelineCfg.judge_context_truncate, promptTemplate: p.JUDGE_PROMPT });
+      ({ groundedness, quality } = judgeResult);
+      if (judgeResult.usage) {
+        tokenBreakdown.judge = { ...judgeResult.usage, model: pipelineCfg.lightweight_model, estimated: false };
+      }
 
-      // 記錄 judge_detail（供前端 pipeline.judge 顯示各向度分數）
+      // 記錄 judge_detail（供前端 pipeline.judge 顯示各向度分數及原始 LLM 回覆）
       trace.judge_detail = {
         criteria: ['groundedness', 'quality'],
         raw_scores: { groundedness, quality },
+        raw_llm_response: judgeResult.rawResponse,
+        context_chars: judgeResult.contextChars,
+        context_truncated: judgeResult.contextTruncated,
+        response_chars: parsedAnswer.length,
       };
 
       // Judge 驅動重生成：quality 低於門檻時用外部 critic 的分數觸發重試（最多 1 次）
@@ -1131,6 +1219,9 @@ export class QueryService {
             { messages: llmMessages, max_tokens: pipelineCfg.max_tokens_generation },
             gatewayOptions
           )) as LLMResponse;
+          if (retryResult.usage) {
+            tokenBreakdown.self_reflection_regen = { ...retryResult.usage, model: effectiveLlmModel, estimated: false };
+          }
           const retryParsed = parseSuggestedQuestions(retryResult.response ?? rawLLMAnswer);
           const regenAnswer = !cannotAnswer && finalSources.length > 0
             ? this.injectRouteLinks(retryParsed.answer, finalSources)
@@ -1143,6 +1234,9 @@ export class QueryService {
             contextTruncate: pipelineCfg.judge_context_truncate,
             promptTemplate: p.JUDGE_PROMPT,
           });
+          if (regenJudge.usage) {
+            tokenBreakdown.judge_2nd = { ...regenJudge.usage, model: pipelineCfg.lightweight_model, estimated: false };
+          }
           const regenAccepted = (regenJudge.groundedness ?? 0) > (groundedness ?? 0);
           trace.self_reflection = {
             original_quality: quality,
@@ -1188,12 +1282,15 @@ export class QueryService {
     answer = filteredAnswer;
     trace.guardrails_output = outputTrace;
 
-    // Workers AI binding 不回傳 usage，用字元長度估算 token 數
-    // 中英混合約每 2 字元 = 1 token；串流模式無 usage 物件，一律用估算值
+    // 將所有 stage token_breakdown 加入 trace，並計算總 token 數
+    if (Object.keys(tokenBreakdown).length > 0) {
+      trace.token_breakdown = tokenBreakdown;
+    }
+    const totalStageTokens = sumTokenBreakdown(tokenBreakdown);
     const estimatedTokens = Math.ceil(
       (p.SYSTEM_PROMPT.length + prompt.length + answer.length) / 2
     );
-    const tokenCount = llmUsage?.total_tokens ?? estimatedTokens;
+    const tokenCount = totalStageTokens > 0 ? totalStageTokens : (llmUsage?.total_tokens ?? estimatedTokens);
 
     // 記錄查詢日誌（含品質指標與分段延遲）
     const queryId = await this.logQuery({
@@ -1756,7 +1853,7 @@ export class QueryService {
     context: string,
     response: string,
     opts: { model?: string; timeoutMs?: number; contextTruncate?: number; promptTemplate?: string } = {},
-  ): Promise<{ groundedness: number | null; quality: number | null }> {
+  ): Promise<{ groundedness: number | null; quality: number | null; rawResponse: string | null; contextChars: number; contextTruncated: boolean; usage?: LLMResponse['usage'] }> {
     const { model: judgeModel, timeoutMs = 8000, contextTruncate = 2000, promptTemplate } = opts;
     const truncatedContext = context.slice(0, contextTruncate);
     const judgePrompt = (promptTemplate ?? JUDGE_PROMPT)
@@ -1764,6 +1861,7 @@ export class QueryService {
       .replace('{query}', query)
       .replace('{response}', response);
     const model = judgeModel ?? DEFAULT_LIGHTWEIGHT_MODEL;
+    const contextTruncated = context.length > contextTruncate;
 
     try {
       const timeoutPromise = new Promise<never>((_, reject) =>
@@ -1781,10 +1879,12 @@ export class QueryService {
       ) as Promise<LLMResponse>;
 
       const judgeResult = await Promise.race([judgePromise, timeoutPromise]);
-      return this.parseJudgeResponse(judgeResult.response ?? '');
+      const rawResponse = judgeResult.response ?? '';
+      const scores = this.parseJudgeResponse(rawResponse);
+      return { ...scores, rawResponse, contextChars: truncatedContext.length, contextTruncated, usage: judgeResult.usage };
     } catch (err) {
       console.error('[judge] error:', err instanceof Error ? err.message : String(err));
-      return { groundedness: null, quality: null };
+      return { groundedness: null, quality: null, rawResponse: null, contextChars: truncatedContext.length, contextTruncated };
     }
   }
 
@@ -1880,7 +1980,7 @@ export class QueryService {
     regions: string[],
     gatewayOptions?: { gateway: { id: string } },
     promptTemplate?: string,
-  ): Promise<ParsedQuery | null> {
+  ): Promise<{ result: ParsedQuery | null; usage?: LLMResponse['usage'] }> {
     try {
       const prompt = (promptTemplate ?? TOOL_SELECTION_PROMPT)
         .replace('{crags}', crags.join('、') || '無')
@@ -1900,15 +2000,15 @@ export class QueryService {
       const parsed = JSON.parse(jsonText) as ParsedQuery;
 
       if (!parsed.tool || !['search_routes', 'search_crags', 'general_knowledge'].includes(parsed.tool)) {
-        return null;
+        return { result: null };
       }
       // 確保 query_type 為有效值，否則 fallback 為 'complex'
       if (!parsed.query_type || !['simple', 'complex', 'general-knowledge'].includes(parsed.query_type)) {
         parsed.query_type = 'complex';
       }
-      return parsed;
+      return { result: parsed, usage: result.usage };
     } catch {
-      return null;
+      return { result: null };
     }
   }
 
@@ -1919,7 +2019,7 @@ export class QueryService {
     llmModel: string,
     gatewayOptions?: { gateway: { id: string } },
     promptTemplate?: string,
-  ): Promise<string> {
+  ): Promise<{ doc: string; usage?: LLMResponse['usage'] }> {
     try {
       const prompt = (promptTemplate ?? HYDE_PROMPT).replace('{query}', query);
 
@@ -1929,9 +2029,9 @@ export class QueryService {
         gatewayOptions
       )) as LLMResponse;
 
-      return result.response?.trim() ?? '';
+      return { doc: result.response?.trim() ?? '', usage: result.usage };
     } catch {
-      return '';
+      return { doc: '' };
     }
   }
 
@@ -1942,24 +2042,25 @@ export class QueryService {
     model: string,
     gatewayOptions?: { gateway: { id: string } },
     promptTemplate?: string,
-  ): Promise<string[]> {
+  ): Promise<{ queries: string[]; usage?: LLMResponse['usage'] }> {
     const prompt = (promptTemplate ?? MULTI_QUERY_EXPANSION_PROMPT)
       .replace(/\{count\}/g, String(count))
       .replace('{query}', query);
     try {
-      const result = await (this.env.AI.run as Function)(
+      const result = (await (this.env.AI.run as Function)(
         model,
         { messages: [{ role: 'user', content: prompt }], max_tokens: 200 },
         gatewayOptions
-      );
-      const text = (result as { response?: string }).response?.trim() ?? '';
-      return text
+      )) as LLMResponse;
+      const text = result.response?.trim() ?? '';
+      const queries = text
         .split('\n')
         .map((l) => l.trim())
         .filter((l) => l.length > 0)
         .slice(0, count);
+      return { queries, usage: result.usage };
     } catch {
-      return [];
+      return { queries: [] };
     }
   }
 
@@ -2042,7 +2143,8 @@ export class QueryService {
     cfg: PipelineConfig,
     steps: AgenticStepTrace[],
     agenticPromptTemplate?: string,
-  ): Promise<SearchResult[]> {
+    decisionUsages?: Array<StageTokenUsage & { step: number }>,
+  ): Promise<{ candidates: SearchResult[]; terminationReason: 'enough_docs' | 'max_steps' | 'no_improvement' }> {
     const cragFilter = vectorFilter['crag_id'] as { $in?: string[] } | undefined;
     const isMultiCrag = Array.isArray(cragFilter?.$in) && cragFilter.$in.length > 1;
     const MERGE_TOP_K = isMultiCrag ? Math.max(20, cfg.merge_top_k * 2) : cfg.merge_top_k;
@@ -2068,9 +2170,12 @@ export class QueryService {
         break;
       }
 
-      const action = await this.decideNextAction(
+      const { action, usage: decisionUsage } = await this.decideNextAction(
         query, merged, step, cfg.agentic_max_steps, cfg.agentic_min_docs_to_answer, cfg.lightweight_model, agenticPromptTemplate
       );
+      if (decisionUsage && decisionUsages) {
+        decisionUsages.push({ ...decisionUsage, model: cfg.lightweight_model, estimated: false, step });
+      }
 
       if (action.type === 'ANSWER') {
         steps.push({ step, type: action.type, docs_retrieved: merged.length } as AgenticStepTrace & { docs_retrieved: number });
@@ -2104,10 +2209,7 @@ export class QueryService {
     const finalMerged = this.mergeResults(allPaths, AGENTIC_MAX_MERGE_K);
     const finalCandidates = finalMerged.filter((m) => m.score >= minScore);
 
-    // 直接把 termination_reason 掛在 steps 陣列物件上（由外層讀取）
-    (steps as unknown as Record<string, unknown>)['termination_reason'] = agenticTerminationReason;
-
-    return finalCandidates;
+    return { candidates: finalCandidates, terminationReason: agenticTerminationReason };
   }
 
   // 每輪 Agentic 搜尋：embedding + BM25 並行，RRF 合併
@@ -2140,7 +2242,7 @@ export class QueryService {
     minDocs: number,
     model: string,
     promptTemplate?: string,
-  ): Promise<AgenticAction> {
+  ): Promise<{ action: AgenticAction; usage?: LLMResponse['usage'] }> {
     try {
       const evidenceSummary = this.buildEvidenceSummary(currentDocs);
       // {query} 最後替換，避免查詢內容中的佔位符字串誤觸後續替換
@@ -2162,23 +2264,23 @@ export class QueryService {
 
       const raw = result.response ?? '';
       const jsonMatch = raw.match(/\{[^}]+\}/);
-      if (!jsonMatch) return { type: 'ANSWER' };
+      if (!jsonMatch) return { action: { type: 'ANSWER' } };
 
       const parsed = JSON.parse(jsonMatch[0]) as AgenticAction;
-      if (!['ANSWER', 'RETRIEVE', 'BROADEN'].includes(parsed.type)) return { type: 'ANSWER' };
+      if (!['ANSWER', 'RETRIEVE', 'BROADEN'].includes(parsed.type)) return { action: { type: 'ANSWER' } };
 
       // refinedQuery 型別與長度驗證，防止異常值傳入 embedding service
       if (parsed.type === 'RETRIEVE') {
         if (typeof parsed.refinedQuery !== 'string' || parsed.refinedQuery.trim().length === 0) {
-          return { type: 'ANSWER' };
+          return { action: { type: 'ANSWER' } };
         }
         parsed.refinedQuery = parsed.refinedQuery.slice(0, 500);
       }
 
-      return parsed;
+      return { action: parsed, usage: result.usage };
     } catch {
       // LLM 失敗或 JSON 解析失敗 → 提前結束 loop，用已有結果
-      return { type: 'ANSWER' };
+      return { action: { type: 'ANSWER' } };
     }
   }
 

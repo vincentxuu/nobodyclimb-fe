@@ -27,7 +27,7 @@ export interface AIQueryLog {
   latency_ms: number | null
   feedback_score: number | null
   created_at: string
-  query_type: 'simple' | 'complex' | 'general-knowledge' | null
+  query_type: 'simple' | 'complex' | 'general-knowledge' | 'guardrails_blocked' | null
   groundedness_score: number | null
   auto_score: number | null
   embedding_ms: number | null
@@ -203,6 +203,16 @@ export interface AILogDetail {
       final_doc_count: number
       termination_reason?: 'enough_docs' | 'max_steps' | 'no_improvement'
     }
+    token_breakdown?: {
+      tool_selection?: { prompt_tokens: number; completion_tokens: number; total_tokens: number; model: string; estimated: boolean }
+      hyde?: { prompt_tokens: number; completion_tokens: number; total_tokens: number; model: string; estimated: boolean }
+      multi_query?: { prompt_tokens: number; completion_tokens: number; total_tokens: number; model: string; estimated: boolean }
+      agentic_decisions?: Array<{ step: number; prompt_tokens: number; completion_tokens: number; total_tokens: number; model: string; estimated: boolean }>
+      main_generation?: { prompt_tokens: number; completion_tokens: number; total_tokens: number; model: string; estimated: boolean }
+      self_reflection_regen?: { prompt_tokens: number; completion_tokens: number; total_tokens: number; model: string; estimated: boolean }
+      judge?: { prompt_tokens: number; completion_tokens: number; total_tokens: number; model: string; estimated: boolean }
+      judge_2nd?: { prompt_tokens: number; completion_tokens: number; total_tokens: number; model: string; estimated: boolean }
+    }
     mmr_selection?: {
       lambda: number
       input_count: number
@@ -243,6 +253,21 @@ export interface AIPromptDefault {
   variables: string[]
 }
 
+export interface CostProvider {
+  id: string
+  name: string
+  input_per_1m: number
+  output_per_1m: number
+}
+
+export const DEFAULT_COST_PROVIDERS: CostProvider[] = [
+  { id: 'cf-gemma-3-12b', name: 'Cloudflare Gemma 3 12B', input_per_1m: 0.345, output_per_1m: 0.556 },
+  { id: 'openai-gpt-4o', name: 'OpenAI GPT-4o', input_per_1m: 2.50, output_per_1m: 10.00 },
+  { id: 'openai-gpt-4o-mini', name: 'OpenAI GPT-4o mini', input_per_1m: 0.15, output_per_1m: 0.60 },
+  { id: 'anthropic-claude-35-sonnet', name: 'Anthropic Claude 3.5 Sonnet', input_per_1m: 3.00, output_per_1m: 15.00 },
+  { id: 'google-gemini-15-flash', name: 'Google Gemini 1.5 Flash', input_per_1m: 0.075, output_per_1m: 0.30 },
+]
+
 // =============================================
 // API 函式
 // =============================================
@@ -259,6 +284,9 @@ export async function getAILogs(params: {
   to?: string
   feedback_min?: number
   feedback_max?: number
+  query_type?: string
+  search?: string
+  user_id?: string
 }): Promise<AILogsResponse> {
   const query = new URLSearchParams()
   if (params.page) query.set('page', String(params.page))
@@ -267,6 +295,9 @@ export async function getAILogs(params: {
   if (params.to) query.set('to', params.to)
   if (params.feedback_min !== undefined) query.set('feedback_min', String(params.feedback_min))
   if (params.feedback_max !== undefined) query.set('feedback_max', String(params.feedback_max))
+  if (params.query_type) query.set('query_type', params.query_type)
+  if (params.search) query.set('search', params.search)
+  if (params.user_id) query.set('user_id', params.user_id)
   const res = await apiClient.get<{ success: boolean; data: AILogsResponse }>(
     `/admin/ai/logs?${query.toString()}`
   )
@@ -412,7 +443,6 @@ export function useCreateAIPrompt() {
     onSuccess: (_data, variables) => {
       queryClient.invalidateQueries({ queryKey: ['admin-ai-prompts'] })
       queryClient.invalidateQueries({ queryKey: ['admin-ai-prompts', variables.name] })
-      queryClient.invalidateQueries({ queryKey: ['admin-ai-prompt-defaults'] })
     },
   })
 }

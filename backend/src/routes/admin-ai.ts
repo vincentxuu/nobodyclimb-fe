@@ -151,6 +151,9 @@ const logsQuerySchema = z.object({
   to: z.string().optional(),
   feedback_min: z.string().optional(),
   feedback_max: z.string().optional(),
+  query_type: z.string().optional(),
+  search: z.string().optional(),
+  user_id: z.string().optional(),
 });
 
 adminAiRoutes.get(
@@ -162,7 +165,7 @@ adminAiRoutes.get(
   }),
   validator('query', logsQuerySchema),
   async (c) => {
-    const { page: pageStr, limit: limitStr, from, to, feedback_min, feedback_max } =
+    const { page: pageStr, limit: limitStr, from, to, feedback_min, feedback_max, query_type, search, user_id } =
       c.req.valid('query');
     const page = Math.max(1, parseInt(pageStr ?? '1', 10));
     const limit = Math.min(100, parseInt(limitStr ?? '20', 10));
@@ -171,16 +174,19 @@ adminAiRoutes.get(
     const conditions: string[] = [];
     const bindings: (string | number)[] = [];
 
-    if (from) { conditions.push('created_at >= ?'); bindings.push(from); }
-    if (to) { conditions.push('created_at <= ?'); bindings.push(to); }
-    if (feedback_min) { conditions.push('feedback_score >= ?'); bindings.push(parseInt(feedback_min, 10)); }
-    if (feedback_max) { conditions.push('feedback_score <= ?'); bindings.push(parseInt(feedback_max, 10)); }
+    if (from) { conditions.push('l.created_at >= ?'); bindings.push(from); }
+    if (to) { conditions.push('l.created_at <= ?'); bindings.push(to + 'T23:59:59'); }
+    if (feedback_min) { conditions.push('l.feedback_score >= ?'); bindings.push(parseInt(feedback_min, 10)); }
+    if (feedback_max) { conditions.push('l.feedback_score <= ?'); bindings.push(parseInt(feedback_max, 10)); }
+    if (query_type) { conditions.push('l.query_type = ?'); bindings.push(query_type); }
+    if (search) { conditions.push('l.query LIKE ?'); bindings.push(`%${search}%`); }
+    if (user_id) { conditions.push('l.user_id = ?'); bindings.push(user_id); }
 
     const where = conditions.length > 0 ? `WHERE ${conditions.join(' AND ')}` : '';
 
     try {
       const countRow = await c.env.DB.prepare(
-        `SELECT COUNT(*) as count FROM ai_query_logs ${where}`
+        `SELECT COUNT(*) as count FROM ai_query_logs l ${where}`
       ).bind(...bindings).first<{ count: number }>();
 
       const rows = await c.env.DB.prepare(

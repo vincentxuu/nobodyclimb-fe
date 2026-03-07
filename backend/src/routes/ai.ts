@@ -90,7 +90,23 @@ aiRoutes.post(
       guardrailsInputTrace = await checkInput(body.query, db);
     } catch (err) {
       if (err instanceof GuardrailError) {
-        return c.json({ success: false, error: 'InvalidInput', message: (err as GuardrailError).message }, 400);
+        // 記錄被攔截的請求（不計入配額，但需要知道攻擊來源）
+        const guardErr = err as GuardrailError;
+        const blockedTrace = JSON.stringify({
+          guardrails_input: {
+            passed: false,
+            triggered_check: guardErr.reason,
+            matched_pattern: guardErr.matchedPattern,
+            query_length: body.query.length,
+          },
+        });
+        c.executionCtx.waitUntil(
+          db.prepare(
+            `INSERT INTO ai_query_logs (id, user_id, query, response, sources, latency_ms, token_count, query_type, model_used, retrieval_score, self_reflection_triggered, is_high_consumption, cache_hit, hyde_triggered, pipeline_trace)
+             VALUES (?, ?, ?, '', '[]', 0, 0, 'guardrails_blocked', '', 0, 0, 0, 0, 0, ?)`
+          ).bind(crypto.randomUUID(), userId, body.query.slice(0, 500), blockedTrace).run().catch(() => {})
+        );
+        return c.json({ success: false, error: 'InvalidInput', message: guardErr.message }, 400);
       }
       throw err;
     }
