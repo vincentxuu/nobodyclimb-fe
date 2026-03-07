@@ -1,6 +1,7 @@
 'use client'
 
 import { use, useState, useMemo } from 'react'
+import { formatTaipei } from '@/lib/utils'
 import Link from 'next/link'
 import {
   ArrowLeft,
@@ -3010,7 +3011,7 @@ export default function AdminAILogDetailPage({ params }: { params: Promise<{ log
           <ThumbsUp className="h-5 w-5 text-wb-50" />
           <div>
             <p className="text-xs text-wb-50">時間</p>
-            <p className="text-sm font-medium text-wb-100">{new Date(log.created_at).toLocaleString('zh-TW')}</p>
+            <p className="text-sm font-medium text-wb-100">{formatTaipei(log.created_at)}</p>
           </div>
         </div>
       </div>

@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useCallback, useRef } from 'react'
+import { parseUTC, todayTaipei } from '@/lib/utils'
 import Link from 'next/link'
 import {
   Loader2, ChevronLeft, ChevronRight, Download, Search, X,
@@ -88,14 +89,14 @@ function TagChips({ log }: { log: AIQueryLog }) {
 // =============================================
 
 function formatTime(iso: string) {
-  const d = new Date(iso)
+  const d = parseUTC(iso)
   const now = new Date()
   const diff = now.getTime() - d.getTime()
   if (diff < 60_000) return '剛剛'
   if (diff < 3600_000) return `${Math.floor(diff / 60_000)} 分前`
   if (diff < 86400_000) return `${Math.floor(diff / 3600_000)} 小時前`
   if (diff < 7 * 86400_000) return `${Math.floor(diff / 86400_000)} 天前`
-  return d.toLocaleDateString('zh-TW', { month: 'numeric', day: 'numeric' })
+  return d.toLocaleDateString('zh-TW', { month: 'numeric', day: 'numeric', timeZone: 'Asia/Taipei' })
 }
 
 function formatLatency(ms: number | null, cacheHit: number | null) {
@@ -419,7 +420,7 @@ export default function AdminAILogsPage() {
     const url = URL.createObjectURL(blob)
     const a = document.createElement('a')
     a.href = url
-    a.download = `ai-logs-${new Date().toISOString().slice(0, 10)}.csv`
+    a.download = `ai-logs-${todayTaipei()}.csv`
     a.click()
     URL.revokeObjectURL(url)
   }

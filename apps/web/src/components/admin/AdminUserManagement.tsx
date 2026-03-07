@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useEffect, useCallback } from 'react'
+import { parseUTC, formatTaipei, formatTaipeiDate } from '@/lib/utils'
 import { adminUserService, AdminUser, AdminUserStats } from '@/lib/api/services'
 import {
   useUserRankDetail,
@@ -30,7 +31,7 @@ import {
 
 function formatRelativeTime(dateStr: string | null): string {
   if (!dateStr) return '從未登入'
-  const diff = Date.now() - new Date(dateStr).getTime()
+  const diff = Date.now() - parseUTC(dateStr).getTime()
   const minutes = Math.floor(diff / 60000)
   if (minutes < 60) return `${minutes} 分鐘前`
   const hours = Math.floor(minutes / 60)
@@ -207,7 +208,7 @@ function UserRankModal({
             {/* 最後計算時間 */}
             {rank.last_score_calculated_at && (
               <p className="text-xs text-wb-40 text-center">
-                最後計算：{new Date(rank.last_score_calculated_at).toLocaleString('zh-TW')}
+                最後計算：{formatTaipei(rank.last_score_calculated_at)}
               </p>
             )}
 
@@ -658,16 +659,16 @@ export default function AdminUserManagement() {
                     {authProviderLabels[user.auth_provider] || user.auth_provider}
                   </td>
                   <td className="px-6 py-4 text-sm text-gray-500">
-                    {new Date(user.created_at).toLocaleDateString('zh-TW')}
+                    {formatTaipeiDate(user.created_at)}
                   </td>
                   <td className="px-6 py-4">
                     <span
                       className={`text-sm ${
                         !user.last_active_at
                           ? 'text-wb-40'
-                          : Date.now() - new Date(user.last_active_at).getTime() < 7 * 86400000
+                          : Date.now() - parseUTC(user.last_active_at).getTime() < 7 * 86400000
                           ? 'text-green-600'
-                          : Date.now() - new Date(user.last_active_at).getTime() < 30 * 86400000
+                          : Date.now() - parseUTC(user.last_active_at).getTime() < 30 * 86400000
                           ? 'text-wb-70'
                           : 'text-wb-40'
                       }`}

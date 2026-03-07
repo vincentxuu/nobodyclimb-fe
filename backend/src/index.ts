@@ -5,6 +5,7 @@ import { secureHeaders } from 'hono/secure-headers';
 import { openAPIRouteHandler } from 'hono-openapi';
 import { Env } from './types';
 import { accessLogMiddleware } from './middleware/accessLog';
+import { dateFormatMiddleware } from './middleware/dateFormat';
 
 // Import routes
 import { authRoutes } from './routes/auth';
@@ -42,6 +43,7 @@ const app = new Hono<{ Bindings: Env }>();
 app.use('*', logger());
 app.use('*', secureHeaders());
 app.use('*', accessLogMiddleware);
+app.use('*', dateFormatMiddleware);
 
 // CORS configuration
 app.use('*', async (c, next) => {

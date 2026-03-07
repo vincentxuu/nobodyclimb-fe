@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useEffect, useCallback } from 'react'
+import { formatTaipei } from '@/lib/utils'
 import { adminBroadcastService, adminUserService, BroadcastRecord } from '@/lib/api/services'
 import {
   Megaphone,
@@ -262,7 +263,7 @@ export default function AdminBroadcast() {
                     </div>
                   </div>
                   <div className="text-xs text-wb-50 whitespace-nowrap">
-                    {new Date(broadcast.created_at).toLocaleString('zh-TW')}
+                    {formatTaipei(broadcast.created_at)}
                   </div>
                 </div>
               </div>

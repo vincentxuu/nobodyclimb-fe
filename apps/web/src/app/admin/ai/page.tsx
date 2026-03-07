@@ -1,6 +1,7 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
+import { todayTaipei } from '@/lib/utils'
 import {
   Clock,
   ThumbsUp,
@@ -11,7 +12,7 @@ import {
   Zap,
   RefreshCw,
 } from 'lucide-react'
-import { useAIDashboard } from '@/lib/api/admin-ai'
+import { useAIDashboard, useAIConfig, useAIStats, DEFAULT_COST_PROVIDERS, type CostProvider } from '@/lib/api/admin-ai'
 
 // Cloudflare Workers AI 定價（gemma-3-12b-it）
 // 31,371 input + 50,560 output Neurons / 百萬 tokens
@@ -19,6 +20,8 @@ import { useAIDashboard } from '@/lib/api/admin-ai'
 const NEURONS_PER_TOKEN = (0.4 * 31.371 + 0.6 * 50.560) / 1000 // ≈ 0.0429
 const FREE_TIER_NEURONS = 10_000
 const COST_PER_1K_NEURONS = 0.011 // USD
+// 儀表板費用對照使用固定 40:60 比例（與 Neurons 估算一致）
+const DASHBOARD_INPUT_RATIO = 0.4
 
 function estimateNeurons(tokens: number) {
   return Math.round(tokens * NEURONS_PER_TOKEN)
@@ -112,9 +115,38 @@ function MiniChart({
   )
 }
 
+function calcProviderCost(inputTokens: number, outputTokens: number, provider: CostProvider): number {
+  return (inputTokens * provider.input_per_1m + outputTokens * provider.output_per_1m) / 1_000_000
+}
+
+function formatUSD(val: number): string {
+  if (val < 0.000001) return '$0.000000'
+  if (val < 0.001) return `$${val.toFixed(6)}`
+  if (val < 1) return `$${val.toFixed(4)}`
+  return `$${val.toFixed(2)}`
+}
+
+function formatNTD(val: number): string {
+  return `NT$${(val * 32).toFixed(2)}`
+}
+
 export default function AdminAIPage() {
   const { data, isLoading, error } = useAIDashboard()
+  const { data: aiConfig } = useAIConfig()
   const countdown = useResetCountdown()
+  const today = useMemo(() => todayTaipei(), [])
+  const { data: todayStats } = useAIStats({ from: today, to: today })
+
+  const providers = useMemo<CostProvider[]>(() => {
+    try {
+      const raw = aiConfig?.['cost_providers']
+      if (raw) {
+        const parsed = JSON.parse(raw)
+        if (Array.isArray(parsed) && parsed.length > 0) return parsed
+      }
+    } catch { /* ignore */ }
+    return DEFAULT_COST_PROVIDERS
+  }, [aiConfig])
 
   if (isLoading) {
     return (
@@ -251,6 +283,77 @@ export default function AdminAIPage() {
           </div>
         )}
       </div>
+
+      {/* 今日費用對照（各供應商） */}
+      {(() => {
+        const todayTokens = data.tokens_today ?? 0
+        const useExact = todayStats && todayStats.trace_count > 0
+        const inputTokens = useExact
+          ? todayStats.total_prompt_tokens
+          : Math.round(todayTokens * DASHBOARD_INPUT_RATIO)
+        const outputTokens = useExact
+          ? todayStats.total_completion_tokens
+          : todayTokens - Math.round(todayTokens * DASHBOARD_INPUT_RATIO)
+        const rows = providers
+          .map((p) => ({ p, usd: calcProviderCost(inputTokens, outputTokens, p) }))
+          .sort((a, b) => a.usd - b.usd)
+        const cheapest = rows[0]?.usd ?? Infinity
+
+        return (
+          <div className="rounded-xl border border-wb-20 bg-white p-5">
+            <div className="flex items-start justify-between mb-4 flex-wrap gap-2">
+              <div>
+                <h2 className="text-sm font-semibold text-wb-100">今日費用對照</h2>
+                <p className="mt-0.5 text-xs text-wb-50">
+                  {useExact
+                    ? `Input ${inputTokens.toLocaleString()} / Output ${outputTokens.toLocaleString()} tokens（實際分拆）`
+                    : '基於 40% input / 60% output 估算，詳細分拆請見費用估算頁'}
+                </p>
+              </div>
+              <span className="text-xs text-wb-40">
+                今日 {todayTokens.toLocaleString()} tokens
+              </span>
+            </div>
+            <div className="overflow-x-auto">
+              <table className="w-full text-sm border-separate border-spacing-0">
+                <thead>
+                  <tr className="text-wb-40 text-xs">
+                    <th className="text-left py-2 px-3 font-medium">供應商</th>
+                    <th className="text-right py-2 px-3 font-medium">今日 USD</th>
+                    <th className="text-right py-2 px-3 font-medium">今日 NT$</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {rows.map(({ p, usd }) => {
+                    const isCheapest = usd <= cheapest
+                    return (
+                      <tr
+                        key={p.id}
+                        className={`border-t border-wb-10 ${isCheapest ? 'bg-emerald-50/50' : 'hover:bg-wb-5'}`}
+                      >
+                        <td className={`py-2 px-3 font-medium text-sm ${isCheapest ? 'text-emerald-700' : 'text-wb-70'}`}>
+                          {p.name}
+                          {isCheapest && (
+                            <span className="ml-2 text-[10px] bg-emerald-100 text-emerald-700 px-1.5 py-0.5 rounded-full">
+                              最便宜
+                            </span>
+                          )}
+                        </td>
+                        <td className={`py-2 px-3 text-right font-mono text-sm ${isCheapest ? 'text-emerald-700 font-medium' : 'text-wb-70'}`}>
+                          {formatUSD(usd)}
+                        </td>
+                        <td className={`py-2 px-3 text-right font-mono text-xs ${isCheapest ? 'text-emerald-600' : 'text-wb-50'}`}>
+                          {formatNTD(usd)}
+                        </td>
+                      </tr>
+                    )
+                  })}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        )
+      })()}
 
       {/* KPI 卡片 */}
       <div className="grid grid-cols-2 gap-4 lg:grid-cols-3">

@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useEffect, useRef, useCallback } from 'react'
+import { formatTaipei } from '@/lib/utils'
 import {
   Loader2,
   FileText,
@@ -101,7 +102,7 @@ export default function AdminAIPromptsPage() {
                         </code>
                         {active && (
                           <span>
-                            {new Date(active.updated_at).toLocaleString('zh-TW')}
+                            {formatTaipei(active.updated_at)}
                           </span>
                         )}
                       </div>
@@ -387,7 +388,7 @@ function PromptEditor({
                       {v.status === 'active' ? '啟用中' : '已封存'}
                     </span>
                     <span className="text-[10px] text-wb-50">
-                      {new Date(v.updated_at).toLocaleString('zh-TW')}
+                      {formatTaipei(v.updated_at)}
                     </span>
                   </div>
                   <div className="flex items-center gap-1">

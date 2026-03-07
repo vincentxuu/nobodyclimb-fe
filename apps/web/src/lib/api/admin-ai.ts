@@ -253,6 +253,17 @@ export interface AIPromptDefault {
   variables: string[]
 }
 
+export interface AIStats {
+  total_queries: number
+  total_tokens: number
+  cache_hits: number
+  avg_tokens: number
+  total_prompt_tokens: number
+  total_completion_tokens: number
+  trace_count: number
+  by_type: { simple: number; complex: number; general: number; blocked: number }
+}
+
 export interface CostProvider {
   id: string
   name: string
@@ -374,6 +385,14 @@ export async function deleteAIPrompt(id: string): Promise<void> {
   await apiClient.delete(`/admin/ai/prompts/${id}`)
 }
 
+export async function getAIStats(params: { from: string; to: string }): Promise<AIStats> {
+  const query = new URLSearchParams({ from: params.from, to: params.to })
+  const res = await apiClient.get<{ success: boolean; data: AIStats }>(
+    `/admin/ai/stats?${query.toString()}`
+  )
+  return res.data.data
+}
+
 export async function getAIConfig(): Promise<Record<string, string>> {
   const res = await apiClient.get<{ success: boolean; data: Record<string, string> }>(
     '/admin/ai/config'
@@ -491,6 +510,15 @@ export function useDeleteAIPrompt() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['admin-ai-prompts'] })
     },
+  })
+}
+
+export function useAIStats(params: { from: string; to: string } | null) {
+  return useQuery({
+    queryKey: ['admin-ai-stats', params],
+    queryFn: () => getAIStats(params!),
+    enabled: !!params,
+    staleTime: 60 * 1000,
   })
 }
 
