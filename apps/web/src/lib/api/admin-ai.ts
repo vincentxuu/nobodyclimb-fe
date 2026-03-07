@@ -263,14 +263,15 @@ export interface CostProvider {
 export const DEFAULT_COST_PROVIDERS: CostProvider[] = [
   // 現用模型
   { id: 'cf-gemma-3-12b',         name: 'Cloudflare Gemma 3 12B',    input_per_1m: 0.345, output_per_1m: 0.556 },
-  // OpenAI
+  // OpenAI GPT-5 系列（2026 主流）
+  { id: 'openai-gpt-5-4',         name: 'OpenAI GPT-5.4',            input_per_1m: 2.50,  output_per_1m: 15.00 },
+  { id: 'openai-gpt-5',           name: 'OpenAI GPT-5',              input_per_1m: 1.25,  output_per_1m: 10.00 },
   { id: 'openai-gpt-5-mini',      name: 'OpenAI GPT-5 mini',         input_per_1m: 0.25,  output_per_1m: 2.00  },
-  { id: 'openai-gpt-4-1',         name: 'OpenAI GPT-4.1',            input_per_1m: 2.00,  output_per_1m: 8.00  },
-  { id: 'openai-gpt-4o-mini',     name: 'OpenAI GPT-4o mini',        input_per_1m: 0.15,  output_per_1m: 0.60  },
+  { id: 'openai-gpt-5-nano',      name: 'OpenAI GPT-5 nano',         input_per_1m: 0.05,  output_per_1m: 0.40  },
   // Google Gemini
-  { id: 'google-gemini-25-pro',   name: 'Google Gemini 2.5 Pro',     input_per_1m: 1.25,  output_per_1m: 10.00 },
-  { id: 'google-gemini-25-flash', name: 'Google Gemini 2.5 Flash',   input_per_1m: 0.30,  output_per_1m: 2.50  },
-  { id: 'google-gemini-20-flash', name: 'Google Gemini 2.0 Flash',   input_per_1m: 0.10,  output_per_1m: 0.40  },
+  { id: 'google-gemini-31-pro',        name: 'Google Gemini 3.1 Pro',        input_per_1m: 2.00,  output_per_1m: 12.00 },
+  { id: 'google-gemini-3-flash',       name: 'Google Gemini 3 Flash',        input_per_1m: 0.50,  output_per_1m: 3.00  },
+  { id: 'google-gemini-31-flash-lite', name: 'Google Gemini 3.1 Flash-Lite', input_per_1m: 0.25,  output_per_1m: 1.50  },
   // Anthropic Claude
   { id: 'anthropic-claude-opus-46',   name: 'Anthropic Claude Opus 4.6',   input_per_1m: 5.00, output_per_1m: 25.00 },
   { id: 'anthropic-claude-sonnet-46', name: 'Anthropic Claude Sonnet 4.6', input_per_1m: 3.00, output_per_1m: 15.00 },
