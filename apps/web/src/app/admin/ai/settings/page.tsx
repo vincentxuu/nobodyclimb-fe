@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useCallback } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { Loader2, Save, CheckCircle, Plus, Trash2, Pencil } from 'lucide-react'
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs'
 import { useAIConfig, useUpdateAIConfig, DEFAULT_COST_PROVIDERS, type CostProvider } from '@/lib/api/admin-ai'

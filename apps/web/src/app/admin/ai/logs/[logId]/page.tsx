@@ -2223,6 +2223,17 @@ function PipelineTimeline({
   sources: Array<{ title?: string; type?: string; score?: number }>
 }) {
   const [expandedStages, setExpandedStages] = useState<Set<string>>(new Set())
+  const { data: aiConfig } = useAIConfig()
+  const primaryProvider = useMemo<CostProvider | null>(() => {
+    try {
+      const raw = aiConfig?.['cost_providers']
+      if (raw) {
+        const parsed = JSON.parse(raw) as CostProvider[]
+        if (Array.isArray(parsed) && parsed.length > 0) return parsed[0]
+      }
+    } catch { /* fallback */ }
+    return DEFAULT_COST_PROVIDERS[0] ?? null
+  }, [aiConfig])
 
   const toggleStage = (key: string) => {
     setExpandedStages((prev) => {
@@ -2301,7 +2312,8 @@ function PipelineTimeline({
           else if (isTraceOnly) status = 'ran'
 
           // Build metrics pills
-          const metrics: { label: string; value: string; highlight?: boolean }[] = []
+          const metrics: { label: string; value: string; highlight?: boolean; estimated?: boolean }[] = []
+          const tb = pipelineTrace?.token_breakdown
 
           if (!skipped && pipelineStage) {
             if (key === 'query_parsing' && pipelineStage.query_type) {
@@ -2317,7 +2329,19 @@ function PipelineTimeline({
             }
             if (key === 'generation') {
               if (pipelineStage.model) metrics.push({ label: '模型', value: String(pipelineStage.model).split('/').pop() ?? '' })
-              if (pipelineStage.token_count != null) metrics.push({ label: 'Tokens', value: String(pipelineStage.token_count) })
+              // 優先用 token_breakdown 的 main_generation（僅該階段），否則 fallback 總計
+              const mg = tb?.main_generation
+              if (mg) {
+                metrics.push({ label: 'in', value: mg.prompt_tokens.toLocaleString(), estimated: mg.estimated })
+                metrics.push({ label: 'out', value: mg.completion_tokens.toLocaleString(), estimated: mg.estimated })
+                if (primaryProvider) {
+                  const usd = calcCost(mg.prompt_tokens, mg.completion_tokens, primaryProvider)
+                  metrics.push({ label: '$', value: usd.toFixed(6), estimated: mg.estimated })
+                  metrics.push({ label: 'NT$', value: (usd * 32).toFixed(4), estimated: mg.estimated })
+                }
+              } else if (pipelineStage.token_count != null) {
+                metrics.push({ label: 'Tokens', value: String(pipelineStage.token_count) })
+              }
               if (pipelineStage.is_high_consumption) metrics.push({ label: '高消耗', value: '!', highlight: true })
             }
             if (key === 'judge') {
@@ -2327,13 +2351,57 @@ function PipelineTimeline({
                 metrics.push({ label: 'Auto', value: `${pipelineStage.auto_score} / 4` })
             }
           }
+
+          // 各 LLM stage 的 token 消耗（來自 token_breakdown）
+          if (tb) {
+            const singleStageTokenMap: Partial<Record<string, { prompt_tokens: number; completion_tokens: number; total_tokens: number; estimated: boolean } | undefined>> = {
+              query_parsing: tb.tool_selection,
+              hyde:          tb.hyde,
+              self_reflection: tb.self_reflection_regen,
+              judge:         tb.judge,
+            }
+            const stageUsage = singleStageTokenMap[key]
+            if (stageUsage) {
+              metrics.push({ label: 'in', value: stageUsage.prompt_tokens.toLocaleString(), estimated: stageUsage.estimated })
+              metrics.push({ label: 'out', value: stageUsage.completion_tokens.toLocaleString(), estimated: stageUsage.estimated })
+              if (primaryProvider) {
+                const usd = calcCost(stageUsage.prompt_tokens, stageUsage.completion_tokens, primaryProvider)
+                metrics.push({ label: '$', value: usd.toFixed(6), estimated: stageUsage.estimated })
+                metrics.push({ label: 'NT$', value: (usd * 32).toFixed(4), estimated: stageUsage.estimated })
+              }
+            }
+          }
+
           if (isTraceOnly && key === 'agentic' && pipelineTrace?.agentic) {
             const a = pipelineTrace.agentic as { steps: unknown[]; final_doc_count: number; total_paths: number }
             metrics.push({ label: '步驟', value: `${a.steps.length + 1}` })
             metrics.push({ label: '最終文件', value: `${a.final_doc_count} 筆` })
+            // Agentic decisions token 加總
+            if (tb?.agentic_decisions?.length) {
+              const totalIn = tb.agentic_decisions.reduce((s, d) => s + d.prompt_tokens, 0)
+              const totalOut = tb.agentic_decisions.reduce((s, d) => s + d.completion_tokens, 0)
+              const anyEst = tb.agentic_decisions.some(d => d.estimated)
+              metrics.push({ label: 'in', value: totalIn.toLocaleString(), estimated: anyEst })
+              metrics.push({ label: 'out', value: totalOut.toLocaleString(), estimated: anyEst })
+              if (primaryProvider) {
+                const usd = calcCost(totalIn, totalOut, primaryProvider)
+                metrics.push({ label: '$', value: usd.toFixed(6), estimated: anyEst })
+                metrics.push({ label: 'NT$', value: (usd * 32).toFixed(4), estimated: anyEst })
+              }
+            }
           }
           if (isTraceOnly && key === 'multi_query' && pipelineTrace?.multi_query) {
             metrics.push({ label: '子查詢', value: `${pipelineTrace.multi_query.queries.length} 條` })
+            if (tb?.multi_query) {
+              const mq = tb.multi_query
+              metrics.push({ label: 'in', value: mq.prompt_tokens.toLocaleString(), estimated: mq.estimated })
+              metrics.push({ label: 'out', value: mq.completion_tokens.toLocaleString(), estimated: mq.estimated })
+              if (primaryProvider) {
+                const usd = calcCost(mq.prompt_tokens, mq.completion_tokens, primaryProvider)
+                metrics.push({ label: '$', value: usd.toFixed(6), estimated: mq.estimated })
+                metrics.push({ label: 'NT$', value: (usd * 32).toFixed(4), estimated: mq.estimated })
+              }
+            }
           }
           if (isTraceOnly && key === 'rrf_fusion' && pipelineTrace?.retrieval?.rrf) {
             const rrf = pipelineTrace.retrieval.rrf
@@ -2388,10 +2456,12 @@ function PipelineTimeline({
                       className={`rounded border px-1.5 py-0.5 text-[11px] tabular-nums ${
                         m.highlight
                           ? 'border-red-200 bg-red-50 text-red-600'
-                          : 'border-wb-15 bg-wb-5 text-wb-60'
+                          : m.estimated
+                            ? 'border-amber-200 bg-amber-50 text-amber-700'
+                            : 'border-wb-15 bg-wb-5 text-wb-60'
                       }`}
                     >
-                      {m.label}: {m.value}
+                      {m.label}: {m.estimated ? '~' : ''}{m.value}
                     </span>
                   ))}
                   {canExpand && (
@@ -2758,7 +2828,7 @@ function CostAnalysisCard({ pipelineTrace }: { pipelineTrace: AILogDetail['pipel
     <div className="rounded-xl border border-wb-20 bg-white overflow-hidden">
       <div className="border-b border-wb-10 px-5 py-4">
         <h2 className="text-sm font-semibold text-wb-100">費用分析</h2>
-        <p className="mt-0.5 text-xs text-wb-50">各 stage token 消耗與不同供應商費用估算（USD）</p>
+        <p className="mt-0.5 text-xs text-wb-50">各 stage token 消耗與不同供應商費用估算（USD / NT$，匯率 32）</p>
       </div>
 
       {/* 供應商切換 */}
@@ -2803,11 +2873,15 @@ function CostAnalysisCard({ pipelineTrace }: { pipelineTrace: AILogDetail['pipel
                   </td>
                   <td className="px-3 py-2 text-right font-mono text-wb-70">{s.data.prompt_tokens.toLocaleString()}</td>
                   <td className="px-3 py-2 text-right font-mono text-wb-70">{s.data.completion_tokens.toLocaleString()}</td>
-                  {visibleProviders.map((p) => (
-                    <td key={p.id} className="px-3 py-2 text-right font-mono text-wb-80">
-                      {formatCost(calcCost(s.data.prompt_tokens, s.data.completion_tokens, p))}
-                    </td>
-                  ))}
+                  {visibleProviders.map((p) => {
+                    const usd = calcCost(s.data.prompt_tokens, s.data.completion_tokens, p)
+                    return (
+                      <td key={p.id} className="px-3 py-2 text-right font-mono">
+                        <div className="text-wb-80">{formatCost(usd)}</div>
+                        <div className="text-[10px] text-wb-50">NT${(usd * 32).toFixed(4)}</div>
+                      </td>
+                    )
+                  })}
                 </tr>
               )
             })}
@@ -2821,11 +2895,15 @@ function CostAnalysisCard({ pipelineTrace }: { pipelineTrace: AILogDetail['pipel
                 </td>
                 <td className="px-3 py-2 text-right font-mono text-wb-60">{d.prompt_tokens.toLocaleString()}</td>
                 <td className="px-3 py-2 text-right font-mono text-wb-60">{d.completion_tokens.toLocaleString()}</td>
-                {visibleProviders.map((p) => (
-                  <td key={p.id} className="px-3 py-2 text-right font-mono text-wb-70">
-                    {formatCost(calcCost(d.prompt_tokens, d.completion_tokens, p))}
-                  </td>
-                ))}
+                {visibleProviders.map((p) => {
+                  const usd = calcCost(d.prompt_tokens, d.completion_tokens, p)
+                  return (
+                    <td key={p.id} className="px-3 py-2 text-right font-mono">
+                      <div className="text-wb-70">{formatCost(usd)}</div>
+                      <div className="text-[10px] text-wb-50">NT${(usd * 32).toFixed(4)}</div>
+                    </td>
+                  )
+                })}
               </tr>
             ))}
 
@@ -2834,11 +2912,15 @@ function CostAnalysisCard({ pipelineTrace }: { pipelineTrace: AILogDetail['pipel
               <td className="px-4 py-2.5 text-wb-80">合計</td>
               <td className="px-3 py-2.5 text-right font-mono text-wb-80">{totalInput.toLocaleString()}</td>
               <td className="px-3 py-2.5 text-right font-mono text-wb-80">{totalOutput.toLocaleString()}</td>
-              {visibleProviders.map((p) => (
-                <td key={p.id} className="px-3 py-2.5 text-right font-mono text-wb-100">
-                  {formatCost(calcCost(totalInput, totalOutput, p))}
-                </td>
-              ))}
+              {visibleProviders.map((p) => {
+                const usd = calcCost(totalInput, totalOutput, p)
+                return (
+                  <td key={p.id} className="px-3 py-2.5 text-right font-mono">
+                    <div className="text-wb-100">{formatCost(usd)}</div>
+                    <div className="text-[10px] text-wb-60">NT${(usd * 32).toFixed(4)}</div>
+                  </td>
+                )
+              })}
             </tr>
           </tbody>
         </table>
@@ -2933,6 +3015,11 @@ export default function AdminAILogDetailPage({ params }: { params: Promise<{ log
         </div>
       </div>
 
+      {/* 費用分析 */}
+      {log.pipeline_trace?.token_breakdown && (
+        <CostAnalysisCard pipelineTrace={log.pipeline_trace} />
+      )}
+
       {/* 決策敘事摘要 */}
       {log.pipeline && (
         <DecisionNarrative
@@ -2993,11 +3080,6 @@ export default function AdminAILogDetailPage({ params }: { params: Promise<{ log
             ))}
           </div>
         </div>
-      )}
-
-      {/* 費用分析 */}
-      {log.pipeline_trace?.token_breakdown && (
-        <CostAnalysisCard pipelineTrace={log.pipeline_trace} />
       )}
 
       <p className="text-xs text-wb-40">ID: {log.id}</p>
