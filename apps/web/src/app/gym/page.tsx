@@ -81,15 +81,14 @@ export default function GymListPage() {
 
   // 使用 API hook 獲取資料
   const { data, isLoading, error } = useGyms({ limit: 100 })
-  const allGyms = data?.gyms || []
-
   // 在前端進行篩選
   const gyms = useMemo(() => {
+    const allGyms = data?.gyms || []
     return filterGyms(allGyms, {
       region: selectedRegion,
       type: selectedType,
     })
-  }, [allGyms, selectedRegion, selectedType])
+  }, [data?.gyms, selectedRegion, selectedType])
 
   return (
     <main className="min-h-screen bg-page-content-bg">

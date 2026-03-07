@@ -127,9 +127,9 @@ export interface AIStreamDoneEvent {
 // SSE 串流問答：使用 fetch + ReadableStream 接收，支援 AbortController 取消
 export async function askAIStream(
   request: AIAskRequest,
-  onToken: (token: string) => void,
-  onDone: (event: AIStreamDoneEvent) => void,
-  onError: (message: string) => void,
+  onToken: (_token: string) => void,
+  onDone: (_event: AIStreamDoneEvent) => void,
+  onError: (_message: string) => void,
   signal?: AbortSignal,
 ): Promise<void> {
   const { API_BASE_URL } = await import('../constants')

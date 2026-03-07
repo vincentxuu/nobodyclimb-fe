@@ -5,8 +5,7 @@ import { parseUTC, todayTaipei } from '@/lib/utils'
 import Link from 'next/link'
 import {
   Loader2, ChevronLeft, ChevronRight, Download, Search, X,
-  Clock, Zap, Shield, Brain, List, SlidersHorizontal,
-  ChevronDown,
+  Zap, Brain, SlidersHorizontal,
 } from 'lucide-react'
 import { useAILogs, type AIQueryLog } from '@/lib/api/admin-ai'
 
@@ -232,7 +231,7 @@ function FilterPanel({
   onClear,
 }: {
   filters: Filters
-  onChange: (key: keyof Filters, value: string) => void
+  onChange: (_key: keyof Filters, _value: string) => void
   onClear: () => void
 }) {
   const hasFilter = Object.values(filters).some(Boolean)
@@ -307,7 +306,7 @@ function FilterPanel({
 // 分頁
 // =============================================
 
-function Pagination({ page, total, limit, onChange }: { page: number; total: number; limit: number; onChange: (p: number) => void }) {
+function Pagination({ page, total, limit, onChange }: { page: number; total: number; limit: number; onChange: (_p: number) => void }) {
   const totalPages = Math.ceil(total / limit)
   if (totalPages <= 1) return null
 

@@ -3,8 +3,8 @@
 import { useState } from 'react'
 import Image from 'next/image'
 import Link from 'next/link'
-import { motion, AnimatePresence } from 'framer-motion'
-import { MapPin, ChevronDown, ChevronRight } from 'lucide-react'
+import { motion } from 'framer-motion'
+import { MapPin, ChevronRight } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { CragCoverGenerator } from '@/components/shared/CragCoverGenerator'
 import { useCrags, useFeaturedRoutes, type FeaturedRouteItem } from '@/hooks/api/useCrags'
@@ -276,53 +276,6 @@ export function TaiwanMap({
           </div>
         )
       })}
-    </div>
-  )
-}
-
-// 手機版可展開的迷你地圖
-function ExpandableMap({ crags }: { crags: CragListItem[] }) {
-  const [isExpanded, setIsExpanded] = useState(false)
-
-  return (
-    <div className="mb-6 lg:hidden">
-      <button
-        onClick={() => setIsExpanded(!isExpanded)}
-        className="flex w-full items-center justify-between rounded-lg bg-white p-4 shadow-sm transition-shadow hover:shadow-md"
-      >
-        <div className="flex items-center gap-4">
-          {/* 迷你地圖預覽 */}
-          <div className="relative h-16 w-12 flex-shrink-0">
-            <TaiwanMap crags={crags} compact />
-          </div>
-          <div className="text-left">
-            <p className="font-medium text-[#1B1A1A]">查看岩場分佈</p>
-            <p className="text-sm text-[#6D6C6C]">{crags.length} 個岩場</p>
-          </div>
-        </div>
-        <motion.div
-          animate={{ rotate: isExpanded ? 180 : 0 }}
-          transition={{ duration: 0.2 }}
-        >
-          <ChevronDown className="h-5 w-5 text-[#6D6C6C]" />
-        </motion.div>
-      </button>
-
-      <AnimatePresence>
-        {isExpanded && (
-          <motion.div
-            initial={{ height: 0, opacity: 0 }}
-            animate={{ height: 'auto', opacity: 1 }}
-            exit={{ height: 0, opacity: 0 }}
-            transition={{ duration: 0.3 }}
-            className="overflow-hidden"
-          >
-            <div className="flex justify-center bg-white px-4 pb-6 pt-2">
-              <TaiwanMap crags={crags} />
-            </div>
-          </motion.div>
-        )}
-      </AnimatePresence>
     </div>
   )
 }

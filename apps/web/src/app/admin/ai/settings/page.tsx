@@ -551,7 +551,7 @@ function GuardrailTagInput({
   desc: string
   configKey: string
   tags: string[]
-  onChange: (tags: string[]) => void
+  onChange: (_tags: string[]) => void
 }) {
   const [input, setInput] = useState('')
 

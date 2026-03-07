@@ -7,8 +7,8 @@ interface DebouncedOptions {
   maxWait?: number
 }
 
-interface DebouncedCallbackWithFlush<T extends (...args: any[]) => any> {
-  (...args: Parameters<T>): void
+interface DebouncedCallbackWithFlush<T extends (..._args: any[]) => any> {
+  (..._args: Parameters<T>): void
   /** 立即執行 pending 的回調（如果有） */
   flush: () => void
 }
@@ -19,7 +19,7 @@ interface DebouncedCallbackWithFlush<T extends (...args: any[]) => any> {
  * 支援 maxWait 選項，確保即使持續觸發也會定期執行
  * 支援 flush 方法，確保元件卸載前可以執行 pending 的回調
  */
-export function useDebouncedCallback<T extends (...args: any[]) => any>(
+export function useDebouncedCallback<T extends (..._args: any[]) => any>(
   callback: T,
   options: DebouncedOptions
 ): DebouncedCallbackWithFlush<T> {

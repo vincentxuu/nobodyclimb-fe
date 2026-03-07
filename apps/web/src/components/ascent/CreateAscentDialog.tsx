@@ -27,8 +27,8 @@ type Step = 'crag' | 'area' | 'sector' | 'route' | 'form'
 
 interface CreateAscentDialogProps {
   open: boolean
-  onOpenChange: (open: boolean) => void
-  onSubmit: (data: AscentFormData) => Promise<unknown>
+  onOpenChange: (_open: boolean) => void
+  onSubmit: (_data: AscentFormData) => Promise<unknown>
   isLoading?: boolean
 }
 
@@ -48,7 +48,7 @@ export function CreateAscentDialog({
 
   // 從 API 取得所有岩場
   const { data: cragsData } = useCrags({ limit: 100 })
-  const crags = cragsData?.crags || []
+  const crags = useMemo(() => cragsData?.crags || [], [cragsData?.crags])
 
   // 從 API 取得所有路線（用於全域搜尋，僅在對話框開啟時載入）
   const { data: allRoutes = [] } = useAllCragsRoutes(open)
@@ -679,7 +679,7 @@ const ascentFormSchema = z.object({
 
 interface AscentFormContentProps {
   routeId: string
-  onSubmit: (data: AscentFormData) => Promise<unknown>
+  onSubmit: (_data: AscentFormData) => Promise<unknown>
   onCancel: () => void
   isLoading?: boolean
 }

@@ -46,7 +46,7 @@ const CommentItem = ({
 }: {
   comment: CommentData
   currentUserId?: string
-  onDelete: (id: string) => void
+  onDelete: (_id: string) => void
 }) => {
   const displayName = comment.display_name || comment.username || '匿名用戶'
 

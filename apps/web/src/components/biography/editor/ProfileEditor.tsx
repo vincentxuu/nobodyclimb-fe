@@ -7,7 +7,6 @@ import ImageCropper from '@/components/shared/image-cropper'
 import type {
   BiographyV2,
   TagDimension,
-  TagOption,
   OneLinerQuestion,
   StoryQuestion,
   StoryCategory,
@@ -230,7 +229,7 @@ export function ProfileEditor({
       flushSave()
       modals.closeStoryEditor()
     },
-    [modals.editingStoryId, localBiography.stories, customContent.allStoryQuestionsByCategory, handleChange, flushSave, modals]
+    [localBiography.stories, customContent.allStoryQuestionsByCategory, handleChange, flushSave, modals]
   )
 
   // Handle story delete
@@ -242,7 +241,7 @@ export function ProfileEditor({
     handleChange({ stories: newStories })
     flushSave()
     modals.closeStoryEditor()
-  }, [modals.editingStoryId, localBiography.stories, handleChange, flushSave, modals])
+  }, [localBiography.stories, handleChange, flushSave, modals])
 
   // Calculate tag selections for TagsSection
   const tagSelections = useMemo(() => {

@@ -349,6 +349,7 @@ export function ChatWidget() {
         )
       }
     },
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     [askAI, isPending, isStreaming, quota, isAuthenticated]
   )
 
@@ -438,6 +439,7 @@ export function ChatWidget() {
         },
       }
     )
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isPending, isRegenerating, messages, askAI, quota])
 
   // 清除對話

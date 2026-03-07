@@ -4,7 +4,7 @@
  */
 
 import type { ApiCrag, ApiArea, ApiRoute } from '@/lib/types/api-crag'
-import type { CragListItem, CragArea, CragRoute, RouteSidebarItem, RouteDetailData, RouteSearchItem } from '@/lib/crag-data'
+import type { CragListItem, CragArea, CragRoute, RouteSidebarItem, RouteDetailData } from '@/lib/crag-data'
 
 // 岩場備用圖片（當實際圖片不存在時使用）
 const CRAG_FALLBACK_IMAGE = '/photo/climbspot-photo.jpeg'

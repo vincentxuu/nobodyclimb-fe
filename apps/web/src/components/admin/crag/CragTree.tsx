@@ -39,8 +39,8 @@ export interface SelectedItem {
 
 interface CragTreeProps {
   selectedItem: SelectedItem | null
-  onSelectItem: (item: SelectedItem | null) => void
-  onAddItem: (type: SelectedItemType, parentIds: SelectedItem['parentIds']) => void
+  onSelectItem: (_item: SelectedItem | null) => void
+  onAddItem: (_type: SelectedItemType, _parentIds: SelectedItem['parentIds']) => void
   refreshTrigger?: number
 }
 
@@ -336,21 +336,21 @@ export default function CragTree({
 interface CragNodeProps {
   crag: AdminCrag
   nodeStates: Record<string, TreeNodeState>
-  isSelected: (type: SelectedItemType, id: string) => boolean
-  onToggleCrag: (crag: AdminCrag) => void
-  onToggleArea: (cragId: string, areaId: string) => void
-  onToggleSector: (cragId: string, areaId: string, sectorId: string) => void
+  isSelected: (_type: SelectedItemType, _id: string) => boolean
+  onToggleCrag: (_crag: AdminCrag) => void
+  onToggleArea: (_cragId: string, _areaId: string) => void
+  onToggleSector: (_cragId: string, _areaId: string, _sectorId: string) => void
   onItemClick: (
-    type: SelectedItemType,
-    id: string,
-    parentIds: SelectedItem['parentIds'],
-    data?: AdminCrag | AdminArea | AdminSector | AdminRoute,
-    parentData?: SelectedItem['parentData']
+    _type: SelectedItemType,
+    _id: string,
+    _parentIds: SelectedItem['parentIds'],
+    _data?: AdminCrag | AdminArea | AdminSector | AdminRoute,
+    _parentData?: SelectedItem['parentData']
   ) => void
   onAddClick: (
-    e: React.MouseEvent,
-    type: SelectedItemType,
-    parentIds: SelectedItem['parentIds']
+    _e: React.MouseEvent,
+    _type: SelectedItemType,
+    _parentIds: SelectedItem['parentIds']
   ) => void
 }
 
@@ -472,20 +472,20 @@ interface AreaNodeProps {
   crag: AdminCrag
   cragId: string
   nodeStates: Record<string, TreeNodeState>
-  isSelected: (type: SelectedItemType, id: string) => boolean
-  onToggleArea: (cragId: string, areaId: string) => void
-  onToggleSector: (cragId: string, areaId: string, sectorId: string) => void
+  isSelected: (_type: SelectedItemType, _id: string) => boolean
+  onToggleArea: (_cragId: string, _areaId: string) => void
+  onToggleSector: (_cragId: string, _areaId: string, _sectorId: string) => void
   onItemClick: (
-    type: SelectedItemType,
-    id: string,
-    parentIds: SelectedItem['parentIds'],
-    data?: AdminCrag | AdminArea | AdminSector | AdminRoute,
-    parentData?: SelectedItem['parentData']
+    _type: SelectedItemType,
+    _id: string,
+    _parentIds: SelectedItem['parentIds'],
+    _data?: AdminCrag | AdminArea | AdminSector | AdminRoute,
+    _parentData?: SelectedItem['parentData']
   ) => void
   onAddClick: (
-    e: React.MouseEvent,
-    type: SelectedItemType,
-    parentIds: SelectedItem['parentIds']
+    _e: React.MouseEvent,
+    _type: SelectedItemType,
+    _parentIds: SelectedItem['parentIds']
   ) => void
 }
 
@@ -640,19 +640,19 @@ interface SectorNodeProps {
   cragId: string
   areaId: string
   nodeStates: Record<string, TreeNodeState>
-  isSelected: (type: SelectedItemType, id: string) => boolean
-  onToggleSector: (cragId: string, areaId: string, sectorId: string) => void
+  isSelected: (_type: SelectedItemType, _id: string) => boolean
+  onToggleSector: (_cragId: string, _areaId: string, _sectorId: string) => void
   onItemClick: (
-    type: SelectedItemType,
-    id: string,
-    parentIds: SelectedItem['parentIds'],
-    data?: AdminCrag | AdminArea | AdminSector | AdminRoute,
-    parentData?: SelectedItem['parentData']
+    _type: SelectedItemType,
+    _id: string,
+    _parentIds: SelectedItem['parentIds'],
+    _data?: AdminCrag | AdminArea | AdminSector | AdminRoute,
+    _parentData?: SelectedItem['parentData']
   ) => void
   onAddClick: (
-    e: React.MouseEvent,
-    type: SelectedItemType,
-    parentIds: SelectedItem['parentIds']
+    _e: React.MouseEvent,
+    _type: SelectedItemType,
+    _parentIds: SelectedItem['parentIds']
   ) => void
 }
 
@@ -772,13 +772,13 @@ interface RouteNodeProps {
   cragId: string
   areaId: string
   sectorId: string
-  isSelected: (type: SelectedItemType, id: string) => boolean
+  isSelected: (_type: SelectedItemType, _id: string) => boolean
   onItemClick: (
-    type: SelectedItemType,
-    id: string,
-    parentIds: SelectedItem['parentIds'],
-    data?: AdminCrag | AdminArea | AdminSector | AdminRoute,
-    parentData?: SelectedItem['parentData']
+    _type: SelectedItemType,
+    _id: string,
+    _parentIds: SelectedItem['parentIds'],
+    _data?: AdminCrag | AdminArea | AdminSector | AdminRoute,
+    _parentData?: SelectedItem['parentData']
   ) => void
 }
 

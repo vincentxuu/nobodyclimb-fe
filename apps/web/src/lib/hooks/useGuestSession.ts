@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useCallback, useRef } from 'react'
+import { useEffect, useCallback } from 'react'
 import { useAuthStore } from '@/store/authStore'
 import {
   useGuestSessionStore,

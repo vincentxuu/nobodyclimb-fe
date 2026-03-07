@@ -11,9 +11,9 @@ const MAX_IMAGE_DIMENSION = 1920;
 
 interface PhotoUploadProps {
   photos: string[];
-  onChange: (photos: string[]) => void;
+  onChange: (_photos: string[]) => void;
   maxPhotos?: number;
-  uploadFn: (file: File) => Promise<{ data?: { url: string } }>;
+  uploadFn: (_file: File) => Promise<{ data?: { url: string } }>;
   disabled?: boolean;
   className?: string;
 }

@@ -27,12 +27,12 @@ interface GuestSessionState {
 }
 
 interface GuestSessionActions {
-  initialize: (isAuthenticated: boolean) => Promise<void>
-  trackPageView: (isAuthenticated: boolean) => void
-  trackBiographyView: (isAuthenticated: boolean) => Promise<void>
-  syncToBackend: (isAuthenticated: boolean) => Promise<void>
+  initialize: (_isAuthenticated: boolean) => Promise<void>
+  trackPageView: (_isAuthenticated: boolean) => void
+  trackBiographyView: (_isAuthenticated: boolean) => Promise<void>
+  syncToBackend: (_isAuthenticated: boolean) => Promise<void>
   clearSession: () => void
-  setJustBecameEligible: (value: boolean) => void
+  setJustBecameEligible: (_value: boolean) => void
   getSessionId: () => string | null
 }
 
@@ -41,7 +41,7 @@ type GuestSessionStore = GuestSessionState & GuestSessionActions & {
   _pendingPageViews: number
   _pendingTimeSpent: number
   _pendingBiographyViews: number
-  _incrementPendingTime: (seconds: number) => void
+  _incrementPendingTime: (_seconds: number) => void
 }
 
 // Helper functions
@@ -78,7 +78,7 @@ export const useGuestSessionStore = create<GuestSessionStore>((set, get) => ({
   _pendingBiographyViews: 0,
 
   // Actions
-  initialize: async (isAuthenticated: boolean) => {
+  initialize: async (_isAuthenticated: boolean) => {
     const state = get()
     if (state.isInitialized) return // 避免重複初始化
 

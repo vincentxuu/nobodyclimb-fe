@@ -14,12 +14,9 @@ import {
   AlertCircle,
   Activity,
   AlertTriangle,
-  Clock,
   Globe,
-  TrendingUp,
   Server,
   Zap,
-  List,
 } from 'lucide-react'
 
 type TabType = 'summary' | 'logs' | 'errors' | 'slow'

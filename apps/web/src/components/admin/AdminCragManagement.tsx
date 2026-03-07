@@ -5,9 +5,6 @@ import {
   Mountain,
   RefreshCw,
   Plus,
-  FolderOpen,
-  Layers,
-  Route as RouteIcon,
 } from 'lucide-react'
 import { adminCragService, AdminCragStats } from '@/lib/api/services'
 import { AdminCrag, AdminArea, AdminSector } from '@/lib/types'
@@ -259,20 +256,6 @@ export default function AdminCragManagement() {
 
       default:
         return null
-    }
-  }
-
-  // Get icon for selected item type
-  const getItemIcon = (type: SelectedItemType) => {
-    switch (type) {
-      case 'crag':
-        return <Mountain className="h-4 w-4" />
-      case 'area':
-        return <FolderOpen className="h-4 w-4" />
-      case 'sector':
-        return <Layers className="h-4 w-4" />
-      case 'route':
-        return <RouteIcon className="h-4 w-4" />
     }
   }
 

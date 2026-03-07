@@ -29,8 +29,8 @@ interface RouteStoryFormProps {
   routeName: string;
   routeGrade?: string;
   open: boolean;
-  onOpenChange: (open: boolean) => void;
-  onSubmit: (data: RouteStoryFormData) => Promise<void>;
+  onOpenChange: (_open: boolean) => void;
+  onSubmit: (_data: RouteStoryFormData) => Promise<void>;
   initialData?: Partial<RouteStoryFormData>;
   isLoading?: boolean;
 }

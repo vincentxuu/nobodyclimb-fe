@@ -2,7 +2,7 @@
 
 import { useState, useMemo } from 'react'
 import { motion } from 'framer-motion'
-import { Calendar, MapPin, Activity, ChevronDown, ChevronUp, Sparkles, ArrowUpDown, ArrowLeftRight, TrendingUp } from 'lucide-react'
+import { Calendar, MapPin, Activity, ChevronDown, ChevronUp, Sparkles, ArrowUpDown, TrendingUp } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { BiographyV2, GradeTarget } from '@/lib/types/biography-v2'
 import { renderDynamicTag } from '@/lib/types/biography-v2'

@@ -459,7 +459,7 @@ function QueryParsingTrace({
   )
 }
 
-function FilterTrace({ trace, pipelineStage }: { trace: PipelineTrace | null; pipelineStage: Record<string, unknown> | null }) {
+function FilterTrace({ trace }: { trace: PipelineTrace | null; pipelineStage: Record<string, unknown> | null }) {
   const f = trace?.filter
   const qp = trace?.query_parsing
 
@@ -1336,7 +1336,7 @@ function OutputPathList({
 }: {
   r: NonNullable<PipelineTrace['retrieval']>
   totalRaw: number
-  pathColor: (p: string) => 'blue' | 'violet' | 'emerald' | 'default'
+  pathColor: (_p: string) => 'blue' | 'violet' | 'emerald' | 'default'
 }) {
   const [expandedPath, setExpandedPath] = useState<string | null>(null)
   const pathLabel = (p: string) =>
@@ -1391,7 +1391,7 @@ function OutputPathList({
 
 function RetrievalTrace({
   trace,
-  pipelineStage,
+  pipelineStage: _pipelineStage,
   query,
 }: {
   trace: PipelineTrace
@@ -1399,9 +1399,6 @@ function RetrievalTrace({
   query: string
 }) {
   const r = trace.retrieval
-  const topScore = pipelineStage?.top_score as number | null | undefined
-  const docCount = pipelineStage?.doc_count as number | null | undefined
-
   const [expandedPaths, setExpandedPaths] = useState<Set<string>>(new Set())
   const togglePath = (p: string) =>
     setExpandedPaths((prev) => { const s = new Set(prev); s.has(p) ? s.delete(p) : s.add(p); return s })
@@ -1582,11 +1579,11 @@ function GenerationTrace({
   response: string | null
 }) {
   const g = trace.generation
+  const [showMemoryPreview, setShowMemoryPreview] = useState(false)
   if (!g) return <p className="text-[11px] text-wb-40">無詳細資料（舊記錄）</p>
   const model = pipelineStage?.model as string | null | undefined
   const tokenCount = pipelineStage?.token_count as number | null | undefined
   const durationMs = pipelineStage?.duration_ms as number | null | undefined
-  const [showMemoryPreview, setShowMemoryPreview] = useState(false)
 
   return (
     <div>
@@ -2822,8 +2819,6 @@ function CostAnalysisCard({ pipelineTrace }: { pipelineTrace: AILogDetail['pipel
       return next
     })
   }
-
-  const colSpan = visibleProviders.length
 
   return (
     <div className="rounded-xl border border-wb-20 bg-white overflow-hidden">
