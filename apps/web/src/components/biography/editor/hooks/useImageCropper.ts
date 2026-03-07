@@ -7,8 +7,8 @@ import { useToast } from '@/components/ui/use-toast'
 interface UseImageCropperOptions {
   avatarUrl?: string | null
   coverUrl?: string | null
-  onAvatarChange: (url: string) => void
-  onCoverChange: (url: string) => void
+  onAvatarChange: (_url: string) => void
+  onCoverChange: (_url: string) => void
   onFlushSave?: () => void
 }
 

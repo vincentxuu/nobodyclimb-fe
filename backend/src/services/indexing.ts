@@ -262,10 +262,25 @@ export class IndexingService {
     return row?.value ?? '@cf/meta/llama-3.1-8b-instruct';
   }
 
+  private async loadContextualChunkPrompt(): Promise<string> {
+    try {
+      const row = await this.env.DB.prepare(
+        `SELECT content FROM ai_prompts WHERE name = 'contextual_chunk_prompt' AND status = 'active'`
+      ).first<{ content: string }>();
+      if (!row?.content) return CONTEXTUAL_CHUNK_PROMPT;
+      // 驗證必要變數存在，缺少則 fallback
+      const required = ['{type}', '{content}'];
+      if (required.some((v) => !row.content.includes(v))) return CONTEXTUAL_CHUNK_PROMPT;
+      return row.content;
+    } catch {
+      return CONTEXTUAL_CHUNK_PROMPT;
+    }
+  }
+
   // 為單一 chunk 呼叫 LLM 生成語意摘要（失敗時回傳空字串，讓主流程 fallback 到原始文字）
-  private async generateContextSummary(text: string, type: 'route' | 'crag' | 'video', model: string): Promise<string> {
+  private async generateContextSummary(text: string, type: 'route' | 'crag' | 'video', model: string, promptTemplate: string): Promise<string> {
     const typeLabel = type === 'route' ? '攀岩路線' : type === 'crag' ? '岩場' : '攀岩影片';
-    const prompt = CONTEXTUAL_CHUNK_PROMPT
+    const prompt = promptTemplate
       .replace('{type}', typeLabel)
       .replace('{content}', text);
     try {
@@ -283,13 +298,14 @@ export class IndexingService {
   private async generateContextSummaries(
     documents: Array<{ text: string }>,
     type: 'route' | 'crag' | 'video',
-    model: string
+    model: string,
+    promptTemplate: string
   ): Promise<string[]> {
     const summaries: string[] = new Array(documents.length).fill('');
     for (let i = 0; i < documents.length; i += CONTEXT_GENERATION_BATCH_SIZE) {
       const batch = documents.slice(i, i + CONTEXT_GENERATION_BATCH_SIZE);
       const results = await Promise.allSettled(
-        batch.map((doc) => this.generateContextSummary(doc.text, type, model))
+        batch.map((doc) => this.generateContextSummary(doc.text, type, model, promptTemplate))
       );
       results.forEach((result, j) => {
         summaries[i + j] = result.status === 'fulfilled' ? result.value : '';
@@ -386,8 +402,11 @@ export class IndexingService {
     dbInserts: Array<{ id: string }>
   ): Promise<void> {
     try {
-      const model = await this.getContextualModel();
-      const summaries = await this.generateContextSummaries(documents, type, model);
+      const [model, promptTemplate] = await Promise.all([
+        this.getContextualModel(),
+        this.loadContextualChunkPrompt(),
+      ]);
+      const summaries = await this.generateContextSummaries(documents, type, model, promptTemplate);
       const enrichedTexts = documents.map((d, i) =>
         summaries[i] ? `${summaries[i]}\n\n${d.text}` : d.text
       );

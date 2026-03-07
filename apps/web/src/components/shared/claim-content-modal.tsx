@@ -10,7 +10,7 @@ interface ClaimContentModalProps {
   isOpen: boolean
   onClose: () => void
   unclaimedContent: UnclaimedContent[]
-  onClaimSuccess?: (biographyId: string) => void
+  onClaimSuccess?: (_biographyId: string) => void
 }
 
 /**

@@ -6,11 +6,11 @@ import type { BiographyV2 } from '@/lib/types/biography-v2'
 
 interface UseAutoSaveBiographyOptions {
   biography: BiographyV2
-  onChange: (updates: Partial<BiographyV2>) => void
-  onSave: (biography: BiographyV2) => Promise<void>
+  onChange: (_updates: Partial<BiographyV2>) => void
+  onSave: (_biography: BiographyV2) => Promise<void>
   setSaving: () => void
   setSaved: () => void
-  setError: (error: string) => void
+  setError: (_error: string) => void
 }
 
 /**
@@ -83,6 +83,7 @@ export function useAutoSaveBiography({
       clearTimeout(retryTimerRef.current)
       retryTimerRef.current = null
     }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [biography.id])
 
   // 自動儲存 - 使用 debounce

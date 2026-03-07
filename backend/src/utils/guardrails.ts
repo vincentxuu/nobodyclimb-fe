@@ -5,9 +5,13 @@ import { D1Database } from '@cloudflare/workers-types';
 // =============================================
 
 export class GuardrailError extends Error {
-  constructor(message: string) {
+  reason: 'blocklist' | 'prompt_injection' | 'jailbreak' | 'meaningless';
+  matchedPattern: string | null;
+  constructor(message: string, reason: 'blocklist' | 'prompt_injection' | 'jailbreak' | 'meaningless', matchedPattern?: string) {
     super(message);
     this.name = 'GuardrailError';
+    this.reason = reason;
+    this.matchedPattern = matchedPattern ?? null;
   }
 }
 
@@ -107,7 +111,7 @@ export async function checkInput(query: string, db: D1Database): Promise<Guardra
       checks_run.push('blocklist');
       for (const keyword of customList) {
         if (lowerQuery.includes(keyword.toLowerCase())) {
-          throw new GuardrailError('輸入內容不符合使用規範');
+          throw new GuardrailError('輸入內容不符合使用規範', 'blocklist', keyword);
         }
       }
     }
@@ -120,7 +124,7 @@ export async function checkInput(query: string, db: D1Database): Promise<Guardra
   checks_run.push('prompt_injection');
   for (const keyword of injectionKeywords) {
     if (lowerQuery.includes(keyword)) {
-      throw new GuardrailError('輸入內容不符合使用規範');
+      throw new GuardrailError('輸入內容不符合使用規範', 'prompt_injection', keyword);
     }
   }
 
@@ -128,7 +132,7 @@ export async function checkInput(query: string, db: D1Database): Promise<Guardra
   checks_run.push('jailbreak');
   for (const pattern of jailbreakPatterns) {
     if (lowerQuery.includes(pattern.toLowerCase())) {
-      throw new GuardrailError('輸入內容不符合使用規範');
+      throw new GuardrailError('輸入內容不符合使用規範', 'jailbreak', pattern);
     }
   }
 
@@ -136,7 +140,7 @@ export async function checkInput(query: string, db: D1Database): Promise<Guardra
   checks_run.push('meaningless');
   const trimmed = query.trim();
   if (MEANINGLESS_SYMBOLS_RE.test(trimmed) || REPEATED_CHARS_RE.test(trimmed)) {
-    throw new GuardrailError('輸入內容無效，請輸入有意義的問題');
+    throw new GuardrailError('輸入內容無效，請輸入有意義的問題', 'meaningless', trimmed.slice(0, 50));
   }
 
   return {

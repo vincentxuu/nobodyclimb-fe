@@ -26,7 +26,7 @@ const ICON_MAP = {
 
 interface AscentTypeSelectProps {
   value: AscentType | null;
-  onChange: (value: AscentType) => void;
+  onChange: (_value: AscentType) => void;
   className?: string;
 }
 

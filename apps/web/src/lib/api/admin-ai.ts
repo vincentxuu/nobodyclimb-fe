@@ -27,7 +27,7 @@ export interface AIQueryLog {
   latency_ms: number | null
   feedback_score: number | null
   created_at: string
-  query_type: 'simple' | 'complex' | 'general-knowledge' | null
+  query_type: 'simple' | 'complex' | 'general-knowledge' | 'guardrails_blocked' | null
   groundedness_score: number | null
   auto_score: number | null
   embedding_ms: number | null
@@ -74,7 +74,7 @@ export interface AILogDetail {
     auto_score: number | null
     feedback_score: number | null
     feedback_text: string | null
-    flags: Array<{ type: string; description: string }>
+    flags: Array<{ type: string; is_reviewed: boolean; created_at: string }>
   }
   pipeline: {
     guardrails_input: PipelineStageBase
@@ -82,11 +82,12 @@ export interface AILogDetail {
     quota_check: PipelineStageBase
     query_parsing: PipelineStageBase & { query_type: string | null }
     hyde: PipelineStageBase & { triggered: boolean }
+    filter: PipelineStageBase & Record<string, unknown>
     embedding: PipelineStageBase & { duration_ms: number | null }
     retrieval: PipelineStageBase & { duration_ms: number | null; top_score: number | null; doc_count: number | null }
     generation: PipelineStageBase & { model: string | null; duration_ms: number | null; token_count: number | null; is_high_consumption: boolean }
     self_reflection: PipelineStageBase & { triggered: boolean }
-    judge: PipelineStageBase & { groundedness_score: number | null; auto_score: number | null }
+    judge: PipelineStageBase & { groundedness_score: number | null; auto_score: number | null; raw_scores?: Record<string, number>; criteria?: string[] }
     guardrails_output: PipelineStageBase
     memory_extraction: PipelineStageBase
   }
@@ -111,6 +112,7 @@ export interface AILogDetail {
       query_type: string
       alternatives: string[]
       params: Record<string, unknown>
+      fallback_used?: boolean
     }
     cache?: {
       type: 'kv' | 'semantic'
@@ -119,6 +121,8 @@ export interface AILogDetail {
       applied: Record<string, unknown>
       source: string
       history_supplemented?: boolean
+      matched_texts?: Record<string, string>
+      resolved_ids?: { area_id?: string; crag_id?: string | string[] }
     }
     hyde?: {
       document: string
@@ -128,11 +132,29 @@ export interface AILogDetail {
     }
     retrieval?: {
       paths: string[]
+      path_counts?: Record<string, number>
+      path_results?: Record<string, Array<{ id: string; score: number; name?: string }>>
+      bm25_fts_query?: string | null
       candidates_before_filter: number
       candidates_after_filter: number
       crag_fallback: boolean
-      crag_fallback_stage?: 'grade' | 'grade_and_type' | null
+      crag_fallback_stage?: 'grade' | null
       reranker_used?: boolean
+      rrf?: {
+        paths_count: number
+        merged_count: number
+        min_score_threshold: number
+        after_threshold_count: number
+      }
+      crag_fallback_detail?: {
+        trigger_reason: string
+        retries: Array<{ removed_filter: string; candidates_after: number }>
+      } | null
+      reranker?: {
+        input_count?: number
+        top_scores?: Array<{ title: string; score: number }>
+        skipped_reason?: string
+      }
     }
     generation?: {
       context_doc_count: number
@@ -141,6 +163,9 @@ export interface AILogDetail {
       ability_level?: number | null
       memory_summary_length?: number
       suggested_questions?: string[]
+      context_doc_titles?: string[]
+      prompt_template?: 'personalized' | 'default'
+      memory_summary_preview?: string | null
     }
     embedding?: {
       early_vector_reused: boolean
@@ -153,6 +178,12 @@ export interface AILogDetail {
       regen_quality: number | null
       regen_groundedness: number | null
       regen_accepted: boolean
+      first_judge_quality?: number | null
+      first_judge_groundedness?: number | null
+      regen_reason?: 'quality_below_threshold' | 'groundedness_below_threshold' | 'both'
+      second_judge_quality?: number | null
+      second_judge_groundedness?: number | null
+      acceptance_reason?: 'regen_accepted' | 'original_kept'
     }
     guardrails_output?: {
       original_length: number
@@ -167,9 +198,31 @@ export interface AILogDetail {
       reason?: string
     }
     agentic?: {
-      steps: Array<{ step: number; type: string; refinedQuery?: string }>
+      steps: Array<{ step: number; type: string; refinedQuery?: string; docs_retrieved?: number }>
       total_paths: number
       final_doc_count: number
+      termination_reason?: 'enough_docs' | 'max_steps' | 'no_improvement'
+    }
+    token_breakdown?: {
+      tool_selection?: { prompt_tokens: number; completion_tokens: number; total_tokens: number; model: string; estimated: boolean }
+      hyde?: { prompt_tokens: number; completion_tokens: number; total_tokens: number; model: string; estimated: boolean }
+      multi_query?: { prompt_tokens: number; completion_tokens: number; total_tokens: number; model: string; estimated: boolean }
+      agentic_decisions?: Array<{ step: number; prompt_tokens: number; completion_tokens: number; total_tokens: number; model: string; estimated: boolean }>
+      main_generation?: { prompt_tokens: number; completion_tokens: number; total_tokens: number; model: string; estimated: boolean }
+      self_reflection_regen?: { prompt_tokens: number; completion_tokens: number; total_tokens: number; model: string; estimated: boolean }
+      judge?: { prompt_tokens: number; completion_tokens: number; total_tokens: number; model: string; estimated: boolean }
+      judge_2nd?: { prompt_tokens: number; completion_tokens: number; total_tokens: number; model: string; estimated: boolean }
+    }
+    mmr_selection?: {
+      lambda: number
+      input_count: number
+      selected_count: number
+      popularity_weight: number
+      top_selected?: Array<{ title: string; relevance_score: number; popularity_score: number; final_score: number }>
+    }
+    judge_detail?: {
+      criteria: string[]
+      raw_scores: Record<string, number>
     }
   } | null
 }
@@ -193,6 +246,49 @@ export interface AIPrompt {
   updated_at: string
 }
 
+export interface AIPromptDefault {
+  name: string
+  label: string
+  content: string
+  variables: string[]
+}
+
+export interface AIStats {
+  total_queries: number
+  total_tokens: number
+  cache_hits: number
+  avg_tokens: number
+  total_prompt_tokens: number
+  total_completion_tokens: number
+  trace_count: number
+  by_type: { simple: number; complex: number; general: number; blocked: number }
+}
+
+export interface CostProvider {
+  id: string
+  name: string
+  input_per_1m: number
+  output_per_1m: number
+}
+
+export const DEFAULT_COST_PROVIDERS: CostProvider[] = [
+  // 現用模型
+  { id: 'cf-gemma-3-12b',         name: 'Cloudflare Gemma 3 12B',    input_per_1m: 0.345, output_per_1m: 0.556 },
+  // OpenAI GPT-5 系列（2026 主流）
+  { id: 'openai-gpt-5-4',         name: 'OpenAI GPT-5.4',            input_per_1m: 2.50,  output_per_1m: 15.00 },
+  { id: 'openai-gpt-5',           name: 'OpenAI GPT-5',              input_per_1m: 1.25,  output_per_1m: 10.00 },
+  { id: 'openai-gpt-5-mini',      name: 'OpenAI GPT-5 mini',         input_per_1m: 0.25,  output_per_1m: 2.00  },
+  { id: 'openai-gpt-5-nano',      name: 'OpenAI GPT-5 nano',         input_per_1m: 0.05,  output_per_1m: 0.40  },
+  // Google Gemini
+  { id: 'google-gemini-31-pro',        name: 'Google Gemini 3.1 Pro',        input_per_1m: 2.00,  output_per_1m: 12.00 },
+  { id: 'google-gemini-3-flash',       name: 'Google Gemini 3 Flash',        input_per_1m: 0.50,  output_per_1m: 3.00  },
+  { id: 'google-gemini-31-flash-lite', name: 'Google Gemini 3.1 Flash-Lite', input_per_1m: 0.25,  output_per_1m: 1.50  },
+  // Anthropic Claude
+  { id: 'anthropic-claude-opus-46',   name: 'Anthropic Claude Opus 4.6',   input_per_1m: 5.00, output_per_1m: 25.00 },
+  { id: 'anthropic-claude-sonnet-46', name: 'Anthropic Claude Sonnet 4.6', input_per_1m: 3.00, output_per_1m: 15.00 },
+  { id: 'anthropic-claude-haiku-45',  name: 'Anthropic Claude Haiku 4.5',  input_per_1m: 1.00, output_per_1m: 5.00  },
+]
+
 // =============================================
 // API 函式
 // =============================================
@@ -209,6 +305,9 @@ export async function getAILogs(params: {
   to?: string
   feedback_min?: number
   feedback_max?: number
+  query_type?: string
+  search?: string
+  user_id?: string
 }): Promise<AILogsResponse> {
   const query = new URLSearchParams()
   if (params.page) query.set('page', String(params.page))
@@ -217,6 +316,9 @@ export async function getAILogs(params: {
   if (params.to) query.set('to', params.to)
   if (params.feedback_min !== undefined) query.set('feedback_min', String(params.feedback_min))
   if (params.feedback_max !== undefined) query.set('feedback_max', String(params.feedback_max))
+  if (params.query_type) query.set('query_type', params.query_type)
+  if (params.search) query.set('search', params.search)
+  if (params.user_id) query.set('user_id', params.user_id)
   const res = await apiClient.get<{ success: boolean; data: AILogsResponse }>(
     `/admin/ai/logs?${query.toString()}`
   )
@@ -231,6 +333,20 @@ export async function getAILogDetail(id: string): Promise<AILogDetail> {
 export async function getAIKnowledge(): Promise<{ sources: AIKnowledgeSource[] }> {
   const res = await apiClient.get<{ success: boolean; data: { sources: AIKnowledgeSource[] } }>(
     '/admin/ai/knowledge'
+  )
+  return res.data.data
+}
+
+export async function getAIPromptDefaults(): Promise<AIPromptDefault[]> {
+  const res = await apiClient.get<{ success: boolean; data: AIPromptDefault[] }>(
+    '/admin/ai/prompts/defaults'
+  )
+  return res.data.data
+}
+
+export async function getAIPromptsByName(name: string): Promise<AIPrompt[]> {
+  const res = await apiClient.get<{ success: boolean; data: AIPrompt[] }>(
+    `/admin/ai/prompts?name=${encodeURIComponent(name)}`
   )
   return res.data.data
 }
@@ -267,6 +383,14 @@ export async function updateAIPrompt(
 
 export async function deleteAIPrompt(id: string): Promise<void> {
   await apiClient.delete(`/admin/ai/prompts/${id}`)
+}
+
+export async function getAIStats(params: { from: string; to: string }): Promise<AIStats> {
+  const query = new URLSearchParams({ from: params.from, to: params.to })
+  const res = await apiClient.get<{ success: boolean; data: AIStats }>(
+    `/admin/ai/stats?${query.toString()}`
+  )
+  return res.data.data
 }
 
 export async function getAIConfig(): Promise<Record<string, string>> {
@@ -324,6 +448,34 @@ export function useAIKnowledge() {
   })
 }
 
+export function useAIPromptDefaults() {
+  return useQuery({
+    queryKey: ['admin-ai-prompt-defaults'],
+    queryFn: getAIPromptDefaults,
+    staleTime: 10 * 60 * 1000,
+  })
+}
+
+export function useAIPromptsByName(name: string) {
+  return useQuery({
+    queryKey: ['admin-ai-prompts', name],
+    queryFn: () => getAIPromptsByName(name),
+    enabled: !!name,
+    staleTime: 30 * 1000,
+  })
+}
+
+export function useCreateAIPrompt() {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: createAIPrompt,
+    onSuccess: (_data, variables) => {
+      queryClient.invalidateQueries({ queryKey: ['admin-ai-prompts'] })
+      queryClient.invalidateQueries({ queryKey: ['admin-ai-prompts', variables.name] })
+    },
+  })
+}
+
 export function useAIPrompts() {
   return useQuery({
     queryKey: ['admin-ai-prompts'],
@@ -358,6 +510,15 @@ export function useDeleteAIPrompt() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['admin-ai-prompts'] })
     },
+  })
+}
+
+export function useAIStats(params: { from: string; to: string } | null) {
+  return useQuery({
+    queryKey: ['admin-ai-stats', params],
+    queryFn: () => getAIStats(params!),
+    enabled: !!params,
+    staleTime: 60 * 1000,
   })
 }
 

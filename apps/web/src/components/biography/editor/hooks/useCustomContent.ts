@@ -15,8 +15,8 @@ interface UseCustomContentOptions {
   tagDimensions: TagDimension[]
   oneLinerQuestions: OneLinerQuestion[]
   storyQuestionsByCategory: Record<StoryCategory, StoryQuestion[]>
-  onSaveCustomTag: (tag: TagOption, isUserDimension: boolean, newCustomDimensions?: TagDimension[], newCustomTags?: TagOption[]) => void
-  onSaveCustomDimension: (dimension: TagDimension, newCustomDimensions: TagDimension[]) => void
+  onSaveCustomTag: (_tag: TagOption, _isUserDimension: boolean, _newCustomDimensions?: TagDimension[], _newCustomTags?: TagOption[]) => void
+  onSaveCustomDimension: (_dimension: TagDimension, _newCustomDimensions: TagDimension[]) => void
 }
 
 /**

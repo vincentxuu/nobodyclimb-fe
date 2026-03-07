@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useEffect, useCallback } from 'react'
+import { formatTaipei } from '@/lib/utils'
 import {
   adminAccessLogsService,
   AccessLogSummary,
@@ -13,12 +14,9 @@ import {
   AlertCircle,
   Activity,
   AlertTriangle,
-  Clock,
   Globe,
-  TrendingUp,
   Server,
   Zap,
-  List,
 } from 'lucide-react'
 
 type TabType = 'summary' | 'logs' | 'errors' | 'slow'
@@ -113,7 +111,7 @@ export default function AdminAccessLogs() {
   // 格式化時間
   const formatTime = (timestamp: string) => {
     try {
-      return new Date(timestamp).toLocaleString('zh-TW')
+      return formatTaipei(timestamp)
     } catch {
       return timestamp
     }

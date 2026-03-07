@@ -25,8 +25,8 @@ interface ContentClaimApi {
   isLoading: boolean
   hasUnclaimedContent: boolean
   checkForUnclaimedContent: () => Promise<void>
-  claimBiography: (biographyId: string, keepAnonymous?: boolean) => Promise<ClaimResult>
-  mergeBiography: (sourceId: string) => Promise<ClaimResult>
+  claimBiography: (_biographyId: string, _keepAnonymous?: boolean) => Promise<ClaimResult>
+  mergeBiography: (_sourceId: string) => Promise<ClaimResult>
   dismissClaim: () => void
 }
 

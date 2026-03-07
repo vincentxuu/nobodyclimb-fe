@@ -58,8 +58,8 @@ interface RouteMediaFormProps {
   routeName: string
   mediaType: MediaType
   open: boolean
-  onOpenChange: (open: boolean) => void
-  onSubmit: (data: RouteStoryFormData) => Promise<void>
+  onOpenChange: (_open: boolean) => void
+  onSubmit: (_data: RouteStoryFormData) => Promise<void>
   isLoading?: boolean
 }
 

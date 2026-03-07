@@ -10,6 +10,18 @@ import {
   DEFAULT_JAILBREAK_PATTERNS,
   DEFAULT_SYSTEM_PROMPT_LEAKAGE_PATTERNS,
 } from '../utils/guardrails';
+import {
+  SYSTEM_PROMPT,
+  TOOL_SELECTION_PROMPT,
+  GENERAL_KNOWLEDGE_SYSTEM_PROMPT,
+  HYDE_PROMPT,
+  JUDGE_PROMPT,
+  SELF_REFLECTION_PROMPT,
+  CONTEXTUAL_CHUNK_PROMPT,
+  MULTI_QUERY_EXPANSION_PROMPT,
+  AGENTIC_DECISION_PROMPT,
+  QUERY_TEMPLATE,
+} from '../utils/ai-prompts';
 
 export const adminAiRoutes = new Hono<{ Bindings: Env }>();
 
@@ -129,6 +141,109 @@ adminAiRoutes.get(
 );
 
 // =============================================
+// GET /stats - Token 用量聚合（費用估算用）
+// =============================================
+
+const statsQuerySchema = z.object({
+  from: z.string().optional(),
+  to: z.string().optional(),
+});
+
+adminAiRoutes.get(
+  '/stats',
+  describeRoute({
+    tags: ['Admin AI'],
+    summary: 'Token 用量聚合統計',
+    description: '依時間區間統計查詢數、Token 總量、快取命中率與類型分布，供費用估算使用',
+    responses: { 200: { description: '統計資料' } },
+  }),
+  validator('query', statsQuerySchema),
+  async (c) => {
+    const { from, to } = c.req.valid('query');
+
+    const conditions: string[] = [];
+    const bindings: string[] = [];
+
+    if (from) { conditions.push('created_at >= ?'); bindings.push(from); }
+    if (to)   { conditions.push('created_at <= ?'); bindings.push(to + 'T23:59:59'); }
+
+    const where = conditions.length > 0 ? `WHERE ${conditions.join(' AND ')}` : '';
+
+    try {
+      const [summary, byType] = await Promise.all([
+        c.env.DB.prepare(
+          `SELECT
+             COUNT(*) as total_queries,
+             COALESCE(SUM(token_count), 0) as total_tokens,
+             SUM(CASE WHEN cache_hit = 1 THEN 1 ELSE 0 END) as cache_hits,
+             CAST(COALESCE(AVG(CASE WHEN token_count IS NOT NULL THEN token_count END), 0) AS INTEGER) as avg_tokens,
+             COALESCE(SUM(
+               CAST(COALESCE(json_extract(pipeline_trace, '$.token_breakdown.main_generation.prompt_tokens'), 0) AS INTEGER)
+               + CAST(COALESCE(json_extract(pipeline_trace, '$.token_breakdown.tool_selection.prompt_tokens'), 0) AS INTEGER)
+               + CAST(COALESCE(json_extract(pipeline_trace, '$.token_breakdown.hyde.prompt_tokens'), 0) AS INTEGER)
+               + CAST(COALESCE(json_extract(pipeline_trace, '$.token_breakdown.multi_query.prompt_tokens'), 0) AS INTEGER)
+               + CAST(COALESCE(json_extract(pipeline_trace, '$.token_breakdown.self_reflection_regen.prompt_tokens'), 0) AS INTEGER)
+               + CAST(COALESCE(json_extract(pipeline_trace, '$.token_breakdown.judge.prompt_tokens'), 0) AS INTEGER)
+               + CAST(COALESCE(json_extract(pipeline_trace, '$.token_breakdown.judge_2nd.prompt_tokens'), 0) AS INTEGER)
+             ), 0) as total_prompt_tokens,
+             COALESCE(SUM(
+               CAST(COALESCE(json_extract(pipeline_trace, '$.token_breakdown.main_generation.completion_tokens'), 0) AS INTEGER)
+               + CAST(COALESCE(json_extract(pipeline_trace, '$.token_breakdown.tool_selection.completion_tokens'), 0) AS INTEGER)
+               + CAST(COALESCE(json_extract(pipeline_trace, '$.token_breakdown.hyde.completion_tokens'), 0) AS INTEGER)
+               + CAST(COALESCE(json_extract(pipeline_trace, '$.token_breakdown.multi_query.completion_tokens'), 0) AS INTEGER)
+               + CAST(COALESCE(json_extract(pipeline_trace, '$.token_breakdown.self_reflection_regen.completion_tokens'), 0) AS INTEGER)
+               + CAST(COALESCE(json_extract(pipeline_trace, '$.token_breakdown.judge.completion_tokens'), 0) AS INTEGER)
+               + CAST(COALESCE(json_extract(pipeline_trace, '$.token_breakdown.judge_2nd.completion_tokens'), 0) AS INTEGER)
+             ), 0) as total_completion_tokens,
+             COUNT(CASE WHEN pipeline_trace IS NOT NULL THEN 1 END) as trace_count
+           FROM ai_query_logs ${where}`
+        ).bind(...bindings).first<{
+          total_queries: number;
+          total_tokens: number;
+          cache_hits: number;
+          avg_tokens: number;
+          total_prompt_tokens: number;
+          total_completion_tokens: number;
+          trace_count: number;
+        }>(),
+        c.env.DB.prepare(
+          `SELECT query_type, COUNT(*) as count
+           FROM ai_query_logs ${where}
+           GROUP BY query_type`
+        ).bind(...bindings).all<{ query_type: string | null; count: number }>(),
+      ]);
+
+      const byTypeMap: Record<string, number> = {};
+      for (const row of byType.results) {
+        byTypeMap[row.query_type ?? 'unknown'] = row.count;
+      }
+
+      return c.json({
+        success: true,
+        data: {
+          total_queries: summary?.total_queries ?? 0,
+          total_tokens: summary?.total_tokens ?? 0,
+          cache_hits: summary?.cache_hits ?? 0,
+          avg_tokens: summary?.avg_tokens ?? 0,
+          total_prompt_tokens: summary?.total_prompt_tokens ?? 0,
+          total_completion_tokens: summary?.total_completion_tokens ?? 0,
+          trace_count: summary?.trace_count ?? 0,
+          by_type: {
+            simple: byTypeMap['simple'] ?? 0,
+            complex: byTypeMap['complex'] ?? 0,
+            general: byTypeMap['general-knowledge'] ?? 0,
+            blocked: byTypeMap['guardrails_blocked'] ?? 0,
+          },
+        },
+      });
+    } catch (error) {
+      console.error('Admin AI stats error:', error);
+      return c.json({ success: false, error: 'DatabaseError', message: '取得統計資料失敗' }, 500);
+    }
+  }
+);
+
+// =============================================
 // GET /logs - 查詢日誌列表（分頁 + 篩選）
 // =============================================
 
@@ -139,6 +254,9 @@ const logsQuerySchema = z.object({
   to: z.string().optional(),
   feedback_min: z.string().optional(),
   feedback_max: z.string().optional(),
+  query_type: z.string().optional(),
+  search: z.string().optional(),
+  user_id: z.string().optional(),
 });
 
 adminAiRoutes.get(
@@ -150,7 +268,7 @@ adminAiRoutes.get(
   }),
   validator('query', logsQuerySchema),
   async (c) => {
-    const { page: pageStr, limit: limitStr, from, to, feedback_min, feedback_max } =
+    const { page: pageStr, limit: limitStr, from, to, feedback_min, feedback_max, query_type, search, user_id } =
       c.req.valid('query');
     const page = Math.max(1, parseInt(pageStr ?? '1', 10));
     const limit = Math.min(100, parseInt(limitStr ?? '20', 10));
@@ -159,16 +277,19 @@ adminAiRoutes.get(
     const conditions: string[] = [];
     const bindings: (string | number)[] = [];
 
-    if (from) { conditions.push('created_at >= ?'); bindings.push(from); }
-    if (to) { conditions.push('created_at <= ?'); bindings.push(to); }
-    if (feedback_min) { conditions.push('feedback_score >= ?'); bindings.push(parseInt(feedback_min, 10)); }
-    if (feedback_max) { conditions.push('feedback_score <= ?'); bindings.push(parseInt(feedback_max, 10)); }
+    if (from) { conditions.push('l.created_at >= ?'); bindings.push(from); }
+    if (to) { conditions.push('l.created_at <= ?'); bindings.push(to + 'T23:59:59'); }
+    if (feedback_min) { conditions.push('l.feedback_score >= ?'); bindings.push(parseInt(feedback_min, 10)); }
+    if (feedback_max) { conditions.push('l.feedback_score <= ?'); bindings.push(parseInt(feedback_max, 10)); }
+    if (query_type) { conditions.push('l.query_type = ?'); bindings.push(query_type); }
+    if (search) { conditions.push('l.query LIKE ?'); bindings.push(`%${search}%`); }
+    if (user_id) { conditions.push('l.user_id = ?'); bindings.push(user_id); }
 
     const where = conditions.length > 0 ? `WHERE ${conditions.join(' AND ')}` : '';
 
     try {
       const countRow = await c.env.DB.prepare(
-        `SELECT COUNT(*) as count FROM ai_query_logs ${where}`
+        `SELECT COUNT(*) as count FROM ai_query_logs l ${where}`
       ).bind(...bindings).first<{ count: number }>();
 
       const rows = await c.env.DB.prepare(
@@ -273,6 +394,12 @@ adminAiRoutes.get(
           triggered: Boolean(log.hyde_triggered),
           skipped: isCacheHit || log.query_type === 'general-knowledge',
         },
+        filter: {
+          service: 'services/query.ts',
+          description: '建構 Vectorize metadata filter（area_id / crag_id / grade / route_type）',
+          skipped: isCacheHit || log.query_type === 'general-knowledge',
+          ...((pt?.filter as Record<string, unknown> | undefined) ?? {}),
+        },
         embedding: {
           service: 'services/embedding.ts (Workers AI bge-m3)',
           description: '將 query（和 hydeDoc）轉為向量',
@@ -308,6 +435,7 @@ adminAiRoutes.get(
           groundedness_score: (log.groundedness_score as number) ?? null,
           auto_score: (log.auto_score as number) ?? null,
           skipped: isCacheHit || log.query_type === 'general-knowledge',
+          ...((pt?.judge_detail as Record<string, unknown> | undefined) ?? {}),
         },
         guardrails_output: {
           service: 'utils/guardrails.ts',
@@ -345,7 +473,7 @@ adminAiRoutes.get(
             feedback_score: (log.feedback_score as number) ?? null,
             feedback_text: (log.feedback_text as string) ?? null,
             flags: flags.map((f) => ({
-              reason: f.flag_reason,
+              type: f.flag_reason,
               is_reviewed: Boolean(f.is_reviewed),
               created_at: f.created_at,
             })),
@@ -432,6 +560,36 @@ adminAiRoutes.get(
 );
 
 // =============================================
+// GET /prompts/defaults - 預設 Prompt 模板
+// =============================================
+
+const PROMPT_DEFAULTS = [
+  { name: 'system_prompt', label: '系統提示詞', content: SYSTEM_PROMPT, variables: [] as string[] },
+  { name: 'tool_selection_prompt', label: 'Tool Calling 查詢解析', content: TOOL_SELECTION_PROMPT, variables: ['query', 'crags', 'areas', 'regions'] },
+  { name: 'general_knowledge_system_prompt', label: '通識知識提示詞', content: GENERAL_KNOWLEDGE_SYSTEM_PROMPT, variables: [] as string[] },
+  { name: 'hyde_prompt', label: 'HyDE 假設文件生成', content: HYDE_PROMPT, variables: ['query'] },
+  { name: 'judge_prompt', label: 'Judge 品質評估', content: JUDGE_PROMPT, variables: ['context', 'query', 'response'] },
+  { name: 'self_reflection_prompt', label: 'Self-Reflection 自我反思', content: SELF_REFLECTION_PROMPT, variables: ['query', 'answer'] },
+  { name: 'contextual_chunk_prompt', label: 'Contextual RAG 語意摘要', content: CONTEXTUAL_CHUNK_PROMPT, variables: ['type', 'content'] },
+  { name: 'multi_query_expansion_prompt', label: 'Multi-Query 查詢擴展', content: MULTI_QUERY_EXPANSION_PROMPT, variables: ['query', 'count'] },
+  { name: 'agentic_decision_prompt', label: 'Agentic 決策', content: AGENTIC_DECISION_PROMPT, variables: ['query', 'count', 'evidence_summary', 'min_docs', 'remaining_steps'] },
+  { name: 'query_template', label: '查詢模板', content: QUERY_TEMPLATE, variables: ['context', 'query'] },
+];
+
+adminAiRoutes.get(
+  '/prompts/defaults',
+  describeRoute({
+    tags: ['Admin AI'],
+    summary: '預設 Prompt 模板',
+    description: '回傳 10 個硬編碼預設 prompt 的 name、中文名稱、content、variables',
+    responses: { 200: { description: '預設 Prompt 列表' } },
+  }),
+  async (c) => {
+    return c.json({ success: true, data: PROMPT_DEFAULTS });
+  }
+);
+
+// =============================================
 // GET /prompts - Prompt 列表
 // =============================================
 
@@ -440,13 +598,21 @@ adminAiRoutes.get(
   describeRoute({
     tags: ['Admin AI'],
     summary: 'Prompt 列表',
+    description: '取得所有 prompt，支援 name 篩選回傳指定 prompt 的所有版本',
     responses: { 200: { description: 'Prompt 清單' } },
   }),
   async (c) => {
+    const name = c.req.query('name');
     try {
-      const rows = await c.env.DB.prepare(
-        `SELECT id, name, version, status, created_at, updated_at FROM ai_prompts ORDER BY name, version DESC`
-      ).all();
+      const rows = name
+        ? await c.env.DB.prepare(
+            `SELECT id, name, version, content, variables, status, created_at, updated_at
+             FROM ai_prompts WHERE name = ? ORDER BY version DESC`
+          ).bind(name).all()
+        : await c.env.DB.prepare(
+            `SELECT id, name, version, status, created_at, updated_at
+             FROM ai_prompts ORDER BY name, version DESC`
+          ).all();
       return c.json({ success: true, data: rows.results });
     } catch (error) {
       console.error('Admin AI prompts error:', error);
@@ -483,12 +649,20 @@ adminAiRoutes.post(
       ).bind(name).first<{ max_version: number | null }>();
       const version = (latest?.max_version ?? 0) + 1;
 
+      // 若新版本為 active，自動將同名舊 active 版本歸檔
+      const effectiveStatus = status ?? 'active';
+      if (effectiveStatus === 'active') {
+        await c.env.DB.prepare(
+          `UPDATE ai_prompts SET status = 'archived', updated_at = CURRENT_TIMESTAMP WHERE name = ? AND status = 'active'`
+        ).bind(name).run();
+      }
+
       const id = crypto.randomUUID();
       await c.env.DB.prepare(
         `INSERT INTO ai_prompts (id, name, version, content, variables, status) VALUES (?, ?, ?, ?, ?, ?)`
-      ).bind(id, name, version, content, JSON.stringify(variables), status).run();
+      ).bind(id, name, version, content, JSON.stringify(variables), effectiveStatus).run();
 
-      return c.json({ success: true, data: { id, name, version, status } }, 201);
+      return c.json({ success: true, data: { id, name, version, status: effectiveStatus } }, 201);
     } catch (error) {
       console.error('Admin AI create prompt error:', error);
       return c.json({ success: false, error: 'DatabaseError', message: '建立 Prompt 失敗' }, 500);

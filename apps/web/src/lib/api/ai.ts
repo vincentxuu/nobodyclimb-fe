@@ -118,6 +118,7 @@ export interface SaveMessageRequest {
 
 export interface AIStreamDoneEvent {
   query_id: string
+  answer?: string
   sources: AISource[]
   suggested_questions: string[]
   quota_remaining: number
@@ -126,9 +127,9 @@ export interface AIStreamDoneEvent {
 // SSE 串流問答：使用 fetch + ReadableStream 接收，支援 AbortController 取消
 export async function askAIStream(
   request: AIAskRequest,
-  onToken: (token: string) => void,
-  onDone: (event: AIStreamDoneEvent) => void,
-  onError: (message: string) => void,
+  onToken: (_token: string) => void,
+  onDone: (_event: AIStreamDoneEvent) => void,
+  onError: (_message: string) => void,
   signal?: AbortSignal,
 ): Promise<void> {
   const { API_BASE_URL } = await import('../constants')
@@ -146,7 +147,14 @@ export async function askAIStream(
   })
 
   if (!response.ok || !response.body) {
-    onError('抱歉，AI 服務暫時無法使用，請稍後再試。')
+    // 嘗試讀取後端回傳的錯誤訊息（如 guardrails 攔截、配額耗盡等）
+    try {
+      const errJson = await response.json() as { message?: string; error?: string }
+      const errMsg = errJson.message ?? '抱歉，AI 服務暫時無法使用，請稍後再試。'
+      onError(errMsg)
+    } catch {
+      onError('抱歉，AI 服務暫時無法使用，請稍後再試。')
+    }
     return
   }
 

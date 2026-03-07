@@ -52,8 +52,8 @@ interface AscentFormProps {
   routeName: string;
   routeGrade?: string;
   open: boolean;
-  onOpenChange: (open: boolean) => void;
-  onSubmit: (data: AscentFormData) => Promise<void>;
+  onOpenChange: (_open: boolean) => void;
+  onSubmit: (_data: AscentFormData) => Promise<void>;
   initialData?: Partial<AscentFormData>;
   isLoading?: boolean;
 }

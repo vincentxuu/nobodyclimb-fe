@@ -208,7 +208,13 @@ export function ChatWidget() {
           abortControllerRef.current = null
           setMessages((prev) => prev.map((m) =>
             m.id === streamingMsgId
-              ? { ...m, sources: doneEvent.sources, queryId: doneEvent.query_id }
+              ? {
+                  ...m,
+                  // 用後端後處理版本（已注入路線/影片連結）替換串流原始累積文字
+                  ...(doneEvent.answer ? { content: doneEvent.answer } : {}),
+                  sources: doneEvent.sources,
+                  queryId: doneEvent.query_id,
+                }
               : m
           ))
           setSuggestedQuestions(doneEvent.suggested_questions ?? [])
@@ -270,7 +276,7 @@ export function ChatWidget() {
             abortControllerRef.current = null
             setMessages((prev) => prev.map((m) =>
               m.id === streamingMsgId
-                ? { ...m, content: m.content ? m.content + '\n\n⚠ 生成中斷，請重試' : '抱歉，AI 服務暫時無法使用，請稍後再試。' }
+                ? { ...m, content: m.content ? m.content + '\n\n⚠ 生成中斷，請重試' : errMessage }
                 : m
             ))
             console.error('Stream error:', errMessage)
@@ -343,6 +349,7 @@ export function ChatWidget() {
         )
       }
     },
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     [askAI, isPending, isStreaming, quota, isAuthenticated]
   )
 
@@ -432,6 +439,7 @@ export function ChatWidget() {
         },
       }
     )
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isPending, isRegenerating, messages, askAI, quota])
 
   // 清除對話

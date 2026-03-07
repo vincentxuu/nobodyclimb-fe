@@ -1,3 +1,4 @@
+/* eslint-disable no-console */
 /**
  * 伺服器端 API 資料取得工具
  * 用於 Server Components（metadata、layouts、sitemap 等）

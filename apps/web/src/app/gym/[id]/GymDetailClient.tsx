@@ -26,7 +26,7 @@ import PlaceholderImage from '@/components/ui/placeholder-image'
 import { Breadcrumb } from '@/components/ui/breadcrumb'
 import { WeatherDisplay } from '@/components/shared/weather-display'
 import { useGymDetail, useRelatedGyms, useAdjacentGyms } from '@/hooks/api/useGyms'
-import type { GymDetailData, GymListItem } from '@/lib/gym-data'
+import type { GymDetailData } from '@/lib/gym-data'
 
 // 開箱介紹類型對應的圖標和標籤
 const reviewTypeConfig = {

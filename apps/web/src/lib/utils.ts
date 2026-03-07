@@ -76,6 +76,38 @@ export function generateId(length = 8): string {
 }
 
 /**
+ * 將後端 UTC 日期字串解析為 Date 物件
+ * SQLite datetime('now') 回傳 "YYYY-MM-DD HH:MM:SS" 格式（UTC 但無 Z 後綴）
+ * 直接用 new Date() 會被當成本地時間，需補上 Z 標記為 UTC
+ */
+export function parseUTC(dateStr: string): Date {
+  if (!dateStr) return new Date(NaN)
+  if (dateStr.endsWith('Z') || dateStr.includes('+')) return new Date(dateStr)
+  return new Date(dateStr.replace(' ', 'T') + 'Z')
+}
+
+/**
+ * 將後端 UTC 日期字串格式化為台北時間（完整日期時間）
+ */
+export function formatTaipei(dateStr: string): string {
+  return parseUTC(dateStr).toLocaleString('zh-TW', { timeZone: 'Asia/Taipei' })
+}
+
+/**
+ * 將後端 UTC 日期字串格式化為台北時間（僅日期）
+ */
+export function formatTaipeiDate(dateStr: string): string {
+  return parseUTC(dateStr).toLocaleDateString('zh-TW', { timeZone: 'Asia/Taipei' })
+}
+
+/**
+ * 取得台北時間今天的 YYYY-MM-DD 字串
+ */
+export function todayTaipei(): string {
+  return new Date().toLocaleDateString('sv-SE', { timeZone: 'Asia/Taipei' })
+}
+
+/**
  * 將字面 \n 字串轉換為真正的換行符號
  * 用於修正資料庫儲存時將換行符號轉義為字面 \n 的問題
  */

@@ -4,7 +4,7 @@
  */
 
 import type { ApiGym, ApiGymOpeningHours, ApiGymPriceInfo } from '@/lib/types/api-gym'
-import type { GymListItem, GymDetailData, GymPricing, GymTransportation, GymContact, GymUnboxingReview } from '@/lib/gym-data'
+import type { GymListItem, GymDetailData, GymPricing, GymTransportation, GymContact } from '@/lib/gym-data'
 
 /**
  * 取得類型標籤

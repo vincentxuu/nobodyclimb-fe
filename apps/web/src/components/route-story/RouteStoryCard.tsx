@@ -9,7 +9,6 @@ import {
   ThumbsUp,
   Youtube,
   Instagram,
-  Image as ImageIcon,
   CheckCircle,
   Star,
 } from 'lucide-react';

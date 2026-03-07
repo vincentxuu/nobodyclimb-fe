@@ -1,6 +1,7 @@
 'use client'
 
 import { useState } from 'react'
+import { formatTaipei } from '@/lib/utils'
 import { Loader2, RefreshCw, CheckCircle, AlertCircle } from 'lucide-react'
 import { useAIKnowledge } from '@/lib/api/admin-ai'
 import apiClient from '@/lib/api/client'
@@ -180,7 +181,7 @@ export default function AdminAIKnowledgePage() {
                     </td>
                     <td className="px-5 py-4 text-wb-50 text-xs">
                       {source.last_indexed_at
-                        ? new Date(source.last_indexed_at).toLocaleString('zh-TW')
+                        ? formatTaipei(source.last_indexed_at)
                         : '從未索引'}
                     </td>
                     <td className="px-5 py-4">

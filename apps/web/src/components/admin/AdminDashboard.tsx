@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import Link from 'next/link'
+import { formatTaipei } from '@/lib/utils'
 import { statsService, notificationService } from '@/lib/api/services'
 import {
   MountainSnow,
@@ -145,7 +146,7 @@ export default function AdminDashboard() {
             網站數據概覽和快速操作
             {siteStats?.updatedAt && (
               <span className="text-xs ml-2">
-                (更新於 {new Date(siteStats.updatedAt).toLocaleString('zh-TW')})
+                (更新於 {formatTaipei(siteStats.updatedAt)})
               </span>
             )}
           </p>
