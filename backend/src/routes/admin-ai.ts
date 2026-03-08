@@ -4,6 +4,9 @@ import { describeRoute, validator } from 'hono-openapi';
 import { Env } from '../types';
 import { authMiddleware, adminMiddleware } from '../middleware/auth';
 import { EmbeddingService } from '../services/embedding';
+import { STEP_REGISTRY, getDefaultStepConfigs } from '../services/pipeline/registry';
+import { PipelineEngine } from '../services/pipeline/engine';
+import type { PipelineStepConfig, BranchConfig } from '../services/pipeline/types';
 import { getUserRankDetail, updateUserRank, recalculateAllRanks } from '../services/rank';
 import {
   DEFAULT_PROMPT_INJECTION_KEYWORDS,
@@ -180,6 +183,7 @@ adminAiRoutes.get(
              COALESCE(SUM(
                CAST(COALESCE(json_extract(pipeline_trace, '$.token_breakdown.main_generation.prompt_tokens'), 0) AS INTEGER)
                + CAST(COALESCE(json_extract(pipeline_trace, '$.token_breakdown.tool_selection.prompt_tokens'), 0) AS INTEGER)
+               + CAST(COALESCE(json_extract(pipeline_trace, '$.token_breakdown.text_to_sql.prompt_tokens'), 0) AS INTEGER)
                + CAST(COALESCE(json_extract(pipeline_trace, '$.token_breakdown.hyde.prompt_tokens'), 0) AS INTEGER)
                + CAST(COALESCE(json_extract(pipeline_trace, '$.token_breakdown.multi_query.prompt_tokens'), 0) AS INTEGER)
                + CAST(COALESCE(json_extract(pipeline_trace, '$.token_breakdown.self_reflection_regen.prompt_tokens'), 0) AS INTEGER)
@@ -189,6 +193,7 @@ adminAiRoutes.get(
              COALESCE(SUM(
                CAST(COALESCE(json_extract(pipeline_trace, '$.token_breakdown.main_generation.completion_tokens'), 0) AS INTEGER)
                + CAST(COALESCE(json_extract(pipeline_trace, '$.token_breakdown.tool_selection.completion_tokens'), 0) AS INTEGER)
+               + CAST(COALESCE(json_extract(pipeline_trace, '$.token_breakdown.text_to_sql.completion_tokens'), 0) AS INTEGER)
                + CAST(COALESCE(json_extract(pipeline_trace, '$.token_breakdown.hyde.completion_tokens'), 0) AS INTEGER)
                + CAST(COALESCE(json_extract(pipeline_trace, '$.token_breakdown.multi_query.completion_tokens'), 0) AS INTEGER)
                + CAST(COALESCE(json_extract(pipeline_trace, '$.token_breakdown.self_reflection_regen.completion_tokens'), 0) AS INTEGER)
@@ -1155,6 +1160,210 @@ adminAiRoutes.patch(
     } catch (error) {
       console.error('Admin flagged patch error:', error);
       return c.json({ success: false, error: 'DatabaseError', message: '更新標記失敗' }, 500);
+    }
+  }
+);
+
+// =============================================
+// GET /pipeline-steps - Pipeline Step 設定查詢
+// =============================================
+
+adminAiRoutes.get(
+  '/pipeline-steps',
+  describeRoute({
+    tags: ['Admin AI'],
+    summary: 'Pipeline Step 設定',
+    description: '取得所有 pipeline step 的設定與 metadata',
+    responses: { 200: { description: 'Pipeline step 列表' } },
+  }),
+  async (c) => {
+    try {
+      // 從 ai_config 讀取已儲存的 step 設定
+      const row = await c.env.DB.prepare(
+        `SELECT value FROM ai_config WHERE key = 'pipeline_steps'`
+      ).first<{ value: string }>();
+
+      const savedConfigs: PipelineStepConfig[] = row ? JSON.parse(row.value) : [];
+      const savedMap = new Map(savedConfigs.map((s) => [s.id, s]));
+
+      // 合併 registry metadata 與已儲存設定
+      const steps = STEP_REGISTRY.map((meta) => {
+        const saved = savedMap.get(meta.id);
+        return {
+          id: meta.id,
+          name: meta.name,
+          description: meta.description,
+          phase: meta.phase,
+          enabled: saved?.enabled ?? meta.defaultEnabled,
+          order: saved?.order ?? meta.defaultOrder,
+          requires: meta.requires,
+          provides: meta.provides,
+          skipWhen: meta.skipWhen ?? [],
+        };
+      });
+
+      return c.json({ success: true, data: steps });
+    } catch (error) {
+      console.error('Admin pipeline-steps GET error:', error);
+      return c.json({ success: false, error: 'DatabaseError', message: '讀取 pipeline 設定失敗' }, 500);
+    }
+  }
+);
+
+// =============================================
+// PUT /pipeline-steps - Pipeline Step 設定更新
+// =============================================
+
+const pipelineStepSchema = z.object({
+  id: z.string(),
+  enabled: z.boolean(),
+  order: z.number().int().min(0).max(100),
+});
+
+adminAiRoutes.put(
+  '/pipeline-steps',
+  describeRoute({
+    tags: ['Admin AI'],
+    summary: '更新 Pipeline Step 設定',
+    description: '更新 pipeline step 的啟用狀態與執行順序，含依賴驗證',
+    responses: {
+      200: { description: '更新成功' },
+      400: { description: '驗證失敗（格式錯誤或依賴衝突）' },
+    },
+  }),
+  validator('json', z.object({ steps: z.array(pipelineStepSchema) })),
+  async (c) => {
+    try {
+      const { steps } = c.req.valid('json' as never) as { steps: Array<{ id: string; enabled: boolean; order: number }> };
+
+      // 驗證所有 stepId 存在於 registry
+      const validIds = new Set<string>(STEP_REGISTRY.map((s) => s.id));
+      const invalidIds = steps.filter((s) => !validIds.has(s.id));
+      if (invalidIds.length > 0) {
+        return c.json({
+          success: false,
+          error: 'ValidationError',
+          message: `無效的 step ID: ${invalidIds.map((s) => s.id).join(', ')}`,
+        }, 400);
+      }
+
+      // 依賴驗證
+      const validation = PipelineEngine.validateDependencies(steps as PipelineStepConfig[]);
+      if (!validation.valid) {
+        return c.json({
+          success: false,
+          error: 'DependencyConflict',
+          message: '依賴衝突',
+          conflicts: validation.errors,
+        }, 400);
+      }
+
+      // 審計日誌
+      const adminId = c.get('userId') as string | undefined;
+      const changed = steps.map((s) => `${s.id}:${s.enabled ? 'on' : 'off'}:${s.order}`).join(', ');
+      console.info(`[AUDIT] pipeline-steps updated by ${adminId ?? 'unknown'}: [${changed}]`);
+
+      // 寫入 ai_config
+      await c.env.DB.prepare(
+        `INSERT OR REPLACE INTO ai_config (key, value) VALUES ('pipeline_steps', ?)`
+      ).bind(JSON.stringify(steps)).run();
+
+      return c.json({ success: true, message: 'Pipeline 設定已更新' });
+    } catch (error) {
+      console.error('Admin pipeline-steps PUT error:', error);
+      return c.json({ success: false, error: 'DatabaseError', message: '更新 pipeline 設定失敗' }, 500);
+    }
+  }
+);
+
+// =============================================
+// GET /pipeline-branches - Pipeline 分支配置查詢
+// =============================================
+
+adminAiRoutes.get(
+  '/pipeline-branches',
+  describeRoute({
+    tags: ['Admin AI'],
+    summary: 'Pipeline 分支配置',
+    description: '取得 pipeline 分支（branching + fusion）配置',
+    responses: { 200: { description: '分支配置列表' } },
+  }),
+  async (c) => {
+    try {
+      const row = await c.env.DB.prepare(
+        `SELECT value FROM ai_config WHERE key = 'pipeline_branches'`
+      ).first<{ value: string }>();
+
+      const branches: BranchConfig[] = row ? JSON.parse(row.value) : [];
+      return c.json({ success: true, data: branches });
+    } catch (error) {
+      console.error('Admin pipeline-branches GET error:', error);
+      return c.json({ success: false, error: 'DatabaseError', message: '讀取分支配置失敗' }, 500);
+    }
+  }
+);
+
+// =============================================
+// PUT /pipeline-branches - Pipeline 分支配置更新
+// =============================================
+
+const branchConfigSchema = z.object({
+  id: z.string(),
+  branches: z.array(z.array(z.string())),
+  fusionStep: z.string(),
+});
+
+adminAiRoutes.put(
+  '/pipeline-branches',
+  describeRoute({
+    tags: ['Admin AI'],
+    summary: '更新 Pipeline 分支配置',
+    description: '更新 pipeline 分支與融合設定',
+    responses: {
+      200: { description: '更新成功' },
+      400: { description: '驗證失敗' },
+    },
+  }),
+  validator('json', z.object({ branches: z.array(branchConfigSchema) })),
+  async (c) => {
+    try {
+      const { branches } = c.req.valid('json' as never) as { branches: BranchConfig[] };
+
+      // 驗證 stepId 存在
+      const validIds = new Set(STEP_REGISTRY.map((s) => s.id));
+      for (const branch of branches as BranchConfig[]) {
+        for (const path of branch.branches) {
+          for (const stepId of path) {
+            if (!validIds.has(stepId as PipelineStepConfig['id'])) {
+              return c.json({
+                success: false,
+                error: 'ValidationError',
+                message: `分支中包含無效 step ID: ${stepId}`,
+              }, 400);
+            }
+          }
+        }
+        if (!validIds.has(branch.fusionStep as PipelineStepConfig['id'])) {
+          return c.json({
+            success: false,
+            error: 'ValidationError',
+            message: `fusion step 無效: ${branch.fusionStep}`,
+          }, 400);
+        }
+      }
+
+      // 審計日誌
+      const adminId = c.get('userId') as string | undefined;
+      console.info(`[AUDIT] pipeline-branches updated by ${adminId ?? 'unknown'}: ${JSON.stringify(branches)}`);
+
+      await c.env.DB.prepare(
+        `INSERT OR REPLACE INTO ai_config (key, value) VALUES ('pipeline_branches', ?)`
+      ).bind(JSON.stringify(branches)).run();
+
+      return c.json({ success: true, message: '分支配置已更新' });
+    } catch (error) {
+      console.error('Admin pipeline-branches PUT error:', error);
+      return c.json({ success: false, error: 'DatabaseError', message: '更新分支配置失敗' }, 500);
     }
   }
 );

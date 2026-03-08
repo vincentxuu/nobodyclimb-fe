@@ -37,6 +37,9 @@ export interface AIAskResponse {
   query_id: string
   suggested_questions: string[]
   quota?: AiQuota
+  clarification_needed?: boolean
+  clarification_options?: string[]
+  query_route?: string
 }
 
 export interface AISearchRequest {

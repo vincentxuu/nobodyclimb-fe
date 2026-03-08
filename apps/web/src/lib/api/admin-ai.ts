@@ -205,6 +205,7 @@ export interface AILogDetail {
     }
     token_breakdown?: {
       tool_selection?: { prompt_tokens: number; completion_tokens: number; total_tokens: number; model: string; estimated: boolean }
+      text_to_sql?: { prompt_tokens: number; completion_tokens: number; total_tokens: number; model: string; estimated: boolean }
       hyde?: { prompt_tokens: number; completion_tokens: number; total_tokens: number; model: string; estimated: boolean }
       multi_query?: { prompt_tokens: number; completion_tokens: number; total_tokens: number; model: string; estimated: boolean }
       agentic_decisions?: Array<{ step: number; prompt_tokens: number; completion_tokens: number; total_tokens: number; model: string; estimated: boolean }>
@@ -612,6 +613,57 @@ export function useOverrideUserRank() {
       overrideUserRank(userId, rank),
     onSuccess: (_data, { userId }) => {
       queryClient.invalidateQueries({ queryKey: ['admin-user-rank', userId] })
+    },
+  })
+}
+
+// =============================================
+// Pipeline Steps 管理
+// =============================================
+
+export interface PipelineStepInfo {
+  id: string
+  name: string
+  description: string
+  phase: 'pre-retrieval' | 'retrieval' | 'post-retrieval' | 'generation' | 'evaluation'
+  enabled: boolean
+  order: number
+  requires: string[]
+  provides: string[]
+  skipWhen: Array<{ field: string; operator: string; value: unknown }>
+}
+
+export interface PipelineStepUpdate {
+  id: string
+  enabled: boolean
+  order: number
+}
+
+export async function fetchPipelineSteps(): Promise<PipelineStepInfo[]> {
+  const res = await apiClient.get<{ success: boolean; data: PipelineStepInfo[] }>(
+    '/admin/ai/pipeline-steps'
+  )
+  return res.data.data
+}
+
+export async function updatePipelineSteps(steps: PipelineStepUpdate[]): Promise<void> {
+  await apiClient.put('/admin/ai/pipeline-steps', { steps })
+}
+
+export function usePipelineSteps() {
+  return useQuery({
+    queryKey: ['admin-ai-pipeline-steps'],
+    queryFn: fetchPipelineSteps,
+    staleTime: 5 * 60 * 1000,
+  })
+}
+
+export function useUpdatePipelineSteps() {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: updatePipelineSteps,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['admin-ai-pipeline-steps'] })
     },
   })
 }

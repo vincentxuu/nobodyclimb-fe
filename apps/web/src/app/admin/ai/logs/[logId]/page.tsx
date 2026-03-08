@@ -2221,6 +2221,7 @@ function PipelineTimeline({
   sources: Array<{ title?: string; type?: string; score?: number }>
 }) {
   const [expandedStages, setExpandedStages] = useState<Set<string>>(new Set())
+  const [allExpanded, setAllExpanded] = useState(false)
   const { data: aiConfig } = useAIConfig()
   const primaryProvider = useMemo<CostProvider | null>(() => {
     try {
@@ -2240,6 +2241,7 @@ function PipelineTimeline({
       else next.add(key)
       return next
     })
+    setAllExpanded(false)
   }
 
   const pipelineStages: PipelineKey[] = [
@@ -2285,9 +2287,36 @@ function PipelineTimeline({
     }
   }
 
+  const expandableKeys = useMemo(() => {
+    return stages
+      .filter(({ key, isTraceOnly }) => {
+        if (isTraceOnly) return true
+        const ps = pipeline[key as PipelineKey] as unknown as Record<string, unknown>
+        return !ps?.skipped
+      })
+      .map(({ key }) => key)
+  }, [stages, pipeline])
+
+  const toggleAll = () => {
+    if (allExpanded) {
+      setExpandedStages(new Set())
+    } else {
+      setExpandedStages(new Set(expandableKeys))
+    }
+    setAllExpanded(!allExpanded)
+  }
+
   return (
     <div className="rounded-xl border border-wb-20 bg-white p-5">
-      <h2 className="mb-1 text-sm font-semibold text-wb-100">RAG Pipeline 流程</h2>
+      <div className="flex items-center justify-between mb-1">
+        <h2 className="text-sm font-semibold text-wb-100">RAG Pipeline 流程</h2>
+        <button
+          onClick={toggleAll}
+          className="rounded border border-wb-15 bg-wb-5 px-2 py-0.5 text-[11px] text-wb-60 hover:bg-wb-10 transition-colors"
+        >
+          {allExpanded ? '全部收合' : '全部展開'}
+        </button>
+      </div>
       <p className="mb-4 text-[11px] text-wb-40">點擊各階段展開 Input → Decision → Output 詳情</p>
       <div className="space-y-0">
         {stages.map(({ key, isTraceOnly }, idx) => {
@@ -2784,6 +2813,7 @@ function CostAnalysisCard({ pipelineTrace }: { pipelineTrace: AILogDetail['pipel
   const singleStages: Array<{ key: string; label: string; data: StageBreakdownItem }> = []
   const stageKeys: Array<[keyof TokenBreakdown, string]> = [
     ['tool_selection', 'Tool Selection（路由決策）'],
+    ['text_to_sql', 'Text-to-SQL（SQL 組裝）'],
     ['hyde', 'HyDE（假設文件）'],
     ['multi_query', 'Multi-Query（查詢擴展）'],
     ['main_generation', 'Main Generation（主生成）'],

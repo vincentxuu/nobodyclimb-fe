@@ -1,71 +1,12 @@
 import { Env, AIAskRequest, AIAskResponse, AISearchRequest, AISource, AIDocument, AIDocumentMetadata, ParsedQuery, AIChatMessage } from '../types';
 import { EmbeddingService } from './embedding';
 import { SYSTEM_PROMPT, QUERY_TEMPLATE, TOOL_SELECTION_PROMPT, HYDE_PROMPT, GENERAL_KNOWLEDGE_SYSTEM_PROMPT, JUDGE_PROMPT, SELF_REFLECTION_PROMPT, MULTI_QUERY_EXPANSION_PROMPT, AGENTIC_DECISION_PROMPT } from '../utils/ai-prompts';
-import { checkOutput, DEFAULT_SYSTEM_PROMPT_LEAKAGE_PATTERNS } from '../utils/guardrails';
+import { DEFAULT_SYSTEM_PROMPT_LEAKAGE_PATTERNS } from '../utils/guardrails';
 import { getMemoriesSummary } from '../repositories/memory';
-import { getRecentAscents, buildAscentContext, estimateAbilityLevel, buildPersonalizedSystemPrompt } from './personalization';
-import { extractMemoriesFromQuery } from './memory-extractor';
+import { getRecentAscents, buildAscentContext, estimateAbilityLevel } from './personalization';
+import { PipelineEngine } from './pipeline/engine';
+import { createPipelineContext } from './pipeline/context';
 
-const CACHE_TTL = 3600; // 1 小時
-
-// 解析 LLM 回應中的建議問題，回傳純回答與建議陣列
-function parseSuggestedQuestions(raw: string): { answer: string; suggested_questions: string[] } {
-  const SEP = '---SUGGESTIONS---';
-  const idx = raw.indexOf(SEP);
-  if (idx !== -1) {
-    const rawAnswer = raw.slice(0, idx).trim();
-    const suggestionsBlock = raw.slice(idx + SEP.length).trim();
-    const suggested_questions = suggestionsBlock
-      .split('\n')
-      .map((line) => line.replace(/^\d+\.\s*/, '').trim())
-      .filter((line) => line.length > 0 && (line.endsWith('？') || line.endsWith('?')))
-      .slice(0, 3);
-
-    // 清理 answer 末尾模型多輸出的問句行（Gemma 3 有時在分隔符前就先列出問題）
-    const answerLines = rawAnswer.split('\n');
-    let cutIndex = answerLines.length;
-    for (let i = answerLines.length - 1; i >= 0; i--) {
-      const trimmed = answerLines[i].trim();
-      if (trimmed === '') continue;
-      const cleaned = trimmed.replace(/^\d+\.\s*/, '').trim();
-      if (cleaned.endsWith('？') || cleaned.endsWith('?')) {
-        cutIndex = i;
-      } else {
-        break;
-      }
-    }
-    const answer = answerLines.slice(0, cutIndex).join('\n').trim();
-
-    return { answer, suggested_questions };
-  }
-
-  // Fallback：模型未輸出分隔符時，偵測末尾連續問句行
-  const lines = raw.trim().split('\n');
-  const questions: string[] = [];
-  let cutIndex = lines.length;
-
-  for (let i = lines.length - 1; i >= 0; i--) {
-    const trimmed = lines[i].trim();
-    if (trimmed === '') continue;
-    const cleaned = trimmed.replace(/^\d+\.\s*/, '').trim();
-    if (cleaned.endsWith('？') || cleaned.endsWith('?')) {
-      questions.unshift(cleaned);
-      cutIndex = i;
-    } else {
-      break;
-    }
-  }
-
-  if (questions.length >= 2) {
-    const answerLines = lines.slice(0, cutIndex);
-    while (answerLines.length > 0 && answerLines[answerLines.length - 1].trim() === '') {
-      answerLines.pop();
-    }
-    return { answer: answerLines.join('\n').trim(), suggested_questions: questions.slice(0, 3) };
-  }
-
-  return { answer: raw.trim(), suggested_questions: [] };
-}
 const DEFAULT_TOP_K = 5;
 const MIN_VECTOR_SCORE = 0.5;         // 純語義搜尋（search()）的預設門檻，可透過 ai_config 覆蓋
 const DEFAULT_LLM_MODEL = '@cf/google/gemma-3-12b-it';
@@ -121,6 +62,8 @@ interface PipelineConfig {
   rag_strategy: string;               // 'baseline' | 'agentic'
   agentic_max_steps: number;          // 1–5
   agentic_min_docs_to_answer: number; // 1–10
+  // Pipeline 迴圈上限
+  max_pipeline_loops: number;         // 1–3
 }
 
 function num(v: string | undefined, fallback: number, min?: number, max?: number): number {
@@ -195,6 +138,8 @@ async function loadPipelineConfig(db: D1Database): Promise<PipelineConfig> {
     rag_strategy:               cfg['rag_strategy']               ?? 'baseline',
     agentic_max_steps:          num(cfg['agentic_max_steps'],          3, 1, 5),
     agentic_min_docs_to_answer: num(cfg['agentic_min_docs_to_answer'], 3, 1, 10),
+    // Pipeline 迴圈上限
+    max_pipeline_loops:         num(cfg['max_pipeline_loops'],          2, 1, 3),
   };
 }
 
@@ -282,7 +227,7 @@ export class QueryService {
 
   // 從 query 中偵測岩場區域/岩場/地區，接受預載資料避免重複查詢 DB
   // 優先序：area > crag（多個） > region
-  private extractLocationFilter(
+  extractLocationFilter(
     query: string,
     crags: Array<{ id: string; name: string; region: string | null }>,
     areas: Array<{ id: string; name: string }>,
@@ -341,28 +286,16 @@ export class QueryService {
     return { $gte: min, $lte: max };
   }
 
-  // 完整 RAG 流程（增強版）：
-  // Stage 1（並行）：LLM A（Tool Calling）+ LLM B（HyDE）
-  // Stage 2：決定 Vectorize filter（grade / crag / region）
-  // Stage 3（並行）：embed(query) + embed(hydeDoc)
-  // Stage 4（並行）：兩路 Vectorize 搜尋 → RRF 合併 → D1 fetch
-  // Stage 5：Cross-encoder reranking（bge-reranker-base）
-  // Stage 6：MMR 多樣性選取（λ=0.6）
-  // Stage 7：熱門度加權排序 → LLM C 生成回答
-  // Task 5.1: 加入 ctx 供 waitUntil 使用
+  // Pipeline-based RAG 流程：透過 PipelineEngine 動態組裝 step 執行
   async ask(request: AIAskRequest, userId?: string, ctx?: { waitUntil(promise: Promise<unknown>): void }, onToken?: (token: string) => Promise<void>, extraTrace?: Record<string, unknown>): Promise<AIAskResponse> {
     const streamingMode = !!onToken;
-    const { query, limit = DEFAULT_TOP_K, include_sources = true, chat_history, no_cache = false } = request;
-    // extraTrace 包含 guardrails_input 和 quota_check（由 ai.ts 路由傳入）
-    const trace: Record<string, unknown> = extraTrace ? { ...extraTrace } : {};
-    // 各 stage token 消耗追蹤（追加至 trace.token_breakdown）
-    const tokenBreakdown: PipelineTokenBreakdown = {};
+    const { query, chat_history, no_cache = false } = request;
 
-    // 有 chat_history 時帶入最近 6 則供 cache key hash 使用（LLM 實際使用量由 chat_history_depth 設定）
+    // 對話歷史
     const recentHistory: AIChatMessage[] = chat_history ? chat_history.slice(-6) : [];
     const historyHash = recentHistory.length > 0 ? `:h${this.hashQuery(recentHistory.map(m => m.content).join('|'))}` : '';
 
-    // Task 5.3: 個人化 context（已登入用戶）
+    // 個人化 context
     let memorySummary: string | null = null;
     let ascentContext: string | null = null;
     let abilityLevel: number | null = null;
@@ -376,35 +309,30 @@ export class QueryService {
       abilityLevel = estimateAbilityLevel(ascents);
     }
 
-    // Task 5.2: 個人化快取鍵
+    // 快取鍵
     const personalizedContext = [memorySummary, ascentContext].filter(Boolean).join('|');
     const personalizedHash = personalizedContext ? `:p${this.hashQuery(personalizedContext)}` : '';
     const userPrefix = userId ? `${userId}:` : '';
     const cacheKey = `ai:ask:${userPrefix}${this.hashQuery(query)}${historyHash}${personalizedHash}`;
     const startTime = Date.now();
+
+    // KV 快取前置檢查（engine 層級）
     if (!no_cache) {
       const cached = await this.env.CACHE.get(cacheKey);
       if (cached) {
-        // 記錄快取命中日誌（非同步，不阻塞回應）
         this.logQuery({
-          userId: userId ?? null,
-          query,
-          response: '',
-          sources: [],
-          latencyMs: Date.now() - startTime,
-          tokenCount: 0,
-          cacheHit: true,
+          userId: userId ?? null, query, response: '', sources: [],
+          latencyMs: Date.now() - startTime, tokenCount: 0, cacheHit: true,
           pipelineTrace: JSON.stringify({ cache: { type: 'kv' } }),
         }).catch(() => {});
         return JSON.parse(cached) as AIAskResponse;
       }
     }
 
-    // 匿名且無對話歷史的查詢才啟用語義快取（有 userId/history 時快取 key 含個人化 hash，不適合跨用戶命中）
+    // 匿名且無對話歷史的查詢才啟用語義快取
     const isAnonymousNoHistory = !userId && recentHistory.length === 0 && !no_cache;
 
-    // 批次讀取 pipeline 設定 + 提前 embed query（並行以降低延遲）
-    // 僅匿名+無歷史查詢需要 earlyQueryVector（語義快取檢查 + Stage 3 提前完成）
+    // 批次讀取 pipeline 設定 + 提前 embed query + prompts
     const [pipelineCfg, earlyQueryVector, dbPrompts] = await Promise.all([
       loadPipelineConfig(this.env.DB),
       isAnonymousNoHistory
@@ -412,8 +340,7 @@ export class QueryService {
         : Promise.resolve(null as number[] | null),
       loadPrompts(this.env.DB),
     ]);
-    const llmModel = pipelineCfg.llm_model;
-    // Prompt DB 優先 + 硬編碼 fallback
+
     const p = {
       SYSTEM_PROMPT: resolvePrompt(dbPrompts['system_prompt'], SYSTEM_PROMPT, []),
       TOOL_SELECTION_PROMPT: resolvePrompt(dbPrompts['tool_selection_prompt'], TOOL_SELECTION_PROMPT, ['query', 'crags', 'areas', 'regions']),
@@ -425,964 +352,35 @@ export class QueryService {
       AGENTIC_DECISION_PROMPT: resolvePrompt(dbPrompts['agentic_decision_prompt'], AGENTIC_DECISION_PROMPT, ['query', 'count', 'evidence_summary', 'min_docs', 'remaining_steps']),
       QUERY_TEMPLATE: resolvePrompt(dbPrompts['query_template'], QUERY_TEMPLATE, ['context', 'query']),
     };
-    const effectiveLimit = pipelineCfg.max_results; // admin 設定覆蓋 request limit
-    const cacheTtl = pipelineCfg.cache_ttl;
-
     const gatewayOptions = this.env.AI_GATEWAY_SLUG
       ? { gateway: { id: this.env.AI_GATEWAY_SLUG } }
       : undefined;
 
-    // 語義快取檢查（僅匿名且無對話歷史，避免個人化回答污染通用快取）
-    if (pipelineCfg.semantic_cache_enabled && earlyQueryVector) {
-      const semanticCached = await this.checkSemanticCache(earlyQueryVector, pipelineCfg.semantic_cache_threshold);
-      if (semanticCached) {
-        this.logQuery({
-          userId: null, query, response: '', sources: [],
-          latencyMs: Date.now() - startTime, tokenCount: 0, cacheHit: true,
-          pipelineTrace: JSON.stringify({ cache: { type: 'semantic' } }),
-        }).catch(() => {});
-        return semanticCached;
-      }
-    }
-
-    // Adaptive RAG：依查詢複雜度決定 pipeline 路徑與使用模型
-    let queryType: 'simple' | 'complex' | 'general-knowledge' = 'complex';
-    let effectiveLlmModel = llmModel; // 預設使用設定模型（complex），simple 時覆蓋為輕量模型
-
-    // 優先路徑：相似路線推薦（「爬完X，推薦下一條」）
-    // 需要從 DB 查出該路線的難度和岩場，不依賴 LLM A
-    let vectorFilter: Record<string, unknown> = {};
-    let hydeDoc = '';
-    let expandedQueries: string[] = [];
-    let excludeRouteId: string | null = null; // 排除來源路線本身
-    let referenceRouteInfo: string | null = null; // 來源路線資訊，注入 context 讓 LLM 有正確難度
-    let isSimRouteSearch = false; // 是否走「相似路線」流程，供後段 fallback 判斷
-    // 預載岩場/區域資料（Stage 1a 填入），供 extractLocationFilter 共用，避免同一請求多次查 DB
-    let preloadedCrags: Array<{ id: string; name: string; region: string | null }> = [];
-    let preloadedAreas: Array<{ id: string; name: string }> = [];
-    let outerParsedQuery: ParsedQuery | null = null;
-
-    if (this.hasSimilarRouteIntent(query)) {
-      isSimRouteSearch = true;
-      // 並行：DB 查路線資訊 + HyDE 生成
-      const [routeRef, hydeDocResult] = await Promise.all([
-        this.extractRouteReference(query),
-        this.generateHyDE(query, llmModel, gatewayOptions, p.HYDE_PROMPT),
-      ]);
-      hydeDoc = hydeDocResult.doc;
-      if (hydeDocResult.usage) {
-        tokenBreakdown.hyde = { ...hydeDocResult.usage, model: llmModel };
-      }
-      if (hydeDoc) trace.hyde = { document: hydeDoc.slice(0, 300) };
-
-      if (routeRef) {
-        // 優先同岩場 + 相近難度（±3 步，範圍更合理）
-        // 不限制 route_type：向量搜尋本身已語意匹配，額外限制反而過嚴
-        if (routeRef.cragId) vectorFilter['crag_id'] = { $eq: routeRef.cragId };
-        if (routeRef.gradeNumeric > 0) {
-          vectorFilter['grade_numeric'] = this.similarGradeRange(routeRef.gradeNumeric, 3);
-        }
-        vectorFilter['type'] = { $eq: 'route' };
-        excludeRouteId = routeRef.routeId; // 記錄來源路線，後續排除
-        // 記錄來源路線資訊，避免 LLM 猜錯難度
-        const typeLabel = routeRef.routeType ? `，類型：${routeRef.routeType}` : '';
-        referenceRouteInfo = `使用者剛爬完的路線：${routeRef.name}（難度：${routeRef.grade ?? '未知'}${typeLabel}）`;
-      }
-    } else {
-      // Stage 1a：預載岩場/區域資料，供 LLM A prompt 注入 + extractLocationFilter 共用（避免重複查詢）
-      const [cragsResult, areasResult] = await Promise.all([
-        this.env.DB.prepare('SELECT id, name, region FROM crags WHERE name IS NOT NULL').all<{ id: string; name: string; region: string | null }>(),
-        this.env.DB.prepare('SELECT id, name FROM areas WHERE name IS NOT NULL').all<{ id: string; name: string }>(),
-      ]);
-      preloadedCrags = cragsResult.results;
-      preloadedAreas = areasResult.results;
-      const cragNames = preloadedCrags.map((c) => c.name);
-      const areaNames = preloadedAreas.map((a) => a.name);
-      const regionNames = [...new Set(preloadedCrags.map((c) => c.region).filter(Boolean))] as string[];
-
-      // Stage 1b：先執行 Tool Calling，再依 queryType 決定是否執行 HyDE（簡單查詢跳過）
-      const { result: parsedQuery, usage: toolSelectionUsage } = await this.parseQueryWithLLM(query, llmModel, cragNames, areaNames, regionNames, gatewayOptions, p.TOOL_SELECTION_PROMPT);
-      outerParsedQuery = parsedQuery;
-      if (toolSelectionUsage) {
-        tokenBreakdown.tool_selection = { ...toolSelectionUsage, model: llmModel };
-      }
-
-      // 記錄 query_parsing trace
-      if (parsedQuery) {
-        trace.query_parsing = {
-          tool: parsedQuery.tool,
-          query_type: parsedQuery.query_type ?? 'complex',
-          alternatives: ['search_routes', 'search_crags', 'general_knowledge'],
-          params: (parsedQuery.params ?? {}) as Record<string, unknown>,
-          fallback_used: false,
-        };
-      }
-
-      // 決定 queryType：tool=general_knowledge 優先，否則從 parsedQuery.query_type 取得
-      if (parsedQuery?.tool === 'general_knowledge') {
-        queryType = 'general-knowledge';
-        effectiveLlmModel = pipelineCfg.lightweight_model;
-      } else {
-        queryType = parsedQuery?.query_type ?? 'complex';
-        effectiveLlmModel = queryType === 'simple' ? pipelineCfg.simple_model : llmModel;
-      }
-
-      // general_knowledge：直接跳過向量搜尋，用 LLM 通識能力回答
-      if (parsedQuery?.tool === 'general_knowledge') {
-        const gkPersonalized = buildPersonalizedSystemPrompt(memorySummary, ascentContext, abilityLevel, p.GENERAL_KNOWLEDGE_SYSTEM_PROMPT);
-        const llmResult = (await this.env.AI.run(
-          effectiveLlmModel,
-          { messages: [{ role: 'system', content: gkPersonalized }, { role: 'user', content: query }], max_tokens: pipelineCfg.max_tokens_gk },
-          gatewayOptions
-        )) as LLMResponse;
-        const rawAnswer = llmResult.response || '抱歉，無法生成回答，請稍後再試。';
-        const { answer: rawGkAnswer, suggested_questions } = parseSuggestedQuestions(rawAnswer);
-        const { output: gkFiltered, trace: gkOutputTrace } = checkOutput(rawGkAnswer, pipelineCfg.max_output_length, pipelineCfg.system_prompt_leakage_patterns);
-        const answer = gkFiltered || '抱歉，無法生成回答，請稍後再試。';
-        trace.guardrails_output = gkOutputTrace;
-        const latencyMs = Date.now() - startTime;
-        const estimatedTokens = Math.ceil((p.GENERAL_KNOWLEDGE_SYSTEM_PROMPT.length + query.length + answer.length) / 2);
-        // 捕獲 gk 路徑 main_generation usage
-        if (llmResult.usage) {
-          tokenBreakdown.main_generation = { ...llmResult.usage, model: effectiveLlmModel, estimated: false };
-        } else {
-          const estP = Math.ceil((gkPersonalized.length + query.length) / 2);
-          const estC = Math.ceil(answer.length / 2);
-          tokenBreakdown.main_generation = { prompt_tokens: estP, completion_tokens: estC, total_tokens: estP + estC, model: effectiveLlmModel, estimated: true };
-        }
-        if (Object.keys(tokenBreakdown).length > 0) trace.token_breakdown = tokenBreakdown;
-        const gkTotalTokens = sumTokenBreakdown(tokenBreakdown);
-        const gkTokenCount = gkTotalTokens > 0 ? gkTotalTokens : (llmResult.usage?.total_tokens ?? estimatedTokens);
-        if (userId && ctx) {
-          trace.memory_extraction = { triggered: true, async: true };
-        } else {
-          trace.memory_extraction = { triggered: false, async: false, reason: userId ? 'no_ctx' : 'anonymous' };
-        }
-        const queryId = await this.logQuery({ userId: userId ?? null, query, response: answer, sources: [], latencyMs, tokenCount: gkTokenCount, queryType: 'general-knowledge', modelUsed: effectiveLlmModel, retrievalScore: 0, selfReflectionTriggered: 0, isHighConsumption: gkTokenCount > pipelineCfg.high_consumption_threshold, hydeTriggered: false, pipelineTrace: Object.keys(trace).length > 0 ? JSON.stringify(trace) : undefined });
-        const response: AIAskResponse = { answer, sources: [], query_id: queryId, suggested_questions };
-        await this.env.CACHE.put(cacheKey, JSON.stringify(response), { expirationTtl: cacheTtl });
-        if (userId && ctx) {
-          const gkGatewayOpts = this.env.AI_GATEWAY_SLUG ? { gateway: { id: this.env.AI_GATEWAY_SLUG } } : undefined;
-          ctx.waitUntil(extractMemoriesFromQuery(query, userId, this.env.DB, this.env.AI, gkGatewayOpts));
-        }
-        return response;
-      }
-
-      // Stage 1c：complex 查詢執行 HyDE + Multi-Query Expansion；simple 查詢跳過
-      // agentic 模式不使用這兩個結果（agenticRetrieve 自行管理搜尋），跳過以節省 LLM 呼叫
-      if (queryType === 'complex' && pipelineCfg.rag_strategy !== 'agentic') {
-        const [hydeResult, multiQueryResult] = await Promise.all([
-          this.generateHyDE(query, llmModel, gatewayOptions, p.HYDE_PROMPT),
-          this.generateMultipleQueries(query, pipelineCfg.multi_query_count, llmModel, gatewayOptions, p.MULTI_QUERY_EXPANSION_PROMPT),
-        ]);
-        hydeDoc = hydeResult.doc;
-        expandedQueries = multiQueryResult.queries;
-        if (hydeResult.usage) {
-          tokenBreakdown.hyde = { ...hydeResult.usage, model: llmModel };
-        }
-        if (multiQueryResult.usage) {
-          tokenBreakdown.multi_query = { ...multiQueryResult.usage, model: llmModel };
-        }
-        if (hydeDoc) trace.hyde = { document: hydeDoc.slice(0, 300) };
-        if (expandedQueries.length > 0) trace.multi_query = { queries: expandedQueries };
-      }
-
-      // Stage 2：決定過濾條件
-      if (parsedQuery) {
-        vectorFilter = await this.buildFiltersFromParsed(parsedQuery);
-        // 補充保底：若 LLM 未抽取 grade，用 regex 補回（避免 Gemma 漏填難度）
-        if (!vectorFilter['grade_numeric']) {
-          const gradeFilter = this.extractGradeFilter(query);
-          if (gradeFilter) vectorFilter['grade_numeric'] = gradeFilter;
-        }
-        // 補充保底：多岩場偵測（Tool Calling 只能抽一個岩場，若 regex 找到更多則升級為 $in）
-        // 無論 Tool Calling 是否已設 crag_id，都重新偵測，以處理多岩場查詢
-        const { cragIds, areaId, region } = this.extractLocationFilter(query, preloadedCrags, preloadedAreas);
-        if (areaId && !vectorFilter['area_id']) {
-          vectorFilter['area_id'] = { $eq: areaId };
-        } else if (cragIds && cragIds.length > 1) {
-          // 多岩場：直接覆蓋 Tool Calling 的單一 crag_id
-          vectorFilter['crag_id'] = { $in: cragIds };
-        } else if (cragIds && cragIds.length === 1 && !vectorFilter['crag_id']) {
-          vectorFilter['crag_id'] = { $eq: cragIds[0] };
-        } else if (region && !vectorFilter['crag_id'] && !vectorFilter['area_id'] && !vectorFilter['region']) {
-          vectorFilter['region'] = { $eq: region };
-        }
-      } else {
-        // Fallback：使用現有 regex 方法（LLM 解析失敗）
-        trace.query_parsing = {
-          tool: null as unknown as string,
-          query_type: queryType,
-          alternatives: ['search_routes', 'search_crags', 'general_knowledge'],
-          params: {},
-          fallback_used: true,
-        };
-        const gradeFilter = this.extractGradeFilter(query);
-        const { cragIds, areaId, region } = this.extractLocationFilter(query, preloadedCrags, preloadedAreas);
-        const typeFilter = this.extractTypeFilter(query);
-
-        if (gradeFilter) vectorFilter['grade_numeric'] = gradeFilter;
-        if (areaId) {
-          vectorFilter['area_id'] = { $eq: areaId };
-          vectorFilter['type'] = { $eq: 'route' };
-        } else if (cragIds && cragIds.length > 0) {
-          vectorFilter['crag_id'] = cragIds.length === 1 ? { $eq: cragIds[0] } : { $in: cragIds };
-          if (typeFilter) vectorFilter['type'] = { $eq: typeFilter };
-        } else if (region) {
-          vectorFilter['region'] = { $eq: region };
-          if (typeFilter) vectorFilter['type'] = { $eq: typeFilter };
-        } else if (typeFilter) {
-          vectorFilter['type'] = { $eq: typeFilter };
-        }
-      }
-    }
-
-    // 記錄 filter trace（isSimRouteSearch 路徑下 parsedQuery 為 null）
-    const filterSource = isSimRouteSearch ? 'sim_route' : (trace.query_parsing ? 'llm_parsed' : 'regex_fallback');
-    // matched_texts：LLM 抽取的原始文字值（params 欄位即為 LLM 輸出的原始文字）
-    const matchedTexts: Record<string, string> = {};
-    if (outerParsedQuery?.params) {
-      const p = outerParsedQuery.params as Record<string, string | undefined>;
-      if (p.area_name) matchedTexts.area_name = p.area_name;
-      if (p.crag_name) matchedTexts.crag_name = p.crag_name;
-      if (p.grade) matchedTexts.grade = p.grade;
-      if (p.route_type) matchedTexts.route_type = p.route_type;
-      if (p.region) matchedTexts.region = p.region;
-    }
-    // resolved_ids：從最終 vectorFilter 中提取解析後的 ID
-    const resolvedIds: Record<string, string | string[] | null> = {};
-    const areaIdVal = vectorFilter['area_id'] as { $eq?: string } | undefined;
-    if (areaIdVal?.$eq) resolvedIds.area_id = areaIdVal.$eq;
-    const cragIdVal = vectorFilter['crag_id'] as { $eq?: string; $in?: string[] } | undefined;
-    if (cragIdVal?.$eq) resolvedIds.crag_id = cragIdVal.$eq;
-    else if (cragIdVal?.$in) resolvedIds.crag_id = cragIdVal.$in;
-    trace.filter = {
-      applied: vectorFilter,
-      source: filterSource,
-      ...(Object.keys(matchedTexts).length > 0 ? { matched_texts: matchedTexts } : {}),
-      ...(Object.keys(resolvedIds).length > 0 ? { resolved_ids: resolvedIds } : {}),
-    };
-
-    // Context 補充：若 query 含指代詞（「附近」「還有」等）且 filter 無明確位置，
-    // 從對話歷史的 user + assistant 訊息中補充 crag/region 來源
-    let historySupplementedLocation = false;
-    const hasExplicitLocationFilter = !!(vectorFilter['crag_id'] || vectorFilter['area_id'] || vectorFilter['region']);
-    if (!hasExplicitLocationFilter && recentHistory.length > 0 && this.isContextDependentQuery(query)) {
-      const historyText = recentHistory.map((m) => m.content).join(' ');
-      const historyLocation = this.extractLocationFilter(historyText, preloadedCrags, preloadedAreas);
-      if (historyLocation.areaId) {
-        vectorFilter['area_id'] = { $eq: historyLocation.areaId };
-        vectorFilter['type'] = { $eq: 'route' };
-        historySupplementedLocation = true;
-      } else if (historyLocation.cragIds && historyLocation.cragIds.length > 0) {
-        vectorFilter['crag_id'] = historyLocation.cragIds.length === 1
-          ? { $eq: historyLocation.cragIds[0] }
-          : { $in: historyLocation.cragIds };
-        if (!vectorFilter['type']) vectorFilter['type'] = { $eq: 'route' };
-        historySupplementedLocation = true;
-      } else if (historyLocation.region) {
-        vectorFilter['region'] = { $eq: historyLocation.region };
-        historySupplementedLocation = true;
-      } else {
-        // 找不到岩場/地區名稱時，嘗試從歷史對話中的路線名稱反查所屬岩場
-        const routeRef = await this.extractRouteReference(historyText);
-        if (routeRef?.cragId) {
-          vectorFilter['crag_id'] = { $eq: routeRef.cragId };
-          if (!vectorFilter['type']) vectorFilter['type'] = { $eq: 'route' };
-          historySupplementedLocation = true;
-        }
-      }
-    }
-    // 更新 filter trace 補充對話歷史來源標記
-    if (trace.filter) {
-      const filterTrace = trace.filter as Record<string, unknown>;
-      filterTrace.history_supplemented = historySupplementedLocation;
-      if (historySupplementedLocation) {
-        const historyText = recentHistory.map((m) => m.content).join(' ');
-        const existingMatchedTexts = (filterTrace.matched_texts as Record<string, string> | undefined) ?? {};
-        filterTrace.matched_texts = { ...existingMatchedTexts, from_history: historyText.slice(0, 100) };
-      }
-    }
-
-    // ──────────────────────────────────────────────────────────────────────────
-    // Stage 3–5：搜尋策略分支
-    //   agentic + complex → agenticRetrieve()
-    //   其他             → 現有 Stage 3–5（HyDE + Multi-Query + CRAG）
-    // ──────────────────────────────────────────────────────────────────────────
-    const retrievalStart = Date.now();
-    let embeddingMs = 0;
-    let retrievalScore = 0;
-    let candidateMatches: SearchResult[];
-
-    if (pipelineCfg.rag_strategy === 'agentic' && queryType === 'complex') {
-      // E 方案：Agentic Multi-Step RAG
-      const agenticSteps: AgenticStepTrace[] = [];
-      const agenticDecisionUsages: Array<StageTokenUsage & { step: number }> = [];
-      const { candidates: agenticCandidates, terminationReason: agenticTermReason } = await this.agenticRetrieve(query, vectorFilter, pipelineCfg, agenticSteps, p.AGENTIC_DECISION_PROMPT, agenticDecisionUsages);
-      candidateMatches = agenticCandidates;
-      if (agenticDecisionUsages.length > 0) {
-        tokenBreakdown.agentic_decisions = agenticDecisionUsages;
-      }
-      retrievalScore = candidateMatches.length > 0 ? Math.max(...candidateMatches.map((m) => m.score)) : 0;
-      trace.agentic = {
-        steps: agenticSteps,
-        total_paths: agenticSteps.length + 1,
-        final_doc_count: candidateMatches.length,
-        termination_reason: agenticTermReason,
-      };
-    } else {
-      // Baseline：Stage 3–5（現有程式碼不動）
-      // Stage 3：embed(query) + embed(hydeDoc)
-      // 匿名+無歷史查詢：queryVector 已提前計算（與 loadPipelineConfig 並行），直接復用，僅需 embed HyDE
-      // 其他查詢：兩者並行計算
-      const embedStart = Date.now();
-      let queryVector: number[];
-      let hydeVector: number[] | null = null;
-      if (earlyQueryVector) {
-        queryVector = earlyQueryVector;
-        if (hydeDoc) {
-          hydeVector = await this.embeddingService.embed(hydeDoc);
-        }
-      } else {
-        const embedTasks: Promise<number[]>[] = [this.embeddingService.embed(query)];
-        if (hydeDoc) {
-          embedTasks.push(this.embeddingService.embed(hydeDoc));
-        }
-        const embedResults = await Promise.all(embedTasks);
-        queryVector = embedResults[0];
-        hydeVector = hydeDoc ? embedResults[1] : null;
-      }
-      // 擴展查詢向量（complex 才有，失敗靜默降級）
-      let expandedVectors: number[][] = [];
-      if (expandedQueries.length > 0) {
-        expandedVectors = await this.embeddingService.embedBatch(expandedQueries);
-        expandedVectors = expandedVectors.filter((v) => v.length > 0);
-      }
-      embeddingMs = Date.now() - embedStart;
-      trace.embedding = {
-        early_vector_reused: !!earlyQueryVector,
-        hyde_embedded: !!hydeVector,
-        expanded_count: expandedVectors.length,
-      };
-
-      // Stage 4（並行）：兩路 Vectorize 搜尋 + BM25
-      // 多岩場（$in）時加大 topK，確保每個岩場都有足夠結果
-      const cragFilter = vectorFilter['crag_id'] as { $in?: string[] } | undefined;
-      const isMultiCrag = Array.isArray(cragFilter?.$in) && cragFilter.$in.length > 1;
-      const MERGE_TOP_K = isMultiCrag ? Math.max(20, pipelineCfg.merge_top_k * 2) : pipelineCfg.merge_top_k;
-
-      // HyDE filter 策略：
-      // - 有 crag_id（相似路線意圖）→ 套用全部 filter（確保同岩場同難度）
-      // - 其他情況 → 只套 type filter（讓語義搜尋有彈性）
-      const hydeFilter: Record<string, unknown> =
-        vectorFilter['crag_id'] || vectorFilter['area_id']
-          ? { ...vectorFilter }                           // 相似路線：完整 filter
-          : vectorFilter['type'] ? { type: vectorFilter['type'] } : {}; // 一般：只限 type
-
-      // 擴展查詢只套 type filter（讓語義搜尋有彈性，不限岩場/難度）
-      const expandedFilter = vectorFilter['type'] ? { type: vectorFilter['type'] } : undefined;
-
-      const allSearchPromises: Promise<{ matches: SearchResult[] } | SearchResult[]>[] = [
-        this.env.VECTOR_INDEX.query(queryVector, {
-          topK: MERGE_TOP_K,
-          returnMetadata: 'all',
-          filter: Object.keys(vectorFilter).length > 0 ? vectorFilter : undefined,
-        }),
-        hydeVector
-          ? this.env.VECTOR_INDEX.query(hydeVector, {
-              topK: MERGE_TOP_K,
-              returnMetadata: 'all',
-              filter: Object.keys(hydeFilter).length > 0 ? hydeFilter : undefined,
-            })
-          : Promise.resolve({ matches: [] as SearchResult[] }),
-        this.searchBM25(query, pipelineCfg.bm25_top_k),
-        ...expandedVectors.map((vec) =>
-          this.env.VECTOR_INDEX.query(vec, {
-            topK: MERGE_TOP_K,
-            returnMetadata: 'all',
-            filter: expandedFilter,
-          })
-        ),
-      ];
-
-      const allResults = await Promise.all(allSearchPromises);
-      const queryVecResult    = allResults[0] as { matches: SearchResult[] };
-      const hydeVecResult     = allResults[1] as { matches: SearchResult[] };
-      const bm25Matches       = allResults[2] as SearchResult[];
-      const expandedVecResults = (allResults.slice(3) as { matches: SearchResult[] }[])
-        .map((r) => r.matches.map((m) => ({ id: m.id, score: m.score, metadata: m.metadata })));
-
-      let queryMatches: SearchResult[] = queryVecResult.matches.map((m) => ({ id: m.id, score: m.score, metadata: m.metadata }));
-      let rawHydeMatches: SearchResult[] = hydeVector
-        ? hydeVecResult.matches.map((m) => ({ id: m.id, score: m.score, metadata: m.metadata }))
-        : [];
-
-      // 相似路線 fallback：若同岩場搜尋無結果，放寬為全站相近難度搜尋
-      // 讓使用者不被限制在同一岩場（例如難度太高岩場路線稀少的情況）
-      if (isSimRouteSearch && queryMatches.length === 0 && vectorFilter['crag_id']) {
-        const relaxedFilter: Record<string, unknown> = { type: { $eq: 'route' } };
-        if (vectorFilter['grade_numeric']) relaxedFilter['grade_numeric'] = vectorFilter['grade_numeric'];
-
-        const [fbQueryResult, fbHydeResult] = await Promise.all([
-          this.env.VECTOR_INDEX.query(queryVector, { topK: MERGE_TOP_K, returnMetadata: 'all', filter: relaxedFilter }),
-          hydeVector
-            ? this.env.VECTOR_INDEX.query(hydeVector, { topK: MERGE_TOP_K, returnMetadata: 'all', filter: relaxedFilter })
-            : Promise.resolve({ matches: [] as SearchResult[] }),
-        ]);
-        queryMatches = fbQueryResult.matches.map((m) => ({ id: m.id, score: m.score, metadata: m.metadata }));
-        rawHydeMatches = fbHydeResult.matches.map((m) => ({ id: m.id, score: m.score, metadata: m.metadata }));
-      }
-
-      // 有 location 過濾（crag/area/region）但 primary 搜尋無結果時，
-      // 不合併 HyDE 結果，避免引入不相關岩場/地區
-      const hasLocationFilter = !!(vectorFilter['crag_id'] || vectorFilter['area_id'] || vectorFilter['region']);
-      const hydeMatches = (hasLocationFilter && queryMatches.length === 0) ? [] : rawHydeMatches;
-
-      // Stage 5：合併結果、過濾低分、取 D1 完整文件
-      // 注意：先保留全部候選（最多 MERGE_TOP_K），熱門度重排後再截斷至 limit
-      const mergedMatches = this.mergeResults([queryMatches, hydeMatches, bm25Matches, ...expandedVecResults], MERGE_TOP_K);
-      const hasFilter = Object.keys(vectorFilter).some((k) => ['grade_numeric', 'crag_id', 'area_id', 'region', 'route_type'].includes(k));
-      const minScore = hasFilter ? pipelineCfg.min_rrf_score_filtered : pipelineCfg.min_rrf_score;
-      candidateMatches = mergedMatches.filter((m) => m.score >= minScore);
-
-      // 記錄 retrieval score（RRF 過濾前最高分，供 CRAG 觸發後追蹤）
-      retrievalScore = mergedMatches.length > 0 ? Math.max(...mergedMatches.map((m) => m.score)) : 0;
-
-      // 記錄 retrieval trace（CRAG 觸發後再更新 crag_fallback）
-      const tracePaths = ['query_vec'];
-      if (hydeVector) tracePaths.push('hyde_vec');
-      tracePaths.push('bm25');
-      expandedVectors.forEach((_, i) => tracePaths.push(`expanded_${i}`));
-      // 各路徑原始候選數與文件清單（RRF 合併前，最多 20 筆）
-      type PathDoc = { id: string; score: number; name?: string };
-      const toPathDocs = (results: SearchResult[], limit = 20): PathDoc[] =>
-        results.slice(0, limit).map((m) => ({
-          id: m.id,
-          score: Math.round(m.score * 1000) / 1000,
-          name: (m.metadata?.name as string | undefined) ?? (m.metadata?.crag_name as string | undefined),
-        }));
-      const pathCounts: Record<string, number> = { query_vec: queryMatches.length };
-      const pathResults: Record<string, PathDoc[]> = { query_vec: toPathDocs(queryMatches) };
-      if (hydeVector) {
-        pathCounts['hyde_vec'] = hydeMatches.length;
-        pathResults['hyde_vec'] = toPathDocs(hydeMatches);
-      }
-      pathCounts['bm25'] = bm25Matches.length;
-      pathResults['bm25'] = toPathDocs(bm25Matches);
-      expandedVectors.forEach((_, i) => {
-        const results = expandedVecResults[i] ?? [];
-        pathCounts[`expanded_${i}`] = results.length;
-        pathResults[`expanded_${i}`] = toPathDocs(results);
-      });
-      // BM25 FTS 查詢字串（供除錯：若 0 筆代表無 FTS 匹配詞）
-      const bm25FtsQuery = query.replace(/["\x00-\x1f()*^[\]]/g, ' ').trim() || null;
-      trace.retrieval = {
-        paths: tracePaths,
-        path_counts: pathCounts,
-        path_results: pathResults,
-        bm25_fts_query: bm25FtsQuery,
-        candidates_before_filter: mergedMatches.length,
-        candidates_after_filter: candidateMatches.length,
-        crag_fallback: false,
-        crag_fallback_stage: null as 'grade' | null,
-        reranker_used: false,
-        rrf: {
-          paths_count: tracePaths.length,
-          merged_count: mergedMatches.length,
-          min_score_threshold: minScore,
-          after_threshold_count: candidateMatches.length,
-        },
-        crag_fallback_detail: null as null | { trigger_reason: string; retries: { removed_filter: string; candidates_after: number }[] },
-      };
-
-      // CRAG（Corrective RAG）：若 RRF 過濾後無存活文件且有 grade_numeric 過濾，
-      // 移除 grade filter 放寬搜尋範圍重試一次（location filter 保留）
-      if (candidateMatches.length === 0 && vectorFilter['grade_numeric']) {
-        const relaxedFilter = { ...vectorFilter };
-        delete relaxedFilter['grade_numeric'];
-        const retryResult = await this.env.VECTOR_INDEX.query(queryVector, {
-          topK: MERGE_TOP_K,
-          returnMetadata: 'all',
-          filter: Object.keys(relaxedFilter).length > 0 ? relaxedFilter : undefined,
-        });
-        const retryMatches = retryResult.matches.map((m) => ({ id: m.id, score: m.score, metadata: m.metadata }));
-        const retryMerged = this.mergeResults([retryMatches, bm25Matches], MERGE_TOP_K);
-        candidateMatches = retryMerged.filter((m) => m.score >= minScore);
-        if (candidateMatches.length > 0) {
-          (trace.retrieval as Record<string, unknown>).crag_fallback = true;
-          (trace.retrieval as Record<string, unknown>).crag_fallback_stage = 'grade';
-          (trace.retrieval as Record<string, unknown>).crag_fallback_detail = {
-            trigger_reason: 'no_results_with_grade_filter',
-            retries: [{ removed_filter: 'grade_numeric', candidates_after: candidateMatches.length }],
-          };
-        }
-      }
-
-    } // end else (baseline)
-
-    const documents = await this.getDocuments(candidateMatches.map((m) => m.id));
-
-    // 排除來源路線本身（相似路線推薦不應推薦使用者剛爬完的那條）
-    if (excludeRouteId) {
-      for (const [embeddingId, doc] of documents) {
-        if (doc.source_id === excludeRouteId) {
-          documents.delete(embeddingId);
-        }
-      }
-    }
-
-    // Cross-encoder Reranking：用 bge-reranker-base 對候選文件重新評分
-    // 候選數 > 1 時才值得呼叫（單一結果無需重排）
-    let scoredCandidates = candidateMatches;
-    const rerankCandidates = candidateMatches.filter((m) => documents.has(m.id));
-    if (rerankCandidates.length > 1) {
-      try {
-        const contexts = rerankCandidates.map((m) => ({ text: documents.get(m.id)!.text }));
-        const rerankerResult = await (this.env.AI.run as Function)(
-          '@cf/baai/bge-reranker-base',
-          { query, contexts }
-        ) as { response: { id: number; score: number }[] };
-
-        if (rerankerResult?.response?.length > 0) {
-          const scoreByIdx = new Map(rerankerResult.response.map((r) => [r.id, r.score]));
-          scoredCandidates = rerankCandidates.map((m, idx) => ({
-            ...m,
-            score: scoreByIdx.get(idx) ?? m.score,
-          }));
-          if (trace.retrieval) {
-            (trace.retrieval as Record<string, unknown>).reranker_used = true;
-            // 記錄 cross-encoder 輸入數量與全部評分結果
-            const sortedByReranker = [...scoredCandidates].sort((a, b) => b.score - a.score);
-            (trace.retrieval as Record<string, unknown>).reranker = {
-              input_count: rerankCandidates.length,
-              top_scores: sortedByReranker.map((m) => ({
-                title: this.extractTitle(documents.get(m.id)!),
-                score: Math.round(m.score * 1000) / 1000,
-              })),
-            };
-          }
-        }
-      } catch {
-        // reranker 失敗時保留原始 vector score，不影響正常流程
-      }
-    } else if (trace.retrieval) {
-      (trace.retrieval as Record<string, unknown>).reranker = {
-        skipped_reason: 'too_few_candidates',
-      };
-    }
-
-    // MMR：從 cross-encoder 重排後的候選中，選出相關且多樣的 top-N
-    // 避免回傳一堆難度/岩場完全相同的路線，提升結果多樣性
-    // effectiveLimit 來自 ai_config.max_results，覆蓋 request limit 以讓 admin 設定生效
-    const mmrSelected = this.applyMMR(scoredCandidates, documents, pipelineCfg.mmr_lambda, effectiveLimit);
-
-    // 記錄 mmr_selection trace（在熱門度排序前記錄 MMR 輸入/輸出）
-    trace.mmr_selection = {
-      lambda: pipelineCfg.mmr_lambda,
-      input_count: scoredCandidates.length,
-      selected_count: mmrSelected.length,
-      popularity_weight: pipelineCfg.popularity_weight,
-    };
-
-    // 熱門度排序：依影片數為路線評分加權（combined = reranker*0.7 + popularity*0.3）
-    // 在 MMR 選出的候選中加權，決定最終顯示順序
-    const routeSourceIds = [...documents.values()]
-      .filter((d) => d.type === 'route')
-      .map((d) => d.source_id);
-
-    const videoCountMap = new Map<string, number>();
-    const latestVideoMap = new Map<string, string>(); // route_id → YouTube URL
-    if (routeSourceIds.length > 0) {
-      const placeholders = routeSourceIds.map(() => '?').join(', ');
-      const [vcResult, latestVideoResult] = await Promise.all([
-        this.env.DB.prepare(
-          `SELECT route_id, COUNT(*) as cnt FROM route_videos WHERE route_id IN (${placeholders}) GROUP BY route_id`
-        ).bind(...routeSourceIds).all<{ route_id: string; cnt: number }>(),
-        this.env.DB.prepare(
-          `SELECT rv.route_id, v.youtube_id
-           FROM route_videos rv
-           JOIN videos v ON rv.video_id = v.id
-           WHERE rv.route_id IN (${placeholders}) AND v.youtube_id IS NOT NULL
-           ORDER BY rv.route_id, COALESCE(v.published_at, rv.created_at) DESC`
-        ).bind(...routeSourceIds).all<{ route_id: string; youtube_id: string }>(),
-      ]);
-      for (const row of vcResult.results) {
-        videoCountMap.set(row.route_id, row.cnt);
-      }
-      // 每個路線只取最新一筆（已按 route_id, 日期 DESC 排序，取第一筆）
-      const seenRoutes = new Set<string>();
-      for (const row of latestVideoResult.results) {
-        if (!seenRoutes.has(row.route_id)) {
-          latestVideoMap.set(row.route_id, `https://youtube.com/watch?v=${row.youtube_id}`);
-          seenRoutes.add(row.route_id);
-        }
-      }
-    }
-
-    const maxVideoCount = videoCountMap.size > 0 ? Math.max(...videoCountMap.values()) : 1;
-    const safeMax = Math.max(maxVideoCount, 1);
-
-    const rerankedMatches = mmrSelected
-      .map((match) => {
-        const doc = documents.get(match.id);
-        if (!doc || doc.type !== 'route') return { ...match, finalScore: match.score };
-        const videoCount = videoCountMap.get(doc.source_id) ?? 0;
-        const normalizedPop = videoCount / safeMax;
-        return { ...match, finalScore: match.score * pipelineCfg.reranker_weight + normalizedPop * pipelineCfg.popularity_weight };
-      })
-      .sort((a, b) => b.finalScore - a.finalScore);
-    // MMR 已限制至 limit，不需再 slice
-
-    // 補充 mmr_selection top_selected（全部選取文件，含最終分數）
-    if (trace.mmr_selection) {
-      (trace.mmr_selection as Record<string, unknown>).top_selected = rerankedMatches.map((m) => {
-        const doc = documents.get(m.id);
-        const videoCount = doc?.source_id ? (videoCountMap.get(doc.source_id) ?? 0) : 0;
-        const normalizedPop = safeMax > 0 ? videoCount / safeMax : 0;
-        return {
-          title: doc ? this.extractTitle(doc) : m.id,
-          relevance_score: Math.round(m.score * 1000) / 1000,
-          popularity_score: Math.round(normalizedPop * 1000) / 1000,
-          final_score: Math.round(((m as { finalScore?: number }).finalScore ?? m.score) * 1000) / 1000,
-        };
-      });
-    }
-
-    // 組合 sources（依熱門度重排後的順序）
-    const sources: AISource[] = rerankedMatches
-      .map((match) => {
-        const doc = documents.get(match.id);
-        if (!doc) return null;
-        return {
-          id: doc.source_id,
-          type: doc.type,
-          title: this.extractTitle(doc),
-          excerpt: this.buildExcerpt(doc),
-          url: this.buildUrl(doc),
-          score: match.finalScore,
-          latestVideoUrl: doc.type === 'route' ? latestVideoMap.get(doc.source_id) : undefined,
-        } as AISource;
-      })
-      .filter((s): s is AISource => s !== null);
-
-    const retrievalMs = Date.now() - retrievalStart;
-
-    // Stage 6：LLM C 生成回答（依熱門度重排，context 順序影響 LLM 生成品質）
-    const orderedDocs = rerankedMatches
-      .map((m) => documents.get(m.id))
-      .filter((d): d is AIDocument => d !== undefined);
-
-    const docsText = orderedDocs.length > 0
-      ? orderedDocs.map((d) => {
-          if (d.type === 'route') {
-            const videoCount = videoCountMap.get(d.source_id) ?? 0;
-            const latestVideoUrl = latestVideoMap.get(d.source_id);
-            let text = d.text;
-            // 加入路線 URL，供 LLM 在回答中產生連結
-            const meta = d.metadata ? (JSON.parse(d.metadata) as AIDocumentMetadata) : {} as AIDocumentMetadata;
-            if (meta.crag_id) {
-              text += `\n路線連結：/crag/${meta.crag_id}/route/${d.source_id}`;
-            }
-            if (videoCount > 0) {
-              text += `\n影片數量：${videoCount}`;
-            }
-            return text;
-          }
-          return d.text;
-        }).join('\n\n---\n\n')
-      : '目前沒有找到相關資料。';
-
-    // 若是相似路線推薦，在 context 開頭加入來源路線資訊，避免 LLM 猜測難度
-    const context = referenceRouteInfo
-      ? `${referenceRouteInfo}\n\n以下是相近難度的推薦路線：\n\n${docsText}`
-      : docsText;
-
-    const prompt = p.QUERY_TEMPLATE
-      .replace('{context}', context)
-      .replace('{query}', query);
-
-    // 將對話歷史（最多 chat_history_depth 則）加入 LLM messages，讓 LLM 有記憶脈絡
-    // assistant 歷史訊息只取純文字（截斷 assistant_history_truncate 字），避免超過 context window
-    const historyLLMMessages = recentHistory.slice(-pipelineCfg.chat_history_depth).map((m) => ({
-      role: m.role as 'user' | 'assistant',
-      content: m.role === 'assistant' ? m.content.slice(0, pipelineCfg.assistant_history_truncate) : m.content,
-    }));
-
-    // 記錄 generation trace（regen_triggered 由重生成流程更新）
-    const isPersonalized = !!(memorySummary || ascentContext?.length);
-    trace.generation = {
-      context_doc_count: orderedDocs.length,
-      personalized: !!userId,
-      regen_triggered: false,
-      ability_level: abilityLevel,
-      memory_summary_length: memorySummary ? memorySummary.length : 0,
-      // 擴充欄位
-      context_doc_titles: orderedDocs.slice(0, 10).map((d) => this.extractTitle(d)),
-      prompt_template: isPersonalized ? 'personalized' : 'default',
-      memory_summary_preview: memorySummary ? memorySummary.slice(0, 200) : null,
-    };
-
-    const generationStart = Date.now();
-    // Task 5.4: 使用個人化 system prompt
-    const personalizedSystemPrompt = buildPersonalizedSystemPrompt(memorySummary, ascentContext, abilityLevel, p.SYSTEM_PROMPT);
-    const llmMessages = [
-      { role: 'system' as const, content: personalizedSystemPrompt },
-      ...historyLLMMessages,
-      { role: 'user' as const, content: prompt },
-    ];
-    let rawLLMAnswer: string;
-    let llmUsage: LLMResponse['usage'] | undefined;
-    if (streamingMode) {
-      // 真串流：Stage 1-6 完成後立即開始推送 token，大幅降低 TTFT
-      rawLLMAnswer = await this.streamLLMGeneration(effectiveLlmModel, llmMessages, pipelineCfg.max_tokens_generation, gatewayOptions, onToken!);
-    } else {
-      const llmResult = (await (this.env.AI.run as Function)(
-        effectiveLlmModel,
-        { messages: llmMessages, max_tokens: pipelineCfg.max_tokens_generation },
-        gatewayOptions
-      )) as LLMResponse;
-      rawLLMAnswer = llmResult.response || '抱歉，無法生成回答，請稍後再試。';
-      llmUsage = llmResult.usage;
-    }
-    // 捕獲 main_generation usage
-    if (llmUsage) {
-      tokenBreakdown.main_generation = { ...llmUsage, model: effectiveLlmModel, estimated: false };
-    } else {
-      // 串流模式或 API 未回傳 usage：用字元長度估算
-      const msgLen = llmMessages.reduce((sum, m) => sum + m.content.length, 0);
-      const estP = Math.ceil(msgLen / 2);
-      const estC = Math.ceil(rawLLMAnswer.length / 2);
-      tokenBreakdown.main_generation = { prompt_tokens: estP, completion_tokens: estC, total_tokens: estP + estC, model: effectiveLlmModel, estimated: true };
-    }
-
-    let { answer: parsedAnswer, suggested_questions } = parseSuggestedQuestions(rawLLMAnswer);
-    // 記錄建議問題至 trace，供 admin 日誌詳情頁顯示
-    if (trace.generation && suggested_questions.length > 0) {
-      (trace.generation as Record<string, unknown>).suggested_questions = suggested_questions;
-    }
-    // 防護：parseSuggestedQuestions 可能因 LLM 回傳空字串或全為問句而產生空 answer
-    if (!parsedAnswer) {
-      parsedAnswer = '抱歉，目前無法生成回答，請換個方式提問或稍後再試。';
-    }
-    const generationMs = Date.now() - generationStart;
-    const latencyMs = Date.now() - startTime;
-
-    let selfReflectionTriggered = 0;
-    const cannotAnswer =
-      parsedAnswer.includes('超出我的知識範圍') ||
-      parsedAnswer.includes('找不到相關資訊') ||
-      parsedAnswer.includes('找不到符合條件') ||
-      parsedAnswer.includes('找不到相關路線') ||
-      parsedAnswer.includes('無法提供任何推薦或建議');
-
-    const finalSources = cannotAnswer ? [] : sources;
-
-    // 後處理：將路線名稱注入 markdown 連結（不依賴 LLM 是否遵守格式指令）
-    let answer = !cannotAnswer && finalSources.length > 0
-      ? this.injectRouteLinks(parsedAnswer, finalSources)
-      : parsedAnswer;
-
-    // Judge 評估：非串流同步執行，結果同時用於：
-    //   1. Judge 驅動重生成（取代同模型 YES/NO 自評，消除盲點問題）
-    //   2. 免責聲明注入（groundedness）
-    //   3. 查詢日誌記錄
-    // 串流模式：token 已推送無法替換，Judge 改為 waitUntil 異步執行（僅記錄日誌）
-    let groundedness: number | null = null;
-    let quality: number | null = null;
-    if (!streamingMode) {
-      // 傳 parsedAnswer（未注入連結）給 Judge，避免 markdown URL 干擾 groundedness 評估
-      const judgeResult = await this.runJudge(query, context, parsedAnswer, { model: pipelineCfg.lightweight_model, timeoutMs: pipelineCfg.judge_timeout_ms, contextTruncate: pipelineCfg.judge_context_truncate, promptTemplate: p.JUDGE_PROMPT });
-      ({ groundedness, quality } = judgeResult);
-      if (judgeResult.usage) {
-        tokenBreakdown.judge = { ...judgeResult.usage, model: pipelineCfg.lightweight_model };
-      }
-
-      // 記錄 judge_detail（供前端 pipeline.judge 顯示各向度分數及原始 LLM 回覆）
-      trace.judge_detail = {
-        criteria: ['groundedness', 'quality'],
-        raw_scores: { groundedness, quality },
-        raw_llm_response: judgeResult.rawResponse,
-        context_chars: judgeResult.contextChars,
-        context_truncated: judgeResult.contextTruncated,
-        response_chars: parsedAnswer.length,
-      };
-
-      // Judge 驅動重生成：quality 低於門檻時用外部 critic 的分數觸發重試（最多 1 次）
-      // 條件：非 cannotAnswer、回答夠長（避免短回答無意義評估）、queryType 為 complex
-      // Strategy E：重生成後再跑一次 Judge，比較 groundedness 取較高者，避免退化替換
-      // 判斷 regen 觸發原因
-      const regenQualityTriggered = quality !== null && quality <= pipelineCfg.judge_regen_quality_max;
-      const regenGroundednessTriggered = groundedness !== null && groundedness < (pipelineCfg.groundedness_disclaimer_low ?? 0.6);
-      const shouldRegen = regenQualityTriggered && queryType === 'complex' && !cannotAnswer && parsedAnswer.length >= pipelineCfg.self_reflection_min_length;
-
-      if (shouldRegen) {
-        // 記錄第一次 judge 分數（觸發依據）
-        const regenReason = regenGroundednessTriggered ? 'both' : 'quality_below_threshold';
-        try {
-          selfReflectionTriggered = 1;
-          (trace.generation as Record<string, unknown>).regen_triggered = true;
-          const retryResult = (await (this.env.AI.run as Function)(
-            effectiveLlmModel,
-            { messages: llmMessages, max_tokens: pipelineCfg.max_tokens_generation },
-            gatewayOptions
-          )) as LLMResponse;
-          if (retryResult.usage) {
-            tokenBreakdown.self_reflection_regen = { ...retryResult.usage, model: effectiveLlmModel, estimated: false };
-          } else {
-            const msgLen = llmMessages.reduce((sum, m) => sum + m.content.length, 0);
-            const estP = Math.ceil(msgLen / 2);
-            const estC = Math.ceil((retryResult.response ?? '').length / 2);
-            tokenBreakdown.self_reflection_regen = { prompt_tokens: estP, completion_tokens: estC, total_tokens: estP + estC, model: effectiveLlmModel, estimated: true };
-          }
-          const retryParsed = parseSuggestedQuestions(retryResult.response ?? rawLLMAnswer);
-          const regenAnswer = !cannotAnswer && finalSources.length > 0
-            ? this.injectRouteLinks(retryParsed.answer, finalSources)
-            : retryParsed.answer;
-
-          // 對重生成答案執行 Judge（傳 parsedAnswer，未注入連結），比較 groundedness 取較高者
-          const regenJudge = await this.runJudge(query, context, retryParsed.answer, {
-            model: pipelineCfg.lightweight_model,
-            timeoutMs: pipelineCfg.judge_timeout_ms,
-            contextTruncate: pipelineCfg.judge_context_truncate,
-            promptTemplate: p.JUDGE_PROMPT,
-          });
-          if (regenJudge.usage) {
-            tokenBreakdown.judge_2nd = { ...regenJudge.usage, model: pipelineCfg.lightweight_model };
-          }
-          const regenAccepted = (regenJudge.groundedness ?? 0) > (groundedness ?? 0);
-          trace.self_reflection = {
-            original_quality: quality,
-            original_groundedness: groundedness,
-            regen_quality: regenJudge.quality,
-            regen_groundedness: regenJudge.groundedness,
-            regen_accepted: regenAccepted,
-            // 因果鏈擴充欄位
-            first_judge_quality: quality,
-            first_judge_groundedness: groundedness,
-            regen_reason: regenReason,
-            second_judge_quality: regenJudge.quality,
-            second_judge_groundedness: regenJudge.groundedness,
-            acceptance_reason: regenAccepted ? 'regen_accepted' : 'original_kept',
-          };
-
-          if (regenAccepted) {
-            // 重生成品質更好，採用新答案並更新 Judge 分數
-            parsedAnswer = retryParsed.answer;
-            suggested_questions = retryParsed.suggested_questions;
-            answer = regenAnswer;
-            groundedness = regenJudge.groundedness;
-            quality = regenJudge.quality;
-          }
-          // 否則靜默保留原始回答（原 groundedness/quality 分數不變）
-        } catch {
-          // 重生成或 Judge 失敗時靜默保留原始回答
-        }
-      }
-
-      // 依 groundedness 分數注入免責聲明（閾值由 ai_config 設定；使用初次 Judge 分數，保守策略）
-      if (groundedness !== null && !cannotAnswer) {
-        if (groundedness < pipelineCfg.groundedness_disclaimer_low) {
-          answer = `❓ 以下資訊基於現有資料推斷，建議實地確認\n\n${answer}`;
-        } else if (groundedness < pipelineCfg.groundedness_disclaimer_mid) {
-          answer = `⚠️ 部分資訊來自推斷，建議實地確認\n\n${answer}`;
-        }
-      }
-    }
-
-    // 輸出層防護：過濾 system prompt leakage、PII，截斷過長回應
-    const { output: filteredAnswer, trace: outputTrace } = checkOutput(answer, pipelineCfg.max_output_length, pipelineCfg.system_prompt_leakage_patterns);
-    answer = filteredAnswer;
-    trace.guardrails_output = outputTrace;
-
-    // 將所有 stage token_breakdown 加入 trace，並計算總 token 數
-    if (Object.keys(tokenBreakdown).length > 0) {
-      trace.token_breakdown = tokenBreakdown;
-    }
-    const totalStageTokens = sumTokenBreakdown(tokenBreakdown);
-    const estimatedTokens = Math.ceil(
-      (p.SYSTEM_PROMPT.length + prompt.length + answer.length) / 2
-    );
-    const tokenCount = totalStageTokens > 0 ? totalStageTokens : (llmUsage?.total_tokens ?? estimatedTokens);
-
-    // 記錄查詢日誌（含品質指標與分段延遲）
-    const queryId = await this.logQuery({
-      userId: userId ?? null,
-      query,
-      response: answer,
-      sources: include_sources ? finalSources : [],
-      latencyMs,
-      tokenCount,
-      groundednessScore: groundedness,
-      autoScore: quality,
-      embeddingMs,
-      retrievalMs,
-      generationMs,
-      queryType,
-      modelUsed: effectiveLlmModel,
-      retrievalScore,
-      selfReflectionTriggered,
-      isHighConsumption: tokenCount > pipelineCfg.high_consumption_threshold,
-      hydeTriggered: hydeDoc !== '',
-      pipelineTrace: Object.keys(trace).length > 0 ? JSON.stringify(trace) : undefined,
+    // 建立 PipelineContext 並執行 Pipeline
+    const pipelineCtx = createPipelineContext({
+      env: this.env,
+      queryService: this,
+      request,
+      userId,
+      pipelineConfig: pipelineCfg,
+      prompts: p,
+      gatewayOptions,
+      cacheKey,
+      recentHistory,
+      isAnonymousNoHistory,
+      earlyQueryVector,
+      memorySummary,
+      ascentContext,
+      abilityLevel,
+      streamingMode,
+      onToken,
+      waitUntilCtx: ctx,
+      extraTrace,
     });
 
-    // 非串流：低 groundedness 同步標記
-    if (!streamingMode && groundedness !== null && groundedness < pipelineCfg.groundedness_flag_threshold) {
-      await this.flagResponse(queryId, 'low_groundedness');
-    }
-
-    const response: AIAskResponse = {
-      answer,
-      sources: include_sources ? finalSources : [],
-      query_id: queryId,
-      suggested_questions,
-    };
-
-    // 快取結果
-    await this.env.CACHE.put(cacheKey, JSON.stringify(response), {
-      expirationTtl: cacheTtl,
-    });
-
-    if (ctx) {
-      // 語義快取寫入（匿名+無歷史，異步不阻塞）
-      // vector ID 用 sc: 前綴區分路線/岩場向量；metadata 記錄 KV cache key 供命中時直接取值
-      if (pipelineCfg.semantic_cache_enabled && earlyQueryVector) {
-        ctx.waitUntil(this.storeSemanticCache(`sc:${this.hashQuery(query)}`, earlyQueryVector, cacheKey));
-      }
-      // 串流模式：Judge 異步執行，不阻塞 done 事件；完成後更新日誌分數並標記
-      if (streamingMode) {
-        ctx.waitUntil((async () => {
-          // 傳 parsedAnswer（未注入連結）給 Judge，避免 markdown URL 干擾 groundedness 評估
-          const { groundedness: gs, quality: ql } = await this.runJudge(
-            query, context, parsedAnswer,
-            { model: pipelineCfg.lightweight_model, timeoutMs: pipelineCfg.judge_timeout_ms, contextTruncate: pipelineCfg.judge_context_truncate, promptTemplate: p.JUDGE_PROMPT }
-          );
-          if (gs !== null || ql !== null) {
-            await this.env.DB.prepare(
-              `UPDATE ai_query_logs SET groundedness_score = ?, auto_score = ? WHERE id = ?`
-            ).bind(gs, ql, queryId).run().catch(() => {});
-          }
-          if (gs !== null && gs < pipelineCfg.groundedness_flag_threshold) {
-            await this.flagResponse(queryId, 'low_groundedness');
-          }
-        })());
-      }
-
-      // Task 5.5: 非同步記憶提取（只對已登入用戶，只傳 query）
-      if (userId) {
-        trace.memory_extraction = { triggered: true, async: true };
-        const gatewayOpts = this.env.AI_GATEWAY_SLUG
-          ? { gateway: { id: this.env.AI_GATEWAY_SLUG } }
-          : undefined;
-        ctx.waitUntil(
-          extractMemoriesFromQuery(query, userId, this.env.DB, this.env.AI, gatewayOpts)
-        );
-      } else {
-        trace.memory_extraction = { triggered: false, async: false, reason: 'anonymous' };
-      }
-    }
-
-    return response;
+    const engine = new PipelineEngine(this.env);
+    const result = await engine.run(pipelineCtx);
+    return result.earlyReturn ?? result.finalResponse!;
   }
 
   // SSE 串流問答：真串流實作，LLM C 開始生成即推送 token，大幅降低 TTFT
@@ -1492,7 +490,7 @@ export class QueryService {
   }
 
   // 取得「差不多難度」的 grade_numeric 範圍（連續序列中 ±steps）
-  private similarGradeRange(gradeNumeric: number, steps = 2): { $gte: number; $lte: number } {
+  similarGradeRange(gradeNumeric: number, steps = 2): { $gte: number; $lte: number } {
     const pos = this.gradeToPosition(gradeNumeric);
     return {
       $gte: this.positionToGrade(Math.max(0, pos - steps)),
@@ -1501,12 +499,12 @@ export class QueryService {
   }
 
   // 偵測 query 是否有「推薦相似/類似路線」意圖
-  private hasSimilarRouteIntent(query: string): boolean {
+  hasSimilarRouteIntent(query: string): boolean {
     return ['差不多', '類似', '相似', '爬完', '爬過', '爬了', 'rp', 'RP', 'redpoint', 'red point'].some((k) => query.includes(k));
   }
 
   // 偵測 query 是否含有指代前文的 context-dependent 詞（需從對話歷史補充位置）
-  private isContextDependentQuery(query: string): boolean {
+  isContextDependentQuery(query: string): boolean {
     return ['附近', '那裡', '那邊', '這裡', '這邊', '這個岩場', '該岩場', '同岩場', '繼續', '再推薦', '還有', '還有哪些', '更多'].some((k) => query.includes(k));
   }
 
@@ -1662,7 +660,7 @@ export class QueryService {
   //   Step 1: LLM 輸出 **name** 純粗體 → 轉為 [**name**](url) + 影片連結
   //   Step 2: LLM 輸出純文字 name → 轉為 [name](url)
   //   Step 3: LLM 自行生成 [name](url) 或 [**name**](url)（依 system prompt 規則 12）→ 補上影片連結
-  private injectRouteLinks(text: string, sources: AISource[]): string {
+  injectRouteLinks(text: string, sources: AISource[]): string {
     let result = text;
     const routeSources = sources
       .filter((s) => s.type === 'route' && s.url && s.title)
@@ -1750,7 +748,7 @@ export class QueryService {
   }
 
   // 語義快取查詢：用 queryVector 在 VECTOR_INDEX 比對近似問題，命中時回傳快取回應
-  private async checkSemanticCache(
+  async checkSemanticCache(
     queryVector: number[],
     threshold: number,
   ): Promise<AIAskResponse | null> {
@@ -1773,7 +771,7 @@ export class QueryService {
   }
 
   // 語義快取寫入：將 queryVector 寫入 VECTOR_INDEX，metadata 記錄對應的 KV cache key
-  private async storeSemanticCache(
+  async storeSemanticCache(
     vectorId: string,
     queryVector: number[],
     cacheKey: string,
@@ -1791,7 +789,7 @@ export class QueryService {
 
   // LLM 串流生成：邊生成邊透過 onToken 回調推送，回傳完整原始文字
   // 偵測 ---SUGGESTIONS--- 標記，標記之前的內容推送給 onToken，之後收集但不推送
-  private async streamLLMGeneration(
+  async streamLLMGeneration(
     model: string,
     messages: Array<{ role: 'system' | 'user' | 'assistant'; content: string }>,
     maxTokens: number,
@@ -1987,7 +985,7 @@ export class QueryService {
 
   // LLM A：解析查詢意圖，選擇搜尋工具與參數
   // 失敗時回傳 null，由呼叫方 fallback 到 regex 方法
-  private async parseQueryWithLLM(
+  async parseQueryWithLLM(
     query: string,
     llmModel: string,
     crags: string[],
@@ -2023,11 +1021,11 @@ export class QueryService {
       const jsonText = text.replace(/^```(?:json)?\n?/, '').replace(/\n?```$/, '').trim();
       const parsed = JSON.parse(jsonText) as ParsedQuery;
 
-      if (!parsed.tool || !['search_routes', 'search_crags', 'general_knowledge'].includes(parsed.tool)) {
+      if (!parsed.tool || !['search_routes', 'search_crags', 'general_knowledge', 'search_sql', 'hybrid'].includes(parsed.tool)) {
         return { result: null, usage };
       }
       // 確保 query_type 為有效值，否則 fallback 為 'complex'
-      if (!parsed.query_type || !['simple', 'complex', 'general-knowledge'].includes(parsed.query_type)) {
+      if (!parsed.query_type || !['simple', 'complex', 'general-knowledge', 'sql', 'hybrid', 'clarification-needed'].includes(parsed.query_type)) {
         parsed.query_type = 'complex';
       }
       return { result: parsed, usage };
@@ -2038,7 +1036,7 @@ export class QueryService {
 
   // LLM B：HyDE - 生成假設性理想答案文件以提升語義搜尋效果
   // 失敗時回傳空字串，由呼叫方跳過 HyDE 搜尋
-  private async generateHyDE(
+  async generateHyDE(
     query: string,
     llmModel: string,
     gatewayOptions?: { gateway: { id: string } },
@@ -2063,7 +1061,7 @@ export class QueryService {
   }
 
   // Multi-Query Expansion：將查詢改寫為 N 個不同角度的子查詢，失敗靜默降級
-  private async generateMultipleQueries(
+  async generateMultipleQueries(
     query: string,
     count: number,
     model: string,
@@ -2096,7 +1094,7 @@ export class QueryService {
 
   // 將 ParsedQuery.params 轉換成 Vectorize metadata filter
   // 需要 DB 查詢將名稱解析為 ID
-  private async buildFiltersFromParsed(
+  async buildFiltersFromParsed(
     parsed: ParsedQuery
   ): Promise<Record<string, unknown>> {
     const filter: Record<string, unknown> = {};
@@ -2167,7 +1165,7 @@ export class QueryService {
   // ──────────────────────────────────────────────────────────────────────────
   // Agentic Multi-Step RAG：主控方法，管理多輪搜尋迴圈
   // ──────────────────────────────────────────────────────────────────────────
-  private async agenticRetrieve(
+  async agenticRetrieve(
     query: string,
     vectorFilter: Record<string, unknown>,
     cfg: PipelineConfig,
@@ -2337,7 +1335,7 @@ export class QueryService {
   // BM25 全文搜尋：利用 D1 FTS5 索引做關鍵字匹配
   // bm25() 回傳負值（越負越相關），取負數轉為正分供 RRF 使用
   // 失敗時靜默降級（回傳空陣列），不影響向量搜尋路徑
-  private async searchBM25(query: string, topK: number): Promise<SearchResult[]> {
+  async searchBM25(query: string, topK: number): Promise<SearchResult[]> {
     const ftsQuery = this.buildFTSQuery(query);
     if (!ftsQuery) return [];
     try {
@@ -2358,7 +1356,7 @@ export class QueryService {
   }
 
   // N 路 RRF 合併：支援任意數量的搜尋結果列表（向量路 + BM25 路等）
-  private mergeResults(results: SearchResult[][], limit = 10): SearchResult[] {
+  mergeResults(results: SearchResult[][], limit = 10): SearchResult[] {
     const K = 60;
     const rrfScores = new Map<string, number>();
     const metaMap = new Map<string, SearchResult>();
@@ -2379,7 +1377,7 @@ export class QueryService {
   // MMR（Maximal Marginal Relevance）：兼顧相關性與多樣性
   // score = λ × relevance - (1-λ) × max_sim_to_selected
   // lambda=0.6 表示 60% 重視相關性、40% 重視多樣性
-  private applyMMR(
+  applyMMR(
     candidates: SearchResult[],
     documents: Map<string, AIDocument>,
     lambda: number,

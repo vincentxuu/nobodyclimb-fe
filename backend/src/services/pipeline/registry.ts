@@ -1,0 +1,173 @@
+import { PipelineStepMeta, StepId, SkipCondition } from './types';
+
+// 跳過 sql/hybrid/clarification-needed/general-knowledge（用於 hyde 至 popularity-rerank 共 8 個 step）
+const NON_RAG_SKIP: SkipCondition[] = [{ field: 'queryType', operator: 'in', value: ['general-knowledge', 'sql', 'hybrid', 'clarification-needed'] }];
+
+// 跳過 sql/clarification-needed/general-knowledge（不含 hybrid，用於 judge 和 self-reflection）
+const GK_SQL_SKIP: SkipCondition[] = [{ field: 'queryType', operator: 'in', value: ['general-knowledge', 'sql', 'clarification-needed'] }];
+
+export const STEP_REGISTRY: PipelineStepMeta[] = [
+  {
+    id: 'semantic-cache',
+    name: '語義快取檢查',
+    description: '比對向量空間近似問題，命中時直接回傳快取回應',
+    phase: 'pre-retrieval',
+    defaultEnabled: true,
+    defaultOrder: 0,
+    requires: [],
+    provides: ['earlyReturn'],
+  },
+  {
+    id: 'tool-selection',
+    name: 'Tool Calling (LLM A)',
+    description: '解析查詢意圖、分類 queryType（simple/complex/general-knowledge/sql/hybrid/clarification-needed），提取搜尋參數',
+    phase: 'pre-retrieval',
+    defaultEnabled: true,
+    defaultOrder: 1,
+    requires: [],
+    provides: ['queryType', 'parsedQuery', 'effectiveLlmModel', 'preloadedCrags', 'preloadedAreas', 'sqlTemplate', 'sqlParams', 'clarificationType'],
+  },
+  {
+    id: 'text-to-sql',
+    name: 'Text-to-SQL 直查',
+    description: '對計算/統計/篩選問題執行 SQL 模板查詢，或撈取 Hybrid 候選集',
+    phase: 'pre-retrieval',
+    defaultEnabled: true,
+    defaultOrder: 2,
+    requires: ['queryType', 'parsedQuery'],
+    provides: ['earlyReturn', 'sqlCandidates', 'sqlContext'],
+    skipWhen: [{ field: 'queryType', operator: 'in', value: ['simple', 'complex', 'general-knowledge'] }],
+  },
+  {
+    id: 'hyde',
+    name: 'HyDE 假設文件生成',
+    description: '生成假設性理想答案文件以提升語義搜尋效果',
+    phase: 'pre-retrieval',
+    defaultEnabled: true,
+    defaultOrder: 3,
+    requires: ['queryType'],
+    provides: ['hydeDoc'],
+    skipWhen: NON_RAG_SKIP,
+  },
+  {
+    id: 'multi-query',
+    name: 'Multi-Query Expansion',
+    description: '將查詢改寫為多個不同角度的子查詢',
+    phase: 'pre-retrieval',
+    defaultEnabled: true,
+    defaultOrder: 4,
+    requires: ['queryType'],
+    provides: ['expandedQueries'],
+    skipWhen: NON_RAG_SKIP,
+  },
+  {
+    id: 'filter-build',
+    name: 'Filter 建構',
+    description: '從查詢中提取 grade/crag/region/area 過濾條件',
+    phase: 'pre-retrieval',
+    defaultEnabled: true,
+    defaultOrder: 5,
+    requires: ['queryType'],
+    provides: ['vectorFilter'],
+    skipWhen: NON_RAG_SKIP,
+  },
+  {
+    id: 'embedding',
+    name: 'Query + HyDE Embedding',
+    description: '並行計算 query、HyDE 及擴展查詢的向量嵌入',
+    phase: 'retrieval',
+    defaultEnabled: true,
+    defaultOrder: 6,
+    requires: [],
+    provides: ['queryVector', 'hydeVector', 'expandedVectors'],
+    skipWhen: NON_RAG_SKIP,
+  },
+  {
+    id: 'hybrid-search',
+    name: 'Vector + BM25 混合搜尋',
+    description: '並行 Vectorize + BM25 搜尋，RRF 合併，含 Agentic 模式分支',
+    phase: 'retrieval',
+    defaultEnabled: true,
+    defaultOrder: 7,
+    requires: ['queryVector'],
+    provides: ['candidateMatches', 'documents', 'retrievalScore'],
+    skipWhen: NON_RAG_SKIP,
+  },
+  {
+    id: 'cross-encoder',
+    name: 'Cross-encoder Reranking',
+    description: '使用 bge-reranker-base 對候選文件重新評分',
+    phase: 'post-retrieval',
+    defaultEnabled: true,
+    defaultOrder: 8,
+    requires: ['candidateMatches', 'documents'],
+    provides: ['scoredCandidates'],
+    skipWhen: NON_RAG_SKIP,
+  },
+  {
+    id: 'mmr',
+    name: 'MMR 多樣性選取',
+    description: '從重排候選中兼顧相關性與多樣性選取 top-N',
+    phase: 'post-retrieval',
+    defaultEnabled: true,
+    defaultOrder: 9,
+    requires: ['scoredCandidates', 'documents'],
+    provides: ['rerankedMatches'],
+    skipWhen: NON_RAG_SKIP,
+  },
+  {
+    id: 'popularity-rerank',
+    name: '熱門度加權排序',
+    description: '依影片數量加權排序路線，組合 sources 和 context 文字',
+    phase: 'post-retrieval',
+    defaultEnabled: true,
+    defaultOrder: 10,
+    requires: ['rerankedMatches', 'documents'],
+    provides: ['sources', 'context'],
+    skipWhen: NON_RAG_SKIP,
+  },
+  {
+    id: 'llm-generation',
+    name: 'LLM 回答生成',
+    description: '使用 RAG context 生成回答，含 GK 通識路徑和串流模式',
+    phase: 'generation',
+    defaultEnabled: true,
+    defaultOrder: 11,
+    requires: [],
+    provides: ['answer', 'rawAnswer', 'suggestedQuestions', 'parsedAnswer'],
+  },
+  {
+    id: 'judge',
+    name: 'Judge 品質評估',
+    description: '評估回答的 groundedness 和 quality，注入免責聲明',
+    phase: 'evaluation',
+    defaultEnabled: true,
+    defaultOrder: 12,
+    requires: ['answer', 'context'],
+    provides: ['groundedness', 'quality'],
+    skipWhen: GK_SQL_SKIP,
+  },
+  {
+    id: 'self-reflection',
+    name: 'Self-Reflection 重生成',
+    description: 'Judge 驅動的回答重生成，含 loopBack 機制',
+    phase: 'evaluation',
+    defaultEnabled: true,
+    defaultOrder: 13,
+    requires: ['quality', 'groundedness'],
+    provides: [],
+    skipWhen: GK_SQL_SKIP,
+  },
+];
+
+export function getStepById(id: StepId): PipelineStepMeta | undefined {
+  return STEP_REGISTRY.find((s) => s.id === id);
+}
+
+export function getDefaultStepConfigs(): Array<{ id: StepId; enabled: boolean; order: number }> {
+  return STEP_REGISTRY.map((s) => ({
+    id: s.id,
+    enabled: s.defaultEnabled,
+    order: s.defaultOrder,
+  }));
+}

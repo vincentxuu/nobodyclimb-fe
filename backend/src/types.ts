@@ -94,8 +94,8 @@ export interface AIDocumentMetadata {
 // ============================================
 
 export interface ParsedQuery {
-  tool: 'search_routes' | 'search_crags' | 'general_knowledge';
-  query_type?: 'simple' | 'complex' | 'general-knowledge';
+  tool: 'search_routes' | 'search_crags' | 'general_knowledge' | 'search_sql' | 'hybrid';
+  query_type?: 'simple' | 'complex' | 'general-knowledge' | 'sql' | 'hybrid' | 'clarification-needed';
   params: {
     crag_name?: string;
     area_name?: string;
@@ -103,7 +103,10 @@ export interface ParsedQuery {
     route_type?: string;
     region?: string;
     climbing_type?: string;
+    route_name?: string;
   };
+  template?: string;
+  clarification_type?: 'intent' | 'missing-crag';
 }
 
 // ============================================
@@ -159,6 +162,9 @@ export interface AIAskResponse {
   sources: AISource[];
   query_id: string; // 供後續回饋使用
   suggested_questions: string[]; // AI 生成的追問建議
+  clarification_needed?: boolean;
+  clarification_options?: string[];
+  query_route?: string;
 }
 
 export interface AISearchRequest {
