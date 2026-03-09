@@ -9,7 +9,7 @@ export const filterBuildStep: PipelineStep = {
   defaultOrder: 5,
   requires: ['queryType'],
   provides: ['vectorFilter'],
-  skipWhen: [{ field: 'queryType', operator: 'in', value: ['general-knowledge', 'sql', 'hybrid', 'clarification-needed'] }],
+  skipWhen: [{ field: 'queryType', operator: 'in', value: ['general-knowledge', 'sql', 'hybrid', 'clarification-needed', 'multi-tool'] }],
 
   async execute(ctx: PipelineContext): Promise<PipelineContext> {
     const { request, trace, queryService } = ctx;

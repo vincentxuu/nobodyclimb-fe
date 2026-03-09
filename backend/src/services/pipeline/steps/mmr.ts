@@ -9,9 +9,16 @@ export const mmrStep: PipelineStep = {
   defaultOrder: 9,
   requires: ['scoredCandidates', 'documents'],
   provides: ['rerankedMatches'],
-  skipWhen: [{ field: 'queryType', operator: 'in', value: ['general-knowledge', 'sql', 'hybrid', 'clarification-needed'] }],
+  skipWhen: [{ field: 'queryType', operator: 'in', value: ['general-knowledge', 'sql', 'hybrid', 'clarification-needed', 'multi-tool'] }],
 
   async execute(ctx: PipelineContext): Promise<PipelineContext> {
+    // Plan-and-Execute 已完成 synthesis，跳過 post-retrieval
+    if (ctx.skipPostRetrieval) {
+      ctx.rerankedMatches = (ctx.scoredCandidates ?? []).map((m) => ({ ...m, finalScore: m.score }));
+      ctx.trace.mmr_selection = { skipped_reason: 'skipPostRetrieval' };
+      return ctx;
+    }
+
     const { pipelineConfig, trace } = ctx;
     const scoredCandidates = ctx.scoredCandidates ?? [];
     const documents = ctx.documents ?? new Map();

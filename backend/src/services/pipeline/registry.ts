@@ -25,7 +25,7 @@ export const STEP_REGISTRY: PipelineStepMeta[] = [
     defaultEnabled: true,
     defaultOrder: 1,
     requires: [],
-    provides: ['queryType', 'parsedQuery', 'effectiveLlmModel', 'preloadedCrags', 'preloadedAreas', 'sqlTemplate', 'sqlParams', 'clarificationType'],
+    provides: ['queryType', 'parsedQuery', 'effectiveLlmModel', 'preloadedCrags', 'preloadedAreas', 'sqlTemplate', 'sqlParams', 'clarificationType', 'strategyHint'],
   },
   {
     id: 'text-to-sql',

@@ -1,70 +1,22 @@
 import { Env, AIAskRequest, AIAskResponse, AISearchRequest, AISource, AIDocument, AIDocumentMetadata, ParsedQuery, AIChatMessage } from '../types';
 import { EmbeddingService } from './embedding';
-import { SYSTEM_PROMPT, QUERY_TEMPLATE, TOOL_SELECTION_PROMPT, HYDE_PROMPT, GENERAL_KNOWLEDGE_SYSTEM_PROMPT, JUDGE_PROMPT, SELF_REFLECTION_PROMPT, MULTI_QUERY_EXPANSION_PROMPT, AGENTIC_DECISION_PROMPT } from '../utils/ai-prompts';
+import { SYSTEM_PROMPT, QUERY_TEMPLATE, TOOL_SELECTION_PROMPT, HYDE_PROMPT, GENERAL_KNOWLEDGE_SYSTEM_PROMPT, JUDGE_PROMPT, MULTI_QUERY_EXPANSION_PROMPT, AGENTIC_DECISION_PROMPT, PLANNING_PROMPT, SYNTHESIS_PROMPT } from '../utils/ai-prompts';
 import { DEFAULT_SYSTEM_PROMPT_LEAKAGE_PATTERNS } from '../utils/guardrails';
+import toolRegistry from './tool-registry';
 import { getMemoriesSummary } from '../repositories/memory';
 import { getRecentAscents, buildAscentContext, estimateAbilityLevel } from './personalization';
 import { PipelineEngine } from './pipeline/engine';
 import { createPipelineContext } from './pipeline/context';
+import type { PipelineConfig, AgenticActionType, AgenticAction, AgenticStepTrace, RetrievalMethod } from './pipeline/types';
+import { CircuitBreaker } from '../utils/circuit-breaker';
+import { withTimeout, TimeoutError } from '../utils/timeout';
 
 const DEFAULT_TOP_K = 5;
 const MIN_VECTOR_SCORE = 0.5;         // 純語義搜尋（search()）的預設門檻，可透過 ai_config 覆蓋
 const DEFAULT_LLM_MODEL = '@cf/google/gemma-3-12b-it';
 const DEFAULT_LIGHTWEIGHT_MODEL = '@cf/meta/llama-3.1-8b-instruct';
 
-// 從 ai_config 批次讀取所有 pipeline 設定（一次 DB 查詢，無 hardcode）
-interface PipelineConfig {
-  // 模型
-  llm_model: string;
-  simple_model: string;
-  lightweight_model: string;
-  // 搜尋與檢索
-  max_results: number;
-  merge_top_k: number;
-  min_rrf_score: number;
-  min_rrf_score_filtered: number;
-  min_vector_score: number;
-  // 排名與多樣性
-  mmr_lambda: number;
-  reranker_weight: number;
-  popularity_weight: number;
-  // Token 限制
-  max_tokens_generation: number;
-  max_tokens_gk: number;
-  high_consumption_threshold: number;
-  // 品質閾值
-  groundedness_disclaimer_low: number;
-  groundedness_disclaimer_mid: number;
-  groundedness_flag_threshold: number;
-  // Judge 設定
-  judge_timeout_ms: number;
-  judge_context_truncate: number;
-  // 多輪對話中 assistant 歷史訊息的截斷長度（與 judge_context_truncate 是不同關注點）
-  assistant_history_truncate: number;
-  // Judge 驅動重生成：quality 等於或低於此值時重試（取代同模型 YES/NO 自評；1–4 量表）
-  judge_regen_quality_max: number;
-  // Self-reflection（最小觸發長度，控制重生成前的回答長度門檻）
-  self_reflection_min_length: number;
-  // 對話與快取
-  chat_history_depth: number;
-  cache_ttl: number;
-  // 語義快取
-  semantic_cache_enabled: boolean;
-  semantic_cache_threshold: number;
-  // BM25 混合搜尋
-  bm25_top_k: number;
-  // Multi-Query Expansion
-  multi_query_count: number;
-  // 防護設定
-  max_output_length: number;
-  system_prompt_leakage_patterns: string[];
-  // Agentic 模式
-  rag_strategy: string;               // 'baseline' | 'agentic'
-  agentic_max_steps: number;          // 1–5
-  agentic_min_docs_to_answer: number; // 1–10
-  // Pipeline 迴圈上限
-  max_pipeline_loops: number;         // 1–3
-}
+// PipelineConfig 型別統一定義在 pipeline/types.ts，透過 import 使用
 
 function num(v: string | undefined, fallback: number, min?: number, max?: number): number {
   const parsed = v !== undefined && v !== '' ? parseFloat(v) : NaN;
@@ -135,11 +87,36 @@ async function loadPipelineConfig(db: D1Database): Promise<PipelineConfig> {
       return DEFAULT_SYSTEM_PROMPT_LEAKAGE_PATTERNS;
     })(),
     // Agentic 模式
-    rag_strategy:               cfg['rag_strategy']               ?? 'baseline',
+    rag_strategy:               (() => {
+      const v = cfg['rag_strategy'] ?? 'baseline';
+      return ['baseline', 'agentic', 'plan-execute', 'auto'].includes(v) ? v : 'baseline';
+    })(),
     agentic_max_steps:          num(cfg['agentic_max_steps'],          3, 1, 5),
     agentic_min_docs_to_answer: num(cfg['agentic_min_docs_to_answer'], 3, 1, 10),
+    // Plan-and-Execute 模式
+    plan_execute_max_steps:     num(cfg['plan_execute_max_steps'],     4, 2, 6),
+    plan_execute_min_entities:  num(cfg['plan_execute_min_entities'],  2, 2, 5),
+    planning_timeout_ms:        num(cfg['planning_timeout_ms'],        5000, 3000, 10000),
+    synthesis_timeout_ms:       num(cfg['synthesis_timeout_ms'],       8000, 5000, 15000),
+    plan_step_timeout_ms:       num(cfg['plan_step_timeout_ms'],       6000, 3000, 10000),
+    adaptive_plan_enabled:      cfg['adaptive_plan_enabled'] !== '0',
     // Pipeline 迴圈上限
     max_pipeline_loops:         num(cfg['max_pipeline_loops'],          2, 1, 3),
+    // Pipeline 超時
+    pipeline_timeout_ms:        num(cfg['pipeline_timeout_ms'],        20000, 10000, 25000),
+    embedding_timeout_ms:       num(cfg['embedding_timeout_ms'],       3000,  1000,  10000),
+    search_timeout_ms:          num(cfg['search_timeout_ms'],          4000,  1000,  10000),
+    generation_timeout_ms:      num(cfg['generation_timeout_ms'],      12000, 5000,  20000),
+    hyde_timeout_ms:            num(cfg['hyde_timeout_ms'],            5000,  2000,  10000),
+    multi_query_timeout_ms:     num(cfg['multi_query_timeout_ms'],     5000,  2000,  10000),
+    // Circuit Breaker 熔斷器
+    circuit_breaker_threshold:  num(cfg['circuit_breaker_threshold'],  5,     1,     20),
+    circuit_breaker_reset_ms:   num(cfg['circuit_breaker_reset_ms'],   30000, 5000,  120000),
+    // Reranker 閾值過濾
+    reranker_relevance_threshold: num(cfg['reranker_relevance_threshold'], 0.3, 0, 1),
+    reranker_min_keep:            num(cfg['reranker_min_keep'],            2,   1, 20),
+    // Tool Selection 信心
+    tool_confidence_threshold:    num(cfg['tool_confidence_threshold'],    0.7, 0, 1),
   };
 }
 
@@ -213,10 +190,30 @@ interface SearchResult {
   metadata?: Record<string, unknown>;
 }
 
-// Agentic Multi-Step RAG 型別
-type AgenticActionType = 'ANSWER' | 'RETRIEVE' | 'BROADEN';
-interface AgenticAction { type: AgenticActionType; refinedQuery?: string; }
-interface AgenticStepTrace { step: number; type: AgenticActionType; refinedQuery?: string; }
+// Plan-and-Execute 型別
+interface PlanStep {
+  id: number;
+  query: string;
+  tool: 'search_routes' | 'search_crags' | 'sql_query';
+  filters: Record<string, unknown>;
+  depends_on: number[];
+}
+
+interface ExecutionPlan {
+  steps: PlanStep[];
+  execution_mode: 'parallel' | 'sequential' | 'mixed';
+}
+
+interface StepExecutionResult {
+  stepId: number;
+  query: string;
+  tool: string;
+  candidates: SearchResult[];
+  documents: Map<string, { title: string; excerpt: string; url?: string }>;
+  sqlContext?: string;
+  durationMs: number;
+  error?: string;
+}
 
 export class QueryService {
   private embeddingService: EmbeddingService;
@@ -347,14 +344,40 @@ export class QueryService {
       GENERAL_KNOWLEDGE_SYSTEM_PROMPT: resolvePrompt(dbPrompts['general_knowledge_system_prompt'], GENERAL_KNOWLEDGE_SYSTEM_PROMPT, []),
       HYDE_PROMPT: resolvePrompt(dbPrompts['hyde_prompt'], HYDE_PROMPT, ['query']),
       JUDGE_PROMPT: resolvePrompt(dbPrompts['judge_prompt'], JUDGE_PROMPT, ['context', 'query', 'response']),
-      SELF_REFLECTION_PROMPT: resolvePrompt(dbPrompts['self_reflection_prompt'], SELF_REFLECTION_PROMPT, ['query', 'answer']),
       MULTI_QUERY_EXPANSION_PROMPT: resolvePrompt(dbPrompts['multi_query_expansion_prompt'], MULTI_QUERY_EXPANSION_PROMPT, ['query', 'count']),
       AGENTIC_DECISION_PROMPT: resolvePrompt(dbPrompts['agentic_decision_prompt'], AGENTIC_DECISION_PROMPT, ['query', 'count', 'evidence_summary', 'min_docs', 'remaining_steps']),
+      PLANNING_PROMPT: resolvePrompt(dbPrompts['planning_prompt'], PLANNING_PROMPT, ['query', 'crags', 'areas', 'max_steps']),
+      SYNTHESIS_PROMPT: resolvePrompt(dbPrompts['synthesis_prompt'], SYNTHESIS_PROMPT, ['query', 'step_results']),
       QUERY_TEMPLATE: resolvePrompt(dbPrompts['query_template'], QUERY_TEMPLATE, ['context', 'query']),
     };
     const gatewayOptions = this.env.AI_GATEWAY_SLUG
       ? { gateway: { id: this.env.AI_GATEWAY_SLUG } }
       : undefined;
+
+    // Circuit Breaker 檢查
+    const circuitBreaker = new CircuitBreaker(this.env.CACHE, {
+      threshold: pipelineCfg.circuit_breaker_threshold,
+      resetMs: pipelineCfg.circuit_breaker_reset_ms,
+    });
+    const cbCheck = await circuitBreaker.checkState();
+    if (cbCheck.action === 'reject') {
+      const cbError = new Error('AI 服務暫時不可用，請稍後再試');
+      (cbError as any).code = 'CIRCUIT_BREAKER_OPEN';
+      (cbError as any).circuitBreaker = { state: 'open', action: 'rejected' };
+      throw cbError;
+    }
+
+    // 記錄 Circuit Breaker 狀態到 trace
+    if (extraTrace) {
+      extraTrace.circuit_breaker = {
+        state: cbCheck.state.state,
+        action: cbCheck.action,
+        failure_count: cbCheck.state.failureCount,
+      };
+    }
+
+    // AbortController：超時或客戶端斷線時取消進行中的請求
+    const controller = new AbortController();
 
     // 建立 PipelineContext 並執行 Pipeline
     const pipelineCtx = createPipelineContext({
@@ -376,11 +399,23 @@ export class QueryService {
       onToken,
       waitUntilCtx: ctx,
       extraTrace,
+      abortSignal: controller.signal,
+      circuitBreaker,
     });
 
+    // Pipeline 整體超時保護
     const engine = new PipelineEngine(this.env);
-    const result = await engine.run(pipelineCtx);
-    return result.earlyReturn ?? result.finalResponse!;
+    try {
+      const result = await withTimeout(
+        engine.run(pipelineCtx),
+        pipelineCfg.pipeline_timeout_ms,
+        'pipeline',
+      );
+      return result.earlyReturn ?? result.finalResponse!;
+    } catch (err) {
+      controller.abort();
+      throw err;
+    }
   }
 
   // SSE 串流問答：真串流實作，LLM C 開始生成即推送 token，大幅降低 TTFT
@@ -398,7 +433,12 @@ export class QueryService {
     try {
       return await this.ask(request, userId, ctx, onToken, extraTrace);
     } catch (error) {
-      await write(JSON.stringify({ type: 'error', message: '抱歉，AI 服務暫時無法使用，請稍後再試。' }));
+      const message = error instanceof TimeoutError
+        ? '查詢處理超時，請稍後再試'
+        : (error as any)?.code === 'CIRCUIT_BREAKER_OPEN'
+          ? 'AI 服務暫時不可用，請稍後再試'
+          : '抱歉，AI 服務暫時無法使用，請稍後再試。';
+      await write(JSON.stringify({ type: 'error', message }));
       throw error;
     }
   }
@@ -1021,12 +1061,39 @@ export class QueryService {
       const jsonText = text.replace(/^```(?:json)?\n?/, '').replace(/\n?```$/, '').trim();
       const parsed = JSON.parse(jsonText) as ParsedQuery;
 
-      if (!parsed.tool || !['search_routes', 'search_crags', 'general_knowledge', 'search_sql', 'hybrid'].includes(parsed.tool)) {
+      if (!parsed.tool || !toolRegistry.getValidToolNames().includes(parsed.tool)) {
         return { result: null, usage };
       }
       // 確保 query_type 為有效值，否則 fallback 為 'complex'
       if (!parsed.query_type || !['simple', 'complex', 'general-knowledge', 'sql', 'hybrid', 'clarification-needed'].includes(parsed.query_type)) {
         parsed.query_type = 'complex';
+      }
+      // multi_tool 驗證：steps 必須存在且每步 tool 名稱有效
+      if (parsed.tool === 'multi_tool') {
+        const validSubTools = toolRegistry.getValidToolNames().filter((t) => t !== 'multi_tool' && t !== 'general_knowledge');
+        if (!parsed.multi_tool?.steps || !Array.isArray(parsed.multi_tool.steps) || parsed.multi_tool.steps.length === 0) {
+          // 無有效 steps → 降級為 search_routes
+          parsed.tool = 'search_routes';
+          parsed.multi_tool = undefined;
+        } else {
+          const validSteps = parsed.multi_tool.steps.filter((s) => s.tool && validSubTools.includes(s.tool));
+          if (validSteps.length === 0) {
+            parsed.tool = 'search_routes';
+            parsed.multi_tool = undefined;
+          } else {
+            parsed.multi_tool.steps = validSteps.slice(0, 3);
+          }
+        }
+      }
+      // confidence normalize：缺失/非數字 → 預設 1.0（向後相容），超範圍 → clamp
+      if (typeof parsed.confidence !== 'number' || isNaN(parsed.confidence)) {
+        parsed.confidence = 1.0;
+      } else {
+        parsed.confidence = Math.max(0, Math.min(1, parsed.confidence));
+      }
+      // alternative 僅在有效工具名稱時保留
+      if (parsed.alternative && !toolRegistry.getValidToolNames().includes(parsed.alternative)) {
+        parsed.alternative = undefined;
       }
       return { result: parsed, usage };
     } catch {
@@ -1181,6 +1248,9 @@ export class QueryService {
 
     const allPaths: SearchResult[][] = [];
     let agenticTerminationReason: 'enough_docs' | 'max_steps' | 'no_improvement' = 'max_steps';
+    let switchToolUsed = false;
+    let decomposeUsed = false;
+    let verifyUsed = false;
 
     // Step 0：初始搜尋（必定執行）
     const initialResults = await this.runAgenticSearch(query, vectorFilter, MERGE_TOP_K, cfg.bm25_top_k);
@@ -1218,7 +1288,8 @@ export class QueryService {
           agenticTerminationReason = 'no_improvement';
           break;
         }
-        const newResults = await this.runAgenticSearch(action.refinedQuery, vectorFilter, MERGE_TOP_K, cfg.bm25_top_k);
+        const stepMethod = action.retrievalMethod ?? 'hybrid';
+        const newResults = await this.runAgenticSearch(action.refinedQuery, vectorFilter, MERGE_TOP_K, cfg.bm25_top_k, stepMethod);
         steps.push({ step, type: action.type, refinedQuery: action.refinedQuery, docs_retrieved: newResults.length } as AgenticStepTrace & { docs_retrieved: number });
         allPaths.push(newResults);
       } else if (action.type === 'BROADEN') {
@@ -1231,6 +1302,64 @@ export class QueryService {
         const broadenResults = await this.runAgenticSearch(query, broadenFilter, MERGE_TOP_K, cfg.bm25_top_k);
         steps.push({ step, type: action.type, docs_retrieved: broadenResults.length } as AgenticStepTrace & { docs_retrieved: number });
         allPaths.push(broadenResults);
+      } else if (action.type === 'SWITCH_TOOL') {
+        // SWITCH_TOOL 邊界情況：已用過或 targetTool 為 general_knowledge → 視為 ANSWER
+        if (switchToolUsed || !action.targetTool || action.targetTool === 'general_knowledge') {
+          steps.push({ step, type: 'ANSWER', docs_retrieved: merged.length } as AgenticStepTrace & { docs_retrieved: number });
+          agenticTerminationReason = 'no_improvement';
+          break;
+        }
+        switchToolUsed = true;
+
+        // 依 targetTool 建立新的 filter 並檢索
+        const switchFilter: Record<string, unknown> = {};
+        if (action.targetTool === 'search_crags') {
+          switchFilter['type'] = { $eq: 'crag' };
+        } else if (action.targetTool === 'search_routes' || action.targetTool === 'hybrid') {
+          switchFilter['type'] = { $eq: 'route' };
+          // 保留 location filter
+          if (vectorFilter['crag_id']) switchFilter['crag_id'] = vectorFilter['crag_id'];
+          if (vectorFilter['area_id']) switchFilter['area_id'] = vectorFilter['area_id'];
+          if (vectorFilter['region']) switchFilter['region'] = vectorFilter['region'];
+        }
+        const switchResults = await this.runAgenticSearch(query, switchFilter, MERGE_TOP_K, cfg.bm25_top_k);
+        steps.push({
+          step, type: action.type, targetTool: action.targetTool, reason: action.reason,
+          docs_retrieved: switchResults.length,
+        } as AgenticStepTrace & { docs_retrieved: number });
+        allPaths.push(switchResults);
+      } else if (action.type === 'DECOMPOSE') {
+        if (decomposeUsed || !action.subQueries?.length) {
+          steps.push({ step, type: 'ANSWER', docs_retrieved: merged.length } as AgenticStepTrace & { docs_retrieved: number });
+          agenticTerminationReason = 'no_improvement';
+          break;
+        }
+        decomposeUsed = true;
+        const subResults = await Promise.all(
+          action.subQueries.slice(0, 3).map((sq) =>
+            this.runAgenticSearch(sq, vectorFilter, MERGE_TOP_K, cfg.bm25_top_k)
+          )
+        );
+        const totalDocs = subResults.reduce((sum, r) => sum + r.length, 0);
+        steps.push({
+          step, type: action.type, subQueries: action.subQueries,
+          docs_retrieved: totalDocs,
+        } as AgenticStepTrace & { docs_retrieved: number });
+        allPaths.push(...subResults);
+      } else if (action.type === 'VERIFY') {
+        if (verifyUsed || !action.verifyQuery) {
+          steps.push({ step, type: 'ANSWER', docs_retrieved: merged.length } as AgenticStepTrace & { docs_retrieved: number });
+          agenticTerminationReason = 'no_improvement';
+          break;
+        }
+        verifyUsed = true;
+        // 用驗證查詢做獨立搜尋（不帶 filter，更廣泛）
+        const verifyResults = await this.runAgenticSearch(action.verifyQuery, {}, MERGE_TOP_K, cfg.bm25_top_k);
+        steps.push({
+          step, type: action.type, verifyQuery: action.verifyQuery,
+          docs_retrieved: verifyResults.length,
+        } as AgenticStepTrace & { docs_retrieved: number });
+        allPaths.push(verifyResults);
       }
     }
 
@@ -1240,22 +1369,464 @@ export class QueryService {
     return { candidates: finalCandidates, terminationReason: agenticTerminationReason };
   }
 
+  // ──────────────────────────────────────────────────────────────────────────
+  // Plan-and-Execute：將複雜查詢分解為子任務計畫
+  // ──────────────────────────────────────────────────────────────────────────
+  async planQuery(
+    query: string,
+    cfg: PipelineConfig,
+    crags: string[],
+    areas: string[],
+    promptTemplate?: string,
+    gatewayOptions?: { gateway: { id: string } },
+  ): Promise<{ plan: ExecutionPlan | null; failureReason?: 'timeout' | 'json_parse_error' | 'empty_steps'; usage?: { prompt_tokens: number; completion_tokens: number; total_tokens: number; estimated: boolean } }> {
+    const template = promptTemplate ?? PLANNING_PROMPT;
+    const prompt = template
+      .replace('{query}', query)
+      .replace('{crags}', crags.join('、'))
+      .replace('{areas}', areas.join('、'))
+      .replace('{max_steps}', String(cfg.plan_execute_max_steps));
+
+    let rawResult: LLMResponse | undefined;
+    try {
+      const planPromise = this.env.AI.run(
+        cfg.llm_model,
+        { messages: [{ role: 'user', content: prompt }] },
+        gatewayOptions,
+      ) as Promise<LLMResponse>;
+
+      rawResult = await Promise.race([
+        planPromise,
+        new Promise<never>((_, reject) =>
+          setTimeout(() => reject(new Error('planning_timeout')), cfg.planning_timeout_ms),
+        ),
+      ]);
+    } catch {
+      return { plan: null, failureReason: 'timeout' };
+    }
+
+    const text = rawResult?.response?.trim() ?? '';
+    const usage = rawResult?.usage
+      ? { ...rawResult.usage, estimated: false }
+      : { ...estimateTokens(prompt, text), estimated: true };
+
+    try {
+      const jsonText = text.replace(/^```(?:json)?\n?/, '').replace(/\n?```$/, '').trim();
+      const parsed = JSON.parse(jsonText) as ExecutionPlan;
+
+      if (!Array.isArray(parsed.steps) || parsed.steps.length === 0) {
+        return { plan: null, failureReason: 'empty_steps', usage };
+      }
+
+      // 驗證並限制子任務數量
+      const validTools = ['search_routes', 'search_crags', 'sql_query'];
+      const MAX_QUERY_LENGTH = 500;
+      const validSteps = parsed.steps
+        .filter((s) => {
+          if (!s.id || typeof s.id !== 'number') return false;
+          if (!s.query || typeof s.query !== 'string') return false;
+          if (!validTools.includes(s.tool)) return false;
+          if (!Array.isArray(s.depends_on)) return false;
+          if (s.depends_on.includes(s.id)) return false; // 防止自引用
+          return true;
+        })
+        .slice(0, cfg.plan_execute_max_steps)
+        .map((s) => ({
+          ...s,
+          query: s.query.slice(0, MAX_QUERY_LENGTH),
+          depends_on: s.depends_on.filter((id) => typeof id === 'number' && id !== s.id),
+          filters: Object.fromEntries(
+            Object.entries(s.filters ?? {}).filter(
+              ([, v]) => typeof v === 'string' || typeof v === 'number' || typeof v === 'boolean',
+            ),
+          ),
+        }));
+
+      if (validSteps.length === 0) return { plan: null, failureReason: 'empty_steps', usage };
+
+      return {
+        plan: {
+          steps: validSteps,
+          execution_mode: ['parallel', 'sequential', 'mixed'].includes(parsed.execution_mode)
+            ? parsed.execution_mode
+            : 'parallel',
+        },
+        usage,
+      };
+    } catch {
+      return { plan: null, failureReason: 'json_parse_error', usage };
+    }
+  }
+
+  // ──────────────────────────────────────────────────────────────────────────
+  // Plan-and-Execute：按計畫執行子任務檢索（含 Adaptive Plan）
+  // ──────────────────────────────────────────────────────────────────────────
+  async executePlan(
+    plan: ExecutionPlan,
+    cfg: PipelineConfig,
+    gatewayOptions?: { gateway: { id: string } },
+  ): Promise<{ results: StepExecutionResult[]; adaptiveReplan: boolean; adaptiveReplanInfo?: { trigger_step_id: number; reason: string; new_steps: PlanStep[] } }> {
+    const results: StepExecutionResult[] = [];
+    const completedIds = new Set<number>();
+    let adaptiveReplan = false;
+    let adaptiveReplanInfo: { trigger_step_id: number; reason: string; new_steps: PlanStep[] } | undefined;
+
+    // 依照 depends_on 分層執行
+    const remaining = [...plan.steps];
+    const maxIterations = plan.steps.length * 3; // 上限防止異常迴圈
+    let iterations = 0;
+
+    while (remaining.length > 0) {
+      if (++iterations > maxIterations) break;
+
+      // 找出可執行的子任務（depends_on 都已完成）
+      const executable = remaining.filter((s) =>
+        s.depends_on.every((depId) => completedIds.has(depId)),
+      );
+
+      if (executable.length === 0) break; // 無法推進（依賴無法解析）
+
+      // 並行執行無依賴的子任務
+      const execResults = await Promise.all(
+        executable.map((step) => this.executeStep(step, cfg)),
+      );
+
+      for (const result of execResults) {
+        results.push(result);
+        completedIds.add(result.stepId);
+
+        // Adaptive Plan：子任務結果為空且尚未 replan 過
+        if (
+          cfg.adaptive_plan_enabled &&
+          !adaptiveReplan &&
+          result.candidates.length === 0 &&
+          !result.sqlContext &&
+          !result.error
+        ) {
+          const replanResult = await this.adaptiveReplan(
+            result, plan, cfg, gatewayOptions,
+          );
+          if (replanResult) {
+            adaptiveReplan = true;
+            adaptiveReplanInfo = {
+              trigger_step_id: replanResult.triggerStepId,
+              reason: replanResult.reason,
+              new_steps: [replanResult.newStep],
+            };
+            remaining.push(replanResult.newStep);
+          }
+        }
+      }
+
+      // 移除已執行的子任務
+      for (const exec of executable) {
+        const idx = remaining.findIndex((s) => s.id === exec.id);
+        if (idx >= 0) remaining.splice(idx, 1);
+      }
+    }
+
+    return { results, adaptiveReplan, adaptiveReplanInfo };
+  }
+
+  // 執行單一子任務
+  private async executeStep(
+    step: PlanStep,
+    cfg: PipelineConfig,
+  ): Promise<StepExecutionResult> {
+    const start = Date.now();
+    const emptyResult = (): StepExecutionResult => ({
+      stepId: step.id,
+      query: step.query,
+      tool: step.tool,
+      candidates: [],
+      documents: new Map(),
+      durationMs: Date.now() - start,
+    });
+
+    try {
+      const stepPromise = this.executeStepInner(step, cfg);
+      const result = await Promise.race([
+        stepPromise,
+        new Promise<StepExecutionResult>((_, reject) =>
+          setTimeout(() => reject(new Error('step_timeout')), cfg.plan_step_timeout_ms),
+        ),
+      ]);
+      return { ...result, durationMs: Date.now() - start };
+    } catch (err) {
+      return { ...emptyResult(), error: err instanceof Error ? err.message : 'unknown' };
+    }
+  }
+
+  private async executeStepInner(
+    step: PlanStep,
+    cfg: PipelineConfig,
+  ): Promise<StepExecutionResult> {
+    const start = Date.now();
+
+    if (step.tool === 'sql_query') {
+      // SQL 子任務：透過 TextToSqlService 處理
+      try {
+        const { TextToSqlService } = await import('./text-to-sql');
+        const sqlService = new TextToSqlService(this.env.DB);
+        const cragName = step.filters?.crag as string | undefined;
+        let cragId: string | undefined;
+        if (cragName) {
+          const row = await this.env.DB.prepare(
+            `SELECT id FROM crags WHERE name LIKE ? LIMIT 1`,
+          ).bind(`%${cragName}%`).first<{ id: string }>();
+          cragId = row?.id;
+        }
+        const template = 'LIST_ROUTES_BY_CRITERIA';
+        const params: Record<string, unknown> = { ...step.filters };
+        if (cragId) params['crag_id'] = cragId;
+
+        const sqlResult = await sqlService.execute(template, params);
+        const sqlContext = JSON.stringify(sqlResult.rows?.slice(0, 20) ?? []);
+
+        return {
+          stepId: step.id,
+          query: step.query,
+          tool: step.tool,
+          candidates: [],
+          documents: new Map(),
+          sqlContext,
+          durationMs: Date.now() - start,
+        };
+      } catch {
+        // SQL 失敗時 fallback 為向量搜尋
+        const candidates = await this.runAgenticSearch(step.query, {}, cfg.merge_top_k, cfg.bm25_top_k);
+        const docIds = candidates.map((c) => c.id);
+        const docs = await this.getDocuments(docIds);
+        const docSummaries = new Map<string, { title: string; excerpt: string; url?: string }>();
+        for (const [id, doc] of docs) {
+          docSummaries.set(id, { title: this.extractTitle(doc), excerpt: this.buildExcerpt(doc), url: this.buildUrl(doc) });
+        }
+        return { stepId: step.id, query: step.query, tool: step.tool, candidates, documents: docSummaries, durationMs: Date.now() - start };
+      }
+    }
+
+    // search_routes / search_crags：向量搜尋 + BM25
+    const vectorFilter: Record<string, unknown> = {};
+    if (step.filters?.crag) {
+      const cragName = step.filters.crag as string;
+      const row = await this.env.DB.prepare(
+        `SELECT id FROM crags WHERE name LIKE ? LIMIT 1`,
+      ).bind(`%${cragName}%`).first<{ id: string }>();
+      if (row) vectorFilter['crag_id'] = { $eq: row.id };
+    }
+
+    const candidates = await this.runAgenticSearch(step.query, vectorFilter, cfg.merge_top_k, cfg.bm25_top_k);
+    const docIds = candidates.map((c) => c.id);
+    const docs = await this.getDocuments(docIds);
+    const docSummaries = new Map<string, { title: string; excerpt: string; url?: string }>();
+    for (const [id, doc] of docs) {
+      docSummaries.set(id, { title: this.extractTitle(doc), excerpt: this.buildExcerpt(doc), url: this.buildUrl(doc) });
+    }
+
+    return {
+      stepId: step.id,
+      query: step.query,
+      tool: step.tool,
+      candidates,
+      documents: docSummaries,
+      durationMs: Date.now() - start,
+    };
+  }
+
+  // Adaptive Plan：子任務結果為空時，用輕量模型生成替代子任務（最多 1 次）
+  private async adaptiveReplan(
+    failedResult: StepExecutionResult,
+    plan: ExecutionPlan,
+    cfg: PipelineConfig,
+    gatewayOptions?: { gateway: { id: string } },
+  ): Promise<{ newStep: PlanStep; triggerStepId: number; reason: string } | null> {
+    try {
+      // 消毒 LLM 生成的字串，防止二階 prompt injection
+      const safeQuery = failedResult.query.slice(0, 200).replace(/[「」]/g, '');
+      const validTools = ['search_routes', 'search_crags', 'sql_query'] as const;
+      const safeTool = validTools.includes(failedResult.tool as typeof validTools[number])
+        ? failedResult.tool : 'search_routes';
+      const newId = plan.steps.length + 1;
+
+      const prompt = `原始子任務（工具：${safeTool}）檢索結果為空。查詢摘要：${safeQuery}
+請生成一個替代子任務，放寬條件或換用其他工具。只輸出 JSON：
+{"id":${newId},"query":"...","tool":"search_routes|search_crags|sql_query","filters":{},"depends_on":[]}`;
+
+      const replanPromise = this.env.AI.run(
+        cfg.lightweight_model,
+        { messages: [{ role: 'user', content: prompt }] },
+        gatewayOptions,
+      ) as Promise<LLMResponse>;
+
+      const result = await Promise.race([
+        replanPromise,
+        new Promise<never>((_, reject) =>
+          setTimeout(() => reject(new Error('adaptive_replan_timeout')), cfg.planning_timeout_ms),
+        ),
+      ]);
+
+      const text = result.response?.trim() ?? '';
+      const jsonText = text.replace(/^```(?:json)?\n?/, '').replace(/\n?```$/, '').trim();
+      const newStep = JSON.parse(jsonText) as PlanStep;
+
+      if (!newStep.query || !['search_routes', 'search_crags', 'sql_query'].includes(newStep.tool)) {
+        return null;
+      }
+
+      return { newStep, triggerStepId: failedResult.stepId, reason: 'empty_result' };
+    } catch {
+      return null;
+    }
+  }
+
+  // ──────────────────────────────────────────────────────────────────────────
+  // Plan-and-Execute：將多源檢索結果合併為結構化 context
+  // ──────────────────────────────────────────────────────────────────────────
+  async synthesize(
+    query: string,
+    stepResults: StepExecutionResult[],
+    cfg: PipelineConfig,
+    promptTemplate?: string,
+    gatewayOptions?: { gateway: { id: string } },
+  ): Promise<{
+    context: string;
+    sources: AISource[];
+    usage?: { prompt_tokens: number; completion_tokens: number; total_tokens: number; estimated: boolean };
+  }> {
+    // 快速路徑：全部 stepResults 為空或無有效結果，直接 fallback 不浪費 LLM 呼叫
+    if (stepResults.length === 0 || stepResults.every((r) => r.candidates.length === 0 && !r.sqlContext)) {
+      return this.fallbackSynthesis(stepResults);
+    }
+
+    // 組裝子任務結果摘要
+    const stepResultsText = stepResults.map((r) => {
+      const header = `子任務 ${r.stepId}：「${r.query}」（工具：${r.tool}）`;
+      if (r.error) return `${header}\n  錯誤：${r.error}`;
+      if (r.sqlContext) return `${header}\n  SQL 結果：${r.sqlContext}`;
+      if (r.candidates.length === 0) return `${header}\n  無結果`;
+
+      const docEntries: string[] = [];
+      for (const c of r.candidates.slice(0, 10)) {
+        const doc = r.documents.get(c.id);
+        if (doc) {
+          docEntries.push(`  - ${doc.title}：${doc.excerpt}`);
+        }
+      }
+      return `${header}\n${docEntries.join('\n')}`;
+    }).join('\n\n');
+
+    const template = promptTemplate ?? SYNTHESIS_PROMPT;
+    const prompt = template
+      .replace('{query}', query)
+      .replace('{step_results}', stepResultsText);
+
+    let rawResult: LLMResponse | undefined;
+    try {
+      const synthPromise = this.env.AI.run(
+        cfg.llm_model,
+        { messages: [{ role: 'user', content: prompt }] },
+        gatewayOptions,
+      ) as Promise<LLMResponse>;
+
+      rawResult = await Promise.race([
+        synthPromise,
+        new Promise<never>((_, reject) =>
+          setTimeout(() => reject(new Error('synthesis_timeout')), cfg.synthesis_timeout_ms),
+        ),
+      ]);
+    } catch {
+      // 超時或失敗時，用簡單拼接 fallback
+      return this.fallbackSynthesis(stepResults);
+    }
+
+    const text = rawResult?.response?.trim() ?? '';
+    const usage = rawResult?.usage
+      ? { ...rawResult.usage, estimated: false }
+      : { ...estimateTokens(prompt, text), estimated: true };
+
+    if (!text) {
+      return { ...this.fallbackSynthesis(stepResults), usage };
+    }
+
+    // 從所有子任務收集 sources
+    const sources = this.collectSources(stepResults);
+
+    return { context: text, sources, usage };
+  }
+
+  // Synthesis fallback：LLM 失敗時的簡單拼接
+  private fallbackSynthesis(
+    stepResults: StepExecutionResult[],
+  ): { context: string; sources: AISource[] } {
+    const parts: string[] = [];
+    for (const r of stepResults) {
+      if (r.sqlContext) {
+        parts.push(`【${r.query}】\n${r.sqlContext}`);
+      } else {
+        for (const c of r.candidates.slice(0, 10)) {
+          const doc = r.documents.get(c.id);
+          if (doc) parts.push(`【${doc.title}】${doc.excerpt}`);
+        }
+      }
+    }
+
+    return {
+      context: parts.join('\n\n') || '無相關資料',
+      sources: this.collectSources(stepResults),
+    };
+  }
+
+  // 從子任務結果收集 AISource
+  private collectSources(stepResults: StepExecutionResult[]): AISource[] {
+    const seen = new Set<string>();
+    const sources: AISource[] = [];
+
+    for (const r of stepResults) {
+      for (const c of r.candidates) {
+        if (seen.has(c.id)) continue;
+        seen.add(c.id);
+        const doc = r.documents.get(c.id);
+        if (doc) {
+          sources.push({
+            id: c.id,
+            type: r.tool === 'search_crags' ? 'crag' : 'route',
+            title: doc.title,
+            excerpt: doc.excerpt,
+            url: doc.url,
+            score: c.score,
+          });
+        }
+      }
+    }
+    return sources;
+  }
+
   // 每輪 Agentic 搜尋：embedding + BM25 並行，RRF 合併
   private async runAgenticSearch(
     query: string,
     filter: Record<string, unknown>,
     topK: number,
     bm25TopK: number,
+    method: RetrievalMethod = 'hybrid',
   ): Promise<SearchResult[]> {
-    const queryVector = await this.embeddingService.embed(query);
-    const [vecResult, bm25Matches] = await Promise.all([
-      this.env.VECTOR_INDEX.query(queryVector, {
-        topK,
-        returnMetadata: 'all',
-        filter: Object.keys(filter).length > 0 ? filter : undefined,
-      }),
-      this.searchBM25(query, bm25TopK),
-    ]);
+    const skipVector = method === 'bm25';
+    const skipBM25 = method === 'vector';
+
+    const vecPromise = !skipVector
+      ? this.embeddingService.embed(query).then((queryVector) =>
+          this.env.VECTOR_INDEX.query(queryVector, {
+            topK,
+            returnMetadata: 'all',
+            filter: Object.keys(filter).length > 0 ? filter : undefined,
+          })
+        )
+      : Promise.resolve({ matches: [] as Array<{ id: string; score: number; metadata?: Record<string, unknown> }> });
+
+    const bm25Promise = !skipBM25
+      ? this.searchBM25(query, bm25TopK)
+      : Promise.resolve([] as SearchResult[]);
+
+    const [vecResult, bm25Matches] = await Promise.all([vecPromise, bm25Promise]);
     const vecMatches: SearchResult[] = vecResult.matches.map((m) => ({ id: m.id, score: m.score, metadata: m.metadata }));
     return this.mergeResults([vecMatches, bm25Matches], topK);
   }
@@ -1286,7 +1857,7 @@ export class QueryService {
         : undefined;
       const result = (await this.env.AI.run(
         model,
-        { messages: [{ role: 'user', content: prompt }], max_tokens: 100 },
+        { messages: [{ role: 'user', content: prompt }], max_tokens: 200 },
         gatewayOptions,
       )) as LLMResponse;
 
@@ -1295,11 +1866,12 @@ export class QueryService {
         ? { ...result.usage, estimated: false }
         : { ...estimateTokens(prompt, raw), estimated: true };
 
-      const jsonMatch = raw.match(/\{[^}]+\}/);
+      // 匹配 JSON（支援巢狀 [] 和 {}，如 subQueries 陣列）
+      const jsonMatch = raw.match(/\{[\s\S]*\}/);
       if (!jsonMatch) return { action: { type: 'ANSWER' }, usage };
 
       const parsed = JSON.parse(jsonMatch[0]) as AgenticAction;
-      if (!['ANSWER', 'RETRIEVE', 'BROADEN'].includes(parsed.type)) return { action: { type: 'ANSWER' }, usage };
+      if (!['ANSWER', 'RETRIEVE', 'BROADEN', 'SWITCH_TOOL', 'DECOMPOSE', 'VERIFY'].includes(parsed.type)) return { action: { type: 'ANSWER' }, usage };
 
       // refinedQuery 型別與長度驗證，防止異常值傳入 embedding service
       if (parsed.type === 'RETRIEVE') {
@@ -1307,6 +1879,44 @@ export class QueryService {
           return { action: { type: 'ANSWER' }, usage };
         }
         parsed.refinedQuery = parsed.refinedQuery.slice(0, 500);
+      }
+
+      // SWITCH_TOOL 驗證：targetTool 必須存在且不可為 general_knowledge
+      if (parsed.type === 'SWITCH_TOOL') {
+        const validTargets = toolRegistry.getValidToolNames().filter((t) => t !== 'general_knowledge');
+        if (!parsed.targetTool || !validTargets.includes(parsed.targetTool)) {
+          return { action: { type: 'ANSWER' }, usage };
+        }
+      }
+
+      // DECOMPOSE 驗證：subQueries 必須是非空字串陣列，最多 3 個
+      if (parsed.type === 'DECOMPOSE') {
+        if (!Array.isArray(parsed.subQueries) || parsed.subQueries.length === 0) {
+          return { action: { type: 'ANSWER' }, usage };
+        }
+        parsed.subQueries = parsed.subQueries
+          .filter((sq): sq is string => typeof sq === 'string' && sq.trim().length > 0)
+          .slice(0, 3)
+          .map((sq) => sq.slice(0, 500));
+        if (parsed.subQueries.length === 0) {
+          return { action: { type: 'ANSWER' }, usage };
+        }
+      }
+
+      // VERIFY 驗證：verifyQuery 必須是非空字串
+      if (parsed.type === 'VERIFY') {
+        if (typeof parsed.verifyQuery !== 'string' || parsed.verifyQuery.trim().length === 0) {
+          return { action: { type: 'ANSWER' }, usage };
+        }
+        parsed.verifyQuery = parsed.verifyQuery.slice(0, 500);
+      }
+
+      // retrievalMethod 驗證（RETRIEVE 動作的選填欄位）
+      if (parsed.retrievalMethod) {
+        const VALID_METHODS = ['vector', 'bm25', 'hybrid'] as const;
+        if (!(VALID_METHODS as readonly string[]).includes(parsed.retrievalMethod)) {
+          parsed.retrievalMethod = undefined;
+        }
       }
 
       return { action: parsed, usage };

@@ -9,6 +9,7 @@ const tabs = [
   { href: '/admin/ai/knowledge', label: '知識庫', exact: false },
   { href: '/admin/ai/prompts', label: '模板設定', exact: false },
   { href: '/admin/ai/costs', label: '費用估算', exact: false },
+  { href: '/admin/ai/metrics', label: '趨勢分析', exact: false },
   { href: '/admin/ai/settings', label: '設定', exact: false },
 ]
 

@@ -10,9 +10,18 @@ export const embeddingStep: PipelineStep = {
   defaultOrder: 6,
   requires: [],
   provides: ['queryVector', 'hydeVector', 'expandedVectors'],
-  skipWhen: [{ field: 'queryType', operator: 'in', value: ['general-knowledge', 'sql', 'hybrid', 'clarification-needed'] }],
+  skipWhen: [{ field: 'queryType', operator: 'in', value: ['general-knowledge', 'sql', 'hybrid', 'clarification-needed', 'multi-tool'] }],
 
   async execute(ctx: PipelineContext): Promise<PipelineContext> {
+    // bm25 模式：跳過 embedding，節省延遲
+    if (ctx.retrievalMethod === 'bm25') {
+      ctx.queryVector = undefined;
+      ctx.hydeVector = null;
+      ctx.expandedVectors = [];
+      ctx.trace.embedding = { skipped: true, reason: 'bm25_only' };
+      return ctx;
+    }
+
     const embeddingService = new EmbeddingService(ctx.env);
     const { request, earlyQueryVector, hydeDoc, expandedQueries, trace } = ctx;
     const { query } = request;
@@ -43,6 +52,11 @@ export const embeddingStep: PipelineStep = {
       expandedVectors = expandedVectors.filter((v) => v.length > 0);
     }
     ctx.expandedVectors = expandedVectors;
+
+    // Circuit Breaker：embedding 成功（Workers AI 正常回應）
+    if (ctx.circuitBreaker) {
+      ctx.circuitBreaker.recordSuccess().catch(() => {});
+    }
 
     const embeddingMs = Date.now() - embedStart;
     trace.embedding = {

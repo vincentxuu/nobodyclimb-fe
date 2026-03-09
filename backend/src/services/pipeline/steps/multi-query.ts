@@ -9,7 +9,7 @@ export const multiQueryStep: PipelineStep = {
   defaultOrder: 4,
   requires: ['queryType'],
   provides: ['expandedQueries'],
-  skipWhen: [{ field: 'queryType', operator: 'in', value: ['general-knowledge', 'sql', 'hybrid', 'clarification-needed'] }],
+  skipWhen: [{ field: 'queryType', operator: 'in', value: ['general-knowledge', 'sql', 'hybrid', 'clarification-needed', 'multi-tool'] }],
 
   async execute(ctx: PipelineContext): Promise<PipelineContext> {
     // 業務邏輯跳過：non-complex 或 agentic 模式

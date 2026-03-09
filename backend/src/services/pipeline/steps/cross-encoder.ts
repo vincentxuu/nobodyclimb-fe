@@ -9,9 +9,18 @@ export const crossEncoderStep: PipelineStep = {
   defaultOrder: 8,
   requires: ['candidateMatches', 'documents'],
   provides: ['scoredCandidates'],
-  skipWhen: [{ field: 'queryType', operator: 'in', value: ['general-knowledge', 'sql', 'hybrid', 'clarification-needed'] }],
+  skipWhen: [{ field: 'queryType', operator: 'in', value: ['general-knowledge', 'sql', 'hybrid', 'clarification-needed', 'multi-tool'] }],
 
   async execute(ctx: PipelineContext): Promise<PipelineContext> {
+    // Plan-and-Execute 已完成 synthesis，跳過 post-retrieval
+    if (ctx.skipPostRetrieval) {
+      ctx.scoredCandidates = ctx.candidateMatches ?? [];
+      if (ctx.trace.retrieval) {
+        (ctx.trace.retrieval as Record<string, unknown>).reranker = { skipped_reason: 'skipPostRetrieval' };
+      }
+      return ctx;
+    }
+
     const { env, request, trace } = ctx;
     const candidateMatches = ctx.candidateMatches ?? [];
     const documents = ctx.documents ?? new Map();
@@ -37,19 +46,35 @@ export const crossEncoderStep: PipelineStep = {
 
       if (rerankerResult?.response?.length > 0) {
         const scoreByIdx = new Map(rerankerResult.response.map((r) => [r.id, r.score]));
-        ctx.scoredCandidates = rerankCandidates.map((m, idx) => ({
+        const scored = rerankCandidates.map((m, idx) => ({
           ...m,
           score: scoreByIdx.get(idx) ?? m.score,
         }));
+
+        // 閾值過濾：移除低相關性文件，保留 min_keep 安全網
+        const threshold = ctx.pipelineConfig.reranker_relevance_threshold;
+        const minKeep = ctx.pipelineConfig.reranker_min_keep;
+        const sorted = [...scored].sort((a, b) => b.score - a.score);
+        const filtered = sorted.filter((m) => m.score >= threshold);
+        const beforeCount = sorted.length;
+        ctx.scoredCandidates = filtered.length >= minKeep
+          ? filtered
+          : sorted.slice(0, minKeep);
+        const filteredCount = beforeCount - ctx.scoredCandidates.length;
+
         if (trace.retrieval) {
           (trace.retrieval as Record<string, unknown>).reranker_used = true;
-          const sortedByReranker = [...ctx.scoredCandidates].sort((a, b) => b.score - a.score);
           (trace.retrieval as Record<string, unknown>).reranker = {
             input_count: rerankCandidates.length,
-            top_scores: sortedByReranker.map((m) => ({
-              title: ctx.queryService.extractTitle(documents.get(m.id)!),
-              score: Math.round(m.score * 1000) / 1000,
-            })),
+            filtered_count: filteredCount,
+            threshold_used: threshold,
+            top_scores: ctx.scoredCandidates.map((m) => {
+              const doc = documents.get(m.id);
+              return {
+                title: doc ? ctx.queryService.extractTitle(doc) : m.id,
+                score: Math.round(m.score * 1000) / 1000,
+              };
+            }),
           };
         }
       } else {

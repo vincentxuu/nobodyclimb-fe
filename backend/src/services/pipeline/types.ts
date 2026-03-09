@@ -1,4 +1,5 @@
 import { Env, AIAskRequest, AIAskResponse, AISource, AIDocument, ParsedQuery, AIChatMessage } from '../../types';
+import { CircuitBreaker } from '../../utils/circuit-breaker';
 
 // Pipeline Phase 順序固定
 export type PipelinePhase = 'pre-retrieval' | 'retrieval' | 'post-retrieval' | 'generation' | 'evaluation';
@@ -98,6 +99,9 @@ export interface PipelineTokenBreakdown {
   hyde?: StageTokenUsage;
   multi_query?: StageTokenUsage;
   agentic_decisions?: Array<StageTokenUsage & { step: number }>;
+  planning?: StageTokenUsage;
+  synthesis?: StageTokenUsage;
+  adaptive_replan?: StageTokenUsage;
   main_generation?: StageTokenUsage;
   self_reflection_regen?: StageTokenUsage;
   judge?: StageTokenUsage;
@@ -139,14 +143,51 @@ export interface PipelineConfig {
   rag_strategy: string;
   agentic_max_steps: number;
   agentic_min_docs_to_answer: number;
+  // Plan-and-Execute
+  plan_execute_max_steps: number;
+  plan_execute_min_entities: number;
+  planning_timeout_ms: number;
+  synthesis_timeout_ms: number;
+  plan_step_timeout_ms: number;
+  adaptive_plan_enabled: boolean;
   // Looping
   max_pipeline_loops: number;
+  // Reranker 閾值過濾
+  reranker_relevance_threshold: number;
+  reranker_min_keep: number;
+  // Tool Selection 信心
+  tool_confidence_threshold: number;
+  // Pipeline 超時
+  pipeline_timeout_ms: number;
+  embedding_timeout_ms: number;
+  search_timeout_ms: number;
+  generation_timeout_ms: number;
+  hyde_timeout_ms: number;
+  multi_query_timeout_ms: number;
+  // Circuit Breaker
+  circuit_breaker_threshold: number;
+  circuit_breaker_reset_ms: number;
+}
+
+// 檢索方法
+export type RetrievalMethod = 'vector' | 'bm25' | 'hybrid';
+
+// Multi-Tool 組合
+export interface MultiToolStep {
+  tool: string;
+  purpose: string;
+  query: string;
+  params?: Record<string, unknown>;
+}
+export interface MultiToolPlan {
+  steps: MultiToolStep[];
+  execution_mode: 'parallel' | 'sequential';
 }
 
 // Agentic 型別
-export type AgenticActionType = 'ANSWER' | 'RETRIEVE' | 'BROADEN';
-export interface AgenticAction { type: AgenticActionType; refinedQuery?: string; }
-export interface AgenticStepTrace { step: number; type: AgenticActionType; refinedQuery?: string; }
+export type AgenticActionType = 'ANSWER' | 'RETRIEVE' | 'BROADEN' | 'SWITCH_TOOL' | 'DECOMPOSE' | 'VERIFY';
+export interface AgenticAction { type: AgenticActionType; refinedQuery?: string; targetTool?: string; reason?: string; subQueries?: string[]; verifyQuery?: string; retrievalMethod?: RetrievalMethod; }
+export interface AgenticStepTrace { step: number; type: AgenticActionType; refinedQuery?: string; targetTool?: string; reason?: string; subQueries?: string[]; verifyQuery?: string; }
 
 // Token 使用量（方法回傳用，不含 model）
 export interface TokenUsageInfo {
@@ -195,6 +236,20 @@ export interface QueryServiceStepMethods {
     steps: AgenticStepTrace[], agenticPromptTemplate?: string,
     decisionUsages?: Array<StageTokenUsage & { step: number }>,
   ): Promise<{ candidates: SearchResult[]; terminationReason: string }>;
+  // Plan-and-Execute
+  planQuery(
+    query: string, cfg: PipelineConfig, crags: string[], areas: string[],
+    promptTemplate?: string, gatewayOptions?: { gateway: { id: string } },
+  ): Promise<{ plan: { steps: Array<{ id: number; query: string; tool: string; filters: Record<string, unknown>; depends_on: number[] }>; execution_mode: string } | null; failureReason?: 'timeout' | 'json_parse_error' | 'empty_steps'; usage?: TokenUsageInfo }>;
+  executePlan(
+    plan: { steps: Array<{ id: number; query: string; tool: string; filters: Record<string, unknown>; depends_on: number[] }>; execution_mode: string },
+    cfg: PipelineConfig, gatewayOptions?: { gateway: { id: string } },
+  ): Promise<{ results: Array<{ stepId: number; query: string; tool: string; candidates: SearchResult[]; documents: Map<string, { title: string; excerpt: string; url?: string }>; sqlContext?: string; durationMs: number; error?: string }>; adaptiveReplan: boolean; adaptiveReplanInfo?: { trigger_step_id: number; reason: string; new_steps: Array<{ id: number; query: string; tool: string; filters: Record<string, unknown>; depends_on: number[] }> } }>;
+  synthesize(
+    query: string,
+    stepResults: Array<{ stepId: number; query: string; tool: string; candidates: SearchResult[]; documents: Map<string, { title: string; excerpt: string; url?: string }>; sqlContext?: string; durationMs: number; error?: string }>,
+    cfg: PipelineConfig, promptTemplate?: string, gatewayOptions?: { gateway: { id: string } },
+  ): Promise<{ context: string; sources: AISource[]; usage?: TokenUsageInfo }>;
   getDocuments(ids: string[]): Promise<Map<string, AIDocument>>;
   // Ranking
   applyMMR(candidates: SearchResult[], documents: Map<string, AIDocument>, lambda: number, k: number): SearchResult[];
@@ -217,7 +272,8 @@ export interface QueryServiceStepMethods {
   logQuery(params: {
     userId: string | null; query: string; response: string; sources: AISource[];
     latencyMs: number; tokenCount: number | null; groundednessScore?: number | null;
-    autoScore?: number | null; queryType?: string | null; modelUsed?: string | null;
+    autoScore?: number | null; embeddingMs?: number | null; retrievalMs?: number | null;
+    generationMs?: number | null; queryType?: string | null; modelUsed?: string | null;
     retrievalScore?: number | null; selfReflectionTriggered?: number | null;
     isHighConsumption?: boolean; cacheHit?: boolean; hydeTriggered?: boolean; pipelineTrace?: string;
   }): Promise<string>;
@@ -246,9 +302,12 @@ export interface PipelineContext {
   earlyQueryVector: number[] | null;
 
   // Pre-retrieval 階段產出
-  queryType?: 'simple' | 'complex' | 'general-knowledge' | 'sql' | 'hybrid' | 'clarification-needed';
+  queryType?: 'simple' | 'complex' | 'general-knowledge' | 'sql' | 'hybrid' | 'clarification-needed' | 'multi-tool';
   effectiveLlmModel?: string;
   parsedQuery?: ParsedQuery | null;
+  toolConfidence: number;             // 工具選擇信心分數（預設 1.0）
+  fallbackEnabled: boolean;           // 是否啟用空結果 fallback（預設 false）
+  alternativeTool?: string;           // 備選工具名稱（confidence < 0.8 時由 LLM 提供）
   hydeDoc?: string;
   expandedQueries?: string[];
   vectorFilter?: Record<string, unknown>;
@@ -317,10 +376,33 @@ export interface PipelineContext {
   // Branching 控制
   branchResults?: Map<string, Partial<PipelineContext>>;
 
+  // Per-phase latency（engine 匯聚後設定）
+  phaseLatency?: {
+    embeddingMs: number | null;
+    retrievalMs: number | null;
+    generationMs: number | null;
+  };
+
+  // 檢索方法
+  retrievalMethod: RetrievalMethod;
+
+  // Multi-Tool
+  multiToolPlan?: MultiToolPlan;
+
+  // Plan-and-Execute
+  strategyHint?: string;
+  skipPostRetrieval?: boolean;
+
   // 輔助資料
   videoCountMap?: Map<string, number>;
   latestVideoMap?: Map<string, string>;
   llmMessages?: Array<{ role: 'system' | 'user' | 'assistant'; content: string }>;
   selfReflectionTriggered?: number;
   cannotAnswer?: boolean;
+
+  // 超時與降級
+  abortSignal?: AbortSignal;           // Pipeline 取消信號（超時/客戶端斷線時 abort）
+  embeddingFailed?: boolean;           // Embedding 超時/失敗，hybrid-search 僅走 BM25
+  degradedStages?: string[];           // 降級的 step 名稱列表
+  circuitBreaker?: CircuitBreaker;     // Circuit Breaker 實例（供 step 記錄成功/失敗）
 }

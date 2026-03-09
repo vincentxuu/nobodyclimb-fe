@@ -19,7 +19,6 @@ import {
   GENERAL_KNOWLEDGE_SYSTEM_PROMPT,
   HYDE_PROMPT,
   JUDGE_PROMPT,
-  SELF_REFLECTION_PROMPT,
   CONTEXTUAL_CHUNK_PROMPT,
   MULTI_QUERY_EXPANSION_PROMPT,
   AGENTIC_DECISION_PROMPT,
@@ -574,7 +573,6 @@ const PROMPT_DEFAULTS = [
   { name: 'general_knowledge_system_prompt', label: '通識知識提示詞', content: GENERAL_KNOWLEDGE_SYSTEM_PROMPT, variables: [] as string[] },
   { name: 'hyde_prompt', label: 'HyDE 假設文件生成', content: HYDE_PROMPT, variables: ['query'] },
   { name: 'judge_prompt', label: 'Judge 品質評估', content: JUDGE_PROMPT, variables: ['context', 'query', 'response'] },
-  { name: 'self_reflection_prompt', label: 'Self-Reflection 自我反思', content: SELF_REFLECTION_PROMPT, variables: ['query', 'answer'] },
   { name: 'contextual_chunk_prompt', label: 'Contextual RAG 語意摘要', content: CONTEXTUAL_CHUNK_PROMPT, variables: ['type', 'content'] },
   { name: 'multi_query_expansion_prompt', label: 'Multi-Query 查詢擴展', content: MULTI_QUERY_EXPANSION_PROMPT, variables: ['query', 'count'] },
   { name: 'agentic_decision_prompt', label: 'Agentic 決策', content: AGENTIC_DECISION_PROMPT, variables: ['query', 'count', 'evidence_summary', 'min_docs', 'remaining_steps'] },
@@ -1364,6 +1362,257 @@ adminAiRoutes.put(
     } catch (error) {
       console.error('Admin pipeline-branches PUT error:', error);
       return c.json({ success: false, error: 'DatabaseError', message: '更新分支配置失敗' }, 500);
+    }
+  }
+);
+
+// =============================================
+// GET /metrics - 長期趨勢聚合指標
+// =============================================
+
+const VALID_RANGES = ['7d', '30d', '90d'] as const;
+type MetricsRange = (typeof VALID_RANGES)[number];
+
+const RANGE_DAYS: Record<MetricsRange, number> = { '7d': 7, '30d': 30, '90d': 90 };
+
+adminAiRoutes.get(
+  '/metrics',
+  describeRoute({
+    tags: ['Admin AI'],
+    summary: 'AI 趨勢指標',
+    description: '取得指定時間範圍的每日聚合指標（延遲/品質/快取/查詢類型/異常偵測）',
+    responses: { 200: { description: '趨勢指標資料' } },
+  }),
+  async (c) => {
+    try {
+      const rangeParam = (c.req.query('range') ?? '30d') as string;
+      if (!VALID_RANGES.includes(rangeParam as MetricsRange)) {
+        return c.json({
+          success: false,
+          error: 'InvalidParameter',
+          message: `range 參數無效，合法值為: ${VALID_RANGES.join(', ')}`,
+        }, 400);
+      }
+      const range = rangeParam as MetricsRange;
+      const days = RANGE_DAYS[range];
+
+      // --- 每日基本統計 + 品質 ---
+      const dailyBasicRows = await c.env.DB.prepare(`
+        SELECT
+          date(created_at) as date,
+          COUNT(*) as query_count,
+          AVG(CASE WHEN embedding_ms IS NOT NULL THEN latency_ms END) as avg_latency_noncache,
+          AVG(groundedness_score) as avg_groundedness,
+          AVG(auto_score) as avg_auto_score,
+          AVG(CASE WHEN feedback_score IS NOT NULL THEN feedback_score END) as avg_feedback_score,
+          SUM(CASE WHEN cache_hit = 1 THEN 1 ELSE 0 END) as cache_hits,
+          SUM(CASE WHEN cache_hit = 0 THEN 1 ELSE 0 END) as cache_misses
+        FROM ai_query_logs
+        WHERE created_at >= datetime('now', '-' || ? || ' days')
+        GROUP BY date(created_at)
+        ORDER BY date ASC
+      `).bind(days).all<{
+        date: string;
+        query_count: number;
+        avg_latency_noncache: number | null;
+        avg_groundedness: number | null;
+        avg_auto_score: number | null;
+        avg_feedback_score: number | null;
+        cache_hits: number;
+        cache_misses: number;
+      }>();
+
+      // --- 每日快取類型區分 ---
+      const cacheTypeRows = await c.env.DB.prepare(`
+        SELECT
+          date(created_at) as date,
+          SUM(CASE WHEN cache_hit = 1 AND COALESCE(json_extract(pipeline_trace, '$.cache.type'), 'kv') = 'kv' THEN 1 ELSE 0 END) as kv_hits,
+          SUM(CASE WHEN cache_hit = 1 AND json_extract(pipeline_trace, '$.cache.type') = 'semantic' THEN 1 ELSE 0 END) as semantic_hits
+        FROM ai_query_logs
+        WHERE created_at >= datetime('now', '-' || ? || ' days')
+        GROUP BY date(created_at)
+        ORDER BY date ASC
+      `).bind(days).all<{ date: string; kv_hits: number; semantic_hits: number }>();
+
+      const cacheTypeMap = new Map(cacheTypeRows.results.map((r) => [r.date, r]));
+
+      // --- 每日查詢類型分佈 ---
+      const queryTypeRows = await c.env.DB.prepare(`
+        SELECT
+          date(created_at) as date,
+          query_type,
+          COUNT(*) as count
+        FROM ai_query_logs
+        WHERE created_at >= datetime('now', '-' || ? || ' days')
+        GROUP BY date(created_at), query_type
+        ORDER BY date ASC
+      `).bind(days).all<{ date: string; query_type: string | null; count: number }>();
+
+      const queryTypeMap = new Map<string, Record<string, number>>();
+      for (const row of queryTypeRows.results) {
+        if (!queryTypeMap.has(row.date)) {
+          queryTypeMap.set(row.date, { simple: 0, complex: 0, 'general-knowledge': 0, guardrails_blocked: 0 });
+        }
+        const dayTypes = queryTypeMap.get(row.date)!;
+        const key = row.query_type ?? 'simple';
+        dayTypes[key] = (dayTypes[key] ?? 0) + row.count;
+      }
+
+      // --- 每日延遲 percentile（per-phase） ---
+      const latencyPercentileRows = await c.env.DB.prepare(`
+        SELECT
+          date(created_at) as date,
+          embedding_ms,
+          retrieval_ms,
+          generation_ms,
+          latency_ms
+        FROM ai_query_logs
+        WHERE created_at >= datetime('now', '-' || ? || ' days')
+          AND embedding_ms IS NOT NULL
+        ORDER BY date(created_at) ASC
+      `).bind(days).all<{
+        date: string;
+        embedding_ms: number;
+        retrieval_ms: number;
+        generation_ms: number;
+        latency_ms: number;
+      }>();
+
+      // 按日分群計算 percentile
+      const latencyByDate = new Map<string, {
+        embedding: number[];
+        retrieval: number[];
+        generation: number[];
+        total: number[];
+      }>();
+      for (const row of latencyPercentileRows.results) {
+        if (!latencyByDate.has(row.date)) {
+          latencyByDate.set(row.date, { embedding: [], retrieval: [], generation: [], total: [] });
+        }
+        const d = latencyByDate.get(row.date)!;
+        d.embedding.push(row.embedding_ms);
+        d.retrieval.push(row.retrieval_ms);
+        d.generation.push(row.generation_ms);
+        d.total.push(row.latency_ms);
+      }
+
+      const percentile = (arr: number[], pct: number): number | null => {
+        if (arr.length === 0) return null;
+        const sorted = [...arr].sort((a, b) => a - b);
+        const idx = Math.max(0, Math.ceil(sorted.length * pct) - 1);
+        return sorted[idx];
+      };
+
+      // --- 組裝 daily 陣列 ---
+      const daily = dailyBasicRows.results.map((row) => {
+        const ct = cacheTypeMap.get(row.date);
+        const qt = queryTypeMap.get(row.date) ?? { simple: 0, complex: 0, 'general-knowledge': 0, guardrails_blocked: 0 };
+        const ld = latencyByDate.get(row.date);
+        const total = row.query_count;
+        const hitRate = total > 0 ? Math.round((row.cache_hits / total) * 100) / 100 : 0;
+
+        return {
+          date: row.date,
+          query_count: row.query_count,
+          latency: {
+            embedding_p50: ld ? percentile(ld.embedding, 0.5) : null,
+            embedding_p95: ld ? percentile(ld.embedding, 0.95) : null,
+            retrieval_p50: ld ? percentile(ld.retrieval, 0.5) : null,
+            retrieval_p95: ld ? percentile(ld.retrieval, 0.95) : null,
+            generation_p50: ld ? percentile(ld.generation, 0.5) : null,
+            generation_p95: ld ? percentile(ld.generation, 0.95) : null,
+            total_p50: ld ? percentile(ld.total, 0.5) : null,
+            total_p95: ld ? percentile(ld.total, 0.95) : null,
+          },
+          quality: {
+            avg_groundedness: row.avg_groundedness != null ? Math.round(row.avg_groundedness * 100) / 100 : null,
+            avg_auto_score: row.avg_auto_score != null ? Math.round(row.avg_auto_score * 10) / 10 : null,
+            avg_feedback_score: row.avg_feedback_score != null ? Math.round(row.avg_feedback_score * 10) / 10 : null,
+          },
+          cache: {
+            hit_rate: hitRate,
+            kv_hits: ct?.kv_hits ?? 0,
+            semantic_hits: ct?.semantic_hits ?? 0,
+            misses: row.cache_misses,
+          },
+          query_types: qt,
+          anomalies: [] as string[],
+        };
+      });
+
+      // --- Z-Score 異常偵測 ---
+      const ANOMALY_METRICS: Array<{
+        key: string;
+        extract: (d: (typeof daily)[number]) => number | null;
+      }> = [
+        { key: 'latency.total_p95', extract: (d) => d.latency.total_p95 },
+        { key: 'latency.generation_p95', extract: (d) => d.latency.generation_p95 },
+        { key: 'quality.avg_groundedness', extract: (d) => d.quality.avg_groundedness },
+        { key: 'quality.avg_auto_score', extract: (d) => d.quality.avg_auto_score },
+        { key: 'cache.hit_rate', extract: (d) => d.cache.hit_rate },
+      ];
+
+      for (let i = 0; i < daily.length; i++) {
+        const day = daily[i];
+        if (day.query_count < 5) continue; // 低流量不偵測
+
+        for (const metric of ANOMALY_METRICS) {
+          const currentVal = metric.extract(day);
+          if (currentVal == null) continue;
+
+          // 收集前 7 天有效值
+          const window: number[] = [];
+          for (let j = Math.max(0, i - 7); j < i; j++) {
+            if (daily[j].query_count < 5) continue;
+            const v = metric.extract(daily[j]);
+            if (v != null) window.push(v);
+          }
+          if (window.length < 3) continue; // 歷史不足不偵測
+
+          const mean = window.reduce((s, v) => s + v, 0) / window.length;
+          const variance = window.reduce((s, v) => s + (v - mean) ** 2, 0) / window.length;
+          const stddev = Math.sqrt(variance);
+          if (stddev === 0) continue;
+
+          const zScore = Math.abs(currentVal - mean) / stddev;
+          if (zScore > 2) {
+            day.anomalies.push(metric.key);
+          }
+        }
+      }
+
+      // --- Summary ---
+      const summaryRow = await c.env.DB.prepare(`
+        SELECT
+          COUNT(*) as total_queries,
+          AVG(latency_ms) as avg_latency_ms,
+          AVG(groundedness_score) as avg_groundedness,
+          CAST(SUM(CASE WHEN cache_hit = 1 THEN 1 ELSE 0 END) AS REAL) / NULLIF(COUNT(*), 0) as cache_hit_rate
+        FROM ai_query_logs
+        WHERE created_at >= datetime('now', '-' || ? || ' days')
+      `).bind(days).first<{
+        total_queries: number;
+        avg_latency_ms: number | null;
+        avg_groundedness: number | null;
+        cache_hit_rate: number | null;
+      }>();
+
+      return c.json({
+        success: true,
+        data: {
+          range,
+          daily,
+          summary: {
+            total_queries: summaryRow?.total_queries ?? 0,
+            avg_latency_ms: summaryRow?.avg_latency_ms != null ? Math.round(summaryRow.avg_latency_ms) : null,
+            avg_groundedness: summaryRow?.avg_groundedness != null ? Math.round(summaryRow.avg_groundedness * 100) / 100 : null,
+            cache_hit_rate: summaryRow?.cache_hit_rate != null ? Math.round(summaryRow.cache_hit_rate * 100) / 100 : null,
+          },
+        },
+      });
+    } catch (error) {
+      console.error('Admin metrics error:', error);
+      return c.json({ success: false, error: 'DatabaseError', message: '取得趨勢指標失敗' }, 500);
     }
   }
 );

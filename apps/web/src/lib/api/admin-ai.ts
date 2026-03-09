@@ -667,3 +667,69 @@ export function useUpdatePipelineSteps() {
     },
   })
 }
+
+// =============================================
+// Metrics 趨勢分析
+// =============================================
+
+export interface MetricsDailyLatency {
+  embedding_p50: number | null
+  embedding_p95: number | null
+  retrieval_p50: number | null
+  retrieval_p95: number | null
+  generation_p50: number | null
+  generation_p95: number | null
+  total_p50: number | null
+  total_p95: number | null
+}
+
+export interface MetricsDailyQuality {
+  avg_groundedness: number | null
+  avg_auto_score: number | null
+  avg_feedback_score: number | null
+}
+
+export interface MetricsDailyCache {
+  hit_rate: number
+  kv_hits: number
+  semantic_hits: number
+  misses: number
+}
+
+export interface MetricsDaily {
+  date: string
+  query_count: number
+  latency: MetricsDailyLatency
+  quality: MetricsDailyQuality
+  cache: MetricsDailyCache
+  query_types: Record<string, number>
+  anomalies: string[]
+}
+
+export interface MetricsSummary {
+  total_queries: number
+  avg_latency_ms: number | null
+  avg_groundedness: number | null
+  cache_hit_rate: number | null
+}
+
+export interface MetricsResponse {
+  range: string
+  daily: MetricsDaily[]
+  summary: MetricsSummary
+}
+
+export type MetricsRange = '7d' | '30d' | '90d'
+
+export function useAIMetrics(range: MetricsRange) {
+  return useQuery({
+    queryKey: ['admin-ai-metrics', range],
+    queryFn: async () => {
+      const res = await apiClient.get<{ success: boolean; data: MetricsResponse }>(
+        `/admin/ai/metrics?range=${range}`
+      )
+      return res.data.data
+    },
+    staleTime: 5 * 60 * 1000,
+  })
+}

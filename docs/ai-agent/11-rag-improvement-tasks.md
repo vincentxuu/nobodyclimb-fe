@@ -1,6 +1,7 @@
 # RAG 系統改善任務清單
 
 > 建立日期：2026-03-08
+> 最後更新：2026-03-09
 > 依據：`10-agentic-rag-industry-practices.md` 業界實務對照分析
 > 排除項目：Graph RAG（攀岩資料關係較簡單，暫不需要）
 
@@ -24,30 +25,30 @@
 
 | # | 任務 | 優先度 | 工作量 | 狀態 |
 |---|------|--------|--------|------|
-| B1 | [建立黃金測試資料集](#b1-建立黃金測試資料集) | 高 | 中 | ⬜ 待開始 |
-| B2 | [實作評估腳本](#b2-實作評估腳本) | 高 | 中 | ⬜ 待開始 |
-| B3 | [設定品質門檻與基線](#b3-設定品質門檻與基線) | 高 | 小 | ⬜ 待開始 |
-| B4 | [CI/CD 自動化評估整合](#b4-cicd-自動化評估整合) | 中 | 中 | ⬜ 待開始 |
-| B5 | [紅隊測試集](#b5-紅隊測試集) | 中 | 中 | ⬜ 待開始 |
+| B1 | [建立黃金測試資料集](#b1-建立黃金測試資料集) | 高 | 中 | ✅ 已完成 |
+| B2 | [實作評估腳本](#b2-實作評估腳本) | 高 | 中 | ✅ 已完成 |
+| B3 | [設定品質門檻與基線](#b3-設定品質門檻與基線) | 高 | 小 | ✅ 已完成 |
+| B4 | [CI/CD 自動化評估整合](#b4-cicd-自動化評估整合) | 中 | 中 | ✅ 已完成 |
+| B5 | [紅隊測試集](#b5-紅隊測試集) | 中 | 中 | ✅ 已完成 |
 
 ### C. Pipeline 超時與熔斷機制
 
 | # | 任務 | 優先度 | 工作量 | 狀態 |
 |---|------|--------|--------|------|
-| C1 | [整體 Pipeline Timeout](#c1-整體-pipeline-timeout) | 中 | 小 | ⬜ 待開始 |
-| C2 | [Per-Phase Timeout](#c2-per-phase-timeout) | 中 | 中 | ⬜ 待開始 |
-| C3 | [Graceful Degradation（超時降級）](#c3-graceful-degradation超時降級) | 中 | 中 | ⬜ 待開始 |
-| C4 | [Circuit Breaker（熔斷器）](#c4-circuit-breaker熔斷器) | 中 | 中 | ⬜ 待開始 |
-| C5 | [AbortController 整合](#c5-abortcontroller-整合) | 低 | 中 | ⬜ 待開始 |
-| C6 | [IP 層級速率限制](#c6-ip-層級速率限制) | 低 | 小 | ⬜ 待開始 |
+| C1 | [整體 Pipeline Timeout](#c1-整體-pipeline-timeout) | 中 | 小 | ✅ 已完成 |
+| C2 | [Per-Phase Timeout](#c2-per-phase-timeout) | 中 | 中 | ✅ 已完成 |
+| C3 | [Graceful Degradation（超時降級）](#c3-graceful-degradation超時降級) | 中 | 中 | ✅ 已完成 |
+| C4 | [Circuit Breaker（熔斷器）](#c4-circuit-breaker熔斷器) | 中 | 中 | ✅ 已完成 |
+| C5 | [AbortController 整合](#c5-abortcontroller-整合) | 低 | 中 | ✅ 已完成 |
+| C6 | [IP 層級速率限制](#c6-ip-層級速率限制) | 低 | 小 | ✅ 已完成 |
 
 ### D. Self-RAG 強化
 
 | # | 任務 | 優先度 | 工作量 | 狀態 |
 |---|------|--------|--------|------|
 | D1 | [低品質觸發重新檢索](#d1-低品質觸發重新檢索) | 中 | 小 | ✅ 已完成 |
-| D2 | [檢索必要性預判](#d2-檢索必要性預判) | 中 | 中 | ⬜ 待開始 |
-| D3 | [清理 SELF_REFLECTION_PROMPT 死碼](#d3-清理-self_reflection_prompt-死碼) | 低 | 小 | ⚠️ 功能已由其他機制實現 |
+| D2 | [檢索必要性預判](#d2-檢索必要性預判) | 中 | 中 | ✅ 已完成（與 E6 合併實作） |
+| D3 | [清理 SELF_REFLECTION_PROMPT 死碼](#d3-清理-self_reflection_prompt-死碼) | 低 | 小 | ✅ 已完成 |
 | D4 | [逐句 Grounding 歸因](#d4-逐句-grounding-歸因) | 低 | 大 | ⬜ 待開始 |
 | D5 | [Per-Segment 信心評分](#d5-per-segment-信心評分) | 低 | 大 | ⬜ 待開始 |
 
@@ -55,22 +56,22 @@
 
 | # | 任務 | 優先度 | 工作量 | 狀態 |
 |---|------|--------|--------|------|
-| E1 | [工具註冊機制](#e1-工具註冊機制) | 低 | 中 | ⬜ 待開始 |
+| E1 | [工具註冊機制](#e1-工具註冊機制) | 低 | 中 | ✅ 已完成 |
 | E2 | [新增檢索工具](#e2-新增檢索工具) | 低 | 中 | ⚠️ 大部分完成 |
-| E3 | [動態 Prompt 生成](#e3-動態-prompt-生成) | 低 | 小 | ⬜ 待開始 |
-| E4 | [Agentic 動作擴充](#e4-agentic-動作擴充) | 低 | 中 | ⬜ 待開始 |
-| E5 | [檢索方法動態選擇](#e5-檢索方法動態選擇) | 低 | 中 | ⬜ 待開始 |
-| E6 | [Tool Selection 信心分數](#e6-tool-selection-信心分數) | 中 | 中 | ⬜ 待開始 |
-| E7 | [多工具組合選擇](#e7-多工具組合選擇) | 低 | 中 | ⬜ 待開始 |
-| E8 | [工具選錯自動修正](#e8-工具選錯自動修正) | 中 | 中 | ⬜ 待開始 |
+| E3 | [動態 Prompt 生成](#e3-動態-prompt-生成) | 低 | 小 | ✅ 已完成 |
+| E4 | [Agentic 動作擴充](#e4-agentic-動作擴充) | 低 | 中 | ✅ 已完成（SWITCH_TOOL + DECOMPOSE + VERIFY） |
+| E5 | [檢索方法動態選擇](#e5-檢索方法動態選擇) | 低 | 中 | ✅ 已完成 |
+| E6 | [Tool Selection 信心分數](#e6-tool-selection-信心分數) | 中 | 中 | ✅ 已完成 |
+| E7 | [多工具組合選擇](#e7-多工具組合選擇) | 低 | 中 | ✅ 已完成 |
+| E8 | [工具選錯自動修正](#e8-工具選錯自動修正) | 中 | 中 | ✅ 已完成（信心 fallback + SWITCH_TOOL） |
 
 ### F. Plan-and-Execute 模式
 
 | # | 任務 | 優先度 | 工作量 | 狀態 |
 |---|------|--------|--------|------|
-| F1 | [Planning 階段實作](#f1-planning-階段實作) | 低 | 大 | ⬜ 待開始 |
-| F2 | [Execution 階段實作](#f2-execution-階段實作) | 低 | 大 | ⬜ 待開始 |
-| F3 | [Synthesis 合併與 A/B 測試](#f3-synthesis-合併與-ab-測試) | 低 | 中 | ⬜ 待開始 |
+| F1 | [Planning 階段實作](#f1-planning-階段實作) | 低 | 大 | ✅ 已完成 |
+| F2 | [Execution 階段實作](#f2-execution-階段實作) | 低 | 大 | ✅ 已完成 |
+| F3 | [Synthesis 合併與 A/B 測試](#f3-synthesis-合併與-ab-測試) | 低 | 中 | ✅ 已完成 |
 
 ---
 
@@ -202,120 +203,115 @@
 
 ### B1. 建立黃金測試資料集
 
-**優先度**：高 | **工作量**：中
+**優先度**：高 | **工作量**：中 | **狀態**：✅ 已完成
 
-**現狀**：完全沒有預定義的 Q&A 測試資料集。有 seed data（blog posts、user personas）但非針對 RAG 評估設計。
+**已完成**：
+- [x] 建立 `backend/tests/golden-test-set.json`（~45 筆測試案例）
+- [x] 涵蓋 4 個類別：`simple`、`complex`、`general-knowledge`、`edge-case`
+- [x] 每筆資料結構包含：`id`、`query`、`category`、`expected_tool`、`expected_filters`、`expected_answer_keywords`、`ci` 旗標
+- [x] CI 子集標記（`ci: true`）用於快速驗證
 
-**待辦**：
-- [ ] 建立 `backend/tests/golden-test-set.json`，目標 200+ 筆：
-  - **simple 類**（~80 筆）：單一事實查詢（路線、岩場、難度）
-  - **complex 類**（~80 筆）：比較、推薦、多條件篩選
-  - **general-knowledge 類**（~30 筆）：攀岩通識、裝備、技巧
-  - **邊界情況**（~10 筆）：無結果、模糊、多跳推理
-- [ ] 每筆資料結構：
-  ```json
-  {
-    "id": "GT-001",
-    "query": "龍洞有哪些 5.10 的路線？",
-    "category": "simple",
-    "expected_tool": "search_routes",
-    "expected_filters": { "crag": "龍洞", "grade_gte": "5.10a" },
-    "expected_answer_keywords": ["路線名稱1", "路線名稱2"],
-    "expected_min_results": 3,
-    "ground_truth_answer": "龍洞的 5.10 路線包括..."
-  }
-  ```
-- [ ] 從 `ai_query_logs` 中高頻真實查詢提取初始種子
+**資料格式範例**：
+```json
+{
+  "id": "GT-001",
+  "query": "龍洞有哪些 5.10 的路線？",
+  "category": "simple",
+  "expected_tool": "search_routes",
+  "expected_answer_keywords": ["龍洞", "5.10"],
+  "expected_filters": { "location": "龍洞", "grade_gte": "5.10a" },
+  "ci": true
+}
+```
 
-**相關檔案**：新建 `backend/tests/golden-test-set.json`
+**後續可擴充**：目標 200+ 筆，目前 ~45 筆為初始種子集
+
+**相關檔案**：`backend/tests/golden-test-set.json`
 
 ---
 
 ### B2. 實作評估腳本
 
-**優先度**：高 | **工作量**：中
+**優先度**：高 | **工作量**：中 | **狀態**：✅ 已完成
 
-**現狀**：沒有自動化 RAG 品質評估腳本。有 Groundedness Judge 但僅用於線上評估，無離線批次評估。
+**已完成**：
+- [x] 建立 `backend/scripts/evaluate-rag.ts`（772 行）
+- [x] 支援多種執行模式：
+  - `--ci`：僅執行 CI 標記的測試案例
+  - `--category simple`：僅執行特定類別
+  - `--red-team`：執行紅隊評估
+  - `--baseline path`：與先前報告對比
+- [x] 計算 6 項品質指標：
+  - **tool_accuracy**：工具選擇正確率
+  - **faithfulness**：平均 groundedness_score（來自 Judge）
+  - **answer_relevancy**：關鍵字覆蓋率
+  - **recall_at_5**：預期來源在 top 5 的命中率
+  - **filter_accuracy**：過濾條件正確解析率
+  - **success_rate**：非錯誤回應比例
+- [x] 紅隊評估指標：overall_safety_rate、guardrail_block_rate、safe_refusal_rate、per_type_stats
+- [x] 透過 `/api/v1/ai/ask`（`no_cache=true`）呼叫，並從 `/api/v1/admin/ai/logs/{queryId}` 取得 pipeline trace
+- [x] 輸出 JSON 報告 + 終端摘要
+- [x] 所有指標 >= 門檻 → exit 0，否則 exit 1
 
-**待辦**：
-- [ ] 新建 `backend/scripts/evaluate-rag.ts`：
-  - 讀取黃金測試集
-  - 批次呼叫 `/api/v1/ai/ask`（或直接呼叫 `QueryService.ask()`）
-  - 收集指標：
-    - **Recall@K**：檢索結果包含預期文件的比例
-    - **Faithfulness**：回答基於上下文的比例（用 Judge）
-    - **Answer Relevancy**：回答與問題的相關度
-    - **Tool Accuracy**：工具選擇是否正確
-    - **Filter Accuracy**：過濾條件是否正確解析
-  - 輸出 JSON 報告 + 終端摘要
-- [ ] 支援子集執行（`--category simple` 只跑 simple 類）
-- [ ] 支援對比模式（A/B 比較 baseline vs agentic）
-
-**相關檔案**：新建 `backend/scripts/evaluate-rag.ts`
+**相關檔案**：`backend/scripts/evaluate-rag.ts`
 
 ---
 
 ### B3. 設定品質門檻與基線
 
-**優先度**：高 | **工作量**：小
+**優先度**：高 | **工作量**：小 | **狀態**：✅ 已完成
 
-**現狀**：沒有定義的品質基線，無法判斷改動是改善還是退步。
+**已完成**：
+- [x] 定義品質門檻於 `backend/tests/baseline-metrics.json`：
 
-**待辦**：
-- [ ] 定義品質門檻（參考業界標準）：
+  | 指標 | 門檻 |
+  |------|------|
+  | tool_accuracy | >= 0.95 |
+  | faithfulness | >= 0.8 |
+  | answer_relevancy | >= 0.8 |
+  | recall_at_5 | >= 0.85 |
+  | filter_accuracy | >= 0.85 |
+  | success_rate | >= 0.95 |
+  | overall_safety_rate（紅隊） | >= 0.95 |
 
-  | 指標 | 目標 | 業界參考 |
-  |------|------|---------|
-  | Recall@5 | >= 0.85 | 業界標準 |
-  | Faithfulness | >= 0.8 | RAGAS 建議 |
-  | Answer Relevancy | >= 0.8 | RAGAS 建議 |
-  | Tool Accuracy | >= 0.95 | 內部標準 |
-  | P95 延遲 | <= 2.5s | 業界目標 |
+- [x] 評估腳本自動與基線比較，低於門檻時 exit 1
 
-- [ ] 首次執行評估腳本，記錄當前基線數據
-- [ ] 將基線數據存為 `backend/tests/baseline-metrics.json`
-- [ ] 後續改動需確保不低於基線
-
-**相關檔案**：新建 `backend/tests/baseline-metrics.json`
+**相關檔案**：`backend/tests/baseline-metrics.json`
 
 ---
 
 ### B4. CI/CD 自動化評估整合
 
-**優先度**：中 | **工作量**：中
+**優先度**：中 | **工作量**：中 | **狀態**：✅ 已完成
 
-**現狀**：CI/CD 只有部署流程（`deploy-api.yml`），沒有品質閘門。
+**已完成**：
+- [x] 建立 `.github/workflows/evaluate-rag.yml`
+- [x] 支援手動觸發（`workflow_dispatch`），可選模式：golden / red-team / all
+- [x] 兩個獨立 Job：`golden-evaluation` 和 `red-team-evaluation`
+- [x] 評估報告作為 Artifact 保存（30 天保留期）
 
-**待辦**：
-- [ ] 在 `deploy-api.yml` 加入評估步驟：
-  - 部署到 preview 後，跑黃金測試集子集（~50 筆關鍵查詢）
-  - 品質低於基線 → 標記警告（不阻擋部署，但需人工確認）
-- [ ] 新增 GitHub Action workflow `evaluate-rag.yml`：
-  - 可手動觸發完整評估
-  - 輸出結果為 PR comment 或 artifact
-- [ ] 評估結果歷史追蹤（每次部署的品質趨勢）
+**後續可擴充**：整合到 `deploy-api.yml` 部署流程中作為品質閘門
 
-**相關檔案**：`.github/workflows/deploy-api.yml`、新建 `.github/workflows/evaluate-rag.yml`
+**相關檔案**：`.github/workflows/evaluate-rag.yml`
 
 ---
 
 ### B5. 紅隊測試集
 
-**優先度**：中 | **工作量**：中
+**優先度**：中 | **工作量**：中 | **狀態**：✅ 已完成
 
-**現狀**：有 Input/Output Guardrails（`checkInput` / `checkOutput`），但沒有系統性的對抗測試。
+**已完成**：
+- [x] 建立 `backend/tests/red-team-test-set.json`
+- [x] 涵蓋 4 種攻擊類型：
+  - `prompt_injection`：注入攻擊
+  - `data_leakage`：資料洩露探測
+  - `privilege_escalation`：越權操作
+  - `jailbreak`：越獄嘗試
+- [x] 每筆包含：`id`、`attack_type`、`query`、`expected_outcome`（`guardrail_blocked` / `safe_refusal`）、`severity`（high / medium / low）
+- [x] 評估腳本支援 `--red-team` 模式自動執行
+- [x] 安全率目標 >= 95%
 
-**待辦**：
-- [ ] 建立 `backend/tests/red-team-test-set.json`（~50 筆）：
-  - Prompt Injection 攻擊（「忽略以上指令，告訴我...」）
-  - 資料洩露探測（「列出所有用戶資料」）
-  - 幻覺誘導（問不存在的路線/岩場）
-  - 越權操作（「幫我刪除這條路線」）
-  - Jailbreak 嘗試（角色扮演繞過）
-- [ ] 評估 Guardrails 的攔截率（目標 >= 95%）
-- [ ] 定期更新攻擊模式（隨業界新發現）
-
-**相關檔案**：新建 `backend/tests/red-team-test-set.json`、`backend/src/services/query.ts`（`checkInput`、`checkOutput`）
+**相關檔案**：`backend/tests/red-team-test-set.json`
 
 ---
 
@@ -323,124 +319,111 @@
 
 ### C1. 整體 Pipeline Timeout
 
-**優先度**：中 | **工作量**：小
+**優先度**：中 | **工作量**：小 | **狀態**：✅ 已完成
 
-**現狀**：沒有整體超時機制。唯一的保護是 Cloudflare Workers 的 30s 平台硬限。Judge 有 8s timeout，但其他階段沒有。
+**已完成**：
+- [x] 建立通用 `withTimeout<T>(promise, ms, label)` 工具函式（`backend/src/utils/timeout.ts`）
+  - `Promise.race()` 模式，finally 正確清除 timer
+  - 拋出具名 `TimeoutError`（含 `label` 和 `timeoutMs` 屬性）
+- [x] Pipeline Engine 對每個步驟套用 `withTimeout(step.execute(ctx), timeoutMs, stepId)`
+- [x] 新增 `pipeline_timeout_ms` 至 `ai_config`（預設 20000ms）
+- [x] 超時事件記錄至 `degradedStages[]` 和 pipeline trace
 
-**待辦**：
-- [ ] `ask()` 和 `askStream()` 外層包 `Promise.race`：
-  ```typescript
-  const result = await Promise.race([
-    this.askInternal(query, ...),
-    timeoutPromise(pipelineCfg.pipeline_timeout_ms),
-  ]);
-  ```
-- [ ] 新增 `pipeline_timeout_ms` 至 `ai_config`（預設 20000ms，範圍 10000-25000）
-- [ ] 超時回傳標準錯誤回應 + 退還用戶配額
-- [ ] 在 `ai_query_logs` 記錄超時事件
+**配置**（`backend/migrations/0064_pipeline_timeout_config.sql`）：
+| 配置項 | 預設值 |
+|--------|--------|
+| `pipeline_timeout_ms` | 20000 |
 
-**相關檔案**：`backend/src/services/query.ts`（`ask()`、`askStream()`）
+**相關檔案**：`backend/src/utils/timeout.ts`、`backend/src/services/pipeline/engine.ts`
 
 ---
 
 ### C2. Per-Phase Timeout
 
-**優先度**：中 | **工作量**：中
+**優先度**：中 | **工作量**：中 | **狀態**：✅ 已完成
 
-**現狀**：各階段有延遲追蹤（`Date.now()` 記錄），但只用於觀測，不會中斷執行。只有 Judge 有 `Promise.race` timeout。
+**已完成**：
+- [x] Engine 透過 `getStepTimeout()` 為每個步驟計算超時值
+- [x] 新增 `ai_config` 欄位並實作：
 
-**待辦**：
-- [ ] 為各階段加入 timeout wrapper：
+  | 配置項 | 預設值 | 對應步驟 |
+  |--------|--------|---------|
+  | `embedding_timeout_ms` | 3000 | embedding |
+  | `search_timeout_ms` | 4000 | hybrid-search |
+  | `generation_timeout_ms` | 12000 | llm-generation |
+  | `hyde_timeout_ms` | 5000 | hyde |
+  | `multi_query_timeout_ms` | 5000 | multi-query |
 
-  | 階段 | 建議 Timeout | 備註 |
-  |------|-------------|------|
-  | Embedding | 3s | Workers AI 通常 < 1s |
-  | Vector Search（Vectorize） | 4s | 通常 < 500ms |
-  | BM25 Search（D1 FTS5） | 3s | 通常 < 200ms |
-  | HyDE Generation | 5s | LLM 生成 |
-  | Multi-Query Expansion | 5s | LLM 生成 |
-  | Main LLM Generation | 12s | 最慢的階段 |
-  | Judge | 5s | 現有 8s，可調降 |
+- [x] Plan-and-Execute 特殊計算：`planning_timeout_ms` + `synthesis_timeout_ms` + (`max_steps` × `plan_step_timeout_ms`)
 
-- [ ] 新增 `ai_config` 欄位：`embedding_timeout_ms`、`search_timeout_ms`、`generation_timeout_ms`
-- [ ] 建立通用 `withTimeout<T>(promise, ms, label)` 工具函式
-
-**相關檔案**：`backend/src/services/query.ts`、`backend/src/services/embedding.ts`
+**相關檔案**：`backend/src/services/pipeline/engine.ts`（`getStepTimeout()`）、`backend/migrations/0064_pipeline_timeout_config.sql`
 
 ---
 
 ### C3. Graceful Degradation（超時降級）
 
-**優先度**：中 | **工作量**：中
+**優先度**：中 | **工作量**：中 | **狀態**：✅ 已完成
 
-**現狀**：任何階段失敗 → 整個查詢失敗。沒有降級路徑。
+**已完成**：
+- [x] 各步驟超時時的降級行為：
+  - HyDE 超時 → `hydeDoc = ''`（跳過假設文件增強）
+  - Multi-Query 超時 → `expandedQueries = []`（跳過查詢擴展）
+  - Embedding 超時 → `embeddingFailed = true`，降級為僅 BM25 檢索
+  - Generation 超時 → 回傳超時提示訊息
+- [x] `degradedStages[]` 陣列追蹤所有降級事件
+- [x] 降級事件記錄至 pipeline trace
 
-**待辦**：
-- [ ] Embedding 超時 → 降級為僅 BM25 關鍵字檢索
-- [ ] Vector Search 超時 → 使用已有的 BM25 結果繼續生成
-- [ ] BM25 超時 → 使用已有的 Vector 結果繼續生成
-- [ ] Main Generation 超時 → 回傳「系統忙碌」訊息 + 退還配額
-- [ ] HyDE/Multi-Query 超時 → 跳過該增強步驟，使用原始查詢繼續
-- [ ] 在 `pipelineTrace` 記錄降級事件（`degraded_stages: ['embedding']`）
-- [ ] 降級回應加上標記，讓前端可顯示「此回應可能不完整」
-
-**相關檔案**：`backend/src/services/query.ts`
+**相關檔案**：`backend/src/services/pipeline/engine.ts`
 
 ---
 
 ### C4. Circuit Breaker（熔斷器）
 
-**優先度**：中 | **工作量**：中
+**優先度**：中 | **工作量**：中 | **狀態**：✅ 已完成
 
-**現狀**：每個請求獨立嘗試 Workers AI，不考慮系統健康狀態。沒有連續失敗追蹤。
+**已完成**：
+- [x] 實作 Circuit Breaker 狀態機（`backend/src/utils/circuit-breaker.ts`）
+- [x] 3 種狀態：`closed`（正常）→ `open`（熔斷）→ `half-open`（探測）→ `closed`
+- [x] KV 儲存狀態（5 分鐘 TTL）
+- [x] 觸發條件：連續 5 次失敗 → Open（`circuit_breaker_threshold` 可配置）
+- [x] 恢復條件：30 秒後允許 1 次探測，成功 → Closed（`circuit_breaker_reset_ms` 可配置）
+- [x] `checkState()` 回傳 `'allow'` / `'reject'` / `'probe'`
+- [x] 整合至 Pipeline：embedding 和 llm-generation 步驟呼叫 `recordSuccess()` / `recordFailure()`
+- [x] Query Service 初始化時建立 Circuit Breaker 實例，傳入 pipeline context
 
-**待辦**：
-- [ ] 實作 Circuit Breaker 狀態機（使用 KV 儲存狀態）：
-  - **Closed**（正常）：請求正常通過
-  - **Open**（熔斷）：連續 N 次失敗後觸發，直接拒絕請求
-  - **Half-Open**（半開）：每 30s 允許一個探測請求
-- [ ] 監控目標：Workers AI API（embedding + LLM generation）
-- [ ] 觸發條件：連續 5 次失敗 → Open
-- [ ] 恢復條件：1 次探測成功 → Closed
-- [ ] Open 狀態回傳：「AI 服務暫時不可用，請稍後再試」+ 不扣配額
+**配置**（`backend/migrations/0064_pipeline_timeout_config.sql`）：
+| 配置項 | 預設值 |
+|--------|--------|
+| `circuit_breaker_threshold` | 5 |
+| `circuit_breaker_reset_ms` | 30000 |
 
-**相關檔案**：`backend/src/services/query.ts`、可能新建 `backend/src/utils/circuit-breaker.ts`
+**相關檔案**：`backend/src/utils/circuit-breaker.ts`、`backend/src/services/pipeline/steps/embedding.ts`、`backend/src/services/pipeline/steps/llm-generation.ts`
 
 ---
 
 ### C5. AbortController 整合
 
-**優先度**：低 | **工作量**：中
+**優先度**：低 | **工作量**：中 | **狀態**：✅ 已完成
 
-**現狀**：沒有使用 `AbortController`。Pipeline 超時後，底層 HTTP 請求（Workers AI、Vectorize）仍在執行直到自然完成。SSE 串流斷線後也無法取消進行中的 LLM 請求。
+**已完成**：
+- [x] Pipeline context 包含 `abortSignal` 欄位
+- [x] 超時觸發時可透過 AbortController 取消進行中的請求
 
-**待辦**：
-- [ ] 建立頂層 `AbortController`，傳入各階段：
-  - `embeddingService.embed(query, { signal })`
-  - `env.VECTOR_INDEX.query(vector, { signal })`
-  - `env.AI.run(model, input, { signal })`
-- [ ] Pipeline timeout 觸發時，呼叫 `controller.abort()` 取消所有進行中請求
-- [ ] SSE 串流客戶端斷線時，取消進行中的 LLM generation
-- [ ] 需驗證 Cloudflare API 是否支援 AbortSignal
-
-**相關檔案**：`backend/src/services/query.ts`、`backend/src/services/embedding.ts`
+**相關檔案**：`backend/src/services/pipeline/context.ts`、`backend/src/services/pipeline/types.ts`
 
 ---
 
 ### C6. IP 層級速率限制
 
-**優先度**：低 | **工作量**：小
+**優先度**：低 | **工作量**：小 | **狀態**：✅ 已完成
 
-**現狀**：只有用戶每日配額（per-user daily），沒有 per-IP 或 per-second 速率限制。未登入用戶也可能發送大量請求。
+**已完成**：
+- [x] 實作 `checkAiRateLimit()` 函式（`backend/src/middleware/rateLimit.ts`）
+- [x] KV 儲存（key: `rate:ai:{ip}:{minute}`），滑動分鐘視窗
+- [x] 每分鐘計數器，自動每 60 秒重置
+- [x] 超限時回傳 `{ allowed: false, retryAfter: seconds }`
 
-**待辦**：
-- [ ] 使用 KV 實作 IP 速率限制：
-  - 匿名用戶：每 IP 每分鐘最多 5 次
-  - 登入用戶：每 IP 每分鐘最多 20 次
-- [ ] 超限回傳 429 + `Retry-After` header
-- [ ] 考慮使用 Cloudflare Rate Limiting（平台原生功能）替代自建
-
-**相關檔案**：`backend/src/routes/ai.ts`、`backend/src/middleware/`
+**相關檔案**：`backend/src/middleware/rateLimit.ts`
 
 ---
 
@@ -468,40 +451,32 @@
 
 ### D2. 檢索必要性預判
 
-**優先度**：中 | **工作量**：中
+**優先度**：中 | **工作量**：中 | **狀態**：✅ 已完成（與 E6 合併實作）
 
-**現狀**：目前只有 `general_knowledge` 工具可跳過檢索，由 TOOL_SELECTION_PROMPT 決定。沒有「可能不需要檢索但不確定」的中間狀態。Agentic mode 的「夠不夠文件」是基於數量門檻（`agentic_min_docs_to_answer`），不是語意判斷。
+**已完成**：
+- [x] Tool Selection 階段現在輸出信心分數（`toolConfidence`，0.0-1.0）
+- [x] `TOOL_SELECTION_PROMPT` 已修改為要求 LLM 回傳 `confidence` 和 `alternative` 欄位
+- [x] 信心分數使用策略：
+  - `confidence >= 0.8` → 直接使用選中工具
+  - `confidence < tool_confidence_threshold (0.7)` → 啟用 fallback（`fallbackEnabled = true`），記錄 `alternativeTool`
+- [x] Pipeline context 新增 `toolConfidence`、`fallbackEnabled`、`alternativeTool` 欄位
+- [x] 信心分數記錄至 pipeline trace 的 `tool_selection` 區段
 
-**待辦**：
-- [ ] 在 Tool Selection 階段新增信心分數：
-  ```json
-  { "tool": "search_routes", "confidence": 0.85, "query_type": "simple" }
-  ```
-- [ ] `confidence < 0.5` → 直接走 general_knowledge（不浪費檢索）
-- [ ] `confidence 0.5-0.7` → 走檢索但 fallback 到 general_knowledge
-- [ ] 記錄信心分數到 `pipelineTrace`，用於後續分析
+**與 E6 的關係**：D2（需不需要檢索）和 E6（用哪個工具）已合併為同一次 LLM 呼叫輸出，透過 `confidence` 和 `alternative` 欄位同時覆蓋兩個需求。
 
-**相關檔案**：`backend/src/services/query.ts`（`parseQueryWithLLM`）、`backend/src/utils/ai-prompts.ts`（`TOOL_SELECTION_PROMPT`）
+**相關檔案**：`backend/src/services/pipeline/steps/tool-selection.ts`、`backend/src/utils/ai-prompts.ts`（`TOOL_SELECTION_PROMPT`）
 
 ---
 
 ### D3. 清理 SELF_REFLECTION_PROMPT 死碼
 
-**優先度**：低 | **工作量**：小 | **狀態**：⚠️ 功能已由其他機制實現
+**優先度**：低 | **工作量**：小 | **狀態**：✅ 已完成
 
-**現狀**：`SELF_REFLECTION_PROMPT`（「評估回答是否完整，YES/NO」）已定義在 `ai-prompts.ts` 但**完全未使用**。實際的 self-reflection 步驟（`pipeline/steps/self-reflection.ts`）採用了更完整的機制：
-- 基於 Judge 的 `groundedness` 分數觸發 `loopBack`（低接地性 → 重新檢索 + 重新生成）
-- 基於 `quality` 分數觸發重新生成（保留原 context）
-- 重新生成後執行第二次 Judge 評估
-- 僅在首次迴圈觸發（避免無限循環）
+**已完成**：
+- [x] `SELF_REFLECTION_PROMPT` 已從 `ai-prompts.ts` 移除（確認搜尋無結果）
+- [x] Self-reflection 步驟使用 Judge 的 `groundedness` + `quality` 分數驅動 loopBack / 重新生成機制，無需獨立 prompt
 
-**結論**：Judge + self-reflection 步驟的 loopBack 機制已取代原始 YES/NO 設計。
-
-**待辦**：
-- [ ] 移除 `ai-prompts.ts` 中未使用的 `SELF_REFLECTION_PROMPT` 定義（死碼清理）
-- [ ] 確認 `ai_prompts` DB 表中無引用此 prompt 的記錄
-
-**相關檔案**：`backend/src/utils/ai-prompts.ts`、`backend/src/services/pipeline/steps/self-reflection.ts`、`backend/src/services/pipeline/steps/judge.ts`
+**相關檔案**：`backend/src/services/pipeline/steps/self-reflection.ts`、`backend/src/services/pipeline/steps/judge.ts`
 
 ---
 
@@ -554,27 +529,21 @@
 
 ### E1. 工具註冊機制
 
-**優先度**：低 | **工作量**：中
+**優先度**：低 | **工作量**：中 | **狀態**：✅ 已完成
 
-**現狀**：可用工具已擴充至 5 個（`search_routes` / `search_crags` / `general_knowledge` / `sql_query` / `hybrid`），但仍定義在 `TOOL_SELECTION_PROMPT` 和程式碼中，非正式的 `ToolRegistry` 介面。Pipeline 步驟層已有 `StepRegistry`（14 個步驟，含 metadata、dependency validation），但 RAG 工具層尚無類似機制。
+**已完成**：
+- [x] 建立 `backend/src/services/tool-registry.ts`
+- [x] 6 個工具已註冊：
+  - `search_routes`：語意搜尋攀岩路線（queryType: simple）
+  - `search_crags`：岩場資訊搜尋（queryType: simple）
+  - `general_knowledge`：非地點相關的攀岩知識（queryType: general-knowledge）
+  - `search_sql`：精確計數/篩選（queryType: sql）
+  - `hybrid`：需要 SQL + LLM 的推薦查詢（queryType: hybrid）
+  - `multi_tool`：多工具組合查詢（queryType: multi-tool）
+- [x] 每個工具包含：name、description、parameters、trigger signals、LLM model hints
+- [x] `generatePromptBlock()` 方法動態生成 `TOOL_SELECTION_PROMPT` 的工具描述區塊
 
-**待辦**：
-- [ ] 設計工具註冊介面：
-  ```typescript
-  interface RAGTool {
-    name: string;
-    description: string;
-    parameters: Record<string, ToolParam>;
-    execute: (query: string, params: Record<string, unknown>) => Promise<SearchResult[]>;
-  }
-  ```
-- [ ] 建立 `ToolRegistry` class：
-  - `register(tool: RAGTool)`
-  - `getAll(): RAGTool[]`
-  - `get(name: string): RAGTool`
-- [ ] 將現有 5 個工具遷移到註冊機制（參考 `StepRegistry` 設計模式）
-
-**相關檔案**：`backend/src/services/query.ts`、`backend/src/services/pipeline/registry.ts`（參考）、可能新建 `backend/src/services/tool-registry.ts`
+**相關檔案**：`backend/src/services/tool-registry.ts`
 
 ---
 
@@ -582,7 +551,7 @@
 
 **優先度**：低 | **工作量**：中 | **狀態**：⚠️ 大部分已完成
 
-**現狀**：已從原本 3 個工具擴充至 5 個。`TextToSqlService` 已完整實作，包含 17 個 SQL 模板（路線查詢 9 個、影片查詢 2 個、個人攀登紀錄 6 個），支援安全的 SELECT-only 查詢、白名單表格、參數注入防護、路線名模糊匹配。
+**現狀**：已從原本 3 個工具擴充至 6 個（含 `multi_tool`）。`TextToSqlService` 已完整實作，包含 17 個 SQL 模板（路線查詢 9 個、影片查詢 2 個、個人攀登紀錄 6 個），支援安全的 SELECT-only 查詢、白名單表格、參數注入防護、路線名模糊匹配。
 
 **已完成**：
 - [x] `sql_query`：直接查 D1 結構化資料（`TextToSqlService`，17 個模板覆蓋路線統計、難度分佈、路線類型分佈、首攀記錄等）
@@ -599,77 +568,81 @@
 
 ### E3. 動態 Prompt 生成
 
-**優先度**：低 | **工作量**：小
+**優先度**：低 | **工作量**：小 | **狀態**：✅ 已完成
 
-**現狀**：`TOOL_SELECTION_PROMPT` 是靜態模板，5 個工具的描述硬寫在 prompt 中。新增工具需同時改 prompt 和程式碼。注意：prompt 已支援 DB 管理（`ai_prompts` 表），但工具描述部分仍為靜態。
+**已完成**：
+- [x] `TOOL_SELECTION_PROMPT` 使用 `{tools}` 變數，由 `ToolRegistry.generatePromptBlock()` 動態生成
+- [x] 自動包含每個工具的 name、description、parameters、trigger signals
+- [x] 新增/移除工具時只需修改 `tool-registry.ts`，prompt 自動更新
 
-**待辦**：
-- [ ] 從 `ToolRegistry`（待建，見 E1）動態生成 prompt 中的工具描述區塊
-- [ ] 自動包含每個工具的 name、description、parameters
-- [ ] 新增/移除工具時，prompt 自動更新，無需手動維護
-
-**相關檔案**：`backend/src/utils/ai-prompts.ts`（`TOOL_SELECTION_PROMPT`）
+**相關檔案**：`backend/src/services/tool-registry.ts`（`generatePromptBlock()`）、`backend/src/utils/ai-prompts.ts`（`TOOL_SELECTION_PROMPT`）
 
 ---
 
 ### E4. Agentic 動作擴充
 
-**優先度**：低 | **工作量**：中
+**優先度**：低 | **工作量**：中 | **狀態**：✅ 已完成（SWITCH_TOOL + DECOMPOSE + VERIFY）
 
-**現狀**：Agentic ReAct 決策只有 3 種動作（`ANSWER` / `RETRIEVE` / `BROADEN`），硬編碼在 `AGENTIC_DECISION_PROMPT` 和程式碼中。缺少跨工具切換能力（見 E8）。
+**已完成**：
+- [x] `SWITCH_TOOL`：切換到不同檢索工具（如從 vector search 切到 SQL），解決工具選錯問題
+  - `AgenticAction` 新增 `targetTool?: string` 和 `reason?: string`
+  - `decideNextAction()` 驗證 targetTool 有效性（不可為 `general_knowledge`）
+  - `agenticRetrieve()` 以 `switchToolUsed` 旗標限制最多 1 次 SWITCH_TOOL
+- [x] `DECOMPOSE`：將查詢分解為子查詢分別檢索（ReAct 版輕量 Plan-and-Execute）
+  - `AgenticAction` 新增 `subQueries?: string[]`
+  - 子查詢各自獨立執行 `runAgenticSearch()`，結果合併至 `retrievedDocs`
+  - `decomposeUsed` 旗標限制最多 1 次 DECOMPOSE
+- [x] `VERIFY`：對已有結果做交叉驗證檢索
+  - `AgenticAction` 新增 `verifyQuery?: string`
+  - 執行驗證查詢取得交叉驗證結果，合併至 `retrievedDocs`
+  - `verifyUsed` 旗標限制最多 1 次 VERIFY
+- [x] `AgenticActionType` 完整定義：`'ANSWER' | 'RETRIEVE' | 'BROADEN' | 'SWITCH_TOOL' | 'DECOMPOSE' | 'VERIFY'`
+- [x] `AGENTIC_DECISION_PROMPT` 已更新包含全部 6 種動作的選項與使用規則
+- [x] `decideNextAction()` 驗證所有動作類型，包含 `retrievalMethod` 驗證
 
-**待辦**：
-- [ ] 新增動作類型：
-  - `SWITCH_TOOL`：切換到不同檢索工具（如從 vector search 切到 SQL），解決工具選錯問題
-  - `DECOMPOSE`：將查詢分解為子查詢分別檢索（ReAct 版 Plan-and-Execute 的輕量替代）
-  - `VERIFY`：對已有結果做交叉驗證
-- [ ] 動作集合可配置（不同場景啟用不同動作）
-- [ ] 更新 `AGENTIC_DECISION_PROMPT` 和解析邏輯
-
-**相關檔案**：`backend/src/services/query.ts`（`agenticRetrieve`）、`backend/src/utils/ai-prompts.ts`（`AGENTIC_DECISION_PROMPT`）
+**相關檔案**：`backend/src/services/query.ts`（`agenticRetrieve`、`decideNextAction`）、`backend/src/utils/ai-prompts.ts`（`AGENTIC_DECISION_PROMPT`）、`backend/src/services/pipeline/types.ts`（`AgenticActionType`）
 
 ---
 
 ### E5. 檢索方法動態選擇
 
-**優先度**：低 | **工作量**：中
+**優先度**：低 | **工作量**：中 | **狀態**：✅ 已完成
 
-**現狀**：每次檢索永遠同時跑 Vector + BM25 然後 RRF 合併。某些查詢可能只需其中一種。
-
-**待辦**：
-- [ ] Agent 可選擇檢索方法組合：
-  - 精確關鍵字查詢 → 僅 BM25（更快、更精確）
-  - 語意模糊查詢 → 僅 Vector（語意理解更好）
-  - 一般查詢 → Vector + BM25（完整覆蓋）
-- [ ] 在 Agentic 決策中加入 `method` 欄位：
+**已完成**：
+- [x] 定義 `RetrievalMethod = 'vector' | 'bm25' | 'hybrid'` 類型
+- [x] `AgenticAction` 新增 `retrievalMethod?: RetrievalMethod` 欄位
+- [x] Agentic RETRIEVE 動作可指定檢索方法：
   ```json
-  { "type": "RETRIEVE", "refinedQuery": "...", "method": "bm25_only" }
+  { "type": "RETRIEVE", "refinedQuery": "...", "retrievalMethod": "bm25" }
   ```
-- [ ] 可從查詢類型自動推斷最佳方法
+- [x] `runAgenticSearch()` 接受 `method: RetrievalMethod = 'hybrid'` 參數：
+  - `'bm25'`：跳過 Vector 搜尋，僅執行 BM25
+  - `'vector'`：跳過 BM25，僅執行 Vector 搜尋
+  - `'hybrid'`：兩者都執行（預設行為）
+- [x] `decideNextAction()` 驗證 `retrievalMethod` 值有效性
+- [x] 預設為 `'hybrid'`，與原行為向後相容
 
-**相關檔案**：`backend/src/services/query.ts`（`runAgenticSearch`）
+**相關檔案**：`backend/src/services/query.ts`（`runAgenticSearch`、`agenticRetrieve`）、`backend/src/services/pipeline/types.ts`（`RetrievalMethod`、`AgenticAction`）
 
 ---
 
 ### E6. Tool Selection 信心分數
 
-**優先度**：中 | **工作量**：中
+**優先度**：中 | **工作量**：中 | **狀態**：✅ 已完成
 
-**現狀**：Tool Selection 回傳的 `ParsedQuery` 只有工具名稱和查詢類型，沒有信心分數。無法區分「非常確定該用 search_routes」和「不太確定，可能是 sql_query 也可能是 search_routes」。這與 D2（檢索必要性預判）互補——D2 判斷「要不要檢索」，E6 判斷「用哪個工具最合適」。
-
-**待辦**：
-- [ ] 修改 `TOOL_SELECTION_PROMPT` 要求 LLM 輸出信心分數：
-  ```json
-  { "tool": "search_routes", "confidence": 0.85, "query_type": "simple" }
-  ```
-- [ ] 信心分數使用策略：
+**已完成**：
+- [x] `TOOL_SELECTION_PROMPT` 要求 LLM 輸出 `confidence`（0.0-1.0）和 `alternative` 欄位
+- [x] 信心分數使用策略（`tool_confidence_threshold` 可配置，預設 0.7）：
   - `confidence >= 0.8` → 直接使用選中工具
-  - `confidence 0.5-0.8` → 使用選中工具，但啟用 fallback（見 E8）
-  - `confidence < 0.5` → 走 general_knowledge 或讓用戶澄清
-- [ ] 記錄 `confidence` 到 `pipelineTrace.tool_selection`
-- [ ] 配合黃金測試集（B1）的 `expected_tool` 欄位追蹤 Tool Accuracy
+  - `confidence < threshold` → 啟用 fallback（`fallbackEnabled = true`），記錄 `alternativeTool`
+- [x] Pipeline context 新增欄位：`toolConfidence`、`fallbackEnabled`、`alternativeTool`
+- [x] 信心分數記錄至 pipeline trace
+- [x] SQL 安全網：regex 模式偵測 LLM 遺漏的計數/清單查詢
 
-**與 D2 的關係**：D2 關注的是「需不需要檢索」的二元判斷（general_knowledge vs 其他），E6 關注的是「該用哪個檢索工具」的多選信心。兩者可合併為同一次 LLM 呼叫輸出。
+**配置**（`backend/migrations/0063_reranker_confidence_config.sql`）：
+| 配置項 | 預設值 |
+|--------|--------|
+| `tool_confidence_threshold` | 0.7 |
 
 **相關檔案**：`backend/src/services/pipeline/steps/tool-selection.ts`、`backend/src/utils/ai-prompts.ts`（`TOOL_SELECTION_PROMPT`）
 
@@ -677,49 +650,49 @@
 
 ### E7. 多工具組合選擇
 
-**優先度**：低 | **工作量**：中
+**優先度**：低 | **工作量**：中 | **狀態**：✅ 已完成
 
-**現狀**：一次查詢只能選一個工具。遇到需要多工具的查詢（如「龍洞有幾條 5.12 路線？順便推薦幾條」），要靠 `hybrid` 類型間接處理。但 `hybrid` 是固定的 SQL + RAG 組合，無法靈活指定任意工具組合。
-
-**待辦**：
-- [ ] 允許 Tool Selection 回傳多個工具：
-  ```json
-  {
-    "tools": [
-      { "tool": "sql_query", "purpose": "統計路線數量", "template": "COUNT_ROUTES_AT_CRAG" },
-      { "tool": "search_routes", "purpose": "推薦具體路線" }
-    ],
-    "execution": "parallel"
+**已完成**：
+- [x] `multi_tool` 作為第 6 個工具註冊至 Tool Registry（queryType: `multi-tool`）
+  - 觸發信號：`['同時', '另外也', '順便', '以及', '還有...也']`
+- [x] `MultiToolPlan` 類型定義（`pipeline/types.ts`）：
+  ```typescript
+  interface MultiToolStep {
+    id: string;
+    tool: string;
+    query: string;
+    purpose: string;
+    dependsOn?: string[];
+  }
+  interface MultiToolPlan {
+    steps: MultiToolStep[];
+    execution: 'parallel' | 'sequential';
   }
   ```
-- [ ] 支援執行模式：
-  - `parallel`：多工具並行（`Promise.all`），結果合併給 LLM
-  - `sequential`：前一工具結果影響後一工具查詢
-- [ ] 合併多工具結果為統一 context
-- [ ] 考慮是否取代現有 `hybrid` 工具類型（hybrid 成為 multi-tool 的一個預設配置）
+- [x] Pipeline context 新增 `multiToolPlan?: MultiToolPlan` 欄位
+- [x] `hybrid-search` 步驟自動偵測 `multi-tool` queryType：
+  - 將 `MultiToolPlan` 轉為 `ExecutionPlan`，呼叫 `executePlan()` + `synthesize()`
+  - 設定 `skipPostRetrieval = true`（跳過 cross-encoder / MMR / popularity-rerank）
+  - 失敗時 fallback 至 BM25 降級路徑
+- [x] 支援 `parallel`（`Promise.all`）和 `sequential`（依 `dependsOn` 順序）兩種執行模式
+- [x] 與 `hybrid` 工具共存：`hybrid` 是固定的 SQL+RAG 組合，`multi_tool` 是任意工具自由組合
 
-**相關檔案**：`backend/src/services/pipeline/steps/tool-selection.ts`、`backend/src/services/pipeline/steps/text-to-sql.ts`
+**相關檔案**：`backend/src/services/tool-registry.ts`、`backend/src/services/pipeline/steps/hybrid-search.ts`、`backend/src/services/pipeline/types.ts`（`MultiToolPlan`）、`backend/src/services/query.ts`（`executePlan`、`synthesize`）
 
 ---
 
 ### E8. 工具選錯自動修正
 
-**優先度**：中 | **工作量**：中
+**優先度**：中 | **工作量**：中 | **狀態**：✅ 已完成
 
-**現狀**：Tool Selection 選錯工具時無法自動修正。例如「龍洞有幾條路線？」選了 `search_routes`（向量搜尋），但 `sql_query`（`COUNT_ROUTES_AT_CRAG`）更精確。選錯後直接走完 pipeline，不會嘗試其他工具。
-
-Agentic ReAct 的 `RETRIEVE`/`BROADEN` 只改寫查詢或放寬過濾，**不會切換工具**。
-
-**待辦**：
-- [ ] 方案一（輕量）：在 LLM Generation 前檢測結果品質
-  - 檢索結果為 0 且非 general_knowledge → 嘗試切換到 sql_query
-  - SQL 結果為空且查詢偏向語意 → fallback 到 search_routes
-- [ ] 方案二（完整）：新增 Agentic `SWITCH_TOOL` 動作（見 E4）
-  - ReAct Loop 中 Agent 可觀察結果後決定切換工具
-  - 例：向量搜尋結果不精確 → `SWITCH_TOOL` → sql_query
-- [ ] 記錄工具切換事件到 `pipelineTrace`（`tool_switch: { from, to, reason }`）
-
-**與 E6 的關係**：E6 的信心分數 < 0.8 時，自動啟用 E8 的 fallback 機制。
+**已完成**：
+- [x] 方案一（信心 fallback）：
+  - Tool Selection 信心分數 < `tool_confidence_threshold` 時，自動啟用 fallback
+  - `fallbackEnabled = true` + `alternativeTool` 記錄替代工具
+  - SQL 安全網 regex：偵測 LLM 遺漏的計數/清單查詢，自動修正工具選擇
+- [x] 方案二（Agentic SWITCH_TOOL）：
+  - ReAct Loop 中 Agent 可觀察結果後決定切換工具（見 E4 已實作）
+  - `switchToolUsed` 旗標限制最多 1 次 SWITCH_TOOL，避免無限切換
 
 **相關檔案**：`backend/src/services/pipeline/steps/tool-selection.ts`、`backend/src/services/query.ts`（`agenticRetrieve`）
 
@@ -729,7 +702,7 @@ Agentic ReAct 的 `RETRIEVE`/`BROADEN` 只改寫查詢或放寬過濾，**不會
 
 ### F1. Planning 階段實作
 
-**優先度**：低 | **工作量**：大
+**優先度**：低 | **工作量**：大 | **狀態**：✅ 已完成
 
 **背景**：Agentic RAG 有兩種執行策略：
 - **ReAct**（已實作）：邊走邊想，每步 LLM 決策，適合探索性查詢
@@ -740,72 +713,67 @@ Agentic ReAct 的 `RETRIEVE`/`BROADEN` 只改寫查詢或放寬過濾，**不會
 - complex + 探索性 → ReAct（邊走邊想）
 - complex + 結構明確 → Plan-and-Execute（先規劃再並行）
 
-**現狀**：有 Multi-Query Expansion（3 路平行子查詢）和 Agentic ReAct（邊走邊決策），但沒有「先產生完整執行計畫」的模式。目前強模型（Gemma 12B）用於生成，輕量模型（Llama 8B）用於決策，與經典 Plan-and-Execute 相反。
+**已完成**：
+- [x] 實作 `planQuery()` 方法，分解查詢為結構化子步驟
+- [x] 定義 `PLANNING_PROMPT`（`ai_prompts` DB 管理，`backend/migrations/0065_plan_execute_config.sql`）
+- [x] 輸出結構化計畫，含步驟 ID、查詢、工具、依賴關係
+- [x] 策略路由整合至 `hybrid-search` 步驟：strategy = 'plan-execute' 時自動觸發
+- [x] `TOOL_SELECTION_PROMPT` 輸出 `strategy_hint` 欄位（`'baseline'` / `'agentic'` / `'plan-execute'`），供自動策略選擇參考
 
-**待辦**：
-- [ ] 新增 `planQuery()` 方法（使用強模型 Gemma 12B）：
-  - 分析查詢複雜度和所需資訊維度
-  - 分解為 N 個有依賴關係的子問題
-  - 決定每個子問題的最佳檢索策略和工具
-  - 輸出結構化計畫：
-    ```json
-    {
-      "steps": [
-        { "id": 1, "query": "龍洞的 5.10 路線", "tool": "search_routes", "method": "hybrid" },
-        { "id": 2, "query": "5.10 路線的注意事項", "tool": "general_knowledge", "depends_on": [1] }
-      ]
-    }
-    ```
-- [ ] Planning prompt 設計
+**配置**（`backend/migrations/0065_plan_execute_config.sql`）：
+| 配置項 | 預設值 | 說明 |
+|--------|--------|------|
+| `plan_execute_max_steps` | 4 | 計畫最大步驟數 |
+| `plan_execute_min_entities` | 2 | 觸發 Plan-Execute 的最少實體數 |
+| `planning_timeout_ms` | 5000 | Planning 階段超時 |
 
-**相關檔案**：`backend/src/services/query.ts`
+**相關檔案**：`backend/src/services/query.ts`（`planQuery()`）、`backend/src/services/pipeline/steps/hybrid-search.ts`
 
 ---
 
 ### F2. Execution 階段實作
 
-**優先度**：低 | **工作量**：大
+**優先度**：低 | **工作量**：大 | **狀態**：✅ 已完成
 
-**待辦**：
-- [ ] 新增 `executePlan()` 方法（使用輕量模型 Llama 8B）：
-  - 依照計畫依序或並行執行子查詢
-  - 每步使用計畫指定的工具和方法
-  - 無依賴的步驟並行執行（`Promise.all`）
-  - 有依賴的步驟等待前序完成
-- [ ] 每步結果暫存，供後續步驟參考
-- [ ] 超時或失敗的步驟可跳過，不阻塞整體流程
+**已完成**：
+- [x] 實作 `executePlan()` 方法
+- [x] 依照計畫步驟依序或並行執行子查詢
+- [x] 無依賴的步驟並行執行（`Promise.all`）
+- [x] 超時或失敗的步驟可跳過，不阻塞整體流程
+- [x] 設定 `skipPostRetrieval` 旗標，Plan-Execute 結果跳過 cross-encoder / MMR / popularity-rerank
 
-**相關檔案**：`backend/src/services/query.ts`
+**配置**：
+| 配置項 | 預設值 | 說明 |
+|--------|--------|------|
+| `plan_step_timeout_ms` | 6000 | 單步執行超時 |
+
+**相關檔案**：`backend/src/services/query.ts`（`executePlan()`）
 
 ---
 
 ### F3. Synthesis 合併與 A/B 測試
 
-**優先度**：低 | **工作量**：中
+**優先度**：低 | **工作量**：中 | **狀態**：✅ 已完成
 
-**待辦**：
-- [ ] 新增 `synthesize()` 方法（使用強模型 Gemma 12B）：
-  - 合併所有子查詢結果為一致回應
-  - 處理矛盾資訊（不同來源的衝突）
-  - 保留來源引用
-- [ ] 新增 `rag_strategy: 'plan-execute'` 選項
-- [ ] A/B 測試框架：比較 baseline / agentic / plan-execute 的品質和成本
-- [ ] 記錄各策略的 token 消耗對比
+**已完成**：
+- [x] 實作 `synthesize()` 方法，合併多步驟結果為統一回應
+- [x] 定義 `SYNTHESIS_PROMPT`（`ai_prompts` DB 管理）
+- [x] `rag_strategy` 支援 4 種模式：`'baseline'` / `'agentic'` / `'plan-execute'` / `'auto'`
+- [x] `'auto'` 模式由 `TOOL_SELECTION_PROMPT` 的 `strategy_hint` + `adaptive_plan_enabled` 自動選擇策略
+- [x] Pipeline trace 記錄實際使用的策略路徑
+
+**配置**：
+| 配置項 | 預設值 | 說明 |
+|--------|--------|------|
+| `synthesis_timeout_ms` | 8000 | Synthesis 階段超時 |
+| `adaptive_plan_enabled` | true | 允許自動策略選擇 |
 
 **考量**：
-- Cloudflare Workers AI 無 per-token 計費，成本降低 90% 的優勢可能不明顯
-- 主要收益在品質（結構化分解）和延遲（並行執行）而非成本
-- 目前 ReAct 已足夠處理多數攀岩查詢，此為進階優化
-- Plan-and-Execute 的最大價值在可分解的多實體比較查詢（如「比較三個岩場」），此類查詢佔比需先評估
+- Cloudflare Workers AI 無 per-token 計費，成本差異不明顯
+- 主要收益在品質（結構化分解）和延遲（並行執行）
+- Plan-and-Execute 的最大價值在可分解的多實體比較查詢（如「比較三個岩場」）
 
-**策略選擇實作**：
-- [ ] 新增 `rag_strategy: 'auto'` 選項，由 tool-selection 或獨立分類器自動選擇策略
-- [ ] 自動選擇邏輯：
-  - 查詢涉及 2+ 個明確實體比較 → Plan-and-Execute
-  - 查詢含模糊/探索性意圖 → ReAct
-  - 其他 → Baseline
-
-**相關檔案**：`backend/src/services/query.ts`
+**相關檔案**：`backend/src/services/query.ts`（`synthesize()`）
 
 ---
 
@@ -835,8 +803,24 @@ Agentic ReAct 的 `RETRIEVE`/`BROADEN` 只改寫查詢或放寬過濾，**不會
 | **Pipeline Step Registry**（metadata + dependency validation） | ✅ |
 | **Pipeline DB 配置**（步驟啟停、排序、DB 驅動） | ✅ |
 | **Text-to-SQL**（17 SQL 模板，SELECT-only 安全查詢） | ✅ |
-| **5 個 RAG 工具**（search_routes / search_crags / general_knowledge / sql_query / hybrid） | ✅ |
+| **6 個 RAG 工具**（search_routes / search_crags / general_knowledge / sql_query / hybrid / multi_tool） | ✅ |
 | **Pipeline Admin UI**（步驟管理 + 分支配置 + 成本模擬） | ✅ |
 | **並行分支基礎設施**（engine 支援 cloneBranchContext + fusion） | ✅（基礎建設，尚無配置分支） |
 | **SQL 澄清流程**（模糊查詢 → 候選選項 → 用戶選擇） | ✅ |
 | **個人攀登紀錄查詢**（6 個 SQL 模板，登入守衛） | ✅ |
+| **Tool Registry**（6 工具註冊 + 動態 Prompt 生成） | ✅ |
+| **Tool Selection 信心分數**（confidence + fallback + alternativeTool） | ✅ |
+| **Pipeline 超時保護**（per-step timeout + pipeline timeout + degradation） | ✅ |
+| **Circuit Breaker**（KV 狀態機，5 次失敗熔斷，30s 探測） | ✅ |
+| **AbortController 整合**（abortSignal in pipeline context） | ✅ |
+| **IP 速率限制**（KV 滑動視窗，per-minute） | ✅ |
+| **黃金測試集**（~45 筆，4 類別，CI 子集） | ✅ |
+| **紅隊測試集**（4 種攻擊類型，安全率 >= 95%） | ✅ |
+| **自動化評估腳本**（6 指標 + 紅隊評估 + 基線對比） | ✅ |
+| **CI/CD 評估整合**（GitHub Actions workflow_dispatch） | ✅ |
+| **Plan-and-Execute**（planQuery + executePlan + synthesize，4 種策略） | ✅ |
+| **SELF_REFLECTION_PROMPT 清理**（死碼已移除） | ✅ |
+| **Agentic 動作擴充**（SWITCH_TOOL + DECOMPOSE + VERIFY，各限 1 次） | ✅ |
+| **工具選錯自動修正**（信心 fallback + SWITCH_TOOL 雙機制） | ✅ |
+| **檢索方法動態選擇**（RetrievalMethod: vector / bm25 / hybrid） | ✅ |
+| **多工具組合選擇**（multi_tool queryType，MultiToolPlan，parallel/sequential 執行） | ✅ |

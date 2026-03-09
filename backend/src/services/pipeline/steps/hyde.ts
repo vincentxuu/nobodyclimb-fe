@@ -9,7 +9,7 @@ export const hydeStep: PipelineStep = {
   defaultOrder: 3,
   requires: ['queryType'],
   provides: ['hydeDoc'],
-  skipWhen: [{ field: 'queryType', operator: 'in', value: ['general-knowledge', 'sql', 'hybrid', 'clarification-needed'] }],
+  skipWhen: [{ field: 'queryType', operator: 'in', value: ['general-knowledge', 'sql', 'hybrid', 'clarification-needed', 'multi-tool'] }],
 
   async execute(ctx: PipelineContext): Promise<PipelineContext> {
     // 業務邏輯跳過：simple query 或 agentic 模式或已有 hydeDoc（similar route 已生成）

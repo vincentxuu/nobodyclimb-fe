@@ -11,7 +11,7 @@ export const textToSqlStep: PipelineStep = {
   defaultOrder: 2,
   requires: ['queryType', 'parsedQuery'],
   provides: ['earlyReturn', 'sqlCandidates', 'sqlContext'],
-  skipWhen: [{ field: 'queryType', operator: 'in', value: ['simple', 'complex', 'general-knowledge'] }],
+  skipWhen: [{ field: 'queryType', operator: 'in', value: ['simple', 'complex', 'general-knowledge', 'multi-tool'] }],
 
   async execute(ctx: PipelineContext): Promise<PipelineContext> {
     const { env, request, pipelineConfig, gatewayOptions, trace, queryService } = ctx;

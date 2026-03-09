@@ -3,6 +3,7 @@ import {
   PipelineContext,
   PipelineStep,
   PipelineStepConfig,
+  PipelineConfig,
   PipelinePhase,
   PHASE_ORDER,
   SkipCondition,
@@ -10,6 +11,7 @@ import {
   BranchConfig,
 } from './types';
 import { STEP_REGISTRY, getDefaultStepConfigs } from './registry';
+import { withTimeout, TimeoutError } from '../../utils/timeout';
 
 // Step 實作匯入
 import { semanticCacheStep } from './steps/semantic-cache';
@@ -55,6 +57,29 @@ function sumTokenBreakdown(tb: Record<string, unknown>): number {
     }
   }
   return total;
+}
+
+function getStepTimeout(stepId: StepId, config: PipelineConfig, ctx?: PipelineContext): number {
+  switch (stepId) {
+    case 'hyde': return config.hyde_timeout_ms;
+    case 'multi-query': return config.multi_query_timeout_ms;
+    case 'embedding': return config.embedding_timeout_ms;
+    case 'hybrid-search': {
+      // Plan-and-Execute 路徑需要更多時間（planning + execution + synthesis）
+      const strategy = config.rag_strategy === 'auto'
+        ? (ctx?.strategyHint ?? 'baseline')
+        : config.rag_strategy;
+      if (strategy === 'plan-execute') {
+        return config.planning_timeout_ms + config.synthesis_timeout_ms
+          + config.plan_execute_max_steps * config.plan_step_timeout_ms;
+      }
+      return config.search_timeout_ms;
+    }
+    case 'llm-generation': return config.generation_timeout_ms;
+    case 'judge': return config.judge_timeout_ms;
+    case 'self-reflection': return config.judge_timeout_ms;
+    default: return 0;
+  }
 }
 
 export class PipelineEngine {
@@ -265,6 +290,7 @@ export class PipelineEngine {
       skipped?: boolean;
       reason?: string;
       error?: string;
+      timeout?: boolean;
     }> = [];
 
     // 記錄所有被停用的 step
@@ -366,30 +392,80 @@ export class PipelineEngine {
         continue;
       }
 
-      // 執行 step（含錯誤邊界，避免單一 step 崩潰導致整個 pipeline 失敗）
+      // 降級跳過：generation 超時後跳過 evaluation phase
+      if (meta.phase === 'evaluation' && ctx.degradedStages?.includes('llm-generation')) {
+        pipelineExecution.push({
+          id: meta.id,
+          phase: meta.phase,
+          duration_ms: 0,
+          skipped: true,
+          reason: 'generation_degraded',
+        });
+        stepIdx++;
+        continue;
+      }
+
+      // 執行 step（含超時保護和錯誤邊界）
       const stepStart = Date.now();
       try {
-        await step.execute(ctx);
+        const stepTimeout = getStepTimeout(config.id, ctx.pipelineConfig, ctx);
+        if (stepTimeout > 0) {
+          await withTimeout(step.execute(ctx), stepTimeout, meta.id);
+        } else {
+          await step.execute(ctx);
+        }
       } catch (err) {
         const stepDuration = Date.now() - stepStart;
         const errorMsg = err instanceof Error ? err.message : String(err);
+        const isTimeout = err instanceof TimeoutError;
         pipelineExecution.push({
           id: meta.id,
           phase: meta.phase,
           duration_ms: stepDuration,
           error: errorMsg,
+          ...(isTimeout ? { timeout: true } : {}),
         });
         if (!ctx.trace.step_errors) ctx.trace.step_errors = [];
-        (ctx.trace.step_errors as Array<{ step: string; error: string; phase: string }>).push({
+        (ctx.trace.step_errors as Array<{ step: string; error: string; phase: string; timeout?: boolean }>).push({
           step: meta.id,
           error: errorMsg,
           phase: meta.phase,
+          ...(isTimeout ? { timeout: true } : {}),
         });
 
-        // generation 和 evaluation phase 的 step 失敗不阻斷（還能用已有的 context 繼續）
-        // 但如果連 answer 都沒有就停止
-        if (meta.phase === 'generation' && !ctx.answer && !ctx.earlyReturn) {
-          ctx.answer = '抱歉，AI 服務暫時發生問題，請稍後再試。';
+        // Circuit Breaker：AI step 失敗記錄（Workers AI 異常或 TimeoutError）
+        if ((meta.id === 'embedding' || meta.id === 'llm-generation') && ctx.circuitBreaker) {
+          ctx.circuitBreaker.recordFailure().catch(() => {});
+        }
+
+        // 超時降級處理
+        if (isTimeout) {
+          if (!ctx.degradedStages) ctx.degradedStages = [];
+          ctx.degradedStages.push(meta.id);
+          switch (meta.id) {
+            case 'hyde':
+              ctx.hydeDoc = '';
+              break;
+            case 'multi-query':
+              ctx.expandedQueries = [];
+              break;
+            case 'embedding':
+              ctx.embeddingFailed = true;
+              ctx.queryVector = undefined;
+              ctx.hydeVector = undefined;
+              ctx.expandedVectors = undefined;
+              break;
+            case 'llm-generation':
+              ctx.answer = '抱歉，AI 回答生成超時，請稍後再試。';
+              break;
+            case 'judge':
+            case 'self-reflection':
+              break;
+          }
+        } else {
+          if (meta.phase === 'generation' && !ctx.answer && !ctx.earlyReturn) {
+            ctx.answer = '抱歉，AI 服務暫時發生問題，請稍後再試。';
+          }
         }
         stepIdx++;
         continue;
@@ -460,7 +536,41 @@ export class PipelineEngine {
       stepIdx++;
     }
 
+    // 記錄降級資訊
+    if (ctx.degradedStages && ctx.degradedStages.length > 0) {
+      ctx.trace.degraded_stages = ctx.degradedStages;
+      ctx.trace.degraded = true;
+    }
+
     ctx.trace.pipeline_execution = pipelineExecution;
+
+    // 匯聚 per-phase latency（從 pipelineExecution 按 step ID 累加）
+    const phaseLatency = { embeddingMs: 0, retrievalMs: 0, generationMs: 0 };
+    for (const entry of pipelineExecution) {
+      if (entry.skipped || entry.error) continue;
+      switch (entry.id) {
+        case 'embedding':
+          phaseLatency.embeddingMs += entry.duration_ms;
+          break;
+        case 'hybrid-search':
+        case 'cross-encoder':
+        case 'mmr':
+        case 'popularity-rerank':
+          phaseLatency.retrievalMs += entry.duration_ms;
+          break;
+        case 'llm-generation':
+        case 'judge':
+        case 'self-reflection':
+          phaseLatency.generationMs += entry.duration_ms;
+          break;
+      }
+    }
+    // 三個值皆為 0（快取命中或全跳過）→ null；負值 → null
+    ctx.phaseLatency = {
+      embeddingMs: phaseLatency.embeddingMs > 0 ? phaseLatency.embeddingMs : null,
+      retrievalMs: phaseLatency.retrievalMs > 0 ? phaseLatency.retrievalMs : null,
+      generationMs: phaseLatency.generationMs > 0 ? phaseLatency.generationMs : null,
+    };
 
     // Post-pipeline 後處理（僅 earlyReturn 未被提前設定的情況下才需要完整後處理）
     // earlyReturn 由各 step 自行處理日誌和快取
@@ -503,6 +613,9 @@ export class PipelineEngine {
       tokenCount,
       groundednessScore: ctx.groundedness ?? null,
       autoScore: ctx.quality ?? null,
+      embeddingMs: ctx.phaseLatency?.embeddingMs ?? null,
+      retrievalMs: ctx.phaseLatency?.retrievalMs ?? null,
+      generationMs: ctx.phaseLatency?.generationMs ?? null,
       queryType: ctx.queryType,
       modelUsed: ctx.effectiveLlmModel,
       retrievalScore: ctx.retrievalScore ?? 0,
@@ -518,6 +631,10 @@ export class PipelineEngine {
       sources: ctx.request.include_sources !== false ? (ctx.sources ?? []) : [],
       query_id: queryId,
       suggested_questions: ctx.suggestedQuestions ?? [],
+      ...(ctx.degradedStages && ctx.degradedStages.length > 0 ? {
+        degraded: true,
+        degraded_stages: ctx.degradedStages,
+      } : {}),
     };
     await ctx.env.CACHE.put(ctx.cacheKey, JSON.stringify(response), {
       expirationTtl: ctx.cacheTtl,

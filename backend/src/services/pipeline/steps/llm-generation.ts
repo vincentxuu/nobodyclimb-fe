@@ -43,6 +43,11 @@ export const llmGenerationStep: PipelineStep = {
       }
       if (Object.keys(tokenBreakdown).length > 0) trace.token_breakdown = tokenBreakdown;
 
+      // Circuit Breaker：LLM generation 成功（Workers AI 正常回應）
+      if (ctx.circuitBreaker) {
+        ctx.circuitBreaker.recordSuccess().catch(() => {});
+      }
+
       const totalTokens = Object.values(tokenBreakdown).reduce((sum, v) => {
         if (v && typeof v === 'object' && 'total_tokens' in v) return sum + ((v as { total_tokens: number }).total_tokens ?? 0);
         return sum;
@@ -117,6 +122,11 @@ export const llmGenerationStep: PipelineStep = {
       const estP = Math.ceil(msgLen / 2);
       const estC = Math.ceil(rawLLMAnswer.length / 2);
       tokenBreakdown.main_generation = { prompt_tokens: estP, completion_tokens: estC, total_tokens: estP + estC, model: effectiveLlmModel, estimated: true };
+    }
+
+    // Circuit Breaker：LLM generation 成功（Workers AI 正常回應）
+    if (ctx.circuitBreaker) {
+      ctx.circuitBreaker.recordSuccess().catch(() => {});
     }
 
     ctx.rawAnswer = rawLLMAnswer;

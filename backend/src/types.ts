@@ -94,7 +94,7 @@ export interface AIDocumentMetadata {
 // ============================================
 
 export interface ParsedQuery {
-  tool: 'search_routes' | 'search_crags' | 'general_knowledge' | 'search_sql' | 'hybrid';
+  tool: 'search_routes' | 'search_crags' | 'general_knowledge' | 'search_sql' | 'hybrid' | 'multi_tool';
   query_type?: 'simple' | 'complex' | 'general-knowledge' | 'sql' | 'hybrid' | 'clarification-needed';
   params: {
     crag_name?: string;
@@ -107,6 +107,13 @@ export interface ParsedQuery {
   };
   template?: string;
   clarification_type?: 'intent' | 'missing-crag';
+  confidence: number;        // 0.0-1.0，工具選擇信心分數（缺失時預設 1.0）
+  alternative?: string;      // 第二選擇工具名（confidence < 0.8 時）
+  retrieval_method?: 'vector' | 'bm25' | 'hybrid';  // 檢索方法（預設 hybrid）
+  multi_tool?: {             // 多工具組合（僅 tool='multi_tool' 時）
+    steps: Array<{ tool: string; purpose: string; query?: string; params?: Record<string, unknown> }>;
+    execution_mode?: 'parallel' | 'sequential';
+  };
 }
 
 // ============================================
@@ -165,6 +172,8 @@ export interface AIAskResponse {
   clarification_needed?: boolean;
   clarification_options?: string[];
   query_route?: string;
+  degraded?: boolean;            // 是否有 step 降級
+  degraded_stages?: string[];    // 降級的 step 名稱列表
 }
 
 export interface AISearchRequest {

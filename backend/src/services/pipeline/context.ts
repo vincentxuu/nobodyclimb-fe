@@ -1,5 +1,6 @@
 import { Env, AIAskRequest, AIChatMessage } from '../../types';
 import { PipelineContext, PipelineConfig, PipelineTokenBreakdown, QueryServiceStepMethods } from './types';
+import { CircuitBreaker } from '../../utils/circuit-breaker';
 
 export function createPipelineContext(opts: {
   env: Env;
@@ -20,6 +21,8 @@ export function createPipelineContext(opts: {
   onToken?: (token: string) => Promise<void>;
   waitUntilCtx?: { waitUntil(promise: Promise<unknown>): void };
   extraTrace?: Record<string, unknown>;
+  abortSignal?: AbortSignal;
+  circuitBreaker?: CircuitBreaker;
 }): PipelineContext {
   return {
     env: opts.env,
@@ -59,10 +62,22 @@ export function createPipelineContext(opts: {
     ascentContext: opts.ascentContext,
     abilityLevel: opts.abilityLevel,
 
+    // Tool Selection 信心
+    toolConfidence: 1.0,
+    fallbackEnabled: false,
+
+    // 檢索方法
+    retrievalMethod: 'hybrid',
+
     // Looping
     loopCount: 0,
 
     // 其他預設
     selfReflectionTriggered: 0,
+
+    // 超時與降級
+    abortSignal: opts.abortSignal,
+    degradedStages: [],
+    circuitBreaker: opts.circuitBreaker,
   };
 }

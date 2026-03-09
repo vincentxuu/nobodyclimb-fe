@@ -194,3 +194,14 @@ jobs:
           done
         env:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+
+  rag-evaluation:
+    name: RAG CI Evaluation
+    needs: deploy
+    if: github.event_name == 'push' && github.ref != 'refs/heads/main'
+    uses: ./.github/workflows/evaluate-rag.yml
+    with:
+      api_url: 'https://api-preview.nobodyclimb.cc'
+      mode: 'ci'
+    secrets:
+      EVAL_JWT_TOKEN: ${{ secrets.EVAL_JWT_TOKEN }}

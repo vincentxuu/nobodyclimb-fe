@@ -10,9 +10,14 @@ export const popularityRerankStep: PipelineStep = {
   defaultOrder: 10,
   requires: ['rerankedMatches', 'documents'],
   provides: ['sources', 'context'],
-  skipWhen: [{ field: 'queryType', operator: 'in', value: ['general-knowledge', 'sql', 'hybrid', 'clarification-needed'] }],
+  skipWhen: [{ field: 'queryType', operator: 'in', value: ['general-knowledge', 'sql', 'hybrid', 'clarification-needed', 'multi-tool'] }],
 
   async execute(ctx: PipelineContext): Promise<PipelineContext> {
+    // Plan-and-Execute 已完成 synthesis，跳過 post-retrieval
+    if (ctx.skipPostRetrieval) {
+      return ctx;
+    }
+
     const { env, pipelineConfig, trace, queryService } = ctx;
     const rerankedMatches = ctx.rerankedMatches ?? [];
     const documents = ctx.documents ?? new Map();
