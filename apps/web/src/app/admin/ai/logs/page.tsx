@@ -18,6 +18,8 @@ const QUERY_TYPE_MAP: Record<string, { label: string; cls: string; icon?: React.
   complex: { label: '複雜', cls: 'bg-purple-50 text-purple-700 border-purple-200' },
   'general-knowledge': { label: '通識', cls: 'bg-amber-50 text-amber-700 border-amber-200' },
   guardrails_blocked: { label: '攔截', cls: 'bg-red-50 text-red-700 border-red-200' },
+  pipeline_timeout: { label: '超時', cls: 'bg-red-50 text-red-600 border-red-200' },
+  circuit_breaker_rejected: { label: '熔斷', cls: 'bg-red-50 text-red-700 border-red-200' },
 }
 
 function QueryTypeBadge({ type }: { type: AIQueryLog['query_type'] }) {
@@ -26,6 +28,8 @@ function QueryTypeBadge({ type }: { type: AIQueryLog['query_type'] }) {
   return (
     <span className={`inline-flex items-center gap-1 rounded-full border px-2 py-0.5 text-[11px] font-medium ${cfg.cls}`}>
       {type === 'guardrails_blocked' && '🚫 '}
+      {type === 'pipeline_timeout' && '⏱ '}
+      {type === 'circuit_breaker_rejected' && '⚡ '}
       {cfg.label}
     </span>
   )
@@ -273,6 +277,8 @@ function FilterPanel({
             <option value="complex">複雜</option>
             <option value="general-knowledge">通識</option>
             <option value="guardrails_blocked">🚫 攔截</option>
+            <option value="pipeline_timeout">⏱ 超時</option>
+            <option value="circuit_breaker_rejected">⚡ 熔斷</option>
           </select>
         </div>
         <div className="flex flex-col gap-1">

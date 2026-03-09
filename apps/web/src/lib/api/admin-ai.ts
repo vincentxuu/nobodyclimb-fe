@@ -27,7 +27,7 @@ export interface AIQueryLog {
   latency_ms: number | null
   feedback_score: number | null
   created_at: string
-  query_type: 'simple' | 'complex' | 'general-knowledge' | 'guardrails_blocked' | null
+  query_type: 'simple' | 'complex' | 'general-knowledge' | 'guardrails_blocked' | 'pipeline_timeout' | 'circuit_breaker_rejected' | null
   groundedness_score: number | null
   auto_score: number | null
   embedding_ms: number | null
@@ -113,6 +113,19 @@ export interface AILogDetail {
       alternatives: string[]
       params: Record<string, unknown>
       fallback_used?: boolean
+      confidence?: number
+      retrieval_method?: string
+    }
+    tool_selection?: {
+      selected_tool: string
+      confidence: number
+      alternative?: string
+      fallback?: {
+        triggered: boolean
+        from_tool?: string
+        to_tool?: string
+        reason?: string
+      }
     }
     cache?: {
       type: 'kv' | 'semantic'
@@ -131,6 +144,7 @@ export interface AILogDetail {
       queries: string[]
     }
     retrieval?: {
+      retrieval_method?: string
       paths: string[]
       path_counts?: Record<string, number>
       path_results?: Record<string, Array<{ id: string; score: number; name?: string }>>
@@ -171,6 +185,8 @@ export interface AILogDetail {
       early_vector_reused: boolean
       hyde_embedded: boolean
       expanded_count: number
+      skipped?: boolean
+      reason?: string
     }
     self_reflection?: {
       original_quality: number | null
@@ -198,10 +214,22 @@ export interface AILogDetail {
       reason?: string
     }
     agentic?: {
-      steps: Array<{ step: number; type: string; refinedQuery?: string; docs_retrieved?: number }>
+      steps: Array<{
+        step: number; type: string; refinedQuery?: string; docs_retrieved?: number
+        targetTool?: string; reason?: string
+        subQueries?: string[]; verifyQuery?: string
+      }>
       total_paths: number
       final_doc_count: number
       termination_reason?: 'enough_docs' | 'max_steps' | 'no_improvement'
+    }
+    multi_tool?: {
+      steps?: Array<{ stepId: number; query: string; tool: string; result_count: number; duration_ms: number; error?: string }>
+      execution_mode?: string
+      total_duration_ms?: number
+      sources_count?: number
+      fallback?: boolean
+      error?: string
     }
     token_breakdown?: {
       tool_selection?: { prompt_tokens: number; completion_tokens: number; total_tokens: number; model: string; estimated: boolean }
@@ -225,6 +253,21 @@ export interface AILogDetail {
       criteria: string[]
       raw_scores: Record<string, number>
     }
+    degraded?: boolean
+    degraded_stages?: string[]
+    circuit_breaker?: {
+      state: 'closed' | 'open' | 'half-open'
+      failures: number
+      action: 'allow' | 'reject' | 'probe'
+    }
+    pipeline_execution?: Array<{
+      step: string
+      status: string
+      duration_ms?: number
+      timeout?: boolean
+      skipped?: boolean
+      error?: string
+    }>
   } | null
 }
 

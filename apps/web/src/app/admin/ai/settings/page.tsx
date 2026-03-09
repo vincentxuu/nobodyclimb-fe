@@ -71,6 +71,15 @@ const TABS: TabConfig[] = [
           { key: 'mmr_lambda', label: 'MMR Lambda', placeholder: '0.6', hint: 'λ 越高越重視相關性，越低結果越多樣（0.0–1.0，建議 0.5–0.7）' },
           { key: 'reranker_weight', label: 'Cross-encoder 權重', placeholder: '0.7', hint: '兩者自動歸一化，total = reranker + popularity；比例越高，cross-encoder 分數佔比越大' },
           { key: 'popularity_weight', label: '熱門度權重', placeholder: '0.3', hint: '依路線影片數量加權，兩者自動歸一化，無需與 reranker_weight 合計恰好為 1' },
+          { key: 'reranker_relevance_threshold', label: 'Reranker 相關性閾值', placeholder: '0.3', hint: 'Cross-encoder reranker score 低於此值的文件直接丟棄，減少 LLM context 雜訊（0–1，預設 0.3）' },
+          { key: 'reranker_min_keep', label: 'Reranker 最低保留數', placeholder: '2', hint: '即使全部低於閾值，至少保留 score 最高的前 N 筆文件（1–20，預設 2）' },
+        ],
+      },
+      {
+        title: 'Tool Selection 信心',
+        desc: 'LLM 工具選擇的信心分數閾值，低信心查詢自動降級為通識回答',
+        fields: [
+          { key: 'tool_confidence_threshold', label: '信心閾值', placeholder: '0.7', hint: 'Tool Selection confidence 低於此值時降級為 general_knowledge，避免低信心檢索浪費資源（0–1，預設 0.7）' },
         ],
       },
     ],
@@ -149,6 +158,32 @@ const TABS: TabConfig[] = [
           { key: 'rag_strategy', label: 'RAG 策略', placeholder: 'baseline', hint: 'baseline = 現行單輪搜尋；agentic = 多輪動態搜尋（complex 查詢）' },
           { key: 'agentic_max_steps', label: '最大搜尋輪數', placeholder: '3', hint: 'Agentic loop 最多執行幾次額外搜尋（1–5），每輪 +0.5–1s 延遲' },
           { key: 'agentic_min_docs_to_answer', label: '提前結束文件數', placeholder: '3', hint: '累積超過此數量的文件後提前結束迴圈，不等到 max_steps（1–10）' },
+        ],
+      },
+    ],
+  },
+  {
+    id: 'timeout',
+    label: '超時與熔斷',
+    sections: [
+      {
+        title: 'Pipeline 超時',
+        desc: '各階段超時上限，超時後自動降級繼續執行',
+        fields: [
+          { key: 'pipeline_timeout_ms', label: 'Pipeline 整體超時（ms）', placeholder: '20000', hint: '整個 pipeline 的最大執行時間，超時回傳 408（5000–60000）' },
+          { key: 'embedding_timeout_ms', label: 'Embedding 超時（ms）', placeholder: '3000', hint: '向量嵌入超時 → 降級為僅 BM25 搜尋（1000–10000）' },
+          { key: 'search_timeout_ms', label: '搜尋超時（ms）', placeholder: '4000', hint: 'Hybrid Search 超時（1000–15000）' },
+          { key: 'generation_timeout_ms', label: 'LLM 生成超時（ms）', placeholder: '12000', hint: 'LLM 回答生成超時 → 回傳超時錯誤訊息，跳過 evaluation（3000–30000）' },
+          { key: 'hyde_timeout_ms', label: 'HyDE 超時（ms）', placeholder: '5000', hint: 'HyDE 假設文件生成超時 → 跳過，使用原始查詢（1000–10000）' },
+          { key: 'multi_query_timeout_ms', label: 'Multi-Query 超時（ms）', placeholder: '5000', hint: 'Multi-Query 擴展超時 → 跳過，使用原始查詢（1000–10000）' },
+        ],
+      },
+      {
+        title: 'Circuit Breaker 熔斷器',
+        desc: 'Workers AI 連續失敗時自動熔斷，避免雪崩；冷卻後自動探測恢復',
+        fields: [
+          { key: 'circuit_breaker_threshold', label: '熔斷觸發次數', placeholder: '5', hint: '連續失敗幾次後觸發 Open 狀態（2–20）' },
+          { key: 'circuit_breaker_reset_ms', label: '冷卻時間（ms）', placeholder: '30000', hint: 'Open 狀態持續多久後進入 Half-Open 探測（5000–120000）' },
         ],
       },
     ],
