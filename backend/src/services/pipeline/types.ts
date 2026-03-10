@@ -114,6 +114,7 @@ export interface PipelineConfig {
   simple_model: string;
   lightweight_model: string;
   max_results: number;
+  list_response_limit: number;
   merge_top_k: number;
   min_rrf_score: number;
   min_rrf_score_filtered: number;

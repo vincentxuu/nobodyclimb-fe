@@ -273,6 +273,7 @@ export class TextToSqlService {
     const gradeMax = params.grade_max as string | undefined;
     const grade = params.grade as string | undefined;
     const routeType = this.normalizeRouteType(params.route_type as string | undefined);
+    const limit = this.safeLimit(params, 'limit', 50, 50);
 
     let sql = 'SELECT r.name, r.grade, r.route_type, r.description, r.bolt_count, r.height FROM routes r WHERE r.crag_id = ?';
     const binds: unknown[] = [cragId];
@@ -306,7 +307,8 @@ export class TextToSqlService {
       binds.push(routeType);
     }
 
-    sql += ' ORDER BY r.grade ASC LIMIT 50';
+    sql += ' ORDER BY r.grade ASC LIMIT ?';
+    binds.push(limit);
     const result = await this.db.prepare(sql).bind(...binds).all<Record<string, unknown>>();
     return result.results || [];
   }
@@ -314,12 +316,13 @@ export class TextToSqlService {
   private async listRoutesAtGrade(params: Record<string, unknown>): Promise<Record<string, unknown>[]> {
     const cragId = this.requireParam(params, 'crag_id');
     const grade = this.requireParam(params, 'grade');
+    const limit = this.safeLimit(params, 'limit', 50, 50);
     // 基礎難度（如 "5.10"）→ LIKE 前綴匹配；精確難度（如 "5.10a"）→ 完全匹配
     const gradeCondition = this.isBaseGrade(grade) ? 'grade LIKE ?' : 'grade = ?';
     const gradeParam = this.isBaseGrade(grade) ? `${grade}%` : grade;
     const result = await this.db.prepare(
-      `SELECT name, grade, route_type, description, bolt_count, height FROM routes WHERE crag_id = ? AND ${gradeCondition} ORDER BY grade ASC, name ASC LIMIT 50`
-    ).bind(cragId, gradeParam).all<Record<string, unknown>>();
+      `SELECT name, grade, route_type, description, bolt_count, height FROM routes WHERE crag_id = ? AND ${gradeCondition} ORDER BY grade ASC, name ASC LIMIT ?`
+    ).bind(cragId, gradeParam, limit).all<Record<string, unknown>>();
     return result.results || [];
   }
 
@@ -404,9 +407,10 @@ export class TextToSqlService {
 
   private async routesWithVideos(params: Record<string, unknown>): Promise<Record<string, unknown>[]> {
     const cragId = this.requireParam(params, 'crag_id');
+    const limit = this.safeLimit(params, 'limit', 50, 50);
     const result = await this.db.prepare(
-      'SELECT DISTINCT r.name, r.grade, r.route_type, COUNT(rv.id) as video_count FROM routes r JOIN route_videos rv ON r.id = rv.route_id WHERE r.crag_id = ? GROUP BY r.id ORDER BY r.grade ASC'
-    ).bind(cragId).all<Record<string, unknown>>();
+      'SELECT DISTINCT r.name, r.grade, r.route_type, COUNT(rv.id) as video_count FROM routes r JOIN route_videos rv ON r.id = rv.route_id WHERE r.crag_id = ? GROUP BY r.id ORDER BY r.grade ASC LIMIT ?'
+    ).bind(cragId, limit).all<Record<string, unknown>>();
     return result.results || [];
   }
 

@@ -56,6 +56,7 @@ const TABS: TabConfig[] = [
         desc: 'Vectorize 候選池大小、RRF 合併門檻、最終傳給 LLM 的文件數',
         fields: [
           { key: 'max_results', label: '最終文件數', placeholder: '5', hint: 'MMR 選取後傳給 LLM C 的文件數（1–20）' },
+          { key: 'list_response_limit', label: '清單輸出上限', placeholder: '10', hint: 'SQL 清單/影片/路線列表的最大輸出條數（3–50）' },
           { key: 'merge_top_k', label: 'Vectorize 候選池', placeholder: '10', hint: '每路 Vectorize 搜尋候選數（5–50），多岩場查詢自動 ×2' },
           { key: 'bm25_top_k', label: 'BM25 候選數', placeholder: '10', hint: 'BM25 全文搜尋（FTS5）每次回傳的候選文件數（5–50），與向量路一同 RRF 合併' },
           { key: 'multi_query_count', label: 'Multi-Query 子查詢數', placeholder: '3', hint: 'Complex 查詢擴展為 N 個角度的子查詢（1–5），各自向量搜尋後 RRF 合併' },

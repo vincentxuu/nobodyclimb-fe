@@ -87,6 +87,12 @@ async function handleSqlPath(ctx: PipelineContext, sqlService: TextToSqlService)
       params.route_id = route.id;
     }
 
+    // 清單模板：限制回傳筆數（避免一次輸出過長）
+    const isListTemplate = ['LIST_ROUTES_BY_CRITERIA', 'LIST_ROUTES_AT_GRADE', 'ROUTES_WITH_VIDEOS'].includes(template);
+    if (isListTemplate && params.limit == null) {
+      params.limit = pipelineConfig.list_response_limit;
+    }
+
     // 執行 SQL 模板
     const result = await sqlService.execute(template, params);
 
@@ -100,7 +106,6 @@ async function handleSqlPath(ctx: PipelineContext, sqlService: TextToSqlService)
 
     // 用輕量 LLM 組裝自然語言回答
     // 清單模板：去除 description 避免 payload 過大，並動態調整 max_tokens
-    const isListTemplate = ['LIST_ROUTES_BY_CRITERIA', 'LIST_ROUTES_AT_GRADE', 'ROUTES_WITH_VIDEOS'].includes(template);
     const assemblyRows = isListTemplate
       ? result.rows.map(({ description, ...rest }) => rest)
       : result.rows;

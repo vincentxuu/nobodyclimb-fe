@@ -24,6 +24,7 @@ export async function loadPipelineConfig(db: D1Database): Promise<PipelineConfig
     lightweight_model:            cfg['lightweight_model']            ?? DEFAULT_LIGHTWEIGHT_MODEL,
     // 搜尋與檢索
     max_results:                  num(cfg['max_results'],                  5,    1,    20),
+    list_response_limit:          num(cfg['list_response_limit'],          10,   3,    50),
     merge_top_k:                  num(cfg['merge_top_k'],                  10,   5,    50),
     min_rrf_score:                num(cfg['min_rrf_score'],                0.005, 0,   1),
     min_rrf_score_filtered:       num(cfg['min_rrf_score_filtered'],       0.002, 0,   1),
