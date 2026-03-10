@@ -155,9 +155,27 @@ const TABS: TabConfig[] = [
         title: 'Agentic 模式',
         desc: '多輪動態搜尋模式，讓 LLM 自主決定是否需要補充搜尋；僅對 complex 查詢生效，成本顯著較高',
         fields: [
-          { key: 'rag_strategy', label: 'RAG 策略', placeholder: 'baseline', hint: 'baseline = 現行單輪搜尋；agentic = 多輪動態搜尋（complex 查詢）' },
+          { key: 'rag_strategy', label: 'RAG 策略', placeholder: 'baseline', hint: 'baseline = 單輪搜尋；agentic = 多輪動態搜尋；plan-execute = 子任務規劃 + 執行 + 合成；auto = 依查詢複雜度自動選擇（plan-execute 優先，子任務太少降級 agentic）' },
           { key: 'agentic_max_steps', label: '最大搜尋輪數', placeholder: '3', hint: 'Agentic loop 最多執行幾次額外搜尋（1–5），每輪 +0.5–1s 延遲' },
           { key: 'agentic_min_docs_to_answer', label: '提前結束文件數', placeholder: '3', hint: '累積超過此數量的文件後提前結束迴圈，不等到 max_steps（1–10）' },
+        ],
+      },
+    ],
+  },
+  {
+    id: 'plan_execute',
+    label: 'Plan & Execute',
+    sections: [
+      {
+        title: 'Plan-and-Execute 模式',
+        desc: '將複雜查詢分解為子任務計畫，各子任務獨立搜尋後合成統一 context；僅 complex 查詢且 rag_strategy = plan-execute 或 auto 時生效',
+        fields: [
+          { key: 'plan_execute_max_steps', label: '最大子任務數', placeholder: '4', hint: '規劃階段 LLM 最多生成幾個子任務（1–8），子任務越多搜尋越全面但延遲越高' },
+          { key: 'plan_execute_min_entities', label: 'Auto 最低實體數', placeholder: '2', hint: '僅 auto 模式生效：規劃子任務數少於此值時降級為 agentic（1–5）' },
+          { key: 'planning_timeout_ms', label: '規劃超時（ms）', placeholder: '8000', hint: 'Planning LLM 超時上限，超時則 fallback 到 agentic（3000–15000）' },
+          { key: 'plan_step_timeout_ms', label: '子任務超時（ms）', placeholder: '5000', hint: '每個子任務（embedding + 搜尋）超時上限，超時回傳空結果（2000–10000）' },
+          { key: 'synthesis_timeout_ms', label: '合成超時（ms）', placeholder: '8000', hint: 'Synthesis LLM 超時上限，超時使用 fallback 拼接（3000–15000）' },
+          { key: 'adaptive_plan_enabled', label: '啟用 Adaptive Replan', placeholder: '1', hint: '0 = 停用，1 = 啟用；子任務結果為空時自動生成替代子任務' },
         ],
       },
     ],

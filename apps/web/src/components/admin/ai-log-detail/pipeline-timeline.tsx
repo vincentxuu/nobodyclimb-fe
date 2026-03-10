@@ -66,6 +66,9 @@ export function PipelineTimeline({
   for (const key of pipelineStages) {
     stages.push({ key, isTraceOnly: false })
     if (key === 'hyde') {
+      if (pipelineTrace?.plan_execute) {
+        stages.push({ key: 'plan_execute', isTraceOnly: true })
+      }
       if (pipelineTrace?.agentic) {
         stages.push({ key: 'agentic', isTraceOnly: true })
       }
@@ -291,6 +294,29 @@ export function PipelineTimeline({
             const mmr = pipelineTrace.mmr_selection
             metrics.push({ label: '輸入', value: `${mmr.input_count} 筆` })
             metrics.push({ label: '選出', value: `${mmr.selected_count} 筆` })
+          }
+          if (isTraceOnly && key === 'plan_execute' && pipelineTrace?.plan_execute) {
+            const pe = pipelineTrace.plan_execute
+            if (pe.plan_fallback) {
+              metrics.push({ label: '狀態', value: 'Fallback', highlight: true })
+              metrics.push({ label: '目標', value: pe.plan_fallback.target })
+            } else {
+              metrics.push({ label: '步驟', value: `${pe.steps?.length ?? 0} 步` })
+              if (pe.sources_count != null) metrics.push({ label: '來源', value: `${pe.sources_count} 筆` })
+            }
+            metrics.push({ label: '耗時', value: `${pe.total_duration_ms} ms` })
+            if (tb?.planning) {
+              metrics.push({ label: 'plan in', value: tb.planning.prompt_tokens.toLocaleString(), estimated: tb.planning.estimated })
+              metrics.push({ label: 'plan out', value: tb.planning.completion_tokens.toLocaleString(), estimated: tb.planning.estimated })
+              if (primaryProvider) {
+                const usd = calcCost(tb.planning.prompt_tokens, tb.planning.completion_tokens, primaryProvider)
+                metrics.push({ label: '$', value: usd.toFixed(6), estimated: tb.planning.estimated })
+              }
+            }
+            if (tb?.synthesis) {
+              metrics.push({ label: 'synth in', value: tb.synthesis.prompt_tokens.toLocaleString(), estimated: tb.synthesis.estimated })
+              metrics.push({ label: 'synth out', value: tb.synthesis.completion_tokens.toLocaleString(), estimated: tb.synthesis.estimated })
+            }
           }
           if (isTraceOnly && key === 'multi_tool' && pipelineTrace?.multi_tool) {
             const mt = pipelineTrace.multi_tool

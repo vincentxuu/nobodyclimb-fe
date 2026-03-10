@@ -223,6 +223,19 @@ export interface AILogDetail {
       final_doc_count: number
       termination_reason?: 'enough_docs' | 'max_steps' | 'no_improvement'
     }
+    plan_execute?: {
+      strategy: string
+      planning_duration_ms: number
+      plan?: { steps: Array<{ id: number; query: string; tool: string; depends_on: number[]; filters?: Record<string, unknown> }>; execution_mode: string }
+      steps?: Array<{ stepId: number; query: string; tool: string; result_count: number; duration_ms: number; error?: string }>
+      execution_duration_ms?: number
+      synthesis_duration_ms?: number
+      total_duration_ms: number
+      sources_count?: number
+      adaptive_replan?: boolean
+      adaptive_replan_info?: { trigger_step_id: number; reason: string; new_steps: Array<{ id: number; query: string; tool: string }> }
+      plan_fallback?: { reason: string; target: string; step_count?: number; min_required?: number; error?: string }
+    }
     multi_tool?: {
       steps?: Array<{ stepId: number; query: string; tool: string; result_count: number; duration_ms: number; error?: string }>
       execution_mode?: string
@@ -237,6 +250,9 @@ export interface AILogDetail {
       hyde?: { prompt_tokens: number; completion_tokens: number; total_tokens: number; model: string; estimated: boolean }
       multi_query?: { prompt_tokens: number; completion_tokens: number; total_tokens: number; model: string; estimated: boolean }
       agentic_decisions?: Array<{ step: number; prompt_tokens: number; completion_tokens: number; total_tokens: number; model: string; estimated: boolean }>
+      planning?: { prompt_tokens: number; completion_tokens: number; total_tokens: number; model: string; estimated: boolean }
+      synthesis?: { prompt_tokens: number; completion_tokens: number; total_tokens: number; model: string; estimated: boolean }
+      adaptive_replan?: { prompt_tokens: number; completion_tokens: number; total_tokens: number; model: string; estimated: boolean }
       main_generation?: { prompt_tokens: number; completion_tokens: number; total_tokens: number; model: string; estimated: boolean }
       self_reflection_regen?: { prompt_tokens: number; completion_tokens: number; total_tokens: number; model: string; estimated: boolean }
       judge?: { prompt_tokens: number; completion_tokens: number; total_tokens: number; model: string; estimated: boolean }

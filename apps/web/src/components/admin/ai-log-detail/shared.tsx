@@ -18,6 +18,7 @@ import {
   CheckCircle2,
   AlertCircle,
   Archive,
+  ListChecks,
 } from 'lucide-react'
 
 export const STAGE_LABELS: Record<string, string> = {
@@ -28,6 +29,7 @@ export const STAGE_LABELS: Record<string, string> = {
   hyde: 'HyDE 假設文件',
   multi_query: 'Multi-Query 擴展',
   agentic: 'Agentic 多步驟 RAG',
+  plan_execute: 'Plan-and-Execute 規劃執行',
   filter: 'Metadata Filter 建構',
   embedding: '向量嵌入',
   retrieval: '多路向量搜尋 + BM25',
@@ -79,6 +81,7 @@ export function StageIcon({ name, skipped }: { name: string; skipped: boolean })
     hyde: <Brain className={cls} />,
     multi_query: <List className={cls} />,
     agentic: <Bot className={cls} />,
+    plan_execute: <ListChecks className={cls} />,
     filter: <Filter className={cls} />,
     embedding: <Cpu className={cls} />,
     retrieval: <Search className={cls} />,

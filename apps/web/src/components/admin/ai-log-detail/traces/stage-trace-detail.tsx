@@ -20,6 +20,7 @@ import { JudgeTrace } from './judge'
 import { GuardrailsOutputTrace } from './guardrails-output'
 import { MemoryExtractionTrace } from './memory-extraction'
 import { AgenticTrace } from './agentic'
+import { PlanAndExecuteTrace } from './plan-execute'
 import { MultiToolTrace } from './multi-tool'
 
 export function StageTraceDetail({
@@ -52,6 +53,10 @@ export function StageTraceDetail({
   if (stageKey === 'agentic') {
     if (!trace) return <p className="text-[11px] text-wb-40">無詳細資料（舊記錄）</p>
     return <AgenticTrace trace={trace} />
+  }
+  if (stageKey === 'plan_execute') {
+    if (!trace) return <p className="text-[11px] text-wb-40">無詳細資料（舊記錄）</p>
+    return <PlanAndExecuteTrace trace={trace} />
   }
   if (stageKey === 'filter') return <FilterTrace trace={trace} pipelineStage={pipelineStage ?? null} />
   if (stageKey === 'embedding') return <EmbeddingTrace trace={trace} pipelineStage={pipelineStage ?? null} query={query} />
