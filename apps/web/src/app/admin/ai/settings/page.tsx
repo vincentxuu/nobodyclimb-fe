@@ -188,10 +188,10 @@ const TABS: TabConfig[] = [
         title: 'Pipeline 超時',
         desc: '各階段超時上限，超時後自動降級繼續執行',
         fields: [
-          { key: 'pipeline_timeout_ms', label: 'Pipeline 整體超時（ms）', placeholder: '20000', hint: '整個 pipeline 的最大執行時間，超時回傳 408（5000–60000）' },
+          { key: 'pipeline_timeout_ms', label: 'Pipeline 整體超時（ms）', placeholder: '40000', hint: '整個 pipeline 的最大執行時間，超時回傳 408（5000–60000）' },
           { key: 'embedding_timeout_ms', label: 'Embedding 超時（ms）', placeholder: '3000', hint: '向量嵌入超時 → 降級為僅 BM25 搜尋（1000–10000）' },
           { key: 'search_timeout_ms', label: '搜尋超時（ms）', placeholder: '4000', hint: 'Hybrid Search 超時（1000–15000）' },
-          { key: 'generation_timeout_ms', label: 'LLM 生成超時（ms）', placeholder: '12000', hint: 'LLM 回答生成超時 → 回傳超時錯誤訊息，跳過 evaluation（3000–30000）' },
+          { key: 'generation_timeout_ms', label: 'LLM 生成超時（ms）', placeholder: '18000', hint: 'LLM 回答生成超時 → 回傳超時錯誤訊息，跳過 evaluation（3000–30000）' },
           { key: 'hyde_timeout_ms', label: 'HyDE 超時（ms）', placeholder: '5000', hint: 'HyDE 假設文件生成超時 → 跳過，使用原始查詢（1000–10000）' },
           { key: 'multi_query_timeout_ms', label: 'Multi-Query 超時（ms）', placeholder: '5000', hint: 'Multi-Query 擴展超時 → 跳過，使用原始查詢（1000–10000）' },
         ],

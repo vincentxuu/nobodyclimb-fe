@@ -91,10 +91,10 @@ export async function loadPipelineConfig(db: D1Database): Promise<PipelineConfig
     // Pipeline 迴圈上限
     max_pipeline_loops:         num(cfg['max_pipeline_loops'],          2, 1, 3),
     // Pipeline 超時
-    pipeline_timeout_ms:        num(cfg['pipeline_timeout_ms'],        30000, 10000, 45000),
+    pipeline_timeout_ms:        num(cfg['pipeline_timeout_ms'],        40000, 10000, 45000),
     embedding_timeout_ms:       num(cfg['embedding_timeout_ms'],       3000,  1000,  10000),
     search_timeout_ms:          num(cfg['search_timeout_ms'],          4000,  1000,  10000),
-    generation_timeout_ms:      num(cfg['generation_timeout_ms'],      12000, 5000,  20000),
+    generation_timeout_ms:      num(cfg['generation_timeout_ms'],      18000, 5000,  20000),
     hyde_timeout_ms:            num(cfg['hyde_timeout_ms'],            5000,  2000,  10000),
     multi_query_timeout_ms:     num(cfg['multi_query_timeout_ms'],     5000,  2000,  10000),
     // Circuit Breaker 熔斷器
