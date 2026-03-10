@@ -20,6 +20,18 @@ export const judgeStep: PipelineStep = {
       return ctx;
     }
 
+    // 生成失敗或超時回覆不進行品質評估，避免誤判 groundedness = 1.0
+    const ERROR_ANSWERS = new Set([
+      '抱歉，AI 回答生成超時，請稍後再試。',
+      '抱歉，AI 服務暫時發生問題，請稍後再試。',
+      '抱歉，無法生成回答，請稍後再試。',
+      '抱歉，目前無法生成回答，請換個方式提問或稍後再試。',
+    ]);
+    if (ctx.degradedStages?.includes('llm-generation') || ERROR_ANSWERS.has(ctx.answer ?? '')) {
+      trace.judge_detail = { skipped: true, reason: 'generation_failed_or_timeout' };
+      return ctx;
+    }
+
     const context = ctx.context ?? '';
     const parsedAnswer = ctx.parsedAnswer ?? '';
 
