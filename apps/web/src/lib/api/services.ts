@@ -180,6 +180,22 @@ export const authService = {
   },
 
   /**
+   * 發送 / 重新發送驗證信
+   */
+  sendVerificationEmail: async () => {
+    const response = await apiClient.post<ApiResponse<{}>>('/auth/send-verification-email')
+    return response.data
+  },
+
+  /**
+   * 驗證信箱 token
+   */
+  verifyEmail: async (token: string) => {
+    const response = await apiClient.post<ApiResponse<{}>>('/auth/verify-email', { token })
+    return response.data
+  },
+
+  /**
    * 登出
    */
   logout: async () => {

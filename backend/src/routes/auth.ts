@@ -12,6 +12,11 @@ import {
   verifyPassword,
 } from '../middleware/auth';
 import { checkPasswordResetRateLimit } from '../middleware/rateLimit';
+import {
+  sendEmail,
+  buildVerificationEmailHtml,
+  generateVerificationToken,
+} from '../utils/email';
 
 export const authRoutes = new Hono<{ Bindings: Env }>();
 
@@ -21,7 +26,7 @@ const GOOGLE_JWKS = jose.createRemoteJWKSet(
 );
 
 // User fields to select (reusable constant for maintainability)
-const USER_SELECT_FIELDS = 'id, email, username, display_name, avatar_url, bio, role, google_id, auth_provider, created_at';
+const USER_SELECT_FIELDS = 'id, email, username, display_name, avatar_url, bio, role, google_id, auth_provider, email_verified, created_at';
 
 // Valid referral sources
 const REFERRAL_SOURCES = ['instagram', 'facebook', 'youtube', 'google', 'friend', 'event', 'organic', 'other'] as const;
@@ -106,6 +111,13 @@ authRoutes.post(
   )
     .bind(generateId(), id, refresh_token_hash, expires_at)
     .run();
+
+  // 背景發送驗證信（不阻擋註冊流程）
+  try {
+    await sendVerificationEmail(c.env, id, email);
+  } catch (error) {
+    console.error('Failed to send verification email on register:', error);
+  }
 
   return c.json({
     success: true,
@@ -839,6 +851,168 @@ authRoutes.post(
     success: true,
     message: '密碼已成功重設，請使用新密碼登入',
   });
+  }
+);
+
+// ============================================
+// Email Verification
+// ============================================
+
+/**
+ * 發送驗證信的內部函數（供註冊和重新發送共用）
+ */
+async function sendVerificationEmail(
+  env: Env,
+  userId: string,
+  email: string,
+): Promise<{ success: boolean; error?: string }> {
+  if (!env.RESEND_API_KEY) {
+    console.warn('RESEND_API_KEY not configured, skipping verification email');
+    return { success: false, error: 'Email service not configured' };
+  }
+
+  const token = generateVerificationToken();
+  const frontendUrl = env.FRONTEND_URL || 'https://nobodyclimb.cc';
+  const verifyUrl = `${frontendUrl}/auth/verify-email?token=${token}`;
+
+  // 將 token 存入 KV，24 小時過期
+  await env.CACHE.put(
+    `email_verify:${token}`,
+    JSON.stringify({ userId, email }),
+    { expirationTtl: 86400 } // 24 hours
+  );
+
+  const html = buildVerificationEmailHtml(verifyUrl);
+  return sendEmail(env.RESEND_API_KEY, {
+    to: email,
+    subject: '驗證你的 NobodyClimb 信箱',
+    html,
+  });
+}
+
+// POST /auth/send-verification-email
+authRoutes.post(
+  '/send-verification-email',
+  describeRoute({
+    tags: ['Auth'],
+    summary: '發送 / 重新發送驗證信',
+    description: '向當前登入用戶的信箱發送驗證信，需要 Bearer token 認證',
+    responses: {
+      200: { description: '驗證信已發送' },
+      400: { description: '信箱已驗證' },
+      401: { description: '未認證' },
+      429: { description: '請求過於頻繁' },
+      500: { description: '伺服器錯誤' },
+    },
+  }),
+  authMiddleware,
+  async (c) => {
+    const userId = c.get('userId');
+
+    // 取得用戶資料
+    const user = await c.env.DB.prepare(
+      'SELECT id, email, email_verified FROM users WHERE id = ?'
+    )
+      .bind(userId)
+      .first<{ id: string; email: string; email_verified: number }>();
+
+    if (!user) {
+      return c.json(
+        { success: false, error: 'Not Found', message: '找不到用戶' },
+        404
+      );
+    }
+
+    // 已驗證
+    if (user.email_verified === 1) {
+      return c.json(
+        { success: false, error: 'Already Verified', message: '信箱已完成驗證' },
+        400
+      );
+    }
+
+    // 速率限制：每個用戶 60 秒內只能發一封
+    const rateLimitKey = `email_verify_rate:${userId}`;
+    const existing = await c.env.CACHE.get(rateLimitKey);
+    if (existing) {
+      return c.json(
+        {
+          success: false,
+          error: 'Too Many Requests',
+          message: '請等候 60 秒後再重新發送',
+        },
+        429
+      );
+    }
+
+    // 設定速率限制
+    await c.env.CACHE.put(rateLimitKey, '1', { expirationTtl: 60 });
+
+    const result = await sendVerificationEmail(c.env, user.id, user.email);
+
+    if (!result.success) {
+      return c.json(
+        {
+          success: false,
+          error: 'Email Error',
+          message: '發送驗證信失敗，請稍後再試',
+        },
+        500
+      );
+    }
+
+    return c.json({
+      success: true,
+      message: '驗證信已發送，請查收你的信箱',
+    });
+  }
+);
+
+// POST /auth/verify-email
+authRoutes.post(
+  '/verify-email',
+  describeRoute({
+    tags: ['Auth'],
+    summary: '驗證信箱',
+    description: '使用驗證信中的 token 完成信箱驗證',
+    responses: {
+      200: { description: '驗證成功' },
+      400: { description: 'Token 無效或已過期' },
+    },
+  }),
+  validator('json', z.object({ token: z.string().min(1) })),
+  async (c) => {
+    const { token } = c.req.valid('json');
+
+    // 從 KV 取得 token 資料
+    const raw = await c.env.CACHE.get(`email_verify:${token}`);
+    if (!raw) {
+      return c.json(
+        {
+          success: false,
+          error: 'Invalid Token',
+          message: '驗證連結無效或已過期，請重新發送驗證信',
+        },
+        400
+      );
+    }
+
+    const { userId } = JSON.parse(raw) as { userId: string; email: string };
+
+    // 更新 email_verified
+    await c.env.DB.prepare(
+      "UPDATE users SET email_verified = 1, updated_at = datetime('now') WHERE id = ?"
+    )
+      .bind(userId)
+      .run();
+
+    // 刪除已使用的 token
+    await c.env.CACHE.delete(`email_verify:${token}`);
+
+    return c.json({
+      success: true,
+      message: '信箱驗證成功！',
+    });
   }
 );
 

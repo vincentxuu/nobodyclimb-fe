@@ -16,6 +16,7 @@ export interface User {
   createdAt: Date
   updatedAt?: Date
   displayName?: string
+  emailVerified?: boolean
   authProvider?: 'local' | 'google'
   role?: 'user' | 'admin' | 'moderator'
   socialLinks?: {
@@ -59,6 +60,7 @@ export function mapBackendUserToUser(backendUser: BackendUser): User {
     displayName: backendUser.display_name ?? undefined,
     avatar: backendUser.avatar_url ?? undefined,
     bio: backendUser.bio ?? undefined,
+    emailVerified: backendUser.email_verified === 1,
     authProvider: backendUser.auth_provider,
     role: backendUser.role,
     createdAt: new Date(backendUser.created_at),

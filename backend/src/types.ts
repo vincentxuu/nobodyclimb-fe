@@ -214,6 +214,9 @@ export interface Env {
   CLOUDFLARE_ACCOUNT_ID?: string;
   CLOUDFLARE_API_TOKEN?: string;
   ANALYTICS_DATASET?: string;
+  // Email 相關
+  RESEND_API_KEY?: string;
+  FRONTEND_URL?: string;
   // AI 相關 bindings
   AI: AI;
   VECTOR_INDEX: VectorizeIndex;
