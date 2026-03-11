@@ -83,7 +83,8 @@ export default function RegisterPage() {
     try {
       const result = await signUp(username, email, password)
       if (result.success) {
-        router.push('/auth/profile-setup/basic-info')
+        // 註冊成功後跳轉到信箱驗證頁面（後端已自動發送驗證信）
+        router.push('/auth/verify-email')
       } else {
         setError(result.error || '註冊失敗，請稍後再試')
       }

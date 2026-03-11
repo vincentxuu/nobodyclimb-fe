@@ -39,7 +39,13 @@ export default function LoginPage() {
     try {
       const result = await signIn(email, password)
       if (result.success) {
-        router.push('/')
+        // 檢查信箱是否已驗證
+        const { user } = useAuthStore.getState()
+        if (user && user.emailVerified === false) {
+          router.push('/auth/verify-email')
+        } else {
+          router.push('/')
+        }
       } else {
         setError(result.error || '登入失敗，請檢查您的帳號密碼')
       }
