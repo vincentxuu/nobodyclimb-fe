@@ -3,6 +3,7 @@ import type { PipelineConfig, TokenUsageInfo } from '../pipeline/types';
 import { PLANNING_PROMPT, SYNTHESIS_PROMPT } from '../../utils/ai-prompts';
 import { EmbeddingService } from '../embedding';
 import { estimateTokens, type LLMResponse, type PlanStep, type ExecutionPlan, type StepExecutionResult, type SearchResult } from './types';
+import { callLLM } from '../llm-client';
 import { getDocuments, extractTitle, buildExcerpt, buildUrl } from './documents';
 import { searchBM25, mergeResults } from './retrieval';
 
@@ -57,11 +58,7 @@ export async function planQuery(
 
   let rawResult: LLMResponse | undefined;
   try {
-    const planPromise = env.AI.run(
-      cfg.llm_model,
-      { messages: [{ role: 'user', content: prompt }] },
-      gatewayOptions,
-    ) as Promise<LLMResponse>;
+    const planPromise = callLLM(env, cfg.llm_model, [{ role: 'user', content: prompt }], { gatewayOptions });
 
     rawResult = await Promise.race([
       planPromise,
@@ -251,11 +248,7 @@ async function adaptiveReplan(
 請生成一個替代子任務，放寬條件或換用其他工具。只輸出 JSON：
 {"id":${newId},"query":"...","tool":"search_routes|search_crags|sql_query","filters":{},"depends_on":[]}`;
 
-    const replanPromise = env.AI.run(
-      cfg.lightweight_model,
-      { messages: [{ role: 'user', content: prompt }] },
-      gatewayOptions,
-    ) as Promise<LLMResponse>;
+    const replanPromise = callLLM(env, cfg.lightweight_model, [{ role: 'user', content: prompt }], { gatewayOptions });
 
     const result = await Promise.race([
       replanPromise,
@@ -433,11 +426,7 @@ export async function synthesize(
 
   let rawResult: LLMResponse | undefined;
   try {
-    const synthPromise = env.AI.run(
-      cfg.llm_model,
-      { messages: [{ role: 'user', content: prompt }] },
-      gatewayOptions,
-    ) as Promise<LLMResponse>;
+    const synthPromise = callLLM(env, cfg.llm_model, [{ role: 'user', content: prompt }], { gatewayOptions });
 
     rawResult = await Promise.race([
       synthPromise,

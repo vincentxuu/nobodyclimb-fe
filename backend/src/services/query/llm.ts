@@ -4,6 +4,7 @@ import { TOOL_SELECTION_PROMPT, HYDE_PROMPT, MULTI_QUERY_EXPANSION_PROMPT, JUDGE
 import { estimateTokens, type LLMResponse } from './types';
 import { DEFAULT_LIGHTWEIGHT_MODEL } from './config';
 import toolRegistry from '../tool-registry';
+import { callLLM, streamLLM } from '../llm-client';
 
 // LLM A：解析查詢意圖，選擇搜尋工具與參數
 // 失敗時回傳 null，由呼叫方 fallback 到 regex 方法
@@ -25,11 +26,7 @@ export async function parseQueryWithLLM(
 
   let rawResult: LLMResponse | undefined;
   try {
-    rawResult = (await env.AI.run(
-      llmModel,
-      { messages: [{ role: 'user', content: prompt }] },
-      gatewayOptions
-    )) as LLMResponse;
+    rawResult = await callLLM(env, llmModel, [{ role: 'user', content: prompt }], { gatewayOptions });
   } catch {
     return { result: null };
   }
@@ -90,11 +87,7 @@ export async function generateHyDE(
 ): Promise<{ doc: string; usage?: TokenUsageInfo }> {
   const prompt = (promptTemplate ?? HYDE_PROMPT).replace('{query}', query);
   try {
-    const result = (await env.AI.run(
-      llmModel,
-      { messages: [{ role: 'user', content: prompt }] },
-      gatewayOptions
-    )) as LLMResponse;
+    const result = await callLLM(env, llmModel, [{ role: 'user', content: prompt }], { gatewayOptions });
 
     const doc = result.response?.trim() ?? '';
     const usage: TokenUsageInfo = result.usage
@@ -119,11 +112,7 @@ export async function generateMultipleQueries(
     .replace(/\{count\}/g, String(count))
     .replace('{query}', query);
   try {
-    const result = (await (env.AI.run as Function)(
-      model,
-      { messages: [{ role: 'user', content: prompt }], max_tokens: 200 },
-      gatewayOptions
-    )) as LLMResponse;
+    const result = await callLLM(env, model, [{ role: 'user', content: prompt }], { maxTokens: 200, gatewayOptions });
     const text = result.response?.trim() ?? '';
     const queries = text
       .split('\n')
@@ -149,62 +138,7 @@ export async function streamLLMGeneration(
   gatewayOptions: unknown,
   onToken: (token: string) => Promise<void>,
 ): Promise<string> {
-  const stream = (await (env.AI.run as Function)(
-    model,
-    { messages, max_tokens: maxTokens, stream: true },
-    gatewayOptions,
-  )) as ReadableStream<Uint8Array>;
-
-  const reader = stream.getReader();
-  const decoder = new TextDecoder();
-  let fullText = '';
-  let sseBuffer = '';
-  let slideBuffer = '';
-  let suggestionsStarted = false;
-  const MARKER = '---SUGGESTIONS---';
-
-  try {
-    while (true) {
-      const { done, value } = await reader.read();
-      if (done) break;
-
-      sseBuffer += decoder.decode(value, { stream: true });
-      const lines = sseBuffer.split('\n');
-      sseBuffer = lines.pop() ?? '';
-
-      for (const line of lines) {
-        if (!line.startsWith('data: ')) continue;
-        const payload = line.slice(6).trim();
-        if (payload === '[DONE]') break;
-        try {
-          const parsed = JSON.parse(payload) as { response?: string };
-          if (!parsed.response) continue;
-
-          fullText += parsed.response;
-          if (suggestionsStarted) continue;
-
-          slideBuffer += parsed.response;
-          const markerIdx = slideBuffer.indexOf(MARKER);
-          if (markerIdx !== -1) {
-            const beforeMarker = slideBuffer.slice(0, markerIdx);
-            if (beforeMarker) await onToken(beforeMarker);
-            suggestionsStarted = true;
-          } else {
-            const safeLen = slideBuffer.length - (MARKER.length - 1);
-            if (safeLen > 0) {
-              await onToken(slideBuffer.slice(0, safeLen));
-              slideBuffer = slideBuffer.slice(safeLen);
-            }
-          }
-        } catch { /* 忽略格式錯誤的 SSE 行 */ }
-      }
-    }
-    if (!suggestionsStarted && slideBuffer) await onToken(slideBuffer);
-  } finally {
-    reader.releaseLock();
-  }
-
-  return fullText;
+  return streamLLM(env, model, messages, maxTokens, gatewayOptions, onToken);
 }
 
 // 解析 judge LLM 回傳的 JSON，容錯處理格式錯誤
@@ -267,16 +201,10 @@ export async function runJudge(
     const timeoutPromise = new Promise<never>((_, reject) =>
       setTimeout(() => reject(new Error('judge timeout')), timeoutMs)
     );
-    const judgePromise = (env.AI.run as Function)(
-      model,
-      {
-        messages: [
-          { role: 'system', content: '只回傳 JSON，不含任何說明文字。格式：{"groundedness": <float 0.0-1.0>, "quality": <int 1-4>}' },
-          { role: 'user', content: judgePrompt },
-        ],
-        max_tokens: 60,
-      }
-    ) as Promise<LLMResponse>;
+    const judgePromise = callLLM(env, model, [
+      { role: 'system', content: '只回傳 JSON，不含任何說明文字。格式：{"groundedness": <float 0.0-1.0>, "quality": <int 1-4>}' },
+      { role: 'user', content: judgePrompt },
+    ], { maxTokens: 60 });
 
     const judgeResult = await Promise.race([judgePromise, timeoutPromise]);
     const rawResponse = judgeResult.response ?? '';

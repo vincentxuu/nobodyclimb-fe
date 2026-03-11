@@ -218,6 +218,10 @@ export interface Env {
   AI: AI;
   VECTOR_INDEX: VectorizeIndex;
   AI_GATEWAY_SLUG?: string;
+  // 第三方 LLM 提供者 API Key（透過 wrangler secret put 設定）
+  OPENAI_API_KEY?: string;
+  ANTHROPIC_API_KEY?: string;
+  GOOGLE_AI_API_KEY?: string;
 }
 
 // Type alias for backwards compatibility

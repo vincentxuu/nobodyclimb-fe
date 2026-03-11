@@ -46,7 +46,12 @@ ANALYTICS_DATASET = "nobodyclimb_access_logs_preview"
 # Google OAuth - Set via wrangler secret or environment variable
 # GOOGLE_CLIENT_ID = "your-google-client-id.apps.googleusercontent.com"
 
- 
+# 第三方 LLM API Keys（透過 wrangler secret put 設定，請勿明文寫入）
+# wrangler secret put OPENAI_API_KEY --env preview
+# wrangler secret put ANTHROPIC_API_KEY --env preview
+# wrangler secret put GOOGLE_AI_API_KEY --env preview
+
+
 
 [[env.preview.d1_databases]]
 
@@ -135,7 +140,12 @@ ANALYTICS_DATASET = "nobodyclimb_access_logs"
 # Google OAuth - Set via wrangler secret or environment variable
 # GOOGLE_CLIENT_ID = "your-google-client-id.apps.googleusercontent.com"
 
- 
+# 第三方 LLM API Keys（透過 wrangler secret put 設定，請勿明文寫入）
+# wrangler secret put OPENAI_API_KEY --env production
+# wrangler secret put ANTHROPIC_API_KEY --env production
+# wrangler secret put GOOGLE_AI_API_KEY --env production
+
+
 
 [[env.production.d1_databases]]
 
