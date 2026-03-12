@@ -196,6 +196,82 @@ export interface AIFeedbackRequest {
 }
 
 // ============================================
+// Crawl Types (Cloudflare Browser Rendering /crawl)
+// ============================================
+
+export interface CrawlSource {
+  id: string;
+  name: string;
+  url: string;
+  description: string | null;
+  crawl_config: string | null; // JSON: CrawlConfig
+  schedule: string | null;
+  status: 'active' | 'paused' | 'error';
+  last_crawled_at: string | null;
+  last_page_count: number;
+  error_message: string | null;
+  created_by: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface CrawlConfig {
+  maxPages?: number;     // 最大爬取頁數（預設 10）
+  maxDepth?: number;     // 最大爬取深度（預設 2）
+  format?: 'markdown' | 'html' | 'json'; // 內容格式（預設 markdown）
+  waitTime?: number;     // 頁面載入等待時間 ms
+  urlFilter?: string;    // URL 過濾正則（僅爬取匹配的 URL）
+}
+
+export interface CrawlPage {
+  id: string;
+  source_id: string;
+  url: string;
+  title: string | null;
+  content: string | null;
+  content_hash: string | null;
+  metadata: string | null; // JSON
+  word_count: number;
+  embedding_id: string | null;
+  status: 'active' | 'deleted' | 'error';
+  crawled_at: string;
+  updated_at: string;
+}
+
+export interface CrawlPageMetadata {
+  links?: string[];
+  images?: string[];
+  headers?: Record<string, string>;
+}
+
+// Cloudflare /crawl API 請求格式
+export interface CloudflareCrawlRequest {
+  url: string;
+  maxPages?: number;
+  maxDepth?: number;
+  idleTime?: number;
+  waitTime?: number;
+  skipHeaders?: boolean;
+}
+
+// Cloudflare /crawl API 回應格式
+export interface CloudflareCrawlResponse {
+  success: boolean;
+  result: CloudflareCrawlPage[];
+}
+
+export interface CloudflareCrawlPage {
+  url: string;
+  title?: string;
+  text?: string;       // 純文字
+  markdown?: string;   // Markdown 格式
+  html?: string;       // HTML 格式
+  links?: string[];
+  images?: string[];
+  metadata?: Record<string, unknown>;
+}
+
+// ============================================
 // Cloudflare Workers Environment Bindings
 // ============================================
 

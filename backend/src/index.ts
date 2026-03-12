@@ -36,6 +36,7 @@ import { routeStoriesRoutes } from './routes/route-stories';
 import { adminImportRoutes } from './routes/admin-import';
 import { aiRoutes } from './routes/ai';
 import { adminAiRoutes } from './routes/admin-ai';
+import { crawlRoutes } from './routes/crawl';
 
 const app = new Hono<{ Bindings: Env }>();
 
@@ -125,6 +126,7 @@ v1.route('/route-stories', routeStoriesRoutes);
 v1.route('/admin/import', adminImportRoutes);
 v1.route('/admin/ai', adminAiRoutes);
 v1.route('/ai', aiRoutes);
+v1.route('/crawl', crawlRoutes);
 
 // OpenAPI JSON 端點 - 自動從路由生成 OpenAPI 規格
 v1.get(
