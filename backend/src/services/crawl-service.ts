@@ -2,11 +2,16 @@ import type {
   Env,
   CrawlConfig,
   CrawlSource,
-  CloudflareCrawlResponse,
+  CloudflareCrawlJobResponse,
+  CloudflareCrawlResultResponse,
   CloudflareCrawlPage,
 } from '../types';
 import { CrawlRepository } from '../repositories/crawl-repository';
 import { generateId } from '../utils/id';
+
+// 輪詢設定
+const POLL_INTERVAL_MS = 3000;  // 3 秒
+const MAX_POLL_ATTEMPTS = 100;  // 最多輪詢 100 次（約 5 分鐘）
 
 export class CrawlService {
   private repository: CrawlRepository;
@@ -81,10 +86,17 @@ export class CrawlService {
   }
 
   // ============================================
-  // 執行爬取
+  // 執行爬取（非同步 Job 流程）
   // ============================================
 
+  /**
+   * 執行完整爬取流程：
+   * 1. POST 建立爬取 Job
+   * 2. GET 輪詢直到完成
+   * 3. 處理並儲存結果
+   */
   async executeCrawl(sourceId: string): Promise<{
+    jobId: string;
     pagesProcessed: number;
     newPages: number;
     updatedPages: number;
@@ -99,25 +111,28 @@ export class CrawlService {
       ? JSON.parse(source.crawl_config)
       : {};
 
-    const maxPages = config.maxPages || 10;
-    const maxDepth = config.maxDepth || 2;
-
     try {
-      // 呼叫 Cloudflare /crawl API
-      const crawlResult = await this.callCrawlApi(source.url, {
-        maxPages,
-        maxDepth,
-        waitTime: config.waitTime,
-      });
+      // Step 1: 建立爬取 Job
+      const jobId = await this.createCrawlJob(source.url, config);
 
+      // Step 2: 輪詢等待結果
+      const pages = await this.pollCrawlResults(jobId);
+
+      // Step 3: 處理並儲存結果
       let newPages = 0;
       let updatedPages = 0;
       const errors: string[] = [];
 
-      // 處理爬取結果
-      for (const page of crawlResult) {
+      for (const page of pages) {
+        if (page.status !== 'success' || !page.result) {
+          if (page.error) {
+            errors.push(`${page.url}: ${page.error}`);
+          }
+          continue;
+        }
+
         try {
-          const content = page.markdown || page.text || '';
+          const content = page.result;
           const contentHash = await this.hashContent(content);
           const wordCount = content.length;
 
@@ -125,13 +140,10 @@ export class CrawlService {
             id: generateId(),
             source_id: sourceId,
             url: page.url,
-            title: page.title || null,
-            content: content || null,
+            title: null, // /crawl API 不回傳 title，由 content 中解析
+            content,
             content_hash: contentHash,
-            metadata: JSON.stringify({
-              links: page.links || [],
-              images: page.images || [],
-            }),
+            metadata: null,
             word_count: wordCount,
           });
 
@@ -148,25 +160,19 @@ export class CrawlService {
       }
 
       // 更新爬取來源狀態
-      await this.repository.updateSourceCrawlResult(
-        sourceId,
-        crawlResult.length
-      );
+      const successPages = pages.filter((p) => p.status === 'success').length;
+      await this.repository.updateSourceCrawlResult(sourceId, successPages);
 
       return {
-        pagesProcessed: crawlResult.length,
+        jobId,
+        pagesProcessed: successPages,
         newPages,
         updatedPages,
         errors,
       };
     } catch (err) {
-      const errorMsg =
-        err instanceof Error ? err.message : String(err);
-      await this.repository.updateSourceCrawlResult(
-        sourceId,
-        0,
-        errorMsg
-      );
+      const errorMsg = err instanceof Error ? err.message : String(err);
+      await this.repository.updateSourceCrawlResult(sourceId, 0, errorMsg);
       throw err;
     }
   }
@@ -175,14 +181,13 @@ export class CrawlService {
   // Cloudflare /crawl API 呼叫
   // ============================================
 
-  private async callCrawlApi(
+  /**
+   * Step 1: POST 建立爬取 Job，回傳 Job ID
+   */
+  private async createCrawlJob(
     url: string,
-    options: {
-      maxPages?: number;
-      maxDepth?: number;
-      waitTime?: number;
-    }
-  ): Promise<CloudflareCrawlPage[]> {
+    config: CrawlConfig
+  ): Promise<string> {
     const accountId = this.env.CLOUDFLARE_ACCOUNT_ID;
     const apiToken = this.env.CLOUDFLARE_API_TOKEN;
 
@@ -194,18 +199,37 @@ export class CrawlService {
 
     const apiUrl = `https://api.cloudflare.com/client/v4/accounts/${accountId}/browser-rendering/crawl`;
 
+    const body: Record<string, unknown> = {
+      url,
+      limit: config.limit || 10,
+      depth: config.depth || 2,
+      formats: config.formats || ['markdown'],
+      render: config.render !== undefined ? config.render : false, // 預設 false（快速靜態抓取，不耗費 browser rendering 額度）
+    };
+
+    if (config.source) body.source = config.source;
+    if (config.userAgent) body.userAgent = config.userAgent;
+    if (config.rejectResourceTypes)
+      body.rejectResourceTypes = config.rejectResourceTypes;
+
+    if (config.includePatterns || config.excludePatterns) {
+      body.options = {
+        ...(config.includePatterns && {
+          includePatterns: config.includePatterns,
+        }),
+        ...(config.excludePatterns && {
+          excludePatterns: config.excludePatterns,
+        }),
+      };
+    }
+
     const response = await fetch(apiUrl, {
       method: 'POST',
       headers: {
         Authorization: `Bearer ${apiToken}`,
         'Content-Type': 'application/json',
       },
-      body: JSON.stringify({
-        url,
-        maxPages: options.maxPages || 10,
-        maxDepth: options.maxDepth || 2,
-        waitTime: options.waitTime || 5000,
-      }),
+      body: JSON.stringify(body),
     });
 
     if (!response.ok) {
@@ -215,13 +239,86 @@ export class CrawlService {
       );
     }
 
-    const data = (await response.json()) as CloudflareCrawlResponse;
+    const data = (await response.json()) as CloudflareCrawlJobResponse;
 
-    if (!data.success) {
-      throw new Error('Cloudflare Crawl API returned unsuccessful response');
+    if (!data.success || !data.result?.id) {
+      throw new Error('Cloudflare Crawl API did not return a job ID');
     }
 
-    return data.result || [];
+    return data.result.id;
+  }
+
+  /**
+   * Step 2: GET 輪詢爬取結果，支援 cursor 分頁
+   */
+  private async pollCrawlResults(
+    jobId: string
+  ): Promise<CloudflareCrawlPage[]> {
+    const accountId = this.env.CLOUDFLARE_ACCOUNT_ID;
+    const apiToken = this.env.CLOUDFLARE_API_TOKEN;
+
+    const baseUrl = `https://api.cloudflare.com/client/v4/accounts/${accountId}/browser-rendering/crawl/${jobId}`;
+    const allPages: CloudflareCrawlPage[] = [];
+
+    for (let attempt = 0; attempt < MAX_POLL_ATTEMPTS; attempt++) {
+      // 等待後再輪詢
+      await this.sleep(POLL_INTERVAL_MS);
+
+      let cursor: string | undefined;
+      let hasMore = true;
+
+      // 用 cursor 分頁取得所有結果
+      while (hasMore) {
+        const url = cursor ? `${baseUrl}?cursor=${cursor}` : baseUrl;
+
+        const response = await fetch(url, {
+          headers: {
+            Authorization: `Bearer ${apiToken}`,
+          },
+        });
+
+        if (!response.ok) {
+          const errorText = await response.text();
+          throw new Error(
+            `Cloudflare Crawl API poll error (${response.status}): ${errorText}`
+          );
+        }
+
+        const data =
+          (await response.json()) as CloudflareCrawlResultResponse;
+
+        if (!data.success) {
+          throw new Error('Cloudflare Crawl API poll returned unsuccessful');
+        }
+
+        const { status, data: pages, cursor: nextCursor } = data.result;
+
+        if (pages && pages.length > 0) {
+          allPages.push(...pages);
+        }
+
+        // 檢查是否還有下一頁
+        if (nextCursor) {
+          cursor = nextCursor;
+        } else {
+          hasMore = false;
+        }
+
+        // 如果 job 已完成或取消，結束輪詢
+        if (status !== 'running') {
+          return allPages;
+        }
+      }
+    }
+
+    // 超過最大輪詢次數
+    throw new Error(
+      `Crawl job ${jobId} did not complete within ${MAX_POLL_ATTEMPTS * POLL_INTERVAL_MS / 1000} seconds`
+    );
+  }
+
+  private sleep(ms: number): Promise<void> {
+    return new Promise((resolve) => setTimeout(resolve, ms));
   }
 
   // ============================================
@@ -325,7 +422,6 @@ export class CrawlService {
     sourceId?: string
   ): Promise<
     Array<{
-      page: CrawlSource | null;
       score: number;
       url: string;
       title: string;
@@ -369,7 +465,6 @@ export class CrawlService {
       if (pageId) {
         const page = await this.repository.findPageById(pageId);
         results.push({
-          page: null,
           score: match.score,
           url: metadata?.url || '',
           title: metadata?.title || '',

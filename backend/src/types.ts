@@ -216,11 +216,15 @@ export interface CrawlSource {
 }
 
 export interface CrawlConfig {
-  maxPages?: number;     // 最大爬取頁數（預設 10）
-  maxDepth?: number;     // 最大爬取深度（預設 2）
-  format?: 'markdown' | 'html' | 'json'; // 內容格式（預設 markdown）
-  waitTime?: number;     // 頁面載入等待時間 ms
-  urlFilter?: string;    // URL 過濾正則（僅爬取匹配的 URL）
+  limit?: number;          // 最大爬取頁數（預設 10，最大 100,000）
+  depth?: number;          // 最大爬取深度（預設 2）
+  formats?: ('markdown' | 'html' | 'json')[]; // 內容格式（預設 ['markdown']）
+  render?: boolean;        // 是否使用 headless browser 渲染（預設 true，false 為快速靜態抓取）
+  source?: 'all' | 'sitemaps' | 'links'; // 連結來源（預設 'all'）
+  includePatterns?: string[]; // URL 包含 pattern（如 ['/docs/**']）
+  excludePatterns?: string[]; // URL 排除 pattern（優先於 include）
+  rejectResourceTypes?: string[]; // 封鎖的資源類型（如 ['image', 'media', 'font']）
+  userAgent?: string;      // 自訂 User-Agent
 }
 
 export interface CrawlPage {
@@ -244,31 +248,46 @@ export interface CrawlPageMetadata {
   headers?: Record<string, string>;
 }
 
-// Cloudflare /crawl API 請求格式
+// Cloudflare /crawl API 請求格式（POST 建立爬取任務）
 export interface CloudflareCrawlRequest {
   url: string;
-  maxPages?: number;
-  maxDepth?: number;
-  idleTime?: number;
-  waitTime?: number;
-  skipHeaders?: boolean;
+  limit?: number;
+  depth?: number;
+  formats?: string[];
+  render?: boolean;
+  source?: string;
+  modifiedSince?: number; // Unix timestamp，增量爬取
+  userAgent?: string;
+  rejectResourceTypes?: string[];
+  options?: {
+    includePatterns?: string[];
+    excludePatterns?: string[];
+  };
 }
 
-// Cloudflare /crawl API 回應格式
-export interface CloudflareCrawlResponse {
+// POST 回應（建立爬取任務）
+export interface CloudflareCrawlJobResponse {
   success: boolean;
-  result: CloudflareCrawlPage[];
+  result: {
+    id: string; // Job ID
+  };
+}
+
+// GET 回應（取得爬取結果，支援 cursor 分頁）
+export interface CloudflareCrawlResultResponse {
+  success: boolean;
+  result: {
+    status: 'running' | 'cancelled_due_to_timeout' | 'cancelled_due_to_limits' | 'cancelled_by_user' | 'completed';
+    data: CloudflareCrawlPage[];
+    cursor?: string; // 下一頁 cursor
+  };
 }
 
 export interface CloudflareCrawlPage {
   url: string;
-  title?: string;
-  text?: string;       // 純文字
-  markdown?: string;   // Markdown 格式
-  html?: string;       // HTML 格式
-  links?: string[];
-  images?: string[];
-  metadata?: Record<string, unknown>;
+  status: 'success' | 'disallowed' | 'skipped' | 'error';
+  result?: string;     // 頁面內容（格式取決於 formats 參數）
+  error?: string;      // 錯誤訊息
 }
 
 // ============================================

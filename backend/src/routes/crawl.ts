@@ -93,11 +93,15 @@ const createSourceSchema = z.object({
   description: z.string().max(500).optional(),
   crawl_config: z
     .object({
-      maxPages: z.number().min(1).max(100).optional(),
-      maxDepth: z.number().min(1).max(5).optional(),
-      format: z.enum(['markdown', 'html', 'json']).optional(),
-      waitTime: z.number().min(1000).max(30000).optional(),
-      urlFilter: z.string().optional(),
+      limit: z.number().min(1).max(100000).optional(),
+      depth: z.number().min(1).max(10).optional(),
+      formats: z.array(z.enum(['markdown', 'html', 'json'])).optional(),
+      render: z.boolean().optional(),
+      source: z.enum(['all', 'sitemaps', 'links']).optional(),
+      includePatterns: z.array(z.string()).optional(),
+      excludePatterns: z.array(z.string()).optional(),
+      rejectResourceTypes: z.array(z.string()).optional(),
+      userAgent: z.string().max(500).optional(),
     })
     .optional(),
   schedule: z.string().max(50).optional(),
@@ -113,7 +117,7 @@ crawlRoutes.post(
     tags: ['Crawl'],
     summary: '建立爬取來源',
     description:
-      '建立新的網頁爬取來源。可設定爬取 URL、深度、頁數等參數。需要管理員權限。',
+      '建立新的網頁爬取來源。使用 Cloudflare Browser Rendering /crawl API（非同步 Job 模式）。可設定爬取 URL、深度、頁數、URL pattern 過濾等參數。需要管理員權限。',
     responses: {
       201: { description: '爬取來源建立成功' },
       400: { description: '請求參數錯誤' },
@@ -147,11 +151,15 @@ const updateSourceSchema = z.object({
   description: z.string().max(500).optional(),
   crawl_config: z
     .object({
-      maxPages: z.number().min(1).max(100).optional(),
-      maxDepth: z.number().min(1).max(5).optional(),
-      format: z.enum(['markdown', 'html', 'json']).optional(),
-      waitTime: z.number().min(1000).max(30000).optional(),
-      urlFilter: z.string().optional(),
+      limit: z.number().min(1).max(100000).optional(),
+      depth: z.number().min(1).max(10).optional(),
+      formats: z.array(z.enum(['markdown', 'html', 'json'])).optional(),
+      render: z.boolean().optional(),
+      source: z.enum(['all', 'sitemaps', 'links']).optional(),
+      includePatterns: z.array(z.string()).optional(),
+      excludePatterns: z.array(z.string()).optional(),
+      rejectResourceTypes: z.array(z.string()).optional(),
+      userAgent: z.string().max(500).optional(),
     })
     .optional(),
   schedule: z.string().max(50).optional(),
