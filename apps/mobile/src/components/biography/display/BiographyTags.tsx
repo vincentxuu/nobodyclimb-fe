@@ -8,7 +8,7 @@ import { StyleSheet, View, Pressable } from 'react-native'
 import { Tag, ChevronDown, ChevronUp, Sparkles } from 'lucide-react-native'
 
 import { Text } from '@/components/ui'
-import { SEMANTIC_COLORS, SPACING, RADIUS } from '@nobodyclimb/constants'
+import { BRAND_YELLOW, RADIUS, SEMANTIC_COLORS, SPACING, WB_COLORS } from '@nobodyclimb/constants'
 
 // 類型定義
 interface TagSelection {
@@ -129,7 +129,7 @@ export function BiographyTags({ biography, mobileLimit = 8 }: BiographyTagsProps
             key={tag.id}
             style={[styles.tag, tag.isCustom && styles.customTag]}
           >
-            {tag.isCustom && <Sparkles size={12} color="#FFE70C" />}
+            {tag.isCustom && <Sparkles size={12} color={BRAND_YELLOW[100]} />}
             <Text
               variant="small"
               fontWeight="500"
@@ -186,7 +186,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 12,
     paddingVertical: 6,
     borderRadius: 16,
-    backgroundColor: '#EBEAEA',
+    backgroundColor: WB_COLORS[20],
   },
   customTag: {
     backgroundColor: 'rgba(255, 231, 12, 0.1)',
@@ -206,7 +206,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 12,
     paddingVertical: 6,
     borderRadius: 16,
-    backgroundColor: '#F5F5F5',
+    backgroundColor: WB_COLORS[10],
   },
 })
 

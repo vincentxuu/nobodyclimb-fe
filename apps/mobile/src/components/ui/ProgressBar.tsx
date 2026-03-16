@@ -10,7 +10,7 @@ import Animated, {
   useSharedValue,
   withTiming,
 } from 'react-native-reanimated'
-import { SEMANTIC_COLORS, DURATION, RADIUS } from '@nobodyclimb/constants'
+import { DURATION, RADIUS, SEMANTIC_COLORS, WB_COLORS } from '@nobodyclimb/constants'
 
 export interface ProgressBarProps {
   /** 進度值 (0-100) */
@@ -32,7 +32,7 @@ export function ProgressBar({
   progress: progressProp,
   height = 8,
   color = SEMANTIC_COLORS.brand,
-  backgroundColor = '#EBEAEA',
+  backgroundColor = WB_COLORS[20],
   animated = true,
 }: ProgressBarProps) {
   // 支援 value 或 progress 作為進度值

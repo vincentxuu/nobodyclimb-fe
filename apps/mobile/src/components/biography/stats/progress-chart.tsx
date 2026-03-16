@@ -11,7 +11,7 @@ import Animated, {
   withTiming,
 } from 'react-native-reanimated'
 import Svg, { Circle } from 'react-native-svg'
-import { SEMANTIC_COLORS, WB_COLORS, BRAND_YELLOW, DURATION } from '@nobodyclimb/constants'
+import { BRAND_YELLOW, DURATION, SEMANTIC_COLORS, WB_COLORS } from '@nobodyclimb/constants'
 import { Text } from '../../ui/Text'
 import { ProgressBar as BaseProgressBar } from '../../ui/ProgressBar'
 
@@ -374,7 +374,7 @@ const styles = StyleSheet.create({
     backgroundColor: WB_COLORS[0],
     borderWidth: 1,
     borderColor: WB_COLORS[20],
-    shadowColor: '#000',
+    shadowColor: WB_COLORS[100],
     shadowOffset: { width: 0, height: 1 },
     shadowOpacity: 0.05,
     shadowRadius: 2,

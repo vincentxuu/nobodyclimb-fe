@@ -9,7 +9,7 @@ import { MapPin, Calendar, ChevronDown, ChevronUp } from 'lucide-react-native'
 import Animated, { FadeInDown, FadeIn } from 'react-native-reanimated'
 
 import { Text, Card } from '@/components/ui'
-import { SEMANTIC_COLORS, SPACING, RADIUS } from '@nobodyclimb/constants'
+import { RADIUS, SEMANTIC_COLORS, SPACING, WB_COLORS } from '@nobodyclimb/constants'
 
 // 類型定義
 interface ClimbingLocationRecord {
@@ -378,7 +378,7 @@ const styles = StyleSheet.create({
     flex: 1,
     alignItems: 'center',
     padding: SPACING.md,
-    backgroundColor: '#F5F5F5',
+    backgroundColor: WB_COLORS[10],
     borderRadius: RADIUS.lg,
   },
   timeline: {
@@ -390,7 +390,7 @@ const styles = StyleSheet.create({
     top: 0,
     bottom: 0,
     width: 2,
-    backgroundColor: '#DBD8D8',
+    backgroundColor: WB_COLORS[30],
   },
   yearSections: {
     gap: SPACING.lg,
@@ -408,7 +408,7 @@ const styles = StyleSheet.create({
     width: 40,
     height: 40,
     borderRadius: 20,
-    backgroundColor: '#EBEAEA',
+    backgroundColor: WB_COLORS[20],
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -418,7 +418,7 @@ const styles = StyleSheet.create({
     gap: SPACING.sm,
   },
   yearBadge: {
-    backgroundColor: '#F5F5F5',
+    backgroundColor: WB_COLORS[10],
     paddingHorizontal: 10,
     paddingVertical: 2,
     borderRadius: 12,
@@ -437,7 +437,7 @@ const styles = StyleSheet.create({
     top: 24,
     bottom: -SPACING.md,
     width: 2,
-    backgroundColor: '#EBEAEA',
+    backgroundColor: WB_COLORS[20],
   },
   dotContainer: {
     position: 'absolute',
@@ -454,7 +454,7 @@ const styles = StyleSheet.create({
     borderRadius: 6,
     borderWidth: 2,
     borderColor: SEMANTIC_COLORS.textSubtle,
-    backgroundColor: '#fff',
+    backgroundColor: WB_COLORS[0],
   },
   locationContent: {
     backgroundColor: 'rgba(255, 255, 255, 0.6)',
@@ -493,7 +493,7 @@ const styles = StyleSheet.create({
     width: 8,
     height: 8,
     borderRadius: 4,
-    backgroundColor: '#DBD8D8',
+    backgroundColor: WB_COLORS[30],
     position: 'absolute',
     left: 8,
   },

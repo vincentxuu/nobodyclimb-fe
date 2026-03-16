@@ -21,7 +21,7 @@ import { GestureDetector, Gesture } from 'react-native-gesture-handler'
 import { Text } from '@/components/ui/Text'
 import { Avatar } from '@/components/ui/Avatar'
 import { IconButton } from '@/components/ui/IconButton'
-import { SEMANTIC_COLORS, SPACING, BORDER_RADIUS, WB_COLORS } from '@nobodyclimb/constants'
+import { BORDER_RADIUS, SEMANTIC_COLORS, SPACING, WB_COLORS } from '@nobodyclimb/constants'
 
 const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get('window')
 
@@ -218,7 +218,7 @@ export function PhotoPopup({
           {/* 關閉按鈕 */}
           <View style={[styles.closeButton, { top: insets.top + SPACING.sm }]}>
             <IconButton
-              icon={<X size={20} color="#FFFFFF" />}
+              icon={<X size={20} color={WB_COLORS[0]} />}
               onPress={onClose}
               variant="ghost"
               style={styles.navButton}
@@ -229,7 +229,7 @@ export function PhotoPopup({
           {hasPrev && onPrev && (
             <View style={styles.prevButton}>
               <IconButton
-                icon={<ChevronLeft size={24} color="#FFFFFF" />}
+                icon={<ChevronLeft size={24} color={WB_COLORS[0]} />}
                 onPress={onPrev}
                 variant="ghost"
                 style={styles.navButton}
@@ -241,7 +241,7 @@ export function PhotoPopup({
           {hasNext && onNext && (
             <View style={styles.nextButton}>
               <IconButton
-                icon={<ChevronRight size={24} color="#FFFFFF" />}
+                icon={<ChevronRight size={24} color={WB_COLORS[0]} />}
                 onPress={onNext}
                 variant="ghost"
                 style={styles.navButton}
@@ -295,7 +295,7 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   whiteText: {
-    color: '#FFFFFF',
+    color: WB_COLORS[0],
   },
   usernameText: {
     color: WB_COLORS[50],

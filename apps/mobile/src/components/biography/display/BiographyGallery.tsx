@@ -17,7 +17,7 @@ import { Camera, X, ChevronLeft, ChevronRight } from 'lucide-react-native'
 import Animated, { FadeIn, FadeInRight } from 'react-native-reanimated'
 
 import { Text } from '@/components/ui'
-import { SEMANTIC_COLORS, SPACING, RADIUS } from '@nobodyclimb/constants'
+import { RADIUS, SEMANTIC_COLORS, SPACING, WB_COLORS } from '@nobodyclimb/constants'
 
 // 類型定義
 interface GalleryImage {
@@ -141,7 +141,7 @@ export function BiographyGallery({
             style={styles.closeButton}
             onPress={() => setSelectedIndex(null)}
           >
-            <X size={28} color="#fff" />
+            <X size={28} color={WB_COLORS[0]} />
           </Pressable>
 
           {/* 圖片 */}
@@ -208,7 +208,7 @@ const styles = StyleSheet.create({
     height: '100%',
   },
   viewAllButton: {
-    backgroundColor: '#EBEAEA',
+    backgroundColor: WB_COLORS[20],
     borderRadius: RADIUS.md,
     alignItems: 'center',
     justifyContent: 'center',
@@ -247,7 +247,7 @@ const styles = StyleSheet.create({
     borderRadius: RADIUS.md,
   },
   captionText: {
-    color: '#fff',
+    color: WB_COLORS[0],
     textAlign: 'center',
   },
   navButtonLeft: {

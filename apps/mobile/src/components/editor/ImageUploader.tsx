@@ -17,7 +17,7 @@ import { ImagePlus, X, Camera, Image as ImageIcon, Trash2 } from 'lucide-react-n
 import Animated, { FadeIn, FadeOut, Layout } from 'react-native-reanimated'
 
 import { Text, IconButton, Button } from '@/components/ui'
-import { SEMANTIC_COLORS, SPACING, RADIUS } from '@nobodyclimb/constants'
+import { RADIUS, SEMANTIC_COLORS, SPACING, WB_COLORS } from '@nobodyclimb/constants'
 
 interface ImageItem {
   id: string
@@ -57,7 +57,7 @@ function ImagePreview({ image, onRemove, index }: ImagePreviewProps) {
         contentFit="cover"
       />
       <Pressable style={styles.removeButton} onPress={onRemove}>
-        <X size={16} color="#FFFFFF" />
+        <X size={16} color={WB_COLORS[0]} />
       </Pressable>
     </Animated.View>
   )
@@ -332,7 +332,7 @@ const styles = StyleSheet.create({
   uploadButton: {
     width: 120,
     height: 100,
-    backgroundColor: '#F5F5F5',
+    backgroundColor: WB_COLORS[10],
     borderRadius: RADIUS.md,
     borderWidth: 2,
     borderColor: '#E0E0E0',

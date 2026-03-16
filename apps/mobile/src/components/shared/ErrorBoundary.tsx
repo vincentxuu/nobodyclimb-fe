@@ -9,7 +9,7 @@ import { YStack } from 'tamagui'
 import { AlertTriangle, RefreshCw } from 'lucide-react-native'
 
 import { Text, Button } from '@/components/ui'
-import { SEMANTIC_COLORS, SPACING } from '@nobodyclimb/constants'
+import { SEMANTIC_COLORS, SPACING, WB_COLORS } from '@nobodyclimb/constants'
 
 interface Props {
   children: ReactNode
@@ -53,7 +53,7 @@ export class ErrorBoundary extends Component<Props, State> {
         <View style={styles.container}>
           <YStack alignItems="center" gap={SPACING.md}>
             <View style={styles.iconContainer}>
-              <AlertTriangle size={48} color="#EF4444" />
+              <AlertTriangle size={48} color={SEMANTIC_COLORS.error} />
             </View>
             <YStack alignItems="center" gap={SPACING.xs}>
               <Text variant="h3">發生錯誤</Text>
@@ -67,7 +67,7 @@ export class ErrorBoundary extends Component<Props, State> {
               style={styles.retryButton}
             >
               <View style={styles.buttonContent}>
-                <RefreshCw size={16} color="#FFFFFF" />
+                <RefreshCw size={16} color={WB_COLORS[0]} />
                 <Text style={styles.buttonText}>重試</Text>
               </View>
             </Button>
@@ -111,7 +111,7 @@ const styles = StyleSheet.create({
     gap: 8,
   },
   buttonText: {
-    color: '#FFFFFF',
+    color: WB_COLORS[0],
     fontWeight: '500',
   },
   errorDetails: {

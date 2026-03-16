@@ -9,7 +9,7 @@ import Animated, { FadeIn } from 'react-native-reanimated'
 
 import { Text } from '@/components/ui'
 import { ContentInteractionBar } from '../display/ContentInteractionBar'
-import { SEMANTIC_COLORS, SPACING, RADIUS } from '@nobodyclimb/constants'
+import { BRAND_YELLOW, RADIUS, SEMANTIC_COLORS, SPACING } from '@nobodyclimb/constants'
 
 /** 預設的攀岩意義文字 */
 const DEFAULT_CLIMBING_MEANING = '這題還在想，等我爬完這條再說'
@@ -172,7 +172,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   chapterBadge: {
-    backgroundColor: '#FFE70C',
+    backgroundColor: BRAND_YELLOW[100],
     paddingHorizontal: SPACING.sm,
     paddingVertical: 2,
     marginBottom: SPACING.sm,

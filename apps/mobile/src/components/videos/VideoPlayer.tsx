@@ -20,7 +20,7 @@ import {
 } from 'react-native'
 import { X, ExternalLink, Play } from 'lucide-react-native'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
-import { SEMANTIC_COLORS, SPACING, BORDER_RADIUS } from '@nobodyclimb/constants'
+import { BORDER_RADIUS, SEMANTIC_COLORS, SPACING, WB_COLORS } from '@nobodyclimb/constants'
 import { Text } from '@/components/ui/Text'
 import { IconButton } from '@/components/ui/IconButton'
 import { Button } from '@/components/ui/Button'
@@ -115,7 +115,7 @@ export function VideoPlayer({ video, onClose, visible }: VideoPlayerProps) {
               />
               <View style={styles.fallbackOverlay}>
                 <View style={styles.fallbackPlayButton}>
-                  <Play size={48} color="#FFFFFF" fill="#FFFFFF" />
+                  <Play size={48} color={WB_COLORS[0]} fill={WB_COLORS[0]} />
                 </View>
                 <Text variant="body" style={styles.fallbackText}>
                   點擊在 YouTube 上觀看
@@ -194,7 +194,7 @@ export function VideoPlayer({ video, onClose, visible }: VideoPlayerProps) {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#000000',
+    backgroundColor: WB_COLORS[100],
   },
   header: {
     flexDirection: 'row',
@@ -204,11 +204,11 @@ const styles = StyleSheet.create({
   },
   videoContainer: {
     width: '100%',
-    backgroundColor: '#000000',
+    backgroundColor: WB_COLORS[100],
   },
   webview: {
     flex: 1,
-    backgroundColor: '#000000',
+    backgroundColor: WB_COLORS[100],
   },
   infoContainer: {
     flex: 1,
@@ -218,7 +218,7 @@ const styles = StyleSheet.create({
     padding: SPACING[4],
   },
   title: {
-    color: '#FFFFFF',
+    color: WB_COLORS[0],
     marginBottom: SPACING[2],
   },
   meta: {
@@ -280,7 +280,7 @@ const styles = StyleSheet.create({
     marginBottom: SPACING[4],
   },
   fallbackText: {
-    color: '#FFFFFF',
+    color: WB_COLORS[0],
   },
 })
 

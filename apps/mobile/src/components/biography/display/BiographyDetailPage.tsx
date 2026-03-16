@@ -15,7 +15,7 @@ import { BiographyGallery } from './BiographyGallery'
 import { BiographyCoreStories } from './BiographyCoreStories'
 import { EmptyState } from './EmptyState'
 import { PrivateEmptyState } from './PrivateEmptyState'
-import { SPACING } from '@nobodyclimb/constants'
+import { SPACING, WB_COLORS } from '@nobodyclimb/constants'
 
 // 類型定義
 interface SocialLinks {
@@ -173,7 +173,7 @@ export function BiographyDetailPage({
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#F5F5F5',
+    backgroundColor: WB_COLORS[10],
   },
   contentContainer: {
     paddingHorizontal: SPACING.md,

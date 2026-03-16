@@ -27,7 +27,7 @@ import { Label } from '@/components/ui/Label'
 import { IconButton } from '@/components/ui/IconButton'
 import { ProgressBar } from '@/components/ui/ProgressBar'
 import { Dialog } from '@/components/ui/Dialog'
-import { SEMANTIC_COLORS, SPACING, BORDER_RADIUS, WB_COLORS } from '@nobodyclimb/constants'
+import { BORDER_RADIUS, SEMANTIC_COLORS, SPACING, WB_COLORS } from '@nobodyclimb/constants'
 import type { GalleryPhoto } from '@nobodyclimb/types'
 
 // 檔案驗證常數
@@ -397,13 +397,13 @@ export function UploadPhotoDialog({
                           status.status === 'error' && styles.errorOverlay,
                         ]}>
                           {status.status === 'uploading' && (
-                            <Loader2 size={20} color="#FFFFFF" />
+                            <Loader2 size={20} color={WB_COLORS[0]} />
                           )}
                           {status.status === 'success' && (
-                            <CheckCircle size={20} color="#FFFFFF" />
+                            <CheckCircle size={20} color={WB_COLORS[0]} />
                           )}
                           {status.status === 'error' && (
-                            <AlertCircle size={20} color="#FFFFFF" />
+                            <AlertCircle size={20} color={WB_COLORS[0]} />
                           )}
                         </View>
                       )}
@@ -413,7 +413,7 @@ export function UploadPhotoDialog({
                           onPress={() => removeFile(fileItem.id)}
                           style={styles.removeButton}
                         >
-                          <X size={12} color="#FFFFFF" />
+                          <X size={12} color={WB_COLORS[0]} />
                         </Pressable>
                       )}
                     </View>

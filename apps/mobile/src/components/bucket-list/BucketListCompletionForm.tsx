@@ -9,7 +9,7 @@ import { StyleSheet, View, ScrollView, Pressable } from 'react-native'
 import { useForm, Controller } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { Check, X, Plus, Youtube, Image as ImageIcon } from 'lucide-react-native'
-import { SEMANTIC_COLORS, SPACING, RADIUS } from '@nobodyclimb/constants'
+import { RADIUS, SEMANTIC_COLORS, SPACING, WB_COLORS } from '@nobodyclimb/constants'
 import { completeBucketListSchema, type CompleteBucketListInput } from '@nobodyclimb/schemas'
 import type { BucketListItem } from '@nobodyclimb/types'
 import { Text } from '../ui/Text'
@@ -394,7 +394,7 @@ function extractInstagramShortcode(url: string): string | null {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#FFFFFF',
+    backgroundColor: WB_COLORS[0],
   },
   header: {
     flexDirection: 'row',
@@ -417,7 +417,7 @@ const styles = StyleSheet.create({
   section: {
     padding: SPACING[4],
     borderBottomWidth: 1,
-    borderBottomColor: '#EBEAEA',
+    borderBottomColor: WB_COLORS[20],
   },
   labelRow: {
     flexDirection: 'row',
@@ -436,7 +436,7 @@ const styles = StyleSheet.create({
     marginTop: SPACING[4],
     padding: SPACING[3],
     borderWidth: 1,
-    borderColor: '#EBEAEA',
+    borderColor: WB_COLORS[20],
     borderRadius: RADIUS.md,
   },
   mediaHeader: {
@@ -459,7 +459,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    backgroundColor: '#F5F5F5',
+    backgroundColor: WB_COLORS[10],
     paddingHorizontal: SPACING[3],
     paddingVertical: SPACING[2],
     borderRadius: RADIUS.sm,
@@ -494,6 +494,6 @@ const styles = StyleSheet.create({
     padding: SPACING[4],
     gap: SPACING[3],
     borderTopWidth: 1,
-    borderTopColor: '#EBEAEA',
+    borderTopColor: WB_COLORS[20],
   },
 })

@@ -10,7 +10,7 @@ import Animated, { FadeIn, FadeInDown } from 'react-native-reanimated'
 
 import { Text } from '@/components/ui'
 import { ContentInteractionBar } from '../display/ContentInteractionBar'
-import { SEMANTIC_COLORS, SPACING } from '@nobodyclimb/constants'
+import { BRAND_YELLOW, SEMANTIC_COLORS, SPACING } from '@nobodyclimb/constants'
 
 interface CoreStory {
   id: string
@@ -169,7 +169,7 @@ const styles = StyleSheet.create({
   },
   chapterBadge: {
     alignSelf: 'flex-start',
-    backgroundColor: '#FFE70C',
+    backgroundColor: BRAND_YELLOW[100],
     paddingHorizontal: SPACING.sm,
     paddingVertical: 2,
     marginBottom: SPACING.sm,

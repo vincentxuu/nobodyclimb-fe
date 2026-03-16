@@ -11,7 +11,7 @@ import Animated, {
   withTiming,
 } from 'react-native-reanimated'
 import { XStack, YStack } from 'tamagui'
-import { SEMANTIC_COLORS, FONT_SIZE, DURATION } from '@nobodyclimb/constants'
+import { DURATION, FONT_SIZE, SEMANTIC_COLORS, WB_COLORS } from '@nobodyclimb/constants'
 import { Text } from './Text'
 
 // Context
@@ -82,7 +82,7 @@ export interface TabsListProps {
 export function TabsList({ children }: TabsListProps) {
   return (
     <XStack
-      backgroundColor="#F5F5F5"
+      backgroundColor={WB_COLORS[10]}
       borderRadius={8}
       padding={4}
       alignItems="center"
@@ -181,7 +181,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   triggerActive: {
-    backgroundColor: '#FFFFFF',
+    backgroundColor: WB_COLORS[0],
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 1 },
     shadowOpacity: 0.1,

@@ -24,7 +24,7 @@ import Animated, {
 } from 'react-native-reanimated'
 
 import { Text, Spinner, Avatar } from '@/components/ui'
-import { SEMANTIC_COLORS, SPACING, BORDER_RADIUS, BRAND_YELLOW } from '@nobodyclimb/constants'
+import { BORDER_RADIUS, BRAND_YELLOW, SEMANTIC_COLORS, SPACING, WB_COLORS } from '@nobodyclimb/constants'
 
 const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get('window')
 const HERO_HEIGHT = SCREEN_HEIGHT * 0.65
@@ -289,13 +289,13 @@ export function HeroArticle() {
             style={[styles.navButton, styles.navButtonLeft]}
             onPress={prevSlide}
           >
-            <ChevronLeft size={24} color="#FFFFFF" />
+            <ChevronLeft size={24} color={WB_COLORS[0]} />
           </Pressable>
           <Pressable
             style={[styles.navButton, styles.navButtonRight]}
             onPress={nextSlide}
           >
-            <ChevronRight size={24} color="#FFFFFF" />
+            <ChevronRight size={24} color={WB_COLORS[0]} />
           </Pressable>
         </>
       )}
@@ -352,7 +352,7 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 28,
     fontWeight: '700',
-    color: '#FFFFFF',
+    color: WB_COLORS[0],
     lineHeight: 36,
     marginBottom: SPACING[4],
   },
@@ -363,7 +363,7 @@ const styles = StyleSheet.create({
   },
   authorName: {
     fontSize: 14,
-    color: '#FFFFFF',
+    color: WB_COLORS[0],
   },
   dotsContainer: {
     position: 'absolute',
@@ -379,7 +379,7 @@ const styles = StyleSheet.create({
   },
   dotActive: {
     width: 32,
-    backgroundColor: '#FFFFFF',
+    backgroundColor: WB_COLORS[0],
   },
   dotInactive: {
     width: 8,
@@ -415,7 +415,7 @@ const styles = StyleSheet.create({
   fallbackTitle: {
     fontSize: 32,
     fontWeight: '700',
-    color: '#FFFFFF',
+    color: WB_COLORS[0],
     textAlign: 'center',
     marginBottom: SPACING[4],
   },

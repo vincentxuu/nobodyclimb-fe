@@ -2,7 +2,7 @@ import React, { useState, useMemo } from 'react'
 import { View, Pressable } from 'react-native'
 import { Text } from '../ui/Text'
 import { Icon } from '../ui/Icon'
-import { COLORS, SEMANTIC_COLORS } from '@nobodyclimb/constants'
+import { COLORS, SEMANTIC_COLORS, WB_COLORS } from '@nobodyclimb/constants'
 
 interface ProfileTextDisplayProps {
   text: string
@@ -48,7 +48,7 @@ export default function ProfileTextDisplay({
           width: '100%',
           borderRadius: 4,
           borderWidth: 1,
-          borderColor: '#B6B3B3',
+          borderColor: WB_COLORS[50],
           backgroundColor: COLORS.white,
           padding: 12,
           minHeight,
@@ -105,7 +105,7 @@ export default function ProfileTextDisplay({
         width: '100%',
         borderRadius: 4,
         borderWidth: 1,
-        borderColor: '#B6B3B3',
+        borderColor: WB_COLORS[50],
         backgroundColor: COLORS.white,
         padding: 12,
         minHeight,

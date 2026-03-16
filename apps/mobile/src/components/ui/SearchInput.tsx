@@ -6,7 +6,7 @@
 import React, { useCallback } from 'react'
 import { StyleSheet, TextInput, View, Pressable } from 'react-native'
 import { Search, X } from 'lucide-react-native'
-import { SEMANTIC_COLORS, FONT_SIZE, SPACING } from '@nobodyclimb/constants'
+import { FONT_SIZE, SEMANTIC_COLORS, SPACING, WB_COLORS } from '@nobodyclimb/constants'
 
 export interface SearchInputProps {
   /** 輸入值 */
@@ -80,7 +80,7 @@ const styles = StyleSheet.create({
   container: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#FFFFFF',
+    backgroundColor: WB_COLORS[0],
     borderWidth: 1,
     borderColor: SEMANTIC_COLORS.textMain,
     borderRadius: 4,

@@ -18,7 +18,7 @@ import Animated, { FadeIn, useSharedValue, useAnimatedStyle, withTiming } from '
 
 import { Text } from '@/components/ui/Text'
 import { Avatar } from '@/components/ui/Avatar'
-import { SEMANTIC_COLORS, SPACING, BORDER_RADIUS, WB_COLORS } from '@nobodyclimb/constants'
+import { BORDER_RADIUS, SEMANTIC_COLORS, SPACING, WB_COLORS } from '@nobodyclimb/constants'
 import type { GalleryPhoto } from '@nobodyclimb/types'
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window')
@@ -138,7 +138,7 @@ function PhotoCard({ photo, index, onPress }: PhotoCardProps) {
           {/* Location info at bottom */}
           {hasLocation && (
             <View style={styles.locationInfo}>
-              <MapPin size={12} color="#FFFFFF" />
+              <MapPin size={12} color={WB_COLORS[0]} />
               <Text
                 variant="small"
                 style={styles.locationText}
@@ -252,7 +252,7 @@ const styles = StyleSheet.create({
     gap: SPACING.xs,
   },
   authorName: {
-    color: '#FFFFFF',
+    color: WB_COLORS[0],
     flex: 1,
   },
   locationInfo: {
@@ -261,18 +261,18 @@ const styles = StyleSheet.create({
     gap: 4,
   },
   locationText: {
-    color: '#FFFFFF',
+    color: WB_COLORS[0],
     flex: 1,
   },
   locationDot: {
     width: 4,
     height: 4,
     borderRadius: 2,
-    backgroundColor: '#FFFFFF',
+    backgroundColor: WB_COLORS[0],
     marginHorizontal: 4,
   },
   locationSpot: {
-    color: '#FFFFFF',
+    color: WB_COLORS[0],
     fontWeight: '600',
   },
 })

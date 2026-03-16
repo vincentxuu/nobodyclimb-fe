@@ -8,7 +8,7 @@ import { StyleSheet, View, ScrollView, Pressable } from 'react-native'
 import { Search, X } from 'lucide-react-native'
 
 import { Text, Input } from '@/components/ui'
-import { SEMANTIC_COLORS, SPACING } from '@nobodyclimb/constants'
+import { SEMANTIC_COLORS, SPACING, WB_COLORS } from '@nobodyclimb/constants'
 import { GRADE_FILTERS, TYPE_FILTERS } from '@/lib/crag-data'
 
 interface RouteListFilterProps {
@@ -227,18 +227,18 @@ const styles = StyleSheet.create({
     paddingHorizontal: SPACING.sm,
     paddingVertical: 6,
     borderRadius: 16,
-    backgroundColor: '#F5F5F5',
+    backgroundColor: WB_COLORS[10],
     borderWidth: 1,
     borderColor: 'transparent',
   },
   chipSelected: {
-    backgroundColor: '#1B1A1A',
-    borderColor: '#1B1A1A',
+    backgroundColor: WB_COLORS[100],
+    borderColor: WB_COLORS[100],
   },
   chipText: {
     color: SEMANTIC_COLORS.textSubtle,
   },
   chipTextSelected: {
-    color: '#FFFFFF',
+    color: WB_COLORS[0],
   },
 })

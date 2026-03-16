@@ -9,7 +9,7 @@ import { Instagram, Youtube, ExternalLink } from 'lucide-react-native'
 import { LinearGradient } from 'expo-linear-gradient'
 
 import { Text } from '@/components/ui'
-import { SPACING, RADIUS } from '@nobodyclimb/constants'
+import { RADIUS, SPACING, WB_COLORS } from '@nobodyclimb/constants'
 
 interface BiographySocialLinks {
   instagram?: string
@@ -55,7 +55,7 @@ export function SocialLinksSection({ socialLinks, style }: SocialLinksSectionPro
             end={{ x: 1, y: 0 }}
             style={styles.instagramButton}
           >
-            <Instagram size={16} color="#fff" />
+            <Instagram size={16} color={WB_COLORS[0]} />
             <Text style={styles.buttonText}>@{instagram}</Text>
             <ExternalLink size={12} color="rgba(255,255,255,0.7)" />
           </LinearGradient>
@@ -64,7 +64,7 @@ export function SocialLinksSection({ socialLinks, style }: SocialLinksSectionPro
 
       {youtubeHandle && (
         <Pressable style={styles.youtubeButton} onPress={openYouTube}>
-          <Youtube size={16} color="#fff" />
+          <Youtube size={16} color={WB_COLORS[0]} />
           <Text style={styles.buttonText}>{formatYouTubeHandle(youtubeHandle)}</Text>
           <ExternalLink size={12} color="rgba(255,255,255,0.7)" />
         </Pressable>
@@ -111,14 +111,14 @@ export function CompactSocialLinks({ socialLinks, style }: CompactSocialLinksPro
             end={{ x: 1, y: 0 }}
             style={styles.compactButton}
           >
-            <Instagram size={16} color="#fff" />
+            <Instagram size={16} color={WB_COLORS[0]} />
           </LinearGradient>
         </Pressable>
       )}
 
       {youtubeHandle && (
         <Pressable style={styles.compactYoutubeButton} onPress={openYouTube}>
-          <Youtube size={16} color="#fff" />
+          <Youtube size={16} color={WB_COLORS[0]} />
         </Pressable>
       )}
     </View>
@@ -171,7 +171,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#DC2626',
   },
   buttonText: {
-    color: '#fff',
+    color: WB_COLORS[0],
     fontSize: 14,
     fontWeight: '500',
   },

@@ -7,7 +7,7 @@ import React from 'react'
 import { StyleSheet, View } from 'react-native'
 import { User } from 'lucide-react-native'
 
-import { SEMANTIC_COLORS, SPACING } from '@nobodyclimb/constants'
+import { SEMANTIC_COLORS, SPACING, WB_COLORS } from '@nobodyclimb/constants'
 
 interface AnonymousAvatarProps {
   /** 頭像尺寸 */
@@ -52,7 +52,7 @@ export function AnonymousAvatar({ size = 'md', style }: AnonymousAvatarProps) {
 
 const styles = StyleSheet.create({
   container: {
-    backgroundColor: '#EBEAEA',
+    backgroundColor: WB_COLORS[20],
     alignItems: 'center',
     justifyContent: 'center',
   },

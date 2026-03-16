@@ -12,7 +12,7 @@ import Animated, {
   withSpring,
 } from 'react-native-reanimated'
 import { Check } from 'lucide-react-native'
-import { SEMANTIC_COLORS, DURATION, RADIUS } from '@nobodyclimb/constants'
+import { DURATION, RADIUS, SEMANTIC_COLORS, WB_COLORS } from '@nobodyclimb/constants'
 
 export interface CheckboxProps {
   /** 是否選中 */
@@ -83,7 +83,7 @@ export function Checkbox({
         ]}
       >
         <Animated.View style={checkStyle}>
-          <Check size={iconSize} color="#FFFFFF" strokeWidth={3} />
+          <Check size={iconSize} color={WB_COLORS[0]} strokeWidth={3} />
         </Animated.View>
       </Pressable>
     </Animated.View>

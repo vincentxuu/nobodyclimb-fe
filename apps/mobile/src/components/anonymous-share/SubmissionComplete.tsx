@@ -11,7 +11,7 @@ import { Check, Sparkles } from 'lucide-react-native'
 import Animated, { FadeIn, SlideInUp } from 'react-native-reanimated'
 
 import { Text, Button } from '@/components/ui'
-import { SEMANTIC_COLORS, SPACING, BORDER_RADIUS } from '@nobodyclimb/constants'
+import { BORDER_RADIUS, SEMANTIC_COLORS, SPACING, WB_COLORS } from '@nobodyclimb/constants'
 
 interface SubmissionCompleteProps {
   slug: string
@@ -113,7 +113,7 @@ const styles = StyleSheet.create({
     borderRadius: BORDER_RADIUS.xl,
     padding: SPACING[6],
     alignItems: 'center',
-    shadowColor: '#000',
+    shadowColor: WB_COLORS[100],
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.1,
     shadowRadius: 12,

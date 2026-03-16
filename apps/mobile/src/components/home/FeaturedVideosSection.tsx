@@ -12,7 +12,7 @@ import Animated, { FadeInRight } from 'react-native-reanimated'
 
 import { Text, Button, Skeleton } from '@/components/ui'
 import { FadeIn, SlideUp } from '@/components/animation'
-import { SEMANTIC_COLORS, SPACING, BORDER_RADIUS, WB_COLORS } from '@nobodyclimb/constants'
+import { BORDER_RADIUS, SEMANTIC_COLORS, SPACING, WB_COLORS } from '@nobodyclimb/constants'
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window')
 const CARD_WIDTH = SCREEN_WIDTH * 0.7
@@ -226,10 +226,10 @@ const styles = StyleSheet.create({
     width: CARD_WIDTH,
   },
   videoCard: {
-    backgroundColor: '#FFFFFF',
+    backgroundColor: WB_COLORS[0],
     borderRadius: BORDER_RADIUS.lg,
     overflow: 'hidden',
-    shadowColor: '#000',
+    shadowColor: WB_COLORS[100],
     shadowOffset: { width: 0, height: 1 },
     shadowOpacity: 0.05,
     shadowRadius: 2,
@@ -258,7 +258,7 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgba(255, 255, 255, 0.9)',
     alignItems: 'center',
     justifyContent: 'center',
-    shadowColor: '#000',
+    shadowColor: WB_COLORS[100],
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
     shadowRadius: 4,
@@ -276,7 +276,7 @@ const styles = StyleSheet.create({
   durationText: {
     fontSize: 12,
     fontWeight: '500',
-    color: '#FFFFFF',
+    color: WB_COLORS[0],
   },
   videoInfo: {
     padding: SPACING[4],

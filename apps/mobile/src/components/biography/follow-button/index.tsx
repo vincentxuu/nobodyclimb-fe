@@ -11,7 +11,7 @@ import { useRouter } from 'expo-router'
 import { Text } from '@/components/ui'
 import { useAuthStore } from '@/store/authStore'
 import { biographyService } from '@/lib/biographyService'
-import { SEMANTIC_COLORS, SPACING, RADIUS, BRAND_YELLOW } from '@nobodyclimb/constants'
+import { BRAND_YELLOW, RADIUS, SEMANTIC_COLORS, SPACING, WB_COLORS } from '@nobodyclimb/constants'
 
 interface FollowButtonProps {
   biographyId: string
@@ -83,7 +83,7 @@ export function FollowButton({
       disabled={isLoading}
     >
       {isLoading ? (
-        <ActivityIndicator size="small" color={isFollowing ? SEMANTIC_COLORS.textMain : '#fff'} />
+        <ActivityIndicator size="small" color={isFollowing ? SEMANTIC_COLORS.textMain : WB_COLORS[0]} />
       ) : isFollowing ? (
         <>
           <UserMinus size={16} color={SEMANTIC_COLORS.textMain} />
@@ -91,7 +91,7 @@ export function FollowButton({
         </>
       ) : (
         <>
-          <UserPlus size={16} color="#fff" />
+          <UserPlus size={16} color={WB_COLORS[0]} />
           <Text style={styles.textPrimary}>追蹤</Text>
         </>
       )}
@@ -134,7 +134,7 @@ const styles = StyleSheet.create({
     backgroundColor: BRAND_YELLOW[100],
   },
   buttonSecondary: {
-    backgroundColor: '#F5F5F5',
+    backgroundColor: WB_COLORS[10],
     borderWidth: 1,
     borderColor: '#E0E0E0',
   },

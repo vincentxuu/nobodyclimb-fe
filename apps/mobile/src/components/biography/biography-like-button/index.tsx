@@ -90,8 +90,8 @@ export function BiographyLikeButton({
       ) : (
         <Mountain
           size={16}
-          color={isLiked ? '#10B981' : SEMANTIC_COLORS.textMuted}
-          fill={isLiked ? '#10B981' : 'transparent'}
+          color={isLiked ? SEMANTIC_COLORS.success : SEMANTIC_COLORS.textMuted}
+          fill={isLiked ? SEMANTIC_COLORS.success : 'transparent'}
         />
       )}
       {showCount && (
@@ -123,7 +123,7 @@ const styles = StyleSheet.create({
     color: SEMANTIC_COLORS.textMuted,
   },
   countLiked: {
-    color: '#10B981',
+    color: SEMANTIC_COLORS.success,
   },
 })
 

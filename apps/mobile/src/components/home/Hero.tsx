@@ -19,7 +19,7 @@ import Animated, {
 } from 'react-native-reanimated'
 
 import { Text } from '@/components/ui'
-import { SPACING } from '@nobodyclimb/constants'
+import { SPACING, WB_COLORS } from '@nobodyclimb/constants'
 
 const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get('window')
 
@@ -82,7 +82,7 @@ export function Hero() {
           entering={FadeInUp.delay(500).duration(700)}
           style={[styles.arrowContainer, arrowAnimatedStyle]}
         >
-          <ArrowDown size={24} color="#FFFFFF" />
+          <ArrowDown size={24} color={WB_COLORS[0]} />
         </Animated.View>
       </LinearGradient>
     </View>
@@ -106,19 +106,19 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 32,
     fontWeight: '700',
-    color: '#FFFFFF',
+    color: WB_COLORS[0],
     letterSpacing: 4,
   },
   logoText: {
     fontSize: 40,
     fontWeight: '700',
-    color: '#FFFFFF',
+    color: WB_COLORS[0],
     letterSpacing: 2,
     marginVertical: SPACING.sm,
   },
   subtitle: {
     fontSize: 14,
-    color: '#FFFFFF',
+    color: WB_COLORS[0],
     textAlign: 'center',
     lineHeight: 24,
     opacity: 0.9,

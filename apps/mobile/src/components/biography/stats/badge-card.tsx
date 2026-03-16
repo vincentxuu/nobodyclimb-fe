@@ -6,7 +6,7 @@
 import React from 'react'
 import { View, StyleSheet, type ViewStyle } from 'react-native'
 import { Check } from 'lucide-react-native'
-import { WB_COLORS, SEMANTIC_COLORS } from '@nobodyclimb/constants'
+import { SEMANTIC_COLORS, WB_COLORS } from '@nobodyclimb/constants'
 import { Text } from '../../ui/Text'
 import { ProgressBar } from '../../ui/ProgressBar'
 import {
@@ -154,7 +154,7 @@ const styles = StyleSheet.create({
     borderWidth: 1,
   },
   containerUnlocked: {
-    shadowColor: '#000',
+    shadowColor: WB_COLORS[100],
     shadowOffset: { width: 0, height: 1 },
     shadowOpacity: 0.05,
     shadowRadius: 2,

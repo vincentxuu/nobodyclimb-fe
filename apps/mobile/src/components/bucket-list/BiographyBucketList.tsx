@@ -8,7 +8,7 @@ import React, { useState, useMemo, useCallback } from 'react'
 import { StyleSheet, View, ScrollView, Pressable } from 'react-native'
 import { useQuery } from '@tanstack/react-query'
 import { Check, CheckCircle2, ChevronRight, ChevronDown } from 'lucide-react-native'
-import { SEMANTIC_COLORS, SPACING, RADIUS } from '@nobodyclimb/constants'
+import { RADIUS, SEMANTIC_COLORS, SPACING, WB_COLORS } from '@nobodyclimb/constants'
 import { apiClient } from '@/lib/api'
 import type { BucketListItem } from '@nobodyclimb/types'
 import { Text } from '../ui/Text'
@@ -252,7 +252,7 @@ const styles = StyleSheet.create({
     width: 320,
   },
   completedCard: {
-    backgroundColor: '#FFFFFF',
+    backgroundColor: WB_COLORS[0],
     borderRadius: RADIUS.lg,
     borderWidth: 1,
     borderColor: `${SEMANTIC_COLORS.brand}4D`,
@@ -295,11 +295,11 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'space-between',
     padding: SPACING[4],
-    backgroundColor: '#FFFFFF',
+    backgroundColor: WB_COLORS[0],
   },
   storyContent: {
     padding: SPACING[4],
-    backgroundColor: '#FFFFFF',
+    backgroundColor: WB_COLORS[0],
     gap: SPACING[4],
   },
   storyBlock: {

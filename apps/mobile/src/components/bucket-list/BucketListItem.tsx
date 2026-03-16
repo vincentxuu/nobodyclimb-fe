@@ -23,7 +23,7 @@ import {
   Activity,
 } from 'lucide-react-native'
 import type { LucideIcon } from 'lucide-react-native'
-import { SEMANTIC_COLORS, SPACING, RADIUS } from '@nobodyclimb/constants'
+import { RADIUS, SEMANTIC_COLORS, SPACING, WB_COLORS } from '@nobodyclimb/constants'
 import type { BucketListItem as BucketListItemType, BucketListCategory } from '@nobodyclimb/types'
 import { Text } from '../ui/Text'
 import { Button } from '../ui/Button'
@@ -385,10 +385,10 @@ export function AddBucketListButton({ onPress }: AddBucketListButtonProps) {
 
 const styles = StyleSheet.create({
   card: {
-    backgroundColor: '#FFFFFF',
+    backgroundColor: WB_COLORS[0],
     borderRadius: RADIUS.lg,
     borderWidth: 1,
-    borderColor: '#EBEAEA',
+    borderColor: WB_COLORS[20],
     overflow: 'hidden',
     marginBottom: SPACING[3],
   },
@@ -422,7 +422,7 @@ const styles = StyleSheet.create({
   categoryBadge: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#F5F5F5',
+    backgroundColor: WB_COLORS[10],
     paddingHorizontal: SPACING[2],
     paddingVertical: SPACING[1],
     borderRadius: RADIUS.full,
@@ -470,11 +470,11 @@ const styles = StyleSheet.create({
     position: 'absolute',
     top: 28,
     right: 0,
-    backgroundColor: '#FFFFFF',
+    backgroundColor: WB_COLORS[0],
     borderRadius: RADIUS.md,
     borderWidth: 1,
-    borderColor: '#EBEAEA',
-    shadowColor: '#000',
+    borderColor: WB_COLORS[20],
+    shadowColor: WB_COLORS[100],
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
     shadowRadius: 4,

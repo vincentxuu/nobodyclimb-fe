@@ -171,7 +171,7 @@ export default function AdvancedStoriesSection({
                             <Icon
                               icon={Check}
                               size="xs"
-                              color="#10B981"
+                              color={SEMANTIC_COLORS.success}
                             />
                           )}
                         </View>

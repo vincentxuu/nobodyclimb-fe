@@ -14,7 +14,7 @@ import {
   TrendingUp,
   User,
 } from 'lucide-react-native'
-import { SEMANTIC_COLORS, WB_COLORS, BRAND_YELLOW } from '@nobodyclimb/constants'
+import { BRAND_YELLOW, SEMANTIC_COLORS, WB_COLORS } from '@nobodyclimb/constants'
 import type { CommunityStats, LeaderboardItem } from '@nobodyclimb/types'
 import { Text } from '../../ui/Text'
 import { StatCard, BarChart, CircularProgress } from './progress-chart'
@@ -43,7 +43,7 @@ export function CommunityStatsOverview({ stats, style }: CommunityStatsOverviewP
         <StatCard
           value={stats.total_biographies}
           label="人物誌總數"
-          icon={<Users size={20} color="#3b82f6" />}
+          icon={<Users size={20} color={SEMANTIC_COLORS.info} />}
           color="#dbeafe"
           style={styles.statCardItem}
         />
@@ -125,7 +125,7 @@ export function CommunityStatsOverview({ stats, style }: CommunityStatsOverviewP
               data={stats.trending_categories.map((cat, index) => ({
                 label: cat.category,
                 value: cat.count,
-                color: ['#3b82f6', '#22c55e', '#eab308', '#a855f7', '#ec4899'][index % 5],
+                color: [SEMANTIC_COLORS.info, '#22c55e', '#eab308', '#a855f7', '#ec4899'][index % 5],
               }))}
               showValues
               style={styles.barChart}
@@ -339,7 +339,7 @@ const styles = StyleSheet.create({
     borderRadius: 8,
     borderWidth: 1,
     borderColor: WB_COLORS[20],
-    shadowColor: '#000',
+    shadowColor: WB_COLORS[100],
     shadowOffset: { width: 0, height: 1 },
     shadowOpacity: 0.05,
     shadowRadius: 2,
@@ -385,7 +385,7 @@ const styles = StyleSheet.create({
     borderRadius: 8,
     borderWidth: 1,
     borderColor: WB_COLORS[20],
-    shadowColor: '#000',
+    shadowColor: WB_COLORS[100],
     shadowOffset: { width: 0, height: 1 },
     shadowOpacity: 0.05,
     shadowRadius: 2,

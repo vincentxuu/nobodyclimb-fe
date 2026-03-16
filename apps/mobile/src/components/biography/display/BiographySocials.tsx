@@ -9,7 +9,7 @@ import { Link2, Globe } from 'lucide-react-native'
 import Svg, { Path } from 'react-native-svg'
 
 import { Text } from '@/components/ui'
-import { SEMANTIC_COLORS, SPACING, RADIUS } from '@nobodyclimb/constants'
+import { RADIUS, SEMANTIC_COLORS, SPACING, WB_COLORS } from '@nobodyclimb/constants'
 
 // 類型定義
 interface SocialLinks {
@@ -186,8 +186,8 @@ const styles = StyleSheet.create({
     paddingVertical: SPACING.sm,
     borderRadius: RADIUS.md,
     borderWidth: 1,
-    borderColor: '#DBD8D8',
-    backgroundColor: '#fff',
+    borderColor: WB_COLORS[30],
+    backgroundColor: WB_COLORS[0],
   },
 })
 

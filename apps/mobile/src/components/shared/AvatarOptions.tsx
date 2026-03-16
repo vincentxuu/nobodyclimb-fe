@@ -12,7 +12,7 @@ import Animated, {
   withSpring,
 } from 'react-native-reanimated'
 
-import { SPACING } from '@nobodyclimb/constants'
+import { BRAND_YELLOW, SPACING, WB_COLORS } from '@nobodyclimb/constants'
 
 const AnimatedPressable = Animated.createAnimatedComponent(Pressable)
 
@@ -20,33 +20,33 @@ const AnimatedPressable = Animated.createAnimatedComponent(Pressable)
 export const DEFAULT_AVATARS = [
   {
     id: 'default1',
-    bgColor: '#EBEAEA',
-    fgColor: '#B6B3B3',
+    bgColor: WB_COLORS[20],
+    fgColor: WB_COLORS[50],
   },
   {
     id: 'default2',
-    bgColor: '#FFE70C',
-    fgColor: '#EBEAEA',
+    bgColor: BRAND_YELLOW[100],
+    fgColor: WB_COLORS[20],
   },
   {
     id: 'default3',
-    bgColor: '#1B1A1A',
-    fgColor: '#FFE70C',
+    bgColor: WB_COLORS[100],
+    fgColor: BRAND_YELLOW[100],
   },
   {
     id: 'default4',
     bgColor: '#78BE9D',
-    fgColor: '#EBEAEA',
+    fgColor: WB_COLORS[20],
   },
   {
     id: 'default5',
     bgColor: '#8C54A4',
-    fgColor: '#EBEAEA',
+    fgColor: WB_COLORS[20],
   },
   {
     id: 'default6',
     bgColor: '#E66060',
-    fgColor: '#EBEAEA',
+    fgColor: WB_COLORS[20],
   },
 ] as const
 
@@ -122,7 +122,7 @@ function AvatarOptionItem({ avatar, isSelected, onPress }: AvatarOptionItemProps
 
       {isSelected && (
         <View style={styles.selectedOverlay}>
-          <Check size={24} color="#FFFFFF" />
+          <Check size={24} color={WB_COLORS[0]} />
         </View>
       )}
     </AnimatedPressable>

@@ -19,7 +19,7 @@ import {
 } from 'lucide-react-native'
 
 import { Text, Card } from '@/components/ui'
-import { SEMANTIC_COLORS, SPACING, RADIUS } from '@nobodyclimb/constants'
+import { RADIUS, SEMANTIC_COLORS, SPACING } from '@nobodyclimb/constants'
 
 // 類型定義
 type BucketListCategory =
@@ -154,7 +154,7 @@ export function CategoryExplorer() {
       {/* 技巧與經驗分享 */}
       <View style={styles.section}>
         <View style={styles.header}>
-          <Lightbulb size={24} color="#F59E0B" />
+          <Lightbulb size={24} color={SEMANTIC_COLORS.warning} />
           <Text variant="h4" fontWeight="700">
             技巧與經驗分享
           </Text>

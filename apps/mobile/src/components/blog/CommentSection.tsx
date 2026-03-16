@@ -21,12 +21,7 @@ import { Text, Button, TextArea, Avatar, useToast } from '@/components/ui'
 import { Link } from '@/components/ui/Link'
 import { api } from '@/lib/api'
 import { useAuthStore } from '@/store/authStore'
-import {
-  SEMANTIC_COLORS,
-  SPACING,
-  BORDER_RADIUS,
-  WB_COLORS,
-} from '@nobodyclimb/constants'
+import { BORDER_RADIUS, SEMANTIC_COLORS, SPACING, WB_COLORS } from '@nobodyclimb/constants'
 
 // 評論類型定義
 interface CommentData {
@@ -165,7 +160,7 @@ function CommentForm({ onSubmit, isSubmitting, isLoggedIn }: CommentFormProps) {
         loading={isSubmitting}
         style={styles.submitButton}
       >
-        {!isSubmitting && <Send size={16} color="#FFFFFF" />}
+        {!isSubmitting && <Send size={16} color={WB_COLORS[0]} />}
       </Button>
     </View>
   )

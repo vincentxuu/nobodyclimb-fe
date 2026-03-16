@@ -10,7 +10,7 @@ import { useRouter } from 'expo-router'
 import { Lock, User } from 'lucide-react-native'
 
 import { Text, Button, ProgressBar } from '@/components/ui'
-import { SEMANTIC_COLORS, SPACING, BORDER_RADIUS } from '@nobodyclimb/constants'
+import { BORDER_RADIUS, BRAND_YELLOW, SEMANTIC_COLORS, SPACING, WB_COLORS } from '@nobodyclimb/constants'
 import type { GuestSession } from '@/store/guestSessionStore'
 import { SHARE_ELIGIBILITY_THRESHOLD } from '@/store/guestSessionStore'
 
@@ -58,7 +58,7 @@ export function EligibilityCheck({ session }: EligibilityCheckProps) {
               已瀏覽 {session.biographyViews} 個故事
             </Text>
             <View style={styles.progressBar}>
-              <ProgressBar value={progress} color="#FFE70C" />
+              <ProgressBar value={progress} color={BRAND_YELLOW[100]} />
             </View>
           </View>
 
@@ -126,7 +126,7 @@ const styles = StyleSheet.create({
     borderRadius: RADIUS.xl,
     padding: PADDING.xl,
     alignItems: 'center',
-    shadowColor: '#000',
+    shadowColor: WB_COLORS[100],
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.1,
     shadowRadius: 12,

@@ -7,7 +7,7 @@ import React from 'react'
 import { StyleSheet, View, Image, Pressable } from 'react-native'
 import { User } from 'lucide-react-native'
 
-import { SEMANTIC_COLORS, RADIUS } from '@nobodyclimb/constants'
+import { RADIUS, SEMANTIC_COLORS, WB_COLORS } from '@nobodyclimb/constants'
 
 type AvatarSize = 'xs' | 'sm' | 'md' | 'lg' | 'xl' | '2xl'
 
@@ -44,7 +44,7 @@ export function AvatarImage({
   customSize,
   onPress,
   showBorder = false,
-  borderColor = '#FFFFFF',
+  borderColor = WB_COLORS[0],
 }: AvatarImageProps) {
   const dimension = customSize || SIZES[size]
   const borderRadius = dimension / 2
@@ -103,7 +103,7 @@ const styles = StyleSheet.create({
   fallback: {
     width: '100%',
     height: '100%',
-    backgroundColor: '#EBEAEA',
+    backgroundColor: WB_COLORS[20],
     justifyContent: 'center',
     alignItems: 'center',
   },

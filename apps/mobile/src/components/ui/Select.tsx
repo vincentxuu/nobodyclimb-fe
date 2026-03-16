@@ -11,7 +11,7 @@ import BottomSheet, {
   BottomSheetBackdrop,
   BottomSheetView,
 } from '@gorhom/bottom-sheet'
-import { SEMANTIC_COLORS, FONT_SIZE, SPACING, RADIUS } from '@nobodyclimb/constants'
+import { FONT_SIZE, RADIUS, SEMANTIC_COLORS, SPACING, WB_COLORS } from '@nobodyclimb/constants'
 import { Text } from './Text'
 
 export interface SelectOption {
@@ -160,7 +160,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    backgroundColor: '#FFFFFF',
+    backgroundColor: WB_COLORS[0],
     borderWidth: 1,
     borderColor: '#D3D3D3',
     borderRadius: RADIUS.md,
@@ -175,7 +175,7 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   sheetBackground: {
-    backgroundColor: '#FFFFFF',
+    backgroundColor: WB_COLORS[0],
   },
   sheetIndicator: {
     backgroundColor: '#D3D3D3',
@@ -188,7 +188,7 @@ const styles = StyleSheet.create({
   sheetHeader: {
     paddingVertical: SPACING.md,
     borderBottomWidth: 1,
-    borderBottomColor: '#EBEAEA',
+    borderBottomColor: WB_COLORS[20],
     marginBottom: SPACING.sm,
   },
   option: {
@@ -200,7 +200,7 @@ const styles = StyleSheet.create({
     borderRadius: RADIUS.sm,
   },
   optionSelected: {
-    backgroundColor: '#F5F5F5',
+    backgroundColor: WB_COLORS[10],
   },
   optionDisabled: {
     opacity: 0.5,
