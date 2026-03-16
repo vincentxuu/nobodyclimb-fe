@@ -7,7 +7,7 @@ import { SafeAreaView } from 'react-native-safe-area-context'
 import { X } from 'lucide-react-native'
 import { SEMANTIC_COLORS, SPACING, RADIUS, FONT_SIZE, WB_COLORS } from '@nobodyclimb/constants'
 import { AscentTypeSelect } from './AscentTypeSelect'
-import type { AscentType } from '@/lib/hooks/useAscents'
+import type { AscentType } from '@/lib/constants/ascent'
 
 interface AscentFormData {
   ascent_type: AscentType

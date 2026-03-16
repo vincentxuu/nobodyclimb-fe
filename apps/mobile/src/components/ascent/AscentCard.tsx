@@ -2,32 +2,12 @@ import React from 'react'
 import { View, Text, Pressable, StyleSheet } from 'react-native'
 import { Pencil, Trash2, MapPin, Star } from 'lucide-react-native'
 import { SEMANTIC_COLORS, SPACING, BORDER_RADIUS, FONT_SIZE, WB_COLORS } from '@nobodyclimb/constants'
-
-const ASCENT_TYPE_LABELS: Record<string, string> = {
-  redpoint: 'Redpoint',
-  flash: 'Flash',
-  onsight: 'Onsight',
-  attempt: 'Attempt',
-  toprope: 'Top Rope',
-  lead: 'Lead',
-  seconding: 'Second',
-  repeat: 'Repeat',
-}
-
-const ASCENT_TYPE_COLORS: Record<string, string> = {
-  redpoint: '#EF4444',
-  flash: '#EAB308',
-  onsight: '#10B981',
-  attempt: '#6B7280',
-  toprope: '#3B82F6',
-  lead: '#A855F7',
-  seconding: '#06B6D4',
-  repeat: '#6366F1',
-}
+import type { AscentType } from '@/lib/constants/ascent'
+import { ASCENT_TYPE_LABELS, ASCENT_TYPE_COLORS } from '@/lib/constants/ascent'
 
 interface Ascent {
   id: string
-  ascent_type: string
+  ascent_type: AscentType
   route_name: string
   crag_name: string
   grade: string
@@ -71,7 +51,7 @@ export function AscentCard({ ascent, onEdit, onDelete }: AscentCardProps) {
             hitSlop={8}
             style={styles.actionBtn}
           >
-            <Trash2 size={16} color='#EF4444' />
+            <Trash2 size={16} color={SEMANTIC_COLORS.error} />
           </Pressable>
         </View>
       </View>
@@ -91,7 +71,7 @@ export function AscentCard({ ascent, onEdit, onDelete }: AscentCardProps) {
             <Star
               key={i}
               size={12}
-              color={i < ascent.rating! ? '#F59E0B' : SEMANTIC_COLORS.border}
+              color={i < ascent.rating! ? SEMANTIC_COLORS.warning : SEMANTIC_COLORS.border}
             />
           ))}
         </View>

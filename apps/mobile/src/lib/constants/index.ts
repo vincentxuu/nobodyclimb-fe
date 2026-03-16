@@ -3,3 +3,4 @@
  */
 
 export * from './badges'
+export * from './ascent'

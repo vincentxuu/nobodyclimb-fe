@@ -10,13 +10,38 @@ import { SEMANTIC_COLORS, SPACING, BORDER_RADIUS, FONT_SIZE, WB_COLORS } from '@
 import { AscentCard } from '@/components/ascent/AscentCard'
 import { AscentForm } from '@/components/ascent/AscentForm'
 import { ConfirmDialog } from '@/components/ui/ConfirmDialog'
+import { useToast } from '@/components/ui/Toast'
 import {
   useMyAscents, useMyAscentStats, useUpdateAscent, useDeleteAscent,
 } from '@/lib/hooks/useAscents'
+import type { AscentType } from '@/lib/constants/ascent'
+
+interface Ascent {
+  id: string
+  ascent_type: AscentType
+  route_name: string
+  crag_name: string
+  grade: string
+  date: string
+  attempts?: number
+  rating?: number
+  notes?: string
+}
+
+interface AscentFormData {
+  ascent_type: AscentType
+  date: string
+  attempts: number
+  rating: number
+  notes: string
+}
+
+const AscentsListSeparator = () => <View style={{ height: SPACING.sm }} />
 
 export default function AscentsPage() {
   const router = useRouter()
-  const [editingAscent, setEditingAscent] = useState<any>(null)
+  const toast = useToast()
+  const [editingAscent, setEditingAscent] = useState<Ascent | null>(null)
   const [deletingId, setDeletingId] = useState<string | null>(null)
   const [refreshing, setRefreshing] = useState(false)
 
@@ -33,24 +58,30 @@ export default function AscentsPage() {
     setRefreshing(false)
   }, [refetch])
 
-  const handleEdit = useCallback((ascent: any) => setEditingAscent(ascent), [])
+  const handleEdit = useCallback((ascent: Ascent) => setEditingAscent(ascent), [])
   const handleDelete = useCallback((id: string) => setDeletingId(id), [])
 
   const handleUpdateSubmit = useCallback(
-    (formData: any) => {
+    (formData: AscentFormData) => {
       if (!editingAscent) return
       updateMutation.mutate(
         { id: editingAscent.id, body: formData },
-        { onSuccess: () => setEditingAscent(null) }
+        {
+          onSuccess: () => setEditingAscent(null),
+          onError: () => toast.show({ message: '更新失敗，請稍後再試', variant: 'error' }),
+        }
       )
     },
-    [editingAscent, updateMutation]
+    [editingAscent, updateMutation, toast]
   )
 
   const handleDeleteConfirm = useCallback(() => {
     if (!deletingId) return
-    deleteMutation.mutate(deletingId, { onSuccess: () => setDeletingId(null) })
-  }, [deletingId, deleteMutation])
+    deleteMutation.mutate(deletingId, {
+      onSuccess: () => setDeletingId(null),
+      onError: () => toast.show({ message: '刪除失敗，請稍後再試', variant: 'error' }),
+    })
+  }, [deletingId, deleteMutation, toast])
 
   const statCards = [
     { label: '總記錄', value: String(stats?.total ?? 0), Icon: Mountain },
@@ -69,7 +100,7 @@ export default function AscentsPage() {
       </View>
 
       {isLoading ? (
-        <ActivityIndicator style={styles.loader} color="#10B981" />
+        <ActivityIndicator style={styles.loader} color={SEMANTIC_COLORS.success} />
       ) : (
         <FlatList
           data={ascents}
@@ -80,7 +111,7 @@ export default function AscentsPage() {
             <View style={styles.statsRow}>
               {statCards.map(({ label, value, Icon }) => (
                 <View key={label} style={styles.statCard}>
-                  <Icon size={16} color="#10B981" />
+                  <Icon size={16} color={SEMANTIC_COLORS.success} />
                   <Text style={styles.statValue}>{value}</Text>
                   <Text style={styles.statLabel}>{label}</Text>
                 </View>
@@ -90,7 +121,7 @@ export default function AscentsPage() {
           renderItem={({ item }) => (
             <AscentCard ascent={item} onEdit={handleEdit} onDelete={handleDelete} />
           )}
-          ItemSeparatorComponent={() => <View style={{ height: SPACING.sm }} />}
+          ItemSeparatorComponent={AscentsListSeparator}
           ListEmptyComponent={
             <View style={styles.emptyState}>
               <Mountain size={48} color={SEMANTIC_COLORS.textSubtle} />
@@ -158,7 +189,7 @@ const styles = StyleSheet.create({
   fab: {
     position: 'absolute', right: SPACING.lg, bottom: SPACING.xl,
     width: 56, height: 56, borderRadius: 28,
-    backgroundColor: '#10B981', alignItems: 'center', justifyContent: 'center',
+    backgroundColor: SEMANTIC_COLORS.success, alignItems: 'center', justifyContent: 'center',
     shadowColor: '#000', shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.3, shadowRadius: 8, elevation: 8,
   },

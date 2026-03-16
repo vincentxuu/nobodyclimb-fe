@@ -7,7 +7,8 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { apiClient } from '@/lib/api'
 import { SEMANTIC_COLORS, SPACING, BORDER_RADIUS, FONT_SIZE, WB_COLORS } from '@nobodyclimb/constants'
 import { AscentTypeSelect } from './AscentTypeSelect'
-import type { AscentType } from '@/lib/hooks/useAscents'
+import type { AscentType } from '@/lib/constants/ascent'
+import { useDebounce } from '@/lib/hooks/useDebounce'
 
 type Step = 'crag' | 'route' | 'form'
 
@@ -16,24 +17,38 @@ interface CreateAscentFlowProps {
   onCancel: () => void
 }
 
+interface CragResult {
+  id: string
+  name: string
+  area_name?: string
+}
+
+interface RouteResult {
+  id: string
+  name: string
+  grade: string
+}
+
 const STEPS: Step[] = ['crag', 'route', 'form']
 
 export function CreateAscentFlow({ onSuccess, onCancel }: CreateAscentFlowProps) {
   const [step, setStep] = useState<Step>('crag')
   const [cragQuery, setCragQuery] = useState('')
-  const [selectedCrag, setSelectedCrag] = useState<{ id: string; name: string } | null>(null)
-  const [selectedRoute, setSelectedRoute] = useState<{ id: string; name: string; grade: string } | null>(null)
+  const [selectedCrag, setSelectedCrag] = useState<CragResult | null>(null)
+  const [selectedRoute, setSelectedRoute] = useState<RouteResult | null>(null)
   const [ascentType, setAscentType] = useState<AscentType>('redpoint')
+
+  const debouncedCragQuery = useDebounce(cragQuery, 300)
 
   const qc = useQueryClient()
 
   const cragsQuery = useQuery({
-    queryKey: ['crags', 'search', cragQuery],
+    queryKey: ['crags', 'search', debouncedCragQuery],
     queryFn: async () => {
-      const { data } = await apiClient.get(`/crags?q=${cragQuery}&limit=20`)
+      const { data } = await apiClient.get(`/crags?q=${debouncedCragQuery}&limit=20`)
       return data.data.crags ?? []
     },
-    enabled: cragQuery.length >= 1,
+    enabled: debouncedCragQuery.length >= 1,
   })
 
   const routesQuery = useQuery({
@@ -57,6 +72,9 @@ export function CreateAscentFlow({ onSuccess, onCancel }: CreateAscentFlowProps)
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ['ascents'] })
       onSuccess()
+    },
+    onError: () => {
+      // Error silently handled - parent component can show toast
     },
   })
 
@@ -84,8 +102,8 @@ export function CreateAscentFlow({ onSuccess, onCancel }: CreateAscentFlowProps)
           {cragsQuery.isLoading && <ActivityIndicator color={SEMANTIC_COLORS.textSubtle} />}
           <FlatList
             data={cragsQuery.data ?? []}
-            keyExtractor={(item: any) => item.id}
-            renderItem={({ item }: { item: any }) => (
+            keyExtractor={(item: CragResult) => item.id}
+            renderItem={({ item }: { item: CragResult }) => (
               <Pressable
                 style={styles.listItem}
                 onPress={() => {
@@ -113,8 +131,8 @@ export function CreateAscentFlow({ onSuccess, onCancel }: CreateAscentFlowProps)
           {routesQuery.isLoading && <ActivityIndicator color={SEMANTIC_COLORS.textSubtle} />}
           <FlatList
             data={routesQuery.data ?? []}
-            keyExtractor={(item: any) => item.id}
-            renderItem={({ item }: { item: any }) => (
+            keyExtractor={(item: RouteResult) => item.id}
+            renderItem={({ item }: { item: RouteResult }) => (
               <Pressable
                 style={styles.listItem}
                 onPress={() => {
@@ -138,7 +156,7 @@ export function CreateAscentFlow({ onSuccess, onCancel }: CreateAscentFlowProps)
           <Text style={styles.stepTitle}>{selectedRoute?.name}</Text>
           <Text style={styles.stepSub}>{selectedCrag?.name} · {selectedRoute?.grade}</Text>
           <AscentTypeSelect value={ascentType} onChange={setAscentType} />
-          {createMutation.isPending && <ActivityIndicator color="#10B981" />}
+          {createMutation.isPending && <ActivityIndicator color={SEMANTIC_COLORS.success} />}
           <Pressable
             style={styles.saveBtn}
             onPress={() => createMutation.mutate()}
@@ -163,7 +181,7 @@ const styles = StyleSheet.create({
   container: { flex: 1, padding: SPACING.md, gap: SPACING.md },
   stepIndicator: { flexDirection: 'row', gap: SPACING.xs, justifyContent: 'center' },
   stepDot: { width: 8, height: 8, borderRadius: 4, backgroundColor: SEMANTIC_COLORS.border },
-  stepDotActive: { backgroundColor: '#10B981' },
+  stepDotActive: { backgroundColor: SEMANTIC_COLORS.success },
   stepContent: { flex: 1, gap: SPACING.sm },
   stepTitle: { fontSize: FONT_SIZE.xl, fontWeight: '700', color: SEMANTIC_COLORS.textMain },
   stepSub: { fontSize: FONT_SIZE.sm, color: SEMANTIC_COLORS.textSubtle },
@@ -177,12 +195,12 @@ const styles = StyleSheet.create({
   },
   listItemText: { fontSize: FONT_SIZE.base, color: SEMANTIC_COLORS.textMain },
   listItemSub: { fontSize: FONT_SIZE.sm, color: SEMANTIC_COLORS.textSubtle },
-  listItemGrade: { fontSize: FONT_SIZE.sm, fontWeight: '700', color: '#10B981' },
+  listItemGrade: { fontSize: FONT_SIZE.sm, fontWeight: '700', color: SEMANTIC_COLORS.success },
   empty: { color: SEMANTIC_COLORS.textSubtle, textAlign: 'center', marginTop: SPACING.lg },
   backBtn: { paddingVertical: SPACING.sm },
   backText: { color: SEMANTIC_COLORS.textSubtle, fontSize: FONT_SIZE.sm },
   saveBtn: {
-    backgroundColor: '#10B981', borderRadius: BORDER_RADIUS.sm,
+    backgroundColor: SEMANTIC_COLORS.success, borderRadius: BORDER_RADIUS.sm,
     padding: SPACING.md, alignItems: 'center',
   },
   saveText: { color: WB_COLORS[100], fontWeight: '700', fontSize: FONT_SIZE.base },

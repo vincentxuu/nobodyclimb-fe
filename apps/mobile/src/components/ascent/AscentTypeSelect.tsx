@@ -4,24 +4,24 @@ import {
   CircleDot, Zap, Eye, Target, ArrowUp, Sword, Users, Repeat2,
 } from 'lucide-react-native'
 import { SEMANTIC_COLORS, SPACING, RADIUS, FONT_SIZE } from '@nobodyclimb/constants'
-import type { AscentType } from '@/lib/hooks/useAscents'
+import type { AscentType } from '@/lib/constants/ascent'
+import { ASCENT_TYPE_LABELS, ASCENT_TYPE_COLORS } from '@/lib/constants/ascent'
 
 interface AscentTypeOption {
   type: AscentType
   label: string
   Icon: React.ElementType
-  color: string
 }
 
 const ASCENT_TYPES: AscentTypeOption[] = [
-  { type: 'redpoint',  label: 'Redpoint', Icon: CircleDot, color: '#EF4444' },
-  { type: 'flash',     label: 'Flash',    Icon: Zap,       color: '#EAB308' },
-  { type: 'onsight',   label: 'Onsight',  Icon: Eye,       color: '#10B981' },
-  { type: 'attempt',   label: 'Attempt',  Icon: Target,    color: '#6B7280' },
-  { type: 'toprope',   label: 'Top Rope', Icon: ArrowUp,   color: '#3B82F6' },
-  { type: 'lead',      label: 'Lead',     Icon: Sword,     color: '#A855F7' },
-  { type: 'seconding', label: 'Second',   Icon: Users,     color: '#06B6D4' },
-  { type: 'repeat',    label: 'Repeat',   Icon: Repeat2,   color: '#6366F1' },
+  { type: 'redpoint',  label: ASCENT_TYPE_LABELS.redpoint,  Icon: CircleDot },
+  { type: 'flash',     label: ASCENT_TYPE_LABELS.flash,     Icon: Zap       },
+  { type: 'onsight',   label: ASCENT_TYPE_LABELS.onsight,   Icon: Eye       },
+  { type: 'attempt',   label: ASCENT_TYPE_LABELS.attempt,   Icon: Target    },
+  { type: 'toprope',   label: ASCENT_TYPE_LABELS.toprope,   Icon: ArrowUp   },
+  { type: 'lead',      label: ASCENT_TYPE_LABELS.lead,      Icon: Sword     },
+  { type: 'seconding', label: ASCENT_TYPE_LABELS.seconding, Icon: Users     },
+  { type: 'repeat',    label: ASCENT_TYPE_LABELS.repeat,    Icon: Repeat2   },
 ]
 
 interface AscentTypeSelectProps {
@@ -32,8 +32,9 @@ interface AscentTypeSelectProps {
 export function AscentTypeSelect({ value, onChange }: AscentTypeSelectProps) {
   return (
     <View style={styles.grid}>
-      {ASCENT_TYPES.map(({ type, label, Icon, color }) => {
+      {ASCENT_TYPES.map(({ type, label, Icon }) => {
         const selected = value === type
+        const color = ASCENT_TYPE_COLORS[type]
         return (
           <Pressable
             key={type}
@@ -43,7 +44,7 @@ export function AscentTypeSelect({ value, onChange }: AscentTypeSelectProps) {
             onPress={() => onChange(type)}
             style={[
               styles.cell,
-              selected && { borderColor: '#10B981', backgroundColor: '#10B98115' },
+              selected && { borderColor: SEMANTIC_COLORS.success, backgroundColor: '#10B98115' },
             ]}
           >
             <Icon size={20} color={selected ? color : SEMANTIC_COLORS.textSubtle} />

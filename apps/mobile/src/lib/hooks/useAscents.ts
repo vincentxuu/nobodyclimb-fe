@@ -1,15 +1,31 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { apiClient } from '@/lib/api'
+import type { AscentType } from '@/lib/constants/ascent'
 
-export type AscentType =
-  | 'redpoint' | 'flash' | 'onsight' | 'attempt'
-  | 'toprope' | 'lead' | 'seconding' | 'repeat'
+export type { AscentType }
 
 export interface AscentFilters {
   ascent_type?: AscentType
   crag_id?: string
   page?: number
   limit?: number
+}
+
+export interface CreateAscentPayload {
+  route_id: string
+  ascent_type: AscentType
+  date?: string
+  attempts?: number
+  rating?: number
+  notes?: string
+}
+
+export interface UpdateAscentPayload {
+  ascent_type?: AscentType
+  date?: string
+  attempts?: number
+  rating?: number
+  notes?: string
 }
 
 export function useMyAscents(filters: AscentFilters = {}) {
@@ -40,7 +56,7 @@ export function useMyAscentStats() {
 export function useCreateAscent() {
   const qc = useQueryClient()
   return useMutation({
-    mutationFn: async (body: object) => {
+    mutationFn: async (body: CreateAscentPayload) => {
       const { data } = await apiClient.post('/ascents', body)
       return data.data
     },
@@ -51,7 +67,7 @@ export function useCreateAscent() {
 export function useUpdateAscent() {
   const qc = useQueryClient()
   return useMutation({
-    mutationFn: async ({ id, body }: { id: string; body: object }) => {
+    mutationFn: async ({ id, body }: { id: string; body: UpdateAscentPayload }) => {
       const { data } = await apiClient.put(`/ascents/${id}`, body)
       return data.data
     },

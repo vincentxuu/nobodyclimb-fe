@@ -2,6 +2,10 @@ import React from 'react'
 import { render, waitFor } from '@testing-library/react-native'
 import AscentsPage from '../index'
 
+jest.mock('@/components/ui/Toast', () => ({
+  useToast: () => ({ show: jest.fn() }),
+}))
+
 jest.mock('@/lib/hooks/useAscents', () => ({
   useMyAscents: () => ({
     data: { ascents: [], total: 0, page: 1, limit: 10 },
