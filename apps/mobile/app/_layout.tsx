@@ -12,12 +12,16 @@ import { Providers } from '@/providers'
 SplashScreen.preventAutoHideAsync()
 
 export default function RootLayout() {
+  // TODO: Replace GlowSansTC placeholder with actual font file:
+  // - GlowSansTC: download from https://github.com/ooookai/Glow-Sans/releases
+  //   Copy the TC Regular .otf/.ttf to apps/mobile/assets/fonts/GlowSansTC-Regular.otf
+  //   and remove this comment.
   const [fontsLoaded] = useFonts({
-    'NotoSansTC-Regular': require('../assets/fonts/NotoSansTC-Regular.otf'),
-    'NotoSansTC-Medium': require('../assets/fonts/NotoSansTC-Medium.otf'),
-    'NotoSansTC-Bold': require('../assets/fonts/NotoSansTC-Bold.otf'),
-    'GlowSansTC-Regular': require('../assets/fonts/GlowSansTC-Regular.otf'),
-    'AllertaStencil-Regular': require('../assets/fonts/AllertaStencil-Regular.otf'),
+    'NotoSansTC-Regular': require('../assets/fonts/NotoSansTC-Regular.ttf'),
+    'NotoSansTC-Medium': require('../assets/fonts/NotoSansTC-Medium.ttf'),
+    'NotoSansTC-Bold': require('../assets/fonts/NotoSansTC-Bold.ttf'),
+    'GlowSansTC-Regular': require('../assets/fonts/GlowSansTC-Regular.otf'), // placeholder - see TODO above
+    'AllertaStencil-Regular': require('../assets/fonts/AllertaStencil-Regular.ttf'),
   })
 
   useEffect(() => {
