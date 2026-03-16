@@ -152,3 +152,6 @@ export type {
 // Breadcrumb
 export { Breadcrumb } from './Breadcrumb'
 export type { BreadcrumbProps, BreadcrumbItem } from './Breadcrumb'
+
+// Markdown
+export { MarkdownText } from './MarkdownText'
