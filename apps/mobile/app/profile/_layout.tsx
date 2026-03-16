@@ -18,6 +18,7 @@ export default function ProfileLayout() {
       <Stack.Screen name="edit" />
       <Stack.Screen name="ascents/index" />
       <Stack.Screen name="ascents/create" />
+      <Stack.Screen name="stats/index" options={{ headerShown: false }} />
     </Stack>
   )
 }

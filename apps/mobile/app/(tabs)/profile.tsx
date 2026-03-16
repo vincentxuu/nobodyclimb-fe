@@ -17,6 +17,7 @@ import {
   ChevronRight,
   LogOut,
   Mountain,
+  BarChart2,
 } from 'lucide-react-native'
 
 import { Text, Avatar, Button, Divider } from '@/components/ui'
@@ -166,6 +167,11 @@ export default function ProfileScreen() {
             icon={<Mountain size={20} color={SEMANTIC_COLORS.textMain} />}
             label="攀登記錄"
             onPress={() => handleNavigate('/profile/ascents')}
+          />
+          <MenuItem
+            icon={<BarChart2 size={20} color={SEMANTIC_COLORS.textMain} />}
+            label="統計"
+            onPress={() => handleNavigate('/profile/stats')}
           />
         </View>
 
