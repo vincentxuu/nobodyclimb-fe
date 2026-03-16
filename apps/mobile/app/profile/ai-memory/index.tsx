@@ -4,6 +4,7 @@ import { SafeAreaView } from 'react-native-safe-area-context'
 import { useRouter } from 'expo-router'
 import { ChevronLeft, Brain, Trash2 } from 'lucide-react-native'
 import { Text, ConfirmDialog } from '@/components/ui'
+import { useToast } from '@/components/ui/Toast'
 import { SPACING, WB_COLORS, BORDER_RADIUS, SEMANTIC_COLORS } from '@nobodyclimb/constants'
 import {
   useAiMemory,
@@ -42,11 +43,13 @@ export default function AiMemoryScreen() {
   const { data: memories, isLoading } = useAiMemory()
   const deleteMemory = useDeleteAiMemory()
   const [deletingId, setDeletingId] = useState<string | null>(null)
+  const toast = useToast()
 
   const handleDelete = async () => {
     if (!deletingId) return
     await deleteMemory.mutateAsync(deletingId)
     setDeletingId(null)
+    toast.show({ message: '記憶已刪除', variant: 'success' })
   }
 
   const renderItem = ({ item }: { item: UserMemory }) => {

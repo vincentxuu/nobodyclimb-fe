@@ -9,6 +9,9 @@ jest.mock('@/lib/hooks/useAiMemory', () => ({
 jest.mock('expo-router', () => ({
   useRouter: () => ({ back: jest.fn() }),
 }))
+jest.mock('@/components/ui/Toast', () => ({
+  useToast: () => ({ show: jest.fn() }),
+}))
 
 import { useAiMemory, useDeleteAiMemory } from '@/lib/hooks/useAiMemory'
 
