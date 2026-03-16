@@ -19,11 +19,12 @@ import {
   Mountain,
   BarChart2,
   Brain,
+  Sparkles,
 } from 'lucide-react-native'
 
 import { Text, Avatar, Button, Divider } from '@/components/ui'
 import { useAuthStore } from '@/store/authStore'
-import { SEMANTIC_COLORS, SPACING, RADIUS } from '@nobodyclimb/constants'
+import { SEMANTIC_COLORS, SPACING, RADIUS, WB_COLORS } from '@nobodyclimb/constants'
 
 interface MenuItemProps {
   icon: React.ReactNode
@@ -178,6 +179,11 @@ export default function ProfileScreen() {
             icon={<Brain size={20} color={SEMANTIC_COLORS.textMain} />}
             label="AI 記憶"
             onPress={() => handleNavigate('/profile/ai-memory')}
+          />
+          <MenuItem
+            icon={<Sparkles size={20} color={WB_COLORS[60]} />}
+            label="路線推薦"
+            onPress={() => handleNavigate('/profile/recommendations')}
           />
         </View>
 
