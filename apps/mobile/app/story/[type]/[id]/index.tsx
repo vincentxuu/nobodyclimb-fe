@@ -92,7 +92,7 @@ export default function StoryDetailScreen() {
         </Badge>
 
         {data.category_name && (
-          <Badge variant="info" size="sm" style={styles.categoryBadge}>
+          <Badge variant="info" size="sm">
             {data.category_name}
           </Badge>
         )}
@@ -159,13 +159,10 @@ const styles = StyleSheet.create({
     gap: SPACING.sm,
     marginBottom: SPACING.md,
   },
-  categoryBadge: {
-    marginLeft: SPACING.xs,
-  },
   title: {
     fontSize: FONT_SIZE['2xl'],
     fontWeight: FONT_WEIGHT.bold,
-    color: SEMANTIC_COLORS.textPrimary,
+    color: SEMANTIC_COLORS.textMain,
     marginBottom: SPACING.sm,
     lineHeight: 32,
   },
@@ -193,7 +190,7 @@ const styles = StyleSheet.create({
   },
   answer: {
     fontSize: FONT_SIZE.md,
-    color: SEMANTIC_COLORS.textPrimary,
+    color: SEMANTIC_COLORS.textMain,
     lineHeight: 24,
   },
   contentBody: {
