@@ -74,7 +74,8 @@
       "^@tamagui/core$": "<rootDir>/src/__mocks__/tamagui.ts",
       "^@tamagui/(.*)$": "<rootDir>/src/__mocks__/tamagui.ts",
       "^react-native-reanimated$": "<rootDir>/src/__mocks__/react-native-reanimated.ts",
-      "^react-native-svg$": "<rootDir>/src/__mocks__/react-native-svg.js"
+      "^react-native-svg$": "<rootDir>/src/__mocks__/react-native-svg.js",
+      "^@gorhom/bottom-sheet$": "<rootDir>/src/__mocks__/gorhom-bottom-sheet.ts"
     },
     "setupFilesAfterEnv": []
   }
