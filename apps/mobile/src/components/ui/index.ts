@@ -155,6 +155,8 @@ export type { BreadcrumbProps, BreadcrumbItem } from './Breadcrumb'
 
 // Markdown
 export { MarkdownText } from './MarkdownText'
+export type { MarkdownTextProps } from './MarkdownText'
 
 // PlaceholderImage
 export { PlaceholderImage } from './PlaceholderImage'
+export type { PlaceholderImageProps } from './PlaceholderImage'

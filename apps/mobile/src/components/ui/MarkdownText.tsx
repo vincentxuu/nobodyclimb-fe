@@ -2,7 +2,7 @@ import React from 'react'
 import Markdown from 'react-native-markdown-display'
 import { SEMANTIC_COLORS, FONT_SIZE, SPACING, WB_COLORS, RADIUS } from '@nobodyclimb/constants'
 
-interface MarkdownTextProps {
+export interface MarkdownTextProps {
   children: string
 }
 
@@ -61,7 +61,7 @@ export function MarkdownText({ children }: MarkdownTextProps) {
           marginLeft: 0,
         },
         link: {
-          color: '#10B981',
+          color: SEMANTIC_COLORS.success,
           textDecorationLine: 'underline',
         },
         hr: {

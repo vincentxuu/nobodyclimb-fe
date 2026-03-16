@@ -3,7 +3,7 @@ import { View, Text, StyleSheet } from 'react-native'
 import { ImageOff } from 'lucide-react-native'
 import { SEMANTIC_COLORS, SPACING, RADIUS, WB_COLORS, FONT_SIZE } from '@nobodyclimb/constants'
 
-interface PlaceholderImageProps {
+export interface PlaceholderImageProps {
   width: number
   height: number
   label?: string
