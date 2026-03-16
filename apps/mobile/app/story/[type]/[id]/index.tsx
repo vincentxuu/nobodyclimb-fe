@@ -8,7 +8,6 @@ import {
   ActivityIndicator,
   ScrollView,
   StyleSheet,
-  TouchableOpacity,
   View,
 } from 'react-native'
 import { Link, useLocalSearchParams, useRouter } from 'expo-router'

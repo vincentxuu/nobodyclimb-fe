@@ -82,4 +82,19 @@ describe('StoryDetailScreen', () => {
     const { getByText } = render(<StoryDetailScreen />)
     expect(getByText('查看更多')).toBeTruthy()
   })
+
+  it('hides biography link when author biography_id is absent', () => {
+    const dataWithoutBiography = { ...MOCK_CORE_STORY, author: { id: 'u2', name: '無簡介作者' } }
+    useLocalSearchParams.mockReturnValue({ type: 'core-stories', id: '1' })
+    ;(useStoryDetail as jest.Mock).mockReturnValue({ data: dataWithoutBiography, isLoading: false })
+    const { queryByText } = render(<StoryDetailScreen />)
+    expect(queryByText('查看更多')).toBeNull()
+  })
+
+  it('renders one-liner answer as content', () => {
+    useLocalSearchParams.mockReturnValue({ type: 'one-liners', id: '2' })
+    ;(useStoryDetail as jest.Mock).mockReturnValue({ data: MOCK_ONE_LINER, isLoading: false })
+    const { getByText } = render(<StoryDetailScreen />)
+    expect(getByText('因為山在那裡。')).toBeTruthy()
+  })
 })
