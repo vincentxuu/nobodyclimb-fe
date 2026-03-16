@@ -73,7 +73,8 @@
       "^tamagui$": "<rootDir>/src/__mocks__/tamagui.ts",
       "^@tamagui/core$": "<rootDir>/src/__mocks__/tamagui.ts",
       "^@tamagui/(.*)$": "<rootDir>/src/__mocks__/tamagui.ts",
-      "^react-native-reanimated$": "<rootDir>/src/__mocks__/react-native-reanimated.ts"
+      "^react-native-reanimated$": "<rootDir>/src/__mocks__/react-native-reanimated.ts",
+      "^react-native-svg$": "<rootDir>/src/__mocks__/react-native-svg.js"
     },
     "setupFilesAfterEnv": []
   }

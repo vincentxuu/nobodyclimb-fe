@@ -123,8 +123,10 @@ export function CircularProgress({
 export interface ProgressBarProps {
   /** 當前值 */
   value: number
-  /** 最大值 */
+  /** 最大值 (max 或 maxValue 皆可) */
   max?: number
+  /** 最大值別名 */
+  maxValue?: number
   /** 進度顏色 */
   color?: string
   /** 背景顏色 */
@@ -147,7 +149,8 @@ const barHeightMap = {
 
 export function ProgressBar({
   value,
-  max = 100,
+  max,
+  maxValue,
   color = BRAND_YELLOW[100],
   bgColor = WB_COLORS[20],
   showLabel = false,
@@ -155,7 +158,8 @@ export function ProgressBar({
   size = 'md',
   style,
 }: ProgressBarProps) {
-  const percentage = Math.min(100, (value / max) * 100)
+  const resolvedMax = max ?? maxValue ?? 100
+  const percentage = Math.min(100, (value / resolvedMax) * 100)
 
   return (
     <View style={[styles.progressBarContainer, style]}>
@@ -168,7 +172,7 @@ export function ProgressBar({
           )}
           {showLabel && (
             <Text variant="caption" color="muted">
-              {value}/{max}
+              {value}/{resolvedMax}
             </Text>
           )}
         </View>
@@ -190,8 +194,12 @@ export function ProgressBar({
 export interface StatCardProps {
   /** 數值 */
   value: number | string
-  /** 標籤 */
-  label: string
+  /** 標籤 (label 或 title 皆可) */
+  label?: string
+  /** 標題別名 */
+  title?: string
+  /** 副標題 */
+  subtitle?: string
   /** 圖標 */
   icon?: React.ReactNode
   /** 趨勢 */
@@ -208,11 +216,14 @@ export interface StatCardProps {
 export function StatCard({
   value,
   label,
+  title,
+  subtitle,
   icon,
   trend,
   color = WB_COLORS[10],
   style,
 }: StatCardProps) {
+  const resolvedLabel = label ?? title ?? ''
   return (
     <View style={[styles.statCard, style]}>
       <View style={styles.statCardHeader}>
@@ -234,11 +245,16 @@ export function StatCard({
         )}
       </View>
       <Text variant="h2" style={styles.statCardValue}>
-        {value}
+        {String(value)}
       </Text>
       <Text variant="caption" color="subtle">
-        {label}
+        {resolvedLabel}
       </Text>
+      {subtitle && (
+        <Text variant="caption" color="muted">
+          {subtitle}
+        </Text>
+      )}
     </View>
   )
 }
@@ -256,6 +272,10 @@ export interface BarChartProps {
   }>
   /** 最大值 */
   maxValue?: number
+  /** 預設顏色 */
+  color?: string
+  /** 圖表高度 */
+  height?: number
   /** 是否顯示數值 */
   showValues?: boolean
   /** 方向 */
@@ -267,17 +287,21 @@ export interface BarChartProps {
 export function BarChart({
   data,
   maxValue,
+  color,
+  height,
   showValues = true,
   orientation = 'horizontal',
   style,
 }: BarChartProps) {
-  const max = maxValue || Math.max(...data.map((d) => d.value))
+  const max = maxValue || (data.length > 0 ? Math.max(...data.map((d) => d.value)) : 0)
+
+  const defaultColor = color || BRAND_YELLOW[100]
 
   if (orientation === 'vertical') {
     return (
       <View style={[styles.barChartVertical, style]}>
         {data.map((item, index) => {
-          const height = max > 0 ? (item.value / max) * 100 : 0
+          const barHeightPct = max > 0 ? (item.value / max) * 100 : 0
           return (
             <View key={index} style={styles.barChartVerticalItem}>
               {showValues && (
@@ -290,8 +314,8 @@ export function BarChart({
                   style={[
                     styles.barChartVerticalBar,
                     {
-                      height: `${height}%`,
-                      backgroundColor: item.color || BRAND_YELLOW[100],
+                      height: `${barHeightPct}%`,
+                      backgroundColor: item.color || defaultColor,
                       minHeight: item.value > 0 ? 4 : 0,
                     },
                   ]}
@@ -320,7 +344,7 @@ export function BarChart({
                 styles.barChartHorizontalBar,
                 {
                   width: max > 0 ? `${(item.value / max) * 100}%` : '0%',
-                  backgroundColor: item.color || BRAND_YELLOW[100],
+                  backgroundColor: item.color || defaultColor,
                 },
               ]}
             />

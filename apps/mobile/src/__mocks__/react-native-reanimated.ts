@@ -69,6 +69,11 @@ export const Easing = {
   inOut: (easing: (t: number) => number) => easing,
 }
 
+// useAnimatedProps
+export function useAnimatedProps(_fn: () => object) {
+  return {}
+}
+
 // useAnimatedRef
 export function useAnimatedRef() {
   return { current: null }
