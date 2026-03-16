@@ -1,6 +1,6 @@
 import React from 'react'
 import { SafeAreaView } from 'react-native-safe-area-context'
-import { View, StyleSheet, Pressable, ScrollView } from 'react-native'
+import { View, StyleSheet, Pressable, ScrollView, ActivityIndicator } from 'react-native'
 import { useRouter } from 'expo-router'
 import { ChevronLeft } from 'lucide-react-native'
 import { Text } from '@/components/ui'
@@ -8,10 +8,9 @@ import { SPACING, WB_COLORS, SEMANTIC_COLORS } from '@nobodyclimb/constants'
 import { StatsOverview } from '@/components/biography/stats'
 import { BadgeShowcase } from '@/components/biography/stats'
 import { useProfileStats } from '@/lib/hooks/useProfileStats'
-
 export default function StatsScreen() {
   const router = useRouter()
-  const { data: stats } = useProfileStats()
+  const { data: stats, isLoading } = useProfileStats()
 
   return (
     <SafeAreaView style={styles.container} edges={['top']}>
@@ -23,7 +22,8 @@ export default function StatsScreen() {
         <View style={{ width: 40 }} />
       </View>
       <ScrollView>
-        <StatsOverview />
+        {isLoading && <ActivityIndicator style={{ marginTop: SPACING.xl }} color={SEMANTIC_COLORS.success} />}
+        {stats && <StatsOverview stats={stats} />}
         {stats?.badges && (
           <View style={styles.badgeSection}>
             <Text style={styles.sectionTitle}>成就徽章</Text>
