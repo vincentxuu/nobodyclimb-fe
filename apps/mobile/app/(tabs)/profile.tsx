@@ -18,6 +18,7 @@ import {
   LogOut,
   Mountain,
   BarChart2,
+  Brain,
 } from 'lucide-react-native'
 
 import { Text, Avatar, Button, Divider } from '@/components/ui'
@@ -172,6 +173,11 @@ export default function ProfileScreen() {
             icon={<BarChart2 size={20} color={SEMANTIC_COLORS.textMain} />}
             label="統計"
             onPress={() => handleNavigate('/profile/stats')}
+          />
+          <MenuItem
+            icon={<Brain size={20} color={SEMANTIC_COLORS.textMain} />}
+            label="AI 記憶"
+            onPress={() => handleNavigate('/profile/ai-memory')}
           />
         </View>
 
