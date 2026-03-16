@@ -16,6 +16,7 @@ import {
   Settings,
   ChevronRight,
   LogOut,
+  Mountain,
 } from 'lucide-react-native'
 
 import { Text, Avatar, Button, Divider } from '@/components/ui'
@@ -160,6 +161,11 @@ export default function ProfileScreen() {
             icon={<Bookmark size={20} color={SEMANTIC_COLORS.textMain} />}
             label="我的收藏"
             onPress={() => handleNavigate('/profile/bookmarks')}
+          />
+          <MenuItem
+            icon={<Mountain size={20} color={SEMANTIC_COLORS.textMain} />}
+            label="攀登記錄"
+            onPress={() => handleNavigate('/profile/ascents')}
           />
         </View>
 
