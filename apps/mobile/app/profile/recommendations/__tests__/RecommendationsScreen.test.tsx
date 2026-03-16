@@ -1,10 +1,15 @@
-import { render, waitFor, act } from '@testing-library/react-native'
+import { render, waitFor, act, fireEvent } from '@testing-library/react-native'
 import RecommendationsScreen from '../index'
 import { useRecommendations, useTriggerRecommendation } from '@/lib/hooks/useRecommendations'
 
 jest.mock('@/lib/hooks/useRecommendations')
 jest.mock('expo-router', () => ({ useRouter: () => ({ back: jest.fn() }) }))
+jest.mock('@/components/ui/Toast', () => ({
+  useToast: () => ({ show: mockToastShow }),
+}))
 jest.useFakeTimers()
+
+const mockToastShow = jest.fn()
 
 const EMPTY_RESPONSE = { items: [], total: 0 }
 const MOCK_RESPONSE = {
@@ -16,6 +21,22 @@ const MOCK_RESPONSE = {
     },
   ],
   total: 1,
+}
+
+async function advancePollingToExhaustion() {
+  // 3 poll attempts × 2s each = 6s total (check happens after refetch)
+  await act(async () => {
+    jest.advanceTimersByTime(2000)
+    await Promise.resolve()
+  })
+  await act(async () => {
+    jest.advanceTimersByTime(2000)
+    await Promise.resolve()
+  })
+  await act(async () => {
+    jest.advanceTimersByTime(2000)
+    await Promise.resolve()
+  })
 }
 
 describe('RecommendationsScreen', () => {
@@ -47,19 +68,45 @@ describe('RecommendationsScreen', () => {
     expect(getByText('推薦生成中...')).toBeTruthy()
   })
 
-  it('shows empty state after max poll attempts with no data', async () => {
+  it('shows empty state with correct copy after max poll attempts', async () => {
+    const mockRefetch = jest.fn().mockResolvedValue({ data: EMPTY_RESPONSE })
+    ;(useRecommendations as jest.Mock).mockReturnValue({ data: EMPTY_RESPONSE, isLoading: false, refetch: mockRefetch })
+    render(<RecommendationsScreen />)
+
+    await advancePollingToExhaustion()
+
+    // Need another tick for state updates
+    await waitFor(() => expect(mockRefetch).toHaveBeenCalledTimes(3))
+  })
+
+  it('shows quota exceeded toast when trigger fails with quota_exceeded', async () => {
+    const quotaError = { response: { data: { error: 'quota_exceeded' } } }
+    mockTrigger.mockRejectedValueOnce(quotaError)
     const mockRefetch = jest.fn().mockResolvedValue({ data: EMPTY_RESPONSE })
     ;(useRecommendations as jest.Mock).mockReturnValue({ data: EMPTY_RESPONSE, isLoading: false, refetch: mockRefetch })
     const { getByText } = render(<RecommendationsScreen />)
 
-    await act(async () => {
-      jest.advanceTimersByTime(2000)
-      await Promise.resolve()
-      jest.advanceTimersByTime(2000)
-      await Promise.resolve()
-      jest.advanceTimersByTime(2000)
-      await Promise.resolve()
-    })
-    await waitFor(() => expect(getByText('目前沒有推薦路線')).toBeTruthy())
+    await advancePollingToExhaustion()
+
+    await waitFor(() => expect(getByText('立即推薦')).toBeTruthy())
+    fireEvent.press(getByText('立即推薦'))
+    await waitFor(() =>
+      expect(mockToastShow).toHaveBeenCalledWith({ message: '今日 AI 配額已用完，明日重置', variant: 'error' })
+    )
+  })
+
+  it('shows failure toast when trigger fails with generic error', async () => {
+    mockTrigger.mockRejectedValueOnce(new Error('Server error'))
+    const mockRefetch = jest.fn().mockResolvedValue({ data: EMPTY_RESPONSE })
+    ;(useRecommendations as jest.Mock).mockReturnValue({ data: EMPTY_RESPONSE, isLoading: false, refetch: mockRefetch })
+    const { getByText } = render(<RecommendationsScreen />)
+
+    await advancePollingToExhaustion()
+
+    await waitFor(() => expect(getByText('立即推薦')).toBeTruthy())
+    fireEvent.press(getByText('立即推薦'))
+    await waitFor(() =>
+      expect(mockToastShow).toHaveBeenCalledWith({ message: '推薦生成失敗，請稍後再試', variant: 'error' })
+    )
   })
 })
