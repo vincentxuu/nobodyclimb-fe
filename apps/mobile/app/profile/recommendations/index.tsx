@@ -9,6 +9,14 @@ import { SPACING, WB_COLORS, SEMANTIC_COLORS } from '@nobodyclimb/constants'
 import { useRecommendations, useTriggerRecommendation, type Recommendation } from '@/lib/hooks/useRecommendations'
 import { RecommendationCard } from '@/components/ai'
 
+function isQuotaExceededError(error: unknown): boolean {
+  return (
+    (error as { response?: { data?: { error?: string } } })?.response?.data?.error === 'quota_exceeded'
+  )
+}
+
+const ItemSeparator = () => <View style={styles.separator} />
+
 const MAX_POLL_ATTEMPTS = 3
 const POLL_INTERVAL_MS = 2000
 const PAGE_SIZE = 10
@@ -24,7 +32,8 @@ export default function RecommendationsScreen() {
   const { data, isLoading, refetch } = useRecommendations(offset, PAGE_SIZE)
   const triggerRecommendation = useTriggerRecommendation()
 
-  // Use ref to avoid stale closure in poll loop
+  // pollAttemptsRef avoids stale closure in the async poll callback;
+  // pollAttempts state drives re-renders for pollingExhausted derived value.
   const pollAttemptsRef = useRef(0)
   const [pollAttempts, setPollAttempts] = useState(0)
   const [isPolling, setIsPolling] = useState(false)
@@ -83,10 +92,8 @@ export default function RecommendationsScreen() {
       setPollAttempts(0)
       setIsPolling(true)
     } catch (error) {
-      const isQuotaExceeded =
-        (error as { response?: { data?: { error?: string } } })?.response?.data?.error === 'quota_exceeded'
       toast.show({
-        message: isQuotaExceeded ? '今日 AI 配額已用完，明日重置' : '推薦生成失敗，請稍後再試',
+        message: isQuotaExceededError(error) ? '今日 AI 配額已用完，明日重置' : '推薦生成失敗，請稍後再試',
         variant: 'error',
       })
     }
@@ -144,7 +151,7 @@ export default function RecommendationsScreen() {
           keyExtractor={item => item.id}
           renderItem={renderItem}
           contentContainerStyle={styles.list}
-          ItemSeparatorComponent={() => <View style={styles.separator} />}
+          ItemSeparatorComponent={ItemSeparator}
           onEndReached={handleLoadMore}
           onEndReachedThreshold={0.3}
           ListFooterComponent={

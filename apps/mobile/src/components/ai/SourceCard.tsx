@@ -20,7 +20,7 @@ export function SourceCard({ source }: SourceCardProps) {
   return (
     <Pressable
       style={styles.card}
-      onPress={() => Linking.openURL(source.url)}
+      onPress={() => Linking.openURL(source.url).catch(() => {})}
     >
       <View style={styles.iconWrapper}>
         <Icon size={16} color={WB_COLORS[60]} />

@@ -17,7 +17,7 @@ export interface Recommendation {
   recommendation: {
     answer: string
     sources: AISource[]
-    context_ascents: unknown[]
+    context_ascents: { id: string; route_name?: string }[]
   }
   created_at: string
 }
