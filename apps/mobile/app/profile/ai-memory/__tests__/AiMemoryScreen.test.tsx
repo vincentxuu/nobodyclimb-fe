@@ -10,8 +10,10 @@ jest.mock('expo-router', () => ({
   useRouter: () => ({ back: jest.fn() }),
 }))
 jest.mock('@/components/ui/Toast', () => ({
-  useToast: () => ({ show: jest.fn() }),
+  useToast: () => ({ show: mockToastShow }),
 }))
+
+const mockToastShow = jest.fn()
 
 import { useAiMemory, useDeleteAiMemory } from '@/lib/hooks/useAiMemory'
 
@@ -32,13 +34,13 @@ describe('AiMemoryScreen', () => {
   })
 
   it('renders loading state', () => {
-    ;(useAiMemory as jest.Mock).mockReturnValue({ data: undefined, isLoading: true })
+    ;(useAiMemory as jest.Mock).mockReturnValue({ data: undefined, isLoading: true, isError: false })
     const { getByTestId } = render(<AiMemoryScreen />)
     expect(getByTestId('loading-spinner')).toBeTruthy()
   })
 
   it('renders memories list', () => {
-    ;(useAiMemory as jest.Mock).mockReturnValue({ data: MOCK_MEMORIES, isLoading: false })
+    ;(useAiMemory as jest.Mock).mockReturnValue({ data: MOCK_MEMORIES, isLoading: false, isError: false })
     const { getByText } = render(<AiMemoryScreen />)
     expect(getByText('攀岩程度')).toBeTruthy()
     expect(getByText('5.10a')).toBeTruthy()
@@ -47,23 +49,39 @@ describe('AiMemoryScreen', () => {
   })
 
   it('renders empty state when no memories', () => {
-    ;(useAiMemory as jest.Mock).mockReturnValue({ data: [], isLoading: false })
+    ;(useAiMemory as jest.Mock).mockReturnValue({ data: [], isLoading: false, isError: false })
     const { getByText } = render(<AiMemoryScreen />)
     expect(getByText('AI 會在你提問後自動學習你的偏好，目前尚無記憶')).toBeTruthy()
   })
 
+  it('renders error state when query fails', () => {
+    ;(useAiMemory as jest.Mock).mockReturnValue({ data: undefined, isLoading: false, isError: true })
+    const { getByText } = render(<AiMemoryScreen />)
+    expect(getByText('載入失敗，請稍後再試')).toBeTruthy()
+  })
+
   it('shows confirm dialog when delete button pressed', () => {
-    ;(useAiMemory as jest.Mock).mockReturnValue({ data: MOCK_MEMORIES, isLoading: false })
+    ;(useAiMemory as jest.Mock).mockReturnValue({ data: MOCK_MEMORIES, isLoading: false, isError: false })
     const { getAllByTestId, getByText } = render(<AiMemoryScreen />)
     fireEvent.press(getAllByTestId('delete-btn')[0])
     expect(getByText('確定刪除此記憶？')).toBeTruthy()
   })
 
-  it('calls deleteMemory on confirm', async () => {
-    ;(useAiMemory as jest.Mock).mockReturnValue({ data: MOCK_MEMORIES, isLoading: false })
+  it('calls deleteMemory on confirm and shows success toast', async () => {
+    ;(useAiMemory as jest.Mock).mockReturnValue({ data: MOCK_MEMORIES, isLoading: false, isError: false })
     const { getAllByTestId, getByText } = render(<AiMemoryScreen />)
     fireEvent.press(getAllByTestId('delete-btn')[0])
     fireEvent.press(getByText('刪除'))
     await waitFor(() => expect(mockMutateAsync).toHaveBeenCalledWith('1'))
+    await waitFor(() => expect(mockToastShow).toHaveBeenCalledWith({ message: '記憶已刪除', variant: 'success' }))
+  })
+
+  it('shows error toast when delete fails', async () => {
+    mockMutateAsync.mockRejectedValueOnce(new Error('Network error'))
+    ;(useAiMemory as jest.Mock).mockReturnValue({ data: MOCK_MEMORIES, isLoading: false, isError: false })
+    const { getAllByTestId, getByText } = render(<AiMemoryScreen />)
+    fireEvent.press(getAllByTestId('delete-btn')[0])
+    fireEvent.press(getByText('刪除'))
+    await waitFor(() => expect(mockToastShow).toHaveBeenCalledWith({ message: '刪除失敗，請稍後再試', variant: 'error' }))
   })
 })

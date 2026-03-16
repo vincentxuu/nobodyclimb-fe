@@ -17,7 +17,7 @@ export function useAiMemory() {
     queryKey: ['ai-memory'],
     queryFn: async () => {
       const { data } = await apiClient.get('/ai/memory')
-      return data.data as UserMemory[]
+      return (data?.data ?? []) as UserMemory[]
     },
   })
 }

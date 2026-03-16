@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import React, { useState, useCallback } from 'react'
 import { View, FlatList, Pressable, StyleSheet, ActivityIndicator } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import { useRouter } from 'expo-router'
@@ -23,8 +23,8 @@ const KEY_LABELS: Record<MemoryKey, string> = {
 }
 
 const TYPE_CONFIG: Record<MemoryType, { label: string; color: string }> = {
-  preference: { label: '偏好', color: '#3B82F6' },
-  behavior: { label: '行為', color: '#A855F7' },
+  preference: { label: '偏好', color: SEMANTIC_COLORS.info },
+  behavior: { label: '行為', color: SEMANTIC_COLORS.warning },
   fact: { label: '事實', color: SEMANTIC_COLORS.success },
 }
 
@@ -40,19 +40,23 @@ const ListSeparator = () => <View style={{ height: SPACING.sm }} />
 
 export default function AiMemoryScreen() {
   const router = useRouter()
-  const { data: memories, isLoading } = useAiMemory()
+  const { data: memories, isLoading, isError } = useAiMemory()
   const deleteMemory = useDeleteAiMemory()
   const [deletingId, setDeletingId] = useState<string | null>(null)
   const toast = useToast()
 
   const handleDelete = async () => {
     if (!deletingId) return
-    await deleteMemory.mutateAsync(deletingId)
-    setDeletingId(null)
-    toast.show({ message: '記憶已刪除', variant: 'success' })
+    try {
+      await deleteMemory.mutateAsync(deletingId)
+      setDeletingId(null)
+      toast.show({ message: '記憶已刪除', variant: 'success' })
+    } catch {
+      toast.show({ message: '刪除失敗，請稍後再試', variant: 'error' })
+    }
   }
 
-  const renderItem = ({ item }: { item: UserMemory }) => {
+  const renderItem = useCallback(({ item }: { item: UserMemory }) => {
     const typeConfig = TYPE_CONFIG[item.memory_type]
     return (
       <View style={styles.item}>
@@ -66,9 +70,43 @@ export default function AiMemoryScreen() {
         <View style={styles.itemFooter}>
           <Text style={styles.time}>{relativeTime(item.updated_at)}</Text>
           <Pressable testID="delete-btn" onPress={() => setDeletingId(item.id)} style={styles.deleteBtn}>
-            <Trash2 size={16} color="#EF4444" />
+            <Trash2 size={16} color={SEMANTIC_COLORS.error} />
           </Pressable>
         </View>
+      </View>
+    )
+  }, [])
+
+  const renderContent = () => {
+    if (isLoading) {
+      return (
+        <View style={styles.center} testID="loading-spinner">
+          <ActivityIndicator color={SEMANTIC_COLORS.success} />
+        </View>
+      )
+    }
+    if (isError) {
+      return (
+        <View style={styles.center}>
+          <Text style={styles.emptyText}>載入失敗，請稍後再試</Text>
+        </View>
+      )
+    }
+    if (memories && memories.length > 0) {
+      return (
+        <FlatList
+          data={memories}
+          keyExtractor={item => item.id}
+          renderItem={renderItem}
+          contentContainerStyle={styles.list}
+          ItemSeparatorComponent={ListSeparator}
+        />
+      )
+    }
+    return (
+      <View style={styles.center}>
+        <Brain size={48} color={WB_COLORS[30]} />
+        <Text style={styles.emptyText}>AI 會在你提問後自動學習你的偏好，目前尚無記憶</Text>
       </View>
     )
   }
@@ -83,24 +121,7 @@ export default function AiMemoryScreen() {
         <View style={{ width: 40 }} />
       </View>
 
-      {isLoading ? (
-        <View style={styles.center} testID="loading-spinner">
-          <ActivityIndicator color={SEMANTIC_COLORS.success} />
-        </View>
-      ) : memories && memories.length > 0 ? (
-        <FlatList
-          data={memories}
-          keyExtractor={item => item.id}
-          renderItem={renderItem}
-          contentContainerStyle={styles.list}
-          ItemSeparatorComponent={ListSeparator}
-        />
-      ) : (
-        <View style={styles.center}>
-          <Brain size={48} color={WB_COLORS[30]} />
-          <Text style={styles.emptyText}>AI 會在你提問後自動學習你的偏好，目前尚無記憶</Text>
-        </View>
-      )}
+      {renderContent()}
 
       <ConfirmDialog
         open={!!deletingId}
