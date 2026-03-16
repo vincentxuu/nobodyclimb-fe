@@ -11,6 +11,10 @@ describe('ConfirmDialog', () => {
     onCancel: jest.fn(),
   }
 
+  beforeEach(() => {
+    jest.clearAllMocks()
+  })
+
   it('renders title and message when open', () => {
     const { getByText } = render(<ConfirmDialog {...baseProps} />)
     expect(getByText('確認刪除')).toBeTruthy()
@@ -46,9 +50,15 @@ describe('ConfirmDialog', () => {
   })
 
   it('disables both buttons when loading', () => {
-    const { getByText } = render(<ConfirmDialog {...baseProps} loading={true} />)
-    expect(getByText('確認')).toBeTruthy()
-    expect(getByText('取消')).toBeTruthy()
+    const onConfirm = jest.fn()
+    const onCancel = jest.fn()
+    const { getByText } = render(
+      <ConfirmDialog {...baseProps} onConfirm={onConfirm} onCancel={onCancel} loading={true} />
+    )
+    fireEvent.press(getByText('確認'))
+    fireEvent.press(getByText('取消'))
+    expect(onConfirm).not.toHaveBeenCalled()
+    expect(onCancel).not.toHaveBeenCalled()
   })
 
   it('does not render when open is false', () => {
