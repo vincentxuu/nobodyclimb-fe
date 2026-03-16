@@ -51,3 +51,4 @@ output/
 .claude
 .startmoving
 docs/start-moving*
+.worktrees/
