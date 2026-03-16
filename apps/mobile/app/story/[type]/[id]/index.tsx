@@ -24,20 +24,14 @@ import { Text } from '@/components/ui/Text'
 import { MarkdownText } from '@/components/ui/MarkdownText'
 import { Badge } from '@/components/ui/Badge'
 import { ContentInteractionBar } from '@/components/biography/display/ContentInteractionBar'
-import { useStoryDetail } from '@/lib/hooks/useStoryDetail'
+import { useStoryDetail, isValidStoryType } from '@/lib/hooks/useStoryDetail'
 import { apiClient } from '@/lib/api'
 import type { StoryType } from '@/lib/hooks/useStoryDetail'
-
-const VALID_STORY_TYPES: StoryType[] = ['core-stories', 'one-liners', 'stories']
-
-function isValidStoryType(type: string): type is StoryType {
-  return VALID_STORY_TYPES.includes(type as StoryType)
-}
 
 const TYPE_LABELS: Record<StoryType, string> = {
   'core-stories': '核心故事',
   'one-liners': '一句話',
-  stories: '攀岩故事',
+  stories: '小故事',
 }
 
 export default function StoryDetailScreen() {
@@ -67,7 +61,12 @@ export default function StoryDetailScreen() {
     return null
   }
 
-  const title = type === 'one-liners' ? data.question : data.title
+  const title =
+    type === 'core-stories'
+      ? data.title || '核心故事'
+      : type === 'one-liners'
+        ? data.question || '一句話'
+        : data.title || data.category_name || '小故事'
   const author = data.author
 
   const handleToggleLike = async () => {

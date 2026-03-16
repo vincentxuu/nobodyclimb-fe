@@ -2,7 +2,10 @@ import { render } from '@testing-library/react-native'
 import StoryDetailScreen from '../index'
 import { useStoryDetail } from '@/lib/hooks/useStoryDetail'
 
-jest.mock('@/lib/hooks/useStoryDetail')
+jest.mock('@/lib/hooks/useStoryDetail', () => ({
+  ...jest.requireActual('@/lib/hooks/useStoryDetail'),
+  useStoryDetail: jest.fn(),
+}))
 jest.mock('expo-router', () => ({
   useLocalSearchParams: jest.fn(),
   useRouter: jest.fn(() => ({ back: jest.fn(), replace: jest.fn() })),
@@ -27,7 +30,7 @@ const MOCK_ONE_LINER = {
 }
 
 const MOCK_STORY = {
-  id: '3', title: '小故事', content: '一個小小的故事。',
+  id: '3', title: '我的攀岩故事', content: '一個小小的故事。',
   category_name: '岩場故事',
   author: { id: 'u1', name: '小明', biography_id: 'b1' },
   is_liked: false, like_count: 1, comment_count: 0,
@@ -60,7 +63,7 @@ describe('StoryDetailScreen', () => {
     useLocalSearchParams.mockReturnValue({ type: 'stories', id: '3' })
     ;(useStoryDetail as jest.Mock).mockReturnValue({ data: MOCK_STORY, isLoading: false })
     const { getByText } = render(<StoryDetailScreen />)
-    expect(getByText('小故事')).toBeTruthy()
+    expect(getByText('我的攀岩故事')).toBeTruthy()
   })
 
   it('redirects to tabs when type is invalid', () => {
