@@ -93,6 +93,10 @@ export type { ListItemProps, ListSectionProps } from './ListItem'
 export { Dialog } from './Dialog'
 export type { DialogProps, DialogAction } from './Dialog'
 
+// ConfirmDialog
+export { ConfirmDialog } from './ConfirmDialog'
+export type { ConfirmDialogProps } from './ConfirmDialog'
+
 // Toast
 export { Toast, ToastProvider, useToast } from './Toast'
 export type { ToastProps, ToastConfig, ToastVariant } from './Toast'
