@@ -5,6 +5,7 @@ import { getMemoriesSummary } from '../../repositories/memory';
 import { getRecentAscents, buildAscentContext, estimateAbilityLevel } from '../personalization';
 import { PipelineEngine } from '../pipeline/engine';
 import { createPipelineContext } from '../pipeline/context';
+import { runAIGraph } from '../ai-graph';
 import type { PipelineConfig, AgenticStepTrace, StageTokenUsage } from '../pipeline/types';
 import { CircuitBreaker } from '../../utils/circuit-breaker';
 import { withTimeout, TimeoutError } from '../../utils/timeout';
@@ -145,14 +146,25 @@ export class QueryService {
       circuitBreaker,
     });
 
-    const engine = new PipelineEngine(this.env);
     try {
-      const result = await withTimeout(
-        engine.run(pipelineCtx),
-        pipelineCfg.pipeline_timeout_ms,
-        'pipeline',
-      );
-      return result.earlyReturn ?? result.finalResponse!;
+      if (pipelineCfg.use_langgraph_engine === true) {
+        // 新引擎：LangGraph pipeline
+        const result = await withTimeout(
+          runAIGraph(pipelineCtx),
+          pipelineCfg.pipeline_timeout_ms,
+          'pipeline',
+        );
+        return result.earlyReturn ?? result.finalResponse!;
+      } else {
+        // 原有引擎（feature flag 預設 false）
+        const engine = new PipelineEngine(this.env);
+        const result = await withTimeout(
+          engine.run(pipelineCtx),
+          pipelineCfg.pipeline_timeout_ms,
+          'pipeline',
+        );
+        return result.earlyReturn ?? result.finalResponse!;
+      }
     } catch (err) {
       controller.abort();
       throw err;
