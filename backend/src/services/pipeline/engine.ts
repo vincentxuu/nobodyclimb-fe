@@ -625,9 +625,14 @@ export class PipelineEngine {
       pipelineTrace: Object.keys(ctx.trace).length > 0 ? JSON.stringify(ctx.trace) : undefined,
     });
 
-    // 2. KV 快取寫入
+    // 2. KV 快取寫入（錯誤回答不快取）
+    const finalAnswer = ctx.answer ?? '';
+    const isErrorAnswer = finalAnswer === '抱歉，無法生成回答，請稍後再試。' ||
+      finalAnswer === '抱歉，目前無法生成回答，請換個方式提問或稍後再試。' ||
+      finalAnswer === '抱歉，AI 回答生成超時，請稍後再試。' ||
+      finalAnswer === '抱歉，AI 服務暫時發生問題，請稍後再試。';
     const response: AIAskResponse = {
-      answer: ctx.answer ?? '',
+      answer: finalAnswer,
       sources: ctx.request.include_sources !== false ? (ctx.sources ?? []) : [],
       query_id: queryId,
       suggested_questions: ctx.suggestedQuestions ?? [],
@@ -636,7 +641,7 @@ export class PipelineEngine {
         degraded_stages: ctx.degradedStages,
       } : {}),
     };
-    await ctx.env.CACHE.put(ctx.cacheKey, JSON.stringify(response), {
+    if (!isErrorAnswer) await ctx.env.CACHE.put(ctx.cacheKey, JSON.stringify(response), {
       expirationTtl: ctx.cacheTtl,
     });
 
@@ -657,10 +662,11 @@ export class PipelineEngine {
       // 5. 串流模式異步 Judge
       if (ctx.streamingMode) {
         ctx.waitUntilCtx.waitUntil((async () => {
-          const { groundedness: gs, quality: ql } = await queryService.runJudge(
+          const { groundedness: gs, quality: qlRaw, constraint_ok } = await queryService.runJudge(
             ctx.request.query, ctx.context ?? '', ctx.parsedAnswer ?? '',
             { model: pipelineConfig.lightweight_model, timeoutMs: pipelineConfig.judge_timeout_ms, contextTruncate: pipelineConfig.judge_context_truncate, promptTemplate: ctx.prompts['JUDGE_PROMPT'] }
           );
+          const ql = (!constraint_ok && qlRaw !== null) ? 1 : qlRaw;
           if (gs !== null || ql !== null) {
             await ctx.env.DB.prepare(
               `UPDATE ai_query_logs SET groundedness_score = ?, auto_score = ? WHERE id = ?`

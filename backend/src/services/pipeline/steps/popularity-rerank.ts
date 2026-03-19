@@ -19,8 +19,22 @@ export const popularityRerankStep: PipelineStep = {
     }
 
     const { env, pipelineConfig, trace, queryService } = ctx;
-    const rerankedMatches = ctx.rerankedMatches ?? [];
+    let rerankedMatches = ctx.rerankedMatches ?? [];
     const documents = ctx.documents ?? new Map();
+
+    // 排除已完攀路線（推薦情境：ctx.climbed_route_ids 由 RecommendationService 注入）
+    const climbedIds = ctx.climbed_route_ids;
+    if (climbedIds && climbedIds.length > 0) {
+      const climbedSet = new Set(climbedIds);
+      const before = rerankedMatches.length;
+      rerankedMatches = rerankedMatches.filter((match) => {
+        const doc = documents.get(match.id);
+        return !doc || doc.type !== 'route' || !climbedSet.has(doc.source_id);
+      });
+      if (trace.mmr_selection) {
+        (trace.mmr_selection as Record<string, unknown>).climbed_excluded = before - rerankedMatches.length;
+      }
+    }
 
     // 查詢影片數量（限制 500 筆避免超過 D1 bind 參數上限）
     const routeSourceIds = [...documents.values()]

@@ -208,20 +208,23 @@ export async function streamLLMGeneration(
 }
 
 // 解析 judge LLM 回傳的 JSON，容錯處理格式錯誤
-export function parseJudgeResponse(raw: string): { groundedness: number | null; quality: number | null } {
+export function parseJudgeResponse(raw: string): { groundedness: number | null; quality: number | null; constraint_ok: boolean } {
   if (raw.includes('<float') || raw.includes('<int')) {
-    return { groundedness: null, quality: null };
+    return { groundedness: null, quality: null, constraint_ok: true };
   }
 
   try {
-    const jsonMatch = raw.match(/\{[^}]*\}/);
+    const jsonMatch = raw.match(/\{[\s\S]*?\}/);
     if (jsonMatch) {
       const parsed = JSON.parse(jsonMatch[0]);
       const groundedness = typeof parsed.groundedness === 'number' && parsed.groundedness >= 0 && parsed.groundedness <= 1
         ? parsed.groundedness : null;
-      const quality = typeof parsed.quality === 'number' && Number.isInteger(parsed.quality) && parsed.quality >= 1 && parsed.quality <= 4
+      let quality = typeof parsed.quality === 'number' && Number.isInteger(parsed.quality) && parsed.quality >= 1 && parsed.quality <= 4
         ? parsed.quality : null;
-      if (groundedness !== null || quality !== null) return { groundedness, quality };
+      const constraint_ok = parsed.constraint_ok === false ? false : true;
+      // 約束違反時強制 quality = 1
+      if (!constraint_ok && quality !== null) quality = 1;
+      if (groundedness !== null || quality !== null) return { groundedness, quality, constraint_ok };
     }
   } catch { /* fall through */ }
 
@@ -236,7 +239,7 @@ export function parseJudgeResponse(raw: string): { groundedness: number | null; 
   if (qMatch) {
     quality = parseInt(qMatch[1], 10);
   }
-  return { groundedness, quality };
+  return { groundedness, quality, constraint_ok: true };
 }
 
 // 呼叫 judge LLM，timeout 與 context 截斷長度由 config 控制
@@ -249,6 +252,7 @@ export async function runJudge(
 ): Promise<{
   groundedness: number | null;
   quality: number | null;
+  constraint_ok: boolean;
   rawResponse: string | null;
   contextChars: number;
   contextTruncated: boolean;
@@ -271,7 +275,7 @@ export async function runJudge(
       model,
       {
         messages: [
-          { role: 'system', content: '只回傳 JSON，不含任何說明文字。格式：{"groundedness": <float 0.0-1.0>, "quality": <int 1-4>}' },
+          { role: 'system', content: '只回傳 JSON，不含任何說明文字。格式：{"groundedness": <float 0.0-1.0>, "quality": <int 1-4>, "constraint_ok": <true|false>}' },
           { role: 'user', content: judgePrompt },
         ],
         max_tokens: 60,
@@ -287,6 +291,6 @@ export async function runJudge(
     return { ...scores, rawResponse, contextChars: truncatedContext.length, contextTruncated, usage };
   } catch (err) {
     console.error('[judge] error:', err instanceof Error ? err.message : String(err));
-    return { groundedness: null, quality: null, rawResponse: null, contextChars: truncatedContext.length, contextTruncated };
+    return { groundedness: null, quality: null, constraint_ok: true, rawResponse: null, contextChars: truncatedContext.length, contextTruncated };
   }
 }

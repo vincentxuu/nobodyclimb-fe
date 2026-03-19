@@ -184,6 +184,10 @@ export const JUDGE_PROMPT = `你是一個回答品質評估器。請根據以下
    - 3：大致相關，有小缺失
    - 2：部分相關或不完整
    - 1：不相關或嚴重錯誤
+4. constraint_ok（true/false）：回答是否滿足問題中的明確排除條件
+   - 若問題包含「尚未爬過」「未爬過」「沒爬過」等關鍵詞，且問題中前段列出了已完攀路線名稱，檢查回答的推薦清單中是否出現這些路線名稱
+   - 若回答推薦了問題前段明確列出的已完攀路線 → constraint_ok = false，且 quality 必須設為 1（無論其他維度）
+   - 若問題無明確排除條件，或回答未違反排除條件 → constraint_ok = true
 
 【參考資料】
 {context}
@@ -195,7 +199,7 @@ export const JUDGE_PROMPT = `你是一個回答品質評估器。請根據以下
 {response}
 
 只回傳 JSON，不含任何說明，範例格式（請填入實際數值）：
-{"groundedness": 0.75, "quality": 3}`;
+{"groundedness": 0.75, "quality": 3, "constraint_ok": true}`;
 
 // Contextual RAG：為每個 chunk 生成語意摘要，prepend 後再 embed，提升向量搜尋準確度
 // 生成的摘要只用於 embedding，不寫入 D1（LLM context 仍使用原始結構化文字）

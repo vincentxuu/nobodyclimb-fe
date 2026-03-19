@@ -206,7 +206,10 @@ async function handleHybridPath(ctx: PipelineContext, sqlService: TextToSqlServi
       }
     }
 
-    const candidates = await sqlService.queryCandidates(params);
+    const excludedIds = (ctx.climbed_route_ids && ctx.climbed_route_ids.length > 0)
+      ? ctx.climbed_route_ids
+      : undefined;
+    const candidates = await sqlService.queryCandidates(params, excludedIds);
 
     if (candidates.length === 0) {
       return fallbackToRag(ctx, 'empty_candidates');
@@ -227,9 +230,24 @@ async function handleHybridPath(ctx: PipelineContext, sqlService: TextToSqlServi
     ctx.sqlCandidates = candidates;
     ctx.sqlContext = sqlContext;
 
+    const candidateDetails = candidates.map((r) => ({
+      name: r.name,
+      grade: r.grade ?? null,
+      route_type: r.route_type ?? null,
+      crag_name: r.crag_name ?? null,
+      bolt_count: typeof r.bolt_count === 'number' ? r.bolt_count : null,
+      height: typeof r.height === 'number' ? r.height : null,
+      description: typeof r.description === 'string' && r.description.trim().length > 0
+        ? r.description.trim().slice(0, 200)
+        : null,
+    }));
+    const contextPreview = sqlContext.length > 1200 ? `${sqlContext.slice(0, 1200)}…` : sqlContext;
+
     trace.text_to_sql = {
       path: 'hybrid',
       candidate_count: candidates.length,
+      context_preview: contextPreview,
+      candidates: candidateDetails,
     };
 
     return ctx;

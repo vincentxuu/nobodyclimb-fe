@@ -61,6 +61,7 @@ export function createPipelineContext(opts: {
     memorySummary: opts.memorySummary,
     ascentContext: opts.ascentContext,
     abilityLevel: opts.abilityLevel,
+    climbed_route_ids: opts.request.climbed_route_ids ?? null,
 
     // Tool Selection 信心
     toolConfidence: 1.0,

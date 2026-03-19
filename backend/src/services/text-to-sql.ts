@@ -156,7 +156,7 @@ export class TextToSqlService {
   }
 
   // Hybrid 候選集查詢（最多 20 條）
-  async queryCandidates(params: Record<string, unknown>): Promise<Record<string, unknown>[]> {
+  async queryCandidates(params: Record<string, unknown>, excluded_ids?: string[]): Promise<Record<string, unknown>[]> {
     try {
       const cragId = params.crag_id as string | undefined;
       const grade = params.grade as string | undefined;
@@ -194,6 +194,12 @@ export class TextToSqlService {
       if (routeType) {
         sql += ' AND r.route_type = ?';
         binds.push(routeType);
+      }
+      // 排除已完攀路線（推薦情境）
+      if (excluded_ids && excluded_ids.length > 0) {
+        const placeholders = excluded_ids.map(() => '?').join(', ');
+        sql += ` AND r.id NOT IN (${placeholders})`;
+        binds.push(...excluded_ids);
       }
 
       sql += ' ORDER BY r.grade ASC LIMIT 20';

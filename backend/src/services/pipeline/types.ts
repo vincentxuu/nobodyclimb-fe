@@ -268,7 +268,7 @@ export interface QueryServiceStepMethods {
   runJudge(
     query: string, context: string, response: string,
     opts?: { model?: string; timeoutMs?: number; contextTruncate?: number; promptTemplate?: string },
-  ): Promise<{ groundedness: number | null; quality: number | null; rawResponse: string | null; contextChars: number; contextTruncated: boolean; usage?: TokenUsageInfo }>;
+  ): Promise<{ groundedness: number | null; quality: number | null; constraint_ok: boolean; rawResponse: string | null; contextChars: number; contextTruncated: boolean; usage?: TokenUsageInfo }>;
   // 日誌
   logQuery(params: {
     userId: string | null; query: string; response: string; sources: AISource[];
@@ -366,6 +366,7 @@ export interface PipelineContext {
   memorySummary?: string | null;
   ascentContext?: string | null;
   abilityLevel?: number | null;
+  climbed_route_ids?: string[] | null;
 
   // Looping 控制
   loopCount: number;

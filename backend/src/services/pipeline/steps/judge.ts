@@ -45,16 +45,19 @@ export const judgeStep: PipelineStep = {
       }
     );
 
+    // constraint_ok = false 時強制 quality = 1
+    const constraintOk = judgeResult.constraint_ok;
     ctx.groundedness = judgeResult.groundedness;
-    ctx.quality = judgeResult.quality;
+    ctx.quality = (!constraintOk && judgeResult.quality !== null) ? 1 : judgeResult.quality;
 
     if (judgeResult.usage) {
       ctx.tokenBreakdown.judge = { ...judgeResult.usage, model: pipelineConfig.lightweight_model };
     }
 
     trace.judge_detail = {
-      criteria: ['groundedness', 'quality'],
-      raw_scores: { groundedness: ctx.groundedness, quality: ctx.quality },
+      criteria: ['groundedness', 'quality', 'constraint_ok'],
+      raw_scores: { groundedness: ctx.groundedness, quality: ctx.quality, constraint_ok: constraintOk },
+      constraint_ok: constraintOk,
       raw_llm_response: judgeResult.rawResponse,
       context_chars: judgeResult.contextChars,
       context_truncated: judgeResult.contextTruncated,
