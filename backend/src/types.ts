@@ -219,6 +219,10 @@ export interface Env {
   AI: AI;
   VECTOR_INDEX: VectorizeIndex;
   AI_GATEWAY_SLUG?: string;
+  // Langfuse Observability（透過 wrangler secret 設定）
+  LANGFUSE_PUBLIC_KEY?: string;
+  LANGFUSE_SECRET_KEY?: string;
+  LANGFUSE_BASEURL?: string;
 }
 
 // Type alias for backwards compatibility
