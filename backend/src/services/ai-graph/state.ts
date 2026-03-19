@@ -1,6 +1,7 @@
 import { Annotation } from '@langchain/langgraph';
 import { PipelineContext } from '../pipeline/types';
 import { LangfuseTraceClient } from 'langfuse';
+import { AIProvider } from './providers/types';
 
 /**
  * LangGraph Graph State
@@ -138,6 +139,10 @@ export const GraphStateAnnotation = Annotation.Root({
   // ---------- LangGraph 新增欄位 ----------
   /** Langfuse trace 實例，由 GraphService 注入，nodes 用來建立 span */
   langfuseTrace: Annotation<LangfuseTraceClient | null | undefined>(),
+  /** 注入的 LLM provider，nodes 透過此介面呼叫 chat / streamChat */
+  llmProvider: Annotation<AIProvider | undefined>(),
+  /** 注入的 embedding provider，embedding node 透過此介面呼叫 embed */
+  embeddingProvider: Annotation<AIProvider | undefined>(),
 });
 
 export type GraphState = typeof GraphStateAnnotation.State;
