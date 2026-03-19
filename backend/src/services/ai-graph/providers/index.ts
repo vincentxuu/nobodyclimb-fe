@@ -46,7 +46,10 @@ export function createProviders(config: ProviderConfig, env: Env): {
     const ep = createProvider(embName, env);
     // anthropic doesn't support embedding — fallback to cloudflare
     embedding = ep.name === 'anthropic' ? new CloudflareProvider(env.AI) : ep;
-  } catch {
+  } catch (err) {
+    // embedding provider creation failed (e.g., missing API key for non-cloudflare provider)
+    // fall back to Cloudflare embedding to keep the request alive
+    console.warn('[providers] embedding provider creation failed, falling back to Cloudflare:', err);
     embedding = new CloudflareProvider(env.AI);
   }
   return { llm, embedding };

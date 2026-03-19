@@ -82,6 +82,7 @@ export class OpenAIProvider implements AIProvider {
       headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${this.apiKey}` },
       body: JSON.stringify({ model: opts.model ?? this.defaultEmbeddingModel, input: text }),
     });
+    if (!res.ok) throw new Error(`OpenAI embed error: ${res.status} ${await res.text()}`);
     const data = await res.json() as { data: Array<{ embedding: number[] }> };
     return data.data[0].embedding;
   }
@@ -92,6 +93,7 @@ export class OpenAIProvider implements AIProvider {
       headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${this.apiKey}` },
       body: JSON.stringify({ model: opts.model ?? this.defaultEmbeddingModel, input: texts }),
     });
+    if (!res.ok) throw new Error(`OpenAI embedBatch error: ${res.status} ${await res.text()}`);
     const data = await res.json() as { data: Array<{ embedding: number[]; index: number }> };
     return data.data.sort((a, b) => a.index - b.index).map(d => d.embedding);
   }

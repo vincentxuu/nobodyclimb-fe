@@ -26,9 +26,9 @@ export class CloudflareProvider implements AIProvider {
     messages: ChatMessage[],
     opts: LLMCallOptions & { onToken: (token: string) => Promise<void> },
   ): Promise<LLMResponse> {
-    // 使用現有的 streamLLMGeneration 邏輯移植至此
-    // ...
-    return { content: '' };
+    // TODO: Cloudflare Workers AI streaming requires EventSource/ReadableStream handling.
+    // Not yet implemented — use non-streaming chat() until this is ported from the legacy pipeline.
+    throw new Error('CloudflareProvider.streamChat is not yet implemented. Use chat() for non-streaming generation.');
   }
 
   async embed(text: string, opts: EmbeddingOptions = {}): Promise<number[]> {
@@ -36,7 +36,9 @@ export class CloudflareProvider implements AIProvider {
       opts.model ?? this.defaultEmbeddingModel,
       { text: [text] } as Parameters<typeof this.ai.run>[1],
     );
-    return (result as { data: number[][] }).data[0];
+    const data = (result as { data?: number[][] }).data;
+    if (!data || !data[0]) throw new Error('CloudflareProvider embed: unexpected response shape');
+    return data[0];
   }
 
   async embedBatch(texts: string[], opts: EmbeddingOptions = {}): Promise<number[][]> {
@@ -44,6 +46,8 @@ export class CloudflareProvider implements AIProvider {
       opts.model ?? this.defaultEmbeddingModel,
       { text: texts } as Parameters<typeof this.ai.run>[1],
     );
-    return (result as { data: number[][] }).data;
+    const data = (result as { data?: number[][] }).data;
+    if (!data) throw new Error('CloudflareProvider embedBatch: unexpected response shape');
+    return data;
   }
 }
