@@ -17,7 +17,9 @@ export function routeAfterToolSelection(state: GraphState):
   if (state.queryType === 'sql') return 'textToSql';
   if (state.queryType === 'clarification-needed') return 'END';
   if (state.queryType === 'general-knowledge') return 'llmGeneration'; // 跳過 retrieval
-  return 'filterBuild'; // 一般 vector 路徑：filterBuild → embedding → ...
+  // queryType 'simple', 'complex', 'vector', 'hybrid', 'multi-tool' 等
+  // 均走向量搜尋路徑（filterBuild → embedding → ...）
+  return 'filterBuild';
 }
 
 /** text-to-sql 後：成功有結果→生成回答，無結果→ fallback 向量搜尋，earlyReturn（澄清/錯誤）→ END */
@@ -67,8 +69,7 @@ export function routeAgenticDecision(state: GraphState):
   | 'END'
 {
   if (state.earlyReturn) return 'END';
-  const lastAction = (state.trace as Record<string, unknown>)?.lastAgenticAction as string | undefined;
-  if (lastAction === 'ANSWER') return 'llmGeneration';
+  if (state.agenticAction === 'ANSWER') return 'llmGeneration';
   return 'agenticRetrieve';
 }
 

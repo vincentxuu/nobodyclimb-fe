@@ -66,6 +66,8 @@ export const GraphStateAnnotation = Annotation.Root({
 
   // Retrieval
   candidateMatches: Annotation<PipelineContext['candidateMatches']>(),
+  // NOTE: branchResults 和 documents 使用 Map 型別（繼承自 PipelineContext）。
+  // 若未來啟用 LangGraph checkpointing，需改為 Record/Array 以支援 JSON 序列化。
   documents: Annotation<PipelineContext['documents']>(),
   retrievalScore: Annotation<number | undefined>(),
 
@@ -101,7 +103,13 @@ export const GraphStateAnnotation = Annotation.Root({
   loopCount: Annotation<number>(),
   loopBack: Annotation<PipelineContext['loopBack']>(),
 
+  // Agentic
+  /** agentic decision node が設定：'RETRIEVE' | 'ANSWER'。routing 用 typed field 而非從 trace 讀取 */
+  agenticAction: Annotation<'RETRIEVE' | 'ANSWER' | undefined>(),
+
   // Branching
+  // NOTE: branchResults 和 documents 使用 Map 型別（繼承自 PipelineContext）。
+  // 若未來啟用 LangGraph checkpointing，需改為 Record/Array 以支援 JSON 序列化。
   branchResults: Annotation<PipelineContext['branchResults']>(),
 
   // Latency
@@ -120,6 +128,8 @@ export const GraphStateAnnotation = Annotation.Root({
   cannotAnswer: Annotation<boolean | undefined>(),
   abortSignal: Annotation<AbortSignal | undefined>(),
   embeddingFailed: Annotation<boolean | undefined>(),
+  // NOTE: 使用 array concat 而非 last-write-wins：同一個 graph step 中多個 node 可能
+  // 各自降級，所有降級記錄都必須保留。使用覆寫會導致早期 node 的降級信號靜默遺失。
   degradedStages: Annotation<string[] | undefined>({
     reducer: (a, b) => [...(a ?? []), ...(b ?? [])],
   }),

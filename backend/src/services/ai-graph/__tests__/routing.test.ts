@@ -121,11 +121,11 @@ describe('routeAgenticDecision', () => {
   it('returns END when earlyReturn is set', () => {
     expect(routeAgenticDecision({ earlyReturn: { answer: 'x' } } as any)).toBe('END');
   });
-  it('returns llmGeneration when lastAgenticAction === ANSWER', () => {
-    expect(routeAgenticDecision({ trace: { lastAgenticAction: 'ANSWER' } } as any)).toBe('llmGeneration');
+  it('returns llmGeneration when agenticAction === ANSWER', () => {
+    expect(routeAgenticDecision({ agenticAction: 'ANSWER' } as any)).toBe('llmGeneration');
   });
   it('returns agenticRetrieve otherwise', () => {
-    expect(routeAgenticDecision({ trace: { lastAgenticAction: 'RETRIEVE' } } as any)).toBe('agenticRetrieve');
+    expect(routeAgenticDecision({ agenticAction: 'RETRIEVE' } as any)).toBe('agenticRetrieve');
   });
 });
 
