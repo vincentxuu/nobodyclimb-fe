@@ -7,7 +7,7 @@ export const mmrStep: PipelineStep = {
   phase: 'post-retrieval',
   defaultEnabled: true,
   defaultOrder: 9,
-  requires: ['scoredCandidates', 'documents'],
+  requires: ['candidateMatches', 'documents'],
   provides: ['rerankedMatches'],
   skipWhen: [{ field: 'queryType', operator: 'in', value: ['general-knowledge', 'sql', 'hybrid', 'clarification-needed', 'multi-tool'] }],
 
@@ -20,7 +20,7 @@ export const mmrStep: PipelineStep = {
     }
 
     const { pipelineConfig, trace } = ctx;
-    const scoredCandidates = ctx.scoredCandidates ?? [];
+    const scoredCandidates = ctx.scoredCandidates ?? ctx.candidateMatches ?? [];
     const documents = ctx.documents ?? new Map();
     const effectiveLimit = pipelineConfig.max_results;
 

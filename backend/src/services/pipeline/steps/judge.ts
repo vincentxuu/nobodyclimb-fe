@@ -8,7 +8,7 @@ export const judgeStep: PipelineStep = {
   phase: 'evaluation',
   defaultEnabled: true,
   defaultOrder: 12,
-  requires: ['answer', 'context'],
+  requires: ['answer'],
   provides: ['groundedness', 'quality'],
   skipWhen: [{ field: 'queryType', operator: 'in', value: ['general-knowledge', 'sql', 'clarification-needed'] }],
 

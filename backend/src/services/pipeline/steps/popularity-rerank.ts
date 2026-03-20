@@ -8,7 +8,7 @@ export const popularityRerankStep: PipelineStep = {
   phase: 'post-retrieval',
   defaultEnabled: true,
   defaultOrder: 10,
-  requires: ['rerankedMatches', 'documents'],
+  requires: ['scoredCandidates', 'documents'],
   provides: ['sources', 'context'],
   skipWhen: [{ field: 'queryType', operator: 'in', value: ['general-knowledge', 'sql', 'hybrid', 'clarification-needed', 'multi-tool'] }],
 
@@ -19,7 +19,7 @@ export const popularityRerankStep: PipelineStep = {
     }
 
     const { env, pipelineConfig, trace, queryService } = ctx;
-    let rerankedMatches = ctx.rerankedMatches ?? [];
+    let rerankedMatches = ctx.rerankedMatches ?? (ctx.scoredCandidates ?? ctx.candidateMatches ?? []).map((m) => ({ ...m, finalScore: m.score }));
     const documents = ctx.documents ?? new Map();
 
     // 排除已完攀路線（推薦情境：ctx.climbed_route_ids 由 RecommendationService 注入）
