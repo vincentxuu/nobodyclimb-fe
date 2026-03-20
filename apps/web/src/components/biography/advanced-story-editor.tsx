@@ -1,6 +1,7 @@
 'use client'
 
 import React, { useState, useCallback, useMemo } from 'react'
+import { useTranslations } from 'next-intl'
 import { motion, AnimatePresence } from 'framer-motion'
 import { X, Loader2, ChevronDown } from 'lucide-react'
 import {
@@ -31,12 +32,13 @@ function StoryListHeader({
   progress: ReturnType<typeof calculateStoryProgress>
   onClose?: () => void
 }) {
+  const t = useTranslations('BiographyEditor')
   return (
     <div className="flex items-center justify-between border-b border-gray-100 px-6 py-4">
       <div>
-        <h2 className="text-lg font-semibold text-brand-dark">小故事</h2>
+        <h2 className="text-lg font-semibold text-brand-dark">{t('storiesTitle')}</h2>
         <p className="text-sm text-text-subtle">
-          已填寫 {progress.completed}/{progress.total} 個故事 · {progress.percentage}%
+          {t('advancedStoryFilled', { completed: progress.completed, total: progress.total, percentage: progress.percentage })}
         </p>
       </div>
       {onClose && (
@@ -72,6 +74,8 @@ function FilledStoryCard({
   onCancel: () => void
   onEditValueChange: (_value: string) => void
 }) {
+  // eslint-disable-next-line react-hooks/rules-of-hooks
+  const t = useTranslations('BiographyEditor')
   const Icon = getStoryIcon(question.icon)
 
   return (
@@ -117,10 +121,10 @@ function FilledStoryCard({
                 autoFocus
               />
               <div className="flex items-center justify-between">
-                <span className="text-xs text-text-subtle">{editValue.length} 字</span>
+<span className="text-xs text-text-subtle">{editValue.length} {t('advancedStoryCharCount')}</span>
                 <div className="flex gap-2">
                   <Button variant="ghost" size="sm" onClick={onCancel} disabled={isSaving}>
-                    取消
+                    {t('cancelButton')}
                   </Button>
                   <Button
                     variant="primary"
@@ -128,7 +132,7 @@ function FilledStoryCard({
                     onClick={onSave}
                     disabled={isSaving}
                   >
-                    {isSaving ? <Loader2 className="h-4 w-4 animate-spin" /> : '儲存'}
+                    {isSaving ? <Loader2 className="h-4 w-4 animate-spin" /> : t('saveButton')}
                   </Button>
                 </div>
               </div>
@@ -141,7 +145,7 @@ function FilledStoryCard({
               exit={{ opacity: 0 }}
             >
               <p className="line-clamp-3 whitespace-pre-wrap text-sm text-gray-700">{content}</p>
-              <p className="mt-2 text-xs text-text-subtle">點擊編輯</p>
+              <p className="mt-2 text-xs text-text-subtle">{t('advancedStoryClickToEdit')}</p>
             </motion.div>
           )}
         </AnimatePresence>
@@ -160,6 +164,8 @@ function EmptyStoryCard({
   question: StoryQuestion
   onStartEdit: () => void
 }) {
+  // eslint-disable-next-line react-hooks/rules-of-hooks
+  const t = useTranslations('BiographyEditor')
   const Icon = getStoryIcon(question.icon)
 
   return (
@@ -181,7 +187,7 @@ function EmptyStoryCard({
           <p className="text-xs text-text-subtle">{question.subtitle}</p>
         </div>
       </div>
-      <p className="mt-4 text-center text-sm text-gray-500">點擊開始填寫</p>
+      <p className="mt-4 text-center text-sm text-gray-500">{t('advancedStoryClickToFill')}</p>
     </motion.div>
   )
 }
@@ -200,6 +206,8 @@ function UnfilledStoriesSection({
   onToggle: () => void
   onStartEdit: (_question: StoryQuestion) => void
 }) {
+  // eslint-disable-next-line react-hooks/rules-of-hooks
+  const t = useTranslations('BiographyEditor')
   if (questions.length === 0) return null
 
   return (
@@ -220,8 +228,8 @@ function UnfilledStoriesSection({
               isExpanded && 'rotate-180'
             )}
           />
-          <span className="font-medium text-gray-700">未填寫的故事</span>
-          <span className="text-sm text-text-subtle">({questions.length} 題)</span>
+          <span className="font-medium text-gray-700">{t('advancedStoryUnfilled')}</span>
+          <span className="text-sm text-text-subtle">{t('advancedStoryUnfilledCount', { count: questions.length })}</span>
         </div>
       </button>
 
@@ -287,6 +295,7 @@ export function AdvancedStoryEditor({
   onClose,
   className,
 }: AdvancedStoryEditorProps) {
+  const t = useTranslations('BiographyEditor')
   // 狀態管理
   const [editingField, setEditingField] = useState<string | null>(null)
   const [editValue, setEditValue] = useState('')
@@ -351,11 +360,11 @@ export function AdvancedStoryEditor({
       setEditValue('')
     } catch (err) {
       console.error('Failed to save:', err)
-      setError('儲存失敗，請稍後再試')
+      setError(t('wizardSaveError'))
     } finally {
       setIsSaving(false)
     }
-  }, [editingField, editValue, onSave])
+  }, [editingField, editValue, onSave, t])
 
   return (
     <div className={cn('flex flex-col bg-white', className)}>
