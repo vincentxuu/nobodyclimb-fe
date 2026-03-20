@@ -82,6 +82,7 @@ export async function loadPipelineConfig(db: D1Database): Promise<PipelineConfig
     })(),
     agentic_max_steps:          num(cfg['agentic_max_steps'],          3, 1, 5),
     agentic_min_docs_to_answer: num(cfg['agentic_min_docs_to_answer'], 3, 1, 10),
+    agentic_min_quality_score:  num(cfg['agentic_min_quality_score'],  0.012, 0, 1),
     // Plan-and-Execute 模式
     plan_execute_max_steps:     num(cfg['plan_execute_max_steps'],     4, 2, 6),
     plan_execute_min_entities:  num(cfg['plan_execute_min_entities'],  2, 2, 5),

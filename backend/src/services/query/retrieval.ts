@@ -289,8 +289,12 @@ export async function agenticRetrieve(
     const uniqueCount = merged.length;
 
     if (uniqueCount >= cfg.agentic_min_docs_to_answer) {
-      agenticTerminationReason = 'enough_docs';
-      break;
+      const topK = merged.slice(0, cfg.agentic_min_docs_to_answer);
+      const avgScore = topK.reduce((s, d) => s + d.score, 0) / topK.length;
+      if (avgScore >= cfg.agentic_min_quality_score) {
+        agenticTerminationReason = 'enough_docs';
+        break;
+      }
     }
 
     const { action, usage: decisionUsage } = await decideNextAction(

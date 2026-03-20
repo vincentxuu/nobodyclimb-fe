@@ -144,6 +144,7 @@ export interface PipelineConfig {
   rag_strategy: string;
   agentic_max_steps: number;
   agentic_min_docs_to_answer: number;
+  agentic_min_quality_score: number;
   // Plan-and-Execute
   plan_execute_max_steps: number;
   plan_execute_min_entities: number;
