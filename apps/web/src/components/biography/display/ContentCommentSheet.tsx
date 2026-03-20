@@ -11,8 +11,10 @@ import { formatDistanceToNow } from 'date-fns'
 import { zhTW } from 'date-fns/locale'
 import type { ContentComment } from '@/lib/api/services'
 import { motion, AnimatePresence } from 'framer-motion'
+import Link from 'next/link'
 import { RankBadge } from '@/components/rank/RankBadge'
 import type { RankId } from '@nobodyclimb/types'
+import { useTranslations } from 'next-intl'
 
 interface ContentCommentSheetProps {
   /** 留言數量 */
@@ -53,7 +55,8 @@ function CommentItem({
   currentUserId?: string
   onDelete?: (_id: string) => void
 }) {
-  const displayName = comment.display_name || comment.username || '匿名用戶'
+  const t = useTranslations('BiographyPage')
+  const displayName = comment.display_name || comment.username || t('anonymous')
 
   return (
     <div className="flex gap-3">
@@ -103,6 +106,7 @@ function CommentForm({
   isSubmitting: boolean
   isLoggedIn: boolean
 }) {
+  const t = useTranslations('BiographyPage')
   const [content, setContent] = useState('')
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -116,10 +120,10 @@ function CommentForm({
   if (!isLoggedIn) {
     return (
       <p className="text-sm text-gray-500">
-        <a href="/auth/login" className="text-brand-600 hover:underline">
-          登入
-        </a>
-        {' '}後才能留言
+        <Link href="/auth/login" className="text-brand-600 hover:underline">
+          {t('login')}
+        </Link>
+        {' '}{t('commentLoginPrompt')}
       </p>
     )
   }
@@ -129,7 +133,7 @@ function CommentForm({
       <Textarea
         value={content}
         onChange={(e) => setContent(e.target.value)}
-        placeholder="寫下你的留言..."
+        placeholder={t('commentPlaceholder')}
         className="min-h-[60px] flex-1 resize-none"
         disabled={isSubmitting}
       />
@@ -163,6 +167,7 @@ export function ContentCommentSheet({
   className,
   panelClassName,
 }: ContentCommentSheetProps) {
+  const t = useTranslations('BiographyPage')
   const { status, user } = useAuthStore()
   const { toast } = useToast()
   const [isOpen, setIsOpen] = useState(false)
@@ -181,8 +186,8 @@ export function ContentCommentSheet({
     } catch (error) {
       console.error('Failed to fetch comments:', error)
       toast({
-        title: '載入留言失敗',
-        description: '請稍後再試',
+        title: t('commentLoadFailed'),
+        description: t('operationFailedDesc'),
         variant: 'destructive',
       })
     } finally {
@@ -204,14 +209,14 @@ export function ContentCommentSheet({
       setComments([newComment, ...comments])
       setCount((prev) => prev + 1)
       toast({
-        title: '留言發表成功',
-        description: '感謝你的分享！',
+        title: t('commentPostSuccess'),
+        description: t('commentPostSuccessDesc'),
       })
     } catch (error) {
       console.error('Failed to add comment:', error)
       toast({
-        title: '留言發表失敗',
-        description: '請稍後再試',
+        title: t('commentPostFailed'),
+        description: t('operationFailedDesc'),
         variant: 'destructive',
       })
     } finally {
@@ -229,8 +234,8 @@ export function ContentCommentSheet({
     } catch (error) {
       console.error('Failed to delete comment:', error)
       toast({
-        title: '刪除留言失敗',
-        description: '請稍後再試',
+        title: t('commentDeleteFailed'),
+        description: t('operationFailedDesc'),
         variant: 'destructive',
       })
     }
@@ -295,7 +300,7 @@ export function ContentCommentSheet({
                 </div>
               ) : (
                 <p className="py-4 text-center text-sm text-gray-500">
-                  還沒有留言，成為第一個留言的人吧！
+                  {t('noComments')}
                 </p>
               )}
             </div>

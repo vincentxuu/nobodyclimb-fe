@@ -493,8 +493,7 @@ function UnderlineTab({
 }
 
 // 分頁標籤文字
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-function getTabLabel(tab: TabValue, t: any): string {
+function getTabLabel(tab: TabValue, t: (key: string) => string): string {
   const labels: Record<TabValue, string> = {
     all: t('statAllGoals'),
     active: t('statActive'),
