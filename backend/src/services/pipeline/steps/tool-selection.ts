@@ -62,18 +62,12 @@ export const toolSelectionStep: PipelineStep = {
     const { query } = request;
     const llmModel = pipelineConfig.llm_model;
 
-    // 個人查詢優先：在相似路線偵測之前攔截，避免「我爬過哪些路線」被誤判為相似路線搜尋
-    if (PERSONAL_QUERY_PATTERN.test(query)) {
-      ctx.queryType = 'sql';
-      ctx.sqlTemplate = inferPersonalTemplate(query);
-      ctx.sqlParams = {};
-      ctx.effectiveLlmModel = pipelineConfig.lightweight_model;
-      trace.query_parsing = { personal_query_fallback: true, tool: 'search_sql', query_type: 'sql' };
-      return ctx;
-    }
+    // 個人查詢安全網：避免「我爬過哪些路線」被 hasSimilarRouteIntent 誤判為相似路線搜尋
+    // 不直接 early return — 交由 LLM 分類，能正確區分「查詢紀錄」vs「提供爬過路線作為上下文並請求推薦」
+    const isPersonalQuery = PERSONAL_QUERY_PATTERN.test(query);
 
-    // 偵測相似路線意圖
-    if (ctx.queryService.hasSimilarRouteIntent(query)) {
+    // 偵測相似路線意圖（個人查詢略過，避免「我爬過哪些路線」誤判為相似路線搜尋）
+    if (!isPersonalQuery && ctx.queryService.hasSimilarRouteIntent(query)) {
       ctx.isSimRouteSearch = true;
 
       // 並行：DB 查路線資訊 + HyDE 生成
