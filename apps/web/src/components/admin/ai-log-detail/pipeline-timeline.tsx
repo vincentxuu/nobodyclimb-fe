@@ -210,7 +210,7 @@ export function PipelineTimeline({
             }
             if (key === 'text_to_sql') {
               if (pipelineStage.candidate_count != null) metrics.push({ label: '候選', value: `${pipelineStage.candidate_count} 筆` })
-              if (pipelineStage.path) metrics.push({ label: '路徑', value: pipelineStage.path })
+              if (pipelineStage.path) metrics.push({ label: '路徑', value: String(pipelineStage.path) })
             }
             if (key === 'generation') {
               if (pipelineStage.model) metrics.push({ label: '模型', value: String(pipelineStage.model).split('/').pop() ?? '' })
