@@ -2,91 +2,61 @@ import { MetadataRoute } from 'next'
 import { SITE_URL } from '@/lib/constants'
 import { fetchCrags, fetchGyms } from '@/lib/api/server-fetch'
 
+const locales = ['zh', 'en', 'ja'] as const
+
+// 將單一路徑展開成三語言 URL 陣列
+function expandToLocaleUrls(
+  pathname: string,
+  options: {
+    lastModified?: Date
+    changeFrequency?: MetadataRoute.Sitemap[number]['changeFrequency']
+    priority?: number
+  } = {}
+): MetadataRoute.Sitemap {
+  return locales.map((locale) => ({
+    url: locale === 'zh' ? `${SITE_URL}${pathname}` : `${SITE_URL}/${locale}${pathname}`,
+    lastModified: options.lastModified ?? new Date(),
+    changeFrequency: options.changeFrequency,
+    priority: options.priority,
+  }))
+}
+
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
-  // 靜態頁面
+  // 靜態頁面（每個路徑展開為三語言）
   const staticPages: MetadataRoute.Sitemap = [
-    {
-      url: SITE_URL,
-      lastModified: new Date(),
-      changeFrequency: 'daily',
-      priority: 1,
-    },
-    {
-      url: `${SITE_URL}/blog`,
-      lastModified: new Date(),
-      changeFrequency: 'daily',
-      priority: 0.9,
-    },
-    {
-      url: `${SITE_URL}/crag`,
-      lastModified: new Date(),
-      changeFrequency: 'weekly',
-      priority: 0.8,
-    },
-    {
-      url: `${SITE_URL}/gym`,
-      lastModified: new Date(),
-      changeFrequency: 'weekly',
-      priority: 0.8,
-    },
-    {
-      url: `${SITE_URL}/videos`,
-      lastModified: new Date(),
-      changeFrequency: 'daily',
-      priority: 0.8,
-    },
-    {
-      url: `${SITE_URL}/gallery`,
-      lastModified: new Date(),
-      changeFrequency: 'weekly',
-      priority: 0.7,
-    },
-    {
-      url: `${SITE_URL}/biography`,
-      lastModified: new Date(),
-      changeFrequency: 'weekly',
-      priority: 0.7,
-    },
-    {
-      url: `${SITE_URL}/about`,
-      lastModified: new Date(),
-      changeFrequency: 'monthly',
-      priority: 0.5,
-    },
+    ...expandToLocaleUrls('/', { changeFrequency: 'daily', priority: 1 }),
+    ...expandToLocaleUrls('/blog', { changeFrequency: 'daily', priority: 0.9 }),
+    ...expandToLocaleUrls('/crag', { changeFrequency: 'weekly', priority: 0.8 }),
+    ...expandToLocaleUrls('/gym', { changeFrequency: 'weekly', priority: 0.8 }),
+    ...expandToLocaleUrls('/videos', { changeFrequency: 'daily', priority: 0.8 }),
+    ...expandToLocaleUrls('/gallery', { changeFrequency: 'weekly', priority: 0.7 }),
+    ...expandToLocaleUrls('/biography', { changeFrequency: 'weekly', priority: 0.7 }),
+    ...expandToLocaleUrls('/about', { changeFrequency: 'monthly', priority: 0.5 }),
   ]
 
   // 動態頁面 - 岩場（從 API 取得）
   const apiCrags = await fetchCrags()
-  const cragPages: MetadataRoute.Sitemap = apiCrags.map((crag) => ({
-    url: `${SITE_URL}/crag/${crag.id}`,
-    lastModified: crag.updated_at ? new Date(crag.updated_at) : new Date(),
-    changeFrequency: 'monthly',
-    priority: 0.7,
-  }))
+  const cragPages: MetadataRoute.Sitemap = apiCrags.flatMap((crag) =>
+    expandToLocaleUrls(`/crag/${crag.id}`, {
+      lastModified: crag.updated_at ? new Date(crag.updated_at) : new Date(),
+      changeFrequency: 'monthly',
+      priority: 0.7,
+    })
+  )
 
   // 動態頁面 - 岩館（從 API 取得）
   const apiGyms = await fetchGyms()
-  const gymPages: MetadataRoute.Sitemap = apiGyms.map((gym) => ({
-    url: `${SITE_URL}/gym/${gym.id}`,
-    lastModified: gym.updated_at ? new Date(gym.updated_at) : new Date(),
-    changeFrequency: 'monthly',
-    priority: 0.7,
-  }))
-
-  // 動態頁面 - 部落格文章
-  // TODO: 當有 API 時，可以從後端獲取所有文章 ID
-  // const blogPosts = await fetch(`${API_BASE_URL}/posts`).then(res => res.json())
-  // const blogPages = blogPosts.data?.map((post) => ({
-  //   url: `${SITE_URL}/blog/${post.id}`,
-  //   lastModified: new Date(post.updated_at),
-  //   changeFrequency: 'weekly' as const,
-  //   priority: 0.6,
-  // })) || []
+  const gymPages: MetadataRoute.Sitemap = apiGyms.flatMap((gym) =>
+    expandToLocaleUrls(`/gym/${gym.id}`, {
+      lastModified: gym.updated_at ? new Date(gym.updated_at) : new Date(),
+      changeFrequency: 'monthly',
+      priority: 0.7,
+    })
+  )
 
   return [
     ...staticPages,
     ...cragPages,
     ...gymPages,
-    // ...blogPages,
   ]
 }
