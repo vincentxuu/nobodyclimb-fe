@@ -223,7 +223,6 @@ const LoadMoreButton = ({ onClick, isLoading, currentCount, totalCount }: LoadMo
   </div>
 )
 }
-)
 
 export default function BookmarksPage() {
   const t = useTranslations('ProfilePage')
