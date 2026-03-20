@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useEffect, useRef } from 'react'
+import { useTranslations } from 'next-intl'
 import { cn } from '@/lib/utils'
 import { X, Check, Lightbulb, Loader2, Trash2 } from 'lucide-react'
 import type { StoryQuestion, Story } from '@/lib/types/biography-v2'
@@ -39,6 +40,7 @@ export function StoryEditFullscreen({
   isSaving = false,
   className,
 }: StoryEditFullscreenProps) {
+  const t = useTranslations('BiographyEditor')
   const [content, setContent] = useState('')
   const [isAnimating, setIsAnimating] = useState(false)
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false)
@@ -88,10 +90,10 @@ export function StoryEditFullscreen({
 
   // 寫作提示
   const writingTips = [
-    '不用追求完美，想到什麼就寫什麼',
-    '可以先寫幾句，之後再慢慢補充',
-    '真實的故事最動人',
-    '你的經驗對其他人可能很有幫助',
+    t('writingTip1'),
+    t('writingTip2'),
+    t('writingTip3'),
+    t('writingTip4'),
   ]
   const randomTip = writingTips[Math.floor(Math.random() * writingTips.length)]
 
@@ -114,10 +116,10 @@ export function StoryEditFullscreen({
           className="flex items-center gap-1 text-[#6D6C6C] hover:text-[#1B1A1A] transition-colors"
         >
           <X size={20} />
-          <span className="text-sm">取消</span>
+          <span className="text-sm">{t('cancelButton')}</span>
         </button>
 
-        <h3 className="font-medium text-[#1B1A1A] text-sm">編輯故事</h3>
+        <h3 className="font-medium text-[#1B1A1A] text-sm">{t('editStoryTitle')}</h3>
 
         <button
           type="button"
@@ -135,7 +137,7 @@ export function StoryEditFullscreen({
           ) : (
             <Check size={18} />
           )}
-          <span className="text-sm">{isSaving ? '儲存中' : '儲存'}</span>
+          <span className="text-sm">{isSaving ? t('savingStatus') : t('saveStoryButton')}</span>
         </button>
       </div>
 
@@ -177,20 +179,20 @@ export function StoryEditFullscreen({
               <>
                 {showDeleteConfirm ? (
                   <div className="flex items-center gap-2">
-                    <span className="text-xs text-[#6D6C6C]">確定刪除？</span>
+                    <span className="text-xs text-[#6D6C6C]">{t('deleteConfirmPrompt')}</span>
                     <button
                       type="button"
                       onClick={handleDelete}
                       className="text-xs text-red-500 font-medium"
                     >
-                      確定
+                      {t('deleteConfirmYes')}
                     </button>
                     <button
                       type="button"
                       onClick={() => setShowDeleteConfirm(false)}
                       className="text-xs text-[#6D6C6C]"
                     >
-                      取消
+                      {t('deleteConfirmNo')}
                     </button>
                   </div>
                 ) : (
@@ -200,7 +202,7 @@ export function StoryEditFullscreen({
                     className="flex items-center gap-1 text-xs text-[#6D6C6C] hover:text-red-500 transition-colors"
                   >
                     <Trash2 size={14} />
-                    刪除
+                    {t('deleteButton')}
                   </button>
                 )}
               </>
@@ -211,7 +213,7 @@ export function StoryEditFullscreen({
           <div className="bg-brand-accent/10 rounded-lg p-3">
             <p className="text-xs text-[#3F3D3D] flex items-center gap-1.5">
               <Lightbulb size={14} className="flex-shrink-0" />
-              <span className="font-medium">寫作小提示：</span>
+              <span className="font-medium">{t('writingTipTitle')}</span>
               {randomTip}
             </p>
           </div>

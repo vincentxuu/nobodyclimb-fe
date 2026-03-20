@@ -2,6 +2,7 @@
 
 import React from 'react'
 import { Cloud, Umbrella } from 'lucide-react'
+import { useTranslations } from 'next-intl'
 
 interface WeatherType {
   current: {
@@ -24,11 +25,12 @@ interface CragWeatherCardProps {
 }
 
 export const CragWeatherCard: React.FC<CragWeatherCardProps> = ({ weather }) => {
+  const t = useTranslations('CragPage')
   return (
     <div className="mb-6 rounded-lg bg-white p-6 shadow-md">
       <h3 className="mb-4 flex items-center text-xl font-bold">
         <Cloud size={20} className="mr-2 text-[#1B1A1A]" />
-        即時天氣
+        {t('weatherCardTitle')}
       </h3>
 
       <div className="mb-6 flex items-center justify-between">
@@ -39,13 +41,13 @@ export const CragWeatherCard: React.FC<CragWeatherCardProps> = ({ weather }) => 
         <div className="text-right">
           <p className="flex items-center text-gray-700">
             <Umbrella size={16} className="mr-1" />
-            降雨機率: {weather.current.precipitation}
+            {t('precipitationLabel', { value: weather.current.precipitation })}
           </p>
           <p className="text-gray-700">{weather.current.wind}</p>
         </div>
       </div>
 
-      <h4 className="mb-3 font-medium">未來天氣預報</h4>
+      <h4 className="mb-3 font-medium">{t('weatherForecastTitle')}</h4>
       <div className="space-y-3">
         {weather.forecast.map((day, index) => (
           <div

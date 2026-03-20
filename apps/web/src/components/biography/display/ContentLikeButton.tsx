@@ -9,6 +9,7 @@ import {
   ContentInteractorsPanel,
   type InteractorUser,
 } from './ContentInteractorsPanel'
+import { useTranslations } from 'next-intl'
 
 interface ContentLikeButtonProps {
   /** 是否已按讚 */
@@ -38,6 +39,7 @@ export function ContentLikeButton({
   size = 'sm',
   className,
 }: ContentLikeButtonProps) {
+  const t = useTranslations('BiographyPage')
   const { status } = useAuthStore()
   const { toast } = useToast()
   const [liked, setLiked] = useState(isLiked)
@@ -55,8 +57,8 @@ export function ContentLikeButton({
 
     if (status !== 'signIn') {
       toast({
-        title: '請先登入',
-        description: '登入後才能按讚',
+        title: t('loginRequired'),
+        description: t('loginRequiredDesc'),
         variant: 'destructive',
       })
       return
@@ -80,8 +82,8 @@ export function ContentLikeButton({
       setCount(count)
       console.error('Failed to toggle like:', error)
       toast({
-        title: '操作失敗',
-        description: '請稍後再試',
+        title: t('operationFailed'),
+        description: t('operationFailedDesc'),
         variant: 'destructive',
       })
     } finally {
@@ -173,7 +175,7 @@ export function ContentLikeButton({
           isOpen={isLikersOpen}
           users={likers}
           isLoading={isLoadingLikers}
-          emptyMessage="還沒有人按讚"
+          emptyMessage={t('noLikers')}
           panelClassName="order-last"
         />
       )}

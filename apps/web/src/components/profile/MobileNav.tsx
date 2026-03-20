@@ -3,6 +3,7 @@
 import { UserCircle, FileText, Bookmark, Settings, Image as ImageIcon, type LucideIcon } from 'lucide-react'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
+import { useTranslations } from 'next-intl'
 
 interface MenuItem {
   name: string
@@ -10,36 +11,37 @@ interface MenuItem {
   icon: LucideIcon
 }
 
-const menuItems: MenuItem[] = [
-  {
-    name: '我的人物誌',
-    href: '/profile',
-    icon: UserCircle,
-  },
-  {
-    name: '我的文章',
-    href: '/profile/articles',
-    icon: FileText,
-  },
-  {
-    name: '我的照片',
-    href: '/profile/photos',
-    icon: ImageIcon,
-  },
-  {
-    name: '收藏文章',
-    href: '/profile/bookmarks',
-    icon: Bookmark,
-  },
-  {
-    name: '帳號設定',
-    href: '/profile/settings',
-    icon: Settings,
-  },
-]
-
 export default function MobileNav() {
+  const t = useTranslations('ProfilePage')
   const pathname = usePathname()
+
+  const menuItems: MenuItem[] = [
+    {
+      name: t('navMyBiography'),
+      href: '/profile',
+      icon: UserCircle,
+    },
+    {
+      name: t('navArticles'),
+      href: '/profile/articles',
+      icon: FileText,
+    },
+    {
+      name: t('navPhotos'),
+      href: '/profile/photos',
+      icon: ImageIcon,
+    },
+    {
+      name: t('navBookmarks'),
+      href: '/profile/bookmarks',
+      icon: Bookmark,
+    },
+    {
+      name: t('navSettings'),
+      href: '/profile/settings',
+      icon: Settings,
+    },
+  ]
 
   return (
     <div className="fixed left-0 right-0 top-0 z-50 flex h-14 w-full items-center justify-center space-x-6 border-b border-[#DBD8D8] bg-white">

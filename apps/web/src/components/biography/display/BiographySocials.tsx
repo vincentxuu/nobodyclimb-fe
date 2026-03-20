@@ -3,6 +3,7 @@
 import { cn } from '@/lib/utils'
 import { Link2, Globe } from 'lucide-react'
 import type { BiographyV2, SocialLinks } from '@/lib/types/biography-v2'
+import { useTranslations } from 'next-intl'
 
 interface BiographySocialsProps {
   /** 人物誌資料 */
@@ -36,13 +37,12 @@ const SocialIcon: Record<keyof SocialLinks, React.ReactNode> = {
   website: <Globe size={20} />,
 }
 
-// 社群平台名稱
-const SocialNames: Record<keyof SocialLinks, string> = {
+// 社群平台名稱（英文平台名稱固定，個人網站透過 i18n 翻譯）
+const SOCIAL_PLATFORM_NAMES: Omit<Record<keyof SocialLinks, string>, 'website'> = {
   instagram: 'Instagram',
   youtube: 'YouTube',
   facebook: 'Facebook',
   threads: 'Threads',
-  website: '個人網站',
 }
 
 // 建立社群連結 URL
@@ -80,6 +80,11 @@ export function BiographySocials({
   biography,
   className,
 }: BiographySocialsProps) {
+  const t = useTranslations('BiographyPage')
+  const SocialNames: Record<keyof SocialLinks, string> = {
+    ...SOCIAL_PLATFORM_NAMES,
+    website: t('personalWebsite'),
+  }
   const socialLinks = biography.social_links
 
   if (!socialLinks) {
@@ -99,7 +104,7 @@ export function BiographySocials({
     <section className={cn('py-6', className)}>
       <div className="flex items-center gap-2 mb-4">
         <Link2 size={18} className="text-[#3F3D3D]" />
-        <h2 className="text-lg font-semibold text-[#1B1A1A]">找到我</h2>
+        <h2 className="text-lg font-semibold text-[#1B1A1A]">{t('findMeLabel')}</h2>
       </div>
 
       <div className="flex flex-wrap gap-3">

@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import { Youtube, Plus, LogIn } from 'lucide-react'
+import { useTranslations } from 'next-intl'
 import { Button } from '@/components/ui/button'
 import { useAuth } from '@/lib/hooks'
 import { useRouteStories } from '@/lib/hooks/useRouteStories'
@@ -52,6 +53,7 @@ export function RouteYouTubeSection({
   routeName,
   staticVideos = [],
 }: RouteYouTubeSectionProps) {
+  const t = useTranslations('CragPage')
   const { isSignedIn } = useAuth()
   const { getRouteQuickShareYouTube, createStory } = useRouteStories()
   const { getRouteAscents } = useAscents()
@@ -136,14 +138,14 @@ export function RouteYouTubeSection({
       const newStory = await createStory(data)
       setUserStories((prev) => [newStory, ...prev])
       toast({
-        title: '分享成功',
-        description: '已成功分享影片',
+        title: t('shareSuccess'),
+        description: t('shareVideoSuccess'),
       })
     } catch (error) {
       console.error('Error creating youtube share:', error)
       toast({
-        title: '分享失敗',
-        description: '無法分享影片，請稍後再試',
+        title: t('shareFailed'),
+        description: t('shareVideoFailed'),
         variant: 'destructive',
       })
       throw error
@@ -158,7 +160,7 @@ export function RouteYouTubeSection({
         <div className="mb-4 flex items-center justify-between">
           <h2 className="flex items-center border-l-4 border-[#FFE70C] pl-3 text-lg font-bold text-[#1B1A1A]">
             <Youtube className="mr-2 h-5 w-5 text-red-600" />
-            攀登影片
+            {t('youtubeTitle')}
           </h2>
           {isSignedIn ? (
             <Button
@@ -168,27 +170,25 @@ export function RouteYouTubeSection({
               className="gap-1"
             >
               <Plus className="h-4 w-4" />
-              分享影片
+              {t('shareVideo')}
             </Button>
           ) : (
             <Link href="/auth/login">
               <Button variant="outline" size="sm" className="gap-1">
                 <LogIn className="h-4 w-4" />
-                登入分享
+                {t('loginToShare')}
               </Button>
             </Link>
           )}
         </div>
 
         {isLoading ? (
-          <div className="py-6 text-center text-gray-500">載入中...</div>
+          <div className="py-6 text-center text-gray-500">{t('storiesLoading')}</div>
         ) : allVideos.length === 0 ? (
           <div className="rounded-lg bg-gray-50 py-6 text-center text-gray-500">
             <Youtube className="mx-auto mb-2 h-10 w-10 text-gray-300" />
-            <p className="text-sm">還沒有人分享這條路線的攀登影片</p>
-            <p className="mt-1 text-xs text-gray-400">
-              分享攀登實況、Beta 教學或路線介紹影片
-            </p>
+            <p className="text-sm">{t('noVideos')}</p>
+            <p className="mt-1 text-xs text-gray-400">{t('noVideosHint')}</p>
             {isSignedIn && (
               <Button
                 variant="link"
@@ -196,7 +196,7 @@ export function RouteYouTubeSection({
                 onClick={() => setIsFormOpen(true)}
                 className="mt-2"
               >
-                分享攀登影片
+                {t('shareVideoBtn')}
               </Button>
             )}
           </div>
@@ -210,7 +210,7 @@ export function RouteYouTubeSection({
                 <iframe
                   src={video.embedUrl}
                   className="h-full w-full"
-                  title={`${routeName} 攀登影片 ${index + 1}`}
+                  title={t('youtubeVideoTitle', { routeName, index: index + 1 })}
                   allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
                   allowFullScreen
                 />

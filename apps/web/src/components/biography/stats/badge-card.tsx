@@ -1,6 +1,7 @@
 'use client'
 
 import { cn } from '@/lib/utils'
+import { useTranslations } from 'next-intl'
 import { type BadgeDefinition, getBadgeById, BADGE_COLORS } from '@/lib/constants/badges'
 import type { BadgeProgress } from '@/lib/types'
 import { Check } from 'lucide-react'
@@ -12,6 +13,7 @@ interface BadgeCardProps {
 }
 
 export function BadgeCard({ badge, progress, className }: BadgeCardProps) {
+  const t = useTranslations('BiographyPage')
   const badgeData = typeof badge === 'string' ? getBadgeById(badge) : badge
 
   if (!badgeData) {
@@ -70,7 +72,7 @@ export function BadgeCard({ badge, progress, className }: BadgeCardProps) {
       {!isUnlocked && progress && (
         <div className="w-full">
           <div className="flex justify-between text-xs text-text-subtle mb-1">
-            <span>進度</span>
+            <span>{t('progress')}</span>
             <span>
               {progress.current_value}/{progress.target_value}
             </span>
@@ -87,7 +89,7 @@ export function BadgeCard({ badge, progress, className }: BadgeCardProps) {
       {/* 解鎖時間 */}
       {isUnlocked && progress?.unlocked_at && (
         <p className="text-xs text-subtle mt-2">
-          {new Date(progress.unlocked_at).toLocaleDateString('zh-TW')} 解鎖
+          {t('unlockedAt', { date: new Date(progress.unlocked_at).toLocaleDateString() })}
         </p>
       )}
     </div>

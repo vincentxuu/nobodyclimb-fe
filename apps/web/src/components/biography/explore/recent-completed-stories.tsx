@@ -14,6 +14,7 @@ import {
   ChevronRight,
   Loader2,
 } from 'lucide-react'
+import { useTranslations } from 'next-intl'
 import { Card, CardContent } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { bucketListService } from '@/lib/api/services'
@@ -31,6 +32,7 @@ interface CompletedItem extends BucketListItem {
 }
 
 export function RecentCompletedStories({ searchTerm, filter }: RecentCompletedStoriesProps) {
+  const t = useTranslations('BiographyPage')
   const [items, setItems] = useState<CompletedItem[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
@@ -73,7 +75,7 @@ export function RecentCompletedStories({ searchTerm, filter }: RecentCompletedSt
       }
     } catch (err) {
       console.error('Failed to load recent completed:', err)
-      setError('載入最新完成故事時發生錯誤')
+      setError(t('recentStoriesLoadError'))
     } finally {
       setLoading(false)
     }
@@ -92,9 +94,9 @@ export function RecentCompletedStories({ searchTerm, filter }: RecentCompletedSt
     const diffHours = Math.floor(diffMs / 3600000)
     const diffDays = Math.floor(diffMs / 86400000)
 
-    if (diffMins < 60) return `${diffMins} 分鐘前`
-    if (diffHours < 24) return `${diffHours} 小時前`
-    if (diffDays < 7) return `${diffDays} 天前`
+    if (diffMins < 60) return t('minutesAgo', { count: diffMins })
+    if (diffHours < 24) return t('hoursAgo', { count: diffHours })
+    if (diffDays < 7) return t('daysAgo', { count: diffDays })
     return date.toLocaleDateString('zh-TW')
   }
 
@@ -121,12 +123,12 @@ export function RecentCompletedStories({ searchTerm, filter }: RecentCompletedSt
       {/* 標題 */}
       <div className="mb-6 flex items-center gap-2">
         <Sparkles className="h-6 w-6 text-yellow-500" />
-        <h2 className="text-xl font-bold text-[#1B1A1A]">最新完成故事</h2>
+        <h2 className="text-xl font-bold text-[#1B1A1A]">{t('recentCompletedStoriesTitle')}</h2>
       </div>
 
       {items.length === 0 ? (
         <div className="flex min-h-[150px] items-center justify-center text-gray-500">
-          {searchTerm ? `找不到符合「${searchTerm}」的完成故事` : '目前沒有完成故事'}
+          {searchTerm ? t('noCompletedStoriesForSearch', { term: searchTerm }) : t('noCompletedStories')}
         </div>
       ) : (
         <div className="space-y-6">
@@ -161,7 +163,7 @@ export function RecentCompletedStories({ searchTerm, filter }: RecentCompletedSt
                       </div>
                       <div>
                         <span className="font-medium text-[#1B1A1A]">{item.author_name}</span>
-                        <span className="text-gray-600"> 完成了「{item.title}」</span>
+                        <span className="text-gray-600"> {t('completedGoal', { title: item.title })}</span>
                       </div>
                     </Link>
                     <div className="flex items-center gap-1 text-sm text-gray-500">
@@ -186,7 +188,7 @@ export function RecentCompletedStories({ searchTerm, filter }: RecentCompletedSt
                         <div className="rounded-lg bg-blue-50 p-4">
                           <div className="mb-1 flex items-center gap-2 text-sm font-medium text-blue-700">
                             <Brain className="h-4 w-4" />
-                            心理層面
+                            {t('psychologicalAspect')}
                           </div>
                           <p className="line-clamp-3 text-sm text-gray-700">
                             {item.psychological_insights}
@@ -197,7 +199,7 @@ export function RecentCompletedStories({ searchTerm, filter }: RecentCompletedSt
                         <div className="rounded-lg bg-green-50 p-4">
                           <div className="mb-1 flex items-center gap-2 text-sm font-medium text-green-700">
                             <Mountain className="h-4 w-4" />
-                            技術層面
+                            {t('technicalAspect')}
                           </div>
                           <p className="line-clamp-3 text-sm text-gray-700">
                             {item.technical_insights}
@@ -227,12 +229,12 @@ export function RecentCompletedStories({ searchTerm, filter }: RecentCompletedSt
                       </span>
                       <span className="flex items-center gap-1">
                         <LinkIcon className="h-4 w-4" />
-                        {item.inspired_count || 0} 人也加入
+                        {t('inspiredCount', { count: item.inspired_count || 0 })}
                       </span>
                     </div>
                     <Link href={`/biography/profile/${item.author_slug || item.biography_id}`}>
                       <Button variant="ghost" size="sm" className="text-gray-600 hover:text-gray-900">
-                        查看完整故事
+                        {t('viewFullStory')}
                         <ChevronRight className="ml-1 h-4 w-4" />
                       </Button>
                     </Link>

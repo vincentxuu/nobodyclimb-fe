@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import { Camera, Plus, LogIn, X, ChevronLeft, ChevronRight } from 'lucide-react'
+import { useTranslations } from 'next-intl'
 import { Button } from '@/components/ui/button'
 import { useAuth } from '@/lib/hooks'
 import { useRouteStories } from '@/lib/hooks/useRouteStories'
@@ -32,6 +33,7 @@ export function RoutePhotosSection({
   routeName,
   staticPhotos = [],
 }: RoutePhotosSectionProps) {
+  const t = useTranslations('CragPage')
   const { isSignedIn } = useAuth()
   const { getRouteQuickSharePhotos, createStory } = useRouteStories()
   const { getRouteAscents } = useAscents()
@@ -115,14 +117,14 @@ export function RoutePhotosSection({
       const newStory = await createStory(data)
       setUserStories((prev) => [newStory, ...prev])
       toast({
-        title: '分享成功',
-        description: '已成功分享照片',
+        title: t('shareSuccess'),
+        description: t('sharePhotoSuccess'),
       })
     } catch (error) {
       console.error('Error creating photo share:', error)
       toast({
-        title: '分享失敗',
-        description: '無法分享照片，請稍後再試',
+        title: t('shareFailed'),
+        description: t('sharePhotoFailed'),
         variant: 'destructive',
       })
       throw error
@@ -153,7 +155,7 @@ export function RoutePhotosSection({
       <div className="mb-8">
         <div className="mb-4 flex items-center justify-between">
           <h2 className="border-l-4 border-[#FFE70C] pl-3 text-lg font-bold text-[#1B1A1A]">
-            社群照片
+            {t('photosTitle')}
           </h2>
           {isSignedIn ? (
             <Button
@@ -163,26 +165,26 @@ export function RoutePhotosSection({
               className="gap-1"
             >
               <Plus className="h-4 w-4" />
-              分享照片
+              {t('sharePhoto')}
             </Button>
           ) : (
             <Link href="/auth/login">
               <Button variant="outline" size="sm" className="gap-1">
                 <LogIn className="h-4 w-4" />
-                登入分享
+                {t('loginToShare')}
               </Button>
             </Link>
           )}
         </div>
 
         {isLoading ? (
-          <div className="py-6 text-center text-gray-500">載入中...</div>
+          <div className="py-6 text-center text-gray-500">{t('storiesLoading')}</div>
         ) : allPhotos.length === 0 ? (
           <div className="rounded-lg bg-gray-50 py-6 text-center text-gray-500">
             <Camera className="mx-auto mb-2 h-10 w-10 text-gray-300" />
-            <p className="text-sm">還沒有人分享這條路線的照片</p>
+            <p className="text-sm">{t('noPhotos')}</p>
             <p className="mt-1 text-xs text-gray-400">
-              分享攀登照片、岩壁特寫、起攀位置或周邊風景
+              {t('noPhotosHint')}
             </p>
             {isSignedIn && (
               <Button
@@ -191,7 +193,7 @@ export function RoutePhotosSection({
                 onClick={() => setIsFormOpen(true)}
                 className="mt-2"
               >
-                成為第一個分享的人
+                {t('beFirstToShare')}
               </Button>
             )}
           </div>
@@ -206,7 +208,7 @@ export function RoutePhotosSection({
                 {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img
                   src={photo.url}
-                  alt={`照片 ${index + 1}`}
+                  alt={t('photoAlt', { index: index + 1 })}
                   className="h-full w-full object-cover"
                 />
                 {/* 顯示更多照片的遮罩 */}
@@ -231,7 +233,7 @@ export function RoutePhotosSection({
           <button
             onClick={closeLightbox}
             className="absolute right-4 top-4 z-10 rounded-full bg-black/50 p-2 text-white transition hover:bg-black/70"
-            aria-label="關閉"
+            aria-label={t('closeLightbox')}
           >
             <X className="h-6 w-6" />
           </button>
@@ -244,7 +246,7 @@ export function RoutePhotosSection({
                 goToPrevious()
               }}
               className="absolute left-4 top-1/2 z-10 -translate-y-1/2 rounded-full bg-black/50 p-2 text-white transition hover:bg-black/70"
-              aria-label="上一張"
+              aria-label={t('prevPhotoBtn')}
             >
               <ChevronLeft className="h-6 w-6" />
             </button>
@@ -258,7 +260,7 @@ export function RoutePhotosSection({
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img
               src={allPhotos[currentPhotoIndex].url}
-              alt={`照片 ${currentPhotoIndex + 1}`}
+              alt={t('photoAlt', { index: currentPhotoIndex + 1 })}
               className="max-h-[80vh] max-w-full object-contain"
             />
             {/* 照片資訊 */}
@@ -288,7 +290,7 @@ export function RoutePhotosSection({
                 goToNext()
               }}
               className="absolute right-4 top-1/2 z-10 -translate-y-1/2 rounded-full bg-black/50 p-2 text-white transition hover:bg-black/70"
-              aria-label="下一張"
+              aria-label={t('nextPhotoBtn')}
             >
               <ChevronRight className="h-6 w-6" />
             </button>

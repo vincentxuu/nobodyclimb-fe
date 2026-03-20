@@ -9,6 +9,7 @@ import {
   FileText,
   Lightbulb,
 } from 'lucide-react'
+import { useTranslations } from 'next-intl'
 
 export interface RouteBasicInfoData {
   length?: string
@@ -26,6 +27,7 @@ interface RouteBasicInfoProps {
 }
 
 export function RouteBasicInfo({ route, showTitle = true }: RouteBasicInfoProps) {
+  const t = useTranslations('CragPage')
   const hasContent =
     route.length ||
     (route.boltCount !== undefined && route.boltCount > 0) ||
@@ -40,7 +42,7 @@ export function RouteBasicInfo({ route, showTitle = true }: RouteBasicInfoProps)
     <div className="mb-6">
       {showTitle && (
         <h3 className="mb-4 border-l-4 border-[#FFE70C] pl-4 text-lg font-bold text-[#1B1A1A]">
-          基本資訊
+          {t('routeBasicInfoTitle')}
         </h3>
       )}
       <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4">
@@ -48,7 +50,7 @@ export function RouteBasicInfo({ route, showTitle = true }: RouteBasicInfoProps)
           <div className="rounded-lg bg-gray-50 p-4">
             <div className="flex items-center gap-2 text-sm text-gray-500">
               <Ruler size={16} />
-              長度
+              {t('routeLength')}
             </div>
             <div className="mt-1 text-lg font-semibold text-[#1B1A1A]">
               {route.length}
@@ -59,7 +61,7 @@ export function RouteBasicInfo({ route, showTitle = true }: RouteBasicInfoProps)
           <div className="rounded-lg bg-gray-50 p-4">
             <div className="flex items-center gap-2 text-sm text-gray-500">
               <CircleDot size={16} />
-              Bolt 數量
+              {t('routeBoltCount')}
             </div>
             <div className="mt-1 text-lg font-semibold text-[#1B1A1A]">
               {route.boltCount}
@@ -70,7 +72,7 @@ export function RouteBasicInfo({ route, showTitle = true }: RouteBasicInfoProps)
           <div className="rounded-lg bg-gray-50 p-4">
             <div className="flex items-center gap-2 text-sm text-gray-500">
               <Shield size={16} />
-              保護裝備
+              {t('routeProtection')}
             </div>
             <div className="mt-1 text-lg font-semibold text-[#1B1A1A]">
               {route.protection}
@@ -81,7 +83,7 @@ export function RouteBasicInfo({ route, showTitle = true }: RouteBasicInfoProps)
           <div className="rounded-lg bg-gray-50 p-4">
             <div className="flex items-center gap-2 text-sm text-gray-500">
               <User size={16} />
-              首攀者
+              {t('routeFirstAscent')}
             </div>
             <div className="mt-1 text-lg font-semibold text-[#1B1A1A]">
               {route.firstAscent}
@@ -97,7 +99,7 @@ export function RouteBasicInfo({ route, showTitle = true }: RouteBasicInfoProps)
           <div className="rounded-lg bg-gray-50 p-4 col-span-2 sm:col-span-3 lg:col-span-4">
             <div className="flex items-center gap-2 text-sm text-gray-500">
               <FileText size={16} />
-              路線描述
+              {t('routeDescription')}
             </div>
             <div className="mt-1 text-lg font-semibold text-[#1B1A1A] whitespace-pre-line">
               {route.description}
@@ -108,7 +110,7 @@ export function RouteBasicInfo({ route, showTitle = true }: RouteBasicInfoProps)
           <div className="rounded-lg bg-gray-50 p-4 col-span-2 sm:col-span-3 lg:col-span-4">
             <div className="flex items-center gap-2 text-sm text-gray-500">
               <Lightbulb size={16} />
-              攀登攻略
+              {t('routeTips')}
             </div>
             <div className="mt-1 text-lg font-semibold text-[#1B1A1A] whitespace-pre-line">
               {route.tips}

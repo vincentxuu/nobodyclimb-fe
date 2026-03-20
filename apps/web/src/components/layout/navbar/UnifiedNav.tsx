@@ -1,9 +1,17 @@
 'use client'
 
 import { useRef } from 'react'
-import { usePathname } from 'next/navigation'
-import Link from 'next/link'
-import { NAV_LINKS } from '@/lib/constants'
+import { usePathname, Link } from '@/i18n/navigation'
+import { useTranslations } from 'next-intl'
+
+const NAV_ITEMS = [
+  { href: '/biography', key: 'biography' },
+  { href: '/crag', key: 'crag' },
+  { href: '/gym', key: 'gym' },
+  { href: '/gallery', key: 'gallery' },
+  { href: '/videos', key: 'videos' },
+  { href: '/blog', key: 'blog' },
+] as const
 
 /**
  * 統一導航組件
@@ -12,6 +20,7 @@ import { NAV_LINKS } from '@/lib/constants'
 export default function UnifiedNav() {
   const pathname = usePathname()
   const scrollRef = useRef<HTMLDivElement>(null)
+  const t = useTranslations('Navbar')
 
   return (
     <nav className="relative flex h-full flex-1 items-center overflow-hidden">
@@ -22,7 +31,7 @@ export default function UnifiedNav() {
         ref={scrollRef}
         className="scrollbar-hide flex h-full w-full items-center justify-center gap-6 md:gap-8 lg:gap-12"
       >
-        {NAV_LINKS.map((link) => (
+        {NAV_ITEMS.map((link) => (
           <Link
             key={link.href}
             href={link.href}
@@ -33,7 +42,7 @@ export default function UnifiedNav() {
                 <span className="absolute -bottom-1 left-0 h-0.5 w-full bg-[#1B1A1A]"></span>
               )}
               <span className="absolute -bottom-1 left-0 h-0.5 w-0 bg-[#1B1A1A] transition-all duration-300 group-hover:w-full"></span>
-              {link.label}
+              {t(link.key)}
             </span>
           </Link>
         ))}

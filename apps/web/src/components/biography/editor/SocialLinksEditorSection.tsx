@@ -1,6 +1,7 @@
 'use client'
 
 import { Link, Instagram, Youtube } from 'lucide-react'
+import { useTranslations } from 'next-intl'
 import { cn } from '@/lib/utils'
 import type { SocialLinks } from '@/lib/types/biography-v2'
 
@@ -20,6 +21,8 @@ export function SocialLinksEditorSection({
   onSocialLinksChange,
   className,
 }: SocialLinksEditorSectionProps) {
+  const t = useTranslations('BiographyEditor')
+
   const handleChange = (field: keyof SocialLinks, value: string) => {
     onSocialLinksChange({
       ...socialLinks,
@@ -51,19 +54,19 @@ export function SocialLinksEditorSection({
       {/* Section Header */}
       <div className="flex items-center gap-2">
         <Link size={18} className="text-[#3F3D3D]" />
-        <h3 className="font-semibold text-[#1B1A1A]">社群連結</h3>
+        <h3 className="font-semibold text-[#1B1A1A]">{t('socialLinksTitle')}</h3>
       </div>
 
       <p className="text-sm text-[#6D6C6C]">
-        新增你的社群帳號，讓其他岩友可以追蹤你的動態
+        {t('socialLinksHint')}
       </p>
 
       {/* Instagram */}
       <div className="space-y-2">
         <label className="text-sm font-medium text-[#3F3D3D] flex items-center gap-2">
           <Instagram size={16} className="text-pink-600" />
-          Instagram
-          <span className="text-[#8E8C8C] font-normal">(選填)</span>
+          {t('instagramLabel')}
+          <span className="text-[#8E8C8C] font-normal">{t('instagramOptional')}</span>
         </label>
         <div className="flex items-center gap-2 min-w-0">
           <span className="text-[#6D6C6C] shrink-0">@</span>
@@ -82,15 +85,15 @@ export function SocialLinksEditorSection({
             maxLength={50}
           />
         </div>
-        <p className="text-xs text-[#8E8C8C]">輸入你的 Instagram 用戶名（不含 @）</p>
+        <p className="text-xs text-[#8E8C8C]">{t('instagramHint')}</p>
       </div>
 
       {/* YouTube */}
       <div className="space-y-2">
         <label className="text-sm font-medium text-[#3F3D3D] flex items-center gap-2">
           <Youtube size={16} className="text-red-600" />
-          YouTube 頻道
-          <span className="text-[#8E8C8C] font-normal">(選填)</span>
+          {t('youtubeLabel')}
+          <span className="text-[#8E8C8C] font-normal">{t('youtubeOptional')}</span>
         </label>
         <input
           type="text"
@@ -102,19 +105,19 @@ export function SocialLinksEditorSection({
               handleChange('youtube', username)
             }
           }}
-          placeholder="頻道 ID 或網址"
+          placeholder={t('youtubePlaceholder')}
           className="w-full px-4 py-3 bg-white border border-[#B6B3B3] rounded-lg text-[#1B1A1A] placeholder:text-[#9D9D9D] focus:outline-none focus:ring-2 focus:ring-brand-accent/50 focus:border-brand-dark transition-colors"
           maxLength={100}
         />
-        <p className="text-xs text-[#8E8C8C]">輸入你的 YouTube 頻道 ID 或網址</p>
+        <p className="text-xs text-[#8E8C8C]">{t('youtubeHint')}</p>
       </div>
 
       {/* Website */}
       <div className="space-y-2">
         <label className="text-sm font-medium text-[#3F3D3D] flex items-center gap-2">
           <Link size={16} className="text-[#3F3D3D]" />
-          個人網站
-          <span className="text-[#8E8C8C] font-normal">(選填)</span>
+          {t('websiteLabel')}
+          <span className="text-[#8E8C8C] font-normal">{t('websiteOptional')}</span>
         </label>
         <input
           type="url"
@@ -124,7 +127,7 @@ export function SocialLinksEditorSection({
           className="w-full px-4 py-3 bg-white border border-[#B6B3B3] rounded-lg text-[#1B1A1A] placeholder:text-[#9D9D9D] focus:outline-none focus:ring-2 focus:ring-brand-accent/50 focus:border-brand-dark transition-colors"
           maxLength={200}
         />
-        <p className="text-xs text-[#8E8C8C]">你的個人網站或部落格</p>
+        <p className="text-xs text-[#8E8C8C]">{t('websiteHint')}</p>
       </div>
     </div>
   )

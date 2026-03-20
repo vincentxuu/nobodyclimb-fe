@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, ReactNode } from 'react'
+import { useTranslations } from 'next-intl'
 import { cn } from '@/lib/utils'
 import { ChevronRight, Check, Sparkles } from 'lucide-react'
 
@@ -38,6 +39,7 @@ export function CategoryAccordion({
   className,
   headerRight,
 }: CategoryAccordionProps) {
+  const t = useTranslations('BiographyPage')
   const [isExpanded, setIsExpanded] = useState(defaultExpanded)
 
   const hasProgress = progress && progress.total > 0
@@ -77,7 +79,7 @@ export function CategoryAccordion({
                 progress.completed > 0 ? 'text-[#1B1A1A]' : 'text-[#6D6C6C]'
               )}
             >
-              {progress.completed}/{progress.total} 已填寫
+              {t('fieldsFilled', { completed: progress.completed, total: progress.total })}
             </span>
           )}
           {headerRight}
@@ -131,6 +133,7 @@ export function StoryItem({
   onClick,
   className,
 }: StoryItemProps) {
+  const t = useTranslations('BiographyPage')
   return (
     <button
       type="button"
@@ -184,7 +187,7 @@ export function StoryItem({
             : 'text-[#3F3D3D] bg-[#F5F5F5]'
         )}
       >
-        {isFilled ? '編輯' : '開始寫'}
+        {isFilled ? t('edit') : t('startWriting')}
       </span>
     </button>
   )

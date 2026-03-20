@@ -1,5 +1,6 @@
 'use client'
 
+import { useTranslations } from 'next-intl'
 import { cn } from '@/lib/utils'
 import { Check, ChevronRight, BarChart3, LucideIcon } from 'lucide-react'
 
@@ -34,6 +35,7 @@ export function ProgressIndicator({
   onSectionClick,
   className,
 }: ProgressIndicatorProps) {
+  const t = useTranslations('BiographyEditor')
   const completedCount = sections.filter((s) => s.isCompleted).length
   const totalCount = sections.length
   const overallProgress = Math.round((completedCount / totalCount) * 100)
@@ -44,7 +46,7 @@ export function ProgressIndicator({
       <div className="flex items-center justify-between mb-4">
         <div className="flex items-center gap-2">
           <BarChart3 size={18} className="text-[#3F3D3D]" />
-          <span className="font-medium text-[#1B1A1A]">完成進度</span>
+          <span className="font-medium text-[#1B1A1A]">{t('progressTitle')}</span>
         </div>
         <span
           className={cn(
@@ -129,7 +131,7 @@ export function ProgressIndicator({
       {overallProgress === 100 && (
         <div className="mt-4 p-3 bg-brand-accent/20 rounded-lg">
           <p className="text-sm text-[#1B1A1A] text-center">
-            太棒了！你的人物誌已經完成！
+            {t('progressComplete')}
           </p>
         </div>
       )}

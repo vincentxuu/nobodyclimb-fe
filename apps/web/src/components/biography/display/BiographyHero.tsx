@@ -11,6 +11,7 @@ import { BiographyLikeButton } from '../biography-like-button'
 import { ShareButton } from '@/components/shared/share-button'
 import { BiographyCommentSection } from '../biography-comment-section'
 import { ProfileAvatar } from '../shared'
+import { useTranslations } from 'next-intl'
 
 // 社群平台圖示
 const SocialIcon: Record<keyof SocialLinks, React.ReactNode> = {
@@ -91,6 +92,7 @@ export function BiographyHero({
   onFollowerCountChange,
   className,
 }: BiographyHeroProps) {
+  const t = useTranslations('BiographyPage')
   // 使用 prop 覆蓋或從 visibility 判斷
   const isAnonymous = isAnonymousProp ?? biography.visibility === 'anonymous'
 
@@ -119,7 +121,7 @@ export function BiographyHero({
       <div className="relative w-full aspect-[3/1] md:aspect-[4/1] bg-gradient-to-br from-[#EBEAEA] to-[#DBD8D8] overflow-hidden">
         <Image
           src={biography.cover_url || getDefaultCoverUrl(biography.id || biography.name || 'default')}
-          alt="封面圖片"
+          alt={t('coverImageAlt')}
           fill
           className="object-cover"
           priority
@@ -153,7 +155,7 @@ export function BiographyHero({
           <div className="space-y-2">
             {/* Name */}
             <h1 className="text-2xl md:text-3xl font-bold text-[#1B1A1A]">
-              {isAnonymous ? '匿名岩友' : biography.name}
+              {isAnonymous ? t('anonymousName') : biography.name}
             </h1>
 
             {/* Title/Tagline */}
@@ -168,8 +170,8 @@ export function BiographyHero({
               <span className="flex items-center gap-1">
                 <Clock size={16} />
                 {climbingYears !== null && climbingYears > 0
-                  ? `攀岩第 ${climbingYears} 年`
-                  : '從入坑那天起算'}
+                  ? t('climbingYears', { count: climbingYears })
+                  : t('climbingYearsDefault')}
               </span>
 
               {/* 身高 */}
@@ -189,7 +191,7 @@ export function BiographyHero({
                   <span className="text-[#B6B3B3]">·</span>
                   <span className="flex items-center gap-1">
                     <ArrowLeftRight size={16} />
-                    臂展 {biography.arm_span_cm}cm
+                    {t('armSpanLabel', { cm: biography.arm_span_cm })}
                   </span>
                 </>
               )}
@@ -200,7 +202,7 @@ export function BiographyHero({
                     <span className="text-[#B6B3B3]">·</span>
                     <span className="flex items-center gap-1">
                       <BarChart3 size={16} />
-                      常出沒：{biography.frequent_locations.join('、')}
+                      {t('frequentLocations', { locations: biography.frequent_locations.join('、') })}
                     </span>
                   </>
                 )}
@@ -322,6 +324,7 @@ export function BiographyHero({
  * 年度攀爬目標顯示
  */
 function GradeTargetsDisplay({ targets }: { targets: GradeTarget[] }) {
+  const tl = useTranslations('BiographyPage')
   const currentYear = new Date().getFullYear()
   const currentYearTargets = targets.filter((t) => t.year === currentYear)
 
@@ -331,7 +334,7 @@ function GradeTargetsDisplay({ targets }: { targets: GradeTarget[] }) {
     <div className="flex flex-wrap items-center gap-2 mt-1">
       <span className="flex items-center gap-1 text-sm text-[#6D6C6C]">
         <TrendingUp size={16} />
-        {currentYear} 目標
+        {tl('yearGoal', { year: currentYear })}
       </span>
       {currentYearTargets.map((target, i) => (
         <span

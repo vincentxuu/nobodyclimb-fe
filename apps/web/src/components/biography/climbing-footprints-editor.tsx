@@ -1,6 +1,7 @@
 'use client'
 
 import React, { useState } from 'react'
+import { useTranslations } from 'next-intl'
 import { motion, AnimatePresence } from 'framer-motion'
 import { MapPin, Plus, Trash2, Globe, Calendar, Eye, EyeOff, FileText, X } from 'lucide-react'
 import { Button } from '@/components/ui/button'
@@ -20,6 +21,7 @@ export function ClimbingFootprintsEditor({
   onChange,
   disabled = false,
 }: ClimbingFootprintsEditorProps) {
+  const t = useTranslations('BiographyEditor')
   const [showAddForm, setShowAddForm] = useState(false)
   const [editingIndex, setEditingIndex] = useState<number | null>(null)
   const [formData, setFormData] = useState<ClimbingLocation>({
@@ -92,8 +94,8 @@ export function ClimbingFootprintsEditor({
         {locations.length === 0 ? (
           <div className="rounded-lg border border-dashed border-gray-300 p-6 text-center text-gray-500">
             <MapPin className="mx-auto mb-2 h-8 w-8 text-gray-400" />
-            <p>還沒有記錄攀岩足跡</p>
-            <p className="text-sm">點擊下方按鈕新增你去過的攀岩地點</p>
+            <p>{t('footprintsEditorEmpty')}</p>
+            <p className="text-sm">{t('footprintsEditorEmptyHint')}</p>
           </div>
         ) : (
           <div className="space-y-2">
@@ -115,7 +117,7 @@ export function ClimbingFootprintsEditor({
                       )}
                       {!loc.is_public && (
                         <span className="rounded bg-gray-100 px-1.5 py-0.5 text-xs text-gray-500">
-                          私密
+                          {t('footprintsPrivateBadge')}
                         </span>
                       )}
                     </div>
@@ -131,7 +133,7 @@ export function ClimbingFootprintsEditor({
                     size="sm"
                     onClick={() => handleTogglePublic(index)}
                     disabled={disabled}
-                    title={loc.is_public ? '設為私密' : '設為公開'}
+                    {...{title: loc.is_public ? t('footprintsSetPrivateTitle') : t('footprintsSetPublicTitle')}}
                   >
                     {loc.is_public ? (
                       <Eye className="h-4 w-4 text-gray-500" />
@@ -175,7 +177,7 @@ export function ClimbingFootprintsEditor({
           >
             <div className="mb-4 flex items-center justify-between">
               <h4 className="font-medium">
-                {editingIndex !== null ? '編輯地點' : '新增攀岩地點'}
+                {editingIndex !== null ? t('footprintsEditorEditTitle') : t('footprintsEditorAddTitle')}
               </h4>
               <Button type="button" variant="ghost" size="sm" onClick={resetForm}>
                 <X className="h-4 w-4" />
@@ -186,12 +188,12 @@ export function ClimbingFootprintsEditor({
               {/* 地點名稱 */}
               <div>
                 <label className="mb-1 block text-sm font-medium">
-                  地點名稱 <span className="text-red-500">*</span>
+                  {t('footprintsLocationNameLabel')} <span className="text-red-500">*</span>
                 </label>
                 <Input
                   value={formData.location}
                   onChange={(e) => setFormData({ ...formData, location: e.target.value })}
-                  placeholder="例如：龍洞、Krabi、陽朔"
+                  placeholder={t('footprintsLocationNamePlaceholder')}
                   disabled={disabled}
                 />
               </div>
@@ -200,7 +202,7 @@ export function ClimbingFootprintsEditor({
               <div>
                 <label className="mb-1 block text-sm font-medium">
                   <Globe className="mr-1 inline h-4 w-4" />
-                  國家
+                  {t('footprintsCountryLabel')}
                 </label>
                 <select
                   value={formData.country}
@@ -220,14 +222,14 @@ export function ClimbingFootprintsEditor({
               <div>
                 <label className="mb-1 block text-sm font-medium">
                   <Calendar className="mr-1 inline h-4 w-4" />
-                  造訪年份
+                  {t('footprintsVisitYearLabel')}
                 </label>
                 <Input
                   value={formData.visit_year || ''}
                   onChange={(e) =>
                     setFormData({ ...formData, visit_year: e.target.value || null })
                   }
-                  placeholder="例如：2024 或 2023-2024"
+                  placeholder={t('footprintsVisitYearPlaceholder')}
                   disabled={disabled}
                 />
               </div>
@@ -236,12 +238,12 @@ export function ClimbingFootprintsEditor({
               <div>
                 <label className="mb-1 block text-sm font-medium">
                   <FileText className="mr-1 inline h-4 w-4" />
-                  心得筆記（選填）
+                  {t('footprintsNotesLabel')}
                 </label>
                 <Textarea
                   value={formData.notes || ''}
                   onChange={(e) => setFormData({ ...formData, notes: e.target.value || null })}
-                  placeholder="分享你的攀岩心得..."
+                  placeholder={t('footprintsNotesPlaceholder')}
                   rows={3}
                   disabled={disabled}
                 />
@@ -258,21 +260,21 @@ export function ClimbingFootprintsEditor({
                   disabled={disabled}
                 />
                 <label htmlFor="is_public" className="text-sm">
-                  公開此地點（其他人可以在探索頁面看到）
+                  {t('footprintsIsPublicLabel')}
                 </label>
               </div>
 
               {/* 按鈕 */}
               <div className="flex justify-end gap-2">
                 <Button type="button" variant="outline" onClick={resetForm} disabled={disabled}>
-                  取消
+                  {t('cancelButton')}
                 </Button>
                 <Button
                   type="button"
                   onClick={editingIndex !== null ? handleUpdate : handleAdd}
                   disabled={disabled || !formData.location.trim()}
                 >
-                  {editingIndex !== null ? '更新' : '新增'}
+                  {editingIndex !== null ? t('footprintsUpdateButton') : t('footprintsAddButtonForm')}
                 </Button>
               </div>
             </div>
@@ -290,7 +292,7 @@ export function ClimbingFootprintsEditor({
           disabled={disabled}
         >
           <Plus className="mr-2 h-4 w-4" />
-          新增攀岩地點
+          {t('footprintsAddButton')}
         </Button>
       )}
     </div>

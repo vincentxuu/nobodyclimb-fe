@@ -4,6 +4,7 @@ import { useState, useCallback } from 'react'
 import Link from 'next/link'
 import { List, X, ArrowLeft } from 'lucide-react'
 import { motion, AnimatePresence } from 'framer-motion'
+import { useTranslations } from 'next-intl'
 import { RouteListFilter } from './route-list-filter'
 import { VirtualizedRouteList } from './virtualized-route-list'
 import type { RouteSidebarItem } from '@/lib/crag-data'
@@ -41,6 +42,7 @@ export function RouteMobileDrawer({
   onTypeChange,
 }: RouteMobileDrawerProps) {
   const [isOpen, setIsOpen] = useState(false)
+  const t = useTranslations('CragPage')
 
   const handleItemClick = useCallback(() => {
     setIsOpen(false)
@@ -52,7 +54,7 @@ export function RouteMobileDrawer({
       <button
         onClick={() => setIsOpen(true)}
         className="lg:hidden fixed bottom-24 right-6 z-40 flex h-14 w-14 items-center justify-center rounded-full bg-[#1B1A1A] text-white shadow-lg transition-transform hover:scale-105 active:scale-95"
-        aria-label="開啟路線列表"
+        aria-label={t('openRouteList')}
       >
         <List size={24} />
       </button>
@@ -97,14 +99,14 @@ export function RouteMobileDrawer({
                   </Link>
                   <p className="text-xs text-gray-500 mt-0.5">
                     {filteredRoutes.length === routes.length
-                      ? `${routes.length} 條路線`
-                      : `${filteredRoutes.length} / ${routes.length} 條路線`}
+                      ? t('routeCount', { count: routes.length })
+                      : t('routeCountFiltered', { filtered: filteredRoutes.length, total: routes.length })}
                   </p>
                 </div>
                 <button
                   onClick={() => setIsOpen(false)}
                   className="rounded-full p-2 hover:bg-gray-100"
-                  aria-label="關閉"
+                  aria-label={t('closeDrawer')}
                 >
                   <X size={20} />
                 </button>

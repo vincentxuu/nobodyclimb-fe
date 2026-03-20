@@ -1,6 +1,7 @@
 'use client'
 
 import Link from 'next/link'
+import { useTranslations } from 'next-intl'
 import { cn } from '@/lib/utils'
 import { Eye, Loader2, Save } from 'lucide-react'
 import type { SaveStatus } from '@/lib/types/biography-v2'
@@ -48,6 +49,7 @@ export function FixedBottomBar({
   compactOnMobile = false,
   showSafeAreaPadding = true,
 }: FixedBottomBarProps) {
+  const t = useTranslations('BiographyEditor')
   const mobileActionCount = onManualSave && onPublish ? 3 : onPublish || onManualSave ? 2 : 1
 
   const getSaveStatusText = () => {
@@ -56,16 +58,16 @@ export function FixedBottomBar({
         return (
           <span className="flex items-center gap-1 text-[#6D6C6C]">
             <Loader2 size={14} className="animate-spin" />
-            儲存中...
+            {t('savingStatus')}
           </span>
         )
       case 'saved':
-        return <span className="text-brand-dark">已儲存</span>
+        return <span className="text-brand-dark">{t('savedStatus')}</span>
       case 'error':
-        return <span className="text-red-500">儲存失敗</span>
+        return <span className="text-red-500">{t('saveErrorStatus')}</span>
       case 'idle':
       default:
-        return <span className="text-[#8E8C8C]">自動儲存已啟用</span>
+        return <span className="text-[#8E8C8C]">{t('autoSaveEnabled')}</span>
     }
   }
 
@@ -124,12 +126,12 @@ export function FixedBottomBar({
               {saveStatus === 'saving' ? (
                 <>
                   <Loader2 size={16} className="animate-spin" />
-                  儲存中...
+                  {t('savingStatus')}
                 </>
               ) : (
                 <>
                   <Save size={16} />
-                  儲存
+                  {t('saveButton')}
                 </>
               )}
             </button>
@@ -147,7 +149,7 @@ export function FixedBottomBar({
             )}
           >
             <Eye size={16} />
-            預覽
+            {t('previewButton')}
           </Link>
 
           {/* Publish Button */}
@@ -168,10 +170,10 @@ export function FixedBottomBar({
               {isPublishing ? (
                 <>
                   <Loader2 size={16} className="animate-spin" />
-                  發布中...
+                  {t('publishingStatus')}
                 </>
               ) : (
-                '發布'
+                t('publishButton')
               )}
             </button>
           )}

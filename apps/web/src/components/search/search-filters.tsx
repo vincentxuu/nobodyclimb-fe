@@ -2,12 +2,14 @@ import React, { useState } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { Search } from 'lucide-react'
 import { Input } from '@/components/ui/input'
+import { useTranslations } from 'next-intl'
 
 export default function SearchFilters() {
+  const t = useTranslations('SearchPage')
   const router = useRouter()
   const searchParams = useSearchParams()
 
-  const [activeTab, setActiveTab] = useState(searchParams.get('type') || '全部')
+  const [activeTab, setActiveTab] = useState(searchParams.get('type') || t('tabAll'))
   const [searchQuery, setSearchQuery] = useState(searchParams.get('q') || '')
 
   const handleSearch = (query: string) => {
@@ -15,7 +17,7 @@ export default function SearchFilters() {
     const params = new URLSearchParams(searchParams.toString())
     if (query) params.set('q', query)
     else params.delete('q')
-    if (activeTab !== '全部') params.set('type', activeTab)
+    if (activeTab !== t('tabAll')) params.set('type', activeTab)
     router.push(`/search?${params.toString()}`)
   }
 
@@ -23,16 +25,23 @@ export default function SearchFilters() {
     setActiveTab(tab)
     const params = new URLSearchParams(searchParams.toString())
     if (searchQuery) params.set('q', searchQuery)
-    if (tab !== '全部') params.set('type', tab)
+    if (tab !== t('tabAll')) params.set('type', tab)
     else params.delete('type')
     router.push(`/search?${params.toString()}`)
   }
+
+  const tabs = [
+    t('tabAll'),
+    t('tabBiography'),
+    t('tabCrag'),
+    t('tabBlog'),
+  ]
 
   return (
     <div className="mb-8">
       <div className="mb-8">
         <h1 className="mb-2 text-[40px] font-medium text-[#1B1A1A]">
-          {searchQuery ? `${searchQuery} 的搜尋結果` : '搜尋結果'}
+          {searchQuery ? t('searchResultsFor', { query: searchQuery }) : t('searchResults')}
         </h1>
       </div>
 
@@ -42,7 +51,7 @@ export default function SearchFilters() {
             type="text"
             value={searchQuery}
             onChange={(e) => handleSearch(e.target.value)}
-            placeholder="搜尋..."
+            placeholder={t('searchPlaceholder')}
             className="h-[40px] w-full rounded-[4px] border border-[#1B1A1A] bg-white text-sm font-light placeholder:text-[#6D6C6C] focus:border-transparent focus:outline-none focus:ring-2 focus:ring-[#1B1A1A]"
           />
           <Search className="pointer-events-none absolute right-3 top-1/2 h-5 w-5 -translate-y-1/2 transform stroke-[1.5px] text-[#1B1A1A]" />
@@ -51,7 +60,7 @@ export default function SearchFilters() {
 
       <div className="border-b border-[#E5E5E5]">
         <div className="flex">
-          {['全部', '人物誌', '岩場介紹', '部落格'].map((tab) => (
+          {tabs.map((tab) => (
             <button
               key={tab}
               onClick={() => handleTabChange(tab)}

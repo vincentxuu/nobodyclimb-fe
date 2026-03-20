@@ -8,6 +8,8 @@ import { ArrowRightCircle, Loader2, Mountain, MessageCircle } from 'lucide-react
 import { Card, CardContent } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { biographyContentService, CoreStory, OneLiner, Story } from '@/lib/api/services'
+import { useTranslations } from 'next-intl'
+import { useBiographyQuestionText } from '@/lib/hooks/useBiographyQuestions'
 import { normalizeNewlines } from '@/lib/utils'
 import { isSvgUrl, getDefaultAvatarUrl } from '@/lib/utils/image'
 
@@ -50,24 +52,26 @@ interface StoryCardProps {
 }
 
 function StoryCard({ content }: StoryCardProps) {
-  const displayName = content.author_name || '匿名'
+  const t = useTranslations('BiographyPage')
+  const { getOneLinerText, getStoryTitle, getCategoryName } = useBiographyQuestionText()
+  const displayName = content.author_name || t('anonymousUser')
 
   // 根據類型取得標題和內容
   const getDisplayContent = () => {
     switch (content.type) {
       case 'core-story':
         return {
-          label: content.title || '核心故事',
+          label: getOneLinerText(content.question_id, content.title || ''),
           text: content.content,
         }
       case 'one-liner':
         return {
-          label: content.question || '一句話',
+          label: getOneLinerText(content.question_id, content.question || ''),
           text: content.answer,
         }
       case 'story':
         return {
-          label: content.title || content.category_name || '小故事',
+          label: getStoryTitle(content.question_id, content.title || getCategoryName(content.category_id, content.category_name || '')),
           text: content.content,
         }
     }
@@ -160,6 +164,7 @@ interface StoryListProps {
 }
 
 export function StoryList({ searchTerm }: StoryListProps) {
+  const t = useTranslations('BiographyPage')
   const INITIAL_VISIBLE_COUNT = 12
   const LOAD_MORE_COUNT = 12
 
@@ -205,7 +210,7 @@ export function StoryList({ searchTerm }: StoryListProps) {
       setContents(interleaved)
     } catch (err) {
       console.error('Failed to load stories:', err)
-      setError('載入故事時發生錯誤')
+      setError(t('storyLoadError'))
     } finally {
       setLoading(false)
     }
@@ -261,7 +266,7 @@ export function StoryList({ searchTerm }: StoryListProps) {
     return (
       <div className="flex min-h-[300px] items-center justify-center">
         <p className="text-lg text-[#6D6C6C]">
-          {searchTerm ? '找不到符合的故事' : '目前沒有故事'}
+          {searchTerm ? t('noMatchingStories') : t('noStories')}
         </p>
       </div>
     )
@@ -282,7 +287,7 @@ export function StoryList({ searchTerm }: StoryListProps) {
             className="min-w-[160px]"
             onClick={() => setVisibleCount((prev) => prev + LOAD_MORE_COUNT)}
           >
-            載入更多
+            {t('loadMoreStories')}
           </Button>
         </div>
       )}

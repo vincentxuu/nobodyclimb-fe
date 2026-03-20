@@ -6,6 +6,7 @@ import { Feather, Loader2 } from 'lucide-react'
 import { biographyContentService, type ContentComment } from '@/lib/api/services'
 import { useCoreStories, useCoreStoryLikeMutation, useCoreStoryCommentMutation } from '@/lib/hooks/useCoreStories'
 import { ContentInteractionBar } from './ContentInteractionBar'
+import { useTranslations } from 'next-intl'
 
 interface BiographyCoreStoriesProps {
   /** 人物誌 ID */
@@ -27,6 +28,7 @@ export function BiographyCoreStories({
   biographyId,
   className,
 }: BiographyCoreStoriesProps) {
+  const t = useTranslations('BiographyPage')
   const { data: coreStories, isLoading } = useCoreStories(biographyId)
   const likeMutation = useCoreStoryLikeMutation(biographyId)
 
@@ -71,7 +73,7 @@ export function BiographyCoreStories({
     <section className={cn('py-8', className)}>
       <div className="flex items-center gap-2 mb-6">
         <Feather size={20} className="text-[#3F3D3D]" />
-        <h2 className="text-xl font-bold text-[#1B1A1A]">我的故事</h2>
+        <h2 className="text-xl font-bold text-[#1B1A1A]">{t('coreStoriesTitle')}</h2>
       </div>
 
       <div className="space-y-6">

@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import { motion, AnimatePresence } from 'framer-motion'
 import { Lightbulb, ChevronDown, ChevronUp, ExternalLink } from 'lucide-react'
+import { useTranslations } from 'next-intl'
 
 interface FunFact {
   id: string
@@ -45,15 +46,15 @@ const DAILY_CATEGORIES = [
   'competition', // 週六
 ] as const
 
-// 類別顯示名稱
-const CATEGORY_LABELS: Record<string, string> = {
-  taiwan: '台灣攀岩',
-  record: '世界紀錄',
-  history: '攀岩歷史',
-  technique: '技術知識',
-  gear: '裝備知識',
-  culture: '攀岩文化',
-  competition: '競技攀岩',
+// 類別顯示名稱（對應 translation key）
+const CATEGORY_LABEL_KEYS: Record<string, string> = {
+  taiwan: 'funFactCategoryTaiwan',
+  record: 'funFactCategoryRecord',
+  history: 'funFactCategoryHistory',
+  technique: 'funFactCategoryTechnique',
+  gear: 'funFactCategoryGear',
+  culture: 'funFactCategoryCulture',
+  competition: 'funFactCategoryCompetition',
 }
 
 // 根據日期生成穩定的偽隨機數
@@ -63,6 +64,7 @@ function seededRandom(seed: number): number {
 }
 
 export function FunFactSection() {
+  const t = useTranslations('HomePage')
   const [isRevealed, setIsRevealed] = useState(false)
   const [currentFact, setCurrentFact] = useState<FunFact | null>(null)
   const [categoryLabel, setCategoryLabel] = useState<string>('')
@@ -80,7 +82,7 @@ export function FunFactSection() {
             const featuredFact = data.facts.find((fact) => fact.id === data.featured)
             if (featuredFact) {
               setCurrentFact(featuredFact)
-              setCategoryLabel(CATEGORY_LABELS[featuredFact.category] || featuredFact.category)
+              setCategoryLabel(CATEGORY_LABEL_KEYS[featuredFact.category] || featuredFact.category)
               setIsLoading(false)
               return
             }
@@ -99,7 +101,7 @@ export function FunFactSection() {
             const dateSeed = today.getFullYear() * 10000 + (today.getMonth() + 1) * 100 + today.getDate()
             const index = Math.floor(seededRandom(dateSeed) * categoryFacts.length)
             setCurrentFact(categoryFacts[index])
-            setCategoryLabel(CATEGORY_LABELS[todayCategory] || todayCategory)
+            setCategoryLabel(CATEGORY_LABEL_KEYS[todayCategory] || todayCategory)
           }
         }
       } catch (error) {
@@ -153,11 +155,11 @@ export function FunFactSection() {
                 <div className="flex-1">
                   <div className="flex items-center gap-2">
                     <span className="text-xs font-medium tracking-wide text-brand-dark-hover">
-                      你知道嗎？
+                      {t('funFactLabel')}
                     </span>
                     {categoryLabel && (
                       <span className="rounded-full bg-brand-accent/40 px-2 py-0.5 text-[10px] font-medium text-brand-dark">
-                        {categoryLabel}
+                        {categoryLabel.startsWith('funFactCategory') ? t(categoryLabel as Parameters<typeof t>[0]) : categoryLabel}
                       </span>
                     )}
                   </div>
@@ -168,7 +170,7 @@ export function FunFactSection() {
               </div>
               <button
                 className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full bg-brand-accent/30 text-brand-dark transition-colors hover:bg-brand-accent/50"
-                aria-label={isRevealed ? '隱藏答案' : '顯示答案'}
+                aria-label={isRevealed ? t('funFactHideAnswer') : t('funFactShowAnswer')}
               >
                 {isRevealed ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
               </button>
@@ -199,7 +201,7 @@ export function FunFactSection() {
                             className="mt-2 inline-flex items-center gap-1 text-xs text-text-subtle/70 hover:text-brand-dark"
                             onClick={(e) => e.stopPropagation()}
                           >
-                            了解更多
+                            {t('funFactLearnMore')}
                             <ExternalLink className="h-3 w-3" />
                           </a>
                         )}

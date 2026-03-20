@@ -2,6 +2,7 @@
 
 import React from 'react'
 import { Youtube, ExternalLink } from 'lucide-react'
+import { useTranslations } from 'next-intl'
 
 interface YouTubeLiveCardProps {
   videoId: string
@@ -11,17 +12,19 @@ interface YouTubeLiveCardProps {
 
 export const YouTubeLiveCard: React.FC<YouTubeLiveCardProps> = ({
   videoId,
-  title = '即時影像',
+  title,
   description,
 }) => {
+  const t = useTranslations('CragPage')
   const youtubeUrl = `https://www.youtube.com/watch?v=${videoId}`
+  const displayTitle = title ?? t('youtubeLiveWatchOn')
 
   return (
     <div className="rounded-lg bg-white p-6 shadow-md">
       <div className="mb-4 flex items-center justify-between">
         <h3 className="flex items-center text-xl font-bold">
           <Youtube size={20} className="mr-2 text-red-600" />
-          {title}
+          {displayTitle}
         </h3>
         <a
           href={youtubeUrl}
@@ -29,7 +32,7 @@ export const YouTubeLiveCard: React.FC<YouTubeLiveCardProps> = ({
           rel="noopener noreferrer"
           className="flex items-center gap-1 text-sm text-gray-500 hover:text-gray-700"
         >
-          在 YouTube 觀看
+          {t('youtubeLiveWatchOn')}
           <ExternalLink size={14} />
         </a>
       </div>
@@ -37,7 +40,7 @@ export const YouTubeLiveCard: React.FC<YouTubeLiveCardProps> = ({
       <div className="relative aspect-video w-full overflow-hidden rounded-lg bg-gray-900">
         <iframe
           src={`https://www.youtube.com/embed/${videoId}?autoplay=0&mute=1`}
-          title={title}
+          title={displayTitle}
           allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
           allowFullScreen
           className="h-full w-full"

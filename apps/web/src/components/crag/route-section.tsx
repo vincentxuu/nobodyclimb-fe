@@ -2,6 +2,7 @@
 
 import React, { useState, useMemo, useEffect } from 'react'
 import { Eye, Filter, X } from 'lucide-react'
+import { useTranslations } from 'next-intl'
 import { RouteBasicInfo } from '@/components/crag/RouteBasicInfo'
 import { RouteHeader } from '@/components/crag/RouteHeader'
 import { RouteContentSections } from '@/components/crag/RouteContentSections'
@@ -46,6 +47,7 @@ export const CragRouteSection: React.FC<CragRouteSectionProps> = ({
   areaIdMap: _areaIdMap,
   searchQuery = '',
 }) => {
+  const t = useTranslations('CragPage')
   const [selectedArea, setSelectedArea] = useState<string>(initialArea)
   const [selectedGrade, setSelectedGrade] = useState<string>('all')
   const [selectedType, setSelectedType] = useState<string>('all')
@@ -142,28 +144,28 @@ export const CragRouteSection: React.FC<CragRouteSectionProps> = ({
 
   return (
     <div>
-      <h2 className="mb-4 border-l-4 border-[#FFE70C] pl-4 text-2xl font-bold">路線資訊</h2>
+      <h2 className="mb-4 border-l-4 border-[#FFE70C] pl-4 text-2xl font-bold">{t('routeInfoTitle')}</h2>
 
       {/* 篩選區 */}
       <div className="mb-6 space-y-4 rounded-lg border border-gray-200 bg-gray-50 p-4">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
             <Filter size={18} className="text-gray-500" />
-            <span className="text-sm font-medium text-gray-700">篩選條件</span>
+            <span className="text-sm font-medium text-gray-700">{t('filterLabel')}</span>
           </div>
           {hasFilters && (
             <button
               onClick={clearFilters}
               className="text-xs text-gray-500 hover:text-gray-700 underline"
             >
-              清除全部
+              {t('clearFilters')}
             </button>
           )}
         </div>
 
         {/* 分區篩選 */}
         <div className="flex flex-wrap items-center gap-2">
-          <span className="text-xs text-gray-500 w-12">分區：</span>
+          <span className="text-xs text-gray-500 w-12">{t('sectorFilter')}</span>
           <div className="flex flex-wrap gap-1.5">
             {areaNames.map((area) => (
               <button
@@ -183,7 +185,7 @@ export const CragRouteSection: React.FC<CragRouteSectionProps> = ({
 
         {/* 難度篩選 */}
         <div className="flex flex-wrap items-center gap-2">
-          <span className="text-xs text-gray-500 w-12">難度：</span>
+          <span className="text-xs text-gray-500 w-12">{t('gradeFilter')}</span>
           <div className="flex flex-wrap gap-1.5">
             {gradeRanges.map((range) => (
               <button
@@ -203,7 +205,7 @@ export const CragRouteSection: React.FC<CragRouteSectionProps> = ({
 
         {/* 類型篩選 */}
         <div className="flex flex-wrap items-center gap-2">
-          <span className="text-xs text-gray-500 w-12">類型：</span>
+          <span className="text-xs text-gray-500 w-12">{t('typeFilter')}</span>
           <div className="flex flex-wrap gap-1.5">
             {typeNames.map((type) => (
               <button
@@ -224,7 +226,7 @@ export const CragRouteSection: React.FC<CragRouteSectionProps> = ({
 
       {/* 顯示篩選結果數量 */}
       <div className="mb-4 text-sm text-gray-500">
-        顯示 {filteredRoutes.length} / {routes.length} 條路線
+        {t('showingRoutes', { filtered: filteredRoutes.length, total: routes.length })}
       </div>
 
       {/* 路線列表 */}

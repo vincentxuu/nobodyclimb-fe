@@ -2,6 +2,7 @@
 
 import { useState, useRef, useMemo } from 'react'
 import Image from 'next/image'
+import { useTranslations } from 'next-intl'
 import { cn } from '@/lib/utils'
 import { User, ImageIcon, Pencil, Clock, Link, Instagram, Youtube, X, Plus, Lightbulb, ArrowUpDown, ArrowLeftRight, ChevronDown } from 'lucide-react'
 import type { SocialLinks } from '@/lib/types/biography-v2'
@@ -79,6 +80,7 @@ export function BasicInfoSection({
   onSocialLinksChange,
   className,
 }: BasicInfoSectionProps) {
+  const t = useTranslations('BiographyEditor')
   const avatarInputRef = useRef<HTMLInputElement>(null)
   const coverInputRef = useRef<HTMLInputElement>(null)
   const [avatarPreview, setAvatarPreview] = useState<string | null>(null)
@@ -90,7 +92,7 @@ export function BasicInfoSection({
   // 預設的路線型態選項（分類）
   const routeTypeGroups = [
     {
-      category: '攀登方式',
+      category: t('favoriteRouteTypesCategoryClimbing'),
       options: [
         { label: '抱石', value: '抱石' },
         { label: '運動攀登', value: '運動攀登' },
@@ -100,7 +102,7 @@ export function BasicInfoSection({
       ],
     },
     {
-      category: '地形型態',
+      category: t('favoriteRouteTypesCategoryTerrain'),
       options: [
         { label: '平板岩', value: '平板岩' },
         { label: '垂直岩壁', value: '垂直岩壁' },
@@ -113,7 +115,7 @@ export function BasicInfoSection({
       ],
     },
     {
-      category: '動作風格',
+      category: t('favoriteRouteTypesCategoryMovement'),
       options: [
         { label: '動態路線', value: '動態路線' },
         { label: '跑酷風格', value: '跑酷風格' },
@@ -200,10 +202,10 @@ export function BasicInfoSection({
       >
         <div className="flex items-center gap-2">
           <User size={18} className="text-[#3F3D3D]" />
-          <h3 className="font-semibold text-[#1B1A1A]">基本資料</h3>
+          <h3 className="font-semibold text-[#1B1A1A]">{t('basicInfoTitle')}</h3>
           <span className="text-xs text-[#6D6C6C] px-2 py-0.5 bg-[#F5F5F5] rounded-full flex items-center gap-1">
             <Clock size={12} />
-            1 分鐘
+            {t('basicInfoTimeEstimate')}
           </span>
         </div>
         <ChevronDown
@@ -217,7 +219,7 @@ export function BasicInfoSection({
 
       {showContent && (
       <><div className="space-y-2">
-        <label className="text-sm font-medium text-[#3F3D3D]">封面圖片</label>
+        <label className="text-sm font-medium text-[#3F3D3D]">{t('coverImageLabel')}</label>
         <div
           className="relative h-32 md:h-48 bg-[#EBEAEA] rounded-lg overflow-hidden cursor-pointer group"
           onClick={() => coverInputRef.current?.click()}
@@ -225,18 +227,18 @@ export function BasicInfoSection({
           {displayCover ? (
             <Image
               src={displayCover}
-              alt="封面圖片"
+              alt={t('coverImageAlt')}
               fill
               className="object-cover"
             />
           ) : (
             <div className="absolute inset-0 flex flex-col items-center justify-center text-[#6D6C6C]">
               <ImageIcon size={32} className="mb-2" />
-              <span className="text-sm">點擊上傳封面圖片</span>
+              <span className="text-sm">{t('coverImageUploadHint')}</span>
             </div>
           )}
           <div className="absolute inset-0 bg-brand-dark/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
-            <span className="text-white text-sm font-medium">更換封面</span>
+            <span className="text-white text-sm font-medium">{t('coverImageChangeHover')}</span>
           </div>
         </div>
         <input
@@ -246,12 +248,12 @@ export function BasicInfoSection({
           onChange={handleCoverSelect}
           className="hidden"
         />
-        <p className="text-xs text-[#8E8C8C]">建議尺寸：1200 x 400 像素</p>
+        <p className="text-xs text-[#8E8C8C]">{t('coverImageSizeHint')}</p>
       </div>
 
       {/* Avatar */}
       <div className="space-y-2">
-        <label className="text-sm font-medium text-[#3F3D3D]">頭像</label>
+        <label className="text-sm font-medium text-[#3F3D3D]">{t('avatarLabel')}</label>
         <div className="flex items-center gap-4">
           <div
             className="relative w-20 h-20 bg-[#EBEAEA] rounded-full overflow-hidden cursor-pointer group"
@@ -260,7 +262,7 @@ export function BasicInfoSection({
             {displayAvatar ? (
               <Image
                 src={displayAvatar}
-                alt="頭像"
+                alt={t('avatarAlt')}
                 fill
                 className="object-cover"
               />
@@ -281,8 +283,8 @@ export function BasicInfoSection({
             className="hidden"
           />
           <div className="text-sm text-[#6D6C6C]">
-            <p>點擊頭像更換</p>
-            <p className="text-xs">建議使用正方形圖片</p>
+            <p>{t('avatarClickHint')}</p>
+            <p className="text-xs">{t('avatarShapeHint')}</p>
           </div>
         </div>
       </div>
@@ -290,44 +292,44 @@ export function BasicInfoSection({
       {/* Name */}
       <div className="space-y-2">
         <label className="text-sm font-medium text-[#3F3D3D]">
-          顯示名稱 <span className="text-red-500">*</span>
+          {t('displayNameLabel')} <span className="text-red-500">{t('displayNameRequired')}</span>
         </label>
         <input
           type="text"
           value={name}
           onChange={(e) => onNameChange(e.target.value)}
-          placeholder="你想怎麼被稱呼？"
+          placeholder={t('displayNamePlaceholder')}
           className="w-full px-4 py-3 bg-white border border-[#B6B3B3] rounded-lg text-[#1B1A1A] placeholder:text-[#9D9D9D] focus:outline-none focus:ring-2 focus:ring-brand-accent/50 focus:border-brand-dark transition-colors"
           maxLength={50}
         />
-        <p className="text-xs text-[#8E8C8C]">這會顯示在你的人物誌上</p>
+        <p className="text-xs text-[#8E8C8C]">{t('displayNameHint')}</p>
       </div>
 
       {/* Title / Tagline */}
       <div className="space-y-2">
         <label className="text-sm font-medium text-[#3F3D3D]">
-          一句話介紹自己
-          <span className="text-[#8E8C8C] font-normal ml-1">(選填)</span>
+          {t('taglineLabel')}
+          <span className="text-[#8E8C8C] font-normal ml-1">{t('taglineOptional')}</span>
         </label>
         <input
           type="text"
           value={title || ''}
           onChange={(e) => onTitleChange(e.target.value || null)}
-          placeholder="例如：快樂最重要的週末岩友"
+          placeholder={t('taglinePlaceholder')}
           className="w-full px-4 py-3 bg-white border border-[#B6B3B3] rounded-lg text-[#1B1A1A] placeholder:text-[#9D9D9D] focus:outline-none focus:ring-2 focus:ring-brand-accent/50 focus:border-brand-dark transition-colors"
           maxLength={100}
         />
         <p className="text-xs text-[#8E8C8C] flex items-center gap-1">
           <Lightbulb size={12} />
-          這句話會顯示在你的名字下方
+          {t('taglineHint')}
         </p>
       </div>
 
       {/* Climbing Start Year */}
       <div className="space-y-2">
         <label className="text-sm font-medium text-[#3F3D3D]">
-          開始攀岩年份
-          <span className="text-[#8E8C8C] font-normal ml-1">(選填)</span>
+          {t('climbingStartYearLabel')}
+          <span className="text-[#8E8C8C] font-normal ml-1">{t('climbingStartYearOptional')}</span>
         </label>
         <div className="flex items-center gap-3">
           <select
@@ -338,7 +340,7 @@ export function BasicInfoSection({
             }}
             className="w-32 px-4 py-3 bg-white border border-[#B6B3B3] rounded-lg text-[#1B1A1A] focus:outline-none focus:ring-2 focus:ring-brand-accent/50 focus:border-brand-dark transition-colors appearance-none cursor-pointer"
           >
-            <option value="">選擇年份</option>
+            <option value="">{t('climbingStartYearSelect')}</option>
             {yearOptions.map((year) => (
               <option key={year} value={year}>
                 {year}
@@ -347,25 +349,25 @@ export function BasicInfoSection({
           </select>
           <span className="text-[#6D6C6C] text-sm">
             {climbingYearsDisplay !== null && climbingYearsDisplay >= 0
-              ? `約 ${climbingYearsDisplay} 年經驗`
-              : '從入坑那天起算'}
+              ? t('climbingYearsExperience', { years: climbingYearsDisplay })
+              : t('climbingStartDefault')}
           </span>
         </div>
-        <p className="text-xs text-[#8E8C8C]">選擇你開始攀岩的年份，系統會自動計算年資</p>
+        <p className="text-xs text-[#8E8C8C]">{t('climbingStartYearHint')}</p>
       </div>
 
       {/* Height & Arm Span */}
       <div className="space-y-2">
         <div className="flex items-center gap-2 mb-2">
           <label className="text-sm font-medium text-[#3F3D3D]">
-            身體數據
-            <span className="text-[#8E8C8C] font-normal ml-1">(選填)</span>
+            {t('bodyStatsLabel')}
+            <span className="text-[#8E8C8C] font-normal ml-1">{t('bodyStatsOptional')}</span>
           </label>
         </div>
         <div className="flex flex-col gap-3 md:flex-row md:items-center md:gap-4">
           <div className="flex items-center gap-2">
             <ArrowUpDown size={16} className="shrink-0 text-[#3F3D3D]" />
-            <span className="shrink-0 whitespace-nowrap text-sm text-[#6D6C6C]">身高</span>
+            <span className="shrink-0 whitespace-nowrap text-sm text-[#6D6C6C]">{t('heightLabel')}</span>
             <input
               type="number"
               min={100}
@@ -379,7 +381,7 @@ export function BasicInfoSection({
           </div>
           <div className="flex items-center gap-2">
             <ArrowLeftRight size={16} className="shrink-0 text-[#3F3D3D]" />
-            <span className="shrink-0 whitespace-nowrap text-sm text-[#6D6C6C]">臂展</span>
+            <span className="shrink-0 whitespace-nowrap text-sm text-[#6D6C6C]">{t('armSpanLabel')}</span>
             <input
               type="number"
               min={100}
@@ -394,16 +396,16 @@ export function BasicInfoSection({
         </div>
         <p className="text-xs text-[#8E8C8C]">
           {heightCm && armSpanCm
-            ? `Ape Index: ${armSpanCm - heightCm > 0 ? '+' : ''}${armSpanCm - heightCm} cm`
-            : '臂展與身高的差距稱為 Ape Index，對攀岩很有參考價值'}
+            ? t('apeIndexWithValue', { value: `${armSpanCm - heightCm > 0 ? '+' : ''}${armSpanCm - heightCm}` })
+            : t('apeIndexHint')}
         </p>
       </div>
 
       {/* Frequent Locations - 多選標籤 */}
       <div className="space-y-2">
         <label className="text-sm font-medium text-[#3F3D3D]">
-          平常出沒的地方
-          <span className="text-[#8E8C8C] font-normal ml-1">(可多選)</span>
+          {t('frequentLocationsLabel')}
+          <span className="text-[#8E8C8C] font-normal ml-1">{t('frequentLocationsMultiple')}</span>
         </label>
         <div className="flex flex-wrap gap-2">
           {frequentLocations.map((location, index) => (
@@ -438,7 +440,7 @@ export function BasicInfoSection({
                   setNewLocation('')
                 }
               }}
-              placeholder="輸入後按 Enter"
+              placeholder={t('frequentLocationsInputPlaceholder')}
               className="w-32 px-3 py-1.5 text-sm bg-white text-[#1B1A1A] border border-dashed border-[#B6B3B3] rounded-full placeholder:text-[#9D9D9D] focus:outline-none focus:border-brand-dark"
             />
             <button
@@ -455,14 +457,14 @@ export function BasicInfoSection({
             </button>
           </div>
         </div>
-        <p className="text-xs text-[#8E8C8C]">岩館、戶外岩場都可以加</p>
+        <p className="text-xs text-[#8E8C8C]">{t('frequentLocationsHint')}</p>
       </div>
 
       {/* Favorite Route Types - 多選標籤 */}
       <div className="space-y-4">
         <label className="text-sm font-medium text-[#3F3D3D]">
-          喜歡的路線型態
-          <span className="text-[#8E8C8C] font-normal ml-1">(可多選)</span>
+          {t('favoriteRouteTypesLabel')}
+          <span className="text-[#8E8C8C] font-normal ml-1">{t('favoriteRouteTypesMultiple')}</span>
         </label>
         {/* 分類預設選項 */}
         {routeTypeGroups.map((group) => (
@@ -499,7 +501,7 @@ export function BasicInfoSection({
         {/* 已選擇的自訂選項（非預設選項的） */}
         {favoriteRouteTypes.filter((t) => !allRouteTypeOptions.some((o) => o.value === t)).length > 0 && (
           <div className="space-y-2">
-            <span className="text-xs text-[#6D6C6C]">自訂</span>
+            <span className="text-xs text-[#6D6C6C]">{t('favoriteRouteTypesCustomCategory')}</span>
             <div className="flex flex-wrap gap-2">
               {favoriteRouteTypes
                 .filter((type) => !allRouteTypeOptions.some((o) => o.value === type))
@@ -538,7 +540,7 @@ export function BasicInfoSection({
                 setNewRouteType('')
               }
             }}
-            placeholder="沒有想要的？自己輸入..."
+            placeholder={t('favoriteRouteTypesCustomPlaceholder')}
             className="flex-1 max-w-xs px-3 py-1.5 text-sm bg-white text-[#1B1A1A] border border-dashed border-[#B6B3B3] rounded-full placeholder:text-[#9D9D9D] focus:outline-none focus:border-brand-dark"
           />
           <button
@@ -561,10 +563,10 @@ export function BasicInfoSection({
         {/* Social Links Header */}
         <div className="flex items-center gap-2 mb-4">
           <Link size={18} className="text-[#3F3D3D]" />
-          <h4 className="font-medium text-[#1B1A1A]">社群連結</h4>
+          <h4 className="font-medium text-[#1B1A1A]">{t('socialLinksTitle')}</h4>
         </div>
         <p className="text-sm text-[#6D6C6C] mb-4">
-          新增你的社群帳號，讓其他岩友可以追蹤你的動態
+          {t('socialLinksHint')}
         </p>
 
         {/* Instagram */}
@@ -572,7 +574,7 @@ export function BasicInfoSection({
           <label className="text-sm font-medium text-[#3F3D3D] flex items-center gap-2">
             <Instagram size={16} className="text-pink-600" />
             Instagram
-            <span className="text-[#8E8C8C] font-normal">(選填)</span>
+            <span className="text-[#8E8C8C] font-normal">{t('instagramOptional')}</span>
           </label>
           <div className="flex items-center gap-2 min-w-0">
             <span className="text-[#6D6C6C] shrink-0">@</span>
@@ -597,8 +599,8 @@ export function BasicInfoSection({
         <div className="space-y-2 mb-4">
           <label className="text-sm font-medium text-[#3F3D3D] flex items-center gap-2">
             <Youtube size={16} className="text-red-600" />
-            YouTube 頻道
-            <span className="text-[#8E8C8C] font-normal">(選填)</span>
+            {t('youtubeLabel')}
+            <span className="text-[#8E8C8C] font-normal">{t('youtubeOptional')}</span>
           </label>
           <input
             type="text"
@@ -610,7 +612,7 @@ export function BasicInfoSection({
                 handleSocialLinkChange('youtube', username)
               }
             }}
-            placeholder="頻道 ID 或網址"
+            placeholder={t('youtubePlaceholder')}
             className="w-full px-4 py-3 bg-white border border-[#B6B3B3] rounded-lg text-[#1B1A1A] placeholder:text-[#9D9D9D] focus:outline-none focus:ring-2 focus:ring-brand-accent/50 focus:border-brand-dark transition-colors"
             maxLength={100}
           />
@@ -620,8 +622,8 @@ export function BasicInfoSection({
         <div className="space-y-2">
           <label className="text-sm font-medium text-[#3F3D3D] flex items-center gap-2">
             <Link size={16} className="text-[#3F3D3D]" />
-            個人網站
-            <span className="text-[#8E8C8C] font-normal">(選填)</span>
+            {t('websiteLabel')}
+            <span className="text-[#8E8C8C] font-normal">{t('websiteOptional')}</span>
           </label>
           <input
             type="url"

@@ -14,6 +14,7 @@ import {
   ChevronRight,
   Loader2,
 } from 'lucide-react'
+import { useTranslations } from 'next-intl'
 import { Card, CardContent } from '@/components/ui/card'
 import { bucketListService } from '@/lib/api/services'
 import { BucketListCategory, BUCKET_LIST_CATEGORIES } from '@/lib/types'
@@ -38,43 +39,16 @@ const categoryConfig: Record<
   other: { icon: Lightbulb, color: 'text-gray-600', bgColor: 'bg-gray-100' },
 }
 
-// 技巧經驗分享主題
-const experienceTopics = [
-  {
-    id: 'fear',
-    title: '克服恐懼經驗',
-    description: '分享如何面對和克服攀岩中的恐懼',
-    icon: Mountain,
-    color: 'text-pink-600',
-    bgColor: 'bg-pink-100',
-  },
-  {
-    id: 'recovery',
-    title: '受傷復原故事',
-    description: '受傷後的復健與重返岩壁的歷程',
-    icon: Mountain,
-    color: 'text-red-600',
-    bgColor: 'bg-red-100',
-  },
-  {
-    id: 'experience',
-    title: '攀登經驗分享',
-    description: '難忘的攀登經歷與心得',
-    icon: Mountain,
-    color: 'text-green-600',
-    bgColor: 'bg-green-100',
-  },
-  {
-    id: 'training',
-    title: '訓練心得',
-    description: '有效的訓練方法與技巧',
-    icon: Dumbbell,
-    color: 'text-purple-600',
-    bgColor: 'bg-purple-100',
-  },
+// 技巧經驗分享主題 IDs (titles and descriptions are translated via i18n)
+const experienceTopicIds = [
+  { id: 'fear', icon: Mountain, color: 'text-pink-600', bgColor: 'bg-pink-100' },
+  { id: 'recovery', icon: Mountain, color: 'text-red-600', bgColor: 'bg-red-100' },
+  { id: 'experience', icon: Mountain, color: 'text-green-600', bgColor: 'bg-green-100' },
+  { id: 'training', icon: Dumbbell, color: 'text-purple-600', bgColor: 'bg-purple-100' },
 ]
 
 export function CategoryExplorer() {
+  const t = useTranslations('BiographyPage')
   const [categoryCounts, setCategoryCounts] = useState<CategoryCount[]>([])
   const [loading, setLoading] = useState(true)
 
@@ -124,11 +98,11 @@ export function CategoryExplorer() {
       <div>
         <div className="mb-6 flex items-center gap-2">
           <Lightbulb className="h-6 w-6 text-amber-500" />
-          <h2 className="text-xl font-bold text-[#1B1A1A]">技巧與經驗分享</h2>
+          <h2 className="text-xl font-bold text-[#1B1A1A]">{t('skillsAndExperienceTitle')}</h2>
         </div>
 
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
-          {experienceTopics.map((topic, index) => {
+          {experienceTopicIds.map((topic, index) => {
             const Icon = topic.icon
             return (
               <motion.div
@@ -143,10 +117,10 @@ export function CategoryExplorer() {
                       <div className={`mb-3 inline-flex rounded-lg p-2 ${topic.bgColor}`}>
                         <Icon className={`h-5 w-5 ${topic.color}`} />
                       </div>
-                      <h3 className="mb-1 font-semibold text-[#1B1A1A]">{topic.title}</h3>
-                      <p className="text-sm text-gray-500">{topic.description}</p>
+                      <h3 className="mb-1 font-semibold text-[#1B1A1A]">{t(`experienceTopic_${topic.id}_title`)}</h3>
+                      <p className="text-sm text-gray-500">{t(`experienceTopic_${topic.id}_description`)}</p>
                       <div className="mt-3 flex items-center gap-1 text-sm text-gray-600">
-                        探索
+                        {t('explore')}
                         <ChevronRight className="h-4 w-4" />
                       </div>
                     </CardContent>
@@ -163,7 +137,7 @@ export function CategoryExplorer() {
         <div className="mb-6 flex items-center justify-between">
           <div className="flex items-center gap-2">
             <Target className="h-6 w-6 text-indigo-500" />
-            <h2 className="text-xl font-bold text-[#1B1A1A]">依目標分類探索</h2>
+            <h2 className="text-xl font-bold text-[#1B1A1A]">{t('exploreByCategoryTitle')}</h2>
           </div>
         </div>
 
@@ -192,7 +166,7 @@ export function CategoryExplorer() {
                         {getCategoryLabel(cat.value)}
                       </h4>
                       {countData && countData.count > 0 && (
-                        <p className="mt-1 text-xs text-gray-500">{countData.count} 個目標</p>
+                        <p className="mt-1 text-xs text-gray-500">{t('goalCount', { count: countData.count })}</p>
                       )}
                     </CardContent>
                   </Card>

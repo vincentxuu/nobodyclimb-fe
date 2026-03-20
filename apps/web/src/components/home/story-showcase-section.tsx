@@ -6,12 +6,14 @@ import { motion } from 'framer-motion'
 import { HandMetal, Loader2, MapPin, Users, BookOpen } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { statsService, CommunityStats } from '@/lib/api/services'
+import { useTranslations } from 'next-intl'
 
 /**
  * 首頁故事展示區
  * 設計目標：讓用戶覺得「原來我也可以寫」
  */
 export function StoryShowcaseSection() {
+  const t = useTranslations('HomePage')
   const [data, setData] = useState<CommunityStats | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
@@ -28,7 +30,7 @@ export function StoryShowcaseSection() {
       }
     } catch (err) {
       console.error('Failed to load community stats:', err)
-      setError('載入社群統計時發生錯誤')
+      setError(t('showcaseLoadError'))
     } finally {
       setLoading(false)
     }
@@ -55,7 +57,7 @@ export function StoryShowcaseSection() {
           {/* 區塊標題 */}
           <div className="mb-8 text-center">
             <h2 className="text-2xl font-bold text-[#1B1A1A] md:text-3xl">
-              他們也曾經覺得自己「沒什麼特別」
+              {t('showcaseTitle')}
             </h2>
           </div>
 
@@ -84,7 +86,7 @@ export function StoryShowcaseSection() {
                     </Link>
                     <div className="flex items-center gap-1 text-sm text-amber-500">
                       <HandMetal size={16} />
-                      <span>我也是 {data.featuredStory.reactions.me_too}</span>
+                      <span>{t('showcaseMeToo', { count: data.featuredStory.reactions.me_too })}</span>
                     </div>
                   </div>
                 </div>
@@ -95,24 +97,24 @@ export function StoryShowcaseSection() {
 
               {/* 社群統計 */}
               <div className="mb-8 space-y-3">
-                <h3 className="mb-4 text-base font-medium text-[#1B1A1A]">這裡的岩友們</h3>
+                <h3 className="mb-4 text-base font-medium text-[#1B1A1A]">{t('showcaseCommunityTitle')}</h3>
                 <ul className="space-y-2 text-[#6D6C6C]">
                   {data?.stats.friendInvited != null && data.stats.friendInvited > 0 && (
                     <li className="flex items-center gap-2">
                       <Users size={16} className="text-[#8E8C8C]" />
-                      <span>{data.stats.friendInvited} 人被朋友拉進攀岩坑</span>
+                      <span>{t('showcaseFriendInvited', { count: data.stats.friendInvited })}</span>
                     </li>
                   )}
                   {data?.stats.topLocations && data.stats.topLocations.length > 0 && (
                     <li className="flex items-center gap-2">
                       <MapPin size={16} className="text-[#8E8C8C]" />
-                      <span>最常出沒：{data.stats.topLocations.join('、')}</span>
+                      <span>{t('showcaseTopLocations', { locations: data.stats.topLocations.join('、') })}</span>
                     </li>
                   )}
                   {data?.stats.totalStories && data.stats.totalStories > 0 && (
                     <li className="flex items-center gap-2">
                       <BookOpen size={16} className="text-[#8E8C8C]" />
-                      <span>{data.stats.totalStories} 個攀岩故事正在累積中</span>
+                      <span>{t('showcaseTotalStories', { count: data.stats.totalStories })}</span>
                     </li>
                   )}
                 </ul>
@@ -122,7 +124,7 @@ export function StoryShowcaseSection() {
               <div className="text-center">
                 <Link href="/auth/register">
                   <Button className="h-12 bg-[#1B1A1A] px-8 text-base text-white hover:bg-[#333]">
-                    我也想分享我的故事
+                    {t('showcaseCta')}
                   </Button>
                 </Link>
               </div>

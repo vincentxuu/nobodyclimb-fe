@@ -12,6 +12,7 @@ import {
   useTriggerRecommendation,
   type Recommendation,
 } from '@/lib/api/ai'
+import { useTranslations } from 'next-intl'
 
 const ITEMS_PER_PAGE = 10
 
@@ -22,9 +23,10 @@ function RecommendationCard({
   recommendation: Recommendation
   defaultExpanded?: boolean
 }) {
+  const t = useTranslations('ProfilePage')
   const [expanded, setExpanded] = useState(defaultExpanded)
   const { answer, sources, context_ascents } = recommendation.recommendation
-  const triggeredLabel = recommendation.triggered_by === 'ascent' ? '完攀後自動推薦' : '手動推薦'
+  const triggeredLabel = recommendation.triggered_by === 'ascent' ? t('triggeredByAscent') : t('triggeredManual')
   const date = new Date(recommendation.created_at).toLocaleDateString('zh-TW')
 
   return (
@@ -40,7 +42,7 @@ function RecommendationCard({
           {triggeredLabel}
           {context_ascents.length > 0 && (
             <span className="text-muted-foreground/60">
-              · 根據 {context_ascents.length} 條完攀紀錄
+              · {t('basedOnAscents', { count: context_ascents.length })}
             </span>
           )}
         </span>
@@ -86,6 +88,7 @@ function RecommendationSkeleton() {
 }
 
 export default function RecommendationTab() {
+  const t = useTranslations('ProfilePage')
   const { toast } = useToast()
   const [offset, setOffset] = useState(0)
   const [allItems, setAllItems] = useState<Recommendation[]>([])
@@ -156,8 +159,8 @@ export default function RecommendationTab() {
         const msg =
           (error as { response?: { data?: { error?: string } } })?.response?.data?.error ===
           'quota_exceeded'
-            ? '今日 AI 配額已用完，明日重置'
-            : '推薦生成失敗，請稍後再試'
+            ? t('toastQuotaExceeded')
+            : t('toastRecommendationFailed')
         toast({ title: msg, variant: 'destructive' })
       },
     })
@@ -169,7 +172,7 @@ export default function RecommendationTab() {
   return (
     <div className="space-y-4">
       <ProfilePageTitle
-        title="路線推薦"
+        title={t('routeRecommendations')}
         isAI
         action={
           <Button
@@ -180,7 +183,7 @@ export default function RecommendationTab() {
             className="gap-1.5"
           >
             <RefreshCw className={`h-3.5 w-3.5 ${triggerMutation.isPending ? 'animate-spin' : ''}`} />
-            重新推薦
+            {t('reRecommend')}
           </Button>
         }
       />
@@ -188,7 +191,7 @@ export default function RecommendationTab() {
       {/* 骨架屏（loading 或 polling 中）*/}
       {(isLoading || isPolling) && (
         <div className="space-y-3">
-          <p className="text-sm text-muted-foreground">推薦生成中...</p>
+          <p className="text-sm text-muted-foreground">{t('recommendationGenerating')}</p>
           <RecommendationSkeleton />
         </div>
       )}
@@ -198,10 +201,10 @@ export default function RecommendationTab() {
         <div className="rounded-lg border border-dashed border-border py-12 text-center space-y-2">
           <Sparkles className="mx-auto h-8 w-8 text-muted-foreground/50" />
           <p className="text-sm text-muted-foreground">
-            完成第一筆完攀後，AI 將為你推薦下一條路線
+            {t('recommendationEmpty')}
           </p>
           <Button variant="outline" size="sm" onClick={handleRetrigger} className="mt-2">
-            立即推薦
+            {t('recommendNow')}
           </Button>
         </div>
       )}
@@ -220,7 +223,7 @@ export default function RecommendationTab() {
               onClick={handleLoadMore}
             >
               <ChevronDown className="h-4 w-4" />
-              載入更多
+              {t('loadMore')}
             </Button>
           )}
         </div>

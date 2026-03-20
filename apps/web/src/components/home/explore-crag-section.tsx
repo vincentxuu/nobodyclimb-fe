@@ -9,6 +9,7 @@ import { Button } from '@/components/ui/button'
 import { CragCoverGenerator } from '@/components/shared/CragCoverGenerator'
 import { useCrags, useFeaturedRoutes, type FeaturedRouteItem } from '@/hooks/api/useCrags'
 import type { CragListItem } from '@/lib/crag-data'
+import { useTranslations } from 'next-intl'
 
 // 台灣地圖上的岩場標記位置（百分比，基於 taiwan.svg 437x555）
 const cragMapPositions: Record<string, { top: string; left: string }> = {
@@ -21,6 +22,7 @@ const cragMapPositions: Record<string, { top: string; left: string }> = {
 
 // 岩場卡片組件（水平滑動版）
 function CragCard({ crag, index }: { crag: CragListItem; index: number }) {
+  const t = useTranslations('HomePage')
   return (
     <motion.div
       initial={{ opacity: 0, y: 20 }}
@@ -62,7 +64,7 @@ function CragCard({ crag, index }: { crag: CragListItem; index: number }) {
 
           <div className="flex flex-wrap items-center gap-1.5">
             <span className="rounded-full bg-[#FFE70C] px-2 py-0.5 text-xs font-medium text-[#1B1A1A]">
-              {crag.routes} 條路線
+              {t('cragRouteCount', { count: crag.routes })}
             </span>
             <span className="rounded-full bg-[#F5F5F5] px-2 py-0.5 text-xs text-[#6D6C6C]">
               {crag.difficulty}
@@ -76,16 +78,17 @@ function CragCard({ crag, index }: { crag: CragListItem; index: number }) {
 
 // 岩場水平滑動區塊
 function CragsCarousel({ crags }: { crags: CragListItem[] }) {
+  const t = useTranslations('HomePage')
   return (
     <div>
       {/* 小標題 */}
       <div className="mb-4 flex items-center justify-between">
-        <h3 className="text-lg font-medium text-[#1B1A1A]">熱門岩場</h3>
+        <h3 className="text-lg font-medium text-[#1B1A1A]">{t('cragPopularCrags')}</h3>
         <Link
           href="/crag"
           className="flex items-center gap-1 text-sm text-[#6D6C6C] transition-colors hover:text-[#1B1A1A]"
         >
-          查看全部
+          {t('viewAll')}
           <ChevronRight className="h-4 w-4" />
         </Link>
       </div>
@@ -172,16 +175,17 @@ function RouteCard({ route, index }: { route: FeaturedRouteItem; index: number }
 
 // 熱門路線水平滑動區塊
 function FeaturedRoutesCarousel({ routes }: { routes: FeaturedRouteItem[] }) {
+  const t = useTranslations('HomePage')
   return (
     <div className="mt-10">
       {/* 小標題 */}
       <div className="mb-4 flex items-center justify-between">
-        <h3 className="text-lg font-medium text-[#1B1A1A]">熱門路線</h3>
+        <h3 className="text-lg font-medium text-[#1B1A1A]">{t('cragPopularRoutes')}</h3>
         <Link
           href="/crag"
           className="flex items-center gap-1 text-sm text-[#6D6C6C] transition-colors hover:text-[#1B1A1A]"
         >
-          查看全部
+          {t('viewAll')}
           <ChevronRight className="h-4 w-4" />
         </Link>
       </div>
@@ -208,6 +212,7 @@ export function TaiwanMap({
   compact?: boolean
   clickable?: boolean
 }) {
+  const t = useTranslations('HomePage')
   const [hoveredCrag, setHoveredCrag] = useState<string | null>(null)
 
   return (
@@ -217,7 +222,7 @@ export function TaiwanMap({
       {/* 台灣島輪廓 SVG */}
       <Image
         src="/taiwan.svg"
-        alt="台灣地圖"
+        alt={t('taiwanMapAlt')}
         fill
         className="object-cover brightness-[0.85] contrast-[0.9] sepia-[0.1]"
         style={{ filter: 'invert(0.85) sepia(0.05) brightness(1.05)' }}
@@ -285,6 +290,7 @@ export function TaiwanMap({
  * 包含台灣地圖視覺化和熱門岩場卡片
  */
 export function ExploreCragSection() {
+  const t = useTranslations('HomePage')
   const { data } = useCrags({ limit: 5 })
   const crags = data?.crags || []
 
@@ -301,8 +307,8 @@ export function ExploreCragSection() {
         {/* 標題區 */}
         <div className="mb-10 flex items-center justify-between">
           <div>
-            <h2 className="text-3xl font-bold text-[#1B1A1A] md:text-[40px]">查路線</h2>
-            <p className="mt-2 text-base text-[#6D6C6C]">探索台灣岩場，找到你的下一條路線</p>
+            <h2 className="text-3xl font-bold text-[#1B1A1A] md:text-[40px]">{t('cragSectionTitle')}</h2>
+            <p className="mt-2 text-base text-[#6D6C6C]">{t('cragSectionSubtitle')}</p>
           </div>
         </div>
 
@@ -321,7 +327,7 @@ export function ExploreCragSection() {
               variant="outline"
               className="h-11 border border-[#1B1A1A] px-8 text-base text-[#1B1A1A] hover:bg-[#DBD8D8]"
             >
-              探索更多岩場
+              {t('cragExploreMore')}
             </Button>
           </Link>
         </div>

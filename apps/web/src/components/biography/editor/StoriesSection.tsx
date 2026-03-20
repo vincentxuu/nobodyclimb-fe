@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useMemo } from 'react'
+import { useTranslations } from 'next-intl'
 import { cn } from '@/lib/utils'
 import {
   BookOpen,
@@ -86,6 +87,7 @@ export function StoriesSection({
   showRandomRecommend = true,
   className,
 }: StoriesSectionProps) {
+  const t = useTranslations('BiographyEditor')
   const [randomRecommendVisible, setRandomRecommendVisible] = useState(showRandomRecommend)
   // 預設所有分類都是收合的
   const [expandedCategories, setExpandedCategories] = useState<Set<StoryCategory>>(new Set())
@@ -122,21 +124,21 @@ export function StoriesSection({
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2">
           <BookOpen size={18} className="text-[#3F3D3D]" />
-          <h3 className="font-semibold text-[#1B1A1A]">深度故事</h3>
+          <h3 className="font-semibold text-[#1B1A1A]">{t('storiesTitle')}</h3>
           <span className="text-xs text-[#6D6C6C] px-2 py-0.5 bg-[#F5F5F5] rounded-full flex items-center gap-1">
             <Clock size={12} />
-            5 分鐘以上
+            {t('storiesTimeEstimate')}
           </span>
         </div>
         <span className="text-sm text-[#6D6C6C]">
-          {filledCount}/{totalQuestions} 已填寫
+          {t('storiesFilledCount', { filled: filledCount, total: totalQuestions })}
         </span>
       </div>
 
       <div className="flex items-center justify-between">
         <p className="text-sm text-[#6D6C6C] flex items-center gap-1">
           <Lightbulb size={14} />
-          挑一兩個有感覺的題目寫就好，這部分可以慢慢補
+          {t('storiesHint')}
         </p>
         {!randomRecommendVisible && unfilledQuestions.length > 0 && (
           <button
@@ -145,7 +147,7 @@ export function StoriesSection({
             className="flex items-center gap-1 px-3 py-1.5 text-sm text-brand-dark border border-brand-dark rounded-lg hover:bg-brand-accent/10 transition-colors"
           >
             <Shuffle size={14} />
-            隨機推薦一題
+            {t('storiesRandomRecommend')}
           </button>
         )}
       </div>
@@ -266,7 +268,7 @@ export function StoriesSection({
                                   : 'bg-[#F5F5F5] text-[#6D6C6C]'
                               )}
                             >
-                              {isFilled ? '編輯' : '開始寫'}
+                              {isFilled ? t('storiesEditButton') : t('storiesStartButton')}
                             </span>
                             <ChevronRight size={16} className="text-[#B6B3B3]" />
                           </div>
@@ -282,7 +284,7 @@ export function StoriesSection({
                         className="w-full flex items-center gap-2 p-4 text-sm text-[#6D6C6C] hover:text-[#1B1A1A] hover:bg-[#F5F5F5] transition-colors"
                       >
                         <Sparkles size={16} />
-                        自訂問題
+                        {t('storiesAddCustomQuestion')}
                       </button>
                     )}
                   </div>

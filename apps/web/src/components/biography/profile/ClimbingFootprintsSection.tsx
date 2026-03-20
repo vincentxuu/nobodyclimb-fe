@@ -6,6 +6,7 @@ import { Loader2, ChevronDown, ChevronUp, Calendar, Lock } from 'lucide-react'
 import { Biography, ClimbingLocationRecord } from '@/lib/types'
 import { climbingLocationService } from '@/lib/api/services'
 import { getCountryFlag } from '@/lib/utils/country'
+import { useTranslations } from 'next-intl'
 
 interface ClimbingFootprintsSectionProps {
   person: Biography
@@ -28,6 +29,7 @@ function TimelineLocationItem({
   index: number
   isLast: boolean
 }) {
+  const t = useTranslations('BiographyPage')
   const [isExpanded, setIsExpanded] = useState(false)
   const hasNotes = location.notes && location.notes.trim().length > 0
   const notesLength = location.notes?.length || 0
@@ -93,11 +95,11 @@ function TimelineLocationItem({
               >
                 {isExpanded ? (
                   <>
-                    收合 <ChevronUp className="h-4 w-4" />
+                    {t('collapseNotes')} <ChevronUp className="h-4 w-4" />
                   </>
                 ) : (
                   <>
-                    展開更多 <ChevronDown className="h-4 w-4" />
+                    {t('expandNotes')} <ChevronDown className="h-4 w-4" />
                   </>
                 )}
               </button>
@@ -119,6 +121,7 @@ function TimelineYearSection({
   yearData: TimelineYear
   index: number
 }) {
+  const t = useTranslations('BiographyPage')
   return (
     <motion.div
       className="relative"
@@ -135,7 +138,7 @@ function TimelineYearSection({
         <div className="flex items-center gap-2">
           <span className="text-xl font-bold text-brand-dark">{yearData.year}</span>
           <span className="rounded-full bg-brand-light px-2.5 py-0.5 text-sm font-medium text-brand-dark">
-            {yearData.locations.length} 個地點
+            {t('locationsCount', { count: yearData.locations.length })}
           </span>
         </div>
       </div>
@@ -167,6 +170,7 @@ function StatsSummary({
   countryCount: number
   yearRange: string
 }) {
+  const t = useTranslations('BiographyPage')
   return (
     <motion.div
       className="mb-8 grid grid-cols-3 gap-4"
@@ -176,15 +180,15 @@ function StatsSummary({
     >
       <div className="rounded-lg bg-brand-light p-4 text-center">
         <div className="text-2xl font-bold text-brand-dark">{totalLocations}</div>
-        <div className="text-sm text-text-subtle">攀岩地點</div>
+        <div className="text-sm text-text-subtle">{t('climbingLocations')}</div>
       </div>
       <div className="rounded-lg bg-brand-light p-4 text-center">
         <div className="text-2xl font-bold text-brand-dark">{countryCount}</div>
-        <div className="text-sm text-text-subtle">個國家</div>
+        <div className="text-sm text-text-subtle">{t('countries')}</div>
       </div>
       <div className="rounded-lg bg-brand-light p-4 text-center">
         <div className="text-2xl font-bold text-brand-dark">{yearRange}</div>
-        <div className="text-sm text-text-subtle">時間跨度</div>
+        <div className="text-sm text-text-subtle">{t('timeSpan')}</div>
       </div>
     </motion.div>
   )
@@ -197,6 +201,7 @@ function StatsSummary({
 export function ClimbingFootprintsSection({
   person,
 }: ClimbingFootprintsSectionProps) {
+  const t = useTranslations('BiographyPage')
   const [locations, setLocations] = useState<ClimbingLocationRecord[]>([])
   const [loading, setLoading] = useState(true)
 
@@ -258,7 +263,7 @@ export function ClimbingFootprintsSection({
   // 如果有無年份的地點，加到最後
   if (locationsWithoutYear.length > 0) {
     timelineData.push({
-      year: '那些年的足跡',
+      year: t('footprintsYearLabel'),
       locations: locationsWithoutYear,
     })
   }
@@ -284,10 +289,10 @@ export function ClimbingFootprintsSection({
           transition={{ duration: 0.4 }}
         >
           <span className="text-sm font-medium uppercase tracking-wider bg-brand-accent">
-            攀岩足跡
+            {t('climbingFootprintsSection')}
           </span>
           <h2 className="mt-2 flex items-center gap-2 text-2xl font-bold text-gray-900">
-            探索世界的腳步
+            {t('footprintsTitle')}
           </h2>
         </motion.div>
 
@@ -327,7 +332,7 @@ export function ClimbingFootprintsSection({
                 <div className="absolute left-0 flex h-6 w-6 items-center justify-center">
                   <div className="h-2 w-2 rounded-full bg-brand-light" />
                 </div>
-                <p className="text-sm italic text-text-subtle">持續探索中...</p>
+                <p className="text-sm italic text-text-subtle">{t('keepExploring')}</p>
               </motion.div>
             </div>
           </>
@@ -336,10 +341,10 @@ export function ClimbingFootprintsSection({
           <div className="flex flex-col items-center justify-center py-12 text-center" data-placeholder="true">
             <div className="flex items-center gap-2 text-lg text-gray-400">
               <Lock size={18} />
-              <span>{person.name} 的攀岩足跡正在累積中...</span>
+              <span>{t('footprintsPlaceholder', { name: person.name })}</span>
             </div>
             <p className="mt-2 text-sm text-gray-400">
-              每一次出發，都是新的冒險
+              {t('footprintsSubPlaceholder')}
             </p>
           </div>
         )}

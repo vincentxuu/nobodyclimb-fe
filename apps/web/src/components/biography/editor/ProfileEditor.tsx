@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useCallback, useRef, useMemo } from 'react'
+import { useTranslations } from 'next-intl'
 import { cn } from '@/lib/utils'
 import { User, Tag, MessageCircle, BookOpen, Globe, TrendingUp } from 'lucide-react'
 import ImageCropper from '@/components/shared/image-cropper'
@@ -76,6 +77,7 @@ export function ProfileEditor({
   onPublish,
   className,
 }: ProfileEditorProps) {
+  const t = useTranslations('BiographyEditor')
   const [activeSection, setActiveSection] = useState<string>('basic')
   const { status, lastSavedAt, error, setSaving, setSaved, setError } = useSaveStatus()
   const isMobile = useIsMobile()
@@ -267,19 +269,19 @@ export function ProfileEditor({
     () => [
       {
         id: 'basic',
-        label: '基本資料',
+        label: t('sectionBasicInfo'),
         icon: User,
         isCompleted: !!localBiography.name,
       },
       {
         id: 'targets',
-        label: '年度目標',
+        label: t('sectionAnnualGoals'),
         icon: TrendingUp,
         isCompleted: (localBiography.grade_targets && localBiography.grade_targets.length > 0) || false,
       },
       {
         id: 'tags',
-        label: '身份標籤',
+        label: t('sectionIdentityTags'),
         icon: Tag,
         isCompleted: localBiography.tags.length > 0,
         progress: {
@@ -289,7 +291,7 @@ export function ProfileEditor({
       },
       {
         id: 'oneliners',
-        label: '快問快答',
+        label: t('sectionQuickQA'),
         icon: MessageCircle,
         isCompleted: localBiography.one_liners.some((o) => o.answer?.trim()),
         progress: {
@@ -299,7 +301,7 @@ export function ProfileEditor({
       },
       {
         id: 'stories',
-        label: '深度故事',
+        label: t('sectionDeepStories'),
         icon: BookOpen,
         isCompleted: localBiography.stories.some((s) => s.content?.trim()),
         progress: {
@@ -309,7 +311,7 @@ export function ProfileEditor({
       },
       {
         id: 'footprints',
-        label: '攀岩足跡',
+        label: t('sectionClimbingFootprints'),
         icon: Globe,
         isCompleted:
           (localBiography.frequent_locations && localBiography.frequent_locations.length > 0) ||
@@ -339,7 +341,7 @@ export function ProfileEditor({
         {/* Header */}
         <div className="bg-white rounded-lg p-4">
           <div className="flex items-center justify-between mb-4">
-            <h1 className="text-xl font-bold text-[#1B1A1A]">編輯人物誌</h1>
+            <h1 className="text-xl font-bold text-[#1B1A1A]">{t('editBiographyTitle')}</h1>
             <AutoSaveIndicator status={status} lastSavedAt={lastSavedAt} error={error} />
           </div>
           <PrivacyBanner
@@ -573,16 +575,16 @@ export function ProfileEditor({
         imageSrc={imageCropper.cropperImageSrc}
         onCropComplete={imageCropper.handleCropComplete}
         aspectRatio={imageCropper.cropType === 'avatar' ? 1 : 3}
-        title={imageCropper.cropType === 'avatar' ? '裁切頭像' : '裁切封面圖片'}
+        title={imageCropper.cropType === 'avatar' ? t('cropAvatarTitle') : t('cropCoverTitle')}
         outputSize={imageCropper.cropType === 'avatar' ? 400 : 1200}
       />
 
       <UnsavedChangesPrompt
         when={hasUnsavedChanges}
-        title="尚未儲存"
-        message="尚有未儲存的變更，確定要離開嗎？"
-        confirmText="離開"
-        cancelText="留下"
+        title={t('unsavedChangesTitle')}
+        message={t('unsavedChangesMessage')}
+        confirmText={t('unsavedChangesConfirm')}
+        cancelText={t('unsavedChangesCancel')}
       />
     </div>
   )

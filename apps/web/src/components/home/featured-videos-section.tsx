@@ -9,6 +9,7 @@ import { Button } from '@/components/ui/button'
 import VideoPlayer from '@/components/videos/video-player'
 import type { Video } from '@/lib/types'
 import { parseDuration, parseViewCount } from '@/lib/utils/video'
+import { useTranslations } from 'next-intl'
 
 // 輕量版影片資料介面
 interface VideoListItem {
@@ -89,6 +90,7 @@ function VideoCard({
  * 顯示 4 個長片，按瀏覽次數排序
  */
 export function FeaturedVideosSection() {
+  const t = useTranslations('HomePage')
   const [videos, setVideos] = useState<Video[]>([])
   const [loading, setLoading] = useState(true)
   const [selectedVideo, setSelectedVideo] = useState<Video | null>(null)
@@ -166,9 +168,9 @@ export function FeaturedVideosSection() {
       <div className="container mx-auto px-4">
         {/* 標題區 */}
         <div className="mb-8 text-center">
-          <h2 className="font-['Noto_Sans_TC'] text-[40px] font-medium text-[#1B1A1A]">精選影片</h2>
+          <h2 className="font-['Noto_Sans_TC'] text-[40px] font-medium text-[#1B1A1A]">{t('videosSectionTitle')}</h2>
           <p className="mt-4 font-['Noto_Sans_CJK_TC'] text-base font-normal tracking-[0.01em] text-[#6D6C6C]">
-            觀看熱門攀岩長片
+            {t('videosSectionSubtitle')}
           </p>
         </div>
 
@@ -191,7 +193,7 @@ export function FeaturedVideosSection() {
               variant="outline"
               className="h-11 border border-[#1B1A1A] px-8 text-base text-[#1B1A1A] hover:bg-[#DBD8D8]"
             >
-              查看更多影片
+              {t('videosViewMore')}
             </Button>
           </Link>
         </div>

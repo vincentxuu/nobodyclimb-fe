@@ -12,6 +12,7 @@ import { useToast } from '@/components/ui/use-toast'
 import { AxiosError } from 'axios'
 import { formatDistanceToNow } from 'date-fns'
 import { zhTW } from 'date-fns/locale'
+import { useTranslations } from 'next-intl'
 
 interface BiographyComment {
   id: string
@@ -53,6 +54,7 @@ export function BiographyCommentSection({
   const { status, user } = useAuthStore()
   const router = useRouter()
   const { toast } = useToast()
+  const t = useTranslations('BiographyPage')
 
   const loadComments = useCallback(async () => {
     setIsLoading(true)
@@ -67,9 +69,9 @@ export function BiographyCommentSection({
     } catch (error) {
       console.error('Failed to load comments:', error)
       const axiosError = error as AxiosError<{ message?: string }>
-      const errorMessage = axiosError.response?.data?.message || '無法載入留言，請稍後再試'
+      const errorMessage = axiosError.response?.data?.message || t('loadFailedDesc')
       toast({
-        title: '載入失敗',
+        title: t('loadFailed'),
         description: errorMessage,
         variant: 'destructive',
       })
@@ -111,16 +113,16 @@ export function BiographyCommentSection({
         setCount(newCount)
         onCountChange?.(newCount)
         toast({
-          title: '留言成功',
-          description: '你的留言已發布',
+          title: t('commentSuccess'),
+          description: t('commentSuccessDesc'),
         })
       }
     } catch (error) {
       console.error('Failed to add comment:', error)
       const axiosError = error as AxiosError<{ message?: string }>
-      const errorMessage = axiosError.response?.data?.message || '留言失敗，請稍後再試'
+      const errorMessage = axiosError.response?.data?.message || t('commentFailedDesc')
       toast({
-        title: '留言失敗',
+        title: t('commentFailed'),
         description: errorMessage,
         variant: 'destructive',
       })
@@ -137,15 +139,15 @@ export function BiographyCommentSection({
       setCount(newCount)
       onCountChange?.(newCount)
       toast({
-        title: '刪除成功',
-        description: '留言已刪除',
+        title: t('deleteSuccess'),
+        description: t('deleteSuccessDesc'),
       })
     } catch (error) {
       console.error('Failed to delete comment:', error)
       const axiosError = error as AxiosError<{ message?: string }>
-      const errorMessage = axiosError.response?.data?.message || '刪除留言失敗，請稍後再試'
+      const errorMessage = axiosError.response?.data?.message || t('deleteFailedDesc')
       toast({
-        title: '刪除失敗',
+        title: t('deleteFailed'),
         description: errorMessage,
         variant: 'destructive',
       })
@@ -164,7 +166,7 @@ export function BiographyCommentSection({
   }
 
   const getDisplayName = (comment: BiographyComment) => {
-    return comment.display_name || comment.username || '匿名用戶'
+    return comment.display_name || comment.username || t('anonymous')
   }
 
   // 如果是嵌入模式，直接返回评论内容
@@ -176,7 +178,7 @@ export function BiographyCommentSection({
             <Textarea
               value={content}
               onChange={(e) => setContent(e.target.value)}
-              placeholder="寫下你的留言..."
+              placeholder={t('commentPlaceholder')}
               className="flex-1 min-h-[60px] resize-none"
             />
             <Button
@@ -200,9 +202,9 @@ export function BiographyCommentSection({
               onClick={() => router.push('/auth/login')}
               className="text-brand-600 hover:underline"
             >
-              登入
+              {t('login')}
             </button>
-            {' '}後才能留言
+            {' '}{t('commentLoginPrompt')}
           </p>
         )}
 
@@ -212,7 +214,7 @@ export function BiographyCommentSection({
           </div>
         ) : comments.length === 0 ? (
           <p className="text-sm text-gray-500 text-center py-4">
-            還沒有留言，成為第一個留言的人吧！
+            {t('noComments')}
           </p>
         ) : (
           <div className="space-y-4">
@@ -290,7 +292,7 @@ export function BiographyCommentSection({
                 <Textarea
                   value={content}
                   onChange={(e) => setContent(e.target.value)}
-                  placeholder="寫下你的留言..."
+                  placeholder={t('commentPlaceholder')}
                   className="flex-1 min-h-[60px] resize-none"
                 />
                 <Button
@@ -326,7 +328,7 @@ export function BiographyCommentSection({
               </div>
             ) : comments.length === 0 ? (
               <p className="text-sm text-gray-500 text-center py-4">
-                還沒有留言，成為第一個留言的人吧！
+                {t('noComments')}
               </p>
             ) : (
               <div className="space-y-4">

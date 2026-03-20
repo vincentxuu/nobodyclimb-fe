@@ -6,6 +6,8 @@ import { cn, normalizeNewlines } from '@/lib/utils'
 import { BookOpen, Loader2 } from 'lucide-react'
 import { biographyContentService, type Story } from '@/lib/api/services'
 import { ContentInteractionBar } from './ContentInteractionBar'
+import { useTranslations } from 'next-intl'
+import { useBiographyQuestionText } from '@/lib/hooks/useBiographyQuestions'
 
 interface BiographyStoriesProps {
   /** 人物誌 ID */
@@ -33,6 +35,8 @@ export function BiographyStories({
   biographyId,
   className,
 }: BiographyStoriesProps) {
+  const t = useTranslations('BiographyPage')
+  const { getStoryTitle, getCategoryName } = useBiographyQuestionText()
   const [stories, setStories] = useState<Story[]>([])
   const [isLoading, setIsLoading] = useState(true)
 
@@ -116,10 +120,10 @@ export function BiographyStories({
       <div className="flex items-center justify-between mb-6">
         <div className="flex items-center gap-2">
           <BookOpen size={20} className="text-[#3F3D3D]" />
-          <h2 className="text-xl font-bold text-[#1B1A1A]">小故事</h2>
+          <h2 className="text-xl font-bold text-[#1B1A1A]">{t('storiesLabel')}</h2>
         </div>
         <span className="text-sm text-[#6D6C6C]">
-          已分享 {stories.length} 則故事
+          {t('storiesSharedCount', { count: stories.length })}
         </span>
       </div>
 
@@ -128,8 +132,8 @@ export function BiographyStories({
         {stories.map((story, index) => {
           const categoryId = story.category_id || 'growth'
           const colors = CATEGORY_COLORS[categoryId] || { bg: 'bg-gray-100', text: 'text-gray-700' }
-          const title = story.title || story.question_text || story.question_id
-          const categoryName = story.category_name || '故事'
+          const title = getStoryTitle(story.question_id, story.title || story.question_text || story.question_id)
+          const categoryName = getCategoryName(story.category_id, story.category_name || '')
 
           return (
             <motion.div

@@ -7,6 +7,8 @@ import { Biography } from '@/lib/types'
 import { biographyContentService, type Story } from '@/lib/api/services'
 import { cn, normalizeNewlines } from '@/lib/utils'
 import { ContentInteractionBar } from '../display/ContentInteractionBar'
+import { useTranslations } from 'next-intl'
+import { useBiographyQuestionText } from '@/lib/hooks/useBiographyQuestions'
 
 interface FeaturedStoriesSectionProps {
   person: Biography
@@ -27,6 +29,8 @@ const STORY_CATEGORY_COLORS: Record<string, { bg: string; text: string }> = {
  * 從 biography_stories 表取得資料，挑選 3-5 個最精彩的故事展示
  */
 export function FeaturedStoriesSection({ person }: FeaturedStoriesSectionProps) {
+  const t = useTranslations('BiographyPage')
+  const { getStoryTitle, getCategoryName } = useBiographyQuestionText()
   const [stories, setStories] = useState<Story[]>([])
   const [isLoading, setIsLoading] = useState(true)
 
@@ -146,7 +150,7 @@ export function FeaturedStoriesSection({ person }: FeaturedStoriesSectionProps) 
     <section className="bg-gray-50 py-12">
       <div className="container mx-auto max-w-6xl px-4">
         <h2 className="mb-8 text-2xl font-bold text-gray-900">
-          精選小故事
+          {t('featuredStoriesTitle')}
         </h2>
 
         {/* 橫向滾動故事卡片 */}
@@ -161,19 +165,19 @@ export function FeaturedStoriesSection({ person }: FeaturedStoriesSectionProps) 
               className="w-80 flex-shrink-0 snap-center rounded-lg bg-white p-6 shadow-sm flex flex-col"
             >
               {/* 分類標籤 */}
-              {story.category_name && (
+              {(story.category_id || story.category_name) && (
                 <div className={cn(
                   'mb-3 inline-block rounded px-2 py-1 text-xs self-start',
                   STORY_CATEGORY_COLORS[story.category_id || 'sys_cat_growth']?.bg || 'bg-brand-accent/20',
                   STORY_CATEGORY_COLORS[story.category_id || 'sys_cat_growth']?.text || 'text-brand-dark'
                 )}>
-                  {story.category_name}
+                  {getCategoryName(story.category_id, story.category_name || '')}
                 </div>
               )}
 
               {/* 標題 */}
               <h3 className="mb-3 font-semibold text-gray-900">
-                {story.title}
+                {getStoryTitle(story.question_id, story.title || '')}
               </h3>
 
               {/* 完整內容 */}

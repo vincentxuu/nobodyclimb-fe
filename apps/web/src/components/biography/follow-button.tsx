@@ -7,6 +7,7 @@ import { biographyService } from '@/lib/api/services'
 import { useAuthStore } from '@/store/authStore'
 import { useRouter } from 'next/navigation'
 import { cn } from '@/lib/utils'
+import { useTranslations } from 'next-intl'
 
 interface FollowButtonProps {
   biographyId: string
@@ -27,6 +28,7 @@ export function FollowButton({
   const [isLoading, setIsLoading] = useState(false)
   const { status } = useAuthStore()
   const router = useRouter()
+  const t = useTranslations('BiographyPage')
 
   // Fetch follow status when component mounts or biographyId changes
   useEffect(() => {
@@ -85,12 +87,12 @@ export function FollowButton({
       ) : isFollowing ? (
         <>
           <UserMinus className="h-4 w-4 mr-1" />
-          取消追蹤
+          {t('unfollowButton')}
         </>
       ) : (
         <>
           <UserPlus className="h-4 w-4 mr-1" />
-          追蹤
+          {t('followButton')}
         </>
       )}
     </Button>

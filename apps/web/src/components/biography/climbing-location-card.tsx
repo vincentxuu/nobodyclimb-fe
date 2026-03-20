@@ -4,6 +4,7 @@ import React from 'react'
 import Link from 'next/link'
 import { motion } from 'framer-motion'
 import { MapPin, Users, Calendar } from 'lucide-react'
+import { useTranslations } from 'next-intl'
 import { ClimbingLocation, LocationStat } from '@/lib/types'
 import { getCountryFlag } from '@/lib/utils/country'
 
@@ -59,6 +60,7 @@ export function ClimbingLocationList({
   maxDisplay = 6,
   showViewMore = true,
 }: ClimbingLocationListProps) {
+  const t = useTranslations('BiographyPage')
   const publicLocations = locations.filter((loc) => loc.is_public)
   const displayLocations = publicLocations.slice(0, maxDisplay)
   const hasMore = publicLocations.length > maxDisplay
@@ -72,10 +74,10 @@ export function ClimbingLocationList({
       <div className="flex items-center justify-between">
         <h3 className="flex items-center gap-2 text-2xl font-medium text-text-main">
           <MapPin className="h-5 w-5" />
-          攀岩足跡
+          {t('climbingFootprint')}
         </h3>
         <span className="text-sm text-gray-500">
-          去過 {publicLocations.length} 個地方
+          {t('visitedPlaces', { count: publicLocations.length })}
         </span>
       </div>
 
@@ -91,7 +93,7 @@ export function ClimbingLocationList({
 
       {showViewMore && hasMore && (
         <p className="text-center text-sm text-gray-500">
-          還有 {publicLocations.length - maxDisplay} 個地點...
+          {t('moreLocationsCount', { count: publicLocations.length - maxDisplay })}
         </p>
       )}
     </div>
@@ -107,6 +109,7 @@ interface LocationExploreCardProps {
  * 探索頁面的地點卡片（含訪客統計）
  */
 export function LocationExploreCard({ location, index = 0 }: LocationExploreCardProps) {
+  const t = useTranslations('BiographyPage')
   return (
     <motion.div
       initial={{ opacity: 0, y: 20 }}
@@ -127,7 +130,7 @@ export function LocationExploreCard({ location, index = 0 }: LocationExploreCard
           </div>
           <div className="flex items-center gap-1 rounded-full bg-emerald-50 px-2 py-1 text-sm text-emerald-600">
             <Users className="h-3.5 w-3.5" />
-            <span>{location.visitor_count} 人去過</span>
+            <span>{t('visitorsCount', { count: location.visitor_count })}</span>
           </div>
         </div>
 
@@ -193,6 +196,7 @@ export function CountryCard({
   onClick,
   isSelected = false,
 }: CountryCardProps) {
+  const t = useTranslations('BiographyPage')
   return (
     <button
       onClick={onClick}
@@ -205,7 +209,7 @@ export function CountryCard({
       <div>
         <span className="block text-sm font-medium">{country}</span>
         <span className="text-xs text-gray-500">
-          {locationCount} 地點 · {visitorCount} 人
+          {t('locationAndVisitorCount', { locations: locationCount, visitors: visitorCount })}
         </span>
       </div>
     </button>

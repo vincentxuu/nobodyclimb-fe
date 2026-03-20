@@ -5,6 +5,7 @@ import Image from 'next/image'
 import Link from 'next/link'
 import { motion } from 'framer-motion'
 import { Flame, Users, Target, MapPin, Plus, Mountain, Home, Loader2, Check } from 'lucide-react'
+import { useTranslations } from 'next-intl'
 import { Card, CardContent } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { bucketListService } from '@/lib/api/services'
@@ -23,6 +24,7 @@ interface TrendingItem extends BucketListItem {
 }
 
 export function TrendingGoals({ searchTerm, filter }: TrendingGoalsProps) {
+  const t = useTranslations('BiographyPage')
   const [items, setItems] = useState<TrendingItem[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
@@ -68,7 +70,7 @@ export function TrendingGoals({ searchTerm, filter }: TrendingGoalsProps) {
       }
     } catch (err) {
       console.error('Failed to load trending items:', err)
-      setError('載入熱門目標時發生錯誤')
+      setError(t('trendingGoalsLoadError'))
     } finally {
       setLoading(false)
     }
@@ -147,12 +149,12 @@ export function TrendingGoals({ searchTerm, filter }: TrendingGoalsProps) {
       {/* 標題 */}
       <div className="mb-6 flex items-center gap-2">
         <Flame className="h-6 w-6 text-brand-dark" />
-        <h2 className="text-xl font-bold text-[#1B1A1A]">本週熱門目標</h2>
+        <h2 className="text-xl font-bold text-[#1B1A1A]">{t('weeklyTrendingGoalsTitle')}</h2>
       </div>
 
       {items.length === 0 ? (
         <div className="flex min-h-[150px] items-center justify-center text-gray-500">
-          {searchTerm ? `找不到符合「${searchTerm}」的熱門目標` : '目前沒有熱門目標'}
+          {searchTerm ? t('noTrendingGoalsForSearch', { term: searchTerm }) : t('noTrendingGoals')}
         </div>
       ) : (
         <div className="space-y-4">
@@ -189,11 +191,11 @@ export function TrendingGoals({ searchTerm, filter }: TrendingGoalsProps) {
                       <div className="mb-3 flex items-center gap-4 text-sm text-gray-500">
                         <span className="flex items-center gap-1">
                           <Users className="h-4 w-4" />
-                          被 {item.inspired_count || 0} 人加入清單
+                          {t('addedToListCount', { count: item.inspired_count || 0 })}
                         </span>
                         <span className="flex items-center gap-1">
                           <Target className="h-4 w-4" />
-                          {item.likes_count || 0} 人已完成
+                          {t('completedCount', { count: item.likes_count || 0 })}
                         </span>
                         {item.target_location && (
                           <span className="flex items-center gap-1">
@@ -224,7 +226,7 @@ export function TrendingGoals({ searchTerm, filter }: TrendingGoalsProps) {
                             )}
                           </div>
                           <span>
-                            由 <span className="font-medium">{item.author_name}</span> 設立
+                            {t('goalCreatedBy', { name: item.author_name })}
                           </span>
                         </Link>
                       )}
@@ -245,17 +247,17 @@ export function TrendingGoals({ searchTerm, filter }: TrendingGoalsProps) {
                       {addingItems.has(item.id) ? (
                         <>
                           <Loader2 className="h-4 w-4 animate-spin" />
-                          加入中...
+                          {t('adding')}
                         </>
                       ) : addedItems.has(item.id) ? (
                         <>
                           <Check className="h-4 w-4" />
-                          已加入
+                          {t('added')}
                         </>
                       ) : (
                         <>
                           <Plus className="h-4 w-4" />
-                          加入我的清單
+                          {t('addToMyList')}
                         </>
                       )}
                     </Button>

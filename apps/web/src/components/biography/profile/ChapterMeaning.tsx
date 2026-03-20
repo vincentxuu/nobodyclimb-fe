@@ -6,9 +6,9 @@ import { biographyContentService } from '@/lib/api/services'
 import { useClimbingMeaningStory, useCoreStoryLikeMutation, useCoreStoryCommentMutation } from '@/lib/hooks/useCoreStories'
 import { ContentInteractionBar } from '../display/ContentInteractionBar'
 import { normalizeNewlines } from '@/lib/utils'
+import { useTranslations } from 'next-intl'
 
-/** 預設的攀岩意義文字 */
-const DEFAULT_CLIMBING_MEANING = '這題還在想，等我爬完這條再說'
+// DEFAULT_CLIMBING_MEANING is now handled via i18n
 
 interface ChapterMeaningProps {
   biographyId: string
@@ -20,6 +20,7 @@ interface ChapterMeaningProps {
  * 攀岩對你來說是什麼 - 引言式設計
  */
 export function ChapterMeaning({ biographyId, personName }: ChapterMeaningProps) {
+  const t = useTranslations('BiographyPage')
   const { story, isLoading } = useClimbingMeaningStory(biographyId)
   const likeMutation = useCoreStoryLikeMutation(biographyId)
   const commentMutation = useCoreStoryCommentMutation(biographyId, story?.id)
@@ -56,7 +57,7 @@ export function ChapterMeaning({ biographyId, personName }: ChapterMeaningProps)
   }
 
   // 預設內容
-  const displayMeaning = normalizeNewlines(story?.content) || DEFAULT_CLIMBING_MEANING
+  const displayMeaning = normalizeNewlines(story?.content) || t('chapter2DefaultMeaning')
   const isDefault = !story?.content
 
   return (
@@ -69,10 +70,10 @@ export function ChapterMeaning({ biographyId, personName }: ChapterMeaningProps)
       <div className="mx-auto max-w-3xl text-center">
         {/* 章節標題 */}
         <span className="mb-4 inline-block text-sm font-medium uppercase tracking-wider bg-brand-accent">
-          Chapter 2
+          {t('chapter2')}
         </span>
         <h2 className="mb-8 text-2xl font-semibold text-gray-900">
-          攀岩對你來說是什麼
+          {t('chapter2Title')}
         </h2>
 
         {/* 引言框 */}

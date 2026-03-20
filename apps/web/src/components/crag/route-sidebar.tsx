@@ -2,6 +2,7 @@
 
 import Link from 'next/link'
 import { ArrowLeft } from 'lucide-react'
+import { useTranslations } from 'next-intl'
 import { RouteListFilter } from './route-list-filter'
 import { VirtualizedRouteList } from './virtualized-route-list'
 import type { RouteSidebarItem } from '@/lib/crag-data'
@@ -38,6 +39,7 @@ export function RouteSidebar({
   onGradeChange,
   onTypeChange,
 }: RouteSidebarProps) {
+  const t = useTranslations('CragPage')
 
   return (
     <aside className="hidden lg:flex lg:w-80 lg:flex-shrink-0 lg:flex-col border-r border-gray-200 bg-white">
@@ -51,11 +53,11 @@ export function RouteSidebar({
           <ArrowLeft size={16} />
           <span>{cragName}</span>
         </Link>
-        <h2 className="mt-3 text-lg font-semibold text-[#1B1A1A]">路線列表</h2>
+        <h2 className="mt-3 text-lg font-semibold text-[#1B1A1A]">{t('routeListTitle')}</h2>
         <p className="text-sm text-gray-500">
           {filteredRoutes.length === routes.length
-            ? `${routes.length} 條路線`
-            : `${filteredRoutes.length} / ${routes.length} 條路線`}
+            ? t('routeCount', { count: routes.length })
+            : t('routeCountFiltered', { filtered: filteredRoutes.length, total: routes.length })}
         </p>
       </div>
 

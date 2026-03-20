@@ -4,6 +4,7 @@ import { Loader2 } from 'lucide-react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { cn } from '@/lib/utils'
 import Link from 'next/link'
+import { useTranslations } from 'next-intl'
 
 export interface InteractorUser {
   user_id: string
@@ -28,9 +29,11 @@ export function ContentInteractorsPanel({
   isOpen,
   users,
   isLoading,
-  emptyMessage = '還沒有人',
+  emptyMessage,
   panelClassName,
 }: ContentInteractorsPanelProps) {
+  const t = useTranslations('BiographyPage')
+  const resolvedEmptyMessage = emptyMessage ?? t('noInteractors')
   return (
     <AnimatePresence>
       {isOpen && (
@@ -76,7 +79,7 @@ export function ContentInteractorsPanel({
                 })}
               </div>
             ) : (
-              <p className="py-2 text-center text-xs text-gray-400">{emptyMessage}</p>
+              <p className="py-2 text-center text-xs text-gray-400">{resolvedEmptyMessage}</p>
             )}
           </div>
         </motion.div>

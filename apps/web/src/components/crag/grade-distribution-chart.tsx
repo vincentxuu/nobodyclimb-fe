@@ -1,6 +1,7 @@
 'use client'
 
 import React from 'react'
+import { useTranslations } from 'next-intl'
 
 interface GradeDistributionChartProps {
   gradeRanges: Record<string, number>
@@ -31,6 +32,8 @@ export const GradeDistributionChart: React.FC<GradeDistributionChartProps> = ({
   gradeRanges,
   totalRoutes,
 }) => {
+  const t = useTranslations('CragPage')
+
   // 計算最大值用於比例縮放
   const maxCount = Math.max(...Object.values(gradeRanges), 1)
 
@@ -40,7 +43,7 @@ export const GradeDistributionChart: React.FC<GradeDistributionChartProps> = ({
   if (activeRanges.length === 0) {
     return (
       <div className="rounded-lg border border-gray-200 bg-gray-50 p-6 text-center text-gray-500">
-        暫無路線難度資料
+        {t('noGradeData')}
       </div>
     )
   }
@@ -60,7 +63,7 @@ export const GradeDistributionChart: React.FC<GradeDistributionChartProps> = ({
                   {gradeLabels[range] || range}
                 </span>
                 <span className="text-gray-500">
-                  {count} 條 ({percentage.toFixed(0)}%)
+                  {t('gradeRouteCount', { count, percentage: percentage.toFixed(0) })}
                 </span>
               </div>
               <div className="relative h-8 w-full overflow-hidden rounded-md bg-gray-100">
@@ -102,10 +105,10 @@ export const GradeDistributionChart: React.FC<GradeDistributionChartProps> = ({
       <div className="mt-4 rounded-md bg-gray-50 p-3">
         <div className="flex flex-wrap items-center justify-between gap-2 text-sm">
           <span className="text-gray-600">
-            共 <span className="font-semibold text-[#1B1A1A]">{totalRoutes}</span> 條路線
+            {t('gradeTotalRoutes', { count: totalRoutes })}
           </span>
           <span className="text-gray-600">
-            涵蓋 <span className="font-semibold text-[#1B1A1A]">{activeRanges.length}</span> 個難度區間
+            {t('gradeCoverRanges', { count: activeRanges.length })}
           </span>
         </div>
       </div>

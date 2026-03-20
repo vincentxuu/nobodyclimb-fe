@@ -8,6 +8,8 @@ import { Biography } from '@/lib/types'
 import { biographyContentService, type Story } from '@/lib/api/services'
 import { cn, normalizeNewlines } from '@/lib/utils'
 import { ContentInteractionBar } from '../display/ContentInteractionBar'
+import { useTranslations } from 'next-intl'
+import { useBiographyQuestionText } from '@/lib/hooks/useBiographyQuestions'
 
 interface CompleteStoriesSectionProps {
   person: Biography
@@ -29,6 +31,8 @@ const STORY_CATEGORY_COLORS: Record<string, { bg: string; text: string }> = {
  * 從 biography_stories 表取得資料，顯示所有已填寫的進階故事
  */
 export function CompleteStoriesSection({ person, isOwner }: CompleteStoriesSectionProps) {
+  const t = useTranslations('BiographyPage')
+  const { getCategoryName } = useBiographyQuestionText()
   const [stories, setStories] = useState<Story[]>([])
   const [isLoading, setIsLoading] = useState(true)
 
@@ -109,12 +113,12 @@ export function CompleteStoriesSection({ person, isOwner }: CompleteStoriesSecti
     <section id="complete-stories" className="bg-gray-50 py-16">
       <div className="container mx-auto max-w-6xl px-4">
         <h2 className="mb-2 text-2xl font-bold text-gray-900">
-          小故事
+          {t('storiesLabel')}
         </h2>
         <p className="mb-10 text-gray-600">
           {stories.length > 0
-            ? `已分享 ${stories.length} 則故事`
-            : '還沒有分享故事'}
+            ? t('storiesShared', { count: stories.length })
+            : t('storiesNotShared')}
         </p>
 
         {/* 故事橫向滾動 */}
@@ -130,13 +134,13 @@ export function CompleteStoriesSection({ person, isOwner }: CompleteStoriesSecti
               className="w-80 flex-shrink-0 snap-start rounded-lg bg-white p-6 shadow-sm flex flex-col"
             >
               {/* 分類標籤 */}
-              {story.category_name && (
+              {(story.category_id || story.category_name) && (
                 <div className={cn(
                   'mb-3 inline-block rounded px-2 py-1 text-xs self-start',
                   STORY_CATEGORY_COLORS[story.category_id || 'sys_cat_growth']?.bg || 'bg-brand-accent/20',
                   STORY_CATEGORY_COLORS[story.category_id || 'sys_cat_growth']?.text || 'text-brand-dark'
                 )}>
-                  {story.category_name}
+                  {getCategoryName(story.category_id, story.category_name || '')}
                 </div>
               )}
 
@@ -181,9 +185,9 @@ export function CompleteStoriesSection({ person, isOwner }: CompleteStoriesSecti
                     <Plus className="h-5 w-5" />
                   </div>
                   <h3 className="mb-2 font-medium text-gray-500 transition-colors group-hover:text-gray-700">
-                    新增更多故事
+                    {t('addMoreStories')}
                   </h3>
-                  <p className="text-sm text-gray-400">分享你的攀岩經歷</p>
+                  <p className="text-sm text-gray-400">{t('addMoreStoriesDesc')}</p>
                 </div>
               </Link>
             </motion.div>

@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useEffect, useMemo } from 'react'
+import { useTranslations } from 'next-intl'
 import { cn } from '@/lib/utils'
 import { X, Loader2, BookOpen } from 'lucide-react'
 import type { StoryQuestion, StoryCategoryDefinition, ContentSource } from '@/lib/types/biography-v2'
@@ -53,6 +54,7 @@ export function AddCustomStoryModal({
     }))
   }, [categoriesProp, questionsData])
 
+  const t = useTranslations('BiographyEditor')
   const [title, setTitle] = useState('')
   const [subtitle, setSubtitle] = useState('')
   const [placeholder, setPlaceholder] = useState('')
@@ -77,7 +79,7 @@ export function AddCustomStoryModal({
       category_id: categoryId,
       title: title.trim().endsWith('？') ? title.trim() : `${title.trim()}？`,
       subtitle: subtitle.trim(),
-      placeholder: placeholder.trim() || '寫下你的故事...',
+      placeholder: placeholder.trim() || t('storyTextPlaceholder'),
       difficulty: 'easy',
       order: 999,
     }
@@ -109,7 +111,7 @@ export function AddCustomStoryModal({
         <div className="flex items-center justify-between p-4 border-b border-[#EBEAEA]">
           <div className="flex items-center gap-2">
             <BookOpen size={20} className="text-[#3F3D3D]" />
-            <h3 className="font-semibold text-[#1B1A1A]">新增故事問題</h3>
+            <h3 className="font-semibold text-[#1B1A1A]">{t('addCustomStoryTitle')}</h3>
           </div>
           <button
             type="button"
@@ -125,43 +127,43 @@ export function AddCustomStoryModal({
           {/* 問題標題 */}
           <div className="space-y-2">
             <label className="block text-sm font-medium text-[#1B1A1A]">
-              問題標題 <span className="text-red-500">*</span>
+              {t('storyTitleLabel')} <span className="text-red-500">*</span>
             </label>
             <input
               type="text"
               value={title}
               onChange={(e) => setTitle(e.target.value)}
-              placeholder="例如：有沒有印象深刻的攀岩經歷"
+              placeholder={t('storyTitlePlaceholder')}
               className="w-full px-4 py-3 bg-white border border-[#B6B3B3] rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-accent/50 focus:border-brand-dark transition-colors text-[#1B1A1A] placeholder:text-[#9D9D9D]"
               maxLength={50}
             />
             <p className="text-xs text-[#8E8C8C]">
-              會自動加上問號，最多 50 字
+              {t('storyTitleHint')}
             </p>
           </div>
 
           {/* 問題說明 */}
           <div className="space-y-2">
             <label className="block text-sm font-medium text-[#1B1A1A]">
-              問題說明 <span className="text-[#8E8C8C]">(選填)</span>
+              {t('storySubtitleLabel')} <span className="text-[#8E8C8C]">{t('storySubtitleOptional')}</span>
             </label>
             <input
               type="text"
               value={subtitle}
               onChange={(e) => setSubtitle(e.target.value)}
-              placeholder="例如：不一定要很厲害，只要對你有意義"
+              placeholder={t('storySubtitlePlaceholder')}
               className="w-full px-4 py-3 bg-white border border-[#B6B3B3] rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-accent/50 focus:border-brand-dark transition-colors text-[#1B1A1A] placeholder:text-[#9D9D9D]"
               maxLength={50}
             />
             <p className="text-xs text-[#8E8C8C]">
-              幫助作答者理解問題
+              {t('storySubtitleHint')}
             </p>
           </div>
 
           {/* 所屬分類 */}
           <div className="space-y-2">
             <label className="block text-sm font-medium text-[#1B1A1A]">
-              所屬分類 <span className="text-red-500">*</span>
+              {t('storyCategoryLabel')} <span className="text-red-500">*</span>
             </label>
             <select
               value={categoryId}
@@ -184,13 +186,13 @@ export function AddCustomStoryModal({
           {/* 範例答案 */}
           <div className="space-y-2">
             <label className="block text-sm font-medium text-[#1B1A1A]">
-              範例開頭 <span className="text-[#8E8C8C]">(選填)</span>
+              {t('storyPlaceholderLabel')} <span className="text-[#8E8C8C]">{t('storyPlaceholderOptional')}</span>
             </label>
             <input
               type="text"
               value={placeholder}
               onChange={(e) => setPlaceholder(e.target.value)}
-              placeholder="例如：記得有一次..."
+              placeholder={t('storyPlaceholderPlaceholder')}
               className="w-full px-4 py-3 bg-white border border-[#B6B3B3] rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-accent/50 focus:border-brand-dark transition-colors text-[#1B1A1A] placeholder:text-[#9D9D9D]"
               maxLength={50}
             />
@@ -199,11 +201,11 @@ export function AddCustomStoryModal({
           {/* 預覽 */}
           {title.trim() && (
             <div className="bg-[#F5F5F5] rounded-lg p-4 space-y-3">
-              <p className="text-sm text-[#6D6C6C]">預覽</p>
+              <p className="text-sm text-[#6D6C6C]">{t('storyPreviewLabel')}</p>
               <div className="bg-white rounded-lg p-4 space-y-2">
                 <div className="mb-2">
                   <span className="text-xs text-[#8E8C8C]">
-                    {selectedCategory?.name || '未分類'}
+                    {selectedCategory?.name || t('storyUncategorized')}
                   </span>
                 </div>
                 <p className="font-medium text-[#1B1A1A]">
@@ -214,7 +216,7 @@ export function AddCustomStoryModal({
                 )}
                 <div className="pt-2 border-t border-[#EBEAEA]">
                   <p className="text-sm text-[#B6B3B3] italic">
-                    {placeholder.trim() || '寫下你的故事...'}
+                    {placeholder.trim() || t('storyTextPlaceholder')}
                   </p>
                 </div>
               </div>
@@ -224,7 +226,7 @@ export function AddCustomStoryModal({
           {/* 提示 */}
           <div className="bg-brand-accent/10 rounded-lg p-4">
             <p className="text-sm text-[#3F3D3D]">
-              故事問題適合需要深入分享的內容，可以寫長一點。
+              {t('storyTip')}
             </p>
           </div>
         </div>
@@ -236,7 +238,7 @@ export function AddCustomStoryModal({
             onClick={onClose}
             className="flex-1 px-4 py-3 border border-[#B6B3B3] text-[#3F3D3D] rounded-lg font-medium hover:bg-[#F5F5F5] transition-colors"
           >
-            取消
+            {t('cancelButton')}
           </button>
           <button
             type="button"
@@ -252,10 +254,10 @@ export function AddCustomStoryModal({
             {isSaving ? (
               <>
                 <Loader2 size={18} className="animate-spin" />
-                新增中...
+                {t('addingStatus')}
               </>
             ) : (
-              '新增問題'
+              t('addStoryButton')
             )}
           </button>
         </div>

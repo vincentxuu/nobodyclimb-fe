@@ -10,6 +10,7 @@ import { postService } from '@/lib/api/services'
 import { BackendPost, PostCategory, getCategoryLabel } from '@/lib/types'
 import { generateSummary } from '@/lib/utils/article'
 import { ArticleCoverGenerator } from '@/components/shared/ArticleCoverGenerator'
+import { useTranslations } from 'next-intl'
 
 // 緩存配置
 const CACHE_KEY = 'nobodyclimb_home_articles'
@@ -143,6 +144,7 @@ function ArticleCard({ item, index }: { item: ArticleItem; index: number }) {
  * 展示最新的 4 篇文章
  */
 export function LatestContentSection() {
+  const t = useTranslations('HomePage')
   const [articles, setArticles] = useState<ArticleItem[]>([])
   const [loading, setLoading] = useState(true)
 
@@ -219,8 +221,8 @@ export function LatestContentSection() {
       <div className="container mx-auto px-4">
         {/* 標題區 */}
         <div className="mb-8 text-center">
-          <h2 className="text-3xl font-bold text-[#1B1A1A] md:text-[40px]">最新文章</h2>
-          <p className="mt-4 text-base text-[#6D6C6C]">探索攀岩社群的最新動態</p>
+          <h2 className="text-3xl font-bold text-[#1B1A1A] md:text-[40px]">{t('latestArticlesTitle')}</h2>
+          <p className="mt-4 text-base text-[#6D6C6C]">{t('latestArticlesSubtitle')}</p>
         </div>
 
         {/* 文章網格 */}
@@ -237,7 +239,7 @@ export function LatestContentSection() {
               variant="outline"
               className="h-11 border border-[#1B1A1A] px-8 text-base text-[#1B1A1A] hover:bg-[#DBD8D8]"
             >
-              查看更多文章
+              {t('latestArticlesViewMore')}
             </Button>
           </Link>
         </div>

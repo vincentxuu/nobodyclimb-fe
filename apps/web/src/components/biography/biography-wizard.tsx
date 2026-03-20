@@ -1,6 +1,7 @@
 'use client'
 
 import React, { useState, useCallback, useMemo } from 'react'
+import { useTranslations } from 'next-intl'
 import { motion, AnimatePresence } from 'framer-motion'
 import {
   ChevronLeft,
@@ -117,6 +118,7 @@ export function BiographyWizard({
   mode = 'create',
   className,
 }: BiographyWizardProps) {
+  const t = useTranslations('BiographyEditor')
   const { toast } = useToast()
   const [currentStep, setCurrentStep] = useState<WizardStep>(1)
   const [formData, setFormData] = useState<Partial<BiographyInput>>(initialData)
@@ -169,8 +171,8 @@ export function BiographyWizard({
       // 檢查檔案類型
       if (!validateImageType(file)) {
         toast({
-          title: '檔案格式錯誤',
-          description: '請上傳 JPG、PNG、WebP 或 GIF 格式的圖片',
+          title: t('wizardAvatarFormatError'),
+          description: t('wizardAvatarFormatErrorDesc'),
           variant: 'destructive',
         })
         return
@@ -195,17 +197,17 @@ export function BiographyWizard({
         if (response.success && response.data?.url) {
           updateFormData('avatar_url', response.data.url)
           toast({
-            title: '上傳成功',
-            description: '頭像已更新',
+            title: t('wizardAvatarUploadSuccess'),
+            description: t('wizardAvatarUploadSuccessDesc'),
           })
         } else {
-          throw new Error('上傳失敗')
+          throw new Error(t('wizardAvatarUploadFailedMsg'))
         }
       } catch (error) {
         console.error('Failed to upload avatar:', error)
-        const message = error instanceof Error ? error.message : '頭像上傳時發生錯誤，請稍後再試'
+        const message = error instanceof Error ? error.message : t('wizardAvatarUploadErrorDesc')
         toast({
-          title: '上傳失敗',
+          title: t('wizardAvatarUploadFailed'),
           description: message,
           variant: 'destructive',
         })
@@ -300,7 +302,7 @@ export function BiographyWizard({
       }
     } catch (err) {
       console.error('Failed to save:', err)
-      setError('儲存失敗，請稍後再試')
+      setError(t('wizardSaveError'))
     } finally {
       setIsSaving(false)
     }
@@ -354,9 +356,9 @@ export function BiographyWizard({
 
   // 步驟標題
   const stepTitles: Record<WizardStep, { title: string; subtitle: string }> = {
-    1: { title: '基本資訊', subtitle: '設定你的人物誌' },
-    2: { title: '你的攀岩故事', subtitle: '這部分會讓你的人物誌更有溫度' },
-    3: { title: '人生清單', subtitle: '在攀岩世界裡，你想完成的目標有什麼？' },
+    1: { title: t('wizardStep1Title'), subtitle: t('wizardStep1Subtitle') },
+    2: { title: t('wizardStep2Title'), subtitle: t('wizardStep2Subtitle') },
+    3: { title: t('wizardStep3Title'), subtitle: t('wizardStep3Subtitle') },
   }
 
   return (
@@ -393,7 +395,7 @@ export function BiographyWizard({
               {/* 頭像上傳 */}
               <div>
                 <Label className="mb-2 block text-sm font-medium">
-                  頭像 <span className="text-xs text-gray-400">（選填）</span>
+                  {t('wizardAvatarLabel')} <span className="text-xs text-gray-400">{t('wizardAvatarOptional')}</span>
                 </Label>
                 <div className="flex items-center gap-4">
                   <div className="relative">
@@ -402,7 +404,7 @@ export function BiographyWizard({
                         // eslint-disable-next-line @next/next/no-img-element
                         <img
                           src={avatarPreview}
-                          alt="頭像"
+                          alt={t('avatarAlt')}
                           className="h-full w-full object-cover"
                         />
                       ) : (
@@ -430,7 +432,7 @@ export function BiographyWizard({
                         disabled={isUploadingAvatar}
                       />
                       <Upload className="h-4 w-4" />
-                      {isUploadingAvatar ? '上傳中...' : '上傳照片'}
+                      {isUploadingAvatar ? t('wizardAvatarUploadingButton') : t('wizardAvatarUploadButton')}
                     </label>
                   </div>
                 </div>
@@ -439,29 +441,29 @@ export function BiographyWizard({
               {/* 暱稱 */}
               <div>
                 <Label htmlFor="name" className="mb-2 block text-sm font-medium">
-                  你的暱稱
+                  {t('wizardNicknameLabel')}
                 </Label>
                 <Input
                   id="name"
                   value={formData.name || ''}
                   onChange={(e) => updateFormData('name', e.target.value)}
-                  placeholder="輸入你的暱稱"
+                  placeholder={t('wizardNicknamePlaceholder')}
                 />
               </div>
 
               {/* 個人標籤 */}
               <div>
                 <Label htmlFor="title" className="mb-2 block text-sm font-medium">
-                  個人標籤 <span className="text-xs text-gray-400">（選填）</span>
+                  {t('wizardPersonalTagLabel')} <span className="text-xs text-gray-400">{t('wizardPersonalTagOptional')}</span>
                 </Label>
                 <Input
                   id="title"
                   value={formData.title || ''}
                   onChange={(e) => updateFormData('title', e.target.value)}
-                  placeholder="例如：專業攀岩者、業餘愛好者、攀岩教練"
+                  placeholder={t('wizardPersonalTagPlaceholder')}
                 />
                 <p className="mt-1 text-xs text-gray-500">
-                  一句話描述你在攀岩界的身份或定位
+                  {t('wizardPersonalTagHint')}
                 </p>
               </div>
 
@@ -469,14 +471,14 @@ export function BiographyWizard({
               <div>
                 <Label className="mb-2 flex items-center gap-2 text-sm font-medium">
                   <Calendar className="h-4 w-4" />
-                  哪一年開始攀岩
+                  {t('wizardStartYearLabel')}
                 </Label>
                 <Select
                   value={formData.climbing_start_year || ''}
                   onValueChange={(value) => updateFormData('climbing_start_year', value)}
                 >
                   <SelectTrigger>
-                    <SelectValue placeholder="選擇年份" />
+                    <SelectValue placeholder={t('wizardStartYearPlaceholder')} />
                   </SelectTrigger>
                   <SelectContent>
                     {yearOptions.map((year) => (
@@ -492,7 +494,7 @@ export function BiographyWizard({
               <div>
                 <Label className="mb-2 flex items-center gap-2 text-sm font-medium">
                   <MapPin className="h-4 w-4" />
-                  平常出沒的地方
+                  {t('wizardFrequentLocationsLabel')}
                 </Label>
                 <div className="mb-2 flex flex-wrap gap-2">
                   {locationItems.map((item) => (
@@ -515,7 +517,7 @@ export function BiographyWizard({
                   <Input
                     value={locationInput}
                     onChange={(e) => setLocationInput(e.target.value)}
-                    placeholder="輸入地點後按 Enter 或點擊新增"
+                    placeholder={t('wizardFrequentLocationsPlaceholder')}
                     onKeyDown={(e) => {
                       if (e.key === 'Enter') {
                         e.preventDefault()
@@ -531,11 +533,11 @@ export function BiographyWizard({
 
               {/* 喜歡的路線型態 */}
               <div>
-                <Label className="mb-3 block text-sm font-medium">喜歡的路線型態（可複選）</Label>
+                <Label className="mb-3 block text-sm font-medium">{t('wizardRouteTypesLabel')}</Label>
 
                 {/* 攀登方式 */}
                 <div className="mb-3">
-                  <p className="mb-2 text-xs text-gray-500">攀登方式</p>
+                  <p className="mb-2 text-xs text-gray-500">{t('favoriteRouteTypesCategoryClimbing')}</p>
                   <div className="flex flex-wrap gap-2">
                     {CLIMBING_METHODS.map((method) => (
                       <button
@@ -557,7 +559,7 @@ export function BiographyWizard({
 
                 {/* 地形型態 */}
                 <div className="mb-3">
-                  <p className="mb-2 text-xs text-gray-500">地形型態</p>
+                  <p className="mb-2 text-xs text-gray-500">{t('favoriteRouteTypesCategoryTerrain')}</p>
                   <div className="flex flex-wrap gap-2">
                     {TERRAIN_TYPES.map((type) => (
                       <button
@@ -579,7 +581,7 @@ export function BiographyWizard({
 
                 {/* 動作風格 */}
                 <div>
-                  <p className="mb-2 text-xs text-gray-500">動作風格</p>
+                  <p className="mb-2 text-xs text-gray-500">{t('favoriteRouteTypesCategoryMovement')}</p>
                   <div className="flex flex-wrap gap-2">
                     {MOVEMENT_STYLES.map((style) => (
                       <button
@@ -609,15 +611,15 @@ export function BiographyWizard({
               <div>
                 <Label className="mb-2 flex items-center gap-2 text-sm font-medium">
                   <Sparkles className="h-4 w-4 text-yellow-500" />
-                  你與攀岩的相遇
+                  {t('wizardStep2Origin')}
                 </Label>
                 <p className="mb-2 text-xs text-gray-500">
-                  描述第一次接觸攀岩的情景，是什麼讓你想繼續？
+                  {t('wizardStep2OriginHint')}
                 </p>
                 <Textarea
                   value={formData.climbing_origin || ''}
                   onChange={(e) => updateFormData('climbing_origin', e.target.value)}
-                  placeholder="那年某天，我第一次踏進岩館..."
+                  placeholder={t('wizardStep2OriginPlaceholder')}
                   className="min-h-[120px]"
                 />
               </div>
@@ -626,15 +628,15 @@ export function BiographyWizard({
               <div>
                 <Label className="mb-2 flex items-center gap-2 text-sm font-medium">
                   <Mountain className="h-4 w-4 text-pink-500" />
-                  攀岩對你來說是什麼
+                  {t('wizardStep2Meaning')}
                 </Label>
                 <p className="mb-2 text-xs text-gray-500">
-                  攀岩在你生活中扮演什麼角色？帶給你什麼？
+                  {t('wizardStep2MeaningHint')}
                 </p>
                 <Textarea
                   value={formData.climbing_meaning || ''}
                   onChange={(e) => updateFormData('climbing_meaning', e.target.value)}
-                  placeholder="攀岩對我來說，是..."
+                  placeholder={t('wizardStep2MeaningPlaceholder')}
                   className="min-h-[120px]"
                 />
               </div>
@@ -643,15 +645,15 @@ export function BiographyWizard({
               <div>
                 <Label className="mb-2 flex items-center gap-2 text-sm font-medium">
                   <MessageCircle className="h-4 w-4 text-blue-500" />
-                  給剛開始攀岩的自己
+                  {t('wizardStep2Advice')}
                 </Label>
                 <p className="mb-2 text-xs text-gray-500">
-                  如果能回到起點，你會對自己說什麼？
+                  {t('wizardStep2AdviceHint')}
                 </p>
                 <Textarea
                   value={formData.advice_to_self || ''}
                   onChange={(e) => updateFormData('advice_to_self', e.target.value)}
-                  placeholder="如果能回到那時候，我想說..."
+                  placeholder={t('wizardStep2AdvicePlaceholder')}
                   className="min-h-[120px]"
                 />
               </div>
@@ -664,10 +666,10 @@ export function BiographyWizard({
               <div>
                 <Label className="mb-2 flex items-center gap-2 text-sm font-medium">
                   <BookOpen className="h-4 w-4 text-orange-500" />
-                  快速新增目標
+                  {t('wizardBucketListLabel')}
                 </Label>
                 <p className="mb-3 text-xs text-gray-500">
-                  輸入你想達成的攀岩目標，之後可以在人生清單詳細編輯
+                  {t('wizardBucketListHint')}
                 </p>
 
                 {/* 已新增的目標 */}
@@ -694,7 +696,7 @@ export function BiographyWizard({
                   <Input
                     value={bucketListInput}
                     onChange={(e) => setBucketListInput(e.target.value)}
-                    placeholder="例如：完攀龍洞校門口、抱石 V6..."
+                    placeholder={t('wizardBucketListPlaceholder')}
                     onKeyDown={(e) => {
                       if (e.key === 'Enter') {
                         e.preventDefault()
@@ -708,7 +710,7 @@ export function BiographyWizard({
                 </div>
 
                 <p className="mt-4 text-center text-xs text-gray-400">
-                  之後可以隨時回來詳細編輯每個目標
+                  {t('wizardBucketListHint')}
                 </p>
               </div>
             </div>
@@ -722,11 +724,11 @@ export function BiographyWizard({
           {currentStep > 1 ? (
             <Button variant="ghost" onClick={handlePrev}>
               <ChevronLeft className="mr-2 h-4 w-4" />
-              上一步
+              {t('wizardPrevButton')}
             </Button>
           ) : onCancel ? (
             <Button variant="ghost" onClick={onCancel}>
-              取消
+              {t('wizardCancelButton')}
             </Button>
           ) : (
             <div />
@@ -734,19 +736,19 @@ export function BiographyWizard({
         </div>
         <div className="flex items-center gap-2">
           <Button variant="ghost" onClick={handleSkip}>
-            跳過，稍後再填
+            {t('wizardSkipButton')}
           </Button>
           <Button onClick={handleNext} disabled={isSaving}>
             {isSaving && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
             {currentStep === 3 ? (
               mode === 'create' ? (
-                '完成並發布人物誌'
+                t('wizardFinishButton')
               ) : (
-                '儲存'
+                t('saveButton')
               )
             ) : (
               <>
-                下一步
+                {t('wizardNextButton')}
                 <ChevronRight className="ml-2 h-4 w-4" />
               </>
             )}

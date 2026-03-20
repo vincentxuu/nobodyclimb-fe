@@ -7,6 +7,7 @@ import { cn } from '@/lib/utils'
 import { BiographyV2, GradeTarget } from '@/lib/types/biography-v2'
 import { renderDynamicTag } from '@/lib/types/biography-v2'
 import { getTagOptionById } from '@/lib/constants/biography-tags'
+import { useTranslations } from 'next-intl'
 
 interface QuickFactsSectionProps {
   person: BiographyV2 | null
@@ -19,6 +20,7 @@ interface QuickFactsSectionProps {
  * 整合基本資訊卡片與關鍵字標籤
  */
 export function QuickFactsSection({ person, mobileTagLimit = 8 }: QuickFactsSectionProps) {
+  const t = useTranslations('BiographyPage')
   const [showAllTags, setShowAllTags] = useState(false)
 
   // 計算攀岩年資
@@ -140,47 +142,48 @@ export function QuickFactsSection({ person, mobileTagLimit = 8 }: QuickFactsSect
 
   if (!person) return null
 
+  const currentYear = new Date().getFullYear()
   const quickFacts = [
     {
       icon: <Calendar className="h-6 w-6 text-gray-600" />,
-      label: '開始攀岩',
+      label: t('startClimbing'),
       value: person.climbing_start_year
-        ? `${person.climbing_start_year}${climbingYears !== null ? ` (${climbingYears} 年)` : ''}`
-        : '從入坑那天起算',
+        ? t('climbingStartYear', { year: person.climbing_start_year, count: climbingYears ?? 0 })
+        : t('climbingStartDefault'),
       isEmpty: !person.climbing_start_year
     },
     {
       icon: <MapPin className="h-6 w-6 text-gray-600" />,
-      label: '常出沒地點',
-      value: locations.length > 0 ? locations.join('、') : '哪裡有牆哪裡去',
+      label: t('frequentLocationsLabel'),
+      value: locations.length > 0 ? locations.join('、') : t('frequentLocationsDefault'),
       isEmpty: locations.length === 0
     },
     {
       icon: <Activity className="h-6 w-6 text-gray-600" />,
-      label: '喜歡的類型',
+      label: t('favoriteTypes'),
       value: person.favorite_route_types && person.favorite_route_types.length > 0
         ? person.favorite_route_types.join('、')
-        : '能爬的都是好路線',
+        : t('favoriteTypesDefault'),
       isEmpty: !person.favorite_route_types || person.favorite_route_types.length === 0
     },
     {
       icon: <ArrowUpDown className="h-6 w-6 text-gray-600" />,
-      label: '身體數據',
+      label: t('bodyStats'),
       isEmpty: false,
       lines: [
-        { label: '身高', value: person.height_cm ? `${person.height_cm}cm` : '神秘高度', isEmpty: !person.height_cm },
-        { label: '臂展', value: person.arm_span_cm ? `${person.arm_span_cm}cm` : '未知長度', isEmpty: !person.arm_span_cm },
-        { label: 'Ape Index', value: apeIndex !== null ? `${apeIndex > 0 ? '+' : ''}${apeIndex}cm` : '謎之比例', isEmpty: apeIndex === null },
+        { label: t('height'), value: person.height_cm ? `${person.height_cm}cm` : t('heightDefault'), isEmpty: !person.height_cm },
+        { label: t('armSpan'), value: person.arm_span_cm ? `${person.arm_span_cm}cm` : t('armSpanDefault'), isEmpty: !person.arm_span_cm },
+        { label: t('apeIndex'), value: apeIndex !== null ? `${apeIndex > 0 ? '+' : ''}${apeIndex}cm` : t('apeIndexDefault'), isEmpty: apeIndex === null },
       ],
     },
     {
       icon: <TrendingUp className="h-6 w-6 text-gray-600" />,
-      label: `${new Date().getFullYear()} 目標`,
-      value: '偷偷努力中...',
+      label: t('yearTarget', { year: currentYear }),
+      value: t('yearTargetDefault'),
       isEmpty: currentYearTargets.length === 0,
-      lines: currentYearTargets.length > 0 ? currentYearTargets.map((t: GradeTarget) => ({
-        label: t.grade,
-        value: `${t.completed_count ?? 0} / ${t.target_count}`
+      lines: currentYearTargets.length > 0 ? currentYearTargets.map((target: GradeTarget) => ({
+        label: target.grade,
+        value: `${target.completed_count ?? 0} / ${target.target_count}`
       })) : undefined,
     },
   ]
@@ -193,7 +196,7 @@ export function QuickFactsSection({ person, mobileTagLimit = 8 }: QuickFactsSect
     <section className="bg-white py-12">
       <div className="container mx-auto max-w-5xl px-4">
         <h2 className="mb-8 text-center text-2xl font-semibold text-gray-900">
-          快速了解 {person.name}
+          {t('quickFactsTitle', { name: person.name })}
         </h2>
 
         {/* 基本資訊卡片 */}
@@ -239,7 +242,7 @@ export function QuickFactsSection({ person, mobileTagLimit = 8 }: QuickFactsSect
         {selectedTags.length > 0 && (
           <div className="mt-8 pt-8 border-t border-gray-100">
             <h3 className="text-center text-lg font-medium text-gray-700 mb-4">
-              關鍵字
+              {t('keywordsLabel2')}
             </h3>
             <div className="flex flex-wrap justify-center gap-2">
               {visibleTags.map((tag) => (
@@ -263,7 +266,7 @@ export function QuickFactsSection({ person, mobileTagLimit = 8 }: QuickFactsSect
                   onClick={() => setShowAllTags(true)}
                   className="inline-flex items-center gap-1 px-3 py-1.5 rounded-full text-sm font-medium text-[#6D6C6C] bg-[#F5F5F5] hover:bg-[#EBEAEA] transition-colors"
                 >
-                  展開更多 (+{hiddenTagCount})
+                  {t('showMoreTagsMobile', { count: hiddenTagCount })}
                   <ChevronDown size={16} />
                 </button>
               )}
@@ -273,7 +276,7 @@ export function QuickFactsSection({ person, mobileTagLimit = 8 }: QuickFactsSect
                   onClick={() => setShowAllTags(false)}
                   className="inline-flex items-center gap-1 px-3 py-1.5 rounded-full text-sm font-medium text-[#6D6C6C] bg-[#F5F5F5] hover:bg-[#EBEAEA] transition-colors"
                 >
-                  收合
+                  {t('collapseTags')}
                   <ChevronUp size={16} />
                 </button>
               )}

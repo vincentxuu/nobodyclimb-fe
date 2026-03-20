@@ -5,6 +5,7 @@ import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
 import { Camera, Youtube, Instagram, Link as LinkIcon } from 'lucide-react'
+import { useTranslations } from 'next-intl'
 
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -20,37 +21,6 @@ import { PhotoUpload } from '@/components/ui/photo-upload'
 import { galleryService } from '@/lib/api/services'
 import type { RouteStoryFormData } from '@/lib/types/route-story'
 
-// 表單驗證 schema
-const photoFormSchema = z.object({
-  content: z.string().optional(),
-  photos: z.array(z.string()).min(1, '請上傳至少一張照片'),
-})
-
-const youtubeFormSchema = z.object({
-  content: z.string().optional(),
-  youtube_url: z
-    .string()
-    .min(1, '請輸入 YouTube 連結')
-    .url('請輸入有效的網址')
-    .refine(
-      (url) =>
-        url.includes('youtube.com') || url.includes('youtu.be'),
-      '請輸入有效的 YouTube 連結'
-    ),
-})
-
-const instagramFormSchema = z.object({
-  content: z.string().optional(),
-  instagram_url: z
-    .string()
-    .min(1, '請輸入 Instagram 連結')
-    .url('請輸入有效的網址')
-    .refine(
-      (url) => url.includes('instagram.com'),
-      '請輸入有效的 Instagram 連結'
-    ),
-})
-
 export type MediaType = 'photo' | 'youtube' | 'instagram'
 
 interface RouteMediaFormProps {
@@ -63,35 +33,6 @@ interface RouteMediaFormProps {
   isLoading?: boolean
 }
 
-const mediaConfig: Record<
-  MediaType,
-  {
-    title: string
-    description: string
-    icon: React.ReactNode
-    placeholder: string
-  }
-> = {
-  photo: {
-    title: '分享照片',
-    description: '分享這條路線的攀岩照片',
-    icon: <Camera className="h-5 w-5" />,
-    placeholder: '說點什麼...',
-  },
-  youtube: {
-    title: '分享 YouTube 影片',
-    description: '連結你的攀登影片',
-    icon: <Youtube className="h-5 w-5 text-red-500" />,
-    placeholder: '說點什麼...',
-  },
-  instagram: {
-    title: '分享 Instagram 貼文',
-    description: '連結你的攀岩貼文',
-    icon: <Instagram className="h-5 w-5 text-pink-500" />,
-    placeholder: '說點什麼...',
-  },
-}
-
 export function RouteMediaForm({
   routeId,
   routeName,
@@ -101,10 +42,70 @@ export function RouteMediaForm({
   onSubmit,
   isLoading = false,
 }: RouteMediaFormProps) {
+  const t = useTranslations('CragPage')
   const [photos, setPhotos] = useState<string[]>([])
+
+  // 根據媒體類型選擇驗證 schema（使用翻譯的錯誤訊息）
+  const photoFormSchema = z.object({
+    content: z.string().optional(),
+    photos: z.array(z.string()).min(1, t('mediaFormPhotoLabel')),
+  })
+
+  const youtubeFormSchema = z.object({
+    content: z.string().optional(),
+    youtube_url: z
+      .string()
+      .min(1, t('mediaFormYouTubeLabel'))
+      .url(t('mediaFormYouTubeLabel'))
+      .refine(
+        (url) => url.includes('youtube.com') || url.includes('youtu.be'),
+        t('mediaFormYouTubeLabel')
+      ),
+  })
+
+  const instagramFormSchema = z.object({
+    content: z.string().optional(),
+    instagram_url: z
+      .string()
+      .min(1, t('mediaFormInstagramLabel'))
+      .url(t('mediaFormInstagramLabel'))
+      .refine(
+        (url) => url.includes('instagram.com'),
+        t('mediaFormInstagramLabel')
+      ),
+  })
+
+  const mediaConfig: Record<
+    MediaType,
+    {
+      title: string
+      description: string
+      icon: React.ReactNode
+      placeholder: string
+    }
+  > = {
+    photo: {
+      title: t('mediaFormPhotoTitle'),
+      description: t('mediaFormPhotoDesc'),
+      icon: <Camera className="h-5 w-5" />,
+      placeholder: t('mediaFormPlaceholder'),
+    },
+    youtube: {
+      title: t('mediaFormYouTubeTitle'),
+      description: t('mediaFormYouTubeDesc'),
+      icon: <Youtube className="h-5 w-5 text-red-500" />,
+      placeholder: t('mediaFormPlaceholder'),
+    },
+    instagram: {
+      title: t('mediaFormInstagramTitle'),
+      description: t('mediaFormInstagramDesc'),
+      icon: <Instagram className="h-5 w-5 text-pink-500" />,
+      placeholder: t('mediaFormPlaceholder'),
+    },
+  }
+
   const config = mediaConfig[mediaType]
 
-  // 根據媒體類型選擇驗證 schema
   const schema =
     mediaType === 'photo'
       ? photoFormSchema
@@ -179,7 +180,7 @@ export function RouteMediaForm({
           {/* 照片上傳（僅 photo 模式） */}
           {mediaType === 'photo' && (
             <div className="space-y-2">
-              <Label>照片 *</Label>
+              <Label>{t('mediaFormPhotoLabel')}</Label>
               <PhotoUpload
                 photos={photos}
                 onChange={setPhotos}
@@ -198,7 +199,7 @@ export function RouteMediaForm({
           {/* YouTube 連結輸入（僅 youtube 模式） */}
           {mediaType === 'youtube' && (
             <div className="space-y-2">
-              <Label htmlFor="youtube_url">YouTube 連結 *</Label>
+              <Label htmlFor="youtube_url">{t('mediaFormYouTubeLabel')}</Label>
               <div className="flex items-center gap-2">
                 <LinkIcon className="h-4 w-4 text-muted-foreground" />
                 <Input
@@ -218,7 +219,7 @@ export function RouteMediaForm({
           {/* Instagram 連結輸入（僅 instagram 模式） */}
           {mediaType === 'instagram' && (
             <div className="space-y-2">
-              <Label htmlFor="instagram_url">Instagram 連結 *</Label>
+              <Label htmlFor="instagram_url">{t('mediaFormInstagramLabel')}</Label>
               <div className="flex items-center gap-2">
                 <LinkIcon className="h-4 w-4 text-muted-foreground" />
                 <Input
@@ -233,14 +234,14 @@ export function RouteMediaForm({
                 </p>
               )}
               <p className="text-xs text-amber-600">
-                請確認貼文設為「公開」，私人帳號的貼文無法顯示
+                {t('mediaFormInstagramNote')}
               </p>
             </div>
           )}
 
           {/* 說明文字（所有模式共用） */}
           <div className="space-y-2">
-            <Label htmlFor="content">說點什麼 (可選)</Label>
+            <Label htmlFor="content">{t('mediaFormSayLabel')}</Label>
             <Textarea
               id="content"
               placeholder={config.placeholder}
@@ -258,10 +259,10 @@ export function RouteMediaForm({
               className="flex-1"
               disabled={isLoading}
             >
-              取消
+              {t('mediaFormCancel')}
             </Button>
             <Button type="submit" className="flex-1" disabled={isLoading}>
-              {isLoading ? '發布中...' : '分享'}
+              {isLoading ? t('mediaFormSubmitting') : t('mediaFormShare')}
             </Button>
           </div>
         </form>

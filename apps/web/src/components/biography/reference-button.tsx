@@ -1,6 +1,7 @@
 'use client'
 
 import { useState } from 'react'
+import { useTranslations } from 'next-intl'
 import { BookmarkPlus, BookmarkMinus, Loader2, Sparkles } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { bucketListService } from '@/lib/api/services'
@@ -29,6 +30,7 @@ export function ReferenceButton({
   showCount = true,
   variant = 'button',
 }: ReferenceButtonProps) {
+  const t = useTranslations('BiographyEditor')
   const [isReferenced, setIsReferenced] = useState(initialReferenced)
   const [count, setCount] = useState(initialCount)
   const [isLoading, setIsLoading] = useState(false)
@@ -63,9 +65,9 @@ export function ReferenceButton({
     } catch (error) {
       console.error('Failed to toggle reference:', error)
       const axiosError = error as AxiosError<{ message?: string }>
-      const errorMessage = axiosError.response?.data?.message || '操作失敗，請稍後再試'
+      const errorMessage = axiosError.response?.data?.message || t('referenceErrorDesc')
       toast({
-        title: '操作失敗',
+        title: t('referenceError'),
         description: errorMessage,
         variant: 'destructive',
       })
@@ -84,7 +86,7 @@ export function ReferenceButton({
           isReferenced && 'text-amber-500',
           className
         )}
-        title={isReferenced ? '從我的清單移除' : '加入我的清單'}
+        {...{title: isReferenced ? t('referenceRemoveFromList') : t('referenceAddToList')}}
       >
         {isLoading ? (
           <Loader2 className="h-4 w-4 animate-spin" />
@@ -109,19 +111,19 @@ export function ReferenceButton({
         isReferenced && 'text-amber-500 border-amber-200 hover:bg-amber-50',
         className
       )}
-      title={isReferenced ? '從我的清單移除' : '加入我的清單'}
+      {...{title: isReferenced ? t('referenceRemoveFromList') : t('referenceAddToList')}}
     >
       {isLoading ? (
         <Loader2 className="h-4 w-4 animate-spin" />
       ) : isReferenced ? (
         <>
           <BookmarkMinus className="h-4 w-4" />
-          已加入
+          {t('referenceAdded')}
         </>
       ) : (
         <>
           <Sparkles className="h-4 w-4" />
-          我也想
+          {t('referenceAdd')}
         </>
       )}
       {showCount && !isReferenced && count > 0 && (

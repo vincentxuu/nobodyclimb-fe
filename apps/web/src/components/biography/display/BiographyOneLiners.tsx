@@ -5,6 +5,8 @@ import { cn } from '@/lib/utils'
 import { MessageCircle, Sparkles, Loader2 } from 'lucide-react'
 import { biographyContentService, type OneLiner } from '@/lib/api/services'
 import { ContentInteractionBar } from './ContentInteractionBar'
+import { useTranslations } from 'next-intl'
+import { useBiographyQuestionText } from '@/lib/hooks/useBiographyQuestions'
 
 interface BiographyOneLinersProps {
   /** 人物誌 ID */
@@ -29,6 +31,8 @@ export function BiographyOneLiners({
   biographyId,
   className,
 }: BiographyOneLinersProps) {
+  const t = useTranslations('BiographyPage')
+  const { getOneLinerText } = useBiographyQuestionText()
   const [oneLiners, setOneLiners] = useState<OneLiner[]>([])
   const [isLoading, setIsLoading] = useState(true)
 
@@ -115,13 +119,13 @@ export function BiographyOneLiners({
     <section className={cn('py-6', className)}>
       <div className="flex items-center gap-2 mb-4">
         <MessageCircle size={18} className="text-[#3F3D3D]" />
-        <h2 className="text-lg font-semibold text-[#1B1A1A]">關於我</h2>
+        <h2 className="text-lg font-semibold text-[#1B1A1A]">{t('aboutMeLabel')}</h2>
       </div>
 
       <div className="space-y-4">
         {oneLiners.map((item) => {
           const isCustom = !item.question // 自訂問題沒有系統問題文字
-          const questionText = item.question || item.question_text || ''
+          const questionText = getOneLinerText(item.question_id, item.question || item.question_text || '')
 
           return (
             <div

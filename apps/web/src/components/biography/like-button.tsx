@@ -9,6 +9,7 @@ import { useRouter } from 'next/navigation'
 import { cn } from '@/lib/utils'
 import { useToast } from '@/components/ui/use-toast'
 import { AxiosError } from 'axios'
+import { useTranslations } from 'next-intl'
 
 interface LikeButtonProps {
   itemId: string
@@ -35,6 +36,7 @@ export function LikeButton({
   const { status } = useAuthStore()
   const router = useRouter()
   const { toast } = useToast()
+  const t = useTranslations('BiographyPage')
 
   const handleClick = async (e: React.MouseEvent) => {
     e.stopPropagation()
@@ -63,9 +65,9 @@ export function LikeButton({
     } catch (error) {
       console.error('Failed to toggle like:', error)
       const axiosError = error as AxiosError<{ message?: string }>
-      const errorMessage = axiosError.response?.data?.message || '操作失敗，請稍後再試'
+      const errorMessage = axiosError.response?.data?.message || t('operationFailedDesc')
       toast({
-        title: '操作失敗',
+        title: t('operationFailed'),
         description: errorMessage,
         variant: 'destructive',
       })

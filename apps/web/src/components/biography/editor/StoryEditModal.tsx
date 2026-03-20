@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
+import { useTranslations } from 'next-intl'
 import { cn } from '@/lib/utils'
 import { X, Lightbulb, Loader2 } from 'lucide-react'
 import type { StoryQuestion, Story } from '@/lib/types/biography-v2'
@@ -39,6 +40,7 @@ export function StoryEditModal({
   isSaving = false,
   className,
 }: StoryEditModalProps) {
+  const t = useTranslations('BiographyEditor')
   const [content, setContent] = useState('')
 
   // 初始化內容
@@ -84,7 +86,7 @@ export function StoryEditModal({
       >
         {/* Header */}
         <div className="flex items-center justify-between p-4 border-b border-[#EBEAEA]">
-          <h3 className="font-semibold text-[#1B1A1A]">編輯故事</h3>
+          <h3 className="font-semibold text-[#1B1A1A]">{t('editStoryTitle')}</h3>
           <button
             type="button"
             onClick={onClose}
@@ -112,7 +114,7 @@ export function StoryEditModal({
             <textarea
               value={content}
               onChange={(e) => setContent(e.target.value)}
-              placeholder="寫下你的故事..."
+              placeholder={t('storyTextPlaceholder')}
               className="w-full h-64 px-4 py-3 bg-white border border-[#B6B3B3] rounded-lg resize-none focus:outline-none focus:ring-2 focus:ring-brand-accent/50 focus:border-brand-dark transition-colors text-[#1B1A1A] placeholder:text-[#9D9D9D]"
               maxLength={5000}
             />
@@ -126,7 +128,7 @@ export function StoryEditModal({
                   onClick={handleDelete}
                   className="text-xs text-[#6D6C6C] hover:text-red-500 transition-colors"
                 >
-                  刪除這篇故事
+                  {t('deleteStory')}
                 </button>
               )}
             </div>
@@ -135,8 +137,8 @@ export function StoryEditModal({
           {/* Tips */}
           <div className="bg-brand-accent/10 rounded-lg p-4">
             <p className="text-sm text-[#3F3D3D]">
-              <span className="font-medium">寫作小提示：</span>
-              不用追求完美，想到什麼就寫什麼。你隨時可以回來修改。
+              <span className="font-medium">{t('writingTipTitle')}</span>
+              {t('writingTipContent')}
             </p>
           </div>
         </div>
@@ -148,7 +150,7 @@ export function StoryEditModal({
             onClick={onClose}
             className="flex-1 px-4 py-3 border border-[#B6B3B3] text-[#3F3D3D] rounded-lg font-medium hover:bg-[#F5F5F5] transition-colors"
           >
-            取消
+            {t('cancelButton')}
           </button>
           <button
             type="button"
@@ -164,10 +166,10 @@ export function StoryEditModal({
             {isSaving ? (
               <>
                 <Loader2 size={18} className="animate-spin" />
-                儲存中...
+                {t('savingStatus')}
               </>
             ) : (
-              '儲存'
+              t('saveStoryButton')
             )}
           </button>
         </div>

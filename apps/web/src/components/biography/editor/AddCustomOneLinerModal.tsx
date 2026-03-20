@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
+import { useTranslations } from 'next-intl'
 import { cn } from '@/lib/utils'
 import { X, Loader2, MessageCircle } from 'lucide-react'
 import type { OneLinerQuestion, ContentSource } from '@/lib/types/biography-v2'
@@ -30,6 +31,7 @@ export function AddCustomOneLinerModal({
   isSaving = false,
   className,
 }: AddCustomOneLinerModalProps) {
+  const t = useTranslations('BiographyEditor')
   const [question, setQuestion] = useState('')
   const [formatHint, setFormatHint] = useState('')
   const [placeholder, setPlaceholder] = useState('')
@@ -51,7 +53,7 @@ export function AddCustomOneLinerModal({
       source: 'user' as ContentSource,
       question: question.trim().endsWith('？') ? question.trim() : `${question.trim()}？`,
       format_hint: formatHint.trim() || null,
-      placeholder: placeholder.trim() || '寫下你的答案...',
+      placeholder: placeholder.trim() || t('answerInputPlaceholder'),
       order: 999,
     }
 
@@ -81,7 +83,7 @@ export function AddCustomOneLinerModal({
         <div className="flex items-center justify-between p-4 border-b border-[#EBEAEA]">
           <div className="flex items-center gap-2">
             <MessageCircle size={20} className="text-[#3F3D3D]" />
-            <h3 className="font-semibold text-[#1B1A1A]">新增一句話問題</h3>
+            <h3 className="font-semibold text-[#1B1A1A]">{t('addCustomOneLinerTitle')}</h3>
           </div>
           <button
             type="button"
@@ -97,61 +99,61 @@ export function AddCustomOneLinerModal({
           {/* 問題文字 */}
           <div className="space-y-2">
             <label className="block text-sm font-medium text-[#1B1A1A]">
-              問題內容 <span className="text-red-500">*</span>
+              {t('oneLinerQuestionLabel')} <span className="text-red-500">*</span>
             </label>
             <input
               type="text"
               value={question}
               onChange={(e) => setQuestion(e.target.value)}
-              placeholder="例如：最喜歡的攀岩電影是？"
+              placeholder={t('oneLinerQuestionPlaceholder')}
               className="w-full px-4 py-3 bg-white border border-[#B6B3B3] rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-accent/50 focus:border-brand-dark transition-colors text-[#1B1A1A] placeholder:text-[#9D9D9D]"
               maxLength={50}
             />
             <p className="text-xs text-[#8E8C8C]">
-              會自動加上問號，最多 50 字
+              {t('oneLinerQuestionHint')}
             </p>
           </div>
 
           {/* 格式引導 */}
           <div className="space-y-2">
             <label className="block text-sm font-medium text-[#1B1A1A]">
-              格式引導 <span className="text-[#8E8C8C]">(選填)</span>
+              {t('oneLinerFormatHintLabel')} <span className="text-[#8E8C8C]">{t('oneLinerFormatHintOptional')}</span>
             </label>
             <input
               type="text"
               value={formatHint}
               onChange={(e) => setFormatHint(e.target.value)}
-              placeholder="例如：因為＿＿＿、我覺得＿＿＿"
+              placeholder={t('oneLinerFormatHintPlaceholder')}
               className="w-full px-4 py-3 bg-white border border-[#B6B3B3] rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-accent/50 focus:border-brand-dark transition-colors text-[#1B1A1A] placeholder:text-[#9D9D9D]"
               maxLength={30}
             />
             <p className="text-xs text-[#8E8C8C]">
-              幫助回答者知道該怎麼回答
+              {t('oneLinerFormatHintHint')}
             </p>
           </div>
 
           {/* 範例答案 */}
           <div className="space-y-2">
             <label className="block text-sm font-medium text-[#1B1A1A]">
-              範例答案 <span className="text-[#8E8C8C]">(選填)</span>
+              {t('oneLinerExampleLabel')} <span className="text-[#8E8C8C]">{t('oneLinerExampleOptional')}</span>
             </label>
             <input
               type="text"
               value={placeholder}
               onChange={(e) => setPlaceholder(e.target.value)}
-              placeholder="例如：Free Solo，看完整個人都燃起來了"
+              placeholder={t('oneLinerExamplePlaceholder')}
               className="w-full px-4 py-3 bg-white border border-[#B6B3B3] rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-accent/50 focus:border-brand-dark transition-colors text-[#1B1A1A] placeholder:text-[#9D9D9D]"
               maxLength={50}
             />
             <p className="text-xs text-[#8E8C8C]">
-              作為回答的參考範例
+              {t('oneLinerExampleHint')}
             </p>
           </div>
 
           {/* 預覽 */}
           {question.trim() && (
             <div className="bg-[#F5F5F5] rounded-lg p-4 space-y-3">
-              <p className="text-sm text-[#6D6C6C]">預覽</p>
+              <p className="text-sm text-[#6D6C6C]">{t('oneLinerPreviewLabel')}</p>
               <div className="bg-white rounded-lg p-4 space-y-2">
                 <p className="font-medium text-[#1B1A1A]">
                   {question.trim().endsWith('？') ? question.trim() : `${question.trim()}？`}
@@ -161,7 +163,7 @@ export function AddCustomOneLinerModal({
                 )}
                 <div className="pt-2 border-t border-[#EBEAEA]">
                   <p className="text-sm text-[#B6B3B3] italic">
-                    {placeholder.trim() || '寫下你的答案...'}
+                    {placeholder.trim() || t('answerInputPlaceholder')}
                   </p>
                 </div>
               </div>
@@ -171,7 +173,7 @@ export function AddCustomOneLinerModal({
           {/* 提示 */}
           <div className="bg-brand-accent/10 rounded-lg p-4">
             <p className="text-sm text-[#3F3D3D]">
-              一句話問題適合簡短、有趣的回答。想深入分享可以用「深度故事」。
+              {t('oneLinerTip')}
             </p>
           </div>
         </div>
@@ -183,7 +185,7 @@ export function AddCustomOneLinerModal({
             onClick={onClose}
             className="flex-1 px-4 py-3 border border-[#B6B3B3] text-[#3F3D3D] rounded-lg font-medium hover:bg-[#F5F5F5] transition-colors"
           >
-            取消
+            {t('cancelButton')}
           </button>
           <button
             type="button"
@@ -199,10 +201,10 @@ export function AddCustomOneLinerModal({
             {isSaving ? (
               <>
                 <Loader2 size={18} className="animate-spin" />
-                新增中...
+                {t('addingStatus')}
               </>
             ) : (
-              '新增問題'
+              t('addOneLinerButton')
             )}
           </button>
         </div>

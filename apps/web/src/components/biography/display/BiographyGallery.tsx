@@ -5,6 +5,7 @@ import Image from 'next/image'
 import { cn } from '@/lib/utils'
 import { Camera, X, ChevronLeft, ChevronRight } from 'lucide-react'
 import type { BiographyV2, GalleryImage } from '@/lib/types/biography-v2'
+import { useTranslations } from 'next-intl'
 
 interface BiographyGalleryProps {
   /** 人物誌資料 */
@@ -25,6 +26,7 @@ export function BiographyGallery({
   initialCount = 6,
   className,
 }: BiographyGalleryProps) {
+  const t = useTranslations('BiographyPage')
   const [selectedImage, setSelectedImage] = useState<GalleryImage | null>(null)
 
   // Ensure images is always an array (handle cases where it might be a string or object)
@@ -40,7 +42,7 @@ export function BiographyGallery({
     <section className={cn('py-6', className)}>
       <div className="flex items-center gap-2 mb-4">
         <Camera size={18} className="text-[#3F3D3D]" />
-        <h2 className="text-lg font-semibold text-[#1B1A1A]">攀岩日常</h2>
+        <h2 className="text-lg font-semibold text-[#1B1A1A]">{t('galleryLabel')}</h2>
       </div>
 
       {/* Desktop Grid */}
@@ -53,7 +55,7 @@ export function BiographyGallery({
           >
             <Image
               src={image.url}
-              alt={image.caption || `攀岩照片 ${index + 1}`}
+              alt={image.caption || t('galleryLabel')}
               fill
               className="object-cover"
             />
@@ -67,7 +69,7 @@ export function BiographyGallery({
             className="relative aspect-square rounded-lg overflow-hidden bg-[#EBEAEA] flex items-center justify-center hover:bg-[#DBD8D8] transition-colors"
           >
             <span className="text-brand-dark font-medium">
-              查看全部 ({images.length})
+              {t('viewAll', { count: images.length })}
             </span>
           </button>
         )}
@@ -84,7 +86,7 @@ export function BiographyGallery({
             >
               <Image
                 src={image.url}
-                alt={image.caption || `攀岩照片 ${index + 1}`}
+                alt={image.caption || t('galleryLabel')}
                 fill
                 className="object-cover"
               />
@@ -98,7 +100,7 @@ export function BiographyGallery({
               onClick={() => setSelectedImage(images[0])}
               className="text-sm text-brand-dark font-medium hover:underline"
             >
-              查看全部相簿
+              {t('viewAllGallery')}
             </button>
           </div>
         )}
@@ -120,7 +122,7 @@ export function BiographyGallery({
           <div className="relative max-w-4xl max-h-[80vh] w-full mx-4">
             <Image
               src={selectedImage.url}
-              alt={selectedImage.caption || '攀岩照片'}
+              alt={selectedImage.caption || t('galleryLabel')}
               width={1200}
               height={800}
               className="object-contain w-full h-full"
