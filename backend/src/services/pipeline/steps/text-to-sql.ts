@@ -99,6 +99,13 @@ async function handleSqlPath(ctx: PipelineContext, sqlService: TextToSqlService)
     if (result.rows.length === 0) {
       // 個人模板空結果：直接回傳友善訊息，不 fallback 到 RAG（避免幻覺）
       if (TextToSqlService.isPersonalTemplate(template)) {
+        // 若查詢同時包含推薦意圖，用戶可能在訊息中描述了自己爬過的路線
+        // → fallback 到 RAG，讓 LLM 根據用戶描述的路線給推薦（而非直接說沒有紀錄）
+        const RECOMMENDATION_INTENT = /推薦|建議.*路線|適合.*路線|下一步.*路線|可以.*試試|可以.*挑戰/;
+        if (RECOMMENDATION_INTENT.test(query)) {
+          ctx.effectiveLlmModel = pipelineConfig.llm_model;
+          return fallbackToRag(ctx, 'empty_personal_with_recommendation');
+        }
         return await emptyPersonalResponse(ctx, template);
       }
       return fallbackToRag(ctx, 'empty_result');
