@@ -1,6 +1,7 @@
 'use client'
 
 import { useState } from 'react'
+import { useTranslations } from 'next-intl'
 import { cn } from '@/lib/utils'
 import { BadgeGrid } from './badge-card'
 import { BadgeIcon } from './badge-icon'
@@ -19,6 +20,7 @@ interface BadgeShowcaseProps {
 }
 
 export function BadgeShowcase({ badgeProgress, className }: BadgeShowcaseProps) {
+  const t = useTranslations('BiographyPage')
   const [selectedCategory, setSelectedCategory] = useState<BadgeCategory | 'all'>('all')
 
   // 將進度數據轉換為 Map 以便查找
@@ -47,9 +49,9 @@ export function BadgeShowcase({ badgeProgress, className }: BadgeShowcaseProps) 
       {/* 頭部統計 */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
-          <h2 className="text-xl font-bold text-text-main">徽章收藏</h2>
+          <h2 className="text-xl font-bold text-text-main">{t('badgeCollectionTitle')}</h2>
           <p className="text-sm text-text-subtle">
-            已解鎖 {unlockedCount}/{totalCount} 個徽章
+            {t('badgesUnlocked', { unlocked: unlockedCount, total: totalCount })}
           </p>
         </div>
 
@@ -80,7 +82,7 @@ export function BadgeShowcase({ badgeProgress, className }: BadgeShowcaseProps) 
               : 'bg-brand-light text-strong hover:bg-subtle'
           )}
         >
-          全部
+          {t('all')}
         </button>
         {(Object.keys(BADGE_CATEGORIES) as BadgeCategory[]).map((category) => (
           <button
@@ -116,7 +118,7 @@ export function BadgeShowcase({ badgeProgress, className }: BadgeShowcaseProps) 
             BADGE_COLORS.unlocked.border
           )}
         >
-          <h3 className="text-sm font-semibold text-text-main mb-2">即將解鎖</h3>
+          <h3 className="text-sm font-semibold text-text-main mb-2">{t('comingSoonUnlock')}</h3>
           <div className="flex flex-wrap gap-4">
             {badgeProgress
               .filter((p) => !p.unlocked && p.progress >= 50)
@@ -155,13 +157,14 @@ export function CompactBadgeDisplay({
   maxDisplay = 6,
   className,
 }: CompactBadgeDisplayProps) {
+  const t = useTranslations('BiographyPage')
   const unlockedBadges = badgeProgress.filter((p) => p.unlocked)
   const displayBadges = unlockedBadges.slice(0, maxDisplay)
   const remainingCount = Math.max(0, unlockedBadges.length - maxDisplay)
 
   if (unlockedBadges.length === 0) {
     return (
-      <div className={cn('text-sm text-text-subtle', className)}>尚未解鎖任何徽章</div>
+      <div className={cn('text-sm text-text-subtle', className)}>{t('noBadgesUnlocked')}</div>
     )
   }
 

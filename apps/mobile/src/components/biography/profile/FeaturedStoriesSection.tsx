@@ -9,7 +9,7 @@ import Animated, { FadeInRight } from 'react-native-reanimated'
 
 import { Text, Card } from '@/components/ui'
 import { ContentInteractionBar } from '../display/ContentInteractionBar'
-import { SEMANTIC_COLORS, SPACING, RADIUS } from '@nobodyclimb/constants'
+import { RADIUS, SEMANTIC_COLORS, SPACING, WB_COLORS } from '@nobodyclimb/constants'
 
 // 類型定義
 interface Story {
@@ -34,12 +34,12 @@ interface FeaturedStoriesSectionProps {
 
 // 分類顏色映射
 const STORY_CATEGORY_COLORS: Record<string, { bg: string; text: string }> = {
-  sys_cat_growth: { bg: 'rgba(255, 231, 12, 0.2)', text: '#1B1A1A' },
-  sys_cat_psychology: { bg: '#FFF9E6', text: '#1B1A1A' },
-  sys_cat_community: { bg: 'rgba(255, 231, 12, 0.2)', text: '#1B1A1A' },
-  sys_cat_practical: { bg: '#FFF9E6', text: '#1B1A1A' },
-  sys_cat_dreams: { bg: 'rgba(255, 231, 12, 0.2)', text: '#1B1A1A' },
-  sys_cat_life: { bg: '#FFF9E6', text: '#1B1A1A' },
+  sys_cat_growth: { bg: 'rgba(255, 231, 12, 0.2)', text: WB_COLORS[100] },
+  sys_cat_psychology: { bg: '#FFF9E6', text: WB_COLORS[100] },
+  sys_cat_community: { bg: 'rgba(255, 231, 12, 0.2)', text: WB_COLORS[100] },
+  sys_cat_practical: { bg: '#FFF9E6', text: WB_COLORS[100] },
+  sys_cat_dreams: { bg: 'rgba(255, 231, 12, 0.2)', text: WB_COLORS[100] },
+  sys_cat_life: { bg: '#FFF9E6', text: WB_COLORS[100] },
 }
 
 /**
@@ -169,7 +169,7 @@ export function FeaturedStoriesSection({ person }: FeaturedStoriesSectionProps) 
       >
         {featuredStories.map((story, index) => {
           const categoryId = story.category_id || 'sys_cat_growth'
-          const colors = STORY_CATEGORY_COLORS[categoryId] || { bg: '#F5F5F5', text: '#1B1A1A' }
+          const colors = STORY_CATEGORY_COLORS[categoryId] || { bg: WB_COLORS[10], text: WB_COLORS[100] }
 
           return (
             <Animated.View
@@ -241,9 +241,9 @@ const styles = StyleSheet.create({
   },
   card: {
     padding: SPACING.md,
-    backgroundColor: '#fff',
+    backgroundColor: WB_COLORS[0],
     borderWidth: 1,
-    borderColor: '#EBEAEA',
+    borderColor: WB_COLORS[20],
     minHeight: 220,
   },
   categoryTag: {

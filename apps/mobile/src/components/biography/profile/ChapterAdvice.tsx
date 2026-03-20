@@ -10,7 +10,7 @@ import Animated, { FadeIn } from 'react-native-reanimated'
 
 import { Text, Card } from '@/components/ui'
 import { ContentInteractionBar } from '../display/ContentInteractionBar'
-import { SEMANTIC_COLORS, SPACING, RADIUS } from '@nobodyclimb/constants'
+import { BRAND_YELLOW, RADIUS, SEMANTIC_COLORS, SPACING, WB_COLORS } from '@nobodyclimb/constants'
 
 interface CoreStory {
   id: string
@@ -193,10 +193,10 @@ const styles = StyleSheet.create({
   loadingContainer: {
     paddingVertical: SPACING.xl,
     alignItems: 'center',
-    backgroundColor: '#F5F5F5',
+    backgroundColor: WB_COLORS[10],
   },
   content: {
-    backgroundColor: '#F5F5F5',
+    backgroundColor: WB_COLORS[10],
     paddingVertical: SPACING.xl * 1.5,
     paddingHorizontal: SPACING.lg,
   },
@@ -212,10 +212,10 @@ const styles = StyleSheet.create({
     textAlign: 'center',
   },
   noteCard: {
-    backgroundColor: '#fff',
+    backgroundColor: WB_COLORS[0],
     padding: SPACING.lg,
     borderRadius: RADIUS.lg,
-    shadowColor: '#000',
+    shadowColor: WB_COLORS[100],
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.1,
     shadowRadius: 12,
@@ -228,7 +228,7 @@ const styles = StyleSheet.create({
     left: SPACING.lg,
     width: 64,
     height: 8,
-    backgroundColor: '#FFE70C',
+    backgroundColor: BRAND_YELLOW[100],
     borderRadius: 4,
   },
   placeholderContainer: {

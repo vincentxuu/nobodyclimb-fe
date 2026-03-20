@@ -9,6 +9,7 @@ import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
 import { biographyContentService, CoreStory, OneLiner, Story } from '@/lib/api/services'
 import { isSvgUrl, getDefaultAvatarUrl } from '@/lib/utils/image'
+import { useTranslations } from 'next-intl'
 
 type FeaturedContent =
   | (CoreStory & { type: 'core-story'; author_name: string; author_avatar?: string; biography_slug?: string })
@@ -39,24 +40,25 @@ interface StoryCardProps {
 }
 
 function StoryCard({ content }: StoryCardProps) {
-  const displayName = content.author_name || '匿名'
+  const t = useTranslations('HomePage')
+  const displayName = content.author_name || t('anonymous')
 
   // 根據類型取得標題和內容
   const getDisplayContent = () => {
     switch (content.type) {
       case 'core-story':
         return {
-          label: content.title || '核心故事',
+          label: content.title || t('storyCoreStory'),
           text: content.content,
         }
       case 'one-liner':
         return {
-          label: content.question || '一句話',
+          label: content.question || t('storyOneLiner'),
           text: content.answer,
         }
       case 'story':
         return {
-          label: content.title || content.category_name || '小故事',
+          label: content.title || content.category_name || t('storyShortStory'),
           text: content.content,
         }
     }
@@ -144,6 +146,7 @@ function StoryCard({ content }: StoryCardProps) {
 }
 
 export function FeaturedStoriesSection() {
+  const t = useTranslations('HomePage')
   const [contents, setContents] = useState<FeaturedContent[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
@@ -185,7 +188,7 @@ export function FeaturedStoriesSection() {
       setContents(uniqueAuthors)
     } catch (err) {
       console.error('Failed to load featured stories:', err)
-      setError('載入精選故事時發生錯誤')
+      setError(t('loadStoriesError'))
     } finally {
       setLoading(false)
     }
@@ -204,8 +207,8 @@ export function FeaturedStoriesSection() {
     <section className="bg-[#F5F4F4] py-16 md:py-20">
       <div className="container mx-auto px-4">
         <div className="mb-8 text-center">
-          <h2 className="text-3xl font-bold text-[#1B1A1A] md:text-[40px]">看故事</h2>
-          <p className="mt-4 text-base text-[#6D6C6C]">來自社群的真實攀岩故事與感悟</p>
+          <h2 className="text-3xl font-bold text-[#1B1A1A] md:text-[40px]">{t('storiesSectionTitle')}</h2>
+          <p className="mt-4 text-base text-[#6D6C6C]">{t('storiesSectionSubtitle')}</p>
         </div>
 
         {loading ? (
@@ -230,7 +233,7 @@ export function FeaturedStoriesSection() {
               variant="outline"
               className="h-11 border border-[#1B1A1A] px-8 text-base text-[#1B1A1A] hover:bg-[#DBD8D8]"
             >
-              探索更多故事
+              {t('storiesExploreMore')}
             </Button>
           </Link>
         </div>

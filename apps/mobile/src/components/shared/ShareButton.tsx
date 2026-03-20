@@ -12,7 +12,7 @@ import BottomSheet, { BottomSheetBackdrop, BottomSheetView } from '@gorhom/botto
 
 import { IconButton, Text, Button } from '@/components/ui'
 import { useToast } from '@/components/ui/Toast'
-import { SEMANTIC_COLORS, SPACING, RADIUS } from '@nobodyclimb/constants'
+import { RADIUS, SEMANTIC_COLORS, SPACING, WB_COLORS } from '@nobodyclimb/constants'
 
 interface ShareButtonProps {
   /** 分享的 URL */
@@ -194,7 +194,7 @@ export function ShareButton({
 
 const styles = StyleSheet.create({
   sheetBackground: {
-    backgroundColor: '#FFFFFF',
+    backgroundColor: WB_COLORS[0],
   },
   sheetIndicator: {
     backgroundColor: '#D3D3D3',
@@ -219,7 +219,7 @@ const styles = StyleSheet.create({
   },
   divider: {
     height: 1,
-    backgroundColor: '#EBEAEA',
+    backgroundColor: WB_COLORS[20],
     marginVertical: SPACING.sm,
   },
 })

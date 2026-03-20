@@ -14,7 +14,7 @@ import Animated, {
 } from 'react-native-reanimated'
 
 import { Text } from '@/components/ui'
-import { SPACING } from '@nobodyclimb/constants'
+import { SEMANTIC_COLORS, SPACING, WB_COLORS } from '@nobodyclimb/constants'
 
 const AnimatedPressable = Animated.createAnimatedComponent(Pressable)
 
@@ -74,7 +74,7 @@ export function ContentLikeButton({
   }, [isLiked, isLoading, onToggle, scale])
 
   const iconSize = size === 'sm' ? 16 : 20
-  const iconColor = isLiked ? '#10B981' : '#8E8C8C'
+  const iconColor = isLiked ? SEMANTIC_COLORS.success : WB_COLORS[60]
 
   return (
     <AnimatedPressable
@@ -101,10 +101,10 @@ const styles = StyleSheet.create({
     padding: SPACING.xs,
   },
   likedText: {
-    color: '#10B981',
+    color: SEMANTIC_COLORS.success,
   },
   unlikedText: {
-    color: '#8E8C8C',
+    color: WB_COLORS[60],
   },
 })
 

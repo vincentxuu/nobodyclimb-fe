@@ -10,7 +10,7 @@ import { ChevronRight } from 'lucide-react-native'
 import { LinearGradient } from 'expo-linear-gradient'
 
 import { Text } from '@/components/ui'
-import { SEMANTIC_COLORS, SPACING, RADIUS } from '@nobodyclimb/constants'
+import { BRAND_YELLOW, RADIUS, SEMANTIC_COLORS, SPACING, WB_COLORS } from '@nobodyclimb/constants'
 
 interface AreaCardProps {
   id: string
@@ -99,10 +99,10 @@ const styles = StyleSheet.create({
     borderRadius: RADIUS.md,
     overflow: 'hidden',
     borderWidth: 1,
-    borderColor: '#EBEAEA',
+    borderColor: WB_COLORS[20],
   },
   pressed: {
-    borderColor: '#FFE70C',
+    borderColor: BRAND_YELLOW[100],
     transform: [{ scale: 0.98 }],
   },
   imageContainer: {

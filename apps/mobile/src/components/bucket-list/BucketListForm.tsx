@@ -9,7 +9,7 @@ import { StyleSheet, View, ScrollView, Pressable } from 'react-native'
 import { useForm, Controller } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { Plus, Trash2 } from 'lucide-react-native'
-import { SEMANTIC_COLORS, SPACING, RADIUS } from '@nobodyclimb/constants'
+import { RADIUS, SEMANTIC_COLORS, SPACING, WB_COLORS } from '@nobodyclimb/constants'
 import {
   createBucketListSchema,
   BUCKET_LIST_CATEGORIES,
@@ -516,12 +516,12 @@ export function QuickAddForm({
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#FFFFFF',
+    backgroundColor: WB_COLORS[0],
   },
   section: {
     padding: SPACING[4],
     borderBottomWidth: 1,
-    borderBottomColor: '#EBEAEA',
+    borderBottomColor: WB_COLORS[20],
   },
   sectionTitle: {
     marginBottom: SPACING[4],
@@ -556,7 +556,7 @@ const styles = StyleSheet.create({
   modeButton: {
     flex: 1,
     padding: SPACING[3],
-    backgroundColor: '#FFFFFF',
+    backgroundColor: WB_COLORS[0],
     borderRadius: RADIUS.md,
     borderWidth: 2,
     borderColor: 'transparent',
@@ -595,7 +595,7 @@ const styles = StyleSheet.create({
     padding: SPACING[4],
     gap: SPACING[3],
     borderTopWidth: 1,
-    borderTopColor: '#EBEAEA',
+    borderTopColor: WB_COLORS[20],
   },
   button: {
     minWidth: 100,

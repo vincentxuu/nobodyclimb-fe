@@ -12,7 +12,7 @@ import Animated, {
 } from 'react-native-reanimated'
 
 import { Text, Avatar, Card } from '@/components/ui'
-import { SEMANTIC_COLORS, SPACING, RADIUS } from '@nobodyclimb/constants'
+import { BRAND_YELLOW, RADIUS, SEMANTIC_COLORS, SPACING } from '@nobodyclimb/constants'
 
 // 模擬類型定義 (實際應從 @nobodyclimb/types 導入)
 interface Biography {
@@ -217,7 +217,7 @@ function BiographyCard({ person, selectedContent, onPress }: BiographyCardProps)
                       <React.Fragment key={tag.id}>
                         {tag.isCustom ? (
                           <View style={styles.customTag}>
-                            <Sparkles size={10} color="#FFE70C" />
+                            <Sparkles size={10} color={BRAND_YELLOW[100]} />
                             <Text variant="small" style={styles.customTagText}>
                               {tag.label}
                             </Text>

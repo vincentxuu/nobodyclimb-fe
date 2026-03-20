@@ -13,7 +13,7 @@ import Animated, {
   withTiming,
 } from 'react-native-reanimated'
 
-import { SEMANTIC_COLORS, SPACING, RADIUS, FONT_SIZE } from '@nobodyclimb/constants'
+import { FONT_SIZE, RADIUS, SEMANTIC_COLORS, SPACING, WB_COLORS } from '@nobodyclimb/constants'
 
 interface SearchBarProps {
   /** 初始搜尋值 */
@@ -115,7 +115,7 @@ const styles = StyleSheet.create({
   container: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#F5F5F5',
+    backgroundColor: WB_COLORS[10],
     borderRadius: RADIUS.md,
     height: 40,
     paddingHorizontal: SPACING.sm,

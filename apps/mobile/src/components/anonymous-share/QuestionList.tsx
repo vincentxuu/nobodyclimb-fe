@@ -18,7 +18,7 @@ import {
 } from 'lucide-react-native'
 
 import { Text } from '@/components/ui'
-import { SEMANTIC_COLORS, SPACING, BORDER_RADIUS } from '@nobodyclimb/constants'
+import { BORDER_RADIUS, BRAND_YELLOW, SEMANTIC_COLORS, SPACING, WB_COLORS } from '@nobodyclimb/constants'
 import { useQuestions } from '@/lib/hooks/useQuestions'
 import type { Question, StoryInput } from './questions'
 import { convertApiQuestionsToQuestions } from './questions'
@@ -247,7 +247,7 @@ export function QuestionList({
           <QuestionSection
             title="核心故事"
             subtitle="深度分享"
-            icon={<BookOpen size={16} color="#FFE70C" />}
+            icon={<BookOpen size={16} color={BRAND_YELLOW[100]} />}
             questions={questions.coreStories}
             answeredIds={answeredIds}
             iconBgColor="rgba(255, 231, 12, 0.2)"
@@ -269,7 +269,7 @@ export function QuestionList({
           <QuestionSection
             title="更多故事"
             subtitle="選填"
-            icon={<Sparkles size={16} color="#FFE70C" />}
+            icon={<Sparkles size={16} color={BRAND_YELLOW[100]} />}
             questions={questions.stories}
             answeredIds={answeredIds}
             iconBgColor="rgba(255, 231, 12, 0.1)"
@@ -328,7 +328,7 @@ const styles = StyleSheet.create({
     backgroundColor: SEMANTIC_COLORS.cardBg,
     borderRadius: BORDER_RADIUS.lg,
     padding: SPACING[4],
-    shadowColor: '#000',
+    shadowColor: WB_COLORS[100],
     shadowOffset: { width: 0, height: 1 },
     shadowOpacity: 0.05,
     shadowRadius: 2,
@@ -367,7 +367,7 @@ const styles = StyleSheet.create({
     backgroundColor: SEMANTIC_COLORS.cardBg,
     borderRadius: BORDER_RADIUS.lg,
     padding: SPACING[4],
-    shadowColor: '#000',
+    shadowColor: WB_COLORS[100],
     shadowOffset: { width: 0, height: 1 },
     shadowOpacity: 0.05,
     shadowRadius: 2,

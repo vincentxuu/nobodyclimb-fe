@@ -3,6 +3,7 @@
 import Link from 'next/link'
 import { cn } from '@/lib/utils'
 import { Lightbulb, Plus } from 'lucide-react'
+import { useTranslations } from 'next-intl'
 
 type EmptyStateType = 'no_content' | 'private' | 'anonymous' | 'not_found'
 
@@ -15,42 +16,11 @@ interface EmptyStateProps {
   className?: string
 }
 
-const EmptyStateContent: Record<
-  EmptyStateType,
-  {
-    emoji: string
-    title: string
-    description: string
-    actionLabel?: string
-    actionHref?: string
-  }
-> = {
-  no_content: {
-    emoji: '📝',
-    title: '這裡還沒有任何故事',
-    description: '每個人的故事都值得被記錄，跟你爬多難沒關係',
-    actionLabel: '開始記錄我的故事',
-    actionHref: '/profile',
-  },
-  private: {
-    emoji: '🔒',
-    title: '這位岩友的人物誌是私密的',
-    description: '他們可能正在準備中，或想保持低調',
-    actionLabel: '探索其他岩友的故事',
-    actionHref: '/biography',
-  },
-  anonymous: {
-    emoji: '🎭',
-    title: '匿名岩友',
-    description: '這位岩友選擇匿名分享他們的故事',
-  },
-  not_found: {
-    emoji: '🔍',
-    title: '找不到這個人物誌',
-    description: '這個頁面可能已被移除或網址有誤',
-    actionLabel: '回到人物誌列表',
-    actionHref: '/biography',
-  },
+const EmptyStateEmojis: Record<EmptyStateType, string> = {
+  no_content: '📝',
+  private: '🔒',
+  anonymous: '🎭',
+  not_found: '🔍',
 }
 
 /**
@@ -63,7 +33,35 @@ export function EmptyState({
   isOwner = false,
   className,
 }: EmptyStateProps) {
-  const content = EmptyStateContent[type]
+  const t = useTranslations('BiographyPage')
+  const emoji = EmptyStateEmojis[type]
+
+  const contentMap: Record<EmptyStateType, { title: string; description: string; actionLabel?: string; actionHref?: string }> = {
+    no_content: {
+      title: t('emptyStateNoContent'),
+      description: t('emptyStateNoContentDesc'),
+      actionLabel: t('emptyStateNoContentAction'),
+      actionHref: '/profile',
+    },
+    private: {
+      title: t('emptyStatePrivate'),
+      description: t('emptyStatePrivateDesc'),
+      actionLabel: t('emptyStatePrivateAction'),
+      actionHref: '/biography',
+    },
+    anonymous: {
+      title: t('anonymousName'),
+      description: t('emptyStatePrivateDesc'),
+    },
+    not_found: {
+      title: t('emptyStateNotFound'),
+      description: t('emptyStateNotFoundDesc'),
+      actionLabel: t('emptyStateNotFoundAction'),
+      actionHref: '/biography',
+    },
+  }
+
+  const content = contentMap[type]
 
   // 如果是用戶自己的頁面且沒有內容，顯示引導
   const showOwnerGuide = type === 'no_content' && isOwner
@@ -76,7 +74,7 @@ export function EmptyState({
       )}
     >
       <div className="w-20 h-20 rounded-full bg-[#EBEAEA] flex items-center justify-center mb-6">
-        <span className="text-4xl">{content.emoji}</span>
+        <span className="text-4xl">{emoji}</span>
       </div>
 
       <h2 className="text-xl font-semibold text-[#1B1A1A] mb-2">
@@ -89,7 +87,7 @@ export function EmptyState({
         <div className="bg-brand-accent/10 rounded-lg p-4 mb-6 max-w-sm">
           <p className="text-sm text-brand-dark flex items-center gap-2">
             <Lightbulb size={16} className="flex-shrink-0" />
-            小提示：選幾個標籤就能完成基本的人物誌，不需要寫很多字！
+            {t('ownerGuide')}
           </p>
         </div>
       )}
@@ -133,10 +131,12 @@ export function SectionEmptyState({
   title,
   description,
   editable = false,
-  addLabel = '新增',
+  addLabel,
   onAdd,
   className,
 }: SectionEmptyStateProps) {
+  const t = useTranslations('BiographyPage')
+  const resolvedAddLabel = addLabel ?? t('sectionEmptyAddLabel')
   return (
     <div
       className={cn(
@@ -154,7 +154,7 @@ export function SectionEmptyState({
           className="inline-flex items-center gap-1 px-4 py-2 rounded-full bg-brand-accent/20 text-brand-dark font-medium hover:bg-brand-accent/30 transition-colors"
         >
           <Plus size={16} />
-          {addLabel}
+          {resolvedAddLabel}
         </button>
       )}
     </div>

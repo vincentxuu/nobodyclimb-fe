@@ -11,6 +11,7 @@ import {
   ContentInteractorsPanel,
   type InteractorUser,
 } from './ContentInteractorsPanel'
+import { useTranslations } from 'next-intl'
 
 type ReactionType = 'me_too' | 'plus_one' | 'well_said'
 type ContentType = 'core-stories' | 'one-liners' | 'stories'
@@ -24,32 +25,7 @@ interface ReactionConfig {
   emptyMessage: string
 }
 
-const REACTIONS: ReactionConfig[] = [
-  {
-    type: 'me_too',
-    label: '我也是',
-    icon: HandMetal,
-    activeColor: 'text-amber-500',
-    hoverColor: 'hover:text-amber-500',
-    emptyMessage: '還沒有人說我也是',
-  },
-  {
-    type: 'plus_one',
-    label: '+1',
-    icon: ThumbsUp,
-    activeColor: 'text-blue-500',
-    hoverColor: 'hover:text-blue-500',
-    emptyMessage: '還沒有人說 +1',
-  },
-  {
-    type: 'well_said',
-    label: '說得好',
-    icon: MessageSquareHeart,
-    activeColor: 'text-rose-500',
-    hoverColor: 'hover:text-rose-500',
-    emptyMessage: '還沒有人說說得好',
-  },
-]
+// Reaction configs are defined inside the component using i18n
 
 interface QuickReactionBarProps {
   contentType: ContentType
@@ -68,6 +44,33 @@ export function QuickReactionBar({
   size = 'md',
   className,
 }: QuickReactionBarProps) {
+  const t = useTranslations('BiographyPage')
+  const REACTIONS: ReactionConfig[] = [
+    {
+      type: 'me_too',
+      label: t('reactionMeToo'),
+      icon: HandMetal,
+      activeColor: 'text-amber-500',
+      hoverColor: 'hover:text-amber-500',
+      emptyMessage: t('meTooPanelEmpty'),
+    },
+    {
+      type: 'plus_one',
+      label: '+1',
+      icon: ThumbsUp,
+      activeColor: 'text-blue-500',
+      hoverColor: 'hover:text-blue-500',
+      emptyMessage: t('plusOnePanelEmpty'),
+    },
+    {
+      type: 'well_said',
+      label: t('reactionWellSaid'),
+      icon: MessageSquareHeart,
+      activeColor: 'text-rose-500',
+      hoverColor: 'hover:text-rose-500',
+      emptyMessage: t('wellSaidPanelEmpty'),
+    },
+  ]
   const { status } = useAuthStore()
   const { toast } = useToast()
 
@@ -92,8 +95,8 @@ export function QuickReactionBar({
     async (reactionType: ReactionType) => {
       if (status !== 'signIn') {
         toast({
-          title: '請先登入',
-          description: '登入後即可表達你的反應',
+          title: t('loginRequired'),
+          description: t('reactionLoginPrompt'),
           variant: 'default',
         })
         return
@@ -129,8 +132,8 @@ export function QuickReactionBar({
         setCounts(counts)
 
         toast({
-          title: '操作失敗',
-          description: '請稍後再試',
+          title: t('operationFailed'),
+          description: t('operationFailedDesc'),
           variant: 'destructive',
         })
       } finally {

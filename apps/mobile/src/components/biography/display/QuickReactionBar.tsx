@@ -13,7 +13,7 @@ import Animated, {
 } from 'react-native-reanimated'
 
 import { Text } from '@/components/ui'
-import { SPACING, RADIUS } from '@nobodyclimb/constants'
+import { BRAND_YELLOW, RADIUS, SPACING, WB_COLORS } from '@nobodyclimb/constants'
 
 const AnimatedPressable = Animated.createAnimatedComponent(Pressable)
 
@@ -181,7 +181,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: 4,
-    backgroundColor: '#F5F5F5',
+    backgroundColor: WB_COLORS[10],
     borderRadius: RADIUS.full,
     borderWidth: 1,
     borderColor: 'transparent',
@@ -196,19 +196,19 @@ const styles = StyleSheet.create({
   },
   buttonReacted: {
     backgroundColor: 'rgba(255, 231, 12, 0.2)',
-    borderColor: '#FFE70C',
+    borderColor: BRAND_YELLOW[100],
   },
   label: {
-    color: '#6D6C6C',
+    color: WB_COLORS[70],
   },
   labelReacted: {
-    color: '#1B1A1A',
+    color: WB_COLORS[100],
   },
   count: {
-    color: '#8E8C8C',
+    color: WB_COLORS[60],
   },
   countReacted: {
-    color: '#1B1A1A',
+    color: WB_COLORS[100],
     fontWeight: '500',
   },
 })

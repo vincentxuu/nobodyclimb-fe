@@ -1,6 +1,7 @@
 'use client'
 
 import { useState } from 'react'
+import { useTranslations } from 'next-intl'
 import { cn } from '@/lib/utils'
 import { TrendingUp, Plus, X } from 'lucide-react'
 import { GRADE_TARGET_OPTIONS, CLIMBING_TYPES } from '@nobodyclimb/constants'
@@ -25,6 +26,7 @@ export function GradeTargetsSection({
   onGradeTargetsChange,
   className,
 }: GradeTargetsSectionProps) {
+  const t = useTranslations('BiographyEditor')
   const [selectedYear, setSelectedYear] = useState(currentYear)
 
   // 篩選當前年份的目標
@@ -70,10 +72,10 @@ export function GradeTargetsSection({
       {/* Header */}
       <div className="flex items-center gap-2">
         <TrendingUp size={18} className="text-[#3F3D3D]" />
-        <h4 className="font-medium text-[#1B1A1A]">年度攀爬目標</h4>
+        <h4 className="font-medium text-[#1B1A1A]">{t('gradeTargetsTitle')}</h4>
       </div>
       <p className="text-sm text-[#6D6C6C]">
-        設定每年想要完攀的級數與數量，記錄攀爬後會自動追蹤進度
+        {t('gradeTargetsHint')}
       </p>
 
       {/* Year Selector */}
@@ -163,7 +165,7 @@ export function GradeTargetsSection({
                   }
                   className="w-14 rounded-lg border border-[#B6B3B3] bg-white px-2 py-1.5 text-center text-sm text-[#1B1A1A] focus:outline-none focus:ring-2 focus:ring-brand-accent/50"
                 />
-                <span className="text-sm text-[#6D6C6C]">條</span>
+                <span className="text-sm text-[#6D6C6C]">{t('gradeTargetsCountUnit')}</span>
               </div>
             </div>
 
@@ -172,7 +174,7 @@ export function GradeTargetsSection({
               type="button"
               onClick={() => handleRemoveTarget(index)}
               className="inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-[#8E8C8C] transition-colors hover:bg-white hover:text-red-500"
-              aria-label="刪除目標"
+              {...{"aria-label": t('gradeTargetsDeleteLabel')}}
             >
               <X size={16} />
             </button>
@@ -186,7 +188,7 @@ export function GradeTargetsSection({
           className="flex items-center gap-2 w-full p-3 text-sm text-[#6D6C6C] border border-dashed border-[#B6B3B3] rounded-lg hover:border-brand-dark hover:text-brand-dark transition-colors"
         >
           <Plus size={16} />
-          新增 {selectedYear} 年目標
+          {t('gradeTargetsAddButton', { year: selectedYear })}
         </button>
       </div>
     </div>

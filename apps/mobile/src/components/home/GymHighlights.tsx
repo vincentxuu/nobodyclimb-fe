@@ -19,7 +19,7 @@ import Animated, { FadeInUp, FadeInRight } from 'react-native-reanimated'
 
 import { Text, Button, Skeleton } from '@/components/ui'
 import { FadeIn, SlideUp } from '@/components/animation'
-import { SEMANTIC_COLORS, SPACING, BORDER_RADIUS, WB_COLORS } from '@nobodyclimb/constants'
+import { BORDER_RADIUS, SEMANTIC_COLORS, SPACING, WB_COLORS } from '@nobodyclimb/constants'
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window')
 const CARD_WIDTH = (SCREEN_WIDTH - SPACING[4] * 2 - SPACING[4]) / 2
@@ -286,7 +286,7 @@ const styles = StyleSheet.create({
     width: CARD_WIDTH,
   },
   card: {
-    backgroundColor: '#FFFFFF',
+    backgroundColor: WB_COLORS[0],
     borderRadius: BORDER_RADIUS.lg,
     overflow: 'hidden',
     borderWidth: 1,
@@ -367,7 +367,7 @@ const styles = StyleSheet.create({
   },
   ctaCard: {
     marginTop: SPACING[8],
-    backgroundColor: '#FFFFFF',
+    backgroundColor: WB_COLORS[0],
     borderRadius: BORDER_RADIUS.lg,
     padding: SPACING[6],
     alignItems: 'center',

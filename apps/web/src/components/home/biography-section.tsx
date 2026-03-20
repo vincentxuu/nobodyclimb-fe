@@ -16,6 +16,7 @@ import {
   isHomeBiographiesCacheExpired,
   ONE_LINER_QUESTIONS,
 } from '@/lib/utils/biography-cache'
+import { useTranslations } from 'next-intl'
 
 interface ClimberCardProps {
   person: Biography
@@ -91,6 +92,7 @@ function BiographyGrid({ biographies }: { biographies: Biography[] }) {
 }
 
 function ClimberCard({ person }: ClimberCardProps) {
+  const t = useTranslations('HomePage')
   // 取得展示標籤（最多 3 個）
   const displayTags = getDisplayTags(person.tags_data, 3)
   const displayName = getDisplayNameForVisibility(person.visibility, person.name)
@@ -114,7 +116,7 @@ function ClimberCard({ person }: ClimberCardProps) {
         <div className="relative aspect-[3/1] w-full overflow-hidden bg-gradient-to-br from-[#EBEAEA] to-[#DBD8D8]">
           <Image
             src={coverUrl}
-            alt={`${displayName} 封面`}
+            alt={t('biographyCoverAlt', { name: displayName })}
             fill
             className="object-cover"
             sizes="(max-width: 768px) 100vw, 33vw"
@@ -190,7 +192,7 @@ function ClimberCard({ person }: ClimberCardProps) {
 
           {/* CTA 按鈕 */}
           <div className="flex items-center justify-center w-full h-9 mt-4 text-sm border border-[#1B1A1A] text-[#1B1A1A] group-hover:bg-[#F5F4F4] rounded-lg transition-colors">
-            看看 {displayName} 的故事
+            {t('biographyViewStory', { name: displayName })}
             <ArrowRight size={14} className="ml-1 transition-transform group-hover:translate-x-0.5" />
           </div>
         </div>
@@ -201,6 +203,7 @@ function ClimberCard({ person }: ClimberCardProps) {
 }
 
 export function BiographySection() {
+  const t = useTranslations('HomePage')
   const [biographies, setBiographies] = useState<Biography[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
@@ -234,7 +237,7 @@ export function BiographySection() {
       console.error('Failed to load biographies:', err)
       // 如果有緩存數據，使用緩存數據而不顯示錯誤
       if (!cached || cached.length === 0) {
-        setError('載入人物誌時發生錯誤')
+        setError(t('loadBiographiesError'))
       }
     } finally {
       setLoading(false)
@@ -249,8 +252,8 @@ export function BiographySection() {
     <section className="pt-8 pb-16 md:pt-12 md:pb-20">
       <div className="container mx-auto px-4">
         <div className="mb-8 text-center">
-          <h2 className="text-3xl font-bold text-[#1B1A1A] md:text-[40px]">寫紀錄</h2>
-          <p className="mt-4 text-base text-[#6D6C6C]">建立你的攀岩人物誌，分享你的攀岩旅程</p>
+          <h2 className="text-3xl font-bold text-[#1B1A1A] md:text-[40px]">{t('biographySectionTitle')}</h2>
+          <p className="mt-4 text-base text-[#6D6C6C]">{t('biographySectionSubtitle')}</p>
         </div>
 
         {loading ? (
@@ -263,7 +266,7 @@ export function BiographySection() {
           </div>
         ) : biographies.length === 0 ? (
           <div className="flex min-h-[300px] items-center justify-center">
-            <p className="text-lg text-[#6D6C6C]">目前沒有精選人物誌</p>
+            <p className="text-lg text-[#6D6C6C]">{t('biographyEmpty')}</p>
           </div>
         ) : (
           <BiographyGrid biographies={biographies} />
@@ -273,7 +276,7 @@ export function BiographySection() {
         <div className="mt-10 flex flex-col items-center gap-3 sm:flex-row sm:justify-center sm:gap-4">
           <Link href="/auth/register">
             <Button className="h-11 px-8 text-base bg-brand-accent/70 text-brand-dark hover:bg-brand-accent">
-              建立我的人物誌
+              {t('biographyCreateMine')}
             </Button>
           </Link>
           <Link href="/biography?tab=people">
@@ -281,7 +284,7 @@ export function BiographySection() {
               variant="outline"
               className="h-11 border border-[#1B1A1A] px-8 text-base text-[#1B1A1A] hover:bg-[#DBD8D8]"
             >
-              認識更多小人物
+              {t('biographyExploreMore')}
             </Button>
           </Link>
         </div>

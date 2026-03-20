@@ -6,6 +6,7 @@ import { Label } from '@/components/ui/label'
 import { Loader2 } from 'lucide-react'
 import { notificationService } from '@/lib/api/services'
 import { useToast } from '@/components/ui/use-toast'
+import { useTranslations } from 'next-intl'
 
 interface NotificationPreferencesState {
   goal_liked: boolean
@@ -83,6 +84,7 @@ function PreferenceSection({ title, children }: PreferenceSectionProps) {
 }
 
 export default function NotificationPreferences() {
+  const t = useTranslations('ProfilePage')
   const [preferences, setPreferences] = useState<NotificationPreferencesState>(defaultPreferences)
   const [isLoading, setIsLoading] = useState(true)
   const [savingKeys, setSavingKeys] = useState<Set<keyof NotificationPreferencesState>>(new Set())
@@ -99,8 +101,8 @@ export default function NotificationPreferences() {
       } catch (error) {
         console.error('Failed to load notification preferences:', error)
         toast({
-          title: '載入失敗',
-          description: '無法載入通知偏好設定',
+          title: t('toastLoadFailed'),
+          description: t('toastLoadNotifPrefsFailedDesc'),
           variant: 'destructive',
         })
       } finally {
@@ -124,8 +126,8 @@ export default function NotificationPreferences() {
           // 回滾
           setPreferences((prev) => ({ ...prev, [key]: !value }))
           toast({
-            title: '更新失敗',
-            description: '無法更新偏好設定',
+            title: t('toastUpdateFailed'),
+            description: t('toastUpdateNotifPrefsFailedDesc'),
             variant: 'destructive',
           })
         }
@@ -134,8 +136,8 @@ export default function NotificationPreferences() {
         // 回滾
         setPreferences((prev) => ({ ...prev, [key]: !value }))
         toast({
-          title: '更新失敗',
-          description: '無法更新偏好設定',
+          title: t('toastUpdateFailed'),
+          description: t('toastUpdateNotifPrefsFailedDesc'),
           variant: 'destructive',
         })
       } finally {
@@ -160,51 +162,51 @@ export default function NotificationPreferences() {
   return (
     <div className="space-y-8">
       {/* 互動通知 */}
-      <PreferenceSection title="互動通知">
+      <PreferenceSection title={t('notifSectionInteraction')}>
         <PreferenceItem
           id="goal_liked"
-          label="目標被按讚"
-          description="當有人對你的攀岩目標按讚時通知你"
+          label={t('notifGoalLiked')}
+          description={t('notifGoalLikedDesc')}
           checked={preferences.goal_liked}
           disabled={savingKeys.has('goal_liked')}
           onCheckedChange={handlePreferenceChange}
         />
         <PreferenceItem
           id="goal_commented"
-          label="目標被留言"
-          description="當有人在你的攀岩目標留言時通知你"
+          label={t('notifGoalCommented')}
+          description={t('notifGoalCommentedDesc')}
           checked={preferences.goal_commented}
           disabled={savingKeys.has('goal_commented')}
           onCheckedChange={handlePreferenceChange}
         />
         <PreferenceItem
           id="goal_referenced"
-          label="目標被引用"
-          description="當有人將你的目標加入他們的清單時通知你"
+          label={t('notifGoalReferenced')}
+          description={t('notifGoalReferencedDesc')}
           checked={preferences.goal_referenced}
           disabled={savingKeys.has('goal_referenced')}
           onCheckedChange={handlePreferenceChange}
         />
         <PreferenceItem
           id="post_liked"
-          label="文章被按讚"
-          description="當有人對你的文章按讚時通知你"
+          label={t('notifPostLiked')}
+          description={t('notifPostLikedDesc')}
           checked={preferences.post_liked}
           disabled={savingKeys.has('post_liked')}
           onCheckedChange={handlePreferenceChange}
         />
         <PreferenceItem
           id="post_commented"
-          label="文章被留言"
-          description="當有人在你的文章留言時通知你"
+          label={t('notifPostCommented')}
+          description={t('notifPostCommentedDesc')}
           checked={preferences.post_commented}
           disabled={savingKeys.has('post_commented')}
           onCheckedChange={handlePreferenceChange}
         />
         <PreferenceItem
           id="biography_commented"
-          label="人物誌被留言"
-          description="當有人在你管理的人物誌留言時通知你"
+          label={t('notifBiographyCommented')}
+          description={t('notifBiographyCommentedDesc')}
           checked={preferences.biography_commented}
           disabled={savingKeys.has('biography_commented')}
           onCheckedChange={handlePreferenceChange}
@@ -212,11 +214,11 @@ export default function NotificationPreferences() {
       </PreferenceSection>
 
       {/* 社交通知 */}
-      <PreferenceSection title="社交通知">
+      <PreferenceSection title={t('notifSectionSocial')}>
         <PreferenceItem
           id="new_follower"
-          label="新追蹤者"
-          description="當有人追蹤你時通知你"
+          label={t('notifNewFollower')}
+          description={t('notifNewFollowerDesc')}
           checked={preferences.new_follower}
           disabled={savingKeys.has('new_follower')}
           onCheckedChange={handlePreferenceChange}
@@ -224,19 +226,19 @@ export default function NotificationPreferences() {
       </PreferenceSection>
 
       {/* 系統通知 */}
-      <PreferenceSection title="系統通知">
+      <PreferenceSection title={t('notifSectionSystem')}>
         <PreferenceItem
           id="goal_completed"
-          label="目標完成"
-          description="當你完成一個攀岩目標時收到祝賀通知"
+          label={t('notifGoalCompleted')}
+          description={t('notifGoalCompletedDesc')}
           checked={preferences.goal_completed}
           disabled={savingKeys.has('goal_completed')}
           onCheckedChange={handlePreferenceChange}
         />
         <PreferenceItem
           id="story_featured"
-          label="故事被精選"
-          description="當你的故事被編輯精選時通知你"
+          label={t('notifStoryFeatured')}
+          description={t('notifStoryFeaturedDesc')}
           checked={preferences.story_featured}
           disabled={savingKeys.has('story_featured')}
           onCheckedChange={handlePreferenceChange}
@@ -244,11 +246,11 @@ export default function NotificationPreferences() {
       </PreferenceSection>
 
       {/* Email 通知 */}
-      <PreferenceSection title="電子郵件">
+      <PreferenceSection title={t('notifSectionEmail')}>
         <PreferenceItem
           id="email_digest"
-          label="每日摘要"
-          description="每天收到一封包含所有通知的摘要郵件（開發中）"
+          label={t('notifEmailDigest')}
+          description={t('notifEmailDigestDesc')}
           checked={preferences.email_digest}
           disabled={true}
           onCheckedChange={handlePreferenceChange}

@@ -24,7 +24,7 @@ import { formatDistanceToNow } from 'date-fns'
 import { zhTW } from 'date-fns/locale'
 
 import { Text, Avatar, Button } from '@/components/ui'
-import { SEMANTIC_COLORS, SPACING, RADIUS } from '@nobodyclimb/constants'
+import { RADIUS, SEMANTIC_COLORS, SPACING, WB_COLORS } from '@nobodyclimb/constants'
 import { useAuthStore } from '@/store/authStore'
 
 interface ContentComment {
@@ -165,7 +165,7 @@ export function ContentCommentSheet({
             style={styles.deleteButton}
             onPress={() => handleDelete(item.id)}
           >
-            <Trash2 size={14} color="#EF4444" />
+            <Trash2 size={14} color={SEMANTIC_COLORS.error} />
           </Pressable>
         )}
       </View>
@@ -251,9 +251,9 @@ export function ContentCommentSheet({
                   disabled={!newComment.trim() || isSending}
                 >
                   {isSending ? (
-                    <ActivityIndicator size="small" color="#FFFFFF" />
+                    <ActivityIndicator size="small" color={WB_COLORS[0]} />
                   ) : (
-                    <Send size={18} color="#FFFFFF" />
+                    <Send size={18} color={WB_COLORS[0]} />
                   )}
                 </Pressable>
               </View>
@@ -273,7 +273,7 @@ const styles = StyleSheet.create({
     padding: SPACING.xs,
   },
   sheetBackground: {
-    backgroundColor: '#FFFFFF',
+    backgroundColor: WB_COLORS[0],
   },
   sheetIndicator: {
     backgroundColor: '#D3D3D3',
@@ -318,13 +318,13 @@ const styles = StyleSheet.create({
     padding: SPACING.md,
     borderTopWidth: 1,
     borderTopColor: '#F0F0F0',
-    backgroundColor: '#FFFFFF',
+    backgroundColor: WB_COLORS[0],
   },
   input: {
     flex: 1,
     minHeight: 40,
     maxHeight: 100,
-    backgroundColor: '#F5F5F5',
+    backgroundColor: WB_COLORS[10],
     borderRadius: RADIUS.md,
     paddingHorizontal: SPACING.md,
     paddingVertical: SPACING.sm,
@@ -335,7 +335,7 @@ const styles = StyleSheet.create({
     width: 40,
     height: 40,
     borderRadius: 20,
-    backgroundColor: '#1B1A1A',
+    backgroundColor: WB_COLORS[100],
     alignItems: 'center',
     justifyContent: 'center',
   },

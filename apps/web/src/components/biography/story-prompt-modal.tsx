@@ -1,6 +1,7 @@
 'use client'
 
 import React, { useState, useCallback, useEffect, useMemo } from 'react'
+import { useTranslations } from 'next-intl'
 import { motion, AnimatePresence } from 'framer-motion'
 import { X, MessageCircle, Info, BarChart, Loader2, ChevronRight, Users } from 'lucide-react'
 import { cn } from '@/lib/utils'
@@ -122,6 +123,7 @@ export function StoryPromptModal({
   lastPromptedField,
   initialField,
 }: StoryPromptModalProps) {
+  const t = useTranslations('BiographyEditor')
   const [currentQuestion, setCurrentQuestion] = useState<PromptStoryQuestion | null>(null)
   const [value, setValue] = useState('')
   const [isSaving, setIsSaving] = useState(false)
@@ -206,7 +208,7 @@ export function StoryPromptModal({
       onClose()
     } catch (err) {
       console.error('Failed to save:', err)
-      setError('儲存失敗，請稍後再試')
+      setError(t('storyPromptSaveError'))
     } finally {
       setIsSaving(false)
     }
@@ -257,8 +259,8 @@ export function StoryPromptModal({
             {/* 標題列 */}
             <div className="flex items-center justify-between border-b border-gray-100 px-6 py-4">
               <div>
-                <h2 className="text-lg font-semibold text-gray-900">歡迎回來，{userName}！</h2>
-                <p className="text-sm text-gray-500">今天來聊聊這個嗎？</p>
+                <h2 className="text-lg font-semibold text-gray-900">{t('storyPromptWelcome', { name: userName })}</h2>
+                <p className="text-sm text-gray-500">{t('storyPromptSubtitle')}</p>
               </div>
               <button
                 onClick={onClose}
@@ -297,7 +299,7 @@ export function StoryPromptModal({
                 />
 
                 {/* 字數 */}
-                <div className="mt-2 text-right text-xs text-gray-400">{value.length} 字</div>
+                <div className="mt-2 text-right text-xs text-gray-400">{value.length} {t('advancedStoryCharCount')}</div>
 
                 {/* 錯誤提示 */}
                 {error && (
@@ -312,16 +314,13 @@ export function StoryPromptModal({
                 {categoryInfo && categoryProgress && (
                   <div className="flex items-center gap-1">
                     <Info className="h-3.5 w-3.5" />
-                    <span>
-                      「{categoryInfo.name}」第 {categoryProgress.filled + 1}/{categoryProgress.total}{' '}
-                      題
-                    </span>
+                    <span>{t('storyPromptCategoryProgress', { category: categoryInfo.name, current: categoryProgress.filled + 1, total: categoryProgress.total })}</span>
                   </div>
                 )}
                 <div className="flex items-center gap-1">
                   <BarChart className="h-3.5 w-3.5" />
                   <span>
-                    已完成 {storyProgress.completed}/{storyProgress.total} 個故事（{storyProgress.percentage}%）
+                    {t('storyPromptOverallProgress', { completed: storyProgress.completed, total: storyProgress.total, percentage: storyProgress.percentage })}
                   </span>
                 </div>
               </div>
@@ -333,7 +332,7 @@ export function StoryPromptModal({
               >
                 <div className="flex items-center gap-2">
                   <Users className="h-4 w-4" />
-                  <span>看看其他人怎麼分享</span>
+                  <span>{t('storyPromptShowExamples')}</span>
                 </div>
                 <ChevronRight
                   className={cn(
@@ -353,7 +352,7 @@ export function StoryPromptModal({
                   <p className="text-sm italic text-gray-500">
                     「{getExampleAnswer(currentQuestion.field)}」
                   </p>
-                  <p className="mt-2 text-right text-xs text-gray-400">— 匿名岩友</p>
+                  <p className="mt-2 text-right text-xs text-gray-400">— {t('storyPromptExampleAuthor')}</p>
                 </motion.div>
               )}
             </div>
@@ -362,15 +361,15 @@ export function StoryPromptModal({
             <div className="flex items-center justify-between border-t border-gray-100 bg-gray-50 px-6 py-4">
               <div className="flex items-center gap-2">
                 <Button variant="ghost" size="sm" onClick={handleSkip}>
-                  下次再說
+                  {t('storyPromptSkip')}
                 </Button>
                 <Button variant="ghost" size="sm" onClick={handleChangeQuestion}>
-                  換一題
+                  {t('storyPromptShuffle')}
                 </Button>
               </div>
               <Button onClick={handleSave} disabled={!value.trim() || isSaving}>
                 {isSaving && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                儲存
+                {t('storyPromptSave')}
               </Button>
             </div>
           </motion.div>
@@ -415,6 +414,8 @@ interface StoryPromptBadgeProps {
 }
 
 export function StoryPromptBadge({ biography, onClick, className }: StoryPromptBadgeProps) {
+  // eslint-disable-next-line react-hooks/rules-of-hooks
+  const t = useTranslations('BiographyEditor')
   const { data: questionsData } = useQuestions()
 
   const unfilledCount = useMemo(() => {
@@ -439,9 +440,9 @@ export function StoryPromptBadge({ biography, onClick, className }: StoryPromptB
       whileTap={{ scale: 0.98 }}
     >
       <MessageCircle className="h-5 w-5 text-blue-500" />
-      <span className="text-sm font-medium text-gray-700">今天來寫個故事？</span>
+      <span className="text-sm font-medium text-gray-700">{t('storyPromptBadgeText')}</span>
       <span className="rounded-full bg-blue-100 px-2 py-0.5 text-xs font-medium text-blue-600">
-        {unfilledCount} 題待填
+        {t('storyPromptBadgeCount', { count: unfilledCount })}
       </span>
     </motion.button>
   )

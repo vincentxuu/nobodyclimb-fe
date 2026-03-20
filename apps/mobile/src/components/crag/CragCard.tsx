@@ -11,7 +11,7 @@ import { LinearGradient } from 'expo-linear-gradient'
 import Animated, { FadeInDown } from 'react-native-reanimated'
 
 import { Text, Badge } from '@/components/ui'
-import { SEMANTIC_COLORS, SPACING, RADIUS } from '@nobodyclimb/constants'
+import { RADIUS, SEMANTIC_COLORS, SPACING, WB_COLORS } from '@nobodyclimb/constants'
 
 interface CragCardProps {
   id: string
@@ -138,7 +138,7 @@ const styles = StyleSheet.create({
     borderRadius: RADIUS.md,
     overflow: 'hidden',
     flexDirection: 'row',
-    shadowColor: '#000',
+    shadowColor: WB_COLORS[100],
     shadowOffset: { width: 0, height: 1 },
     shadowOpacity: 0.05,
     shadowRadius: 2,
@@ -171,7 +171,7 @@ const styles = StyleSheet.create({
     borderRadius: 4,
   },
   typeText: {
-    color: '#FFFFFF',
+    color: WB_COLORS[0],
     fontSize: 10,
   },
   content: {
@@ -215,7 +215,7 @@ const styles = StyleSheet.create({
     gap: 4,
   },
   seasonTag: {
-    backgroundColor: '#F5F5F5',
+    backgroundColor: WB_COLORS[10],
     paddingHorizontal: 6,
     paddingVertical: 2,
     borderRadius: 4,

@@ -9,7 +9,7 @@ import { Calendar, MapPin, Activity, ChevronDown, ChevronUp, Sparkles } from 'lu
 import Animated, { FadeInDown } from 'react-native-reanimated'
 
 import { Text, Card } from '@/components/ui'
-import { SEMANTIC_COLORS, SPACING, RADIUS } from '@nobodyclimb/constants'
+import { BRAND_YELLOW, RADIUS, SEMANTIC_COLORS, SPACING, WB_COLORS } from '@nobodyclimb/constants'
 
 // 類型定義
 interface BiographyV2 {
@@ -150,7 +150,7 @@ export function QuickFactsSection({ person, tagLimit = 8 }: QuickFactsSectionPro
                 key={tag.id}
                 style={[styles.tag, tag.isCustom && styles.tagCustom]}
               >
-                {tag.isCustom && <Sparkles size={12} color="#FFE70C" />}
+                {tag.isCustom && <Sparkles size={12} color={BRAND_YELLOW[100]} />}
                 <Text variant="small" style={tag.isCustom ? styles.tagTextCustom : undefined}>
                   {tag.label}
                 </Text>
@@ -189,7 +189,7 @@ export function QuickFactsSection({ person, tagLimit = 8 }: QuickFactsSectionPro
 
 const styles = StyleSheet.create({
   container: {
-    backgroundColor: '#fff',
+    backgroundColor: WB_COLORS[0],
     paddingVertical: SPACING.xl,
     paddingHorizontal: SPACING.md,
   },
@@ -205,7 +205,7 @@ const styles = StyleSheet.create({
   factCard: {
     flex: 1,
     minWidth: 100,
-    backgroundColor: '#F5F5F5',
+    backgroundColor: WB_COLORS[10],
     borderRadius: RADIUS.lg,
     padding: SPACING.md,
     alignItems: 'center',
@@ -240,7 +240,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: 4,
-    backgroundColor: '#EBEAEA',
+    backgroundColor: WB_COLORS[20],
     paddingHorizontal: SPACING.sm,
     paddingVertical: 6,
     borderRadius: 20,
@@ -251,13 +251,13 @@ const styles = StyleSheet.create({
     borderColor: 'rgba(255, 231, 12, 0.5)',
   },
   tagTextCustom: {
-    color: '#1B1A1A',
+    color: WB_COLORS[100],
   },
   showMoreButton: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 4,
-    backgroundColor: '#F5F5F5',
+    backgroundColor: WB_COLORS[10],
     paddingHorizontal: SPACING.sm,
     paddingVertical: 6,
     borderRadius: 20,

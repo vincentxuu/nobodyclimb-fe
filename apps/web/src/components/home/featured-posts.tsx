@@ -3,11 +3,12 @@
 import Link from 'next/link'
 import Image from 'next/image'
 import { motion } from 'framer-motion'
+import { useTranslations } from 'next-intl'
 
 // 文章類型定義
 type Post = {
   id: number
-  title: string
+  titleKey: string
   slug: string
   coverImage: string
 }
@@ -16,25 +17,25 @@ type Post = {
 const explorePosts: Post[] = [
   {
     id: 1,
-    title: '裝備介紹',
+    titleKey: 'postEquipment',
     slug: 'equipment-intro',
     coverImage: '/photo/blog-left.jpeg',
   },
   {
     id: 2,
-    title: '技巧介紹',
+    titleKey: 'postTechnique',
     slug: 'technique-intro',
     coverImage: '/photo/blog-mid-left.jpg',
   },
   {
     id: 3,
-    title: '技術研究',
+    titleKey: 'postResearch',
     slug: 'technical-research',
     coverImage: '/photo/blog-mid-right.jpg',
   },
   {
     id: 4,
-    title: '比賽介紹',
+    titleKey: 'postCompetition',
     slug: 'competition-intro',
     coverImage: '/photo/blog-right.jpg',
   },
@@ -44,12 +45,14 @@ const explorePosts: Post[] = [
  * 探索卡片組件
  */
 function ExploreCard({ post }: { post: Post }) {
+  const t = useTranslations('HomePage')
+  const title = t(post.titleKey as Parameters<typeof t>[0])
   return (
     <Link href={`/blog/${post.slug}`} className="group block h-full">
       <div className="relative aspect-[1/1] overflow-hidden">
         <Image
           src={post.coverImage}
-          alt={post.title}
+          alt={title}
           fill
           sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 25vw"
           className="object-cover"
@@ -64,7 +67,7 @@ function ExploreCard({ post }: { post: Post }) {
         {/* 標題 */}
         <div className="absolute bottom-0 left-0 right-0 p-6">
           <h3 className="text-center font-['Noto_Sans_CJK_TC'] text-[26px] font-medium text-white">
-            {post.title}
+            {title}
           </h3>
         </div>
       </div>
@@ -76,13 +79,14 @@ function ExploreCard({ post }: { post: Post }) {
  * 探索攀岩區塊組件
  */
 export function FeaturedPosts() {
+  const t = useTranslations('HomePage')
   return (
     <section className="border-t border-[#D2D2D2] py-16 md:py-20">
       <div className="container mx-auto px-4">
         <div className="mb-8 text-center">
-          <h2 className="font-['Noto_Sans_TC'] text-[40px] font-medium text-[#1B1A1A]">探索攀岩</h2>
+          <h2 className="font-['Noto_Sans_TC'] text-[40px] font-medium text-[#1B1A1A]">{t('featuredPostsTitle')}</h2>
           <p className="mt-4 font-['Noto_Sans_CJK_TC'] text-base font-normal tracking-[0.01em] text-[#6D6C6C]">
-            關於攀岩的各種知識和故事
+            {t('featuredPostsSubtitle')}
           </p>
         </div>
 

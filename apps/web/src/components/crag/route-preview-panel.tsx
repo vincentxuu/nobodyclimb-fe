@@ -3,6 +3,7 @@
 import { Tag, CircleDot, Ruler, User, Youtube } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { getRouteName } from '@/lib/route-utils'
+import { useTranslations } from 'next-intl'
 
 export interface RoutePreviewData {
   id: string
@@ -49,6 +50,7 @@ export function RoutePreviewPanel({
   cragName,
   onClose,
 }: RoutePreviewPanelProps) {
+  const t = useTranslations('CragPage')
   const hasYoutubeVideos = route.youtubeVideos && route.youtubeVideos.length > 0
   const displayName = getRouteName(route.name, route.englishName)
 
@@ -83,7 +85,7 @@ export function RoutePreviewPanel({
             <div className="rounded-lg bg-gray-50 p-3">
               <div className="flex items-center gap-1.5 text-xs text-gray-500">
                 <Ruler size={14} />
-                長度
+                {t('routeLengthLabel')}
               </div>
               <div className="mt-1 text-base font-semibold text-[#1B1A1A]">
                 {route.length}
@@ -94,7 +96,7 @@ export function RoutePreviewPanel({
             <div className="rounded-lg bg-gray-50 p-3">
               <div className="flex items-center gap-1.5 text-xs text-gray-500">
                 <CircleDot size={14} />
-                Bolt
+                {t('routeBoltLabel')}
               </div>
               <div className="mt-1 text-base font-semibold text-[#1B1A1A]">
                 {route.boltCount}
@@ -105,7 +107,7 @@ export function RoutePreviewPanel({
             <div className="rounded-lg bg-gray-50 p-3">
               <div className="flex items-center gap-1.5 text-xs text-gray-500">
                 <User size={14} />
-                首攀
+                {t('routeFirstAscentLabel')}
               </div>
               <div className="mt-1 text-base font-semibold text-[#1B1A1A] truncate">
                 {route.firstAscent}
@@ -117,7 +119,7 @@ export function RoutePreviewPanel({
         {/* 路線描述 */}
         {route.description && (
           <div className="mb-6">
-            <h2 className="mb-2 text-sm font-medium text-gray-700">路線描述</h2>
+            <h2 className="mb-2 text-sm font-medium text-gray-700">{t('routeDescriptionLabel')}</h2>
             <p className="text-sm text-gray-600 whitespace-pre-line line-clamp-4">
               {route.description}
             </p>
@@ -129,20 +131,20 @@ export function RoutePreviewPanel({
           <div className="mb-6">
             <h2 className="mb-2 flex items-center text-sm font-medium text-gray-700">
               <Youtube size={16} className="mr-1.5 text-red-600" />
-              攀登影片
+              {t('routeClimbingVideos')}
             </h2>
             <div className="aspect-video w-full overflow-hidden rounded-lg">
               <iframe
                 src={getYoutubeEmbedUrl(route.youtubeVideos![0])}
                 className="h-full w-full"
-                title={`${route.name} 攀登影片`}
+                title={t('youtubeVideoTitle', { routeName: route.name, index: 1 })}
                 allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
                 allowFullScreen
               />
             </div>
             {route.youtubeVideos!.length > 1 && (
               <p className="mt-2 text-xs text-gray-500">
-                還有 {route.youtubeVideos!.length - 1} 部影片
+                {t('routeMoreVideos', { count: route.youtubeVideos!.length - 1 })}
               </p>
             )}
           </div>
@@ -155,7 +157,7 @@ export function RoutePreviewPanel({
               variant="outline"
               onClick={onClose}
             >
-              返回岩場介紹
+              {t('backToCragIntro')}
             </Button>
           </div>
         )}

@@ -8,11 +8,13 @@ import { ArrowRight, MapPin, Star } from 'lucide-react'
 import { useContentStore } from '@/store/contentStore'
 import { Gym } from '@/lib/types'
 import { Button } from '@/components/ui/button'
+import { useTranslations } from 'next-intl'
 
 /**
  * 攀岩館卡片組件
  */
 function GymCard({ gym }: { gym: Gym }) {
+  const t = useTranslations('HomePage')
   return (
     <div className="group rounded-lg border border-border bg-card transition-all hover:shadow-md">
       <div className="relative h-40 overflow-hidden rounded-t-lg">
@@ -66,7 +68,7 @@ function GymCard({ gym }: { gym: Gym }) {
 
         <Link href={`/gym/${gym.slug}`}>
           <Button size="sm" variant="outline" className="w-full">
-            查看詳情
+            {t('gymViewDetails')}
           </Button>
         </Link>
       </div>
@@ -79,6 +81,7 @@ function GymCard({ gym }: { gym: Gym }) {
  * 展示精選的攀岩館
  */
 export function GymHighlights() {
+  const t = useTranslations('HomePage')
   const { featuredGyms, gymsLoading, fetchFeaturedGyms } = useContentStore()
 
   useEffect(() => {
@@ -96,7 +99,7 @@ export function GymHighlights() {
             viewport={{ once: true }}
             transition={{ duration: 0.5 }}
           >
-            熱門攀岩館
+            {t('gymSectionTitle')}
           </motion.h2>
           <motion.div
             initial={{ opacity: 0, x: 20 }}
@@ -106,7 +109,7 @@ export function GymHighlights() {
           >
             <Button variant="ghost" asChild>
               <Link href="/gym" className="group flex items-center gap-1">
-                查看全部
+                {t('viewAll')}
                 <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
               </Link>
             </Button>
@@ -150,12 +153,12 @@ export function GymHighlights() {
           viewport={{ once: true }}
           transition={{ duration: 0.5, delay: 0.3 }}
         >
-          <h3 className="mb-2 text-xl font-semibold">發現新的攀岩場所？</h3>
+          <h3 className="mb-2 text-xl font-semibold">{t('gymAddTitle')}</h3>
           <p className="mb-4 text-muted-foreground">
-            幫助社群成長！分享你知道的攀岩館資訊，讓更多攀岩愛好者受益。
+            {t('gymAddDescription')}
           </p>
           <Button asChild>
-            <Link href="/gym/add">新增攀岩館</Link>
+            <Link href="/gym/add">{t('gymAddButton')}</Link>
           </Button>
         </motion.div>
       </div>

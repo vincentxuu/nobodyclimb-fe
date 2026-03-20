@@ -1,5 +1,6 @@
 'use client'
 
+import { useTranslations } from 'next-intl'
 import { cn } from '@/lib/utils'
 import { Tag, ChevronRight } from 'lucide-react'
 import type { TagDimension } from '@/lib/types/biography-v2'
@@ -39,6 +40,7 @@ export function TagsSection({
   onOpenBottomSheet,
   className,
 }: TagsSectionProps) {
+  const t = useTranslations('BiographyEditor')
   // 計算已選標籤總數
   const totalSelected = Object.values(selections).reduce(
     (sum, ids) => sum + ids.length,
@@ -60,10 +62,10 @@ export function TagsSection({
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
             <Tag size={18} className="text-[#3F3D3D]" />
-            <h3 className="font-semibold text-[#1B1A1A]">身份標籤</h3>
+            <h3 className="font-semibold text-[#1B1A1A]">{t('tagsTitle')}</h3>
             {totalSelected > 0 && (
               <span className="text-xs text-[#6D6C6C] px-2 py-0.5 bg-[#F5F5F5] rounded-full">
-                已選 {totalSelected} 個
+                {t('tagsSelectedCount', { count: totalSelected })}
               </span>
             )}
           </div>
@@ -82,12 +84,12 @@ export function TagsSection({
             ))}
             {totalSelected > 6 && (
               <span className="px-3 py-1.5 bg-[#F5F5F5] rounded-full text-sm text-[#6D6C6C]">
-                +{totalSelected - 6} 個
+                {t('tagsMoreCount', { count: totalSelected - 6 })}
               </span>
             )}
           </div>
         ) : (
-          <p className="text-sm text-[#8E8C8C]">還沒有選擇任何標籤</p>
+          <p className="text-sm text-[#8E8C8C]">{t('tagsNoneSelected')}</p>
         )}
 
         {/* Edit Button */}
@@ -96,7 +98,7 @@ export function TagsSection({
           onClick={onOpenBottomSheet}
           className="w-full flex items-center justify-center gap-2 px-4 py-3 border border-[#DBD8D8] rounded-lg text-sm font-medium text-[#3F3D3D] hover:bg-[#F5F5F5] transition-colors"
         >
-          編輯標籤
+          {t('tagsEditButton')}
           <ChevronRight size={16} />
         </button>
       </div>

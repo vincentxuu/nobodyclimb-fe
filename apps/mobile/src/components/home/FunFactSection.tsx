@@ -16,7 +16,7 @@ import Animated, {
 
 import { Text, Spinner } from '@/components/ui'
 import { FadeIn } from '@/components/animation'
-import { SEMANTIC_COLORS, SPACING, BORDER_RADIUS, BRAND_YELLOW, DURATION } from '@nobodyclimb/constants'
+import { BORDER_RADIUS, BRAND_YELLOW, DURATION, SEMANTIC_COLORS, SPACING, WB_COLORS } from '@nobodyclimb/constants'
 import { springConfigStandard, EASING } from '@/theme/animations'
 
 interface FunFact {
@@ -253,7 +253,7 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgba(255, 255, 255, 0.8)',
     borderRadius: BORDER_RADIUS.lg,
     padding: SPACING[4],
-    shadowColor: '#000',
+    shadowColor: WB_COLORS[100],
     shadowOffset: { width: 0, height: 1 },
     shadowOpacity: 0.05,
     shadowRadius: 2,

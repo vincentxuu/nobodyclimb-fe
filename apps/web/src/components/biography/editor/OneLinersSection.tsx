@@ -1,6 +1,7 @@
 'use client'
 
 import { useState } from 'react'
+import { useTranslations } from 'next-intl'
 import { cn } from '@/lib/utils'
 import { MessageCircle, Check, ChevronDown, RefreshCw, Plus, Clock, Lightbulb, Sparkles } from 'lucide-react'
 import type { OneLinerQuestion, OneLiner } from '@/lib/types/biography-v2'
@@ -33,6 +34,7 @@ export function OneLinersSection({
   onRandomRecommend,
   className,
 }: OneLinersSectionProps) {
+  const t = useTranslations('BiographyEditor')
   const [expandedId, setExpandedId] = useState<string | null>(null)
   const [showQuestions, setShowQuestions] = useState(false)
 
@@ -53,15 +55,15 @@ export function OneLinersSection({
       >
         <div className="flex items-center gap-2">
           <MessageCircle size={18} className="text-[#3F3D3D]" />
-          <h3 className="font-semibold text-[#1B1A1A]">快問快答</h3>
+          <h3 className="font-semibold text-[#1B1A1A]">{t('oneLinersTitle')}</h3>
           <span className="text-xs text-[#6D6C6C] px-2 py-0.5 bg-[#F5F5F5] rounded-full flex items-center gap-1">
             <Clock size={12} />
-            2 分鐘
+            {t('oneLinersTimeEstimate')}
           </span>
         </div>
         <div className="flex items-center gap-2">
           <span className="text-sm text-[#6D6C6C]">
-            {filledCount}/{totalCount} 已填寫
+            {t('oneLinersFilledCount', { filled: filledCount, total: totalCount })}
           </span>
           <ChevronDown
             size={20}
@@ -77,7 +79,7 @@ export function OneLinersSection({
         <>
       <p className="text-sm text-[#6D6C6C] flex items-center gap-1">
         <Lightbulb size={14} />
-        選幾題回答就好，不用全部填
+        {t('oneLinersHint')}
       </p>
 
       {/* Questions List */}
@@ -164,7 +166,7 @@ export function OneLinersSection({
                     onChange={(e) =>
                       onAnswerChange(question.id, e.target.value || null)
                     }
-                    placeholder="輸入你的答案..."
+                    placeholder={t('answerInputPlaceholder')}
                     className="w-full px-4 py-3 bg-white border border-[#B6B3B3] rounded-lg text-[#1B1A1A] placeholder:text-[#9D9D9D] focus:outline-none focus:ring-2 focus:ring-brand-accent/50 focus:border-brand-dark transition-colors"
                     maxLength={200}
                   />
@@ -178,7 +180,7 @@ export function OneLinersSection({
                         onClick={() => onAnswerChange(question.id, null)}
                         className="text-xs text-[#6D6C6C] hover:text-red-500 transition-colors"
                       >
-                        清除回答
+                        {t('clearAnswer')}
                       </button>
                     )}
                   </div>
@@ -198,7 +200,7 @@ export function OneLinersSection({
             className="flex items-center gap-1 text-sm text-[#6D6C6C] hover:text-[#1B1A1A] transition-colors px-3 py-2 bg-[#F5F5F5] rounded-lg"
           >
             <RefreshCw size={16} />
-            隨機推薦問題
+            {t('randomRecommend')}
           </button>
         )}
 
@@ -209,7 +211,7 @@ export function OneLinersSection({
             className="flex items-center gap-1 text-sm text-[#6D6C6C] hover:text-[#1B1A1A] transition-colors px-3 py-2 bg-[#F5F5F5] rounded-lg"
           >
             <Plus size={16} />
-            自訂問題
+            {t('addCustomQuestion')}
           </button>
         )}
       </div>

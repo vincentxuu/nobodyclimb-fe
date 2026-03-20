@@ -6,7 +6,7 @@
 import React from 'react'
 import { View, StyleSheet, type ViewStyle } from 'react-native'
 import { Eye, Mountain, Users, Target, BookOpen, MapPin } from 'lucide-react-native'
-import { SEMANTIC_COLORS, WB_COLORS, BRAND_YELLOW } from '@nobodyclimb/constants'
+import { BRAND_YELLOW, SEMANTIC_COLORS, WB_COLORS } from '@nobodyclimb/constants'
 import { STORY_FIELD_COUNTS, type BiographyStats } from '@nobodyclimb/types'
 import { Text } from '../../ui/Text'
 import { CircularProgress, ProgressBar, StatCard } from './progress-chart'
@@ -210,7 +210,7 @@ const styles = StyleSheet.create({
     borderRadius: 8,
     borderWidth: 1,
     borderColor: WB_COLORS[20],
-    shadowColor: '#000',
+    shadowColor: WB_COLORS[100],
     shadowOffset: { width: 0, height: 1 },
     shadowOpacity: 0.05,
     shadowRadius: 2,
@@ -245,7 +245,7 @@ const styles = StyleSheet.create({
     borderRadius: 8,
     borderWidth: 1,
     borderColor: WB_COLORS[20],
-    shadowColor: '#000',
+    shadowColor: WB_COLORS[100],
     shadowOffset: { width: 0, height: 1 },
     shadowOpacity: 0.05,
     shadowRadius: 2,

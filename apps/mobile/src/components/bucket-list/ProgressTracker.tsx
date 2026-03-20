@@ -12,7 +12,7 @@ import Animated, {
   withTiming,
 } from 'react-native-reanimated'
 import { Check, Circle } from 'lucide-react-native'
-import { SEMANTIC_COLORS, SPACING, DURATION } from '@nobodyclimb/constants'
+import { DURATION, SEMANTIC_COLORS, SPACING, WB_COLORS } from '@nobodyclimb/constants'
 import type { Milestone } from '@nobodyclimb/types'
 import { Text } from '../ui/Text'
 
@@ -453,7 +453,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   milestonePoint: {
-    backgroundColor: '#FFFFFF',
+    backgroundColor: WB_COLORS[0],
     borderWidth: 2,
     borderColor: '#D3D3D3',
     justifyContent: 'center',

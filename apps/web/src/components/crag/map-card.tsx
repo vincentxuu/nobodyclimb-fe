@@ -2,6 +2,7 @@
 
 import React from 'react'
 import { MapPin, ExternalLink } from 'lucide-react'
+import { useTranslations } from 'next-intl'
 
 interface MapCardProps {
   googleMapsUrl: string
@@ -9,11 +10,13 @@ interface MapCardProps {
 }
 
 export const CragMapCard: React.FC<MapCardProps> = ({ googleMapsUrl, cragName }) => {
+  const t = useTranslations('CragPage')
+
   return (
     <div className="mb-6 rounded-lg bg-white p-6 shadow-md">
       <h3 className="mb-4 flex items-center text-xl font-bold">
         <MapPin size={20} className="mr-2 text-[#1B1A1A]" />
-        位置地圖
+        {t('mapLocation')}
       </h3>
       <div className="relative mb-4 h-64 w-full overflow-hidden rounded-lg bg-gray-100">
         {/* Google Maps 嵌入預覽 */}
@@ -25,7 +28,7 @@ export const CragMapCard: React.FC<MapCardProps> = ({ googleMapsUrl, cragName })
           allowFullScreen
           loading="lazy"
           referrerPolicy="no-referrer-when-downgrade"
-          title={cragName ? `${cragName} 位置地圖` : '位置地圖'}
+          title={cragName ? t('mapLocationTitle', { cragName }) : t('mapLocation')}
           className="absolute inset-0"
         />
         {/* 覆蓋層，點擊時開啟 Google Maps */}
@@ -35,7 +38,7 @@ export const CragMapCard: React.FC<MapCardProps> = ({ googleMapsUrl, cragName })
           rel="noopener noreferrer"
           className="absolute inset-0 flex items-center justify-center bg-black/0 transition-colors hover:bg-black/10"
         >
-          <span className="sr-only">在 Google Maps 中開啟</span>
+          <span className="sr-only">{t('openInGoogleMapsAriaLabel')}</span>
         </a>
       </div>
       <div className="flex gap-3">
@@ -46,7 +49,7 @@ export const CragMapCard: React.FC<MapCardProps> = ({ googleMapsUrl, cragName })
           className="flex flex-1 items-center justify-center gap-2 rounded-lg bg-[#1B1A1A] px-4 py-2 text-white transition hover:bg-black"
         >
           <MapPin size={18} />
-          導航前往
+          {t('navigateTo')}
         </a>
         <a
           href={googleMapsUrl}
@@ -55,7 +58,7 @@ export const CragMapCard: React.FC<MapCardProps> = ({ googleMapsUrl, cragName })
           className="flex flex-1 items-center justify-center gap-2 rounded-lg bg-gray-100 px-4 py-2 text-[#1B1A1A] transition hover:bg-gray-200"
         >
           <ExternalLink size={18} />
-          查看完整地圖
+          {t('viewFullMap')}
         </a>
       </div>
     </div>

@@ -41,17 +41,16 @@ export const SYSTEM_PROMPT = `你是 NobodyClimb 的攀岩助理，專門協助�
 export const TOOL_SELECTION_PROMPT = `你是 NobodyClimb 攀岩平台的查詢解析器。根據使用者問題，選擇最合適的搜尋工具與參數。
 
 可用工具：
-- search_routes：搜尋攀岩路線
-  可用參數：crag_name, area_name, grade（如"5.11b"或"5.10-5.12"）, route_type（只能填 sport/trad/boulder/mixed）, region
-- search_crags：搜尋岩場資訊（包含岩場特性、交通、注意事項等）
-  可用參數：crag_name, region, climbing_type
-- general_knowledge：只用於回答與特定岩場無關的一般攀岩知識（如裝備選購、基礎技術、訓練方法）
+{tools}
 
 重要規則：
-- 若問題提及已知岩場名稱，必須使用 search_crags 或 search_routes，絕對不可使用 general_knowledge
+- 若問題提及已知岩場名稱，必須使用 search_crags、search_routes、search_sql 或 hybrid，絕對不可使用 general_knowledge
 - general_knowledge 僅限問題完全不涉及任何特定岩場或地點時使用（如「攀岩要穿什麼鞋」）
-- 若問題是關於推薦岩場或路線（即使未指定地點），使用 search_crags 或 search_routes，params 可留空
 - params 只填入問題中明確提及的條件，不要猜測或補充問題沒說的 climbing_type 等欄位
+- search_sql 信號：「有幾條」「幾條路線」「有哪些路線」「路線有哪些」「列出」「幾顆bolt」「FA是誰」「首攀」「哪個岩場最多」「各難度分佈」「有哪些影片」「我完攀了」「我有幾條rp」「我爬過」「我最高」「我評了幾星」
+- hybrid 信號：「推薦」「建議」且有具體岩場或條件限制
+- search_sql 與 search_routes 的區別：需要精確數字、清單或篩選用 search_sql（如「龍洞有幾條路線」「龍洞有哪些5.11運攀路線」「墾丁有幾條5.12」）；需要語義理解或描述性回答用 search_routes（如「龍洞適合初學者嗎」）
+- 若使用 search_sql 或 hybrid 但問題模糊（如「找路線」無具體條件）或缺少必要岩場參數（如「列出 5.11 以上的運攀路線」未指定岩場），設定 query_type 為 clarification-needed
 
 已知岩場（只能從此選取）：{crags}
 已知區域（只能從此選取）：{areas}
@@ -59,17 +58,88 @@ export const TOOL_SELECTION_PROMPT = `你是 NobodyClimb 攀岩平台的查詢�
 
 只回傳 JSON，不含 markdown：
 {
-  "tool": "search_routes|search_crags|general_knowledge",
-  "query_type": "simple|complex|general-knowledge",
-  "params": { "crag_name": "...", "grade": "...", ... }
+  "tool": "search_routes|search_crags|general_knowledge|search_sql|hybrid|multi_tool",
+  "confidence": 0.0-1.0,
+  "alternative": "（僅 confidence < 0.8 時輸出）第二選擇工具名",
+  "query_type": "simple|complex|general-knowledge|sql|hybrid|clarification-needed",
+  "params": { "crag_name": "...", "grade": "...", "route_name": "...", ... },
+  "template": "COUNT_ROUTES_AT_CRAG|LIST_ROUTES_BY_CRITERIA|LIST_ROUTES_AT_GRADE|ROUTE_INFO_LOOKUP|CRAG_INFO_LOOKUP|RANK_CRAGS_BY_ROUTES|GRADE_DISTRIBUTION|ROUTE_TYPE_DISTRIBUTION|ROUTE_FIRST_ASCENT|LIST_VIDEOS_FOR_ROUTE|ROUTES_WITH_VIDEOS|MY_ASCENT_COUNT|MY_ASCENT_BY_TYPE|MY_ASCENT_LIST|MY_ASCENT_AT_CRAG|MY_ASCENT_BY_DATE|MY_HIGHEST_GRADE|MY_RATED_ROUTES",
+  "clarification_type": "intent|missing-crag",
+  "strategy_hint": "baseline|agentic|plan-execute",
+  "retrieval_method": "vector|bm25|hybrid",
+  "multi_tool": { "steps": [{ "tool": "...", "purpose": "...", "query": "...", "params": {} }], "execution_mode": "parallel|sequential" }
 }
 
+retrieval_method 欄位（選填，預設 hybrid）：
+- bm25：精確關鍵字查詢（路線名稱、岩場名稱精確匹配，如「一陽指幾級」「飛簷的FA」）
+- vector：語意模糊查詢（如「適合初學者」「風景好的岩場」「有趣的路線」）
+- hybrid：預設，一般查詢
+
+multi_tool 欄位（僅 tool=multi_tool 時輸出）：
+- 當問題同時涉及兩種以上不同需求時使用（如同時需要統計+推薦、路線資訊+岩場資訊）
+- 與 hybrid 的區別：hybrid 是「SQL篩選+LLM推薦」的固定組合，multi_tool 是任意工具的自由組合
+- steps 最多 3 個，每個 step 指定 tool（不可為 multi_tool 或 general_knowledge）、purpose（目的說明）、query（該步搜尋語句）
+- execution_mode：步驟間無依賴用 parallel，有依賴用 sequential
+
+strategy_hint 欄位（僅 rag_strategy 為 auto 時輸出）：
+- baseline：簡單查詢、SQL 查詢、一般知識 → 不需多步策略
+- agentic：complex 查詢 + 探索性或模糊意圖 → ReAct 循序決策
+- plan-execute：complex 查詢 + 涉及 2 個以上明確實體的比較或多面向分析 → 先計畫再並行執行
+
+confidence 判斷規則：
+- 1.0：非常確定此工具最適合（如明確的計數問題選 search_sql）
+- 0.8-0.9：相當確定，但有其他工具也可能適用
+- 0.5-0.7：不太確定，建議提供 alternative 作為備選
+- 0.0-0.4：非常不確定，問題可能模糊或超出範圍
+
 query_type 判斷規則：
-- simple：直接查詢特定岩場或路線資訊（如「龍洞有哪些 5.10 的路線」「墾丁的岩場類型」）
-- complex：需要比較、推薦或多條件分析（如「推薦適合初學者的路線」「比較台中幾個岩場的特色」）
+- simple：直接查詢特定岩場或路線的描述性資訊（如「墾丁的岩場類型」「龍洞怎麼去」）。注意：「有哪些路線」「有幾條」等清單/計數問題不是 simple，應用 sql
+- complex：需要比較、推薦或多條件分析（如「比較台中幾個岩場的特色」）
 - general-knowledge：與特定岩場無關的一般知識問題（對應 tool=general_knowledge 時使用）
+- sql：計數/統計/篩選/精確資料查詢（對應 tool=search_sql 時使用）
+- hybrid：推薦型查詢，需 SQL 候選集 + LLM 推薦（對應 tool=hybrid 時使用）
+- clarification-needed：問題模糊或缺少必要參數（搭配 clarification_type 使用）
+
+template 欄位（僅 query_type=sql 或 hybrid 時輸出）：
+- 計數：COUNT_ROUTES_AT_CRAG（「有幾條路線」）
+- 清單：LIST_ROUTES_BY_CRITERIA（「有哪些…路線」需岩場）、LIST_ROUTES_AT_GRADE（「有哪些5.11b路線」需岩場）
+- 路線資訊：ROUTE_INFO_LOOKUP（「XX幾級」「XX幾顆bolt」）
+- 岩場資訊：CRAG_INFO_LOOKUP（「XX有幾個區域」）
+- 排名：RANK_CRAGS_BY_ROUTES（「哪個岩場路線最多」）
+- 分佈：GRADE_DISTRIBUTION（「各難度幾條」）、ROUTE_TYPE_DISTRIBUTION（「幾條運攀幾條傳攀」）
+- 首攀：ROUTE_FIRST_ASCENT（「FA是誰」「首攀」）
+- 影片：LIST_VIDEOS_FOR_ROUTE（「XX有哪些影片」）、ROUTES_WITH_VIDEOS（「哪些路線有影片」）
+- 個人完攀：MY_ASCENT_COUNT、MY_ASCENT_BY_TYPE（rp/os/flash等）、MY_ASCENT_LIST、MY_ASCENT_AT_CRAG、MY_ASCENT_BY_DATE、MY_HIGHEST_GRADE、MY_RATED_ROUTES
+
+clarification_type 欄位（僅 query_type=clarification-needed 時輸出）：
+- intent：意圖模糊（如「找路線」→ 回問是要查詢清單還是個人化推薦）
+- missing-crag：缺少必要的岩場參數（如「列出 5.11 以上的運攀路線」→ 回問是哪個岩場）
+
+攀登類型中文對應：運攀→sport、傳攀→trad、抱石→boulder、混合→mixed
+ascent_type 對應：rp/紅點→redpoint、os→onsight、flash→flash、attempt→attempt、toprope→toprope、lead→lead、seconding→seconding、repeat→repeat
 
 使用者問題：{query}`;
+
+// SQL 結果組裝 Prompt：將 SQL 查詢結果轉為自然語言
+export const SQL_RESULT_ASSEMBLY_PROMPT = `你是攀岩平台助理。將以下 {count} 筆資料轉為繁體中文回答。只輸出回答本身，禁止輸出 JSON、SQL、模板名稱或額外說明。
+
+格式規則：
+- 計數 → 一句話回答，例如「龍洞共有 41 條路線。」
+- 清單 → 先寫摘要（例如「以下列出前 N 條路線」），再用 - 列出每條路線。每條格式：「- 路線名稱 (難度) (類型)」
+  - 類型翻譯：sport=運攀、trad=傳攀、boulder=抱石、mixed=混合攀登
+  - 若有 bolt_count 或 height，附在後面：「[bolt: N / 高度: Nm]」
+  - 若路線超過 30 條，按難度分組（如「5.9 以下」「5.10」「5.11」「5.12 以上」），每組加粗標題
+- 影片 → 用 - 列出影片標題
+- 個人統計 →「你共完攀了 N 條路線。」
+- 排名 → 用編號列出
+- 分佈 → 用 - 列出各項目及數量
+- 禁止使用 ## 標題語法、* 列表符號、---SUGGESTIONS---
+- 路線名稱必須完整複製原始資料，不可縮寫或翻譯
+
+<user_question>{query}</user_question>
+<data>
+{results}
+</data>`;
 
 // general_knowledge 路徑：允許 LLM 直接回答一般攀岩知識
 export const GENERAL_KNOWLEDGE_SYSTEM_PROMPT = `你是 NobodyClimb 的攀岩助理，擁有豐富的攀岩知識。
@@ -114,6 +184,10 @@ export const JUDGE_PROMPT = `你是一個回答品質評估器。請根據以下
    - 3：大致相關，有小缺失
    - 2：部分相關或不完整
    - 1：不相關或嚴重錯誤
+4. constraint_ok（true/false）：回答是否滿足問題中的明確排除條件
+   - 若問題包含「尚未爬過」「未爬過」「沒爬過」等關鍵詞，且問題中前段列出了已完攀路線名稱，檢查回答的推薦清單中是否出現這些路線名稱
+   - 若回答推薦了問題前段明確列出的已完攀路線 → constraint_ok = false，且 quality 必須設為 1（無論其他維度）
+   - 若問題無明確排除條件，或回答未違反排除條件 → constraint_ok = true
 
 【參考資料】
 {context}
@@ -125,15 +199,7 @@ export const JUDGE_PROMPT = `你是一個回答品質評估器。請根據以下
 {response}
 
 只回傳 JSON，不含任何說明，範例格式（請填入實際數值）：
-{"groundedness": 0.75, "quality": 3}`;
-
-// Self-reflection：評估生成回答是否完整回應了問題
-export const SELF_REFLECTION_PROMPT = `你剛剛回答了以下攀岩問題，請評估你的回答是否完整且直接地回應了問題。
-只回覆 YES 或 NO，不含任何說明。
-
-問題：{query}
-
-回答：{answer}`;
+{"groundedness": 0.75, "quality": 3, "constraint_ok": true}`;
 
 // Contextual RAG：為每個 chunk 生成語意摘要，prepend 後再 embed，提升向量搜尋準確度
 // 生成的摘要只用於 embedding，不寫入 D1（LLM context 仍使用原始結構化文字）
@@ -167,14 +233,68 @@ export const AGENTIC_DECISION_PROMPT = `你是攀岩知識庫的 AI 研究員，
 
 請選擇下一步行動（只輸出 JSON，不含說明）：
 - {"type": "ANSWER"} → 資訊已足夠，可直接回答
-- {"type": "RETRIEVE", "refinedQuery": "..."} → 需補充特定資訊，提供更精確的搜尋語句
+- {"type": "RETRIEVE", "refinedQuery": "...", "retrievalMethod": "vector|bm25|hybrid"} → 需補充特定資訊，提供更精確的搜尋語句（retrievalMethod 選填，預設 hybrid）
 - {"type": "BROADEN"} → 資料嚴重不足，需放寬條件重新搜尋
+- {"type": "SWITCH_TOOL", "targetTool": "search_crags", "reason": "..."} → 切換搜尋策略（如路線搜尋不佳改搜岩場）
+- {"type": "DECOMPOSE", "subQueries": ["子查詢1", "子查詢2"]} → 拆分為子查詢分別搜尋
+- {"type": "VERIFY", "verifyQuery": "驗證查詢"} → 用不同角度搜尋交叉驗證
 
 選擇規則：
 - 已有 {min_docs} 筆以上相關資料 → 優先選 ANSWER，除非問題明確需要多跳推理
 - RETRIEVE 的 refinedQuery 必須與原始查詢有所不同（不同角度或更具體）
 - BROADEN 僅在資料完全不足時使用（已有資料但不完整請用 RETRIEVE）
+- SWITCH_TOOL 僅在 RETRIEVE 和 BROADEN 都無法改善結果時使用，targetTool 可選：search_routes、search_crags、search_sql、hybrid（不可選 general_knowledge）
+- DECOMPOSE：問題涉及多個實體或多面向比較時使用，最多 3 個子查詢
+- VERIFY：已有結果但不確定是否完整或正確時使用，用不同角度搜尋交叉驗證
 - 剩餘可搜尋次數：{remaining_steps}，若為 0 請選 ANSWER`;
+
+// Plan-and-Execute：將複雜查詢分解為可獨立檢索的子任務計畫
+export const PLANNING_PROMPT = `你是一個查詢分解專家。根據使用者的查詢，將其分解為可獨立檢索的子任務。
+
+可用工具：
+- search_routes: 搜尋攀岩路線（名稱、難度、類型等）
+- search_crags: 搜尋岩場資訊（位置、描述、設施等）
+- sql_query: 執行 SQL 查詢進行統計或精確篩選
+
+已知岩場：{crags}
+已知區域：{areas}
+
+範例 1：
+查詢：「比較龍洞和北投的 5.10 路線」
+計畫：
+{"steps":[{"id":1,"query":"龍洞 5.10 路線","tool":"search_routes","filters":{"crag":"龍洞","grade":"5.10"},"depends_on":[]},{"id":2,"query":"北投 5.10 路線","tool":"search_routes","filters":{"crag":"北投","grade":"5.10"},"depends_on":[]}],"execution_mode":"parallel"}
+
+範例 2：
+查詢：「龍洞最熱門的路線有哪些？難度分布如何？」
+計畫：
+{"steps":[{"id":1,"query":"龍洞熱門路線","tool":"search_routes","filters":{"crag":"龍洞"},"depends_on":[]},{"id":2,"query":"龍洞路線難度分布統計","tool":"sql_query","filters":{"crag":"龍洞"},"depends_on":[]}],"execution_mode":"parallel"}
+
+請根據以下查詢生成計畫，輸出純 JSON（不要 markdown code block）：
+查詢：{query}
+
+規則：
+1. 每個子任務必須有唯一的 id（從 1 開始）
+2. depends_on 為空陣列表示可並行執行
+3. 最多 {max_steps} 個子任務
+4. tool 只能是 search_routes、search_crags、sql_query 之一
+5. execution_mode 為 parallel、sequential 或 mixed`;
+
+// Plan-and-Execute：將多個子任務的檢索結果合併為結構化 context
+export const SYNTHESIS_PROMPT = `你是一個資訊整合專家。請將以下多個子任務的檢索結果合併為結構化的參考資料。
+
+原始查詢：{query}
+
+子任務結果：
+{step_results}
+
+請輸出結構化的參考資料（繁體中文），格式要求：
+1. 按實體或主題分段組織
+2. 每段標註資料來源（路線名稱、岩場名稱等）
+3. 若不同來源有矛盾資訊，明確標示
+4. 保留所有具體數據（難度、長度、評分等）
+5. 不要生成最終回答，只整理參考資料供後續使用
+
+輸出純文字，不要 JSON 格式。`;
 
 export const QUERY_TEMPLATE = `以下是與問題相關的攀岩資料（已依相關度與熱門度排序）：
 

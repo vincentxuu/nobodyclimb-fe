@@ -5,6 +5,7 @@ import { Loader2 } from 'lucide-react'
 import { biographyService } from '@/lib/api/services'
 import { Biography } from '@/lib/types'
 import { BiographyCard } from '@/components/biography/biography-list'
+import { useTranslations } from 'next-intl'
 
 interface RecommendedProfilesProps {
   currentId: string
@@ -12,6 +13,7 @@ interface RecommendedProfilesProps {
 }
 
 export function RecommendedProfiles({ currentId, limit = 3 }: RecommendedProfilesProps) {
+  const t = useTranslations('BiographyPage')
   const [profiles, setProfiles] = useState<Biography[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
@@ -32,12 +34,12 @@ export function RecommendedProfiles({ currentId, limit = 3 }: RecommendedProfile
             .slice(0, limit)
           setProfiles(filtered)
         } else {
-          setError('無法載入推薦人物誌')
+          setError(t('loadError'))
           setProfiles([])
         }
       } catch (err) {
         console.error('Failed to fetch recommended profiles:', err)
-        setError('載入推薦人物誌時發生錯誤')
+        setError(t('loadErrorAlt'))
         setProfiles([])
       } finally {
         setLoading(false)

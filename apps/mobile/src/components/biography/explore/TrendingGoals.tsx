@@ -11,7 +11,7 @@ import { Flame, Users, Target, MapPin, Plus, Mountain, Home, Check } from 'lucid
 
 import { Text, Card, Button, Avatar } from '@/components/ui'
 import { useAuthStore } from '@/store/authStore'
-import { SEMANTIC_COLORS, SPACING, RADIUS } from '@nobodyclimb/constants'
+import { BRAND_YELLOW, RADIUS, SEMANTIC_COLORS, SPACING, WB_COLORS } from '@nobodyclimb/constants'
 
 // 類型定義
 interface TrendingItem {
@@ -195,7 +195,7 @@ export function TrendingGoals({ searchTerm, filter }: TrendingGoalsProps) {
     <View style={styles.container}>
       {/* 標題 */}
       <View style={styles.header}>
-        <Flame size={24} color="#1B1A1A" />
+        <Flame size={24} color={WB_COLORS[100]} />
         <Text variant="h4" fontWeight="700">
           本週熱門目標
         </Text>
@@ -289,10 +289,10 @@ export function TrendingGoals({ searchTerm, filter }: TrendingGoalsProps) {
                       disabled={addingItems.has(item.id) || addedItems.has(item.id)}
                     >
                       {addingItems.has(item.id) ? (
-                        <ActivityIndicator size="small" color="#fff" />
+                        <ActivityIndicator size="small" color={WB_COLORS[0]} />
                       ) : addedItems.has(item.id) ? (
                         <>
-                          <Check size={16} color="#fff" />
+                          <Check size={16} color={WB_COLORS[0]} />
                           <Text style={styles.addButtonText}>已加入</Text>
                         </>
                       ) : (
@@ -361,14 +361,14 @@ const styles = StyleSheet.create({
     width: 32,
     height: 32,
     borderRadius: 16,
-    backgroundColor: '#FFE70C',
+    backgroundColor: BRAND_YELLOW[100],
     alignItems: 'center',
     justifyContent: 'center',
   },
   rankText: {
     fontSize: 14,
     fontWeight: '700',
-    color: '#1B1A1A',
+    color: WB_COLORS[100],
   },
   titleContent: {
     flex: 1,
@@ -418,7 +418,7 @@ const styles = StyleSheet.create({
     borderColor: SEMANTIC_COLORS.textMain,
   },
   addButtonText: {
-    color: '#fff',
+    color: WB_COLORS[0],
     fontSize: 13,
     fontWeight: '500',
   },

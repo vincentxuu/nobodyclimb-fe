@@ -8,7 +8,7 @@ import { StyleSheet, View, Pressable } from 'react-native'
 import { ChevronRight } from 'lucide-react-native'
 
 import { Text } from '@/components/ui'
-import { SEMANTIC_COLORS, SPACING } from '@nobodyclimb/constants'
+import { SEMANTIC_COLORS, SPACING, WB_COLORS } from '@nobodyclimb/constants'
 
 interface RouteListItemProps {
   id: string
@@ -90,7 +90,7 @@ const styles = StyleSheet.create({
     marginVertical: 2,
   },
   pressed: {
-    backgroundColor: '#F5F5F5',
+    backgroundColor: WB_COLORS[10],
   },
   content: {
     flexDirection: 'row',
@@ -107,7 +107,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   gradeText: {
-    color: '#1B1A1A',
+    color: WB_COLORS[100],
   },
   info: {
     flex: 1,

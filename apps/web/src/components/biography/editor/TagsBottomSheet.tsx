@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useEffect, useRef, useCallback } from 'react'
+import { useTranslations } from 'next-intl'
 import { cn } from '@/lib/utils'
 import {
   Check,
@@ -76,6 +77,7 @@ export function TagsBottomSheet({
   onComplete,
   className,
 }: TagsBottomSheetProps) {
+  const t = useTranslations('BiographyEditor')
   const [isAnimating, setIsAnimating] = useState(false)
   const [expandedDimensions, setExpandedDimensions] = useState<Set<string>>(new Set())
   const [dragY, setDragY] = useState(0)
@@ -253,15 +255,15 @@ export function TagsBottomSheet({
               type="button"
               onClick={onClose}
               className="p-1.5 -ml-1.5 rounded-full hover:bg-[#F5F5F5] active:bg-[#EBEAEA] transition-colors"
-              aria-label="關閉"
+              {...{"aria-label": t('tagsBottomSheetClose')}}
             >
               <X size={20} className="text-[#6D6C6C]" />
             </button>
             <Tag size={20} className="text-[#3F3D3D]" />
-            <h3 className="font-semibold text-[#1B1A1A]">幫自己貼標籤</h3>
+            <h3 className="font-semibold text-[#1B1A1A]">{t('tagsBottomSheetTitle')}</h3>
             {totalSelected > 0 && (
               <span className="text-xs text-[#6D6C6C] px-2 py-0.5 bg-[#F5F5F5] rounded-full">
-                已選 {totalSelected} 個
+                {t('tagsSelectedCount', { count: totalSelected })}
               </span>
             )}
           </div>
@@ -271,7 +273,7 @@ export function TagsBottomSheet({
             className="flex items-center gap-1 px-4 py-2 bg-brand-dark text-white rounded-full text-sm font-medium hover:bg-brand-dark-hover transition-colors"
           >
             <Check size={16} />
-            完成
+            {t('tagsBottomSheetDone')}
           </button>
         </div>
 
@@ -343,14 +345,14 @@ export function TagsBottomSheet({
                           className="flex items-center gap-1 px-3 py-1.5 border border-dashed border-[#DBD8D8] rounded-full text-sm text-[#6D6C6C] hover:border-[#3F3D3D] hover:text-[#3F3D3D] transition-colors"
                         >
                           <Plus size={14} />
-                          <span>新增</span>
+                          <span>{t('tagsAddCustom')}</span>
                         </button>
                       )}
                     </div>
                     <p className="text-xs text-[#8E8C8C]">
                       {dimension.selection_mode === 'multiple'
-                        ? '可複選'
-                        : '單選'}
+                        ? t('tagsCanMultiselect')
+                        : t('tagsSingleSelect')}
                       {dimension.description && ` · ${dimension.description}`}
                     </p>
                   </div>
@@ -359,7 +361,7 @@ export function TagsBottomSheet({
             )
           })}
 
-          {/* 新增標籤類別按鈕 */}
+          {/* {t('tagsAddDimension')}按鈕 */}
           {onAddCustomDimension && (
             <button
               type="button"
@@ -367,7 +369,7 @@ export function TagsBottomSheet({
               className="flex items-center gap-1 text-sm text-[#6D6C6C] hover:text-[#1B1A1A] transition-colors mt-2"
             >
               <Plus size={16} />
-              新增標籤類別
+              {t('tagsAddDimension')}
             </button>
           )}
         </div>

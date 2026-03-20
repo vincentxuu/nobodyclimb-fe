@@ -1,6 +1,7 @@
 'use client'
 
 import Image from 'next/image'
+import { useTranslations } from 'next-intl'
 import { getDefaultAvatarUrl, isSvgUrl } from '@/lib/utils/image'
 
 interface ProfileAvatarProps {
@@ -25,8 +26,9 @@ export function ProfileAvatar({
   className = 'h-full w-full object-cover',
   priority = false,
 }: ProfileAvatarProps) {
+  const t = useTranslations('BiographyPage')
   const avatarUrl = src || getDefaultAvatarUrl(name || 'anonymous')
-  const altText = alt || `${name} 的頭像`
+  const altText = alt || t('avatarAlt', { name })
 
   if (isSvgUrl(avatarUrl)) {
     return <img src={avatarUrl} alt={altText} className={className} />

@@ -10,7 +10,7 @@ import { ChevronRight, ImageIcon } from 'lucide-react-native'
 import Animated, { FadeInDown } from 'react-native-reanimated'
 
 import { Text, Card } from '@/components/ui'
-import { SEMANTIC_COLORS, SPACING, RADIUS } from '@nobodyclimb/constants'
+import { RADIUS, SEMANTIC_COLORS, SPACING, WB_COLORS } from '@nobodyclimb/constants'
 
 interface Story {
   id: string
@@ -110,14 +110,14 @@ const styles = StyleSheet.create({
     height: 60,
     borderRadius: RADIUS.sm,
     overflow: 'hidden',
-    backgroundColor: '#F5F5F5',
+    backgroundColor: WB_COLORS[10],
   },
   imageContainerCompact: {
     width: 56,
     height: 42,
     borderRadius: RADIUS.sm,
     overflow: 'hidden',
-    backgroundColor: '#F5F5F5',
+    backgroundColor: WB_COLORS[10],
   },
   image: {
     width: '100%',

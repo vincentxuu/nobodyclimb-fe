@@ -10,7 +10,7 @@ import Animated, { FadeIn } from 'react-native-reanimated'
 
 import { Text } from '@/components/ui'
 import { BiographyBucketList } from '@/components/bucket-list'
-import { SEMANTIC_COLORS, SPACING, RADIUS } from '@nobodyclimb/constants'
+import { BRAND_YELLOW, RADIUS, SEMANTIC_COLORS, SPACING, WB_COLORS } from '@nobodyclimb/constants'
 
 // 類型定義
 interface BucketListItem {
@@ -135,7 +135,7 @@ export function ChapterBucketList({ person, isOwner: _isOwner }: ChapterBucketLi
 
 const styles = StyleSheet.create({
   container: {
-    backgroundColor: '#fff',
+    backgroundColor: WB_COLORS[0],
     paddingVertical: SPACING.xl,
     paddingHorizontal: SPACING.md,
   },
@@ -148,7 +148,7 @@ const styles = StyleSheet.create({
   },
   chapterBadge: {
     alignSelf: 'flex-start',
-    backgroundColor: '#FFE70C',
+    backgroundColor: BRAND_YELLOW[100],
     paddingHorizontal: SPACING.sm,
     paddingVertical: 2,
     marginBottom: SPACING.sm,

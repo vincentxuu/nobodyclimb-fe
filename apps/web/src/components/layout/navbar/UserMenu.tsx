@@ -1,10 +1,9 @@
 'use client'
 
 import { useState } from 'react'
-import { useRouter } from 'next/navigation'
-import Link from 'next/link'
+import { useRouter, Link } from '@/i18n/navigation'
 import { Button } from '@/components/ui/button'
-import { NAV_LINKS } from '@/lib/constants'
+import { useTranslations } from 'next-intl'
 import { useAuthStore } from '@/store/authStore'
 import { generateAvatarElement, DEFAULT_AVATARS } from '@/components/shared/avatar-options'
 import { AvatarWithFallback } from '@/components/ui/avatar-with-fallback'
@@ -17,36 +16,45 @@ import {
   DropdownMenuSeparator,
 } from '@/components/ui/dropdown-menu'
 
-// 共用的選單項目樣式
 const menuItemBaseClass =
   "cursor-pointer font-['Noto_Sans_CJK_TC'] text-sm font-medium leading-5 tracking-[0.01em] hover:bg-gray-100"
 const createMenuItemClass = `${menuItemBaseClass} px-4 py-3 text-[#3F3D3D]`
 const userMenuItemClass = `${menuItemBaseClass} px-3 py-2.5 text-[#3F3D3D]`
 const logoutMenuItemClass = `${menuItemBaseClass} px-3 py-2.5 text-[#D94A4A]`
 
-const personalMenuItems = [
-  { label: '我的人物誌', href: '/profile' },
-  { label: '人生清單', href: '/profile/bucket-list' },
-  { label: '攀爬紀錄', href: '/profile/ascents' },
-  { label: 'AI 推薦', href: '/profile/recommendations' },
-  { label: '攀登成就', href: '/profile/stats' },
-  { label: '我的照片', href: '/profile/photos' },
-  { label: '我的文章', href: '/profile/articles' },
-  { label: '我的收藏', href: '/profile/bookmarks' },
-  { label: '帳號設定', href: '/profile/settings' },
+const NAV_ITEMS = [
+  { href: '/biography', key: 'biography' },
+  { href: '/crag', key: 'crag' },
+  { href: '/gym', key: 'gym' },
+  { href: '/gallery', key: 'gallery' },
+  { href: '/videos', key: 'videos' },
+  { href: '/blog', key: 'blog' },
+] as const
+
+const PERSONAL_ITEMS = [
+  { href: '/profile', key: 'myProfile' },
+  { href: '/profile/bucket-list', key: 'bucketList' },
+  { href: '/profile/ascents', key: 'ascents' },
+  { href: '/profile/recommendations', key: 'recommendations' },
+  { href: '/profile/stats', key: 'stats' },
+  { href: '/profile/photos', key: 'photos' },
+  { href: '/profile/articles', key: 'articles' },
+  { href: '/profile/bookmarks', key: 'bookmarks' },
+  { href: '/profile/settings', key: 'settings' },
 ] as const
 
 /**
  * 用戶選單組件
- * 手機和桌機統一設計
  * 未登入時顯示登入按鈕，登入後顯示用戶頭像和下拉選單
  */
 export default function UserMenu() {
   const router = useRouter()
   const { status, signOut, user } = useAuthStore()
   const [activeTab, setActiveTab] = useState<'explore' | 'personal'>('personal')
+  const t = useTranslations('UserMenu')
+  const tNav = useTranslations('Navbar')
+  const tAuth = useTranslations('AuthPage')
 
-  // 假設用戶數據中有 avatarStyle 屬性，否則使用默認頭像
   const avatarStyle = user?.avatarStyle
     ? DEFAULT_AVATARS.find((a) => a.id === user.avatarStyle) || DEFAULT_AVATARS[0]
     : DEFAULT_AVATARS[0]
@@ -63,7 +71,7 @@ export default function UserMenu() {
                 className="h-7 rounded-lg border border-[#1B1A1A] px-2 font-medium text-[#1B1A1A] hover:bg-gray-100/80 md:h-8 md:px-3 lg:h-9 lg:px-4"
               >
                 <span className="font-['Noto_Sans_CJK_TC'] text-xs font-medium leading-5 tracking-[0.01em] md:text-sm">
-                  創作
+                  {t('create')}
                 </span>
               </Button>
             </DropdownMenuTrigger>
@@ -72,13 +80,13 @@ export default function UserMenu() {
                 className={createMenuItemClass}
                 onClick={() => router.push('/blog/create')}
               >
-                發表文章
+                {t('writeArticle')}
               </DropdownMenuItem>
               <DropdownMenuItem
                 className={createMenuItemClass}
                 onClick={() => router.push('/upload')}
               >
-                上傳照片
+                {t('uploadPhoto')}
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
@@ -112,7 +120,7 @@ export default function UserMenu() {
                   }`}
                   onClick={() => setActiveTab('explore')}
                 >
-                  探索
+                  {t('exploreTab')}
                 </button>
                 <button
                   type="button"
@@ -123,31 +131,31 @@ export default function UserMenu() {
                   }`}
                   onClick={() => setActiveTab('personal')}
                 >
-                  個人
+                  {t('personalTab')}
                 </button>
               </div>
 
               <div className="max-h-[320px] overflow-y-auto md:max-h-none md:min-h-[320px] md:overflow-visible">
                 {activeTab === 'explore' &&
-                  NAV_LINKS.map((item) => (
+                  NAV_ITEMS.map((item) => (
                     <DropdownMenuItem
                       key={item.href}
                       className={userMenuItemClass}
                       onClick={() => router.push(item.href)}
                     >
-                      {item.label}
+                      {tNav(item.key)}
                     </DropdownMenuItem>
                   ))}
 
                 {activeTab === 'personal' && (
                   <>
-                    {personalMenuItems.map((item) => (
+                    {PERSONAL_ITEMS.map((item) => (
                       <DropdownMenuItem
                         key={item.href}
                         className={userMenuItemClass}
                         onClick={() => router.push(item.href)}
                       >
-                        {item.label}
+                        {t(item.key)}
                       </DropdownMenuItem>
                     ))}
                     <DropdownMenuSeparator className="my-1 bg-[#EBEAEA]" />
@@ -155,7 +163,7 @@ export default function UserMenu() {
                       className={logoutMenuItemClass}
                       onClick={() => signOut()}
                     >
-                      登出
+                      {t('logout')}
                     </DropdownMenuItem>
                   </>
                 )}
@@ -171,7 +179,7 @@ export default function UserMenu() {
             className="h-7 rounded-lg border border-[#1B1A1A] px-2 font-medium text-[#1B1A1A] hover:bg-gray-100/80 md:h-8 md:px-3 lg:h-9 lg:px-4"
           >
             <span className="font-['Noto_Sans_CJK_TC'] text-xs font-medium leading-5 tracking-[0.01em] md:text-sm">
-              登入
+              {tAuth('login')}
             </span>
           </Button>
         </Link>

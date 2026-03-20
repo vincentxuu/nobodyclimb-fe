@@ -8,7 +8,7 @@ import { StyleSheet, View } from 'react-native'
 import { Lock, EyeOff } from 'lucide-react-native'
 
 import { Text } from '@/components/ui'
-import { SEMANTIC_COLORS, SPACING, RADIUS } from '@nobodyclimb/constants'
+import { RADIUS, SEMANTIC_COLORS, SPACING, WB_COLORS } from '@nobodyclimb/constants'
 
 interface PrivateEmptyStateProps {
   /** 標題 */
@@ -54,14 +54,14 @@ const styles = StyleSheet.create({
     backgroundColor: '#F9F9F9',
     borderRadius: RADIUS.lg,
     borderWidth: 1,
-    borderColor: '#EBEAEA',
+    borderColor: WB_COLORS[20],
     borderStyle: 'dashed',
   },
   iconContainer: {
     width: 64,
     height: 64,
     borderRadius: 32,
-    backgroundColor: '#EBEAEA',
+    backgroundColor: WB_COLORS[20],
     alignItems: 'center',
     justifyContent: 'center',
     marginBottom: SPACING.md,

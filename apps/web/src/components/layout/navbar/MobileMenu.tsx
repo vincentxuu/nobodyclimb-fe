@@ -2,27 +2,35 @@
 
 import { useState } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-import { usePathname, useRouter } from 'next/navigation'
-import Link from 'next/link'
-import { NAV_LINKS } from '@/lib/constants'
+import { usePathname, useRouter, Link } from '@/i18n/navigation'
 import { X, Menu, LogOut } from 'lucide-react'
 import { useAuthStore } from '@/store/authStore'
+import { useTranslations } from 'next-intl'
 import { generateAvatarElement, DEFAULT_AVATARS } from '@/components/shared/avatar-options'
 import { AvatarWithFallback } from '@/components/ui/avatar-with-fallback'
 import { Button } from '@/components/ui/button'
 
-const personalMenuItems = [
-  { label: '人物誌', href: '/profile' },
-  { label: '推薦', href: '/profile/recommendations' },
-  { label: '記憶', href: '/profile/ai-memory' },
-  { label: '清單', href: '/profile/bucket-list' },
-  { label: '攀爬紀錄', href: '/profile/ascents' },
-  { label: '成就', href: '/profile/stats' },
-  { label: '文章', href: '/profile/articles' },
-  { label: '照片', href: '/profile/photos' },
-  { label: '收藏', href: '/profile/bookmarks' },
-  { label: '設定', href: '/profile/settings' },
-]
+const NAV_ITEMS = [
+  { href: '/biography', key: 'biography' },
+  { href: '/crag', key: 'crag' },
+  { href: '/gym', key: 'gym' },
+  { href: '/gallery', key: 'gallery' },
+  { href: '/videos', key: 'videos' },
+  { href: '/blog', key: 'blog' },
+] as const
+
+const PERSONAL_ITEMS = [
+  { href: '/profile', key: 'profile' },
+  { href: '/profile/recommendations', key: 'recommendations' },
+  { href: '/profile/ai-memory', key: 'memory' },
+  { href: '/profile/bucket-list', key: 'bucketList' },
+  { href: '/profile/ascents', key: 'ascents' },
+  { href: '/profile/stats', key: 'stats' },
+  { href: '/profile/articles', key: 'articles' },
+  { href: '/profile/photos', key: 'photos' },
+  { href: '/profile/bookmarks', key: 'bookmarks' },
+  { href: '/profile/settings', key: 'settings' },
+] as const
 
 /**
  * 手機版選單組件
@@ -34,11 +42,12 @@ export default function MobileMenu() {
   const pathname = usePathname()
   const router = useRouter()
   const { status, signOut, user } = useAuthStore()
+  const t = useTranslations('MobileMenu')
+  const tNav = useTranslations('Navbar')
 
   const toggleMenu = () => setIsOpen(!isOpen)
   const closeMenu = () => setIsOpen(false)
 
-  // 獲取用戶頭像樣式
   const avatarStyle = user?.avatarStyle
     ? DEFAULT_AVATARS.find((a) => a.id === user.avatarStyle) || DEFAULT_AVATARS[0]
     : DEFAULT_AVATARS[0]
@@ -55,16 +64,14 @@ export default function MobileMenu() {
 
   return (
     <>
-      {/* 漢堡選單按鈕 - 僅在手機版顯示 */}
       <button
         onClick={toggleMenu}
         className="flex items-center justify-center p-2 text-[#1B1A1A] transition-colors hover:text-[#1B1A1A]/80 md:hidden"
-        aria-label="開啟選單"
+        aria-label={t('openMenu')}
       >
         <Menu className="h-6 w-6" />
       </button>
 
-      {/* 背景遮罩 */}
       <AnimatePresence>
         {isOpen && (
           <motion.div
@@ -78,7 +85,6 @@ export default function MobileMenu() {
         )}
       </AnimatePresence>
 
-      {/* 側邊選單 */}
       <AnimatePresence>
         {isOpen && (
           <motion.div
@@ -88,20 +94,18 @@ export default function MobileMenu() {
             transition={{ type: 'spring', damping: 30, stiffness: 300 }}
             className="fixed right-0 top-0 z-[10001] flex h-[100dvh] max-h-[100dvh] w-[280px] flex-col bg-white shadow-xl md:hidden"
           >
-            {/* 選單標題和關閉按鈕 */}
             <div className="flex flex-shrink-0 items-center justify-between bg-white px-3 py-2 xs:p-3">
-              <h2 className="font-['Noto_Sans_TC'] text-sm font-bold text-[#1B1A1A] xs:text-base">選單</h2>
+              <h2 className="font-['Noto_Sans_TC'] text-sm font-bold text-[#1B1A1A] xs:text-base">{t('menuTitle')}</h2>
               <button
                 onClick={closeMenu}
                 className="flex items-center justify-center p-1 text-[#1B1A1A] transition-colors hover:text-[#1B1A1A]/80 xs:p-1.5"
-                aria-label="關閉選單"
+                aria-label={t('closeMenu')}
               >
                 <X className="h-5 w-5" />
               </button>
             </div>
 
             <div className="flex min-h-0 flex-1 flex-col overflow-y-auto bg-white">
-              {/* 用戶資訊區域 */}
               {status === 'signIn' ? (
                 <div className="border-b border-gray-200 bg-white px-3 py-2 xs:p-3">
                   <div className="mb-1.5 flex items-center space-x-2 xs:mb-2">
@@ -123,7 +127,6 @@ export default function MobileMenu() {
                       </p>
                     </div>
                   </div>
-                  {/* 創作按鈕 */}
                   <div className="flex gap-1.5">
                     <Button
                       variant="outline"
@@ -131,7 +134,7 @@ export default function MobileMenu() {
                       className="h-7 flex-1 rounded-lg border border-[#1B1A1A] bg-white font-medium text-[#1B1A1A] hover:bg-gray-50 xs:h-8"
                       onClick={() => handleNavigation('/blog/create')}
                     >
-                      <span className="font-['Noto_Sans_TC'] text-xs">發表文章</span>
+                      <span className="font-['Noto_Sans_TC'] text-xs">{t('writeArticle')}</span>
                     </Button>
                     <Button
                       variant="outline"
@@ -139,14 +142,14 @@ export default function MobileMenu() {
                       className="h-7 flex-1 rounded-lg border border-[#1B1A1A] bg-white font-medium text-[#1B1A1A] hover:bg-gray-50 xs:h-8"
                       onClick={() => handleNavigation('/upload')}
                     >
-                      <span className="font-['Noto_Sans_TC'] text-xs">上傳照片</span>
+                      <span className="font-['Noto_Sans_TC'] text-xs">{t('uploadPhoto')}</span>
                     </Button>
                   </div>
                 </div>
               ) : (
                 <div className="border-b border-gray-200 bg-white px-3 py-2 xs:p-3">
                   <div className="mb-2 text-center">
-                    <p className="text-xs text-gray-500">也是攀岩人？加入寫下你的故事</p>
+                    <p className="text-xs text-gray-500">{t('guestMessage')}</p>
                   </div>
                   <div className="flex gap-2">
                     <Button
@@ -154,13 +157,13 @@ export default function MobileMenu() {
                       className="h-7 flex-1 rounded-lg border border-[#1B1A1A] bg-white font-medium text-[#1B1A1A] hover:bg-gray-50 xs:h-8"
                       onClick={() => handleNavigation('/auth/login')}
                     >
-                      <span className="font-['Noto_Sans_TC'] text-xs">登入</span>
+                      <span className="font-['Noto_Sans_TC'] text-xs">{t('login')}</span>
                     </Button>
                     <Button
                       className="h-7 flex-1 rounded-lg bg-brand-accent/70 font-medium text-[#1B1A1A] hover:bg-brand-accent xs:h-8"
                       onClick={() => handleNavigation('/auth/register')}
                     >
-                      <span className="font-['Noto_Sans_TC'] text-xs">註冊</span>
+                      <span className="font-['Noto_Sans_TC'] text-xs">{t('register')}</span>
                     </Button>
                   </div>
                 </div>
@@ -178,7 +181,7 @@ export default function MobileMenu() {
                           : 'text-[#6D6C6C] hover:text-[#1B1A1A]'
                       }`}
                     >
-                      探索
+                      {t('exploreTab')}
                     </button>
                     <button
                       type="button"
@@ -189,13 +192,13 @@ export default function MobileMenu() {
                           : 'text-[#6D6C6C] hover:text-[#1B1A1A]'
                       }`}
                     >
-                      個人
+                      {t('personalTab')}
                     </button>
                   </div>
                 )}
 
                 {(status !== 'signIn' || activeTab === 'explore') &&
-                  NAV_LINKS.map((link) => {
+                  NAV_ITEMS.map((link) => {
                     const isActive = pathname.startsWith(link.href)
                     return (
                       <Link
@@ -215,14 +218,14 @@ export default function MobileMenu() {
                             transition={{ type: 'spring', damping: 30, stiffness: 300 }}
                           />
                         )}
-                        <span className={isActive ? 'ml-1.5' : ''}>{link.label}</span>
+                        <span className={isActive ? 'ml-1.5' : ''}>{tNav(link.key)}</span>
                       </Link>
                     )
                   })}
 
                 {status === 'signIn' && activeTab === 'personal' && (
                   <>
-                    {personalMenuItems.map((item) => {
+                    {PERSONAL_ITEMS.map((item) => {
                       const isActive = pathname === item.href
                       return (
                         <button
@@ -234,7 +237,7 @@ export default function MobileMenu() {
                               : 'text-[#1B1A1A]/70 hover:bg-gray-100 hover:text-[#1B1A1A]'
                           }`}
                         >
-                          <span>{item.label}</span>
+                          <span>{t(item.key)}</span>
                         </button>
                       )
                     })}
@@ -243,7 +246,7 @@ export default function MobileMenu() {
                       className="mt-1 flex items-center gap-1.5 rounded-lg px-2 py-1.5 text-left font-['Noto_Sans_TC'] text-xs font-medium text-[#D94A4A] transition-colors hover:bg-red-50 xs:gap-2 xs:px-3 xs:py-2 xs:text-sm"
                     >
                       <LogOut className="h-3.5 w-3.5 xs:h-4 xs:w-4" />
-                      <span>登出</span>
+                      <span>{t('logout')}</span>
                     </button>
                   </>
                 )}

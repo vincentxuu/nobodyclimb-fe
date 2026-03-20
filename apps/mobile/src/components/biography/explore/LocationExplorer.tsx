@@ -10,7 +10,7 @@ import Animated, { FadeIn } from 'react-native-reanimated'
 import { MapPin, Globe, Users, ChevronRight } from 'lucide-react-native'
 
 import { Text, Card, Avatar } from '@/components/ui'
-import { SEMANTIC_COLORS, SPACING, RADIUS } from '@nobodyclimb/constants'
+import { RADIUS, SEMANTIC_COLORS, SPACING, WB_COLORS } from '@nobodyclimb/constants'
 
 // 類型定義
 interface LocationData {
@@ -228,7 +228,7 @@ export function LocationExplorer() {
       {/* 標題 */}
       <View style={styles.headerRow}>
         <View style={styles.header}>
-          <MapPin size={24} color="#3B82F6" />
+          <MapPin size={24} color={SEMANTIC_COLORS.info} />
           <Text variant="h4" fontWeight="700">
             依地點探索
           </Text>
@@ -251,7 +251,7 @@ export function LocationExplorer() {
             style={[styles.tab, activeTab === 'taiwan' && styles.tabActive]}
             onPress={() => setActiveTab('taiwan')}
           >
-            <MapPin size={14} color={activeTab === 'taiwan' ? '#fff' : SEMANTIC_COLORS.textSubtle} />
+            <MapPin size={14} color={activeTab === 'taiwan' ? WB_COLORS[0] : SEMANTIC_COLORS.textSubtle} />
             <Text
               variant="small"
               style={[styles.tabText, activeTab === 'taiwan' && styles.tabTextActive]}
@@ -263,7 +263,7 @@ export function LocationExplorer() {
             style={[styles.tab, activeTab === 'overseas' && styles.tabActive]}
             onPress={() => setActiveTab('overseas')}
           >
-            <Globe size={14} color={activeTab === 'overseas' ? '#fff' : SEMANTIC_COLORS.textSubtle} />
+            <Globe size={14} color={activeTab === 'overseas' ? WB_COLORS[0] : SEMANTIC_COLORS.textSubtle} />
             <Text
               variant="small"
               style={[styles.tabText, activeTab === 'overseas' && styles.tabTextActive]}
@@ -371,7 +371,7 @@ const styles = StyleSheet.create({
     fontWeight: '500',
   },
   tabTextActive: {
-    color: '#fff',
+    color: WB_COLORS[0],
   },
   grid: {
     flexDirection: 'row',
@@ -400,7 +400,7 @@ const styles = StyleSheet.create({
   stackedAvatar: {
     marginLeft: -8,
     borderWidth: 2,
-    borderColor: '#fff',
+    borderColor: WB_COLORS[0],
     borderRadius: 14,
   },
   moreAvatar: {

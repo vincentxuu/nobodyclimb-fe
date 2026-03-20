@@ -2,6 +2,7 @@
 
 import { cn } from '@/lib/utils'
 import { Ghost, EyeOff } from 'lucide-react'
+import { useTranslations } from 'next-intl'
 
 type AvatarSize = 'sm' | 'md' | 'lg' | 'xl'
 
@@ -73,12 +74,14 @@ interface AnonymousNameProps {
 }
 
 export function AnonymousName({
-  name = '匿名岩友',
+  name,
   className,
 }: AnonymousNameProps) {
+  const t = useTranslations('BiographyPage')
+  const resolvedName = name ?? t('anonymousName')
   return (
     <span className={cn('text-[#6D6C6C] italic', className)}>
-      {name}
+      {resolvedName}
     </span>
   )
 }
@@ -94,6 +97,7 @@ interface AnonymousBadgeProps {
 }
 
 export function AnonymousBadge({ className }: AnonymousBadgeProps) {
+  const t = useTranslations('BiographyPage')
   return (
     <span
       className={cn(
@@ -102,7 +106,7 @@ export function AnonymousBadge({ className }: AnonymousBadgeProps) {
       )}
     >
       <EyeOff size={12} />
-      匿名分享
+      {t('anonymousSharing')}
     </span>
   )
 }

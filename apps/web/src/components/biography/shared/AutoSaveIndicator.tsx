@@ -1,6 +1,7 @@
 'use client'
 
 import { useEffect, useState } from 'react'
+import { useTranslations } from 'next-intl'
 import { cn } from '@/lib/utils'
 import { Loader2, Check, AlertCircle } from 'lucide-react'
 import type { SaveStatus } from '@/lib/types/biography-v2'
@@ -27,6 +28,7 @@ export function AutoSaveIndicator({
   error,
   className,
 }: AutoSaveIndicatorProps) {
+  const t = useTranslations('BiographyPage')
   const [timeAgo, setTimeAgo] = useState<string>('')
 
   // 計算相對時間
@@ -40,15 +42,15 @@ export function AutoSaveIndicator({
       )
 
       if (diffInSeconds < 5) {
-        setTimeAgo('剛剛')
+        setTimeAgo(t('justNow'))
       } else if (diffInSeconds < 60) {
-        setTimeAgo(`${diffInSeconds} 秒前`)
+        setTimeAgo(t('secondsAgo', { count: diffInSeconds }))
       } else if (diffInSeconds < 3600) {
         const minutes = Math.floor(diffInSeconds / 60)
-        setTimeAgo(`${minutes} 分鐘前`)
+        setTimeAgo(t('minutesAgo', { count: minutes }))
       } else {
         const hours = Math.floor(diffInSeconds / 3600)
-        setTimeAgo(`${hours} 小時前`)
+        setTimeAgo(t('hoursAgo', { count: hours }))
       }
     }
 
@@ -64,21 +66,21 @@ export function AutoSaveIndicator({
         return (
           <span className="flex items-center gap-1.5 text-[#6D6C6C]">
             <Loader2 size={16} className="animate-spin" />
-            <span className="text-sm">儲存中...</span>
+            <span className="text-sm">{t('saving')}</span>
           </span>
         )
       case 'saved':
         return (
           <span className="flex items-center gap-1.5 text-brand-dark">
             <Check size={16} />
-            <span className="text-sm">已儲存</span>
+            <span className="text-sm">{t('saved')}</span>
           </span>
         )
       case 'error':
         return (
           <span className="flex items-center gap-1.5 text-red-600">
             <AlertCircle size={16} />
-            <span className="text-sm">{error || '儲存失敗，請重試'}</span>
+            <span className="text-sm">{error || t('saveFailed')}</span>
           </span>
         )
       case 'idle':
@@ -86,7 +88,7 @@ export function AutoSaveIndicator({
         if (lastSavedAt) {
           return (
             <span className="text-sm text-[#6D6C6C]">
-              上次儲存：{timeAgo}
+              {t('lastSaved', { time: timeAgo })}
             </span>
           )
         }

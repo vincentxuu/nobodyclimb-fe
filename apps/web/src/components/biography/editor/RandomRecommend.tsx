@@ -1,6 +1,7 @@
 'use client'
 
 import { useState } from 'react'
+import { useTranslations } from 'next-intl'
 import { cn } from '@/lib/utils'
 import { Shuffle, X, ChevronRight } from 'lucide-react'
 import type { StoryQuestion, OneLinerQuestion } from '@/lib/types/biography-v2'
@@ -27,6 +28,7 @@ export function RandomRecommend({
   onClose,
   className,
 }: RandomRecommendProps) {
+  const t = useTranslations('BiographyEditor')
   const [currentIndex, setCurrentIndex] = useState(0)
 
   if (unfilledQuestions.length === 0) {
@@ -38,7 +40,7 @@ export function RandomRecommend({
         )}
       >
         <p className="text-[#1B1A1A] font-medium">
-          太棒了！你已經回答了所有問題！
+          {t('randomRecommendAllDone')}
         </p>
       </div>
     )
@@ -65,7 +67,7 @@ export function RandomRecommend({
         <div className="flex items-center gap-2">
           <Shuffle size={16} className="text-[#3F3D3D]" />
           <span className="text-sm font-medium text-[#1B1A1A]">
-            隨機推薦問題
+            {t('randomRecommendTitle')}
           </span>
         </div>
         {onClose && (
@@ -99,14 +101,14 @@ export function RandomRecommend({
             className="flex items-center gap-1 px-3 py-2 text-sm text-[#6D6C6C] bg-[#F5F5F5] rounded-lg hover:bg-[#EBEAEA] transition-colors"
           >
             <Shuffle size={14} />
-            換一題
+            {t('randomRecommendShuffle')}
           </button>
           <button
             type="button"
             onClick={() => onQuestionClick(currentQuestion.id, questionType)}
             className="flex-1 flex items-center justify-center gap-1 px-3 py-2 text-sm font-medium text-white bg-brand-dark rounded-lg hover:bg-brand-dark-hover transition-colors"
           >
-            開始回答
+            {t('randomRecommendStart')}
             <ChevronRight size={14} />
           </button>
         </div>
@@ -115,7 +117,7 @@ export function RandomRecommend({
       {/* Counter */}
       <div className="px-4 pb-4">
         <p className="text-xs text-[#8E8C8C] text-center">
-          還有 {unfilledQuestions.length} 題未回答
+          {t('randomRecommendRemaining', { count: unfilledQuestions.length })}
         </p>
       </div>
     </div>

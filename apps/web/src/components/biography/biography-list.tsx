@@ -9,6 +9,7 @@ import { biographyService } from '@/lib/api/services'
 import { Biography } from '@/lib/types'
 import { getDisplayTags, getDisplayNameForVisibility } from '@/lib/utils/biography'
 import { isSvgUrl, getDefaultAvatarUrl, getDefaultCoverUrl } from '@/lib/utils/image'
+import { useTranslations } from 'next-intl'
 import {
   getCachedBiographyList,
   cacheBiographyList,
@@ -99,6 +100,7 @@ interface BiographyCardProps {
 }
 
 export function BiographyCard({ person }: BiographyCardProps) {
+  const t = useTranslations('BiographyPage')
   // 優先使用 basic_info_data 中的資料
   const basicInfo = parseBasicInfoData(person.basic_info_data)
   const displayName = getDisplayNameForVisibility(person.visibility, basicInfo?.name || person.name)
@@ -203,7 +205,7 @@ export function BiographyCard({ person }: BiographyCardProps) {
 
           {/* CTA 按鈕 */}
           <div className="flex items-center justify-center w-full h-9 mt-4 text-sm border border-[#1B1A1A] text-[#1B1A1A] group-hover:bg-[#F5F4F4] rounded-lg transition-colors">
-            看看 {displayName} 的故事
+            {t('seeStory', { name: displayName })}
             <ArrowRight size={14} className="ml-1 transition-transform group-hover:translate-x-0.5" />
           </div>
         </div>
@@ -223,6 +225,7 @@ interface BiographyListProps {
 }
 
 export function BiographyList({ searchTerm, onTotalChange, onLoadMoreChange }: BiographyListProps) {
+  const t = useTranslations('BiographyPage')
   const [biographies, setBiographies] = useState<Biography[]>([])
   const [loading, setLoading] = useState(true)
   const [loadingMore, setLoadingMore] = useState(false)
@@ -284,7 +287,7 @@ export function BiographyList({ searchTerm, onTotalChange, onLoadMoreChange }: B
           setHasMore(hasMoreData)
           onTotalChange?.(cached.pagination.total, hasMoreData)
         } else {
-          setError('無法載入人物誌資料')
+          setError(t('loadError'))
           if (!append) {
             setBiographies([])
           }
@@ -302,7 +305,7 @@ export function BiographyList({ searchTerm, onTotalChange, onLoadMoreChange }: B
         setHasMore(hasMoreData)
         onTotalChange?.(cached.pagination.total, hasMoreData)
       } else {
-        setError('載入人物誌時發生錯誤')
+        setError(t('loadErrorAlt'))
         if (!append) {
           setBiographies([])
         }
@@ -365,7 +368,7 @@ export function BiographyList({ searchTerm, onTotalChange, onLoadMoreChange }: B
     return (
       <div className="flex min-h-[300px] flex-col items-center justify-center text-center">
         <p className="text-lg text-[#6D6C6C]">
-          {searchTerm ? `找不到符合「${searchTerm}」的人物` : '目前沒有人物誌'}
+          {searchTerm ? t('noResults', { term: searchTerm }) : t('noBiographies')}
         </p>
       </div>
     )

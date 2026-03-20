@@ -10,7 +10,7 @@ import Animated, { FadeInDown } from 'react-native-reanimated'
 
 import { Text, Card } from '@/components/ui'
 import { ContentInteractionBar } from './ContentInteractionBar'
-import { SEMANTIC_COLORS, SPACING, RADIUS } from '@nobodyclimb/constants'
+import { RADIUS, SEMANTIC_COLORS, SPACING, WB_COLORS } from '@nobodyclimb/constants'
 
 // 類型定義
 interface CoreStory {
@@ -262,9 +262,9 @@ const styles = StyleSheet.create({
   },
   card: {
     padding: SPACING.md,
-    backgroundColor: '#fff',
+    backgroundColor: WB_COLORS[0],
     borderWidth: 1,
-    borderColor: '#EBEAEA',
+    borderColor: WB_COLORS[20],
   },
   titleContainer: {
     marginBottom: SPACING.md,

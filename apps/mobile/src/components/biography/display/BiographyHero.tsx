@@ -18,7 +18,7 @@ import {
 } from 'lucide-react-native'
 
 import { Text, Avatar, IconButton } from '@/components/ui'
-import { SEMANTIC_COLORS, SPACING, RADIUS } from '@nobodyclimb/constants'
+import { RADIUS, SEMANTIC_COLORS, SPACING, WB_COLORS } from '@nobodyclimb/constants'
 
 // 類型定義
 interface SocialLinks {
@@ -306,7 +306,7 @@ const styles = StyleSheet.create({
   coverContainer: {
     width: '100%',
     aspectRatio: 3,
-    backgroundColor: '#EBEAEA',
+    backgroundColor: WB_COLORS[20],
     overflow: 'hidden',
   },
   coverImage: {
@@ -331,15 +331,15 @@ const styles = StyleSheet.create({
     height: 96,
     borderRadius: 48,
     borderWidth: 4,
-    borderColor: '#FFFFFF',
+    borderColor: WB_COLORS[0],
   },
   anonymousAvatar: {
     width: 96,
     height: 96,
     borderRadius: 48,
     borderWidth: 4,
-    borderColor: '#FFFFFF',
-    backgroundColor: '#DBD8D8',
+    borderColor: WB_COLORS[0],
+    backgroundColor: WB_COLORS[30],
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -377,7 +377,7 @@ const styles = StyleSheet.create({
     padding: SPACING.xs,
     borderRadius: 999,
     borderWidth: 1,
-    borderColor: '#DBD8D8',
+    borderColor: WB_COLORS[30],
   },
   actionsSection: {
     marginTop: SPACING.sm,
@@ -385,21 +385,21 @@ const styles = StyleSheet.create({
   },
   followButton: {
     alignSelf: 'flex-start',
-    backgroundColor: '#1B1A1A',
+    backgroundColor: WB_COLORS[100],
     paddingHorizontal: SPACING.md,
     paddingVertical: SPACING.xs,
     borderRadius: RADIUS.sm,
   },
   followingButton: {
-    backgroundColor: '#F5F5F5',
+    backgroundColor: WB_COLORS[10],
     borderWidth: 1,
-    borderColor: '#DBD8D8',
+    borderColor: WB_COLORS[30],
   },
   followText: {
-    color: '#FFFFFF',
+    color: WB_COLORS[0],
   },
   followingText: {
-    color: '#1B1A1A',
+    color: WB_COLORS[100],
   },
   statsRow: {
     flexDirection: 'row',
@@ -414,7 +414,7 @@ const styles = StyleSheet.create({
   likeIcon: {
     width: 14,
     height: 14,
-    backgroundColor: '#10B981',
+    backgroundColor: SEMANTIC_COLORS.success,
     borderRadius: 7,
   },
 })

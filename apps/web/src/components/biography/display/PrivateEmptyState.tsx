@@ -3,6 +3,7 @@
 import Link from 'next/link'
 import { cn } from '@/lib/utils'
 import { Lock, ArrowRight, Mountain } from 'lucide-react'
+import { useTranslations } from 'next-intl'
 
 interface PrivateEmptyStateProps {
   /** 自訂樣式 */
@@ -15,6 +16,7 @@ interface PrivateEmptyStateProps {
  * 當訪客訪問設為私密的人物誌時顯示
  */
 export function PrivateEmptyState({ className }: PrivateEmptyStateProps) {
+  const t = useTranslations('BiographyPage')
   return (
     <div
       className={cn(
@@ -36,15 +38,15 @@ export function PrivateEmptyState({ className }: PrivateEmptyStateProps) {
 
       {/* 標題 */}
       <h1 className="text-2xl font-bold text-[#1B1A1A] mb-3">
-        這位岩友的人物誌是私密的
+        {t('privateEmptyTitle')}
       </h1>
 
       {/* 說明 */}
       <p className="text-[#6D6C6C] max-w-md mb-2">
-        他們可能正在準備中，或選擇保持低調。
+        {t('privateEmptyDesc')}
       </p>
       <p className="text-[#8E8C8C] text-sm max-w-md mb-8">
-        每個人都有自己的節奏，尊重他們的選擇。
+        {t('privateEmptyNote')}
       </p>
 
       {/* CTA 按鈕 */}
@@ -53,27 +55,27 @@ export function PrivateEmptyState({ className }: PrivateEmptyStateProps) {
           href="/biography"
           className="inline-flex items-center gap-2 px-6 py-3 rounded-full bg-brand-dark text-white font-medium hover:bg-brand-dark-hover transition-colors"
         >
-          探索其他岩友的故事
+          {t('privateEmptyExplore')}
           <ArrowRight size={18} />
         </Link>
         <Link
           href="/"
           className="inline-flex items-center gap-2 px-6 py-3 rounded-full border border-[#B6B3B3] text-[#3F3D3D] font-medium hover:bg-[#F5F5F5] transition-colors"
         >
-          回到首頁
+          {t('privateEmptyHome')}
         </Link>
       </div>
 
       {/* 底部提示 */}
       <div className="mt-12 p-4 bg-brand-accent/10 rounded-lg max-w-sm">
         <p className="text-sm text-[#3F3D3D]">
-          想建立自己的人物誌嗎？記錄攀岩故事，與社群分享你的經歷。
+          {t('privateEmptyCtaDesc')}
         </p>
         <Link
           href="/auth/login"
           className="inline-block mt-2 text-sm text-brand-dark font-medium hover:underline"
         >
-          立即開始 &rarr;
+          {t('privateEmptyCtaAction')}
         </Link>
       </div>
     </div>

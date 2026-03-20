@@ -22,14 +22,53 @@ import type { BadgeProgress } from '@nobodyclimb/types'
 // BadgeShowcase 組件
 // ============================================
 
+/** 簡化徽章格式（供外部傳入已取得的徽章列表） */
+export interface SimpleBadge {
+  id: string
+  name: string
+  category: string
+  description?: string
+  earned_at?: string
+}
+
 export interface BadgeShowcaseProps {
   /** 徽章進度資料 */
-  badgeProgress: BadgeProgress[]
+  badgeProgress?: BadgeProgress[]
+  /** 簡化徽章列表（badges 或 badgeProgress 擇一傳入） */
+  badges?: SimpleBadge[]
   /** 自定義樣式 */
   style?: ViewStyle
 }
 
-export function BadgeShowcase({ badgeProgress, style }: BadgeShowcaseProps) {
+export function BadgeShowcase({ badgeProgress: badgeProgressProp, badges, style }: BadgeShowcaseProps) {
+  // 若傳入 badges（簡化格式），渲染簡化版本
+  if (badges !== undefined) {
+    if (badges.length === 0) {
+      return (
+        <View style={style}>
+          <Text variant="caption" color="muted">
+            尚無徽章
+          </Text>
+        </View>
+      )
+    }
+    return (
+      <View style={[styles.container, style]}>
+        {badges.map((badge) => (
+          <View key={badge.id} style={styles.header}>
+            <Text variant="body">{badge.name}</Text>
+            {badge.description && (
+              <Text variant="caption" color="muted">
+                {badge.description}
+              </Text>
+            )}
+          </View>
+        ))}
+      </View>
+    )
+  }
+
+  const badgeProgress = badgeProgressProp ?? []
   const [selectedCategory, setSelectedCategory] = useState<BadgeCategory | 'all'>('all')
 
   // 將進度數據轉換為 Map 以便查找

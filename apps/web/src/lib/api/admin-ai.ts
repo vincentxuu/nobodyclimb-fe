@@ -27,7 +27,7 @@ export interface AIQueryLog {
   latency_ms: number | null
   feedback_score: number | null
   created_at: string
-  query_type: 'simple' | 'complex' | 'general-knowledge' | 'guardrails_blocked' | null
+  query_type: 'simple' | 'complex' | 'general-knowledge' | 'guardrails_blocked' | 'pipeline_timeout' | 'circuit_breaker_rejected' | null
   groundedness_score: number | null
   auto_score: number | null
   embedding_ms: number | null
@@ -81,6 +81,7 @@ export interface AILogDetail {
     cache: PipelineStageBase & { hit: boolean; cache_type?: 'kv' | 'semantic' }
     quota_check: PipelineStageBase
     query_parsing: PipelineStageBase & { query_type: string | null }
+    text_to_sql: PipelineStageBase & { path: string | null; candidate_count: number | null }
     hyde: PipelineStageBase & { triggered: boolean }
     filter: PipelineStageBase & Record<string, unknown>
     embedding: PipelineStageBase & { duration_ms: number | null }
@@ -113,6 +114,33 @@ export interface AILogDetail {
       alternatives: string[]
       params: Record<string, unknown>
       fallback_used?: boolean
+      confidence?: number
+      retrieval_method?: string
+    }
+    text_to_sql?: {
+      path?: string | null
+      candidate_count?: number | null
+      context_preview?: string | null
+      candidates?: Array<{
+        name: string
+        grade?: string | null
+        route_type?: string | null
+        crag_name?: string | null
+        bolt_count?: number | null
+        height?: number | null
+        description?: string | null
+      }>
+    }
+    tool_selection?: {
+      selected_tool: string
+      confidence: number
+      alternative?: string
+      fallback?: {
+        triggered: boolean
+        from_tool?: string
+        to_tool?: string
+        reason?: string
+      }
     }
     cache?: {
       type: 'kv' | 'semantic'
@@ -131,6 +159,7 @@ export interface AILogDetail {
       queries: string[]
     }
     retrieval?: {
+      retrieval_method?: string
       paths: string[]
       path_counts?: Record<string, number>
       path_results?: Record<string, Array<{ id: string; score: number; name?: string }>>
@@ -171,6 +200,8 @@ export interface AILogDetail {
       early_vector_reused: boolean
       hyde_embedded: boolean
       expanded_count: number
+      skipped?: boolean
+      reason?: string
     }
     self_reflection?: {
       original_quality: number | null
@@ -198,16 +229,45 @@ export interface AILogDetail {
       reason?: string
     }
     agentic?: {
-      steps: Array<{ step: number; type: string; refinedQuery?: string; docs_retrieved?: number }>
+      steps: Array<{
+        step: number; type: string; refinedQuery?: string; docs_retrieved?: number
+        targetTool?: string; reason?: string
+        subQueries?: string[]; verifyQuery?: string
+      }>
       total_paths: number
       final_doc_count: number
       termination_reason?: 'enough_docs' | 'max_steps' | 'no_improvement'
     }
+    plan_execute?: {
+      strategy: string
+      planning_duration_ms: number
+      plan?: { steps: Array<{ id: number; query: string; tool: string; depends_on: number[]; filters?: Record<string, unknown> }>; execution_mode: string }
+      steps?: Array<{ stepId: number; query: string; tool: string; result_count: number; duration_ms: number; error?: string }>
+      execution_duration_ms?: number
+      synthesis_duration_ms?: number
+      total_duration_ms: number
+      sources_count?: number
+      adaptive_replan?: boolean
+      adaptive_replan_info?: { trigger_step_id: number; reason: string; new_steps: Array<{ id: number; query: string; tool: string }> }
+      plan_fallback?: { reason: string; target: string; step_count?: number; min_required?: number; error?: string }
+    }
+    multi_tool?: {
+      steps?: Array<{ stepId: number; query: string; tool: string; result_count: number; duration_ms: number; error?: string }>
+      execution_mode?: string
+      total_duration_ms?: number
+      sources_count?: number
+      fallback?: boolean
+      error?: string
+    }
     token_breakdown?: {
       tool_selection?: { prompt_tokens: number; completion_tokens: number; total_tokens: number; model: string; estimated: boolean }
+      text_to_sql?: { prompt_tokens: number; completion_tokens: number; total_tokens: number; model: string; estimated: boolean }
       hyde?: { prompt_tokens: number; completion_tokens: number; total_tokens: number; model: string; estimated: boolean }
       multi_query?: { prompt_tokens: number; completion_tokens: number; total_tokens: number; model: string; estimated: boolean }
       agentic_decisions?: Array<{ step: number; prompt_tokens: number; completion_tokens: number; total_tokens: number; model: string; estimated: boolean }>
+      planning?: { prompt_tokens: number; completion_tokens: number; total_tokens: number; model: string; estimated: boolean }
+      synthesis?: { prompt_tokens: number; completion_tokens: number; total_tokens: number; model: string; estimated: boolean }
+      adaptive_replan?: { prompt_tokens: number; completion_tokens: number; total_tokens: number; model: string; estimated: boolean }
       main_generation?: { prompt_tokens: number; completion_tokens: number; total_tokens: number; model: string; estimated: boolean }
       self_reflection_regen?: { prompt_tokens: number; completion_tokens: number; total_tokens: number; model: string; estimated: boolean }
       judge?: { prompt_tokens: number; completion_tokens: number; total_tokens: number; model: string; estimated: boolean }
@@ -220,10 +280,30 @@ export interface AILogDetail {
       popularity_weight: number
       top_selected?: Array<{ title: string; relevance_score: number; popularity_score: number; final_score: number }>
     }
+    popularity_rerank?: {
+      top_selected: Array<{ title: string; relevance_score: number; popularity_score: number; final_score: number }>
+      popularity_weight: number
+      doc_count: number
+    }
     judge_detail?: {
       criteria: string[]
       raw_scores: Record<string, number>
     }
+    degraded?: boolean
+    degraded_stages?: string[]
+    circuit_breaker?: {
+      state: 'closed' | 'open' | 'half-open'
+      failures: number
+      action: 'allow' | 'reject' | 'probe'
+    }
+    pipeline_execution?: Array<{
+      step: string
+      status: string
+      duration_ms?: number
+      timeout?: boolean
+      skipped?: boolean
+      error?: string
+    }>
   } | null
 }
 
@@ -613,5 +693,122 @@ export function useOverrideUserRank() {
     onSuccess: (_data, { userId }) => {
       queryClient.invalidateQueries({ queryKey: ['admin-user-rank', userId] })
     },
+  })
+}
+
+// =============================================
+// Pipeline Steps 管理
+// =============================================
+
+export interface PipelineStepInfo {
+  id: string
+  name: string
+  description: string
+  phase: 'pre-retrieval' | 'retrieval' | 'post-retrieval' | 'generation' | 'evaluation'
+  enabled: boolean
+  order: number
+  requires: string[]
+  provides: string[]
+  skipWhen: Array<{ field: string; operator: string; value: unknown }>
+}
+
+export interface PipelineStepUpdate {
+  id: string
+  enabled: boolean
+  order: number
+}
+
+export async function fetchPipelineSteps(): Promise<PipelineStepInfo[]> {
+  const res = await apiClient.get<{ success: boolean; data: PipelineStepInfo[] }>(
+    '/admin/ai/pipeline-steps'
+  )
+  return res.data.data
+}
+
+export async function updatePipelineSteps(steps: PipelineStepUpdate[]): Promise<void> {
+  await apiClient.put('/admin/ai/pipeline-steps', { steps })
+}
+
+export function usePipelineSteps() {
+  return useQuery({
+    queryKey: ['admin-ai-pipeline-steps'],
+    queryFn: fetchPipelineSteps,
+    staleTime: 5 * 60 * 1000,
+  })
+}
+
+export function useUpdatePipelineSteps() {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: updatePipelineSteps,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['admin-ai-pipeline-steps'] })
+    },
+  })
+}
+
+// =============================================
+// Metrics 趨勢分析
+// =============================================
+
+export interface MetricsDailyLatency {
+  embedding_p50: number | null
+  embedding_p95: number | null
+  retrieval_p50: number | null
+  retrieval_p95: number | null
+  generation_p50: number | null
+  generation_p95: number | null
+  total_p50: number | null
+  total_p95: number | null
+}
+
+export interface MetricsDailyQuality {
+  avg_groundedness: number | null
+  avg_auto_score: number | null
+  avg_feedback_score: number | null
+}
+
+export interface MetricsDailyCache {
+  hit_rate: number
+  kv_hits: number
+  semantic_hits: number
+  misses: number
+}
+
+export interface MetricsDaily {
+  date: string
+  query_count: number
+  latency: MetricsDailyLatency
+  quality: MetricsDailyQuality
+  cache: MetricsDailyCache
+  query_types: Record<string, number>
+  anomalies: string[]
+}
+
+export interface MetricsSummary {
+  total_queries: number
+  avg_latency_ms: number | null
+  avg_groundedness: number | null
+  cache_hit_rate: number | null
+}
+
+export interface MetricsResponse {
+  range: string
+  daily: MetricsDaily[]
+  summary: MetricsSummary
+}
+
+export type MetricsRange = '7d' | '30d' | '90d'
+
+export function useAIMetrics(range: MetricsRange) {
+  return useQuery({
+    queryKey: ['admin-ai-metrics', range],
+    queryFn: async () => {
+      const res = await apiClient.get<{ success: boolean; data: MetricsResponse }>(
+        `/admin/ai/metrics?range=${range}`
+      )
+      return res.data.data
+    },
+    staleTime: 5 * 60 * 1000,
   })
 }

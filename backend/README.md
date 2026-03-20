@@ -69,13 +69,36 @@ backend/
 │   │   ├── biography-content-interactions-service.ts  # 人物誌內容互動
 │   │   ├── notification-service.ts         # 通知業務邏輯
 │   │   ├── post-service.ts                 # 文章業務邏輯
-│   │   ├── query.ts                        # AI RAG 問答服務
+│   │   ├── query.ts                        # AI RAG 問答服務（Pipeline 入口 + NLP 方法）
+│   │   ├── text-to-sql.ts                  # Text-to-SQL 服務
 │   │   ├── embedding.ts                    # 向量嵌入服務
 │   │   ├── indexing.ts                     # 資料索引服務
 │   │   ├── rank.ts                         # Climber Rank 等級與配額服務
 │   │   ├── recommendation.ts              # AI 路線推薦服務
 │   │   ├── personalization.ts             # 個人化系統（記憶 + 攀登能力）
 │   │   ├── memory-extractor.ts            # AI 用戶記憶萃取
+│   │   ├── pipeline/                       # 模組化 RAG Pipeline
+│   │   │   ├── index.ts                    # 公開匯出
+│   │   │   ├── engine.ts                   # PipelineEngine（執行引擎 + 後處理）
+│   │   │   ├── context.ts                  # PipelineContext 建立
+│   │   │   ├── registry.ts                 # Step 註冊表（14 個 step 定義）
+│   │   │   ├── types.ts                    # Pipeline 型別定義
+│   │   │   ├── utils.ts                    # 共用工具（parseSuggestedQuestions）
+│   │   │   └── steps/                      # 14 個 Pipeline Step 實作
+│   │   │       ├── semantic-cache.ts       # 語義快取檢查
+│   │   │       ├── tool-selection.ts       # Tool Calling 意圖分類
+│   │   │       ├── text-to-sql.ts          # Text-to-SQL 直查
+│   │   │       ├── hyde.ts                 # HyDE 假設文件生成
+│   │   │       ├── multi-query.ts          # Multi-Query Expansion
+│   │   │       ├── filter-build.ts         # Vectorize Filter 建構
+│   │   │       ├── embedding.ts            # Query/HyDE/Expanded Embedding
+│   │   │       ├── hybrid-search.ts        # Vector + BM25 混合搜尋 + Agentic
+│   │   │       ├── cross-encoder.ts        # Cross-encoder Reranking
+│   │   │       ├── mmr.ts                  # MMR 多樣性選取
+│   │   │       ├── popularity-rerank.ts    # 熱門度加權 + Sources/Context 組合
+│   │   │       ├── llm-generation.ts       # LLM 回答生成（含 GK earlyReturn）
+│   │   │       ├── judge.ts                # Judge 品質評估
+│   │   │       └── self-reflection.ts      # Self-Reflection 重生成 + loopBack
 │   │   └── weather.ts                      # 天氣服務
 │   └── utils/
 │       ├── id.ts                           # ID 工具函數
@@ -352,6 +375,8 @@ API 文檔（開發伺服器啟動後可訪問）：
 | DELETE | `/prompts/:id` | 刪除 Prompt |
 | GET | `/config` | 取得 AI Pipeline 設定 |
 | PUT | `/config` | 更新 AI Pipeline 設定 |
+| GET | `/pipeline-steps` | 取得 Pipeline Step 列表（開關/排序） |
+| PUT | `/pipeline-steps` | 更新 Pipeline Step 開關/排序 |
 | GET | `/users/:userId/rank` | 取得用戶等級詳情（含積分明細） |
 | PUT | `/users/:userId/rank-override` | 覆寫用戶等級 |
 | POST | `/recalculate-ranks` | 批次重算所有用戶等級 |
@@ -509,7 +534,10 @@ pnpm deploy:production
 
 | 服務 | 檔案 | 說明 |
 |------|------|------|
-| `QueryService` | `src/services/query.ts` | 智慧 NLP 過濾、Adaptive RAG + Agentic Multi-Step RAG、SSE 串流輸出 |
+| `QueryService` | `src/services/query.ts` | Pipeline 入口、NLP 過濾方法、SSE 串流輸出 |
+| `PipelineEngine` | `src/services/pipeline/engine.ts` | 模組化 RAG Pipeline 引擎（14 步動態組裝） |
+| `Pipeline Steps` | `src/services/pipeline/steps/` | 14 個可獨立開關/排序的 Pipeline Step |
+| `TextToSqlService` | `src/services/text-to-sql.ts` | Text-to-SQL 結構化查詢 |
 | `EmbeddingService` | `src/services/embedding.ts` | 向量嵌入生成與語義搜尋 |
 | `IndexingService` | `src/services/indexing.ts` | 路線/岩場資料向量索引建立 |
 | `RankService` | `src/services/rank.ts` | Climber Rank 等級計算、配額管理、Token 追蹤 |
@@ -517,11 +545,25 @@ pnpm deploy:production
 | `PersonalizationService` | `src/services/personalization.ts` | 攀登能力估算、個人化 System Prompt |
 | `MemoryExtractor` | `src/services/memory-extractor.ts` | 從對話中萃取用戶偏好（攀岩等級、偏好地區等） |
 | `Guardrails` | `src/utils/guardrails.ts` | 輸入/輸出安全防護（Prompt Injection、PII 過濾） |
-| 管理後台 | `/api/v1/admin/ai` | 查詢日誌、KPI 儀表板、成本追蹤、Prompt 管理、AI 設定 |
+| 管理後台 | `/api/v1/admin/ai` | 查詢日誌、KPI 儀表板、成本追蹤、Prompt 管理、Pipeline 設定 |
+
+### 模組化 Pipeline 架構
+
+RAG 問答流程採用模組化 Pipeline 設計，14 個 Step 分布在 5 個 Phase 中動態組裝：
+
+| Phase | Steps | 說明 |
+|-------|-------|------|
+| **pre-retrieval** | semantic-cache, tool-selection, text-to-sql, hyde, multi-query, filter-build | 查詢前處理：快取、分類、擴展 |
+| **retrieval** | embedding, hybrid-search | 檢索：向量 + BM25 + RRF + Agentic |
+| **post-retrieval** | cross-encoder, mmr, popularity-rerank | 精排：重排、多樣性、熱門度 |
+| **generation** | llm-generation | 生成：LLM 回答（含 GK/SQL earlyReturn）|
+| **evaluation** | judge, self-reflection | 評估：品質評分、重生成、loopBack |
+
+每個 Step 可透過 Admin UI 獨立開關/排序，宣告 `requires`/`provides`/`skipWhen` 供 Engine 自動管理執行邏輯。
 
 ### 流程圖
 
-#### RAG 問答流程（含 Adaptive RAG + Agentic RAG）
+#### RAG 問答流程（模組化 Pipeline 架構）
 
 ```
 POST /api/v1/ai/ask
@@ -538,39 +580,30 @@ POST /api/v1/ai/ask
          │ 通過
          ▼
   ┌──────────────────┐
-  │ QueryClassifier  │  判斷類型：路線查詢 / 岩場查詢 / 一般問答
+  │  KV 精確快取     │  hash key 命中 → 直接回傳
   └──────┬───────────┘
-         │
-    rag_strategy?
-    ┌────┴────┐
- agentic    baseline
-    │         │
-    ▼         ▼
-  ┌──────────────────┐
-  │  向量搜尋        │  EmbeddingService → ai_embeddings
-  └──────┬───────────┘
-         │
-    相關性足夠？
-    ┌────┴────┐
-   是         否
-    │         │
-    │         ▼
-    │   ┌─────────────────┐
-    │   │ CorrectiveRAG   │  回退至全文搜尋補強
-    │   └──────┬──────────┘
-    │          │
-    └────┬─────┘
-         │
+         │ 未命中
          ▼
-  ┌──────────────────┐
-  │  LLM 生成回應    │  @cf/google/gemma-3-12b-it
-  │  + Token Budget  │
-  └──────┬───────────┘
-         │
-         ▼
-  ┌──────────────────┐
-  │ Output Guardrails│  清理回應內容
-  └──────┬───────────┘
+  ╔══════════════════════════════════════════════════╗
+  ║            PipelineEngine（14 步動態組裝）         ║
+  ║                                                    ║
+  ║  Pre-retrieval:                                    ║
+  ║    ① Semantic Cache → ② Tool Selection             ║
+  ║    → ③ Text-to-SQL → ④ HyDE → ⑤ Multi-Query      ║
+  ║    → ⑥ Filter Build                               ║
+  ║                                                    ║
+  ║  Retrieval:                                        ║
+  ║    ⑦ Embedding → ⑧ Hybrid Search (+ Agentic)      ║
+  ║                                                    ║
+  ║  Post-retrieval:                                   ║
+  ║    ⑨ Cross-encoder → ⑩ MMR → ⑪ Popularity Rerank  ║
+  ║                                                    ║
+  ║  Generation:                                       ║
+  ║    ⑫ LLM Generation                               ║
+  ║                                                    ║
+  ║  Evaluation:                                       ║
+  ║    ⑬ Judge → ⑭ Self-Reflection (+ loopBack)       ║
+  ╚══════════════════════════════════════════════════╝
          │
     stream=true？
     ┌────┴────┐
@@ -581,6 +614,14 @@ POST /api/v1/ai/ask
   推送 token  含配額資訊
     │
   客戶端斷線？→ 退還配額
+
+查詢路徑分流（Tool Selection 決定）：
+  general-knowledge → GK earlyReturn（跳過向量搜尋）
+  sql               → SQL earlyReturn（Text-to-SQL 直查）
+  simple            → 輕量搜尋（跳過 HyDE/Multi-Query）
+  hybrid            → SQL 撈候選 + 向量 rerank
+  complex           → 完整 pipeline（HyDE + Multi-Query + Judge）
+  clarification     → 追問確認 earlyReturn
 ```
 
 #### SSE 串流事件格式

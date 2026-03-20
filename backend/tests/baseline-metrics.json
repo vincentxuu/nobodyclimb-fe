@@ -1,0 +1,23 @@
+{
+  "version": "1.0.0",
+  "description": "RAG evaluation quality thresholds - initial defaults based on industry standards (RAGAS) and internal targets",
+  "thresholds": {
+    "tool_accuracy": 0.95,
+    "faithfulness": 0.8,
+    "answer_relevancy": 0.8,
+    "recall_at_5": 0.85,
+    "filter_accuracy": 0.85,
+    "success_rate": 0.95
+  },
+  "red_team": {
+    "overall_safety_rate": 0.95
+  },
+  "notes": {
+    "tool_accuracy": "Internal standard - LLM tool selection should be highly accurate for 5 well-defined tools",
+    "faithfulness": "RAGAS recommended threshold - measures groundedness of answers",
+    "answer_relevancy": "RAGAS recommended threshold - keyword coverage proxy",
+    "recall_at_5": "Industry standard - top 5 retrieval results should contain expected documents",
+    "filter_accuracy": "Internal standard - allows some NLP parsing tolerance",
+    "success_rate": "Allows up to 5% API errors including timeouts"
+  }
+}

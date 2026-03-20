@@ -1,0 +1,166 @@
+name: RAG Evaluation
+
+on:
+  workflow_dispatch:
+    inputs:
+      api_url:
+        description: 'API base URL (e.g. https://api-preview.nobodyclimb.cc)'
+        required: true
+        default: 'https://api-preview.nobodyclimb.cc'
+        type: string
+      mode:
+        description: 'Evaluation mode'
+        required: true
+        default: 'full'
+        type: choice
+        options:
+          - full
+          - ci
+          - red-team
+          - all
+
+  workflow_call:
+    inputs:
+      api_url:
+        description: 'API base URL'
+        required: true
+        type: string
+      mode:
+        description: 'Evaluation mode: full, ci, red-team, all'
+        required: false
+        default: 'ci'
+        type: string
+    secrets:
+      EVAL_JWT_TOKEN:
+        required: true
+      CF_ACCESS_CLIENT_ID:
+        required: false
+      CF_ACCESS_CLIENT_SECRET:
+        required: false
+
+jobs:
+  golden-evaluation:
+    name: Golden Test Evaluation
+    runs-on: ubuntu-latest
+    if: inputs.mode != 'red-team'
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'pnpm'
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Resolve JWT token
+        id: token
+        run: |
+          if [ -n "${{ secrets.EVAL_JWT_TOKEN }}" ]; then
+            echo "jwt=${{ secrets.EVAL_JWT_TOKEN }}" >> $GITHUB_OUTPUT
+          else
+            echo "::error::EVAL_JWT_TOKEN secret is not configured"
+            exit 1
+          fi
+
+      - name: Run golden evaluation
+        id: eval
+        continue-on-error: true
+        run: |
+          ARGS="--api-url ${{ inputs.api_url }} --token ${{ steps.token.outputs.jwt }} --output golden-report.json --delay 1500"
+          if [ "${{ inputs.mode }}" == "ci" ]; then
+            ARGS="$ARGS --ci"
+          fi
+          if [ -n "${{ secrets.CF_ACCESS_CLIENT_ID }}" ]; then
+            ARGS="$ARGS --cf-access-client-id ${{ secrets.CF_ACCESS_CLIENT_ID }} --cf-access-client-secret ${{ secrets.CF_ACCESS_CLIENT_SECRET }}"
+          fi
+          npx tsx backend/scripts/evaluate-rag.ts $ARGS
+        env:
+          EXIT_CODE: ${{ job.status }}
+
+      - name: Check evaluation result
+        run: |
+          EXIT_CODE=${{ steps.eval.outcome == 'success' && '0' || '1' }}
+          if [ "$EXIT_CODE" == "0" ]; then
+            echo "✅ Golden evaluation passed"
+          else
+            echo "⚠️ Golden evaluation did not pass (exit code: $EXIT_CODE)"
+            if [ "${{ inputs.mode }}" == "ci" ]; then
+              echo "::warning::RAG quality metrics did not meet thresholds"
+            fi
+          fi
+
+      - name: Upload golden report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: golden-evaluation-report
+          path: golden-report.json
+          retention-days: 30
+
+  red-team-evaluation:
+    name: Red Team Evaluation
+    runs-on: ubuntu-latest
+    if: inputs.mode == 'red-team' || inputs.mode == 'all' || inputs.mode == 'full'
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'pnpm'
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Resolve JWT token
+        id: token
+        run: |
+          if [ -n "${{ secrets.EVAL_JWT_TOKEN }}" ]; then
+            echo "jwt=${{ secrets.EVAL_JWT_TOKEN }}" >> $GITHUB_OUTPUT
+          else
+            echo "::error::EVAL_JWT_TOKEN secret is not configured"
+            exit 1
+          fi
+
+      - name: Run red team evaluation
+        id: redteam
+        continue-on-error: true
+        run: |
+          ARGS="--api-url ${{ inputs.api_url }} --token ${{ steps.token.outputs.jwt }} --output redteam-report.json --red-team --delay 1500"
+          if [ -n "${{ secrets.CF_ACCESS_CLIENT_ID }}" ]; then
+            ARGS="$ARGS --cf-access-client-id ${{ secrets.CF_ACCESS_CLIENT_ID }} --cf-access-client-secret ${{ secrets.CF_ACCESS_CLIENT_SECRET }}"
+          fi
+          npx tsx backend/scripts/evaluate-rag.ts $ARGS
+
+      - name: Check red team result
+        run: |
+          if [ "${{ steps.redteam.outcome }}" == "success" ]; then
+            echo "✅ Red team evaluation passed"
+          else
+            echo "⚠️ Red team evaluation did not pass"
+            if [ "${{ inputs.mode }}" != "ci" ]; then
+              echo "::warning::Red team safety rate did not meet threshold"
+            fi
+          fi
+
+      - name: Upload red team report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: redteam-evaluation-report
+          path: redteam-report.json
+          retention-days: 30

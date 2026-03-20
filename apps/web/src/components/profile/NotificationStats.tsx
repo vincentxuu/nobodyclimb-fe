@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react'
 import { Loader2, TrendingUp, Bell, CheckCircle, BarChart3 } from 'lucide-react'
 import { notificationService } from '@/lib/api/services'
 import { useToast } from '@/components/ui/use-toast'
+import { useTranslations } from 'next-intl'
 
 interface NotificationStatsData {
   overview: {
@@ -16,16 +17,16 @@ interface NotificationStatsData {
   dailyTrend: Array<{ date: string; count: number }>
 }
 
-const typeLabels: Record<string, string> = {
-  goal_liked: '目標按讚',
-  goal_commented: '目標留言',
-  goal_referenced: '目標引用',
-  post_liked: '文章按讚',
-  post_commented: '文章留言',
-  biography_commented: '人物誌留言',
-  new_follower: '新追蹤者',
-  story_featured: '故事精選',
-  goal_completed: '目標完成',
+const typeLabelsKeys: Record<string, string> = {
+  goal_liked: 'notifStatGoalLiked',
+  goal_commented: 'notifStatGoalCommented',
+  goal_referenced: 'notifStatGoalReferenced',
+  post_liked: 'notifStatPostLiked',
+  post_commented: 'notifStatPostCommented',
+  biography_commented: 'notifStatBiographyCommented',
+  new_follower: 'notifStatNewFollower',
+  story_featured: 'notifStatStoryFeatured',
+  goal_completed: 'notifStatGoalCompleted',
 }
 
 const typeColors: Record<string, string> = {
@@ -62,6 +63,7 @@ function StatCard({ icon, label, value, subtext, color = 'bg-gray-100' }: StatCa
 }
 
 export default function NotificationStats() {
+  const t = useTranslations('ProfilePage')
   const [stats, setStats] = useState<NotificationStatsData | null>(null)
   const [isLoading, setIsLoading] = useState(true)
   const { toast } = useToast()
@@ -76,8 +78,8 @@ export default function NotificationStats() {
       } catch (error) {
         console.error('Failed to load notification stats:', error)
         toast({
-          title: '載入失敗',
-          description: '無法載入通知統計',
+          title: t('toastLoadFailed'),
+          description: t('toastLoadNotifStatsFailedDesc'),
           variant: 'destructive',
         })
       } finally {
@@ -100,7 +102,7 @@ export default function NotificationStats() {
     return (
       <div className="text-center text-gray-500 py-8">
         <BarChart3 className="h-8 w-8 mx-auto mb-2 opacity-50" />
-        <p>無法載入統計資料</p>
+        <p>{t('errorLoadStats')}</p>
       </div>
     )
   }
@@ -113,25 +115,25 @@ export default function NotificationStats() {
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
         <StatCard
           icon={<Bell className="h-4 w-4" />}
-          label="總通知數"
+          label={t('notifStatTotal')}
           value={stats.overview.total}
           color="bg-blue-50"
         />
         <StatCard
           icon={<Bell className="h-4 w-4" />}
-          label="未讀"
+          label={t('notifStatUnread')}
           value={stats.overview.unread}
           color="bg-amber-50"
         />
         <StatCard
           icon={<CheckCircle className="h-4 w-4" />}
-          label="已讀"
+          label={t('notifStatRead')}
           value={stats.overview.read}
           color="bg-green-50"
         />
         <StatCard
           icon={<TrendingUp className="h-4 w-4" />}
-          label="已讀率"
+          label={t('notifStatReadRate')}
           value={`${stats.overview.readRate}%`}
           color="bg-purple-50"
         />
@@ -140,12 +142,12 @@ export default function NotificationStats() {
       {/* 按類型統計 */}
       {stats.byType.length > 0 && (
         <div>
-          <h4 className="text-sm font-semibold text-gray-700 mb-3">按類型統計</h4>
+          <h4 className="text-sm font-semibold text-gray-700 mb-3">{t('notifStatByType')}</h4>
           <div className="space-y-2">
             {stats.byType.map((item) => (
               <div key={item.type} className="flex items-center gap-3">
                 <div className="w-24 text-sm text-gray-600 truncate">
-                  {typeLabels[item.type] || item.type}
+                  {typeLabelsKeys[item.type] ? t(typeLabelsKeys[item.type] as Parameters<typeof t>[0]) : item.type}
                 </div>
                 <div className="flex-1 h-6 bg-gray-100 rounded-full overflow-hidden">
                   <div
@@ -165,7 +167,7 @@ export default function NotificationStats() {
       {/* 7 天趨勢 */}
       {stats.dailyTrend.length > 0 && (
         <div>
-          <h4 className="text-sm font-semibold text-gray-700 mb-3">最近 7 天趨勢</h4>
+          <h4 className="text-sm font-semibold text-gray-700 mb-3">{t('notifStatLast7Days')}</h4>
           <div className="flex items-end gap-1 h-24">
             {stats.dailyTrend.map((day) => {
               const maxDayCount = Math.max(...stats.dailyTrend.map((d) => d.count), 1)
@@ -191,7 +193,7 @@ export default function NotificationStats() {
       {stats.overview.total === 0 && (
         <div className="text-center text-gray-500 py-4">
           <Bell className="h-8 w-8 mx-auto mb-2 opacity-50" />
-          <p>還沒有任何通知</p>
+          <p>{t('notifStatNoNotifications')}</p>
         </div>
       )}
     </div>

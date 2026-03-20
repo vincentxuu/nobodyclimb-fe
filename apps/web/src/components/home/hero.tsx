@@ -3,12 +3,14 @@
 import Image from 'next/image'
 import { motion } from 'framer-motion'
 import { ArrowDown } from 'lucide-react'
+import { useTranslations } from 'next-intl'
 
 /**
  * 首頁英雄區組件
  * 展示網站主要視覺元素和標語
  */
 export function Hero() {
+  const t = useTranslations('HomePage')
   return (
     <div className="relative h-[100vh] w-full overflow-hidden pt-[80px]">
       {/* 背景圖片 */}
@@ -34,7 +36,7 @@ export function Hero() {
           transition={{ duration: 0.7 }}
         >
           <h1 className="mb-2 font-['Glow_Sans_TC'] text-[40px] font-bold leading-[1.733em] tracking-[0.16em]">
-            小人物攀岩
+            {t('heroTitle')}
           </h1>
 
           <div className="logo-container flex flex-col items-center gap-3">
@@ -48,7 +50,7 @@ export function Hero() {
           </div>
 
           <p className="mx-auto mt-6 max-w-[503px] px-4 text-center font-['Noto_Sans_CJK_TC'] text-[16px] font-normal leading-[150%] tracking-[0.01em]">
-            攀岩像是在牆上跳舞，像是在牆上即興演出，像是在走一條迷宮，起點終點很明確，過程自由發揮，你就是答案。
+            {t('heroTagline')}
           </p>
         </motion.div>
       </div>

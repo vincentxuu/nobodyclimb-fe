@@ -46,7 +46,13 @@ ANALYTICS_DATASET = "nobodyclimb_access_logs_preview"
 # Google OAuth - Set via wrangler secret or environment variable
 # GOOGLE_CLIENT_ID = "your-google-client-id.apps.googleusercontent.com"
 
- 
+# Langfuse Observability - Set via wrangler secret:
+# wrangler secret put LANGFUSE_PUBLIC_KEY --env preview
+# wrangler secret put LANGFUSE_SECRET_KEY --env preview
+# wrangler secret put LANGFUSE_BASEURL --env preview
+# LANGFUSE_BASEURL 預設為 https://cloud.langfuse.com，如使用 self-hosted 才需設定
+
+
 
 [[env.preview.d1_databases]]
 
@@ -135,7 +141,13 @@ ANALYTICS_DATASET = "nobodyclimb_access_logs"
 # Google OAuth - Set via wrangler secret or environment variable
 # GOOGLE_CLIENT_ID = "your-google-client-id.apps.googleusercontent.com"
 
- 
+# Langfuse Observability - Set via wrangler secret:
+# wrangler secret put LANGFUSE_PUBLIC_KEY --env production
+# wrangler secret put LANGFUSE_SECRET_KEY --env production
+# wrangler secret put LANGFUSE_BASEURL --env production
+# LANGFUSE_BASEURL 預設為 https://cloud.langfuse.com，如使用 self-hosted 才需設定
+
+
 
 [[env.production.d1_databases]]
 

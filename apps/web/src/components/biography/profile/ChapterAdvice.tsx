@@ -7,6 +7,7 @@ import { biographyContentService } from '@/lib/api/services'
 import { useAdviceToSelfStory, useCoreStoryLikeMutation, useCoreStoryCommentMutation } from '@/lib/hooks/useCoreStories'
 import { ContentInteractionBar } from '../display/ContentInteractionBar'
 import { normalizeNewlines } from '@/lib/utils'
+import { useTranslations } from 'next-intl'
 
 interface ChapterAdviceProps {
   biographyId: string
@@ -19,6 +20,7 @@ interface ChapterAdviceProps {
  * 信件/便條紙風格設計
  */
 export function ChapterAdvice({ biographyId, personName, updatedAt }: ChapterAdviceProps) {
+  const t = useTranslations('BiographyPage')
   const { story, isLoading } = useAdviceToSelfStory(biographyId)
   const likeMutation = useCoreStoryLikeMutation(biographyId)
   const commentMutation = useCoreStoryCommentMutation(biographyId, story?.id)
@@ -84,10 +86,10 @@ export function ChapterAdvice({ biographyId, personName, updatedAt }: ChapterAdv
         {/* 章節標題 */}
         <div className="mb-8 text-center">
           <span className="mb-2 inline-block text-sm font-medium uppercase tracking-wider text-brand-dark">
-            Chapter 4
+            {t('chapter4')}
           </span>
           <h2 className="text-2xl font-semibold text-gray-900">
-            給剛開始攀岩的自己
+            {t('chapter4Title')}
           </h2>
         </div>
 
@@ -100,7 +102,7 @@ export function ChapterAdvice({ biographyId, personName, updatedAt }: ChapterAdv
             <div className="flex flex-col items-center justify-center py-4 text-center">
               <div className="flex items-center gap-2 text-lg text-gray-400">
                 <Lock size={18} />
-                <span>等這個人心情好再來問</span>
+                <span>{t('chapter4Locked')}</span>
               </div>
             </div>
           ) : (

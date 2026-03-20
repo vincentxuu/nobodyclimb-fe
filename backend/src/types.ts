@@ -94,8 +94,8 @@ export interface AIDocumentMetadata {
 // ============================================
 
 export interface ParsedQuery {
-  tool: 'search_routes' | 'search_crags' | 'general_knowledge';
-  query_type?: 'simple' | 'complex' | 'general-knowledge';
+  tool: 'search_routes' | 'search_crags' | 'general_knowledge' | 'search_sql' | 'hybrid' | 'multi_tool';
+  query_type?: 'simple' | 'complex' | 'general-knowledge' | 'sql' | 'hybrid' | 'clarification-needed';
   params: {
     crag_name?: string;
     area_name?: string;
@@ -103,6 +103,16 @@ export interface ParsedQuery {
     route_type?: string;
     region?: string;
     climbing_type?: string;
+    route_name?: string;
+  };
+  template?: string;
+  clarification_type?: 'intent' | 'missing-crag';
+  confidence: number;        // 0.0-1.0，工具選擇信心分數（缺失時預設 1.0）
+  alternative?: string;      // 第二選擇工具名（confidence < 0.8 時）
+  retrieval_method?: 'vector' | 'bm25' | 'hybrid';  // 檢索方法（預設 hybrid）
+  multi_tool?: {             // 多工具組合（僅 tool='multi_tool' 時）
+    steps: Array<{ tool: string; purpose: string; query?: string; params?: Record<string, unknown> }>;
+    execution_mode?: 'parallel' | 'sequential';
   };
 }
 
@@ -152,6 +162,7 @@ export interface AIAskRequest {
   include_sources?: boolean; // 是否回傳來源，預設 true
   chat_history?: AIChatMessage[]; // 最近幾輪對話（不含本次 query），供 LLM 記憶和 context 補充
   no_cache?: boolean;        // 強制跳過 KV 快取（如重新產生時使用）
+  climbed_route_ids?: string[]; // 推薦排除清單：使用者已完攀的 route_id，retrieval 層過濾使用
 }
 
 export interface AIAskResponse {
@@ -159,6 +170,11 @@ export interface AIAskResponse {
   sources: AISource[];
   query_id: string; // 供後續回饋使用
   suggested_questions: string[]; // AI 生成的追問建議
+  clarification_needed?: boolean;
+  clarification_options?: string[];
+  query_route?: string;
+  degraded?: boolean;            // 是否有 step 降級
+  degraded_stages?: string[];    // 降級的 step 名稱列表
 }
 
 export interface AISearchRequest {
@@ -203,6 +219,10 @@ export interface Env {
   AI: AI;
   VECTOR_INDEX: VectorizeIndex;
   AI_GATEWAY_SLUG?: string;
+  // Langfuse Observability（透過 wrangler secret 設定）
+  LANGFUSE_PUBLIC_KEY?: string;
+  LANGFUSE_SECRET_KEY?: string;
+  LANGFUSE_BASEURL?: string;
 }
 
 // Type alias for backwards compatibility

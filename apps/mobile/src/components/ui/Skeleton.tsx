@@ -12,7 +12,7 @@ import Animated, {
   withTiming,
   interpolate,
 } from 'react-native-reanimated'
-import { DURATION, RADIUS } from '@nobodyclimb/constants'
+import { DURATION, RADIUS, WB_COLORS } from '@nobodyclimb/constants'
 
 export interface SkeletonProps {
   /** 寬度 */
@@ -135,7 +135,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#E0E0E0',
   },
   card: {
-    backgroundColor: '#FFFFFF',
+    backgroundColor: WB_COLORS[0],
     borderRadius: RADIUS.md,
     overflow: 'hidden',
   },

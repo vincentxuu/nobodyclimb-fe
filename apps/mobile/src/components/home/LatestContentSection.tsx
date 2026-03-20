@@ -18,7 +18,7 @@ import Animated, { FadeInUp } from 'react-native-reanimated'
 
 import { Text, Button, Skeleton, Spinner } from '@/components/ui'
 import { FadeIn } from '@/components/animation'
-import { SEMANTIC_COLORS, SPACING, BORDER_RADIUS, WB_COLORS } from '@nobodyclimb/constants'
+import { BORDER_RADIUS, SEMANTIC_COLORS, SPACING, WB_COLORS } from '@nobodyclimb/constants'
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window')
 const CARD_WIDTH = (SCREEN_WIDTH - SPACING[4] * 2 - SPACING[4]) / 2
@@ -272,10 +272,10 @@ const styles = StyleSheet.create({
     width: CARD_WIDTH,
   },
   card: {
-    backgroundColor: '#FFFFFF',
+    backgroundColor: WB_COLORS[0],
     borderRadius: BORDER_RADIUS.lg,
     overflow: 'hidden',
-    shadowColor: '#000',
+    shadowColor: WB_COLORS[100],
     shadowOffset: { width: 0, height: 1 },
     shadowOpacity: 0.05,
     shadowRadius: 2,
@@ -314,7 +314,7 @@ const styles = StyleSheet.create({
   categoryText: {
     fontSize: 10,
     fontWeight: '500',
-    color: '#FFFFFF',
+    color: WB_COLORS[0],
   },
   cardContent: {
     padding: SPACING[4],

@@ -12,7 +12,7 @@ import { HandMetal, MapPin, Users, BookOpen } from 'lucide-react-native'
 
 import { Text, Button, Spinner } from '@/components/ui'
 import { FadeIn, SlideUp } from '@/components/animation'
-import { SEMANTIC_COLORS, SPACING, BORDER_RADIUS, WB_COLORS } from '@nobodyclimb/constants'
+import { BORDER_RADIUS, SEMANTIC_COLORS, SPACING, WB_COLORS } from '@nobodyclimb/constants'
 
 interface FeaturedStory {
   content: string
@@ -119,7 +119,7 @@ export function StoryShowcaseSection() {
                       </Text>
                     </Pressable>
                     <XStack alignItems="center" gap={4}>
-                      <HandMetal size={16} color="#F59E0B" />
+                      <HandMetal size={16} color={SEMANTIC_COLORS.warning} />
                       <Text style={styles.reactionText}>
                         我也是 {data.featuredStory.reactions.me_too}
                       </Text>
@@ -182,7 +182,7 @@ export function StoryShowcaseSection() {
 
 const styles = StyleSheet.create({
   container: {
-    backgroundColor: '#FFFFFF',
+    backgroundColor: WB_COLORS[0],
     paddingVertical: SPACING[8],
   },
   content: {
@@ -233,7 +233,7 @@ const styles = StyleSheet.create({
   },
   reactionText: {
     fontSize: 14,
-    color: '#F59E0B',
+    color: SEMANTIC_COLORS.warning,
   },
   divider: {
     height: 1,

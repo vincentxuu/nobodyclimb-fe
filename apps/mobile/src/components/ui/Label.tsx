@@ -32,7 +32,7 @@ export function Label({
     >
       {children}
       {required && (
-        <TamaguiText color="#ff4d4f" marginLeft={2}>
+        <TamaguiText color={SEMANTIC_COLORS.error} marginLeft={2}>
           *
         </TamaguiText>
       )}

@@ -11,7 +11,7 @@ import Animated, {
   withTiming,
   interpolateColor,
 } from 'react-native-reanimated'
-import { SEMANTIC_COLORS, DURATION } from '@nobodyclimb/constants'
+import { DURATION, SEMANTIC_COLORS, WB_COLORS } from '@nobodyclimb/constants'
 
 export interface SwitchProps {
   /** 是否選中 */
@@ -55,7 +55,7 @@ export function Switch({
     const backgroundColor = interpolateColor(
       progress.value,
       [0, 1],
-      ['#B6B3B3', SEMANTIC_COLORS.textMain]
+      [WB_COLORS[50], SEMANTIC_COLORS.textMain]
     )
     return {
       backgroundColor,
@@ -100,8 +100,8 @@ const styles = StyleSheet.create({
     paddingHorizontal: 2,
   },
   thumb: {
-    backgroundColor: '#FFFFFF',
-    shadowColor: '#000',
+    backgroundColor: WB_COLORS[0],
+    shadowColor: WB_COLORS[100],
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.2,
     shadowRadius: 2,

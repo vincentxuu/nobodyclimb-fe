@@ -15,14 +15,7 @@ import Animated, {
   useAnimatedStyle,
   withSpring,
 } from 'react-native-reanimated'
-import {
-  SEMANTIC_COLORS,
-  BORDER_RADIUS,
-  SPACING,
-  FONT_SIZE,
-  FONT_WEIGHT,
-  WB_COLORS,
-} from '@nobodyclimb/constants'
+import { BORDER_RADIUS, FONT_SIZE, FONT_WEIGHT, SEMANTIC_COLORS, SPACING, WB_COLORS } from '@nobodyclimb/constants'
 import { Text } from './Text'
 import { springConfigLight } from '@/theme/animations'
 
@@ -70,7 +63,7 @@ function getVariantStyles(
     return {
       backgroundColor: SEMANTIC_COLORS.textMain,
       borderColor: SEMANTIC_COLORS.textMain,
-      textColor: '#FFFFFF',
+      textColor: WB_COLORS[0],
     }
   }
 
@@ -90,9 +83,9 @@ function getVariantStyles(
     case 'default':
     default:
       return {
-        backgroundColor: '#3F3D3D',
-        borderColor: '#3F3D3D',
-        textColor: '#FFFFFF',
+        backgroundColor: WB_COLORS[90],
+        borderColor: WB_COLORS[90],
+        textColor: WB_COLORS[0],
       }
   }
 }

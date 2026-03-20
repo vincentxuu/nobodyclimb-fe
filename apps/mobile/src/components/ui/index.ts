@@ -93,6 +93,10 @@ export type { ListItemProps, ListSectionProps } from './ListItem'
 export { Dialog } from './Dialog'
 export type { DialogProps, DialogAction } from './Dialog'
 
+// ConfirmDialog
+export { ConfirmDialog } from './ConfirmDialog'
+export type { ConfirmDialogProps } from './ConfirmDialog'
+
 // Toast
 export { Toast, ToastProvider, useToast } from './Toast'
 export type { ToastProps, ToastConfig, ToastVariant } from './Toast'
@@ -148,3 +152,11 @@ export type {
 // Breadcrumb
 export { Breadcrumb } from './Breadcrumb'
 export type { BreadcrumbProps, BreadcrumbItem } from './Breadcrumb'
+
+// Markdown
+export { MarkdownText } from './MarkdownText'
+export type { MarkdownTextProps } from './MarkdownText'
+
+// PlaceholderImage
+export { PlaceholderImage } from './PlaceholderImage'
+export type { PlaceholderImageProps } from './PlaceholderImage'

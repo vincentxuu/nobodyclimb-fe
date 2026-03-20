@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect, useCallback } from 'react'
 import { Camera, ExternalLink, Loader2, AlertCircle } from 'lucide-react'
+import { useTranslations } from 'next-intl'
 import { API_BASE_URL } from '@/lib/constants'
 
 const MAX_CAMERAS_TO_SHOW = 6
@@ -26,6 +27,7 @@ export const TrafficCamerasCard: React.FC<TrafficCamerasCardProps> = ({
   latitude,
   longitude,
 }) => {
+  const t = useTranslations('CragPage')
   const [cameras, setCameras] = useState<CameraData[]>([])
   const [loading, setLoading] = useState(true)
   const [selectedCamera, setSelectedCamera] = useState<CameraData | null>(null)
@@ -62,7 +64,7 @@ export const TrafficCamerasCard: React.FC<TrafficCamerasCardProps> = ({
     } catch (err) {
       console.error('Failed to fetch traffic cameras:', err)
       // 發生錯誤時設置服務訊息而非錯誤（更友善的使用者體驗）
-      setServiceMessage('路況攝影機服務暫時無法使用')
+      setServiceMessage(t('trafficCamerasUnavailable'))
     } finally {
       setLoading(false)
     }
@@ -77,11 +79,11 @@ export const TrafficCamerasCard: React.FC<TrafficCamerasCardProps> = ({
       <div className="rounded-lg bg-white p-6 shadow-md">
         <h3 className="mb-4 flex items-center text-xl font-bold">
           <Camera size={20} className="mr-2 text-[#1B1A1A]" />
-          即時路況攝影機
+          {t('trafficCamerasTitle')}
         </h3>
         <div className="flex items-center justify-center py-12">
           <Loader2 className="h-8 w-8 animate-spin text-gray-400" />
-          <span className="ml-2 text-gray-500">載入中...</span>
+          <span className="ml-2 text-gray-500">{t('loading')}</span>
         </div>
       </div>
     )
@@ -92,12 +94,12 @@ export const TrafficCamerasCard: React.FC<TrafficCamerasCardProps> = ({
       <div className="rounded-lg bg-white p-6 shadow-md">
         <h3 className="mb-4 flex items-center text-xl font-bold">
           <Camera size={20} className="mr-2 text-[#1B1A1A]" />
-          即時路況攝影機
+          {t('trafficCamerasTitle')}
         </h3>
         <div className="flex flex-col items-center justify-center py-8 text-center">
           <AlertCircle className="mb-2 h-8 w-8 text-gray-400" />
           <p className="mb-2 text-gray-500">
-            {serviceMessage || '附近沒有可用的路況攝影機'}
+            {serviceMessage || t('trafficCamerasNone')}
           </p>
           <a
             href={TRAFFIC_CAMERA_SERVICE_URL}
@@ -105,7 +107,7 @@ export const TrafficCamerasCard: React.FC<TrafficCamerasCardProps> = ({
             rel="noopener noreferrer"
             className="mt-2 flex items-center gap-1 text-sm text-blue-500 hover:text-blue-700"
           >
-            前往 1968 路況服務查看
+            {t('trafficCamerasViewLink')}
             <ExternalLink size={14} />
           </a>
         </div>
@@ -118,7 +120,7 @@ export const TrafficCamerasCard: React.FC<TrafficCamerasCardProps> = ({
       <div className="mb-4 flex items-center justify-between">
         <h3 className="flex items-center text-xl font-bold">
           <Camera size={20} className="mr-2 text-[#1B1A1A]" />
-          即時路況攝影機
+          {t('trafficCamerasTitle')}
         </h3>
         <a
           href={TRAFFIC_CAMERA_SERVICE_URL}
@@ -126,7 +128,7 @@ export const TrafficCamerasCard: React.FC<TrafficCamerasCardProps> = ({
           rel="noopener noreferrer"
           className="flex items-center gap-1 text-sm text-gray-500 hover:text-gray-700"
         >
-          1968 路況服務
+          {t('trafficCamerasService')}
           <ExternalLink size={14} />
         </a>
       </div>
@@ -152,7 +154,7 @@ export const TrafficCamerasCard: React.FC<TrafficCamerasCardProps> = ({
             />
             <div className="absolute inset-0 flex items-center justify-center bg-black/0 transition-colors group-hover:bg-black/30">
               <span className="rounded-full bg-white/90 px-3 py-1 text-sm font-medium text-gray-800 opacity-0 transition-opacity group-hover:opacity-100">
-                點擊查看即時影像
+                {t('trafficCamerasClickView')}
               </span>
             </div>
           </a>
@@ -167,7 +169,7 @@ export const TrafficCamerasCard: React.FC<TrafficCamerasCardProps> = ({
               rel="noopener noreferrer"
               className="flex items-center gap-1 text-xs text-blue-500 hover:text-blue-700"
             >
-              前往 1968 查看
+              {t('trafficCamerasView')}
               <ExternalLink size={12} />
             </a>
           </div>
@@ -205,7 +207,7 @@ export const TrafficCamerasCard: React.FC<TrafficCamerasCardProps> = ({
               target="_blank"
               rel="noopener noreferrer"
               className="block truncate bg-gray-100 px-2 py-1 text-xs text-gray-600 hover:bg-gray-200 hover:text-blue-600"
-              title={`前往 1968 查看 ${camera.camname}`}
+              title={`${t('trafficCamerasView')} ${camera.camname}`}
             >
               {camera.camname}
             </a>

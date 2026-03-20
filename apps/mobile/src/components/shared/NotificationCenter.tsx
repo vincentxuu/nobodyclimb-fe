@@ -25,7 +25,7 @@ import { zhTW } from 'date-fns/locale'
 
 import { useAuthStore } from '@/store/authStore'
 import { Text, Button, IconButton } from '@/components/ui'
-import { SEMANTIC_COLORS, SPACING, RADIUS } from '@nobodyclimb/constants'
+import { BRAND_YELLOW, RADIUS, SEMANTIC_COLORS, SPACING, WB_COLORS } from '@nobodyclimb/constants'
 
 // 通知類型枚舉
 enum NotificationType {
@@ -65,15 +65,15 @@ const notificationIcons: Record<string, React.ComponentType<{ size: number; colo
 
 // 通知類型對應的顏色
 const notificationColors: Record<string, { text: string; bg: string }> = {
-  [NotificationType.GOAL_LIKED]: { text: '#1B1A1A', bg: 'rgba(255, 231, 12, 0.2)' },
-  [NotificationType.GOAL_COMMENTED]: { text: '#3B82F6', bg: '#EFF6FF' },
-  [NotificationType.GOAL_REFERENCED]: { text: '#F59E0B', bg: '#FFFBEB' },
+  [NotificationType.GOAL_LIKED]: { text: WB_COLORS[100], bg: 'rgba(255, 231, 12, 0.2)' },
+  [NotificationType.GOAL_COMMENTED]: { text: SEMANTIC_COLORS.info, bg: '#EFF6FF' },
+  [NotificationType.GOAL_REFERENCED]: { text: SEMANTIC_COLORS.warning, bg: '#FFFBEB' },
   [NotificationType.NEW_FOLLOWER]: { text: '#22C55E', bg: '#F0FDF4' },
   [NotificationType.STORY_FEATURED]: { text: '#A855F7', bg: '#FAF5FF' },
   [NotificationType.BIOGRAPHY_COMMENTED]: { text: '#6366F1', bg: '#EEF2FF' },
-  [NotificationType.POST_LIKED]: { text: '#1B1A1A', bg: 'rgba(255, 231, 12, 0.2)' },
+  [NotificationType.POST_LIKED]: { text: WB_COLORS[100], bg: 'rgba(255, 231, 12, 0.2)' },
   [NotificationType.POST_COMMENTED]: { text: '#06B6D4', bg: '#ECFEFF' },
-  [NotificationType.SYSTEM_ANNOUNCEMENT]: { text: '#1B1A1A', bg: 'rgba(255, 231, 12, 0.3)' },
+  [NotificationType.SYSTEM_ANNOUNCEMENT]: { text: WB_COLORS[100], bg: 'rgba(255, 231, 12, 0.3)' },
 }
 
 interface NotificationCenterProps {
@@ -269,7 +269,7 @@ export function NotificationCenter({ style }: NotificationCenterProps) {
             onPress={() => handleDelete(item.id)}
             hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
           >
-            <Trash2 size={16} color="#EF4444" />
+            <Trash2 size={16} color={SEMANTIC_COLORS.error} />
           </Pressable>
         </View>
       </Pressable>
@@ -376,7 +376,7 @@ const styles = StyleSheet.create({
     position: 'absolute',
     top: 0,
     right: 0,
-    backgroundColor: '#FFE70C',
+    backgroundColor: BRAND_YELLOW[100],
     borderRadius: 10,
     minWidth: 20,
     height: 20,
@@ -385,12 +385,12 @@ const styles = StyleSheet.create({
     paddingHorizontal: 4,
   },
   badgeText: {
-    color: '#1B1A1A',
+    color: WB_COLORS[100],
     fontSize: 11,
     fontWeight: '600',
   },
   sheetBackground: {
-    backgroundColor: '#FFFFFF',
+    backgroundColor: WB_COLORS[0],
   },
   sheetIndicator: {
     backgroundColor: '#D3D3D3',

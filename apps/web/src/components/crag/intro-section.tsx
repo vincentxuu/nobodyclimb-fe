@@ -2,6 +2,7 @@
 
 import React from 'react'
 import { Car, MapPin, Info } from 'lucide-react'
+import { useTranslations } from 'next-intl'
 
 interface Transportation {
   type: string
@@ -27,48 +28,54 @@ interface CragIntroSectionProps {
 }
 
 export const CragIntroSection: React.FC<CragIntroSectionProps> = ({ cragData }) => {
+  const t = useTranslations('CragPage')
+
+  const seasons = [
+    { key: '春', label: t('seasonSpring'), suffix: t('seasonSuffix') },
+    { key: '夏', label: t('seasonSummer'), suffix: t('seasonSuffix') },
+    { key: '秋', label: t('seasonAutumn'), suffix: t('seasonSuffix') },
+    { key: '冬', label: t('seasonWinter'), suffix: t('seasonSuffix') },
+  ]
+
   return (
     <div className="space-y-8">
       <div>
-        <h2 className="mb-6 border-l-4 border-[#FFE70C] pl-4 text-2xl font-bold">岩場介紹</h2>
+        <h2 className="mb-6 border-l-4 border-[#FFE70C] pl-4 text-2xl font-bold">{t('cragIntro')}</h2>
         <div className="mb-6 grid grid-cols-2 gap-4 md:grid-cols-5">
           <div className="rounded-lg bg-gray-50 p-4 text-center">
-            <p className="mb-1 text-sm text-gray-500">岩石類型</p>
+            <p className="mb-1 text-sm text-gray-500">{t('introRockType')}</p>
             <p className="font-medium">{cragData.rockType}</p>
           </div>
           <div className="rounded-lg bg-gray-50 p-4 text-center">
-            <p className="mb-1 text-sm text-gray-500">路線數量</p>
+            <p className="mb-1 text-sm text-gray-500">{t('introRouteCount')}</p>
             <p className="font-medium">{cragData.routes}+</p>
           </div>
           <div className="rounded-lg bg-gray-50 p-4 text-center">
-            <p className="mb-1 text-sm text-gray-500">難度範圍</p>
+            <p className="mb-1 text-sm text-gray-500">{t('introDifficultyRange')}</p>
             <p className="font-medium">{cragData.difficulty}</p>
           </div>
           <div className="rounded-lg bg-gray-50 p-4 text-center">
-            <p className="mb-1 text-sm text-gray-500">高度</p>
+            <p className="mb-1 text-sm text-gray-500">{t('introHeight')}</p>
             <p className="font-medium">{cragData.height}</p>
           </div>
           <div className="rounded-lg bg-gray-50 p-4 text-center">
-            <p className="mb-1 text-sm text-gray-500">接近時間</p>
+            <p className="mb-1 text-sm text-gray-500">{t('introApproachTime')}</p>
             <p className="font-medium">{cragData.approach}</p>
           </div>
         </div>
 
         <div className="space-y-4 text-gray-700">
           <p>{cragData.description}</p>
-          <p>
-            這裡是岩場的詳細介紹。包含岩場的地理、地質、生態環境等特性，以及歷史與發展。這段文字包含了層岩的形成過程、地質特性、路線類型、適合攀岩的人群等資訊。
-          </p>
         </div>
       </div>
 
       {/* YouTube 影片介紹 */}
       <div>
-        <h2 className="mb-6 border-l-4 border-[#FFE70C] pl-4 text-2xl font-bold">影片介紹</h2>
+        <h2 className="mb-6 border-l-4 border-[#FFE70C] pl-4 text-2xl font-bold">{t('videoIntroTitle')}</h2>
         <div className="aspect-w-16 aspect-h-9 overflow-hidden rounded-lg bg-gray-100">
           <iframe
             src={cragData.videoUrl}
-            title="岩場介紹影片"
+            title={t('videoIntroIframeTitle')}
             frameBorder="0"
             allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
             allowFullScreen
@@ -78,30 +85,25 @@ export const CragIntroSection: React.FC<CragIntroSectionProps> = ({ cragData }) 
       </div>
 
       <div>
-        <h2 className="mb-6 border-l-4 border-[#FFE70C] pl-4 text-2xl font-bold">最佳攀岩季節</h2>
+        <h2 className="mb-6 border-l-4 border-[#FFE70C] pl-4 text-2xl font-bold">{t('bestSeasonTitle')}</h2>
         <div className="mb-6 grid grid-cols-4 gap-2">
-          {['春', '夏', '秋', '冬'].map((season) => (
+          {seasons.map(({ key, label, suffix }) => (
             <div
-              key={season}
+              key={key}
               className={`rounded-lg border p-4 text-center ${
-                cragData.seasons.includes(season)
+                cragData.seasons.includes(key)
                   ? 'border-yellow-200 bg-yellow-50 text-[#1B1A1A]'
                   : 'border-gray-200 bg-gray-50 text-gray-400'
               }`}
             >
-              {season}季
+              {label}{suffix}
             </div>
           ))}
-        </div>
-        <div className="mb-6 text-gray-700">
-          <p>
-            龍洞最適合的攀岩季節是春季、秋季和冬季。夏季由於溫度較高且潮濕，岩壁容易有水氣，不太適合攀岩活動。
-          </p>
         </div>
       </div>
 
       <div>
-        <h2 className="mb-6 border-l-4 border-[#FFE70C] pl-4 text-2xl font-bold">交通資訊</h2>
+        <h2 className="mb-6 border-l-4 border-[#FFE70C] pl-4 text-2xl font-bold">{t('transportInfoTitle')}</h2>
         <div className="mb-6 space-y-4">
           {cragData.transportation.map((transport, index) => (
             <div key={index} className="rounded-lg bg-gray-50 p-4">
@@ -119,7 +121,7 @@ export const CragIntroSection: React.FC<CragIntroSectionProps> = ({ cragData }) 
             <div className="flex items-start">
               <MapPin size={20} className="mr-3 mt-0.5 text-[#1B1A1A]" />
               <div>
-                <h4 className="mb-1 text-lg font-bold">停車資訊</h4>
+                <h4 className="mb-1 text-lg font-bold">{t('parkingInfoTitle')}</h4>
                 <p className="text-gray-700">{cragData.parking}</p>
               </div>
             </div>
@@ -128,7 +130,7 @@ export const CragIntroSection: React.FC<CragIntroSectionProps> = ({ cragData }) 
       </div>
 
       <div>
-        <h2 className="mb-6 border-l-4 border-[#FFE70C] pl-4 text-2xl font-bold">附近設施</h2>
+        <h2 className="mb-6 border-l-4 border-[#FFE70C] pl-4 text-2xl font-bold">{t('nearbyFacilitiesTitle')}</h2>
         <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
           {cragData.amenities.map((amenity, index) => (
             <div key={index} className="flex items-center rounded-lg bg-gray-50 p-4">

@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import { BookOpen, Plus, LogIn } from 'lucide-react'
+import { useTranslations } from 'next-intl'
 import { Button } from '@/components/ui/button'
 import { useAuth } from '@/lib/hooks'
 import { useRouteStories } from '@/lib/hooks/useRouteStories'
@@ -21,6 +22,7 @@ export function RouteStoriesSection({
   routeName,
   routeGrade,
 }: RouteStoriesSectionProps) {
+  const t = useTranslations('CragPage')
   const { isSignedIn } = useAuth()
   const { getRouteStories, createStory, toggleLike, toggleHelpful } = useRouteStories()
   const { toast } = useToast()
@@ -63,14 +65,14 @@ export function RouteStoriesSection({
       const newStory = await createStory(data)
       setStories((prev) => [newStory, ...prev])
       toast({
-        title: '分享成功',
-        description: '已成功分享路線故事',
+        title: t('shareSuccess'),
+        description: t('shareSuccessStory'),
       })
     } catch (error) {
       console.error('Error creating story:', error)
       toast({
-        title: '分享失敗',
-        description: '無法分享故事，請稍後再試',
+        title: t('shareFailed'),
+        description: t('shareFailedDesc'),
         variant: 'destructive',
       })
       throw error
@@ -112,8 +114,8 @@ export function RouteStoriesSection({
       )
       console.error('Error toggling like:', error)
       toast({
-        title: '操作失敗',
-        description: '無法更新按讚狀態，請稍後再試',
+        title: t('actionFailed'),
+        description: t('likeUpdateFailed'),
         variant: 'destructive',
       })
     }
@@ -152,8 +154,8 @@ export function RouteStoriesSection({
       )
       console.error('Error toggling helpful:', error)
       toast({
-        title: '操作失敗',
-        description: '無法更新標記狀態，請稍後再試',
+        title: t('actionFailed'),
+        description: t('helpfulUpdateFailed'),
         variant: 'destructive',
       })
     }
@@ -164,7 +166,7 @@ export function RouteStoriesSection({
       <div className="mb-8">
         <div className="mb-4 flex items-center justify-between">
           <h2 className="border-l-4 border-[#FFE70C] pl-3 text-lg font-bold text-[#1B1A1A]">
-            路線故事
+            {t('storiesTitle')}
           </h2>
           {isSignedIn ? (
             <Button
@@ -174,25 +176,25 @@ export function RouteStoriesSection({
               className="gap-1"
             >
               <Plus className="h-4 w-4" />
-              分享故事
+              {t('shareStory')}
             </Button>
           ) : (
             <Link href="/auth/login">
               <Button variant="outline" size="sm" className="gap-1">
                 <LogIn className="h-4 w-4" />
-                登入分享
+                {t('loginToShare')}
               </Button>
             </Link>
           )}
         </div>
 
         {isLoading ? (
-          <div className="py-6 text-center text-gray-500">載入中...</div>
+          <div className="py-6 text-center text-gray-500">{t('storiesLoading')}</div>
         ) : stories.length === 0 ? (
           <div className="rounded-lg bg-gray-50 py-6 text-center text-gray-500">
             <BookOpen className="mx-auto mb-2 h-10 w-10 text-gray-300" />
-            <p className="text-sm">還沒有人分享這條路線的故事</p>
-            <p className="mt-1 text-xs text-gray-400">分享命名由來、攀登心得、有趣經歷或路線特色</p>
+            <p className="text-sm">{t('noStories')}</p>
+            <p className="mt-1 text-xs text-gray-400">{t('noStoriesHint')}</p>
             {isSignedIn && (
               <Button
                 variant="link"
@@ -200,7 +202,7 @@ export function RouteStoriesSection({
                 onClick={() => setIsStoryFormOpen(true)}
                 className="mt-2"
               >
-                成為第一個分享的人
+                {t('beFirstToShare')}
               </Button>
             )}
           </div>

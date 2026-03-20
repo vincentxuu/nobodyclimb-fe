@@ -21,7 +21,7 @@ import {
   ChevronRight,
 } from 'lucide-react-native'
 import Animated, { FadeInDown } from 'react-native-reanimated'
-import { SEMANTIC_COLORS, SPACING, BORDER_RADIUS } from '@nobodyclimb/constants'
+import { BORDER_RADIUS, SEMANTIC_COLORS, SPACING, WB_COLORS } from '@nobodyclimb/constants'
 import { Text } from '@/components/ui'
 import { SearchType, TYPE_LABELS } from './SearchFilters'
 
@@ -262,19 +262,19 @@ const styles = StyleSheet.create({
     gap: SPACING[2], // 8
   },
   resultItemPressed: {
-    backgroundColor: '#F5F5F5',
+    backgroundColor: WB_COLORS[10],
   },
   resultImage: {
     width: 48,
     height: 48,
     borderRadius: 24,
-    backgroundColor: '#F5F5F5',
+    backgroundColor: WB_COLORS[10],
   },
   resultIconContainer: {
     width: 48,
     height: 48,
     borderRadius: 24,
-    backgroundColor: '#F5F5F5',
+    backgroundColor: WB_COLORS[10],
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -282,7 +282,7 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   typeBadge: {
-    backgroundColor: '#F5F5F5',
+    backgroundColor: WB_COLORS[10],
     paddingHorizontal: SPACING[1], // 4
     paddingVertical: 2,
     borderRadius: BORDER_RADIUS.sm, // 4

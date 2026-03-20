@@ -1,0 +1,449 @@
+{
+  "version": "1.0.0",
+  "description": "RAG evaluation golden test set for NobodyClimb AI",
+  "cases": [
+    {
+      "id": "GT-001",
+      "query": "龍洞有哪些 5.10 的路線？",
+      "category": "simple",
+      "expected_tool": "search_routes",
+      "expected_answer_keywords": ["龍洞", "5.10"],
+      "expected_filters": { "location": "龍洞", "grade_gte": "5.10a" },
+      "ci": true
+    },
+    {
+      "id": "GT-002",
+      "query": "關子嶺岩場的特色是什麼？",
+      "category": "simple",
+      "expected_tool": "search_crags",
+      "expected_answer_keywords": ["關子嶺", "石灰岩"]
+    },
+    {
+      "id": "GT-003",
+      "query": "比較龍洞和德芙蘭哪個適合新手？",
+      "category": "complex",
+      "expected_tool": "search_crags",
+      "expected_answer_keywords": ["龍洞", "德芙蘭", "新手"]
+    },
+    {
+      "id": "GT-004",
+      "query": "什麼是先鋒攀登？需要什麼裝備？",
+      "category": "general-knowledge",
+      "expected_tool": "general_knowledge",
+      "expected_answer_keywords": ["先鋒", "快扣", "繩子"]
+    },
+    {
+      "id": "GT-005",
+      "query": "台北101攀岩場有什麼路線？",
+      "category": "edge-case",
+      "expected_tool": "search_crags",
+      "expected_answer_keywords": ["沒有找到", "不確定", "無法確認"]
+    },
+    {
+      "id": "GT-006",
+      "query": "墾丁有哪些 sport 路線？",
+      "category": "simple",
+      "expected_tool": "search_routes",
+      "expected_answer_keywords": ["墾丁", "sport"],
+      "expected_filters": { "location": "墾丁", "type": "sport" }
+    },
+    {
+      "id": "GT-007",
+      "query": "壽山岩場在哪裡？怎麼去？",
+      "category": "simple",
+      "expected_tool": "search_crags",
+      "expected_answer_keywords": ["壽山", "高雄"]
+    },
+    {
+      "id": "GT-008",
+      "query": "龍洞有多少條路線？",
+      "category": "simple",
+      "expected_tool": "search_sql",
+      "expected_answer_keywords": ["龍洞", "616"],
+      "expected_filters": { "location": "龍洞" },
+      "ci": true
+    },
+    {
+      "id": "GT-009",
+      "query": "德芙蘭岩場的岩質是什麼？",
+      "category": "simple",
+      "expected_tool": "search_crags",
+      "expected_answer_keywords": ["德芙蘭", "砂岩"]
+    },
+    {
+      "id": "GT-010",
+      "query": "龍洞 5.11 以上的路線有哪些？",
+      "category": "simple",
+      "expected_tool": "search_routes",
+      "expected_answer_keywords": ["龍洞", "5.11"],
+      "expected_filters": { "location": "龍洞", "grade_gte": "5.11a" }
+    },
+    {
+      "id": "GT-011",
+      "query": "關子嶺有傳統攀登路線嗎？",
+      "category": "simple",
+      "expected_tool": "search_routes",
+      "expected_answer_keywords": ["關子嶺"],
+      "expected_filters": { "location": "關子嶺" }
+    },
+    {
+      "id": "GT-012",
+      "query": "壽山有哪些 5.12 的路線？",
+      "category": "simple",
+      "expected_tool": "search_routes",
+      "expected_answer_keywords": ["壽山", "5.12"],
+      "expected_filters": { "location": "壽山", "grade_gte": "5.12a" }
+    },
+    {
+      "id": "GT-013",
+      "query": "墾丁岩場有什麼特別的地方？",
+      "category": "simple",
+      "expected_tool": "search_crags",
+      "expected_answer_keywords": ["墾丁", "石灰岩"]
+    },
+    {
+      "id": "GT-014",
+      "query": "龍洞有 trad 路線嗎？",
+      "category": "simple",
+      "expected_tool": "search_routes",
+      "expected_answer_keywords": ["龍洞", "trad"],
+      "expected_filters": { "location": "龍洞", "type": "trad" }
+    },
+    {
+      "id": "GT-015",
+      "query": "德芙蘭有幾條 5.10 以上的路線？",
+      "category": "simple",
+      "expected_tool": "search_sql",
+      "expected_answer_keywords": ["德芙蘭", "5.10"],
+      "expected_filters": { "location": "德芙蘭", "grade_gte": "5.10a" }
+    },
+    {
+      "id": "GT-016",
+      "query": "台灣南部有哪些岩場？",
+      "category": "simple",
+      "expected_tool": "search_crags",
+      "expected_answer_keywords": ["墾丁", "壽山", "關子嶺"]
+    },
+    {
+      "id": "GT-017",
+      "query": "龍洞最簡單的路線是什麼難度？",
+      "category": "simple",
+      "expected_tool": "search_sql",
+      "expected_answer_keywords": ["龍洞", "5.6"],
+      "expected_filters": { "location": "龍洞" }
+    },
+    {
+      "id": "GT-018",
+      "query": "壽山的路線難度範圍？",
+      "category": "simple",
+      "expected_tool": "search_crags",
+      "expected_answer_keywords": ["壽山", "5.10", "5.13"]
+    },
+    {
+      "id": "GT-019",
+      "query": "墾丁 5.11 到 5.12 的路線有哪些？",
+      "category": "simple",
+      "expected_tool": "search_routes",
+      "expected_answer_keywords": ["墾丁", "5.11"],
+      "expected_filters": { "location": "墾丁", "grade_gte": "5.11a", "grade_lte": "5.12d" }
+    },
+    {
+      "id": "GT-020",
+      "query": "關子嶺最難的路線是幾級？",
+      "category": "simple",
+      "expected_tool": "search_sql",
+      "expected_answer_keywords": ["關子嶺", "5.13"],
+      "expected_filters": { "location": "關子嶺" }
+    },
+    {
+      "id": "GT-021",
+      "query": "台灣北部有什麼岩場可以爬？",
+      "category": "simple",
+      "expected_tool": "search_crags",
+      "expected_answer_keywords": ["龍洞"]
+    },
+    {
+      "id": "GT-022",
+      "query": "德芙蘭岩場怎麼去？交通方式？",
+      "category": "simple",
+      "expected_tool": "search_crags",
+      "expected_answer_keywords": ["德芙蘭"]
+    },
+    {
+      "id": "GT-023",
+      "query": "墾丁有 boulder 路線嗎？",
+      "category": "simple",
+      "expected_tool": "search_routes",
+      "expected_answer_keywords": ["墾丁"],
+      "expected_filters": { "location": "墾丁" }
+    },
+    {
+      "id": "GT-024",
+      "query": "龍洞校門口有什麼路線？",
+      "category": "simple",
+      "expected_tool": "search_routes",
+      "expected_answer_keywords": ["龍洞", "校門口"]
+    },
+    {
+      "id": "GT-025",
+      "query": "各岩場有幾條路線？",
+      "category": "simple",
+      "expected_tool": "search_sql",
+      "expected_answer_keywords": ["龍洞", "墾丁", "壽山"]
+    },
+    {
+      "id": "GT-026",
+      "query": "推薦適合新手的 5.8 到 5.10 路線",
+      "category": "complex",
+      "expected_tool": "hybrid",
+      "expected_answer_keywords": ["5.8", "5.10", "新手"],
+      "expected_filters": { "grade_gte": "5.8", "grade_lte": "5.10d" },
+      "ci": true
+    },
+    {
+      "id": "GT-027",
+      "query": "龍洞和壽山的路線難度分布比較",
+      "category": "complex",
+      "expected_tool": "search_sql",
+      "expected_answer_keywords": ["龍洞", "壽山", "難度"]
+    },
+    {
+      "id": "GT-028",
+      "query": "哪個岩場最適合練習先鋒攀登？",
+      "category": "complex",
+      "expected_tool": "hybrid",
+      "expected_answer_keywords": ["先鋒"]
+    },
+    {
+      "id": "GT-029",
+      "query": "我想找南部的岩場，難度在 5.10 左右，有推薦嗎？",
+      "category": "complex",
+      "expected_tool": "hybrid",
+      "expected_answer_keywords": ["5.10", "南部"]
+    },
+    {
+      "id": "GT-030",
+      "query": "比較墾丁和壽山，哪個路線比較多？難度比較高？",
+      "category": "complex",
+      "expected_tool": "search_sql",
+      "expected_answer_keywords": ["墾丁", "壽山", "路線"]
+    },
+    {
+      "id": "GT-031",
+      "query": "台灣有哪些岩場可以爬傳統攀？哪個路線最多？",
+      "category": "complex",
+      "expected_tool": "search_crags",
+      "expected_answer_keywords": ["傳統", "龍洞"]
+    },
+    {
+      "id": "GT-032",
+      "query": "推薦龍洞三條適合中級攀岩者的經典路線",
+      "category": "complex",
+      "expected_tool": "hybrid",
+      "expected_answer_keywords": ["龍洞"],
+      "expected_filters": { "location": "龍洞" }
+    },
+    {
+      "id": "GT-033",
+      "query": "德芙蘭和龍洞的岩質有什麼不同？對攀爬有什麼影響？",
+      "category": "complex",
+      "expected_tool": "search_crags",
+      "expected_answer_keywords": ["德芙蘭", "龍洞", "砂岩"]
+    },
+    {
+      "id": "GT-034",
+      "query": "如果我只有週末兩天，推薦哪個岩場？要考慮交通時間",
+      "category": "complex",
+      "expected_tool": "hybrid",
+      "expected_answer_keywords": ["推薦", "交通"]
+    },
+    {
+      "id": "GT-035",
+      "query": "關子嶺和墾丁都是石灰岩，路線風格有什麼差異？",
+      "category": "complex",
+      "expected_tool": "search_crags",
+      "expected_answer_keywords": ["關子嶺", "墾丁", "石灰岩"]
+    },
+    {
+      "id": "GT-036",
+      "query": "各岩場 5.11 以上的路線數量統計",
+      "category": "complex",
+      "expected_tool": "search_sql",
+      "expected_answer_keywords": ["5.11", "龍洞"]
+    },
+    {
+      "id": "GT-037",
+      "query": "推薦壽山幾條 5.10 到 5.11 之間的 sport 路線",
+      "category": "complex",
+      "expected_tool": "hybrid",
+      "expected_answer_keywords": ["壽山", "5.10"],
+      "expected_filters": { "location": "壽山", "grade_gte": "5.10a", "grade_lte": "5.11d", "type": "sport" }
+    },
+    {
+      "id": "GT-038",
+      "query": "哪些岩場有適合小朋友的簡單路線？",
+      "category": "complex",
+      "expected_tool": "hybrid",
+      "expected_answer_keywords": ["簡單", "新手"]
+    },
+    {
+      "id": "GT-039",
+      "query": "龍洞的路線類型分布是怎樣的？sport 多還是 trad 多？",
+      "category": "complex",
+      "expected_tool": "search_sql",
+      "expected_answer_keywords": ["龍洞", "sport", "trad"]
+    },
+    {
+      "id": "GT-040",
+      "query": "如果我想進階到 5.12，應該去哪個岩場練習？",
+      "category": "complex",
+      "expected_tool": "hybrid",
+      "expected_answer_keywords": ["5.12"]
+    },
+    {
+      "id": "GT-041",
+      "query": "比較五個岩場的海拔和岩質差異",
+      "category": "complex",
+      "expected_tool": "search_crags",
+      "expected_answer_keywords": ["龍洞", "墾丁", "壽山", "關子嶺", "德芙蘭"]
+    },
+    {
+      "id": "GT-042",
+      "query": "台灣哪些岩場有 5.13 以上的路線？分別有幾條？",
+      "category": "complex",
+      "expected_tool": "search_sql",
+      "expected_answer_keywords": ["5.13", "墾丁"]
+    },
+    {
+      "id": "GT-043",
+      "query": "推薦幾條有影片的龍洞路線，難度 5.10 左右",
+      "category": "complex",
+      "expected_tool": "search_sql",
+      "expected_answer_keywords": ["龍洞", "5.10", "影片"],
+      "expected_filters": { "location": "龍洞" }
+    },
+    {
+      "id": "GT-044",
+      "query": "龍洞哪個區域路線最多？各有什麼特色？",
+      "category": "complex",
+      "expected_tool": "search_crags",
+      "expected_answer_keywords": ["龍洞", "校門口"]
+    },
+    {
+      "id": "GT-045",
+      "query": "我是 5.11 能力的攀岩者，規劃一個南部攀岩行程",
+      "category": "complex",
+      "expected_tool": "hybrid",
+      "expected_answer_keywords": ["5.11", "南部"],
+      "expected_filters": { "grade_gte": "5.10a", "grade_lte": "5.11d" }
+    },
+    {
+      "id": "GT-046",
+      "query": "什麼是 redpoint？和 onsight 有什麼不同？",
+      "category": "general-knowledge",
+      "expected_tool": "general_knowledge",
+      "expected_answer_keywords": ["redpoint", "紅點", "onsight", "視攀"]
+    },
+    {
+      "id": "GT-047",
+      "query": "攀岩新手需要準備什麼裝備？",
+      "category": "general-knowledge",
+      "expected_tool": "general_knowledge",
+      "expected_answer_keywords": ["岩鞋", "吊帶", "粉袋"],
+      "ci": true
+    },
+    {
+      "id": "GT-048",
+      "query": "什麼是 YDS 難度系統？5.10a 和 5.10d 差多少？",
+      "category": "general-knowledge",
+      "expected_tool": "general_knowledge",
+      "expected_answer_keywords": ["YDS", "5.10"]
+    },
+    {
+      "id": "GT-049",
+      "query": "top rope 和 lead climbing 的差別？",
+      "category": "general-knowledge",
+      "expected_tool": "general_knowledge",
+      "expected_answer_keywords": ["top rope", "上方確保", "先鋒"]
+    },
+    {
+      "id": "GT-050",
+      "query": "Sport climbing 和 trad climbing 有什麼不同？",
+      "category": "general-knowledge",
+      "expected_tool": "general_knowledge",
+      "expected_answer_keywords": ["sport", "trad", "bolt", "傳統"]
+    },
+    {
+      "id": "GT-051",
+      "query": "攀岩繩結有哪幾種？怎麼打八字結？",
+      "category": "general-knowledge",
+      "expected_tool": "general_knowledge",
+      "expected_answer_keywords": ["八字結", "繩結"]
+    },
+    {
+      "id": "GT-052",
+      "query": "下雨天可以戶外攀岩嗎？有什麼安全注意事項？",
+      "category": "general-knowledge",
+      "expected_tool": "general_knowledge",
+      "expected_answer_keywords": ["下雨", "安全", "濕滑"]
+    },
+    {
+      "id": "GT-053",
+      "query": "什麼是 flash？需要什麼條件？",
+      "category": "general-knowledge",
+      "expected_tool": "general_knowledge",
+      "expected_answer_keywords": ["flash", "閃攀", "第一次"]
+    },
+    {
+      "id": "GT-054",
+      "query": "攀岩怎麼暖身比較好？有推薦的暖身動作嗎？",
+      "category": "general-knowledge",
+      "expected_tool": "general_knowledge",
+      "expected_answer_keywords": ["暖身", "伸展"]
+    },
+    {
+      "id": "GT-055",
+      "query": "確保器有哪些種類？GriGri 和 ATC 有什麼差別？",
+      "category": "general-knowledge",
+      "expected_tool": "general_knowledge",
+      "expected_answer_keywords": ["確保器", "GriGri", "ATC"]
+    },
+    {
+      "id": "GT-056",
+      "query": "阿里山攀岩場有什麼路線可以爬？",
+      "category": "edge-case",
+      "expected_tool": "search_crags",
+      "expected_answer_keywords": ["沒有找到", "不確定", "無法確認", "沒有資料"],
+      "ci": true
+    },
+    {
+      "id": "GT-057",
+      "query": "太魯閣有 5.15a 的路線嗎？",
+      "category": "edge-case",
+      "expected_tool": "search_routes",
+      "expected_answer_keywords": ["沒有找到", "不確定", "無法確認", "沒有資料", "5.15"]
+    },
+    {
+      "id": "GT-058",
+      "query": "火星攀岩場在哪裡？",
+      "category": "edge-case",
+      "expected_tool": "search_crags",
+      "expected_answer_keywords": ["沒有找到", "不確定", "無法確認", "沒有資料"]
+    },
+    {
+      "id": "GT-059",
+      "query": "龍洞的「超級無敵霹靂旋風」路線在哪？",
+      "category": "edge-case",
+      "expected_tool": "search_routes",
+      "expected_answer_keywords": ["沒有找到", "不確定", "無法確認", "沒有資料"],
+      "expected_filters": { "location": "龍洞" }
+    },
+    {
+      "id": "GT-060",
+      "query": "???",
+      "category": "edge-case",
+      "expected_tool": "general_knowledge",
+      "expected_answer_keywords": ["請", "問題", "幫助", "攀岩"]
+    }
+  ]
+}

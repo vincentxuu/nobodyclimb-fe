@@ -7,7 +7,7 @@ import React, { useCallback, useState } from 'react'
 import { Pressable, StyleSheet, TextInput, View } from 'react-native'
 import { X, Plus } from 'lucide-react-native'
 import { XStack, YStack } from 'tamagui'
-import { SEMANTIC_COLORS, FONT_SIZE, SPACING, RADIUS } from '@nobodyclimb/constants'
+import { FONT_SIZE, RADIUS, SEMANTIC_COLORS, SPACING, WB_COLORS } from '@nobodyclimb/constants'
 import { Text } from './Text'
 
 export interface TagInputProps {
@@ -140,7 +140,7 @@ const styles = StyleSheet.create({
   tag: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#F5F5F5',
+    backgroundColor: WB_COLORS[10],
     borderRadius: RADIUS.sm,
     paddingHorizontal: SPACING.sm,
     paddingVertical: SPACING.xs,
@@ -159,7 +159,7 @@ const styles = StyleSheet.create({
   inputContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#F5F5F5',
+    backgroundColor: WB_COLORS[10],
     borderRadius: RADIUS.md,
     paddingHorizontal: SPACING.sm,
     height: 40,

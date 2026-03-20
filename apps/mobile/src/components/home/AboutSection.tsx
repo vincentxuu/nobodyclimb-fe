@@ -11,7 +11,7 @@ import { useRouter } from 'expo-router'
 import { Text, Button } from '@/components/ui'
 import { FadeIn } from '@/components/animation'
 import { useAuthStore } from '@/store/authStore'
-import { SEMANTIC_COLORS, SPACING, BRAND_YELLOW } from '@nobodyclimb/constants'
+import { BRAND_YELLOW, SEMANTIC_COLORS, SPACING, WB_COLORS } from '@nobodyclimb/constants'
 
 export function AboutSection() {
   const router = useRouter()
@@ -83,11 +83,11 @@ const styles = StyleSheet.create({
     position: 'relative',
     minHeight: 400,
     overflow: 'hidden',
-    backgroundColor: '#FFFFFF',
+    backgroundColor: WB_COLORS[0],
   },
   gradient: {
     ...StyleSheet.absoluteFillObject,
-    backgroundColor: '#F5F5F5',
+    backgroundColor: WB_COLORS[10],
   },
   content: {
     flex: 1,

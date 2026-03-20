@@ -8,6 +8,7 @@ import { MapPin } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { galleryService } from '@/lib/api/services'
 import type { GalleryPhoto } from '@/lib/types'
+import { useTranslations } from 'next-intl'
 
 // 定義顯示用的照片類型
 interface DisplayPhoto {
@@ -32,7 +33,7 @@ function transformPhoto(photo: GalleryPhoto, index: number): DisplayPhoto {
   return {
     id: photo.id,
     image: photo.thumbnail_url || photo.image_url,
-    alt: photo.caption || `攝影集精選照片 ${index + 1}`,
+    alt: photo.caption || `Gallery photo ${index + 1}`,
     location: {
       city: photo.location_city,
       spot: photo.location_spot,
@@ -103,6 +104,7 @@ function PhotoSkeleton({ index }: { index: number }) {
  * 從 API 獲取最新照片
  */
 export function GallerySection() {
+  const t = useTranslations('HomePage')
   const [photos, setPhotos] = useState<DisplayPhoto[]>([])
   const [isLoading, setIsLoading] = useState(true)
 
@@ -130,8 +132,8 @@ export function GallerySection() {
         {/* 標題區 */}
         <div className="mb-8 flex items-center justify-between">
           <div>
-            <h2 className="text-3xl font-bold text-[#1B1A1A] md:text-[40px]">攝影集精選</h2>
-            <p className="mt-2 text-base text-[#6D6C6C]">看看小人物們攀岩的英姿吧</p>
+            <h2 className="text-3xl font-bold text-[#1B1A1A] md:text-[40px]">{t('gallerySectionTitle')}</h2>
+            <p className="mt-2 text-base text-[#6D6C6C]">{t('gallerySectionSubtitle')}</p>
           </div>
         </div>
 
@@ -157,7 +159,7 @@ export function GallerySection() {
               variant="outline"
               className="h-11 border border-[#1B1A1A] px-8 text-base text-[#1B1A1A] hover:bg-[#DBD8D8]"
             >
-              看更多影像
+              {t('galleryViewMore')}
             </Button>
           </Link>
         </div>

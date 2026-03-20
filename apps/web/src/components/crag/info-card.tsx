@@ -3,27 +3,30 @@
 import React from 'react'
 import Link from 'next/link'
 import { Info } from 'lucide-react'
+import { useTranslations } from 'next-intl'
 
 interface CragInfoCardProps {
   // 可以根據需要添加參數
 }
 
 export const CragInfoCard: React.FC<CragInfoCardProps> = () => {
+  const t = useTranslations('CragPage')
+
   // 實用資訊列表
   const infoLinks = [
-    { emoji: '👨‍🏫', label: '推薦嚮導服務', href: '#' },
-    { emoji: '📖', label: '岩場地形指南', href: '#' },
-    { emoji: '⚠️', label: '安全注意事項', href: '#' },
-    { emoji: '🏨', label: '附近住宿選項', href: '#' },
-    { emoji: '🍽️', label: '附近餐廳推薦', href: '#' },
-    { emoji: '🧰', label: '裝備租借資訊', href: '#' },
+    { emoji: '👨‍🏫', label: t('usefulInfoGuide'), href: '#' },
+    { emoji: '📖', label: t('usefulInfoGuideBook'), href: '#' },
+    { emoji: '⚠️', label: t('usefulInfoSafety'), href: '#' },
+    { emoji: '🏨', label: t('usefulInfoAccommodation'), href: '#' },
+    { emoji: '🍽️', label: t('usefulInfoRestaurant'), href: '#' },
+    { emoji: '🧰', label: t('usefulInfoGearRental'), href: '#' },
   ]
 
   return (
     <div className="rounded-lg bg-white p-6 shadow-md">
       <h3 className="mb-4 flex items-center text-xl font-bold">
         <Info size={20} className="mr-2 text-[#1B1A1A]" />
-        實用資訊
+        {t('usefulInfoTitle')}
       </h3>
       <ul className="space-y-3">
         {infoLinks.map((link, index) => (

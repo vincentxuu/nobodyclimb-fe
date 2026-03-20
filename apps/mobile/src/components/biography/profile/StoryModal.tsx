@@ -9,7 +9,7 @@ import { X } from 'lucide-react-native'
 import Animated, { FadeIn, SlideInUp } from 'react-native-reanimated'
 
 import { Text } from '@/components/ui'
-import { SEMANTIC_COLORS, SPACING, RADIUS } from '@nobodyclimb/constants'
+import { RADIUS, SEMANTIC_COLORS, SPACING, WB_COLORS } from '@nobodyclimb/constants'
 
 // 分類類型
 type StoryCategory = 'growth' | 'psychology' | 'community' | 'practical' | 'dreams' | 'life'
@@ -116,7 +116,7 @@ const styles = StyleSheet.create({
     maxHeight: '80%',
   },
   modalContent: {
-    backgroundColor: '#fff',
+    backgroundColor: WB_COLORS[0],
     borderTopLeftRadius: RADIUS.xl,
     borderTopRightRadius: RADIUS.xl,
     padding: SPACING.lg,

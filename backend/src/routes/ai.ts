@@ -5,6 +5,8 @@ import { describeRoute, validator } from 'hono-openapi';
 import { Env } from '../types';
 import { authMiddleware, adminMiddleware } from '../middleware/auth';
 import { QueryService } from '../services/query';
+import { TimeoutError } from '../utils/timeout';
+import { checkAiRateLimit } from '../middleware/rateLimit';
 import { IndexingService } from '../services/indexing';
 import { EmbeddingService } from '../services/embedding';
 import { getUserRank, initUserRank, resetDailyUsage, deductQuotaAndToken, getUserQuotaStatus, addTokenUsage } from '../services/rank';
@@ -84,6 +86,20 @@ aiRoutes.post(
     const isAdmin = c.get('user')?.role === 'admin';
     const db = c.env.DB;
 
+    // IP 速率限制（在配額扣除前，超限不扣配額）
+    if (!isAdmin) {
+      const ip = c.req.header('cf-connecting-ip') || c.req.header('x-forwarded-for') || 'unknown';
+      const rateCheck = await checkAiRateLimit(c.env.CACHE, ip, 20);
+      if (!rateCheck.allowed) {
+        c.header('Retry-After', String(rateCheck.retryAfter ?? 60));
+        return c.json({
+          success: false,
+          error: 'rate_limited',
+          message: `請求過於頻繁，請在 ${rateCheck.retryAfter} 秒後再試。`,
+        }, 429);
+      }
+    }
+
     // Task 4.1: 輸入層防護（在配額扣除前執行，驗證失敗不扣配額）
     let guardrailsInputTrace: GuardrailsInputTrace | null = null;
     try {
@@ -117,8 +133,10 @@ aiRoutes.post(
     const estimatedTokens = Math.ceil((SYSTEM_PROMPT.length + ESTIMATED_CONTEXT_LENGTH + body.query.length) / 2);
 
     // 組裝 extraTrace（guardrails_input 已通過，此處無論 admin 都記錄）
+    const startTime = Date.now();
     const extraTrace: Record<string, unknown> = {
       guardrails_input: guardrailsInputTrace,
+      startTime,
     };
 
     // 管理員不受配額限制
@@ -270,7 +288,7 @@ aiRoutes.post(
 
       return c.json({ success: true, data: { ...aiResult, answer: filteredAnswer, quota } });
     } catch (error) {
-      // Task 4.5: AI 呼叫失敗時退還次數與 token 預扣量
+      // 所有錯誤都退還配額（408 超時、503 熔斷、500 內部錯誤）
       if (!isAdmin) {
         await db
           .prepare(`UPDATE user_ranks SET daily_ai_used = MAX(0, daily_ai_used - 1), daily_token_used = MAX(0, daily_token_used - ?), updated_at = datetime('now') WHERE user_id = ?`)
@@ -278,6 +296,37 @@ aiRoutes.post(
           .run();
       }
       console.error('AI ask error:', error);
+
+      // 記錄超時/熔斷事件到 ai_query_logs（不計配額但需追蹤）
+      const errorType = error instanceof TimeoutError ? 'pipeline_timeout'
+        : (error as any)?.code === 'CIRCUIT_BREAKER_OPEN' ? 'circuit_breaker_rejected'
+        : 'internal_error';
+      c.executionCtx.waitUntil(
+        db.prepare(
+          `INSERT INTO ai_query_logs (id, user_id, query, response, sources, latency_ms, token_count, query_type, model_used, retrieval_score, self_reflection_triggered, is_high_consumption, cache_hit, hyde_triggered, pipeline_trace)
+           VALUES (?, ?, ?, '', '[]', ?, 0, ?, '', 0, 0, 0, 0, 0, ?)`
+        ).bind(
+          crypto.randomUUID(), userId, body.query.slice(0, 500),
+          Date.now() - (extraTrace?.startTime as number || Date.now()),
+          errorType,
+          JSON.stringify({ error: errorType, ...(error instanceof TimeoutError ? { timeout_ms: error.timeoutMs } : {}), ...((error as any)?.circuitBreaker ?? {}) }),
+        ).run().catch(() => {})
+      );
+
+      // TimeoutError → 408
+      if (error instanceof TimeoutError) {
+        return c.json(
+          { success: false, error: 'pipeline_timeout', message: '查詢處理超時，請稍後再試。' },
+          408
+        );
+      }
+      // Circuit Breaker → 503
+      if ((error as any)?.code === 'CIRCUIT_BREAKER_OPEN') {
+        return c.json(
+          { success: false, error: 'service_unavailable', message: 'AI 服務暫時不可用，請稍後再試。' },
+          503
+        );
+      }
       return c.json(
         { success: false, error: 'AIError', message: '抱歉，AI 服務暫時無法使用，請稍後再試。' },
         500

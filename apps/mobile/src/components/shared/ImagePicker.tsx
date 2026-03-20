@@ -10,7 +10,7 @@ import { Camera, Image as ImageIcon, X } from 'lucide-react-native'
 import { YStack } from 'tamagui'
 
 import { Text, Button, BottomSheet } from '@/components/ui'
-import { SEMANTIC_COLORS, SPACING, RADIUS } from '@nobodyclimb/constants'
+import { RADIUS, SEMANTIC_COLORS, SPACING, WB_COLORS } from '@nobodyclimb/constants'
 
 interface ImagePickerProps {
   /** 當前圖片 URI */
@@ -145,7 +145,7 @@ export function ImagePicker({
               style={styles.removeButton}
               hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
             >
-              <X size={16} color="#FFFFFF" />
+              <X size={16} color={WB_COLORS[0]} />
             </Pressable>
           )}
         </>
@@ -203,7 +203,7 @@ const styles = StyleSheet.create({
     width: 48,
     height: 48,
     borderRadius: 24,
-    backgroundColor: '#EBEAEA',
+    backgroundColor: WB_COLORS[20],
     justifyContent: 'center',
     alignItems: 'center',
   },

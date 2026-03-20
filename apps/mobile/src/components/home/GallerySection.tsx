@@ -12,7 +12,7 @@ import Animated, { FadeInDown } from 'react-native-reanimated'
 
 import { Text, Button, Skeleton } from '@/components/ui'
 import { FadeIn } from '@/components/animation'
-import { SEMANTIC_COLORS, SPACING, BORDER_RADIUS, WB_COLORS } from '@nobodyclimb/constants'
+import { BORDER_RADIUS, SEMANTIC_COLORS, SPACING, WB_COLORS } from '@nobodyclimb/constants'
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window')
 const COLUMN_GAP = SPACING[3]
@@ -87,7 +87,7 @@ function PhotoCard({ photo, index }: { photo: DisplayPhoto; index: number }) {
         {/* 位置資訊 */}
         {locationText && (
           <View style={styles.locationContainer}>
-            <MapPin size={12} color="#FFFFFF" />
+            <MapPin size={12} color={WB_COLORS[0]} />
             <Text style={styles.locationText} numberOfLines={1}>
               {locationText}
             </Text>
@@ -232,7 +232,7 @@ const styles = StyleSheet.create({
   },
   locationText: {
     fontSize: 12,
-    color: '#FFFFFF',
+    color: WB_COLORS[0],
     fontWeight: '500',
     flex: 1,
   },

@@ -6,6 +6,7 @@ import { BucketListItem } from '@/lib/types'
 import { BiographyV2 } from '@/lib/types/biography-v2'
 import { bucketListService } from '@/lib/api/services'
 import { BiographyBucketList } from '@/components/bucket-list'
+import { useTranslations } from 'next-intl'
 
 interface ChapterBucketListProps {
   person: BiographyV2 | null
@@ -17,6 +18,7 @@ interface ChapterBucketListProps {
  * 永遠顯示，沒有資料時顯示預設內容
  */
 export function ChapterBucketList({ person, isOwner: _isOwner }: ChapterBucketListProps) {
+  const t = useTranslations('BiographyPage')
   const [items, setItems] = useState<BucketListItem[]>([])
   const [isLoading, setIsLoading] = useState(true)
 
@@ -70,10 +72,10 @@ export function ChapterBucketList({ person, isOwner: _isOwner }: ChapterBucketLi
       <div className="container mx-auto max-w-5xl px-4">
         <div className="mb-8">
           <span className="text-sm font-medium uppercase tracking-wider bg-brand-accent">
-            Chapter 3
+            {t('chapter3')}
           </span>
           <h2 className="mt-2 text-2xl font-bold text-gray-900">
-            攀岩人生清單
+            {t('chapter3Title')}
           </h2>
         </div>
 
@@ -95,10 +97,10 @@ export function ChapterBucketList({ person, isOwner: _isOwner }: ChapterBucketLi
           <div className="flex flex-col items-center justify-center py-12 text-center" data-placeholder="true">
             <div className="flex items-center gap-2 text-lg text-gray-400">
               <Lock size={18} />
-              <span>{person.name} 的攀岩人生清單正在醞釀中...</span>
+              <span>{t('chapter3Placeholder', { name: person.name })}</span>
             </div>
             <p className="mt-2 text-sm text-gray-400">
-              每個攀岩者都有屬於自己的目標與夢想
+              {t('chapter3SubPlaceholder')}
             </p>
           </div>
         )}

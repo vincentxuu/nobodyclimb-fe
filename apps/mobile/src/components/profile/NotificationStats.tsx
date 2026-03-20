@@ -71,10 +71,10 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   unreadIcon: {
-    backgroundColor: '#EF4444', // red-500
+    backgroundColor: SEMANTIC_COLORS.error, // red-500
   },
   totalIcon: {
-    backgroundColor: '#3B82F6', // blue-500
+    backgroundColor: SEMANTIC_COLORS.info, // blue-500
   },
   statInfo: {
     gap: 2,

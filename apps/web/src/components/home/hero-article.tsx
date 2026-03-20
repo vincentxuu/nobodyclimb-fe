@@ -8,12 +8,14 @@ import { ChevronLeft, ChevronRight, Loader2 } from 'lucide-react'
 import { postService } from '@/lib/api/services'
 import { BackendPost, getCategoryLabel } from '@/lib/types'
 import { generateSummary } from '@/lib/utils/article'
+import { useTranslations } from 'next-intl'
 
 /**
  * 精選文章 Hero 組件
  * Medium/Substack 風格的全幅精選文章展示
  */
 export function HeroArticle() {
+  const t = useTranslations('HomePage')
   const [articles, setArticles] = useState<BackendPost[]>([])
   const [currentSlide, setCurrentSlide] = useState(0)
   const [isAutoPlaying, setIsAutoPlaying] = useState(true)
@@ -28,11 +30,11 @@ export function HeroArticle() {
         if (response.success && response.data && response.data.length > 0) {
           setArticles(response.data)
         } else {
-          setError('目前沒有精選文章')
+          setError(t('heroArticleNoFeatured'))
         }
       } catch (err) {
         console.error('Failed to fetch featured articles:', err)
-        setError('無法載入精選文章')
+        setError(t('heroArticleLoadError'))
       } finally {
         setLoading(false)
       }
@@ -94,8 +96,8 @@ export function HeroArticle() {
             transition={{ duration: 0.7 }}
             className="max-w-3xl"
           >
-            <h1 className="mb-4 text-4xl font-bold md:text-5xl">探索攀岩的世界</h1>
-            <p className="text-lg text-white/80">發現精彩故事、認識攀岩人物、探索台灣岩場</p>
+            <h1 className="mb-4 text-4xl font-bold md:text-5xl">{t('heroArticleFallbackTitle')}</h1>
+            <p className="text-lg text-white/80">{t('heroArticleFallbackSubtitle')}</p>
           </motion.div>
         </div>
       </div>
@@ -140,7 +142,7 @@ export function HeroArticle() {
                 {/* 分類標籤與日期 */}
                 <div className="mb-4 flex items-center gap-3">
                   <span className="rounded bg-[#FFE70C] px-3 py-1 text-sm font-medium text-[#1B1A1A]">
-                    {getCategoryLabel(article.category) || '文章'}
+                    {getCategoryLabel(article.category) || t('heroArticleDefaultCategory')}
                   </span>
                   <span className="text-sm text-white/80">
                     {article.published_at
@@ -165,18 +167,18 @@ export function HeroArticle() {
                     <div className="relative h-10 w-10 overflow-hidden rounded-full">
                       <Image
                         src={article.author_avatar}
-                        alt={article.display_name || article.username || '作者'}
+                        alt={article.display_name || article.username || t('heroArticleAuthor')}
                         fill
                         className="object-cover"
                       />
                     </div>
                   ) : (
                     <div className="flex h-10 w-10 items-center justify-center rounded-full bg-white/20 text-white">
-                      {(article.display_name || article.username || '匿')?.charAt(0)}
+                      {(article.display_name || article.username || t('heroArticleAnonymousInitial'))?.charAt(0)}
                     </div>
                   )}
                   <span className="text-sm text-white">
-                    {article.display_name || article.username || '匿名作者'}
+                    {article.display_name || article.username || t('heroArticleAnonymousAuthor')}
                   </span>
                 </div>
               </div>
@@ -195,7 +197,7 @@ export function HeroArticle() {
                 index === currentSlide ? 'w-8 bg-white' : 'w-2 bg-white/50 hover:bg-white/70'
               }`}
               onClick={() => setCurrentSlide(index)}
-              aria-label={`前往第 ${index + 1} 篇文章`}
+              aria-label={t('heroArticleGoToSlide', { index: index + 1 })}
             />
           ))}
         </div>
@@ -207,14 +209,14 @@ export function HeroArticle() {
           <button
             className="absolute left-4 top-1/2 z-10 flex h-12 w-12 -translate-y-1/2 items-center justify-center rounded-full bg-white/10 opacity-0 backdrop-blur-sm transition-all hover:bg-white/20 group-hover:opacity-100"
             onClick={prevSlide}
-            aria-label="上一篇文章"
+            aria-label={t('heroArticlePrevSlide')}
           >
             <ChevronLeft className="h-6 w-6 text-white" />
           </button>
           <button
             className="absolute right-4 top-1/2 z-10 flex h-12 w-12 -translate-y-1/2 items-center justify-center rounded-full bg-white/10 opacity-0 backdrop-blur-sm transition-all hover:bg-white/20 group-hover:opacity-100"
             onClick={nextSlide}
-            aria-label="下一篇文章"
+            aria-label={t('heroArticleNextSlide')}
           >
             <ChevronRight className="h-6 w-6 text-white" />
           </button>

@@ -10,7 +10,7 @@ import Animated, { FadeInDown } from 'react-native-reanimated'
 
 import { Text, Card } from '@/components/ui'
 import { ContentInteractionBar } from './ContentInteractionBar'
-import { SEMANTIC_COLORS, SPACING, RADIUS } from '@nobodyclimb/constants'
+import { BRAND_YELLOW, RADIUS, SEMANTIC_COLORS, SPACING, WB_COLORS } from '@nobodyclimb/constants'
 
 // 類型定義
 interface OneLiner {
@@ -170,7 +170,7 @@ export function BiographyOneLiners({ biographyId }: BiographyOneLinersProps) {
             >
               <Card style={StyleSheet.flatten([styles.card, isCustom ? styles.customCard : undefined])}>
                 <View style={styles.questionRow}>
-                  {isCustom && <Sparkles size={14} color="#FFE70C" />}
+                  {isCustom && <Sparkles size={14} color={BRAND_YELLOW[100]} />}
                   <Text variant="small" fontWeight="500" color="textMuted">
                     {questionText}
                   </Text>
@@ -219,9 +219,9 @@ const styles = StyleSheet.create({
   },
   card: {
     padding: SPACING.md,
-    backgroundColor: '#fff',
+    backgroundColor: WB_COLORS[0],
     borderWidth: 1,
-    borderColor: '#DBD8D8',
+    borderColor: WB_COLORS[30],
   },
   customCard: {
     backgroundColor: 'rgba(255, 231, 12, 0.05)',

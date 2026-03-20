@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useEffect, useCallback } from 'react'
+import { useTranslations } from 'next-intl'
 import { Globe, Loader2, AlertCircle } from 'lucide-react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { cn } from '@/lib/utils'
@@ -46,6 +47,7 @@ function locationToCreateData(loc: ClimbingLocation) {
 export function ClimbingFootprintsEditorSection({
   className,
 }: ClimbingFootprintsEditorSectionProps) {
+  const t = useTranslations('BiographyEditor')
   const { toast } = useToast()
   const [records, setRecords] = useState<ClimbingLocationRecord[]>([])
   const [loading, setLoading] = useState(true)
@@ -191,17 +193,17 @@ export function ClimbingFootprintsEditorSection({
       {/* Section Header */}
       <div className="flex items-center gap-2">
         <Globe size={18} className="text-[#3F3D3D]" />
-        <h3 className="font-semibold text-[#1B1A1A]">攀岩足跡</h3>
+        <h3 className="font-semibold text-[#1B1A1A]">{t('footprintsTitle')}</h3>
       </div>
 
       <p className="text-sm text-[#6D6C6C]">
-        記錄你去過的攀岩地點和旅程
+        {t('footprintsSubtitle')}
       </p>
 
       {/* Stats Badge */}
       {totalLocations > 0 && (
         <span className="inline-block rounded-full bg-[#F5F5F5] px-3 py-1 text-xs text-[#6D6C6C]">
-          {countryCount} 國 / {totalLocations} 地點
+          {t('footprintsCountSummary', { countries: countryCount, locations: totalLocations })}
         </span>
       )}
 
@@ -215,7 +217,7 @@ export function ClimbingFootprintsEditorSection({
             className="flex items-center gap-2 text-sm text-[#6D6C6C]"
           >
             <Loader2 className="h-4 w-4 animate-spin" />
-            <span>儲存中...</span>
+            <span>{t('footprintsSaving')}</span>
           </motion.div>
         )}
       </AnimatePresence>
@@ -236,7 +238,7 @@ export function ClimbingFootprintsEditorSection({
             onClick={loadLocations}
             className="mt-2 text-sm text-red-600 underline hover:text-red-800"
           >
-            重試
+            {t('footprintsRetry')}
           </button>
         </div>
       )}
@@ -254,9 +256,9 @@ export function ClimbingFootprintsEditorSection({
       {!loading && !error && totalLocations === 0 && (
         <div className="rounded-lg border border-dashed border-[#B6B3B3] bg-[#F5F5F5] p-6 text-center">
           <Globe className="mx-auto mb-2 h-8 w-8 text-[#B6B3B3]" />
-          <p className="text-sm text-[#6D6C6C] mb-3">還沒有記錄攀岩足跡</p>
+          <p className="text-sm text-[#6D6C6C] mb-3">{t('footprintsEmpty')}</p>
           <p className="text-xs text-[#8E8C8C]">
-            點擊上方按鈕新增你的第一個攀岩地點
+            {t('footprintsEmptyHint')}
           </p>
         </div>
       )}

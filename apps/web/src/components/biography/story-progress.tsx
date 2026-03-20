@@ -11,6 +11,7 @@ import {
 import { cn } from '@/lib/utils'
 import { Button } from '@/components/ui/button'
 import { CATEGORY_ICONS } from '@/lib/utils/biography-ui'
+import { useTranslations } from 'next-intl'
 
 interface StoryProgressProps {
   biography: Record<string, unknown>
@@ -31,13 +32,14 @@ export function StoryProgress({
   variant = 'default',
   className,
 }: StoryProgressProps) {
+  const t = useTranslations('BiographyPage')
   const progress = calculateStoryProgress(biography)
 
   if (variant === 'compact') {
     return (
       <div className={cn('rounded-lg bg-white p-4 shadow-sm', className)}>
         <div className="mb-2 flex items-center justify-between">
-          <span className="text-sm font-medium text-gray-700">故事進度</span>
+          <span className="text-sm font-medium text-gray-700">{t('storyProgressTitle')}</span>
           <span className="text-sm text-gray-500">
             {progress.completed}/{progress.total}
           </span>
@@ -50,7 +52,7 @@ export function StoryProgress({
             transition={{ duration: 0.5, ease: 'easeOut' }}
           />
         </div>
-        <p className="mt-2 text-xs text-gray-500">已完成 {progress.percentage}% 的進階故事</p>
+        <p className="mt-2 text-xs text-gray-500">{t('storyProgressCompleted', { percentage: progress.percentage })}</p>
       </div>
     )
   }
@@ -61,17 +63,17 @@ export function StoryProgress({
         {/* 總體進度 */}
         <div className="mb-6">
           <div className="mb-2 flex items-center justify-between">
-            <h3 className="text-lg font-semibold text-gray-900">我的故事進度</h3>
+            <h3 className="text-lg font-semibold text-gray-900">{t('myStoryProgress')}</h3>
             {onEditClick && (
               <Button variant="outline" size="sm" onClick={onEditClick}>
-                繼續填寫
+                {t('continueWriting')}
                 <ChevronRight className="ml-1 h-4 w-4" />
               </Button>
             )}
           </div>
           <div className="mb-2 flex items-center justify-between text-sm">
             <span className="text-gray-600">
-              整體進度：{progress.completed}/{progress.total} 題
+              {t('overallProgress', { completed: progress.completed, total: progress.total })}
             </span>
             <span className="font-medium text-gray-900">{progress.percentage}%</span>
           </div>
@@ -87,7 +89,7 @@ export function StoryProgress({
 
         {/* 分類進度 */}
         <div className="space-y-3">
-          <h4 className="text-sm font-medium text-gray-700">分類進度</h4>
+          <h4 className="text-sm font-medium text-gray-700">{t('categoryProgress')}</h4>
           {STORY_CATEGORIES.map((category) => {
             const categoryProgress = progress.byCategory[category.id]
             const percentage =
@@ -161,9 +163,9 @@ export function StoryProgress({
       {/* 總體進度 */}
       <div className="mb-4 flex items-center justify-between">
         <div>
-          <h3 className="text-base font-semibold text-gray-900">故事完成度</h3>
+          <h3 className="text-base font-semibold text-gray-900">{t('storyCompletion')}</h3>
           <p className="text-sm text-gray-500">
-            已填寫 {progress.completed}/{progress.total} 個故事
+            {t('storiesWritten', { completed: progress.completed, total: progress.total })}
           </p>
         </div>
         <div className="text-right">
@@ -214,7 +216,7 @@ export function StoryProgress({
       {/* 操作按鈕 */}
       {onEditClick && (
         <Button className="mt-4 w-full" onClick={onEditClick}>
-          繼續填寫故事
+          {t('continueWritingStories')}
         </Button>
       )}
     </div>

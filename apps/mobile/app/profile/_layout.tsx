@@ -16,6 +16,11 @@ export default function ProfileLayout() {
       <Stack.Screen name="bookmarks" />
       <Stack.Screen name="bucket-list" />
       <Stack.Screen name="edit" />
+      <Stack.Screen name="ascents/index" />
+      <Stack.Screen name="ascents/create" />
+      <Stack.Screen name="stats/index" options={{ headerShown: false }} />
+      <Stack.Screen name="ai-memory/index" options={{ headerShown: false }} />
+      <Stack.Screen name="recommendations/index" options={{ headerShown: false }} />
     </Stack>
   )
 }

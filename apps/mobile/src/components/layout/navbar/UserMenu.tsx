@@ -23,7 +23,7 @@ import { XStack, YStack } from 'tamagui'
 
 import { useAuthStore } from '@/store/authStore'
 import { Text, Button, Avatar, IconButton, Divider } from '@/components/ui'
-import { SEMANTIC_COLORS, SPACING, RADIUS } from '@nobodyclimb/constants'
+import { RADIUS, SEMANTIC_COLORS, SPACING, WB_COLORS } from '@nobodyclimb/constants'
 
 /**
  * 用戶選單組件
@@ -267,7 +267,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: SPACING.md,
   },
   sheetBackground: {
-    backgroundColor: '#FFFFFF',
+    backgroundColor: WB_COLORS[0],
   },
   sheetIndicator: {
     backgroundColor: '#D3D3D3',
@@ -287,7 +287,7 @@ const styles = StyleSheet.create({
     borderRadius: RADIUS.sm,
   },
   menuItemPressed: {
-    backgroundColor: '#F5F5F5',
+    backgroundColor: WB_COLORS[10],
   },
 })
 

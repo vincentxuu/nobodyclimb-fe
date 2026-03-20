@@ -6,6 +6,7 @@
 import React from 'react'
 import { View, StyleSheet, type ViewStyle } from 'react-native'
 import { Text } from '../../ui/Text'
+import { WB_COLORS } from '@nobodyclimb/constants'
 import {
   type BadgeDefinition,
   getBadgeById,
@@ -170,6 +171,6 @@ const styles = StyleSheet.create({
   remainingBadge: {
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: '#F5F5F5',
+    backgroundColor: WB_COLORS[10],
   },
 })

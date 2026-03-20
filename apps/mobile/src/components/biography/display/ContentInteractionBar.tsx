@@ -6,7 +6,7 @@
 import React from 'react'
 import { StyleSheet, View } from 'react-native'
 
-import { SPACING } from '@nobodyclimb/constants'
+import { SPACING, WB_COLORS } from '@nobodyclimb/constants'
 import { ContentLikeButton } from './ContentLikeButton'
 import { ContentCommentSheet } from './ContentCommentSheet'
 import { QuickReactionBar } from './QuickReactionBar'
@@ -102,7 +102,7 @@ const styles = StyleSheet.create({
   },
   withBorder: {
     borderTopWidth: 1,
-    borderTopColor: '#EBEAEA',
+    borderTopColor: WB_COLORS[20],
   },
   centered: {
     alignItems: 'center',

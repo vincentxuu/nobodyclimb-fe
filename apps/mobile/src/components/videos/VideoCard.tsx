@@ -11,7 +11,7 @@ import Animated, {
   useAnimatedStyle,
   withSpring,
 } from 'react-native-reanimated'
-import { SEMANTIC_COLORS, SPACING, BORDER_RADIUS, SHADOWS } from '@nobodyclimb/constants'
+import { BORDER_RADIUS, SEMANTIC_COLORS, SHADOWS, SPACING, WB_COLORS } from '@nobodyclimb/constants'
 import { Text } from '@/components/ui/Text'
 import { springConfigLight } from '@/theme/animations'
 import type { Video } from './types'
@@ -79,8 +79,8 @@ export function VideoCard({ video, onClick, fullWidth = false }: VideoCardProps)
           <View style={styles.playButton}>
             <Play
               size={24}
-              color="#FFFFFF"
-              fill="#FFFFFF"
+              color={WB_COLORS[0]}
+              fill={WB_COLORS[0]}
             />
           </View>
         </View>
@@ -147,7 +147,7 @@ const styles = StyleSheet.create({
   },
   thumbnailContainer: {
     aspectRatio: 16 / 9,
-    backgroundColor: '#F5F5F5',
+    backgroundColor: WB_COLORS[10],
     position: 'relative',
   },
   thumbnail: {
@@ -178,7 +178,7 @@ const styles = StyleSheet.create({
     paddingVertical: 2,
   },
   durationText: {
-    color: '#FFFFFF',
+    color: WB_COLORS[0],
     fontWeight: '500',
   },
   featuredBadge: {
@@ -191,7 +191,7 @@ const styles = StyleSheet.create({
     paddingVertical: SPACING[1],
   },
   featuredText: {
-    color: '#FFFFFF',
+    color: WB_COLORS[0],
     fontWeight: '500',
   },
   info: {
@@ -222,7 +222,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
   },
   categoryBadge: {
-    backgroundColor: '#F5F5F5',
+    backgroundColor: WB_COLORS[10],
     borderRadius: BORDER_RADIUS.full,
     paddingHorizontal: SPACING[2],
     paddingVertical: SPACING[1],

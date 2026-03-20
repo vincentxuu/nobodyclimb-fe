@@ -8,6 +8,7 @@ import type { BiographyV2 } from '@/lib/types/biography-v2'
 import { climbingLocationService } from '@/lib/api/services'
 import { ClimbingLocationRecord } from '@/lib/types'
 import { getCountryFlag } from '@/lib/utils/country'
+import { useTranslations } from 'next-intl'
 
 interface BiographyFootprintsProps {
   /** 人物誌資料 */
@@ -33,6 +34,7 @@ function TimelineLocationItem({
   index: number
   isLast: boolean
 }) {
+  const t = useTranslations('BiographyPage')
   const [isExpanded, setIsExpanded] = useState(false)
   const hasNotes = location.notes && location.notes.trim().length > 0
   const notesLength = location.notes?.length || 0
@@ -100,11 +102,11 @@ function TimelineLocationItem({
               >
                 {isExpanded ? (
                   <>
-                    收合 <ChevronUp className="h-4 w-4" />
+                    {t('collapseNotes')} <ChevronUp className="h-4 w-4" />
                   </>
                 ) : (
                   <>
-                    展開更多 <ChevronDown className="h-4 w-4" />
+                    {t('expandNotes')} <ChevronDown className="h-4 w-4" />
                   </>
                 )}
               </button>
@@ -126,6 +128,7 @@ function TimelineYearSection({
   yearData: TimelineYear
   index: number
 }) {
+  const t = useTranslations('BiographyPage')
   return (
     <motion.div
       className="relative"
@@ -142,7 +145,7 @@ function TimelineYearSection({
         <div className="flex items-center gap-2">
           <span className="text-xl font-bold text-[#1B1A1A]">{yearData.year}</span>
           <span className="rounded-full bg-[#F5F5F5] px-2.5 py-0.5 text-sm font-medium text-[#3F3D3D]">
-            {yearData.locations.length} 個地點
+            {t('locationsCount', { count: yearData.locations.length })}
           </span>
         </div>
       </div>
@@ -174,6 +177,7 @@ function StatsSummary({
   countryCount: number
   yearRange: string
 }) {
+  const t = useTranslations('BiographyPage')
   return (
     <motion.div
       className="mb-8 grid grid-cols-3 gap-4"
@@ -183,15 +187,15 @@ function StatsSummary({
     >
       <div className="rounded-lg bg-[#F5F5F5] p-4 text-center">
         <div className="text-2xl font-bold text-[#1B1A1A]">{totalLocations}</div>
-        <div className="text-sm text-[#6D6C6C]">攀岩地點</div>
+        <div className="text-sm text-[#6D6C6C]">{t('climbingLocations')}</div>
       </div>
       <div className="rounded-lg bg-[#F5F5F5] p-4 text-center">
         <div className="text-2xl font-bold text-[#1B1A1A]">{countryCount}</div>
-        <div className="text-sm text-[#6D6C6C]">個國家</div>
+        <div className="text-sm text-[#6D6C6C]">{t('countries')}</div>
       </div>
       <div className="rounded-lg bg-[#F5F5F5] p-4 text-center">
         <div className="text-2xl font-bold text-[#1B1A1A]">{yearRange}</div>
-        <div className="text-sm text-[#6D6C6C]">時間跨度</div>
+        <div className="text-sm text-[#6D6C6C]">{t('timeSpan')}</div>
       </div>
     </motion.div>
   )
@@ -207,6 +211,7 @@ export function BiographyFootprints({
   biography,
   className,
 }: BiographyFootprintsProps) {
+  const t = useTranslations('BiographyPage')
   const [locations, setLocations] = useState<ClimbingLocationRecord[]>([])
   const [loading, setLoading] = useState(true)
 
@@ -275,7 +280,7 @@ export function BiographyFootprints({
   // 如果有無年份的地點，加到最後
   if (locationsWithoutYear.length > 0) {
     timelineData.push({
-      year: '那些年的足跡',
+      year: t('footprintsYearLabel'),
       locations: locationsWithoutYear,
     })
   }
@@ -298,7 +303,7 @@ export function BiographyFootprints({
       {/* 標題 */}
       <div className="flex items-center gap-2 mb-4">
         <MapPin size={18} className="text-[#3F3D3D]" />
-        <h2 className="text-lg font-semibold text-[#1B1A1A]">攀岩足跡</h2>
+        <h2 className="text-lg font-semibold text-[#1B1A1A]">{t('climbingFootprintsLabel')}</h2>
       </div>
 
       {/* 統計摘要 */}
@@ -335,7 +340,7 @@ export function BiographyFootprints({
           <div className="absolute left-0 flex h-6 w-6 items-center justify-center">
             <div className="h-2 w-2 rounded-full bg-[#DBD8D8]" />
           </div>
-          <p className="text-sm italic text-[#6D6C6C]">持續探索中...</p>
+          <p className="text-sm italic text-[#6D6C6C]">{t('keepExploring')}</p>
         </motion.div>
       </div>
     </section>

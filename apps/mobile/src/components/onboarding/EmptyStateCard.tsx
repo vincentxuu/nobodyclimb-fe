@@ -7,15 +7,7 @@
 import React, { ReactNode } from 'react'
 import { View, StyleSheet, type ViewStyle } from 'react-native'
 import Animated, { FadeInDown } from 'react-native-reanimated'
-import {
-  SEMANTIC_COLORS,
-  SPACING,
-  BORDER_RADIUS,
-  FONT_SIZE,
-  FONT_WEIGHT,
-  WB_COLORS,
-  BRAND_YELLOW,
-} from '@nobodyclimb/constants'
+import { BORDER_RADIUS, BRAND_YELLOW, FONT_SIZE, FONT_WEIGHT, SEMANTIC_COLORS, SPACING, WB_COLORS } from '@nobodyclimb/constants'
 import { Text } from '@/components/ui/Text'
 import { Button } from '@/components/ui/Button'
 
@@ -194,7 +186,7 @@ const styles = StyleSheet.create({
     backgroundColor: SEMANTIC_COLORS.cardBg,
     borderWidth: 1,
     borderColor: WB_COLORS[20],
-    shadowColor: '#000',
+    shadowColor: WB_COLORS[100],
     shadowOffset: { width: 0, height: 1 },
     shadowOpacity: 0.05,
     shadowRadius: 2,

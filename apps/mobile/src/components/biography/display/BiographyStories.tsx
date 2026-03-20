@@ -10,7 +10,7 @@ import Animated, { FadeInRight } from 'react-native-reanimated'
 
 import { Text, Card } from '@/components/ui'
 import { ContentInteractionBar } from './ContentInteractionBar'
-import { SEMANTIC_COLORS, SPACING, RADIUS } from '@nobodyclimb/constants'
+import { RADIUS, SEMANTIC_COLORS, SPACING, WB_COLORS } from '@nobodyclimb/constants'
 
 // 類型定義
 interface Story {
@@ -33,12 +33,12 @@ interface BiographyStoriesProps {
 
 // 分類顏色映射
 const CATEGORY_COLORS: Record<string, { bg: string; text: string }> = {
-  growth: { bg: 'rgba(255, 231, 12, 0.2)', text: '#1B1A1A' },
-  psychology: { bg: '#FFF9E6', text: '#1B1A1A' },
-  community: { bg: 'rgba(255, 231, 12, 0.2)', text: '#1B1A1A' },
-  practical: { bg: '#FFF9E6', text: '#1B1A1A' },
-  dreams: { bg: 'rgba(255, 231, 12, 0.2)', text: '#1B1A1A' },
-  life: { bg: '#FFF9E6', text: '#1B1A1A' },
+  growth: { bg: 'rgba(255, 231, 12, 0.2)', text: WB_COLORS[100] },
+  psychology: { bg: '#FFF9E6', text: WB_COLORS[100] },
+  community: { bg: 'rgba(255, 231, 12, 0.2)', text: WB_COLORS[100] },
+  practical: { bg: '#FFF9E6', text: WB_COLORS[100] },
+  dreams: { bg: 'rgba(255, 231, 12, 0.2)', text: WB_COLORS[100] },
+  life: { bg: '#FFF9E6', text: WB_COLORS[100] },
 }
 
 /**
@@ -171,7 +171,7 @@ export function BiographyStories({ biographyId }: BiographyStoriesProps) {
       >
         {stories.map((story, index) => {
           const categoryId = story.category_id || 'growth'
-          const colors = CATEGORY_COLORS[categoryId] || { bg: '#F5F5F5', text: '#6D6C6C' }
+          const colors = CATEGORY_COLORS[categoryId] || { bg: WB_COLORS[10], text: WB_COLORS[70] }
           const title = story.title || story.question_text || story.question_id
           const categoryName = story.category_name || '故事'
 
@@ -250,9 +250,9 @@ const styles = StyleSheet.create({
   },
   card: {
     padding: SPACING.md,
-    backgroundColor: '#fff',
+    backgroundColor: WB_COLORS[0],
     borderWidth: 1,
-    borderColor: '#EBEAEA',
+    borderColor: WB_COLORS[20],
     minHeight: 200,
   },
   categoryTag: {

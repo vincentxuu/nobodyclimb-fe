@@ -5,6 +5,7 @@ import Image from 'next/image'
 import Link from 'next/link'
 import { motion } from 'framer-motion'
 import { MapPin, Globe, Users, ChevronRight, Loader2 } from 'lucide-react'
+import { useTranslations } from 'next-intl'
 import { Card, CardContent } from '@/components/ui/card'
 import { bucketListService } from '@/lib/api/services'
 import { isSvgUrl } from '@/lib/utils/image'
@@ -28,6 +29,7 @@ interface BucketListLocation {
 }
 
 export function LocationExplorer() {
+  const t = useTranslations('BiographyPage')
   const [taiwanLocations, setTaiwanLocations] = useState<LocationData[]>([])
   const [overseasLocations, setOverseasLocations] = useState<LocationData[]>([])
   const [bucketListLocations, setBucketListLocations] = useState<BucketListLocation[]>([])
@@ -58,7 +60,7 @@ export function LocationExplorer() {
         }
       } catch (err) {
         console.error('Failed to load locations:', err)
-        setError('載入地點資料時發生錯誤，請稍後再試')
+        setError(t('locationLoadError'))
       } finally {
         setLoading(false)
       }
@@ -80,7 +82,7 @@ export function LocationExplorer() {
           <p className="mb-3 text-sm text-gray-500">{loc.country}</p>
           <div className="flex items-center gap-1 text-sm text-gray-600">
             <Users className="h-4 w-4" />
-            <span>{loc.visitors.length} 人去過</span>
+            <span>{t('visitorsCount', { count: loc.visitors.length })}</span>
           </div>
           {/* 訪客頭像 */}
           {loc.visitors.length > 0 && (
@@ -129,16 +131,16 @@ export function LocationExplorer() {
           <h4 className="mb-2 font-semibold text-[#1B1A1A]">{loc.location}</h4>
           <div className="space-y-1 text-sm text-gray-600">
             <div className="flex items-center justify-between">
-              <span>設為目標</span>
-              <span className="font-medium">{loc.item_count} 個</span>
+              <span>{t('setAsGoal')}</span>
+              <span className="font-medium">{t('itemCountUnit', { count: loc.item_count })}</span>
             </div>
             <div className="flex items-center justify-between">
-              <span>挑戰中</span>
-              <span className="font-medium">{loc.user_count} 人</span>
+              <span>{t('inChallenge')}</span>
+              <span className="font-medium">{t('personCountUnit', { count: loc.user_count })}</span>
             </div>
             <div className="flex items-center justify-between">
-              <span>已完成</span>
-              <span className="font-medium text-green-600">{loc.completed_count} 人</span>
+              <span>{t('completed')}</span>
+              <span className="font-medium text-green-600">{t('personCountUnit', { count: loc.completed_count })}</span>
             </div>
           </div>
         </CardContent>
@@ -167,13 +169,13 @@ export function LocationExplorer() {
       <div className="mb-6 flex items-center justify-between">
         <div className="flex items-center gap-2">
           <MapPin className="h-6 w-6 text-blue-500" />
-          <h2 className="text-xl font-bold text-[#1B1A1A]">依地點探索</h2>
+          <h2 className="text-xl font-bold text-[#1B1A1A]">{t('exploreByLocationTitle')}</h2>
         </div>
         <Link
           href="/biography/explore/locations"
           className="flex items-center gap-1 text-sm text-gray-600 hover:text-gray-900"
         >
-          更多地點
+          {t('moreLocations')}
           <ChevronRight className="h-4 w-4" />
         </Link>
       </div>
@@ -189,7 +191,7 @@ export function LocationExplorer() {
           }`}
         >
           <MapPin className="h-4 w-4" />
-          台灣岩場
+          {t('taiwanCrags')}
         </button>
         <button
           onClick={() => setActiveTab('overseas')}
@@ -200,7 +202,7 @@ export function LocationExplorer() {
           }`}
         >
           <Globe className="h-4 w-4" />
-          海外攀岩
+          {t('overseasClimbing')}
         </button>
         <button
           onClick={() => setActiveTab('bucket')}
@@ -210,7 +212,7 @@ export function LocationExplorer() {
               : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
           }`}
         >
-          目標地點
+          {t('goalLocations')}
         </button>
       </div>
 
@@ -220,7 +222,7 @@ export function LocationExplorer() {
           {taiwanLocations.length > 0 ? (
             taiwanLocations.map((loc, index) => renderLocationCard(loc, index))
           ) : (
-            <div className="col-span-full py-8 text-center text-gray-500">暫無台灣岩場資料</div>
+            <div className="col-span-full py-8 text-center text-gray-500">{t('noTaiwanCragData')}</div>
           )}
         </div>
       )}
@@ -230,7 +232,7 @@ export function LocationExplorer() {
           {overseasLocations.length > 0 ? (
             overseasLocations.map((loc, index) => renderLocationCard(loc, index))
           ) : (
-            <div className="col-span-full py-8 text-center text-gray-500">暫無海外攀岩資料</div>
+            <div className="col-span-full py-8 text-center text-gray-500">{t('noOverseasData')}</div>
           )}
         </div>
       )}
@@ -240,7 +242,7 @@ export function LocationExplorer() {
           {bucketListLocations.length > 0 ? (
             bucketListLocations.map((loc, index) => renderBucketListLocationCard(loc, index))
           ) : (
-            <div className="col-span-full py-8 text-center text-gray-500">暫無目標地點資料</div>
+            <div className="col-span-full py-8 text-center text-gray-500">{t('noGoalLocationData')}</div>
           )}
         </div>
       )}

@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
+import { useTranslations } from 'next-intl'
 import { cn } from '@/lib/utils'
 import { X, Loader2, Layers } from 'lucide-react'
 import type { TagDimension, ContentSource } from '@/lib/types/biography-v2'
@@ -38,6 +39,7 @@ export function AddCustomDimensionModal({
   isSaving = false,
   className,
 }: AddCustomDimensionModalProps) {
+  const t = useTranslations('BiographyEditor')
   const [name, setName] = useState('')
   const [emoji, setEmoji] = useState('🎯')
   const [description, setDescription] = useState('')
@@ -97,7 +99,7 @@ export function AddCustomDimensionModal({
         <div className="flex items-center justify-between p-4 border-b border-[#EBEAEA]">
           <div className="flex items-center gap-2">
             <Layers size={20} className="text-[#3F3D3D]" />
-            <h3 className="font-semibold text-[#1B1A1A]">新增標籤類別</h3>
+            <h3 className="font-semibold text-[#1B1A1A]">{t('addCustomDimensionTitle')}</h3>
           </div>
           <button
             type="button"
@@ -113,7 +115,7 @@ export function AddCustomDimensionModal({
           {/* Emoji 選擇 */}
           <div className="space-y-2">
             <label className="block text-sm font-medium text-[#1B1A1A]">
-              圖示
+              {t('dimensionIconLabel')}
             </label>
             <div className="relative">
               <button
@@ -153,31 +155,31 @@ export function AddCustomDimensionModal({
           {/* 維度名稱 */}
           <div className="space-y-2">
             <label className="block text-sm font-medium text-[#1B1A1A]">
-              類別名稱 <span className="text-red-500">*</span>
+              {t('dimensionNameLabel')} <span className="text-red-500">*</span>
             </label>
             <input
               type="text"
               value={name}
               onChange={(e) => setName(e.target.value)}
-              placeholder="例如：裝備偏好"
+              placeholder={t('dimensionNamePlaceholder')}
               className="w-full px-4 py-3 bg-white border border-[#B6B3B3] rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-accent/50 focus:border-brand-dark transition-colors text-[#1B1A1A] placeholder:text-[#9D9D9D]"
               maxLength={10}
             />
             <p className="text-xs text-[#8E8C8C]">
-              最多 10 字
+              {t('dimensionNameHint')}
             </p>
           </div>
 
           {/* 維度說明 */}
           <div className="space-y-2">
             <label className="block text-sm font-medium text-[#1B1A1A]">
-              類別說明 <span className="text-[#8E8C8C]">(選填)</span>
+              {t('dimensionDescriptionLabel')} <span className="text-[#8E8C8C]">{t('dimensionDescriptionOptional')}</span>
             </label>
             <input
               type="text"
               value={description}
               onChange={(e) => setDescription(e.target.value)}
-              placeholder="例如：你喜歡什麼裝備？"
+              placeholder={t('dimensionDescriptionPlaceholder')}
               className="w-full px-4 py-3 bg-white border border-[#B6B3B3] rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-accent/50 focus:border-brand-dark transition-colors text-[#1B1A1A] placeholder:text-[#9D9D9D]"
               maxLength={30}
             />
@@ -186,7 +188,7 @@ export function AddCustomDimensionModal({
           {/* 選擇模式 */}
           <div className="space-y-2">
             <label className="block text-sm font-medium text-[#1B1A1A]">
-              選擇模式
+              {t('dimensionSelectionModeLabel')}
             </label>
             <div className="flex gap-3">
               <button
@@ -199,8 +201,8 @@ export function AddCustomDimensionModal({
                     : 'border-[#DBD8D8] hover:border-[#B6B3B3]'
                 )}
               >
-                <p className="font-medium text-[#1B1A1A]">單選</p>
-                <p className="text-xs text-[#8E8C8C] mt-1">只能選一個標籤</p>
+                <p className="font-medium text-[#1B1A1A]">{t('dimensionSingleMode')}</p>
+                <p className="text-xs text-[#8E8C8C] mt-1">{t('dimensionSingleModeDesc')}</p>
               </button>
               <button
                 type="button"
@@ -212,8 +214,8 @@ export function AddCustomDimensionModal({
                     : 'border-[#DBD8D8] hover:border-[#B6B3B3]'
                 )}
               >
-                <p className="font-medium text-[#1B1A1A]">複選</p>
-                <p className="text-xs text-[#8E8C8C] mt-1">可以選多個標籤</p>
+                <p className="font-medium text-[#1B1A1A]">{t('dimensionMultipleMode')}</p>
+                <p className="text-xs text-[#8E8C8C] mt-1">{t('dimensionMultipleModeDesc')}</p>
               </button>
             </div>
           </div>
@@ -221,12 +223,12 @@ export function AddCustomDimensionModal({
           {/* 預覽 */}
           {name.trim() && (
             <div className="bg-[#F5F5F5] rounded-lg p-4">
-              <p className="text-sm text-[#6D6C6C] mb-2">預覽</p>
+              <p className="text-sm text-[#6D6C6C] mb-2">{t('dimensionPreviewLabel')}</p>
               <div className="flex items-center gap-2">
                 <span className="text-xl">{emoji}</span>
                 <span className="font-medium text-[#1B1A1A]">{name.trim()}</span>
                 <span className="text-xs text-[#6D6C6C] px-2 py-0.5 bg-white rounded-full">
-                  {selectionMode === 'single' ? '單選' : '可複選'}
+                  {selectionMode === 'single' ? t('dimensionSingleMode') : t('dimensionMultipleHint')}
                 </span>
               </div>
               {description.trim() && (
@@ -238,7 +240,7 @@ export function AddCustomDimensionModal({
           {/* 提示 */}
           <div className="bg-brand-accent/10 rounded-lg p-4">
             <p className="text-sm text-[#3F3D3D]">
-              建立類別後，你可以在裡面新增自訂標籤。
+              {t('dimensionCreateHint')}
             </p>
           </div>
         </div>
@@ -250,7 +252,7 @@ export function AddCustomDimensionModal({
             onClick={onClose}
             className="flex-1 px-4 py-3 border border-[#B6B3B3] text-[#3F3D3D] rounded-lg font-medium hover:bg-[#F5F5F5] transition-colors"
           >
-            取消
+            {t('cancelButton')}
           </button>
           <button
             type="button"
@@ -266,10 +268,10 @@ export function AddCustomDimensionModal({
             {isSaving ? (
               <>
                 <Loader2 size={18} className="animate-spin" />
-                建立中...
+                {t('dimensionCreatingStatus')}
               </>
             ) : (
-              '建立類別'
+              t('createDimensionButton')
             )}
           </button>
         </div>

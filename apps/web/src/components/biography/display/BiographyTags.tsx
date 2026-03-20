@@ -6,6 +6,7 @@ import { Tag, ChevronDown, ChevronUp, Sparkles } from 'lucide-react'
 import type { BiographyV2, TagSelection, TagOption } from '@/lib/types/biography-v2'
 import { renderDynamicTag } from '@/lib/types/biography-v2'
 import { getTagOptionById } from '@/lib/constants/biography-tags'
+import { useTranslations } from 'next-intl'
 
 interface BiographyTagsProps {
   /** 人物誌資料 */
@@ -26,6 +27,7 @@ export function BiographyTags({
   mobileLimit = 8,
   className,
 }: BiographyTagsProps) {
+  const t = useTranslations('BiographyPage')
   const [showAll, setShowAll] = useState(false)
 
   // 將選中的標籤整理為扁平列表，自訂標籤優先顯示
@@ -129,7 +131,7 @@ export function BiographyTags({
     <section className={cn('py-6', className)}>
       <div className="flex items-center gap-2 mb-4">
         <Tag size={18} className="text-[#3F3D3D]" />
-        <h2 className="text-lg font-semibold text-[#1B1A1A]">關鍵字</h2>
+        <h2 className="text-lg font-semibold text-[#1B1A1A]">{t('keywordsLabel')}</h2>
       </div>
 
       <div className="flex flex-wrap gap-2">
@@ -154,7 +156,7 @@ export function BiographyTags({
             onClick={() => setShowAll(true)}
             className="inline-flex items-center gap-1 px-3 py-1.5 rounded-full text-sm font-medium text-[#6D6C6C] bg-[#F5F5F5] hover:bg-[#EBEAEA] transition-colors"
           >
-            展開更多標籤 (+{hiddenCount})
+            {t('showMoreTags', { count: hiddenCount })}
             <ChevronDown size={16} />
           </button>
         )}
@@ -164,7 +166,7 @@ export function BiographyTags({
             onClick={() => setShowAll(false)}
             className="inline-flex items-center gap-1 px-3 py-1.5 rounded-full text-sm font-medium text-[#6D6C6C] bg-[#F5F5F5] hover:bg-[#EBEAEA] transition-colors"
           >
-            收合
+            {t('collapseTags')}
             <ChevronUp size={16} />
           </button>
         )}

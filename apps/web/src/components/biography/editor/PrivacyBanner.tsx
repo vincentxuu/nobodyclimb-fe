@@ -1,6 +1,7 @@
 'use client'
 
 import { useState } from 'react'
+import { useTranslations } from 'next-intl'
 import { cn } from '@/lib/utils'
 import { ChevronDown, Check, Globe, Users, Lock, Glasses } from 'lucide-react'
 import type { VisibilityLevel } from '@/lib/types/biography-v2'
@@ -16,37 +17,6 @@ interface PrivacyBannerProps {
   className?: string
 }
 
-const visibilityOptions: {
-  value: VisibilityLevel
-  icon: React.ElementType
-  label: string
-  description: string
-}[] = [
-  {
-    value: 'public',
-    icon: Globe,
-    label: '公開',
-    description: '所有人都可以看到',
-  },
-  {
-    value: 'community',
-    icon: Users,
-    label: '社群',
-    description: '只有社群成員可以看到',
-  },
-  {
-    value: 'private',
-    icon: Lock,
-    label: '私密',
-    description: '只有自己可以看到',
-  },
-  {
-    value: 'anonymous',
-    icon: Glasses,
-    label: '匿名公開',
-    description: '公開但不顯示你的名字',
-  },
-]
 
 /**
  * 隱私設定橫幅
@@ -59,7 +29,40 @@ export function PrivacyBanner({
   editable = true,
   className,
 }: PrivacyBannerProps) {
+  const t = useTranslations('BiographyEditor')
   const [isExpanded, setIsExpanded] = useState(false)
+
+  const visibilityOptions: {
+    value: VisibilityLevel
+    icon: React.ElementType
+    label: string
+    description: string
+  }[] = [
+    {
+      value: 'public',
+      icon: Globe,
+      label: t('visibilityPublicLabel'),
+      description: t('visibilityPublicDesc'),
+    },
+    {
+      value: 'community',
+      icon: Users,
+      label: t('visibilityCommunityLabel'),
+      description: t('visibilityCommunityDesc'),
+    },
+    {
+      value: 'private',
+      icon: Lock,
+      label: t('visibilityPrivateLabel'),
+      description: t('visibilityPrivateDesc'),
+    },
+    {
+      value: 'anonymous',
+      icon: Glasses,
+      label: t('visibilityAnonymousLabel'),
+      description: t('visibilityAnonymousDesc'),
+    },
+  ]
 
   const currentOption = visibilityOptions.find((opt) => opt.value === visibility)
   const CurrentIcon = currentOption?.icon || Globe
@@ -74,7 +77,7 @@ export function PrivacyBanner({
       >
         <CurrentIcon size={18} className="text-[#3F3D3D]" />
         <span className="text-sm text-[#6D6C6C]">
-          目前設定：{currentOption?.label}
+          {t('visibilityCurrentSetting', { label: currentOption?.label ?? '' })}
         </span>
       </div>
     )

@@ -3,8 +3,10 @@
 import Image from 'next/image'
 import { motion } from 'framer-motion'
 import { ChevronDown } from 'lucide-react'
+import { useTranslations } from 'next-intl'
 
 export function HeroIntroSection() {
+  const t = useTranslations('HomePage')
   return (
     <section className="relative flex min-h-[calc(100vh-80px)] flex-col items-center justify-center bg-gradient-to-b from-[#F5F5F5] to-white">
       <div className="container mx-auto px-4 text-center">
@@ -15,7 +17,7 @@ export function HeroIntroSection() {
         >
           <Image
             src="/logo/Nobodylimb-black.svg"
-            alt="小人物攀岩"
+            alt={t('heroTitle')}
             width={320}
             height={89}
             className="mx-auto w-[280px] md:w-[320px]"
@@ -29,7 +31,7 @@ export function HeroIntroSection() {
           transition={{ duration: 0.8, delay: 0.2, ease: 'easeOut' }}
           className="mt-4 text-base text-[#6D6C6C] md:text-lg"
         >
-          台灣攀岩社群
+          {t('heroSubtitle')}
         </motion.p>
 
         <motion.p
@@ -38,7 +40,7 @@ export function HeroIntroSection() {
           transition={{ duration: 0.8, delay: 0.4, ease: 'easeOut' }}
           className="mt-4 text-xl text-[#1B1A1A] md:text-2xl"
         >
-          查路線 · 看故事 · 寫紀錄
+          {t('heroActions')}
         </motion.p>
       </div>
 
@@ -54,7 +56,7 @@ export function HeroIntroSection() {
           transition={{ duration: 1.5, repeat: Infinity, ease: 'easeInOut' }}
           className="flex flex-col items-center text-[#6D6C6C]"
         >
-          <span className="mb-2 text-xs">向下探索</span>
+          <span className="mb-2 text-xs">{t('scrollDown')}</span>
           <ChevronDown className="h-5 w-5" />
         </motion.div>
       </motion.div>

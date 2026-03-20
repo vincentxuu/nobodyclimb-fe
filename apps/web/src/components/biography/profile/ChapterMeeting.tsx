@@ -6,6 +6,7 @@ import { biographyContentService } from '@/lib/api/services'
 import { useClimbingOriginStory, useCoreStoryLikeMutation, useCoreStoryCommentMutation } from '@/lib/hooks/useCoreStories'
 import { ContentInteractionBar } from '../display/ContentInteractionBar'
 import { normalizeNewlines } from '@/lib/utils'
+import { useTranslations } from 'next-intl'
 
 interface ChapterMeetingProps {
   biographyId: string
@@ -16,6 +17,7 @@ interface ChapterMeetingProps {
  * 你與攀岩的相遇故事
  */
 export function ChapterMeeting({ biographyId }: ChapterMeetingProps) {
+  const t = useTranslations('BiographyPage')
   const { story, isLoading } = useClimbingOriginStory(biographyId)
   const likeMutation = useCoreStoryLikeMutation(biographyId)
   const commentMutation = useCoreStoryCommentMutation(biographyId, story?.id)
@@ -65,10 +67,10 @@ export function ChapterMeeting({ biographyId }: ChapterMeetingProps) {
       {/* 章節標題 */}
       <div className="mb-8">
         <span className="text-sm font-medium uppercase tracking-wider bg-brand-accent">
-          Chapter 1
+          {t('chapter1')}
         </span>
         <h2 className="mt-2 text-2xl font-bold text-gray-900">
-          你與攀岩的相遇
+          {t('chapter1Title')}
         </h2>
       </div>
 
@@ -78,7 +80,7 @@ export function ChapterMeeting({ biographyId }: ChapterMeetingProps) {
           <div className="flex flex-col items-center justify-center py-8 text-center">
             <div className="flex items-center gap-2 text-lg text-gray-400">
               <Lock size={18} />
-              <span>成為岩友後解鎖相遇故事</span>
+              <span>{t('chapter1Locked')}</span>
             </div>
           </div>
         ) : (

@@ -61,6 +61,27 @@ export async function checkRateLimit(
 }
 
 /**
+ * AI 問答 IP 速率限制（簡易 KV 計數器，per-minute per-IP）
+ */
+export async function checkAiRateLimit(
+  cache: KVNamespace,
+  ip: string,
+  maxPerMinute: number,
+): Promise<{ allowed: boolean; retryAfter?: number }> {
+  const minute = Math.floor(Date.now() / 60000);
+  const key = `rate:ai:${ip}:${minute}`;
+
+  const current = parseInt(await cache.get(key) ?? '0', 10);
+  if (current >= maxPerMinute) {
+    const retryAfter = 60 - (Math.floor(Date.now() / 1000) % 60);
+    return { allowed: false, retryAfter: Math.max(1, retryAfter) };
+  }
+
+  await cache.put(key, String(current + 1), { expirationTtl: 120 });
+  return { allowed: true };
+}
+
+/**
  * 密碼重設 Rate Limit 檢查
  * - 每個 Email: 每小時最多 3 次
  * - 每個 IP: 每小時最多 10 次

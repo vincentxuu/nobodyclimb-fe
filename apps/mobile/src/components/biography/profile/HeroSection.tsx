@@ -14,7 +14,7 @@ import { FollowButton } from '../follow-button'
 import { BiographyLikeButton } from '../biography-like-button'
 import { CompactSocialLinks } from '../social-links'
 import { ShareButton } from '@/components/shared/ShareButton'
-import { SEMANTIC_COLORS, SPACING, RADIUS } from '@nobodyclimb/constants'
+import { RADIUS, SEMANTIC_COLORS, SPACING, WB_COLORS } from '@nobodyclimb/constants'
 
 // 類型定義
 interface Biography {
@@ -165,7 +165,7 @@ export function HeroSection({
 
 const styles = StyleSheet.create({
   container: {
-    backgroundColor: '#fff',
+    backgroundColor: WB_COLORS[0],
   },
   coverContainer: {
     width: '100%',

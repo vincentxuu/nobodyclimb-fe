@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useEffect, useCallback } from 'react'
+import { useTranslations } from 'next-intl'
 import { Loader2, ListTodo, Filter } from 'lucide-react'
 import { bucketListService } from '@/lib/api/services'
 import { BucketListCard } from './bucket-list-card'
@@ -20,6 +21,7 @@ export function BucketListSection({
   isOwner = false,
   className,
 }: BucketListSectionProps) {
+  const t = useTranslations('BiographyEditor')
   const [items, setItems] = useState<BucketListItem[]>([])
   const [isLoading, setIsLoading] = useState(true)
   const [filter, setFilter] = useState<FilterStatus>('all')
@@ -62,7 +64,7 @@ export function BucketListSection({
     return (
       <div className={cn('text-center py-8', className)}>
         <ListTodo className="h-12 w-12 mx-auto text-gray-300 mb-3" />
-        <p className="text-gray-500">還沒有人生清單項目</p>
+        <p className="text-gray-500">{t('bucketListNoItems')}</p>
       </div>
     )
   }
@@ -72,10 +74,10 @@ export function BucketListSection({
       <div className="flex items-center justify-between mb-4">
         <div className="flex items-center gap-4">
           <div className="flex items-center gap-1 text-sm text-gray-500">
-            <span>{activeCount} 進行中</span>
+            <span>{t('bucketListActive', { count: activeCount })}</span>
           </div>
           <div className="flex items-center gap-1 text-sm text-green-600">
-            <span>{completedCount} 已完成</span>
+            <span>{t('bucketListCompleted', { count: completedCount })}</span>
           </div>
         </div>
 
@@ -86,9 +88,9 @@ export function BucketListSection({
             onChange={(e) => setFilter(e.target.value as FilterStatus)}
             className="text-sm border-0 bg-transparent text-gray-600 focus:ring-0 cursor-pointer"
           >
-            <option value="all">全部</option>
-            <option value="active">進行中</option>
-            <option value="completed">已完成</option>
+            <option value="all">{t('bucketListFilterAll')}</option>
+            <option value="active">{t('bucketListFilterActive')}</option>
+            <option value="completed">{t('bucketListFilterCompleted')}</option>
           </select>
         </div>
       </div>
@@ -101,7 +103,7 @@ export function BucketListSection({
 
       {filteredItems.length === 0 && (
         <div className="text-center py-6 text-gray-500">
-          沒有符合篩選條件的項目
+          {t('bucketListSectionEmpty')}
         </div>
       )}
     </div>

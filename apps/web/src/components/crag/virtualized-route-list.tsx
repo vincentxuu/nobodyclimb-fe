@@ -5,6 +5,7 @@ import Link from 'next/link'
 import { useSearchParams } from 'next/navigation'
 import { getRouteName } from '@/lib/route-utils'
 import type { RouteSidebarItem } from '@/lib/crag-data'
+import { useTranslations } from 'next-intl'
 
 interface VirtualizedRouteListProps {
   routes: RouteSidebarItem[]
@@ -83,6 +84,7 @@ export function VirtualizedRouteList({
   onRouteClick,
   onItemClick,
 }: VirtualizedRouteListProps) {
+  const t = useTranslations('CragPage')
   const containerRef = useRef<HTMLDivElement>(null)
   const [scrollTop, setScrollTop] = useState(0)
   const [containerHeight, setContainerHeight] = useState(0)
@@ -148,7 +150,7 @@ export function VirtualizedRouteList({
   if (routes.length === 0) {
     return (
       <div className="flex h-32 items-center justify-center text-sm text-gray-500">
-        沒有符合條件的路線
+        {t('noRoutesFound')}
       </div>
     )
   }

@@ -1,14 +1,14 @@
 # RAG 系統面試準備指南
 
-> 建立日期：2026-03-06 ｜ 最後更新：2026-03-08
-> 對應程式碼：`backend/src/services/query.ts`、`backend/src/services/indexing.ts`、`backend/src/utils/ai-prompts.ts`、`backend/src/services/rank.ts`、`backend/src/utils/guardrails.ts`
+> 建立日期：2026-03-06 ｜ 最後更新：2026-03-09
+> 對應程式碼：`backend/src/services/query/`（模組化 QueryService）、`backend/src/services/pipeline/`（PipelineEngine + Steps）、`backend/src/services/query/plan-execute.ts`（Plan-Execute 策略）、`backend/src/services/query/retrieval.ts`（Agentic 六動作）、`backend/src/services/tool-registry.ts`（Tool Registry）、`backend/src/services/indexing.ts`、`backend/src/services/text-to-sql.ts`、`backend/src/utils/ai-prompts.ts`、`backend/src/services/rank.ts`、`backend/src/utils/guardrails.ts`、`backend/src/utils/circuit-breaker.ts`
 
 ---
 
 ## ⚡ 面試前速查表（10 分鐘掃完）
 
 ### 系統一句話
-> 攀岩平台的 RAG 問答系統，運行在 Cloudflare Workers，結合向量 + BM25 混合搜尋、LLM 意圖分流、Judge-Guided 品質保障，讓用戶用中文自然語言查詢路線資訊。
+> 攀岩平台的模組化 RAG 問答系統，運行在 Cloudflare Workers，14 個可配置 pipeline step 動態組裝，支援 4 種 RAG 策略（baseline / agentic / plan-execute / auto），結合向量 + BM25 混合搜尋、Text-to-SQL 結構化查詢、LLM 意圖分流（6 工具 + multi-tool 複合）、Judge-Guided 品質保障、Circuit Breaker 熔斷保護，讓用戶用中文自然語言查詢路線資訊。
 
 ### 技術棧記憶卡
 
@@ -22,20 +22,40 @@
 | 快取 | KV（精確）+ Vectorize（語義）|
 | Runtime | Cloudflare Workers（Edge, Serverless）|
 
-### Pipeline 12 步記憶法
+### Modular Pipeline 14 步記憶法
 
 ```
-① Guardrails → ② KV快取 → ③ Quota → ④ Adaptive Routing
-→ ⑤ HyDE + Multi-Query（complex）→ ⑥ 多路搜尋 + RRF
-→ ⑦ CRAG放寬 → ⑧ Cross-encoder → ⑨ MMR + 熱門度
-→ ⑩ LLM生成 → ⑪ Judge評估（→重生成→比較groundedness）
-→ ⑫ 免責聲明注入
+5 Phases × 14 Steps（每步可獨立開關、排序，Admin UI 可調）
++ Circuit Breaker 入口保護 + 4 種 RAG 策略 + Per-step Timeout
+
+Pre-retrieval：
+  ① Semantic Cache → ② Tool Selection（6 工具 + multi-tool 複合）→ ③ Text-to-SQL
+  → ④ HyDE → ⑤ Multi-Query → ⑥ Filter Build
+
+Retrieval：
+  ⑦ Embedding → ⑧ Hybrid Search（Vector + BM25 + RRF + CRAG + Agentic/Plan-Execute）
+
+Post-retrieval：
+  ⑨ Cross-encoder → ⑩ MMR → ⑪ Popularity Rerank
+
+Generation：
+  ⑫ LLM Generation（含 GK / SQL / Hybrid / Multi-tool earlyReturn 路徑）
+
+Evaluation：
+  ⑬ Judge → ⑭ Self-Reflection（含 loopBack 回跳 retrieval）
+
+RAG 策略（hybrid-search step 內切換）：
+  baseline     → 標準多路搜尋 + RRF（預設）
+  agentic      → LLM 主動決策 6 種動作（ANSWER/RETRIEVE/BROADEN/SWITCH_TOOL/DECOMPOSE/VERIFY）
+  plan-execute → LLM 生成多步計畫 → 並行/序列執行 → 合成
+  auto         → Tool Selection 的 strategy_hint 動態決定走哪條
 ```
 
 ### 核心技術一行解釋
 
 | 技術 | 一行解釋 |
 |------|---------|
+| **Modular Pipeline** | 14 個 PipelineStep 動態組裝，每步可開關/排序，Admin UI 可調，engine 依 phase 順序執行 |
 | **HyDE** | 先讓 LLM 生成理想答案，用理想答案的向量搜尋（比 query 向量更像文件）|
 | **Multi-Query** | 用 LLM 把問題改寫成 3 個子查詢，分別搜尋後 RRF 合併，提升 Recall |
 | **BM25 + 向量 Hybrid** | 術語用 BM25，語意用向量，RRF 融合取兩者之長 |
@@ -45,7 +65,14 @@
 | **Contextual RAG** | 索引時 LLM 生成語意摘要前置在 chunk 前 embed，解決 chunk 孤島 |
 | **CRAG** | 搜尋無結果時，逐步移除 grade → route_type 過濾重試 |
 | **Judge-Guided** | 獨立 Llama 評 Gemma 輸出，比較兩次 groundedness 決定要哪個版本 |
+| **Text-to-SQL** | 統計/計算/篩選問題直接執行 SQL 模板查詢，跳過向量搜尋 |
+| **loopBack** | Self-Reflection 低 groundedness 時回跳 retrieval phase 重新搜尋 |
 | **語義快取** | 用 query embedding 相似度（>0.95）命中過去回答，匿名查詢才啟用 |
+| **Plan-Execute** | LLM 產出多步搜尋計畫 → 依 depends_on 拓撲排序 → 並行/序列執行 → LLM 合成 |
+| **Circuit Breaker** | KV 三態狀態機（closed/open/half-open），embedding/LLM 連續失敗 → 熔斷 → 503 |
+| **Multi-Tool** | Tool Selection 識別複合查詢 → 拆分成多個子工具步驟 → 各自搜尋 → 合成回答 |
+| **Adaptive Plan** | Plan-Execute 某步零結果 → 用輕量模型重新規劃替代步驟（只觸發一次）|
+| **Per-step Timeout** | 每個 pipeline step 獨立超時設定，超時觸發 graceful degradation 而非整體失敗 |
 
 ### 常見面試陷阱快答
 
@@ -56,18 +83,27 @@
 | 同模型自評的問題？ | 64.5% 盲點率，本系統用獨立 Llama 當 Judge |
 | BM25 負值原因？ | SQLite FTS5 設計，取負轉正再送 RRF |
 | HyDE filter 為何不套 crag_id？ | 假設文件是語意泛化，過嚴 filter 反而限制語意搜尋 |
+| 為什麼要做模組化 Pipeline？ | Step 可獨立開關/排序/新增，Admin UI 即時調整不需部署，降低耦合 |
+| Text-to-SQL 和向量搜尋的差異？ | SQL 適合精確統計（「龍洞 5.12 以上幾條？」），向量適合語意查詢 |
+| loopBack 是什麼？ | Self-Reflection 偵測低 groundedness（<0.5）時，回跳到 retrieval 重新搜尋 |
 | Cloudflare Workers 最大限制？ | CPU 時間 30ms（→全程並行），無持久記憶體（→KV/D1）|
 | Guardrails 為何不用 LLM 檢查？ | 每次請求都要跑，字串比對零成本；LLM 評估加 0.5–1s |
 | System Prompt Leakage 為何整個替換？ | 部分替換留語意線索，整個替換最安全 |
 | Input Guardrail 觸發時扣配額嗎？ | 不扣。GuardrailError 直接 400，LLM 完全不呼叫 |
 | Token 怎麼計量？ | 先估算扣除（中文 1 字 ≈ 2 token），LLM 完成後用實際 usage 校正差額 |
 | 配額有幾層？ | 雙重：每日請求次數 + 每日 token 上限，原子 SQL 同時檢查兩條件 |
+| Circuit Breaker 怎麼運作？ | KV 三態（closed→open→half-open），embedding/LLM 連續失敗 N 次 → 503 熔斷，自動恢復 |
+| Plan-Execute 和 Agentic 的差別？ | Agentic 逐步決策（ReAct），Plan-Execute 先規劃再執行（更結構化、可並行）|
+| 為什麼有 auto 策略？ | 讓 Tool Selection 的 strategy_hint 動態選策略，避免一律用最貴的 agentic |
+| Multi-Tool 是什麼？ | 複合查詢（如「龍洞有哪些 5.11 路線，順便介紹岩場」）拆成多個子工具分別搜尋再合成 |
+| Per-step Timeout 為何重要？ | 避免單步超時拖垮整體，超時降級（如 HyDE 超時→跳過）而非全部失敗 |
+| Adaptive Plan 何時觸發？ | Plan-Execute 某步零結果時，用輕量模型重新規劃替代步驟（只觸發一次，防無限迴圈）|
 
 ---
 
 ## 一、系統一句話介紹
 
-> 「為攀岩社群平台 NobodyClimb 建立的 RAG 問答系統，運行在 Cloudflare Workers 上，結合向量搜尋、BM25 全文搜尋、LLM 意圖解析等多種技術，讓使用者能用自然語言查詢路線與岩場資訊，並透過 Judge-Guided Self-Reflection 機制確保回答品質。」
+> 「為攀岩社群平台 NobodyClimb 建立的模組化 RAG 問答系統，運行在 Cloudflare Workers 上，14 個可配置 pipeline step 支援四種 RAG 策略（baseline / agentic / plan-execute / auto），結合向量搜尋、BM25 全文搜尋、Text-to-SQL、LLM 意圖分流（6 工具 + multi-tool 複合），並透過 Circuit Breaker 熔斷保護和 Judge-Guided Self-Reflection 確保穩定性與品質。」
 
 ---
 
@@ -87,49 +123,70 @@
 | **資料庫** | [Cloudflare D1](https://developers.cloudflare.com/d1/)（SQLite） | 儲存文件原文、metadata、查詢日誌 |
 | **框架** | [Hono 4.6](https://hono.dev/) | 輕量 TypeScript Web Framework，適合 Workers |
 
-### 完整查詢 Pipeline
+### 完整查詢 Pipeline（模組化架構）
 
 ```
 使用者 Query
   │
-  ├─[1] Input Guardrails（過濾 PII、有害內容）
+  ├─ Input Guardrails（過濾 PII、有害內容）→ 400 blocked
+  ├─ KV 精確快取（hash key）→ 命中直接回傳
+  ├─ Quota 額度檢查 → 429 quota_exceeded
   │
-  ├─[2] KV 精確快取（hash key）→ 命中直接回傳
+  ▼ Circuit Breaker 檢查（KV 三態狀態機）→ open 時直接 503
   │
-  ├─[3] Quota 額度檢查
+  ▼ 進入 PipelineEngine（14 個可配置 Step，依 phase 順序 + per-step timeout）
   │
-  ├─[4] Adaptive Routing（LLM Tool Calling）
-  │       ├─ general-knowledge → 直接 LLM 生成（跳過向量搜尋）
-  │       └─ simple / complex → 進入 RAG 路徑
+  ╔════ Pre-retrieval Phase ════╗
+  ║ [1] Semantic Cache       → 語義快取命中 → earlyReturn        ║
+  ║ [2] Tool Selection       → 分類 queryType（7 種路徑）        ║
+  ║     └─ strategy_hint     → auto 模式動態選 RAG 策略           ║
+  ║ [3] Text-to-SQL          → sql/hybrid → earlyReturn/候選集   ║
+  ║ [4] HyDE                 → complex 才觸發                    ║
+  ║ [5] Multi-Query           → complex 才觸發                    ║
+  ║ [6] Filter Build          → 提取 grade/crag/region/area      ║
+  ╚═════════════════════════════╝
   │
-  ├─[5] HyDE + Multi-Query Expansion（complex 才觸發，並行執行）
-  │       ├─ HyDE：LLM 生成假設性理想答案文件
-  │       └─ Multi-Query：LLM 改寫為 N 個子查詢（預設 3 個）
+  ╔════ Retrieval Phase ════════╗
+  ║ [7] Embedding            → query + HyDE + 擴展查詢向量       ║
+  ║ [8] Hybrid Search        → 依 RAG 策略切換：                 ║
+  ║     ├─ baseline           → Vector + BM25 + RRF + CRAG        ║
+  ║     ├─ agentic            → ReAct 6 動作多輪迴圈              ║
+  ║     ├─ plan-execute       → 規劃 → 拓撲執行 → 合成            ║
+  ║     └─ multi-tool         → 多工具子步驟並行 → 合成            ║
+  ╚═════════════════════════════╝
   │
-  ├─[6] 多路向量搜尋 + BM25（並行）
-  │       ├─ 向量路 1：query embedding + metadata filter
-  │       ├─ 向量路 2：HyDE embedding（complex）
-  │       ├─ 向量路 3–N：子查詢 embedding × N（complex）
-  │       └─ BM25：D1 FTS5 全文搜尋（所有查詢）
-  │       → N 路 RRF 合併
+  ╔════ Post-retrieval Phase ═══╗
+  ║ [9] Cross-encoder         → bge-reranker-base 精排            ║
+  ║ [10] MMR                  → λ=0.6 多樣性選取                  ║
+  ║ [11] Popularity Rerank    → 影片數量加權 + sources/context 組合║
+  ╚═════════════════════════════╝
   │
-  ├─[7] CRAG 放寬回退（無結果時逐步移除 grade → route_type 過濾重試）
+  ╔════ Generation Phase ═══════╗
+  ║ [12] LLM Generation       → 含 GK earlyReturn、串流模式       ║
+  ╚═════════════════════════════╝
   │
-  ├─[8] Cross-encoder Reranking（bge-reranker-base）
+  ╔════ Evaluation Phase ═══════╗
+  ║ [13] Judge                → 獨立 Llama 評估 groundedness      ║
+  ║ [14] Self-Reflection      → quality ≤ 2 觸發重生成            ║
+  ║      └─ loopBack          → groundedness < 0.5 回跳 retrieval ║
+  ╚═════════════════════════════╝
   │
-  ├─[9] MMR 多樣性選取（λ=0.6）+ 熱門度加權排序
-  │
-  ├─[10] LLM 生成回答（含對話歷史、個人化 system prompt）
-  │
-  ├─[11] Judge 品質評估（獨立 Llama 模型）
-  │         ├─ quality ≤ 2（complex）→ 重生成
-  │         │     → 對重生成再跑 Judge
-  │         │     → 比較 groundedness，取較高者（Judge-Guided Self-Reflection）
-  │         └─ quality > 2 → 直接使用
-  │
-  ├─[12] Groundedness 免責聲明注入
-  │
+  ▼ PipelineEngine postPipelineProcessing
+  ├─ Circuit Breaker 狀態更新（embedding/LLM 失敗時 recordFailure）
+  ├─ Phase 間中間資料清理（釋放向量、候選陣列、文件 Map）
+  ├─ KV 快取寫入 + 語義快取寫入
+  ├─ logQuery + Memory extraction（waitUntil 非同步）
+  ├─ 串流模式異步 Judge（waitUntil）
   └─ Response
+
+查詢路徑分流（Tool Selection 決定）：
+  ├─ general-knowledge → 跳過向量搜尋，直接 LLM（GK earlyReturn）
+  ├─ simple           → 跳過 HyDE + Multi-Query，輕量模型
+  ├─ complex          → 完整 pipeline，Gemma-3-12b
+  ├─ sql              → Text-to-SQL 直查 D1（SQL earlyReturn）
+  ├─ hybrid           → SQL 撈候選集 + 向量 rerank
+  ├─ multi-tool       → 複合查詢拆分多工具 → 各自搜尋 → 合成
+  └─ clarification-needed → 追問確認（earlyReturn）
 ```
 
 ---
@@ -140,19 +197,34 @@
 
 **問：怎麼決定一個查詢要走哪條路徑？**
 
-用 LLM Tool Calling 解析意圖，輸出 JSON 指定工具與參數：
+用 LLM Tool Calling 解析意圖，輸出 JSON 指定工具與參數。工具定義在 `tool-registry.ts`，支援 6 個基礎工具 + 1 個複合工具：
 
 ```typescript
-// TOOL_SELECTION_PROMPT 注入已知岩場/區域/地區清單
-// LLM 選擇：search_routes / search_crags / general_knowledge
+// Tool Registry（6 + 1 工具）：
+// search_routes    → 路線語義搜尋
+// search_crags     → 岩場資訊搜尋
+// general_knowledge → 一般攀岩知識
+// search_sql       → SQL 精確查詢（統計/計算/篩選）
+// hybrid           → 混合推薦查詢（SQL 候選 + 向量 rerank）
+// multi_tool       → 多工具組合查詢（「同時」「順便」「以及」等信號詞觸發）
 
-// 三種路徑：
+// 七種路徑（queryType）：
 // 1. general-knowledge → 直接 LLM 回答，不查向量庫
 // 2. simple → 輕量模型，跳過 HyDE + Multi-Query（降延遲）
 // 3. complex → 完整 pipeline，Gemma-3-12b 生成
+// 4. sql → Text-to-SQL 直接查 D1，適合統計/計算/篩選
+// 5. hybrid → SQL 撈候選集 + 向量 rerank，適合排序類問題
+// 6. multi-tool → 複合查詢拆分成多個子工具步驟，各自搜尋後合成
+// 7. clarification-needed → 查詢太模糊，追問確認
+
+// 額外輸出：
+// confidence（0.0–1.0）→ 低於 tool_confidence_threshold 時降級
+// alternative → 備選工具
+// strategy_hint → auto 模式的 RAG 策略提示（baseline/agentic/plan-execute）
+// multi_tool.steps → 複合查詢的子工具步驟清單（最多 3 步）
 ```
 
-**Fallback 機制：** LLM 解析失敗時，用 regex（`extractGradeFilter`、`extractLocationFilter`、`extractTypeFilter`）補救。
+**Fallback 機制：** LLM 解析失敗時，用 regex（`extractGradeFilter`、`extractLocationFilter`、`extractTypeFilter`）補救。工具名稱和 multi_tool 步驟都會經過 `toolRegistry.getValidToolNames()` 白名單驗證。
 
 ---
 
@@ -192,13 +264,16 @@ LLM 生成：「大頭峰校門口區域有數條 5.8–5.9 難度的運攀路�
 3. **使用者意圖**：目的、經驗程度、適合對象
 
 ```typescript
-// 只對 complex 查詢觸發，與 HyDE 並行執行
-if (queryType === 'complex') {
-  [hydeDoc, expandedQueries] = await Promise.all([
-    this.generateHyDE(query, ...),
-    this.generateMultipleQueries(query, pipelineCfg.multi_query_count, ...),
-  ]);
-}
+// 模組化 pipeline 中，HyDE 和 Multi-Query 是獨立 step（各自 skipWhen: NON_RAG_SKIP）
+// 只對 complex 查詢觸發（simple/GK/sql/hybrid/clarification 跳過）
+
+// steps/hyde.ts — Step 4
+const hydeResult = await queryService.generateHyDE(query, llmModel, gatewayOptions, prompt);
+ctx.hydeDoc = hydeResult.doc;
+
+// steps/multi-query.ts — Step 5
+const multiQueryResult = await queryService.generateMultipleQueries(query, count, llmModel, gatewayOptions, prompt);
+ctx.expandedQueries = multiQueryResult.queries;
 ```
 
 **擴展查詢的 filter 策略：** 只套 `type` filter，不限岩場/難度，確保語意搜尋有足夠彈性。
@@ -474,8 +549,9 @@ Metadata 存在向量的 metadata 欄位，支援以下 filter：
 | 限制 | 因應設計 |
 |------|---------|
 | CPU 時間上限（30ms/請求）| 所有 I/O 並行執行（`Promise.all`） |
-| 無法長時間執行 | `ctx.waitUntil()` 做背景任務（Contextual RAG 更新） |
-| 無持久記憶體 | KV 做快取，D1 做持久化 |
+| 無法長時間執行 | `ctx.waitUntil()` 做背景任務（Contextual RAG 更新、Memory 萃取、串流 Judge） |
+| 無持久記憶體 | KV 做快取和 Circuit Breaker 狀態，D1 做持久化 |
+| Stateless Worker | Circuit Breaker 狀態存 KV（跨 instance 共享），接受 eventually-consistent |
 | Cold Start | Edge 部署，縮短冷啟動 |
 | 單一 Worker 分頁索引 | 分批索引（每批 100 筆），避免 timeout |
 
@@ -483,15 +559,19 @@ Metadata 存在向量的 metadata 欄位，支援以下 filter：
 
 ### Q8：如果 Vectorize 和 D1 都失敗，系統如何處理？
 
-**Graceful Degradation 設計：**
+**Graceful Degradation 設計（含 per-step timeout）：**
 - BM25 失敗 → 回傳空陣列，不影響向量搜尋路徑
-- HyDE 失敗 → 單路向量搜尋繼續執行
-- Multi-Query 失敗 → `expandedVectors = []`，降級為雙路搜尋
+- HyDE 超時/失敗 → `ctx.hydeDoc = ''`，降級為單路向量搜尋
+- Multi-Query 超時/失敗 → `ctx.expandedQueries = []`，降級為雙路搜尋
+- Embedding 超時 → `ctx.embeddingFailed = true`，觸發 BM25-only 檢索
 - Cross-encoder Reranker 失敗 → 保留原始 RRF 分數
 - Judge 失敗 → 不觸發重生成，直接用原始回答
+- LLM Generation 超時 → 固定錯誤訊息回傳
 - 向量搜尋無結果 → CRAG 放寬重試
+- Embedding/LLM 連續失敗 → Circuit Breaker 熔斷 → 503，自動恢復
+- Evaluation phase → 若 LLM Generation 已降級，整個 evaluation phase 跳過
 
-每個元件都有獨立的 try-catch，失敗時靜默降級，不影響核心流程。
+每個 pipeline step 都有獨立的超時設定和 try-catch，超時或失敗時靜默降級（記錄到 `ctx.degradedStages`），不影響核心流程。Phase 轉換時自動清理大型中間資料（向量、候選陣列）釋放記憶體。
 
 ---
 
@@ -501,11 +581,16 @@ Metadata 存在向量的 metadata 欄位，支援以下 filter：
 
 | 查詢類型 | 延遲 | 觸發功能 |
 |---------|------|---------|
-| general-knowledge | ~0.5s | 直接 LLM |
-| simple | ~1.1s | 向量搜尋 + BM25 |
-| complex | ~2–2.5s | HyDE + Multi-Query + 全路徑 |
+| sql | ~0.1–0.3s | Text-to-SQL 直查 D1（earlyReturn）|
+| general-knowledge | ~0.5s | 直接 LLM（earlyReturn）|
+| simple | ~1.1s | 向量搜尋 + BM25（跳過 HyDE/Multi-Query）|
+| hybrid | ~1.5s | SQL 撈候選 + 向量 rerank |
+| complex（baseline）| ~2–2.5s | HyDE + Multi-Query + 全路徑 |
+| complex（plan-execute）| ~2–4s | 規劃 + 拓撲執行（可並行）+ 合成 |
+| complex（agentic）| ~3–5s | ReAct 多輪決策迴圈 |
+| multi-tool | ~2–4s | 多工具子步驟 + 合成 |
 
-**設計原則：** 只對 `complex` 查詢啟用昂貴的功能，`simple` 和 `general-knowledge` 快速回傳。
+**設計原則：** Pipeline step 的 `skipWhen` 條件自動控制每種路徑需要的功能子集。
 
 ### 5.2 精確快取 vs. 個人化
 
@@ -522,14 +607,22 @@ Metadata 存在向量的 metadata 欄位，支援以下 filter：
 
 ## 六、值得主動提到的亮點
 
-1. **全程 Cloudflare 原生**：Workers + D1 + Vectorize + KV + R2，零基礎設施管理
-2. **Judge 與生成模型分離**：Llama 評估 Gemma，避免同模型自評盲點
-3. **Judge-Guided Self-Reflection**：比較兩次 groundedness 再決定是否替換，避免退化
-4. **Contextual RAG 兩階段設計**：非阻塞背景更新，不影響索引速度
-5. **四路並行搜尋 + RRF**：query vec + HyDE vec + N 路子查詢 + BM25，業界最佳實踐
-6. **完整 observability**：每次查詢都記錄延遲分段、groundedness、quality、分段 token 消耗（token_breakdown）
-7. **Agentic Multi-Step RAG**：LLM 作為決策者控制多輪搜尋迴圈（ReAct 模式），解決多跳推理問題
-8. **雙重配額 + Token 校正**：原子 SQL 同時檢查次數和 token 上限，LLM 完成後用實際 usage 校正估算差額
+1. **模組化 Pipeline 架構**：14 個 PipelineStep 動態組裝，每步可獨立開關/排序/超時，Admin UI 即時調整不需部署，新 step 只需實作 `PipelineStep` 介面即可插入
+2. **全程 Cloudflare 原生**：Workers + D1 + Vectorize + KV + R2，零基礎設施管理
+3. **七種查詢路徑分流**：general-knowledge / simple / complex / sql / hybrid / multi-tool / clarification-needed，依意圖自動選擇最佳策略
+4. **四種 RAG 策略**：baseline / agentic（ReAct 6 動作）/ plan-execute（規劃→執行→合成）/ auto（LLM 動態選策略），在 hybrid-search step 內切換
+5. **Judge 與生成模型分離**：Llama 評估 Gemma，避免同模型自評盲點
+6. **Judge-Guided Self-Reflection + loopBack**：比較兩次 groundedness 決定替換；低 groundedness 時回跳 retrieval phase 重新搜尋
+7. **Text-to-SQL 結構化查詢**：統計/計算/篩選問題直接執行 SQL 模板，毫秒級回應，不浪費向量搜尋資源
+8. **Contextual RAG 兩階段設計**：非阻塞背景更新，不影響索引速度
+9. **四路並行搜尋 + RRF**：query vec + HyDE vec + N 路子查詢 + BM25，業界最佳實踐
+10. **完整 observability**：每次查詢都記錄延遲分段、groundedness、quality、分段 token 消耗（token_breakdown）、pipeline 每步執行追蹤
+11. **Agentic Multi-Step RAG**：LLM 作為決策者控制多輪搜尋迴圈（ReAct 模式），支援 SWITCH_TOOL / DECOMPOSE / VERIFY 等 6 種動作
+12. **Plan-Execute RAG**：LLM 產出多步計畫 → 依賴拓撲並行/序列執行 → 合成，含 Adaptive Plan 動態重規劃
+13. **Circuit Breaker 熔斷保護**：KV 三態狀態機（closed→open→half-open），embedding/LLM 連續失敗時熔斷返回 503，自動恢復
+14. **Per-step Timeout + Graceful Degradation**：每步獨立超時設定，超時後降級（如 HyDE 超時→跳過）而非整體失敗
+15. **雙重配額 + Token 校正**：原子 SQL 同時檢查次數和 token 上限，LLM 完成後用實際 usage 校正估算差額
+16. **Multi-Tool 複合查詢**：自動識別複合意圖拆分成多個子工具，各自搜尋後合成統一回答
 
 ---
 
@@ -545,6 +638,7 @@ Metadata 存在向量的 metadata 欄位，支援以下 filter：
 | CRAG（Corrective RAG） | Yan et al., 2024 — [*Corrective Retrieval Augmented Generation*](https://arxiv.org/abs/2401.15884) |
 | Self-RAG | Asai et al., 2024 (ICLR) — [arXiv](https://arxiv.org/abs/2310.11511) |
 | Agentic RAG / ReAct | Yao et al., 2022 — [*ReAct: Synergizing Reasoning and Acting*](https://arxiv.org/abs/2210.03629) |
+| Plan-and-Solve | Wang et al., 2023 — [*Plan-and-Solve Prompting*](https://arxiv.org/abs/2305.04091) |
 
 ---
 
@@ -554,15 +648,17 @@ Metadata 存在向量的 metadata 欄位，支援以下 filter：
 
 ---
 
-**「我在 NobodyClimb 這個攀岩社群平台上，從零開始設計並實作了一套 RAG 問答系統，讓使用者可以用中文自然語言查詢路線資訊，比如問『龍洞有沒有適合初學者的 5.10 路線？』然後直接拿到精確的推薦結果和來源連結。**
+**「我在 NobodyClimb 這個攀岩社群平台上，從零開始設計並實作了一套模組化 RAG 問答系統，讓使用者可以用中文自然語言查詢路線資訊，比如問『龍洞有沒有適合初學者的 5.10 路線？』然後直接拿到精確的推薦結果和來源連結。**
 
 **整個系統跑在 Cloudflare Workers 上，完全 Serverless，向量搜尋用 Cloudflare Vectorize，資料庫是 D1（SQLite），生成模型用 Gemma-3-12b。**
 
-**最核心的設計是把查詢分成三種路徑：通識問題直接讓 LLM 回答，不走向量搜尋；簡單查詢走輕量 Pipeline；複雜查詢才觸發 HyDE、Multi-Query Expansion 這些昂貴的強化技術。這樣讓延遲從一律 2-3 秒優化到簡單查詢只需約 1 秒。**
+**架構上我設計了一套模組化 Pipeline 引擎，把 RAG 流程拆成 14 個獨立的 step，分布在 5 個 phase（pre-retrieval、retrieval、post-retrieval、generation、evaluation）。每個 step 可以獨立開關和排序，而且有各自的超時設定，超時會自動降級而不是整體失敗。管理員在後台 UI 就能即時調整，不需要重新部署。**
 
-**品質保證方面，我用了獨立的 Llama 模型當 Judge 評估 Gemma 的輸出，避免同模型自評的盲點。如果品質分數低於門檻，就觸發重生成，再比較兩次的 groundedness 分數取較高者，防止替換後反而退化。**
+**查詢根據意圖分成七種路徑，而且支援四種 RAG 策略。除了基礎的向量搜尋路徑，還有 Agentic 模式讓 LLM 用 ReAct 六種動作主動控制搜尋迴圈，以及 Plan-Execute 模式讓 LLM 先規劃多步搜尋計畫再並行執行。還有 Auto 模式讓 LLM 動態選擇最適合的策略。統計類問題走 Text-to-SQL 毫秒級回應，複合查詢則自動拆分成多個子工具各自搜尋再合成。**
 
-**目前系統全部功能已上線，包含 Agentic Multi-Step RAG 進階模式——讓 LLM 作為決策者主動決定是否需要再次搜尋，透過 ReAct 模式多輪迴圈解決多跳推理問題。」**
+**品質保證方面，我用了獨立的 Llama 模型當 Judge 評估 Gemma 的輸出，避免同模型自評的盲點。如果品質分數低於門檻，就觸發重生成，再比較兩次的 groundedness 分數取較高者。更進一步，如果 groundedness 極低，系統會自動 loopBack 回跳到 retrieval phase 重新搜尋。**
+
+**系統穩定性方面，我實作了 Circuit Breaker 熔斷保護——embedding 或 LLM 連續失敗超過門檻會自動熔斷返回 503，避免雪崩效應，冷卻後自動恢復。加上 per-step timeout 的 graceful degradation，確保系統即使在部分元件異常時仍能提供降級服務。」**
 
 ---
 
@@ -571,9 +667,12 @@ Metadata 存在向量的 metadata 欄位，支援以下 filter：
 | 如果對方追問... | 補充說明 |
 |--------------|---------|
 | 為什麼用 Cloudflare？ | 原生整合（Vectorize/D1/KV），零基礎設施管理，Edge 低延遲 |
+| 模組化架構怎麼設計的？ | 14 個 PipelineStep，engine 依 phase 順序執行，step 透過 PipelineContext 共享狀態，per-step timeout + graceful degradation |
+| 四種策略怎麼分？ | baseline（大部分查詢）、agentic（探索性多跳）、plan-execute（結構化多步）、auto（LLM 動態選），見 12.1 節 |
+| Circuit Breaker 怎麼做的？ | KV 三態狀態機，embedding/LLM 連續失敗 → 熔斷 503 → 冷卻後 half-open 試探 → 成功恢復，見二十二節 |
 | 和 LangChain 比呢？ | 見第九節 |
 | 遇到什麼最難的問題？ | 見第十節 STAR 故事 |
-| 怎麼評估品質？ | groundedness + quality score + latency，見第三節 |
+| 怎麼評估品質？ | groundedness + quality score + latency + pipeline 每步追蹤，見第三節 |
 
 ---
 
@@ -589,10 +688,13 @@ Metadata 存在向量的 metadata 欄位，支援以下 filter：
 - 每個元件都是黑盒，出問題難以 debug
 - Bundle size 過大，Workers 有 1MB 限制
 
-**選擇自研的原因：**
-- 可以精確控制每個步驟（並行時機、fallback 策略）
+**選擇自研模組化 Pipeline 的原因：**
+- 設計了 `PipelineStep` 介面 + `PipelineEngine` 引擎，14 個 step 動態組裝
+- 每個 step 宣告 `requires` / `provides` / `skipWhen`，engine 自動判斷執行邏輯
+- 可以精確控制每個步驟（並行時機、fallback 策略、earlyReturn 路徑）
 - 完整掌握 prompt，不依賴框架預設
 - 容易針對攀岩領域特化（`extractGradeFilter`、`extractLocationFilter` 都是領域專屬邏輯）
+- Admin UI 可即時開關/排序 step，不需重新部署
 
 **什麼時候用 LangChain？**
 - 快速驗證原型時，框架加速開發
@@ -610,11 +712,18 @@ Metadata 存在向量的 metadata 欄位，支援以下 filter：
 1. **Workers AI 速率限制**：Contextual RAG 批次 LLM 呼叫（`CONTEXT_GENERATION_BATCH_SIZE = 5`）被此限制，大量索引時是瓶頸
 2. **D1 寫入延遲**：每次索引需要逐筆寫入 D1（SQLite 不支援真正的批次 upsert）
 3. **Judge 增加延遲**：非串流模式下 Judge 是同步的，增加約 500ms–1s
+4. **KV Circuit Breaker 最終一致性**：高並發下 failureCount 可能低估（KV eventually-consistent），但對攀岩社群規模可接受
+
+**已有的韌性設計：**
+- Circuit Breaker 保護 Workers AI 持續故障時不雪崩
+- Per-step Timeout + Graceful Degradation 確保部分故障不影響整體
+- Phase 間記憶體清理降低 Workers 記憶體壓力
 
 **如果規模更大的設計：**
 - 索引改為非同步 Queue（Cloudflare Queues）
 - Judge 改為純異步（只記錄日誌，不影響回應）
 - 引入更強的 Embedding 服務（如 Voyage AI）
+- Circuit Breaker 改用 Durable Objects 取代 KV（強一致性）
 
 ---
 
@@ -647,6 +756,10 @@ Metadata 存在向量的 metadata 欄位，支援以下 filter：
 **改動 3：Semantic Cache 閾值驗證**
 - 0.95 是直覺設定，實際上沒有 A/B 測試驗證
 - 理想上應該先跑一批查詢，分析相似度分佈後再定閾值
+
+**改動 4：RAG 評估框架更早導入**
+- 目前已規劃 Golden Test Set（200+ 筆）+ Red Team Test Set（~40 筆）的自動化評估
+- 如果重來，會在第一個 pipeline step 完成時就建立 baseline metrics，而非功能全做完才回頭評估
 
 ---
 
@@ -703,6 +816,9 @@ Metadata 存在向量的 metadata 欄位，支援以下 filter：
 | `mmr_lambda` | 0.6 | 0–1 | 0=完全多樣, 1=完全相關；0.6 略偏相關 |
 | `reranker_weight` | 0.7 | 0–1 | 與 popularity_weight 自動歸一化 |
 | `popularity_weight` | 0.3 | 0–1 | 影片數越多的路線排越前面 |
+| `reranker_relevance_threshold` | 0.3 | 0–1 | Cross-encoder 最低相關分數，低於此值直接過濾 |
+| `reranker_min_keep` | 2 | 1–20 | Cross-encoder 過濾後至少保留幾筆（防全部被過濾）|
+| `tool_confidence_threshold` | 0.7 | 0–1 | Tool Selection 信心度門檻，低於此值降級處理 |
 | `groundedness_disclaimer_low` | 0.6 | 0–1 | 低於此值顯示 ❓ 免責聲明 |
 | `groundedness_disclaimer_mid` | 0.8 | 0–1 | 低於此值顯示 ⚠️ 免責聲明 |
 | `judge_regen_quality_max` | 2 | 1–3 | quality ≤ 此值觸發重生成（1–4 量表）|
@@ -711,6 +827,22 @@ Metadata 存在向量的 metadata 欄位，支援以下 filter：
 | `multi_query_count` | 3 | 1–5 | 子查詢數量，每加 1 個約增加 0.3s 延遲 |
 | `max_tokens_generation` | 800 | 200–2000 | 生成回答的 token 上限 |
 | `chat_history_depth` | 6 | 2–20 | 帶入 LLM 的對話歷史則數 |
+| `max_pipeline_loops` | 2 | 1–3 | Pipeline loopBack 回跳上限，防止無限迴圈 |
+| `agentic_max_steps` | 3 | 1–5 | Agentic RAG 最大決策輪數 |
+| `agentic_min_docs_to_answer` | 3 | 1–10 | Agentic 模式下建議 ANSWER 前的最低文件數 |
+| `plan_execute_max_steps` | 4 | 2–6 | Plan-Execute 最大子步驟數 |
+| `adaptive_plan_enabled` | true | bool | Plan-Execute 零結果時是否自動重規劃 |
+| `planning_timeout_ms` | 5000 | 3000–10000 | Plan-Execute 規劃階段超時 |
+| `synthesis_timeout_ms` | 8000 | 5000–15000 | Plan-Execute 合成階段超時 |
+| `plan_step_timeout_ms` | 6000 | 3000–10000 | Plan-Execute 單步執行超時 |
+| `pipeline_timeout_ms` | 20000 | 10000–25000 | 整體 pipeline 超時（備用安全閥）|
+| `embedding_timeout_ms` | 3000 | 1000–10000 | Embedding step 超時 |
+| `search_timeout_ms` | 4000 | 1000–10000 | Hybrid Search step 超時 |
+| `generation_timeout_ms` | 12000 | 5000–20000 | LLM Generation step 超時 |
+| `hyde_timeout_ms` | 5000 | 2000–10000 | HyDE step 超時 |
+| `multi_query_timeout_ms` | 5000 | 2000–10000 | Multi-Query step 超時 |
+| `circuit_breaker_threshold` | 5 | 1–20 | 連續失敗幾次觸發熔斷 |
+| `circuit_breaker_reset_ms` | 30000 | 5000–120000 | 熔斷後多久進入 half-open 試探 |
 
 ### 調整策略
 
@@ -734,46 +866,126 @@ Metadata 存在向量的 metadata 欄位，支援以下 filter：
 
 ## 十二、2026 面試熱門話題
 
-### 12.1 Agentic RAG（已實作，`rag_strategy = 'agentic'`）
+### 12.1 四種 RAG 策略（已實作）
 
-**傳統 RAG vs. Agentic RAG：**
+**策略比較：**
 
-| 面向 | 傳統 RAG（本系統 Baseline）| Agentic RAG（已實作）|
-|------|--------------------------|-------------------|
-| 檢索決策 | 固定流程，一次決定 | LLM 主動決定是否繼續搜尋 |
-| 多跳推理 | 不支援 | 支援（每輪搜尋基於前輪結果）|
-| 延遲 | ~1–2.5s | ~3–5s |
-| Token 成本 | baseline | +60% |
-| 適合場景 | 大部分查詢 | 複雜多跳問題 |
+| 面向 | Baseline | Agentic | Plan-Execute | Auto |
+|------|----------|---------|-------------|------|
+| 檢索決策 | 固定流程，一次決定 | LLM 逐步決策（ReAct） | LLM 先規劃再執行 | Tool Selection 動態選 |
+| 多跳推理 | 不支援 | 支援（每輪基於前輪結果） | 支援（子步驟依賴）| 依選中策略 |
+| 並行執行 | 不適用 | 否（逐步迴圈）| 支援（拓撲排序）| 依選中策略 |
+| 延遲 | ~1–2.5s | ~3–5s | ~2–4s | 動態 |
+| Token 成本 | baseline | +60% | +40%（可並行省時）| 動態 |
+| 適合場景 | 大部分查詢 | 探索性多跳問題 | 結構化多步問題 | 混合場景 |
 
-**本系統的 Agentic 設計（ReAct 模式）：**
+---
+
+#### Agentic RAG（`rag_strategy = 'agentic'`，ReAct 模式）
+
+在 `hybrid-search` step 內實作，LLM 作為決策者控制多輪搜尋迴圈。
+
+**六種動作（`decideNextAction()` 輸出）：**
 
 ```
-LLM 決策迴圈（最多 3 輪）：
+LLM 決策迴圈（最多 agentic_max_steps 輪，預設 3）：
   收集 evidence
      ↓
-  LLM 選擇行動：
-    ANSWER  → 資訊足夠，直接生成回答
-    RETRIEVE → 補充搜尋（指定改寫後的查詢）
-    BROADEN  → 搜尋結果不足，放寬條件重試
+  LLM 選擇行動（6 種）：
+    ANSWER      → 資訊足夠，直接生成回答
+    RETRIEVE    → 補充搜尋（指定改寫後的查詢 + retrievalMethod: vector/bm25/hybrid）
+    BROADEN     → 搜尋結果不足，放寬條件重試
+    SWITCH_TOOL → 切換搜尋工具（如從 search_routes 換到 search_crags，只觸發一次）
+    DECOMPOSE   → 拆分成最多 3 個子查詢並行搜尋（只觸發一次）
+    VERIFY      → 用 verifyQuery 做驗證搜尋，不帶 filter（只觸發一次）
      ↓
-  更新 evidence
+  更新 evidence + deduplicateSources()
      ↓ （loop）
 ```
 
-**何時走 Agentic，何時走 Baseline：**
+**動作一次性保護（防止無限迴圈）：**
 ```typescript
-const strategy = config.rag_strategy ?? 'baseline';
-if (strategy === 'agentic' && queryType === 'complex') {
-  return await this.agenticRetrieve(query, env, config);
+// SWITCH_TOOL、DECOMPOSE、VERIFY 各有 guard flag，整個 session 只觸發一次
+if (action.type === 'SWITCH_TOOL' && !switchToolUsed) {
+  switchToolUsed = true;
+  // 切換 vectorFilter.type，調用目標工具搜尋
 }
-// simple 查詢即使設定 agentic 也自動走 Baseline（成本保護）
+```
+
+**Multi-crag 感知：** 當 vectorFilter 有 `crag_id.$in` 含多個岩場時，`MERGE_TOP_K` 自動加倍：`max(20, cfg.merge_top_k * 2)`。
+
+---
+
+#### Plan-Execute RAG（`rag_strategy = 'plan-execute'`）
+
+在 `hybrid-search` step 內實作，LLM 先產出結構化計畫再執行。
+
+```
+1. planQuery()：LLM 產出 ExecutionPlan
+   └─ 每步 PlanStep：{ id, query, tool, filters, depends_on }
+   └─ execution_mode：parallel / sequential / mixed
+   └─ 上限：plan_execute_max_steps（預設 4）
+
+2. executePlan()：依 depends_on 拓撲排序
+   └─ 無依賴的步驟 → Promise.all 並行
+   └─ 有依賴的步驟 → 序列等待
+   └─ Adaptive Plan：某步零結果 → 用 lightweight_model 重新規劃替代步驟（只觸發一次）
+
+3. synthesize()：LLM 將所有子任務結果合成統一回答
+   └─ LLM 失敗 → fallback 簡單拼接
+```
+
+**Plan-Execute 獨有的超時計算：**
+```typescript
+// hybrid-search step 的 timeout 動態計算
+timeout = planning_timeout_ms + synthesis_timeout_ms + plan_execute_max_steps * plan_step_timeout_ms
+```
+
+---
+
+#### Multi-Tool 查詢（Tool Selection 識別 `multi_tool`）
+
+```
+Tool Selection 偵測複合查詢信號詞（同時、另外、順便、以及）
+  → 輸出 multi_tool.steps[]（最多 3 個子工具步驟）
+  → hybrid-search step 轉換為 ExecutionPlan 格式
+  → 調用 executePlan() + synthesize() 合成
+```
+
+---
+
+#### Auto 策略（`rag_strategy = 'auto'`）
+
+```typescript
+// Tool Selection 的 strategy_hint 動態決定策略
+const strategy = config.rag_strategy === 'auto'
+  ? (ctx?.strategyHint ?? 'baseline')  // 用 LLM 建議的策略
+  : config.rag_strategy;               // 用固定策略
+```
+
+---
+
+**何時走哪條策略（在 hybrid-search step 內判斷）：**
+```typescript
+// steps/hybrid-search.ts
+if (strategy === 'plan-execute' && ctx.queryType === 'complex') {
+  // Plan-Execute：先規劃再執行
+} else if (ctx.queryType === 'multi-tool' && ctx.multiToolPlan) {
+  // Multi-Tool：轉換 plan 後用 executePlan + synthesize
+} else if (strategy === 'agentic' && ctx.queryType === 'complex') {
+  // Agentic：ReAct 6 動作多輪迴圈
+} else {
+  // Baseline：標準多路搜尋 + RRF
+}
+// simple 查詢即使設定 agentic/plan-execute 也自動走 Baseline（成本保護）
 ```
 
 **關鍵工程挑戰：**
 - **Stopping Condition**：「已有 3 份相關文件時優先 ANSWER」防止無限迴圈
 - **去重**：多輪搜尋可能找到重複文件，需要 `deduplicateSources()`
-- **日誌結構**：需記錄多輪步驟，`pipeline_trace` 需要擴充
+- **一次性保護**：SWITCH_TOOL / DECOMPOSE / VERIFY 各只觸發一次
+- **Adaptive Plan**：Plan-Execute 某步零結果時的動態重規劃
+- **日誌結構**：需記錄多輪步驟 / 子計畫 / 合成過程，`pipeline_trace` 需要擴充
 
 ---
 
@@ -849,6 +1061,7 @@ Sources:
 | CRAG | [arXiv:2401.15884](https://arxiv.org/abs/2401.15884) |
 | Self-RAG | [arXiv:2310.11511](https://arxiv.org/abs/2310.11511) |
 | ReAct | [arXiv:2210.03629](https://arxiv.org/abs/2210.03629) |
+| Plan-and-Solve | [arXiv:2305.04091](https://arxiv.org/abs/2305.04091) |
 | Adaptive RAG | [arXiv:2403.14403](https://arxiv.org/abs/2403.14403) |
 | Graph RAG | [arXiv:2404.16130](https://arxiv.org/abs/2404.16130)、[GitHub](https://github.com/microsoft/graphrag) |
 | Late Chunking | [arXiv:2409.04701](https://arxiv.org/abs/2409.04701) |
@@ -1058,27 +1271,30 @@ Layer 3：CRAG 動態放寬（無結果時）
 **主要優化手段：**
 
 ```
-1. 並行化（最有效）
-   Promise.all([
-     loadPipelineConfig,    // DB 讀設定
-     embedQuery,            // 提前計算 embedding
-     HyDE,                  // 生成假設文件
-     multiQueryExpansion,   // 展開子查詢
-   ])
+1. Pipeline skipWhen 自動跳過（最有效）
+   每個 step 宣告 skipWhen 條件，engine 自動判斷
+   simple → 跳過 HyDE + Multi-Query（節省 ~1s）
+   sql/GK → 跳過整個 retrieval + post-retrieval（8 個 step）
 
-2. 快取（零延遲）
+2. earlyReturn 提前中斷
+   semantic-cache、text-to-sql、GK 路徑可直接回傳
+   不執行後續 step，零浪費
+
+3. 快取（零延遲）
    精確快取（KV hash）→ < 10ms
-   語義快取（向量相似）→ < 50ms
+   語義快取（向量相似）→ < 50ms（semantic-cache step）
    正常查詢 → ~1–2.5s
 
-3. 分流（避免浪費）
-   general-knowledge → 跳過向量搜尋（節省 ~0.5s）
-   simple → 跳過 HyDE + Multi-Query（節省 ~1s）
-   complex → 全路徑
+4. 並行化
+   Pipeline 啟動前：loadPipelineConfig + earlyQueryVector + loadPrompts 並行
+   embedding step 內：query + HyDE + expanded 向量並行計算
+   hybrid-search step 內：多路 Vectorize + BM25 並行搜尋
 
-4. 提前 embed（匿名查詢）
-   earlyQueryVector = 與 loadPipelineConfig 並行計算
-   後續 Stage 3 直接復用，不重複 embed
+5. 分流（六種路徑）
+   sql → Text-to-SQL 直查（~0.1s earlyReturn）
+   general-knowledge → 直接 LLM（~0.5s earlyReturn）
+   simple → 輕量搜尋（~1.1s）
+   complex → 完整 pipeline（~2–2.5s）
 ```
 
 ---
@@ -1174,11 +1390,12 @@ answer = checkOutput(answer);
   詳細追蹤：pipeline_trace（JSON，含每個 stage 的中間結果）
 ```
 
-**pipeline_trace 包含：**
+**pipeline_trace 包含（由各 pipeline step 各自寫入 ctx.trace）：**
 ```json
 {
-  "query_parsing": { "tool": "search_routes", "query_type": "complex" },
-  "filter": { "applied": { "crag_id": {"$eq": "xxx"} }, "source": "llm_parsed" },
+  "pipeline_steps": ["semantic-cache", "tool-selection", "hyde", "multi-query", "filter-build", "embedding", "hybrid-search", "cross-encoder", "mmr", "popularity-rerank", "llm-generation", "judge", "self-reflection"],
+  "query_parsing": { "tool": "search_routes", "query_type": "complex", "alternatives": ["search_routes", "search_crags", "general_knowledge", "search_sql", "hybrid"] },
+  "filter": { "applied": { "crag_id": {"$eq": "xxx"} }, "source": "llm_parsed", "history_supplemented": false },
   "embedding": { "early_vector_reused": true, "hyde_embedded": true, "expanded_count": 3 },
   "retrieval": { "paths": ["query_vec", "hyde_vec", "bm25", "expanded_0", "expanded_1", "expanded_2"], "crag_fallback": false },
   "generation": { "context_doc_count": 5, "regen_triggered": false },
@@ -1215,13 +1432,13 @@ LLM 生成的連結可能是幻覺 URL，用後處理注入確保連結都是真
 
 ---
 
-### Q-A6：如何讓 Agentic RAG 的迴圈安全且可控？
+### Q-A6：如何讓 Agentic / Plan-Execute RAG 的迴圈安全且可控？
 
-**三個關鍵安全機制：**
+**五個關鍵安全機制：**
 
 ```typescript
 // 1. 最大步數限制（硬性上限，防無限迴圈）
-const MAX_STEPS = 3;
+const MAX_STEPS = agentic_max_steps; // 預設 3
 for (let step = 0; step < MAX_STEPS; step++) {
   const action = await decideNextAction(query, evidence);
   if (action.type === 'ANSWER') break;  // 提前終止
@@ -1229,17 +1446,30 @@ for (let step = 0; step < MAX_STEPS; step++) {
 }
 
 // 2. 文件數量 Stopping Condition（軟性上限）
-// Prompt 中明確：「已有超過 3 份相關文件時，優先選 ANSWER」
+// Prompt 中明確：「已有超過 agentic_min_docs_to_answer 份相關文件時，優先選 ANSWER」
 
 // 3. 去重機制（避免重複搜尋同樣文件浪費 token）
 allSources = deduplicateSources([...allSources, ...newDocs]);
+
+// 4. 一次性動作保護（SWITCH_TOOL / DECOMPOSE / VERIFY 各只觸發一次）
+if (action.type === 'SWITCH_TOOL' && !switchToolUsed) {
+  switchToolUsed = true; // 整個 session 只用一次
+}
+
+// 5. Plan-Execute：Adaptive Plan 只觸發一次
+if (stepResults.length === 0 && cfg.adaptive_plan_enabled && !adaptiveReplanFlag) {
+  adaptiveReplanFlag = true; // 防止無限重規劃
+  const replacement = await adaptiveReplan(failedStep, cfg.lightweight_model);
+}
 ```
 
 **成本保護：**
 ```typescript
-// simple 查詢即使設定 agentic 也自動走 Baseline
-if (strategy === 'agentic' && queryType === 'complex') {
-  return await this.agenticRetrieve(query, env, config);
+// simple 查詢即使設定 agentic/plan-execute 也自動走 Baseline
+if ((strategy === 'agentic' || strategy === 'plan-execute') && queryType === 'complex') {
+  // 使用進階策略
+} else {
+  // 強制 Baseline
 }
 ```
 
@@ -1317,15 +1547,16 @@ Cross-encoder（Reranker Score）：
 
 ---
 
-### Self-RAG vs CRAG vs Agentic RAG
+### Self-RAG vs CRAG vs Agentic RAG vs Plan-Execute RAG
 
 | 技術 | 核心想法 | 本系統對應 |
 |------|---------|---------|
-| **Self-RAG** | LLM 評估自己的輸出是否需要搜尋、是否支持 | Judge-Guided 重生成 |
-| **CRAG** | 檢索失敗時動態放寬條件重試 | 兩階段放寬（grade→route_type）|
-| **Agentic RAG** | LLM 主動控制整個檢索迴圈 | 已實作（`rag_strategy = 'agentic'`，complex 查詢觸發）|
+| **Self-RAG** | LLM 評估自己的輸出是否需要搜尋、是否支持 | Judge-Guided 重生成 + loopBack 回跳 retrieval |
+| **CRAG** | 檢索失敗時動態放寬條件重試 | 兩階段放寬（grade→route_type），在 hybrid-search step 內 |
+| **Agentic RAG** | LLM 主動控制整個檢索迴圈（ReAct） | 已實作（`rag_strategy = 'agentic'`，6 種動作，complex 觸發）|
+| **Plan-Execute RAG** | LLM 先規劃多步計畫再執行 | 已實作（`rag_strategy = 'plan-execute'`，拓撲並行 + 合成）|
 
-三者不互斥，本系統 Baseline 同時具備 Self-RAG 精神（Judge 評估）+ CRAG（放寬重試），Agentic RAG 是未來的獨立模式。
+四者不互斥，本系統 Baseline 同時具備 Self-RAG 精神（Judge 評估 + loopBack）+ CRAG（放寬重試），Agentic 和 Plan-Execute 是進階模式。Auto 模式讓 LLM 動態選擇最適合的策略。所有功能都是模組化 pipeline step，可獨立開關。
 
 ---
 
@@ -1536,29 +1767,37 @@ CRAG 觸發後：徹底放寬（寧可低精準也要有結果）
 - **Single-step RAG**：標準一次檢索
 - **Iterative RAG**：多輪檢索直到答案夠好
 
-**本系統就是 Adaptive RAG 的實作：**
+**本系統就是 Adaptive RAG 的實作（7 種路徑 × 4 種策略）：**
 
 ```
-general-knowledge → No retrieval（直接 LLM）
-simple           → Single-step RAG（輕量搜尋）
-complex          → Enhanced RAG（HyDE + Multi-Query + Judge 重生成）
-agentic          → Iterative RAG（多輪 ReAct，已實作）
+general-knowledge    → No retrieval（直接 LLM，earlyReturn）
+sql                  → No retrieval（SQL 模板查詢，earlyReturn）
+clarification-needed → No retrieval（追問確認，earlyReturn）
+simple               → Single-step RAG（輕量搜尋，強制 baseline）
+hybrid               → SQL + Vector rerank
+multi-tool           → 複合查詢拆分 → 多工具並行 → 合成
+complex + baseline   → Enhanced RAG（HyDE + Multi-Query + Judge 重生成）
+complex + agentic    → Iterative RAG（ReAct 6 動作多輪迴圈）
+complex + plan-exec  → Plan-Execute RAG（規劃 → 拓撲執行 → 合成）
+complex + auto       → Tool Selection 的 strategy_hint 動態選擇上述三者之一
 ```
 
-LLM Tool Calling 的 Adaptive Routing 就是 Adaptive RAG 的核心機制——由 LLM 本身判斷需要什麼級別的檢索。
+LLM Tool Calling 的 Adaptive Routing 就是 Adaptive RAG 的核心機制——由 LLM 本身判斷需要什麼級別的檢索和策略。模組化 Pipeline 的 `skipWhen` 機制讓每種路徑自動跳過不需要的 step，`strategy_hint` 讓 LLM 進一步選擇最適合的策略。
 
 ---
 
 ### Q-DC12：如何確保 RAG 系統在生產環境中的穩健性（Robustness）？
 
-**四個維度：**
+**六個維度：**
 
 | 維度 | 本系統的做法 |
 |------|------------|
 | **Redundancy（備援）** | Graceful degradation：BM25/HyDE/Judge 任一失敗不影響核心流程 |
 | **Error handling** | 每個 try-catch 都靜默降級，錯誤記錄到 console，不 crash 主流程 |
+| **Circuit Breaker（熔斷）** | KV 三態狀態機（closed→open→half-open），embedding/LLM 連續失敗 N 次 → 503 熔斷，冷卻後自動恢復 |
+| **Per-step Timeout** | 每個 pipeline step 獨立超時設定，超時觸發降級（如 HyDE 超時→跳過、embedding 超時→BM25-only）而非整體失敗 |
 | **Input validation** | Input Guardrails（`checkInput()`）過濾有害輸入 |
-| **Monitoring** | `ai_query_logs` 完整記錄，`flagged` 欄位標記異常查詢 |
+| **Monitoring** | `ai_query_logs` 完整記錄，`pipeline_execution` 每步追蹤，`flagged` 欄位標記異常，`degraded_stages` 記錄降級 |
 
 **Quota 系統的健壯性設計：**
 ```sql
@@ -1852,10 +2091,14 @@ quality: 3
 | HyDE 生成 | Gemma-3-12b | 假設文件要高品質才有效 |
 | Multi-Query 展開 | Gemma-3-12b | 改寫子查詢需要理解原意 |
 | 最終回答生成 | Gemma-3-12b | 最重要的輸出，用最強模型 |
+| Plan-Execute 規劃 | Gemma-3-12b | 計畫品質直接影響搜尋結果 |
+| Plan-Execute 合成 | Gemma-3-12b | 多源結果合成需要語言理解 |
+| Agentic 決策 | Gemma-3-12b | 每輪決策需要理解 evidence |
 | Judge 評估 | Llama-3.1-8b | 輕量獨立，速度優先 |
 | Contextual RAG 摘要 | Llama-3.1-8b | 背景任務，成本優先 |
 | Memory 萃取 | Llama-3.1-8b | 背景任務，結構化輸出即可 |
 | General Knowledge | Llama-3.1-8b | 通識問題不需要最強模型 |
+| Adaptive Plan 重規劃 | Llama-3.1-8b | 替代步驟生成，輕量即可 |
 
 ---
 
@@ -2019,3 +2262,189 @@ if (result.length > MAX_OUTPUT_LENGTH) {
 
 **Q：PII 過濾只有 Email 和電話，夠嗎？**
 對攀岩路線查詢的使用場景是足夠的。LLM 不太可能在攀岩問答中生成身分證字號或信用卡號。如果未來有更敏感的使用場景，可以擴充 `PII_PATTERNS` 陣列，不需要改架構。
+
+---
+
+## 二十二、Circuit Breaker 熔斷保護
+
+> 對應程式碼：`backend/src/utils/circuit-breaker.ts`
+
+---
+
+### 22.1 設計理念
+
+當 Cloudflare Workers AI（Embedding 或 LLM）持續故障時，繼續發送請求只會增加延遲和失敗，且可能觸發速率限制。Circuit Breaker 在偵測到連續失敗後自動「熔斷」，直接返回 503，保護下游服務和用戶體驗。
+
+---
+
+### 22.2 三態狀態機
+
+```
+                  連續失敗 >= threshold
+Closed（正常）─────────────────────→ Open（熔斷）
+     ↑                                    │
+     │ probe 成功                         │ 冷卻時間到
+     │                                    ↓
+     └──────────── Half-Open（試探）←──────┘
+                   probe 失敗 → 回到 Open
+```
+
+**狀態儲存：** Cloudflare KV（key: `circuit:workers-ai`，TTL: 5 分鐘）
+
+| 狀態 | 行為 | 觸發條件 |
+|------|------|---------|
+| **Closed** | 正常放行，失敗時計數 +1 | 預設狀態 / probe 成功 |
+| **Open** | 直接拒絕（503），不呼叫 Workers AI | 連續失敗 >= `circuit_breaker_threshold`（預設 5）|
+| **Half-Open** | 放行一個探測請求 | 冷卻 `circuit_breaker_reset_ms`（預設 30s）後 |
+
+```typescript
+// 進入 pipeline 前檢查
+const cbState = await circuitBreaker.getState();
+if (cbState.action === 'reject') {
+  return { error: 'AI 服務暫時無法使用，請稍後再試', status: 503 };
+}
+
+// embedding/llm-generation step 失敗時記錄
+ctx.circuitBreaker.recordFailure();
+// → { transitioned: true, newState: 'open' } 表示剛觸發熔斷
+```
+
+**KV 最終一致性：** 高並發下 `failureCount` 可能低估，這是刻意接受的（best-effort），因為 KV 的 eventually-consistent 特性。
+
+---
+
+### 22.3 面試常見追問
+
+**Q：為什麼不用 in-memory Circuit Breaker？**
+Cloudflare Workers 是 stateless 的，每個請求可能跑在不同 Worker instance。必須用 KV 持久化狀態才能跨 instance 共享熔斷狀態。
+
+**Q：Circuit Breaker 和 Per-step Timeout 的關係？**
+互補。Per-step Timeout 處理單次請求的超時降級，Circuit Breaker 處理持續性故障的全局保護。一個 step 超時不會觸發 Circuit Breaker，但如果 step 持續拋出錯誤（非超時），會累積到 Circuit Breaker 的失敗計數。
+
+---
+
+## 二十三、Per-step Timeout + Graceful Degradation
+
+> 對應程式碼：`backend/src/services/pipeline/engine.ts`
+
+---
+
+### 23.1 設計理念
+
+傳統 API 用一個全局 timeout，超時就整個請求失敗。本系統每個 pipeline step 有獨立的 timeout 設定，超時後該 step 降級（設定 fallback 值），後續 step 繼續執行。
+
+---
+
+### 23.2 每步降級策略
+
+| Step | 超時設定 | 降級行為 |
+|------|---------|---------|
+| `hyde` | `hyde_timeout_ms`（5s）| `ctx.hydeDoc = ''`，跳過 HyDE 向量搜尋路 |
+| `multi-query` | `multi_query_timeout_ms`（5s）| `ctx.expandedQueries = []`，跳過子查詢搜尋路 |
+| `embedding` | `embedding_timeout_ms`（3s）| `ctx.embeddingFailed = true`，改用 BM25-only 檢索 |
+| `hybrid-search` | `search_timeout_ms`（4s）| 保留已有結果（可能部分） |
+| `llm-generation` | `generation_timeout_ms`（12s）| 固定錯誤訊息：「回答生成超時，請縮短問題重試」 |
+| evaluation 整體 | — | 若 `llm-generation` 已降級，跳過整個 evaluation phase |
+
+```typescript
+// engine.ts: withTimeout 包裝每個 step
+const result = await withTimeout(
+  step.execute(ctx),
+  getStepTimeout(step.id, config),
+  `Step ${step.id} timeout`
+);
+
+// 超時時記錄到 ctx.degradedStages
+if (error instanceof TimeoutError) {
+  ctx.degradedStages.push(step.id);
+  applyFallback(step.id, ctx); // 設定降級值
+}
+```
+
+---
+
+### 23.3 Phase 間記憶體清理
+
+Pipeline Engine 在 phase 轉換時主動清理大型中間資料，避免 Workers 記憶體壓力：
+
+```
+Retrieval → Post-retrieval：釋放向量陣列（ctx.vectors）
+Post-retrieval → Generation：釋放候選陣列（ctx.candidates）
+Generation → Evaluation：釋放文件 Map（ctx.documentMap）
+```
+
+---
+
+### 23.4 Pipeline 執行追蹤
+
+每個 step 的執行狀態都記錄到 `ctx.trace.pipeline_execution`：
+
+```json
+{
+  "pipeline_execution": [
+    { "id": "semantic-cache", "phase": "pre-retrieval", "duration_ms": 12, "skipped": false },
+    { "id": "tool-selection", "phase": "pre-retrieval", "duration_ms": 856, "skipped": false },
+    { "id": "hyde", "phase": "pre-retrieval", "duration_ms": 5001, "skipped": false, "timeout": true },
+    { "id": "embedding", "phase": "retrieval", "duration_ms": 245, "skipped": false }
+  ],
+  "degraded": true,
+  "degraded_stages": ["hyde"]
+}
+```
+
+Admin 儀表板的 Log Detail 頁面可視化每步執行時間、超時標記和降級狀態。
+
+---
+
+## 二十四、Admin 管理後台
+
+> 對應程式碼：`apps/web/src/app/admin/ai/`
+
+---
+
+### 24.1 Settings 頁面（9 個 Tab）
+
+| Tab | 功能 | 關鍵設定 |
+|-----|------|---------|
+| 模型設定 | LLM 模型選擇 | llm_model, simple_model, lightweight_model, embedding_model |
+| 搜尋與排名 | 搜尋參數調整 | max_results, merge_top_k, RRF 閾值, MMR λ, reranker 權重 |
+| 品質與 Token | 品質門檻和 Token 限制 | max_tokens_generation, groundedness 門檻, judge 設定 |
+| 對話與快取 | 對話和快取參數 | chat_history_depth, cache_ttl, semantic_cache 設定 |
+| Agentic 模式 | RAG 策略選擇 | rag_strategy（baseline/agentic/plan-execute/auto）, agentic_max_steps |
+| 超時與熔斷 | Timeout 和 Circuit Breaker | 各 step timeout, circuit_breaker_threshold/reset_ms |
+| 防護設定 | Guardrails 配置 | prompt_injection_keywords, jailbreak_patterns, input_blocklist |
+| Pipeline Flow | 拖拉排序 Step | 啟用/停用每步, 拖拉排序, 依賴驗證（缺少依賴顯示紅色警告）|
+| 費用模擬 | 成本分析 | CRUD LLM 成本提供者（CF Gemma, OpenAI GPT-5, Gemini 3.x, Claude 4.x 等）|
+
+---
+
+### 24.2 Logs 頁面
+
+- **篩選**：搜尋（400ms debounce）、日期範圍、查詢類型（含 `pipeline_timeout` ⏱ 和 `circuit_breaker_rejected` ⚡）、回饋分數範圍
+- **匯出**：CSV 匯出（ID, user, query, type, cache hit, latency, groundedness, auto score, feedback, created_at）
+- **標記**：快取命中（Zap 圖示）、HyDE 觸發（Brain 圖示）、高消耗（橘色標記）
+
+### 24.3 Log Detail 頁面
+
+**三區塊結構化顯示**每個 pipeline stage（Input → Decision → Output）：
+
+```
+guardrails_input → cache → quota_check → query_parsing（Adaptive Routing）
+→ hyde → multi_query → agentic（含 6 動作步驟）→ filter → embedding
+→ retrieval → rrf_fusion → crag_fallback → reranking → multi_tool
+→ mmr_selection → generation → self_reflection → judge
+→ guardrails_output → memory_extraction
+```
+
+含 `token_breakdown` 每階段成本計算（使用 Settings > 費用模擬 的成本提供者）。
+
+### 24.4 Metrics 頁面
+
+- **時間範圍**：7d / 30d / 90d
+- **KPI 卡片**：總查詢數、平均延遲、平均 groundedness、快取命中率
+- **圖表**（自訂 SVG，無外部圖表庫）：
+  - 延遲趨勢：P50/P95 分段（embedding, retrieval, generation）
+  - 品質趨勢：avg groundedness / auto_score / feedback_score
+  - 快取效率：每日 hit_rate 面積圖
+  - 查詢類型分佈：堆疊長條圖（simple/complex/general-knowledge/guardrails_blocked）
+- **異常偵測**：紅點標記（`d.anomalies`）

@@ -3,6 +3,7 @@ import { QueryService } from './query';
 import { generateId } from '../utils/id';
 
 interface RecentAscent {
+  route_id: string;
   route_name: string;
   grade: string;
   crag_name: string;
@@ -13,6 +14,47 @@ export interface RecommendationPayload {
   sources: AISource[];
   query: string;
   context_ascents: RecentAscent[];
+}
+
+// YDS grade → numeric（5.11d → 113, 5.12a → 120）
+function gradeToNumeric(grade: string): number {
+  const match = grade.match(/5\.(\d+)([a-d])?/);
+  if (!match) return 0;
+  const base = parseInt(match[1], 10) * 10;
+  const suffix = match[2] ? 'abcd'.indexOf(match[2]) : 0;
+  return base + suffix;
+}
+
+// numeric → YDS grade string
+function numericToGrade(n: number): string {
+  const base = Math.floor(n / 10);
+  const suffix = 'abcd'[n % 10] ?? '';
+  return `5.${base}${suffix}`;
+}
+
+// 取得比當前難度高一級的目標範圍（min, max）
+// 例如 5.11d (113) → min 5.12a (120), max 5.12b (121)
+function incrementGrade(n: number): number {
+  const suffix = n % 10;
+  return suffix === 3 ? (Math.floor(n / 10) + 1) * 10 : n + 1;
+}
+
+// 從完攀紀錄取最高難度，計算推薦目標範圍
+export function getTargetGradeRange(ascents: RecentAscent[]): { maxGrade: string; targetMin: string; targetMax: string } | null {
+  const numerics = ascents
+    .map((a) => gradeToNumeric(a.grade))
+    .filter((n) => n > 0);
+  if (numerics.length === 0) return null;
+
+  const maxNumeric = Math.max(...numerics);
+  const targetMinNumeric = incrementGrade(maxNumeric);
+  const targetMaxNumeric = incrementGrade(targetMinNumeric);
+
+  return {
+    maxGrade: numericToGrade(maxNumeric),
+    targetMin: numericToGrade(targetMinNumeric),
+    targetMax: numericToGrade(targetMaxNumeric),
+  };
 }
 
 export class RecommendationService {
@@ -36,19 +78,18 @@ export class RecommendationService {
     return (result?.count ?? 0) < 3;
   }
 
-  // 依近期完攀紀錄構建推薦查詢字串
-  // 注意：只帶路線名稱與難度，不帶岩場名稱，避免 LLM Tool Calling 誤將用戶舊岩場設為位置篩選
+  // 依攀登能力程度構建推薦查詢字串（不含路線名稱，避免 vector 搜尋回撈已完攀路線）
   buildRecommendationQuery(recentAscents: RecentAscent[]): string {
     if (recentAscents.length === 0) {
       return '我想嘗試新路線，請推薦幾條適合初學到中級攀岩者的台灣運攀路線。';
     }
 
-    const ascentList = recentAscents
-      .slice(0, 5)
-      .map((a) => `${a.route_name}（${a.grade}）`)
-      .join('、');
+    const range = getTargetGradeRange(recentAscents);
+    if (!range) {
+      return '我想嘗試新路線，請推薦幾條適合中級攀岩者的台灣運攀路線。';
+    }
 
-    return `我最近完攀了：${ascentList}。請推薦 3 條我尚未爬過、適合下一步挑戰的路線，難度可以稍高一級或類型不同。`;
+    return `我的攀登程度約 ${range.maxGrade}，請推薦難度在 ${range.targetMin}–${range.targetMax} 的路線，或難度相近但類型不同的路線（傳攀 / 抱石）。`;
   }
 
   // 主方法：產生推薦並儲存
@@ -56,9 +97,9 @@ export class RecommendationService {
     const id = generateId();
 
     try {
-      // 取用戶近 5 條完攀紀錄
+      // 取用戶近 5 條完攀紀錄，包含 route_id 供排除用
       const ascentsResult = await this.env.DB.prepare(
-        `SELECT r.name as route_name, r.grade, c.name as crag_name
+        `SELECT a.route_id, r.name as route_name, r.grade, c.name as crag_name
          FROM user_route_ascents a
          JOIN routes r ON a.route_id = r.id
          JOIN crags c ON r.crag_id = c.id
@@ -72,9 +113,12 @@ export class RecommendationService {
       const recentAscents = ascentsResult.results ?? [];
       const query = this.buildRecommendationQuery(recentAscents);
 
-      // 呼叫現有 RAG pipeline
+      // 已完攀 route_id 清單，供 pipeline retrieval 層排除
+      const climbed_route_ids = recentAscents.map((a) => a.route_id).filter(Boolean);
+
+      // 呼叫現有 RAG pipeline，傳入排除清單
       const aiResult = await this.queryService.ask(
-        { query, limit: 5, include_sources: true, no_cache: true },
+        { query, limit: 5, include_sources: true, no_cache: true, climbed_route_ids },
         userId
       );
 

@@ -16,7 +16,7 @@ import { X, Search, Plus, Check } from 'lucide-react-native'
 import Animated, { FadeIn, FadeOut } from 'react-native-reanimated'
 
 import { Text, IconButton } from '@/components/ui'
-import { SEMANTIC_COLORS, SPACING, RADIUS } from '@nobodyclimb/constants'
+import { BRAND_YELLOW, RADIUS, SEMANTIC_COLORS, SPACING, WB_COLORS } from '@nobodyclimb/constants'
 
 interface Tag {
   id: string
@@ -52,7 +52,7 @@ function TagChip({ tag, selected, onPress }: TagChipProps) {
       onPress={onPress}
     >
       {selected && (
-        <Check size={14} color="#FFFFFF" />
+        <Check size={14} color={WB_COLORS[0]} />
       )}
       <Text
         variant="small"
@@ -81,7 +81,7 @@ function SelectedTagChip({ tag, onRemove }: SelectedTagChipProps) {
         {tag.name}
       </Text>
       <Pressable onPress={onRemove} style={styles.removeTagButton}>
-        <X size={14} color="#FFFFFF" />
+        <X size={14} color={WB_COLORS[0]} />
       </Pressable>
     </Animated.View>
   )
@@ -320,7 +320,7 @@ const styles = StyleSheet.create({
     gap: 4,
   },
   selectedTagText: {
-    color: '#FFFFFF',
+    color: WB_COLORS[0],
   },
   removeTagButton: {
     padding: 2,
@@ -331,7 +331,7 @@ const styles = StyleSheet.create({
   searchContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#F5F5F5',
+    backgroundColor: WB_COLORS[10],
     margin: SPACING.md,
     paddingHorizontal: SPACING.sm,
     borderRadius: RADIUS.md,
@@ -357,10 +357,10 @@ const styles = StyleSheet.create({
     paddingHorizontal: SPACING.sm,
     paddingVertical: SPACING.xs,
     borderRadius: RADIUS.full,
-    backgroundColor: '#F5F5F5',
+    backgroundColor: WB_COLORS[10],
   },
   categoryChipActive: {
-    backgroundColor: '#FFE70C',
+    backgroundColor: BRAND_YELLOW[100],
   },
   tagsContainer: {
     maxHeight: 250,
@@ -377,7 +377,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: '#F5F5F5',
+    backgroundColor: WB_COLORS[10],
     paddingHorizontal: SPACING.sm,
     paddingVertical: SPACING.xs,
     borderRadius: RADIUS.md,
@@ -390,7 +390,7 @@ const styles = StyleSheet.create({
     opacity: 0.7,
   },
   tagChipTextSelected: {
-    color: '#FFFFFF',
+    color: WB_COLORS[0],
   },
   emptyContainer: {
     alignItems: 'center',
@@ -400,7 +400,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: SPACING.xs,
-    backgroundColor: '#F5F5F5',
+    backgroundColor: WB_COLORS[10],
     paddingHorizontal: SPACING.md,
     paddingVertical: SPACING.sm,
     borderRadius: RADIUS.md,

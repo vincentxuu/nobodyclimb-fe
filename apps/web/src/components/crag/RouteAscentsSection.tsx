@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import { MountainSnow, Users, Star, Plus, LogIn } from 'lucide-react'
+import { useTranslations } from 'next-intl'
 import { Button } from '@/components/ui/button'
 import { useAuth } from '@/lib/hooks'
 import { useAscents } from '@/lib/hooks/useAscents'
@@ -21,6 +22,7 @@ export function RouteAscentsSection({
   routeName,
   routeGrade,
 }: RouteAscentsSectionProps) {
+  const t = useTranslations('CragPage')
   const { isSignedIn } = useAuth()
   const { getRouteAscents, getRouteAscentSummary, createAscent } = useAscents()
   const { toast } = useToast()
@@ -70,14 +72,14 @@ export function RouteAscentsSection({
       const summaryRes = await getRouteAscentSummary(routeId)
       setAscentSummary(summaryRes)
       toast({
-        title: '記錄成功',
-        description: '已成功新增攀爬記錄',
+        title: t('ascentSuccess'),
+        description: t('ascentSuccessDesc'),
       })
     } catch (error) {
       console.error('Error creating ascent:', error)
       toast({
-        title: '新增失敗',
-        description: '無法新增攀爬記錄，請稍後再試',
+        title: t('ascentFailed'),
+        description: t('ascentFailedDesc'),
         variant: 'destructive',
       })
       throw error
@@ -91,18 +93,18 @@ export function RouteAscentsSection({
       <div className="mt-12 border-t pt-8">
         <div className="mb-4 flex items-center justify-between">
           <h2 className="border-l-4 border-[#FFE70C] pl-3 text-lg font-bold text-[#1B1A1A]">
-            攀爬記錄
+            {t('ascentsTitle')}
           </h2>
           {isSignedIn ? (
             <Button size="sm" onClick={() => setIsAscentFormOpen(true)} className="gap-1">
               <Plus className="h-4 w-4" />
-              記錄攀爬
+              {t('logAscent')}
             </Button>
           ) : (
             <Link href="/auth/login">
               <Button variant="outline" size="sm" className="gap-1">
                 <LogIn className="h-4 w-4" />
-                登入記錄
+                {t('loginToLog')}
               </Button>
             </Link>
           )}
@@ -114,7 +116,7 @@ export function RouteAscentsSection({
             <div className="rounded-lg bg-gray-50 p-3 text-center">
               <div className="flex items-center justify-center gap-1 text-xs text-gray-500">
                 <Users className="h-3 w-3" />
-                攀爬人次
+                {t('totalAscents')}
               </div>
               <div className="mt-1 text-xl font-bold text-[#1B1A1A]">
                 {ascentSummary.total_ascents}
@@ -123,7 +125,7 @@ export function RouteAscentsSection({
             <div className="rounded-lg bg-gray-50 p-3 text-center">
               <div className="flex items-center justify-center gap-1 text-xs text-gray-500">
                 <MountainSnow className="h-3 w-3" />
-                完攀人數
+                {t('uniqueClimbers')}
               </div>
               <div className="mt-1 text-xl font-bold text-[#1B1A1A]">
                 {ascentSummary.unique_climbers}
@@ -132,7 +134,7 @@ export function RouteAscentsSection({
             <div className="rounded-lg bg-gray-50 p-3 text-center">
               <div className="flex items-center justify-center gap-1 text-xs text-gray-500">
                 <Star className="h-3 w-3" />
-                平均評分
+                {t('avgRating')}
               </div>
               <div className="mt-1 text-xl font-bold text-[#1B1A1A]">
                 {ascentSummary.avg_rating?.toFixed(1) || '-'}
@@ -143,11 +145,11 @@ export function RouteAscentsSection({
 
         {/* 攀爬記錄列表 */}
         {isLoading ? (
-          <div className="py-6 text-center text-gray-500">載入中...</div>
+          <div className="py-6 text-center text-gray-500">{t('storiesLoading')}</div>
         ) : ascents.length === 0 ? (
           <div className="rounded-lg bg-gray-50 py-6 text-center text-gray-500">
             <MountainSnow className="mx-auto mb-2 h-10 w-10 text-gray-300" />
-            <p className="text-sm">還沒有人記錄攀爬</p>
+            <p className="text-sm">{t('noAscents')}</p>
             {isSignedIn && (
               <Button
                 variant="link"
@@ -155,7 +157,7 @@ export function RouteAscentsSection({
                 onClick={() => setIsAscentFormOpen(true)}
                 className="mt-2"
               >
-                成為第一個記錄的人
+                {t('beFirstToLog')}
               </Button>
             )}
           </div>

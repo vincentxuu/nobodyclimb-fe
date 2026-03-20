@@ -35,11 +35,13 @@
     "expo-linking": "~8.0.11",
     "expo-router": "~6.0.23",
     "expo-secure-store": "~15.0.8",
+    "expo-splash-screen": "~0.29.21",
     "expo-status-bar": "~3.0.9",
     "lucide-react-native": "^0.511.0",
     "react": "19.1.0",
     "react-native": "0.81.5",
     "react-native-gesture-handler": "~2.28.0",
+    "react-native-markdown-display": "^7.0.2",
     "react-native-reanimated": "~4.1.6",
     "react-native-safe-area-context": "~5.6.2",
     "react-native-screens": "~4.16.0",
@@ -50,8 +52,31 @@
   "devDependencies": {
     "@babel/core": "^7.26.10",
     "@tamagui/babel-plugin": "2.0.0-rc.0",
+    "@testing-library/react-native": "^13.3.3",
+    "@types/jest": "^29.5.14",
     "@types/react": "~19.1.0",
+    "jest": "^29.7.0",
+    "jest-expo": "^55.0.9",
+    "react-test-renderer": "19.1.0",
     "typescript": "~5.9.2"
   },
-  "private": true
+  "private": true,
+  "jest": {
+    "preset": "jest-expo",
+    "transformIgnorePatterns": [
+      "node_modules/(?!((jest-)?react-native|@react-native(-community)?)|expo(nent)?|@expo(nent)?/.*|@expo-google-fonts/.*|react-navigation|@react-navigation/.*|@unimodules/.*|unimodules|sentry-expo|native-base|react-native-svg|lucide-react-native|@nobodyclimb/.*)"
+    ],
+    "moduleNameMapper": {
+      "^@/(.*)$": "<rootDir>/src/$1",
+      "^@nobodyclimb/constants$": "<rootDir>/../../packages/constants/src/index.ts",
+      "^@nobodyclimb/(.*)$": "<rootDir>/../../packages/$1/src/index.ts",
+      "^tamagui$": "<rootDir>/src/__mocks__/tamagui.ts",
+      "^@tamagui/core$": "<rootDir>/src/__mocks__/tamagui.ts",
+      "^@tamagui/(.*)$": "<rootDir>/src/__mocks__/tamagui.ts",
+      "^react-native-reanimated$": "<rootDir>/src/__mocks__/react-native-reanimated.ts",
+      "^react-native-svg$": "<rootDir>/src/__mocks__/react-native-svg.js",
+      "^@gorhom/bottom-sheet$": "<rootDir>/src/__mocks__/gorhom-bottom-sheet.ts"
+    },
+    "setupFilesAfterEnv": []
+  }
 }

@@ -8,7 +8,7 @@ import { StyleSheet, View, Pressable } from 'react-native'
 import { useRouter } from 'expo-router'
 
 import { Text } from '@/components/ui'
-import { SPACING } from '@nobodyclimb/constants'
+import { BRAND_YELLOW, SPACING, WB_COLORS } from '@nobodyclimb/constants'
 
 interface LogoProps {
   /** Logo 點擊回調（默認導航到首頁） */
@@ -67,14 +67,14 @@ const styles = StyleSheet.create({
     height: '100%',
   },
   containerWithBg: {
-    backgroundColor: '#FFE70C',
+    backgroundColor: BRAND_YELLOW[100],
   },
   pressed: {
     opacity: 0.8,
   },
   logoText: {
     fontWeight: '700',
-    color: '#1B1A1A',
+    color: WB_COLORS[100],
     letterSpacing: 0.5,
   },
 })

@@ -6,6 +6,7 @@ import { Mail } from 'lucide-react'
 import { SOCIAL_LINKS } from '@/lib/constants'
 import { useAuthStore } from '@/store/authStore'
 import { Button } from '@/components/ui/button'
+import { useTranslations } from 'next-intl'
 
 /**
  * 頁腳組件
@@ -13,6 +14,7 @@ import { Button } from '@/components/ui/button'
  */
 export function Footer() {
   const { status } = useAuthStore()
+  const t = useTranslations('Footer')
 
   // 社群媒體圖標映射
   const socialIcons: Record<string, React.JSX.Element> = {
@@ -25,11 +27,11 @@ export function Footer() {
       {status !== 'signIn' && (
         <div className="border-b border-[#333] px-4 py-8 text-center md:px-20">
           <p className="mb-4 text-sm text-gray-300 md:text-base">
-            加入我們，寫下你的攀岩故事
+            {t('joinUs')}
           </p>
           <Link href="/auth/register">
             <Button className="h-10 bg-brand-accent/70 px-6 text-sm text-[#1B1A1A] hover:bg-brand-accent">
-              立即加入
+              {t('joinButton')}
             </Button>
           </Link>
         </div>
@@ -45,7 +47,7 @@ export function Footer() {
             height={32}
             className="h-8 w-auto"
           />
-          <p className="text-[14px] font-light text-[#8E8C8C]">NobodyClimb © {new Date().getFullYear()}.</p>
+          <p className="text-[14px] font-light text-[#8E8C8C]">{t('copyright', { year: new Date().getFullYear() })}</p>
         </div>
 
         {/* 社交媒體圖標 */}

@@ -1,6 +1,7 @@
 'use client'
 
 import { useState } from 'react'
+import { useTranslations } from 'next-intl'
 import { cn } from '@/lib/utils'
 import {
   ChevronDown,
@@ -70,6 +71,7 @@ export function TagSelector({
   onAddCustom,
   className,
 }: TagSelectorProps) {
+  const t = useTranslations('BiographyPage')
   const [isExpanded, setIsExpanded] = useState(defaultExpanded)
   const isMultiSelect = dimension.selection_mode === 'multiple'
 
@@ -119,13 +121,13 @@ export function TagSelector({
           })()}
           <span className="font-medium text-[#1B1A1A]">{dimension.name}</span>
           <span className="text-xs text-[#6D6C6C] px-2 py-0.5 bg-[#EBEAEA] rounded-full">
-            {isMultiSelect ? '可複選' : '單選'}
+            {isMultiSelect ? t('multiSelect') : t('singleSelect')}
           </span>
         </div>
         <div className="flex items-center gap-2">
           {selectedCount > 0 && (
             <span className="text-sm text-[#1B1A1A] font-medium">
-              已選 {selectedCount} 個
+              {t('selectedCount', { count: selectedCount })}
             </span>
           )}
           <ChevronDown
@@ -166,7 +168,7 @@ export function TagSelector({
               className="flex items-center gap-1 text-sm text-[#6D6C6C] hover:text-[#1B1A1A] transition-colors mt-3"
             >
               <Plus size={16} />
-              自訂標籤
+              {t('customTag')}
             </button>
           )}
         </div>
@@ -209,6 +211,7 @@ export function TagSelectorGroup({
   onAddCustomDimension,
   className,
 }: TagSelectorGroupProps) {
+  const t = useTranslations('BiographyPage')
   const [showAll, setShowAll] = useState(false)
 
   const visibleDimensions = showAll
@@ -227,22 +230,22 @@ export function TagSelectorGroup({
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2">
           <Tag size={18} className="text-[#3F3D3D]" />
-          <h3 className="font-semibold text-[#1B1A1A]">幫自己貼標籤</h3>
+          <h3 className="font-semibold text-[#1B1A1A]">{t('tagYourself')}</h3>
           <span className="text-xs text-[#6D6C6C] px-2 py-0.5 bg-[#F5F5F5] rounded-full flex items-center gap-1">
             <Clock size={12} />
-            30 秒
+            {t('thirtySeconds')}
           </span>
         </div>
         {totalSelected > 0 && (
           <span className="text-sm text-[#1B1A1A] font-medium">
-            已選 {totalSelected} 個標籤
+            {t('totalTagsSelected', { count: totalSelected })}
           </span>
         )}
       </div>
 
       <p className="text-sm text-[#6D6C6C] flex items-center gap-1">
         <Lightbulb size={14} />
-        選一選就完成了，不用打字
+        {t('tagSelectorHint')}
       </p>
 
       {/* Dimension Selectors */}
@@ -271,12 +274,12 @@ export function TagSelectorGroup({
         >
           {showAll ? (
             <>
-              收合更多標籤
+              {t('collapseMoreTags')}
               <ChevronUp size={16} />
             </>
           ) : (
             <>
-              展開更多標籤 ({hiddenCount} 個類別)
+              {t('expandMoreTags', { count: hiddenCount })}
               <ChevronDown size={16} />
             </>
           )}
@@ -291,7 +294,7 @@ export function TagSelectorGroup({
           className="flex items-center gap-1 text-sm text-[#6D6C6C] hover:text-[#1B1A1A] transition-colors"
         >
           <Plus size={16} />
-          新增標籤類別
+          {t('addTagCategory')}
         </button>
       )}
     </div>

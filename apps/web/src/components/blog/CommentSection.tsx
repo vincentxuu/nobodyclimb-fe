@@ -1,6 +1,8 @@
 'use client'
 
 import React, { useState, useEffect, useCallback } from 'react'
+import Link from 'next/link'
+import { useTranslations } from 'next-intl'
 import { Button } from '@/components/ui/button'
 import { Textarea } from '@/components/ui/textarea'
 import { Loader2, MessageCircle, Send, Trash2 } from 'lucide-react'
@@ -48,7 +50,8 @@ const CommentItem = ({
   currentUserId?: string
   onDelete: (_id: string) => void
 }) => {
-  const displayName = comment.display_name || comment.username || '匿名用戶'
+  const t = useTranslations('BlogPage')
+  const displayName = comment.display_name || comment.username || t('anonymous')
 
   return (
     <div className="flex gap-3">
@@ -96,6 +99,7 @@ const CommentForm = ({
   isSubmitting: boolean
   isLoggedIn: boolean
 }) => {
+  const t = useTranslations('BlogPage')
   const [content, setContent] = useState('')
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -109,10 +113,10 @@ const CommentForm = ({
   if (!isLoggedIn) {
     return (
       <p className="text-sm text-gray-500">
-        <a href="/auth/login" className="text-brand-600 hover:underline">
-          登入
-        </a>
-        {' '}後才能留言
+        <Link href="/auth/login" className="text-brand-600 hover:underline">
+          {t('loginToComment')}
+        </Link>
+        {t('loginToCommentSuffix')}
       </p>
     )
   }
@@ -122,7 +126,7 @@ const CommentForm = ({
       <Textarea
         value={content}
         onChange={(e) => setContent(e.target.value)}
-        placeholder="寫下你的留言..."
+        placeholder={t('commentPlaceholder')}
         className="min-h-[60px] flex-1 resize-none"
         disabled={isSubmitting}
       />
@@ -143,11 +147,14 @@ const CommentForm = ({
 }
 
 // 空評論狀態
-const EmptyComments = () => (
-  <p className="py-4 text-center text-sm text-gray-500">
-    還沒有留言，成為第一個留言的人吧！
-  </p>
-)
+const EmptyComments = () => {
+  const t = useTranslations('BlogPage')
+  return (
+    <p className="py-4 text-center text-sm text-gray-500">
+      {t('noComments')}
+    </p>
+  )
+}
 
 // 載入狀態
 const LoadingComments = () => (
@@ -157,6 +164,7 @@ const LoadingComments = () => (
 )
 
 export function CommentSection({ postId, isLoggedIn = false }: CommentSectionProps) {
+  const t = useTranslations('BlogPage')
   const { toast } = useToast()
   const { user } = useAuthStore()
   const [comments, setComments] = useState<CommentData[]>([])
@@ -194,15 +202,15 @@ export function CommentSection({ postId, isLoggedIn = false }: CommentSectionPro
         setComments([newComment, ...comments])
         setTotalComments((prev) => prev + 1)
         toast({
-          title: '留言發表成功',
-          description: '感謝你的分享！',
+          title: t('commentSuccess'),
+          description: t('commentSuccessDesc'),
         })
       }
     } catch (err) {
       console.error('Failed to submit comment:', err)
       toast({
-        title: '留言發表失敗',
-        description: '請稍後再試',
+        title: t('commentFailed'),
+        description: t('retryLater'),
         variant: 'destructive',
       })
     } finally {
@@ -219,8 +227,8 @@ export function CommentSection({ postId, isLoggedIn = false }: CommentSectionPro
     } catch (err) {
       console.error('Failed to delete comment:', err)
       toast({
-        title: '刪除留言失敗',
-        description: '請稍後再試',
+        title: t('commentDeleteFailed'),
+        description: t('retryLater'),
         variant: 'destructive',
       })
     }
@@ -231,7 +239,7 @@ export function CommentSection({ postId, isLoggedIn = false }: CommentSectionPro
       {/* Header */}
       <button className="mb-4 inline-flex items-center gap-1 text-sm text-gray-500 transition-colors hover:text-gray-700">
         <MessageCircle className="h-4 w-4" />
-        <span>{totalComments} 則留言</span>
+        <span>{t('commentCount', { count: totalComments })}</span>
       </button>
 
       <div className="space-y-4">
