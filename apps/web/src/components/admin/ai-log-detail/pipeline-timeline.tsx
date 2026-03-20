@@ -50,6 +50,7 @@ export function PipelineTimeline({
     'cache',
     'quota_check',
     'query_parsing',
+    'text_to_sql',
     'hyde',
     'filter',
     'embedding',
@@ -87,6 +88,9 @@ export function PipelineTimeline({
       }
       if (pipelineTrace?.mmr_selection) {
         stages.push({ key: 'mmr_selection', isTraceOnly: true })
+      }
+      if (pipelineTrace?.popularity_rerank) {
+        stages.push({ key: 'popularity_rerank', isTraceOnly: true })
       }
     }
   }
@@ -204,6 +208,10 @@ export function PipelineTimeline({
               if (pipelineStage.top_score != null) metrics.push({ label: '最高分', value: `${((pipelineStage.top_score as number) * 100).toFixed(1)}%` })
               if (pipelineStage.doc_count != null) metrics.push({ label: '文件', value: `${pipelineStage.doc_count} 筆` })
             }
+            if (key === 'text_to_sql') {
+              if (pipelineStage.candidate_count != null) metrics.push({ label: '候選', value: `${pipelineStage.candidate_count} 筆` })
+              if (pipelineStage.path) metrics.push({ label: '路徑', value: pipelineStage.path })
+            }
             if (key === 'generation') {
               if (pipelineStage.model) metrics.push({ label: '模型', value: String(pipelineStage.model).split('/').pop() ?? '' })
               const mg = tb?.main_generation
@@ -294,6 +302,10 @@ export function PipelineTimeline({
             const mmr = pipelineTrace.mmr_selection
             metrics.push({ label: '輸入', value: `${mmr.input_count} 筆` })
             metrics.push({ label: '選出', value: `${mmr.selected_count} 筆` })
+          }
+          if (isTraceOnly && key === 'popularity_rerank' && pipelineTrace?.popularity_rerank) {
+            const pr = pipelineTrace.popularity_rerank
+            metrics.push({ label: '文件', value: `${pr.doc_count} 筆` })
           }
           if (isTraceOnly && key === 'plan_execute' && pipelineTrace?.plan_execute) {
             const pe = pipelineTrace.plan_execute

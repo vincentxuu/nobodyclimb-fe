@@ -90,20 +90,24 @@ export const popularityRerankStep: PipelineStep = {
 
     ctx.rerankedMatches = finalReranked;
 
-    // mmr_selection top_selected
-    if (trace.mmr_selection) {
-      (trace.mmr_selection as Record<string, unknown>).top_selected = finalReranked.map((m) => {
-        const doc = documents.get(m.id);
-        const videoCount = doc?.source_id ? (videoCountMap.get(doc.source_id) ?? 0) : 0;
-        const normalizedPop = safeMax > 0 ? videoCount / safeMax : 0;
-        return {
-          title: doc ? queryService.extractTitle(doc) : m.id,
-          relevance_score: Math.round(m.score * 1000) / 1000,
-          popularity_score: Math.round(normalizedPop * 1000) / 1000,
-          final_score: Math.round(m.finalScore * 1000) / 1000,
-        };
-      });
-    }
+    // popularity_rerank trace（獨立寫入，不依賴 mmr_selection 是否存在）
+    const topSelected = finalReranked.map((m) => {
+      const doc = documents.get(m.id);
+      const videoCount = doc?.source_id ? (videoCountMap.get(doc.source_id) ?? 0) : 0;
+      const normalizedPop = safeMax > 0 ? videoCount / safeMax : 0;
+      return {
+        title: doc ? queryService.extractTitle(doc) : m.id,
+        relevance_score: Math.round(m.score * 1000) / 1000,
+        popularity_score: Math.round(normalizedPop * 1000) / 1000,
+        final_score: Math.round(m.finalScore * 1000) / 1000,
+      };
+    });
+
+    trace.popularity_rerank = {
+      top_selected: topSelected,
+      popularity_weight: pipelineConfig.popularity_weight,
+      doc_count: finalReranked.length,
+    };
 
     // 組合 sources
     const sources: AISource[] = finalReranked

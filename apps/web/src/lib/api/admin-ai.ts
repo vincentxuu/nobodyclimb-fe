@@ -81,6 +81,7 @@ export interface AILogDetail {
     cache: PipelineStageBase & { hit: boolean; cache_type?: 'kv' | 'semantic' }
     quota_check: PipelineStageBase
     query_parsing: PipelineStageBase & { query_type: string | null }
+    text_to_sql: PipelineStageBase & { path: string | null; candidate_count: number | null }
     hyde: PipelineStageBase & { triggered: boolean }
     filter: PipelineStageBase & Record<string, unknown>
     embedding: PipelineStageBase & { duration_ms: number | null }
@@ -115,6 +116,20 @@ export interface AILogDetail {
       fallback_used?: boolean
       confidence?: number
       retrieval_method?: string
+    }
+    text_to_sql?: {
+      path?: string | null
+      candidate_count?: number | null
+      context_preview?: string | null
+      candidates?: Array<{
+        name: string
+        grade?: string | null
+        route_type?: string | null
+        crag_name?: string | null
+        bolt_count?: number | null
+        height?: number | null
+        description?: string | null
+      }>
     }
     tool_selection?: {
       selected_tool: string
@@ -264,6 +279,11 @@ export interface AILogDetail {
       selected_count: number
       popularity_weight: number
       top_selected?: Array<{ title: string; relevance_score: number; popularity_score: number; final_score: number }>
+    }
+    popularity_rerank?: {
+      top_selected: Array<{ title: string; relevance_score: number; popularity_score: number; final_score: number }>
+      popularity_weight: number
+      doc_count: number
     }
     judge_detail?: {
       criteria: string[]

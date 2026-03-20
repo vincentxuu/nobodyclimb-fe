@@ -14,11 +14,13 @@ import { RRFFusionTrace } from './rrf-fusion'
 import { CRAGFallbackTrace } from './crag-fallback'
 import { RerankerTrace } from './reranker'
 import { MMRSelectionTrace } from './mmr-selection'
+import { PopularityRerankTrace } from './popularity-rerank'
 import { GenerationTrace } from './generation'
 import { SelfReflectionTrace } from './self-reflection'
 import { JudgeTrace } from './judge'
 import { GuardrailsOutputTrace } from './guardrails-output'
 import { MemoryExtractionTrace } from './memory-extraction'
+import { TextToSqlTrace } from './text-to-sql'
 import { AgenticTrace } from './agentic'
 import { PlanAndExecuteTrace } from './plan-execute'
 import { MultiToolTrace } from './multi-tool'
@@ -50,6 +52,10 @@ export function StageTraceDetail({
     if (!trace) return <p className="text-[11px] text-wb-40">無詳細資料（舊記錄）</p>
     return <MultiQueryTrace trace={trace} query={query} />
   }
+  if (stageKey === 'text_to_sql') {
+    if (!trace) return <p className="text-[11px] text-wb-40">無詳細資料（舊記錄）</p>
+    return <TextToSqlTrace trace={trace} />
+  }
   if (stageKey === 'agentic') {
     if (!trace) return <p className="text-[11px] text-wb-40">無詳細資料（舊記錄）</p>
     return <AgenticTrace trace={trace} />
@@ -72,6 +78,7 @@ export function StageTraceDetail({
   if (stageKey === 'crag_fallback') return <CRAGFallbackTrace trace={trace} />
   if (stageKey === 'reranking') return <RerankerTrace trace={trace} query={query} />
   if (stageKey === 'mmr_selection') return <MMRSelectionTrace trace={trace} sources={sources} />
+  if (stageKey === 'popularity_rerank') return <PopularityRerankTrace trace={trace} sources={sources} />
   if (stageKey === 'generation') {
     if (!trace) return <p className="text-[11px] text-wb-40">無詳細資料（舊記錄）</p>
     return <GenerationTrace trace={trace} pipelineStage={pipelineStage ?? null} query={query} response={response} />
