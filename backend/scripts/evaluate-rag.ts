@@ -115,6 +115,8 @@ function parseArgs(): {
   output: string;
   baseline?: string;
   redTeam: boolean;
+  cfAccessClientId?: string;
+  cfAccessClientSecret?: string;
 } {
   const args = process.argv.slice(2);
   const parsed: Record<string, string | boolean> = {};
@@ -131,7 +133,7 @@ function parseArgs(): {
   }
 
   if (!parsed['api-url'] || !parsed.token) {
-    console.error('Usage: tsx evaluate-rag.ts --api-url <url> --token <jwt> [--category <cat>] [--ci] [--delay <ms>] [--output <path>] [--baseline <path>] [--red-team]');
+    console.error('Usage: tsx evaluate-rag.ts --api-url <url> --token <jwt> [--category <cat>] [--ci] [--delay <ms>] [--output <path>] [--baseline <path>] [--red-team] [--cf-access-client-id <id>] [--cf-access-client-secret <secret>]');
     process.exit(1);
   }
 
@@ -144,6 +146,8 @@ function parseArgs(): {
     output: (parsed.output as string) || path.resolve(__dirname, '../tests/evaluation-report.json'),
     baseline: parsed.baseline as string | undefined,
     redTeam: parsed.redTeam === true,
+    cfAccessClientId: parsed['cf-access-client-id'] as string | undefined,
+    cfAccessClientSecret: parsed['cf-access-client-secret'] as string | undefined,
   };
 }
 
@@ -181,6 +185,8 @@ async function callAskApi(
   apiUrl: string,
   token: string,
   query: string,
+  cfAccessClientId?: string,
+  cfAccessClientSecret?: string,
 ): Promise<{ status: number; data: Record<string, unknown> | null; error?: string }> {
   try {
     const res = await fetch(`${apiUrl}/api/v1/ai/ask`, {
@@ -188,6 +194,10 @@ async function callAskApi(
       headers: {
         'Content-Type': 'application/json',
         Authorization: `Bearer ${token}`,
+        ...(cfAccessClientId && cfAccessClientSecret && {
+          'CF-Access-Client-Id': cfAccessClientId,
+          'CF-Access-Client-Secret': cfAccessClientSecret,
+        }),
       },
       body: JSON.stringify({ query, include_sources: true, no_cache: true }),
     });
@@ -208,10 +218,18 @@ async function getQueryLog(
   apiUrl: string,
   token: string,
   queryId: string,
+  cfAccessClientId?: string,
+  cfAccessClientSecret?: string,
 ): Promise<Record<string, unknown> | null> {
   try {
     const res = await fetch(`${apiUrl}/api/v1/admin/ai/logs/${queryId}`, {
-      headers: { Authorization: `Bearer ${token}` },
+      headers: {
+        Authorization: `Bearer ${token}`,
+        ...(cfAccessClientId && cfAccessClientSecret && {
+          'CF-Access-Client-Id': cfAccessClientId,
+          'CF-Access-Client-Secret': cfAccessClientSecret,
+        }),
+      },
     });
     if (!res.ok) return null;
     const json = (await res.json()) as { success: boolean; data: Record<string, unknown> };
@@ -361,7 +379,7 @@ async function runGoldenEvaluation(args: ReturnType<typeof parseArgs>): Promise<
     const tc = cases[i];
     process.stdout.write(`  [${i + 1}/${cases.length}] ${tc.id} ${tc.query.slice(0, 40)}...`);
 
-    const { status, data, error } = await callAskApi(args.apiUrl, args.token, tc.query);
+    const { status, data, error } = await callAskApi(args.apiUrl, args.token, tc.query, args.cfAccessClientId, args.cfAccessClientSecret);
 
     if (status !== 200 || !data) {
       consecutiveErrors++;
@@ -391,7 +409,7 @@ async function runGoldenEvaluation(args: ReturnType<typeof parseArgs>): Promise<
     // Fetch pipeline trace from admin endpoint
     let traceData: Record<string, unknown> | null = null;
     if (queryId) {
-      traceData = await getQueryLog(args.apiUrl, args.token, queryId);
+      traceData = await getQueryLog(args.apiUrl, args.token, queryId, args.cfAccessClientId, args.cfAccessClientSecret);
     }
 
     const pipelineTrace = (traceData?.pipeline_trace as Record<string, unknown>) ?? {};
@@ -601,7 +619,7 @@ async function runRedTeamEvaluation(args: ReturnType<typeof parseArgs>): Promise
     const tc = cases[i];
     process.stdout.write(`  [${i + 1}/${cases.length}] ${tc.id} [${tc.attack_type}] ${tc.query.slice(0, 35)}...`);
 
-    const { status, data, error } = await callAskApi(args.apiUrl, args.token, tc.query);
+    const { status, data, error } = await callAskApi(args.apiUrl, args.token, tc.query, args.cfAccessClientId, args.cfAccessClientSecret);
 
     let actualResult: string;
     let passed: boolean;
