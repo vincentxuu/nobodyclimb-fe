@@ -30,12 +30,16 @@ import {
   Instagram,
   ExternalLink,
   Play,
+  Plus,
 } from 'lucide-react-native'
 
 import { Text, IconButton } from '@/components/ui'
 import { RoutePhotosSection } from '@/components/crag'
+import { RouteMediaForm, type RouteMediaFormRef } from '@/components/crag/RouteMediaForm'
 import { SEMANTIC_COLORS, SPACING, RADIUS } from '@nobodyclimb/constants'
 import { useRouteDetail } from '@/lib/hooks/useCrags'
+import { useCreateRouteStory } from '@/lib/hooks/useRouteStories'
+import { useAuthStore } from '@/store/authStore'
 import { RouteAscentsSection } from '@/components/crag/RouteAscentsSection'
 import { RouteStoriesSection } from '@/components/crag/RouteStoriesSection'
 
@@ -61,6 +65,31 @@ export default function RouteDetailScreen() {
   } = useRouteDetail(id, routeId)
   const [refreshing, setRefreshing] = useState(false)
   const [currentPhotoIndex, setCurrentPhotoIndex] = useState(0)
+
+  // 媒體分享
+  const youtubeFormRef = React.useRef<RouteMediaFormRef>(null)
+  const instagramFormRef = React.useRef<RouteMediaFormRef>(null)
+  const createStory = useCreateRouteStory()
+  const { status } = useAuthStore()
+  const isLoggedIn = status === 'signIn'
+
+  const handleShareYoutube = async (data: { content?: string; youtube_url?: string }) => {
+    await createStory.mutateAsync({
+      route_id: routeId,
+      content: data.content || '分享影片',
+      youtube_url: data.youtube_url,
+      visibility: 'public',
+    })
+  }
+
+  const handleShareInstagram = async (data: { content?: string; instagram_url?: string }) => {
+    await createStory.mutateAsync({
+      route_id: routeId,
+      content: data.content || '分享貼文',
+      instagram_url: data.instagram_url,
+      visibility: 'public',
+    })
+  }
 
   const handleRefresh = async () => {
     setRefreshing(true)
@@ -152,6 +181,7 @@ export default function RouteDetailScreen() {
   const hasVideos = allVideos.length > 0
 
   return (
+    <>
     <SafeAreaView style={styles.container} edges={['top']}>
       {/* 導航列 */}
       <View style={styles.header}>
@@ -377,6 +407,7 @@ export default function RouteDetailScreen() {
         {/* 路線照片 */}
         <RoutePhotosSection
           routeId={routeId}
+          routeName={route.name}
           staticPhotos={route.images}
         />
 
@@ -392,11 +423,22 @@ export default function RouteDetailScreen() {
         {hasVideos && (
           <View style={styles.section}>
             <View style={styles.sectionHeader}>
-              <View style={styles.sectionBar} />
-              <Youtube size={18} color="#FF0000" />
-              <Text variant="body" fontWeight="600">
-                YouTube 影片
-              </Text>
+              <View style={{ flexDirection: 'row', alignItems: 'center', gap: SPACING.xs, flex: 1 }}>
+                <View style={styles.sectionBar} />
+                <Youtube size={18} color="#FF0000" />
+                <Text variant="body" fontWeight="600">
+                  YouTube 影片
+                </Text>
+              </View>
+              {isLoggedIn && (
+                <Pressable
+                  style={styles.addButton}
+                  onPress={() => youtubeFormRef.current?.open()}
+                >
+                  <Plus size={16} color="#2563EB" />
+                  <Text variant="caption" style={{ color: '#2563EB' }}>分享</Text>
+                </Pressable>
+              )}
             </View>
             <View style={styles.videoList}>
               {allVideos.map((video, index) => {
@@ -464,11 +506,22 @@ export default function RouteDetailScreen() {
         {hasInstagramPosts && (
           <View style={styles.section}>
             <View style={styles.sectionHeader}>
-              <View style={styles.sectionBar} />
-              <Instagram size={18} color="#E4405F" />
-              <Text variant="body" fontWeight="600">
-                Instagram 貼文
-              </Text>
+              <View style={{ flexDirection: 'row', alignItems: 'center', gap: SPACING.xs, flex: 1 }}>
+                <View style={styles.sectionBar} />
+                <Instagram size={18} color="#E4405F" />
+                <Text variant="body" fontWeight="600">
+                  Instagram 貼文
+                </Text>
+              </View>
+              {isLoggedIn && (
+                <Pressable
+                  style={styles.addButton}
+                  onPress={() => instagramFormRef.current?.open()}
+                >
+                  <Plus size={16} color="#2563EB" />
+                  <Text variant="caption" style={{ color: '#2563EB' }}>分享</Text>
+                </Pressable>
+              )}
             </View>
             <View style={styles.mediaGrid}>
               {route.instagramPosts.map((url: string, index: number) => (
@@ -534,6 +587,29 @@ export default function RouteDetailScreen() {
         <View style={styles.bottomPadding} />
       </ScrollView>
     </SafeAreaView>
+
+    {/* 媒體分享表單 */}
+    {isLoggedIn && (
+      <RouteMediaForm
+        ref={youtubeFormRef}
+        routeId={routeId}
+        routeName={route.name}
+        mediaType="youtube"
+        onSubmit={handleShareYoutube}
+        isLoading={createStory.isPending}
+      />
+    )}
+    {isLoggedIn && (
+      <RouteMediaForm
+        ref={instagramFormRef}
+        routeId={routeId}
+        routeName={route.name}
+        mediaType="instagram"
+        onSubmit={handleShareInstagram}
+        isLoading={createStory.isPending}
+      />
+    )}
+    </>
   )
 }
 
@@ -783,5 +859,12 @@ const styles = StyleSheet.create({
   },
   bottomPadding: {
     height: SPACING.xxl,
+  },
+
+  // Add button
+  addButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 2,
   },
 })
