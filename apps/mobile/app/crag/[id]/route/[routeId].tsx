@@ -490,7 +490,11 @@ export default function RouteDetailScreen() {
         )}
 
         {/* 攀爬記錄 */}
-        <RouteAscentsSection routeId={routeId} />
+        <RouteAscentsSection
+          routeId={routeId}
+          routeName={route.name}
+          routeGrade={route.grade}
+        />
 
         {/* 相關路線 */}
         {relatedRoutes.length > 0 && (
