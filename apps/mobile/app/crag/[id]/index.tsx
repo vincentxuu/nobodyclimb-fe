@@ -43,7 +43,14 @@ import { isGradeInRange, type RouteSidebarItem } from '@/lib/crag-data'
 
 export default function CragDetailScreen() {
   const router = useRouter()
-  const { id } = useLocalSearchParams<{ id: string }>()
+  const { id, area, sector, grade, type: routeType, q } = useLocalSearchParams<{
+    id: string
+    area?: string
+    sector?: string
+    grade?: string
+    type?: string
+    q?: string
+  }>()
   const drawerRef = useRef<RouteDrawerRef>(null)
 
   // 使用 API hooks 獲取資料
@@ -60,11 +67,11 @@ export default function CragDetailScreen() {
 
   // 篩選狀態
   const [filterState, setFilterState] = useState({
-    searchQuery: '',
-    selectedArea: 'all',
-    selectedSector: 'all',
-    selectedGrade: 'all',
-    selectedType: 'all',
+    searchQuery: q || '',
+    selectedArea: area || 'all',
+    selectedSector: sector || 'all',
+    selectedGrade: grade || 'all',
+    selectedType: routeType || 'all',
   })
 
   const handleRefresh = useCallback(async () => {
@@ -170,7 +177,15 @@ export default function CragDetailScreen() {
   }
 
   const handleRoutePress = (routeId: string) => {
-    router.push(`/crag/${id}/route/${routeId}` as any)
+    const params: Record<string, string> = {}
+    if (filterState.selectedArea !== 'all') params.area = filterState.selectedArea
+    if (filterState.selectedSector !== 'all') params.sector = filterState.selectedSector
+    if (filterState.selectedGrade !== 'all') params.grade = filterState.selectedGrade
+    if (filterState.selectedType !== 'all') params.type = filterState.selectedType
+    if (filterState.searchQuery) params.q = filterState.searchQuery
+
+    const qs = new URLSearchParams(params).toString()
+    router.push(`/crag/${id}/route/${routeId}${qs ? '?' + qs : ''}` as any)
   }
 
   const handleOpenDrawer = () => {
