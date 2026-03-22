@@ -35,7 +35,7 @@ import { Text, IconButton, Button } from '@/components/ui'
 import {
   AreaCard, InfoRow, RouteDrawer, type RouteDrawerRef,
   WeatherDisplay, YouTubeLiveCard, TrafficCamerasCard, DataSourceSection,
-  GradeDistributionChart, computeGradeRanges,
+  GradeDistributionChart, computeGradeRanges, GoogleMapsEmbed,
 } from '@/components/crag'
 import { SEMANTIC_COLORS, SPACING, RADIUS } from '@nobodyclimb/constants'
 import { useCragDetail, useCragRoutes, useCragAreas } from '@/lib/hooks/useCrags'
@@ -365,7 +365,7 @@ export default function CragDetailScreen() {
           )}
 
           {/* 岩場位置 */}
-          {crag.googleMapsUrl && (
+          {(crag.googleMapsUrl || crag.geoCoordinates) && (
             <View style={styles.section}>
               <View style={styles.sectionHeader}>
                 <Text variant="body" fontWeight="600" style={styles.sectionTitleOrange}>
@@ -373,13 +373,23 @@ export default function CragDetailScreen() {
                 </Text>
                 <View style={styles.sectionDivider} />
               </View>
-              <Pressable onPress={handleOpenMap} style={styles.mapLink}>
-                <MapPin size={14} color="#2563EB" />
-                <Text variant="small" style={styles.mapLinkText}>
-                  在 Google Maps 開啟
-                </Text>
-                <ExternalLink size={12} color="#2563EB" />
-              </Pressable>
+              {crag.googleMapsUrl && (
+                <Pressable onPress={handleOpenMap} style={styles.mapLink}>
+                  <MapPin size={14} color="#2563EB" />
+                  <Text variant="small" style={styles.mapLinkText}>
+                    在 Google Maps 開啟
+                  </Text>
+                  <ExternalLink size={12} color="#2563EB" />
+                </Pressable>
+              )}
+              {crag.geoCoordinates && (
+                <View style={{ marginTop: SPACING.sm }}>
+                  <GoogleMapsEmbed
+                    latitude={crag.geoCoordinates.latitude}
+                    longitude={crag.geoCoordinates.longitude}
+                  />
+                </View>
+              )}
             </View>
           )}
 
