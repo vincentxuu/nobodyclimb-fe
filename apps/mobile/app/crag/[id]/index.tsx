@@ -3,7 +3,7 @@
  *
  * 對應 apps/web/src/app/crag/[id]/CragDetailClient.tsx
  */
-import React, { useState, useEffect, useCallback, useRef, useMemo } from 'react'
+import React, { useState, useCallback, useRef, useMemo } from 'react'
 import {
   StyleSheet,
   View,
@@ -16,7 +16,6 @@ import {
 } from 'react-native'
 import { useLocalSearchParams, useRouter } from 'expo-router'
 import { SafeAreaView } from 'react-native-safe-area-context'
-import { Image } from 'expo-image'
 import { LinearGradient } from 'expo-linear-gradient'
 import { GestureHandlerRootView } from 'react-native-gesture-handler'
 import {
@@ -30,103 +29,33 @@ import {
   List,
   Car,
   Bus,
-  Clock,
-  ChevronRight,
 } from 'lucide-react-native'
 
-import { Text, IconButton, Button, Card } from '@/components/ui'
-import { AreaCard, InfoCard, InfoRow, RouteDrawer, type RouteDrawerRef } from '@/components/crag'
-import { SEMANTIC_COLORS, SPACING, RADIUS } from '@nobodyclimb/constants'
+import { Text, IconButton, Button } from '@/components/ui'
 import {
-  getAllCrags,
-  type CragListItem,
-  type CragDetailData,
-  type RouteSidebarItem,
-  isGradeInRange,
-} from '@/lib/crag-data'
-
-// 為了 MVP 階段，使用靜態資料
-const MOCK_CRAG_DETAILS: Record<string, CragDetailData> = {
-  longdong: {
-    id: 'longdong',
-    name: '龍洞',
-    englishName: 'Long Dong',
-    location: '新北市貢寮區龍洞灣',
-    description:
-      '龍洞是台灣最具代表性的戶外攀岩場地，位於新北市貢寮區，擁有壯觀的海岸岩壁和多樣化的攀登路線。是台灣規模最大、路線最多的天然岩場。',
-    videoUrl: '',
-    liveVideoId: '8-xSAfWwh10',
-    liveVideoTitle: '龍洞即時影像',
-    liveVideoDescription: '龍洞岩場周邊即時影像',
-    images: ['/images/crag/longdong-1.jpg'],
-    type: 'mixed',
-    rockType: '四稜砂岩',
-    routes: 616,
-    difficulty: '5.3 - 5.14a',
-    height: '5-100m',
-    approach: '5-30分鐘步行',
-    seasons: ['春', '秋', '冬'],
-    transportation: [
-      {
-        type: '開車',
-        description: '從台北走國道1號轉台2線濱海公路，約1.5小時車程',
-      },
-      {
-        type: '大眾運輸',
-        description: '從瑞芳火車站搭乘基隆客運至龍洞站',
-      },
-    ],
-    parking: '龍洞灣公園停車場',
-    amenities: ['停車場', '廁所', '海灘', '浮潛'],
-    googleMapsUrl: 'https://maps.app.goo.gl/CgDGjdp3NX1cGUQK6',
-    geoCoordinates: {
-      latitude: 25.1085,
-      longitude: 121.9215,
-    },
-    weatherLocation: '新北市貢寮區',
-    areas: [
-      { id: 'school-gate', name: '校門口', description: '校門口攀登區域', difficulty: '5.6 - 5.12', routes: 51, image: '' },
-      { id: 'clocktower', name: '鐘塔', description: '鐘塔攀登區域', difficulty: '5.7 - 5.13', routes: 54, image: '' },
-      { id: 'long-lane', name: '長巷', description: '長巷攀登區域', difficulty: '5.8 - 5.12', routes: 47, image: '' },
-      { id: 'music-hall', name: '音樂廳', description: '音樂廳攀登區域', difficulty: '5.6 - 5.13', routes: 103, image: '' },
-    ],
-    routes_details: [
-      { id: 'r1', name: '小乖', englishName: 'Little Good', grade: '5.8', length: '15m', type: 'Sport', firstAscent: '', area: '校門口', description: '', protection: '', popularity: 0, views: 0, images: [], videos: [], tips: '', instagramPosts: [], youtubeVideos: [] },
-      { id: 'r2', name: '大乖', englishName: 'Big Good', grade: '5.9', length: '18m', type: 'Sport', firstAscent: '', area: '校門口', description: '', protection: '', popularity: 0, views: 0, images: [], videos: [], tips: '', instagramPosts: [], youtubeVideos: [] },
-      { id: 'r3', name: '黃色乖', englishName: 'Yellow Good', grade: '5.10a', length: '20m', type: 'Sport', firstAscent: '', area: '鐘塔', description: '', protection: '', popularity: 0, views: 0, images: [], videos: [], tips: '', instagramPosts: [], youtubeVideos: [] },
-    ],
-    metadata: {
-      source: 'Taiwan Climb Wiki',
-      sourceUrl: 'https://climb.tw',
-      lastUpdated: '2026-01-09',
-      maintainer: 'NobodyClimb',
-      maintainerUrl: 'https://nobodyclimb.cc',
-      version: '1.0.0',
-    },
-  },
-}
-
-// 轉換為 RouteSidebarItem 格式
-function convertToSidebarRoutes(crag: CragDetailData): RouteSidebarItem[] {
-  return crag.routes_details.map((route) => ({
-    id: route.id,
-    name: route.name,
-    grade: route.grade,
-    type: route.type,
-    areaId: route.area,
-    areaName: route.area,
-    sector: undefined,
-  }))
-}
+  AreaCard, InfoRow, RouteDrawer, type RouteDrawerRef,
+  WeatherDisplay, YouTubeLiveCard, TrafficCamerasCard, DataSourceSection,
+  GradeDistributionChart, computeGradeRanges,
+} from '@/components/crag'
+import { SEMANTIC_COLORS, SPACING, RADIUS } from '@nobodyclimb/constants'
+import { useCragDetail, useCragRoutes, useCragAreas } from '@/lib/hooks/useCrags'
+import { isGradeInRange, type RouteSidebarItem } from '@/lib/crag-data'
 
 export default function CragDetailScreen() {
   const router = useRouter()
   const { id } = useLocalSearchParams<{ id: string }>()
   const drawerRef = useRef<RouteDrawerRef>(null)
 
-  const [crag, setCrag] = useState<CragDetailData | null>(null)
-  const [routes, setRoutes] = useState<RouteSidebarItem[]>([])
-  const [isLoading, setIsLoading] = useState(true)
+  // 使用 API hooks 獲取資料
+  const {
+    data: crag,
+    isLoading: isCragLoading,
+    error: cragError,
+    refetch: refetchCrag,
+  } = useCragDetail(id)
+  const { data: routes = [], refetch: refetchRoutes } = useCragRoutes(id)
+  const { data: apiAreas = [] } = useCragAreas(id)
+
   const [refreshing, setRefreshing] = useState(false)
 
   // 篩選狀態
@@ -138,43 +67,16 @@ export default function CragDetailScreen() {
     selectedType: 'all',
   })
 
-  // 載入資料
-  const loadCrag = useCallback(async () => {
-    if (!id) return
-
-    setIsLoading(true)
-    try {
-      // MVP 階段使用模擬資料
-      await new Promise((resolve) => setTimeout(resolve, 300))
-
-      const mockData = MOCK_CRAG_DETAILS[id] || MOCK_CRAG_DETAILS.longdong
-      setCrag({
-        ...mockData,
-        id: id,
-      })
-      setRoutes(convertToSidebarRoutes(mockData))
-    } catch (err) {
-      console.error('Failed to load crag:', err)
-    } finally {
-      setIsLoading(false)
-    }
-  }, [id])
-
-  useEffect(() => {
-    loadCrag()
-  }, [loadCrag])
-
   const handleRefresh = useCallback(async () => {
     setRefreshing(true)
-    await loadCrag()
+    await Promise.all([refetchCrag(), refetchRoutes()])
     setRefreshing(false)
-  }, [loadCrag])
+  }, [refetchCrag, refetchRoutes])
 
   // 過濾路線
   const filteredRoutes = useMemo(() => {
     let result = routes
 
-    // 搜尋過濾
     if (filterState.searchQuery) {
       const query = filterState.searchQuery.toLowerCase()
       result = result.filter((route) =>
@@ -182,21 +84,18 @@ export default function CragDetailScreen() {
       )
     }
 
-    // 區域過濾
     if (filterState.selectedArea !== 'all') {
       result = result.filter(
-        (route) => route.areaName === filterState.selectedArea
+        (route) => route.areaId === filterState.selectedArea || route.areaName === filterState.selectedArea
       )
     }
 
-    // 難度過濾
     if (filterState.selectedGrade !== 'all') {
       result = result.filter((route) =>
         isGradeInRange(route.grade, filterState.selectedGrade)
       )
     }
 
-    // 類型過濾
     if (filterState.selectedType !== 'all') {
       result = result.filter((route) => route.type === filterState.selectedType)
     }
@@ -204,11 +103,26 @@ export default function CragDetailScreen() {
     return result
   }, [routes, filterState])
 
-  // 區域列表
+  // 區域列表（用於篩選）
   const areas = useMemo(() => {
-    if (!crag) return []
-    return crag.areas.map((area) => ({ id: area.name, name: area.name }))
-  }, [crag])
+    return apiAreas.map((area) => ({ id: area.id, name: area.name }))
+  }, [apiAreas])
+
+  // 用已拉取的 routes 計算每個 area 的實際路線數
+  const areaRouteCountMap = useMemo(() => {
+    const map = new Map<string, number>()
+    for (const route of routes) {
+      if (route.areaId) {
+        map.set(route.areaId, (map.get(route.areaId) || 0) + 1)
+      }
+    }
+    return map
+  }, [routes])
+
+  // 難度分佈
+  const gradeRanges = useMemo(() => {
+    return computeGradeRanges(routes.map((r) => r.grade))
+  }, [routes])
 
   const handleBack = () => {
     router.back()
@@ -253,7 +167,7 @@ export default function CragDetailScreen() {
     drawerRef.current?.close()
   }
 
-  if (isLoading) {
+  if (isCragLoading) {
     return (
       <SafeAreaView style={styles.container} edges={['top']}>
         <View style={styles.loadingContainer}>
@@ -263,7 +177,7 @@ export default function CragDetailScreen() {
     )
   }
 
-  if (!crag) {
+  if (cragError || !crag) {
     return (
       <SafeAreaView style={styles.container} edges={['top']}>
         <View style={styles.header}>
@@ -344,41 +258,47 @@ export default function CragDetailScreen() {
                 {crag.difficulty}
               </Text>
             </View>
-            <View style={styles.infoItem}>
-              <Sun size={20} color={SEMANTIC_COLORS.textSubtle} />
-              <Text variant="small" color="textSubtle">
-                {crag.seasons.join('、')}
-              </Text>
-            </View>
+            {crag.seasons && crag.seasons.length > 0 && (
+              <View style={styles.infoItem}>
+                <Sun size={20} color={SEMANTIC_COLORS.textSubtle} />
+                <Text variant="small" color="textSubtle">
+                  {crag.seasons.join('、')}
+                </Text>
+              </View>
+            )}
           </View>
 
           {/* 導航按鈕 */}
-          <View style={styles.actionSection}>
-            <Button
-              variant="primary"
-              size="lg"
-              onPress={handleNavigate}
-              style={styles.navButton}
-            >
-              <Navigation size={18} color="#FFFFFF" />
-              <Text fontWeight="600" style={styles.navButtonText}>
-                導航前往
-              </Text>
-            </Button>
-          </View>
+          {crag.geoCoordinates && (
+            <View style={styles.actionSection}>
+              <Button
+                variant="primary"
+                size="lg"
+                onPress={handleNavigate}
+                style={styles.navButton}
+              >
+                <Navigation size={18} color="#FFFFFF" />
+                <Text fontWeight="600" style={styles.navButtonText}>
+                  導航前往
+                </Text>
+              </Button>
+            </View>
+          )}
 
           {/* 岩場介紹 */}
-          <View style={styles.section}>
-            <View style={styles.sectionHeader}>
-              <Text variant="body" fontWeight="600" style={styles.sectionTitleOrange}>
-                岩場介紹
+          {crag.description && (
+            <View style={styles.section}>
+              <View style={styles.sectionHeader}>
+                <Text variant="body" fontWeight="600" style={styles.sectionTitleOrange}>
+                  岩場介紹
+                </Text>
+                <View style={styles.sectionDivider} />
+              </View>
+              <Text variant="body" color="textSubtle" style={styles.description}>
+                {crag.description}
               </Text>
-              <View style={styles.sectionDivider} />
             </View>
-            <Text variant="body" color="textSubtle" style={styles.description}>
-              {crag.description}
-            </Text>
-          </View>
+          )}
 
           {/* 岩場基本資訊 */}
           <View style={styles.section}>
@@ -389,83 +309,149 @@ export default function CragDetailScreen() {
               <View style={styles.sectionDivider} />
             </View>
             <View style={styles.infoGrid}>
-              <InfoRow label="岩場類型" value={crag.type} />
-              <InfoRow label="岩石類型" value={crag.rockType} />
+              {crag.type && <InfoRow label="岩場類型" value={crag.type} />}
+              {crag.rockType && <InfoRow label="岩石類型" value={crag.rockType} />}
               <InfoRow label="路線數量" value={`~${crag.routes}`} />
-              <InfoRow label="難度範圍" value={crag.difficulty} />
-              <InfoRow label="岩壁高度" value={crag.height} />
-              <InfoRow label="步行時間" value={crag.approach} />
+              {crag.difficulty && <InfoRow label="難度範圍" value={crag.difficulty} />}
+              {crag.height && <InfoRow label="岩壁高度" value={crag.height} />}
+              {crag.approach && <InfoRow label="步行時間" value={crag.approach} />}
             </View>
           </View>
 
           {/* 交通方式 */}
-          <View style={styles.section}>
-            <View style={styles.sectionHeader}>
-              <Text variant="body" fontWeight="600" style={styles.sectionTitleOrange}>
-                交通方式
-              </Text>
-              <View style={styles.sectionDivider} />
-            </View>
-            <View style={styles.infoGrid}>
-              {crag.transportation.map((item, index) => (
-                <View key={index} style={styles.transportRow}>
-                  {item.type === '開車' ? (
-                    <Car size={16} color={SEMANTIC_COLORS.textSubtle} />
-                  ) : (
-                    <Bus size={16} color={SEMANTIC_COLORS.textSubtle} />
-                  )}
-                  <View style={styles.transportContent}>
-                    <Text variant="small" fontWeight="500">
-                      {item.type}
-                    </Text>
-                    <Text variant="small" color="textSubtle">
-                      {item.description}
-                    </Text>
+          {crag.transportation && crag.transportation.length > 0 && (
+            <View style={styles.section}>
+              <View style={styles.sectionHeader}>
+                <Text variant="body" fontWeight="600" style={styles.sectionTitleOrange}>
+                  交通方式
+                </Text>
+                <View style={styles.sectionDivider} />
+              </View>
+              <View style={styles.infoGrid}>
+                {crag.transportation.map((item, index) => (
+                  <View key={index} style={styles.transportRow}>
+                    {item.type === '開車' ? (
+                      <Car size={16} color={SEMANTIC_COLORS.textSubtle} />
+                    ) : (
+                      <Bus size={16} color={SEMANTIC_COLORS.textSubtle} />
+                    )}
+                    <View style={styles.transportContent}>
+                      <Text variant="small" fontWeight="500">
+                        {item.type}
+                      </Text>
+                      <Text variant="small" color="textSubtle">
+                        {item.description}
+                      </Text>
+                    </View>
                   </View>
-                </View>
-              ))}
-              <InfoRow label="停車" value={crag.parking} />
+                ))}
+                {crag.parking && <InfoRow label="停車" value={crag.parking} />}
+              </View>
             </View>
-          </View>
+          )}
 
           {/* 岩場位置 */}
-          <View style={styles.section}>
-            <View style={styles.sectionHeader}>
-              <Text variant="body" fontWeight="600" style={styles.sectionTitleOrange}>
-                岩場位置
-              </Text>
-              <View style={styles.sectionDivider} />
+          {crag.googleMapsUrl && (
+            <View style={styles.section}>
+              <View style={styles.sectionHeader}>
+                <Text variant="body" fontWeight="600" style={styles.sectionTitleOrange}>
+                  岩場位置
+                </Text>
+                <View style={styles.sectionDivider} />
+              </View>
+              <Pressable onPress={handleOpenMap} style={styles.mapLink}>
+                <MapPin size={14} color="#2563EB" />
+                <Text variant="small" style={styles.mapLinkText}>
+                  在 Google Maps 開啟
+                </Text>
+                <ExternalLink size={12} color="#2563EB" />
+              </Pressable>
             </View>
-            <Pressable onPress={handleOpenMap} style={styles.mapLink}>
-              <MapPin size={14} color="#2563EB" />
-              <Text variant="small" style={styles.mapLinkText}>
-                在 Google Maps 開啟
-              </Text>
-              <ExternalLink size={12} color="#2563EB" />
-            </Pressable>
-          </View>
+          )}
 
           {/* 岩場設施 */}
-          <View style={styles.section}>
-            <View style={styles.sectionHeader}>
-              <Text variant="body" fontWeight="600" style={styles.sectionTitleOrange}>
-                岩場設施
-              </Text>
-              <View style={styles.sectionDivider} />
+          {crag.amenities && crag.amenities.length > 0 && (
+            <View style={styles.section}>
+              <View style={styles.sectionHeader}>
+                <Text variant="body" fontWeight="600" style={styles.sectionTitleOrange}>
+                  岩場設施
+                </Text>
+                <View style={styles.sectionDivider} />
+              </View>
+              <View style={styles.amenitiesList}>
+                {crag.amenities.map((item, index) => (
+                  <View key={index} style={styles.amenityTag}>
+                    <Text variant="small" color="textSubtle">
+                      {item}
+                    </Text>
+                  </View>
+                ))}
+              </View>
             </View>
-            <View style={styles.amenitiesList}>
-              {crag.amenities.map((item, index) => (
-                <View key={index} style={styles.amenityTag}>
-                  <Text variant="small" color="textSubtle">
-                    {item}
-                  </Text>
-                </View>
-              ))}
+          )}
+
+          {/* 難度分佈 */}
+          {routes.length > 0 && (
+            <View style={styles.section}>
+              <View style={styles.sectionHeader}>
+                <Text variant="body" fontWeight="600" style={styles.sectionTitleOrange}>
+                  難度分佈
+                </Text>
+                <View style={styles.sectionDivider} />
+              </View>
+              <GradeDistributionChart
+                gradeRanges={gradeRanges}
+                totalRoutes={routes.length}
+              />
             </View>
-          </View>
+          )}
+
+          {/* 天氣預報 */}
+          {(crag.weatherLocation || crag.geoCoordinates) && (
+            <View style={styles.section}>
+              <View style={styles.sectionHeader}>
+                <Text variant="body" fontWeight="600" style={styles.sectionTitleOrange}>
+                  天氣預報
+                </Text>
+                <View style={styles.sectionDivider} />
+              </View>
+              <WeatherDisplay
+                location={crag.weatherLocation || crag.location}
+                latitude={crag.geoCoordinates?.latitude}
+                longitude={crag.geoCoordinates?.longitude}
+              />
+            </View>
+          )}
+
+          {/* 即時影像 */}
+          {(crag.liveVideoId || crag.geoCoordinates) && (
+            <View style={styles.section}>
+              <View style={styles.sectionHeader}>
+                <Text variant="body" fontWeight="600" style={styles.sectionTitleOrange}>
+                  即時影像
+                </Text>
+                <View style={styles.sectionDivider} />
+              </View>
+              <View style={{ gap: SPACING[4] }}>
+                {crag.geoCoordinates && (
+                  <TrafficCamerasCard
+                    latitude={crag.geoCoordinates.latitude}
+                    longitude={crag.geoCoordinates.longitude}
+                  />
+                )}
+                {crag.liveVideoId && (
+                  <YouTubeLiveCard
+                    videoId={crag.liveVideoId}
+                    title={crag.liveVideoTitle}
+                    description={crag.liveVideoDescription}
+                  />
+                )}
+              </View>
+            </View>
+          )}
 
           {/* 攀岩區域 */}
-          {crag.areas.length > 0 && (
+          {crag.areas && crag.areas.length > 0 && (
             <View style={styles.section}>
               <View style={styles.sectionHeader}>
                 <Text variant="h4" fontWeight="600">
@@ -480,7 +466,7 @@ export default function CragDetailScreen() {
                     name={area.name}
                     description={area.description}
                     difficulty={area.difficulty}
-                    routesCount={area.routes}
+                    routesCount={areaRouteCountMap.get(area.id) || area.routes}
                     image={area.image}
                     onPress={() => handleAreaPress(area.id)}
                   />
@@ -492,14 +478,13 @@ export default function CragDetailScreen() {
           {/* 資料來源 */}
           {crag.metadata && (
             <View style={styles.section}>
-              <View style={styles.metadataContainer}>
-                <Text variant="caption" color="textMuted">
-                  資料來源：{crag.metadata.source}
+              <View style={styles.sectionHeader}>
+                <Text variant="body" fontWeight="600" style={styles.sectionTitleOrange}>
+                  資料來源
                 </Text>
-                <Text variant="caption" color="textMuted">
-                  最後更新：{crag.metadata.lastUpdated}
-                </Text>
+                <View style={styles.sectionDivider} />
               </View>
+              <DataSourceSection data={crag.metadata} />
             </View>
           )}
 
