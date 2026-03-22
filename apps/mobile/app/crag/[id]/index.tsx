@@ -90,6 +90,10 @@ export default function CragDetailScreen() {
       )
     }
 
+    if (filterState.selectedSector !== 'all') {
+      result = result.filter((route) => route.sector === filterState.selectedSector)
+    }
+
     if (filterState.selectedGrade !== 'all') {
       result = result.filter((route) =>
         isGradeInRange(route.grade, filterState.selectedGrade)
@@ -107,6 +111,16 @@ export default function CragDetailScreen() {
   const areas = useMemo(() => {
     return apiAreas.map((area) => ({ id: area.id, name: area.name }))
   }, [apiAreas])
+
+  // Sector 列表（依選取的區域動態計算）
+  const sectors = useMemo(() => {
+    if (filterState.selectedArea === 'all') return []
+    const sectorsSet = new Set<string>()
+    routes
+      .filter(route => route.areaId === filterState.selectedArea && route.sector)
+      .forEach(route => sectorsSet.add(route.sector!))
+    return Array.from(sectorsSet).map(sector => ({ id: sector, name: sector }))
+  }, [routes, filterState.selectedArea])
 
   // 用已拉取的 routes 計算每個 area 的實際路線數
   const areaRouteCountMap = useMemo(() => {
@@ -526,7 +540,7 @@ export default function CragDetailScreen() {
             setFilterState((prev) => ({ ...prev, selectedType: type }))
           }
           areas={areas}
-          sectors={[]}
+          sectors={sectors}
           onRoutePress={handleRoutePress}
           onClose={handleCloseDrawer}
         />
