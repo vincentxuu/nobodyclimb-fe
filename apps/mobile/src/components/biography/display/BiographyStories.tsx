@@ -8,6 +8,7 @@ import { StyleSheet, View, ScrollView, ActivityIndicator, useWindowDimensions } 
 import { BookOpen } from 'lucide-react-native'
 import Animated, { FadeInRight } from 'react-native-reanimated'
 
+import { apiClient } from '@/lib/api'
 import { Text, Card } from '@/components/ui'
 import { ContentInteractionBar } from './ContentInteractionBar'
 import { RADIUS, SEMANTIC_COLORS, SPACING, WB_COLORS } from '@nobodyclimb/constants'
@@ -15,16 +16,22 @@ import { RADIUS, SEMANTIC_COLORS, SPACING, WB_COLORS } from '@nobodyclimb/consta
 // 類型定義
 interface Story {
   id: string
+  biography_id?: string
   category_id?: string
   category_name?: string
   category_emoji?: string
   title?: string
+  subtitle?: string
   question_id?: string
   question_text?: string
   content: string
+  difficulty?: string
+  word_count?: number
   like_count: number
   comment_count: number
   is_liked?: boolean
+  created_at?: string
+  updated_at?: string
 }
 
 interface BiographyStoriesProps {
@@ -53,38 +60,9 @@ export function BiographyStories({ biographyId }: BiographyStoriesProps) {
   // 獲取故事列表
   const fetchStories = useCallback(async () => {
     try {
-      // TODO: 整合 biographyContentService.getStories(biographyId)
-      await new Promise((resolve) => setTimeout(resolve, 500))
-
-      // 模擬資料
-      const mockData: Story[] = [
-        {
-          id: '1',
-          category_id: 'growth',
-          category_name: '成長故事',
-          category_emoji: '🌱',
-          title: '從入門到突破 5.10',
-          content:
-            '記得第一次踏進岩館，完全不知道怎麼開始。看著牆上五顏六色的點，手腳並用地往上爬，才發現原來攀岩是這麼有趣的運動。經過半年的練習，終於完成了人生第一條 5.10a！',
-          like_count: 12,
-          comment_count: 5,
-          is_liked: true,
-        },
-        {
-          id: '2',
-          category_id: 'psychology',
-          category_name: '心理挑戰',
-          category_emoji: '🧠',
-          title: '克服先鋒恐懼',
-          content:
-            '一開始對先鋒有很大的恐懼，總是擔心墜落。在朋友的鼓勵下，一步一步地練習，現在已經可以享受先鋒帶來的自由感了。',
-          like_count: 8,
-          comment_count: 3,
-          is_liked: false,
-        },
-      ]
-
-      setStories(mockData)
+      const response = await apiClient.get(`/content/biographies/${biographyId}/stories`)
+      const data: Story[] = response.data?.data ?? response.data ?? []
+      setStories(data)
     } catch (error) {
       console.error('Failed to fetch stories:', error)
     } finally {
@@ -96,8 +74,9 @@ export function BiographyStories({ biographyId }: BiographyStoriesProps) {
     fetchStories()
   }, [fetchStories])
 
-  // 按讚切換
+  // 按讚切換（呼叫後端 API）
   const handleToggleLike = async (storyId: string) => {
+    // 先做 optimistic update
     setStories((prev) =>
       prev.map((item) =>
         item.id === storyId
@@ -109,27 +88,71 @@ export function BiographyStories({ biographyId }: BiographyStoriesProps) {
           : item
       )
     )
+    try {
+      const response = await apiClient.post(`/content/stories/${storyId}/like`)
+      const data = response.data?.data ?? response.data
+      if (data) {
+        // 用後端回傳的真實值覆蓋
+        setStories((prev) =>
+          prev.map((item) =>
+            item.id === storyId
+              ? { ...item, is_liked: data.liked, like_count: data.like_count }
+              : item
+          )
+        )
+        return data
+      }
+    } catch (error) {
+      // rollback
+      setStories((prev) =>
+        prev.map((item) =>
+          item.id === storyId
+            ? {
+                ...item,
+                is_liked: !item.is_liked,
+                like_count: item.is_liked ? item.like_count - 1 : item.like_count + 1,
+              }
+            : item
+        )
+      )
+      console.error('Failed to toggle like:', error)
+    }
     const item = stories.find((i) => i.id === storyId)
     return {
-      liked: !item?.is_liked,
-      like_count: item?.is_liked ? (item?.like_count || 1) - 1 : (item?.like_count || 0) + 1,
+      liked: item?.is_liked ?? false,
+      like_count: item?.like_count ?? 0,
     }
   }
 
-  // 獲取留言
-  const handleFetchComments = async (_storyId: string) => {
-    return []
+  // 獲取留言（呼叫後端 API）
+  const handleFetchComments = async (storyId: string) => {
+    try {
+      const response = await apiClient.get(`/content/stories/${storyId}/comments`)
+      return response.data?.data ?? response.data ?? []
+    } catch (error) {
+      console.error('Failed to fetch comments:', error)
+      return []
+    }
   }
 
-  // 新增留言
+  // 新增留言（呼叫後端 API）
   const handleAddComment = async (storyId: string, content: string) => {
-    setStories((prev) =>
-      prev.map((item) =>
-        item.id === storyId
-          ? { ...item, comment_count: item.comment_count + 1 }
-          : item
-      )
-    )
+    try {
+      const response = await apiClient.post(`/content/stories/${storyId}/comments`, { content })
+      const data = response.data?.data ?? response.data
+      if (data) {
+        setStories((prev) =>
+          prev.map((item) =>
+            item.id === storyId
+              ? { ...item, comment_count: item.comment_count + 1 }
+              : item
+          )
+        )
+        return data
+      }
+    } catch (error) {
+      console.error('Failed to add comment:', error)
+    }
     return { id: Date.now().toString(), content, created_at: new Date().toISOString() }
   }
 

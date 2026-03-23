@@ -4,7 +4,7 @@
  * 確認對話框，用於需要使用者確認的操作（如刪除、送出等）
  */
 import React from 'react'
-import { View, StyleSheet } from 'react-native'
+import { View, StyleSheet, type ViewStyle } from 'react-native'
 import { SPACING } from '@nobodyclimb/constants'
 import { Dialog } from './Dialog'
 import { Button } from './Button'
@@ -82,7 +82,7 @@ export function ConfirmDialog({
           size="md"
           onPress={onConfirm}
           disabled={loading}
-          style={[styles.action, styles.actionMargin]}
+          style={StyleSheet.flatten([styles.action, styles.actionMargin]) as ViewStyle}
         >
           {confirmLabel}
         </Button>

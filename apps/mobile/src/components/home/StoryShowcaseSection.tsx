@@ -13,6 +13,7 @@ import { HandMetal, MapPin, Users, BookOpen } from 'lucide-react-native'
 import { Text, Button, Spinner } from '@/components/ui'
 import { FadeIn, SlideUp } from '@/components/animation'
 import { BORDER_RADIUS, SEMANTIC_COLORS, SPACING, WB_COLORS } from '@nobodyclimb/constants'
+import { apiClient } from '@/lib/api'
 
 interface FeaturedStory {
   content: string
@@ -48,10 +49,11 @@ export function StoryShowcaseSection() {
     hasFetched.current = true
 
     try {
-      // TODO: 替換為實際的 API 端點
-      const response = await fetch('https://api.nobodyclimb.cc/api/v1/stats/community')
-      const result = await response.json()
-      if (result.success && result.data) {
+      const response = await apiClient.get('/stats/community')
+      const result = response.data
+      if (result?.success && result.data) {
+        setData(result.data)
+      } else if (result?.data) {
         setData(result.data)
       }
     } catch (err) {

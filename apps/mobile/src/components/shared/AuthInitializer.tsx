@@ -7,6 +7,7 @@
 import { useEffect, useRef, useCallback } from 'react'
 import { useAuthStore } from '@/store/authStore'
 import { tokenStorage } from '@/lib/tokenStorage'
+import { apiClient } from '@/lib/api'
 
 /**
  * 認證初始化組件
@@ -21,7 +22,6 @@ export function AuthInitializer() {
   const hasHydrated = useRef(false)
 
   // 檢查是否應該顯示故事推薦彈窗
-  // TODO: 整合 storyPromptService
   const checkStoryPrompt = useCallback(async () => {
     // 避免重複檢查
     if (hasCheckedStoryPrompt.current) return
@@ -33,15 +33,15 @@ export function AuthInitializer() {
       return
     }
 
-    // TODO: 整合 storyPromptService
-    // try {
-    //   const response = await storyPromptService.shouldPrompt()
-    //   if (response.success && response.data?.should_prompt) {
-    //     // Show story prompt
-    //   }
-    // } catch (error) {
-    //   console.error('檢查故事推薦失敗:', error)
-    // }
+    try {
+      const response = await apiClient.get('/story-prompts/should-prompt')
+      const result = response.data?.data ?? response.data
+      if (result?.should_prompt) {
+        // TODO: Show story prompt UI (需要 UI 元件支援)
+      }
+    } catch (error) {
+      console.error('檢查故事推薦失敗:', error)
+    }
   }, [])
 
   // 在組件掛載時使用 hydrate 恢復認證狀態

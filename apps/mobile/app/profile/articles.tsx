@@ -3,7 +3,7 @@
  *
  * 對應 apps/web/src/app/profile/articles/page.tsx
  */
-import React, { useState, useCallback } from 'react'
+import React, { useCallback } from 'react'
 import {
   StyleSheet,
   View,
@@ -27,64 +27,20 @@ import Animated, { FadeInDown } from 'react-native-reanimated'
 
 import { Text, IconButton } from '@/components/ui'
 import { ProtectedRoute } from '@/components/shared'
+import { useMyPosts, type Post } from '@/lib/hooks'
 import { SEMANTIC_COLORS, SPACING, RADIUS } from '@nobodyclimb/constants'
 
-interface Article {
-  id: string
-  title: string
-  excerpt: string
-  coverImage?: string
-  publishedAt: string
-  status: 'draft' | 'published'
-  views: number
-  likes: number
-  comments: number
-}
-
-// 模擬資料
-const MOCK_ARTICLES: Article[] = [
-  {
-    id: '1',
-    title: '攀岩入門指南：如何開始你的攀岩之旅',
-    excerpt: '本文將介紹攀岩的基本知識和入門技巧...',
-    coverImage: 'https://picsum.photos/200/120?random=70',
-    publishedAt: '2024-01-15',
-    status: 'published',
-    views: 1234,
-    likes: 89,
-    comments: 23,
-  },
-  {
-    id: '2',
-    title: '龍洞攀岩完全攻略',
-    excerpt: '詳細介紹龍洞各區域的路線和難度...',
-    coverImage: 'https://picsum.photos/200/120?random=71',
-    publishedAt: '2024-01-10',
-    status: 'published',
-    views: 856,
-    likes: 67,
-    comments: 15,
-  },
-  {
-    id: '3',
-    title: '抱石技巧分享（草稿）',
-    excerpt: '這是一篇關於抱石技巧的草稿...',
-    publishedAt: '2024-01-20',
-    status: 'draft',
-    views: 0,
-    likes: 0,
-    comments: 0,
-  },
-]
-
 interface ArticleCardProps {
-  article: Article
+  article: Post
   onPress: () => void
   index: number
 }
 
 function ArticleCard({ article, onPress, index }: ArticleCardProps) {
   const isDraft = article.status === 'draft'
+  const dateStr = article.published_at
+    ? new Date(article.published_at).toLocaleDateString('zh-TW')
+    : new Date(article.created_at).toLocaleDateString('zh-TW')
 
   return (
     <Animated.View entering={FadeInDown.duration(300).delay(index * 50)}>
@@ -95,9 +51,9 @@ function ArticleCard({ article, onPress, index }: ArticleCardProps) {
         ]}
         onPress={onPress}
       >
-        {article.coverImage ? (
+        {article.cover_image ? (
           <Image
-            source={{ uri: article.coverImage }}
+            source={{ uri: article.cover_image }}
             style={styles.coverImage}
             contentFit="cover"
           />
@@ -124,36 +80,26 @@ function ArticleCard({ article, onPress, index }: ArticleCardProps) {
               </View>
             )}
           </View>
-          <Text
-            variant="small"
-            color="textMuted"
-            numberOfLines={1}
-            style={styles.articleExcerpt}
-          >
-            {article.excerpt}
-          </Text>
+          {article.excerpt ? (
+            <Text
+              variant="small"
+              color="textMuted"
+              numberOfLines={1}
+              style={styles.articleExcerpt}
+            >
+              {article.excerpt}
+            </Text>
+          ) : null}
           <View style={styles.articleMeta}>
             <Text variant="small" color="textMuted">
-              {article.publishedAt}
+              {dateStr}
             </Text>
             {!isDraft && (
               <View style={styles.stats}>
                 <View style={styles.statItem}>
                   <Eye size={12} color={SEMANTIC_COLORS.textMuted} />
                   <Text variant="small" color="textMuted">
-                    {article.views}
-                  </Text>
-                </View>
-                <View style={styles.statItem}>
-                  <Heart size={12} color={SEMANTIC_COLORS.textMuted} />
-                  <Text variant="small" color="textMuted">
-                    {article.likes}
-                  </Text>
-                </View>
-                <View style={styles.statItem}>
-                  <MessageCircle size={12} color={SEMANTIC_COLORS.textMuted} />
-                  <Text variant="small" color="textMuted">
-                    {article.comments}
+                    {article.view_count}
                   </Text>
                 </View>
               </View>
@@ -168,8 +114,9 @@ function ArticleCard({ article, onPress, index }: ArticleCardProps) {
 
 export default function ArticlesScreen() {
   const router = useRouter()
-  const [articles] = useState<Article[]>(MOCK_ARTICLES)
-  const [isLoading] = useState(false)
+
+  const { data, isLoading, error } = useMyPosts()
+  const articles = data?.posts ?? []
 
   const handleBack = () => {
     router.back()
@@ -180,9 +127,9 @@ export default function ArticlesScreen() {
   }
 
   const handleArticlePress = useCallback(
-    (article: Article) => {
+    (article: Post) => {
       if (article.status === 'draft') {
-        // TODO: 導航到編輯頁面
+        // 導航到編輯頁面
         router.push(`/blog/create?id=${article.id}` as any)
       } else {
         router.push(`/blog/${article.id}` as any)
@@ -191,7 +138,7 @@ export default function ArticlesScreen() {
     [router]
   )
 
-  const renderItem = ({ item, index }: { item: Article; index: number }) => (
+  const renderItem = ({ item, index }: { item: Post; index: number }) => (
     <ArticleCard
       article={item}
       onPress={() => handleArticlePress(item)}
@@ -247,6 +194,12 @@ export default function ArticlesScreen() {
         {isLoading ? (
           <View style={styles.loadingContainer}>
             <ActivityIndicator size="large" color={SEMANTIC_COLORS.textMain} />
+          </View>
+        ) : error ? (
+          <View style={styles.emptyContainer}>
+            <Text variant="body" color="textSubtle" style={styles.emptyText}>
+              載入文章失敗，請稍後再試
+            </Text>
           </View>
         ) : articles.length === 0 ? (
           <View style={styles.emptyContainer}>

@@ -3,7 +3,7 @@
  *
  * 對應 apps/web/src/app/biography/explore/locations/page.tsx
  */
-import React, { useState, useEffect, useCallback } from 'react'
+import React, { useState, useMemo, useCallback } from 'react'
 import {
   StyleSheet,
   View,
@@ -15,17 +15,19 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context'
 import { useRouter } from 'expo-router'
 import Animated, { FadeInDown } from 'react-native-reanimated'
-import { ChevronLeft, MapPin, Globe, Users, Search } from 'lucide-react-native'
+import { ChevronLeft, MapPin, Globe, Users } from 'lucide-react-native'
+import { useQuery, useQueryClient } from '@tanstack/react-query'
 
 import { Text, Card, Avatar, SearchInput, IconButton } from '@/components/ui'
-import { SEMANTIC_COLORS, SPACING, RADIUS } from '@nobodyclimb/constants'
+import { apiClient } from '@/lib/api'
+import { SEMANTIC_COLORS, SPACING } from '@nobodyclimb/constants'
 
 // 類型定義
 interface LocationData {
   location: string
   country: string
-  region: 'taiwan' | 'overseas'
-  visitors: Array<{
+  visitor_count: number
+  visitors?: Array<{
     id: string
     name: string
     avatar_url: string | null
@@ -37,113 +39,38 @@ type TabType = 'all' | 'taiwan' | 'overseas'
 
 export default function LocationsScreen() {
   const router = useRouter()
-  const [locations, setLocations] = useState<LocationData[]>([])
-  const [filteredLocations, setFilteredLocations] = useState<LocationData[]>([])
-  const [loading, setLoading] = useState(true)
-  const [refreshing, setRefreshing] = useState(false)
+  const queryClient = useQueryClient()
   const [searchTerm, setSearchTerm] = useState('')
   const [activeTab, setActiveTab] = useState<TabType>('all')
 
-  // 載入資料
-  const loadLocations = useCallback(async () => {
-    setLoading(true)
-    try {
-      // TODO: 整合 API
-      await new Promise((resolve) => setTimeout(resolve, 500))
+  // 取得攀岩地點列表
+  const {
+    data: locations = [],
+    isLoading: loading,
+    error,
+  } = useQuery<LocationData[]>({
+    queryKey: ['climbing-locations-explore'],
+    queryFn: async () => {
+      const response = await apiClient.get('/climbing-locations/explore', {
+        params: { limit: 100 },
+      })
+      return response.data?.data ?? response.data ?? []
+    },
+  })
 
-      const mockData: LocationData[] = [
-        {
-          location: '龍洞',
-          country: '台灣',
-          region: 'taiwan',
-          visitors: [
-            { id: '1', name: '小明', avatar_url: null, slug: 'xiaoming' },
-            { id: '2', name: '小華', avatar_url: null, slug: 'xiaohua' },
-            { id: '3', name: '阿強', avatar_url: null, slug: 'aqiang' },
-            { id: '4', name: '小美', avatar_url: null, slug: 'xiaomei' },
-            { id: '5', name: '大偉', avatar_url: null, slug: 'dawei' },
-          ],
-        },
-        {
-          location: '大砲岩',
-          country: '台灣',
-          region: 'taiwan',
-          visitors: [
-            { id: '1', name: '小明', avatar_url: null, slug: 'xiaoming' },
-            { id: '6', name: '阿豪', avatar_url: null, slug: 'ahao' },
-          ],
-        },
-        {
-          location: '關子嶺',
-          country: '台灣',
-          region: 'taiwan',
-          visitors: [
-            { id: '2', name: '小華', avatar_url: null, slug: 'xiaohua' },
-          ],
-        },
-        {
-          location: '壽山',
-          country: '台灣',
-          region: 'taiwan',
-          visitors: [
-            { id: '3', name: '阿強', avatar_url: null, slug: 'aqiang' },
-            { id: '4', name: '小美', avatar_url: null, slug: 'xiaomei' },
-          ],
-        },
-        {
-          location: 'Yosemite',
-          country: '美國',
-          region: 'overseas',
-          visitors: [
-            { id: '1', name: '小明', avatar_url: null, slug: 'xiaoming' },
-          ],
-        },
-        {
-          location: 'Fontainebleau',
-          country: '法國',
-          region: 'overseas',
-          visitors: [
-            { id: '2', name: '小華', avatar_url: null, slug: 'xiaohua' },
-            { id: '7', name: '凱文', avatar_url: null, slug: 'kevin' },
-          ],
-        },
-        {
-          location: 'Bishop',
-          country: '美國',
-          region: 'overseas',
-          visitors: [
-            { id: '3', name: '阿強', avatar_url: null, slug: 'aqiang' },
-          ],
-        },
-        {
-          location: 'Kalymnos',
-          country: '希臘',
-          region: 'overseas',
-          visitors: [
-            { id: '8', name: '凱西', avatar_url: null, slug: 'kathy' },
-          ],
-        },
-      ]
-
-      setLocations(mockData)
-    } catch (err) {
-      console.error('Failed to load locations:', err)
-    } finally {
-      setLoading(false)
-    }
-  }, [])
-
-  useEffect(() => {
-    loadLocations()
-  }, [loadLocations])
-
-  // 過濾資料
-  useEffect(() => {
+  // 過濾與排序
+  const filteredLocations = useMemo(() => {
     let filtered = locations
 
-    // 依分頁過濾
-    if (activeTab !== 'all') {
-      filtered = filtered.filter((loc) => loc.region === activeTab)
+    // 依分頁過濾（根據 country 判斷台灣或海外）
+    if (activeTab === 'taiwan') {
+      filtered = filtered.filter(
+        (loc) => loc.country === '台灣' || loc.country === 'Taiwan'
+      )
+    } else if (activeTab === 'overseas') {
+      filtered = filtered.filter(
+        (loc) => loc.country !== '台灣' && loc.country !== 'Taiwan'
+      )
     }
 
     // 依搜尋詞過濾
@@ -157,16 +84,31 @@ export default function LocationsScreen() {
     }
 
     // 依訪客數排序
-    filtered = filtered.sort((a, b) => b.visitors.length - a.visitors.length)
-
-    setFilteredLocations(filtered)
+    return [...filtered].sort((a, b) => (b.visitor_count ?? 0) - (a.visitor_count ?? 0))
   }, [locations, activeTab, searchTerm])
 
+  // 計算分頁數量
+  const taiwanCount = useMemo(
+    () =>
+      locations.filter(
+        (loc) => loc.country === '台灣' || loc.country === 'Taiwan'
+      ).length,
+    [locations]
+  )
+  const overseasCount = useMemo(
+    () =>
+      locations.filter(
+        (loc) => loc.country !== '台灣' && loc.country !== 'Taiwan'
+      ).length,
+    [locations]
+  )
+
+  const [refreshing, setRefreshing] = useState(false)
   const handleRefresh = useCallback(async () => {
     setRefreshing(true)
-    await loadLocations()
+    await queryClient.invalidateQueries({ queryKey: ['climbing-locations-explore'] })
     setRefreshing(false)
-  }, [loadLocations])
+  }, [queryClient])
 
   const renderLocationCard = ({ item, index }: { item: LocationData; index: number }) => (
     <Animated.View entering={FadeInDown.delay(index * 50).duration(400)}>
@@ -182,7 +124,7 @@ export default function LocationsScreen() {
                 {item.location}
               </Text>
               <View style={styles.countryRow}>
-                {item.region === 'taiwan' ? (
+                {item.country === '台灣' || item.country === 'Taiwan' ? (
                   <MapPin size={14} color={SEMANTIC_COLORS.textMuted} />
                 ) : (
                   <Globe size={14} color={SEMANTIC_COLORS.textMuted} />
@@ -195,13 +137,13 @@ export default function LocationsScreen() {
             <View style={styles.visitorCount}>
               <Users size={16} color={SEMANTIC_COLORS.textSubtle} />
               <Text variant="body" fontWeight="500">
-                {item.visitors.length}
+                {item.visitor_count ?? 0}
               </Text>
             </View>
           </View>
 
           {/* 訪客頭像 */}
-          {item.visitors.length > 0 && (
+          {item.visitors && item.visitors.length > 0 && (
             <View style={styles.avatarStack}>
               {item.visitors.slice(0, 5).map((visitor, i) => (
                 <View key={visitor.id} style={[styles.stackedAvatar, { zIndex: 5 - i }]}>
@@ -271,7 +213,7 @@ export default function LocationsScreen() {
               variant="small"
               style={[styles.tabText, activeTab === 'taiwan' && styles.tabTextActive]}
             >
-              台灣
+              台灣 ({taiwanCount})
             </Text>
           </Pressable>
           <Pressable
@@ -286,7 +228,7 @@ export default function LocationsScreen() {
               variant="small"
               style={[styles.tabText, activeTab === 'overseas' && styles.tabTextActive]}
             >
-              海外
+              海外 ({overseasCount})
             </Text>
           </Pressable>
         </View>
@@ -296,6 +238,10 @@ export default function LocationsScreen() {
       {loading ? (
         <View style={styles.loadingContainer}>
           <ActivityIndicator size="large" color={SEMANTIC_COLORS.textMain} />
+        </View>
+      ) : error ? (
+        <View style={styles.emptyContainer}>
+          <Text color="textSubtle">載入地點資料時發生錯誤</Text>
         </View>
       ) : (
         <FlatList

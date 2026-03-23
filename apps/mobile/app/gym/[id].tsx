@@ -15,7 +15,7 @@
  * - 相關岩館推薦
  * - 上一篇/下一篇導航
  */
-import React, { useState, useEffect, useCallback, useMemo } from 'react'
+import React, { useMemo } from 'react'
 import {
   StyleSheet,
   View,
@@ -26,7 +26,7 @@ import {
   Linking,
   Pressable,
 } from 'react-native'
-import { useLocalSearchParams, useRouter, Link } from 'expo-router'
+import { useLocalSearchParams, useRouter } from 'expo-router'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import { LinearGradient } from 'expo-linear-gradient'
 import {
@@ -52,14 +52,8 @@ import {
 
 import { Text, IconButton, Button, Card } from '@/components/ui'
 import { SEMANTIC_COLORS, SPACING, RADIUS, COLORS } from '@nobodyclimb/constants'
-import {
-  getGymById,
-  getAdjacentGyms,
-  getRelatedGyms,
-  type GymDetailData,
-  type GymListItem,
-  type GymPricing,
-} from '@/lib/gym-data'
+import { useGymDetail, useAdjacentGyms, useRelatedGyms } from '@/lib/hooks/useGyms'
+import type { GymDetailData, GymListItem, GymPricing } from '@/lib/gym-data'
 
 // ============ 封面產生器組件 ============
 
@@ -198,52 +192,22 @@ export default function GymDetailScreen() {
   const router = useRouter()
   const { id } = useLocalSearchParams<{ id: string }>()
 
-  const [gym, setGym] = useState<GymDetailData | null>(null)
-  const [adjacentGyms, setAdjacentGyms] = useState<{
-    prev: GymListItem | null
-    next: GymListItem | null
-  }>({ prev: null, next: null })
-  const [relatedGyms, setRelatedGyms] = useState<GymListItem[]>([])
-  const [isLoading, setIsLoading] = useState(true)
-  const [refreshing, setRefreshing] = useState(false)
-  const [error, setError] = useState<string | null>(null)
+  const {
+    data: gym,
+    isLoading,
+    error: gymError,
+    refetch,
+  } = useGymDetail(id)
+  const { data: adjacentGyms = { prev: null, next: null } } = useAdjacentGyms(id)
+  const { data: relatedGyms = [] } = useRelatedGyms(id, 3)
 
-  // 載入資料
-  const loadGym = useCallback(async () => {
-    if (!id) return
+  const [refreshing, setRefreshing] = React.useState(false)
 
-    try {
-      setError(null)
-      const gymData = await getGymById(id)
-      const adjacent = await getAdjacentGyms(id)
-      const related = await getRelatedGyms(id, 3)
-
-      if (!gymData) {
-        setError('找不到這間岩館')
-        return
-      }
-
-      setGym(gymData)
-      setAdjacentGyms(adjacent)
-      setRelatedGyms(related)
-    } catch (err) {
-      console.error('Error fetching gym data:', err)
-      setError('無法載入岩館資料，請稍後再試')
-    } finally {
-      setIsLoading(false)
-      setRefreshing(false)
-    }
-  }, [id])
-
-  useEffect(() => {
-    setIsLoading(true)
-    loadGym()
-  }, [loadGym])
-
-  const handleRefresh = useCallback(async () => {
+  const handleRefresh = async () => {
     setRefreshing(true)
-    await loadGym()
-  }, [loadGym])
+    await refetch()
+    setRefreshing(false)
+  }
 
   const handleBack = () => {
     router.back()
@@ -355,7 +319,7 @@ export default function GymDetailScreen() {
   }
 
   // 錯誤狀態
-  if (error || !gym) {
+  if (gymError || !gym) {
     return (
       <SafeAreaView style={styles.container} edges={['top']}>
         <View style={styles.header}>
@@ -366,7 +330,7 @@ export default function GymDetailScreen() {
           />
         </View>
         <View style={styles.errorContainer}>
-          <Text color="textSubtle">{error || '找不到這間岩館'}</Text>
+          <Text color="textSubtle">找不到這間岩館</Text>
           <Button variant="secondary" size="md" onPress={() => router.push('/gym' as any)}>
             返回岩館列表
           </Button>
@@ -492,54 +456,62 @@ export default function GymDetailScreen() {
         </View>
 
         {/* 場地介紹 */}
-        <Card style={styles.section}>
-          <SectionHeader title="場地介紹" />
-          <Text variant="body" color="textSubtle" style={styles.description}>
-            {gym.description}
-          </Text>
-        </Card>
+        {gym.description && (
+          <Card style={styles.section}>
+            <SectionHeader title="場地介紹" />
+            <Text variant="body" color="textSubtle" style={styles.description}>
+              {gym.description}
+            </Text>
+          </Card>
+        )}
 
         {/* 收費方式 */}
-        <Card style={styles.section}>
-          <SectionHeader title="收費方式" />
+        {gym.pricing && gym.pricing.singleEntry && (
+          <Card style={styles.section}>
+            <SectionHeader title="收費方式" />
 
-          <Text variant="body" fontWeight="600" style={styles.subSectionTitle}>
-            入場費
-          </Text>
-          <View style={styles.priceGrid}>
-            {formatPricing(gym.pricing).map((item, index) => (
-              <View key={index} style={styles.priceItem}>
-                <Text variant="small" color="textSubtle">
-                  {item.label}
-                </Text>
-                <Text variant="body" fontWeight="500">
-                  {item.price}
-                </Text>
-              </View>
-            ))}
-          </View>
-          {gym.pricing.notes && (
-            <Text variant="small" color="textMuted" style={styles.priceNotes}>
-              {gym.pricing.notes}
+            <Text variant="body" fontWeight="600" style={styles.subSectionTitle}>
+              入場費
             </Text>
-          )}
+            <View style={styles.priceGrid}>
+              {formatPricing(gym.pricing).map((item, index) => (
+                <View key={index} style={styles.priceItem}>
+                  <Text variant="small" color="textSubtle">
+                    {item.label}
+                  </Text>
+                  <Text variant="body" fontWeight="500">
+                    {item.price}
+                  </Text>
+                </View>
+              ))}
+            </View>
+            {gym.pricing.notes && (
+              <Text variant="small" color="textMuted" style={styles.priceNotes}>
+                {gym.pricing.notes}
+              </Text>
+            )}
 
-          <Text variant="body" fontWeight="600" style={styles.subSectionTitle}>
-            裝備租借
-          </Text>
-          <View style={styles.priceGrid}>
-            {formatRental(gym.pricing.rental).map((item, index) => (
-              <View key={index} style={styles.priceItem}>
-                <Text variant="small" color="textSubtle">
-                  {item.label}
+            {gym.pricing.rental && (
+              <>
+                <Text variant="body" fontWeight="600" style={styles.subSectionTitle}>
+                  裝備租借
                 </Text>
-                <Text variant="body" fontWeight="500">
-                  {item.price}
-                </Text>
-              </View>
-            ))}
-          </View>
-        </Card>
+                <View style={styles.priceGrid}>
+                  {formatRental(gym.pricing.rental).map((item, index) => (
+                    <View key={index} style={styles.priceItem}>
+                      <Text variant="small" color="textSubtle">
+                        {item.label}
+                      </Text>
+                      <Text variant="body" fontWeight="500">
+                        {item.price}
+                      </Text>
+                    </View>
+                  ))}
+                </View>
+              </>
+            )}
+          </Card>
+        )}
 
         {/* 交通方式 */}
         <Card style={styles.section}>

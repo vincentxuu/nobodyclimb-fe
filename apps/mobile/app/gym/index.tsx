@@ -9,7 +9,7 @@
  * - 搜尋功能
  * - Pull-to-Refresh
  */
-import React, { useState, useCallback, useEffect, useMemo } from 'react'
+import React, { useState, useCallback, useMemo } from 'react'
 import {
   StyleSheet,
   View,
@@ -21,7 +21,6 @@ import {
 } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import { useRouter } from 'expo-router'
-import { Image } from 'expo-image'
 import {
   ChevronLeft,
   MapPin,
@@ -39,12 +38,8 @@ import Animated, {
 
 import { Text, SearchInput, IconButton, Card, Button } from '@/components/ui'
 import { SEMANTIC_COLORS, SPACING, RADIUS, COLORS } from '@nobodyclimb/constants'
-import {
-  searchGyms,
-  type GymListItem,
-  REGIONS,
-  GYM_TYPES,
-} from '@/lib/gym-data'
+import { useSearchGyms } from '@/lib/hooks/useGyms'
+import { REGIONS, GYM_TYPES, type GymListItem } from '@/lib/gym-data'
 
 // ============ 封面產生器組件 ============
 
@@ -55,7 +50,6 @@ interface GymCoverProps {
 }
 
 function GymCover({ type, name, typeLabel }: GymCoverProps) {
-  // 根據類型決定漸層色
   const gradientColors = useMemo(() => {
     switch (type) {
       case 'bouldering':
@@ -187,42 +181,24 @@ export default function GymListScreen() {
   const [selectedRegion, setSelectedRegion] = useState('所有地區')
   const [selectedType, setSelectedType] = useState('所有類型')
   const [isFilterExpanded, setIsFilterExpanded] = useState(false)
-  const [gyms, setGyms] = useState<GymListItem[]>([])
-  const [isLoading, setIsLoading] = useState(true)
   const [refreshing, setRefreshing] = useState(false)
-  const [error, setError] = useState<string | null>(null)
 
   // 動畫狀態
   const filterHeight = useSharedValue(0)
 
-  // 載入資料
-  const loadGyms = useCallback(async () => {
-    try {
-      setError(null)
-      const data = await searchGyms({
-        query: searchTerm,
-        region: selectedRegion,
-        type: selectedType,
-      })
-      setGyms(data)
-    } catch (err) {
-      console.error('Error fetching gyms:', err)
-      setError('無法載入岩館資料，請稍後再試')
-    } finally {
-      setIsLoading(false)
-      setRefreshing(false)
-    }
-  }, [searchTerm, selectedRegion, selectedType])
-
-  useEffect(() => {
-    setIsLoading(true)
-    loadGyms()
-  }, [loadGyms])
+  // 使用 API hook 搜尋岩館
+  const { data: gyms, isLoading, error } = useSearchGyms({
+    query: searchTerm,
+    region: selectedRegion,
+    type: selectedType,
+  })
 
   const handleRefresh = useCallback(async () => {
     setRefreshing(true)
-    await loadGyms()
-  }, [loadGyms])
+    // useSearchGyms 會自動重新 fetch 底層的 useGyms
+    // 短暫延遲讓使用者感知到 refresh 動作
+    setTimeout(() => setRefreshing(false), 500)
+  }, [])
 
   const handleBack = () => {
     router.back()
@@ -281,16 +257,18 @@ export default function GymListScreen() {
     <View style={styles.emptyContainer}>
       {error ? (
         <>
-          <Text color="textSubtle">{error}</Text>
+          <Text color="textSubtle">無法載入岩館資料，請稍後再試</Text>
           <Button
             variant="secondary"
             size="sm"
-            onPress={loadGyms}
+            onPress={handleRefresh}
             style={styles.retryButton}
           >
             重試
           </Button>
         </>
+      ) : isLoading ? (
+        <ActivityIndicator size="large" color={SEMANTIC_COLORS.textMain} />
       ) : (
         <>
           <Text color="textSubtle">
@@ -416,7 +394,7 @@ export default function GymListScreen() {
       </View>
 
       {/* 列表 */}
-      {isLoading ? (
+      {isLoading && gyms.length === 0 ? (
         <View style={styles.loadingContainer}>
           <ActivityIndicator size="large" color={SEMANTIC_COLORS.textMain} />
           <Text color="textSubtle" style={styles.loadingText}>

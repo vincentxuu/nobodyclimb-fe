@@ -4,6 +4,7 @@
  * 對應 apps/web/src/lib/hooks/useCoreStories.ts
  */
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
+import { apiClient } from '@/lib/api'
 
 interface CoreStory {
   id: string
@@ -40,44 +41,15 @@ export function useCoreStories(biographyId: string): UseCoreStoriesResult {
   } = useQuery<CoreStory[]>({
     queryKey,
     queryFn: async () => {
-      // TODO: 整合實際 API
-      // const response = await apiClient.get(`/api/v1/biographies/${biographyId}/core-stories`)
-      // return response.data
-
-      // 模擬資料
-      return [
-        {
-          id: '1',
-          biographyId,
-          dimension: 'beginning',
-          question: '你是怎麼開始攀岩的？',
-          answer: '大學時期朋友邀請去體驗...',
-          isPublic: true,
-          order: 0,
-          createdAt: '2024-01-01',
-          updatedAt: '2024-01-15',
-        },
-        {
-          id: '2',
-          biographyId,
-          dimension: 'milestone',
-          question: '攀岩生涯中最難忘的時刻？',
-          answer: null,
-          isPublic: true,
-          order: 1,
-          createdAt: '2024-01-01',
-          updatedAt: '2024-01-01',
-        },
-      ]
+      const response = await apiClient.get(`/content/biographies/${biographyId}/core-stories`)
+      return response.data?.data ?? response.data ?? []
     },
     enabled: !!biographyId,
   })
 
   const updateMutation = useMutation({
     mutationFn: async ({ id, data }: { id: string; data: Partial<CoreStory> }) => {
-      // TODO: 整合實際 API
-      // await apiClient.patch(`/api/v1/core-stories/${id}`, data)
-      console.log('Update story:', id, data)
+      await apiClient.patch(`/content/core-stories/${id}`, data)
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey })
@@ -86,9 +58,7 @@ export function useCoreStories(biographyId: string): UseCoreStoriesResult {
 
   const addMutation = useMutation({
     mutationFn: async (data: Omit<CoreStory, 'id' | 'createdAt' | 'updatedAt'>) => {
-      // TODO: 整合實際 API
-      // await apiClient.post(`/api/v1/biographies/${biographyId}/core-stories`, data)
-      console.log('Add story:', data)
+      await apiClient.post(`/content/biographies/${biographyId}/core-stories`, data)
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey })
@@ -97,9 +67,7 @@ export function useCoreStories(biographyId: string): UseCoreStoriesResult {
 
   const deleteMutation = useMutation({
     mutationFn: async (id: string) => {
-      // TODO: 整合實際 API
-      // await apiClient.delete(`/api/v1/core-stories/${id}`)
-      console.log('Delete story:', id)
+      await apiClient.delete(`/content/core-stories/${id}`)
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey })
@@ -108,9 +76,7 @@ export function useCoreStories(biographyId: string): UseCoreStoriesResult {
 
   const reorderMutation = useMutation({
     mutationFn: async (storyIds: string[]) => {
-      // TODO: 整合實際 API
-      // await apiClient.post(`/api/v1/biographies/${biographyId}/core-stories/reorder`, { storyIds })
-      console.log('Reorder stories:', storyIds)
+      await apiClient.post(`/content/biographies/${biographyId}/core-stories/reorder`, { storyIds })
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey })

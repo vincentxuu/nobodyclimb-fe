@@ -26,6 +26,7 @@ import { zhTW } from 'date-fns/locale'
 import { useAuthStore } from '@/store/authStore'
 import { Text, Button, IconButton } from '@/components/ui'
 import { BRAND_YELLOW, RADIUS, SEMANTIC_COLORS, SPACING, WB_COLORS } from '@nobodyclimb/constants'
+import { apiClient } from '@/lib/api'
 
 // 通知類型枚舉
 enum NotificationType {
@@ -97,11 +98,11 @@ export function NotificationCenter({ style }: NotificationCenterProps) {
   const loadUnreadCount = useCallback(async () => {
     if (!isInitialized || !isAuthenticated) return
     try {
-      // TODO: 整合 notificationService
-      // const response = await notificationService.getUnreadCount()
-      // if (response.success && response.data) {
-      //   setUnreadCount(response.data.count)
-      // }
+      const response = await apiClient.get('/notifications/unread-count')
+      const result = response.data?.data ?? response.data
+      if (result?.count != null) {
+        setUnreadCount(result.count)
+      }
     } catch (error) {
       if (__DEV__) {
         console.error('Failed to load unread count:', error)
@@ -115,17 +116,22 @@ export function NotificationCenter({ style }: NotificationCenterProps) {
       if (!isInitialized || !isAuthenticated) return
       setIsLoading(true)
       try {
-        // TODO: 整合 notificationService
-        // const response = await notificationService.getNotifications(pageNum, 10)
-        // if (response.success && response.data) {
-        //   const newData = response.data
-        //   if (append) {
-        //     setNotifications((prev) => [...prev, ...newData])
-        //   } else {
-        //     setNotifications(newData)
-        //   }
-        //   setHasMore(response.pagination.page < response.pagination.total_pages)
-        // }
+        const response = await apiClient.get('/notifications', {
+          params: { page: pageNum, limit: 10 },
+        })
+        const result = response.data
+        const newData = result?.data ?? []
+        if (append) {
+          setNotifications((prev) => [...prev, ...newData])
+        } else {
+          setNotifications(newData)
+        }
+        const pagination = result?.pagination
+        if (pagination) {
+          setHasMore(pagination.page < pagination.total_pages)
+        } else {
+          setHasMore(newData.length >= 10)
+        }
       } catch (error) {
         if (__DEV__) {
           console.error('Failed to load notifications:', error)
@@ -153,41 +159,55 @@ export function NotificationCenter({ style }: NotificationCenterProps) {
 
   // 標記為已讀
   const handleMarkAsRead = async (id: string) => {
+    const notification = notifications.find((n) => n.id === id)
+    if (notification?.is_read) return
+    setNotifications((prev) =>
+      prev.map((n) => (n.id === id ? { ...n, is_read: 1 } : n))
+    )
+    setUnreadCount((prev) => Math.max(0, prev - 1))
     try {
-      // TODO: 整合 notificationService
-      // await notificationService.markAsRead(id)
-      setNotifications((prev) =>
-        prev.map((n) => (n.id === id ? { ...n, is_read: 1 } : n))
-      )
-      setUnreadCount((prev) => Math.max(0, prev - 1))
+      await apiClient.put(`/notifications/${id}/read`)
     } catch (error) {
+      // 回滾
+      setNotifications((prev) =>
+        prev.map((n) => (n.id === id ? { ...n, is_read: 0 } : n))
+      )
+      setUnreadCount((prev) => prev + 1)
       console.error('Failed to mark as read:', error)
     }
   }
 
   // 全部標記為已讀
   const handleMarkAllAsRead = async () => {
+    const prevNotifications = [...notifications]
+    const prevUnread = unreadCount
+    setNotifications((prev) => prev.map((n) => ({ ...n, is_read: 1 })))
+    setUnreadCount(0)
     try {
-      // TODO: 整合 notificationService
-      // await notificationService.markAllAsRead()
-      setNotifications((prev) => prev.map((n) => ({ ...n, is_read: 1 })))
-      setUnreadCount(0)
+      await apiClient.put('/notifications/read-all')
     } catch (error) {
+      // 回滾
+      setNotifications(prevNotifications)
+      setUnreadCount(prevUnread)
       console.error('Failed to mark all as read:', error)
     }
   }
 
   // 刪除通知
   const handleDelete = async (id: string) => {
+    const notification = notifications.find((n) => n.id === id)
+    const prevNotifications = [...notifications]
+    const prevUnread = unreadCount
+    setNotifications((prev) => prev.filter((n) => n.id !== id))
+    if (notification && !notification.is_read) {
+      setUnreadCount((prev) => Math.max(0, prev - 1))
+    }
     try {
-      // TODO: 整合 notificationService
-      // await notificationService.deleteNotification(id)
-      const notification = notifications.find((n) => n.id === id)
-      setNotifications((prev) => prev.filter((n) => n.id !== id))
-      if (notification && !notification.is_read) {
-        setUnreadCount((prev) => Math.max(0, prev - 1))
-      }
+      await apiClient.delete(`/notifications/${id}`)
     } catch (error) {
+      // 回滾
+      setNotifications(prevNotifications)
+      setUnreadCount(prevUnread)
       console.error('Failed to delete notification:', error)
     }
   }

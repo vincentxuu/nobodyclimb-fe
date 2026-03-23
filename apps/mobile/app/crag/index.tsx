@@ -4,21 +4,22 @@
  * 對應 apps/web/src/app/crag/page.tsx
  */
 import React, { useState, useCallback, useMemo } from 'react'
-import { StyleSheet, View, FlatList, RefreshControl } from 'react-native'
+import { StyleSheet, View, FlatList, RefreshControl, ActivityIndicator } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import { useRouter } from 'expo-router'
 import { ChevronLeft, MapPin, Mountain } from 'lucide-react-native'
 
 import { Text, SearchInput, IconButton, EmptyState } from '@/components/ui'
 import { CragCard } from '@/components/crag'
-import { getAllCrags, searchCrags, type CragListItem } from '@/lib/crag-data'
+import { useCrags } from '@/lib/hooks/useCrags'
+import type { CragListItem } from '@/lib/crag-data'
 import { SEMANTIC_COLORS, SPACING } from '@nobodyclimb/constants'
 
 export default function CragListScreen() {
   const router = useRouter()
   const [searchTerm, setSearchTerm] = useState('')
+  const { data: crags = [], isLoading, refetch } = useCrags({ limit: 50 })
   const [refreshing, setRefreshing] = useState(false)
-  const [crags, setCrags] = useState<CragListItem[]>(() => getAllCrags())
 
   const handleBack = () => {
     router.back()
@@ -33,17 +34,22 @@ export default function CragListScreen() {
 
   const handleRefresh = useCallback(async () => {
     setRefreshing(true)
-    // 重新載入資料
-    setCrags(getAllCrags())
+    await refetch()
     setRefreshing(false)
-  }, [])
+  }, [refetch])
 
   // 過濾岩場
   const filteredCrags = useMemo(() => {
     if (!searchTerm.trim()) {
       return crags
     }
-    return searchCrags({ query: searchTerm })
+    const query = searchTerm.toLowerCase()
+    return crags.filter(
+      (crag) =>
+        crag.name.toLowerCase().includes(query) ||
+        crag.nameEn.toLowerCase().includes(query) ||
+        crag.location.toLowerCase().includes(query)
+    )
   }, [crags, searchTerm])
 
   const renderItem = useCallback(
@@ -67,6 +73,16 @@ export default function CragListScreen() {
   )
 
   const renderEmptyState = useCallback(() => {
+    if (isLoading) {
+      return (
+        <View style={styles.loadingContainer}>
+          <ActivityIndicator size="large" color={SEMANTIC_COLORS.textMain} />
+          <Text color="textSubtle" style={{ marginTop: SPACING.sm }}>
+            載入中...
+          </Text>
+        </View>
+      )
+    }
     if (searchTerm) {
       return (
         <EmptyState
@@ -83,7 +99,7 @@ export default function CragListScreen() {
         description="岩場資料載入中，請稍後再試"
       />
     )
-  }, [searchTerm])
+  }, [searchTerm, isLoading])
 
   return (
     <SafeAreaView style={styles.container} edges={['top']}>
@@ -175,5 +191,11 @@ const styles = StyleSheet.create({
   },
   separator: {
     height: SPACING.sm,
+  },
+  loadingContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingVertical: SPACING.xxl,
   },
 })

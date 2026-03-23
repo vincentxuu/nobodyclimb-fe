@@ -3,7 +3,7 @@
  *
  * 對應 apps/web/src/app/biography/profile/[slug]/page.tsx
  */
-import React, { useState, useEffect, useCallback } from 'react'
+import React, { useCallback } from 'react'
 import {
   StyleSheet,
   View,
@@ -15,19 +15,20 @@ import {
 import { useLocalSearchParams, useRouter } from 'expo-router'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import { ChevronLeft, Share2 } from 'lucide-react-native'
+import { useQuery, useQueryClient } from '@tanstack/react-query'
 
 import { Text, IconButton } from '@/components/ui'
-import { ScrollLayout } from '@/components/layout'
 import {
   BiographyHero,
   EmptyState,
   StoryCard,
 } from '@/components/biography/display'
 import { useAuthStore } from '@/store/authStore'
+import { apiClient } from '@/lib/api'
 import { SEMANTIC_COLORS, SPACING } from '@nobodyclimb/constants'
 
-// 模擬類型
-interface BiographyV2 {
+// 類型定義
+interface Biography {
   id: string
   name: string
   slug: string
@@ -42,74 +43,109 @@ interface BiographyV2 {
   total_likes?: number
   follower_count?: number
   comment_count?: number
-  one_liners?: Array<{ id: string; question: string; answer: string }>
-  stories?: Array<{ id: string; title: string; content?: string; cover_url?: string }>
+}
+
+interface OneLiner {
+  id: string
+  question_id: string
+  question_text?: string
+  answer: string
+  like_count?: number
+  comment_count?: number
+}
+
+interface Story {
+  id: string
+  question_id?: string
+  question_text?: string
+  title?: string
+  content?: string
+  cover_url?: string
+  category_id?: string
+  like_count?: number
+  comment_count?: number
 }
 
 export default function BiographyDetailScreen() {
   const router = useRouter()
+  const queryClient = useQueryClient()
   const { slug } = useLocalSearchParams<{ slug: string }>()
   const { user } = useAuthStore()
 
-  const [biography, setBiography] = useState<BiographyV2 | null>(null)
-  const [isLoading, setIsLoading] = useState(true)
-  const [error, setError] = useState<string | null>(null)
-  const [refreshing, setRefreshing] = useState(false)
+  // 取得人物誌基本資料
+  const {
+    data: biography,
+    isLoading: bioLoading,
+    error: bioError,
+  } = useQuery<Biography>({
+    queryKey: ['biography', 'slug', slug],
+    queryFn: async () => {
+      const response = await apiClient.get(`/biographies/slug/${slug}`)
+      const data = response.data?.data ?? response.data
+      return data
+    },
+    enabled: !!slug,
+  })
+
+  const biographyId = biography?.id
+
+  // 取得一句話
+  const { data: oneLiners = [] } = useQuery<OneLiner[]>({
+    queryKey: ['one-liners', biographyId],
+    queryFn: async () => {
+      const response = await apiClient.get(
+        `/content/biographies/${biographyId}/one-liners`
+      )
+      return response.data?.data ?? response.data ?? []
+    },
+    enabled: !!biographyId,
+  })
+
+  // 取得小故事
+  const { data: stories = [] } = useQuery<Story[]>({
+    queryKey: ['stories', biographyId],
+    queryFn: async () => {
+      const response = await apiClient.get(
+        `/content/biographies/${biographyId}/stories`
+      )
+      return response.data?.data ?? response.data ?? []
+    },
+    enabled: !!biographyId,
+  })
+
+  // 取得統計資料
+  const { data: stats } = useQuery({
+    queryKey: ['biography-stats', biographyId],
+    queryFn: async () => {
+      const response = await apiClient.get(`/biographies/${biographyId}/stats`)
+      return response.data?.data ?? response.data
+    },
+    enabled: !!biographyId,
+  })
 
   // 是否為擁有者
   const isOwner = user?.id === biography?.id
 
-  // 載入資料
-  const loadBiography = useCallback(async () => {
-    if (!slug) return
-
-    setIsLoading(true)
-    setError(null)
-
-    try {
-      // TODO: 整合 biographyService
-      // const response = await biographyService.getBiographyBySlug(slug)
-      // setBiography(response.data)
-
-      // 模擬資料
-      await new Promise((resolve) => setTimeout(resolve, 500))
-      setBiography({
-        id: '1',
-        name: '測試用戶',
-        slug: slug,
-        title: '熱愛攀岩的人',
-        climbing_years: 5,
-        frequent_locations: ['龍洞', '大砲岩'],
-        total_views: 100,
-        total_likes: 10,
-        follower_count: 5,
-        comment_count: 3,
-        one_liners: [
-          { id: 'q1', question: '攀岩對你來說是什麼？', answer: '是一種生活方式，讓我更了解自己' },
-        ],
-        stories: [
-          { id: 's1', title: '第一次攀岩的經驗', content: '那是一個陽光明媚的下午...' },
-        ],
-      })
-    } catch (err) {
-      console.error('Failed to load biography:', err)
-      setError('無法載入人物誌')
-    } finally {
-      setIsLoading(false)
-    }
-  }, [slug])
-
-  // 初始載入
-  useEffect(() => {
-    loadBiography()
-  }, [loadBiography])
+  // 合併統計資料到 biography
+  const enrichedBiography = biography
+    ? {
+        ...biography,
+        total_views: stats?.total_views ?? biography.total_views ?? 0,
+        total_likes: stats?.total_likes ?? biography.total_likes ?? 0,
+        follower_count: stats?.follower_count ?? biography.follower_count ?? 0,
+      }
+    : null
 
   // 刷新
+  const [refreshing, setRefreshing] = React.useState(false)
   const handleRefresh = useCallback(async () => {
     setRefreshing(true)
-    await loadBiography()
+    await queryClient.invalidateQueries({ queryKey: ['biography', 'slug', slug] })
+    await queryClient.invalidateQueries({ queryKey: ['one-liners', biographyId] })
+    await queryClient.invalidateQueries({ queryKey: ['stories', biographyId] })
+    await queryClient.invalidateQueries({ queryKey: ['biography-stats', biographyId] })
     setRefreshing(false)
-  }, [loadBiography])
+  }, [queryClient, slug, biographyId])
 
   // 分享
   const handleShare = useCallback(async () => {
@@ -131,7 +167,7 @@ export default function BiographyDetailScreen() {
   }
 
   // 載入中
-  if (isLoading) {
+  if (bioLoading) {
     return (
       <SafeAreaView style={styles.container} edges={['top']}>
         <View style={styles.loadingContainer}>
@@ -142,7 +178,7 @@ export default function BiographyDetailScreen() {
   }
 
   // 錯誤
-  if (error || !biography) {
+  if (bioError || !enrichedBiography) {
     return (
       <SafeAreaView style={styles.container} edges={['top']}>
         <View style={styles.header}>
@@ -155,7 +191,11 @@ export default function BiographyDetailScreen() {
         <View style={styles.errorContainer}>
           <EmptyState
             title="找不到此人物誌"
-            description={error || '該人物誌可能不存在或已被刪除'}
+            description={
+              bioError instanceof Error
+                ? bioError.message
+                : '該人物誌可能不存在或已被刪除'
+            }
           />
         </View>
       </SafeAreaView>
@@ -187,22 +227,22 @@ export default function BiographyDetailScreen() {
       >
         {/* Hero 區塊 */}
         <BiographyHero
-          biography={biography}
+          biography={enrichedBiography}
           isOwner={isOwner}
           showActions={true}
           onShare={handleShare}
         />
 
         {/* One-liners 區塊 */}
-        {biography.one_liners && biography.one_liners.length > 0 && (
+        {oneLiners.length > 0 && (
           <View style={styles.section}>
             <Text variant="h4" fontWeight="600" style={styles.sectionTitle}>
               一句話
             </Text>
-            {biography.one_liners.map((item) => (
+            {oneLiners.map((item) => (
               <View key={item.id} style={styles.oneLiner}>
                 <Text variant="small" color="textMuted">
-                  {item.question}
+                  {item.question_text || ''}
                 </Text>
                 <Text variant="body" style={styles.oneLinerAnswer}>
                   「{item.answer}」
@@ -213,15 +253,18 @@ export default function BiographyDetailScreen() {
         )}
 
         {/* 故事區塊 */}
-        {biography.stories && biography.stories.length > 0 && (
+        {stories.length > 0 && (
           <View style={styles.section}>
             <Text variant="h4" fontWeight="600" style={styles.sectionTitle}>
               我的故事
             </Text>
-            {biography.stories.map((story, index) => (
+            {stories.map((story, index) => (
               <StoryCard
                 key={story.id}
-                story={story}
+                story={{
+                  ...story,
+                  title: story.title || story.question_text || '',
+                }}
                 index={index}
                 onPress={() => {
                   // TODO: 導航到故事詳情

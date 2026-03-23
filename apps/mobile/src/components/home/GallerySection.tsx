@@ -13,6 +13,7 @@ import Animated, { FadeInDown } from 'react-native-reanimated'
 import { Text, Button, Skeleton } from '@/components/ui'
 import { FadeIn } from '@/components/animation'
 import { BORDER_RADIUS, SEMANTIC_COLORS, SPACING, WB_COLORS } from '@nobodyclimb/constants'
+import { apiClient } from '@/lib/api'
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window')
 const COLUMN_GAP = SPACING[3]
@@ -114,11 +115,11 @@ export function GallerySection() {
   useEffect(() => {
     async function fetchPhotos() {
       try {
-        // TODO: 替換為實際的 API 端點
-        const response = await fetch('https://api.nobodyclimb.cc/api/v1/gallery?page=1&limit=8')
-        const result = await response.json()
-        if (result.success && result.data) {
-          const transformedPhotos = result.data.map(
+        const response = await apiClient.get('/galleries/photos', { params: { page: 1, limit: 8 } })
+        const result = response.data
+        const photos = result?.data ?? result
+        if (Array.isArray(photos)) {
+          const transformedPhotos = photos.map(
             (photo: GalleryPhoto, index: number) => transformPhoto(photo, index)
           )
           setPhotos(transformedPhotos)

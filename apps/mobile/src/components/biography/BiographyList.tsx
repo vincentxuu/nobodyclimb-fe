@@ -12,6 +12,7 @@ import Animated, {
 } from 'react-native-reanimated'
 
 import { Text, Avatar, Card } from '@/components/ui'
+import { apiClient } from '@/lib/api'
 import { BRAND_YELLOW, RADIUS, SEMANTIC_COLORS, SPACING } from '@nobodyclimb/constants'
 
 // 模擬類型定義 (實際應從 @nobodyclimb/types 導入)
@@ -286,41 +287,24 @@ export function BiographyList({
       setError(null)
 
       try {
-        // TODO: 整合 biographyService
-        // const response = await biographyService.getBiographies(page, 20, searchTerm || undefined)
-        // if (response.success) {
-        //   setBiographies(prev => append ? [...prev, ...response.data] : response.data)
-        //   const hasMoreData = response.pagination.page < response.pagination.total_pages
-        //   setHasMore(hasMoreData)
-        //   setCurrentPage(page)
-        //   onTotalChange?.(response.pagination.total, hasMoreData)
-        // }
+        const params: Record<string, any> = { page, limit: 20 }
+        if (searchTerm) params.search = searchTerm
 
-        // 模擬資料
-        const mockData: Biography[] = [
-          {
-            id: '1',
-            slug: 'test-user-1',
-            name: '測試用戶 1',
-            avatar_url: null,
-            one_liners_data: JSON.stringify([
-              { id: 'q1', question: '攀岩對你來說是什麼？', answer: '是一種生活方式' },
-            ]),
-          },
-          {
-            id: '2',
-            slug: 'test-user-2',
-            name: '測試用戶 2',
-            avatar_url: null,
-            climbing_start_year: 2018,
-          },
-        ]
+        const response = await apiClient.get('/biographies', { params })
+        const result = response.data?.data ?? response.data
+        const items: Biography[] = Array.isArray(result) ? result : result?.items ?? []
+        const pagination = response.data?.pagination ?? result?.pagination
 
-        await new Promise((resolve) => setTimeout(resolve, 500))
-        setBiographies(mockData)
-        setHasMore(false)
-        setCurrentPage(1)
-        onTotalChange?.(mockData.length, false)
+        if (append) {
+          setBiographies((prev) => [...prev, ...items])
+        } else {
+          setBiographies(items)
+        }
+
+        const hasMoreData = pagination ? pagination.page < pagination.total_pages : false
+        setHasMore(hasMoreData)
+        setCurrentPage(page)
+        onTotalChange?.(pagination?.total ?? items.length, hasMoreData)
       } catch (err) {
         console.error('Failed to load biographies:', err)
         setError('載入人物誌時發生錯誤')

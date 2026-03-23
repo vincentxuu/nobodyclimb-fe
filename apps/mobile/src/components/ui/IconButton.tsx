@@ -3,19 +3,15 @@
  *
  * 圓形圖標按鈕
  */
-import React, { useCallback } from 'react'
+import React, { useCallback, useRef } from 'react'
 import {
   Pressable,
   StyleSheet,
   View,
+  Animated,
   type PressableProps,
   type ViewStyle,
 } from 'react-native'
-import Animated, {
-  useSharedValue,
-  useAnimatedStyle,
-  withSpring,
-} from 'react-native-reanimated'
 import {
   SEMANTIC_COLORS,
   BORDER_RADIUS,
@@ -23,7 +19,6 @@ import {
 } from '@nobodyclimb/constants'
 import { Icon, type IconSize, ICON_SIZES } from './Icon'
 import { Text } from './Text'
-import { springConfigLight } from '@/theme/animations'
 import type { LucideIcon } from 'lucide-react-native'
 
 const AnimatedPressable = Animated.createAnimatedComponent(Pressable)
@@ -128,16 +123,15 @@ export function IconButton({
   onPressOut,
   ...props
 }: IconButtonProps) {
-  const scale = useSharedValue(1)
-
-  const animatedStyle = useAnimatedStyle(() => ({
-    transform: [{ scale: scale.value }],
-  }))
+  const scale = useRef(new Animated.Value(1)).current
 
   const handlePressIn = useCallback(
     (e: Parameters<NonNullable<PressableProps['onPressIn']>>[0]) => {
       if (!disabled) {
-        scale.value = withSpring(0.9, springConfigLight)
+        Animated.spring(scale, {
+          toValue: 0.9,
+          useNativeDriver: true,
+        }).start()
       }
       onPressIn?.(e)
     },
@@ -146,7 +140,10 @@ export function IconButton({
 
   const handlePressOut = useCallback(
     (e: Parameters<NonNullable<PressableProps['onPressOut']>>[0]) => {
-      scale.value = withSpring(1, springConfigLight)
+      Animated.spring(scale, {
+        toValue: 1,
+        useNativeDriver: true,
+      }).start()
       onPressOut?.(e)
     },
     [onPressOut, scale]
@@ -159,7 +156,7 @@ export function IconButton({
   return (
     <AnimatedPressable
       style={[
-        animatedStyle,
+        { transform: [{ scale }] },
         buttonStyles,
         {
           width: buttonSize,

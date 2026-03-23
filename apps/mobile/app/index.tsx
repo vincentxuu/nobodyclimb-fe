@@ -6,15 +6,15 @@
  */
 import React, { useCallback, useState } from 'react'
 import { StyleSheet, View } from 'react-native'
+import { YStack } from 'tamagui'
 
 import { SPACING } from '@nobodyclimb/constants'
 import { ScrollLayout } from '@/components/layout'
 import {
   FunFactSection,
-  HeroIntroSection,
-  ExploreCragSection,
-  FeaturedStoriesSection,
   BiographySection,
+  FeaturedStoriesSection,
+  ExploreCragSection,
   AboutSection,
 } from '@/components/home'
 
@@ -33,13 +33,10 @@ export default function HomeScreen() {
       {/* 趣味冷知識 */}
       <FunFactSection />
 
-      {/* 品牌介紹 */}
-      <HeroIntroSection />
-
-      {/* 查路線 - 探索岩場 */}
+      {/* 查路線 - 探索岩場（對應 Web 第 2 區塊） */}
       <ExploreCragSection />
 
-      {/* 看故事 - 精選故事 */}
+      {/* 看故事 - 精選故事（對應 Web 第 3 區塊） */}
       <FeaturedStoriesSection />
 
       {/* 寫紀錄 - 人物誌精選 */}

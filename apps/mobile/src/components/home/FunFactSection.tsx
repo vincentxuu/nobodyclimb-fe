@@ -5,6 +5,7 @@
  */
 import React, { useState, useEffect, useCallback } from 'react'
 import { StyleSheet, View, Pressable, Linking } from 'react-native'
+import { useRouter } from 'expo-router'
 import { YStack, XStack } from 'tamagui'
 import { Lightbulb, ChevronDown, ChevronUp, ExternalLink } from 'lucide-react-native'
 import Animated, {
@@ -77,6 +78,7 @@ function isValidUrl(str: string): boolean {
 }
 
 export function FunFactSection() {
+  const router = useRouter()
   const [isRevealed, setIsRevealed] = useState(false)
   const [currentFact, setCurrentFact] = useState<FunFact | null>(null)
   const [categoryLabel, setCategoryLabel] = useState<string>('')
@@ -89,7 +91,7 @@ export function FunFactSection() {
   useEffect(() => {
     async function loadFunFacts() {
       try {
-        // TODO: 替換為實際的 API 端點
+        // 對齊 Web：使用靜態 JSON 檔案
         const response = await fetch('https://nobodyclimb.cc/data/fun-facts.json')
         const data: FunFactsData = await response.json()
 
@@ -149,10 +151,13 @@ export function FunFactSection() {
   }, [])
 
   const handleLinkPress = useCallback(async (url: string) => {
-    if (await Linking.canOpenURL(url)) {
+    // 內部連結用 router，外部連結用 Linking
+    if (url.startsWith('/')) {
+      router.push(url as any)
+    } else if (await Linking.canOpenURL(url)) {
       await Linking.openURL(url)
     }
-  }, [])
+  }, [router])
 
   if (isLoading) {
     return (

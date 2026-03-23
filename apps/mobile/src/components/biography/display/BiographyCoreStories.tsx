@@ -8,6 +8,7 @@ import { StyleSheet, View, ActivityIndicator } from 'react-native'
 import { Feather } from 'lucide-react-native'
 import Animated, { FadeInDown } from 'react-native-reanimated'
 
+import { apiClient } from '@/lib/api'
 import { Text, Card } from '@/components/ui'
 import { ContentInteractionBar } from './ContentInteractionBar'
 import { RADIUS, SEMANTIC_COLORS, SPACING, WB_COLORS } from '@nobodyclimb/constants'
@@ -105,48 +106,11 @@ export function BiographyCoreStories({
   // 獲取核心故事
   const fetchCoreStories = useCallback(async () => {
     try {
-      // TODO: 整合 biographyContentService.getCoreStories(biographyId)
-      await new Promise((resolve) => setTimeout(resolve, 500))
-
-      // 模擬資料
-      const mockData: CoreStory[] = [
-        {
-          id: '1',
-          question_id: 'climbing_origin',
-          title: '你與攀岩的相遇',
-          subtitle: '是什麼契機讓你開始攀岩？',
-          content:
-            '那是 2021 年的夏天，一位朋友邀請我去岩館體驗。一開始只是覺得好玩，後來發現攀岩不只是運動，更是一種與自己對話的方式。每一條路線都像是一道謎題，需要用身體和心靈去解開。',
-          like_count: 15,
-          comment_count: 8,
-          is_liked: true,
-        },
-        {
-          id: '2',
-          question_id: 'climbing_meaning',
-          title: '攀岩對你來說是什麼？',
-          subtitle: '攀岩在你的人生中扮演什麼角色？',
-          content:
-            '攀岩教會我如何面對恐懼，如何在困境中找到出路。每次站在岩壁下，我都會被提醒：人生就像攀岩，不一定每次都能登頂，但每一步都值得珍惜。',
-          like_count: 23,
-          comment_count: 12,
-          is_liked: false,
-        },
-        {
-          id: '3',
-          question_id: 'advice_to_self',
-          title: '給剛開始攀岩的自己',
-          subtitle: '如果能回到過去，你會給自己什麼建議？',
-          content:
-            '不要害怕失敗，每一次墜落都是學習。享受過程，不要只盯著難度數字。多認識社群裡的朋友，攀岩是一項很溫暖的運動。',
-          like_count: 18,
-          comment_count: 6,
-          is_liked: false,
-        },
-      ]
+      const response = await apiClient.get(`/content/biographies/${biographyId}/core-stories`)
+      const data: CoreStory[] = response.data?.data ?? response.data ?? []
 
       // 按照預定順序排序
-      const sorted = [...mockData].sort((a, b) => {
+      const sorted = [...data].sort((a, b) => {
         const aIndex = CORE_STORY_ORDER.indexOf(a.question_id)
         const bIndex = CORE_STORY_ORDER.indexOf(b.question_id)
         return aIndex - bIndex
@@ -185,9 +149,14 @@ export function BiographyCoreStories({
   }
 
   // 獲取留言
-  const handleFetchComments = async (_storyId: string) => {
-    // TODO: 整合 biographyContentService.getCoreStoryComments(storyId)
-    return []
+  const handleFetchComments = async (storyId: string) => {
+    try {
+      const response = await apiClient.get(`/content/core-stories/${storyId}/comments`)
+      return response.data?.data ?? response.data ?? []
+    } catch (error) {
+      console.error('Failed to fetch comments:', error)
+      return []
+    }
   }
 
   // 新增留言
@@ -199,7 +168,21 @@ export function BiographyCoreStories({
           : item
       )
     )
-    return { id: Date.now().toString(), content, created_at: new Date().toISOString() }
+    try {
+      const response = await apiClient.post(`/content/core-stories/${storyId}/comments`, { content })
+      return response.data?.data ?? response.data ?? { id: Date.now().toString(), content, created_at: new Date().toISOString() }
+    } catch (error) {
+      console.error('Failed to add comment:', error)
+      // 回滾
+      setCoreStories((prev) =>
+        prev.map((item) =>
+          item.id === storyId
+            ? { ...item, comment_count: item.comment_count - 1 }
+            : item
+        )
+      )
+      return { id: Date.now().toString(), content, created_at: new Date().toISOString() }
+    }
   }
 
   if (isLoading) {

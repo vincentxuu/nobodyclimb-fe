@@ -9,6 +9,7 @@ import { Lock } from 'lucide-react-native'
 import Animated, { FadeIn } from 'react-native-reanimated'
 
 import { Text } from '@/components/ui'
+import { apiClient } from '@/lib/api'
 import { BiographyBucketList } from '@/components/bucket-list'
 import { BRAND_YELLOW, RADIUS, SEMANTIC_COLORS, SPACING, WB_COLORS } from '@nobodyclimb/constants'
 
@@ -53,15 +54,9 @@ export function ChapterBucketList({ person, isOwner: _isOwner }: ChapterBucketLi
     }
     setIsLoading(true)
     try {
-      // TODO: 整合 bucketListService.getBucketList(person.id)
-      await new Promise(resolve => setTimeout(resolve, 500))
-
-      // 模擬資料
-      setItems([
-        { id: '1', title: '完攀龍洞黃金海岸', is_completed: true },
-        { id: '2', title: '挑戰 Fontainebleau 經典抱石', is_completed: false },
-        { id: '3', title: '攀登 El Capitan', is_completed: false },
-      ])
+      const response = await apiClient.get(`/biographies/${person.id}/bucket-list`)
+      const data: BucketListItem[] = response.data?.data ?? response.data ?? []
+      setItems(data)
     } catch (error) {
       console.error('Failed to load bucket list:', error)
     } finally {

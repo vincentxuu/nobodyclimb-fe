@@ -2,6 +2,7 @@
  * FeaturedStoriesSection 組件
  *
  * 精選故事區，對應 apps/web/src/components/home/featured-stories-section.tsx
+ * 並行呼叫 3 個 popular API，合併排序後取不重複作者的前 3 筆
  */
 import React, { useState, useEffect, useCallback, useRef } from 'react'
 import { StyleSheet, View, Pressable, FlatList, Dimensions } from 'react-native'
@@ -13,31 +14,109 @@ import Animated, { FadeInRight } from 'react-native-reanimated'
 import { Text, Button, Spinner, Avatar, Card, CardContent } from '@/components/ui'
 import { FadeIn, SlideUp } from '@/components/animation'
 import { SEMANTIC_COLORS, SPACING, BORDER_RADIUS, WB_COLORS } from '@nobodyclimb/constants'
+import { apiClient } from '@/lib/api'
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window')
 const CARD_WIDTH = SCREEN_WIDTH * 0.8
 
-interface FeaturedContent {
+// --- API 回傳型別 ---
+
+interface CoreStory {
   id: string
-  type: 'core-story' | 'one-liner' | 'story'
-  title?: string
-  question?: string
-  content: string
-  answer?: string
-  category_name?: string
-  author_name: string
-  author_avatar?: string
   biography_id: string
-  biography_slug?: string
+  question_id: string
+  content: string
+  title?: string
+  subtitle?: string
   like_count: number
   comment_count: number
+  is_liked?: boolean
+  created_at: string
+  updated_at: string
+  author_name: string
+  author_avatar?: string
+  biography_slug?: string
 }
+
+interface OneLiner {
+  id: string
+  biography_id: string
+  question_id: string
+  question_text?: string
+  answer: string
+  question?: string
+  format_hint?: string
+  like_count: number
+  comment_count: number
+  is_liked?: boolean
+  created_at: string
+  updated_at: string
+  author_name: string
+  author_avatar?: string
+  biography_slug?: string
+}
+
+interface Story {
+  id: string
+  biography_id: string
+  question_id: string
+  question_text?: string
+  category_id?: string
+  content: string
+  title?: string
+  subtitle?: string
+  difficulty?: string
+  category_name?: string
+  category_emoji?: string
+  word_count: number
+  like_count: number
+  comment_count: number
+  is_liked?: boolean
+  created_at: string
+  updated_at: string
+  author_name: string
+  author_avatar?: string
+  biography_slug?: string
+}
+
+interface ApiResponse<T> {
+  success: boolean
+  data?: T
+}
+
+// --- 統一顯示型別 ---
+
+type FeaturedContent =
+  | (CoreStory & { type: 'core-story' })
+  | (OneLiner & { type: 'one-liner' })
+  | (Story & { type: 'story' })
+
+/**
+ * 選取故事，確保每個作者只出現一次
+ * 優先選取讚數最高的，但同作者只取第一個
+ */
+function selectUniqueAuthors(items: FeaturedContent[], limit: number): FeaturedContent[] {
+  const result: FeaturedContent[] = []
+  const seenAuthors = new Set<string>()
+
+  for (const item of items) {
+    if (result.length >= limit) break
+    if (!seenAuthors.has(item.biography_id)) {
+      result.push(item)
+      seenAuthors.add(item.biography_id)
+    }
+  }
+
+  return result
+}
+
+// --- 子元件 ---
 
 function StoryCard({ content, index }: { content: FeaturedContent; index: number }) {
   const router = useRouter()
   const displayName = content.author_name || '匿名'
 
-  // 根據類型取得標題和內容
+  // 根據類型取得標籤和內容文字
   const getDisplayContent = () => {
     switch (content.type) {
       case 'core-story':
@@ -48,7 +127,7 @@ function StoryCard({ content, index }: { content: FeaturedContent; index: number
       case 'one-liner':
         return {
           label: content.question || '一句話',
-          text: content.answer || content.content,
+          text: content.answer,
         }
       case 'story':
         return {
@@ -61,7 +140,10 @@ function StoryCard({ content, index }: { content: FeaturedContent; index: number
   const { label, text } = getDisplayContent()
 
   const handlePress = () => {
-    router.push(`/biography/${content.biography_slug || content.biography_id}`)
+    // 對齊 Web：連結到 /story/{type}/{id}
+    const typeMap = { 'core-story': 'core-stories', 'one-liner': 'one-liners', 'story': 'stories' } as const
+    const routeType = typeMap[content.type]
+    router.push(`/story/${routeType}/${content.id}` as any)
   }
 
   return (
@@ -129,6 +211,8 @@ function StorySkeleton() {
   )
 }
 
+// --- 主元件 ---
+
 export function FeaturedStoriesSection() {
   const router = useRouter()
   const [stories, setStories] = useState<FeaturedContent[]>([])
@@ -141,12 +225,46 @@ export function FeaturedStoriesSection() {
     hasFetched.current = true
 
     try {
-      // TODO: 替換為實際的 API 端點
-      const response = await fetch('https://api.nobodyclimb.cc/api/v1/content/featured?limit=4')
-      const result = await response.json()
-      if (result.success && result.data) {
-        setStories(result.data)
+      // 並行獲取三種類型的熱門內容
+      const [coreStoriesRes, oneLinersRes, storiesRes] = await Promise.all([
+        apiClient.get<ApiResponse<CoreStory[]>>('/content/popular/core-stories', {
+          params: { limit: 4 },
+        }),
+        apiClient.get<ApiResponse<OneLiner[]>>('/content/popular/one-liners', {
+          params: { limit: 4 },
+        }),
+        apiClient.get<ApiResponse<Story[]>>('/content/popular/stories', {
+          params: { limit: 4 },
+        }),
+      ])
+
+      const allContents: FeaturedContent[] = []
+
+      const coreData = coreStoriesRes.data
+      if (coreData?.success && coreData.data) {
+        allContents.push(
+          ...coreData.data.map((item) => ({ ...item, type: 'core-story' as const }))
+        )
       }
+
+      const oneLinerData = oneLinersRes.data
+      if (oneLinerData?.success && oneLinerData.data) {
+        allContents.push(
+          ...oneLinerData.data.map((item) => ({ ...item, type: 'one-liner' as const }))
+        )
+      }
+
+      const storyData = storiesRes.data
+      if (storyData?.success && storyData.data) {
+        allContents.push(
+          ...storyData.data.map((item) => ({ ...item, type: 'story' as const }))
+        )
+      }
+
+      // 根據 like_count 排序，選取不重複作者的前 3 個
+      allContents.sort((a, b) => b.like_count - a.like_count)
+      const uniqueAuthors = selectUniqueAuthors(allContents, 3)
+      setStories(uniqueAuthors)
     } catch (err) {
       console.error('Failed to load featured stories:', err)
       setError('載入故事時發生錯誤')
@@ -160,7 +278,7 @@ export function FeaturedStoriesSection() {
   }, [loadStories])
 
   const handleViewMore = () => {
-    router.push('/biography')
+    router.push('/biography?tab=stories' as any)
   }
 
   if (!loading && stories.length === 0 && !error) {
@@ -172,8 +290,8 @@ export function FeaturedStoriesSection() {
       <View style={styles.container}>
         {/* 標題區 */}
         <View style={styles.header}>
-          <Text style={styles.title}>精選故事</Text>
-          <Text style={styles.subtitle}>來自攀岩社群的真實故事</Text>
+          <Text style={styles.title}>看故事</Text>
+          <Text style={styles.subtitle}>來自社群的真實攀岩故事與感悟</Text>
         </View>
 
         {loading ? (
@@ -193,7 +311,7 @@ export function FeaturedStoriesSection() {
         ) : (
           <FlatList
             data={stories}
-            keyExtractor={(item) => item.id}
+            keyExtractor={(item) => `${item.type}-${item.id}`}
             horizontal
             showsHorizontalScrollIndicator={false}
             contentContainerStyle={styles.listContent}
@@ -205,7 +323,7 @@ export function FeaturedStoriesSection() {
         {/* 查看全部按鈕 */}
         <SlideUp delay={200}>
           <View style={styles.ctaContainer}>
-            <Button variant="secondary" onPress={handleViewMore}>
+            <Button variant="outline" onPress={handleViewMore}>
               探索更多故事
             </Button>
           </View>
@@ -226,6 +344,7 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 28,
     fontWeight: '700',
+    lineHeight: 38,
     color: SEMANTIC_COLORS.textMain,
   },
   subtitle: {

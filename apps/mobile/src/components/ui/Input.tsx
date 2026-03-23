@@ -11,11 +11,7 @@ import {
   type TextInputProps,
   type ViewStyle,
 } from 'react-native'
-import Animated, {
-  useSharedValue,
-  useAnimatedStyle,
-  withTiming,
-} from 'react-native-reanimated'
+import { useSharedValue, withTiming } from 'react-native-reanimated'
 import {
   SEMANTIC_COLORS,
   INPUT_SPECS,
@@ -26,7 +22,6 @@ import {
 } from '@nobodyclimb/constants'
 import { DURATION, EASING } from '@/theme/animations'
 
-const AnimatedView = Animated.createAnimatedComponent(View)
 
 export type InputState = 'default' | 'focused' | 'error' | 'disabled'
 
@@ -93,12 +88,7 @@ export const Input = forwardRef<TextInput, InputProps>(function Input(
         ? 'focused'
         : 'default'
 
-  const animatedBorderStyle = useAnimatedStyle(() => {
-    const borderColor = getBorderColor(state)
-    return {
-      borderColor,
-    }
-  })
+  const borderStyle = { borderColor: getBorderColor(state) }
 
   const handleFocus = useCallback(
     (e: Parameters<NonNullable<TextInputProps['onFocus']>>[0]) => {
@@ -125,11 +115,10 @@ export const Input = forwardRef<TextInput, InputProps>(function Input(
   )
 
   return (
-    <AnimatedView
+    <View
       style={[
         styles.container,
-        animatedBorderStyle,
-        { borderColor: getBorderColor(state) },
+        borderStyle,
         disabled && styles.disabled,
         containerStyle,
       ]}
@@ -149,7 +138,7 @@ export const Input = forwardRef<TextInput, InputProps>(function Input(
         {...props}
       />
       {rightElement && <View style={styles.rightElement}>{rightElement}</View>}
-    </AnimatedView>
+    </View>
   )
 })
 

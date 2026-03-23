@@ -3,7 +3,7 @@
  *
  * 對應 apps/web/src/app/biography/explore/location/[name]/page.tsx
  */
-import React, { useState, useEffect, useCallback } from 'react'
+import React, { useCallback, useState } from 'react'
 import {
   StyleSheet,
   View,
@@ -23,9 +23,11 @@ import {
   CheckCircle2,
   Mountain,
 } from 'lucide-react-native'
+import { useQuery, useQueryClient } from '@tanstack/react-query'
 
 import { Text, Card, Avatar, IconButton, Breadcrumb } from '@/components/ui'
-import { SEMANTIC_COLORS, SPACING, RADIUS } from '@nobodyclimb/constants'
+import { apiClient } from '@/lib/api'
+import { SEMANTIC_COLORS, SPACING } from '@nobodyclimb/constants'
 
 // 類型定義
 interface Visitor {
@@ -47,96 +49,98 @@ interface BucketListItem {
   author_slug: string
 }
 
-interface LocationDetail {
+interface LocationExploreDetail {
   location: string
   country: string
-  description?: string
+  visitor_count: number
   visitors: Visitor[]
-  bucket_items: BucketListItem[]
+}
+
+interface BucketListLocationDetail {
+  location: string
   stats: {
-    total_visitors: number
-    total_goals: number
-    completed_goals: number
+    total_items: number
+    total_users: number
+    completed_count: number
   }
+  items: BucketListItem[]
+  visitors: Array<{
+    id: string
+    name: string
+    avatar_url: string | null
+    slug: string
+    completed_at: string
+  }>
 }
 
 export default function LocationDetailScreen() {
   const router = useRouter()
+  const queryClient = useQueryClient()
   const { name } = useLocalSearchParams<{ name: string }>()
   const decodedName = name ? decodeURIComponent(name) : ''
 
-  const [location, setLocation] = useState<LocationDetail | null>(null)
-  const [loading, setLoading] = useState(true)
+  // 取得攀岩足跡地點詳情
+  const {
+    data: locationData,
+    isLoading: locationLoading,
+    error: locationError,
+  } = useQuery<LocationExploreDetail>({
+    queryKey: ['climbing-location-detail', decodedName],
+    queryFn: async () => {
+      const response = await apiClient.get(
+        `/climbing-locations/explore/${encodeURIComponent(decodedName)}`
+      )
+      return response.data?.data ?? response.data
+    },
+    enabled: !!decodedName,
+  })
+
+  // 取得人生清單地點詳情
+  const { data: bucketData } = useQuery<BucketListLocationDetail>({
+    queryKey: ['bucket-list-location-detail', decodedName],
+    queryFn: async () => {
+      const response = await apiClient.get(
+        `/bucket-list/explore/locations/${encodeURIComponent(decodedName)}`,
+        { params: { limit: 10 } }
+      )
+      return response.data?.data ?? response.data
+    },
+    enabled: !!decodedName,
+  })
+
+  const loading = locationLoading
+  const error = locationError
+
+  // 合併統計資料
+  const stats = {
+    total_visitors: locationData?.visitor_count ?? locationData?.visitors?.length ?? 0,
+    total_goals: bucketData?.stats?.total_items ?? 0,
+    completed_goals: bucketData?.stats?.completed_count ?? 0,
+  }
+
+  const visitors = locationData?.visitors ?? []
+  const bucketItems: BucketListItem[] = (bucketData?.items ?? []).map((item: any) => ({
+    id: item.id,
+    title: item.title,
+    category: item.category ?? '',
+    target_grade: item.target_grade,
+    user_count: item.user_count ?? item.inspired_count ?? 0,
+    completed_count: item.completed_count ?? 0,
+    author_name: item.author_name ?? item.biography_name ?? '',
+    author_slug: item.author_slug ?? item.biography_slug ?? '',
+  }))
+
   const [refreshing, setRefreshing] = useState(false)
-  const [error, setError] = useState<string | null>(null)
-
-  // 載入資料
-  const loadLocationDetail = useCallback(async () => {
-    if (!decodedName) return
-
-    setLoading(true)
-    setError(null)
-
-    try {
-      // TODO: 整合 API
-      await new Promise((resolve) => setTimeout(resolve, 500))
-
-      // 模擬資料
-      setLocation({
-        location: decodedName,
-        country: '台灣',
-        description: `${decodedName}是台灣著名的攀岩地點，擁有豐富的路線選擇，吸引許多攀岩者前來挑戰。`,
-        visitors: [
-          { id: '1', name: '攀岩小明', avatar_url: null, slug: 'xiaoming', climbing_years: 5 },
-          { id: '2', name: '抱石達人', avatar_url: null, slug: 'boulderer', climbing_years: 3 },
-          { id: '3', name: '阿強', avatar_url: null, slug: 'aqiang', climbing_years: 8 },
-          { id: '4', name: '小美', avatar_url: null, slug: 'xiaomei', climbing_years: 2 },
-          { id: '5', name: '大偉', avatar_url: null, slug: 'dawei', climbing_years: 6 },
-        ],
-        bucket_items: [
-          {
-            id: '1',
-            title: `完攀${decodedName}經典路線`,
-            category: 'outdoor_route',
-            target_grade: '5.10a',
-            user_count: 15,
-            completed_count: 5,
-            author_name: '攀岩小明',
-            author_slug: 'xiaoming',
-          },
-          {
-            id: '2',
-            title: `${decodedName}連續攀登一週`,
-            category: 'adventure',
-            user_count: 8,
-            completed_count: 2,
-            author_name: '阿強',
-            author_slug: 'aqiang',
-          },
-        ],
-        stats: {
-          total_visitors: 25,
-          total_goals: 15,
-          completed_goals: 7,
-        },
-      })
-    } catch (err) {
-      console.error('Failed to load location detail:', err)
-      setError('無法載入地點資料')
-    } finally {
-      setLoading(false)
-    }
-  }, [decodedName])
-
-  useEffect(() => {
-    loadLocationDetail()
-  }, [loadLocationDetail])
-
   const handleRefresh = useCallback(async () => {
     setRefreshing(true)
-    await loadLocationDetail()
+    await queryClient.invalidateQueries({
+      queryKey: ['climbing-location-detail', decodedName],
+    })
+    await queryClient.invalidateQueries({
+      queryKey: ['bucket-list-location-detail', decodedName],
+    })
     setRefreshing(false)
-  }, [loadLocationDetail])
+  }, [queryClient, decodedName])
 
   if (loading) {
     return (
@@ -155,7 +159,7 @@ export default function LocationDetailScreen() {
     )
   }
 
-  if (error || !location) {
+  if (error || !locationData) {
     return (
       <SafeAreaView style={styles.container} edges={['top']}>
         <View style={styles.navbar}>
@@ -166,7 +170,9 @@ export default function LocationDetailScreen() {
           />
         </View>
         <View style={styles.errorContainer}>
-          <Text color="error">{error || '找不到此地點'}</Text>
+          <Text color="textSubtle">
+            {error instanceof Error ? error.message : '找不到此地點'}
+          </Text>
         </View>
       </SafeAreaView>
     )
@@ -182,7 +188,7 @@ export default function LocationDetailScreen() {
           variant="ghost"
         />
         <Text variant="h4" fontWeight="600" numberOfLines={1} style={styles.navTitle}>
-          {location.location}
+          {locationData.location}
         </Text>
         <View style={{ width: 40 }} />
       </View>
@@ -199,7 +205,7 @@ export default function LocationDetailScreen() {
             items={[
               { label: '探索', href: '/biography/explore' },
               { label: '地點', href: '/biography/explore/locations' },
-              { label: location.location },
+              { label: locationData.location },
             ]}
           />
         </View>
@@ -212,26 +218,20 @@ export default function LocationDetailScreen() {
             </View>
             <View style={styles.locationInfo}>
               <Text variant="h3" fontWeight="700">
-                {location.location}
+                {locationData.location}
               </Text>
               <Text variant="body" color="textSubtle">
-                {location.country}
+                {locationData.country}
               </Text>
             </View>
           </View>
-
-          {location.description && (
-            <Text variant="body" color="textSubtle" style={styles.description}>
-              {location.description}
-            </Text>
-          )}
 
           {/* 統計數據 */}
           <View style={styles.statsRow}>
             <View style={styles.statItem}>
               <Users size={20} color={SEMANTIC_COLORS.textMuted} />
               <Text variant="h4" fontWeight="600">
-                {location.stats.total_visitors}
+                {stats.total_visitors}
               </Text>
               <Text variant="small" color="textMuted">
                 人去過
@@ -241,7 +241,7 @@ export default function LocationDetailScreen() {
             <View style={styles.statItem}>
               <Target size={20} color={SEMANTIC_COLORS.textMuted} />
               <Text variant="h4" fontWeight="600">
-                {location.stats.total_goals}
+                {stats.total_goals}
               </Text>
               <Text variant="small" color="textMuted">
                 個目標
@@ -251,7 +251,7 @@ export default function LocationDetailScreen() {
             <View style={styles.statItem}>
               <CheckCircle2 size={20} color="#16A34A" />
               <Text variant="h4" fontWeight="600">
-                {location.stats.completed_goals}
+                {stats.completed_goals}
               </Text>
               <Text variant="small" color="textMuted">
                 已完成
@@ -261,45 +261,47 @@ export default function LocationDetailScreen() {
         </Card>
 
         {/* 去過的人 */}
-        <View style={styles.section}>
-          <Text variant="h4" fontWeight="600" style={styles.sectionTitle}>
-            去過的攀岩者 ({location.visitors.length})
-          </Text>
-          <View style={styles.visitorGrid}>
-            {location.visitors.map((visitor, index) => (
-              <Animated.View
-                key={visitor.id}
-                entering={FadeInDown.delay(index * 50).duration(400)}
-              >
-                <Pressable
-                  style={styles.visitorCard}
-                  onPress={() => router.push(`/biography/${visitor.slug}` as any)}
+        {visitors.length > 0 && (
+          <View style={styles.section}>
+            <Text variant="h4" fontWeight="600" style={styles.sectionTitle}>
+              去過的攀岩者 ({visitors.length})
+            </Text>
+            <View style={styles.visitorGrid}>
+              {visitors.map((visitor, index) => (
+                <Animated.View
+                  key={visitor.id}
+                  entering={FadeInDown.delay(index * 50).duration(400)}
                 >
-                  <Avatar
-                    size="md"
-                    source={visitor.avatar_url ? { uri: visitor.avatar_url } : undefined}
-                  />
-                  <Text variant="small" fontWeight="500" numberOfLines={1}>
-                    {visitor.name}
-                  </Text>
-                  {visitor.climbing_years && (
-                    <Text variant="small" color="textMuted">
-                      {visitor.climbing_years} 年
+                  <Pressable
+                    style={styles.visitorCard}
+                    onPress={() => router.push(`/biography/${visitor.slug}` as any)}
+                  >
+                    <Avatar
+                      size="md"
+                      source={visitor.avatar_url ? { uri: visitor.avatar_url } : undefined}
+                    />
+                    <Text variant="small" fontWeight="500" numberOfLines={1}>
+                      {visitor.name}
                     </Text>
-                  )}
-                </Pressable>
-              </Animated.View>
-            ))}
+                    {visitor.climbing_years && (
+                      <Text variant="small" color="textMuted">
+                        {visitor.climbing_years} 年
+                      </Text>
+                    )}
+                  </Pressable>
+                </Animated.View>
+              ))}
+            </View>
           </View>
-        </View>
+        )}
 
         {/* 相關目標 */}
-        {location.bucket_items.length > 0 && (
+        {bucketItems.length > 0 && (
           <View style={styles.section}>
             <Text variant="h4" fontWeight="600" style={styles.sectionTitle}>
               相關目標
             </Text>
-            {location.bucket_items.map((item, index) => (
+            {bucketItems.map((item, index) => (
               <Animated.View
                 key={item.id}
                 entering={FadeInDown.delay(index * 50).duration(400)}
@@ -321,14 +323,16 @@ export default function LocationDetailScreen() {
                       {item.user_count} 人挑戰中 · {item.completed_count} 人已完成
                     </Text>
                   </View>
-                  <Pressable
-                    style={styles.authorLink}
-                    onPress={() => router.push(`/biography/${item.author_slug}` as any)}
-                  >
-                    <Text variant="small" color="textMuted">
-                      由 {item.author_name} 設立
-                    </Text>
-                  </Pressable>
+                  {item.author_name && (
+                    <Pressable
+                      style={styles.authorLink}
+                      onPress={() => router.push(`/biography/${item.author_slug}` as any)}
+                    >
+                      <Text variant="small" color="textMuted">
+                        由 {item.author_name} 設立
+                      </Text>
+                    </Pressable>
+                  )}
                 </Card>
               </Animated.View>
             ))}
@@ -400,9 +404,6 @@ const styles = StyleSheet.create({
   },
   locationInfo: {
     flex: 1,
-  },
-  description: {
-    marginBottom: SPACING.md,
   },
   statsRow: {
     flexDirection: 'row',

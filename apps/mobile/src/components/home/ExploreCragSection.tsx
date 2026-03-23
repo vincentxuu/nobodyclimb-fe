@@ -2,72 +2,82 @@
  * ExploreCragSection 組件
  *
  * 探索岩場區，對應 apps/web/src/components/home/explore-crag-section.tsx
+ * 串接 GET /crags API 取得真實資料
+ * 串接 GET /crags/routes/featured API 取得熱門路線
  */
-import React, { useState, useEffect } from 'react'
-import { StyleSheet, View, Pressable, FlatList, Dimensions, Image } from 'react-native'
+import React, { useState, useEffect, useRef } from 'react'
+import { StyleSheet, View, Pressable, FlatList, Image } from 'react-native'
 import { YStack, XStack } from 'tamagui'
 import { useRouter } from 'expo-router'
-import { MapPin, Mountain, Calendar } from 'lucide-react-native'
+import { MapPin, Mountain, ChevronRight } from 'lucide-react-native'
 import Animated, { FadeInRight } from 'react-native-reanimated'
 
-import { Text, Button, Skeleton, Badge } from '@/components/ui'
+import { Text, Button, Skeleton } from '@/components/ui'
 import { FadeIn, SlideUp } from '@/components/animation'
 import { BORDER_RADIUS, SEMANTIC_COLORS, SPACING, WB_COLORS } from '@nobodyclimb/constants'
+import { apiClient } from '@/lib/api'
 
-const { width: SCREEN_WIDTH } = Dimensions.get('window')
-const CARD_WIDTH = SCREEN_WIDTH * 0.75
+const CARD_WIDTH = 200
+const ROUTE_CARD_WIDTH = 220
 
-interface CragListItem {
+// 後端 API 回傳的 Crag 類型
+interface ApiCrag {
   id: string
   name: string
-  nameEn: string
+  slug: string
+  region: string
+  location: string
+  rock_type: string
+  climbing_types: string[]
+  route_count: number
+  difficulty_range: string
+  best_seasons: string[]
+  cover_image: string | null
+  images: string[]
+}
+
+// UI 顯示用的岩場資料
+interface CragDisplayItem {
+  id: string
+  name: string
   location: string
   type: string
-  rockType: string
   routes: number
   difficulty: string
-  seasons: string[]
   coverImage?: string
 }
 
-// 模擬岩場資料（實際應從 API 獲取）
-const mockCrags: CragListItem[] = [
-  {
-    id: 'longdong',
-    name: '龍洞',
-    nameEn: 'Longdong',
-    location: '新北市貢寮區',
-    type: '傳統攀岩',
-    rockType: '砂岩',
-    routes: 500,
-    difficulty: '5.5 - 5.14',
-    seasons: ['春', '秋', '冬'],
-  },
-  {
-    id: 'defulan',
-    name: '德芙蘭',
-    nameEn: 'Defulan',
-    location: '台中市和平區',
-    type: '運動攀岩',
-    rockType: '石灰岩',
-    routes: 150,
-    difficulty: '5.8 - 5.13',
-    seasons: ['秋', '冬'],
-  },
-  {
-    id: 'shoushan',
-    name: '壽山',
-    nameEn: 'Shoushan',
-    location: '高雄市鼓山區',
-    type: '抱石',
-    rockType: '珊瑚礁石灰岩',
-    routes: 200,
-    difficulty: 'V0 - V10',
-    seasons: ['秋', '冬', '春'],
-  },
-]
+// 熱門路線 API 回傳類型（後端已轉為 camelCase）
+interface FeaturedRouteItem {
+  id: string
+  name: string
+  nameEn: string
+  grade: string
+  type: string
+  length?: string
+  boltCount: number
+  cragId: string
+  cragName: string
+  areaId?: string
+  areaName?: string
+  youtubeThumbnail?: string
+  ascentCount: number
+  storyCount: number
+}
 
-function CragCard({ crag, index }: { crag: CragListItem; index: number }) {
+function adaptApiCrag(crag: ApiCrag): CragDisplayItem {
+  return {
+    id: crag.id,
+    name: crag.name,
+    location: crag.location || crag.region || '',
+    type: crag.rock_type || '',
+    routes: crag.route_count,
+    difficulty: crag.difficulty_range || '',
+    coverImage: crag.cover_image || crag.images?.[0] || undefined,
+  }
+}
+
+function CragCard({ crag, index }: { crag: CragDisplayItem; index: number }) {
   const router = useRouter()
 
   const handlePress = () => {
@@ -100,17 +110,16 @@ function CragCard({ crag, index }: { crag: CragListItem; index: number }) {
             </View>
           )}
           {/* 岩石類型標籤 */}
-          <View style={styles.typeLabel}>
-            <Text style={styles.typeLabelText}>{crag.type}</Text>
-          </View>
+          {crag.type ? (
+            <View style={styles.typeLabel}>
+              <Text style={styles.typeLabelText}>{crag.type}</Text>
+            </View>
+          ) : null}
         </View>
 
         {/* 岩場資訊 */}
         <View style={styles.cardContent}>
-          <XStack alignItems="baseline" gap={SPACING[1.5]}>
-            <Text style={styles.cragName}>{crag.name}</Text>
-            <Text style={styles.cragNameEn}>{crag.nameEn}</Text>
-          </XStack>
+          <Text style={styles.cragName}>{crag.name}</Text>
 
           <XStack alignItems="center" gap={SPACING[1.5]} marginTop={SPACING[1.5]}>
             <MapPin size={14} color={SEMANTIC_COLORS.textSubtle} />
@@ -122,20 +131,11 @@ function CragCard({ crag, index }: { crag: CragListItem; index: number }) {
               <Mountain size={14} color={SEMANTIC_COLORS.textSubtle} />
               <Text style={styles.infoText}>{crag.routes} 條路線</Text>
             </XStack>
-            <Text style={styles.difficultyText}>{crag.difficulty}</Text>
+            {crag.difficulty ? (
+              <Text style={styles.difficultyText}>{crag.difficulty}</Text>
+            ) : null}
           </XStack>
 
-          {/* 季節標籤 */}
-          <XStack alignItems="center" gap={SPACING[1.5]} marginTop={SPACING[2]}>
-            <Calendar size={14} color={SEMANTIC_COLORS.textMuted} />
-            <XStack gap={SPACING[1]}>
-              {crag.seasons.map((season) => (
-                <View key={season} style={styles.seasonBadge}>
-                  <Text style={styles.seasonText}>{season}</Text>
-                </View>
-              ))}
-            </XStack>
-          </XStack>
         </View>
       </Pressable>
     </Animated.View>
@@ -157,33 +157,180 @@ function CragSkeleton() {
   )
 }
 
+// 路線卡片組件
+function RouteCard({ route, index }: { route: FeaturedRouteItem; index: number }) {
+  const router = useRouter()
+
+  const handlePress = () => {
+    router.push(`/crag/${route.cragId}/route/${route.id}`)
+  }
+
+  return (
+    <Animated.View
+      entering={FadeInRight.delay(index * 100).duration(400)}
+      style={styles.routeCardContainer}
+    >
+      <Pressable
+        onPress={handlePress}
+        style={({ pressed }) => [
+          styles.card,
+          pressed && styles.cardPressed,
+        ]}
+      >
+        {/* YouTube 縮圖 */}
+        {route.youtubeThumbnail ? (
+          <View style={styles.routeThumbnailContainer}>
+            <Image
+              source={{ uri: route.youtubeThumbnail }}
+              style={styles.routeThumbnailImage}
+              resizeMode="cover"
+            />
+            {/* 難度標籤（覆蓋在圖片左下角） */}
+            <View style={styles.gradeBadgeOverlay}>
+              <Text style={styles.gradeBadgeText}>{route.grade}</Text>
+            </View>
+          </View>
+        ) : (
+          <View style={[styles.routeThumbnailContainer, styles.routeThumbnailPlaceholder]}>
+            <Mountain size={28} color={SEMANTIC_COLORS.textMuted} />
+            {/* 難度標籤 */}
+            <View style={styles.gradeBadgeOverlay}>
+              <Text style={styles.gradeBadgeText}>{route.grade}</Text>
+            </View>
+          </View>
+        )}
+
+        {/* 路線資訊 */}
+        <View style={styles.routeCardContent}>
+          {/* 路線名稱 */}
+          <Text style={styles.routeName} numberOfLines={1}>
+            {route.name}
+          </Text>
+
+          {/* 英文名稱 */}
+          {route.nameEn ? (
+            <Text style={styles.routeNameEn} numberOfLines={1}>
+              {route.nameEn}
+            </Text>
+          ) : null}
+
+          {/* 所屬岩場・區域 */}
+          <XStack alignItems="center" gap={SPACING[1.5]} marginTop={SPACING[2]}>
+            <MapPin size={14} color={SEMANTIC_COLORS.textSubtle} />
+            <Text style={styles.routeLocationText} numberOfLines={1}>
+              {route.cragName}
+              {route.areaName ? `・${route.areaName}` : ''}
+            </Text>
+          </XStack>
+
+          {/* 標籤區 */}
+          <XStack alignItems="center" gap={SPACING[1.5]} marginTop={SPACING[2.5]}>
+            {/* 類型標籤 */}
+            <View style={styles.routeTagBadge}>
+              <Text style={styles.routeTagText}>{route.type}</Text>
+            </View>
+            {/* 長度標籤 */}
+            {route.length ? (
+              <View style={styles.routeTagBadge}>
+                <Text style={styles.routeTagText}>{route.length}</Text>
+              </View>
+            ) : null}
+          </XStack>
+        </View>
+      </Pressable>
+    </Animated.View>
+  )
+}
+
+function RouteSkeleton() {
+  return (
+    <View style={styles.routeCardContainer}>
+      <View style={styles.card}>
+        <Skeleton style={styles.routeThumbnailSkeleton} />
+        <View style={styles.routeCardContent}>
+          <Skeleton style={{ width: 140, height: 18 }} />
+          <Skeleton style={{ width: 100, height: 12, marginTop: SPACING[1] }} />
+          <Skeleton style={{ width: 120, height: 14, marginTop: SPACING[2] }} />
+          <Skeleton style={{ width: 80, height: 22, marginTop: SPACING[2.5], borderRadius: 11 }} />
+        </View>
+      </View>
+    </View>
+  )
+}
+
+// 子標題列（含「查看全部」連結）
+function SubsectionHeader({
+  title,
+  onViewAll,
+}: {
+  title: string
+  onViewAll: () => void
+}) {
+  return (
+    <View style={styles.subsectionHeader}>
+      <Text style={styles.subsectionTitle}>{title}</Text>
+      <Pressable
+        onPress={onViewAll}
+        style={({ pressed }) => [
+          styles.viewAllButton,
+          pressed && { opacity: 0.7 },
+        ]}
+      >
+        <Text style={styles.viewAllText}>查看全部</Text>
+        <ChevronRight size={16} color={SEMANTIC_COLORS.textSubtle} />
+      </Pressable>
+    </View>
+  )
+}
+
 export function ExploreCragSection() {
   const router = useRouter()
-  const [crags, setCrags] = useState<CragListItem[]>([])
+  const [crags, setCrags] = useState<CragDisplayItem[]>([])
+  const [featuredRoutes, setFeaturedRoutes] = useState<FeaturedRouteItem[]>([])
   const [isLoading, setIsLoading] = useState(true)
+  const hasFetched = useRef(false)
 
   useEffect(() => {
-    async function fetchCrags() {
-      try {
-        // TODO: 替換為實際的 API 端點
-        // const response = await fetch('https://api.nobodyclimb.cc/api/v1/crags')
-        // const result = await response.json()
-        // setCrags(result.data)
+    if (hasFetched.current) return
+    hasFetched.current = true
 
-        // 暫時使用模擬資料
-        await new Promise((resolve) => setTimeout(resolve, 500))
-        setCrags(mockCrags)
+    async function fetchData() {
+      try {
+        // 並行取得岩場和熱門路線
+        const [cragsResponse, routesResponse] = await Promise.all([
+          apiClient.get<{
+            success: boolean
+            data: ApiCrag[]
+            pagination: { page: number; limit: number; total: number; total_pages: number }
+          }>('/crags', { params: { limit: 5 } }),
+          apiClient.get<{
+            success: boolean
+            data: FeaturedRouteItem[]
+          }>('/crags/routes/featured', { params: { limit: 8 } }),
+        ])
+
+        if (cragsResponse.data?.success && cragsResponse.data.data) {
+          setCrags(cragsResponse.data.data.map(adaptApiCrag))
+        }
+
+        if (routesResponse.data?.success && routesResponse.data.data) {
+          setFeaturedRoutes(routesResponse.data.data)
+        }
       } catch (error) {
-        console.error('Failed to fetch crags:', error)
+        console.error('[ExploreCragSection] Failed to fetch data:', error)
       } finally {
         setIsLoading(false)
       }
     }
 
-    fetchCrags()
+    fetchData()
   }, [])
 
-  const handleViewAll = () => {
+  const handleViewAllCrags = () => {
+    router.push('/crag')
+  }
+
+  const handleViewAllRoutes = () => {
     router.push('/crag')
   }
 
@@ -193,13 +340,16 @@ export function ExploreCragSection() {
         {/* 標題區 */}
         <View style={styles.header}>
           <YStack>
-            <Text style={styles.title}>探索岩場</Text>
-            <Text style={styles.subtitle}>發現台灣的天然攀岩場地</Text>
+            <Text style={styles.title}>查路線</Text>
+            <Text style={styles.subtitle}>探索台灣岩場，找到你的下一條路線</Text>
           </YStack>
         </View>
 
+        {/* 熱門岩場小標題 */}
+        <SubsectionHeader title="熱門岩場" onViewAll={handleViewAllCrags} />
+
         {/* 岩場列表 - 橫向滾動 */}
-        <FlatList<number | CragListItem>
+        <FlatList<number | CragDisplayItem>
           data={isLoading ? [1, 2, 3] : crags}
           keyExtractor={(item) => (typeof item === 'number' ? `skeleton-${item}` : item.id)}
           horizontal
@@ -215,10 +365,37 @@ export function ExploreCragSection() {
           ItemSeparatorComponent={() => <View style={{ width: SPACING[4] }} />}
         />
 
+        {/* 熱門路線區塊 */}
+        {(isLoading || featuredRoutes.length > 0) && (
+          <View style={styles.routesSection}>
+            <SubsectionHeader title="熱門路線" onViewAll={handleViewAllRoutes} />
+
+            <FlatList<number | FeaturedRouteItem>
+              data={isLoading ? [1, 2, 3] : featuredRoutes}
+              keyExtractor={(item) =>
+                typeof item === 'number'
+                  ? `route-skeleton-${item}`
+                  : `${item.cragId}-${item.id}`
+              }
+              horizontal
+              showsHorizontalScrollIndicator={false}
+              contentContainerStyle={styles.listContent}
+              renderItem={({ item, index }) =>
+                typeof item === 'number' ? (
+                  <RouteSkeleton />
+                ) : (
+                  <RouteCard route={item} index={index} />
+                )
+              }
+              ItemSeparatorComponent={() => <View style={{ width: SPACING[4] }} />}
+            />
+          </View>
+        )}
+
         {/* 查看全部按鈕 */}
         <SlideUp delay={200}>
           <View style={styles.ctaContainer}>
-            <Button variant="secondary" onPress={handleViewAll}>
+            <Button variant="outline" onPress={handleViewAllCrags}>
               探索更多岩場
             </Button>
           </View>
@@ -241,12 +418,34 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 28,
     fontWeight: '700',
+    lineHeight: 38,
     color: SEMANTIC_COLORS.textMain,
   },
   subtitle: {
     fontSize: 14,
     color: SEMANTIC_COLORS.textSubtle,
     marginTop: SPACING[1],
+  },
+  subsectionHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingHorizontal: SPACING[4],
+    marginBottom: SPACING[4],
+  },
+  subsectionTitle: {
+    fontSize: 18,
+    fontWeight: '500',
+    color: SEMANTIC_COLORS.textMain,
+  },
+  viewAllButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: SPACING[0.5],
+  },
+  viewAllText: {
+    fontSize: 14,
+    color: SEMANTIC_COLORS.textSubtle,
   },
   listContent: {
     paddingHorizontal: SPACING[4],
@@ -270,7 +469,7 @@ const styles = StyleSheet.create({
   },
   coverContainer: {
     position: 'relative',
-    aspectRatio: 4,
+    aspectRatio: 16 / 9,
   },
   coverImage: {
     flex: 1,
@@ -302,10 +501,6 @@ const styles = StyleSheet.create({
     fontWeight: '500',
     color: SEMANTIC_COLORS.textMain,
   },
-  cragNameEn: {
-    fontSize: 12,
-    color: SEMANTIC_COLORS.textMuted,
-  },
   locationText: {
     fontSize: 12,
     color: SEMANTIC_COLORS.textSubtle,
@@ -318,22 +513,82 @@ const styles = StyleSheet.create({
     fontSize: 12,
     color: SEMANTIC_COLORS.textMuted,
   },
-  seasonBadge: {
-    backgroundColor: WB_COLORS[10],
-    paddingHorizontal: SPACING[1.5],
-    paddingVertical: 2,
-    borderRadius: BORDER_RADIUS.sm,
-  },
-  seasonText: {
-    fontSize: 10,
-    color: SEMANTIC_COLORS.textSubtle,
-  },
   coverSkeleton: {
-    aspectRatio: 4,
+    aspectRatio: 16 / 9,
   },
   ctaContainer: {
     marginTop: SPACING[8],
     alignItems: 'center',
+  },
+
+  // 熱門路線區塊樣式
+  routesSection: {
+    marginTop: SPACING[10],
+  },
+  routeCardContainer: {
+    width: ROUTE_CARD_WIDTH,
+  },
+  routeThumbnailContainer: {
+    position: 'relative',
+    aspectRatio: 16 / 9,
+  },
+  routeThumbnailImage: {
+    flex: 1,
+  },
+  routeThumbnailPlaceholder: {
+    backgroundColor: WB_COLORS[20],
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  gradeBadgeOverlay: {
+    position: 'absolute',
+    bottom: SPACING[2],
+    left: SPACING[2],
+    backgroundColor: '#FFE70C',
+    paddingHorizontal: SPACING[2.5],
+    paddingVertical: SPACING[1],
+    borderRadius: 20,
+    shadowColor: WB_COLORS[100],
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.15,
+    shadowRadius: 2,
+    elevation: 2,
+  },
+  gradeBadgeText: {
+    fontSize: 13,
+    fontWeight: '600',
+    color: '#1B1A1A',
+  },
+  routeCardContent: {
+    padding: SPACING[4],
+  },
+  routeName: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: SEMANTIC_COLORS.textMain,
+  },
+  routeNameEn: {
+    fontSize: 12,
+    color: SEMANTIC_COLORS.textMuted,
+    marginTop: SPACING[1],
+  },
+  routeLocationText: {
+    fontSize: 12,
+    color: SEMANTIC_COLORS.textSubtle,
+    flex: 1,
+  },
+  routeTagBadge: {
+    backgroundColor: WB_COLORS[10],
+    paddingHorizontal: SPACING[2.5],
+    paddingVertical: SPACING[1],
+    borderRadius: 20,
+  },
+  routeTagText: {
+    fontSize: 12,
+    color: SEMANTIC_COLORS.textSubtle,
+  },
+  routeThumbnailSkeleton: {
+    aspectRatio: 16 / 9,
   },
 })
 

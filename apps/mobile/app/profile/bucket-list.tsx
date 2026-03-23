@@ -2,8 +2,9 @@
  * 心願清單頁面
  *
  * 對應 apps/web/src/app/profile/bucket-list/page.tsx
+ * 使用 GET /bucket-list/:biographyId 取得人生清單
  */
-import React, { useState, useCallback } from 'react'
+import React, { useCallback } from 'react'
 import {
   StyleSheet,
   View,
@@ -21,90 +22,28 @@ import {
   CheckCircle2,
   Circle,
   Mountain,
-  Building2,
   MapPin,
-  Trash2,
 } from 'lucide-react-native'
 import Animated, { FadeInDown } from 'react-native-reanimated'
 
-import { Text, IconButton, Tabs, TabsList, TabsTrigger } from '@/components/ui'
+import { Text, IconButton } from '@/components/ui'
 import { ProtectedRoute } from '@/components/shared'
 import { SEMANTIC_COLORS, SPACING, RADIUS } from '@nobodyclimb/constants'
-
-type BucketType = 'all' | 'crag' | 'gym' | 'route'
-type BucketStatus = 'pending' | 'completed'
-
-interface BucketItem {
-  id: string
-  type: BucketType
-  title: string
-  location?: string
-  grade?: string
-  status: BucketStatus
-  completedAt?: string
-  targetDate?: string
-}
-
-// 模擬資料
-const MOCK_BUCKET_LIST: BucketItem[] = [
-  {
-    id: '1',
-    type: 'crag',
-    title: '龍洞',
-    location: '新北市貢寮區',
-    status: 'completed',
-    completedAt: '2024-01-10',
-  },
-  {
-    id: '2',
-    type: 'route',
-    title: '黃金岩壁 5.12a',
-    location: '龍洞',
-    grade: '5.12a',
-    status: 'pending',
-    targetDate: '2024-06-01',
-  },
-  {
-    id: '3',
-    type: 'gym',
-    title: 'RedRock 攀岩館',
-    location: '台北市內湖區',
-    status: 'pending',
-  },
-  {
-    id: '4',
-    type: 'crag',
-    title: '關子嶺',
-    location: '台南市白河區',
-    status: 'pending',
-    targetDate: '2024-03-15',
-  },
-]
-
-const TYPE_ICONS: Record<BucketType, React.ComponentType<{ size: number; color: string }>> = {
-  all: MapPin,
-  crag: Mountain,
-  gym: Building2,
-  route: MapPin,
-}
-
-const TYPE_LABELS: Record<BucketType, string> = {
-  all: '全部',
-  crag: '岩場',
-  gym: '岩館',
-  route: '路線',
-}
+import {
+  useBucketList,
+  useToggleBucketItem,
+  useDeleteBucketItem,
+  type BucketListItem,
+} from '@/lib/hooks'
 
 interface BucketCardProps {
-  item: BucketItem
-  onPress: () => void
+  item: BucketListItem
   onToggle: () => void
   onDelete: () => void
   index: number
 }
 
-function BucketCard({ item, onPress, onToggle, onDelete, index }: BucketCardProps) {
-  const Icon = TYPE_ICONS[item.type]
+function BucketCard({ item, onToggle, onDelete, index }: BucketCardProps) {
   const isCompleted = item.status === 'completed'
 
   const handleLongPress = () => {
@@ -122,7 +61,6 @@ function BucketCard({ item, onPress, onToggle, onDelete, index }: BucketCardProp
           isCompleted && styles.bucketCardCompleted,
           pressed && styles.bucketCardPressed,
         ]}
-        onPress={onPress}
         onLongPress={handleLongPress}
       >
         <Pressable onPress={onToggle} style={styles.checkButton}>
@@ -140,37 +78,38 @@ function BucketCard({ item, onPress, onToggle, onDelete, index }: BucketCardProp
           >
             {item.title}
           </Text>
-          {item.location && (
+          {item.target_location && (
             <View style={styles.locationRow}>
-              <Icon size={12} color={SEMANTIC_COLORS.textMuted} />
+              <MapPin size={12} color={SEMANTIC_COLORS.textMuted} />
               <Text variant="small" color="textMuted">
-                {item.location}
+                {item.target_location}
               </Text>
             </View>
           )}
-          {item.grade && (
+          {item.target_grade && (
             <View style={styles.gradeBadge}>
               <Text variant="small" style={styles.gradeText}>
-                {item.grade}
+                {item.target_grade}
               </Text>
             </View>
           )}
-          {isCompleted && item.completedAt ? (
+          {isCompleted && item.completed_at ? (
             <Text variant="small" color="textMuted">
-              完成於 {item.completedAt}
+              完成於 {item.completed_at.split('T')[0]}
             </Text>
-          ) : item.targetDate ? (
+          ) : item.target_date ? (
             <Text variant="small" color="textMuted">
-              目標日期：{item.targetDate}
+              目標日期：{item.target_date.split('T')[0]}
             </Text>
           ) : null}
         </View>
-        <View style={styles.typeBadge}>
-          <Text variant="small" color="textMuted">
-            {TYPE_LABELS[item.type]}
-          </Text>
-        </View>
-        <ChevronRight size={18} color={SEMANTIC_COLORS.textMuted} />
+        {item.category && (
+          <View style={styles.typeBadge}>
+            <Text variant="small" color="textMuted">
+              {item.category}
+            </Text>
+          </View>
+        )}
       </Pressable>
     </Animated.View>
   )
@@ -178,9 +117,9 @@ function BucketCard({ item, onPress, onToggle, onDelete, index }: BucketCardProp
 
 export default function BucketListScreen() {
   const router = useRouter()
-  const [activeTab, setActiveTab] = useState<BucketType>('all')
-  const [bucketList, setBucketList] = useState<BucketItem[]>(MOCK_BUCKET_LIST)
-  const [isLoading] = useState(false)
+  const { data: bucketList = [], isLoading, isError, refetch } = useBucketList()
+  const toggleMutation = useToggleBucketItem()
+  const deleteMutation = useDeleteBucketItem()
 
   const handleBack = () => {
     router.back()
@@ -191,55 +130,28 @@ export default function BucketListScreen() {
     Alert.alert('新增心願', '此功能開發中')
   }
 
-  const handleItemPress = useCallback(
-    (item: BucketItem) => {
-      switch (item.type) {
-        case 'crag':
-          router.push(`/crag/${item.id}` as any)
-          break
-        case 'gym':
-          router.push(`/gym/${item.id}` as any)
-          break
-        default:
-          break
-      }
+  const handleToggleItem = useCallback(
+    (item: BucketListItem) => {
+      const willComplete = item.status !== 'completed'
+      toggleMutation.mutate({ id: item.id, completed: willComplete })
     },
-    [router]
+    [toggleMutation]
   )
 
-  const handleToggleItem = useCallback((itemId: string) => {
-    setBucketList((prev) =>
-      prev.map((item) => {
-        if (item.id === itemId) {
-          const newStatus: BucketStatus = item.status === 'completed' ? 'pending' : 'completed'
-          return {
-            ...item,
-            status: newStatus,
-            completedAt: newStatus === 'completed' ? new Date().toISOString().split('T')[0] : undefined,
-          }
-        }
-        return item
-      })
-    )
-  }, [])
-
-  const handleDeleteItem = useCallback((itemId: string) => {
-    setBucketList((prev) => prev.filter((item) => item.id !== itemId))
-  }, [])
-
-  const filteredList =
-    activeTab === 'all'
-      ? bucketList
-      : bucketList.filter((item) => item.type === activeTab)
+  const handleDeleteItem = useCallback(
+    (itemId: string) => {
+      deleteMutation.mutate(itemId)
+    },
+    [deleteMutation]
+  )
 
   const completedCount = bucketList.filter((i) => i.status === 'completed').length
-  const pendingCount = bucketList.filter((i) => i.status === 'pending').length
+  const pendingCount = bucketList.filter((i) => i.status !== 'completed').length
 
-  const renderItem = ({ item, index }: { item: BucketItem; index: number }) => (
+  const renderItem = ({ item, index }: { item: BucketListItem; index: number }) => (
     <BucketCard
       item={item}
-      onPress={() => handleItemPress(item)}
-      onToggle={() => handleToggleItem(item.id)}
+      onToggle={() => handleToggleItem(item)}
       onDelete={() => handleDeleteItem(item.id)}
       index={index}
     />
@@ -266,48 +178,46 @@ export default function BucketListScreen() {
         </View>
 
         {/* 統計 */}
-        <View style={styles.statsBar}>
-          <View style={styles.statBox}>
-            <Text variant="h4" fontWeight="700" style={styles.completedNumber}>
-              {completedCount}
-            </Text>
-            <Text variant="small" color="textMuted">
-              已完成
-            </Text>
+        {!isLoading && !isError && (
+          <View style={styles.statsBar}>
+            <View style={styles.statBox}>
+              <Text variant="h4" fontWeight="700" style={styles.completedNumber}>
+                {completedCount}
+              </Text>
+              <Text variant="small" color="textMuted">
+                已完成
+              </Text>
+            </View>
+            <View style={styles.statDivider} />
+            <View style={styles.statBox}>
+              <Text variant="h4" fontWeight="700">
+                {pendingCount}
+              </Text>
+              <Text variant="small" color="textMuted">
+                進行中
+              </Text>
+            </View>
           </View>
-          <View style={styles.statDivider} />
-          <View style={styles.statBox}>
-            <Text variant="h4" fontWeight="700">
-              {pendingCount}
-            </Text>
-            <Text variant="small" color="textMuted">
-              進行中
-            </Text>
-          </View>
-        </View>
-
-        {/* 分類標籤 */}
-        <View style={styles.tabsContainer}>
-          <Tabs
-            value={activeTab}
-            onValueChange={(v) => setActiveTab(v as BucketType)}
-          >
-            <TabsList>
-              {Object.entries(TYPE_LABELS).map(([key, label]) => (
-                <TabsTrigger key={key} value={key}>
-                  {label}
-                </TabsTrigger>
-              ))}
-            </TabsList>
-          </Tabs>
-        </View>
+        )}
 
         {/* 列表 */}
         {isLoading ? (
           <View style={styles.loadingContainer}>
             <ActivityIndicator size="large" color={SEMANTIC_COLORS.textMain} />
           </View>
-        ) : filteredList.length === 0 ? (
+        ) : isError ? (
+          <View style={styles.emptyContainer}>
+            <Mountain size={48} color={SEMANTIC_COLORS.textMuted} />
+            <Text variant="body" color="textSubtle" style={styles.emptyText}>
+              載入失敗，請重試
+            </Text>
+            <Pressable onPress={() => refetch()}>
+              <Text variant="body" color="textMain" fontWeight="600">
+                重試
+              </Text>
+            </Pressable>
+          </View>
+        ) : bucketList.length === 0 ? (
           <View style={styles.emptyContainer}>
             <Mountain size={48} color={SEMANTIC_COLORS.textMuted} />
             <Text variant="body" color="textSubtle" style={styles.emptyText}>
@@ -319,7 +229,7 @@ export default function BucketListScreen() {
           </View>
         ) : (
           <FlatList
-            data={filteredList}
+            data={bucketList}
             renderItem={renderItem}
             keyExtractor={(item) => item.id}
             contentContainerStyle={styles.listContent}
@@ -365,13 +275,6 @@ const styles = StyleSheet.create({
   },
   completedNumber: {
     color: '#10B981',
-  },
-  tabsContainer: {
-    backgroundColor: SEMANTIC_COLORS.cardBg,
-    paddingHorizontal: SPACING.md,
-    paddingBottom: SPACING.sm,
-    borderBottomWidth: 1,
-    borderBottomColor: '#F0F0F0',
   },
   listContent: {
     padding: SPACING.md,

@@ -3,7 +3,7 @@
  *
  * 快速回應列，對應 apps/web/src/components/biography/display/QuickReactionBar.tsx
  */
-import React, { useState, useCallback } from 'react'
+import React, { useState, useEffect, useCallback } from 'react'
 import { StyleSheet, View, Pressable } from 'react-native'
 import Animated, {
   useAnimatedStyle,
@@ -12,6 +12,7 @@ import Animated, {
   withSpring,
 } from 'react-native-reanimated'
 
+import { apiClient } from '@/lib/api'
 import { Text } from '@/components/ui'
 import { BRAND_YELLOW, RADIUS, SPACING, WB_COLORS } from '@nobodyclimb/constants'
 
@@ -107,12 +108,40 @@ export function QuickReactionBar({
   contentId,
   size = 'sm',
 }: QuickReactionBarProps) {
-  // 本地狀態 (實際應從 API 獲取)
   const [reactions, setReactions] = useState<Record<string, { count: number; isReacted: boolean }>>({
     me_too: { count: 0, isReacted: false },
     plus_one: { count: 0, isReacted: false },
     well_said: { count: 0, isReacted: false },
   })
+
+  // 從 API 獲取初始回應狀態
+  useEffect(() => {
+    const fetchReactions = async () => {
+      try {
+        const response = await apiClient.get(`/content/${contentType}/${contentId}/reactions`)
+        const data = response.data?.data ?? response.data ?? []
+        if (Array.isArray(data)) {
+          const mapped: Record<string, { count: number; isReacted: boolean }> = {
+            me_too: { count: 0, isReacted: false },
+            plus_one: { count: 0, isReacted: false },
+            well_said: { count: 0, isReacted: false },
+          }
+          data.forEach((item: any) => {
+            if (mapped[item.reaction_id]) {
+              mapped[item.reaction_id] = {
+                count: item.count ?? 0,
+                isReacted: item.is_reacted ?? false,
+              }
+            }
+          })
+          setReactions(mapped)
+        }
+      } catch (error) {
+        // 靜默失敗，保持預設值
+      }
+    }
+    fetchReactions()
+  }, [contentType, contentId])
 
   const handleReaction = useCallback(
     async (reactionId: string) => {
@@ -132,8 +161,7 @@ export function QuickReactionBar({
       })
 
       try {
-        // TODO: 整合 API
-        // await quickReactionService.toggleReaction(contentType, contentId, reactionId)
+        await apiClient.post(`/content/${contentType}/${contentId}/reactions`, { reaction_id: reactionId })
       } catch (error) {
         // 回滾
         setReactions((prev) => {

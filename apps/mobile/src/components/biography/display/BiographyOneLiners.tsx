@@ -8,6 +8,7 @@ import { StyleSheet, View, ActivityIndicator } from 'react-native'
 import { MessageCircle, Sparkles } from 'lucide-react-native'
 import Animated, { FadeInDown } from 'react-native-reanimated'
 
+import { apiClient } from '@/lib/api'
 import { Text, Card } from '@/components/ui'
 import { ContentInteractionBar } from './ContentInteractionBar'
 import { BRAND_YELLOW, RADIUS, SEMANTIC_COLORS, SPACING, WB_COLORS } from '@nobodyclimb/constants'
@@ -45,42 +46,11 @@ export function BiographyOneLiners({ biographyId }: BiographyOneLinersProps) {
   // 獲取一句話列表
   const fetchOneLiners = useCallback(async () => {
     try {
-      // TODO: 整合 biographyContentService.getOneLiners(biographyId)
-      await new Promise((resolve) => setTimeout(resolve, 500))
-
-      // 模擬資料
-      const mockData: OneLiner[] = [
-        {
-          id: '1',
-          question_id: 'fear_overcome',
-          question: '你如何克服攀岩中的恐懼？',
-          answer: '深呼吸，相信自己的腳法，專注於下一個動作。',
-          like_count: 5,
-          comment_count: 2,
-          is_liked: false,
-        },
-        {
-          id: '2',
-          question_id: 'favorite_route',
-          question: '最難忘的路線是哪條？',
-          answer: '龍洞的經典路線 Yellow Wall，完攀那刻的感動至今難忘。',
-          like_count: 8,
-          comment_count: 3,
-          is_liked: true,
-        },
-        {
-          id: '3',
-          question_id: 'custom_question',
-          question_text: '為什麼選擇先鋒攀登？',
-          answer: '先鋒的自由度和挑戰性，讓我更能感受攀岩的純粹。',
-          like_count: 3,
-          comment_count: 1,
-          is_liked: false,
-        },
-      ]
+      const response = await apiClient.get(`/content/biographies/${biographyId}/one-liners`)
+      const data: OneLiner[] = response.data?.data ?? response.data ?? []
 
       // 過濾掉核心故事的問題
-      const filtered = mockData.filter(
+      const filtered = data.filter(
         (item) => !CORE_QUESTION_IDS.has(item.question_id)
       )
       setOneLiners(filtered)
@@ -97,7 +67,7 @@ export function BiographyOneLiners({ biographyId }: BiographyOneLinersProps) {
 
   // 按讚切換
   const handleToggleLike = async (oneLinerId: string) => {
-    // TODO: 整合 biographyContentService.toggleOneLinerLike(oneLinerId)
+    apiClient.post(`/content/one-liners/${oneLinerId}/like`).catch(console.error)
     setOneLiners((prev) =>
       prev.map((item) =>
         item.id === oneLinerId
@@ -117,14 +87,18 @@ export function BiographyOneLiners({ biographyId }: BiographyOneLinersProps) {
   }
 
   // 獲取留言
-  const handleFetchComments = async (_oneLinerId: string) => {
-    // TODO: 整合 biographyContentService.getOneLinerComments(oneLinerId)
-    return []
+  const handleFetchComments = async (oneLinerId: string) => {
+    try {
+      const response = await apiClient.get(`/content/one-liners/${oneLinerId}/comments`)
+      return response.data?.data ?? response.data ?? []
+    } catch (error) {
+      console.error('Failed to fetch comments:', error)
+      return []
+    }
   }
 
   // 新增留言
   const handleAddComment = async (oneLinerId: string, content: string) => {
-    // TODO: 整合 biographyContentService.addOneLinerComment(oneLinerId, { content })
     setOneLiners((prev) =>
       prev.map((item) =>
         item.id === oneLinerId
@@ -132,7 +106,21 @@ export function BiographyOneLiners({ biographyId }: BiographyOneLinersProps) {
           : item
       )
     )
-    return { id: Date.now().toString(), content, created_at: new Date().toISOString() }
+    try {
+      const response = await apiClient.post(`/content/one-liners/${oneLinerId}/comments`, { content })
+      return response.data?.data ?? response.data ?? { id: Date.now().toString(), content, created_at: new Date().toISOString() }
+    } catch (error) {
+      console.error('Failed to add comment:', error)
+      // 回滾
+      setOneLiners((prev) =>
+        prev.map((item) =>
+          item.id === oneLinerId
+            ? { ...item, comment_count: item.comment_count - 1 }
+            : item
+        )
+      )
+      return { id: Date.now().toString(), content, created_at: new Date().toISOString() }
+    }
   }
 
   if (isLoading) {

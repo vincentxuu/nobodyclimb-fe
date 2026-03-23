@@ -8,19 +8,29 @@ import { StyleSheet, View, ScrollView, ActivityIndicator, useWindowDimensions } 
 import Animated, { FadeInRight } from 'react-native-reanimated'
 
 import { Text, Card } from '@/components/ui'
+import { apiClient } from '@/lib/api'
 import { ContentInteractionBar } from '../display/ContentInteractionBar'
 import { RADIUS, SEMANTIC_COLORS, SPACING, WB_COLORS } from '@nobodyclimb/constants'
 
 // 類型定義
 interface Story {
   id: string
+  biography_id?: string
   category_id?: string
   category_name?: string
+  category_emoji?: string
   title?: string
+  subtitle?: string
+  question_id?: string
+  question_text?: string
   content: string
+  difficulty?: string
+  word_count?: number
   like_count: number
   comment_count: number
   is_liked?: boolean
+  created_at?: string
+  updated_at?: string
 }
 
 interface Biography {
@@ -52,45 +62,12 @@ export function FeaturedStoriesSection({ person }: FeaturedStoriesSectionProps) 
   const [stories, setStories] = useState<Story[]>([])
   const [isLoading, setIsLoading] = useState(true)
 
-  // 從 API 獲取小故事
+  // 從 API 獲取所有小故事（與 Web 一致，取全部後做智能選擇）
   const fetchStories = useCallback(async () => {
     try {
-      // TODO: 整合 biographyContentService.getStories(person.id)
-      await new Promise(resolve => setTimeout(resolve, 500))
-
-      // 模擬資料
-      setStories([
-        {
-          id: '1',
-          category_id: 'sys_cat_growth',
-          category_name: '成長故事',
-          title: '從入門到突破 5.10',
-          content: '記得第一次踏進岩館，完全不知道怎麼開始。看著牆上五顏六色的點，手腳並用地往上爬，才發現原來攀岩是這麼有趣的運動。',
-          like_count: 12,
-          comment_count: 5,
-          is_liked: true,
-        },
-        {
-          id: '2',
-          category_id: 'sys_cat_psychology',
-          category_name: '心理挑戰',
-          title: '克服先鋒恐懼',
-          content: '一開始對先鋒有很大的恐懼，總是擔心墜落。在朋友的鼓勵下，一步一步地練習，現在已經可以享受先鋒帶來的自由感了。',
-          like_count: 8,
-          comment_count: 3,
-          is_liked: false,
-        },
-        {
-          id: '3',
-          category_id: 'sys_cat_community',
-          category_name: '社群故事',
-          title: '岩館認識的好朋友',
-          content: '攀岩讓我認識了很多志同道合的朋友，大家一起練習、互相鼓勵，這種感覺真的很棒。',
-          like_count: 15,
-          comment_count: 7,
-          is_liked: false,
-        },
-      ])
+      const response = await apiClient.get(`/content/biographies/${person.id}/stories`)
+      const data: Story[] = response.data?.data ?? response.data ?? []
+      setStories(data)
     } catch (error) {
       console.error('Failed to fetch stories:', error)
     } finally {
@@ -102,8 +79,9 @@ export function FeaturedStoriesSection({ person }: FeaturedStoriesSectionProps) 
     fetchStories()
   }, [fetchStories])
 
-  // 按讚切換
+  // 按讚切換（呼叫後端 API）
   const handleToggleLike = useCallback(async (storyId: string) => {
+    // Optimistic update
     setStories(prev =>
       prev.map(item =>
         item.id === storyId
@@ -111,34 +89,103 @@ export function FeaturedStoriesSection({ person }: FeaturedStoriesSectionProps) 
           : item
       )
     )
-    const item = stories.find(i => i.id === storyId)
-    return {
-      liked: !item?.is_liked,
-      like_count: item?.is_liked ? (item?.like_count || 1) - 1 : (item?.like_count || 0) + 1,
+    try {
+      const response = await apiClient.post(`/content/stories/${storyId}/like`)
+      const data = response.data?.data ?? response.data
+      if (data) {
+        setStories(prev =>
+          prev.map(item =>
+            item.id === storyId
+              ? { ...item, is_liked: data.liked, like_count: data.like_count }
+              : item
+          )
+        )
+        return data
+      }
+    } catch (error) {
+      // Rollback
+      setStories(prev =>
+        prev.map(item =>
+          item.id === storyId
+            ? { ...item, is_liked: !item.is_liked, like_count: item.is_liked ? item.like_count - 1 : item.like_count + 1 }
+            : item
+        )
+      )
+      console.error('Failed to toggle like:', error)
     }
+    const item = stories.find(i => i.id === storyId)
+    return { liked: item?.is_liked ?? false, like_count: item?.like_count ?? 0 }
   }, [stories])
 
-  // 獲取留言
-  const handleFetchComments = useCallback(async (_storyId: string) => {
-    return []
+  // 獲取留言（呼叫後端 API）
+  const handleFetchComments = useCallback(async (storyId: string) => {
+    try {
+      const response = await apiClient.get(`/content/stories/${storyId}/comments`)
+      return response.data?.data ?? response.data ?? []
+    } catch (error) {
+      console.error('Failed to fetch comments:', error)
+      return []
+    }
   }, [])
 
-  // 新增留言
+  // 新增留言（呼叫後端 API）
   const handleAddComment = useCallback(async (storyId: string, content: string) => {
-    setStories(prev =>
-      prev.map(item =>
-        item.id === storyId
-          ? { ...item, comment_count: item.comment_count + 1 }
-          : item
-      )
-    )
+    try {
+      const response = await apiClient.post(`/content/stories/${storyId}/comments`, { content })
+      const data = response.data?.data ?? response.data
+      if (data) {
+        setStories(prev =>
+          prev.map(item =>
+            item.id === storyId
+              ? { ...item, comment_count: item.comment_count + 1 }
+              : item
+          )
+        )
+        return data
+      }
+    } catch (error) {
+      console.error('Failed to add comment:', error)
+    }
     return { id: Date.now().toString(), content, created_at: new Date().toISOString() }
   }, [])
 
-  // 智能選擇精選故事
+  // 智能選擇精選故事：優先選擇不同類別（與 Web 一致）
   const featuredStories = useMemo(() => {
     if (stories.length === 0) return []
-    return stories.slice(0, 5)
+
+    // 按類別分組
+    const storiesByCategory = stories.reduce((acc, story) => {
+      const categoryId = story.category_id || 'uncategorized'
+      if (!acc[categoryId]) {
+        acc[categoryId] = []
+      }
+      acc[categoryId].push(story)
+      return acc
+    }, {} as Record<string, Story[]>)
+
+    const selected: Story[] = []
+    const categories = Object.keys(storiesByCategory)
+    let categoryIndex = 0
+
+    // 輪流從每個類別選一個故事，直到選滿 5 個
+    while (selected.length < 5 && selected.length < stories.length) {
+      const category = categories[categoryIndex % categories.length]
+      const categoryStories = storiesByCategory[category]
+
+      if (categoryStories && categoryStories.length > 0) {
+        selected.push(categoryStories.shift()!)
+      }
+
+      // 如果該類別沒故事了，移除該類別
+      if (!categoryStories || categoryStories.length === 0) {
+        categories.splice(categoryIndex % categories.length, 1)
+        if (categories.length === 0) break
+      } else {
+        categoryIndex++
+      }
+    }
+
+    return selected
   }, [stories])
 
   if (isLoading) {
@@ -179,10 +226,11 @@ export function FeaturedStoriesSection({ person }: FeaturedStoriesSectionProps) 
             >
               <Card style={styles.card}>
                 {/* 分類標籤 */}
-                {story.category_name && (
+                {(story.category_id || story.category_name) && (
                   <View style={[styles.categoryTag, { backgroundColor: colors.bg }]}>
                     <Text variant="small" style={{ color: colors.text }}>
-                      {story.category_name}
+                      {story.category_emoji && `${story.category_emoji} `}
+                      {story.category_name || '故事'}
                     </Text>
                   </View>
                 )}

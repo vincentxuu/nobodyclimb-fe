@@ -21,33 +21,19 @@ import {
 } from '@/components/gallery'
 import { SEMANTIC_COLORS, SPACING } from '@nobodyclimb/constants'
 import { useAuthStore } from '@/store/authStore'
+import { useGallery, useRefreshGallery } from '@/lib/hooks'
 import type { GalleryPhoto } from '@nobodyclimb/types'
-
-// 模擬資料（之後替換為 API 呼叫）
-const MOCK_PHOTOS: GalleryGridPhoto[] = Array.from({ length: 20 }, (_, i) => ({
-  id: `photo-${i + 1}`,
-  src: `https://picsum.photos/400/600?random=${i + 40}`,
-  alt: `攀岩照片 ${i + 1}`,
-  location: i % 3 === 0 ? {
-    country: '台灣',
-    city: '新北市',
-    spot: i % 2 === 0 ? '龍洞' : '大砲岩',
-  } : undefined,
-  author: {
-    id: `user-${i + 1}`,
-    username: `climber${i + 1}`,
-    displayName: `攀岩者 ${i + 1}`,
-    avatar: `https://i.pravatar.cc/150?u=${i + 1}`,
-  },
-}))
 
 export default function GalleryScreen() {
   const router = useRouter()
   const { isAuthenticated } = useAuthStore()
 
-  // 狀態
-  const [photos] = useState<GalleryGridPhoto[]>(MOCK_PHOTOS)
-  const [isLoading, setIsLoading] = useState(false)
+  // API 資料
+  const { data, isLoading, isError } = useGallery(1, 30)
+  const refreshGallery = useRefreshGallery()
+  const photos = data?.photos ?? []
+
+  // 刷新狀態
   const [isRefreshing, setIsRefreshing] = useState(false)
 
   // Popup 狀態
@@ -106,22 +92,27 @@ export default function GalleryScreen() {
   // 下拉刷新
   const handleRefresh = useCallback(async () => {
     setIsRefreshing(true)
-    // TODO: 呼叫 API 重新載入
-    await new Promise((resolve) => setTimeout(resolve, 1000))
+    refreshGallery()
     setIsRefreshing(false)
-  }, [])
+  }, [refreshGallery])
 
   // 上傳成功
-  const handleUploadSuccess = useCallback((photo: GalleryPhoto) => {
-    // TODO: 更新照片列表
-    console.log('Photo uploaded:', photo)
-  }, [])
+  const handleUploadSuccess = useCallback(
+    (photo: GalleryPhoto) => {
+      console.log('Photo uploaded:', photo)
+      refreshGallery()
+    },
+    [refreshGallery]
+  )
 
   // 編輯成功
-  const handleEditSuccess = useCallback((photo: GalleryPhoto) => {
-    // TODO: 更新照片列表
-    console.log('Photo edited:', photo)
-  }, [])
+  const handleEditSuccess = useCallback(
+    (photo: GalleryPhoto) => {
+      console.log('Photo edited:', photo)
+      refreshGallery()
+    },
+    [refreshGallery]
+  )
 
   // 開啟上傳 Dialog
   const handleOpenUpload = useCallback(() => {
@@ -165,10 +156,10 @@ export default function GalleryScreen() {
           ListEmptyComponent={
             <EmptyState
               icon={ImageIcon}
-              title="暫無照片"
-              description="成為第一個分享攀岩照片的人吧！"
-              actionLabel={isAuthenticated ? '上傳照片' : undefined}
-              onAction={isAuthenticated ? handleOpenUpload : undefined}
+              title={isError ? '載入失敗' : '暫無照片'}
+              description={isError ? '請稍後再試' : '成為第一個分享攀岩照片的人吧！'}
+              actionLabel={isAuthenticated && !isError ? '上傳照片' : undefined}
+              onAction={isAuthenticated && !isError ? handleOpenUpload : undefined}
             />
           }
         />
@@ -190,9 +181,6 @@ export default function GalleryScreen() {
         isOpen={uploadDialogOpen}
         onClose={() => setUploadDialogOpen(false)}
         onSuccess={handleUploadSuccess}
-        // TODO: 連接實際 API
-        // onUploadImage={galleryService.uploadImage}
-        // onUploadPhoto={galleryService.uploadPhoto}
       />
 
       {/* 編輯 Dialog */}
@@ -204,8 +192,6 @@ export default function GalleryScreen() {
           setEditingPhoto(null)
         }}
         onSuccess={handleEditSuccess}
-        // TODO: 連接實際 API
-        // onUpdatePhoto={galleryService.updatePhoto}
       />
     </SafeAreaView>
   )
