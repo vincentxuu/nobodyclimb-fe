@@ -686,7 +686,11 @@ cragsRoutes.get(
   const cragId = c.req.param('id');
 
   const areas = await c.env.DB.prepare(
-    'SELECT * FROM areas WHERE crag_id = ? ORDER BY sort_order ASC, name ASC'
+    `SELECT a.*,
+       (SELECT COUNT(*) FROM routes r WHERE r.area_id = a.id) AS route_count
+     FROM areas a
+     WHERE a.crag_id = ?
+     ORDER BY a.sort_order ASC, a.name ASC`
   )
     .bind(cragId)
     .all();
