@@ -265,7 +265,7 @@ export async function agenticRetrieve(
   steps: AgenticStepTrace[],
   agenticPromptTemplate?: string,
   decisionUsages?: Array<StageTokenUsage & { step: number }>,
-): Promise<{ candidates: SearchResult[]; terminationReason: 'enough_docs' | 'max_steps' | 'no_improvement' }> {
+): Promise<{ candidates: SearchResult[]; terminationReason: 'enough_docs' | 'max_steps' | 'no_improvement'; initialSearch: { initial_results_count: number; min_docs_to_answer: number; min_quality_score: number; min_rrf_score: number; quality_check?: { unique_count: number; avg_score: number; passed: boolean } } }> {
   const cragFilter = vectorFilter['crag_id'] as { $in?: string[] } | undefined;
   const isMultiCrag = Array.isArray(cragFilter?.$in) && cragFilter.$in.length > 1;
   const MERGE_TOP_K = isMultiCrag ? Math.max(20, cfg.merge_top_k * 2) : cfg.merge_top_k;
@@ -282,6 +282,15 @@ export async function agenticRetrieve(
   const initialResults = await runAgenticSearch(deps, query, vectorFilter, MERGE_TOP_K, cfg.bm25_top_k);
   allPaths.push(initialResults);
 
+  // 記錄初始搜尋資訊供 trace 使用
+  const initialSearchTrace = {
+    initial_results_count: initialResults.length,
+    min_docs_to_answer: cfg.agentic_min_docs_to_answer,
+    min_quality_score: cfg.agentic_min_quality_score,
+    min_rrf_score: minScore,
+    quality_check: undefined as { unique_count: number; avg_score: number; passed: boolean } | undefined,
+  };
+
   const AGENTIC_MAX_MERGE_K = MERGE_TOP_K * 3;
 
   for (let step = 0; step < cfg.agentic_max_steps; step++) {
@@ -291,6 +300,10 @@ export async function agenticRetrieve(
     if (uniqueCount >= cfg.agentic_min_docs_to_answer) {
       const topK = merged.slice(0, cfg.agentic_min_docs_to_answer);
       const avgScore = topK.reduce((s, d) => s + d.score, 0) / topK.length;
+      // 記錄品質檢查結果（不論是否通過）
+      if (step === 0 || !initialSearchTrace.quality_check) {
+        initialSearchTrace.quality_check = { unique_count: uniqueCount, avg_score: avgScore, passed: avgScore >= cfg.agentic_min_quality_score };
+      }
       if (avgScore >= cfg.agentic_min_quality_score) {
         agenticTerminationReason = 'enough_docs';
         break;
@@ -388,5 +401,5 @@ export async function agenticRetrieve(
   const finalMerged = mergeResults(allPaths, AGENTIC_MAX_MERGE_K);
   const finalCandidates = finalMerged.filter((m) => m.score >= minScore);
 
-  return { candidates: finalCandidates, terminationReason: agenticTerminationReason };
+  return { candidates: finalCandidates, terminationReason: agenticTerminationReason, initialSearch: initialSearchTrace };
 }

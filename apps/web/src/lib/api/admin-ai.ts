@@ -237,6 +237,13 @@ export interface AILogDetail {
       total_paths: number
       final_doc_count: number
       termination_reason?: 'enough_docs' | 'max_steps' | 'no_improvement'
+      initial_search?: {
+        initial_results_count: number
+        min_docs_to_answer: number
+        min_quality_score: number
+        min_rrf_score: number
+        quality_check?: { unique_count: number; avg_score: number; passed: boolean }
+      }
     }
     plan_execute?: {
       strategy: string

@@ -22,6 +22,8 @@ export function AgenticTrace({ trace }: { trace: PipelineTrace }) {
     no_improvement: '搜尋結果無改善',
   }
 
+  const ini = a.initial_search
+
   return (
     <div>
       <StageDesc>多步驟 Agentic RAG 模式。LLM 自主規劃多輪搜尋：每步驟由 LLM 決策下一動作（RETRIEVE 繼續搜尋 / BROADEN 放寬條件 / SWITCH_TOOL 切換工具 / DECOMPOSE 拆分子查詢 / VERIFY 交叉驗證 / ANSWER 已足夠回答），動態調整查詢直到累積足夠高品質文件或達到最大步數上限。</StageDesc>
@@ -34,6 +36,32 @@ export function AgenticTrace({ trace }: { trace: PipelineTrace }) {
           <KVRow label="搜尋路徑總數" value={`${a.total_paths} 路`} />
         </div>
       </StageSection>
+      {ini && (
+        <StageSection type="decision" label="初始搜尋（Step 0）">
+          <div className="space-y-1">
+            <KVRow label="初始取回" value={`${ini.initial_results_count} 筆（Vector + BM25）`} />
+            {ini.quality_check && (
+              <>
+                <KVRow label="合併去重後" value={`${ini.quality_check.unique_count} 筆`} />
+                <KVRow label="Top-K 平均分數" value={
+                  <span className={ini.quality_check.passed ? 'text-emerald-600' : 'text-amber-600'}>
+                    {ini.quality_check.avg_score.toFixed(4)}
+                    <span className="text-wb-40 ml-1">（門檻 {ini.min_quality_score}）</span>
+                  </span>
+                } />
+                <KVRow label="品質檢查" value={
+                  <TraceBadge
+                    text={ini.quality_check.passed ? '通過 → 跳過 LLM 決策' : '未通過 → 進入 LLM 決策'}
+                    color={ini.quality_check.passed ? 'emerald' : 'amber'}
+                  />
+                } />
+              </>
+            )}
+            <KVRow label="最低 RRF 分數" value={ini.min_rrf_score} />
+            <KVRow label="最少文件門檻" value={`${ini.min_docs_to_answer} 筆`} />
+          </div>
+        </StageSection>
+      )}
       <StageSection type="decision">
         {a.steps.length > 0 ? (
           <div className="space-y-1.5">

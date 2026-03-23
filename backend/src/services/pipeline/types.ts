@@ -237,7 +237,7 @@ export interface QueryServiceStepMethods {
     query: string, vectorFilter: Record<string, unknown>, cfg: PipelineConfig,
     steps: AgenticStepTrace[], agenticPromptTemplate?: string,
     decisionUsages?: Array<StageTokenUsage & { step: number }>,
-  ): Promise<{ candidates: SearchResult[]; terminationReason: string }>;
+  ): Promise<{ candidates: SearchResult[]; terminationReason: string; initialSearch: { initial_results_count: number; min_docs_to_answer: number; min_quality_score: number; min_rrf_score: number; quality_check?: { unique_count: number; avg_score: number; passed: boolean } } }>;
   // Plan-and-Execute
   planQuery(
     query: string, cfg: PipelineConfig, crags: string[], areas: string[],

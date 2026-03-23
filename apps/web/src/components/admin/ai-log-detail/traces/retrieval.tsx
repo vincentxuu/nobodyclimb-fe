@@ -81,7 +81,13 @@ export function RetrievalTrace({
   const pathColor = (p: string) =>
     p === 'query_vec' ? 'blue' : p === 'hyde_vec' ? 'violet' : p === 'bm25' ? 'emerald' : 'default'
 
-  if (!r) return <p className="text-[11px] text-wb-40">無詳細資料（舊記錄）</p>
+  if (!r) {
+    const altPath = trace.agentic ? 'Agentic Multi-Step' : trace.plan_execute ? 'Plan-and-Execute' : trace.multi_tool ? 'Multi-Tool' : null
+    if (altPath) {
+      return <p className="text-[11px] text-wb-40">此查詢走 {altPath} 路徑，詳細資料請查看對應階段</p>
+    }
+    return <p className="text-[11px] text-wb-40">無詳細資料（舊記錄）</p>
+  }
 
   const totalRaw = r.path_counts
     ? Object.values(r.path_counts).reduce((a, b) => a + b, 0)
