@@ -78,12 +78,14 @@ jobs:
           if [ "${{ inputs.mode }}" == "ci" ]; then
             ARGS="$ARGS --ci"
           fi
-          if [ -n "${{ secrets.CF_ACCESS_CLIENT_ID }}" ]; then
-            ARGS="$ARGS --cf-access-client-id ${{ secrets.CF_ACCESS_CLIENT_ID }} --cf-access-client-secret ${{ secrets.CF_ACCESS_CLIENT_SECRET }}"
+          if [ -n "$CF_ACCESS_CLIENT_ID" ]; then
+            ARGS="$ARGS --cf-access-client-id $CF_ACCESS_CLIENT_ID --cf-access-client-secret $CF_ACCESS_CLIENT_SECRET"
           fi
           npx tsx backend/scripts/evaluate-rag.ts $ARGS
         env:
           EXIT_CODE: ${{ job.status }}
+          CF_ACCESS_CLIENT_ID: ${{ secrets.CF_ACCESS_CLIENT_ID }}
+          CF_ACCESS_CLIENT_SECRET: ${{ secrets.CF_ACCESS_CLIENT_SECRET }}
 
       - name: Check evaluation result
         run: |
@@ -141,10 +143,13 @@ jobs:
         continue-on-error: true
         run: |
           ARGS="--api-url ${{ inputs.api_url }} --token ${{ steps.token.outputs.jwt }} --output redteam-report.json --red-team --delay 1500"
-          if [ -n "${{ secrets.CF_ACCESS_CLIENT_ID }}" ]; then
-            ARGS="$ARGS --cf-access-client-id ${{ secrets.CF_ACCESS_CLIENT_ID }} --cf-access-client-secret ${{ secrets.CF_ACCESS_CLIENT_SECRET }}"
+          if [ -n "$CF_ACCESS_CLIENT_ID" ]; then
+            ARGS="$ARGS --cf-access-client-id $CF_ACCESS_CLIENT_ID --cf-access-client-secret $CF_ACCESS_CLIENT_SECRET"
           fi
           npx tsx backend/scripts/evaluate-rag.ts $ARGS
+        env:
+          CF_ACCESS_CLIENT_ID: ${{ secrets.CF_ACCESS_CLIENT_ID }}
+          CF_ACCESS_CLIENT_SECRET: ${{ secrets.CF_ACCESS_CLIENT_SECRET }}
 
       - name: Check red team result
         run: |
