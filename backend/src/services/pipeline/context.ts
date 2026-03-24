@@ -23,6 +23,7 @@ export function createPipelineContext(opts: {
   extraTrace?: Record<string, unknown>;
   abortSignal?: AbortSignal;
   circuitBreaker?: CircuitBreaker;
+  langfuseTrace?: import('../../utils/langfuse').LangfuseTraceClient | null;
 }): PipelineContext {
   return {
     env: opts.env,
@@ -80,5 +81,9 @@ export function createPipelineContext(opts: {
     abortSignal: opts.abortSignal,
     degradedStages: [],
     circuitBreaker: opts.circuitBreaker,
+
+    // Langfuse 觀察性
+    langfuseTrace: opts.langfuseTrace ?? null,
+    currentLfSpan: null,
   };
 }
