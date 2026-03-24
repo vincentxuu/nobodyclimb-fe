@@ -169,6 +169,9 @@ export interface PipelineConfig {
   // Circuit Breaker
   circuit_breaker_threshold: number;
   circuit_breaker_reset_ms: number;
+  llm_provider?: 'cloudflare' | 'openai' | 'anthropic' | 'google';
+  embedding_provider?: 'cloudflare' | 'openai' | 'google';
+  use_langgraph_engine?: boolean;
 }
 
 // 檢索方法

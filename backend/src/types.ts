@@ -223,6 +223,9 @@ export interface Env {
   LANGFUSE_PUBLIC_KEY?: string;
   LANGFUSE_SECRET_KEY?: string;
   LANGFUSE_BASEURL?: string;
+  OPENAI_API_KEY?: string;
+  ANTHROPIC_API_KEY?: string;
+  GOOGLE_AI_API_KEY?: string;
 }
 
 // Type alias for backwards compatibility
