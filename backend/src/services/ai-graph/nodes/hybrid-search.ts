@@ -1,5 +1,5 @@
 import { GraphState } from '../state';
-import { startSpan, endSpan } from '../langfuse';
+import { startSpan, endSpan } from '../../../utils/langfuse';
 import { SearchResult } from '../../pipeline/types';
 import { AgenticStepTrace, StageTokenUsage } from '../../pipeline/types';
 

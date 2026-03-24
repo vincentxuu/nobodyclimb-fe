@@ -1,6 +1,6 @@
 import { PipelineContext } from '../pipeline/types';
 import { GraphState } from './state';
-import { getLangfuseClient, createTrace, flushLangfuse } from './langfuse';
+import { createLangfuseClient, createTrace, flushLangfuse } from '../../utils/langfuse';
 import { baselineGraph } from './graphs/baseline';
 import { agenticGraph } from './graphs/agentic';
 import { planExecuteGraph } from './graphs/plan-execute';
@@ -13,7 +13,7 @@ type AnyGraph = { invoke(state: GraphState, config?: { recursionLimit?: number }
  * 接受與原本 pipeline engine 相同的 PipelineContext，回傳執行後的 state（含 finalResponse）。
  */
 export async function runAIGraph(ctx: PipelineContext): Promise<PipelineContext> {
-  const langfuse = getLangfuseClient(ctx.env);
+  const langfuse = createLangfuseClient(ctx.env);
   const trace = createTrace(langfuse, {
     name: 'ai-pipeline',
     userId: ctx.userId,

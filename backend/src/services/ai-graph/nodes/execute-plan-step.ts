@@ -1,5 +1,5 @@
 import { GraphState } from '../state';
-import { startSpan, endSpan } from '../langfuse';
+import { startSpan, endSpan } from '../../../utils/langfuse';
 import { hybridSearchNode } from './hybrid-search';
 import { crossEncoderNode } from './cross-encoder';
 import type { PlanStepExtended } from './planning';

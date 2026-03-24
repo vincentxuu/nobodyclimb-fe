@@ -1,5 +1,5 @@
 import { GraphState } from '../state';
-import { startSpan, endSpan } from '../langfuse';
+import { startSpan, endSpan } from '../../../utils/langfuse';
 import { PLANNING_PROMPT } from '../../../utils/ai-prompts';
 import type { ExecutionPlan, PlanStep } from '../../query/types';
 import type { MultiToolStep } from '../../pipeline/types';

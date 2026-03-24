@@ -1,6 +1,6 @@
 import { AISource, AIDocumentMetadata } from '../../../types';
 import { GraphState } from '../state';
-import { startSpan, endSpan } from '../langfuse';
+import { startSpan, endSpan } from '../../../utils/langfuse';
 
 export async function popularityRerankNode(state: GraphState): Promise<Partial<GraphState>> {
   const span = startSpan(state.langfuseTrace ?? null, 'popularity-rerank', {

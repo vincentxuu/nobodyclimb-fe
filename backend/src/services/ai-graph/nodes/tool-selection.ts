@@ -1,5 +1,5 @@
 import { GraphState } from '../state';
-import { startSpan, endSpan } from '../langfuse';
+import { startSpan, endSpan } from '../../../utils/langfuse';
 import toolRegistry from '../../tool-registry';
 
 // 個人查詢安全網：當 LLM 未能將個人查詢分類為 search_sql 時，用 regex 偵測並修正

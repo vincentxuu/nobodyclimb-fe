@@ -1,5 +1,5 @@
 import { GraphState } from '../state';
-import { startSpan, endSpan } from '../langfuse';
+import { startSpan, endSpan } from '../../../utils/langfuse';
 import { buildPersonalizedSystemPrompt } from '../../personalization';
 import { parseSuggestedQuestions } from '../../pipeline/utils';
 import { checkOutput } from '../../../utils/guardrails';
