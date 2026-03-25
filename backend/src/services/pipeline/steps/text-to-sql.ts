@@ -1,6 +1,7 @@
 import { PipelineStep, PipelineContext, LLMResponse } from '../types';
 import { TextToSqlService, SqlExecutionError } from '../../text-to-sql';
 import { SQL_RESULT_ASSEMBLY_PROMPT } from '../../../utils/ai-prompts';
+import { logGeneration } from '../../../utils/langfuse';
 
 export const textToSqlStep: PipelineStep = {
   id: 'text-to-sql',
@@ -123,6 +124,17 @@ async function handleSqlPath(ctx: PipelineContext, sqlService: TextToSqlService)
     )) as LLMResponse;
 
     const answer = llmResult.response || formatFallback(query, result.rows, template);
+    logGeneration(ctx.currentLfSpan ?? ctx.langfuseTrace ?? null, {
+      name: 'text-to-sql',
+      model: pipelineConfig.lightweight_model,
+      input: [{ role: 'user', content: assemblyPrompt }],
+      output: answer,
+      usage: llmResult.usage ? {
+        promptTokens: llmResult.usage.prompt_tokens,
+        completionTokens: llmResult.usage.completion_tokens,
+        totalTokens: llmResult.usage.total_tokens,
+      } : undefined,
+    });
 
     // 追蹤 token 使用
     if (llmResult.usage) {
