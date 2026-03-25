@@ -9,6 +9,7 @@ import { runAIGraph } from '../ai-graph';
 import type { PipelineConfig, AgenticStepTrace, StageTokenUsage } from '../pipeline/types';
 import { CircuitBreaker } from '../../utils/circuit-breaker';
 import { withTimeout, TimeoutError } from '../../utils/timeout';
+import { createLangfuseClient, createTrace, flushLangfuse } from '../../utils/langfuse';
 import type { LangfuseParent } from '../../utils/langfuse';
 
 // Sub-module imports
@@ -132,6 +133,18 @@ export class QueryService {
       };
     }
 
+    // Langfuse observability
+    const langfuseClient = createLangfuseClient(this.env);
+    const langfuseTrace = createTrace(langfuseClient, {
+      name: 'ai-ask',
+      userId,
+      input: { query, chat_history_length: recentHistory.length },
+      metadata: {
+        streaming: streamingMode,
+        cache_key: cacheKey,
+      },
+    });
+
     const controller = new AbortController();
 
     const pipelineCtx = createPipelineContext({
@@ -155,7 +168,10 @@ export class QueryService {
       extraTrace,
       abortSignal: controller.signal,
       circuitBreaker,
+      langfuseTrace,
     });
+
+    this.setPipelineCtx(pipelineCtx);
 
     try {
       if (pipelineCfg.use_langgraph_engine === true) {
@@ -179,6 +195,11 @@ export class QueryService {
     } catch (err) {
       controller.abort();
       throw err;
+    } finally {
+      // Langfuse flush：不阻塞回應，在 waitUntil 中執行
+      if (langfuseClient && ctx) {
+        ctx.waitUntil(flushLangfuse(langfuseClient));
+      }
     }
   }
 
