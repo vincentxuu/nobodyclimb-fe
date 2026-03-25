@@ -1,6 +1,8 @@
 import type { Env, AIDocument, AIDocumentMetadata } from '../../types';
 import type { PipelineConfig, AgenticAction, AgenticActionType, AgenticStepTrace, RetrievalMethod, StageTokenUsage, TokenUsageInfo } from '../pipeline/types';
 import { AGENTIC_DECISION_PROMPT } from '../../utils/ai-prompts';
+import { logGeneration } from '../../utils/langfuse';
+import type { LangfuseParent } from '../../utils/langfuse';
 import { EmbeddingService } from '../embedding';
 import { estimateTokens, type LLMResponse, type SearchResult } from './types';
 import toolRegistry from '../tool-registry';
@@ -179,6 +181,7 @@ async function decideNextAction(
   minDocs: number,
   model: string,
   promptTemplate?: string,
+  langfuseParent?: LangfuseParent | null,
 ): Promise<{ action: AgenticAction; usage?: TokenUsageInfo }> {
   const evidenceSummary = buildEvidenceSummary(currentDocs);
   const prompt = (promptTemplate ?? AGENTIC_DECISION_PROMPT)
@@ -199,6 +202,17 @@ async function decideNextAction(
     )) as LLMResponse;
 
     const raw = result.response ?? '';
+    logGeneration(langfuseParent ?? null, {
+      name: 'agentic-decision',
+      model,
+      input: [{ role: 'user', content: prompt }],
+      output: raw,
+      usage: result.usage ? {
+        promptTokens: result.usage.prompt_tokens,
+        completionTokens: result.usage.completion_tokens,
+        totalTokens: result.usage.total_tokens,
+      } : undefined,
+    });
     const usage: TokenUsageInfo = result.usage
       ? { ...result.usage, estimated: false }
       : { ...estimateTokens(prompt, raw), estimated: true };
@@ -265,6 +279,7 @@ export async function agenticRetrieve(
   steps: AgenticStepTrace[],
   agenticPromptTemplate?: string,
   decisionUsages?: Array<StageTokenUsage & { step: number }>,
+  langfuseParent?: LangfuseParent | null,
 ): Promise<{ candidates: SearchResult[]; terminationReason: 'enough_docs' | 'max_steps' | 'no_improvement'; initialSearch: { initial_results_count: number; min_docs_to_answer: number; min_quality_score: number; min_rrf_score: number; quality_check?: { unique_count: number; avg_score: number; passed: boolean } } }> {
   const cragFilter = vectorFilter['crag_id'] as { $in?: string[] } | undefined;
   const isMultiCrag = Array.isArray(cragFilter?.$in) && cragFilter.$in.length > 1;
@@ -311,7 +326,7 @@ export async function agenticRetrieve(
     }
 
     const { action, usage: decisionUsage } = await decideNextAction(
-      deps.env, query, merged, step, cfg.agentic_max_steps, cfg.agentic_min_docs_to_answer, cfg.lightweight_model, agenticPromptTemplate
+      deps.env, query, merged, step, cfg.agentic_max_steps, cfg.agentic_min_docs_to_answer, cfg.lightweight_model, agenticPromptTemplate, langfuseParent
     );
     if (decisionUsage && decisionUsages) {
       decisionUsages.push({ ...decisionUsage, model: cfg.lightweight_model, step });
