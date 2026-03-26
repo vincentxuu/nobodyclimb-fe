@@ -153,6 +153,13 @@ const TABS: TabConfig[] = [
     label: 'Agentic 模式',
     sections: [
       {
+        title: '引擎選擇',
+        desc: 'LangGraph 引擎啟用後將取代原始 pipeline engine 處理所有 AI 查詢',
+        fields: [
+          { key: 'use_langgraph_engine', label: '啟用 LangGraph 引擎', placeholder: '0', hint: '0 = 使用原始 Pipeline Engine；1 = 使用 LangGraph 引擎（ai-graph），啟用後 RAG 策略由 LangGraph graph 接管' },
+        ],
+      },
+      {
         title: 'Agentic 模式',
         desc: '多輪動態搜尋模式，讓 LLM 自主決定是否需要補充搜尋；僅對 complex 查詢生效，成本顯著較高',
         fields: [
