@@ -19,6 +19,10 @@ Keep this managed block so 'openspec update' can refresh the instructions.
 
 <!-- OPENSPEC:END -->
 
+## 專案規範
+
+進行任何開發工作（規劃、實作、除錯、review）前，先讀 `.claude/skills/project-rules/SKILL.md` 了解專案規範。
+
 ## Commit 流程
 
 commit 時必須依序執行：
@@ -32,3 +36,9 @@ commit 時必須依序執行：
 - `pnpm run lint` — ESLint（turbo 跑所有 packages）
 - `pnpm run typecheck` — TypeScript 類型檢查（turbo 跑所有 packages）
 - `pnpm run format` — Prettier 自動修復格式問題
+
+## Push 流程
+
+使用者說要 push 時，先詢問「要 review 嗎？」：
+- Yes → 執行 `.claude/skills/code-review/SKILL.md` skill，review 完再 push
+- No → 直接 push
