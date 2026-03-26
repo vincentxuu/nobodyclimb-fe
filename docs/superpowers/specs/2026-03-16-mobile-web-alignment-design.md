@@ -22,19 +22,19 @@ NobodyClimb mobile app 與 web app 共用 `packages/constants/src/theme.ts` 的�
 | 項目 | 狀態 |
 |------|------|
 | 設計 token 共用（顏色、字體、間距） | ✅ 已透過 `@nobodyclimb/constants` 共用 |
-| Mobile UI 元件數量 | 35 個 |
+| Mobile UI 元件數量 | 39 個（含 ConfirmDialog、MarkdownText、PlaceholderImage 等新增） |
 | Web UI 元件數量 | 37 個 |
-| Hardcoded hex 值 | 部分存在，需稽核 |
+| Hardcoded hex 值 | ✅ 已完成稽核與替換（Track 1） |
 
 ### 功能差距
 
 | 功能 | Web 路由 | Mobile 狀態 |
 |------|---------|------------|
-| 攀登記錄 | `/profile/ascents` | ❌ 缺少 |
-| 個人統計 | `/profile/stats` | ❌ 缺少 |
-| AI 記憶 | `/profile/ai-memory` | ❌ 缺少 |
-| 路線推薦 | `/profile/recommendations` | ❌ 缺少 |
-| Story Type 路由 | `/story/[type]/[id]` | ❌ 缺少 |
+| 攀登記錄 | `/profile/ascents` | ✅ 已完成（PR-1） |
+| 個人統計 | `/profile/stats` | ✅ 已完成（PR-2） |
+| AI 記憶 | `/profile/ai-memory` | ✅ 已完成（PR-3） |
+| 路線推薦 | `/profile/recommendations` | ✅ 已完成（PR-4） |
+| Story Type 路由 | `/story/[type]/[id]` | ✅ 已完成（PR-5） |
 
 > **備註**：Admin 功能（管理後台、AI log 管理等）設計上不移植到 mobile，屬合理架構決策。
 
