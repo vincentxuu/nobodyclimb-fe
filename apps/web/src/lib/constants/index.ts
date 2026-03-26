@@ -67,7 +67,7 @@ export const ROUTES = {
 export const SITE_NAME = 'NobodyClimb'
 export const SITE_URL = 'https://nobodyclimb.cc'
 export const SITE_DESCRIPTION =
-  '台灣攀岩社群平台，提供攀岩愛好者分享經驗、探索岩場岩館、觀看攀岩影片及交流的園地。無論你是初學者還是高手，都能在這裡找到志同道合的攀岩夥伴。'
+  '台灣攀岩社群平台，探索龍洞、墾丁、關子嶺、德芙蘭等戶外岩場與室內岩館，提供攀岩路線、難度資訊及攀岩影片。無論你是攀岩初學者還是高手，都能在這裡找到志同道合的攀岩夥伴。'
 export const SITE_LOGO = '/logo/Nobodylimb-black.png'
 export const OG_IMAGE = '/og-image.png'
 

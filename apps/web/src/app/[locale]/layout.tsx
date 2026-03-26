@@ -21,8 +21,11 @@ const jsonLd = {
   '@context': 'https://schema.org',
   '@type': 'WebSite',
   name: SITE_NAME,
+  alternateName: ['NobodyClimb 台灣攀岩', '台灣攀岩社群'],
   description: SITE_DESCRIPTION,
   url: SITE_URL,
+  inLanguage: ['zh-TW', 'en', 'ja'],
+  keywords: '攀岩,龍洞,墾丁,關子嶺,德芙蘭,台灣攀岩,戶外攀岩,攀岩路線,岩場',
   potentialAction: {
     '@type': 'SearchAction',
     target: {

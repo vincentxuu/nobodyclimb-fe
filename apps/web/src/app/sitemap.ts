@@ -26,7 +26,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const staticPages: MetadataRoute.Sitemap = [
     ...expandToLocaleUrls('/', { changeFrequency: 'daily', priority: 1 }),
     ...expandToLocaleUrls('/blog', { changeFrequency: 'daily', priority: 0.9 }),
-    ...expandToLocaleUrls('/crag', { changeFrequency: 'weekly', priority: 0.8 }),
+    ...expandToLocaleUrls('/crag', { changeFrequency: 'daily', priority: 0.9 }),
     ...expandToLocaleUrls('/gym', { changeFrequency: 'weekly', priority: 0.8 }),
     ...expandToLocaleUrls('/videos', { changeFrequency: 'daily', priority: 0.8 }),
     ...expandToLocaleUrls('/gallery', { changeFrequency: 'weekly', priority: 0.7 }),
@@ -39,8 +39,8 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const cragPages: MetadataRoute.Sitemap = apiCrags.flatMap((crag) =>
     expandToLocaleUrls(`/crag/${crag.id}`, {
       lastModified: crag.updated_at ? new Date(crag.updated_at) : new Date(),
-      changeFrequency: 'monthly',
-      priority: 0.7,
+      changeFrequency: 'weekly',
+      priority: 0.8,
     })
   )
 

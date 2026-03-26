@@ -374,6 +374,8 @@ export interface CragMetadata {
   parking: string
   amenities: string[]
   googleMapsUrl: string | null
+  latitude: number | null
+  longitude: number | null
 }
 
 /**
@@ -397,5 +399,7 @@ export function assembleCragMetadata(apiCrag: ApiCrag): CragMetadata {
     parking: apiCrag.parking_info || '',
     amenities: apiCrag.amenities || [],
     googleMapsUrl: apiCrag.google_maps_url || null,
+    latitude: apiCrag.latitude || null,
+    longitude: apiCrag.longitude || null,
   }
 }

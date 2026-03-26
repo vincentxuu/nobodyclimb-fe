@@ -13,7 +13,7 @@ export const dynamic = 'force-dynamic'
 function generateCragJsonLd(crag: CragMetadata, id: string) {
   return {
     '@context': 'https://schema.org',
-    '@type': 'Place',
+    '@type': ['Place', 'TouristAttraction', 'SportsActivityLocation'],
     '@id': `${SITE_URL}/crag/${id}`,
     name: crag.name,
     alternateName: crag.englishName !== crag.name ? crag.englishName : undefined,
@@ -25,15 +25,20 @@ function generateCragJsonLd(crag: CragMetadata, id: string) {
       addressLocality: crag.location,
       addressCountry: 'TW',
     },
-    // Google Maps URL available at crag.googleMapsUrl
+    // 地理座標 - 幫助 Google 地圖和本地搜尋
+    ...(crag.latitude && crag.longitude ? {
+      geo: {
+        '@type': 'GeoCoordinates',
+        latitude: crag.latitude,
+        longitude: crag.longitude,
+      },
+    } : {}),
     hasMap: crag.googleMapsUrl,
-    additionalType: 'https://schema.org/TouristAttraction',
     amenityFeature: crag.amenities?.map(amenity => ({
       '@type': 'LocationFeatureSpecification',
       name: amenity,
       value: true,
     })),
-    // 自定義屬性（非標準 schema.org 但有助於理解）
     additionalProperty: [
       {
         '@type': 'PropertyValue',
@@ -68,6 +73,7 @@ function generateCragJsonLd(crag: CragMetadata, id: string) {
     ].filter(Boolean),
     isAccessibleForFree: true,
     publicAccess: true,
+    sport: '攀岩',
   }
 }
 
@@ -91,13 +97,25 @@ export async function generateMetadata({
 
   const crag = assembleCragMetadata(apiCrag)
   const title = `${crag.name} - ${t('metaTitleSuffix')}`
-  const description = crag.description?.substring(0, 160) || `${crag.name}位於${crag.location}，提供${crag.routes}條攀岩路線，難度範圍${crag.difficulty}。`
+  const description = crag.description?.substring(0, 160) || `${crag.name}攀岩岩場位於${crag.location}，提供${crag.routes}條攀岩路線，難度範圍${crag.difficulty}，岩質為${crag.rockType}。完整路線資訊、交通方式與最佳攀岩季節。`
   const ogLocale = buildOgLocale(locale)
 
   return {
     title: crag.name,
     description,
-    keywords: [crag.name, crag.englishName, t('metaKeyword1'), t('metaKeyword2'), crag.type, crag.location].filter(Boolean),
+    keywords: [
+      crag.name,
+      crag.englishName,
+      `${crag.name}攀岩`,
+      `${crag.name}攀岩路線`,
+      t('metaKeyword1'),
+      t('metaKeyword2'),
+      crag.type,
+      crag.rockType,
+      crag.location,
+      '台灣攀岩',
+      '戶外攀岩',
+    ].filter(Boolean),
     openGraph: {
       title: `${title} | ${SITE_NAME}`,
       description,
