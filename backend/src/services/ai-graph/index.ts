@@ -4,6 +4,7 @@ import { createLangfuseClient, createTrace, flushLangfuse } from '../../utils/la
 import { baselineGraph } from './graphs/baseline';
 import { agenticGraph } from './graphs/agentic';
 import { planExecuteGraph } from './graphs/plan-execute';
+import { createProviders, type ProviderName } from './providers';
 
 // 各 graph 的 invoke 介面相同（均接受 GraphState），使用 union 以避免型別不相容
 type AnyGraph = { invoke(state: GraphState, config?: { recursionLimit?: number }): Promise<GraphState> };
@@ -22,6 +23,14 @@ export async function runAIGraph(ctx: PipelineContext): Promise<PipelineContext>
     metadata: { strategy: ctx.pipelineConfig.rag_strategy },
   });
 
+  // 初始化 AI providers（LLM + Embedding）
+  const llmProviderName = (ctx.env.LLM_PROVIDER ?? 'cloudflare') as ProviderName;
+  const embeddingProviderName = (ctx.env.EMBEDDING_PROVIDER ?? llmProviderName) as ProviderName;
+  const { llm, embedding } = createProviders(
+    { llmProvider: llmProviderName, embeddingProvider: embeddingProviderName },
+    ctx.env,
+  );
+
   const initialState: GraphState = {
     ...ctx,
     // userId 在 PipelineContext 為 optional，GraphState 要求明確設定（含 undefined）
@@ -29,8 +38,8 @@ export async function runAIGraph(ctx: PipelineContext): Promise<PipelineContext>
     langfuseTrace: trace,
     // LangGraph 新增欄位預設值（節點執行時可覆寫）
     agenticAction: undefined,
-    llmProvider: undefined,
-    embeddingProvider: undefined,
+    llmProvider: llm,
+    embeddingProvider: embedding,
     // state.ts 中 videoCountMap/latestVideoMap 為 Record，但 PipelineContext 為 Map
     // 轉換以符合 GraphState 型別
     videoCountMap: ctx.videoCountMap

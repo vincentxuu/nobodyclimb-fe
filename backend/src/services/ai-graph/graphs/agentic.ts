@@ -2,6 +2,7 @@ import { StateGraph, END, START } from '@langchain/langgraph';
 import { GraphStateAnnotation } from '../state';
 import { semanticCacheNode } from '../nodes/semantic-cache';
 import { toolSelectionNode } from '../nodes/tool-selection';
+import { textToSqlNode } from '../nodes/text-to-sql';
 import { agenticDecisionNode } from '../nodes/agentic-decision';
 import { agenticRetrieveNode } from '../nodes/agentic-retrieve';
 import { hybridSearchNode } from '../nodes/hybrid-search';
@@ -15,6 +16,7 @@ import { memoryExtractorNode } from '../nodes/memory-extractor';
 import {
   routeAfterSemanticCache,
   routeAfterToolSelection,
+  routeAfterTextToSql,
   routeAgenticDecision,
   routeAfterAgenticRetrieve,
   routeAfterJudge,
@@ -25,6 +27,7 @@ export function buildAgenticGraph() {
   const graph = new StateGraph(GraphStateAnnotation)
     .addNode('semanticCache', semanticCacheNode)
     .addNode('toolSelection', toolSelectionNode)
+    .addNode('textToSql', textToSqlNode)
     .addNode('agenticDecision', agenticDecisionNode)
     .addNode('agenticRetrieve', agenticRetrieveNode)
     .addNode('hybridSearch', hybridSearchNode)
@@ -43,8 +46,14 @@ export function buildAgenticGraph() {
   });
   // Agentic 策略：tool-selection 後向量搜尋路徑導向 agenticDecision（而非 filterBuild）
   graph.addConditionalEdges('toolSelection', routeAfterToolSelection, {
-    filterBuild: 'agenticDecision', // 向量搜尋路徑 → agentic decision
+    textToSql: 'textToSql',          // SQL 路徑
+    filterBuild: 'agenticDecision',  // 向量搜尋路徑 → agentic decision
     llmGeneration: 'llmGeneration',
+    END,
+  });
+  graph.addConditionalEdges('textToSql', routeAfterTextToSql, {
+    llmGeneration: 'llmGeneration',
+    embedding: 'agenticDecision',  // SQL 無結果 fallback → agentic decision
     END,
   });
   graph.addConditionalEdges('agenticDecision', routeAgenticDecision, {
