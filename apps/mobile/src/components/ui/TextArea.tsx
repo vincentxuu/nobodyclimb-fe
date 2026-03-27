@@ -8,7 +8,7 @@ import {
   TextInput,
   StyleSheet,
   type TextInputProps,
-  type ViewStyle,
+  type TextStyle,
 } from 'react-native'
 import Animated, {
   useSharedValue,
@@ -38,7 +38,7 @@ export interface TextAreaProps extends Omit<TextInputProps, 'style'> {
   /** 最大行數 */
   maxRows?: number
   /** 容器樣式 */
-  style?: ViewStyle
+  style?: TextStyle
 }
 
 /**

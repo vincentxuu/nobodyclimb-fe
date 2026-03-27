@@ -189,7 +189,7 @@ const styles = StyleSheet.create({
     marginBottom: SPACING.md,
   },
   answer: {
-    fontSize: FONT_SIZE.md,
+    fontSize: FONT_SIZE.base,
     color: SEMANTIC_COLORS.textMain,
     lineHeight: 24,
   },

@@ -138,7 +138,7 @@ export function AscentForm({ visible, ascent, onSubmit, onClose, loading }: Asce
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: SEMANTIC_COLORS.background },
+  container: { flex: 1, backgroundColor: SEMANTIC_COLORS.pageBg },
   header: {
     flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between',
     paddingHorizontal: SPACING.md, paddingVertical: SPACING.sm,

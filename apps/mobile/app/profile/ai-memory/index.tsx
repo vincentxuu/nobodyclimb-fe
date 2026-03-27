@@ -115,7 +115,7 @@ export default function AiMemoryScreen() {
     <SafeAreaView style={styles.container} edges={['top']}>
       <View style={styles.header}>
         <Pressable onPress={() => router.back()} style={styles.backBtn}>
-          <ChevronLeft size={24} color={WB_COLORS[80]} />
+          <ChevronLeft size={24} color={WB_COLORS[70]} />
         </Pressable>
         <Text style={styles.title}>AI 記憶</Text>
         <View style={{ width: 40 }} />

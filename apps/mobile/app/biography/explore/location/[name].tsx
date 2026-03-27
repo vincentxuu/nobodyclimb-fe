@@ -119,7 +119,21 @@ export default function LocationDetailScreen() {
   }
 
   const visitors = locationData?.visitors ?? []
-  const bucketItems: BucketListItem[] = (bucketData?.items ?? []).map((item: any) => ({
+  interface ApiBucketItem {
+    id: string
+    title: string
+    category?: string
+    target_grade?: string
+    user_count?: number
+    inspired_count?: number
+    completed_count?: number
+    author_name?: string
+    biography_name?: string
+    author_slug?: string
+    biography_slug?: string
+  }
+
+  const bucketItems: BucketListItem[] = (bucketData?.items ?? []).map((item: ApiBucketItem) => ({
     id: item.id,
     title: item.title,
     category: item.category ?? '',

@@ -189,7 +189,7 @@ export function HeroArticle() {
   const [currentSlide, setCurrentSlide] = useState(0)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
-  const autoPlayRef = useRef<NodeJS.Timeout | null>(null)
+  const autoPlayRef = useRef<ReturnType<typeof setInterval> | null>(null)
 
   // 獲取精選文章
   useEffect(() => {

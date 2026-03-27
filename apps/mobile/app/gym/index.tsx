@@ -21,6 +21,7 @@ import {
 } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import { useRouter } from 'expo-router'
+import { useQueryClient } from '@tanstack/react-query'
 import {
   ChevronLeft,
   MapPin,
@@ -193,12 +194,13 @@ export default function GymListScreen() {
     type: selectedType,
   })
 
+  const queryClient = useQueryClient()
+
   const handleRefresh = useCallback(async () => {
     setRefreshing(true)
-    // useSearchGyms 會自動重新 fetch 底層的 useGyms
-    // 短暫延遲讓使用者感知到 refresh 動作
-    setTimeout(() => setRefreshing(false), 500)
-  }, [])
+    await queryClient.invalidateQueries({ queryKey: ['gyms'] })
+    setRefreshing(false)
+  }, [queryClient])
 
   const handleBack = () => {
     router.back()
