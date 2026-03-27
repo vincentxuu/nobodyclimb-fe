@@ -12,7 +12,8 @@
 | Web 前端 | Next.js 15 + React 19 + TailwindCSS | `apps/web/` |
 | 行動應用 | React Native + Expo 54 + Tamagui | `apps/mobile/` |
 | 後端 API | Hono + Cloudflare Workers (D1 / R2 / KV) | `backend/` |
-| AI 推論 | Cloudflare Workers AI (LLM + Embedding) | `backend/src/services/` |
+| AI 推論 | LangGraph + Multi-Provider (CF Workers AI / OpenAI / Anthropic / Google) | `backend/src/services/` |
+| AI 觀測 | Langfuse (trace / span / generation tracking) | `backend/src/utils/` |
 | 共用套件 | TypeScript (types / schemas / utils / hooks) | `packages/` |
 
 前後端均部署於 **Cloudflare Workers**，使用 **pnpm workspaces + Turborepo** 管理 monorepo。
@@ -24,6 +25,7 @@
 - **人生清單** — 設定攀岩目標，追蹤完成進度
 - **岩場 / 攀岩館** — 路線資訊、天氣、地圖
 - **路線影片** — 14+ 個 YouTube 頻道、11 種分類篩選
+- **多語系** — 繁體中文 / English / 日本語（next-intl）
 - **AI 問答** — RAG 自然語言問答，串流逐字輸出，個人化攀岩建議
 - **等級系統** — 麓 / 壁 / 稜 / 巔，依貢獻解鎖更多功能
 - **社群互動** — 追蹤、按讚、留言、快速反應、通知
@@ -33,6 +35,9 @@
 
 平台內建 AI 攀岩助手，基於 Cloudflare Workers AI 推論，提供攀岩相關的智慧問答與推薦：
 
+- **LangGraph 引擎** — 以狀態圖驅動 AI pipeline，支援 Baseline / Adaptive / Agentic / Plan-and-Execute 多策略
+- **Multi-Provider** — 抽象層支援 Cloudflare Workers AI、OpenAI、Anthropic、Google 模型切換
+- **Langfuse 觀測** — 全鏈路 trace / span / generation 追蹤，成本與延遲可視化
 - **RAG 問答** — 結合向量搜尋與全文搜尋，針對岩場、路線、攀岩知識進行自然語言問答
 - **Adaptive RAG** — 自動分類查詢類型，相關性不足時回退至全文搜尋補強
 - **Agentic Multi-Step RAG** — 複雜問題觸發多輪搜尋（ReAct 模式），由 LLM 驅動搜尋決策
@@ -41,7 +46,7 @@
 - **路線推薦** — 完攀後自動觸發個人化路線推薦
 - **安全防護** — 輸入 / 輸出 Guardrails、Token Budget 管理
 - **配額系統** — 依等級設定每日使用上限（次數 + Token 雙重限制）
-- **管理儀表板** — AI 日誌查詢、Prompt 設定、知識庫管理、成本追蹤與用量統計
+- **管理儀表板** — AI 日誌查詢、Prompt 設定、知識庫管理、成本追蹤與用量統計、LangGraph 引擎切換
 
 ## 快速開始
 
@@ -73,7 +78,9 @@ nobodyclimb/
 │   │   ├── src/components # React 元件（按領域分組）
 │   │   ├── src/lib/       # API client、工具函式
 │   │   └── src/store/     # Zustand stores
-│   └── mobile/            # React Native 行動應用
+│   └── mobile/            # React Native 行動應用 (Expo 54)
+│       ├── app/           # Expo Router 頁面 (profile, crag, story)
+│       └── src/components # RN 元件 (ui, crag, ascent, profile...)
 ├── backend/
 │   ├── src/routes/        # API 路由（含 OpenAPI）
 │   ├── src/services/      # 業務邏輯
@@ -104,4 +111,5 @@ cd backend && pnpm db:migrate:remote && pnpm deploy:production
 
 - TypeScript 嚴格型別，前端使用 `@/` 路徑別名
 - 元件按領域分組：`components/<domain>/`
-- 所有程式碼、註解、文件使用**繁體中文**
+- 多語系 UI（繁中 / 英文 / 日文），程式碼註解使用**繁體中文**
+- AI pipeline 採用 LangGraph 狀態圖架構，搭配 Langfuse 全鏈路觀測
