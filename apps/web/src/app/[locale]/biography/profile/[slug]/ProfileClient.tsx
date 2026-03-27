@@ -1,7 +1,7 @@
 'use client'
 
 import React, { useState, useEffect, use, useMemo, useRef } from 'react'
-import Link from 'next/link'
+import { Link } from '@/i18n/navigation'
 import { motion } from 'framer-motion'
 import { ArrowLeft, ArrowRight, Loader2, Pencil } from 'lucide-react'
 import { Button } from '@/components/ui/button'

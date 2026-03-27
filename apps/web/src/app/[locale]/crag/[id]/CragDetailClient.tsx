@@ -1,7 +1,7 @@
 'use client'
 
 import React, { use, useState, useMemo, useCallback } from 'react'
-import Link from 'next/link'
+import { Link } from '@/i18n/navigation'
 import { useRouter } from 'next/navigation'
 import { MapPin, ArrowLeft, List, X, ExternalLink, Loader2 } from 'lucide-react'
 import { motion, AnimatePresence } from 'framer-motion'

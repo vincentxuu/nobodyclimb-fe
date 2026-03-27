@@ -1,16 +1,15 @@
 'use client'
 
 import React, { useState, useMemo } from 'react'
-import Link from 'next/link'
 import { MapPin, Filter, Loader2, Star } from 'lucide-react'
 import BackToTop from '@/components/ui/back-to-top'
 import { GymCoverGenerator } from '@/components/shared/GymCoverGenerator'
 import { Breadcrumb } from '@/components/ui/breadcrumb'
 import { PageHeader } from '@/components/ui/page-header'
 import { useGyms } from '@/hooks/api/useGyms'
-import { filterGyms } from '@/lib/adapters/gym-adapter'
 import type { GymListItem } from '@/lib/gym-data'
 import { useTranslations } from 'next-intl'
+import { Link } from '@/i18n/navigation'
 
 // 岩館卡片組件（使用 CSS 動畫）
 function GymCard({ gym }: { gym: GymListItem }) {
@@ -59,41 +58,56 @@ function GymCard({ gym }: { gym: GymListItem }) {
 export default function GymListPage() {
   const t = useTranslations('GymPage')
 
-  // 區域篩選選項（僅保留有岩館的地區）
-  const allRegionsLabel = t('filterAllRegions')
-  const regions = [
-    allRegionsLabel,
-    t('regionTaipei'),
-    t('regionNewTaipei'),
-    t('regionTaoyuan'),
-    t('regionHsinchu'),
-    t('regionTaichung'),
-    t('regionChanghua'),
-    t('regionTainan'),
-    t('regionKaohsiung'),
-    t('regionYilan'),
-    t('regionHualien'),
-    t('regionTaitung'),
+  // 區域篩選選項（使用固定 key 比對，顯示翻譯文字）
+  const regionOptions = [
+    { key: '', label: t('filterAllRegions') },
+    { key: '台北', label: t('regionTaipei') },
+    { key: '新北', label: t('regionNewTaipei') },
+    { key: '桃園', label: t('regionTaoyuan') },
+    { key: '新竹', label: t('regionHsinchu') },
+    { key: '台中', label: t('regionTaichung') },
+    { key: '彰化', label: t('regionChanghua') },
+    { key: '台南', label: t('regionTainan') },
+    { key: '高雄', label: t('regionKaohsiung') },
+    { key: '宜蘭', label: t('regionYilan') },
+    { key: '花蓮', label: t('regionHualien') },
+    { key: '台東', label: t('regionTaitung') },
   ]
 
   // 攀岩館類型篩選選項
-  const allTypesLabel = t('filterAllTypes')
-  const gymTypes = [allTypesLabel, t('typeTopRope'), t('typeBouldering')]
+  const typeOptions = [
+    { key: '', label: t('filterAllTypes') },
+    { key: 'lead', label: t('typeTopRope') },
+    { key: 'bouldering', label: t('typeBouldering') },
+  ]
 
-  const [selectedRegion, setSelectedRegion] = useState(allRegionsLabel)
-  const [selectedType, setSelectedType] = useState(allTypesLabel)
+  const [selectedRegionKey, setSelectedRegionKey] = useState('')
+  const [selectedTypeKey, setSelectedTypeKey] = useState('')
   const [isFilterOpen, setIsFilterOpen] = useState(false)
 
   // 使用 API hook 獲取資料
   const { data, isLoading, error } = useGyms({ limit: 100 })
-  // 在前端進行篩選
+  // 在前端進行篩選（使用 locale-independent key）
   const gyms = useMemo(() => {
     const allGyms = data?.gyms || []
-    return filterGyms(allGyms, {
-      region: selectedRegion,
-      type: selectedType,
-    })
-  }, [data?.gyms, selectedRegion, selectedType])
+    let filtered = [...allGyms]
+
+    if (selectedRegionKey) {
+      filtered = filtered.filter(
+        (gym) => gym.city.includes(selectedRegionKey) || gym.region === selectedRegionKey
+      )
+    }
+
+    if (selectedTypeKey) {
+      if (selectedTypeKey === 'bouldering') {
+        filtered = filtered.filter((gym) => gym.type === 'bouldering' || gym.type === 'mixed')
+      } else if (selectedTypeKey === 'lead') {
+        filtered = filtered.filter((gym) => gym.type === 'lead' || gym.type === 'mixed')
+      }
+    }
+
+    return filtered
+  }, [data?.gyms, selectedRegionKey, selectedTypeKey])
 
   return (
     <main className="min-h-screen bg-page-content-bg">
@@ -123,17 +137,17 @@ export default function GymListPage() {
               <div>
                 <h3 className="mb-3 font-medium text-gray-900">{t('filterRegionLabel')}</h3>
                 <div className="flex flex-wrap gap-2">
-                  {regions.map((region) => (
+                  {regionOptions.map((option) => (
                     <button
-                      key={region}
+                      key={option.key}
                       className={`border-b-2 px-4 py-1.5 text-sm transition ${
-                        selectedRegion === region
+                        selectedRegionKey === option.key
                           ? 'border-[#1B1A1A] font-medium text-[#1B1A1A]'
                           : 'border-transparent text-gray-600 hover:border-gray-300 hover:text-gray-800'
                       }`}
-                      onClick={() => setSelectedRegion(region)}
+                      onClick={() => setSelectedRegionKey(option.key)}
                     >
-                      {region}
+                      {option.label}
                     </button>
                   ))}
                 </div>
@@ -142,17 +156,17 @@ export default function GymListPage() {
               <div>
                 <h3 className="mb-3 font-medium text-gray-900">{t('filterTypeLabel')}</h3>
                 <div className="flex flex-wrap gap-2">
-                  {gymTypes.map((type) => (
+                  {typeOptions.map((option) => (
                     <button
-                      key={type}
+                      key={option.key}
                       className={`border-b-2 px-4 py-1.5 text-sm transition ${
-                        selectedType === type
+                        selectedTypeKey === option.key
                           ? 'border-[#1B1A1A] font-medium text-[#1B1A1A]'
                           : 'border-transparent text-gray-600 hover:border-gray-300 hover:text-gray-800'
                       }`}
-                      onClick={() => setSelectedType(type)}
+                      onClick={() => setSelectedTypeKey(option.key)}
                     >
-                      {type}
+                      {option.label}
                     </button>
                   ))}
                 </div>
@@ -199,8 +213,8 @@ export default function GymListPage() {
                 <button
                   className="border-b border-gray-900 pb-1 text-gray-900 transition-colors hover:border-gray-700 hover:text-gray-700"
                   onClick={() => {
-                    setSelectedRegion(allRegionsLabel)
-                    setSelectedType(allTypesLabel)
+                    setSelectedRegionKey('')
+                    setSelectedTypeKey('')
                   }}
                 >
                   {t('clearFilters')}

@@ -1,7 +1,7 @@
 'use client'
 
 import React, { useState, useEffect, use } from 'react'
-import Link from 'next/link'
+import { Link } from '@/i18n/navigation'
 import Image from 'next/image'
 import { motion } from 'framer-motion'
 import { ArrowLeft, ArrowRight, Loader2, Calendar } from 'lucide-react'

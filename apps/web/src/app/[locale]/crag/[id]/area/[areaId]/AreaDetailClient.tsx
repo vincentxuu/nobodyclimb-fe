@@ -1,7 +1,7 @@
 'use client'
 
 import React, { useMemo } from 'react'
-import Link from 'next/link'
+import { Link } from '@/i18n/navigation'
 import { ArrowLeft, MapPin, Mountain, Route as RouteIcon, Loader2 } from 'lucide-react'
 import { motion } from 'framer-motion'
 import { useTranslations } from 'next-intl'

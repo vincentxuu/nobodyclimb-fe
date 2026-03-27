@@ -2,7 +2,7 @@
 
 import { use } from 'react'
 import { formatTaipei } from '@/lib/utils'
-import Link from 'next/link'
+import { Link } from '@/i18n/navigation'
 import { ArrowLeft, Loader2, Clock, ThumbsUp, User } from 'lucide-react'
 import { useAILogDetail } from '@/lib/api/admin-ai'
 import { MarkdownContent } from '@/components/ai/ChatMessage'

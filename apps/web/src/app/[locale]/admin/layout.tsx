@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react'
 import { useRouter, usePathname } from 'next/navigation'
-import Link from 'next/link'
+import { Link } from '@/i18n/navigation'
 import { authService } from '@/lib/api/services'
 import { LayoutDashboard, ArrowLeft, Loader2, Menu, X } from 'lucide-react'
 

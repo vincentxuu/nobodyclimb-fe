@@ -2,7 +2,7 @@
 
 import React, { use } from 'react'
 import { useQuery, useQueryClient } from '@tanstack/react-query'
-import Link from 'next/link'
+import { Link } from '@/i18n/navigation'
 import { motion } from 'framer-motion'
 import {
   ArrowLeft,

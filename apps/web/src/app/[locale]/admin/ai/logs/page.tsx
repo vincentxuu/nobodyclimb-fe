@@ -2,7 +2,7 @@
 
 import { useState, useCallback, useRef } from 'react'
 import { parseUTC, todayTaipei } from '@/lib/utils'
-import Link from 'next/link'
+import { Link } from '@/i18n/navigation'
 import {
   Loader2, ChevronLeft, ChevronRight, Download, Search, X,
   Zap, Brain, SlidersHorizontal,

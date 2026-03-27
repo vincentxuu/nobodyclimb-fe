@@ -1,7 +1,7 @@
 'use client'
 
 import React, { useState, useCallback, Suspense } from 'react'
-import Link from 'next/link'
+import { Link } from '@/i18n/navigation'
 import { useSearchParams, useRouter } from 'next/navigation'
 import { motion } from 'framer-motion'
 import { UserPlus, Loader2 } from 'lucide-react'

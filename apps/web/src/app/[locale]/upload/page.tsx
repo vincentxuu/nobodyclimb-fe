@@ -11,7 +11,7 @@ import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
 import { galleryService } from '@/lib/api/services'
 import { useAuthStore } from '@/store/authStore'
-import Link from 'next/link'
+import { Link } from '@/i18n/navigation'
 
 // File validation constants
 const VALID_FILE_TYPES = ['image/jpeg', 'image/png', 'image/webp']
