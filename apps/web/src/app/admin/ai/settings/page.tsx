@@ -14,6 +14,7 @@ interface ConfigField {
   label: string
   placeholder: string
   hint: string
+  options?: { value: string; label: string }[]
 }
 
 interface TabConfig {
@@ -156,14 +157,14 @@ const TABS: TabConfig[] = [
         title: '引擎選擇',
         desc: 'LangGraph 引擎啟用後將取代原始 pipeline engine 處理所有 AI 查詢',
         fields: [
-          { key: 'use_langgraph_engine', label: '啟用 LangGraph 引擎', placeholder: '0', hint: '0 = 使用原始 Pipeline Engine；1 = 使用 LangGraph 引擎（ai-graph），啟用後 RAG 策略由 LangGraph graph 接管' },
+          { key: 'use_langgraph_engine', label: '啟用 LangGraph 引擎', placeholder: '0', hint: '0 = 使用原始 Pipeline Engine；1 = 使用 LangGraph 引擎（ai-graph），啟用後 RAG 策略由 LangGraph graph 接管', options: [{ value: '0', label: '停用（Pipeline Engine）' }, { value: '1', label: '啟用（LangGraph）' }] },
         ],
       },
       {
         title: 'Agentic 模式',
         desc: '多輪動態搜尋模式，讓 LLM 自主決定是否需要補充搜尋；僅對 complex 查詢生效，成本顯著較高',
         fields: [
-          { key: 'rag_strategy', label: 'RAG 策略', placeholder: 'baseline', hint: 'baseline = 單輪搜尋；agentic = 多輪動態搜尋；plan-execute = 子任務規劃 + 執行 + 合成；auto = 依查詢複雜度自動選擇（plan-execute 優先，子任務太少降級 agentic）' },
+          { key: 'rag_strategy', label: 'RAG 策略', placeholder: 'baseline', hint: 'baseline = 單輪搜尋；agentic = 多輪動態搜尋；plan-execute = 子任務規劃 + 執行 + 合成；auto = 依查詢複雜度自動選擇（plan-execute 優先，子任務太少降級 agentic）', options: [{ value: 'baseline', label: 'baseline — 單輪搜尋' }, { value: 'agentic', label: 'agentic — 多輪動態搜尋' }, { value: 'plan-execute', label: 'plan-execute — 子任務規劃 + 執行 + 合成' }, { value: 'auto', label: 'auto — 依複雜度自動選擇' }] },
           { key: 'agentic_max_steps', label: '最大搜尋輪數', placeholder: '3', hint: 'Agentic loop 最多執行幾次額外搜尋（1–5），每輪 +0.5–1s 延遲' },
           { key: 'agentic_min_docs_to_answer', label: '提前結束文件數', placeholder: '3', hint: '累積超過此數量的文件後提前結束迴圈，不等到 max_steps（1–10）' },
         ],
@@ -787,14 +788,28 @@ function TabPanel({
                   </p>
                 </div>
                 <div className="flex-1 pt-1">
-                  <input
-                    value={values[field.key] ?? ''}
-                    onChange={(e) =>
-                      setValues((prev) => ({ ...prev, [field.key]: e.target.value }))
-                    }
-                    placeholder={field.placeholder}
-                    className="w-full rounded-lg border border-wb-20 bg-white px-3 py-2 text-sm text-wb-100 placeholder:text-wb-40 outline-none focus:border-wb-50 focus:ring-1 focus:ring-wb-50 transition-colors font-mono"
-                  />
+                  {field.options ? (
+                    <select
+                      value={values[field.key] ?? field.placeholder}
+                      onChange={(e) =>
+                        setValues((prev) => ({ ...prev, [field.key]: e.target.value }))
+                      }
+                      className="w-full rounded-lg border border-wb-20 bg-white px-3 py-2 text-sm text-wb-100 outline-none focus:border-wb-50 focus:ring-1 focus:ring-wb-50 transition-colors font-mono"
+                    >
+                      {field.options.map((opt) => (
+                        <option key={opt.value} value={opt.value}>{opt.label}</option>
+                      ))}
+                    </select>
+                  ) : (
+                    <input
+                      value={values[field.key] ?? ''}
+                      onChange={(e) =>
+                        setValues((prev) => ({ ...prev, [field.key]: e.target.value }))
+                      }
+                      placeholder={field.placeholder}
+                      className="w-full rounded-lg border border-wb-20 bg-white px-3 py-2 text-sm text-wb-100 placeholder:text-wb-40 outline-none focus:border-wb-50 focus:ring-1 focus:ring-wb-50 transition-colors font-mono"
+                    />
+                  )}
                 </div>
               </div>
             ))}
