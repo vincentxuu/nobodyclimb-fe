@@ -106,7 +106,7 @@ export function similarGradeRange(gradeNumeric: number, steps = 2): { $gte: numb
 
 // 偵測 query 是否有「推薦相似/類似路線」意圖
 export function hasSimilarRouteIntent(query: string): boolean {
-  return ['差不多', '類似', '相似', '爬完', '爬過', '爬了', 'rp', 'RP', 'redpoint', 'red point'].some((k) => query.includes(k));
+  return ['差不多', '類似', '相似', '爬完', '完攀', '爬過', '爬了', '攀了', '下一條', '下一個', 'rp', 'RP', 'redpoint', 'red point'].some((k) => query.includes(k));
 }
 
 // 偵測 query 是否含有指代前文的 context-dependent 詞（需從對話歷史補充位置）

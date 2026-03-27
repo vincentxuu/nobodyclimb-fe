@@ -65,7 +65,7 @@ export const toolSelectionStep: PipelineStep = {
     // 個人查詢安全網：避免「我爬過哪些路線」被 hasSimilarRouteIntent 誤判為相似路線搜尋
     // 但若含推薦/類似意圖（如「我完攀了X，推薦類似路線」、「有沒有類似的」），推薦意圖優先
     const hasSimRouteIntent = ctx.queryService.hasSimilarRouteIntent(query);
-    const wantsRecommendation = /推薦|建議|類似|相似|差不多|suggest/i.test(query);
+    const wantsRecommendation = /推薦|建議|類似|相似|差不多|下一條|下一個|suggest/i.test(query);
     const isPersonalQuery = PERSONAL_QUERY_PATTERN.test(query) && !wantsRecommendation;
 
     // 偵測相似路線意圖（純個人查詢略過，避免「我爬過哪些路線」誤判為相似路線搜尋）
