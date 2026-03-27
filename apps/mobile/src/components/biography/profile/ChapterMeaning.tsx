@@ -8,6 +8,7 @@ import { StyleSheet, View, ActivityIndicator } from 'react-native'
 import Animated, { FadeIn } from 'react-native-reanimated'
 
 import { Text } from '@/components/ui'
+import { apiClient } from '@/lib/api'
 import { ContentInteractionBar } from '../display/ContentInteractionBar'
 import { BRAND_YELLOW, RADIUS, SEMANTIC_COLORS, SPACING } from '@nobodyclimb/constants'
 
@@ -39,18 +40,10 @@ export function ChapterMeaning({ biographyId, personName }: ChapterMeaningProps)
   // 獲取故事
   const fetchStory = useCallback(async () => {
     try {
-      // TODO: 整合 useClimbingMeaningStory hook
-      await new Promise(resolve => setTimeout(resolve, 500))
-
-      // 模擬資料
-      setStory({
-        id: '2',
-        question_id: 'climbing_meaning',
-        content: '攀岩教會我如何面對恐懼，如何在困境中找到出路。每次站在岩壁下，我都會被提醒：人生就像攀岩，不一定每次都能登頂，但每一步都值得珍惜。',
-        like_count: 23,
-        comment_count: 12,
-        is_liked: false,
-      })
+      const response = await apiClient.get(`/content/biographies/${biographyId}/core-stories`)
+      const stories: CoreStory[] = response.data?.data ?? response.data ?? []
+      const meaningStory = stories.find((s) => s.question_id === 'climbing_meaning') ?? null
+      setStory(meaningStory)
     } catch (error) {
       console.error('Failed to fetch story:', error)
     } finally {
@@ -62,29 +55,58 @@ export function ChapterMeaning({ biographyId, personName }: ChapterMeaningProps)
     fetchStory()
   }, [fetchStory])
 
-  // 按讚切換
+  // 按讚切換（呼叫後端 API）
   const handleToggleLike = async () => {
     if (!story) throw new Error('No story')
+    // Optimistic update
     setStory(prev => prev ? {
       ...prev,
       is_liked: !prev.is_liked,
       like_count: prev.is_liked ? prev.like_count - 1 : prev.like_count + 1,
     } : null)
-    return {
-      liked: !story.is_liked,
-      like_count: story.is_liked ? story.like_count - 1 : story.like_count + 1,
+    try {
+      const response = await apiClient.post(`/content/core-stories/${story.id}/like`)
+      const data = response.data?.data ?? response.data
+      if (data) {
+        setStory(prev => prev ? { ...prev, is_liked: data.liked, like_count: data.like_count } : null)
+        return data
+      }
+    } catch (error) {
+      // Rollback
+      setStory(prev => prev ? {
+        ...prev,
+        is_liked: !prev.is_liked,
+        like_count: prev.is_liked ? prev.like_count - 1 : prev.like_count + 1,
+      } : null)
+      console.error('Failed to toggle like:', error)
+    }
+    return { liked: story.is_liked ?? false, like_count: story.like_count ?? 0 }
+  }
+
+  // 獲取留言（呼叫後端 API）
+  const handleFetchComments = async () => {
+    if (!story) return []
+    try {
+      const response = await apiClient.get(`/content/core-stories/${story.id}/comments`)
+      return response.data?.data ?? response.data ?? []
+    } catch (error) {
+      console.error('Failed to fetch comments:', error)
+      return []
     }
   }
 
-  // 獲取留言
-  const handleFetchComments = async () => {
-    return []
-  }
-
-  // 新增留言
+  // 新增留言（呼叫後端 API）
   const handleAddComment = async (content: string) => {
-    if (story) {
-      setStory(prev => prev ? { ...prev, comment_count: prev.comment_count + 1 } : null)
+    if (!story) return { id: Date.now().toString(), content, created_at: new Date().toISOString() }
+    try {
+      const response = await apiClient.post(`/content/core-stories/${story.id}/comments`, { content })
+      const data = response.data?.data ?? response.data
+      if (data) {
+        setStory(prev => prev ? { ...prev, comment_count: prev.comment_count + 1 } : null)
+        return data
+      }
+    } catch (error) {
+      console.error('Failed to add comment:', error)
     }
     return { id: Date.now().toString(), content, created_at: new Date().toISOString() }
   }

@@ -1,206 +1,142 @@
-## 新增需求
+## MODIFIED Requirements
 
-### 需求：儀表板總覽頁面
-系統應提供位於 `/admin/ai` 的管理員儀表板頁面，顯示關鍵效能指標。
+### Requirement: 設定頁面
+系統應在 `/admin/ai/settings` 提供 AI 設定配置，使用分頁式（Tabs）介面組織設定項，取代原有的單一長頁面。
 
-#### 場景：顯示 KPI 卡片
-- **當** 管理員造訪 /admin/ai
-- **則** 頁面顯示：今日查詢數、平均延遲、成功率和 token 用量
+#### Scenario: 分頁式介面結構
+- **WHEN** 管理員造訪 `/admin/ai/settings`
+- **THEN** 頁面 SHALL 使用 Tabs 元件顯示 6 個分頁：模型設定、搜尋與排名、品質與 Token、對話與快取、Agentic 模式、防護設定
 
-#### 場景：顯示趨勢指標
-- **當** 顯示 KPI 值
-- **則** 每張卡片顯示與前期比較（↑12% 或 ↓5%）
+#### Scenario: 預設顯示第一個分頁
+- **WHEN** 管理員造訪 `/admin/ai/settings`（無 URL hash）
+- **THEN** 預設顯示「模型設定」分頁
 
-### 需求：健康狀態顯示
-系統應在儀表板上顯示 AI 服務的即時健康狀態。
+#### Scenario: URL hash 同步分頁
+- **WHEN** 管理員切換到「搜尋與排名」分頁
+- **THEN** URL SHALL 更新為 `/admin/ai/settings#search`，重新載入頁面時 SHALL 自動切換到該分頁
 
-#### 場景：所有服務健康
-- **當** Workers AI 和 Vectorize 運作正常
-- **則** 健康指示器顯示綠色「healthy」狀態
+#### Scenario: 分頁內容對應
+- **WHEN** 各分頁載入完成
+- **THEN** 分頁內容 SHALL 按以下對應顯示設定欄位：
+  - 「模型設定」(#models)：模型設定區塊（5 個欄位）
+  - 「搜尋與排名」(#search)：搜尋與檢索（7 個欄位）+ 排名與多樣性（3 個欄位）
+  - 「品質與 Token」(#quality)：Token 限制（3 個欄位）+ 品質閾值（3 個欄位）+ Judge 設定（3 個欄位）+ Self-Reflection（1 個欄位）
+  - 「對話與快取」(#chat)：對話與快取（3 個欄位）+ 語義快取（2 個欄位）
+  - 「Agentic 模式」(#agentic)：Agentic 模式（3 個欄位）
+  - 「防護設定」(#guardrails)：防護設定（1 個欄位）+ 4 組 guardrail 列表
 
-#### 場景：服務降級
-- **當** 任何 AI 服務不可用
-- **則** 對應指示器顯示紅色「down」或黃色「degraded」狀態
+#### Scenario: 每個分頁獨立儲存
+- **WHEN** 管理員在「模型設定」分頁修改設定並點擊儲存
+- **THEN** 系統 SHALL 只送出該分頁包含的設定 key（如 llm_model、simple_model 等），不影響其他分頁的設定值
 
-### 需求：查詢日誌列表
-系統應在 `/admin/ai/logs` 提供可搜尋的 AI 查詢日誌列表。
+#### Scenario: 獨立儲存成功回饋
+- **WHEN** 分頁設定儲存成功
+- **THEN** 該分頁 SHALL 顯示「已儲存」成功提示，其他分頁不受影響
 
-#### 場景：檢視近期查詢
-- **當** 管理員造訪日誌頁面
-- **則** 表格顯示：時間戳記、查詢文字（截斷）、延遲、回饋分數、狀態
+## ADDED Requirements
 
-#### 場景：依日期範圍篩選
-- **當** 管理員選擇日期範圍篩選器
-- **則** 只顯示該範圍內的查詢
+### Requirement: Guardrail 標籤式編輯
+系統 SHALL 將 guardrail 列表從 textarea 改為標籤式（tag input）編輯元件。
 
-#### 場景：依回饋分數篩選
-- **當** 管理員篩選「低分」（1-2）
-- **則** 只顯示評分較差的查詢供檢閱
+#### Scenario: 顯示現有關鍵字為標籤
+- **WHEN** 防護設定分頁載入完成
+- **THEN** 每個 guardrail 列表的現有關鍵字 SHALL 顯示為獨立的 chip/tag，每個 tag 帶有 × 刪除按鈕
 
-### 需求：查詢詳細檢視
-系統應提供個別查詢的詳細檢視，包含完整追蹤。
+#### Scenario: 新增關鍵字
+- **WHEN** 管理員在 tag input 的輸入框中輸入文字並按 Enter
+- **THEN** 系統 SHALL 將輸入文字新增為一個新 tag，輸入框清空
 
-#### 場景：檢視查詢詳情
-- **當** 管理員點擊查詢列
-- **則** 詳細頁面顯示：完整查詢、完整回應、使用的來源、時間分解
+#### Scenario: 刪除關鍵字
+- **WHEN** 管理員點擊某個 tag 的 × 按鈕
+- **THEN** 該 tag SHALL 被移除
 
-#### 場景：顯示時間分解
-- **當** 檢視查詢詳情
-- **則** 顯示：總延遲、embedding 時間、搜尋時間、LLM 時間
+#### Scenario: 批次貼上
+- **WHEN** 管理員在輸入框中貼上包含換行符號的多行文字
+- **THEN** 系統 SHALL 自動依換行符號分割，每行建立一個 tag（忽略空行）
 
-### 需求：知識庫狀態
-系統應在 `/admin/ai/knowledge` 提供知識庫總覽。
+#### Scenario: 顯示項目數量
+- **WHEN** guardrail 列表載入完成
+- **THEN** 每個列表 SHALL 顯示目前的項目數量（如「目前共 12 個」）
 
-#### 場景：檢視資料來源
-- **當** 管理員造訪知識庫頁面
-- **則** 表格顯示每個來源（路線、岩場、影片）及其：數量、索引狀態、最後更新
+#### Scenario: 儲存格式
+- **WHEN** 管理員儲存防護設定分頁
+- **THEN** 各 guardrail 列表 SHALL 以 JSON array 字串格式儲存到 ai_config 表（與現有格式相容）
 
-#### 場景：顯示索引狀態
-- **當** 路線來源有 946 個已索引文件
-- **則** 顯示「946 筆 | 已索引 | 最後更新: 2小時前」
+## MODIFIED Requirements
 
-### 需求：手動觸發索引
-系統應允許管理員從知識庫頁面觸發重建索引。
+### Requirement: 查詢詳細檢視
+系統 SHALL 提供個別查詢的詳細檢視，顯示完整的 17 步 Pipeline 流程追蹤，讓管理員能追蹤每個決策點的輸入、決策依據與結果。
 
-#### 場景：觸發路線重建索引
-- **當** 管理員點擊路線的「重新索引」按鈕
-- **則** 出現確認對話框，然後開始索引並顯示進度
+#### Scenario: 檢視查詢詳情
+- **WHEN** 管理員點擊查詢列
+- **THEN** 詳細頁面顯示：完整查詢、完整回應、使用的來源、時間分解、完整 Pipeline 流程卡片
 
-#### 場景：顯示索引進度
-- **當** 索引進行中
-- **則** 按鈕顯示轉圈和「索引中...」狀態
+#### Scenario: 顯示時間分解
+- **WHEN** 檢視查詢詳情
+- **THEN** 顯示：總延遲、embedding 時間、搜尋時間、LLM 時間
 
-### 需求：Prompt 管理
-系統應在 `/admin/ai/prompts` 提供 prompt 模板管理。
+#### Scenario: Pipeline 流程顯示完整 17 步順序
+- **WHEN** 管理員展開 RAG Pipeline 流程區段
+- **THEN** 依序顯示以下 stage cards（未執行的 stage 顯示「已跳過」）：
+  `guardrails_input` → `cache` → `quota_check` → `query_parsing` → `hyde`（條件性）→ `multi_query`（條件性）→ `filter` → `embedding` → `retrieval` → `mmr_selection` → `generation` → `self_reflection`（條件性）→ `judge` → `guardrails_output` → `memory_extraction`
 
-#### 場景：列出 prompts
-- **當** 管理員造訪 prompts 頁面
-- **則** 表格顯示：prompt 名稱、目前版本、狀態（草稿/正式）、最後修改
+#### Scenario: filter stage 獨立顯示
+- **WHEN** 管理員展開 `filter` stage card
+- **THEN** Input 區段顯示 LLM 抽取的 params；Decision 區段顯示 filter 來源（llm_parsed / regex_fallback / sim_route）、matched_texts（觸發各過濾條件的原始文字）、resolved_ids（DB 解析結果）；Output 區段顯示最終 Vectorize metadata filter JSON
 
-#### 場景：編輯 prompt
-- **當** 管理員點擊 prompt 的編輯
-- **則** 編輯器開啟，顯示目前內容並高亮變數
+#### Scenario: retrieval stage 展開顯示子步驟時間軸
+- **WHEN** 管理員展開 `retrieval` stage card
+- **THEN** 顯示多路搜尋子步驟：搜尋路徑（query_vec + hyde_vec + expanded × N + BM25）
+- **THEN** 顯示 RRF 融合子步驟：paths_count、merged_count、min_score_threshold、after_threshold_count
+- **THEN** 若 CRAG fallback 觸發，顯示 crag_fallback_detail：trigger_reason 與各次重試的移除 filter + 重試後候選數
+- **THEN** 顯示 Cross-encoder 子步驟：若執行則顯示 top_scores 前 5 筆；若未執行顯示 skipped_reason
 
-#### 場景：儲存 prompt 版本
-- **當** 管理員儲存 prompt 變更
-- **則** 建立新版本，保留先前版本
+#### Scenario: mmr_selection stage 獨立顯示
+- **WHEN** 管理員展開 `mmr_selection` stage card
+- **THEN** Input 區段顯示 input_count（cross-encoder 後候選數）與 lambda 設定值；Decision 區段顯示 MMR 多樣性選取邏輯（relevance vs 多樣性權衡）；Output 區段顯示 selected_count 與 top_selected 前 5 筆（title + relevance_score + popularity_score + final_score）
 
-### 需求：Prompt 發布
-系統應支援將 prompts 從草稿發布到正式狀態。
+#### Scenario: self_reflection stage 顯示完整因果鏈
+- **WHEN** 管理員展開 `self_reflection` stage card（已觸發）
+- **THEN** Decision 區段依序顯示：第一次 judge 分數（quality + groundedness）→ regen_reason（觸發原因）→ 重生成執行 → 第二次 judge 分數 → acceptance_reason（接受/拒絕原因）
 
-#### 場景：發布到正式環境
-- **當** 管理員點擊「發布到 Production」
-- **則** prompt 狀態變更為正式並立即生效
+#### Scenario: self_reflection stage 顯示未觸發原因
+- **WHEN** 管理員展開 `self_reflection` stage card（未觸發）
+- **THEN** Decision 區段顯示 judge 第一次分數高於閾值（quality > threshold），Output 顯示「品質合格，使用原始回答」
 
-#### 場景：回滾 prompt
-- **當** 管理員選擇先前版本並點擊「回滾」
-- **則** 該版本成為作用中的正式 prompt
+#### Scenario: judge stage 顯示各向度分數
+- **WHEN** 管理員展開 `judge` stage card
+- **THEN** 顯示 criteria（評判向度清單）與 raw_scores（各向度個別分數）
 
-### 需求：設定頁面
-系統應在 `/admin/ai/settings` 提供 AI 設定配置。
+#### Scenario: generation stage 顯示 context 文件清單
+- **WHEN** 管理員展開 `generation` stage card
+- **THEN** Input 區段顯示 context_doc_titles（實際注入 prompt 的文件標題清單）、prompt_template 名稱、memory_summary_preview（若有）
 
-#### 場景：檢視目前設定
-- **當** 管理員造訪設定頁面
-- **則** 頁面顯示：模型設定、快取設定、速率限制
+---
 
-#### 場景：更新快取 TTL
-- **當** 管理員將快取 TTL 變更為 7200 秒
-- **則** 設定被儲存並套用到後續查詢
+## ADDED Requirements
 
-### 需求：分析報告
-系統應在儀表板上提供基礎分析。
+### Requirement: 日誌詳情頁 Decision Narrative
 
-#### 場景：查詢量圖表
-- **當** 管理員檢視儀表板
-- **則** 折線圖顯示過去 7 天的每日查詢量
+系統 SHALL 在日誌詳情頁頂部顯示一行機器組合的決策敘事，讓管理員在不展開各 stage card 的情況下快速掌握整條 pipeline 的關鍵決策。
 
-#### 場景：熱門查詢
-- **當** 管理員檢視儀表板
-- **則** 列表顯示前 10 個最常見的查詢模式
+#### Scenario: 顯示完整查詢的 Decision Narrative
+- **WHEN** 管理員開啟一筆完整跑完 RAG pipeline 的日誌詳情頁
+- **THEN** 頁面頂部顯示單行敘事，包含：查詢類型、filter 關鍵詞、搜尋路徑數 + BM25、RRF 前後候選數、CRAG 狀態、cross-encoder 狀態、MMR 選取數、Judge 分數（若觸發重生成則顯示前後分數）、最終 groundedness
 
-### 需求：管理員認證
-系統應要求管理員角色才能存取所有 AI 管理頁面。
+#### Scenario: 快取命中時顯示簡短 Narrative
+- **WHEN** 管理員開啟一筆快取命中的日誌詳情頁
+- **THEN** 頁面頂部顯示：`KV 快取命中 → 直接回傳`（或 `語義快取命中`）
 
-#### 場景：管理員存取
-- **當** 具管理員角色的使用者造訪 /admin/ai
-- **則** 頁面正常載入
+#### Scenario: 通識查詢顯示 Narrative
+- **WHEN** 管理員開啟一筆 general-knowledge 路徑的日誌詳情頁
+- **THEN** 頁面頂部顯示：`通識查詢 → 跳過向量搜尋 → LLM 直接生成`
 
-#### 場景：非管理員存取
-- **當** 非管理員使用者造訪 /admin/ai
-- **則** 使用者被重新導向到未授權頁面或顯示 403 錯誤
+#### Scenario: 舊記錄缺少 trace 資料時 Narrative 降級
+- **WHEN** 日誌記錄的 pipeline_trace 缺少部分欄位（舊記錄）
+- **THEN** Decision Narrative 只顯示可取得的欄位，缺少的部分省略，不顯示錯誤
 
-### 需求：匯出功能
-系統應允許匯出查詢日誌供分析。
-
-#### 場景：匯出為 CSV
-- **當** 管理員在日誌頁面點擊「匯出」
-- **則** 下載包含所有可見日誌條目的 CSV 檔案
-
-### 需求：即時更新
-系統應在儀表板上顯示近乎即時的更新。
-
-#### 場景：自動重新整理 KPIs
-- **當** 儀表板開啟
-- **則** KPI 值每 60 秒重新整理一次，不需完整頁面重載
-
-### 需求：響應式管理介面
-系統應在平板和桌面螢幕上提供可用的管理介面。
-
-#### 場景：桌面版佈局
-- **當** 視窗寬度 >= 1024px
-- **則** 側邊導航可見，包含完整頁面內容
-
-#### 場景：平板版佈局
-- **當** 視窗寬度在 768-1024px 之間
-- **則** 佈局調整為單欄，帶可摺疊側邊欄
-
-## ADDED Requirements (ai-quality-assurance)
-
-### Requirement: 品質 KPI 面板
-Admin API SHALL 提供 `GET /admin/ai/quality-stats` 端點，回傳 AI 品質相關的統計數據，供 Dashboard 顯示。回傳資料包含：過去 7 天每日平均 groundedness_score、每日平均 auto_score、每日平均用戶 feedback_score（1–5 尺度）、以及三者的整體平均值。
-
-#### Scenario: 取得品質統計
-- **WHEN** 管理員呼叫 GET /admin/ai/quality-stats
-- **THEN** API 回傳 JSON，包含：daily（7 天陣列，各含 date、avg_groundedness、avg_auto_score、avg_feedback）與 overall 彙總
-
-#### Scenario: 無評分資料時回傳 null
-- **WHEN** 某日尚無任何評分（所有欄位為 null）
-- **THEN** 該日的 avg_score 回傳 null，不影響其他日期的計算
-
-#### Scenario: 需要 Admin 權限
-- **WHEN** 非管理員用戶呼叫 GET /admin/ai/quality-stats
-- **THEN** 回傳 403 Forbidden
-
-### Requirement: RAG 分段延遲分析
-Admin API SHALL 提供 `GET /admin/ai/latency-stats` 端點，回傳 RAG 各階段的延遲分布統計（P50、P95）。分析範圍：過去 24 小時的非快取查詢（embedding_ms NOT NULL）。
-
-#### Scenario: 取得延遲統計
-- **WHEN** 管理員呼叫 GET /admin/ai/latency-stats
-- **THEN** API 回傳：embedding_p50、embedding_p95、retrieval_p50、retrieval_p95、generation_p50、generation_p95（單位毫秒）與 sample_count
-
-#### Scenario: 樣本不足時的處理
-- **WHEN** 過去 24 小時的非快取查詢少於 10 筆
-- **THEN** 回傳現有樣本的計算結果，response 含 `sample_count` 欄位說明樣本數
-
-#### Scenario: 需要 Admin 權限
-- **WHEN** 非管理員用戶呼叫 GET /admin/ai/latency-stats
-- **THEN** 回傳 403 Forbidden
-
-### Requirement: 待審核標記列表
-Admin API SHALL 提供 `GET /admin/ai/flagged` 端點，回傳 `is_reviewed = false` 的標記記錄列表，支援依 flag_reason 篩選，依 created_at 降序排列，預設回傳最近 50 筆。並提供 `PATCH /admin/ai/flagged/:id` 將記錄標記為已審核。
-
-#### Scenario: 取得待審核列表
-- **WHEN** 管理員呼叫 GET /admin/ai/flagged
-- **THEN** 回傳 is_reviewed = false 的標記列表，每筆含：id、query_log_id、flag_reason、created_at，以及對應的 query 文字（JOIN ai_query_logs）
-
-#### Scenario: 依 flag_reason 篩選
-- **WHEN** 管理員呼叫 GET /admin/ai/flagged?reason=low_groundedness
-- **THEN** 只回傳 flag_reason = low_groundedness 的記錄
-
-#### Scenario: 標記已處理
-- **WHEN** 管理員呼叫 PATCH /admin/ai/flagged/:id
-- **THEN** 該標記記錄的 is_reviewed 更新為 1，下次查詢不再出現在列表；id 不存在時回傳 404
-
-#### Scenario: 需要 Admin 權限
-- **WHEN** 非管理員用戶呼叫任何 /admin/ai/flagged 端點
-- **THEN** 回傳 403 Forbidden
+#### Scenario: Pipeline 完整度視覺提示
+- **WHEN** pipeline_trace 資料完整（新記錄）
+- **THEN** 每個 stage card 顯示完整 Input → Decision → Output 資訊
+- **WHEN** pipeline_trace 資料缺失（舊記錄）
+- **THEN** 對應 stage card 的詳細區段顯示「舊記錄無此資料」提示文字，不影響整體頁面渲染

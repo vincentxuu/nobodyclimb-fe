@@ -392,6 +392,16 @@ adminAiRoutes.get(
           query_type: (log.query_type as string) ?? null,
           skipped: isCacheHit,
         },
+        text_to_sql: {
+          service: 'services/pipeline/steps/text-to-sql.ts',
+          description: 'Text-to-SQL：對 SQL / Hybrid / 澄清問題撈取候選集',
+          path: (pt?.text_to_sql as Record<string, unknown> | undefined)?.path as string ?? null,
+          candidate_count: typeof (pt?.text_to_sql as Record<string, unknown> | undefined)?.candidate_count === 'number'
+            ? (pt?.text_to_sql as Record<string, unknown> | undefined)?.candidate_count
+            : null,
+          skipped: isCacheHit || !['sql', 'hybrid', 'clarification-needed'].includes((log.query_type as string) ?? ''),
+          ...((pt?.text_to_sql as Record<string, unknown> | undefined) ?? {}),
+        },
         hyde: {
           service: 'services/query.ts#generateHyDE',
           description: 'LLM B：HyDE 生成假設性文件以提升語義搜尋（僅 complex 查詢）',

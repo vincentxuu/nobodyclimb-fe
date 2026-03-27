@@ -4,6 +4,7 @@
  * 對應 apps/web/src/lib/hooks/useAboutStats.ts
  */
 import { useQuery } from '@tanstack/react-query'
+import { apiClient } from '@/lib/api'
 
 interface AboutStats {
   totalUsers: number
@@ -30,19 +31,8 @@ export function useAboutStats(): UseAboutStatsResult {
   } = useQuery<AboutStats>({
     queryKey: ['about-stats'],
     queryFn: async () => {
-      // TODO: 整合實際 API
-      // const response = await apiClient.get('/api/v1/stats/about')
-      // return response.data
-
-      // 模擬資料
-      return {
-        totalUsers: 5000,
-        totalBiographies: 150,
-        totalCrags: 45,
-        totalGyms: 120,
-        totalArticles: 350,
-        totalVideos: 800,
-      }
+      const response = await apiClient.get('/stats')
+      return response.data?.data ?? response.data
     },
     staleTime: 10 * 60 * 1000, // 10 分鐘
   })

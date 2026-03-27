@@ -19,94 +19,66 @@ import Animated, { FadeInDown } from 'react-native-reanimated'
 
 import { Text, SearchInput, IconButton, Card, Button } from '@/components/ui'
 import { useAuthStore } from '@/store/authStore'
+import { usePosts, type Post } from '@/lib/hooks'
 import { SEMANTIC_COLORS, SPACING, RADIUS } from '@nobodyclimb/constants'
 
-// 模擬資料
-const MOCK_ARTICLES = [
-  {
-    id: '1',
-    title: '攀岩入門指南：從零開始的完整攻略',
-    excerpt: '想開始攀岩但不知從何下手？這篇文章將帶你了解攀岩的基本知識...',
-    author: '攀岩小編',
-    publishedAt: '2024-01-20',
-    coverImage: 'https://picsum.photos/400/200?random=30',
-    readTime: '8 分鐘',
-  },
-  {
-    id: '2',
-    title: '龍洞岩場完整攻略',
-    excerpt: '龍洞是台灣最著名的戶外岩場，這篇文章整理了所有你需要知道的資訊...',
-    author: '老岩友',
-    publishedAt: '2024-01-15',
-    coverImage: 'https://picsum.photos/400/200?random=31',
-    readTime: '12 分鐘',
-  },
-  {
-    id: '3',
-    title: '抱石技巧進階：如何突破瓶頸',
-    excerpt: '當你爬到一個程度後，進步變得困難？這些技巧可以幫助你突破...',
-    author: '攀岩教練',
-    publishedAt: '2024-01-10',
-    coverImage: 'https://picsum.photos/400/200?random=32',
-    readTime: '10 分鐘',
-  },
-]
-
-interface Article {
-  id: string
-  title: string
-  excerpt: string
-  author: string
-  publishedAt: string
-  coverImage: string
-  readTime: string
-}
-
 interface ArticleCardProps {
-  article: Article
+  article: Post
   onPress: () => void
   index: number
 }
 
 function ArticleCard({ article, onPress, index }: ArticleCardProps) {
+  const authorName = article.display_name || article.username || '匿名'
+  const dateStr = article.published_at
+    ? new Date(article.published_at).toLocaleDateString('zh-TW')
+    : new Date(article.created_at).toLocaleDateString('zh-TW')
+
   return (
     <Animated.View entering={FadeInDown.duration(400).delay(index * 100)}>
       <Pressable onPress={onPress}>
         <Card style={styles.articleCard}>
-          <Image
-            source={{ uri: article.coverImage }}
-            style={styles.coverImage}
-            contentFit="cover"
-            transition={300}
-          />
+          {article.cover_image ? (
+            <Image
+              source={{ uri: article.cover_image }}
+              style={styles.coverImage}
+              contentFit="cover"
+              transition={300}
+            />
+          ) : (
+            <View style={[styles.coverImage, styles.coverPlaceholder]}>
+              <Text variant="small" color="textMuted">
+                {article.category || '文章'}
+              </Text>
+            </View>
+          )}
           <View style={styles.articleContent}>
             <Text variant="body" fontWeight="600" numberOfLines={2}>
               {article.title}
             </Text>
-            <Text
-              variant="small"
-              color="textSubtle"
-              numberOfLines={2}
-              style={styles.excerpt}
-            >
-              {article.excerpt}
-            </Text>
+            {article.excerpt ? (
+              <Text
+                variant="small"
+                color="textSubtle"
+                numberOfLines={2}
+                style={styles.excerpt}
+              >
+                {article.excerpt}
+              </Text>
+            ) : null}
             <View style={styles.metaRow}>
               <View style={styles.metaItem}>
                 <User size={12} color={SEMANTIC_COLORS.textMuted} />
                 <Text variant="small" color="textMuted">
-                  {article.author}
+                  {authorName}
                 </Text>
               </View>
               <View style={styles.metaItem}>
                 <Calendar size={12} color={SEMANTIC_COLORS.textMuted} />
                 <Text variant="small" color="textMuted">
-                  {article.publishedAt}
+                  {dateStr}
                 </Text>
               </View>
-              <Text variant="small" color="textMuted">
-                {article.readTime}
-              </Text>
             </View>
           </View>
         </Card>
@@ -119,8 +91,9 @@ export default function BlogListScreen() {
   const router = useRouter()
   const { isAuthenticated } = useAuthStore()
   const [searchTerm, setSearchTerm] = useState('')
-  const [articles] = useState<Article[]>(MOCK_ARTICLES)
-  const [isLoading] = useState(false)
+
+  const { data, isLoading, error } = usePosts(1, 50)
+  const articles = data?.posts ?? []
 
   const handleBack = () => {
     router.back()
@@ -140,10 +113,12 @@ export default function BlogListScreen() {
   const filteredArticles = articles.filter(
     (article) =>
       article.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      article.author.toLowerCase().includes(searchTerm.toLowerCase())
+      (article.display_name || article.username || '')
+        .toLowerCase()
+        .includes(searchTerm.toLowerCase())
   )
 
-  const renderItem = ({ item, index }: { item: Article; index: number }) => (
+  const renderItem = ({ item, index }: { item: Post; index: number }) => (
     <ArticleCard
       article={item}
       onPress={() => handleArticlePress(item.id)}
@@ -187,6 +162,10 @@ export default function BlogListScreen() {
       {isLoading ? (
         <View style={styles.loadingContainer}>
           <ActivityIndicator size="large" color={SEMANTIC_COLORS.textMain} />
+        </View>
+      ) : error ? (
+        <View style={styles.emptyContainer}>
+          <Text color="textSubtle">載入文章失敗，請稍後再試</Text>
         </View>
       ) : (
         <FlatList
@@ -247,6 +226,11 @@ const styles = StyleSheet.create({
   coverImage: {
     width: '100%',
     height: 160,
+  },
+  coverPlaceholder: {
+    backgroundColor: '#F0F0F0',
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   articleContent: {
     padding: SPACING.md,

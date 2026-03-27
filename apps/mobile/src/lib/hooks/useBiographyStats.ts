@@ -4,6 +4,7 @@
  * 對應 apps/web/src/lib/hooks/useBiographyStats.ts
  */
 import { useQuery } from '@tanstack/react-query'
+import { apiClient } from '@/lib/api'
 
 interface BiographyStats {
   totalBiographies: number
@@ -32,21 +33,8 @@ export function useBiographyStats(): UseBiographyStatsResult {
   } = useQuery<BiographyStats>({
     queryKey: ['biography-stats'],
     queryFn: async () => {
-      // TODO: 整合實際 API
-      // const response = await apiClient.get('/api/v1/biographies/stats')
-      // return response.data
-
-      // 模擬資料
-      return {
-        totalBiographies: 150,
-        totalStories: 1200,
-        totalInteractions: 8500,
-        recentActivity: {
-          newBiographies: 12,
-          newStories: 85,
-          period: '本週',
-        },
-      }
+      const response = await apiClient.get('/biographies/stats')
+      return response.data?.data ?? response.data
     },
     staleTime: 5 * 60 * 1000, // 5 分鐘
   })

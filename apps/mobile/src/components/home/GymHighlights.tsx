@@ -20,6 +20,7 @@ import Animated, { FadeInUp, FadeInRight } from 'react-native-reanimated'
 import { Text, Button, Skeleton } from '@/components/ui'
 import { FadeIn, SlideUp } from '@/components/animation'
 import { BORDER_RADIUS, SEMANTIC_COLORS, SPACING, WB_COLORS } from '@nobodyclimb/constants'
+import { apiClient } from '@/lib/api'
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window')
 const CARD_WIDTH = (SCREEN_WIDTH - SPACING[4] * 2 - SPACING[4]) / 2
@@ -36,42 +37,31 @@ interface Gym {
   facilities?: string[]
 }
 
-// 模擬資料（實際應從 API 獲取）
-const mockGyms: Gym[] = [
-  {
-    id: 'redrock',
-    name: '紅石攀岩館',
-    slug: 'redrock',
-    coverImage: '',
-    address: '台北市大安區',
-    description: '台北市最大的室內攀岩館之一',
-    rating: 4.8,
-    reviews: 256,
-    facilities: ['抱石區', '繩攀區', '健身區', '淋浴間'],
-  },
-  {
-    id: 'double8',
-    name: 'Double 8 岩究所',
-    slug: 'double8',
-    coverImage: '',
-    address: '台北市中山區',
-    description: '專業的抱石訓練中心',
-    rating: 4.7,
-    reviews: 189,
-    facilities: ['抱石區', '訓練區', '咖啡廳'],
-  },
-  {
-    id: 'corner',
-    name: '角落攀岩館',
-    slug: 'corner',
-    coverImage: '',
-    address: '新北市板橋區',
-    description: '新北市人氣攀岩館',
-    rating: 4.6,
-    reviews: 145,
-    facilities: ['抱石區', '繩攀區', '兒童區'],
-  },
-]
+interface ApiGym {
+  id: string
+  name: string
+  slug: string
+  cover_image?: string
+  address?: string
+  description?: string
+  rating?: number
+  review_count?: number
+  facilities?: string[]
+}
+
+function adaptApiGym(gym: ApiGym): Gym {
+  return {
+    id: gym.id,
+    name: gym.name,
+    slug: gym.slug,
+    coverImage: gym.cover_image || '',
+    address: gym.address || '',
+    description: gym.description,
+    rating: gym.rating || 0,
+    reviews: gym.review_count || 0,
+    facilities: gym.facilities,
+  }
+}
 
 function GymCard({ gym, index }: { gym: Gym; index: number }) {
   const router = useRouter()
@@ -185,14 +175,13 @@ export function GymHighlights() {
   useEffect(() => {
     async function fetchGyms() {
       try {
-        // TODO: 替換為實際的 API 端點
-        // const response = await fetch('https://api.nobodyclimb.cc/api/v1/gyms/featured')
-        // const result = await response.json()
-        // setGyms(result.data)
-
-        // 暫時使用模擬資料
-        await new Promise((resolve) => setTimeout(resolve, 500))
-        setGyms(mockGyms)
+        const response = await apiClient.get<{
+          success: boolean
+          data: ApiGym[]
+        }>('/gyms/featured', { params: { limit: 4 } })
+        if (response.data?.success && response.data.data) {
+          setGyms(response.data.data.map(adaptApiGym))
+        }
       } catch (error) {
         console.error('Failed to fetch gyms:', error)
       } finally {

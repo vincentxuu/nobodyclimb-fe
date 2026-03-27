@@ -3,7 +3,7 @@
  *
  * 對應 apps/web/src/app/crag/[id]/route/[routeId]/RouteDetailClient.tsx
  */
-import React, { useState, useEffect, useCallback } from 'react'
+import React, { useState } from 'react'
 import {
   StyleSheet,
   View,
@@ -30,56 +30,20 @@ import {
   Instagram,
   ExternalLink,
   Play,
+  Plus,
 } from 'lucide-react-native'
 
-import { Text, IconButton, Button, Card } from '@/components/ui'
+import { Text, IconButton } from '@/components/ui'
+import { RoutePhotosSection } from '@/components/crag'
+import { RouteMediaForm, type RouteMediaFormRef } from '@/components/crag/RouteMediaForm'
 import { SEMANTIC_COLORS, SPACING, RADIUS } from '@nobodyclimb/constants'
-import type { RouteDetailData } from '@/lib/crag-data'
+import { useRouteDetail } from '@/lib/hooks/useCrags'
+import { useCreateRouteStory } from '@/lib/hooks/useRouteStories'
+import { useAuthStore } from '@/store/authStore'
+import { RouteAscentsSection } from '@/components/crag/RouteAscentsSection'
+import { RouteStoriesSection } from '@/components/crag/RouteStoriesSection'
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window')
-
-// 模擬資料
-const MOCK_ROUTE_DETAIL: RouteDetailData = {
-  route: {
-    id: 'r1',
-    name: '小乖',
-    englishName: 'Little Good',
-    grade: '5.8',
-    length: '15m',
-    type: 'Sport',
-    typeEn: 'Sport',
-    firstAscent: '張三',
-    firstAscentDate: '1998',
-    description: '這是一條經典的入門路線，適合初學者練習基本動作。岩質良好，保護完整。',
-    protection: '8 個 bolts + 雙固定點',
-    tips: '注意第三個 bolt 後的小平台，可以稍作休息。crux 在頂部的小屋簷處。',
-    boltCount: 8,
-    safetyRating: 'G',
-    popularity: 85,
-    views: 1234,
-    images: [],
-    videos: [],
-    youtubeVideos: ['https://www.youtube.com/watch?v=dQw4w9WgXcQ'],
-    instagramPosts: [],
-  },
-  crag: {
-    id: 'longdong',
-    name: '龍洞',
-    nameEn: 'Long Dong',
-    slug: 'longdong',
-    location: '新北市貢寮區龍洞灣',
-  },
-  area: {
-    id: 'school-gate',
-    name: '校門口',
-    nameEn: 'School Gate',
-  },
-  relatedRoutes: [
-    { id: 'r2', name: '大乖', grade: '5.9', type: 'Sport' },
-    { id: 'r3', name: '黃色乖', grade: '5.10a', type: 'Sport' },
-    { id: 'r4', name: '蟹老闆', grade: '5.10b', type: 'Sport' },
-  ],
-}
 
 // 將 YouTube URL 轉換為縮圖 URL
 function getYoutubeThumbnail(url: string): string | null {
@@ -90,56 +54,48 @@ function getYoutubeThumbnail(url: string): string | null {
   return null
 }
 
-// 將 YouTube URL 轉換為嵌入 URL
-function getYoutubeVideoId(url: string): string | null {
-  const match = url.match(/(?:youtu\.be\/|youtube\.com\/watch\?v=)([a-zA-Z0-9_-]+)/)
-  return match ? match[1] : null
-}
-
 export default function RouteDetailScreen() {
   const router = useRouter()
   const { id, routeId } = useLocalSearchParams<{ id: string; routeId: string }>()
 
-  const [routeData, setRouteData] = useState<RouteDetailData | null>(null)
-  const [isLoading, setIsLoading] = useState(true)
+  const {
+    data: routeData,
+    isLoading,
+    refetch,
+  } = useRouteDetail(id, routeId)
   const [refreshing, setRefreshing] = useState(false)
   const [currentPhotoIndex, setCurrentPhotoIndex] = useState(0)
 
-  // 載入資料
-  const loadRouteData = useCallback(async () => {
-    if (!id || !routeId) return
+  // 媒體分享
+  const youtubeFormRef = React.useRef<RouteMediaFormRef>(null)
+  const instagramFormRef = React.useRef<RouteMediaFormRef>(null)
+  const createStory = useCreateRouteStory()
+  const { status } = useAuthStore()
+  const isLoggedIn = status === 'signIn'
 
-    setIsLoading(true)
-    try {
-      // MVP 階段使用模擬資料
-      await new Promise((resolve) => setTimeout(resolve, 300))
-      setRouteData({
-        ...MOCK_ROUTE_DETAIL,
-        route: {
-          ...MOCK_ROUTE_DETAIL.route,
-          id: routeId,
-        },
-        crag: {
-          ...MOCK_ROUTE_DETAIL.crag,
-          id: id,
-        },
-      })
-    } catch (err) {
-      console.error('Failed to load route:', err)
-    } finally {
-      setIsLoading(false)
-    }
-  }, [id, routeId])
+  const handleShareYoutube = async (data: { content?: string; youtube_url?: string }) => {
+    await createStory.mutateAsync({
+      route_id: routeId,
+      content: data.content || '分享影片',
+      youtube_url: data.youtube_url,
+      visibility: 'public',
+    })
+  }
 
-  useEffect(() => {
-    loadRouteData()
-  }, [loadRouteData])
+  const handleShareInstagram = async (data: { content?: string; instagram_url?: string }) => {
+    await createStory.mutateAsync({
+      route_id: routeId,
+      content: data.content || '分享貼文',
+      instagram_url: data.instagram_url,
+      visibility: 'public',
+    })
+  }
 
-  const handleRefresh = useCallback(async () => {
+  const handleRefresh = async () => {
     setRefreshing(true)
-    await loadRouteData()
+    await refetch()
     setRefreshing(false)
-  }, [loadRouteData])
+  }
 
   const handleBack = () => {
     router.back()
@@ -203,10 +159,29 @@ export default function RouteDetailScreen() {
 
   const { route, crag, area, relatedRoutes } = routeData
   const hasImages = route.images && route.images.length > 0
-  const hasYoutubeVideos = route.youtubeVideos && route.youtubeVideos.length > 0
   const hasInstagramPosts = route.instagramPosts && route.instagramPosts.length > 0
 
+  // 合併關聯影片 (videos from route_videos table) 和 youtubeVideos (URL list)
+  const allVideos: Array<{ type: 'linked'; id: string; title: string; youtubeId: string; thumbnailUrl?: string; channel?: string } | { type: 'url'; url: string }> = [
+    // API 關聯影片（有完整資訊）
+    ...(route.videos || []).filter((v: any) => v.youtubeId || v.youtube_id).map((v: any) => ({
+      type: 'linked' as const,
+      id: v.id,
+      title: v.title,
+      youtubeId: v.youtubeId || v.youtube_id,
+      thumbnailUrl: v.thumbnailUrl || v.thumbnail_url,
+      channel: v.channel,
+    })),
+    // youtubeVideos URL 列表
+    ...(route.youtubeVideos || []).map((url: string) => ({
+      type: 'url' as const,
+      url,
+    })),
+  ]
+  const hasVideos = allVideos.length > 0
+
   return (
+    <>
     <SafeAreaView style={styles.container} edges={['top']}>
       {/* 導航列 */}
       <View style={styles.header}>
@@ -281,7 +256,7 @@ export default function RouteDetailScreen() {
             </View>
             <View style={styles.typeTag}>
               <Text variant="small" color="textSubtle">
-                {route.typeEn}
+                {route.typeEn || route.type}
               </Text>
             </View>
           </View>
@@ -318,7 +293,7 @@ export default function RouteDetailScreen() {
                   <ChevronRight size={24} color="#FFFFFF" />
                 </Pressable>
                 <View style={styles.photoDots}>
-                  {route.images.map((_, index) => (
+                  {route.images.map((_: string, index: number) => (
                     <Pressable
                       key={index}
                       onPress={() => setCurrentPhotoIndex(index)}
@@ -337,7 +312,7 @@ export default function RouteDetailScreen() {
         {/* 基本資訊卡片 */}
         {(route.length || route.boltCount > 0 || route.firstAscent) && (
           <View style={styles.infoCards}>
-            {route.length && (
+            {route.length ? (
               <View style={styles.infoCard}>
                 <View style={styles.infoCardIcon}>
                   <Ruler size={16} color={SEMANTIC_COLORS.textMuted} />
@@ -349,7 +324,7 @@ export default function RouteDetailScreen() {
                   {route.length}
                 </Text>
               </View>
-            )}
+            ) : null}
             {route.boltCount > 0 && (
               <View style={styles.infoCard}>
                 <View style={styles.infoCardIcon}>
@@ -429,41 +404,99 @@ export default function RouteDetailScreen() {
           </View>
         )}
 
+        {/* 路線照片 */}
+        <RoutePhotosSection
+          routeId={routeId}
+          routeName={route.name}
+          staticPhotos={route.images}
+        />
+
+        {/* 攀岩故事 */}
+        <RouteStoriesSection
+          cragId={id}
+          routeId={routeId}
+          routeName={route.name}
+          routeGrade={route.grade}
+        />
+
         {/* YouTube 影片 */}
-        {hasYoutubeVideos && (
+        {hasVideos && (
           <View style={styles.section}>
             <View style={styles.sectionHeader}>
-              <View style={styles.sectionBar} />
-              <Youtube size={18} color="#FF0000" />
-              <Text variant="body" fontWeight="600">
-                YouTube 影片
-              </Text>
+              <View style={{ flexDirection: 'row', alignItems: 'center', gap: SPACING.xs, flex: 1 }}>
+                <View style={styles.sectionBar} />
+                <Youtube size={18} color="#FF0000" />
+                <Text variant="body" fontWeight="600">
+                  YouTube 影片
+                </Text>
+              </View>
+              {isLoggedIn && (
+                <Pressable
+                  style={styles.addButton}
+                  onPress={() => youtubeFormRef.current?.open()}
+                >
+                  <Plus size={16} color="#2563EB" />
+                  <Text variant="caption" style={{ color: '#2563EB' }}>分享</Text>
+                </Pressable>
+              )}
             </View>
-            <View style={styles.mediaGrid}>
-              {route.youtubeVideos.map((url, index) => {
-                const thumbnail = getYoutubeThumbnail(url)
-                return (
-                  <Pressable
-                    key={index}
-                    style={styles.mediaCard}
-                    onPress={() => handleYoutubePress(url)}
-                  >
-                    {thumbnail ? (
-                      <Image
-                        source={{ uri: thumbnail }}
-                        style={styles.mediaThumbnail}
-                        contentFit="cover"
-                      />
-                    ) : (
-                      <View style={[styles.mediaThumbnail, styles.mediaPlaceholder]}>
-                        <Youtube size={32} color="#FF0000" />
+            <View style={styles.videoList}>
+              {allVideos.map((video, index) => {
+                if (video.type === 'linked') {
+                  const thumbnailUrl = video.thumbnailUrl || `https://img.youtube.com/vi/${video.youtubeId}/mqdefault.jpg`
+                  return (
+                    <Pressable
+                      key={`linked-${video.id}`}
+                      style={styles.videoCard}
+                      onPress={() => handleYoutubePress(`https://www.youtube.com/watch?v=${video.youtubeId}`)}
+                    >
+                      <View style={styles.videoThumbnailContainer}>
+                        <Image
+                          source={{ uri: thumbnailUrl }}
+                          style={styles.videoThumbnail}
+                          contentFit="cover"
+                        />
+                        <View style={styles.mediaPlayIcon}>
+                          <Play size={24} color="#FFFFFF" />
+                        </View>
                       </View>
-                    )}
-                    <View style={styles.mediaPlayIcon}>
-                      <Play size={24} color="#FFFFFF" />
-                    </View>
-                  </Pressable>
-                )
+                      <View style={styles.videoInfo}>
+                        <Text variant="body" fontWeight="500" numberOfLines={2}>
+                          {video.title}
+                        </Text>
+                        {video.channel && (
+                          <Text variant="small" color="textMuted" style={{ marginTop: 2 }}>
+                            {video.channel}
+                          </Text>
+                        )}
+                      </View>
+                    </Pressable>
+                  )
+                } else {
+                  const thumbnail = getYoutubeThumbnail(video.url)
+                  return (
+                    <Pressable
+                      key={`url-${index}`}
+                      style={styles.mediaCard}
+                      onPress={() => handleYoutubePress(video.url)}
+                    >
+                      {thumbnail ? (
+                        <Image
+                          source={{ uri: thumbnail }}
+                          style={styles.mediaThumbnail}
+                          contentFit="cover"
+                        />
+                      ) : (
+                        <View style={[styles.mediaThumbnail, styles.mediaPlaceholder]}>
+                          <Youtube size={32} color="#FF0000" />
+                        </View>
+                      )}
+                      <View style={styles.mediaPlayIcon}>
+                        <Play size={24} color="#FFFFFF" />
+                      </View>
+                    </Pressable>
+                  )
+                }
               })}
             </View>
           </View>
@@ -473,14 +506,25 @@ export default function RouteDetailScreen() {
         {hasInstagramPosts && (
           <View style={styles.section}>
             <View style={styles.sectionHeader}>
-              <View style={styles.sectionBar} />
-              <Instagram size={18} color="#E4405F" />
-              <Text variant="body" fontWeight="600">
-                Instagram 貼文
-              </Text>
+              <View style={{ flexDirection: 'row', alignItems: 'center', gap: SPACING.xs, flex: 1 }}>
+                <View style={styles.sectionBar} />
+                <Instagram size={18} color="#E4405F" />
+                <Text variant="body" fontWeight="600">
+                  Instagram 貼文
+                </Text>
+              </View>
+              {isLoggedIn && (
+                <Pressable
+                  style={styles.addButton}
+                  onPress={() => instagramFormRef.current?.open()}
+                >
+                  <Plus size={16} color="#2563EB" />
+                  <Text variant="caption" style={{ color: '#2563EB' }}>分享</Text>
+                </Pressable>
+              )}
             </View>
             <View style={styles.mediaGrid}>
-              {route.instagramPosts.map((url, index) => (
+              {route.instagramPosts.map((url: string, index: number) => (
                 <Pressable
                   key={index}
                   style={styles.mediaCard}
@@ -497,6 +541,13 @@ export default function RouteDetailScreen() {
             </View>
           </View>
         )}
+
+        {/* 攀爬記錄 */}
+        <RouteAscentsSection
+          routeId={routeId}
+          routeName={route.name}
+          routeGrade={route.grade}
+        />
 
         {/* 相關路線 */}
         {relatedRoutes.length > 0 && (
@@ -536,6 +587,29 @@ export default function RouteDetailScreen() {
         <View style={styles.bottomPadding} />
       </ScrollView>
     </SafeAreaView>
+
+    {/* 媒體分享表單 */}
+    {isLoggedIn && (
+      <RouteMediaForm
+        ref={youtubeFormRef}
+        routeId={routeId}
+        routeName={route.name}
+        mediaType="youtube"
+        onSubmit={handleShareYoutube}
+        isLoading={createStory.isPending}
+      />
+    )}
+    {isLoggedIn && (
+      <RouteMediaForm
+        ref={instagramFormRef}
+        routeId={routeId}
+        routeName={route.name}
+        mediaType="instagram"
+        onSubmit={handleShareInstagram}
+        isLoading={createStory.isPending}
+      />
+    )}
+    </>
   )
 }
 
@@ -698,6 +772,25 @@ const styles = StyleSheet.create({
   sectionText: {
     lineHeight: 22,
   },
+  videoList: {
+    gap: SPACING.sm,
+  },
+  videoCard: {
+    borderRadius: RADIUS.md,
+    overflow: 'hidden',
+    backgroundColor: '#F9F9F9',
+  },
+  videoThumbnailContainer: {
+    position: 'relative',
+    aspectRatio: 16 / 9,
+  },
+  videoThumbnail: {
+    width: '100%',
+    height: '100%',
+  },
+  videoInfo: {
+    padding: SPACING.sm,
+  },
   mediaGrid: {
     flexDirection: 'row',
     flexWrap: 'wrap',
@@ -766,5 +859,12 @@ const styles = StyleSheet.create({
   },
   bottomPadding: {
     height: SPACING.xxl,
+  },
+
+  // Add button
+  addButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 2,
   },
 })

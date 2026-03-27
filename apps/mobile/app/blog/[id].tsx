@@ -3,7 +3,7 @@
  *
  * 對應 apps/web/src/app/blog/[id]/page.tsx
  */
-import React, { useState, useEffect, useCallback } from 'react'
+import React, { useState, useCallback } from 'react'
 import {
   StyleSheet,
   View,
@@ -30,103 +30,26 @@ import {
 import { Text, IconButton, Avatar, Divider } from '@/components/ui'
 import { CommentSection } from '@/components/blog'
 import { useAuthStore } from '@/store/authStore'
+import { usePost } from '@/lib/hooks'
 import { SEMANTIC_COLORS, SPACING, RADIUS } from '@nobodyclimb/constants'
-
-interface ArticleDetail {
-  id: string
-  title: string
-  content: string
-  author: {
-    name: string
-    avatar?: string
-  }
-  publishedAt: string
-  readTime: string
-  coverImage: string
-  likeCount: number
-  commentCount: number
-  isLiked?: boolean
-  isBookmarked?: boolean
-}
 
 export default function ArticleDetailScreen() {
   const router = useRouter()
   const { id } = useLocalSearchParams<{ id: string }>()
   const { isAuthenticated } = useAuthStore()
 
-  const [article, setArticle] = useState<ArticleDetail | null>(null)
-  const [isLoading, setIsLoading] = useState(true)
+  const { data: article, isLoading, error, refetch } = usePost(id)
+
   const [refreshing, setRefreshing] = useState(false)
   const [isLiked, setIsLiked] = useState(false)
   const [isBookmarked, setIsBookmarked] = useState(false)
   const [likeCount, setLikeCount] = useState(0)
 
-  const loadArticle = useCallback(async () => {
-    if (!id) return
-
-    setIsLoading(true)
-    try {
-      // TODO: 整合 articleService
-      await new Promise((resolve) => setTimeout(resolve, 500))
-      setArticle({
-        id,
-        title: '攀岩入門指南：從零開始的完整攻略',
-        content: `
-攀岩是一項結合力量、技巧和心理素質的運動。無論你是完全的新手，還是想要更深入了解這項運動，這篇指南都將為你提供所需的基礎知識。
-
-## 什麼是攀岩？
-
-攀岩是指使用手腳攀爬岩壁或人工岩牆的運動。現代攀岩分為多種類型：
-
-1. **抱石 (Bouldering)** - 在較低的岩壁上攀爬，不使用繩索保護
-2. **運動攀岩 (Sport Climbing)** - 使用預先固定的錨點和繩索保護
-3. **傳統攀岩 (Trad Climbing)** - 自行放置保護裝備
-
-## 開始前的準備
-
-### 裝備
-- 攀岩鞋：最重要的裝備，選擇合腳的款式
-- 粉袋：用於吸收手汗
-- 安全吊帶：如果進行上攀
-
-### 找一家好岩館
-選擇離家近、環境友善的岩館開始練習。大多數岩館都提供入門課程和裝備租借。
-
-## 基本技巧
-
-1. **用腳攀爬**：腳的力量比手大得多
-2. **保持身體貼近牆壁**：減少手臂負擔
-3. **觀察路線**：在開始前先規劃動作
-
-祝你攀岩愉快！
-        `.trim(),
-        author: {
-          name: '攀岩小編',
-          avatar: 'https://picsum.photos/100?random=50',
-        },
-        publishedAt: '2024-01-20',
-        readTime: '8 分鐘',
-        coverImage: 'https://picsum.photos/800/400?random=30',
-        likeCount: 42,
-        commentCount: 8,
-      })
-      setLikeCount(42)
-    } catch (err) {
-      console.error('Failed to load article:', err)
-    } finally {
-      setIsLoading(false)
-    }
-  }, [id])
-
-  useEffect(() => {
-    loadArticle()
-  }, [loadArticle])
-
   const handleRefresh = useCallback(async () => {
     setRefreshing(true)
-    await loadArticle()
+    await refetch()
     setRefreshing(false)
-  }, [loadArticle])
+  }, [refetch])
 
   const handleBack = () => {
     router.back()
@@ -139,8 +62,8 @@ export default function ArticleDetailScreen() {
         title: article.title,
         message: `${article.title}\nhttps://nobodyclimb.cc/blog/${article.id}`,
       })
-    } catch (error) {
-      console.error('Share failed:', error)
+    } catch (err) {
+      console.error('Share failed:', err)
     }
   }
 
@@ -163,7 +86,7 @@ export default function ArticleDetailScreen() {
     )
   }
 
-  if (!article) {
+  if (error || !article) {
     return (
       <SafeAreaView style={styles.container} edges={['top']}>
         <View style={styles.header}>
@@ -174,11 +97,18 @@ export default function ArticleDetailScreen() {
           />
         </View>
         <View style={styles.errorContainer}>
-          <Text color="textSubtle">找不到此文章</Text>
+          <Text color="textSubtle">
+            {error ? '載入文章失敗，請稍後再試' : '找不到此文章'}
+          </Text>
         </View>
       </SafeAreaView>
     )
   }
+
+  const authorName = article.display_name || article.username || '匿名'
+  const dateStr = article.published_at
+    ? new Date(article.published_at).toLocaleDateString('zh-TW')
+    : new Date(article.created_at).toLocaleDateString('zh-TW')
 
   return (
     <SafeAreaView style={styles.container} edges={['top']}>
@@ -216,11 +146,19 @@ export default function ArticleDetailScreen() {
         }
       >
         {/* 封面圖 */}
-        <Image
-          source={{ uri: article.coverImage }}
-          style={styles.coverImage}
-          contentFit="cover"
-        />
+        {article.cover_image ? (
+          <Image
+            source={{ uri: article.cover_image }}
+            style={styles.coverImage}
+            contentFit="cover"
+          />
+        ) : (
+          <View style={[styles.coverImage, styles.coverPlaceholder]}>
+            <Text variant="body" color="textMuted">
+              {article.category || '文章'}
+            </Text>
+          </View>
+        )}
 
         {/* 文章內容 */}
         <View style={styles.content}>
@@ -234,29 +172,40 @@ export default function ArticleDetailScreen() {
             <Avatar
               size="sm"
               source={
-                article.author.avatar
-                  ? { uri: article.author.avatar }
+                article.author_avatar
+                  ? { uri: article.author_avatar }
                   : undefined
               }
             />
             <View style={styles.authorInfo}>
               <Text variant="body" fontWeight="500">
-                {article.author.name}
+                {authorName}
               </Text>
               <View style={styles.metaRow}>
                 <Calendar size={12} color={SEMANTIC_COLORS.textMuted} />
                 <Text variant="small" color="textMuted">
-                  {article.publishedAt}
+                  {dateStr}
                 </Text>
-                <Clock size={12} color={SEMANTIC_COLORS.textMuted} />
-                <Text variant="small" color="textMuted">
-                  {article.readTime}
-                </Text>
+                {article.view_count > 0 && (
+                  <>
+                    <Clock size={12} color={SEMANTIC_COLORS.textMuted} />
+                    <Text variant="small" color="textMuted">
+                      {article.view_count} 次瀏覽
+                    </Text>
+                  </>
+                )}
               </View>
             </View>
           </View>
 
           <Divider style={styles.divider} />
+
+          {/* 摘要 */}
+          {article.excerpt ? (
+            <Text variant="body" style={styles.excerptText}>
+              {article.excerpt}
+            </Text>
+          ) : null}
 
           {/* 文章內容 */}
           <Text variant="body" style={styles.articleText}>
@@ -286,7 +235,7 @@ export default function ArticleDetailScreen() {
 
             <MessageCircle size={22} color={SEMANTIC_COLORS.textSubtle} />
             <Text variant="body" color="textSubtle">
-              {article.commentCount}
+              0
             </Text>
           </View>
 
@@ -336,6 +285,11 @@ const styles = StyleSheet.create({
     width: '100%',
     height: 200,
   },
+  coverPlaceholder: {
+    backgroundColor: '#F0F0F0',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
   content: {
     padding: SPACING.md,
     backgroundColor: SEMANTIC_COLORS.cardBg,
@@ -357,6 +311,12 @@ const styles = StyleSheet.create({
   },
   divider: {
     marginVertical: SPACING.md,
+  },
+  excerptText: {
+    lineHeight: 24,
+    fontStyle: 'italic',
+    color: SEMANTIC_COLORS.textSubtle,
+    marginBottom: SPACING.md,
   },
   articleText: {
     lineHeight: 26,

@@ -3,6 +3,19 @@ import { checkOutput } from '../../../utils/guardrails';
 import { buildPersonalizedSystemPrompt } from '../../personalization';
 import { extractMemoriesFromQuery } from '../../memory-extractor';
 import { parseSuggestedQuestions } from '../utils';
+import { logGeneration } from '../../../utils/langfuse';
+
+// 相容 Workers AI 標準格式（response）與 OpenAI chat completions 格式（choices[0].message.content）
+function extractLLMResponse(result: unknown): string {
+  const r = result as Record<string, unknown>;
+  if (typeof r.response === 'string' && r.response) return r.response;
+  const choices = r.choices as Array<{ message?: { content?: string } }> | undefined;
+  const content = choices?.[0]?.message?.content;
+  if (typeof content === 'string' && content) return content;
+  const thinking = r.thinking;
+  if (typeof thinking === 'string' && thinking) return thinking;
+  return '';
+}
 
 export const llmGenerationStep: PipelineStep = {
   id: 'llm-generation',
@@ -21,14 +34,30 @@ export const llmGenerationStep: PipelineStep = {
     const effectiveLlmModel = ctx.effectiveLlmModel ?? pipelineConfig.llm_model;
 
     // GK 通識路徑
+    // Qwen3 thinking 模型需要 budget_tokens: 0 才能停用 thinking mode
+    const isQwen3Model = effectiveLlmModel.toLowerCase().includes('qwen3');
     if (ctx.queryType === 'general-knowledge') {
       const gkPersonalized = buildPersonalizedSystemPrompt(ctx.memorySummary ?? null, ctx.ascentContext ?? null, ctx.abilityLevel ?? null, prompts['GENERAL_KNOWLEDGE_SYSTEM_PROMPT']);
+      const gkParams = isQwen3Model
+        ? { messages: [{ role: 'system', content: gkPersonalized }, { role: 'user', content: query }], max_tokens: pipelineConfig.max_tokens_gk, budget_tokens: 0 }
+        : { messages: [{ role: 'system', content: gkPersonalized }, { role: 'user', content: query }], max_tokens: pipelineConfig.max_tokens_gk };
       const llmResult = (await env.AI.run(
         effectiveLlmModel,
-        { messages: [{ role: 'system', content: gkPersonalized }, { role: 'user', content: query }], max_tokens: pipelineConfig.max_tokens_gk },
+        gkParams,
         gatewayOptions
       )) as LLMResponse;
-      const rawAnswer = llmResult.response || '抱歉，無法生成回答，請稍後再試。';
+      const rawAnswer = extractLLMResponse(llmResult) || '抱歉，無法生成回答，請稍後再試。';
+      logGeneration(ctx.currentLfSpan ?? ctx.langfuseTrace ?? null, {
+        name: 'llm-generation-gk',
+        model: effectiveLlmModel,
+        input: gkParams.messages,
+        output: rawAnswer,
+        usage: llmResult.usage ? {
+          promptTokens: llmResult.usage.prompt_tokens,
+          completionTokens: llmResult.usage.completion_tokens,
+          totalTokens: llmResult.usage.total_tokens,
+        } : undefined,
+      });
       const { answer: rawGkAnswer, suggested_questions } = parseSuggestedQuestions(rawAnswer);
       const { output: gkFiltered, trace: gkOutputTrace } = checkOutput(rawGkAnswer, pipelineConfig.max_output_length, pipelineConfig.system_prompt_leakage_patterns);
       const answer = gkFiltered || '抱歉，無法生成回答，請稍後再試。';
@@ -68,7 +97,9 @@ export const llmGenerationStep: PipelineStep = {
       });
 
       const response = { answer, sources: [] as import('../../../types').AISource[], query_id: queryId, suggested_questions };
-      await env.CACHE.put(ctx.cacheKey, JSON.stringify(response), { expirationTtl: ctx.cacheTtl });
+      if (answer !== '抱歉，無法生成回答，請稍後再試。') {
+        await env.CACHE.put(ctx.cacheKey, JSON.stringify(response), { expirationTtl: ctx.cacheTtl });
+      }
 
       if (ctx.userId && ctx.waitUntilCtx) {
         const gkGatewayOpts = env.AI_GATEWAY_SLUG ? { gateway: { id: env.AI_GATEWAY_SLUG } } : undefined;
@@ -106,13 +137,28 @@ export const llmGenerationStep: PipelineStep = {
       rawLLMAnswer = await queryService.streamLLMGeneration(effectiveLlmModel, llmMessages, pipelineConfig.max_tokens_generation, gatewayOptions, ctx.onToken);
       if (!rawLLMAnswer) rawLLMAnswer = '抱歉，無法生成回答，請稍後再試。';
     } else {
+      const ragParams = isQwen3Model
+        ? { messages: llmMessages, max_tokens: pipelineConfig.max_tokens_generation, budget_tokens: 0 }
+        : { messages: llmMessages, max_tokens: pipelineConfig.max_tokens_generation };
       const llmResult = (await (env.AI.run as Function)(
         effectiveLlmModel,
-        { messages: llmMessages, max_tokens: pipelineConfig.max_tokens_generation },
+        ragParams,
         gatewayOptions
-      )) as LLMResponse;
-      rawLLMAnswer = llmResult.response || '抱歉，無法生成回答，請稍後再試。';
+      )) as LLMResponse & { thinking?: string };
+      console.log('[LLM DEBUG FULL]', JSON.stringify(llmResult).slice(0, 1000));
+      rawLLMAnswer = extractLLMResponse(llmResult) || '抱歉，無法生成回答，請稍後再試。';
       llmUsage = llmResult.usage;
+      logGeneration(ctx.currentLfSpan ?? ctx.langfuseTrace ?? null, {
+        name: 'llm-generation-rag',
+        model: effectiveLlmModel,
+        input: llmMessages,
+        output: rawLLMAnswer,
+        usage: llmResult.usage ? {
+          promptTokens: llmResult.usage.prompt_tokens,
+          completionTokens: llmResult.usage.completion_tokens,
+          totalTokens: llmResult.usage.total_tokens,
+        } : undefined,
+      });
     }
 
     if (llmUsage) {

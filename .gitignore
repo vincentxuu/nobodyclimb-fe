@@ -48,7 +48,6 @@ temp/
 output/
 
 # Claude Code / tools
-.claude
 .startmoving
 docs/start-moving*
 .worktrees/

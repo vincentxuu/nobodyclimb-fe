@@ -105,9 +105,11 @@ export function StageIcon({ name, skipped }: { name: string; skipped: boolean })
 
 export function StageSection({
   type,
+  label: customLabel,
   children,
 }: {
   type: 'input' | 'decision' | 'output'
+  label?: string
   children: React.ReactNode
 }) {
   const config = {
@@ -130,10 +132,10 @@ export function StageSection({
       text: 'text-emerald-600',
     },
   }
-  const { label, border, bg, text } = config[type]
+  const { label: defaultLabel, border, bg, text } = config[type]
   return (
     <div className={`rounded-r-md border-l-2 ${border} ${bg} px-3 py-2`}>
-      <p className={`text-[10px] font-bold uppercase tracking-widest ${text} mb-1.5`}>{label}</p>
+      <p className={`text-[10px] font-bold uppercase tracking-widest ${text} mb-1.5`}>{customLabel ?? defaultLabel}</p>
       <div className="space-y-1 text-[11px] text-wb-70">{children}</div>
     </div>
   )

@@ -8,6 +8,7 @@ import { StyleSheet, View, Pressable, ActivityIndicator } from 'react-native'
 import { MapPin, Calendar, ChevronDown, ChevronUp } from 'lucide-react-native'
 import Animated, { FadeInDown, FadeIn } from 'react-native-reanimated'
 
+import { apiClient } from '@/lib/api'
 import { Text, Card } from '@/components/ui'
 import { RADIUS, SEMANTIC_COLORS, SPACING, WB_COLORS } from '@nobodyclimb/constants'
 
@@ -232,17 +233,9 @@ export function BiographyFootprints({ biography }: BiographyFootprintsProps) {
 
       setLoading(true)
       try {
-        // TODO: 整合 climbingLocationService.getBiographyLocations(biography.id)
-        await new Promise((resolve) => setTimeout(resolve, 500))
-
-        // 模擬資料
-        setLocations([
-          { id: '1', location: '龍洞', country: '台灣', visit_year: '2024', notes: '第一次戶外攀岩的地方，感受到大自然的震撼。' },
-          { id: '2', location: '大砲岩', country: '台灣', visit_year: '2024' },
-          { id: '3', location: '關子嶺', country: '台灣', visit_year: '2023' },
-          { id: '4', location: 'Fontainebleau', country: '法國', visit_year: '2023', notes: '夢想中的抱石聖地，終於踏上了這片土地。路線的多樣性讓人驚嘆，每一顆石頭都有它的故事。' },
-          { id: '5', location: 'Yosemite', country: '美國', visit_year: '2022', notes: '站在 El Capitan 下方，感受到人類的渺小。' },
-        ])
+        const response = await apiClient.get(`/content/biographies/${biography.id}/locations`)
+        const data: ClimbingLocationRecord[] = response.data?.data ?? response.data ?? []
+        setLocations(data)
       } catch (err) {
         console.error('Failed to load climbing locations:', err)
       } finally {

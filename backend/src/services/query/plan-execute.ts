@@ -1,6 +1,8 @@
 import type { Env, AISource } from '../../types';
 import type { PipelineConfig, TokenUsageInfo } from '../pipeline/types';
 import { PLANNING_PROMPT, SYNTHESIS_PROMPT } from '../../utils/ai-prompts';
+import { logGeneration } from '../../utils/langfuse';
+import type { LangfuseParent } from '../../utils/langfuse';
 import { EmbeddingService } from '../embedding';
 import { estimateTokens, type LLMResponse, type PlanStep, type ExecutionPlan, type StepExecutionResult, type SearchResult } from './types';
 import { getDocuments, extractTitle, buildExcerpt, buildUrl } from './documents';
@@ -43,6 +45,7 @@ export async function planQuery(
   areas: string[],
   promptTemplate?: string,
   gatewayOptions?: { gateway: { id: string } },
+  langfuseParent?: LangfuseParent | null,
 ): Promise<{
   plan: ExecutionPlan | null;
   failureReason?: 'timeout' | 'json_parse_error' | 'empty_steps';
@@ -74,6 +77,17 @@ export async function planQuery(
   }
 
   const text = rawResult?.response?.trim() ?? '';
+  logGeneration(langfuseParent ?? null, {
+    name: 'planning',
+    model: cfg.llm_model,
+    input: [{ role: 'user', content: prompt }],
+    output: text,
+    usage: rawResult?.usage ? {
+      promptTokens: rawResult.usage.prompt_tokens,
+      completionTokens: rawResult.usage.completion_tokens,
+      totalTokens: rawResult.usage.total_tokens,
+    } : undefined,
+  });
   const usage: TokenUsageInfo = rawResult?.usage
     ? { ...rawResult.usage, estimated: false }
     : { ...estimateTokens(prompt, text), estimated: true };
@@ -239,6 +253,7 @@ async function adaptiveReplan(
   plan: ExecutionPlan,
   cfg: PipelineConfig,
   gatewayOptions?: { gateway: { id: string } },
+  langfuseParent?: LangfuseParent | null,
 ): Promise<{ newStep: PlanStep; triggerStepId: number; reason: string } | null> {
   try {
     const safeQuery = failedResult.query.slice(0, 200).replace(/[「」]/g, '');
@@ -265,6 +280,17 @@ async function adaptiveReplan(
     ]);
 
     const text = result.response?.trim() ?? '';
+    logGeneration(langfuseParent ?? null, {
+      name: 'adaptive-replan',
+      model: cfg.lightweight_model,
+      input: [{ role: 'user', content: prompt }],
+      output: text,
+      usage: result.usage ? {
+        promptTokens: result.usage.prompt_tokens,
+        completionTokens: result.usage.completion_tokens,
+        totalTokens: result.usage.total_tokens,
+      } : undefined,
+    });
     const jsonText = text.replace(/^```(?:json)?\n?/, '').replace(/\n?```$/, '').trim();
     const newStep = JSON.parse(jsonText) as PlanStep;
 
@@ -284,6 +310,7 @@ export async function executePlan(
   plan: ExecutionPlan,
   cfg: PipelineConfig,
   gatewayOptions?: { gateway: { id: string } },
+  langfuseParent?: LangfuseParent | null,
 ): Promise<{
   results: StepExecutionResult[];
   adaptiveReplan: boolean;
@@ -323,7 +350,7 @@ export async function executePlan(
         !result.error
       ) {
         const replanResult = await adaptiveReplan(
-          deps.env, result, plan, cfg, gatewayOptions,
+          deps.env, result, plan, cfg, gatewayOptions, langfuseParent,
         );
         if (replanResult) {
           adaptiveReplanFlag = true;
@@ -401,6 +428,7 @@ export async function synthesize(
   cfg: PipelineConfig,
   promptTemplate?: string,
   gatewayOptions?: { gateway: { id: string } },
+  langfuseParent?: LangfuseParent | null,
 ): Promise<{
   context: string;
   sources: AISource[];
@@ -450,6 +478,17 @@ export async function synthesize(
   }
 
   const text = rawResult?.response?.trim() ?? '';
+  logGeneration(langfuseParent ?? null, {
+    name: 'synthesis',
+    model: cfg.llm_model,
+    input: [{ role: 'user', content: prompt }],
+    output: text,
+    usage: rawResult?.usage ? {
+      promptTokens: rawResult.usage.prompt_tokens,
+      completionTokens: rawResult.usage.completion_tokens,
+      totalTokens: rawResult.usage.total_tokens,
+    } : undefined,
+  });
   const usage: TokenUsageInfo = rawResult?.usage
     ? { ...rawResult.usage, estimated: false }
     : { ...estimateTokens(prompt, text), estimated: true };

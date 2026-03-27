@@ -6,19 +6,15 @@
  */
 import React, { useCallback, useState } from 'react'
 import { StyleSheet, View } from 'react-native'
-import { YStack } from 'tamagui'
 
 import { SPACING } from '@nobodyclimb/constants'
 import { ScrollLayout } from '@/components/layout'
-import { Divider } from '@/components/ui'
 import {
   FunFactSection,
-  BiographySection,
-  StoryShowcaseSection,
-  FeaturedStoriesSection,
-  FeaturedVideosSection,
+  HeroIntroSection,
   ExploreCragSection,
-  GallerySection,
+  FeaturedStoriesSection,
+  BiographySection,
   AboutSection,
 } from '@/components/home'
 
@@ -33,27 +29,21 @@ export default function HomeScreen() {
   }, [])
 
   return (
-    <ScrollLayout enableRefresh onRefresh={onRefresh}>
+    <ScrollLayout enableRefresh onRefresh={onRefresh} padding={0}>
       {/* 趣味冷知識 */}
       <FunFactSection />
 
-      {/* 人物誌精選 */}
-      <BiographySection />
+      {/* 品牌介紹 */}
+      <HeroIntroSection />
 
-      {/* 故事展示區 - 降低心理門檻 */}
-      <StoryShowcaseSection />
-
-      {/* 精選故事 */}
-      <FeaturedStoriesSection />
-
-      {/* 精選影片 */}
-      <FeaturedVideosSection />
-
-      {/* 探索岩場 */}
+      {/* 查路線 - 探索岩場 */}
       <ExploreCragSection />
 
-      {/* 攝影集精選 */}
-      <GallerySection />
+      {/* 看故事 - 精選故事 */}
+      <FeaturedStoriesSection />
+
+      {/* 寫紀錄 - 人物誌精選 */}
+      <BiographySection />
 
       {/* 關於小人物攀岩 */}
       <AboutSection />

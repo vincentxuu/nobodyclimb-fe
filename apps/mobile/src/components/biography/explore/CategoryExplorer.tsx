@@ -19,6 +19,7 @@ import {
 } from 'lucide-react-native'
 
 import { Text, Card } from '@/components/ui'
+import { apiClient } from '@/lib/api'
 import { RADIUS, SEMANTIC_COLORS, SPACING } from '@nobodyclimb/constants'
 
 // 類型定義
@@ -109,20 +110,9 @@ export function CategoryExplorer() {
     const loadCategoryCounts = async () => {
       setLoading(true)
       try {
-        // TODO: 整合 bucketListService.getCategoryCounts()
-        await new Promise((resolve) => setTimeout(resolve, 500))
-
-        // 模擬資料
-        setCategoryCounts([
-          { category: 'outdoor_route', count: 45 },
-          { category: 'indoor_grade', count: 32 },
-          { category: 'training', count: 28 },
-          { category: 'competition', count: 15 },
-          { category: 'adventure', count: 12 },
-          { category: 'skill', count: 20 },
-          { category: 'injury_recovery', count: 8 },
-          { category: 'other', count: 5 },
-        ])
+        const response = await apiClient.get('/content/questions')
+        const data: CategoryCount[] = response.data?.data ?? response.data ?? []
+        setCategoryCounts(data)
       } catch (err) {
         console.error('Failed to load category counts:', err)
       } finally {

@@ -255,7 +255,7 @@ export const hybridSearchStep: PipelineStep = {
       // Agentic Multi-Step RAG（也作為 Plan-and-Execute fallback）
       const agenticSteps: AgenticStepTrace[] = [];
       const agenticDecisionUsages: Array<StageTokenUsage & { step: number }> = [];
-      const { candidates: agenticCandidates, terminationReason: agenticTermReason } = await qs.agenticRetrieve(
+      const { candidates: agenticCandidates, terminationReason: agenticTermReason, initialSearch } = await qs.agenticRetrieve(
         query, vectorFilter, pipelineConfig, agenticSteps, ctx.prompts['AGENTIC_DECISION_PROMPT'], agenticDecisionUsages
       );
       candidateMatches = agenticCandidates;
@@ -268,6 +268,7 @@ export const hybridSearchStep: PipelineStep = {
         total_paths: agenticSteps.length + 1,
         final_doc_count: candidateMatches.length,
         termination_reason: agenticTermReason,
+        initial_search: initialSearch,
       };
     } else {
       // Baseline：Vector + BM25 + RRF

@@ -2,6 +2,7 @@
  * 我的照片頁面
  *
  * 對應 apps/web/src/app/profile/photos/page.tsx
+ * 使用 GET /galleries/photos/me 取得用戶照片
  */
 import React, { useState, useCallback } from 'react'
 import {
@@ -12,6 +13,7 @@ import {
   ActivityIndicator,
   Dimensions,
   Modal,
+  Alert,
 } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import { useRouter } from 'expo-router'
@@ -29,26 +31,14 @@ import Animated, { FadeIn } from 'react-native-reanimated'
 import { Text, IconButton, Button } from '@/components/ui'
 import { ProtectedRoute } from '@/components/shared'
 import { SEMANTIC_COLORS, SPACING, RADIUS } from '@nobodyclimb/constants'
+import { useMyPhotos, useDeletePhoto, type GalleryPhoto } from '@/lib/hooks'
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window')
 const NUM_COLUMNS = 3
 const ITEM_SIZE = (SCREEN_WIDTH - SPACING.md * 2 - SPACING.xs * (NUM_COLUMNS - 1)) / NUM_COLUMNS
 
-// 模擬資料
-const MOCK_PHOTOS = Array.from({ length: 12 }, (_, i) => ({
-  id: `photo-${i + 1}`,
-  url: `https://picsum.photos/400/400?random=${i + 100}`,
-  createdAt: new Date(Date.now() - i * 86400000).toISOString(),
-}))
-
-interface Photo {
-  id: string
-  url: string
-  createdAt: string
-}
-
 interface PhotoItemProps {
-  photo: Photo
+  photo: GalleryPhoto
   onPress: () => void
   index: number
 }
@@ -58,7 +48,7 @@ function PhotoItem({ photo, onPress, index }: PhotoItemProps) {
     <Animated.View entering={FadeIn.duration(300).delay(index * 30)}>
       <Pressable onPress={onPress} style={styles.photoItem}>
         <Image
-          source={{ uri: photo.url }}
+          source={{ uri: photo.thumbnail_url || photo.image_url }}
           style={styles.photoImage}
           contentFit="cover"
           transition={300}
@@ -69,7 +59,7 @@ function PhotoItem({ photo, onPress, index }: PhotoItemProps) {
 }
 
 interface PhotoViewerProps {
-  photo: Photo | null
+  photo: GalleryPhoto | null
   visible: boolean
   onClose: () => void
   onDelete: () => void
@@ -77,6 +67,13 @@ interface PhotoViewerProps {
 
 function PhotoViewer({ photo, visible, onClose, onDelete }: PhotoViewerProps) {
   if (!photo) return null
+
+  const handleDelete = () => {
+    Alert.alert('刪除照片', '確定要刪除這張照片嗎？', [
+      { text: '取消', style: 'cancel' },
+      { text: '刪除', style: 'destructive', onPress: onDelete },
+    ])
+  }
 
   return (
     <Modal
@@ -95,7 +92,7 @@ function PhotoViewer({ photo, visible, onClose, onDelete }: PhotoViewerProps) {
           />
           <IconButton
             icon={<Trash2 size={24} color="#EF4444" />}
-            onPress={onDelete}
+            onPress={handleDelete}
             variant="ghost"
           />
         </SafeAreaView>
@@ -103,7 +100,7 @@ function PhotoViewer({ photo, visible, onClose, onDelete }: PhotoViewerProps) {
         {/* 圖片 */}
         <Pressable style={styles.modalImageContainer} onPress={onClose}>
           <Image
-            source={{ uri: photo.url }}
+            source={{ uri: photo.image_url }}
             style={styles.modalImage}
             contentFit="contain"
           />
@@ -111,9 +108,19 @@ function PhotoViewer({ photo, visible, onClose, onDelete }: PhotoViewerProps) {
 
         {/* 底部資訊 */}
         <SafeAreaView style={styles.modalFooter} edges={['bottom']}>
-          <Text style={styles.modalDate}>
-            {new Date(photo.createdAt).toLocaleDateString('zh-TW')}
-          </Text>
+          <View style={styles.modalFooterContent}>
+            {photo.caption && (
+              <Text style={styles.modalCaption}>{photo.caption}</Text>
+            )}
+            <Text style={styles.modalDate}>
+              {new Date(photo.created_at).toLocaleDateString('zh-TW')}
+            </Text>
+            {(photo.location_city || photo.location_spot) && (
+              <Text style={styles.modalLocation}>
+                {[photo.location_spot, photo.location_city].filter(Boolean).join(', ')}
+              </Text>
+            )}
+          </View>
         </SafeAreaView>
       </View>
     </Modal>
@@ -122,16 +129,19 @@ function PhotoViewer({ photo, visible, onClose, onDelete }: PhotoViewerProps) {
 
 export default function PhotosScreen() {
   const router = useRouter()
-  const [photos, setPhotos] = useState<Photo[]>(MOCK_PHOTOS)
-  const [isLoading] = useState(false)
-  const [selectedPhoto, setSelectedPhoto] = useState<Photo | null>(null)
+  const { data, isLoading, isError, refetch } = useMyPhotos()
+  const deletePhotoMutation = useDeletePhoto()
+
+  const photos = data?.photos ?? []
+
+  const [selectedPhoto, setSelectedPhoto] = useState<GalleryPhoto | null>(null)
   const [viewerVisible, setViewerVisible] = useState(false)
 
   const handleBack = () => {
     router.back()
   }
 
-  const handlePhotoPress = useCallback((photo: Photo) => {
+  const handlePhotoPress = useCallback((photo: GalleryPhoto) => {
     setSelectedPhoto(photo)
     setViewerVisible(true)
   }, [])
@@ -143,29 +153,28 @@ export default function PhotosScreen() {
 
   const handleDeletePhoto = () => {
     if (selectedPhoto) {
-      setPhotos((prev) => prev.filter((p) => p.id !== selectedPhoto.id))
-      handleCloseViewer()
+      deletePhotoMutation.mutate(selectedPhoto.id, {
+        onSuccess: () => {
+          handleCloseViewer()
+        },
+      })
     }
   }
 
   const handleAddPhoto = async () => {
     const result = await ImagePicker.launchImageLibraryAsync({
       mediaTypes: ImagePicker.MediaTypeOptions.Images,
-      allowsMultipleSelection: true,
+      allowsMultipleSelection: false,
       quality: 0.8,
     })
 
     if (!result.canceled && result.assets.length > 0) {
-      const newPhotos = result.assets.map((asset, index) => ({
-        id: `new-photo-${Date.now()}-${index}`,
-        url: asset.uri,
-        createdAt: new Date().toISOString(),
-      }))
-      setPhotos((prev) => [...newPhotos, ...prev])
+      // TODO: 實作上傳至後端 API（需先上傳圖片到 R2 取得 URL）
+      Alert.alert('上傳照片', '照片上傳功能開發中')
     }
   }
 
-  const renderItem = ({ item, index }: { item: Photo; index: number }) => (
+  const renderItem = ({ item, index }: { item: GalleryPhoto; index: number }) => (
     <PhotoItem
       photo={item}
       onPress={() => handlePhotoPress(item)}
@@ -197,6 +206,18 @@ export default function PhotosScreen() {
         {isLoading ? (
           <View style={styles.loadingContainer}>
             <ActivityIndicator size="large" color={SEMANTIC_COLORS.textMain} />
+          </View>
+        ) : isError ? (
+          <View style={styles.emptyContainer}>
+            <ImageIcon size={48} color={SEMANTIC_COLORS.textMuted} />
+            <Text variant="body" color="textSubtle" style={styles.emptyText}>
+              載入失敗，請重試
+            </Text>
+            <Pressable onPress={() => refetch()}>
+              <Text variant="body" color="textMain" fontWeight="600">
+                重試
+              </Text>
+            </Pressable>
           </View>
         ) : photos.length === 0 ? (
           <View style={styles.emptyContainer}>
@@ -309,8 +330,22 @@ const styles = StyleSheet.create({
     paddingHorizontal: SPACING.md,
     paddingVertical: SPACING.md,
   },
-  modalDate: {
+  modalFooterContent: {
+    alignItems: 'center',
+    gap: 4,
+  },
+  modalCaption: {
     color: '#FFFFFF',
     fontSize: 14,
+  },
+  modalDate: {
+    color: '#FFFFFF',
+    fontSize: 12,
+    opacity: 0.7,
+  },
+  modalLocation: {
+    color: '#FFFFFF',
+    fontSize: 12,
+    opacity: 0.7,
   },
 })

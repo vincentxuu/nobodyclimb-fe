@@ -1,6 +1,6 @@
 # 通知系統設計 - 讀書會導讀
 
-本次導讀結合《系統設計面試指南》第 10 章與 NobodyClimb 攀岩社群平台的實際案例，深入探討通知系統的設計。
+本次導讀結合《系統設計面試指南》第 10 章與 NobodyClimb 攀岩社群平台（https://nobodyclimb.cc/）的實際案例，深入探討通知系統的設計。
 
 ---
 
@@ -55,7 +55,7 @@
 | 用戶能退訂嗎？ | 是 | ✅ 已實作 |
 | 每日通知量？ | 1000萬+ | 小規模（數千） |
 
-### NobodyClimb 通知類型（16 種）
+### NobodyClimb 通知類型（17 種）
 
 | 分類 | 類型 |
 |------|------|
@@ -105,6 +105,60 @@
 > 3. Web Push 的送達率和開啟率普遍低於原生推播，在「每天 1000 萬推播」的場景下不是主力
 >
 > 但對於 **Web-only 的平台**（像 NobodyClimb），Web Push 反而是最直接的推播管道。架構上跟 APNS/FCM 同構：Provider → Push Service（瀏覽器廠商的推播伺服器）→ Service Worker → 瀏覽器，身份驗證用 VAPID key。
+
+### 聯絡資訊蒐集流程（補齊書中重點）
+
+書中強調：通知系統不是只有「送出」，前面還有一段「蒐集並維護可送達目標」的流程。
+
+- 用戶註冊 / 首次登入時，API 需蒐集聯絡資訊（email、phone、device token）
+- Push 裝置 token 會變動（重裝 App、換機、清快取），需要可更新機制
+- 一個使用者可能綁定多個裝置，因此資料模型需支援 `1 user : N devices`
+
+對照書中資料表設計概念：
+
+- `users`：存 email / phone
+- `devices`：存 device token、platform、user_id（可多筆）
+- 發送前先查「使用者偏好 + 可送達端點」再決定管道
+
+### 書中初版痛點與改進版流程（補齊）
+
+書中先給「單通知伺服器」初版，再指出三個典型痛點：
+
+1. SPOF（單點故障）
+2. 難以獨立擴展（DB、快取、處理元件綁在一起）
+3. 性能瓶頸（組裝內容 + 等第三方回應都很吃資源）
+
+改進後的核心流程（書中 6 步）：
+
+1. 業務服務呼叫 Notification API
+2. Notification Server 查快取/DB 取使用者、裝置、偏好
+3. 寫入對應類型的 Queue
+4. Worker 消費 Queue
+5. Worker 呼叫第三方通道（APNS/FCM/SMS/Email）
+6. 第三方通道送達終端
+
+### Notification API 範例（書中對應）
+
+書中有示意 API（例如 `POST /v1/sms/send`），重點不是路由本身，而是「通知要有統一入口」。
+
+建議最小 payload 欄位：
+
+```json
+{
+  "recipient_id": "user_123",
+  "channel": "push|sms|email",
+  "template_id": "post_liked",
+  "variables": {
+    "actor": "小明",
+    "target": "你的文章"
+  },
+  "idempotency_key": "evt_20260309_abc123"
+}
+```
+
+- `template_id + variables`：對應模板渲染
+- `idempotency_key`：對應去重與重試安全
+- `channel`：支援多管道拆分與路由
 
 ### NobodyClimb 當前架構
 

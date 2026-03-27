@@ -5,9 +5,12 @@ import { getMemoriesSummary } from '../../repositories/memory';
 import { getRecentAscents, buildAscentContext, estimateAbilityLevel } from '../personalization';
 import { PipelineEngine } from '../pipeline/engine';
 import { createPipelineContext } from '../pipeline/context';
+import { runAIGraph } from '../ai-graph';
 import type { PipelineConfig, AgenticStepTrace, StageTokenUsage } from '../pipeline/types';
 import { CircuitBreaker } from '../../utils/circuit-breaker';
 import { withTimeout, TimeoutError } from '../../utils/timeout';
+import { createLangfuseClient, createTrace, flushLangfuse } from '../../utils/langfuse';
+import type { LangfuseParent } from '../../utils/langfuse';
 
 // Sub-module imports
 import type { SearchResult } from './types';
@@ -22,6 +25,16 @@ import { planQuery, executePlan, synthesize } from './plan-execute';
 
 export class QueryService {
   private embeddingService: EmbeddingService;
+
+  private _pipelineCtx: { currentLfSpan?: import('../../utils/langfuse').LangfuseSpanClient | null; langfuseTrace?: import('../../utils/langfuse').LangfuseTraceClient | null } | null = null;
+
+  setPipelineCtx(pipelineCtx: { currentLfSpan?: import('../../utils/langfuse').LangfuseSpanClient | null; langfuseTrace?: import('../../utils/langfuse').LangfuseTraceClient | null }): void {
+    this._pipelineCtx = pipelineCtx;
+  }
+
+  private get langfuseParent(): LangfuseParent | null {
+    return this._pipelineCtx?.currentLfSpan ?? this._pipelineCtx?.langfuseTrace ?? null;
+  }
 
   constructor(private env: Env) {
     this.embeddingService = new EmbeddingService(env);
@@ -120,6 +133,18 @@ export class QueryService {
       };
     }
 
+    // Langfuse observability
+    const langfuseClient = createLangfuseClient(this.env);
+    const langfuseTrace = createTrace(langfuseClient, {
+      name: 'ai-ask',
+      userId,
+      input: { query, chat_history_length: recentHistory.length },
+      metadata: {
+        streaming: streamingMode,
+        cache_key: cacheKey,
+      },
+    });
+
     const controller = new AbortController();
 
     const pipelineCtx = createPipelineContext({
@@ -143,19 +168,38 @@ export class QueryService {
       extraTrace,
       abortSignal: controller.signal,
       circuitBreaker,
+      langfuseTrace,
     });
 
-    const engine = new PipelineEngine(this.env);
+    this.setPipelineCtx(pipelineCtx);
+
     try {
-      const result = await withTimeout(
-        engine.run(pipelineCtx),
-        pipelineCfg.pipeline_timeout_ms,
-        'pipeline',
-      );
-      return result.earlyReturn ?? result.finalResponse!;
+      if (pipelineCfg.use_langgraph_engine === true) {
+        // 新引擎：LangGraph pipeline
+        const result = await withTimeout(
+          runAIGraph(pipelineCtx),
+          pipelineCfg.pipeline_timeout_ms,
+          'pipeline',
+        );
+        return result.earlyReturn ?? result.finalResponse!;
+      } else {
+        // 原有引擎（feature flag 預設 false）
+        const engine = new PipelineEngine(this.env);
+        const result = await withTimeout(
+          engine.run(pipelineCtx),
+          pipelineCfg.pipeline_timeout_ms,
+          'pipeline',
+        );
+        return result.earlyReturn ?? result.finalResponse!;
+      }
     } catch (err) {
       controller.abort();
       throw err;
+    } finally {
+      // Langfuse flush：不阻塞回應，在 waitUntil 中執行
+      if (langfuseClient && ctx) {
+        ctx.waitUntil(flushLangfuse(langfuseClient));
+      }
     }
   }
 
@@ -240,17 +284,17 @@ export class QueryService {
     query: string, llmModel: string, crags: string[], areas: string[], regions: string[],
     gatewayOptions?: { gateway: { id: string } }, promptTemplate?: string,
   ) {
-    return parseQueryWithLLM(this.env, query, llmModel, crags, areas, regions, gatewayOptions, promptTemplate);
+    return parseQueryWithLLM(this.env, query, llmModel, crags, areas, regions, gatewayOptions, promptTemplate, this.langfuseParent);
   }
   generateHyDE(
     query: string, llmModel: string, gatewayOptions?: { gateway: { id: string } }, promptTemplate?: string,
   ) {
-    return generateHyDE(this.env, query, llmModel, gatewayOptions, promptTemplate);
+    return generateHyDE(this.env, query, llmModel, gatewayOptions, promptTemplate, this.langfuseParent);
   }
   generateMultipleQueries(
     query: string, count: number, model: string, gatewayOptions?: { gateway: { id: string } }, promptTemplate?: string,
   ) {
-    return generateMultipleQueries(this.env, query, count, model, gatewayOptions, promptTemplate);
+    return generateMultipleQueries(this.env, query, count, model, gatewayOptions, promptTemplate, this.langfuseParent);
   }
 
   // 過濾
@@ -295,7 +339,7 @@ export class QueryService {
   ) {
     return agenticRetrieve(
       { env: this.env, embeddingService: this.embeddingService },
-      query, vectorFilter, cfg, steps, agenticPromptTemplate, decisionUsages,
+      query, vectorFilter, cfg, steps, agenticPromptTemplate, decisionUsages, this.langfuseParent,
     );
   }
 
@@ -304,7 +348,7 @@ export class QueryService {
     query: string, cfg: PipelineConfig, crags: string[], areas: string[],
     promptTemplate?: string, gatewayOptions?: { gateway: { id: string } },
   ) {
-    return planQuery(this.env, query, cfg, crags, areas, promptTemplate, gatewayOptions);
+    return planQuery(this.env, query, cfg, crags, areas, promptTemplate, gatewayOptions, this.langfuseParent);
   }
   executePlan(
     plan: { steps: Array<{ id: number; query: string; tool: string; filters: Record<string, unknown>; depends_on: number[] }>; execution_mode: string },
@@ -320,7 +364,7 @@ export class QueryService {
     stepResults: Array<{ stepId: number; query: string; tool: string; candidates: SearchResult[]; documents: Map<string, { title: string; excerpt: string; url?: string }>; sqlContext?: string; durationMs: number; error?: string }>,
     cfg: PipelineConfig, promptTemplate?: string, gatewayOptions?: { gateway: { id: string } },
   ) {
-    return synthesize(this.env, query, stepResults, cfg, promptTemplate, gatewayOptions);
+    return synthesize(this.env, query, stepResults, cfg, promptTemplate, gatewayOptions, this.langfuseParent);
   }
   getDocuments(ids: string[]) {
     return getDocuments(this.env.DB, ids);
@@ -347,7 +391,7 @@ export class QueryService {
     model: string, messages: Array<{ role: 'system' | 'user' | 'assistant'; content: string }>,
     maxTokens: number, gatewayOptions: unknown, onToken: (token: string) => Promise<void>,
   ) {
-    return streamLLMGeneration(this.env, model, messages, maxTokens, gatewayOptions, onToken);
+    return streamLLMGeneration(this.env, model, messages, maxTokens, gatewayOptions, onToken, this.langfuseParent);
   }
   injectRouteLinks(text: string, sources: AISource[]) {
     return injectRouteLinks(text, sources);
@@ -358,7 +402,7 @@ export class QueryService {
     query: string, context: string, response: string,
     opts?: { model?: string; timeoutMs?: number; contextTruncate?: number; promptTemplate?: string },
   ) {
-    return runJudge(this.env, query, context, response, opts);
+    return runJudge(this.env, query, context, response, opts, this.langfuseParent);
   }
 
   // 日誌

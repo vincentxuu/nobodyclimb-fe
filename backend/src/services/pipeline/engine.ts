@@ -1,4 +1,5 @@
 import { AIAskResponse } from '../../types';
+import { startSpan, endSpan } from '../../utils/langfuse';
 import {
   PipelineContext,
   PipelineStep,
@@ -407,6 +408,11 @@ export class PipelineEngine {
 
       // 執行 step（含超時保護和錯誤邊界）
       const stepStart = Date.now();
+      const lfSpan = startSpan(ctx.langfuseTrace ?? null, meta.id, {
+        phase: meta.phase,
+        query: ctx.request.query,
+      });
+      ctx.currentLfSpan = lfSpan;
       try {
         const stepTimeout = getStepTimeout(config.id, ctx.pipelineConfig, ctx);
         if (stepTimeout > 0) {
@@ -467,6 +473,11 @@ export class PipelineEngine {
             ctx.answer = '抱歉，AI 服務暫時發生問題，請稍後再試。';
           }
         }
+        endSpan(lfSpan, {
+          output: { error: errorMsg, ...(isTimeout ? { timeout: true } : {}) },
+          level: 'ERROR',
+        });
+        ctx.currentLfSpan = null;
         stepIdx++;
         continue;
       }
@@ -477,6 +488,11 @@ export class PipelineEngine {
         phase: meta.phase,
         duration_ms: stepDuration,
       });
+      endSpan(lfSpan, {
+        output: { duration_ms: stepDuration },
+        metadata: { phase: meta.phase },
+      });
+      ctx.currentLfSpan = null;
 
       // earlyReturn 檢查
       if (ctx.earlyReturn) break;
@@ -576,6 +592,20 @@ export class PipelineEngine {
     // earlyReturn 由各 step 自行處理日誌和快取
     if (!ctx.earlyReturn) {
       await this.postPipelineProcessing(ctx);
+    }
+
+    // Langfuse trace 最終更新：記錄完整回應和 metadata
+    if (ctx.langfuseTrace) {
+      ctx.langfuseTrace.update({
+        output: ctx.answer ?? ctx.earlyReturn?.answer,
+        metadata: {
+          latency_ms: Date.now() - ctx.startTime,
+          query_type: ctx.queryType,
+          model: ctx.effectiveLlmModel,
+          degraded: ctx.degradedStages?.length ? true : undefined,
+          loop_count: ctx.loopCount,
+        },
+      });
     }
 
     return ctx;

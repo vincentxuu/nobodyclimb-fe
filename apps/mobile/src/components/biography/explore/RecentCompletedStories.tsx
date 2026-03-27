@@ -18,6 +18,7 @@ import {
 } from 'lucide-react-native'
 
 import { Text, Card, Avatar } from '@/components/ui'
+import { apiClient } from '@/lib/api'
 import { SEMANTIC_COLORS, SPACING, RADIUS } from '@nobodyclimb/constants'
 
 // 類型定義
@@ -67,39 +68,10 @@ export function RecentCompletedStories({ searchTerm, filter }: RecentCompletedSt
     setError(null)
 
     try {
-      // TODO: 整合 bucketListService.getRecentCompleted(10)
-      await new Promise((resolve) => setTimeout(resolve, 500))
+      const response = await apiClient.get('/content/popular/stories', { params: { limit: 10 } })
+      const rawData: CompletedItem[] = response.data?.data ?? response.data ?? []
 
-      const mockData: CompletedItem[] = [
-        {
-          id: '1',
-          title: '完攀人生第一條 5.11',
-          category: 'outdoor_route',
-          target_location: '龍洞',
-          completed_at: new Date(Date.now() - 2 * 60 * 60 * 1000).toISOString(),
-          psychological_insights: '克服了對先鋒的恐懼，終於突破心理障礙',
-          technical_insights: '腳點的選擇很重要，要相信自己的腳法',
-          likes_count: 15,
-          comments_count: 8,
-          inspired_count: 5,
-          author_name: '攀岩小明',
-          author_slug: 'xiaoming',
-        },
-        {
-          id: '2',
-          title: '抱石 V5 穩定完成',
-          category: 'indoor_grade',
-          completed_at: new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString(),
-          completion_story: '經過三個月的訓練，終於能穩定完成 V5 路線了！',
-          likes_count: 10,
-          comments_count: 3,
-          inspired_count: 8,
-          author_name: '抱石達人',
-          author_slug: 'boulderer',
-        },
-      ]
-
-      let filteredData = mockData
+      let filteredData = rawData
 
       if (searchTerm) {
         const search = searchTerm.toLowerCase()

@@ -10,6 +10,7 @@ import Animated, { FadeIn } from 'react-native-reanimated'
 import { MapPin, Globe, Users, ChevronRight } from 'lucide-react-native'
 
 import { Text, Card, Avatar } from '@/components/ui'
+import { apiClient } from '@/lib/api'
 import { RADIUS, SEMANTIC_COLORS, SPACING, WB_COLORS } from '@nobodyclimb/constants'
 
 // 類型定義
@@ -48,66 +49,12 @@ export function LocationExplorer() {
       setError(null)
 
       try {
-        // TODO: 整合 bucketListService
-        await new Promise((resolve) => setTimeout(resolve, 500))
+        const response = await apiClient.get('/content/popular/locations')
+        const data = response.data?.data ?? response.data ?? {}
 
-        // 模擬資料
-        setTaiwanLocations([
-          {
-            location: '龍洞',
-            country: '台灣',
-            visitors: [
-              { id: '1', name: '小明', avatar_url: null, slug: 'xiaoming' },
-              { id: '2', name: '小華', avatar_url: null, slug: 'xiaohua' },
-              { id: '3', name: '阿強', avatar_url: null, slug: 'aqiang' },
-            ],
-          },
-          {
-            location: '大砲岩',
-            country: '台灣',
-            visitors: [
-              { id: '1', name: '小明', avatar_url: null, slug: 'xiaoming' },
-            ],
-          },
-          {
-            location: '關子嶺',
-            country: '台灣',
-            visitors: [
-              { id: '2', name: '小華', avatar_url: null, slug: 'xiaohua' },
-              { id: '3', name: '阿強', avatar_url: null, slug: 'aqiang' },
-            ],
-          },
-          {
-            location: '壽山',
-            country: '台灣',
-            visitors: [
-              { id: '4', name: '小美', avatar_url: null, slug: 'xiaomei' },
-            ],
-          },
-        ])
-
-        setOverseasLocations([
-          {
-            location: 'Yosemite',
-            country: '美國',
-            visitors: [
-              { id: '1', name: '小明', avatar_url: null, slug: 'xiaoming' },
-            ],
-          },
-          {
-            location: 'Fontainebleau',
-            country: '法國',
-            visitors: [
-              { id: '2', name: '小華', avatar_url: null, slug: 'xiaohua' },
-            ],
-          },
-        ])
-
-        setBucketListLocations([
-          { location: '龍洞', item_count: 50, user_count: 30, completed_count: 15 },
-          { location: 'El Capitan', item_count: 25, user_count: 10, completed_count: 2 },
-          { location: 'Fontainebleau', item_count: 35, user_count: 20, completed_count: 8 },
-        ])
+        setTaiwanLocations(data.taiwan ?? [])
+        setOverseasLocations(data.overseas ?? [])
+        setBucketListLocations(data.bucketList ?? [])
       } catch (err) {
         console.error('Failed to load locations:', err)
         setError('載入地點資料時發生錯誤')

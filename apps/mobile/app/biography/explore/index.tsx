@@ -8,6 +8,7 @@ import { StyleSheet, View, ScrollView, RefreshControl, Pressable } from 'react-n
 import { SafeAreaView } from 'react-native-safe-area-context'
 import { useRouter } from 'expo-router'
 import { ChevronLeft, BarChart3 } from 'lucide-react-native'
+import { useQueryClient } from '@tanstack/react-query'
 
 import { Text, SearchInput, IconButton, Breadcrumb } from '@/components/ui'
 import {
@@ -30,6 +31,7 @@ const filterTabs: { value: FilterTab; label: string }[] = [
 
 export default function ExploreScreen() {
   const router = useRouter()
+  const queryClient = useQueryClient()
   const [searchTerm, setSearchTerm] = useState('')
   const [activeFilter, setActiveFilter] = useState<FilterTab>('all')
   const [refreshing, setRefreshing] = useState(false)
@@ -40,12 +42,15 @@ export default function ExploreScreen() {
 
   const handleRefresh = useCallback(async () => {
     setRefreshing(true)
-    // 重置搜尋和篩選
     setSearchTerm('')
     setActiveFilter('all')
-    await new Promise((resolve) => setTimeout(resolve, 500))
+    // 刷新所有探索相關的 queries
+    await queryClient.invalidateQueries({ queryKey: ['popular-bucket-list'] })
+    await queryClient.invalidateQueries({ queryKey: ['popular-stories'] })
+    await queryClient.invalidateQueries({ queryKey: ['popular-locations'] })
+    await queryClient.invalidateQueries({ queryKey: ['content-questions'] })
     setRefreshing(false)
-  }, [])
+  }, [queryClient])
 
   return (
     <SafeAreaView style={styles.container} edges={['top']}>

@@ -9,6 +9,7 @@ export { BiographySection } from './BiographySection'
 
 // 新增組件 (Phase 6.1.2)
 export { FunFactSection } from './FunFactSection'
+export { HeroIntroSection } from './HeroIntroSection'
 export { AboutSection } from './AboutSection'
 export { StoryShowcaseSection } from './StoryShowcaseSection'
 export { GallerySection } from './GallerySection'

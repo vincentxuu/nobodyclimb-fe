@@ -2,6 +2,7 @@
  * 收藏頁面
  *
  * 對應 apps/web/src/app/profile/bookmarks/page.tsx
+ * 使用 GET /posts/liked 取得用戶按讚/收藏的文章
  */
 import React, { useState, useCallback } from 'react'
 import {
@@ -18,82 +19,22 @@ import {
   ChevronLeft,
   Bookmark,
   FileText,
-  Mountain,
-  Building2,
-  Users,
   ChevronRight,
 } from 'lucide-react-native'
 import Animated, { FadeInDown } from 'react-native-reanimated'
 
-import { Text, IconButton, Tabs, TabsList, TabsTrigger } from '@/components/ui'
+import { Text, IconButton } from '@/components/ui'
 import { ProtectedRoute } from '@/components/shared'
 import { SEMANTIC_COLORS, SPACING, RADIUS } from '@nobodyclimb/constants'
-
-type BookmarkType = 'all' | 'article' | 'crag' | 'gym' | 'biography'
-
-interface BookmarkItem {
-  id: string
-  type: BookmarkType
-  title: string
-  subtitle?: string
-  image?: string
-}
-
-// 模擬資料
-const MOCK_BOOKMARKS: BookmarkItem[] = [
-  {
-    id: '1',
-    type: 'article',
-    title: '攀岩入門指南',
-    subtitle: '攀岩小編',
-    image: 'https://picsum.photos/100?random=60',
-  },
-  {
-    id: '2',
-    type: 'crag',
-    title: '龍洞',
-    subtitle: '新北市貢寮區',
-  },
-  {
-    id: '3',
-    type: 'gym',
-    title: 'RedRock',
-    subtitle: '台北市內湖區',
-  },
-  {
-    id: '4',
-    type: 'biography',
-    title: '攀岩達人',
-    subtitle: '攀岩 10 年',
-    image: 'https://picsum.photos/100?random=61',
-  },
-]
-
-const TYPE_ICONS: Record<BookmarkType, React.ComponentType<{ size: number; color: string }>> = {
-  all: Bookmark,
-  article: FileText,
-  crag: Mountain,
-  gym: Building2,
-  biography: Users,
-}
-
-const TYPE_LABELS: Record<BookmarkType, string> = {
-  all: '全部',
-  article: '文章',
-  crag: '岩場',
-  gym: '岩館',
-  biography: '人物誌',
-}
+import { useBookmarks, type BookmarkedPost } from '@/lib/hooks'
 
 interface BookmarkCardProps {
-  item: BookmarkItem
+  item: BookmarkedPost
   onPress: () => void
   index: number
 }
 
 function BookmarkCard({ item, onPress, index }: BookmarkCardProps) {
-  const Icon = TYPE_ICONS[item.type]
-
   return (
     <Animated.View entering={FadeInDown.duration(300).delay(index * 50)}>
       <Pressable
@@ -103,32 +44,34 @@ function BookmarkCard({ item, onPress, index }: BookmarkCardProps) {
         ]}
         onPress={onPress}
       >
-        {item.image ? (
+        {item.cover_image ? (
           <Image
-            source={{ uri: item.image }}
+            source={{ uri: item.cover_image }}
             style={styles.bookmarkImage}
             contentFit="cover"
           />
         ) : (
           <View style={styles.bookmarkIconContainer}>
-            <Icon size={24} color={SEMANTIC_COLORS.textSubtle} />
+            <FileText size={24} color={SEMANTIC_COLORS.textSubtle} />
           </View>
         )}
         <View style={styles.bookmarkContent}>
-          <Text variant="body" fontWeight="500">
+          <Text variant="body" fontWeight="500" numberOfLines={2}>
             {item.title}
           </Text>
-          {item.subtitle && (
+          {item.display_name && (
             <Text variant="small" color="textMuted">
-              {item.subtitle}
+              {item.display_name}
             </Text>
           )}
         </View>
-        <View style={styles.typeBadge}>
-          <Text variant="small" color="textMuted">
-            {TYPE_LABELS[item.type]}
-          </Text>
-        </View>
+        {item.category && (
+          <View style={styles.typeBadge}>
+            <Text variant="small" color="textMuted">
+              {item.category}
+            </Text>
+          </View>
+        )}
         <ChevronRight size={18} color={SEMANTIC_COLORS.textMuted} />
       </Pressable>
     </Animated.View>
@@ -137,40 +80,22 @@ function BookmarkCard({ item, onPress, index }: BookmarkCardProps) {
 
 export default function BookmarksScreen() {
   const router = useRouter()
-  const [activeTab, setActiveTab] = useState<BookmarkType>('all')
-  const [bookmarks] = useState<BookmarkItem[]>(MOCK_BOOKMARKS)
-  const [isLoading] = useState(false)
+  const { data, isLoading, isError, refetch } = useBookmarks()
+
+  const bookmarks = data?.posts ?? []
 
   const handleBack = () => {
     router.back()
   }
 
   const handleBookmarkPress = useCallback(
-    (item: BookmarkItem) => {
-      switch (item.type) {
-        case 'article':
-          router.push(`/blog/${item.id}` as any)
-          break
-        case 'crag':
-          router.push(`/crag/${item.id}` as any)
-          break
-        case 'gym':
-          router.push(`/gym/${item.id}` as any)
-          break
-        case 'biography':
-          router.push(`/biography/${item.id}` as any)
-          break
-      }
+    (item: BookmarkedPost) => {
+      router.push(`/blog/${item.slug || item.id}` as any)
     },
     [router]
   )
 
-  const filteredBookmarks =
-    activeTab === 'all'
-      ? bookmarks
-      : bookmarks.filter((item) => item.type === activeTab)
-
-  const renderItem = ({ item, index }: { item: BookmarkItem; index: number }) => (
+  const renderItem = ({ item, index }: { item: BookmarkedPost; index: number }) => (
     <BookmarkCard
       item={item}
       onPress={() => handleBookmarkPress(item)}
@@ -194,28 +119,24 @@ export default function BookmarksScreen() {
           <View style={styles.placeholder} />
         </View>
 
-        {/* 分類標籤 */}
-        <View style={styles.tabsContainer}>
-          <Tabs
-            value={activeTab}
-            onValueChange={(v) => setActiveTab(v as BookmarkType)}
-          >
-            <TabsList>
-              {Object.entries(TYPE_LABELS).map(([key, label]) => (
-                <TabsTrigger key={key} value={key}>
-                  {label}
-                </TabsTrigger>
-              ))}
-            </TabsList>
-          </Tabs>
-        </View>
-
         {/* 列表 */}
         {isLoading ? (
           <View style={styles.loadingContainer}>
             <ActivityIndicator size="large" color={SEMANTIC_COLORS.textMain} />
           </View>
-        ) : filteredBookmarks.length === 0 ? (
+        ) : isError ? (
+          <View style={styles.emptyContainer}>
+            <Bookmark size={48} color={SEMANTIC_COLORS.textMuted} />
+            <Text variant="body" color="textSubtle" style={styles.emptyText}>
+              載入失敗，請重試
+            </Text>
+            <Pressable onPress={() => refetch()}>
+              <Text variant="body" color="textMain" fontWeight="600">
+                重試
+              </Text>
+            </Pressable>
+          </View>
+        ) : bookmarks.length === 0 ? (
           <View style={styles.emptyContainer}>
             <Bookmark size={48} color={SEMANTIC_COLORS.textMuted} />
             <Text variant="body" color="textSubtle" style={styles.emptyText}>
@@ -224,9 +145,9 @@ export default function BookmarksScreen() {
           </View>
         ) : (
           <FlatList
-            data={filteredBookmarks}
+            data={bookmarks}
             renderItem={renderItem}
-            keyExtractor={(item) => `${item.type}-${item.id}`}
+            keyExtractor={(item) => item.id}
             contentContainerStyle={styles.listContent}
           />
         )}
@@ -253,13 +174,6 @@ const styles = StyleSheet.create({
   placeholder: {
     width: 40,
   },
-  tabsContainer: {
-    backgroundColor: SEMANTIC_COLORS.cardBg,
-    paddingHorizontal: SPACING.md,
-    paddingBottom: SPACING.sm,
-    borderBottomWidth: 1,
-    borderBottomColor: '#F0F0F0',
-  },
   listContent: {
     padding: SPACING.md,
   },
@@ -278,13 +192,13 @@ const styles = StyleSheet.create({
   bookmarkImage: {
     width: 48,
     height: 48,
-    borderRadius: 24,
+    borderRadius: 8,
     backgroundColor: '#F5F5F5',
   },
   bookmarkIconContainer: {
     width: 48,
     height: 48,
-    borderRadius: 24,
+    borderRadius: 8,
     backgroundColor: '#F5F5F5',
     alignItems: 'center',
     justifyContent: 'center',

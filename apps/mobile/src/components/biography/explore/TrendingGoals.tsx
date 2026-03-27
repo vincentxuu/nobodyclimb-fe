@@ -10,6 +10,7 @@ import Animated, { FadeInDown } from 'react-native-reanimated'
 import { Flame, Users, Target, MapPin, Plus, Mountain, Home, Check } from 'lucide-react-native'
 
 import { Text, Card, Button, Avatar } from '@/components/ui'
+import { apiClient } from '@/lib/api'
 import { useAuthStore } from '@/store/authStore'
 import { BRAND_YELLOW, RADIUS, SEMANTIC_COLORS, SPACING, WB_COLORS } from '@nobodyclimb/constants'
 
@@ -59,44 +60,10 @@ export function TrendingGoals({ searchTerm, filter }: TrendingGoalsProps) {
     setError(null)
 
     try {
-      // TODO: 整合 bucketListService.getTrending(10)
-      // 模擬資料
-      await new Promise((resolve) => setTimeout(resolve, 500))
+      const response = await apiClient.get('/content/popular/bucket-list')
+      const rawData: TrendingItem[] = response.data?.data ?? response.data ?? []
 
-      const mockData: TrendingItem[] = [
-        {
-          id: '1',
-          title: '完攀龍洞經典路線',
-          category: 'outdoor_route',
-          target_grade: '5.10a',
-          target_location: '龍洞',
-          inspired_count: 25,
-          likes_count: 8,
-          author_name: '攀岩小明',
-          author_slug: 'xiaoming',
-        },
-        {
-          id: '2',
-          title: '室內 V6 穩定',
-          category: 'indoor_grade',
-          target_grade: 'V6',
-          inspired_count: 18,
-          likes_count: 5,
-          author_name: '抱石達人',
-          author_slug: 'boulderer',
-        },
-        {
-          id: '3',
-          title: '月訓練量達 50 小時',
-          category: 'training',
-          inspired_count: 12,
-          likes_count: 3,
-          author_name: '訓練狂人',
-          author_slug: 'trainer',
-        },
-      ]
-
-      let filteredData = mockData
+      let filteredData = rawData
 
       // 依搜尋詞過濾
       if (searchTerm) {
@@ -145,8 +112,7 @@ export function TrendingGoals({ searchTerm, filter }: TrendingGoalsProps) {
     setAddingItems((prev) => new Set(prev).add(itemId))
 
     try {
-      // TODO: 整合 bucketListService.referenceItem(itemId)
-      await new Promise((resolve) => setTimeout(resolve, 300))
+      await apiClient.post(`/bucket-list/reference`, { item_id: itemId })
       setAddedItems((prev) => new Set(prev).add(itemId))
       setItems((prev) =>
         prev.map((item) =>
