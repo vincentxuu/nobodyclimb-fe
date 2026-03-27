@@ -108,7 +108,26 @@ export async function toolSelectionNode(state: GraphState): Promise<Partial<Grap
 
       updates.queryType = 'complex';
       updates.effectiveLlmModel = llmModel;
-      endSpan(span, { output: { queryType: 'complex', isSimRouteSearch: true } });
+
+      // 記錄 query_parsing trace（相似路線意圖 early return 路徑）
+      updates.trace = {
+        ...updates.trace,
+        query_parsing: {
+          tool: 'search_routes',
+          query_type: 'complex',
+          confidence: 1.0,
+          params: {
+            sim_route_search: true,
+            reference_route: routeRef?.name ?? null,
+            reference_grade: routeRef?.grade ?? null,
+            hyde_generated: !!hydeDocResult.doc,
+          },
+          fallback_used: false,
+          confidence_fallback: false,
+        },
+      };
+
+      endSpan(span, { output: { queryType: 'complex', isSimRouteSearch: true, referenceRoute: routeRef?.name ?? null } });
       return updates;
     }
 

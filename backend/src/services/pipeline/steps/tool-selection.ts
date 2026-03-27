@@ -98,6 +98,22 @@ export const toolSelectionStep: PipelineStep = {
 
       ctx.queryType = 'complex';
       ctx.effectiveLlmModel = llmModel;
+
+      // 記錄 query_parsing trace（相似路線意圖 early return 路徑）
+      trace.query_parsing = {
+        tool: 'search_routes',
+        query_type: 'complex',
+        confidence: 1.0,
+        params: {
+          sim_route_search: true,
+          reference_route: routeRef?.name ?? null,
+          reference_grade: routeRef?.grade ?? null,
+          hyde_generated: !!ctx.hydeDoc,
+        },
+        fallback_used: false,
+        confidence_fallback: false,
+      };
+
       return ctx;
     }
 

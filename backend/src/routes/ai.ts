@@ -301,6 +301,15 @@ aiRoutes.post(
       const errorType = error instanceof TimeoutError ? 'pipeline_timeout'
         : (error as any)?.code === 'CIRCUIT_BREAKER_OPEN' ? 'circuit_breaker_rejected'
         : 'internal_error';
+      const errorTrace: Record<string, unknown> = {
+        error: errorType,
+        error_message: error instanceof Error ? error.message : String(error),
+        error_stack: error instanceof Error ? error.stack?.split('\n').slice(0, 5).join('\n') : undefined,
+        ...(error instanceof TimeoutError ? { timeout_ms: error.timeoutMs } : {}),
+        ...((error as any)?.circuitBreaker ?? {}),
+        // 保留 guardrails_input trace
+        ...(extraTrace?.guardrails_input ? { guardrails_input: extraTrace.guardrails_input } : {}),
+      };
       c.executionCtx.waitUntil(
         db.prepare(
           `INSERT INTO ai_query_logs (id, user_id, query, response, sources, latency_ms, token_count, query_type, model_used, retrieval_score, self_reflection_triggered, is_high_consumption, cache_hit, hyde_triggered, pipeline_trace)
@@ -309,7 +318,7 @@ aiRoutes.post(
           crypto.randomUUID(), userId, body.query.slice(0, 500),
           Date.now() - (extraTrace?.startTime as number || Date.now()),
           errorType,
-          JSON.stringify({ error: errorType, ...(error instanceof TimeoutError ? { timeout_ms: error.timeoutMs } : {}), ...((error as any)?.circuitBreaker ?? {}) }),
+          JSON.stringify(errorTrace),
         ).run().catch(() => {})
       );
 
