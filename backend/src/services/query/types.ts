@@ -30,6 +30,14 @@ export interface LLMResponse {
   usage?: { prompt_tokens: number; completion_tokens: number; total_tokens: number };
 }
 
+// 安全取得 LLM 回應文字：env.AI.run() 的 response 可能不是 string（視模型而定）
+export function extractResponseText(result: LLMResponse | { response?: unknown } | undefined): string {
+  const r = result?.response;
+  if (typeof r === 'string') return r.trim();
+  if (r != null) return String(r).trim();
+  return '';
+}
+
 export interface SearchResult {
   id: string;
   score: number;

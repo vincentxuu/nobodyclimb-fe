@@ -1,7 +1,7 @@
 import type { Env, ParsedQuery } from '../../types';
 import type { TokenUsageInfo } from '../pipeline/types';
 import { TOOL_SELECTION_PROMPT, HYDE_PROMPT, MULTI_QUERY_EXPANSION_PROMPT, JUDGE_PROMPT } from '../../utils/ai-prompts';
-import { estimateTokens, type LLMResponse } from './types';
+import { estimateTokens, extractResponseText, type LLMResponse } from './types';
 import { DEFAULT_LIGHTWEIGHT_MODEL } from './config';
 import toolRegistry from '../tool-registry';
 import { logGeneration } from '../../utils/langfuse';
@@ -37,7 +37,7 @@ export async function parseQueryWithLLM(
     return { result: null };
   }
 
-  const text = rawResult.response?.trim() ?? '';
+  const text = extractResponseText(rawResult);
   logGeneration(langfuseParent ?? null, {
     name: 'tool-selection',
     model: llmModel,
@@ -111,7 +111,7 @@ export async function generateHyDE(
       gatewayOptions
     )) as LLMResponse;
 
-    const doc = result.response?.trim() ?? '';
+    const doc = extractResponseText(result);
     logGeneration(langfuseParent ?? null, {
       name: 'hyde',
       model: llmModel,
@@ -151,7 +151,7 @@ export async function generateMultipleQueries(
       { messages: [{ role: 'user', content: prompt }], max_tokens: 200 },
       gatewayOptions
     )) as LLMResponse;
-    const text = result.response?.trim() ?? '';
+    const text = extractResponseText(result);
     logGeneration(langfuseParent ?? null, {
       name: 'multi-query',
       model,
@@ -330,7 +330,7 @@ export async function runJudge(
     ) as Promise<LLMResponse>;
 
     const judgeResult = await Promise.race([judgePromise, timeoutPromise]);
-    const rawResponse = judgeResult.response ?? '';
+    const rawResponse = extractResponseText(judgeResult);
     const scores = parseJudgeResponse(rawResponse);
     logGeneration(langfuseParent ?? null, {
       name: 'judge',

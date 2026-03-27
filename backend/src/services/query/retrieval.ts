@@ -4,7 +4,7 @@ import { AGENTIC_DECISION_PROMPT } from '../../utils/ai-prompts';
 import { logGeneration } from '../../utils/langfuse';
 import type { LangfuseParent } from '../../utils/langfuse';
 import { EmbeddingService } from '../embedding';
-import { estimateTokens, type LLMResponse, type SearchResult } from './types';
+import { estimateTokens, extractResponseText, type LLMResponse, type SearchResult } from './types';
 import toolRegistry from '../tool-registry';
 
 export type RetrievalDeps = {
@@ -201,7 +201,7 @@ async function decideNextAction(
       gatewayOptions,
     )) as LLMResponse;
 
-    const raw = result.response ?? '';
+    const raw = extractResponseText(result);
     logGeneration(langfuseParent ?? null, {
       name: 'agentic-decision',
       model,

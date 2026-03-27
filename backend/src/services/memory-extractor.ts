@@ -1,6 +1,7 @@
 import { D1Database } from '@cloudflare/workers-types';
 import { AI } from '../types';
 import { upsertMemory } from '../repositories/memory';
+import { extractResponseText } from './query/types';
 
 const LIGHTWEIGHT_MODEL = '@cf/meta/llama-3.1-8b-instruct';
 
@@ -57,7 +58,7 @@ export async function extractMemoriesFromQuery(
       gatewayOptions
     ) as { response?: string };
 
-    const raw = result.response?.trim() ?? '';
+    const raw = extractResponseText(result);
     if (!raw) return;
 
     // Task 4.3: 解析 LLM 回傳 JSON，跳過解析失敗或 content 為空的項目

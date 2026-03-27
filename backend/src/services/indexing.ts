@@ -1,6 +1,7 @@
 import { Env, AIDocument, AIDocumentMetadata, Route, Crag } from '../types';
 import { EmbeddingService } from './embedding';
 import { CONTEXTUAL_CHUNK_PROMPT } from '../utils/ai-prompts';
+import { extractResponseText } from './query/types';
 
 const CONTEXT_GENERATION_BATCH_SIZE = 5; // 並行 LLM 呼叫上限，避免超出 Workers AI 速率限制
 
@@ -288,7 +289,7 @@ export class IndexingService {
         messages: [{ role: 'user', content: prompt }],
         max_tokens: 80,
       });
-      return (result as { response?: string }).response?.trim() ?? '';
+      return extractResponseText(result as { response?: unknown });
     } catch {
       return '';
     }

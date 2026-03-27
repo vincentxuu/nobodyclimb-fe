@@ -4,7 +4,7 @@ import { PLANNING_PROMPT, SYNTHESIS_PROMPT } from '../../utils/ai-prompts';
 import { logGeneration } from '../../utils/langfuse';
 import type { LangfuseParent } from '../../utils/langfuse';
 import { EmbeddingService } from '../embedding';
-import { estimateTokens, type LLMResponse, type PlanStep, type ExecutionPlan, type StepExecutionResult, type SearchResult } from './types';
+import { estimateTokens, extractResponseText, type LLMResponse, type PlanStep, type ExecutionPlan, type StepExecutionResult, type SearchResult } from './types';
 import { getDocuments, extractTitle, buildExcerpt, buildUrl } from './documents';
 import { searchBM25, mergeResults } from './retrieval';
 
@@ -76,7 +76,7 @@ export async function planQuery(
     return { plan: null, failureReason: 'timeout' };
   }
 
-  const text = rawResult?.response?.trim() ?? '';
+  const text = extractResponseText(rawResult);
   logGeneration(langfuseParent ?? null, {
     name: 'planning',
     model: cfg.llm_model,
@@ -279,7 +279,7 @@ async function adaptiveReplan(
       ),
     ]);
 
-    const text = result.response?.trim() ?? '';
+    const text = extractResponseText(result);
     logGeneration(langfuseParent ?? null, {
       name: 'adaptive-replan',
       model: cfg.lightweight_model,
@@ -477,7 +477,7 @@ export async function synthesize(
     return fallbackSynthesis(stepResults);
   }
 
-  const text = rawResult?.response?.trim() ?? '';
+  const text = extractResponseText(rawResult);
   logGeneration(langfuseParent ?? null, {
     name: 'synthesis',
     model: cfg.llm_model,
