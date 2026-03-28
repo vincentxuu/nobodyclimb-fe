@@ -60,9 +60,9 @@ export async function agenticDecisionNode(state: GraphState): Promise<Partial<Gr
     }
 
     // 相似路線搜尋首輪：vectorFilter 已在 tool-selection 建好，直接 RETRIEVE 不需 LLM 決策
-    // 避免 LLM 把原始查詢泛化（如「剃刀邊緣 5.10c」→「5.10c climbing routes nearby」）
+    // 使用原始 query 而非 hydeDoc，因為 HyDE 會幻覺出假路線名拉偏向量搜尋
     if (state.isSimRouteSearch && loopCount === 0 && currentDocs.length === 0) {
-      const simQuery = state.hydeDoc ?? request.query;
+      const simQuery = request.query;
       endSpan(span, { output: { action: 'RETRIEVE', reason: 'sim_route_first_loop', refinedQuery: simQuery } });
       return {
         agenticAction: 'RETRIEVE',

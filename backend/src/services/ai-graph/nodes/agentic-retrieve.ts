@@ -1,6 +1,7 @@
 import { GraphState } from '../state';
 import { startSpan, endSpan } from '../../../utils/langfuse';
 import { SearchResult } from '../../pipeline/types';
+import { AISource, AIDocumentMetadata } from '../../../types';
 
 /**
  * Agentic Retrieve Node
@@ -66,6 +67,48 @@ export async function agenticRetrieveNode(state: GraphState): Promise<Partial<Gr
 
     const retrievalScore = merged.length > 0 ? Math.max(...merged.map((m) => m.score)) : 0;
 
+    // Fetch 全文文件 + 排除參考路線
+    const documents = await queryService.getDocuments(merged.map((m) => m.id));
+    if (state.excludeRouteId) {
+      for (const [embeddingId, doc] of documents) {
+        if (doc.source_id === state.excludeRouteId) documents.delete(embeddingId);
+      }
+    }
+
+    // 組裝 context 與 sources，讓 llmGeneration 有內容可用
+    const orderedDocs = merged
+      .map((m) => documents.get(m.id))
+      .filter((d): d is import('../../../types').AIDocument => d !== undefined);
+
+    const docsText = orderedDocs.length > 0
+      ? orderedDocs.map((d) => {
+          if (d.type === 'route') {
+            let text = d.text;
+            const meta = d.metadata ? (JSON.parse(d.metadata) as AIDocumentMetadata) : {} as AIDocumentMetadata;
+            if (meta.crag_id) {
+              text += `\n路線連結：/crag/${meta.crag_id}/route/${d.source_id}`;
+            }
+            return text;
+          }
+          return d.text;
+        }).join('\n\n---\n\n')
+      : '目前沒有找到相關資料。';
+
+    const context = state.referenceRouteInfo
+      ? `${state.referenceRouteInfo}\n\n以下是相近難度的推薦路線：\n\n${docsText}`
+      : docsText;
+
+    const sources: AISource[] = orderedDocs
+      .map((doc) => ({
+        id: doc.source_id,
+        type: doc.type,
+        title: queryService.extractTitle(doc),
+        excerpt: queryService.buildExcerpt(doc),
+        url: queryService.buildUrl(doc),
+        score: merged.find((m) => m.id === doc.source_id || documents.get(m.id) === doc)?.score ?? 0,
+      } as AISource))
+      .filter((s): s is AISource => s !== null);
+
     endSpan(span, {
       output: {
         newDocCount: newMatches.length,
@@ -76,6 +119,9 @@ export async function agenticRetrieveNode(state: GraphState): Promise<Partial<Gr
 
     return {
       candidateMatches: merged,
+      documents,
+      context,
+      sources,
       retrievalScore,
       loopBack: undefined, // 清除 loopBack，避免殘留
       trace: {
@@ -84,6 +130,7 @@ export async function agenticRetrieveNode(state: GraphState): Promise<Partial<Gr
           search_query: searchQuery,
           new_doc_count: newMatches.length,
           merged_doc_count: merged.length,
+          context_doc_count: orderedDocs.length,
         },
       },
     };
