@@ -9,6 +9,68 @@ import { getTranslations } from 'next-intl/server'
 // 強制動態渲染，確保在 runtime 取得正確的 API URL
 export const dynamic = 'force-dynamic'
 
+// 根據岩場資料自動生成 FAQ
+function generateCragFaqs(crag: CragMetadata) {
+  const faqs: { question: string; answer: string }[] = []
+
+  // Q1: 怎麼去
+  if (crag.location) {
+    const approachText = crag.approach ? `步行約需 ${crag.approach}。` : ''
+    faqs.push({
+      question: `${crag.name}攀岩怎麼去？`,
+      answer: `${crag.name}位於${crag.location}。${approachText}${crag.parking ? `停車資訊：${crag.parking}` : ''}`,
+    })
+  }
+
+  // Q2: 適合初學者嗎
+  if (crag.difficulty && crag.routes) {
+    faqs.push({
+      question: `${crag.name}適合攀岩初學者嗎？`,
+      answer: `${crag.name}共有 ${crag.routes} 條攀岩路線，難度範圍從 ${crag.difficulty}。${crag.difficulty.includes('5.') && parseInt(crag.difficulty.split('.')[1]) <= 7 ? '有適合初學者的簡單路線。' : '建議有基礎攀岩經驗再前往。'}`,
+    })
+  }
+
+  // Q3: 最佳季節
+  if (crag.seasons.length > 0) {
+    faqs.push({
+      question: `${crag.name}最佳攀岩季節是什麼時候？`,
+      answer: `${crag.name}最適合攀岩的季節為${crag.seasons.join('、')}。建議避開雨季與極端天氣前往。`,
+    })
+  }
+
+  // Q4: 岩質與類型
+  if (crag.rockType) {
+    faqs.push({
+      question: `${crag.name}的岩質是什麼？`,
+      answer: `${crag.name}的岩石類型為${crag.rockType}，攀登類型為${crag.type}。${crag.height ? `岩壁高度約 ${crag.height}。` : ''}`,
+    })
+  }
+
+  // Q5: 需要什麼裝備
+  faqs.push({
+    question: `去${crag.name}攀岩需要帶什麼裝備？`,
+    answer: `前往${crag.name}攀岩建議攜帶：攀岩鞋、安全吊帶、確保器、頭盔${crag.type === '傳統攀登' || crag.type === 'mixed' ? '、岩楔與凸輪等傳統攀登裝備' : '、快扣組'}。也建議攜帶足夠的水和防曬用品。`,
+  })
+
+  return faqs
+}
+
+// 生成 FAQPage JSON-LD
+function generateFaqJsonLd(faqs: { question: string; answer: string }[]) {
+  return {
+    '@context': 'https://schema.org',
+    '@type': 'FAQPage',
+    mainEntity: faqs.map((faq) => ({
+      '@type': 'Question',
+      name: faq.question,
+      acceptedAnswer: {
+        '@type': 'Answer',
+        text: faq.answer,
+      },
+    })),
+  }
+}
+
 // 生成 Place JSON-LD 結構化數據
 function generateCragJsonLd(crag: CragMetadata, id: string) {
   return {
@@ -153,6 +215,7 @@ export default async function CragDetailPage({
   const { id } = await params
   const apiCrag = await fetchCragById(id)
   const crag = apiCrag ? assembleCragMetadata(apiCrag) : null
+  const faqs = crag ? generateCragFaqs(crag) : []
 
   return (
     <>
@@ -165,7 +228,41 @@ export default async function CragDetailPage({
           }}
         />
       )}
+      {/* FAQPage JSON-LD 結構化數據 */}
+      {faqs.length > 0 && (
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{
+            __html: JSON.stringify(generateFaqJsonLd(faqs)),
+          }}
+        />
+      )}
       <CragDetailClient params={params} />
+      {/* FAQ 區塊 - 頁面上可見的問答內容（Google 要求 FAQ Schema 對應的內容必須可見） */}
+      {faqs.length > 0 && crag && (
+        <section className="container mx-auto px-4 pb-16">
+          <div className="mx-auto max-w-3xl">
+            <h2 className="mb-6 text-xl font-medium text-[#1B1A1A]">
+              {crag.name}常見問題
+            </h2>
+            <div className="divide-y divide-gray-200 rounded-lg border border-gray-200 bg-white">
+              {faqs.map((faq, index) => (
+                <details key={index} className="group">
+                  <summary className="flex cursor-pointer items-center justify-between px-5 py-4 text-sm font-medium text-[#1B1A1A] hover:bg-gray-50">
+                    {faq.question}
+                    <span className="ml-2 shrink-0 text-gray-400 transition-transform group-open:rotate-180">
+                      ▼
+                    </span>
+                  </summary>
+                  <p className="px-5 pb-4 text-sm leading-relaxed text-[#6D6C6C]">
+                    {faq.answer}
+                  </p>
+                </details>
+              ))}
+            </div>
+          </div>
+        </section>
+      )}
     </>
   )
 }

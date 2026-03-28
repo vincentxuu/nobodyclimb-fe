@@ -376,6 +376,7 @@ export interface CragMetadata {
   googleMapsUrl: string | null
   latitude: number | null
   longitude: number | null
+  seasons: string[]
 }
 
 /**
@@ -401,5 +402,6 @@ export function assembleCragMetadata(apiCrag: ApiCrag): CragMetadata {
     googleMapsUrl: apiCrag.google_maps_url || null,
     latitude: apiCrag.latitude || null,
     longitude: apiCrag.longitude || null,
+    seasons: apiCrag.best_seasons || [],
   }
 }
