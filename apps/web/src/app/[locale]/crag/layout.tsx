@@ -2,51 +2,32 @@ import type { Metadata } from 'next'
 import { getTranslations } from 'next-intl/server'
 import { SITE_URL, SITE_NAME } from '@/lib/constants'
 
-// 台灣主要攀岩岩場 ItemList JSON-LD - 幫助搜尋引擎呈現豐富搜尋結果
+// 台灣主要岩場定義（集中管理，方便新增或修改）
+const FEATURED_CRAGS = [
+  { slug: 'longdong', name: '龍洞', description: '台灣最大天然岩場，超過 600 條攀岩路線，位於新北市貢寮區' },
+  { slug: 'kenting', name: '墾丁', description: '南台灣代表性珊瑚礁石灰岩運動攀登岩場，位於屏東縣恆春鎮' },
+  { slug: 'guanziling', name: '關子嶺', description: '台南知名石灰岩攀岩場地，以獨特泥漿溫泉和優質岩壁聞名' },
+  { slug: 'defulan', name: '德芙蘭', description: '台中和平區石英質砂岩岩場，混合運動攀登與傳統攀登路線' },
+  { slug: 'shoushan', name: '大砲岩', description: '高雄壽山天然岩場，適合初學者體驗戶外攀岩' },
+] as const
+
+// ItemList JSON-LD - 幫助搜尋引擎呈現豐富搜尋結果
+const itemListElements = FEATURED_CRAGS.map((crag, index) => ({
+  '@type': 'ListItem' as const,
+  position: index + 1,
+  name: crag.name,
+  url: `${SITE_URL}/crag/${crag.slug}`,
+  description: crag.description,
+}))
+
 const cragItemListJsonLd = {
   '@context': 'https://schema.org',
   '@type': 'ItemList',
   name: '台灣戶外攀岩岩場',
   description: '台灣主要戶外攀岩地點，包含龍洞、墾丁、關子嶺、德芙蘭等熱門岩場',
   url: `${SITE_URL}/crag`,
-  numberOfItems: 5,
-  itemListElement: [
-    {
-      '@type': 'ListItem',
-      position: 1,
-      name: '龍洞',
-      url: `${SITE_URL}/crag/longdong`,
-      description: '台灣最大天然岩場，超過 600 條攀岩路線，位於新北市貢寮區',
-    },
-    {
-      '@type': 'ListItem',
-      position: 2,
-      name: '墾丁',
-      url: `${SITE_URL}/crag/kenting`,
-      description: '南台灣代表性珊瑚礁石灰岩運動攀登岩場，位於屏東縣恆春鎮',
-    },
-    {
-      '@type': 'ListItem',
-      position: 3,
-      name: '關子嶺',
-      url: `${SITE_URL}/crag/guanziling`,
-      description: '台南知名石灰岩攀岩場地，以獨特泥漿溫泉和優質岩壁聞名',
-    },
-    {
-      '@type': 'ListItem',
-      position: 4,
-      name: '德芙蘭',
-      url: `${SITE_URL}/crag/defulan`,
-      description: '台中和平區石英質砂岩岩場，混合運動攀登與傳統攀登路線',
-    },
-    {
-      '@type': 'ListItem',
-      position: 5,
-      name: '大砲岩',
-      url: `${SITE_URL}/crag/shoushan`,
-      description: '高雄壽山天然岩場，適合初學者體驗戶外攀岩',
-    },
-  ],
+  numberOfItems: itemListElements.length,
+  itemListElement: itemListElements,
 }
 
 export async function generateMetadata(): Promise<Metadata> {

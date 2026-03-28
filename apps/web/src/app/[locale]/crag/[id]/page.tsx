@@ -22,11 +22,13 @@ function generateCragFaqs(crag: CragMetadata) {
     })
   }
 
-  // Q2: 適合初學者嗎
+  // Q2: 適合初學者嗎（解析難度範圍中的最低難度，支援 5.6、5.10a 等格式）
   if (crag.difficulty && crag.routes) {
+    const lowestGradeMatch = crag.difficulty.match(/5\.(\d+)/)
+    const isBeginnerFriendly = lowestGradeMatch ? parseInt(lowestGradeMatch[1], 10) <= 7 : false
     faqs.push({
       question: `${crag.name}適合攀岩初學者嗎？`,
-      answer: `${crag.name}共有 ${crag.routes} 條攀岩路線，難度範圍從 ${crag.difficulty}。${crag.difficulty.includes('5.') && parseInt(crag.difficulty.split('.')[1]) <= 7 ? '有適合初學者的簡單路線。' : '建議有基礎攀岩經驗再前往。'}`,
+      answer: `${crag.name}共有 ${crag.routes} 條攀岩路線，難度範圍從 ${crag.difficulty}。${isBeginnerFriendly ? '有適合初學者的簡單路線。' : '建議有基礎攀岩經驗再前往。'}`,
     })
   }
 
@@ -49,7 +51,7 @@ function generateCragFaqs(crag: CragMetadata) {
   // Q5: 需要什麼裝備
   faqs.push({
     question: `去${crag.name}攀岩需要帶什麼裝備？`,
-    answer: `前往${crag.name}攀岩建議攜帶：攀岩鞋、安全吊帶、確保器、頭盔${crag.type === '傳統攀登' || crag.type === 'mixed' ? '、岩楔與凸輪等傳統攀登裝備' : '、快扣組'}。也建議攜帶足夠的水和防曬用品。`,
+    answer: `前往${crag.name}攀岩建議攜帶：攀岩鞋、安全吊帶、確保器、頭盔${crag.type.includes('傳統攀登') || crag.type.includes('mixed') ? '、岩楔與凸輪等傳統攀登裝備' : '、快扣組'}。也建議攜帶足夠的水和防曬用品。`,
   })
 
   return faqs
@@ -107,7 +109,6 @@ function generateVideoJsonLd(crag: CragMetadata, id: string, liveVideoId: string
     name: liveVideoTitle || `${crag.name}即時影像`,
     description: liveVideoDescription || `${crag.name}岩場周邊即時影像，可了解當地天氣狀況`,
     thumbnailUrl: `https://img.youtube.com/vi/${liveVideoId}/maxresdefault.jpg`,
-    uploadDate: '2024-01-01',
     contentUrl: `https://www.youtube.com/watch?v=${liveVideoId}`,
     embedUrl: `https://www.youtube.com/embed/${liveVideoId}`,
     publication: {
