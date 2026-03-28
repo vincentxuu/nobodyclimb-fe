@@ -71,6 +71,52 @@ function generateFaqJsonLd(faqs: { question: string; answer: string }[]) {
   }
 }
 
+// 生成 BreadcrumbList JSON-LD
+function generateBreadcrumbJsonLd(crag: CragMetadata, id: string) {
+  return {
+    '@context': 'https://schema.org',
+    '@type': 'BreadcrumbList',
+    itemListElement: [
+      {
+        '@type': 'ListItem',
+        position: 1,
+        name: 'NobodyClimb',
+        item: SITE_URL,
+      },
+      {
+        '@type': 'ListItem',
+        position: 2,
+        name: '岩場',
+        item: `${SITE_URL}/crag`,
+      },
+      {
+        '@type': 'ListItem',
+        position: 3,
+        name: crag.name,
+        item: `${SITE_URL}/crag/${id}`,
+      },
+    ],
+  }
+}
+
+// 生成 VideoObject JSON-LD（即時影像）
+function generateVideoJsonLd(crag: CragMetadata, id: string, liveVideoId: string, liveVideoTitle?: string, liveVideoDescription?: string) {
+  return {
+    '@context': 'https://schema.org',
+    '@type': 'VideoObject',
+    name: liveVideoTitle || `${crag.name}即時影像`,
+    description: liveVideoDescription || `${crag.name}岩場周邊即時影像，可了解當地天氣狀況`,
+    thumbnailUrl: `https://img.youtube.com/vi/${liveVideoId}/maxresdefault.jpg`,
+    uploadDate: '2024-01-01',
+    contentUrl: `https://www.youtube.com/watch?v=${liveVideoId}`,
+    embedUrl: `https://www.youtube.com/embed/${liveVideoId}`,
+    publication: {
+      '@type': 'BroadcastEvent',
+      isLiveBroadcast: true,
+    },
+  }
+}
+
 // 生成 Place JSON-LD 結構化數據
 function generateCragJsonLd(crag: CragMetadata, id: string) {
   return {
@@ -162,8 +208,13 @@ export async function generateMetadata({
   const description = crag.description?.substring(0, 160) || `${crag.name}攀岩岩場位於${crag.location}，提供${crag.routes}條攀岩路線，難度範圍${crag.difficulty}，岩質為${crag.rockType}。完整路線資訊、交通方式與最佳攀岩季節。`
   const ogLocale = buildOgLocale(locale)
 
+  // Title 模板：包含關鍵資訊提升點擊率
+  const pageTitle = crag.routes
+    ? `${crag.name}攀岩 | ${crag.routes} 條路線・${crag.difficulty}`
+    : `${crag.name}攀岩 | ${t('metaTitleSuffix')}`
+
   return {
-    title: crag.name,
+    title: pageTitle,
     description,
     keywords: [
       crag.name,
@@ -225,6 +276,26 @@ export default async function CragDetailPage({
           type="application/ld+json"
           dangerouslySetInnerHTML={{
             __html: JSON.stringify(generateCragJsonLd(crag, id)),
+          }}
+        />
+      )}
+      {/* BreadcrumbList JSON-LD */}
+      {crag && (
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{
+            __html: JSON.stringify(generateBreadcrumbJsonLd(crag, id)),
+          }}
+        />
+      )}
+      {/* VideoObject JSON-LD（即時影像） */}
+      {crag?.liveVideoId && (
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{
+            __html: JSON.stringify(generateVideoJsonLd(
+              crag, id, crag.liveVideoId, crag.liveVideoTitle ?? undefined, crag.liveVideoDescription ?? undefined
+            )),
           }}
         />
       )}

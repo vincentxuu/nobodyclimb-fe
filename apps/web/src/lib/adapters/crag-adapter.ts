@@ -377,6 +377,9 @@ export interface CragMetadata {
   latitude: number | null
   longitude: number | null
   seasons: string[]
+  liveVideoId: string | null
+  liveVideoTitle: string | null
+  liveVideoDescription: string | null
 }
 
 /**
@@ -403,5 +406,8 @@ export function assembleCragMetadata(apiCrag: ApiCrag): CragMetadata {
     latitude: apiCrag.latitude || null,
     longitude: apiCrag.longitude || null,
     seasons: apiCrag.best_seasons || [],
+    liveVideoId: apiCrag.live_video_id || null,
+    liveVideoTitle: apiCrag.live_video_title || null,
+    liveVideoDescription: apiCrag.live_video_description || null,
   }
 }
