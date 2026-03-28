@@ -195,7 +195,7 @@ export default function CragDetailClient({ params }: { params: Promise<{ id: str
             <div className="rounded-lg bg-white p-6 shadow-sm lg:p-8">
               {/* 封面展示區 */}
               <div className="mb-8">
-                <div className="relative w-full overflow-hidden rounded-lg">
+                <div className="relative w-full overflow-hidden rounded-lg" role="img" aria-label={`${currentCrag.name}攀岩岩場 - ${currentCrag.rockType || '戶外攀岩'}岩壁`}>
                   <CragCoverGenerator
                     rockType={currentCrag.rockType}
                     name={currentCrag.name}
@@ -327,7 +327,7 @@ export default function CragDetailClient({ params }: { params: Promise<{ id: str
                         allowFullScreen
                         loading="lazy"
                         referrerPolicy="no-referrer-when-downgrade"
-                        title={`${currentCrag.name} 地圖`}
+                        title={`${currentCrag.name}攀岩岩場位置地圖`}
                       />
                     </div>
                   </div>

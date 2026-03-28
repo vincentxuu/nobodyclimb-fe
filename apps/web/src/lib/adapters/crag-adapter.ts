@@ -374,6 +374,12 @@ export interface CragMetadata {
   parking: string
   amenities: string[]
   googleMapsUrl: string | null
+  latitude: number | null
+  longitude: number | null
+  seasons: string[]
+  liveVideoId: string | null
+  liveVideoTitle: string | null
+  liveVideoDescription: string | null
 }
 
 /**
@@ -397,5 +403,11 @@ export function assembleCragMetadata(apiCrag: ApiCrag): CragMetadata {
     parking: apiCrag.parking_info || '',
     amenities: apiCrag.amenities || [],
     googleMapsUrl: apiCrag.google_maps_url || null,
+    latitude: apiCrag.latitude || null,
+    longitude: apiCrag.longitude || null,
+    seasons: apiCrag.best_seasons || [],
+    liveVideoId: apiCrag.live_video_id || null,
+    liveVideoTitle: apiCrag.live_video_title || null,
+    liveVideoDescription: apiCrag.live_video_description || null,
   }
 }

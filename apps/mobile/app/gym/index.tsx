@@ -178,6 +178,7 @@ function GymCard({ gym, onPress, index }: GymCardProps) {
 
 export default function GymListScreen() {
   const router = useRouter()
+  const queryClient = useQueryClient()
   const [searchTerm, setSearchTerm] = useState('')
   const [selectedRegion, setSelectedRegion] = useState('所有地區')
   const [selectedType, setSelectedType] = useState('所有類型')
