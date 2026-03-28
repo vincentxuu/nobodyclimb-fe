@@ -49,6 +49,21 @@ interface BucketListItem {
   author_slug: string
 }
 
+// API 回傳的人生清單項目（欄位可能與前端 BucketListItem 不同）
+interface ApiBucketItem {
+  id: string
+  title: string
+  category?: string
+  target_grade?: string
+  user_count?: number
+  inspired_count?: number
+  completed_count?: number
+  author_name?: string
+  biography_name?: string
+  author_slug?: string
+  biography_slug?: string
+}
+
 interface LocationExploreDetail {
   location: string
   country: string
@@ -63,7 +78,7 @@ interface BucketListLocationDetail {
     total_users: number
     completed_count: number
   }
-  items: BucketListItem[]
+  items: ApiBucketItem[]
   visitors: Array<{
     id: string
     name: string
@@ -119,7 +134,7 @@ export default function LocationDetailScreen() {
   }
 
   const visitors = locationData?.visitors ?? []
-  const bucketItems: BucketListItem[] = (bucketData?.items ?? []).map((item: any) => ({
+  const bucketItems: BucketListItem[] = (bucketData?.items ?? []).map((item) => ({
     id: item.id,
     title: item.title,
     category: item.category ?? '',

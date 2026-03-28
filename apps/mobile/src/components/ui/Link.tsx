@@ -8,7 +8,7 @@ import React from 'react'
 import { Link as ExpoLink, type Href } from 'expo-router'
 import { Text } from './Text'
 import { SEMANTIC_COLORS } from '@nobodyclimb/constants'
-import type { ViewStyle, StyleProp } from 'react-native'
+import type { TextStyle, ViewStyle, StyleProp } from 'react-native'
 
 export interface LinkProps {
   /** 連結目標 */
@@ -20,7 +20,7 @@ export interface LinkProps {
   /** 是否有底線 */
   underline?: boolean
   /** 樣式 */
-  style?: StyleProp<ViewStyle>
+  style?: StyleProp<ViewStyle | TextStyle>
   /** 是否替換歷史記錄 */
   replace?: boolean
   /** 是否異步加載 */

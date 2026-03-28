@@ -20,10 +20,11 @@ import {
 
 export default function HomeScreen() {
   const [refreshing, setRefreshing] = useState(false)
+  const [refreshKey, setRefreshKey] = useState(0)
 
   const onRefresh = useCallback(async () => {
     setRefreshing(true)
-    // TODO: 實作資料刷新邏輯
+    setRefreshKey((prev) => prev + 1)
     await new Promise((resolve) => setTimeout(resolve, 1000))
     setRefreshing(false)
   }, [])
@@ -31,16 +32,16 @@ export default function HomeScreen() {
   return (
     <ScrollLayout enableRefresh onRefresh={onRefresh} padding={0}>
       {/* 趣味冷知識 */}
-      <FunFactSection />
+      <FunFactSection key={`fun-fact-${refreshKey}`} />
 
       {/* 查路線 - 探索岩場（對應 Web 第 2 區塊） */}
-      <ExploreCragSection />
+      <ExploreCragSection key={`crag-${refreshKey}`} />
 
       {/* 看故事 - 精選故事（對應 Web 第 3 區塊） */}
-      <FeaturedStoriesSection />
+      <FeaturedStoriesSection key={`stories-${refreshKey}`} />
 
       {/* 寫紀錄 - 人物誌精選 */}
-      <BiographySection />
+      <BiographySection key={`bio-${refreshKey}`} />
 
       {/* 關於小人物攀岩 */}
       <AboutSection />
