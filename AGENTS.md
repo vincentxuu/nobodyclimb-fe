@@ -19,14 +19,26 @@ Keep this managed block so 'openspec update' can refresh the instructions.
 
 <!-- OPENSPEC:END -->
 
-## Commit 規範
+## 專案規範
 
-每次執行 git commit 時，必須使用 `.claude/skills/format-commit/SKILL.md` skill 的流程來產生 commit message。
+進行任何開發工作（規劃、實作、除錯、review）前，先讀 `.claude/skills/project-rules/SKILL.md` 了解專案規範。
 
-流程：
+## Commit 流程
 
-1. 詢問使用者 commit 類型（feat / fix / refactor / perf / docs / style / test / chore）
-2. 詢問影響範圍與簡短描述
-3. 詢問 Why（原因）
-4. 從 git diff 自動推導 How（做了什麼）
-5. 產生 commit message 並請使用者確認後執行
+commit 時必須依序執行：
+
+1. 先執行 `.claude/skills/pre-commit-check/SKILL.md` skill 跑品質檢查（lint + typecheck）
+2. 檢查通過後，執行 `.claude/skills/format-commit/SKILL.md` skill 產生 commit message
+3. 使用者確認後才執行 git commit
+
+### 品質檢查指令
+
+- `pnpm run lint` — ESLint（turbo 跑所有 packages）
+- `pnpm run typecheck` — TypeScript 類型檢查（turbo 跑所有 packages）
+- `pnpm run format` — Prettier 自動修復格式問題
+
+## Push 流程
+
+使用者說要 push 時，先詢問「要 review 嗎？」：
+- Yes → 執行 `.claude/skills/code-review/SKILL.md` skill，review 完再 push
+- No → 直接 push

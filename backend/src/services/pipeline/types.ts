@@ -1,5 +1,6 @@
 import { Env, AIAskRequest, AIAskResponse, AISource, AIDocument, ParsedQuery, AIChatMessage } from '../../types';
 import { CircuitBreaker } from '../../utils/circuit-breaker';
+import type { LangfuseTraceClient, LangfuseSpanClient } from '../../utils/langfuse';
 
 // Pipeline Phase 順序固定
 export type PipelinePhase = 'pre-retrieval' | 'retrieval' | 'post-retrieval' | 'generation' | 'evaluation';
@@ -411,4 +412,9 @@ export interface PipelineContext {
   embeddingFailed?: boolean;           // Embedding 超時/失敗，hybrid-search 僅走 BM25
   degradedStages?: string[];           // 降級的 step 名稱列表
   circuitBreaker?: CircuitBreaker;     // Circuit Breaker 實例（供 step 記錄成功/失敗）
+
+  // Langfuse 觀察性（null = 靜默降級，不影響 pipeline 執行）
+  langfuseTrace?: LangfuseTraceClient | null;
+  // 目前正在執行的 step 的 Langfuse span（engine 在每個 step 開始/結束時設定）
+  currentLfSpan?: LangfuseSpanClient | null;
 }

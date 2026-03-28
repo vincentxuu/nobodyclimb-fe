@@ -168,7 +168,7 @@ export const RouteDrawer = forwardRef<RouteDrawerRef, RouteDrawerProps>(
           <View style={styles.listContainer}>
             <BottomSheetFlatList
               data={filteredRoutes}
-              keyExtractor={(item) => item.id}
+              keyExtractor={(item: RouteSidebarItem) => item.id}
               renderItem={renderRouteItem}
               contentContainerStyle={styles.listContent}
               showsVerticalScrollIndicator={false}

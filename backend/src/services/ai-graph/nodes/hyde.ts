@@ -1,5 +1,5 @@
 import { GraphState } from '../state';
-import { startSpan, endSpan } from '../langfuse';
+import { startSpan, endSpan } from '../../../utils/langfuse';
 
 export async function hydeNode(state: GraphState): Promise<Partial<GraphState>> {
   // 業務邏輯跳過：simple query 或 agentic 模式或已有 hydeDoc（similar route 已生成）

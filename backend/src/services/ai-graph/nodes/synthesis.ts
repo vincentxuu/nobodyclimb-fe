@@ -1,5 +1,5 @@
 import { GraphState } from '../state';
-import { startSpan, endSpan } from '../langfuse';
+import { startSpan, endSpan } from '../../../utils/langfuse';
 import { SYNTHESIS_PROMPT } from '../../../utils/ai-prompts';
 import type { AISource } from '../../../types';
 import type { StepExecutionResult } from '../../query/types';

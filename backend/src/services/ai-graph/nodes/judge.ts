@@ -1,5 +1,5 @@
 import { GraphState } from '../state';
-import { startSpan, endSpan } from '../langfuse';
+import { startSpan, endSpan } from '../../../utils/langfuse';
 import { checkOutput } from '../../../utils/guardrails';
 
 export async function judgeNode(state: GraphState): Promise<Partial<GraphState>> {

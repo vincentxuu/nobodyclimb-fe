@@ -1,5 +1,5 @@
 import { GraphState } from '../state';
-import { startSpan, endSpan } from '../langfuse';
+import { startSpan, endSpan } from '../../../utils/langfuse';
 
 export async function multiQueryNode(state: GraphState): Promise<Partial<GraphState>> {
   // 業務邏輯跳過：non-complex 或 agentic 模式

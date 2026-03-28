@@ -24,15 +24,15 @@ export default function HomeScreen() {
 
   const onRefresh = useCallback(async () => {
     setRefreshing(true)
-    setRefreshKey((prev) => prev + 1)
-    await new Promise((resolve) => setTimeout(resolve, 1000))
+    // 遞增 key 觸發子元件 remount，重新載入資料
+    setRefreshKey((k) => k + 1)
     setRefreshing(false)
   }, [])
 
   return (
     <ScrollLayout enableRefresh onRefresh={onRefresh} padding={0}>
       {/* 趣味冷知識 */}
-      <FunFactSection key={`fun-fact-${refreshKey}`} />
+      <FunFactSection key={`fun-${refreshKey}`} />
 
       {/* 查路線 - 探索岩場（對應 Web 第 2 區塊） */}
       <ExploreCragSection key={`crag-${refreshKey}`} />

@@ -134,7 +134,7 @@ export default function LocationDetailScreen() {
   }
 
   const visitors = locationData?.visitors ?? []
-  const bucketItems: BucketListItem[] = (bucketData?.items ?? []).map((item) => ({
+  const bucketItems: BucketListItem[] = (bucketData?.items ?? []).map((item: ApiBucketItem) => ({
     id: item.id,
     title: item.title,
     category: item.category ?? '',

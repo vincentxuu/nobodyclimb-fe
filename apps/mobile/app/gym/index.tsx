@@ -195,6 +195,8 @@ export default function GymListScreen() {
     type: selectedType,
   })
 
+  const queryClient = useQueryClient()
+
   const handleRefresh = useCallback(async () => {
     setRefreshing(true)
     await queryClient.invalidateQueries({ queryKey: ['gyms'] })

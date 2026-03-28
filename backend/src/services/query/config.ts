@@ -107,6 +107,8 @@ export async function loadPipelineConfig(db: D1Database): Promise<PipelineConfig
     reranker_min_keep:            num(cfg['reranker_min_keep'],            2,   1, 20),
     // Tool Selection 信心
     tool_confidence_threshold:    num(cfg['tool_confidence_threshold'],    0.7, 0, 1),
+    // LangGraph 引擎
+    use_langgraph_engine:         cfg['use_langgraph_engine'] === '1',
   };
 }
 

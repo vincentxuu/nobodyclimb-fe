@@ -4,6 +4,8 @@ import { TOOL_SELECTION_PROMPT, HYDE_PROMPT, MULTI_QUERY_EXPANSION_PROMPT, JUDGE
 import { estimateTokens, type LLMResponse } from './types';
 import { DEFAULT_LIGHTWEIGHT_MODEL } from './config';
 import toolRegistry from '../tool-registry';
+import { logGeneration } from '../../utils/langfuse';
+import type { LangfuseParent } from '../../utils/langfuse';
 
 // LLM A：解析查詢意圖，選擇搜尋工具與參數
 // 失敗時回傳 null，由呼叫方 fallback 到 regex 方法
@@ -16,6 +18,7 @@ export async function parseQueryWithLLM(
   regions: string[],
   gatewayOptions?: { gateway: { id: string } },
   promptTemplate?: string,
+  langfuseParent?: LangfuseParent | null,
 ): Promise<{ result: ParsedQuery | null; usage?: TokenUsageInfo }> {
   const prompt = (promptTemplate ?? TOOL_SELECTION_PROMPT)
     .replace('{crags}', crags.join('、') || '無')
@@ -35,6 +38,17 @@ export async function parseQueryWithLLM(
   }
 
   const text = rawResult.response?.trim() ?? '';
+  logGeneration(langfuseParent ?? null, {
+    name: 'tool-selection',
+    model: llmModel,
+    input: [{ role: 'user', content: prompt }],
+    output: text,
+    usage: rawResult.usage ? {
+      promptTokens: rawResult.usage.prompt_tokens,
+      completionTokens: rawResult.usage.completion_tokens,
+      totalTokens: rawResult.usage.total_tokens,
+    } : undefined,
+  });
   const usage: TokenUsageInfo = rawResult.usage
     ? { ...rawResult.usage, estimated: false }
     : { ...estimateTokens(prompt, text), estimated: true };
@@ -87,6 +101,7 @@ export async function generateHyDE(
   llmModel: string,
   gatewayOptions?: { gateway: { id: string } },
   promptTemplate?: string,
+  langfuseParent?: LangfuseParent | null,
 ): Promise<{ doc: string; usage?: TokenUsageInfo }> {
   const prompt = (promptTemplate ?? HYDE_PROMPT).replace('{query}', query);
   try {
@@ -97,6 +112,17 @@ export async function generateHyDE(
     )) as LLMResponse;
 
     const doc = result.response?.trim() ?? '';
+    logGeneration(langfuseParent ?? null, {
+      name: 'hyde',
+      model: llmModel,
+      input: [{ role: 'user', content: prompt }],
+      output: doc,
+      usage: result.usage ? {
+        promptTokens: result.usage.prompt_tokens,
+        completionTokens: result.usage.completion_tokens,
+        totalTokens: result.usage.total_tokens,
+      } : undefined,
+    });
     const usage: TokenUsageInfo = result.usage
       ? { ...result.usage, estimated: false }
       : { ...estimateTokens(prompt, doc), estimated: true };
@@ -114,6 +140,7 @@ export async function generateMultipleQueries(
   model: string,
   gatewayOptions?: { gateway: { id: string } },
   promptTemplate?: string,
+  langfuseParent?: LangfuseParent | null,
 ): Promise<{ queries: string[]; usage?: TokenUsageInfo }> {
   const prompt = (promptTemplate ?? MULTI_QUERY_EXPANSION_PROMPT)
     .replace(/\{count\}/g, String(count))
@@ -125,6 +152,17 @@ export async function generateMultipleQueries(
       gatewayOptions
     )) as LLMResponse;
     const text = result.response?.trim() ?? '';
+    logGeneration(langfuseParent ?? null, {
+      name: 'multi-query',
+      model,
+      input: [{ role: 'user', content: prompt }],
+      output: text,
+      usage: result.usage ? {
+        promptTokens: result.usage.prompt_tokens,
+        completionTokens: result.usage.completion_tokens,
+        totalTokens: result.usage.total_tokens,
+      } : undefined,
+    });
     const queries = text
       .split('\n')
       .map((l) => l.trim())
@@ -148,6 +186,7 @@ export async function streamLLMGeneration(
   maxTokens: number,
   gatewayOptions: unknown,
   onToken: (token: string) => Promise<void>,
+  langfuseParent?: LangfuseParent | null,
 ): Promise<string> {
   const stream = (await (env.AI.run as Function)(
     model,
@@ -204,6 +243,13 @@ export async function streamLLMGeneration(
     reader.releaseLock();
   }
 
+  logGeneration(langfuseParent ?? null, {
+    name: 'llm-generation-stream',
+    model,
+    input: messages,
+    output: fullText,
+    metadata: { streaming: true },
+  });
   return fullText;
 }
 
@@ -249,6 +295,7 @@ export async function runJudge(
   context: string,
   response: string,
   opts: { model?: string; timeoutMs?: number; contextTruncate?: number; promptTemplate?: string } = {},
+  langfuseParent?: LangfuseParent | null,
 ): Promise<{
   groundedness: number | null;
   quality: number | null;
@@ -285,6 +332,20 @@ export async function runJudge(
     const judgeResult = await Promise.race([judgePromise, timeoutPromise]);
     const rawResponse = judgeResult.response ?? '';
     const scores = parseJudgeResponse(rawResponse);
+    logGeneration(langfuseParent ?? null, {
+      name: 'judge',
+      model,
+      input: [
+        { role: 'system', content: '只回傳 JSON，不含任何說明文字。' },
+        { role: 'user', content: judgePrompt },
+      ],
+      output: rawResponse,
+      usage: judgeResult.usage ? {
+        promptTokens: judgeResult.usage.prompt_tokens,
+        completionTokens: judgeResult.usage.completion_tokens,
+        totalTokens: judgeResult.usage.total_tokens,
+      } : undefined,
+    });
     const usage: TokenUsageInfo = judgeResult.usage
       ? { ...judgeResult.usage, estimated: false }
       : { ...estimateTokens(judgePrompt, rawResponse), estimated: true };

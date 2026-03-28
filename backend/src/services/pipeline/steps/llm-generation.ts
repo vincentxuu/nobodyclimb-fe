@@ -3,6 +3,7 @@ import { checkOutput } from '../../../utils/guardrails';
 import { buildPersonalizedSystemPrompt } from '../../personalization';
 import { extractMemoriesFromQuery } from '../../memory-extractor';
 import { parseSuggestedQuestions } from '../utils';
+import { logGeneration } from '../../../utils/langfuse';
 
 // 相容 Workers AI 標準格式（response）與 OpenAI chat completions 格式（choices[0].message.content）
 function extractLLMResponse(result: unknown): string {
@@ -46,6 +47,17 @@ export const llmGenerationStep: PipelineStep = {
         gatewayOptions
       )) as LLMResponse;
       const rawAnswer = extractLLMResponse(llmResult) || '抱歉，無法生成回答，請稍後再試。';
+      logGeneration(ctx.currentLfSpan ?? ctx.langfuseTrace ?? null, {
+        name: 'llm-generation-gk',
+        model: effectiveLlmModel,
+        input: gkParams.messages,
+        output: rawAnswer,
+        usage: llmResult.usage ? {
+          promptTokens: llmResult.usage.prompt_tokens,
+          completionTokens: llmResult.usage.completion_tokens,
+          totalTokens: llmResult.usage.total_tokens,
+        } : undefined,
+      });
       const { answer: rawGkAnswer, suggested_questions } = parseSuggestedQuestions(rawAnswer);
       const { output: gkFiltered, trace: gkOutputTrace } = checkOutput(rawGkAnswer, pipelineConfig.max_output_length, pipelineConfig.system_prompt_leakage_patterns);
       const answer = gkFiltered || '抱歉，無法生成回答，請稍後再試。';
@@ -136,6 +148,17 @@ export const llmGenerationStep: PipelineStep = {
       console.log('[LLM DEBUG FULL]', JSON.stringify(llmResult).slice(0, 1000));
       rawLLMAnswer = extractLLMResponse(llmResult) || '抱歉，無法生成回答，請稍後再試。';
       llmUsage = llmResult.usage;
+      logGeneration(ctx.currentLfSpan ?? ctx.langfuseTrace ?? null, {
+        name: 'llm-generation-rag',
+        model: effectiveLlmModel,
+        input: llmMessages,
+        output: rawLLMAnswer,
+        usage: llmResult.usage ? {
+          promptTokens: llmResult.usage.prompt_tokens,
+          completionTokens: llmResult.usage.completion_tokens,
+          totalTokens: llmResult.usage.total_tokens,
+        } : undefined,
+      });
     }
 
     if (llmUsage) {

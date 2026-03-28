@@ -1,5 +1,5 @@
 import { GraphState } from '../state';
-import { startSpan, endSpan } from '../langfuse';
+import { startSpan, endSpan } from '../../../utils/langfuse';
 import { AGENTIC_DECISION_PROMPT } from '../../../utils/ai-prompts';
 import { SearchResult } from '../../pipeline/types';
 

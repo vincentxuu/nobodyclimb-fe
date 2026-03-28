@@ -1,6 +1,7 @@
 import { PipelineStep, PipelineContext, LLMResponse } from '../types';
 import { checkOutput } from '../../../utils/guardrails';
 import { parseSuggestedQuestions } from '../utils';
+import { logGeneration } from '../../../utils/langfuse';
 
 export const selfReflectionStep: PipelineStep = {
   id: 'self-reflection',
@@ -54,6 +55,18 @@ export const selfReflectionStep: PipelineStep = {
         { messages: llmMessages, max_tokens: pipelineConfig.max_tokens_generation },
         gatewayOptions
       )) as LLMResponse;
+
+      logGeneration(ctx.currentLfSpan ?? ctx.langfuseTrace ?? null, {
+        name: 'self-reflection-regen',
+        model: effectiveLlmModel,
+        input: llmMessages,
+        output: retryResult.response ?? '',
+        usage: retryResult.usage ? {
+          promptTokens: retryResult.usage.prompt_tokens,
+          completionTokens: retryResult.usage.completion_tokens,
+          totalTokens: retryResult.usage.total_tokens,
+        } : undefined,
+      });
 
       if (retryResult.usage) {
         tokenBreakdown.self_reflection_regen = { ...retryResult.usage, model: effectiveLlmModel, estimated: false };

@@ -1,6 +1,8 @@
 # CLAUDE.md
 
-This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
+## 專案規範
+
+進行任何開發工作（規劃、實作、除錯、review）前，先讀 `.claude/skills/project-rules/SKILL.md` 了解專案規範。
 
 ## Project Overview
 
@@ -26,9 +28,12 @@ NobodyClimb is a rock climbing community platform using **pnpm workspaces + Turb
 ### Mobile App (apps/mobile)
 - **Framework**: React Native 0.81 + Expo 54
 - **Language**: TypeScript 5.9
-- **UI Components**: Tamagui 2.0
+- **UI Components**: Custom components (39 個 UI 元件) + lucide-react-native icons
 - **Navigation**: Expo Router 6
 - **State Management**: Zustand + TanStack Query
+- **Bottom Sheet**: @gorhom/bottom-sheet（表單 modal）
+- **Maps**: react-native-webview（Google Maps 嵌入）
+- **Feature Parity**: 與 Web 版功能對齊（攀登記錄、統計、AI 記憶、推薦、Story、岩場 UGC 表單）
 
 ### Backend
 - **Runtime**: Cloudflare Workers
@@ -127,9 +132,17 @@ nobodyclimb/
 │   │
 │   └── mobile/                     # React Native App (@nobodyclimb/mobile)
 │       ├── app/                    # Expo Router pages
-│       ├── src/                    # Source code
+│       │   ├── profile/            # Profile routes (ascents, stats, ai-memory, recommendations)
+│       │   ├── crag/               # Crag detail pages
+│       │   └── story/              # Story type routes ([type]/[id])
+│       ├── src/
 │       │   ├── components/         # React Native components
-│       │   └── lib/                # Utility functions
+│       │   │   ├── ui/             # Base UI components (39 個)
+│       │   │   ├── crag/           # Crag components (含 UGC 表單)
+│       │   │   ├── ascent/         # Ascent components
+│       │   │   ├── profile/        # Profile components
+│       │   │   └── ...             # Other domain components
+│       │   └── lib/                # Hooks, API, utilities
 │       ├── assets/                 # App assets
 │       └── tamagui.config.ts       # Tamagui UI config
 │
@@ -320,6 +333,26 @@ GitHub Actions workflows in `.github/workflows/`:
 - `deploy-api.yml`: Backend API deployment with D1 migrations
   - Triggers on changes to `backend/` directory
   - Requires `CLOUDFLARE_API_TOKEN` secret
+
+## Commit 流程
+
+commit 時必須依序執行：
+
+1. 先執行 `.claude/skills/pre-commit-check/SKILL.md` skill 跑品質檢查（lint + typecheck）
+2. 檢查通過後，執行 `.claude/skills/format-commit/SKILL.md` skill 產生 commit message
+3. 使用者確認後才執行 git commit
+
+### 品質檢查指令
+
+- `pnpm run lint` — ESLint（turbo 跑所有 packages）
+- `pnpm run typecheck` — TypeScript 類型檢查（turbo 跑所有 packages）
+- `pnpm run format` — Prettier 自動修復格式問題
+
+## Push 流程
+
+使用者說要 push 時，先詢問「要 review 嗎？」：
+- Yes → 執行 `.claude/skills/code-review/SKILL.md` skill，review 完再 push
+- No → 直接 push
 
 ## Important Notes
 

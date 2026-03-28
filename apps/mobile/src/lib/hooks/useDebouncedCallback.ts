@@ -25,8 +25,8 @@ export function useDebouncedCallback<T extends (...args: any[]) => any>(
     : optionsOrDelay
   const { delay = 500, maxWait } = options
 
-  const timeoutRef = useRef<NodeJS.Timeout | null>(null)
-  const maxWaitTimeoutRef = useRef<NodeJS.Timeout | null>(null)
+  const timeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+  const maxWaitTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null)
   const callbackRef = useRef(callback)
   const lastArgsRef = useRef<Parameters<T> | null>(null)
 
