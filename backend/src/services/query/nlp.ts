@@ -229,15 +229,16 @@ export async function extractRouteReferences(
   });
 
   const results: RouteReference[] = [];
+  const seenRouteIds = new Set<string>();
   // consumed ranges：已匹配的文字區段，避免「看起來我可以」匹配後「我可以」再次匹配
   const consumed: Array<[number, number]> = [];
 
   const isConsumed = (start: number, end: number) =>
     consumed.some(([cs, ce]) => start < ce && end > cs);
 
-  // 第一輪：完整路線名稱精確比對
+  // 第一輪：完整路線名稱精確比對（同一路線只取一次）
   for (const route of routes.results) {
-    if (route.name.length < 2) continue;
+    if (route.name.length < 2 || seenRouteIds.has(route.id)) continue;
     let searchFrom = 0;
     while (searchFrom < query.length) {
       const idx = query.indexOf(route.name, searchFrom);
@@ -245,16 +246,17 @@ export async function extractRouteReferences(
       const end = idx + route.name.length;
       if (!isConsumed(idx, end)) {
         results.push(toRef(route));
+        seenRouteIds.add(route.id);
         consumed.push([idx, end]);
+        break; // 同一路線只需匹配一次
       }
       searchFrom = idx + 1;
     }
   }
 
   // 第二輪：後綴縮寫比對（僅對第一輪未匹配的路線）
-  const matchedRouteIds = new Set(results.map((r) => r.routeId));
   for (const route of routes.results) {
-    if (route.name.length < 3 || matchedRouteIds.has(route.id)) continue;
+    if (route.name.length < 3 || seenRouteIds.has(route.id)) continue;
     const minLen = Math.ceil(route.name.length / 2);
     let found = false;
     for (let len = route.name.length - 1; len >= minLen && !found; len--) {

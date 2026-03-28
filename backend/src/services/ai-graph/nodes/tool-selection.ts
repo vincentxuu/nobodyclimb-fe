@@ -145,7 +145,7 @@ export async function toolSelectionNode(
         if (cragIds.length === 1) {
           vectorFilter["crag_id"] = { $eq: cragIds[0] };
         } else if (cragIds.length > 1) {
-          // 多岩場不限定，讓搜尋範圍更廣
+          vectorFilter["crag_id"] = { $in: cragIds };
         }
 
         // 多路線難度聚合：取所有路線的 min-max，用 similarGradeRange 的邏輯向外擴展
