@@ -59,6 +59,19 @@ export async function agenticDecisionNode(state: GraphState): Promise<Partial<Gr
       };
     }
 
+    // 相似路線搜尋首輪：vectorFilter 已在 tool-selection 建好，直接 RETRIEVE 不需 LLM 決策
+    // 避免 LLM 把原始查詢泛化（如「剃刀邊緣 5.10c」→「5.10c climbing routes nearby」）
+    if (state.isSimRouteSearch && loopCount === 0 && currentDocs.length === 0) {
+      const simQuery = state.hydeDoc ?? request.query;
+      endSpan(span, { output: { action: 'RETRIEVE', reason: 'sim_route_first_loop', refinedQuery: simQuery } });
+      return {
+        agenticAction: 'RETRIEVE',
+        loopCount: loopCount + 1,
+        loopBack: { targetPhase: 'retrieval', reason: simQuery },
+        trace: { agentic_decision: { step: loopCount, action: 'RETRIEVE', reason: 'sim_route_first_loop', refined_query: simQuery } },
+      };
+    }
+
     // 無 LLM provider：降級為 RETRIEVE（若尚無文件），否則 ANSWER
     if (!state.llmProvider) {
       const fallbackAction: 'RETRIEVE' | 'ANSWER' = currentDocs.length === 0 ? 'RETRIEVE' : 'ANSWER';
@@ -74,12 +87,16 @@ export async function agenticDecisionNode(state: GraphState): Promise<Partial<Gr
     const remainingSteps = pipelineConfig.agentic_max_steps - loopCount - 1;
     const evidenceSummary = buildEvidenceSummary(currentDocs);
     const promptTemplate = prompts?.['AGENTIC_DECISION_PROMPT'] ?? AGENTIC_DECISION_PROMPT;
+    // 相似路線搜尋時注入參考路線資訊，避免 refinedQuery 遺失路線上下文
+    const queryWithContext = state.referenceRouteInfo
+      ? `${request.query}\n\n背景資訊：${state.referenceRouteInfo}`
+      : request.query;
     const prompt = promptTemplate
       .replace('{count}', String(currentDocs.length))
       .replace('{evidence_summary}', evidenceSummary)
       .replace('{min_docs}', String(pipelineConfig.agentic_min_docs_to_answer))
       .replace('{remaining_steps}', String(remainingSteps))
-      .replace('{query}', request.query);
+      .replace('{query}', queryWithContext);
 
     let action: 'RETRIEVE' | 'ANSWER' = 'RETRIEVE';
     let refinedQuery: string | undefined;
