@@ -1,33 +1,55 @@
-import { Env, AIAskRequest, AIAskResponse, AISource, AIDocument, ParsedQuery, AIChatMessage } from '../../types';
-import { CircuitBreaker } from '../../utils/circuit-breaker';
-import type { LangfuseTraceClient, LangfuseSpanClient } from '../../utils/langfuse';
+import {
+  Env,
+  AIAskRequest,
+  AIAskResponse,
+  AISource,
+  AIDocument,
+  ParsedQuery,
+  AIChatMessage,
+} from "../../types";
+import { CircuitBreaker } from "../../utils/circuit-breaker";
+import type {
+  LangfuseTraceClient,
+  LangfuseSpanClient,
+} from "../../utils/langfuse";
 
 // Pipeline Phase 順序固定
-export type PipelinePhase = 'pre-retrieval' | 'retrieval' | 'post-retrieval' | 'generation' | 'evaluation';
+export type PipelinePhase =
+  | "pre-retrieval"
+  | "retrieval"
+  | "post-retrieval"
+  | "generation"
+  | "evaluation";
 
-export const PHASE_ORDER: PipelinePhase[] = ['pre-retrieval', 'retrieval', 'post-retrieval', 'generation', 'evaluation'];
+export const PHASE_ORDER: PipelinePhase[] = [
+  "pre-retrieval",
+  "retrieval",
+  "post-retrieval",
+  "generation",
+  "evaluation",
+];
 
 // Step 識別碼
 export type StepId =
-  | 'semantic-cache'
-  | 'tool-selection'
-  | 'text-to-sql'
-  | 'hyde'
-  | 'multi-query'
-  | 'filter-build'
-  | 'embedding'
-  | 'hybrid-search'
-  | 'cross-encoder'
-  | 'mmr'
-  | 'popularity-rerank'
-  | 'llm-generation'
-  | 'judge'
-  | 'self-reflection';
+  | "semantic-cache"
+  | "tool-selection"
+  | "text-to-sql"
+  | "hyde"
+  | "multi-query"
+  | "filter-build"
+  | "embedding"
+  | "hybrid-search"
+  | "cross-encoder"
+  | "mmr"
+  | "popularity-rerank"
+  | "llm-generation"
+  | "judge"
+  | "self-reflection";
 
 // Conditional Routing：skipWhen 條件
 export interface SkipCondition {
   field: keyof PipelineContext;
-  operator: 'eq' | 'neq' | 'in';
+  operator: "eq" | "neq" | "in";
   value: unknown;
 }
 
@@ -82,7 +104,11 @@ export interface SearchResult {
 // LLM 回應
 export interface LLMResponse {
   response: string;
-  usage?: { prompt_tokens: number; completion_tokens: number; total_tokens: number };
+  usage?: {
+    prompt_tokens: number;
+    completion_tokens: number;
+    total_tokens: number;
+  };
 }
 
 // Stage token 追蹤
@@ -170,13 +196,13 @@ export interface PipelineConfig {
   // Circuit Breaker
   circuit_breaker_threshold: number;
   circuit_breaker_reset_ms: number;
-  llm_provider?: 'cloudflare' | 'openai' | 'anthropic' | 'google';
-  embedding_provider?: 'cloudflare' | 'openai' | 'google';
+  llm_provider?: "cloudflare" | "openai" | "anthropic" | "google";
+  embedding_provider?: "cloudflare" | "openai" | "google";
   use_langgraph_engine?: boolean;
 }
 
 // 檢索方法
-export type RetrievalMethod = 'vector' | 'bm25' | 'hybrid';
+export type RetrievalMethod = "vector" | "bm25" | "hybrid";
 
 // Multi-Tool 組合
 export interface MultiToolStep {
@@ -187,13 +213,35 @@ export interface MultiToolStep {
 }
 export interface MultiToolPlan {
   steps: MultiToolStep[];
-  execution_mode: 'parallel' | 'sequential';
+  execution_mode: "parallel" | "sequential";
 }
 
 // Agentic 型別
-export type AgenticActionType = 'ANSWER' | 'RETRIEVE' | 'BROADEN' | 'SWITCH_TOOL' | 'DECOMPOSE' | 'VERIFY';
-export interface AgenticAction { type: AgenticActionType; refinedQuery?: string; targetTool?: string; reason?: string; subQueries?: string[]; verifyQuery?: string; retrievalMethod?: RetrievalMethod; }
-export interface AgenticStepTrace { step: number; type: AgenticActionType; refinedQuery?: string; targetTool?: string; reason?: string; subQueries?: string[]; verifyQuery?: string; }
+export type AgenticActionType =
+  | "ANSWER"
+  | "RETRIEVE"
+  | "BROADEN"
+  | "SWITCH_TOOL"
+  | "DECOMPOSE"
+  | "VERIFY";
+export interface AgenticAction {
+  type: AgenticActionType;
+  refinedQuery?: string;
+  targetTool?: string;
+  reason?: string;
+  subQueries?: string[];
+  verifyQuery?: string;
+  retrievalMethod?: RetrievalMethod;
+}
+export interface AgenticStepTrace {
+  step: number;
+  type: AgenticActionType;
+  refinedQuery?: string;
+  targetTool?: string;
+  reason?: string;
+  subQueries?: string[];
+  verifyQuery?: string;
+}
 
 // Token 使用量（方法回傳用，不含 model）
 export interface TokenUsageInfo {
@@ -206,84 +254,239 @@ export interface TokenUsageInfo {
 // Pipeline steps 可存取的 QueryService 方法子集
 export interface QueryServiceStepMethods {
   // 快取
-  checkSemanticCache(queryVector: number[], threshold: number): Promise<AIAskResponse | null>;
-  storeSemanticCache(vectorId: string, queryVector: number[], cacheKey: string): Promise<void>;
+  checkSemanticCache(
+    queryVector: number[],
+    threshold: number,
+  ): Promise<AIAskResponse | null>;
+  storeSemanticCache(
+    vectorId: string,
+    queryVector: number[],
+    cacheKey: string,
+  ): Promise<void>;
   hashQuery(query: string): string;
   // Query 處理
   parseQueryWithLLM(
-    query: string, llmModel: string, crags: string[], areas: string[], regions: string[],
-    gatewayOptions?: { gateway: { id: string } }, promptTemplate?: string,
+    query: string,
+    llmModel: string,
+    crags: string[],
+    areas: string[],
+    regions: string[],
+    gatewayOptions?: { gateway: { id: string } },
+    promptTemplate?: string,
   ): Promise<{ result: ParsedQuery | null; usage?: TokenUsageInfo }>;
   generateHyDE(
-    query: string, llmModel: string, gatewayOptions?: { gateway: { id: string } }, promptTemplate?: string,
+    query: string,
+    llmModel: string,
+    gatewayOptions?: { gateway: { id: string } },
+    promptTemplate?: string,
   ): Promise<{ doc: string; usage?: TokenUsageInfo }>;
   generateMultipleQueries(
-    query: string, count: number, model: string, gatewayOptions?: { gateway: { id: string } }, promptTemplate?: string,
+    query: string,
+    count: number,
+    model: string,
+    gatewayOptions?: { gateway: { id: string } },
+    promptTemplate?: string,
   ): Promise<{ queries: string[]; usage?: TokenUsageInfo }>;
   // 過濾
   buildFiltersFromParsed(parsed: ParsedQuery): Promise<Record<string, unknown>>;
   extractLocationFilter(
-    query: string, crags: Array<{ id: string; name: string; region: string | null }>, areas: Array<{ id: string; name: string }>,
+    query: string,
+    crags: Array<{ id: string; name: string; region: string | null }>,
+    areas: Array<{ id: string; name: string }>,
   ): { cragIds?: string[]; areaId?: string; region?: string };
   extractGradeFilter(query: string): { $gte: number; $lte: number } | null;
-  extractTypeFilter(query: string): 'crag' | 'route' | null;
+  extractTypeFilter(query: string): "crag" | "route" | null;
   isContextDependentQuery(query: string): boolean;
   hasSimilarRouteIntent(query: string): boolean;
-  similarGradeRange(gradeNumeric: number, steps?: number): { $gte: number; $lte: number };
+  similarGradeRange(
+    gradeNumeric: number,
+    steps?: number,
+  ): { $gte: number; $lte: number };
   extractRouteReference(query: string): Promise<{
-    gradeNumeric: number; cragId: string | null; routeId: string;
-    name: string; grade: string | null; routeType: string | null;
+    gradeNumeric: number;
+    cragId: string | null;
+    routeId: string;
+    name: string;
+    grade: string | null;
+    routeType: string | null;
   } | null>;
+  extractRouteReferences(query: string): Promise<
+    Array<{
+      gradeNumeric: number;
+      cragId: string | null;
+      routeId: string;
+      name: string;
+      grade: string | null;
+      routeType: string | null;
+    }>
+  >;
   // 搜尋
   mergeResults(results: SearchResult[][], limit?: number): SearchResult[];
   searchBM25(query: string, topK: number): Promise<SearchResult[]>;
   agenticRetrieve(
-    query: string, vectorFilter: Record<string, unknown>, cfg: PipelineConfig,
-    steps: AgenticStepTrace[], agenticPromptTemplate?: string,
+    query: string,
+    vectorFilter: Record<string, unknown>,
+    cfg: PipelineConfig,
+    steps: AgenticStepTrace[],
+    agenticPromptTemplate?: string,
     decisionUsages?: Array<StageTokenUsage & { step: number }>,
-  ): Promise<{ candidates: SearchResult[]; terminationReason: string; initialSearch: { initial_results_count: number; min_docs_to_answer: number; min_quality_score: number; min_rrf_score: number; quality_check?: { unique_count: number; avg_score: number; passed: boolean } } }>;
+  ): Promise<{
+    candidates: SearchResult[];
+    terminationReason: string;
+    initialSearch: {
+      initial_results_count: number;
+      min_docs_to_answer: number;
+      min_quality_score: number;
+      min_rrf_score: number;
+      quality_check?: {
+        unique_count: number;
+        avg_score: number;
+        passed: boolean;
+      };
+    };
+  }>;
   // Plan-and-Execute
   planQuery(
-    query: string, cfg: PipelineConfig, crags: string[], areas: string[],
-    promptTemplate?: string, gatewayOptions?: { gateway: { id: string } },
-  ): Promise<{ plan: { steps: Array<{ id: number; query: string; tool: string; filters: Record<string, unknown>; depends_on: number[] }>; execution_mode: string } | null; failureReason?: 'timeout' | 'json_parse_error' | 'empty_steps'; usage?: TokenUsageInfo }>;
+    query: string,
+    cfg: PipelineConfig,
+    crags: string[],
+    areas: string[],
+    promptTemplate?: string,
+    gatewayOptions?: { gateway: { id: string } },
+  ): Promise<{
+    plan: {
+      steps: Array<{
+        id: number;
+        query: string;
+        tool: string;
+        filters: Record<string, unknown>;
+        depends_on: number[];
+      }>;
+      execution_mode: string;
+    } | null;
+    failureReason?: "timeout" | "json_parse_error" | "empty_steps";
+    usage?: TokenUsageInfo;
+  }>;
   executePlan(
-    plan: { steps: Array<{ id: number; query: string; tool: string; filters: Record<string, unknown>; depends_on: number[] }>; execution_mode: string },
-    cfg: PipelineConfig, gatewayOptions?: { gateway: { id: string } },
-  ): Promise<{ results: Array<{ stepId: number; query: string; tool: string; candidates: SearchResult[]; documents: Map<string, { title: string; excerpt: string; url?: string }>; sqlContext?: string; durationMs: number; error?: string }>; adaptiveReplan: boolean; adaptiveReplanInfo?: { trigger_step_id: number; reason: string; new_steps: Array<{ id: number; query: string; tool: string; filters: Record<string, unknown>; depends_on: number[] }> } }>;
+    plan: {
+      steps: Array<{
+        id: number;
+        query: string;
+        tool: string;
+        filters: Record<string, unknown>;
+        depends_on: number[];
+      }>;
+      execution_mode: string;
+    },
+    cfg: PipelineConfig,
+    gatewayOptions?: { gateway: { id: string } },
+  ): Promise<{
+    results: Array<{
+      stepId: number;
+      query: string;
+      tool: string;
+      candidates: SearchResult[];
+      documents: Map<string, { title: string; excerpt: string; url?: string }>;
+      sqlContext?: string;
+      durationMs: number;
+      error?: string;
+    }>;
+    adaptiveReplan: boolean;
+    adaptiveReplanInfo?: {
+      trigger_step_id: number;
+      reason: string;
+      new_steps: Array<{
+        id: number;
+        query: string;
+        tool: string;
+        filters: Record<string, unknown>;
+        depends_on: number[];
+      }>;
+    };
+  }>;
   synthesize(
     query: string,
-    stepResults: Array<{ stepId: number; query: string; tool: string; candidates: SearchResult[]; documents: Map<string, { title: string; excerpt: string; url?: string }>; sqlContext?: string; durationMs: number; error?: string }>,
-    cfg: PipelineConfig, promptTemplate?: string, gatewayOptions?: { gateway: { id: string } },
+    stepResults: Array<{
+      stepId: number;
+      query: string;
+      tool: string;
+      candidates: SearchResult[];
+      documents: Map<string, { title: string; excerpt: string; url?: string }>;
+      sqlContext?: string;
+      durationMs: number;
+      error?: string;
+    }>,
+    cfg: PipelineConfig,
+    promptTemplate?: string,
+    gatewayOptions?: { gateway: { id: string } },
   ): Promise<{ context: string; sources: AISource[]; usage?: TokenUsageInfo }>;
   getDocuments(ids: string[]): Promise<Map<string, AIDocument>>;
   // Ranking
-  applyMMR(candidates: SearchResult[], documents: Map<string, AIDocument>, lambda: number, k: number): SearchResult[];
+  applyMMR(
+    candidates: SearchResult[],
+    documents: Map<string, AIDocument>,
+    lambda: number,
+    k: number,
+  ): SearchResult[];
   // 文件處理
   extractTitle(doc: AIDocument): string;
   buildExcerpt(doc: AIDocument): string;
   buildUrl(doc: AIDocument): string | undefined;
   // 生成
   streamLLMGeneration(
-    model: string, messages: Array<{ role: 'system' | 'user' | 'assistant'; content: string }>,
-    maxTokens: number, gatewayOptions: unknown, onToken: (token: string) => Promise<void>,
+    model: string,
+    messages: Array<{ role: "system" | "user" | "assistant"; content: string }>,
+    maxTokens: number,
+    gatewayOptions: unknown,
+    onToken: (token: string) => Promise<void>,
   ): Promise<string>;
   injectRouteLinks(text: string, sources: AISource[]): string;
   // 評估
   runJudge(
-    query: string, context: string, response: string,
-    opts?: { model?: string; timeoutMs?: number; contextTruncate?: number; promptTemplate?: string },
-  ): Promise<{ groundedness: number | null; quality: number | null; constraint_ok: boolean; rawResponse: string | null; contextChars: number; contextTruncated: boolean; usage?: TokenUsageInfo }>;
+    query: string,
+    context: string,
+    response: string,
+    opts?: {
+      model?: string;
+      timeoutMs?: number;
+      contextTruncate?: number;
+      promptTemplate?: string;
+    },
+  ): Promise<{
+    groundedness: number | null;
+    quality: number | null;
+    constraint_ok: boolean;
+    rawResponse: string | null;
+    contextChars: number;
+    contextTruncated: boolean;
+    usage?: TokenUsageInfo;
+  }>;
   // 日誌
   logQuery(params: {
-    userId: string | null; query: string; response: string; sources: AISource[];
-    latencyMs: number; tokenCount: number | null; groundednessScore?: number | null;
-    autoScore?: number | null; embeddingMs?: number | null; retrievalMs?: number | null;
-    generationMs?: number | null; queryType?: string | null; modelUsed?: string | null;
-    retrievalScore?: number | null; selfReflectionTriggered?: number | null;
-    isHighConsumption?: boolean; cacheHit?: boolean; hydeTriggered?: boolean; pipelineTrace?: string;
+    userId: string | null;
+    query: string;
+    response: string;
+    sources: AISource[];
+    latencyMs: number;
+    tokenCount: number | null;
+    groundednessScore?: number | null;
+    autoScore?: number | null;
+    embeddingMs?: number | null;
+    retrievalMs?: number | null;
+    generationMs?: number | null;
+    queryType?: string | null;
+    modelUsed?: string | null;
+    retrievalScore?: number | null;
+    selfReflectionTriggered?: number | null;
+    isHighConsumption?: boolean;
+    cacheHit?: boolean;
+    hydeTriggered?: boolean;
+    pipelineTrace?: string;
   }): Promise<string>;
-  flagResponse(queryLogId: string, reason: 'low_groundedness' | 'low_feedback' | 'score_discrepancy'): Promise<void>;
+  flagResponse(
+    queryLogId: string,
+    reason: "low_groundedness" | "low_feedback" | "score_discrepancy",
+  ): Promise<void>;
 }
 
 // Pipeline Context：各 step 共用的上下文物件
@@ -308,12 +511,19 @@ export interface PipelineContext {
   earlyQueryVector: number[] | null;
 
   // Pre-retrieval 階段產出
-  queryType?: 'simple' | 'complex' | 'general-knowledge' | 'sql' | 'hybrid' | 'clarification-needed' | 'multi-tool';
+  queryType?:
+    | "simple"
+    | "complex"
+    | "general-knowledge"
+    | "sql"
+    | "hybrid"
+    | "clarification-needed"
+    | "multi-tool";
   effectiveLlmModel?: string;
   parsedQuery?: ParsedQuery | null;
-  toolConfidence: number;             // 工具選擇信心分數（預設 1.0）
-  fallbackEnabled: boolean;           // 是否啟用空結果 fallback（預設 false）
-  alternativeTool?: string;           // 備選工具名稱（confidence < 0.8 時由 LLM 提供）
+  toolConfidence: number; // 工具選擇信心分數（預設 1.0）
+  fallbackEnabled: boolean; // 是否啟用空結果 fallback（預設 false）
+  alternativeTool?: string; // 備選工具名稱（confidence < 0.8 時由 LLM 提供）
   hydeDoc?: string;
   expandedQueries?: string[];
   vectorFilter?: Record<string, unknown>;
@@ -324,7 +534,7 @@ export interface PipelineContext {
   // Text-to-SQL 相關（tool-selection step 產出）
   sqlTemplate?: string;
   sqlParams?: Record<string, unknown>;
-  clarificationType?: 'intent' | 'missing-crag';
+  clarificationType?: "intent" | "missing-crag";
 
   // Text-to-SQL step 產出（hybrid 用）
   sqlCandidates?: Array<Record<string, unknown>>;
@@ -361,8 +571,8 @@ export interface PipelineContext {
   quality?: number | null;
 
   // 流程控制
-  earlyReturn?: AIAskResponse;    // step 內提前中斷回傳（semantic-cache、text-to-sql、GK 路徑等）
-  finalResponse?: AIAskResponse;  // pipeline 正常結束後由 engine 組裝的最終回應
+  earlyReturn?: AIAskResponse; // step 內提前中斷回傳（semantic-cache、text-to-sql、GK 路徑等）
+  finalResponse?: AIAskResponse; // pipeline 正常結束後由 engine 組裝的最終回應
   streamingMode?: boolean;
   onToken?: (token: string) => Promise<void>;
   waitUntilCtx?: { waitUntil(promise: Promise<unknown>): void };
@@ -403,15 +613,18 @@ export interface PipelineContext {
   // 輔助資料
   videoCountMap?: Map<string, number>;
   latestVideoMap?: Map<string, string>;
-  llmMessages?: Array<{ role: 'system' | 'user' | 'assistant'; content: string }>;
+  llmMessages?: Array<{
+    role: "system" | "user" | "assistant";
+    content: string;
+  }>;
   selfReflectionTriggered?: number;
   cannotAnswer?: boolean;
 
   // 超時與降級
-  abortSignal?: AbortSignal;           // Pipeline 取消信號（超時/客戶端斷線時 abort）
-  embeddingFailed?: boolean;           // Embedding 超時/失敗，hybrid-search 僅走 BM25
-  degradedStages?: string[];           // 降級的 step 名稱列表
-  circuitBreaker?: CircuitBreaker;     // Circuit Breaker 實例（供 step 記錄成功/失敗）
+  abortSignal?: AbortSignal; // Pipeline 取消信號（超時/客戶端斷線時 abort）
+  embeddingFailed?: boolean; // Embedding 超時/失敗，hybrid-search 僅走 BM25
+  degradedStages?: string[]; // 降級的 step 名稱列表
+  circuitBreaker?: CircuitBreaker; // Circuit Breaker 實例（供 step 記錄成功/失敗）
 
   // Langfuse 觀察性（null = 靜默降級，不影響 pipeline 執行）
   langfuseTrace?: LangfuseTraceClient | null;

@@ -15,13 +15,17 @@ export function extractLocationFilter(
   }
 
   // 2. 比對岩場名稱（如「龍洞」「墾丁」），支援多岩場
-  const matchedCragIds = crags.filter((c) => query.includes(c.name)).map((c) => c.id);
+  const matchedCragIds = crags
+    .filter((c) => query.includes(c.name))
+    .map((c) => c.id);
   if (matchedCragIds.length > 0) {
     return { cragIds: matchedCragIds };
   }
 
   // 3. 比對地區名稱（如「花蓮」「北部」）
-  const regions = [...new Set(crags.map((c) => c.region).filter(Boolean))] as string[];
+  const regions = [
+    ...new Set(crags.map((c) => c.region).filter(Boolean)),
+  ] as string[];
   for (const region of regions) {
     if (query.includes(region)) {
       return { region };
@@ -33,43 +37,78 @@ export function extractLocationFilter(
 
 // 從 query 文字中偵測 YDS 難度，回傳 Vectorize grade_numeric 範圍
 // 支援完整格式（5.12a）與縮寫格式（12a、12）
-export function extractGradeFilter(query: string): { $gte: number; $lte: number } | null {
+export function extractGradeFilter(
+  query: string,
+): { $gte: number; $lte: number } | null {
   const fullMatches = [...query.matchAll(/5\.(\d+)([a-d])?/gi)];
   const shortMatches = [...query.matchAll(/\b(1[0-5])([a-d])?\b/gi)].filter(
-    (m) => !query.slice(Math.max(0, m.index! - 2), m.index!).includes('5.')
+    (m) => !query.slice(Math.max(0, m.index! - 2), m.index!).includes("5."),
   );
   const allMatches = fullMatches.length > 0 ? fullMatches : shortMatches;
   if (allMatches.length === 0) return null;
 
   const numerics = allMatches.map((m) => {
     const base = parseInt(m[1], 10) * 10;
-    const suffix = m[2] ? 'abcd'.indexOf(m[2].toLowerCase()) : 0;
+    const suffix = m[2] ? "abcd".indexOf(m[2].toLowerCase()) : 0;
     return base + suffix;
   });
 
   const min = Math.min(...numerics);
   const maxMatch = allMatches.reduce((prev, curr) => {
-    const prevNum = parseInt(prev[1], 10) * 10 + (prev[2] ? 'abcd'.indexOf(prev[2].toLowerCase()) : 0);
-    const currNum = parseInt(curr[1], 10) * 10 + (curr[2] ? 'abcd'.indexOf(curr[2].toLowerCase()) : 0);
+    const prevNum =
+      parseInt(prev[1], 10) * 10 +
+      (prev[2] ? "abcd".indexOf(prev[2].toLowerCase()) : 0);
+    const currNum =
+      parseInt(curr[1], 10) * 10 +
+      (curr[2] ? "abcd".indexOf(curr[2].toLowerCase()) : 0);
     return currNum > prevNum ? curr : prev;
   });
   // 若最大值的 grade 沒有 a-d 後綴，擴展到 +3（含 a/b/c/d 子等級）
-  const maxBase = parseInt(maxMatch[1], 10) * 10 + (maxMatch[2] ? 'abcd'.indexOf(maxMatch[2].toLowerCase()) : 0);
+  const maxBase =
+    parseInt(maxMatch[1], 10) * 10 +
+    (maxMatch[2] ? "abcd".indexOf(maxMatch[2].toLowerCase()) : 0);
   const max = maxMatch[2] ? maxBase : maxBase + 3;
 
   return { $gte: min, $lte: max };
 }
 
 // 從 query 文字偵測使用者意圖，回傳適合的文件類型過濾（'crag' | 'route' | null）
-export function extractTypeFilter(query: string): 'crag' | 'route' | null {
-  const cragKeywords = ['岩場', '攀岩場', '岩區', '岩壁', '介紹', '哪些岩場', '台灣岩場'];
-  const routeKeywords = ['路線', '幾條', '多少條', '5.', 'V0', 'V1', 'V2', 'V3', 'V4', 'V5', 'V6', 'V7', 'V8', 'V9', '難度', '幾級', '幾b', '幾c'];
+export function extractTypeFilter(query: string): "crag" | "route" | null {
+  const cragKeywords = [
+    "岩場",
+    "攀岩場",
+    "岩區",
+    "岩壁",
+    "介紹",
+    "哪些岩場",
+    "台灣岩場",
+  ];
+  const routeKeywords = [
+    "路線",
+    "幾條",
+    "多少條",
+    "5.",
+    "V0",
+    "V1",
+    "V2",
+    "V3",
+    "V4",
+    "V5",
+    "V6",
+    "V7",
+    "V8",
+    "V9",
+    "難度",
+    "幾級",
+    "幾b",
+    "幾c",
+  ];
 
   const hasCragIntent = cragKeywords.some((k) => query.includes(k));
   const hasRouteIntent = routeKeywords.some((k) => query.includes(k));
 
-  if (hasCragIntent && !hasRouteIntent) return 'crag';
-  if (hasRouteIntent && !hasCragIntent) return 'route';
+  if (hasCragIntent && !hasRouteIntent) return "crag";
+  if (hasRouteIntent && !hasCragIntent) return "route";
   return null;
 }
 
@@ -79,7 +118,7 @@ export function gradeToNumeric(grade: string | null): number {
   const match = grade.match(/5\.(\d+)([a-d])?/);
   if (!match) return 0;
   const base = parseInt(match[1], 10) * 10;
-  const suffix = match[2] ? 'abcd'.indexOf(match[2]) : 0;
+  const suffix = match[2] ? "abcd".indexOf(match[2]) : 0;
   return base + suffix;
 }
 
@@ -96,7 +135,10 @@ export function positionToGrade(position: number): number {
 }
 
 // 取得「差不多難度」的 grade_numeric 範圍（連續序列中 ±steps）
-export function similarGradeRange(gradeNumeric: number, steps = 2): { $gte: number; $lte: number } {
+export function similarGradeRange(
+  gradeNumeric: number,
+  steps = 2,
+): { $gte: number; $lte: number } {
   const pos = gradeToPosition(gradeNumeric);
   return {
     $gte: positionToGrade(Math.max(0, pos - steps)),
@@ -106,30 +148,78 @@ export function similarGradeRange(gradeNumeric: number, steps = 2): { $gte: numb
 
 // 偵測 query 是否有「推薦相似/類似路線」意圖
 export function hasSimilarRouteIntent(query: string): boolean {
-  return ['差不多', '類似', '相似', '爬完', '完攀', '爬過', '爬了', '攀了', '下一條', '下一個', 'rp', 'RP', 'redpoint', 'red point'].some((k) => query.includes(k));
+  return [
+    "差不多",
+    "類似",
+    "相似",
+    "爬完",
+    "完攀",
+    "爬過",
+    "爬了",
+    "攀了",
+    "下一條",
+    "下一個",
+    "rp",
+    "RP",
+    "redpoint",
+    "red point",
+  ].some((k) => query.includes(k));
 }
 
 // 偵測 query 是否含有指代前文的 context-dependent 詞（需從對話歷史補充位置）
 export function isContextDependentQuery(query: string): boolean {
-  return ['附近', '那裡', '那邊', '這裡', '這邊', '這個岩場', '該岩場', '同岩場', '繼續', '再推薦', '還有', '還有哪些', '更多'].some((k) => query.includes(k));
+  return [
+    "附近",
+    "那裡",
+    "那邊",
+    "這裡",
+    "這邊",
+    "這個岩場",
+    "該岩場",
+    "同岩場",
+    "繼續",
+    "再推薦",
+    "還有",
+    "還有哪些",
+    "更多",
+  ].some((k) => query.includes(k));
 }
 
-// 若 query 提到已知路線名稱，回傳該路線的難度數值、所屬岩場、路線 ID、名稱、難度字串
-// 按名稱長度由長到短比對，優先匹配更精確的路線名
-// 支援縮寫：若完整名稱比對失敗，嘗試路線名後綴部分匹配（如「天藍」→「天天天藍」）
-export async function extractRouteReference(db: D1Database, query: string): Promise<{
+export type RouteReference = {
   gradeNumeric: number;
   cragId: string | null;
   routeId: string;
   name: string;
   grade: string | null;
   routeType: string | null;
-} | null> {
-  const routes = await db.prepare(
-    'SELECT id, name, grade, crag_id, route_type FROM routes WHERE name IS NOT NULL ORDER BY LENGTH(name) DESC'
-  ).all<{ id: string; name: string; grade: string | null; crag_id: string | null; route_type: string | null }>();
+};
 
-  const toMatch = (route: { id: string; name: string; grade: string | null; crag_id: string | null; route_type: string | null }) => ({
+// 從 query 中擷取所有提及的路線（支援多實體）
+// 按名稱長度由長到短比對，使用 consumed-range 避免重疊匹配
+// 支援縮寫：完整名稱比對後，嘗試路線名後綴部分匹配（如「天藍」→「天天天藍」）
+export async function extractRouteReferences(
+  db: D1Database,
+  query: string,
+): Promise<RouteReference[]> {
+  const routes = await db
+    .prepare(
+      "SELECT id, name, grade, crag_id, route_type FROM routes WHERE name IS NOT NULL ORDER BY LENGTH(name) DESC",
+    )
+    .all<{
+      id: string;
+      name: string;
+      grade: string | null;
+      crag_id: string | null;
+      route_type: string | null;
+    }>();
+
+  const toRef = (route: {
+    id: string;
+    name: string;
+    grade: string | null;
+    crag_id: string | null;
+    route_type: string | null;
+  }): RouteReference => ({
     gradeNumeric: gradeToNumeric(route.grade),
     cragId: route.crag_id,
     routeId: route.id,
@@ -138,24 +228,61 @@ export async function extractRouteReference(db: D1Database, query: string): Prom
     routeType: route.route_type,
   });
 
+  const results: RouteReference[] = [];
+  // consumed ranges：已匹配的文字區段，避免「看起來我可以」匹配後「我可以」再次匹配
+  const consumed: Array<[number, number]> = [];
+
+  const isConsumed = (start: number, end: number) =>
+    consumed.some(([cs, ce]) => start < ce && end > cs);
+
   // 第一輪：完整路線名稱精確比對
   for (const route of routes.results) {
-    if (route.name.length >= 2 && query.includes(route.name)) {
-      return toMatch(route);
+    if (route.name.length < 2) continue;
+    let searchFrom = 0;
+    while (searchFrom < query.length) {
+      const idx = query.indexOf(route.name, searchFrom);
+      if (idx === -1) break;
+      const end = idx + route.name.length;
+      if (!isConsumed(idx, end)) {
+        results.push(toRef(route));
+        consumed.push([idx, end]);
+      }
+      searchFrom = idx + 1;
     }
   }
 
-  // 第二輪：後綴縮寫比對（如使用者說「天藍」，路線名為「天天天藍」）
+  // 第二輪：後綴縮寫比對（僅對第一輪未匹配的路線）
+  const matchedRouteIds = new Set(results.map((r) => r.routeId));
   for (const route of routes.results) {
-    if (route.name.length < 3) continue;
+    if (route.name.length < 3 || matchedRouteIds.has(route.id)) continue;
     const minLen = Math.ceil(route.name.length / 2);
-    for (let len = route.name.length - 1; len >= minLen; len--) {
+    let found = false;
+    for (let len = route.name.length - 1; len >= minLen && !found; len--) {
       const suffix = route.name.slice(-len);
-      if (query.includes(suffix)) {
-        return toMatch(route);
+      let searchFrom = 0;
+      while (searchFrom < query.length) {
+        const idx = query.indexOf(suffix, searchFrom);
+        if (idx === -1) break;
+        const end = idx + suffix.length;
+        if (!isConsumed(idx, end)) {
+          results.push(toRef(route));
+          consumed.push([idx, end]);
+          found = true;
+          break;
+        }
+        searchFrom = idx + 1;
       }
     }
   }
 
-  return null;
+  return results;
+}
+
+// 向後相容：回傳第一個匹配（供非相似路線搜尋場景使用）
+export async function extractRouteReference(
+  db: D1Database,
+  query: string,
+): Promise<RouteReference | null> {
+  const refs = await extractRouteReferences(db, query);
+  return refs.length > 0 ? refs[0] : null;
 }

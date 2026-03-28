@@ -1,39 +1,119 @@
-import { Env, AIAskRequest, AIAskResponse, AISearchRequest, AISource, AIDocument, ParsedQuery, AIChatMessage } from '../../types';
-import { EmbeddingService } from '../embedding';
-import { SYSTEM_PROMPT, QUERY_TEMPLATE, TOOL_SELECTION_PROMPT, HYDE_PROMPT, GENERAL_KNOWLEDGE_SYSTEM_PROMPT, JUDGE_PROMPT, MULTI_QUERY_EXPANSION_PROMPT, AGENTIC_DECISION_PROMPT, PLANNING_PROMPT, SYNTHESIS_PROMPT } from '../../utils/ai-prompts';
-import { getMemoriesSummary } from '../../repositories/memory';
-import { getRecentAscents, buildAscentContext, estimateAbilityLevel } from '../personalization';
-import { PipelineEngine } from '../pipeline/engine';
-import { createPipelineContext } from '../pipeline/context';
-import { runAIGraph } from '../ai-graph';
-import type { PipelineConfig, AgenticStepTrace, StageTokenUsage } from '../pipeline/types';
-import { CircuitBreaker } from '../../utils/circuit-breaker';
-import { withTimeout, TimeoutError } from '../../utils/timeout';
-import { createLangfuseClient, createTrace, flushLangfuse } from '../../utils/langfuse';
-import type { LangfuseParent } from '../../utils/langfuse';
+import {
+  Env,
+  AIAskRequest,
+  AIAskResponse,
+  AISearchRequest,
+  AISource,
+  AIDocument,
+  ParsedQuery,
+  AIChatMessage,
+} from "../../types";
+import { EmbeddingService } from "../embedding";
+import {
+  SYSTEM_PROMPT,
+  QUERY_TEMPLATE,
+  TOOL_SELECTION_PROMPT,
+  HYDE_PROMPT,
+  GENERAL_KNOWLEDGE_SYSTEM_PROMPT,
+  JUDGE_PROMPT,
+  MULTI_QUERY_EXPANSION_PROMPT,
+  AGENTIC_DECISION_PROMPT,
+  PLANNING_PROMPT,
+  SYNTHESIS_PROMPT,
+} from "../../utils/ai-prompts";
+import { getMemoriesSummary } from "../../repositories/memory";
+import {
+  getRecentAscents,
+  buildAscentContext,
+  estimateAbilityLevel,
+} from "../personalization";
+import { PipelineEngine } from "../pipeline/engine";
+import { createPipelineContext } from "../pipeline/context";
+import { runAIGraph } from "../ai-graph";
+import type {
+  PipelineConfig,
+  AgenticStepTrace,
+  StageTokenUsage,
+} from "../pipeline/types";
+import { CircuitBreaker } from "../../utils/circuit-breaker";
+import { withTimeout, TimeoutError } from "../../utils/timeout";
+import {
+  createLangfuseClient,
+  createTrace,
+  flushLangfuse,
+} from "../../utils/langfuse";
+import type { LangfuseParent } from "../../utils/langfuse";
 
 // Sub-module imports
-import type { SearchResult } from './types';
-import { loadPipelineConfig, loadPrompts, resolvePrompt, DEFAULT_TOP_K } from './config';
-import { extractLocationFilter, extractGradeFilter, extractTypeFilter, similarGradeRange, hasSimilarRouteIntent, isContextDependentQuery, extractRouteReference } from './nlp';
-import { getDocuments, extractTitle, buildExcerpt, buildUrl, injectRouteLinks } from './documents';
-import { checkSemanticCache, storeSemanticCache, hashQuery, logQuery, flagResponse } from './cache-log';
-import { buildFilter, buildFiltersFromParsed } from './filters';
-import { parseQueryWithLLM, generateHyDE, generateMultipleQueries, streamLLMGeneration, runJudge } from './llm';
-import { searchBM25, mergeResults, applyMMR, agenticRetrieve } from './retrieval';
-import { planQuery, executePlan, synthesize } from './plan-execute';
+import type { SearchResult } from "./types";
+import {
+  loadPipelineConfig,
+  loadPrompts,
+  resolvePrompt,
+  DEFAULT_TOP_K,
+} from "./config";
+import {
+  extractLocationFilter,
+  extractGradeFilter,
+  extractTypeFilter,
+  similarGradeRange,
+  hasSimilarRouteIntent,
+  isContextDependentQuery,
+  extractRouteReference,
+  extractRouteReferences,
+  type RouteReference,
+} from "./nlp";
+import {
+  getDocuments,
+  extractTitle,
+  buildExcerpt,
+  buildUrl,
+  injectRouteLinks,
+} from "./documents";
+import {
+  checkSemanticCache,
+  storeSemanticCache,
+  hashQuery,
+  logQuery,
+  flagResponse,
+} from "./cache-log";
+import { buildFilter, buildFiltersFromParsed } from "./filters";
+import {
+  parseQueryWithLLM,
+  generateHyDE,
+  generateMultipleQueries,
+  streamLLMGeneration,
+  runJudge,
+} from "./llm";
+import {
+  searchBM25,
+  mergeResults,
+  applyMMR,
+  agenticRetrieve,
+} from "./retrieval";
+import { planQuery, executePlan, synthesize } from "./plan-execute";
 
 export class QueryService {
   private embeddingService: EmbeddingService;
 
-  private _pipelineCtx: { currentLfSpan?: import('../../utils/langfuse').LangfuseSpanClient | null; langfuseTrace?: import('../../utils/langfuse').LangfuseTraceClient | null } | null = null;
+  private _pipelineCtx: {
+    currentLfSpan?: import("../../utils/langfuse").LangfuseSpanClient | null;
+    langfuseTrace?: import("../../utils/langfuse").LangfuseTraceClient | null;
+  } | null = null;
 
-  setPipelineCtx(pipelineCtx: { currentLfSpan?: import('../../utils/langfuse').LangfuseSpanClient | null; langfuseTrace?: import('../../utils/langfuse').LangfuseTraceClient | null }): void {
+  setPipelineCtx(pipelineCtx: {
+    currentLfSpan?: import("../../utils/langfuse").LangfuseSpanClient | null;
+    langfuseTrace?: import("../../utils/langfuse").LangfuseTraceClient | null;
+  }): void {
     this._pipelineCtx = pipelineCtx;
   }
 
   private get langfuseParent(): LangfuseParent | null {
-    return this._pipelineCtx?.currentLfSpan ?? this._pipelineCtx?.langfuseTrace ?? null;
+    return (
+      this._pipelineCtx?.currentLfSpan ??
+      this._pipelineCtx?.langfuseTrace ??
+      null
+    );
   }
 
   constructor(private env: Env) {
@@ -43,13 +123,24 @@ export class QueryService {
   // ──────────────────────────────────────────────────────────────────────────
   // Pipeline-based RAG 流程
   // ──────────────────────────────────────────────────────────────────────────
-  async ask(request: AIAskRequest, userId?: string, ctx?: { waitUntil(promise: Promise<unknown>): void }, onToken?: (token: string) => Promise<void>, extraTrace?: Record<string, unknown>): Promise<AIAskResponse> {
+  async ask(
+    request: AIAskRequest,
+    userId?: string,
+    ctx?: { waitUntil(promise: Promise<unknown>): void },
+    onToken?: (token: string) => Promise<void>,
+    extraTrace?: Record<string, unknown>,
+  ): Promise<AIAskResponse> {
     const streamingMode = !!onToken;
     const { query, chat_history, no_cache = false } = request;
 
     // 對話歷史
-    const recentHistory: AIChatMessage[] = chat_history ? chat_history.slice(-6) : [];
-    const historyHash = recentHistory.length > 0 ? `:h${this.hashQuery(recentHistory.map(m => m.content).join('|'))}` : '';
+    const recentHistory: AIChatMessage[] = chat_history
+      ? chat_history.slice(-6)
+      : [];
+    const historyHash =
+      recentHistory.length > 0
+        ? `:h${this.hashQuery(recentHistory.map((m) => m.content).join("|"))}`
+        : "";
 
     // 個人化 context
     let memorySummary: string | null = null;
@@ -66,9 +157,13 @@ export class QueryService {
     }
 
     // 快取鍵
-    const personalizedContext = [memorySummary, ascentContext].filter(Boolean).join('|');
-    const personalizedHash = personalizedContext ? `:p${this.hashQuery(personalizedContext)}` : '';
-    const userPrefix = userId ? `${userId}:` : '';
+    const personalizedContext = [memorySummary, ascentContext]
+      .filter(Boolean)
+      .join("|");
+    const personalizedHash = personalizedContext
+      ? `:p${this.hashQuery(personalizedContext)}`
+      : "";
+    const userPrefix = userId ? `${userId}:` : "";
     const cacheKey = `ai:ask:${userPrefix}${this.hashQuery(query)}${historyHash}${personalizedHash}`;
     const startTime = Date.now();
 
@@ -77,15 +172,21 @@ export class QueryService {
       const cached = await this.env.CACHE.get(cacheKey);
       if (cached) {
         this.logQuery({
-          userId: userId ?? null, query, response: '', sources: [],
-          latencyMs: Date.now() - startTime, tokenCount: 0, cacheHit: true,
-          pipelineTrace: JSON.stringify({ cache: { type: 'kv' } }),
+          userId: userId ?? null,
+          query,
+          response: "",
+          sources: [],
+          latencyMs: Date.now() - startTime,
+          tokenCount: 0,
+          cacheHit: true,
+          pipelineTrace: JSON.stringify({ cache: { type: "kv" } }),
         }).catch(() => {});
         return JSON.parse(cached) as AIAskResponse;
       }
     }
 
-    const isAnonymousNoHistory = !userId && recentHistory.length === 0 && !no_cache;
+    const isAnonymousNoHistory =
+      !userId && recentHistory.length === 0 && !no_cache;
 
     // 批次讀取 pipeline 設定 + 提前 embed query + prompts
     const [pipelineCfg, earlyQueryVector, dbPrompts] = await Promise.all([
@@ -97,16 +198,54 @@ export class QueryService {
     ]);
 
     const p = {
-      SYSTEM_PROMPT: resolvePrompt(dbPrompts['system_prompt'], SYSTEM_PROMPT, []),
-      TOOL_SELECTION_PROMPT: resolvePrompt(dbPrompts['tool_selection_prompt'], TOOL_SELECTION_PROMPT, ['query', 'crags', 'areas', 'regions']),
-      GENERAL_KNOWLEDGE_SYSTEM_PROMPT: resolvePrompt(dbPrompts['general_knowledge_system_prompt'], GENERAL_KNOWLEDGE_SYSTEM_PROMPT, []),
-      HYDE_PROMPT: resolvePrompt(dbPrompts['hyde_prompt'], HYDE_PROMPT, ['query']),
-      JUDGE_PROMPT: resolvePrompt(dbPrompts['judge_prompt'], JUDGE_PROMPT, ['context', 'query', 'response']),
-      MULTI_QUERY_EXPANSION_PROMPT: resolvePrompt(dbPrompts['multi_query_expansion_prompt'], MULTI_QUERY_EXPANSION_PROMPT, ['query', 'count']),
-      AGENTIC_DECISION_PROMPT: resolvePrompt(dbPrompts['agentic_decision_prompt'], AGENTIC_DECISION_PROMPT, ['query', 'count', 'evidence_summary', 'min_docs', 'remaining_steps']),
-      PLANNING_PROMPT: resolvePrompt(dbPrompts['planning_prompt'], PLANNING_PROMPT, ['query', 'crags', 'areas', 'max_steps']),
-      SYNTHESIS_PROMPT: resolvePrompt(dbPrompts['synthesis_prompt'], SYNTHESIS_PROMPT, ['query', 'step_results']),
-      QUERY_TEMPLATE: resolvePrompt(dbPrompts['query_template'], QUERY_TEMPLATE, ['context', 'query']),
+      SYSTEM_PROMPT: resolvePrompt(
+        dbPrompts["system_prompt"],
+        SYSTEM_PROMPT,
+        [],
+      ),
+      TOOL_SELECTION_PROMPT: resolvePrompt(
+        dbPrompts["tool_selection_prompt"],
+        TOOL_SELECTION_PROMPT,
+        ["query", "crags", "areas", "regions"],
+      ),
+      GENERAL_KNOWLEDGE_SYSTEM_PROMPT: resolvePrompt(
+        dbPrompts["general_knowledge_system_prompt"],
+        GENERAL_KNOWLEDGE_SYSTEM_PROMPT,
+        [],
+      ),
+      HYDE_PROMPT: resolvePrompt(dbPrompts["hyde_prompt"], HYDE_PROMPT, [
+        "query",
+      ]),
+      JUDGE_PROMPT: resolvePrompt(dbPrompts["judge_prompt"], JUDGE_PROMPT, [
+        "context",
+        "query",
+        "response",
+      ]),
+      MULTI_QUERY_EXPANSION_PROMPT: resolvePrompt(
+        dbPrompts["multi_query_expansion_prompt"],
+        MULTI_QUERY_EXPANSION_PROMPT,
+        ["query", "count"],
+      ),
+      AGENTIC_DECISION_PROMPT: resolvePrompt(
+        dbPrompts["agentic_decision_prompt"],
+        AGENTIC_DECISION_PROMPT,
+        ["query", "count", "evidence_summary", "min_docs", "remaining_steps"],
+      ),
+      PLANNING_PROMPT: resolvePrompt(
+        dbPrompts["planning_prompt"],
+        PLANNING_PROMPT,
+        ["query", "crags", "areas", "max_steps"],
+      ),
+      SYNTHESIS_PROMPT: resolvePrompt(
+        dbPrompts["synthesis_prompt"],
+        SYNTHESIS_PROMPT,
+        ["query", "step_results"],
+      ),
+      QUERY_TEMPLATE: resolvePrompt(
+        dbPrompts["query_template"],
+        QUERY_TEMPLATE,
+        ["context", "query"],
+      ),
     };
     const gatewayOptions = this.env.AI_GATEWAY_SLUG
       ? { gateway: { id: this.env.AI_GATEWAY_SLUG } }
@@ -118,10 +257,10 @@ export class QueryService {
       resetMs: pipelineCfg.circuit_breaker_reset_ms,
     });
     const cbCheck = await circuitBreaker.checkState();
-    if (cbCheck.action === 'reject') {
-      const cbError = new Error('AI 服務暫時不可用，請稍後再試');
-      (cbError as any).code = 'CIRCUIT_BREAKER_OPEN';
-      (cbError as any).circuitBreaker = { state: 'open', action: 'rejected' };
+    if (cbCheck.action === "reject") {
+      const cbError = new Error("AI 服務暫時不可用，請稍後再試");
+      (cbError as any).code = "CIRCUIT_BREAKER_OPEN";
+      (cbError as any).circuitBreaker = { state: "open", action: "rejected" };
       throw cbError;
     }
 
@@ -136,7 +275,7 @@ export class QueryService {
     // Langfuse observability
     const langfuseClient = createLangfuseClient(this.env);
     const langfuseTrace = createTrace(langfuseClient, {
-      name: 'ai-ask',
+      name: "ai-ask",
       userId,
       input: { query, chat_history_length: recentHistory.length },
       metadata: {
@@ -179,7 +318,7 @@ export class QueryService {
         const result = await withTimeout(
           runAIGraph(pipelineCtx),
           pipelineCfg.pipeline_timeout_ms,
-          'pipeline',
+          "pipeline",
         );
         return result.earlyReturn ?? result.finalResponse!;
       } else {
@@ -188,7 +327,7 @@ export class QueryService {
         const result = await withTimeout(
           engine.run(pipelineCtx),
           pipelineCfg.pipeline_timeout_ms,
-          'pipeline',
+          "pipeline",
         );
         return result.earlyReturn ?? result.finalResponse!;
       }
@@ -212,23 +351,26 @@ export class QueryService {
     extraTrace?: Record<string, unknown>,
   ): Promise<AIAskResponse> {
     const onToken = async (token: string) => {
-      await write(JSON.stringify({ type: 'token', token }));
+      await write(JSON.stringify({ type: "token", token }));
     };
     try {
       return await this.ask(request, userId, ctx, onToken, extraTrace);
     } catch (error) {
-      const message = error instanceof TimeoutError
-        ? '查詢處理超時，請稍後再試'
-        : (error as any)?.code === 'CIRCUIT_BREAKER_OPEN'
-          ? 'AI 服務暫時不可用，請稍後再試'
-          : '抱歉，AI 服務暫時無法使用，請稍後再試。';
-      await write(JSON.stringify({ type: 'error', message }));
+      const message =
+        error instanceof TimeoutError
+          ? "查詢處理超時，請稍後再試"
+          : (error as any)?.code === "CIRCUIT_BREAKER_OPEN"
+            ? "AI 服務暫時不可用，請稍後再試"
+            : "抱歉，AI 服務暫時無法使用，請稍後再試。";
+      await write(JSON.stringify({ type: "error", message }));
       throw error;
     }
   }
 
   // 純語義搜尋（不呼叫 LLM）
-  async search(request: AISearchRequest): Promise<{ results: AISource[]; count: number }> {
+  async search(
+    request: AISearchRequest,
+  ): Promise<{ results: AISource[]; count: number }> {
     const { query, limit = DEFAULT_TOP_K } = request;
 
     const [queryVector, cfg] = await Promise.all([
@@ -240,10 +382,12 @@ export class QueryService {
     const searchResults = await this.env.VECTOR_INDEX.query(queryVector, {
       topK: Math.min(limit, 50),
       filter: Object.keys(filter).length > 0 ? filter : undefined,
-      returnMetadata: 'all',
+      returnMetadata: "all",
     });
 
-    const relevantMatches = searchResults.matches.filter((m) => m.score >= cfg.min_vector_score);
+    const relevantMatches = searchResults.matches.filter(
+      (m) => m.score >= cfg.min_vector_score,
+    );
     const documents = await this.getDocuments(relevantMatches.map((m) => m.id));
 
     const results: AISource[] = relevantMatches
@@ -272,7 +416,11 @@ export class QueryService {
   checkSemanticCache(queryVector: number[], threshold: number) {
     return checkSemanticCache(this.env, queryVector, threshold);
   }
-  storeSemanticCache(vectorId: string, queryVector: number[], cacheKey: string) {
+  storeSemanticCache(
+    vectorId: string,
+    queryVector: number[],
+    cacheKey: string,
+  ) {
     return storeSemanticCache(this.env, vectorId, queryVector, cacheKey);
   }
   hashQuery(query: string) {
@@ -281,20 +429,57 @@ export class QueryService {
 
   // Query 處理
   parseQueryWithLLM(
-    query: string, llmModel: string, crags: string[], areas: string[], regions: string[],
-    gatewayOptions?: { gateway: { id: string } }, promptTemplate?: string,
+    query: string,
+    llmModel: string,
+    crags: string[],
+    areas: string[],
+    regions: string[],
+    gatewayOptions?: { gateway: { id: string } },
+    promptTemplate?: string,
   ) {
-    return parseQueryWithLLM(this.env, query, llmModel, crags, areas, regions, gatewayOptions, promptTemplate, this.langfuseParent);
+    return parseQueryWithLLM(
+      this.env,
+      query,
+      llmModel,
+      crags,
+      areas,
+      regions,
+      gatewayOptions,
+      promptTemplate,
+      this.langfuseParent,
+    );
   }
   generateHyDE(
-    query: string, llmModel: string, gatewayOptions?: { gateway: { id: string } }, promptTemplate?: string,
+    query: string,
+    llmModel: string,
+    gatewayOptions?: { gateway: { id: string } },
+    promptTemplate?: string,
   ) {
-    return generateHyDE(this.env, query, llmModel, gatewayOptions, promptTemplate, this.langfuseParent);
+    return generateHyDE(
+      this.env,
+      query,
+      llmModel,
+      gatewayOptions,
+      promptTemplate,
+      this.langfuseParent,
+    );
   }
   generateMultipleQueries(
-    query: string, count: number, model: string, gatewayOptions?: { gateway: { id: string } }, promptTemplate?: string,
+    query: string,
+    count: number,
+    model: string,
+    gatewayOptions?: { gateway: { id: string } },
+    promptTemplate?: string,
   ) {
-    return generateMultipleQueries(this.env, query, count, model, gatewayOptions, promptTemplate, this.langfuseParent);
+    return generateMultipleQueries(
+      this.env,
+      query,
+      count,
+      model,
+      gatewayOptions,
+      promptTemplate,
+      this.langfuseParent,
+    );
   }
 
   // 過濾
@@ -302,7 +487,9 @@ export class QueryService {
     return buildFiltersFromParsed(this.env.DB, parsed);
   }
   extractLocationFilter(
-    query: string, crags: Array<{ id: string; name: string; region: string | null }>, areas: Array<{ id: string; name: string }>,
+    query: string,
+    crags: Array<{ id: string; name: string; region: string | null }>,
+    areas: Array<{ id: string; name: string }>,
   ) {
     return extractLocationFilter(query, crags, areas);
   }
@@ -324,6 +511,9 @@ export class QueryService {
   extractRouteReference(query: string) {
     return extractRouteReference(this.env.DB, query);
   }
+  extractRouteReferences(query: string) {
+    return extractRouteReferences(this.env.DB, query);
+  }
 
   // 搜尋
   mergeResults(results: SearchResult[][], limit?: number) {
@@ -333,45 +523,103 @@ export class QueryService {
     return searchBM25(this.env.DB, query, topK);
   }
   agenticRetrieve(
-    query: string, vectorFilter: Record<string, unknown>, cfg: PipelineConfig,
-    steps: AgenticStepTrace[], agenticPromptTemplate?: string,
+    query: string,
+    vectorFilter: Record<string, unknown>,
+    cfg: PipelineConfig,
+    steps: AgenticStepTrace[],
+    agenticPromptTemplate?: string,
     decisionUsages?: Array<StageTokenUsage & { step: number }>,
   ) {
     return agenticRetrieve(
       { env: this.env, embeddingService: this.embeddingService },
-      query, vectorFilter, cfg, steps, agenticPromptTemplate, decisionUsages, this.langfuseParent,
+      query,
+      vectorFilter,
+      cfg,
+      steps,
+      agenticPromptTemplate,
+      decisionUsages,
+      this.langfuseParent,
     );
   }
 
   // Plan-and-Execute
   planQuery(
-    query: string, cfg: PipelineConfig, crags: string[], areas: string[],
-    promptTemplate?: string, gatewayOptions?: { gateway: { id: string } },
+    query: string,
+    cfg: PipelineConfig,
+    crags: string[],
+    areas: string[],
+    promptTemplate?: string,
+    gatewayOptions?: { gateway: { id: string } },
   ) {
-    return planQuery(this.env, query, cfg, crags, areas, promptTemplate, gatewayOptions, this.langfuseParent);
+    return planQuery(
+      this.env,
+      query,
+      cfg,
+      crags,
+      areas,
+      promptTemplate,
+      gatewayOptions,
+      this.langfuseParent,
+    );
   }
   executePlan(
-    plan: { steps: Array<{ id: number; query: string; tool: string; filters: Record<string, unknown>; depends_on: number[] }>; execution_mode: string },
-    cfg: PipelineConfig, gatewayOptions?: { gateway: { id: string } },
+    plan: {
+      steps: Array<{
+        id: number;
+        query: string;
+        tool: string;
+        filters: Record<string, unknown>;
+        depends_on: number[];
+      }>;
+      execution_mode: string;
+    },
+    cfg: PipelineConfig,
+    gatewayOptions?: { gateway: { id: string } },
   ) {
     return executePlan(
       { env: this.env, embeddingService: this.embeddingService },
-      plan as any, cfg, gatewayOptions,
+      plan as any,
+      cfg,
+      gatewayOptions,
     );
   }
   synthesize(
     query: string,
-    stepResults: Array<{ stepId: number; query: string; tool: string; candidates: SearchResult[]; documents: Map<string, { title: string; excerpt: string; url?: string }>; sqlContext?: string; durationMs: number; error?: string }>,
-    cfg: PipelineConfig, promptTemplate?: string, gatewayOptions?: { gateway: { id: string } },
+    stepResults: Array<{
+      stepId: number;
+      query: string;
+      tool: string;
+      candidates: SearchResult[];
+      documents: Map<string, { title: string; excerpt: string; url?: string }>;
+      sqlContext?: string;
+      durationMs: number;
+      error?: string;
+    }>,
+    cfg: PipelineConfig,
+    promptTemplate?: string,
+    gatewayOptions?: { gateway: { id: string } },
   ) {
-    return synthesize(this.env, query, stepResults, cfg, promptTemplate, gatewayOptions, this.langfuseParent);
+    return synthesize(
+      this.env,
+      query,
+      stepResults,
+      cfg,
+      promptTemplate,
+      gatewayOptions,
+      this.langfuseParent,
+    );
   }
   getDocuments(ids: string[]) {
     return getDocuments(this.env.DB, ids);
   }
 
   // Ranking
-  applyMMR(candidates: SearchResult[], documents: Map<string, AIDocument>, lambda: number, k: number) {
+  applyMMR(
+    candidates: SearchResult[],
+    documents: Map<string, AIDocument>,
+    lambda: number,
+    k: number,
+  ) {
     return applyMMR(candidates, documents, lambda, k);
   }
 
@@ -388,10 +636,21 @@ export class QueryService {
 
   // 生成
   streamLLMGeneration(
-    model: string, messages: Array<{ role: 'system' | 'user' | 'assistant'; content: string }>,
-    maxTokens: number, gatewayOptions: unknown, onToken: (token: string) => Promise<void>,
+    model: string,
+    messages: Array<{ role: "system" | "user" | "assistant"; content: string }>,
+    maxTokens: number,
+    gatewayOptions: unknown,
+    onToken: (token: string) => Promise<void>,
   ) {
-    return streamLLMGeneration(this.env, model, messages, maxTokens, gatewayOptions, onToken, this.langfuseParent);
+    return streamLLMGeneration(
+      this.env,
+      model,
+      messages,
+      maxTokens,
+      gatewayOptions,
+      onToken,
+      this.langfuseParent,
+    );
   }
   injectRouteLinks(text: string, sources: AISource[]) {
     return injectRouteLinks(text, sources);
@@ -399,24 +658,54 @@ export class QueryService {
 
   // 評估
   runJudge(
-    query: string, context: string, response: string,
-    opts?: { model?: string; timeoutMs?: number; contextTruncate?: number; promptTemplate?: string },
+    query: string,
+    context: string,
+    response: string,
+    opts?: {
+      model?: string;
+      timeoutMs?: number;
+      contextTruncate?: number;
+      promptTemplate?: string;
+    },
   ) {
-    return runJudge(this.env, query, context, response, opts, this.langfuseParent);
+    return runJudge(
+      this.env,
+      query,
+      context,
+      response,
+      opts,
+      this.langfuseParent,
+    );
   }
 
   // 日誌
   logQuery(params: {
-    userId: string | null; query: string; response: string; sources: AISource[];
-    latencyMs: number; tokenCount: number | null; groundednessScore?: number | null;
-    autoScore?: number | null; embeddingMs?: number | null; retrievalMs?: number | null;
-    generationMs?: number | null; queryType?: string | null; modelUsed?: string | null;
-    retrievalScore?: number | null; selfReflectionTriggered?: number | null;
-    isHighConsumption?: boolean; cacheHit?: boolean; hydeTriggered?: boolean; pipelineTrace?: string;
+    userId: string | null;
+    query: string;
+    response: string;
+    sources: AISource[];
+    latencyMs: number;
+    tokenCount: number | null;
+    groundednessScore?: number | null;
+    autoScore?: number | null;
+    embeddingMs?: number | null;
+    retrievalMs?: number | null;
+    generationMs?: number | null;
+    queryType?: string | null;
+    modelUsed?: string | null;
+    retrievalScore?: number | null;
+    selfReflectionTriggered?: number | null;
+    isHighConsumption?: boolean;
+    cacheHit?: boolean;
+    hydeTriggered?: boolean;
+    pipelineTrace?: string;
   }) {
     return logQuery(this.env.DB, params);
   }
-  flagResponse(queryLogId: string, reason: 'low_groundedness' | 'low_feedback' | 'score_discrepancy') {
+  flagResponse(
+    queryLogId: string,
+    reason: "low_groundedness" | "low_feedback" | "score_discrepancy",
+  ) {
     return flagResponse(this.env.DB, queryLogId, reason);
   }
 
