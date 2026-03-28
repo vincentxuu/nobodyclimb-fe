@@ -70,9 +70,38 @@ flowchart LR
     agenticRetrieve -->|繼續| agenticDecision
     agenticRetrieve -->|達上限| llmGeneration
     llmGeneration --> judge
-    judge --> memoryExtractor
+    judge -->|品質低| selfReflection
+    judge -->|品質ok| memoryExtractor
+    selfReflection -->|retrieval loopback| hybridSearch
+    selfReflection -->|generation loopback| llmGeneration
+    hybridSearch --> crossEncoder --> mmr --> popularityRerank --> agenticDecision
     memoryExtractor --> END
 ```
+
+### Agentic 路徑與 Baseline 的關鍵差異
+
+Baseline 的向量搜尋路徑會經過完整的 post-retrieval 階段（crossEncoder → mmr → popularityRerank），其中 `popularityRerank` 負責：
+- fetch 全文文件（`getDocuments`）
+- 組裝 `context`（供 llmGeneration 使用）
+- 組裝 `sources`（供回答附加來源連結）
+- 注入 `referenceRouteInfo`（相似路線搜尋的參考路線資訊）
+
+Agentic 路徑的主要搜尋迴圈（`agenticDecision` ↔ `agenticRetrieve`）**不經過 post-retrieval**，因此 `agenticRetrieve` 自行完成這些工作：
+- 呼叫 `queryService.getDocuments()` fetch 全文
+- 排除 `excludeRouteId`（避免推薦使用者剛爬完的路線）
+- 組裝 `context` 文字（含 `referenceRouteInfo` 注入）
+- 組裝 `sources` 陣列
+
+> **注意**：只有當 self-reflection 觸發 retrieval loopback 時，agentic 路徑才會走到 post-retrieval 階段（hybridSearch → crossEncoder → mmr → popularityRerank），此時 context 會被重新組裝。
+
+### 相似路線搜尋（Similar Route Search）
+
+相似路線搜尋在 agentic 路徑中有特殊處理：
+
+1. **tool-selection**：偵測 `hasSimilarRouteIntent`，查詢 DB 取得參考路線資訊，建立 `vectorFilter`（crag_id + grade_numeric 範圍），設定 `isSimRouteSearch=true`
+2. **agentic-decision（首輪）**：偵測到 `isSimRouteSearch && loopCount === 0`，跳過 LLM 決策，直接以原始 query 進行 RETRIEVE（避免 lightweight LLM 把查詢泛化）
+3. **agentic-decision（後續輪次）**：在 prompt 中注入 `referenceRouteInfo` 作為背景資訊，確保 `refinedQuery` 保留路線上下文
+4. **agentic-retrieve**：使用 `vectorFilter` 限制搜尋範圍，排除 `excludeRouteId`，在 context 前方注入「使用者剛爬完的路線：XXX」
 
 ## Plan-and-Execute Graph
 
@@ -207,3 +236,10 @@ export function routeAfterXxx(state: GraphState): 'nodeA' | 'nodeB' | typeof END
 | `degradedStages` | `string[] \| undefined` | 已降級的 stages（累積）|
 | `trace` | `Record<string, unknown>` | 執行追蹤資訊（merge reducer）|
 | `tokenBreakdown` | `Record<string, StageTokenUsage>` | 各 stage token 用量（merge reducer）|
+| `isSimRouteSearch` | `boolean \| undefined` | 是否為相似路線搜尋 |
+| `excludeRouteId` | `string \| null \| undefined` | 排除的參考路線 ID |
+| `referenceRouteInfo` | `string \| null \| undefined` | 參考路線描述（注入 context 用）|
+| `vectorFilter` | `Record<string, unknown> \| undefined` | 向量搜尋過濾器（crag_id, grade_numeric 等）|
+| `context` | `string \| undefined` | 組裝後的文件上下文（供 llmGeneration 使用）|
+| `sources` | `AISource[] \| undefined` | 來源清單（供回答附加連結）|
+| `documents` | `Map<string, AIDocument> \| undefined` | 全文文件快取 |
