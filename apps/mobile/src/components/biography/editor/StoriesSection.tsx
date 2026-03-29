@@ -1,25 +1,25 @@
-import React, { useState, useMemo } from 'react'
-import { View, Pressable } from 'react-native'
-import { YStack, XStack, Text } from 'tamagui'
+import { COLORS, SEMANTIC_COLORS } from '@nobodyclimb/constants'
+import type { Story, StoryCategoryId, StoryQuestion } from '@nobodyclimb/types'
+import type { LucideIcon } from 'lucide-react-native'
 import {
   BookOpen,
-  Clock,
-  ChevronRight,
-  ChevronDown,
-  Check,
-  Lightbulb,
-  Sparkles,
-  TrendingUp,
   Brain,
-  Users,
-  Wrench,
+  Check,
+  ChevronDown,
+  ChevronRight,
+  Clock,
   Compass,
+  Lightbulb,
   Palette,
   Shuffle,
+  Sparkles,
+  TrendingUp,
+  Users,
+  Wrench,
 } from 'lucide-react-native'
-import type { LucideIcon } from 'lucide-react-native'
-import { SEMANTIC_COLORS, COLORS } from '@nobodyclimb/constants'
-import type { StoryQuestion, Story, StoryCategoryId } from '@nobodyclimb/types'
+import { useMemo, useState } from 'react'
+import { Pressable, View } from 'react-native'
+import { Text, XStack, YStack } from 'tamagui'
 import { RandomRecommend } from './RandomRecommend'
 
 interface StoriesSectionProps {
@@ -332,9 +332,7 @@ export function StoriesSection({
                               <Text
                                 fontSize={12}
                                 fontWeight="500"
-                                color={
-                                  isFilled ? SEMANTIC_COLORS.textMain : COLORS.text.muted
-                                }
+                                color={isFilled ? SEMANTIC_COLORS.textMain : COLORS.text.muted}
                               >
                                 {isFilled ? '編輯' : '開始寫'}
                               </Text>

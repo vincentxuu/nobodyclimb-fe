@@ -1,7 +1,6 @@
 'use client'
 
-import React from 'react'
-import { Tag, MapPin } from 'lucide-react'
+import { MapPin, Tag } from 'lucide-react'
 import { getRouteName } from '@/lib/route-utils'
 
 export interface RouteHeaderData {
@@ -22,11 +21,7 @@ interface RouteHeaderProps {
   className?: string
 }
 
-export function RouteHeader({
-  route,
-  headingLevel = 'h2',
-  className = '',
-}: RouteHeaderProps) {
+export function RouteHeader({ route, headingLevel = 'h2', className = '' }: RouteHeaderProps) {
   const HeadingTag = headingLevel
   const headingClassName =
     headingLevel === 'h1'

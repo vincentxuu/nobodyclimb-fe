@@ -1,12 +1,12 @@
 'use client'
 
-import React, { useState, useEffect, useCallback } from 'react'
-import { usePathname, useRouter } from 'next/navigation'
-import { ProfileProvider } from '@/components/profile/ProfileContext'
 import { AnimatePresence, motion } from 'framer-motion'
-import MobileNav from './MobileNav'
-import { useAuthStore } from '@/store/authStore'
+import { usePathname, useRouter } from 'next/navigation'
 import { useTranslations } from 'next-intl'
+import React, { useCallback, useEffect, useState } from 'react'
+import { ProfileProvider } from '@/components/profile/ProfileContext'
+import { useAuthStore } from '@/store/authStore'
+import MobileNav from './MobileNav'
 
 export default function ProfileLayout({ children }: { children: React.ReactNode }) {
   const t = useTranslations('ProfilePage')

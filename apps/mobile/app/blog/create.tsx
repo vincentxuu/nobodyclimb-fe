@@ -3,26 +3,26 @@
  *
  * 對應 apps/web/src/app/blog/create/page.tsx
  */
-import React, { useState, useCallback } from 'react'
+
+import { RADIUS, SEMANTIC_COLORS, SPACING } from '@nobodyclimb/constants'
+import { Image } from 'expo-image'
+import * as ImagePicker from 'expo-image-picker'
+import { useRouter } from 'expo-router'
+import { ChevronLeft, ImagePlus, X } from 'lucide-react-native'
+import { useCallback, useState } from 'react'
 import {
-  StyleSheet,
-  View,
-  ScrollView,
-  TextInput,
-  Pressable,
   Alert,
   KeyboardAvoidingView,
   Platform,
+  Pressable,
+  ScrollView,
+  StyleSheet,
+  TextInput,
+  View,
 } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
-import { useRouter } from 'expo-router'
-import { Image } from 'expo-image'
-import { ChevronLeft, ImagePlus, X } from 'lucide-react-native'
-import * as ImagePicker from 'expo-image-picker'
-
-import { Text, IconButton, Button, Input } from '@/components/ui'
 import { ProtectedRoute } from '@/components/shared'
-import { SEMANTIC_COLORS, SPACING, RADIUS } from '@nobodyclimb/constants'
+import { Button, IconButton, Text } from '@/components/ui'
 
 export default function CreateArticleScreen() {
   const router = useRouter()
@@ -73,10 +73,8 @@ export default function CreateArticleScreen() {
     try {
       // TODO: 整合 articleService
       await new Promise((resolve) => setTimeout(resolve, 1000))
-      Alert.alert('發布成功', '你的文章已成功發布', [
-        { text: '好', onPress: () => router.back() },
-      ])
-    } catch (error) {
+      Alert.alert('發布成功', '你的文章已成功發布', [{ text: '好', onPress: () => router.back() }])
+    } catch (_error) {
       Alert.alert('發布失敗', '請稍後再試')
     } finally {
       setIsSubmitting(false)
@@ -104,10 +102,7 @@ export default function CreateArticleScreen() {
             onPress={handleSubmit}
             disabled={!isValid || isSubmitting}
           >
-            <Text
-              fontWeight="600"
-              style={isValid ? styles.publishTextActive : styles.publishText}
-            >
+            <Text fontWeight="600" style={isValid ? styles.publishTextActive : styles.publishText}>
               {isSubmitting ? '發布中...' : '發布'}
             </Text>
           </Button>
@@ -117,10 +112,7 @@ export default function CreateArticleScreen() {
           style={styles.keyboardView}
           behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
         >
-          <ScrollView
-            style={styles.scrollView}
-            keyboardShouldPersistTaps="handled"
-          >
+          <ScrollView style={styles.scrollView} keyboardShouldPersistTaps="handled">
             {/* 封面圖 */}
             <View style={styles.coverSection}>
               {coverImage ? (
@@ -130,18 +122,12 @@ export default function CreateArticleScreen() {
                     style={styles.coverImage}
                     contentFit="cover"
                   />
-                  <Pressable
-                    style={styles.removeImageButton}
-                    onPress={handleRemoveImage}
-                  >
+                  <Pressable style={styles.removeImageButton} onPress={handleRemoveImage}>
                     <X size={18} color="#FFFFFF" />
                   </Pressable>
                 </View>
               ) : (
-                <Pressable
-                  style={styles.addCoverButton}
-                  onPress={handlePickImage}
-                >
+                <Pressable style={styles.addCoverButton} onPress={handlePickImage}>
                   <ImagePlus size={32} color={SEMANTIC_COLORS.textMuted} />
                   <Text variant="body" color="textMuted">
                     新增封面圖片

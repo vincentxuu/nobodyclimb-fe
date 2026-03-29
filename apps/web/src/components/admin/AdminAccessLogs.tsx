@@ -1,23 +1,15 @@
 'use client'
 
-import { useState, useEffect, useCallback } from 'react'
-import { formatTaipei } from '@/lib/utils'
+import { Activity, AlertCircle, AlertTriangle, Globe, RefreshCw, Server, Zap } from 'lucide-react'
+import { useCallback, useEffect, useState } from 'react'
 import {
-  adminAccessLogsService,
-  AccessLogSummary,
   AccessLogEntry,
   AccessLogError,
   AccessLogSlow,
+  AccessLogSummary,
+  adminAccessLogsService,
 } from '@/lib/api/services'
-import {
-  RefreshCw,
-  AlertCircle,
-  Activity,
-  AlertTriangle,
-  Globe,
-  Server,
-  Zap,
-} from 'lucide-react'
+import { formatTaipei } from '@/lib/utils'
 
 type TabType = 'summary' | 'logs' | 'errors' | 'slow'
 
@@ -374,9 +366,7 @@ export default function AdminAccessLogs() {
               <tbody className="divide-y divide-wb-20">
                 {logsData.map((log, index) => (
                   <tr key={index} className="hover:bg-wb-10">
-                    <td className="px-4 py-3 text-sm text-wb-70">
-                      {formatTime(log.timestamp)}
-                    </td>
+                    <td className="px-4 py-3 text-sm text-wb-70">{formatTime(log.timestamp)}</td>
                     <td className="px-4 py-3">
                       <span className="px-2 py-1 text-xs font-medium bg-wb-10 text-wb-100 rounded">
                         {log.method}
@@ -408,9 +398,7 @@ export default function AdminAccessLogs() {
               </tbody>
             </table>
           </div>
-          {logsData.length === 0 && (
-            <div className="text-center py-8 text-wb-70">暫無日誌數據</div>
-          )}
+          {logsData.length === 0 && <div className="text-center py-8 text-wb-70">暫無日誌數據</div>}
         </div>
       )}
 
@@ -444,9 +432,7 @@ export default function AdminAccessLogs() {
               <tbody className="divide-y divide-wb-20">
                 {errorsData.map((log, index) => (
                   <tr key={index} className="hover:bg-wb-10">
-                    <td className="px-4 py-3 text-sm text-wb-70">
-                      {formatTime(log.timestamp)}
-                    </td>
+                    <td className="px-4 py-3 text-sm text-wb-70">{formatTime(log.timestamp)}</td>
                     <td className="px-4 py-3">
                       <span className="px-2 py-1 text-xs font-medium bg-wb-10 text-wb-100 rounded">
                         {log.method}
@@ -513,9 +499,7 @@ export default function AdminAccessLogs() {
               <tbody className="divide-y divide-wb-20">
                 {slowData.map((log, index) => (
                   <tr key={index} className="hover:bg-wb-10">
-                    <td className="px-4 py-3 text-sm text-wb-70">
-                      {formatTime(log.timestamp)}
-                    </td>
+                    <td className="px-4 py-3 text-sm text-wb-70">{formatTime(log.timestamp)}</td>
                     <td className="px-4 py-3">
                       <span className="px-2 py-1 text-xs font-medium bg-wb-10 text-wb-100 rounded">
                         {log.method}

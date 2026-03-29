@@ -1,8 +1,8 @@
-import React, { useState } from 'react'
-import { useRouter, useSearchParams } from 'next/navigation'
 import { Search } from 'lucide-react'
-import { Input } from '@/components/ui/input'
+import { useRouter, useSearchParams } from 'next/navigation'
 import { useTranslations } from 'next-intl'
+import { useState } from 'react'
+import { Input } from '@/components/ui/input'
 
 export default function SearchFilters() {
   const t = useTranslations('SearchPage')
@@ -30,12 +30,7 @@ export default function SearchFilters() {
     router.push(`/search?${params.toString()}`)
   }
 
-  const tabs = [
-    t('tabAll'),
-    t('tabBiography'),
-    t('tabCrag'),
-    t('tabBlog'),
-  ]
+  const tabs = [t('tabAll'), t('tabBiography'), t('tabCrag'), t('tabBlog')]
 
   return (
     <div className="mb-8">

@@ -1,10 +1,10 @@
 'use client'
 
+import { AlertCircle, Scissors, Upload, X } from 'lucide-react'
 import React, { useCallback, useRef, useState } from 'react'
-import { Upload, X, AlertCircle, Scissors } from 'lucide-react'
 import { IMAGE_CONSTRAINTS } from '../types'
-import { compressImage, validateImageType, readImageAsDataURL } from './imageUtils'
 import ImageCropDialog from './ImageCropDialog'
+import { compressImage, readImageAsDataURL, validateImageType } from './imageUtils'
 
 interface ImageUploaderProps {
   // eslint-disable-next-line no-unused-vars
@@ -187,9 +187,7 @@ export default function ImageUploader({
             </div>
           ) : (
             <>
-              <Upload
-                className={`mb-2 h-8 w-8 ${canUpload ? 'text-gray-400' : 'text-gray-300'}`}
-              />
+              <Upload className={`mb-2 h-8 w-8 ${canUpload ? 'text-gray-400' : 'text-gray-300'}`} />
               <p className={`text-sm ${canUpload ? 'text-gray-600' : 'text-gray-400'}`}>
                 {canUpload ? (
                   <>
@@ -218,10 +216,7 @@ export default function ImageUploader({
           <div className="flex items-center gap-2 rounded-md bg-red-50 p-2 text-sm text-red-600">
             <AlertCircle className="h-4 w-4 flex-shrink-0" />
             <span>{error}</span>
-            <button
-              onClick={() => setError(null)}
-              className="ml-auto rounded p-1 hover:bg-red-100"
-            >
+            <button onClick={() => setError(null)} className="ml-auto rounded p-1 hover:bg-red-100">
               <X className="h-3 w-3" />
             </button>
           </div>

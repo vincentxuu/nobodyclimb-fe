@@ -3,31 +3,24 @@
  *
  * 對應 apps/web/src/app/biography/explore/location/[name]/page.tsx
  */
-import React, { useCallback, useState } from 'react'
+
+import { SEMANTIC_COLORS, SPACING } from '@nobodyclimb/constants'
+import { useQuery, useQueryClient } from '@tanstack/react-query'
+import { useLocalSearchParams, useRouter } from 'expo-router'
+import { CheckCircle2, ChevronLeft, MapPin, Mountain, Target, Users } from 'lucide-react-native'
+import { useCallback, useState } from 'react'
 import {
+  ActivityIndicator,
+  Pressable,
+  RefreshControl,
+  ScrollView,
   StyleSheet,
   View,
-  ScrollView,
-  RefreshControl,
-  Pressable,
-  ActivityIndicator,
 } from 'react-native'
-import { SafeAreaView } from 'react-native-safe-area-context'
-import { useLocalSearchParams, useRouter } from 'expo-router'
 import Animated, { FadeInDown } from 'react-native-reanimated'
-import {
-  ChevronLeft,
-  MapPin,
-  Users,
-  Target,
-  CheckCircle2,
-  Mountain,
-} from 'lucide-react-native'
-import { useQuery, useQueryClient } from '@tanstack/react-query'
-
-import { Text, Card, Avatar, IconButton, Breadcrumb } from '@/components/ui'
+import { SafeAreaView } from 'react-native-safe-area-context'
+import { Avatar, Breadcrumb, Card, IconButton, Text } from '@/components/ui'
 import { apiClient } from '@/lib/api'
-import { SEMANTIC_COLORS, SPACING } from '@nobodyclimb/constants'
 
 // 類型定義
 interface Visitor {
@@ -185,9 +178,7 @@ export default function LocationDetailScreen() {
           />
         </View>
         <View style={styles.errorContainer}>
-          <Text color="textSubtle">
-            {error instanceof Error ? error.message : '找不到此地點'}
-          </Text>
+          <Text color="textSubtle">{error instanceof Error ? error.message : '找不到此地點'}</Text>
         </View>
       </SafeAreaView>
     )
@@ -317,10 +308,7 @@ export default function LocationDetailScreen() {
               相關目標
             </Text>
             {bucketItems.map((item, index) => (
-              <Animated.View
-                key={item.id}
-                entering={FadeInDown.delay(index * 50).duration(400)}
-              >
+              <Animated.View key={item.id} entering={FadeInDown.delay(index * 50).duration(400)}>
                 <Card style={styles.bucketCard}>
                   <View style={styles.bucketHeader}>
                     <Mountain size={16} color={SEMANTIC_COLORS.textMuted} />

@@ -1,11 +1,11 @@
 'use client'
 
-import { useEffect, useState, useCallback } from 'react'
-import { useAuthStore } from '@/store/authStore'
-import { useUIStore } from '@/store/uiStore'
+import { useCallback, useEffect, useState } from 'react'
+import StoryPromptModal from '@/components/biography/story-prompt-modal'
 import { biographyService, storyPromptService } from '@/lib/api/services'
 import { Biography } from '@/lib/types'
-import StoryPromptModal from '@/components/biography/story-prompt-modal'
+import { useAuthStore } from '@/store/authStore'
+import { useUIStore } from '@/store/uiStore'
 
 /**
  * 全域故事推薦彈窗包裝器
@@ -51,24 +51,25 @@ export function StoryPromptWrapper() {
   }, [isStoryPromptOpen, status])
 
   // 儲存故事
-  const handleSave = useCallback(async (questionId: string, storyValue: string) => {
-    if (!biography) {
-      throw new Error('尚未載入人物誌資料，請稍後再試')
-    }
+  const handleSave = useCallback(
+    async (questionId: string, storyValue: string) => {
+      if (!biography) {
+        throw new Error('尚未載入人物誌資料，請稍後再試')
+      }
 
-    // 更新人物誌資料（暫時仍使用舊的 field-based API，未來可改用 biography_stories）
-    await biographyService.updateMyBiography({
-      [questionId]: storyValue,
-    })
+      // 更新人物誌資料（暫時仍使用舊的 field-based API，未來可改用 biography_stories）
+      await biographyService.updateMyBiography({
+        [questionId]: storyValue,
+      })
 
-    // 記錄完成
-    await storyPromptService.completePrompt(questionId)
+      // 記錄完成
+      await storyPromptService.completePrompt(questionId)
 
-    // 更新本地狀態
-    setBiography((prev) =>
-      prev ? { ...prev, [questionId]: storyValue } : null
-    )
-  }, [biography])
+      // 更新本地狀態
+      setBiography((prev) => (prev ? { ...prev, [questionId]: storyValue } : null))
+    },
+    [biography]
+  )
 
   // 跳過
   const handleSkip = useCallback(async (questionId: string) => {

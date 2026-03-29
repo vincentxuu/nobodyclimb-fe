@@ -3,15 +3,15 @@
  *
  * 核心故事展示，對應 apps/web/src/components/biography/display/BiographyCoreStories.tsx
  */
-import React, { useState, useEffect, useCallback } from 'react'
-import { StyleSheet, View, ActivityIndicator } from 'react-native'
-import { Feather } from 'lucide-react-native'
-import Animated, { FadeInDown } from 'react-native-reanimated'
 
+import { SEMANTIC_COLORS, SPACING, WB_COLORS } from '@nobodyclimb/constants'
+import { Feather } from 'lucide-react-native'
+import { useCallback, useEffect, useState } from 'react'
+import { ActivityIndicator, StyleSheet, View } from 'react-native'
+import Animated, { FadeInDown } from 'react-native-reanimated'
+import { Card, Text } from '@/components/ui'
 import { apiClient } from '@/lib/api'
-import { Text, Card } from '@/components/ui'
 import { ContentInteractionBar } from './ContentInteractionBar'
-import { RADIUS, SEMANTIC_COLORS, SPACING, WB_COLORS } from '@nobodyclimb/constants'
 
 // 類型定義
 interface CoreStory {
@@ -96,10 +96,7 @@ function CoreStoryCard({
  *
  * 顯示用戶填寫的三個核心故事，支援按讚和留言
  */
-export function BiographyCoreStories({
-  biographyId,
-  style,
-}: BiographyCoreStoriesProps) {
+export function BiographyCoreStories({ biographyId, style }: BiographyCoreStoriesProps) {
   const [coreStories, setCoreStories] = useState<CoreStory[]>([])
   const [isLoading, setIsLoading] = useState(true)
 
@@ -163,22 +160,27 @@ export function BiographyCoreStories({
   const handleAddComment = async (storyId: string, content: string) => {
     setCoreStories((prev) =>
       prev.map((item) =>
-        item.id === storyId
-          ? { ...item, comment_count: item.comment_count + 1 }
-          : item
+        item.id === storyId ? { ...item, comment_count: item.comment_count + 1 } : item
       )
     )
     try {
-      const response = await apiClient.post(`/content/core-stories/${storyId}/comments`, { content })
-      return response.data?.data ?? response.data ?? { id: Date.now().toString(), content, created_at: new Date().toISOString() }
+      const response = await apiClient.post(`/content/core-stories/${storyId}/comments`, {
+        content,
+      })
+      return (
+        response.data?.data ??
+        response.data ?? {
+          id: Date.now().toString(),
+          content,
+          created_at: new Date().toISOString(),
+        }
+      )
     } catch (error) {
       console.error('Failed to add comment:', error)
       // 回滾
       setCoreStories((prev) =>
         prev.map((item) =>
-          item.id === storyId
-            ? { ...item, comment_count: item.comment_count - 1 }
-            : item
+          item.id === storyId ? { ...item, comment_count: item.comment_count - 1 } : item
         )
       )
       return { id: Date.now().toString(), content, created_at: new Date().toISOString() }

@@ -1,9 +1,9 @@
 'use client'
 
+import { AlertTriangle, Home, RefreshCw } from 'lucide-react'
+import { useTranslations } from 'next-intl'
 import { useEffect } from 'react'
 import { Link } from '@/i18n/navigation'
-import { AlertTriangle, RefreshCw, Home } from 'lucide-react'
-import { useTranslations } from 'next-intl'
 
 export default function CragError({
   error,
@@ -26,19 +26,13 @@ export default function CragError({
           <AlertTriangle className="h-8 w-8 text-red-600" />
         </div>
 
-        <h2 className="mb-2 text-xl font-semibold text-gray-900">
-          {t('errorTitle')}
-        </h2>
+        <h2 className="mb-2 text-xl font-semibold text-gray-900">{t('errorTitle')}</h2>
 
-        <p className="mb-6 text-sm text-gray-600">
-          {t('errorDescription')}
-        </p>
+        <p className="mb-6 text-sm text-gray-600">{t('errorDescription')}</p>
 
         {process.env.NODE_ENV === 'development' && error.message && (
           <div className="mb-6 rounded-lg bg-gray-100 p-3 text-left">
-            <p className="text-xs font-mono text-gray-700 break-all">
-              {error.message}
-            </p>
+            <p className="text-xs font-mono text-gray-700 break-all">{error.message}</p>
           </div>
         )}
 

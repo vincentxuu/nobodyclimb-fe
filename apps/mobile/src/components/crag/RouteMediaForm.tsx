@@ -3,23 +3,13 @@
  *
  * 使用 BottomSheet 的媒體分享表單，根據 mediaType 顯示不同欄位
  */
-import React, {
-  useCallback,
-  useMemo,
-  useRef,
-  useState,
-  forwardRef,
-  useImperativeHandle,
-} from 'react'
-import { StyleSheet, View, TextInput, Pressable, ActivityIndicator } from 'react-native'
-import BottomSheet, {
-  BottomSheetScrollView,
-  BottomSheetBackdrop,
-} from '@gorhom/bottom-sheet'
-import { X, Camera, Youtube, Instagram } from 'lucide-react-native'
 
-import { Text, IconButton } from '@/components/ui'
-import { SEMANTIC_COLORS, SPACING, RADIUS } from '@nobodyclimb/constants'
+import BottomSheet, { BottomSheetBackdrop, BottomSheetScrollView } from '@gorhom/bottom-sheet'
+import { RADIUS, SEMANTIC_COLORS, SPACING } from '@nobodyclimb/constants'
+import { Camera, Instagram, X, Youtube } from 'lucide-react-native'
+import { forwardRef, useCallback, useImperativeHandle, useMemo, useRef, useState } from 'react'
+import { ActivityIndicator, Pressable, StyleSheet, TextInput, View } from 'react-native'
+import { IconButton, Text } from '@/components/ui'
 
 // ── Types ──────────────────────────────────────────────
 
@@ -93,12 +83,7 @@ export const RouteMediaForm = forwardRef<RouteMediaFormRef, RouteMediaFormProps>
 
     const renderBackdrop = useCallback(
       (props: any) => (
-        <BottomSheetBackdrop
-          {...props}
-          disappearsOnIndex={-1}
-          appearsOnIndex={0}
-          opacity={0.5}
-        />
+        <BottomSheetBackdrop {...props} disappearsOnIndex={-1} appearsOnIndex={0} opacity={0.5} />
       ),
       []
     )
@@ -252,21 +237,14 @@ export const RouteMediaForm = forwardRef<RouteMediaFormRef, RouteMediaFormProps>
 
             {/* 提交按鈕 */}
             <Pressable
-              style={[
-                styles.submitButton,
-                isSubmitDisabled && styles.submitButtonDisabled,
-              ]}
+              style={[styles.submitButton, isSubmitDisabled && styles.submitButtonDisabled]}
               onPress={handleSubmit}
               disabled={isSubmitDisabled}
             >
               {isLoading ? (
                 <ActivityIndicator size="small" color="#FFFFFF" />
               ) : (
-                <Text
-                  variant="body"
-                  fontWeight="600"
-                  style={styles.submitButtonText}
-                >
+                <Text variant="body" fontWeight="600" style={styles.submitButtonText}>
                   {config.submitLabel}
                 </Text>
               )}

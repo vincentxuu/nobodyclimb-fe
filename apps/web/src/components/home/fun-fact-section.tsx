@@ -1,10 +1,10 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { AnimatePresence, motion } from 'framer-motion'
+import { ChevronDown, ChevronUp, ExternalLink, Lightbulb } from 'lucide-react'
 import Link from 'next/link'
-import { motion, AnimatePresence } from 'framer-motion'
-import { Lightbulb, ChevronDown, ChevronUp, ExternalLink } from 'lucide-react'
 import { useTranslations } from 'next-intl'
+import { useEffect, useState } from 'react'
 
 interface FunFact {
   id: string
@@ -37,12 +37,12 @@ interface FunFactsData {
 
 // 每週七天對應的類別
 const DAILY_CATEGORIES = [
-  'taiwan',      // 週日
-  'record',      // 週一
-  'history',     // 週二
-  'technique',   // 週三
-  'gear',        // 週四
-  'culture',     // 週五
+  'taiwan', // 週日
+  'record', // 週一
+  'history', // 週二
+  'technique', // 週三
+  'gear', // 週四
+  'culture', // 週五
   'competition', // 週六
 ] as const
 
@@ -98,7 +98,8 @@ export function FunFactSection() {
 
           if (categoryFacts.length > 0) {
             // 使用日期作為種子，確保同一天顯示同一則
-            const dateSeed = today.getFullYear() * 10000 + (today.getMonth() + 1) * 100 + today.getDate()
+            const dateSeed =
+              today.getFullYear() * 10000 + (today.getMonth() + 1) * 100 + today.getDate()
             const index = Math.floor(seededRandom(dateSeed) * categoryFacts.length)
             setCurrentFact(categoryFacts[index])
             setCategoryLabel(CATEGORY_LABEL_KEYS[todayCategory] || todayCategory)
@@ -159,7 +160,9 @@ export function FunFactSection() {
                     </span>
                     {categoryLabel && (
                       <span className="rounded-full bg-brand-accent/40 px-2 py-0.5 text-[10px] font-medium text-brand-dark">
-                        {categoryLabel.startsWith('funFactCategory') ? t(categoryLabel as Parameters<typeof t>[0]) : categoryLabel}
+                        {categoryLabel.startsWith('funFactCategory')
+                          ? t(categoryLabel as Parameters<typeof t>[0])
+                          : categoryLabel}
                       </span>
                     )}
                   </div>
@@ -172,7 +175,11 @@ export function FunFactSection() {
                 className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full bg-brand-accent/30 text-brand-dark transition-colors hover:bg-brand-accent/50"
                 aria-label={isRevealed ? t('funFactHideAnswer') : t('funFactShowAnswer')}
               >
-                {isRevealed ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
+                {isRevealed ? (
+                  <ChevronUp className="h-4 w-4" />
+                ) : (
+                  <ChevronDown className="h-4 w-4" />
+                )}
               </button>
             </div>
 

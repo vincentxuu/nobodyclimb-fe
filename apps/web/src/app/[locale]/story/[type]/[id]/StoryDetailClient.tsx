@@ -1,23 +1,23 @@
 'use client'
 
-import React, { useState, useEffect, use } from 'react'
-import { Link } from '@/i18n/navigation'
-import Image from 'next/image'
 import { motion } from 'framer-motion'
-import { ArrowLeft, ArrowRight, Loader2, Calendar } from 'lucide-react'
-import { Button } from '@/components/ui/button'
-import { Breadcrumb } from '@/components/ui/breadcrumb'
+import { ArrowLeft, ArrowRight, Calendar, Loader2 } from 'lucide-react'
+import Image from 'next/image'
+import { use, useEffect, useState } from 'react'
 import { ContentInteractionBar } from '@/components/biography/display/ContentInteractionBar'
 import { RelatedStories } from '@/components/story/RelatedStories'
+import { Breadcrumb } from '@/components/ui/breadcrumb'
+import { Button } from '@/components/ui/button'
+import { Link } from '@/i18n/navigation'
 import {
   biographyContentService,
+  ContentComment,
   CoreStory,
   OneLiner,
   Story,
-  ContentComment,
 } from '@/lib/api/services'
 import { normalizeNewlines } from '@/lib/utils'
-import { isSvgUrl, getDefaultAvatarUrl } from '@/lib/utils/image'
+import { getDefaultAvatarUrl, isSvgUrl } from '@/lib/utils/image'
 
 // 故事類型定義
 type StoryType = 'core-stories' | 'one-liners' | 'stories'
@@ -56,7 +56,7 @@ interface StoryDetailClientProps {
 const TYPE_LABELS: Record<StoryType, string> = {
   'core-stories': '核心故事',
   'one-liners': '一句話',
-  'stories': '小故事',
+  stories: '小故事',
 }
 
 // 驗證故事類型
@@ -484,17 +484,16 @@ export default function StoryDetailClient({ params }: StoryDetailClientProps) {
                   </h3>
                 </Link>
                 {story.author_title && (
-                  <p className="mt-1 text-sm text-[#6D6C6C] line-clamp-2">
-                    {story.author_title}
-                  </p>
+                  <p className="mt-1 text-sm text-[#6D6C6C] line-clamp-2">{story.author_title}</p>
                 )}
               </div>
 
               {/* CTA 按鈕 - 桌面版 */}
-              <Link href={`/biography/profile/${story.biography_slug}`} className="hidden sm:block flex-shrink-0">
-                <Button
-                  className="flex items-center gap-2 bg-brand-yellow-100 text-sm font-semibold text-[#1B1A1A] transition-all hover:bg-brand-yellow-200"
-                >
+              <Link
+                href={`/biography/profile/${story.biography_slug}`}
+                className="hidden sm:block flex-shrink-0"
+              >
+                <Button className="flex items-center gap-2 bg-brand-yellow-100 text-sm font-semibold text-[#1B1A1A] transition-all hover:bg-brand-yellow-200">
                   <span>查看故事</span>
                   <ArrowRight size={16} />
                 </Button>
@@ -502,10 +501,11 @@ export default function StoryDetailClient({ params }: StoryDetailClientProps) {
             </div>
 
             {/* CTA 按鈕 - 手機版 */}
-            <Link href={`/biography/profile/${story.biography_slug}`} className="mt-4 block sm:hidden">
-              <Button
-                className="flex w-full items-center justify-center gap-2 bg-brand-yellow-100 text-sm font-semibold text-[#1B1A1A] transition-all hover:bg-brand-yellow-200"
-              >
+            <Link
+              href={`/biography/profile/${story.biography_slug}`}
+              className="mt-4 block sm:hidden"
+            >
+              <Button className="flex w-full items-center justify-center gap-2 bg-brand-yellow-100 text-sm font-semibold text-[#1B1A1A] transition-all hover:bg-brand-yellow-200">
                 <span>查看 {story.author_name} 的完整故事</span>
                 <ArrowRight size={16} />
               </Button>

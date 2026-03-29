@@ -3,17 +3,13 @@
  *
  * 頭像組件
  */
-import React, { useState } from 'react'
-import { View, StyleSheet, Text as RNText, type ViewStyle } from 'react-native'
+
+import type { AvatarSize } from '@nobodyclimb/constants'
+import { AVATAR_SIZES, SEMANTIC_COLORS, WB_COLORS } from '@nobodyclimb/constants'
 import { Image } from 'expo-image'
 import { User } from 'lucide-react-native'
-import {
-  AVATAR_SIZES,
-  BORDER_RADIUS,
-  WB_COLORS,
-  SEMANTIC_COLORS,
-} from '@nobodyclimb/constants'
-import type { AvatarSize } from '@nobodyclimb/constants'
+import React, { useState } from 'react'
+import { Text as RNText, StyleSheet, View, type ViewStyle } from 'react-native'
 
 export interface AvatarProps {
   /** 圖片來源 */
@@ -37,13 +33,7 @@ export interface AvatarProps {
  * <Avatar size="lg" alt="User Name" />
  * ```
  */
-export function Avatar({
-  source,
-  size = 'md',
-  alt,
-  style,
-  fallback: customFallback,
-}: AvatarProps) {
+export function Avatar({ source, size = 'md', alt, style, fallback: customFallback }: AvatarProps) {
   const [hasError, setHasError] = useState(false)
   const avatarSize = AVATAR_SIZES[size]
 
@@ -63,15 +53,10 @@ export function Avatar({
     >
       {showFallback ? (
         customFallback ? (
-          <View style={[styles.fallback, { borderRadius: avatarSize / 2 }]}>
-            {customFallback}
-          </View>
+          <View style={[styles.fallback, { borderRadius: avatarSize / 2 }]}>{customFallback}</View>
         ) : (
           <View style={[styles.fallback, { borderRadius: avatarSize / 2 }]}>
-            <User
-              size={avatarSize * 0.5}
-              color={SEMANTIC_COLORS.textMuted}
-            />
+            <User size={avatarSize * 0.5} color={SEMANTIC_COLORS.textMuted} />
           </View>
         )
       ) : (
@@ -124,12 +109,7 @@ export interface AvatarGroupProps {
  * />
  * ```
  */
-export function AvatarGroup({
-  avatars,
-  size = 'sm',
-  max = 4,
-  style,
-}: AvatarGroupProps) {
+export function AvatarGroup({ avatars, size = 'sm', max = 4, style }: AvatarGroupProps) {
   const avatarSize = AVATAR_SIZES[size]
   const overlap = avatarSize * 0.25
   const displayAvatars = avatars.slice(0, max)
@@ -167,15 +147,8 @@ export function AvatarGroup({
             },
           ]}
         >
-          <View
-            style={[
-              styles.remainingInner,
-              { borderRadius: avatarSize / 2 },
-            ]}
-          >
-            <RNText style={styles.remainingText}>
-              +{remaining}
-            </RNText>
+          <View style={[styles.remainingInner, { borderRadius: avatarSize / 2 }]}>
+            <RNText style={styles.remainingText}>+{remaining}</RNText>
           </View>
         </View>
       )}

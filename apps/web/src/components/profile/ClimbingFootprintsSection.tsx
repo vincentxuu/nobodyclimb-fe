@@ -1,14 +1,14 @@
 'use client'
 
-import React, { useState, useEffect, useCallback } from 'react'
-import { Globe, Loader2, AlertCircle } from 'lucide-react'
-import { motion, AnimatePresence } from 'framer-motion'
-import { Label } from '@/components/ui/label'
+import { AnimatePresence, motion } from 'framer-motion'
+import { AlertCircle, Globe, Loader2 } from 'lucide-react'
+import { useCallback, useEffect, useState } from 'react'
 import { ClimbingFootprintsEditor } from '@/components/biography/climbing-footprints-editor'
-import { ClimbingLocation, ClimbingLocationRecord } from '@/lib/types'
-import { climbingLocationService } from '@/lib/api/services'
-import { getCountryFlag } from '@/lib/utils/country'
+import { Label } from '@/components/ui/label'
 import { useToast } from '@/components/ui/use-toast'
+import { climbingLocationService } from '@/lib/api/services'
+import { ClimbingLocation, ClimbingLocationRecord } from '@/lib/types'
+import { getCountryFlag } from '@/lib/utils/country'
 
 interface ClimbingFootprintsSectionProps {
   isEditing: boolean
@@ -126,7 +126,9 @@ export default function ClimbingFootprintsSection({
         // 平行執行刪除、新增、更新
         await Promise.all([
           ...toDelete.map((record) => climbingLocationService.deleteLocation(record.id)),
-          ...toCreate.map((loc) => climbingLocationService.createLocation(locationToCreateData(loc))),
+          ...toCreate.map((loc) =>
+            climbingLocationService.createLocation(locationToCreateData(loc))
+          ),
           ...toUpdate.map(({ id, data }) =>
             climbingLocationService.updateLocation(id, {
               location: data.location,
@@ -297,7 +299,11 @@ export default function ClimbingFootprintsSection({
 
       {/* Edit Mode */}
       {isEditing && (
-        <ClimbingFootprintsEditor locations={locations} onChange={handleChange} disabled={isSaving} />
+        <ClimbingFootprintsEditor
+          locations={locations}
+          onChange={handleChange}
+          disabled={isSaving}
+        />
       )}
     </div>
   )

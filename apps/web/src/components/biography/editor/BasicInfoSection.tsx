@@ -1,11 +1,25 @@
 'use client'
 
-import { useState, useRef, useMemo } from 'react'
+import {
+  ArrowLeftRight,
+  ArrowUpDown,
+  ChevronDown,
+  Clock,
+  ImageIcon,
+  Instagram,
+  Lightbulb,
+  Link,
+  Pencil,
+  Plus,
+  User,
+  X,
+  Youtube,
+} from 'lucide-react'
 import Image from 'next/image'
 import { useTranslations } from 'next-intl'
-import { cn } from '@/lib/utils'
-import { User, ImageIcon, Pencil, Clock, Link, Instagram, Youtube, X, Plus, Lightbulb, ArrowUpDown, ArrowLeftRight, ChevronDown } from 'lucide-react'
+import { useMemo, useRef, useState } from 'react'
 import type { SocialLinks } from '@/lib/types/biography-v2'
+import { cn } from '@/lib/utils'
 
 interface BasicInfoSectionProps {
   /** 用戶名稱 */
@@ -142,9 +156,7 @@ export function BasicInfoSection({
   }, [currentYear])
 
   // Calculate climbing years for display
-  const climbingYearsDisplay = climbingStartYear
-    ? currentYear - climbingStartYear
-    : null
+  const climbingYearsDisplay = climbingStartYear ? currentYear - climbingStartYear : null
 
   // Handle social links change
   const handleSocialLinkChange = (field: keyof SocialLinks, value: string) => {
@@ -210,432 +222,436 @@ export function BasicInfoSection({
         </div>
         <ChevronDown
           size={20}
-          className={cn(
-            'text-[#B6B3B3] transition-transform',
-            showContent && 'rotate-180'
-          )}
+          className={cn('text-[#B6B3B3] transition-transform', showContent && 'rotate-180')}
         />
       </button>
 
       {showContent && (
-      <><div className="space-y-2">
-        <label className="text-sm font-medium text-[#3F3D3D]">{t('coverImageLabel')}</label>
-        <div
-          className="relative h-32 md:h-48 bg-[#EBEAEA] rounded-lg overflow-hidden cursor-pointer group"
-          onClick={() => coverInputRef.current?.click()}
-        >
-          {displayCover ? (
-            <Image
-              src={displayCover}
-              alt={t('coverImageAlt')}
-              fill
-              className="object-cover"
-            />
-          ) : (
-            <div className="absolute inset-0 flex flex-col items-center justify-center text-[#6D6C6C]">
-              <ImageIcon size={32} className="mb-2" />
-              <span className="text-sm">{t('coverImageUploadHint')}</span>
+        <>
+          <div className="space-y-2">
+            <label className="text-sm font-medium text-[#3F3D3D]">{t('coverImageLabel')}</label>
+            <div
+              className="relative h-32 md:h-48 bg-[#EBEAEA] rounded-lg overflow-hidden cursor-pointer group"
+              onClick={() => coverInputRef.current?.click()}
+            >
+              {displayCover ? (
+                <Image src={displayCover} alt={t('coverImageAlt')} fill className="object-cover" />
+              ) : (
+                <div className="absolute inset-0 flex flex-col items-center justify-center text-[#6D6C6C]">
+                  <ImageIcon size={32} className="mb-2" />
+                  <span className="text-sm">{t('coverImageUploadHint')}</span>
+                </div>
+              )}
+              <div className="absolute inset-0 bg-brand-dark/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                <span className="text-white text-sm font-medium">{t('coverImageChangeHover')}</span>
+              </div>
             </div>
-          )}
-          <div className="absolute inset-0 bg-brand-dark/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
-            <span className="text-white text-sm font-medium">{t('coverImageChangeHover')}</span>
+            <input
+              ref={coverInputRef}
+              type="file"
+              accept="image/*"
+              onChange={handleCoverSelect}
+              className="hidden"
+            />
+            <p className="text-xs text-[#8E8C8C]">{t('coverImageSizeHint')}</p>
           </div>
-        </div>
-        <input
-          ref={coverInputRef}
-          type="file"
-          accept="image/*"
-          onChange={handleCoverSelect}
-          className="hidden"
-        />
-        <p className="text-xs text-[#8E8C8C]">{t('coverImageSizeHint')}</p>
-      </div>
 
-      {/* Avatar */}
-      <div className="space-y-2">
-        <label className="text-sm font-medium text-[#3F3D3D]">{t('avatarLabel')}</label>
-        <div className="flex items-center gap-4">
-          <div
-            className="relative w-20 h-20 bg-[#EBEAEA] rounded-full overflow-hidden cursor-pointer group"
-            onClick={() => avatarInputRef.current?.click()}
-          >
-            {displayAvatar ? (
-              <Image
-                src={displayAvatar}
-                alt={t('avatarAlt')}
-                fill
-                className="object-cover"
+          {/* Avatar */}
+          <div className="space-y-2">
+            <label className="text-sm font-medium text-[#3F3D3D]">{t('avatarLabel')}</label>
+            <div className="flex items-center gap-4">
+              <div
+                className="relative w-20 h-20 bg-[#EBEAEA] rounded-full overflow-hidden cursor-pointer group"
+                onClick={() => avatarInputRef.current?.click()}
+              >
+                {displayAvatar ? (
+                  <Image src={displayAvatar} alt={t('avatarAlt')} fill className="object-cover" />
+                ) : (
+                  <div className="absolute inset-0 flex items-center justify-center text-[#6D6C6C]">
+                    <User size={32} />
+                  </div>
+                )}
+                <div className="absolute inset-0 bg-brand-dark/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                  <Pencil size={20} className="text-white" />
+                </div>
+              </div>
+              <input
+                ref={avatarInputRef}
+                type="file"
+                accept="image/*"
+                onChange={handleAvatarSelect}
+                className="hidden"
               />
-            ) : (
-              <div className="absolute inset-0 flex items-center justify-center text-[#6D6C6C]">
-                <User size={32} />
+              <div className="text-sm text-[#6D6C6C]">
+                <p>{t('avatarClickHint')}</p>
+                <p className="text-xs">{t('avatarShapeHint')}</p>
+              </div>
+            </div>
+          </div>
+
+          {/* Name */}
+          <div className="space-y-2">
+            <label className="text-sm font-medium text-[#3F3D3D]">
+              {t('displayNameLabel')}{' '}
+              <span className="text-red-500">{t('displayNameRequired')}</span>
+            </label>
+            <input
+              type="text"
+              value={name}
+              onChange={(e) => onNameChange(e.target.value)}
+              placeholder={t('displayNamePlaceholder')}
+              className="w-full px-4 py-3 bg-white border border-[#B6B3B3] rounded-lg text-[#1B1A1A] placeholder:text-[#9D9D9D] focus:outline-none focus:ring-2 focus:ring-brand-accent/50 focus:border-brand-dark transition-colors"
+              maxLength={50}
+            />
+            <p className="text-xs text-[#8E8C8C]">{t('displayNameHint')}</p>
+          </div>
+
+          {/* Title / Tagline */}
+          <div className="space-y-2">
+            <label className="text-sm font-medium text-[#3F3D3D]">
+              {t('taglineLabel')}
+              <span className="text-[#8E8C8C] font-normal ml-1">{t('taglineOptional')}</span>
+            </label>
+            <input
+              type="text"
+              value={title || ''}
+              onChange={(e) => onTitleChange(e.target.value || null)}
+              placeholder={t('taglinePlaceholder')}
+              className="w-full px-4 py-3 bg-white border border-[#B6B3B3] rounded-lg text-[#1B1A1A] placeholder:text-[#9D9D9D] focus:outline-none focus:ring-2 focus:ring-brand-accent/50 focus:border-brand-dark transition-colors"
+              maxLength={100}
+            />
+            <p className="text-xs text-[#8E8C8C] flex items-center gap-1">
+              <Lightbulb size={12} />
+              {t('taglineHint')}
+            </p>
+          </div>
+
+          {/* Climbing Start Year */}
+          <div className="space-y-2">
+            <label className="text-sm font-medium text-[#3F3D3D]">
+              {t('climbingStartYearLabel')}
+              <span className="text-[#8E8C8C] font-normal ml-1">
+                {t('climbingStartYearOptional')}
+              </span>
+            </label>
+            <div className="flex items-center gap-3">
+              <select
+                value={climbingStartYear ?? ''}
+                onChange={(e) => {
+                  const value = e.target.value
+                  onClimbingStartYearChange(value ? parseInt(value, 10) : null)
+                }}
+                className="w-32 px-4 py-3 bg-white border border-[#B6B3B3] rounded-lg text-[#1B1A1A] focus:outline-none focus:ring-2 focus:ring-brand-accent/50 focus:border-brand-dark transition-colors appearance-none cursor-pointer"
+              >
+                <option value="">{t('climbingStartYearSelect')}</option>
+                {yearOptions.map((year) => (
+                  <option key={year} value={year}>
+                    {year}
+                  </option>
+                ))}
+              </select>
+              <span className="text-[#6D6C6C] text-sm">
+                {climbingYearsDisplay !== null && climbingYearsDisplay >= 0
+                  ? t('climbingYearsExperience', { years: climbingYearsDisplay })
+                  : t('climbingStartDefault')}
+              </span>
+            </div>
+            <p className="text-xs text-[#8E8C8C]">{t('climbingStartYearHint')}</p>
+          </div>
+
+          {/* Height & Arm Span */}
+          <div className="space-y-2">
+            <div className="flex items-center gap-2 mb-2">
+              <label className="text-sm font-medium text-[#3F3D3D]">
+                {t('bodyStatsLabel')}
+                <span className="text-[#8E8C8C] font-normal ml-1">{t('bodyStatsOptional')}</span>
+              </label>
+            </div>
+            <div className="flex flex-col gap-3 md:flex-row md:items-center md:gap-4">
+              <div className="flex items-center gap-2">
+                <ArrowUpDown size={16} className="shrink-0 text-[#3F3D3D]" />
+                <span className="shrink-0 whitespace-nowrap text-sm text-[#6D6C6C]">
+                  {t('heightLabel')}
+                </span>
+                <input
+                  type="number"
+                  min={100}
+                  max={250}
+                  value={heightCm ?? ''}
+                  onChange={(e) => onHeightCmChange(parseIntOrNull(e.target.value))}
+                  placeholder="170"
+                  className="w-[100px] shrink-0 rounded-lg border border-[#B6B3B3] bg-white px-3 py-2 text-center text-sm text-[#1B1A1A] placeholder:text-[#9D9D9D] transition-colors focus:border-brand-dark focus:outline-none focus:ring-2 focus:ring-brand-accent/50"
+                />
+                <span className="shrink-0 whitespace-nowrap text-sm text-[#6D6C6C]">cm</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <ArrowLeftRight size={16} className="shrink-0 text-[#3F3D3D]" />
+                <span className="shrink-0 whitespace-nowrap text-sm text-[#6D6C6C]">
+                  {t('armSpanLabel')}
+                </span>
+                <input
+                  type="number"
+                  min={100}
+                  max={250}
+                  value={armSpanCm ?? ''}
+                  onChange={(e) => onArmSpanCmChange(parseIntOrNull(e.target.value))}
+                  placeholder="175"
+                  className="w-[100px] shrink-0 rounded-lg border border-[#B6B3B3] bg-white px-3 py-2 text-center text-sm text-[#1B1A1A] placeholder:text-[#9D9D9D] transition-colors focus:border-brand-dark focus:outline-none focus:ring-2 focus:ring-brand-accent/50"
+                />
+                <span className="shrink-0 whitespace-nowrap text-sm text-[#6D6C6C]">cm</span>
+              </div>
+            </div>
+            <p className="text-xs text-[#8E8C8C]">
+              {heightCm && armSpanCm
+                ? t('apeIndexWithValue', {
+                    value: `${armSpanCm - heightCm > 0 ? '+' : ''}${armSpanCm - heightCm}`,
+                  })
+                : t('apeIndexHint')}
+            </p>
+          </div>
+
+          {/* Frequent Locations - 多選標籤 */}
+          <div className="space-y-2">
+            <label className="text-sm font-medium text-[#3F3D3D]">
+              {t('frequentLocationsLabel')}
+              <span className="text-[#8E8C8C] font-normal ml-1">
+                {t('frequentLocationsMultiple')}
+              </span>
+            </label>
+            <div className="flex flex-wrap gap-2">
+              {frequentLocations.map((location, index) => (
+                <span
+                  key={index}
+                  className="inline-flex items-center gap-1 rounded-full bg-[#F5F5F5] px-3 py-1.5 text-sm text-[#1B1A1A]"
+                >
+                  {location}
+                  <button
+                    type="button"
+                    onClick={() => {
+                      const newLocations = frequentLocations.filter((_, i) => i !== index)
+                      onFrequentLocationsChange(newLocations)
+                    }}
+                    className="ml-1 text-[#6D6C6C] hover:text-[#1B1A1A] transition-colors"
+                  >
+                    <X size={14} />
+                  </button>
+                </span>
+              ))}
+              <div className="inline-flex items-center gap-1">
+                <input
+                  type="text"
+                  value={newLocation}
+                  onChange={(e) => setNewLocation(e.target.value)}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter' && newLocation.trim()) {
+                      e.preventDefault()
+                      if (!frequentLocations.includes(newLocation.trim())) {
+                        onFrequentLocationsChange([...frequentLocations, newLocation.trim()])
+                      }
+                      setNewLocation('')
+                    }
+                  }}
+                  placeholder={t('frequentLocationsInputPlaceholder')}
+                  className="w-32 px-3 py-1.5 text-sm bg-white text-[#1B1A1A] border border-dashed border-[#B6B3B3] rounded-full placeholder:text-[#9D9D9D] focus:outline-none focus:border-brand-dark"
+                />
+                <button
+                  type="button"
+                  onClick={() => {
+                    if (newLocation.trim() && !frequentLocations.includes(newLocation.trim())) {
+                      onFrequentLocationsChange([...frequentLocations, newLocation.trim()])
+                      setNewLocation('')
+                    }
+                  }}
+                  className="p-1.5 text-[#6D6C6C] hover:text-brand-dark hover:bg-[#F5F5F5] rounded-full transition-colors"
+                >
+                  <Plus size={16} />
+                </button>
+              </div>
+            </div>
+            <p className="text-xs text-[#8E8C8C]">{t('frequentLocationsHint')}</p>
+          </div>
+
+          {/* Favorite Route Types - 多選標籤 */}
+          <div className="space-y-4">
+            <label className="text-sm font-medium text-[#3F3D3D]">
+              {t('favoriteRouteTypesLabel')}
+              <span className="text-[#8E8C8C] font-normal ml-1">
+                {t('favoriteRouteTypesMultiple')}
+              </span>
+            </label>
+            {/* 分類預設選項 */}
+            {routeTypeGroups.map((group) => (
+              <div key={group.category} className="space-y-2">
+                <span className="text-xs text-[#6D6C6C]">{group.category}</span>
+                <div className="flex flex-wrap gap-2">
+                  {group.options.map((option) => {
+                    const isSelected = favoriteRouteTypes.includes(option.value)
+                    return (
+                      <button
+                        key={option.value}
+                        type="button"
+                        onClick={() => {
+                          if (isSelected) {
+                            onFavoriteRouteTypesChange(
+                              favoriteRouteTypes.filter((t) => t !== option.value)
+                            )
+                          } else {
+                            onFavoriteRouteTypesChange([...favoriteRouteTypes, option.value])
+                          }
+                        }}
+                        className={cn(
+                          'px-3 py-1.5 text-sm rounded-full border transition-colors',
+                          isSelected
+                            ? 'bg-brand-dark text-white border-brand-dark'
+                            : 'bg-white text-[#3F3D3D] border-[#B6B3B3] hover:border-brand-dark hover:bg-[#F5F5F5]'
+                        )}
+                      >
+                        {option.label}
+                      </button>
+                    )
+                  })}
+                </div>
+              </div>
+            ))}
+            {/* 已選擇的自訂選項（非預設選項的） */}
+            {favoriteRouteTypes.filter((t) => !allRouteTypeOptions.some((o) => o.value === t))
+              .length > 0 && (
+              <div className="space-y-2">
+                <span className="text-xs text-[#6D6C6C]">
+                  {t('favoriteRouteTypesCustomCategory')}
+                </span>
+                <div className="flex flex-wrap gap-2">
+                  {favoriteRouteTypes
+                    .filter((type) => !allRouteTypeOptions.some((o) => o.value === type))
+                    .map((type, index) => (
+                      <span
+                        key={index}
+                        className="inline-flex items-center gap-1 rounded-full bg-brand-dark text-white px-3 py-1.5 text-sm"
+                      >
+                        {type}
+                        <button
+                          type="button"
+                          onClick={() => {
+                            onFavoriteRouteTypesChange(favoriteRouteTypes.filter((t) => t !== type))
+                          }}
+                          className="ml-1 text-white/70 hover:text-white transition-colors"
+                        >
+                          <X size={14} />
+                        </button>
+                      </span>
+                    ))}
+                </div>
               </div>
             )}
-            <div className="absolute inset-0 bg-brand-dark/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
-              <Pencil size={20} className="text-white" />
-            </div>
-          </div>
-          <input
-            ref={avatarInputRef}
-            type="file"
-            accept="image/*"
-            onChange={handleAvatarSelect}
-            className="hidden"
-          />
-          <div className="text-sm text-[#6D6C6C]">
-            <p>{t('avatarClickHint')}</p>
-            <p className="text-xs">{t('avatarShapeHint')}</p>
-          </div>
-        </div>
-      </div>
-
-      {/* Name */}
-      <div className="space-y-2">
-        <label className="text-sm font-medium text-[#3F3D3D]">
-          {t('displayNameLabel')} <span className="text-red-500">{t('displayNameRequired')}</span>
-        </label>
-        <input
-          type="text"
-          value={name}
-          onChange={(e) => onNameChange(e.target.value)}
-          placeholder={t('displayNamePlaceholder')}
-          className="w-full px-4 py-3 bg-white border border-[#B6B3B3] rounded-lg text-[#1B1A1A] placeholder:text-[#9D9D9D] focus:outline-none focus:ring-2 focus:ring-brand-accent/50 focus:border-brand-dark transition-colors"
-          maxLength={50}
-        />
-        <p className="text-xs text-[#8E8C8C]">{t('displayNameHint')}</p>
-      </div>
-
-      {/* Title / Tagline */}
-      <div className="space-y-2">
-        <label className="text-sm font-medium text-[#3F3D3D]">
-          {t('taglineLabel')}
-          <span className="text-[#8E8C8C] font-normal ml-1">{t('taglineOptional')}</span>
-        </label>
-        <input
-          type="text"
-          value={title || ''}
-          onChange={(e) => onTitleChange(e.target.value || null)}
-          placeholder={t('taglinePlaceholder')}
-          className="w-full px-4 py-3 bg-white border border-[#B6B3B3] rounded-lg text-[#1B1A1A] placeholder:text-[#9D9D9D] focus:outline-none focus:ring-2 focus:ring-brand-accent/50 focus:border-brand-dark transition-colors"
-          maxLength={100}
-        />
-        <p className="text-xs text-[#8E8C8C] flex items-center gap-1">
-          <Lightbulb size={12} />
-          {t('taglineHint')}
-        </p>
-      </div>
-
-      {/* Climbing Start Year */}
-      <div className="space-y-2">
-        <label className="text-sm font-medium text-[#3F3D3D]">
-          {t('climbingStartYearLabel')}
-          <span className="text-[#8E8C8C] font-normal ml-1">{t('climbingStartYearOptional')}</span>
-        </label>
-        <div className="flex items-center gap-3">
-          <select
-            value={climbingStartYear ?? ''}
-            onChange={(e) => {
-              const value = e.target.value
-              onClimbingStartYearChange(value ? parseInt(value, 10) : null)
-            }}
-            className="w-32 px-4 py-3 bg-white border border-[#B6B3B3] rounded-lg text-[#1B1A1A] focus:outline-none focus:ring-2 focus:ring-brand-accent/50 focus:border-brand-dark transition-colors appearance-none cursor-pointer"
-          >
-            <option value="">{t('climbingStartYearSelect')}</option>
-            {yearOptions.map((year) => (
-              <option key={year} value={year}>
-                {year}
-              </option>
-            ))}
-          </select>
-          <span className="text-[#6D6C6C] text-sm">
-            {climbingYearsDisplay !== null && climbingYearsDisplay >= 0
-              ? t('climbingYearsExperience', { years: climbingYearsDisplay })
-              : t('climbingStartDefault')}
-          </span>
-        </div>
-        <p className="text-xs text-[#8E8C8C]">{t('climbingStartYearHint')}</p>
-      </div>
-
-      {/* Height & Arm Span */}
-      <div className="space-y-2">
-        <div className="flex items-center gap-2 mb-2">
-          <label className="text-sm font-medium text-[#3F3D3D]">
-            {t('bodyStatsLabel')}
-            <span className="text-[#8E8C8C] font-normal ml-1">{t('bodyStatsOptional')}</span>
-          </label>
-        </div>
-        <div className="flex flex-col gap-3 md:flex-row md:items-center md:gap-4">
-          <div className="flex items-center gap-2">
-            <ArrowUpDown size={16} className="shrink-0 text-[#3F3D3D]" />
-            <span className="shrink-0 whitespace-nowrap text-sm text-[#6D6C6C]">{t('heightLabel')}</span>
-            <input
-              type="number"
-              min={100}
-              max={250}
-              value={heightCm ?? ''}
-              onChange={(e) => onHeightCmChange(parseIntOrNull(e.target.value))}
-              placeholder="170"
-              className="w-[100px] shrink-0 rounded-lg border border-[#B6B3B3] bg-white px-3 py-2 text-center text-sm text-[#1B1A1A] placeholder:text-[#9D9D9D] transition-colors focus:border-brand-dark focus:outline-none focus:ring-2 focus:ring-brand-accent/50"
-            />
-            <span className="shrink-0 whitespace-nowrap text-sm text-[#6D6C6C]">cm</span>
-          </div>
-          <div className="flex items-center gap-2">
-            <ArrowLeftRight size={16} className="shrink-0 text-[#3F3D3D]" />
-            <span className="shrink-0 whitespace-nowrap text-sm text-[#6D6C6C]">{t('armSpanLabel')}</span>
-            <input
-              type="number"
-              min={100}
-              max={250}
-              value={armSpanCm ?? ''}
-              onChange={(e) => onArmSpanCmChange(parseIntOrNull(e.target.value))}
-              placeholder="175"
-              className="w-[100px] shrink-0 rounded-lg border border-[#B6B3B3] bg-white px-3 py-2 text-center text-sm text-[#1B1A1A] placeholder:text-[#9D9D9D] transition-colors focus:border-brand-dark focus:outline-none focus:ring-2 focus:ring-brand-accent/50"
-            />
-            <span className="shrink-0 whitespace-nowrap text-sm text-[#6D6C6C]">cm</span>
-          </div>
-        </div>
-        <p className="text-xs text-[#8E8C8C]">
-          {heightCm && armSpanCm
-            ? t('apeIndexWithValue', { value: `${armSpanCm - heightCm > 0 ? '+' : ''}${armSpanCm - heightCm}` })
-            : t('apeIndexHint')}
-        </p>
-      </div>
-
-      {/* Frequent Locations - 多選標籤 */}
-      <div className="space-y-2">
-        <label className="text-sm font-medium text-[#3F3D3D]">
-          {t('frequentLocationsLabel')}
-          <span className="text-[#8E8C8C] font-normal ml-1">{t('frequentLocationsMultiple')}</span>
-        </label>
-        <div className="flex flex-wrap gap-2">
-          {frequentLocations.map((location, index) => (
-            <span
-              key={index}
-              className="inline-flex items-center gap-1 rounded-full bg-[#F5F5F5] px-3 py-1.5 text-sm text-[#1B1A1A]"
-            >
-              {location}
+            {/* 自訂輸入 */}
+            <div className="flex items-center gap-2">
+              <input
+                type="text"
+                value={newRouteType}
+                onChange={(e) => setNewRouteType(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter' && newRouteType.trim()) {
+                    e.preventDefault()
+                    if (!favoriteRouteTypes.includes(newRouteType.trim())) {
+                      onFavoriteRouteTypesChange([...favoriteRouteTypes, newRouteType.trim()])
+                    }
+                    setNewRouteType('')
+                  }
+                }}
+                placeholder={t('favoriteRouteTypesCustomPlaceholder')}
+                className="flex-1 max-w-xs px-3 py-1.5 text-sm bg-white text-[#1B1A1A] border border-dashed border-[#B6B3B3] rounded-full placeholder:text-[#9D9D9D] focus:outline-none focus:border-brand-dark"
+              />
               <button
                 type="button"
                 onClick={() => {
-                  const newLocations = frequentLocations.filter((_, i) => i !== index)
-                  onFrequentLocationsChange(newLocations)
-                }}
-                className="ml-1 text-[#6D6C6C] hover:text-[#1B1A1A] transition-colors"
-              >
-                <X size={14} />
-              </button>
-            </span>
-          ))}
-          <div className="inline-flex items-center gap-1">
-            <input
-              type="text"
-              value={newLocation}
-              onChange={(e) => setNewLocation(e.target.value)}
-              onKeyDown={(e) => {
-                if (e.key === 'Enter' && newLocation.trim()) {
-                  e.preventDefault()
-                  if (!frequentLocations.includes(newLocation.trim())) {
-                    onFrequentLocationsChange([...frequentLocations, newLocation.trim()])
+                  if (newRouteType.trim() && !favoriteRouteTypes.includes(newRouteType.trim())) {
+                    onFavoriteRouteTypesChange([...favoriteRouteTypes, newRouteType.trim()])
+                    setNewRouteType('')
                   }
-                  setNewLocation('')
-                }
-              }}
-              placeholder={t('frequentLocationsInputPlaceholder')}
-              className="w-32 px-3 py-1.5 text-sm bg-white text-[#1B1A1A] border border-dashed border-[#B6B3B3] rounded-full placeholder:text-[#9D9D9D] focus:outline-none focus:border-brand-dark"
-            />
-            <button
-              type="button"
-              onClick={() => {
-                if (newLocation.trim() && !frequentLocations.includes(newLocation.trim())) {
-                  onFrequentLocationsChange([...frequentLocations, newLocation.trim()])
-                  setNewLocation('')
-                }
-              }}
-              className="p-1.5 text-[#6D6C6C] hover:text-brand-dark hover:bg-[#F5F5F5] rounded-full transition-colors"
-            >
-              <Plus size={16} />
-            </button>
-          </div>
-        </div>
-        <p className="text-xs text-[#8E8C8C]">{t('frequentLocationsHint')}</p>
-      </div>
-
-      {/* Favorite Route Types - 多選標籤 */}
-      <div className="space-y-4">
-        <label className="text-sm font-medium text-[#3F3D3D]">
-          {t('favoriteRouteTypesLabel')}
-          <span className="text-[#8E8C8C] font-normal ml-1">{t('favoriteRouteTypesMultiple')}</span>
-        </label>
-        {/* 分類預設選項 */}
-        {routeTypeGroups.map((group) => (
-          <div key={group.category} className="space-y-2">
-            <span className="text-xs text-[#6D6C6C]">{group.category}</span>
-            <div className="flex flex-wrap gap-2">
-              {group.options.map((option) => {
-                const isSelected = favoriteRouteTypes.includes(option.value)
-                return (
-                  <button
-                    key={option.value}
-                    type="button"
-                    onClick={() => {
-                      if (isSelected) {
-                        onFavoriteRouteTypesChange(favoriteRouteTypes.filter((t) => t !== option.value))
-                      } else {
-                        onFavoriteRouteTypesChange([...favoriteRouteTypes, option.value])
-                      }
-                    }}
-                    className={cn(
-                      'px-3 py-1.5 text-sm rounded-full border transition-colors',
-                      isSelected
-                        ? 'bg-brand-dark text-white border-brand-dark'
-                        : 'bg-white text-[#3F3D3D] border-[#B6B3B3] hover:border-brand-dark hover:bg-[#F5F5F5]'
-                    )}
-                  >
-                    {option.label}
-                  </button>
-                )
-              })}
+                }}
+                className="p-1.5 text-[#6D6C6C] hover:text-brand-dark hover:bg-[#F5F5F5] rounded-full transition-colors"
+              >
+                <Plus size={16} />
+              </button>
             </div>
           </div>
-        ))}
-        {/* 已選擇的自訂選項（非預設選項的） */}
-        {favoriteRouteTypes.filter((t) => !allRouteTypeOptions.some((o) => o.value === t)).length > 0 && (
-          <div className="space-y-2">
-            <span className="text-xs text-[#6D6C6C]">{t('favoriteRouteTypesCustomCategory')}</span>
-            <div className="flex flex-wrap gap-2">
-              {favoriteRouteTypes
-                .filter((type) => !allRouteTypeOptions.some((o) => o.value === type))
-                .map((type, index) => (
-                  <span
-                    key={index}
-                    className="inline-flex items-center gap-1 rounded-full bg-brand-dark text-white px-3 py-1.5 text-sm"
-                  >
-                    {type}
-                    <button
-                      type="button"
-                      onClick={() => {
-                        onFavoriteRouteTypesChange(favoriteRouteTypes.filter((t) => t !== type))
-                      }}
-                      className="ml-1 text-white/70 hover:text-white transition-colors"
-                    >
-                      <X size={14} />
-                    </button>
-                  </span>
-                ))}
+
+          {/* Divider */}
+          <div className="border-t border-[#EBEAEA] pt-6 mt-6">
+            {/* Social Links Header */}
+            <div className="flex items-center gap-2 mb-4">
+              <Link size={18} className="text-[#3F3D3D]" />
+              <h4 className="font-medium text-[#1B1A1A]">{t('socialLinksTitle')}</h4>
+            </div>
+            <p className="text-sm text-[#6D6C6C] mb-4">{t('socialLinksHint')}</p>
+
+            {/* Instagram */}
+            <div className="space-y-2 mb-4">
+              <label className="text-sm font-medium text-[#3F3D3D] flex items-center gap-2">
+                <Instagram size={16} className="text-pink-600" />
+                Instagram
+                <span className="text-[#8E8C8C] font-normal">{t('instagramOptional')}</span>
+              </label>
+              <div className="flex items-center gap-2 min-w-0">
+                <span className="text-[#6D6C6C] shrink-0">@</span>
+                <input
+                  type="text"
+                  value={socialLinks.instagram || ''}
+                  onChange={(e) => handleSocialLinkChange('instagram', e.target.value)}
+                  onBlur={(e) => {
+                    const username = extractUsername(e.target.value)
+                    if (username !== e.target.value) {
+                      handleSocialLinkChange('instagram', username)
+                    }
+                  }}
+                  placeholder="your_username"
+                  className="flex-1 min-w-0 px-4 py-3 bg-white border border-[#B6B3B3] rounded-lg text-[#1B1A1A] placeholder:text-[#9D9D9D] focus:outline-none focus:ring-2 focus:ring-brand-accent/50 focus:border-brand-dark transition-colors"
+                  maxLength={50}
+                />
+              </div>
+            </div>
+
+            {/* YouTube */}
+            <div className="space-y-2 mb-4">
+              <label className="text-sm font-medium text-[#3F3D3D] flex items-center gap-2">
+                <Youtube size={16} className="text-red-600" />
+                {t('youtubeLabel')}
+                <span className="text-[#8E8C8C] font-normal">{t('youtubeOptional')}</span>
+              </label>
+              <input
+                type="text"
+                value={socialLinks.youtube || ''}
+                onChange={(e) => handleSocialLinkChange('youtube', e.target.value)}
+                onBlur={(e) => {
+                  const username = extractUsername(e.target.value)
+                  if (username !== e.target.value) {
+                    handleSocialLinkChange('youtube', username)
+                  }
+                }}
+                placeholder={t('youtubePlaceholder')}
+                className="w-full px-4 py-3 bg-white border border-[#B6B3B3] rounded-lg text-[#1B1A1A] placeholder:text-[#9D9D9D] focus:outline-none focus:ring-2 focus:ring-brand-accent/50 focus:border-brand-dark transition-colors"
+                maxLength={100}
+              />
+            </div>
+
+            {/* Website */}
+            <div className="space-y-2">
+              <label className="text-sm font-medium text-[#3F3D3D] flex items-center gap-2">
+                <Link size={16} className="text-[#3F3D3D]" />
+                {t('websiteLabel')}
+                <span className="text-[#8E8C8C] font-normal">{t('websiteOptional')}</span>
+              </label>
+              <input
+                type="url"
+                value={socialLinks.website || ''}
+                onChange={(e) => handleSocialLinkChange('website', e.target.value)}
+                placeholder="https://your-website.com"
+                className="w-full px-4 py-3 bg-white border border-[#B6B3B3] rounded-lg text-[#1B1A1A] placeholder:text-[#9D9D9D] focus:outline-none focus:ring-2 focus:ring-brand-accent/50 focus:border-brand-dark transition-colors"
+                maxLength={200}
+              />
             </div>
           </div>
-        )}
-        {/* 自訂輸入 */}
-        <div className="flex items-center gap-2">
-          <input
-            type="text"
-            value={newRouteType}
-            onChange={(e) => setNewRouteType(e.target.value)}
-            onKeyDown={(e) => {
-              if (e.key === 'Enter' && newRouteType.trim()) {
-                e.preventDefault()
-                if (!favoriteRouteTypes.includes(newRouteType.trim())) {
-                  onFavoriteRouteTypesChange([...favoriteRouteTypes, newRouteType.trim()])
-                }
-                setNewRouteType('')
-              }
-            }}
-            placeholder={t('favoriteRouteTypesCustomPlaceholder')}
-            className="flex-1 max-w-xs px-3 py-1.5 text-sm bg-white text-[#1B1A1A] border border-dashed border-[#B6B3B3] rounded-full placeholder:text-[#9D9D9D] focus:outline-none focus:border-brand-dark"
-          />
-          <button
-            type="button"
-            onClick={() => {
-              if (newRouteType.trim() && !favoriteRouteTypes.includes(newRouteType.trim())) {
-                onFavoriteRouteTypesChange([...favoriteRouteTypes, newRouteType.trim()])
-                setNewRouteType('')
-              }
-            }}
-            className="p-1.5 text-[#6D6C6C] hover:text-brand-dark hover:bg-[#F5F5F5] rounded-full transition-colors"
-          >
-            <Plus size={16} />
-          </button>
-        </div>
-      </div>
-
-      {/* Divider */}
-      <div className="border-t border-[#EBEAEA] pt-6 mt-6">
-        {/* Social Links Header */}
-        <div className="flex items-center gap-2 mb-4">
-          <Link size={18} className="text-[#3F3D3D]" />
-          <h4 className="font-medium text-[#1B1A1A]">{t('socialLinksTitle')}</h4>
-        </div>
-        <p className="text-sm text-[#6D6C6C] mb-4">
-          {t('socialLinksHint')}
-        </p>
-
-        {/* Instagram */}
-        <div className="space-y-2 mb-4">
-          <label className="text-sm font-medium text-[#3F3D3D] flex items-center gap-2">
-            <Instagram size={16} className="text-pink-600" />
-            Instagram
-            <span className="text-[#8E8C8C] font-normal">{t('instagramOptional')}</span>
-          </label>
-          <div className="flex items-center gap-2 min-w-0">
-            <span className="text-[#6D6C6C] shrink-0">@</span>
-            <input
-              type="text"
-              value={socialLinks.instagram || ''}
-              onChange={(e) => handleSocialLinkChange('instagram', e.target.value)}
-              onBlur={(e) => {
-                const username = extractUsername(e.target.value)
-                if (username !== e.target.value) {
-                  handleSocialLinkChange('instagram', username)
-                }
-              }}
-              placeholder="your_username"
-              className="flex-1 min-w-0 px-4 py-3 bg-white border border-[#B6B3B3] rounded-lg text-[#1B1A1A] placeholder:text-[#9D9D9D] focus:outline-none focus:ring-2 focus:ring-brand-accent/50 focus:border-brand-dark transition-colors"
-              maxLength={50}
-            />
-          </div>
-        </div>
-
-        {/* YouTube */}
-        <div className="space-y-2 mb-4">
-          <label className="text-sm font-medium text-[#3F3D3D] flex items-center gap-2">
-            <Youtube size={16} className="text-red-600" />
-            {t('youtubeLabel')}
-            <span className="text-[#8E8C8C] font-normal">{t('youtubeOptional')}</span>
-          </label>
-          <input
-            type="text"
-            value={socialLinks.youtube || ''}
-            onChange={(e) => handleSocialLinkChange('youtube', e.target.value)}
-            onBlur={(e) => {
-              const username = extractUsername(e.target.value)
-              if (username !== e.target.value) {
-                handleSocialLinkChange('youtube', username)
-              }
-            }}
-            placeholder={t('youtubePlaceholder')}
-            className="w-full px-4 py-3 bg-white border border-[#B6B3B3] rounded-lg text-[#1B1A1A] placeholder:text-[#9D9D9D] focus:outline-none focus:ring-2 focus:ring-brand-accent/50 focus:border-brand-dark transition-colors"
-            maxLength={100}
-          />
-        </div>
-
-        {/* Website */}
-        <div className="space-y-2">
-          <label className="text-sm font-medium text-[#3F3D3D] flex items-center gap-2">
-            <Link size={16} className="text-[#3F3D3D]" />
-            {t('websiteLabel')}
-            <span className="text-[#8E8C8C] font-normal">{t('websiteOptional')}</span>
-          </label>
-          <input
-            type="url"
-            value={socialLinks.website || ''}
-            onChange={(e) => handleSocialLinkChange('website', e.target.value)}
-            placeholder="https://your-website.com"
-            className="w-full px-4 py-3 bg-white border border-[#B6B3B3] rounded-lg text-[#1B1A1A] placeholder:text-[#9D9D9D] focus:outline-none focus:ring-2 focus:ring-brand-accent/50 focus:border-brand-dark transition-colors"
-            maxLength={200}
-          />
-        </div>
-      </div>
-      </>
+        </>
       )}
     </div>
   )

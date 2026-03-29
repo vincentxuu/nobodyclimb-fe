@@ -1,20 +1,34 @@
-import React, { useState, useCallback } from 'react'
 import {
-  View, Text, FlatList, Pressable, StyleSheet,
-  ActivityIndicator, RefreshControl,
+  BORDER_RADIUS,
+  FONT_SIZE,
+  SEMANTIC_COLORS,
+  SPACING,
+  WB_COLORS,
+} from '@nobodyclimb/constants'
+import { useRouter } from 'expo-router'
+import { Filter, MapPin, Mountain, Plus, TrendingUp } from 'lucide-react-native'
+import { useCallback, useState } from 'react'
+import {
+  ActivityIndicator,
+  FlatList,
+  Pressable,
+  RefreshControl,
+  StyleSheet,
+  Text,
+  View,
 } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
-import { useRouter } from 'expo-router'
-import { Plus, Filter, Mountain, MapPin, TrendingUp } from 'lucide-react-native'
-import { SEMANTIC_COLORS, SPACING, BORDER_RADIUS, FONT_SIZE, WB_COLORS } from '@nobodyclimb/constants'
 import { AscentCard } from '@/components/ascent/AscentCard'
 import { AscentForm } from '@/components/ascent/AscentForm'
 import { ConfirmDialog } from '@/components/ui/ConfirmDialog'
 import { useToast } from '@/components/ui/Toast'
-import {
-  useMyAscents, useMyAscentStats, useUpdateAscent, useDeleteAscent,
-} from '@/lib/hooks/useAscents'
 import type { AscentType } from '@/lib/constants/ascent'
+import {
+  useDeleteAscent,
+  useMyAscentStats,
+  useMyAscents,
+  useUpdateAscent,
+} from '@/lib/hooks/useAscents'
 
 interface Ascent {
   id: string
@@ -168,9 +182,13 @@ export default function AscentsPage() {
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: SEMANTIC_COLORS.pageBg },
   header: {
-    flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between',
-    paddingHorizontal: SPACING.md, paddingVertical: SPACING.sm,
-    borderBottomWidth: 1, borderBottomColor: SEMANTIC_COLORS.border,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingHorizontal: SPACING.md,
+    paddingVertical: SPACING.sm,
+    borderBottomWidth: 1,
+    borderBottomColor: SEMANTIC_COLORS.border,
   },
   headerTitle: { fontSize: FONT_SIZE['2xl'], fontWeight: '700', color: SEMANTIC_COLORS.textMain },
   filterBtn: { padding: SPACING.xs },
@@ -178,8 +196,12 @@ const styles = StyleSheet.create({
   listContent: { padding: SPACING.md, gap: SPACING.sm, paddingBottom: 100 },
   statsRow: { flexDirection: 'row', gap: SPACING.sm, marginBottom: SPACING.md },
   statCard: {
-    flex: 1, backgroundColor: WB_COLORS[5], borderRadius: BORDER_RADIUS.md,
-    padding: SPACING.sm, alignItems: 'center', gap: 4,
+    flex: 1,
+    backgroundColor: WB_COLORS[5],
+    borderRadius: BORDER_RADIUS.md,
+    padding: SPACING.sm,
+    alignItems: 'center',
+    gap: 4,
   },
   statValue: { fontSize: FONT_SIZE.xl, fontWeight: '700', color: SEMANTIC_COLORS.textMain },
   statLabel: { fontSize: FONT_SIZE.xs, color: SEMANTIC_COLORS.textSubtle },
@@ -187,10 +209,19 @@ const styles = StyleSheet.create({
   emptyText: { fontSize: FONT_SIZE.lg, fontWeight: '600', color: SEMANTIC_COLORS.textMain },
   emptySubtext: { fontSize: FONT_SIZE.sm, color: SEMANTIC_COLORS.textSubtle, textAlign: 'center' },
   fab: {
-    position: 'absolute', right: SPACING.lg, bottom: SPACING.xl,
-    width: 56, height: 56, borderRadius: 28,
-    backgroundColor: SEMANTIC_COLORS.success, alignItems: 'center', justifyContent: 'center',
-    shadowColor: '#000', shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.3, shadowRadius: 8, elevation: 8,
+    position: 'absolute',
+    right: SPACING.lg,
+    bottom: SPACING.xl,
+    width: 56,
+    height: 56,
+    borderRadius: 28,
+    backgroundColor: SEMANTIC_COLORS.success,
+    alignItems: 'center',
+    justifyContent: 'center',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 8,
+    elevation: 8,
   },
 })

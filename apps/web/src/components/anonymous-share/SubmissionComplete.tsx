@@ -2,8 +2,8 @@
 
 import { motion } from 'framer-motion'
 import { Check, Sparkles } from 'lucide-react'
-import { Button } from '@/components/ui/button'
 import Link from 'next/link'
+import { Button } from '@/components/ui/button'
 
 interface SubmissionCompleteProps {
   slug: string
@@ -15,11 +15,7 @@ interface SubmissionCompleteProps {
  * 提交成功頁面組件
  * 顯示匿名故事發布成功後的資訊
  */
-export function SubmissionComplete({
-  slug,
-  anonymousName,
-  totalStories,
-}: SubmissionCompleteProps) {
+export function SubmissionComplete({ slug, anonymousName, totalStories }: SubmissionCompleteProps) {
   return (
     <div className="flex min-h-screen flex-col items-center justify-center bg-gray-50 p-4">
       <motion.div
@@ -52,7 +48,9 @@ export function SubmissionComplete({
             <Button className="w-full">查看我的故事</Button>
           </Link>
           <Link href="/biography">
-            <Button variant="secondary" className="w-full">繼續探索其他故事</Button>
+            <Button variant="secondary" className="w-full">
+              繼續探索其他故事
+            </Button>
           </Link>
         </div>
       </motion.div>

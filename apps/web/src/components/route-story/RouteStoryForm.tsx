@@ -1,38 +1,33 @@
-'use client';
+'use client'
 
-import { useEffect } from 'react';
-import { useForm } from 'react-hook-form';
-import { zodResolver } from '@hookform/resolvers/zod';
-import { z } from 'zod';
+import { zodResolver } from '@hookform/resolvers/zod'
+import { useEffect } from 'react'
+import { useForm } from 'react-hook-form'
+import { z } from 'zod'
 
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Textarea } from '@/components/ui/textarea';
-import { Label } from '@/components/ui/label';
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-} from '@/components/ui/dialog';
+import { Button } from '@/components/ui/button'
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog'
+import { Input } from '@/components/ui/input'
+import { Label } from '@/components/ui/label'
+import { Textarea } from '@/components/ui/textarea'
 
-import { RouteStoryFormData } from '@/lib/types/route-story';
+import { RouteStoryFormData } from '@/lib/types/route-story'
 
 const routeStoryFormSchema = z.object({
   route_id: z.string().min(1, '請選擇路線'),
   title: z.string().nullable().optional(),
   content: z.string().min(1, '請輸入內容'),
-});
+})
 
 interface RouteStoryFormProps {
-  routeId: string;
-  routeName: string;
-  routeGrade?: string;
-  open: boolean;
-  onOpenChange: (_open: boolean) => void;
-  onSubmit: (_data: RouteStoryFormData) => Promise<void>;
-  initialData?: Partial<RouteStoryFormData>;
-  isLoading?: boolean;
+  routeId: string
+  routeName: string
+  routeGrade?: string
+  open: boolean
+  onOpenChange: (_open: boolean) => void
+  onSubmit: (_data: RouteStoryFormData) => Promise<void>
+  initialData?: Partial<RouteStoryFormData>
+  isLoading?: boolean
 }
 
 export function RouteStoryForm({
@@ -52,7 +47,7 @@ export function RouteStoryForm({
       title: initialData?.title ?? null,
       content: initialData?.content ?? '',
     },
-  });
+  })
 
   // 當 dialog 關閉時重置表單狀態
   useEffect(() => {
@@ -61,17 +56,17 @@ export function RouteStoryForm({
         route_id: routeId,
         title: initialData?.title ?? null,
         content: initialData?.content ?? '',
-      });
+      })
     }
-  }, [open, form, routeId, initialData]);
+  }, [open, form, routeId, initialData])
 
   const handleFormSubmit = async (data: RouteStoryFormData) => {
     await onSubmit({
       ...data,
       visibility: 'public',
-    });
-    onOpenChange(false);
-  };
+    })
+    onOpenChange(false)
+  }
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -87,11 +82,7 @@ export function RouteStoryForm({
           {/* 標題 (可選) */}
           <div className="space-y-2">
             <Label htmlFor="title">標題 (可選)</Label>
-            <Input
-              id="title"
-              placeholder="例如：為什麼叫做這個名字"
-              {...form.register('title')}
-            />
+            <Input id="title" placeholder="例如：為什麼叫做這個名字" {...form.register('title')} />
           </div>
 
           {/* 內容 */}
@@ -104,9 +95,7 @@ export function RouteStoryForm({
               {...form.register('content')}
             />
             {form.formState.errors.content && (
-              <p className="text-xs text-red-500">
-                {form.formState.errors.content.message}
-              </p>
+              <p className="text-xs text-red-500">{form.formState.errors.content.message}</p>
             )}
           </div>
 
@@ -127,5 +116,5 @@ export function RouteStoryForm({
         </form>
       </DialogContent>
     </Dialog>
-  );
+  )
 }

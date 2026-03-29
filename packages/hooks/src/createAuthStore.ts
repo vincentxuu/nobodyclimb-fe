@@ -6,16 +6,16 @@
  * 設計參考：https://starter.obytes.com/guides/authentication/
  */
 
-import { create } from 'zustand'
+import type { TokenStorage } from '@nobodyclimb/api-client'
 import type {
-  User,
-  BackendUser,
   ApiResponse,
   AuthTokenResponse,
+  BackendUser,
   RefreshTokenResponse,
+  User,
 } from '@nobodyclimb/types'
 import { mapBackendUserToUser } from '@nobodyclimb/types'
-import type { TokenStorage } from '@nobodyclimb/api-client'
+import { create } from 'zustand'
 
 // ============================================
 // Types
@@ -44,13 +44,23 @@ export interface AuthStoreActions {
   /** Google 登入 */
   signInWithGoogle: (credential: string, referralSource?: string) => Promise<{ isNewUser: boolean }>
   /** 註冊 */
-  signUp: (username: string, email: string, password: string, referralSource?: string) => Promise<{ success: boolean; error?: string }>
+  signUp: (
+    username: string,
+    email: string,
+    password: string,
+    referralSource?: string
+  ) => Promise<{ success: boolean; error?: string }>
   /** 登出 */
   signOut: () => Promise<void>
   /** 登出（別名） */
   logout: () => Promise<void>
   /** 註冊（別名） */
-  register: (username: string, email: string, password: string, referralSource?: string) => Promise<{ success: boolean; error?: string }>
+  register: (
+    username: string,
+    email: string,
+    password: string,
+    referralSource?: string
+  ) => Promise<{ success: boolean; error?: string }>
   /** 更新用戶資料 */
   updateUser: (userData: UpdateUserData) => Promise<{ success: boolean; error?: string }>
   /** 從儲存恢復認證狀態（App 啟動時調用） */
@@ -161,10 +171,9 @@ export function createAuthStore(config: CreateAuthStoreConfig) {
         tokenStorage.setTokens(access_token, refresh_token)
 
         // Step 3: 取得用戶資料
-        const userResponse = await axios.get<ApiResponse<BackendUser>>(
-          `${apiBaseUrl}/auth/me`,
-          { headers: { Authorization: `Bearer ${access_token}` } }
-        )
+        const userResponse = await axios.get<ApiResponse<BackendUser>>(`${apiBaseUrl}/auth/me`, {
+          headers: { Authorization: `Bearer ${access_token}` },
+        })
 
         if (!userResponse.data.success || !userResponse.data.data) {
           throw new Error('無法取得用戶資料')
@@ -209,10 +218,9 @@ export function createAuthStore(config: CreateAuthStoreConfig) {
 
         tokenStorage.setTokens(access_token, refresh_token)
 
-        const userResponse = await axios.get<ApiResponse<BackendUser>>(
-          `${apiBaseUrl}/auth/me`,
-          { headers: { Authorization: `Bearer ${access_token}` } }
-        )
+        const userResponse = await axios.get<ApiResponse<BackendUser>>(`${apiBaseUrl}/auth/me`, {
+          headers: { Authorization: `Bearer ${access_token}` },
+        })
 
         if (!userResponse.data.success || !userResponse.data.data) {
           throw new Error('無法取得用戶資料')
@@ -259,10 +267,9 @@ export function createAuthStore(config: CreateAuthStoreConfig) {
 
         tokenStorage.setTokens(access_token, refresh_token)
 
-        const userResponse = await axios.get<ApiResponse<BackendUser>>(
-          `${apiBaseUrl}/auth/me`,
-          { headers: { Authorization: `Bearer ${access_token}` } }
-        )
+        const userResponse = await axios.get<ApiResponse<BackendUser>>(`${apiBaseUrl}/auth/me`, {
+          headers: { Authorization: `Bearer ${access_token}` },
+        })
 
         if (!userResponse.data.success || !userResponse.data.data) {
           throw new Error('無法取得用戶資料')
@@ -354,10 +361,9 @@ export function createAuthStore(config: CreateAuthStoreConfig) {
         const axios = await getAxios()
 
         // 嘗試用現有 token 取得用戶資料
-        const userResponse = await axios.get<ApiResponse<BackendUser>>(
-          `${apiBaseUrl}/auth/me`,
-          { headers: { Authorization: `Bearer ${token}` } }
-        )
+        const userResponse = await axios.get<ApiResponse<BackendUser>>(`${apiBaseUrl}/auth/me`, {
+          headers: { Authorization: `Bearer ${token}` },
+        })
 
         if (userResponse.data.success && userResponse.data.data) {
           const user = mapBackendUserToUser(userResponse.data.data)
@@ -394,7 +400,7 @@ export function createAuthStore(config: CreateAuthStoreConfig) {
           set({ status: 'signOut' })
           onAuthError?.()
         }
-      } catch (error) {
+      } catch (_error) {
         // 發生錯誤，視為登出狀態
         tokenStorage.removeTokens()
         set({ status: 'signOut' })

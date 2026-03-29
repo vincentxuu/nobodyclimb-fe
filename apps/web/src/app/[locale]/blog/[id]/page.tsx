@@ -1,8 +1,8 @@
 import type { Metadata } from 'next'
-import BlogDetailClient from './BlogDetailClient'
-import { SITE_URL, SITE_NAME, SITE_LOGO, OG_IMAGE } from '@/lib/constants'
-import { buildHreflangAlternates, buildOgLocale } from '@/lib/i18n-metadata'
 import { getTranslations } from 'next-intl/server'
+import { OG_IMAGE, SITE_LOGO, SITE_NAME, SITE_URL } from '@/lib/constants'
+import { buildHreflangAlternates, buildOgLocale } from '@/lib/i18n-metadata'
+import BlogDetailClient from './BlogDetailClient'
 
 // 強制動態渲染，避免快取問題
 export const dynamic = 'force-dynamic'
@@ -176,11 +176,7 @@ export async function generateMetadata({
   }
 }
 
-export default async function BlogDetailPage({
-  params,
-}: {
-  params: Promise<{ id: string }>
-}) {
+export default async function BlogDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params
   const post = await getPostMetadata(id)
 

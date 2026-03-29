@@ -1,7 +1,7 @@
 import type { Metadata } from 'next'
+import { fetchCragAreas, fetchCragById } from '@/lib/api/server-fetch'
+import { OG_IMAGE, SITE_NAME, SITE_URL } from '@/lib/constants'
 import AreaDetailClient from './AreaDetailClient'
-import { fetchCragById, fetchCragAreas } from '@/lib/api/server-fetch'
-import { SITE_URL, SITE_NAME, OG_IMAGE } from '@/lib/constants'
 
 // 強制動態渲染，確保在 runtime 取得正確的 API URL
 export const dynamic = 'force-dynamic'
@@ -14,10 +14,7 @@ export async function generateMetadata({
 }): Promise<Metadata> {
   const { id, areaId } = await params
 
-  const [apiCrag, apiAreas] = await Promise.all([
-    fetchCragById(id),
-    fetchCragAreas(id),
-  ])
+  const [apiCrag, apiAreas] = await Promise.all([fetchCragById(id), fetchCragAreas(id)])
 
   if (!apiCrag) {
     return {
@@ -26,7 +23,7 @@ export async function generateMetadata({
     }
   }
 
-  const area = apiAreas.find(a => a.id === areaId)
+  const area = apiAreas.find((a) => a.id === areaId)
   if (!area) {
     return {
       title: '找不到區域',
@@ -42,7 +39,9 @@ export async function generateMetadata({
   return {
     title: area.name,
     description,
-    keywords: [area.name, area.name_en, apiCrag.name, '攀岩區域', '岩場'].filter(Boolean) as string[],
+    keywords: [area.name, area.name_en, apiCrag.name, '攀岩區域', '岩場'].filter(
+      Boolean
+    ) as string[],
     openGraph: {
       title: `${title} | ${SITE_NAME}`,
       description,

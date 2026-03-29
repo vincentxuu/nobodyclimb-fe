@@ -30,9 +30,7 @@ export function buildHreflangAlternates(pathname: string): Record<string, string
   for (const locale of locales) {
     const hreflang = hreflangMap[locale]
     // zh 為預設語言，不加 prefix
-    const url = locale === 'zh'
-      ? `${SITE_URL}${pathname}`
-      : `${SITE_URL}/${locale}${pathname}`
+    const url = locale === 'zh' ? `${SITE_URL}${pathname}` : `${SITE_URL}/${locale}${pathname}`
     languages[hreflang] = url
   }
 

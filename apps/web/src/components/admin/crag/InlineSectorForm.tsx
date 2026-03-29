@@ -1,10 +1,10 @@
 'use client'
 
-import { useState, useEffect } from 'react'
-import { Loader2, Save, Trash2, Layers } from 'lucide-react'
-import { AdminSector } from '@/lib/types'
+import { Layers, Loader2, Save, Trash2 } from 'lucide-react'
+import { useEffect, useState } from 'react'
 import { useToast } from '@/components/ui/use-toast'
 import { adminCragService } from '@/lib/api/services'
+import { AdminSector } from '@/lib/types'
 
 interface InlineSectorFormProps {
   sector: AdminSector | null
@@ -116,9 +116,7 @@ export default function InlineSectorForm({
               {isNew ? '新增岩壁' : `編輯岩壁：${sector?.name}`}
             </h2>
             <p className="text-xs text-wb-50">
-              {cragName && areaName
-                ? `${cragName} / ${areaName}`
-                : '填寫岩壁資料'}
+              {cragName && areaName ? `${cragName} / ${areaName}` : '填寫岩壁資料'}
             </p>
           </div>
         </div>
@@ -142,9 +140,7 @@ export default function InlineSectorForm({
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-wb-70 mb-1">
-              英文名稱
-            </label>
+            <label className="block text-sm font-medium text-wb-70 mb-1">英文名稱</label>
             <input
               type="text"
               value={form.name_en}
@@ -178,11 +174,7 @@ export default function InlineSectorForm({
                     disabled={deleting}
                     className="px-3 py-1.5 text-sm bg-red-500 text-white rounded-lg hover:bg-red-600 transition-colors disabled:opacity-50"
                   >
-                    {deleting ? (
-                      <Loader2 className="h-4 w-4 animate-spin" />
-                    ) : (
-                      '確認刪除'
-                    )}
+                    {deleting ? <Loader2 className="h-4 w-4 animate-spin" /> : '確認刪除'}
                   </button>
                   <button
                     type="button"

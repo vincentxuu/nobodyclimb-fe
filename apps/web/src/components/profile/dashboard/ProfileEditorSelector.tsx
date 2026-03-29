@@ -6,14 +6,9 @@
  * 讓用戶體驗三種不同的編輯方式，選擇最適合的版本
  */
 
-import React, { useState } from 'react'
 import { motion } from 'framer-motion'
-import {
-  LayoutGrid,
-  MousePointer,
-  ListOrdered,
-  ChevronRight,
-} from 'lucide-react'
+import { ChevronRight, LayoutGrid, ListOrdered, MousePointer } from 'lucide-react'
+import React, { useState } from 'react'
 import ProfileEditorVersionA from './ProfileEditorVersionA'
 import ProfileEditorVersionB from './ProfileEditorVersionB'
 import ProfileEditorVersionC from './ProfileEditorVersionC'
@@ -89,9 +84,7 @@ export default function ProfileEditorSelector() {
         {/* 標題 */}
         <div className="mb-12 text-center">
           <h1 className="text-3xl font-bold text-gray-900">選擇編輯方式</h1>
-          <p className="mt-2 text-gray-500">
-            我們提供三種不同的編輯體驗，選擇最適合你的方式
-          </p>
+          <p className="mt-2 text-gray-500">我們提供三種不同的編輯體驗，選擇最適合你的方式</p>
         </div>
 
         {/* 版本選項 */}
@@ -124,15 +117,11 @@ export default function ProfileEditorSelector() {
                 </div>
 
                 {/* 標題 */}
-                <h2 className="text-lg font-semibold text-gray-900">
-                  {option.title}
-                </h2>
+                <h2 className="text-lg font-semibold text-gray-900">{option.title}</h2>
                 <p className="text-sm text-gray-500">{option.subtitle}</p>
 
                 {/* 說明 */}
-                <p className="mt-3 flex-1 text-sm text-gray-600">
-                  {option.description}
-                </p>
+                <p className="mt-3 flex-1 text-sm text-gray-600">{option.description}</p>
 
                 {/* 優點列表 */}
                 <ul className="mt-4 space-y-1">
@@ -173,17 +162,13 @@ export default function ProfileEditorSelector() {
 
         {/* 比較表格 */}
         <div className="mt-16">
-          <h2 className="mb-6 text-center text-xl font-semibold text-gray-900">
-            功能比較
-          </h2>
+          <h2 className="mb-6 text-center text-xl font-semibold text-gray-900">功能比較</h2>
 
           <div className="overflow-hidden rounded-lg border bg-white">
             <table className="w-full">
               <thead>
                 <tr className="border-b bg-gray-50">
-                  <th className="px-6 py-4 text-left text-sm font-medium text-gray-500">
-                    功能
-                  </th>
+                  <th className="px-6 py-4 text-left text-sm font-medium text-gray-500">功能</th>
                   <th className="px-6 py-4 text-center text-sm font-medium text-gray-900">
                     版本 A
                   </th>

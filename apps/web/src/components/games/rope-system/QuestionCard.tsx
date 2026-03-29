@@ -1,9 +1,8 @@
 'use client'
 
-import * as React from 'react'
-import { motion, AnimatePresence } from 'framer-motion'
-import { cn } from '@/lib/utils'
+import { AnimatePresence, motion } from 'framer-motion'
 import type { Question } from '@/lib/games/rope-system/types'
+import { cn } from '@/lib/utils'
 import { ChoiceQuestion } from './ChoiceQuestion'
 import { OrderingQuestion } from './OrderingQuestion'
 

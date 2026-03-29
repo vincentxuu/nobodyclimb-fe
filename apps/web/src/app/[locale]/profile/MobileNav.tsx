@@ -1,8 +1,8 @@
 'use client'
 
-import React, { useCallback } from 'react'
-import { useRouter, usePathname } from 'next/navigation'
+import { usePathname, useRouter } from 'next/navigation'
 import { useTranslations } from 'next-intl'
+import { useCallback } from 'react'
 
 export default function MobileNav() {
   const t = useTranslations('ProfilePage')
@@ -43,8 +43,9 @@ export default function MobileNav() {
             <div
               key={item.href}
               onClick={() => handleNavigate(item.href)}
-              className={`shrink-0 cursor-pointer whitespace-nowrap px-2 text-base ${isActive ? 'font-semibold text-text-main' : 'font-medium text-text-subtle'
-                }`}
+              className={`shrink-0 cursor-pointer whitespace-nowrap px-2 text-base ${
+                isActive ? 'font-semibold text-text-main' : 'font-medium text-text-subtle'
+              }`}
             >
               {item.name}
             </div>

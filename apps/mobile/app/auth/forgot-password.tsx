@@ -3,24 +3,24 @@
  *
  * 對應 apps/web/src/app/auth/forgot-password/page.tsx
  */
-import React, { useState, useCallback } from 'react'
+
+import { FONT_SIZE, RADIUS, SEMANTIC_COLORS, SPACING } from '@nobodyclimb/constants'
+import { useRouter } from 'expo-router'
+import { ArrowLeft, CheckCircle, Mail, Send } from 'lucide-react-native'
+import { useCallback, useState } from 'react'
 import {
-  StyleSheet,
-  View,
-  TextInput,
   KeyboardAvoidingView,
   Platform,
   ScrollView,
+  StyleSheet,
+  TextInput,
+  View,
 } from 'react-native'
-import { SafeAreaView } from 'react-native-safe-area-context'
-import { useRouter } from 'expo-router'
-import { YStack, XStack } from 'tamagui'
-import { Mail, ArrowLeft, Send, CheckCircle } from 'lucide-react-native'
 import Animated, { FadeInDown } from 'react-native-reanimated'
-
+import { SafeAreaView } from 'react-native-safe-area-context'
+import { XStack, YStack } from 'tamagui'
+import { Button, Link, Spinner, Text } from '@/components/ui'
 import { apiClient } from '@/lib/api'
-import { Text, Button, Link, Spinner } from '@/components/ui'
-import { SEMANTIC_COLORS, SPACING, FONT_SIZE, RADIUS } from '@nobodyclimb/constants'
 
 export default function ForgotPasswordScreen() {
   const router = useRouter()
@@ -126,11 +126,7 @@ export default function ForgotPasswordScreen() {
               <YStack width="100%" gap={SPACING.md}>
                 {/* Email */}
                 <View style={styles.inputContainer}>
-                  <Mail
-                    size={16}
-                    color={SEMANTIC_COLORS.textMuted}
-                    style={styles.inputIcon}
-                  />
+                  <Mail size={16} color={SEMANTIC_COLORS.textMuted} style={styles.inputIcon} />
                   <TextInput
                     style={styles.input}
                     placeholder="電子郵件"

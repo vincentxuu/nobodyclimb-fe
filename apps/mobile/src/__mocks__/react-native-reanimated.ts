@@ -4,7 +4,7 @@
  * can render in a test environment without native modules.
  */
 import React from 'react'
-import { View, Text, ScrollView, FlatList, Image } from 'react-native'
+import { FlatList, Image, ScrollView, Text, View } from 'react-native'
 
 // Animated component stubs
 const Animated = {

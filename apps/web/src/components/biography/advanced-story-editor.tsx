@@ -1,19 +1,19 @@
 'use client'
 
-import React, { useState, useCallback, useMemo } from 'react'
+import { AnimatePresence, motion } from 'framer-motion'
+import { ChevronDown, Loader2, X } from 'lucide-react'
 import { useTranslations } from 'next-intl'
-import { motion, AnimatePresence } from 'framer-motion'
-import { X, Loader2, ChevronDown } from 'lucide-react'
-import {
-  StoryQuestion,
-  STORY_CATEGORIES,
-  calculateStoryProgress,
-  groupStoriesByCategory,
-} from '@/lib/constants/biography-stories'
-import { cn } from '@/lib/utils'
+import { useCallback, useMemo, useState } from 'react'
 import { Button } from '@/components/ui/button'
 import { Textarea } from '@/components/ui/textarea'
-import { getStoryIcon, CATEGORY_ICONS } from '@/lib/utils/biography-ui'
+import {
+  calculateStoryProgress,
+  groupStoriesByCategory,
+  STORY_CATEGORIES,
+  StoryQuestion,
+} from '@/lib/constants/biography-stories'
+import { cn } from '@/lib/utils'
+import { CATEGORY_ICONS, getStoryIcon } from '@/lib/utils/biography-ui'
 
 interface AdvancedStoryEditorProps {
   biography: Record<string, unknown>
@@ -38,7 +38,11 @@ function StoryListHeader({
       <div>
         <h2 className="text-lg font-semibold text-brand-dark">{t('storiesTitle')}</h2>
         <p className="text-sm text-text-subtle">
-          {t('advancedStoryFilled', { completed: progress.completed, total: progress.total, percentage: progress.percentage })}
+          {t('advancedStoryFilled', {
+            completed: progress.completed,
+            total: progress.total,
+            percentage: progress.percentage,
+          })}
         </p>
       </div>
       {onClose && (
@@ -121,17 +125,14 @@ function FilledStoryCard({
                 autoFocus
               />
               <div className="flex items-center justify-between">
-<span className="text-xs text-text-subtle">{editValue.length} {t('advancedStoryCharCount')}</span>
+                <span className="text-xs text-text-subtle">
+                  {editValue.length} {t('advancedStoryCharCount')}
+                </span>
                 <div className="flex gap-2">
                   <Button variant="ghost" size="sm" onClick={onCancel} disabled={isSaving}>
                     {t('cancelButton')}
                   </Button>
-                  <Button
-                    variant="primary"
-                    size="sm"
-                    onClick={onSave}
-                    disabled={isSaving}
-                  >
+                  <Button variant="primary" size="sm" onClick={onSave} disabled={isSaving}>
                     {isSaving ? <Loader2 className="h-4 w-4 animate-spin" /> : t('saveButton')}
                   </Button>
                 </div>
@@ -223,13 +224,12 @@ function UnfilledStoriesSection({
       >
         <div className="flex items-center gap-2">
           <ChevronDown
-            className={cn(
-              'h-5 w-5 text-gray-600 transition-transform',
-              isExpanded && 'rotate-180'
-            )}
+            className={cn('h-5 w-5 text-gray-600 transition-transform', isExpanded && 'rotate-180')}
           />
           <span className="font-medium text-gray-700">{t('advancedStoryUnfilled')}</span>
-          <span className="text-sm text-text-subtle">{t('advancedStoryUnfilledCount', { count: questions.length })}</span>
+          <span className="text-sm text-text-subtle">
+            {t('advancedStoryUnfilledCount', { count: questions.length })}
+          </span>
         </div>
       </button>
 
@@ -265,13 +265,7 @@ function UnfilledStoriesSection({
 /**
  * 分類標題組件
  */
-function CategoryHeader({
-  categoryId,
-  count,
-}: {
-  categoryId: string
-  count: number
-}) {
+function CategoryHeader({ categoryId, count }: { categoryId: string; count: number }) {
   const category = STORY_CATEGORIES.find((c) => c.id === categoryId)
   const Icon = category ? CATEGORY_ICONS[category.id] : null
 
@@ -304,10 +298,7 @@ export function AdvancedStoryEditor({
   const [error, setError] = useState<string | null>(null)
 
   // 計算分組和進度
-  const { filled, unfilled } = useMemo(
-    () => groupStoriesByCategory(biography),
-    [biography]
-  )
+  const { filled, unfilled } = useMemo(() => groupStoriesByCategory(biography), [biography])
   const progress = calculateStoryProgress(biography)
 
   // 取得顯示值

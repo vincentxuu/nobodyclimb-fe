@@ -7,14 +7,11 @@
 // 過濾器組件
 export { ChannelFilter, type ChannelFilterProps } from './ChannelFilter'
 export { DurationFilter, type DurationFilterProps, VIDEO_DURATION_OPTIONS } from './DurationFilter'
-export { PopularityFilter, type PopularityFilterProps, VIDEO_POPULARITY_OPTIONS } from './PopularityFilter'
-export { VideoFilters, type VideoFiltersProps } from './VideoFilters'
-
-// 影片顯示組件
-export { VideoCard, type VideoCardProps } from './VideoCard'
-export { VideoGrid, type VideoGridProps } from './VideoGrid'
-export { VideoPlayer, type VideoPlayerProps } from './VideoPlayer'
-
+export {
+  PopularityFilter,
+  type PopularityFilterProps,
+  VIDEO_POPULARITY_OPTIONS,
+} from './PopularityFilter'
 // 類型定義
 export type {
   Video,
@@ -22,3 +19,9 @@ export type {
   VideoDuration,
   VideoPopularity,
 } from './types'
+
+// 影片顯示組件
+export { VideoCard, type VideoCardProps } from './VideoCard'
+export { VideoFilters, type VideoFiltersProps } from './VideoFilters'
+export { VideoGrid, type VideoGridProps } from './VideoGrid'
+export { VideoPlayer, type VideoPlayerProps } from './VideoPlayer'

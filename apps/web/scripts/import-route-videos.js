@@ -75,7 +75,7 @@ function parseCSV(content) {
         // 行結束
         if (char === '\r') i++ // 跳過 \r\n 的 \n
         currentRow.push(currentCell)
-        if (currentRow.some(cell => cell.trim())) {
+        if (currentRow.some((cell) => cell.trim())) {
           rows.push(currentRow)
         }
         currentRow = []
@@ -89,7 +89,7 @@ function parseCSV(content) {
   // 處理最後一行
   if (currentCell || currentRow.length > 0) {
     currentRow.push(currentCell)
-    if (currentRow.some(cell => cell.trim())) {
+    if (currentRow.some((cell) => cell.trim())) {
       rows.push(currentRow)
     }
   }
@@ -113,7 +113,7 @@ function parseCSV(content) {
 }
 
 // 解析單行 CSV（處理引號）
-function parseCSVLine(line) {
+function _parseCSVLine(line) {
   const result = []
   let current = ''
   let inQuotes = false
@@ -157,7 +157,7 @@ function parseUrls(text) {
 }
 
 // 從「標題 | URL」格式中提取 URL
-function parseVideoList(text) {
+function _parseVideoList(text) {
   if (!text) return []
 
   return text
@@ -192,18 +192,11 @@ function main() {
   const args = process.argv.slice(2)
 
   if (args.length === 0) {
-    console.log('使用方式: node scripts/import-route-videos.js <csv-file>')
-    console.log('')
-    console.log('範例:')
-    console.log('  node scripts/import-route-videos.js output/route-videos-longdong.csv')
     process.exit(1)
   }
 
   const csvFile = args[0]
   const filePath = path.isAbsolute(csvFile) ? csvFile : path.join(process.cwd(), csvFile)
-
-  console.log('=== 路線影片匯入工具 ===\n')
-  console.log(`讀取檔案: ${filePath}\n`)
 
   if (!fs.existsSync(filePath)) {
     console.error(`錯誤: 找不到檔案 ${filePath}`)
@@ -213,8 +206,6 @@ function main() {
   // 讀取並解析 CSV
   const content = fs.readFileSync(filePath, 'utf-8')
   const rows = parseCSV(content)
-
-  console.log(`CSV 共有 ${rows.length} 筆資料\n`)
 
   // 按岩場分組
   const cragGroups = {}
@@ -232,7 +223,6 @@ function main() {
     else if (routeId.startsWith('SS-')) cragId = 'shoushan'
 
     if (!cragId) {
-      console.log(`  跳過: 無法識別岩場 (${routeId})`)
       continue
     }
 
@@ -253,8 +243,6 @@ function main() {
 
   // 處理每個岩場
   for (const [cragId, rows] of Object.entries(cragGroups)) {
-    console.log(`處理岩場: ${cragId} (${rows.length} 條路線)`)
-
     const cragData = readCragData(cragId)
     if (!cragData) {
       stats.errors.push(`找不到岩場: ${cragId}`)
@@ -331,28 +319,15 @@ function main() {
       writeCragData(cragId, cragData)
       stats.cragsUpdated++
       stats.routesUpdated += routesUpdatedInCrag
-      console.log(`  ✅ 更新了 ${routesUpdatedInCrag} 條路線`)
     } else {
-      console.log(`  無變更`)
     }
   }
-
-  // 輸出統計
-  console.log('\n=== 匯入統計 ===')
-  console.log(`更新岩場數: ${stats.cragsUpdated}`)
-  console.log(`更新路線數: ${stats.routesUpdated}`)
-  console.log(`新增 YouTube 影片: ${stats.youtubeAdded}`)
-  console.log(`新增 Instagram 貼文: ${stats.instagramAdded}`)
 
   if (stats.errors.length > 0) {
-    console.log(`\n=== 警告/錯誤 (${stats.errors.length}) ===`)
-    stats.errors.slice(0, 10).forEach((err) => console.log(`  - ${err}`))
+    stats.errors.slice(0, 10).forEach((err) => {})
     if (stats.errors.length > 10) {
-      console.log(`  ... 還有 ${stats.errors.length - 10} 個錯誤`)
     }
   }
-
-  console.log('\n完成!')
 }
 
 main()

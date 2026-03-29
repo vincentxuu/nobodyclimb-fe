@@ -4,8 +4,8 @@
  * 對應 apps/web/src/lib/hooks/useScrollProgress.ts
  * React Native 版本使用 Animated.event 或 onScroll
  */
-import { useState, useCallback, useRef } from 'react'
-import { NativeSyntheticEvent, NativeScrollEvent, LayoutChangeEvent } from 'react-native'
+import { useCallback, useState } from 'react'
+import { LayoutChangeEvent, NativeScrollEvent, NativeSyntheticEvent } from 'react-native'
 
 interface UseScrollProgressOptions {
   threshold?: number
@@ -22,9 +22,7 @@ interface UseScrollProgressResult {
   onLayout: (event: LayoutChangeEvent) => void
 }
 
-export function useScrollProgress(
-  options: UseScrollProgressOptions = {}
-): UseScrollProgressResult {
+export function useScrollProgress(options: UseScrollProgressOptions = {}): UseScrollProgressResult {
   const { threshold = 10 } = options
 
   const [scrollY, setScrollY] = useState(0)

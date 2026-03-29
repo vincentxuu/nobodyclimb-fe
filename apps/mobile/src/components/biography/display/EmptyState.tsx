@@ -3,12 +3,12 @@
  *
  * 空狀態顯示，對應 apps/web/src/components/biography/display/EmptyState.tsx
  */
+
+import { SEMANTIC_COLORS, SPACING } from '@nobodyclimb/constants'
+import { FileText, PenSquare } from 'lucide-react-native'
 import React from 'react'
 import { StyleSheet, View } from 'react-native'
-import { FileText, PenSquare } from 'lucide-react-native'
-
-import { Text, Button } from '@/components/ui'
-import { SEMANTIC_COLORS, SPACING } from '@nobodyclimb/constants'
+import { Button, Text } from '@/components/ui'
 
 interface EmptyStateProps {
   /** 標題 */
@@ -50,12 +50,7 @@ export function EmptyState({
       )}
 
       {isOwner && onAdd && (
-        <Button
-          variant="secondary"
-          size="sm"
-          onPress={onAdd}
-          style={styles.button}
-        >
+        <Button variant="secondary" size="sm" onPress={onAdd} style={styles.button}>
           <PenSquare size={16} color={SEMANTIC_COLORS.textMain} />
           <Text fontWeight="500">{addButtonText}</Text>
         </Button>

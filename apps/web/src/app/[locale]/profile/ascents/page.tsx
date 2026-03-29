@@ -1,28 +1,30 @@
 'use client'
 
-import React, { useState, useCallback } from 'react'
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { motion } from 'framer-motion'
 import {
-  MountainSnow,
-  Route,
-  MapPin,
-  TrendingUp,
-  Filter,
-  Pencil,
-  Trash2,
   ChevronLeft,
   ChevronRight,
+  Filter,
+  MapPin,
+  MountainSnow,
+  Pencil,
   Plus,
+  Route,
+  Trash2,
+  TrendingUp,
 } from 'lucide-react'
-import ProfilePageLayout from '@/components/profile/layout/ProfilePageLayout'
-import ProfilePageTitle from '@/components/profile/ProfilePageTitle'
-import { LoadingSpinner } from '@/components/ui/loading-spinner'
-import { EmptyState } from '@/components/ui/empty-state'
-import { Button } from '@/components/ui/button'
+import { useTranslations } from 'next-intl'
+import React, { useCallback, useState } from 'react'
 import { AscentCard } from '@/components/ascent/AscentCard'
 import { AscentForm } from '@/components/ascent/AscentForm'
 import { CreateAscentDialog } from '@/components/ascent/CreateAscentDialog'
+import ProfilePageLayout from '@/components/profile/layout/ProfilePageLayout'
+import ProfilePageTitle from '@/components/profile/ProfilePageTitle'
+import { Button } from '@/components/ui/button'
+import { ConfirmDialog } from '@/components/ui/confirm-dialog'
+import { EmptyState } from '@/components/ui/empty-state'
+import { LoadingSpinner } from '@/components/ui/loading-spinner'
 import {
   Select,
   SelectContent,
@@ -30,12 +32,15 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
-import { ConfirmDialog } from '@/components/ui/confirm-dialog'
-import { useAscents } from '@/lib/hooks/useAscents'
-import { UserRouteAscent, AscentFormData, ASCENT_TYPE_DISPLAY, AscentType } from '@/lib/types/ascent'
-import { useToast } from '@/components/ui/use-toast'
 import { ToastAction } from '@/components/ui/toast'
-import { useTranslations } from 'next-intl'
+import { useToast } from '@/components/ui/use-toast'
+import { useAscents } from '@/lib/hooks/useAscents'
+import {
+  ASCENT_TYPE_DISPLAY,
+  AscentFormData,
+  AscentType,
+  UserRouteAscent,
+} from '@/lib/types/ascent'
 
 const ITEMS_PER_PAGE = 10
 
@@ -94,7 +99,10 @@ export default function AscentsPage() {
           title: t('toastCreateSuccess'),
           description: t('toastAscentAiRecommendDesc'),
           action: (
-            <ToastAction altText={t('toastGoToRecommendations')} onClick={() => window.location.href = '/profile/recommendations'}>
+            <ToastAction
+              altText={t('toastGoToRecommendations')}
+              onClick={() => (window.location.href = '/profile/recommendations')}
+            >
               {t('toastGoView')}
             </ToastAction>
           ),
@@ -202,9 +210,7 @@ export default function AscentsPage() {
   const totalPages = pagination?.total_pages ?? 1
 
   // 計算最高難度顯示
-  const highestGrade = stats?.highest_grades
-    ? Object.values(stats.highest_grades)[0] ?? '-'
-    : '-'
+  const highestGrade = stats?.highest_grades ? (Object.values(stats.highest_grades)[0] ?? '-') : '-'
 
   return (
     <ProfilePageLayout>

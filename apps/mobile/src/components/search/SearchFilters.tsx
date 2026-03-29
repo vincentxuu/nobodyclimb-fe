@@ -3,15 +3,11 @@
  *
  * 對應 apps/web/src/components/search/search-filters.tsx
  */
-import React from 'react'
-import { StyleSheet, View, ScrollView, Pressable } from 'react-native'
-import Animated, {
-  useAnimatedStyle,
-  useSharedValue,
-  withTiming,
-} from 'react-native-reanimated'
-import { SEMANTIC_COLORS, SPACING, DURATION } from '@nobodyclimb/constants'
-import { Text, SearchInput } from '@/components/ui'
+
+import { DURATION, SEMANTIC_COLORS, SPACING } from '@nobodyclimb/constants'
+import { Pressable, ScrollView, StyleSheet, View } from 'react-native'
+import Animated, { useAnimatedStyle, useSharedValue, withTiming } from 'react-native-reanimated'
+import { SearchInput, Text } from '@/components/ui'
 
 export type SearchType = 'all' | 'biography' | 'crag' | 'gym' | 'blog'
 
@@ -54,11 +50,7 @@ function TabButton({ label, isActive, onPress }: TabButtonProps) {
         onPressOut={handlePressOut}
         style={[styles.tabButton, isActive && styles.tabButtonActive]}
       >
-        <Text
-          variant="body"
-          fontWeight={isActive ? '500' : '400'}
-          color="main"
-        >
+        <Text variant="body" fontWeight={isActive ? '500' : '400'} color="main">
           {label}
         </Text>
       </Pressable>

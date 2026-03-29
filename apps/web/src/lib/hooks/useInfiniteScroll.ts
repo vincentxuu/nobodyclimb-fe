@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback, RefObject } from 'react'
+import { RefObject, useCallback, useEffect, useState } from 'react'
 import { DEFAULT_PAGE } from '@/lib/constants'
 
 interface UseInfiniteScrollProps {

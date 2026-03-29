@@ -15,45 +15,44 @@
  * - 相關岩館推薦
  * - 上一篇/下一篇導航
  */
-import React, { useMemo } from 'react'
-import {
-  StyleSheet,
-  View,
-  ScrollView,
-  RefreshControl,
-  ActivityIndicator,
-  Share,
-  Linking,
-  Pressable,
-} from 'react-native'
-import { useLocalSearchParams, useRouter } from 'expo-router'
-import { SafeAreaView } from 'react-native-safe-area-context'
+
+import { COLORS, RADIUS, SEMANTIC_COLORS, SPACING } from '@nobodyclimb/constants'
 import { LinearGradient } from 'expo-linear-gradient'
+import { useLocalSearchParams, useRouter } from 'expo-router'
 import {
+  Bus,
   ChevronLeft,
   ChevronRight,
-  Share2,
-  MapPin,
-  Clock,
-  Phone,
-  Globe,
-  Star,
-  Navigation,
   ExternalLink,
   Facebook,
+  Globe,
   Instagram,
-  Youtube,
+  MapPin,
   MessageCircle,
-  Train,
-  Bus,
+  Navigation,
   ParkingCircle,
+  Phone,
+  Share2,
+  Star,
+  Train,
   TramFront,
+  Youtube,
 } from 'lucide-react-native'
-
-import { Text, IconButton, Button, Card } from '@/components/ui'
-import { SEMANTIC_COLORS, SPACING, RADIUS, COLORS } from '@nobodyclimb/constants'
-import { useGymDetail, useAdjacentGyms, useRelatedGyms } from '@/lib/hooks/useGyms'
+import React, { useMemo } from 'react'
+import {
+  ActivityIndicator,
+  Linking,
+  Pressable,
+  RefreshControl,
+  ScrollView,
+  Share,
+  StyleSheet,
+  View,
+} from 'react-native'
+import { SafeAreaView } from 'react-native-safe-area-context'
+import { Button, Card, IconButton, Text } from '@/components/ui'
 import type { GymDetailData, GymListItem, GymPricing } from '@/lib/gym-data'
+import { useAdjacentGyms, useGymDetail, useRelatedGyms } from '@/lib/hooks/useGyms'
 
 // ============ 封面產生器組件 ============
 
@@ -80,12 +79,7 @@ function GymCoverLarge({ type, name, typeLabel }: GymCoverProps) {
   return (
     <LinearGradient colors={gradientColors} style={styles.coverGradient}>
       <View style={styles.coverOverlay}>
-        <Text
-          variant="h2"
-          fontWeight="700"
-          numberOfLines={2}
-          style={styles.coverTitle}
-        >
+        <Text variant="h2" fontWeight="700" numberOfLines={2} style={styles.coverTitle}>
           {name}
         </Text>
         <View style={styles.coverBadge}>
@@ -192,12 +186,7 @@ export default function GymDetailScreen() {
   const router = useRouter()
   const { id } = useLocalSearchParams<{ id: string }>()
 
-  const {
-    data: gym,
-    isLoading,
-    error: gymError,
-    refetch,
-  } = useGymDetail(id)
+  const { data: gym, isLoading, error: gymError, refetch } = useGymDetail(id)
   const { data: adjacentGyms = { prev: null, next: null } } = useAdjacentGyms(id)
   const { data: relatedGyms = [] } = useRelatedGyms(id, 3)
 
@@ -357,18 +346,12 @@ export default function GymDetailScreen() {
 
       <ScrollView
         style={styles.scrollView}
-        refreshControl={
-          <RefreshControl refreshing={refreshing} onRefresh={handleRefresh} />
-        }
+        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={handleRefresh} />}
         showsVerticalScrollIndicator={false}
       >
         {/* 封面展示區 */}
         <View style={styles.coverContainer}>
-          <GymCoverLarge
-            type={gym.type}
-            name={gym.name}
-            typeLabel={gym.typeLabel}
-          />
+          <GymCoverLarge type={gym.type} name={gym.name} typeLabel={gym.typeLabel} />
         </View>
 
         {/* 標題和基本資訊 */}
@@ -420,24 +403,14 @@ export default function GymDetailScreen() {
 
         {/* 快速操作 */}
         <View style={styles.quickActions}>
-          <Button
-            variant="primary"
-            size="md"
-            onPress={handleNavigate}
-            style={styles.actionButton}
-          >
+          <Button variant="primary" size="md" onPress={handleNavigate} style={styles.actionButton}>
             <Navigation size={16} color="#FFFFFF" />
             <Text fontWeight="600" style={styles.actionButtonText}>
               導航
             </Text>
           </Button>
           {gym.contact.phone && (
-            <Button
-              variant="secondary"
-              size="md"
-              onPress={handleCall}
-              style={styles.actionButton}
-            >
+            <Button variant="secondary" size="md" onPress={handleCall} style={styles.actionButton}>
               <Phone size={16} color={SEMANTIC_COLORS.textMain} />
               <Text fontWeight="600">電話</Text>
             </Button>
@@ -573,11 +546,7 @@ export default function GymDetailScreen() {
                 <Text
                   variant="body"
                   fontWeight="500"
-                  style={
-                    day.time === '公休' || day.time === '休息'
-                      ? styles.closedText
-                      : undefined
-                  }
+                  style={day.time === '公休' || day.time === '休息' ? styles.closedText : undefined}
                 >
                   {day.time}
                 </Text>
@@ -600,9 +569,7 @@ export default function GymDetailScreen() {
             )}
             {gym.contact.facebook && (
               <Pressable
-                onPress={() =>
-                  gym.contact.facebookUrl && handleOpenLink(gym.contact.facebookUrl)
-                }
+                onPress={() => gym.contact.facebookUrl && handleOpenLink(gym.contact.facebookUrl)}
                 style={styles.contactItem}
                 disabled={!gym.contact.facebookUrl}
               >
@@ -618,9 +585,7 @@ export default function GymDetailScreen() {
             )}
             {gym.contact.instagram && (
               <Pressable
-                onPress={() =>
-                  gym.contact.instagramUrl && handleOpenLink(gym.contact.instagramUrl)
-                }
+                onPress={() => gym.contact.instagramUrl && handleOpenLink(gym.contact.instagramUrl)}
                 style={styles.contactItem}
                 disabled={!gym.contact.instagramUrl}
               >
@@ -706,10 +671,7 @@ export default function GymDetailScreen() {
         {/* 上一篇/下一篇 */}
         <View style={styles.navigationSection}>
           {adjacentGyms.prev && (
-            <Pressable
-              onPress={() => handleGymPress(adjacentGyms.prev!.id)}
-              style={styles.navCard}
-            >
+            <Pressable onPress={() => handleGymPress(adjacentGyms.prev!.id)} style={styles.navCard}>
               <View style={styles.navDirection}>
                 <ChevronLeft size={16} color={SEMANTIC_COLORS.textMuted} />
                 <Text variant="small" color="textMuted">
@@ -738,12 +700,7 @@ export default function GymDetailScreen() {
               <Text variant="body" numberOfLines={1} style={styles.textRight}>
                 {adjacentGyms.next.name}
               </Text>
-              <Text
-                variant="small"
-                color="textMuted"
-                numberOfLines={1}
-                style={styles.textRight}
-              >
+              <Text variant="small" color="textMuted" numberOfLines={1} style={styles.textRight}>
                 {adjacentGyms.next.location}
               </Text>
             </Pressable>

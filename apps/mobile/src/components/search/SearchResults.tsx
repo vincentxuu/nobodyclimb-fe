@@ -3,25 +3,12 @@
  *
  * 對應 apps/web/src/components/search/search-results.tsx
  */
-import React from 'react'
-import {
-  StyleSheet,
-  View,
-  FlatList,
-  Pressable,
-  ActivityIndicator,
-  Image,
-} from 'react-native'
-import {
-  Search,
-  Users,
-  Mountain,
-  Building2,
-  FileText,
-  ChevronRight,
-} from 'lucide-react-native'
-import Animated, { FadeInDown } from 'react-native-reanimated'
+
 import { BORDER_RADIUS, SEMANTIC_COLORS, SPACING, WB_COLORS } from '@nobodyclimb/constants'
+import { Building2, ChevronRight, FileText, Mountain, Search, Users } from 'lucide-react-native'
+import React from 'react'
+import { ActivityIndicator, FlatList, Image, Pressable, StyleSheet, View } from 'react-native'
+import Animated, { FadeInDown } from 'react-native-reanimated'
 import { Text } from '@/components/ui'
 import { SearchType, TYPE_LABELS } from './SearchFilters'
 
@@ -36,7 +23,10 @@ export interface SearchResultItem {
 }
 
 // 類型對應圖標
-const TYPE_ICONS: Record<Exclude<SearchType, 'all'>, React.ComponentType<{ size: number; color: string }>> = {
+const TYPE_ICONS: Record<
+  Exclude<SearchType, 'all'>,
+  React.ComponentType<{ size: number; color: string }>
+> = {
   biography: Users,
   crag: Mountain,
   gym: Building2,
@@ -55,18 +45,11 @@ function ResultItem({ item, onPress, index }: ResultItemProps) {
   return (
     <Animated.View entering={FadeInDown.duration(300).delay(index * 50)}>
       <Pressable
-        style={({ pressed }) => [
-          styles.resultItem,
-          pressed && styles.resultItemPressed,
-        ]}
+        style={({ pressed }) => [styles.resultItem, pressed && styles.resultItemPressed]}
         onPress={() => onPress(item)}
       >
         {item.image ? (
-          <Image
-            source={{ uri: item.image }}
-            style={styles.resultImage}
-            resizeMode="cover"
-          />
+          <Image source={{ uri: item.image }} style={styles.resultImage} resizeMode="cover" />
         ) : (
           <View style={styles.resultIconContainer}>
             <Icon size={24} color={SEMANTIC_COLORS.textSubtle} />

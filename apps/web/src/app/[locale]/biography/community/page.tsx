@@ -1,16 +1,15 @@
 'use client'
 
-import React from 'react'
 import { motion } from 'framer-motion'
-import { Link } from '@/i18n/navigation'
-import { Users, ArrowLeft } from 'lucide-react'
-import { Breadcrumb } from '@/components/ui/breadcrumb'
-import { PageHeader } from '@/components/ui/page-header'
-import { LoadingSpinner } from '@/components/ui/loading-spinner'
-import { Button } from '@/components/ui/button'
-import { CommunityDashboard } from '@/components/biography/stats'
-import { useCommunityStats, useLeaderboard } from '@/lib/hooks/useBiographyStats'
+import { ArrowLeft, Users } from 'lucide-react'
 import { useTranslations } from 'next-intl'
+import { CommunityDashboard } from '@/components/biography/stats'
+import { Breadcrumb } from '@/components/ui/breadcrumb'
+import { Button } from '@/components/ui/button'
+import { LoadingSpinner } from '@/components/ui/loading-spinner'
+import { PageHeader } from '@/components/ui/page-header'
+import { Link } from '@/i18n/navigation'
+import { useCommunityStats, useLeaderboard } from '@/lib/hooks/useBiographyStats'
 
 export default function CommunityStatsPage() {
   const t = useTranslations('BiographyPage')
@@ -19,7 +18,10 @@ export default function CommunityStatsPage() {
 
   // 獲取排行榜數據
   const { data: goalsLeaderboard, isLoading: goalsLoading } = useLeaderboard('goals_completed', 10)
-  const { data: followersLeaderboard, isLoading: followersLoading } = useLeaderboard('followers', 10)
+  const { data: followersLeaderboard, isLoading: followersLoading } = useLeaderboard(
+    'followers',
+    10
+  )
   const { data: likesLeaderboard, isLoading: likesLoading } = useLeaderboard('likes_received', 10)
 
   const isLoading = statsLoading || goalsLoading || followersLoading || likesLoading
@@ -32,10 +34,7 @@ export default function CommunityStatsPage() {
       transition={{ duration: 0.5 }}
       className="min-h-screen bg-page-content-bg"
     >
-      <PageHeader
-        title={t('communityStatsTitle')}
-        subtitle={t('communityStatsDesc')}
-      />
+      <PageHeader title={t('communityStatsTitle')} subtitle={t('communityStatsDesc')} />
 
       <div className="container mx-auto px-4 py-6">
         {/* Breadcrumb */}
@@ -70,13 +69,11 @@ export default function CommunityStatsPage() {
         ) : statsError ? (
           <div className="rounded-lg bg-white p-8 text-center">
             <Users className="mx-auto h-12 w-12 text-gray-400" />
-            <h3 className="mt-4 text-lg font-medium text-gray-900">{t('loadCommunityStatsFailed')}</h3>
+            <h3 className="mt-4 text-lg font-medium text-gray-900">
+              {t('loadCommunityStatsFailed')}
+            </h3>
             <p className="mt-2 text-sm text-gray-500">{t('retryLater')}</p>
-            <Button
-              variant="outline"
-              className="mt-4"
-              onClick={() => window.location.reload()}
-            >
+            <Button variant="outline" className="mt-4" onClick={() => window.location.reload()}>
               {t('reload')}
             </Button>
           </div>
@@ -98,18 +95,14 @@ export default function CommunityStatsPage() {
             className="rounded-lg border border-gray-200 bg-white p-6 transition-shadow hover:shadow-md"
           >
             <h3 className="text-lg font-semibold text-gray-900">{t('exploreStories')}</h3>
-            <p className="mt-2 text-sm text-gray-500">
-              {t('exploreStoriesDesc')}
-            </p>
+            <p className="mt-2 text-sm text-gray-500">{t('exploreStoriesDesc')}</p>
           </Link>
           <Link
             href="/biography"
             className="rounded-lg border border-gray-200 bg-white p-6 transition-shadow hover:shadow-md"
           >
             <h3 className="text-lg font-semibold text-gray-900">{t('browseBiography')}</h3>
-            <p className="mt-2 text-sm text-gray-500">
-              {t('browseBiographyDesc')}
-            </p>
+            <p className="mt-2 text-sm text-gray-500">{t('browseBiographyDesc')}</p>
           </Link>
         </div>
       </div>

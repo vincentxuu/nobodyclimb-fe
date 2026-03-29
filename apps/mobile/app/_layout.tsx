@@ -1,11 +1,11 @@
 import 'react-native-reanimated'
-import { Stack } from 'expo-router'
-import { StatusBar } from 'expo-status-bar'
-import { GestureHandlerRootView } from 'react-native-gesture-handler'
-import { StyleSheet } from 'react-native'
 import { useFonts } from 'expo-font'
-import { useEffect } from 'react'
+import { Stack } from 'expo-router'
 import * as SplashScreen from 'expo-splash-screen'
+import { StatusBar } from 'expo-status-bar'
+import { useEffect } from 'react'
+import { StyleSheet } from 'react-native'
+import { GestureHandlerRootView } from 'react-native-gesture-handler'
 import { Providers } from '@/providers'
 
 // 保持 Splash Screen 顯示直到字體載入完成

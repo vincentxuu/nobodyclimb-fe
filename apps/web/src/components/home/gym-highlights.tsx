@@ -1,14 +1,14 @@
 'use client'
 
-import { useEffect } from 'react'
-import Link from 'next/link'
-import Image from 'next/image'
 import { motion } from 'framer-motion'
 import { ArrowRight, MapPin, Star } from 'lucide-react'
-import { useContentStore } from '@/store/contentStore'
-import { Gym } from '@/lib/types'
-import { Button } from '@/components/ui/button'
+import Image from 'next/image'
+import Link from 'next/link'
 import { useTranslations } from 'next-intl'
+import { useEffect } from 'react'
+import { Button } from '@/components/ui/button'
+import { Gym } from '@/lib/types'
+import { useContentStore } from '@/store/contentStore'
 
 /**
  * 攀岩館卡片組件
@@ -154,9 +154,7 @@ export function GymHighlights() {
           transition={{ duration: 0.5, delay: 0.3 }}
         >
           <h3 className="mb-2 text-xl font-semibold">{t('gymAddTitle')}</h3>
-          <p className="mb-4 text-muted-foreground">
-            {t('gymAddDescription')}
-          </p>
+          <p className="mb-4 text-muted-foreground">{t('gymAddDescription')}</p>
           <Button asChild>
             <Link href="/gym/add">{t('gymAddButton')}</Link>
           </Button>

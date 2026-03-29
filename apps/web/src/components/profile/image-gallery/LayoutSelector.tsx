@@ -47,11 +47,7 @@ const layouts: { value: ImageLayout; label: string; icon: React.ReactNode }[] = 
   },
 ]
 
-export default function LayoutSelector({
-  value,
-  onChange,
-  disabled = false,
-}: LayoutSelectorProps) {
+export default function LayoutSelector({ value, onChange, disabled = false }: LayoutSelectorProps) {
   return (
     <div className="flex items-center gap-2">
       <span className="text-sm text-gray-600">排版：</span>

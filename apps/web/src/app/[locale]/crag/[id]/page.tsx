@@ -1,10 +1,10 @@
 import type { Metadata } from 'next'
-import CragDetailClient from './CragDetailClient'
-import { fetchCragById } from '@/lib/api/server-fetch'
-import { assembleCragMetadata, type CragMetadata } from '@/lib/adapters/crag-adapter'
-import { SITE_URL, SITE_NAME, OG_IMAGE } from '@/lib/constants'
-import { buildHreflangAlternates, buildOgLocale } from '@/lib/i18n-metadata'
 import { getTranslations } from 'next-intl/server'
+import { assembleCragMetadata, type CragMetadata } from '@/lib/adapters/crag-adapter'
+import { fetchCragById } from '@/lib/api/server-fetch'
+import { OG_IMAGE, SITE_NAME, SITE_URL } from '@/lib/constants'
+import { buildHreflangAlternates, buildOgLocale } from '@/lib/i18n-metadata'
+import CragDetailClient from './CragDetailClient'
 
 // 強制動態渲染，確保在 runtime 取得正確的 API URL
 export const dynamic = 'force-dynamic'
@@ -102,7 +102,13 @@ function generateBreadcrumbJsonLd(crag: CragMetadata, id: string) {
 }
 
 // 生成 VideoObject JSON-LD（即時影像）
-function generateVideoJsonLd(crag: CragMetadata, id: string, liveVideoId: string, liveVideoTitle?: string, liveVideoDescription?: string) {
+function generateVideoJsonLd(
+  crag: CragMetadata,
+  id: string,
+  liveVideoId: string,
+  liveVideoTitle?: string,
+  liveVideoDescription?: string
+) {
   return {
     '@context': 'https://schema.org',
     '@type': 'VideoObject',
@@ -135,15 +141,17 @@ function generateCragJsonLd(crag: CragMetadata, id: string) {
       addressCountry: 'TW',
     },
     // 地理座標 - 幫助 Google 地圖和本地搜尋
-    ...(crag.latitude && crag.longitude ? {
-      geo: {
-        '@type': 'GeoCoordinates',
-        latitude: crag.latitude,
-        longitude: crag.longitude,
-      },
-    } : {}),
+    ...(crag.latitude && crag.longitude
+      ? {
+          geo: {
+            '@type': 'GeoCoordinates',
+            latitude: crag.latitude,
+            longitude: crag.longitude,
+          },
+        }
+      : {}),
     hasMap: crag.googleMapsUrl,
-    amenityFeature: crag.amenities?.map(amenity => ({
+    amenityFeature: crag.amenities?.map((amenity) => ({
       '@type': 'LocationFeatureSpecification',
       name: amenity,
       value: true,
@@ -206,7 +214,9 @@ export async function generateMetadata({
 
   const crag = assembleCragMetadata(apiCrag)
   const title = `${crag.name} - ${t('metaTitleSuffix')}`
-  const description = crag.description?.substring(0, 160) || `${crag.name}攀岩岩場位於${crag.location}，提供${crag.routes}條攀岩路線，難度範圍${crag.difficulty}，岩質為${crag.rockType}。完整路線資訊、交通方式與最佳攀岩季節。`
+  const description =
+    crag.description?.substring(0, 160) ||
+    `${crag.name}攀岩岩場位於${crag.location}，提供${crag.routes}條攀岩路線，難度範圍${crag.difficulty}，岩質為${crag.rockType}。完整路線資訊、交通方式與最佳攀岩季節。`
   const ogLocale = buildOgLocale(locale)
 
   // Title 模板：包含關鍵資訊提升點擊率
@@ -259,11 +269,7 @@ export async function generateMetadata({
   }
 }
 
-export default async function CragDetailPage({
-  params,
-}: {
-  params: Promise<{ id: string }>
-}) {
+export default async function CragDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params
   const apiCrag = await fetchCragById(id)
   const crag = apiCrag ? assembleCragMetadata(apiCrag) : null
@@ -294,9 +300,15 @@ export default async function CragDetailPage({
         <script
           type="application/ld+json"
           dangerouslySetInnerHTML={{
-            __html: JSON.stringify(generateVideoJsonLd(
-              crag, id, crag.liveVideoId, crag.liveVideoTitle ?? undefined, crag.liveVideoDescription ?? undefined
-            )),
+            __html: JSON.stringify(
+              generateVideoJsonLd(
+                crag,
+                id,
+                crag.liveVideoId,
+                crag.liveVideoTitle ?? undefined,
+                crag.liveVideoDescription ?? undefined
+              )
+            ),
           }}
         />
       )}
@@ -314,9 +326,7 @@ export default async function CragDetailPage({
       {faqs.length > 0 && crag && (
         <section className="container mx-auto px-4 pb-16">
           <div className="mx-auto max-w-3xl">
-            <h2 className="mb-6 text-xl font-medium text-[#1B1A1A]">
-              {crag.name}常見問題
-            </h2>
+            <h2 className="mb-6 text-xl font-medium text-[#1B1A1A]">{crag.name}常見問題</h2>
             <div className="divide-y divide-gray-200 rounded-lg border border-gray-200 bg-white">
               {faqs.map((faq, index) => (
                 <details key={index} className="group">
@@ -326,9 +336,7 @@ export default async function CragDetailPage({
                       ▼
                     </span>
                   </summary>
-                  <p className="px-5 pb-4 text-sm leading-relaxed text-[#6D6C6C]">
-                    {faq.answer}
-                  </p>
+                  <p className="px-5 pb-4 text-sm leading-relaxed text-[#6D6C6C]">{faq.answer}</p>
                 </details>
               ))}
             </div>

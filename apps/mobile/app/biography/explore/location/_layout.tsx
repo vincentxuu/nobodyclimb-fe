@@ -1,8 +1,9 @@
 /**
  * 位置詳情 Layout
  */
-import { Stack } from 'expo-router'
+
 import { SEMANTIC_COLORS } from '@nobodyclimb/constants'
+import { Stack } from 'expo-router'
 
 export default function LocationLayout() {
   return (

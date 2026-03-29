@@ -1,6 +1,5 @@
-import React from 'react'
+import { FONT_SIZE, RADIUS, SEMANTIC_COLORS, SPACING, WB_COLORS } from '@nobodyclimb/constants'
 import Markdown from 'react-native-markdown-display'
-import { SEMANTIC_COLORS, FONT_SIZE, SPACING, WB_COLORS, RADIUS } from '@nobodyclimb/constants'
 
 export interface MarkdownTextProps {
   children: string

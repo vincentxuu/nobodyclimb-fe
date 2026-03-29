@@ -1,8 +1,8 @@
 'use client'
 
-import Link from 'next/link'
-import Image from 'next/image'
 import { motion } from 'framer-motion'
+import Image from 'next/image'
+import Link from 'next/link'
 import { useTranslations } from 'next-intl'
 
 // 文章類型定義
@@ -84,7 +84,9 @@ export function FeaturedPosts() {
     <section className="border-t border-[#D2D2D2] py-16 md:py-20">
       <div className="container mx-auto px-4">
         <div className="mb-8 text-center">
-          <h2 className="font-['Noto_Sans_TC'] text-[40px] font-medium text-[#1B1A1A]">{t('featuredPostsTitle')}</h2>
+          <h2 className="font-['Noto_Sans_TC'] text-[40px] font-medium text-[#1B1A1A]">
+            {t('featuredPostsTitle')}
+          </h2>
           <p className="mt-4 font-['Noto_Sans_CJK_TC'] text-base font-normal tracking-[0.01em] text-[#6D6C6C]">
             {t('featuredPostsSubtitle')}
           </p>

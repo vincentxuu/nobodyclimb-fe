@@ -3,45 +3,45 @@
  *
  * 對應 apps/web/src/app/crag/[id]/route/[routeId]/RouteDetailClient.tsx
  */
-import React, { useState } from 'react'
-import {
-  StyleSheet,
-  View,
-  ScrollView,
-  RefreshControl,
-  ActivityIndicator,
-  Share,
-  Linking,
-  Pressable,
-  Dimensions,
-} from 'react-native'
-import { useLocalSearchParams, useRouter } from 'expo-router'
-import { SafeAreaView } from 'react-native-safe-area-context'
+
+import { RADIUS, SEMANTIC_COLORS, SPACING } from '@nobodyclimb/constants'
 import { Image } from 'expo-image'
+import { useLocalSearchParams, useRouter } from 'expo-router'
 import {
   ChevronLeft,
   ChevronRight,
-  Share2,
+  ExternalLink,
+  Instagram,
   MapPin,
+  Play,
+  Plus,
   Ruler,
+  Share2,
   Shield,
   User,
   Youtube,
-  Instagram,
-  ExternalLink,
-  Play,
-  Plus,
 } from 'lucide-react-native'
-
-import { Text, IconButton } from '@/components/ui'
+import React, { useState } from 'react'
+import {
+  ActivityIndicator,
+  Dimensions,
+  Linking,
+  Pressable,
+  RefreshControl,
+  ScrollView,
+  Share,
+  StyleSheet,
+  View,
+} from 'react-native'
+import { SafeAreaView } from 'react-native-safe-area-context'
 import { RoutePhotosSection } from '@/components/crag'
+import { RouteAscentsSection } from '@/components/crag/RouteAscentsSection'
 import { RouteMediaForm, type RouteMediaFormRef } from '@/components/crag/RouteMediaForm'
-import { SEMANTIC_COLORS, SPACING, RADIUS } from '@nobodyclimb/constants'
+import { RouteStoriesSection } from '@/components/crag/RouteStoriesSection'
+import { IconButton, Text } from '@/components/ui'
 import { useRouteDetail } from '@/lib/hooks/useCrags'
 import { useCreateRouteStory } from '@/lib/hooks/useRouteStories'
 import { useAuthStore } from '@/store/authStore'
-import { RouteAscentsSection } from '@/components/crag/RouteAscentsSection'
-import { RouteStoriesSection } from '@/components/crag/RouteStoriesSection'
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window')
 
@@ -58,11 +58,7 @@ export default function RouteDetailScreen() {
   const router = useRouter()
   const { id, routeId } = useLocalSearchParams<{ id: string; routeId: string }>()
 
-  const {
-    data: routeData,
-    isLoading,
-    refetch,
-  } = useRouteDetail(id, routeId)
+  const { data: routeData, isLoading, refetch } = useRouteDetail(id, routeId)
   const [refreshing, setRefreshing] = useState(false)
   const [currentPhotoIndex, setCurrentPhotoIndex] = useState(0)
 
@@ -162,16 +158,28 @@ export default function RouteDetailScreen() {
   const hasInstagramPosts = route.instagramPosts && route.instagramPosts.length > 0
 
   // 合併關聯影片 (videos from route_videos table) 和 youtubeVideos (URL list)
-  const allVideos: Array<{ type: 'linked'; id: string; title: string; youtubeId: string; thumbnailUrl?: string; channel?: string } | { type: 'url'; url: string }> = [
+  const allVideos: Array<
+    | {
+        type: 'linked'
+        id: string
+        title: string
+        youtubeId: string
+        thumbnailUrl?: string
+        channel?: string
+      }
+    | { type: 'url'; url: string }
+  > = [
     // API 關聯影片（有完整資訊）
-    ...(route.videos || []).filter((v: any) => v.youtubeId || v.youtube_id).map((v: any) => ({
-      type: 'linked' as const,
-      id: v.id,
-      title: v.title,
-      youtubeId: v.youtubeId || v.youtube_id,
-      thumbnailUrl: v.thumbnailUrl || v.thumbnail_url,
-      channel: v.channel,
-    })),
+    ...(route.videos || [])
+      .filter((v: any) => v.youtubeId || v.youtube_id)
+      .map((v: any) => ({
+        type: 'linked' as const,
+        id: v.id,
+        title: v.title,
+        youtubeId: v.youtubeId || v.youtube_id,
+        thumbnailUrl: v.thumbnailUrl || v.thumbnail_url,
+        channel: v.channel,
+      })),
     // youtubeVideos URL 列表
     ...(route.youtubeVideos || []).map((url: string) => ({
       type: 'url' as const,
@@ -182,433 +190,439 @@ export default function RouteDetailScreen() {
 
   return (
     <>
-    <SafeAreaView style={styles.container} edges={['top']}>
-      {/* 導航列 */}
-      <View style={styles.header}>
-        <IconButton
-          icon={<ChevronLeft size={24} color={SEMANTIC_COLORS.textMain} />}
-          onPress={handleBack}
-          variant="ghost"
-        />
-        <IconButton
-          icon={<Share2 size={20} color={SEMANTIC_COLORS.textMain} />}
-          onPress={handleShare}
-          variant="ghost"
-        />
-      </View>
-
-      <ScrollView
-        style={styles.scrollView}
-        refreshControl={
-          <RefreshControl refreshing={refreshing} onRefresh={handleRefresh} />
-        }
-      >
-        {/* 麵包屑 */}
-        <View style={styles.breadcrumb}>
-          <Text variant="small" color="textMuted">
-            {crag.name}
-          </Text>
-          <ChevronRight size={14} color={SEMANTIC_COLORS.textMuted} />
-          {area && (
-            <>
-              <Pressable onPress={handleAreaPress}>
-                <Text variant="small" color="textSubtle">
-                  {area.name}
-                </Text>
-              </Pressable>
-              <ChevronRight size={14} color={SEMANTIC_COLORS.textMuted} />
-            </>
-          )}
-          <Text variant="small" fontWeight="500">
-            {route.name}
-          </Text>
+      <SafeAreaView style={styles.container} edges={['top']}>
+        {/* 導航列 */}
+        <View style={styles.header}>
+          <IconButton
+            icon={<ChevronLeft size={24} color={SEMANTIC_COLORS.textMain} />}
+            onPress={handleBack}
+            variant="ghost"
+          />
+          <IconButton
+            icon={<Share2 size={20} color={SEMANTIC_COLORS.textMain} />}
+            onPress={handleShare}
+            variant="ghost"
+          />
         </View>
 
-        {/* 標題區 */}
-        <View style={styles.titleSection}>
-          <View style={styles.titleRow}>
-            <View style={styles.titleContent}>
-              <Text variant="h2" fontWeight="700">
-                {route.name}
-              </Text>
-              {route.englishName && route.englishName !== route.name && (
-                <Text variant="body" color="textMuted" style={styles.englishName}>
-                  {route.englishName}
-                </Text>
-              )}
-            </View>
+        <ScrollView
+          style={styles.scrollView}
+          refreshControl={<RefreshControl refreshing={refreshing} onRefresh={handleRefresh} />}
+        >
+          {/* 麵包屑 */}
+          <View style={styles.breadcrumb}>
+            <Text variant="small" color="textMuted">
+              {crag.name}
+            </Text>
+            <ChevronRight size={14} color={SEMANTIC_COLORS.textMuted} />
             {area && (
-              <Pressable onPress={handleAreaPress} style={styles.areaTag}>
-                <MapPin size={14} color={SEMANTIC_COLORS.textMuted} />
-                <Text variant="small" color="textMuted">
-                  {area.name}
-                </Text>
-              </Pressable>
-            )}
-          </View>
-
-          {/* 標籤 */}
-          <View style={styles.tags}>
-            <View style={styles.gradeTag}>
-              <Text variant="body" fontWeight="600">
-                {route.grade}
-              </Text>
-            </View>
-            <View style={styles.typeTag}>
-              <Text variant="small" color="textSubtle">
-                {route.typeEn || route.type}
-              </Text>
-            </View>
-          </View>
-        </View>
-
-        {/* 照片輪播 */}
-        {hasImages && (
-          <View style={styles.photoSection}>
-            <Image
-              source={{ uri: route.images[currentPhotoIndex] }}
-              style={styles.mainPhoto}
-              contentFit="cover"
-            />
-            {route.images.length > 1 && (
               <>
-                <Pressable
-                  style={[styles.photoNav, styles.photoNavLeft]}
-                  onPress={() =>
-                    setCurrentPhotoIndex((prev) =>
-                      prev === 0 ? route.images.length - 1 : prev - 1
-                    )
-                  }
-                >
-                  <ChevronLeft size={24} color="#FFFFFF" />
+                <Pressable onPress={handleAreaPress}>
+                  <Text variant="small" color="textSubtle">
+                    {area.name}
+                  </Text>
                 </Pressable>
-                <Pressable
-                  style={[styles.photoNav, styles.photoNavRight]}
-                  onPress={() =>
-                    setCurrentPhotoIndex((prev) =>
-                      prev === route.images.length - 1 ? 0 : prev + 1
-                    )
-                  }
-                >
-                  <ChevronRight size={24} color="#FFFFFF" />
-                </Pressable>
-                <View style={styles.photoDots}>
-                  {route.images.map((_: string, index: number) => (
-                    <Pressable
-                      key={index}
-                      onPress={() => setCurrentPhotoIndex(index)}
-                      style={[
-                        styles.photoDot,
-                        currentPhotoIndex === index && styles.photoDotActive,
-                      ]}
-                    />
-                  ))}
-                </View>
+                <ChevronRight size={14} color={SEMANTIC_COLORS.textMuted} />
               </>
             )}
+            <Text variant="small" fontWeight="500">
+              {route.name}
+            </Text>
           </View>
-        )}
 
-        {/* 基本資訊卡片 */}
-        {(route.length || route.boltCount > 0 || route.firstAscent) && (
-          <View style={styles.infoCards}>
-            {route.length ? (
-              <View style={styles.infoCard}>
-                <View style={styles.infoCardIcon}>
-                  <Ruler size={16} color={SEMANTIC_COLORS.textMuted} />
-                  <Text variant="small" color="textMuted">
-                    長度
-                  </Text>
-                </View>
-                <Text variant="body" fontWeight="600">
-                  {route.length}
+          {/* 標題區 */}
+          <View style={styles.titleSection}>
+            <View style={styles.titleRow}>
+              <View style={styles.titleContent}>
+                <Text variant="h2" fontWeight="700">
+                  {route.name}
                 </Text>
-              </View>
-            ) : null}
-            {route.boltCount > 0 && (
-              <View style={styles.infoCard}>
-                <View style={styles.infoCardIcon}>
-                  <Shield size={16} color={SEMANTIC_COLORS.textMuted} />
-                  <Text variant="small" color="textMuted">
-                    Bolts
-                  </Text>
-                </View>
-                <Text variant="body" fontWeight="600">
-                  {route.boltCount}
-                </Text>
-              </View>
-            )}
-            {route.firstAscent && (
-              <View style={styles.infoCard}>
-                <View style={styles.infoCardIcon}>
-                  <User size={16} color={SEMANTIC_COLORS.textMuted} />
-                  <Text variant="small" color="textMuted">
-                    首攀者
-                  </Text>
-                </View>
-                <Text variant="body" fontWeight="600">
-                  {route.firstAscent}
-                </Text>
-                {route.firstAscentDate && (
-                  <Text variant="caption" color="textMuted">
-                    {route.firstAscentDate}
+                {route.englishName && route.englishName !== route.name && (
+                  <Text variant="body" color="textMuted" style={styles.englishName}>
+                    {route.englishName}
                   </Text>
                 )}
               </View>
-            )}
-          </View>
-        )}
-
-        {/* 路線描述 */}
-        {route.description && (
-          <View style={styles.section}>
-            <View style={styles.sectionHeader}>
-              <View style={styles.sectionBar} />
-              <Text variant="body" fontWeight="600">
-                路線描述
-              </Text>
-            </View>
-            <Text variant="body" color="textSubtle" style={styles.sectionText}>
-              {route.description}
-            </Text>
-          </View>
-        )}
-
-        {/* 保護裝備 */}
-        {route.protection && (
-          <View style={styles.section}>
-            <View style={styles.sectionHeader}>
-              <View style={styles.sectionBar} />
-              <Text variant="body" fontWeight="600">
-                保護裝備
-              </Text>
-            </View>
-            <Text variant="body" color="textSubtle" style={styles.sectionText}>
-              {route.protection}
-            </Text>
-          </View>
-        )}
-
-        {/* 攀登攻略 */}
-        {route.tips && (
-          <View style={styles.section}>
-            <View style={styles.sectionHeader}>
-              <View style={styles.sectionBar} />
-              <Text variant="body" fontWeight="600">
-                攀登攻略
-              </Text>
-            </View>
-            <Text variant="body" color="textSubtle" style={styles.sectionText}>
-              {route.tips}
-            </Text>
-          </View>
-        )}
-
-        {/* 路線照片 */}
-        <RoutePhotosSection
-          routeId={routeId}
-          routeName={route.name}
-          staticPhotos={route.images}
-        />
-
-        {/* 攀岩故事 */}
-        <RouteStoriesSection
-          cragId={id}
-          routeId={routeId}
-          routeName={route.name}
-          routeGrade={route.grade}
-        />
-
-        {/* YouTube 影片 */}
-        {hasVideos && (
-          <View style={styles.section}>
-            <View style={styles.sectionHeader}>
-              <View style={{ flexDirection: 'row', alignItems: 'center', gap: SPACING.xs, flex: 1 }}>
-                <View style={styles.sectionBar} />
-                <Youtube size={18} color="#FF0000" />
-                <Text variant="body" fontWeight="600">
-                  YouTube 影片
-                </Text>
-              </View>
-              {isLoggedIn && (
-                <Pressable
-                  style={styles.addButton}
-                  onPress={() => youtubeFormRef.current?.open()}
-                >
-                  <Plus size={16} color="#2563EB" />
-                  <Text variant="caption" style={{ color: '#2563EB' }}>分享</Text>
+              {area && (
+                <Pressable onPress={handleAreaPress} style={styles.areaTag}>
+                  <MapPin size={14} color={SEMANTIC_COLORS.textMuted} />
+                  <Text variant="small" color="textMuted">
+                    {area.name}
+                  </Text>
                 </Pressable>
               )}
             </View>
-            <View style={styles.videoList}>
-              {allVideos.map((video, index) => {
-                if (video.type === 'linked') {
-                  const thumbnailUrl = video.thumbnailUrl || `https://img.youtube.com/vi/${video.youtubeId}/mqdefault.jpg`
-                  return (
-                    <Pressable
-                      key={`linked-${video.id}`}
-                      style={styles.videoCard}
-                      onPress={() => handleYoutubePress(`https://www.youtube.com/watch?v=${video.youtubeId}`)}
-                    >
-                      <View style={styles.videoThumbnailContainer}>
-                        <Image
-                          source={{ uri: thumbnailUrl }}
-                          style={styles.videoThumbnail}
-                          contentFit="cover"
-                        />
+
+            {/* 標籤 */}
+            <View style={styles.tags}>
+              <View style={styles.gradeTag}>
+                <Text variant="body" fontWeight="600">
+                  {route.grade}
+                </Text>
+              </View>
+              <View style={styles.typeTag}>
+                <Text variant="small" color="textSubtle">
+                  {route.typeEn || route.type}
+                </Text>
+              </View>
+            </View>
+          </View>
+
+          {/* 照片輪播 */}
+          {hasImages && (
+            <View style={styles.photoSection}>
+              <Image
+                source={{ uri: route.images[currentPhotoIndex] }}
+                style={styles.mainPhoto}
+                contentFit="cover"
+              />
+              {route.images.length > 1 && (
+                <>
+                  <Pressable
+                    style={[styles.photoNav, styles.photoNavLeft]}
+                    onPress={() =>
+                      setCurrentPhotoIndex((prev) =>
+                        prev === 0 ? route.images.length - 1 : prev - 1
+                      )
+                    }
+                  >
+                    <ChevronLeft size={24} color="#FFFFFF" />
+                  </Pressable>
+                  <Pressable
+                    style={[styles.photoNav, styles.photoNavRight]}
+                    onPress={() =>
+                      setCurrentPhotoIndex((prev) =>
+                        prev === route.images.length - 1 ? 0 : prev + 1
+                      )
+                    }
+                  >
+                    <ChevronRight size={24} color="#FFFFFF" />
+                  </Pressable>
+                  <View style={styles.photoDots}>
+                    {route.images.map((_: string, index: number) => (
+                      <Pressable
+                        key={index}
+                        onPress={() => setCurrentPhotoIndex(index)}
+                        style={[
+                          styles.photoDot,
+                          currentPhotoIndex === index && styles.photoDotActive,
+                        ]}
+                      />
+                    ))}
+                  </View>
+                </>
+              )}
+            </View>
+          )}
+
+          {/* 基本資訊卡片 */}
+          {(route.length || route.boltCount > 0 || route.firstAscent) && (
+            <View style={styles.infoCards}>
+              {route.length ? (
+                <View style={styles.infoCard}>
+                  <View style={styles.infoCardIcon}>
+                    <Ruler size={16} color={SEMANTIC_COLORS.textMuted} />
+                    <Text variant="small" color="textMuted">
+                      長度
+                    </Text>
+                  </View>
+                  <Text variant="body" fontWeight="600">
+                    {route.length}
+                  </Text>
+                </View>
+              ) : null}
+              {route.boltCount > 0 && (
+                <View style={styles.infoCard}>
+                  <View style={styles.infoCardIcon}>
+                    <Shield size={16} color={SEMANTIC_COLORS.textMuted} />
+                    <Text variant="small" color="textMuted">
+                      Bolts
+                    </Text>
+                  </View>
+                  <Text variant="body" fontWeight="600">
+                    {route.boltCount}
+                  </Text>
+                </View>
+              )}
+              {route.firstAscent && (
+                <View style={styles.infoCard}>
+                  <View style={styles.infoCardIcon}>
+                    <User size={16} color={SEMANTIC_COLORS.textMuted} />
+                    <Text variant="small" color="textMuted">
+                      首攀者
+                    </Text>
+                  </View>
+                  <Text variant="body" fontWeight="600">
+                    {route.firstAscent}
+                  </Text>
+                  {route.firstAscentDate && (
+                    <Text variant="caption" color="textMuted">
+                      {route.firstAscentDate}
+                    </Text>
+                  )}
+                </View>
+              )}
+            </View>
+          )}
+
+          {/* 路線描述 */}
+          {route.description && (
+            <View style={styles.section}>
+              <View style={styles.sectionHeader}>
+                <View style={styles.sectionBar} />
+                <Text variant="body" fontWeight="600">
+                  路線描述
+                </Text>
+              </View>
+              <Text variant="body" color="textSubtle" style={styles.sectionText}>
+                {route.description}
+              </Text>
+            </View>
+          )}
+
+          {/* 保護裝備 */}
+          {route.protection && (
+            <View style={styles.section}>
+              <View style={styles.sectionHeader}>
+                <View style={styles.sectionBar} />
+                <Text variant="body" fontWeight="600">
+                  保護裝備
+                </Text>
+              </View>
+              <Text variant="body" color="textSubtle" style={styles.sectionText}>
+                {route.protection}
+              </Text>
+            </View>
+          )}
+
+          {/* 攀登攻略 */}
+          {route.tips && (
+            <View style={styles.section}>
+              <View style={styles.sectionHeader}>
+                <View style={styles.sectionBar} />
+                <Text variant="body" fontWeight="600">
+                  攀登攻略
+                </Text>
+              </View>
+              <Text variant="body" color="textSubtle" style={styles.sectionText}>
+                {route.tips}
+              </Text>
+            </View>
+          )}
+
+          {/* 路線照片 */}
+          <RoutePhotosSection
+            routeId={routeId}
+            routeName={route.name}
+            staticPhotos={route.images}
+          />
+
+          {/* 攀岩故事 */}
+          <RouteStoriesSection
+            cragId={id}
+            routeId={routeId}
+            routeName={route.name}
+            routeGrade={route.grade}
+          />
+
+          {/* YouTube 影片 */}
+          {hasVideos && (
+            <View style={styles.section}>
+              <View style={styles.sectionHeader}>
+                <View
+                  style={{ flexDirection: 'row', alignItems: 'center', gap: SPACING.xs, flex: 1 }}
+                >
+                  <View style={styles.sectionBar} />
+                  <Youtube size={18} color="#FF0000" />
+                  <Text variant="body" fontWeight="600">
+                    YouTube 影片
+                  </Text>
+                </View>
+                {isLoggedIn && (
+                  <Pressable
+                    style={styles.addButton}
+                    onPress={() => youtubeFormRef.current?.open()}
+                  >
+                    <Plus size={16} color="#2563EB" />
+                    <Text variant="caption" style={{ color: '#2563EB' }}>
+                      分享
+                    </Text>
+                  </Pressable>
+                )}
+              </View>
+              <View style={styles.videoList}>
+                {allVideos.map((video, index) => {
+                  if (video.type === 'linked') {
+                    const thumbnailUrl =
+                      video.thumbnailUrl ||
+                      `https://img.youtube.com/vi/${video.youtubeId}/mqdefault.jpg`
+                    return (
+                      <Pressable
+                        key={`linked-${video.id}`}
+                        style={styles.videoCard}
+                        onPress={() =>
+                          handleYoutubePress(`https://www.youtube.com/watch?v=${video.youtubeId}`)
+                        }
+                      >
+                        <View style={styles.videoThumbnailContainer}>
+                          <Image
+                            source={{ uri: thumbnailUrl }}
+                            style={styles.videoThumbnail}
+                            contentFit="cover"
+                          />
+                          <View style={styles.mediaPlayIcon}>
+                            <Play size={24} color="#FFFFFF" />
+                          </View>
+                        </View>
+                        <View style={styles.videoInfo}>
+                          <Text variant="body" fontWeight="500" numberOfLines={2}>
+                            {video.title}
+                          </Text>
+                          {video.channel && (
+                            <Text variant="small" color="textMuted" style={{ marginTop: 2 }}>
+                              {video.channel}
+                            </Text>
+                          )}
+                        </View>
+                      </Pressable>
+                    )
+                  } else {
+                    const thumbnail = getYoutubeThumbnail(video.url)
+                    return (
+                      <Pressable
+                        key={`url-${index}`}
+                        style={styles.mediaCard}
+                        onPress={() => handleYoutubePress(video.url)}
+                      >
+                        {thumbnail ? (
+                          <Image
+                            source={{ uri: thumbnail }}
+                            style={styles.mediaThumbnail}
+                            contentFit="cover"
+                          />
+                        ) : (
+                          <View style={[styles.mediaThumbnail, styles.mediaPlaceholder]}>
+                            <Youtube size={32} color="#FF0000" />
+                          </View>
+                        )}
                         <View style={styles.mediaPlayIcon}>
                           <Play size={24} color="#FFFFFF" />
                         </View>
-                      </View>
-                      <View style={styles.videoInfo}>
-                        <Text variant="body" fontWeight="500" numberOfLines={2}>
-                          {video.title}
-                        </Text>
-                        {video.channel && (
-                          <Text variant="small" color="textMuted" style={{ marginTop: 2 }}>
-                            {video.channel}
-                          </Text>
-                        )}
-                      </View>
-                    </Pressable>
-                  )
-                } else {
-                  const thumbnail = getYoutubeThumbnail(video.url)
-                  return (
-                    <Pressable
-                      key={`url-${index}`}
-                      style={styles.mediaCard}
-                      onPress={() => handleYoutubePress(video.url)}
-                    >
-                      {thumbnail ? (
-                        <Image
-                          source={{ uri: thumbnail }}
-                          style={styles.mediaThumbnail}
-                          contentFit="cover"
-                        />
-                      ) : (
-                        <View style={[styles.mediaThumbnail, styles.mediaPlaceholder]}>
-                          <Youtube size={32} color="#FF0000" />
-                        </View>
-                      )}
-                      <View style={styles.mediaPlayIcon}>
-                        <Play size={24} color="#FFFFFF" />
-                      </View>
-                    </Pressable>
-                  )
-                }
-              })}
+                      </Pressable>
+                    )
+                  }
+                })}
+              </View>
             </View>
-          </View>
-        )}
+          )}
 
-        {/* Instagram 貼文 */}
-        {hasInstagramPosts && (
-          <View style={styles.section}>
-            <View style={styles.sectionHeader}>
-              <View style={{ flexDirection: 'row', alignItems: 'center', gap: SPACING.xs, flex: 1 }}>
+          {/* Instagram 貼文 */}
+          {hasInstagramPosts && (
+            <View style={styles.section}>
+              <View style={styles.sectionHeader}>
+                <View
+                  style={{ flexDirection: 'row', alignItems: 'center', gap: SPACING.xs, flex: 1 }}
+                >
+                  <View style={styles.sectionBar} />
+                  <Instagram size={18} color="#E4405F" />
+                  <Text variant="body" fontWeight="600">
+                    Instagram 貼文
+                  </Text>
+                </View>
+                {isLoggedIn && (
+                  <Pressable
+                    style={styles.addButton}
+                    onPress={() => instagramFormRef.current?.open()}
+                  >
+                    <Plus size={16} color="#2563EB" />
+                    <Text variant="caption" style={{ color: '#2563EB' }}>
+                      分享
+                    </Text>
+                  </Pressable>
+                )}
+              </View>
+              <View style={styles.mediaGrid}>
+                {route.instagramPosts.map((url: string, index: number) => (
+                  <Pressable
+                    key={index}
+                    style={styles.mediaCard}
+                    onPress={() => handleInstagramPress(url)}
+                  >
+                    <View style={[styles.mediaThumbnail, styles.mediaPlaceholder]}>
+                      <Instagram size={32} color="#E4405F" />
+                    </View>
+                    <View style={styles.mediaLinkIcon}>
+                      <ExternalLink size={16} color="#FFFFFF" />
+                    </View>
+                  </Pressable>
+                ))}
+              </View>
+            </View>
+          )}
+
+          {/* 攀爬記錄 */}
+          <RouteAscentsSection routeId={routeId} routeName={route.name} routeGrade={route.grade} />
+
+          {/* 相關路線 */}
+          {relatedRoutes.length > 0 && (
+            <View style={styles.section}>
+              <View style={styles.sectionHeader}>
                 <View style={styles.sectionBar} />
-                <Instagram size={18} color="#E4405F" />
                 <Text variant="body" fontWeight="600">
-                  Instagram 貼文
+                  同區域其他路線
                 </Text>
               </View>
-              {isLoggedIn && (
-                <Pressable
-                  style={styles.addButton}
-                  onPress={() => instagramFormRef.current?.open()}
-                >
-                  <Plus size={16} color="#2563EB" />
-                  <Text variant="caption" style={{ color: '#2563EB' }}>分享</Text>
-                </Pressable>
-              )}
+              <View style={styles.relatedRoutes}>
+                {relatedRoutes.map((relRoute) => (
+                  <Pressable
+                    key={relRoute.id}
+                    style={styles.relatedRouteCard}
+                    onPress={() => handleRelatedRoutePress(relRoute.id)}
+                  >
+                    <View style={styles.relatedRouteContent}>
+                      <Text variant="body" fontWeight="500">
+                        {relRoute.name}
+                      </Text>
+                      <Text variant="small" color="textMuted">
+                        {relRoute.type}
+                      </Text>
+                    </View>
+                    <View style={styles.relatedRouteGrade}>
+                      <Text variant="small" fontWeight="600">
+                        {relRoute.grade}
+                      </Text>
+                    </View>
+                  </Pressable>
+                ))}
+              </View>
             </View>
-            <View style={styles.mediaGrid}>
-              {route.instagramPosts.map((url: string, index: number) => (
-                <Pressable
-                  key={index}
-                  style={styles.mediaCard}
-                  onPress={() => handleInstagramPress(url)}
-                >
-                  <View style={[styles.mediaThumbnail, styles.mediaPlaceholder]}>
-                    <Instagram size={32} color="#E4405F" />
-                  </View>
-                  <View style={styles.mediaLinkIcon}>
-                    <ExternalLink size={16} color="#FFFFFF" />
-                  </View>
-                </Pressable>
-              ))}
-            </View>
-          </View>
-        )}
+          )}
 
-        {/* 攀爬記錄 */}
-        <RouteAscentsSection
+          <View style={styles.bottomPadding} />
+        </ScrollView>
+      </SafeAreaView>
+
+      {/* 媒體分享表單 */}
+      {isLoggedIn && (
+        <RouteMediaForm
+          ref={youtubeFormRef}
           routeId={routeId}
           routeName={route.name}
-          routeGrade={route.grade}
+          mediaType="youtube"
+          onSubmit={handleShareYoutube}
+          isLoading={createStory.isPending}
         />
-
-        {/* 相關路線 */}
-        {relatedRoutes.length > 0 && (
-          <View style={styles.section}>
-            <View style={styles.sectionHeader}>
-              <View style={styles.sectionBar} />
-              <Text variant="body" fontWeight="600">
-                同區域其他路線
-              </Text>
-            </View>
-            <View style={styles.relatedRoutes}>
-              {relatedRoutes.map((relRoute) => (
-                <Pressable
-                  key={relRoute.id}
-                  style={styles.relatedRouteCard}
-                  onPress={() => handleRelatedRoutePress(relRoute.id)}
-                >
-                  <View style={styles.relatedRouteContent}>
-                    <Text variant="body" fontWeight="500">
-                      {relRoute.name}
-                    </Text>
-                    <Text variant="small" color="textMuted">
-                      {relRoute.type}
-                    </Text>
-                  </View>
-                  <View style={styles.relatedRouteGrade}>
-                    <Text variant="small" fontWeight="600">
-                      {relRoute.grade}
-                    </Text>
-                  </View>
-                </Pressable>
-              ))}
-            </View>
-          </View>
-        )}
-
-        <View style={styles.bottomPadding} />
-      </ScrollView>
-    </SafeAreaView>
-
-    {/* 媒體分享表單 */}
-    {isLoggedIn && (
-      <RouteMediaForm
-        ref={youtubeFormRef}
-        routeId={routeId}
-        routeName={route.name}
-        mediaType="youtube"
-        onSubmit={handleShareYoutube}
-        isLoading={createStory.isPending}
-      />
-    )}
-    {isLoggedIn && (
-      <RouteMediaForm
-        ref={instagramFormRef}
-        routeId={routeId}
-        routeName={route.name}
-        mediaType="instagram"
-        onSubmit={handleShareInstagram}
-        isLoading={createStory.isPending}
-      />
-    )}
+      )}
+      {isLoggedIn && (
+        <RouteMediaForm
+          ref={instagramFormRef}
+          routeId={routeId}
+          routeName={route.name}
+          mediaType="instagram"
+          onSubmit={handleShareInstagram}
+          isLoading={createStory.isPending}
+        />
+      )}
     </>
   )
 }

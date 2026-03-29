@@ -1,10 +1,19 @@
 'use client'
 
-import { useState, useMemo } from 'react'
-import { useAIConfig, DEFAULT_COST_PROVIDERS, type AILogDetail, type CostProvider } from '@/lib/api/admin-ai'
+import { useMemo, useState } from 'react'
+import {
+  type AILogDetail,
+  type CostProvider,
+  DEFAULT_COST_PROVIDERS,
+  useAIConfig,
+} from '@/lib/api/admin-ai'
 import type { StageBreakdownItem, TokenBreakdown } from './types'
 
-export function calcCost(inputTokens: number, outputTokens: number, provider: CostProvider): number {
+export function calcCost(
+  inputTokens: number,
+  outputTokens: number,
+  provider: CostProvider
+): number {
   return (inputTokens * provider.input_per_1m + outputTokens * provider.output_per_1m) / 1_000_000
 }
 
@@ -12,7 +21,11 @@ export function formatCost(cost: number): string {
   return `$${cost.toFixed(6)}`
 }
 
-export function CostAnalysisCard({ pipelineTrace }: { pipelineTrace: AILogDetail['pipeline_trace'] }) {
+export function CostAnalysisCard({
+  pipelineTrace,
+}: {
+  pipelineTrace: AILogDetail['pipeline_trace']
+}) {
   const { data: aiConfig } = useAIConfig()
   const [hiddenProviders, setHiddenProviders] = useState<Set<string>>(new Set())
 
@@ -23,7 +36,9 @@ export function CostAnalysisCard({ pipelineTrace }: { pipelineTrace: AILogDetail
         const parsed = JSON.parse(raw) as CostProvider[]
         if (Array.isArray(parsed) && parsed.length > 0) return parsed
       }
-    } catch { /* fallback */ }
+    } catch {
+      /* fallback */
+    }
     return DEFAULT_COST_PROVIDERS
   }, [aiConfig])
 
@@ -55,13 +70,18 @@ export function CostAnalysisCard({ pipelineTrace }: { pipelineTrace: AILogDetail
   type AgenticDecisionItem = StageBreakdownItem & { step: number }
 
   const stageCosts = singleStages.map((s) =>
-    visibleProviders.reduce((sum, p) => sum + calcCost(s.data.prompt_tokens, s.data.completion_tokens, p), 0)
+    visibleProviders.reduce(
+      (sum, p) => sum + calcCost(s.data.prompt_tokens, s.data.completion_tokens, p),
+      0
+    )
   )
   const maxStageCost = Math.max(...stageCosts, 0)
 
-  const totalInput = singleStages.reduce((s, r) => s + r.data.prompt_tokens, 0) +
+  const totalInput =
+    singleStages.reduce((s, r) => s + r.data.prompt_tokens, 0) +
     (agenticDecisions?.reduce((s, d) => s + d.prompt_tokens, 0) ?? 0)
-  const totalOutput = singleStages.reduce((s, r) => s + r.data.completion_tokens, 0) +
+  const totalOutput =
+    singleStages.reduce((s, r) => s + r.data.completion_tokens, 0) +
     (agenticDecisions?.reduce((s, d) => s + d.completion_tokens, 0) ?? 0)
 
   const toggleProvider = (id: string) => {
@@ -77,7 +97,9 @@ export function CostAnalysisCard({ pipelineTrace }: { pipelineTrace: AILogDetail
     <div className="rounded-xl border border-wb-20 bg-white overflow-hidden">
       <div className="border-b border-wb-10 px-5 py-4">
         <h2 className="text-sm font-semibold text-wb-100">費用分析</h2>
-        <p className="mt-0.5 text-xs text-wb-50">各 stage token 消耗與不同供應商費用估算（USD / NT$，匯率 32）</p>
+        <p className="mt-0.5 text-xs text-wb-50">
+          各 stage token 消耗與不同供應商費用估算（USD / NT$，匯率 32）
+        </p>
       </div>
 
       <div className="flex flex-wrap gap-1.5 px-5 py-3 border-b border-wb-10 bg-wb-05">
@@ -105,7 +127,12 @@ export function CostAnalysisCard({ pipelineTrace }: { pipelineTrace: AILogDetail
               <th className="px-3 py-2 text-right font-semibold text-wb-60">Input</th>
               <th className="px-3 py-2 text-right font-semibold text-wb-60">Output</th>
               {visibleProviders.map((p) => (
-                <th key={p.id} className="px-3 py-2 text-right font-semibold text-wb-60 whitespace-nowrap">{p.name}</th>
+                <th
+                  key={p.id}
+                  className="px-3 py-2 text-right font-semibold text-wb-60 whitespace-nowrap"
+                >
+                  {p.name}
+                </th>
               ))}
             </tr>
           </thead>
@@ -118,8 +145,12 @@ export function CostAnalysisCard({ pipelineTrace }: { pipelineTrace: AILogDetail
                     {s.data.estimated && <span className="text-wb-40 mr-1">~</span>}
                     {s.label}
                   </td>
-                  <td className="px-3 py-2 text-right font-mono text-wb-70">{s.data.prompt_tokens.toLocaleString()}</td>
-                  <td className="px-3 py-2 text-right font-mono text-wb-70">{s.data.completion_tokens.toLocaleString()}</td>
+                  <td className="px-3 py-2 text-right font-mono text-wb-70">
+                    {s.data.prompt_tokens.toLocaleString()}
+                  </td>
+                  <td className="px-3 py-2 text-right font-mono text-wb-70">
+                    {s.data.completion_tokens.toLocaleString()}
+                  </td>
                   {visibleProviders.map((p) => {
                     const usd = calcCost(s.data.prompt_tokens, s.data.completion_tokens, p)
                     return (
@@ -133,30 +164,40 @@ export function CostAnalysisCard({ pipelineTrace }: { pipelineTrace: AILogDetail
               )
             })}
 
-            {agenticDecisions && agenticDecisions.length > 0 && agenticDecisions.map((d: AgenticDecisionItem) => (
-              <tr key={`agentic-${d.step}`} className="hover:bg-wb-05">
-                <td className="px-4 py-2 text-wb-50">
-                  {d.estimated && <span className="text-wb-40 mr-1">~</span>}
-                  Agentic Decision（step {d.step}）
-                </td>
-                <td className="px-3 py-2 text-right font-mono text-wb-60">{d.prompt_tokens.toLocaleString()}</td>
-                <td className="px-3 py-2 text-right font-mono text-wb-60">{d.completion_tokens.toLocaleString()}</td>
-                {visibleProviders.map((p) => {
-                  const usd = calcCost(d.prompt_tokens, d.completion_tokens, p)
-                  return (
-                    <td key={p.id} className="px-3 py-2 text-right font-mono">
-                      <div className="text-wb-70">{formatCost(usd)}</div>
-                      <div className="text-[10px] text-wb-50">NT${(usd * 32).toFixed(4)}</div>
-                    </td>
-                  )
-                })}
-              </tr>
-            ))}
+            {agenticDecisions &&
+              agenticDecisions.length > 0 &&
+              agenticDecisions.map((d: AgenticDecisionItem) => (
+                <tr key={`agentic-${d.step}`} className="hover:bg-wb-05">
+                  <td className="px-4 py-2 text-wb-50">
+                    {d.estimated && <span className="text-wb-40 mr-1">~</span>}
+                    Agentic Decision（step {d.step}）
+                  </td>
+                  <td className="px-3 py-2 text-right font-mono text-wb-60">
+                    {d.prompt_tokens.toLocaleString()}
+                  </td>
+                  <td className="px-3 py-2 text-right font-mono text-wb-60">
+                    {d.completion_tokens.toLocaleString()}
+                  </td>
+                  {visibleProviders.map((p) => {
+                    const usd = calcCost(d.prompt_tokens, d.completion_tokens, p)
+                    return (
+                      <td key={p.id} className="px-3 py-2 text-right font-mono">
+                        <div className="text-wb-70">{formatCost(usd)}</div>
+                        <div className="text-[10px] text-wb-50">NT${(usd * 32).toFixed(4)}</div>
+                      </td>
+                    )
+                  })}
+                </tr>
+              ))}
 
             <tr className="bg-wb-05 font-semibold border-t-2 border-wb-20">
               <td className="px-4 py-2.5 text-wb-80">合計</td>
-              <td className="px-3 py-2.5 text-right font-mono text-wb-80">{totalInput.toLocaleString()}</td>
-              <td className="px-3 py-2.5 text-right font-mono text-wb-80">{totalOutput.toLocaleString()}</td>
+              <td className="px-3 py-2.5 text-right font-mono text-wb-80">
+                {totalInput.toLocaleString()}
+              </td>
+              <td className="px-3 py-2.5 text-right font-mono text-wb-80">
+                {totalOutput.toLocaleString()}
+              </td>
               {visibleProviders.map((p) => {
                 const usd = calcCost(totalInput, totalOutput, p)
                 return (

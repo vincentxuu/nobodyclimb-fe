@@ -1,14 +1,14 @@
 'use client'
 
-import { useState, useEffect, useCallback } from 'react'
-import Image from 'next/image'
-import Link from 'next/link'
 import { motion } from 'framer-motion'
 import { ChevronLeft, ChevronRight, Loader2 } from 'lucide-react'
+import Image from 'next/image'
+import Link from 'next/link'
+import { useTranslations } from 'next-intl'
+import { useCallback, useEffect, useState } from 'react'
 import { postService } from '@/lib/api/services'
 import { BackendPost, getCategoryLabel } from '@/lib/types'
 import { generateSummary } from '@/lib/utils/article'
-import { useTranslations } from 'next-intl'
 
 /**
  * 精選文章 Hero 組件
@@ -174,7 +174,11 @@ export function HeroArticle() {
                     </div>
                   ) : (
                     <div className="flex h-10 w-10 items-center justify-center rounded-full bg-white/20 text-white">
-                      {(article.display_name || article.username || t('heroArticleAnonymousInitial'))?.charAt(0)}
+                      {(
+                        article.display_name ||
+                        article.username ||
+                        t('heroArticleAnonymousInitial')
+                      )?.charAt(0)}
                     </div>
                   )}
                   <span className="text-sm text-white">

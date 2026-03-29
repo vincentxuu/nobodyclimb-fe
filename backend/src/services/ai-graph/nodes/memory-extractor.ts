@@ -1,5 +1,5 @@
-import { GraphState } from '../state';
-import { extractMemoriesFromQuery } from '../../memory-extractor';
+import { extractMemoriesFromQuery } from '../../memory-extractor'
+import { GraphState } from '../state'
 
 /**
  * 記憶體萃取 node — 非阻塞設計
@@ -12,7 +12,7 @@ export async function memoryExtractorNode(state: GraphState): Promise<Partial<Gr
   if (state.waitUntilCtx && state.userId && state.request.query) {
     const gatewayOpts = state.env.AI_GATEWAY_SLUG
       ? { gateway: { id: state.env.AI_GATEWAY_SLUG } }
-      : undefined;
+      : undefined
 
     state.waitUntilCtx.waitUntil(
       extractMemoriesFromQuery(
@@ -22,8 +22,8 @@ export async function memoryExtractorNode(state: GraphState): Promise<Partial<Gr
         state.env.AI,
         gatewayOpts
       )
-    );
+    )
   }
 
-  return {}; // graph 立即繼續到 END，不等待記憶體萃取完成
+  return {} // graph 立即繼續到 END，不等待記憶體萃取完成
 }

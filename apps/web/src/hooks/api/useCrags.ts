@@ -3,19 +3,25 @@
  */
 
 import { useQuery } from '@tanstack/react-query'
-import { cragService } from '@/lib/api/services'
 import {
-  adaptCragToListItem,
-  adaptCragToDetail,
-  adaptRouteToSidebarItem,
-  adaptRouteToDetail,
-  adaptAreaToListItem,
-  adaptApiAreaToFullArea,
-  adaptApiRouteToCragRoute,
   type AdaptedCragDetail,
   type AdaptedRouteDetail,
+  adaptApiAreaToFullArea,
+  adaptApiRouteToCragRoute,
+  adaptAreaToListItem,
+  adaptCragToDetail,
+  adaptCragToListItem,
+  adaptRouteToDetail,
+  adaptRouteToSidebarItem,
 } from '@/lib/adapters/crag-adapter'
-import type { CragListItem, CragArea, CragRoute, RouteSidebarItem, RouteSearchItem } from '@/lib/crag-data'
+import { cragService } from '@/lib/api/services'
+import type {
+  CragArea,
+  CragListItem,
+  CragRoute,
+  RouteSearchItem,
+  RouteSidebarItem,
+} from '@/lib/crag-data'
 
 // 快取時間常數
 const STALE_TIME = 5 * 60 * 1000 // 5 分鐘
@@ -104,7 +110,7 @@ export function useFeaturedRoutes(limit = 8) {
     queryFn: async (): Promise<FeaturedRouteItem[]> => {
       const response = await cragService.getFeaturedRoutes(limit)
       const apiRoutes = response.data || []
-      return apiRoutes.map(route => ({
+      return apiRoutes.map((route) => ({
         id: route.id,
         name: route.name,
         nameEn: route.nameEn,
@@ -186,9 +192,9 @@ export function useCragRoutes(cragId: string) {
 
       const apiRoutes = routesResponse.data || []
       const apiAreas = areasResponse.data || []
-      const areaMap = new Map(apiAreas.map(a => [a.id, a.name]))
+      const areaMap = new Map(apiAreas.map((a) => [a.id, a.name]))
 
-      return apiRoutes.map(route => adaptRouteToSidebarItem(route, areaMap))
+      return apiRoutes.map((route) => adaptRouteToSidebarItem(route, areaMap))
     },
     enabled: !!cragId,
     staleTime: STALE_TIME,
@@ -264,7 +270,7 @@ export function useRouteDetail(cragId: string, routeId: string) {
       ])
 
       const apiRoutes = routesResponse.data || []
-      const apiRoute = apiRoutes.find(r => r.id === routeId)
+      const apiRoute = apiRoutes.find((r) => r.id === routeId)
       if (!apiRoute) return null
 
       const apiCrag = cragResponse.data
@@ -272,7 +278,7 @@ export function useRouteDetail(cragId: string, routeId: string) {
 
       const apiAreas = areasResponse.data || []
       const areaName = apiRoute.area_id
-        ? apiAreas.find(a => a.id === apiRoute.area_id)?.name || ''
+        ? apiAreas.find((a) => a.id === apiRoute.area_id)?.name || ''
         : ''
 
       return {
@@ -318,9 +324,9 @@ export function useAllCragsRoutes(enabled = true) {
             cragService.getCragRoutes(crag.id),
             cragService.getCragAreas(crag.id),
           ])
-          const areaMap = new Map((areasRes.data || []).map(a => [a.id, a.name]))
+          const areaMap = new Map((areasRes.data || []).map((a) => [a.id, a.name]))
           const routes = (routesRes.data || []).map(adaptApiRouteToCragRoute)
-          return routes.map(route => ({
+          return routes.map((route) => ({
             route,
             cragId: crag.id,
             cragName: crag.name,

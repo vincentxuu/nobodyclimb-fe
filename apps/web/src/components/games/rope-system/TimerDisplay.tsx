@@ -1,6 +1,5 @@
 'use client'
 
-import * as React from 'react'
 import { motion } from 'framer-motion'
 import { Clock } from 'lucide-react'
 import { cn } from '@/lib/utils'
@@ -13,11 +12,7 @@ interface TimerDisplayProps {
   className?: string
 }
 
-export function TimerDisplay({
-  seconds,
-  warningThreshold = 10,
-  className,
-}: TimerDisplayProps) {
+export function TimerDisplay({ seconds, warningThreshold = 10, className }: TimerDisplayProps) {
   const minutes = Math.floor(seconds / 60)
   const remainingSeconds = seconds % 60
   const isWarning = seconds <= warningThreshold && seconds > 0
@@ -44,12 +39,7 @@ export function TimerDisplay({
         repeat: isWarning ? Infinity : 0,
       }}
     >
-      <Clock
-        className={cn(
-          'h-4 w-4',
-          isWarning ? 'text-[#EF4444]' : 'text-[#535353]'
-        )}
-      />
+      <Clock className={cn('h-4 w-4', isWarning ? 'text-[#EF4444]' : 'text-[#535353]')} />
       <span
         className={cn(
           'font-mono text-lg font-medium',

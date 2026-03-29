@@ -3,14 +3,15 @@
  *
  * 空狀態顯示組件
  */
-import React from 'react'
-import { View, StyleSheet, type ViewStyle } from 'react-native'
-import { Inbox } from 'lucide-react-native'
+
 import { SEMANTIC_COLORS, SPACING } from '@nobodyclimb/constants'
-import { Text } from './Text'
+import type { LucideIcon } from 'lucide-react-native'
+import { Inbox } from 'lucide-react-native'
+import React from 'react'
+import { StyleSheet, View, type ViewStyle } from 'react-native'
 import { Button, type ButtonProps } from './Button'
 import { Icon } from './Icon'
-import type { LucideIcon } from 'lucide-react-native'
+import { Text } from './Text'
 
 export interface EmptyStateProps {
   /** 圖標（可以是 LucideIcon 組件或 React 元素） */

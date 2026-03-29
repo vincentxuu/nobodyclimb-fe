@@ -1,41 +1,41 @@
-import { Env, AIDocument, AIDocumentMetadata, Route, Crag } from '../types';
-import { EmbeddingService } from './embedding';
-import { CONTEXTUAL_CHUNK_PROMPT } from '../utils/ai-prompts';
-import { extractResponseText } from './query/types';
+import { AIDocumentMetadata, Crag, Env, Route } from '../types'
+import { CONTEXTUAL_CHUNK_PROMPT } from '../utils/ai-prompts'
+import { EmbeddingService } from './embedding'
+import { extractResponseText } from './query/types'
 
-const CONTEXT_GENERATION_BATCH_SIZE = 5; // 並行 LLM 呼叫上限，避免超出 Workers AI 速率限制
+const CONTEXT_GENERATION_BATCH_SIZE = 5 // 並行 LLM 呼叫上限，避免超出 Workers AI 速率限制
 
-const VECTORIZE_UPSERT_BATCH_SIZE = 1000;
-const VECTORIZE_DELETE_BATCH_SIZE = 100; // Vectorize deleteByIds 上限
+const VECTORIZE_UPSERT_BATCH_SIZE = 1000
+const VECTORIZE_DELETE_BATCH_SIZE = 100 // Vectorize deleteByIds 上限
 
 interface RouteWithCrag extends Route {
-  crag_name: string | null;
-  region: string | null;
-  area_id: string | null;
-  area_name: string | null;
+  crag_name: string | null
+  region: string | null
+  area_id: string | null
+  area_name: string | null
 }
 
 interface IndexResult {
-  indexed: number;
-  failed: number;
+  indexed: number
+  failed: number
 }
 
 export class IndexingService {
-  private embeddingService: EmbeddingService;
+  private embeddingService: EmbeddingService
 
   constructor(private env: Env) {
-    this.embeddingService = new EmbeddingService(env);
+    this.embeddingService = new EmbeddingService(env)
   }
 
   // 將 YDS 等級轉換為數值，用於範圍過濾
   // 5.10a → 100, 5.10b → 101, ..., 5.14d → 143
   gradeToNumeric(grade: string | null): number {
-    if (!grade) return 0;
-    const match = grade.match(/5\.(\d+)([a-d])?/);
-    if (!match) return 0;
-    const base = parseInt(match[1], 10) * 10;
-    const suffix = match[2] ? 'abcd'.indexOf(match[2]) : 0;
-    return base + suffix;
+    if (!grade) return 0
+    const match = grade.match(/5\.(\d+)([a-d])?/)
+    if (!match) return 0
+    const base = parseInt(match[1], 10) * 10
+    const suffix = match[2] ? 'abcd'.indexOf(match[2]) : 0
+    return base + suffix
   }
 
   private static readonly ROUTE_TYPE_LABELS: Record<string, string> = {
@@ -43,38 +43,39 @@ export class IndexingService {
     trad: '傳攀',
     boulder: '抱石',
     mixed: '混合',
-  };
+  }
 
   // 建立路線文件文字
   createRouteDocument(route: RouteWithCrag): string {
     // 無中文名稱時使用英文名稱作為路線名
-    const displayName = route.name || route.name_en || '未知';
-    const routeTypeLabel = IndexingService.ROUTE_TYPE_LABELS[route.route_type] ?? route.route_type ?? '未知';
+    const displayName = route.name || route.name_en || '未知'
+    const routeTypeLabel =
+      IndexingService.ROUTE_TYPE_LABELS[route.route_type] ?? route.route_type ?? '未知'
     const parts = [
       `路線名稱：${displayName}`,
       `所屬岩場：${route.crag_name ?? '未知'}`,
       `難度等級：${route.grade ?? '未知'}`,
       `攀登類型：${routeTypeLabel}`,
       `地區：${route.region ?? '未知'}`,
-    ];
+    ]
 
     if (route.name_en && route.name_en !== route.name) {
-      parts.push(`英文名稱：${route.name_en}`);
+      parts.push(`英文名稱：${route.name_en}`)
     }
     if (route.area_name) {
-      parts.push(`岩場區域：${route.area_name}`);
+      parts.push(`岩場區域：${route.area_name}`)
     }
     if (route.description) {
-      parts.push(`路線描述：${route.description}`);
+      parts.push(`路線描述：${route.description}`)
     }
     if (route.first_ascent) {
-      parts.push(`首攀：${route.first_ascent}`);
+      parts.push(`首攀：${route.first_ascent}`)
     }
     if (route.height) {
-      parts.push(`路線長度：${route.height} 公尺`);
+      parts.push(`路線長度：${route.height} 公尺`)
     }
 
-    return parts.join('\n');
+    return parts.join('\n')
   }
 
   // 建立岩場文件文字（actualRouteCount 為從 routes 表即時計算的路線數）
@@ -84,38 +85,42 @@ export class IndexingService {
       `地區：${crag.region ?? '未知'}`,
       `岩石類型：${crag.rock_type ?? '未知'}`,
       `路線數量：${actualRouteCount ?? crag.route_count} 條`,
-    ];
+    ]
 
     if (areaNames) {
-      parts.push(`岩場內的區域（area，非獨立岩場）：${areaNames}`);
+      parts.push(`岩場內的區域（area，非獨立岩場）：${areaNames}`)
     }
 
     if (crag.description) {
-      parts.push(`岩場描述：${crag.description}`);
+      parts.push(`岩場描述：${crag.description}`)
     }
     if (crag.climbing_types) {
       try {
-        const types = JSON.parse(crag.climbing_types) as string[];
-        parts.push(`攀登類型：${types.join('、')}`);
+        const types = JSON.parse(crag.climbing_types) as string[]
+        parts.push(`攀登類型：${types.join('、')}`)
       } catch {
-        parts.push(`攀登類型：${crag.climbing_types}`);
+        parts.push(`攀登類型：${crag.climbing_types}`)
       }
     }
     if (crag.best_seasons) {
-      parts.push(`最佳季節：${crag.best_seasons}`);
+      parts.push(`最佳季節：${crag.best_seasons}`)
     }
     if (crag.difficulty_range) {
-      parts.push(`難度範圍：${crag.difficulty_range}`);
+      parts.push(`難度範圍：${crag.difficulty_range}`)
     }
     if (crag.access_info) {
-      parts.push(`交通資訊：${crag.access_info}`);
+      parts.push(`交通資訊：${crag.access_info}`)
     }
 
-    return parts.join('\n');
+    return parts.join('\n')
   }
 
   // 索引路線，支援分頁避免 Worker timeout
-  async indexRoutes(offset = 0, limit = 100, ctx?: { waitUntil(p: Promise<unknown>): void }): Promise<IndexResult & { hasMore: boolean }> {
+  async indexRoutes(
+    offset = 0,
+    limit = 100,
+    ctx?: { waitUntil(p: Promise<unknown>): void }
+  ): Promise<IndexResult & { hasMore: boolean }> {
     const routes = await this.env.DB.prepare(`
       SELECT r.*, c.name as crag_name, c.region, a.id as area_id, a.name as area_name
       FROM routes r
@@ -123,15 +128,17 @@ export class IndexingService {
       LEFT JOIN areas a ON r.area_id = a.id
       ORDER BY r.id
       LIMIT ? OFFSET ?
-    `).bind(limit, offset).all<RouteWithCrag>();
+    `)
+      .bind(limit, offset)
+      .all<RouteWithCrag>()
 
-    const totalRow = await this.env.DB.prepare(
-      'SELECT COUNT(*) as count FROM routes'
-    ).first<{ count: number }>();
-    const total = totalRow?.count ?? 0;
+    const totalRow = await this.env.DB.prepare('SELECT COUNT(*) as count FROM routes').first<{
+      count: number
+    }>()
+    const total = totalRow?.count ?? 0
 
     if (!routes.results.length) {
-      return { indexed: 0, failed: 0, hasMore: false };
+      return { indexed: 0, failed: 0, hasMore: false }
     }
 
     const documents = routes.results.map((route) => {
@@ -146,17 +153,17 @@ export class IndexingService {
         region: route.region ?? undefined,
         area_id: route.area_id ?? undefined,
         area_name: route.area_name ?? undefined,
-      };
+      }
 
       return {
         sourceId: route.id,
         text: this.createRouteDocument(route),
         metadata,
-      };
-    });
+      }
+    })
 
-    const result = await this.indexDocuments('route', documents, ctx);
-    return { ...result, hasMore: offset + routes.results.length < total };
+    const result = await this.indexDocuments('route', documents, ctx)
+    return { ...result, hasMore: offset + routes.results.length < total }
   }
 
   // 索引所有岩場
@@ -164,8 +171,8 @@ export class IndexingService {
     // 預先取得每個岩場的區域列表
     const areasResult = await this.env.DB.prepare(
       `SELECT crag_id, GROUP_CONCAT(name, '、') as area_names FROM areas WHERE name IS NOT NULL GROUP BY crag_id`
-    ).all<{ crag_id: string; area_names: string }>();
-    const areasByCrag = new Map(areasResult.results.map((r) => [r.crag_id, r.area_names]));
+    ).all<{ crag_id: string; area_names: string }>()
+    const areasByCrag = new Map(areasResult.results.map((r) => [r.crag_id, r.area_names]))
 
     // 同時 JOIN routes 取得真實路線數，避免 description 欄位有舊的靜態數字
     const crags = await this.env.DB.prepare(`
@@ -173,19 +180,19 @@ export class IndexingService {
       FROM crags c
       LEFT JOIN routes r ON r.crag_id = c.id
       GROUP BY c.id
-    `).all<Crag & { actual_route_count: number }>();
+    `).all<Crag & { actual_route_count: number }>()
 
     if (!crags.results.length) {
-      return { indexed: 0, failed: 0 };
+      return { indexed: 0, failed: 0 }
     }
 
     const documents = crags.results.map((crag) => {
-      let climbingTypes: string[] | undefined;
+      let climbingTypes: string[] | undefined
       if (crag.climbing_types) {
         try {
-          climbingTypes = JSON.parse(crag.climbing_types) as string[];
+          climbingTypes = JSON.parse(crag.climbing_types) as string[]
         } catch {
-          climbingTypes = [crag.climbing_types];
+          climbingTypes = [crag.climbing_types]
         }
       }
 
@@ -194,16 +201,16 @@ export class IndexingService {
         region: crag.region ?? undefined,
         climbing_types: climbingTypes,
         crag_id: crag.id,
-      };
+      }
 
       return {
         sourceId: crag.id,
         text: this.createCragDocument(crag, crag.actual_route_count, areasByCrag.get(crag.id)),
         metadata,
-      };
-    });
+      }
+    })
 
-    return this.indexDocuments('crag', documents, ctx);
+    return this.indexDocuments('crag', documents, ctx)
   }
 
   // 重建索引，支援分頁（避免 Worker timeout）
@@ -213,28 +220,28 @@ export class IndexingService {
     limit = 100,
     ctx?: { waitUntil(p: Promise<unknown>): void }
   ): Promise<IndexResult & { hasMore: boolean; nextOffset: number }> {
-    let totalIndexed = 0;
-    let totalFailed = 0;
-    let hasMore = false;
-    let nextOffset = 0;
+    let totalIndexed = 0
+    let totalFailed = 0
+    let hasMore = false
+    let nextOffset = 0
 
     if (type === 'crag' || type === 'all') {
-      if (offset === 0) await this.clearType('crag');
-      const result = await this.indexCrags(ctx);
-      totalIndexed += result.indexed;
-      totalFailed += result.failed;
+      if (offset === 0) await this.clearType('crag')
+      const result = await this.indexCrags(ctx)
+      totalIndexed += result.indexed
+      totalFailed += result.failed
     }
 
     if (type === 'route' || type === 'all') {
-      if (offset === 0) await this.clearType('route');
-      const result = await this.indexRoutes(offset, limit, ctx);
-      totalIndexed += result.indexed;
-      totalFailed += result.failed;
-      hasMore = result.hasMore;
-      nextOffset = offset + limit;
+      if (offset === 0) await this.clearType('route')
+      const result = await this.indexRoutes(offset, limit, ctx)
+      totalIndexed += result.indexed
+      totalFailed += result.failed
+      hasMore = result.hasMore
+      nextOffset = offset + limit
     }
 
-    return { indexed: totalIndexed, failed: totalFailed, hasMore, nextOffset };
+    return { indexed: totalIndexed, failed: totalFailed, hasMore, nextOffset }
   }
 
   // 刪除某類型的現有文件
@@ -243,55 +250,58 @@ export class IndexingService {
       'SELECT embedding_id FROM ai_documents WHERE type = ? AND embedding_id IS NOT NULL'
     )
       .bind(type)
-      .all<{ embedding_id: string }>();
+      .all<{ embedding_id: string }>()
 
-    const ids = existing.results.map((r) => r.embedding_id);
+    const ids = existing.results.map((r) => r.embedding_id)
     if (ids.length > 0) {
       // 分批刪除 Vectorize 向量（每批最多 100 筆）
       for (let i = 0; i < ids.length; i += VECTORIZE_DELETE_BATCH_SIZE) {
-        await this.env.VECTOR_INDEX.deleteByIds(ids.slice(i, i + VECTORIZE_DELETE_BATCH_SIZE));
+        await this.env.VECTOR_INDEX.deleteByIds(ids.slice(i, i + VECTORIZE_DELETE_BATCH_SIZE))
       }
     }
 
-    await this.env.DB.prepare('DELETE FROM ai_documents WHERE type = ?').bind(type).run();
+    await this.env.DB.prepare('DELETE FROM ai_documents WHERE type = ?').bind(type).run()
   }
 
   private async getContextualModel(): Promise<string> {
     const row = await this.env.DB.prepare(
       `SELECT value FROM ai_config WHERE key = 'contextual_rag_model'`
-    ).first<{ value: string }>();
-    return row?.value ?? '@cf/meta/llama-3.1-8b-instruct';
+    ).first<{ value: string }>()
+    return row?.value ?? '@cf/meta/llama-3.1-8b-instruct'
   }
 
   private async loadContextualChunkPrompt(): Promise<string> {
     try {
       const row = await this.env.DB.prepare(
         `SELECT content FROM ai_prompts WHERE name = 'contextual_chunk_prompt' AND status = 'active'`
-      ).first<{ content: string }>();
-      if (!row?.content) return CONTEXTUAL_CHUNK_PROMPT;
+      ).first<{ content: string }>()
+      if (!row?.content) return CONTEXTUAL_CHUNK_PROMPT
       // 驗證必要變數存在，缺少則 fallback
-      const required = ['{type}', '{content}'];
-      if (required.some((v) => !row.content.includes(v))) return CONTEXTUAL_CHUNK_PROMPT;
-      return row.content;
+      const required = ['{type}', '{content}']
+      if (required.some((v) => !row.content.includes(v))) return CONTEXTUAL_CHUNK_PROMPT
+      return row.content
     } catch {
-      return CONTEXTUAL_CHUNK_PROMPT;
+      return CONTEXTUAL_CHUNK_PROMPT
     }
   }
 
   // 為單一 chunk 呼叫 LLM 生成語意摘要（失敗時回傳空字串，讓主流程 fallback 到原始文字）
-  private async generateContextSummary(text: string, type: 'route' | 'crag' | 'video', model: string, promptTemplate: string): Promise<string> {
-    const typeLabel = type === 'route' ? '攀岩路線' : type === 'crag' ? '岩場' : '攀岩影片';
-    const prompt = promptTemplate
-      .replace('{type}', typeLabel)
-      .replace('{content}', text);
+  private async generateContextSummary(
+    text: string,
+    type: 'route' | 'crag' | 'video',
+    model: string,
+    promptTemplate: string
+  ): Promise<string> {
+    const typeLabel = type === 'route' ? '攀岩路線' : type === 'crag' ? '岩場' : '攀岩影片'
+    const prompt = promptTemplate.replace('{type}', typeLabel).replace('{content}', text)
     try {
       const result = await (this.env.AI.run as Function)(model, {
         messages: [{ role: 'user', content: prompt }],
         max_tokens: 80,
-      });
-      return extractResponseText(result as { response?: unknown });
+      })
+      return extractResponseText(result as { response?: unknown })
     } catch {
-      return '';
+      return ''
     }
   }
 
@@ -302,17 +312,17 @@ export class IndexingService {
     model: string,
     promptTemplate: string
   ): Promise<string[]> {
-    const summaries: string[] = new Array(documents.length).fill('');
+    const summaries: string[] = new Array(documents.length).fill('')
     for (let i = 0; i < documents.length; i += CONTEXT_GENERATION_BATCH_SIZE) {
-      const batch = documents.slice(i, i + CONTEXT_GENERATION_BATCH_SIZE);
+      const batch = documents.slice(i, i + CONTEXT_GENERATION_BATCH_SIZE)
       const results = await Promise.allSettled(
         batch.map((doc) => this.generateContextSummary(doc.text, type, model, promptTemplate))
-      );
+      )
       results.forEach((result, j) => {
-        summaries[i + j] = result.status === 'fulfilled' ? result.value : '';
-      });
+        summaries[i + j] = result.status === 'fulfilled' ? result.value : ''
+      })
     }
-    return summaries;
+    return summaries
   }
 
   // 執行文件索引：生成 embedding → 寫入 Vectorize + D1
@@ -325,23 +335,29 @@ export class IndexingService {
     documents: Array<{ sourceId: string; text: string; metadata: AIDocumentMetadata }>,
     ctx?: { waitUntil(p: Promise<unknown>): void }
   ): Promise<IndexResult> {
-    let indexed = 0;
-    let failed = 0;
+    let indexed = 0
+    let failed = 0
 
     // Phase 1: 以原始文字快速 embed（不等 LLM）
-    const embeddings = await this.embeddingService.embedBatch(documents.map((d) => d.text));
+    const embeddings = await this.embeddingService.embedBatch(documents.map((d) => d.text))
 
-    const vectors: Array<{ id: string; values: number[]; metadata: Record<string, unknown> }> = [];
-    const dbInserts: Array<{ id: string; sourceId: string; text: string; metadata: string; embeddingId: string }> = [];
+    const vectors: Array<{ id: string; values: number[]; metadata: Record<string, unknown> }> = []
+    const dbInserts: Array<{
+      id: string
+      sourceId: string
+      text: string
+      metadata: string
+      embeddingId: string
+    }> = []
 
     for (let i = 0; i < documents.length; i++) {
-      const embedding = embeddings[i];
+      const embedding = embeddings[i]
       if (!embedding || embedding.length === 0) {
-        failed++;
-        continue;
+        failed++
+        continue
       }
 
-      const docId = `${type}-${documents[i].sourceId}`;
+      const docId = `${type}-${documents[i].sourceId}`
 
       vectors.push({
         id: docId,
@@ -350,7 +366,7 @@ export class IndexingService {
           type,
           ...documents[i].metadata,
         },
-      });
+      })
 
       dbInserts.push({
         id: docId,
@@ -358,17 +374,17 @@ export class IndexingService {
         text: documents[i].text,
         metadata: JSON.stringify(documents[i].metadata),
         embeddingId: docId,
-      });
+      })
     }
 
     // 分批寫入 Vectorize
     for (let i = 0; i < vectors.length; i += VECTORIZE_UPSERT_BATCH_SIZE) {
       try {
-        await this.env.VECTOR_INDEX.upsert(vectors.slice(i, i + VECTORIZE_UPSERT_BATCH_SIZE));
+        await this.env.VECTOR_INDEX.upsert(vectors.slice(i, i + VECTORIZE_UPSERT_BATCH_SIZE))
       } catch (error) {
-        console.error(`Vectorize upsert failed at batch ${i}:`, error);
-        failed += Math.min(VECTORIZE_UPSERT_BATCH_SIZE, vectors.length - i);
-        continue;
+        console.error(`Vectorize upsert failed at batch ${i}:`, error)
+        failed += Math.min(VECTORIZE_UPSERT_BATCH_SIZE, vectors.length - i)
+        continue
       }
     }
 
@@ -380,20 +396,20 @@ export class IndexingService {
           VALUES (?, ?, ?, ?, ?, ?, datetime('now'))
         `)
           .bind(doc.id, type, doc.sourceId, doc.text, doc.metadata, doc.embeddingId)
-          .run();
-        indexed++;
+          .run()
+        indexed++
       } catch (error) {
-        console.error(`D1 insert failed for ${doc.id}:`, error);
-        failed++;
+        console.error(`D1 insert failed for ${doc.id}:`, error)
+        failed++
       }
     }
 
     // Phase 2: 背景生成 LLM contextual summary 並更新 Vectorize 向量（不阻塞 HTTP 回應）
     if (ctx && dbInserts.length > 0) {
-      ctx.waitUntil(this.enrichWithContextualSummaries(type, documents, dbInserts));
+      ctx.waitUntil(this.enrichWithContextualSummaries(type, documents, dbInserts))
     }
 
-    return { indexed, failed };
+    return { indexed, failed }
   }
 
   // 背景任務：生成 contextual summary 並覆寫 Vectorize 向量
@@ -406,30 +422,36 @@ export class IndexingService {
       const [model, promptTemplate] = await Promise.all([
         this.getContextualModel(),
         this.loadContextualChunkPrompt(),
-      ]);
-      const summaries = await this.generateContextSummaries(documents, type, model, promptTemplate);
+      ])
+      const summaries = await this.generateContextSummaries(documents, type, model, promptTemplate)
       const enrichedTexts = documents.map((d, i) =>
         summaries[i] ? `${summaries[i]}\n\n${d.text}` : d.text
-      );
+      )
 
-      const enrichedEmbeddings = await this.embeddingService.embedBatch(enrichedTexts);
+      const enrichedEmbeddings = await this.embeddingService.embedBatch(enrichedTexts)
 
-      const enrichedVectors: Array<{ id: string; values: number[]; metadata: Record<string, unknown> }> = [];
+      const enrichedVectors: Array<{
+        id: string
+        values: number[]
+        metadata: Record<string, unknown>
+      }> = []
       for (let i = 0; i < documents.length; i++) {
-        const embedding = enrichedEmbeddings[i];
-        if (!embedding || embedding.length === 0) continue;
+        const embedding = enrichedEmbeddings[i]
+        if (!embedding || embedding.length === 0) continue
         enrichedVectors.push({
           id: dbInserts[i].id,
           values: embedding,
           metadata: { type, ...documents[i].metadata },
-        });
+        })
       }
 
       for (let i = 0; i < enrichedVectors.length; i += VECTORIZE_UPSERT_BATCH_SIZE) {
-        await this.env.VECTOR_INDEX.upsert(enrichedVectors.slice(i, i + VECTORIZE_UPSERT_BATCH_SIZE));
+        await this.env.VECTOR_INDEX.upsert(
+          enrichedVectors.slice(i, i + VECTORIZE_UPSERT_BATCH_SIZE)
+        )
       }
     } catch (error) {
-      console.error(`Background contextual enrichment failed for ${type}:`, error);
+      console.error(`Background contextual enrichment failed for ${type}:`, error)
     }
   }
 }

@@ -4,12 +4,11 @@
  * 使用共用套件 @nobodyclimb/hooks 的 createAuthStore
  */
 import { createAuthStore } from '@nobodyclimb/hooks'
-import { tokenStorage } from '@/lib/tokenStorage'
 import { router } from 'expo-router'
+import { tokenStorage } from '@/lib/tokenStorage'
 
 // API 基礎 URL
-const API_BASE_URL =
-  process.env.EXPO_PUBLIC_API_URL || 'https://api.nobodyclimb.cc/api/v1'
+const API_BASE_URL = process.env.EXPO_PUBLIC_API_URL || 'https://api.nobodyclimb.cc/api/v1'
 
 // 重新導出 tokenStorage 供其他模組使用
 export { tokenStorage }

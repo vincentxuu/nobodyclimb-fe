@@ -1,25 +1,24 @@
 'use client'
 
-import * as React from 'react'
-import { useCallback, useEffect, useMemo } from 'react'
-import { motion, AnimatePresence } from 'framer-motion'
-import { ArrowLeft, PersonStanding, PartyPopper, AlertTriangle, Flame } from 'lucide-react'
+import { AnimatePresence, motion } from 'framer-motion'
+import { AlertTriangle, ArrowLeft, Flame, PartyPopper, PersonStanding } from 'lucide-react'
 import Link from 'next/link'
-import { cn } from '@/lib/utils'
-import { useRopeGameStore, selectCurrentQuestion, selectProgress } from '@/store/ropeGameStore'
+import { useCallback, useEffect, useMemo } from 'react'
+import { ANIMATION_DURATION, ROUTES } from '@/lib/games/rope-system/constants'
 import { useGameSounds } from '@/lib/games/rope-system/sounds'
-import { ROUTES, ANIMATION_DURATION } from '@/lib/games/rope-system/constants'
-import type { Question, Category, Exam, GameMode } from '@/lib/games/rope-system/types'
+import type { Category, Exam, GameMode, Question } from '@/lib/games/rope-system/types'
+import { cn } from '@/lib/utils'
+import { selectCurrentQuestion, selectProgress, useRopeGameStore } from '@/store/ropeGameStore'
 
 import { ClimberCharacter } from './ClimberCharacter'
-import { QuestionCard } from './QuestionCard'
-import { ProgressBar } from './ProgressBar'
-import { ScoreDisplay } from './ScoreDisplay'
-import { LifeDisplay } from './LifeDisplay'
-import { TimerDisplay } from './TimerDisplay'
-import { SoundToggle } from './SoundToggle'
 import { ExplanationPanel } from './ExplanationPanel'
+import { LifeDisplay } from './LifeDisplay'
+import { ProgressBar } from './ProgressBar'
+import { QuestionCard } from './QuestionCard'
 import { ResultModal } from './ResultModal'
+import { ScoreDisplay } from './ScoreDisplay'
+import { SoundToggle } from './SoundToggle'
+import { TimerDisplay } from './TimerDisplay'
 
 interface GameCanvasProps {
   mode: GameMode
@@ -29,13 +28,7 @@ interface GameCanvasProps {
   className?: string
 }
 
-export function GameCanvas({
-  mode,
-  questions,
-  category,
-  exam,
-  className,
-}: GameCanvasProps) {
+export function GameCanvas({ mode, questions, category, exam, className }: GameCanvasProps) {
   // Store state
   const {
     currentIndex,
@@ -140,9 +133,7 @@ export function GameCanvas({
   const getCorrectAnswerText = useCallback(() => {
     if (!currentQuestion) return ''
     if (typeof currentQuestion.correctAnswer === 'string') {
-      const option = currentQuestion.options.find(
-        (o) => o.id === currentQuestion.correctAnswer
-      )
+      const option = currentQuestion.options.find((o) => o.id === currentQuestion.correctAnswer)
       return option?.text || ''
     }
     // 排序題
@@ -198,11 +189,7 @@ export function GameCanvas({
                 <div className="flex items-center gap-4">
                   <motion.div
                     className="flex h-10 w-10 items-center justify-center rounded-full bg-gray-100"
-                    animate={
-                      characterState === 'falling'
-                        ? { rotate: [0, 15, -15, 0] }
-                        : {}
-                    }
+                    animate={characterState === 'falling' ? { rotate: [0, 15, -15, 0] } : {}}
                   >
                     {characterState === 'falling' ? (
                       <AlertTriangle className="h-6 w-6 text-red-500" />
@@ -235,9 +222,7 @@ export function GameCanvas({
               {mode === 'learn' && currentQuestion && (
                 <ExplanationPanel
                   isVisible={showExplanation}
-                  isCorrect={
-                    results[currentIndex]?.isCorrect ?? false
-                  }
+                  isCorrect={results[currentIndex]?.isCorrect ?? false}
                   correctAnswer={getCorrectAnswerText()}
                   explanation={currentQuestion.explanation}
                   hint={currentQuestion.hint}
@@ -267,11 +252,7 @@ export function GameCanvas({
         <div className="mx-auto flex max-w-6xl items-center justify-between px-4 py-3">
           {/* 進度條 */}
           <div className="flex-1">
-            <ProgressBar
-              progress={progress}
-              current={currentIndex + 1}
-              total={questions.length}
-            />
+            <ProgressBar progress={progress} current={currentIndex + 1} total={questions.length} />
           </div>
 
           {/* 分數與生命值（桌面版） */}
@@ -301,7 +282,7 @@ export function GameCanvas({
         categoryName={category?.name}
         isGameOver={lives <= 0}
         onPlayAgain={handlePlayAgain}
-        onGoHome={() => window.location.href = ROUTES.HOME}
+        onGoHome={() => (window.location.href = ROUTES.HOME)}
       />
     </div>
   )

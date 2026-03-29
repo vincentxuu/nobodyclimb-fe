@@ -1,40 +1,41 @@
 'use client'
 
-import React, { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
-import { useAuth } from '@/lib/hooks/useAuth'
 import { useTranslations } from 'next-intl'
-import { Button } from '@/components/ui/button'
+import React, { useEffect, useState } from 'react'
 import { PageTransition } from '@/components/shared/page-transition'
+import { Button } from '@/components/ui/button'
 import { useToast } from '@/components/ui/use-toast'
 import { biographyService } from '@/lib/api/services'
 import { SYSTEM_TAG_DIMENSION_LIST, SYSTEM_TAG_DIMENSIONS } from '@/lib/constants/biography-tags'
+import { useAuth } from '@/lib/hooks/useAuth'
 
 // 註冊流程精選的標籤維度（3 個）
 const REGISTRATION_TAG_DIMENSIONS: string[] = [
-  SYSTEM_TAG_DIMENSIONS.STYLE_CULT,      // 風格邪教
-  SYSTEM_TAG_DIMENSIONS.INJURY_BADGE,    // 傷痛勳章
-  SYSTEM_TAG_DIMENSIONS.SOCIAL_TYPE,     // 社交類型
+  SYSTEM_TAG_DIMENSIONS.STYLE_CULT, // 風格邪教
+  SYSTEM_TAG_DIMENSIONS.INJURY_BADGE, // 傷痛勳章
+  SYSTEM_TAG_DIMENSIONS.SOCIAL_TYPE, // 社交類型
 ]
-import { cn } from '@/lib/utils'
+
 import {
   Check,
   ChevronDown,
-  Sparkles,
-  HeartPulse,
-  Footprints,
   Clock,
-  Tent,
-  Music,
-  Target,
-  Users,
-  Hand,
   Dumbbell,
-  MapPin,
-  Tag,
+  Footprints,
+  Hand,
+  HeartPulse,
   type LucideIcon,
+  MapPin,
+  Music,
+  Sparkles,
+  Tag,
+  Target,
+  Tent,
+  Users,
 } from 'lucide-react'
 import type { TagDimension } from '@/lib/types/biography-v2'
+import { cn } from '@/lib/utils'
 
 // Icon mapping for dynamic rendering
 const iconMap: Record<string, LucideIcon> = {
@@ -121,10 +122,7 @@ export default function TagsPage() {
   }
 
   // 計算總選中數量
-  const totalSelected = Object.values(selections).reduce(
-    (sum, ids) => sum + ids.length,
-    0
-  )
+  const totalSelected = Object.values(selections).reduce((sum, ids) => sum + ids.length, 0)
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -204,9 +202,7 @@ export default function TagsPage() {
 
         <div className="mb-6 text-center">
           <h1 className="text-2xl font-bold">{t('tagsTitle')}</h1>
-          <p className="mt-2 text-gray-600">
-            {t('tagsSubtitle')}
-          </p>
+          <p className="mt-2 text-gray-600">{t('tagsSubtitle')}</p>
           {totalSelected > 0 && (
             <span className="mt-2 inline-block text-sm text-primary">
               {t('tagsSelectedCount', { count: totalSelected })}
@@ -234,15 +230,9 @@ export default function TagsPage() {
                     className="w-full flex items-center justify-between p-4 bg-gray-50 hover:bg-gray-100 transition-colors"
                   >
                     <div className="flex items-center gap-3">
-                      {IconComponent && (
-                        <IconComponent size={20} className="text-primary" />
-                      )}
-                      {!IconComponent && (
-                        <Tag size={20} className="text-primary" />
-                      )}
-                      <span className="font-medium text-gray-900">
-                        {dimension.name}
-                      </span>
+                      {IconComponent && <IconComponent size={20} className="text-primary" />}
+                      {!IconComponent && <Tag size={20} className="text-primary" />}
+                      <span className="font-medium text-gray-900">{dimension.name}</span>
                       {selectedCount > 0 && (
                         <span className="text-xs text-primary font-medium bg-primary/10 px-2 py-0.5 rounded-full">
                           {selectedCount}
@@ -263,7 +253,9 @@ export default function TagsPage() {
                     <div className="p-4 space-y-3 bg-white">
                       <p className="text-sm text-gray-500">
                         {dimension.description}
-                        {dimension.selection_mode === 'multiple' ? ` ${t('multiSelectParens')}` : ` ${t('singleSelectParens')}`}
+                        {dimension.selection_mode === 'multiple'
+                          ? ` ${t('multiSelectParens')}`
+                          : ` ${t('singleSelectParens')}`}
                       </p>
                       <div className="flex flex-wrap gap-2">
                         {dimension.options.map((option) => {

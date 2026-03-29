@@ -1,10 +1,10 @@
 'use client'
 
+import { AnimatePresence, motion } from 'framer-motion'
+import { AlertCircle, Loader2, Merge, User, UserCheck, X } from 'lucide-react'
 import { useState } from 'react'
-import { motion, AnimatePresence } from 'framer-motion'
-import { X, User, UserCheck, Merge, Loader2, AlertCircle } from 'lucide-react'
 import { Button } from '@/components/ui/button'
-import { useContentClaim, type UnclaimedContent } from '@/lib/hooks/useContentClaim'
+import { type UnclaimedContent, useContentClaim } from '@/lib/hooks/useContentClaim'
 
 interface ClaimContentModalProps {
   isOpen: boolean
@@ -106,12 +106,8 @@ export function ClaimContentModal({
                 <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-full bg-[#ffe70c]">
                   <User className="h-7 w-7 text-[#1B1A1A]" />
                 </div>
-                <h2 className="text-xl font-bold text-[#1B1A1A]">
-                  發現你之前分享的故事！
-                </h2>
-                <p className="mt-2 text-gray-600">
-                  要把這個故事連結到你的帳號嗎？
-                </p>
+                <h2 className="text-xl font-bold text-[#1B1A1A]">發現你之前分享的故事！</h2>
+                <p className="mt-2 text-gray-600">要把這個故事連結到你的帳號嗎？</p>
               </div>
 
               {/* Content preview */}
@@ -123,7 +119,8 @@ export function ClaimContentModal({
                   <div>
                     <p className="font-medium text-[#1B1A1A]">{content.anonymousName}</p>
                     <p className="text-sm text-gray-500">
-                      {content.storyCount} 則故事 · {new Date(content.createdAt).toLocaleDateString('zh-TW')}
+                      {content.storyCount} 則故事 ·{' '}
+                      {new Date(content.createdAt).toLocaleDateString('zh-TW')}
                     </p>
                   </div>
                 </div>
@@ -155,11 +152,7 @@ export function ClaimContentModal({
 
               {/* Actions */}
               <div className="flex flex-col gap-2">
-                <Button
-                  onClick={handleClaim}
-                  disabled={isProcessing}
-                  className="w-full"
-                >
+                <Button onClick={handleClaim} disabled={isProcessing} className="w-full">
                   {isProcessing ? (
                     <Loader2 className="h-4 w-4 animate-spin" />
                   ) : (
@@ -186,12 +179,8 @@ export function ClaimContentModal({
                 <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-full bg-yellow-100">
                   <Merge className="h-7 w-7 text-yellow-600" />
                 </div>
-                <h2 className="text-xl font-bold text-[#1B1A1A]">
-                  你已經有人物誌了
-                </h2>
-                <p className="mt-2 text-gray-600">
-                  要把匿名故事的內容合併到你現有的人物誌嗎？
-                </p>
+                <h2 className="text-xl font-bold text-[#1B1A1A]">你已經有人物誌了</h2>
+                <p className="mt-2 text-gray-600">要把匿名故事的內容合併到你現有的人物誌嗎？</p>
               </div>
 
               {/* Error */}
@@ -204,11 +193,7 @@ export function ClaimContentModal({
 
               {/* Actions */}
               <div className="flex flex-col gap-2">
-                <Button
-                  onClick={handleMerge}
-                  disabled={isProcessing}
-                  className="w-full"
-                >
+                <Button onClick={handleMerge} disabled={isProcessing} className="w-full">
                   {isProcessing ? (
                     <Loader2 className="h-4 w-4 animate-spin" />
                   ) : (

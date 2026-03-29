@@ -1,22 +1,37 @@
 'use client'
 
-import React, { useEffect, useState, useCallback, useRef } from 'react'
-import Link from 'next/link'
-import Image from 'next/image'
 import { motion } from 'framer-motion'
-import { ArrowRightCircle, Loader2, Mountain, MessageCircle } from 'lucide-react'
-import { Card, CardContent } from '@/components/ui/card'
-import { Button } from '@/components/ui/button'
-import { biographyContentService, CoreStory, OneLiner, Story } from '@/lib/api/services'
+import { ArrowRightCircle, Loader2, MessageCircle, Mountain } from 'lucide-react'
+import Image from 'next/image'
+import Link from 'next/link'
 import { useTranslations } from 'next-intl'
+import { useCallback, useEffect, useRef, useState } from 'react'
+import { Button } from '@/components/ui/button'
+import { Card, CardContent } from '@/components/ui/card'
+import { biographyContentService, CoreStory, OneLiner, Story } from '@/lib/api/services'
 import { useBiographyQuestionText } from '@/lib/hooks/useBiographyQuestions'
 import { normalizeNewlines } from '@/lib/utils'
-import { isSvgUrl, getDefaultAvatarUrl } from '@/lib/utils/image'
+import { getDefaultAvatarUrl, isSvgUrl } from '@/lib/utils/image'
 
 type FeaturedContent =
-  | (CoreStory & { type: 'core-story'; author_name: string; author_avatar?: string; biography_slug?: string })
-  | (OneLiner & { type: 'one-liner'; author_name: string; author_avatar?: string; biography_slug?: string })
-  | (Story & { type: 'story'; author_name: string; author_avatar?: string; biography_slug?: string })
+  | (CoreStory & {
+      type: 'core-story'
+      author_name: string
+      author_avatar?: string
+      biography_slug?: string
+    })
+  | (OneLiner & {
+      type: 'one-liner'
+      author_name: string
+      author_avatar?: string
+      biography_slug?: string
+    })
+  | (Story & {
+      type: 'story'
+      author_name: string
+      author_avatar?: string
+      biography_slug?: string
+    })
 
 /**
  * 重新排列故事，讓同作者的故事不會連續出現
@@ -31,9 +46,7 @@ function interleaveByAuthor(items: FeaturedContent[]): FeaturedContent[] {
     const lastAuthor = result.length > 0 ? result[result.length - 1].biography_id : null
 
     // 找一個不同作者的故事
-    const differentAuthorIndex = remaining.findIndex(
-      (item) => item.biography_id !== lastAuthor
-    )
+    const differentAuthorIndex = remaining.findIndex((item) => item.biography_id !== lastAuthor)
 
     if (differentAuthorIndex !== -1) {
       // 找到不同作者，加入結果
@@ -71,7 +84,10 @@ function StoryCard({ content }: StoryCardProps) {
         }
       case 'story':
         return {
-          label: getStoryTitle(content.question_id, content.title || getCategoryName(content.category_id, content.category_name || '')),
+          label: getStoryTitle(
+            content.question_id,
+            content.title || getCategoryName(content.category_id, content.category_name || '')
+          ),
           text: content.content,
         }
     }
@@ -84,7 +100,7 @@ function StoryCard({ content }: StoryCardProps) {
     const typeMap: Record<string, string> = {
       'core-story': 'core-stories',
       'one-liner': 'one-liners',
-      'story': 'stories',
+      story: 'stories',
     }
     return `/story/${typeMap[content.type]}/${content.id}`
   }
@@ -241,9 +257,7 @@ export function StoryList({ searchTerm }: StoryListProps) {
       })
     : contents
 
-  const displayedContents = searchTerm
-    ? filteredContents
-    : filteredContents.slice(0, visibleCount)
+  const displayedContents = searchTerm ? filteredContents : filteredContents.slice(0, visibleCount)
   const hasMore = !searchTerm && visibleCount < filteredContents.length
 
   if (loading) {

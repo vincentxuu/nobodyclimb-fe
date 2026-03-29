@@ -1,29 +1,29 @@
-'use client';
+'use client'
 
-import { useState } from 'react';
-import { format } from 'date-fns';
-import { zhTW } from 'date-fns/locale';
+import { format } from 'date-fns'
+import { zhTW } from 'date-fns/locale'
 import {
-  CircleDot,
-  Zap,
-  Eye,
-  Target,
   ArrowUp,
-  Sword,
-  Users,
+  Calendar,
+  CircleDot,
+  Eye,
+  ImageOff,
+  Instagram,
+  Play,
   Repeat,
   Star,
-  Instagram,
-  Calendar,
-  ImageOff,
-  Play,
-} from 'lucide-react';
+  Sword,
+  Target,
+  Users,
+  Zap,
+} from 'lucide-react'
+import { useState } from 'react'
 
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { Badge } from '@/components/ui/badge';
-import { Card, CardContent } from '@/components/ui/card';
-import { UserRouteAscent, ASCENT_TYPE_DISPLAY } from '@/lib/types/ascent';
-import { cn } from '@/lib/utils';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
+import { Badge } from '@/components/ui/badge'
+import { Card, CardContent } from '@/components/ui/card'
+import { ASCENT_TYPE_DISPLAY, UserRouteAscent } from '@/lib/types/ascent'
+import { cn } from '@/lib/utils'
 
 /**
  * 從 YouTube URL 中提取 video ID
@@ -32,16 +32,16 @@ function extractYoutubeVideoId(url: string): string | null {
   const patterns = [
     /(?:youtube\.com\/watch\?v=|youtu\.be\/|youtube\.com\/embed\/|youtube\.com\/v\/)([^&\n?#]+)/,
     /^([a-zA-Z0-9_-]{11})$/,
-  ];
+  ]
 
   for (const pattern of patterns) {
-    const match = url.match(pattern);
+    const match = url.match(pattern)
     if (match && match[1]) {
-      return match[1];
+      return match[1]
     }
   }
 
-  return null;
+  return null
 }
 
 const ICON_MAP = {
@@ -53,13 +53,13 @@ const ICON_MAP = {
   Sword,
   Users,
   Repeat,
-};
+}
 
 interface AscentCardProps {
-  ascent: UserRouteAscent;
-  showRoute?: boolean;
-  showUser?: boolean;
-  className?: string;
+  ascent: UserRouteAscent
+  showRoute?: boolean
+  showUser?: boolean
+  className?: string
 }
 
 export function AscentCard({
@@ -68,18 +68,16 @@ export function AscentCard({
   showUser = true,
   className,
 }: AscentCardProps) {
-  const typeInfo = ASCENT_TYPE_DISPLAY[ascent.ascent_type];
-  const Icon = ICON_MAP[typeInfo.icon as keyof typeof ICON_MAP];
-  const [failedImages, setFailedImages] = useState<Set<number>>(new Set());
+  const typeInfo = ASCENT_TYPE_DISPLAY[ascent.ascent_type]
+  const Icon = ICON_MAP[typeInfo.icon as keyof typeof ICON_MAP]
+  const [failedImages, setFailedImages] = useState<Set<number>>(new Set())
 
   const handleImageError = (index: number) => {
-    setFailedImages((prev) => new Set(prev).add(index));
-  };
+    setFailedImages((prev) => new Set(prev).add(index))
+  }
 
   // 提取 YouTube video ID
-  const youtubeVideoId = ascent.youtube_url
-    ? extractYoutubeVideoId(ascent.youtube_url)
-    : null;
+  const youtubeVideoId = ascent.youtube_url ? extractYoutubeVideoId(ascent.youtube_url) : null
 
   return (
     <Card className={cn('overflow-hidden', className)}>
@@ -119,9 +117,7 @@ export function AscentCard({
                   </Badge>
                 )}
                 {ascent.crag_name && (
-                  <span className="text-xs text-muted-foreground ml-2">
-                    @ {ascent.crag_name}
-                  </span>
+                  <span className="text-xs text-muted-foreground ml-2">@ {ascent.crag_name}</span>
                 )}
               </div>
             )}
@@ -159,9 +155,7 @@ export function AscentCard({
                     key={star}
                     className={cn(
                       'h-3 w-3',
-                      star <= ascent.rating!
-                        ? 'fill-yellow-400 text-yellow-400'
-                        : 'text-gray-200'
+                      star <= ascent.rating! ? 'fill-yellow-400 text-yellow-400' : 'text-gray-200'
                     )}
                   />
                 ))}
@@ -170,9 +164,7 @@ export function AscentCard({
 
             {/* 筆記 */}
             {ascent.notes && (
-              <p className="mt-2 text-sm text-muted-foreground line-clamp-2">
-                {ascent.notes}
-              </p>
+              <p className="mt-2 text-sm text-muted-foreground line-clamp-2">{ascent.notes}</p>
             )}
 
             {/* 照片展示 */}
@@ -246,5 +238,5 @@ export function AscentCard({
         </div>
       </CardContent>
     </Card>
-  );
+  )
 }

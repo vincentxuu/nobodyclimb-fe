@@ -1,14 +1,14 @@
 'use client'
 
-import { useState, useEffect, useMemo, useCallback } from 'react'
 import { motion } from 'framer-motion'
 import { Loader2 } from 'lucide-react'
-import { Biography } from '@/lib/types'
+import { useTranslations } from 'next-intl'
+import { useCallback, useEffect, useMemo, useState } from 'react'
 import { biographyContentService, type Story } from '@/lib/api/services'
+import { useBiographyQuestionText } from '@/lib/hooks/useBiographyQuestions'
+import { Biography } from '@/lib/types'
 import { cn, normalizeNewlines } from '@/lib/utils'
 import { ContentInteractionBar } from '../display/ContentInteractionBar'
-import { useTranslations } from 'next-intl'
-import { useBiographyQuestionText } from '@/lib/hooks/useBiographyQuestions'
 
 interface FeaturedStoriesSectionProps {
   person: Biography
@@ -83,9 +83,7 @@ export function FeaturedStoriesSection({ person }: FeaturedStoriesSectionProps) 
     if (response.success && response.data) {
       setStories((prev) =>
         prev.map((item) =>
-          item.id === storyId
-            ? { ...item, comment_count: item.comment_count + 1 }
-            : item
+          item.id === storyId ? { ...item, comment_count: item.comment_count + 1 } : item
         )
       )
       return response.data
@@ -98,14 +96,17 @@ export function FeaturedStoriesSection({ person }: FeaturedStoriesSectionProps) 
     if (stories.length === 0) return []
 
     // 按類別分組
-    const storiesByCategory = stories.reduce((acc, story) => {
-      const categoryId = story.category_id || 'uncategorized'
-      if (!acc[categoryId]) {
-        acc[categoryId] = []
-      }
-      acc[categoryId].push(story)
-      return acc
-    }, {} as Record<string, Story[]>)
+    const storiesByCategory = stories.reduce(
+      (acc, story) => {
+        const categoryId = story.category_id || 'uncategorized'
+        if (!acc[categoryId]) {
+          acc[categoryId] = []
+        }
+        acc[categoryId].push(story)
+        return acc
+      },
+      {} as Record<string, Story[]>
+    )
 
     const selected: Story[] = []
     const categories = Object.keys(storiesByCategory)
@@ -149,9 +150,7 @@ export function FeaturedStoriesSection({ person }: FeaturedStoriesSectionProps) 
   return (
     <section className="bg-gray-50 py-12">
       <div className="container mx-auto max-w-6xl px-4">
-        <h2 className="mb-8 text-2xl font-bold text-gray-900">
-          {t('featuredStoriesTitle')}
-        </h2>
+        <h2 className="mb-8 text-2xl font-bold text-gray-900">{t('featuredStoriesTitle')}</h2>
 
         {/* 橫向滾動故事卡片 */}
         <div className="flex gap-6 overflow-x-auto pb-4 snap-x snap-mandatory">
@@ -166,11 +165,15 @@ export function FeaturedStoriesSection({ person }: FeaturedStoriesSectionProps) 
             >
               {/* 分類標籤 */}
               {(story.category_id || story.category_name) && (
-                <div className={cn(
-                  'mb-3 inline-block rounded px-2 py-1 text-xs self-start',
-                  STORY_CATEGORY_COLORS[story.category_id || 'sys_cat_growth']?.bg || 'bg-brand-accent/20',
-                  STORY_CATEGORY_COLORS[story.category_id || 'sys_cat_growth']?.text || 'text-brand-dark'
-                )}>
+                <div
+                  className={cn(
+                    'mb-3 inline-block rounded px-2 py-1 text-xs self-start',
+                    STORY_CATEGORY_COLORS[story.category_id || 'sys_cat_growth']?.bg ||
+                      'bg-brand-accent/20',
+                    STORY_CATEGORY_COLORS[story.category_id || 'sys_cat_growth']?.text ||
+                      'text-brand-dark'
+                  )}
+                >
                   {getCategoryName(story.category_id, story.category_name || '')}
                 </div>
               )}

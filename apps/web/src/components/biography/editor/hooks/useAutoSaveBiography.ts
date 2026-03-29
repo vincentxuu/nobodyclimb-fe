@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect, useCallback, useRef } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import { useDebouncedCallback } from '@/lib/hooks/useDebouncedCallback'
 import type { BiographyV2 } from '@/lib/types/biography-v2'
 
@@ -83,7 +83,7 @@ export function useAutoSaveBiography({
       clearTimeout(retryTimerRef.current)
       retryTimerRef.current = null
     }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [biography.id])
 
   // 自動儲存 - 使用 debounce
@@ -138,7 +138,11 @@ export function useAutoSaveBiography({
           if (retryTimerRef.current) clearTimeout(retryTimerRef.current)
 
           retryTimerRef.current = setTimeout(() => {
-            if (thisSaveId === saveIdRef.current && isMountedRef.current && latestBiographyRef.current) {
+            if (
+              thisSaveId === saveIdRef.current &&
+              isMountedRef.current &&
+              latestBiographyRef.current
+            ) {
               debouncedSave(latestBiographyRef.current, editVersionRef.current)
             }
           }, retryDelay)

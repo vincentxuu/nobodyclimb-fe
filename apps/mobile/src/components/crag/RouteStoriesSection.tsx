@@ -4,31 +4,31 @@
  * 對應 apps/web/src/components/crag/RouteStoriesSection.tsx
  * 顯示路線相關的攀岩故事列表，支援按讚與有幫助互動
  */
-import React from 'react'
-import { StyleSheet, View, Pressable, ActivityIndicator, Linking } from 'react-native'
+
+import { RADIUS, SEMANTIC_COLORS, SPACING } from '@nobodyclimb/constants'
 import { Image } from 'expo-image'
 import {
   BookOpen,
-  Heart,
-  ThumbsUp,
-  MessageSquare,
-  Youtube,
-  Instagram,
   CheckCircle,
-  Star,
+  Heart,
+  Instagram,
+  MessageSquare,
   Plus,
+  Star,
+  ThumbsUp,
+  Youtube,
 } from 'lucide-react-native'
-
+import React from 'react'
+import { ActivityIndicator, Linking, Pressable, StyleSheet, View } from 'react-native'
 import { Text } from '@/components/ui'
-import { SEMANTIC_COLORS, SPACING, RADIUS } from '@nobodyclimb/constants'
-import { useAuthStore } from '@/store/authStore'
-import {
-  useRouteStories,
-  useToggleStoryLike,
-  useToggleStoryHelpful,
-  useCreateRouteStory,
-} from '@/lib/hooks/useRouteStories'
 import type { RouteStory } from '@/lib/hooks/useRouteStories'
+import {
+  useCreateRouteStory,
+  useRouteStories,
+  useToggleStoryHelpful,
+  useToggleStoryLike,
+} from '@/lib/hooks/useRouteStories'
+import { useAuthStore } from '@/store/authStore'
 import { RouteStoryForm, type RouteStoryFormRef } from './RouteStoryForm'
 
 // ── Helpers ────────────────────────────────────────────
@@ -75,11 +75,7 @@ function StoryCard({ story, routeId }: StoryCardProps) {
       {/* Header: 使用者資訊 */}
       <View style={styles.storyHeader}>
         {story.avatar_url ? (
-          <Image
-            source={{ uri: story.avatar_url }}
-            style={styles.avatar}
-            contentFit="cover"
-          />
+          <Image source={{ uri: story.avatar_url }} style={styles.avatar} contentFit="cover" />
         ) : (
           <View style={[styles.avatar, styles.avatarFallback]}>
             <Text variant="small" fontWeight="600" color="textSubtle">
@@ -92,9 +88,7 @@ function StoryCard({ story, routeId }: StoryCardProps) {
             <Text variant="body" fontWeight="500">
               {story.display_name || story.username}
             </Text>
-            {story.is_verified && (
-              <CheckCircle size={14} color="#3B82F6" />
-            )}
+            {story.is_verified && <CheckCircle size={14} color="#3B82F6" />}
           </View>
           <Text variant="caption" color="textMuted">
             {formatDate(story.created_at)}
@@ -129,11 +123,7 @@ function StoryCard({ story, routeId }: StoryCardProps) {
         <View style={styles.photoGrid}>
           {story.photos.slice(0, 3).map((photo, index) => (
             <View key={index} style={styles.photoItem}>
-              <Image
-                source={{ uri: photo }}
-                style={styles.photoImage}
-                contentFit="cover"
-              />
+              <Image source={{ uri: photo }} style={styles.photoImage} contentFit="cover" />
               {index === 2 && story.photos.length > 3 && (
                 <View style={styles.photoOverlay}>
                   <Text variant="body" fontWeight="600" style={styles.photoOverlayText}>
@@ -150,10 +140,7 @@ function StoryCard({ story, routeId }: StoryCardProps) {
       {(story.youtube_url || story.instagram_url) && (
         <View style={styles.mediaLinks}>
           {story.youtube_url && (
-            <Pressable
-              style={styles.mediaLink}
-              onPress={() => Linking.openURL(story.youtube_url!)}
-            >
+            <Pressable style={styles.mediaLink} onPress={() => Linking.openURL(story.youtube_url!)}>
               <Youtube size={14} color="#EF4444" />
               <Text variant="caption" style={styles.mediaLinkYoutube}>
                 影片
@@ -177,11 +164,7 @@ function StoryCard({ story, routeId }: StoryCardProps) {
       {/* 互動列 */}
       <View style={styles.interactionBar}>
         {/* 按讚 */}
-        <Pressable
-          style={styles.interactionButton}
-          onPress={handleLike}
-          hitSlop={8}
-        >
+        <Pressable style={styles.interactionButton} onPress={handleLike} hitSlop={8}>
           <Heart
             size={16}
             color={story.is_liked ? '#059669' : SEMANTIC_COLORS.textMuted}
@@ -190,10 +173,7 @@ function StoryCard({ story, routeId }: StoryCardProps) {
           {(story.like_count || 0) > 0 && (
             <Text
               variant="caption"
-              style={[
-                styles.interactionCount,
-                story.is_liked && styles.interactionCountActive,
-              ]}
+              style={[styles.interactionCount, story.is_liked && styles.interactionCountActive]}
             >
               {story.like_count}
             </Text>
@@ -201,11 +181,7 @@ function StoryCard({ story, routeId }: StoryCardProps) {
         </Pressable>
 
         {/* 有幫助 */}
-        <Pressable
-          style={styles.interactionButton}
-          onPress={handleHelpful}
-          hitSlop={8}
-        >
+        <Pressable style={styles.interactionButton} onPress={handleHelpful} hitSlop={8}>
           <ThumbsUp
             size={16}
             color={story.is_helpful ? '#2563EB' : SEMANTIC_COLORS.textMuted}
@@ -214,10 +190,7 @@ function StoryCard({ story, routeId }: StoryCardProps) {
           {(story.helpful_count || 0) > 0 && (
             <Text
               variant="caption"
-              style={[
-                styles.interactionCount,
-                story.is_helpful && styles.interactionCountHelpful,
-              ]}
+              style={[styles.interactionCount, story.is_helpful && styles.interactionCountHelpful]}
             >
               {story.helpful_count}
             </Text>
@@ -250,7 +223,12 @@ interface RouteStoriesSectionProps {
   routeGrade?: string
 }
 
-export function RouteStoriesSection({ cragId, routeId, routeName, routeGrade }: RouteStoriesSectionProps) {
+export function RouteStoriesSection({
+  cragId,
+  routeId,
+  routeName,
+  routeGrade,
+}: RouteStoriesSectionProps) {
   const { data, isLoading } = useRouteStories(routeId)
   const stories = data?.data ?? []
 
@@ -281,12 +259,11 @@ export function RouteStoriesSection({ cragId, routeId, routeName, routeGrade }: 
             </Text>
           </View>
           {isLoggedIn && (
-            <Pressable
-              style={styles.addButton}
-              onPress={() => storyFormRef.current?.open()}
-            >
+            <Pressable style={styles.addButton} onPress={() => storyFormRef.current?.open()}>
               <Plus size={16} color="#2563EB" />
-              <Text variant="caption" style={{ color: '#2563EB' }}>分享</Text>
+              <Text variant="caption" style={{ color: '#2563EB' }}>
+                分享
+              </Text>
             </Pressable>
           )}
         </View>

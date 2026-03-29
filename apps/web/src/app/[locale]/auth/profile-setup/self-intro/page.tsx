@@ -1,15 +1,15 @@
 'use client'
 
-import React, { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
-import { useAuth } from '@/lib/hooks/useAuth'
 import { useTranslations } from 'next-intl'
-import { Button } from '@/components/ui/button'
+import React, { useEffect, useState } from 'react'
 import { PageTransition } from '@/components/shared/page-transition'
+import { Button } from '@/components/ui/button'
 import { useToast } from '@/components/ui/use-toast'
 import { biographyService } from '@/lib/api/services'
-import { cn } from '@/lib/utils'
+import { useAuth } from '@/lib/hooks/useAuth'
 import { useQuestions } from '@/lib/hooks/useQuestions'
+import { cn } from '@/lib/utils'
 
 // 核心故事問題 ID（固定）
 const CORE_STORY_IDS = {
@@ -124,9 +124,7 @@ export default function SelfIntroPage() {
 
         <div className="mb-6 text-center">
           <h1 className="text-2xl font-bold">{t('selfIntroTitle')}</h1>
-          <p className="mt-2 text-gray-600">
-            {t('selfIntroSubtitle')}
-          </p>
+          <p className="mt-2 text-gray-600">{t('selfIntroSubtitle')}</p>
           {filledCount > 0 && (
             <span className="mt-2 inline-block text-sm text-primary">
               {t('filledCount', { filled: filledCount, total: questionsToShow.length })}
@@ -141,12 +139,8 @@ export default function SelfIntroPage() {
           ) : (
             questionsToShow.map((question) => (
               <div key={question.id} className="space-y-2">
-                <label className="text-gray-700 font-medium">
-                  {question.title}
-                </label>
-                {question.subtitle && (
-                  <p className="text-xs text-gray-500">{question.subtitle}</p>
-                )}
+                <label className="text-gray-700 font-medium">{question.title}</label>
+                {question.subtitle && <p className="text-xs text-gray-500">{question.subtitle}</p>}
                 <input
                   type="text"
                   name={question.id}
@@ -173,7 +167,13 @@ export default function SelfIntroPage() {
             >
               {isPublic && (
                 <svg className="w-3 h-3" viewBox="0 0 12 12" fill="none">
-                  <path d="M2 6L5 9L10 3" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                  <path
+                    d="M2 6L5 9L10 3"
+                    stroke="currentColor"
+                    strokeWidth="2"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  />
                 </svg>
               )}
             </button>

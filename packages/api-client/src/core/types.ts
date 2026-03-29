@@ -14,7 +14,12 @@ export interface TokenStorage {
   getRefreshToken(): string | undefined
   setRefreshToken(token: string, days?: number): void
   removeTokens(): void
-  setTokens(accessToken: string, refreshToken: string, accessDays?: number, refreshDays?: number): void
+  setTokens(
+    accessToken: string,
+    refreshToken: string,
+    accessDays?: number,
+    refreshDays?: number
+  ): void
 }
 
 /**

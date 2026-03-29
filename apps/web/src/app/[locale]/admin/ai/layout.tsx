@@ -1,7 +1,7 @@
 'use client'
 
-import { Link } from '@/i18n/navigation'
 import { usePathname } from 'next/navigation'
+import { Link } from '@/i18n/navigation'
 
 const tabs = [
   { href: '/admin/ai', label: '儀表板', exact: true },

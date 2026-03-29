@@ -4,38 +4,31 @@
  * 彈出提示框組件，在 React Native 中使用 Modal 實現
  * 與 Web 版本 API 保持一致
  */
-import React, {
-  createContext,
-  useContext,
-  useState,
-  useRef,
-  useCallback,
-  useEffect,
-} from 'react'
+
 import {
-  View,
+  BORDER_RADIUS,
+  DURATION,
+  SEMANTIC_COLORS,
+  SHADOWS,
+  SPACING,
+  WB_COLORS,
+} from '@nobodyclimb/constants'
+import React, { createContext, useCallback, useContext, useEffect, useRef, useState } from 'react'
+import {
+  Dimensions,
+  type LayoutRectangle,
   Modal,
   Pressable,
   StyleSheet,
-  Dimensions,
+  View,
   type ViewStyle,
-  type LayoutRectangle,
 } from 'react-native'
 import Animated, {
-  useSharedValue,
   useAnimatedStyle,
-  withTiming,
+  useSharedValue,
   withSpring,
-  runOnJS,
+  withTiming,
 } from 'react-native-reanimated'
-import {
-  SEMANTIC_COLORS,
-  BORDER_RADIUS,
-  SPACING,
-  SHADOWS,
-  WB_COLORS,
-  DURATION,
-} from '@nobodyclimb/constants'
 import { EASING, springConfigStandard } from '@/theme/animations'
 
 const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get('window')
@@ -315,12 +308,7 @@ export function PopoverContent({
   if (!open) return null
 
   return (
-    <Modal
-      visible={open}
-      transparent
-      animationType="none"
-      onRequestClose={handleBackdropPress}
-    >
+    <Modal visible={open} transparent animationType="none" onRequestClose={handleBackdropPress}>
       {/* 背景遮罩 */}
       <Pressable style={styles.backdrop} onPress={handleBackdropPress} />
 
@@ -376,8 +364,8 @@ export function PopoverItem({
   const textColor = destructive
     ? SEMANTIC_COLORS.error
     : disabled
-    ? SEMANTIC_COLORS.textDisabled
-    : SEMANTIC_COLORS.textMain
+      ? SEMANTIC_COLORS.textDisabled
+      : SEMANTIC_COLORS.textMain
 
   return (
     <Pressable
@@ -391,9 +379,7 @@ export function PopoverItem({
       disabled={disabled}
     >
       {typeof children === 'string' ? (
-        <Animated.Text style={[styles.itemText, { color: textColor }]}>
-          {children}
-        </Animated.Text>
+        <Animated.Text style={[styles.itemText, { color: textColor }]}>{children}</Animated.Text>
       ) : (
         children
       )}

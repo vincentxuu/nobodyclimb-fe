@@ -1,7 +1,7 @@
 import type { Metadata } from 'next'
-import StoryDetailClient from './StoryDetailClient'
-import { SITE_URL, SITE_NAME } from '@/lib/constants'
 import { getTranslations } from 'next-intl/server'
+import { SITE_NAME, SITE_URL } from '@/lib/constants'
+import StoryDetailClient from './StoryDetailClient'
 
 // 強制動態渲染
 export const dynamic = 'force-dynamic'
@@ -19,7 +19,7 @@ export async function generateMetadata({
   const typeLabels: Record<string, string> = {
     'core-stories': t('typeLabels.coreStories'),
     'one-liners': t('typeLabels.oneLiners'),
-    'stories': t('typeLabels.stories'),
+    stories: t('typeLabels.stories'),
   }
 
   const typeLabel = typeLabels[type] || t('typeLabels.default')

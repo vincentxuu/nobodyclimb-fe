@@ -433,9 +433,7 @@ export async function fetchCragRoutes(cragId: string): Promise<RouteSidebarItem[
 /**
  * 從 API 獲取岩場區域列表
  */
-export async function fetchCragAreas(
-  cragId: string
-): Promise<Array<{ id: string; name: string }>> {
+export async function fetchCragAreas(cragId: string): Promise<Array<{ id: string; name: string }>> {
   try {
     const response = await apiClient.get(`/crags/${cragId}/areas`)
     return response.data

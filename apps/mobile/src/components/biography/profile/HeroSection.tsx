@@ -3,18 +3,18 @@
  *
  * 傳記頁面 Hero 區，對應 apps/web/src/components/biography/profile/HeroSection.tsx
  */
-import React, { useState, useMemo } from 'react'
-import { StyleSheet, View, Pressable, Image, useWindowDimensions } from 'react-native'
-import { Eye, Users, MessageCircle } from 'lucide-react-native'
-import Animated, { FadeIn, FadeInDown } from 'react-native-reanimated'
 
-import { Text } from '@/components/ui'
-import { ProfileAvatar } from '../shared/ProfileAvatar'
-import { FollowButton } from '../follow-button'
-import { BiographyLikeButton } from '../biography-like-button'
-import { CompactSocialLinks } from '../social-links'
-import { ShareButton } from '@/components/shared/ShareButton'
 import { RADIUS, SEMANTIC_COLORS, SPACING, WB_COLORS } from '@nobodyclimb/constants'
+import { Eye, MessageCircle, Users } from 'lucide-react-native'
+import { useMemo, useState } from 'react'
+import { Image, Pressable, StyleSheet, useWindowDimensions, View } from 'react-native'
+import Animated, { FadeIn } from 'react-native-reanimated'
+import { ShareButton } from '@/components/shared/ShareButton'
+import { Text } from '@/components/ui'
+import { BiographyLikeButton } from '../biography-like-button'
+import { FollowButton } from '../follow-button'
+import { ProfileAvatar } from '../shared/ProfileAvatar'
+import { CompactSocialLinks } from '../social-links'
 
 // 類型定義
 interface Biography {
@@ -40,18 +40,13 @@ interface HeroSectionProps {
  * Hero Section - 標題區
  * 封面圖橫幅 + 頭像疊在左下角
  */
-export function HeroSection({
-  person,
-  followerCount,
-  isOwner,
-  onFollowChange,
-}: HeroSectionProps) {
+export function HeroSection({ person, followerCount, isOwner, onFollowChange }: HeroSectionProps) {
   const { width: screenWidth } = useWindowDimensions()
   const coverHeight = screenWidth / 3 // 3:1 比例
 
   const [likesCount, setLikesCount] = useState(person.total_likes || 0)
   const [showComments, setShowComments] = useState(false)
-  const [commentsCount, setCommentsCount] = useState(person.comment_count || 0)
+  const [commentsCount, _setCommentsCount] = useState(person.comment_count || 0)
 
   // 解析社群連結
   const socialLinks = useMemo(() => {
@@ -70,29 +65,18 @@ export function HeroSection({
     <View style={styles.container}>
       {/* 封面圖片區域 */}
       <View style={[styles.coverContainer, { height: coverHeight }]}>
-        <Image
-          source={{ uri: coverImage }}
-          style={styles.coverImage}
-          resizeMode="cover"
-        />
+        <Image source={{ uri: coverImage }} style={styles.coverImage} resizeMode="cover" />
       </View>
 
       {/* 內容區域 */}
       <View style={styles.contentContainer}>
         {/* 頭像 - 疊在封面底部 */}
         <View style={styles.avatarContainer}>
-          <ProfileAvatar
-            src={person.avatar_url}
-            name={person.name || 'anonymous'}
-            size={100}
-          />
+          <ProfileAvatar src={person.avatar_url} name={person.name || 'anonymous'} size={100} />
         </View>
 
         {/* 資訊區域 */}
-        <Animated.View
-          entering={FadeIn.duration(300)}
-          style={styles.infoContainer}
-        >
+        <Animated.View entering={FadeIn.duration(300)} style={styles.infoContainer}>
           {/* 名字與描述 */}
           <View style={styles.nameContainer}>
             <Text variant="h2" fontWeight="700">
@@ -112,10 +96,7 @@ export function HeroSection({
           {/* 操作按鈕與統計 */}
           <View style={styles.actionsContainer}>
             {!isOwner && person.id && (
-              <FollowButton
-                biographyId={person.id}
-                onFollowChange={onFollowChange}
-              />
+              <FollowButton biographyId={person.id} onFollowChange={onFollowChange} />
             )}
 
             {/* 社群統計 */}
@@ -141,10 +122,7 @@ export function HeroSection({
                 </Text>
               </View>
 
-              <Pressable
-                style={styles.statItem}
-                onPress={() => setShowComments(!showComments)}
-              >
+              <Pressable style={styles.statItem} onPress={() => setShowComments(!showComments)}>
                 <MessageCircle size={16} color={SEMANTIC_COLORS.textMuted} />
                 <Text variant="small" color="textMuted">
                   {commentsCount}

@@ -1,36 +1,36 @@
-import React, { useState, useEffect, useRef, useCallback } from 'react'
-import {
-  View,
-  Pressable,
-  Modal,
-  Animated,
-  Dimensions,
-  ScrollView,
-  PanResponder,
-} from 'react-native'
-import { YStack, XStack, Text } from 'tamagui'
-import { useSafeAreaInsets } from 'react-native-safe-area-context'
+import { COLORS, SEMANTIC_COLORS } from '@nobodyclimb/constants'
+import type { TagDimension, TagOption } from '@nobodyclimb/types'
+import type { LucideIcon } from 'lucide-react-native'
 import {
   Check,
-  Tag,
   ChevronDown,
+  Clock,
+  Dumbbell,
+  Footprints,
+  Hand,
+  HeartPulse,
+  MapPin,
+  Music,
   Plus,
   Sparkles,
-  HeartPulse,
-  Footprints,
-  Clock,
-  Tent,
-  Music,
+  Tag,
   Target,
+  Tent,
   Users,
-  Hand,
-  Dumbbell,
-  MapPin,
   X,
 } from 'lucide-react-native'
-import type { LucideIcon } from 'lucide-react-native'
-import { SEMANTIC_COLORS, COLORS } from '@nobodyclimb/constants'
-import type { TagDimension, TagOption } from '@nobodyclimb/types'
+import { useCallback, useEffect, useRef, useState } from 'react'
+import {
+  Animated,
+  Dimensions,
+  Modal,
+  PanResponder,
+  Pressable,
+  ScrollView,
+  View,
+} from 'react-native'
+import { useSafeAreaInsets } from 'react-native-safe-area-context'
+import { Text, XStack, YStack } from 'tamagui'
 
 const { height: SCREEN_HEIGHT } = Dimensions.get('window')
 const SHEET_HEIGHT = SCREEN_HEIGHT * 0.85
@@ -244,7 +244,13 @@ export function TagsBottomSheet({
   if (!isOpen) return null
 
   return (
-    <Modal visible={isOpen} animationType="none" transparent statusBarTranslucent onRequestClose={onClose}>
+    <Modal
+      visible={isOpen}
+      animationType="none"
+      transparent
+      statusBarTranslucent
+      onRequestClose={onClose}
+    >
       {/* Backdrop */}
       <Animated.View
         style={{
@@ -275,7 +281,10 @@ export function TagsBottomSheet({
         }}
       >
         {/* Drag Handle */}
-        <View {...panResponder.panHandlers} style={{ paddingTop: 12, paddingBottom: 8, alignItems: 'center' }}>
+        <View
+          {...panResponder.panHandlers}
+          style={{ paddingTop: 12, paddingBottom: 8, alignItems: 'center' }}
+        >
           <View
             style={{
               width: 40,

@@ -3,22 +3,15 @@
  *
  * 最新文章區塊，對應 apps/web/src/components/home/latest-content-section.tsx
  */
-import React, { useState, useEffect, useCallback } from 'react'
-import {
-  StyleSheet,
-  View,
-  Pressable,
-  FlatList,
-  Dimensions,
-  Image,
-} from 'react-native'
-import { YStack, XStack } from 'tamagui'
-import { useRouter } from 'expo-router'
-import Animated, { FadeInUp } from 'react-native-reanimated'
 
-import { Text, Button, Skeleton, Spinner } from '@/components/ui'
-import { FadeIn } from '@/components/animation'
 import { BORDER_RADIUS, SEMANTIC_COLORS, SPACING, WB_COLORS } from '@nobodyclimb/constants'
+import { useRouter } from 'expo-router'
+import { useCallback, useEffect, useState } from 'react'
+import { Dimensions, Image, Pressable, StyleSheet, View } from 'react-native'
+import Animated, { FadeInUp } from 'react-native-reanimated'
+import { XStack } from 'tamagui'
+import { FadeIn } from '@/components/animation'
+import { Button, Skeleton, Spinner, Text } from '@/components/ui'
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window')
 const CARD_WIDTH = (SCREEN_WIDTH - SPACING[4] * 2 - SPACING[4]) / 2
@@ -86,10 +79,7 @@ function ArticleCard({ article, index }: { article: Article; index: number }) {
     >
       <Pressable
         onPress={handlePress}
-        style={({ pressed }) => [
-          styles.card,
-          pressed && styles.cardPressed,
-        ]}
+        style={({ pressed }) => [styles.card, pressed && styles.cardPressed]}
       >
         {/* 縮圖 */}
         <View style={styles.thumbnailContainer}>
@@ -101,9 +91,7 @@ function ArticleCard({ article, index }: { article: Article; index: number }) {
             />
           ) : (
             <View style={[styles.thumbnail, styles.thumbnailPlaceholder]}>
-              <Text style={styles.placeholderText}>
-                {article.title.charAt(0)}
-              </Text>
+              <Text style={styles.placeholderText}>{article.title.charAt(0)}</Text>
             </View>
           )}
 
@@ -123,11 +111,7 @@ function ArticleCard({ article, index }: { article: Article; index: number }) {
           <Text style={styles.excerptText} numberOfLines={2}>
             {article.excerpt}
           </Text>
-          <XStack
-            alignItems="center"
-            justifyContent="space-between"
-            marginTop={SPACING[2]}
-          >
+          <XStack alignItems="center" justifyContent="space-between" marginTop={SPACING[2]}>
             <Text style={styles.dateText}>{article.date}</Text>
             {article.author && (
               <Text style={styles.authorText} numberOfLines={1}>
@@ -141,7 +125,7 @@ function ArticleCard({ article, index }: { article: Article; index: number }) {
   )
 }
 
-function ArticleSkeleton() {
+function _ArticleSkeleton() {
   return (
     <View style={styles.cardContainer}>
       <View style={styles.card}>
@@ -163,9 +147,7 @@ export function LatestContentSection() {
 
   const fetchArticles = useCallback(async () => {
     try {
-      const response = await fetch(
-        'https://api.nobodyclimb.cc/api/v1/posts?page=1&limit=4'
-      )
+      const response = await fetch('https://api.nobodyclimb.cc/api/v1/posts?page=1&limit=4')
       const result = await response.json()
 
       if (result.success && result.data) {

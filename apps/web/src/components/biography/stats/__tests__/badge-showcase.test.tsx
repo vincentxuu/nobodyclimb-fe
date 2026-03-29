@@ -1,6 +1,6 @@
-import { render, screen, fireEvent } from '@testing-library/react'
-import { BadgeShowcase, CompactBadgeDisplay } from '../badge-showcase'
+import { fireEvent, render, screen } from '@testing-library/react'
 import type { BadgeProgress } from '@/lib/types'
+import { BadgeShowcase, CompactBadgeDisplay } from '../badge-showcase'
 
 const mockBadgeProgress: BadgeProgress[] = [
   {

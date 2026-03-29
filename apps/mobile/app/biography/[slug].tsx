@@ -3,29 +3,25 @@
  *
  * 對應 apps/web/src/app/biography/profile/[slug]/page.tsx
  */
+
+import { SEMANTIC_COLORS, SPACING } from '@nobodyclimb/constants'
+import { useQuery, useQueryClient } from '@tanstack/react-query'
+import { useLocalSearchParams, useRouter } from 'expo-router'
+import { ChevronLeft, Share2 } from 'lucide-react-native'
 import React, { useCallback } from 'react'
 import {
+  ActivityIndicator,
+  RefreshControl,
+  ScrollView,
+  Share,
   StyleSheet,
   View,
-  ScrollView,
-  RefreshControl,
-  ActivityIndicator,
-  Share,
 } from 'react-native'
-import { useLocalSearchParams, useRouter } from 'expo-router'
 import { SafeAreaView } from 'react-native-safe-area-context'
-import { ChevronLeft, Share2 } from 'lucide-react-native'
-import { useQuery, useQueryClient } from '@tanstack/react-query'
-
-import { Text, IconButton } from '@/components/ui'
-import {
-  BiographyHero,
-  EmptyState,
-  StoryCard,
-} from '@/components/biography/display'
-import { useAuthStore } from '@/store/authStore'
+import { BiographyHero, EmptyState, StoryCard } from '@/components/biography/display'
+import { IconButton, Text } from '@/components/ui'
 import { apiClient } from '@/lib/api'
-import { SEMANTIC_COLORS, SPACING } from '@nobodyclimb/constants'
+import { useAuthStore } from '@/store/authStore'
 
 // 類型定義
 interface Biography {
@@ -93,9 +89,7 @@ export default function BiographyDetailScreen() {
   const { data: oneLiners = [] } = useQuery<OneLiner[]>({
     queryKey: ['one-liners', biographyId],
     queryFn: async () => {
-      const response = await apiClient.get(
-        `/content/biographies/${biographyId}/one-liners`
-      )
+      const response = await apiClient.get(`/content/biographies/${biographyId}/one-liners`)
       return response.data?.data ?? response.data ?? []
     },
     enabled: !!biographyId,
@@ -105,9 +99,7 @@ export default function BiographyDetailScreen() {
   const { data: stories = [] } = useQuery<Story[]>({
     queryKey: ['stories', biographyId],
     queryFn: async () => {
-      const response = await apiClient.get(
-        `/content/biographies/${biographyId}/stories`
-      )
+      const response = await apiClient.get(`/content/biographies/${biographyId}/stories`)
       return response.data?.data ?? response.data ?? []
     },
     enabled: !!biographyId,
@@ -192,9 +184,7 @@ export default function BiographyDetailScreen() {
           <EmptyState
             title="找不到此人物誌"
             description={
-              bioError instanceof Error
-                ? bioError.message
-                : '該人物誌可能不存在或已被刪除'
+              bioError instanceof Error ? bioError.message : '該人物誌可能不存在或已被刪除'
             }
           />
         </View>
@@ -221,9 +211,7 @@ export default function BiographyDetailScreen() {
       {/* 內容 */}
       <ScrollView
         style={styles.scrollView}
-        refreshControl={
-          <RefreshControl refreshing={refreshing} onRefresh={handleRefresh} />
-        }
+        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={handleRefresh} />}
       >
         {/* Hero 區塊 */}
         <BiographyHero

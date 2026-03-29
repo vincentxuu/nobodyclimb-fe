@@ -1,5 +1,5 @@
-import React, { useMemo } from 'react'
-import { View, StyleSheet } from 'react-native'
+import { useMemo } from 'react'
+import { StyleSheet, View } from 'react-native'
 import { Input } from '../ui/Input'
 import { Select } from '../ui/Select'
 import ProfileFormField from './ProfileFormField'
@@ -57,10 +57,7 @@ export default function ClimbingInfoSection({
             placeholder="例如：小岩攀岩館, 紅石攀岩館"
           />
         ) : (
-          <ProfileTextDisplay
-            text={frequentGyms || '未設定'}
-            asTags={Boolean(frequentGyms)}
-          />
+          <ProfileTextDisplay text={frequentGyms || '未設定'} asTags={Boolean(frequentGyms)} />
         )}
       </ProfileFormField>
       <ProfileFormField label="喜歡的路線型態">

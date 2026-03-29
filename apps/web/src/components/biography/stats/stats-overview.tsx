@@ -1,10 +1,10 @@
 'use client'
 
+import { BookOpen, Eye, MapPin, Mountain, Target, Users } from 'lucide-react'
 import { useTranslations } from 'next-intl'
+import { type BiographyStats, STORY_FIELD_COUNTS } from '@/lib/types'
 import { cn } from '@/lib/utils'
 import { CircularProgress, ProgressBar, StatCard } from './progress-chart'
-import { STORY_FIELD_COUNTS, type BiographyStats } from '@/lib/types'
-import { Eye, Mountain, Users, Target, BookOpen, MapPin } from 'lucide-react'
 
 interface StatsOverviewProps {
   stats: BiographyStats
@@ -20,9 +20,7 @@ export function StatsOverview({ stats, className }: StatsOverviewProps) {
 
   // 計算目標完成率
   const goalCompletionRate =
-    stats.bucket_list.total > 0
-      ? (stats.bucket_list.completed / stats.bucket_list.total) * 100
-      : 0
+    stats.bucket_list.total > 0 ? (stats.bucket_list.completed / stats.bucket_list.total) * 100 : 0
 
   return (
     <div className={cn('space-y-6', className)}>
@@ -72,11 +70,7 @@ export function StatsOverview({ stats, className }: StatsOverviewProps) {
         <div className="p-6 bg-white rounded-lg border border-subtle/50 shadow-sm">
           <h3 className="text-lg font-semibold text-text-main mb-4">{t('storyCompletion')}</h3>
           <div className="flex items-center gap-8">
-            <CircularProgress
-              value={storyCompletionRate}
-              size="lg"
-              color="stroke-brand-accent"
-            />
+            <CircularProgress value={storyCompletionRate} size="lg" color="stroke-brand-accent" />
             <div className="flex-1 space-y-3">
               <ProgressBar
                 value={stats.stories.core_completed}
@@ -100,11 +94,7 @@ export function StatsOverview({ stats, className }: StatsOverviewProps) {
         <div className="p-6 bg-white rounded-lg border border-subtle/50 shadow-sm">
           <h3 className="text-lg font-semibold text-text-main mb-4">{t('goalAchievementRate')}</h3>
           <div className="flex items-center gap-8">
-            <CircularProgress
-              value={goalCompletionRate}
-              size="lg"
-              color="stroke-brand-dark"
-            />
+            <CircularProgress value={goalCompletionRate} size="lg" color="stroke-brand-dark" />
             <div className="flex-1 space-y-3">
               <div className="flex justify-between items-center p-3 bg-brand-accent/20 rounded-lg">
                 <span className="text-sm text-strong">{t('completed')}</span>

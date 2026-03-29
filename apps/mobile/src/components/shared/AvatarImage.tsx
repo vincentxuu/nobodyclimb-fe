@@ -3,11 +3,10 @@
  *
  * 頭像圖片顯示，對應 apps/web/src/components/shared/avatar-image.tsx
  */
-import React from 'react'
-import { StyleSheet, View, Image, Pressable } from 'react-native'
-import { User } from 'lucide-react-native'
 
-import { RADIUS, SEMANTIC_COLORS, WB_COLORS } from '@nobodyclimb/constants'
+import { SEMANTIC_COLORS, WB_COLORS } from '@nobodyclimb/constants'
+import { User } from 'lucide-react-native'
+import { Image, Pressable, StyleSheet, View } from 'react-native'
 
 type AvatarSize = 'xs' | 'sm' | 'md' | 'lg' | 'xl' | '2xl'
 
@@ -79,10 +78,7 @@ export function AvatarImage({
     return (
       <Pressable
         onPress={onPress}
-        style={({ pressed }) => [
-          containerStyle,
-          pressed && styles.pressed,
-        ]}
+        style={({ pressed }) => [containerStyle, pressed && styles.pressed]}
       >
         {content}
       </Pressable>

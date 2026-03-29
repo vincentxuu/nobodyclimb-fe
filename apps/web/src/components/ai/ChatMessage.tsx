@@ -1,12 +1,21 @@
 'use client'
 
-import { useState } from 'react'
+import {
+  Check,
+  Copy,
+  ExternalLink,
+  MountainSnow,
+  RefreshCw,
+  ThumbsDown,
+  ThumbsUp,
+  Youtube,
+} from 'lucide-react'
 import Link from 'next/link'
-import { ThumbsUp, ThumbsDown, Youtube, MountainSnow, ExternalLink, Copy, Check, RefreshCw } from 'lucide-react'
+import { useState } from 'react'
+import type { AISource } from '@/lib/api/ai'
+import { useSubmitFeedback } from '@/lib/api/ai'
 import { cn } from '@/lib/utils'
 import { SourceCard } from './SourceCard'
-import { useSubmitFeedback } from '@/lib/api/ai'
-import type { AISource } from '@/lib/api/ai'
 
 // =============================================
 // Markdown 渲染（手寫 parser）
@@ -44,7 +53,10 @@ export function MarkdownContent({ text }: { text: string }) {
           <thead>
             <tr>
               {(headerRow ?? []).map((cell, i) => (
-                <th key={i} className="border border-border px-2 py-1 bg-muted text-left font-semibold">
+                <th
+                  key={i}
+                  className="border border-border px-2 py-1 bg-muted text-left font-semibold"
+                >
                   {renderInline(cell.trim())}
                 </th>
               ))}
@@ -70,7 +82,9 @@ export function MarkdownContent({ text }: { text: string }) {
 
   const renderInline = (line: string): React.ReactNode => {
     // 優先順序：markdown 連結 > 行內程式碼 > **bold** > *italic* > 裸 URL
-    const parts = line.split(/(`[^`]+`|\[[^\]]+\]\([^)]+\)|\*\*[^*\n]+\*\*|\*[^*\n]+\*|https?:\/\/[^\s]+)/g)
+    const parts = line.split(
+      /(`[^`]+`|\[[^\]]+\]\([^)]+\)|\*\*[^*\n]+\*\*|\*[^*\n]+\*|https?:\/\/[^\s]+)/g
+    )
     return parts.map((part, i) => {
       // 行內程式碼 `code`
       if (part.startsWith('`') && part.endsWith('`') && part.length > 2) {
@@ -113,9 +127,11 @@ export function MarkdownContent({ text }: { text: string }) {
               rel="noopener noreferrer"
               className="inline-flex items-center gap-0.5 text-primary underline underline-offset-2 hover:opacity-80"
             >
-              {isYoutube
-                ? <Youtube className="h-3.5 w-3.5 shrink-0 text-red-500" />
-                : <ExternalLink className="h-3 w-3 shrink-0" />}
+              {isYoutube ? (
+                <Youtube className="h-3.5 w-3.5 shrink-0 text-red-500" />
+              ) : (
+                <ExternalLink className="h-3 w-3 shrink-0" />
+              )}
               {linkText}
             </a>
           )
@@ -203,12 +219,17 @@ export function MarkdownContent({ text }: { text: string }) {
       flushList(`list-${i}`)
       const level = headingMatch[1].length
       const content = headingMatch[2]
-      const className = level === 1
-        ? 'font-bold text-sm mt-2 mb-0.5'
-        : level === 2
-          ? 'font-semibold text-sm mt-1.5 mb-0.5'
-          : 'font-semibold text-xs mt-1 mb-0.5 text-muted-foreground'
-      elements.push(<p key={i} className={className}>{renderInline(content)}</p>)
+      const className =
+        level === 1
+          ? 'font-bold text-sm mt-2 mb-0.5'
+          : level === 2
+            ? 'font-semibold text-sm mt-1.5 mb-0.5'
+            : 'font-semibold text-xs mt-1 mb-0.5 text-muted-foreground'
+      elements.push(
+        <p key={i} className={className}>
+          {renderInline(content)}
+        </p>
+      )
       return
     }
 
@@ -230,7 +251,10 @@ export function MarkdownContent({ text }: { text: string }) {
   if (inCode && codeLines.length > 0) {
     // 未閉合的程式碼塊，仍嘗試渲染
     elements.push(
-      <pre key="code-end" className="my-1.5 rounded-lg bg-muted/50 p-3 text-xs font-mono overflow-x-auto border border-border">
+      <pre
+        key="code-end"
+        className="my-1.5 rounded-lg bg-muted/50 p-3 text-xs font-mono overflow-x-auto border border-border"
+      >
         <code>{codeLines.join('\n')}</code>
       </pre>
     )
@@ -258,7 +282,12 @@ interface ChatMessageProps {
   isPending?: boolean
 }
 
-export function ChatMessage({ message, isLast = false, onRegenerate, isPending = false }: ChatMessageProps) {
+export function ChatMessage({
+  message,
+  isLast = false,
+  onRegenerate,
+  isPending = false,
+}: ChatMessageProps) {
   const [feedbackSubmitted, setFeedbackSubmitted] = useState(false)
   const [copied, setCopied] = useState(false)
   const { mutate: submitFeedback } = useSubmitFeedback()
@@ -317,7 +346,11 @@ export function ChatMessage({ message, isLast = false, onRegenerate, isPending =
               className="rounded p-1 text-muted-foreground hover:bg-muted hover:text-foreground transition-colors"
               aria-label="複製內容"
             >
-              {copied ? <Check className="h-3.5 w-3.5 text-green-600" /> : <Copy className="h-3.5 w-3.5" />}
+              {copied ? (
+                <Check className="h-3.5 w-3.5 text-green-600" />
+              ) : (
+                <Copy className="h-3.5 w-3.5" />
+              )}
             </button>
 
             {/* 重新生成按鈕（僅最後一則 AI 訊息） */}
@@ -333,8 +366,8 @@ export function ChatMessage({ message, isLast = false, onRegenerate, isPending =
             )}
 
             {/* 回饋按鈕（需有 queryId） */}
-            {message.queryId && (
-              feedbackSubmitted ? (
+            {message.queryId &&
+              (feedbackSubmitted ? (
                 <span className="text-xs text-muted-foreground">感謝您的回饋！</span>
               ) : (
                 <>
@@ -353,8 +386,7 @@ export function ChatMessage({ message, isLast = false, onRegenerate, isPending =
                     <ThumbsDown className="h-3.5 w-3.5" />
                   </button>
                 </>
-              )
-            )}
+              ))}
           </div>
         )}
       </div>

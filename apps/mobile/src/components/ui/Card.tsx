@@ -3,30 +3,22 @@
  *
  * 卡片容器組件
  */
+
+import { BORDER_RADIUS, SEMANTIC_COLORS, SHADOWS, SPACING } from '@nobodyclimb/constants'
 import React from 'react'
 import {
-  View,
-  Pressable,
   Image,
-  StyleSheet,
-  type ViewStyle,
-  type ImageStyle,
   type ImageProps,
+  type ImageStyle,
+  Pressable,
   type PressableProps,
+  StyleSheet,
+  View,
+  type ViewStyle,
 } from 'react-native'
-import Animated, {
-  useSharedValue,
-  useAnimatedStyle,
-  withSpring,
-} from 'react-native-reanimated'
-import {
-  SEMANTIC_COLORS,
-  BORDER_RADIUS,
-  SPACING,
-  SHADOWS,
-} from '@nobodyclimb/constants'
-import { Text, type TextProps } from './Text'
+import Animated, { useAnimatedStyle, useSharedValue, withSpring } from 'react-native-reanimated'
 import { springConfigLight } from '@/theme/animations'
+import { Text, type TextProps } from './Text'
 
 const AnimatedPressable = Animated.createAnimatedComponent(Pressable)
 
@@ -91,11 +83,7 @@ export function Card({
     onPressOut?.(e)
   }
 
-  const shadowStyle = shadow
-    ? typeof shadow === 'boolean'
-      ? SHADOWS.sm
-      : SHADOWS[shadow]
-    : {}
+  const shadowStyle = shadow ? (typeof shadow === 'boolean' ? SHADOWS.sm : SHADOWS[shadow]) : {}
 
   if (pressable) {
     return (
@@ -132,13 +120,7 @@ export interface CardMediaProps extends Omit<ImageProps, 'style'> {
  * 卡片媒體區域（圖片）
  */
 export function CardMedia({ height = 160, style, ...props }: CardMediaProps) {
-  return (
-    <Image
-      style={[styles.media, { height }, style]}
-      resizeMode="cover"
-      {...props}
-    />
-  )
+  return <Image style={[styles.media, { height }, style]} resizeMode="cover" {...props} />
 }
 
 // ============================================

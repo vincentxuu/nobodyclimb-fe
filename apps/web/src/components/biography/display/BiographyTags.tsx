@@ -1,12 +1,12 @@
 'use client'
 
-import { useState, useMemo } from 'react'
-import { cn } from '@/lib/utils'
-import { Tag, ChevronDown, ChevronUp, Sparkles } from 'lucide-react'
-import type { BiographyV2, TagSelection, TagOption } from '@/lib/types/biography-v2'
-import { renderDynamicTag } from '@/lib/types/biography-v2'
-import { getTagOptionById } from '@/lib/constants/biography-tags'
+import { ChevronDown, ChevronUp, Sparkles, Tag } from 'lucide-react'
 import { useTranslations } from 'next-intl'
+import { useMemo, useState } from 'react'
+import { getTagOptionById } from '@/lib/constants/biography-tags'
+import type { BiographyV2, TagOption, TagSelection } from '@/lib/types/biography-v2'
+import { renderDynamicTag } from '@/lib/types/biography-v2'
+import { cn } from '@/lib/utils'
 
 interface BiographyTagsProps {
   /** 人物誌資料 */
@@ -22,11 +22,7 @@ interface BiographyTagsProps {
  *
  * 展示用戶選擇的所有標籤
  */
-export function BiographyTags({
-  biography,
-  mobileLimit = 8,
-  className,
-}: BiographyTagsProps) {
+export function BiographyTags({ biography, mobileLimit = 8, className }: BiographyTagsProps) {
   const t = useTranslations('BiographyPage')
   const [showAll, setShowAll] = useState(false)
 

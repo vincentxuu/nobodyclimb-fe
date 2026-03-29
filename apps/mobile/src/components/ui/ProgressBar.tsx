@@ -3,14 +3,11 @@
  *
  * 進度條
  */
-import React, { useEffect } from 'react'
+
+import { DURATION, SEMANTIC_COLORS, WB_COLORS } from '@nobodyclimb/constants'
+import { useEffect } from 'react'
 import { StyleSheet, View } from 'react-native'
-import Animated, {
-  useAnimatedStyle,
-  useSharedValue,
-  withTiming,
-} from 'react-native-reanimated'
-import { DURATION, RADIUS, SEMANTIC_COLORS, WB_COLORS } from '@nobodyclimb/constants'
+import Animated, { useAnimatedStyle, useSharedValue, withTiming } from 'react-native-reanimated'
 
 export interface ProgressBarProps {
   /** 進度值 (0-100) */

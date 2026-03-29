@@ -7,28 +7,28 @@
 
 // 從共用套件重新導出（重新命名以避免衝突）
 export {
-  // 站點配置
-  SITE_CONFIG,
-  DATE_FORMATS,
-  BLOG_TAGS,
-  // API 相關
-  PAGINATION,
-  AUTH_KEYS,
   API_TIMEOUT as SHARED_API_TIMEOUT,
-  RETRY_CONFIG,
   API_VERSION,
+  AUTH_KEYS,
+  BIOGRAPHY_INTERESTS,
+  BLOG_TAGS,
   // 攀岩相關
   CLIMBING_GRADES,
   CLIMBING_TYPES,
-  GRADE_TARGET_OPTIONS,
-  SEASONS,
   CRAG_AMENITIES,
+  DATE_FORMATS,
+  FOOTER_LINKS,
+  GRADE_TARGET_OPTIONS,
   GYM_FACILITIES as SHARED_GYM_FACILITIES,
-  BIOGRAPHY_INTERESTS,
+  NAV_LINKS as SHARED_NAV_LINKS,
+  // API 相關
+  PAGINATION,
+  RETRY_CONFIG,
   // 路由 - 使用新結構的重新命名版本
   ROUTES as SHARED_ROUTES,
-  NAV_LINKS as SHARED_NAV_LINKS,
-  FOOTER_LINKS,
+  SEASONS,
+  // 站點配置
+  SITE_CONFIG,
   // 社群連結 (與本地 SOCIAL_LINKS 格式不同，重新命名)
   SOCIAL_LINKS as SHARED_SOCIAL_LINKS,
 } from '@nobodyclimb/constants'
@@ -154,9 +154,7 @@ export const MAX_IMAGE_SIZE = 500 * 1024 // 500KB
 /**
  * 社交媒體連結 (陣列格式供 footer 使用)
  */
-export const SOCIAL_LINKS = [
-  { label: 'Mail', href: 'mailto:contact@nobodyclimb.cc', icon: 'mail' },
-]
+export const SOCIAL_LINKS = [{ label: 'Mail', href: 'mailto:contact@nobodyclimb.cc', icon: 'mail' }]
 
 /**
  * 搜尋選項
@@ -349,4 +347,3 @@ export const galleryPhotos = [
     uploadDate: '2023. 12. 27',
   },
 ]
-

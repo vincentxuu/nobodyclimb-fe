@@ -1,12 +1,12 @@
 'use client'
 
-import { useState, useEffect, useCallback } from 'react'
+import { Filter, ListTodo, Loader2 } from 'lucide-react'
 import { useTranslations } from 'next-intl'
-import { Loader2, ListTodo, Filter } from 'lucide-react'
+import { useCallback, useEffect, useState } from 'react'
 import { bucketListService } from '@/lib/api/services'
-import { BucketListCard } from './bucket-list-card'
 import { BucketListItem } from '@/lib/types'
 import { cn } from '@/lib/utils'
+import { BucketListCard } from './bucket-list-card'
 
 interface BucketListSectionProps {
   biographyId: string
@@ -102,9 +102,7 @@ export function BucketListSection({
       </div>
 
       {filteredItems.length === 0 && (
-        <div className="text-center py-6 text-gray-500">
-          {t('bucketListSectionEmpty')}
-        </div>
+        <div className="text-center py-6 text-gray-500">{t('bucketListSectionEmpty')}</div>
       )}
     </div>
   )

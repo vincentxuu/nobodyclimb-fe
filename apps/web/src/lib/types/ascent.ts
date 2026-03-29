@@ -9,7 +9,7 @@ export type AscentType =
   | 'toprope' // 上方確保
   | 'lead' // 先鋒
   | 'seconding' // 跟攀
-  | 'repeat'; // 重複完攀
+  | 'repeat' // 重複完攀
 
 /**
  * 攀爬類型顯示資訊
@@ -17,10 +17,10 @@ export type AscentType =
 export const ASCENT_TYPE_DISPLAY: Record<
   AscentType,
   {
-    label: string;
-    description: string;
-    icon: string;
-    color: string;
+    label: string
+    description: string
+    icon: string
+    color: string
   }
 > = {
   redpoint: {
@@ -71,87 +71,87 @@ export const ASCENT_TYPE_DISPLAY: Record<
     icon: 'Repeat',
     color: 'text-indigo-500',
   },
-};
+}
 
 /**
  * 使用者攀爬記錄
  */
 export interface UserRouteAscent {
-  id: string;
-  user_id: string;
-  route_id: string;
+  id: string
+  user_id: string
+  route_id: string
 
-  ascent_type: AscentType;
-  ascent_date: string;
-  attempts_count: number;
-  rating: number | null;
-  perceived_grade: string | null;
+  ascent_type: AscentType
+  ascent_date: string
+  attempts_count: number
+  rating: number | null
+  perceived_grade: string | null
 
-  notes: string | null;
-  is_public: boolean;
+  notes: string | null
+  is_public: boolean
 
   // 媒體連結
-  photos: string[];
-  youtube_url: string | null;
-  instagram_url: string | null;
+  photos: string[]
+  youtube_url: string | null
+  instagram_url: string | null
 
-  created_at: string;
-  updated_at: string;
+  created_at: string
+  updated_at: string
 
   // Joined fields
-  route_name?: string;
-  route_grade?: string;
-  crag_id?: string;
-  crag_name?: string;
-  username?: string;
-  display_name?: string | null;
-  avatar_url?: string | null;
+  route_name?: string
+  route_grade?: string
+  crag_id?: string
+  crag_name?: string
+  username?: string
+  display_name?: string | null
+  avatar_url?: string | null
 }
 
 /**
  * 新增/編輯攀爬記錄表單
  */
 export interface AscentFormData {
-  route_id: string;
-  ascent_type: AscentType;
-  ascent_date: string;
-  attempts_count?: number;
-  rating?: number | null;
-  perceived_grade?: string | null;
-  notes?: string | null;
-  photos?: string[];
-  youtube_url?: string | null;
-  instagram_url?: string | null;
-  is_public?: boolean;
+  route_id: string
+  ascent_type: AscentType
+  ascent_date: string
+  attempts_count?: number
+  rating?: number | null
+  perceived_grade?: string | null
+  notes?: string | null
+  photos?: string[]
+  youtube_url?: string | null
+  instagram_url?: string | null
+  is_public?: boolean
 }
 
 /**
  * 使用者攀爬統計
  */
 export interface UserClimbingStats {
-  total_ascents: number;
-  unique_routes: number;
-  unique_crags: number;
+  total_ascents: number
+  unique_routes: number
+  unique_crags: number
 
-  by_type: Record<AscentType, number>;
-  by_grade: Record<string, number>;
+  by_type: Record<AscentType, number>
+  by_grade: Record<string, number>
   by_month: Array<{
-    month: string;
-    count: number;
-  }>;
+    month: string
+    count: number
+  }>
 
-  highest_grades: Record<string, string>;
+  highest_grades: Record<string, string>
 
-  recent_ascents: UserRouteAscent[];
+  recent_ascents: UserRouteAscent[]
 }
 
 /**
  * 路線攀爬摘要
  */
 export interface RouteAscentSummary {
-  total_ascents: number;
-  unique_climbers: number;
-  avg_rating: number | null;
-  rating_count: number;
-  by_type: Record<AscentType, number>;
+  total_ascents: number
+  unique_climbers: number
+  avg_rating: number | null
+  rating_count: number
+  by_type: Record<AscentType, number>
 }

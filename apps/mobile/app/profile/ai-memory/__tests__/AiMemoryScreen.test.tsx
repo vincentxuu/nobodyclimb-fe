@@ -1,5 +1,4 @@
-import React from 'react'
-import { render, fireEvent, waitFor } from '@testing-library/react-native'
+import { fireEvent, render, waitFor } from '@testing-library/react-native'
 import AiMemoryScreen from '../index'
 
 jest.mock('@/lib/hooks/useAiMemory', () => ({
@@ -18,8 +17,20 @@ const mockToastShow = jest.fn()
 import { useAiMemory, useDeleteAiMemory } from '@/lib/hooks/useAiMemory'
 
 const MOCK_MEMORIES = [
-  { id: '1', memory_key: 'climbing_level', memory_type: 'fact', content: '5.10a', updated_at: new Date().toISOString() },
-  { id: '2', memory_key: 'preferred_region', memory_type: 'preference', content: '龍洞', updated_at: new Date().toISOString() },
+  {
+    id: '1',
+    memory_key: 'climbing_level',
+    memory_type: 'fact',
+    content: '5.10a',
+    updated_at: new Date().toISOString(),
+  },
+  {
+    id: '2',
+    memory_key: 'preferred_region',
+    memory_type: 'preference',
+    content: '龍洞',
+    updated_at: new Date().toISOString(),
+  },
 ]
 
 describe('AiMemoryScreen', () => {
@@ -34,13 +45,21 @@ describe('AiMemoryScreen', () => {
   })
 
   it('renders loading state', () => {
-    ;(useAiMemory as jest.Mock).mockReturnValue({ data: undefined, isLoading: true, isError: false })
+    ;(useAiMemory as jest.Mock).mockReturnValue({
+      data: undefined,
+      isLoading: true,
+      isError: false,
+    })
     const { getByTestId } = render(<AiMemoryScreen />)
     expect(getByTestId('loading-spinner')).toBeTruthy()
   })
 
   it('renders memories list', () => {
-    ;(useAiMemory as jest.Mock).mockReturnValue({ data: MOCK_MEMORIES, isLoading: false, isError: false })
+    ;(useAiMemory as jest.Mock).mockReturnValue({
+      data: MOCK_MEMORIES,
+      isLoading: false,
+      isError: false,
+    })
     const { getByText } = render(<AiMemoryScreen />)
     expect(getByText('攀岩程度')).toBeTruthy()
     expect(getByText('5.10a')).toBeTruthy()
@@ -55,33 +74,56 @@ describe('AiMemoryScreen', () => {
   })
 
   it('renders error state when query fails', () => {
-    ;(useAiMemory as jest.Mock).mockReturnValue({ data: undefined, isLoading: false, isError: true })
+    ;(useAiMemory as jest.Mock).mockReturnValue({
+      data: undefined,
+      isLoading: false,
+      isError: true,
+    })
     const { getByText } = render(<AiMemoryScreen />)
     expect(getByText('載入失敗，請稍後再試')).toBeTruthy()
   })
 
   it('shows confirm dialog when delete button pressed', () => {
-    ;(useAiMemory as jest.Mock).mockReturnValue({ data: MOCK_MEMORIES, isLoading: false, isError: false })
+    ;(useAiMemory as jest.Mock).mockReturnValue({
+      data: MOCK_MEMORIES,
+      isLoading: false,
+      isError: false,
+    })
     const { getAllByTestId, getByText } = render(<AiMemoryScreen />)
     fireEvent.press(getAllByTestId('delete-btn')[0])
     expect(getByText('確定刪除此記憶？')).toBeTruthy()
   })
 
   it('calls deleteMemory on confirm and shows success toast', async () => {
-    ;(useAiMemory as jest.Mock).mockReturnValue({ data: MOCK_MEMORIES, isLoading: false, isError: false })
+    ;(useAiMemory as jest.Mock).mockReturnValue({
+      data: MOCK_MEMORIES,
+      isLoading: false,
+      isError: false,
+    })
     const { getAllByTestId, getByText } = render(<AiMemoryScreen />)
     fireEvent.press(getAllByTestId('delete-btn')[0])
     fireEvent.press(getByText('刪除'))
     await waitFor(() => expect(mockMutateAsync).toHaveBeenCalledWith('1'))
-    await waitFor(() => expect(mockToastShow).toHaveBeenCalledWith({ message: '記憶已刪除', variant: 'success' }))
+    await waitFor(() =>
+      expect(mockToastShow).toHaveBeenCalledWith({ message: '記憶已刪除', variant: 'success' })
+    )
   })
 
   it('shows error toast when delete fails', async () => {
     mockMutateAsync.mockRejectedValueOnce(new Error('Network error'))
-    ;(useAiMemory as jest.Mock).mockReturnValue({ data: MOCK_MEMORIES, isLoading: false, isError: false })
+    ;(useAiMemory as jest.Mock).mockReturnValue({
+      data: MOCK_MEMORIES,
+      isLoading: false,
+      isError: false,
+    })
     const { getAllByTestId, getByText } = render(<AiMemoryScreen />)
     fireEvent.press(getAllByTestId('delete-btn')[0])
     fireEvent.press(getByText('刪除'))
-    await waitFor(() => expect(mockToastShow).toHaveBeenCalledWith({ message: '刪除失敗，請稍後再試', variant: 'error' }))
+    await waitFor(() =>
+      expect(mockToastShow).toHaveBeenCalledWith({
+        message: '刪除失敗，請稍後再試',
+        variant: 'error',
+      })
+    )
   })
 })

@@ -3,8 +3,9 @@
  *
  * 對應 apps/web/src/store/guestSessionStore.ts
  */
-import { create } from 'zustand'
+
 import AsyncStorage from '@react-native-async-storage/async-storage'
+import { create } from 'zustand'
 import { apiClient } from '@/lib/api'
 
 const GUEST_SESSION_KEY = 'guest_session'
@@ -386,4 +387,4 @@ export const useGuestSessionStore = create<GuestSessionStore>((set, get) => ({
 }))
 
 // 導出常數供外部使用
-export { SYNC_INTERVAL, TIME_TRACK_INTERVAL, SHARE_ELIGIBILITY_THRESHOLD }
+export { SHARE_ELIGIBILITY_THRESHOLD, SYNC_INTERVAL, TIME_TRACK_INTERVAL }

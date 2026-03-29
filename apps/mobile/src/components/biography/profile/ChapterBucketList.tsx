@@ -3,15 +3,15 @@
  *
  * Chapter 3 - 人生清單，對應 apps/web/src/components/biography/profile/ChapterBucketList.tsx
  */
-import React, { useState, useEffect, useCallback, useMemo } from 'react'
-import { StyleSheet, View, ActivityIndicator } from 'react-native'
-import { Lock } from 'lucide-react-native'
-import Animated, { FadeIn } from 'react-native-reanimated'
 
+import { BRAND_YELLOW, SEMANTIC_COLORS, SPACING, WB_COLORS } from '@nobodyclimb/constants'
+import { Lock } from 'lucide-react-native'
+import { useCallback, useEffect, useMemo, useState } from 'react'
+import { ActivityIndicator, StyleSheet, View } from 'react-native'
+import Animated, { FadeIn } from 'react-native-reanimated'
+import { BiographyBucketList } from '@/components/bucket-list'
 import { Text } from '@/components/ui'
 import { apiClient } from '@/lib/api'
-import { BiographyBucketList } from '@/components/bucket-list'
-import { BRAND_YELLOW, RADIUS, SEMANTIC_COLORS, SPACING, WB_COLORS } from '@nobodyclimb/constants'
 
 // 類型定義
 interface BucketListItem {
@@ -42,7 +42,7 @@ export function ChapterBucketList({ person, isOwner: _isOwner }: ChapterBucketLi
   // 從 stories 陣列中取得 bucket_list_story
   const bucketListStory = useMemo(() => {
     if (!person?.stories) return null
-    const story = person.stories.find(s => s.question_id === 'bucket_list_story')
+    const story = person.stories.find((s) => s.question_id === 'bucket_list_story')
     return story?.content || null
   }, [person?.stories])
 

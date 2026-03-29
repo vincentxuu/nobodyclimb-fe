@@ -1,12 +1,12 @@
 'use client'
 
-import { useState } from 'react'
+import { ArrowLeft, CheckCircle, Eye, EyeOff, KeyRound, Lock, Mail } from 'lucide-react'
 import { useRouter } from 'next/navigation'
-import { Link } from '@/i18n/navigation'
-import { Mail, Lock, Eye, EyeOff, ArrowLeft, KeyRound, CheckCircle } from 'lucide-react'
 import { useTranslations } from 'next-intl'
-import { Button } from '@/components/ui/button'
+import { useState } from 'react'
 import { PageTransition } from '@/components/shared/page-transition'
+import { Button } from '@/components/ui/button'
+import { Link } from '@/i18n/navigation'
 import { authService } from '@/lib/api/services'
 
 /**
@@ -66,9 +66,7 @@ export default function ForgotPasswordPage() {
                 <CheckCircle className="h-8 w-8 text-green-600" />
               </div>
               <h1 className="text-2xl font-bold">{t('resetPasswordSuccessTitle')}</h1>
-              <p className="text-muted-foreground">
-                {t('resetPasswordSuccessDesc')}
-              </p>
+              <p className="text-muted-foreground">{t('resetPasswordSuccessDesc')}</p>
             </div>
 
             <Button onClick={() => router.push('/auth/login')} className="w-full">
@@ -86,9 +84,7 @@ export default function ForgotPasswordPage() {
         <div className="mx-auto w-full max-w-md space-y-6">
           <div className="space-y-2 text-center">
             <h1 className="text-3xl font-bold">{t('resetPasswordTitle')}</h1>
-            <p className="text-muted-foreground">
-              {t('resetPasswordSubtitle')}
-            </p>
+            <p className="text-muted-foreground">{t('resetPasswordSubtitle')}</p>
           </div>
 
           {error && (
@@ -161,7 +157,11 @@ export default function ForgotPasswordPage() {
                   className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
                   aria-label={showConfirmPassword ? t('hidePassword') : t('showPassword')}
                 >
-                  {showConfirmPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                  {showConfirmPassword ? (
+                    <EyeOff className="h-4 w-4" />
+                  ) : (
+                    <Eye className="h-4 w-4" />
+                  )}
                 </button>
               </div>
             </div>

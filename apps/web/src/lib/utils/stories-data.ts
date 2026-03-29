@@ -1,5 +1,5 @@
-import { Biography } from '@/lib/types'
 import { StoryCategory } from '@/lib/constants/biography-stories'
+import { Biography } from '@/lib/types'
 
 // ═══════════════════════════════════════════════════════════
 // stories_data JSON 結構定義
@@ -26,7 +26,9 @@ export interface StoriesDataJson {
 /**
  * 解析 stories_data JSON 字串
  */
-export function parseStoriesData(storiesDataJson: string | null | undefined): StoriesDataJson | null {
+export function parseStoriesData(
+  storiesDataJson: string | null | undefined
+): StoriesDataJson | null {
   if (!storiesDataJson) return null
   try {
     return JSON.parse(storiesDataJson) as StoriesDataJson
@@ -60,7 +62,11 @@ export function getStoryContent(
       }
       // Fallback: 檢查 'uncategorized' 分類（V2 編輯器儲存的格式）
       const uncategorizedItem = storiesData['uncategorized']?.[field]
-      if (uncategorizedItem?.answer && uncategorizedItem.answer.trim() && uncategorizedItem.visibility === 'public') {
+      if (
+        uncategorizedItem?.answer &&
+        uncategorizedItem.answer.trim() &&
+        uncategorizedItem.visibility === 'public'
+      ) {
         return uncategorizedItem.answer
       }
     } else {

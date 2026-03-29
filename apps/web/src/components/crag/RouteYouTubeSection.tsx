@@ -1,17 +1,17 @@
 'use client'
 
-import { useState, useEffect } from 'react'
-import { Youtube, Plus, LogIn } from 'lucide-react'
-import { useTranslations } from 'next-intl'
-import { Button } from '@/components/ui/button'
-import { useAuth } from '@/lib/hooks'
-import { useRouteStories } from '@/lib/hooks/useRouteStories'
-import { useAscents } from '@/lib/hooks/useAscents'
-import { RouteMediaForm } from '@/components/crag/RouteMediaForm'
-import type { RouteStory, RouteStoryFormData } from '@/lib/types/route-story'
-import type { UserRouteAscent } from '@/lib/types/ascent'
-import { useToast } from '@/components/ui/use-toast'
+import { LogIn, Plus, Youtube } from 'lucide-react'
 import Link from 'next/link'
+import { useTranslations } from 'next-intl'
+import { useEffect, useState } from 'react'
+import { RouteMediaForm } from '@/components/crag/RouteMediaForm'
+import { Button } from '@/components/ui/button'
+import { useToast } from '@/components/ui/use-toast'
+import { useAuth } from '@/lib/hooks'
+import { useAscents } from '@/lib/hooks/useAscents'
+import { useRouteStories } from '@/lib/hooks/useRouteStories'
+import type { UserRouteAscent } from '@/lib/types/ascent'
+import type { RouteStory, RouteStoryFormData } from '@/lib/types/route-story'
 
 interface RouteYouTubeSectionProps {
   routeId: string
@@ -190,12 +190,7 @@ export function RouteYouTubeSection({
             <p className="text-sm">{t('noVideos')}</p>
             <p className="mt-1 text-xs text-gray-400">{t('noVideosHint')}</p>
             {isSignedIn && (
-              <Button
-                variant="link"
-                size="sm"
-                onClick={() => setIsFormOpen(true)}
-                className="mt-2"
-              >
+              <Button variant="link" size="sm" onClick={() => setIsFormOpen(true)} className="mt-2">
                 {t('shareVideoBtn')}
               </Button>
             )}

@@ -1,9 +1,8 @@
-import React from 'react'
-import { View, Pressable } from 'react-native'
-import { YStack, XStack, Text } from 'tamagui'
-import { Check, ChevronRight, BarChart3 } from 'lucide-react-native'
-import { SEMANTIC_COLORS, COLORS } from '@nobodyclimb/constants'
+import { COLORS, SEMANTIC_COLORS } from '@nobodyclimb/constants'
 import type { LucideIcon } from 'lucide-react-native'
+import { BarChart3, Check, ChevronRight } from 'lucide-react-native'
+import { Pressable, View } from 'react-native'
+import { Text, XStack, YStack } from 'tamagui'
 
 interface ProgressSection {
   id: string
@@ -57,7 +56,8 @@ export function ProgressIndicator({
         </XStack>
         <View
           style={{
-            backgroundColor: overallProgress === 100 ? `${COLORS.brand.accent}33` : COLORS.background.subtle,
+            backgroundColor:
+              overallProgress === 100 ? `${COLORS.brand.accent}33` : COLORS.background.subtle,
             paddingHorizontal: 8,
             paddingVertical: 4,
             borderRadius: 12,
@@ -122,7 +122,9 @@ export function ProgressIndicator({
                   width: 24,
                   height: 24,
                   borderRadius: 12,
-                  backgroundColor: section.isCompleted ? COLORS.brand.accent : COLORS.background.muted,
+                  backgroundColor: section.isCompleted
+                    ? COLORS.brand.accent
+                    : COLORS.background.muted,
                   alignItems: 'center',
                   justifyContent: 'center',
                 }}
@@ -152,9 +154,7 @@ export function ProgressIndicator({
               </View>
 
               {/* Arrow */}
-              {onSectionClick && (
-                <ChevronRight size={16} color={COLORS.border.default} />
-              )}
+              {onSectionClick && <ChevronRight size={16} color={COLORS.border.default} />}
             </Pressable>
           )
         })}
@@ -193,11 +193,7 @@ interface SimpleProgressBarProps {
   showLabel?: boolean
 }
 
-export function SimpleProgressBar({
-  completed,
-  total,
-  showLabel = true,
-}: SimpleProgressBarProps) {
+export function SimpleProgressBar({ completed, total, showLabel = true }: SimpleProgressBarProps) {
   const percentage = total > 0 ? Math.round((completed / total) * 100) : 0
 
   return (

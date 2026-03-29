@@ -1,10 +1,9 @@
 'use client'
 
-import * as React from 'react'
-import { motion, AnimatePresence } from 'framer-motion'
+import { AnimatePresence, motion } from 'framer-motion'
 import { Heart } from 'lucide-react'
-import { cn } from '@/lib/utils'
 import { GAME_CONFIG } from '@/lib/games/rope-system/constants'
+import { cn } from '@/lib/utils'
 
 interface LifeDisplayProps {
   lives: number
@@ -40,9 +39,7 @@ export function LifeDisplay({
               <Heart
                 className={cn(
                   'h-6 w-6 transition-colors',
-                  isActive
-                    ? 'fill-[#EF4444] text-[#EF4444]'
-                    : 'fill-[#E5E5E5] text-[#E5E5E5]'
+                  isActive ? 'fill-[#EF4444] text-[#EF4444]' : 'fill-[#E5E5E5] text-[#E5E5E5]'
                 )}
               />
             </motion.div>

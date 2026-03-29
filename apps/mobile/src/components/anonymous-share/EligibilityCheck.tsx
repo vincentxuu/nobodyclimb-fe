@@ -3,14 +3,19 @@
  *
  * 對應 apps/web/src/components/anonymous-share/EligibilityCheck.tsx
  */
-import React from 'react'
-import { StyleSheet, View } from 'react-native'
-import { SafeAreaView } from 'react-native-safe-area-context'
+
+import {
+  BORDER_RADIUS,
+  BRAND_YELLOW,
+  SEMANTIC_COLORS,
+  SPACING,
+  WB_COLORS,
+} from '@nobodyclimb/constants'
 import { useRouter } from 'expo-router'
 import { Lock, User } from 'lucide-react-native'
-
-import { Text, Button, ProgressBar } from '@/components/ui'
-import { BORDER_RADIUS, BRAND_YELLOW, SEMANTIC_COLORS, SPACING, WB_COLORS } from '@nobodyclimb/constants'
+import { StyleSheet, View } from 'react-native'
+import { SafeAreaView } from 'react-native-safe-area-context'
+import { Button, ProgressBar, Text } from '@/components/ui'
 import type { GuestSession } from '@/store/guestSessionStore'
 import { SHARE_ELIGIBILITY_THRESHOLD } from '@/store/guestSessionStore'
 
@@ -62,11 +67,7 @@ export function EligibilityCheck({ session }: EligibilityCheckProps) {
             </View>
           </View>
 
-          <Button
-            variant="primary"
-            fullWidth
-            onPress={() => router.push('/biography')}
-          >
+          <Button variant="primary" fullWidth onPress={() => router.push('/biography')}>
             探索攀岩者故事
           </Button>
         </View>
@@ -95,11 +96,7 @@ export function AlreadyAuthenticated() {
             可以直接在個人頁面編輯你的故事
           </Text>
 
-          <Button
-            variant="primary"
-            fullWidth
-            onPress={() => router.push('/profile/edit')}
-          >
+          <Button variant="primary" fullWidth onPress={() => router.push('/profile/edit')}>
             前往編輯我的故事
           </Button>
         </View>

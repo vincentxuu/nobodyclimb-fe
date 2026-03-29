@@ -3,35 +3,33 @@
  *
  * 對應 apps/web/src/app/blog/[id]/page.tsx
  */
-import React, { useState, useCallback } from 'react'
-import {
-  StyleSheet,
-  View,
-  ScrollView,
-  RefreshControl,
-  ActivityIndicator,
-  Share,
-} from 'react-native'
-import { useLocalSearchParams, useRouter } from 'expo-router'
-import { SafeAreaView } from 'react-native-safe-area-context'
+
+import { SEMANTIC_COLORS, SPACING } from '@nobodyclimb/constants'
 import { Image } from 'expo-image'
-import { LinearGradient } from 'expo-linear-gradient'
+import { useLocalSearchParams, useRouter } from 'expo-router'
 import {
-  ChevronLeft,
-  Share2,
+  Bookmark,
   Calendar,
-  User,
+  ChevronLeft,
   Clock,
   Heart,
   MessageCircle,
-  Bookmark,
+  Share2,
 } from 'lucide-react-native'
-
-import { Text, IconButton, Avatar, Divider } from '@/components/ui'
+import { useCallback, useState } from 'react'
+import {
+  ActivityIndicator,
+  RefreshControl,
+  ScrollView,
+  Share,
+  StyleSheet,
+  View,
+} from 'react-native'
+import { SafeAreaView } from 'react-native-safe-area-context'
 import { CommentSection } from '@/components/blog'
-import { useAuthStore } from '@/store/authStore'
+import { Avatar, Divider, IconButton, Text } from '@/components/ui'
 import { usePost } from '@/lib/hooks'
-import { SEMANTIC_COLORS, SPACING, RADIUS } from '@nobodyclimb/constants'
+import { useAuthStore } from '@/store/authStore'
 
 export default function ArticleDetailScreen() {
   const router = useRouter()
@@ -97,9 +95,7 @@ export default function ArticleDetailScreen() {
           />
         </View>
         <View style={styles.errorContainer}>
-          <Text color="textSubtle">
-            {error ? '載入文章失敗，請稍後再試' : '找不到此文章'}
-          </Text>
+          <Text color="textSubtle">{error ? '載入文章失敗，請稍後再試' : '找不到此文章'}</Text>
         </View>
       </SafeAreaView>
     )
@@ -141,9 +137,7 @@ export default function ArticleDetailScreen() {
 
       <ScrollView
         style={styles.scrollView}
-        refreshControl={
-          <RefreshControl refreshing={refreshing} onRefresh={handleRefresh} />
-        }
+        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={handleRefresh} />}
       >
         {/* 封面圖 */}
         {article.cover_image ? (
@@ -171,11 +165,7 @@ export default function ArticleDetailScreen() {
           <View style={styles.authorRow}>
             <Avatar
               size="sm"
-              source={
-                article.author_avatar
-                  ? { uri: article.author_avatar }
-                  : undefined
-              }
+              source={article.author_avatar ? { uri: article.author_avatar } : undefined}
             />
             <View style={styles.authorInfo}>
               <Text variant="body" fontWeight="500">

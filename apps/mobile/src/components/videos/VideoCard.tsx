@@ -3,15 +3,11 @@
  *
  * 影片卡片，對應 apps/web/src/components/videos/video-card.tsx
  */
-import React from 'react'
-import { StyleSheet, View, Pressable, Image, Dimensions } from 'react-native'
-import { Play, Eye } from 'lucide-react-native'
-import Animated, {
-  useSharedValue,
-  useAnimatedStyle,
-  withSpring,
-} from 'react-native-reanimated'
+
 import { BORDER_RADIUS, SEMANTIC_COLORS, SHADOWS, SPACING, WB_COLORS } from '@nobodyclimb/constants'
+import { Eye, Play } from 'lucide-react-native'
+import { Dimensions, Image, Pressable, StyleSheet, View } from 'react-native'
+import Animated, { useAnimatedStyle, useSharedValue, withSpring } from 'react-native-reanimated'
 import { Text } from '@/components/ui/Text'
 import { springConfigLight } from '@/theme/animations'
 import type { Video } from './types'
@@ -68,20 +64,12 @@ export function VideoCard({ video, onClick, fullWidth = false }: VideoCardProps)
     >
       {/* 縮圖容器 */}
       <View style={styles.thumbnailContainer}>
-        <Image
-          source={{ uri: video.thumbnailUrl }}
-          style={styles.thumbnail}
-          resizeMode="cover"
-        />
+        <Image source={{ uri: video.thumbnailUrl }} style={styles.thumbnail} resizeMode="cover" />
 
         {/* 播放按鈕覆蓋層 */}
         <View style={styles.playOverlay}>
           <View style={styles.playButton}>
-            <Play
-              size={24}
-              color={WB_COLORS[0]}
-              fill={WB_COLORS[0]}
-            />
+            <Play size={24} color={WB_COLORS[0]} fill={WB_COLORS[0]} />
           </View>
         </View>
 
@@ -104,11 +92,7 @@ export function VideoCard({ video, onClick, fullWidth = false }: VideoCardProps)
 
       {/* 影片資訊 */}
       <View style={styles.info}>
-        <Text
-          variant="body"
-          numberOfLines={2}
-          style={styles.title}
-        >
+        <Text variant="body" numberOfLines={2} style={styles.title}>
           {video.title}
         </Text>
 

@@ -4,25 +4,26 @@
  * 基於設計系統的按鈕組件，支援多種變體和狀態
  * 注意：暫時移除 reanimated 動畫以兼容 Expo Go
  */
+
+import {
+  BORDER_RADIUS,
+  BRAND_RED,
+  BUTTON_SIZES,
+  FONT_WEIGHT,
+  SEMANTIC_COLORS,
+  WB_COLORS,
+} from '@nobodyclimb/constants'
+import type { LucideIcon } from 'lucide-react-native'
 import React from 'react'
 import {
-  Pressable,
   ActivityIndicator,
-  StyleSheet,
+  Pressable,
   type PressableProps,
+  StyleSheet,
   type ViewStyle,
 } from 'react-native'
-import {
-  SEMANTIC_COLORS,
-  BUTTON_SIZES,
-  BORDER_RADIUS,
-  FONT_WEIGHT,
-  WB_COLORS,
-  BRAND_RED,
-} from '@nobodyclimb/constants'
-import { Text } from './Text'
 import { Icon } from './Icon'
-import type { LucideIcon } from 'lucide-react-native'
+import { Text } from './Text'
 
 export type ButtonVariant = 'primary' | 'secondary' | 'outline' | 'ghost' | 'destructive'
 export type ButtonSize = 'sm' | 'md' | 'lg'
@@ -168,12 +169,7 @@ export function Button({
       ) : (
         <>
           {leftIcon && (
-            <Icon
-              icon={leftIcon}
-              size={iconSize}
-              color={textColor}
-              style={styles.leftIcon}
-            />
+            <Icon icon={leftIcon} size={iconSize} color={textColor} style={styles.leftIcon} />
           )}
           {typeof children === 'string' ? (
             <Text
@@ -189,12 +185,7 @@ export function Button({
             children
           )}
           {rightIcon && (
-            <Icon
-              icon={rightIcon}
-              size={iconSize}
-              color={textColor}
-              style={styles.rightIcon}
-            />
+            <Icon icon={rightIcon} size={iconSize} color={textColor} style={styles.rightIcon} />
           )}
         </>
       )}

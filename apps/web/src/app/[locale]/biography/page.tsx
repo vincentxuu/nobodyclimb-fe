@@ -1,21 +1,20 @@
 'use client'
 
-import React, { useState, useCallback, Suspense } from 'react'
-import { Link } from '@/i18n/navigation'
-import { useSearchParams, useRouter } from 'next/navigation'
 import { motion } from 'framer-motion'
-import { UserPlus, Loader2 } from 'lucide-react'
-import { Button } from '@/components/ui/button'
-import { Breadcrumb } from '@/components/ui/breadcrumb'
-import { PageHeader } from '@/components/ui/page-header'
-import { SearchInput } from '@/components/ui/search-input'
-import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs'
-import { useAuthStore } from '@/store/authStore'
+import { Loader2, UserPlus } from 'lucide-react'
+import { useRouter, useSearchParams } from 'next/navigation'
 import { useTranslations } from 'next-intl'
-
+import React, { Suspense, useCallback, useState } from 'react'
 // 匯入頁面組件
 import { BiographyList } from '@/components/biography/biography-list'
 import { StoryList } from '@/components/biography/story-list'
+import { Breadcrumb } from '@/components/ui/breadcrumb'
+import { Button } from '@/components/ui/button'
+import { PageHeader } from '@/components/ui/page-header'
+import { SearchInput } from '@/components/ui/search-input'
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
+import { Link } from '@/i18n/navigation'
+import { useAuthStore } from '@/store/authStore'
 
 type TabValue = 'stories' | 'people'
 
@@ -71,7 +70,10 @@ function BiographyPageContent() {
       <div className="container mx-auto px-4 py-4 md:py-6">
         {/* Breadcrumb - 手機版隱藏 */}
         <div className="mb-4 md:mb-8">
-          <Breadcrumb items={[{ label: t('homeLabel'), href: '/' }, { label: t('biographyLabel') }]} hideOnMobile />
+          <Breadcrumb
+            items={[{ label: t('homeLabel'), href: '/' }, { label: t('biographyLabel') }]}
+            hideOnMobile
+          />
         </div>
 
         {/* 訪客引導 Banner - 僅未登入時顯示 */}
@@ -85,9 +87,7 @@ function BiographyPageContent() {
               <div className="flex h-10 w-10 items-center justify-center rounded-full bg-brand-gray-light">
                 <UserPlus size={20} className="text-brand-dark" />
               </div>
-              <p className="text-sm text-brand-dark md:text-base">
-                {t('guestBannerText')}
-              </p>
+              <p className="text-sm text-brand-dark md:text-base">{t('guestBannerText')}</p>
             </div>
             <Link href="/auth/register">
               <Button className="h-9 whitespace-nowrap bg-brand-accent/70 px-6 text-sm text-brand-dark hover:bg-brand-accent">
@@ -112,7 +112,11 @@ function BiographyPageContent() {
             <SearchInput
               value={searchTerm}
               onChange={handleSearch}
-              placeholder={currentTab === 'stories' ? t('searchStoriesPlaceholder') : t('searchPeoplePlaceholder')}
+              placeholder={
+                currentTab === 'stories'
+                  ? t('searchStoriesPlaceholder')
+                  : t('searchPeoplePlaceholder')
+              }
               className="w-full sm:w-72"
             />
           </div>

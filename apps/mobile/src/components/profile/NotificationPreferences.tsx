@@ -1,8 +1,7 @@
-import React from 'react'
-import { View, StyleSheet } from 'react-native'
-import { Text } from '../ui/Text'
+import { COLORS, SEMANTIC_COLORS } from '@nobodyclimb/constants'
+import { StyleSheet, View } from 'react-native'
 import { Switch } from '../ui/Switch'
-import { SEMANTIC_COLORS, COLORS } from '@nobodyclimb/constants'
+import { Text } from '../ui/Text'
 
 interface NotificationSetting {
   id: string
@@ -62,10 +61,7 @@ export default function NotificationPreferences({
       {settings.map((setting, index) => (
         <View
           key={setting.id}
-          style={[
-            styles.settingRow,
-            index < settings.length - 1 && styles.settingRowBorder,
-          ]}
+          style={[styles.settingRow, index < settings.length - 1 && styles.settingRowBorder]}
         >
           <View style={styles.settingInfo}>
             <Text variant="body" style={{ color: SEMANTIC_COLORS.textMain }}>

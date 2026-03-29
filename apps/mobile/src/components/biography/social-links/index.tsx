@@ -3,13 +3,12 @@
  *
  * 社群連結，對應 apps/web/src/components/biography/social-links.tsx
  */
-import React from 'react'
-import { StyleSheet, View, Pressable, Linking, type ViewStyle } from 'react-native'
-import { Instagram, Youtube, ExternalLink } from 'lucide-react-native'
-import { LinearGradient } from 'expo-linear-gradient'
 
+import { SPACING, WB_COLORS } from '@nobodyclimb/constants'
+import { LinearGradient } from 'expo-linear-gradient'
+import { ExternalLink, Instagram, Youtube } from 'lucide-react-native'
+import { Linking, Pressable, StyleSheet, View, type ViewStyle } from 'react-native'
 import { Text } from '@/components/ui'
-import { RADIUS, SPACING, WB_COLORS } from '@nobodyclimb/constants'
 
 interface BiographySocialLinks {
   instagram?: string

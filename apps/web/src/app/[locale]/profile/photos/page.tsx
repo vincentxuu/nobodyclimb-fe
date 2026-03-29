@@ -1,18 +1,18 @@
 'use client'
 
-import React, { useState, useEffect, useCallback } from 'react'
-import { Button } from '@/components/ui/button'
-import { Edit2, Trash2, Loader2, MapPin, Upload } from 'lucide-react'
+import { Edit2, Loader2, MapPin, Trash2, Upload } from 'lucide-react'
 import Image from 'next/image'
-import ProfilePageLayout from '@/components/profile/layout/ProfilePageLayout'
-import ProfilePageTitle from '@/components/profile/ProfilePageTitle'
-import { ConfirmDialog } from '@/components/ui/confirm-dialog'
-import { galleryService } from '@/lib/api/services'
-import { useToast } from '@/components/ui/use-toast'
-import { GalleryPhoto } from '@/lib/types'
 import { useTranslations } from 'next-intl'
+import { useCallback, useEffect, useState } from 'react'
 import PhotoEditDialog from '@/components/gallery/photo-edit-dialog'
 import UploadPhotoDialog from '@/components/gallery/upload-photo-dialog'
+import ProfilePageLayout from '@/components/profile/layout/ProfilePageLayout'
+import ProfilePageTitle from '@/components/profile/ProfilePageTitle'
+import { Button } from '@/components/ui/button'
+import { ConfirmDialog } from '@/components/ui/confirm-dialog'
+import { useToast } from '@/components/ui/use-toast'
+import { galleryService } from '@/lib/api/services'
+import { GalleryPhoto } from '@/lib/types'
 
 // 照片卡片元件
 interface PhotoCardProps {
@@ -97,40 +97,37 @@ interface EmptyStateProps {
 const EmptyState = ({ onUpload }: EmptyStateProps) => {
   const t = useTranslations('ProfilePage')
   return (
-  <div className="py-12 text-center">
-    <p className="mb-4 text-[#6D6C6C]">{t('noPhotosYet')}</p>
-    <Button
-      onClick={onUpload}
-      className="bg-[#1B1A1A] text-white hover:bg-[#3F3D3D]"
-    >
-      {t('uploadFirstPhoto')}
-    </Button>
-  </div>
-)
+    <div className="py-12 text-center">
+      <p className="mb-4 text-[#6D6C6C]">{t('noPhotosYet')}</p>
+      <Button onClick={onUpload} className="bg-[#1B1A1A] text-white hover:bg-[#3F3D3D]">
+        {t('uploadFirstPhoto')}
+      </Button>
+    </div>
+  )
 }
 
 // 載入狀態元件
 const LoadingState = () => {
   const t = useTranslations('ProfilePage')
   return (
-  <div className="flex items-center justify-center py-12">
-    <Loader2 className="h-8 w-8 animate-spin text-[#6D6C6C]" />
-    <span className="ml-2 text-[#6D6C6C]">{t('loading')}</span>
-  </div>
-)
+    <div className="flex items-center justify-center py-12">
+      <Loader2 className="h-8 w-8 animate-spin text-[#6D6C6C]" />
+      <span className="ml-2 text-[#6D6C6C]">{t('loading')}</span>
+    </div>
+  )
 }
 
 // 錯誤狀態元件
 const ErrorState = ({ message, onRetry }: { message: string; onRetry: () => void }) => {
   const t = useTranslations('ProfilePage')
   return (
-  <div className="py-12 text-center">
-    <p className="mb-4 text-red-600">{message}</p>
-    <Button onClick={onRetry} className="bg-[#1B1A1A] text-white hover:bg-[#3F3D3D]">
-      {t('retry')}
-    </Button>
-  </div>
-)
+    <div className="py-12 text-center">
+      <p className="mb-4 text-red-600">{message}</p>
+      <Button onClick={onRetry} className="bg-[#1B1A1A] text-white hover:bg-[#3F3D3D]">
+        {t('retry')}
+      </Button>
+    </div>
+  )
 }
 
 // 上傳照片按鈕元件
@@ -141,14 +138,14 @@ interface UploadButtonProps {
 const UploadButton = ({ onClick }: UploadButtonProps) => {
   const t = useTranslations('ProfilePage')
   return (
-  <Button
-    onClick={onClick}
-    className="flex items-center gap-2 bg-[#1B1A1A] text-white hover:bg-[#3F3D3D]"
-  >
-    <Upload size={18} />
-    {t('uploadPhoto')}
-  </Button>
-)
+    <Button
+      onClick={onClick}
+      className="flex items-center gap-2 bg-[#1B1A1A] text-white hover:bg-[#3F3D3D]"
+    >
+      <Upload size={18} />
+      {t('uploadPhoto')}
+    </Button>
+  )
 }
 
 const PHOTOS_PER_PAGE = 20
@@ -290,7 +287,10 @@ export default function PhotosPage() {
   return (
     <ProfilePageLayout>
       <div className="rounded-sm bg-white p-4 md:p-8 lg:p-12">
-        <ProfilePageTitle title={t('photosTitle')} action={<UploadButton onClick={handleUploadClick} />} />
+        <ProfilePageTitle
+          title={t('photosTitle')}
+          action={<UploadButton onClick={handleUploadClick} />}
+        />
 
         {isLoading ? (
           <LoadingState />

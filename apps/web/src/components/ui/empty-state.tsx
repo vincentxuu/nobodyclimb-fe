@@ -1,7 +1,7 @@
 'use client'
 
+import { FileText, Image, MapPin, Search, Target, User, Video } from 'lucide-react'
 import React from 'react'
-import { FileText, Search, Image, Video, MapPin, User, Target } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 
 type IconType = 'file' | 'search' | 'image' | 'video' | 'location' | 'user' | 'target'

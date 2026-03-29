@@ -1,12 +1,12 @@
 'use client'
 
-import { useTranslations } from 'next-intl'
-import { cn } from '@/lib/utils'
-import { StatCard, BarChart } from './progress-chart'
-import type { CommunityStats, LeaderboardItem } from '@/lib/types'
-import { Users, Target, BookOpen, Activity, Trophy, TrendingUp } from 'lucide-react'
+import { Activity, BookOpen, Target, TrendingUp, Trophy, Users } from 'lucide-react'
 import Image from 'next/image'
+import { useTranslations } from 'next-intl'
+import type { CommunityStats, LeaderboardItem } from '@/lib/types'
+import { cn } from '@/lib/utils'
 import { isSvgUrl } from '@/lib/utils/image'
+import { BarChart, StatCard } from './progress-chart'
 
 interface CommunityStatsOverviewProps {
   stats: CommunityStats
@@ -16,9 +16,7 @@ interface CommunityStatsOverviewProps {
 export function CommunityStatsOverview({ stats, className }: CommunityStatsOverviewProps) {
   const t = useTranslations('BiographyPage')
   const goalCompletionRate =
-    stats.total_goals > 0
-      ? Math.round((stats.completed_goals / stats.total_goals) * 100)
-      : 0
+    stats.total_goals > 0 ? Math.round((stats.completed_goals / stats.total_goals) * 100) : 0
 
   return (
     <div className={cn('space-y-6', className)}>
@@ -108,7 +106,9 @@ export function CommunityStatsOverview({ stats, className }: CommunityStatsOverv
 
         {/* 熱門分類 */}
         <div className="p-6 bg-white rounded-lg border border-gray-100 shadow-sm">
-          <h3 className="text-lg font-semibold text-gray-900 mb-4">{t('trendingGoalCategories')}</h3>
+          <h3 className="text-lg font-semibold text-gray-900 mb-4">
+            {t('trendingGoalCategories')}
+          </h3>
           {stats.trending_categories.length > 0 ? (
             <BarChart
               data={stats.trending_categories.map((cat, index) => ({
@@ -142,7 +142,6 @@ interface LeaderboardProps {
   className?: string
 }
 
-
 export function Leaderboard({ title, items, valueLabel, className }: LeaderboardProps) {
   const t = useTranslations('BiographyPage')
   const resolvedValueLabel = valueLabel ?? t('score')
@@ -150,7 +149,9 @@ export function Leaderboard({ title, items, valueLabel, className }: Leaderboard
     return (
       <div className={cn('p-6 bg-white rounded-lg border border-gray-100 shadow-sm', className)}>
         <h3 className="text-lg font-semibold text-gray-900 mb-4">{title}</h3>
-        <div className="flex items-center justify-center h-40 text-gray-400">{t('noLeaderboardData')}</div>
+        <div className="flex items-center justify-center h-40 text-gray-400">
+          {t('noLeaderboardData')}
+        </div>
       </div>
     )
   }
@@ -187,7 +188,11 @@ export function Leaderboard({ title, items, valueLabel, className }: Leaderboard
             <div className="w-10 h-10 rounded-full bg-gray-200 overflow-hidden">
               {item.avatar_url ? (
                 isSvgUrl(item.avatar_url) ? (
-                  <img src={item.avatar_url} alt={item.name} className="w-full h-full object-cover" />
+                  <img
+                    src={item.avatar_url}
+                    alt={item.name}
+                    className="w-full h-full object-cover"
+                  />
                 ) : (
                   <Image
                     src={item.avatar_url}
@@ -231,11 +236,7 @@ interface CommunityDashboardProps {
   className?: string
 }
 
-export function CommunityDashboard({
-  stats,
-  leaderboards,
-  className,
-}: CommunityDashboardProps) {
+export function CommunityDashboard({ stats, leaderboards, className }: CommunityDashboardProps) {
   const t = useTranslations('BiographyPage')
   return (
     <div className={cn('space-y-8', className)}>

@@ -3,9 +3,9 @@
  *
  * 分隔線組件
  */
-import React from 'react'
-import { View, StyleSheet, type ViewStyle } from 'react-native'
-import { SEMANTIC_COLORS, SPACING } from '@nobodyclimb/constants'
+
+import { SEMANTIC_COLORS } from '@nobodyclimb/constants'
+import { StyleSheet, View, type ViewStyle } from 'react-native'
 
 export type DividerOrientation = 'horizontal' | 'vertical'
 
@@ -44,9 +44,7 @@ export function Divider({
         isHorizontal ? styles.horizontal : styles.vertical,
         {
           backgroundColor: color,
-          ...(isHorizontal
-            ? { marginVertical: spacing }
-            : { marginHorizontal: spacing }),
+          ...(isHorizontal ? { marginVertical: spacing } : { marginHorizontal: spacing }),
         },
         style,
       ]}

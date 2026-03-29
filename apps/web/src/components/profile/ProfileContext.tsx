@@ -1,17 +1,17 @@
 'use client'
 
-import React, { createContext, useContext, useState, ReactNode, useEffect } from 'react'
-import {
-  ProfileData,
-  AdvancedStories,
-  SocialLinks,
-  initialProfileData,
-  initialAdvancedStories,
-  initialSocialLinks,
-} from './types'
-import { useAuthStore } from '@/store/authStore'
-import { User, Biography } from '@/lib/types'
+import React, { createContext, ReactNode, useContext, useEffect, useState } from 'react'
 import { biographyService } from '@/lib/api/services'
+import { Biography, User } from '@/lib/types'
+import { useAuthStore } from '@/store/authStore'
+import {
+  AdvancedStories,
+  initialAdvancedStories,
+  initialProfileData,
+  initialSocialLinks,
+  ProfileData,
+  SocialLinks,
+} from './types'
 
 interface ProfileContextType {
   profileData: ProfileData
@@ -197,7 +197,9 @@ export function ProfileProvider({ children }: { children: ReactNode }) {
   }, [user])
 
   return (
-    <ProfileContext.Provider value={{ profileData, setProfileData, isEditing, setIsEditing, isLoading }}>
+    <ProfileContext.Provider
+      value={{ profileData, setProfileData, isEditing, setIsEditing, isLoading }}
+    >
       {children}
     </ProfileContext.Provider>
   )

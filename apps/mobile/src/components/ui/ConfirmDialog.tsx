@@ -3,11 +3,11 @@
  *
  * 確認對話框，用於需要使用者確認的操作（如刪除、送出等）
  */
-import React from 'react'
-import { View, StyleSheet, type ViewStyle } from 'react-native'
+
 import { SPACING } from '@nobodyclimb/constants'
-import { Dialog } from './Dialog'
+import { StyleSheet, View, type ViewStyle } from 'react-native'
 import { Button } from './Button'
+import { Dialog } from './Dialog'
 
 export interface ConfirmDialogProps {
   /** 是否顯示 */

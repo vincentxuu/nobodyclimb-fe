@@ -1,30 +1,30 @@
 'use client'
 
-import * as React from 'react'
 import {
-  Target,
-  MapPin,
-  Calendar,
-  Edit,
-  Trash2,
-  Check,
-  MoreVertical,
-  Tent,
-  Home,
-  Trophy,
-  Dumbbell,
-  Plane,
-  Award,
   Activity,
+  Award,
+  Calendar,
+  Check,
+  Dumbbell,
+  Edit,
+  Home,
+  MapPin,
+  MoreVertical,
+  Plane,
+  Target,
+  Tent,
+  Trash2,
+  Trophy,
 } from 'lucide-react'
-import { cn } from '@/lib/utils'
-import type { BucketListItem, BucketListCategory } from '@/lib/types'
-import { ProgressBar, ProgressTracker } from './progress-tracker'
-import { Button } from '@/components/ui/button'
-import { ReferenceButton } from '@/components/biography/reference-button'
+import * as React from 'react'
 import { ContentActions } from '@/components/biography/display/ContentActions'
-import { bucketListService } from '@/lib/api/services'
+import { ReferenceButton } from '@/components/biography/reference-button'
+import { Button } from '@/components/ui/button'
 import type { ContentComment } from '@/lib/api/services'
+import { bucketListService } from '@/lib/api/services'
+import type { BucketListCategory, BucketListItem } from '@/lib/types'
+import { cn } from '@/lib/utils'
+import { ProgressBar, ProgressTracker } from './progress-tracker'
 
 // 分類圖標和標籤映射 - 使用專案統一色系
 const categoryConfig: Record<
@@ -105,7 +105,12 @@ export function BucketListItemCard({
       }
     }
 
-    if (item.progress_mode === 'milestone' && milestones && Array.isArray(milestones) && milestones.length > 0) {
+    if (
+      item.progress_mode === 'milestone' &&
+      milestones &&
+      Array.isArray(milestones) &&
+      milestones.length > 0
+    ) {
       const completed = milestones.filter((m) => m.completed).length
       return Math.round((completed / milestones.length) * 100)
     }
@@ -352,11 +357,7 @@ export function BucketListContentActions({
         className="pl-0"
       />
       {!isOwner && (
-        <ReferenceButton
-          itemId={item.id}
-          initialCount={item.inspired_count || 0}
-          variant="icon"
-        />
+        <ReferenceButton itemId={item.id} initialCount={item.inspired_count || 0} variant="icon" />
       )}
     </div>
   )
@@ -440,11 +441,7 @@ export function AddBucketListButton({
   className?: string
 }) {
   return (
-    <Button
-      variant="secondary"
-      onClick={onClick}
-      className={cn('w-full border-dashed', className)}
-    >
+    <Button variant="secondary" onClick={onClick} className={cn('w-full border-dashed', className)}>
       <Target className="mr-2 h-4 w-4" />
       新增目標
     </Button>

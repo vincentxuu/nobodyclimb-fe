@@ -1,23 +1,18 @@
 'use client'
 
-import { useState, useEffect } from 'react'
-import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
-import { z } from 'zod'
-import { Camera, Youtube, Instagram, Link as LinkIcon } from 'lucide-react'
+import { Camera, Instagram, Link as LinkIcon, Youtube } from 'lucide-react'
 import { useTranslations } from 'next-intl'
+import { useEffect, useState } from 'react'
+import { useForm } from 'react-hook-form'
+import { z } from 'zod'
 
 import { Button } from '@/components/ui/button'
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 import { Input } from '@/components/ui/input'
-import { Textarea } from '@/components/ui/textarea'
 import { Label } from '@/components/ui/label'
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-} from '@/components/ui/dialog'
 import { PhotoUpload } from '@/components/ui/photo-upload'
+import { Textarea } from '@/components/ui/textarea'
 import { galleryService } from '@/lib/api/services'
 import type { RouteStoryFormData } from '@/lib/types/route-story'
 
@@ -69,10 +64,7 @@ export function RouteMediaForm({
       .string()
       .min(1, t('mediaFormInstagramLabel'))
       .url(t('mediaFormInstagramLabel'))
-      .refine(
-        (url) => url.includes('instagram.com'),
-        t('mediaFormInstagramLabel')
-      ),
+      .refine((url) => url.includes('instagram.com'), t('mediaFormInstagramLabel')),
   })
 
   const mediaConfig: Record<
@@ -233,9 +225,7 @@ export function RouteMediaForm({
                   {form.formState.errors.instagram_url.message as string}
                 </p>
               )}
-              <p className="text-xs text-amber-600">
-                {t('mediaFormInstagramNote')}
-              </p>
+              <p className="text-xs text-amber-600">{t('mediaFormInstagramNote')}</p>
             </div>
           )}
 

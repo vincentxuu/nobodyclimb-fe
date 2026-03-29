@@ -1,13 +1,13 @@
-import { Hono } from 'hono';
-import { z } from 'zod';
-import { describeRoute, validator } from 'hono-openapi';
-import { Bindings } from '../types';
-import { authMiddleware, adminMiddleware } from '../middleware/auth';
+import { Hono } from 'hono'
+import { describeRoute, validator } from 'hono-openapi'
+import { z } from 'zod'
+import { adminMiddleware, authMiddleware } from '../middleware/auth'
+import { Bindings } from '../types'
 
-export const adminQuestionsRoutes = new Hono<{ Bindings: Bindings }>();
+export const adminQuestionsRoutes = new Hono<{ Bindings: Bindings }>()
 
 // All routes require admin authentication
-adminQuestionsRoutes.use('*', authMiddleware, adminMiddleware);
+adminQuestionsRoutes.use('*', authMiddleware, adminMiddleware)
 
 // ═══════════════════════════════════════════
 // 故事分類管理
@@ -20,7 +20,7 @@ const createCategorySchema = z.object({
   icon: z.string().optional(),
   description: z.string().optional(),
   display_order: z.number().optional(),
-});
+})
 
 const updateCategorySchema = z.object({
   name: z.string().optional(),
@@ -28,7 +28,7 @@ const updateCategorySchema = z.object({
   description: z.string().optional(),
   display_order: z.number().optional(),
   is_active: z.number().min(0).max(1).optional(),
-});
+})
 
 const createOneLinerSchema = z.object({
   id: z.string().min(1),
@@ -38,7 +38,7 @@ const createOneLinerSchema = z.object({
   category: z.string().optional(),
   display_order: z.number().optional(),
   is_core: z.boolean().optional(),
-});
+})
 
 const updateOneLinerSchema = z.object({
   question: z.string().optional(),
@@ -48,7 +48,7 @@ const updateOneLinerSchema = z.object({
   display_order: z.number().optional(),
   is_active: z.number().min(0).max(1).optional(),
   is_core: z.number().min(0).max(1).optional(),
-});
+})
 
 const createStoryQuestionSchema = z.object({
   id: z.string().min(1),
@@ -58,7 +58,7 @@ const createStoryQuestionSchema = z.object({
   placeholder: z.string().optional(),
   difficulty: z.enum(['easy', 'medium', 'hard']).optional(),
   display_order: z.number().optional(),
-});
+})
 
 const updateStoryQuestionSchema = z.object({
   category_id: z.string().optional(),
@@ -68,14 +68,16 @@ const updateStoryQuestionSchema = z.object({
   difficulty: z.enum(['easy', 'medium', 'hard']).optional(),
   display_order: z.number().optional(),
   is_active: z.number().min(0).max(1).optional(),
-});
+})
 
 const reorderSchema = z.object({
-  items: z.array(z.object({
-    id: z.string(),
-    display_order: z.number(),
-  })),
-});
+  items: z.array(
+    z.object({
+      id: z.string(),
+      display_order: z.number(),
+    })
+  ),
+})
 
 // GET /admin/questions/categories - 取得所有分類
 adminQuestionsRoutes.get(
@@ -91,13 +93,14 @@ adminQuestionsRoutes.get(
     },
   }),
   async (c) => {
-  const categories = await c.env.DB.prepare(`
+    const categories = await c.env.DB.prepare(`
     SELECT * FROM story_categories
     ORDER BY display_order ASC
-  `).all();
+  `).all()
 
-  return c.json({ success: true, data: categories.results });
-});
+    return c.json({ success: true, data: categories.results })
+  }
+)
 
 // POST /admin/questions/categories - 新增分類
 adminQuestionsRoutes.post(
@@ -115,17 +118,20 @@ adminQuestionsRoutes.post(
   }),
   validator('json', createCategorySchema),
   async (c) => {
-  const { id, name, icon, description, display_order } = c.req.valid('json');
+    const { id, name, icon, description, display_order } = c.req.valid('json')
 
-  const now = new Date().toISOString();
+    const now = new Date().toISOString()
 
-  await c.env.DB.prepare(`
+    await c.env.DB.prepare(`
     INSERT INTO story_categories (id, name, icon, description, display_order, created_at, updated_at)
     VALUES (?, ?, ?, ?, ?, ?, ?)
-  `).bind(id, name, icon || null, description || null, display_order || 0, now, now).run();
+  `)
+      .bind(id, name, icon || null, description || null, display_order || 0, now, now)
+      .run()
 
-  return c.json({ success: true, message: '分類已新增' });
-});
+    return c.json({ success: true, message: '分類已新增' })
+  }
+)
 
 // PUT /admin/questions/categories/:id - 更新分類
 adminQuestionsRoutes.put(
@@ -142,12 +148,12 @@ adminQuestionsRoutes.put(
   }),
   validator('json', updateCategorySchema),
   async (c) => {
-  const id = c.req.param('id');
-  const { name, icon, description, display_order, is_active } = c.req.valid('json');
+    const id = c.req.param('id')
+    const { name, icon, description, display_order, is_active } = c.req.valid('json')
 
-  const now = new Date().toISOString();
+    const now = new Date().toISOString()
 
-  await c.env.DB.prepare(`
+    await c.env.DB.prepare(`
     UPDATE story_categories
     SET name = COALESCE(?, name),
         icon = COALESCE(?, icon),
@@ -156,10 +162,13 @@ adminQuestionsRoutes.put(
         is_active = COALESCE(?, is_active),
         updated_at = ?
     WHERE id = ?
-  `).bind(name, icon, description, display_order, is_active, now, id).run();
+  `)
+      .bind(name, icon, description, display_order, is_active, now, id)
+      .run()
 
-  return c.json({ success: true, message: '分類已更新' });
-});
+    return c.json({ success: true, message: '分類已更新' })
+  }
+)
 
 // DELETE /admin/questions/categories/:id - 刪除分類
 adminQuestionsRoutes.delete(
@@ -176,24 +185,30 @@ adminQuestionsRoutes.delete(
     },
   }),
   async (c) => {
-  const id = c.req.param('id');
+    const id = c.req.param('id')
 
-  // Check if category has questions
-  const questions = await c.env.DB.prepare(`
+    // Check if category has questions
+    const questions = await c.env.DB.prepare(`
     SELECT COUNT(*) as count FROM story_questions WHERE category_id = ?
-  `).bind(id).first();
+  `)
+      .bind(id)
+      .first()
 
-  if (questions && (questions as { count: number }).count > 0) {
-    return c.json({
-      success: false,
-      error: '此分類下還有問題，請先刪除或移動問題'
-    }, 400);
+    if (questions && (questions as { count: number }).count > 0) {
+      return c.json(
+        {
+          success: false,
+          error: '此分類下還有問題，請先刪除或移動問題',
+        },
+        400
+      )
+    }
+
+    await c.env.DB.prepare('DELETE FROM story_categories WHERE id = ?').bind(id).run()
+
+    return c.json({ success: true, message: '分類已刪除' })
   }
-
-  await c.env.DB.prepare('DELETE FROM story_categories WHERE id = ?').bind(id).run();
-
-  return c.json({ success: true, message: '分類已刪除' });
-});
+)
 
 // ═══════════════════════════════════════════
 // 一句話問題管理
@@ -213,18 +228,19 @@ adminQuestionsRoutes.get(
     },
   }),
   async (c) => {
-  const includeInactive = c.req.query('include_inactive') === 'true';
+    const includeInactive = c.req.query('include_inactive') === 'true'
 
-  let query = 'SELECT * FROM one_liner_questions';
-  if (!includeInactive) {
-    query += ' WHERE is_active = 1';
+    let query = 'SELECT * FROM one_liner_questions'
+    if (!includeInactive) {
+      query += ' WHERE is_active = 1'
+    }
+    query += ' ORDER BY display_order ASC'
+
+    const questions = await c.env.DB.prepare(query).all()
+
+    return c.json({ success: true, data: questions.results })
   }
-  query += ' ORDER BY display_order ASC';
-
-  const questions = await c.env.DB.prepare(query).all();
-
-  return c.json({ success: true, data: questions.results });
-});
+)
 
 // POST /admin/questions/one-liners - 新增一句話問題
 adminQuestionsRoutes.post(
@@ -242,22 +258,34 @@ adminQuestionsRoutes.post(
   }),
   validator('json', createOneLinerSchema),
   async (c) => {
-  const userId = c.get('userId');
-  const { id, question, format_hint, placeholder, category, display_order, is_core } = c.req.valid('json');
+    const userId = c.get('userId')
+    const { id, question, format_hint, placeholder, category, display_order, is_core } =
+      c.req.valid('json')
 
-  const now = new Date().toISOString();
+    const now = new Date().toISOString()
 
-  await c.env.DB.prepare(`
+    await c.env.DB.prepare(`
     INSERT INTO one_liner_questions
     (id, question, format_hint, placeholder, category, display_order, is_core, created_by, created_at, updated_at)
     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-  `).bind(
-    id, question, format_hint || null, placeholder || null, category || null,
-    display_order || 0, is_core ? 1 : 0, userId, now, now
-  ).run();
+  `)
+      .bind(
+        id,
+        question,
+        format_hint || null,
+        placeholder || null,
+        category || null,
+        display_order || 0,
+        is_core ? 1 : 0,
+        userId,
+        now,
+        now
+      )
+      .run()
 
-  return c.json({ success: true, message: '問題已新增' });
-});
+    return c.json({ success: true, message: '問題已新增' })
+  }
+)
 
 // PUT /admin/questions/one-liners/:id - 更新一句話問題
 adminQuestionsRoutes.put(
@@ -274,12 +302,13 @@ adminQuestionsRoutes.put(
   }),
   validator('json', updateOneLinerSchema),
   async (c) => {
-  const id = c.req.param('id');
-  const { question, format_hint, placeholder, category, display_order, is_active, is_core } = c.req.valid('json');
+    const id = c.req.param('id')
+    const { question, format_hint, placeholder, category, display_order, is_active, is_core } =
+      c.req.valid('json')
 
-  const now = new Date().toISOString();
+    const now = new Date().toISOString()
 
-  await c.env.DB.prepare(`
+    await c.env.DB.prepare(`
     UPDATE one_liner_questions
     SET question = COALESCE(?, question),
         format_hint = COALESCE(?, format_hint),
@@ -290,10 +319,23 @@ adminQuestionsRoutes.put(
         is_core = COALESCE(?, is_core),
         updated_at = ?
     WHERE id = ?
-  `).bind(question, format_hint, placeholder, category, display_order, is_active, is_core, now, id).run();
+  `)
+      .bind(
+        question,
+        format_hint,
+        placeholder,
+        category,
+        display_order,
+        is_active,
+        is_core,
+        now,
+        id
+      )
+      .run()
 
-  return c.json({ success: true, message: '問題已更新' });
-});
+    return c.json({ success: true, message: '問題已更新' })
+  }
+)
 
 // DELETE /admin/questions/one-liners/:id - 刪除一句話問題
 adminQuestionsRoutes.delete(
@@ -310,24 +352,30 @@ adminQuestionsRoutes.delete(
     },
   }),
   async (c) => {
-  const id = c.req.param('id');
+    const id = c.req.param('id')
 
-  // Check if it's a core question
-  const question = await c.env.DB.prepare(`
+    // Check if it's a core question
+    const question = await c.env.DB.prepare(`
     SELECT is_core FROM one_liner_questions WHERE id = ?
-  `).bind(id).first();
+  `)
+      .bind(id)
+      .first()
 
-  if (question && (question as { is_core: number }).is_core === 1) {
-    return c.json({
-      success: false,
-      error: '核心問題無法刪除，請先取消核心標記'
-    }, 400);
+    if (question && (question as { is_core: number }).is_core === 1) {
+      return c.json(
+        {
+          success: false,
+          error: '核心問題無法刪除，請先取消核心標記',
+        },
+        400
+      )
+    }
+
+    await c.env.DB.prepare('DELETE FROM one_liner_questions WHERE id = ?').bind(id).run()
+
+    return c.json({ success: true, message: '問題已刪除' })
   }
-
-  await c.env.DB.prepare('DELETE FROM one_liner_questions WHERE id = ?').bind(id).run();
-
-  return c.json({ success: true, message: '問題已刪除' });
-});
+)
 
 // ═══════════════════════════════════════════
 // 小故事問題管理
@@ -347,38 +395,37 @@ adminQuestionsRoutes.get(
     },
   }),
   async (c) => {
-  const includeInactive = c.req.query('include_inactive') === 'true';
-  const categoryId = c.req.query('category_id');
+    const includeInactive = c.req.query('include_inactive') === 'true'
+    const categoryId = c.req.query('category_id')
 
-  let query = `
+    let query = `
     SELECT sq.*, sc.name as category_name
     FROM story_questions sq
     LEFT JOIN story_categories sc ON sq.category_id = sc.id
-  `;
+  `
 
-  const conditions: string[] = [];
-  const params: (string | number)[] = [];
+    const conditions: string[] = []
+    const params: (string | number)[] = []
 
-  if (!includeInactive) {
-    conditions.push('sq.is_active = 1');
+    if (!includeInactive) {
+      conditions.push('sq.is_active = 1')
+    }
+    if (categoryId) {
+      conditions.push('sq.category_id = ?')
+      params.push(categoryId)
+    }
+
+    if (conditions.length > 0) {
+      query += ' WHERE ' + conditions.join(' AND ')
+    }
+    query += ' ORDER BY sq.category_id, sq.display_order ASC'
+
+    const stmt = c.env.DB.prepare(query)
+    const questions = params.length > 0 ? await stmt.bind(...params).all() : await stmt.all()
+
+    return c.json({ success: true, data: questions.results })
   }
-  if (categoryId) {
-    conditions.push('sq.category_id = ?');
-    params.push(categoryId);
-  }
-
-  if (conditions.length > 0) {
-    query += ' WHERE ' + conditions.join(' AND ');
-  }
-  query += ' ORDER BY sq.category_id, sq.display_order ASC';
-
-  const stmt = c.env.DB.prepare(query);
-  const questions = params.length > 0
-    ? await stmt.bind(...params).all()
-    : await stmt.all();
-
-  return c.json({ success: true, data: questions.results });
-});
+)
 
 // POST /admin/questions/stories - 新增小故事問題
 adminQuestionsRoutes.post(
@@ -396,22 +443,34 @@ adminQuestionsRoutes.post(
   }),
   validator('json', createStoryQuestionSchema),
   async (c) => {
-  const userId = c.get('userId');
-  const { id, category_id, title, subtitle, placeholder, difficulty, display_order } = c.req.valid('json');
+    const userId = c.get('userId')
+    const { id, category_id, title, subtitle, placeholder, difficulty, display_order } =
+      c.req.valid('json')
 
-  const now = new Date().toISOString();
+    const now = new Date().toISOString()
 
-  await c.env.DB.prepare(`
+    await c.env.DB.prepare(`
     INSERT INTO story_questions
     (id, category_id, title, subtitle, placeholder, difficulty, display_order, created_by, created_at, updated_at)
     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-  `).bind(
-    id, category_id, title, subtitle || null, placeholder || null,
-    difficulty || 'easy', display_order || 0, userId, now, now
-  ).run();
+  `)
+      .bind(
+        id,
+        category_id,
+        title,
+        subtitle || null,
+        placeholder || null,
+        difficulty || 'easy',
+        display_order || 0,
+        userId,
+        now,
+        now
+      )
+      .run()
 
-  return c.json({ success: true, message: '問題已新增' });
-});
+    return c.json({ success: true, message: '問題已新增' })
+  }
+)
 
 // PUT /admin/questions/stories/:id - 更新小故事問題
 adminQuestionsRoutes.put(
@@ -428,12 +487,13 @@ adminQuestionsRoutes.put(
   }),
   validator('json', updateStoryQuestionSchema),
   async (c) => {
-  const id = c.req.param('id');
-  const { category_id, title, subtitle, placeholder, difficulty, display_order, is_active } = c.req.valid('json');
+    const id = c.req.param('id')
+    const { category_id, title, subtitle, placeholder, difficulty, display_order, is_active } =
+      c.req.valid('json')
 
-  const now = new Date().toISOString();
+    const now = new Date().toISOString()
 
-  await c.env.DB.prepare(`
+    await c.env.DB.prepare(`
     UPDATE story_questions
     SET category_id = COALESCE(?, category_id),
         title = COALESCE(?, title),
@@ -444,10 +504,23 @@ adminQuestionsRoutes.put(
         is_active = COALESCE(?, is_active),
         updated_at = ?
     WHERE id = ?
-  `).bind(category_id, title, subtitle, placeholder, difficulty, display_order, is_active, now, id).run();
+  `)
+      .bind(
+        category_id,
+        title,
+        subtitle,
+        placeholder,
+        difficulty,
+        display_order,
+        is_active,
+        now,
+        id
+      )
+      .run()
 
-  return c.json({ success: true, message: '問題已更新' });
-});
+    return c.json({ success: true, message: '問題已更新' })
+  }
+)
 
 // DELETE /admin/questions/stories/:id - 刪除小故事問題
 adminQuestionsRoutes.delete(
@@ -463,12 +536,13 @@ adminQuestionsRoutes.delete(
     },
   }),
   async (c) => {
-  const id = c.req.param('id');
+    const id = c.req.param('id')
 
-  await c.env.DB.prepare('DELETE FROM story_questions WHERE id = ?').bind(id).run();
+    await c.env.DB.prepare('DELETE FROM story_questions WHERE id = ?').bind(id).run()
 
-  return c.json({ success: true, message: '問題已刪除' });
-});
+    return c.json({ success: true, message: '問題已刪除' })
+  }
+)
 
 // ═══════════════════════════════════════════
 // 批次排序
@@ -490,18 +564,21 @@ adminQuestionsRoutes.put(
   }),
   validator('json', reorderSchema),
   async (c) => {
-  const { items } = c.req.valid('json'); // [{ id: 'xxx', display_order: 1 }, ...]
+    const { items } = c.req.valid('json') // [{ id: 'xxx', display_order: 1 }, ...]
 
-  const now = new Date().toISOString();
+    const now = new Date().toISOString()
 
-  for (const item of items) {
-    await c.env.DB.prepare(`
+    for (const item of items) {
+      await c.env.DB.prepare(`
       UPDATE one_liner_questions SET display_order = ?, updated_at = ? WHERE id = ?
-    `).bind(item.display_order, now, item.id).run();
-  }
+    `)
+        .bind(item.display_order, now, item.id)
+        .run()
+    }
 
-  return c.json({ success: true, message: '順序已更新' });
-});
+    return c.json({ success: true, message: '順序已更新' })
+  }
+)
 
 // PUT /admin/questions/stories/reorder - 批次更新小故事問題順序
 adminQuestionsRoutes.put(
@@ -519,18 +596,21 @@ adminQuestionsRoutes.put(
   }),
   validator('json', reorderSchema),
   async (c) => {
-  const { items } = c.req.valid('json');
+    const { items } = c.req.valid('json')
 
-  const now = new Date().toISOString();
+    const now = new Date().toISOString()
 
-  for (const item of items) {
-    await c.env.DB.prepare(`
+    for (const item of items) {
+      await c.env.DB.prepare(`
       UPDATE story_questions SET display_order = ?, updated_at = ? WHERE id = ?
-    `).bind(item.display_order, now, item.id).run();
-  }
+    `)
+        .bind(item.display_order, now, item.id)
+        .run()
+    }
 
-  return c.json({ success: true, message: '順序已更新' });
-});
+    return c.json({ success: true, message: '順序已更新' })
+  }
+)
 
 // ═══════════════════════════════════════════
 // 統計
@@ -550,21 +630,21 @@ adminQuestionsRoutes.get(
     },
   }),
   async (c) => {
-  const [oneLinerStats, storyStats, categoryStats] = await Promise.all([
-    c.env.DB.prepare(`
+    const [oneLinerStats, storyStats, categoryStats] = await Promise.all([
+      c.env.DB.prepare(`
       SELECT
         COUNT(*) as total,
         SUM(CASE WHEN is_active = 1 THEN 1 ELSE 0 END) as active,
         SUM(CASE WHEN is_core = 1 THEN 1 ELSE 0 END) as core
       FROM one_liner_questions
     `).first(),
-    c.env.DB.prepare(`
+      c.env.DB.prepare(`
       SELECT
         COUNT(*) as total,
         SUM(CASE WHEN is_active = 1 THEN 1 ELSE 0 END) as active
       FROM story_questions
     `).first(),
-    c.env.DB.prepare(`
+      c.env.DB.prepare(`
       SELECT
         sc.id, sc.name,
         COUNT(sq.id) as question_count
@@ -573,15 +653,16 @@ adminQuestionsRoutes.get(
       WHERE sc.is_active = 1
       GROUP BY sc.id
       ORDER BY sc.display_order
-    `).all()
-  ]);
+    `).all(),
+    ])
 
-  return c.json({
-    success: true,
-    data: {
-      one_liners: oneLinerStats,
-      stories: storyStats,
-      categories: categoryStats.results
-    }
-  });
-});
+    return c.json({
+      success: true,
+      data: {
+        one_liners: oneLinerStats,
+        stories: storyStats,
+        categories: categoryStats.results,
+      },
+    })
+  }
+)

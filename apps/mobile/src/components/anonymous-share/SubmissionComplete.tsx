@@ -3,15 +3,14 @@
  *
  * 對應 apps/web/src/components/anonymous-share/SubmissionComplete.tsx
  */
-import React from 'react'
-import { StyleSheet, View } from 'react-native'
-import { SafeAreaView } from 'react-native-safe-area-context'
+
+import { BORDER_RADIUS, SEMANTIC_COLORS, SPACING, WB_COLORS } from '@nobodyclimb/constants'
 import { useRouter } from 'expo-router'
 import { Check, Sparkles } from 'lucide-react-native'
+import { StyleSheet, View } from 'react-native'
 import Animated, { FadeIn, SlideInUp } from 'react-native-reanimated'
-
-import { Text, Button } from '@/components/ui'
-import { BORDER_RADIUS, SEMANTIC_COLORS, SPACING, WB_COLORS } from '@nobodyclimb/constants'
+import { SafeAreaView } from 'react-native-safe-area-context'
+import { Button, Text } from '@/components/ui'
 
 interface SubmissionCompleteProps {
   slug: string
@@ -23,20 +22,13 @@ interface SubmissionCompleteProps {
  * 提交成功頁面組件
  * 顯示匿名故事發布成功後的資訊
  */
-export function SubmissionComplete({
-  slug,
-  anonymousName,
-  totalStories,
-}: SubmissionCompleteProps) {
+export function SubmissionComplete({ slug, anonymousName, totalStories }: SubmissionCompleteProps) {
   const router = useRouter()
 
   return (
     <SafeAreaView style={styles.container}>
       <View style={styles.content}>
-        <Animated.View
-          entering={SlideInUp.springify().damping(15)}
-          style={styles.card}
-        >
+        <Animated.View entering={SlideInUp.springify().damping(15)} style={styles.card}>
           {/* Success Icon */}
           <Animated.View entering={FadeIn.delay(200)} style={styles.iconContainer}>
             <Check size={32} color="#16A34A" />
@@ -73,11 +65,7 @@ export function SubmissionComplete({
 
           {/* Actions */}
           <View style={styles.actions}>
-            <Button
-              variant="primary"
-              fullWidth
-              onPress={() => router.push(`/biography/${slug}`)}
-            >
+            <Button variant="primary" fullWidth onPress={() => router.push(`/biography/${slug}`)}>
               查看我的故事
             </Button>
             <Button

@@ -3,13 +3,13 @@
  *
  * 快速了解區塊，對應 apps/web/src/components/biography/profile/QuickFactsSection.tsx
  */
-import React, { useState, useMemo } from 'react'
-import { StyleSheet, View, Pressable } from 'react-native'
-import { Calendar, MapPin, Activity, ChevronDown, ChevronUp, Sparkles } from 'lucide-react-native'
-import Animated, { FadeInDown } from 'react-native-reanimated'
 
-import { Text, Card } from '@/components/ui'
 import { BRAND_YELLOW, RADIUS, SEMANTIC_COLORS, SPACING, WB_COLORS } from '@nobodyclimb/constants'
+import { Activity, Calendar, ChevronDown, ChevronUp, MapPin, Sparkles } from 'lucide-react-native'
+import { useMemo, useState } from 'react'
+import { Pressable, StyleSheet, View } from 'react-native'
+import Animated, { FadeInDown } from 'react-native-reanimated'
+import { Text } from '@/components/ui'
 
 // 類型定義
 interface BiographyV2 {
@@ -46,7 +46,7 @@ export function QuickFactsSection({ person, tagLimit = 8 }: QuickFactsSectionPro
   // 處理常出沒地點
   const locations = useMemo(() => {
     if (!person?.frequent_locations) return []
-    return person.frequent_locations.filter(l => l.trim())
+    return person.frequent_locations.filter((l) => l.trim())
   }, [person?.frequent_locations])
 
   // 處理標籤（簡化版）
@@ -69,7 +69,7 @@ export function QuickFactsSection({ person, tagLimit = 8 }: QuickFactsSectionPro
       }
     }
 
-    return person.tags.map(tagSelection => {
+    return person.tags.map((tagSelection) => {
       const customTag = customTagsMap.get(tagSelection.tag_id)
       return {
         id: tagSelection.tag_id,
@@ -99,9 +99,10 @@ export function QuickFactsSection({ person, tagLimit = 8 }: QuickFactsSectionPro
     {
       icon: <Activity size={24} color={SEMANTIC_COLORS.textSubtle} />,
       label: '喜歡的類型',
-      value: person.favorite_route_types && person.favorite_route_types.length > 0
-        ? person.favorite_route_types.join('、')
-        : '能爬的都是好路線',
+      value:
+        person.favorite_route_types && person.favorite_route_types.length > 0
+          ? person.favorite_route_types.join('、')
+          : '能爬的都是好路線',
       isEmpty: !person.favorite_route_types || person.favorite_route_types.length === 0,
     },
   ]
@@ -145,11 +146,8 @@ export function QuickFactsSection({ person, tagLimit = 8 }: QuickFactsSectionPro
             關鍵字
           </Text>
           <View style={styles.tagsContainer}>
-            {visibleTags.map(tag => (
-              <View
-                key={tag.id}
-                style={[styles.tag, tag.isCustom && styles.tagCustom]}
-              >
+            {visibleTags.map((tag) => (
+              <View key={tag.id} style={[styles.tag, tag.isCustom && styles.tagCustom]}>
                 {tag.isCustom && <Sparkles size={12} color={BRAND_YELLOW[100]} />}
                 <Text variant="small" style={tag.isCustom ? styles.tagTextCustom : undefined}>
                   {tag.label}
@@ -158,10 +156,7 @@ export function QuickFactsSection({ person, tagLimit = 8 }: QuickFactsSectionPro
             ))}
 
             {!showAllTags && hiddenTagCount > 0 && (
-              <Pressable
-                style={styles.showMoreButton}
-                onPress={() => setShowAllTags(true)}
-              >
+              <Pressable style={styles.showMoreButton} onPress={() => setShowAllTags(true)}>
                 <Text variant="small" color="textMuted">
                   展開更多 (+{hiddenTagCount})
                 </Text>
@@ -170,10 +165,7 @@ export function QuickFactsSection({ person, tagLimit = 8 }: QuickFactsSectionPro
             )}
 
             {showAllTags && hiddenTagCount > 0 && (
-              <Pressable
-                style={styles.showMoreButton}
-                onPress={() => setShowAllTags(false)}
-              >
+              <Pressable style={styles.showMoreButton} onPress={() => setShowAllTags(false)}>
                 <Text variant="small" color="textMuted">
                   收合
                 </Text>

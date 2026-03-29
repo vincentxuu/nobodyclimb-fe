@@ -1,4 +1,4 @@
-import 'dotenv/config';
+import 'dotenv/config'
 
 export const config = {
   // Environment
@@ -9,4 +9,4 @@ export const config = {
 
   // Backend path (for wrangler CLI)
   backendPath: process.env.BACKEND_PATH || '/Users/xiaoxu/Projects/nobodyclimb/backend',
-};
+}

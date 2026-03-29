@@ -16,14 +16,14 @@ import type {
 
 export const SYSTEM_ONELINER_QUESTIONS = {
   // 核心三題
-  CLIMBING_ORIGIN: 'climbing_origin',           // 你與攀岩的相遇
-  CLIMBING_MEANING: 'climbing_meaning',         // 攀岩對你來說是什麼
-  ADVICE_TO_SELF: 'advice_to_self',             // 給剛開始攀岩的自己
+  CLIMBING_ORIGIN: 'climbing_origin', // 你與攀岩的相遇
+  CLIMBING_MEANING: 'climbing_meaning', // 攀岩對你來說是什麼
+  ADVICE_TO_SELF: 'advice_to_self', // 給剛開始攀岩的自己
   // 延伸題目
   FAVORITE_PLACE: 'favorite_place',
   BEST_MOMENT: 'best_moment',
   CURRENT_GOAL: 'current_goal',
-  CLIMBING_TAKEAWAY: 'climbing_takeaway',       // 一句話版本（避免與故事的 climbing_lesson 衝突）
+  CLIMBING_TAKEAWAY: 'climbing_takeaway', // 一句話版本（避免與故事的 climbing_lesson 衝突）
   CLIMBING_STYLE_DESC: 'climbing_style_desc',
   LIFE_OUTSIDE: 'life_outside',
   BUCKET_LIST: 'bucket_list',
@@ -570,30 +570,24 @@ export function normalizeOneLinerQuestionId(questionId: string): string {
 /**
  * 根據分類 ID 取得分類
  */
-export function getStoryCategoryById(
-  categoryId: string
-): StoryCategoryDefinition | undefined {
+export function getStoryCategoryById(categoryId: string): StoryCategoryDefinition | undefined {
   return SYSTEM_STORY_CATEGORY_LIST.find((cat) => cat.id === categoryId)
 }
 
 /**
  * 根據分類 ID 取得該分類的所有問題
  */
-export function getStoryQuestionsByCategory(
-  categoryId: string
-): StoryQuestion[] {
-  return SYSTEM_STORY_QUESTION_LIST.filter(
-    (q) => q.category_id === categoryId
-  ).sort((a, b) => a.order - b.order)
+export function getStoryQuestionsByCategory(categoryId: string): StoryQuestion[] {
+  return SYSTEM_STORY_QUESTION_LIST.filter((q) => q.category_id === categoryId).sort(
+    (a, b) => a.order - b.order
+  )
 }
 
 /**
  * 根據問題 ID 取得問題
  * 支援舊欄位名和 V2 ID
  */
-export function getStoryQuestionById(
-  questionId: string
-): StoryQuestion | undefined {
+export function getStoryQuestionById(questionId: string): StoryQuestion | undefined {
   // 先嘗試直接查找（V2 ID）
   const direct = SYSTEM_STORY_QUESTION_LIST.find((q) => q.id === questionId)
   if (direct) return direct
@@ -622,9 +616,7 @@ export function getStoryCategoryByQuestionId(
  * 根據一句話問題 ID 取得問題
  * 支援舊欄位名和 V2 ID
  */
-export function getOneLinerQuestionById(
-  questionId: string
-): OneLinerQuestion | undefined {
+export function getOneLinerQuestionById(questionId: string): OneLinerQuestion | undefined {
   // 先嘗試直接查找（V2 ID）
   const direct = SYSTEM_ONELINER_QUESTION_LIST.find((q) => q.id === questionId)
   if (direct) return direct
@@ -668,9 +660,7 @@ export function calculateStoryProgress(answeredQuestionIds: Set<string>): {
 
   for (const category of SYSTEM_STORY_CATEGORY_LIST) {
     const questions = getStoryQuestionsByCategory(category.id)
-    const completed = questions.filter((q) =>
-      answeredQuestionIds.has(q.id)
-    ).length
+    const completed = questions.filter((q) => answeredQuestionIds.has(q.id)).length
 
     byCategory.set(category.id, {
       completed,
@@ -727,6 +717,8 @@ export function getStoryQuestionsByStoryCategory(): Record<
 /**
  * 將系統分類 ID 轉換為 StoryCategory 類型
  */
-export function categoryIdToType(categoryId: string): import('@/lib/types/biography-v2').StoryCategory | undefined {
+export function categoryIdToType(
+  categoryId: string
+): import('@/lib/types/biography-v2').StoryCategory | undefined {
   return CATEGORY_ID_TO_TYPE[categoryId]
 }

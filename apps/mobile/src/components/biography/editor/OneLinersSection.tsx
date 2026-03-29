@@ -1,18 +1,18 @@
-import React, { useState } from 'react'
-import { View, Pressable, TextInput } from 'react-native'
-import { YStack, XStack, Text } from 'tamagui'
+import { COLORS, SEMANTIC_COLORS } from '@nobodyclimb/constants'
+import type { OneLiner, OneLinerQuestion } from '@nobodyclimb/types'
 import {
-  MessageCircle,
   Check,
   ChevronDown,
-  RefreshCw,
-  Plus,
   Clock,
   Lightbulb,
+  MessageCircle,
+  Plus,
+  RefreshCw,
   Sparkles,
 } from 'lucide-react-native'
-import { SEMANTIC_COLORS, COLORS } from '@nobodyclimb/constants'
-import type { OneLinerQuestion, OneLiner } from '@nobodyclimb/types'
+import { useState } from 'react'
+import { Pressable, TextInput, View } from 'react-native'
+import { Text, XStack, YStack } from 'tamagui'
 
 interface OneLinersSectionProps {
   /** 問題列表 */
@@ -204,7 +204,7 @@ export function OneLinersSection({
                   />
                   <XStack justifyContent="space-between" alignItems="center">
                     <Text fontSize={12} color={COLORS.text.muted}>
-                      {(answer?.length || 0)}/200
+                      {answer?.length || 0}/200
                     </Text>
                     {isFilled && (
                       <Pressable onPress={() => onAnswerChange(question.id, null)}>

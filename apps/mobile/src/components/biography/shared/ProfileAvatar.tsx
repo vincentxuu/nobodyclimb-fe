@@ -3,11 +3,12 @@
  *
  * 傳記頁面頭像組件，支援像素大小
  */
-import React, { useState } from 'react'
-import { View, StyleSheet, type ViewStyle } from 'react-native'
+
+import { SEMANTIC_COLORS, WB_COLORS } from '@nobodyclimb/constants'
 import { Image } from 'expo-image'
 import { User } from 'lucide-react-native'
-import { WB_COLORS, SEMANTIC_COLORS } from '@nobodyclimb/constants'
+import { useState } from 'react'
+import { StyleSheet, View, type ViewStyle } from 'react-native'
 
 export interface ProfileAvatarProps {
   /** 圖片來源 URL */
@@ -23,12 +24,7 @@ export interface ProfileAvatarProps {
 /**
  * 傳記頁面頭像組件
  */
-export function ProfileAvatar({
-  src,
-  name,
-  size = 80,
-  style,
-}: ProfileAvatarProps) {
+export function ProfileAvatar({ src, name, size = 80, style }: ProfileAvatarProps) {
   const [hasError, setHasError] = useState(false)
   const showFallback = !src || hasError
 

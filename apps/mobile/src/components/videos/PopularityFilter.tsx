@@ -1,9 +1,3 @@
-/**
- * PopularityFilter 組件
- *
- * 熱門度過濾器，對應 apps/web/src/components/videos/popularity-filter.tsx
- */
-import React from 'react'
 import { StyleSheet, View } from 'react-native'
 import { Select, type SelectOption } from '@/components/ui/Select'
 import { VIDEO_POPULARITY_OPTIONS, type VideoPopularity } from './types'

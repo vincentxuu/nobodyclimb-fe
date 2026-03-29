@@ -1,10 +1,10 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { Loader2, Tag, X } from 'lucide-react'
 import { useTranslations } from 'next-intl'
+import { useEffect, useState } from 'react'
+import type { ContentSource, TagDimension, TagOption } from '@/lib/types/biography-v2'
 import { cn } from '@/lib/utils'
-import { X, Loader2, Tag } from 'lucide-react'
-import type { TagDimension, TagOption, ContentSource } from '@/lib/types/biography-v2'
 
 interface AddCustomTagModalProps {
   /** 是否開啟 */
@@ -73,10 +73,7 @@ export function AddCustomTagModal({
   return (
     <div className="fixed inset-0 z-[150] flex items-end md:items-center justify-center">
       {/* Backdrop */}
-      <div
-        className="absolute inset-0 bg-brand-dark/30 backdrop-blur-sm"
-        onClick={onClose}
-      />
+      <div className="absolute inset-0 bg-brand-dark/30 backdrop-blur-sm" onClick={onClose} />
 
       {/* Modal */}
       <div
@@ -115,15 +112,14 @@ export function AddCustomTagModal({
               className="w-full px-4 py-3 bg-white border border-[#B6B3B3] rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-accent/50 focus:border-brand-dark transition-colors text-[#1B1A1A] placeholder:text-[#9D9D9D]"
               maxLength={20}
             />
-            <p className="text-xs text-[#8E8C8C]">
-              {t('tagNameHint')}
-            </p>
+            <p className="text-xs text-[#8E8C8C]">{t('tagNameHint')}</p>
           </div>
 
           {/* 標籤說明 */}
           <div className="space-y-2">
             <label className="block text-sm font-medium text-[#1B1A1A]">
-              {t('tagDescriptionLabel')} <span className="text-[#8E8C8C]">{t('tagDescriptionOptional')}</span>
+              {t('tagDescriptionLabel')}{' '}
+              <span className="text-[#8E8C8C]">{t('tagDescriptionOptional')}</span>
             </label>
             <input
               type="text"
@@ -133,9 +129,7 @@ export function AddCustomTagModal({
               className="w-full px-4 py-3 bg-white border border-[#B6B3B3] rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-accent/50 focus:border-brand-dark transition-colors text-[#1B1A1A] placeholder:text-[#9D9D9D]"
               maxLength={50}
             />
-            <p className="text-xs text-[#8E8C8C]">
-              {t('tagDescriptionHint')}
-            </p>
+            <p className="text-xs text-[#8E8C8C]">{t('tagDescriptionHint')}</p>
           </div>
 
           {/* 所屬維度 */}

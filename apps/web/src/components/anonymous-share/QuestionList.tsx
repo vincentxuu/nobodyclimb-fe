@@ -1,21 +1,21 @@
 'use client'
 
-import { useState, useMemo } from 'react'
 import {
-  Check,
-  Plus,
-  X,
-  ChevronRight,
-  ChevronDown,
-  Pen,
-  MessageCircle,
   BookOpen,
-  Sparkles,
+  Check,
+  ChevronDown,
+  ChevronRight,
   Loader2,
+  MessageCircle,
+  Pen,
+  Plus,
+  Sparkles,
+  X,
 } from 'lucide-react'
+import { useMemo, useState } from 'react'
+import { useQuestions } from '@/lib/hooks/useQuestions'
 import type { Question, StoryInput } from './questions'
 import { convertApiQuestionsToQuestions } from './questions'
-import { useQuestions } from '@/lib/hooks/useQuestions'
 
 interface QuestionListProps {
   stories: StoryInput[]
@@ -54,7 +54,9 @@ function AnsweredStories({
                 <Check className="h-4 w-4 text-green-600" />
               </div>
               <div className="min-w-0 flex-1">
-                <p className="truncate font-medium text-[#1B1A1A]">{q?.title || story.question_id}</p>
+                <p className="truncate font-medium text-[#1B1A1A]">
+                  {q?.title || story.question_id}
+                </p>
                 <p className="truncate text-sm text-gray-500">{story.content}</p>
               </div>
               <div className="flex gap-1">
@@ -101,9 +103,7 @@ function QuestionButton({
       </div>
       <div className="flex-1">
         <p className="font-medium text-[#1B1A1A]">{question.title}</p>
-        {question.subtitle && (
-          <p className="text-sm text-gray-500">{question.subtitle}</p>
-        )}
+        {question.subtitle && <p className="text-sm text-gray-500">{question.subtitle}</p>}
         {question.categoryName && !question.subtitle && (
           <span className="text-xs text-gray-400">{question.categoryName}</span>
         )}
@@ -161,11 +161,7 @@ function QuestionSection({
  * 問題列表組件
  * 預設顯示一題，點擊展開更多
  */
-export function QuestionList({
-  stories,
-  onSelectQuestion,
-  onRemoveStory,
-}: QuestionListProps) {
+export function QuestionList({ stories, onSelectQuestion, onRemoveStory }: QuestionListProps) {
   const [showMore, setShowMore] = useState(false)
   const { data: questionsData, isLoading } = useQuestions()
   const answeredIds = new Set(stories.map((s) => s.question_id))

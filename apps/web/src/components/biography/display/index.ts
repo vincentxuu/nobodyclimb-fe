@@ -5,19 +5,18 @@
  * @see docs/persona-page-layout.md
  */
 
-export { BiographyHero } from './BiographyHero'
-export { BiographyTags } from './BiographyTags'
-export { BiographyOneLiners } from './BiographyOneLiners'
-export { StoryCard } from './StoryCard'
-export { BiographyStories } from './BiographyStories'
+export { BiographyDetailPage } from './BiographyDetailPage'
 export { BiographyFootprints } from './BiographyFootprints'
 export { BiographyGallery } from './BiographyGallery'
+export { BiographyHero } from './BiographyHero'
+export { BiographyOneLiners } from './BiographyOneLiners'
 export { BiographySocials } from './BiographySocials'
-export { EmptyState, SectionEmptyState } from './EmptyState'
-export { BiographyDetailPage } from './BiographyDetailPage'
-
+export { BiographyStories } from './BiographyStories'
+export { BiographyTags } from './BiographyTags'
+export { ContentCommentSheet } from './ContentCommentSheet'
+export type { InteractorUser } from './ContentInteractorsPanel'
+export { ContentInteractorsPanel } from './ContentInteractorsPanel'
 // 共用互動組件
 export { ContentLikeButton } from './ContentLikeButton'
-export { ContentCommentSheet } from './ContentCommentSheet'
-export { ContentInteractorsPanel } from './ContentInteractorsPanel'
-export type { InteractorUser } from './ContentInteractorsPanel'
+export { EmptyState, SectionEmptyState } from './EmptyState'
+export { StoryCard } from './StoryCard'

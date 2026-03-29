@@ -1,20 +1,20 @@
 'use client'
 
-import { useState, useEffect, useCallback } from 'react'
-import { formatTaipei } from '@/lib/utils'
-import { adminBroadcastService, adminUserService, BroadcastRecord } from '@/lib/api/services'
 import {
-  Megaphone,
-  Send,
-  RefreshCw,
   AlertCircle,
   CheckCircle,
-  Users,
-  Clock,
-  Eye,
   ChevronLeft,
   ChevronRight,
+  Clock,
+  Eye,
+  Megaphone,
+  RefreshCw,
+  Send,
+  Users,
 } from 'lucide-react'
+import { useCallback, useEffect, useState } from 'react'
+import { adminBroadcastService, adminUserService, BroadcastRecord } from '@/lib/api/services'
+import { formatTaipei } from '@/lib/utils'
 
 export default function AdminBroadcast() {
   const [title, setTitle] = useState('')
@@ -111,7 +111,8 @@ export default function AdminBroadcast() {
         </div>
         {userStats && (
           <div className="text-sm text-wb-70">
-            目前活躍用戶：<span className="font-medium text-wb-100">{userStats.active}</span> / {userStats.total}
+            目前活躍用戶：<span className="font-medium text-wb-100">{userStats.active}</span> /{' '}
+            {userStats.total}
           </div>
         )}
       </div>
@@ -274,7 +275,9 @@ export default function AdminBroadcast() {
         {/* 分頁 */}
         {totalPages > 1 && (
           <div className="flex items-center justify-between px-6 py-4 border-t border-wb-20">
-            <p className="text-sm text-wb-70">第 {page} / {totalPages} 頁</p>
+            <p className="text-sm text-wb-70">
+              第 {page} / {totalPages} 頁
+            </p>
             <div className="flex items-center gap-2">
               <button
                 onClick={() => setPage((p) => Math.max(1, p - 1))}

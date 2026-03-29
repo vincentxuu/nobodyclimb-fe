@@ -1,5 +1,5 @@
-import * as React from 'react'
 import { ArrowRightCircle } from 'lucide-react'
+import * as React from 'react'
 import { cn } from '@/lib/utils'
 
 interface CardProps extends React.HTMLAttributes<HTMLDivElement> {
@@ -10,7 +10,10 @@ interface CardProps extends React.HTMLAttributes<HTMLDivElement> {
 
 const Card = React.forwardRef<HTMLDivElement, CardProps>(
   // eslint-disable-next-line no-unused-vars
-  ({ className, type = 'normal', state = 'normal', device: _device = 'desktop', ...props }, ref) => (
+  (
+    { className, type = 'normal', state = 'normal', device: _device = 'desktop', ...props },
+    ref
+  ) => (
     <div
       ref={ref}
       className={cn(
@@ -64,7 +67,15 @@ interface CardTitleProps extends React.HTMLAttributes<HTMLDivElement> {
 const CardTitle = React.forwardRef<HTMLDivElement, CardTitleProps>(
   (
     // eslint-disable-next-line no-unused-vars
-    { className, title, subtitle: _subtitle, experience, type: _type = 'normal', showArrow = false, ...props },
+    {
+      className,
+      title,
+      subtitle: _subtitle,
+      experience,
+      type: _type = 'normal',
+      showArrow = false,
+      ...props
+    },
     ref
   ) => (
     <div ref={ref} className={cn('mb-3 flex items-center justify-between', className)} {...props}>
@@ -111,11 +122,21 @@ const CardFooter = React.forwardRef<HTMLDivElement, React.HTMLAttributes<HTMLDiv
 )
 CardFooter.displayName = 'CardFooter'
 
-const CardDescription = React.forwardRef<HTMLParagraphElement, React.HTMLAttributes<HTMLParagraphElement>>(
-  ({ className, ...props }, ref) => (
-    <p ref={ref} className={cn('text-sm text-muted-foreground', className)} {...props} />
-  )
-)
+const CardDescription = React.forwardRef<
+  HTMLParagraphElement,
+  React.HTMLAttributes<HTMLParagraphElement>
+>(({ className, ...props }, ref) => (
+  <p ref={ref} className={cn('text-sm text-muted-foreground', className)} {...props} />
+))
 CardDescription.displayName = 'CardDescription'
 
-export { Card, CardMedia, CardInfo, CardTitle, CardContent, CardHeader, CardFooter, CardDescription }
+export {
+  Card,
+  CardContent,
+  CardDescription,
+  CardFooter,
+  CardHeader,
+  CardInfo,
+  CardMedia,
+  CardTitle,
+}

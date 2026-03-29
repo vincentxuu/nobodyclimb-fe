@@ -1,17 +1,45 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { Layers, Loader2, X } from 'lucide-react'
 import { useTranslations } from 'next-intl'
+import { useEffect, useState } from 'react'
+import type { ContentSource, TagDimension } from '@/lib/types/biography-v2'
 import { cn } from '@/lib/utils'
-import { X, Loader2, Layers } from 'lucide-react'
-import type { TagDimension, ContentSource } from '@/lib/types/biography-v2'
 
 // 常用 emoji 選項
 const EMOJI_OPTIONS = [
-  '🎯', '🎨', '🎸', '🎮', '🏆', '🌟', '💡', '🔥',
-  '🌈', '🎭', '🎪', '🎬', '📚', '🎤', '🎹', '🎻',
-  '🏋️', '🧗', '🚴', '🏃', '⛷️', '🏄', '🧘', '🤸',
-  '🍕', '🍜', '🍵', '🍺', '☕', '🥤', '🧋', '🍦',
+  '🎯',
+  '🎨',
+  '🎸',
+  '🎮',
+  '🏆',
+  '🌟',
+  '💡',
+  '🔥',
+  '🌈',
+  '🎭',
+  '🎪',
+  '🎬',
+  '📚',
+  '🎤',
+  '🎹',
+  '🎻',
+  '🏋️',
+  '🧗',
+  '🚴',
+  '🏃',
+  '⛷️',
+  '🏄',
+  '🧘',
+  '🤸',
+  '🍕',
+  '🍜',
+  '🍵',
+  '🍺',
+  '☕',
+  '🥤',
+  '🧋',
+  '🍦',
 ]
 
 interface AddCustomDimensionModalProps {
@@ -83,10 +111,7 @@ export function AddCustomDimensionModal({
   return (
     <div className="fixed inset-0 z-50 flex items-end md:items-center justify-center">
       {/* Backdrop */}
-      <div
-        className="absolute inset-0 bg-brand-dark/30 backdrop-blur-sm"
-        onClick={onClose}
-      />
+      <div className="absolute inset-0 bg-brand-dark/30 backdrop-blur-sm" onClick={onClose} />
 
       {/* Modal */}
       <div
@@ -165,15 +190,14 @@ export function AddCustomDimensionModal({
               className="w-full px-4 py-3 bg-white border border-[#B6B3B3] rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-accent/50 focus:border-brand-dark transition-colors text-[#1B1A1A] placeholder:text-[#9D9D9D]"
               maxLength={10}
             />
-            <p className="text-xs text-[#8E8C8C]">
-              {t('dimensionNameHint')}
-            </p>
+            <p className="text-xs text-[#8E8C8C]">{t('dimensionNameHint')}</p>
           </div>
 
           {/* 維度說明 */}
           <div className="space-y-2">
             <label className="block text-sm font-medium text-[#1B1A1A]">
-              {t('dimensionDescriptionLabel')} <span className="text-[#8E8C8C]">{t('dimensionDescriptionOptional')}</span>
+              {t('dimensionDescriptionLabel')}{' '}
+              <span className="text-[#8E8C8C]">{t('dimensionDescriptionOptional')}</span>
             </label>
             <input
               type="text"
@@ -228,7 +252,9 @@ export function AddCustomDimensionModal({
                 <span className="text-xl">{emoji}</span>
                 <span className="font-medium text-[#1B1A1A]">{name.trim()}</span>
                 <span className="text-xs text-[#6D6C6C] px-2 py-0.5 bg-white rounded-full">
-                  {selectionMode === 'single' ? t('dimensionSingleMode') : t('dimensionMultipleHint')}
+                  {selectionMode === 'single'
+                    ? t('dimensionSingleMode')
+                    : t('dimensionMultipleHint')}
                 </span>
               </div>
               {description.trim() && (
@@ -239,9 +265,7 @@ export function AddCustomDimensionModal({
 
           {/* 提示 */}
           <div className="bg-brand-accent/10 rounded-lg p-4">
-            <p className="text-sm text-[#3F3D3D]">
-              {t('dimensionCreateHint')}
-            </p>
+            <p className="text-sm text-[#3F3D3D]">{t('dimensionCreateHint')}</p>
           </div>
         </div>
 

@@ -1,11 +1,11 @@
 'use client'
 
-import { useState } from 'react'
+import { Camera, ChevronLeft, ChevronRight, X } from 'lucide-react'
 import Image from 'next/image'
-import { cn } from '@/lib/utils'
-import { Camera, X, ChevronLeft, ChevronRight } from 'lucide-react'
-import type { BiographyV2, GalleryImage } from '@/lib/types/biography-v2'
 import { useTranslations } from 'next-intl'
+import { useState } from 'react'
+import type { BiographyV2, GalleryImage } from '@/lib/types/biography-v2'
+import { cn } from '@/lib/utils'
 
 interface BiographyGalleryProps {
   /** 人物誌資料 */
@@ -141,11 +141,8 @@ export function BiographyGallery({
                 className="absolute left-4 text-white/80 hover:text-white"
                 onClick={(e) => {
                   e.stopPropagation()
-                  const currentIndex = images.findIndex(
-                    (img) => img.id === selectedImage.id
-                  )
-                  const prevIndex =
-                    currentIndex === 0 ? images.length - 1 : currentIndex - 1
+                  const currentIndex = images.findIndex((img) => img.id === selectedImage.id)
+                  const prevIndex = currentIndex === 0 ? images.length - 1 : currentIndex - 1
                   setSelectedImage(images[prevIndex])
                 }}
               >
@@ -155,11 +152,8 @@ export function BiographyGallery({
                 className="absolute right-4 text-white/80 hover:text-white"
                 onClick={(e) => {
                   e.stopPropagation()
-                  const currentIndex = images.findIndex(
-                    (img) => img.id === selectedImage.id
-                  )
-                  const nextIndex =
-                    currentIndex === images.length - 1 ? 0 : currentIndex + 1
+                  const currentIndex = images.findIndex((img) => img.id === selectedImage.id)
+                  const nextIndex = currentIndex === images.length - 1 ? 0 : currentIndex + 1
                   setSelectedImage(images[nextIndex])
                 }}
               >

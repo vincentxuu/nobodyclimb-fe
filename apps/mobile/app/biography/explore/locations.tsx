@@ -3,24 +3,24 @@
  *
  * 對應 apps/web/src/app/biography/explore/locations/page.tsx
  */
-import React, { useState, useMemo, useCallback } from 'react'
+
+import { SEMANTIC_COLORS, SPACING } from '@nobodyclimb/constants'
+import { useQuery, useQueryClient } from '@tanstack/react-query'
+import { useRouter } from 'expo-router'
+import { ChevronLeft, Globe, MapPin, Users } from 'lucide-react-native'
+import { useCallback, useMemo, useState } from 'react'
 import {
+  ActivityIndicator,
+  FlatList,
+  Pressable,
+  RefreshControl,
   StyleSheet,
   View,
-  FlatList,
-  RefreshControl,
-  Pressable,
-  ActivityIndicator,
 } from 'react-native'
-import { SafeAreaView } from 'react-native-safe-area-context'
-import { useRouter } from 'expo-router'
 import Animated, { FadeInDown } from 'react-native-reanimated'
-import { ChevronLeft, MapPin, Globe, Users } from 'lucide-react-native'
-import { useQuery, useQueryClient } from '@tanstack/react-query'
-
-import { Text, Card, Avatar, SearchInput, IconButton } from '@/components/ui'
+import { SafeAreaView } from 'react-native-safe-area-context'
+import { Avatar, Card, IconButton, SearchInput, Text } from '@/components/ui'
 import { apiClient } from '@/lib/api'
-import { SEMANTIC_COLORS, SPACING } from '@nobodyclimb/constants'
 
 // 類型定義
 interface LocationData {
@@ -64,13 +64,9 @@ export default function LocationsScreen() {
 
     // 依分頁過濾（根據 country 判斷台灣或海外）
     if (activeTab === 'taiwan') {
-      filtered = filtered.filter(
-        (loc) => loc.country === '台灣' || loc.country === 'Taiwan'
-      )
+      filtered = filtered.filter((loc) => loc.country === '台灣' || loc.country === 'Taiwan')
     } else if (activeTab === 'overseas') {
-      filtered = filtered.filter(
-        (loc) => loc.country !== '台灣' && loc.country !== 'Taiwan'
-      )
+      filtered = filtered.filter((loc) => loc.country !== '台灣' && loc.country !== 'Taiwan')
     }
 
     // 依搜尋詞過濾
@@ -78,8 +74,7 @@ export default function LocationsScreen() {
       const search = searchTerm.toLowerCase()
       filtered = filtered.filter(
         (loc) =>
-          loc.location.toLowerCase().includes(search) ||
-          loc.country.toLowerCase().includes(search)
+          loc.location.toLowerCase().includes(search) || loc.country.toLowerCase().includes(search)
       )
     }
 
@@ -89,17 +84,11 @@ export default function LocationsScreen() {
 
   // 計算分頁數量
   const taiwanCount = useMemo(
-    () =>
-      locations.filter(
-        (loc) => loc.country === '台灣' || loc.country === 'Taiwan'
-      ).length,
+    () => locations.filter((loc) => loc.country === '台灣' || loc.country === 'Taiwan').length,
     [locations]
   )
   const overseasCount = useMemo(
-    () =>
-      locations.filter(
-        (loc) => loc.country !== '台灣' && loc.country !== 'Taiwan'
-      ).length,
+    () => locations.filter((loc) => loc.country !== '台灣' && loc.country !== 'Taiwan').length,
     [locations]
   )
 

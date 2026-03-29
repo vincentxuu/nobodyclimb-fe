@@ -1,4 +1,4 @@
-import { render, fireEvent } from '@testing-library/react-native'
+import { fireEvent, render } from '@testing-library/react-native'
 import { Linking } from 'react-native'
 import { SourceCard } from '../SourceCard'
 
@@ -28,7 +28,7 @@ describe('SourceCard', () => {
 
   it('renders route, crag, and video types without crashing', () => {
     const types = ['route', 'crag', 'video'] as const
-    types.forEach(type => {
+    types.forEach((type) => {
       expect(() => render(<SourceCard source={{ ...MOCK_SOURCE, type }} />)).not.toThrow()
     })
   })

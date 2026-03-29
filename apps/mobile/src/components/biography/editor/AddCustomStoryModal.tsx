@@ -1,18 +1,18 @@
-import React, { useState, useEffect, useMemo } from 'react'
+import { COLORS, SEMANTIC_COLORS } from '@nobodyclimb/constants'
+import type { ContentSource, StoryCategoryDefinition, StoryQuestion } from '@nobodyclimb/types'
+import { BookOpen, ChevronDown, Loader2, X } from 'lucide-react-native'
+import { useEffect, useState } from 'react'
 import {
-  View,
-  Pressable,
-  TextInput,
-  Modal,
   KeyboardAvoidingView,
+  Modal,
   Platform,
+  Pressable,
   ScrollView,
+  TextInput,
+  View,
 } from 'react-native'
-import { YStack, XStack, Text } from 'tamagui'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
-import { X, Loader2, BookOpen, ChevronDown } from 'lucide-react-native'
-import { SEMANTIC_COLORS, COLORS } from '@nobodyclimb/constants'
-import type { StoryQuestion, StoryCategoryDefinition, ContentSource } from '@nobodyclimb/types'
+import { Text, XStack, YStack } from 'tamagui'
 
 interface AddCustomStoryModalProps {
   /** 是否開啟 */
@@ -85,7 +85,13 @@ export function AddCustomStoryModal({
   if (!isOpen) return null
 
   return (
-    <Modal visible={isOpen} animationType="slide" transparent statusBarTranslucent onRequestClose={onClose}>
+    <Modal
+      visible={isOpen}
+      animationType="slide"
+      transparent
+      statusBarTranslucent
+      onRequestClose={onClose}
+    >
       <View
         style={{
           flex: 1,

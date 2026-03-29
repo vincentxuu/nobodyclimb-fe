@@ -62,7 +62,9 @@ export function generateSummary(
 
   // 先解碼 HTML 實體，再移除 HTML 標籤
   // 這樣可以確保解碼後產生的標籤（如 &lt;b&gt; -> <b>）也會被移除
-  const plainTextContent = decodeHtmlEntities(content).replace(/<[^>]*>/g, '').trim()
+  const plainTextContent = decodeHtmlEntities(content)
+    .replace(/<[^>]*>/g, '')
+    .trim()
 
   // 如果內容為空，返回空字串
   if (!plainTextContent) {

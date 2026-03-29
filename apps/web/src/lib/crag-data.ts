@@ -3,12 +3,12 @@
  * 負責讀取和處理岩場 JSON 資料
  */
 
-import longdongData from '@/data/crags/longdong.json'
+import videoMetadata from '@/../public/data/video-metadata.json'
 import defulanData from '@/data/crags/defulan.json'
 import guanzilingData from '@/data/crags/guanziling.json'
-import shoushanData from '@/data/crags/shoushan.json'
 import kentingData from '@/data/crags/kenting.json'
-import videoMetadata from '@/../public/data/video-metadata.json'
+import longdongData from '@/data/crags/longdong.json'
+import shoushanData from '@/data/crags/shoushan.json'
 
 // ============ 影片元數據類型與工具 ============
 
@@ -229,22 +229,22 @@ function initializeCache() {
   cragsDataMap.forEach((data, cragId) => {
     // 緩存區域名稱映射
     const areaMap = new Map<string, string>()
-    data.areas.forEach(area => {
+    data.areas.forEach((area) => {
       areaMap.set(area.id, area.name)
     })
     areaNameCache.set(cragId, areaMap)
 
     // 預計算每個區域的 sectors
-    data.areas.forEach(area => {
+    data.areas.forEach((area) => {
       const cacheKey = `${cragId}:${area.id}`
       const sectorsSet = new Set<string>()
       data.routes
-        .filter(route => route.areaId === area.id && route.sector)
-        .forEach(route => sectorsSet.add(route.sector!))
+        .filter((route) => route.areaId === area.id && route.sector)
+        .forEach((route) => sectorsSet.add(route.sector!))
 
       sectorsCache.set(
         cacheKey,
-        Array.from(sectorsSet).map(sector => ({ id: sector, name: sector }))
+        Array.from(sectorsSet).map((sector) => ({ id: sector, name: sector }))
       )
     })
   })
@@ -453,11 +453,10 @@ export function getFeaturedRoutes(limit: number = 8): FeaturedRouteItem[] {
   const routesByCrag = new Map<string, RouteSearchItem[]>()
 
   allRoutes
-    .filter(item =>
-      item.route.status === 'published' &&
-      (item.route.youtubeVideos?.length || 0) > 0
+    .filter(
+      (item) => item.route.status === 'published' && (item.route.youtubeVideos?.length || 0) > 0
     )
-    .forEach(item => {
+    .forEach((item) => {
       const list = routesByCrag.get(item.cragId) || []
       list.push(item)
       routesByCrag.set(item.cragId, list)
@@ -476,7 +475,7 @@ export function getFeaturedRoutes(limit: number = 8): FeaturedRouteItem[] {
   // 輪流從各岩場選取路線
   const result: RouteSearchItem[] = []
   const cragIds = Array.from(routesByCrag.keys())
-  const indices = new Map<string, number>(cragIds.map(id => [id, 0]))
+  const indices = new Map<string, number>(cragIds.map((id) => [id, 0]))
 
   while (result.length < limit) {
     let added = false
@@ -493,7 +492,7 @@ export function getFeaturedRoutes(limit: number = 8): FeaturedRouteItem[] {
     if (!added) break
   }
 
-  return result.map(item => {
+  return result.map((item) => {
     // 取得最新影片的縮圖
     const firstVideoUrl = item.route.youtubeVideos?.[0]
     const videoId = firstVideoUrl ? extractYoutubeId(firstVideoUrl) : null
@@ -524,7 +523,7 @@ export function getFeaturedRoutes(limit: number = 8): FeaturedRouteItem[] {
 export function getRoutesByArea(cragId: string, areaId: string): CragRoute[] {
   const data = cragsDataMap.get(cragId)
   if (!data) return []
-  return data.routes.filter(route => route.areaId === areaId)
+  return data.routes.filter((route) => route.areaId === areaId)
 }
 
 /**
@@ -533,7 +532,7 @@ export function getRoutesByArea(cragId: string, areaId: string): CragRoute[] {
 export function getRouteById(cragId: string, routeId: string): CragRoute | null {
   const data = cragsDataMap.get(cragId)
   if (!data) return null
-  return data.routes.find(route => route.id === routeId) || null
+  return data.routes.find((route) => route.id === routeId) || null
 }
 
 /**
@@ -590,16 +589,16 @@ export function getRouteDetailData(cragId: string, routeId: string): RouteDetail
   const fullData = getCragById(cragId)
   if (!fullData) return null
 
-  const route = fullData.routes.find(r => r.id === routeId)
+  const route = fullData.routes.find((r) => r.id === routeId)
   if (!route) return null
 
-  const area = fullData.areas.find(a => a.id === route.areaId)
+  const area = fullData.areas.find((a) => a.id === route.areaId)
 
   // 獲取同區域的相關路線（排除當前路線，最多 5 條）
   const relatedRoutes = fullData.routes
-    .filter(r => r.areaId === route.areaId && r.id !== routeId)
+    .filter((r) => r.areaId === route.areaId && r.id !== routeId)
     .slice(0, 5)
-    .map(r => ({
+    .map((r) => ({
       id: r.id,
       name: r.name,
       grade: r.grade,
@@ -637,11 +636,13 @@ export function getRouteDetailData(cragId: string, routeId: string): RouteDetail
       slug: fullData.crag.slug,
       location: fullData.crag.location.address,
     },
-    area: area ? {
-      id: area.id,
-      name: area.name,
-      nameEn: area.nameEn,
-    } : null,
+    area: area
+      ? {
+          id: area.id,
+          name: area.name,
+          nameEn: area.nameEn,
+        }
+      : null,
     relatedRoutes,
   }
 }
@@ -699,7 +700,10 @@ export function getCragAreasForFilter(cragId: string): Array<{ id: string; name:
  * 獲取指定區域的 sector 列表（側邊欄篩選用）
  * 使用預計算緩存，避免每次都遍歷所有路線
  */
-export function getSectorsForArea(cragId: string, areaId: string): Array<{ id: string; name: string }> {
+export function getSectorsForArea(
+  cragId: string,
+  areaId: string
+): Array<{ id: string; name: string }> {
   const cacheKey = `${cragId}:${areaId}`
   return sectorsCache.get(cacheKey) || []
 }
@@ -776,7 +780,7 @@ export function getAllRouteParams(): Array<{ id: string; routeId: string }> {
 export function getAreaById(cragId: string, areaId: string): CragArea | null {
   const data = cragsDataMap.get(cragId)
   if (!data) return null
-  return data.areas.find(area => area.id === areaId) || null
+  return data.areas.find((area) => area.id === areaId) || null
 }
 
 /**
@@ -786,14 +790,14 @@ export function getAreaDetailData(cragId: string, areaId: string) {
   const fullData = getCragById(cragId)
   if (!fullData) return null
 
-  const area = fullData.areas.find(a => a.id === areaId)
+  const area = fullData.areas.find((a) => a.id === areaId)
   if (!area) return null
 
-  const areaRoutes = fullData.routes.filter(route => route.areaId === areaId)
+  const areaRoutes = fullData.routes.filter((route) => route.areaId === areaId)
 
   // 計算該區的難度分佈
   const gradeDistribution: Record<string, number> = {}
-  areaRoutes.forEach(route => {
+  areaRoutes.forEach((route) => {
     const grade = route.grade
     gradeDistribution[grade] = (gradeDistribution[grade] || 0) + 1
   })
@@ -808,9 +812,14 @@ export function getAreaDetailData(cragId: string, areaId: string) {
     '5.14+': 0,
   }
 
-  areaRoutes.forEach(route => {
+  areaRoutes.forEach((route) => {
     const grade = route.grade
-    if (grade.startsWith('5.6') || grade.startsWith('5.7') || grade.startsWith('5.8') || grade.startsWith('5.9')) {
+    if (
+      grade.startsWith('5.6') ||
+      grade.startsWith('5.7') ||
+      grade.startsWith('5.8') ||
+      grade.startsWith('5.9')
+    ) {
       gradeRanges['5.6-5.9']++
     } else if (grade.startsWith('5.10')) {
       gradeRanges['5.10a-5.10d']++
@@ -827,15 +836,15 @@ export function getAreaDetailData(cragId: string, areaId: string) {
 
   // 計算路線類型分佈
   const typeDistribution: Record<string, number> = {}
-  areaRoutes.forEach(route => {
+  areaRoutes.forEach((route) => {
     const type = route.type
     typeDistribution[type] = (typeDistribution[type] || 0) + 1
   })
 
   // 獲取同一岩場的其他區域
   const otherAreas = fullData.areas
-    .filter(a => a.id !== areaId)
-    .map(a => ({
+    .filter((a) => a.id !== areaId)
+    .map((a) => ({
       id: a.id,
       name: a.name,
       nameEn: a.nameEn,
@@ -857,9 +866,7 @@ export function getAreaDetailData(cragId: string, areaId: string) {
       nameEn: area.nameEn,
       description: area.description || '',
       descriptionEn: area.descriptionEn || '',
-      difficulty: area.difficulty
-        ? `${area.difficulty.min} - ${area.difficulty.max}`
-        : '',
+      difficulty: area.difficulty ? `${area.difficulty.min} - ${area.difficulty.max}` : '',
       difficultyMin: area.difficulty?.min || '',
       difficultyMax: area.difficulty?.max || '',
       image: CRAG_FALLBACK_IMAGE,
@@ -867,7 +874,7 @@ export function getAreaDetailData(cragId: string, areaId: string) {
       routesCount: area.routesCount,
       sectors: area.sectors || [],
     },
-    routes: areaRoutes.map(route => ({
+    routes: areaRoutes.map((route) => ({
       id: route.id,
       name: route.name,
       englishName: route.nameEn,
@@ -924,7 +931,7 @@ export function searchCrags(options: {
   if (options.query) {
     const query = options.query.toLowerCase()
     crags = crags.filter(
-      crag =>
+      (crag) =>
         crag.name.toLowerCase().includes(query) ||
         crag.nameEn.toLowerCase().includes(query) ||
         crag.location.toLowerCase().includes(query)
@@ -932,15 +939,15 @@ export function searchCrags(options: {
   }
 
   if (options.region && options.region !== '全部') {
-    crags = crags.filter(crag => crag.location.includes(options.region!))
+    crags = crags.filter((crag) => crag.location.includes(options.region!))
   }
 
   if (options.rockType && options.rockType !== '全部') {
-    crags = crags.filter(crag => crag.type.includes(options.rockType!))
+    crags = crags.filter((crag) => crag.type.includes(options.rockType!))
   }
 
   if (options.season && options.season !== '全部') {
-    crags = crags.filter(crag => crag.seasons.includes(options.season!))
+    crags = crags.filter((crag) => crag.seasons.includes(options.season!))
   }
 
   return crags
@@ -976,7 +983,7 @@ export function getCragDetailData(id: string) {
     height: `${crag.height.min}-${crag.height.max}${crag.height.unit}`,
     approach: crag.access.approach,
     seasons: crag.seasons,
-    transportation: crag.access.transportation.map(t => ({
+    transportation: crag.access.transportation.map((t) => ({
       type: t.type,
       description: t.description,
     })),
@@ -990,17 +997,15 @@ export function getCragDetailData(id: string) {
     },
     // 天氣查詢用的位置資訊（優先使用地址，包含完整的縣市區域資訊）
     weatherLocation: crag.location.address || crag.location.region,
-    areas: areas.map(area => ({
+    areas: areas.map((area) => ({
       id: area.id,
       name: area.name,
       description: area.description || '',
-      difficulty: area.difficulty
-        ? `${area.difficulty.min} - ${area.difficulty.max}`
-        : '',
+      difficulty: area.difficulty ? `${area.difficulty.min} - ${area.difficulty.max}` : '',
       routes: area.routesCount,
       image: CRAG_FALLBACK_IMAGE,
     })),
-    routes_details: routes.map(route => {
+    routes_details: routes.map((route) => {
       // 使用緩存的區域名稱映射，O(1) 查找取代 O(n) 的 .find()
       const areaNameMap = areaNameCache.get(id)
       const routeAreaName = areaNameMap?.get(route.areaId) || route.sector || ''

@@ -1,18 +1,18 @@
 'use client'
 
-import { cn } from '@/lib/utils'
 import type { BiographyV2 } from '@/lib/types/biography-v2'
-import { BiographyHero } from './BiographyHero'
-import { BiographyTags } from './BiographyTags'
-import { BiographyOneLiners } from './BiographyOneLiners'
-import { BiographyStories } from './BiographyStories'
+import { cn } from '@/lib/utils'
+import { ChapterAdvice } from '../profile/ChapterAdvice'
+import { ChapterBucketList } from '../profile/ChapterBucketList'
+import { ChapterMeaning } from '../profile/ChapterMeaning'
+import { ChapterMeeting } from '../profile/ChapterMeeting'
 import { BiographyFootprints } from './BiographyFootprints'
 import { BiographyGallery } from './BiographyGallery'
+import { BiographyHero } from './BiographyHero'
+import { BiographyOneLiners } from './BiographyOneLiners'
+import { BiographyStories } from './BiographyStories'
+import { BiographyTags } from './BiographyTags'
 import { EmptyState } from './EmptyState'
-import { ChapterMeeting } from '../profile/ChapterMeeting'
-import { ChapterMeaning } from '../profile/ChapterMeaning'
-import { ChapterBucketList } from '../profile/ChapterBucketList'
-import { ChapterAdvice } from '../profile/ChapterAdvice'
 
 interface BiographyDetailPageProps {
   /** 人物誌資料 */

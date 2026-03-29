@@ -1,10 +1,10 @@
-import { Hono } from 'hono';
-import { z } from 'zod';
-import { describeRoute, validator } from 'hono-openapi';
-import { Env } from '../types';
-import { authMiddleware, adminMiddleware } from '../middleware/auth';
+import { Hono } from 'hono'
+import { describeRoute, validator } from 'hono-openapi'
+import { z } from 'zod'
+import { adminMiddleware, authMiddleware } from '../middleware/auth'
+import { Env } from '../types'
 
-export const adminImportRoutes = new Hono<{ Bindings: Env }>();
+export const adminImportRoutes = new Hono<{ Bindings: Env }>()
 
 // ============================================
 // Validation Schemas
@@ -19,13 +19,13 @@ const videoSchema = z.object({
   duration: z.number(),
   viewCount: z.number(),
   thumbnailUrl: z.string(),
-});
+})
 
 const routeVideoSchema = z.object({
   routeId: z.string(),
   videoId: z.string(),
   sortOrder: z.number(),
-});
+})
 
 const sectorSchema = z.object({
   id: z.string(),
@@ -33,7 +33,7 @@ const sectorSchema = z.object({
   name: z.string(),
   nameEn: z.string().optional(),
   sortOrder: z.number(),
-});
+})
 
 const areaSchema = z.object({
   id: z.string(),
@@ -46,7 +46,7 @@ const areaSchema = z.object({
   boltCount: z.number().optional(),
   routeCount: z.number().optional(),
   sortOrder: z.number(),
-});
+})
 
 const routeSchema = z.object({
   id: z.string(),
@@ -71,7 +71,7 @@ const routeSchema = z.object({
   tips: z.string().nullable().optional(),
   protection: z.string().nullable().optional(),
   anchorType: z.string().nullable().optional(),
-});
+})
 
 const cragSchema = z.object({
   id: z.string(),
@@ -101,31 +101,36 @@ const cragSchema = z.object({
   liveVideoId: z.string().nullable().optional(),
   liveVideoTitle: z.string().nullable().optional(),
   liveVideoDescription: z.string().nullable().optional(),
-  transportation: z.array(z.object({
-    type: z.string(),
-    description: z.string(),
-  })).nullable().optional(),
+  transportation: z
+    .array(
+      z.object({
+        type: z.string(),
+        description: z.string(),
+      })
+    )
+    .nullable()
+    .optional(),
   amenities: z.array(z.string()).nullable().optional(),
   googleMapsUrl: z.string().nullable().optional(),
   ratingAvg: z.number().nullable().optional(),
   heightMin: z.number().nullable().optional(),
   heightMax: z.number().nullable().optional(),
-});
+})
 
 const importVideosSchema = z.object({
   videos: z.array(videoSchema),
-});
+})
 
 const importRouteVideosSchema = z.object({
   routeVideos: z.array(routeVideoSchema),
-});
+})
 
 const importCragSchema = z.object({
   crag: cragSchema,
   areas: z.array(areaSchema).optional(),
   sectors: z.array(sectorSchema).optional(),
   routes: z.array(routeSchema).optional(),
-});
+})
 
 // ============================================
 // POST /admin/import/videos - Batch import videos
@@ -146,16 +151,16 @@ adminImportRoutes.post(
   adminMiddleware,
   validator('json', importVideosSchema),
   async (c) => {
-    const { videos } = c.req.valid('json');
+    const { videos } = c.req.valid('json')
 
     if (videos.length === 0) {
-      return c.json({ success: true, imported: 0 });
+      return c.json({ success: true, imported: 0 })
     }
 
     try {
       // Build batch statements
       const statements = videos.map((video) => {
-        const slug = `yt-${video.id}`;
+        const slug = `yt-${video.id}`
         return c.env.DB.prepare(
           `INSERT INTO videos (
             id, title, slug, youtube_id, thumbnail_url, duration,
@@ -181,26 +186,29 @@ adminImportRoutes.post(
           video.channelId,
           video.uploadDate,
           video.viewCount
-        );
-      });
+        )
+      })
 
       // Execute batch
-      await c.env.DB.batch(statements);
+      await c.env.DB.batch(statements)
 
       return c.json({
         success: true,
         imported: videos.length,
-      });
+      })
     } catch (error) {
-      const message = error instanceof Error ? error.message : String(error);
-      return c.json({
-        success: false,
-        error: 'Database Error',
-        message: `批量導入失敗: ${message}`,
-      }, 500);
+      const message = error instanceof Error ? error.message : String(error)
+      return c.json(
+        {
+          success: false,
+          error: 'Database Error',
+          message: `批量導入失敗: ${message}`,
+        },
+        500
+      )
     }
   }
-);
+)
 
 // ============================================
 // POST /admin/import/route-videos - Batch import route-video relations
@@ -221,38 +229,41 @@ adminImportRoutes.post(
   adminMiddleware,
   validator('json', importRouteVideosSchema),
   async (c) => {
-    const { routeVideos } = c.req.valid('json');
+    const { routeVideos } = c.req.valid('json')
 
     if (routeVideos.length === 0) {
-      return c.json({ success: true, imported: 0 });
+      return c.json({ success: true, imported: 0 })
     }
 
     try {
       const statements = routeVideos.map((rv) => {
-        const id = `${rv.routeId}-${rv.videoId}`;
+        const id = `${rv.routeId}-${rv.videoId}`
         return c.env.DB.prepare(
           `INSERT INTO route_videos (id, route_id, video_id, sort_order, created_at)
            VALUES (?, ?, ?, ?, datetime('now'))
            ON CONFLICT(route_id, video_id) DO UPDATE SET sort_order = excluded.sort_order`
-        ).bind(id, rv.routeId, rv.videoId, rv.sortOrder);
-      });
+        ).bind(id, rv.routeId, rv.videoId, rv.sortOrder)
+      })
 
-      await c.env.DB.batch(statements);
+      await c.env.DB.batch(statements)
 
       return c.json({
         success: true,
         imported: routeVideos.length,
-      });
+      })
     } catch (error) {
-      const message = error instanceof Error ? error.message : String(error);
-      return c.json({
-        success: false,
-        error: 'Database Error',
-        message: `路線影片關聯導入失敗: ${message}`,
-      }, 500);
+      const message = error instanceof Error ? error.message : String(error)
+      return c.json(
+        {
+          success: false,
+          error: 'Database Error',
+          message: `路線影片關聯導入失敗: ${message}`,
+        },
+        500
+      )
     }
   }
-);
+)
 
 // ============================================
 // POST /admin/import/crag - Import a crag with all related data
@@ -273,15 +284,15 @@ adminImportRoutes.post(
   adminMiddleware,
   validator('json', importCragSchema),
   async (c) => {
-    const { crag, areas = [], sectors = [], routes = [] } = c.req.valid('json');
+    const { crag, areas = [], sectors = [], routes = [] } = c.req.valid('json')
 
     try {
-    const statements: ReturnType<typeof c.env.DB.prepare>[] = [];
+      const statements: ReturnType<typeof c.env.DB.prepare>[] = []
 
-    // 1. Upsert crag
-    statements.push(
-      c.env.DB.prepare(
-        `INSERT INTO crags (
+      // 1. Upsert crag
+      statements.push(
+        c.env.DB.prepare(
+          `INSERT INTO crags (
           id, name, slug, description, location, region,
           latitude, longitude, altitude, rock_type, climbing_types,
           difficulty_range, cover_image, is_featured, access_info,
@@ -335,47 +346,47 @@ adminImportRoutes.post(
           height_min = COALESCE(excluded.height_min, height_min),
           height_max = COALESCE(excluded.height_max, height_max),
           updated_at = datetime('now')`
-      ).bind(
-        crag.id,
-        crag.name,
-        crag.slug,
-        crag.description || null,
-        crag.location || null,
-        crag.region || null,
-        crag.latitude || null,
-        crag.longitude || null,
-        crag.altitude || null,
-        crag.rockType || null,
-        crag.climbingTypes ? JSON.stringify(crag.climbingTypes) : null,
-        crag.difficultyRange || null,
-        crag.coverImage || null,
-        crag.isFeatured ? 1 : 0,
-        crag.accessInfo || null,
-        crag.parkingInfo || null,
-        crag.approachTime || null,
-        crag.bestSeasons ? JSON.stringify(crag.bestSeasons) : null,
-        crag.restrictions || null,
-        crag.metadataSource || null,
-        crag.metadataSourceUrl || null,
-        crag.metadataMaintainer || null,
-        crag.metadataMaintainerUrl || null,
-        crag.liveVideoId || null,
-        crag.liveVideoTitle || null,
-        crag.liveVideoDescription || null,
-        crag.transportation ? JSON.stringify(crag.transportation) : null,
-        crag.amenities ? JSON.stringify(crag.amenities) : null,
-        crag.googleMapsUrl || null,
-        crag.ratingAvg || null,
-        crag.heightMin || null,
-        crag.heightMax || null
+        ).bind(
+          crag.id,
+          crag.name,
+          crag.slug,
+          crag.description || null,
+          crag.location || null,
+          crag.region || null,
+          crag.latitude || null,
+          crag.longitude || null,
+          crag.altitude || null,
+          crag.rockType || null,
+          crag.climbingTypes ? JSON.stringify(crag.climbingTypes) : null,
+          crag.difficultyRange || null,
+          crag.coverImage || null,
+          crag.isFeatured ? 1 : 0,
+          crag.accessInfo || null,
+          crag.parkingInfo || null,
+          crag.approachTime || null,
+          crag.bestSeasons ? JSON.stringify(crag.bestSeasons) : null,
+          crag.restrictions || null,
+          crag.metadataSource || null,
+          crag.metadataSourceUrl || null,
+          crag.metadataMaintainer || null,
+          crag.metadataMaintainerUrl || null,
+          crag.liveVideoId || null,
+          crag.liveVideoTitle || null,
+          crag.liveVideoDescription || null,
+          crag.transportation ? JSON.stringify(crag.transportation) : null,
+          crag.amenities ? JSON.stringify(crag.amenities) : null,
+          crag.googleMapsUrl || null,
+          crag.ratingAvg || null,
+          crag.heightMin || null,
+          crag.heightMax || null
+        )
       )
-    );
 
-    // 2. Upsert areas
-    for (const area of areas) {
-      statements.push(
-        c.env.DB.prepare(
-          `INSERT INTO areas (
+      // 2. Upsert areas
+      for (const area of areas) {
+        statements.push(
+          c.env.DB.prepare(
+            `INSERT INTO areas (
             id, crag_id, name, name_en, slug, description, description_en,
             image, bolt_count, route_count, sort_order, created_at, updated_at
           ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, datetime('now'), datetime('now'))
@@ -390,27 +401,27 @@ adminImportRoutes.post(
             route_count = excluded.route_count,
             sort_order = excluded.sort_order,
             updated_at = datetime('now')`
-        ).bind(
-          area.id,
-          area.cragId,
-          area.name,
-          area.nameEn || null,
-          area.id, // slug = id
-          area.description || null,
-          area.descriptionEn || null,
-          area.image || null,
-          area.boltCount || 0,
-          area.routeCount || 0,
-          area.sortOrder
+          ).bind(
+            area.id,
+            area.cragId,
+            area.name,
+            area.nameEn || null,
+            area.id, // slug = id
+            area.description || null,
+            area.descriptionEn || null,
+            area.image || null,
+            area.boltCount || 0,
+            area.routeCount || 0,
+            area.sortOrder
+          )
         )
-      );
-    }
+      }
 
-    // 3. Upsert sectors
-    for (const sector of sectors) {
-      statements.push(
-        c.env.DB.prepare(
-          `INSERT INTO sectors (
+      // 3. Upsert sectors
+      for (const sector of sectors) {
+        statements.push(
+          c.env.DB.prepare(
+            `INSERT INTO sectors (
             id, area_id, name, name_en, sort_order, created_at, updated_at
           ) VALUES (?, ?, ?, ?, ?, datetime('now'), datetime('now'))
           ON CONFLICT(id) DO UPDATE SET
@@ -418,21 +429,15 @@ adminImportRoutes.post(
             name_en = excluded.name_en,
             sort_order = excluded.sort_order,
             updated_at = datetime('now')`
-        ).bind(
-          sector.id,
-          sector.areaId,
-          sector.name,
-          sector.nameEn || null,
-          sector.sortOrder
+          ).bind(sector.id, sector.areaId, sector.name, sector.nameEn || null, sector.sortOrder)
         )
-      );
-    }
+      }
 
-    // 4. Upsert routes
-    for (const route of routes) {
-      statements.push(
-        c.env.DB.prepare(
-          `INSERT INTO routes (
+      // 4. Upsert routes
+      for (const route of routes) {
+        statements.push(
+          c.env.DB.prepare(
+            `INSERT INTO routes (
             id, crag_id, area_id, sector_id, name, name_en, grade, grade_system,
             height, bolt_count, route_type, type_en, description, first_ascent,
             first_ascent_date, first_ascent_en, safety_rating, status, sector_en,
@@ -464,61 +469,66 @@ adminImportRoutes.post(
             tips = excluded.tips,
             protection = excluded.protection,
             anchor_type = excluded.anchor_type`
-        ).bind(
-          route.id,
-          route.cragId,
-          route.areaId || null,
-          route.sectorId || null,
-          route.name,
-          route.nameEn || null,
-          route.grade,
-          route.gradeSystem || 'yds',
-          route.height || null,
-          route.boltCount || null,
-          route.routeType || 'sport',
-          route.typeEn || null,
-          route.description || null,
-          route.firstAscent || null,
-          route.firstAscentDate || null,
-          route.firstAscentEn || null,
-          route.safetyRating || null,
-          route.status || 'published',
-          route.sectorEn || null,
-          route.tips || null,
-          route.protection || null,
-          route.anchorType || null
+          ).bind(
+            route.id,
+            route.cragId,
+            route.areaId || null,
+            route.sectorId || null,
+            route.name,
+            route.nameEn || null,
+            route.grade,
+            route.gradeSystem || 'yds',
+            route.height || null,
+            route.boltCount || null,
+            route.routeType || 'sport',
+            route.typeEn || null,
+            route.description || null,
+            route.firstAscent || null,
+            route.firstAscentDate || null,
+            route.firstAscentEn || null,
+            route.safetyRating || null,
+            route.status || 'published',
+            route.sectorEn || null,
+            route.tips || null,
+            route.protection || null,
+            route.anchorType || null
+          )
         )
-      );
-    }
+      }
 
-    // Execute all statements in batch
-    await c.env.DB.batch(statements);
+      // Execute all statements in batch
+      await c.env.DB.batch(statements)
 
-    // Update route count
-    await c.env.DB.prepare(
-      `UPDATE crags
+      // Update route count
+      await c.env.DB.prepare(
+        `UPDATE crags
        SET route_count = (SELECT COUNT(*) FROM routes WHERE crag_id = ?),
            bolt_count = (SELECT COALESCE(SUM(bolt_count), 0) FROM routes WHERE crag_id = ?),
            updated_at = datetime('now')
        WHERE id = ?`
-    ).bind(crag.id, crag.id, crag.id).run();
+      )
+        .bind(crag.id, crag.id, crag.id)
+        .run()
 
-    return c.json({
-      success: true,
-      imported: {
-        crag: 1,
-        areas: areas.length,
-        sectors: sectors.length,
-        routes: routes.length,
-      },
-    });
-    } catch (error) {
-      const message = error instanceof Error ? error.message : String(error);
       return c.json({
-        success: false,
-        error: 'Database Error',
-        message: `岩場導入失敗: ${message}`,
-      }, 500);
+        success: true,
+        imported: {
+          crag: 1,
+          areas: areas.length,
+          sectors: sectors.length,
+          routes: routes.length,
+        },
+      })
+    } catch (error) {
+      const message = error instanceof Error ? error.message : String(error)
+      return c.json(
+        {
+          success: false,
+          error: 'Database Error',
+          message: `岩場導入失敗: ${message}`,
+        },
+        500
+      )
     }
   }
-);
+)

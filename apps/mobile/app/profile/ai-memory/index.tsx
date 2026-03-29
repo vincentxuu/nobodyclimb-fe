@@ -1,17 +1,17 @@
-import React, { useState, useCallback } from 'react'
-import { View, FlatList, Pressable, StyleSheet, ActivityIndicator } from 'react-native'
-import { SafeAreaView } from 'react-native-safe-area-context'
+import { BORDER_RADIUS, SEMANTIC_COLORS, SPACING, WB_COLORS } from '@nobodyclimb/constants'
 import { useRouter } from 'expo-router'
-import { ChevronLeft, Brain, Trash2 } from 'lucide-react-native'
-import { Text, ConfirmDialog } from '@/components/ui'
+import { Brain, ChevronLeft, Trash2 } from 'lucide-react-native'
+import { useCallback, useState } from 'react'
+import { ActivityIndicator, FlatList, Pressable, StyleSheet, View } from 'react-native'
+import { SafeAreaView } from 'react-native-safe-area-context'
+import { ConfirmDialog, Text } from '@/components/ui'
 import { useToast } from '@/components/ui/Toast'
-import { SPACING, WB_COLORS, BORDER_RADIUS, SEMANTIC_COLORS } from '@nobodyclimb/constants'
 import {
-  useAiMemory,
-  useDeleteAiMemory,
-  type UserMemory,
   type MemoryKey,
   type MemoryType,
+  type UserMemory,
+  useAiMemory,
+  useDeleteAiMemory,
 } from '@/lib/hooks/useAiMemory'
 
 const KEY_LABELS: Record<MemoryKey, string> = {
@@ -69,7 +69,11 @@ export default function AiMemoryScreen() {
         <Text style={styles.content}>{item.content}</Text>
         <View style={styles.itemFooter}>
           <Text style={styles.time}>{relativeTime(item.updated_at)}</Text>
-          <Pressable testID="delete-btn" onPress={() => setDeletingId(item.id)} style={styles.deleteBtn}>
+          <Pressable
+            testID="delete-btn"
+            onPress={() => setDeletingId(item.id)}
+            style={styles.deleteBtn}
+          >
             <Trash2 size={16} color={SEMANTIC_COLORS.error} />
           </Pressable>
         </View>
@@ -96,7 +100,7 @@ export default function AiMemoryScreen() {
       return (
         <FlatList
           data={memories}
-          keyExtractor={item => item.id}
+          keyExtractor={(item) => item.id}
           renderItem={renderItem}
           contentContainerStyle={styles.list}
           ItemSeparatorComponent={ListSeparator}
@@ -172,5 +176,10 @@ const styles = StyleSheet.create({
   itemFooter: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
   time: { fontSize: 12, color: SEMANTIC_COLORS.textMuted },
   deleteBtn: { padding: 4 },
-  emptyText: { fontSize: 15, color: SEMANTIC_COLORS.textSubtle, textAlign: 'center', lineHeight: 24 },
+  emptyText: {
+    fontSize: 15,
+    color: SEMANTIC_COLORS.textSubtle,
+    textAlign: 'center',
+    lineHeight: 24,
+  },
 })

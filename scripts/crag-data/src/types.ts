@@ -1,23 +1,23 @@
-import { z } from 'zod';
+import { z } from 'zod'
 
 // ============================================
 // Enums
 // ============================================
 
-export const CragStatus = z.enum(['draft', 'pending', 'approved', 'rejected']);
-export type CragStatus = z.infer<typeof CragStatus>;
+export const CragStatus = z.enum(['draft', 'pending', 'approved', 'rejected'])
+export type CragStatus = z.infer<typeof CragStatus>
 
-export const Region = z.enum(['北部', '中部', '南部', '東部', '離島']);
-export type Region = z.infer<typeof Region>;
+export const Region = z.enum(['北部', '中部', '南部', '東部', '離島'])
+export type Region = z.infer<typeof Region>
 
-export const ClimbingType = z.enum(['sport', 'trad', 'boulder', 'mixed']);
-export type ClimbingType = z.infer<typeof ClimbingType>;
+export const ClimbingType = z.enum(['sport', 'trad', 'boulder', 'mixed'])
+export type ClimbingType = z.infer<typeof ClimbingType>
 
-export const GradeSystem = z.enum(['yds', 'french', 'v-scale']);
-export type GradeSystem = z.infer<typeof GradeSystem>;
+export const GradeSystem = z.enum(['yds', 'french', 'v-scale'])
+export type GradeSystem = z.infer<typeof GradeSystem>
 
-export const RouteType = z.enum(['sport', 'trad', 'boulder', 'mixed']);
-export type RouteType = z.infer<typeof RouteType>;
+export const RouteType = z.enum(['sport', 'trad', 'boulder', 'mixed'])
+export type RouteType = z.infer<typeof RouteType>
 
 // ============================================
 // Crag Schema
@@ -50,9 +50,9 @@ export const CragSheetRow = z.object({
   reviewedBy: z.string().email().optional().or(z.literal('')),
   reviewedAt: z.string().optional(),
   reviewNotes: z.string().optional(),
-});
+})
 
-export type CragSheetRow = z.infer<typeof CragSheetRow>;
+export type CragSheetRow = z.infer<typeof CragSheetRow>
 
 // ============================================
 // Area Schema
@@ -71,9 +71,9 @@ export const AreaSheetRow = z.object({
   image: z.string().url().optional().or(z.literal('')),
   submittedBy: z.string().email(),
   submittedAt: z.string(),
-});
+})
 
-export type AreaSheetRow = z.infer<typeof AreaSheetRow>;
+export type AreaSheetRow = z.infer<typeof AreaSheetRow>
 
 // ============================================
 // Route Schema
@@ -100,97 +100,97 @@ export const RouteSheetRow = z.object({
   tips: z.string().optional(),
   submittedBy: z.string().email(),
   submittedAt: z.string(),
-});
+})
 
-export type RouteSheetRow = z.infer<typeof RouteSheetRow>;
+export type RouteSheetRow = z.infer<typeof RouteSheetRow>
 
 // ============================================
 // D1 Database Types (matching schema.sql)
 // ============================================
 
 export interface CragDB {
-  id: string;
-  name: string;
-  slug: string;
-  description: string | null;
-  location: string | null;
-  region: string | null;
-  latitude: number | null;
-  longitude: number | null;
-  altitude: number | null;
-  rock_type: string | null;
-  climbing_types: string | null; // JSON array
-  difficulty_range: string | null;
-  route_count: number;
-  bolt_count: number;
-  cover_image: string | null;
-  images: string | null; // JSON array
-  is_featured: number; // 0 or 1
-  access_info: string | null;
-  parking_info: string | null;
-  approach_time: number | null;
-  best_seasons: string | null; // JSON array
-  restrictions: string | null;
-  rating_avg: number;
-  review_count: number;
-  created_at: string;
-  updated_at: string;
+  id: string
+  name: string
+  slug: string
+  description: string | null
+  location: string | null
+  region: string | null
+  latitude: number | null
+  longitude: number | null
+  altitude: number | null
+  rock_type: string | null
+  climbing_types: string | null // JSON array
+  difficulty_range: string | null
+  route_count: number
+  bolt_count: number
+  cover_image: string | null
+  images: string | null // JSON array
+  is_featured: number // 0 or 1
+  access_info: string | null
+  parking_info: string | null
+  approach_time: number | null
+  best_seasons: string | null // JSON array
+  restrictions: string | null
+  rating_avg: number
+  review_count: number
+  created_at: string
+  updated_at: string
   // 新增欄位
-  metadata_source: string | null;
-  metadata_source_url: string | null;
-  metadata_maintainer: string | null;
-  metadata_maintainer_url: string | null;
-  live_video_id: string | null;
-  live_video_title: string | null;
-  live_video_description: string | null;
-  transportation: string | null; // JSON array
-  amenities: string | null; // JSON array
-  google_maps_url: string | null;
+  metadata_source: string | null
+  metadata_source_url: string | null
+  metadata_maintainer: string | null
+  metadata_maintainer_url: string | null
+  live_video_id: string | null
+  live_video_title: string | null
+  live_video_description: string | null
+  transportation: string | null // JSON array
+  amenities: string | null // JSON array
+  google_maps_url: string | null
   // 岩壁高度 (與 altitude 海拔高度區分)
-  height_min: number | null;
-  height_max: number | null;
+  height_min: number | null
+  height_max: number | null
 }
 
 export interface RouteDB {
-  id: string;
-  crag_id: string;
-  area_id: string | null;
-  sector_id: string | null;
-  name: string;
-  grade: string | null;
-  grade_system: string;
-  height: number | null;
-  bolt_count: number | null;
-  route_type: 'sport' | 'trad' | 'boulder' | 'mixed';
-  description: string | null;
-  first_ascent: string | null;
-  created_at: string;
+  id: string
+  crag_id: string
+  area_id: string | null
+  sector_id: string | null
+  name: string
+  grade: string | null
+  grade_system: string
+  height: number | null
+  bolt_count: number | null
+  route_type: 'sport' | 'trad' | 'boulder' | 'mixed'
+  description: string | null
+  first_ascent: string | null
+  created_at: string
 }
 
 export interface AreaDB {
-  id: string;
-  crag_id: string;
-  name: string;
-  name_en: string | null;
-  slug: string | null;
-  description: string | null;
-  description_en: string | null;
-  image: string | null;
-  bolt_count: number;
-  route_count: number;
-  sort_order: number;
-  created_at: string;
-  updated_at: string;
+  id: string
+  crag_id: string
+  name: string
+  name_en: string | null
+  slug: string | null
+  description: string | null
+  description_en: string | null
+  image: string | null
+  bolt_count: number
+  route_count: number
+  sort_order: number
+  created_at: string
+  updated_at: string
 }
 
 export interface SectorDB {
-  id: string;
-  area_id: string;
-  name: string;
-  name_en: string | null;
-  sort_order: number;
-  created_at: string;
-  updated_at: string;
+  id: string
+  area_id: string
+  name: string
+  name_en: string | null
+  sort_order: number
+  created_at: string
+  updated_at: string
 }
 
 // ============================================
@@ -198,146 +198,146 @@ export interface SectorDB {
 // ============================================
 
 export interface CragJsonRoute {
-  id: string;
-  areaId?: string;
-  sector?: string;
-  sectorEn?: string;
-  name: string;
-  nameEn?: string;
-  grade: string;
-  type: string;
-  typeEn?: string;
-  length?: number;
-  firstAscent?: string;
-  firstAscentDate?: string;
-  firstAscentEn?: string;
-  description?: string;
-  protection?: string;
-  tips?: string;
-  boltCount?: number;
-  boltType?: string;
-  anchorType?: string;
-  safetyRating?: string;
-  popularity?: number;
-  views?: number;
-  images?: string[];
-  videos?: string[];
-  instagramPosts?: string[];
-  youtubeVideos?: string[];
-  status?: string;
-  lastVerified?: string;
-  lastUpdated?: string;
+  id: string
+  areaId?: string
+  sector?: string
+  sectorEn?: string
+  name: string
+  nameEn?: string
+  grade: string
+  type: string
+  typeEn?: string
+  length?: number
+  firstAscent?: string
+  firstAscentDate?: string
+  firstAscentEn?: string
+  description?: string
+  protection?: string
+  tips?: string
+  boltCount?: number
+  boltType?: string
+  anchorType?: string
+  safetyRating?: string
+  popularity?: number
+  views?: number
+  images?: string[]
+  videos?: string[]
+  instagramPosts?: string[]
+  youtubeVideos?: string[]
+  status?: string
+  lastVerified?: string
+  lastUpdated?: string
 }
 
 export interface CragJsonSector {
-  id: string;
-  name: string;
-  nameEn?: string;
+  id: string
+  name: string
+  nameEn?: string
 }
 
 export interface CragJsonArea {
-  id: string;
-  name: string;
-  nameEn?: string;
-  description?: string;
-  descriptionEn?: string;
+  id: string
+  name: string
+  nameEn?: string
+  description?: string
+  descriptionEn?: string
   difficulty?: {
-    min: string;
-    max: string;
-  };
-  image?: string;
-  boltCount?: number;
-  routesCount?: number;
-  sectors?: CragJsonSector[];
+    min: string
+    max: string
+  }
+  image?: string
+  boltCount?: number
+  routesCount?: number
+  sectors?: CragJsonSector[]
 }
 
 export interface CragJsonLocation {
-  address?: string;
-  addressEn?: string;
-  region?: string;
-  regionEn?: string;
-  latitude?: number;
-  longitude?: number;
-  googleMapsUrl?: string;
+  address?: string
+  addressEn?: string
+  region?: string
+  regionEn?: string
+  latitude?: number
+  longitude?: number
+  googleMapsUrl?: string
 }
 
 export interface CragJsonAccess {
-  approach?: string;
-  approachEn?: string;
-  parking?: string;
-  parkingEn?: string;
+  approach?: string
+  approachEn?: string
+  parking?: string
+  parkingEn?: string
   transportation?: Array<{
-    type: string;
-    description: string;
-    descriptionEn?: string;
-  }>;
+    type: string
+    description: string
+    descriptionEn?: string
+  }>
 }
 
 export interface CragJsonData {
-  id: string;
-  slug: string;
-  name: string;
-  nameEn?: string;
-  description?: string;
-  descriptionEn?: string;
-  location?: CragJsonLocation;
+  id: string
+  slug: string
+  name: string
+  nameEn?: string
+  description?: string
+  descriptionEn?: string
+  location?: CragJsonLocation
   // Flat fields (for backward compatibility)
-  address?: string;
-  region?: string;
-  latitude?: number;
-  longitude?: number;
-  googleMapsUrl?: string;
-  type?: string;
-  rockType?: string;
-  rockTypeEn?: string;
-  routesCount?: number;
+  address?: string
+  region?: string
+  latitude?: number
+  longitude?: number
+  googleMapsUrl?: string
+  type?: string
+  rockType?: string
+  rockTypeEn?: string
+  routesCount?: number
   difficulty?: {
-    min: string;
-    max: string;
-  };
+    min: string
+    max: string
+  }
   height?: {
-    min: number;
-    max: number;
-    unit?: string;
-  };
-  access?: CragJsonAccess;
+    min: number
+    max: number
+    unit?: string
+  }
+  access?: CragJsonAccess
   // Flat access fields (for backward compatibility)
-  approach?: string;
-  parking?: string;
-  transportation?: string;
-  seasons?: string[];
-  seasonsEn?: string[];
-  amenities?: string[];
-  amenitiesEn?: string[];
-  images?: string[];
-  featured?: boolean;
-  rating?: number;
-  status?: string;
+  approach?: string
+  parking?: string
+  transportation?: string
+  seasons?: string[]
+  seasonsEn?: string[]
+  amenities?: string[]
+  amenitiesEn?: string[]
+  images?: string[]
+  featured?: boolean
+  rating?: number
+  status?: string
   // 即時影像欄位
-  liveVideoId?: string;
-  liveVideoTitle?: string;
-  liveVideoDescription?: string;
-  videoUrl?: string;
+  liveVideoId?: string
+  liveVideoTitle?: string
+  liveVideoDescription?: string
+  videoUrl?: string
 }
 
 export interface CragJsonFullData {
-  crag: CragJsonData;
-  areas: CragJsonArea[];
-  routes: CragJsonRoute[];
+  crag: CragJsonData
+  areas: CragJsonArea[]
+  routes: CragJsonRoute[]
   statistics?: {
-    totalRoutes: number;
-    totalAreas: number;
-    gradeDistribution: Record<string, number>;
-    typeDistribution: Record<string, number>;
-  };
+    totalRoutes: number
+    totalAreas: number
+    gradeDistribution: Record<string, number>
+    typeDistribution: Record<string, number>
+  }
   metadata?: {
-    version?: string;
-    source: string;
-    sourceUrl?: string;
-    lastUpdated?: string;
-    maintainer?: string;
-    maintainerUrl?: string;
-  };
+    version?: string
+    source: string
+    sourceUrl?: string
+    lastUpdated?: string
+    maintainer?: string
+    maintainerUrl?: string
+  }
 }
 
 // ============================================
@@ -345,21 +345,21 @@ export interface CragJsonFullData {
 // ============================================
 
 export interface ValidationError {
-  sheet: string;
-  row: number;
-  field: string;
-  value: unknown;
-  message: string;
+  sheet: string
+  row: number
+  field: string
+  value: unknown
+  message: string
 }
 
 export interface ValidationResult {
-  success: boolean;
-  errors: ValidationError[];
+  success: boolean
+  errors: ValidationError[]
   stats: {
-    crags: { total: number; approved: number; pending: number };
-    areas: { total: number; approved: number; pending: number };
-    routes: { total: number; approved: number; pending: number };
-  };
+    crags: { total: number; approved: number; pending: number }
+    areas: { total: number; approved: number; pending: number }
+    routes: { total: number; approved: number; pending: number }
+  }
 }
 
 // ============================================
@@ -367,12 +367,12 @@ export interface ValidationResult {
 // ============================================
 
 export interface SyncResult {
-  success: boolean;
+  success: boolean
   synced: {
-    crags: number;
-    areas: number;
-    routes: number;
-  };
-  errors: string[];
-  duration: number;
+    crags: number
+    areas: number
+    routes: number
+  }
+  errors: string[]
+  duration: number
 }

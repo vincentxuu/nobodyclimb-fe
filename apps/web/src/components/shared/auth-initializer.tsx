@@ -1,11 +1,11 @@
 'use client'
 
-import { useEffect, useRef, useCallback } from 'react'
+import { useCallback, useEffect, useRef } from 'react'
+import { toast } from '@/components/ui/use-toast'
+import { storyPromptService } from '@/lib/api/services'
+import { getAccessToken } from '@/lib/utils/tokenStorage'
 import { useAuthStore } from '@/store/authStore'
 import { useUIStore } from '@/store/uiStore'
-import { storyPromptService } from '@/lib/api/services'
-import { toast } from '@/components/ui/use-toast'
-import { getAccessToken } from '@/lib/utils/tokenStorage'
 
 /** 故事推薦彈窗顯示延遲時間（毫秒） */
 const STORY_PROMPT_SHOW_DELAY = 1500

@@ -10,30 +10,30 @@
  * - 適合新用戶首次設定
  */
 
-import React, { useState } from 'react'
-import { motion, AnimatePresence } from 'framer-motion'
+import { AnimatePresence, motion } from 'framer-motion'
 import {
-  User,
-  Gauge,
-  Link2,
   BookOpen,
-  Globe,
-  ImageIcon,
+  Camera,
+  Check,
   ChevronLeft,
   ChevronRight,
-  Check,
+  Gauge,
+  Globe,
+  ImageIcon,
+  Link2,
   SkipForward,
-  Camera,
   Sparkles,
+  User,
 } from 'lucide-react'
+import React, { useState } from 'react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
-import { useProfile } from '../ProfileContext'
 import { useToast } from '@/components/ui/use-toast'
 import { biographyService } from '@/lib/api/services'
-import { SocialLinks } from '../types'
 import { mapProfileDataToApi } from '../mappers'
+import { useProfile } from '../ProfileContext'
+import { SocialLinks } from '../types'
 
 interface Step {
   id: string
@@ -135,11 +135,7 @@ export default function ProfileEditorVersionC({ onBack, onComplete }: ProfileEdi
       >
         {profileData.avatarUrl ? (
           <>
-            <img
-              src={profileData.avatarUrl}
-              alt="頭像"
-              className="h-full w-full object-cover"
-            />
+            <img src={profileData.avatarUrl} alt="頭像" className="h-full w-full object-cover" />
             <div className="absolute inset-0 flex items-center justify-center bg-black/50 opacity-0 transition-opacity group-hover:opacity-100">
               <Camera className="h-8 w-8 text-white" />
             </div>
@@ -163,9 +159,7 @@ export default function ProfileEditorVersionC({ onBack, onComplete }: ProfileEdi
   const BasicInfoStep = () => (
     <div className="space-y-6">
       <div>
-        <label className="mb-2 block text-sm font-medium text-gray-700">
-          你的暱稱是什麼？
-        </label>
+        <label className="mb-2 block text-sm font-medium text-gray-700">你的暱稱是什麼？</label>
         <Input
           value={profileData.name}
           onChange={(e) => handleChange('name', e.target.value)}
@@ -174,17 +168,13 @@ export default function ProfileEditorVersionC({ onBack, onComplete }: ProfileEdi
         />
       </div>
       <div>
-        <label className="mb-2 block text-sm font-medium text-gray-700">
-          用一句話形容自己
-        </label>
+        <label className="mb-2 block text-sm font-medium text-gray-700">用一句話形容自己</label>
         <Input
           value={profileData.title}
           onChange={(e) => handleChange('title', e.target.value)}
           placeholder="例如：週末抱石愛好者"
         />
-        <p className="mt-1 text-xs text-gray-400">
-          這會顯示在你的名字下方
-        </p>
+        <p className="mt-1 text-xs text-gray-400">這會顯示在你的名字下方</p>
       </div>
     </div>
   )
@@ -206,17 +196,13 @@ export default function ProfileEditorVersionC({ onBack, onComplete }: ProfileEdi
         />
       </div>
       <div>
-        <label className="mb-2 block text-sm font-medium text-gray-700">
-          平常都在哪裡攀岩？
-        </label>
+        <label className="mb-2 block text-sm font-medium text-gray-700">平常都在哪裡攀岩？</label>
         <Input
           value={profileData.frequentGyms}
           onChange={(e) => handleChange('frequentGyms', e.target.value)}
           placeholder="例如：紅石攀岩館、龍洞"
         />
-        <p className="mt-1 text-xs text-gray-400">
-          可以填寫多個地點，用逗號分隔
-        </p>
+        <p className="mt-1 text-xs text-gray-400">可以填寫多個地點，用逗號分隔</p>
       </div>
     </div>
   )
@@ -225,9 +211,7 @@ export default function ProfileEditorVersionC({ onBack, onComplete }: ProfileEdi
   const SocialLinksStep = () => (
     <div className="space-y-6">
       <div>
-        <label className="mb-2 block text-sm font-medium text-gray-700">
-          你的 Instagram
-        </label>
+        <label className="mb-2 block text-sm font-medium text-gray-700">你的 Instagram</label>
         <div className="flex items-center gap-2">
           <span className="text-gray-400">@</span>
           <Input
@@ -238,9 +222,7 @@ export default function ProfileEditorVersionC({ onBack, onComplete }: ProfileEdi
         </div>
       </div>
       <div>
-        <label className="mb-2 block text-sm font-medium text-gray-700">
-          YouTube 頻道（選填）
-        </label>
+        <label className="mb-2 block text-sm font-medium text-gray-700">YouTube 頻道（選填）</label>
         <Input
           value={profileData.socialLinks.youtube_channel || ''}
           onChange={(e) => handleChange('socialLinks.youtube_channel', e.target.value)}
@@ -254,9 +236,7 @@ export default function ProfileEditorVersionC({ onBack, onComplete }: ProfileEdi
   const StoryStep = () => (
     <div className="space-y-6">
       <div>
-        <label className="mb-2 block text-sm font-medium text-gray-700">
-          你與攀岩的相遇
-        </label>
+        <label className="mb-2 block text-sm font-medium text-gray-700">你與攀岩的相遇</label>
         <Textarea
           value={profileData.climbingReason}
           onChange={(e) => handleChange('climbingReason', e.target.value)}
@@ -265,9 +245,7 @@ export default function ProfileEditorVersionC({ onBack, onComplete }: ProfileEdi
         />
       </div>
       <div>
-        <label className="mb-2 block text-sm font-medium text-gray-700">
-          攀岩對你來說是什麼？
-        </label>
+        <label className="mb-2 block text-sm font-medium text-gray-700">攀岩對你來說是什麼？</label>
         <Textarea
           value={profileData.climbingMeaning}
           onChange={(e) => handleChange('climbingMeaning', e.target.value)}
@@ -291,11 +269,11 @@ export default function ProfileEditorVersionC({ onBack, onComplete }: ProfileEdi
                 : 'border-gray-200 hover:border-gray-300'
             }`}
           >
-            <Globe className={`mb-2 h-6 w-6 ${profileData.isPublic ? 'text-green-600' : 'text-gray-400'}`} />
+            <Globe
+              className={`mb-2 h-6 w-6 ${profileData.isPublic ? 'text-green-600' : 'text-gray-400'}`}
+            />
             <div className="font-medium">公開</div>
-            <p className="mt-1 text-sm text-gray-500">
-              其他人可以看到你的人物誌
-            </p>
+            <p className="mt-1 text-sm text-gray-500">其他人可以看到你的人物誌</p>
           </button>
           <button
             onClick={() => handleChange('isPublic', false)}
@@ -305,17 +283,15 @@ export default function ProfileEditorVersionC({ onBack, onComplete }: ProfileEdi
                 : 'border-gray-200 hover:border-gray-300'
             }`}
           >
-            <User className={`mb-2 h-6 w-6 ${!profileData.isPublic ? 'text-blue-600' : 'text-gray-400'}`} />
+            <User
+              className={`mb-2 h-6 w-6 ${!profileData.isPublic ? 'text-blue-600' : 'text-gray-400'}`}
+            />
             <div className="font-medium">私人</div>
-            <p className="mt-1 text-sm text-gray-500">
-              只有你自己可以看到
-            </p>
+            <p className="mt-1 text-sm text-gray-500">只有你自己可以看到</p>
           </button>
         </div>
       </div>
-      <p className="text-center text-sm text-gray-500">
-        你可以隨時在設定中更改這個選項
-      </p>
+      <p className="text-center text-sm text-gray-500">你可以隨時在設定中更改這個選項</p>
     </div>
   )
 
@@ -422,8 +398,8 @@ export default function ProfileEditorVersionC({ onBack, onComplete }: ProfileEdi
               index === currentStep
                 ? 'bg-gray-900 text-white'
                 : index < currentStep || completedSteps.has(index)
-                ? 'bg-green-500 text-white'
-                : 'bg-gray-200 text-gray-400'
+                  ? 'bg-green-500 text-white'
+                  : 'bg-gray-200 text-gray-400'
             }`}
           >
             {index < currentStep || completedSteps.has(index) ? (
@@ -451,16 +427,12 @@ export default function ProfileEditorVersionC({ onBack, onComplete }: ProfileEdi
               <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-gray-100">
                 {currentStepData.icon}
               </div>
-              <h1 className="text-2xl font-bold text-gray-900">
-                {currentStepData.title}
-              </h1>
+              <h1 className="text-2xl font-bold text-gray-900">{currentStepData.title}</h1>
               <p className="mt-1 text-gray-500">{currentStepData.subtitle}</p>
             </div>
 
             {/* 步驟內容 */}
-            <div className="rounded-lg bg-white p-6 shadow-sm">
-              {currentStepData.component}
-            </div>
+            <div className="rounded-lg bg-white p-6 shadow-sm">{currentStepData.component}</div>
           </motion.div>
         </AnimatePresence>
       </div>
@@ -468,12 +440,7 @@ export default function ProfileEditorVersionC({ onBack, onComplete }: ProfileEdi
       {/* 底部按鈕 */}
       <div className="sticky bottom-0 border-t bg-white p-4">
         <div className="mx-auto max-w-md">
-          <Button
-            className="w-full"
-            size="lg"
-            onClick={saveAndNext}
-            disabled={isSaving}
-          >
+          <Button className="w-full" size="lg" onClick={saveAndNext} disabled={isSaving}>
             {isSaving ? (
               '儲存中...'
             ) : currentStep === steps.length - 1 ? (

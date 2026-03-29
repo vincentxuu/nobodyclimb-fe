@@ -3,16 +3,17 @@
  *
  * 骨架屏/載入佔位符
  */
-import React, { useEffect } from 'react'
-import { StyleSheet, View, ViewStyle, DimensionValue } from 'react-native'
+
+import { RADIUS, WB_COLORS } from '@nobodyclimb/constants'
+import { useEffect } from 'react'
+import { DimensionValue, StyleSheet, View, ViewStyle } from 'react-native'
 import Animated, {
+  interpolate,
   useAnimatedStyle,
   useSharedValue,
   withRepeat,
   withTiming,
-  interpolate,
 } from 'react-native-reanimated'
-import { DURATION, RADIUS, WB_COLORS } from '@nobodyclimb/constants'
 
 export interface SkeletonProps {
   /** 寬度 */

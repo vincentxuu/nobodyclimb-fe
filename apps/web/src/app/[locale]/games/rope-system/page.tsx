@@ -1,22 +1,11 @@
 'use client'
 
-import * as React from 'react'
-import { Link } from '@/i18n/navigation'
 import { motion } from 'framer-motion'
-import {
-  ArrowLeft,
-  Mountain,
-  Trophy,
-  BookOpen,
-  Dumbbell,
-  MountainSnow,
-} from 'lucide-react'
-import { CategoryCard } from '@/components/games/rope-system'
-import {
-  CATEGORIES_BY_PARENT,
-  PARENT_CATEGORIES,
-} from '@/lib/games/rope-system/constants'
+import { ArrowLeft, BookOpen, Dumbbell, Mountain, MountainSnow, Trophy } from 'lucide-react'
 import { useTranslations } from 'next-intl'
+import { CategoryCard } from '@/components/games/rope-system'
+import { Link } from '@/i18n/navigation'
+import { CATEGORIES_BY_PARENT, PARENT_CATEGORIES } from '@/lib/games/rope-system/constants'
 
 /** 父類別圖示對應 */
 const ParentCategoryIcons = {
@@ -32,10 +21,7 @@ export default function RopeSystemHomePage() {
       {/* 頂部導航 */}
       <header className="sticky top-0 z-40 border-b border-[#E5E5E5] bg-white">
         <div className="mx-auto flex h-14 max-w-6xl items-center px-4">
-          <Link
-            href="/"
-            className="flex items-center gap-2 text-[#535353] hover:text-[#1B1A1A]"
-          >
+          <Link href="/" className="flex items-center gap-2 text-[#535353] hover:text-[#1B1A1A]">
             <ArrowLeft className="h-5 w-5" />
             <span>{tCommon('back')}</span>
           </Link>
@@ -53,12 +39,8 @@ export default function RopeSystemHomePage() {
           <div className="mb-4 flex justify-center">
             <MountainSnow className="h-12 w-12 text-[#1B1A1A]" />
           </div>
-          <h1 className="mb-2 text-3xl font-bold text-[#1B1A1A]">
-            {t('title')}
-          </h1>
-          <p className="text-[#535353]">
-            {t('subtitle')}
-          </p>
+          <h1 className="mb-2 text-3xl font-bold text-[#1B1A1A]">{t('title')}</h1>
+          <p className="text-[#535353]">{t('subtitle')}</p>
         </motion.div>
 
         {/* 快捷操作 */}
@@ -112,12 +94,8 @@ export default function RopeSystemHomePage() {
               return <IconComponent className="h-6 w-6 text-[#1B1A1A]" />
             })()}
             <div>
-              <h2 className="text-xl font-bold text-[#1B1A1A]">
-                {PARENT_CATEGORIES.sport.name}
-              </h2>
-              <p className="text-sm text-[#535353]">
-                {PARENT_CATEGORIES.sport.description}
-              </p>
+              <h2 className="text-xl font-bold text-[#1B1A1A]">{PARENT_CATEGORIES.sport.name}</h2>
+              <p className="text-sm text-[#535353]">{PARENT_CATEGORIES.sport.description}</p>
             </div>
           </div>
           <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
@@ -146,12 +124,8 @@ export default function RopeSystemHomePage() {
               return <IconComponent className="h-6 w-6 text-[#1B1A1A]" />
             })()}
             <div>
-              <h2 className="text-xl font-bold text-[#1B1A1A]">
-                {PARENT_CATEGORIES.trad.name}
-              </h2>
-              <p className="text-sm text-[#535353]">
-                {PARENT_CATEGORIES.trad.description}
-              </p>
+              <h2 className="text-xl font-bold text-[#1B1A1A]">{PARENT_CATEGORIES.trad.name}</h2>
+              <p className="text-sm text-[#535353]">{PARENT_CATEGORIES.trad.description}</p>
             </div>
           </div>
           <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
@@ -175,9 +149,7 @@ export default function RopeSystemHomePage() {
           transition={{ delay: 0.8 }}
           className="mt-12 rounded-xl border border-[#E5E5E5] bg-white p-6 text-center"
         >
-          <p className="text-sm text-[#535353]">
-            {t('disclaimer')}
-          </p>
+          <p className="text-sm text-[#535353]">{t('disclaimer')}</p>
         </motion.div>
       </main>
     </div>

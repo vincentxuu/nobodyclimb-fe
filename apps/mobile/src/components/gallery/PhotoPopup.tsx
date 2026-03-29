@@ -3,25 +3,19 @@
  *
  * 全螢幕照片檢視器，對應 apps/web/src/components/gallery/photo-popup.tsx
  */
-import React, { useCallback } from 'react'
-import {
-  StyleSheet,
-  View,
-  Pressable,
-  Modal,
-  Dimensions,
-} from 'react-native'
-import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context'
-import { Image } from 'expo-image'
-import { X, ChevronLeft, ChevronRight, MapPin, User } from 'lucide-react-native'
-import { useRouter } from 'expo-router'
-import Animated, { FadeIn, FadeOut, ZoomIn, ZoomOut } from 'react-native-reanimated'
-import { GestureDetector, Gesture } from 'react-native-gesture-handler'
 
-import { Text } from '@/components/ui/Text'
+import { BORDER_RADIUS, SPACING, WB_COLORS } from '@nobodyclimb/constants'
+import { Image } from 'expo-image'
+import { useRouter } from 'expo-router'
+import { ChevronLeft, ChevronRight, MapPin, X } from 'lucide-react-native'
+import { useCallback } from 'react'
+import { Dimensions, Modal, Pressable, StyleSheet, View } from 'react-native'
+import { Gesture, GestureDetector } from 'react-native-gesture-handler'
+import Animated, { FadeIn, FadeOut, ZoomIn, ZoomOut } from 'react-native-reanimated'
+import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { Avatar } from '@/components/ui/Avatar'
 import { IconButton } from '@/components/ui/IconButton'
-import { BORDER_RADIUS, SEMANTIC_COLORS, SPACING, WB_COLORS } from '@nobodyclimb/constants'
+import { Text } from '@/components/ui/Text'
 
 const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get('window')
 
@@ -92,24 +86,23 @@ export function PhotoPopup({
   const insets = useSafeAreaInsets()
 
   // 滑動手勢
-  const swipeGesture = Gesture.Pan()
-    .onEnd((event) => {
-      const { translationX, velocityX } = event
-      const threshold = 50
-      const velocityThreshold = 500
+  const swipeGesture = Gesture.Pan().onEnd((event) => {
+    const { translationX, velocityX } = event
+    const threshold = 50
+    const velocityThreshold = 500
 
-      if (translationX < -threshold || velocityX < -velocityThreshold) {
-        // 向左滑 -> 下一張
-        if (hasNext && onNext) {
-          onNext()
-        }
-      } else if (translationX > threshold || velocityX > velocityThreshold) {
-        // 向右滑 -> 上一張
-        if (hasPrev && onPrev) {
-          onPrev()
-        }
+    if (translationX < -threshold || velocityX < -velocityThreshold) {
+      // 向左滑 -> 下一張
+      if (hasNext && onNext) {
+        onNext()
       }
-    })
+    } else if (translationX > threshold || velocityX > velocityThreshold) {
+      // 向右滑 -> 上一張
+      if (hasPrev && onPrev) {
+        onPrev()
+      }
+    }
+  })
 
   const handleAuthorPress = useCallback(() => {
     if (photo?.author?.username) {
@@ -120,11 +113,8 @@ export function PhotoPopup({
 
   if (!photo) return null
 
-  const hasLocation = photo.location && (
-    photo.location.country ||
-    photo.location.city ||
-    photo.location.spot
-  )
+  const hasLocation =
+    photo.location && (photo.location.country || photo.location.city || photo.location.spot)
 
   return (
     <Modal
@@ -186,13 +176,11 @@ export function PhotoPopup({
               <View style={styles.locationSection}>
                 <MapPin size={16} color={WB_COLORS[50]} />
                 <Text variant="body" style={styles.locationText}>
-                  {[
-                    photo.location?.country,
-                    photo.location?.city,
-                  ].filter(Boolean).join(' ')}
+                  {[photo.location?.country, photo.location?.city].filter(Boolean).join(' ')}
                   {photo.location?.spot && (
                     <Text variant="body" fontWeight="600" style={styles.whiteText}>
-                      {' '}{photo.location.spot}
+                      {' '}
+                      {photo.location.spot}
                     </Text>
                   )}
                 </Text>
@@ -202,8 +190,12 @@ export function PhotoPopup({
             {/* 上傳日期 */}
             {photo.uploadDate && (
               <View style={styles.dateSection}>
-                <Text variant="caption" style={styles.dateLabel}>上傳日期:</Text>
-                <Text variant="caption" style={styles.dateText}>{photo.uploadDate}</Text>
+                <Text variant="caption" style={styles.dateLabel}>
+                  上傳日期:
+                </Text>
+                <Text variant="caption" style={styles.dateText}>
+                  {photo.uploadDate}
+                </Text>
               </View>
             )}
 

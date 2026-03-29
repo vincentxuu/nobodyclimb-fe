@@ -1,12 +1,12 @@
 'use client'
 
-import { useState, useEffect, useCallback } from 'react'
-import { cn } from '@/lib/utils'
-import { MessageCircle, Sparkles, Loader2 } from 'lucide-react'
-import { biographyContentService, type OneLiner } from '@/lib/api/services'
-import { ContentInteractionBar } from './ContentInteractionBar'
+import { Loader2, MessageCircle, Sparkles } from 'lucide-react'
 import { useTranslations } from 'next-intl'
+import { useCallback, useEffect, useState } from 'react'
+import { biographyContentService, type OneLiner } from '@/lib/api/services'
 import { useBiographyQuestionText } from '@/lib/hooks/useBiographyQuestions'
+import { cn } from '@/lib/utils'
+import { ContentInteractionBar } from './ContentInteractionBar'
 
 interface BiographyOneLinersProps {
   /** 人物誌 ID */
@@ -17,9 +17,9 @@ interface BiographyOneLinersProps {
 
 // 這些問題已經在核心故事組件中顯示，不需要重複顯示
 const CORE_QUESTION_IDS = new Set([
-  'climbing_origin',   // 核心故事: 相遇篇
-  'climbing_meaning',  // 核心故事: 意義篇
-  'advice_to_self',    // 核心故事: 給新手的話
+  'climbing_origin', // 核心故事: 相遇篇
+  'climbing_meaning', // 核心故事: 意義篇
+  'advice_to_self', // 核心故事: 給新手的話
 ])
 
 /**
@@ -27,10 +27,7 @@ const CORE_QUESTION_IDS = new Set([
  *
  * 顯示用戶填寫的一句話回答，支援按讚和留言
  */
-export function BiographyOneLiners({
-  biographyId,
-  className,
-}: BiographyOneLinersProps) {
+export function BiographyOneLiners({ biographyId, className }: BiographyOneLinersProps) {
   const t = useTranslations('BiographyPage')
   const { getOneLinerText } = useBiographyQuestionText()
   const [oneLiners, setOneLiners] = useState<OneLiner[]>([])
@@ -42,9 +39,7 @@ export function BiographyOneLiners({
       const response = await biographyContentService.getOneLiners(biographyId)
       if (response.success && response.data) {
         // 過濾掉核心故事的問題
-        const filtered = response.data.filter(
-          (item) => !CORE_QUESTION_IDS.has(item.question_id)
-        )
+        const filtered = response.data.filter((item) => !CORE_QUESTION_IDS.has(item.question_id))
         setOneLiners(filtered)
       }
     } catch (error) {
@@ -91,9 +86,7 @@ export function BiographyOneLiners({
       // 更新留言數
       setOneLiners((prev) =>
         prev.map((item) =>
-          item.id === oneLinerId
-            ? { ...item, comment_count: item.comment_count + 1 }
-            : item
+          item.id === oneLinerId ? { ...item, comment_count: item.comment_count + 1 } : item
         )
       )
       return response.data
@@ -125,16 +118,17 @@ export function BiographyOneLiners({
       <div className="space-y-4">
         {oneLiners.map((item) => {
           const isCustom = !item.question // 自訂問題沒有系統問題文字
-          const questionText = getOneLinerText(item.question_id, item.question || item.question_text || '')
+          const questionText = getOneLinerText(
+            item.question_id,
+            item.question || item.question_text || ''
+          )
 
           return (
             <div
               key={item.id}
               className={cn(
                 'p-4 rounded-lg border',
-                isCustom
-                  ? 'bg-brand-accent/5 border-brand-accent/30'
-                  : 'bg-white border-[#DBD8D8]'
+                isCustom ? 'bg-brand-accent/5 border-brand-accent/30' : 'bg-white border-[#DBD8D8]'
               )}
             >
               <div className="flex items-center gap-1 mb-2">

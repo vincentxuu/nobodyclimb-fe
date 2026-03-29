@@ -1,8 +1,8 @@
+import { BORDER_RADIUS, SEMANTIC_COLORS, SPACING, WB_COLORS } from '@nobodyclimb/constants'
+import { ChevronDown, ChevronUp, Sparkles } from 'lucide-react-native'
 import { useState } from 'react'
-import { View, Pressable, StyleSheet } from 'react-native'
-import { Sparkles, ChevronDown, ChevronUp } from 'lucide-react-native'
-import { Text, MarkdownText } from '@/components/ui'
-import { SPACING, WB_COLORS, BORDER_RADIUS, SEMANTIC_COLORS } from '@nobodyclimb/constants'
+import { Pressable, StyleSheet, View } from 'react-native'
+import { MarkdownText, Text } from '@/components/ui'
 import type { Recommendation } from '@/lib/hooks/useRecommendations'
 import { SourceCard } from './SourceCard'
 
@@ -29,14 +29,12 @@ export function RecommendationCard({ recommendation: rec }: RecommendationCardPr
       <Pressable
         testID="recommendation-header"
         style={styles.header}
-        onPress={() => setExpanded(prev => !prev)}
+        onPress={() => setExpanded((prev) => !prev)}
       >
         <Sparkles size={16} color={SEMANTIC_COLORS.warning} />
         <View style={styles.headerInfo}>
           <Text style={styles.triggerLabel}>{TRIGGER_LABELS[rec.triggered_by]}</Text>
-          {ascentCount > 0 && (
-            <Text style={styles.ascentCount}>{ascentCount} 條完攀記錄</Text>
-          )}
+          {ascentCount > 0 && <Text style={styles.ascentCount}>{ascentCount} 條完攀記錄</Text>}
         </View>
         <Text style={styles.date}>{formatDate(rec.created_at)}</Text>
         {expanded ? (
@@ -56,7 +54,7 @@ export function RecommendationCard({ recommendation: rec }: RecommendationCardPr
               {rec.recommendation.sources.length > 0 && (
                 <View style={styles.sources}>
                   <Text style={styles.sourcesTitle}>參考資料</Text>
-                  {rec.recommendation.sources.map(source => (
+                  {rec.recommendation.sources.map((source) => (
                     <SourceCard key={source.id} source={source} />
                   ))}
                 </View>

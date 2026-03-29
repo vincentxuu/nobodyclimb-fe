@@ -334,9 +334,7 @@ export function searchGyms(options: {
   // 地區篩選
   if (options.region && options.region !== '所有地區') {
     gyms = gyms.filter(
-      (gym) =>
-        gym.location.city.includes(options.region!) ||
-        gym.location.region === options.region
+      (gym) => gym.location.city.includes(options.region!) || gym.location.region === options.region
     )
   }
 
@@ -360,10 +358,7 @@ export function searchGyms(options: {
 /**
  * 獲取相關岩館（同地區的其他岩館）
  */
-export function getRelatedGyms(
-  currentGymId: string,
-  limit: number = 3
-): GymListItem[] {
+export function getRelatedGyms(currentGymId: string, limit: number = 3): GymListItem[] {
   const data = loadGymsData()
   const currentGym = data.gyms.find((g) => g.id === currentGymId)
 

@@ -1,8 +1,8 @@
 'use client'
 
-import React, { useState } from 'react'
+import { GripVertical, X } from 'lucide-react'
 import Image from 'next/image'
-import { X, GripVertical } from 'lucide-react'
+import React, { useState } from 'react'
 import { ProfileImage } from '../types'
 
 interface ImagePreviewCardProps {
@@ -117,9 +117,7 @@ export default function ImagePreviewCard({
             </button>
           )
         ) : (
-          image.caption && (
-            <p className="text-sm text-gray-600">{image.caption}</p>
-          )
+          image.caption && <p className="text-sm text-gray-600">{image.caption}</p>
         )}
       </div>
     </div>

@@ -1,11 +1,9 @@
+import { FONT_SIZE, RADIUS, SEMANTIC_COLORS, SPACING } from '@nobodyclimb/constants'
+import { ArrowUp, CircleDot, Eye, Repeat2, Sword, Target, Users, Zap } from 'lucide-react-native'
 import React from 'react'
-import { View, Text, Pressable, StyleSheet } from 'react-native'
-import {
-  CircleDot, Zap, Eye, Target, ArrowUp, Sword, Users, Repeat2,
-} from 'lucide-react-native'
-import { SEMANTIC_COLORS, SPACING, RADIUS, FONT_SIZE } from '@nobodyclimb/constants'
+import { Pressable, StyleSheet, Text, View } from 'react-native'
 import type { AscentType } from '@/lib/constants/ascent'
-import { ASCENT_TYPE_LABELS, ASCENT_TYPE_COLORS } from '@/lib/constants/ascent'
+import { ASCENT_TYPE_COLORS, ASCENT_TYPE_LABELS } from '@/lib/constants/ascent'
 
 interface AscentTypeOption {
   type: AscentType
@@ -14,14 +12,14 @@ interface AscentTypeOption {
 }
 
 const ASCENT_TYPES: AscentTypeOption[] = [
-  { type: 'redpoint',  label: ASCENT_TYPE_LABELS.redpoint,  Icon: CircleDot },
-  { type: 'flash',     label: ASCENT_TYPE_LABELS.flash,     Icon: Zap       },
-  { type: 'onsight',   label: ASCENT_TYPE_LABELS.onsight,   Icon: Eye       },
-  { type: 'attempt',   label: ASCENT_TYPE_LABELS.attempt,   Icon: Target    },
-  { type: 'toprope',   label: ASCENT_TYPE_LABELS.toprope,   Icon: ArrowUp   },
-  { type: 'lead',      label: ASCENT_TYPE_LABELS.lead,      Icon: Sword     },
-  { type: 'seconding', label: ASCENT_TYPE_LABELS.seconding, Icon: Users     },
-  { type: 'repeat',    label: ASCENT_TYPE_LABELS.repeat,    Icon: Repeat2   },
+  { type: 'redpoint', label: ASCENT_TYPE_LABELS.redpoint, Icon: CircleDot },
+  { type: 'flash', label: ASCENT_TYPE_LABELS.flash, Icon: Zap },
+  { type: 'onsight', label: ASCENT_TYPE_LABELS.onsight, Icon: Eye },
+  { type: 'attempt', label: ASCENT_TYPE_LABELS.attempt, Icon: Target },
+  { type: 'toprope', label: ASCENT_TYPE_LABELS.toprope, Icon: ArrowUp },
+  { type: 'lead', label: ASCENT_TYPE_LABELS.lead, Icon: Sword },
+  { type: 'seconding', label: ASCENT_TYPE_LABELS.seconding, Icon: Users },
+  { type: 'repeat', label: ASCENT_TYPE_LABELS.repeat, Icon: Repeat2 },
 ]
 
 interface AscentTypeSelectProps {

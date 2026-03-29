@@ -4,24 +4,17 @@
  * 部落格文章評論區塊
  * 對應 apps/web/src/components/blog/CommentSection.tsx
  */
-import React, { useState, useEffect, useCallback } from 'react'
-import {
-  View,
-  StyleSheet,
-  FlatList,
-  Pressable,
-  Keyboard,
-  ActivityIndicator,
-} from 'react-native'
-import { MessageCircle, Send, Trash2 } from 'lucide-react-native'
+
+import { SEMANTIC_COLORS, SPACING, WB_COLORS } from '@nobodyclimb/constants'
 import { formatDistanceToNow } from 'date-fns'
 import { zhTW } from 'date-fns/locale'
-
-import { Text, Button, TextArea, Avatar, useToast } from '@/components/ui'
+import { MessageCircle, Send, Trash2 } from 'lucide-react-native'
+import { useCallback, useEffect, useState } from 'react'
+import { ActivityIndicator, FlatList, Keyboard, Pressable, StyleSheet, View } from 'react-native'
+import { Avatar, Button, Text, TextArea, useToast } from '@/components/ui'
 import { Link } from '@/components/ui/Link'
 import { api } from '@/lib/api'
 import { useAuthStore } from '@/store/authStore'
-import { BORDER_RADIUS, SEMANTIC_COLORS, SPACING, WB_COLORS } from '@nobodyclimb/constants'
 
 // 評論類型定義
 interface CommentData {
@@ -67,7 +60,7 @@ interface CommentItemProps {
 
 function CommentItem({ comment, currentUserId, onDelete }: CommentItemProps) {
   const displayName = comment.display_name || comment.username || '匿名用戶'
-  const initial = displayName.charAt(0).toUpperCase()
+  const _initial = displayName.charAt(0).toUpperCase()
 
   return (
     <View style={styles.commentItem}>
@@ -128,10 +121,7 @@ function CommentForm({ onSubmit, isSubmitting, isLoggedIn }: CommentFormProps) {
       <View style={styles.loginPrompt}>
         <Link href="/auth/login" style={styles.loginLink}>
           <Text variant="body" color="textSubtle">
-            <Text
-              variant="body"
-              style={{ color: SEMANTIC_COLORS.brandPrimary }}
-            >
+            <Text variant="body" style={{ color: SEMANTIC_COLORS.brandPrimary }}>
               登入
             </Text>
             {' 後才能留言'}
@@ -196,10 +186,7 @@ function LoadingComments() {
 // CommentSection 主組件
 // ============================================
 
-export function CommentSection({
-  postId,
-  isLoggedIn = false,
-}: CommentSectionProps) {
+export function CommentSection({ postId, isLoggedIn = false }: CommentSectionProps) {
   const toast = useToast()
   const { user } = useAuthStore()
   const [comments, setComments] = useState<CommentData[]>([])
@@ -285,11 +272,7 @@ export function CommentSection({
   // 渲染單個評論
   const renderComment = useCallback(
     ({ item }: { item: CommentData }) => (
-      <CommentItem
-        comment={item}
-        currentUserId={user?.id}
-        onDelete={handleDeleteComment}
-      />
+      <CommentItem comment={item} currentUserId={user?.id} onDelete={handleDeleteComment} />
     ),
     [user?.id, handleDeleteComment]
   )

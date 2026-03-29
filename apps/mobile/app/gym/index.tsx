@@ -9,38 +9,32 @@
  * - 搜尋功能
  * - Pull-to-Refresh
  */
-import React, { useState, useCallback, useMemo } from 'react'
+
+import { COLORS, RADIUS, SEMANTIC_COLORS, SPACING } from '@nobodyclimb/constants'
+import { useQueryClient } from '@tanstack/react-query'
+import { useRouter } from 'expo-router'
+import { ChevronLeft, Filter, MapPin, Star, X } from 'lucide-react-native'
+import { useCallback, useMemo, useState } from 'react'
 import {
-  StyleSheet,
-  View,
+  ActivityIndicator,
   FlatList,
   Pressable,
-  ActivityIndicator,
-  ScrollView,
   RefreshControl,
+  ScrollView,
+  StyleSheet,
+  View,
 } from 'react-native'
-import { SafeAreaView } from 'react-native-safe-area-context'
-import { useRouter } from 'expo-router'
-import { useQueryClient } from '@tanstack/react-query'
-import {
-  ChevronLeft,
-  MapPin,
-  Star,
-  Filter,
-  X,
-} from 'lucide-react-native'
 import Animated, {
-  FadeInDown,
   FadeIn,
+  FadeInDown,
   useAnimatedStyle,
-  withTiming,
   useSharedValue,
+  withTiming,
 } from 'react-native-reanimated'
-
-import { Text, SearchInput, IconButton, Card, Button } from '@/components/ui'
-import { SEMANTIC_COLORS, SPACING, RADIUS, COLORS } from '@nobodyclimb/constants'
+import { SafeAreaView } from 'react-native-safe-area-context'
+import { Button, Card, IconButton, SearchInput, Text } from '@/components/ui'
+import { GYM_TYPES, type GymListItem, REGIONS } from '@/lib/gym-data'
 import { useSearchGyms } from '@/lib/hooks/useGyms'
-import { REGIONS, GYM_TYPES, type GymListItem } from '@/lib/gym-data'
 
 // ============ 封面產生器組件 ============
 
@@ -67,12 +61,7 @@ function GymCover({ type, name, typeLabel }: GymCoverProps) {
   return (
     <View style={[styles.coverContainer, { backgroundColor: gradientColors[0] }]}>
       <View style={styles.coverContent}>
-        <Text
-          variant="body"
-          fontWeight="600"
-          numberOfLines={1}
-          style={styles.coverName}
-        >
+        <Text variant="body" fontWeight="600" numberOfLines={1} style={styles.coverName}>
           {name}
         </Text>
         <View style={styles.coverBadge}>
@@ -97,18 +86,12 @@ function FilterButton({ label, selected, onPress }: FilterButtonProps) {
   return (
     <Pressable
       onPress={onPress}
-      style={[
-        styles.filterButton,
-        selected && styles.filterButtonSelected,
-      ]}
+      style={[styles.filterButton, selected && styles.filterButtonSelected]}
     >
       <Text
         variant="small"
         fontWeight={selected ? '600' : '400'}
-        style={[
-          styles.filterButtonText,
-          selected && styles.filterButtonTextSelected,
-        ]}
+        style={[styles.filterButtonText, selected && styles.filterButtonTextSelected]}
       >
         {label}
       </Text>
@@ -178,7 +161,7 @@ function GymCard({ gym, onPress, index }: GymCardProps) {
 
 export default function GymListScreen() {
   const router = useRouter()
-  const queryClient = useQueryClient()
+  const _queryClient = useQueryClient()
   const [searchTerm, setSearchTerm] = useState('')
   const [selectedRegion, setSelectedRegion] = useState('所有地區')
   const [selectedType, setSelectedType] = useState('所有類型')
@@ -189,7 +172,11 @@ export default function GymListScreen() {
   const filterHeight = useSharedValue(0)
 
   // 使用 API hook 搜尋岩館
-  const { data: gyms, isLoading, error } = useSearchGyms({
+  const {
+    data: gyms,
+    isLoading,
+    error,
+  } = useSearchGyms({
     query: searchTerm,
     region: selectedRegion,
     type: selectedType,
@@ -226,9 +213,7 @@ export default function GymListScreen() {
   }
 
   const hasActiveFilters =
-    selectedRegion !== '所有地區' ||
-    selectedType !== '所有類型' ||
-    searchTerm !== ''
+    selectedRegion !== '所有地區' || selectedType !== '所有類型' || searchTerm !== ''
 
   const filterAnimatedStyle = useAnimatedStyle(() => ({
     maxHeight: filterHeight.value * 200,
@@ -261,12 +246,7 @@ export default function GymListScreen() {
       {error ? (
         <>
           <Text color="textSubtle">無法載入岩館資料，請稍後再試</Text>
-          <Button
-            variant="secondary"
-            size="sm"
-            onPress={handleRefresh}
-            style={styles.retryButton}
-          >
+          <Button variant="secondary" size="sm" onPress={handleRefresh} style={styles.retryButton}>
             重試
           </Button>
         </>
@@ -275,9 +255,7 @@ export default function GymListScreen() {
       ) : (
         <>
           <Text color="textSubtle">
-            {searchTerm
-              ? `找不到符合「${searchTerm}」的岩館`
-              : '沒有找到符合條件的攀岩館'}
+            {searchTerm ? `找不到符合「${searchTerm}」的岩館` : '沒有找到符合條件的攀岩館'}
           </Text>
           {hasActiveFilters && (
             <Pressable onPress={handleClearFilters} style={styles.clearFiltersButton}>
@@ -308,11 +286,7 @@ export default function GymListScreen() {
             icon={
               <Filter
                 size={20}
-                color={
-                  hasActiveFilters
-                    ? COLORS.brand.primary
-                    : SEMANTIC_COLORS.textMain
-                }
+                color={hasActiveFilters ? COLORS.brand.primary : SEMANTIC_COLORS.textMain}
               />
             }
             onPress={handleToggleFilter}
@@ -414,9 +388,7 @@ export default function GymListScreen() {
           contentContainerStyle={styles.listContent}
           ListHeaderComponent={ListHeaderComponent}
           ListEmptyComponent={ListEmptyComponent}
-          refreshControl={
-            <RefreshControl refreshing={refreshing} onRefresh={handleRefresh} />
-          }
+          refreshControl={<RefreshControl refreshing={refreshing} onRefresh={handleRefresh} />}
           showsVerticalScrollIndicator={false}
         />
       )}

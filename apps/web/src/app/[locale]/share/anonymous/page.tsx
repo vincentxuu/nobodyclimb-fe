@@ -1,23 +1,22 @@
 'use client'
 
-import { useState, useMemo } from 'react'
 import { ArrowLeft, Loader2 } from 'lucide-react'
-import { Button } from '@/components/ui/button'
-import { useGuestSession } from '@/lib/hooks/useGuestSession'
-import { useAuthStore } from '@/store/authStore'
 import { useRouter } from 'next/navigation'
-import apiClient from '@/lib/api/client'
 import { useTranslations } from 'next-intl'
-
+import { useMemo, useState } from 'react'
 import {
+  AlreadyAuthenticated,
+  EligibilityCheck,
+  type Question,
   QuestionEditor,
   QuestionList,
-  SubmissionComplete,
-  EligibilityCheck,
-  AlreadyAuthenticated,
-  type Question,
   type StoryInput,
+  SubmissionComplete,
 } from '@/components/anonymous-share'
+import { Button } from '@/components/ui/button'
+import apiClient from '@/lib/api/client'
+import { useGuestSession } from '@/lib/hooks/useGuestSession'
+import { useAuthStore } from '@/store/authStore'
 
 type ViewMode = 'list' | 'edit' | 'complete'
 
@@ -38,9 +37,12 @@ export default function AnonymousSharePage() {
   const [showEmailInput, setShowEmailInput] = useState(false)
 
   // 統計
-  const stats = useMemo(() => ({
-    total: stories.length,
-  }), [stories])
+  const stats = useMemo(
+    () => ({
+      total: stories.length,
+    }),
+    [stories]
+  )
 
   // 已登入用戶
   if (status === 'signIn') {
@@ -110,17 +112,21 @@ export default function AnonymousSharePage() {
       const response = await apiClient.post('/guest/anonymous/biography', {
         session_id: sessionId,
         core_stories: stories.filter((s) => s.type === 'core_story'),
-        one_liners: stories.filter((s) => s.type === 'one_liner').map((s) => ({
-          question_id: s.question_id,
-          answer: s.content,
-          question_text: s.question_text,
-        })),
-        stories: stories.filter((s) => s.type === 'story').map((s) => ({
-          question_id: s.question_id,
-          content: s.content,
-          question_text: s.question_text,
-          category_id: s.category_id,
-        })),
+        one_liners: stories
+          .filter((s) => s.type === 'one_liner')
+          .map((s) => ({
+            question_id: s.question_id,
+            answer: s.content,
+            question_text: s.question_text,
+          })),
+        stories: stories
+          .filter((s) => s.type === 'story')
+          .map((s) => ({
+            question_id: s.question_id,
+            content: s.content,
+            question_text: s.question_text,
+            category_id: s.category_id,
+          })),
         contact_email: contactEmail || undefined,
       })
 
@@ -184,9 +190,7 @@ export default function AnonymousSharePage() {
           <section className="mb-6">
             <div className="rounded-xl bg-white p-4 shadow-sm">
               <label className="block text-sm font-medium text-gray-700">{t('emailLabel')}</label>
-              <p className="mb-2 text-xs text-gray-500">
-                {t('emailHint')}
-              </p>
+              <p className="mb-2 text-xs text-gray-500">{t('emailHint')}</p>
               <input
                 type="email"
                 value={contactEmail}
@@ -199,9 +203,7 @@ export default function AnonymousSharePage() {
         )}
 
         {/* 錯誤訊息 */}
-        {error && (
-          <div className="mb-4 rounded-lg bg-red-50 p-3 text-sm text-red-600">{error}</div>
-        )}
+        {error && <div className="mb-4 rounded-lg bg-red-50 p-3 text-sm text-red-600">{error}</div>}
       </main>
 
       {/* 底部操作列 */}

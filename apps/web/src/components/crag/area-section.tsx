@@ -1,10 +1,10 @@
 'use client'
 
-import React from 'react'
-import Link from 'next/link'
-import PlaceholderImage from '@/components/ui/placeholder-image'
 import { ChevronRight } from 'lucide-react'
+import Link from 'next/link'
 import { useTranslations } from 'next-intl'
+import React from 'react'
+import PlaceholderImage from '@/components/ui/placeholder-image'
 
 interface CragAreaSectionProps {
   cragId: string
@@ -23,7 +23,9 @@ export const CragAreaSection: React.FC<CragAreaSectionProps> = ({ cragId, areas 
 
   return (
     <div>
-      <h2 className="mb-6 border-l-4 border-[#FFE70C] pl-4 text-2xl font-bold">{t('areaSectionTitle')}</h2>
+      <h2 className="mb-6 border-l-4 border-[#FFE70C] pl-4 text-2xl font-bold">
+        {t('areaSectionTitle')}
+      </h2>
       <p className="mb-6 text-sm text-gray-500">{t('areaSectionHint')}</p>
       <div className="space-y-10">
         {areas.map((area, index) => (
@@ -35,7 +37,10 @@ export const CragAreaSection: React.FC<CragAreaSectionProps> = ({ cragId, areas 
             aria-label={t('viewAreaAriaLabel', { name: area.name })}
           >
             <div className="relative h-60 overflow-hidden rounded-lg">
-              <PlaceholderImage text={t('areaPlaceholderText', { name: area.name })} bgColor="#E0F2FE" />
+              <PlaceholderImage
+                text={t('areaPlaceholderText', { name: area.name })}
+                bgColor="#E0F2FE"
+              />
             </div>
             <div className="md:col-span-2">
               <div className="mb-3 flex items-center justify-between">

@@ -3,20 +3,20 @@
  *
  * 對應 apps/web/src/app/crag/[id]/CragDetailClient.tsx 中的手機版抽屜
  */
-import React, { useCallback, useMemo, useRef, forwardRef, useImperativeHandle } from 'react'
-import { StyleSheet, View, FlatList, Pressable } from 'react-native'
+
 import BottomSheet, {
-  BottomSheetView,
   BottomSheetBackdrop,
   BottomSheetFlatList,
+  BottomSheetView,
 } from '@gorhom/bottom-sheet'
+import { SEMANTIC_COLORS, SPACING } from '@nobodyclimb/constants'
 import { X } from 'lucide-react-native'
-
-import { Text, IconButton } from '@/components/ui'
+import { forwardRef, useCallback, useImperativeHandle, useMemo, useRef } from 'react'
+import { StyleSheet, View } from 'react-native'
+import { IconButton, Text } from '@/components/ui'
+import type { RouteSidebarItem } from '@/lib/crag-data'
 import { RouteListFilter } from './RouteListFilter'
 import { RouteListItem } from './RouteListItem'
-import { SEMANTIC_COLORS, SPACING } from '@nobodyclimb/constants'
-import type { RouteSidebarItem } from '@/lib/crag-data'
 
 interface RouteDrawerProps {
   cragName: string
@@ -82,12 +82,7 @@ export const RouteDrawer = forwardRef<RouteDrawerRef, RouteDrawerProps>(
     // 渲染背景遮罩
     const renderBackdrop = useCallback(
       (props: any) => (
-        <BottomSheetBackdrop
-          {...props}
-          disappearsOnIndex={-1}
-          appearsOnIndex={0}
-          opacity={0.5}
-        />
+        <BottomSheetBackdrop {...props} disappearsOnIndex={-1} appearsOnIndex={0} opacity={0.5} />
       ),
       []
     )

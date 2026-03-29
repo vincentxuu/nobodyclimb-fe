@@ -1,9 +1,9 @@
 'use client'
 
-import React, { useState, useRef, useCallback } from 'react'
-import ReactCrop, { Crop, PixelCrop, centerCrop, makeAspectCrop } from 'react-image-crop'
+import React, { useCallback, useRef, useState } from 'react'
+import ReactCrop, { Crop, centerCrop, makeAspectCrop, PixelCrop } from 'react-image-crop'
 import 'react-image-crop/dist/ReactCrop.css'
-import { X, Check, RotateCcw } from 'lucide-react'
+import { Check, RotateCcw, X } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 
 interface ImageCropDialogProps {
@@ -14,11 +14,7 @@ interface ImageCropDialogProps {
   aspectRatio?: number
 }
 
-function centerAspectCrop(
-  mediaWidth: number,
-  mediaHeight: number,
-  aspect: number
-): Crop {
+function centerAspectCrop(mediaWidth: number, mediaHeight: number, aspect: number): Crop {
   return centerCrop(
     makeAspectCrop(
       {
@@ -102,10 +98,7 @@ export default function ImageCropDialog({
       <div className="mx-4 w-full max-w-2xl rounded-lg bg-white p-4">
         <div className="mb-4 flex items-center justify-between">
           <h3 className="text-lg font-medium">裁剪圖片</h3>
-          <button
-            onClick={onCancel}
-            className="rounded-full p-1 hover:bg-gray-100"
-          >
+          <button onClick={onCancel} className="rounded-full p-1 hover:bg-gray-100">
             <X className="h-5 w-5" />
           </button>
         </div>

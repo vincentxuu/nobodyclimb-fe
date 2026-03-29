@@ -75,7 +75,12 @@ const Input = React.forwardRef<HTMLInputElement, InputProps>(
     return (
       <div className={cn('relative', wrapperClassName)}>
         {leftIcon && <div className="absolute left-3 top-1/2 -translate-y-1/2">{leftIcon}</div>}
-        <input className={cn(baseClasses, className)} ref={ref} disabled={state === 'disabled'} {...props} />
+        <input
+          className={cn(baseClasses, className)}
+          ref={ref}
+          disabled={state === 'disabled'}
+          {...props}
+        />
         {rightIcon && <div className="absolute right-3 top-1/2 -translate-y-1/2">{rightIcon}</div>}
       </div>
     )

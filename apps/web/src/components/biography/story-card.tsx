@@ -1,11 +1,10 @@
 'use client'
 
-import React from 'react'
 import { motion } from 'framer-motion'
 import { BookOpen } from 'lucide-react'
 import { StoryQuestion } from '@/lib/constants/biography-stories'
 import { cn } from '@/lib/utils'
-import { getStoryIcon, getCategoryInfo } from '@/lib/utils/biography-ui'
+import { getCategoryInfo, getStoryIcon } from '@/lib/utils/biography-ui'
 
 interface StoryCardProps {
   question: StoryQuestion
@@ -220,10 +219,7 @@ export function StoryCategorySection({
       {/* 分類標題 */}
       <div className="flex items-center gap-3">
         <div
-          className={cn(
-            'flex h-10 w-10 items-center justify-center rounded-full',
-            'bg-gray-100'
-          )}
+          className={cn('flex h-10 w-10 items-center justify-center rounded-full', 'bg-gray-100')}
         >
           <CategoryIcon className={cn('h-5 w-5', categoryInfo?.color || 'text-gray-500')} />
         </div>

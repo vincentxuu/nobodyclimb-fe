@@ -1,28 +1,22 @@
-'use client';
+'use client'
 
-import { useState, useEffect } from 'react';
-import { useForm } from 'react-hook-form';
-import { zodResolver } from '@hookform/resolvers/zod';
-import { z } from 'zod';
-import { format } from 'date-fns';
-import { Calendar as CalendarIcon, Star, Instagram, Youtube } from 'lucide-react';
+import { zodResolver } from '@hookform/resolvers/zod'
+import { format } from 'date-fns'
+import { Calendar as CalendarIcon, Instagram, Star, Youtube } from 'lucide-react'
+import { useEffect, useState } from 'react'
+import { useForm } from 'react-hook-form'
+import { z } from 'zod'
 
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Textarea } from '@/components/ui/textarea';
-import { Label } from '@/components/ui/label';
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-} from '@/components/ui/dialog';
-import { PhotoUpload } from '@/components/ui/photo-upload';
-import { galleryService } from '@/lib/api/services';
-
-import { AscentTypeSelect } from './AscentTypeSelect';
-import { AscentType, AscentFormData } from '@/lib/types/ascent';
-import { cn } from '@/lib/utils';
+import { Button } from '@/components/ui/button'
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog'
+import { Input } from '@/components/ui/input'
+import { Label } from '@/components/ui/label'
+import { PhotoUpload } from '@/components/ui/photo-upload'
+import { Textarea } from '@/components/ui/textarea'
+import { galleryService } from '@/lib/api/services'
+import { AscentFormData, AscentType } from '@/lib/types/ascent'
+import { cn } from '@/lib/utils'
+import { AscentTypeSelect } from './AscentTypeSelect'
 
 const ascentFormSchema = z.object({
   route_id: z.string().min(1, '請選擇路線'),
@@ -45,17 +39,17 @@ const ascentFormSchema = z.object({
   youtube_url: z.string().url().nullable().optional().or(z.literal('')),
   instagram_url: z.string().url().nullable().optional().or(z.literal('')),
   is_public: z.boolean().optional(),
-});
+})
 
 interface AscentFormProps {
-  routeId: string;
-  routeName: string;
-  routeGrade?: string;
-  open: boolean;
-  onOpenChange: (_open: boolean) => void;
-  onSubmit: (_data: AscentFormData) => Promise<void>;
-  initialData?: Partial<AscentFormData>;
-  isLoading?: boolean;
+  routeId: string
+  routeName: string
+  routeGrade?: string
+  open: boolean
+  onOpenChange: (_open: boolean) => void
+  onSubmit: (_data: AscentFormData) => Promise<void>
+  initialData?: Partial<AscentFormData>
+  isLoading?: boolean
 }
 
 export function AscentForm({
@@ -68,7 +62,7 @@ export function AscentForm({
   initialData,
   isLoading = false,
 }: AscentFormProps) {
-  const [photos, setPhotos] = useState<string[]>(initialData?.photos ?? []);
+  const [photos, setPhotos] = useState<string[]>(initialData?.photos ?? [])
 
   const form = useForm<AscentFormData>({
     resolver: zodResolver(ascentFormSchema),
@@ -85,16 +79,16 @@ export function AscentForm({
       instagram_url: initialData?.instagram_url ?? null,
       is_public: initialData?.is_public ?? true,
     },
-  });
+  })
 
   const handleRatingChange = (newRating: number) => {
-    const currentRating = form.getValues('rating');
-    const finalRating = currentRating === newRating ? null : newRating;
-    form.setValue('rating', finalRating);
-  };
+    const currentRating = form.getValues('rating')
+    const finalRating = currentRating === newRating ? null : newRating
+    form.setValue('rating', finalRating)
+  }
 
   // 取得目前的 rating 值以用於渲染
-  const currentRating = form.watch('rating');
+  const currentRating = form.watch('rating')
 
   // 當 dialog 關閉時重置表單狀態
   useEffect(() => {
@@ -111,10 +105,10 @@ export function AscentForm({
         youtube_url: initialData?.youtube_url ?? null,
         instagram_url: initialData?.instagram_url ?? null,
         is_public: initialData?.is_public ?? true,
-      });
-      setPhotos(initialData?.photos ?? []);
+      })
+      setPhotos(initialData?.photos ?? [])
     }
-  }, [open, form, routeId, initialData]);
+  }, [open, form, routeId, initialData])
 
   const handleFormSubmit = async (data: AscentFormData) => {
     await onSubmit({
@@ -122,10 +116,10 @@ export function AscentForm({
       photos: photos.length > 0 ? photos : undefined,
       youtube_url: data.youtube_url || null,
       instagram_url: data.instagram_url || null,
-    });
-    setPhotos([]);
-    onOpenChange(false);
-  };
+    })
+    setPhotos([])
+    onOpenChange(false)
+  }
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -234,17 +228,11 @@ export function AscentForm({
             <div className="space-y-3">
               <div className="flex items-center gap-2">
                 <Youtube className="h-5 w-5 text-red-500" />
-                <Input
-                  placeholder="YouTube 影片連結"
-                  {...form.register('youtube_url')}
-                />
+                <Input placeholder="YouTube 影片連結" {...form.register('youtube_url')} />
               </div>
               <div className="flex items-center gap-2">
                 <Instagram className="h-5 w-5 text-pink-500" />
-                <Input
-                  placeholder="Instagram 貼文連結"
-                  {...form.register('instagram_url')}
-                />
+                <Input placeholder="Instagram 貼文連結" {...form.register('instagram_url')} />
               </div>
             </div>
           </div>
@@ -266,5 +254,5 @@ export function AscentForm({
         </form>
       </DialogContent>
     </Dialog>
-  );
+  )
 }

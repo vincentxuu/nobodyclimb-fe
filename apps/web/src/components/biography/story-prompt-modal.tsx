@@ -1,24 +1,29 @@
 'use client'
 
-import React, { useState, useCallback, useEffect, useMemo } from 'react'
+import { AnimatePresence, motion } from 'framer-motion'
+import { BarChart, ChevronRight, Info, Loader2, MessageCircle, Users, X } from 'lucide-react'
 import { useTranslations } from 'next-intl'
-import { motion, AnimatePresence } from 'framer-motion'
-import { X, MessageCircle, Info, BarChart, Loader2, ChevronRight, Users } from 'lucide-react'
-import { cn } from '@/lib/utils'
+import { useCallback, useEffect, useMemo, useState } from 'react'
 import { Button } from '@/components/ui/button'
 import { Textarea } from '@/components/ui/textarea'
 import {
-  useQuestions,
-  type PromptStoryQuestion,
+  calculatePromptProgress,
   convertToPromptQuestions,
   getUnfilledPromptQuestions,
-  calculatePromptProgress,
+  type PromptStoryQuestion,
+  useQuestions,
 } from '@/lib/hooks/useQuestions'
+import { cn } from '@/lib/utils'
 
 /**
  * 推題策略類型
  */
-type PromptStrategy = 'random' | 'category_rotate' | 'easy_first' | 'popular' | 'completion_priority'
+type PromptStrategy =
+  | 'random'
+  | 'category_rotate'
+  | 'easy_first'
+  | 'popular'
+  | 'completion_priority'
 
 /**
  * 推題選擇策略
@@ -259,7 +264,9 @@ export function StoryPromptModal({
             {/* 標題列 */}
             <div className="flex items-center justify-between border-b border-gray-100 px-6 py-4">
               <div>
-                <h2 className="text-lg font-semibold text-gray-900">{t('storyPromptWelcome', { name: userName })}</h2>
+                <h2 className="text-lg font-semibold text-gray-900">
+                  {t('storyPromptWelcome', { name: userName })}
+                </h2>
                 <p className="text-sm text-gray-500">{t('storyPromptSubtitle')}</p>
               </div>
               <button
@@ -299,7 +306,9 @@ export function StoryPromptModal({
                 />
 
                 {/* 字數 */}
-                <div className="mt-2 text-right text-xs text-gray-400">{value.length} {t('advancedStoryCharCount')}</div>
+                <div className="mt-2 text-right text-xs text-gray-400">
+                  {value.length} {t('advancedStoryCharCount')}
+                </div>
 
                 {/* 錯誤提示 */}
                 {error && (
@@ -314,13 +323,23 @@ export function StoryPromptModal({
                 {categoryInfo && categoryProgress && (
                   <div className="flex items-center gap-1">
                     <Info className="h-3.5 w-3.5" />
-                    <span>{t('storyPromptCategoryProgress', { category: categoryInfo.name, current: categoryProgress.filled + 1, total: categoryProgress.total })}</span>
+                    <span>
+                      {t('storyPromptCategoryProgress', {
+                        category: categoryInfo.name,
+                        current: categoryProgress.filled + 1,
+                        total: categoryProgress.total,
+                      })}
+                    </span>
                   </div>
                 )}
                 <div className="flex items-center gap-1">
                   <BarChart className="h-3.5 w-3.5" />
                   <span>
-                    {t('storyPromptOverallProgress', { completed: storyProgress.completed, total: storyProgress.total, percentage: storyProgress.percentage })}
+                    {t('storyPromptOverallProgress', {
+                      completed: storyProgress.completed,
+                      total: storyProgress.total,
+                      percentage: storyProgress.percentage,
+                    })}
                   </span>
                 </div>
               </div>
@@ -335,10 +354,7 @@ export function StoryPromptModal({
                   <span>{t('storyPromptShowExamples')}</span>
                 </div>
                 <ChevronRight
-                  className={cn(
-                    'h-4 w-4 transition-transform',
-                    showExamples && 'rotate-90'
-                  )}
+                  className={cn('h-4 w-4 transition-transform', showExamples && 'rotate-90')}
                 />
               </button>
 
@@ -352,7 +368,9 @@ export function StoryPromptModal({
                   <p className="text-sm italic text-gray-500">
                     「{getExampleAnswer(currentQuestion.field)}」
                   </p>
-                  <p className="mt-2 text-right text-xs text-gray-400">— {t('storyPromptExampleAuthor')}</p>
+                  <p className="mt-2 text-right text-xs text-gray-400">
+                    — {t('storyPromptExampleAuthor')}
+                  </p>
                 </motion.div>
               )}
             </div>
@@ -386,18 +404,13 @@ function getExampleAnswer(field: string): string {
   const examples: Record<string, string> = {
     memorable_moment:
       '那次在龍洞的夕陽下完攀，整個人被橘紅色的光芒包圍，那一刻覺得所有的練習都值得了。',
-    biggest_challenge:
-      '曾經因為指腱炎休息了半年，那段時間學會了耐心，也更珍惜能夠攀爬的每一天。',
+    biggest_challenge: '曾經因為指腱炎休息了半年，那段時間學會了耐心，也更珍惜能夠攀爬的每一天。',
     funny_moment:
       '有一次爬到一半褲子破掉，只好硬著頭皮爬完整條路線，下來後才發現後面的人都在偷笑。',
-    fear_management:
-      '每次害怕墜落時，我會深呼吸三次，告訴自己繩子會接住我，然後專注在下一個動作。',
-    favorite_spot:
-      '最推薦北部的原岩，定線有創意，氣氛也很好，是我開始愛上抱石的地方。',
-    climbing_mentor:
-      '我的教練總是說「慢慢來，比較快」，這句話改變了我急躁的個性，不只在攀岩上。',
-    life_outside_climbing:
-      '除了攀岩，我也很喜歡攝影。常常帶著相機去岩場，記錄岩友們專注的表情。',
+    fear_management: '每次害怕墜落時，我會深呼吸三次，告訴自己繩子會接住我，然後專注在下一個動作。',
+    favorite_spot: '最推薦北部的原岩，定線有創意，氣氛也很好，是我開始愛上抱石的地方。',
+    climbing_mentor: '我的教練總是說「慢慢來，比較快」，這句話改變了我急躁的個性，不只在攀岩上。',
+    life_outside_climbing: '除了攀岩，我也很喜歡攝影。常常帶著相機去岩場，記錄岩友們專注的表情。',
   }
 
   return examples[field] || '這是一段很棒的攀岩故事...'

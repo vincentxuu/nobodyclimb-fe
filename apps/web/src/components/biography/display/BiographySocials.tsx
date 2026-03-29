@@ -1,9 +1,9 @@
 'use client'
 
-import { cn } from '@/lib/utils'
-import { Link2, Globe } from 'lucide-react'
-import type { BiographyV2, SocialLinks } from '@/lib/types/biography-v2'
+import { Globe, Link2 } from 'lucide-react'
 import { useTranslations } from 'next-intl'
+import type { BiographyV2, SocialLinks } from '@/lib/types/biography-v2'
+import { cn } from '@/lib/utils'
 
 interface BiographySocialsProps {
   /** 人物誌資料 */
@@ -49,21 +49,13 @@ const SOCIAL_PLATFORM_NAMES: Omit<Record<keyof SocialLinks, string>, 'website'> 
 function getSocialUrl(platform: keyof SocialLinks, value: string): string {
   switch (platform) {
     case 'instagram':
-      return value.startsWith('http')
-        ? value
-        : `https://instagram.com/${value.replace('@', '')}`
+      return value.startsWith('http') ? value : `https://instagram.com/${value.replace('@', '')}`
     case 'youtube':
-      return value.startsWith('http')
-        ? value
-        : `https://youtube.com/@${value.replace('@', '')}`
+      return value.startsWith('http') ? value : `https://youtube.com/@${value.replace('@', '')}`
     case 'facebook':
-      return value.startsWith('http')
-        ? value
-        : `https://facebook.com/${value}`
+      return value.startsWith('http') ? value : `https://facebook.com/${value}`
     case 'threads':
-      return value.startsWith('http')
-        ? value
-        : `https://threads.net/@${value.replace('@', '')}`
+      return value.startsWith('http') ? value : `https://threads.net/@${value.replace('@', '')}`
     case 'website':
       return value.startsWith('http') ? value : `https://${value}`
     default:
@@ -76,10 +68,7 @@ function getSocialUrl(platform: keyof SocialLinks, value: string): string {
  *
  * 顯示用戶的社群平台連結
  */
-export function BiographySocials({
-  biography,
-  className,
-}: BiographySocialsProps) {
+export function BiographySocials({ biography, className }: BiographySocialsProps) {
   const t = useTranslations('BiographyPage')
   const SocialNames: Record<keyof SocialLinks, string> = {
     ...SOCIAL_PLATFORM_NAMES,
@@ -117,9 +106,7 @@ export function BiographySocials({
             className="flex items-center gap-2 px-4 py-2 rounded-lg border border-[#DBD8D8] bg-white hover:bg-[#F5F5F5] hover:border-[#B6B3B3] transition-colors"
           >
             <span className="text-[#6D6C6C]">{SocialIcon[platform]}</span>
-            <span className="text-sm font-medium text-[#3F3D3D]">
-              {SocialNames[platform]}
-            </span>
+            <span className="text-sm font-medium text-[#3F3D3D]">{SocialNames[platform]}</span>
           </a>
         ))}
       </div>

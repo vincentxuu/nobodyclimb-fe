@@ -51,16 +51,7 @@ interface TabsListProps {
 }
 
 const TabsList = ({ className, children }: TabsListProps) => {
-  return (
-    <div
-      className={cn(
-        'inline-flex items-center gap-2',
-        className
-      )}
-    >
-      {children}
-    </div>
-  )
+  return <div className={cn('inline-flex items-center gap-2', className)}>{children}</div>
 }
 
 interface TabsTriggerProps {
@@ -132,4 +123,4 @@ const TabsContent = ({ value, className, children }: TabsContentProps) => {
   )
 }
 
-export { Tabs, TabsList, TabsTrigger, TabsContent }
+export { Tabs, TabsContent, TabsList, TabsTrigger }

@@ -3,23 +3,23 @@
  *
  * 首頁英雄區，對應 apps/web/src/components/home/hero.tsx
  */
-import React from 'react'
-import { StyleSheet, View, Dimensions } from 'react-native'
+
+import { SPACING, WB_COLORS } from '@nobodyclimb/constants'
 import { LinearGradient } from 'expo-linear-gradient'
-import { YStack } from 'tamagui'
 import { ArrowDown } from 'lucide-react-native'
+import React from 'react'
+import { Dimensions, StyleSheet, View } from 'react-native'
 import Animated, {
   FadeInDown,
   FadeInUp,
   useAnimatedStyle,
   useSharedValue,
   withRepeat,
-  withTiming,
   withSequence,
+  withTiming,
 } from 'react-native-reanimated'
-
+import { YStack } from 'tamagui'
 import { Text } from '@/components/ui'
-import { SPACING, WB_COLORS } from '@nobodyclimb/constants'
 
 const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get('window')
 
@@ -29,10 +29,7 @@ export function Hero() {
 
   React.useEffect(() => {
     arrowY.value = withRepeat(
-      withSequence(
-        withTiming(10, { duration: 500 }),
-        withTiming(0, { duration: 500 })
-      ),
+      withSequence(withTiming(10, { duration: 500 }), withTiming(0, { duration: 500 })),
       -1, // 無限重複
       true
     )
@@ -50,18 +47,9 @@ export function Hero() {
         start={{ x: 0, y: 0 }}
         end={{ x: 1, y: 1 }}
       >
-
         {/* 內容 */}
-        <YStack
-          flex={1}
-          alignItems="center"
-          justifyContent="center"
-          padding={SPACING.lg}
-        >
-          <Animated.View
-            entering={FadeInDown.duration(700)}
-            style={styles.content}
-          >
+        <YStack flex={1} alignItems="center" justifyContent="center" padding={SPACING.lg}>
+          <Animated.View entering={FadeInDown.duration(700)} style={styles.content}>
             {/* 標題 */}
             <Text style={styles.title}>小人物攀岩</Text>
 

@@ -1,9 +1,8 @@
-import React, { useState } from 'react'
-import { View, StyleSheet, useWindowDimensions } from 'react-native'
+import { useState } from 'react'
+import { StyleSheet, useWindowDimensions, View } from 'react-native'
 import { ProfileImage } from '../types'
-import SortableImageCard from './SortableImageCard'
 import ImageUploader from './ImageUploader'
-import { COLORS } from '@nobodyclimb/constants'
+import SortableImageCard from './SortableImageCard'
 
 interface SortableImageGridProps {
   images: ProfileImage[]
@@ -23,7 +22,7 @@ export default function SortableImageGrid({
   maxCount = 5,
 }: SortableImageGridProps) {
   const { width: screenWidth } = useWindowDimensions()
-  const [draggingId, setDraggingId] = useState<string | null>(null)
+  const [draggingId, _setDraggingId] = useState<string | null>(null)
 
   const columns = 3
   const padding = 32
@@ -50,11 +49,7 @@ export default function SortableImageGrid({
         {/* Upload Button */}
         {images.length < maxCount && (
           <View style={{ width: itemWidth }}>
-            <ImageUploader
-              onUpload={onUpload}
-              currentCount={images.length}
-              maxCount={maxCount}
-            />
+            <ImageUploader onUpload={onUpload} currentCount={images.length} maxCount={maxCount} />
           </View>
         )}
       </View>

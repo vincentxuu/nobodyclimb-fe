@@ -1,7 +1,7 @@
 'use client'
 
-import { useState, useCallback, useRef } from 'react'
-import { UploadCloud, X, Image as ImageIcon, Loader2 } from 'lucide-react'
+import { Image as ImageIcon, Loader2, UploadCloud, X } from 'lucide-react'
+import { useCallback, useRef, useState } from 'react'
 import { Button } from '@/components/ui/button'
 import { processImage, validateImageType } from '@/lib/utils/image'
 

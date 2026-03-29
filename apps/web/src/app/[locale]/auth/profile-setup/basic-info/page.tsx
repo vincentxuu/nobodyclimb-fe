@@ -1,13 +1,13 @@
 'use client'
 
-import React, { useState, useEffect, useMemo } from 'react'
+import { Lightbulb, Plus, X } from 'lucide-react'
 import { useRouter } from 'next/navigation'
-import { useAuth } from '@/lib/hooks/useAuth'
 import { useTranslations } from 'next-intl'
-import { X, Plus, Lightbulb } from 'lucide-react'
-import { Button } from '@/components/ui/button'
+import React, { useEffect, useMemo, useState } from 'react'
 import { PageTransition } from '@/components/shared/page-transition'
+import { Button } from '@/components/ui/button'
 import { useToast } from '@/components/ui/use-toast'
+import { useAuth } from '@/lib/hooks/useAuth'
 import { cn } from '@/lib/utils'
 
 interface BasicInfoFormData {

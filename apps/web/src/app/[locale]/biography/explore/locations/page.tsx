@@ -1,15 +1,15 @@
 'use client'
 
-import React, { useState, useEffect } from 'react'
-import { Link } from '@/i18n/navigation'
-import { MapPin, Globe, Users, Loader2, Search, ArrowLeft } from 'lucide-react'
+import { ArrowLeft, Globe, Loader2, MapPin, Search, Users } from 'lucide-react'
+import { useTranslations } from 'next-intl'
+import { useEffect, useState } from 'react'
+import { CountryCard, LocationExploreCard } from '@/components/biography/climbing-location-card'
+import { Breadcrumb } from '@/components/ui/breadcrumb'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
-import { LocationExploreCard, CountryCard } from '@/components/biography/climbing-location-card'
-import { Breadcrumb } from '@/components/ui/breadcrumb'
+import { Link } from '@/i18n/navigation'
 import { climbingLocationService } from '@/lib/api/services'
-import { LocationStat, CountryStat } from '@/lib/types'
-import { useTranslations } from 'next-intl'
+import { CountryStat, LocationStat } from '@/lib/types'
 
 export default function ExploreLocationsPage() {
   const t = useTranslations('BiographyPage')
@@ -91,9 +91,7 @@ export default function ExploreLocationsPage() {
                 <MapPin className="h-7 w-7 text-emerald-500" />
                 {t('exploreLocationsTitle')}
               </h1>
-              <p className="mt-1 text-gray-600">
-                {t('exploreLocationsDesc')}
-              </p>
+              <p className="mt-1 text-gray-600">{t('exploreLocationsDesc')}</p>
             </div>
             <Link href="/biography">
               <Button variant="outline">
@@ -131,9 +129,7 @@ export default function ExploreLocationsPage() {
               <button
                 onClick={() => setSelectedCountry(null)}
                 className={`mb-2 w-full rounded-lg px-3 py-2 text-left text-sm transition-colors ${
-                  selectedCountry === null
-                    ? 'bg-emerald-50 text-emerald-700'
-                    : 'hover:bg-gray-50'
+                  selectedCountry === null ? 'bg-emerald-50 text-emerald-700' : 'hover:bg-gray-50'
                 }`}
               >
                 {t('allCountries')}

@@ -1,7 +1,6 @@
-import React from 'react'
+import { RADIUS } from '@nobodyclimb/constants'
 import { StyleSheet, View } from 'react-native'
 import { WebView } from 'react-native-webview'
-import { RADIUS } from '@nobodyclimb/constants'
 
 interface GoogleMapsEmbedProps {
   latitude: number

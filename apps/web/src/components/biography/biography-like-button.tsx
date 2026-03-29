@@ -1,11 +1,11 @@
 'use client'
 
-import { useState, useEffect } from 'react'
-import { Mountain, Loader2 } from 'lucide-react'
-import { biographyService } from '@/lib/api/services'
-import { useAuthStore } from '@/store/authStore'
+import { Loader2, Mountain } from 'lucide-react'
 import { useRouter } from 'next/navigation'
+import { useEffect, useState } from 'react'
+import { biographyService } from '@/lib/api/services'
 import { cn } from '@/lib/utils'
+import { useAuthStore } from '@/store/authStore'
 
 interface BiographyLikeButtonProps {
   biographyId: string

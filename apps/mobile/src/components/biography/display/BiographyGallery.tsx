@@ -3,21 +3,21 @@
  *
  * 相簿展示，對應 apps/web/src/components/biography/display/BiographyGallery.tsx
  */
-import React, { useState } from 'react'
-import {
-  StyleSheet,
-  View,
-  ScrollView,
-  Pressable,
-  Modal,
-  useWindowDimensions,
-  Image,
-} from 'react-native'
-import { Camera, X, ChevronLeft, ChevronRight } from 'lucide-react-native'
-import Animated, { FadeIn, FadeInRight } from 'react-native-reanimated'
 
-import { Text } from '@/components/ui'
 import { RADIUS, SEMANTIC_COLORS, SPACING, WB_COLORS } from '@nobodyclimb/constants'
+import { Camera, ChevronLeft, ChevronRight, X } from 'lucide-react-native'
+import { useState } from 'react'
+import {
+  Image,
+  Modal,
+  Pressable,
+  ScrollView,
+  StyleSheet,
+  useWindowDimensions,
+  View,
+} from 'react-native'
+import Animated, { FadeIn, FadeInRight } from 'react-native-reanimated'
+import { Text } from '@/components/ui'
 
 // 類型定義
 interface GalleryImage {
@@ -46,11 +46,7 @@ interface BiographyGalleryProps {
  *
  * 顯示用戶上傳的攀岩照片
  */
-export function BiographyGallery({
-  biography,
-  initialCount = 6,
-  style,
-}: BiographyGalleryProps) {
+export function BiographyGallery({ biography, initialCount = 6, style }: BiographyGalleryProps) {
   const { width: screenWidth } = useWindowDimensions()
   const [selectedIndex, setSelectedIndex] = useState<number | null>(null)
 
@@ -95,19 +91,12 @@ export function BiographyGallery({
         contentContainerStyle={styles.scrollContent}
       >
         {images.map((image, index) => (
-          <Animated.View
-            key={image.id}
-            entering={FadeInRight.delay(index * 50).duration(300)}
-          >
+          <Animated.View key={image.id} entering={FadeInRight.delay(index * 50).duration(300)}>
             <Pressable
               style={[styles.imageWrapper, { width: imageSize, height: imageSize }]}
               onPress={() => setSelectedIndex(index)}
             >
-              <Image
-                source={{ uri: image.url }}
-                style={styles.image}
-                resizeMode="cover"
-              />
+              <Image source={{ uri: image.url }} style={styles.image} resizeMode="cover" />
             </Pressable>
           </Animated.View>
         ))}
@@ -137,10 +126,7 @@ export function BiographyGallery({
       >
         <View style={styles.modalContainer}>
           {/* 關閉按鈕 */}
-          <Pressable
-            style={styles.closeButton}
-            onPress={() => setSelectedIndex(null)}
-          >
+          <Pressable style={styles.closeButton} onPress={() => setSelectedIndex(null)}>
             <X size={28} color={WB_COLORS[0]} />
           </Pressable>
 

@@ -1,14 +1,25 @@
-import React, { useState } from 'react'
 import {
-  View, Text, TextInput, Pressable, FlatList,
-  StyleSheet, ActivityIndicator,
+  BORDER_RADIUS,
+  FONT_SIZE,
+  SEMANTIC_COLORS,
+  SPACING,
+  WB_COLORS,
+} from '@nobodyclimb/constants'
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
+import { useState } from 'react'
+import {
+  ActivityIndicator,
+  FlatList,
+  Pressable,
+  StyleSheet,
+  Text,
+  TextInput,
+  View,
 } from 'react-native'
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { apiClient } from '@/lib/api'
-import { SEMANTIC_COLORS, SPACING, BORDER_RADIUS, FONT_SIZE, WB_COLORS } from '@nobodyclimb/constants'
-import { AscentTypeSelect } from './AscentTypeSelect'
 import type { AscentType } from '@/lib/constants/ascent'
 import { useDebounce } from '@/lib/hooks/useDebounce'
+import { AscentTypeSelect } from './AscentTypeSelect'
 
 type Step = 'crag' | 'route' | 'form'
 
@@ -154,7 +165,9 @@ export function CreateAscentFlow({ onSuccess, onCancel }: CreateAscentFlowProps)
       {step === 'form' && (
         <View style={styles.stepContent}>
           <Text style={styles.stepTitle}>{selectedRoute?.name}</Text>
-          <Text style={styles.stepSub}>{selectedCrag?.name} · {selectedRoute?.grade}</Text>
+          <Text style={styles.stepSub}>
+            {selectedCrag?.name} · {selectedRoute?.grade}
+          </Text>
           <AscentTypeSelect value={ascentType} onChange={setAscentType} />
           {createMutation.isPending && <ActivityIndicator color={SEMANTIC_COLORS.success} />}
           <Pressable
@@ -186,12 +199,18 @@ const styles = StyleSheet.create({
   stepTitle: { fontSize: FONT_SIZE.xl, fontWeight: '700', color: SEMANTIC_COLORS.textMain },
   stepSub: { fontSize: FONT_SIZE.sm, color: SEMANTIC_COLORS.textSubtle },
   searchInput: {
-    borderWidth: 1, borderColor: SEMANTIC_COLORS.border, borderRadius: BORDER_RADIUS.sm,
-    paddingHorizontal: SPACING.sm, paddingVertical: SPACING.xs,
-    color: SEMANTIC_COLORS.textMain, fontSize: FONT_SIZE.base,
+    borderWidth: 1,
+    borderColor: SEMANTIC_COLORS.border,
+    borderRadius: BORDER_RADIUS.sm,
+    paddingHorizontal: SPACING.sm,
+    paddingVertical: SPACING.xs,
+    color: SEMANTIC_COLORS.textMain,
+    fontSize: FONT_SIZE.base,
   },
   listItem: {
-    paddingVertical: SPACING.sm, borderBottomWidth: 1, borderBottomColor: SEMANTIC_COLORS.border,
+    paddingVertical: SPACING.sm,
+    borderBottomWidth: 1,
+    borderBottomColor: SEMANTIC_COLORS.border,
   },
   listItemText: { fontSize: FONT_SIZE.base, color: SEMANTIC_COLORS.textMain },
   listItemSub: { fontSize: FONT_SIZE.sm, color: SEMANTIC_COLORS.textSubtle },
@@ -200,8 +219,10 @@ const styles = StyleSheet.create({
   backBtn: { paddingVertical: SPACING.sm },
   backText: { color: SEMANTIC_COLORS.textSubtle, fontSize: FONT_SIZE.sm },
   saveBtn: {
-    backgroundColor: SEMANTIC_COLORS.success, borderRadius: BORDER_RADIUS.sm,
-    padding: SPACING.md, alignItems: 'center',
+    backgroundColor: SEMANTIC_COLORS.success,
+    borderRadius: BORDER_RADIUS.sm,
+    padding: SPACING.md,
+    alignItems: 'center',
   },
   saveText: { color: WB_COLORS[100], fontWeight: '700', fontSize: FONT_SIZE.base },
   cancelBtn: { paddingVertical: SPACING.sm, alignItems: 'center' },

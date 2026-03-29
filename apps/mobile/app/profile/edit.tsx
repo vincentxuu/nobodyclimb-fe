@@ -3,38 +3,38 @@
  *
  * 對應 apps/web/src/app/profile/edit/page.tsx
  */
-import React, { useState, useCallback } from 'react'
+
+import { RADIUS, SEMANTIC_COLORS, SPACING } from '@nobodyclimb/constants'
+import { Image } from 'expo-image'
+import * as ImagePicker from 'expo-image-picker'
+import { useRouter } from 'expo-router'
 import {
-  StyleSheet,
-  View,
-  ScrollView,
-  TextInput,
-  Pressable,
+  Calendar,
+  Camera,
+  ChevronLeft,
+  Facebook,
+  Instagram,
+  Mail,
+  MapPin,
+  Phone,
+  User,
+  Youtube,
+} from 'lucide-react-native'
+import { useCallback, useState } from 'react'
+import {
   Alert,
   KeyboardAvoidingView,
   Platform,
+  Pressable,
+  ScrollView,
+  StyleSheet,
+  TextInput,
+  View,
 } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
-import { useRouter } from 'expo-router'
-import { Image } from 'expo-image'
-import {
-  ChevronLeft,
-  Camera,
-  User,
-  Mail,
-  Phone,
-  MapPin,
-  Calendar,
-  Instagram,
-  Facebook,
-  Youtube,
-} from 'lucide-react-native'
-import * as ImagePicker from 'expo-image-picker'
-
-import { Text, IconButton, Button, Input } from '@/components/ui'
 import { ProtectedRoute } from '@/components/shared'
+import { Button, IconButton, Text } from '@/components/ui'
 import { useAuthStore } from '@/store/authStore'
-import { SEMANTIC_COLORS, SPACING, RADIUS } from '@nobodyclimb/constants'
 
 interface ProfileFormData {
   displayName: string
@@ -102,10 +102,8 @@ export default function EditProfileScreen() {
     try {
       // TODO: 整合 userService.updateProfile
       await new Promise((resolve) => setTimeout(resolve, 1000))
-      Alert.alert('儲存成功', '個人資料已更新', [
-        { text: '好', onPress: () => router.back() },
-      ])
-    } catch (error) {
+      Alert.alert('儲存成功', '個人資料已更新', [{ text: '好', onPress: () => router.back() }])
+    } catch (_error) {
       Alert.alert('儲存失敗', '請稍後再試')
     } finally {
       setIsSubmitting(false)
@@ -125,12 +123,7 @@ export default function EditProfileScreen() {
           <Text variant="h3" fontWeight="600">
             編輯個人資料
           </Text>
-          <Button
-            variant="primary"
-            size="sm"
-            onPress={handleSubmit}
-            disabled={isSubmitting}
-          >
+          <Button variant="primary" size="sm" onPress={handleSubmit} disabled={isSubmitting}>
             <Text fontWeight="600" style={styles.saveText}>
               {isSubmitting ? '儲存中...' : '儲存'}
             </Text>
@@ -141,10 +134,7 @@ export default function EditProfileScreen() {
           style={styles.keyboardView}
           behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
         >
-          <ScrollView
-            style={styles.scrollView}
-            keyboardShouldPersistTaps="handled"
-          >
+          <ScrollView style={styles.scrollView} keyboardShouldPersistTaps="handled">
             {/* 頭像 */}
             <View style={styles.avatarSection}>
               <Pressable onPress={handlePickAvatar} style={styles.avatarContainer}>

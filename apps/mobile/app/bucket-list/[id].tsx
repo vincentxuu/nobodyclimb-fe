@@ -3,50 +3,55 @@
  *
  * 對應 apps/web/src/app/bucket-list/[id]/page.tsx
  */
-import React, { useState, useCallback, useMemo } from 'react'
+
 import {
-  StyleSheet,
-  View,
-  ScrollView,
-  RefreshControl,
+  BORDER_RADIUS,
+  FONT_SIZE,
+  FONT_WEIGHT,
+  SEMANTIC_COLORS,
+  SPACING,
+} from '@nobodyclimb/constants'
+import type { Biography, BucketListCategory, BucketListItem, Milestone } from '@nobodyclimb/types'
+import { useQuery, useQueryClient } from '@tanstack/react-query'
+import { useLocalSearchParams, useRouter } from 'expo-router'
+import type { LucideIcon } from 'lucide-react-native'
+import {
+  Activity,
+  ArrowLeft,
+  Award,
+  Calendar,
+  Check,
+  ChevronRight,
+  Dumbbell,
+  Home,
+  Instagram,
+  Link as LinkIcon,
+  MapPin,
+  MessageCircle,
+  Mountain,
+  Plane,
+  Target,
+  Tent,
+  Trophy,
+  Youtube,
+} from 'lucide-react-native'
+import { useCallback, useMemo, useState } from 'react'
+import {
   ActivityIndicator,
-  Pressable,
-  TextInput,
   Linking,
   Platform,
+  Pressable,
+  RefreshControl,
+  ScrollView,
+  StyleSheet,
+  TextInput,
+  View,
 } from 'react-native'
-import { useLocalSearchParams, useRouter, Link } from 'expo-router'
 import { SafeAreaView } from 'react-native-safe-area-context'
-import { useQuery, useQueryClient } from '@tanstack/react-query'
-import {
-  ArrowLeft,
-  Target,
-  MapPin,
-  Calendar,
-  Mountain,
-  MessageCircle,
-  Link as LinkIcon,
-  Check,
-  Tent,
-  Home,
-  Trophy,
-  Dumbbell,
-  Plane,
-  Award,
-  Activity,
-  Youtube,
-  Instagram,
-  ChevronRight,
-} from 'lucide-react-native'
-import type { LucideIcon } from 'lucide-react-native'
-
-import { Text, Button, IconButton } from '@/components/ui'
-import { ProgressBar } from '@/components/ui/ProgressBar'
-import { Badge } from '@/components/ui/Badge'
 import { FadeIn, SlideUp } from '@/components/animations'
+import { Button, IconButton, Text } from '@/components/ui'
+import { ProgressBar } from '@/components/ui/ProgressBar'
 import { api } from '@/lib/api'
-import { SEMANTIC_COLORS, SPACING, FONT_SIZE, FONT_WEIGHT, BORDER_RADIUS } from '@nobodyclimb/constants'
-import type { BucketListItem, BucketListCategory, Milestone, Biography } from '@nobodyclimb/types'
 
 // 分類配置
 interface CategoryConfig {
@@ -118,10 +123,7 @@ function MilestoneTracker({
           {sortedMilestones.map((milestone) => (
             <View
               key={milestone.id}
-              style={[
-                milestoneStyles.point,
-                milestone.completed && milestoneStyles.pointCompleted,
-              ]}
+              style={[milestoneStyles.point, milestone.completed && milestoneStyles.pointCompleted]}
             >
               {milestone.completed ? (
                 <Check size={12} color="#1B1A1A" />
@@ -303,7 +305,12 @@ export default function BucketListDetailScreen() {
       }
     }
 
-    if (item.progress_mode === 'milestone' && milestones && Array.isArray(milestones) && milestones.length > 0) {
+    if (
+      item.progress_mode === 'milestone' &&
+      milestones &&
+      Array.isArray(milestones) &&
+      milestones.length > 0
+    ) {
       const completed = milestones.filter((m: Milestone) => m.completed).length
       return Math.round((completed / milestones.length) * 100)
     }
@@ -325,12 +332,7 @@ export default function BucketListDetailScreen() {
     return (
       <SafeAreaView style={styles.container} edges={['top']}>
         <View style={styles.header}>
-          <IconButton
-            icon={ArrowLeft}
-            size="md"
-            variant="ghost"
-            onPress={handleBack}
-          />
+          <IconButton icon={ArrowLeft} size="md" variant="ghost" onPress={handleBack} />
         </View>
         <View style={styles.loadingContainer}>
           <ActivityIndicator size="large" color={SEMANTIC_COLORS.textMain} />
@@ -344,12 +346,7 @@ export default function BucketListDetailScreen() {
     return (
       <SafeAreaView style={styles.container} edges={['top']}>
         <View style={styles.header}>
-          <IconButton
-            icon={ArrowLeft}
-            size="md"
-            variant="ghost"
-            onPress={handleBack}
-          />
+          <IconButton icon={ArrowLeft} size="md" variant="ghost" onPress={handleBack} />
         </View>
         <View style={styles.errorContainer}>
           <Text variant="body" color="textMuted" style={styles.errorText}>
@@ -386,21 +383,14 @@ export default function BucketListDetailScreen() {
       {/* Header */}
       <FadeIn>
         <View style={styles.header}>
-          <IconButton
-            icon={ArrowLeft}
-            size="md"
-            variant="ghost"
-            onPress={handleBack}
-          />
+          <IconButton icon={ArrowLeft} size="md" variant="ghost" onPress={handleBack} />
         </View>
       </FadeIn>
 
       <ScrollView
         style={styles.scrollView}
         contentContainerStyle={styles.scrollContent}
-        refreshControl={
-          <RefreshControl refreshing={refreshing} onRefresh={handleRefresh} />
-        }
+        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={handleRefresh} />}
       >
         {/* 主要卡片 */}
         <SlideUp delay={100}>
@@ -497,8 +487,12 @@ export default function BucketListDetailScreen() {
                   <View>
                     <ProgressBar value={displayProgress} height={8} />
                     <View style={styles.progressLabelRow}>
-                      <Text variant="small" color="textMuted">進度</Text>
-                      <Text variant="small" color="textMuted">{displayProgress}%</Text>
+                      <Text variant="small" color="textMuted">
+                        進度
+                      </Text>
+                      <Text variant="small" color="textMuted">
+                        {displayProgress}%
+                      </Text>
                     </View>
                   </View>
                 )}
@@ -511,7 +505,9 @@ export default function BucketListDetailScreen() {
         {item.description && (
           <SlideUp delay={200}>
             <View style={styles.section}>
-              <Text variant="bodyBold" style={styles.sectionTitle}>目標描述</Text>
+              <Text variant="bodyBold" style={styles.sectionTitle}>
+                目標描述
+              </Text>
               <Text variant="body" color="textSubtle" style={styles.descriptionText}>
                 {item.description}
               </Text>
@@ -520,86 +516,97 @@ export default function BucketListDetailScreen() {
         )}
 
         {/* 完成故事 */}
-        {isCompleted && (item.completion_story || item.psychological_insights || item.technical_insights) && (
-          <SlideUp delay={300}>
-            <View style={[styles.section, styles.completionSection]}>
-              <Text variant="bodyBold" style={styles.sectionTitle}>完成故事</Text>
-
-              {item.completion_story && (
-                <Text variant="body" color="textSubtle" style={styles.storyText}>
-                  {item.completion_story}
+        {isCompleted &&
+          (item.completion_story || item.psychological_insights || item.technical_insights) && (
+            <SlideUp delay={300}>
+              <View style={[styles.section, styles.completionSection]}>
+                <Text variant="bodyBold" style={styles.sectionTitle}>
+                  完成故事
                 </Text>
-              )}
 
-              {item.psychological_insights && (
-                <View style={styles.insightBlock}>
-                  <Text variant="bodyBold">心理層面</Text>
-                  <Text variant="body" color="textSubtle" style={styles.insightText}>
-                    {item.psychological_insights}
+                {item.completion_story && (
+                  <Text variant="body" color="textSubtle" style={styles.storyText}>
+                    {item.completion_story}
                   </Text>
-                </View>
-              )}
+                )}
 
-              {item.technical_insights && (
-                <View style={styles.insightBlock}>
-                  <Text variant="bodyBold">技術層面</Text>
-                  <Text variant="body" color="textSubtle" style={styles.insightText}>
-                    {item.technical_insights}
-                  </Text>
-                </View>
-              )}
+                {item.psychological_insights && (
+                  <View style={styles.insightBlock}>
+                    <Text variant="bodyBold">心理層面</Text>
+                    <Text variant="body" color="textSubtle" style={styles.insightText}>
+                      {item.psychological_insights}
+                    </Text>
+                  </View>
+                )}
 
-              {/* 完成媒體 */}
-              {item.completion_media && (
-                <View style={styles.mediaSection}>
-                  {/* YouTube */}
-                  {item.completion_media.youtube_videos && item.completion_media.youtube_videos.length > 0 && (
-                    <View style={styles.mediaBlock}>
-                      <View style={styles.mediaHeader}>
-                        <Youtube size={16} color="#EF4444" />
-                        <Text variant="bodyBold" style={styles.mediaTitle}>相關影片</Text>
-                      </View>
-                      {item.completion_media.youtube_videos.map((videoId) => (
-                        <Pressable
-                          key={videoId}
-                          style={styles.mediaLink}
-                          onPress={() => handleOpenUrl(`https://youtube.com/watch?v=${videoId}`)}
-                        >
-                          <Youtube size={14} color="#EF4444" />
-                          <Text variant="small" color="textMuted" style={styles.mediaLinkText}>
-                            youtube.com/watch?v={videoId}
-                          </Text>
-                        </Pressable>
-                      ))}
-                    </View>
-                  )}
+                {item.technical_insights && (
+                  <View style={styles.insightBlock}>
+                    <Text variant="bodyBold">技術層面</Text>
+                    <Text variant="body" color="textSubtle" style={styles.insightText}>
+                      {item.technical_insights}
+                    </Text>
+                  </View>
+                )}
 
-                  {/* Instagram */}
-                  {item.completion_media.instagram_posts && item.completion_media.instagram_posts.length > 0 && (
-                    <View style={styles.mediaBlock}>
-                      <View style={styles.mediaHeader}>
-                        <Instagram size={16} color="#EC4899" />
-                        <Text variant="bodyBold" style={styles.mediaTitle}>相關貼文</Text>
-                      </View>
-                      {item.completion_media.instagram_posts.map((shortcode) => (
-                        <Pressable
-                          key={shortcode}
-                          style={styles.mediaLink}
-                          onPress={() => handleOpenUrl(`https://instagram.com/p/${shortcode}`)}
-                        >
-                          <Instagram size={14} color="#EC4899" />
-                          <Text variant="small" color="textMuted" style={styles.mediaLinkText}>
-                            instagram.com/p/{shortcode}
-                          </Text>
-                        </Pressable>
-                      ))}
-                    </View>
-                  )}
-                </View>
-              )}
-            </View>
-          </SlideUp>
-        )}
+                {/* 完成媒體 */}
+                {item.completion_media && (
+                  <View style={styles.mediaSection}>
+                    {/* YouTube */}
+                    {item.completion_media.youtube_videos &&
+                      item.completion_media.youtube_videos.length > 0 && (
+                        <View style={styles.mediaBlock}>
+                          <View style={styles.mediaHeader}>
+                            <Youtube size={16} color="#EF4444" />
+                            <Text variant="bodyBold" style={styles.mediaTitle}>
+                              相關影片
+                            </Text>
+                          </View>
+                          {item.completion_media.youtube_videos.map((videoId) => (
+                            <Pressable
+                              key={videoId}
+                              style={styles.mediaLink}
+                              onPress={() =>
+                                handleOpenUrl(`https://youtube.com/watch?v=${videoId}`)
+                              }
+                            >
+                              <Youtube size={14} color="#EF4444" />
+                              <Text variant="small" color="textMuted" style={styles.mediaLinkText}>
+                                youtube.com/watch?v={videoId}
+                              </Text>
+                            </Pressable>
+                          ))}
+                        </View>
+                      )}
+
+                    {/* Instagram */}
+                    {item.completion_media.instagram_posts &&
+                      item.completion_media.instagram_posts.length > 0 && (
+                        <View style={styles.mediaBlock}>
+                          <View style={styles.mediaHeader}>
+                            <Instagram size={16} color="#EC4899" />
+                            <Text variant="bodyBold" style={styles.mediaTitle}>
+                              相關貼文
+                            </Text>
+                          </View>
+                          {item.completion_media.instagram_posts.map((shortcode) => (
+                            <Pressable
+                              key={shortcode}
+                              style={styles.mediaLink}
+                              onPress={() => handleOpenUrl(`https://instagram.com/p/${shortcode}`)}
+                            >
+                              <Instagram size={14} color="#EC4899" />
+                              <Text variant="small" color="textMuted" style={styles.mediaLinkText}>
+                                instagram.com/p/{shortcode}
+                              </Text>
+                            </Pressable>
+                          ))}
+                        </View>
+                      )}
+                  </View>
+                )}
+              </View>
+            </SlideUp>
+          )}
 
         {/* 社群互動 */}
         <SlideUp delay={400}>
@@ -607,15 +614,21 @@ export default function BucketListDetailScreen() {
             <View style={styles.socialStats}>
               <Pressable style={styles.socialItem}>
                 <Mountain size={20} color={SEMANTIC_COLORS.textMuted} />
-                <Text variant="body" color="textMuted">{item.likes_count || 0}</Text>
+                <Text variant="body" color="textMuted">
+                  {item.likes_count || 0}
+                </Text>
               </Pressable>
               <Pressable style={styles.socialItem}>
                 <MessageCircle size={20} color={SEMANTIC_COLORS.textMuted} />
-                <Text variant="body" color="textMuted">{item.comments_count || 0}</Text>
+                <Text variant="body" color="textMuted">
+                  {item.comments_count || 0}
+                </Text>
               </Pressable>
               <Pressable style={styles.socialItem}>
                 <LinkIcon size={20} color={SEMANTIC_COLORS.textMuted} />
-                <Text variant="body" color="textMuted">{item.inspired_count || 0} 人也想做</Text>
+                <Text variant="body" color="textMuted">
+                  {item.inspired_count || 0} 人也想做
+                </Text>
               </Pressable>
             </View>
           </View>

@@ -3,14 +3,13 @@
  *
  * 故事卡片，對應 apps/web/src/components/biography/display/StoryCard.tsx
  */
-import React from 'react'
-import { StyleSheet, View, Pressable } from 'react-native'
+
+import { RADIUS, SEMANTIC_COLORS, SPACING, WB_COLORS } from '@nobodyclimb/constants'
 import { Image } from 'expo-image'
 import { ChevronRight, ImageIcon } from 'lucide-react-native'
+import { Pressable, StyleSheet, View } from 'react-native'
 import Animated, { FadeInDown } from 'react-native-reanimated'
-
-import { Text, Card } from '@/components/ui'
-import { RADIUS, SEMANTIC_COLORS, SPACING, WB_COLORS } from '@nobodyclimb/constants'
+import { Card, Text } from '@/components/ui'
 
 interface Story {
   id: string
@@ -31,12 +30,7 @@ interface StoryCardProps {
   compact?: boolean
 }
 
-export function StoryCard({
-  story,
-  onPress,
-  index = 0,
-  compact = false,
-}: StoryCardProps) {
+export function StoryCard({ story, onPress, index = 0, compact = false }: StoryCardProps) {
   return (
     <Animated.View entering={FadeInDown.duration(400).delay(index * 100)}>
       <Pressable onPress={onPress} disabled={!onPress}>
@@ -53,39 +47,30 @@ export function StoryCard({
                 />
               </View>
             ) : (
-              <View style={[
-                compact ? styles.imageContainerCompact : styles.imageContainer,
-                styles.placeholderContainer,
-              ]}>
+              <View
+                style={[
+                  compact ? styles.imageContainerCompact : styles.imageContainer,
+                  styles.placeholderContainer,
+                ]}
+              >
                 <ImageIcon size={24} color={SEMANTIC_COLORS.textMuted} />
               </View>
             )}
 
             {/* 文字區 */}
             <View style={styles.textSection}>
-              <Text
-                variant="body"
-                fontWeight="500"
-                numberOfLines={compact ? 1 : 2}
-              >
+              <Text variant="body" fontWeight="500" numberOfLines={compact ? 1 : 2}>
                 {story.title}
               </Text>
               {!compact && story.content && (
-                <Text
-                  variant="small"
-                  color="textSubtle"
-                  numberOfLines={2}
-                  style={styles.excerpt}
-                >
+                <Text variant="small" color="textSubtle" numberOfLines={2} style={styles.excerpt}>
                   {story.content}
                 </Text>
               )}
             </View>
 
             {/* 箭頭 */}
-            {onPress && (
-              <ChevronRight size={20} color={SEMANTIC_COLORS.textMuted} />
-            )}
+            {onPress && <ChevronRight size={20} color={SEMANTIC_COLORS.textMuted} />}
           </View>
         </Card>
       </Pressable>

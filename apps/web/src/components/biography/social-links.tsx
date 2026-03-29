@@ -1,9 +1,8 @@
 'use client'
 
-import React from 'react'
-import { Instagram, Youtube, ExternalLink } from 'lucide-react'
-import { cn } from '@/lib/utils'
+import { ExternalLink, Instagram, Youtube } from 'lucide-react'
 import { BiographySocialLinks } from '@/lib/types'
+import { cn } from '@/lib/utils'
 
 interface SocialLinksSectionProps {
   socialLinks: BiographySocialLinks | null

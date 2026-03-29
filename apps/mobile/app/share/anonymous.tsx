@@ -3,34 +3,34 @@
  *
  * 對應 apps/web/src/app/share/anonymous/page.tsx
  */
-import React, { useState, useMemo, useCallback } from 'react'
-import {
-  StyleSheet,
-  View,
-  ScrollView,
-  TextInput,
-  KeyboardAvoidingView,
-  Platform,
-  Alert,
-} from 'react-native'
-import { SafeAreaView } from 'react-native-safe-area-context'
+
+import { RADIUS, SEMANTIC_COLORS, SPACING } from '@nobodyclimb/constants'
 import { useRouter } from 'expo-router'
 import { ChevronLeft } from 'lucide-react-native'
-
-import { Text, Button, IconButton, Spinner } from '@/components/ui'
+import { useMemo, useState } from 'react'
 import {
+  Alert,
+  KeyboardAvoidingView,
+  Platform,
+  ScrollView,
+  StyleSheet,
+  TextInput,
+  View,
+} from 'react-native'
+import { SafeAreaView } from 'react-native-safe-area-context'
+import {
+  AlreadyAuthenticated,
+  EligibilityCheck,
+  type Question,
   QuestionEditor,
   QuestionList,
-  SubmissionComplete,
-  EligibilityCheck,
-  AlreadyAuthenticated,
-  type Question,
   type StoryInput,
+  SubmissionComplete,
 } from '@/components/anonymous-share'
+import { Button, IconButton, Text } from '@/components/ui'
+import { apiClient } from '@/lib/api'
 import { useGuestSession } from '@/lib/hooks/useGuestSession'
 import { useAuthStore } from '@/store/authStore'
-import { apiClient } from '@/lib/api'
-import { SEMANTIC_COLORS, SPACING, RADIUS } from '@nobodyclimb/constants'
 
 type ViewMode = 'list' | 'edit' | 'complete'
 
@@ -255,11 +255,7 @@ export default function AnonymousShareScreen() {
           </Text>
           <View style={styles.bottomActions}>
             {!showEmailInput && stories.length > 0 && (
-              <Button
-                variant="secondary"
-                size="sm"
-                onPress={() => setShowEmailInput(true)}
-              >
+              <Button variant="secondary" size="sm" onPress={() => setShowEmailInput(true)}>
                 留 Email
               </Button>
             )}

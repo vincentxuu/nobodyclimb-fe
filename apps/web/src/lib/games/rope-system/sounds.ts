@@ -192,7 +192,7 @@ export const soundManager = new SoundManager()
 
 // ========== React Hook ==========
 
-import { useEffect, useCallback } from 'react'
+import { useCallback, useEffect } from 'react'
 import { useRopeGameStore } from '@/store/ropeGameStore'
 
 /**

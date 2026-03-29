@@ -3,15 +3,12 @@
  *
  * 標籤頁切換，與 apps/web/src/components/ui/tabs.tsx 對應
  */
-import React, { createContext, useContext, useState, useCallback, useEffect } from 'react'
+
+import { DURATION, WB_COLORS } from '@nobodyclimb/constants'
+import React, { createContext, useCallback, useContext, useEffect, useState } from 'react'
 import { Pressable, StyleSheet, View } from 'react-native'
-import Animated, {
-  useAnimatedStyle,
-  useSharedValue,
-  withTiming,
-} from 'react-native-reanimated'
+import Animated, { useAnimatedStyle, useSharedValue, withTiming } from 'react-native-reanimated'
 import { XStack, YStack } from 'tamagui'
-import { DURATION, FONT_SIZE, SEMANTIC_COLORS, WB_COLORS } from '@nobodyclimb/constants'
 import { Text } from './Text'
 
 // Context
@@ -42,12 +39,7 @@ export interface TabsProps {
   children: React.ReactNode
 }
 
-export function Tabs({
-  defaultValue = '',
-  value,
-  onValueChange,
-  children,
-}: TabsProps) {
+export function Tabs({ defaultValue = '', value, onValueChange, children }: TabsProps) {
   const [activeTab, setActiveTabState] = useState(value ?? defaultValue)
 
   const handleTabChange = useCallback(
@@ -81,12 +73,7 @@ export interface TabsListProps {
 
 export function TabsList({ children }: TabsListProps) {
   return (
-    <XStack
-      backgroundColor={WB_COLORS[10]}
-      borderRadius={8}
-      padding={4}
-      alignItems="center"
-    >
+    <XStack backgroundColor={WB_COLORS[10]} borderRadius={8} padding={4} alignItems="center">
       {children}
     </XStack>
   )

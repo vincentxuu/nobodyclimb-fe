@@ -120,7 +120,7 @@ function searchYouTube(query, limit = 5) {
       viewCount: item.view_count || 0,
       url: `https://www.youtube.com/watch?v=${item.id}`,
     }))
-  } catch (error) {
+  } catch (_error) {
     return []
   }
 }
@@ -160,16 +160,8 @@ async function main() {
   }
 
   if (!csvPath) {
-    console.log('使用方式: node scripts/search-videos-by-keywords.js <csv檔案> [--limit=5] [--area=區域名稱]')
-    console.log('')
-    console.log('範例:')
-    console.log('  node scripts/search-videos-by-keywords.js output/keywords-longdong.csv')
-    console.log('  node scripts/search-videos-by-keywords.js output/keywords-longdong.csv --limit=3')
-    console.log('  node scripts/search-videos-by-keywords.js output/keywords-longdong.csv --area=大禮堂')
     process.exit(1)
   }
-
-  console.log('=== YouTube 影片關鍵字搜尋工具 ===\n')
 
   // 檢查 yt-dlp
   if (!checkYtDlp()) {
@@ -183,8 +175,6 @@ async function main() {
   }
 
   const { rows } = readCSV(csvPath)
-  console.log(`📂 讀取 CSV: ${csvPath}`)
-  console.log(`📊 總共 ${rows.length} 條路線`)
 
   // 按區域分組
   const areaGroups = {}
@@ -197,18 +187,14 @@ async function main() {
   }
 
   const areas = Object.keys(areaGroups)
-  console.log(`🗂️  共 ${areas.length} 個區域: ${areas.join(', ')}`)
 
   if (filterArea) {
     if (!areaGroups[filterArea]) {
       console.error(`❌ 找不到區域: ${filterArea}`)
-      console.log(`可用區域: ${areas.join(', ')}`)
+
       process.exit(1)
     }
-    console.log(`🎯 只搜尋區域: ${filterArea}`)
   }
-
-  console.log(`🔍 每條路線搜尋 ${limit} 個影片\n`)
 
   // 取得岩場名稱
   const cragName = rows[0]?.['岩場'] || 'unknown'
@@ -221,9 +207,6 @@ async function main() {
 
   for (const area of areasToProcess) {
     const areaRoutes = areaGroups[area]
-    console.log(`\n${'='.repeat(50)}`)
-    console.log(`📍 區域: ${area} (${areaRoutes.length} 條路線)`)
-    console.log(`${'='.repeat(50)}`)
 
     // CSV 標頭
     const csvRows = [
@@ -249,7 +232,7 @@ async function main() {
     ]
 
     let processed = 0
-    let foundCount = 0
+    let _foundCount = 0
 
     for (const route of areaRoutes) {
       processed++
@@ -258,7 +241,6 @@ async function main() {
       const progress = `[${processed}/${areaRoutes.length}]`
 
       if (!keyword) {
-        console.log(`${progress} ⚠️  ${routeName}: 無搜尋關鍵字，跳過`)
         continue
       }
 
@@ -298,10 +280,8 @@ async function main() {
       csvRows.push(row.join(','))
 
       if (videos.length > 0) {
-        foundCount++
-        console.log(` ✅ 找到 ${videos.length} 個影片`)
+        _foundCount++
       } else {
-        console.log(` ❌ 無結果`)
       }
 
       // 避免請求太快
@@ -313,16 +293,7 @@ async function main() {
     const safeCragName = sanitizeFileName(cragName)
     const outputPath = path.join(OUTPUT_DIR, `videos-${safeCragName}-${safeAreaName}.csv`)
     fs.writeFileSync(outputPath, '\uFEFF' + csvRows.join('\n'), 'utf-8')
-
-    console.log(`\n📊 ${area} 統計:`)
-    console.log(`   總路線: ${areaRoutes.length}`)
-    console.log(`   有結果: ${foundCount} (${((foundCount / areaRoutes.length) * 100).toFixed(1)}%)`)
-    console.log(`   ✅ 輸出: ${outputPath}`)
   }
-
-  console.log(`\n${'='.repeat(50)}`)
-  console.log('🎉 所有區域搜尋完成！')
-  console.log(`${'='.repeat(50)}`)
 }
 
 main().catch(console.error)

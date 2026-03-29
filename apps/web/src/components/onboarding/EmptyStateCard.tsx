@@ -1,7 +1,7 @@
 'use client'
 
-import { ReactNode } from 'react'
 import { motion } from 'framer-motion'
+import { ReactNode } from 'react'
 import { Button } from '@/components/ui/button'
 import { cn } from '@/lib/utils'
 
@@ -100,11 +100,7 @@ export function EmptyStateCard({
       initial={{ opacity: 0, y: 10 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.3 }}
-      className={cn(
-        'rounded-lg p-8 text-center',
-        variants[variant],
-        className
-      )}
+      className={cn('rounded-lg p-8 text-center', variants[variant], className)}
     >
       {icon && (
         <div className="mb-4 flex justify-center">
@@ -128,9 +124,7 @@ export function EmptyStateCard({
             onClick={onAction}
             className={cn(
               'min-w-[140px]',
-              variant === 'encouragement'
-                ? 'bg-primary text-white hover:bg-primary/90'
-                : ''
+              variant === 'encouragement' ? 'bg-primary text-white hover:bg-primary/90' : ''
             )}
           >
             {actionLabel}

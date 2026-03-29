@@ -1,9 +1,8 @@
 'use client'
 
-import React from 'react'
+import { ChevronRight } from 'lucide-react'
 import Link from 'next/link'
 import { Textarea } from '@/components/ui/textarea'
-import { ChevronRight } from 'lucide-react'
 import ProfileFormField from './ProfileFormField'
 import ProfileTextDisplay from './ProfileTextDisplay'
 

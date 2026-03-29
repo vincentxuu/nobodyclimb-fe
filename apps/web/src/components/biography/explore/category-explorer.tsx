@@ -1,23 +1,23 @@
 'use client'
 
-import React, { useEffect, useState } from 'react'
-import Link from 'next/link'
 import { motion } from 'framer-motion'
 import {
-  Lightbulb,
-  Mountain,
-  Target,
-  Dumbbell,
-  Trophy,
-  Plane,
   BookOpen,
   ChevronRight,
+  Dumbbell,
+  Lightbulb,
   Loader2,
+  Mountain,
+  Plane,
+  Target,
+  Trophy,
 } from 'lucide-react'
+import Link from 'next/link'
 import { useTranslations } from 'next-intl'
+import React, { useEffect, useState } from 'react'
 import { Card, CardContent } from '@/components/ui/card'
 import { bucketListService } from '@/lib/api/services'
-import { BucketListCategory, BUCKET_LIST_CATEGORIES } from '@/lib/types'
+import { BUCKET_LIST_CATEGORIES, BucketListCategory } from '@/lib/types'
 
 interface CategoryCount {
   category: BucketListCategory
@@ -117,8 +117,12 @@ export function CategoryExplorer() {
                       <div className={`mb-3 inline-flex rounded-lg p-2 ${topic.bgColor}`}>
                         <Icon className={`h-5 w-5 ${topic.color}`} />
                       </div>
-                      <h3 className="mb-1 font-semibold text-[#1B1A1A]">{t(`experienceTopic_${topic.id}_title`)}</h3>
-                      <p className="text-sm text-gray-500">{t(`experienceTopic_${topic.id}_description`)}</p>
+                      <h3 className="mb-1 font-semibold text-[#1B1A1A]">
+                        {t(`experienceTopic_${topic.id}_title`)}
+                      </h3>
+                      <p className="text-sm text-gray-500">
+                        {t(`experienceTopic_${topic.id}_description`)}
+                      </p>
                       <div className="mt-3 flex items-center gap-1 text-sm text-gray-600">
                         {t('explore')}
                         <ChevronRight className="h-4 w-4" />
@@ -166,7 +170,9 @@ export function CategoryExplorer() {
                         {getCategoryLabel(cat.value)}
                       </h4>
                       {countData && countData.count > 0 && (
-                        <p className="mt-1 text-xs text-gray-500">{t('goalCount', { count: countData.count })}</p>
+                        <p className="mt-1 text-xs text-gray-500">
+                          {t('goalCount', { count: countData.count })}
+                        </p>
                       )}
                     </CardContent>
                   </Card>

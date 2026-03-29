@@ -1,8 +1,8 @@
 'use client'
 
-import { useState, useCallback } from 'react'
-import { motion, AnimatePresence } from 'framer-motion'
-import { ChevronRight, ChevronLeft, X, Sparkles, Check } from 'lucide-react'
+import { AnimatePresence, motion } from 'framer-motion'
+import { Check, ChevronLeft, ChevronRight, Sparkles, X } from 'lucide-react'
+import { useCallback, useState } from 'react'
 import { Button } from '@/components/ui/button'
 import { cn } from '@/lib/utils'
 
@@ -65,8 +65,7 @@ export function GuidedQuestions({
 
     // 顯示鼓勵文字
     if (answers[currentQuestion.id]?.trim()) {
-      const randomEncouragement =
-        ENCOURAGEMENTS[Math.floor(Math.random() * ENCOURAGEMENTS.length)]
+      const randomEncouragement = ENCOURAGEMENTS[Math.floor(Math.random() * ENCOURAGEMENTS.length)]
       setEncouragementText(randomEncouragement)
       setShowEncouragement(true)
       setTimeout(() => {

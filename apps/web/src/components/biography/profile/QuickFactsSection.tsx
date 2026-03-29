@@ -1,13 +1,21 @@
 'use client'
 
-import { useState, useMemo } from 'react'
 import { motion } from 'framer-motion'
-import { Calendar, MapPin, Activity, ChevronDown, ChevronUp, Sparkles, ArrowUpDown, TrendingUp } from 'lucide-react'
-import { cn } from '@/lib/utils'
-import { BiographyV2, GradeTarget } from '@/lib/types/biography-v2'
-import { renderDynamicTag } from '@/lib/types/biography-v2'
-import { getTagOptionById } from '@/lib/constants/biography-tags'
+import {
+  Activity,
+  ArrowUpDown,
+  Calendar,
+  ChevronDown,
+  ChevronUp,
+  MapPin,
+  Sparkles,
+  TrendingUp,
+} from 'lucide-react'
 import { useTranslations } from 'next-intl'
+import { useMemo, useState } from 'react'
+import { getTagOptionById } from '@/lib/constants/biography-tags'
+import { BiographyV2, GradeTarget, renderDynamicTag } from '@/lib/types/biography-v2'
+import { cn } from '@/lib/utils'
 
 interface QuickFactsSectionProps {
   person: BiographyV2 | null
@@ -33,7 +41,7 @@ export function QuickFactsSection({ person, mobileTagLimit = 8 }: QuickFactsSect
   // 處理常出沒地點
   const locations = useMemo(() => {
     if (!person?.frequent_locations) return []
-    return person.frequent_locations.filter(l => l.trim())
+    return person.frequent_locations.filter((l) => l.trim())
   }, [person?.frequent_locations])
 
   // 將選中的標籤整理為扁平列表，自訂標籤優先顯示
@@ -150,30 +158,44 @@ export function QuickFactsSection({ person, mobileTagLimit = 8 }: QuickFactsSect
       value: person.climbing_start_year
         ? t('climbingStartYear', { year: person.climbing_start_year, count: climbingYears ?? 0 })
         : t('climbingStartDefault'),
-      isEmpty: !person.climbing_start_year
+      isEmpty: !person.climbing_start_year,
     },
     {
       icon: <MapPin className="h-6 w-6 text-gray-600" />,
       label: t('frequentLocationsLabel'),
       value: locations.length > 0 ? locations.join('、') : t('frequentLocationsDefault'),
-      isEmpty: locations.length === 0
+      isEmpty: locations.length === 0,
     },
     {
       icon: <Activity className="h-6 w-6 text-gray-600" />,
       label: t('favoriteTypes'),
-      value: person.favorite_route_types && person.favorite_route_types.length > 0
-        ? person.favorite_route_types.join('、')
-        : t('favoriteTypesDefault'),
-      isEmpty: !person.favorite_route_types || person.favorite_route_types.length === 0
+      value:
+        person.favorite_route_types && person.favorite_route_types.length > 0
+          ? person.favorite_route_types.join('、')
+          : t('favoriteTypesDefault'),
+      isEmpty: !person.favorite_route_types || person.favorite_route_types.length === 0,
     },
     {
       icon: <ArrowUpDown className="h-6 w-6 text-gray-600" />,
       label: t('bodyStats'),
       isEmpty: false,
       lines: [
-        { label: t('height'), value: person.height_cm ? `${person.height_cm}cm` : t('heightDefault'), isEmpty: !person.height_cm },
-        { label: t('armSpan'), value: person.arm_span_cm ? `${person.arm_span_cm}cm` : t('armSpanDefault'), isEmpty: !person.arm_span_cm },
-        { label: t('apeIndex'), value: apeIndex !== null ? `${apeIndex > 0 ? '+' : ''}${apeIndex}cm` : t('apeIndexDefault'), isEmpty: apeIndex === null },
+        {
+          label: t('height'),
+          value: person.height_cm ? `${person.height_cm}cm` : t('heightDefault'),
+          isEmpty: !person.height_cm,
+        },
+        {
+          label: t('armSpan'),
+          value: person.arm_span_cm ? `${person.arm_span_cm}cm` : t('armSpanDefault'),
+          isEmpty: !person.arm_span_cm,
+        },
+        {
+          label: t('apeIndex'),
+          value:
+            apeIndex !== null ? `${apeIndex > 0 ? '+' : ''}${apeIndex}cm` : t('apeIndexDefault'),
+          isEmpty: apeIndex === null,
+        },
       ],
     },
     {
@@ -181,10 +203,13 @@ export function QuickFactsSection({ person, mobileTagLimit = 8 }: QuickFactsSect
       label: t('yearTarget', { year: currentYear }),
       value: t('yearTargetDefault'),
       isEmpty: currentYearTargets.length === 0,
-      lines: currentYearTargets.length > 0 ? currentYearTargets.map((target: GradeTarget) => ({
-        label: target.grade,
-        value: `${target.completed_count ?? 0} / ${target.target_count}`
-      })) : undefined,
+      lines:
+        currentYearTargets.length > 0
+          ? currentYearTargets.map((target: GradeTarget) => ({
+              label: target.grade,
+              value: `${target.completed_count ?? 0} / ${target.target_count}`,
+            }))
+          : undefined,
     },
   ]
 
@@ -212,31 +237,37 @@ export function QuickFactsSection({ person, mobileTagLimit = 8 }: QuickFactsSect
               className="rounded-lg bg-gray-50 p-6 text-center shadow-sm transition-shadow hover:shadow-md"
             >
               {/* Icon */}
-              <div className="mb-3 flex justify-center">
-                {fact.icon}
-              </div>
+              <div className="mb-3 flex justify-center">{fact.icon}</div>
               <p className="text-sm text-gray-500">{fact.label}</p>
               {'lines' in fact && fact.lines ? (
                 <div className="mt-2 space-y-1 text-left">
                   {fact.lines.map((line) => (
                     <div key={line.label} className="flex items-center justify-between text-sm">
                       <span className="text-gray-500">{line.label}</span>
-                      <span className={cn('font-medium', 'isEmpty' in line && line.isEmpty ? 'text-gray-400' : 'text-gray-900')}>{line.value}</span>
+                      <span
+                        className={cn(
+                          'font-medium',
+                          'isEmpty' in line && line.isEmpty ? 'text-gray-400' : 'text-gray-900'
+                        )}
+                      >
+                        {line.value}
+                      </span>
                     </div>
                   ))}
                 </div>
               ) : (
-                <p className={cn(
-                  'mt-1 font-medium',
-                  fact.isEmpty ? 'text-gray-400' : 'text-gray-900'
-                )}>
+                <p
+                  className={cn(
+                    'mt-1 font-medium',
+                    fact.isEmpty ? 'text-gray-400' : 'text-gray-900'
+                  )}
+                >
                   {fact.value}
                 </p>
               )}
             </motion.div>
           ))}
         </div>
-
 
         {/* 關鍵字 標籤 */}
         {selectedTags.length > 0 && (

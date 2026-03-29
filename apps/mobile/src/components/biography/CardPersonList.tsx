@@ -3,15 +3,14 @@
  *
  * 相關文章列表，對應 apps/web/src/components/biography/card-person-list.tsx
  */
-import React from 'react'
-import { StyleSheet, View, Pressable, ScrollView } from 'react-native'
-import { useRouter } from 'expo-router'
-import { Image } from 'expo-image'
-import { ArrowRightCircle } from 'lucide-react-native'
-import Animated, { FadeInDown } from 'react-native-reanimated'
 
-import { Text, Card } from '@/components/ui'
-import { SEMANTIC_COLORS, SPACING, RADIUS } from '@nobodyclimb/constants'
+import { SEMANTIC_COLORS, SPACING } from '@nobodyclimb/constants'
+import { Image } from 'expo-image'
+import { useRouter } from 'expo-router'
+import { ArrowRightCircle } from 'lucide-react-native'
+import { Pressable, ScrollView, StyleSheet, View } from 'react-native'
+import Animated, { FadeInDown } from 'react-native-reanimated'
+import { Card, Text } from '@/components/ui'
 
 // 相關文章資料
 const relatedArticles = [
@@ -105,10 +104,7 @@ interface CardPersonListProps {
   horizontal?: boolean
 }
 
-export function CardPersonList({
-  currentId,
-  horizontal = false,
-}: CardPersonListProps) {
+export function CardPersonList({ currentId, horizontal = false }: CardPersonListProps) {
   const router = useRouter()
 
   const filteredArticles = currentId

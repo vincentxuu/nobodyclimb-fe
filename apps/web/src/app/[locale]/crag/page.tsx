@@ -1,16 +1,15 @@
 'use client'
 
-import React from 'react'
-import { Link } from '@/i18n/navigation'
-import { MapPin, Calendar, MountainSnow, Loader2 } from 'lucide-react'
+import { Calendar, Loader2, MapPin, MountainSnow } from 'lucide-react'
 import { useTranslations } from 'next-intl'
+import { CragCoverGenerator } from '@/components/shared/CragCoverGenerator'
+import BackToTop from '@/components/ui/back-to-top'
 import { Breadcrumb } from '@/components/ui/breadcrumb'
 import { PageHeader } from '@/components/ui/page-header'
-import BackToTop from '@/components/ui/back-to-top'
-import { CragCoverGenerator } from '@/components/shared/CragCoverGenerator'
 import { useCrags } from '@/hooks/api/useCrags'
-import { CragMap } from './crag-map'
+import { Link } from '@/i18n/navigation'
 import type { CragListItem } from '@/lib/crag-data'
+import { CragMap } from './crag-map'
 
 // 岩場卡片組件
 function CragCard({ crag }: { crag: CragListItem }) {
@@ -82,15 +81,14 @@ export default function CragListPage() {
 
   return (
     <main className="min-h-screen bg-page-content-bg pb-16">
-      <PageHeader
-        title={t('pageTitle')}
-        subtitle={t('pageSubtitle')}
-      />
+      <PageHeader title={t('pageTitle')} subtitle={t('pageSubtitle')} />
 
       <div className="container mx-auto px-4 py-6">
         {/* Breadcrumb */}
         <div className="mb-8">
-          <Breadcrumb items={[{ label: t('breadcrumbHome'), href: '/' }, { label: t('breadcrumbCrag') }]} />
+          <Breadcrumb
+            items={[{ label: t('breadcrumbHome'), href: '/' }, { label: t('breadcrumbCrag') }]}
+          />
         </div>
 
         {/* 載入中狀態 */}

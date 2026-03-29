@@ -3,14 +3,10 @@
  *
  * 基於設計系統的文字組件
  */
+
+import { FONT_SIZE, FONT_WEIGHT, LINE_HEIGHT, SEMANTIC_COLORS } from '@nobodyclimb/constants'
+import { GetProps, styled, Text as TamaguiText } from '@tamagui/core'
 import React from 'react'
-import { Text as TamaguiText, styled, GetProps } from '@tamagui/core'
-import {
-  FONT_SIZE,
-  LINE_HEIGHT,
-  FONT_WEIGHT,
-  SEMANTIC_COLORS,
-} from '@nobodyclimb/constants'
 
 /**
  * 文字變體定義

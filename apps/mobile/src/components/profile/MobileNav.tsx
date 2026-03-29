@@ -1,8 +1,7 @@
-import React from 'react'
-import { View, ScrollView, Pressable, StyleSheet } from 'react-native'
-import { Text } from '../ui/Text'
-import { useMobileNav, MobileNavSection } from './MobileNavContext'
 import { COLORS, SEMANTIC_COLORS } from '@nobodyclimb/constants'
+import { Pressable, ScrollView, StyleSheet, View } from 'react-native'
+import { Text } from '../ui/Text'
+import { MobileNavSection, useMobileNav } from './MobileNavContext'
 
 const NAV_ITEMS: { id: MobileNavSection; label: string }[] = [
   { id: 'basic', label: '基本資料' },
@@ -32,13 +31,7 @@ export default function MobileNav() {
               onPress={() => scrollToSection(item.id)}
               style={[styles.navItem, isActive && styles.navItemActive]}
             >
-              <Text
-                variant="body"
-                style={[
-                  styles.navText,
-                  isActive && styles.navTextActive,
-                ]}
-              >
+              <Text variant="body" style={[styles.navText, isActive && styles.navTextActive]}>
                 {item.label}
               </Text>
             </Pressable>

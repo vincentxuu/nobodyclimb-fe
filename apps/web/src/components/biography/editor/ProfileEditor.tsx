@@ -1,44 +1,38 @@
 'use client'
 
-import { useState, useCallback, useRef, useMemo } from 'react'
+import { BookOpen, Globe, MessageCircle, Tag, TrendingUp, User } from 'lucide-react'
 import { useTranslations } from 'next-intl'
-import { cn } from '@/lib/utils'
-import { User, Tag, MessageCircle, BookOpen, Globe, TrendingUp } from 'lucide-react'
+import { useCallback, useMemo, useRef, useState } from 'react'
 import ImageCropper from '@/components/shared/image-cropper'
+import UnsavedChangesPrompt from '@/components/shared/unsaved-changes-prompt'
+import { useIsMobile } from '@/lib/hooks/useIsMobile'
 import type {
   BiographyV2,
-  TagDimension,
   OneLinerQuestion,
-  StoryQuestion,
   StoryCategory,
+  StoryQuestion,
+  TagDimension,
 } from '@/lib/types/biography-v2'
-import { PrivacyBanner } from './PrivacyBanner'
-import { ProgressIndicator } from './ProgressIndicator'
-import { BasicInfoSection } from './BasicInfoSection'
-import { TagsSection } from './TagsSection'
-import { OneLinersSection } from './OneLinersSection'
-import { StoriesSection } from './StoriesSection'
-import { StoryEditModal } from './StoryEditModal'
-import { FixedBottomBar, BottomBarSpacer } from './FixedBottomBar'
+import { cn } from '@/lib/utils'
 import { AutoSaveIndicator, useSaveStatus } from '../shared/AutoSaveIndicator'
-import { ClimbingFootprintsEditorSection } from './ClimbingFootprintsEditorSection'
-import { GradeTargetsSection } from './GradeTargetsSection'
-import { AddCustomTagModal } from './AddCustomTagModal'
 import { AddCustomDimensionModal } from './AddCustomDimensionModal'
 import { AddCustomOneLinerModal } from './AddCustomOneLinerModal'
 import { AddCustomStoryModal } from './AddCustomStoryModal'
-import { TagsBottomSheet } from './TagsBottomSheet'
-import { StoryEditFullscreen } from './StoryEditFullscreen'
-import { useIsMobile } from '@/lib/hooks/useIsMobile'
-import UnsavedChangesPrompt from '@/components/shared/unsaved-changes-prompt'
-
+import { AddCustomTagModal } from './AddCustomTagModal'
+import { BasicInfoSection } from './BasicInfoSection'
+import { ClimbingFootprintsEditorSection } from './ClimbingFootprintsEditorSection'
+import { BottomBarSpacer, FixedBottomBar } from './FixedBottomBar'
+import { GradeTargetsSection } from './GradeTargetsSection'
 // Custom hooks
-import {
-  useImageCropper,
-  useEditorModals,
-  useCustomContent,
-  useAutoSaveBiography,
-} from './hooks'
+import { useAutoSaveBiography, useCustomContent, useEditorModals, useImageCropper } from './hooks'
+import { OneLinersSection } from './OneLinersSection'
+import { PrivacyBanner } from './PrivacyBanner'
+import { ProgressIndicator } from './ProgressIndicator'
+import { StoriesSection } from './StoriesSection'
+import { StoryEditFullscreen } from './StoryEditFullscreen'
+import { StoryEditModal } from './StoryEditModal'
+import { TagsBottomSheet } from './TagsBottomSheet'
+import { TagsSection } from './TagsSection'
 
 interface ProfileEditorProps {
   /** 人物誌資料 */
@@ -86,14 +80,15 @@ export function ProfileEditor({
   const sectionRefs = useRef<Record<string, HTMLElement | null>>({})
 
   // Auto-save hook
-  const { localBiography, hasUnsavedChanges, handleChange, flushSave, manualSave } = useAutoSaveBiography({
-    biography,
-    onChange,
-    onSave,
-    setSaving,
-    setSaved,
-    setError,
-  })
+  const { localBiography, hasUnsavedChanges, handleChange, flushSave, manualSave } =
+    useAutoSaveBiography({
+      biography,
+      onChange,
+      onSave,
+      setSaving,
+      setSaved,
+      setError,
+    })
 
   // Image cropper hook
   const imageCropper = useImageCropper({
@@ -184,9 +179,7 @@ export function ProfileEditor({
   // Handle one-liner answer change
   const handleOneLinerChange = useCallback(
     (questionId: string, answer: string | null) => {
-      const existingIndex = localBiography.one_liners.findIndex(
-        (o) => o.question_id === questionId
-      )
+      const existingIndex = localBiography.one_liners.findIndex((o) => o.question_id === questionId)
       let newOneLiners = [...localBiography.one_liners]
       if (existingIndex >= 0) {
         if (answer) {
@@ -231,15 +224,19 @@ export function ProfileEditor({
       flushSave()
       modals.closeStoryEditor()
     },
-    [localBiography.stories, customContent.allStoryQuestionsByCategory, handleChange, flushSave, modals]
+    [
+      localBiography.stories,
+      customContent.allStoryQuestionsByCategory,
+      handleChange,
+      flushSave,
+      modals,
+    ]
   )
 
   // Handle story delete
   const handleStoryDelete = useCallback(() => {
     if (!modals.editingStoryId) return
-    const newStories = localBiography.stories.filter(
-      (s) => s.question_id !== modals.editingStoryId
-    )
+    const newStories = localBiography.stories.filter((s) => s.question_id !== modals.editingStoryId)
     handleChange({ stories: newStories })
     flushSave()
     modals.closeStoryEditor()
@@ -277,7 +274,8 @@ export function ProfileEditor({
         id: 'targets',
         label: t('sectionAnnualGoals'),
         icon: TrendingUp,
-        isCompleted: (localBiography.grade_targets && localBiography.grade_targets.length > 0) || false,
+        isCompleted:
+          (localBiography.grade_targets && localBiography.grade_targets.length > 0) || false,
       },
       {
         id: 'tags',
@@ -481,7 +479,6 @@ export function ProfileEditor({
             >
               <ClimbingFootprintsEditorSection />
             </section>
-
           </main>
         </div>
 

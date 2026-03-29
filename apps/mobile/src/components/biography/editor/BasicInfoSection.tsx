@@ -1,21 +1,20 @@
-import React, { useState, useMemo } from 'react'
-import { View, Pressable, TextInput, ScrollView } from 'react-native'
-import { Image } from 'expo-image'
-import { YStack, XStack, Text } from 'tamagui'
-import {
-  User,
-  ImageIcon,
-  Pencil,
-  Clock,
-  Link,
-  Instagram,
-  Youtube,
-  X,
-  Plus,
-  Lightbulb,
-} from 'lucide-react-native'
-import { SEMANTIC_COLORS, COLORS } from '@nobodyclimb/constants'
+import { COLORS, SEMANTIC_COLORS } from '@nobodyclimb/constants'
 import type { SocialLinks } from '@nobodyclimb/types'
+import { Image } from 'expo-image'
+import {
+  Clock,
+  ImageIcon,
+  Instagram,
+  Lightbulb,
+  Link,
+  Plus,
+  User,
+  X,
+  Youtube,
+} from 'lucide-react-native'
+import { useMemo, useState } from 'react'
+import { Pressable, ScrollView, TextInput, View } from 'react-native'
+import { Text, XStack, YStack } from 'tamagui'
 
 interface BasicInfoSectionProps {
   /** 用戶名稱 */
@@ -122,9 +121,7 @@ export function BasicInfoSection({
   }, [currentYear])
 
   // Calculate climbing years for display
-  const climbingYearsDisplay = climbingStartYear
-    ? currentYear - climbingStartYear
-    : null
+  const climbingYearsDisplay = climbingStartYear ? currentYear - climbingStartYear : null
 
   // Handle social links change
   const handleSocialLinkChange = (field: keyof SocialLinks, value: string) => {
@@ -135,7 +132,7 @@ export function BasicInfoSection({
   }
 
   // 扁平化所有選項
-  const allRouteTypeOptions = routeTypeGroups.flatMap((g) => g.options)
+  const _allRouteTypeOptions = routeTypeGroups.flatMap((g) => g.options)
 
   const addLocation = () => {
     if (newLocation.trim() && !frequentLocations.includes(newLocation.trim())) {
@@ -266,7 +263,8 @@ export function BasicInfoSection({
             顯示名稱
           </Text>
           <Text fontSize={14} color={COLORS.status.error}>
-            {' '}*
+            {' '}
+            *
           </Text>
         </XStack>
         <TextInput
@@ -299,7 +297,8 @@ export function BasicInfoSection({
             一句話介紹自己
           </Text>
           <Text fontSize={12} color={COLORS.text.muted}>
-            {' '}(選填)
+            {' '}
+            (選填)
           </Text>
         </XStack>
         <TextInput
@@ -335,15 +334,12 @@ export function BasicInfoSection({
             開始攀岩年份
           </Text>
           <Text fontSize={12} color={COLORS.text.muted}>
-            {' '}(選填)
+            {' '}
+            (選填)
           </Text>
         </XStack>
         <XStack alignItems="center" gap="$3">
-          <ScrollView
-            horizontal
-            showsHorizontalScrollIndicator={false}
-            style={{ maxWidth: 150 }}
-          >
+          <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ maxWidth: 150 }}>
             <XStack gap="$2">
               {[null, ...yearOptions.slice(0, 10)].map((year) => (
                 <Pressable
@@ -355,9 +351,7 @@ export function BasicInfoSection({
                     borderRadius: 8,
                     borderWidth: 1,
                     borderColor:
-                      climbingStartYear === year
-                        ? COLORS.brand.dark
-                        : COLORS.border.default,
+                      climbingStartYear === year ? COLORS.brand.dark : COLORS.border.default,
                     backgroundColor:
                       climbingStartYear === year
                         ? COLORS.brand.dark
@@ -391,7 +385,8 @@ export function BasicInfoSection({
             平常出沒的地方
           </Text>
           <Text fontSize={12} color={COLORS.text.muted}>
-            {' '}(可多選)
+            {' '}
+            (可多選)
           </Text>
         </XStack>
         <XStack flexWrap="wrap" gap="$2">
@@ -456,7 +451,8 @@ export function BasicInfoSection({
             喜歡的路線型態
           </Text>
           <Text fontSize={12} color={COLORS.text.muted}>
-            {' '}(可多選)
+            {' '}
+            (可多選)
           </Text>
         </XStack>
         {routeTypeGroups.map((group) => (
@@ -484,10 +480,7 @@ export function BasicInfoSection({
                           : 'white',
                     })}
                   >
-                    <Text
-                      fontSize={14}
-                      color={isSelected ? 'white' : SEMANTIC_COLORS.textSubtle}
-                    >
+                    <Text fontSize={14} color={isSelected ? 'white' : SEMANTIC_COLORS.textSubtle}>
                       {option.label}
                     </Text>
                   </Pressable>

@@ -11,38 +11,33 @@
  * - 使用品牌色 (brand-dark, brand-accent)
  */
 
-import React, { useState, useRef, useEffect, useMemo, useCallback } from 'react'
-import { motion, AnimatePresence } from 'framer-motion'
+import { AnimatePresence, motion } from 'framer-motion'
 import {
-  User,
-  Gauge,
-  Link2,
   BookOpen,
-  Globe,
-  Check,
-  X,
-  Pencil,
   Camera,
-  ExternalLink,
+  Check,
   ChevronDown,
+  ExternalLink,
+  Gauge,
+  Globe,
+  Link2,
   Loader2,
   MapPin,
+  Pencil,
+  User,
+  X,
 } from 'lucide-react'
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
-import { useProfile } from '../ProfileContext'
-import { useIsMobile } from '@/lib/hooks/useIsMobile'
 import { useToast } from '@/components/ui/use-toast'
 import { biographyService } from '@/lib/api/services'
 import { ALL_STORY_QUESTIONS, StoryQuestion } from '@/lib/constants/biography-stories'
-import {
-  mapFieldToApi,
-  getStoryFieldValue,
-  updateProfileField,
-  updateStoryField,
-} from '../mappers'
+import { useIsMobile } from '@/lib/hooks/useIsMobile'
 import ClimbingFootprintsSection from '../ClimbingFootprintsSection'
+import { getStoryFieldValue, mapFieldToApi, updateProfileField, updateStoryField } from '../mappers'
+import { useProfile } from '../ProfileContext'
 
 type StoryFilter = 'all' | 'filled' | 'unfilled'
 
@@ -145,9 +140,7 @@ const EditableText = React.memo(function EditableText({
       className={`group flex w-full items-center gap-2 rounded-lg px-2 py-1 text-left transition-colors hover:bg-brand-light ${className}`}
       aria-label={`編輯${placeholder}`}
     >
-      <span className={value ? 'text-brand-dark' : 'text-subtle'}>
-        {value || placeholder}
-      </span>
+      <span className={value ? 'text-brand-dark' : 'text-subtle'}>{value || placeholder}</span>
       <Pencil className="h-3.5 w-3.5 text-subtle opacity-30 transition-opacity group-hover:opacity-100" />
     </button>
   )
@@ -203,12 +196,7 @@ const StoryCard = React.memo(function StoryCard({
           aria-label={question.title}
         />
         <div className="flex justify-end gap-2">
-          <Button
-            size="sm"
-            variant="outline"
-            onClick={onCancel}
-            className="border-subtle"
-          >
+          <Button size="sm" variant="outline" onClick={onCancel} className="border-subtle">
             取消
           </Button>
           <Button
@@ -248,10 +236,7 @@ const StoryCard = React.memo(function StoryCard({
               <Check className="h-3 w-3 text-brand-dark" />
             </span>
           ) : (
-            <span
-              className="h-5 w-5 rounded-full border-2 border-subtle"
-              aria-label="未填寫"
-            />
+            <span className="h-5 w-5 rounded-full border-2 border-subtle" aria-label="未填寫" />
           )}
           <Pencil className="h-4 w-4 text-subtle opacity-30 transition-opacity group-hover:opacity-100" />
         </div>
@@ -772,7 +757,11 @@ export default function ProfileEditorVersionB({ onBack }: ProfileEditorVersionBP
             {[
               { key: 'all' as const, label: '全部', count: ALL_STORY_QUESTIONS.length },
               { key: 'filled' as const, label: '已填', count: filledCount },
-              { key: 'unfilled' as const, label: '未填', count: ALL_STORY_QUESTIONS.length - filledCount },
+              {
+                key: 'unfilled' as const,
+                label: '未填',
+                count: ALL_STORY_QUESTIONS.length - filledCount,
+              },
             ].map((filter) => (
               <button
                 key={filter.key}

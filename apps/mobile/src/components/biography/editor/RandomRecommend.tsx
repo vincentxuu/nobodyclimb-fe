@@ -1,9 +1,9 @@
-import React, { useState } from 'react'
-import { View, Pressable } from 'react-native'
-import { YStack, XStack, Text } from 'tamagui'
-import { Shuffle, X, ChevronRight } from 'lucide-react-native'
-import { SEMANTIC_COLORS, COLORS } from '@nobodyclimb/constants'
-import type { StoryQuestion, OneLinerQuestion } from '@nobodyclimb/types'
+import { COLORS, SEMANTIC_COLORS } from '@nobodyclimb/constants'
+import type { OneLinerQuestion, StoryQuestion } from '@nobodyclimb/types'
+import { ChevronRight, Shuffle, X } from 'lucide-react-native'
+import { useState } from 'react'
+import { Pressable, View } from 'react-native'
+import { Text, XStack, YStack } from 'tamagui'
 
 interface RandomRecommendProps {
   /** 未填寫的問題列表 */

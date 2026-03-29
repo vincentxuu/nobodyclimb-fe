@@ -3,30 +3,30 @@
  *
  * 通知中心，對應 apps/web/src/components/shared/notification-center.tsx
  */
-import React, { useState, useEffect, useCallback, useRef } from 'react'
-import { StyleSheet, View, Pressable, FlatList, ActivityIndicator } from 'react-native'
-import { useRouter } from 'expo-router'
+
 import BottomSheet, { BottomSheetBackdrop, BottomSheetView } from '@gorhom/bottom-sheet'
-import {
-  Bell,
-  Mountain,
-  MessageCircle,
-  UserPlus,
-  Sparkles,
-  Check,
-  CheckCheck,
-  Trash2,
-  X,
-  FileText,
-  Megaphone,
-} from 'lucide-react-native'
+import { BRAND_YELLOW, SEMANTIC_COLORS, SPACING, WB_COLORS } from '@nobodyclimb/constants'
 import { formatDistanceToNow } from 'date-fns'
 import { zhTW } from 'date-fns/locale'
-
-import { useAuthStore } from '@/store/authStore'
-import { Text, Button, IconButton } from '@/components/ui'
-import { BRAND_YELLOW, RADIUS, SEMANTIC_COLORS, SPACING, WB_COLORS } from '@nobodyclimb/constants'
+import { useRouter } from 'expo-router'
+import {
+  Bell,
+  Check,
+  CheckCheck,
+  FileText,
+  Megaphone,
+  MessageCircle,
+  Mountain,
+  Sparkles,
+  Trash2,
+  UserPlus,
+  X,
+} from 'lucide-react-native'
+import React, { useCallback, useEffect, useRef, useState } from 'react'
+import { ActivityIndicator, FlatList, Pressable, StyleSheet, View } from 'react-native'
+import { Button, Text } from '@/components/ui'
 import { apiClient } from '@/lib/api'
+import { useAuthStore } from '@/store/authStore'
 
 // 通知類型枚舉
 enum NotificationType {
@@ -83,7 +83,7 @@ interface NotificationCenterProps {
 }
 
 export function NotificationCenter({ style }: NotificationCenterProps) {
-  const router = useRouter()
+  const _router = useRouter()
   const bottomSheetRef = useRef<BottomSheet>(null)
   const { isAuthenticated, status } = useAuthStore()
   const isInitialized = status !== 'idle'
@@ -161,17 +161,13 @@ export function NotificationCenter({ style }: NotificationCenterProps) {
   const handleMarkAsRead = async (id: string) => {
     const notification = notifications.find((n) => n.id === id)
     if (notification?.is_read) return
-    setNotifications((prev) =>
-      prev.map((n) => (n.id === id ? { ...n, is_read: 1 } : n))
-    )
+    setNotifications((prev) => prev.map((n) => (n.id === id ? { ...n, is_read: 1 } : n)))
     setUnreadCount((prev) => Math.max(0, prev - 1))
     try {
       await apiClient.put(`/notifications/${id}/read`)
     } catch (error) {
       // 回滾
-      setNotifications((prev) =>
-        prev.map((n) => (n.id === id ? { ...n, is_read: 0 } : n))
-      )
+      setNotifications((prev) => prev.map((n) => (n.id === id ? { ...n, is_read: 0 } : n)))
       setUnreadCount((prev) => prev + 1)
       console.error('Failed to mark as read:', error)
     }
@@ -235,12 +231,7 @@ export function NotificationCenter({ style }: NotificationCenterProps) {
   // 渲染背景遮罩
   const renderBackdrop = useCallback(
     (props: any) => (
-      <BottomSheetBackdrop
-        {...props}
-        disappearsOnIndex={-1}
-        appearsOnIndex={0}
-        opacity={0.5}
-      />
+      <BottomSheetBackdrop {...props} disappearsOnIndex={-1} appearsOnIndex={0} opacity={0.5} />
     ),
     []
   )
@@ -252,10 +243,7 @@ export function NotificationCenter({ style }: NotificationCenterProps) {
 
     return (
       <Pressable
-        style={[
-          styles.notificationItem,
-          !item.is_read && styles.notificationItemUnread,
-        ]}
+        style={[styles.notificationItem, !item.is_read && styles.notificationItemUnread]}
         onPress={() => handleMarkAsRead(item.id)}
       >
         <View style={[styles.iconContainer, { backgroundColor: colors.bg }]}>
@@ -305,9 +293,7 @@ export function NotificationCenter({ style }: NotificationCenterProps) {
         <Bell size={20} color={SEMANTIC_COLORS.textMain} />
         {unreadCount > 0 && (
           <View style={styles.badge}>
-            <Text style={styles.badgeText}>
-              {unreadCount > 99 ? '99+' : unreadCount}
-            </Text>
+            <Text style={styles.badgeText}>{unreadCount > 99 ? '99+' : unreadCount}</Text>
           </View>
         )}
       </Pressable>
@@ -337,10 +323,7 @@ export function NotificationCenter({ style }: NotificationCenterProps) {
                   </Text>
                 </Pressable>
               )}
-              <Pressable
-                style={styles.closeButton}
-                onPress={() => bottomSheetRef.current?.close()}
-              >
+              <Pressable style={styles.closeButton} onPress={() => bottomSheetRef.current?.close()}>
                 <X size={20} color={SEMANTIC_COLORS.textMuted} />
               </Pressable>
             </View>

@@ -3,14 +3,15 @@
  *
  * 頁面頭部導航欄
  */
-import React from 'react'
-import { View, StyleSheet, type ViewStyle, Platform } from 'react-native'
-import { useRouter, useNavigation } from 'expo-router'
-import { ArrowLeft } from 'lucide-react-native'
-import { SEMANTIC_COLORS, SPACING, FONT_SIZE, FONT_WEIGHT } from '@nobodyclimb/constants'
-import { Text } from '@/components/ui/Text'
-import { IconButton } from '@/components/ui/IconButton'
+
+import { SEMANTIC_COLORS, SPACING } from '@nobodyclimb/constants'
+import { useNavigation, useRouter } from 'expo-router'
 import type { LucideIcon } from 'lucide-react-native'
+import { ArrowLeft } from 'lucide-react-native'
+import React from 'react'
+import { StyleSheet, View, type ViewStyle } from 'react-native'
+import { IconButton } from '@/components/ui/IconButton'
+import { Text } from '@/components/ui/Text'
 
 export interface HeaderAction {
   /** 圖標 */
@@ -88,14 +89,7 @@ export function Header({
     if (leftContent) return leftContent
 
     if (showBack) {
-      return (
-        <IconButton
-          icon={ArrowLeft}
-          size="md"
-          variant="ghost"
-          onPress={handleBack}
-        />
-      )
+      return <IconButton icon={ArrowLeft} size="md" variant="ghost" onPress={handleBack} />
     }
 
     if (leftAction) {
@@ -138,22 +132,11 @@ export function Header({
   }
 
   return (
-    <View
-      style={[
-        styles.container,
-        !transparent && styles.withBackground,
-        style,
-      ]}
-    >
+    <View style={[styles.container, !transparent && styles.withBackground, style]}>
       <View style={styles.left}>{renderLeftContent()}</View>
       <View style={styles.center}>
         {title && (
-          <Text
-            variant="bodyBold"
-            color="main"
-            style={styles.title}
-            numberOfLines={1}
-          >
+          <Text variant="bodyBold" color="main" style={styles.title} numberOfLines={1}>
             {title}
           </Text>
         )}

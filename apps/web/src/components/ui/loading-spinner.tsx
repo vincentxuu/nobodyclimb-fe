@@ -1,6 +1,5 @@
 'use client'
 
-import React from 'react'
 import { Loader2 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 
@@ -38,22 +37,14 @@ export function LoadingSpinner({
   const content = (
     <div className={cn('flex items-center justify-center', className)}>
       <Loader2
-        className={cn(
-          'animate-spin text-muted-foreground',
-          sizeMap[size],
-          inline && 'mr-2'
-        )}
+        className={cn('animate-spin text-muted-foreground', sizeMap[size], inline && 'mr-2')}
       />
       {text && <span className="ml-2 text-muted-foreground">{text}</span>}
     </div>
   )
 
   if (fullPage) {
-    return (
-      <div className="flex min-h-[400px] items-center justify-center">
-        {content}
-      </div>
-    )
+    return <div className="flex min-h-[400px] items-center justify-center">{content}</div>
   }
 
   return content

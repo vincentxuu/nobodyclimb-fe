@@ -868,9 +868,7 @@ export function getAllTagOptions(): TagOption[] {
 /**
  * 根據維度 ID 取得維度
  */
-export function getTagDimensionById(
-  dimensionId: string
-): TagDimension | undefined {
+export function getTagDimensionById(dimensionId: string): TagDimension | undefined {
   return SYSTEM_TAG_DIMENSION_LIST.find((dim) => dim.id === dimensionId)
 }
 
@@ -884,9 +882,7 @@ export function getTagOptionById(optionId: string): TagOption | undefined {
 /**
  * 根據選項 ID 取得所屬維度
  */
-export function getTagDimensionByOptionId(
-  optionId: string
-): TagDimension | undefined {
+export function getTagDimensionByOptionId(optionId: string): TagDimension | undefined {
   const option = getTagOptionById(optionId)
   if (!option) return undefined
   return getTagDimensionById(option.dimension_id)

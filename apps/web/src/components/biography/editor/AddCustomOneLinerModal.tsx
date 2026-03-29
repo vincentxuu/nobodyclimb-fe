@@ -1,10 +1,10 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { Loader2, MessageCircle, X } from 'lucide-react'
 import { useTranslations } from 'next-intl'
+import { useEffect, useState } from 'react'
+import type { ContentSource, OneLinerQuestion } from '@/lib/types/biography-v2'
 import { cn } from '@/lib/utils'
-import { X, Loader2, MessageCircle } from 'lucide-react'
-import type { OneLinerQuestion, ContentSource } from '@/lib/types/biography-v2'
 
 interface AddCustomOneLinerModalProps {
   /** 是否開啟 */
@@ -67,10 +67,7 @@ export function AddCustomOneLinerModal({
   return (
     <div className="fixed inset-0 z-50 flex items-end md:items-center justify-center">
       {/* Backdrop */}
-      <div
-        className="absolute inset-0 bg-brand-dark/30 backdrop-blur-sm"
-        onClick={onClose}
-      />
+      <div className="absolute inset-0 bg-brand-dark/30 backdrop-blur-sm" onClick={onClose} />
 
       {/* Modal */}
       <div
@@ -109,15 +106,14 @@ export function AddCustomOneLinerModal({
               className="w-full px-4 py-3 bg-white border border-[#B6B3B3] rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-accent/50 focus:border-brand-dark transition-colors text-[#1B1A1A] placeholder:text-[#9D9D9D]"
               maxLength={50}
             />
-            <p className="text-xs text-[#8E8C8C]">
-              {t('oneLinerQuestionHint')}
-            </p>
+            <p className="text-xs text-[#8E8C8C]">{t('oneLinerQuestionHint')}</p>
           </div>
 
           {/* 格式引導 */}
           <div className="space-y-2">
             <label className="block text-sm font-medium text-[#1B1A1A]">
-              {t('oneLinerFormatHintLabel')} <span className="text-[#8E8C8C]">{t('oneLinerFormatHintOptional')}</span>
+              {t('oneLinerFormatHintLabel')}{' '}
+              <span className="text-[#8E8C8C]">{t('oneLinerFormatHintOptional')}</span>
             </label>
             <input
               type="text"
@@ -127,15 +123,14 @@ export function AddCustomOneLinerModal({
               className="w-full px-4 py-3 bg-white border border-[#B6B3B3] rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-accent/50 focus:border-brand-dark transition-colors text-[#1B1A1A] placeholder:text-[#9D9D9D]"
               maxLength={30}
             />
-            <p className="text-xs text-[#8E8C8C]">
-              {t('oneLinerFormatHintHint')}
-            </p>
+            <p className="text-xs text-[#8E8C8C]">{t('oneLinerFormatHintHint')}</p>
           </div>
 
           {/* 範例答案 */}
           <div className="space-y-2">
             <label className="block text-sm font-medium text-[#1B1A1A]">
-              {t('oneLinerExampleLabel')} <span className="text-[#8E8C8C]">{t('oneLinerExampleOptional')}</span>
+              {t('oneLinerExampleLabel')}{' '}
+              <span className="text-[#8E8C8C]">{t('oneLinerExampleOptional')}</span>
             </label>
             <input
               type="text"
@@ -145,9 +140,7 @@ export function AddCustomOneLinerModal({
               className="w-full px-4 py-3 bg-white border border-[#B6B3B3] rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-accent/50 focus:border-brand-dark transition-colors text-[#1B1A1A] placeholder:text-[#9D9D9D]"
               maxLength={50}
             />
-            <p className="text-xs text-[#8E8C8C]">
-              {t('oneLinerExampleHint')}
-            </p>
+            <p className="text-xs text-[#8E8C8C]">{t('oneLinerExampleHint')}</p>
           </div>
 
           {/* 預覽 */}
@@ -158,9 +151,7 @@ export function AddCustomOneLinerModal({
                 <p className="font-medium text-[#1B1A1A]">
                   {question.trim().endsWith('？') ? question.trim() : `${question.trim()}？`}
                 </p>
-                {formatHint.trim() && (
-                  <p className="text-sm text-[#8E8C8C]">{formatHint.trim()}</p>
-                )}
+                {formatHint.trim() && <p className="text-sm text-[#8E8C8C]">{formatHint.trim()}</p>}
                 <div className="pt-2 border-t border-[#EBEAEA]">
                   <p className="text-sm text-[#B6B3B3] italic">
                     {placeholder.trim() || t('answerInputPlaceholder')}
@@ -172,9 +163,7 @@ export function AddCustomOneLinerModal({
 
           {/* 提示 */}
           <div className="bg-brand-accent/10 rounded-lg p-4">
-            <p className="text-sm text-[#3F3D3D]">
-              {t('oneLinerTip')}
-            </p>
+            <p className="text-sm text-[#3F3D3D]">{t('oneLinerTip')}</p>
           </div>
         </div>
 

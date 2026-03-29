@@ -3,12 +3,11 @@
  *
  * 對應 apps/web/src/components/crag/route-list-filter.tsx
  */
-import React from 'react'
-import { StyleSheet, View, ScrollView, Pressable } from 'react-native'
-import { Search, X } from 'lucide-react-native'
 
-import { Text, Input } from '@/components/ui'
 import { SEMANTIC_COLORS, SPACING, WB_COLORS } from '@nobodyclimb/constants'
+import { Search, X } from 'lucide-react-native'
+import { Pressable, ScrollView, StyleSheet, View } from 'react-native'
+import { Input, Text } from '@/components/ui'
 import { GRADE_FILTERS, TYPE_FILTERS } from '@/lib/crag-data'
 
 interface RouteListFilterProps {
@@ -38,20 +37,8 @@ interface FilterChipProps {
 
 function FilterChip({ label, selected, onPress }: FilterChipProps) {
   return (
-    <Pressable
-      onPress={onPress}
-      style={[
-        styles.chip,
-        selected && styles.chipSelected,
-      ]}
-    >
-      <Text
-        variant="small"
-        style={[
-          styles.chipText,
-          selected && styles.chipTextSelected,
-        ]}
-      >
+    <Pressable onPress={onPress} style={[styles.chip, selected && styles.chipSelected]}>
+      <Text variant="small" style={[styles.chipText, selected && styles.chipTextSelected]}>
         {label}
       </Text>
     </Pressable>

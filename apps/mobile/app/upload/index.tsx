@@ -4,51 +4,44 @@
  * 對應 apps/web/src/app/upload/page.tsx
  * 支援多張照片上傳到攝影集
  */
-import React, { useState, useCallback } from 'react'
-import {
-  StyleSheet,
-  View,
-  ScrollView,
-  Pressable,
-  Alert,
-  Dimensions,
-} from 'react-native'
-import { SafeAreaView } from 'react-native-safe-area-context'
-import { useRouter } from 'expo-router'
+
+import { BRAND_YELLOW, RADIUS, SEMANTIC_COLORS, SPACING } from '@nobodyclimb/constants'
 import { Image } from 'expo-image'
-import * as ImagePicker from 'expo-image-picker'
 import * as ImageManipulator from 'expo-image-manipulator'
+import * as ImagePicker from 'expo-image-picker'
+import { useRouter } from 'expo-router'
 import {
-  ChevronLeft,
-  Upload,
-  MapPin,
-  CheckCircle,
-  Image as ImageIcon,
-  X,
   AlertCircle,
   Camera,
+  CheckCircle,
+  ChevronLeft,
+  Image as ImageIcon,
+  MapPin,
+  Upload,
+  X,
 } from 'lucide-react-native'
+import { useCallback, useState } from 'react'
+import { Alert, Dimensions, Pressable, ScrollView, StyleSheet, View } from 'react-native'
 import Animated, { FadeIn, FadeOut, Layout } from 'react-native-reanimated'
-
+import { SafeAreaView } from 'react-native-safe-area-context'
 import {
-  Text,
   Button,
   IconButton,
   Input,
-  TextArea,
   Label,
-  Spinner,
   ProgressBar,
+  Spinner,
+  Text,
+  TextArea,
 } from '@/components/ui'
-import { SEMANTIC_COLORS, SPACING, RADIUS, BRAND_YELLOW } from '@nobodyclimb/constants'
-import { useAuthStore } from '@/store/authStore'
 import { api } from '@/lib/api'
+import { useAuthStore } from '@/store/authStore'
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window')
 const PREVIEW_SIZE = (SCREEN_WIDTH - SPACING.lg * 2 - SPACING.xs * 3) / 4
 
 // 常數配置
-const MAX_FILE_SIZE = 500 * 1024 // 500KB
+const _MAX_FILE_SIZE = 500 * 1024 // 500KB
 const MAX_FILE_COUNT = 20
 const MAX_IMAGE_DIMENSION = 1920
 
@@ -122,11 +115,7 @@ function PhotoPreview({
       layout={Layout.springify()}
       style={styles.previewItem}
     >
-      <Image
-        source={{ uri: item.uri }}
-        style={styles.previewImage}
-        contentFit="cover"
-      />
+      <Image source={{ uri: item.uri }} style={styles.previewImage} contentFit="cover" />
 
       {/* 上傳狀態覆蓋層 */}
       {status && (
@@ -138,15 +127,9 @@ function PhotoPreview({
             status.status === 'error' && styles.statusError,
           ]}
         >
-          {status.status === 'uploading' && (
-            <Spinner size="sm" color="#FFFFFF" />
-          )}
-          {status.status === 'success' && (
-            <CheckCircle size={20} color="#FFFFFF" />
-          )}
-          {status.status === 'error' && (
-            <AlertCircle size={20} color="#FFFFFF" />
-          )}
+          {status.status === 'uploading' && <Spinner size="sm" color="#FFFFFF" />}
+          {status.status === 'success' && <CheckCircle size={20} color="#FFFFFF" />}
+          {status.status === 'error' && <AlertCircle size={20} color="#FFFFFF" />}
         </View>
       )}
 
@@ -231,7 +214,7 @@ export default function UploadScreen() {
           height: compressed.height,
           wasCompressed: compressed.wasCompressed,
         })
-      } catch (err) {
+      } catch (_err) {
         errors.push(`處理第 ${i + 1} 張圖片失敗`)
       }
     }
@@ -284,7 +267,7 @@ export default function UploadScreen() {
           wasCompressed: compressed.wasCompressed,
         },
       ])
-    } catch (err) {
+    } catch (_err) {
       setError('處理圖片失敗')
     }
 
@@ -386,9 +369,7 @@ export default function UploadScreen() {
         }
 
         setUploadStatuses((prev) =>
-          prev.map((s) =>
-            s.id === fileItem.id ? { ...s, status: 'success' } : s
-          )
+          prev.map((s) => (s.id === fileItem.id ? { ...s, status: 'success' } : s))
         )
         return { status: 'success' as const }
       } catch (err) {
@@ -413,9 +394,7 @@ export default function UploadScreen() {
     setIsUploading(false)
 
     if (successfulUploads > 0 && successfulUploads < files.length) {
-      setError(
-        `${successfulUploads} 張照片上傳成功，${files.length - successfulUploads} 張失敗`
-      )
+      setError(`${successfulUploads} 張照片上傳成功，${files.length - successfulUploads} 張失敗`)
     } else if (successfulUploads === 0 && files.length > 0) {
       setError('所有照片上傳失敗，請稍後再試')
     }
@@ -453,10 +432,7 @@ export default function UploadScreen() {
   if (allSuccess) {
     return (
       <SafeAreaView style={styles.centerContainer}>
-        <Animated.View
-          entering={FadeIn.duration(300)}
-          style={styles.successContainer}
-        >
+        <Animated.View entering={FadeIn.duration(300)} style={styles.successContainer}>
           <CheckCircle size={64} color="#22C55E" />
           <Text variant="h4" fontWeight="600" style={styles.successTitle}>
             上傳成功！
@@ -503,10 +479,7 @@ export default function UploadScreen() {
 
           <View style={styles.uploadButtons}>
             <Pressable
-              style={({ pressed }) => [
-                styles.uploadButton,
-                pressed && styles.uploadButtonPressed,
-              ]}
+              style={({ pressed }) => [styles.uploadButton, pressed && styles.uploadButtonPressed]}
               onPress={handlePickFromLibrary}
               disabled={isCompressing || isUploading}
             >
@@ -517,10 +490,7 @@ export default function UploadScreen() {
             </Pressable>
 
             <Pressable
-              style={({ pressed }) => [
-                styles.uploadButton,
-                pressed && styles.uploadButtonPressed,
-              ]}
+              style={({ pressed }) => [styles.uploadButton, pressed && styles.uploadButtonPressed]}
               onPress={handleTakePhoto}
               disabled={isCompressing || isUploading}
             >
@@ -585,10 +555,7 @@ export default function UploadScreen() {
                 正在上傳 {uploadingCount} 張照片...（已完成 {successCount}/{files.length}）
               </Text>
             </View>
-            <ProgressBar
-              progress={(successCount / files.length) * 100}
-              color="#3B82F6"
-            />
+            <ProgressBar progress={(successCount / files.length) * 100} color="#3B82F6" />
           </View>
         )}
 
@@ -614,27 +581,21 @@ export default function UploadScreen() {
             <Input
               placeholder="國家"
               value={location.country}
-              onChangeText={(text) =>
-                setLocation((prev) => ({ ...prev, country: text }))
-              }
+              onChangeText={(text) => setLocation((prev) => ({ ...prev, country: text }))}
               disabled={isUploading || isCompressing}
               containerStyle={styles.locationInput}
             />
             <Input
               placeholder="城市"
               value={location.city}
-              onChangeText={(text) =>
-                setLocation((prev) => ({ ...prev, city: text }))
-              }
+              onChangeText={(text) => setLocation((prev) => ({ ...prev, city: text }))}
               disabled={isUploading || isCompressing}
               containerStyle={styles.locationInput}
             />
             <Input
               placeholder="地點"
               value={location.spot}
-              onChangeText={(text) =>
-                setLocation((prev) => ({ ...prev, spot: text }))
-              }
+              onChangeText={(text) => setLocation((prev) => ({ ...prev, spot: text }))}
               disabled={isUploading || isCompressing}
               containerStyle={styles.locationInput}
             />

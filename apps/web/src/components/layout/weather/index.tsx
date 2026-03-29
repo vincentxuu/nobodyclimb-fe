@@ -1,7 +1,7 @@
 'use client'
 
-import { useState } from 'react'
 import { Cloud } from 'lucide-react'
+import { useState } from 'react'
 
 interface WeatherData {
   location: string

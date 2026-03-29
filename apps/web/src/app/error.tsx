@@ -1,9 +1,9 @@
 'use client'
 
+import { AlertTriangle, Home, RefreshCw } from 'lucide-react'
+import Link from 'next/link'
 import { useEffect } from 'react'
 import { Button } from '@/components/ui/button'
-import { AlertTriangle, RefreshCw, Home } from 'lucide-react'
-import Link from 'next/link'
 
 interface ErrorPageProps {
   error: Error & { digest?: string }
@@ -36,14 +36,18 @@ export default function ErrorPage({ error, reset }: ErrorPageProps) {
         </div>
 
         <h1 className="mb-2 text-2xl font-bold">頁面發生錯誤</h1>
-        <p className="mb-6 text-muted-foreground">抱歉，載入此頁面時發生問題。請嘗試重新載入或返回首頁。</p>
+        <p className="mb-6 text-muted-foreground">
+          抱歉，載入此頁面時發生問題。請嘗試重新載入或返回首頁。
+        </p>
 
         {/* 開發環境顯示錯誤詳情 */}
         {isDevelopment && (
           <div className="mb-6 rounded-lg bg-muted p-4 text-left">
             <p className="mb-2 font-mono text-sm font-semibold text-destructive">{error.name}</p>
             <p className="mb-2 font-mono text-xs text-muted-foreground">{error.message}</p>
-            {error.digest && <p className="font-mono text-xs text-muted-foreground/60">Digest: {error.digest}</p>}
+            {error.digest && (
+              <p className="font-mono text-xs text-muted-foreground/60">Digest: {error.digest}</p>
+            )}
           </div>
         )}
 

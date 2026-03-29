@@ -5,37 +5,26 @@
  * 支援分類、頻道、時長、熱門程度篩選
  * 使用分塊載入優化效能
  */
-import React, { useState, useMemo, useEffect, useCallback } from 'react'
-import {
-  StyleSheet,
-  View,
-  RefreshControl,
-  ActivityIndicator,
-} from 'react-native'
-import { SafeAreaView } from 'react-native-safe-area-context'
+
+import { SEMANTIC_COLORS, SPACING } from '@nobodyclimb/constants'
 import { useRouter } from 'expo-router'
 import { ChevronLeft, Search, Video as VideoIcon } from 'lucide-react-native'
-
+import { useCallback, useEffect, useMemo, useState } from 'react'
+import { ActivityIndicator, StyleSheet, View } from 'react-native'
+import { SafeAreaView } from 'react-native-safe-area-context'
+import { EmptyState, IconButton, LoadMoreButton, SearchInput, Text } from '@/components/ui'
 import {
-  Text,
-  SearchInput,
-  IconButton,
-  EmptyState,
-  LoadMoreButton,
-} from '@/components/ui'
-import {
-  VideoGrid,
-  VideoFilters,
   ChannelFilter,
   DurationFilter,
   PopularityFilter,
-  VideoPlayer,
   type Video,
   type VideoCategory,
   type VideoDuration,
+  VideoFilters,
+  VideoGrid,
+  VideoPlayer,
   type VideoPopularity,
 } from '@/components/videos'
-import { SEMANTIC_COLORS, SPACING } from '@nobodyclimb/constants'
 
 // 資料來源 URL (Web 版本的靜態資料)
 const DATA_BASE_URL = 'https://nobodyclimb.cc/data'
@@ -136,21 +125,24 @@ export default function VideosScreen() {
   const [visibleCount, setVisibleCount] = useState(20)
 
   // 載入單個 chunk
-  const loadChunk = useCallback(async (chunkIndex: number) => {
-    if (loadedChunks.has(chunkIndex)) return []
+  const loadChunk = useCallback(
+    async (chunkIndex: number) => {
+      if (loadedChunks.has(chunkIndex)) return []
 
-    try {
-      const response = await fetch(`${DATA_BASE_URL}/videos-chunks/videos-${chunkIndex}.json`)
-      if (response.ok) {
-        const videos: VideoListItem[] = await response.json()
-        setLoadedChunks((prev) => new Set([...prev, chunkIndex]))
-        return videos
+      try {
+        const response = await fetch(`${DATA_BASE_URL}/videos-chunks/videos-${chunkIndex}.json`)
+        if (response.ok) {
+          const videos: VideoListItem[] = await response.json()
+          setLoadedChunks((prev) => new Set([...prev, chunkIndex]))
+          return videos
+        }
+      } catch (error) {
+        console.error(`Error loading chunk ${chunkIndex}:`, error)
       }
-    } catch (error) {
-      console.error(`Error loading chunk ${chunkIndex}:`, error)
-    }
-    return []
-  }, [loadedChunks])
+      return []
+    },
+    [loadedChunks]
+  )
 
   // 初始載入 metadata、頻道索引和第一個 chunk
   const initialize = useCallback(async () => {
@@ -279,7 +271,14 @@ export default function VideosScreen() {
     }
 
     return filtered
-  }, [videoList, searchQuery, selectedCategory, selectedChannel, selectedDuration, selectedPopularity])
+  }, [
+    videoList,
+    searchQuery,
+    selectedCategory,
+    selectedChannel,
+    selectedDuration,
+    selectedPopularity,
+  ])
 
   // 分頁顯示的影片
   const visibleVideos = filteredVideos.slice(0, visibleCount)
@@ -411,36 +410,40 @@ export default function VideosScreen() {
   ])
 
   // 列表頭部組件
-  const ListHeaderComponent = useMemo(() => (
-    <View style={styles.filtersContainer}>
-      {/* 搜尋結果提示 */}
-      {searchQuery && (
-        <View style={styles.searchResultHint}>
-          <Text variant="caption" color="textSubtle">
-            找到 {filteredVideos.length} 個相關影片
-            {meta && videoList.length < meta.totalVideos && ' (已載入部分資料)'}
-          </Text>
-        </View>
-      )}
-    </View>
-  ), [searchQuery, filteredVideos.length, meta, videoList.length])
+  const ListHeaderComponent = useMemo(
+    () => (
+      <View style={styles.filtersContainer}>
+        {/* 搜尋結果提示 */}
+        {searchQuery && (
+          <View style={styles.searchResultHint}>
+            <Text variant="caption" color="textSubtle">
+              找到 {filteredVideos.length} 個相關影片
+              {meta && videoList.length < meta.totalVideos && ' (已載入部分資料)'}
+            </Text>
+          </View>
+        )}
+      </View>
+    ),
+    [searchQuery, filteredVideos.length, meta, videoList.length]
+  )
 
   // 列表底部組件
-  const ListFooterComponent = useMemo(() => (
-    <View style={styles.footer}>
-      {loadingMore && (
-        <ActivityIndicator size="small" color={SEMANTIC_COLORS.textMain} />
-      )}
-      {filteredVideos.length > 0 && !loadingMore && (
-        <LoadMoreButton
-          onPress={handleLoadMore}
-          hasMore={hasMore}
-          text="載入更多影片"
-          noMoreText="已顯示所有影片"
-        />
-      )}
-    </View>
-  ), [loadingMore, filteredVideos.length, hasMore])
+  const ListFooterComponent = useMemo(
+    () => (
+      <View style={styles.footer}>
+        {loadingMore && <ActivityIndicator size="small" color={SEMANTIC_COLORS.textMain} />}
+        {filteredVideos.length > 0 && !loadingMore && (
+          <LoadMoreButton
+            onPress={handleLoadMore}
+            hasMore={hasMore}
+            text="載入更多影片"
+            noMoreText="已顯示所有影片"
+          />
+        )}
+      </View>
+    ),
+    [loadingMore, filteredVideos.length, hasMore]
+  )
 
   return (
     <SafeAreaView style={styles.container} edges={['top']}>
@@ -468,10 +471,7 @@ export default function VideosScreen() {
 
       {/* 分類篩選 */}
       <View style={styles.categoryFilters}>
-        <VideoFilters
-          selectedCategory={selectedCategory}
-          onCategoryChange={handleCategoryChange}
-        />
+        <VideoFilters selectedCategory={selectedCategory} onCategoryChange={handleCategoryChange} />
       </View>
 
       {/* 進階篩選 */}
@@ -521,10 +521,7 @@ export default function VideosScreen() {
                 description="請嘗試其他搜尋關鍵字或篩選條件"
               />
             ) : (
-              <EmptyState
-                icon={VideoIcon}
-                title="目前沒有影片資料"
-              />
+              <EmptyState icon={VideoIcon} title="目前沒有影片資料" />
             )
           }
           onRefresh={handleRefresh}
@@ -536,11 +533,7 @@ export default function VideosScreen() {
 
       {/* 影片播放器彈窗 */}
       {selectedVideo && (
-        <VideoPlayer
-          video={selectedVideo}
-          visible={!!selectedVideo}
-          onClose={handleClosePlayer}
-        />
+        <VideoPlayer video={selectedVideo} visible={!!selectedVideo} onClose={handleClosePlayer} />
       )}
     </SafeAreaView>
   )

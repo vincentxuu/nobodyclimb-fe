@@ -1,20 +1,20 @@
-import { Hono } from 'hono';
-import { z } from 'zod';
-import { describeRoute, validator } from 'hono-openapi';
-import { Env } from '../types';
-import { parsePagination } from '../utils/id';
-import { authMiddleware } from '../middleware/auth';
-import { NotificationRepository, NotificationType } from '../repositories/notification-repository';
-import { NotificationService } from '../services/notification-service';
+import { Hono } from 'hono'
+import { describeRoute, validator } from 'hono-openapi'
+import { z } from 'zod'
+import { authMiddleware } from '../middleware/auth'
+import { NotificationRepository, NotificationType } from '../repositories/notification-repository'
+import { NotificationService } from '../services/notification-service'
+import { Env } from '../types'
+import { parsePagination } from '../utils/id'
 
-export const notificationsRoutes = new Hono<{ Bindings: Env }>();
+export const notificationsRoutes = new Hono<{ Bindings: Env }>()
 
 /**
  * 初始化 Service
  */
 function initService(c: any): NotificationService {
-  const repository = new NotificationRepository(c.env.DB);
-  return new NotificationService(repository, c.env.DB);
+  const repository = new NotificationRepository(c.env.DB)
+  return new NotificationService(repository, c.env.DB)
 }
 
 // ═══════════════════════════════════════════════════════════
@@ -35,22 +35,19 @@ notificationsRoutes.get(
   }),
   authMiddleware,
   async (c) => {
-    const userId = c.get('userId');
-    const { page, limit } = parsePagination(
-      c.req.query('page'),
-      c.req.query('limit')
-    );
-    const unreadOnly = c.req.query('unread') === 'true';
+    const userId = c.get('userId')
+    const { page, limit } = parsePagination(c.req.query('page'), c.req.query('limit'))
+    const unreadOnly = c.req.query('unread') === 'true'
 
-    const service = initService(c);
-    const result = await service.getList(userId, { page, limit, unreadOnly });
+    const service = initService(c)
+    const result = await service.getList(userId, { page, limit, unreadOnly })
 
     return c.json({
       success: true,
       ...result,
-    });
+    })
   }
-);
+)
 
 // GET /notifications/unread-count - Get unread notification count
 notificationsRoutes.get(
@@ -66,19 +63,19 @@ notificationsRoutes.get(
   }),
   authMiddleware,
   async (c) => {
-    const userId = c.get('userId');
+    const userId = c.get('userId')
 
-    const service = initService(c);
-    const count = await service.getUnreadCount(userId);
+    const service = initService(c)
+    const count = await service.getUnreadCount(userId)
 
     return c.json({
       success: true,
       data: {
         count,
       },
-    });
+    })
   }
-);
+)
 
 // PUT /notifications/:id/read - Mark notification as read
 notificationsRoutes.put(
@@ -95,19 +92,19 @@ notificationsRoutes.put(
   }),
   authMiddleware,
   async (c) => {
-    const userId = c.get('userId');
-    const id = c.req.param('id');
+    const userId = c.get('userId')
+    const id = c.req.param('id')
 
-    const service = initService(c);
+    const service = initService(c)
 
     try {
-      await service.markAsRead(userId, id);
+      await service.markAsRead(userId, id)
 
       return c.json({
         success: true,
         message: 'Notification marked as read',
-      });
-    } catch (error) {
+      })
+    } catch (_error) {
       return c.json(
         {
           success: false,
@@ -115,10 +112,10 @@ notificationsRoutes.put(
           message: 'Notification not found',
         },
         404
-      );
+      )
     }
   }
-);
+)
 
 // PUT /notifications/read-all - Mark all notifications as read
 notificationsRoutes.put(
@@ -134,17 +131,17 @@ notificationsRoutes.put(
   }),
   authMiddleware,
   async (c) => {
-    const userId = c.get('userId');
+    const userId = c.get('userId')
 
-    const service = initService(c);
-    await service.markAllAsRead(userId);
+    const service = initService(c)
+    await service.markAllAsRead(userId)
 
     return c.json({
       success: true,
       message: 'All notifications marked as read',
-    });
+    })
   }
-);
+)
 
 // DELETE /notifications/:id - Delete notification
 notificationsRoutes.delete(
@@ -161,19 +158,19 @@ notificationsRoutes.delete(
   }),
   authMiddleware,
   async (c) => {
-    const userId = c.get('userId');
-    const id = c.req.param('id');
+    const userId = c.get('userId')
+    const id = c.req.param('id')
 
-    const service = initService(c);
+    const service = initService(c)
 
     try {
-      await service.deleteNotification(userId, id);
+      await service.deleteNotification(userId, id)
 
       return c.json({
         success: true,
         message: 'Notification deleted',
-      });
-    } catch (error) {
+      })
+    } catch (_error) {
       return c.json(
         {
           success: false,
@@ -181,10 +178,10 @@ notificationsRoutes.delete(
           message: 'Notification not found',
         },
         404
-      );
+      )
     }
   }
-);
+)
 
 // DELETE /notifications - Delete all notifications
 notificationsRoutes.delete(
@@ -200,17 +197,17 @@ notificationsRoutes.delete(
   }),
   authMiddleware,
   async (c) => {
-    const userId = c.get('userId');
+    const userId = c.get('userId')
 
-    const service = initService(c);
-    await service.deleteAllNotifications(userId);
+    const service = initService(c)
+    await service.deleteAllNotifications(userId)
 
     return c.json({
       success: true,
       message: 'All notifications deleted',
-    });
+    })
   }
-);
+)
 
 // ═══════════════════════════════════════════════════════════
 // 通知統計與分析 API
@@ -230,17 +227,17 @@ notificationsRoutes.get(
   }),
   authMiddleware,
   async (c) => {
-    const userId = c.get('userId');
+    const userId = c.get('userId')
 
-    const service = initService(c);
-    const stats = await service.getStats(userId);
+    const service = initService(c)
+    const stats = await service.getStats(userId)
 
     return c.json({
       success: true,
       data: stats,
-    });
+    })
   }
-);
+)
 
 // ═══════════════════════════════════════════════════════════
 // Admin 廣播通知 API
@@ -251,7 +248,7 @@ const broadcastSchema = z.object({
   title: z.string().min(1),
   message: z.string().min(1),
   targetRole: z.enum(['all', 'user', 'moderator', 'admin']).optional(),
-});
+})
 
 // POST /notifications/admin/broadcast - Send broadcast notification (Admin only)
 notificationsRoutes.post(
@@ -270,7 +267,7 @@ notificationsRoutes.post(
   authMiddleware,
   validator('json', broadcastSchema),
   async (c) => {
-    const user = c.get('user');
+    const user = c.get('user')
 
     if (user?.role !== 'admin') {
       return c.json(
@@ -280,24 +277,24 @@ notificationsRoutes.post(
           message: 'Admin access required',
         },
         403
-      );
+      )
     }
 
-    const { title, message, targetRole } = c.req.valid('json');
+    const { title, message, targetRole } = c.req.valid('json')
 
-    const service = initService(c);
-    const actorId = c.get('userId');
+    const service = initService(c)
+    const actorId = c.get('userId')
 
     try {
-      const result = await service.sendBroadcast(actorId, title, message, targetRole);
+      const result = await service.sendBroadcast(actorId, title, message, targetRole)
 
       return c.json({
         success: true,
         data: result,
         message: `已發送 ${result.successCount} 則廣播通知`,
-      });
+      })
     } catch (error) {
-      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error'
       return c.json(
         {
           success: false,
@@ -305,10 +302,10 @@ notificationsRoutes.post(
           message: errorMessage,
         },
         400
-      );
+      )
     }
   }
-);
+)
 
 // GET /notifications/admin/broadcasts - Get broadcast history (Admin only)
 notificationsRoutes.get(
@@ -325,7 +322,7 @@ notificationsRoutes.get(
   }),
   authMiddleware,
   async (c) => {
-    const user = c.get('user');
+    const user = c.get('user')
 
     if (user?.role !== 'admin') {
       return c.json(
@@ -335,21 +332,21 @@ notificationsRoutes.get(
           message: 'Admin access required',
         },
         403
-      );
+      )
     }
 
-    const page = parseInt(c.req.query('page') || '1');
-    const limit = Math.min(parseInt(c.req.query('limit') || '20'), 100);
+    const page = parseInt(c.req.query('page') || '1')
+    const limit = Math.min(parseInt(c.req.query('limit') || '20'), 100)
 
-    const service = initService(c);
-    const result = await service.getBroadcastHistory(page, limit);
+    const service = initService(c)
+    const result = await service.getBroadcastHistory(page, limit)
 
     return c.json({
       success: true,
       ...result,
-    });
+    })
   }
-);
+)
 
 // GET /notifications/admin/stats - Admin statistics (requires admin role)
 notificationsRoutes.get(
@@ -366,7 +363,7 @@ notificationsRoutes.get(
   }),
   authMiddleware,
   async (c) => {
-    const user = c.get('user');
+    const user = c.get('user')
 
     if (user?.role !== 'admin') {
       return c.json(
@@ -376,18 +373,18 @@ notificationsRoutes.get(
           message: 'Admin access required',
         },
         403
-      );
+      )
     }
 
-    const service = initService(c);
-    const stats = await service.getAdminStats();
+    const service = initService(c)
+    const stats = await service.getAdminStats()
 
     return c.json({
       success: true,
       data: stats,
-    });
+    })
   }
-);
+)
 
 // ═══════════════════════════════════════════════════════════
 // 通知偏好設定 API
@@ -407,17 +404,17 @@ notificationsRoutes.get(
   }),
   authMiddleware,
   async (c) => {
-    const userId = c.get('userId');
+    const userId = c.get('userId')
 
-    const service = initService(c);
-    const preferences = await service.getPreferences(userId);
+    const service = initService(c)
+    const preferences = await service.getPreferences(userId)
 
     return c.json({
       success: true,
       data: preferences,
-    });
+    })
   }
-);
+)
 
 // Notification preferences schema
 const preferencesSchema = z.object({
@@ -431,7 +428,7 @@ const preferencesSchema = z.object({
   story_featured: z.boolean().optional(),
   goal_completed: z.boolean().optional(),
   email_digest: z.boolean().optional(),
-});
+})
 
 // PUT /notifications/preferences - Update user's notification preferences
 notificationsRoutes.put(
@@ -449,20 +446,20 @@ notificationsRoutes.put(
   authMiddleware,
   validator('json', preferencesSchema),
   async (c) => {
-    const userId = c.get('userId');
-    const body = c.req.valid('json');
+    const userId = c.get('userId')
+    const body = c.req.valid('json')
 
-    const service = initService(c);
+    const service = initService(c)
 
     try {
-      await service.updatePreferences(userId, body);
+      await service.updatePreferences(userId, body)
 
       return c.json({
         success: true,
         message: 'Preferences updated',
-      });
+      })
     } catch (error) {
-      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error'
       return c.json(
         {
           success: false,
@@ -470,16 +467,16 @@ notificationsRoutes.put(
           message: errorMessage,
         },
         400
-      );
+      )
     }
   }
-);
+)
 
 // ═══════════════════════════════════════════════════════════
 // Notification Types (re-exported for backwards compatibility)
 // ═══════════════════════════════════════════════════════════
 
-export type { NotificationType };
+export type { NotificationType }
 
 // ═══════════════════════════════════════════════════════════
 // Helper functions to create notifications (便利函數)
@@ -500,23 +497,23 @@ export type { NotificationType };
 export async function createNotification(
   db: D1Database,
   data: {
-    userId: string;
-    type: NotificationType;
-    actorId?: string;
-    targetId?: string;
-    title: string;
-    message: string;
+    userId: string
+    type: NotificationType
+    actorId?: string
+    targetId?: string
+    title: string
+    message: string
   },
   options?: {
-    skipDedup?: boolean; // 跳過去重檢查
-    skipPrefsCheck?: boolean; // 跳過偏好設定檢查
-    dedupMinutes?: number; // 去重時間範圍（分鐘），預設 5
+    skipDedup?: boolean // 跳過去重檢查
+    skipPrefsCheck?: boolean // 跳過偏好設定檢查
+    dedupMinutes?: number // 去重時間範圍（分鐘），預設 5
   }
 ): Promise<string | null> {
-  const repository = new NotificationRepository(db);
-  const service = new NotificationService(repository, db);
+  const repository = new NotificationRepository(db)
+  const service = new NotificationService(repository, db)
 
-  return service.createNotification(data, options);
+  return service.createNotification(data, options)
 }
 
 /**
@@ -533,16 +530,16 @@ export async function createNotification(
 export async function createLikeNotificationWithAggregation(
   db: D1Database,
   data: {
-    userId: string;
-    type: 'goal_liked' | 'post_liked';
-    actorId: string;
-    actorName: string;
-    targetId: string;
-    targetTitle: string;
+    userId: string
+    type: 'goal_liked' | 'post_liked'
+    actorId: string
+    actorName: string
+    targetId: string
+    targetTitle: string
   }
 ): Promise<string | null> {
-  const repository = new NotificationRepository(db);
-  const service = new NotificationService(repository, db);
+  const repository = new NotificationRepository(db)
+  const service = new NotificationService(repository, db)
 
-  return service.createLikeNotificationWithAggregation(data);
+  return service.createLikeNotificationWithAggregation(data)
 }

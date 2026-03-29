@@ -1,30 +1,27 @@
-import React, { useState, useRef, useCallback } from 'react'
-import { View, ScrollView, StyleSheet, Alert } from 'react-native'
-import { useProfile } from './ProfileContext'
-import { ProfileData, SocialLinks } from './types'
-import { mapProfileDataToApi, updateProfileField } from './mappers'
-import { biographyService } from '@/lib/biographyService'
-
-import ProfilePageHeader from './ProfilePageHeader'
-import BiographyAvatarSection from './BiographyAvatarSection'
-import BasicInfoSection from './BasicInfoSection'
-import ClimbingInfoSection from './ClimbingInfoSection'
-import ClimbingExperienceSection from './ClimbingExperienceSection'
-import SocialLinksSection from './SocialLinksSection'
-import AdvancedStoriesSection from './AdvancedStoriesSection'
-import ClimbingFootprintsSection from './ClimbingFootprintsSection'
-import PublicSettingSection from './PublicSettingSection'
-import ProfileActionButtons from './ProfileActionButtons'
-import ProfileDivider from './ProfileDivider'
 import { COLORS } from '@nobodyclimb/constants'
+import { useCallback, useRef, useState } from 'react'
+import { Alert, ScrollView, StyleSheet, View } from 'react-native'
+import { biographyService } from '@/lib/biographyService'
+import AdvancedStoriesSection from './AdvancedStoriesSection'
+import BasicInfoSection from './BasicInfoSection'
+import BiographyAvatarSection from './BiographyAvatarSection'
+import ClimbingExperienceSection from './ClimbingExperienceSection'
+import ClimbingFootprintsSection from './ClimbingFootprintsSection'
+import ClimbingInfoSection from './ClimbingInfoSection'
+import { mapProfileDataToApi, updateProfileField } from './mappers'
+import ProfileActionButtons from './ProfileActionButtons'
+import { useProfile } from './ProfileContext'
+import ProfileDivider from './ProfileDivider'
+import ProfilePageHeader from './ProfilePageHeader'
+import PublicSettingSection from './PublicSettingSection'
+import SocialLinksSection from './SocialLinksSection'
+import { ProfileData, SocialLinks } from './types'
 
 interface ProfileContainerProps {
   onAdvancedStoryPress?: (field: string, label: string) => void
 }
 
-export default function ProfileContainer({
-  onAdvancedStoryPress,
-}: ProfileContainerProps) {
+export default function ProfileContainer({ onAdvancedStoryPress }: ProfileContainerProps) {
   const { profileData, setProfileData, isEditing, setIsEditing, isLoading, refreshProfile } =
     useProfile()
   const [isSaving, setIsSaving] = useState(false)
@@ -126,11 +123,7 @@ export default function ProfileContainer({
   )
 
   if (isLoading) {
-    return (
-      <View style={styles.loadingContainer}>
-        {/* Loading spinner placeholder */}
-      </View>
-    )
+    return <View style={styles.loadingContainer}>{/* Loading spinner placeholder */}</View>
   }
 
   return (
@@ -139,11 +132,7 @@ export default function ProfileContainer({
       contentContainerStyle={styles.contentContainer}
       showsVerticalScrollIndicator={false}
     >
-      <ProfilePageHeader
-        title="個人資料"
-        isEditing={isEditing}
-        onEdit={handleEdit}
-      />
+      <ProfilePageHeader title="個人資料" isEditing={isEditing} onEdit={handleEdit} />
 
       <BiographyAvatarSection
         avatarUrl={profileData.avatarUrl}
@@ -217,19 +206,12 @@ export default function ProfileContainer({
       <ProfileDivider />
 
       <View style={styles.section}>
-        <PublicSettingSection
-          isPublic={profileData.isPublic}
-          onChange={handleChange}
-        />
+        <PublicSettingSection isPublic={profileData.isPublic} onChange={handleChange} />
       </View>
 
       {isEditing && (
         <View style={styles.section}>
-          <ProfileActionButtons
-            onCancel={handleCancel}
-            onSave={handleSave}
-            isLoading={isSaving}
-          />
+          <ProfileActionButtons onCancel={handleCancel} onSave={handleSave} isLoading={isSaving} />
         </View>
       )}
 

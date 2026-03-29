@@ -1,14 +1,14 @@
 'use client'
 
-import { useState, useEffect, useCallback } from 'react'
+import { AnimatePresence, motion } from 'framer-motion'
+import { AlertCircle, Globe, Loader2 } from 'lucide-react'
 import { useTranslations } from 'next-intl'
-import { Globe, Loader2, AlertCircle } from 'lucide-react'
-import { motion, AnimatePresence } from 'framer-motion'
-import { cn } from '@/lib/utils'
+import { useCallback, useEffect, useState } from 'react'
 import { ClimbingFootprintsEditor } from '@/components/biography/climbing-footprints-editor'
-import { ClimbingLocation, ClimbingLocationRecord } from '@/lib/types'
-import { climbingLocationService } from '@/lib/api/services'
 import { useToast } from '@/components/ui/use-toast'
+import { climbingLocationService } from '@/lib/api/services'
+import { ClimbingLocation, ClimbingLocationRecord } from '@/lib/types'
+import { cn } from '@/lib/utils'
 
 interface ClimbingFootprintsEditorSectionProps {
   className?: string
@@ -129,7 +129,9 @@ export function ClimbingFootprintsEditorSection({
         // Execute delete, create, update in parallel
         await Promise.all([
           ...toDelete.map((record) => climbingLocationService.deleteLocation(record.id)),
-          ...toCreate.map((loc) => climbingLocationService.createLocation(locationToCreateData(loc))),
+          ...toCreate.map((loc) =>
+            climbingLocationService.createLocation(locationToCreateData(loc))
+          ),
           ...toUpdate.map(({ id, data }) =>
             climbingLocationService.updateLocation(id, {
               location: data.location,
@@ -196,9 +198,7 @@ export function ClimbingFootprintsEditorSection({
         <h3 className="font-semibold text-[#1B1A1A]">{t('footprintsTitle')}</h3>
       </div>
 
-      <p className="text-sm text-[#6D6C6C]">
-        {t('footprintsSubtitle')}
-      </p>
+      <p className="text-sm text-[#6D6C6C]">{t('footprintsSubtitle')}</p>
 
       {/* Stats Badge */}
       {totalLocations > 0 && (
@@ -257,9 +257,7 @@ export function ClimbingFootprintsEditorSection({
         <div className="rounded-lg border border-dashed border-[#B6B3B3] bg-[#F5F5F5] p-6 text-center">
           <Globe className="mx-auto mb-2 h-8 w-8 text-[#B6B3B3]" />
           <p className="text-sm text-[#6D6C6C] mb-3">{t('footprintsEmpty')}</p>
-          <p className="text-xs text-[#8E8C8C]">
-            {t('footprintsEmptyHint')}
-          </p>
+          <p className="text-xs text-[#8E8C8C]">{t('footprintsEmptyHint')}</p>
         </div>
       )}
     </div>

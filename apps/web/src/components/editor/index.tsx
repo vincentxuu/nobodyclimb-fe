@@ -13,5 +13,5 @@ export const RichTextEditor = dynamic(
   }
 )
 
-export { TagSelector } from './TagSelector'
 export { ImageUploader } from './ImageUploader'
+export { TagSelector } from './TagSelector'

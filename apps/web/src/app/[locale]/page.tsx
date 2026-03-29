@@ -1,7 +1,7 @@
 'use client'
 
-import dynamic from 'next/dynamic'
 import { Loader2 } from 'lucide-react'
+import dynamic from 'next/dynamic'
 
 // 載入骨架組件
 function SectionSkeleton() {

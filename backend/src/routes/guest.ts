@@ -1,11 +1,11 @@
-import { Hono } from 'hono';
-import { z } from 'zod';
-import { describeRoute, validator } from 'hono-openapi';
-import { Env } from '../types';
-import { generateId } from '../utils/id';
-import { authMiddleware } from '../middleware/auth';
+import { Hono } from 'hono'
+import { describeRoute, validator } from 'hono-openapi'
+import { z } from 'zod'
+import { authMiddleware } from '../middleware/auth'
+import { Env } from '../types'
+import { generateId } from '../utils/id'
 
-export const guestRoutes = new Hono<{ Bindings: Env }>();
+export const guestRoutes = new Hono<{ Bindings: Env }>()
 
 // ============================================
 // Validation Schemas
@@ -13,45 +13,62 @@ export const guestRoutes = new Hono<{ Bindings: Env }>();
 
 const createSessionSchema = z.object({
   session_id: z.string().uuid().optional(), // 客戶端可提供已有的 session ID
-});
+})
 
 const trackActivitySchema = z.object({
   session_id: z.string().uuid(),
   page_views: z.number().int().min(0).optional(),
   time_spent_seconds: z.number().int().min(0).optional(),
   biography_views: z.number().int().min(0).optional(),
-});
+})
 
-const createAnonymousBiographySchema = z.object({
-  session_id: z.string().uuid(),
-  // 核心故事（可選）
-  core_stories: z.array(z.object({
-    question_id: z.string(),
-    content: z.string().min(1).max(5000),
-  })).optional().default([]),
-  // 一句話（可選）
-  one_liners: z.array(z.object({
-    question_id: z.string(),
-    answer: z.string().min(1).max(500),
-    question_text: z.string().optional(),
-  })).optional().default([]),
-  // 深度故事（可選）
-  stories: z.array(z.object({
-    question_id: z.string(),
-    content: z.string().min(1).max(10000),
-    question_text: z.string().optional(),
-    category_id: z.string().optional(),
-  })).optional().default([]),
-  // 可選的聯絡 email
-  contact_email: z.string().email().optional(),
-}).refine(
-  (data) => data.core_stories.length > 0 || data.one_liners.length > 0 || data.stories.length > 0,
-  { message: '請至少填寫一個故事' }
-);
+const createAnonymousBiographySchema = z
+  .object({
+    session_id: z.string().uuid(),
+    // 核心故事（可選）
+    core_stories: z
+      .array(
+        z.object({
+          question_id: z.string(),
+          content: z.string().min(1).max(5000),
+        })
+      )
+      .optional()
+      .default([]),
+    // 一句話（可選）
+    one_liners: z
+      .array(
+        z.object({
+          question_id: z.string(),
+          answer: z.string().min(1).max(500),
+          question_text: z.string().optional(),
+        })
+      )
+      .optional()
+      .default([]),
+    // 深度故事（可選）
+    stories: z
+      .array(
+        z.object({
+          question_id: z.string(),
+          content: z.string().min(1).max(10000),
+          question_text: z.string().optional(),
+          category_id: z.string().optional(),
+        })
+      )
+      .optional()
+      .default([]),
+    // 可選的聯絡 email
+    contact_email: z.string().email().optional(),
+  })
+  .refine(
+    (data) => data.core_stories.length > 0 || data.one_liners.length > 0 || data.stories.length > 0,
+    { message: '請至少填寫一個故事' }
+  )
 
 const claimBiographySchema = z.object({
   keep_anonymous: z.boolean().optional().default(false),
-});
+})
 
 // ============================================
 // Helper Functions
@@ -59,12 +76,12 @@ const claimBiographySchema = z.object({
 
 // 生成匿名名稱（攀岩者 #XXXX）
 function generateAnonymousName(): string {
-  const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789'; // 排除容易混淆的字元
-  let code = '';
+  const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789' // 排除容易混淆的字元
+  let code = ''
   for (let i = 0; i < 4; i++) {
-    code += chars.charAt(Math.floor(Math.random() * chars.length));
+    code += chars.charAt(Math.floor(Math.random() * chars.length))
   }
-  return `攀岩者 #${code}`;
+  return `攀岩者 #${code}`
 }
 
 // 檢查是否達到分享資格
@@ -73,34 +90,39 @@ async function checkEligibility(
   session: { page_views: number; biography_views: number; time_spent_seconds: number }
 ): Promise<boolean> {
   // 取得設定
-  const config = await db.prepare(
-    'SELECT * FROM share_eligibility_config WHERE id = ?'
-  ).bind('default').first<{
-    min_page_views: number;
-    min_biography_views: number;
-    min_time_spent_minutes: number;
-    require_all: number;
-  }>();
+  const config = await db
+    .prepare('SELECT * FROM share_eligibility_config WHERE id = ?')
+    .bind('default')
+    .first<{
+      min_page_views: number
+      min_biography_views: number
+      min_time_spent_minutes: number
+      require_all: number
+    }>()
 
   if (!config) {
     // 預設值
-    return session.page_views >= 5 ||
-           session.biography_views >= 3 ||
-           session.time_spent_seconds >= 300;
+    return (
+      session.page_views >= 5 || session.biography_views >= 3 || session.time_spent_seconds >= 300
+    )
   }
 
-  const minTimeSeconds = config.min_time_spent_minutes * 60;
+  const minTimeSeconds = config.min_time_spent_minutes * 60
 
   if (config.require_all === 1) {
     // 需要全部滿足
-    return session.page_views >= config.min_page_views &&
-           session.biography_views >= config.min_biography_views &&
-           session.time_spent_seconds >= minTimeSeconds;
+    return (
+      session.page_views >= config.min_page_views &&
+      session.biography_views >= config.min_biography_views &&
+      session.time_spent_seconds >= minTimeSeconds
+    )
   } else {
     // 滿足任一即可
-    return session.page_views >= config.min_page_views ||
-           session.biography_views >= config.min_biography_views ||
-           session.time_spent_seconds >= minTimeSeconds;
+    return (
+      session.page_views >= config.min_page_views ||
+      session.biography_views >= config.min_biography_views ||
+      session.time_spent_seconds >= minTimeSeconds
+    )
   }
 }
 
@@ -114,61 +136,67 @@ guestRoutes.post(
   describeRoute({
     tags: ['Guest'],
     summary: '建立或取得訪客 Session',
-    description: '建立新的訪客 Session，或根據提供的 session_id 取得現有 Session。用於追蹤匿名訪客的瀏覽行為。',
+    description:
+      '建立新的訪客 Session，或根據提供的 session_id 取得現有 Session。用於追蹤匿名訪客的瀏覽行為。',
     responses: {
       200: { description: '成功建立或取得 Session' },
     },
   }),
   validator('json', createSessionSchema),
   async (c) => {
-  const { session_id } = c.req.valid('json');
+    const { session_id } = c.req.valid('json')
 
-  // 如果提供了 session_id，嘗試取得現有 session
-  if (session_id) {
-    const existing = await c.env.DB.prepare(
-      'SELECT * FROM guest_sessions WHERE id = ?'
-    ).bind(session_id).first();
+    // 如果提供了 session_id，嘗試取得現有 session
+    if (session_id) {
+      const existing = await c.env.DB.prepare('SELECT * FROM guest_sessions WHERE id = ?')
+        .bind(session_id)
+        .first()
 
-    if (existing) {
-      // 更新最後造訪時間
-      await c.env.DB.prepare(
-        'UPDATE guest_sessions SET last_visit_at = datetime(\'now\'), updated_at = datetime(\'now\') WHERE id = ?'
-      ).bind(session_id).run();
+      if (existing) {
+        // 更新最後造訪時間
+        await c.env.DB.prepare(
+          "UPDATE guest_sessions SET last_visit_at = datetime('now'), updated_at = datetime('now') WHERE id = ?"
+        )
+          .bind(session_id)
+          .run()
 
-      return c.json({
-        success: true,
-        session: {
-          id: existing.id,
-          page_views: existing.page_views,
-          time_spent_seconds: existing.time_spent_seconds,
-          biography_views: existing.biography_views,
-          is_eligible_to_share: existing.is_eligible_to_share === 1,
-          is_claimed: existing.claimed_by_user_id !== null,
-        },
-      });
+        return c.json({
+          success: true,
+          session: {
+            id: existing.id,
+            page_views: existing.page_views,
+            time_spent_seconds: existing.time_spent_seconds,
+            biography_views: existing.biography_views,
+            is_eligible_to_share: existing.is_eligible_to_share === 1,
+            is_claimed: existing.claimed_by_user_id !== null,
+          },
+        })
+      }
     }
-  }
 
-  // 建立新的 session
-  const newId = session_id || crypto.randomUUID();
+    // 建立新的 session
+    const newId = session_id || crypto.randomUUID()
 
-  await c.env.DB.prepare(`
+    await c.env.DB.prepare(`
     INSERT INTO guest_sessions (id, first_visit_at, last_visit_at)
     VALUES (?, datetime('now'), datetime('now'))
-  `).bind(newId).run();
+  `)
+      .bind(newId)
+      .run()
 
-  return c.json({
-    success: true,
-    session: {
-      id: newId,
-      page_views: 0,
-      time_spent_seconds: 0,
-      biography_views: 0,
-      is_eligible_to_share: false,
-      is_claimed: false,
-    },
-  });
-});
+    return c.json({
+      success: true,
+      session: {
+        id: newId,
+        page_views: 0,
+        time_spent_seconds: 0,
+        biography_views: 0,
+        is_eligible_to_share: false,
+        is_claimed: false,
+      },
+    })
+  }
+)
 
 // GET /guest/session/:id - 取得 Session 狀態
 guestRoutes.get(
@@ -176,35 +204,37 @@ guestRoutes.get(
   describeRoute({
     tags: ['Guest'],
     summary: '取得訪客 Session 狀態',
-    description: '根據 Session ID 取得訪客的瀏覽狀態，包含頁面瀏覽數、停留時間、人物誌查看數等資訊。',
+    description:
+      '根據 Session ID 取得訪客的瀏覽狀態，包含頁面瀏覽數、停留時間、人物誌查看數等資訊。',
     responses: {
       200: { description: '成功取得 Session 狀態' },
       404: { description: 'Session 不存在' },
     },
   }),
   async (c) => {
-  const sessionId = c.req.param('id');
+    const sessionId = c.req.param('id')
 
-  const session = await c.env.DB.prepare(
-    'SELECT * FROM guest_sessions WHERE id = ?'
-  ).bind(sessionId).first();
+    const session = await c.env.DB.prepare('SELECT * FROM guest_sessions WHERE id = ?')
+      .bind(sessionId)
+      .first()
 
-  if (!session) {
-    return c.json({ success: false, error: 'Session not found' }, 404);
+    if (!session) {
+      return c.json({ success: false, error: 'Session not found' }, 404)
+    }
+
+    return c.json({
+      success: true,
+      session: {
+        id: session.id,
+        page_views: session.page_views,
+        time_spent_seconds: session.time_spent_seconds,
+        biography_views: session.biography_views,
+        is_eligible_to_share: session.is_eligible_to_share === 1,
+        is_claimed: session.claimed_by_user_id !== null,
+      },
+    })
   }
-
-  return c.json({
-    success: true,
-    session: {
-      id: session.id,
-      page_views: session.page_views,
-      time_spent_seconds: session.time_spent_seconds,
-      biography_views: session.biography_views,
-      is_eligible_to_share: session.is_eligible_to_share === 1,
-      is_claimed: session.claimed_by_user_id !== null,
-    },
-  });
-});
+)
 
 // POST /guest/track - 追蹤瀏覽行為
 guestRoutes.post(
@@ -220,37 +250,37 @@ guestRoutes.post(
   }),
   validator('json', trackActivitySchema),
   async (c) => {
-  const { session_id, page_views, time_spent_seconds, biography_views } = c.req.valid('json');
+    const { session_id, page_views, time_spent_seconds, biography_views } = c.req.valid('json')
 
-  // 取得現有 session
-  const session = await c.env.DB.prepare(
-    'SELECT * FROM guest_sessions WHERE id = ?'
-  ).bind(session_id).first<{
-    page_views: number;
-    time_spent_seconds: number;
-    biography_views: number;
-    is_eligible_to_share: number;
-  }>();
+    // 取得現有 session
+    const session = await c.env.DB.prepare('SELECT * FROM guest_sessions WHERE id = ?')
+      .bind(session_id)
+      .first<{
+        page_views: number
+        time_spent_seconds: number
+        biography_views: number
+        is_eligible_to_share: number
+      }>()
 
-  if (!session) {
-    return c.json({ success: false, error: 'Session not found' }, 404);
-  }
+    if (!session) {
+      return c.json({ success: false, error: 'Session not found' }, 404)
+    }
 
-  // 累加數值
-  const newPageViews = session.page_views + (page_views || 0);
-  const newTimeSpent = session.time_spent_seconds + (time_spent_seconds || 0);
-  const newBioViews = session.biography_views + (biography_views || 0);
+    // 累加數值
+    const newPageViews = session.page_views + (page_views || 0)
+    const newTimeSpent = session.time_spent_seconds + (time_spent_seconds || 0)
+    const newBioViews = session.biography_views + (biography_views || 0)
 
-  // 檢查是否達到資格
-  const wasEligible = session.is_eligible_to_share === 1;
-  const isNowEligible = await checkEligibility(c.env.DB, {
-    page_views: newPageViews,
-    biography_views: newBioViews,
-    time_spent_seconds: newTimeSpent,
-  });
+    // 檢查是否達到資格
+    const wasEligible = session.is_eligible_to_share === 1
+    const isNowEligible = await checkEligibility(c.env.DB, {
+      page_views: newPageViews,
+      biography_views: newBioViews,
+      time_spent_seconds: newTimeSpent,
+    })
 
-  // 更新 session
-  await c.env.DB.prepare(`
+    // 更新 session
+    await c.env.DB.prepare(`
     UPDATE guest_sessions
     SET page_views = ?,
         time_spent_seconds = ?,
@@ -260,26 +290,29 @@ guestRoutes.post(
         last_visit_at = datetime('now'),
         updated_at = datetime('now')
     WHERE id = ?
-  `).bind(
-    newPageViews,
-    newTimeSpent,
-    newBioViews,
-    isNowEligible ? 1 : 0,
-    isNowEligible ? 1 : 0,
-    session_id
-  ).run();
+  `)
+      .bind(
+        newPageViews,
+        newTimeSpent,
+        newBioViews,
+        isNowEligible ? 1 : 0,
+        isNowEligible ? 1 : 0,
+        session_id
+      )
+      .run()
 
-  return c.json({
-    success: true,
-    session: {
-      page_views: newPageViews,
-      time_spent_seconds: newTimeSpent,
-      biography_views: newBioViews,
-      is_eligible_to_share: isNowEligible,
-      just_became_eligible: !wasEligible && isNowEligible,
-    },
-  });
-});
+    return c.json({
+      success: true,
+      session: {
+        page_views: newPageViews,
+        time_spent_seconds: newTimeSpent,
+        biography_views: newBioViews,
+        is_eligible_to_share: isNowEligible,
+        just_became_eligible: !wasEligible && isNowEligible,
+      },
+    })
+  }
+)
 
 // ============================================
 // Anonymous Content Routes
@@ -291,7 +324,8 @@ guestRoutes.post(
   describeRoute({
     tags: ['Guest'],
     summary: '建立匿名人物誌',
-    description: '訪客達到分享資格後，可建立匿名人物誌。必須至少填寫一個核心故事、一句話或深度故事。',
+    description:
+      '訪客達到分享資格後，可建立匿名人物誌。必須至少填寫一個核心故事、一句話或深度故事。',
     responses: {
       200: { description: '成功建立匿名人物誌' },
       403: { description: '尚未達到分享資格' },
@@ -301,109 +335,129 @@ guestRoutes.post(
   }),
   validator('json', createAnonymousBiographySchema),
   async (c) => {
-  const { session_id, core_stories, one_liners, stories, contact_email } = c.req.valid('json');
+    const { session_id, core_stories, one_liners, stories, contact_email } = c.req.valid('json')
 
-  // 檢查 session 存在且有資格
-  const session = await c.env.DB.prepare(
-    'SELECT * FROM guest_sessions WHERE id = ?'
-  ).bind(session_id).first<{
-    is_eligible_to_share: number;
-    claimed_by_user_id: string | null;
-  }>();
+    // 檢查 session 存在且有資格
+    const session = await c.env.DB.prepare('SELECT * FROM guest_sessions WHERE id = ?')
+      .bind(session_id)
+      .first<{
+        is_eligible_to_share: number
+        claimed_by_user_id: string | null
+      }>()
 
-  if (!session) {
-    return c.json({ success: false, error: 'Session not found' }, 404);
-  }
+    if (!session) {
+      return c.json({ success: false, error: 'Session not found' }, 404)
+    }
 
-  if (session.is_eligible_to_share !== 1) {
-    return c.json({ success: false, error: 'Not eligible to share yet' }, 403);
-  }
+    if (session.is_eligible_to_share !== 1) {
+      return c.json({ success: false, error: 'Not eligible to share yet' }, 403)
+    }
 
-  // 檢查是否已經有匿名人物誌
-  const existingBio = await c.env.DB.prepare(
-    'SELECT id FROM biographies WHERE guest_session_id = ?'
-  ).bind(session_id).first();
+    // 檢查是否已經有匿名人物誌
+    const existingBio = await c.env.DB.prepare(
+      'SELECT id FROM biographies WHERE guest_session_id = ?'
+    )
+      .bind(session_id)
+      .first()
 
-  if (existingBio) {
-    return c.json({
-      success: false,
-      error: 'Biography already exists for this session',
-      biography_id: existingBio.id,
-    }, 409);
-  }
+    if (existingBio) {
+      return c.json(
+        {
+          success: false,
+          error: 'Biography already exists for this session',
+          biography_id: existingBio.id,
+        },
+        409
+      )
+    }
 
-  // 建立匿名人物誌
-  const biographyId = generateId();
-  const anonymousName = generateAnonymousName();
-  const slug = `anonymous-${biographyId.substring(0, 8)}`;
+    // 建立匿名人物誌
+    const biographyId = generateId()
+    const anonymousName = generateAnonymousName()
+    const slug = `anonymous-${biographyId.substring(0, 8)}`
 
-  // 使用 batch API 批次處理所有插入操作
-  const statements: D1PreparedStatement[] = [];
+    // 使用 batch API 批次處理所有插入操作
+    const statements: D1PreparedStatement[] = []
 
-  // 插入人物誌
-  statements.push(
-    c.env.DB.prepare(`
+    // 插入人物誌
+    statements.push(
+      c.env.DB.prepare(`
       INSERT INTO biographies (
         id, name, slug, guest_session_id, is_anonymous, anonymous_name, visibility
       ) VALUES (?, ?, ?, ?, 1, ?, 'public')
     `).bind(biographyId, anonymousName, slug, session_id, anonymousName)
-  );
+    )
 
-  // 插入核心故事
-  for (const story of core_stories) {
-    statements.push(
-      c.env.DB.prepare(`
+    // 插入核心故事
+    for (const story of core_stories) {
+      statements.push(
+        c.env.DB.prepare(`
         INSERT INTO biography_core_stories (id, biography_id, question_id, content)
         VALUES (?, ?, ?, ?)
       `).bind(generateId(), biographyId, story.question_id, story.content)
-    );
-  }
+      )
+    }
 
-  // 插入一句話
-  for (const oneLiner of one_liners) {
-    statements.push(
-      c.env.DB.prepare(`
+    // 插入一句話
+    for (const oneLiner of one_liners) {
+      statements.push(
+        c.env.DB.prepare(`
         INSERT INTO biography_one_liners (id, biography_id, question_id, answer, question_text, source)
         VALUES (?, ?, ?, ?, ?, 'system')
-      `).bind(generateId(), biographyId, oneLiner.question_id, oneLiner.answer, oneLiner.question_text || null)
-    );
-  }
+      `).bind(
+          generateId(),
+          biographyId,
+          oneLiner.question_id,
+          oneLiner.answer,
+          oneLiner.question_text || null
+        )
+      )
+    }
 
-  // 插入深度故事
-  for (const story of stories) {
-    statements.push(
-      c.env.DB.prepare(`
+    // 插入深度故事
+    for (const story of stories) {
+      statements.push(
+        c.env.DB.prepare(`
         INSERT INTO biography_stories (id, biography_id, question_id, content, question_text, category_id, source)
         VALUES (?, ?, ?, ?, ?, ?, 'system')
-      `).bind(generateId(), biographyId, story.question_id, story.content, story.question_text || null, story.category_id || null)
-    );
+      `).bind(
+          generateId(),
+          biographyId,
+          story.question_id,
+          story.content,
+          story.question_text || null,
+          story.category_id || null
+        )
+      )
+    }
+
+    // 如果有提供 email，更新 session
+    if (contact_email) {
+      statements.push(
+        c.env.DB.prepare('UPDATE guest_sessions SET contact_email = ? WHERE id = ?').bind(
+          contact_email,
+          session_id
+        )
+      )
+    }
+
+    // 批次執行所有操作
+    await c.env.DB.batch(statements)
+
+    // 計算總故事數
+    const totalStories = core_stories.length + one_liners.length + stories.length
+
+    return c.json({
+      success: true,
+      biography: {
+        id: biographyId,
+        slug,
+        anonymous_name: anonymousName,
+        total_stories: totalStories,
+      },
+    })
   }
-
-  // 如果有提供 email，更新 session
-  if (contact_email) {
-    statements.push(
-      c.env.DB.prepare(
-        'UPDATE guest_sessions SET contact_email = ? WHERE id = ?'
-      ).bind(contact_email, session_id)
-    );
-  }
-
-  // 批次執行所有操作
-  await c.env.DB.batch(statements);
-
-  // 計算總故事數
-  const totalStories = core_stories.length + one_liners.length + stories.length;
-
-  return c.json({
-    success: true,
-    biography: {
-      id: biographyId,
-      slug,
-      anonymous_name: anonymousName,
-      total_stories: totalStories,
-    },
-  });
-});
+)
 
 // GET /guest/anonymous/biography/:sessionId - 取得匿名人物誌
 guestRoutes.get(
@@ -418,9 +472,9 @@ guestRoutes.get(
     },
   }),
   async (c) => {
-  const sessionId = c.req.param('sessionId');
+    const sessionId = c.req.param('sessionId')
 
-  const biography = await c.env.DB.prepare(`
+    const biography = await c.env.DB.prepare(`
     SELECT b.*,
            (SELECT json_group_array(json_object(
              'id', cs.id,
@@ -429,25 +483,28 @@ guestRoutes.get(
            )) FROM biography_core_stories cs WHERE cs.biography_id = b.id) as core_stories
     FROM biographies b
     WHERE b.guest_session_id = ?
-  `).bind(sessionId).first();
+  `)
+      .bind(sessionId)
+      .first()
 
-  if (!biography) {
-    return c.json({ success: false, error: 'Biography not found' }, 404);
+    if (!biography) {
+      return c.json({ success: false, error: 'Biography not found' }, 404)
+    }
+
+    return c.json({
+      success: true,
+      biography: {
+        id: biography.id,
+        slug: biography.slug,
+        anonymous_name: biography.anonymous_name,
+        is_anonymous: biography.is_anonymous === 1,
+        is_claimed: biography.user_id !== null,
+        core_stories: JSON.parse((biography.core_stories as string) || '[]'),
+        created_at: biography.created_at,
+      },
+    })
   }
-
-  return c.json({
-    success: true,
-    biography: {
-      id: biography.id,
-      slug: biography.slug,
-      anonymous_name: biography.anonymous_name,
-      is_anonymous: biography.is_anonymous === 1,
-      is_claimed: biography.user_id !== null,
-      core_stories: JSON.parse(biography.core_stories as string || '[]'),
-      created_at: biography.created_at,
-    },
-  });
-});
+)
 
 // ============================================
 // Claim Routes (需要登入)
@@ -467,11 +524,11 @@ guestRoutes.get(
   }),
   authMiddleware,
   async (c) => {
-  const userId = c.get('userId');
-  const sessionId = c.req.query('session_id');
-  const email = c.req.query('email');
+    const _userId = c.get('userId')
+    const sessionId = c.req.query('session_id')
+    const email = c.req.query('email')
 
-  let query = `
+    let query = `
     SELECT b.id, b.anonymous_name, b.created_at,
            (
              (SELECT COUNT(*) FROM biography_core_stories WHERE biography_id = b.id) +
@@ -480,32 +537,35 @@ guestRoutes.get(
            ) as story_count
     FROM biographies b
     WHERE b.user_id IS NULL AND b.guest_session_id IS NOT NULL
-  `;
-  const params: string[] = [];
+  `
+    const params: string[] = []
 
-  if (sessionId) {
-    query += ' AND b.guest_session_id = ?';
-    params.push(sessionId);
-  } else if (email) {
-    query += ' AND b.guest_session_id IN (SELECT id FROM guest_sessions WHERE contact_email = ?)';
-    params.push(email);
-  } else {
-    // 沒有提供任何參數
-    return c.json({ success: true, unclaimed: [] });
+    if (sessionId) {
+      query += ' AND b.guest_session_id = ?'
+      params.push(sessionId)
+    } else if (email) {
+      query += ' AND b.guest_session_id IN (SELECT id FROM guest_sessions WHERE contact_email = ?)'
+      params.push(email)
+    } else {
+      // 沒有提供任何參數
+      return c.json({ success: true, unclaimed: [] })
+    }
+
+    const result = await c.env.DB.prepare(query)
+      .bind(...params)
+      .all()
+
+    return c.json({
+      success: true,
+      unclaimed: result.results.map((bio: any) => ({
+        id: bio.id,
+        anonymous_name: bio.anonymous_name,
+        story_count: bio.story_count,
+        created_at: bio.created_at,
+      })),
+    })
   }
-
-  const result = await c.env.DB.prepare(query).bind(...params).all();
-
-  return c.json({
-    success: true,
-    unclaimed: result.results.map((bio: any) => ({
-      id: bio.id,
-      anonymous_name: bio.anonymous_name,
-      story_count: bio.story_count,
-      created_at: bio.created_at,
-    })),
-  });
-});
+)
 
 // POST /guest/claim/biography/:id - 認領人物誌
 guestRoutes.post(
@@ -524,69 +584,81 @@ guestRoutes.post(
   authMiddleware,
   validator('json', claimBiographySchema),
   async (c) => {
-  const biographyId = c.req.param('id');
-  const userId = c.get('userId');
-  const { keep_anonymous } = c.req.valid('json');
+    const biographyId = c.req.param('id')
+    const userId = c.get('userId')
+    const { keep_anonymous } = c.req.valid('json')
 
-  // 取得要認領的人物誌
-  const biography = await c.env.DB.prepare(
-    'SELECT * FROM biographies WHERE id = ? AND user_id IS NULL'
-  ).bind(biographyId).first<{
-    id: string;
-    guest_session_id: string;
-    anonymous_name: string;
-  }>();
+    // 取得要認領的人物誌
+    const biography = await c.env.DB.prepare(
+      'SELECT * FROM biographies WHERE id = ? AND user_id IS NULL'
+    )
+      .bind(biographyId)
+      .first<{
+        id: string
+        guest_session_id: string
+        anonymous_name: string
+      }>()
 
-  if (!biography) {
-    return c.json({ success: false, error: '內容不存在或已被認領' }, 404);
-  }
+    if (!biography) {
+      return c.json({ success: false, error: '內容不存在或已被認領' }, 404)
+    }
 
-  // 檢查用戶是否已有人物誌
-  const existingBio = await c.env.DB.prepare(
-    'SELECT id, name FROM biographies WHERE user_id = ?'
-  ).bind(userId).first();
+    // 檢查用戶是否已有人物誌
+    const existingBio = await c.env.DB.prepare('SELECT id, name FROM biographies WHERE user_id = ?')
+      .bind(userId)
+      .first()
 
-  if (existingBio) {
-    return c.json({
-      success: false,
-      error: '你已有人物誌',
-      existing_biography_id: existingBio.id,
-      options: ['merge', 'cancel'],
-    }, 409);
-  }
+    if (existingBio) {
+      return c.json(
+        {
+          success: false,
+          error: '你已有人物誌',
+          existing_biography_id: existingBio.id,
+          options: ['merge', 'cancel'],
+        },
+        409
+      )
+    }
 
-  // 執行認領
-  await c.env.DB.prepare(`
+    // 執行認領
+    await c.env.DB.prepare(`
     UPDATE biographies
     SET user_id = ?,
         is_anonymous = ?,
         claimed_at = datetime('now'),
         updated_at = datetime('now')
     WHERE id = ?
-  `).bind(userId, keep_anonymous ? 1 : 0, biographyId).run();
+  `)
+      .bind(userId, keep_anonymous ? 1 : 0, biographyId)
+      .run()
 
-  // 更新 guest_session
-  await c.env.DB.prepare(`
+    // 更新 guest_session
+    await c.env.DB.prepare(`
     UPDATE guest_sessions
     SET claimed_by_user_id = ?,
         claimed_at = datetime('now'),
         updated_at = datetime('now')
     WHERE id = ?
-  `).bind(userId, biography.guest_session_id).run();
+  `)
+      .bind(userId, biography.guest_session_id)
+      .run()
 
-  // 記錄認領歷史
-  const claimId = generateId();
-  await c.env.DB.prepare(`
+    // 記錄認領歷史
+    const claimId = generateId()
+    await c.env.DB.prepare(`
     INSERT INTO content_claims (id, guest_session_id, user_id, biography_id, kept_anonymous)
     VALUES (?, ?, ?, ?, ?)
-  `).bind(claimId, biography.guest_session_id, userId, biographyId, keep_anonymous ? 1 : 0).run();
+  `)
+      .bind(claimId, biography.guest_session_id, userId, biographyId, keep_anonymous ? 1 : 0)
+      .run()
 
-  return c.json({
-    success: true,
-    biography_id: biographyId,
-    is_anonymous: keep_anonymous,
-  });
-});
+    return c.json({
+      success: true,
+      biography_id: biographyId,
+      is_anonymous: keep_anonymous,
+    })
+  }
+)
 
 // POST /guest/claim/merge/:sourceId - 合併匿名內容到現有人物誌
 guestRoutes.post(
@@ -594,7 +666,8 @@ guestRoutes.post(
   describeRoute({
     tags: ['Guest'],
     summary: '合併匿名內容到現有人物誌',
-    description: '將匿名人物誌的內容合併到用戶現有的人物誌中，合併後匿名人物誌將被刪除。只合併目標人物誌中不存在的內容。',
+    description:
+      '將匿名人物誌的內容合併到用戶現有的人物誌中，合併後匿名人物誌將被刪除。只合併目標人物誌中不存在的內容。',
     responses: {
       200: { description: '成功合併內容' },
       400: { description: '用戶沒有人物誌，應直接認領' },
@@ -604,123 +677,167 @@ guestRoutes.post(
   }),
   authMiddleware,
   async (c) => {
-  const sourceId = c.req.param('sourceId'); // 匿名人物誌 ID
-  const userId = c.get('userId');
+    const sourceId = c.req.param('sourceId') // 匿名人物誌 ID
+    const userId = c.get('userId')
 
-  // 取得匿名人物誌
-  const sourceBio = await c.env.DB.prepare(
-    'SELECT * FROM biographies WHERE id = ? AND user_id IS NULL'
-  ).bind(sourceId).first<{
-    id: string;
-    guest_session_id: string;
-  }>();
+    // 取得匿名人物誌
+    const sourceBio = await c.env.DB.prepare(
+      'SELECT * FROM biographies WHERE id = ? AND user_id IS NULL'
+    )
+      .bind(sourceId)
+      .first<{
+        id: string
+        guest_session_id: string
+      }>()
 
-  if (!sourceBio) {
-    return c.json({ success: false, error: '匿名內容不存在或已被認領' }, 404);
-  }
+    if (!sourceBio) {
+      return c.json({ success: false, error: '匿名內容不存在或已被認領' }, 404)
+    }
 
-  // 取得用戶的人物誌
-  const targetBio = await c.env.DB.prepare(
-    'SELECT id FROM biographies WHERE user_id = ?'
-  ).bind(userId).first<{ id: string }>();
+    // 取得用戶的人物誌
+    const targetBio = await c.env.DB.prepare('SELECT id FROM biographies WHERE user_id = ?')
+      .bind(userId)
+      .first<{ id: string }>()
 
-  if (!targetBio) {
-    return c.json({ success: false, error: '你還沒有人物誌，請直接認領' }, 400);
-  }
+    if (!targetBio) {
+      return c.json({ success: false, error: '你還沒有人物誌，請直接認領' }, 400)
+    }
 
-  // 查詢要移動的所有內容
-  const [coreStories, oneLiners, deepStories] = await Promise.all([
-    c.env.DB.prepare('SELECT question_id, content, created_at FROM biography_core_stories WHERE biography_id = ?').bind(sourceId).all(),
-    c.env.DB.prepare('SELECT question_id, answer, question_text, source, created_at FROM biography_one_liners WHERE biography_id = ?').bind(sourceId).all(),
-    c.env.DB.prepare('SELECT question_id, content, question_text, category_id, source, created_at FROM biography_stories WHERE biography_id = ?').bind(sourceId).all(),
-  ]);
+    // 查詢要移動的所有內容
+    const [coreStories, oneLiners, deepStories] = await Promise.all([
+      c.env.DB.prepare(
+        'SELECT question_id, content, created_at FROM biography_core_stories WHERE biography_id = ?'
+      )
+        .bind(sourceId)
+        .all(),
+      c.env.DB.prepare(
+        'SELECT question_id, answer, question_text, source, created_at FROM biography_one_liners WHERE biography_id = ?'
+      )
+        .bind(sourceId)
+        .all(),
+      c.env.DB.prepare(
+        'SELECT question_id, content, question_text, category_id, source, created_at FROM biography_stories WHERE biography_id = ?'
+      )
+        .bind(sourceId)
+        .all(),
+    ])
 
-  // 查詢目標人物誌已有的 question_id，避免重複
-  const [existingCore, existingOneLiners, existingStories] = await Promise.all([
-    c.env.DB.prepare('SELECT question_id FROM biography_core_stories WHERE biography_id = ?').bind(targetBio.id).all(),
-    c.env.DB.prepare('SELECT question_id FROM biography_one_liners WHERE biography_id = ?').bind(targetBio.id).all(),
-    c.env.DB.prepare('SELECT question_id FROM biography_stories WHERE biography_id = ?').bind(targetBio.id).all(),
-  ]);
+    // 查詢目標人物誌已有的 question_id，避免重複
+    const [existingCore, existingOneLiners, existingStories] = await Promise.all([
+      c.env.DB.prepare('SELECT question_id FROM biography_core_stories WHERE biography_id = ?')
+        .bind(targetBio.id)
+        .all(),
+      c.env.DB.prepare('SELECT question_id FROM biography_one_liners WHERE biography_id = ?')
+        .bind(targetBio.id)
+        .all(),
+      c.env.DB.prepare('SELECT question_id FROM biography_stories WHERE biography_id = ?')
+        .bind(targetBio.id)
+        .all(),
+    ])
 
-  const existingCoreIds = new Set(existingCore.results.map((r: any) => r.question_id));
-  const existingOneLinerIds = new Set(existingOneLiners.results.map((r: any) => r.question_id));
-  const existingStoryIds = new Set(existingStories.results.map((r: any) => r.question_id));
+    const existingCoreIds = new Set(existingCore.results.map((r: any) => r.question_id))
+    const existingOneLinerIds = new Set(existingOneLiners.results.map((r: any) => r.question_id))
+    const existingStoryIds = new Set(existingStories.results.map((r: any) => r.question_id))
 
-  // 準備批次操作
-  const statements: D1PreparedStatement[] = [];
-  let mergedCount = 0;
+    // 準備批次操作
+    const statements: D1PreparedStatement[] = []
+    let mergedCount = 0
 
-  // 插入核心故事（只插入目標沒有的）
-  for (const story of coreStories.results as any[]) {
-    if (!existingCoreIds.has(story.question_id)) {
-      statements.push(
-        c.env.DB.prepare(`
+    // 插入核心故事（只插入目標沒有的）
+    for (const story of coreStories.results as any[]) {
+      if (!existingCoreIds.has(story.question_id)) {
+        statements.push(
+          c.env.DB.prepare(`
           INSERT INTO biography_core_stories (id, biography_id, question_id, content, created_at)
           VALUES (?, ?, ?, ?, ?)
         `).bind(generateId(), targetBio.id, story.question_id, story.content, story.created_at)
-      );
-      mergedCount++;
+        )
+        mergedCount++
+      }
     }
-  }
 
-  // 插入一句話
-  for (const oneLiner of oneLiners.results as any[]) {
-    if (!existingOneLinerIds.has(oneLiner.question_id)) {
-      statements.push(
-        c.env.DB.prepare(`
+    // 插入一句話
+    for (const oneLiner of oneLiners.results as any[]) {
+      if (!existingOneLinerIds.has(oneLiner.question_id)) {
+        statements.push(
+          c.env.DB.prepare(`
           INSERT INTO biography_one_liners (id, biography_id, question_id, answer, question_text, source, created_at)
           VALUES (?, ?, ?, ?, ?, ?, ?)
-        `).bind(generateId(), targetBio.id, oneLiner.question_id, oneLiner.answer, oneLiner.question_text, oneLiner.source, oneLiner.created_at)
-      );
-      mergedCount++;
+        `).bind(
+            generateId(),
+            targetBio.id,
+            oneLiner.question_id,
+            oneLiner.answer,
+            oneLiner.question_text,
+            oneLiner.source,
+            oneLiner.created_at
+          )
+        )
+        mergedCount++
+      }
     }
-  }
 
-  // 插入深度故事
-  for (const story of deepStories.results as any[]) {
-    if (!existingStoryIds.has(story.question_id)) {
-      statements.push(
-        c.env.DB.prepare(`
+    // 插入深度故事
+    for (const story of deepStories.results as any[]) {
+      if (!existingStoryIds.has(story.question_id)) {
+        statements.push(
+          c.env.DB.prepare(`
           INSERT INTO biography_stories (id, biography_id, question_id, content, question_text, category_id, source, created_at)
           VALUES (?, ?, ?, ?, ?, ?, ?, ?)
-        `).bind(generateId(), targetBio.id, story.question_id, story.content, story.question_text, story.category_id, story.source, story.created_at)
-      );
-      mergedCount++;
+        `).bind(
+            generateId(),
+            targetBio.id,
+            story.question_id,
+            story.content,
+            story.question_text,
+            story.category_id,
+            story.source,
+            story.created_at
+          )
+        )
+        mergedCount++
+      }
     }
-  }
 
-  // 刪除匿名人物誌的關聯內容
-  statements.push(c.env.DB.prepare('DELETE FROM biography_core_stories WHERE biography_id = ?').bind(sourceId));
-  statements.push(c.env.DB.prepare('DELETE FROM biography_one_liners WHERE biography_id = ?').bind(sourceId));
-  statements.push(c.env.DB.prepare('DELETE FROM biography_stories WHERE biography_id = ?').bind(sourceId));
+    // 刪除匿名人物誌的關聯內容
+    statements.push(
+      c.env.DB.prepare('DELETE FROM biography_core_stories WHERE biography_id = ?').bind(sourceId)
+    )
+    statements.push(
+      c.env.DB.prepare('DELETE FROM biography_one_liners WHERE biography_id = ?').bind(sourceId)
+    )
+    statements.push(
+      c.env.DB.prepare('DELETE FROM biography_stories WHERE biography_id = ?').bind(sourceId)
+    )
 
-  // 刪除匿名人物誌
-  statements.push(c.env.DB.prepare('DELETE FROM biographies WHERE id = ?').bind(sourceId));
+    // 刪除匿名人物誌
+    statements.push(c.env.DB.prepare('DELETE FROM biographies WHERE id = ?').bind(sourceId))
 
-  // 更新 guest_session
-  statements.push(
-    c.env.DB.prepare(`
+    // 更新 guest_session
+    statements.push(
+      c.env.DB.prepare(`
       UPDATE guest_sessions
       SET claimed_by_user_id = ?,
           claimed_at = datetime('now')
       WHERE id = ?
     `).bind(userId, sourceBio.guest_session_id)
-  );
+    )
 
-  // 記錄認領歷史
-  statements.push(
-    c.env.DB.prepare(`
+    // 記錄認領歷史
+    statements.push(
+      c.env.DB.prepare(`
       INSERT INTO content_claims (id, guest_session_id, user_id, biography_id, kept_anonymous)
       VALUES (?, ?, ?, ?, 0)
     `).bind(generateId(), sourceBio.guest_session_id, userId, targetBio.id)
-  );
+    )
 
-  // 批次執行
-  await c.env.DB.batch(statements);
+    // 批次執行
+    await c.env.DB.batch(statements)
 
-  return c.json({
-    success: true,
-    merged_to_biography_id: targetBio.id,
-    stories_merged: mergedCount,
-  });
-});
+    return c.json({
+      success: true,
+      merged_to_biography_id: targetBio.id,
+      stories_merged: mergedCount,
+    })
+  }
+)

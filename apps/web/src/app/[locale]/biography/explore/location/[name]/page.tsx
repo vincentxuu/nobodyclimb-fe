@@ -1,16 +1,16 @@
 'use client'
 
-import React, { useState, useEffect, use } from 'react'
-import { Link } from '@/i18n/navigation'
-import Image from 'next/image'
 import { motion } from 'framer-motion'
-import { MapPin, Users, Calendar, ArrowLeft, Loader2, MessageSquare } from 'lucide-react'
-import { Button } from '@/components/ui/button'
+import { ArrowLeft, Calendar, Loader2, MapPin, MessageSquare, Users } from 'lucide-react'
+import Image from 'next/image'
+import { useTranslations } from 'next-intl'
+import { use, useEffect, useState } from 'react'
 import { Breadcrumb } from '@/components/ui/breadcrumb'
+import { Button } from '@/components/ui/button'
+import { Link } from '@/i18n/navigation'
 import { climbingLocationService } from '@/lib/api/services'
 import { LocationDetail } from '@/lib/types'
 import { getCountryFlag } from '@/lib/utils/country'
-import { useTranslations } from 'next-intl'
 
 interface LocationDetailPageProps {
   params: Promise<{
@@ -63,7 +63,9 @@ export default function LocationDetailPage({ params }: LocationDetailPageProps) 
         <div className="container mx-auto px-4 py-12">
           <div className="rounded-lg border border-red-200 bg-red-50 p-8 text-center">
             <MapPin className="mx-auto mb-4 h-12 w-12 text-red-300" />
-            <h2 className="mb-2 text-xl font-medium text-red-800">{error || t('locationNotFound')}</h2>
+            <h2 className="mb-2 text-xl font-medium text-red-800">
+              {error || t('locationNotFound')}
+            </h2>
             <Link href="/biography/explore/locations">
               <Button variant="outline" className="mt-4">
                 <ArrowLeft className="mr-2 h-4 w-4" />

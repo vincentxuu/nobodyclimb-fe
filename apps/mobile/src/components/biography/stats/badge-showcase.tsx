@@ -3,20 +3,20 @@
  *
  * 對應 apps/web/src/components/biography/stats/badge-showcase.tsx
  */
-import React, { useState } from 'react'
-import { View, StyleSheet, Pressable, ScrollView, type ViewStyle } from 'react-native'
-import { WB_COLORS, SEMANTIC_COLORS, BRAND_YELLOW } from '@nobodyclimb/constants'
+
+import { BRAND_YELLOW, SEMANTIC_COLORS, WB_COLORS } from '@nobodyclimb/constants'
+import type { BadgeProgress } from '@nobodyclimb/types'
+import { useState } from 'react'
+import { Pressable, ScrollView, StyleSheet, View, type ViewStyle } from 'react-native'
+import {
+  BADGE_CATEGORIES,
+  BADGES,
+  type BadgeCategory,
+  getBadgesByCategory,
+} from '../../../lib/constants/badges'
 import { Text } from '../../ui/Text'
 import { BadgeGrid } from './badge-card'
 import { BadgeIcon } from './badge-icon'
-import {
-  BADGES,
-  BADGE_CATEGORIES,
-  BADGE_COLORS,
-  getBadgesByCategory,
-  type BadgeCategory,
-} from '../../../lib/constants/badges'
-import type { BadgeProgress } from '@nobodyclimb/types'
 
 // ============================================
 // BadgeShowcase 組件
@@ -40,7 +40,11 @@ export interface BadgeShowcaseProps {
   style?: ViewStyle
 }
 
-export function BadgeShowcase({ badgeProgress: badgeProgressProp, badges, style }: BadgeShowcaseProps) {
+export function BadgeShowcase({
+  badgeProgress: badgeProgressProp,
+  badges,
+  style,
+}: BadgeShowcaseProps) {
   // 若傳入 badges（簡化格式），渲染簡化版本
   if (badges !== undefined) {
     if (badges.length === 0) {
@@ -80,9 +84,7 @@ export function BadgeShowcase({ badgeProgress: badgeProgressProp, badges, style 
 
   // 獲取顯示的徽章
   const displayBadges =
-    selectedCategory === 'all'
-      ? Object.values(BADGES)
-      : getBadgesByCategory(selectedCategory)
+    selectedCategory === 'all' ? Object.values(BADGES) : getBadgesByCategory(selectedCategory)
 
   // 按解鎖狀態排序（已解鎖在前）
   const sortedBadges = [...displayBadges].sort((a, b) => {
@@ -149,9 +151,7 @@ export function BadgeShowcase({ badgeProgress: badgeProgressProp, badges, style 
               variant="caption"
               style={{
                 color:
-                  selectedCategory === category.key
-                    ? WB_COLORS[0]
-                    : SEMANTIC_COLORS.textSubtle,
+                  selectedCategory === category.key ? WB_COLORS[0] : SEMANTIC_COLORS.textSubtle,
                 fontWeight: selectedCategory === category.key ? '600' : '400',
               }}
             >

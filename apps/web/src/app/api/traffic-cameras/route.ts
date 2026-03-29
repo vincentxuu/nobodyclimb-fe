@@ -40,9 +40,10 @@ export async function GET(request: NextRequest) {
 
     const response = await fetch(apiUrl, {
       headers: {
-        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
-        'Accept': 'application/json',
-        'Referer': 'https://www.1968services.tw/',
+        'User-Agent':
+          'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+        Accept: 'application/json',
+        Referer: 'https://www.1968services.tw/',
       },
       cache: 'no-store',
     })
@@ -74,7 +75,7 @@ export async function GET(request: NextRequest) {
       )
     }
 
-    const data = await response.json() as CameraListResponse
+    const data = (await response.json()) as CameraListResponse
 
     return NextResponse.json(data, {
       headers: {

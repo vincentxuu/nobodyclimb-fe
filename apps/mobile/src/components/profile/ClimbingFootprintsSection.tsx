@@ -1,18 +1,15 @@
-import React from 'react'
-import { View, StyleSheet, Pressable } from 'react-native'
-import { MapPin, Plus } from 'lucide-react-native'
-import { Text } from '../ui/Text'
-import { Icon } from '../ui/Icon'
 import { SEMANTIC_COLORS, WB_COLORS } from '@nobodyclimb/constants'
+import { MapPin, Plus } from 'lucide-react-native'
+import { Pressable, StyleSheet, View } from 'react-native'
+import { Icon } from '../ui/Icon'
+import { Text } from '../ui/Text'
 
 interface ClimbingFootprintsSectionProps {
   isEditing: boolean
   isMobile?: boolean
 }
 
-export default function ClimbingFootprintsSection({
-  isEditing,
-}: ClimbingFootprintsSectionProps) {
+export default function ClimbingFootprintsSection({ isEditing }: ClimbingFootprintsSectionProps) {
   // TODO: 實作攀岩足跡功能
   return (
     <View style={styles.container}>

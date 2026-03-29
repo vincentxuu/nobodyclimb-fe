@@ -7,8 +7,7 @@ export function LatencyBreakdown({ latency }: { latency: AILogDetail['latency'] 
   const { total_ms, embedding_ms, retrieval_ms, generation_ms } = latency
   if (total_ms == null) return null
 
-  const other =
-    total_ms - (embedding_ms ?? 0) - (retrieval_ms ?? 0) - (generation_ms ?? 0)
+  const other = total_ms - (embedding_ms ?? 0) - (retrieval_ms ?? 0) - (generation_ms ?? 0)
 
   const bars: { label: string; ms: number | null; color: string }[] = [
     { label: '嵌入', ms: embedding_ms, color: 'bg-blue-400' },
@@ -37,7 +36,9 @@ export function LatencyBreakdown({ latency }: { latency: AILogDetail['latency'] 
           <div key={label} className="flex items-center gap-1.5">
             <div className={`h-2.5 w-2.5 rounded-sm ${color}`} />
             <span className="text-xs text-wb-60">{label}</span>
-            <span className="text-xs font-medium tabular-nums text-wb-80">{ms != null && ms > 0 ? `${ms} ms` : '—'}</span>
+            <span className="text-xs font-medium tabular-nums text-wb-80">
+              {ms != null && ms > 0 ? `${ms} ms` : '—'}
+            </span>
           </div>
         ))}
         <div className="ml-auto flex items-center gap-1.5">

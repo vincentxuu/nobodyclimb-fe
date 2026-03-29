@@ -1,10 +1,10 @@
 'use client'
 
-import React, { useState } from 'react'
-import Link from 'next/link'
+import { AnimatePresence, motion } from 'framer-motion'
 import { ChevronRight, MoreHorizontal } from 'lucide-react'
+import Link from 'next/link'
+import React, { useState } from 'react'
 import { cn } from '@/lib/utils'
-import { motion, AnimatePresence } from 'framer-motion'
 
 interface BreadcrumbItem {
   label: string
@@ -27,7 +27,9 @@ export function CollapsibleBreadcrumb({ items, className }: CollapsibleBreadcrum
           {items.map((item, index) => (
             <li key={item.label}>
               {item.href ? (
-                <Link href={item.href} prefetch={false}>{item.label}</Link>
+                <Link href={item.href} prefetch={false}>
+                  {item.label}
+                </Link>
               ) : (
                 <span>{item.label}</span>
               )}
@@ -49,9 +51,7 @@ export function CollapsibleBreadcrumb({ items, className }: CollapsibleBreadcrum
           aria-label={isExpanded ? '收合導航路徑' : '展開導航路徑'}
         >
           <MoreHorizontal size={16} />
-          {!isExpanded && (
-            <span className="hidden sm:inline text-xs text-gray-400">導航</span>
-          )}
+          {!isExpanded && <span className="hidden sm:inline text-xs text-gray-400">導航</span>}
         </button>
 
         <AnimatePresence>

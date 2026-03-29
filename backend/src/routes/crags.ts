@@ -1,12 +1,12 @@
-import { Hono } from 'hono';
-import { z } from 'zod';
-import { describeRoute, validator } from 'hono-openapi';
-import { Env, Crag } from '../types';
-import { parsePagination, generateId, generateSlug } from '../utils/id';
-import { authMiddleware, adminMiddleware } from '../middleware/auth';
-import { deleteR2Images } from '../utils/storage';
+import { Hono } from 'hono'
+import { describeRoute, validator } from 'hono-openapi'
+import { z } from 'zod'
+import { adminMiddleware, authMiddleware } from '../middleware/auth'
+import { Crag, Env } from '../types'
+import { generateId, generateSlug, parsePagination } from '../utils/id'
+import { deleteR2Images } from '../utils/storage'
 
-export const cragsRoutes = new Hono<{ Bindings: Env }>();
+export const cragsRoutes = new Hono<{ Bindings: Env }>()
 
 // Validation schemas
 const listCragsQuerySchema = z.object({
@@ -14,15 +14,15 @@ const listCragsQuerySchema = z.object({
   limit: z.string().optional(),
   region: z.string().optional(),
   featured: z.enum(['true', 'false']).optional(),
-});
+})
 
 const cragIdParamSchema = z.object({
   id: z.string().min(1),
-});
+})
 
 const cragSlugParamSchema = z.object({
   slug: z.string().min(1),
-});
+})
 
 const createCragSchema = z.object({
   name: z.string().min(1),
@@ -46,7 +46,7 @@ const createCragSchema = z.object({
   approach_time: z.string().optional(),
   best_seasons: z.array(z.string()).optional(),
   restrictions: z.string().optional(),
-});
+})
 
 const updateCragSchema = z.object({
   name: z.string().optional(),
@@ -69,15 +69,15 @@ const updateCragSchema = z.object({
   approach_time: z.string().optional(),
   best_seasons: z.array(z.string()).optional(),
   restrictions: z.string().optional(),
-});
+})
 
 const featuredQuerySchema = z.object({
   limit: z.string().optional(),
-});
+})
 
 const featuredRoutesQuerySchema = z.object({
   limit: z.string().optional(),
-});
+})
 
 // GET /crags - List all crags
 cragsRoutes.get(
@@ -92,37 +92,34 @@ cragsRoutes.get(
   }),
   validator('query', listCragsQuerySchema),
   async (c) => {
-  const { page, limit, offset } = parsePagination(
-    c.req.query('page'),
-    c.req.query('limit')
-  );
-  const region = c.req.query('region');
-  const featured = c.req.query('featured');
+    const { page, limit, offset } = parsePagination(c.req.query('page'), c.req.query('limit'))
+    const region = c.req.query('region')
+    const featured = c.req.query('featured')
 
-  let whereClause = '1=1';
-  const params: (string | number)[] = [];
+    let whereClause = '1=1'
+    const params: (string | number)[] = []
 
-  if (region) {
-    whereClause += ' AND region = ?';
-    params.push(region);
-  }
+    if (region) {
+      whereClause += ' AND region = ?'
+      params.push(region)
+    }
 
-  if (featured === 'true') {
-    whereClause += ' AND is_featured = 1';
-  }
+    if (featured === 'true') {
+      whereClause += ' AND is_featured = 1'
+    }
 
-  // Get total count
-  const countResult = await c.env.DB.prepare(
-    `SELECT COUNT(*) as count FROM crags WHERE ${whereClause}`
-  )
-    .bind(...params)
-    .first<{ count: number }>();
-  const total = countResult?.count || 0;
+    // Get total count
+    const countResult = await c.env.DB.prepare(
+      `SELECT COUNT(*) as count FROM crags WHERE ${whereClause}`
+    )
+      .bind(...params)
+      .first<{ count: number }>()
+    const total = countResult?.count || 0
 
-  // Get paginated results
-  // 按照北中南東離島順序排列，同地區內按緯度從北到南
-  const crags = await c.env.DB.prepare(
-    `SELECT * FROM crags WHERE ${whereClause}
+    // Get paginated results
+    // 按照北中南東離島順序排列，同地區內按緯度從北到南
+    const crags = await c.env.DB.prepare(
+      `SELECT * FROM crags WHERE ${whereClause}
      ORDER BY is_featured DESC,
        CASE region
          WHEN '北部' THEN 1
@@ -134,26 +131,27 @@ cragsRoutes.get(
        END,
        latitude DESC
      LIMIT ? OFFSET ?`
-  )
-    .bind(...params, limit, offset)
-    .all<Crag>();
+    )
+      .bind(...params, limit, offset)
+      .all<Crag>()
 
-  return c.json({
-    success: true,
-    data: crags.results.map((crag) => ({
-      ...crag,
-      climbing_types: crag.climbing_types ? JSON.parse(crag.climbing_types) : [],
-      images: crag.images ? JSON.parse(crag.images) : [],
-      best_seasons: crag.best_seasons ? JSON.parse(crag.best_seasons) : [],
-    })),
-    pagination: {
-      page,
-      limit,
-      total,
-      total_pages: Math.ceil(total / limit),
-    },
-  });
-});
+    return c.json({
+      success: true,
+      data: crags.results.map((crag) => ({
+        ...crag,
+        climbing_types: crag.climbing_types ? JSON.parse(crag.climbing_types) : [],
+        images: crag.images ? JSON.parse(crag.images) : [],
+        best_seasons: crag.best_seasons ? JSON.parse(crag.best_seasons) : [],
+      })),
+      pagination: {
+        page,
+        limit,
+        total,
+        total_pages: Math.ceil(total / limit),
+      },
+    })
+  }
+)
 
 // GET /crags/featured - Get featured crags
 cragsRoutes.get(
@@ -168,11 +166,11 @@ cragsRoutes.get(
   }),
   validator('query', featuredQuerySchema),
   async (c) => {
-  const limit = parseInt(c.req.query('limit') || '6', 10);
+    const limit = parseInt(c.req.query('limit') || '6', 10)
 
-  // 按照北中南東離島順序排列，同地區內按緯度從北到南
-  const crags = await c.env.DB.prepare(
-    `SELECT * FROM crags WHERE is_featured = 1
+    // 按照北中南東離島順序排列，同地區內按緯度從北到南
+    const crags = await c.env.DB.prepare(
+      `SELECT * FROM crags WHERE is_featured = 1
      ORDER BY
        CASE region
          WHEN '北部' THEN 1
@@ -184,22 +182,23 @@ cragsRoutes.get(
        END,
        latitude DESC
      LIMIT ?`
-  )
-    .bind(limit)
-    .all<Crag>();
+    )
+      .bind(limit)
+      .all<Crag>()
 
-  return c.json({
-    success: true,
-    data: crags.results.map((crag) => ({
-      ...crag,
-      climbing_types: crag.climbing_types ? JSON.parse(crag.climbing_types) : [],
-      images: crag.images ? JSON.parse(crag.images) : [],
-      best_seasons: crag.best_seasons ? JSON.parse(crag.best_seasons) : [],
-      transportation: crag.transportation ? JSON.parse(crag.transportation) : [],
-      amenities: crag.amenities ? JSON.parse(crag.amenities) : [],
-    })),
-  });
-});
+    return c.json({
+      success: true,
+      data: crags.results.map((crag) => ({
+        ...crag,
+        climbing_types: crag.climbing_types ? JSON.parse(crag.climbing_types) : [],
+        images: crag.images ? JSON.parse(crag.images) : [],
+        best_seasons: crag.best_seasons ? JSON.parse(crag.best_seasons) : [],
+        transportation: crag.transportation ? JSON.parse(crag.transportation) : [],
+        amenities: crag.amenities ? JSON.parse(crag.amenities) : [],
+      })),
+    })
+  }
+)
 
 // GET /routes/featured - Get featured routes across all crags
 cragsRoutes.get(
@@ -214,7 +213,7 @@ cragsRoutes.get(
   }),
   validator('query', featuredRoutesQuerySchema),
   async (c) => {
-    const limit = parseInt(c.req.query('limit') || '8', 10);
+    const limit = parseInt(c.req.query('limit') || '8', 10)
 
     // 獲取所有路線，包含岩場和區域資訊，按影片數量優先排序
     const routes = await c.env.DB.prepare(
@@ -250,109 +249,109 @@ cragsRoutes.get(
     )
       .bind(limit * 3) // 取多一些以便從不同岩場輪流選取
       .all<{
-        id: string;
-        name: string;
-        name_en: string | null;
-        grade: string;
-        route_type: string;
-        height: string | null;
-        bolt_count: number;
-        description: string | null;
-        ascent_count: number | null;
-        story_count: number | null;
-        crag_id: string;
-        crag_name: string;
-        area_id: string | null;
-        area_name: string | null;
-        youtube_thumbnail: string | null;
-        video_count: number;
-      }>();
+        id: string
+        name: string
+        name_en: string | null
+        grade: string
+        route_type: string
+        height: string | null
+        bolt_count: number
+        description: string | null
+        ascent_count: number | null
+        story_count: number | null
+        crag_id: string
+        crag_name: string
+        area_id: string | null
+        area_name: string | null
+        youtube_thumbnail: string | null
+        video_count: number
+      }>()
 
     // 將難度分組的輔助函數
     const getGradeLevel = (grade: string): string => {
       // 解析 YDS 難度 (5.x 格式)
-      const match = grade.match(/5\.(\d+)([a-d])?/i);
-      if (!match) return 'other';
-      const num = parseInt(match[1], 10);
-      if (num <= 8) return 'beginner';      // 5.6-5.8: 初學
-      if (num <= 10) return 'intermediate'; // 5.9-5.10: 中等
-      if (num <= 12) return 'advanced';     // 5.11-5.12: 進階
-      return 'expert';                       // 5.13+: 專家
-    };
+      const match = grade.match(/5\.(\d+)([a-d])?/i)
+      if (!match) return 'other'
+      const num = parseInt(match[1], 10)
+      if (num <= 8) return 'beginner' // 5.6-5.8: 初學
+      if (num <= 10) return 'intermediate' // 5.9-5.10: 中等
+      if (num <= 12) return 'advanced' // 5.11-5.12: 進階
+      return 'expert' // 5.13+: 專家
+    }
 
     // 按難度等級分組，每個等級內再按岩場分組
-    const routesByGradeAndCrag = new Map<string, Map<string, typeof routes.results>>();
-    const gradeLevels = ['beginner', 'intermediate', 'advanced', 'expert'];
+    const routesByGradeAndCrag = new Map<string, Map<string, typeof routes.results>>()
+    const gradeLevels = ['beginner', 'intermediate', 'advanced', 'expert']
 
     for (const level of gradeLevels) {
-      routesByGradeAndCrag.set(level, new Map());
+      routesByGradeAndCrag.set(level, new Map())
     }
 
     for (const route of routes.results) {
-      const level = getGradeLevel(route.grade);
-      const cragMap = routesByGradeAndCrag.get(level);
+      const level = getGradeLevel(route.grade)
+      const cragMap = routesByGradeAndCrag.get(level)
       if (cragMap) {
-        const list = cragMap.get(route.crag_id) || [];
-        list.push(route);
-        cragMap.set(route.crag_id, list);
+        const list = cragMap.get(route.crag_id) || []
+        list.push(route)
+        cragMap.set(route.crag_id, list)
       }
     }
 
     // 從不同難度等級和岩場輪流選取
-    const result: typeof routes.results = [];
-    const gradeIndices = new Map<string, Map<string, number>>();
+    const result: typeof routes.results = []
+    const gradeIndices = new Map<string, Map<string, number>>()
 
     for (const level of gradeLevels) {
-      const cragMap = routesByGradeAndCrag.get(level)!;
-      const indices = new Map<string, number>();
+      const cragMap = routesByGradeAndCrag.get(level)!
+      const indices = new Map<string, number>()
       for (const cragId of cragMap.keys()) {
-        indices.set(cragId, 0);
+        indices.set(cragId, 0)
       }
-      gradeIndices.set(level, indices);
+      gradeIndices.set(level, indices)
     }
 
-    let levelIndex = 0;
-    const usedIds = new Set<string>();
+    let levelIndex = 0
+    const usedIds = new Set<string>()
 
     while (result.length < limit) {
-      let added = false;
+      let added = false
 
       // 嘗試每個難度等級
       for (let i = 0; i < gradeLevels.length && result.length < limit; i++) {
-        const level = gradeLevels[(levelIndex + i) % gradeLevels.length];
-        const cragMap = routesByGradeAndCrag.get(level)!;
-        const indices = gradeIndices.get(level)!;
-        const cragIds = Array.from(cragMap.keys());
+        const level = gradeLevels[(levelIndex + i) % gradeLevels.length]
+        const cragMap = routesByGradeAndCrag.get(level)!
+        const indices = gradeIndices.get(level)!
+        const cragIds = Array.from(cragMap.keys())
 
         // 在該難度等級內從不同岩場選取
         for (const cragId of cragIds) {
-          if (result.length >= limit) break;
-          const cragRoutes = cragMap.get(cragId)!;
-          const idx = indices.get(cragId)!;
+          if (result.length >= limit) break
+          const cragRoutes = cragMap.get(cragId)!
+          const idx = indices.get(cragId)!
 
           // 找到下一個未使用的路線
-          let foundIdx = idx;
+          let foundIdx = idx
           while (foundIdx < cragRoutes.length && usedIds.has(cragRoutes[foundIdx].id)) {
-            foundIdx++;
+            foundIdx++
           }
 
           if (foundIdx < cragRoutes.length) {
-            const route = cragRoutes[foundIdx];
-            result.push(route);
-            usedIds.add(route.id);
-            indices.set(cragId, foundIdx + 1);
-            added = true;
-            break; // 每輪每個難度等級只選一條
+            const route = cragRoutes[foundIdx]
+            result.push(route)
+            usedIds.add(route.id)
+            indices.set(cragId, foundIdx + 1)
+            added = true
+            break // 每輪每個難度等級只選一條
           }
         }
       }
 
-      levelIndex++;
-      if (!added) break;
+      levelIndex++
+      if (!added) break
     }
 
     // 直接使用從 videos 表查詢的縮圖
-    const data = result.map(route => ({
+    const data = result.map((route) => ({
       id: route.id,
       name: route.name,
       nameEn: route.name_en || '',
@@ -367,14 +366,14 @@ cragsRoutes.get(
       youtubeThumbnail: route.youtube_thumbnail || undefined,
       ascentCount: route.ascent_count || 0,
       storyCount: route.story_count || 0,
-    }));
+    }))
 
     return c.json({
       success: true,
       data,
-    });
+    })
   }
-);
+)
 
 // GET /crags/:id - Get crag by ID
 cragsRoutes.get(
@@ -390,35 +389,34 @@ cragsRoutes.get(
   }),
   validator('param', cragIdParamSchema),
   async (c) => {
-  const id = c.req.param('id');
+    const id = c.req.param('id')
 
-  const crag = await c.env.DB.prepare('SELECT * FROM crags WHERE id = ?')
-    .bind(id)
-    .first<Crag>();
+    const crag = await c.env.DB.prepare('SELECT * FROM crags WHERE id = ?').bind(id).first<Crag>()
 
-  if (!crag) {
-    return c.json(
-      {
-        success: false,
-        error: 'Not Found',
-        message: 'Crag not found',
+    if (!crag) {
+      return c.json(
+        {
+          success: false,
+          error: 'Not Found',
+          message: 'Crag not found',
+        },
+        404
+      )
+    }
+
+    return c.json({
+      success: true,
+      data: {
+        ...crag,
+        climbing_types: crag.climbing_types ? JSON.parse(crag.climbing_types) : [],
+        images: crag.images ? JSON.parse(crag.images) : [],
+        best_seasons: crag.best_seasons ? JSON.parse(crag.best_seasons) : [],
+        transportation: crag.transportation ? JSON.parse(crag.transportation) : [],
+        amenities: crag.amenities ? JSON.parse(crag.amenities) : [],
       },
-      404
-    );
+    })
   }
-
-  return c.json({
-    success: true,
-    data: {
-      ...crag,
-      climbing_types: crag.climbing_types ? JSON.parse(crag.climbing_types) : [],
-      images: crag.images ? JSON.parse(crag.images) : [],
-      best_seasons: crag.best_seasons ? JSON.parse(crag.best_seasons) : [],
-      transportation: crag.transportation ? JSON.parse(crag.transportation) : [],
-      amenities: crag.amenities ? JSON.parse(crag.amenities) : [],
-    },
-  });
-});
+)
 
 // GET /crags/slug/:slug - Get crag by slug
 cragsRoutes.get(
@@ -434,35 +432,36 @@ cragsRoutes.get(
   }),
   validator('param', cragSlugParamSchema),
   async (c) => {
-  const slug = c.req.param('slug');
+    const slug = c.req.param('slug')
 
-  const crag = await c.env.DB.prepare('SELECT * FROM crags WHERE slug = ?')
-    .bind(slug)
-    .first<Crag>();
+    const crag = await c.env.DB.prepare('SELECT * FROM crags WHERE slug = ?')
+      .bind(slug)
+      .first<Crag>()
 
-  if (!crag) {
-    return c.json(
-      {
-        success: false,
-        error: 'Not Found',
-        message: 'Crag not found',
+    if (!crag) {
+      return c.json(
+        {
+          success: false,
+          error: 'Not Found',
+          message: 'Crag not found',
+        },
+        404
+      )
+    }
+
+    return c.json({
+      success: true,
+      data: {
+        ...crag,
+        climbing_types: crag.climbing_types ? JSON.parse(crag.climbing_types) : [],
+        images: crag.images ? JSON.parse(crag.images) : [],
+        best_seasons: crag.best_seasons ? JSON.parse(crag.best_seasons) : [],
+        transportation: crag.transportation ? JSON.parse(crag.transportation) : [],
+        amenities: crag.amenities ? JSON.parse(crag.amenities) : [],
       },
-      404
-    );
+    })
   }
-
-  return c.json({
-    success: true,
-    data: {
-      ...crag,
-      climbing_types: crag.climbing_types ? JSON.parse(crag.climbing_types) : [],
-      images: crag.images ? JSON.parse(crag.images) : [],
-      best_seasons: crag.best_seasons ? JSON.parse(crag.best_seasons) : [],
-      transportation: crag.transportation ? JSON.parse(crag.transportation) : [],
-      amenities: crag.amenities ? JSON.parse(crag.amenities) : [],
-    },
-  });
-});
+)
 
 // GET /crags/:id/routes - Get routes for a crag
 cragsRoutes.get(
@@ -477,11 +476,11 @@ cragsRoutes.get(
   }),
   validator('param', cragIdParamSchema),
   async (c) => {
-  const cragId = c.req.param('id');
+    const cragId = c.req.param('id')
 
-  // 取得路線列表，包含 sector 名稱
-  const routes = await c.env.DB.prepare(
-    `SELECT
+    // 取得路線列表，包含 sector 名稱
+    const routes = await c.env.DB.prepare(
+      `SELECT
       r.*,
       s.name as sector_name,
       s.name_en as sector_name_en
@@ -489,81 +488,82 @@ cragsRoutes.get(
     LEFT JOIN sectors s ON r.sector_id = s.id
     WHERE r.crag_id = ?
     ORDER BY r.grade ASC`
-  )
-    .bind(cragId)
-    .all<{
-      id: string;
-      crag_id: string;
-      name: string;
-      grade: string | null;
-      grade_system: string | null;
-      height: number | null;
-      bolt_count: number | null;
-      route_type: string | null;
-      description: string | null;
-      first_ascent: string | null;
-      created_at: string | null;
-      sector_name: string | null;
-      sector_name_en: string | null;
-    }>();
+    )
+      .bind(cragId)
+      .all<{
+        id: string
+        crag_id: string
+        name: string
+        grade: string | null
+        grade_system: string | null
+        height: number | null
+        bolt_count: number | null
+        route_type: string | null
+        description: string | null
+        first_ascent: string | null
+        created_at: string | null
+        sector_name: string | null
+        sector_name_en: string | null
+      }>()
 
-  if (routes.results.length === 0) {
-    return c.json({
-      success: true,
-      data: [],
-    });
-  }
+    if (routes.results.length === 0) {
+      return c.json({
+        success: true,
+        data: [],
+      })
+    }
 
-  // 透過 crag_id JOIN 查詢路線關聯的影片，避免 IN 子句的變數限制
-  const routeVideos = await c.env.DB.prepare(
-    `SELECT rv.route_id, v.id, v.title, v.youtube_id, v.thumbnail_url, v.duration, v.channel, v.channel_id, v.published_at
+    // 透過 crag_id JOIN 查詢路線關聯的影片，避免 IN 子句的變數限制
+    const routeVideos = await c.env.DB.prepare(
+      `SELECT rv.route_id, v.id, v.title, v.youtube_id, v.thumbnail_url, v.duration, v.channel, v.channel_id, v.published_at
      FROM route_videos rv
      JOIN videos v ON rv.video_id = v.id
      JOIN routes r ON rv.route_id = r.id
      WHERE r.crag_id = ?
      ORDER BY COALESCE(v.published_at, rv.created_at) DESC`
-  )
-    .bind(cragId)
-    .all<{
-      route_id: string;
-      id: string;
-      title: string;
-      youtube_id: string | null;
-      thumbnail_url: string | null;
-      duration: number | null;
-      channel: string | null;
-      channel_id: string | null;
-      published_at: string | null;
-    }>();
+    )
+      .bind(cragId)
+      .all<{
+        route_id: string
+        id: string
+        title: string
+        youtube_id: string | null
+        thumbnail_url: string | null
+        duration: number | null
+        channel: string | null
+        channel_id: string | null
+        published_at: string | null
+      }>()
 
-  // 建立路線 ID 到影片陣列的映射
-  const videosByRoute = new Map<string, typeof routeVideos.results>();
-  for (const rv of routeVideos.results) {
-    const list = videosByRoute.get(rv.route_id) || [];
-    list.push(rv);
-    videosByRoute.set(rv.route_id, list);
+    // 建立路線 ID 到影片陣列的映射
+    const videosByRoute = new Map<string, typeof routeVideos.results>()
+    for (const rv of routeVideos.results) {
+      const list = videosByRoute.get(rv.route_id) || []
+      list.push(rv)
+      videosByRoute.set(rv.route_id, list)
+    }
+
+    // 組合路線與影片資料
+    const data = routes.results.map((route) => ({
+      ...route,
+      videos: (videosByRoute.get(route.id) || []).map((v) => ({
+        id: v.id,
+        title: v.title,
+        youtubeId: v.youtube_id,
+        thumbnailUrl: v.thumbnail_url,
+        duration: v.duration,
+        channel: v.channel,
+        channelId: v.channel_id,
+        publishedAt: v.published_at,
+      })),
+    }))
+
+    return c.json({
+      success: true,
+      data,
+    })
   }
-
-  // 組合路線與影片資料
-  const data = routes.results.map((route) => ({
-    ...route,
-    videos: (videosByRoute.get(route.id) || []).map(v => ({
-      id: v.id,
-      title: v.title,
-      youtubeId: v.youtube_id,
-      thumbnailUrl: v.thumbnail_url,
-      duration: v.duration,
-      channel: v.channel,
-      channelId: v.channel_id,
-      publishedAt: v.published_at,
-    })),
-  }));
-
-  return c.json({
-    success: true,
-    data,
-  });
-});
+)
 
 // GET /crags/:id/routes/:routeId - Get a single route
 cragsRoutes.get(
@@ -579,96 +579,95 @@ cragsRoutes.get(
   }),
   validator('param', cragIdParamSchema),
   async (c) => {
-  const cragId = c.req.param('id');
-  const routeId = c.req.param('routeId');
+    const cragId = c.req.param('id')
+    const routeId = c.req.param('routeId')
 
-  const route = await c.env.DB.prepare(
-    'SELECT * FROM routes WHERE id = ? AND crag_id = ?'
-  )
-    .bind(routeId, cragId)
-    .first<{
-      id: string;
-      crag_id: string;
-      area_id: string | null;
-      sector_id: string | null;
-      name: string;
-      name_en: string | null;
-      alternative_names: string | null;
-      grade: string | null;
-      grade_system: string | null;
-      height: number | null;
-      bolt_count: number | null;
-      anchor_type: string | null;
-      route_type: string | null;
-      description: string | null;
-      description_en: string | null;
-      protection: string | null;
-      tips: string | null;
-      safety_rating: string | null;
-      popularity: number | null;
-      view_count: number | null;
-      status: string | null;
-      images: string | null;
-      youtube_videos: string | null;
-      instagram_posts: string | null;
-      first_ascent: string | null;
-      first_ascent_date: string | null;
-      ascent_count: number | null;
-      story_count: number | null;
-      community_rating_avg: number | null;
-      community_rating_count: number | null;
-      created_at: string | null;
-      updated_at: string | null;
-    }>();
+    const route = await c.env.DB.prepare('SELECT * FROM routes WHERE id = ? AND crag_id = ?')
+      .bind(routeId, cragId)
+      .first<{
+        id: string
+        crag_id: string
+        area_id: string | null
+        sector_id: string | null
+        name: string
+        name_en: string | null
+        alternative_names: string | null
+        grade: string | null
+        grade_system: string | null
+        height: number | null
+        bolt_count: number | null
+        anchor_type: string | null
+        route_type: string | null
+        description: string | null
+        description_en: string | null
+        protection: string | null
+        tips: string | null
+        safety_rating: string | null
+        popularity: number | null
+        view_count: number | null
+        status: string | null
+        images: string | null
+        youtube_videos: string | null
+        instagram_posts: string | null
+        first_ascent: string | null
+        first_ascent_date: string | null
+        ascent_count: number | null
+        story_count: number | null
+        community_rating_avg: number | null
+        community_rating_count: number | null
+        created_at: string | null
+        updated_at: string | null
+      }>()
 
-  if (!route) {
-    return c.json(
-      {
-        success: false,
-        error: 'Not Found',
-        message: 'Route not found',
-      },
-      404
-    );
-  }
+    if (!route) {
+      return c.json(
+        {
+          success: false,
+          error: 'Not Found',
+          message: 'Route not found',
+        },
+        404
+      )
+    }
 
-  // 取得此路線關聯的影片
-  const routeVideos = await c.env.DB.prepare(
-    `SELECT v.id, v.title, v.youtube_id, v.thumbnail_url, v.duration, v.channel, v.channel_id, v.published_at
+    // 取得此路線關聯的影片
+    const routeVideos = await c.env.DB.prepare(
+      `SELECT v.id, v.title, v.youtube_id, v.thumbnail_url, v.duration, v.channel, v.channel_id, v.published_at
      FROM route_videos rv
      JOIN videos v ON rv.video_id = v.id
      WHERE rv.route_id = ?
      ORDER BY COALESCE(v.published_at, rv.created_at) DESC`
-  )
-    .bind(routeId)
-    .all<{
-      id: string;
-      title: string;
-      youtube_id: string | null;
-      thumbnail_url: string | null;
-      duration: number | null;
-      channel: string | null;
-      channel_id: string | null;
-      published_at: string | null;
-    }>();
+    )
+      .bind(routeId)
+      .all<{
+        id: string
+        title: string
+        youtube_id: string | null
+        thumbnail_url: string | null
+        duration: number | null
+        channel: string | null
+        channel_id: string | null
+        published_at: string | null
+      }>()
 
-  return c.json({
-    success: true,
-    data: {
-      ...route,
-      videos: routeVideos.results.map(v => ({
-        id: v.id,
-        title: v.title,
-        youtubeId: v.youtube_id,
-        thumbnailUrl: v.thumbnail_url,
-        duration: v.duration,
-        channel: v.channel,
-        channelId: v.channel_id,
-        publishedAt: v.published_at,
-      })),
-    },
-  });
-});
+    return c.json({
+      success: true,
+      data: {
+        ...route,
+        videos: routeVideos.results.map((v) => ({
+          id: v.id,
+          title: v.title,
+          youtubeId: v.youtube_id,
+          thumbnailUrl: v.thumbnail_url,
+          duration: v.duration,
+          channel: v.channel,
+          channelId: v.channel_id,
+          publishedAt: v.published_at,
+        })),
+      },
+    })
+  }
+)
 
 // GET /crags/:id/areas - Get areas for a crag
 cragsRoutes.get(
@@ -683,23 +682,24 @@ cragsRoutes.get(
   }),
   validator('param', cragIdParamSchema),
   async (c) => {
-  const cragId = c.req.param('id');
+    const cragId = c.req.param('id')
 
-  const areas = await c.env.DB.prepare(
-    `SELECT a.*,
+    const areas = await c.env.DB.prepare(
+      `SELECT a.*,
        (SELECT COUNT(*) FROM routes r WHERE r.area_id = a.id) AS route_count
      FROM areas a
      WHERE a.crag_id = ?
      ORDER BY a.sort_order ASC, a.name ASC`
-  )
-    .bind(cragId)
-    .all();
+    )
+      .bind(cragId)
+      .all()
 
-  return c.json({
-    success: true,
-    data: areas.results,
-  });
-});
+    return c.json({
+      success: true,
+      data: areas.results,
+    })
+  }
+)
 
 // POST /crags - Create new crag (admin only)
 cragsRoutes.post(
@@ -719,57 +719,56 @@ cragsRoutes.post(
   adminMiddleware,
   validator('json', createCragSchema),
   async (c) => {
-  const body = c.req.valid('json');
+    const body = c.req.valid('json')
 
-  const id = generateId();
-  const slug = body.slug || generateSlug(body.name);
+    const id = generateId()
+    const slug = body.slug || generateSlug(body.name)
 
-  await c.env.DB.prepare(
-    `INSERT INTO crags (
+    await c.env.DB.prepare(
+      `INSERT INTO crags (
       id, name, slug, description, location, region,
       latitude, longitude, altitude, rock_type, climbing_types,
       difficulty_range, route_count, bolt_count, cover_image, images,
       is_featured, access_info, parking_info, approach_time, best_seasons, restrictions
     ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
-  )
-    .bind(
-      id,
-      body.name,
-      slug,
-      body.description || null,
-      body.location || null,
-      body.region || null,
-      body.latitude || null,
-      body.longitude || null,
-      body.altitude || null,
-      body.rock_type || null,
-      body.climbing_types ? JSON.stringify(body.climbing_types) : null,
-      body.difficulty_range || null,
-      body.route_count || 0,
-      body.bolt_count || 0,
-      body.cover_image || null,
-      body.images ? JSON.stringify(body.images) : null,
-      body.is_featured || 0,
-      body.access_info || null,
-      body.parking_info || null,
-      body.approach_time || null,
-      body.best_seasons ? JSON.stringify(body.best_seasons) : null,
-      body.restrictions || null
     )
-    .run();
+      .bind(
+        id,
+        body.name,
+        slug,
+        body.description || null,
+        body.location || null,
+        body.region || null,
+        body.latitude || null,
+        body.longitude || null,
+        body.altitude || null,
+        body.rock_type || null,
+        body.climbing_types ? JSON.stringify(body.climbing_types) : null,
+        body.difficulty_range || null,
+        body.route_count || 0,
+        body.bolt_count || 0,
+        body.cover_image || null,
+        body.images ? JSON.stringify(body.images) : null,
+        body.is_featured || 0,
+        body.access_info || null,
+        body.parking_info || null,
+        body.approach_time || null,
+        body.best_seasons ? JSON.stringify(body.best_seasons) : null,
+        body.restrictions || null
+      )
+      .run()
 
-  const crag = await c.env.DB.prepare('SELECT * FROM crags WHERE id = ?')
-    .bind(id)
-    .first<Crag>();
+    const crag = await c.env.DB.prepare('SELECT * FROM crags WHERE id = ?').bind(id).first<Crag>()
 
-  return c.json(
-    {
-      success: true,
-      data: crag,
-    },
-    201
-  );
-});
+    return c.json(
+      {
+        success: true,
+        data: crag,
+      },
+      201
+    )
+  }
+)
 
 // PUT /crags/:id - Update crag (admin only)
 cragsRoutes.put(
@@ -791,97 +790,92 @@ cragsRoutes.put(
   validator('param', cragIdParamSchema),
   validator('json', updateCragSchema),
   async (c) => {
-  const id = c.req.param('id');
-  const body = c.req.valid('json');
+    const id = c.req.param('id')
+    const body = c.req.valid('json')
 
-  const existing = await c.env.DB.prepare('SELECT id FROM crags WHERE id = ?')
-    .bind(id)
-    .first();
+    const existing = await c.env.DB.prepare('SELECT id FROM crags WHERE id = ?').bind(id).first()
 
-  if (!existing) {
-    return c.json(
-      {
-        success: false,
-        error: 'Not Found',
-        message: 'Crag not found',
-      },
-      404
-    );
-  }
-
-  const updates: string[] = [];
-  const values: (string | number | null)[] = [];
-
-  const fields = [
-    'name',
-    'description',
-    'location',
-    'region',
-    'latitude',
-    'longitude',
-    'altitude',
-    'rock_type',
-    'difficulty_range',
-    'route_count',
-    'bolt_count',
-    'cover_image',
-    'is_featured',
-    'access_info',
-    'parking_info',
-    'approach_time',
-    'restrictions',
-  ];
-
-  for (const field of fields) {
-    if (body[field as keyof typeof body] !== undefined) {
-      updates.push(`${field} = ?`);
-      values.push(body[field as keyof typeof body] as string | number | null);
+    if (!existing) {
+      return c.json(
+        {
+          success: false,
+          error: 'Not Found',
+          message: 'Crag not found',
+        },
+        404
+      )
     }
+
+    const updates: string[] = []
+    const values: (string | number | null)[] = []
+
+    const fields = [
+      'name',
+      'description',
+      'location',
+      'region',
+      'latitude',
+      'longitude',
+      'altitude',
+      'rock_type',
+      'difficulty_range',
+      'route_count',
+      'bolt_count',
+      'cover_image',
+      'is_featured',
+      'access_info',
+      'parking_info',
+      'approach_time',
+      'restrictions',
+    ]
+
+    for (const field of fields) {
+      if (body[field as keyof typeof body] !== undefined) {
+        updates.push(`${field} = ?`)
+        values.push(body[field as keyof typeof body] as string | number | null)
+      }
+    }
+
+    // Handle JSON fields
+    if (body.climbing_types !== undefined) {
+      updates.push('climbing_types = ?')
+      values.push(JSON.stringify(body.climbing_types))
+    }
+    if (body.images !== undefined) {
+      updates.push('images = ?')
+      values.push(JSON.stringify(body.images))
+    }
+    if (body.best_seasons !== undefined) {
+      updates.push('best_seasons = ?')
+      values.push(JSON.stringify(body.best_seasons))
+    }
+
+    if (updates.length === 0) {
+      return c.json(
+        {
+          success: false,
+          error: 'Bad Request',
+          message: 'No fields to update',
+        },
+        400
+      )
+    }
+
+    updates.push("updated_at = datetime('now')")
+    values.push(id)
+
+    await c.env.DB.prepare(`UPDATE crags SET ${updates.join(', ')} WHERE id = ?`)
+      .bind(...values)
+      .run()
+
+    const crag = await c.env.DB.prepare('SELECT * FROM crags WHERE id = ?').bind(id).first<Crag>()
+
+    return c.json({
+      success: true,
+      data: crag,
+    })
   }
-
-  // Handle JSON fields
-  if (body.climbing_types !== undefined) {
-    updates.push('climbing_types = ?');
-    values.push(JSON.stringify(body.climbing_types));
-  }
-  if (body.images !== undefined) {
-    updates.push('images = ?');
-    values.push(JSON.stringify(body.images));
-  }
-  if (body.best_seasons !== undefined) {
-    updates.push('best_seasons = ?');
-    values.push(JSON.stringify(body.best_seasons));
-  }
-
-  if (updates.length === 0) {
-    return c.json(
-      {
-        success: false,
-        error: 'Bad Request',
-        message: 'No fields to update',
-      },
-      400
-    );
-  }
-
-  updates.push("updated_at = datetime('now')");
-  values.push(id);
-
-  await c.env.DB.prepare(
-    `UPDATE crags SET ${updates.join(', ')} WHERE id = ?`
-  )
-    .bind(...values)
-    .run();
-
-  const crag = await c.env.DB.prepare('SELECT * FROM crags WHERE id = ?')
-    .bind(id)
-    .first<Crag>();
-
-  return c.json({
-    success: true,
-    data: crag,
-  });
-});
+)
 
 // DELETE /crags/:id - Delete crag (admin only)
 cragsRoutes.delete(
@@ -901,37 +895,38 @@ cragsRoutes.delete(
   adminMiddleware,
   validator('param', cragIdParamSchema),
   async (c) => {
-  const id = c.req.param('id');
+    const id = c.req.param('id')
 
-  const existing = await c.env.DB.prepare('SELECT id, images FROM crags WHERE id = ?')
-    .bind(id)
-    .first<{ id: string; images: string | null }>();
+    const existing = await c.env.DB.prepare('SELECT id, images FROM crags WHERE id = ?')
+      .bind(id)
+      .first<{ id: string; images: string | null }>()
 
-  if (!existing) {
-    return c.json(
-      {
-        success: false,
-        error: 'Not Found',
-        message: 'Crag not found',
-      },
-      404
-    );
-  }
-
-  // Delete images from R2 (images is JSON array)
-  if (existing.images) {
-    try {
-      const imageUrls = JSON.parse(existing.images) as string[];
-      await deleteR2Images(c.env.STORAGE, imageUrls);
-    } catch {
-      // Ignore JSON parse errors
+    if (!existing) {
+      return c.json(
+        {
+          success: false,
+          error: 'Not Found',
+          message: 'Crag not found',
+        },
+        404
+      )
     }
+
+    // Delete images from R2 (images is JSON array)
+    if (existing.images) {
+      try {
+        const imageUrls = JSON.parse(existing.images) as string[]
+        await deleteR2Images(c.env.STORAGE, imageUrls)
+      } catch {
+        // Ignore JSON parse errors
+      }
+    }
+
+    await c.env.DB.prepare('DELETE FROM crags WHERE id = ?').bind(id).run()
+
+    return c.json({
+      success: true,
+      message: 'Crag deleted successfully',
+    })
   }
-
-  await c.env.DB.prepare('DELETE FROM crags WHERE id = ?').bind(id).run();
-
-  return c.json({
-    success: true,
-    message: 'Crag deleted successfully',
-  });
-});
+)

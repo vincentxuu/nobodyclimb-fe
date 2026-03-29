@@ -3,28 +3,27 @@
  *
  * 精選文章 Hero 輪播，對應 apps/web/src/components/home/hero-article.tsx
  */
-import React, { useState, useEffect, useCallback, useRef } from 'react'
+
 import {
-  StyleSheet,
-  View,
-  Pressable,
-  Dimensions,
-  Image,
-  ImageBackground,
-} from 'react-native'
-import { YStack, XStack } from 'tamagui'
+  BORDER_RADIUS,
+  BRAND_YELLOW,
+  SEMANTIC_COLORS,
+  SPACING,
+  WB_COLORS,
+} from '@nobodyclimb/constants'
 import { useRouter } from 'expo-router'
 import { ChevronLeft, ChevronRight } from 'lucide-react-native'
+import { useCallback, useEffect, useRef, useState } from 'react'
+import { Dimensions, ImageBackground, Pressable, StyleSheet, View } from 'react-native'
 import Animated, {
   FadeIn,
   FadeInUp,
-  useSharedValue,
   useAnimatedStyle,
+  useSharedValue,
   withTiming,
 } from 'react-native-reanimated'
-
-import { Text, Spinner, Avatar } from '@/components/ui'
-import { BORDER_RADIUS, BRAND_YELLOW, SEMANTIC_COLORS, SPACING, WB_COLORS } from '@nobodyclimb/constants'
+import { XStack } from 'tamagui'
+import { Avatar, Spinner, Text } from '@/components/ui'
 
 const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get('window')
 const HERO_HEIGHT = SCREEN_HEIGHT * 0.65
@@ -70,13 +69,7 @@ function generateSummary(content?: string, maxLength: number = 120): string {
   return plainText.slice(0, maxLength) + '...'
 }
 
-function ArticleSlide({
-  article,
-  isActive,
-}: {
-  article: FeaturedArticle
-  isActive: boolean
-}) {
+function ArticleSlide({ article, isActive }: { article: FeaturedArticle; isActive: boolean }) {
   const router = useRouter()
   const opacity = useSharedValue(isActive ? 1 : 0)
 
@@ -96,11 +89,9 @@ function ArticleSlide({
     ? new Date(article.published_at).toLocaleDateString('zh-TW')
     : new Date(article.created_at).toLocaleDateString('zh-TW')
 
-  const excerpt =
-    article.excerpt || generateSummary(article.content)
+  const excerpt = article.excerpt || generateSummary(article.content)
 
-  const authorName =
-    article.display_name || article.username || '匿名作者'
+  const authorName = article.display_name || article.username || '匿名作者'
 
   if (!isActive) return null
 
@@ -125,9 +116,7 @@ function ArticleSlide({
             {/* 分類標籤與日期 */}
             <XStack alignItems="center" gap={SPACING[3]} marginBottom={SPACING[4]}>
               <View style={styles.categoryBadge}>
-                <Text style={styles.categoryText}>
-                  {getCategoryLabel(article.category)}
-                </Text>
+                <Text style={styles.categoryText}>{getCategoryLabel(article.category)}</Text>
               </View>
               <Text style={styles.dateText}>{displayDate}</Text>
             </XStack>
@@ -148,9 +137,7 @@ function ArticleSlide({
             <XStack alignItems="center" gap={SPACING[3]} marginTop={SPACING[6]}>
               <Avatar
                 size="sm"
-                source={
-                  article.author_avatar ? { uri: article.author_avatar } : undefined
-                }
+                source={article.author_avatar ? { uri: article.author_avatar } : undefined}
               />
               <Text style={styles.authorName}>{authorName}</Text>
             </XStack>
@@ -170,14 +157,9 @@ function FallbackHero() {
         resizeMode="cover"
       >
         <View style={styles.gradientOverlay} />
-        <Animated.View
-          entering={FadeIn.duration(700)}
-          style={styles.fallbackContent}
-        >
+        <Animated.View entering={FadeIn.duration(700)} style={styles.fallbackContent}>
           <Text style={styles.fallbackTitle}>探索攀岩的世界</Text>
-          <Text style={styles.fallbackSubtitle}>
-            發現精彩故事、認識攀岩人物、探索台灣岩場
-          </Text>
+          <Text style={styles.fallbackSubtitle}>發現精彩故事、認識攀岩人物、探索台灣岩場</Text>
         </Animated.View>
       </ImageBackground>
     </View>
@@ -195,9 +177,7 @@ export function HeroArticle() {
   useEffect(() => {
     async function fetchFeaturedArticles() {
       try {
-        const response = await fetch(
-          'https://api.nobodyclimb.cc/api/v1/posts/featured'
-        )
+        const response = await fetch('https://api.nobodyclimb.cc/api/v1/posts/featured')
         const result = await response.json()
         if (result.success && result.data && result.data.length > 0) {
           setArticles(result.data)
@@ -259,11 +239,7 @@ export function HeroArticle() {
     <View style={styles.container}>
       {/* 文章輪播 */}
       {articles.map((article, index) => (
-        <ArticleSlide
-          key={article.id}
-          article={article}
-          isActive={index === currentSlide}
-        />
+        <ArticleSlide key={article.id} article={article} isActive={index === currentSlide} />
       ))}
 
       {/* 導航點 */}
@@ -273,10 +249,7 @@ export function HeroArticle() {
             <Pressable
               key={index}
               onPress={() => setCurrentSlide(index)}
-              style={[
-                styles.dot,
-                index === currentSlide ? styles.dotActive : styles.dotInactive,
-              ]}
+              style={[styles.dot, index === currentSlide ? styles.dotActive : styles.dotInactive]}
             />
           ))}
         </XStack>
@@ -285,16 +258,10 @@ export function HeroArticle() {
       {/* 導航箭頭 */}
       {articles.length > 1 && (
         <>
-          <Pressable
-            style={[styles.navButton, styles.navButtonLeft]}
-            onPress={prevSlide}
-          >
+          <Pressable style={[styles.navButton, styles.navButtonLeft]} onPress={prevSlide}>
             <ChevronLeft size={24} color={WB_COLORS[0]} />
           </Pressable>
-          <Pressable
-            style={[styles.navButton, styles.navButtonRight]}
-            onPress={nextSlide}
-          >
+          <Pressable style={[styles.navButton, styles.navButtonRight]} onPress={nextSlide}>
             <ChevronRight size={24} color={WB_COLORS[0]} />
           </Pressable>
         </>

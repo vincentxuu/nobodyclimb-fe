@@ -1,12 +1,8 @@
 'use client'
 
-import { useState, useCallback } from 'react'
+import { useCallback, useState } from 'react'
 import apiClient from '@/lib/api/client'
-import type {
-  RouteStory,
-  RouteStoryFormData,
-  RouteStoryComment,
-} from '@/lib/types/route-story'
+import type { RouteStory, RouteStoryComment, RouteStoryFormData } from '@/lib/types/route-story'
 
 interface PaginatedResponse<T> {
   success: boolean
@@ -213,35 +209,29 @@ export function useRouteStories() {
   /**
    * 新增留言
    */
-  const addComment = useCallback(
-    async (storyId: string, content: string, parentId?: string) => {
-      setIsLoading(true)
-      setError(null)
-      try {
-        const response = await apiClient.post<ApiResponse<RouteStoryComment>>(
-          `/route-stories/${storyId}/comments`,
-          { content, parent_id: parentId }
-        )
-        return response.data.data
-      } catch (err) {
-        const message = err instanceof Error ? err.message : '新增留言失敗'
-        setError(message)
-        throw err
-      } finally {
-        setIsLoading(false)
-      }
-    },
-    []
-  )
+  const addComment = useCallback(async (storyId: string, content: string, parentId?: string) => {
+    setIsLoading(true)
+    setError(null)
+    try {
+      const response = await apiClient.post<ApiResponse<RouteStoryComment>>(
+        `/route-stories/${storyId}/comments`,
+        { content, parent_id: parentId }
+      )
+      return response.data.data
+    } catch (err) {
+      const message = err instanceof Error ? err.message : '新增留言失敗'
+      setError(message)
+      throw err
+    } finally {
+      setIsLoading(false)
+    }
+  }, [])
 
   /**
    * 取得路線的故事
    */
   const getRouteStories = useCallback(
-    async (
-      routeId: string,
-      params?: { page?: number; limit?: number; story_type?: string }
-    ) => {
+    async (routeId: string, params?: { page?: number; limit?: number; story_type?: string }) => {
       setIsLoading(true)
       setError(null)
       try {

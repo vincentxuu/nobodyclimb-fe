@@ -3,15 +3,14 @@
  *
  * 對應 apps/web/src/app/crag/page.tsx 中的 CragCard
  */
-import React from 'react'
-import { StyleSheet, View, Pressable } from 'react-native'
-import { Image } from 'expo-image'
-import { MapPin, Mountain, Calendar, ChevronRight } from 'lucide-react-native'
-import { LinearGradient } from 'expo-linear-gradient'
-import Animated, { FadeInDown } from 'react-native-reanimated'
 
-import { Text, Badge } from '@/components/ui'
 import { RADIUS, SEMANTIC_COLORS, SPACING, WB_COLORS } from '@nobodyclimb/constants'
+import { Image } from 'expo-image'
+import { LinearGradient } from 'expo-linear-gradient'
+import { Calendar, ChevronRight, MapPin, Mountain } from 'lucide-react-native'
+import { Pressable, StyleSheet, View } from 'react-native'
+import Animated, { FadeInDown } from 'react-native-reanimated'
+import { Text } from '@/components/ui'
 
 interface CragCardProps {
   id: string
@@ -45,10 +44,7 @@ export function CragCard({
     <Animated.View entering={FadeInDown.duration(400).delay(index * 80)}>
       <Pressable
         onPress={onPress}
-        style={({ pressed }) => [
-          styles.container,
-          pressed && styles.pressed,
-        ]}
+        style={({ pressed }) => [styles.container, pressed && styles.pressed]}
       >
         {/* 封面圖 */}
         <View style={styles.imageContainer}>

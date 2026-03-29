@@ -1,7 +1,7 @@
 'use client'
 
 import dynamic from 'next/dynamic'
-import { useMemo, useEffect } from 'react'
+import { useEffect, useMemo } from 'react'
 
 // Dynamically import ReactQuill (CSS 透過 layout.tsx CDN 載入)
 const ReactQuill = dynamic(() => import('react-quill-new'), {

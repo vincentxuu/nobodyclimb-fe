@@ -4,43 +4,47 @@
  */
 
 import {
-  TrendingUp,
-  Brain,
-  Users,
-  Lightbulb,
-  Compass,
-  Mountain,
-  Star,
-  TreePine,
-  Trophy,
-  CloudRain,
-  Shield,
-  RefreshCw,
-  Waves,
-  Scale,
-  Gift,
-  UserCheck,
-  Smile,
-  MapPin,
-  MessageSquare,
-  Building,
-  Route,
-  Dumbbell,
-  Target,
-  Wrench,
   Backpack,
-  Cloud,
-  Plane,
-  CheckCircle,
-  Flag,
-  Layers,
-  Video,
-  Palette,
-  Sparkles,
-  MessageCircle,
   BookOpen,
+  Brain,
+  Building,
+  CheckCircle,
+  Cloud,
+  CloudRain,
+  Compass,
+  Dumbbell,
+  Flag,
+  Gift,
+  Layers,
+  Lightbulb,
+  MapPin,
+  MessageCircle,
+  MessageSquare,
+  Mountain,
+  Palette,
+  Plane,
+  RefreshCw,
+  Route,
+  Scale,
+  Shield,
+  Smile,
+  Sparkles,
+  Star,
+  Target,
+  TreePine,
+  TrendingUp,
+  Trophy,
+  UserCheck,
+  Users,
+  Video,
+  Waves,
+  Wrench,
 } from 'lucide-react'
-import { StoryCategory, StoryCategoryInfo, STORY_CATEGORIES } from '@/lib/constants/biography-stories'
+import {
+  STORY_CATEGORIES,
+  StoryCategory,
+  StoryCategoryInfo,
+} from '@/lib/constants/biography-stories'
 
 /**
  * 故事問題圖標映射表
@@ -119,7 +123,9 @@ export function getCategoryInfo(categoryId: string): StoryCategoryInfo | undefin
  * @param categoryId - 分類 ID
  * @returns React 圖標組件
  */
-export function getCategoryIcon(categoryId: StoryCategory): React.ComponentType<{ className?: string }> {
+export function getCategoryIcon(
+  categoryId: StoryCategory
+): React.ComponentType<{ className?: string }> {
   return CATEGORY_ICONS[categoryId] || BookOpen
 }
 

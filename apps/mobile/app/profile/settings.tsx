@@ -3,33 +3,26 @@
  *
  * 對應 apps/web/src/app/profile/settings/page.tsx
  */
-import React, { useState, useCallback } from 'react'
-import {
-  StyleSheet,
-  View,
-  ScrollView,
-  Pressable,
-  Switch,
-  Alert,
-} from 'react-native'
-import { SafeAreaView } from 'react-native-safe-area-context'
+
+import { SEMANTIC_COLORS, SPACING } from '@nobodyclimb/constants'
 import { useRouter } from 'expo-router'
 import {
+  Bell,
   ChevronLeft,
   ChevronRight,
-  Bell,
-  Lock,
   Eye,
-  Trash2,
-  HelpCircle,
   FileText,
+  HelpCircle,
+  Lock,
   Shield,
+  Trash2,
 } from 'lucide-react-native'
-
-import { Text, IconButton, Divider } from '@/components/ui'
+import React, { useState } from 'react'
+import { Alert, Pressable, ScrollView, StyleSheet, Switch, View } from 'react-native'
+import { SafeAreaView } from 'react-native-safe-area-context'
 import { ProtectedRoute } from '@/components/shared'
+import { IconButton, Text } from '@/components/ui'
 import { useAuthStore } from '@/store/authStore'
-import { SEMANTIC_COLORS, SPACING, RADIUS } from '@nobodyclimb/constants'
 
 interface SettingItemProps {
   icon: React.ReactNode
@@ -48,28 +41,20 @@ function SettingItem({
 }: SettingItemProps) {
   return (
     <Pressable
-      style={({ pressed }) => [
-        styles.settingItem,
-        pressed && styles.settingItemPressed,
-      ]}
+      style={({ pressed }) => [styles.settingItem, pressed && styles.settingItemPressed]}
       onPress={onPress}
       disabled={!onPress && !rightElement}
     >
       <View style={styles.settingLeft}>
         {icon}
-        <Text
-          fontWeight="500"
-          style={destructive ? styles.destructiveText : undefined}
-        >
+        <Text fontWeight="500" style={destructive ? styles.destructiveText : undefined}>
           {label}
         </Text>
       </View>
-      {rightElement || (onPress && (
-        <ChevronRight
-          size={20}
-          color={destructive ? '#D94A4A' : SEMANTIC_COLORS.textMuted}
-        />
-      ))}
+      {rightElement ||
+        (onPress && (
+          <ChevronRight size={20} color={destructive ? '#D94A4A' : SEMANTIC_COLORS.textMuted} />
+        ))}
     </Pressable>
   )
 }
@@ -90,22 +75,18 @@ export default function SettingsScreen() {
   }
 
   const handleDeleteAccount = () => {
-    Alert.alert(
-      '刪除帳號',
-      '確定要刪除你的帳號嗎？此操作無法復原。',
-      [
-        { text: '取消', style: 'cancel' },
-        {
-          text: '刪除',
-          style: 'destructive',
-          onPress: async () => {
-            // TODO: 實作刪除帳號
-            await logout()
-            router.replace('/auth/login')
-          },
+    Alert.alert('刪除帳號', '確定要刪除你的帳號嗎？此操作無法復原。', [
+      { text: '取消', style: 'cancel' },
+      {
+        text: '刪除',
+        style: 'destructive',
+        onPress: async () => {
+          // TODO: 實作刪除帳號
+          await logout()
+          router.replace('/auth/login')
         },
-      ]
-    )
+      },
+    ])
   }
 
   return (

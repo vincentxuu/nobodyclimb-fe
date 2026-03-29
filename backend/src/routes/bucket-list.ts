@@ -1,12 +1,11 @@
-import { Hono } from 'hono';
-import { z } from 'zod';
-import { describeRoute, validator } from 'hono-openapi';
-import { Env } from '../types';
-import { generateId } from '../utils/id';
-import { authMiddleware, optionalAuthMiddleware } from '../middleware/auth';
-import { createNotification, createLikeNotificationWithAggregation } from './notifications';
+import { Hono } from 'hono'
+import { describeRoute } from 'hono-openapi'
+import { authMiddleware, optionalAuthMiddleware } from '../middleware/auth'
+import { Env } from '../types'
+import { generateId } from '../utils/id'
+import { createLikeNotificationWithAggregation, createNotification } from './notifications'
 
-export const bucketListRoutes = new Hono<{ Bindings: Env }>();
+export const bucketListRoutes = new Hono<{ Bindings: Env }>()
 
 // ═══════════════════════════════════════════════════════════
 // 探索功能 (MUST be defined before /:biographyId to avoid route conflicts)
@@ -24,24 +23,25 @@ bucketListRoutes.get(
     },
   }),
   async (c) => {
-  const limit = parseInt(c.req.query('limit') || '10', 10);
+    const limit = parseInt(c.req.query('limit') || '10', 10)
 
-  const items = await c.env.DB.prepare(
-    `SELECT bli.*, b.name as author_name, b.avatar_url as author_avatar, b.slug as author_slug
+    const items = await c.env.DB.prepare(
+      `SELECT bli.*, b.name as author_name, b.avatar_url as author_avatar, b.slug as author_slug
      FROM bucket_list_items bli
      JOIN biographies b ON bli.biography_id = b.id
      WHERE bli.is_public = 1 AND b.visibility = 'public'
      ORDER BY (bli.likes_count + bli.inspired_count * 2) DESC, bli.created_at DESC
      LIMIT ?`
-  )
-    .bind(limit)
-    .all();
+    )
+      .bind(limit)
+      .all()
 
-  return c.json({
-    success: true,
-    data: items.results,
-  });
-});
+    return c.json({
+      success: true,
+      data: items.results,
+    })
+  }
+)
 
 // GET /bucket-list/explore/recent-completed - Get recently completed items
 bucketListRoutes.get(
@@ -55,24 +55,25 @@ bucketListRoutes.get(
     },
   }),
   async (c) => {
-  const limit = parseInt(c.req.query('limit') || '10', 10);
+    const limit = parseInt(c.req.query('limit') || '10', 10)
 
-  const items = await c.env.DB.prepare(
-    `SELECT bli.*, b.name as author_name, b.avatar_url as author_avatar, b.slug as author_slug
+    const items = await c.env.DB.prepare(
+      `SELECT bli.*, b.name as author_name, b.avatar_url as author_avatar, b.slug as author_slug
      FROM bucket_list_items bli
      JOIN biographies b ON bli.biography_id = b.id
      WHERE bli.status = 'completed' AND bli.is_public = 1 AND b.visibility = 'public'
      ORDER BY bli.completed_at DESC
      LIMIT ?`
-  )
-    .bind(limit)
-    .all();
+    )
+      .bind(limit)
+      .all()
 
-  return c.json({
-    success: true,
-    data: items.results,
-  });
-});
+    return c.json({
+      success: true,
+      data: items.results,
+    })
+  }
+)
 
 // GET /bucket-list/explore/by-category/:category - Get items by category
 bucketListRoutes.get(
@@ -86,25 +87,26 @@ bucketListRoutes.get(
     },
   }),
   async (c) => {
-  const category = c.req.param('category');
-  const limit = parseInt(c.req.query('limit') || '20', 10);
+    const category = c.req.param('category')
+    const limit = parseInt(c.req.query('limit') || '20', 10)
 
-  const items = await c.env.DB.prepare(
-    `SELECT bli.*, b.name as author_name, b.avatar_url as author_avatar, b.slug as author_slug
+    const items = await c.env.DB.prepare(
+      `SELECT bli.*, b.name as author_name, b.avatar_url as author_avatar, b.slug as author_slug
      FROM bucket_list_items bli
      JOIN biographies b ON bli.biography_id = b.id
      WHERE bli.category = ? AND bli.is_public = 1 AND b.visibility = 'public'
      ORDER BY bli.likes_count DESC, bli.created_at DESC
      LIMIT ?`
-  )
-    .bind(category, limit)
-    .all();
+    )
+      .bind(category, limit)
+      .all()
 
-  return c.json({
-    success: true,
-    data: items.results,
-  });
-});
+    return c.json({
+      success: true,
+      data: items.results,
+    })
+  }
+)
 
 // GET /bucket-list/explore/category-counts - Get counts for all categories (solves N+1 problem)
 bucketListRoutes.get(
@@ -118,21 +120,22 @@ bucketListRoutes.get(
     },
   }),
   async (c) => {
-  const counts = await c.env.DB.prepare(
-    `SELECT
+    const counts = await c.env.DB.prepare(
+      `SELECT
       bli.category,
       COUNT(*) as count
      FROM bucket_list_items bli
      JOIN biographies b ON bli.biography_id = b.id
      WHERE bli.is_public = 1 AND b.visibility = 'public'
      GROUP BY bli.category`
-  ).all();
+    ).all()
 
-  return c.json({
-    success: true,
-    data: counts.results,
-  });
-});
+    return c.json({
+      success: true,
+      data: counts.results,
+    })
+  }
+)
 
 // GET /bucket-list/explore/by-location/:location - Get items by location
 bucketListRoutes.get(
@@ -146,25 +149,26 @@ bucketListRoutes.get(
     },
   }),
   async (c) => {
-  const location = c.req.param('location');
-  const limit = parseInt(c.req.query('limit') || '20', 10);
+    const location = c.req.param('location')
+    const limit = parseInt(c.req.query('limit') || '20', 10)
 
-  const items = await c.env.DB.prepare(
-    `SELECT bli.*, b.name as author_name, b.avatar_url as author_avatar, b.slug as author_slug
+    const items = await c.env.DB.prepare(
+      `SELECT bli.*, b.name as author_name, b.avatar_url as author_avatar, b.slug as author_slug
      FROM bucket_list_items bli
      JOIN biographies b ON bli.biography_id = b.id
      WHERE bli.target_location LIKE ? AND bli.is_public = 1 AND b.visibility = 'public'
      ORDER BY bli.likes_count DESC, bli.created_at DESC
      LIMIT ?`
-  )
-    .bind(`%${location}%`, limit)
-    .all();
+    )
+      .bind(`%${location}%`, limit)
+      .all()
 
-  return c.json({
-    success: true,
-    data: items.results,
-  });
-});
+    return c.json({
+      success: true,
+      data: items.results,
+    })
+  }
+)
 
 // GET /bucket-list/explore/locations - Get popular climbing locations from bucket list
 bucketListRoutes.get(
@@ -178,11 +182,11 @@ bucketListRoutes.get(
     },
   }),
   async (c) => {
-  const limit = parseInt(c.req.query('limit') || '20', 10);
-  const country = c.req.query('country'); // Optional country filter
+    const limit = parseInt(c.req.query('limit') || '20', 10)
+    const country = c.req.query('country') // Optional country filter
 
-  // Get locations from bucket list items (target_location field)
-  let query = `
+    // Get locations from bucket list items (target_location field)
+    let query = `
     SELECT
       bli.target_location as location,
       COUNT(DISTINCT bli.id) as item_count,
@@ -194,29 +198,32 @@ bucketListRoutes.get(
       AND bli.target_location != ''
       AND bli.is_public = 1
       AND b.visibility = 'public'
-  `;
+  `
 
-  const params: (string | number)[] = [];
+    const params: (string | number)[] = []
 
-  if (country) {
-    query += ` AND bli.target_location LIKE ?`;
-    params.push(`%${country}%`);
-  }
+    if (country) {
+      query += ` AND bli.target_location LIKE ?`
+      params.push(`%${country}%`)
+    }
 
-  query += `
+    query += `
     GROUP BY bli.target_location
     ORDER BY user_count DESC, completed_count DESC
     LIMIT ?
-  `;
-  params.push(limit);
+  `
+    params.push(limit)
 
-  const locations = await c.env.DB.prepare(query).bind(...params).all();
+    const locations = await c.env.DB.prepare(query)
+      .bind(...params)
+      .all()
 
-  return c.json({
-    success: true,
-    data: locations.results,
-  });
-});
+    return c.json({
+      success: true,
+      data: locations.results,
+    })
+  }
+)
 
 // GET /bucket-list/explore/locations/:location - Get location details
 bucketListRoutes.get(
@@ -230,37 +237,37 @@ bucketListRoutes.get(
     },
   }),
   async (c) => {
-  const location = decodeURIComponent(c.req.param('location'));
-  const limit = parseInt(c.req.query('limit') || '10', 10);
+    const location = decodeURIComponent(c.req.param('location'))
+    const limit = parseInt(c.req.query('limit') || '10', 10)
 
-  // Get items for this location
-  const items = await c.env.DB.prepare(
-    `SELECT bli.*, b.name as author_name, b.avatar_url as author_avatar, b.slug as author_slug
+    // Get items for this location
+    const items = await c.env.DB.prepare(
+      `SELECT bli.*, b.name as author_name, b.avatar_url as author_avatar, b.slug as author_slug
      FROM bucket_list_items bli
      JOIN biographies b ON bli.biography_id = b.id
      WHERE bli.target_location = ? AND bli.is_public = 1 AND b.visibility = 'public'
      ORDER BY bli.status = 'completed' DESC, bli.likes_count DESC, bli.created_at DESC
      LIMIT ?`
-  )
-    .bind(location, limit)
-    .all();
+    )
+      .bind(location, limit)
+      .all()
 
-  // Get statistics for this location
-  const stats = await c.env.DB.prepare(
-    `SELECT
+    // Get statistics for this location
+    const stats = await c.env.DB.prepare(
+      `SELECT
       COUNT(DISTINCT bli.id) as total_items,
       COUNT(DISTINCT bli.biography_id) as total_users,
       SUM(CASE WHEN bli.status = 'completed' THEN 1 ELSE 0 END) as completed_count
      FROM bucket_list_items bli
      JOIN biographies b ON bli.biography_id = b.id
      WHERE bli.target_location = ? AND bli.is_public = 1 AND b.visibility = 'public'`
-  )
-    .bind(location)
-    .first<{ total_items: number; total_users: number; completed_count: number }>();
+    )
+      .bind(location)
+      .first<{ total_items: number; total_users: number; completed_count: number }>()
 
-  // Get users who have visited (completed) this location
-  const visitors = await c.env.DB.prepare(
-    `SELECT DISTINCT b.id, b.name, b.avatar_url, b.slug, bli.completed_at
+    // Get users who have visited (completed) this location
+    const visitors = await c.env.DB.prepare(
+      `SELECT DISTINCT b.id, b.name, b.avatar_url, b.slug, bli.completed_at
      FROM bucket_list_items bli
      JOIN biographies b ON bli.biography_id = b.id
      WHERE bli.target_location = ?
@@ -269,20 +276,21 @@ bucketListRoutes.get(
        AND b.visibility = 'public'
      ORDER BY bli.completed_at DESC
      LIMIT 10`
-  )
-    .bind(location)
-    .all();
+    )
+      .bind(location)
+      .all()
 
-  return c.json({
-    success: true,
-    data: {
-      location,
-      stats: stats || { total_items: 0, total_users: 0, completed_count: 0 },
-      items: items.results,
-      visitors: visitors.results,
-    },
-  });
-});
+    return c.json({
+      success: true,
+      data: {
+        location,
+        stats: stats || { total_items: 0, total_users: 0, completed_count: 0 },
+        items: items.results,
+        visitors: visitors.results,
+      },
+    })
+  }
+)
 
 // GET /bucket-list/explore/climbing-footprints - Get climbing locations from normalized table
 bucketListRoutes.get(
@@ -296,20 +304,20 @@ bucketListRoutes.get(
     },
   }),
   async (c) => {
-  const limit = parseInt(c.req.query('limit') || '20', 10);
-  const country = c.req.query('country'); // 'taiwan' or 'overseas'
+    const limit = parseInt(c.req.query('limit') || '20', 10)
+    const country = c.req.query('country') // 'taiwan' or 'overseas'
 
-  // Build country filter (使用統一的台灣名稱列表)
-  let countryFilter = '';
-  if (country === 'taiwan') {
-    countryFilter = "AND LOWER(cl.country) IN ('台灣', '臺灣', 'taiwan', 'tw')";
-  } else if (country === 'overseas') {
-    countryFilter = "AND LOWER(cl.country) NOT IN ('台灣', '臺灣', 'taiwan', 'tw')";
-  }
+    // Build country filter (使用統一的台灣名稱列表)
+    let countryFilter = ''
+    if (country === 'taiwan') {
+      countryFilter = "AND LOWER(cl.country) IN ('台灣', '臺灣', 'taiwan', 'tw')"
+    } else if (country === 'overseas') {
+      countryFilter = "AND LOWER(cl.country) NOT IN ('台灣', '臺灣', 'taiwan', 'tw')"
+    }
 
-  // Step 1: 先查詢熱門地點（按訪客數排序，限制數量）
-  const topLocations = await c.env.DB.prepare(
-    `SELECT
+    // Step 1: 先查詢熱門地點（按訪客數排序，限制數量）
+    const topLocations = await c.env.DB.prepare(
+      `SELECT
       cl.location,
       cl.country,
       COUNT(DISTINCT cl.biography_id) as visitor_count
@@ -319,23 +327,23 @@ bucketListRoutes.get(
     GROUP BY cl.location, cl.country
     ORDER BY visitor_count DESC
     LIMIT ?`
-  )
-    .bind(limit)
-    .all<{ location: string; country: string; visitor_count: number }>();
+    )
+      .bind(limit)
+      .all<{ location: string; country: string; visitor_count: number }>()
 
-  if (!topLocations.results || topLocations.results.length === 0) {
-    return c.json({
-      success: true,
-      data: [],
-    });
-  }
+    if (!topLocations.results || topLocations.results.length === 0) {
+      return c.json({
+        success: true,
+        data: [],
+      })
+    }
 
-  // Step 2: 查詢這些地點的訪客詳情
-  const locationNames = topLocations.results.map(loc => loc.location);
-  const placeholders = locationNames.map(() => '?').join(',');
+    // Step 2: 查詢這些地點的訪客詳情
+    const locationNames = topLocations.results.map((loc) => loc.location)
+    const placeholders = locationNames.map(() => '?').join(',')
 
-  const visitors = await c.env.DB.prepare(
-    `SELECT
+    const visitors = await c.env.DB.prepare(
+      `SELECT
       cl.location,
       cl.country,
       b.id as biography_id,
@@ -346,60 +354,66 @@ bucketListRoutes.get(
     JOIN biographies b ON b.id = cl.biography_id AND b.visibility = 'public'
     WHERE cl.is_public = 1 AND cl.location IN (${placeholders})
     ORDER BY cl.location, b.name`
-  )
-    .bind(...locationNames)
-    .all<{
-      location: string;
-      country: string;
-      biography_id: string;
-      name: string;
-      avatar_url: string | null;
-      slug: string;
-    }>();
+    )
+      .bind(...locationNames)
+      .all<{
+        location: string
+        country: string
+        biography_id: string
+        name: string
+        avatar_url: string | null
+        slug: string
+      }>()
 
-  // Group visitors by location
-  const locationMap = new Map<string, {
-    location: string;
-    country: string;
-    visitors: Array<{ id: string; name: string; avatar_url: string | null; slug: string }>;
-  }>();
+    // Group visitors by location
+    const locationMap = new Map<
+      string,
+      {
+        location: string
+        country: string
+        visitors: Array<{ id: string; name: string; avatar_url: string | null; slug: string }>
+      }
+    >()
 
-  for (const row of visitors.results || []) {
-    const key = `${row.location}|${row.country}`;
-    if (!locationMap.has(key)) {
-      locationMap.set(key, {
-        location: row.location,
-        country: row.country,
-        visitors: [],
-      });
+    for (const row of visitors.results || []) {
+      const key = `${row.location}|${row.country}`
+      if (!locationMap.has(key)) {
+        locationMap.set(key, {
+          location: row.location,
+          country: row.country,
+          visitors: [],
+        })
+      }
+
+      const existing = locationMap.get(key)!
+      if (!existing.visitors.some((v) => v.id === row.biography_id)) {
+        existing.visitors.push({
+          id: row.biography_id,
+          name: row.name,
+          avatar_url: row.avatar_url,
+          slug: row.slug,
+        })
+      }
     }
 
-    const existing = locationMap.get(key)!;
-    if (!existing.visitors.some(v => v.id === row.biography_id)) {
-      existing.visitors.push({
-        id: row.biography_id,
-        name: row.name,
-        avatar_url: row.avatar_url,
-        slug: row.slug,
-      });
-    }
+    // Sort by visitor count (maintain the order from step 1)
+    const result = topLocations.results.map((loc) => {
+      const key = `${loc.location}|${loc.country}`
+      return (
+        locationMap.get(key) || {
+          location: loc.location,
+          country: loc.country,
+          visitors: [],
+        }
+      )
+    })
+
+    return c.json({
+      success: true,
+      data: result,
+    })
   }
-
-  // Sort by visitor count (maintain the order from step 1)
-  const result = topLocations.results.map(loc => {
-    const key = `${loc.location}|${loc.country}`;
-    return locationMap.get(key) || {
-      location: loc.location,
-      country: loc.country,
-      visitors: [],
-    };
-  });
-
-  return c.json({
-    success: true,
-    data: result,
-  });
-});
+)
 
 // ═══════════════════════════════════════════════════════════
 // 人生清單項目 CRUD
@@ -419,8 +433,8 @@ bucketListRoutes.get(
   }),
   optionalAuthMiddleware,
   async (c) => {
-    const id = c.req.param('id');
-    const userId = c.get('userId');
+    const id = c.req.param('id')
+    const userId = c.get('userId')
 
     const item = await c.env.DB.prepare(
       `SELECT
@@ -437,30 +451,30 @@ bucketListRoutes.get(
        WHERE bli.id = ?`
     )
       .bind(userId ?? null, userId ?? null, id)
-      .first<{ biography_id: string; is_public: number }>();
+      .first<{ biography_id: string; is_public: number }>()
 
     if (!item) {
-      return c.json({ success: false, error: 'Not found' }, 404);
+      return c.json({ success: false, error: 'Not found' }, 404)
     }
 
     // 非公開項目只有擁有者可存取
     if (!item.is_public) {
       if (!userId) {
-        return c.json({ success: false, error: 'Not found' }, 404);
+        return c.json({ success: false, error: 'Not found' }, 404)
       }
       const biography = await c.env.DB.prepare(
         'SELECT id FROM biographies WHERE id = ? AND user_id = ?'
       )
         .bind(item.biography_id, userId)
-        .first();
+        .first()
       if (!biography) {
-        return c.json({ success: false, error: 'Not found' }, 404);
+        return c.json({ success: false, error: 'Not found' }, 404)
       }
     }
 
-    return c.json({ success: true, data: item });
+    return c.json({ success: true, data: item })
   }
-);
+)
 
 // GET /bucket-list/:biographyId - Get all bucket list items for a biography
 bucketListRoutes.get(
@@ -475,26 +489,26 @@ bucketListRoutes.get(
   }),
   optionalAuthMiddleware,
   async (c) => {
-  const biographyId = c.req.param('biographyId');
-  const userId = c.get('userId');
-  const status = c.req.query('status'); // active, completed, archived
-  const category = c.req.query('category');
+    const biographyId = c.req.param('biographyId')
+    const userId = c.get('userId')
+    const status = c.req.query('status') // active, completed, archived
+    const category = c.req.query('category')
 
-  let whereClause = 'biography_id = ? AND is_public = 1';
-  const params: (string | number)[] = [biographyId];
+    let whereClause = 'biography_id = ? AND is_public = 1'
+    const params: (string | number)[] = [biographyId]
 
-  if (status) {
-    whereClause += ' AND status = ?';
-    params.push(status);
-  }
+    if (status) {
+      whereClause += ' AND status = ?'
+      params.push(status)
+    }
 
-  if (category) {
-    whereClause += ' AND category = ?';
-    params.push(category);
-  }
+    if (category) {
+      whereClause += ' AND category = ?'
+      params.push(category)
+    }
 
-  const items = await c.env.DB.prepare(
-    `SELECT
+    const items = await c.env.DB.prepare(
+      `SELECT
        bli.*,
        CASE
          WHEN ? IS NOT NULL AND EXISTS (
@@ -507,15 +521,16 @@ bucketListRoutes.get(
      FROM bucket_list_items bli
      WHERE ${whereClause}
      ORDER BY sort_order ASC, created_at DESC`
-  )
-    .bind(userId ?? null, userId ?? null, ...params)
-    .all();
+    )
+      .bind(userId ?? null, userId ?? null, ...params)
+      .all()
 
-  return c.json({
-    success: true,
-    data: items.results,
-  });
-});
+    return c.json({
+      success: true,
+      data: items.results,
+    })
+  }
+)
 
 // POST /bucket-list - Create a new bucket list item
 bucketListRoutes.post(
@@ -533,81 +548,78 @@ bucketListRoutes.post(
   }),
   authMiddleware,
   async (c) => {
-  const userId = c.get('userId');
-  const body = await c.req.json();
+    const userId = c.get('userId')
+    const body = await c.req.json()
 
-  // Get user's biography
-  const biography = await c.env.DB.prepare(
-    'SELECT id FROM biographies WHERE user_id = ?'
-  )
-    .bind(userId)
-    .first<{ id: string }>();
+    // Get user's biography
+    const biography = await c.env.DB.prepare('SELECT id FROM biographies WHERE user_id = ?')
+      .bind(userId)
+      .first<{ id: string }>()
 
-  if (!biography) {
-    return c.json(
-      {
-        success: false,
-        error: 'Not Found',
-        message: 'You need to create a biography first',
-      },
-      404
-    );
-  }
+    if (!biography) {
+      return c.json(
+        {
+          success: false,
+          error: 'Not Found',
+          message: 'You need to create a biography first',
+        },
+        404
+      )
+    }
 
-  if (!body.title) {
-    return c.json(
-      {
-        success: false,
-        error: 'Bad Request',
-        message: 'Title is required',
-      },
-      400
-    );
-  }
+    if (!body.title) {
+      return c.json(
+        {
+          success: false,
+          error: 'Bad Request',
+          message: 'Title is required',
+        },
+        400
+      )
+    }
 
-  const id = generateId();
+    const id = generateId()
 
-  await c.env.DB.prepare(
-    `INSERT INTO bucket_list_items (
+    await c.env.DB.prepare(
+      `INSERT INTO bucket_list_items (
       id, biography_id, title, category, description,
       target_grade, target_location, target_date,
       status, enable_progress, progress_mode, progress, milestones,
       is_public, sort_order
     ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
-  )
-    .bind(
-      id,
-      biography.id,
-      body.title,
-      body.category || 'other',
-      body.description || null,
-      body.target_grade || null,
-      body.target_location || null,
-      body.target_date || null,
-      body.status || 'active',
-      body.enable_progress ? 1 : 0,
-      body.progress_mode || null,
-      body.progress || 0,
-      body.milestones ? JSON.stringify(body.milestones) : null,
-      body.is_public !== false ? 1 : 0,
-      body.sort_order || 0
     )
-    .run();
+      .bind(
+        id,
+        biography.id,
+        body.title,
+        body.category || 'other',
+        body.description || null,
+        body.target_grade || null,
+        body.target_location || null,
+        body.target_date || null,
+        body.status || 'active',
+        body.enable_progress ? 1 : 0,
+        body.progress_mode || null,
+        body.progress || 0,
+        body.milestones ? JSON.stringify(body.milestones) : null,
+        body.is_public !== false ? 1 : 0,
+        body.sort_order || 0
+      )
+      .run()
 
-  const item = await c.env.DB.prepare(
-    'SELECT * FROM bucket_list_items WHERE id = ?'
-  )
-    .bind(id)
-    .first();
+    const item = await c.env.DB.prepare('SELECT * FROM bucket_list_items WHERE id = ?')
+      .bind(id)
+      .first()
 
-  return c.json(
-    {
-      success: true,
-      data: item,
-    },
-    201
-  );
-});
+    return c.json(
+      {
+        success: true,
+        data: item,
+      },
+      201
+    )
+  }
+)
 
 // PUT /bucket-list/:id - Update a bucket list item
 bucketListRoutes.put(
@@ -624,80 +636,85 @@ bucketListRoutes.put(
   }),
   authMiddleware,
   async (c) => {
-  const userId = c.get('userId');
-  const id = c.req.param('id');
-  const body = await c.req.json();
+    const userId = c.get('userId')
+    const id = c.req.param('id')
+    const body = await c.req.json()
 
-  // Verify ownership
-  const item = await c.env.DB.prepare(
-    `SELECT bli.id FROM bucket_list_items bli
+    // Verify ownership
+    const item = await c.env.DB.prepare(
+      `SELECT bli.id FROM bucket_list_items bli
      JOIN biographies b ON bli.biography_id = b.id
      WHERE bli.id = ? AND b.user_id = ?`
-  )
-    .bind(id, userId)
-    .first<{ id: string }>();
+    )
+      .bind(id, userId)
+      .first<{ id: string }>()
 
-  if (!item) {
-    return c.json(
-      {
-        success: false,
-        error: 'Not Found',
-        message: 'Bucket list item not found or not authorized',
-      },
-      404
-    );
-  }
+    if (!item) {
+      return c.json(
+        {
+          success: false,
+          error: 'Not Found',
+          message: 'Bucket list item not found or not authorized',
+        },
+        404
+      )
+    }
 
-  const updates: string[] = [];
-  const values: (string | number | null)[] = [];
+    const updates: string[] = []
+    const values: (string | number | null)[] = []
 
-  const fields = [
-    'title', 'category', 'description', 'target_grade',
-    'target_location', 'target_date', 'status',
-    'enable_progress', 'progress_mode', 'progress',
-    'is_public', 'sort_order',
-  ];
+    const fields = [
+      'title',
+      'category',
+      'description',
+      'target_grade',
+      'target_location',
+      'target_date',
+      'status',
+      'enable_progress',
+      'progress_mode',
+      'progress',
+      'is_public',
+      'sort_order',
+    ]
 
-  for (const field of fields) {
-    if (body[field] !== undefined) {
-      if (field === 'enable_progress' || field === 'is_public') {
-        updates.push(`${field} = ?`);
-        values.push(body[field] ? 1 : 0);
-      } else {
-        updates.push(`${field} = ?`);
-        values.push(body[field]);
+    for (const field of fields) {
+      if (body[field] !== undefined) {
+        if (field === 'enable_progress' || field === 'is_public') {
+          updates.push(`${field} = ?`)
+          values.push(body[field] ? 1 : 0)
+        } else {
+          updates.push(`${field} = ?`)
+          values.push(body[field])
+        }
       }
     }
+
+    // Handle milestones (JSON)
+    if (body.milestones !== undefined) {
+      updates.push('milestones = ?')
+      values.push(body.milestones ? JSON.stringify(body.milestones) : null)
+    }
+
+    if (updates.length > 0) {
+      updates.push("updated_at = datetime('now')")
+      values.push(id)
+
+      await c.env.DB.prepare(`UPDATE bucket_list_items SET ${updates.join(', ')} WHERE id = ?`)
+        .bind(...values)
+        .run()
+    }
+
+    const updated = await c.env.DB.prepare('SELECT * FROM bucket_list_items WHERE id = ?')
+      .bind(id)
+      .first()
+
+    return c.json({
+      success: true,
+      data: updated,
+    })
   }
-
-  // Handle milestones (JSON)
-  if (body.milestones !== undefined) {
-    updates.push('milestones = ?');
-    values.push(body.milestones ? JSON.stringify(body.milestones) : null);
-  }
-
-  if (updates.length > 0) {
-    updates.push("updated_at = datetime('now')");
-    values.push(id);
-
-    await c.env.DB.prepare(
-      `UPDATE bucket_list_items SET ${updates.join(', ')} WHERE id = ?`
-    )
-      .bind(...values)
-      .run();
-  }
-
-  const updated = await c.env.DB.prepare(
-    'SELECT * FROM bucket_list_items WHERE id = ?'
-  )
-    .bind(id)
-    .first();
-
-  return c.json({
-    success: true,
-    data: updated,
-  });
-});
+)
 
 // DELETE /bucket-list/:id - Delete a bucket list item
 bucketListRoutes.delete(
@@ -714,38 +731,37 @@ bucketListRoutes.delete(
   }),
   authMiddleware,
   async (c) => {
-  const userId = c.get('userId');
-  const id = c.req.param('id');
+    const userId = c.get('userId')
+    const id = c.req.param('id')
 
-  // Verify ownership
-  const item = await c.env.DB.prepare(
-    `SELECT bli.id FROM bucket_list_items bli
+    // Verify ownership
+    const item = await c.env.DB.prepare(
+      `SELECT bli.id FROM bucket_list_items bli
      JOIN biographies b ON bli.biography_id = b.id
      WHERE bli.id = ? AND b.user_id = ?`
-  )
-    .bind(id, userId)
-    .first<{ id: string }>();
+    )
+      .bind(id, userId)
+      .first<{ id: string }>()
 
-  if (!item) {
-    return c.json(
-      {
-        success: false,
-        error: 'Not Found',
-        message: 'Bucket list item not found or not authorized',
-      },
-      404
-    );
+    if (!item) {
+      return c.json(
+        {
+          success: false,
+          error: 'Not Found',
+          message: 'Bucket list item not found or not authorized',
+        },
+        404
+      )
+    }
+
+    await c.env.DB.prepare('DELETE FROM bucket_list_items WHERE id = ?').bind(id).run()
+
+    return c.json({
+      success: true,
+      message: 'Bucket list item deleted successfully',
+    })
   }
-
-  await c.env.DB.prepare('DELETE FROM bucket_list_items WHERE id = ?')
-    .bind(id)
-    .run();
-
-  return c.json({
-    success: true,
-    message: 'Bucket list item deleted successfully',
-  });
-});
+)
 
 // ═══════════════════════════════════════════════════════════
 // 完成目標
@@ -766,36 +782,34 @@ bucketListRoutes.put(
   }),
   authMiddleware,
   async (c) => {
-  const userId = c.get('userId');
-  const id = c.req.param('id');
-  const body = await c.req.json();
+    const userId = c.get('userId')
+    const id = c.req.param('id')
+    const body = await c.req.json()
 
-  // Verify ownership
-  const item = await c.env.DB.prepare(
-    `SELECT bli.id, bli.biography_id FROM bucket_list_items bli
+    // Verify ownership
+    const item = await c.env.DB.prepare(
+      `SELECT bli.id, bli.biography_id FROM bucket_list_items bli
      JOIN biographies b ON bli.biography_id = b.id
      WHERE bli.id = ? AND b.user_id = ?`
-  )
-    .bind(id, userId)
-    .first<{ id: string; biography_id: string }>();
+    )
+      .bind(id, userId)
+      .first<{ id: string; biography_id: string }>()
 
-  if (!item) {
-    return c.json(
-      {
-        success: false,
-        error: 'Not Found',
-        message: 'Bucket list item not found or not authorized',
-      },
-      404
-    );
-  }
+    if (!item) {
+      return c.json(
+        {
+          success: false,
+          error: 'Not Found',
+          message: 'Bucket list item not found or not authorized',
+        },
+        404
+      )
+    }
 
-  const completionMedia = body.completion_media
-    ? JSON.stringify(body.completion_media)
-    : null;
+    const completionMedia = body.completion_media ? JSON.stringify(body.completion_media) : null
 
-  await c.env.DB.prepare(
-    `UPDATE bucket_list_items SET
+    await c.env.DB.prepare(
+      `UPDATE bucket_list_items SET
       status = 'completed',
       completed_at = datetime('now'),
       progress = 100,
@@ -805,27 +819,26 @@ bucketListRoutes.put(
       completion_media = ?,
       updated_at = datetime('now')
     WHERE id = ?`
-  )
-    .bind(
-      body.completion_story || null,
-      body.psychological_insights || null,
-      body.technical_insights || null,
-      completionMedia,
-      id
     )
-    .run();
+      .bind(
+        body.completion_story || null,
+        body.psychological_insights || null,
+        body.technical_insights || null,
+        completionMedia,
+        id
+      )
+      .run()
 
-  const updated = await c.env.DB.prepare(
-    'SELECT * FROM bucket_list_items WHERE id = ?'
-  )
-    .bind(id)
-    .first();
+    const updated = await c.env.DB.prepare('SELECT * FROM bucket_list_items WHERE id = ?')
+      .bind(id)
+      .first()
 
-  return c.json({
-    success: true,
-    data: updated,
-  });
-});
+    return c.json({
+      success: true,
+      data: updated,
+    })
+  }
+)
 
 // PUT /bucket-list/:id/progress - Update progress
 bucketListRoutes.put(
@@ -842,47 +855,48 @@ bucketListRoutes.put(
   }),
   authMiddleware,
   async (c) => {
-  const userId = c.get('userId');
-  const id = c.req.param('id');
-  const body = await c.req.json();
+    const userId = c.get('userId')
+    const id = c.req.param('id')
+    const body = await c.req.json()
 
-  // Verify ownership
-  const item = await c.env.DB.prepare(
-    `SELECT bli.id FROM bucket_list_items bli
+    // Verify ownership
+    const item = await c.env.DB.prepare(
+      `SELECT bli.id FROM bucket_list_items bli
      JOIN biographies b ON bli.biography_id = b.id
      WHERE bli.id = ? AND b.user_id = ?`
-  )
-    .bind(id, userId)
-    .first<{ id: string }>();
+    )
+      .bind(id, userId)
+      .first<{ id: string }>()
 
-  if (!item) {
-    return c.json(
-      {
-        success: false,
-        error: 'Not Found',
-        message: 'Bucket list item not found or not authorized',
-      },
-      404
-    );
-  }
+    if (!item) {
+      return c.json(
+        {
+          success: false,
+          error: 'Not Found',
+          message: 'Bucket list item not found or not authorized',
+        },
+        404
+      )
+    }
 
-  const progress = Math.max(0, Math.min(100, body.progress || 0));
+    const progress = Math.max(0, Math.min(100, body.progress || 0))
 
-  await c.env.DB.prepare(
-    `UPDATE bucket_list_items SET
+    await c.env.DB.prepare(
+      `UPDATE bucket_list_items SET
       progress = ?,
       updated_at = datetime('now')
     WHERE id = ?`
-  )
-    .bind(progress, id)
-    .run();
+    )
+      .bind(progress, id)
+      .run()
 
-  return c.json({
-    success: true,
-    message: 'Progress updated',
-    data: { progress },
-  });
-});
+    return c.json({
+      success: true,
+      message: 'Progress updated',
+      data: { progress },
+    })
+  }
+)
 
 // PUT /bucket-list/:id/milestone - Update milestone
 bucketListRoutes.put(
@@ -900,87 +914,95 @@ bucketListRoutes.put(
   }),
   authMiddleware,
   async (c) => {
-  const userId = c.get('userId');
-  const id = c.req.param('id');
-  const body = await c.req.json();
+    const userId = c.get('userId')
+    const id = c.req.param('id')
+    const body = await c.req.json()
 
-  // Verify ownership and get current milestones
-  const item = await c.env.DB.prepare(
-    `SELECT bli.id, bli.milestones FROM bucket_list_items bli
+    // Verify ownership and get current milestones
+    const item = await c.env.DB.prepare(
+      `SELECT bli.id, bli.milestones FROM bucket_list_items bli
      JOIN biographies b ON bli.biography_id = b.id
      WHERE bli.id = ? AND b.user_id = ?`
-  )
-    .bind(id, userId)
-    .first<{ id: string; milestones: string | null }>();
+    )
+      .bind(id, userId)
+      .first<{ id: string; milestones: string | null }>()
 
-  if (!item) {
-    return c.json(
-      {
-        success: false,
-        error: 'Not Found',
-        message: 'Bucket list item not found or not authorized',
-      },
-      404
-    );
-  }
-
-  let milestones: Array<{ id: string; completed: boolean; completed_at: string | null; note: string | null }> = [];
-  try {
-    milestones = item.milestones ? JSON.parse(item.milestones) : [];
-  } catch {
-    milestones = [];
-  }
-
-  const milestoneId = body.milestone_id as string | undefined;
-  const completed = body.completed as boolean | undefined;
-  const note = body.note as string | undefined;
-
-  if (!milestoneId || typeof milestoneId !== 'string') {
-    return c.json(
-      {
-        success: false,
-        error: 'Bad Request',
-        message: 'milestone_id is required',
-      },
-      400
-    );
-  }
-
-  // Update the specific milestone
-  const updatedMilestones = milestones.map((m) => {
-    if (m.id === milestoneId) {
-      return {
-        ...m,
-        completed: completed !== undefined ? completed : m.completed,
-        completed_at: completed ? new Date().toISOString() : m.completed_at,
-        note: note !== undefined ? note : m.note,
-      };
+    if (!item) {
+      return c.json(
+        {
+          success: false,
+          error: 'Not Found',
+          message: 'Bucket list item not found or not authorized',
+        },
+        404
+      )
     }
-    return m;
-  });
 
-  // Calculate overall progress from milestones
-  const completedMilestones = updatedMilestones.filter((m: { completed: boolean }) => m.completed).length;
-  const progress = Math.round((completedMilestones / updatedMilestones.length) * 100);
+    let milestones: Array<{
+      id: string
+      completed: boolean
+      completed_at: string | null
+      note: string | null
+    }> = []
+    try {
+      milestones = item.milestones ? JSON.parse(item.milestones) : []
+    } catch {
+      milestones = []
+    }
 
-  await c.env.DB.prepare(
-    `UPDATE bucket_list_items SET
+    const milestoneId = body.milestone_id as string | undefined
+    const completed = body.completed as boolean | undefined
+    const note = body.note as string | undefined
+
+    if (!milestoneId || typeof milestoneId !== 'string') {
+      return c.json(
+        {
+          success: false,
+          error: 'Bad Request',
+          message: 'milestone_id is required',
+        },
+        400
+      )
+    }
+
+    // Update the specific milestone
+    const updatedMilestones = milestones.map((m) => {
+      if (m.id === milestoneId) {
+        return {
+          ...m,
+          completed: completed !== undefined ? completed : m.completed,
+          completed_at: completed ? new Date().toISOString() : m.completed_at,
+          note: note !== undefined ? note : m.note,
+        }
+      }
+      return m
+    })
+
+    // Calculate overall progress from milestones
+    const completedMilestones = updatedMilestones.filter(
+      (m: { completed: boolean }) => m.completed
+    ).length
+    const progress = Math.round((completedMilestones / updatedMilestones.length) * 100)
+
+    await c.env.DB.prepare(
+      `UPDATE bucket_list_items SET
       milestones = ?,
       progress = ?,
       updated_at = datetime('now')
     WHERE id = ?`
-  )
-    .bind(JSON.stringify(updatedMilestones), progress, id)
-    .run();
+    )
+      .bind(JSON.stringify(updatedMilestones), progress, id)
+      .run()
 
-  return c.json({
-    success: true,
-    data: {
-      milestones: updatedMilestones,
-      progress,
-    },
-  });
-});
+    return c.json({
+      success: true,
+      data: {
+        milestones: updatedMilestones,
+        progress,
+      },
+    })
+  }
+)
 
 // ═══════════════════════════════════════════════════════════
 // 互動功能
@@ -1002,89 +1024,88 @@ bucketListRoutes.post(
   }),
   authMiddleware,
   async (c) => {
-  const userId = c.get('userId');
-  const id = c.req.param('id');
+    const userId = c.get('userId')
+    const id = c.req.param('id')
 
-  // Check if item exists and is public, get owner info
-  const item = await c.env.DB.prepare(
-    `SELECT bli.id, bli.title, bli.biography_id, b.user_id as owner_id
+    // Check if item exists and is public, get owner info
+    const item = await c.env.DB.prepare(
+      `SELECT bli.id, bli.title, bli.biography_id, b.user_id as owner_id
      FROM bucket_list_items bli
      JOIN biographies b ON bli.biography_id = b.id
      WHERE bli.id = ? AND bli.is_public = 1`
-  )
-    .bind(id)
-    .first<{ id: string; title: string; biography_id: string; owner_id: string }>();
-
-  if (!item) {
-    return c.json(
-      {
-        success: false,
-        error: 'Not Found',
-        message: 'Bucket list item not found',
-      },
-      404
-    );
-  }
-
-  // Check if already liked
-  const existing = await c.env.DB.prepare(
-    'SELECT id FROM bucket_list_likes WHERE bucket_list_item_id = ? AND user_id = ?'
-  )
-    .bind(id, userId)
-    .first<{ id: string }>();
-
-  if (existing) {
-    return c.json(
-      {
-        success: false,
-        error: 'Conflict',
-        message: 'Already liked',
-      },
-      409
-    );
-  }
-
-  const likeId = generateId();
-
-  await c.env.DB.prepare(
-    'INSERT INTO bucket_list_likes (id, bucket_list_item_id, user_id) VALUES (?, ?, ?)'
-  )
-    .bind(likeId, id, userId)
-    .run();
-
-  // Update likes count
-  await c.env.DB.prepare(
-    'UPDATE bucket_list_items SET likes_count = likes_count + 1 WHERE id = ?'
-  )
-    .bind(id)
-    .run();
-
-  // Create notification for owner (if not liking own item)
-  // 使用聚合功能：1 小時內同一目標的按讚會合併成一則通知
-  if (item.owner_id && item.owner_id !== userId) {
-    const liker = await c.env.DB.prepare(
-      'SELECT display_name, username FROM users WHERE id = ?'
     )
-      .bind(userId)
-      .first<{ display_name: string | null; username: string }>();
+      .bind(id)
+      .first<{ id: string; title: string; biography_id: string; owner_id: string }>()
 
-    const likerName = liker?.display_name || liker?.username || '有人';
+    if (!item) {
+      return c.json(
+        {
+          success: false,
+          error: 'Not Found',
+          message: 'Bucket list item not found',
+        },
+        404
+      )
+    }
 
-    await createLikeNotificationWithAggregation(c.env.DB, {
-      userId: item.owner_id,
-      type: 'goal_liked',
-      actorId: userId,
-      actorName: likerName,
-      targetId: id,
-      targetTitle: item.title,
-    });
+    // Check if already liked
+    const existing = await c.env.DB.prepare(
+      'SELECT id FROM bucket_list_likes WHERE bucket_list_item_id = ? AND user_id = ?'
+    )
+      .bind(id, userId)
+      .first<{ id: string }>()
+
+    if (existing) {
+      return c.json(
+        {
+          success: false,
+          error: 'Conflict',
+          message: 'Already liked',
+        },
+        409
+      )
+    }
+
+    const likeId = generateId()
+
+    await c.env.DB.prepare(
+      'INSERT INTO bucket_list_likes (id, bucket_list_item_id, user_id) VALUES (?, ?, ?)'
+    )
+      .bind(likeId, id, userId)
+      .run()
+
+    // Update likes count
+    await c.env.DB.prepare(
+      'UPDATE bucket_list_items SET likes_count = likes_count + 1 WHERE id = ?'
+    )
+      .bind(id)
+      .run()
+
+    // Create notification for owner (if not liking own item)
+    // 使用聚合功能：1 小時內同一目標的按讚會合併成一則通知
+    if (item.owner_id && item.owner_id !== userId) {
+      const liker = await c.env.DB.prepare('SELECT display_name, username FROM users WHERE id = ?')
+        .bind(userId)
+        .first<{ display_name: string | null; username: string }>()
+
+      const likerName = liker?.display_name || liker?.username || '有人'
+
+      await createLikeNotificationWithAggregation(c.env.DB, {
+        userId: item.owner_id,
+        type: 'goal_liked',
+        actorId: userId,
+        actorName: likerName,
+        targetId: id,
+        targetTitle: item.title,
+      })
+    }
+
+    return c.json({
+      success: true,
+      message: 'Liked successfully',
+    })
   }
-
-  return c.json({
-    success: true,
-    message: 'Liked successfully',
-  });
-});
+)
 
 // DELETE /bucket-list/:id/like - Unlike a bucket list item
 bucketListRoutes.delete(
@@ -1101,44 +1122,45 @@ bucketListRoutes.delete(
   }),
   authMiddleware,
   async (c) => {
-  const userId = c.get('userId');
-  const id = c.req.param('id');
+    const userId = c.get('userId')
+    const id = c.req.param('id')
 
-  const existing = await c.env.DB.prepare(
-    'SELECT id FROM bucket_list_likes WHERE bucket_list_item_id = ? AND user_id = ?'
-  )
-    .bind(id, userId)
-    .first<{ id: string }>();
+    const existing = await c.env.DB.prepare(
+      'SELECT id FROM bucket_list_likes WHERE bucket_list_item_id = ? AND user_id = ?'
+    )
+      .bind(id, userId)
+      .first<{ id: string }>()
 
-  if (!existing) {
-    return c.json(
-      {
-        success: false,
-        error: 'Not Found',
-        message: 'Like not found',
-      },
-      404
-    );
+    if (!existing) {
+      return c.json(
+        {
+          success: false,
+          error: 'Not Found',
+          message: 'Like not found',
+        },
+        404
+      )
+    }
+
+    await c.env.DB.prepare(
+      'DELETE FROM bucket_list_likes WHERE bucket_list_item_id = ? AND user_id = ?'
+    )
+      .bind(id, userId)
+      .run()
+
+    // Update likes count
+    await c.env.DB.prepare(
+      'UPDATE bucket_list_items SET likes_count = CASE WHEN likes_count > 0 THEN likes_count - 1 ELSE 0 END WHERE id = ?'
+    )
+      .bind(id)
+      .run()
+
+    return c.json({
+      success: true,
+      message: 'Unliked successfully',
+    })
   }
-
-  await c.env.DB.prepare(
-    'DELETE FROM bucket_list_likes WHERE bucket_list_item_id = ? AND user_id = ?'
-  )
-    .bind(id, userId)
-    .run();
-
-  // Update likes count
-  await c.env.DB.prepare(
-    'UPDATE bucket_list_items SET likes_count = CASE WHEN likes_count > 0 THEN likes_count - 1 ELSE 0 END WHERE id = ?'
-  )
-    .bind(id)
-    .run();
-
-  return c.json({
-    success: true,
-    message: 'Unliked successfully',
-  });
-});
+)
 
 // GET /bucket-list/:id/comments - Get comments for a bucket list item
 bucketListRoutes.get(
@@ -1152,23 +1174,24 @@ bucketListRoutes.get(
     },
   }),
   async (c) => {
-  const id = c.req.param('id');
+    const id = c.req.param('id')
 
-  const comments = await c.env.DB.prepare(
-    `SELECT blc.*, u.username, u.display_name, u.avatar_url
+    const comments = await c.env.DB.prepare(
+      `SELECT blc.*, u.username, u.display_name, u.avatar_url
      FROM bucket_list_comments blc
      JOIN users u ON blc.user_id = u.id
      WHERE blc.bucket_list_item_id = ?
      ORDER BY blc.created_at DESC`
-  )
-    .bind(id)
-    .all();
+    )
+      .bind(id)
+      .all()
 
-  return c.json({
-    success: true,
-    data: comments.results,
-  });
-});
+    return c.json({
+      success: true,
+      data: comments.results,
+    })
+  }
+)
 
 // POST /bucket-list/:id/comments - Add a comment to a bucket list item
 bucketListRoutes.post(
@@ -1186,95 +1209,96 @@ bucketListRoutes.post(
   }),
   authMiddleware,
   async (c) => {
-  const userId = c.get('userId');
-  const id = c.req.param('id');
-  const body = await c.req.json();
+    const userId = c.get('userId')
+    const id = c.req.param('id')
+    const body = await c.req.json()
 
-  if (!body.content || body.content.trim().length === 0) {
-    return c.json(
-      {
-        success: false,
-        error: 'Bad Request',
-        message: 'Comment content is required',
-      },
-      400
-    );
-  }
+    if (!body.content || body.content.trim().length === 0) {
+      return c.json(
+        {
+          success: false,
+          error: 'Bad Request',
+          message: 'Comment content is required',
+        },
+        400
+      )
+    }
 
-  // Check if item exists and is public, get owner info
-  const item = await c.env.DB.prepare(
-    `SELECT bli.id, bli.title, bli.biography_id, b.user_id as owner_id
+    // Check if item exists and is public, get owner info
+    const item = await c.env.DB.prepare(
+      `SELECT bli.id, bli.title, bli.biography_id, b.user_id as owner_id
      FROM bucket_list_items bli
      JOIN biographies b ON bli.biography_id = b.id
      WHERE bli.id = ? AND bli.is_public = 1`
-  )
-    .bind(id)
-    .first<{ id: string; title: string; biography_id: string; owner_id: string }>();
+    )
+      .bind(id)
+      .first<{ id: string; title: string; biography_id: string; owner_id: string }>()
 
-  if (!item) {
-    return c.json(
-      {
-        success: false,
-        error: 'Not Found',
-        message: 'Bucket list item not found',
-      },
-      404
-    );
-  }
+    if (!item) {
+      return c.json(
+        {
+          success: false,
+          error: 'Not Found',
+          message: 'Bucket list item not found',
+        },
+        404
+      )
+    }
 
-  const commentId = generateId();
+    const commentId = generateId()
 
-  await c.env.DB.prepare(
-    'INSERT INTO bucket_list_comments (id, bucket_list_item_id, user_id, content) VALUES (?, ?, ?, ?)'
-  )
-    .bind(commentId, id, userId, body.content.trim())
-    .run();
+    await c.env.DB.prepare(
+      'INSERT INTO bucket_list_comments (id, bucket_list_item_id, user_id, content) VALUES (?, ?, ?, ?)'
+    )
+      .bind(commentId, id, userId, body.content.trim())
+      .run()
 
-  // Update comments count
-  await c.env.DB.prepare(
-    'UPDATE bucket_list_items SET comments_count = comments_count + 1 WHERE id = ?'
-  )
-    .bind(id)
-    .run();
+    // Update comments count
+    await c.env.DB.prepare(
+      'UPDATE bucket_list_items SET comments_count = comments_count + 1 WHERE id = ?'
+    )
+      .bind(id)
+      .run()
 
-  // Get the comment with user info
-  const comment = await c.env.DB.prepare(
-    `SELECT blc.*, u.username, u.display_name, u.avatar_url
+    // Get the comment with user info
+    const comment = await c.env.DB.prepare(
+      `SELECT blc.*, u.username, u.display_name, u.avatar_url
      FROM bucket_list_comments blc
      JOIN users u ON blc.user_id = u.id
      WHERE blc.id = ?`
-  )
-    .bind(commentId)
-    .first();
-
-  // Create notification for owner (if not commenting on own item)
-  if (item.owner_id && item.owner_id !== userId) {
-    const commenter = await c.env.DB.prepare(
-      'SELECT display_name, username FROM users WHERE id = ?'
     )
-      .bind(userId)
-      .first<{ display_name: string | null; username: string }>();
+      .bind(commentId)
+      .first()
 
-    const commenterName = commenter?.display_name || commenter?.username || '有人';
+    // Create notification for owner (if not commenting on own item)
+    if (item.owner_id && item.owner_id !== userId) {
+      const commenter = await c.env.DB.prepare(
+        'SELECT display_name, username FROM users WHERE id = ?'
+      )
+        .bind(userId)
+        .first<{ display_name: string | null; username: string }>()
 
-    await createNotification(c.env.DB, {
-      userId: item.owner_id,
-      type: 'goal_commented',
-      actorId: userId,
-      targetId: id,
-      title: '有人留言你的目標',
-      message: `${commenterName} 在你的目標「${item.title}」留言`,
-    });
+      const commenterName = commenter?.display_name || commenter?.username || '有人'
+
+      await createNotification(c.env.DB, {
+        userId: item.owner_id,
+        type: 'goal_commented',
+        actorId: userId,
+        targetId: id,
+        title: '有人留言你的目標',
+        message: `${commenterName} 在你的目標「${item.title}」留言`,
+      })
+    }
+
+    return c.json(
+      {
+        success: true,
+        data: comment,
+      },
+      201
+    )
   }
-
-  return c.json(
-    {
-      success: true,
-      data: comment,
-    },
-    201
-  );
-});
+)
 
 // DELETE /bucket-list/comments/:id - Delete a comment
 bucketListRoutes.delete(
@@ -1291,43 +1315,42 @@ bucketListRoutes.delete(
   }),
   authMiddleware,
   async (c) => {
-  const userId = c.get('userId');
-  const id = c.req.param('id');
+    const userId = c.get('userId')
+    const id = c.req.param('id')
 
-  // Check ownership
-  const comment = await c.env.DB.prepare(
-    'SELECT id, bucket_list_item_id FROM bucket_list_comments WHERE id = ? AND user_id = ?'
-  )
-    .bind(id, userId)
-    .first<{ id: string; bucket_list_item_id: string }>();
+    // Check ownership
+    const comment = await c.env.DB.prepare(
+      'SELECT id, bucket_list_item_id FROM bucket_list_comments WHERE id = ? AND user_id = ?'
+    )
+      .bind(id, userId)
+      .first<{ id: string; bucket_list_item_id: string }>()
 
-  if (!comment) {
-    return c.json(
-      {
-        success: false,
-        error: 'Not Found',
-        message: 'Comment not found or not authorized',
-      },
-      404
-    );
+    if (!comment) {
+      return c.json(
+        {
+          success: false,
+          error: 'Not Found',
+          message: 'Comment not found or not authorized',
+        },
+        404
+      )
+    }
+
+    await c.env.DB.prepare('DELETE FROM bucket_list_comments WHERE id = ?').bind(id).run()
+
+    // Update comments count
+    await c.env.DB.prepare(
+      'UPDATE bucket_list_items SET comments_count = CASE WHEN comments_count > 0 THEN comments_count - 1 ELSE 0 END WHERE id = ?'
+    )
+      .bind(comment.bucket_list_item_id)
+      .run()
+
+    return c.json({
+      success: true,
+      message: 'Comment deleted successfully',
+    })
   }
-
-  await c.env.DB.prepare('DELETE FROM bucket_list_comments WHERE id = ?')
-    .bind(id)
-    .run();
-
-  // Update comments count
-  await c.env.DB.prepare(
-    'UPDATE bucket_list_items SET comments_count = CASE WHEN comments_count > 0 THEN comments_count - 1 ELSE 0 END WHERE id = ?'
-  )
-    .bind(comment.bucket_list_item_id)
-    .run();
-
-  return c.json({
-    success: true,
-    message: 'Comment deleted successfully',
-  });
-});
+)
 
 // POST /bucket-list/:id/reference - Add item to my list (reference)
 bucketListRoutes.post(
@@ -1345,134 +1368,140 @@ bucketListRoutes.post(
   }),
   authMiddleware,
   async (c) => {
-  const userId = c.get('userId');
-  const id = c.req.param('id');
+    const userId = c.get('userId')
+    const id = c.req.param('id')
 
-  // Get user's biography
-  const biography = await c.env.DB.prepare(
-    'SELECT id FROM biographies WHERE user_id = ?'
-  )
-    .bind(userId)
-    .first<{ id: string }>();
+    // Get user's biography
+    const biography = await c.env.DB.prepare('SELECT id FROM biographies WHERE user_id = ?')
+      .bind(userId)
+      .first<{ id: string }>()
 
-  if (!biography) {
-    return c.json(
-      {
-        success: false,
-        error: 'Not Found',
-        message: 'You need to create a biography first',
-      },
-      404
-    );
-  }
+    if (!biography) {
+      return c.json(
+        {
+          success: false,
+          error: 'Not Found',
+          message: 'You need to create a biography first',
+        },
+        404
+      )
+    }
 
-  // Get source item with owner info
-  const sourceItem = await c.env.DB.prepare(
-    `SELECT bli.*, b.id as source_biography_id, b.user_id as owner_id FROM bucket_list_items bli
+    // Get source item with owner info
+    const sourceItem = await c.env.DB.prepare(
+      `SELECT bli.*, b.id as source_biography_id, b.user_id as owner_id FROM bucket_list_items bli
      JOIN biographies b ON bli.biography_id = b.id
      WHERE bli.id = ? AND bli.is_public = 1`
-  )
-    .bind(id)
-    .first<{ id: string; title: string; category: string; description: string; target_grade: string; target_location: string; source_biography_id: string; owner_id: string }>();
+    )
+      .bind(id)
+      .first<{
+        id: string
+        title: string
+        category: string
+        description: string
+        target_grade: string
+        target_location: string
+        source_biography_id: string
+        owner_id: string
+      }>()
 
-  if (!sourceItem) {
-    return c.json(
-      {
-        success: false,
-        error: 'Not Found',
-        message: 'Bucket list item not found',
-      },
-      404
-    );
-  }
+    if (!sourceItem) {
+      return c.json(
+        {
+          success: false,
+          error: 'Not Found',
+          message: 'Bucket list item not found',
+        },
+        404
+      )
+    }
 
-  // Check if already referenced
-  const existingRef = await c.env.DB.prepare(
-    'SELECT id FROM bucket_list_references WHERE source_item_id = ? AND target_biography_id = ?'
-  )
-    .bind(id, biography.id)
-    .first<{ id: string }>();
+    // Check if already referenced
+    const existingRef = await c.env.DB.prepare(
+      'SELECT id FROM bucket_list_references WHERE source_item_id = ? AND target_biography_id = ?'
+    )
+      .bind(id, biography.id)
+      .first<{ id: string }>()
 
-  if (existingRef) {
-    return c.json(
-      {
-        success: false,
-        error: 'Conflict',
-        message: 'Already referenced',
-      },
-      409
-    );
-  }
+    if (existingRef) {
+      return c.json(
+        {
+          success: false,
+          error: 'Conflict',
+          message: 'Already referenced',
+        },
+        409
+      )
+    }
 
-  // Create reference record
-  const refId = generateId();
-  await c.env.DB.prepare(
-    'INSERT INTO bucket_list_references (id, source_item_id, target_biography_id) VALUES (?, ?, ?)'
-  )
-    .bind(refId, id, biography.id)
-    .run();
+    // Create reference record
+    const refId = generateId()
+    await c.env.DB.prepare(
+      'INSERT INTO bucket_list_references (id, source_item_id, target_biography_id) VALUES (?, ?, ?)'
+    )
+      .bind(refId, id, biography.id)
+      .run()
 
-  // Create new bucket list item for the user
-  const newItemId = generateId();
-  await c.env.DB.prepare(
-    `INSERT INTO bucket_list_items (
+    // Create new bucket list item for the user
+    const newItemId = generateId()
+    await c.env.DB.prepare(
+      `INSERT INTO bucket_list_items (
       id, biography_id, title, category, description,
       target_grade, target_location, status, is_public
     ) VALUES (?, ?, ?, ?, ?, ?, ?, 'active', 1)`
-  )
-    .bind(
-      newItemId,
-      biography.id,
-      sourceItem.title,
-      sourceItem.category,
-      sourceItem.description,
-      sourceItem.target_grade,
-      sourceItem.target_location
     )
-    .run();
+      .bind(
+        newItemId,
+        biography.id,
+        sourceItem.title,
+        sourceItem.category,
+        sourceItem.description,
+        sourceItem.target_grade,
+        sourceItem.target_location
+      )
+      .run()
 
-  // Update inspired count on source item
-  await c.env.DB.prepare(
-    'UPDATE bucket_list_items SET inspired_count = inspired_count + 1 WHERE id = ?'
-  )
-    .bind(id)
-    .run();
-
-  const newItem = await c.env.DB.prepare(
-    'SELECT * FROM bucket_list_items WHERE id = ?'
-  )
-    .bind(newItemId)
-    .first();
-
-  // Create notification for owner (if not referencing own item)
-  if (sourceItem.owner_id && sourceItem.owner_id !== userId) {
-    const referencer = await c.env.DB.prepare(
-      'SELECT display_name, username FROM users WHERE id = ?'
+    // Update inspired count on source item
+    await c.env.DB.prepare(
+      'UPDATE bucket_list_items SET inspired_count = inspired_count + 1 WHERE id = ?'
     )
-      .bind(userId)
-      .first<{ display_name: string | null; username: string }>();
+      .bind(id)
+      .run()
 
-    const referencerName = referencer?.display_name || referencer?.username || '有人';
+    const newItem = await c.env.DB.prepare('SELECT * FROM bucket_list_items WHERE id = ?')
+      .bind(newItemId)
+      .first()
 
-    await createNotification(c.env.DB, {
-      userId: sourceItem.owner_id,
-      type: 'goal_referenced',
-      actorId: userId,
-      targetId: id,
-      title: '有人也想達成你的目標',
-      message: `${referencerName} 把你的目標「${sourceItem.title}」加入了他的清單`,
-    });
+    // Create notification for owner (if not referencing own item)
+    if (sourceItem.owner_id && sourceItem.owner_id !== userId) {
+      const referencer = await c.env.DB.prepare(
+        'SELECT display_name, username FROM users WHERE id = ?'
+      )
+        .bind(userId)
+        .first<{ display_name: string | null; username: string }>()
+
+      const referencerName = referencer?.display_name || referencer?.username || '有人'
+
+      await createNotification(c.env.DB, {
+        userId: sourceItem.owner_id,
+        type: 'goal_referenced',
+        actorId: userId,
+        targetId: id,
+        title: '有人也想達成你的目標',
+        message: `${referencerName} 把你的目標「${sourceItem.title}」加入了他的清單`,
+      })
+    }
+
+    return c.json(
+      {
+        success: true,
+        data: newItem,
+        message: 'Added to your bucket list',
+      },
+      201
+    )
   }
-
-  return c.json(
-    {
-      success: true,
-      data: newItem,
-      message: 'Added to your bucket list',
-    },
-    201
-  );
-});
+)
 
 // DELETE /bucket-list/:id/reference - Remove item from my list (cancel reference)
 bucketListRoutes.delete(
@@ -1489,64 +1518,63 @@ bucketListRoutes.delete(
   }),
   authMiddleware,
   async (c) => {
-  const userId = c.get('userId');
-  const id = c.req.param('id');
+    const userId = c.get('userId')
+    const id = c.req.param('id')
 
-  // Get user's biography
-  const biography = await c.env.DB.prepare(
-    'SELECT id FROM biographies WHERE user_id = ?'
-  )
-    .bind(userId)
-    .first<{ id: string }>();
+    // Get user's biography
+    const biography = await c.env.DB.prepare('SELECT id FROM biographies WHERE user_id = ?')
+      .bind(userId)
+      .first<{ id: string }>()
 
-  if (!biography) {
-    return c.json(
-      {
-        success: false,
-        error: 'Not Found',
-        message: 'Biography not found',
-      },
-      404
-    );
+    if (!biography) {
+      return c.json(
+        {
+          success: false,
+          error: 'Not Found',
+          message: 'Biography not found',
+        },
+        404
+      )
+    }
+
+    // Check if reference exists
+    const reference = await c.env.DB.prepare(
+      'SELECT id FROM bucket_list_references WHERE source_item_id = ? AND target_biography_id = ?'
+    )
+      .bind(id, biography.id)
+      .first<{ id: string }>()
+
+    if (!reference) {
+      return c.json(
+        {
+          success: false,
+          error: 'Not Found',
+          message: 'Reference not found',
+        },
+        404
+      )
+    }
+
+    // Delete the reference
+    await c.env.DB.prepare(
+      'DELETE FROM bucket_list_references WHERE source_item_id = ? AND target_biography_id = ?'
+    )
+      .bind(id, biography.id)
+      .run()
+
+    // Update inspired count on source item
+    await c.env.DB.prepare(
+      'UPDATE bucket_list_items SET inspired_count = CASE WHEN inspired_count > 0 THEN inspired_count - 1 ELSE 0 END WHERE id = ?'
+    )
+      .bind(id)
+      .run()
+
+    return c.json({
+      success: true,
+      message: 'Reference removed successfully',
+    })
   }
-
-  // Check if reference exists
-  const reference = await c.env.DB.prepare(
-    'SELECT id FROM bucket_list_references WHERE source_item_id = ? AND target_biography_id = ?'
-  )
-    .bind(id, biography.id)
-    .first<{ id: string }>();
-
-  if (!reference) {
-    return c.json(
-      {
-        success: false,
-        error: 'Not Found',
-        message: 'Reference not found',
-      },
-      404
-    );
-  }
-
-  // Delete the reference
-  await c.env.DB.prepare(
-    'DELETE FROM bucket_list_references WHERE source_item_id = ? AND target_biography_id = ?'
-  )
-    .bind(id, biography.id)
-    .run();
-
-  // Update inspired count on source item
-  await c.env.DB.prepare(
-    'UPDATE bucket_list_items SET inspired_count = CASE WHEN inspired_count > 0 THEN inspired_count - 1 ELSE 0 END WHERE id = ?'
-  )
-    .bind(id)
-    .run();
-
-  return c.json({
-    success: true,
-    message: 'Reference removed successfully',
-  });
-});
+)
 
 // GET /bucket-list/:id/references - Get who referenced this item
 bucketListRoutes.get(
@@ -1560,20 +1588,21 @@ bucketListRoutes.get(
     },
   }),
   async (c) => {
-  const id = c.req.param('id');
+    const id = c.req.param('id')
 
-  const references = await c.env.DB.prepare(
-    `SELECT blr.*, b.name as referencer_name, b.avatar_url as referencer_avatar, b.slug as referencer_slug
+    const references = await c.env.DB.prepare(
+      `SELECT blr.*, b.name as referencer_name, b.avatar_url as referencer_avatar, b.slug as referencer_slug
      FROM bucket_list_references blr
      JOIN biographies b ON blr.target_biography_id = b.id
      WHERE blr.source_item_id = ? AND b.visibility = 'public'
      ORDER BY blr.created_at DESC`
-  )
-    .bind(id)
-    .all();
+    )
+      .bind(id)
+      .all()
 
-  return c.json({
-    success: true,
-    data: references.results,
-  });
-});
+    return c.json({
+      success: true,
+      data: references.results,
+    })
+  }
+)

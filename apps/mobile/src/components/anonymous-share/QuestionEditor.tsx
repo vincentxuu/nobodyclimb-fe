@@ -3,21 +3,21 @@
  *
  * 對應 apps/web/src/components/anonymous-share/QuestionEditor.tsx
  */
-import React, { useState } from 'react'
+
+import { BORDER_RADIUS, SEMANTIC_COLORS, SPACING } from '@nobodyclimb/constants'
+import { ChevronLeft } from 'lucide-react-native'
+import { useState } from 'react'
 import {
-  StyleSheet,
-  View,
-  TextInput,
   KeyboardAvoidingView,
   Platform,
-  ScrollView,
   Pressable,
+  ScrollView,
+  StyleSheet,
+  TextInput,
+  View,
 } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
-import { ChevronLeft } from 'lucide-react-native'
-
-import { Text, Button, Chip } from '@/components/ui'
-import { SEMANTIC_COLORS, SPACING, BORDER_RADIUS } from '@nobodyclimb/constants'
+import { Button, Chip, Text } from '@/components/ui'
 import type { Question, StoryInput } from './questions'
 
 interface QuestionEditorProps {
@@ -62,7 +62,9 @@ export function QuestionEditor({
       <View style={styles.header}>
         <Pressable style={styles.backButton} onPress={onCancel}>
           <ChevronLeft size={24} color={SEMANTIC_COLORS.textSubtle} />
-          <Text variant="body" color="subtle">返回</Text>
+          <Text variant="body" color="subtle">
+            返回
+          </Text>
         </Pressable>
         <View style={{ flex: 1 }} />
         <Button

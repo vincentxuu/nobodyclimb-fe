@@ -1,17 +1,17 @@
 'use client'
 
+import { Check, Link2, MessageCircle, Share } from 'lucide-react'
 import { useState } from 'react'
-import { Share, Link2, Check, MessageCircle } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
-  DropdownMenuTrigger,
   DropdownMenuSeparator,
+  DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
-import { cn } from '@/lib/utils'
 import { useToast } from '@/components/ui/use-toast'
+import { cn } from '@/lib/utils'
 
 interface ShareButtonProps {
   url?: string
@@ -97,8 +97,7 @@ export function ShareButton({
   }
 
   // 檢查是否支援原生分享
-  const supportsNativeShare =
-    typeof navigator !== 'undefined' && navigator.share !== undefined
+  const supportsNativeShare = typeof navigator !== 'undefined' && navigator.share !== undefined
 
   return (
     <DropdownMenu>

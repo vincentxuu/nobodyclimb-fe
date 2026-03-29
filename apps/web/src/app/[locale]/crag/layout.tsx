@@ -1,13 +1,29 @@
 import type { Metadata } from 'next'
 import { getTranslations } from 'next-intl/server'
-import { SITE_URL, SITE_NAME } from '@/lib/constants'
+import { SITE_NAME, SITE_URL } from '@/lib/constants'
 
 // 台灣主要岩場定義（集中管理，方便新增或修改）
 const FEATURED_CRAGS = [
-  { slug: 'longdong', name: '龍洞', description: '台灣最大天然岩場，超過 600 條攀岩路線，位於新北市貢寮區' },
-  { slug: 'kenting', name: '墾丁', description: '南台灣代表性珊瑚礁石灰岩運動攀登岩場，位於屏東縣恆春鎮' },
-  { slug: 'guanziling', name: '關子嶺', description: '台南知名石灰岩攀岩場地，以獨特泥漿溫泉和優質岩壁聞名' },
-  { slug: 'defulan', name: '德芙蘭', description: '台中和平區石英質砂岩岩場，混合運動攀登與傳統攀登路線' },
+  {
+    slug: 'longdong',
+    name: '龍洞',
+    description: '台灣最大天然岩場，超過 600 條攀岩路線，位於新北市貢寮區',
+  },
+  {
+    slug: 'kenting',
+    name: '墾丁',
+    description: '南台灣代表性珊瑚礁石灰岩運動攀登岩場，位於屏東縣恆春鎮',
+  },
+  {
+    slug: 'guanziling',
+    name: '關子嶺',
+    description: '台南知名石灰岩攀岩場地，以獨特泥漿溫泉和優質岩壁聞名',
+  },
+  {
+    slug: 'defulan',
+    name: '德芙蘭',
+    description: '台中和平區石英質砂岩岩場，混合運動攀登與傳統攀登路線',
+  },
   { slug: 'shoushan', name: '大砲岩', description: '高雄壽山天然岩場，適合初學者體驗戶外攀岩' },
 ] as const
 

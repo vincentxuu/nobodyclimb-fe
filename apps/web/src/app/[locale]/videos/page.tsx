@@ -1,24 +1,24 @@
 'use client'
 
-import React, { useState, useMemo, useEffect, useCallback } from 'react'
 import { useTranslations } from 'next-intl'
+import React, { useCallback, useEffect, useMemo, useState } from 'react'
+import { EmptyState } from '@/components/ui/empty-state'
+import { LoadMoreButton } from '@/components/ui/load-more-button'
+import { LoadingSpinner } from '@/components/ui/loading-spinner'
 import { PageHeader } from '@/components/ui/page-header'
 import { SearchInput } from '@/components/ui/search-input'
-import { LoadingSpinner } from '@/components/ui/loading-spinner'
-import { LoadMoreButton } from '@/components/ui/load-more-button'
-import { EmptyState } from '@/components/ui/empty-state'
-import VideoGrid from '@/components/videos/video-grid'
-import VideoPlayer from '@/components/videos/video-player'
-import VideoFilters from '@/components/videos/video-filters'
 import ChannelFilter from '@/components/videos/channel-filter'
 import DurationFilter from '@/components/videos/duration-filter'
 import PopularityFilter from '@/components/videos/popularity-filter'
+import VideoFilters from '@/components/videos/video-filters'
+import VideoGrid from '@/components/videos/video-grid'
+import VideoPlayer from '@/components/videos/video-player'
 import type { Video, VideoCategory, VideoDuration, VideoPopularity } from '@/lib/types'
 import {
-  parseDuration,
-  parseViewCount,
   getDurationCategory,
   getPopularityCategory,
+  parseDuration,
+  parseViewCount,
 } from '@/lib/utils/video'
 
 // 輕量版影片資料（僅包含列表所需欄位）
@@ -66,21 +66,24 @@ const VideosPage: React.FC = () => {
   const [visibleCount, setVisibleCount] = useState(12)
 
   // 載入單個 chunk
-  const loadChunk = useCallback(async (chunkIndex: number) => {
-    if (loadedChunks.has(chunkIndex)) return []
+  const loadChunk = useCallback(
+    async (chunkIndex: number) => {
+      if (loadedChunks.has(chunkIndex)) return []
 
-    try {
-      const response = await fetch(`/data/videos-chunks/videos-${chunkIndex}.json`)
-      if (response.ok) {
-        const videos: VideoListItem[] = await response.json()
-        setLoadedChunks((prev) => new Set([...prev, chunkIndex]))
-        return videos
+      try {
+        const response = await fetch(`/data/videos-chunks/videos-${chunkIndex}.json`)
+        if (response.ok) {
+          const videos: VideoListItem[] = await response.json()
+          setLoadedChunks((prev) => new Set([...prev, chunkIndex]))
+          return videos
+        }
+      } catch (error) {
+        console.error(`Error loading chunk ${chunkIndex}:`, error)
       }
-    } catch (error) {
-      console.error(`Error loading chunk ${chunkIndex}:`, error)
-    }
-    return []
-  }, [loadedChunks])
+      return []
+    },
+    [loadedChunks]
+  )
 
   // 初始載入 metadata、頻道索引和第一個 chunk
   useEffect(() => {
@@ -208,7 +211,14 @@ const VideosPage: React.FC = () => {
     }
 
     return filtered
-  }, [videoList, searchQuery, selectedCategory, selectedChannel, selectedDuration, selectedPopularity])
+  }, [
+    videoList,
+    searchQuery,
+    selectedCategory,
+    selectedChannel,
+    selectedDuration,
+    selectedPopularity,
+  ])
 
   // 分頁顯示的影片
   const visibleVideos = filteredVideos.slice(0, visibleCount)
@@ -400,9 +410,7 @@ const VideosPage: React.FC = () => {
             )}
 
             {/* 無影片資料提示 */}
-            {videoList.length === 0 && (
-              <EmptyState icon="video" title={t('noVideos')} />
-            )}
+            {videoList.length === 0 && <EmptyState icon="video" title={t('noVideos')} />}
 
             {/* 影片播放器彈窗 */}
             {selectedVideo && <VideoPlayer video={selectedVideo} onClose={handleClosePlayer} />}

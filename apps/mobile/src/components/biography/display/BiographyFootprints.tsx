@@ -3,14 +3,14 @@
  *
  * 攀岩足跡展示，對應 apps/web/src/components/biography/display/BiographyFootprints.tsx
  */
-import React, { useState, useEffect } from 'react'
-import { StyleSheet, View, Pressable, ActivityIndicator } from 'react-native'
-import { MapPin, Calendar, ChevronDown, ChevronUp } from 'lucide-react-native'
-import Animated, { FadeInDown, FadeIn } from 'react-native-reanimated'
 
-import { apiClient } from '@/lib/api'
-import { Text, Card } from '@/components/ui'
 import { RADIUS, SEMANTIC_COLORS, SPACING, WB_COLORS } from '@nobodyclimb/constants'
+import { Calendar, ChevronDown, ChevronUp, MapPin } from 'lucide-react-native'
+import { useEffect, useState } from 'react'
+import { ActivityIndicator, Pressable, StyleSheet, View } from 'react-native'
+import Animated, { FadeIn, FadeInDown } from 'react-native-reanimated'
+import { Text } from '@/components/ui'
+import { apiClient } from '@/lib/api'
 
 // 類型定義
 interface ClimbingLocationRecord {
@@ -98,19 +98,12 @@ function TimelineLocationItem({
         {/* 筆記內容 */}
         {hasNotes && (
           <View style={styles.notesContainer}>
-            <Text
-              variant="small"
-              color="textSubtle"
-              numberOfLines={isExpanded ? undefined : 2}
-            >
+            <Text variant="small" color="textSubtle" numberOfLines={isExpanded ? undefined : 2}>
               {location.notes}
             </Text>
 
             {shouldShowExpandButton && (
-              <Pressable
-                style={styles.expandButton}
-                onPress={() => setIsExpanded(!isExpanded)}
-              >
+              <Pressable style={styles.expandButton} onPress={() => setIsExpanded(!isExpanded)}>
                 <Text variant="small" fontWeight="500" color="textSubtle">
                   {isExpanded ? '收合' : '展開更多'}
                 </Text>
@@ -131,13 +124,7 @@ function TimelineLocationItem({
 /**
  * 時間軸年份區塊
  */
-function TimelineYearSection({
-  yearData,
-  index,
-}: {
-  yearData: TimelineYear
-  index: number
-}) {
+function TimelineYearSection({ yearData, index }: { yearData: TimelineYear; index: number }) {
   return (
     <Animated.View
       entering={FadeInDown.delay(index * 100).duration(400)}
@@ -334,10 +321,7 @@ export function BiographyFootprints({ biography }: BiographyFootprintsProps) {
         </View>
 
         {/* 時間軸結尾 */}
-        <Animated.View
-          entering={FadeIn.delay(300)}
-          style={styles.timelineEnd}
-        >
+        <Animated.View entering={FadeIn.delay(300)} style={styles.timelineEnd}>
           <View style={styles.endDot} />
           <Text variant="small" fontStyle="italic" color="textMuted">
             持續探索中...

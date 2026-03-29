@@ -3,15 +3,16 @@
  *
  * 開關切換，與 apps/web/src/components/ui/switch.tsx 對應
  */
+
+import { DURATION, SEMANTIC_COLORS, WB_COLORS } from '@nobodyclimb/constants'
 import React, { useCallback } from 'react'
 import { Pressable, StyleSheet } from 'react-native'
 import Animated, {
+  interpolateColor,
   useAnimatedStyle,
   useSharedValue,
   withTiming,
-  interpolateColor,
 } from 'react-native-reanimated'
-import { DURATION, SEMANTIC_COLORS, WB_COLORS } from '@nobodyclimb/constants'
 
 export interface SwitchProps {
   /** 是否選中 */
@@ -73,11 +74,7 @@ export function Switch({
     <AnimatedPressable
       onPress={handlePress}
       disabled={disabled}
-      style={[
-        styles.track,
-        { width, height, borderRadius: height / 2 },
-        trackStyle,
-      ]}
+      style={[styles.track, { width, height, borderRadius: height / 2 }, trackStyle]}
     >
       <Animated.View
         style={[

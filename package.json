@@ -17,18 +17,18 @@
     "build": "turbo run build",
     "build:web": "turbo run build --filter=@nobodyclimb/web",
     "build:cf": "turbo run build:cf --filter=@nobodyclimb/web",
-    "lint": "turbo run lint",
+    "lint": "biome check .",
     "test": "turbo run test",
     "typecheck": "turbo run typecheck",
-    "format": "prettier --write \"**/*.{ts,tsx,js,jsx,json,md}\"",
-    "format:check": "prettier --check \"**/*.{ts,tsx,js,jsx,json,md}\"",
+    "format": "biome format --write .",
+    "format:check": "biome format .",
     "android": "expo run:android",
     "ios": "expo run:ios"
   },
   "devDependencies": {
+    "@biomejs/biome": "^2.4.9",
     "turbo": "^2.3.0",
-    "typescript": "^5.9.2",
-    "prettier": "^3.6.2"
+    "typescript": "^5.9.2"
   },
   "version": "1.0.0",
   "dependencies": {

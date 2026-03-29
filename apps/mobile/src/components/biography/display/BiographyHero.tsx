@@ -3,22 +3,14 @@
  *
  * Hero 區塊，對應 apps/web/src/components/biography/display/BiographyHero.tsx
  */
-import React, { useState } from 'react'
-import { StyleSheet, View, Pressable, Linking } from 'react-native'
+
+import { RADIUS, SEMANTIC_COLORS, SPACING, WB_COLORS } from '@nobodyclimb/constants'
 import { Image } from 'expo-image'
 import { LinearGradient } from 'expo-linear-gradient'
-import {
-  Clock,
-  BarChart3,
-  Globe,
-  Eye,
-  Users,
-  MessageCircle,
-  Share2,
-} from 'lucide-react-native'
-
-import { Text, Avatar, IconButton } from '@/components/ui'
-import { RADIUS, SEMANTIC_COLORS, SPACING, WB_COLORS } from '@nobodyclimb/constants'
+import { BarChart3, Clock, Eye, Globe, MessageCircle, Share2, Users } from 'lucide-react-native'
+import { useState } from 'react'
+import { Linking, Pressable, StyleSheet, View } from 'react-native'
+import { Avatar, Text } from '@/components/ui'
 
 // 類型定義
 interface SocialLinks {
@@ -57,22 +49,16 @@ function SocialIconButton({ platform, value }: SocialIconButtonProps) {
     let url = value
     switch (platform) {
       case 'instagram':
-        url = value.startsWith('http')
-          ? value
-          : `https://instagram.com/${value.replace('@', '')}`
+        url = value.startsWith('http') ? value : `https://instagram.com/${value.replace('@', '')}`
         break
       case 'youtube':
-        url = value.startsWith('http')
-          ? value
-          : `https://youtube.com/@${value.replace('@', '')}`
+        url = value.startsWith('http') ? value : `https://youtube.com/@${value.replace('@', '')}`
         break
       case 'facebook':
         url = value.startsWith('http') ? value : `https://facebook.com/${value}`
         break
       case 'threads':
-        url = value.startsWith('http')
-          ? value
-          : `https://threads.net/@${value.replace('@', '')}`
+        url = value.startsWith('http') ? value : `https://threads.net/@${value.replace('@', '')}`
         break
       case 'website':
         url = value.startsWith('http') ? value : `https://${value}`
@@ -82,11 +68,7 @@ function SocialIconButton({ platform, value }: SocialIconButtonProps) {
   }
 
   return (
-    <Pressable
-      style={styles.socialButton}
-      onPress={handlePress}
-      accessibilityLabel={platform}
-    >
+    <Pressable style={styles.socialButton} onPress={handlePress} accessibilityLabel={platform}>
       <Globe size={16} color={SEMANTIC_COLORS.textSubtle} />
     </Pressable>
   )
@@ -152,15 +134,14 @@ export function BiographyHero({
       <View style={styles.coverContainer}>
         <Image
           source={{
-            uri: biography.cover_url || `https://api.dicebear.com/7.x/shapes/svg?seed=${biography.id || 'default'}`,
+            uri:
+              biography.cover_url ||
+              `https://api.dicebear.com/7.x/shapes/svg?seed=${biography.id || 'default'}`,
           }}
           style={styles.coverImage}
           contentFit="cover"
         />
-        <LinearGradient
-          colors={['transparent', 'rgba(0,0,0,0.3)']}
-          style={styles.gradient}
-        />
+        <LinearGradient colors={['transparent', 'rgba(0,0,0,0.3)']} style={styles.gradient} />
       </View>
 
       {/* 個人資訊區 */}
@@ -205,18 +186,19 @@ export function BiographyHero({
                 </Text>
               </View>
 
-              {biography.frequent_locations &&
-                biography.frequent_locations.length > 0 && (
-                  <>
-                    <Text variant="small" color="textMuted">·</Text>
-                    <View style={styles.metaItem}>
-                      <BarChart3 size={14} color={SEMANTIC_COLORS.textSubtle} />
-                      <Text variant="small" color="textSubtle">
-                        常出沒：{biography.frequent_locations.join('、')}
-                      </Text>
-                    </View>
-                  </>
-                )}
+              {biography.frequent_locations && biography.frequent_locations.length > 0 && (
+                <>
+                  <Text variant="small" color="textMuted">
+                    ·
+                  </Text>
+                  <View style={styles.metaItem}>
+                    <BarChart3 size={14} color={SEMANTIC_COLORS.textSubtle} />
+                    <Text variant="small" color="textSubtle">
+                      常出沒：{biography.frequent_locations.join('、')}
+                    </Text>
+                  </View>
+                </>
+              )}
             </View>
 
             {/* 社群連結 */}
@@ -241,10 +223,7 @@ export function BiographyHero({
               {/* 追蹤按鈕 */}
               {!isOwner && biography.id && (
                 <Pressable
-                  style={[
-                    styles.followButton,
-                    isFollowing && styles.followingButton,
-                  ]}
+                  style={[styles.followButton, isFollowing && styles.followingButton]}
                   onPress={handleFollow}
                 >
                   <Text

@@ -1,15 +1,15 @@
 'use client'
 
-import React, { useState, useMemo } from 'react'
-import { MapPin, Filter, Loader2, Star } from 'lucide-react'
-import BackToTop from '@/components/ui/back-to-top'
+import { Filter, Loader2, MapPin, Star } from 'lucide-react'
+import { useTranslations } from 'next-intl'
+import { useMemo, useState } from 'react'
 import { GymCoverGenerator } from '@/components/shared/GymCoverGenerator'
+import BackToTop from '@/components/ui/back-to-top'
 import { Breadcrumb } from '@/components/ui/breadcrumb'
 import { PageHeader } from '@/components/ui/page-header'
 import { useGyms } from '@/hooks/api/useGyms'
-import type { GymListItem } from '@/lib/gym-data'
-import { useTranslations } from 'next-intl'
 import { Link } from '@/i18n/navigation'
+import type { GymListItem } from '@/lib/gym-data'
 
 // 岩館卡片組件（使用 CSS 動畫）
 function GymCard({ gym }: { gym: GymListItem }) {
@@ -116,7 +116,9 @@ export default function GymListPage() {
       <div className="container mx-auto px-4 py-6">
         {/* Breadcrumb */}
         <div className="mb-8">
-          <Breadcrumb items={[{ label: t('breadcrumbHome'), href: '/' }, { label: t('breadcrumbGyms') }]} />
+          <Breadcrumb
+            items={[{ label: t('breadcrumbHome'), href: '/' }, { label: t('breadcrumbGyms') }]}
+          />
         </div>
 
         {/* 篩選區塊 */}
@@ -194,9 +196,7 @@ export default function GymListPage() {
         {!isLoading && !error && (
           <>
             <div className="mb-4">
-              <p className="text-sm text-gray-500">
-                {t('resultCount', { count: gyms.length })}
-              </p>
+              <p className="text-sm text-gray-500">{t('resultCount', { count: gyms.length })}</p>
             </div>
 
             {/* 攀岩館列表 */}

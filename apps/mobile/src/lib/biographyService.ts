@@ -22,9 +22,7 @@ export const biographyService = {
    */
   async getLikeStatus(biographyId: string): Promise<ApiResponse<LikeStatusResponse>> {
     try {
-      const response = await apiClient.get<LikeStatusResponse>(
-        `/biographies/${biographyId}/like`
-      )
+      const response = await apiClient.get<LikeStatusResponse>(`/biographies/${biographyId}/like`)
       return { success: true, data: response.data }
     } catch (error) {
       console.error('[biographyService] getLikeStatus error:', error)
@@ -37,9 +35,7 @@ export const biographyService = {
    */
   async toggleLike(biographyId: string): Promise<ApiResponse<LikeStatusResponse>> {
     try {
-      const response = await apiClient.post<LikeStatusResponse>(
-        `/biographies/${biographyId}/like`
-      )
+      const response = await apiClient.post<LikeStatusResponse>(`/biographies/${biographyId}/like`)
       return { success: true, data: response.data }
     } catch (error) {
       console.error('[biographyService] toggleLike error:', error)
@@ -50,7 +46,9 @@ export const biographyService = {
   /**
    * 取得追蹤狀態
    */
-  async getFollowStatus(biographyId: string): Promise<ApiResponse<{ following: boolean; followers: number }>> {
+  async getFollowStatus(
+    biographyId: string
+  ): Promise<ApiResponse<{ following: boolean; followers: number }>> {
     try {
       const response = await apiClient.get<{ following: boolean; followers: number }>(
         `/biographies/${biographyId}/follow`
@@ -65,7 +63,9 @@ export const biographyService = {
   /**
    * 切換追蹤狀態
    */
-  async toggleFollow(biographyId: string): Promise<ApiResponse<{ following: boolean; followers: number }>> {
+  async toggleFollow(
+    biographyId: string
+  ): Promise<ApiResponse<{ following: boolean; followers: number }>> {
     try {
       const response = await apiClient.post<{ following: boolean; followers: number }>(
         `/biographies/${biographyId}/follow`
@@ -80,7 +80,9 @@ export const biographyService = {
   /**
    * 追蹤
    */
-  async follow(biographyId: string): Promise<ApiResponse<{ following: boolean; followers: number }>> {
+  async follow(
+    biographyId: string
+  ): Promise<ApiResponse<{ following: boolean; followers: number }>> {
     try {
       const response = await apiClient.post<{ following: boolean; followers: number }>(
         `/biographies/${biographyId}/follow`
@@ -95,7 +97,9 @@ export const biographyService = {
   /**
    * 取消追蹤
    */
-  async unfollow(biographyId: string): Promise<ApiResponse<{ following: boolean; followers: number }>> {
+  async unfollow(
+    biographyId: string
+  ): Promise<ApiResponse<{ following: boolean; followers: number }>> {
     try {
       const response = await apiClient.delete<{ following: boolean; followers: number }>(
         `/biographies/${biographyId}/follow`
@@ -219,15 +223,11 @@ export const biographyService = {
    */
   async uploadImage(formData: FormData): Promise<ApiResponse<{ url: string }>> {
     try {
-      const response = await apiClient.post<{ url: string }>(
-        '/biographies/me/image',
-        formData,
-        {
-          headers: {
-            'Content-Type': 'multipart/form-data',
-          },
-        }
-      )
+      const response = await apiClient.post<{ url: string }>('/biographies/me/image', formData, {
+        headers: {
+          'Content-Type': 'multipart/form-data',
+        },
+      })
       return { success: true, data: response.data }
     } catch (error) {
       console.error('[biographyService] uploadImage error:', error)

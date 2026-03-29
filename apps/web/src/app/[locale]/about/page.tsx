@@ -1,20 +1,20 @@
 'use client'
 
 import { motion } from 'framer-motion'
-import Image from 'next/image'
-import { Link } from '@/i18n/navigation'
 import {
-  MountainSnow,
-  Users,
   BookOpen,
-  MapPin,
-  Video,
+  Building2,
   Camera,
   FileText,
-  Building2,
+  MapPin,
+  MountainSnow,
+  Users,
+  Video,
 } from 'lucide-react'
-import { Button } from '@/components/ui/button'
+import Image from 'next/image'
 import { PageTransition } from '@/components/shared/page-transition'
+import { Button } from '@/components/ui/button'
+import { Link } from '@/i18n/navigation'
 import { useAboutStats } from '@/lib/hooks/useAboutStats'
 
 // 動畫配置
@@ -97,7 +97,8 @@ function StorySection() {
                 在攀岩的路上，我們都是小人物。不論你是剛踏入岩館的新手，還是征戰各大岩場的老手，每個人都有屬於自己的故事、自己的掙扎、自己的突破。
               </p>
               <p className="leading-relaxed">
-                我們希望打造一個平台，讓每位攀岩愛好者都能找到資訊、分享故事、建立連結。因為在這裡，每個 Nobody 都值得被看見。
+                我們希望打造一個平台，讓每位攀岩愛好者都能找到資訊、分享故事、建立連結。因為在這裡，每個
+                Nobody 都值得被看見。
               </p>
             </div>
           </motion.div>
@@ -110,12 +111,7 @@ function StorySection() {
             transition={{ duration: 0.6 }}
             className="flex aspect-[4/3] items-center justify-center"
           >
-            <Image
-              src="/logo512.png"
-              alt="小人物攀岩 Logo"
-              width={240}
-              height={240}
-            />
+            <Image src="/logo512.png" alt="小人物攀岩 Logo" width={240} height={240} />
           </motion.div>
         </div>
       </div>
@@ -173,7 +169,9 @@ function MissionSection() {
               variants={fadeInUp}
               className="rounded-lg bg-white p-8 text-center shadow-sm transition-shadow hover:shadow-md"
             >
-              <div className={`mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full ${mission.color}`}>
+              <div
+                className={`mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full ${mission.color}`}
+              >
                 <mission.icon className="h-8 w-8 text-brand-dark" />
               </div>
               <h3 className="mb-3 text-xl font-semibold text-[#1B1A1A]">{mission.title}</h3>
@@ -352,9 +350,7 @@ function CTASection() {
             height={80}
             className="mb-8"
           />
-          <h2 className="text-3xl font-bold text-[#1B1A1A] md:text-4xl">
-            成為小人物的一份子
-          </h2>
+          <h2 className="text-3xl font-bold text-[#1B1A1A] md:text-4xl">成為小人物的一份子</h2>
           <div className="mx-auto my-4 h-1 w-12 bg-[#1B1A1A]" />
           <p className="mx-auto mb-8 max-w-xl text-[#6D6C6C]">
             加入我們的社群，和其他攀岩愛好者一起分享、學習、成長

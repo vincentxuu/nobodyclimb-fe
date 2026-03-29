@@ -1,20 +1,20 @@
 'use client'
 
+import { zodResolver } from '@hookform/resolvers/zod'
+import { Check, Image as ImageIcon, Instagram, Plus, X, Youtube } from 'lucide-react'
 import * as React from 'react'
 import { useForm } from 'react-hook-form'
-import { zodResolver } from '@hookform/resolvers/zod'
-import { Check, X, Plus, Youtube, Instagram, Image as ImageIcon } from 'lucide-react'
-import { cn } from '@/lib/utils'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
-import { Textarea } from '@/components/ui/textarea'
 import { Label } from '@/components/ui/label'
-import { bucketListCompleteSchema, type BucketListCompleteSchema } from '@/lib/schemas/bucket-list'
+import { Textarea } from '@/components/ui/textarea'
+import { type BucketListCompleteSchema, bucketListCompleteSchema } from '@/lib/schemas/bucket-list'
 import type { BucketListItem } from '@/lib/types'
+import { cn } from '@/lib/utils'
 
 interface BucketListCompletionFormProps {
   item: BucketListItem
-  onSubmit: (data: BucketListCompleteSchema) => void  // eslint-disable-line no-unused-vars
+  onSubmit: (data: BucketListCompleteSchema) => void // eslint-disable-line no-unused-vars
   onCancel: () => void
   isLoading?: boolean
   className?: string
@@ -209,9 +209,7 @@ export function BucketListCompletionForm({
                   key={videoId}
                   className="flex items-center justify-between rounded bg-gray-50 px-3 py-2"
                 >
-                  <span className="text-sm text-gray-600">
-                    youtube.com/watch?v={videoId}
-                  </span>
+                  <span className="text-sm text-gray-600">youtube.com/watch?v={videoId}</span>
                   <button
                     type="button"
                     onClick={() => removeYoutubeVideo(videoId)}
@@ -232,12 +230,7 @@ export function BucketListCompletionForm({
               placeholder="貼上 YouTube 影片網址"
               className="flex-1"
             />
-            <Button
-              type="button"
-              variant="secondary"
-              size="sm"
-              onClick={addYoutubeVideo}
-            >
+            <Button type="button" variant="secondary" size="sm" onClick={addYoutubeVideo}>
               <Plus className="h-4 w-4" />
             </Button>
           </div>
@@ -258,9 +251,7 @@ export function BucketListCompletionForm({
                   key={shortcode}
                   className="flex items-center justify-between rounded bg-gray-50 px-3 py-2"
                 >
-                  <span className="text-sm text-gray-600">
-                    instagram.com/p/{shortcode}
-                  </span>
+                  <span className="text-sm text-gray-600">instagram.com/p/{shortcode}</span>
                   <button
                     type="button"
                     onClick={() => removeInstagramPost(shortcode)}
@@ -281,12 +272,7 @@ export function BucketListCompletionForm({
               placeholder="貼上 Instagram 貼文網址"
               className="flex-1"
             />
-            <Button
-              type="button"
-              variant="secondary"
-              size="sm"
-              onClick={addInstagramPost}
-            >
+            <Button type="button" variant="secondary" size="sm" onClick={addInstagramPost}>
               <Plus className="h-4 w-4" />
             </Button>
           </div>

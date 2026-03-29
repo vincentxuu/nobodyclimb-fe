@@ -3,22 +3,22 @@
  * 對應 apps/web/src/lib/constants/badges.ts
  */
 
+import { BRAND_YELLOW, SEMANTIC_COLORS, WB_COLORS } from '@nobodyclimb/constants'
 import type { LucideIcon } from 'lucide-react-native'
 import {
-  Sprout,
-  Edit3,
-  Sparkles,
-  Flame,
-  Target,
   Award,
-  Trophy,
-  Mountain,
-  MessageCircle,
+  Edit3,
   Eye,
+  Flame,
   Globe,
+  MessageCircle,
+  Mountain,
   Plane,
+  Sparkles,
+  Sprout,
+  Target,
+  Trophy,
 } from 'lucide-react-native'
-import { SEMANTIC_COLORS, BRAND_YELLOW, WB_COLORS } from '@nobodyclimb/constants'
 
 /**
  * 徽章分類

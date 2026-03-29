@@ -1,9 +1,9 @@
 'use client'
 
-import { useRouter } from 'next/navigation'
+import { AnimatePresence, motion } from 'framer-motion'
 import { X } from 'lucide-react'
+import { useRouter } from 'next/navigation'
 import { useUIStore } from '@/store/uiStore'
-import { motion, AnimatePresence } from 'framer-motion'
 
 /**
  * 桌面版搜尋框組件

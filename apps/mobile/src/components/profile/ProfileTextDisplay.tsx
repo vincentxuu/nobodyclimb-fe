@@ -1,8 +1,8 @@
-import React, { useState, useMemo } from 'react'
-import { View, Pressable } from 'react-native'
-import { Text } from '../ui/Text'
-import { Icon } from '../ui/Icon'
 import { COLORS, SEMANTIC_COLORS, WB_COLORS } from '@nobodyclimb/constants'
+import { useMemo, useState } from 'react'
+import { Pressable, View } from 'react-native'
+import { Icon } from '../ui/Icon'
+import { Text } from '../ui/Text'
 
 interface ProfileTextDisplayProps {
   text: string

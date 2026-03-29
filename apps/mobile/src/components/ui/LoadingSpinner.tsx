@@ -3,9 +3,9 @@
  *
  * 簡單的載入指示器
  */
-import React from 'react'
-import { ActivityIndicator, View, StyleSheet, ViewStyle } from 'react-native'
+
 import { SEMANTIC_COLORS } from '@nobodyclimb/constants'
+import { ActivityIndicator, StyleSheet, View, ViewStyle } from 'react-native'
 
 export interface LoadingSpinnerProps {
   /** 尺寸 */

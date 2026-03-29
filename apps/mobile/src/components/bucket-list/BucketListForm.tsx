@@ -4,26 +4,26 @@
  * 心願清單表單，用於新增/編輯心願清單項目
  * 對應 apps/web/src/components/bucket-list/bucket-list-form.tsx
  */
-import React, { useState, useCallback } from 'react'
-import { StyleSheet, View, ScrollView, Pressable } from 'react-native'
-import { useForm, Controller } from 'react-hook-form'
+
 import { zodResolver } from '@hookform/resolvers/zod'
-import { Plus, Trash2 } from 'lucide-react-native'
 import { RADIUS, SEMANTIC_COLORS, SPACING, WB_COLORS } from '@nobodyclimb/constants'
 import {
-  createBucketListSchema,
-  BUCKET_LIST_CATEGORIES,
   type CreateBucketListInput,
+  createBucketListSchema,
   type MilestoneInput,
 } from '@nobodyclimb/schemas'
-import type { BucketListItem, Milestone } from '@nobodyclimb/types'
-import { Text } from '../ui/Text'
+import type { BucketListItem } from '@nobodyclimb/types'
+import { Plus, Trash2 } from 'lucide-react-native'
+import { useCallback, useState } from 'react'
+import { Controller, useForm } from 'react-hook-form'
+import { Pressable, ScrollView, StyleSheet, View } from 'react-native'
 import { Button } from '../ui/Button'
 import { Input } from '../ui/Input'
-import { TextArea } from '../ui/TextArea'
 import { Label } from '../ui/Label'
-import { Switch } from '../ui/Switch'
 import { Select } from '../ui/Select'
+import { Switch } from '../ui/Switch'
+import { Text } from '../ui/Text'
+import { TextArea } from '../ui/TextArea'
 
 // 分類選項
 const categoryOptions = [
@@ -85,7 +85,7 @@ export function BucketListForm({
   const enableProgress = watch('enable_progress')
   const progressMode = watch('progress_mode')
   const milestones = watch('milestones') || []
-  const category = watch('category')
+  const _category = watch('category')
 
   // 新增里程碑
   const addMilestone = useCallback(() => {
@@ -117,9 +117,7 @@ export function BucketListForm({
     (id: string, field: keyof MilestoneInput, value: unknown) => {
       setValue(
         'milestones',
-        (milestones || []).map((m) =>
-          m.id === id ? { ...m, [field]: value } : m
-        )
+        (milestones || []).map((m) => (m.id === id ? { ...m, [field]: value } : m))
       )
     },
     [milestones, setValue]
@@ -132,11 +130,46 @@ export function BucketListForm({
       if (mode === 'milestone' && (!milestones || milestones.length === 0)) {
         // 預設新增 5 個里程碑
         setValue('milestones', [
-          { id: '1', title: '里程碑 1', percentage: 20, completed: false, completed_at: null, note: null },
-          { id: '2', title: '里程碑 2', percentage: 40, completed: false, completed_at: null, note: null },
-          { id: '3', title: '里程碑 3', percentage: 60, completed: false, completed_at: null, note: null },
-          { id: '4', title: '里程碑 4', percentage: 80, completed: false, completed_at: null, note: null },
-          { id: '5', title: '達成目標', percentage: 100, completed: false, completed_at: null, note: null },
+          {
+            id: '1',
+            title: '里程碑 1',
+            percentage: 20,
+            completed: false,
+            completed_at: null,
+            note: null,
+          },
+          {
+            id: '2',
+            title: '里程碑 2',
+            percentage: 40,
+            completed: false,
+            completed_at: null,
+            note: null,
+          },
+          {
+            id: '3',
+            title: '里程碑 3',
+            percentage: 60,
+            completed: false,
+            completed_at: null,
+            note: null,
+          },
+          {
+            id: '4',
+            title: '里程碑 4',
+            percentage: 80,
+            completed: false,
+            completed_at: null,
+            note: null,
+          },
+          {
+            id: '5',
+            title: '達成目標',
+            percentage: 100,
+            completed: false,
+            completed_at: null,
+            note: null,
+          },
         ])
       } else if (mode === 'manual') {
         setValue('milestones', [])
@@ -230,11 +263,7 @@ export function BucketListForm({
             control={control}
             name="target_grade"
             render={({ field: { onChange, value } }) => (
-              <Input
-                value={value || ''}
-                onChangeText={onChange}
-                placeholder="例如：5.12a / V6"
-              />
+              <Input value={value || ''} onChangeText={onChange} placeholder="例如：5.12a / V6" />
             )}
           />
         </View>
@@ -246,11 +275,7 @@ export function BucketListForm({
             control={control}
             name="target_location"
             render={({ field: { onChange, value } }) => (
-              <Input
-                value={value || ''}
-                onChangeText={onChange}
-                placeholder="例如：龍洞"
-              />
+              <Input value={value || ''} onChangeText={onChange} placeholder="例如：龍洞" />
             )}
           />
         </View>
@@ -262,11 +287,7 @@ export function BucketListForm({
             control={control}
             name="target_date"
             render={({ field: { onChange, value } }) => (
-              <Input
-                value={value || ''}
-                onChangeText={onChange}
-                placeholder="例如：2026-06-01"
-              />
+              <Input value={value || ''} onChangeText={onChange} placeholder="例如：2026-06-01" />
             )}
           />
         </View>
@@ -308,10 +329,7 @@ export function BucketListForm({
               <View style={styles.modeButtons}>
                 <Pressable
                   onPress={() => handleProgressModeChange('manual')}
-                  style={[
-                    styles.modeButton,
-                    progressMode === 'manual' && styles.modeButtonActive,
-                  ]}
+                  style={[styles.modeButton, progressMode === 'manual' && styles.modeButtonActive]}
                 >
                   <Text
                     variant="bodyBold"
@@ -380,9 +398,7 @@ export function BucketListForm({
                       </Text>
                       <Input
                         value={milestone.title}
-                        onChangeText={(text) =>
-                          updateMilestone(milestone.id, 'title', text)
-                        }
+                        onChangeText={(text) => updateMilestone(milestone.id, 'title', text)}
                         placeholder="里程碑名稱"
                         containerStyle={styles.milestoneInput}
                       />
@@ -398,7 +414,9 @@ export function BucketListForm({
                         keyboardType="numeric"
                         containerStyle={styles.milestonePercentage}
                       />
-                      <Text variant="caption" color="textSubtle">%</Text>
+                      <Text variant="caption" color="textSubtle">
+                        %
+                      </Text>
                       <Pressable
                         onPress={() => removeMilestone(milestone.id)}
                         style={styles.milestoneDelete}
@@ -444,12 +462,7 @@ export function BucketListForm({
 
       {/* 按鈕 */}
       <View style={styles.buttons}>
-        <Button
-          variant="ghost"
-          onPress={onCancel}
-          disabled={isLoading}
-          style={styles.button}
-        >
+        <Button variant="ghost" onPress={onCancel} disabled={isLoading} style={styles.button}>
           取消
         </Button>
         <Button
@@ -474,11 +487,7 @@ export interface QuickAddFormProps {
   isLoading?: boolean
 }
 
-export function QuickAddForm({
-  onSubmit,
-  onCancel,
-  isLoading = false,
-}: QuickAddFormProps) {
+export function QuickAddForm({ onSubmit, onCancel, isLoading = false }: QuickAddFormProps) {
   const [title, setTitle] = useState('')
 
   const handleSubmit = useCallback(() => {
@@ -496,12 +505,7 @@ export function QuickAddForm({
         containerStyle={styles.quickAddInput}
         autoFocus
       />
-      <Button
-        variant="primary"
-        onPress={handleSubmit}
-        disabled={!title.trim()}
-        loading={isLoading}
-      >
+      <Button variant="primary" onPress={handleSubmit} disabled={!title.trim()} loading={isLoading}>
         新增
       </Button>
       <Pressable onPress={onCancel} style={styles.quickAddCancel}>

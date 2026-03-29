@@ -1,25 +1,25 @@
 'use client'
 
-import React, { use, useState, useMemo, useCallback } from 'react'
-import { Link } from '@/i18n/navigation'
+import { AnimatePresence, motion } from 'framer-motion'
+import { ArrowLeft, ExternalLink, List, Loader2, MapPin, X } from 'lucide-react'
 import { useRouter } from 'next/navigation'
-import { MapPin, ArrowLeft, List, X, ExternalLink, Loader2 } from 'lucide-react'
-import { motion, AnimatePresence } from 'framer-motion'
 import { useTranslations } from 'next-intl'
-import BackToTop from '@/components/ui/back-to-top'
+import React, { use, useCallback, useMemo, useState } from 'react'
+import { DataSourceSection } from '@/components/crag/data-source-section'
+import { RouteListFilter } from '@/components/crag/route-list-filter'
+import { TrafficCamerasCard } from '@/components/crag/traffic-cameras-card'
+import { VirtualizedRouteList } from '@/components/crag/virtualized-route-list'
+import { YouTubeLiveCard } from '@/components/crag/youtube-live-card'
 import { CragCoverGenerator } from '@/components/shared/CragCoverGenerator'
 import { WeatherDisplay } from '@/components/shared/weather-display'
-import { YouTubeLiveCard } from '@/components/crag/youtube-live-card'
-import { TrafficCamerasCard } from '@/components/crag/traffic-cameras-card'
-import { DataSourceSection } from '@/components/crag/data-source-section'
+import BackToTop from '@/components/ui/back-to-top'
 import { CollapsibleBreadcrumb } from '@/components/ui/collapsible-breadcrumb'
-import { RouteListFilter } from '@/components/crag/route-list-filter'
-import { VirtualizedRouteList } from '@/components/crag/virtualized-route-list'
-import { useCragDetail, useCragRoutes, useCragAreas } from '@/hooks/api/useCrags'
+import { useToast } from '@/components/ui/use-toast'
+import { useCragAreas, useCragDetail, useCragRoutes } from '@/hooks/api/useCrags'
+import { Link } from '@/i18n/navigation'
+import { RATE_LIMIT_TOAST } from '@/lib/constants'
 import { useRouteFilter } from '@/lib/hooks/useRouteFilter'
 import { routeLoadingManager } from '@/lib/route-loading-manager'
-import { useToast } from '@/components/ui/use-toast'
-import { RATE_LIMIT_TOAST } from '@/lib/constants'
 
 export default function CragDetailClient({ params }: { params: Promise<{ id: string }> }) {
   const { id } = use(params)
@@ -50,10 +50,10 @@ export default function CragDetailClient({ params }: { params: Promise<{ id: str
     // 從路線資料中提取該區域的 sectors（sector 欄位已從 API 獲取中文名稱）
     const sectorsSet = new Set<string>()
     routes
-      .filter(route => route.areaId === filterState.selectedArea && route.sector)
-      .forEach(route => sectorsSet.add(route.sector!))
+      .filter((route) => route.areaId === filterState.selectedArea && route.sector)
+      .forEach((route) => sectorsSet.add(route.sector!))
     // sector 欄位已經是中文名稱，直接使用作為 id 和 name
-    return Array.from(sectorsSet).map(sector => ({ id: sector, name: sector }))
+    return Array.from(sectorsSet).map((sector) => ({ id: sector, name: sector }))
   }, [routes, filterState.selectedArea])
 
   // 建構篩選參數的 URL query string
@@ -79,19 +79,22 @@ export default function CragDetailClient({ params }: { params: Promise<{ id: str
   }, [filterState])
 
   // 處理路線點擊，避免過度請求
-  const handleRouteClick = useCallback((routeId: string, e: React.MouseEvent) => {
-    e.preventDefault()
+  const handleRouteClick = useCallback(
+    (routeId: string, e: React.MouseEvent) => {
+      e.preventDefault()
 
-    if (!routeLoadingManager.canLoadRoute(routeId)) {
-      console.warn('Route loading rate limited:', routeId)
-      toast(RATE_LIMIT_TOAST)
-      return
-    }
+      if (!routeLoadingManager.canLoadRoute(routeId)) {
+        console.warn('Route loading rate limited:', routeId)
+        toast(RATE_LIMIT_TOAST)
+        return
+      }
 
-    routeLoadingManager.startLoadingRoute(routeId)
-    const queryString = buildFilterQueryString()
-    router.push(`/crag/${id}/route/${routeId}${queryString}`)
-  }, [id, router, buildFilterQueryString, toast])
+      routeLoadingManager.startLoadingRoute(routeId)
+      const queryString = buildFilterQueryString()
+      router.push(`/crag/${id}/route/${routeId}${queryString}`)
+    },
+    [id, router, buildFilterQueryString, toast]
+  )
 
   const handleDrawerItemClick = useCallback(() => {
     setIsDrawerOpen(false)
@@ -139,13 +142,14 @@ export default function CragDetailClient({ params }: { params: Promise<{ id: str
             </Link>
             <h2 className="mt-3 text-lg font-semibold text-[#1B1A1A]">{currentCrag.name}</h2>
             <p className="text-sm text-gray-500">
-              {isRoutesLoading ? (
-                t('loadingRoutes')
-              ) : filteredRoutes.length === routes.length ? (
-                t('routeCount', { count: routes.length })
-              ) : (
-                t('routeCountFiltered', { filtered: filteredRoutes.length, total: routes.length })
-              )}
+              {isRoutesLoading
+                ? t('loadingRoutes')
+                : filteredRoutes.length === routes.length
+                  ? t('routeCount', { count: routes.length })
+                  : t('routeCountFiltered', {
+                      filtered: filteredRoutes.length,
+                      total: routes.length,
+                    })}
             </p>
           </div>
 
@@ -195,7 +199,11 @@ export default function CragDetailClient({ params }: { params: Promise<{ id: str
             <div className="rounded-lg bg-white p-6 shadow-sm lg:p-8">
               {/* 封面展示區 */}
               <div className="mb-8">
-                <div className="relative w-full overflow-hidden rounded-lg" role="img" aria-label={`${currentCrag.name}攀岩岩場 - ${currentCrag.rockType || '戶外攀岩'}岩壁`}>
+                <div
+                  className="relative w-full overflow-hidden rounded-lg"
+                  role="img"
+                  aria-label={`${currentCrag.name}攀岩岩場 - ${currentCrag.rockType || '戶外攀岩'}岩壁`}
+                >
                   <CragCoverGenerator
                     rockType={currentCrag.rockType}
                     name={currentCrag.name}
@@ -207,9 +215,13 @@ export default function CragDetailClient({ params }: { params: Promise<{ id: str
 
               {/* 標題與位置 */}
               <div className="mb-8">
-                <h1 className="text-2xl font-bold text-[#1B1A1A] lg:text-3xl">{currentCrag.name}</h1>
+                <h1 className="text-2xl font-bold text-[#1B1A1A] lg:text-3xl">
+                  {currentCrag.name}
+                </h1>
                 {currentCrag.englishName && (
-                  <p className="mb-2 text-base text-gray-500 lg:text-lg">{currentCrag.englishName}</p>
+                  <p className="mb-2 text-base text-gray-500 lg:text-lg">
+                    {currentCrag.englishName}
+                  </p>
                 )}
                 <div className="flex items-center text-sm text-gray-500">
                   <MapPin size={14} className="mr-1" />
@@ -251,12 +263,16 @@ export default function CragDetailClient({ params }: { params: Promise<{ id: str
                       </div>
                     )}
                     <div className="flex">
-                      <span className="w-28 flex-shrink-0 text-gray-500">{t('routeCountLabel')}</span>
+                      <span className="w-28 flex-shrink-0 text-gray-500">
+                        {t('routeCountLabel')}
+                      </span>
                       <span>~{currentCrag.routes}</span>
                     </div>
                     {currentCrag.difficulty && (
                       <div className="flex">
-                        <span className="w-28 flex-shrink-0 text-gray-500">{t('difficultyRange')}</span>
+                        <span className="w-28 flex-shrink-0 text-gray-500">
+                          {t('difficultyRange')}
+                        </span>
                         <span>{currentCrag.difficulty}</span>
                       </div>
                     )}
@@ -268,7 +284,9 @@ export default function CragDetailClient({ params }: { params: Promise<{ id: str
                     )}
                     {currentCrag.approach && (
                       <div className="flex">
-                        <span className="w-28 flex-shrink-0 text-gray-500">{t('approachTime')}</span>
+                        <span className="w-28 flex-shrink-0 text-gray-500">
+                          {t('approachTime')}
+                        </span>
                         <span>{currentCrag.approach}</span>
                       </div>
                     )}
@@ -366,7 +384,9 @@ export default function CragDetailClient({ params }: { params: Promise<{ id: str
                 </div>
                 <div className="mt-4">
                   <WeatherDisplay
-                    location={currentCrag.weatherLocation || currentCrag.region || currentCrag.location}
+                    location={
+                      currentCrag.weatherLocation || currentCrag.region || currentCrag.location
+                    }
                     showForecast={true}
                   />
                 </div>
@@ -481,7 +501,10 @@ export default function CragDetailClient({ params }: { params: Promise<{ id: str
                   <p className="text-xs text-gray-500">
                     {filteredRoutes.length === routes.length
                       ? t('routeCount', { count: routes.length })
-                      : t('routeCountFiltered', { filtered: filteredRoutes.length, total: routes.length })}
+                      : t('routeCountFiltered', {
+                          filtered: filteredRoutes.length,
+                          total: routes.length,
+                        })}
                   </p>
                 </div>
                 <button

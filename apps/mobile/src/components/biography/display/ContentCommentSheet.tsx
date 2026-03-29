@@ -3,28 +3,27 @@
  *
  * 內容留言面板，對應 apps/web/src/components/biography/display/ContentCommentSheet.tsx
  */
-import React, { useState, useCallback, useRef } from 'react'
-import {
-  StyleSheet,
-  View,
-  Pressable,
-  TextInput,
-  FlatList,
-  ActivityIndicator,
-  KeyboardAvoidingView,
-  Platform,
-} from 'react-native'
+
 import BottomSheet, {
   BottomSheetBackdrop,
-  BottomSheetView,
   BottomSheetTextInput,
+  BottomSheetView,
 } from '@gorhom/bottom-sheet'
-import { MessageCircle, Send, Trash2 } from 'lucide-react-native'
+import { RADIUS, SEMANTIC_COLORS, SPACING, WB_COLORS } from '@nobodyclimb/constants'
 import { formatDistanceToNow } from 'date-fns'
 import { zhTW } from 'date-fns/locale'
-
-import { Text, Avatar, Button } from '@/components/ui'
-import { RADIUS, SEMANTIC_COLORS, SPACING, WB_COLORS } from '@nobodyclimb/constants'
+import { MessageCircle, Send, Trash2 } from 'lucide-react-native'
+import { useCallback, useRef, useState } from 'react'
+import {
+  ActivityIndicator,
+  FlatList,
+  KeyboardAvoidingView,
+  Platform,
+  Pressable,
+  StyleSheet,
+  View,
+} from 'react-native'
+import { Avatar, Text } from '@/components/ui'
 import { useAuthStore } from '@/store/authStore'
 
 interface ContentComment {
@@ -127,12 +126,7 @@ export function ContentCommentSheet({
   // 渲染背景遮罩
   const renderBackdrop = useCallback(
     (props: any) => (
-      <BottomSheetBackdrop
-        {...props}
-        disappearsOnIndex={-1}
-        appearsOnIndex={0}
-        opacity={0.5}
-      />
+      <BottomSheetBackdrop {...props} disappearsOnIndex={-1} appearsOnIndex={0} opacity={0.5} />
     ),
     []
   )
@@ -143,10 +137,7 @@ export function ContentCommentSheet({
 
     return (
       <View style={styles.commentItem}>
-        <Avatar
-          size="sm"
-          source={item.user_avatar ? { uri: item.user_avatar } : undefined}
-        />
+        <Avatar size="sm" source={item.user_avatar ? { uri: item.user_avatar } : undefined} />
         <View style={styles.commentContent}>
           <View style={styles.commentHeader}>
             <Text variant="small" fontWeight="500">
@@ -161,10 +152,7 @@ export function ContentCommentSheet({
           </Text>
         </View>
         {isOwner && onDeleteComment && (
-          <Pressable
-            style={styles.deleteButton}
-            onPress={() => handleDelete(item.id)}
-          >
+          <Pressable style={styles.deleteButton} onPress={() => handleDelete(item.id)}>
             <Trash2 size={14} color={SEMANTIC_COLORS.error} />
           </Pressable>
         )}

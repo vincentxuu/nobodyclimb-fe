@@ -3,21 +3,20 @@
  *
  * 標籤/籌碼樣式組件，與 Web 版本 API 一致
  */
-import React, { useCallback } from 'react'
+
 import {
-  Pressable,
-  StyleSheet,
-  type ViewStyle,
-  type PressableProps,
-} from 'react-native'
-import Animated, {
-  useSharedValue,
-  useAnimatedStyle,
-  withSpring,
-} from 'react-native-reanimated'
-import { BORDER_RADIUS, FONT_SIZE, FONT_WEIGHT, SEMANTIC_COLORS, SPACING, WB_COLORS } from '@nobodyclimb/constants'
-import { Text } from './Text'
+  BORDER_RADIUS,
+  FONT_SIZE,
+  FONT_WEIGHT,
+  SEMANTIC_COLORS,
+  SPACING,
+  WB_COLORS,
+} from '@nobodyclimb/constants'
+import React, { useCallback } from 'react'
+import { Pressable, type PressableProps, StyleSheet, type ViewStyle } from 'react-native'
+import Animated, { useAnimatedStyle, useSharedValue, withSpring } from 'react-native-reanimated'
 import { springConfigLight } from '@/theme/animations'
+import { Text } from './Text'
 
 const AnimatedPressable = Animated.createAnimatedComponent(Pressable)
 
@@ -168,11 +167,7 @@ export function Chip({
     [onPressOut, scale]
   )
 
-  const { backgroundColor, borderColor, textColor } = getVariantStyles(
-    variant,
-    selected,
-    disabled
-  )
+  const { backgroundColor, borderColor, textColor } = getVariantStyles(variant, selected, disabled)
   const { paddingVertical, paddingHorizontal, fontSize } = getSizeStyles(size)
 
   const chipContent = (

@@ -1,10 +1,10 @@
 'use client'
 
-import React, { Suspense } from 'react'
+import { Suspense } from 'react'
 import { Navbar } from '@/components/layout/navbar'
-import { PageTransition } from '@/components/shared/page-transition'
-import SearchResults from '@/components/search/search-results'
 import SearchFilters from '@/components/search/search-filters'
+import SearchResults from '@/components/search/search-results'
+import { PageTransition } from '@/components/shared/page-transition'
 
 function SearchContent() {
   return (

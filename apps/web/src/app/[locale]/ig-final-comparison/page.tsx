@@ -9,12 +9,8 @@ export default function InstagramFinalComparison() {
       <div className="mx-auto max-w-7xl">
         {/* 標題 */}
         <div className="mb-12 text-center">
-          <h1 className="text-4xl font-bold text-gray-900">
-            Instagram 嵌入方法最終對比
-          </h1>
-          <p className="mt-3 text-lg text-gray-600">
-            比較 iframe 與官方 Embed.js SDK 的差異
-          </p>
+          <h1 className="text-4xl font-bold text-gray-900">Instagram 嵌入方法最終對比</h1>
+          <p className="mt-3 text-lg text-gray-600">比較 iframe 與官方 Embed.js SDK 的差異</p>
         </div>
 
         {/* 對比展示 */}
@@ -22,19 +18,14 @@ export default function InstagramFinalComparison() {
           {/* 方法 1: iframe */}
           <div>
             <div className="mb-4 rounded-lg bg-blue-50 p-4">
-              <h2 className="mb-2 text-xl font-bold text-blue-900">
-                方法 1: iframe 嵌入
-              </h2>
+              <h2 className="mb-2 text-xl font-bold text-blue-900">方法 1: iframe 嵌入</h2>
               <p className="text-sm text-blue-700">
                 簡單直接，但內容受限於 Instagram 提供的 iframe
               </p>
             </div>
 
             <div className="rounded-lg border-2 border-blue-200 bg-white p-6">
-              <InstagramEmbed
-                url="https://www.instagram.com/p/DPsB9hjEpzB/"
-                height={700}
-              />
+              <InstagramEmbed url="https://www.instagram.com/p/DPsB9hjEpzB/" height={700} />
 
               <div className="mt-6 rounded bg-gray-100 p-4">
                 <p className="text-sm font-semibold text-gray-700">特點：</p>
@@ -54,16 +45,11 @@ export default function InstagramFinalComparison() {
               <h2 className="mb-2 text-xl font-bold text-green-900">
                 方法 2: Instagram Embed.js SDK ⭐
               </h2>
-              <p className="text-sm text-green-700">
-                Instagram 官方推薦，顯示完整的原始貼文內容
-              </p>
+              <p className="text-sm text-green-700">Instagram 官方推薦，顯示完整的原始貼文內容</p>
             </div>
 
             <div className="rounded-lg border-2 border-green-200 bg-white p-6">
-              <InstagramEmbedSDK
-                url="https://www.instagram.com/p/DPsB9hjEpzB/"
-                captioned={true}
-              />
+              <InstagramEmbedSDK url="https://www.instagram.com/p/DPsB9hjEpzB/" captioned={true} />
 
               <div className="mt-6 rounded bg-gray-100 p-4">
                 <p className="text-sm font-semibold text-gray-700">特點：</p>
@@ -86,7 +72,7 @@ export default function InstagramFinalComparison() {
           <div className="rounded-lg bg-gray-900 p-6 text-white">
             <h3 className="mb-3 text-lg font-bold">方法 1: iframe 程式碼</h3>
             <pre className="overflow-x-auto text-xs">
-{`<InstagramEmbed
+              {`<InstagramEmbed
   url="https://www.instagram.com/p/DQ0D25cE4Wa/"
   height={700}
 />`}
@@ -97,7 +83,7 @@ export default function InstagramFinalComparison() {
           <div className="rounded-lg bg-gray-900 p-6 text-white">
             <h3 className="mb-3 text-lg font-bold">方法 2: SDK 程式碼 ⭐</h3>
             <pre className="overflow-x-auto text-xs">
-{`<InstagramEmbedSDK
+              {`<InstagramEmbedSDK
   url="https://www.instagram.com/p/DQ0D25cE4Wa/"
   captioned={true}
 />`}
@@ -120,12 +106,11 @@ export default function InstagramFinalComparison() {
                 包括圖片、文字、使用者名稱、按讚數、留言數等
               </li>
               <li>
-                <strong>不需要手動資料</strong>：不需要從資料庫或 API 讀取貼文資訊，
-                Instagram SDK 會自動獲取並顯示
+                <strong>不需要手動資料</strong>：不需要從資料庫或 API 讀取貼文資訊， Instagram SDK
+                會自動獲取並顯示
               </li>
               <li>
-                <strong>官方支援</strong>：這是 Instagram 官方推薦的嵌入方式，
-                穩定性和相容性最佳
+                <strong>官方支援</strong>：這是 Instagram 官方推薦的嵌入方式， 穩定性和相容性最佳
               </li>
               <li>
                 <strong>自動更新</strong>：按讚數、留言數等資訊會自動更新到最新狀態
@@ -136,9 +121,7 @@ export default function InstagramFinalComparison() {
 
         {/* 使用建議 */}
         <div className="mt-8 rounded-lg bg-blue-50 p-6">
-          <h3 className="mb-3 text-xl font-bold text-blue-900">
-            💡 使用建議
-          </h3>
+          <h3 className="mb-3 text-xl font-bold text-blue-900">💡 使用建議</h3>
           <div className="space-y-4 text-sm text-blue-800">
             <div>
               <p className="font-semibold">✅ 適合使用 SDK 的情況：</p>
@@ -163,20 +146,18 @@ export default function InstagramFinalComparison() {
 
         {/* 實作步驟 */}
         <div className="mt-8 rounded-lg bg-purple-50 p-6">
-          <h3 className="mb-3 text-xl font-bold text-purple-900">
-            🚀 如何在專案中使用
-          </h3>
+          <h3 className="mb-3 text-xl font-bold text-purple-900">🚀 如何在專案中使用</h3>
           <div className="space-y-3 text-sm text-purple-800">
             <p className="font-semibold">步驟 1: 使用元件</p>
             <pre className="overflow-x-auto rounded bg-purple-100 p-3 text-xs">
-{`import InstagramEmbedSDK from '@/components/instagram/instagram-embed-sdk'
+              {`import InstagramEmbedSDK from '@/components/instagram/instagram-embed-sdk'
 
 <InstagramEmbedSDK url="https://www.instagram.com/p/YOUR_POST_ID/" />`}
             </pre>
 
             <p className="mt-4 font-semibold">步驟 2: 在岩場頁面整合</p>
             <pre className="overflow-x-auto rounded bg-purple-100 p-3 text-xs">
-{`// 在岩場詳情頁
+              {`// 在岩場詳情頁
 const instagramUrls = [
   'https://www.instagram.com/p/POST_1/',
   'https://www.instagram.com/p/POST_2/',
@@ -195,8 +176,7 @@ const instagramUrls = [
 
             <p className="mt-4 font-semibold">就這麼簡單！✨</p>
             <p>
-              不需要從 Instagram API 獲取資料，不需要資料庫儲存，
-              Instagram SDK 會自動處理所有事情。
+              不需要從 Instagram API 獲取資料，不需要資料庫儲存， Instagram SDK 會自動處理所有事情。
             </p>
           </div>
         </div>

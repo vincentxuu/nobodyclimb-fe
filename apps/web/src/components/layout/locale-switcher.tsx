@@ -1,16 +1,16 @@
 'use client'
 
+import { Globe } from 'lucide-react'
 import { useLocale, useTranslations } from 'next-intl'
-import { useRouter, usePathname } from '@/i18n/navigation'
-import { routing } from '@/i18n/routing'
+import { Button } from '@/components/ui/button'
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
-import { Button } from '@/components/ui/button'
-import { Globe } from 'lucide-react'
+import { usePathname, useRouter } from '@/i18n/navigation'
+import { routing } from '@/i18n/routing'
 
 const localeLabels: Record<string, string> = {
   zh: '繁中',

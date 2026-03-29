@@ -1,5 +1,4 @@
-import React from 'react'
-import { View, StyleSheet } from 'react-native'
+import { StyleSheet, View } from 'react-native'
 import { Button } from '../ui/Button'
 
 interface ProfileActionButtonsProps {
@@ -16,20 +15,10 @@ export default function ProfileActionButtons({
 }: ProfileActionButtonsProps) {
   return (
     <View style={styles.container}>
-      <Button
-        variant="secondary"
-        onPress={onCancel}
-        disabled={isLoading}
-        style={styles.button}
-      >
+      <Button variant="secondary" onPress={onCancel} disabled={isLoading} style={styles.button}>
         取消
       </Button>
-      <Button
-        variant="primary"
-        onPress={onSave}
-        loading={isLoading}
-        style={styles.button}
-      >
+      <Button variant="primary" onPress={onSave} loading={isLoading} style={styles.button}>
         儲存變更
       </Button>
     </View>

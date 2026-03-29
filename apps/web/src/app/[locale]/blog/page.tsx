@@ -1,20 +1,20 @@
 'use client'
 
-import { useState, useEffect, useCallback, Suspense } from 'react'
+import { FileText, Loader2 } from 'lucide-react'
 import Image from 'next/image'
-import { Link } from '@/i18n/navigation'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { useTranslations } from 'next-intl'
+import { Suspense, useCallback, useEffect, useState } from 'react'
+import { ArticleCoverGenerator } from '@/components/shared/ArticleCoverGenerator'
+import { Breadcrumb } from '@/components/ui/breadcrumb'
 import { Button } from '@/components/ui/button'
 import { SearchInput } from '@/components/ui/search-input'
-import { Loader2, FileText } from 'lucide-react'
-import { Article } from '@/mocks/articles'
-import { Breadcrumb } from '@/components/ui/breadcrumb'
+import { Link } from '@/i18n/navigation'
 import { postService } from '@/lib/api/services'
-import { PostCategory, POST_CATEGORIES, getCategoryLabel } from '@/lib/types'
-import { generateSummary } from '@/lib/utils/article'
+import { getCategoryLabel, POST_CATEGORIES, PostCategory } from '@/lib/types'
 import { normalizeNewlines } from '@/lib/utils'
-import { ArticleCoverGenerator } from '@/components/shared/ArticleCoverGenerator'
+import { generateSummary } from '@/lib/utils/article'
+import { Article } from '@/mocks/articles'
 
 // 空狀態元件
 const EmptyState = ({
@@ -92,9 +92,7 @@ const ArticleCard = ({
         <p className="line-clamp-2 text-xs text-wb-70 sm:line-clamp-3 sm:text-sm">
           {generateSummary(normalizeNewlines(article.content))}
         </p>
-        {article.author && (
-          <p className="mt-auto text-xs text-wb-50">{article.author}</p>
-        )}
+        {article.author && <p className="mt-auto text-xs text-wb-50">{article.author}</p>}
       </div>
     </Link>
   )

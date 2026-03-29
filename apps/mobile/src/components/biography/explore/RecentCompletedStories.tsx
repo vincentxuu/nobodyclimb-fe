@@ -3,23 +3,23 @@
  *
  * 最新完成故事，對應 apps/web/src/components/biography/explore/recent-completed-stories.tsx
  */
-import React, { useEffect, useState, useCallback } from 'react'
-import { StyleSheet, View, Pressable, ActivityIndicator } from 'react-native'
+
+import { RADIUS, SEMANTIC_COLORS, SPACING } from '@nobodyclimb/constants'
 import { useRouter } from 'expo-router'
-import Animated, { FadeInDown } from 'react-native-reanimated'
 import {
-  Sparkles,
-  Mountain,
-  MessageCircle,
-  Link as LinkIcon,
-  Clock,
   Brain,
   ChevronRight,
+  Clock,
+  Link as LinkIcon,
+  MessageCircle,
+  Mountain,
+  Sparkles,
 } from 'lucide-react-native'
-
-import { Text, Card, Avatar } from '@/components/ui'
+import { useCallback, useEffect, useState } from 'react'
+import { ActivityIndicator, Pressable, StyleSheet, View } from 'react-native'
+import Animated, { FadeInDown } from 'react-native-reanimated'
+import { Avatar, Card, Text } from '@/components/ui'
 import { apiClient } from '@/lib/api'
-import { SEMANTIC_COLORS, SPACING, RADIUS } from '@nobodyclimb/constants'
 
 // 類型定義
 interface CompletedItem {
@@ -173,7 +173,10 @@ export function RecentCompletedStories({ searchTerm, filter }: RecentCompletedSt
                   }
                 >
                   <View style={styles.authorInfo}>
-                    <Avatar size="sm" source={item.author_avatar ? { uri: item.author_avatar } : undefined} />
+                    <Avatar
+                      size="sm"
+                      source={item.author_avatar ? { uri: item.author_avatar } : undefined}
+                    />
                     <View>
                       <Text variant="body">
                         <Text fontWeight="500">{item.author_name}</Text>
@@ -229,13 +232,15 @@ export function RecentCompletedStories({ searchTerm, filter }: RecentCompletedSt
                 )}
 
                 {/* 完成故事摘要 */}
-                {item.completion_story && !item.psychological_insights && !item.technical_insights && (
-                  <View style={styles.storyContainer}>
-                    <Text variant="body" numberOfLines={3} color="textSubtle">
-                      {item.completion_story}
-                    </Text>
-                  </View>
-                )}
+                {item.completion_story &&
+                  !item.psychological_insights &&
+                  !item.technical_insights && (
+                    <View style={styles.storyContainer}>
+                      <Text variant="body" numberOfLines={3} color="textSubtle">
+                        {item.completion_story}
+                      </Text>
+                    </View>
+                  )}
 
                 {/* 互動資訊 */}
                 <View style={styles.footer}>

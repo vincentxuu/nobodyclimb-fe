@@ -3,27 +3,27 @@
  *
  * 對應 apps/web/src/app/blog/edit/[id]/page.tsx
  */
-import React, { useState, useCallback, useEffect } from 'react'
+
+import { RADIUS, SEMANTIC_COLORS, SPACING } from '@nobodyclimb/constants'
+import { Image } from 'expo-image'
+import * as ImagePicker from 'expo-image-picker'
+import { useLocalSearchParams, useRouter } from 'expo-router'
+import { ChevronLeft, Eye, ImagePlus, Save, Send, X } from 'lucide-react-native'
+import { useCallback, useEffect, useState } from 'react'
 import {
-  StyleSheet,
-  View,
-  ScrollView,
-  TextInput,
-  Pressable,
+  ActivityIndicator,
   Alert,
   KeyboardAvoidingView,
   Platform,
-  ActivityIndicator,
+  Pressable,
+  ScrollView,
+  StyleSheet,
+  TextInput,
+  View,
 } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
-import { useRouter, useLocalSearchParams } from 'expo-router'
-import { Image } from 'expo-image'
-import { ChevronLeft, ImagePlus, X, Save, Eye, Send } from 'lucide-react-native'
-import * as ImagePicker from 'expo-image-picker'
-
-import { Text, IconButton, Button } from '@/components/ui'
 import { ProtectedRoute } from '@/components/shared'
-import { SEMANTIC_COLORS, SPACING, RADIUS } from '@nobodyclimb/constants'
+import { Button, IconButton, Text } from '@/components/ui'
 
 type ArticleStatus = 'draft' | 'published' | 'archived'
 
@@ -142,11 +142,8 @@ export default function EditArticleScreen() {
         // TODO: 整合 postService.updatePost(id, postData)
         await new Promise((resolve) => setTimeout(resolve, 1000))
 
-        const successMessage =
-          newStatus === 'published' ? '文章更新成功！' : '草稿儲存成功！'
-        Alert.alert('成功', successMessage, [
-          { text: '好', onPress: () => router.back() },
-        ])
+        const successMessage = newStatus === 'published' ? '文章更新成功！' : '草稿儲存成功！'
+        Alert.alert('成功', successMessage, [{ text: '好', onPress: () => router.back() }])
       } catch (error) {
         console.error('更新文章時出錯:', error)
         Alert.alert('更新失敗', '請稍後再試')
@@ -158,8 +155,7 @@ export default function EditArticleScreen() {
   )
 
   const handleSaveDraft = () => handleSubmit('draft')
-  const handlePublish = () =>
-    handleSubmit(status === 'published' ? 'published' : 'published')
+  const handlePublish = () => handleSubmit(status === 'published' ? 'published' : 'published')
 
   const isValid = title.trim() && content.trim()
 
@@ -251,10 +247,7 @@ export default function EditArticleScreen() {
           style={styles.keyboardView}
           behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
         >
-          <ScrollView
-            style={styles.scrollView}
-            keyboardShouldPersistTaps="handled"
-          >
+          <ScrollView style={styles.scrollView} keyboardShouldPersistTaps="handled">
             {/* 封面圖 */}
             <View style={styles.coverSection}>
               {coverImage ? (
@@ -264,18 +257,12 @@ export default function EditArticleScreen() {
                     style={styles.coverImage}
                     contentFit="cover"
                   />
-                  <Pressable
-                    style={styles.removeImageButton}
-                    onPress={handleRemoveImage}
-                  >
+                  <Pressable style={styles.removeImageButton} onPress={handleRemoveImage}>
                     <X size={18} color="#FFFFFF" />
                   </Pressable>
                 </View>
               ) : (
-                <Pressable
-                  style={styles.addCoverButton}
-                  onPress={handlePickImage}
-                >
+                <Pressable style={styles.addCoverButton} onPress={handlePickImage}>
                   <ImagePlus size={32} color={SEMANTIC_COLORS.textMuted} />
                   <Text variant="body" color="textMuted">
                     新增封面圖片
@@ -333,19 +320,9 @@ export default function EditArticleScreen() {
             disabled={!isValid || isSubmitting}
             style={styles.publishButton}
           >
-            <Send
-              size={18}
-              color={isValid ? '#FFFFFF' : SEMANTIC_COLORS.textMuted}
-            />
-            <Text
-              fontWeight="600"
-              style={isValid ? styles.publishTextActive : styles.publishText}
-            >
-              {isSubmitting
-                ? '處理中...'
-                : status === 'published'
-                  ? '更新文章'
-                  : '發布文章'}
+            <Send size={18} color={isValid ? '#FFFFFF' : SEMANTIC_COLORS.textMuted} />
+            <Text fontWeight="600" style={isValid ? styles.publishTextActive : styles.publishText}>
+              {isSubmitting ? '處理中...' : status === 'published' ? '更新文章' : '發布文章'}
             </Text>
           </Button>
         </View>

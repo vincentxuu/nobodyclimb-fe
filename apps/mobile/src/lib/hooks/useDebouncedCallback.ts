@@ -3,7 +3,7 @@
  *
  * 對應 apps/web/src/lib/hooks/useDebouncedCallback.ts
  */
-import { useCallback, useRef, useEffect, useMemo } from 'react'
+import { useCallback, useEffect, useMemo, useRef } from 'react'
 
 interface DebouncedFunction<T extends (...args: any[]) => any> {
   (...args: Parameters<T>): void
@@ -20,9 +20,7 @@ export function useDebouncedCallback<T extends (...args: any[]) => any>(
   callback: T,
   optionsOrDelay: number | UseDebouncedCallbackOptions = 500
 ): DebouncedFunction<T> {
-  const options = typeof optionsOrDelay === 'number'
-    ? { delay: optionsOrDelay }
-    : optionsOrDelay
+  const options = typeof optionsOrDelay === 'number' ? { delay: optionsOrDelay } : optionsOrDelay
   const { delay = 500, maxWait } = options
 
   const timeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null)

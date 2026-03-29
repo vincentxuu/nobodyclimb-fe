@@ -3,8 +3,14 @@
  * 將後端 API 回應轉換為前端使用的格式
  */
 
+import type {
+  GymContact,
+  GymDetailData,
+  GymListItem,
+  GymPricing,
+  GymTransportation,
+} from '@/lib/gym-data'
 import type { ApiGym, ApiGymOpeningHours, ApiGymPriceInfo } from '@/lib/types/api-gym'
-import type { GymListItem, GymDetailData, GymPricing, GymTransportation, GymContact } from '@/lib/gym-data'
 
 /**
  * 取得類型標籤
@@ -22,11 +28,11 @@ function getTypeLabel(type: 'bouldering' | 'lead' | 'mixed'): string {
  * 根據設施推斷岩館類型
  */
 function inferGymType(facilities: string[]): 'bouldering' | 'lead' | 'mixed' {
-  const hasBouldering = facilities.some(f =>
-    f.includes('抱石') || f.toLowerCase().includes('boulder')
+  const hasBouldering = facilities.some(
+    (f) => f.includes('抱石') || f.toLowerCase().includes('boulder')
   )
-  const hasLead = facilities.some(f =>
-    f.includes('上攀') || f.includes('先鋒') || f.toLowerCase().includes('lead')
+  const hasLead = facilities.some(
+    (f) => f.includes('上攀') || f.includes('先鋒') || f.toLowerCase().includes('lead')
   )
 
   if (hasBouldering && hasLead) return 'mixed'
@@ -206,9 +212,7 @@ export function filterGyms(
   // 地區篩選
   if (options.region && options.region !== '所有地區') {
     filtered = filtered.filter(
-      (gym) =>
-        gym.city.includes(options.region!) ||
-        gym.region === options.region
+      (gym) => gym.city.includes(options.region!) || gym.region === options.region
     )
   }
 
@@ -248,8 +252,7 @@ export function getRelatedGymsFromList(
     .filter((g) => g.id !== currentGymId)
     .sort((a, b) => {
       // 排序優先級: 1. 同城市 2. 同地區 3. 評分
-      const cityScore =
-        Number(b.city === currentGym.city) - Number(a.city === currentGym.city)
+      const cityScore = Number(b.city === currentGym.city) - Number(a.city === currentGym.city)
       if (cityScore !== 0) return cityScore
 
       const regionScore =

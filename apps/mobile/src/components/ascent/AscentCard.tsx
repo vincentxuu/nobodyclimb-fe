@@ -1,9 +1,14 @@
-import React from 'react'
-import { View, Text, Pressable, StyleSheet } from 'react-native'
-import { Pencil, Trash2, MapPin, Star } from 'lucide-react-native'
-import { SEMANTIC_COLORS, SPACING, BORDER_RADIUS, FONT_SIZE, WB_COLORS } from '@nobodyclimb/constants'
+import {
+  BORDER_RADIUS,
+  FONT_SIZE,
+  SEMANTIC_COLORS,
+  SPACING,
+  WB_COLORS,
+} from '@nobodyclimb/constants'
+import { MapPin, Pencil, Star, Trash2 } from 'lucide-react-native'
+import { Pressable, StyleSheet, Text, View } from 'react-native'
 import type { AscentType } from '@/lib/constants/ascent'
-import { ASCENT_TYPE_LABELS, ASCENT_TYPE_COLORS } from '@/lib/constants/ascent'
+import { ASCENT_TYPE_COLORS, ASCENT_TYPE_LABELS } from '@/lib/constants/ascent'
 
 interface Ascent {
   id: string

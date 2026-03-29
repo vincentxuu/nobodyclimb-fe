@@ -142,9 +142,7 @@ export function StatCard({ value, label, icon, trend, color, className }: StatCa
       )}
     >
       <div className="flex items-center justify-between mb-2">
-        {icon && (
-          <div className={cn('p-2 rounded-lg', color || 'bg-brand-light')}>{icon}</div>
-        )}
+        {icon && <div className={cn('p-2 rounded-lg', color || 'bg-brand-light')}>{icon}</div>}
         {trend && (
           <span
             className={cn(
@@ -191,9 +189,7 @@ export function BarChart({
           const height = max > 0 ? (item.value / max) * 100 : 0
           return (
             <div key={index} className="flex flex-col items-center gap-1">
-              {showValues && (
-                <span className="text-xs text-text-subtle">{item.value}</span>
-              )}
+              {showValues && <span className="text-xs text-text-subtle">{item.value}</span>}
               <div
                 className={cn(
                   'w-8 rounded-t transition-all duration-500',
@@ -223,7 +219,9 @@ export function BarChart({
               style={{ width: max > 0 ? `${(item.value / max) * 100}%` : '0%' }}
             />
           </div>
-          {showValues && <span className="text-sm text-text-subtle w-10 text-right">{item.value}</span>}
+          {showValues && (
+            <span className="text-sm text-text-subtle w-10 text-right">{item.value}</span>
+          )}
         </div>
       ))}
     </div>

@@ -1,8 +1,8 @@
+import { BORDER_RADIUS, SPACING, WB_COLORS } from '@nobodyclimb/constants'
+import { Clock, Database, MessageSquare, User } from 'lucide-react-native'
 import React from 'react'
-import { View, StyleSheet, TouchableOpacity, Linking } from 'react-native'
+import { Linking, StyleSheet, TouchableOpacity, View } from 'react-native'
 import { Text } from '@/components/ui'
-import { SPACING, WB_COLORS, BORDER_RADIUS } from '@nobodyclimb/constants'
-import { Database, Clock, User, MessageSquare } from 'lucide-react-native'
 
 export interface DataSourceInfo {
   source: string

@@ -1,8 +1,8 @@
 'use client'
 
 import { Lock, User } from 'lucide-react'
-import { Button } from '@/components/ui/button'
 import Link from 'next/link'
+import { Button } from '@/components/ui/button'
 import type { GuestSession } from '@/lib/hooks/useGuestSession'
 
 interface EligibilityCheckProps {
@@ -27,10 +27,7 @@ export function EligibilityCheck({ session }: EligibilityCheckProps) {
         <div className="mb-6 rounded-lg bg-gray-100 p-4">
           <p className="text-sm text-gray-500">已瀏覽 {session.biographyViews} 個故事</p>
           <div className="mt-2 h-2 overflow-hidden rounded-full bg-gray-200">
-            <div
-              className="h-full bg-[#ffe70c] transition-all"
-              style={{ width: `${progress}%` }}
-            />
+            <div className="h-full bg-[#ffe70c] transition-all" style={{ width: `${progress}%` }} />
           </div>
         </div>
         <Link href="/biography">

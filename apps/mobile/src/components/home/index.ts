@@ -2,20 +2,19 @@
  * 首頁組件統一導出
  */
 
-// 原有組件
-export { Hero } from './Hero'
-export { FeaturedPosts } from './FeaturedPosts'
-export { BiographySection } from './BiographySection'
-
-// 新增組件 (Phase 6.1.2)
-export { FunFactSection } from './FunFactSection'
-export { HeroIntroSection } from './HeroIntroSection'
 export { AboutSection } from './AboutSection'
-export { StoryShowcaseSection } from './StoryShowcaseSection'
-export { GallerySection } from './GallerySection'
+export { BiographySection } from './BiographySection'
 export { ExploreCragSection } from './ExploreCragSection'
+export { FeaturedPosts } from './FeaturedPosts'
 export { FeaturedStoriesSection } from './FeaturedStoriesSection'
 export { FeaturedVideosSection } from './FeaturedVideosSection'
-export { HeroArticle } from './HeroArticle'
+// 新增組件 (Phase 6.1.2)
+export { FunFactSection } from './FunFactSection'
+export { GallerySection } from './GallerySection'
 export { GymHighlights } from './GymHighlights'
+// 原有組件
+export { Hero } from './Hero'
+export { HeroArticle } from './HeroArticle'
+export { HeroIntroSection } from './HeroIntroSection'
 export { LatestContentSection } from './LatestContentSection'
+export { StoryShowcaseSection } from './StoryShowcaseSection'

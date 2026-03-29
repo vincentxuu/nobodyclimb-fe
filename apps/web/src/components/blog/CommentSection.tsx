@@ -1,16 +1,16 @@
 'use client'
 
-import React, { useState, useEffect, useCallback } from 'react'
-import Link from 'next/link'
-import { useTranslations } from 'next-intl'
-import { Button } from '@/components/ui/button'
-import { Textarea } from '@/components/ui/textarea'
-import { Loader2, MessageCircle, Send, Trash2 } from 'lucide-react'
-import { postService } from '@/lib/api/services'
-import { useToast } from '@/components/ui/use-toast'
-import { useAuthStore } from '@/store/authStore'
 import { formatDistanceToNow } from 'date-fns'
 import { zhTW } from 'date-fns/locale'
+import { Loader2, MessageCircle, Send, Trash2 } from 'lucide-react'
+import Link from 'next/link'
+import { useTranslations } from 'next-intl'
+import React, { useCallback, useEffect, useState } from 'react'
+import { Button } from '@/components/ui/button'
+import { Textarea } from '@/components/ui/textarea'
+import { useToast } from '@/components/ui/use-toast'
+import { postService } from '@/lib/api/services'
+import { useAuthStore } from '@/store/authStore'
 
 // 評論類型定義
 interface CommentData {
@@ -58,11 +58,7 @@ const CommentItem = ({
       <div className="h-8 w-8 flex-shrink-0 overflow-hidden rounded-full bg-gray-200">
         {comment.avatar_url ? (
           // eslint-disable-next-line @next/next/no-img-element
-          <img
-            src={comment.avatar_url}
-            alt={displayName}
-            className="h-full w-full object-cover"
-          />
+          <img src={comment.avatar_url} alt={displayName} className="h-full w-full object-cover" />
         ) : (
           <div className="flex h-full w-full items-center justify-center text-sm text-gray-500">
             {displayName.charAt(0).toUpperCase()}
@@ -136,11 +132,7 @@ const CommentForm = ({
         disabled={!content.trim() || isSubmitting}
         className="self-end"
       >
-        {isSubmitting ? (
-          <Loader2 className="h-4 w-4 animate-spin" />
-        ) : (
-          <Send className="h-4 w-4" />
-        )}
+        {isSubmitting ? <Loader2 className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />}
       </Button>
     </form>
   )
@@ -149,11 +141,7 @@ const CommentForm = ({
 // 空評論狀態
 const EmptyComments = () => {
   const t = useTranslations('BlogPage')
-  return (
-    <p className="py-4 text-center text-sm text-gray-500">
-      {t('noComments')}
-    </p>
-  )
+  return <p className="py-4 text-center text-sm text-gray-500">{t('noComments')}</p>
 }
 
 // 載入狀態

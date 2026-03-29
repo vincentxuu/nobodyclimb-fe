@@ -6,11 +6,11 @@ const TOAST_LIMIT = 3 // 支援同時顯示 3 個 toast
 
 // 根據類型調整顯示時間
 const TOAST_DURATIONS = {
-  default: 3000,      // 一般訊息：3 秒
-  destructive: 5000,  // 錯誤訊息：5 秒（給用戶更多時間閱讀）
-  success: 3000,      // 成功訊息：3 秒
-  warning: 4000,      // 警告訊息：4 秒
-  info: 3000,         // 資訊提示：3 秒
+  default: 3000, // 一般訊息：3 秒
+  destructive: 5000, // 錯誤訊息：5 秒（給用戶更多時間閱讀）
+  success: 3000, // 成功訊息：3 秒
+  warning: 4000, // 警告訊息：4 秒
+  info: 3000, // 資訊提示：3 秒
 } as const
 
 const TOAST_REMOVE_DELAY = 1000 // 動畫移除延遲：1 秒
@@ -20,7 +20,7 @@ type ToasterToast = ToastProps & {
   title?: React.ReactNode
   description?: React.ReactNode
   action?: ToastActionElement
-  duration?: number  // 支援自定義持續時間
+  duration?: number // 支援自定義持續時間
 }
 
 const actionTypes = {
@@ -156,7 +156,8 @@ function toast({ duration, ...props }: Toast) {
 
   // 根據 variant 類型或自定義 duration 自動關閉
   const variant = props.variant || 'default'
-  const autoDismissDuration = duration ?? TOAST_DURATIONS[variant as keyof typeof TOAST_DURATIONS] ?? TOAST_DURATIONS.default
+  const autoDismissDuration =
+    duration ?? TOAST_DURATIONS[variant as keyof typeof TOAST_DURATIONS] ?? TOAST_DURATIONS.default
 
   setTimeout(() => {
     dismiss()
@@ -189,4 +190,4 @@ function useToast() {
   }
 }
 
-export { useToast, toast }
+export { toast, useToast }

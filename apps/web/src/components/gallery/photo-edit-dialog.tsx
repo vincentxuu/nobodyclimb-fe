@@ -1,9 +1,9 @@
 'use client'
 
-import React, { useState, useEffect } from 'react'
-import { motion, AnimatePresence } from 'framer-motion'
-import { X, MapPin, Loader2 } from 'lucide-react'
+import { AnimatePresence, motion } from 'framer-motion'
+import { Loader2, MapPin, X } from 'lucide-react'
 import Image from 'next/image'
+import React, { useEffect, useState } from 'react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
@@ -19,12 +19,7 @@ interface PhotoEditDialogProps {
   onSuccess: (_photo: GalleryPhoto) => void
 }
 
-const PhotoEditDialog: React.FC<PhotoEditDialogProps> = ({
-  isOpen,
-  photo,
-  onClose,
-  onSuccess,
-}) => {
+const PhotoEditDialog: React.FC<PhotoEditDialogProps> = ({ isOpen, photo, onClose, onSuccess }) => {
   const [caption, setCaption] = useState('')
   const [locationCountry, setLocationCountry] = useState('')
   const [locationCity, setLocationCity] = useState('')

@@ -1,9 +1,9 @@
 'use client'
 
+import { ChevronRight, Tag } from 'lucide-react'
 import { useTranslations } from 'next-intl'
-import { cn } from '@/lib/utils'
-import { Tag, ChevronRight } from 'lucide-react'
 import type { TagDimension } from '@/lib/types/biography-v2'
+import { cn } from '@/lib/utils'
 import { TagSelectorGroup } from '../shared/TagSelector'
 
 interface TagsSectionProps {
@@ -42,17 +42,16 @@ export function TagsSection({
 }: TagsSectionProps) {
   const t = useTranslations('BiographyEditor')
   // 計算已選標籤總數
-  const totalSelected = Object.values(selections).reduce(
-    (sum, ids) => sum + ids.length,
-    0
-  )
+  const totalSelected = Object.values(selections).reduce((sum, ids) => sum + ids.length, 0)
 
   // 獲取已選標籤的名稱（用於手機版摘要）
-  const selectedTagLabels = dimensions.flatMap((dim) =>
-    (selections[dim.id] || [])
-      .map((tagId) => dim.options.find((o) => o.id === tagId)?.label)
-      .filter(Boolean)
-  ).slice(0, 6) // 最多顯示 6 個
+  const selectedTagLabels = dimensions
+    .flatMap((dim) =>
+      (selections[dim.id] || [])
+        .map((tagId) => dim.options.find((o) => o.id === tagId)?.label)
+        .filter(Boolean)
+    )
+    .slice(0, 6) // 最多顯示 6 個
 
   // 手機版：顯示摘要 + 編輯按鈕
   if (isMobile) {

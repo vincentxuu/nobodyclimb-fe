@@ -1,18 +1,39 @@
 'use client'
 
-import { useState, useRef, useEffect, useCallback } from 'react'
-import { createPortal } from 'react-dom'
-import { MessageCircle, X, Send, Loader2, History, Trash2, ChevronLeft, SquarePen, Square, RefreshCw } from 'lucide-react'
+import {
+  ChevronLeft,
+  History,
+  Loader2,
+  MessageCircle,
+  RefreshCw,
+  Send,
+  Square,
+  SquarePen,
+  Trash2,
+  X,
+} from 'lucide-react'
 import Link from 'next/link'
+import { useCallback, useEffect, useRef, useState } from 'react'
+import { createPortal } from 'react-dom'
+import type { AIChatHistoryMessage, AiQuota, ChatSession } from '@/lib/api/ai'
+import {
+  askAIStream,
+  createChatSession,
+  deleteChatSession,
+  getChatMessages,
+  getChatSessions,
+  getMyQuota,
+  saveMessage,
+  useAskAI,
+} from '@/lib/api/ai'
 import { cn } from '@/lib/utils'
-import { useAskAI, askAIStream, createChatSession, getChatSessions, getChatMessages, deleteChatSession, saveMessage, getMyQuota } from '@/lib/api/ai'
-import type { AiQuota, ChatSession, AIChatHistoryMessage } from '@/lib/api/ai'
 
 const ENABLE_STREAMING = process.env.NEXT_PUBLIC_ENABLE_AI_STREAMING === 'true'
-import { useAuthStore } from '@/store/authStore'
-import { ChatMessage } from './ChatMessage'
-import type { ChatMessageData } from './ChatMessage'
+
 import { RankBadge } from '@/components/rank/RankBadge'
+import { useAuthStore } from '@/store/authStore'
+import type { ChatMessageData } from './ChatMessage'
+import { ChatMessage } from './ChatMessage'
 
 // =============================================
 // 建議問題題庫（4 類各 5 題，共 20 題，每次隨機取 3 題）
@@ -97,34 +118,46 @@ export function ChatWidget() {
 
     const timer = setTimeout(() => inputRef.current?.focus(), 100)
 
-    getMyQuota().then(setQuota).catch(() => { })
+    getMyQuota()
+      .then(setQuota)
+      .catch(() => {})
 
     if (isAuthenticated && !sessionIdRef.current) {
-      getChatSessions().then((list) => {
-        if (list.length > 0) {
-          const latest = list[0]
-          updateSessionId(latest.id)
-          getChatMessages(latest.id).then((msgs) => {
-            // 若使用者已搶先送出訊息，不覆蓋既有 state
-            setMessages((prev) => prev.length > 0 ? prev : msgs.map((m) => ({
-              id: m.id,
-              role: m.role,
-              content: m.content,
-              sources: undefined,
-              queryId: m.query_id,
-              suggestedQuestions: m.suggested_questions
-                ? (typeof m.suggested_questions === 'string'
-                  ? JSON.parse(m.suggested_questions)
-                  : m.suggested_questions)
-                : undefined,
-            })))
-          }).catch(() => { })
-        } else {
-          createChatSession().then((s) => updateSessionId(s.id)).catch(() => { })
-        }
-      }).catch(() => {
-        // 非登入用戶或 API 失敗，不持久化
-      })
+      getChatSessions()
+        .then((list) => {
+          if (list.length > 0) {
+            const latest = list[0]
+            updateSessionId(latest.id)
+            getChatMessages(latest.id)
+              .then((msgs) => {
+                // 若使用者已搶先送出訊息，不覆蓋既有 state
+                setMessages((prev) =>
+                  prev.length > 0
+                    ? prev
+                    : msgs.map((m) => ({
+                        id: m.id,
+                        role: m.role,
+                        content: m.content,
+                        sources: undefined,
+                        queryId: m.query_id,
+                        suggestedQuestions: m.suggested_questions
+                          ? typeof m.suggested_questions === 'string'
+                            ? JSON.parse(m.suggested_questions)
+                            : m.suggested_questions
+                          : undefined,
+                      }))
+                )
+              })
+              .catch(() => {})
+          } else {
+            createChatSession()
+              .then((s) => updateSessionId(s.id))
+              .catch(() => {})
+          }
+        })
+        .catch(() => {
+          // 非登入用戶或 API 失敗，不持久化
+        })
     }
 
     return () => {
@@ -158,19 +191,22 @@ export function ChatWidget() {
   // 儲存訊息到後端（靜默失敗）
   // 刻意讀 sessionIdRef.current 而非 state，確保 onSuccess 等非同步 callback
   // 即使是舊 closure 也能拿到最新 sessionId
-  const persistMessage = useCallback(async (
-    role: 'user' | 'assistant',
-    content: string,
-    extra?: { suggested_questions?: string[]; query_id?: string }
-  ) => {
-    const sid = sessionIdRef.current
-    if (!sid) return
-    try {
-      await saveMessage(sid, { role, content, ...extra })
-    } catch {
-      // 靜默失敗，不中斷對話
-    }
-  }, []) // 無 deps：直接讀 ref，無 stale closure 問題
+  const persistMessage = useCallback(
+    async (
+      role: 'user' | 'assistant',
+      content: string,
+      extra?: { suggested_questions?: string[]; query_id?: string }
+    ) => {
+      const sid = sessionIdRef.current
+      if (!sid) return
+      try {
+        await saveMessage(sid, { role, content, ...extra })
+      } catch {
+        // 靜默失敗，不中斷對話
+      }
+    },
+    []
+  ) // 無 deps：直接讀 ref，無 stale closure 問題
 
   const handleSubmit = useCallback(
     (query: string) => {
@@ -222,24 +258,30 @@ export function ChatWidget() {
         const finalizeDone = (doneEvent: import('@/lib/api/ai').AIStreamDoneEvent) => {
           setIsStreaming(false)
           abortControllerRef.current = null
-          setMessages((prev) => prev.map((m) =>
-            m.id === streamingMsgId
-              ? {
-                  ...m,
-                  // 用後端後處理版本（已注入路線/影片連結）替換串流原始累積文字
-                  ...(doneEvent.answer ? { content: doneEvent.answer } : {}),
-                  sources: doneEvent.sources,
-                  queryId: doneEvent.query_id,
-                }
-              : m
-          ))
+          setMessages((prev) =>
+            prev.map((m) =>
+              m.id === streamingMsgId
+                ? {
+                    ...m,
+                    // 用後端後處理版本（已注入路線/影片連結）替換串流原始累積文字
+                    ...(doneEvent.answer ? { content: doneEvent.answer } : {}),
+                    sources: doneEvent.sources,
+                    queryId: doneEvent.query_id,
+                  }
+                : m
+            )
+          )
           setSuggestedQuestions(doneEvent.suggested_questions ?? [])
           if (doneEvent.quota_remaining >= 0) {
-            setQuota((prev) => prev ? {
-              ...prev,
-              remaining: doneEvent.quota_remaining,
-              daily_used: prev.daily_limit - doneEvent.quota_remaining,
-            } : prev)
+            setQuota((prev) =>
+              prev
+                ? {
+                    ...prev,
+                    remaining: doneEvent.quota_remaining,
+                    daily_used: prev.daily_limit - doneEvent.quota_remaining,
+                  }
+                : prev
+            )
           }
           setMessages((prev) => {
             const msg = prev.find((m) => m.id === streamingMsgId)
@@ -256,9 +298,9 @@ export function ChatWidget() {
         const drainQueue = () => {
           const token = tokenQueueRef.current.shift()
           if (token !== undefined) {
-            setMessages((prev) => prev.map((m) =>
-              m.id === streamingMsgId ? { ...m, content: m.content + token } : m
-            ))
+            setMessages((prev) =>
+              prev.map((m) => (m.id === streamingMsgId ? { ...m, content: m.content + token } : m))
+            )
             drainTimerRef.current = setTimeout(drainQueue, 25)
           } else {
             drainTimerRef.current = null
@@ -267,7 +309,11 @@ export function ChatWidget() {
         }
 
         askAIStream(
-          { query: trimmed, include_sources: true, chat_history: chatHistory.length > 0 ? chatHistory : undefined },
+          {
+            query: trimmed,
+            include_sources: true,
+            chat_history: chatHistory.length > 0 ? chatHistory : undefined,
+          },
           (token) => {
             tokenQueueRef.current.push(token)
             if (!drainTimerRef.current) {
@@ -290,19 +336,25 @@ export function ChatWidget() {
             }
             setIsStreaming(false)
             abortControllerRef.current = null
-            setMessages((prev) => prev.map((m) =>
-              m.id === streamingMsgId
-                ? { ...m, content: m.content ? m.content + '\n\n⚠ 生成中斷，請重試' : errMessage }
-                : m
-            ))
+            setMessages((prev) =>
+              prev.map((m) =>
+                m.id === streamingMsgId
+                  ? { ...m, content: m.content ? m.content + '\n\n⚠ 生成中斷，請重試' : errMessage }
+                  : m
+              )
+            )
             console.error('Stream error:', errMessage)
           },
-          abortController.signal,
+          abortController.signal
         )
       } else {
         // 非串流模式（原有邏輯）
         askAI(
-          { query: trimmed, include_sources: true, chat_history: chatHistory.length > 0 ? chatHistory : undefined },
+          {
+            query: trimmed,
+            include_sources: true,
+            chat_history: chatHistory.length > 0 ? chatHistory : undefined,
+          },
           {
             onSuccess: (data) => {
               const assistantMsg: ChatMessageData = {
@@ -321,7 +373,20 @@ export function ChatWidget() {
               })
             },
             onError: (error) => {
-              const axiosError = error as { response?: { status?: number; data?: { data?: { daily_limit?: number; daily_used?: number; tier?: string; tier_display?: string; resets_at?: string } } } }
+              const axiosError = error as {
+                response?: {
+                  status?: number
+                  data?: {
+                    data?: {
+                      daily_limit?: number
+                      daily_used?: number
+                      tier?: string
+                      tier_display?: string
+                      resets_at?: string
+                    }
+                  }
+                }
+              }
               if (axiosError?.response?.status === 429) {
                 const errData = axiosError?.response?.data?.data
                 const limit = errData?.daily_limit ?? quota?.daily_limit ?? 2
@@ -348,7 +413,9 @@ export function ChatWidget() {
                     token_remaining: quota?.token_remaining ?? 0,
                   })
                 } else {
-                  setQuota((prev) => prev ? { ...prev, remaining: 0, daily_used: prev.daily_limit } : prev)
+                  setQuota((prev) =>
+                    prev ? { ...prev, remaining: 0, daily_used: prev.daily_limit } : prev
+                  )
                 }
               } else {
                 setMessages((prev) => [
@@ -385,12 +452,20 @@ export function ChatWidget() {
     setSuggestedQuestions([])
     setIsRegenerating(true)
     // 重新生成時也帶上對話歷史（排除最後一則 AI，因為已被移除）
-    const regenHistory: AIChatHistoryMessage[] = messages.slice(0, -1).slice(-6).map((m) => ({
-      role: m.role,
-      content: m.content,
-    }))
+    const regenHistory: AIChatHistoryMessage[] = messages
+      .slice(0, -1)
+      .slice(-6)
+      .map((m) => ({
+        role: m.role,
+        content: m.content,
+      }))
     askAI(
-      { query: lastUserMsg.content, include_sources: true, no_cache: true, chat_history: regenHistory.length > 0 ? regenHistory : undefined },
+      {
+        query: lastUserMsg.content,
+        include_sources: true,
+        no_cache: true,
+        chat_history: regenHistory.length > 0 ? regenHistory : undefined,
+      },
       {
         onSuccess: (data) => {
           isRegeneratingRef.current = false
@@ -413,7 +488,20 @@ export function ChatWidget() {
         onError: (error) => {
           isRegeneratingRef.current = false
           setIsRegenerating(false)
-          const axiosError = error as { response?: { status?: number; data?: { data?: { daily_limit?: number; daily_used?: number; tier?: string; tier_display?: string; resets_at?: string } } } }
+          const axiosError = error as {
+            response?: {
+              status?: number
+              data?: {
+                data?: {
+                  daily_limit?: number
+                  daily_used?: number
+                  tier?: string
+                  tier_display?: string
+                  resets_at?: string
+                }
+              }
+            }
+          }
           if (axiosError?.response?.status === 429) {
             const errData = axiosError?.response?.data?.data
             const limit = errData?.daily_limit ?? quota?.daily_limit ?? 2
@@ -440,7 +528,9 @@ export function ChatWidget() {
                 token_remaining: quota?.token_remaining ?? 0,
               })
             } else {
-              setQuota((prev) => prev ? { ...prev, remaining: 0, daily_used: prev.daily_limit } : prev)
+              setQuota((prev) =>
+                prev ? { ...prev, remaining: 0, daily_used: prev.daily_limit } : prev
+              )
             }
           } else {
             setMessages((prev) => [
@@ -455,7 +545,7 @@ export function ChatWidget() {
         },
       }
     )
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isPending, isRegenerating, messages, askAI, quota])
 
   // 清除對話
@@ -464,7 +554,7 @@ export function ChatWidget() {
     if (sid) {
       try {
         await deleteChatSession(sid)
-      } catch { }
+      } catch {}
     }
     setMessages([])
     setSuggestedQuestions([])
@@ -476,7 +566,7 @@ export function ChatWidget() {
       try {
         const newSession = await createChatSession()
         updateSessionId(newSession.id)
-      } catch { }
+      } catch {}
     }
   }, [isAuthenticated, updateSessionId])
 
@@ -489,7 +579,7 @@ export function ChatWidget() {
     try {
       const newSession = await createChatSession()
       updateSessionId(newSession.id)
-    } catch { }
+    } catch {}
   }, [updateSessionId])
 
   // 開啟歷史面板
@@ -497,31 +587,36 @@ export function ChatWidget() {
     try {
       const list = await getChatSessions()
       setSessions(list)
-    } catch { }
+    } catch {}
     setShowHistory(true)
   }, [])
 
   // 切換 session
-  const handleSwitchSession = useCallback(async (sessionId: string) => {
-    try {
-      const msgs = await getChatMessages(sessionId)
-      updateSessionId(sessionId)
-      setMessages(msgs.map((m) => ({
-        id: m.id,
-        role: m.role,
-        content: m.content,
-        sources: undefined,
-        queryId: m.query_id,
-        suggestedQuestions: m.suggested_questions
-          ? (typeof m.suggested_questions === 'string'
-            ? JSON.parse(m.suggested_questions)
-            : m.suggested_questions)
-          : undefined,
-      })))
-      setSuggestedQuestions([])
-      setShowHistory(false)
-    } catch { }
-  }, [updateSessionId])
+  const handleSwitchSession = useCallback(
+    async (sessionId: string) => {
+      try {
+        const msgs = await getChatMessages(sessionId)
+        updateSessionId(sessionId)
+        setMessages(
+          msgs.map((m) => ({
+            id: m.id,
+            role: m.role,
+            content: m.content,
+            sources: undefined,
+            queryId: m.query_id,
+            suggestedQuestions: m.suggested_questions
+              ? typeof m.suggested_questions === 'string'
+                ? JSON.parse(m.suggested_questions)
+                : m.suggested_questions
+              : undefined,
+          }))
+        )
+        setSuggestedQuestions([])
+        setShowHistory(false)
+      } catch {}
+    },
+    [updateSessionId]
+  )
 
   const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
     if (e.key === 'Enter' && !e.shiftKey && !e.nativeEvent.isComposing) {
@@ -530,7 +625,10 @@ export function ChatWidget() {
     }
   }
 
-  const lastAssistantIndex = messages.reduce((last, m, i) => m.role === 'assistant' ? i : last, -1)
+  const lastAssistantIndex = messages.reduce(
+    (last, m, i) => (m.role === 'assistant' ? i : last),
+    -1
+  )
 
   const widget = (
     <>
@@ -573,8 +671,13 @@ export function ChatWidget() {
                     <span className="text-xs text-muted-foreground">無配額限制</span>
                   ) : (
                     <>
-                      <RankBadge tier={quota.tier as import('@nobodyclimb/types').RankId} size="sm" />
-                      <span className="text-xs text-muted-foreground">剩餘 {quota.remaining}/{quota.daily_limit}</span>
+                      <RankBadge
+                        tier={quota.tier as import('@nobodyclimb/types').RankId}
+                        size="sm"
+                      />
+                      <span className="text-xs text-muted-foreground">
+                        剩餘 {quota.remaining}/{quota.daily_limit}
+                      </span>
                     </>
                   )}
                 </div>
@@ -586,8 +689,8 @@ export function ChatWidget() {
               {isAuthenticated && !showHistory && (
                 <>
                   {/* 清除按鈕 */}
-                  {messages.length > 0 && (
-                    showConfirmClear ? (
+                  {messages.length > 0 &&
+                    (showConfirmClear ? (
                       <div className="flex items-center gap-1">
                         <span className="text-xs text-muted-foreground">確定清除？</span>
                         <button
@@ -614,8 +717,7 @@ export function ChatWidget() {
                       >
                         <Trash2 className="h-4 w-4" />
                       </button>
-                    )
-                  )}
+                    ))}
                   {/* 新對話按鈕 */}
                   <button
                     type="button"
@@ -648,7 +750,12 @@ export function ChatWidget() {
               )}
               <button
                 type="button"
-                onClick={() => { setIsOpen(false); setShowHistory(false); setShowConfirmClear(false); setShowLoginPrompt(false) }}
+                onClick={() => {
+                  setIsOpen(false)
+                  setShowHistory(false)
+                  setShowConfirmClear(false)
+                  setShowLoginPrompt(false)
+                }}
                 className="rounded-md p-1.5 text-muted-foreground hover:bg-muted hover:text-foreground transition-colors"
                 aria-label="關閉 AI 助理"
               >
@@ -713,8 +820,12 @@ export function ChatWidget() {
                     </div>
                     {showLoginPrompt && (
                       <div className="w-full text-left rounded-xl border border-border bg-muted/50 p-4 space-y-3">
-                        <p className="text-sm text-foreground font-medium">請登入後使用 AI 攀岩助理</p>
-                        <p className="text-xs text-muted-foreground">登入即可詢問路線推薦、岩場資訊等問題</p>
+                        <p className="text-sm text-foreground font-medium">
+                          請登入後使用 AI 攀岩助理
+                        </p>
+                        <p className="text-xs text-muted-foreground">
+                          登入即可詢問路線推薦、岩場資訊等問題
+                        </p>
                         <Link
                           href="/auth/login"
                           className="inline-flex items-center rounded-lg bg-primary px-4 py-2 text-sm font-medium text-primary-foreground hover:bg-primary/90 transition-colors"
@@ -755,7 +866,8 @@ export function ChatWidget() {
                       </div>
                     )}
                     {/* 載入狀態 */}
-                    {(isPending || (isStreaming && messages[messages.length - 1]?.content === '')) && (
+                    {(isPending ||
+                      (isStreaming && messages[messages.length - 1]?.content === '')) && (
                       <div className="flex items-center gap-2 text-sm text-muted-foreground">
                         <Loader2 className="h-4 w-4 animate-spin" />
                         <span>思考中...</span>
@@ -795,7 +907,9 @@ export function ChatWidget() {
                           const last = prev[prev.length - 1]
                           if (last?.role === 'assistant') {
                             return prev.map((m, i) =>
-                              i === prev.length - 1 ? { ...m, content: m.content + '（已停止）' } : m
+                              i === prev.length - 1
+                                ? { ...m, content: m.content + '（已停止）' }
+                                : m
                             )
                           }
                           return prev

@@ -1,4 +1,4 @@
-import { D1Database } from '@cloudflare/workers-types';
+import { D1Database } from '@cloudflare/workers-types'
 
 /**
  * 通知類型定義
@@ -19,118 +19,118 @@ export type NotificationType =
   | 'one_liner_commented'
   | 'story_liked'
   | 'story_commented'
-  | 'system_announcement';
+  | 'system_announcement'
 
 /**
  * 通知項目（包含 actor 資訊）
  */
 export interface NotificationItem {
-  id: string;
-  user_id: string;
-  type: NotificationType;
-  actor_id: string | null;
-  target_id: string | null;
-  title: string;
-  message: string;
-  is_read: number;
-  created_at: string;
-  actor_name: string | null;
-  actor_avatar: string | null;
-  actor_slug: string | null;
-  target_slug: string | null;
-  owner_slug: string | null;
+  id: string
+  user_id: string
+  type: NotificationType
+  actor_id: string | null
+  target_id: string | null
+  title: string
+  message: string
+  is_read: number
+  created_at: string
+  actor_name: string | null
+  actor_avatar: string | null
+  actor_slug: string | null
+  target_slug: string | null
+  owner_slug: string | null
 }
 
 /**
  * 通知查詢選項
  */
 export interface NotificationQueryOptions {
-  page: number;
-  limit: number;
-  unreadOnly?: boolean;
+  page: number
+  limit: number
+  unreadOnly?: boolean
 }
 
 /**
  * 通知偏好設定
  */
 export interface NotificationPreferences {
-  user_id: string;
-  goal_liked: number;
-  goal_commented: number;
-  goal_referenced: number;
-  post_liked: number;
-  post_commented: number;
-  biography_commented: number;
-  new_follower: number;
-  story_featured: number;
-  goal_completed: number;
-  email_digest: number;
+  user_id: string
+  goal_liked: number
+  goal_commented: number
+  goal_referenced: number
+  post_liked: number
+  post_commented: number
+  biography_commented: number
+  new_follower: number
+  story_featured: number
+  goal_completed: number
+  email_digest: number
 }
 
 /**
  * 基本統計資料
  */
 export interface BasicStats {
-  total: number;
-  unread: number;
-  read: number;
+  total: number
+  unread: number
+  read: number
 }
 
 /**
  * 類型統計
  */
 export interface TypeStats {
-  type: string;
-  count: number;
+  type: string
+  count: number
 }
 
 /**
  * 每日趨勢
  */
 export interface DailyTrend {
-  date: string;
-  count: number;
+  date: string
+  count: number
 }
 
 /**
  * 廣播通知項目
  */
 export interface BroadcastItem {
-  id: string;
-  title: string;
-  message: string;
-  actor_id: string;
-  actor_name: string;
-  created_at: string;
-  recipient_count: number;
-  read_count: number;
+  id: string
+  title: string
+  message: string
+  actor_id: string
+  actor_name: string
+  created_at: string
+  recipient_count: number
+  read_count: number
 }
 
 /**
  * 系統統計（24 小時）
  */
 export interface SystemStats {
-  total_24h: number;
-  unread_24h: number;
-  users_with_notifications: number;
+  total_24h: number
+  unread_24h: number
+  users_with_notifications: number
 }
 
 /**
  * 每小時趨勢
  */
 export interface HourlyTrend {
-  hour: string;
-  count: number;
+  hour: string
+  count: number
 }
 
 /**
  * Top 收件者
  */
 export interface TopRecipient {
-  user_id: string;
-  username: string;
-  display_name: string | null;
-  notification_count: number;
+  user_id: string
+  username: string
+  display_name: string | null
+  notification_count: number
 }
 
 /**
@@ -155,13 +155,13 @@ export class NotificationRepository {
     userId: string,
     options: NotificationQueryOptions
   ): Promise<NotificationItem[]> {
-    const { page, limit, unreadOnly } = options;
-    const offset = (page - 1) * limit;
-    const params: (string | number)[] = [userId];
+    const { page, limit, unreadOnly } = options
+    const offset = (page - 1) * limit
+    const params: (string | number)[] = [userId]
 
-    let whereClause = 'n.user_id = ?';
+    let whereClause = 'n.user_id = ?'
     if (unreadOnly) {
-      whereClause += ' AND n.is_read = 0';
+      whereClause += ' AND n.is_read = 0'
     }
 
     const result = await this.db
@@ -179,28 +179,28 @@ export class NotificationRepository {
          LIMIT ? OFFSET ?`
       )
       .bind(...params, limit, offset)
-      .all<NotificationItem>();
+      .all<NotificationItem>()
 
-    return result.results || [];
+    return result.results || []
   }
 
   /**
    * 計算使用者的通知總數
    */
   async countByUserId(userId: string, unreadOnly?: boolean): Promise<number> {
-    const params: (string | number)[] = [userId];
-    let whereClause = 'n.user_id = ?';
+    const params: (string | number)[] = [userId]
+    let whereClause = 'n.user_id = ?'
 
     if (unreadOnly) {
-      whereClause += ' AND n.is_read = 0';
+      whereClause += ' AND n.is_read = 0'
     }
 
     const result = await this.db
       .prepare(`SELECT COUNT(*) as count FROM notifications n WHERE ${whereClause}`)
       .bind(...params)
-      .first<{ count: number }>();
+      .first<{ count: number }>()
 
-    return result?.count || 0;
+    return result?.count || 0
   }
 
   /**
@@ -210,48 +210,37 @@ export class NotificationRepository {
     const result = await this.db
       .prepare('SELECT id FROM notifications WHERE id = ? AND user_id = ?')
       .bind(id, userId)
-      .first<{ id: string }>();
+      .first<{ id: string }>()
 
-    return result || null;
+    return result || null
   }
 
   /**
    * 創建通知
    */
   async create(data: {
-    id: string;
-    userId: string;
-    type: NotificationType;
-    actorId: string | null;
-    targetId: string | null;
-    title: string;
-    message: string;
+    id: string
+    userId: string
+    type: NotificationType
+    actorId: string | null
+    targetId: string | null
+    title: string
+    message: string
   }): Promise<void> {
     await this.db
       .prepare(
         `INSERT INTO notifications (id, user_id, type, actor_id, target_id, title, message)
          VALUES (?, ?, ?, ?, ?, ?, ?)`
       )
-      .bind(
-        data.id,
-        data.userId,
-        data.type,
-        data.actorId,
-        data.targetId,
-        data.title,
-        data.message
-      )
-      .run();
+      .bind(data.id, data.userId, data.type, data.actorId, data.targetId, data.title, data.message)
+      .run()
   }
 
   /**
    * 標記通知為已讀
    */
   async markAsRead(id: string): Promise<void> {
-    await this.db
-      .prepare('UPDATE notifications SET is_read = 1 WHERE id = ?')
-      .bind(id)
-      .run();
+    await this.db.prepare('UPDATE notifications SET is_read = 1 WHERE id = ?').bind(id).run()
   }
 
   /**
@@ -261,27 +250,21 @@ export class NotificationRepository {
     await this.db
       .prepare('UPDATE notifications SET is_read = 1 WHERE user_id = ? AND is_read = 0')
       .bind(userId)
-      .run();
+      .run()
   }
 
   /**
    * 刪除通知
    */
   async delete(id: string): Promise<void> {
-    await this.db
-      .prepare('DELETE FROM notifications WHERE id = ?')
-      .bind(id)
-      .run();
+    await this.db.prepare('DELETE FROM notifications WHERE id = ?').bind(id).run()
   }
 
   /**
    * 刪除使用者所有通知
    */
   async deleteAllByUserId(userId: string): Promise<void> {
-    await this.db
-      .prepare('DELETE FROM notifications WHERE user_id = ?')
-      .bind(userId)
-      .run();
+    await this.db.prepare('DELETE FROM notifications WHERE user_id = ?').bind(userId).run()
   }
 
   // ═══════════════════════════════════════════════════════════
@@ -305,9 +288,9 @@ export class NotificationRepository {
          AND created_at > datetime('now', '-' || ? || ' minutes')`
       )
       .bind(userId, actorId, targetId, type, minutesAgo)
-      .first<{ id: string }>();
+      .first<{ id: string }>()
 
-    return result || null;
+    return result || null
   }
 
   /**
@@ -328,9 +311,9 @@ export class NotificationRepository {
          LIMIT 1`
       )
       .bind(userId, targetId, type, hoursAgo)
-      .first<{ id: string; message: string }>();
+      .first<{ id: string; message: string }>()
 
-    return result || null;
+    return result || null
   }
 
   /**
@@ -349,26 +332,22 @@ export class NotificationRepository {
          AND created_at > datetime('now', '-' || ? || ' hour')`
       )
       .bind(userId, targetId, type, hoursAgo)
-      .first<{ count: number }>();
+      .first<{ count: number }>()
 
-    return result?.count || 0;
+    return result?.count || 0
   }
 
   /**
    * 更新通知內容（用於聚合）
    */
-  async updateNotification(
-    id: string,
-    message: string,
-    actorId: string
-  ): Promise<void> {
+  async updateNotification(id: string, message: string, actorId: string): Promise<void> {
     await this.db
       .prepare(
         `UPDATE notifications SET message = ?, actor_id = ?, created_at = datetime('now')
          WHERE id = ?`
       )
       .bind(message, actorId, id)
-      .run();
+      .run()
   }
 
   // ═══════════════════════════════════════════════════════════
@@ -389,9 +368,9 @@ export class NotificationRepository {
         WHERE user_id = ?`
       )
       .bind(userId)
-      .first<BasicStats>();
+      .first<BasicStats>()
 
-    return result || { total: 0, unread: 0, read: 0 };
+    return result || { total: 0, unread: 0, read: 0 }
   }
 
   /**
@@ -407,9 +386,9 @@ export class NotificationRepository {
         ORDER BY count DESC`
       )
       .bind(userId)
-      .all<TypeStats>();
+      .all<TypeStats>()
 
-    return result.results || [];
+    return result.results || []
   }
 
   /**
@@ -428,9 +407,9 @@ export class NotificationRepository {
         ORDER BY date ASC`
       )
       .bind(userId)
-      .all<DailyTrend>();
+      .all<DailyTrend>()
 
-    return result.results || [];
+    return result.results || []
   }
 
   // ═══════════════════════════════════════════════════════════
@@ -440,21 +419,23 @@ export class NotificationRepository {
   /**
    * 查詢目標用戶（用於廣播）
    */
-  async findTargetUsers(targetRole?: 'all' | 'user' | 'moderator' | 'admin'): Promise<{ id: string }[]> {
-    let query = 'SELECT id FROM users WHERE is_active = 1';
-    const params: string[] = [];
+  async findTargetUsers(
+    targetRole?: 'all' | 'user' | 'moderator' | 'admin'
+  ): Promise<{ id: string }[]> {
+    let query = 'SELECT id FROM users WHERE is_active = 1'
+    const params: string[] = []
 
     if (targetRole && targetRole !== 'all') {
-      query += ' AND role = ?';
-      params.push(targetRole);
+      query += ' AND role = ?'
+      params.push(targetRole)
     }
 
     const result = await this.db
       .prepare(query)
       .bind(...params)
-      .all<{ id: string }>();
+      .all<{ id: string }>()
 
-    return result.results || [];
+    return result.results || []
   }
 
   /**
@@ -480,9 +461,9 @@ export class NotificationRepository {
         LIMIT ? OFFSET ?`
       )
       .bind(limit, offset)
-      .all<BroadcastItem>();
+      .all<BroadcastItem>()
 
-    return result.results || [];
+    return result.results || []
   }
 
   /**
@@ -495,9 +476,9 @@ export class NotificationRepository {
          FROM notifications
          WHERE type = 'system_announcement'`
       )
-      .first<{ count: number }>();
+      .first<{ count: number }>()
 
-    return result?.count || 0;
+    return result?.count || 0
   }
 
   /**
@@ -513,9 +494,9 @@ export class NotificationRepository {
         FROM notifications
         WHERE created_at > datetime('now', '-24 hours')`
       )
-      .first<SystemStats>();
+      .first<SystemStats>()
 
-    return result || { total_24h: 0, unread_24h: 0, users_with_notifications: 0 };
+    return result || { total_24h: 0, unread_24h: 0, users_with_notifications: 0 }
   }
 
   /**
@@ -530,9 +511,9 @@ export class NotificationRepository {
         GROUP BY type
         ORDER BY count DESC`
       )
-      .all<TypeStats>();
+      .all<TypeStats>()
 
-    return result.results || [];
+    return result.results || []
   }
 
   /**
@@ -549,9 +530,9 @@ export class NotificationRepository {
         GROUP BY strftime('%Y-%m-%d %H:00', created_at)
         ORDER BY hour ASC`
       )
-      .all<HourlyTrend>();
+      .all<HourlyTrend>()
 
-    return result.results || [];
+    return result.results || []
   }
 
   /**
@@ -572,9 +553,9 @@ export class NotificationRepository {
         ORDER BY notification_count DESC
         LIMIT 10`
       )
-      .all<TopRecipient>();
+      .all<TopRecipient>()
 
-    return result.results || [];
+    return result.results || []
   }
 
   // ═══════════════════════════════════════════════════════════
@@ -588,9 +569,9 @@ export class NotificationRepository {
     const result = await this.db
       .prepare('SELECT * FROM notification_preferences WHERE user_id = ?')
       .bind(userId)
-      .first<NotificationPreferences>();
+      .first<NotificationPreferences>()
 
-    return result || null;
+    return result || null
   }
 
   /**
@@ -600,7 +581,7 @@ export class NotificationRepository {
     await this.db
       .prepare('INSERT OR IGNORE INTO notification_preferences (user_id) VALUES (?)')
       .bind(userId)
-      .run();
+      .run()
   }
 
   /**
@@ -610,8 +591,8 @@ export class NotificationRepository {
     userId: string,
     updates: Array<{ key: string; value: number }>
   ): Promise<void> {
-    const setClauses = updates.map((u) => `${u.key} = ?`).join(', ');
-    const values = updates.map((u) => u.value);
+    const setClauses = updates.map((u) => `${u.key} = ?`).join(', ')
+    const values = updates.map((u) => u.value)
 
     await this.db
       .prepare(
@@ -620,28 +601,23 @@ export class NotificationRepository {
          WHERE user_id = ?`
       )
       .bind(...values, userId)
-      .run();
+      .run()
   }
 
   /**
    * 檢查特定類型通知是否已啟用
    */
-  async isNotificationTypeEnabled(
-    userId: string,
-    type: NotificationType
-  ): Promise<boolean> {
+  async isNotificationTypeEnabled(userId: string, type: NotificationType): Promise<boolean> {
     const result = await this.db
-      .prepare(
-        `SELECT ${type} as enabled FROM notification_preferences WHERE user_id = ?`
-      )
+      .prepare(`SELECT ${type} as enabled FROM notification_preferences WHERE user_id = ?`)
       .bind(userId)
-      .first<{ enabled: number }>();
+      .first<{ enabled: number }>()
 
     // 如果沒有設定，預設為啟用
     if (!result) {
-      return true;
+      return true
     }
 
-    return result.enabled === 1;
+    return result.enabled === 1
   }
 }

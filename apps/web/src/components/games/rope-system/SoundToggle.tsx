@@ -1,6 +1,5 @@
 'use client'
 
-import * as React from 'react'
 import { Volume2, VolumeX } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { useRopeGameStore } from '@/store/ropeGameStore'

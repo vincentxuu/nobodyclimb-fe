@@ -1,23 +1,23 @@
 'use client'
 
-import { useState } from 'react'
+import { motion } from 'framer-motion'
+import { ChevronRight, MapPin } from 'lucide-react'
 import Image from 'next/image'
 import Link from 'next/link'
-import { motion } from 'framer-motion'
-import { MapPin, ChevronRight } from 'lucide-react'
-import { Button } from '@/components/ui/button'
-import { CragCoverGenerator } from '@/components/shared/CragCoverGenerator'
-import { useCrags, useFeaturedRoutes, type FeaturedRouteItem } from '@/hooks/api/useCrags'
-import type { CragListItem } from '@/lib/crag-data'
 import { useTranslations } from 'next-intl'
+import { useState } from 'react'
+import { CragCoverGenerator } from '@/components/shared/CragCoverGenerator'
+import { Button } from '@/components/ui/button'
+import { type FeaturedRouteItem, useCrags, useFeaturedRoutes } from '@/hooks/api/useCrags'
+import type { CragListItem } from '@/lib/crag-data'
 
 // 台灣地圖上的岩場標記位置（百分比，基於 taiwan.svg 437x555）
 const cragMapPositions: Record<string, { top: string; left: string }> = {
-  longdong: { top: '26%', left: '90%' },      // 龍洞（東北角）
-  defulan: { top: '42%', left: '68%' },       // 德芙蘭（台中）
-  guanziling: { top: '58%', left: '58%' },    // 關子嶺（台南）
-  shoushan: { top: '75%', left: '54%' },      // 壽山（高雄）
-  kenting: { top: '90%', left: '60%' },       // 墾丁（屏東最南端）
+  longdong: { top: '26%', left: '90%' }, // 龍洞（東北角）
+  defulan: { top: '42%', left: '68%' }, // 德芙蘭（台中）
+  guanziling: { top: '58%', left: '58%' }, // 關子嶺（台南）
+  shoushan: { top: '75%', left: '54%' }, // 壽山（高雄）
+  kenting: { top: '90%', left: '60%' }, // 墾丁（屏東最南端）
 }
 
 // 岩場卡片組件（水平滑動版）
@@ -142,9 +142,7 @@ function RouteCard({ route, index }: { route: FeaturedRouteItem; index: number }
           <h4 className="mb-1 truncate text-base font-semibold text-[#1B1A1A] group-hover:text-[#3F3D3D]">
             {route.name}
           </h4>
-          {route.nameEn && (
-            <p className="mb-2 truncate text-xs text-[#8E8C8C]">{route.nameEn}</p>
-          )}
+          {route.nameEn && <p className="mb-2 truncate text-xs text-[#8E8C8C]">{route.nameEn}</p>}
 
           {/* 所屬岩場・區域 */}
           <div className="mb-3 flex items-center gap-1.5 text-xs text-[#6D6C6C]">
@@ -238,8 +236,9 @@ export function TaiwanMap({
           <>
             {/* 標記點 */}
             <motion.div
-              className={`relative flex items-center justify-center rounded-full ${compact ? 'h-1.5 w-1.5' : 'h-6 w-6'
-                } ${hoveredCrag === crag.id ? 'bg-brand-accent' : 'bg-brand-dark'}`}
+              className={`relative flex items-center justify-center rounded-full ${
+                compact ? 'h-1.5 w-1.5' : 'h-6 w-6'
+              } ${hoveredCrag === crag.id ? 'bg-brand-accent' : 'bg-brand-dark'}`}
               whileHover={{ scale: 1.2 }}
               transition={{ duration: 0.2 }}
             >
@@ -307,7 +306,9 @@ export function ExploreCragSection() {
         {/* 標題區 */}
         <div className="mb-10 flex items-center justify-between">
           <div>
-            <h2 className="text-3xl font-bold text-[#1B1A1A] md:text-[40px]">{t('cragSectionTitle')}</h2>
+            <h2 className="text-3xl font-bold text-[#1B1A1A] md:text-[40px]">
+              {t('cragSectionTitle')}
+            </h2>
             <p className="mt-2 text-base text-[#6D6C6C]">{t('cragSectionSubtitle')}</p>
           </div>
         </div>
@@ -316,9 +317,7 @@ export function ExploreCragSection() {
         <CragsCarousel crags={crags} />
 
         {/* 熱門路線區塊 */}
-        {featuredRoutes.length > 0 && (
-          <FeaturedRoutesCarousel routes={featuredRoutes} />
-        )}
+        {featuredRoutes.length > 0 && <FeaturedRoutesCarousel routes={featuredRoutes} />}
 
         {/* 查看全部按鈕 */}
         <div className="mt-10 flex justify-center">

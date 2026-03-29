@@ -3,19 +3,18 @@
  *
  * 人物誌詳細頁整合，對應 apps/web/src/components/biography/display/BiographyDetailPage.tsx
  */
-import React from 'react'
-import { StyleSheet, View, ScrollView } from 'react-native'
 
-import { BiographyHero } from './BiographyHero'
-import { BiographyTags } from './BiographyTags'
-import { BiographyOneLiners } from './BiographyOneLiners'
-import { BiographyStories } from './BiographyStories'
+import { SPACING, WB_COLORS } from '@nobodyclimb/constants'
+import { ScrollView, StyleSheet, View } from 'react-native'
+import { BiographyCoreStories } from './BiographyCoreStories'
 import { BiographyFootprints } from './BiographyFootprints'
 import { BiographyGallery } from './BiographyGallery'
-import { BiographyCoreStories } from './BiographyCoreStories'
+import { BiographyHero } from './BiographyHero'
+import { BiographyOneLiners } from './BiographyOneLiners'
+import { BiographyStories } from './BiographyStories'
+import { BiographyTags } from './BiographyTags'
 import { EmptyState } from './EmptyState'
 import { PrivateEmptyState } from './PrivateEmptyState'
-import { SPACING, WB_COLORS } from '@nobodyclimb/constants'
 
 // 類型定義
 interface SocialLinks {
@@ -99,10 +98,7 @@ export function BiographyDetailPage({
     return (
       <View style={[styles.container, style]}>
         <View style={styles.privateContainer}>
-          <PrivateEmptyState
-            title="這是私人頁面"
-            description="這位攀岩者選擇不公開他的人物誌"
-          />
+          <PrivateEmptyState title="這是私人頁面" description="這位攀岩者選擇不公開他的人物誌" />
         </View>
       </View>
     )
@@ -125,8 +121,8 @@ export function BiographyDetailPage({
 
         <View style={styles.emptyContainer}>
           <EmptyState
-            title={isOwner ? "開始建立你的人物誌" : "尚無內容"}
-            description={isOwner ? "點擊編輯按鈕開始填寫你的攀岩故事" : "這位攀岩者尚未新增內容"}
+            title={isOwner ? '開始建立你的人物誌' : '尚無內容'}
+            description={isOwner ? '點擊編輯按鈕開始填寫你的攀岩故事' : '這位攀岩者尚未新增內容'}
           />
         </View>
       </ScrollView>

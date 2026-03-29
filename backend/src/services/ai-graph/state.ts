@@ -1,7 +1,7 @@
-import { Annotation } from "@langchain/langgraph";
-import { PipelineContext } from "../pipeline/types";
-import { LangfuseTraceClient } from "langfuse";
-import { AIProvider } from "./providers/types";
+import { Annotation } from '@langchain/langgraph'
+import { LangfuseTraceClient } from 'langfuse'
+import { PipelineContext } from '../pipeline/types'
+import { AIProvider } from './providers/types'
 
 /**
  * LangGraph Graph State
@@ -13,32 +13,32 @@ import { AIProvider } from "./providers/types";
 export const GraphStateAnnotation = Annotation.Root({
   // ---------- 直接對應 PipelineContext 的所有欄位 ----------
   // 使用 Annotation<T>() 讓 LangGraph 知道型別，不指定 reducer 表示 last-write-wins
-  env: Annotation<PipelineContext["env"]>(),
-  request: Annotation<PipelineContext["request"]>(),
+  env: Annotation<PipelineContext['env']>(),
+  request: Annotation<PipelineContext['request']>(),
   userId: Annotation<string | undefined>(),
-  pipelineConfig: Annotation<PipelineContext["pipelineConfig"]>(),
+  pipelineConfig: Annotation<PipelineContext['pipelineConfig']>(),
   prompts: Annotation<Record<string, string>>(),
-  gatewayOptions: Annotation<PipelineContext["gatewayOptions"]>(),
+  gatewayOptions: Annotation<PipelineContext['gatewayOptions']>(),
   trace: Annotation<Record<string, unknown>>({
     reducer: (a, b) => ({ ...a, ...b }), // trace 欄位做 merge
   }),
-  tokenBreakdown: Annotation<PipelineContext["tokenBreakdown"]>({
+  tokenBreakdown: Annotation<PipelineContext['tokenBreakdown']>({
     reducer: (a, b) => ({ ...a, ...b }),
   }),
-  queryService: Annotation<PipelineContext["queryService"]>(),
+  queryService: Annotation<PipelineContext['queryService']>(),
   startTime: Annotation<number>(),
 
   // 快取
   cacheKey: Annotation<string>(),
   cacheTtl: Annotation<number>(),
-  recentHistory: Annotation<PipelineContext["recentHistory"]>(),
+  recentHistory: Annotation<PipelineContext['recentHistory']>(),
   isAnonymousNoHistory: Annotation<boolean>(),
   earlyQueryVector: Annotation<number[] | null>(),
 
   // Pre-retrieval
-  queryType: Annotation<PipelineContext["queryType"]>(),
+  queryType: Annotation<PipelineContext['queryType']>(),
   effectiveLlmModel: Annotation<string | undefined>(),
-  parsedQuery: Annotation<PipelineContext["parsedQuery"]>(),
+  parsedQuery: Annotation<PipelineContext['parsedQuery']>(),
   toolConfidence: Annotation<number>(),
   fallbackEnabled: Annotation<boolean>(),
   alternativeTool: Annotation<string | undefined>(),
@@ -52,7 +52,7 @@ export const GraphStateAnnotation = Annotation.Root({
   // Text-to-SQL
   sqlTemplate: Annotation<string | undefined>(),
   sqlParams: Annotation<Record<string, unknown> | undefined>(),
-  clarificationType: Annotation<"intent" | "missing-crag" | undefined>(),
+  clarificationType: Annotation<'intent' | 'missing-crag' | undefined>(),
   sqlCandidates: Annotation<Array<Record<string, unknown>> | undefined>(),
   sqlContext: Annotation<string | undefined>(),
 
@@ -63,20 +63,20 @@ export const GraphStateAnnotation = Annotation.Root({
   referenceRouteInfo: Annotation<string | null | undefined>(),
 
   // 預載資料
-  preloadedCrags: Annotation<PipelineContext["preloadedCrags"]>(),
-  preloadedAreas: Annotation<PipelineContext["preloadedAreas"]>(),
+  preloadedCrags: Annotation<PipelineContext['preloadedCrags']>(),
+  preloadedAreas: Annotation<PipelineContext['preloadedAreas']>(),
 
   // Retrieval
-  candidateMatches: Annotation<PipelineContext["candidateMatches"]>(),
+  candidateMatches: Annotation<PipelineContext['candidateMatches']>(),
   // NOTE: branchResults 和 documents 使用 Map 型別（繼承自 PipelineContext）。
   // 若未來啟用 LangGraph checkpointing，需改為 Record/Array 以支援 JSON 序列化。
-  documents: Annotation<PipelineContext["documents"]>(),
+  documents: Annotation<PipelineContext['documents']>(),
   retrievalScore: Annotation<number | undefined>(),
 
   // Post-retrieval
-  scoredCandidates: Annotation<PipelineContext["scoredCandidates"]>(),
-  rerankedMatches: Annotation<PipelineContext["rerankedMatches"]>(),
-  sources: Annotation<PipelineContext["sources"]>(),
+  scoredCandidates: Annotation<PipelineContext['scoredCandidates']>(),
+  rerankedMatches: Annotation<PipelineContext['rerankedMatches']>(),
+  sources: Annotation<PipelineContext['sources']>(),
   context: Annotation<string | undefined>(),
 
   // Generation
@@ -90,11 +90,11 @@ export const GraphStateAnnotation = Annotation.Root({
   quality: Annotation<number | null | undefined>(),
 
   // 流程控制
-  earlyReturn: Annotation<PipelineContext["earlyReturn"]>(),
-  finalResponse: Annotation<PipelineContext["finalResponse"]>(),
+  earlyReturn: Annotation<PipelineContext['earlyReturn']>(),
+  finalResponse: Annotation<PipelineContext['finalResponse']>(),
   streamingMode: Annotation<boolean | undefined>(),
   onToken: Annotation<((token: string) => Promise<void>) | undefined>(),
-  waitUntilCtx: Annotation<PipelineContext["waitUntilCtx"]>(),
+  waitUntilCtx: Annotation<PipelineContext['waitUntilCtx']>(),
 
   // 個人化
   memorySummary: Annotation<string | null | undefined>(),
@@ -103,29 +103,29 @@ export const GraphStateAnnotation = Annotation.Root({
 
   // Looping
   loopCount: Annotation<number>(),
-  loopBack: Annotation<PipelineContext["loopBack"]>(),
+  loopBack: Annotation<PipelineContext['loopBack']>(),
 
   // Agentic
   /** agentic decision node が設定：'RETRIEVE' | 'ANSWER'。routing 用 typed field 而非從 trace 讀取 */
-  agenticAction: Annotation<"RETRIEVE" | "ANSWER" | undefined>(),
+  agenticAction: Annotation<'RETRIEVE' | 'ANSWER' | undefined>(),
 
   // Branching
   // NOTE: branchResults 和 documents 使用 Map 型別（繼承自 PipelineContext）。
   // 若未來啟用 LangGraph checkpointing，需改為 Record/Array 以支援 JSON 序列化。
-  branchResults: Annotation<PipelineContext["branchResults"]>(),
+  branchResults: Annotation<PipelineContext['branchResults']>(),
 
   // Latency
-  phaseLatency: Annotation<PipelineContext["phaseLatency"]>(),
+  phaseLatency: Annotation<PipelineContext['phaseLatency']>(),
 
   // 其他
-  retrievalMethod: Annotation<PipelineContext["retrievalMethod"]>(),
-  multiToolPlan: Annotation<PipelineContext["multiToolPlan"]>(),
+  retrievalMethod: Annotation<PipelineContext['retrievalMethod']>(),
+  multiToolPlan: Annotation<PipelineContext['multiToolPlan']>(),
   strategyHint: Annotation<string | undefined>(),
   skipPostRetrieval: Annotation<boolean | undefined>(),
   // NOTE: 使用 Record 而非 Map，因為 LangGraph 在 checkpointing 時需要 JSON 序列化
   videoCountMap: Annotation<Record<string, number> | undefined>(),
   latestVideoMap: Annotation<Record<string, string> | undefined>(),
-  llmMessages: Annotation<PipelineContext["llmMessages"]>(),
+  llmMessages: Annotation<PipelineContext['llmMessages']>(),
   selfReflectionTriggered: Annotation<number | undefined>(),
   cannotAnswer: Annotation<boolean | undefined>(),
   abortSignal: Annotation<AbortSignal | undefined>(),
@@ -135,7 +135,7 @@ export const GraphStateAnnotation = Annotation.Root({
   degradedStages: Annotation<string[] | undefined>({
     reducer: (a, b) => [...(a ?? []), ...(b ?? [])],
   }),
-  circuitBreaker: Annotation<PipelineContext["circuitBreaker"]>(),
+  circuitBreaker: Annotation<PipelineContext['circuitBreaker']>(),
   climbed_route_ids: Annotation<string[] | null | undefined>(),
 
   // ---------- LangGraph 新增欄位 ----------
@@ -145,6 +145,6 @@ export const GraphStateAnnotation = Annotation.Root({
   llmProvider: Annotation<AIProvider | undefined>(),
   /** 注入的 embedding provider，embedding node 透過此介面呼叫 embed */
   embeddingProvider: Annotation<AIProvider | undefined>(),
-});
+})
 
-export type GraphState = typeof GraphStateAnnotation.State;
+export type GraphState = typeof GraphStateAnnotation.State

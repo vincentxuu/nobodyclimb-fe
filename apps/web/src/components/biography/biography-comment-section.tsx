@@ -1,18 +1,18 @@
 'use client'
 
-import { useState, useEffect, useCallback } from 'react'
-import { MessageCircle, Send, Trash2, Loader2 } from 'lucide-react'
-import { Button } from '@/components/ui/button'
-import { Textarea } from '@/components/ui/textarea'
-import { biographyService } from '@/lib/api/services'
-import { useAuthStore } from '@/store/authStore'
-import { useRouter } from 'next/navigation'
-import { cn } from '@/lib/utils'
-import { useToast } from '@/components/ui/use-toast'
 import { AxiosError } from 'axios'
 import { formatDistanceToNow } from 'date-fns'
 import { zhTW } from 'date-fns/locale'
+import { Loader2, MessageCircle, Send, Trash2 } from 'lucide-react'
+import { useRouter } from 'next/navigation'
 import { useTranslations } from 'next-intl'
+import { useCallback, useEffect, useState } from 'react'
+import { Button } from '@/components/ui/button'
+import { Textarea } from '@/components/ui/textarea'
+import { useToast } from '@/components/ui/use-toast'
+import { biographyService } from '@/lib/api/services'
+import { cn } from '@/lib/utils'
+import { useAuthStore } from '@/store/authStore'
 
 interface BiographyComment {
   id: string
@@ -203,8 +203,8 @@ export function BiographyCommentSection({
               className="text-brand-600 hover:underline"
             >
               {t('login')}
-            </button>
-            {' '}{t('commentLoginPrompt')}
+            </button>{' '}
+            {t('commentLoginPrompt')}
           </p>
         )}
 
@@ -213,9 +213,7 @@ export function BiographyCommentSection({
             <Loader2 className="h-6 w-6 animate-spin text-gray-400" />
           </div>
         ) : comments.length === 0 ? (
-          <p className="text-sm text-gray-500 text-center py-4">
-            {t('noComments')}
-          </p>
+          <p className="text-sm text-gray-500 text-center py-4">{t('noComments')}</p>
         ) : (
           <div className="space-y-4">
             {comments.map((comment) => (
@@ -236,12 +234,8 @@ export function BiographyCommentSection({
                 </div>
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-2">
-                    <span className="font-medium text-sm">
-                      {getDisplayName(comment)}
-                    </span>
-                    <span className="text-xs text-gray-400">
-                      {formatTime(comment.created_at)}
-                    </span>
+                    <span className="font-medium text-sm">{getDisplayName(comment)}</span>
+                    <span className="text-xs text-gray-400">{formatTime(comment.created_at)}</span>
                     {user?.id === comment.user_id && (
                       <button
                         onClick={() => handleDelete(comment.id)}
@@ -251,9 +245,7 @@ export function BiographyCommentSection({
                       </button>
                     )}
                   </div>
-                  <p className="text-sm text-gray-700 mt-1 break-words">
-                    {comment.content}
-                  </p>
+                  <p className="text-sm text-gray-700 mt-1 break-words">{comment.content}</p>
                 </div>
               </div>
             ))}
@@ -268,7 +260,10 @@ export function BiographyCommentSection({
     <>
       <button
         onClick={() => setIsOpen(!isOpen)}
-        className={cn('flex items-center gap-1.5 hover:text-brand-dark transition-colors', className)}
+        className={cn(
+          'flex items-center gap-1.5 hover:text-brand-dark transition-colors',
+          className
+        )}
       >
         <MessageCircle className="h-4 w-4" />
         <span>{count}</span>
@@ -277,12 +272,14 @@ export function BiographyCommentSection({
       {isOpen && (
         <div className="absolute left-4 right-4 top-full mt-4 bg-white border border-gray-200 rounded-lg shadow-lg p-6 z-50 max-h-[600px] overflow-y-auto">
           <div className="flex items-center justify-between mb-4">
-            <button
-              onClick={() => setIsOpen(false)}
-              className="text-gray-500 hover:text-gray-700"
-            >
+            <button onClick={() => setIsOpen(false)} className="text-gray-500 hover:text-gray-700">
               <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M6 18L18 6M6 6l12 12"
+                />
               </svg>
             </button>
           </div>
@@ -317,8 +314,8 @@ export function BiographyCommentSection({
                   className="text-brand-600 hover:underline"
                 >
                   登入
-                </button>
-                {' '}後才能留言
+                </button>{' '}
+                後才能留言
               </p>
             )}
 
@@ -327,9 +324,7 @@ export function BiographyCommentSection({
                 <Loader2 className="h-6 w-6 animate-spin text-gray-400" />
               </div>
             ) : comments.length === 0 ? (
-              <p className="text-sm text-gray-500 text-center py-4">
-                {t('noComments')}
-              </p>
+              <p className="text-sm text-gray-500 text-center py-4">{t('noComments')}</p>
             ) : (
               <div className="space-y-4">
                 {comments.map((comment) => (
@@ -350,9 +345,7 @@ export function BiographyCommentSection({
                     </div>
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-2">
-                        <span className="font-medium text-sm">
-                          {getDisplayName(comment)}
-                        </span>
+                        <span className="font-medium text-sm">{getDisplayName(comment)}</span>
                         <span className="text-xs text-gray-400">
                           {formatTime(comment.created_at)}
                         </span>
@@ -365,9 +358,7 @@ export function BiographyCommentSection({
                           </button>
                         )}
                       </div>
-                      <p className="text-sm text-gray-700 mt-1 break-words">
-                        {comment.content}
-                      </p>
+                      <p className="text-sm text-gray-700 mt-1 break-words">{comment.content}</p>
                     </div>
                   </div>
                 ))}

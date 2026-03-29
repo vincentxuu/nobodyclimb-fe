@@ -1,33 +1,33 @@
 'use client'
 
-import React, { use } from 'react'
-import { Link } from '@/i18n/navigation'
 import { motion } from 'framer-motion'
 import {
-  MapPin,
   ArrowLeft,
-  Phone,
-  Loader2,
+  Bus,
   ExternalLink,
+  Facebook,
+  Instagram,
+  Loader2,
+  MapPin,
+  MessageCircle,
+  ParkingCircle,
+  Phone,
   Star,
   TrainFront,
   TramFront,
-  Bus,
-  ParkingCircle,
-  Facebook,
-  Instagram,
   Youtube,
-  MessageCircle,
 } from 'lucide-react'
-import { Button } from '@/components/ui/button'
-import BackToTop from '@/components/ui/back-to-top'
-import { GymCoverGenerator } from '@/components/shared/GymCoverGenerator'
-import PlaceholderImage from '@/components/ui/placeholder-image'
-import { Breadcrumb } from '@/components/ui/breadcrumb'
-import { WeatherDisplay } from '@/components/shared/weather-display'
-import { useGymDetail, useRelatedGyms, useAdjacentGyms } from '@/hooks/api/useGyms'
-import type { GymDetailData } from '@/lib/gym-data'
 import { useTranslations } from 'next-intl'
+import { use } from 'react'
+import { GymCoverGenerator } from '@/components/shared/GymCoverGenerator'
+import { WeatherDisplay } from '@/components/shared/weather-display'
+import BackToTop from '@/components/ui/back-to-top'
+import { Breadcrumb } from '@/components/ui/breadcrumb'
+import { Button } from '@/components/ui/button'
+import PlaceholderImage from '@/components/ui/placeholder-image'
+import { useAdjacentGyms, useGymDetail, useRelatedGyms } from '@/hooks/api/useGyms'
+import { Link } from '@/i18n/navigation'
+import type { GymDetailData } from '@/lib/gym-data'
 
 // 開箱介紹類型對應的圖標和標籤
 const reviewTypeConfig = {
@@ -74,7 +74,11 @@ export default function GymDetailClient({ params }: { params: Promise<{ id: stri
         : rawTime === '公休' || rawTime === '休息'
           ? t('dayHolidayClosed')
           : rawTime
-      return { label: day.label, time, isClosed: !rawTime || rawTime === '公休' || rawTime === '休息' }
+      return {
+        label: day.label,
+        time,
+        isClosed: !rawTime || rawTime === '公休' || rawTime === '休息',
+      }
     })
   }
 
@@ -83,8 +87,10 @@ export default function GymDetailClient({ params }: { params: Promise<{ id: stri
     const items: string[] = []
 
     if (pricing.singleEntry) {
-      if (pricing.singleEntry.weekday) items.push(`${t('pricingWeekday')} $${pricing.singleEntry.weekday}`)
-      if (pricing.singleEntry.weekend) items.push(`${t('pricingWeekend')} $${pricing.singleEntry.weekend}`)
+      if (pricing.singleEntry.weekday)
+        items.push(`${t('pricingWeekday')} $${pricing.singleEntry.weekday}`)
+      if (pricing.singleEntry.weekend)
+        items.push(`${t('pricingWeekend')} $${pricing.singleEntry.weekend}`)
       if (pricing.singleEntry.twilight) {
         items.push(`${t('pricingTwilight')} $${pricing.singleEntry.twilight}`)
       }
@@ -221,10 +227,7 @@ export default function GymDetailClient({ params }: { params: Promise<{ id: stri
             )}
             <div className="flex flex-wrap gap-2">
               {gym.facilities.map((facility, index) => (
-                <span
-                  key={index}
-                  className="rounded bg-gray-100 px-2 py-1 text-sm text-gray-600"
-                >
+                <span key={index} className="rounded bg-gray-100 px-2 py-1 text-sm text-gray-600">
                   {facility}
                 </span>
               ))}
@@ -286,7 +289,9 @@ export default function GymDetailClient({ params }: { params: Promise<{ id: stri
               {/* 交通方式 */}
               <div className="mb-6">
                 <div className="mb-1">
-                  <h2 className="text-lg font-medium text-orange-500">{t('sectionTransportation')}</h2>
+                  <h2 className="text-lg font-medium text-orange-500">
+                    {t('sectionTransportation')}
+                  </h2>
                   <div className="h-px w-full bg-gray-200"></div>
                 </div>
                 <div className="mt-4">
@@ -353,7 +358,9 @@ export default function GymDetailClient({ params }: { params: Promise<{ id: stri
               {/* 營業時間 */}
               <div className="mb-6">
                 <div className="mb-1">
-                  <h2 className="text-lg font-medium text-orange-500">{t('sectionOpeningHours')}</h2>
+                  <h2 className="text-lg font-medium text-orange-500">
+                    {t('sectionOpeningHours')}
+                  </h2>
                   <div className="h-px w-full bg-gray-200"></div>
                 </div>
                 <div className="mt-4 space-y-1">
@@ -378,7 +385,10 @@ export default function GymDetailClient({ params }: { params: Promise<{ id: stri
                   {gym.contact.phone && (
                     <div className="flex items-center">
                       <Phone size={16} className="mr-2 text-gray-500" />
-                      <a href={`tel:${gym.contact.phone}`} className="text-blue-600 hover:underline">
+                      <a
+                        href={`tel:${gym.contact.phone}`}
+                        className="text-blue-600 hover:underline"
+                      >
                         {gym.contact.phone}
                       </a>
                     </div>
@@ -469,7 +479,9 @@ export default function GymDetailClient({ params }: { params: Promise<{ id: stri
           {gym.unboxingReviews && gym.unboxingReviews.length > 0 && (
             <div className="mb-10">
               <div className="mb-1">
-                <h2 className="text-lg font-medium text-orange-500">{t('sectionUnboxingReviews')}</h2>
+                <h2 className="text-lg font-medium text-orange-500">
+                  {t('sectionUnboxingReviews')}
+                </h2>
                 <div className="h-px w-full bg-gray-200"></div>
               </div>
               <div className="mt-4 grid gap-4 md:grid-cols-2 lg:grid-cols-3">
@@ -481,9 +493,7 @@ export default function GymDetailClient({ params }: { params: Promise<{ id: stri
                     rel="noopener noreferrer"
                     className="group flex items-start gap-3 rounded-lg border border-gray-200 p-4 transition hover:border-orange-300 hover:bg-orange-50"
                   >
-                    <div className="flex-shrink-0">
-                      {reviewTypeConfig[review.type].icon}
-                    </div>
+                    <div className="flex-shrink-0">{reviewTypeConfig[review.type].icon}</div>
                     <div className="flex-1 min-w-0">
                       <p className="text-sm font-medium text-gray-900 group-hover:text-orange-600 line-clamp-2">
                         {review.title}
@@ -492,7 +502,10 @@ export default function GymDetailClient({ params }: { params: Promise<{ id: stri
                         {t(reviewTypeConfig[review.type].labelKey)}
                       </p>
                     </div>
-                    <ExternalLink size={14} className="flex-shrink-0 text-gray-400 group-hover:text-orange-500" />
+                    <ExternalLink
+                      size={14}
+                      className="flex-shrink-0 text-gray-400 group-hover:text-orange-500"
+                    />
                   </a>
                 ))}
               </div>
@@ -512,9 +525,10 @@ export default function GymDetailClient({ params }: { params: Promise<{ id: stri
                 </div>
                 <div>
                   <p className="text-base text-gray-700">{adjacentGyms.prev.name}</p>
-                  {adjacentGyms.prev.nameEn && adjacentGyms.prev.nameEn !== adjacentGyms.prev.name && (
-                    <p className="text-sm text-gray-500">{adjacentGyms.prev.nameEn}</p>
-                  )}
+                  {adjacentGyms.prev.nameEn &&
+                    adjacentGyms.prev.nameEn !== adjacentGyms.prev.name && (
+                      <p className="text-sm text-gray-500">{adjacentGyms.prev.nameEn}</p>
+                    )}
                   <p className="mt-1 text-sm text-gray-400">{adjacentGyms.prev.location}</p>
                 </div>
               </Link>
@@ -531,9 +545,10 @@ export default function GymDetailClient({ params }: { params: Promise<{ id: stri
                 </div>
                 <div>
                   <p className="text-base text-gray-700">{adjacentGyms.next.name}</p>
-                  {adjacentGyms.next.nameEn && adjacentGyms.next.nameEn !== adjacentGyms.next.name && (
-                    <p className="text-sm text-gray-500">{adjacentGyms.next.nameEn}</p>
-                  )}
+                  {adjacentGyms.next.nameEn &&
+                    adjacentGyms.next.nameEn !== adjacentGyms.next.name && (
+                      <p className="text-sm text-gray-500">{adjacentGyms.next.nameEn}</p>
+                    )}
                   <p className="mt-1 text-sm text-gray-400">{adjacentGyms.next.location}</p>
                 </div>
               </Link>

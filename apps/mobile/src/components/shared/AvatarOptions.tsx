@@ -3,16 +3,11 @@
  *
  * 頭像選擇選項，對應 apps/web/src/components/shared/avatar-options.tsx
  */
-import React from 'react'
-import { StyleSheet, View, Pressable } from 'react-native'
-import { Check } from 'lucide-react-native'
-import Animated, {
-  useAnimatedStyle,
-  useSharedValue,
-  withSpring,
-} from 'react-native-reanimated'
 
 import { BRAND_YELLOW, SPACING, WB_COLORS } from '@nobodyclimb/constants'
+import { Check } from 'lucide-react-native'
+import { Pressable, StyleSheet, View } from 'react-native'
+import Animated, { useAnimatedStyle, useSharedValue, withSpring } from 'react-native-reanimated'
 
 const AnimatedPressable = Animated.createAnimatedComponent(Pressable)
 
@@ -73,18 +68,8 @@ export function AvatarPreview({ avatarStyle, size = 40 }: AvatarPreviewProps) {
       ]}
     >
       <View style={styles.avatarInner}>
-        <View
-          style={[
-            styles.avatarTop,
-            { backgroundColor: avatarStyle.fgColor },
-          ]}
-        />
-        <View
-          style={[
-            styles.avatarBottom,
-            { backgroundColor: avatarStyle.fgColor },
-          ]}
-        />
+        <View style={[styles.avatarTop, { backgroundColor: avatarStyle.fgColor }]} />
+        <View style={[styles.avatarBottom, { backgroundColor: avatarStyle.fgColor }]} />
       </View>
     </View>
   )

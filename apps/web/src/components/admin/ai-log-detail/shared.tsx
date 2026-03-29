@@ -1,24 +1,24 @@
 import {
-  Shield,
-  Zap,
-  Database,
-  MessageSquare,
-  Brain,
-  List,
-  Bot,
-  Filter,
-  Cpu,
-  Search,
-  GitMerge,
-  RotateCcw,
-  ArrowUpDown,
-  Layers,
-  FileText,
-  RefreshCw,
-  CheckCircle2,
   AlertCircle,
   Archive,
+  ArrowUpDown,
+  Bot,
+  Brain,
+  CheckCircle2,
+  Cpu,
+  Database,
+  FileText,
+  Filter,
+  GitMerge,
+  Layers,
+  List,
   ListChecks,
+  MessageSquare,
+  RefreshCw,
+  RotateCcw,
+  Search,
+  Shield,
+  Zap,
 } from 'lucide-react'
 
 export const STAGE_LABELS: Record<string, string> = {
@@ -47,7 +47,11 @@ export const STAGE_LABELS: Record<string, string> = {
   memory_extraction: '記憶萃取',
 }
 
-export function StatusBadge({ status }: { status: 'ran' | 'skipped' | 'hit' | 'triggered' | 'not-triggered' | 'timeout' | 'degraded' }) {
+export function StatusBadge({
+  status,
+}: {
+  status: 'ran' | 'skipped' | 'hit' | 'triggered' | 'not-triggered' | 'timeout' | 'degraded'
+}) {
   const map = {
     ran: 'bg-emerald-50 text-emerald-700 border-emerald-200',
     skipped: 'bg-wb-10 text-wb-40 border-wb-20',
@@ -135,7 +139,9 @@ export function StageSection({
   const { label: defaultLabel, border, bg, text } = config[type]
   return (
     <div className={`rounded-r-md border-l-2 ${border} ${bg} px-3 py-2`}>
-      <p className={`text-[10px] font-bold uppercase tracking-widest ${text} mb-1.5`}>{customLabel ?? defaultLabel}</p>
+      <p className={`text-[10px] font-bold uppercase tracking-widest ${text} mb-1.5`}>
+        {customLabel ?? defaultLabel}
+      </p>
       <div className="space-y-1 text-[11px] text-wb-70">{children}</div>
     </div>
   )
@@ -147,11 +153,19 @@ export function IOFlow({ children }: { children: React.ReactNode }) {
 
 export function StageDesc({ children }: { children: React.ReactNode }) {
   return (
-    <p className="text-[11px] text-wb-50 leading-relaxed border-b border-wb-8 pb-2 mb-2">{children}</p>
+    <p className="text-[11px] text-wb-50 leading-relaxed border-b border-wb-8 pb-2 mb-2">
+      {children}
+    </p>
   )
 }
 
-export function TraceBadge({ text, color = 'default' }: { text: string; color?: 'default' | 'blue' | 'violet' | 'emerald' | 'amber' | 'red' }) {
+export function TraceBadge({
+  text,
+  color = 'default',
+}: {
+  text: string
+  color?: 'default' | 'blue' | 'violet' | 'emerald' | 'amber' | 'red'
+}) {
   const colors = {
     default: 'border-wb-15 bg-wb-5 text-wb-60',
     blue: 'border-blue-200 bg-blue-50 text-blue-700',

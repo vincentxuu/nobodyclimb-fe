@@ -1,6 +1,6 @@
 import { render, screen } from '@testing-library/react'
-import { StatsOverview } from '../stats-overview'
 import type { BiographyStats } from '@/lib/types'
+import { StatsOverview } from '../stats-overview'
 
 const mockStats: BiographyStats = {
   total_views: 1234,

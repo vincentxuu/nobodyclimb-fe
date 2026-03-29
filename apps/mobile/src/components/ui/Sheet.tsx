@@ -3,10 +3,11 @@
  *
  * 底部彈出面板，使用 @gorhom/bottom-sheet
  */
-import React, { useCallback, useRef, useEffect, ReactNode } from 'react'
-import { View, StyleSheet, Pressable } from 'react-native'
-import BottomSheet, { BottomSheetView, BottomSheetBackdrop } from '@gorhom/bottom-sheet'
+
+import BottomSheet, { BottomSheetBackdrop, BottomSheetView } from '@gorhom/bottom-sheet'
 import { SEMANTIC_COLORS } from '@nobodyclimb/constants'
+import React, { ReactNode, useCallback, useEffect, useRef } from 'react'
+import { StyleSheet } from 'react-native'
 
 export interface SheetProps {
   /** 是否開啟 */
@@ -19,12 +20,7 @@ export interface SheetProps {
   children: ReactNode
 }
 
-export function Sheet({
-  open,
-  onOpenChange,
-  snapPoints = ['50%'],
-  children,
-}: SheetProps) {
+export function Sheet({ open, onOpenChange, snapPoints = ['50%'], children }: SheetProps) {
   const bottomSheetRef = useRef<BottomSheet>(null)
 
   useEffect(() => {
@@ -46,12 +42,7 @@ export function Sheet({
 
   const renderBackdrop = useCallback(
     (props: React.ComponentProps<typeof BottomSheetBackdrop>) => (
-      <BottomSheetBackdrop
-        {...props}
-        disappearsOnIndex={-1}
-        appearsOnIndex={0}
-        opacity={0.5}
-      />
+      <BottomSheetBackdrop {...props} disappearsOnIndex={-1} appearsOnIndex={0} opacity={0.5} />
     ),
     []
   )
@@ -69,9 +60,7 @@ export function Sheet({
       handleIndicatorStyle={styles.handleIndicator}
       backgroundStyle={styles.background}
     >
-      <BottomSheetView style={styles.contentContainer}>
-        {children}
-      </BottomSheetView>
+      <BottomSheetView style={styles.contentContainer}>{children}</BottomSheetView>
     </BottomSheet>
   )
 }

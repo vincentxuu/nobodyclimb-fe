@@ -1,6 +1,6 @@
-import { useState, useEffect, useCallback, useRef } from 'react'
-import { useDebouncedCallback } from '@/lib/hooks/useDebouncedCallback'
 import type { BiographyV2 } from '@nobodyclimb/types'
+import { useCallback, useEffect, useRef, useState } from 'react'
+import { useDebouncedCallback } from '@/lib/hooks/useDebouncedCallback'
 
 interface UseAutoSaveBiographyOptions {
   biography: BiographyV2
@@ -132,7 +132,11 @@ export function useAutoSaveBiography({
           if (retryTimerRef.current) clearTimeout(retryTimerRef.current)
 
           retryTimerRef.current = setTimeout(() => {
-            if (thisSaveId === saveIdRef.current && isMountedRef.current && latestBiographyRef.current) {
+            if (
+              thisSaveId === saveIdRef.current &&
+              isMountedRef.current &&
+              latestBiographyRef.current
+            ) {
               debouncedSave(latestBiographyRef.current, editVersionRef.current)
             }
           }, retryDelay)

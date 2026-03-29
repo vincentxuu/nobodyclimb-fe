@@ -1,7 +1,7 @@
 'use client'
 
-import React from 'react'
 import { motion } from 'framer-motion'
+import React from 'react'
 import ProfileSidebar from '@/components/ProfileSidebar'
 
 interface ProfilePageLayoutProps {
@@ -9,7 +9,6 @@ interface ProfilePageLayoutProps {
 }
 
 export default function ProfilePageLayout({ children }: ProfilePageLayoutProps) {
-
   return (
     <div className="container mx-auto max-w-screen-xl px-4 md:px-6">
       <div className="flex flex-col md:flex-row md:space-x-6">

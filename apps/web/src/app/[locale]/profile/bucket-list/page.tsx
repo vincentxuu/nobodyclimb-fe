@@ -1,26 +1,26 @@
 'use client'
 
-import React, { useState, useCallback, useMemo } from 'react'
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
-import { motion, AnimatePresence } from 'framer-motion'
-import { Plus, Filter, Target } from 'lucide-react'
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
+import { AnimatePresence, motion } from 'framer-motion'
+import { Filter, Plus, Target } from 'lucide-react'
+import { useTranslations } from 'next-intl'
+import React, { useCallback, useMemo, useState } from 'react'
+import {
+  BucketListCompletionForm,
+  BucketListForm,
+  BucketListItemCard,
+} from '@/components/bucket-list'
 import ProfilePageLayout from '@/components/profile/layout/ProfilePageLayout'
 import ProfilePageTitle from '@/components/profile/ProfilePageTitle'
 import { Button } from '@/components/ui/button'
-import { Tabs, TabsContent } from '@/components/ui/tabs'
-import { LoadingSpinner } from '@/components/ui/loading-spinner'
 import { EmptyState } from '@/components/ui/empty-state'
-import {
-  BucketListItemCard,
-  BucketListForm,
-  BucketListCompletionForm,
-} from '@/components/bucket-list'
-import { biographyService, bucketListService } from '@/lib/api/services'
-import type { BucketListItem, BucketListCategory } from '@/lib/types'
-import { BUCKET_LIST_CATEGORIES } from '@/lib/types'
-import type { BucketListItemInputSchema, BucketListCompleteSchema } from '@/lib/schemas/bucket-list'
+import { LoadingSpinner } from '@/components/ui/loading-spinner'
+import { Tabs, TabsContent } from '@/components/ui/tabs'
 import { useToast } from '@/components/ui/use-toast'
-import { useTranslations } from 'next-intl'
+import { biographyService, bucketListService } from '@/lib/api/services'
+import type { BucketListCompleteSchema, BucketListItemInputSchema } from '@/lib/schemas/bucket-list'
+import type { BucketListCategory, BucketListItem } from '@/lib/types'
+import { BUCKET_LIST_CATEGORIES } from '@/lib/types'
 
 type TabValue = 'all' | 'active' | 'completed' | 'archived'
 
@@ -109,8 +109,15 @@ export default function BucketListPage() {
 
   // 更新里程碑
   const updateMilestoneMutation = useMutation({
-    mutationFn: ({ id, milestoneId, completed }: { id: string; milestoneId: string; completed: boolean }) =>
-      bucketListService.updateMilestone(id, milestoneId, { completed }),
+    mutationFn: ({
+      id,
+      milestoneId,
+      completed,
+    }: {
+      id: string
+      milestoneId: string
+      completed: boolean
+    }) => bucketListService.updateMilestone(id, milestoneId, { completed }),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['bucket-list'] })
       toast({ title: t('toastMilestoneUpdated'), variant: 'default' })
@@ -261,13 +268,25 @@ export default function BucketListPage() {
                 <UnderlineTab value="all" activeTab={activeTab} onClick={() => setActiveTab('all')}>
                   {t('tabAllGoals', { count: stats.total })}
                 </UnderlineTab>
-                <UnderlineTab value="active" activeTab={activeTab} onClick={() => setActiveTab('active')}>
+                <UnderlineTab
+                  value="active"
+                  activeTab={activeTab}
+                  onClick={() => setActiveTab('active')}
+                >
                   {t('tabActiveGoals', { count: stats.active })}
                 </UnderlineTab>
-                <UnderlineTab value="completed" activeTab={activeTab} onClick={() => setActiveTab('completed')}>
+                <UnderlineTab
+                  value="completed"
+                  activeTab={activeTab}
+                  onClick={() => setActiveTab('completed')}
+                >
                   {t('tabCompletedGoals', { count: stats.completed })}
                 </UnderlineTab>
-                <UnderlineTab value="archived" activeTab={activeTab} onClick={() => setActiveTab('archived')}>
+                <UnderlineTab
+                  value="archived"
+                  activeTab={activeTab}
+                  onClick={() => setActiveTab('archived')}
+                >
                   {t('tabArchivedGoals', { count: stats.archived })}
                 </UnderlineTab>
               </div>
@@ -298,7 +317,11 @@ export default function BucketListPage() {
               ) : filteredList.length === 0 ? (
                 <EmptyState
                   icon={<Target className="h-12 w-12 text-gray-400" />}
-                  title={activeTab === 'all' ? t('noGoalsYet') : t('noGoalsInTab', { tab: getTabLabel(activeTab, t) })}
+                  title={
+                    activeTab === 'all'
+                      ? t('noGoalsYet')
+                      : t('noGoalsInTab', { tab: getTabLabel(activeTab, t) })
+                  }
                   description={t('noGoalsDesc')}
                   action={
                     <Button onClick={() => setShowForm(true)} variant="secondary">
@@ -359,7 +382,9 @@ export default function BucketListPage() {
                 className="h-[95vh] sm:h-auto sm:max-h-[90vh] w-full max-w-2xl overflow-y-auto rounded-t-2xl sm:rounded-lg bg-white"
               >
                 <div className="sticky top-0 z-10 flex items-center justify-between border-b bg-white px-4 py-3 sm:hidden">
-                  <h2 className="text-lg font-semibold">{editingItem ? t('editGoal') : t('addGoal')}</h2>
+                  <h2 className="text-lg font-semibold">
+                    {editingItem ? t('editGoal') : t('addGoal')}
+                  </h2>
                   <button
                     onClick={() => {
                       setShowForm(false)
@@ -453,13 +478,7 @@ function StatCard({
       }`}
     >
       <p className="text-sm text-gray-500">{label}</p>
-      <p
-        className={`text-2xl font-bold ${
-          muted ? 'text-gray-400' : 'text-[#1B1A1A]'
-        }`}
-      >
-        {value}
-      </p>
+      <p className={`text-2xl font-bold ${muted ? 'text-gray-400' : 'text-[#1B1A1A]'}`}>{value}</p>
     </div>
   )
 }

@@ -1,8 +1,8 @@
 'use client'
 
+import { AlertTriangle, Clock, Database, Loader2, Shield, TrendingUp } from 'lucide-react'
 import { useState } from 'react'
-import { Loader2, TrendingUp, Clock, Shield, Database, AlertTriangle } from 'lucide-react'
-import { useAIMetrics, type MetricsRange, type MetricsDaily } from '@/lib/api/admin-ai'
+import { type MetricsDaily, type MetricsRange, useAIMetrics } from '@/lib/api/admin-ai'
 
 // =============================================
 // 常數
@@ -96,7 +96,10 @@ function MiniLineChart({
         }
       }
     }
-    if (yMin === Infinity) { yMin = 0; yMax = 1 }
+    if (yMin === Infinity) {
+      yMin = 0
+      yMax = 1
+    }
     const pad = (yMax - yMin) * 0.1 || 1
     yMin = Math.max(0, yMin - pad)
     yMax = yMax + pad
@@ -111,7 +114,10 @@ function MiniLineChart({
     let drawing = false
     for (let i = 0; i < data.length; i++) {
       const v = getValue(data[i], key)
-      if (v == null) { drawing = false; continue }
+      if (v == null) {
+        drawing = false
+        continue
+      }
       const x = xScale(i)
       const y = yScale(v)
       segments.push(drawing ? `L${x},${y}` : `M${x},${y}`)
@@ -129,15 +135,16 @@ function MiniLineChart({
 
   // 異常點
   const anomalyDots = anomalyPrefix
-    ? data.flatMap((d, i) =>
-        d.anomalies
-          .filter((a) => a.startsWith(anomalyPrefix))
-          .map((a) => {
-            const matchedLine = lines.find((l) => a.endsWith(l.split('.').pop() ?? ''))
-            const v = matchedLine ? getValue(d, matchedLine) : null
-            return v != null ? { x: xScale(i), y: yScale(v), label: a } : null
-          })
-          .filter(Boolean) as Array<{ x: number; y: number; label: string }>
+    ? data.flatMap(
+        (d, i) =>
+          d.anomalies
+            .filter((a) => a.startsWith(anomalyPrefix))
+            .map((a) => {
+              const matchedLine = lines.find((l) => a.endsWith(l.split('.').pop() ?? ''))
+              const v = matchedLine ? getValue(d, matchedLine) : null
+              return v != null ? { x: xScale(i), y: yScale(v), label: a } : null
+            })
+            .filter(Boolean) as Array<{ x: number; y: number; label: string }>
       )
     : []
 
@@ -147,14 +154,36 @@ function MiniLineChart({
         {/* Y 軸刻度 */}
         {yTicks.map((t, i) => (
           <g key={i}>
-            <line x1={PAD.left} y1={yScale(t)} x2={W - PAD.right} y2={yScale(t)} stroke="currentColor" className="text-wb-10" strokeDasharray="4 4" />
-            <text x={PAD.left - 6} y={yScale(t) + 4} textAnchor="end" className="text-wb-40 fill-current" fontSize={10}>{formatY(t)}</text>
+            <line
+              x1={PAD.left}
+              y1={yScale(t)}
+              x2={W - PAD.right}
+              y2={yScale(t)}
+              stroke="currentColor"
+              className="text-wb-10"
+              strokeDasharray="4 4"
+            />
+            <text
+              x={PAD.left - 6}
+              y={yScale(t) + 4}
+              textAnchor="end"
+              className="text-wb-40 fill-current"
+              fontSize={10}
+            >
+              {formatY(t)}
+            </text>
           </g>
         ))}
 
         {/* 折線 */}
         {lines.map((key) => (
-          <path key={key} d={buildPath(key)} fill="none" stroke={colors[key.split('.').pop() ?? key] ?? '#888'} strokeWidth={1.5} />
+          <path
+            key={key}
+            d={buildPath(key)}
+            fill="none"
+            stroke={colors[key.split('.').pop() ?? key] ?? '#888'}
+            strokeWidth={1.5}
+          />
         ))}
 
         {/* 異常標記 */}
@@ -168,7 +197,14 @@ function MiniLineChart({
         {xLabels.map((d) => {
           const idx = data.indexOf(d)
           return (
-            <text key={d.date} x={xScale(idx)} y={H - 8} textAnchor="middle" className="text-wb-40 fill-current" fontSize={9}>
+            <text
+              key={d.date}
+              x={xScale(idx)}
+              y={H - 8}
+              textAnchor="middle"
+              className="text-wb-40 fill-current"
+              fontSize={9}
+            >
               {d.date.slice(5)}
             </text>
           )
@@ -181,7 +217,10 @@ function MiniLineChart({
           const shortKey = key.split('.').pop() ?? key
           return (
             <div key={key} className="flex items-center gap-1.5 text-xs text-wb-50">
-              <span className="w-3 h-0.5 rounded" style={{ backgroundColor: colors[shortKey] ?? '#888' }} />
+              <span
+                className="w-3 h-0.5 rounded"
+                style={{ backgroundColor: colors[shortKey] ?? '#888' }}
+              />
               {labels[shortKey] ?? shortKey}
             </div>
           )
@@ -225,8 +264,24 @@ function StackedBarChart({
           const y = PAD.top + ch * (1 - pct)
           return (
             <g key={i}>
-              <line x1={PAD.left} y1={y} x2={W - PAD.right} y2={y} stroke="currentColor" className="text-wb-10" strokeDasharray="4 4" />
-              <text x={PAD.left - 6} y={y + 4} textAnchor="end" className="text-wb-40 fill-current" fontSize={10}>{Math.round(maxTotal * pct)}</text>
+              <line
+                x1={PAD.left}
+                y1={y}
+                x2={W - PAD.right}
+                y2={y}
+                stroke="currentColor"
+                className="text-wb-10"
+                strokeDasharray="4 4"
+              />
+              <text
+                x={PAD.left - 6}
+                y={y + 4}
+                textAnchor="end"
+                className="text-wb-40 fill-current"
+                fontSize={10}
+              >
+                {Math.round(maxTotal * pct)}
+              </text>
             </g>
           )
         })}
@@ -256,7 +311,14 @@ function StackedBarChart({
           if (i % step !== 0 && i !== data.length - 1) return null
           const x = PAD.left + (i + 0.5) * (cw / data.length)
           return (
-            <text key={d.date} x={x} y={H - 8} textAnchor="middle" className="text-wb-40 fill-current" fontSize={9}>
+            <text
+              key={d.date}
+              x={x}
+              y={H - 8}
+              textAnchor="middle"
+              className="text-wb-40 fill-current"
+              fontSize={9}
+            >
               {d.date.slice(5)}
             </text>
           )
@@ -315,7 +377,10 @@ function AreaChart({
   let started = false
   for (let i = 0; i < data.length; i++) {
     const v = getValue(data[i])
-    if (v == null) { started = false; continue }
+    if (v == null) {
+      started = false
+      continue
+    }
     const x = xScale(i)
     const y = yScale(v)
     linePoints.push(started ? `L${x},${y}` : `M${x},${y}`)
@@ -328,7 +393,8 @@ function AreaChart({
   if (areaDown.length > 0) {
     const lastValidIdx = data.length - 1 - [...data].reverse().findIndex((d) => getValue(d) != null)
     const firstValidIdx = data.findIndex((d) => getValue(d) != null)
-    areaPath = areaDown.join(' ') +
+    areaPath =
+      areaDown.join(' ') +
       `L${xScale(lastValidIdx)},${PAD.top + ch}` +
       `L${xScale(firstValidIdx)},${PAD.top + ch}Z`
   }
@@ -352,8 +418,24 @@ function AreaChart({
           const y = PAD.top + ch * (1 - pct)
           return (
             <g key={i}>
-              <line x1={PAD.left} y1={y} x2={W - PAD.right} y2={y} stroke="currentColor" className="text-wb-10" strokeDasharray="4 4" />
-              <text x={PAD.left - 6} y={y + 4} textAnchor="end" className="text-wb-40 fill-current" fontSize={10}>{formatY(pct)}</text>
+              <line
+                x1={PAD.left}
+                y1={y}
+                x2={W - PAD.right}
+                y2={y}
+                stroke="currentColor"
+                className="text-wb-10"
+                strokeDasharray="4 4"
+              />
+              <text
+                x={PAD.left - 6}
+                y={y + 4}
+                textAnchor="end"
+                className="text-wb-40 fill-current"
+                fontSize={10}
+              >
+                {formatY(pct)}
+              </text>
             </g>
           )
         })}
@@ -375,7 +457,14 @@ function AreaChart({
         {data.map((d, i) => {
           if (i % step !== 0 && i !== data.length - 1) return null
           return (
-            <text key={d.date} x={xScale(i)} y={H - 8} textAnchor="middle" className="text-wb-40 fill-current" fontSize={9}>
+            <text
+              key={d.date}
+              x={xScale(i)}
+              y={H - 8}
+              textAnchor="middle"
+              className="text-wb-40 fill-current"
+              fontSize={9}
+            >
               {d.date.slice(5)}
             </text>
           )
@@ -389,7 +478,17 @@ function AreaChart({
 // Summary 卡片
 // =============================================
 
-function StatCard({ icon, label, value, sub }: { icon: React.ReactNode; label: string; value: string; sub?: string }) {
+function StatCard({
+  icon,
+  label,
+  value,
+  sub,
+}: {
+  icon: React.ReactNode
+  label: string
+  value: string
+  sub?: string
+}) {
   return (
     <div className="rounded-xl border border-wb-15 bg-wb-5 p-4 flex flex-col gap-1.5">
       <div className="flex items-center gap-2 text-wb-50">
@@ -429,9 +528,7 @@ export default function MetricsPage() {
               key={opt.value}
               onClick={() => setRange(opt.value)}
               className={`px-3 py-1.5 text-xs font-medium rounded-md transition-colors ${
-                range === opt.value
-                  ? 'bg-wb-15 text-wb-90'
-                  : 'text-wb-50 hover:text-wb-70'
+                range === opt.value ? 'bg-wb-15 text-wb-90' : 'text-wb-50 hover:text-wb-70'
               }`}
             >
               {opt.label}
@@ -462,12 +559,20 @@ export default function MetricsPage() {
             <StatCard
               icon={<Shield className="h-4 w-4" />}
               label="平均 Groundedness"
-              value={data.summary.avg_groundedness != null ? data.summary.avg_groundedness.toFixed(2) : '-'}
+              value={
+                data.summary.avg_groundedness != null
+                  ? data.summary.avg_groundedness.toFixed(2)
+                  : '-'
+              }
             />
             <StatCard
               icon={<Database className="h-4 w-4" />}
               label="快取命中率"
-              value={data.summary.cache_hit_rate != null ? `${(data.summary.cache_hit_rate * 100).toFixed(0)}%` : '-'}
+              value={
+                data.summary.cache_hit_rate != null
+                  ? `${(data.summary.cache_hit_rate * 100).toFixed(0)}%`
+                  : '-'
+              }
             />
           </div>
 
@@ -485,9 +590,12 @@ export default function MetricsPage() {
               <MiniLineChart
                 data={data.daily}
                 lines={[
-                  'latency.embedding_p50', 'latency.embedding_p95',
-                  'latency.retrieval_p50', 'latency.retrieval_p95',
-                  'latency.generation_p50', 'latency.generation_p95',
+                  'latency.embedding_p50',
+                  'latency.embedding_p95',
+                  'latency.retrieval_p50',
+                  'latency.retrieval_p95',
+                  'latency.generation_p50',
+                  'latency.generation_p95',
                 ]}
                 colors={LATENCY_COLORS}
                 labels={{

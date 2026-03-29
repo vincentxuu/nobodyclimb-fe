@@ -1,9 +1,8 @@
 'use client'
 
-import React from 'react'
-import Link from 'next/link'
 import { motion } from 'framer-motion'
-import { MapPin, Users, Calendar } from 'lucide-react'
+import { Calendar, MapPin, Users } from 'lucide-react'
+import Link from 'next/link'
 import { useTranslations } from 'next-intl'
 import { ClimbingLocation, LocationStat } from '@/lib/types'
 import { getCountryFlag } from '@/lib/utils/country'
@@ -40,7 +39,9 @@ export function ClimbingLocationCard({ location, index = 0 }: ClimbingLocationCa
         )}
       </div>
       {location.notes && (
-        <p className="whitespace-pre-wrap mt-3 text-sm text-gray-600 leading-relaxed">{location.notes}</p>
+        <p className="whitespace-pre-wrap mt-3 text-sm text-gray-600 leading-relaxed">
+          {location.notes}
+        </p>
       )}
     </motion.div>
   )
@@ -200,10 +201,11 @@ export function CountryCard({
   return (
     <button
       onClick={onClick}
-      className={`flex items-center gap-2 rounded-lg border px-3 py-2 text-left transition-all ${isSelected
+      className={`flex items-center gap-2 rounded-lg border px-3 py-2 text-left transition-all ${
+        isSelected
           ? 'border-emerald-500 bg-emerald-50 text-emerald-700'
           : 'border-gray-200 bg-white hover:border-gray-300 hover:bg-gray-50'
-        }`}
+      }`}
     >
       <span className="text-xl">{getCountryFlag(country)}</span>
       <div>

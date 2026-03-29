@@ -1,12 +1,12 @@
 'use client'
 
+import { Mail } from 'lucide-react'
 import Image from 'next/image'
 import Link from 'next/link'
-import { Mail } from 'lucide-react'
+import { useTranslations } from 'next-intl'
+import { Button } from '@/components/ui/button'
 import { SOCIAL_LINKS } from '@/lib/constants'
 import { useAuthStore } from '@/store/authStore'
-import { Button } from '@/components/ui/button'
-import { useTranslations } from 'next-intl'
 
 /**
  * 頁腳組件
@@ -26,9 +26,7 @@ export function Footer() {
       {/* 訪客註冊引導 - 僅未登入時顯示 */}
       {status !== 'signIn' && (
         <div className="border-b border-[#333] px-4 py-8 text-center md:px-20">
-          <p className="mb-4 text-sm text-gray-300 md:text-base">
-            {t('joinUs')}
-          </p>
+          <p className="mb-4 text-sm text-gray-300 md:text-base">{t('joinUs')}</p>
           <Link href="/auth/register">
             <Button className="h-10 bg-brand-accent/70 px-6 text-sm text-[#1B1A1A] hover:bg-brand-accent">
               {t('joinButton')}
@@ -47,7 +45,9 @@ export function Footer() {
             height={32}
             className="h-8 w-auto"
           />
-          <p className="text-[14px] font-light text-[#8E8C8C]">{t('copyright', { year: new Date().getFullYear() })}</p>
+          <p className="text-[14px] font-light text-[#8E8C8C]">
+            {t('copyright', { year: new Date().getFullYear() })}
+          </p>
         </div>
 
         {/* 社交媒體圖標 */}

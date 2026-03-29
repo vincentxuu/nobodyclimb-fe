@@ -3,15 +3,15 @@
  *
  * 一句話系列展示，對應 apps/web/src/components/biography/display/BiographyOneLiners.tsx
  */
-import React, { useState, useEffect, useCallback } from 'react'
-import { StyleSheet, View, ActivityIndicator } from 'react-native'
-import { MessageCircle, Sparkles } from 'lucide-react-native'
-import Animated, { FadeInDown } from 'react-native-reanimated'
 
+import { BRAND_YELLOW, SEMANTIC_COLORS, SPACING, WB_COLORS } from '@nobodyclimb/constants'
+import { MessageCircle, Sparkles } from 'lucide-react-native'
+import { useCallback, useEffect, useState } from 'react'
+import { ActivityIndicator, StyleSheet, View } from 'react-native'
+import Animated, { FadeInDown } from 'react-native-reanimated'
+import { Card, Text } from '@/components/ui'
 import { apiClient } from '@/lib/api'
-import { Text, Card } from '@/components/ui'
 import { ContentInteractionBar } from './ContentInteractionBar'
-import { BRAND_YELLOW, RADIUS, SEMANTIC_COLORS, SPACING, WB_COLORS } from '@nobodyclimb/constants'
 
 // 類型定義
 interface OneLiner {
@@ -30,11 +30,7 @@ interface BiographyOneLinersProps {
 }
 
 // 核心故事問題 ID，不需要在一句話中重複顯示
-const CORE_QUESTION_IDS = new Set([
-  'climbing_origin',
-  'climbing_meaning',
-  'advice_to_self',
-])
+const CORE_QUESTION_IDS = new Set(['climbing_origin', 'climbing_meaning', 'advice_to_self'])
 
 /**
  * 一句話系列展示組件
@@ -50,9 +46,7 @@ export function BiographyOneLiners({ biographyId }: BiographyOneLinersProps) {
       const data: OneLiner[] = response.data?.data ?? response.data ?? []
 
       // 過濾掉核心故事的問題
-      const filtered = data.filter(
-        (item) => !CORE_QUESTION_IDS.has(item.question_id)
-      )
+      const filtered = data.filter((item) => !CORE_QUESTION_IDS.has(item.question_id))
       setOneLiners(filtered)
     } catch (error) {
       console.error('Failed to fetch one-liners:', error)
@@ -101,22 +95,27 @@ export function BiographyOneLiners({ biographyId }: BiographyOneLinersProps) {
   const handleAddComment = async (oneLinerId: string, content: string) => {
     setOneLiners((prev) =>
       prev.map((item) =>
-        item.id === oneLinerId
-          ? { ...item, comment_count: item.comment_count + 1 }
-          : item
+        item.id === oneLinerId ? { ...item, comment_count: item.comment_count + 1 } : item
       )
     )
     try {
-      const response = await apiClient.post(`/content/one-liners/${oneLinerId}/comments`, { content })
-      return response.data?.data ?? response.data ?? { id: Date.now().toString(), content, created_at: new Date().toISOString() }
+      const response = await apiClient.post(`/content/one-liners/${oneLinerId}/comments`, {
+        content,
+      })
+      return (
+        response.data?.data ??
+        response.data ?? {
+          id: Date.now().toString(),
+          content,
+          created_at: new Date().toISOString(),
+        }
+      )
     } catch (error) {
       console.error('Failed to add comment:', error)
       // 回滾
       setOneLiners((prev) =>
         prev.map((item) =>
-          item.id === oneLinerId
-            ? { ...item, comment_count: item.comment_count - 1 }
-            : item
+          item.id === oneLinerId ? { ...item, comment_count: item.comment_count - 1 } : item
         )
       )
       return { id: Date.now().toString(), content, created_at: new Date().toISOString() }
@@ -152,11 +151,10 @@ export function BiographyOneLiners({ biographyId }: BiographyOneLinersProps) {
           const questionText = item.question || item.question_text || ''
 
           return (
-            <Animated.View
-              key={item.id}
-              entering={FadeInDown.delay(index * 100).duration(400)}
-            >
-              <Card style={StyleSheet.flatten([styles.card, isCustom ? styles.customCard : undefined])}>
+            <Animated.View key={item.id} entering={FadeInDown.delay(index * 100).duration(400)}>
+              <Card
+                style={StyleSheet.flatten([styles.card, isCustom ? styles.customCard : undefined])}
+              >
                 <View style={styles.questionRow}>
                   {isCustom && <Sparkles size={14} color={BRAND_YELLOW[100]} />}
                   <Text variant="small" fontWeight="500" color="textMuted">

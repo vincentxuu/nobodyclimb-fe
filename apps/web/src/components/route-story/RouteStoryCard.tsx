@@ -1,37 +1,36 @@
-'use client';
+'use client'
 
-import { useState, useCallback } from 'react';
-import { format } from 'date-fns';
-import { zhTW } from 'date-fns/locale';
+import { format } from 'date-fns'
+import { zhTW } from 'date-fns/locale'
 import {
-  Mountain,
+  CheckCircle,
+  Instagram,
   MessageSquare,
+  Mountain,
+  Star,
   ThumbsUp,
   Youtube,
-  Instagram,
-  CheckCircle,
-  Star,
-} from 'lucide-react';
-
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardFooter } from '@/components/ui/card';
-import { RouteStory } from '@/lib/types/route-story';
-import { cn } from '@/lib/utils';
+} from 'lucide-react'
+import { useCallback, useState } from 'react'
 import {
   ContentInteractorsPanel,
   type InteractorUser,
-} from '@/components/biography/display/ContentInteractorsPanel';
-import apiClient from '@/lib/api/client';
+} from '@/components/biography/display/ContentInteractorsPanel'
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
+import { Badge } from '@/components/ui/badge'
+import { Button } from '@/components/ui/button'
+import { Card, CardContent, CardFooter } from '@/components/ui/card'
+import apiClient from '@/lib/api/client'
+import { RouteStory } from '@/lib/types/route-story'
+import { cn } from '@/lib/utils'
 
 interface RouteStoryCardProps {
-  story: RouteStory;
-  showRoute?: boolean;
-  onLike?: () => void;
-  onHelpful?: () => void;
-  onComment?: () => void;
-  className?: string;
+  story: RouteStory
+  showRoute?: boolean
+  onLike?: () => void
+  onHelpful?: () => void
+  onComment?: () => void
+  className?: string
 }
 
 export function RouteStoryCard({
@@ -42,26 +41,29 @@ export function RouteStoryCard({
   onComment,
   className,
 }: RouteStoryCardProps) {
-  const [isLikersOpen, setIsLikersOpen] = useState(false);
-  const [likers, setLikers] = useState<InteractorUser[]>([]);
-  const [isLoadingLikers, setIsLoadingLikers] = useState(false);
+  const [isLikersOpen, setIsLikersOpen] = useState(false)
+  const [likers, setLikers] = useState<InteractorUser[]>([])
+  const [isLoadingLikers, setIsLoadingLikers] = useState(false)
 
-  const handleShowLikers = useCallback(async (e: React.MouseEvent) => {
-    e.stopPropagation();
-    const next = !isLikersOpen;
-    setIsLikersOpen(next);
-    if (next && likers.length === 0) {
-      setIsLoadingLikers(true);
-      try {
-        const resp = await apiClient.get(`/route-stories/${story.id}/likers`);
-        setLikers(resp.data?.data?.likers ?? []);
-      } catch (err) {
-        console.error('Failed to fetch route story likers:', err);
-      } finally {
-        setIsLoadingLikers(false);
+  const handleShowLikers = useCallback(
+    async (e: React.MouseEvent) => {
+      e.stopPropagation()
+      const next = !isLikersOpen
+      setIsLikersOpen(next)
+      if (next && likers.length === 0) {
+        setIsLoadingLikers(true)
+        try {
+          const resp = await apiClient.get(`/route-stories/${story.id}/likers`)
+          setLikers(resp.data?.data?.likers ?? [])
+        } catch (err) {
+          console.error('Failed to fetch route story likers:', err)
+        } finally {
+          setIsLoadingLikers(false)
+        }
       }
-    }
-  }, [isLikersOpen, likers.length, story.id]);
+    },
+    [isLikersOpen, likers.length, story.id]
+  )
 
   return (
     <Card className={cn('overflow-hidden', className)}>
@@ -76,12 +78,8 @@ export function RouteStoryCard({
           </Avatar>
           <div>
             <div className="flex items-center gap-2">
-              <span className="font-medium text-sm">
-                {story.display_name || story.username}
-              </span>
-              {story.is_verified && (
-                <CheckCircle className="h-4 w-4 text-blue-500" />
-              )}
+              <span className="font-medium text-sm">{story.display_name || story.username}</span>
+              {story.is_verified && <CheckCircle className="h-4 w-4 text-blue-500" />}
             </div>
             <span className="text-xs text-muted-foreground">
               {format(new Date(story.created_at), 'PPP', { locale: zhTW })}
@@ -93,13 +91,9 @@ export function RouteStoryCard({
         {showRoute && story.route_name && (
           <div className="mt-3 flex items-center gap-2">
             <Badge variant="outline">{story.route_name}</Badge>
-            {story.route_grade && (
-              <Badge variant="secondary">{story.route_grade}</Badge>
-            )}
+            {story.route_grade && <Badge variant="secondary">{story.route_grade}</Badge>}
             {story.crag_name && (
-              <span className="text-xs text-muted-foreground">
-                @ {story.crag_name}
-              </span>
+              <span className="text-xs text-muted-foreground">@ {story.crag_name}</span>
             )}
           </div>
         )}
@@ -115,29 +109,18 @@ export function RouteStoryCard({
         )}
 
         {/* 標題 */}
-        {story.title && (
-          <h3 className="mt-3 font-semibold">{story.title}</h3>
-        )}
+        {story.title && <h3 className="mt-3 font-semibold">{story.title}</h3>}
 
         {/* 內容 */}
-        <p className="mt-2 text-sm text-muted-foreground whitespace-pre-wrap">
-          {story.content}
-        </p>
+        <p className="mt-2 text-sm text-muted-foreground whitespace-pre-wrap">{story.content}</p>
 
         {/* 照片展示 */}
         {story.photos && story.photos.length > 0 && (
           <div className="mt-3 grid grid-cols-3 gap-2">
             {story.photos.slice(0, 3).map((photo, index) => (
-              <div
-                key={index}
-                className="relative aspect-square overflow-hidden rounded-md"
-              >
+              <div key={index} className="relative aspect-square overflow-hidden rounded-md">
                 {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img
-                  src={photo}
-                  alt={`照片 ${index + 1}`}
-                  className="h-full w-full object-cover"
-                />
+                <img src={photo} alt={`照片 ${index + 1}`} className="h-full w-full object-cover" />
                 {index === 2 && story.photos && story.photos.length > 3 && (
                   <div className="absolute inset-0 flex items-center justify-center bg-black/50 text-white font-medium">
                     +{story.photos.length - 3}
@@ -183,15 +166,13 @@ export function RouteStoryCard({
             <Button
               variant="ghost"
               size="sm"
-              className={cn(
-                'h-8 px-2',
-                story.is_liked && 'text-emerald-600'
-              )}
-              onClick={() => { setLikers([]); onLike?.(); }}
+              className={cn('h-8 px-2', story.is_liked && 'text-emerald-600')}
+              onClick={() => {
+                setLikers([])
+                onLike?.()
+              }}
             >
-              <Mountain
-                className={cn('h-4 w-4', story.is_liked && 'fill-emerald-600')}
-              />
+              <Mountain className={cn('h-4 w-4', story.is_liked && 'fill-emerald-600')} />
             </Button>
             {(story.like_count || 0) > 0 && (
               <button
@@ -210,27 +191,17 @@ export function RouteStoryCard({
           <Button
             variant="ghost"
             size="sm"
-            className={cn(
-              'h-8 gap-1.5',
-              story.is_helpful && 'text-blue-600'
-            )}
+            className={cn('h-8 gap-1.5', story.is_helpful && 'text-blue-600')}
             onClick={onHelpful}
           >
-            <ThumbsUp
-              className={cn('h-4 w-4', story.is_helpful && 'fill-blue-600')}
-            />
+            <ThumbsUp className={cn('h-4 w-4', story.is_helpful && 'fill-blue-600')} />
             <span>{story.helpful_count || ''}</span>
             <span className="text-xs">有幫助</span>
           </Button>
 
           {/* 留言 - 只有當 onComment 有傳入時才顯示 */}
           {onComment && (
-            <Button
-              variant="ghost"
-              size="sm"
-              className="h-8 gap-1.5"
-              onClick={onComment}
-            >
+            <Button variant="ghost" size="sm" className="h-8 gap-1.5" onClick={onComment}>
               <MessageSquare className="h-4 w-4" />
               <span>{story.comment_count || ''}</span>
             </Button>
@@ -254,5 +225,5 @@ export function RouteStoryCard({
         />
       </CardFooter>
     </Card>
-  );
+  )
 }

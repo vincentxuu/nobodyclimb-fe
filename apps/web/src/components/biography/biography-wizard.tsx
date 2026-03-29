@@ -1,28 +1,26 @@
 'use client'
 
-import React, { useState, useCallback, useMemo } from 'react'
-import { useTranslations } from 'next-intl'
-import { motion, AnimatePresence } from 'framer-motion'
+import { AnimatePresence, motion } from 'framer-motion'
 import {
+  BookOpen,
+  Calendar,
+  Camera,
+  Check,
   ChevronLeft,
   ChevronRight,
-  Check,
-  Camera,
-  Calendar,
-  MapPin,
-  Mountain,
-  Sparkles,
-  MessageCircle,
-  Plus,
-  X,
   Loader2,
-  BookOpen,
+  MapPin,
+  MessageCircle,
+  Mountain,
+  Plus,
+  Sparkles,
   Upload,
+  X,
 } from 'lucide-react'
-import { cn } from '@/lib/utils'
+import { useTranslations } from 'next-intl'
+import React, { useCallback, useMemo, useState } from 'react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
-import { Textarea } from '@/components/ui/textarea'
 import { Label } from '@/components/ui/label'
 import {
   Select,
@@ -31,10 +29,12 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
-import { BiographyInput } from '@/lib/types'
-import { generateUniqueId } from '@/lib/utils/biography-ui'
-import { userService } from '@/lib/api/services'
+import { Textarea } from '@/components/ui/textarea'
 import { useToast } from '@/components/ui/use-toast'
+import { userService } from '@/lib/api/services'
+import { BiographyInput } from '@/lib/types'
+import { cn } from '@/lib/utils'
+import { generateUniqueId } from '@/lib/utils/biography-ui'
 import { processImage, validateImageType } from '@/lib/utils/image'
 
 /**
@@ -48,40 +48,17 @@ interface ListItem {
 /**
  * 攀登方式選項
  */
-const CLIMBING_METHODS = [
-  '抱石',
-  '運動攀登',
-  '頂繩攀登',
-  '速度攀登',
-  '傳統攀登',
-]
+const CLIMBING_METHODS = ['抱石', '運動攀登', '頂繩攀登', '速度攀登', '傳統攀登']
 
 /**
  * 地形型態選項
  */
-const TERRAIN_TYPES = [
-  '平板岩',
-  '垂直岩壁',
-  '外傾岩壁',
-  '屋簷',
-  '裂隙',
-  '稜線',
-  '壁面',
-  '煙囪',
-]
+const TERRAIN_TYPES = ['平板岩', '垂直岩壁', '外傾岩壁', '屋簷', '裂隙', '稜線', '壁面', '煙囪']
 
 /**
  * 動作風格選項
  */
-const MOVEMENT_STYLES = [
-  '動態路線',
-  '跑酷風格',
-  '協調性',
-  '靜態',
-  '技術性',
-  '力量型',
-  '耐力型',
-]
+const MOVEMENT_STYLES = ['動態路線', '跑酷風格', '協調性', '靜態', '技術性', '力量型', '耐力型']
 
 /**
  * 生成年份選項 (從當前年往前 50 年)
@@ -126,9 +103,7 @@ export function BiographyWizard({
   const [error, setError] = useState<string | null>(null)
   const [locationInput, setLocationInput] = useState('')
   const [bucketListInput, setBucketListInput] = useState('')
-  const [avatarPreview, setAvatarPreview] = useState<string | null>(
-    initialData.avatar_url || null
-  )
+  const [avatarPreview, setAvatarPreview] = useState<string | null>(initialData.avatar_url || null)
   const [isUploadingAvatar, setIsUploadingAvatar] = useState(false)
 
   // 帶 ID 的地點列表
@@ -395,7 +370,8 @@ export function BiographyWizard({
               {/* 頭像上傳 */}
               <div>
                 <Label className="mb-2 block text-sm font-medium">
-                  {t('wizardAvatarLabel')} <span className="text-xs text-gray-400">{t('wizardAvatarOptional')}</span>
+                  {t('wizardAvatarLabel')}{' '}
+                  <span className="text-xs text-gray-400">{t('wizardAvatarOptional')}</span>
                 </Label>
                 <div className="flex items-center gap-4">
                   <div className="relative">
@@ -432,7 +408,9 @@ export function BiographyWizard({
                         disabled={isUploadingAvatar}
                       />
                       <Upload className="h-4 w-4" />
-                      {isUploadingAvatar ? t('wizardAvatarUploadingButton') : t('wizardAvatarUploadButton')}
+                      {isUploadingAvatar
+                        ? t('wizardAvatarUploadingButton')
+                        : t('wizardAvatarUploadButton')}
                     </label>
                   </div>
                 </div>
@@ -454,7 +432,8 @@ export function BiographyWizard({
               {/* 個人標籤 */}
               <div>
                 <Label htmlFor="title" className="mb-2 block text-sm font-medium">
-                  {t('wizardPersonalTagLabel')} <span className="text-xs text-gray-400">{t('wizardPersonalTagOptional')}</span>
+                  {t('wizardPersonalTagLabel')}{' '}
+                  <span className="text-xs text-gray-400">{t('wizardPersonalTagOptional')}</span>
                 </Label>
                 <Input
                   id="title"
@@ -462,9 +441,7 @@ export function BiographyWizard({
                   onChange={(e) => updateFormData('title', e.target.value)}
                   placeholder={t('wizardPersonalTagPlaceholder')}
                 />
-                <p className="mt-1 text-xs text-gray-500">
-                  {t('wizardPersonalTagHint')}
-                </p>
+                <p className="mt-1 text-xs text-gray-500">{t('wizardPersonalTagHint')}</p>
               </div>
 
               {/* 開始攀岩年份 */}
@@ -533,11 +510,15 @@ export function BiographyWizard({
 
               {/* 喜歡的路線型態 */}
               <div>
-                <Label className="mb-3 block text-sm font-medium">{t('wizardRouteTypesLabel')}</Label>
+                <Label className="mb-3 block text-sm font-medium">
+                  {t('wizardRouteTypesLabel')}
+                </Label>
 
                 {/* 攀登方式 */}
                 <div className="mb-3">
-                  <p className="mb-2 text-xs text-gray-500">{t('favoriteRouteTypesCategoryClimbing')}</p>
+                  <p className="mb-2 text-xs text-gray-500">
+                    {t('favoriteRouteTypesCategoryClimbing')}
+                  </p>
                   <div className="flex flex-wrap gap-2">
                     {CLIMBING_METHODS.map((method) => (
                       <button
@@ -559,7 +540,9 @@ export function BiographyWizard({
 
                 {/* 地形型態 */}
                 <div className="mb-3">
-                  <p className="mb-2 text-xs text-gray-500">{t('favoriteRouteTypesCategoryTerrain')}</p>
+                  <p className="mb-2 text-xs text-gray-500">
+                    {t('favoriteRouteTypesCategoryTerrain')}
+                  </p>
                   <div className="flex flex-wrap gap-2">
                     {TERRAIN_TYPES.map((type) => (
                       <button
@@ -581,7 +564,9 @@ export function BiographyWizard({
 
                 {/* 動作風格 */}
                 <div>
-                  <p className="mb-2 text-xs text-gray-500">{t('favoriteRouteTypesCategoryMovement')}</p>
+                  <p className="mb-2 text-xs text-gray-500">
+                    {t('favoriteRouteTypesCategoryMovement')}
+                  </p>
                   <div className="flex flex-wrap gap-2">
                     {MOVEMENT_STYLES.map((style) => (
                       <button
@@ -613,9 +598,7 @@ export function BiographyWizard({
                   <Sparkles className="h-4 w-4 text-yellow-500" />
                   {t('wizardStep2Origin')}
                 </Label>
-                <p className="mb-2 text-xs text-gray-500">
-                  {t('wizardStep2OriginHint')}
-                </p>
+                <p className="mb-2 text-xs text-gray-500">{t('wizardStep2OriginHint')}</p>
                 <Textarea
                   value={formData.climbing_origin || ''}
                   onChange={(e) => updateFormData('climbing_origin', e.target.value)}
@@ -630,9 +613,7 @@ export function BiographyWizard({
                   <Mountain className="h-4 w-4 text-pink-500" />
                   {t('wizardStep2Meaning')}
                 </Label>
-                <p className="mb-2 text-xs text-gray-500">
-                  {t('wizardStep2MeaningHint')}
-                </p>
+                <p className="mb-2 text-xs text-gray-500">{t('wizardStep2MeaningHint')}</p>
                 <Textarea
                   value={formData.climbing_meaning || ''}
                   onChange={(e) => updateFormData('climbing_meaning', e.target.value)}
@@ -647,9 +628,7 @@ export function BiographyWizard({
                   <MessageCircle className="h-4 w-4 text-blue-500" />
                   {t('wizardStep2Advice')}
                 </Label>
-                <p className="mb-2 text-xs text-gray-500">
-                  {t('wizardStep2AdviceHint')}
-                </p>
+                <p className="mb-2 text-xs text-gray-500">{t('wizardStep2AdviceHint')}</p>
                 <Textarea
                   value={formData.advice_to_self || ''}
                   onChange={(e) => updateFormData('advice_to_self', e.target.value)}
@@ -668,9 +647,7 @@ export function BiographyWizard({
                   <BookOpen className="h-4 w-4 text-orange-500" />
                   {t('wizardBucketListLabel')}
                 </Label>
-                <p className="mb-3 text-xs text-gray-500">
-                  {t('wizardBucketListHint')}
-                </p>
+                <p className="mb-3 text-xs text-gray-500">{t('wizardBucketListHint')}</p>
 
                 {/* 已新增的目標 */}
                 <div className="mb-4 space-y-2">

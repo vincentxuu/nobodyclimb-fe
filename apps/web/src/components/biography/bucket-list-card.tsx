@@ -1,13 +1,13 @@
 'use client'
 
-import { useState } from 'react'
+import { Calendar, CheckCircle, ChevronDown, ChevronUp, Circle, MapPin, Target } from 'lucide-react'
 import { useTranslations } from 'next-intl'
-import { MapPin, Target, Calendar, CheckCircle, Circle, ChevronDown, ChevronUp } from 'lucide-react'
-import { LikeButton } from './like-button'
-import { ReferenceButton } from './reference-button'
-import { CommentSection } from './comment-section'
+import { useState } from 'react'
 import { BucketListItem } from '@/lib/types'
 import { cn } from '@/lib/utils'
+import { CommentSection } from './comment-section'
+import { LikeButton } from './like-button'
+import { ReferenceButton } from './reference-button'
 
 interface BucketListCardProps {
   item: BucketListItem
@@ -117,11 +117,7 @@ export function BucketListCard({ item, isOwner = false, className }: BucketListC
 
             {!isOwner && (
               <div className="flex items-center gap-1">
-                <LikeButton
-                  itemId={item.id}
-                  initialCount={item.likes_count}
-                  variant="icon"
-                />
+                <LikeButton itemId={item.id} initialCount={item.likes_count} variant="icon" />
                 <ReferenceButton
                   itemId={item.id}
                   initialCount={item.inspired_count}
@@ -173,20 +169,24 @@ export function BucketListCard({ item, isOwner = false, className }: BucketListC
               {isExpanded && (
                 <div className="mt-3 p-3 bg-green-50 rounded-lg space-y-3">
                   <div>
-                    <p className="text-xs text-green-600 font-medium mb-1">{t('bucketListCompletedDateLabel')}</p>
-                    <p className="text-sm text-gray-700">
-                      {formatDate(item.completed_at)}
+                    <p className="text-xs text-green-600 font-medium mb-1">
+                      {t('bucketListCompletedDateLabel')}
                     </p>
+                    <p className="text-sm text-gray-700">{formatDate(item.completed_at)}</p>
                   </div>
                   <div>
-                    <p className="text-xs text-green-600 font-medium mb-1">{t('bucketListCompletionStoryLabel')}</p>
+                    <p className="text-xs text-green-600 font-medium mb-1">
+                      {t('bucketListCompletionStoryLabel')}
+                    </p>
                     <p className="text-sm text-gray-700 whitespace-pre-wrap">
                       {item.completion_story}
                     </p>
                   </div>
                   {item.psychological_insights && (
                     <div>
-                      <p className="text-xs text-green-600 font-medium mb-1">{t('bucketListPsychologicalInsightsLabel')}</p>
+                      <p className="text-xs text-green-600 font-medium mb-1">
+                        {t('bucketListPsychologicalInsightsLabel')}
+                      </p>
                       <p className="text-sm text-gray-700 whitespace-pre-wrap">
                         {item.psychological_insights}
                       </p>
@@ -194,7 +194,9 @@ export function BucketListCard({ item, isOwner = false, className }: BucketListC
                   )}
                   {item.technical_insights && (
                     <div>
-                      <p className="text-xs text-green-600 font-medium mb-1">{t('bucketListTechnicalInsightsLabel')}</p>
+                      <p className="text-xs text-green-600 font-medium mb-1">
+                        {t('bucketListTechnicalInsightsLabel')}
+                      </p>
                       <p className="text-sm text-gray-700 whitespace-pre-wrap">
                         {item.technical_insights}
                       </p>

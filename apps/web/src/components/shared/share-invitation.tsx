@@ -1,12 +1,12 @@
 'use client'
 
-import { useState, useEffect } from 'react'
-import { motion, AnimatePresence } from 'framer-motion'
-import { X, Pen, ChevronRight } from 'lucide-react'
+import { AnimatePresence, motion } from 'framer-motion'
+import { ChevronRight, Pen, X } from 'lucide-react'
+import Link from 'next/link'
+import { useEffect, useState } from 'react'
 import { Button } from '@/components/ui/button'
 import { useGuestSession } from '@/lib/hooks/useGuestSession'
 import { useAuthStore } from '@/store/authStore'
-import Link from 'next/link'
 
 interface ShareInvitationProps {
   onStartShare?: () => void
@@ -36,9 +36,12 @@ export function ShareInvitation({ onStartShare }: ShareInvitationProps) {
   useEffect(() => {
     if (isEligibleToShare && status !== 'signIn' && !isDismissed) {
       // 延遲顯示，避免太突兀
-      const timer = setTimeout(() => {
-        setIsVisible(true)
-      }, justBecameEligible ? 500 : 2000)
+      const timer = setTimeout(
+        () => {
+          setIsVisible(true)
+        },
+        justBecameEligible ? 500 : 2000
+      )
       return () => clearTimeout(timer)
     }
   }, [isEligibleToShare, status, isDismissed, justBecameEligible])
@@ -85,9 +88,7 @@ export function ShareInvitation({ onStartShare }: ShareInvitationProps) {
 
               {/* 內容 */}
               <div className="flex-1 pr-6">
-                <h3 className="text-lg font-bold text-gray-900">
-                  想分享你的攀岩故事嗎？
-                </h3>
+                <h3 className="text-lg font-bold text-gray-900">想分享你的攀岩故事嗎？</h3>
                 <p className="mt-1 text-sm text-gray-600">
                   每個攀岩者都有獨特的故事，匿名分享也可以
                 </p>

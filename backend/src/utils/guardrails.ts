@@ -1,17 +1,21 @@
-import { D1Database } from '@cloudflare/workers-types';
+import { D1Database } from '@cloudflare/workers-types'
 
 // =============================================
 // GuardrailError
 // =============================================
 
 export class GuardrailError extends Error {
-  reason: 'blocklist' | 'prompt_injection' | 'jailbreak' | 'meaningless';
-  matchedPattern: string | null;
-  constructor(message: string, reason: 'blocklist' | 'prompt_injection' | 'jailbreak' | 'meaningless', matchedPattern?: string) {
-    super(message);
-    this.name = 'GuardrailError';
-    this.reason = reason;
-    this.matchedPattern = matchedPattern ?? null;
+  reason: 'blocklist' | 'prompt_injection' | 'jailbreak' | 'meaningless'
+  matchedPattern: string | null
+  constructor(
+    message: string,
+    reason: 'blocklist' | 'prompt_injection' | 'jailbreak' | 'meaningless',
+    matchedPattern?: string
+  ) {
+    super(message)
+    this.name = 'GuardrailError'
+    this.reason = reason
+    this.matchedPattern = matchedPattern ?? null
   }
 }
 
@@ -33,7 +37,7 @@ export const DEFAULT_PROMPT_INJECTION_KEYWORDS = [
   'developer mode',
   'override instructions',
   'bypass restrictions',
-];
+]
 
 export const DEFAULT_JAILBREAK_PATTERNS = [
   'act as ',
@@ -48,32 +52,32 @@ export const DEFAULT_JAILBREAK_PATTERNS = [
   '你現在是',
   '忽略之前',
   '忽略所有指令',
-];
+]
 
 // 純符號（非字母、數字、中文、日文、韓文）
-const MEANINGLESS_SYMBOLS_RE = /^[^\w\u4e00-\u9fff\u3040-\u30ff\uac00-\ud7af]+$/;
+const MEANINGLESS_SYMBOLS_RE = /^[^\w\u4e00-\u9fff\u3040-\u30ff\uac00-\ud7af]+$/
 // 10 個以上相同字元連續
-const REPEATED_CHARS_RE = /(.)\1{9,}/;
+const REPEATED_CHARS_RE = /(.)\1{9,}/
 
 export interface GuardrailsInputTrace {
-  passed: boolean;
-  checks_run: string[];
-  triggered_check: string | null;
-  triggered_keyword: string | null;
-  query_length: number;
-  blocklist_size: number;
+  passed: boolean
+  checks_run: string[]
+  triggered_check: string | null
+  triggered_keyword: string | null
+  query_length: number
+  blocklist_size: number
 }
 
 function parseJsonList(value: string | undefined, fallback: string[]): string[] {
-  if (!value) return fallback;
+  if (!value) return fallback
   try {
-    const parsed = JSON.parse(value);
-    if (!Array.isArray(parsed) || parsed.length === 0) return fallback;
+    const parsed = JSON.parse(value)
+    if (!Array.isArray(parsed) || parsed.length === 0) return fallback
     // 只保留字串元素，非字串型別靜默濾除
-    const strings = parsed.filter((item): item is string => typeof item === 'string');
-    return strings.length > 0 ? strings : fallback;
+    const strings = parsed.filter((item): item is string => typeof item === 'string')
+    return strings.length > 0 ? strings : fallback
   } catch {
-    return fallback;
+    return fallback
   }
 }
 
@@ -84,63 +88,70 @@ function parseJsonList(value: string | undefined, fallback: string[]): string[] 
  * 關鍵字清單優先使用 ai_config 中的設定，無設定時回退至預設清單
  */
 export async function checkInput(query: string, db: D1Database): Promise<GuardrailsInputTrace> {
-  const lowerQuery = query.toLowerCase();
-  const checks_run: string[] = [];
+  const lowerQuery = query.toLowerCase()
+  const checks_run: string[] = []
 
   // 批次讀取所有輸入層防護設定
-  let injectionKeywords = DEFAULT_PROMPT_INJECTION_KEYWORDS;
-  let jailbreakPatterns = DEFAULT_JAILBREAK_PATTERNS;
-  let blocklistSize = 0;
+  let injectionKeywords = DEFAULT_PROMPT_INJECTION_KEYWORDS
+  let jailbreakPatterns = DEFAULT_JAILBREAK_PATTERNS
+  let blocklistSize = 0
 
   try {
     const rows = await db
       .prepare(
         `SELECT key, value FROM ai_config WHERE key IN ('prompt_injection_keywords', 'jailbreak_patterns', 'input_blocklist')`
       )
-      .all<{ key: string; value: string }>();
+      .all<{ key: string; value: string }>()
     const cfgMap: Record<string, string> = Object.fromEntries(
       rows.results.map((r) => [r.key, r.value])
-    );
+    )
 
-    injectionKeywords = parseJsonList(cfgMap['prompt_injection_keywords'], DEFAULT_PROMPT_INJECTION_KEYWORDS);
-    jailbreakPatterns = parseJsonList(cfgMap['jailbreak_patterns'], DEFAULT_JAILBREAK_PATTERNS);
+    injectionKeywords = parseJsonList(
+      cfgMap['prompt_injection_keywords'],
+      DEFAULT_PROMPT_INJECTION_KEYWORDS
+    )
+    jailbreakPatterns = parseJsonList(cfgMap['jailbreak_patterns'], DEFAULT_JAILBREAK_PATTERNS)
 
     if (cfgMap['input_blocklist']) {
-      const customList = parseJsonList(cfgMap['input_blocklist'], []);
-      blocklistSize = customList.length;
-      checks_run.push('blocklist');
+      const customList = parseJsonList(cfgMap['input_blocklist'], [])
+      blocklistSize = customList.length
+      checks_run.push('blocklist')
       for (const keyword of customList) {
         if (lowerQuery.includes(keyword.toLowerCase())) {
-          throw new GuardrailError('輸入內容不符合使用規範', 'blocklist', keyword);
+          throw new GuardrailError('輸入內容不符合使用規範', 'blocklist', keyword)
         }
       }
     }
   } catch (err) {
-    if (err instanceof GuardrailError) throw err;
+    if (err instanceof GuardrailError) throw err
     // ai_config 讀取失敗時靜默略過，使用預設清單
   }
 
   // 1. Prompt injection 關鍵字過濾
-  checks_run.push('prompt_injection');
+  checks_run.push('prompt_injection')
   for (const keyword of injectionKeywords) {
     if (lowerQuery.includes(keyword)) {
-      throw new GuardrailError('輸入內容不符合使用規範', 'prompt_injection', keyword);
+      throw new GuardrailError('輸入內容不符合使用規範', 'prompt_injection', keyword)
     }
   }
 
   // 2. Jailbreak pattern 偵測
-  checks_run.push('jailbreak');
+  checks_run.push('jailbreak')
   for (const pattern of jailbreakPatterns) {
     if (lowerQuery.includes(pattern.toLowerCase())) {
-      throw new GuardrailError('輸入內容不符合使用規範', 'jailbreak', pattern);
+      throw new GuardrailError('輸入內容不符合使用規範', 'jailbreak', pattern)
     }
   }
 
   // 3. 無效輸入：純符號或連續重複字元
-  checks_run.push('meaningless');
-  const trimmed = query.trim();
+  checks_run.push('meaningless')
+  const trimmed = query.trim()
   if (MEANINGLESS_SYMBOLS_RE.test(trimmed) || REPEATED_CHARS_RE.test(trimmed)) {
-    throw new GuardrailError('輸入內容無效，請輸入有意義的問題', 'meaningless', trimmed.slice(0, 50));
+    throw new GuardrailError(
+      '輸入內容無效，請輸入有意義的問題',
+      'meaningless',
+      trimmed.slice(0, 50)
+    )
   }
 
   return {
@@ -150,7 +161,7 @@ export async function checkInput(query: string, db: D1Database): Promise<Guardra
     triggered_keyword: null,
     query_length: query.length,
     blocklist_size: blocklistSize,
-  };
+  }
 }
 
 // =============================================
@@ -165,23 +176,23 @@ export const DEFAULT_SYSTEM_PROMPT_LEAKAGE_PATTERNS = [
   'system prompt',
   '<system>',
   '[SYSTEM]',
-];
+]
 
-const OUTPUT_REPLACEMENT_MESSAGE = '抱歉，回答過程發生錯誤，請重新提問。';
-const MAX_OUTPUT_LENGTH = 3000;
-const OUTPUT_TRUNCATION_SUFFIX = '…（回答已截斷，請縮短問題或分多次詢問）';
+const OUTPUT_REPLACEMENT_MESSAGE = '抱歉，回答過程發生錯誤，請重新提問。'
+const MAX_OUTPUT_LENGTH = 3000
+const OUTPUT_TRUNCATION_SUFFIX = '…（回答已截斷，請縮短問題或分多次詢問）'
 
 const PII_PATTERNS: { re: RegExp; replacement: string }[] = [
   { re: /\S+@\S+\.\S+/g, replacement: '[已隱藏]' },
   { re: /\b0\d{1,2}-?\d{6,8}\b/g, replacement: '[已隱藏]' },
-];
+]
 
 export interface GuardrailsOutputTrace {
-  original_length: number;
-  output_length: number;
-  system_prompt_leaked: boolean;
-  pii_count: number;
-  truncated: boolean;
+  original_length: number
+  output_length: number
+  system_prompt_leaked: boolean
+  pii_count: number
+  truncated: boolean
 }
 
 /**
@@ -195,18 +206,18 @@ export function checkOutput(
   maxLength?: number,
   leakagePatterns?: string[]
 ): { output: string; trace: GuardrailsOutputTrace } {
-  const effectiveMaxLength = maxLength ?? MAX_OUTPUT_LENGTH;
-  const effectiveLeakagePatterns = leakagePatterns ?? DEFAULT_SYSTEM_PROMPT_LEAKAGE_PATTERNS;
+  const effectiveMaxLength = maxLength ?? MAX_OUTPUT_LENGTH
+  const effectiveLeakagePatterns = leakagePatterns ?? DEFAULT_SYSTEM_PROMPT_LEAKAGE_PATTERNS
 
-  const originalLength = response.length;
-  let result = response;
-  let piiCount = 0;
+  const originalLength = response.length
+  let result = response
+  let piiCount = 0
 
   // 1. System prompt leakage 偵測
-  const lowerResult = result.toLowerCase();
+  const lowerResult = result.toLowerCase()
   for (const pattern of effectiveLeakagePatterns) {
     if (lowerResult.includes(pattern.toLowerCase())) {
-      console.warn('[guardrails] system prompt leakage detected');
+      console.warn('[guardrails] system prompt leakage detected')
       return {
         output: OUTPUT_REPLACEMENT_MESSAGE,
         trace: {
@@ -216,21 +227,21 @@ export function checkOutput(
           pii_count: 0,
           truncated: false,
         },
-      };
+      }
     }
   }
 
   // 2. PII 過濾
   for (const { re, replacement } of PII_PATTERNS) {
-    const matches = result.match(re);
-    if (matches) piiCount += matches.length;
-    result = result.replace(re, replacement);
+    const matches = result.match(re)
+    if (matches) piiCount += matches.length
+    result = result.replace(re, replacement)
   }
 
   // 3. 回應長度截斷
-  const truncated = result.length > effectiveMaxLength;
+  const truncated = result.length > effectiveMaxLength
   if (truncated) {
-    result = result.slice(0, effectiveMaxLength) + OUTPUT_TRUNCATION_SUFFIX;
+    result = result.slice(0, effectiveMaxLength) + OUTPUT_TRUNCATION_SUFFIX
   }
 
   return {
@@ -242,5 +253,5 @@ export function checkOutput(
       pii_count: piiCount,
       truncated,
     },
-  };
+  }
 }

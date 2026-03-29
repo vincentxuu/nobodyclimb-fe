@@ -1,9 +1,25 @@
 'use client'
 
-import { useState, useMemo } from 'react'
+import {
+  ArrowRight,
+  BarChart2,
+  ChevronDown,
+  ChevronUp,
+  Database,
+  DollarSign,
+  Info,
+  Loader2,
+  TrendingDown,
+  Zap,
+} from 'lucide-react'
+import { useMemo, useState } from 'react'
+import {
+  type CostProvider,
+  DEFAULT_COST_PROVIDERS,
+  useAIConfig,
+  useAIStats,
+} from '@/lib/api/admin-ai'
 import { todayTaipei } from '@/lib/utils'
-import { Loader2, TrendingDown, Zap, Database, BarChart2, ChevronDown, ChevronUp, DollarSign, ArrowRight, Info } from 'lucide-react'
-import { useAIStats, useAIConfig, DEFAULT_COST_PROVIDERS, type CostProvider } from '@/lib/api/admin-ai'
 
 // =============================================
 // 工具函式
@@ -47,7 +63,17 @@ type RangePreset = 'today' | '7d' | '30d' | '90d' | 'custom'
 // 摘要卡片
 // =============================================
 
-function StatCard({ icon, label, value, sub }: { icon: React.ReactNode; label: string; value: string; sub?: string }) {
+function StatCard({
+  icon,
+  label,
+  value,
+  sub,
+}: {
+  icon: React.ReactNode
+  label: string
+  value: string
+  sub?: string
+}) {
   return (
     <div className="rounded-xl border border-wb-15 bg-wb-5 p-4 flex flex-col gap-1.5">
       <div className="flex items-center gap-2 text-wb-50">
@@ -101,7 +127,9 @@ function CostTable({
                 key={p.id}
                 className={`border-t border-wb-10 ${isCheapest ? 'bg-emerald-50/50' : 'hover:bg-wb-5'}`}
               >
-                <td className={`py-2.5 px-3 font-medium ${isCheapest ? 'text-emerald-700' : 'text-wb-80'}`}>
+                <td
+                  className={`py-2.5 px-3 font-medium ${isCheapest ? 'text-emerald-700' : 'text-wb-80'}`}
+                >
                   {p.name}
                   {isCheapest && (
                     <span className="ml-2 text-[10px] bg-emerald-100 text-emerald-700 px-1.5 py-0.5 rounded-full">
@@ -115,10 +143,14 @@ function CostTable({
                 <td className="py-2.5 px-3 text-right text-wb-60 font-mono text-xs">
                   ${p.output_per_1m}
                 </td>
-                <td className={`py-2.5 px-3 text-right font-mono font-medium ${isCheapest ? 'text-emerald-700' : 'text-wb-80'}`}>
+                <td
+                  className={`py-2.5 px-3 text-right font-mono font-medium ${isCheapest ? 'text-emerald-700' : 'text-wb-80'}`}
+                >
                   {formatUSD(usd)}
                 </td>
-                <td className={`py-2.5 px-3 text-right font-mono text-xs ${isCheapest ? 'text-emerald-600' : 'text-wb-50'}`}>
+                <td
+                  className={`py-2.5 px-3 text-right font-mono text-xs ${isCheapest ? 'text-emerald-600' : 'text-wb-50'}`}
+                >
                   {formatNTD(usd)}
                 </td>
               </tr>
@@ -200,7 +232,9 @@ function SimulationSection({
                   key={p.id}
                   className={`border-t border-wb-10 ${isCheapest ? 'bg-emerald-50/50' : 'hover:bg-wb-5'}`}
                 >
-                  <td className={`py-2 px-3 font-medium ${isCheapest ? 'text-emerald-700' : 'text-wb-80'}`}>
+                  <td
+                    className={`py-2 px-3 font-medium ${isCheapest ? 'text-emerald-700' : 'text-wb-80'}`}
+                  >
                     {p.name}
                     {isCheapest && (
                       <span className="ml-2 text-[10px] bg-emerald-100 text-emerald-700 px-1.5 py-0.5 rounded-full">
@@ -208,10 +242,14 @@ function SimulationSection({
                       </span>
                     )}
                   </td>
-                  <td className={`py-2 px-3 text-right font-mono font-medium ${isCheapest ? 'text-emerald-700' : 'text-wb-80'}`}>
+                  <td
+                    className={`py-2 px-3 text-right font-mono font-medium ${isCheapest ? 'text-emerald-700' : 'text-wb-80'}`}
+                  >
                     {formatUSD(usd)}
                   </td>
-                  <td className={`py-2 px-3 text-right font-mono text-xs ${isCheapest ? 'text-emerald-600' : 'text-wb-50'}`}>
+                  <td
+                    className={`py-2 px-3 text-right font-mono text-xs ${isCheapest ? 'text-emerald-600' : 'text-wb-50'}`}
+                  >
                     {formatNTD(usd)}
                   </td>
                 </tr>
@@ -237,9 +275,9 @@ export default function AICostsPage() {
   // 計算實際的 from / to
   const { from, to } = useMemo(() => {
     if (preset === 'today') return { from: todayStr(), to: todayStr() }
-    if (preset === '7d')    return { from: daysAgoStr(7), to: todayStr() }
-    if (preset === '30d')   return { from: daysAgoStr(30), to: todayStr() }
-    if (preset === '90d')   return { from: daysAgoStr(90), to: todayStr() }
+    if (preset === '7d') return { from: daysAgoStr(7), to: todayStr() }
+    if (preset === '30d') return { from: daysAgoStr(30), to: todayStr() }
+    if (preset === '90d') return { from: daysAgoStr(90), to: todayStr() }
     return { from: customFrom, to: customTo }
   }, [preset, customFrom, customTo])
 
@@ -254,7 +292,9 @@ export default function AICostsPage() {
         const parsed = JSON.parse(raw)
         if (Array.isArray(parsed) && parsed.length > 0) return parsed
       }
-    } catch { /* ignore */ }
+    } catch {
+      /* ignore */
+    }
     return DEFAULT_COST_PROVIDERS
   }, [aiConfig])
 
@@ -300,9 +340,7 @@ export default function AICostsPage() {
               key={key}
               onClick={() => setPreset(key)}
               className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-colors ${
-                preset === key
-                  ? 'bg-wb-90 text-wb-5'
-                  : 'bg-wb-8 text-wb-60 hover:bg-wb-12'
+                preset === key ? 'bg-wb-90 text-wb-5' : 'bg-wb-8 text-wb-60 hover:bg-wb-12'
               }`}
             >
               {label}
@@ -379,7 +417,8 @@ export default function AICostsPage() {
       {stats && (
         <div className="flex items-center gap-3 text-xs text-wb-40 -mt-3">
           <TrendingDown className="h-3.5 w-3.5" />
-          平均每查詢 tokens：<span className="text-wb-60 font-medium">{formatNumber(stats.avg_tokens)}</span>
+          平均每查詢 tokens：
+          <span className="text-wb-60 font-medium">{formatNumber(stats.avg_tokens)}</span>
         </div>
       )}
 
@@ -388,7 +427,8 @@ export default function AICostsPage() {
         <div className="flex items-start gap-2 rounded-lg bg-amber-50 border border-amber-200 px-3 py-2.5 text-xs text-amber-700">
           <Info className="h-3.5 w-3.5 shrink-0 mt-0.5" />
           <span>
-            部分舊記錄無詳細 token 分拆（共 {formatNumber(stats!.trace_count)} / {formatNumber(stats!.total_queries)} 筆有詳細資料），費用數據已略過無 trace 的記錄。
+            部分舊記錄無詳細 token 分拆（共 {formatNumber(stats!.trace_count)} /{' '}
+            {formatNumber(stats!.total_queries)} 筆有詳細資料），費用數據已略過無 trace 的記錄。
           </span>
         </div>
       )}
@@ -398,12 +438,16 @@ export default function AICostsPage() {
         <div>
           <div className="text-sm font-medium text-wb-70">供應商費用對照</div>
           <div className="text-xs text-wb-40 mt-0.5">
-            基於 {stats ? `Input ${formatNumber(promptTokens)} + Output ${formatNumber(completionTokens)}` : '–'} tokens
+            基於{' '}
+            {stats
+              ? `Input ${formatNumber(promptTokens)} + Output ${formatNumber(completionTokens)}`
+              : '–'}{' '}
+            tokens
             {stats && stats.trace_count > 0 ? '（實際分拆）' : stats ? '（40/60 估算）' : ''}
           </div>
         </div>
 
-        {stats && (promptTokens + completionTokens) > 0 ? (
+        {stats && promptTokens + completionTokens > 0 ? (
           <CostTable
             providers={providers}
             promptTokens={promptTokens}

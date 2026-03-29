@@ -1,19 +1,19 @@
 'use client'
 
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
-import { Trash2, Brain } from 'lucide-react'
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { formatDistanceToNow } from 'date-fns'
 import { zhTW } from 'date-fns/locale'
+import { Brain, Trash2 } from 'lucide-react'
+import { useTranslations } from 'next-intl'
+import { useState } from 'react'
 import ProfilePageLayout from '@/components/profile/layout/ProfilePageLayout'
 import ProfilePageTitle from '@/components/profile/ProfilePageTitle'
-import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
-import { LoadingSpinner } from '@/components/ui/loading-spinner'
+import { Button } from '@/components/ui/button'
 import { ConfirmDialog } from '@/components/ui/confirm-dialog'
-import apiClient from '@/lib/api/client'
-import { useState } from 'react'
+import { LoadingSpinner } from '@/components/ui/loading-spinner'
 import { useToast } from '@/components/ui/use-toast'
-import { useTranslations } from 'next-intl'
+import apiClient from '@/lib/api/client'
 
 interface UserMemory {
   id: string
@@ -76,11 +76,7 @@ export default function AiMemoryPage() {
   return (
     <ProfilePageLayout>
       <div className="mx-auto max-w-2xl px-4 py-6">
-        <ProfilePageTitle
-          title={t('aiMemoryTitle')}
-          subtitle={t('aiMemorySubtitle')}
-          isAI
-        />
+        <ProfilePageTitle title={t('aiMemoryTitle')} subtitle={t('aiMemorySubtitle')} isAI />
 
         {isLoading ? (
           <div className="flex justify-center py-12">
@@ -90,9 +86,7 @@ export default function AiMemoryPage() {
           // Task 7.5: 空狀態
           <div className="rounded-lg border border-dashed border-gray-200 py-12 text-center">
             <Brain className="mx-auto mb-3 h-8 w-8 text-gray-300" />
-            <p className="text-sm text-gray-400">
-              {t('aiMemoryEmpty')}
-            </p>
+            <p className="text-sm text-gray-400">{t('aiMemoryEmpty')}</p>
           </div>
         ) : (
           // Task 7.3: 渲染記憶列表
@@ -105,20 +99,26 @@ export default function AiMemoryPage() {
                 <div className="flex flex-1 flex-col gap-1">
                   <div className="flex items-center gap-2">
                     <span className="text-xs font-medium text-gray-500">
-                      {MEMORY_KEY_LABEL_KEYS[memory.memory_key] ? t(MEMORY_KEY_LABEL_KEYS[memory.memory_key] as Parameters<typeof t>[0]) : memory.memory_key}
+                      {MEMORY_KEY_LABEL_KEYS[memory.memory_key]
+                        ? t(MEMORY_KEY_LABEL_KEYS[memory.memory_key] as Parameters<typeof t>[0])
+                        : memory.memory_key}
                     </span>
                     <Badge
                       className={`px-1.5 py-0 text-[10px] font-medium ${MEMORY_TYPE_COLOR[memory.memory_type] ?? ''}`}
                     >
-                      {MEMORY_TYPE_LABEL_KEYS[memory.memory_type] ? t(MEMORY_TYPE_LABEL_KEYS[memory.memory_type] as Parameters<typeof t>[0]) : memory.memory_type}
+                      {MEMORY_TYPE_LABEL_KEYS[memory.memory_type]
+                        ? t(MEMORY_TYPE_LABEL_KEYS[memory.memory_type] as Parameters<typeof t>[0])
+                        : memory.memory_type}
                     </Badge>
                   </div>
                   <p className="text-sm text-gray-800">{memory.content}</p>
                   <p className="text-[11px] text-gray-400">
-                    {t('memoryUpdated', { time: formatDistanceToNow(new Date(memory.updated_at), {
-                      addSuffix: true,
-                      locale: zhTW,
-                    }) })}
+                    {t('memoryUpdated', {
+                      time: formatDistanceToNow(new Date(memory.updated_at), {
+                        addSuffix: true,
+                        locale: zhTW,
+                      }),
+                    })}
                   </p>
                 </div>
                 {/* Task 7.4: 刪除按鈕 */}

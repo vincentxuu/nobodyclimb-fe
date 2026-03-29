@@ -3,17 +3,17 @@
  *
  * 頁面切換動畫，對應 apps/web/src/components/shared/page-transition.tsx
  */
+
+import { DURATION } from '@nobodyclimb/constants'
 import React from 'react'
 import { StyleSheet, ViewStyle } from 'react-native'
 import Animated, {
   FadeIn,
   FadeOut,
+  Layout,
   SlideInRight,
   SlideOutLeft,
-  Layout,
 } from 'react-native-reanimated'
-
-import { DURATION } from '@nobodyclimb/constants'
 
 type TransitionType = 'fade' | 'slide' | 'scale' | 'none'
 

@@ -3,35 +3,34 @@
  *
  * 上傳照片對話框，對應 apps/web/src/components/gallery/upload-photo-dialog.tsx
  */
-import React, { useState, useCallback } from 'react'
+
+import { BORDER_RADIUS, SEMANTIC_COLORS, SPACING, WB_COLORS } from '@nobodyclimb/constants'
+import type { GalleryPhoto } from '@nobodyclimb/types'
+import { Image } from 'expo-image'
+import * as ImageManipulator from 'expo-image-manipulator'
+import * as ImagePicker from 'expo-image-picker'
+import { AlertCircle, CheckCircle, Loader2, MapPin, Upload, X } from 'lucide-react-native'
+import { useCallback, useState } from 'react'
 import {
-  StyleSheet,
-  View,
-  ScrollView,
+  Alert,
   KeyboardAvoidingView,
   Platform,
   Pressable,
-  Alert,
+  ScrollView,
+  StyleSheet,
+  View,
 } from 'react-native'
-import { Image } from 'expo-image'
-import * as ImagePicker from 'expo-image-picker'
-import * as ImageManipulator from 'expo-image-manipulator'
-import { X, Upload, MapPin, Loader2, CheckCircle, AlertCircle } from 'lucide-react-native'
 import Animated, { FadeIn, FadeOut } from 'react-native-reanimated'
-
-import { Text } from '@/components/ui/Text'
 import { Button } from '@/components/ui/Button'
-import { Input } from '@/components/ui/Input'
-import { TextArea } from '@/components/ui/TextArea'
-import { Label } from '@/components/ui/Label'
-import { IconButton } from '@/components/ui/IconButton'
-import { ProgressBar } from '@/components/ui/ProgressBar'
 import { Dialog } from '@/components/ui/Dialog'
-import { BORDER_RADIUS, SEMANTIC_COLORS, SPACING, WB_COLORS } from '@nobodyclimb/constants'
-import type { GalleryPhoto } from '@nobodyclimb/types'
+import { Input } from '@/components/ui/Input'
+import { Label } from '@/components/ui/Label'
+import { ProgressBar } from '@/components/ui/ProgressBar'
+import { Text } from '@/components/ui/Text'
+import { TextArea } from '@/components/ui/TextArea'
 
 // 檔案驗證常數
-const MAX_FILE_SIZE = 500 * 1024 // 500KB
+const _MAX_FILE_SIZE = 500 * 1024 // 500KB
 const MAX_FILE_COUNT = 20
 const MAX_IMAGE_DIMENSION = 1920
 
@@ -74,11 +73,10 @@ export interface UploadPhotoDialogProps {
 async function compressImage(uri: string): Promise<{ uri: string; wasCompressed: boolean }> {
   try {
     // 取得圖片資訊
-    const info = await ImageManipulator.manipulateAsync(
-      uri,
-      [],
-      { compress: 1, format: ImageManipulator.SaveFormat.JPEG }
-    )
+    const _info = await ImageManipulator.manipulateAsync(uri, [], {
+      compress: 1,
+      format: ImageManipulator.SaveFormat.JPEG,
+    })
 
     // 壓縮圖片
     const result = await ImageManipulator.manipulateAsync(
@@ -122,7 +120,10 @@ export function UploadPhotoDialog({
   const [locationSpot, setLocationSpot] = useState('')
   const [isUploading, setIsUploading] = useState(false)
   const [isCompressing, setIsCompressing] = useState(false)
-  const [compressProgress, setCompressProgress] = useState<{ current: number; total: number } | null>(null)
+  const [compressProgress, setCompressProgress] = useState<{
+    current: number
+    total: number
+  } | null>(null)
   const [error, setError] = useState<string | null>(null)
   const [uploadStatuses, setUploadStatuses] = useState<UploadStatus[]>([])
 
@@ -255,9 +256,7 @@ export function UploadPhotoDialog({
 
         // 更新狀態為成功
         setUploadStatuses((prev) =>
-          prev.map((s) =>
-            s.id === fileItem.id ? { ...s, status: 'success' } : s
-          )
+          prev.map((s) => (s.id === fileItem.id ? { ...s, status: 'success' } : s))
         )
 
         // 回調成功
@@ -291,7 +290,18 @@ export function UploadPhotoDialog({
     } else {
       setError('所有照片上傳失敗，請稍後再試')
     }
-  }, [files, caption, locationCountry, locationCity, locationSpot, onUploadImage, onUploadPhoto, onSuccess, resetForm, onClose])
+  }, [
+    files,
+    caption,
+    locationCountry,
+    locationCity,
+    locationSpot,
+    onUploadImage,
+    onUploadPhoto,
+    onSuccess,
+    resetForm,
+    onClose,
+  ])
 
   // 關閉
   const handleClose = useCallback(() => {
@@ -324,10 +334,7 @@ export function UploadPhotoDialog({
           <Pressable
             onPress={handlePickImages}
             disabled={isUploading || isCompressing}
-            style={[
-              styles.uploadArea,
-              files.length > 0 && styles.uploadAreaWithFiles,
-            ]}
+            style={[styles.uploadArea, files.length > 0 && styles.uploadAreaWithFiles]}
           >
             <Upload size={32} color={WB_COLORS[50]} />
             <Text variant="body" color="textSubtle" style={styles.uploadText}>
@@ -363,13 +370,16 @@ export function UploadPhotoDialog({
                   已選擇 {files.length} 張照片
                   {files.some((f) => f.wasCompressed) && (
                     <Text variant="caption" style={styles.compressedText}>
-                      {' '}(已壓縮 {files.filter((f) => f.wasCompressed).length} 張)
+                      {' '}
+                      (已壓縮 {files.filter((f) => f.wasCompressed).length} 張)
                     </Text>
                   )}
                 </Text>
                 {!isUploading && !isCompressing && (
                   <Pressable onPress={clearAll}>
-                    <Text variant="caption" style={styles.clearAllText}>清除全部</Text>
+                    <Text variant="caption" style={styles.clearAllText}>
+                      清除全部
+                    </Text>
                   </Pressable>
                 )}
               </View>
@@ -390,12 +400,14 @@ export function UploadPhotoDialog({
                       />
                       {/* 上傳狀態覆蓋層 */}
                       {status && (
-                        <View style={[
-                          styles.fileStatusOverlay,
-                          status.status === 'uploading' && styles.uploadingOverlay,
-                          status.status === 'success' && styles.successOverlay,
-                          status.status === 'error' && styles.errorOverlay,
-                        ]}>
+                        <View
+                          style={[
+                            styles.fileStatusOverlay,
+                            status.status === 'uploading' && styles.uploadingOverlay,
+                            status.status === 'success' && styles.successOverlay,
+                            status.status === 'error' && styles.errorOverlay,
+                          ]}
+                        >
                           {status.status === 'uploading' && (
                             <Loader2 size={20} color={WB_COLORS[0]} />
                           )}
@@ -425,7 +437,11 @@ export function UploadPhotoDialog({
 
           {/* 上傳進度 */}
           {isUploading && (
-            <Animated.View entering={FadeIn} exiting={FadeOut} style={styles.uploadProgressContainer}>
+            <Animated.View
+              entering={FadeIn}
+              exiting={FadeOut}
+              style={styles.uploadProgressContainer}
+            >
               <View style={styles.progressHeader}>
                 <Loader2 size={16} color="#2563EB" />
                 <Text variant="body" style={styles.uploadProgressText}>
@@ -503,10 +519,10 @@ export function UploadPhotoDialog({
             {isCompressing
               ? '處理中...'
               : isUploading
-              ? '上傳中...'
-              : files.length > 0
-              ? `上傳 ${files.length} 張照片`
-              : '上傳照片'}
+                ? '上傳中...'
+                : files.length > 0
+                  ? `上傳 ${files.length} 張照片`
+                  : '上傳照片'}
           </Button>
         </ScrollView>
       </KeyboardAvoidingView>

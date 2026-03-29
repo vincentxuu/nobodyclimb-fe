@@ -3,10 +3,11 @@
  *
  * 搜尋輸入框，與 apps/web/src/components/ui/search-input.tsx 對應
  */
-import React, { useCallback } from 'react'
-import { StyleSheet, TextInput, View, Pressable } from 'react-native'
-import { Search, X } from 'lucide-react-native'
+
 import { FONT_SIZE, SEMANTIC_COLORS, SPACING, WB_COLORS } from '@nobodyclimb/constants'
+import { Search, X } from 'lucide-react-native'
+import { useCallback } from 'react'
+import { Pressable, StyleSheet, TextInput, View } from 'react-native'
 
 export interface SearchInputProps {
   /** 輸入值 */
@@ -47,11 +48,7 @@ export function SearchInput({
 
   return (
     <View style={[styles.container, disabled && styles.containerDisabled, style]}>
-      <Search
-        size={20}
-        color={SEMANTIC_COLORS.textMain}
-        style={styles.searchIcon}
-      />
+      <Search size={20} color={SEMANTIC_COLORS.textMain} style={styles.searchIcon} />
       <TextInput
         style={styles.input}
         value={value}

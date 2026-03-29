@@ -3,11 +3,12 @@
  *
  * 影片網格列表，對應 apps/web/src/components/videos/video-grid.tsx
  */
-import React, { useCallback } from 'react'
-import { StyleSheet, FlatList, View, type ListRenderItem } from 'react-native'
+
 import { SPACING } from '@nobodyclimb/constants'
-import { VideoCard } from './VideoCard'
+import React, { useCallback } from 'react'
+import { FlatList, type ListRenderItem, StyleSheet, View } from 'react-native'
 import type { Video } from './types'
+import { VideoCard } from './VideoCard'
 
 export interface VideoGridProps {
   /** 影片列表 */
@@ -73,11 +74,7 @@ export function VideoGrid({
 
       return (
         <View style={[styles.itemContainer, marginStyle]}>
-          <VideoCard
-            video={item}
-            onClick={onVideoClick}
-            fullWidth={singleColumn}
-          />
+          <VideoCard video={item} onClick={onVideoClick} fullWidth={singleColumn} />
         </View>
       )
     },

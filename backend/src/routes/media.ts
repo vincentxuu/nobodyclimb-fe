@@ -1,27 +1,31 @@
-import { Hono } from 'hono';
-import { z } from 'zod';
-import { describeRoute, validator } from 'hono-openapi';
-import { Env } from '../types';
-import { generateId } from '../utils/id';
-import { authMiddleware } from '../middleware/auth';
+import { Hono } from 'hono'
+import { describeRoute } from 'hono-openapi'
+import { authMiddleware } from '../middleware/auth'
+import { Env } from '../types'
+import { generateId } from '../utils/id'
 
-export const mediaRoutes = new Hono<{ Bindings: Env }>();
+export const mediaRoutes = new Hono<{ Bindings: Env }>()
 
 // ═══════════════════════════════════════════════════════════
 // YouTube 影片關聯 API
 // ═══════════════════════════════════════════════════════════
 
 // YouTube 影片關聯類型
-type VideoRelationType = 'own_content' | 'featured_in' | 'mentioned' | 'recommended' | 'completion_proof';
+type VideoRelationType =
+  | 'own_content'
+  | 'featured_in'
+  | 'mentioned'
+  | 'recommended'
+  | 'completion_proof'
 
 interface BiographyVideo {
-  id: string;
-  biography_id: string;
-  video_id: string;
-  relation_type: VideoRelationType;
-  is_featured: number;
-  display_order: number;
-  created_at: string;
+  id: string
+  biography_id: string
+  video_id: string
+  relation_type: VideoRelationType
+  is_featured: number
+  display_order: number
+  created_at: string
 }
 
 // GET /media/biographies/:id/videos - Get videos for a biography
@@ -36,30 +40,31 @@ mediaRoutes.get(
     },
   }),
   async (c) => {
-  const biographyId = c.req.param('id');
-  const featured = c.req.query('featured');
+    const biographyId = c.req.param('id')
+    const featured = c.req.query('featured')
 
-  let query = `
+    let query = `
     SELECT * FROM biography_videos
     WHERE biography_id = ?
-  `;
-  const params: (string | number)[] = [biographyId];
+  `
+    const params: (string | number)[] = [biographyId]
 
-  if (featured === 'true') {
-    query += ' AND is_featured = 1';
+    if (featured === 'true') {
+      query += ' AND is_featured = 1'
+    }
+
+    query += ' ORDER BY display_order ASC, created_at DESC'
+
+    const videos = await c.env.DB.prepare(query)
+      .bind(...params)
+      .all<BiographyVideo>()
+
+    return c.json({
+      success: true,
+      data: videos.results,
+    })
   }
-
-  query += ' ORDER BY display_order ASC, created_at DESC';
-
-  const videos = await c.env.DB.prepare(query)
-    .bind(...params)
-    .all<BiographyVideo>();
-
-  return c.json({
-    success: true,
-    data: videos.results,
-  });
-});
+)
 
 // POST /media/biographies/me/videos - Add video association
 mediaRoutes.post(
@@ -77,88 +82,85 @@ mediaRoutes.post(
   }),
   authMiddleware,
   async (c) => {
-  const userId = c.get('userId');
+    const userId = c.get('userId')
 
-  // Get user's biography
-  const biography = await c.env.DB.prepare(
-    'SELECT id FROM biographies WHERE user_id = ?'
-  )
-    .bind(userId)
-    .first<{ id: string }>();
+    // Get user's biography
+    const biography = await c.env.DB.prepare('SELECT id FROM biographies WHERE user_id = ?')
+      .bind(userId)
+      .first<{ id: string }>()
 
-  if (!biography) {
-    return c.json(
-      {
-        success: false,
-        error: 'Not Found',
-        message: 'Biography not found. Create a biography first.',
-      },
-      404
-    );
-  }
+    if (!biography) {
+      return c.json(
+        {
+          success: false,
+          error: 'Not Found',
+          message: 'Biography not found. Create a biography first.',
+        },
+        404
+      )
+    }
 
-  const body = await c.req.json<{
-    video_id: string;
-    relation_type?: VideoRelationType;
-    is_featured?: boolean;
-    display_order?: number;
-  }>();
+    const body = await c.req.json<{
+      video_id: string
+      relation_type?: VideoRelationType
+      is_featured?: boolean
+      display_order?: number
+    }>()
 
-  if (!body.video_id) {
-    return c.json(
-      {
-        success: false,
-        error: 'Bad Request',
-        message: 'video_id is required',
-      },
-      400
-    );
-  }
+    if (!body.video_id) {
+      return c.json(
+        {
+          success: false,
+          error: 'Bad Request',
+          message: 'video_id is required',
+        },
+        400
+      )
+    }
 
-  // Check if video already exists
-  const existing = await c.env.DB.prepare(
-    'SELECT id FROM biography_videos WHERE biography_id = ? AND video_id = ?'
-  )
-    .bind(biography.id, body.video_id)
-    .first<{ id: string }>();
+    // Check if video already exists
+    const existing = await c.env.DB.prepare(
+      'SELECT id FROM biography_videos WHERE biography_id = ? AND video_id = ?'
+    )
+      .bind(biography.id, body.video_id)
+      .first<{ id: string }>()
 
-  if (existing) {
-    return c.json(
-      {
-        success: false,
-        error: 'Conflict',
-        message: 'Video already associated with this biography',
-      },
-      409
-    );
-  }
+    if (existing) {
+      return c.json(
+        {
+          success: false,
+          error: 'Conflict',
+          message: 'Video already associated with this biography',
+        },
+        409
+      )
+    }
 
-  const id = generateId();
-  const relationType = body.relation_type || 'own_content';
-  const isFeatured = body.is_featured ? 1 : 0;
-  const displayOrder = body.display_order || 0;
+    const id = generateId()
+    const relationType = body.relation_type || 'own_content'
+    const isFeatured = body.is_featured ? 1 : 0
+    const displayOrder = body.display_order || 0
 
-  await c.env.DB.prepare(
-    `INSERT INTO biography_videos (id, biography_id, video_id, relation_type, is_featured, display_order)
+    await c.env.DB.prepare(
+      `INSERT INTO biography_videos (id, biography_id, video_id, relation_type, is_featured, display_order)
      VALUES (?, ?, ?, ?, ?, ?)`
-  )
-    .bind(id, biography.id, body.video_id, relationType, isFeatured, displayOrder)
-    .run();
+    )
+      .bind(id, biography.id, body.video_id, relationType, isFeatured, displayOrder)
+      .run()
 
-  const video = await c.env.DB.prepare(
-    'SELECT * FROM biography_videos WHERE id = ?'
-  )
-    .bind(id)
-    .first<BiographyVideo>();
+    const video = await c.env.DB.prepare('SELECT * FROM biography_videos WHERE id = ?')
+      .bind(id)
+      .first<BiographyVideo>()
 
-  return c.json(
-    {
-      success: true,
-      data: video,
-    },
-    201
-  );
-});
+    return c.json(
+      {
+        success: true,
+        data: video,
+      },
+      201
+    )
+  }
+)
 
 // PUT /media/biographies/me/videos/:id - Update video association
 mediaRoutes.put(
@@ -174,87 +176,82 @@ mediaRoutes.put(
   }),
   authMiddleware,
   async (c) => {
-  const userId = c.get('userId');
-  const videoId = c.req.param('videoId');
+    const userId = c.get('userId')
+    const videoId = c.req.param('videoId')
 
-  // Get user's biography
-  const biography = await c.env.DB.prepare(
-    'SELECT id FROM biographies WHERE user_id = ?'
-  )
-    .bind(userId)
-    .first<{ id: string }>();
+    // Get user's biography
+    const biography = await c.env.DB.prepare('SELECT id FROM biographies WHERE user_id = ?')
+      .bind(userId)
+      .first<{ id: string }>()
 
-  if (!biography) {
-    return c.json(
-      {
-        success: false,
-        error: 'Not Found',
-        message: 'Biography not found',
-      },
-      404
-    );
-  }
+    if (!biography) {
+      return c.json(
+        {
+          success: false,
+          error: 'Not Found',
+          message: 'Biography not found',
+        },
+        404
+      )
+    }
 
-  // Check if video exists and belongs to user's biography
-  const existing = await c.env.DB.prepare(
-    'SELECT id FROM biography_videos WHERE id = ? AND biography_id = ?'
-  )
-    .bind(videoId, biography.id)
-    .first<{ id: string }>();
-
-  if (!existing) {
-    return c.json(
-      {
-        success: false,
-        error: 'Not Found',
-        message: 'Video association not found',
-      },
-      404
-    );
-  }
-
-  const body = await c.req.json<{
-    relation_type?: VideoRelationType;
-    is_featured?: boolean;
-    display_order?: number;
-  }>();
-
-  const updates: string[] = [];
-  const values: (string | number)[] = [];
-
-  if (body.relation_type !== undefined) {
-    updates.push('relation_type = ?');
-    values.push(body.relation_type);
-  }
-  if (body.is_featured !== undefined) {
-    updates.push('is_featured = ?');
-    values.push(body.is_featured ? 1 : 0);
-  }
-  if (body.display_order !== undefined) {
-    updates.push('display_order = ?');
-    values.push(body.display_order);
-  }
-
-  if (updates.length > 0) {
-    values.push(videoId);
-    await c.env.DB.prepare(
-      `UPDATE biography_videos SET ${updates.join(', ')} WHERE id = ?`
+    // Check if video exists and belongs to user's biography
+    const existing = await c.env.DB.prepare(
+      'SELECT id FROM biography_videos WHERE id = ? AND biography_id = ?'
     )
-      .bind(...values)
-      .run();
+      .bind(videoId, biography.id)
+      .first<{ id: string }>()
+
+    if (!existing) {
+      return c.json(
+        {
+          success: false,
+          error: 'Not Found',
+          message: 'Video association not found',
+        },
+        404
+      )
+    }
+
+    const body = await c.req.json<{
+      relation_type?: VideoRelationType
+      is_featured?: boolean
+      display_order?: number
+    }>()
+
+    const updates: string[] = []
+    const values: (string | number)[] = []
+
+    if (body.relation_type !== undefined) {
+      updates.push('relation_type = ?')
+      values.push(body.relation_type)
+    }
+    if (body.is_featured !== undefined) {
+      updates.push('is_featured = ?')
+      values.push(body.is_featured ? 1 : 0)
+    }
+    if (body.display_order !== undefined) {
+      updates.push('display_order = ?')
+      values.push(body.display_order)
+    }
+
+    if (updates.length > 0) {
+      values.push(videoId)
+      await c.env.DB.prepare(`UPDATE biography_videos SET ${updates.join(', ')} WHERE id = ?`)
+        .bind(...values)
+        .run()
+    }
+
+    const video = await c.env.DB.prepare('SELECT * FROM biography_videos WHERE id = ?')
+      .bind(videoId)
+      .first<BiographyVideo>()
+
+    return c.json({
+      success: true,
+      data: video,
+    })
   }
-
-  const video = await c.env.DB.prepare(
-    'SELECT * FROM biography_videos WHERE id = ?'
-  )
-    .bind(videoId)
-    .first<BiographyVideo>();
-
-  return c.json({
-    success: true,
-    data: video,
-  });
-});
+)
 
 // DELETE /media/biographies/me/videos/:id - Remove video association
 mediaRoutes.delete(
@@ -270,77 +267,74 @@ mediaRoutes.delete(
   }),
   authMiddleware,
   async (c) => {
-  const userId = c.get('userId');
-  const videoId = c.req.param('videoId');
+    const userId = c.get('userId')
+    const videoId = c.req.param('videoId')
 
-  // Get user's biography
-  const biography = await c.env.DB.prepare(
-    'SELECT id FROM biographies WHERE user_id = ?'
-  )
-    .bind(userId)
-    .first<{ id: string }>();
+    // Get user's biography
+    const biography = await c.env.DB.prepare('SELECT id FROM biographies WHERE user_id = ?')
+      .bind(userId)
+      .first<{ id: string }>()
 
-  if (!biography) {
-    return c.json(
-      {
-        success: false,
-        error: 'Not Found',
-        message: 'Biography not found',
-      },
-      404
-    );
+    if (!biography) {
+      return c.json(
+        {
+          success: false,
+          error: 'Not Found',
+          message: 'Biography not found',
+        },
+        404
+      )
+    }
+
+    // Check if video exists and belongs to user's biography
+    const existing = await c.env.DB.prepare(
+      'SELECT id FROM biography_videos WHERE id = ? AND biography_id = ?'
+    )
+      .bind(videoId, biography.id)
+      .first<{ id: string }>()
+
+    if (!existing) {
+      return c.json(
+        {
+          success: false,
+          error: 'Not Found',
+          message: 'Video association not found',
+        },
+        404
+      )
+    }
+
+    await c.env.DB.prepare('DELETE FROM biography_videos WHERE id = ?').bind(videoId).run()
+
+    return c.json({
+      success: true,
+      message: 'Video association removed successfully',
+    })
   }
-
-  // Check if video exists and belongs to user's biography
-  const existing = await c.env.DB.prepare(
-    'SELECT id FROM biography_videos WHERE id = ? AND biography_id = ?'
-  )
-    .bind(videoId, biography.id)
-    .first<{ id: string }>();
-
-  if (!existing) {
-    return c.json(
-      {
-        success: false,
-        error: 'Not Found',
-        message: 'Video association not found',
-      },
-      404
-    );
-  }
-
-  await c.env.DB.prepare('DELETE FROM biography_videos WHERE id = ?')
-    .bind(videoId)
-    .run();
-
-  return c.json({
-    success: true,
-    message: 'Video association removed successfully',
-  });
-});
+)
 
 // ═══════════════════════════════════════════════════════════
 // Instagram 貼文關聯 API
 // ═══════════════════════════════════════════════════════════
 
 // Instagram 關聯類型
-type InstagramRelationType = 'own_post' | 'tagged' | 'mentioned' | 'completion_proof';
-type InstagramMediaType = 'IMAGE' | 'VIDEO' | 'CAROUSEL' | 'REEL';
+type InstagramRelationType = 'own_post' | 'tagged' | 'mentioned' | 'completion_proof'
+type InstagramMediaType = 'IMAGE' | 'VIDEO' | 'CAROUSEL' | 'REEL'
 
 interface BiographyInstagram {
-  id: string;
-  biography_id: string;
-  instagram_url: string;
-  instagram_shortcode: string;
-  media_type: InstagramMediaType | null;
-  thumbnail_url: string | null;
-  caption: string | null;
-  posted_at: string | null;
-  relation_type: InstagramRelationType;
-  is_featured: number;
-  display_order: number;
-  created_at: string;
-  updated_at: string;
+  id: string
+  biography_id: string
+  instagram_url: string
+  instagram_shortcode: string
+  media_type: InstagramMediaType | null
+  thumbnail_url: string | null
+  caption: string | null
+  posted_at: string | null
+  relation_type: InstagramRelationType
+  is_featured: number
+  display_order: number
+  created_at: string
+  updated_at: string
 }
 
 // GET /media/biographies/:id/instagrams - Get Instagram posts for a biography
@@ -355,30 +349,31 @@ mediaRoutes.get(
     },
   }),
   async (c) => {
-  const biographyId = c.req.param('id');
-  const featured = c.req.query('featured');
+    const biographyId = c.req.param('id')
+    const featured = c.req.query('featured')
 
-  let query = `
+    let query = `
     SELECT * FROM biography_instagrams
     WHERE biography_id = ?
-  `;
-  const params: (string | number)[] = [biographyId];
+  `
+    const params: (string | number)[] = [biographyId]
 
-  if (featured === 'true') {
-    query += ' AND is_featured = 1';
+    if (featured === 'true') {
+      query += ' AND is_featured = 1'
+    }
+
+    query += ' ORDER BY display_order ASC, created_at DESC'
+
+    const posts = await c.env.DB.prepare(query)
+      .bind(...params)
+      .all<BiographyInstagram>()
+
+    return c.json({
+      success: true,
+      data: posts.results,
+    })
   }
-
-  query += ' ORDER BY display_order ASC, created_at DESC';
-
-  const posts = await c.env.DB.prepare(query)
-    .bind(...params)
-    .all<BiographyInstagram>();
-
-  return c.json({
-    success: true,
-    data: posts.results,
-  });
-});
+)
 
 // POST /media/biographies/me/instagrams - Add Instagram post association
 mediaRoutes.post(
@@ -396,107 +391,104 @@ mediaRoutes.post(
   }),
   authMiddleware,
   async (c) => {
-  const userId = c.get('userId');
+    const userId = c.get('userId')
 
-  // Get user's biography
-  const biography = await c.env.DB.prepare(
-    'SELECT id FROM biographies WHERE user_id = ?'
-  )
-    .bind(userId)
-    .first<{ id: string }>();
+    // Get user's biography
+    const biography = await c.env.DB.prepare('SELECT id FROM biographies WHERE user_id = ?')
+      .bind(userId)
+      .first<{ id: string }>()
 
-  if (!biography) {
-    return c.json(
-      {
-        success: false,
-        error: 'Not Found',
-        message: 'Biography not found. Create a biography first.',
-      },
-      404
-    );
-  }
+    if (!biography) {
+      return c.json(
+        {
+          success: false,
+          error: 'Not Found',
+          message: 'Biography not found. Create a biography first.',
+        },
+        404
+      )
+    }
 
-  const body = await c.req.json<{
-    instagram_url: string;
-    instagram_shortcode: string;
-    media_type?: InstagramMediaType;
-    thumbnail_url?: string;
-    caption?: string;
-    posted_at?: string;
-    relation_type?: InstagramRelationType;
-    is_featured?: boolean;
-    display_order?: number;
-  }>();
+    const body = await c.req.json<{
+      instagram_url: string
+      instagram_shortcode: string
+      media_type?: InstagramMediaType
+      thumbnail_url?: string
+      caption?: string
+      posted_at?: string
+      relation_type?: InstagramRelationType
+      is_featured?: boolean
+      display_order?: number
+    }>()
 
-  if (!body.instagram_url || !body.instagram_shortcode) {
-    return c.json(
-      {
-        success: false,
-        error: 'Bad Request',
-        message: 'instagram_url and instagram_shortcode are required',
-      },
-      400
-    );
-  }
+    if (!body.instagram_url || !body.instagram_shortcode) {
+      return c.json(
+        {
+          success: false,
+          error: 'Bad Request',
+          message: 'instagram_url and instagram_shortcode are required',
+        },
+        400
+      )
+    }
 
-  // Check if post already exists
-  const existing = await c.env.DB.prepare(
-    'SELECT id FROM biography_instagrams WHERE biography_id = ? AND instagram_shortcode = ?'
-  )
-    .bind(biography.id, body.instagram_shortcode)
-    .first<{ id: string }>();
+    // Check if post already exists
+    const existing = await c.env.DB.prepare(
+      'SELECT id FROM biography_instagrams WHERE biography_id = ? AND instagram_shortcode = ?'
+    )
+      .bind(biography.id, body.instagram_shortcode)
+      .first<{ id: string }>()
 
-  if (existing) {
-    return c.json(
-      {
-        success: false,
-        error: 'Conflict',
-        message: 'Instagram post already associated with this biography',
-      },
-      409
-    );
-  }
+    if (existing) {
+      return c.json(
+        {
+          success: false,
+          error: 'Conflict',
+          message: 'Instagram post already associated with this biography',
+        },
+        409
+      )
+    }
 
-  const id = generateId();
-  const relationType = body.relation_type || 'own_post';
-  const isFeatured = body.is_featured ? 1 : 0;
-  const displayOrder = body.display_order || 0;
+    const id = generateId()
+    const relationType = body.relation_type || 'own_post'
+    const isFeatured = body.is_featured ? 1 : 0
+    const displayOrder = body.display_order || 0
 
-  await c.env.DB.prepare(
-    `INSERT INTO biography_instagrams (
+    await c.env.DB.prepare(
+      `INSERT INTO biography_instagrams (
       id, biography_id, instagram_url, instagram_shortcode, media_type,
       thumbnail_url, caption, posted_at, relation_type, is_featured, display_order
     ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
-  )
-    .bind(
-      id,
-      biography.id,
-      body.instagram_url,
-      body.instagram_shortcode,
-      body.media_type || null,
-      body.thumbnail_url || null,
-      body.caption || null,
-      body.posted_at || null,
-      relationType,
-      isFeatured,
-      displayOrder
     )
-    .run();
+      .bind(
+        id,
+        biography.id,
+        body.instagram_url,
+        body.instagram_shortcode,
+        body.media_type || null,
+        body.thumbnail_url || null,
+        body.caption || null,
+        body.posted_at || null,
+        relationType,
+        isFeatured,
+        displayOrder
+      )
+      .run()
 
-  const post = await c.env.DB.prepare(
-    'SELECT * FROM biography_instagrams WHERE id = ?'
-  )
-    .bind(id)
-    .first<BiographyInstagram>();
+    const post = await c.env.DB.prepare('SELECT * FROM biography_instagrams WHERE id = ?')
+      .bind(id)
+      .first<BiographyInstagram>()
 
-  return c.json(
-    {
-      success: true,
-      data: post,
-    },
-    201
-  );
-});
+    return c.json(
+      {
+        success: true,
+        data: post,
+      },
+      201
+    )
+  }
+)
 
 // PUT /media/biographies/me/instagrams/:id - Update Instagram post association
 mediaRoutes.put(
@@ -512,108 +504,103 @@ mediaRoutes.put(
   }),
   authMiddleware,
   async (c) => {
-  const userId = c.get('userId');
-  const instagramId = c.req.param('instagramId');
+    const userId = c.get('userId')
+    const instagramId = c.req.param('instagramId')
 
-  // Get user's biography
-  const biography = await c.env.DB.prepare(
-    'SELECT id FROM biographies WHERE user_id = ?'
-  )
-    .bind(userId)
-    .first<{ id: string }>();
+    // Get user's biography
+    const biography = await c.env.DB.prepare('SELECT id FROM biographies WHERE user_id = ?')
+      .bind(userId)
+      .first<{ id: string }>()
 
-  if (!biography) {
-    return c.json(
-      {
-        success: false,
-        error: 'Not Found',
-        message: 'Biography not found',
-      },
-      404
-    );
-  }
+    if (!biography) {
+      return c.json(
+        {
+          success: false,
+          error: 'Not Found',
+          message: 'Biography not found',
+        },
+        404
+      )
+    }
 
-  // Check if post exists and belongs to user's biography
-  const existing = await c.env.DB.prepare(
-    'SELECT id FROM biography_instagrams WHERE id = ? AND biography_id = ?'
-  )
-    .bind(instagramId, biography.id)
-    .first<{ id: string }>();
-
-  if (!existing) {
-    return c.json(
-      {
-        success: false,
-        error: 'Not Found',
-        message: 'Instagram post association not found',
-      },
-      404
-    );
-  }
-
-  const body = await c.req.json<{
-    media_type?: InstagramMediaType;
-    thumbnail_url?: string;
-    caption?: string;
-    posted_at?: string;
-    relation_type?: InstagramRelationType;
-    is_featured?: boolean;
-    display_order?: number;
-  }>();
-
-  const updates: string[] = [];
-  const values: (string | number | null)[] = [];
-
-  if (body.media_type !== undefined) {
-    updates.push('media_type = ?');
-    values.push(body.media_type);
-  }
-  if (body.thumbnail_url !== undefined) {
-    updates.push('thumbnail_url = ?');
-    values.push(body.thumbnail_url);
-  }
-  if (body.caption !== undefined) {
-    updates.push('caption = ?');
-    values.push(body.caption);
-  }
-  if (body.posted_at !== undefined) {
-    updates.push('posted_at = ?');
-    values.push(body.posted_at);
-  }
-  if (body.relation_type !== undefined) {
-    updates.push('relation_type = ?');
-    values.push(body.relation_type);
-  }
-  if (body.is_featured !== undefined) {
-    updates.push('is_featured = ?');
-    values.push(body.is_featured ? 1 : 0);
-  }
-  if (body.display_order !== undefined) {
-    updates.push('display_order = ?');
-    values.push(body.display_order);
-  }
-
-  if (updates.length > 0) {
-    updates.push("updated_at = datetime('now')");
-    values.push(instagramId);
-    await c.env.DB.prepare(
-      `UPDATE biography_instagrams SET ${updates.join(', ')} WHERE id = ?`
+    // Check if post exists and belongs to user's biography
+    const existing = await c.env.DB.prepare(
+      'SELECT id FROM biography_instagrams WHERE id = ? AND biography_id = ?'
     )
-      .bind(...values)
-      .run();
+      .bind(instagramId, biography.id)
+      .first<{ id: string }>()
+
+    if (!existing) {
+      return c.json(
+        {
+          success: false,
+          error: 'Not Found',
+          message: 'Instagram post association not found',
+        },
+        404
+      )
+    }
+
+    const body = await c.req.json<{
+      media_type?: InstagramMediaType
+      thumbnail_url?: string
+      caption?: string
+      posted_at?: string
+      relation_type?: InstagramRelationType
+      is_featured?: boolean
+      display_order?: number
+    }>()
+
+    const updates: string[] = []
+    const values: (string | number | null)[] = []
+
+    if (body.media_type !== undefined) {
+      updates.push('media_type = ?')
+      values.push(body.media_type)
+    }
+    if (body.thumbnail_url !== undefined) {
+      updates.push('thumbnail_url = ?')
+      values.push(body.thumbnail_url)
+    }
+    if (body.caption !== undefined) {
+      updates.push('caption = ?')
+      values.push(body.caption)
+    }
+    if (body.posted_at !== undefined) {
+      updates.push('posted_at = ?')
+      values.push(body.posted_at)
+    }
+    if (body.relation_type !== undefined) {
+      updates.push('relation_type = ?')
+      values.push(body.relation_type)
+    }
+    if (body.is_featured !== undefined) {
+      updates.push('is_featured = ?')
+      values.push(body.is_featured ? 1 : 0)
+    }
+    if (body.display_order !== undefined) {
+      updates.push('display_order = ?')
+      values.push(body.display_order)
+    }
+
+    if (updates.length > 0) {
+      updates.push("updated_at = datetime('now')")
+      values.push(instagramId)
+      await c.env.DB.prepare(`UPDATE biography_instagrams SET ${updates.join(', ')} WHERE id = ?`)
+        .bind(...values)
+        .run()
+    }
+
+    const post = await c.env.DB.prepare('SELECT * FROM biography_instagrams WHERE id = ?')
+      .bind(instagramId)
+      .first<BiographyInstagram>()
+
+    return c.json({
+      success: true,
+      data: post,
+    })
   }
-
-  const post = await c.env.DB.prepare(
-    'SELECT * FROM biography_instagrams WHERE id = ?'
-  )
-    .bind(instagramId)
-    .first<BiographyInstagram>();
-
-  return c.json({
-    success: true,
-    data: post,
-  });
-});
+)
 
 // DELETE /media/biographies/me/instagrams/:id - Remove Instagram post association
 mediaRoutes.delete(
@@ -629,54 +616,51 @@ mediaRoutes.delete(
   }),
   authMiddleware,
   async (c) => {
-  const userId = c.get('userId');
-  const instagramId = c.req.param('instagramId');
+    const userId = c.get('userId')
+    const instagramId = c.req.param('instagramId')
 
-  // Get user's biography
-  const biography = await c.env.DB.prepare(
-    'SELECT id FROM biographies WHERE user_id = ?'
-  )
-    .bind(userId)
-    .first<{ id: string }>();
+    // Get user's biography
+    const biography = await c.env.DB.prepare('SELECT id FROM biographies WHERE user_id = ?')
+      .bind(userId)
+      .first<{ id: string }>()
 
-  if (!biography) {
-    return c.json(
-      {
-        success: false,
-        error: 'Not Found',
-        message: 'Biography not found',
-      },
-      404
-    );
+    if (!biography) {
+      return c.json(
+        {
+          success: false,
+          error: 'Not Found',
+          message: 'Biography not found',
+        },
+        404
+      )
+    }
+
+    // Check if post exists and belongs to user's biography
+    const existing = await c.env.DB.prepare(
+      'SELECT id FROM biography_instagrams WHERE id = ? AND biography_id = ?'
+    )
+      .bind(instagramId, biography.id)
+      .first<{ id: string }>()
+
+    if (!existing) {
+      return c.json(
+        {
+          success: false,
+          error: 'Not Found',
+          message: 'Instagram post association not found',
+        },
+        404
+      )
+    }
+
+    await c.env.DB.prepare('DELETE FROM biography_instagrams WHERE id = ?').bind(instagramId).run()
+
+    return c.json({
+      success: true,
+      message: 'Instagram post association removed successfully',
+    })
   }
-
-  // Check if post exists and belongs to user's biography
-  const existing = await c.env.DB.prepare(
-    'SELECT id FROM biography_instagrams WHERE id = ? AND biography_id = ?'
-  )
-    .bind(instagramId, biography.id)
-    .first<{ id: string }>();
-
-  if (!existing) {
-    return c.json(
-      {
-        success: false,
-        error: 'Not Found',
-        message: 'Instagram post association not found',
-      },
-      404
-    );
-  }
-
-  await c.env.DB.prepare('DELETE FROM biography_instagrams WHERE id = ?')
-    .bind(instagramId)
-    .run();
-
-  return c.json({
-    success: true,
-    message: 'Instagram post association removed successfully',
-  });
-});
+)
 
 // ═══════════════════════════════════════════════════════════
 // 媒體資訊抓取 API
@@ -697,85 +681,86 @@ mediaRoutes.get(
     },
   }),
   async (c) => {
-  const url = c.req.query('url');
+    const url = c.req.query('url')
 
-  if (!url) {
-    return c.json(
-      {
-        success: false,
-        error: 'Bad Request',
-        message: 'url parameter is required',
-      },
-      400
-    );
-  }
-
-  // Extract video ID from URL
-  const videoId = extractYoutubeVideoId(url);
-  if (!videoId) {
-    return c.json(
-      {
-        success: false,
-        error: 'Bad Request',
-        message: 'Invalid YouTube URL',
-      },
-      400
-    );
-  }
-
-  try {
-    // Use oEmbed API to get video info (no API key required)
-    const oembedUrl = `https://www.youtube.com/oembed?url=https://www.youtube.com/watch?v=${videoId}&format=json`;
-    const response = await fetch(oembedUrl);
-
-    if (!response.ok) {
+    if (!url) {
       return c.json(
         {
           success: false,
-          error: 'Not Found',
-          message: 'Video not found or is private',
+          error: 'Bad Request',
+          message: 'url parameter is required',
         },
-        404
-      );
+        400
+      )
     }
 
-    const data = await response.json() as {
-      title: string;
-      author_name: string;
-      author_url: string;
-      thumbnail_url: string;
-    };
-
-    return c.json({
-      success: true,
-      data: {
-        video_id: videoId,
-        title: data.title,
-        channel_name: data.author_name,
-        channel_url: data.author_url,
-        thumbnail_url: data.thumbnail_url,
-        // Generate different quality thumbnails
-        thumbnails: {
-          default: `https://i.ytimg.com/vi/${videoId}/default.jpg`,
-          medium: `https://i.ytimg.com/vi/${videoId}/mqdefault.jpg`,
-          high: `https://i.ytimg.com/vi/${videoId}/hqdefault.jpg`,
-          maxres: `https://i.ytimg.com/vi/${videoId}/maxresdefault.jpg`,
+    // Extract video ID from URL
+    const videoId = extractYoutubeVideoId(url)
+    if (!videoId) {
+      return c.json(
+        {
+          success: false,
+          error: 'Bad Request',
+          message: 'Invalid YouTube URL',
         },
-        embed_url: `https://www.youtube.com/embed/${videoId}`,
-        watch_url: `https://www.youtube.com/watch?v=${videoId}`,
-      },
-    });
-  } catch {
-    return c.json(
-      {
-        success: false,
-        error: 'Service Unavailable',
-        message: 'Failed to fetch video info',
-      },
-      503
-    );
+        400
+      )
+    }
+
+    try {
+      // Use oEmbed API to get video info (no API key required)
+      const oembedUrl = `https://www.youtube.com/oembed?url=https://www.youtube.com/watch?v=${videoId}&format=json`
+      const response = await fetch(oembedUrl)
+
+      if (!response.ok) {
+        return c.json(
+          {
+            success: false,
+            error: 'Not Found',
+            message: 'Video not found or is private',
+          },
+          404
+        )
+      }
+
+      const data = (await response.json()) as {
+        title: string
+        author_name: string
+        author_url: string
+        thumbnail_url: string
+      }
+
+      return c.json({
+        success: true,
+        data: {
+          video_id: videoId,
+          title: data.title,
+          channel_name: data.author_name,
+          channel_url: data.author_url,
+          thumbnail_url: data.thumbnail_url,
+          // Generate different quality thumbnails
+          thumbnails: {
+            default: `https://i.ytimg.com/vi/${videoId}/default.jpg`,
+            medium: `https://i.ytimg.com/vi/${videoId}/mqdefault.jpg`,
+            high: `https://i.ytimg.com/vi/${videoId}/hqdefault.jpg`,
+            maxres: `https://i.ytimg.com/vi/${videoId}/maxresdefault.jpg`,
+          },
+          embed_url: `https://www.youtube.com/embed/${videoId}`,
+          watch_url: `https://www.youtube.com/watch?v=${videoId}`,
+        },
+      })
+    } catch {
+      return c.json(
+        {
+          success: false,
+          error: 'Service Unavailable',
+          message: 'Failed to fetch video info',
+        },
+        503
+      )
+    }
   }
-});
+)
 
 // GET /media/utils/instagram-info - Fetch Instagram post info
 mediaRoutes.get(
@@ -783,58 +768,60 @@ mediaRoutes.get(
   describeRoute({
     tags: ['Media'],
     summary: '取得 Instagram 貼文資訊',
-    description: '解析 Instagram URL 取得貼文的基本資訊，包含 shortcode 和嵌入連結。注意：完整資訊需要 Instagram Graph API',
+    description:
+      '解析 Instagram URL 取得貼文的基本資訊，包含 shortcode 和嵌入連結。注意：完整資訊需要 Instagram Graph API',
     responses: {
       200: { description: '成功取得貼文基本資訊' },
       400: { description: '請求參數錯誤，url 為必填或 URL 格式無效' },
     },
   }),
   async (c) => {
-  const url = c.req.query('url');
+    const url = c.req.query('url')
 
-  if (!url) {
-    return c.json(
-      {
-        success: false,
-        error: 'Bad Request',
-        message: 'url parameter is required',
+    if (!url) {
+      return c.json(
+        {
+          success: false,
+          error: 'Bad Request',
+          message: 'url parameter is required',
+        },
+        400
+      )
+    }
+
+    // Extract shortcode from URL
+    const shortcode = extractInstagramShortcode(url)
+    if (!shortcode) {
+      return c.json(
+        {
+          success: false,
+          error: 'Bad Request',
+          message: 'Invalid Instagram URL',
+        },
+        400
+      )
+    }
+
+    // Note: Instagram's oEmbed API requires Facebook App credentials
+    // For now, we return the basic info that can be derived from the URL
+    // In production, you would integrate with Instagram Graph API
+
+    return c.json({
+      success: true,
+      data: {
+        shortcode,
+        instagram_url: `https://www.instagram.com/p/${shortcode}/`,
+        embed_url: `https://www.instagram.com/p/${shortcode}/embed/`,
+        // Note: Actual thumbnail fetching requires Instagram API access
+        // These are placeholder patterns
+        media_type: null, // Would need API to determine
+        thumbnail_url: null, // Would need API to fetch
+        caption: null, // Would need API to fetch
+        posted_at: null, // Would need API to fetch
       },
-      400
-    );
+    })
   }
-
-  // Extract shortcode from URL
-  const shortcode = extractInstagramShortcode(url);
-  if (!shortcode) {
-    return c.json(
-      {
-        success: false,
-        error: 'Bad Request',
-        message: 'Invalid Instagram URL',
-      },
-      400
-    );
-  }
-
-  // Note: Instagram's oEmbed API requires Facebook App credentials
-  // For now, we return the basic info that can be derived from the URL
-  // In production, you would integrate with Instagram Graph API
-
-  return c.json({
-    success: true,
-    data: {
-      shortcode,
-      instagram_url: `https://www.instagram.com/p/${shortcode}/`,
-      embed_url: `https://www.instagram.com/p/${shortcode}/embed/`,
-      // Note: Actual thumbnail fetching requires Instagram API access
-      // These are placeholder patterns
-      media_type: null, // Would need API to determine
-      thumbnail_url: null, // Would need API to fetch
-      caption: null, // Would need API to fetch
-      posted_at: null, // Would need API to fetch
-    },
-  });
-});
+)
 
 // ═══════════════════════════════════════════════════════════
 // Helper functions
@@ -845,16 +832,16 @@ function extractYoutubeVideoId(url: string): string | null {
   const patterns = [
     /(?:youtube\.com\/watch\?v=|youtu\.be\/|youtube\.com\/embed\/|youtube\.com\/v\/)([^&\n?#]+)/,
     /^([a-zA-Z0-9_-]{11})$/, // Direct video ID
-  ];
+  ]
 
   for (const pattern of patterns) {
-    const match = url.match(pattern);
+    const match = url.match(pattern)
     if (match && match[1]) {
-      return match[1];
+      return match[1]
     }
   }
 
-  return null;
+  return null
 }
 
 function extractInstagramShortcode(url: string): string | null {
@@ -864,16 +851,16 @@ function extractInstagramShortcode(url: string): string | null {
     /instagram\.com\/reel\/([^/?]+)/,
     /instagram\.com\/tv\/([^/?]+)/,
     /^([a-zA-Z0-9_-]+)$/, // Direct shortcode
-  ];
+  ]
 
   for (const pattern of patterns) {
-    const match = url.match(pattern);
+    const match = url.match(pattern)
     if (match && match[1]) {
-      return match[1];
+      return match[1]
     }
   }
 
-  return null;
+  return null
 }
 
 // ═══════════════════════════════════════════════════════════
@@ -888,7 +875,7 @@ const uploadFolders: Record<string, string> = {
   avatars: 'avatars',
   gyms: 'gyms',
   crags: 'crags',
-};
+}
 
 // POST /media/upload?type=posts - Upload image to R2 storage
 mediaRoutes.post(
@@ -896,7 +883,8 @@ mediaRoutes.post(
   describeRoute({
     tags: ['Media'],
     summary: '上傳圖片至 R2 儲存空間',
-    description: '上傳圖片至 Cloudflare R2 儲存空間，支援 JPEG、PNG、WebP、GIF 格式，最大 500KB。可透過 type 參數指定上傳類型（posts、biography、gallery、avatars、gyms、crags）',
+    description:
+      '上傳圖片至 Cloudflare R2 儲存空間，支援 JPEG、PNG、WebP、GIF 格式，最大 500KB。可透過 type 參數指定上傳類型（posts、biography、gallery、avatars、gyms、crags）',
     responses: {
       200: { description: '成功上傳圖片，回傳圖片 URL' },
       400: { description: '請求參數錯誤，可能是無效的類型、未提供圖片、檔案類型不支援或檔案過大' },
@@ -904,95 +892,96 @@ mediaRoutes.post(
   }),
   authMiddleware,
   async (c) => {
-  const type = c.req.query('type') || 'general';
-  const folder = uploadFolders[type];
+    const type = c.req.query('type') || 'general'
+    const folder = uploadFolders[type]
 
-  if (!folder) {
-    return c.json(
-      {
-        success: false,
-        error: 'Bad Request',
-        message: `Invalid type. Allowed: ${Object.keys(uploadFolders).join(', ')}`,
-      },
-      400
-    );
-  }
-
-  const formData = await c.req.formData();
-
-  // Delete old image if provided
-  const oldUrl = formData.get('old_url') as string | null;
-  if (oldUrl) {
-    try {
-      const oldKey = new URL(oldUrl).pathname.substring(1);
-      await c.env.STORAGE.delete(oldKey);
-    } catch {
-      // Ignore deletion errors, continue with upload
+    if (!folder) {
+      return c.json(
+        {
+          success: false,
+          error: 'Bad Request',
+          message: `Invalid type. Allowed: ${Object.keys(uploadFolders).join(', ')}`,
+        },
+        400
+      )
     }
-  }
-  const file = formData.get('image') as File | null;
 
-  if (!file) {
-    return c.json(
-      {
-        success: false,
-        error: 'Bad Request',
-        message: 'No image file provided',
+    const formData = await c.req.formData()
+
+    // Delete old image if provided
+    const oldUrl = formData.get('old_url') as string | null
+    if (oldUrl) {
+      try {
+        const oldKey = new URL(oldUrl).pathname.substring(1)
+        await c.env.STORAGE.delete(oldKey)
+      } catch {
+        // Ignore deletion errors, continue with upload
+      }
+    }
+    const file = formData.get('image') as File | null
+
+    if (!file) {
+      return c.json(
+        {
+          success: false,
+          error: 'Bad Request',
+          message: 'No image file provided',
+        },
+        400
+      )
+    }
+
+    // Validate file type
+    const allowedTypes = ['image/jpeg', 'image/png', 'image/webp', 'image/gif']
+    if (!allowedTypes.includes(file.type)) {
+      return c.json(
+        {
+          success: false,
+          error: 'Bad Request',
+          message: 'Invalid file type. Only JPEG, PNG, WebP, and GIF are allowed.',
+        },
+        400
+      )
+    }
+
+    // Validate file size (max 500KB)
+    const maxSize = 500 * 1024
+    if (file.size > maxSize) {
+      return c.json(
+        {
+          success: false,
+          error: 'Bad Request',
+          message: 'File too large. Maximum size is 500KB.',
+        },
+        400
+      )
+    }
+
+    // Generate unique filename
+    const extMap: Record<string, string> = {
+      'image/jpeg': 'jpg',
+      'image/png': 'png',
+      'image/webp': 'webp',
+      'image/gif': 'gif',
+    }
+    const ext = extMap[file.type] || 'jpg'
+    const filename = `${folder}/${generateId()}.${ext}`
+
+    // Upload to R2
+    const arrayBuffer = await file.arrayBuffer()
+    await c.env.STORAGE.put(filename, arrayBuffer, {
+      httpMetadata: {
+        contentType: file.type,
+        cacheControl: 'public, max-age=31536000, immutable',
       },
-      400
-    );
+    })
+
+    // Construct URL
+    const url = `${c.env.R2_PUBLIC_URL}/${filename}`
+
+    return c.json({
+      success: true,
+      data: { url },
+    })
   }
-
-  // Validate file type
-  const allowedTypes = ['image/jpeg', 'image/png', 'image/webp', 'image/gif'];
-  if (!allowedTypes.includes(file.type)) {
-    return c.json(
-      {
-        success: false,
-        error: 'Bad Request',
-        message: 'Invalid file type. Only JPEG, PNG, WebP, and GIF are allowed.',
-      },
-      400
-    );
-  }
-
-  // Validate file size (max 500KB)
-  const maxSize = 500 * 1024;
-  if (file.size > maxSize) {
-    return c.json(
-      {
-        success: false,
-        error: 'Bad Request',
-        message: 'File too large. Maximum size is 500KB.',
-      },
-      400
-    );
-  }
-
-  // Generate unique filename
-  const extMap: Record<string, string> = {
-    'image/jpeg': 'jpg',
-    'image/png': 'png',
-    'image/webp': 'webp',
-    'image/gif': 'gif',
-  };
-  const ext = extMap[file.type] || 'jpg';
-  const filename = `${folder}/${generateId()}.${ext}`;
-
-  // Upload to R2
-  const arrayBuffer = await file.arrayBuffer();
-  await c.env.STORAGE.put(filename, arrayBuffer, {
-    httpMetadata: {
-      contentType: file.type,
-      cacheControl: 'public, max-age=31536000, immutable',
-    },
-  });
-
-  // Construct URL
-  const url = `${c.env.R2_PUBLIC_URL}/${filename}`;
-
-  return c.json({
-    success: true,
-    data: { url },
-  });
-});
+)

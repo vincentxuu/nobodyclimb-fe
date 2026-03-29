@@ -1,22 +1,31 @@
 'use client'
 
+import { zodResolver } from '@hookform/resolvers/zod'
+import { Plus, Trash2, X } from 'lucide-react'
 import * as React from 'react'
 import { useForm } from 'react-hook-form'
-import { zodResolver } from '@hookform/resolvers/zod'
-import { X, Plus, Trash2 } from 'lucide-react'
-import { cn } from '@/lib/utils'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
-import { Textarea } from '@/components/ui/textarea'
 import { Label } from '@/components/ui/label'
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select'
 import { Switch } from '@/components/ui/switch'
-import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from '@/components/ui/select'
-import { bucketListItemInputSchema, type BucketListItemInputSchema } from '@/lib/schemas/bucket-list'
+import { Textarea } from '@/components/ui/textarea'
+import {
+  type BucketListItemInputSchema,
+  bucketListItemInputSchema,
+} from '@/lib/schemas/bucket-list'
 import { BUCKET_LIST_CATEGORIES, type BucketListItem, type Milestone } from '@/lib/types'
+import { cn } from '@/lib/utils'
 
 interface BucketListFormProps {
   item?: BucketListItem | null
-  onSubmit: (data: BucketListItemInputSchema) => void  // eslint-disable-line no-unused-vars
+  onSubmit: (data: BucketListItemInputSchema) => void // eslint-disable-line no-unused-vars
   onCancel: () => void
   isLoading?: boolean
   className?: string
@@ -53,7 +62,7 @@ export function BucketListForm({
       enable_progress: Boolean(item?.enable_progress),
       progress_mode: item?.progress_mode || null,
       progress: Number(item?.progress) || 0,
-      milestones: (item?.milestones || []).map(m => ({
+      milestones: (item?.milestones || []).map((m) => ({
         ...m,
         completed: Boolean(m.completed),
         percentage: Number(m.percentage),
@@ -115,9 +124,7 @@ export function BucketListForm({
             className="mt-1"
             state={errors.title ? 'error' : 'default'}
           />
-          {errors.title && (
-            <p className="mt-1 text-sm text-red-500">{errors.title.message}</p>
-          )}
+          {errors.title && <p className="mt-1 text-sm text-red-500">{errors.title.message}</p>}
         </div>
 
         {/* 分類 */}
@@ -125,7 +132,9 @@ export function BucketListForm({
           <Label>分類</Label>
           <Select
             value={category || 'other'}
-            onValueChange={(value) => setValue('category', value as BucketListItemInputSchema['category'])}
+            onValueChange={(value) =>
+              setValue('category', value as BucketListItemInputSchema['category'])
+            }
           >
             <SelectTrigger className="mt-1">
               <SelectValue placeholder="選擇分類" />
@@ -252,11 +261,46 @@ export function BucketListForm({
                     if (!milestones || milestones.length === 0) {
                       // 預設新增 5 個里程碑
                       setValue('milestones', [
-                        { id: '1', title: '里程碑 1', percentage: 20, completed: false, completed_at: null, note: null },
-                        { id: '2', title: '里程碑 2', percentage: 40, completed: false, completed_at: null, note: null },
-                        { id: '3', title: '里程碑 3', percentage: 60, completed: false, completed_at: null, note: null },
-                        { id: '4', title: '里程碑 4', percentage: 80, completed: false, completed_at: null, note: null },
-                        { id: '5', title: '達成目標', percentage: 100, completed: false, completed_at: null, note: null },
+                        {
+                          id: '1',
+                          title: '里程碑 1',
+                          percentage: 20,
+                          completed: false,
+                          completed_at: null,
+                          note: null,
+                        },
+                        {
+                          id: '2',
+                          title: '里程碑 2',
+                          percentage: 40,
+                          completed: false,
+                          completed_at: null,
+                          note: null,
+                        },
+                        {
+                          id: '3',
+                          title: '里程碑 3',
+                          percentage: 60,
+                          completed: false,
+                          completed_at: null,
+                          note: null,
+                        },
+                        {
+                          id: '4',
+                          title: '里程碑 4',
+                          percentage: 80,
+                          completed: false,
+                          completed_at: null,
+                          note: null,
+                        },
+                        {
+                          id: '5',
+                          title: '達成目標',
+                          percentage: 100,
+                          completed: false,
+                          completed_at: null,
+                          note: null,
+                        },
                       ])
                     }
                   }}
@@ -309,7 +353,9 @@ export function BucketListForm({
                       min="0"
                       max="100"
                       value={milestone.percentage}
-                      onChange={(e) => updateMilestone(milestone.id, 'percentage', parseInt(e.target.value, 10))}
+                      onChange={(e) =>
+                        updateMilestone(milestone.id, 'percentage', parseInt(e.target.value, 10))
+                      }
                       className="w-20"
                     />
                     <span className="text-sm text-gray-500">%</span>
@@ -387,7 +433,7 @@ export function QuickAddForm({
   isLoading = false,
   className,
 }: {
-  onSubmit: (title: string) => void  // eslint-disable-line no-unused-vars
+  onSubmit: (title: string) => void // eslint-disable-line no-unused-vars
   onCancel: () => void
   isLoading?: boolean
   className?: string

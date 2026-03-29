@@ -1,13 +1,13 @@
 'use client'
 
-import React, { useState, useEffect, useCallback } from 'react'
 import { useTranslations } from 'next-intl'
+import React, { useCallback, useEffect, useState } from 'react'
 import GalleryGrid from '@/components/gallery/gallery-grid'
 import PhotoPopup from '@/components/gallery/photo-popup'
-import { PageHeader } from '@/components/ui/page-header'
-import { LoadingSpinner } from '@/components/ui/loading-spinner'
-import { LoadMoreButton } from '@/components/ui/load-more-button'
 import { EmptyState } from '@/components/ui/empty-state'
+import { LoadMoreButton } from '@/components/ui/load-more-button'
+import { LoadingSpinner } from '@/components/ui/loading-spinner'
+import { PageHeader } from '@/components/ui/page-header'
 import { galleryService } from '@/lib/api/services'
 import { GalleryPhoto } from '@/lib/types'
 
@@ -69,40 +69,45 @@ const GalleryPage: React.FC = () => {
   const [hasMore, setHasMore] = useState(true)
 
   // Fetch photos from API
-  const fetchPhotos = useCallback(async (pageNum: number, append = false) => {
-    try {
-      if (pageNum === 1) {
-        setIsLoading(true)
-      } else {
-        setIsLoadingMore(true)
-      }
-      setError(null)
-
-      const response = await galleryService.getPhotos(pageNum, 18)
-
-      if (response.success && response.data) {
-        const transformedPhotos = response.data.map((photo) => transformPhoto(photo, t('photoAlt')))
-
-        if (append) {
-          setPhotos((prev) => [...prev, ...transformedPhotos])
+  const fetchPhotos = useCallback(
+    async (pageNum: number, append = false) => {
+      try {
+        if (pageNum === 1) {
+          setIsLoading(true)
         } else {
-          setPhotos(transformedPhotos)
+          setIsLoadingMore(true)
         }
+        setError(null)
 
-        // Check if there are more photos
-        const { pagination } = response
-        setHasMore(pagination.page < pagination.total_pages)
-      } else {
-        setError(t('loadError'))
+        const response = await galleryService.getPhotos(pageNum, 18)
+
+        if (response.success && response.data) {
+          const transformedPhotos = response.data.map((photo) =>
+            transformPhoto(photo, t('photoAlt'))
+          )
+
+          if (append) {
+            setPhotos((prev) => [...prev, ...transformedPhotos])
+          } else {
+            setPhotos(transformedPhotos)
+          }
+
+          // Check if there are more photos
+          const { pagination } = response
+          setHasMore(pagination.page < pagination.total_pages)
+        } else {
+          setError(t('loadError'))
+        }
+      } catch (err) {
+        console.error('Failed to fetch photos:', err)
+        setError(t('fetchError'))
+      } finally {
+        setIsLoading(false)
+        setIsLoadingMore(false)
       }
-    } catch (err) {
-      console.error('Failed to fetch photos:', err)
-      setError(t('fetchError'))
-    } finally {
-      setIsLoading(false)
-      setIsLoadingMore(false)
-    }
-  }, [t])
+    },
+    [t]
+  )
 
   // Initial load
   useEffect(() => {
@@ -143,49 +148,48 @@ const GalleryPage: React.FC = () => {
       <PageHeader title={t('title')} subtitle={t('subtitle')} />
 
       <div className="container mx-auto px-4 py-6">
+        {/* Loading State */}
+        {isLoading && <LoadingSpinner fullPage />}
 
-      {/* Loading State */}
-      {isLoading && <LoadingSpinner fullPage />}
-
-      {/* Error State */}
-      {error && !isLoading && (
-        <EmptyState
-          icon="image"
-          title={t('loadFailed')}
-          description={error}
-          actionText={t('reload')}
-          onAction={() => fetchPhotos(1)}
-        />
-      )}
-
-      {/* Empty State */}
-      {!isLoading && !error && photos.length === 0 && (
-        <EmptyState icon="image" title={t('noPhotos')} />
-      )}
-
-      {/* Photos Grid */}
-      {!isLoading && !error && photos.length > 0 && (
-        <>
-          <GalleryGrid photos={photos} onPhotoClick={openPopup} />
-
-          <LoadMoreButton
-            onClick={loadMorePhotos}
-            loading={isLoadingMore}
-            hasMore={hasMore}
-            noMoreText={t('allPhotosShown')}
+        {/* Error State */}
+        {error && !isLoading && (
+          <EmptyState
+            icon="image"
+            title={t('loadFailed')}
+            description={error}
+            actionText={t('reload')}
+            onAction={() => fetchPhotos(1)}
           />
-        </>
-      )}
+        )}
 
-      {/* Photo Popup */}
-      {selectedPhoto && (
-        <PhotoPopup
-          photo={selectedPhoto}
-          onClose={closePopup}
-          onNext={showNextPhoto}
-          onPrev={showPrevPhoto}
-        />
-      )}
+        {/* Empty State */}
+        {!isLoading && !error && photos.length === 0 && (
+          <EmptyState icon="image" title={t('noPhotos')} />
+        )}
+
+        {/* Photos Grid */}
+        {!isLoading && !error && photos.length > 0 && (
+          <>
+            <GalleryGrid photos={photos} onPhotoClick={openPopup} />
+
+            <LoadMoreButton
+              onClick={loadMorePhotos}
+              loading={isLoadingMore}
+              hasMore={hasMore}
+              noMoreText={t('allPhotosShown')}
+            />
+          </>
+        )}
+
+        {/* Photo Popup */}
+        {selectedPhoto && (
+          <PhotoPopup
+            photo={selectedPhoto}
+            onClose={closePopup}
+            onNext={showNextPhoto}
+            onPrev={showPrevPhoto}
+          />
+        )}
       </div>
     </div>
   )

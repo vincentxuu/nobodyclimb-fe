@@ -1,11 +1,10 @@
-import React from 'react'
-import { View, StyleSheet, Text as RNText } from 'react-native'
-import { Input } from '../ui/Input'
+import { COLORS } from '@nobodyclimb/constants'
+import { Text as RNText, StyleSheet, View } from 'react-native'
 import { Icon } from '../ui/Icon'
+import { Input } from '../ui/Input'
 import ProfileFormField from './ProfileFormField'
 import ProfileTextDisplay from './ProfileTextDisplay'
 import { SocialLinks } from './types'
-import { COLORS } from '@nobodyclimb/constants'
 
 interface SocialLinksSectionProps {
   socialLinks: SocialLinks
@@ -70,9 +69,7 @@ export default function SocialLinksSection({
             placeholder="https://youtube.com/@your-channel"
           />
         ) : (
-          <ProfileTextDisplay
-            text={socialLinks.youtube_channel || '未設定'}
-          />
+          <ProfileTextDisplay text={socialLinks.youtube_channel || '未設定'} />
         )}
       </ProfileFormField>
     </View>

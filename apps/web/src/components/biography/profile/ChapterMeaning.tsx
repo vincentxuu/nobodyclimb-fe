@@ -2,11 +2,15 @@
 
 import { motion } from 'framer-motion'
 import { Loader2 } from 'lucide-react'
-import { biographyContentService } from '@/lib/api/services'
-import { useClimbingMeaningStory, useCoreStoryLikeMutation, useCoreStoryCommentMutation } from '@/lib/hooks/useCoreStories'
-import { ContentInteractionBar } from '../display/ContentInteractionBar'
-import { normalizeNewlines } from '@/lib/utils'
 import { useTranslations } from 'next-intl'
+import { biographyContentService } from '@/lib/api/services'
+import {
+  useClimbingMeaningStory,
+  useCoreStoryCommentMutation,
+  useCoreStoryLikeMutation,
+} from '@/lib/hooks/useCoreStories'
+import { normalizeNewlines } from '@/lib/utils'
+import { ContentInteractionBar } from '../display/ContentInteractionBar'
 
 // DEFAULT_CLIMBING_MEANING is now handled via i18n
 
@@ -72,21 +76,17 @@ export function ChapterMeaning({ biographyId, personName }: ChapterMeaningProps)
         <span className="mb-4 inline-block text-sm font-medium uppercase tracking-wider bg-brand-accent">
           {t('chapter2')}
         </span>
-        <h2 className="mb-8 text-2xl font-semibold text-gray-900">
-          {t('chapter2Title')}
-        </h2>
+        <h2 className="mb-8 text-2xl font-semibold text-gray-900">{t('chapter2Title')}</h2>
 
         {/* 引言框 */}
         <blockquote className="relative">
-          <span className="absolute -left-4 -top-4 text-6xl bg-brand-accent/30">
-            &ldquo;
-          </span>
-          <p className={`px-8 text-xl italic leading-relaxed ${isDefault ? 'text-gray-400' : 'text-gray-800'}`}>
+          <span className="absolute -left-4 -top-4 text-6xl bg-brand-accent/30">&ldquo;</span>
+          <p
+            className={`px-8 text-xl italic leading-relaxed ${isDefault ? 'text-gray-400' : 'text-gray-800'}`}
+          >
             {displayMeaning}
           </p>
-          <span className="absolute -bottom-8 -right-4 text-6xl bg-brand-accent/30">
-            &rdquo;
-          </span>
+          <span className="absolute -bottom-8 -right-4 text-6xl bg-brand-accent/30">&rdquo;</span>
         </blockquote>
 
         {/* 簽名 */}

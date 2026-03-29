@@ -330,9 +330,7 @@ export async function getGymsByRegion(region: string): Promise<GymListItem[]> {
 /**
  * 根據類型獲取岩館
  */
-export async function getGymsByType(
-  type: 'bouldering' | 'lead' | 'mixed'
-): Promise<GymListItem[]> {
+export async function getGymsByType(type: 'bouldering' | 'lead' | 'mixed'): Promise<GymListItem[]> {
   const data = await loadGymsData()
   return data.gyms.filter((g) => g.type === type).map(toGymListItem)
 }
@@ -365,9 +363,7 @@ export async function searchGyms(options: {
   // 地區篩選
   if (options.region && options.region !== '所有地區') {
     gyms = gyms.filter(
-      (gym) =>
-        gym.location.city.includes(options.region!) ||
-        gym.location.region === options.region
+      (gym) => gym.location.city.includes(options.region!) || gym.location.region === options.region
     )
   }
 
@@ -438,14 +434,8 @@ export async function getAdjacentGyms(currentGymId: string): Promise<{
     return { prev: null, next: null }
   }
 
-  const prevGym =
-    currentIndex > 0
-      ? data.gyms[currentIndex - 1]
-      : data.gyms[data.gyms.length - 1]
-  const nextGym =
-    currentIndex < data.gyms.length - 1
-      ? data.gyms[currentIndex + 1]
-      : data.gyms[0]
+  const prevGym = currentIndex > 0 ? data.gyms[currentIndex - 1] : data.gyms[data.gyms.length - 1]
+  const nextGym = currentIndex < data.gyms.length - 1 ? data.gyms[currentIndex + 1] : data.gyms[0]
 
   return {
     prev: toGymListItem(prevGym),

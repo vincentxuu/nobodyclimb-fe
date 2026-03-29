@@ -3,21 +3,15 @@
  *
  * 對應 apps/web/src/components/editor/ImageUploader.tsx
  */
-import React, { useState, useCallback } from 'react'
-import {
-  StyleSheet,
-  View,
-  Pressable,
-  Alert,
-  ActivityIndicator,
-} from 'react-native'
+
+import { RADIUS, SEMANTIC_COLORS, SPACING, WB_COLORS } from '@nobodyclimb/constants'
 import { Image } from 'expo-image'
 import * as ImagePicker from 'expo-image-picker'
-import { ImagePlus, X, Camera, Image as ImageIcon, Trash2 } from 'lucide-react-native'
+import { Camera, Image as ImageIcon, X } from 'lucide-react-native'
+import { useCallback, useState } from 'react'
+import { ActivityIndicator, Alert, Pressable, StyleSheet, View } from 'react-native'
 import Animated, { FadeIn, FadeOut, Layout } from 'react-native-reanimated'
-
-import { Text, IconButton, Button } from '@/components/ui'
-import { RADIUS, SEMANTIC_COLORS, SPACING, WB_COLORS } from '@nobodyclimb/constants'
+import { Text } from '@/components/ui'
 
 interface ImageItem {
   id: string
@@ -51,11 +45,7 @@ function ImagePreview({ image, onRemove, index }: ImagePreviewProps) {
       layout={Layout.springify()}
       style={styles.imagePreview}
     >
-      <Image
-        source={{ uri: image.uri }}
-        style={styles.previewImage}
-        contentFit="cover"
-      />
+      <Image source={{ uri: image.uri }} style={styles.previewImage} contentFit="cover" />
       <Pressable style={styles.removeButton} onPress={onRemove}>
         <X size={16} color={WB_COLORS[0]} />
       </Pressable>
@@ -113,7 +103,7 @@ export function ImageUploader({
         )
 
         onChange([...images, ...newImages])
-      } catch (error) {
+      } catch (_error) {
         Alert.alert('上傳失敗', '圖片上傳失敗，請稍後再試')
       } finally {
         setIsUploading(false)
@@ -157,7 +147,7 @@ export function ImageUploader({
         }
 
         onChange([...images, newImage])
-      } catch (error) {
+      } catch (_error) {
         Alert.alert('上傳失敗', '圖片上傳失敗，請稍後再試')
       } finally {
         setIsUploading(false)
@@ -256,9 +246,7 @@ export function ImageUploader({
           )}
 
           <Text variant="small" color="textMuted" style={styles.hintText}>
-            {allowMultiple
-              ? `還可以選擇 ${remainingSlots} 張圖片`
-              : '點擊選擇圖片'}
+            {allowMultiple ? `還可以選擇 ${remainingSlots} 張圖片` : '點擊選擇圖片'}
           </Text>
         </View>
       )}

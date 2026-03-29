@@ -1,9 +1,9 @@
 'use client'
 
-import React from 'react'
-import Link from 'next/link'
 import { Info } from 'lucide-react'
+import Link from 'next/link'
 import { useTranslations } from 'next-intl'
+import React from 'react'
 
 interface CragInfoCardProps {
   // 可以根據需要添加參數
@@ -31,7 +31,11 @@ export const CragInfoCard: React.FC<CragInfoCardProps> = () => {
       <ul className="space-y-3">
         {infoLinks.map((link, index) => (
           <li key={index}>
-            <Link href={link.href} prefetch={false} className="flex items-center text-[#1B1A1A] hover:text-gray-800">
+            <Link
+              href={link.href}
+              prefetch={false}
+              className="flex items-center text-[#1B1A1A] hover:text-gray-800"
+            >
               <span className="mr-2">{link.emoji}</span> {link.label}
             </Link>
           </li>

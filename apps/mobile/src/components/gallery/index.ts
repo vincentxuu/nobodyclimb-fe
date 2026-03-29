@@ -4,7 +4,7 @@
  * 對應 apps/web/src/components/gallery/
  */
 
-export { GalleryGrid, type GalleryGridProps, type GalleryGridPhoto } from './GalleryGrid'
-export { PhotoPopup, type PhotoPopupProps, type PhotoPopupPhoto } from './PhotoPopup'
+export { GalleryGrid, type GalleryGridPhoto, type GalleryGridProps } from './GalleryGrid'
 export { PhotoEditDialog, type PhotoEditDialogProps } from './PhotoEditDialog'
+export { PhotoPopup, type PhotoPopupPhoto, type PhotoPopupProps } from './PhotoPopup'
 export { UploadPhotoDialog, type UploadPhotoDialogProps } from './UploadPhotoDialog'

@@ -3,9 +3,7 @@ import { z } from 'zod'
 /**
  * YouTube 影片 ID 驗證 (11 個英數字元)
  */
-const youtubeVideoIdSchema = z
-  .string()
-  .regex(/^[a-zA-Z0-9_-]{11}$/, '無效的 YouTube 影片 ID')
+const youtubeVideoIdSchema = z.string().regex(/^[a-zA-Z0-9_-]{11}$/, '無效的 YouTube 影片 ID')
 
 /**
  * Instagram shortcode 驗證 (英數字元，通常 11 個字元但可能更長)
@@ -19,10 +17,7 @@ const instagramShortcodeSchema = z
  */
 const dateStringSchema = z
   .string()
-  .refine(
-    (val) => !val || /^\d{4}-\d{2}-\d{2}$/.test(val),
-    '日期格式必須為 YYYY-MM-DD'
-  )
+  .refine((val) => !val || /^\d{4}-\d{2}-\d{2}$/.test(val), '日期格式必須為 YYYY-MM-DD')
 
 /**
  * 人生清單分類列舉
@@ -53,45 +48,51 @@ export const milestoneSchema = z.object({
 /**
  * 人生清單項目輸入 schema (創建/更新)
  */
-export const bucketListItemInputSchema = z.object({
-  title: z.string().min(1, '目標名稱不能為空').max(100, '目標名稱不能超過 100 字'),
-  category: bucketListCategorySchema.optional().default('other'),
-  description: z.string().max(1000, '描述不能超過 1000 字').optional(),
-  target_grade: z.string().max(50, '目標難度不能超過 50 字').optional(),
-  target_location: z.string().max(100, '目標地點不能超過 100 字').optional(),
-  target_date: dateStringSchema.optional(),
-  status: z.enum(['active', 'completed', 'archived']).optional().default('active'),
-  enable_progress: z.boolean().optional().default(false),
-  progress_mode: z.enum(['manual', 'milestone']).nullable().optional(),
-  progress: z.number().min(0).max(100).optional().default(0),
-  milestones: z.array(milestoneSchema).optional(),
-  is_public: z.boolean().optional().default(true),
-  sort_order: z.number().optional(),
-}).refine(
-  (data) => {
-    // 如果開啟進度追蹤，必須選擇追蹤方式
-    if (data.enable_progress && !data.progress_mode) {
-      return false
+export const bucketListItemInputSchema = z
+  .object({
+    title: z.string().min(1, '目標名稱不能為空').max(100, '目標名稱不能超過 100 字'),
+    category: bucketListCategorySchema.optional().default('other'),
+    description: z.string().max(1000, '描述不能超過 1000 字').optional(),
+    target_grade: z.string().max(50, '目標難度不能超過 50 字').optional(),
+    target_location: z.string().max(100, '目標地點不能超過 100 字').optional(),
+    target_date: dateStringSchema.optional(),
+    status: z.enum(['active', 'completed', 'archived']).optional().default('active'),
+    enable_progress: z.boolean().optional().default(false),
+    progress_mode: z.enum(['manual', 'milestone']).nullable().optional(),
+    progress: z.number().min(0).max(100).optional().default(0),
+    milestones: z.array(milestoneSchema).optional(),
+    is_public: z.boolean().optional().default(true),
+    sort_order: z.number().optional(),
+  })
+  .refine(
+    (data) => {
+      // 如果開啟進度追蹤，必須選擇追蹤方式
+      if (data.enable_progress && !data.progress_mode) {
+        return false
+      }
+      return true
+    },
+    {
+      message: '請選擇進度追蹤方式',
+      path: ['progress_mode'],
     }
-    return true
-  },
-  {
-    message: '請選擇進度追蹤方式',
-    path: ['progress_mode'],
-  }
-).refine(
-  (data) => {
-    // 如果使用里程碑模式，必須至少有一個里程碑
-    if (data.progress_mode === 'milestone' && (!data.milestones || data.milestones.length === 0)) {
-      return false
+  )
+  .refine(
+    (data) => {
+      // 如果使用里程碑模式，必須至少有一個里程碑
+      if (
+        data.progress_mode === 'milestone' &&
+        (!data.milestones || data.milestones.length === 0)
+      ) {
+        return false
+      }
+      return true
+    },
+    {
+      message: '里程碑模式至少需要一個里程碑',
+      path: ['milestones'],
     }
-    return true
-  },
-  {
-    message: '里程碑模式至少需要一個里程碑',
-    path: ['milestones'],
-  }
-)
+  )
 
 /**
  * 完成人生清單目標 schema

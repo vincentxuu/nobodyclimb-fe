@@ -1,6 +1,6 @@
 'use client'
 
-import { StageSection, StageDesc, IOFlow, TraceBadge } from '../shared'
+import { IOFlow, StageDesc, StageSection, TraceBadge } from '../shared'
 import type { PipelineTrace } from '../types'
 
 const ROUTE_TYPE_LABELS: Record<string, string> = {
@@ -29,7 +29,10 @@ export function TextToSqlTrace({ trace }: { trace: PipelineTrace }) {
             <div className="flex items-center gap-2 text-[11px] text-wb-40">
               <span>路徑</span>
               {info.path ? (
-                <TraceBadge text={info.path === 'hybrid' ? 'Hybrid 候選' : info.path} color="violet" />
+                <TraceBadge
+                  text={info.path === 'hybrid' ? 'Hybrid 候選' : info.path}
+                  color="violet"
+                />
               ) : (
                 <span className="text-wb-50">—</span>
               )}
@@ -52,12 +55,19 @@ export function TextToSqlTrace({ trace }: { trace: PipelineTrace }) {
           <StageSection type="output">
             <div className="space-y-3">
               {candidates.map((candidate, idx) => (
-                <div key={`${candidate.name ?? 'route'}-${idx}`} className="rounded-xl border border-wb-10 bg-wb-05 p-3">
+                <div
+                  key={`${candidate.name ?? 'route'}-${idx}`}
+                  className="rounded-xl border border-wb-10 bg-wb-05 p-3"
+                >
                   <div className="flex items-baseline justify-between gap-3">
-                    <p className="text-sm font-medium text-wb-100">{candidate.name ?? '未命名路線'}</p>
+                    <p className="text-sm font-medium text-wb-100">
+                      {candidate.name ?? '未命名路線'}
+                    </p>
                     <span className="text-[11px] text-wb-50">
                       {candidate.grade ?? '？'}
-                      {candidate.route_type ? ` ・ ${ROUTE_TYPE_LABELS[candidate.route_type] ?? candidate.route_type}` : ''}
+                      {candidate.route_type
+                        ? ` ・ ${ROUTE_TYPE_LABELS[candidate.route_type] ?? candidate.route_type}`
+                        : ''}
                     </span>
                   </div>
                   <div className="mt-1 flex flex-wrap gap-2 text-[11px] text-wb-50">
@@ -66,7 +76,9 @@ export function TextToSqlTrace({ trace }: { trace: PipelineTrace }) {
                     {candidate.height != null && <span>高度：{candidate.height}m</span>}
                   </div>
                   {candidate.description && (
-                    <p className="mt-2 text-[11px] text-wb-60 whitespace-pre-wrap">{candidate.description}</p>
+                    <p className="mt-2 text-[11px] text-wb-60 whitespace-pre-wrap">
+                      {candidate.description}
+                    </p>
                   )}
                 </div>
               ))}

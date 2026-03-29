@@ -1,17 +1,9 @@
-import React, { useEffect, useState } from 'react'
-import {
-  ActivityIndicator,
-  Image,
-  Linking,
-  Pressable,
-  ScrollView,
-  StyleSheet,
-  View,
-} from 'react-native'
-import { apiClient } from '@/lib/api'
-import { Text } from '@/components/ui'
-import { SPACING, WB_COLORS, BORDER_RADIUS } from '@nobodyclimb/constants'
+import { BORDER_RADIUS, SPACING, WB_COLORS } from '@nobodyclimb/constants'
 import { AlertCircle, Camera, ExternalLink } from 'lucide-react-native'
+import { useEffect, useState } from 'react'
+import { ActivityIndicator, Image, Linking, Pressable, StyleSheet, View } from 'react-native'
+import { Text } from '@/components/ui'
+import { apiClient } from '@/lib/api'
 
 interface TrafficCamerasCardProps {
   latitude: number

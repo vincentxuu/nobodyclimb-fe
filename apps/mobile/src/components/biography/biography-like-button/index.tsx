@@ -3,15 +3,15 @@
  *
  * 傳記按讚按鈕，對應 apps/web/src/components/biography/biography-like-button.tsx
  */
-import React, { useState, useEffect } from 'react'
-import { StyleSheet, Pressable, ActivityIndicator } from 'react-native'
-import { Mountain } from 'lucide-react-native'
-import { useRouter } from 'expo-router'
 
-import { Text } from '@/components/ui'
-import { useAuthStore } from '@/store/authStore'
-import { biographyService } from '@/lib/biographyService'
 import { SEMANTIC_COLORS, SPACING } from '@nobodyclimb/constants'
+import { useRouter } from 'expo-router'
+import { Mountain } from 'lucide-react-native'
+import { useEffect, useState } from 'react'
+import { ActivityIndicator, Pressable, StyleSheet } from 'react-native'
+import { Text } from '@/components/ui'
+import { biographyService } from '@/lib/biographyService'
+import { useAuthStore } from '@/store/authStore'
 
 interface BiographyLikeButtonProps {
   biographyId: string
@@ -78,10 +78,7 @@ export function BiographyLikeButton({
 
   return (
     <Pressable
-      style={({ pressed }) => [
-        styles.button,
-        pressed && styles.buttonPressed,
-      ]}
+      style={({ pressed }) => [styles.button, pressed && styles.buttonPressed]}
       onPress={handlePress}
       disabled={isLoading}
     >
@@ -94,16 +91,7 @@ export function BiographyLikeButton({
           fill={isLiked ? SEMANTIC_COLORS.success : 'transparent'}
         />
       )}
-      {showCount && (
-        <Text
-          style={[
-            styles.count,
-            isLiked && styles.countLiked,
-          ]}
-        >
-          {count}
-        </Text>
-      )}
+      {showCount && <Text style={[styles.count, isLiked && styles.countLiked]}>{count}</Text>}
     </Pressable>
   )
 }

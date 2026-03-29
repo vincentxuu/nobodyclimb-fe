@@ -8,8 +8,8 @@
  */
 
 import { Suspense } from 'react'
-import { ProfileProvider } from '@/components/profile/ProfileContext'
 import ProfileEditorSelector from '@/components/profile/dashboard/ProfileEditorSelector'
+import { ProfileProvider } from '@/components/profile/ProfileContext'
 
 export default function EditorDemoPage() {
   return (

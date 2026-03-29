@@ -1,17 +1,22 @@
-import { useEffect, useRef, useState, useCallback } from 'react'
-import { View, FlatList, Pressable, StyleSheet, ActivityIndicator } from 'react-native'
-import { SafeAreaView } from 'react-native-safe-area-context'
+import { SEMANTIC_COLORS, SPACING, WB_COLORS } from '@nobodyclimb/constants'
 import { useRouter } from 'expo-router'
 import { ChevronLeft, Sparkles } from 'lucide-react-native'
-import { Text, Button } from '@/components/ui'
-import { useToast } from '@/components/ui/Toast'
-import { SPACING, WB_COLORS, SEMANTIC_COLORS } from '@nobodyclimb/constants'
-import { useRecommendations, useTriggerRecommendation, type Recommendation } from '@/lib/hooks/useRecommendations'
+import { useCallback, useEffect, useRef, useState } from 'react'
+import { ActivityIndicator, FlatList, Pressable, StyleSheet, View } from 'react-native'
+import { SafeAreaView } from 'react-native-safe-area-context'
 import { RecommendationCard } from '@/components/ai'
+import { Button, Text } from '@/components/ui'
+import { useToast } from '@/components/ui/Toast'
+import {
+  type Recommendation,
+  useRecommendations,
+  useTriggerRecommendation,
+} from '@/lib/hooks/useRecommendations'
 
 function isQuotaExceededError(error: unknown): boolean {
   return (
-    (error as { response?: { data?: { error?: string } } })?.response?.data?.error === 'quota_exceeded'
+    (error as { response?: { data?: { error?: string } } })?.response?.data?.error ===
+    'quota_exceeded'
   )
 }
 
@@ -45,14 +50,15 @@ export default function RecommendationsScreen() {
       if (offset === 0) {
         setAllItems(data.items)
       } else {
-        setAllItems(prev => [...prev, ...data.items])
+        setAllItems((prev) => [...prev, ...data.items])
       }
       setTotal(data.total)
     }
   }, [data, offset])
 
   // Start polling when initial load returns empty
-  const dataIsEmpty = !isLoading && data !== undefined && (data.items?.length ?? 0) === 0 && offset === 0
+  const dataIsEmpty =
+    !isLoading && data !== undefined && (data.items?.length ?? 0) === 0 && offset === 0
   const pollingExhausted = pollAttempts >= MAX_POLL_ATTEMPTS
 
   useEffect(() => {
@@ -93,7 +99,9 @@ export default function RecommendationsScreen() {
       setIsPolling(true)
     } catch (error) {
       toast.show({
-        message: isQuotaExceededError(error) ? '今日 AI 配額已用完，明日重置' : '推薦生成失敗，請稍後再試',
+        message: isQuotaExceededError(error)
+          ? '今日 AI 配額已用完，明日重置'
+          : '推薦生成失敗，請稍後再試',
         variant: 'error',
       })
     }
@@ -101,13 +109,14 @@ export default function RecommendationsScreen() {
 
   const handleLoadMore = () => {
     if (!isLoading && allItems.length < total) {
-      setOffset(prev => prev + PAGE_SIZE)
+      setOffset((prev) => prev + PAGE_SIZE)
     }
   }
 
-  const renderItem = useCallback(({ item }: { item: Recommendation }) => (
-    <RecommendationCard recommendation={item} />
-  ), [])
+  const renderItem = useCallback(
+    ({ item }: { item: Recommendation }) => <RecommendationCard recommendation={item} />,
+    []
+  )
 
   const showLoading = isLoading && allItems.length === 0
   const showPolling = isPolling && !pollingExhausted
@@ -148,7 +157,7 @@ export default function RecommendationsScreen() {
       ) : showList ? (
         <FlatList
           data={allItems}
-          keyExtractor={item => item.id}
+          keyExtractor={(item) => item.id}
           renderItem={renderItem}
           contentContainerStyle={styles.list}
           ItemSeparatorComponent={ItemSeparator}
@@ -169,12 +178,28 @@ export default function RecommendationsScreen() {
 
 const styles = StyleSheet.create({
   container: { flex: 1 },
-  header: { flexDirection: 'row', alignItems: 'center', paddingHorizontal: SPACING[4], paddingVertical: SPACING[3] },
+  header: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: SPACING[4],
+    paddingVertical: SPACING[3],
+  },
   backBtn: { width: 40, height: 40, alignItems: 'center', justifyContent: 'center' },
   title: { flex: 1, textAlign: 'center', fontSize: 18, fontWeight: '600' },
-  center: { flex: 1, alignItems: 'center', justifyContent: 'center', gap: SPACING[3], padding: SPACING[6] },
+  center: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: SPACING[3],
+    padding: SPACING[6],
+  },
   pollingText: { fontSize: 14, color: WB_COLORS[50] },
-  emptyText: { fontSize: 15, color: SEMANTIC_COLORS.textSubtle, textAlign: 'center', lineHeight: 24 },
+  emptyText: {
+    fontSize: 15,
+    color: SEMANTIC_COLORS.textSubtle,
+    textAlign: 'center',
+    lineHeight: 24,
+  },
   triggerBtn: { marginTop: SPACING[2] },
   list: { padding: SPACING[4] },
   separator: { height: SPACING[3] },

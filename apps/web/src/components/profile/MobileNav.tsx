@@ -1,6 +1,13 @@
 'use client'
 
-import { UserCircle, FileText, Bookmark, Settings, Image as ImageIcon, type LucideIcon } from 'lucide-react'
+import {
+  Bookmark,
+  FileText,
+  Image as ImageIcon,
+  type LucideIcon,
+  Settings,
+  UserCircle,
+} from 'lucide-react'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { useTranslations } from 'next-intl'

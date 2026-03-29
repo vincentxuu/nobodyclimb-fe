@@ -1,8 +1,8 @@
 'use client'
 
+import { AlertTriangle, RefreshCw } from 'lucide-react'
 import React from 'react'
 import { Button } from '@/components/ui/button'
-import { AlertTriangle, RefreshCw } from 'lucide-react'
 
 interface ErrorBoundaryProps {
   children: React.ReactNode
@@ -54,7 +54,13 @@ export class ErrorBoundary extends React.Component<ErrorBoundaryProps, ErrorBoun
       }
 
       // 預設的錯誤 UI
-      return <DefaultErrorFallback error={this.state.error} onReset={this.handleReset} onReload={this.handleReload} />
+      return (
+        <DefaultErrorFallback
+          error={this.state.error}
+          onReset={this.handleReset}
+          onReload={this.handleReload}
+        />
+      )
     }
 
     return this.props.children
@@ -85,7 +91,9 @@ function DefaultErrorFallback({
         </div>
 
         <h1 className="mb-2 text-2xl font-bold">發生錯誤</h1>
-        <p className="mb-6 text-muted-foreground">抱歉，頁面發生了一些問題。請嘗試重新載入或稍後再試。</p>
+        <p className="mb-6 text-muted-foreground">
+          抱歉，頁面發生了一些問題。請嘗試重新載入或稍後再試。
+        </p>
 
         {/* 開發環境顯示錯誤詳情 */}
         {isDevelopment && error && (

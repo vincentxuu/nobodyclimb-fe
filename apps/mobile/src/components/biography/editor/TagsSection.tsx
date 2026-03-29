@@ -1,10 +1,8 @@
-import React from 'react'
-import { View, Pressable } from 'react-native'
-import { YStack, XStack, Text } from 'tamagui'
-import { Tag, ChevronRight } from 'lucide-react-native'
-import { SEMANTIC_COLORS, COLORS } from '@nobodyclimb/constants'
+import { COLORS, SEMANTIC_COLORS } from '@nobodyclimb/constants'
 import type { TagDimension } from '@nobodyclimb/types'
-import { TagSelectorGroup } from '../shared/TagSelector'
+import { ChevronRight, Tag } from 'lucide-react-native'
+import { Pressable, View } from 'react-native'
+import { Text, XStack, YStack } from 'tamagui'
 
 interface TagsSectionProps {
   /** 標籤維度列表 */
@@ -36,17 +34,16 @@ export function TagsSection({
   onOpenBottomSheet,
 }: TagsSectionProps) {
   // 計算已選標籤總數
-  const totalSelected = Object.values(selections).reduce(
-    (sum, ids) => sum + ids.length,
-    0
-  )
+  const totalSelected = Object.values(selections).reduce((sum, ids) => sum + ids.length, 0)
 
   // 獲取已選標籤的名稱（用於摘要）
-  const selectedTagLabels = dimensions.flatMap((dim) =>
-    (selections[dim.id] || [])
-      .map((tagId) => dim.options.find((o) => o.id === tagId)?.label)
-      .filter(Boolean)
-  ).slice(0, 6) // 最多顯示 6 個
+  const selectedTagLabels = dimensions
+    .flatMap((dim) =>
+      (selections[dim.id] || [])
+        .map((tagId) => dim.options.find((o) => o.id === tagId)?.label)
+        .filter(Boolean)
+    )
+    .slice(0, 6) // 最多顯示 6 個
 
   return (
     <YStack gap="$4">

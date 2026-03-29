@@ -1,11 +1,11 @@
 'use client'
 
+import { motion, useAnimation } from 'framer-motion'
 import * as React from 'react'
 import { useEffect } from 'react'
-import { motion, useAnimation } from 'framer-motion'
-import { cn } from '@/lib/utils'
 import { ANIMATION_DURATION } from '@/lib/games/rope-system/constants'
 import { useGameSounds } from '@/lib/games/rope-system/sounds'
+import { cn } from '@/lib/utils'
 
 interface FallAnimationProps {
   /** 起始位置 (0-100) */
@@ -67,9 +67,12 @@ export function FallAnimation({
         times.push((i * 2) / ((platformCount + 1) * 2))
 
         // 撞擊時播放音效
-        setTimeout(() => {
-          playImpact()
-        }, (ANIMATION_DURATION.FALL / (platformCount + 1)) * i)
+        setTimeout(
+          () => {
+            playImpact()
+          },
+          (ANIMATION_DURATION.FALL / (platformCount + 1)) * i
+        )
       }
 
       // 最終位置

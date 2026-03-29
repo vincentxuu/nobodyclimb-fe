@@ -1,14 +1,14 @@
 'use client'
 
-import * as React from 'react'
 import { useQuery } from '@tanstack/react-query'
 import { Check, CheckCircle2 } from 'lucide-react'
-import { cn } from '@/lib/utils'
-import { bucketListService } from '@/lib/api/services'
-import type { BucketListItem } from '@/lib/types'
-import { BucketListItemCard, BucketListContentActions } from './bucket-list-item'
+import * as React from 'react'
 import { LoadingSpinner } from '@/components/ui/loading-spinner'
 import { MarkdownText } from '@/components/ui/markdown-text'
+import { bucketListService } from '@/lib/api/services'
+import type { BucketListItem } from '@/lib/types'
+import { cn } from '@/lib/utils'
+import { BucketListContentActions, BucketListItemCard } from './bucket-list-item'
 
 interface BiographyBucketListProps {
   biographyId: string

@@ -4,30 +4,30 @@
  * 對應 apps/web/src/components/editor/RichTextEditor.tsx
  * React Native 版本使用簡化的實現
  */
-import React, { useState, useRef, useCallback } from 'react'
-import {
-  StyleSheet,
-  View,
-  TextInput,
-  ScrollView,
-  Pressable,
-  Platform,
-  KeyboardAvoidingView,
-} from 'react-native'
+
+import { RADIUS, SEMANTIC_COLORS, SPACING } from '@nobodyclimb/constants'
 import {
   Bold,
+  Heading1,
+  Heading2,
+  Image,
   Italic,
+  Link,
   List,
   ListOrdered,
   Quote,
-  Heading1,
-  Heading2,
-  Link,
-  Image,
 } from 'lucide-react-native'
-
+import React, { useCallback, useRef, useState } from 'react'
+import {
+  KeyboardAvoidingView,
+  Platform,
+  Pressable,
+  ScrollView,
+  StyleSheet,
+  TextInput,
+  View,
+} from 'react-native'
 import { Text } from '@/components/ui'
-import { SEMANTIC_COLORS, SPACING, RADIUS } from '@nobodyclimb/constants'
 
 interface RichTextEditorProps {
   value: string
@@ -117,7 +117,9 @@ export function RichTextEditor({
     }
   }
 
-  const handleSelectionChange = (event: { nativeEvent: { selection: { start: number; end: number } } }) => {
+  const handleSelectionChange = (event: {
+    nativeEvent: { selection: { start: number; end: number } }
+  }) => {
     setSelection(event.nativeEvent.selection)
   }
 
@@ -177,10 +179,7 @@ export function RichTextEditor({
       {/* 編輯區 */}
       <TextInput
         ref={inputRef}
-        style={[
-          styles.editor,
-          { minHeight, maxHeight },
-        ]}
+        style={[styles.editor, { minHeight, maxHeight }]}
         value={value}
         onChangeText={onChange}
         placeholder={placeholder}

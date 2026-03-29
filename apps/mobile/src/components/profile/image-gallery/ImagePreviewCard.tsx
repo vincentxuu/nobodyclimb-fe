@@ -1,9 +1,8 @@
-import React from 'react'
-import { View, Pressable, StyleSheet } from 'react-native'
+import { COLORS } from '@nobodyclimb/constants'
 import { Image } from 'expo-image'
+import { Pressable, StyleSheet } from 'react-native'
 import { Icon } from '../../ui/Icon'
 import { ProfileImage } from '../types'
-import { COLORS } from '@nobodyclimb/constants'
 
 interface ImagePreviewCardProps {
   image: ProfileImage
@@ -29,17 +28,9 @@ export default function ImagePreviewCard({
         pressed && onPress && styles.containerPressed,
       ]}
     >
-      <Image
-        source={{ uri: image.url }}
-        style={styles.image}
-        contentFit="cover"
-      />
+      <Image source={{ uri: image.url }} style={styles.image} contentFit="cover" />
       {showDeleteButton && onDelete && (
-        <Pressable
-          onPress={onDelete}
-          style={styles.deleteButton}
-          hitSlop={8}
-        >
+        <Pressable onPress={onDelete} style={styles.deleteButton} hitSlop={8}>
           <Icon name="X" size="sm" color={COLORS.white} />
         </Pressable>
       )}

@@ -1,9 +1,8 @@
 'use client'
 
-import React from 'react'
+import { Instagram, Youtube } from 'lucide-react'
 import { Input } from '@/components/ui/input'
 import ProfileFormField from './ProfileFormField'
-import { Instagram, Youtube } from 'lucide-react'
 import { SocialLinks } from './types'
 
 interface SocialLinksSectionProps {
@@ -32,9 +31,7 @@ export default function SocialLinksSection({
       <h3 className={`${isMobile ? 'text-base' : 'text-lg'} font-medium text-[#1B1A1A]`}>
         社群連結
       </h3>
-      <p className="text-sm text-[#6D6C6C]">
-        新增您的社群帳號，讓其他攀岩者可以追蹤您的動態
-      </p>
+      <p className="text-sm text-[#6D6C6C]">新增您的社群帳號，讓其他攀岩者可以追蹤您的動態</p>
 
       <div className="space-y-4">
         <ProfileFormField
@@ -53,10 +50,10 @@ export default function SocialLinksSection({
                 value={socialLinks.instagram}
                 onChange={(e) => handleFieldChange('instagram', e.target.value)}
                 onBlur={(e) => {
-                  const currentValue = e.target.value;
-                  const username = currentValue.split('/').filter(Boolean).pop() || '';
+                  const currentValue = e.target.value
+                  const username = currentValue.split('/').filter(Boolean).pop() || ''
                   if (username !== currentValue) {
-                    handleFieldChange('instagram', username);
+                    handleFieldChange('instagram', username)
                   }
                 }}
                 placeholder="your_username"

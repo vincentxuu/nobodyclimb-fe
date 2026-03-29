@@ -3,15 +3,15 @@
  *
  * 故事列表展示，對應 apps/web/src/components/biography/display/BiographyStories.tsx
  */
-import React, { useState, useEffect, useCallback } from 'react'
-import { StyleSheet, View, ScrollView, ActivityIndicator, useWindowDimensions } from 'react-native'
-import { BookOpen } from 'lucide-react-native'
-import Animated, { FadeInRight } from 'react-native-reanimated'
 
-import { apiClient } from '@/lib/api'
-import { Text, Card } from '@/components/ui'
-import { ContentInteractionBar } from './ContentInteractionBar'
 import { RADIUS, SEMANTIC_COLORS, SPACING, WB_COLORS } from '@nobodyclimb/constants'
+import { BookOpen } from 'lucide-react-native'
+import { useCallback, useEffect, useState } from 'react'
+import { ActivityIndicator, ScrollView, StyleSheet, useWindowDimensions, View } from 'react-native'
+import Animated, { FadeInRight } from 'react-native-reanimated'
+import { Card, Text } from '@/components/ui'
+import { apiClient } from '@/lib/api'
+import { ContentInteractionBar } from './ContentInteractionBar'
 
 // 類型定義
 interface Story {
@@ -143,9 +143,7 @@ export function BiographyStories({ biographyId }: BiographyStoriesProps) {
       if (data) {
         setStories((prev) =>
           prev.map((item) =>
-            item.id === storyId
-              ? { ...item, comment_count: item.comment_count + 1 }
-              : item
+            item.id === storyId ? { ...item, comment_count: item.comment_count + 1 } : item
           )
         )
         return data

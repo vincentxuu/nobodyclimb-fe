@@ -1,8 +1,7 @@
-import React from 'react'
-import { View, StyleSheet } from 'react-native'
-import ProfileDashboard from './ProfileDashboard'
-import { ProfileProvider } from '../ProfileContext'
 import { COLORS } from '@nobodyclimb/constants'
+import { StyleSheet, View } from 'react-native'
+import { ProfileProvider } from '../ProfileContext'
+import ProfileDashboard from './ProfileDashboard'
 
 /**
  * ProfileEditorVersionC - 卡片版編輯器

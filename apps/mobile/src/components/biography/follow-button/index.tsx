@@ -3,15 +3,15 @@
  *
  * 追蹤按鈕，對應 apps/web/src/components/biography/follow-button.tsx
  */
-import React, { useState, useEffect } from 'react'
-import { StyleSheet, Pressable, ActivityIndicator } from 'react-native'
-import { UserPlus, UserMinus } from 'lucide-react-native'
-import { useRouter } from 'expo-router'
 
-import { Text } from '@/components/ui'
-import { useAuthStore } from '@/store/authStore'
-import { biographyService } from '@/lib/biographyService'
 import { BRAND_YELLOW, RADIUS, SEMANTIC_COLORS, SPACING, WB_COLORS } from '@nobodyclimb/constants'
+import { useRouter } from 'expo-router'
+import { UserMinus, UserPlus } from 'lucide-react-native'
+import { useEffect, useState } from 'react'
+import { ActivityIndicator, Pressable, StyleSheet } from 'react-native'
+import { Text } from '@/components/ui'
+import { biographyService } from '@/lib/biographyService'
+import { useAuthStore } from '@/store/authStore'
 
 interface FollowButtonProps {
   biographyId: string
@@ -70,7 +70,8 @@ export function FollowButton({
     }
   }
 
-  const buttonSize = size === 'sm' ? styles.buttonSm : size === 'lg' ? styles.buttonLg : styles.button
+  const buttonSize =
+    size === 'sm' ? styles.buttonSm : size === 'lg' ? styles.buttonLg : styles.button
 
   return (
     <Pressable
@@ -83,7 +84,10 @@ export function FollowButton({
       disabled={isLoading}
     >
       {isLoading ? (
-        <ActivityIndicator size="small" color={isFollowing ? SEMANTIC_COLORS.textMain : WB_COLORS[0]} />
+        <ActivityIndicator
+          size="small"
+          color={isFollowing ? SEMANTIC_COLORS.textMain : WB_COLORS[0]}
+        />
       ) : isFollowing ? (
         <>
           <UserMinus size={16} color={SEMANTIC_COLORS.textMain} />

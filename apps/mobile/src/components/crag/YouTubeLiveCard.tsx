@@ -1,28 +1,36 @@
-import React from 'react';
-import { View, StyleSheet, Linking, TouchableOpacity, Image } from 'react-native';
-import { Text } from '@/components/ui';
-import { SPACING, WB_COLORS, BORDER_RADIUS } from '@nobodyclimb/constants';
-import { ExternalLink, Play } from 'lucide-react-native';
+import { BORDER_RADIUS, SPACING, WB_COLORS } from '@nobodyclimb/constants'
+import { ExternalLink, Play } from 'lucide-react-native'
+import { Image, Linking, StyleSheet, TouchableOpacity, View } from 'react-native'
+import { Text } from '@/components/ui'
 
 interface YouTubeLiveCardProps {
-  videoId: string;
-  title?: string;
-  description?: string;
+  videoId: string
+  title?: string
+  description?: string
 }
 
-export function YouTubeLiveCard({ videoId, title = '即時影像', description }: YouTubeLiveCardProps) {
-  const watchUrl = `https://www.youtube.com/watch?v=${videoId}`;
-  const thumbnailUrl = `https://img.youtube.com/vi/${videoId}/maxresdefault.jpg`;
+export function YouTubeLiveCard({
+  videoId,
+  title = '即時影像',
+  description,
+}: YouTubeLiveCardProps) {
+  const watchUrl = `https://www.youtube.com/watch?v=${videoId}`
+  const thumbnailUrl = `https://img.youtube.com/vi/${videoId}/maxresdefault.jpg`
 
   const handleOpenYouTube = () => {
-    Linking.openURL(watchUrl);
-  };
+    Linking.openURL(watchUrl)
+  }
 
   return (
     <View style={styles.card}>
       <View style={styles.header}>
         <Text style={styles.title}>{title}</Text>
-        <TouchableOpacity style={styles.externalLink} onPress={handleOpenYouTube} accessibilityRole="link" accessibilityLabel="在 YouTube 觀看">
+        <TouchableOpacity
+          style={styles.externalLink}
+          onPress={handleOpenYouTube}
+          accessibilityRole="link"
+          accessibilityLabel="在 YouTube 觀看"
+        >
           <Text style={styles.externalLinkText}>在 YouTube 觀看</Text>
           <ExternalLink size={14} color={WB_COLORS[60]} />
         </TouchableOpacity>
@@ -49,11 +57,9 @@ export function YouTubeLiveCard({ videoId, title = '即時影像', description }
         </View>
       </TouchableOpacity>
 
-      {description ? (
-        <Text style={styles.description}>{description}</Text>
-      ) : null}
+      {description ? <Text style={styles.description}>{description}</Text> : null}
     </View>
-  );
+  )
 }
 
 const styles = StyleSheet.create({
@@ -116,4 +122,4 @@ const styles = StyleSheet.create({
     color: WB_COLORS[70],
     lineHeight: 20,
   },
-});
+})

@@ -1,7 +1,7 @@
 'use client'
 
-import { useEffect, useState } from 'react'
 import Script from 'next/script'
+import { useEffect, useState } from 'react'
 
 /**
  * Analytics 追蹤組件

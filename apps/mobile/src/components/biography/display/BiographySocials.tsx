@@ -3,13 +3,13 @@
  *
  * 社群連結展示，對應 apps/web/src/components/biography/display/BiographySocials.tsx
  */
-import React from 'react'
-import { StyleSheet, View, Pressable, Linking } from 'react-native'
-import { Link2, Globe } from 'lucide-react-native'
-import Svg, { Path } from 'react-native-svg'
 
-import { Text } from '@/components/ui'
 import { RADIUS, SEMANTIC_COLORS, SPACING, WB_COLORS } from '@nobodyclimb/constants'
+import { Globe, Link2 } from 'lucide-react-native'
+import React from 'react'
+import { Linking, Pressable, StyleSheet, View } from 'react-native'
+import Svg, { Path } from 'react-native-svg'
+import { Text } from '@/components/ui'
 
 // 類型定義
 interface SocialLinks {
@@ -43,19 +43,13 @@ const SocialNames: Record<keyof SocialLinks, string> = {
 function getSocialUrl(platform: keyof SocialLinks, value: string): string {
   switch (platform) {
     case 'instagram':
-      return value.startsWith('http')
-        ? value
-        : `https://instagram.com/${value.replace('@', '')}`
+      return value.startsWith('http') ? value : `https://instagram.com/${value.replace('@', '')}`
     case 'youtube':
-      return value.startsWith('http')
-        ? value
-        : `https://youtube.com/@${value.replace('@', '')}`
+      return value.startsWith('http') ? value : `https://youtube.com/@${value.replace('@', '')}`
     case 'facebook':
       return value.startsWith('http') ? value : `https://facebook.com/${value}`
     case 'threads':
-      return value.startsWith('http')
-        ? value
-        : `https://threads.net/@${value.replace('@', '')}`
+      return value.startsWith('http') ? value : `https://threads.net/@${value.replace('@', '')}`
     case 'website':
       return value.startsWith('http') ? value : `https://${value}`
     default:

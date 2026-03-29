@@ -1,22 +1,22 @@
 'use client'
 
-import React, { useEffect, useState, useCallback, useRef } from 'react'
-import Link from 'next/link'
-import Image from 'next/image'
 import { motion } from 'framer-motion'
 import { ArrowRight, Loader2, Sparkles } from 'lucide-react'
+import Image from 'next/image'
+import Link from 'next/link'
+import { useTranslations } from 'next-intl'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import { Button } from '@/components/ui/button'
 import { biographyService } from '@/lib/api/services'
 import { Biography } from '@/lib/types'
-import { isSvgUrl, getDefaultAvatarUrl, getDefaultCoverUrl } from '@/lib/utils/image'
-import { getDisplayTags, getDisplayNameForVisibility } from '@/lib/utils/biography'
+import { getDisplayNameForVisibility, getDisplayTags } from '@/lib/utils/biography'
 import {
-  getCachedHomeBiographies,
   cacheHomeBiographies,
+  getCachedHomeBiographies,
   isHomeBiographiesCacheExpired,
   ONE_LINER_QUESTIONS,
 } from '@/lib/utils/biography-cache'
-import { useTranslations } from 'next-intl'
+import { getDefaultAvatarUrl, getDefaultCoverUrl, isSvgUrl } from '@/lib/utils/image'
 
 interface ClimberCardProps {
   person: Biography
@@ -101,7 +101,8 @@ function ClimberCard({ person }: ClimberCardProps) {
   const displayOneLiners = getDisplayOneLiners(person.one_liners_data, 3)
 
   // 封面圖 URL
-  const coverUrl = person.cover_image || getDefaultCoverUrl(person.id || person.name || 'default', 600, 200)
+  const coverUrl =
+    person.cover_image || getDefaultCoverUrl(person.id || person.name || 'default', 600, 200)
 
   return (
     <motion.div
@@ -111,92 +112,100 @@ function ClimberCard({ person }: ClimberCardProps) {
       className="h-full"
     >
       <Link href={`/biography/profile/${person.slug}`} className="block h-full group">
-      <div className="h-full overflow-hidden rounded-lg border border-gray-200 bg-white shadow-sm transition-shadow duration-300 hover:shadow-md cursor-pointer">
-        {/* 封面圖 */}
-        <div className="relative aspect-[3/1] w-full overflow-hidden bg-gradient-to-br from-[#EBEAEA] to-[#DBD8D8]">
-          <Image
-            src={coverUrl}
-            alt={t('biographyCoverAlt', { name: displayName })}
-            fill
-            className="object-cover"
-            sizes="(max-width: 768px) 100vw, 33vw"
-          />
-          {/* 漸層遮罩 */}
-          <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent" />
-        </div>
+        <div className="h-full overflow-hidden rounded-lg border border-gray-200 bg-white shadow-sm transition-shadow duration-300 hover:shadow-md cursor-pointer">
+          {/* 封面圖 */}
+          <div className="relative aspect-[3/1] w-full overflow-hidden bg-gradient-to-br from-[#EBEAEA] to-[#DBD8D8]">
+            <Image
+              src={coverUrl}
+              alt={t('biographyCoverAlt', { name: displayName })}
+              fill
+              className="object-cover"
+              sizes="(max-width: 768px) 100vw, 33vw"
+            />
+            {/* 漸層遮罩 */}
+            <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent" />
+          </div>
 
-        {/* 內容區 */}
-        <div className="relative px-4 pb-4">
-          {/* 頭像 - 與封面重疊 */}
-          <div className="absolute -top-6 left-4">
-            <div className="relative h-12 w-12 overflow-hidden rounded-full border-2 border-white bg-gray-100 shadow-md">
-              {person.avatar_url ? (
-                isSvgUrl(person.avatar_url) ? (
-                  <img src={person.avatar_url} alt={displayName} className="h-full w-full object-cover" />
+          {/* 內容區 */}
+          <div className="relative px-4 pb-4">
+            {/* 頭像 - 與封面重疊 */}
+            <div className="absolute -top-6 left-4">
+              <div className="relative h-12 w-12 overflow-hidden rounded-full border-2 border-white bg-gray-100 shadow-md">
+                {person.avatar_url ? (
+                  isSvgUrl(person.avatar_url) ? (
+                    <img
+                      src={person.avatar_url}
+                      alt={displayName}
+                      className="h-full w-full object-cover"
+                    />
+                  ) : (
+                    <Image
+                      src={person.avatar_url}
+                      alt={displayName}
+                      fill
+                      className="object-cover"
+                      sizes="48px"
+                    />
+                  )
                 ) : (
-                  <Image
-                    src={person.avatar_url}
+                  <img
+                    src={getDefaultAvatarUrl(displayName || 'anonymous', 48)}
                     alt={displayName}
-                    fill
-                    className="object-cover"
-                    sizes="48px"
+                    className="h-full w-full object-cover"
                   />
-                )
-              ) : (
-                <img
-                  src={getDefaultAvatarUrl(displayName || 'anonymous', 48)}
-                  alt={displayName}
-                  className="h-full w-full object-cover"
-                />
+                )}
+              </div>
+            </div>
+
+            {/* 姓名 + 標語 */}
+            <div className="pt-8 space-y-1">
+              <h3 className="text-base font-semibold text-[#1B1A1A]">{displayName}</h3>
+              {person.title && (
+                <p className="text-sm text-[#6D6C6C] line-clamp-1">「{person.title}」</p>
               )}
             </div>
-          </div>
 
-          {/* 姓名 + 標語 */}
-          <div className="pt-8 space-y-1">
-            <h3 className="text-base font-semibold text-[#1B1A1A]">{displayName}</h3>
-            {person.title && (
-              <p className="text-sm text-[#6D6C6C] line-clamp-1">「{person.title}」</p>
+            {/* 三個一句話 */}
+            {displayOneLiners.length > 0 && (
+              <div className="mt-3 space-y-1.5">
+                {displayOneLiners.map((item, index) => (
+                  <div key={index} className="text-xs">
+                    <span className="text-[#8E8C8C]">{item.question}：</span>
+                    <span className="text-[#3F3D3D]">{item.answer}</span>
+                  </div>
+                ))}
+              </div>
             )}
-          </div>
 
-          {/* 三個一句話 */}
-          {displayOneLiners.length > 0 && (
-            <div className="mt-3 space-y-1.5">
-              {displayOneLiners.map((item, index) => (
-                <div key={index} className="text-xs">
-                  <span className="text-[#8E8C8C]">{item.question}：</span>
-                  <span className="text-[#3F3D3D]">{item.answer}</span>
-                </div>
-              ))}
-            </div>
-          )}
-
-          {/* 三個標籤 */}
-          {displayTags.length > 0 && (
-            <div className="mt-3 flex flex-wrap items-center gap-1.5">
-              {displayTags.map((tag) => (
-                <span
-                  key={tag.id}
-                  className={`inline-flex items-center gap-0.5 text-xs px-2 py-0.5 rounded-full ${tag.isCustom
-                      ? 'bg-brand-accent/10 text-[#1B1A1A] border border-brand-accent/30'
-                      : 'bg-gray-100 text-[#6D6C6C]'
+            {/* 三個標籤 */}
+            {displayTags.length > 0 && (
+              <div className="mt-3 flex flex-wrap items-center gap-1.5">
+                {displayTags.map((tag) => (
+                  <span
+                    key={tag.id}
+                    className={`inline-flex items-center gap-0.5 text-xs px-2 py-0.5 rounded-full ${
+                      tag.isCustom
+                        ? 'bg-brand-accent/10 text-[#1B1A1A] border border-brand-accent/30'
+                        : 'bg-gray-100 text-[#6D6C6C]'
                     }`}
-                >
-                  {tag.isCustom && <Sparkles size={10} className="text-brand-accent" />}
-                  {tag.label}
-                </span>
-              ))}
-            </div>
-          )}
+                  >
+                    {tag.isCustom && <Sparkles size={10} className="text-brand-accent" />}
+                    {tag.label}
+                  </span>
+                ))}
+              </div>
+            )}
 
-          {/* CTA 按鈕 */}
-          <div className="flex items-center justify-center w-full h-9 mt-4 text-sm border border-[#1B1A1A] text-[#1B1A1A] group-hover:bg-[#F5F4F4] rounded-lg transition-colors">
-            {t('biographyViewStory', { name: displayName })}
-            <ArrowRight size={14} className="ml-1 transition-transform group-hover:translate-x-0.5" />
+            {/* CTA 按鈕 */}
+            <div className="flex items-center justify-center w-full h-9 mt-4 text-sm border border-[#1B1A1A] text-[#1B1A1A] group-hover:bg-[#F5F4F4] rounded-lg transition-colors">
+              {t('biographyViewStory', { name: displayName })}
+              <ArrowRight
+                size={14}
+                className="ml-1 transition-transform group-hover:translate-x-0.5"
+              />
+            </div>
           </div>
         </div>
-      </div>
       </Link>
     </motion.div>
   )
@@ -252,7 +261,9 @@ export function BiographySection() {
     <section className="pt-8 pb-16 md:pt-12 md:pb-20">
       <div className="container mx-auto px-4">
         <div className="mb-8 text-center">
-          <h2 className="text-3xl font-bold text-[#1B1A1A] md:text-[40px]">{t('biographySectionTitle')}</h2>
+          <h2 className="text-3xl font-bold text-[#1B1A1A] md:text-[40px]">
+            {t('biographySectionTitle')}
+          </h2>
           <p className="mt-4 text-base text-[#6D6C6C]">{t('biographySectionSubtitle')}</p>
         </div>
 

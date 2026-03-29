@@ -4,13 +4,12 @@
  * 首頁品牌介紹區，對應 apps/web/src/components/home/hero-intro-section.tsx
  * 顯示 Logo + 標語 + 行動呼籲
  */
-import React from 'react'
-import { StyleSheet, View, Image } from 'react-native'
-import { YStack } from 'tamagui'
-import Animated, { FadeInDown } from 'react-native-reanimated'
 
+import { SPACING, WB_COLORS } from '@nobodyclimb/constants'
+import { Image, StyleSheet, View } from 'react-native'
+import Animated, { FadeInDown } from 'react-native-reanimated'
+import { YStack } from 'tamagui'
 import { Text } from '@/components/ui'
-import { SEMANTIC_COLORS, SPACING, WB_COLORS } from '@nobodyclimb/constants'
 
 export function HeroIntroSection() {
   return (

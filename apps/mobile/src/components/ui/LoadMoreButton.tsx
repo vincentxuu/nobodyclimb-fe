@@ -3,10 +3,10 @@
  *
  * 載入更多按鈕，與 apps/web/src/components/ui/load-more-button.tsx 對應
  */
-import React from 'react'
-import { StyleSheet, View, ActivityIndicator } from 'react-native'
-import { YStack } from 'tamagui'
+
 import { SEMANTIC_COLORS, SPACING } from '@nobodyclimb/constants'
+import { ActivityIndicator, StyleSheet, View } from 'react-native'
+import { YStack } from 'tamagui'
 import { Button } from './Button'
 import { Text } from './Text'
 
@@ -42,17 +42,8 @@ export function LoadMoreButton({
   }
 
   return (
-    <YStack
-      paddingVertical={SPACING.lg}
-      marginTop={SPACING.md}
-      alignItems="center"
-    >
-      <Button
-        variant="secondary"
-        onPress={onPress}
-        disabled={loading}
-        style={styles.button}
-      >
+    <YStack paddingVertical={SPACING.lg} marginTop={SPACING.md} alignItems="center">
+      <Button variant="secondary" onPress={onPress} disabled={loading} style={styles.button}>
         {loading ? (
           <View style={styles.loadingContainer}>
             <ActivityIndicator

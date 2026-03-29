@@ -1,9 +1,9 @@
 'use client'
 
+import { ArrowRight, Lock, Mountain } from 'lucide-react'
 import Link from 'next/link'
-import { cn } from '@/lib/utils'
-import { Lock, ArrowRight, Mountain } from 'lucide-react'
 import { useTranslations } from 'next-intl'
+import { cn } from '@/lib/utils'
 
 interface PrivateEmptyStateProps {
   /** 自訂樣式 */
@@ -37,17 +37,11 @@ export function PrivateEmptyState({ className }: PrivateEmptyStateProps) {
       </div>
 
       {/* 標題 */}
-      <h1 className="text-2xl font-bold text-[#1B1A1A] mb-3">
-        {t('privateEmptyTitle')}
-      </h1>
+      <h1 className="text-2xl font-bold text-[#1B1A1A] mb-3">{t('privateEmptyTitle')}</h1>
 
       {/* 說明 */}
-      <p className="text-[#6D6C6C] max-w-md mb-2">
-        {t('privateEmptyDesc')}
-      </p>
-      <p className="text-[#8E8C8C] text-sm max-w-md mb-8">
-        {t('privateEmptyNote')}
-      </p>
+      <p className="text-[#6D6C6C] max-w-md mb-2">{t('privateEmptyDesc')}</p>
+      <p className="text-[#8E8C8C] text-sm max-w-md mb-8">{t('privateEmptyNote')}</p>
 
       {/* CTA 按鈕 */}
       <div className="flex flex-col sm:flex-row gap-3">
@@ -68,9 +62,7 @@ export function PrivateEmptyState({ className }: PrivateEmptyStateProps) {
 
       {/* 底部提示 */}
       <div className="mt-12 p-4 bg-brand-accent/10 rounded-lg max-w-sm">
-        <p className="text-sm text-[#3F3D3D]">
-          {t('privateEmptyCtaDesc')}
-        </p>
+        <p className="text-sm text-[#3F3D3D]">{t('privateEmptyCtaDesc')}</p>
         <Link
           href="/auth/login"
           className="inline-block mt-2 text-sm text-brand-dark font-medium hover:underline"

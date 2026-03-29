@@ -1,6 +1,6 @@
 import { MetadataRoute } from 'next'
-import { SITE_URL } from '@/lib/constants'
 import { fetchCrags, fetchGyms } from '@/lib/api/server-fetch'
+import { SITE_URL } from '@/lib/constants'
 
 const locales = ['zh', 'en', 'ja'] as const
 
@@ -54,9 +54,5 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     })
   )
 
-  return [
-    ...staticPages,
-    ...cragPages,
-    ...gymPages,
-  ]
+  return [...staticPages, ...cragPages, ...gymPages]
 }

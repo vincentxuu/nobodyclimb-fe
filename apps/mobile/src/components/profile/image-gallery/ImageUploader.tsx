@@ -1,11 +1,11 @@
-import React, { useState } from 'react'
-import { View, Pressable, StyleSheet, Alert } from 'react-native'
+import { COLORS, SEMANTIC_COLORS } from '@nobodyclimb/constants'
 import * as ImagePicker from 'expo-image-picker'
-import { Text } from '../../ui/Text'
+import { useState } from 'react'
+import { Alert, Pressable, StyleSheet } from 'react-native'
 import { Icon } from '../../ui/Icon'
 import { LoadingSpinner } from '../../ui/LoadingSpinner'
+import { Text } from '../../ui/Text'
 import { IMAGE_CONSTRAINTS } from '../types'
-import { COLORS, SEMANTIC_COLORS } from '@nobodyclimb/constants'
 
 interface ImageUploaderProps {
   onUpload: (uri: string) => Promise<void>

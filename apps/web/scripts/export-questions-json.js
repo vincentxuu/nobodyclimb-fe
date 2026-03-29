@@ -74,28 +74,22 @@ try {
 
 // 將每個類別的題目分別存為獨立的 JSON 文件
 const categories = Object.keys(questionsData)
-console.log(`找到 ${categories.length} 個類別:`)
 
 for (const categoryId of categories) {
   const questions = questionsData[categoryId]
   const outputPath = path.join(outputDir, `${categoryId}.json`)
 
   fs.writeFileSync(outputPath, JSON.stringify(questions, null, 2), 'utf-8')
-  console.log(`  ✓ ${categoryId}: ${questions.length} 題 -> ${outputPath}`)
 }
 
 // 同時建立一個索引檔案（包含所有類別的統計資訊）
 const indexData = {
   generatedAt: new Date().toISOString(),
-  categories: categories.map(id => ({
+  categories: categories.map((id) => ({
     id,
-    questionCount: questionsData[id].length
-  }))
+    questionCount: questionsData[id].length,
+  })),
 }
 
 const indexPath = path.join(outputDir, 'index.json')
 fs.writeFileSync(indexPath, JSON.stringify(indexData, null, 2), 'utf-8')
-console.log(`  ✓ index.json -> ${indexPath}`)
-
-console.log('\n匯出完成！')
-console.log(`總共 ${categories.reduce((sum, id) => sum + questionsData[id].length, 0)} 題`)

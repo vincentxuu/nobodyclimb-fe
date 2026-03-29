@@ -1,15 +1,12 @@
 'use client'
 
-import { useState } from 'react'
-import { cn } from '@/lib/utils'
-import { Mountain, Loader2 } from 'lucide-react'
-import { useAuthStore } from '@/store/authStore'
-import { useToast } from '@/components/ui/use-toast'
-import {
-  ContentInteractorsPanel,
-  type InteractorUser,
-} from './ContentInteractorsPanel'
+import { Loader2, Mountain } from 'lucide-react'
 import { useTranslations } from 'next-intl'
+import { useState } from 'react'
+import { useToast } from '@/components/ui/use-toast'
+import { cn } from '@/lib/utils'
+import { useAuthStore } from '@/store/authStore'
+import { ContentInteractorsPanel, type InteractorUser } from './ContentInteractorsPanel'
 
 interface ContentLikeButtonProps {
   /** 是否已按讚 */
@@ -134,16 +131,13 @@ export function ContentLikeButton({
           {isLoading ? (
             <Loader2 size={iconSize} className="animate-spin" />
           ) : (
-            <Mountain
-              size={iconSize}
-              className={cn(liked && 'fill-current')}
-            />
+            <Mountain size={iconSize} className={cn(liked && 'fill-current')} />
           )}
         </button>
 
         {/* 讚數：有 onFetchLikers 則可點擊開啟 panel */}
-        {count > 0 && (
-          onFetchLikers ? (
+        {count > 0 &&
+          (onFetchLikers ? (
             <button
               onClick={handleShowLikers}
               className={cn(
@@ -165,8 +159,7 @@ export function ContentLikeButton({
             >
               {count}
             </span>
-          )
-        )}
+          ))}
       </div>
 
       {/* 按讚者列表 panel */}

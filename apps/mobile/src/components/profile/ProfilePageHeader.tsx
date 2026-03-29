@@ -1,8 +1,7 @@
-import React from 'react'
-import { View, StyleSheet } from 'react-native'
-import { Text } from '../ui/Text'
-import { Button } from '../ui/Button'
 import { SEMANTIC_COLORS } from '@nobodyclimb/constants'
+import { StyleSheet, View } from 'react-native'
+import { Button } from '../ui/Button'
+import { Text } from '../ui/Text'
 
 interface ProfilePageHeaderProps {
   title: string
@@ -11,22 +10,14 @@ interface ProfilePageHeaderProps {
   isMobile?: boolean
 }
 
-export default function ProfilePageHeader({
-  title,
-  isEditing,
-  onEdit,
-}: ProfilePageHeaderProps) {
+export default function ProfilePageHeader({ title, isEditing, onEdit }: ProfilePageHeaderProps) {
   return (
     <View style={styles.container}>
       <Text variant="h2" style={{ color: SEMANTIC_COLORS.textMain }}>
         {title}
       </Text>
       {!isEditing && (
-        <Button
-          variant="secondary"
-          size="sm"
-          onPress={onEdit}
-        >
+        <Button variant="secondary" size="sm" onPress={onEdit}>
           編輯資料
         </Button>
       )}

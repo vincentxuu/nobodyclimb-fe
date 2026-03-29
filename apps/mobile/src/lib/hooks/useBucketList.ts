@@ -6,7 +6,7 @@
  *
  * 流程：先取得 /biographies/me 拿到 biography ID，再用它取得人生清單
  */
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { apiClient } from '@/lib/api'
 
 export interface BucketListItem {

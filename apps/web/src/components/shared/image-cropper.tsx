@@ -1,10 +1,10 @@
 'use client'
 
-import React, { useState, useRef, useCallback } from 'react'
-import ReactCrop, { type Crop, type PixelCrop, centerCrop, makeAspectCrop } from 'react-image-crop'
+import React, { useCallback, useRef, useState } from 'react'
+import ReactCrop, { type Crop, centerCrop, makeAspectCrop, type PixelCrop } from 'react-image-crop'
 import 'react-image-crop/dist/ReactCrop.css'
-import { Button } from '@/components/ui/button'
 import { Loader2, X } from 'lucide-react'
+import { Button } from '@/components/ui/button'
 
 interface ImageCropperProps {
   open: boolean
@@ -61,17 +61,7 @@ async function getCroppedImgDirect(
   canvas.height = outputHeight
 
   // 繪製裁切後的圖片（座標已經是原始圖片的像素座標）
-  ctx.drawImage(
-    image,
-    crop.x,
-    crop.y,
-    crop.width,
-    crop.height,
-    0,
-    0,
-    outputWidth,
-    outputHeight
-  )
+  ctx.drawImage(image, crop.x, crop.y, crop.width, crop.height, 0, 0, outputWidth, outputHeight)
 
   // 將 canvas 轉換為 Blob
   return new Promise((resolve, reject) => {
@@ -221,9 +211,7 @@ export default function ImageCropper({
           </ReactCrop>
         </div>
 
-        <p className="mb-4 text-center text-sm text-[#8E8C8C]">
-          拖曳或調整選取框來裁切圖片
-        </p>
+        <p className="mb-4 text-center text-sm text-[#8E8C8C]">拖曳或調整選取框來裁切圖片</p>
 
         {/* Actions */}
         <div className="flex justify-end gap-3">

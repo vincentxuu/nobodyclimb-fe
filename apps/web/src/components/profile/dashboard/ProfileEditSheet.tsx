@@ -1,30 +1,27 @@
 'use client'
 
 import React from 'react'
+import { AdvancedStoryEditor } from '@/components/biography/advanced-story-editor'
+import { Button } from '@/components/ui/button'
 import {
   Sheet,
   SheetContent,
+  SheetDescription,
   SheetHeader,
   SheetTitle,
-  SheetDescription,
 } from '@/components/ui/sheet'
-import { Button } from '@/components/ui/button'
 import BasicInfoSection from '../BasicInfoSection'
-import ClimbingInfoSection from '../ClimbingInfoSection'
-import ClimbingExperienceSection from '../ClimbingExperienceSection'
-import SocialLinksSection from '../SocialLinksSection'
-import PublicSettingSection from '../PublicSettingSection'
 import BiographyAvatarSection from '../BiographyAvatarSection'
+import ClimbingExperienceSection from '../ClimbingExperienceSection'
 import ClimbingFootprintsSection from '../ClimbingFootprintsSection'
-import { AdvancedStoryEditor } from '@/components/biography/advanced-story-editor'
+import ClimbingInfoSection from '../ClimbingInfoSection'
+import PublicSettingSection from '../PublicSettingSection'
+import SocialLinksSection from '../SocialLinksSection'
 import { ProfileData, SocialLinks } from '../types'
 import { EditPanelType } from './ProfileDashboard'
 
 // 面板配置
-const PANEL_CONFIG: Record<
-  Exclude<EditPanelType, null>,
-  { title: string; description: string }
-> = {
+const PANEL_CONFIG: Record<Exclude<EditPanelType, null>, { title: string; description: string }> = {
   avatar: { title: '頭像與封面', description: '設定你的個人形象照片' },
   basic: { title: '基本資料', description: '編輯暱稱和自我介紹' },
   climbing: { title: '攀岩資訊', description: '編輯攀岩相關資訊' },

@@ -74,7 +74,7 @@ class RouteLoadingManager {
    */
   private cleanupOldRequests(): void {
     const now = Date.now()
-    this.recentRequests = this.recentRequests.filter(request => {
+    this.recentRequests = this.recentRequests.filter((request) => {
       const [timestamp] = request.split('-')
       return now - parseInt(timestamp) < this.requestWindowMs
     })
@@ -87,7 +87,7 @@ class RouteLoadingManager {
     this.cleanupOldRequests()
     return {
       isLoadingCount: this.loadingRoutes.size,
-      recentRequestCount: this.recentRequests.length
+      recentRequestCount: this.recentRequests.length,
     }
   }
 
@@ -96,7 +96,7 @@ class RouteLoadingManager {
    */
   reset(): void {
     // 清除所有超時計時器
-    this.loadingTimeouts.forEach(timeout => clearTimeout(timeout))
+    this.loadingTimeouts.forEach((timeout) => clearTimeout(timeout))
     this.loadingTimeouts.clear()
     this.loadingRoutes.clear()
     this.recentRequests = []

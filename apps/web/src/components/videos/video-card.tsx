@@ -1,8 +1,8 @@
-import React from 'react'
+import { Eye, Play } from 'lucide-react'
 import Image from 'next/image'
+import React from 'react'
 import { Card } from '@/components/ui/card'
 import type { Video } from '@/lib/types'
-import { Play, Eye } from 'lucide-react'
 
 interface VideoCardProps {
   video: Video
@@ -19,9 +19,8 @@ const VideoCard: React.FC<VideoCardProps> = ({ video, onClick }) => {
     return count
   }
 
-
   return (
-    <Card 
+    <Card
       className="group cursor-pointer overflow-hidden transition-all hover:shadow-lg"
       onClick={() => onClick(video)}
     >
@@ -35,14 +34,14 @@ const VideoCard: React.FC<VideoCardProps> = ({ video, onClick }) => {
           className="object-cover transition-transform duration-300 group-hover:scale-105"
           loading="lazy"
         />
-        
+
         {/* 播放按鈕覆蓋層 */}
         <div className="absolute inset-0 flex items-center justify-center bg-black/0 transition-colors group-hover:bg-black/30">
           <div className="transform opacity-0 transition-all group-hover:scale-110 group-hover:opacity-100">
             <Play className="h-12 w-12 text-white drop-shadow-lg" fill="white" />
           </div>
         </div>
-        
+
         {/* 影片時長標籤 */}
         <div className="absolute bottom-2 right-2 rounded bg-black/80 px-1.5 py-0.5 text-xs font-medium text-white">
           {formatDuration(video.duration)}
@@ -61,11 +60,9 @@ const VideoCard: React.FC<VideoCardProps> = ({ video, onClick }) => {
         <h3 className="mb-1 line-clamp-2 text-sm font-medium text-neutral-800 group-hover:text-neutral-900">
           {video.title}
         </h3>
-        
-        <p className="mb-2 text-xs text-neutral-600">
-          {video.channel}
-        </p>
-        
+
+        <p className="mb-2 text-xs text-neutral-600">{video.channel}</p>
+
         <div className="flex items-center gap-3 text-xs text-neutral-500">
           <span className="flex items-center gap-1">
             <Eye className="h-3 w-3" />
@@ -78,14 +75,15 @@ const VideoCard: React.FC<VideoCardProps> = ({ video, onClick }) => {
           <span className="inline-block rounded-full bg-neutral-100 px-2 py-1 text-xs text-neutral-600">
             {video.category}
           </span>
-          {video.tags && video.tags.slice(0, 3).map((tag) => (
-            <span
-              key={tag}
-              className="inline-block rounded-full bg-emerald-50 px-2 py-1 text-xs text-emerald-700"
-            >
-              {tag}
-            </span>
-          ))}
+          {video.tags &&
+            video.tags.slice(0, 3).map((tag) => (
+              <span
+                key={tag}
+                className="inline-block rounded-full bg-emerald-50 px-2 py-1 text-xs text-emerald-700"
+              >
+                {tag}
+              </span>
+            ))}
         </div>
       </div>
     </Card>

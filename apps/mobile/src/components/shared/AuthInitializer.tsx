@@ -4,10 +4,10 @@
  * 認證初始化組件，對應 apps/web/src/components/shared/auth-initializer.tsx
  * 在應用程序啟動時檢查使用者認證狀態
  */
-import { useEffect, useRef, useCallback } from 'react'
-import { useAuthStore } from '@/store/authStore'
-import { tokenStorage } from '@/lib/tokenStorage'
+import { useCallback, useEffect, useRef } from 'react'
 import { apiClient } from '@/lib/api'
+import { tokenStorage } from '@/lib/tokenStorage'
+import { useAuthStore } from '@/store/authStore'
 
 /**
  * 認證初始化組件

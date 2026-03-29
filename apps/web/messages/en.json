@@ -1698,7 +1698,10 @@
   "GamesPage": {
     "title": "Climbing Systems Practice",
     "subtitle": "Practice rope system operations and learn safe climbing techniques",
-    "learnMode": { "title": "Learn Mode", "description": "Wrong answers show detailed explanations" },
+    "learnMode": {
+      "title": "Learn Mode",
+      "description": "Wrong answers show detailed explanations"
+    },
     "examMode": { "title": "System Exam", "comingSoon": "Coming Soon" },
     "certificationMode": { "title": "Certification Badge", "comingSoon": "Coming Soon" },
     "disclaimer": "Questions are based on authoritative sources including IFSC and AAC. Please practice under the guidance of a professional instructor. This system is for educational purposes only."

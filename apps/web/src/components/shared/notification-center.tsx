@@ -1,29 +1,29 @@
 'use client'
 
-import { useState, useEffect, useCallback } from 'react'
-import Link from 'next/link'
-import { motion, AnimatePresence } from 'framer-motion'
-import {
-  Bell,
-  Mountain,
-  MessageCircle,
-  UserPlus,
-  Sparkles,
-  Check,
-  CheckCheck,
-  Trash2,
-  Loader2,
-  X,
-  FileText,
-  Megaphone,
-} from 'lucide-react'
-import { Button } from '@/components/ui/button'
-import { notificationService } from '@/lib/api/services'
-import { useAuthStore } from '@/store/authStore'
-import { cn } from '@/lib/utils'
 import { formatDistanceToNow } from 'date-fns'
 import { zhTW } from 'date-fns/locale'
-import { NotificationType, type Notification } from '@/lib/types'
+import { AnimatePresence, motion } from 'framer-motion'
+import {
+  Bell,
+  Check,
+  CheckCheck,
+  FileText,
+  Loader2,
+  Megaphone,
+  MessageCircle,
+  Mountain,
+  Sparkles,
+  Trash2,
+  UserPlus,
+  X,
+} from 'lucide-react'
+import Link from 'next/link'
+import { useCallback, useEffect, useState } from 'react'
+import { Button } from '@/components/ui/button'
+import { notificationService } from '@/lib/api/services'
+import { type Notification, NotificationType } from '@/lib/types'
+import { cn } from '@/lib/utils'
+import { useAuthStore } from '@/store/authStore'
 
 interface NotificationCenterProps {
   className?: string
@@ -67,13 +67,25 @@ const getNotificationLink = (notification: Notification): string | null => {
       return notification.target_id ? `/bucket-list/${notification.target_id}` : null
     case NotificationType.CORE_STORY_LIKED:
     case NotificationType.CORE_STORY_COMMENTED:
-      return notification.target_id ? `/story/core-stories/${notification.target_id}` : (notification.owner_slug ? `/biography/profile/${notification.owner_slug}#core-stories` : null)
+      return notification.target_id
+        ? `/story/core-stories/${notification.target_id}`
+        : notification.owner_slug
+          ? `/biography/profile/${notification.owner_slug}#core-stories`
+          : null
     case NotificationType.ONE_LINER_LIKED:
     case NotificationType.ONE_LINER_COMMENTED:
-      return notification.target_id ? `/story/one-liners/${notification.target_id}` : (notification.owner_slug ? `/biography/profile/${notification.owner_slug}#one-liners` : null)
+      return notification.target_id
+        ? `/story/one-liners/${notification.target_id}`
+        : notification.owner_slug
+          ? `/biography/profile/${notification.owner_slug}#one-liners`
+          : null
     case NotificationType.STORY_LIKED:
     case NotificationType.STORY_COMMENTED:
-      return notification.target_id ? `/story/stories/${notification.target_id}` : (notification.owner_slug ? `/biography/profile/${notification.owner_slug}#stories` : null)
+      return notification.target_id
+        ? `/story/stories/${notification.target_id}`
+        : notification.owner_slug
+          ? `/biography/profile/${notification.owner_slug}#stories`
+          : null
     case NotificationType.BIOGRAPHY_COMMENTED:
       return notification.target_slug ? `/biography/profile/${notification.target_slug}` : null
     case NotificationType.NEW_FOLLOWER:
@@ -108,30 +120,33 @@ export function NotificationCenter({ className }: NotificationCenterProps) {
     }
   }, [status])
 
-  const loadNotifications = useCallback(async (pageNum = 1, append = false) => {
-    // 確保用戶已登入
-    if (status !== 'signIn') return
-    setIsLoading(true)
-    try {
-      const response = await notificationService.getNotifications(pageNum, 10)
-      if (response.success && response.data) {
-        const newData = response.data
-        if (append) {
-          setNotifications((prev) => [...prev, ...newData])
-        } else {
-          setNotifications(newData)
+  const loadNotifications = useCallback(
+    async (pageNum = 1, append = false) => {
+      // 確保用戶已登入
+      if (status !== 'signIn') return
+      setIsLoading(true)
+      try {
+        const response = await notificationService.getNotifications(pageNum, 10)
+        if (response.success && response.data) {
+          const newData = response.data
+          if (append) {
+            setNotifications((prev) => [...prev, ...newData])
+          } else {
+            setNotifications(newData)
+          }
+          setHasMore(response.pagination.page < response.pagination.total_pages)
         }
-        setHasMore(response.pagination.page < response.pagination.total_pages)
+      } catch (error) {
+        // 靜默處理 401 錯誤
+        if (error instanceof Error && !error.message.includes('401')) {
+          console.error('Failed to load notifications:', error)
+        }
+      } finally {
+        setIsLoading(false)
       }
-    } catch (error) {
-      // 靜默處理 401 錯誤
-      if (error instanceof Error && !error.message.includes('401')) {
-        console.error('Failed to load notifications:', error)
-      }
-    } finally {
-      setIsLoading(false)
-    }
-  }, [status])
+    },
+    [status]
+  )
 
   useEffect(() => {
     loadUnreadCount()
@@ -161,9 +176,7 @@ export function NotificationCenter({ className }: NotificationCenterProps) {
   const handleMarkAsRead = async (id: string) => {
     try {
       await notificationService.markAsRead(id)
-      setNotifications((prev) =>
-        prev.map((n) => (n.id === id ? { ...n, is_read: 1 } : n))
-      )
+      setNotifications((prev) => prev.map((n) => (n.id === id ? { ...n, is_read: 1 } : n)))
       setUnreadCount((prev) => Math.max(0, prev - 1))
     } catch (error) {
       console.error('Failed to mark as read:', error)
@@ -271,7 +284,10 @@ export function NotificationCenter({ className }: NotificationCenterProps) {
               </div>
 
               {/* 通知列表 */}
-              <div className="flex-1 overflow-y-auto" style={{ paddingBottom: 'max(5rem, env(safe-area-inset-bottom))' }}>
+              <div
+                className="flex-1 overflow-y-auto"
+                style={{ paddingBottom: 'max(5rem, env(safe-area-inset-bottom))' }}
+              >
                 <div>
                   {isLoading && notifications.length === 0 ? (
                     <div className="flex justify-center py-12">
@@ -285,136 +301,146 @@ export function NotificationCenter({ className }: NotificationCenterProps) {
                   ) : (
                     <div>
                       {notifications.map((notification) => {
-                      const Icon =
-                        notificationIcons[notification.type] || Bell
-                      const colorClass =
-                        notificationColors[notification.type] ||
-                        'text-gray-500 bg-gray-50'
-                      const link = getNotificationLink(notification)
-                      const isFollower = notification.type === NotificationType.NEW_FOLLOWER
+                        const Icon = notificationIcons[notification.type] || Bell
+                        const colorClass =
+                          notificationColors[notification.type] || 'text-gray-500 bg-gray-50'
+                        const link = getNotificationLink(notification)
+                        const isFollower = notification.type === NotificationType.NEW_FOLLOWER
 
-                      // 頭像區：有 actor_avatar 顯示圖片，有 actor_name 顯示首字母，否則顯示 icon
-                      const avatarContent = notification.actor_avatar ? (
-                        <img
-                          src={notification.actor_avatar}
-                          alt={notification.actor_name ?? ''}
-                          className="w-full h-full object-cover"
-                        />
-                      ) : notification.actor_name ? (
-                        <div className={cn('w-full h-full flex items-center justify-center font-medium text-sm', colorClass)}>
-                          {notification.actor_name[0].toUpperCase()}
-                        </div>
-                      ) : (
-                        <div className={cn('w-full h-full flex items-center justify-center', colorClass)}>
-                          <Icon className="h-5 w-5" />
-                        </div>
-                      )
-
-                      return (
-                        <div
-                          key={notification.id}
-                          className={cn(
-                            'px-4 py-4 border-b last:border-b-0 hover:bg-gray-50 transition-colors',
-                            !notification.is_read && 'bg-brand-accent/10'
-                          )}
-                        >
-                          <div className="flex gap-3">
-                            {/* 頭像 / 圖示 */}
-                            {notification.actor_slug ? (
-                              <Link
-                                href={`/biography/profile/${notification.actor_slug}`}
-                                onClick={() => setIsOpen(false)}
-                                className="w-10 h-10 rounded-full flex-shrink-0 overflow-hidden block hover:opacity-80 transition-opacity"
-                              >
-                                {avatarContent}
-                              </Link>
-                            ) : (
-                              <div className="w-10 h-10 rounded-full flex-shrink-0 overflow-hidden">
-                                {avatarContent}
-                              </div>
+                        // 頭像區：有 actor_avatar 顯示圖片，有 actor_name 顯示首字母，否則顯示 icon
+                        const avatarContent = notification.actor_avatar ? (
+                          <img
+                            src={notification.actor_avatar}
+                            alt={notification.actor_name ?? ''}
+                            className="w-full h-full object-cover"
+                          />
+                        ) : notification.actor_name ? (
+                          <div
+                            className={cn(
+                              'w-full h-full flex items-center justify-center font-medium text-sm',
+                              colorClass
                             )}
+                          >
+                            {notification.actor_name[0].toUpperCase()}
+                          </div>
+                        ) : (
+                          <div
+                            className={cn(
+                              'w-full h-full flex items-center justify-center',
+                              colorClass
+                            )}
+                          >
+                            <Icon className="h-5 w-5" />
+                          </div>
+                        )
 
-                            {/* 內容 */}
-                            <div className="flex-1 min-w-0">
-                              {isFollower ? (
-                                <>
-                                  <p className="text-base font-medium text-gray-900">
-                                    {link ? (
-                                      <Link href={link} onClick={() => setIsOpen(false)} className="hover:underline">
-                                        {notification.actor_name}
-                                      </Link>
-                                    ) : (
-                                      notification.actor_name
-                                    )}
-                                  </p>
-                                  <p className="text-sm text-gray-600 mt-1">開始追蹤你了</p>
-                                </>
-                              ) : (
-                                <>
-                                  <p className="text-base font-medium text-gray-900">
-                                    {link ? (
-                                      <Link href={link} onClick={() => setIsOpen(false)} className="hover:underline">
-                                        {notification.title}
-                                      </Link>
-                                    ) : (
-                                      notification.title
-                                    )}
-                                  </p>
-                                  <p className="text-sm text-gray-600 mt-1 line-clamp-3">
-                                    {notification.message}
-                                  </p>
-                                </>
-                              )}
-                              <p className="text-xs text-gray-400 mt-2">
-                                {formatTime(notification.created_at)}
-                              </p>
-                            </div>
-                            <div className="flex items-start gap-2">
-                              {!notification.is_read && (
-                                <button
-                                  onClick={() =>
-                                    handleMarkAsRead(notification.id)
-                                  }
-                                  className="p-2 text-gray-400 hover:text-green-500 hover:bg-green-50 rounded-full transition-colors"
-                                  title="標記為已讀"
-                                  aria-label="標記為已讀"
+                        return (
+                          <div
+                            key={notification.id}
+                            className={cn(
+                              'px-4 py-4 border-b last:border-b-0 hover:bg-gray-50 transition-colors',
+                              !notification.is_read && 'bg-brand-accent/10'
+                            )}
+                          >
+                            <div className="flex gap-3">
+                              {/* 頭像 / 圖示 */}
+                              {notification.actor_slug ? (
+                                <Link
+                                  href={`/biography/profile/${notification.actor_slug}`}
+                                  onClick={() => setIsOpen(false)}
+                                  className="w-10 h-10 rounded-full flex-shrink-0 overflow-hidden block hover:opacity-80 transition-opacity"
                                 >
-                                  <Check className="h-4 w-4" />
-                                </button>
+                                  {avatarContent}
+                                </Link>
+                              ) : (
+                                <div className="w-10 h-10 rounded-full flex-shrink-0 overflow-hidden">
+                                  {avatarContent}
+                                </div>
                               )}
-                              <button
-                                onClick={() => handleDelete(notification.id)}
-                                className="p-2 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-full transition-colors"
-                                title="刪除"
-                                aria-label="刪除通知"
-                              >
-                                <Trash2 className="h-4 w-4" />
-                              </button>
+
+                              {/* 內容 */}
+                              <div className="flex-1 min-w-0">
+                                {isFollower ? (
+                                  <>
+                                    <p className="text-base font-medium text-gray-900">
+                                      {link ? (
+                                        <Link
+                                          href={link}
+                                          onClick={() => setIsOpen(false)}
+                                          className="hover:underline"
+                                        >
+                                          {notification.actor_name}
+                                        </Link>
+                                      ) : (
+                                        notification.actor_name
+                                      )}
+                                    </p>
+                                    <p className="text-sm text-gray-600 mt-1">開始追蹤你了</p>
+                                  </>
+                                ) : (
+                                  <>
+                                    <p className="text-base font-medium text-gray-900">
+                                      {link ? (
+                                        <Link
+                                          href={link}
+                                          onClick={() => setIsOpen(false)}
+                                          className="hover:underline"
+                                        >
+                                          {notification.title}
+                                        </Link>
+                                      ) : (
+                                        notification.title
+                                      )}
+                                    </p>
+                                    <p className="text-sm text-gray-600 mt-1 line-clamp-3">
+                                      {notification.message}
+                                    </p>
+                                  </>
+                                )}
+                                <p className="text-xs text-gray-400 mt-2">
+                                  {formatTime(notification.created_at)}
+                                </p>
+                              </div>
+                              <div className="flex items-start gap-2">
+                                {!notification.is_read && (
+                                  <button
+                                    onClick={() => handleMarkAsRead(notification.id)}
+                                    className="p-2 text-gray-400 hover:text-green-500 hover:bg-green-50 rounded-full transition-colors"
+                                    title="標記為已讀"
+                                    aria-label="標記為已讀"
+                                  >
+                                    <Check className="h-4 w-4" />
+                                  </button>
+                                )}
+                                <button
+                                  onClick={() => handleDelete(notification.id)}
+                                  className="p-2 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-full transition-colors"
+                                  title="刪除"
+                                  aria-label="刪除通知"
+                                >
+                                  <Trash2 className="h-4 w-4" />
+                                </button>
+                              </div>
                             </div>
                           </div>
-                        </div>
-                      )
-                    })}
+                        )
+                      })}
 
-                    {hasMore && (
-                      <div className="p-4">
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={handleLoadMore}
-                          disabled={isLoading}
-                          className="w-full"
-                        >
-                          {isLoading ? (
-                            <Loader2 className="h-4 w-4 animate-spin" />
-                          ) : (
-                            '載入更多'
-                          )}
-                        </Button>
-                      </div>
-                    )}
-                  </div>
-                )}
+                      {hasMore && (
+                        <div className="p-4">
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={handleLoadMore}
+                            disabled={isLoading}
+                            className="w-full"
+                          >
+                            {isLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : '載入更多'}
+                          </Button>
+                        </div>
+                      )}
+                    </div>
+                  )}
                 </div>
               </div>
             </motion.div>

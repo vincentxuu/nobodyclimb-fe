@@ -1,15 +1,15 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { motion } from 'framer-motion'
+import { Eye, Loader2, Play } from 'lucide-react'
 import Image from 'next/image'
 import Link from 'next/link'
-import { motion } from 'framer-motion'
-import { Play, Eye, Loader2 } from 'lucide-react'
+import { useTranslations } from 'next-intl'
+import { useEffect, useState } from 'react'
 import { Button } from '@/components/ui/button'
 import VideoPlayer from '@/components/videos/video-player'
 import type { Video } from '@/lib/types'
 import { parseDuration, parseViewCount } from '@/lib/utils/video'
-import { useTranslations } from 'next-intl'
 
 // 輕量版影片資料介面
 interface VideoListItem {
@@ -168,7 +168,9 @@ export function FeaturedVideosSection() {
       <div className="container mx-auto px-4">
         {/* 標題區 */}
         <div className="mb-8 text-center">
-          <h2 className="font-['Noto_Sans_TC'] text-[40px] font-medium text-[#1B1A1A]">{t('videosSectionTitle')}</h2>
+          <h2 className="font-['Noto_Sans_TC'] text-[40px] font-medium text-[#1B1A1A]">
+            {t('videosSectionTitle')}
+          </h2>
           <p className="mt-4 font-['Noto_Sans_CJK_TC'] text-base font-normal tracking-[0.01em] text-[#6D6C6C]">
             {t('videosSectionSubtitle')}
           </p>

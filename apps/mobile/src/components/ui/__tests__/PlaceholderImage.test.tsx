@@ -1,12 +1,9 @@
-import React from 'react'
 import { render } from '@testing-library/react-native'
 import { PlaceholderImage } from '../PlaceholderImage'
 
 describe('PlaceholderImage', () => {
   it('renders without crashing with required props', () => {
-    expect(() =>
-      render(<PlaceholderImage width={200} height={150} />)
-    ).not.toThrow()
+    expect(() => render(<PlaceholderImage width={200} height={150} />)).not.toThrow()
   })
 
   it('renders with testID', () => {
@@ -17,9 +14,7 @@ describe('PlaceholderImage', () => {
   })
 
   it('renders label when provided', () => {
-    const { getByText } = render(
-      <PlaceholderImage width={200} height={150} label="暫無圖片" />
-    )
+    const { getByText } = render(<PlaceholderImage width={200} height={150} label="暫無圖片" />)
     expect(getByText('暫無圖片')).toBeTruthy()
   })
 

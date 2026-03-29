@@ -3,10 +3,10 @@
  *
  * 頁面標題，與 apps/web/src/components/ui/page-header.tsx 對應
  */
-import React from 'react'
-import { YStack } from 'tamagui'
+
+import { FONT_SIZE, SEMANTIC_COLORS, SPACING } from '@nobodyclimb/constants'
 import Animated, { FadeInDown } from 'react-native-reanimated'
-import { SEMANTIC_COLORS, SPACING, FONT_SIZE } from '@nobodyclimb/constants'
+import { YStack } from 'tamagui'
 import { Text } from './Text'
 
 export interface PageHeaderProps {
@@ -20,11 +20,7 @@ export interface PageHeaderProps {
 
 const AnimatedYStack = Animated.createAnimatedComponent(YStack)
 
-export function PageHeader({
-  title,
-  subtitle,
-  animated = true,
-}: PageHeaderProps) {
+export function PageHeader({ title, subtitle, animated = true }: PageHeaderProps) {
   const Container = animated ? AnimatedYStack : YStack
 
   return (

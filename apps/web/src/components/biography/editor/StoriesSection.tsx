@@ -1,26 +1,26 @@
 'use client'
 
-import { useState, useMemo } from 'react'
-import { useTranslations } from 'next-intl'
-import { cn } from '@/lib/utils'
 import {
   BookOpen,
-  Clock,
-  ChevronRight,
-  ChevronDown,
-  Check,
-  Lightbulb,
-  Sparkles,
-  TrendingUp,
   Brain,
-  Users,
-  Wrench,
+  Check,
+  ChevronDown,
+  ChevronRight,
+  Clock,
   Compass,
+  Lightbulb,
+  type LucideIcon,
   Palette,
   Shuffle,
-  type LucideIcon,
+  Sparkles,
+  TrendingUp,
+  Users,
+  Wrench,
 } from 'lucide-react'
-import type { StoryQuestion, Story, StoryCategory } from '@/lib/types/biography-v2'
+import { useTranslations } from 'next-intl'
+import { useMemo, useState } from 'react'
+import type { Story, StoryCategory, StoryQuestion } from '@/lib/types/biography-v2'
+import { cn } from '@/lib/utils'
 import { RandomRecommend } from './RandomRecommend'
 
 interface StoriesSectionProps {
@@ -172,10 +172,7 @@ export function StoriesSection({
             const isExpanded = expandedCategories.has(category)
 
             return (
-              <div
-                key={category}
-                className="border border-[#DBD8D8] rounded-lg overflow-hidden"
-              >
+              <div key={category} className="border border-[#DBD8D8] rounded-lg overflow-hidden">
                 {/* Category Header - 可點擊展開/收合 */}
                 <button
                   type="button"
@@ -192,9 +189,7 @@ export function StoriesSection({
                     />
                     <meta.icon size={20} className="text-[#3F3D3D]" />
                     <div className="text-left">
-                      <span className="font-medium text-[#1B1A1A]">
-                        {meta.label}
-                      </span>
+                      <span className="font-medium text-[#1B1A1A]">{meta.label}</span>
                       <p className="text-xs text-[#6D6C6C]">{meta.description}</p>
                     </div>
                   </div>

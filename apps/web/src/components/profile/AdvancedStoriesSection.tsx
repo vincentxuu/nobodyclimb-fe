@@ -1,11 +1,11 @@
 'use client'
 
-import React, { useState } from 'react'
-import { ChevronRight, Check } from 'lucide-react'
-import { motion, AnimatePresence } from 'framer-motion'
+import { AnimatePresence, motion } from 'framer-motion'
+import { Check, ChevronRight } from 'lucide-react'
+import { useState } from 'react'
+import { AdvancedStoryEditor } from '@/components/biography/advanced-story-editor'
 import { Button } from '@/components/ui/button'
 import { Label } from '@/components/ui/label'
-import { AdvancedStoryEditor } from '@/components/biography/advanced-story-editor'
 import { calculateStoryProgress, STORY_CATEGORIES } from '@/lib/constants/biography-stories'
 import { CATEGORY_ICONS } from '@/lib/utils/biography-ui'
 

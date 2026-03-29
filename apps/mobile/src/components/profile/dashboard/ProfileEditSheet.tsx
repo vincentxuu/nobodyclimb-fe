@@ -1,26 +1,22 @@
-import React, { useCallback, useState } from 'react'
-import { View, StyleSheet, Alert } from 'react-native'
-import { Sheet } from '../../ui/Sheet'
-import { Button } from '../../ui/Button'
-import { Text } from '../../ui/Text'
-import { ProfileData, EditPanelType, SocialLinks } from '../types'
-import { updateProfileField, mapProfileDataToApi } from '../mappers'
-import { biographyService } from '@/lib/biographyService'
-
-import BiographyAvatarSection from '../BiographyAvatarSection'
-import BasicInfoSection from '../BasicInfoSection'
-import ClimbingInfoSection from '../ClimbingInfoSection'
-import ClimbingExperienceSection from '../ClimbingExperienceSection'
-import SocialLinksSection from '../SocialLinksSection'
-import AdvancedStoriesSection from '../AdvancedStoriesSection'
-import ClimbingFootprintsSection from '../ClimbingFootprintsSection'
-import PublicSettingSection from '../PublicSettingSection'
 import { COLORS } from '@nobodyclimb/constants'
+import React, { useCallback, useState } from 'react'
+import { Alert, StyleSheet, View } from 'react-native'
+import { biographyService } from '@/lib/biographyService'
+import { Button } from '../../ui/Button'
+import { Sheet } from '../../ui/Sheet'
+import { Text } from '../../ui/Text'
+import AdvancedStoriesSection from '../AdvancedStoriesSection'
+import BasicInfoSection from '../BasicInfoSection'
+import BiographyAvatarSection from '../BiographyAvatarSection'
+import ClimbingExperienceSection from '../ClimbingExperienceSection'
+import ClimbingFootprintsSection from '../ClimbingFootprintsSection'
+import ClimbingInfoSection from '../ClimbingInfoSection'
+import { mapProfileDataToApi, updateProfileField } from '../mappers'
+import PublicSettingSection from '../PublicSettingSection'
+import SocialLinksSection from '../SocialLinksSection'
+import { EditPanelType, ProfileData, SocialLinks } from '../types'
 
-const PANEL_CONFIG: Record<
-  Exclude<EditPanelType, null>,
-  { title: string; description: string }
-> = {
+const PANEL_CONFIG: Record<Exclude<EditPanelType, null>, { title: string; description: string }> = {
   avatar: {
     title: '頭像與封面',
     description: '設定你的頭像和封面照片',
@@ -116,12 +112,8 @@ export default function ProfileEditSheet({
             isEditing={true}
             onAvatarUpload={handleAvatarUpload}
             onCoverImageUpload={handleCoverUpload}
-            onAvatarDelete={() =>
-              setProfileData((prev) => ({ ...prev, avatarUrl: null }))
-            }
-            onCoverImageDelete={() =>
-              setProfileData((prev) => ({ ...prev, coverImageUrl: null }))
-            }
+            onAvatarDelete={() => setProfileData((prev) => ({ ...prev, avatarUrl: null }))}
+            onCoverImageDelete={() => setProfileData((prev) => ({ ...prev, coverImageUrl: null }))}
           />
         )
       case 'basic':
@@ -166,21 +158,13 @@ export default function ProfileEditSheet({
           <AdvancedStoriesSection
             advancedStories={profileData.advancedStories}
             isEditing={true}
-            onFieldPress={(field, label) => {
-              // TODO: Open field editor
-              console.log('Edit field:', field, label)
-            }}
+            onFieldPress={(field, label) => {}}
           />
         )
       case 'footprints':
         return <ClimbingFootprintsSection isEditing={true} />
       case 'settings':
-        return (
-          <PublicSettingSection
-            isPublic={profileData.isPublic}
-            onChange={handleChange}
-          />
-        )
+        return <PublicSettingSection isPublic={profileData.isPublic} onChange={handleChange} />
       default:
         return null
     }
@@ -208,11 +192,7 @@ export default function ProfileEditSheet({
 
         {showSaveButton && (
           <View style={styles.footer}>
-            <Button
-              variant="secondary"
-              onPress={onClose}
-              style={styles.footerButton}
-            >
+            <Button variant="secondary" onPress={onClose} style={styles.footerButton}>
               取消
             </Button>
             <Button

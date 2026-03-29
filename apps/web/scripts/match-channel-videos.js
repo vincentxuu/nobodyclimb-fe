@@ -58,7 +58,6 @@ function readCragData(cragId) {
 // 下載頻道影片清單
 function fetchChannelVideos(channelUrl) {
   try {
-    console.log(`  下載影片清單...`)
     const cmd = `yt-dlp "${channelUrl}/videos" --dump-json --flat-playlist --no-warnings 2>/dev/null`
     const output = execSync(cmd, {
       encoding: 'utf-8',
@@ -101,7 +100,8 @@ function extractMainName(name) {
 // 從 YouTube URL 提取影片 ID
 function extractVideoId(url) {
   if (!url) return null
-  const match = url.match(/[?&]v=([a-zA-Z0-9_-]{11})/) || url.match(/youtu\.be\/([a-zA-Z0-9_-]{11})/)
+  const match =
+    url.match(/[?&]v=([a-zA-Z0-9_-]{11})/) || url.match(/youtu\.be\/([a-zA-Z0-9_-]{11})/)
   return match ? match[1] : null
 }
 
@@ -140,17 +140,8 @@ async function main() {
   const args = process.argv.slice(2)
 
   if (args.length < 2) {
-    console.log('使用方式:')
-    console.log('  node scripts/match-channel-videos.js <crag-id> <channel-url>')
-    console.log('  node scripts/match-channel-videos.js <crag-id> --channels=<file>')
-    console.log('')
-    console.log('範例:')
-    console.log('  node scripts/match-channel-videos.js longdong "https://www.youtube.com/@channel"')
-    console.log('  node scripts/match-channel-videos.js longdong --channels=channels.txt')
     process.exit(1)
   }
-
-  console.log('=== 頻道影片比對路線工具 ===\n')
 
   if (!checkYtDlp()) {
     process.exit(1)
@@ -167,7 +158,10 @@ async function main() {
       const filePath = path.isAbsolute(file) ? file : path.join(process.cwd(), file)
       if (fs.existsSync(filePath)) {
         const content = fs.readFileSync(filePath, 'utf-8')
-        const urls = content.split('\n').map(l => l.trim()).filter(l => l && !l.startsWith('#'))
+        const urls = content
+          .split('\n')
+          .map((l) => l.trim())
+          .filter((l) => l && !l.startsWith('#'))
         channelUrls.push(...urls)
       } else {
         console.error(`找不到檔案: ${filePath}`)
@@ -190,8 +184,6 @@ async function main() {
   }
 
   const { crag, routes, areas } = data
-  console.log(`岩場: ${crag.name} (${routes.length} 條路線)`)
-  console.log(`頻道數: ${channelUrls.length}\n`)
 
   // 建立 area 對照表
   const areaMap = {}
@@ -202,13 +194,10 @@ async function main() {
   // 收集所有影片
   const allVideos = []
   for (const url of channelUrls) {
-    console.log(`處理頻道: ${url}`)
     const videos = fetchChannelVideos(url)
-    console.log(`  找到 ${videos.length} 個影片`)
+
     allVideos.push(...videos)
   }
-
-  console.log(`\n總共 ${allVideos.length} 個影片，開始比對路線...\n`)
 
   // 建立路線已有影片的 ID Set
   const routeExistingIds = new Map()
@@ -225,11 +214,11 @@ async function main() {
   }
 
   // 比對每個影片
-  let matchedVideos = 0
+  let _matchedVideos = 0
   for (const video of allVideos) {
     const matches = matchVideoToRoutes(video, routes)
     if (matches.length > 0) {
-      matchedVideos++
+      _matchedVideos++
       for (const route of matches) {
         // 過濾掉已存在的影片
         const existingIds = routeExistingIds.get(route.id)
@@ -257,15 +246,15 @@ async function main() {
     ].join(','),
   ]
 
-  let routesWithMatches = 0
-  let routesWithExisting = 0
-  let totalNewVideos = 0
+  let _routesWithMatches = 0
+  let _routesWithExisting = 0
+  let _totalNewVideos = 0
   for (const route of routes) {
     const videos = routeMatches.get(route.id)
     const existingCount = (route.youtubeVideos || []).length
-    if (videos.length > 0) routesWithMatches++
-    if (existingCount > 0) routesWithExisting++
-    totalNewVideos += videos.length
+    if (videos.length > 0) _routesWithMatches++
+    if (existingCount > 0) _routesWithExisting++
+    _totalNewVideos += videos.length
 
     const videoList = videos.map((v) => `${v.title} | ${v.url}`).join('\n')
 
@@ -289,14 +278,6 @@ async function main() {
   // 寫入 CSV
   const outputPath = path.join(OUTPUT_DIR, `channel-match-${cragId}.csv`)
   fs.writeFileSync(outputPath, '\uFEFF' + csvRows.join('\n'), 'utf-8')
-
-  console.log('=== 比對統計 ===')
-  console.log(`總影片數: ${allVideos.length}`)
-  console.log(`符合的影片: ${matchedVideos}`)
-  console.log(`已有影片的路線: ${routesWithExisting} / ${routes.length}`)
-  console.log(`發現新影片的路線: ${routesWithMatches} / ${routes.length}`)
-  console.log(`新發現影片總數: ${totalNewVideos}`)
-  console.log(`\n✅ 輸出: ${outputPath}`)
 }
 
 main().catch(console.error)

@@ -35,16 +35,8 @@
       "max": 40,
       "unit": "m"
     },
-    "seasons": [
-      "秋",
-      "冬",
-      "春"
-    ],
-    "seasonsEn": [
-      "Autumn",
-      "Winter",
-      "Spring"
-    ],
+    "seasons": ["秋", "冬", "春"],
+    "seasonsEn": ["Autumn", "Winter", "Spring"],
     "access": {
       "approach": "15-30分鐘徒步",
       "approachEn": "15-30 minutes hiking",
@@ -58,16 +50,8 @@
         }
       ]
     },
-    "amenities": [
-      "停車場",
-      "溪流",
-      "附近溫泉"
-    ],
-    "amenitiesEn": [
-      "Parking",
-      "Stream",
-      "Nearby hot springs"
-    ],
+    "amenities": ["停車場", "溪流", "附近溫泉"],
+    "amenitiesEn": ["Parking", "Stream", "Nearby hot springs"],
     "featured": true,
     "rating": 4.3,
     "status": "published",

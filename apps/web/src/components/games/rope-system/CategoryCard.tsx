@@ -1,26 +1,22 @@
 'use client'
 
-import * as React from 'react'
-import Link from 'next/link'
 import { motion } from 'framer-motion'
 import {
+  Anchor,
+  ArrowDown,
+  LifeBuoy,
+  Link as LinkIcon,
+  Mountain,
+  PersonStanding,
   Star,
   Target,
-  PersonStanding,
-  Link as LinkIcon,
-  ArrowDown,
-  Anchor,
   Wrench,
-  Mountain,
-  LifeBuoy,
 } from 'lucide-react'
+import Link from 'next/link'
+import * as React from 'react'
+import { DIFFICULTY_COLORS, DIFFICULTY_LABELS, ROUTES } from '@/lib/games/rope-system/constants'
+import type { Category, CategoryIconName, CategoryProgress } from '@/lib/games/rope-system/types'
 import { cn } from '@/lib/utils'
-import type { Category, CategoryProgress, CategoryIconName } from '@/lib/games/rope-system/types'
-import {
-  DIFFICULTY_COLORS,
-  DIFFICULTY_LABELS,
-  ROUTES,
-} from '@/lib/games/rope-system/constants'
 
 /** 類別圖示對應 */
 const CategoryIcons: Record<CategoryIconName, React.ComponentType<{ className?: string }>> = {
@@ -42,11 +38,7 @@ interface CategoryCardProps {
   className?: string
 }
 
-export function CategoryCard({
-  category,
-  progress,
-  className,
-}: CategoryCardProps) {
+export function CategoryCard({ category, progress, className }: CategoryCardProps) {
   const difficultyColor = DIFFICULTY_COLORS[category.difficulty]
   const difficultyLabel = DIFFICULTY_LABELS[category.difficulty]
 
@@ -92,18 +84,13 @@ export function CategoryCard({
               style={{ fill: difficultyColor.star, color: difficultyColor.star }}
             />
           ))}
-          <span
-            className="ml-1 text-xs font-medium"
-            style={{ color: difficultyColor.star }}
-          >
+          <span className="ml-1 text-xs font-medium" style={{ color: difficultyColor.star }}>
             {difficultyLabel}
           </span>
         </div>
 
         {/* 題數 */}
-        <div className="mb-3 text-sm text-[#535353]">
-          {category.questionCount} 題
-        </div>
+        <div className="mb-3 text-sm text-[#535353]">{category.questionCount} 題</div>
 
         {/* 進度條 */}
         <div className="relative h-2 overflow-hidden rounded-full bg-[#E5E5E5]">
@@ -114,9 +101,7 @@ export function CategoryCard({
             transition={{ duration: 0.5, ease: 'easeOut' }}
           />
         </div>
-        <div className="mt-1 text-right text-xs text-[#535353]">
-          {progressPercent}%
-        </div>
+        <div className="mt-1 text-right text-xs text-[#535353]">{progressPercent}%</div>
       </motion.div>
     </Link>
   )

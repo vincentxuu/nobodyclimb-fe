@@ -4,16 +4,16 @@
 
 import { create } from 'zustand'
 import { persist } from 'zustand/middleware'
-import type {
-  GameMode,
-  Category,
-  Question,
-  Exam,
-  AnswerResult,
-  GameStats,
-  CharacterState,
-} from '@/lib/games/rope-system/types'
 import { GAME_CONFIG, STORAGE_KEYS } from '@/lib/games/rope-system/constants'
+import type {
+  AnswerResult,
+  Category,
+  CharacterState,
+  Exam,
+  GameMode,
+  GameStats,
+  Question,
+} from '@/lib/games/rope-system/types'
 
 interface RopeGameState {
   // ========== 遊戲設定 ==========
@@ -46,12 +46,7 @@ interface RopeGameState {
   soundEnabled: boolean
 
   // ========== Actions ==========
-  startGame: (
-    _mode: GameMode,
-    _questions: Question[],
-    _category?: Category,
-    _exam?: Exam
-  ) => void
+  startGame: (_mode: GameMode, _questions: Question[], _category?: Category, _exam?: Exam) => void
   submitAnswer: (_answer: string | string[]) => AnswerResult
   nextQuestion: () => void
   setCharacterState: (_state: CharacterState) => void
@@ -241,9 +236,7 @@ export const useRopeGameStore = create<RopeGameState>()(
         const state = get()
         const correctCount = state.results.filter((r) => r.isCorrect).length
         const wrongCount = state.results.filter((r) => !r.isCorrect).length
-        const timeSpent = state.startTime
-          ? Math.floor((Date.now() - state.startTime) / 1000)
-          : 0
+        const timeSpent = state.startTime ? Math.floor((Date.now() - state.startTime) / 1000) : 0
 
         return {
           score: state.score,
@@ -266,10 +259,7 @@ export const useRopeGameStore = create<RopeGameState>()(
 /**
  * 檢查答案是否正確
  */
-function checkAnswer(
-  userAnswer: string | string[],
-  correctAnswer: string | string[]
-): boolean {
+function checkAnswer(userAnswer: string | string[], correctAnswer: string | string[]): boolean {
   // 單選題
   if (typeof correctAnswer === 'string') {
     return userAnswer === correctAnswer
@@ -296,12 +286,9 @@ export const selectCurrentQuestion = (state: RopeGameState) =>
  * 取得進度百分比
  */
 export const selectProgress = (state: RopeGameState) =>
-  state.questions.length > 0
-    ? ((state.currentIndex + 1) / state.questions.length) * 100
-    : 0
+  state.questions.length > 0 ? ((state.currentIndex + 1) / state.questions.length) * 100 : 0
 
 /**
  * 檢查遊戲是否結束
  */
-export const selectIsGameOver = (state: RopeGameState) =>
-  state.lives <= 0 || state.isComplete
+export const selectIsGameOver = (state: RopeGameState) => state.lives <= 0 || state.isComplete

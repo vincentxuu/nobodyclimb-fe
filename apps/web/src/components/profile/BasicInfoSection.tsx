@@ -1,6 +1,5 @@
 'use client'
 
-import React from 'react'
 import { Input } from '@/components/ui/input'
 import ProfileFormField from './ProfileFormField'
 import ProfileTextDisplay from './ProfileTextDisplay'

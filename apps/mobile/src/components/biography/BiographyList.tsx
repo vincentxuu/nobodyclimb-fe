@@ -3,17 +3,15 @@
  *
  * 人物誌列表，對應 apps/web/src/components/biography/biography-list.tsx
  */
-import React, { useEffect, useState, useCallback, useRef, useMemo } from 'react'
-import { StyleSheet, View, FlatList, ActivityIndicator, Pressable } from 'react-native'
+
+import { BRAND_YELLOW, SEMANTIC_COLORS, SPACING } from '@nobodyclimb/constants'
 import { useRouter } from 'expo-router'
 import { ArrowRightCircle, Sparkles } from 'lucide-react-native'
-import Animated, {
-  FadeInDown,
-} from 'react-native-reanimated'
-
-import { Text, Avatar, Card } from '@/components/ui'
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import { ActivityIndicator, FlatList, Pressable, StyleSheet, View } from 'react-native'
+import Animated, { FadeInDown } from 'react-native-reanimated'
+import { Avatar, Card, Text } from '@/components/ui'
 import { apiClient } from '@/lib/api'
-import { BRAND_YELLOW, RADIUS, SEMANTIC_COLORS, SPACING } from '@nobodyclimb/constants'
 
 // 模擬類型定義 (實際應從 @nobodyclimb/types 導入)
 interface Biography {
@@ -167,10 +165,7 @@ interface BiographyCardProps {
 
 function BiographyCard({ person, selectedContent, onPress }: BiographyCardProps) {
   const basicInfo = parseBasicInfoData(person.basic_info_data)
-  const displayName = getDisplayNameForVisibility(
-    person.visibility,
-    basicInfo?.name || person.name
-  )
+  const displayName = getDisplayNameForVisibility(person.visibility, basicInfo?.name || person.name)
   const climbingStartYear = basicInfo?.climbing_start_year ?? person.climbing_start_year
   const climbingYears = calculateClimbingYears(
     climbingStartYear != null ? String(climbingStartYear) : null
@@ -187,17 +182,10 @@ function BiographyCard({ person, selectedContent, onPress }: BiographyCardProps)
               {selectedContent?.question || '攀岩對你來說是什麼？'}
             </Text>
             <Text
-              style={[
-                styles.quote,
-                selectedContent
-                  ? styles.quoteReal
-                  : styles.quoteDefault,
-              ]}
+              style={[styles.quote, selectedContent ? styles.quoteReal : styles.quoteDefault]}
               numberOfLines={3}
             >
-              {selectedContent
-                ? `"${selectedContent.answer}"`
-                : getDefaultQuote(person.id)}
+              {selectedContent ? `"${selectedContent.answer}"` : getDefaultQuote(person.id)}
             </Text>
           </View>
 
@@ -240,9 +228,7 @@ function BiographyCard({ person, selectedContent, onPress }: BiographyCardProps)
                   </View>
                 ) : (
                   <Text variant="small" color="textMuted">
-                    {climbingYears !== null
-                      ? `攀岩 ${climbingYears}年`
-                      : '從入坑那天起算'}
+                    {climbingYears !== null ? `攀岩 ${climbingYears}年` : '從入坑那天起算'}
                   </Text>
                 )}
               </View>
@@ -262,10 +248,7 @@ interface BiographyListProps {
   onTotalChange?: (total: number, hasMore: boolean) => void
 }
 
-export function BiographyList({
-  searchTerm = '',
-  onTotalChange,
-}: BiographyListProps) {
+export function BiographyList({ searchTerm = '', onTotalChange }: BiographyListProps) {
   const router = useRouter()
   const [biographies, setBiographies] = useState<Biography[]>([])
   const [loading, setLoading] = useState(true)
@@ -292,7 +275,7 @@ export function BiographyList({
 
         const response = await apiClient.get('/biographies', { params })
         const result = response.data?.data ?? response.data
-        const items: Biography[] = Array.isArray(result) ? result : result?.items ?? []
+        const items: Biography[] = Array.isArray(result) ? result : (result?.items ?? [])
         const pagination = response.data?.pagination ?? result?.pagination
 
         if (append) {
@@ -349,16 +332,12 @@ export function BiographyList({
     if (biographies.length === 0) return []
     return biographies.map((person) => ({
       person,
-      content: selectCardContent(
-        person.id,
-        person.one_liners_data,
-        person.stories_data
-      ),
+      content: selectCardContent(person.id, person.one_liners_data, person.stories_data),
     }))
   }, [biographies])
 
   // 渲染項目
-  const renderItem = ({ item }: { item: typeof biographiesWithContent[0] }) => (
+  const renderItem = ({ item }: { item: (typeof biographiesWithContent)[0] }) => (
     <BiographyCard
       person={item.person}
       selectedContent={item.content}
@@ -396,9 +375,7 @@ export function BiographyList({
     return (
       <View style={styles.emptyContainer}>
         <Text color="textSubtle">
-          {searchTerm
-            ? `找不到符合「${searchTerm}」的人物`
-            : '目前沒有人物誌'}
+          {searchTerm ? `找不到符合「${searchTerm}」的人物` : '目前沒有人物誌'}
         </Text>
       </View>
     )

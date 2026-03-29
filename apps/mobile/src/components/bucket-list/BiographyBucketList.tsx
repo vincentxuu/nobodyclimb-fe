@@ -4,15 +4,16 @@
  * 在人物誌詳情頁顯示人生清單，分為進行中和已完成兩個區塊
  * 對應 apps/web/src/components/bucket-list/biography-bucket-list.tsx
  */
-import React, { useState, useMemo, useCallback } from 'react'
-import { StyleSheet, View, ScrollView, Pressable } from 'react-native'
-import { useQuery } from '@tanstack/react-query'
-import { Check, CheckCircle2, ChevronRight, ChevronDown } from 'lucide-react-native'
+
 import { RADIUS, SEMANTIC_COLORS, SPACING, WB_COLORS } from '@nobodyclimb/constants'
-import { apiClient } from '@/lib/api'
 import type { BucketListItem } from '@nobodyclimb/types'
-import { Text } from '../ui/Text'
+import { useQuery } from '@tanstack/react-query'
+import { Check, CheckCircle2, ChevronDown, ChevronRight } from 'lucide-react-native'
+import { useCallback, useMemo, useState } from 'react'
+import { Pressable, ScrollView, StyleSheet, View } from 'react-native'
+import { apiClient } from '@/lib/api'
 import { Spinner } from '../ui/Spinner'
+import { Text } from '../ui/Text'
 import { BucketListItemCard } from './BucketListItem'
 
 export interface BiographyBucketListProps {
@@ -36,10 +37,7 @@ export function BiographyBucketList({ biographyId }: BiographyBucketListProps) {
   const bucketList = data || []
 
   // 只顯示公開的項目
-  const publicItems = useMemo(
-    () => bucketList.filter((item) => item.is_public),
-    [bucketList]
-  )
+  const publicItems = useMemo(() => bucketList.filter((item) => item.is_public), [bucketList])
 
   // 分類：進行中和已完成
   const activeItems = useMemo(
@@ -145,12 +143,7 @@ function CompletedBucketListCard({ item }: CompletedBucketListCardProps) {
             {item.title}
           </Text>
           {item.description && (
-            <Text
-              variant="body"
-              color="textSubtle"
-              numberOfLines={2}
-              style={styles.description}
-            >
+            <Text variant="body" color="textSubtle" numberOfLines={2} style={styles.description}>
               {item.description}
             </Text>
           )}

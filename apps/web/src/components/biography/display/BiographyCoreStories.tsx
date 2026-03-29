@@ -1,12 +1,16 @@
 'use client'
 
 import { motion } from 'framer-motion'
-import { cn, normalizeNewlines } from '@/lib/utils'
 import { Feather, Loader2 } from 'lucide-react'
-import { biographyContentService, type ContentComment } from '@/lib/api/services'
-import { useCoreStories, useCoreStoryLikeMutation, useCoreStoryCommentMutation } from '@/lib/hooks/useCoreStories'
-import { ContentInteractionBar } from './ContentInteractionBar'
 import { useTranslations } from 'next-intl'
+import { biographyContentService, type ContentComment } from '@/lib/api/services'
+import {
+  useCoreStories,
+  useCoreStoryCommentMutation,
+  useCoreStoryLikeMutation,
+} from '@/lib/hooks/useCoreStories'
+import { cn, normalizeNewlines } from '@/lib/utils'
+import { ContentInteractionBar } from './ContentInteractionBar'
 
 interface BiographyCoreStoriesProps {
   /** 人物誌 ID */
@@ -24,10 +28,7 @@ const CORE_STORY_ORDER = ['climbing_origin', 'climbing_meaning', 'advice_to_self
  * 顯示用戶填寫的三個核心故事，支援按讚和留言
  * 標題和副標題從 API 取得（來自 core_story_questions 資料表）
  */
-export function BiographyCoreStories({
-  biographyId,
-  className,
-}: BiographyCoreStoriesProps) {
+export function BiographyCoreStories({ biographyId, className }: BiographyCoreStoriesProps) {
   const t = useTranslations('BiographyPage')
   const { data: coreStories, isLoading } = useCoreStories(biographyId)
   const likeMutation = useCoreStoryLikeMutation(biographyId)
@@ -138,14 +139,8 @@ function CoreStoryCard({
     >
       {/* 標題區 */}
       <div className="mb-4">
-        <h3 className="text-lg font-semibold text-[#1B1A1A]">
-          {displayTitle}
-        </h3>
-        {displaySubtitle && (
-          <p className="text-sm text-[#9D9B9B] mt-1">
-            {displaySubtitle}
-          </p>
-        )}
+        <h3 className="text-lg font-semibold text-[#1B1A1A]">{displayTitle}</h3>
+        {displaySubtitle && <p className="text-sm text-[#9D9B9B] mt-1">{displaySubtitle}</p>}
       </div>
 
       {/* 內容 */}

@@ -3,11 +3,11 @@
  *
  * 整合 Label + Input + Error Message
  */
-import React from 'react'
-import { View, StyleSheet, type ViewStyle } from 'react-native'
-import { SPACING, SEMANTIC_COLORS } from '@nobodyclimb/constants'
-import { Text } from './Text'
+
+import { SPACING } from '@nobodyclimb/constants'
+import { StyleSheet, View, type ViewStyle } from 'react-native'
 import { Input, type InputProps } from './Input'
+import { Text } from './Text'
 
 export interface FormFieldProps extends InputProps {
   /** 標籤文字 */

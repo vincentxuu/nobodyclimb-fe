@@ -3,13 +3,13 @@
  *
  * 錯誤邊界，捕獲子組件的錯誤並顯示友好的錯誤頁面
  */
-import React, { Component, ErrorInfo, ReactNode } from 'react'
+
+import { SEMANTIC_COLORS, SPACING, WB_COLORS } from '@nobodyclimb/constants'
+import { AlertTriangle, RefreshCw } from 'lucide-react-native'
+import { Component, ErrorInfo, ReactNode } from 'react'
 import { StyleSheet, View } from 'react-native'
 import { YStack } from 'tamagui'
-import { AlertTriangle, RefreshCw } from 'lucide-react-native'
-
-import { Text, Button } from '@/components/ui'
-import { SEMANTIC_COLORS, SPACING, WB_COLORS } from '@nobodyclimb/constants'
+import { Button, Text } from '@/components/ui'
 
 interface Props {
   children: ReactNode
@@ -61,11 +61,7 @@ export class ErrorBoundary extends Component<Props, State> {
                 很抱歉，發生了一些問題。請稍後再試。
               </Text>
             </YStack>
-            <Button
-              variant="primary"
-              onPress={this.handleRetry}
-              style={styles.retryButton}
-            >
+            <Button variant="primary" onPress={this.handleRetry} style={styles.retryButton}>
               <View style={styles.buttonContent}>
                 <RefreshCw size={16} color={WB_COLORS[0]} />
                 <Text style={styles.buttonText}>重試</Text>

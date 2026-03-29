@@ -1,8 +1,8 @@
 'use client'
 
-import { useRef } from 'react'
-import { usePathname, Link } from '@/i18n/navigation'
 import { useTranslations } from 'next-intl'
+import { useRef } from 'react'
+import { Link, usePathname } from '@/i18n/navigation'
 
 const NAV_ITEMS = [
   { href: '/biography', key: 'biography' },

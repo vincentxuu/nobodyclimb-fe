@@ -1,8 +1,8 @@
-import { renderHook, waitFor } from '@testing-library/react-native'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
+import { renderHook, waitFor } from '@testing-library/react-native'
 import { createElement } from 'react'
-import { useStoryDetail, isValidStoryType } from '../useStoryDetail'
 import { apiClient } from '@/lib/api'
+import { isValidStoryType, useStoryDetail } from '../useStoryDetail'
 
 jest.mock('@/lib/api')
 const mockedApiClient = apiClient as jest.Mocked<typeof apiClient>
@@ -41,20 +41,16 @@ describe('useStoryDetail', () => {
     ['stories', '/content/stories/1/detail'],
   ] as const)('fetches %s from correct endpoint', async (type, endpoint) => {
     mockedApiClient.get.mockResolvedValueOnce({ data: { data: MOCK_STORY } })
-    const { result } = renderHook(
-      () => useStoryDetail(type, '1'),
-      { wrapper: createWrapper() }
-    )
+    const { result } = renderHook(() => useStoryDetail(type, '1'), { wrapper: createWrapper() })
     await waitFor(() => expect(result.current.isSuccess).toBe(true))
     expect(mockedApiClient.get).toHaveBeenCalledWith(endpoint)
     expect(result.current.data).toEqual(MOCK_STORY)
   })
 
   it('does not fetch for invalid story type', () => {
-    const { result } = renderHook(
-      () => useStoryDetail('invalid' as never, '1'),
-      { wrapper: createWrapper() }
-    )
+    const { result } = renderHook(() => useStoryDetail('invalid' as never, '1'), {
+      wrapper: createWrapper(),
+    })
     expect(result.current.fetchStatus).toBe('idle')
     expect(mockedApiClient.get).not.toHaveBeenCalled()
   })

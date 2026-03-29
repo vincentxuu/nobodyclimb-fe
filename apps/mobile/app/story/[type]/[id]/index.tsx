@@ -3,14 +3,7 @@
  *
  * 支援 core-stories / one-liners / stories 三種類型
  */
-import React, { useEffect } from 'react'
-import {
-  ActivityIndicator,
-  ScrollView,
-  StyleSheet,
-  View,
-} from 'react-native'
-import { Link, useLocalSearchParams, useRouter } from 'expo-router'
+
 import {
   BORDER_RADIUS,
   FONT_SIZE,
@@ -19,13 +12,16 @@ import {
   SPACING,
   WB_COLORS,
 } from '@nobodyclimb/constants'
-import { Text } from '@/components/ui/Text'
-import { MarkdownText } from '@/components/ui/MarkdownText'
-import { Badge } from '@/components/ui/Badge'
+import { Link, useLocalSearchParams, useRouter } from 'expo-router'
+import { useEffect } from 'react'
+import { ActivityIndicator, ScrollView, StyleSheet, View } from 'react-native'
 import { ContentInteractionBar } from '@/components/biography/display/ContentInteractionBar'
-import { useStoryDetail, isValidStoryType } from '@/lib/hooks/useStoryDetail'
+import { Badge } from '@/components/ui/Badge'
+import { MarkdownText } from '@/components/ui/MarkdownText'
+import { Text } from '@/components/ui/Text'
 import { apiClient } from '@/lib/api'
 import type { StoryType } from '@/lib/hooks/useStoryDetail'
+import { isValidStoryType, useStoryDetail } from '@/lib/hooks/useStoryDetail'
 
 const TYPE_LABELS: Record<StoryType, string> = {
   'core-stories': '核心故事',

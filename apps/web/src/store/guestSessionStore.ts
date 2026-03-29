@@ -36,13 +36,14 @@ interface GuestSessionActions {
   getSessionId: () => string | null
 }
 
-type GuestSessionStore = GuestSessionState & GuestSessionActions & {
-  // Internal state for pending counters
-  _pendingPageViews: number
-  _pendingTimeSpent: number
-  _pendingBiographyViews: number
-  _incrementPendingTime: (_seconds: number) => void
-}
+type GuestSessionStore = GuestSessionState &
+  GuestSessionActions & {
+    // Internal state for pending counters
+    _pendingPageViews: number
+    _pendingTimeSpent: number
+    _pendingBiographyViews: number
+    _incrementPendingTime: (_seconds: number) => void
+  }
 
 // Helper functions
 const saveSessionToLocal = (sessionData: GuestSession) => {
@@ -262,4 +263,4 @@ export const useGuestSessionStore = create<GuestSessionStore>((set, get) => ({
 }))
 
 // 導出常數供外部使用
-export { SYNC_INTERVAL, TIME_TRACK_INTERVAL, API_BASE_URL as GUEST_API_BASE_URL }
+export { API_BASE_URL as GUEST_API_BASE_URL, SYNC_INTERVAL, TIME_TRACK_INTERVAL }

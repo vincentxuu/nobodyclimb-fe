@@ -1,19 +1,19 @@
 'use client'
 
-import { useState, useEffect, useCallback } from 'react'
-import { MessageCircle, Send, Trash2, Loader2 } from 'lucide-react'
-import { Button } from '@/components/ui/button'
-import { Textarea } from '@/components/ui/textarea'
-import { bucketListService } from '@/lib/api/services'
-import { useAuthStore } from '@/store/authStore'
-import { useRouter } from 'next/navigation'
-import { BucketListComment } from '@/lib/types'
-import { cn } from '@/lib/utils'
-import { useToast } from '@/components/ui/use-toast'
 import { AxiosError } from 'axios'
 import { formatDistanceToNow } from 'date-fns'
 import { zhTW } from 'date-fns/locale'
+import { Loader2, MessageCircle, Send, Trash2 } from 'lucide-react'
+import { useRouter } from 'next/navigation'
 import { useTranslations } from 'next-intl'
+import { useCallback, useEffect, useState } from 'react'
+import { Button } from '@/components/ui/button'
+import { Textarea } from '@/components/ui/textarea'
+import { useToast } from '@/components/ui/use-toast'
+import { bucketListService } from '@/lib/api/services'
+import { BucketListComment } from '@/lib/types'
+import { cn } from '@/lib/utils'
+import { useAuthStore } from '@/store/authStore'
 
 interface CommentSectionProps {
   itemId: string
@@ -21,11 +21,7 @@ interface CommentSectionProps {
   className?: string
 }
 
-export function CommentSection({
-  itemId,
-  initialCount = 0,
-  className,
-}: CommentSectionProps) {
+export function CommentSection({ itemId, initialCount = 0, className }: CommentSectionProps) {
   const [comments, setComments] = useState<BucketListComment[]>([])
   const [isLoading, setIsLoading] = useState(false)
   const [isSubmitting, setIsSubmitting] = useState(false)
@@ -170,8 +166,8 @@ export function CommentSection({
                 className="text-brand-600 hover:underline"
               >
                 {t('login')}
-              </button>
-              {' '}{t('commentLoginPrompt')}
+              </button>{' '}
+              {t('commentLoginPrompt')}
             </p>
           )}
 
@@ -180,9 +176,7 @@ export function CommentSection({
               <Loader2 className="h-6 w-6 animate-spin text-gray-400" />
             </div>
           ) : comments.length === 0 ? (
-            <p className="text-sm text-gray-500 text-center py-4">
-              {t('noComments')}
-            </p>
+            <p className="text-sm text-gray-500 text-center py-4">{t('noComments')}</p>
           ) : (
             <div className="space-y-4">
               {comments.map((comment) => (
@@ -203,9 +197,7 @@ export function CommentSection({
                   </div>
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2">
-                      <span className="font-medium text-sm">
-                        {getDisplayName(comment)}
-                      </span>
+                      <span className="font-medium text-sm">{getDisplayName(comment)}</span>
                       <span className="text-xs text-gray-400">
                         {formatTime(comment.created_at)}
                       </span>
@@ -218,9 +210,7 @@ export function CommentSection({
                         </button>
                       )}
                     </div>
-                    <p className="text-sm text-gray-700 mt-1 break-words">
-                      {comment.content}
-                    </p>
+                    <p className="text-sm text-gray-700 mt-1 break-words">{comment.content}</p>
                   </div>
                 </div>
               ))}

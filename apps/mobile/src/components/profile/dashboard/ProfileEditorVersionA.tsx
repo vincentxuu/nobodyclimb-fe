@@ -1,8 +1,7 @@
-import React from 'react'
-import { View, StyleSheet } from 'react-native'
+import { COLORS } from '@nobodyclimb/constants'
+import { StyleSheet, View } from 'react-native'
 import ProfileContainer from '../ProfileContainer'
 import { ProfileProvider } from '../ProfileContext'
-import { COLORS } from '@nobodyclimb/constants'
 
 /**
  * ProfileEditorVersionA - 標準版編輯器

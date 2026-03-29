@@ -20,8 +20,7 @@ export function MarkdownText({ content, className }: MarkdownTextProps) {
       {paragraphs.map((para, i) => {
         const lines = para.split('\n').filter((l) => l.trim() !== '')
         // 判斷是否為數字清單段落（多行且每行以數字開頭）
-        const isNumberedList =
-          lines.length > 1 && lines.every((l) => /^\d+\./.test(l.trim()))
+        const isNumberedList = lines.length > 1 && lines.every((l) => /^\d+\./.test(l.trim()))
 
         if (isNumberedList) {
           return (

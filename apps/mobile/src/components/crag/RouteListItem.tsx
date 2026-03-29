@@ -3,12 +3,11 @@
  *
  * 對應 apps/web/src/components/crag/route-list-item.tsx
  */
-import React from 'react'
-import { StyleSheet, View, Pressable } from 'react-native'
-import { ChevronRight } from 'lucide-react-native'
 
-import { Text } from '@/components/ui'
 import { SEMANTIC_COLORS, SPACING, WB_COLORS } from '@nobodyclimb/constants'
+import { ChevronRight } from 'lucide-react-native'
+import { Pressable, StyleSheet, View } from 'react-native'
+import { Text } from '@/components/ui'
 
 interface RouteListItemProps {
   id: string
@@ -31,10 +30,7 @@ export function RouteListItem({
   return (
     <Pressable
       onPress={onPress}
-      style={({ pressed }) => [
-        styles.container,
-        pressed && styles.pressed,
-      ]}
+      style={({ pressed }) => [styles.container, pressed && styles.pressed]}
     >
       <View style={styles.content}>
         {/* 難度標籤 */}

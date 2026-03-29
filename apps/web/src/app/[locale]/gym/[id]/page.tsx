@@ -1,10 +1,10 @@
 import type { Metadata } from 'next'
-import GymDetailClient from './GymDetailClient'
-import { fetchGymById } from '@/lib/api/server-fetch'
 import { adaptGymToDetail } from '@/lib/adapters/gym-adapter'
+import { fetchGymById } from '@/lib/api/server-fetch'
+import { OG_IMAGE, SITE_NAME, SITE_URL } from '@/lib/constants'
 import type { GymDetailData } from '@/lib/gym-data'
-import { SITE_URL, SITE_NAME, OG_IMAGE } from '@/lib/constants'
 import { buildHreflangAlternates, buildOgLocale } from '@/lib/i18n-metadata'
+import GymDetailClient from './GymDetailClient'
 
 // 生成 LocalBusiness JSON-LD 結構化數據
 function generateGymJsonLd(gym: GymDetailData, id: string) {
@@ -52,31 +52,35 @@ function generateGymJsonLd(gym: GymDetailData, id: string) {
       addressRegion: gym.location.city,
       addressCountry: 'TW',
     },
-    geo: gym.location.latitude && gym.location.longitude ? {
-      '@type': 'GeoCoordinates',
-      latitude: gym.location.latitude,
-      longitude: gym.location.longitude,
-    } : undefined,
+    geo:
+      gym.location.latitude && gym.location.longitude
+        ? {
+            '@type': 'GeoCoordinates',
+            latitude: gym.location.latitude,
+            longitude: gym.location.longitude,
+          }
+        : undefined,
     openingHoursSpecification: openingHoursSpec.length > 0 ? openingHoursSpec : undefined,
     priceRange: gym.pricing.singleEntry
       ? `$${gym.pricing.singleEntry.weekday}-$${gym.pricing.singleEntry.weekend}`
       : undefined,
-    aggregateRating: gym.rating > 0 ? {
-      '@type': 'AggregateRating',
-      ratingValue: gym.rating,
-      bestRating: 5,
-      worstRating: 1,
-    } : undefined,
-    amenityFeature: gym.facilities.map(facility => ({
+    aggregateRating:
+      gym.rating > 0
+        ? {
+            '@type': 'AggregateRating',
+            ratingValue: gym.rating,
+            bestRating: 5,
+            worstRating: 1,
+          }
+        : undefined,
+    amenityFeature: gym.facilities.map((facility) => ({
       '@type': 'LocationFeatureSpecification',
       name: facility,
       value: true,
     })),
-    sameAs: [
-      gym.contact.facebookUrl,
-      gym.contact.instagramUrl,
-      gym.contact.website,
-    ].filter(Boolean),
+    sameAs: [gym.contact.facebookUrl, gym.contact.instagramUrl, gym.contact.website].filter(
+      Boolean
+    ),
   }
 }
 
@@ -98,13 +102,17 @@ export async function generateMetadata({
   }
 
   const title = `${gym.name} - ${gym.typeLabel}`
-  const description = gym.description?.substring(0, 160) || `${gym.name}位於${gym.location.address}，提供${gym.typeLabel}服務。`
+  const description =
+    gym.description?.substring(0, 160) ||
+    `${gym.name}位於${gym.location.address}，提供${gym.typeLabel}服務。`
   const ogLocale = buildOgLocale(locale)
 
   return {
     title: gym.name,
     description,
-    keywords: [gym.name, gym.nameEn, '攀岩館', gym.typeLabel, gym.location.city, '室內攀岩'].filter(Boolean),
+    keywords: [gym.name, gym.nameEn, '攀岩館', gym.typeLabel, gym.location.city, '室內攀岩'].filter(
+      Boolean
+    ),
     openGraph: {
       title: `${title} | ${SITE_NAME}`,
       description,
@@ -134,11 +142,7 @@ export async function generateMetadata({
   }
 }
 
-export default async function GymDetailPage({
-  params,
-}: {
-  params: Promise<{ id: string }>
-}) {
+export default async function GymDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params
   const apiGym = await fetchGymById(id)
   const gym = apiGym ? adaptGymToDetail(apiGym) : null

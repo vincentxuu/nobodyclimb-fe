@@ -1,6 +1,6 @@
+import { ChevronDown } from 'lucide-react'
 import * as React from 'react'
 import { cn } from '@/lib/utils'
-import { ChevronDown } from 'lucide-react'
 
 // All interfaces defined at the top
 interface SelectProps {
@@ -118,7 +118,9 @@ const SelectTrigger = ({
         }
         return child
       })}
-      <ChevronDown className={cn('h-4 w-4 flex-shrink-0 transition-transform', open && 'rotate-180 transform')} />
+      <ChevronDown
+        className={cn('h-4 w-4 flex-shrink-0 transition-transform', open && 'rotate-180 transform')}
+      />
     </div>
   )
 }
@@ -193,4 +195,4 @@ const Select = ({ value, onValueChange, children, disabled }: SelectProps) => {
   )
 }
 
-export { Select, SelectTrigger, SelectValue, SelectContent, SelectItem }
+export { Select, SelectContent, SelectItem, SelectTrigger, SelectValue }

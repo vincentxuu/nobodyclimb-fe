@@ -7,20 +7,16 @@
 
 import { API_BASE_URL as DEFAULT_API_BASE_URL } from '../constants'
 import type {
-  ApiCrag,
   ApiArea,
-  ApiRoute,
-  ApiCragListResponse,
-  ApiCragDetailResponse,
-  ApiCragRoutesResponse,
+  ApiCrag,
   ApiCragAreasResponse,
+  ApiCragDetailResponse,
+  ApiCragListResponse,
   ApiCragRouteDetailResponse,
+  ApiCragRoutesResponse,
+  ApiRoute,
 } from '../types/api-crag'
-import type {
-  ApiGym,
-  ApiGymListResponse,
-  ApiGymDetailResponse,
-} from '../types/api-gym'
+import type { ApiGym, ApiGymDetailResponse, ApiGymListResponse } from '../types/api-gym'
 
 /**
  * 取得 API 基礎 URL
@@ -37,17 +33,11 @@ async function getApiBaseUrl(): Promise<string> {
     const { env } = getCloudflareContext()
     const serverApiUrl = (env as unknown as Record<string, string | undefined>)?.SERVER_API_URL
 
-    console.log('[Server Fetch] Runtime SERVER_API_URL:', serverApiUrl)
-
     if (serverApiUrl) {
       return serverApiUrl
     }
-  } catch (error) {
-    // 非 Cloudflare 環境（如本地開發），忽略錯誤
-    console.log('[Server Fetch] getCloudflareContext failed:', error)
-  }
-  // Fallback 到 build time 環境變數或預設值
-  console.log('[Server Fetch] Using fallback API URL:', DEFAULT_API_BASE_URL)
+  } catch (_error) {}
+
   return DEFAULT_API_BASE_URL
 }
 
@@ -66,30 +56,26 @@ async function serverFetch<T>(path: string): Promise<T | null> {
     if (backendApi) {
       // 走 Service Binding，完全不走公開網路
       const url = `https://internal/api/v1${path}`
-      console.log('[Server Fetch] Service Binding:', url)
+
       const response = await backendApi.fetch(new Request(url))
-      console.log('[Server Fetch] Service Binding Status:', response.status, 'for', url)
+
       if (!response.ok) {
         console.error('[Server Fetch] Service Binding failed:', response.status, 'for', url)
         return null
       }
       return response.json()
     }
-  } catch (error) {
-    // 非 Cloudflare 環境（如本地開發），fallback 到 HTTP
-    console.log('[Server Fetch] Service Binding unavailable, falling back to HTTP:', error)
-  }
+  } catch (_error) {}
 
   // HTTP fallback（本地開發用）
   const apiBaseUrl = await getApiBaseUrl()
   const fullUrl = `${apiBaseUrl}${path}`
-  console.log('[Server Fetch] HTTP URL:', fullUrl)
 
   try {
     const response = await fetch(fullUrl, {
       cache: 'no-store',
     })
-    console.log('[Server Fetch] HTTP Status:', response.status, 'for', fullUrl)
+
     if (!response.ok) {
       console.error('[Server Fetch] HTTP failed:', response.status, 'for', fullUrl)
       return null
@@ -148,8 +134,13 @@ export async function fetchCragRoutes(cragId: string): Promise<ApiRoute[]> {
 /**
  * 取得單一路線詳情
  */
-export async function fetchCragRouteById(cragId: string, routeId: string): Promise<ApiRoute | null> {
-  const response = await serverFetch<ApiCragRouteDetailResponse>(`/crags/${cragId}/routes/${routeId}`)
+export async function fetchCragRouteById(
+  cragId: string,
+  routeId: string
+): Promise<ApiRoute | null> {
+  const response = await serverFetch<ApiCragRouteDetailResponse>(
+    `/crags/${cragId}/routes/${routeId}`
+  )
   return response?.data || null
 }
 

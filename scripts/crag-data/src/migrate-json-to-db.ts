@@ -8,63 +8,67 @@
  *   pnpm migrate:json --dry-run # 預覽模式
  */
 
-import { readFileSync, readdirSync } from 'fs';
-import { join, dirname } from 'path';
-import { fileURLToPath } from 'url';
-import { config, validateConfig } from './config.js';
+import { readdirSync, readFileSync } from 'fs'
+import { dirname, join } from 'path'
+import { fileURLToPath } from 'url'
+import { config } from './config.js'
+import type {
+  CragJsonArea,
+  CragJsonFullData,
+  CragJsonSector,
+  CragSheetRow,
+  RouteSheetRow,
+} from './types.js'
 import {
-  upsertCrag,
-  upsertRoute,
+  buildRouteExtendedSQL,
+  buildRouteVideoSQL,
+  buildVideoSQL,
+  type CragMetadataUpdate,
+  executeBatchD1Query,
+  type RouteExtendedFields,
+  updateCragMetadata,
   updateCragRouteCount,
   upsertArea,
+  upsertCrag,
   upsertSector,
-  buildRouteSQL,
-  executeBatchD1Query,
-  updateCragMetadata,
-  buildVideoSQL,
-  buildRouteVideoSQL,
-  buildRouteExtendedSQL,
-  type CragMetadataUpdate,
   type VideoMetadata,
-  type RouteExtendedFields,
-} from './utils/d1.js';
-import type { CragJsonFullData, CragSheetRow, RouteSheetRow, CragJsonArea, CragJsonSector } from './types.js';
+} from './utils/d1.js'
 
-const __dirname = dirname(fileURLToPath(import.meta.url));
+const __dirname = dirname(fileURLToPath(import.meta.url))
 
 // Video metadata JSON 路徑
-const VIDEO_METADATA_PATH = join(__dirname, '../../../apps/web/public/data/video-metadata.json');
+const VIDEO_METADATA_PATH = join(__dirname, '../../../apps/web/public/data/video-metadata.json')
 
 // ============================================
 // JSON to Sheet Row Converters
 // ============================================
 
 function jsonToCragRow(json: CragJsonFullData): CragSheetRow {
-  const crag = json.crag;
+  const crag = json.crag
 
   // Determine climbing types from routes
-  const routeTypes = new Set(json.routes.map(r => r.type?.toLowerCase() || 'sport'));
-  const climbingTypes = Array.from(routeTypes).filter(t =>
+  const routeTypes = new Set(json.routes.map((r) => r.type?.toLowerCase() || 'sport'))
+  const climbingTypes = Array.from(routeTypes).filter((t) =>
     ['sport', 'trad', 'boulder', 'mixed'].includes(t)
-  );
+  )
 
   // Calculate difficulty range from routes
-  let difficultyRange = '';
+  let difficultyRange = ''
   if (crag.difficulty) {
-    difficultyRange = `${crag.difficulty.min}-${crag.difficulty.max}`;
+    difficultyRange = `${crag.difficulty.min}-${crag.difficulty.max}`
   }
 
   // Handle nested location object or flat fields
-  const location = crag.location || {};
-  const region = location.region || crag.region || '北部';
-  const address = location.address || crag.address || '';
-  const latitude = location.latitude || crag.latitude || 0;
-  const longitude = location.longitude || crag.longitude || 0;
+  const location = crag.location || {}
+  const region = location.region || crag.region || '北部'
+  const address = location.address || crag.address || ''
+  const latitude = location.latitude || crag.latitude || 0
+  const longitude = location.longitude || crag.longitude || 0
 
   // Handle nested access object or flat fields
-  const access = crag.access || {};
-  const approach = access.approach || crag.approach;
-  const parking = access.parking || crag.parking;
+  const access = crag.access || {}
+  const approach = access.approach || crag.approach
+  const parking = access.parking || crag.parking
 
   return {
     status: 'approved',
@@ -93,30 +97,27 @@ function jsonToCragRow(json: CragJsonFullData): CragSheetRow {
     reviewedBy: 'migration@nobodyclimb.cc',
     reviewedAt: new Date().toISOString(),
     reviewNotes: 'Migrated from static JSON',
-  };
+  }
 }
 
-function jsonToRouteRow(
-  route: CragJsonFullData['routes'][0],
-  cragSlug: string
-): RouteSheetRow {
+function jsonToRouteRow(route: CragJsonFullData['routes'][0], cragSlug: string): RouteSheetRow {
   // Determine grade system based on grade format
-  let gradeSystem: RouteSheetRow['gradeSystem'] = 'yds';
+  let gradeSystem: RouteSheetRow['gradeSystem'] = 'yds'
   if (route.grade.startsWith('V')) {
-    gradeSystem = 'v-scale';
+    gradeSystem = 'v-scale'
   } else if (/^\d+[a-c]?\+?$/.test(route.grade)) {
-    gradeSystem = 'french';
+    gradeSystem = 'french'
   }
 
   // Map route type
-  let routeType: RouteSheetRow['routeType'] = 'sport';
-  const type = route.type?.toLowerCase();
+  let routeType: RouteSheetRow['routeType'] = 'sport'
+  const type = route.type?.toLowerCase()
   if (type === 'trad' || type === 'traditional') {
-    routeType = 'trad';
+    routeType = 'trad'
   } else if (type === 'boulder' || type === 'bouldering') {
-    routeType = 'boulder';
+    routeType = 'boulder'
   } else if (type === 'mixed') {
-    routeType = 'mixed';
+    routeType = 'mixed'
   }
 
   return {
@@ -140,7 +141,7 @@ function jsonToRouteRow(
     tips: route.tips,
     submittedBy: 'migration@nobodyclimb.cc',
     submittedAt: new Date().toISOString(),
-  };
+  }
 }
 
 // ============================================
@@ -149,22 +150,22 @@ function jsonToRouteRow(
 
 interface VideoMetadataJson {
   [videoId: string]: {
-    title: string;
-    channel: string;
-    channelId: string;
-    uploadDate: string;
-    duration: number;
-    viewCount: number;
-    thumbnailUrl: string;
-  };
+    title: string
+    channel: string
+    channelId: string
+    uploadDate: string
+    duration: number
+    viewCount: number
+    thumbnailUrl: string
+  }
 }
 
 function loadVideoMetadata(): Map<string, VideoMetadata> {
-  const map = new Map<string, VideoMetadata>();
+  const map = new Map<string, VideoMetadata>()
 
   try {
-    const content = readFileSync(VIDEO_METADATA_PATH, 'utf-8');
-    const data = JSON.parse(content) as VideoMetadataJson;
+    const content = readFileSync(VIDEO_METADATA_PATH, 'utf-8')
+    const data = JSON.parse(content) as VideoMetadataJson
 
     for (const [videoId, meta] of Object.entries(data)) {
       map.set(videoId, {
@@ -176,15 +177,16 @@ function loadVideoMetadata(): Map<string, VideoMetadata> {
         duration: meta.duration,
         viewCount: meta.viewCount,
         thumbnailUrl: meta.thumbnailUrl,
-      });
+      })
     }
-
-    console.log(`   ✓ Loaded ${map.size} video metadata entries`);
   } catch (error) {
-    console.error(`   ✗ Failed to load video metadata:`, error instanceof Error ? error.message : error);
+    console.error(
+      `   ✗ Failed to load video metadata:`,
+      error instanceof Error ? error.message : error
+    )
   }
 
-  return map;
+  return map
 }
 
 /**
@@ -192,14 +194,14 @@ function loadVideoMetadata(): Map<string, VideoMetadata> {
  */
 function extractYouTubeVideoId(url: string): string | null {
   // 格式: https://www.youtube.com/watch?v=VIDEO_ID
-  const vMatch = url.match(/[?&]v=([a-zA-Z0-9_-]{11})/);
-  if (vMatch) return vMatch[1];
+  const vMatch = url.match(/[?&]v=([a-zA-Z0-9_-]{11})/)
+  if (vMatch) return vMatch[1]
 
   // 格式: https://youtu.be/VIDEO_ID
-  const shortMatch = url.match(/youtu\.be\/([a-zA-Z0-9_-]{11})/);
-  if (shortMatch) return shortMatch[1];
+  const shortMatch = url.match(/youtu\.be\/([a-zA-Z0-9_-]{11})/)
+  if (shortMatch) return shortMatch[1]
 
-  return null;
+  return null
 }
 
 // ============================================
@@ -207,61 +209,60 @@ function extractYouTubeVideoId(url: string): string | null {
 // ============================================
 
 function loadJsonFiles(): CragJsonFullData[] {
-  const dataPath = join(__dirname, config.jsonDataPath);
+  const dataPath = join(__dirname, config.jsonDataPath)
 
-  let files: string[];
+  let files: string[]
   try {
-    files = readdirSync(dataPath).filter(f => f.endsWith('.json'));
+    files = readdirSync(dataPath).filter((f) => f.endsWith('.json'))
   } catch {
-    console.error(`❌ Cannot read directory: ${dataPath}`);
-    console.log('   Make sure the path is correct in config.ts');
-    process.exit(1);
+    console.error(`❌ Cannot read directory: ${dataPath}`)
+
+    process.exit(1)
   }
 
-  const crags: CragJsonFullData[] = [];
+  const crags: CragJsonFullData[] = []
 
   for (const file of files) {
-    const filePath = join(dataPath, file);
+    const filePath = join(dataPath, file)
     try {
-      const content = readFileSync(filePath, 'utf-8');
-      const data = JSON.parse(content) as CragJsonFullData;
-      crags.push(data);
-      console.log(`   ✓ Loaded ${file} (${data.routes.length} routes)`);
+      const content = readFileSync(filePath, 'utf-8')
+      const data = JSON.parse(content) as CragJsonFullData
+      crags.push(data)
     } catch (error) {
-      console.error(`   ✗ Failed to load ${file}:`, error instanceof Error ? error.message : error);
+      console.error(`   ✗ Failed to load ${file}:`, error instanceof Error ? error.message : error)
     }
   }
 
-  return crags;
+  return crags
 }
 
 // Build sector name → sector ID mapping for a crag
 function buildSectorNameToIdMap(areas: CragJsonArea[]): Map<string, string> {
-  const map = new Map<string, string>();
+  const map = new Map<string, string>()
   for (const area of areas) {
     if (area.sectors) {
       for (const sector of area.sectors as CragJsonSector[]) {
         // Map by sector name (用於 route.sector 文字比對)
-        map.set(sector.name, sector.id);
+        map.set(sector.name, sector.id)
         // Also map by sector ID in case route uses ID
-        map.set(sector.id, sector.id);
+        map.set(sector.id, sector.id)
       }
     }
   }
-  return map;
+  return map
 }
 
 // Build sector ID → area ID mapping
 function buildSectorToAreaMap(areas: CragJsonArea[]): Map<string, string> {
-  const map = new Map<string, string>();
+  const map = new Map<string, string>()
   for (const area of areas) {
     if (area.sectors) {
       for (const sector of area.sectors as CragJsonSector[]) {
-        map.set(sector.id, area.id);
+        map.set(sector.id, area.id)
       }
     }
   }
-  return map;
+  return map
 }
 
 function migrateToD1(
@@ -269,118 +270,109 @@ function migrateToD1(
   videoMetadata: Map<string, VideoMetadata>,
   dryRun: boolean
 ): void {
-  let totalCrags = 0;
-  let totalAreas = 0;
-  let totalSectors = 0;
-  let totalRoutes = 0;
-  let totalVideos = 0;
-  let totalRouteVideos = 0;
+  let _totalCrags = 0
+  let _totalAreas = 0
+  let _totalSectors = 0
+  let _totalRoutes = 0
+  let _totalVideos = 0
+  let _totalRouteVideos = 0
 
   // ============================================
   // Step 0: 遷移影片 metadata
   // ============================================
   if (!dryRun && videoMetadata.size > 0) {
-    console.log('\n🎬 Migrating videos...');
-
-    const videoSQLs: string[] = [];
+    const videoSQLs: string[] = []
     for (const video of videoMetadata.values()) {
-      videoSQLs.push(buildVideoSQL(video));
+      videoSQLs.push(buildVideoSQL(video))
     }
 
-    const { success: videoCount, failed: videoFailed } = executeBatchD1Query(videoSQLs, 50);
-    totalVideos = videoCount;
+    const { success: videoCount, failed: videoFailed } = executeBatchD1Query(videoSQLs, 50)
+    _totalVideos = videoCount
     if (videoFailed > 0) {
-      console.log(`   ⚠ ${videoCount}/${videoMetadata.size} videos migrated (${videoFailed} failed)`);
     } else {
-      console.log(`   ✓ ${videoCount} videos migrated`);
     }
   } else if (dryRun) {
-    console.log(`\n[DRY RUN] Would migrate ${videoMetadata.size} videos`);
   }
 
   // ============================================
   // Step 1-6: 遷移岩場、區域、路線
   // ============================================
   for (const cragData of crags) {
-    const cragRow = jsonToCragRow(cragData);
-    const cragId = cragRow.id || cragRow.slug;
-    const areas = cragData.areas || [];
+    const cragRow = jsonToCragRow(cragData)
+    const cragId = cragRow.id || cragRow.slug
+    const areas = cragData.areas || []
 
     // Build lookup maps
-    const sectorNameToId = buildSectorNameToIdMap(areas);
-    const sectorToArea = buildSectorToAreaMap(areas);
+    const sectorNameToId = buildSectorNameToIdMap(areas)
+    const sectorToArea = buildSectorToAreaMap(areas)
 
     // 統計有 YouTube 影片的路線數
-    const routesWithVideos = cragData.routes.filter(r => r.youtubeVideos && r.youtubeVideos.length > 0);
+    const _routesWithVideos = cragData.routes.filter(
+      (r) => r.youtubeVideos && r.youtubeVideos.length > 0
+    )
 
     if (dryRun) {
-      console.log(`\n[DRY RUN] Would migrate crag: ${cragRow.name} (${cragRow.slug})`);
-      console.log(`          - Region: ${cragRow.region}`);
-      console.log(`          - Areas: ${areas.length}`);
-      console.log(`          - Routes: ${cragData.routes.length}`);
-      console.log(`          - Routes with videos: ${routesWithVideos.length}`);
-      console.log(`          - Types: ${cragRow.climbingTypes}`);
-
       // Show areas and sectors
       for (const area of areas) {
-        const sectors = (area.sectors as CragJsonSector[]) || [];
-        console.log(`          - Area: ${area.name} (${sectors.length} sectors)`);
+        const _sectors = (area.sectors as CragJsonSector[]) || []
       }
     } else {
-      console.log(`\n🔄 Migrating: ${cragRow.name}...`);
-
       try {
         // 1. Upsert crag
-        upsertCrag(cragRow);
-        totalCrags++;
-        console.log(`   ✓ Crag created/updated`);
+        upsertCrag(cragRow)
+        _totalCrags++
 
         // 2. Upsert areas
-        let areaCount = 0;
+        let areaCount = 0
         for (let i = 0; i < areas.length; i++) {
-          const area = areas[i];
+          const area = areas[i]
           try {
-            upsertArea(area, cragId, i);
-            areaCount++;
+            upsertArea(area, cragId, i)
+            areaCount++
 
             // 3. Upsert sectors for this area
-            const sectors = (area.sectors as CragJsonSector[]) || [];
+            const sectors = (area.sectors as CragJsonSector[]) || []
             for (let j = 0; j < sectors.length; j++) {
-              const sector = sectors[j];
+              const sector = sectors[j]
               try {
-                upsertSector(sector, area.id, j);
-                totalSectors++;
+                upsertSector(sector, area.id, j)
+                _totalSectors++
               } catch (error) {
-                console.error(`   ✗ Failed to migrate sector "${sector.name}":`, error instanceof Error ? error.message : error);
+                console.error(
+                  `   ✗ Failed to migrate sector "${sector.name}":`,
+                  error instanceof Error ? error.message : error
+                )
               }
             }
           } catch (error) {
-            console.error(`   ✗ Failed to migrate area "${area.name}":`, error instanceof Error ? error.message : error);
+            console.error(
+              `   ✗ Failed to migrate area "${area.name}":`,
+              error instanceof Error ? error.message : error
+            )
           }
         }
-        totalAreas += areaCount;
-        console.log(`   ✓ ${areaCount} areas migrated`);
+        _totalAreas += areaCount
 
         // 4. Batch upsert routes with extended fields
-        const routeSQLs: string[] = [];
-        const routeVideoSQLs: string[] = [];
+        const routeSQLs: string[] = []
+        const routeVideoSQLs: string[] = []
 
         for (const route of cragData.routes) {
-          const routeRow = jsonToRouteRow(route, cragRow.slug);
-          const routeId = routeRow.id;
+          const routeRow = jsonToRouteRow(route, cragRow.slug)
+          const routeId = routeRow.id
 
           // Resolve area_id and sector_id
-          let areaId: string | null = route.areaId || null;
-          let sectorId: string | null = null;
+          let areaId: string | null = route.areaId || null
+          let sectorId: string | null = null
 
           // Try to find sector ID from sector name
           if (route.sector) {
-            const foundSectorId = sectorNameToId.get(route.sector);
+            const foundSectorId = sectorNameToId.get(route.sector)
             if (foundSectorId) {
-              sectorId = foundSectorId;
+              sectorId = foundSectorId
               // If areaId not set, derive from sector
               if (!areaId) {
-                areaId = sectorToArea.get(foundSectorId) || null;
+                areaId = sectorToArea.get(foundSectorId) || null
               }
             }
           }
@@ -397,51 +389,46 @@ function migrateToD1(
             tips: route.tips || null,
             protection: route.protection || null,
             anchorType: route.anchorType || null,
-          };
+          }
 
-          routeSQLs.push(buildRouteExtendedSQL(routeRow, cragId, areaId, sectorId, extended));
+          routeSQLs.push(buildRouteExtendedSQL(routeRow, cragId, areaId, sectorId, extended))
 
           // 5. Build route_videos relations
           if (route.youtubeVideos && route.youtubeVideos.length > 0) {
             for (let i = 0; i < route.youtubeVideos.length; i++) {
-              const videoUrl = route.youtubeVideos[i];
-              const videoId = extractYouTubeVideoId(videoUrl);
+              const videoUrl = route.youtubeVideos[i]
+              const videoId = extractYouTubeVideoId(videoUrl)
 
               if (videoId && videoMetadata.has(videoId)) {
-                routeVideoSQLs.push(buildRouteVideoSQL(routeId, videoId, i));
+                routeVideoSQLs.push(buildRouteVideoSQL(routeId, videoId, i))
               }
             }
           }
         }
 
         // 批量執行路線 SQL（每批 50 條）
-        const { success: routeCount, failed: routeFailed } = executeBatchD1Query(routeSQLs, 50);
-        totalRoutes += routeCount;
+        const { success: routeCount, failed: routeFailed } = executeBatchD1Query(routeSQLs, 50)
+        _totalRoutes += routeCount
         if (routeFailed > 0) {
-          console.log(`   ⚠ ${routeCount}/${cragData.routes.length} routes migrated (${routeFailed} failed)`);
         } else {
-          console.log(`   ✓ ${routeCount}/${cragData.routes.length} routes migrated`);
         }
 
         // 6. 批量執行 route_videos SQL
         if (routeVideoSQLs.length > 0) {
-          const { success: rvCount, failed: rvFailed } = executeBatchD1Query(routeVideoSQLs, 50);
-          totalRouteVideos += rvCount;
+          const { success: rvCount, failed: rvFailed } = executeBatchD1Query(routeVideoSQLs, 50)
+          _totalRouteVideos += rvCount
           if (rvFailed > 0) {
-            console.log(`   ⚠ ${rvCount}/${routeVideoSQLs.length} route-video links created (${rvFailed} failed)`);
           } else {
-            console.log(`   ✓ ${rvCount} route-video links created`);
           }
         }
 
         // 7. Update route count
-        updateCragRouteCount(cragId);
-        console.log(`   ✓ Route count updated`);
+        updateCragRouteCount(cragId)
 
         // 8. Update metadata fields (if present in JSON)
-        const cragJson = cragData.crag;
-        const metadataJson = cragData.metadata;
-        const accessJson = cragJson.access;
+        const cragJson = cragData.crag
+        const metadataJson = cragData.metadata
+        const accessJson = cragJson.access
 
         const metadataUpdate: CragMetadataUpdate = {
           metadataSource: metadataJson?.source || null,
@@ -457,29 +444,23 @@ function migrateToD1(
           ratingAvg: cragJson.rating || null,
           heightMin: cragJson.height?.min || null,
           heightMax: cragJson.height?.max || null,
-        };
-
-        // 只有有值才更新
-        const hasMetadata = Object.values(metadataUpdate).some(v => v !== null);
-        if (hasMetadata) {
-          updateCragMetadata(cragId, metadataUpdate);
-          console.log(`   ✓ Metadata updated`);
         }
 
+        // 只有有值才更新
+        const hasMetadata = Object.values(metadataUpdate).some((v) => v !== null)
+        if (hasMetadata) {
+          updateCragMetadata(cragId, metadataUpdate)
+        }
       } catch (error) {
-        console.error(`   ✗ Failed to migrate crag:`, error instanceof Error ? error.message : error);
+        console.error(
+          `   ✗ Failed to migrate crag:`,
+          error instanceof Error ? error.message : error
+        )
       }
     }
   }
 
   if (!dryRun) {
-    console.log(`\n✅ Migration complete:`);
-    console.log(`   - ${totalVideos} videos`);
-    console.log(`   - ${totalCrags} crags`);
-    console.log(`   - ${totalAreas} areas`);
-    console.log(`   - ${totalSectors} sectors`);
-    console.log(`   - ${totalRoutes} routes`);
-    console.log(`   - ${totalRouteVideos} route-video links`);
   }
 }
 
@@ -488,83 +469,55 @@ function migrateToD1(
 // ============================================
 
 function sleep(ms: number): void {
-  const end = Date.now() + ms;
+  const end = Date.now() + ms
   while (Date.now() < end) {
     // busy wait
   }
 }
 
 function main() {
-  const args = process.argv.slice(2);
-  const dryRun = args.includes('--dry-run');
-
-  console.log('╔════════════════════════════════════════╗');
-  console.log('║    JSON → D1 遷移工具 v2.0            ║');
-  console.log('║  (含影片 metadata + route_videos)     ║');
-  console.log('╚════════════════════════════════════════╝\n');
+  const args = process.argv.slice(2)
+  const dryRun = args.includes('--dry-run')
 
   if (dryRun) {
-    console.log('🔍 DRY RUN MODE - No data will be written\n');
   } else {
-    console.log(`🌍 Environment: ${config.environment}`);
-    console.log(`📂 Backend path: ${config.backendPath}\n`);
   }
 
-  // Load video metadata
-  console.log('🎬 Loading video metadata...');
-  const videoMetadata = loadVideoMetadata();
+  const videoMetadata = loadVideoMetadata()
 
-  // Load crag JSON files
-  console.log('\n📂 Loading crag JSON files...');
-  const crags = loadJsonFiles();
+  const crags = loadJsonFiles()
 
   if (crags.length === 0) {
-    console.log('\n⚠️  No JSON files found to migrate.');
-    process.exit(0);
+    process.exit(0)
   }
 
   // Count routes with videos
-  let totalRoutesWithVideos = 0;
+  let _totalRoutesWithVideos = 0
   for (const crag of crags) {
     for (const route of crag.routes) {
       if (route.youtubeVideos && route.youtubeVideos.length > 0) {
-        totalRoutesWithVideos++;
+        _totalRoutesWithVideos++
       }
     }
   }
 
-  console.log(`\n📊 Found:`);
-  console.log(`   - ${videoMetadata.size} video metadata entries`);
-  console.log(`   - ${crags.length} crags`);
-  console.log(`   - ${crags.reduce((sum, c) => sum + c.routes.length, 0)} total routes`);
-  console.log(`   - ${totalRoutesWithVideos} routes with YouTube videos`);
-
-  // Summary
-  console.log('\n📋 Migration Summary:');
-  console.log('┌─────────────────┬────────┬────────┬────────┐');
-  console.log('│ Crag            │ Routes │ Videos │ Region │');
-  console.log('├─────────────────┼────────┼────────┼────────┤');
   for (const crag of crags) {
-    const name = crag.crag.name.padEnd(15).slice(0, 15);
-    const routes = String(crag.routes.length).padStart(6);
-    const videos = String(crag.routes.filter(r => r.youtubeVideos?.length).length).padStart(6);
-    const region = (crag.crag.region || '北部').padEnd(6);
-    console.log(`│ ${name} │ ${routes} │ ${videos} │ ${region} │`);
+    const _name = crag.crag.name.padEnd(15).slice(0, 15)
+    const _routes = String(crag.routes.length).padStart(6)
+    const _videos = String(crag.routes.filter((r) => r.youtubeVideos?.length).length).padStart(6)
+    const _region = (crag.crag.region || '北部').padEnd(6)
   }
-  console.log('└─────────────────┴────────┴────────┴────────┘');
 
   if (!dryRun) {
-    console.log('\n⚠️  This will write data to the D1 database.');
-    console.log('   Press Ctrl+C within 3 seconds to cancel...');
-    sleep(3000);
+    sleep(3000)
   }
 
-  migrateToD1(crags, videoMetadata, dryRun);
+  migrateToD1(crags, videoMetadata, dryRun)
 }
 
 try {
-  main();
+  main()
 } catch (error) {
-  console.error('\n❌ Fatal error:', error);
-  process.exit(1);
+  console.error('\n❌ Fatal error:', error)
+  process.exit(1)
 }

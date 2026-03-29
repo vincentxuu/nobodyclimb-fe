@@ -1,8 +1,7 @@
-import React from 'react'
-import { View, StyleSheet } from 'react-native'
-import { Text } from '../ui/Text'
+import { COLORS, SEMANTIC_COLORS } from '@nobodyclimb/constants'
+import { StyleSheet, View } from 'react-native'
 import { Switch } from '../ui/Switch'
-import { SEMANTIC_COLORS, COLORS } from '@nobodyclimb/constants'
+import { Text } from '../ui/Text'
 
 interface PublicSettingSectionProps {
   isPublic: boolean
@@ -10,10 +9,7 @@ interface PublicSettingSectionProps {
   onChange: (field: string, value: boolean) => void
 }
 
-export default function PublicSettingSection({
-  isPublic,
-  onChange,
-}: PublicSettingSectionProps) {
+export default function PublicSettingSection({ isPublic, onChange }: PublicSettingSectionProps) {
   return (
     <View style={styles.container}>
       <View style={styles.row}>
@@ -22,15 +18,10 @@ export default function PublicSettingSection({
             公開個人頁面
           </Text>
           <Text variant="caption" style={{ color: SEMANTIC_COLORS.textMuted, marginTop: 4 }}>
-            {isPublic
-              ? '其他人可以看到你的個人頁面'
-              : '只有你自己可以看到個人頁面'}
+            {isPublic ? '其他人可以看到你的個人頁面' : '只有你自己可以看到個人頁面'}
           </Text>
         </View>
-        <Switch
-          checked={isPublic}
-          onCheckedChange={(checked) => onChange('isPublic', checked)}
-        />
+        <Switch checked={isPublic} onCheckedChange={(checked) => onChange('isPublic', checked)} />
       </View>
       {!isPublic && (
         <View style={styles.warningBox}>

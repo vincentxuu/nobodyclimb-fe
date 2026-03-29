@@ -1,11 +1,11 @@
 'use client'
 
-import { useState, useEffect } from 'react'
-import { Loader2, Save, Trash2, Route as RouteIcon } from 'lucide-react'
+import { Loader2, Route as RouteIcon, Save, Trash2 } from 'lucide-react'
+import { useEffect, useState } from 'react'
 import { useToast } from '@/components/ui/use-toast'
 import { adminCragService } from '@/lib/api/services'
-import { AdminRoute, RouteFormData, emptyRouteForm, routeTypeLabels } from './types'
 import RouteVideoManager from './RouteVideoManager'
+import { AdminRoute, emptyRouteForm, RouteFormData, routeTypeLabels } from './types'
 
 interface InlineRouteFormProps {
   route: AdminRoute | null
@@ -133,9 +133,7 @@ export default function InlineRouteForm({
             <h2 className="font-semibold text-wb-100">
               {isNew ? '新增路線' : `編輯路線：${route?.name}`}
             </h2>
-            <p className="text-xs text-wb-50">
-              {breadcrumb || '填寫路線資料'}
-            </p>
+            <p className="text-xs text-wb-50">{breadcrumb || '填寫路線資料'}</p>
           </div>
         </div>
       </div>
@@ -145,9 +143,7 @@ export default function InlineRouteForm({
         <div className="space-y-6 max-w-2xl">
           {/* 基本資訊 */}
           <fieldset className="space-y-3">
-            <legend className="text-sm font-medium text-wb-90 mb-2">
-              基本資訊
-            </legend>
+            <legend className="text-sm font-medium text-wb-90 mb-2">基本資訊</legend>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div className="sm:col-span-2">
                 <label className="block text-sm font-medium text-wb-70 mb-1">
@@ -164,9 +160,7 @@ export default function InlineRouteForm({
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-wb-70 mb-1">
-                  難度
-                </label>
+                <label className="block text-sm font-medium text-wb-70 mb-1">難度</label>
                 <input
                   type="text"
                   value={form.grade}
@@ -177,14 +171,10 @@ export default function InlineRouteForm({
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-wb-70 mb-1">
-                  難度系統
-                </label>
+                <label className="block text-sm font-medium text-wb-70 mb-1">難度系統</label>
                 <select
                   value={form.grade_system}
-                  onChange={(e) =>
-                    setForm({ ...form, grade_system: e.target.value })
-                  }
+                  onChange={(e) => setForm({ ...form, grade_system: e.target.value })}
                   className="w-full px-3 py-2 text-sm border border-wb-20 rounded-lg focus:outline-none focus:ring-2 focus:ring-wb-100/20 bg-white"
                 >
                   <option value="yds">YDS</option>
@@ -195,14 +185,10 @@ export default function InlineRouteForm({
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-wb-70 mb-1">
-                  類型
-                </label>
+                <label className="block text-sm font-medium text-wb-70 mb-1">類型</label>
                 <select
                   value={form.route_type}
-                  onChange={(e) =>
-                    setForm({ ...form, route_type: e.target.value })
-                  }
+                  onChange={(e) => setForm({ ...form, route_type: e.target.value })}
                   className="w-full px-3 py-2 text-sm border border-wb-20 rounded-lg focus:outline-none focus:ring-2 focus:ring-wb-100/20 bg-white"
                 >
                   {Object.entries(routeTypeLabels).map(([value, label]) => (
@@ -214,9 +200,7 @@ export default function InlineRouteForm({
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-wb-70 mb-1">
-                  高度 (m)
-                </label>
+                <label className="block text-sm font-medium text-wb-70 mb-1">高度 (m)</label>
                 <input
                   type="number"
                   value={form.height}
@@ -227,30 +211,22 @@ export default function InlineRouteForm({
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-wb-70 mb-1">
-                  Bolt 數
-                </label>
+                <label className="block text-sm font-medium text-wb-70 mb-1">Bolt 數</label>
                 <input
                   type="number"
                   value={form.bolt_count}
-                  onChange={(e) =>
-                    setForm({ ...form, bolt_count: e.target.value })
-                  }
+                  onChange={(e) => setForm({ ...form, bolt_count: e.target.value })}
                   placeholder="例：8"
                   className="w-full px-3 py-2 text-sm border border-wb-20 rounded-lg bg-white focus:outline-none focus:ring-2 focus:ring-wb-100/20"
                 />
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-wb-70 mb-1">
-                  首攀者
-                </label>
+                <label className="block text-sm font-medium text-wb-70 mb-1">首攀者</label>
                 <input
                   type="text"
                   value={form.first_ascent}
-                  onChange={(e) =>
-                    setForm({ ...form, first_ascent: e.target.value })
-                  }
+                  onChange={(e) => setForm({ ...form, first_ascent: e.target.value })}
                   placeholder="例：王小明 (2020)"
                   className="w-full px-3 py-2 text-sm border border-wb-20 rounded-lg bg-white focus:outline-none focus:ring-2 focus:ring-wb-100/20"
                 />
@@ -260,15 +236,11 @@ export default function InlineRouteForm({
 
           {/* 描述 */}
           <fieldset className="space-y-3">
-            <legend className="text-sm font-medium text-wb-90 mb-2">
-              路線描述
-            </legend>
+            <legend className="text-sm font-medium text-wb-90 mb-2">路線描述</legend>
             <div>
               <textarea
                 value={form.description}
-                onChange={(e) =>
-                  setForm({ ...form, description: e.target.value })
-                }
+                onChange={(e) => setForm({ ...form, description: e.target.value })}
                 rows={4}
                 placeholder="描述路線特色、技巧要點、注意事項等..."
                 className="w-full px-3 py-2 text-sm border border-wb-20 rounded-lg bg-white focus:outline-none focus:ring-2 focus:ring-wb-100/20 resize-none"
@@ -277,9 +249,7 @@ export default function InlineRouteForm({
           </fieldset>
 
           {/* 路線影片管理（僅在編輯模式顯示） */}
-          {route && !isNew && (
-            <RouteVideoManager routeId={route.id} cragId={cragId} />
-          )}
+          {route && !isNew && <RouteVideoManager routeId={route.id} cragId={cragId} />}
 
           {/* 路線資訊摘要（僅在編輯模式顯示） */}
           {route && !isNew && (
@@ -288,9 +258,7 @@ export default function InlineRouteForm({
               <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
                 <div>
                   <dt className="text-xs text-wb-50 mb-0.5">難度</dt>
-                  <dd className="text-sm font-medium text-wb-100">
-                    {route.grade || '-'}
-                  </dd>
+                  <dd className="text-sm font-medium text-wb-100">{route.grade || '-'}</dd>
                 </div>
                 <div>
                   <dt className="text-xs text-wb-50 mb-0.5">類型</dt>
@@ -306,9 +274,7 @@ export default function InlineRouteForm({
                 </div>
                 <div>
                   <dt className="text-xs text-wb-50 mb-0.5">Bolt</dt>
-                  <dd className="text-sm font-medium text-wb-100">
-                    {route.bolt_count ?? '-'}
-                  </dd>
+                  <dd className="text-sm font-medium text-wb-100">{route.bolt_count ?? '-'}</dd>
                 </div>
               </div>
             </div>
@@ -330,11 +296,7 @@ export default function InlineRouteForm({
                     disabled={deleting}
                     className="px-3 py-1.5 text-sm bg-red-500 text-white rounded-lg hover:bg-red-600 transition-colors disabled:opacity-50"
                   >
-                    {deleting ? (
-                      <Loader2 className="h-4 w-4 animate-spin" />
-                    ) : (
-                      '確認刪除'
-                    )}
+                    {deleting ? <Loader2 className="h-4 w-4 animate-spin" /> : '確認刪除'}
                   </button>
                   <button
                     type="button"

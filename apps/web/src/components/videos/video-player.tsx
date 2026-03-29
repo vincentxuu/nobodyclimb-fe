@@ -1,6 +1,6 @@
+import { ExternalLink, X } from 'lucide-react'
 import React, { useEffect } from 'react'
 import type { Video } from '@/lib/types'
-import { X, ExternalLink } from 'lucide-react'
 
 interface VideoPlayerProps {
   video: Video
@@ -37,7 +37,7 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({ video, onClose }) => {
   const embedUrl = `https://www.youtube.com/embed/${video.youtubeId}?autoplay=1`
 
   return (
-    <div 
+    <div
       className="fixed inset-0 z-50 flex items-center justify-center bg-black/90 p-4"
       onClick={handleBackdropClick}
     >
@@ -81,14 +81,11 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({ video, onClose }) => {
               rel="noopener noreferrer"
               className="flex items-center gap-1 text-sm text-neutral-300 hover:text-white transition-colors"
             >
-              <ExternalLink className="h-4 w-4" />
-              在 YouTube 上觀看
+              <ExternalLink className="h-4 w-4" />在 YouTube 上觀看
             </a>
           </div>
           {video.description && (
-            <p className="text-sm text-neutral-300 line-clamp-2">
-              {video.description}
-            </p>
+            <p className="text-sm text-neutral-300 line-clamp-2">{video.description}</p>
           )}
           {video.tags && video.tags.length > 0 && (
             <div className="flex flex-wrap gap-2">

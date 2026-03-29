@@ -1,13 +1,13 @@
 'use client'
 
-import { useState, useEffect, useCallback } from 'react'
 import { motion } from 'framer-motion'
-import { cn, normalizeNewlines } from '@/lib/utils'
 import { BookOpen, Loader2 } from 'lucide-react'
-import { biographyContentService, type Story } from '@/lib/api/services'
-import { ContentInteractionBar } from './ContentInteractionBar'
 import { useTranslations } from 'next-intl'
+import { useCallback, useEffect, useState } from 'react'
+import { biographyContentService, type Story } from '@/lib/api/services'
 import { useBiographyQuestionText } from '@/lib/hooks/useBiographyQuestions'
+import { cn, normalizeNewlines } from '@/lib/utils'
+import { ContentInteractionBar } from './ContentInteractionBar'
 
 interface BiographyStoriesProps {
   /** 人物誌 ID */
@@ -31,10 +31,7 @@ const CATEGORY_COLORS: Record<string, { bg: string; text: string }> = {
  *
  * 顯示用戶填寫的所有故事，使用橫向滾動卡片，支援按讚和留言
  */
-export function BiographyStories({
-  biographyId,
-  className,
-}: BiographyStoriesProps) {
+export function BiographyStories({ biographyId, className }: BiographyStoriesProps) {
   const t = useTranslations('BiographyPage')
   const { getStoryTitle, getCategoryName } = useBiographyQuestionText()
   const [stories, setStories] = useState<Story[]>([])
@@ -91,9 +88,7 @@ export function BiographyStories({
       // 更新留言數
       setStories((prev) =>
         prev.map((item) =>
-          item.id === storyId
-            ? { ...item, comment_count: item.comment_count + 1 }
-            : item
+          item.id === storyId ? { ...item, comment_count: item.comment_count + 1 } : item
         )
       )
       return response.data
@@ -132,7 +127,10 @@ export function BiographyStories({
         {stories.map((story, index) => {
           const categoryId = story.category_id || 'growth'
           const colors = CATEGORY_COLORS[categoryId] || { bg: 'bg-gray-100', text: 'text-gray-700' }
-          const title = getStoryTitle(story.question_id, story.title || story.question_text || story.question_id)
+          const title = getStoryTitle(
+            story.question_id,
+            story.title || story.question_text || story.question_id
+          )
           const categoryName = getCategoryName(story.category_id, story.category_name || '')
 
           return (
@@ -145,18 +143,19 @@ export function BiographyStories({
               className="w-80 flex-shrink-0 snap-start rounded-lg bg-white p-6 shadow-sm border border-[#EBEAEA] flex flex-col"
             >
               {/* 分類標籤 */}
-              <div className={cn(
-                'mb-3 inline-block rounded px-2 py-1 text-xs font-medium self-start',
-                colors.bg,
-                colors.text
-              )}>
-                {story.category_emoji && `${story.category_emoji} `}{categoryName}
+              <div
+                className={cn(
+                  'mb-3 inline-block rounded px-2 py-1 text-xs font-medium self-start',
+                  colors.bg,
+                  colors.text
+                )}
+              >
+                {story.category_emoji && `${story.category_emoji} `}
+                {categoryName}
               </div>
 
               {/* 標題 */}
-              <h3 className="mb-3 font-semibold text-[#1B1A1A]">
-                {title}
-              </h3>
+              <h3 className="mb-3 font-semibold text-[#1B1A1A]">{title}</h3>
 
               {/* 完整內容 */}
               <p className="whitespace-pre-wrap text-sm leading-relaxed text-[#6D6C6C] flex-1">

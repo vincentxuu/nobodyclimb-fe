@@ -1,6 +1,6 @@
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
-import apiClient from './client'
 import type { AiQuota } from '@nobodyclimb/types'
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
+import apiClient from './client'
 
 export type { AiQuota }
 
@@ -133,7 +133,7 @@ export async function askAIStream(
   onToken: (_token: string) => void,
   onDone: (_event: AIStreamDoneEvent) => void,
   onError: (_message: string) => void,
-  signal?: AbortSignal,
+  signal?: AbortSignal
 ): Promise<void> {
   const { API_BASE_URL } = await import('../constants')
   const { getAccessToken } = await import('@nobodyclimb/api-client/web')
@@ -152,7 +152,7 @@ export async function askAIStream(
   if (!response.ok || !response.body) {
     // 嘗試讀取後端回傳的錯誤訊息（如 guardrails 攔截、配額耗盡等）
     try {
-      const errJson = await response.json() as { message?: string; error?: string }
+      const errJson = (await response.json()) as { message?: string; error?: string }
       const errMsg = errJson.message ?? '抱歉，AI 服務暫時無法使用，請稍後再試。'
       onError(errMsg)
     } catch {
@@ -179,7 +179,10 @@ export async function askAIStream(
         const jsonStr = line.slice(6).trim()
         if (!jsonStr) continue
         try {
-          const event = JSON.parse(jsonStr) as { type: string; token?: string } & Partial<AIStreamDoneEvent> & { message?: string }
+          const event = JSON.parse(jsonStr) as {
+            type: string
+            token?: string
+          } & Partial<AIStreamDoneEvent> & { message?: string }
           if (event.type === 'token' && event.token !== undefined) {
             onToken(event.token)
           } else if (event.type === 'done') {

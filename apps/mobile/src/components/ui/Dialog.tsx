@@ -3,30 +3,19 @@
  *
  * 居中彈窗組件
  */
+
+import { BORDER_RADIUS, SEMANTIC_COLORS, SPACING } from '@nobodyclimb/constants'
 import React from 'react'
-import {
-  Modal,
-  View,
-  Pressable,
-  StyleSheet,
-  type ViewStyle,
-} from 'react-native'
+import { Modal, Pressable, StyleSheet, View, type ViewStyle } from 'react-native'
 import Animated, {
-  useSharedValue,
   useAnimatedStyle,
+  useSharedValue,
   withSpring,
   withTiming,
-  runOnJS,
 } from 'react-native-reanimated'
-import {
-  SEMANTIC_COLORS,
-  BORDER_RADIUS,
-  SPACING,
-  WB_COLORS,
-} from '@nobodyclimb/constants'
-import { Text } from './Text'
+import { DURATION, EASING, springConfigStandard } from '@/theme/animations'
 import { Button, type ButtonVariant } from './Button'
-import { springConfigStandard, DURATION, EASING } from '@/theme/animations'
+import { Text } from './Text'
 
 export interface DialogAction {
   /** 按鈕文字 */

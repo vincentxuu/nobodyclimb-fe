@@ -1,11 +1,15 @@
 'use client'
 
-import { useState, useEffect, useMemo } from 'react'
+import { BookOpen, Loader2, X } from 'lucide-react'
 import { useTranslations } from 'next-intl'
-import { cn } from '@/lib/utils'
-import { X, Loader2, BookOpen } from 'lucide-react'
-import type { StoryQuestion, StoryCategoryDefinition, ContentSource } from '@/lib/types/biography-v2'
+import { useEffect, useMemo, useState } from 'react'
 import { useQuestions } from '@/lib/hooks/useQuestions'
+import type {
+  ContentSource,
+  StoryCategoryDefinition,
+  StoryQuestion,
+} from '@/lib/types/biography-v2'
+import { cn } from '@/lib/utils'
 
 interface AddCustomStoryModalProps {
   /** 是否開啟 */
@@ -95,10 +99,7 @@ export function AddCustomStoryModal({
   return (
     <div className="fixed inset-0 z-50 flex items-end md:items-center justify-center">
       {/* Backdrop */}
-      <div
-        className="absolute inset-0 bg-brand-dark/30 backdrop-blur-sm"
-        onClick={onClose}
-      />
+      <div className="absolute inset-0 bg-brand-dark/30 backdrop-blur-sm" onClick={onClose} />
 
       {/* Modal */}
       <div
@@ -137,15 +138,14 @@ export function AddCustomStoryModal({
               className="w-full px-4 py-3 bg-white border border-[#B6B3B3] rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-accent/50 focus:border-brand-dark transition-colors text-[#1B1A1A] placeholder:text-[#9D9D9D]"
               maxLength={50}
             />
-            <p className="text-xs text-[#8E8C8C]">
-              {t('storyTitleHint')}
-            </p>
+            <p className="text-xs text-[#8E8C8C]">{t('storyTitleHint')}</p>
           </div>
 
           {/* 問題說明 */}
           <div className="space-y-2">
             <label className="block text-sm font-medium text-[#1B1A1A]">
-              {t('storySubtitleLabel')} <span className="text-[#8E8C8C]">{t('storySubtitleOptional')}</span>
+              {t('storySubtitleLabel')}{' '}
+              <span className="text-[#8E8C8C]">{t('storySubtitleOptional')}</span>
             </label>
             <input
               type="text"
@@ -155,9 +155,7 @@ export function AddCustomStoryModal({
               className="w-full px-4 py-3 bg-white border border-[#B6B3B3] rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-accent/50 focus:border-brand-dark transition-colors text-[#1B1A1A] placeholder:text-[#9D9D9D]"
               maxLength={50}
             />
-            <p className="text-xs text-[#8E8C8C]">
-              {t('storySubtitleHint')}
-            </p>
+            <p className="text-xs text-[#8E8C8C]">{t('storySubtitleHint')}</p>
           </div>
 
           {/* 所屬分類 */}
@@ -177,16 +175,15 @@ export function AddCustomStoryModal({
               ))}
             </select>
             {selectedCategory && (
-              <p className="text-xs text-[#8E8C8C]">
-                {selectedCategory.description}
-              </p>
+              <p className="text-xs text-[#8E8C8C]">{selectedCategory.description}</p>
             )}
           </div>
 
           {/* 範例答案 */}
           <div className="space-y-2">
             <label className="block text-sm font-medium text-[#1B1A1A]">
-              {t('storyPlaceholderLabel')} <span className="text-[#8E8C8C]">{t('storyPlaceholderOptional')}</span>
+              {t('storyPlaceholderLabel')}{' '}
+              <span className="text-[#8E8C8C]">{t('storyPlaceholderOptional')}</span>
             </label>
             <input
               type="text"
@@ -211,9 +208,7 @@ export function AddCustomStoryModal({
                 <p className="font-medium text-[#1B1A1A]">
                   {title.trim().endsWith('？') ? title.trim() : `${title.trim()}？`}
                 </p>
-                {subtitle.trim() && (
-                  <p className="text-sm text-[#8E8C8C]">{subtitle.trim()}</p>
-                )}
+                {subtitle.trim() && <p className="text-sm text-[#8E8C8C]">{subtitle.trim()}</p>}
                 <div className="pt-2 border-t border-[#EBEAEA]">
                   <p className="text-sm text-[#B6B3B3] italic">
                     {placeholder.trim() || t('storyTextPlaceholder')}
@@ -225,9 +220,7 @@ export function AddCustomStoryModal({
 
           {/* 提示 */}
           <div className="bg-brand-accent/10 rounded-lg p-4">
-            <p className="text-sm text-[#3F3D3D]">
-              {t('storyTip')}
-            </p>
+            <p className="text-sm text-[#3F3D3D]">{t('storyTip')}</p>
           </div>
         </div>
 

@@ -1,11 +1,11 @@
 'use client'
 
-import { useState } from 'react'
+import { CLIMBING_TYPES, GRADE_TARGET_OPTIONS } from '@nobodyclimb/constants'
+import { Plus, TrendingUp, X } from 'lucide-react'
 import { useTranslations } from 'next-intl'
-import { cn } from '@/lib/utils'
-import { TrendingUp, Plus, X } from 'lucide-react'
-import { GRADE_TARGET_OPTIONS, CLIMBING_TYPES } from '@nobodyclimb/constants'
+import { useState } from 'react'
 import type { GradeTarget } from '@/lib/types/biography-v2'
+import { cn } from '@/lib/utils'
 
 interface GradeTargetsSectionProps {
   /** 年度目標列表 */
@@ -51,9 +51,7 @@ export function GradeTargetsSection({
 
   const handleRemoveTarget = (index: number) => {
     const targetToRemove = currentYearTargets[index]
-    onGradeTargetsChange(
-      gradeTargets.filter((t) => t !== targetToRemove)
-    )
+    onGradeTargetsChange(gradeTargets.filter((t) => t !== targetToRemove))
   }
 
   const handleUpdateTarget = (index: number, updates: Partial<GradeTarget>) => {
@@ -74,9 +72,7 @@ export function GradeTargetsSection({
         <TrendingUp size={18} className="text-[#3F3D3D]" />
         <h4 className="font-medium text-[#1B1A1A]">{t('gradeTargetsTitle')}</h4>
       </div>
-      <p className="text-sm text-[#6D6C6C]">
-        {t('gradeTargetsHint')}
-      </p>
+      <p className="text-sm text-[#6D6C6C]">{t('gradeTargetsHint')}</p>
 
       {/* Year Selector */}
       <div className="flex items-center gap-2">
@@ -174,7 +170,7 @@ export function GradeTargetsSection({
               type="button"
               onClick={() => handleRemoveTarget(index)}
               className="inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-[#8E8C8C] transition-colors hover:bg-white hover:text-red-500"
-              {...{"aria-label": t('gradeTargetsDeleteLabel')}}
+              {...{ 'aria-label': t('gradeTargetsDeleteLabel') }}
             >
               <X size={16} />
             </button>

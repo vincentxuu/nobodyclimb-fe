@@ -1,27 +1,27 @@
 'use client'
 
-import { useState, useEffect, useRef, useCallback } from 'react'
-import { formatTaipei } from '@/lib/utils'
 import {
-  Loader2,
-  FileText,
-  ChevronDown,
-  Save,
-  CheckCircle,
-  History,
-  RotateCcw,
   AlertTriangle,
-  Eye,
+  CheckCircle,
+  ChevronDown,
   Edit,
+  Eye,
+  FileText,
+  History,
+  Loader2,
+  RotateCcw,
+  Save,
 } from 'lucide-react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import {
-  useAIPrompts,
+  type AIPrompt,
   useAIPromptDefaults,
+  useAIPrompts,
   useAIPromptsByName,
   useCreateAIPrompt,
-  type AIPrompt,
 } from '@/lib/api/admin-ai'
-import { PROMPT_VARIABLE_MAP, PROMPT_NAMES } from '@/lib/prompt-variables'
+import { PROMPT_NAMES, PROMPT_VARIABLE_MAP } from '@/lib/prompt-variables'
+import { formatTaipei } from '@/lib/utils'
 
 export default function AdminAIPromptsPage() {
   const { data: prompts, isLoading: promptsLoading } = useAIPrompts()
@@ -100,11 +100,7 @@ export default function AdminAIPromptsPage() {
                         <code className="rounded bg-wb-05 px-1.5 py-0.5 font-mono text-wb-60">
                           {name}
                         </code>
-                        {active && (
-                          <span>
-                            {formatTaipei(active.updated_at)}
-                          </span>
-                        )}
+                        {active && <span>{formatTaipei(active.updated_at)}</span>}
                       </div>
                     </div>
                   </div>
@@ -238,9 +234,7 @@ function PromptEditor({
           <button
             onClick={() => setTab('editor')}
             className={`flex items-center gap-1 rounded-md px-2.5 py-1 text-xs font-medium transition-colors ${
-              tab === 'editor'
-                ? 'bg-white text-wb-100 shadow-sm'
-                : 'text-wb-50 hover:text-wb-70'
+              tab === 'editor' ? 'bg-white text-wb-100 shadow-sm' : 'text-wb-50 hover:text-wb-70'
             }`}
           >
             <Edit className="h-3 w-3" />
@@ -249,9 +243,7 @@ function PromptEditor({
           <button
             onClick={() => setTab('history')}
             className={`flex items-center gap-1 rounded-md px-2.5 py-1 text-xs font-medium transition-colors ${
-              tab === 'history'
-                ? 'bg-white text-wb-100 shadow-sm'
-                : 'text-wb-50 hover:text-wb-70'
+              tab === 'history' ? 'bg-white text-wb-100 shadow-sm' : 'text-wb-50 hover:text-wb-70'
             }`}
           >
             <History className="h-3 w-3" />
@@ -375,9 +367,7 @@ function PromptEditor({
               >
                 <div className="flex items-center justify-between px-3 py-2">
                   <div className="flex items-center gap-2">
-                    <span className="font-mono text-xs font-medium text-wb-100">
-                      v{v.version}
-                    </span>
+                    <span className="font-mono text-xs font-medium text-wb-100">v{v.version}</span>
                     <span
                       className={`rounded-full px-1.5 py-0.5 text-[10px] font-medium ${
                         v.status === 'active'
@@ -387,15 +377,11 @@ function PromptEditor({
                     >
                       {v.status === 'active' ? '啟用中' : '已封存'}
                     </span>
-                    <span className="text-[10px] text-wb-50">
-                      {formatTaipei(v.updated_at)}
-                    </span>
+                    <span className="text-[10px] text-wb-50">{formatTaipei(v.updated_at)}</span>
                   </div>
                   <div className="flex items-center gap-1">
                     <button
-                      onClick={() =>
-                        setPreviewVersion(previewVersion?.id === v.id ? null : v)
-                      }
+                      onClick={() => setPreviewVersion(previewVersion?.id === v.id ? null : v)}
                       className="flex items-center gap-1 rounded border border-wb-15 px-2 py-0.5 text-[10px] text-wb-60 hover:bg-wb-05 transition-colors"
                     >
                       <Eye className="h-2.5 w-2.5" />

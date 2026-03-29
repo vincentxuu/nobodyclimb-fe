@@ -5,8 +5,8 @@
  * 對應後端 GET /search 端點
  */
 import { useQuery } from '@tanstack/react-query'
-import { apiClient } from '@/lib/api'
 import type { SearchResultItem, SearchType } from '@/components/search'
+import { apiClient } from '@/lib/api'
 
 /**
  * 後端搜尋 type 參數對照

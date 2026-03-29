@@ -1,39 +1,38 @@
 'use client'
 
-import React, { useState, useEffect, use, useMemo, useRef } from 'react'
-import { Link } from '@/i18n/navigation'
 import { motion } from 'framer-motion'
 import { ArrowLeft, ArrowRight, Loader2, Pencil } from 'lucide-react'
-import { Button } from '@/components/ui/button'
-import BackToTop from '@/components/ui/back-to-top'
-import { RecommendedProfiles } from '@/components/biography/recommended-profiles'
-import { Breadcrumb } from '@/components/ui/breadcrumb'
-import { biographyService } from '@/lib/api/services'
-import { Biography, BiographyAdjacent } from '@/lib/types'
-import { useAuthStore } from '@/store/authStore'
-import { useGuestSession } from '@/lib/hooks/useGuestSession'
 import { useTranslations } from 'next-intl'
-import {
-  BiographyV2,
-  BiographyBackend,
-  transformBackendToBiographyV2,
-} from '@/lib/types/biography-v2'
-
-// 新的章節式組件
-import {
-  HeroSection,
-  FeaturedStoriesSection,
-  ChapterMeeting,
-  ChapterMeaning,
-  QuickFactsSection,
-  ChapterBucketList,
-  ClimbingFootprintsSection,
-  CompleteStoriesSection,
-  ChapterAdvice,
-} from '@/components/biography/profile'
-
+import { use, useEffect, useMemo, useRef, useState } from 'react'
 // V2 展示組件
 import { BiographyOneLiners } from '@/components/biography/display/BiographyOneLiners'
+// 新的章節式組件
+import {
+  ChapterAdvice,
+  ChapterBucketList,
+  ChapterMeaning,
+  ChapterMeeting,
+  ClimbingFootprintsSection,
+  CompleteStoriesSection,
+  FeaturedStoriesSection,
+  HeroSection,
+  QuickFactsSection,
+} from '@/components/biography/profile'
+import { RecommendedProfiles } from '@/components/biography/recommended-profiles'
+import BackToTop from '@/components/ui/back-to-top'
+import { Breadcrumb } from '@/components/ui/breadcrumb'
+import { Button } from '@/components/ui/button'
+import { Link } from '@/i18n/navigation'
+import { biographyService } from '@/lib/api/services'
+import { useGuestSession } from '@/lib/hooks/useGuestSession'
+import { Biography, BiographyAdjacent } from '@/lib/types'
+import {
+  BiographyBackend,
+  BiographyV2,
+  transformBackendToBiographyV2,
+} from '@/lib/types/biography-v2'
+import { useAuthStore } from '@/store/authStore'
+
 // TODO: 待開發相簿編輯功能後再啟用
 // import { BiographyGallery } from '@/components/biography/display/BiographyGallery'
 
@@ -305,12 +304,8 @@ export default function ProfileClient({ params }: ProfileClientProps) {
       {!user && (
         <div className="bg-[#1B1A1A] py-12">
           <div className="container mx-auto max-w-2xl px-4 text-center">
-            <h3 className="mb-3 text-xl font-medium text-white md:text-2xl">
-              你也有攀岩故事嗎？
-            </h3>
-            <p className="mb-6 text-sm text-gray-300 md:text-base">
-              來寫寫你的小人物誌吧
-            </p>
+            <h3 className="mb-3 text-xl font-medium text-white md:text-2xl">你也有攀岩故事嗎？</h3>
+            <p className="mb-6 text-sm text-gray-300 md:text-base">來寫寫你的小人物誌吧</p>
             <Link href="/auth/register">
               <Button className="h-11 bg-white px-8 text-[#1B1A1A] hover:bg-gray-100">
                 立即註冊加入

@@ -6,32 +6,27 @@
  * - 難度分佈
  * - 區域內的路線列表
  */
-import React, { useState, useMemo } from 'react'
+
+import { RADIUS, SEMANTIC_COLORS, SPACING } from '@nobodyclimb/constants'
+import { LinearGradient } from 'expo-linear-gradient'
+import { useLocalSearchParams, useRouter } from 'expo-router'
+import { ChevronLeft, Filter, Mountain, Share2 } from 'lucide-react-native'
+import { useMemo, useState } from 'react'
 import {
+  ActivityIndicator,
+  Pressable,
+  RefreshControl,
+  ScrollView,
+  Share,
   StyleSheet,
   View,
-  ScrollView,
-  RefreshControl,
-  ActivityIndicator,
-  Share,
-  Pressable,
 } from 'react-native'
-import { useLocalSearchParams, useRouter } from 'expo-router'
-import { SafeAreaView } from 'react-native-safe-area-context'
-import { LinearGradient } from 'expo-linear-gradient'
 import Animated, { FadeInDown } from 'react-native-reanimated'
-import {
-  ChevronLeft,
-  Share2,
-  Mountain,
-  Filter,
-} from 'lucide-react-native'
-
-import { Text, IconButton } from '@/components/ui'
-import { RouteListItem, RouteListFilter } from '@/components/crag'
-import { SEMANTIC_COLORS, SPACING, RADIUS } from '@nobodyclimb/constants'
-import { useCragDetail, useCragRoutes, useCragAreas } from '@/lib/hooks/useCrags'
+import { SafeAreaView } from 'react-native-safe-area-context'
+import { RouteListFilter, RouteListItem } from '@/components/crag'
+import { IconButton, Text } from '@/components/ui'
 import { isGradeInRange, type RouteSidebarItem } from '@/lib/crag-data'
+import { useCragAreas, useCragDetail, useCragRoutes } from '@/lib/hooks/useCrags'
 
 // 計算難度分佈
 function calculateGradeDistribution(routes: RouteSidebarItem[]): Record<string, number> {
@@ -46,7 +41,12 @@ function calculateGradeDistribution(routes: RouteSidebarItem[]): Record<string, 
 
   routes.forEach((route) => {
     const grade = route.grade.toLowerCase()
-    if (grade.includes('5.6') || grade.includes('5.5') || grade.includes('5.4') || grade.includes('5.3')) {
+    if (
+      grade.includes('5.6') ||
+      grade.includes('5.5') ||
+      grade.includes('5.4') ||
+      grade.includes('5.3')
+    ) {
       distribution['5.6-']++
     } else if (grade.includes('5.7') || grade.includes('5.8')) {
       distribution['5.7-5.8']++
@@ -98,7 +98,14 @@ export default function AreaDetailScreen() {
     // 再從 crag.areas 找
     if (crag?.areas) {
       const fromCrag = crag.areas.find((a) => a.id === areaId)
-      if (fromCrag) return { id: fromCrag.id, name: fromCrag.name, description: fromCrag.description, difficulty: fromCrag.difficulty, routes: fromCrag.routes }
+      if (fromCrag)
+        return {
+          id: fromCrag.id,
+          name: fromCrag.name,
+          description: fromCrag.description,
+          difficulty: fromCrag.difficulty,
+          routes: fromCrag.routes,
+        }
     }
     return null
   }, [apiAreas, crag, areaId])
@@ -115,15 +122,11 @@ export default function AreaDetailScreen() {
 
     if (filterState.searchQuery) {
       const query = filterState.searchQuery.toLowerCase()
-      result = result.filter((route) =>
-        route.name.toLowerCase().includes(query)
-      )
+      result = result.filter((route) => route.name.toLowerCase().includes(query))
     }
 
     if (filterState.selectedGrade !== 'all') {
-      result = result.filter((route) =>
-        isGradeInRange(route.grade, filterState.selectedGrade)
-      )
+      result = result.filter((route) => isGradeInRange(route.grade, filterState.selectedGrade))
     }
 
     if (filterState.selectedType !== 'all') {
@@ -221,9 +224,7 @@ export default function AreaDetailScreen() {
 
       <ScrollView
         style={styles.scrollView}
-        refreshControl={
-          <RefreshControl refreshing={refreshing} onRefresh={handleRefresh} />
-        }
+        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={handleRefresh} />}
       >
         {/* 封面 */}
         <Animated.View entering={FadeInDown.duration(400)} style={styles.coverContainer}>
@@ -233,10 +234,7 @@ export default function AreaDetailScreen() {
             start={{ x: 0, y: 0 }}
             end={{ x: 1, y: 1 }}
           />
-          <LinearGradient
-            colors={['transparent', 'rgba(0,0,0,0.6)']}
-            style={styles.gradient}
-          />
+          <LinearGradient colors={['transparent', 'rgba(0,0,0,0.6)']} style={styles.gradient} />
           <View style={styles.coverContent}>
             <Text variant="h2" fontWeight="700" style={styles.coverTitle}>
               {area.name}
@@ -292,10 +290,7 @@ export default function AreaDetailScreen() {
                   </Text>
                   <View style={styles.distributionBarContainer}>
                     <View
-                      style={[
-                        styles.distributionBar,
-                        { width: `${(count / maxCount) * 100}%` },
-                      ]}
+                      style={[styles.distributionBar, { width: `${(count / maxCount) * 100}%` }]}
                     />
                   </View>
                   <Text variant="small" color="textSubtle" style={styles.distributionCount}>
@@ -345,9 +340,7 @@ export default function AreaDetailScreen() {
               onGradeChange={(grade) =>
                 setFilterState((prev) => ({ ...prev, selectedGrade: grade }))
               }
-              onTypeChange={(type) =>
-                setFilterState((prev) => ({ ...prev, selectedType: type }))
-              }
+              onTypeChange={(type) => setFilterState((prev) => ({ ...prev, selectedType: type }))}
               areas={[]}
               sectors={[]}
               showAreaFilter={false}

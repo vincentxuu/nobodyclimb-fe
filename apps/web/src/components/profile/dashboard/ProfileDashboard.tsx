@@ -1,27 +1,27 @@
 'use client'
 
-import React, { useState, useCallback, useEffect } from 'react'
-import { useSearchParams, useRouter } from 'next/navigation'
 import { motion } from 'framer-motion'
 import {
-  User,
-  Gauge,
-  Link2,
   BookOpen,
-  Sparkles,
-  MapPin,
+  Gauge,
   Globe,
   ImageIcon,
+  Link2,
+  MapPin,
   MountainSnow,
+  Sparkles,
+  User,
 } from 'lucide-react'
-import { ProfileDashboardCard } from './ProfileDashboardCard'
-import { ProfileEditSheet } from './ProfileEditSheet'
-import { useProfile } from '../ProfileContext'
-import { useIsMobile } from '@/lib/hooks/useIsMobile'
+import { useRouter, useSearchParams } from 'next/navigation'
+import { useCallback, useEffect, useState } from 'react'
 import { useToast } from '@/components/ui/use-toast'
 import { biographyService } from '@/lib/api/services'
-import { calculateStoryProgress, CORE_STORY_QUESTIONS } from '@/lib/constants/biography-stories'
+import { CORE_STORY_QUESTIONS, calculateStoryProgress } from '@/lib/constants/biography-stories'
+import { useIsMobile } from '@/lib/hooks/useIsMobile'
+import { useProfile } from '../ProfileContext'
 import { SocialLinks } from '../types'
+import { ProfileDashboardCard } from './ProfileDashboardCard'
+import { ProfileEditSheet } from './ProfileEditSheet'
 
 // 編輯面板類型
 export type EditPanelType =

@@ -20,14 +20,7 @@
       "descriptionEn": "T-UP Climbing Gym Zhonghe is one of Taiwan's largest indoor climbing gyms, offering professional lead climbing services.",
       "coverImage": "/images/gym/tup-zhonghe.jpg",
       "images": [],
-      "facilities": [
-        "先鋒攀登",
-        "速度攀登",
-        "體能訓練區",
-        "休息區",
-        "淋浴設施",
-        "置物櫃"
-      ],
+      "facilities": ["先鋒攀登", "速度攀登", "體能訓練區", "休息區", "淋浴設施", "置物櫃"],
       "facilitiesEn": [
         "Lead Climbing",
         "Speed Climbing",
@@ -110,18 +103,8 @@
       "descriptionEn": "T-UP Climbing Gym Wanhua is a professional bouldering gym offering diverse routes.",
       "coverImage": "/images/gym/tup-wanhua.jpg",
       "images": [],
-      "facilities": [
-        "抱石區",
-        "體能訓練區",
-        "休息區",
-        "淋浴設施"
-      ],
-      "facilitiesEn": [
-        "Bouldering Area",
-        "Training Area",
-        "Rest Area",
-        "Shower Facilities"
-      ],
+      "facilities": ["抱石區", "體能訓練區", "休息區", "淋浴設施"],
+      "facilitiesEn": ["Bouldering Area", "Training Area", "Rest Area", "Shower Facilities"],
       "openingHours": {
         "monday": "10:00-23:00",
         "tuesday": "10:00-23:00",
@@ -182,18 +165,8 @@
       "descriptionEn": "T-UP Climbing Gym A19 is located in Global Mall, offering both bouldering and lead climbing.",
       "coverImage": "/images/gym/tup-a19.jpg",
       "images": [],
-      "facilities": [
-        "抱石區",
-        "先鋒攀登",
-        "體能訓練區",
-        "休息區"
-      ],
-      "facilitiesEn": [
-        "Bouldering Area",
-        "Lead Climbing",
-        "Training Area",
-        "Rest Area"
-      ],
+      "facilities": ["抱石區", "先鋒攀登", "體能訓練區", "休息區"],
+      "facilitiesEn": ["Bouldering Area", "Lead Climbing", "Training Area", "Rest Area"],
       "openingHours": {
         "monday": "11:00-23:00",
         "tuesday": "11:00-23:00",
@@ -255,16 +228,8 @@
       "descriptionEn": "T-UP Climbing Gym Nangang offers professional bouldering services.",
       "coverImage": "/images/gym/tup-nangang.jpg",
       "images": [],
-      "facilities": [
-        "抱石區",
-        "體能訓練區",
-        "休息區"
-      ],
-      "facilitiesEn": [
-        "Bouldering Area",
-        "Training Area",
-        "Rest Area"
-      ],
+      "facilities": ["抱石區", "體能訓練區", "休息區"],
+      "facilitiesEn": ["Bouldering Area", "Training Area", "Rest Area"],
       "openingHours": {
         "monday": "12:00-23:00",
         "tuesday": "12:00-23:00",
@@ -325,18 +290,8 @@
       "descriptionEn": "T-UP Climbing Gym Xindian is located in Yulon City, offering both bouldering and lead climbing.",
       "coverImage": "/images/gym/tup-xindian.jpg",
       "images": [],
-      "facilities": [
-        "抱石區",
-        "先鋒攀登",
-        "體能訓練區",
-        "休息區"
-      ],
-      "facilitiesEn": [
-        "Bouldering Area",
-        "Lead Climbing",
-        "Training Area",
-        "Rest Area"
-      ],
+      "facilities": ["抱石區", "先鋒攀登", "體能訓練區", "休息區"],
+      "facilitiesEn": ["Bouldering Area", "Lead Climbing", "Training Area", "Rest Area"],
       "openingHours": {
         "monday": "11:00-23:00",
         "tuesday": "11:00-23:00",
@@ -398,16 +353,8 @@
       "descriptionEn": "T-UP Climbing Gym Mingde offers professional bouldering services.",
       "coverImage": "/images/gym/tup-mingde.jpg",
       "images": [],
-      "facilities": [
-        "抱石區",
-        "體能訓練區",
-        "休息區"
-      ],
-      "facilitiesEn": [
-        "Bouldering Area",
-        "Training Area",
-        "Rest Area"
-      ],
+      "facilities": ["抱石區", "體能訓練區", "休息區"],
+      "facilitiesEn": ["Bouldering Area", "Training Area", "Rest Area"],
       "openingHours": {
         "monday": "12:00-23:00",
         "tuesday": "12:00-23:00",
@@ -468,18 +415,8 @@
       "descriptionEn": "MegaSTONE is a well-known bouldering gym in Northern Taiwan.",
       "coverImage": "/images/gym/megastone.jpg",
       "images": [],
-      "facilities": [
-        "抱石區",
-        "體能訓練區",
-        "休息區",
-        "置物櫃"
-      ],
-      "facilitiesEn": [
-        "Bouldering Area",
-        "Training Area",
-        "Rest Area",
-        "Lockers"
-      ],
+      "facilities": ["抱石區", "體能訓練區", "休息區", "置物櫃"],
+      "facilitiesEn": ["Bouldering Area", "Training Area", "Rest Area", "Lockers"],
       "openingHours": {
         "monday": "14:30-22:30",
         "tuesday": "14:30-22:30",
@@ -538,13 +475,7 @@
       "descriptionEn": "Civic Bouldergym Taipei is one of the most popular bouldering gyms in Nangang District.",
       "coverImage": "/images/gym/civic.jpg",
       "images": [],
-      "facilities": [
-        "抱石區",
-        "體能訓練區",
-        "休息區",
-        "淋浴設施",
-        "置物櫃"
-      ],
+      "facilities": ["抱石區", "體能訓練區", "休息區", "淋浴設施", "置物櫃"],
       "facilitiesEn": [
         "Bouldering Area",
         "Training Area",
@@ -611,16 +542,8 @@
       "descriptionEn": "Kirin Climbing Gym offers affordable bouldering experience.",
       "coverImage": "/images/gym/kirin.jpg",
       "images": [],
-      "facilities": [
-        "抱石區",
-        "體能訓練區",
-        "休息區"
-      ],
-      "facilitiesEn": [
-        "Bouldering Area",
-        "Training Area",
-        "Rest Area"
-      ],
+      "facilities": ["抱石區", "體能訓練區", "休息區"],
+      "facilitiesEn": ["Bouldering Area", "Training Area", "Rest Area"],
       "openingHours": {
         "monday": "14:00-22:30",
         "tuesday": "14:00-22:30",
@@ -680,16 +603,8 @@
       "descriptionEn": "The Little Rock Tianmu is a cozy community bouldering gym.",
       "coverImage": "/images/gym/little-rock.jpg",
       "images": [],
-      "facilities": [
-        "抱石區",
-        "體能訓練區",
-        "休息區"
-      ],
-      "facilitiesEn": [
-        "Bouldering Area",
-        "Training Area",
-        "Rest Area"
-      ],
+      "facilities": ["抱石區", "體能訓練區", "休息區"],
+      "facilitiesEn": ["Bouldering Area", "Training Area", "Rest Area"],
       "openingHours": {
         "monday": "14:00-22:00",
         "tuesday": "14:00-22:00",
@@ -748,16 +663,8 @@
       "descriptionEn": "RedRock Climbing Shilin offers affordable bouldering experience.",
       "coverImage": "/images/gym/redrock-shilin.jpg",
       "images": [],
-      "facilities": [
-        "抱石區",
-        "體能訓練區",
-        "休息區"
-      ],
-      "facilitiesEn": [
-        "Bouldering Area",
-        "Training Area",
-        "Rest Area"
-      ],
+      "facilities": ["抱石區", "體能訓練區", "休息區"],
+      "facilitiesEn": ["Bouldering Area", "Training Area", "Rest Area"],
       "openingHours": {
         "monday": "15:00-23:00",
         "tuesday": "15:00-23:00",
@@ -815,16 +722,8 @@
       "descriptionEn": "RedRock Climbing Hsinchu offers affordable bouldering experience.",
       "coverImage": "/images/gym/redrock-hsinchu.jpg",
       "images": [],
-      "facilities": [
-        "抱石區",
-        "體能訓練區",
-        "休息區"
-      ],
-      "facilitiesEn": [
-        "Bouldering Area",
-        "Training Area",
-        "Rest Area"
-      ],
+      "facilities": ["抱石區", "體能訓練區", "休息區"],
+      "facilitiesEn": ["Bouldering Area", "Training Area", "Rest Area"],
       "openingHours": {
         "monday": "15:00-23:00",
         "tuesday": "15:00-23:00",
@@ -882,16 +781,8 @@
       "descriptionEn": "CORNER Bouldering Gym Huashan is located near Huashan Creative Park.",
       "coverImage": "/images/gym/corner-huashan.jpg",
       "images": [],
-      "facilities": [
-        "抱石區",
-        "體能訓練區",
-        "休息區"
-      ],
-      "facilitiesEn": [
-        "Bouldering Area",
-        "Training Area",
-        "Rest Area"
-      ],
+      "facilities": ["抱石區", "體能訓練區", "休息區"],
+      "facilitiesEn": ["Bouldering Area", "Training Area", "Rest Area"],
       "openingHours": {
         "monday": "10:00-23:00",
         "tuesday": "10:00-23:00",
@@ -951,16 +842,8 @@
       "descriptionEn": "CORNER Bouldering Gym Zhongshan is located on Zhongshan N. Rd.",
       "coverImage": "/images/gym/corner-zhongshan.jpg",
       "images": [],
-      "facilities": [
-        "抱石區",
-        "體能訓練區",
-        "休息區"
-      ],
-      "facilitiesEn": [
-        "Bouldering Area",
-        "Training Area",
-        "Rest Area"
-      ],
+      "facilities": ["抱石區", "體能訓練區", "休息區"],
+      "facilitiesEn": ["Bouldering Area", "Training Area", "Rest Area"],
       "openingHours": {
         "monday": "10:00-23:00",
         "tuesday": "10:00-23:00",
@@ -1019,16 +902,8 @@
       "descriptionEn": "Neihu Sports Center offers affordable climbing services.",
       "coverImage": "/images/gym/neihu-sport.jpg",
       "images": [],
-      "facilities": [
-        "抱石區",
-        "先鋒攀登",
-        "上方確保"
-      ],
-      "facilitiesEn": [
-        "Bouldering Area",
-        "Lead Climbing",
-        "Top Rope"
-      ],
+      "facilities": ["抱石區", "先鋒攀登", "上方確保"],
+      "facilitiesEn": ["Bouldering Area", "Lead Climbing", "Top Rope"],
       "openingHours": {
         "monday": "09:00-22:00",
         "tuesday": "09:00-22:00",
@@ -1090,14 +965,8 @@
       "descriptionEn": "TitoRock Yonghe offers bouldering and lead climbing.",
       "coverImage": "/images/gym/titorock-yonghe.jpg",
       "images": [],
-      "facilities": [
-        "抱石區",
-        "先鋒攀登"
-      ],
-      "facilitiesEn": [
-        "Bouldering Area",
-        "Lead Climbing"
-      ],
+      "facilities": ["抱石區", "先鋒攀登"],
+      "facilitiesEn": ["Bouldering Area", "Lead Climbing"],
       "openingHours": {
         "monday": "13:00-22:00",
         "tuesday": "13:00-22:00",
@@ -1157,14 +1026,8 @@
       "descriptionEn": "Camp4 Climbing Gym Beitou offers lead climbing.",
       "coverImage": "/images/gym/camp4-beitou.jpg",
       "images": [],
-      "facilities": [
-        "先鋒攀登",
-        "上方確保"
-      ],
-      "facilitiesEn": [
-        "Lead Climbing",
-        "Top Rope"
-      ],
+      "facilities": ["先鋒攀登", "上方確保"],
+      "facilitiesEn": ["Lead Climbing", "Top Rope"],
       "openingHours": {
         "monday": "13:00-21:30",
         "tuesday": "13:00-21:30",
@@ -1224,16 +1087,8 @@
       "descriptionEn": "Double 8 Climbing Lab is located in Dadaocheng, reservation required.",
       "coverImage": "/images/gym/double8-dihua.jpg",
       "images": [],
-      "facilities": [
-        "抱石區",
-        "先鋒攀登",
-        "體能訓練區"
-      ],
-      "facilitiesEn": [
-        "Bouldering Area",
-        "Lead Climbing",
-        "Training Area"
-      ],
+      "facilities": ["抱石區", "先鋒攀登", "體能訓練區"],
+      "facilitiesEn": ["Bouldering Area", "Lead Climbing", "Training Area"],
       "openingHours": {
         "monday": "13:30-22:00",
         "tuesday": "13:30-22:00",
@@ -1292,14 +1147,8 @@
       "descriptionEn": "Double 8 Y17 is located at Youth Development Center, reservation required.",
       "coverImage": "/images/gym/double8-y17.jpg",
       "images": [],
-      "facilities": [
-        "先鋒攀登",
-        "上方確保"
-      ],
-      "facilitiesEn": [
-        "Lead Climbing",
-        "Top Rope"
-      ],
+      "facilities": ["先鋒攀登", "上方確保"],
+      "facilitiesEn": ["Lead Climbing", "Top Rope"],
       "openingHours": {
         "monday": "13:00-21:30",
         "tuesday": "13:00-21:30",
@@ -1359,18 +1208,8 @@
       "descriptionEn": "Passion Climbing Gym offers bouldering and lead climbing.",
       "coverImage": "/images/gym/passion.jpg",
       "images": [],
-      "facilities": [
-        "抱石區",
-        "先鋒攀登",
-        "體能訓練區",
-        "休息區"
-      ],
-      "facilitiesEn": [
-        "Bouldering Area",
-        "Lead Climbing",
-        "Training Area",
-        "Rest Area"
-      ],
+      "facilities": ["抱石區", "先鋒攀登", "體能訓練區", "休息區"],
+      "facilitiesEn": ["Bouldering Area", "Lead Climbing", "Training Area", "Rest Area"],
       "openingHours": {
         "monday": "公休",
         "tuesday": "15:00-23:00",
@@ -1430,16 +1269,8 @@
       "descriptionEn": "Thousand Hands offers professional bouldering services.",
       "coverImage": "/images/gym/thousand-hands.jpg",
       "images": [],
-      "facilities": [
-        "抱石區",
-        "體能訓練區",
-        "休息區"
-      ],
-      "facilitiesEn": [
-        "Bouldering Area",
-        "Training Area",
-        "Rest Area"
-      ],
+      "facilities": ["抱石區", "體能訓練區", "休息區"],
+      "facilitiesEn": ["Bouldering Area", "Training Area", "Rest Area"],
       "openingHours": {
         "monday": "14:00-22:00",
         "tuesday": "14:00-22:00",
@@ -1500,18 +1331,8 @@
       "descriptionEn": "iClimb Hsinchu Chenggong offers bouldering and lead climbing.",
       "coverImage": "/images/gym/iclimb-chenggong.jpg",
       "images": [],
-      "facilities": [
-        "抱石區",
-        "先鋒攀登",
-        "體能訓練區",
-        "休息區"
-      ],
-      "facilitiesEn": [
-        "Bouldering Area",
-        "Lead Climbing",
-        "Training Area",
-        "Rest Area"
-      ],
+      "facilities": ["抱石區", "先鋒攀登", "體能訓練區", "休息區"],
+      "facilitiesEn": ["Bouldering Area", "Lead Climbing", "Training Area", "Rest Area"],
       "openingHours": {
         "monday": "14:00-23:00",
         "tuesday": "14:00-23:00",
@@ -1574,16 +1395,8 @@
       "descriptionEn": "iClimb Hsinchu Shengli offers bouldering services.",
       "coverImage": "/images/gym/iclimb-shengli.jpg",
       "images": [],
-      "facilities": [
-        "抱石區",
-        "體能訓練區",
-        "休息區"
-      ],
-      "facilitiesEn": [
-        "Bouldering Area",
-        "Training Area",
-        "Rest Area"
-      ],
+      "facilities": ["抱石區", "體能訓練區", "休息區"],
+      "facilitiesEn": ["Bouldering Area", "Training Area", "Rest Area"],
       "openingHours": {
         "monday": "14:00-23:00",
         "tuesday": "14:00-23:00",
@@ -1643,16 +1456,8 @@
       "descriptionEn": "BABO PAPAK offers bouldering services.",
       "coverImage": "/images/gym/babo-papak.jpg",
       "images": [],
-      "facilities": [
-        "抱石區",
-        "體能訓練區",
-        "休息區"
-      ],
-      "facilitiesEn": [
-        "Bouldering Area",
-        "Training Area",
-        "Rest Area"
-      ],
+      "facilities": ["抱石區", "體能訓練區", "休息區"],
+      "facilitiesEn": ["Bouldering Area", "Training Area", "Rest Area"],
       "openingHours": {
         "monday": "13:30-23:00",
         "tuesday": "13:30-23:00",
@@ -1711,16 +1516,8 @@
       "descriptionEn": "Flow Bouldering Gym (formerly Little Rock Neihu) offers bouldering services.",
       "coverImage": "/images/gym/flow-boulder.jpg",
       "images": [],
-      "facilities": [
-        "抱石區",
-        "體能訓練區",
-        "休息區"
-      ],
-      "facilitiesEn": [
-        "Bouldering Area",
-        "Training Area",
-        "Rest Area"
-      ],
+      "facilities": ["抱石區", "體能訓練區", "休息區"],
+      "facilitiesEn": ["Bouldering Area", "Training Area", "Rest Area"],
       "openingHours": {
         "monday": "12:00-23:00",
         "tuesday": "12:00-23:00",
@@ -1779,14 +1576,7 @@
       "descriptionEn": "Dapro Indoor Climbing is the largest climbing gym in Taichung.",
       "coverImage": "/images/gym/dapro.jpg",
       "images": [],
-      "facilities": [
-        "抱石區",
-        "先鋒攀登",
-        "速度攀登",
-        "體能訓練區",
-        "休息區",
-        "淋浴設施"
-      ],
+      "facilities": ["抱石區", "先鋒攀登", "速度攀登", "體能訓練區", "休息區", "淋浴設施"],
       "facilitiesEn": [
         "Bouldering Area",
         "Lead Climbing",
@@ -1856,16 +1646,8 @@
       "descriptionEn": "VB Climbing Gym offers affordable bouldering services.",
       "coverImage": "/images/gym/vb-taichung.jpg",
       "images": [],
-      "facilities": [
-        "抱石區",
-        "體能訓練區",
-        "休息區"
-      ],
-      "facilitiesEn": [
-        "Bouldering Area",
-        "Training Area",
-        "Rest Area"
-      ],
+      "facilities": ["抱石區", "體能訓練區", "休息區"],
+      "facilitiesEn": ["Bouldering Area", "Training Area", "Rest Area"],
       "openingHours": {
         "monday": "18:00-23:00",
         "tuesday": "18:00-23:00",
@@ -1923,16 +1705,8 @@
       "descriptionEn": "B-plus Climbing Gym offers affordable bouldering services.",
       "coverImage": "/images/gym/bplus.jpg",
       "images": [],
-      "facilities": [
-        "抱石區",
-        "體能訓練區",
-        "休息區"
-      ],
-      "facilitiesEn": [
-        "Bouldering Area",
-        "Training Area",
-        "Rest Area"
-      ],
+      "facilities": ["抱石區", "體能訓練區", "休息區"],
+      "facilitiesEn": ["Bouldering Area", "Training Area", "Rest Area"],
       "openingHours": {
         "monday": "公休",
         "tuesday": "18:00-23:00",
@@ -1990,16 +1764,8 @@
       "descriptionEn": "B-plus Climbing Gym Taiyuan opened in April 2023.",
       "coverImage": "/images/gym/bplus-taiyuan.jpg",
       "images": [],
-      "facilities": [
-        "抱石區",
-        "體能訓練區",
-        "休息區"
-      ],
-      "facilitiesEn": [
-        "Bouldering Area",
-        "Training Area",
-        "Rest Area"
-      ],
+      "facilities": ["抱石區", "體能訓練區", "休息區"],
+      "facilitiesEn": ["Bouldering Area", "Training Area", "Rest Area"],
       "openingHours": {
         "monday": "14:00-22:00",
         "tuesday": "14:00-22:00",
@@ -2057,18 +1823,8 @@
       "descriptionEn": "Shabby Factory offers bouldering and lead climbing.",
       "coverImage": "/images/gym/shabby-factory.jpg",
       "images": [],
-      "facilities": [
-        "抱石區",
-        "先鋒攀登",
-        "體能訓練區",
-        "休息區"
-      ],
-      "facilitiesEn": [
-        "Bouldering Area",
-        "Lead Climbing",
-        "Training Area",
-        "Rest Area"
-      ],
+      "facilities": ["抱石區", "先鋒攀登", "體能訓練區", "休息區"],
+      "facilitiesEn": ["Bouldering Area", "Lead Climbing", "Training Area", "Rest Area"],
       "openingHours": {
         "monday": "14:00-22:00",
         "tuesday": "14:00-22:00",
@@ -2126,16 +1882,8 @@
       "descriptionEn": "High Fun Gym offers bouldering services.",
       "coverImage": "/images/gym/highfun.jpg",
       "images": [],
-      "facilities": [
-        "抱石區",
-        "體能訓練區",
-        "休息區"
-      ],
-      "facilitiesEn": [
-        "Bouldering Area",
-        "Training Area",
-        "Rest Area"
-      ],
+      "facilities": ["抱石區", "體能訓練區", "休息區"],
+      "facilitiesEn": ["Bouldering Area", "Training Area", "Rest Area"],
       "openingHours": {
         "monday": "公休",
         "tuesday": "14:00-22:00",
@@ -2193,16 +1941,8 @@
       "descriptionEn": "BCKH Bouldering Base offers professional bouldering services.",
       "coverImage": "/images/gym/bckh.jpg",
       "images": [],
-      "facilities": [
-        "抱石區",
-        "體能訓練區",
-        "休息區"
-      ],
-      "facilitiesEn": [
-        "Bouldering Area",
-        "Training Area",
-        "Rest Area"
-      ],
+      "facilities": ["抱石區", "體能訓練區", "休息區"],
+      "facilitiesEn": ["Bouldering Area", "Training Area", "Rest Area"],
       "openingHours": {
         "monday": "14:00-22:30",
         "tuesday": "14:00-22:30",
@@ -2261,18 +2001,8 @@
       "descriptionEn": "Boulder Space Zuoying is located in Global Mall, offering bouldering and lead climbing.",
       "coverImage": "/images/gym/boulder-space.jpg",
       "images": [],
-      "facilities": [
-        "抱石區",
-        "先鋒攀登",
-        "體能訓練區",
-        "休息區"
-      ],
-      "facilitiesEn": [
-        "Bouldering Area",
-        "Lead Climbing",
-        "Training Area",
-        "Rest Area"
-      ],
+      "facilities": ["抱石區", "先鋒攀登", "體能訓練區", "休息區"],
+      "facilitiesEn": ["Bouldering Area", "Lead Climbing", "Training Area", "Rest Area"],
       "openingHours": {
         "monday": "11:00-22:00",
         "tuesday": "11:00-22:00",
@@ -2332,16 +2062,8 @@
       "descriptionEn": "B-TOPIA Climbing Gym offers bouldering services.",
       "coverImage": "/images/gym/btopia.jpg",
       "images": [],
-      "facilities": [
-        "抱石區",
-        "體能訓練區",
-        "休息區"
-      ],
-      "facilitiesEn": [
-        "Bouldering Area",
-        "Training Area",
-        "Rest Area"
-      ],
+      "facilities": ["抱石區", "體能訓練區", "休息區"],
+      "facilitiesEn": ["Bouldering Area", "Training Area", "Rest Area"],
       "openingHours": {
         "monday": "15:00-23:00",
         "tuesday": "15:00-23:00",
@@ -2400,16 +2122,8 @@
       "descriptionEn": "Jiutao Climbing Gym Yilan is a professional climbing facility in Yilan.",
       "coverImage": "/images/gym/jiutao-yilan.jpg",
       "images": [],
-      "facilities": [
-        "抱石區",
-        "體能訓練區",
-        "休息區"
-      ],
-      "facilitiesEn": [
-        "Bouldering Area",
-        "Training Area",
-        "Rest Area"
-      ],
+      "facilities": ["抱石區", "體能訓練區", "休息區"],
+      "facilitiesEn": ["Bouldering Area", "Training Area", "Rest Area"],
       "openingHours": {
         "monday": "13:00-22:00",
         "tuesday": "13:00-22:00",
@@ -2467,16 +2181,8 @@
       "descriptionEn": "Wuyan Bouldering Gym offers bouldering services.",
       "coverImage": "/images/gym/wuyan.jpg",
       "images": [],
-      "facilities": [
-        "抱石區",
-        "體能訓練區",
-        "休息區"
-      ],
-      "facilitiesEn": [
-        "Bouldering Area",
-        "Training Area",
-        "Rest Area"
-      ],
+      "facilities": ["抱石區", "體能訓練區", "休息區"],
+      "facilitiesEn": ["Bouldering Area", "Training Area", "Rest Area"],
       "openingHours": {
         "monday": "公休",
         "tuesday": "13:00-21:00",
@@ -2534,16 +2240,8 @@
       "descriptionEn": "Xiaowo Activity Space offers bouldering and lead climbing.",
       "coverImage": "/images/gym/xiaowo.jpg",
       "images": [],
-      "facilities": [
-        "抱石區",
-        "先鋒攀登",
-        "休息區"
-      ],
-      "facilitiesEn": [
-        "Bouldering Area",
-        "Lead Climbing",
-        "Rest Area"
-      ],
+      "facilities": ["抱石區", "先鋒攀登", "休息區"],
+      "facilitiesEn": ["Bouldering Area", "Lead Climbing", "Rest Area"],
       "openingHours": {
         "monday": "17:30-23:00",
         "tuesday": "17:30-23:00",
@@ -2601,14 +2299,8 @@
       "descriptionEn": "Hejiang Climbing is a climbing gym in Taitung, reservation required.",
       "coverImage": "/images/gym/hejiang.jpg",
       "images": [],
-      "facilities": [
-        "抱石區",
-        "休息區"
-      ],
-      "facilitiesEn": [
-        "Bouldering Area",
-        "Rest Area"
-      ],
+      "facilities": ["抱石區", "休息區"],
+      "facilitiesEn": ["Bouldering Area", "Rest Area"],
       "openingHours": {
         "monday": "10:00-21:00",
         "tuesday": "10:00-21:00",
@@ -2666,16 +2358,8 @@
       "descriptionEn": "High Fun Rende is a branch of High Fun Gym, offering lead climbing and bouldering services.",
       "coverImage": "/images/gym/highfun-rende.jpg",
       "images": [],
-      "facilities": [
-        "先鋒攀登",
-        "抱石區",
-        "休息區"
-      ],
-      "facilitiesEn": [
-        "Lead Climbing",
-        "Bouldering Area",
-        "Rest Area"
-      ],
+      "facilities": ["先鋒攀登", "抱石區", "休息區"],
+      "facilitiesEn": ["Lead Climbing", "Bouldering Area", "Rest Area"],
       "openingHours": {
         "monday": "14:00-22:00",
         "tuesday": "14:00-22:00",
@@ -2720,16 +2404,7 @@
     "totalGyms": 39,
     "lastUpdated": "2026-01-12T00:00:00Z",
     "source": "NobodyClimb",
-    "regions": [
-      "北部",
-      "中部",
-      "南部",
-      "東部"
-    ],
-    "types": [
-      "bouldering",
-      "lead",
-      "mixed"
-    ]
+    "regions": ["北部", "中部", "南部", "東部"],
+    "types": ["bouldering", "lead", "mixed"]
   }
 }

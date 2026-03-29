@@ -32,7 +32,11 @@ export function DecisionNarrative({
   }
 
   const queryType = pipeline?.query_parsing?.query_type
-  const queryTypeMap: Record<string, string> = { simple: '簡單查詢', complex: '複雜查詢', 'general-knowledge': '通識查詢' }
+  const queryTypeMap: Record<string, string> = {
+    simple: '簡單查詢',
+    complex: '複雜查詢',
+    'general-knowledge': '通識查詢',
+  }
 
   if (queryType === 'general-knowledge') {
     parts.push(queryTypeMap[queryType])
@@ -98,7 +102,9 @@ export function DecisionNarrative({
   return (
     <div className="rounded-xl border border-wb-20 bg-wb-3 px-4 py-3">
       <p className="text-[10px] text-wb-40 mb-1 uppercase tracking-wide font-semibold">決策摘要</p>
-      <p className="text-[11px] font-medium text-wb-70 font-mono leading-relaxed">{parts.join(' → ')}</p>
+      <p className="text-[11px] font-medium text-wb-70 font-mono leading-relaxed">
+        {parts.join(' → ')}
+      </p>
     </div>
   )
 }

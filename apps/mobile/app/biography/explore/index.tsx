@@ -3,21 +3,21 @@
  *
  * 對應 apps/web/src/app/biography/explore/page.tsx
  */
-import React, { useState, useCallback } from 'react'
-import { StyleSheet, View, ScrollView, RefreshControl, Pressable } from 'react-native'
-import { SafeAreaView } from 'react-native-safe-area-context'
-import { useRouter } from 'expo-router'
-import { ChevronLeft, BarChart3 } from 'lucide-react-native'
-import { useQueryClient } from '@tanstack/react-query'
 
-import { Text, SearchInput, IconButton, Breadcrumb } from '@/components/ui'
-import {
-  TrendingGoals,
-  RecentCompletedStories,
-  LocationExplorer,
-  CategoryExplorer,
-} from '@/components/biography/explore'
 import { SEMANTIC_COLORS, SPACING } from '@nobodyclimb/constants'
+import { useQueryClient } from '@tanstack/react-query'
+import { useRouter } from 'expo-router'
+import { BarChart3, ChevronLeft } from 'lucide-react-native'
+import { useCallback, useState } from 'react'
+import { Pressable, RefreshControl, ScrollView, StyleSheet, View } from 'react-native'
+import { SafeAreaView } from 'react-native-safe-area-context'
+import {
+  CategoryExplorer,
+  LocationExplorer,
+  RecentCompletedStories,
+  TrendingGoals,
+} from '@/components/biography/explore'
+import { Breadcrumb, IconButton, SearchInput, Text } from '@/components/ui'
 
 type FilterTab = 'all' | 'growth' | 'experience' | 'recovery' | 'footprint'
 

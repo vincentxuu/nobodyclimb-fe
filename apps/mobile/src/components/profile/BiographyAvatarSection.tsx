@@ -1,12 +1,11 @@
-import React from 'react'
-import { View, StyleSheet, Pressable } from 'react-native'
+import { SEMANTIC_COLORS, WB_COLORS } from '@nobodyclimb/constants'
 import { Image } from 'expo-image'
 import * as ImagePicker from 'expo-image-picker'
-import { Image as ImageIcon, Camera, Trash2, X } from 'lucide-react-native'
-import { Text } from '../ui/Text'
-import { Icon } from '../ui/Icon'
+import { Camera, Image as ImageIcon, Trash2, X } from 'lucide-react-native'
+import { Pressable, StyleSheet, View } from 'react-native'
 import { AvatarWithFallback } from '../ui/AvatarWithFallback'
-import { COLORS, SEMANTIC_COLORS, WB_COLORS } from '@nobodyclimb/constants'
+import { Icon } from '../ui/Icon'
+import { Text } from '../ui/Text'
 
 interface BiographyAvatarSectionProps {
   avatarUrl: string | null
@@ -50,11 +49,7 @@ export default function BiographyAvatarSection({
       {/* Cover Image */}
       <View style={styles.coverContainer}>
         {coverImageUrl ? (
-          <Image
-            source={{ uri: coverImageUrl }}
-            style={styles.coverImage}
-            contentFit="cover"
-          />
+          <Image source={{ uri: coverImageUrl }} style={styles.coverImage} contentFit="cover" />
         ) : (
           <View style={styles.coverPlaceholder}>
             <Icon icon={ImageIcon} size="lg" color={WB_COLORS[50]} />
@@ -65,10 +60,7 @@ export default function BiographyAvatarSection({
         )}
         {isEditing && (
           <View style={styles.coverActions}>
-            <Pressable
-              style={styles.actionButton}
-              onPress={() => pickImage('cover')}
-            >
+            <Pressable style={styles.actionButton} onPress={() => pickImage('cover')}>
               <Icon icon={Camera} size="sm" color={WB_COLORS[0]} />
             </Pressable>
             {coverImageUrl && (
@@ -86,17 +78,10 @@ export default function BiographyAvatarSection({
       {/* Avatar */}
       <View style={styles.avatarWrapper}>
         <View style={styles.avatarContainer}>
-          <AvatarWithFallback
-            src={avatarUrl}
-            size="xl"
-            fallback=""
-          />
+          <AvatarWithFallback src={avatarUrl} size="xl" fallback="" />
           {isEditing && (
             <View style={styles.avatarActions}>
-              <Pressable
-                style={styles.avatarButton}
-                onPress={() => pickImage('avatar')}
-              >
+              <Pressable style={styles.avatarButton} onPress={() => pickImage('avatar')}>
                 <Icon icon={Camera} size="xs" color={WB_COLORS[0]} />
               </Pressable>
               {avatarUrl && (

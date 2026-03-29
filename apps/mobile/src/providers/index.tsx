@@ -3,15 +3,16 @@
  *
  * 整合所有 Providers
  */
-import React, { type ReactNode, useEffect, useState } from 'react'
+
+import { BottomSheetModalProvider } from '@gorhom/bottom-sheet'
+import { TamaguiProvider } from '@tamagui/core'
+import { type ReactNode, useEffect, useState } from 'react'
 import { useColorScheme } from 'react-native'
 import { SafeAreaProvider } from 'react-native-safe-area-context'
-import { TamaguiProvider } from '@tamagui/core'
-import { BottomSheetModalProvider } from '@gorhom/bottom-sheet'
-import { QueryProvider } from './QueryProvider'
 import { ToastProvider } from '@/components/ui/Toast'
 import { tokenStorage, useAuthStore } from '@/store/authStore'
 import config from '../../tamagui.config'
+import { QueryProvider } from './QueryProvider'
 
 interface ProvidersProps {
   children: ReactNode
@@ -52,9 +53,7 @@ export function Providers({ children }: ProvidersProps) {
         <QueryProvider>
           <BottomSheetModalProvider>
             <ToastProvider>
-              <AuthInitializer>
-                {children}
-              </AuthInitializer>
+              <AuthInitializer>{children}</AuthInitializer>
             </ToastProvider>
           </BottomSheetModalProvider>
         </QueryProvider>

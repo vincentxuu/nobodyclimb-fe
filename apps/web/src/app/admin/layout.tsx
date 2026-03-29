@@ -1,10 +1,10 @@
 'use client'
 
-import { useEffect, useState } from 'react'
-import { useRouter, usePathname } from 'next/navigation'
+import { ArrowLeft, LayoutDashboard, Loader2, Menu, X } from 'lucide-react'
 import Link from 'next/link'
+import { usePathname, useRouter } from 'next/navigation'
+import { useEffect, useState } from 'react'
 import { authService } from '@/lib/api/services'
-import { LayoutDashboard, ArrowLeft, Loader2, Menu, X } from 'lucide-react'
 
 interface AdminLayoutProps {
   children: React.ReactNode
@@ -130,11 +130,7 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
               className="lg:hidden p-2 text-wb-70 hover:text-wb-100 hover:bg-wb-10 rounded-lg transition-colors"
               aria-label="開啟選單"
             >
-              {mobileMenuOpen ? (
-                <X className="h-5 w-5" />
-              ) : (
-                <Menu className="h-5 w-5" />
-              )}
+              {mobileMenuOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
             </button>
           </div>
         </div>
@@ -162,9 +158,7 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
       </nav>
 
       {/* Content */}
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
-        {children}
-      </main>
+      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">{children}</main>
     </div>
   )
 }

@@ -1,13 +1,21 @@
 'use client'
 
-import * as React from 'react'
+import { AnimatePresence, motion } from 'framer-motion'
+import {
+  Clock,
+  Flame,
+  HeartCrack,
+  Home,
+  PartyPopper,
+  RotateCcw,
+  Target,
+  Trophy,
+} from 'lucide-react'
 import { useEffect } from 'react'
-import { motion, AnimatePresence } from 'framer-motion'
-import { Trophy, RotateCcw, Home, Clock, Target, Flame, PartyPopper, HeartCrack } from 'lucide-react'
-import { cn } from '@/lib/utils'
 import { Button } from '@/components/ui/button'
-import type { GameStats } from '@/lib/games/rope-system/types'
 import { useGameSounds } from '@/lib/games/rope-system/sounds'
+import type { GameStats } from '@/lib/games/rope-system/types'
+import { cn } from '@/lib/utils'
 
 interface ResultModalProps {
   isOpen: boolean
@@ -44,9 +52,7 @@ export function ResultModal({
   }, [isOpen, isGameOver, playComplete, playGameOver])
 
   // 計算正確率
-  const accuracy = totalQuestions > 0
-    ? Math.round((stats.correctCount / totalQuestions) * 100)
-    : 0
+  const accuracy = totalQuestions > 0 ? Math.round((stats.correctCount / totalQuestions) * 100) : 0
 
   // 格式化時間
   const formatTime = (seconds: number) => {
@@ -69,10 +75,7 @@ export function ResultModal({
             animate={{ scale: 1, opacity: 1 }}
             exit={{ scale: 0.9, opacity: 0 }}
             transition={{ type: 'spring', damping: 20, stiffness: 300 }}
-            className={cn(
-              'w-full max-w-md rounded-lg bg-white p-8 shadow-xl',
-              className
-            )}
+            className={cn('w-full max-w-md rounded-lg bg-white p-8 shadow-xl', className)}
           >
             {/* 標題 */}
             <div className="mb-6 text-center">
@@ -91,9 +94,7 @@ export function ResultModal({
               <h2 className="text-2xl font-bold text-[#1B1A1A]">
                 {isGameOver ? '遊戲結束' : '完成練習！'}
               </h2>
-              {categoryName && (
-                <p className="mt-1 text-[#535353]">{categoryName}</p>
-              )}
+              {categoryName && <p className="mt-1 text-[#535353]">{categoryName}</p>}
             </div>
 
             {/* 統計資料 */}
@@ -126,9 +127,7 @@ export function ResultModal({
                   <span className="text-[#535353]">正確率</span>
                 </div>
                 <div className="text-right">
-                  <span className="text-2xl font-bold text-[#1B1A1A]">
-                    {accuracy}%
-                  </span>
+                  <span className="text-2xl font-bold text-[#1B1A1A]">{accuracy}%</span>
                   <span className="ml-2 text-sm text-[#535353]">
                     {stats.correctCount} / {totalQuestions}
                   </span>
@@ -146,9 +145,7 @@ export function ResultModal({
                   <Flame className="h-6 w-6 text-[#FFE70C]" />
                   <span className="text-[#535353]">最高連擊</span>
                 </div>
-                <span className="text-2xl font-bold text-[#1B1A1A]">
-                  {stats.maxCombo}
-                </span>
+                <span className="text-2xl font-bold text-[#1B1A1A]">{stats.maxCombo}</span>
               </motion.div>
 
               {/* 用時 */}
@@ -175,20 +172,11 @@ export function ResultModal({
               transition={{ delay: 0.7 }}
               className="space-y-3"
             >
-              <Button
-                onClick={onPlayAgain}
-                className="w-full"
-                size="lg"
-              >
+              <Button onClick={onPlayAgain} className="w-full" size="lg">
                 <RotateCcw className="mr-2 h-5 w-5" />
                 再玩一次
               </Button>
-              <Button
-                onClick={onGoHome}
-                variant="secondary"
-                className="w-full"
-                size="lg"
-              >
+              <Button onClick={onGoHome} variant="secondary" className="w-full" size="lg">
                 <Home className="mr-2 h-5 w-5" />
                 回到首頁
               </Button>

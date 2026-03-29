@@ -35,7 +35,7 @@ export const SYSTEM_PROMPT = `你是 NobodyClimb 的攀岩助理，專門協助�
 ---SUGGESTIONS---
 1. （必須是問句，以？結尾）
 2. （必須是問句，以？結尾）
-3. （必須是問句，以？結尾）`;
+3. （必須是問句，以？結尾）`
 
 // Tool Calling：讓 LLM 解析查詢意圖並選擇搜尋工具
 export const TOOL_SELECTION_PROMPT = `你是 NobodyClimb 攀岩平台的查詢解析器。根據使用者問題，選擇最合適的搜尋工具與參數。
@@ -118,7 +118,7 @@ clarification_type 欄位（僅 query_type=clarification-needed 時輸出）：
 攀登類型中文對應：運攀→sport、傳攀→trad、抱石→boulder、混合→mixed
 ascent_type 對應：rp/紅點→redpoint、os→onsight、flash→flash、attempt→attempt、toprope→toprope、lead→lead、seconding→seconding、repeat→repeat
 
-使用者問題：{query}`;
+使用者問題：{query}`
 
 // SQL 結果組裝 Prompt：將 SQL 查詢結果轉為自然語言
 export const SQL_RESULT_ASSEMBLY_PROMPT = `你是攀岩平台助理。將以下 {count} 筆資料轉為繁體中文回答。只輸出回答本身，禁止輸出 JSON、SQL、模板名稱或額外說明。
@@ -139,7 +139,7 @@ export const SQL_RESULT_ASSEMBLY_PROMPT = `你是攀岩平台助理。將以下 
 <user_question>{query}</user_question>
 <data>
 {results}
-</data>`;
+</data>`
 
 // general_knowledge 路徑：允許 LLM 直接回答一般攀岩知識
 export const GENERAL_KNOWLEDGE_SYSTEM_PROMPT = `你是 NobodyClimb 的攀岩助理，擁有豐富的攀岩知識。
@@ -160,14 +160,14 @@ Markdown 規則（嚴格遵守）：
 ---SUGGESTIONS---
 1. （必須是問句，以？結尾）
 2. （必須是問句，以？結尾）
-3. （必須是問句，以？結尾）`;
+3. （必須是問句，以？結尾）`
 
 // HyDE（Hypothetical Document Embeddings）：生成假設性理想答案文件
 export const HYDE_PROMPT = `請根據以下攀岩問題，生成一段假設性的理想答案文件（100字以內）。
 使用繁體中文，盡量包含攀岩術語（岩場名稱、難度、攀登類型等）。
 直接輸出文件內容，不含說明。
 
-問題：{query}`;
+問題：{query}`
 
 // Judge Prompt：評估回答的 groundedness 與品質
 // 輸出嚴格要求 JSON，不含任何說明文字
@@ -199,7 +199,7 @@ export const JUDGE_PROMPT = `你是一個回答品質評估器。請根據以下
 {response}
 
 只回傳 JSON，不含任何說明，範例格式（請填入實際數值）：
-{"groundedness": 0.75, "quality": 3, "constraint_ok": true}`;
+{"groundedness": 0.75, "quality": 3, "constraint_ok": true}`
 
 // Contextual RAG：為每個 chunk 生成語意摘要，prepend 後再 embed，提升向量搜尋準確度
 // 生成的摘要只用於 embedding，不寫入 D1（LLM context 仍使用原始結構化文字）
@@ -208,7 +208,7 @@ export const CONTEXTUAL_CHUNK_PROMPT = `以下是一筆{type}資料：
 {content}
 
 請用 1-2 句話描述這筆資料的核心特色，說明攀岩者在什麼情境下會需要這份資訊。
-只輸出描述，不要多餘文字。`;
+只輸出描述，不要多餘文字。`
 
 // Multi-Query Expansion：將使用者查詢改寫為多個不同角度的子查詢，提升向量搜尋召回率
 export const MULTI_QUERY_EXPANSION_PROMPT = `你是攀岩知識庫的查詢優化專家。
@@ -221,7 +221,7 @@ export const MULTI_QUERY_EXPANSION_PROMPT = `你是攀岩知識庫的查詢優�
 2. 聚焦在技術參數（難度等級、攀登類型）的查詢
 3. 聚焦在使用者意圖（目的、經驗程度、適合對象）的查詢
 
-只輸出 {count} 行查詢，不含編號或說明。`;
+只輸出 {count} 行查詢，不含編號或說明。`
 
 // Agentic Multi-Step RAG：LLM 自主決定是否需要額外搜尋
 export const AGENTIC_DECISION_PROMPT = `你是攀岩知識庫的 AI 研究員，負責決定是否需要額外搜尋以回答問題。
@@ -246,7 +246,7 @@ export const AGENTIC_DECISION_PROMPT = `你是攀岩知識庫的 AI 研究員，
 - SWITCH_TOOL 僅在 RETRIEVE 和 BROADEN 都無法改善結果時使用，targetTool 可選：search_routes、search_crags、search_sql、hybrid（不可選 general_knowledge）
 - DECOMPOSE：問題涉及多個實體或多面向比較時使用，最多 3 個子查詢
 - VERIFY：已有結果但不確定是否完整或正確時使用，用不同角度搜尋交叉驗證
-- 剩餘可搜尋次數：{remaining_steps}，若為 0 請選 ANSWER`;
+- 剩餘可搜尋次數：{remaining_steps}，若為 0 請選 ANSWER`
 
 // Plan-and-Execute：將複雜查詢分解為可獨立檢索的子任務計畫
 export const PLANNING_PROMPT = `你是一個查詢分解專家。根據使用者的查詢，將其分解為可獨立檢索的子任務。
@@ -277,7 +277,7 @@ export const PLANNING_PROMPT = `你是一個查詢分解專家。根據使用者
 2. depends_on 為空陣列表示可並行執行
 3. 最多 {max_steps} 個子任務
 4. tool 只能是 search_routes、search_crags、sql_query 之一
-5. execution_mode 為 parallel、sequential 或 mixed`;
+5. execution_mode 為 parallel、sequential 或 mixed`
 
 // Plan-and-Execute：將多個子任務的檢索結果合併為結構化 context
 export const SYNTHESIS_PROMPT = `你是一個資訊整合專家。請將以下多個子任務的檢索結果合併為結構化的參考資料。
@@ -294,7 +294,7 @@ export const SYNTHESIS_PROMPT = `你是一個資訊整合專家。請將以下�
 4. 保留所有具體數據（難度、長度、評分等）
 5. 不要生成最終回答，只整理參考資料供後續使用
 
-輸出純文字，不要 JSON 格式。`;
+輸出純文字，不要 JSON 格式。`
 
 export const QUERY_TEMPLATE = `以下是與問題相關的攀岩資料（已依相關度與熱門度排序）：
 
@@ -306,4 +306,4 @@ export const QUERY_TEMPLATE = `以下是與問題相關的攀岩資料（已依�
 **【語言規定】你必須使用繁體中文回答，絕對不可使用英文。**
 請根據以上資料回答問題。若是推薦性問題，請比較路線特色和難度差異，給出有洞察力的具體建議，而非單純列出清單。
 **【推薦嚴格限制】若推薦路線，只能推薦上方資料中明確出現的路線名稱，絕對不可推薦未列出的路線，即使你認為該路線符合需求。**
-**【多輪對話重要說明】若使用者問到「還有」「其他」「更多」等，請列出上方資料中所有符合條件的路線，包括之前對話中已提及的路線——對話歷史僅供脈絡參考，判斷「有無結果」請以上方目前提供的資料為準，不可因為歷史中已提過某路線就回答「找不到其他」。**`;
+**【多輪對話重要說明】若使用者問到「還有」「其他」「更多」等，請列出上方資料中所有符合條件的路線，包括之前對話中已提及的路線——對話歷史僅供脈絡參考，判斷「有無結果」請以上方目前提供的資料為準，不可因為歷史中已提過某路線就回答「找不到其他」。**`

@@ -3,7 +3,7 @@
  *
  * 對應 apps/web/src/lib/hooks/useRouteStories.ts
  */
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { apiClient } from '@/lib/api'
 
 // ── Types ──────────────────────────────────────────────
@@ -139,33 +139,25 @@ export function useToggleStoryLike() {
       )
 
       if (previousData) {
-        queryClient.setQueryData<PaginatedResponse<RouteStory>>(
-          routeStoryKeys.byRoute(routeId),
-          {
-            ...previousData,
-            data: previousData.data.map((story) =>
-              story.id === storyId
-                ? {
-                    ...story,
-                    is_liked: !story.is_liked,
-                    like_count: story.is_liked
-                      ? story.like_count - 1
-                      : story.like_count + 1,
-                  }
-                : story
-            ),
-          }
-        )
+        queryClient.setQueryData<PaginatedResponse<RouteStory>>(routeStoryKeys.byRoute(routeId), {
+          ...previousData,
+          data: previousData.data.map((story) =>
+            story.id === storyId
+              ? {
+                  ...story,
+                  is_liked: !story.is_liked,
+                  like_count: story.is_liked ? story.like_count - 1 : story.like_count + 1,
+                }
+              : story
+          ),
+        })
       }
 
       return { previousData }
     },
     onError: (_err, { routeId }, context) => {
       if (context?.previousData) {
-        queryClient.setQueryData(
-          routeStoryKeys.byRoute(routeId),
-          context.previousData
-        )
+        queryClient.setQueryData(routeStoryKeys.byRoute(routeId), context.previousData)
       }
     },
   })
@@ -193,33 +185,27 @@ export function useToggleStoryHelpful() {
       )
 
       if (previousData) {
-        queryClient.setQueryData<PaginatedResponse<RouteStory>>(
-          routeStoryKeys.byRoute(routeId),
-          {
-            ...previousData,
-            data: previousData.data.map((story) =>
-              story.id === storyId
-                ? {
-                    ...story,
-                    is_helpful: !story.is_helpful,
-                    helpful_count: story.is_helpful
-                      ? story.helpful_count - 1
-                      : story.helpful_count + 1,
-                  }
-                : story
-            ),
-          }
-        )
+        queryClient.setQueryData<PaginatedResponse<RouteStory>>(routeStoryKeys.byRoute(routeId), {
+          ...previousData,
+          data: previousData.data.map((story) =>
+            story.id === storyId
+              ? {
+                  ...story,
+                  is_helpful: !story.is_helpful,
+                  helpful_count: story.is_helpful
+                    ? story.helpful_count - 1
+                    : story.helpful_count + 1,
+                }
+              : story
+          ),
+        })
       }
 
       return { previousData }
     },
     onError: (_err, { routeId }, context) => {
       if (context?.previousData) {
-        queryClient.setQueryData(
-          routeStoryKeys.byRoute(routeId),
-          context.previousData
-        )
+        queryClient.setQueryData(routeStoryKeys.byRoute(routeId), context.previousData)
       }
     },
   })
